@@ -1,0 +1,197 @@
+{
+  "timestamp": "2026-08-27T01:43:14.712Z",
+  "head": "bd2cacb3a20403302fd0a49441932d5522793e56",
+  "status": "FIXTURE PREPARATION ONLY; no virtual/runtime acceptance",
+  "originals": {
+    "tests/shell-stress/invocation-closure/cases.ts": "1f5ac63adbfa9e13d70ab79e2cf991efa6cb7d70d6f2463d2bef0ed4d14c6aef",
+    "tests/shell-stress/invocation-closure/probe.ts": "d9d956718c93d15243d6e026ee6dbefbc05ec4ef2a2a6b818a3915fbad139464",
+    "tests/shell-stress/invocation-closure/holdout.test.ts": "8a9deddf284de912e4ec9fc5137110c507106b5f0ac4dcdb6a85a94bcc2c07ff",
+    "tests/shell-stress/invocation-closure/native.ts": "b2f6d8a5ed8bd96392d62d7af8d5c89c75f1a58983aaf87e775171013520bbec",
+    "tests/shell-stress/invocation-closure/native-preparation.json": "c5c698cf91b3cbf32c63f338af5e5a241be941c092821dc3a900d58ccaeceabe",
+    "tests/shell-stress/invocation-closure/post-ready-new.json": "62122136be8458985926753ab8f2b22c7fb3dc3ee6d08fe6088458db1a8fea11",
+    "tests/shell-stress/invocation-closure/post-ready-new-comparison.json": "0bf653e2340183b687fe160ee5e49d36e5e666e3f151f681c530381cabf14fbc",
+    "tests/shell-stress/invocation-closure/post-ready-summary.json": "a129abb8c07a958413875090c50d457653e3278913d4024c41a9a8e8621a960e",
+    "tests/shell-stress/invocation-modes/cases.ts": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+    "tests/shell-stress/invocation-modes/holdout.test.ts": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+    "tests/shell/invocation-modes.test.ts": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+    "tests/shell-stress/script-entrypoint/cases.ts": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d"
+  },
+  "adaptations": [
+    {
+      "id": "query-V-verbose",
+      "before": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+      "after": "closurefn() { :; }; PATH=tools; command -V true closurefn closuretool"
+    },
+    {
+      "id": "type-multiple-status",
+      "before": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+      "after": "closurefn() { :; }; PATH=tools; type -t true closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type true closuretool"
+    }
+  ],
+  "nativeRowsPerProfile": 26,
+  "nativeRowsTotal": 52,
+  "metadataProcesses": 4,
+  "originalHostRows": 8,
+  "v2HoldoutsPrepared": 34,
+  "additionalRegistryTruthTest": 1,
+  "unchangedOtherRowsPerProfile": 24,
+  "nativeChanges": [
+    {
+      "profile": "gnu-5.3",
+      "id": "query-V-verbose",
+      "fields": [
+        "stdoutHex"
+      ],
+      "old": {
+        "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+        "status": 0,
+        "stdoutHex": "7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d4271764c364b2f746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      },
+      "v2": {
+        "source": "closurefn() { :; }; PATH=tools; command -V true closurefn closuretool",
+        "status": 0,
+        "stdoutHex": "747275652069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d76322d597937706c5a2f746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "gnu-5.3",
+      "id": "type-multiple-status",
+      "fields": [
+        "stdoutHex"
+      ],
+      "old": {
+        "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+        "status": 0,
+        "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      },
+      "v2": {
+        "source": "closurefn() { :; }; PATH=tools; type -t true closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type true closuretool",
+        "status": 0,
+        "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a747275652069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "historical-3.2",
+      "id": "query-V-verbose",
+      "fields": [
+        "stdoutHex"
+      ],
+      "old": {
+        "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+        "status": 0,
+        "stdoutHex": "7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d6975586875312f746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      },
+      "v2": {
+        "source": "closurefn() { :; }; PATH=tools; command -V true closurefn closuretool",
+        "status": 0,
+        "stdoutHex": "747275652069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d76322d575a4b4a50682f746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "profile": "historical-3.2",
+      "id": "type-multiple-status",
+      "fields": [
+        "stdoutHex"
+      ],
+      "old": {
+        "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+        "status": 0,
+        "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a300a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      },
+      "v2": {
+        "source": "closurefn() { :; }; PATH=tools; type -t true closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type true closuretool",
+        "status": 0,
+        "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a300a747275652069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      }
+    }
+  ],
+  "nativeHash": "e1bf8961ed3aee2832b93aa68af2e45b14dad652c68262f6d8d8210bc2c7673d",
+  "originalRaw31of34Preserved": true,
+  "preparationTypes": {
+    "code": 0,
+    "stable": true,
+    "listedInputs": 208,
+    "hash": "9dd8bf6b35bc53eb630ce4b75441f983f00e3ed598f0cc62976eac4b3fcf007f"
+  },
+  "cleanup": {
+    "pids": [
+      85171,
+      85172,
+      85174,
+      85175,
+      85176,
+      85177,
+      85178,
+      85184,
+      85195,
+      85197,
+      85198,
+      85199,
+      85200,
+      85201,
+      85202,
+      85203,
+      85204,
+      85205,
+      85206,
+      85208,
+      85209,
+      85210,
+      85211,
+      85212,
+      85213,
+      85214,
+      85215,
+      85218,
+      85220,
+      85221,
+      85222,
+      85223,
+      85224,
+      85225,
+      85226,
+      85229,
+      85235,
+      85238,
+      85239,
+      85241,
+      85242,
+      85243,
+      85244,
+      85245,
+      85246,
+      85247,
+      85248,
+      85249,
+      85251,
+      85253,
+      85254,
+      85255,
+      85256,
+      85257,
+      85258,
+      85261,
+      87036,
+      87037
+    ],
+    "allProcessGroupsAbsent": true,
+    "temporaryDirectories": []
+  },
+  "guardedFiles": {
+    "v2-cases.ts": "14ca9a525eb75fe2c51720c472890a42cb4278fac9a6271cab4dfa021ef095be",
+    "v2-holdout.test.ts": "aaddaf3a25f77ee8be81cd49c3c139187981a0a4826829e3fe829993e04f8362",
+    "v2-native.ts": "3c725cdc83338d8dca9404d1619cc8c11395e2b96ed5b966867a519d326b82ec",
+    "v2-preparation-audit.mjs": "ab78753b352d992bf03b5c22c304872c824c4b3d0fc67571de38bb7cce4dc889",
+    "v2-probe.ts": "ab6899da81ec40b263b3e9c514dc57445ac25e179e1a6d6a6460fd2e11314b52",
+    "v2-registry.test.ts": "302c8c9168f4f5d70976f3f3496de2848069038e347400a1de52af7206b941ec",
+    "v2-verify.ts": "52e0b9dfa51065f2c605d7cdeff406a1a935537dc2fb000b1ab43aec5f97ec51"
+  }
+}

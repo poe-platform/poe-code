@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "DIFFERENT_STATIC_VERIFIER",
+  "parentWorkerCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "previousReviewCommit": "73578f6c24a77d0e52bd91b9a445cda0954ce499",
+  "abiCommit": "9d582d791336fd66d865f6592b830c39a359d344",
+  "abiSha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+  "cwF01": {
+    "commit": "89bc7bd545f8b6f7215b7c2a49cccf644a08e07f",
+    "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2",
+    "finalSealSha256": "2ddd402a35916f4fb7ab29b33c9f740aebde5134a2feca43383b5abf6c427fb6",
+    "sourceSealSha256": "8b2509578e6ac09770cff0e465183d9c8efbd4579741b8714680e71c6847ed6f",
+    "target": "workers/type-worker.mjs",
+    "postimageSha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd"
+  },
+  "cwF02": {
+    "commit": "9fe3c8574b32df9839284307942be5003d87d0a0",
+    "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2",
+    "finalSealSha256": "e124f052e7bf148073ac6831b48fe7436ee4b54fc2ca06ea1f595bb12dca1197",
+    "sourceSealSha256": "5024fb1989532ff9f5051cc7e4cff32efd0918e4a2ea31e2151d9e34c35a99b2",
+    "target": "workers/loaded-worker.mjs",
+    "postimageSha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c"
+  },
+  "build": {
+    "commit": "937c1f6a35c620146e62924b16d90e808319024f",
+    "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build",
+    "finalSealSha256": "e796e30489e031c4ab6d58882542e7f3b6c644ead90ae29474c2744003f73c9d",
+    "sourceSealSha256": "3ff5b3158acd151a7a85fe54ec05085aafbf39a3f6fb7f827923caf2fb233502",
+    "assemblyMapSha256": "3d3040400ee14017a2eed7277603b7421c4348a6ae67db1c2b49799278d802bd"
+  },
+  "excludedCoreCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+  "inProgressCompositionExcluded": true,
+  "executionAuthorized": false,
+  "RootGO": false
+}

@@ -1,0 +1,577 @@
+{
+  "schema": "W05-continuation-composed-review-v1",
+  "reviewedAt": "2026-08-28T06:35:29.203Z",
+  "verdict": "SCOPED_COMPOSED_11_PLUS_1_EACH",
+  "resultSHA256": "420f23d6025f13217b4092a33d7affd6432673ba7ee3a8195753d1b2a1a5e131",
+  "originalResultSHA256": "79e7a0c059ae54c6b251292438b8c44d4a8c460fc46771fee4c8e736743970a3",
+  "originalEvidenceSHA256": "5198c32b5c9793396c8db534419413168d6929d52baceaffea3fd5d7bc86da40",
+  "originalCounts": {
+    "installed": {
+      "executed": 12,
+      "passed": 11
+    },
+    "moved": {
+      "executed": 12,
+      "passed": 11
+    },
+    "controls": {
+      "executed": 4,
+      "passed": 4
+    },
+    "predicateControls": 4,
+    "naturalChildren": 28,
+    "actualEngineRuns": 24,
+    "unexecutedWorkflows": 0
+  },
+  "originalAssertions": {
+    "passed": 116,
+    "executed": 118
+  },
+  "newCounts": {
+    "installed": {
+      "executed": 1,
+      "passed": 1
+    },
+    "moved": {
+      "executed": 1,
+      "passed": 1
+    },
+    "controls": {
+      "executed": 0,
+      "passed": 0
+    },
+    "predicateControls": 4,
+    "naturalChildren": 2,
+    "actualEngineRuns": 0,
+    "unexecutedWorkflows": 0
+  },
+  "newAssertions": {
+    "executed": 10,
+    "passed": 10
+  },
+  "setupExecutions": 2,
+  "measuredExecutions": 2,
+  "controls": {
+    "classes": 3,
+    "negatives": 4,
+    "qualified": 4,
+    "oldControlsReplayed": 0
+  },
+  "children": {
+    "naturalNode": 2,
+    "naturalExecutionGit": 311
+  },
+  "actualLoads": {
+    "productNextLoad": 420,
+    "engineTransformed": 126,
+    "compilerNextLoad": 2,
+    "engineEvaluations": 0
+  },
+  "composition": [
+    {
+      "layout": "installed",
+      "retained": [
+        {
+          "id": "W01",
+          "resultSHA256": "1c86bf07832d931ea83b76b41764a0ae410872a22dfecb574c238b62af840e48",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W02",
+          "resultSHA256": "130838166099a978383ec9baf2e9ef47ad4eaab5e1a792d63a25998990656d42",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W03",
+          "resultSHA256": "b27b4239e3dac21dc1b9cd5a210a4269d529b721f40b1dae5c751f9c3cb96c1e",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W04",
+          "resultSHA256": "550e7a0e9e30be0d37d133e6412cfea52a4789f9432eedcee6ac8429c3f17ca4",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W06",
+          "resultSHA256": "4c66f0174d0424792f2796028c044f987668f3c39d10cd84028a5137623e672a",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W07",
+          "resultSHA256": "e561bfa6bc251199a4e33a52314991a7db2877cbbd0ed6e7ef319ec791055ff5",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W08",
+          "resultSHA256": "aeebdabb84714d47babe7c157530bc10dfe7d5e047de396a4f5d6dbefe3f2ee2",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W09",
+          "resultSHA256": "b070dba39ac69171e283a8bf95e424a78311511df4def125494a48869d31ae2e",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W10",
+          "resultSHA256": "f79d3379a630da3f62f8c1e4248fd6f146c46d81b64ce49ce05babbaf938d75c",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W11",
+          "resultSHA256": "a8b7e24efc9cd693661977c23eb9baa51cef506ae3746bfa3497a3683c2340da",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W12",
+          "resultSHA256": "21367d2f6ba86ab5eb31b66234b4836cf6e0215e61d93535c0128cf701efe701",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        }
+      ],
+      "newlyQualified": [
+        {
+          "id": "W05",
+          "resultSHA256": "89f3e8bed3fcd6d453d802947efed8c860d74aa1213f05c429ff2c4d3278c5ce"
+        }
+      ],
+      "label": "11 retained + 1 new; composed qualification, not historical12/12 rescore"
+    },
+    {
+      "layout": "moved",
+      "retained": [
+        {
+          "id": "W01",
+          "resultSHA256": "27348d0a61119e31dabec94cea565fd126c3f5c2eb5cd54d69aa7c81afdb5bb1",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W02",
+          "resultSHA256": "f44f3dea77c5128e806fae287885f921097e06602ef041d6824b44130b6400b8",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W03",
+          "resultSHA256": "dbc71a74e5ffcb167f36486a0cd41d1c9fff7a1647215737c8772c31fa9410ca",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W04",
+          "resultSHA256": "d4f74eac55a75d2272f7843eba4508a18dbefd9b23abd1ad2abc58e82bb7b732",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W06",
+          "resultSHA256": "d66bad7579a942ce1d42e32fdd185ededd0798f346307b40079c0a5cd48957f7",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W07",
+          "resultSHA256": "842710eeaa76eb183c7632e9b9c1d8e8632a381dbccd82997dddf31b0b92476a",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W08",
+          "resultSHA256": "412d0423e11a1089ca98a4a3ad813529701ecf3ae7e381a20d2d32b8b9cdf636",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W09",
+          "resultSHA256": "61382c562554b54b2eb1743e37aeb38baae83cc7179d41e658e24a6e05c4ede4",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W10",
+          "resultSHA256": "fdd2bb517a2da5c723fb1308b8e86f1aeba47b78dad9e3252fdc3987b9f30e1b",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W11",
+          "resultSHA256": "542eedbf6834a92e5a7517f138b0b40b4b6860aab06bbd6eaeb4f3bffa99737f",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        },
+        {
+          "id": "W12",
+          "resultSHA256": "9a18cbcf0fcbe05eba73222db1c0484cecbd450b84e037f58921513f49709deb",
+          "evidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8"
+        }
+      ],
+      "newlyQualified": [
+        {
+          "id": "W05",
+          "resultSHA256": "4e459f8f4719ee2bb0aef87f57bb5326759c24f3d3efce77b03d7a40c2437c17"
+        }
+      ],
+      "label": "11 retained + 1 new; composed qualification, not historical12/12 rescore"
+    }
+  ],
+  "observations": [
+    {
+      "layout": "installed",
+      "id": "W05",
+      "source": "timeout .010 curl -L https://workflow.invalid/data",
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 7,
+            "stdout": "",
+            "stderr": "curl: (7) Network access denied by host policy\n",
+            "stdoutHex": "",
+            "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a"
+          }
+        }
+      ],
+      "traffic": {
+        "authorization": [
+          {
+            "url": "https://workflow.invalid/data",
+            "attempt": 0
+          },
+          {
+            "url": "https://denied.invalid/next",
+            "attempt": 0,
+            "redirectFrom": "https://workflow.invalid/data"
+          }
+        ],
+        "requests": [
+          {
+            "url": "https://workflow.invalid/data",
+            "method": "GET",
+            "headers": [
+              [
+                "Accept",
+                "*/*"
+              ],
+              [
+                "User-Agent",
+                "virtual-bash-curl/0.0"
+              ]
+            ],
+            "hasRegisterCleanup": true
+          }
+        ],
+        "acquired": 0,
+        "next": 0,
+        "returned": 0,
+        "pendingNext": 0,
+        "dispose": 1,
+        "disposeDone": 1,
+        "cleanup": 1,
+        "cleanupDone": 1,
+        "closedAtSettlement": true
+      },
+      "clock": {
+        "records": [
+          {
+            "event": "now",
+            "value": 0
+          },
+          {
+            "event": "arm",
+            "ordinal": 0,
+            "milliseconds": 10,
+            "handle": {
+              "ordinal": 0
+            }
+          },
+          {
+            "event": "clear",
+            "ordinal": 0,
+            "handle": {
+              "ordinal": 0
+            }
+          }
+        ],
+        "rows": [
+          {
+            "ordinal": 0,
+            "milliseconds": 10,
+            "offered": false,
+            "cleared": true
+          }
+        ],
+        "live": 0,
+        "peak": 1
+      },
+      "resources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "assertions": [
+        {
+          "name": "PUBLIC_BOUNDARY",
+          "pass": true
+        },
+        {
+          "name": "DENIED_REDIRECT_NO_EXTRA_WORK",
+          "pass": true
+        },
+        {
+          "name": "ACTUAL_ENGINE_RUN_COUNT",
+          "pass": true
+        },
+        {
+          "name": "CONTROLLED_TIMER_RETIREMENT",
+          "pass": true
+        },
+        {
+          "name": "ALL_ADMITTED_NETWORK_CLOSED",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "layout": "moved",
+      "id": "W05",
+      "source": "timeout .010 curl -L https://workflow.invalid/data",
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 7,
+            "stdout": "",
+            "stderr": "curl: (7) Network access denied by host policy\n",
+            "stdoutHex": "",
+            "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a"
+          }
+        }
+      ],
+      "traffic": {
+        "authorization": [
+          {
+            "url": "https://workflow.invalid/data",
+            "attempt": 0
+          },
+          {
+            "url": "https://denied.invalid/next",
+            "attempt": 0,
+            "redirectFrom": "https://workflow.invalid/data"
+          }
+        ],
+        "requests": [
+          {
+            "url": "https://workflow.invalid/data",
+            "method": "GET",
+            "headers": [
+              [
+                "Accept",
+                "*/*"
+              ],
+              [
+                "User-Agent",
+                "virtual-bash-curl/0.0"
+              ]
+            ],
+            "hasRegisterCleanup": true
+          }
+        ],
+        "acquired": 0,
+        "next": 0,
+        "returned": 0,
+        "pendingNext": 0,
+        "dispose": 1,
+        "disposeDone": 1,
+        "cleanup": 1,
+        "cleanupDone": 1,
+        "closedAtSettlement": true
+      },
+      "clock": {
+        "records": [
+          {
+            "event": "now",
+            "value": 0
+          },
+          {
+            "event": "arm",
+            "ordinal": 0,
+            "milliseconds": 10,
+            "handle": {
+              "ordinal": 0
+            }
+          },
+          {
+            "event": "clear",
+            "ordinal": 0,
+            "handle": {
+              "ordinal": 0
+            }
+          }
+        ],
+        "rows": [
+          {
+            "ordinal": 0,
+            "milliseconds": 10,
+            "offered": false,
+            "cleared": true
+          }
+        ],
+        "live": 0,
+        "peak": 1
+      },
+      "resources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "assertions": [
+        {
+          "name": "PUBLIC_BOUNDARY",
+          "pass": true
+        },
+        {
+          "name": "DENIED_REDIRECT_NO_EXTRA_WORK",
+          "pass": true
+        },
+        {
+          "name": "ACTUAL_ENGINE_RUN_COUNT",
+          "pass": true
+        },
+        {
+          "name": "CONTROLLED_TIMER_RETIREMENT",
+          "pass": true
+        },
+        {
+          "name": "ALL_ADMITTED_NETWORK_CLOSED",
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "archive": {
+    "sha256": "02eb69297ae5c87ccef022886a0e81a5ea5cf4889ae482d593faf141e80077d3",
+    "bytes": 134260,
+    "files": 16,
+    "rawInventory": [
+      {
+        "path": "MATERIALIZED.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 282949,
+        "sha256": "45dce078a717e44b38ec6f5f67755c20b5117711d5541638f94cb01824e48005"
+      },
+      {
+        "path": "PREDICATE-CONTROLS.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 995,
+        "sha256": "c8ba0458e94b70fb89bab3dfd4f4341d10140bd46d621e120f499b7abd69e5e8"
+      },
+      {
+        "path": "installed-W05/ASSESSMENT.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 470,
+        "sha256": "dda6c180519470d62dc7fa701d407e97ddc35e6dd0c576e20e44cac08f699f59"
+      },
+      {
+        "path": "installed-W05/LOADS.jsonl",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 58933,
+        "sha256": "102b371d844e08df3b44677f6377c9aa4c025c249e4d106572dc99c3d889231c"
+      },
+      {
+        "path": "installed-W05/PRE.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 1550,
+        "sha256": "f0bcac2fbe199636852ef9b573d8bbcbddddd1188cb65b529b9e2402f927d295"
+      },
+      {
+        "path": "installed-W05/RESULT.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 4043,
+        "sha256": "89f3e8bed3fcd6d453d802947efed8c860d74aa1213f05c429ff2c4d3278c5ce"
+      },
+      {
+        "path": "installed-W05/STATUS.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 1732,
+        "sha256": "f496b424071630da4602ffc00aca82143928f45becdf075cd9442de6c828b385"
+      },
+      {
+        "path": "installed-W05/stderr.data",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "installed-W05/stdout.data",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 79,
+        "sha256": "7b8f195f936ddbe474d19418b0f5772b1262c642bfe123c2596b2905b56ea043"
+      },
+      {
+        "path": "moved-W05/ASSESSMENT.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 462,
+        "sha256": "861d0ecf623b9ee4717d3cdbf497b32787649a0fcc05d1ab1c759bab682a5c6b"
+      },
+      {
+        "path": "moved-W05/LOADS.jsonl",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 58933,
+        "sha256": "102b371d844e08df3b44677f6377c9aa4c025c249e4d106572dc99c3d889231c"
+      },
+      {
+        "path": "moved-W05/PRE.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 1534,
+        "sha256": "0bf6d40d946571bf48068b4fa5f7484c57d50fb7e40482322fa15fd615663e4a"
+      },
+      {
+        "path": "moved-W05/RESULT.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 4039,
+        "sha256": "4e459f8f4719ee2bb0aef87f57bb5326759c24f3d3efce77b03d7a40c2437c17"
+      },
+      {
+        "path": "moved-W05/STATUS.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 1716,
+        "sha256": "411870a6c8c53a9c25e29cc69814ea59bf1a78a5f2699a4ed5b494323bdd1980"
+      },
+      {
+        "path": "moved-W05/stderr.data",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "moved-W05/stdout.data",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 79,
+        "sha256": "7b8f195f936ddbe474d19418b0f5772b1262c642bfe123c2596b2905b56ea043"
+      }
+    ]
+  },
+  "exclusions": [
+    "Other11 workflows and original load/predicate controls not rerun.",
+    "Actual authenticated SafeJS module loads only; W05 performs no guest evaluation.",
+    "HTTP authorizer/transport deterministic injected mocks; no external network or credentials.",
+    "No native/provider/service/fullgate claim; historical S1/dialect/zero-retry qualifications intact."
+  ]
+}

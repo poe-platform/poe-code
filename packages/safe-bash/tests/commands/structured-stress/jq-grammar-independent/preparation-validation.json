@@ -1,0 +1,135 @@
+{
+  "phase": "PREP integrity and verifier self-checks only; no virtual source import/execution, no build or canonical rerun",
+  "startedAt": "2026-08-27T01:46:26.038Z",
+  "endedAt": "2026-08-27T01:46:27.445Z",
+  "manifestSha256": "8176c462cbcee89ec8726e5ee16af533e4c21dd5914b2404e212a5d82c4ac378",
+  "pass": true,
+  "results": [
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-independent/capture.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-independent/cases.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-independent/common.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-independent/evidence.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-independent/harness.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-independent/run.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-independent/seal.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/structured-stress/jq-grammar-independent/validation.test.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "tests/commands/structured-stress/jq-grammar-independent/run.mjs",
+        "--check"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\n  \"phase\": \"PREP integrity only; no virtual import/execution\",\n  \"manifestSha256\": \"8176c462cbcee89ec8726e5ee16af533e4c21dd5914b2404e212a5d82c4ac378\",\n  \"counts\": {\n    \"grammar\": {\n      \"vectors\": 35,\n      \"executions\": 178\n    },\n    \"main\": {\n      \"vectors\": 256,\n      \"executions\": 790\n    },\n    \"legacy\": {\n      \"vectors\": 94,\n      \"executions\": 376\n    }\n  },\n  \"historicalFiles\": 235\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--test",
+        "tests/commands/structured-stress/jq-grammar-independent/validation.test.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "TAP version 13\n# Subtest: native-only freeze and all historical cohorts have exact bounded denominators\nok 1 - native-only freeze and all historical cohorts have exact bounded denominators\n  ---\n  duration_ms: 216.187\n  type: 'test'\n  ...\n# Subtest: critical transports include every cut and both empty endpoints without multiplying long vectors\nok 2 - critical transports include every cut and both empty endpoints without multiplying long vectors\n  ---\n  duration_ms: 198.065958\n  type: 'test'\n  ...\n# Subtest: comparison rejects byte/status changes, stage loss, intermediate errors and fixture effects\nok 3 - comparison rejects byte/status changes, stage loss, intermediate errors and fixture effects\n  ---\n  duration_ms: 0.263459\n  type: 'test'\n  ...\n# Subtest: native pipeline stages chain exact bytes and file effects remain frozen\nok 4 - native pipeline stages chain exact bytes and file effects remain frozen\n  ---\n  duration_ms: 206.71175\n  type: 'test'\n  ...\n# Subtest: 22 historical canonical reds stay individually mapped and no proposal is approved\nok 5 - 22 historical canonical reds stay individually mapped and no proposal is approved\n  ---\n  duration_ms: 196.857875\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 862.741709\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "tests/commands/structured-stress/jq-grammar-independent"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "remainingTemporaryFixtures": [],
+  "limits": "Runner public API execution is deferred to a different post-handoff reviewer. No new virtual pass result or canonical-test proposal approval."
+}

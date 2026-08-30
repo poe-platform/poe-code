@@ -1,0 +1,128 @@
+export type CancellationRole = "root-caller" | "invoke-option" | "budget-control" | "pipeline-control";
+export interface CancellationAdmissionSnapshot {
+    readonly depth: number;
+    readonly maxDepth: number;
+    readonly resourceLimit: number;
+}
+export interface CancellationControlOriginInput {
+    readonly role: "budget-control" | "pipeline-control";
+    readonly signal: AbortSignal;
+}
+export interface RootCancellationInput {
+    readonly admission: CancellationAdmissionSnapshot;
+    readonly callerSignal?: AbortSignal | undefined;
+    readonly controls?: readonly CancellationControlOriginInput[] | undefined;
+}
+export interface CancellationInvokeOptions {
+    readonly signal?: AbortSignal | undefined;
+}
+export interface CancellationOrigin {
+    readonly role: CancellationRole;
+    readonly signal: AbortSignal;
+    readonly frame: CancellationBoundary;
+}
+export interface CancellationCloseResult {
+    readonly failures: readonly unknown[];
+}
+declare const boundaryState: unique symbol;
+declare const reportState: unique symbol;
+declare const preparedState: unique symbol;
+export interface CancellationBoundary {
+    readonly owned: boolean;
+    readonly deliverySignal: AbortSignal;
+    close(): CancellationCloseResult;
+    readonly [boundaryState]: BoundaryState;
+}
+export interface CancellationReport {
+    readonly origin: CancellationOrigin;
+    readonly [reportState]: ReportState;
+}
+export interface PreparedChildCancellation {
+    readonly owned: boolean;
+    readonly [preparedState]: PreparedState;
+}
+export type CapturedCancellationOutcome<Value> = {
+    readonly kind: "return";
+    readonly value: Value;
+} | {
+    readonly kind: "throw";
+    readonly reason: unknown;
+    readonly report?: CancellationReport | undefined;
+};
+export type SelectedCancellationOutcome<Value> = {
+    readonly kind: "return";
+    readonly value: Value;
+} | {
+    readonly kind: "throw";
+    readonly reason: unknown;
+};
+export interface CancellationSelection<Value> {
+    readonly outcome: SelectedCancellationOutcome<Value>;
+    readonly report?: CancellationReport | undefined;
+}
+export declare class CancellationCapacityError extends Error {
+    constructor();
+}
+interface Subscriber {
+    active: boolean;
+    readonly callback: (origin: CancellationOrigin) => void;
+}
+interface SignalDetacher {
+    active: boolean;
+    readonly signal: AbortSignal;
+    readonly listener: () => void;
+}
+interface LinkState {
+    readonly kind: "link";
+    boundary: CancellationBoundary;
+    readonly parent: LinkState | undefined;
+    readonly depth: number;
+    readonly maxDepth: number;
+    readonly resourceLimit: number;
+    resourcesUsed: number;
+    readonly controller: AbortController;
+    readonly closedReason: Error;
+    readonly rootCaller: CancellationOrigin | undefined;
+    readonly localInvoke: CancellationOrigin | undefined;
+    readonly controls: readonly CancellationOrigin[];
+    delivered: CancellationOrigin | undefined;
+    selected: CancellationOrigin | undefined;
+    readonly signalDetachers: SignalDetacher[];
+    readonly subscribers: Set<Subscriber>;
+    readonly failures: unknown[];
+    parentDetach: (() => void) | undefined;
+    closed: boolean;
+    finalized: boolean;
+    notifying: number;
+    closeResult: CancellationCloseResult | undefined;
+}
+interface BorrowState {
+    readonly kind: "borrow";
+    readonly lineage: LinkState;
+}
+type BoundaryState = LinkState | BorrowState;
+interface ReportState {
+    readonly target: LinkState;
+    readonly origin: CancellationOrigin;
+}
+interface PreparedControl {
+    readonly role: "budget-control" | "pipeline-control";
+    readonly signal: AbortSignal;
+}
+interface PreparedState {
+    readonly parent: LinkState;
+    readonly localSignal: AbortSignal | undefined;
+    readonly controls: readonly PreparedControl[];
+    readonly admission: CancellationAdmissionSnapshot | undefined;
+    readonly owned: boolean;
+    readonly replayError: Error;
+    activated: boolean;
+}
+export declare function prepareChildCancellation(parent: CancellationBoundary, options?: CancellationInvokeOptions, snapshot?: CancellationAdmissionSnapshot, controls?: readonly CancellationControlOriginInput[]): PreparedChildCancellation;
+export declare function activateChildCancellation(prepared: PreparedChildCancellation): CancellationBoundary;
+export declare function createRootCancellationLink(input: RootCancellationInput): CancellationBoundary;
+export declare function admitChildCancellation(parent: CancellationBoundary, options?: CancellationInvokeOptions, snapshot?: CancellationAdmissionSnapshot): CancellationBoundary;
+export declare function subscribeCancellation(boundary: CancellationBoundary, callback: (origin: CancellationOrigin) => void): () => void;
+export declare function selectCancellationOutcome<Value>(boundary: CancellationBoundary, captured: CapturedCancellationOutcome<Value>): CancellationSelection<Value>;
+export declare function selectRuntimeCancellationOutcome<Value>(boundary: CancellationBoundary, captured: CapturedCancellationOutcome<Value>, observedOrigin?: CancellationOrigin): CancellationSelection<Value>;
+export {};

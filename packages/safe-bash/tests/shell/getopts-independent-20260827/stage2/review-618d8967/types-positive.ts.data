@@ -1,0 +1,11 @@
+import { Shell, MemoryFileSystem, CommandRegistry, type ByteSink, type CommandInvokeOptions } from 'virtual-bash';
+const sink: ByteSink = { async write(chunk: Uint8Array) { void chunk; } };
+const commands = new CommandRegistry();
+commands.register({ name: 'host', async execute(context) {
+  const options: CommandInvokeOptions = { replaceEnv: true, env: {}, stdout: sink, stdinIsDefault: true };
+  return context.invoke ? context.invoke('getopts', ['a', 'option', '-a'], options) : { exitCode: 1 };
+} });
+const shell = new Shell({ fs: new MemoryFileSystem(), commands, limits: { maxExpansionBytes: 32 } });
+shell.use(async (context, next) => { context.env = { ...context.env }; return next(); });
+await shell.exec('getopts a option -a', { stdout: sink, signal: new AbortController().signal });
+await shell.dispose();

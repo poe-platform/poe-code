@@ -1,0 +1,215 @@
+{
+  "schema": "ACTUAL_V7_R3_ONE_ATTEMPT_RECEIPT",
+  "runId": "admission-20260829-v7r3-01",
+  "attemptConsumed": true,
+  "grantCommit": "9c380f67a708508a359798b85ae5839bcb5e7f0c",
+  "authCommit": "79531d7aec9580d3a3f40fd19dad3dcb99aa7e88",
+  "authSha256": "4b6e5ee0ff3369df59d8abab09f2cbf72e9af9a72e58ba09dc0ca93c0ba70d38",
+  "ownerPid": 671,
+  "tool": {
+    "tool": "functions.exec_command",
+    "chunk": "11db5d",
+    "exitCode": 1,
+    "wallSeconds": 0.7489,
+    "session": null,
+    "stdoutBytesInTool": 0,
+    "stderrBytesInTool": 0,
+    "route": "exec-replaced shell; raw outputs redirected before Node startup"
+  },
+  "commandPrefix": [
+    "umask 077",
+    "set -C",
+    "printf owner PID before exec",
+    "exec -c exact sealed Node owner with exclusive stdout/stderr redirections"
+  ],
+  "ownerStartedAt": "2026-08-29T03:29:08.496Z",
+  "ownerToolCompletedAt": "2026-08-29T03:29:51.148Z",
+  "ownerTerminal": {
+    "schema": "BREADTH_OUTER_TERMINAL_V1",
+    "captureQualified": false,
+    "admissionQualified": null,
+    "primaryPresent": true,
+    "primary": {
+      "phase": "disposition",
+      "reason": {
+        "type": "object",
+        "code": "OUTER_NONZERO_OR_UNNATURAL",
+        "message": "OUTER_NONZERO_OR_UNNATURAL"
+      }
+    },
+    "publicationPresent": false,
+    "postflight": false,
+    "postflightFailure": null,
+    "child": {
+      "attempted": true,
+      "pid": 682,
+      "group": 682,
+      "enrolled": true,
+      "error": null,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "pidPresence": "absent",
+      "groupPresence": "absent",
+      "reaped": true,
+      "natural": true
+    },
+    "streams": {
+      "stdout": {
+        "observed": 212,
+        "retained": 212,
+        "lost": 0,
+        "limit": 65536,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "124345393984f2c9aa4e05360a8c4226e1b2a1bf4d009a3acc755f3dad32f562"
+      },
+      "stderr": {
+        "observed": 0,
+        "retained": 0,
+        "lost": 0,
+        "limit": 65536,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fd3": {
+        "observed": 0,
+        "retained": 0,
+        "lost": 0,
+        "limit": 262144,
+        "truncated": false,
+        "writeFailed": false,
+        "ended": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "adapterSealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture/RECEIPT.json",
+      "bytes": 1757,
+      "sha256": "c7c5905417003d8ee2a9dba1121e3613ab6be2fc269ede226b10077ee0da13e2"
+    },
+    "limits": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "fd3": 262144,
+      "intent": 16384,
+      "events": 49152,
+      "receipt": 65536,
+      "outer": 524288,
+      "inner": 268435456,
+      "administration": 524288,
+      "overall": 269484032
+    },
+    "qualification": "Outer capture only; full inner admission disposition and integrity remain independently required"
+  },
+  "supervisor": {
+    "schema": "BREADTH_V7_OUTER",
+    "qualified": false,
+    "unsafe": true,
+    "primaryPresent": true,
+    "primary": {
+      "phase": "body",
+      "value": {
+        "name": "Error",
+        "message": "LAUNCH_UNSAFE:prepare",
+        "code": "LAUNCH_UNSAFE",
+        "cause": {
+          "present": true,
+          "undefinedValue": false,
+          "value": {
+            "name": "Error",
+            "message": "EVIDENCE_METADATA: \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json\"",
+            "code": "EVIDENCE_METADATA"
+          }
+        },
+        "original": {
+          "present": true,
+          "undefinedValue": false,
+          "value": {
+            "name": "Error",
+            "code": "EVIDENCE_METADATA",
+            "message": "EVIDENCE_METADATA: \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json\"",
+            "stack": "Error: EVIDENCE_METADATA: \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json\"\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at Object.finish (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/evidence.mjs:30:5)\n    at writeRecord (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:103:12)\n    at Object.save (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:110:47)\n    at prepare (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs:29:51)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/launch-ledger.mjs:70:28)\n    at observeCoordinator (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs:28:21)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs:21:12",
+            "original": null
+          }
+        }
+      },
+      "undefinedValue": false
+    },
+    "cleanup": [
+      {
+        "phase": "evidence",
+        "value": {
+          "name": "Error",
+          "message": "EVIDENCE_OBSERVED_SIZE_MODE: \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json\"",
+          "code": "EVIDENCE_OBSERVED_SIZE_MODE"
+        },
+        "undefinedValue": false
+      }
+    ],
+    "reference": null,
+    "children": [
+      {
+        "ordinal": 1,
+        "kind": "coordinator",
+        "state": "UNSAFE_STOP",
+        "launchAttempted": false,
+        "pid": null,
+        "group": null,
+        "exit": null,
+        "close": null,
+        "reaped": false,
+        "persisted": false,
+        "errors": [
+          {
+            "phase": "prepare",
+            "error": {
+              "name": "Error",
+              "code": "EVIDENCE_METADATA",
+              "message": "EVIDENCE_METADATA: \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json\"",
+              "stack": "Error: EVIDENCE_METADATA: \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json\"\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at Object.finish (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/evidence.mjs:30:5)\n    at writeRecord (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:103:12)\n    at Object.save (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:110:47)\n    at prepare (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs:29:51)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/launch-ledger.mjs:70:28)\n    at observeCoordinator (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs:28:21)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs:21:12",
+              "original": null
+            }
+          }
+        ]
+      }
+    ],
+    "allocation": {
+      "combined": 268435456,
+      "coordinator": 260046848,
+      "collector": 8388608,
+      "record": 262144,
+      "stream": 65536
+    },
+    "evidence": {
+      "attemptedEvidence": 941,
+      "limit": 8388608,
+      "records": 1,
+      "declaredStageFiles": 0,
+      "declaredStageBytes": 0
+    },
+    "originalFailureUnchanged": true
+  },
+  "captureCounts": {
+    "innerCollectorBytes": 5454,
+    "outerBytes": 2376,
+    "launcherStdoutObserved": 212,
+    "launcherStdoutRetained": 212,
+    "launcherStdoutLost": 0,
+    "launcherStderrObserved": 0,
+    "launcherStderrRetained": 0,
+    "launcherFd3Observed": 0,
+    "launcherFd3Retained": 0,
+    "ownerTerminalFileBytes": 1788,
+    "ownerStderrFileBytes": 0
+  }
+}

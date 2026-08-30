@@ -1,0 +1,31 @@
+{
+  "label": "original-first-read-head-zero",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/shell/first-read-probe.ts",
+    "first-read-head-zero"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_CACHE_DIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/tsx-cache-disabled"
+  },
+  "pid": 43857,
+  "status": 0,
+  "signal": null,
+  "killed": false,
+  "reaped": true,
+  "groupAbsent": true,
+  "stdout": "first-read-head-zero: passed\n{\"scenario\":\"first-read-head-zero\",\"active\":0,\"reads\":0,\"returned\":1,\"abortedBeforeTeardown\":false,\"events\":[\"command.settled:head:0\"]}\n",
+  "stderr": ""
+}

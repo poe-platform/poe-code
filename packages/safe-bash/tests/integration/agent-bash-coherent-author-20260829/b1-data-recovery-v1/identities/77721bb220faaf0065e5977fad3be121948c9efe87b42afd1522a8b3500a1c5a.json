@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-admin/PRIOR-LEDGER.json",
+    "bytes": 2533,
+    "sha256": "2999c369c5eb3bdbf61c343c098d9061f12fad995694760e7aa3a9879b54cc85",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190027336,
+    "mtimeMs": 1788021748892.7266,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-admin/PRIOR-LEDGER.json"
+    },
+    "role": "original-admin-ledgerPath"
+  },
+  "dataPath": "data/77721bb220faaf0065e5977fad3be121948c9efe87b42afd1522a8b3500a1c5a.raw",
+  "identityPath": "identities/77721bb220faaf0065e5977fad3be121948c9efe87b42afd1522a8b3500a1c5a.json",
+  "copiedBytes": 2533,
+  "copiedMode": 420,
+  "copiedSha256": "2999c369c5eb3bdbf61c343c098d9061f12fad995694760e7aa3a9879b54cc85"
+}

@@ -1,0 +1,249 @@
+{
+  "inherited": [
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/APPROVAL-PROPOSAL.template.json",
+      "oid": "337a5e4f9ab62c760aaea715fd026690d88bbf95",
+      "relative": "inherited/APPROVAL-PROPOSAL.template.json.data",
+      "bytes": 2621,
+      "sha256": "6e092362c293a54bdd108b44a59ad245346890265f3d16d3ff18918239cf7881",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/CONTROL-PRESEAL.json",
+      "oid": "d29289ac5c4c3539b6fe8314c63aee515dd85015",
+      "relative": "inherited/CONTROL-PRESEAL.json.data",
+      "bytes": 8501,
+      "sha256": "b73f207cb4dd7e5a8c903075f4219cd27635b03f3be16f947846c7ff42943b03",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/HANDOFF.md",
+      "oid": "a84f876fb79883381ba61acd9dc9c3c23549b09c",
+      "relative": "inherited/HANDOFF.md.data",
+      "bytes": 6993,
+      "sha256": "e668f9a68c7ca81780d9eb4dd6954f872ed2d22a5730e11298fbabb044b776e3",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/SOURCE-DELTA.json",
+      "oid": "670e002df127cf0b441b7081f8d42826cdf68368",
+      "relative": "inherited/SOURCE-DELTA.json.data",
+      "bytes": 2020,
+      "sha256": "6b43cf7cab16a503cfa76c1ed10d1f2c15479c35bef2ec1cf905a6e5b77cdf30",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/COHORT.json",
+      "oid": "d0b09f5004ee83d9e980733ecdb27cd1d2b665a1",
+      "relative": "inherited/materialized/COHORT.json.data",
+      "bytes": 13100,
+      "sha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/PRESEAL.json",
+      "oid": "30d563275b010281a606f421fa52ab60a002e416",
+      "relative": "inherited/materialized/PRESEAL.json.data",
+      "bytes": 4527,
+      "sha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/PROTOCOL.json",
+      "oid": "0338d65a14a6b254680a59d065dec8b7e1d6226a",
+      "relative": "inherited/materialized/PROTOCOL.json.data",
+      "bytes": 1881,
+      "sha256": "948519ae3d428f24ae666c8d6f9961779e08e9e37e0a3a2708994f9630d91828",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/REQUESTS.json",
+      "oid": "3367a66cfbe13e3686e2af767e52a7eff4cf2422",
+      "relative": "inherited/materialized/REQUESTS.json.data",
+      "bytes": 14844,
+      "sha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/TOOLS.json",
+      "oid": "1e337cadb46f9454f0407cd3d98257908ac54df0",
+      "relative": "inherited/materialized/TOOLS.json.data",
+      "bytes": 3067,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/admission.mjs",
+      "oid": "9df90e0e0c95a649d79d9d074e3be5079239f9b9",
+      "relative": "inherited/materialized/admission.mjs.data",
+      "bytes": 9447,
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/capture.mjs",
+      "oid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+      "relative": "inherited/materialized/capture.mjs.data",
+      "bytes": 1888,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/entry.mjs",
+      "oid": "4556632f1d7a84440482b3d99508b4af5df8e735",
+      "relative": "inherited/materialized/entry.mjs.data",
+      "bytes": 6928,
+      "sha256": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/group-observer.mjs",
+      "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+      "relative": "inherited/materialized/group-observer.mjs.data",
+      "bytes": 759,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/lifecycle.mjs",
+      "oid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+      "relative": "inherited/materialized/lifecycle.mjs.data",
+      "bytes": 5280,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/observation.mjs",
+      "oid": "965d3bd1b43ec68f5066b9157eee8217b80a4053",
+      "relative": "inherited/materialized/observation.mjs.data",
+      "bytes": 1763,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/observer-state.mjs",
+      "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+      "relative": "inherited/materialized/observer-state.mjs.data",
+      "bytes": 1240,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/state.mjs",
+      "oid": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+      "relative": "inherited/materialized/state.mjs.data",
+      "bytes": 1824,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    },
+    {
+      "mode": "100644",
+      "name": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/storage.mjs",
+      "oid": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+      "relative": "inherited/materialized/storage.mjs.data",
+      "bytes": 3583,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "role": "INERT_SOURCE_NOT_CURRENT_AUTHORITY"
+    }
+  ],
+  "sourceRows": [
+    {
+      "path": "parse.y",
+      "bytes": 217136,
+      "sha256": "076a16d00c5b065137b3d2730d2b94a1f6c89a1bbb5d2f4bd72d31e00947e27f",
+      "qualified": "authenticated signed-source5.3+15 data, not runtime",
+      "sameBufferHashBeforeDecode": true
+    },
+    {
+      "path": "variables.c",
+      "bytes": 173996,
+      "sha256": "e5c8be22b2805b32edcc50d75bf36fc767e8f540b403c50c2e48b6783591bd2e",
+      "qualified": "authenticated signed-source5.3+15 data, not runtime",
+      "sameBufferHashBeforeDecode": true
+    },
+    {
+      "path": "execute_cmd.c",
+      "bytes": 184046,
+      "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+      "qualified": "authenticated signed-source5.3+15 data, not runtime",
+      "sameBufferHashBeforeDecode": true
+    },
+    {
+      "path": "jobs.c",
+      "bytes": 150630,
+      "sha256": "ea8914be42b734addddb3a72e1bd8e39a607e3422eeb7eb98ce9ad4ee7886a12",
+      "qualified": "authenticated signed-source5.3+15 data, not runtime",
+      "sameBufferHashBeforeDecode": true
+    },
+    {
+      "path": "doc/bash.1",
+      "bytes": 392678,
+      "sha256": "23f7bd155c57125864094d2cb4e1f6ec9f8c2ea002e18bebeb3ed4bcfaad1971",
+      "qualified": "authenticated signed-source5.3+15 data, not runtime",
+      "sameBufferHashBeforeDecode": true
+    },
+    {
+      "path": "doc/bashref.texi",
+      "bytes": 415804,
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+      "qualified": "authenticated signed-source5.3+15 data, not runtime",
+      "sameBufferHashBeforeDecode": true
+    },
+    {
+      "path": "general.c",
+      "bytes": 36727,
+      "sha256": "669ef408f4bcc6b4ce424677d29532f28e903430c93b335fa1a292dd360bd165",
+      "sameBufferHashBeforeDecode": true
+    },
+    {
+      "path": "shell.c",
+      "bytes": 59208,
+      "sha256": "5f3d539f15e19c032a09ece500efecc9c63d050d408e985b6f385c64329bf73d",
+      "sameBufferHashBeforeDecode": true
+    },
+    {
+      "path": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "sameBufferHashBeforeDecode": true
+    }
+  ],
+  "matrix": {
+    "bytes": 14863,
+    "sha256": "4cc58513f5b0f02becdd6febf271460f354370daf4d2db4321eec316f87dcc13"
+  },
+  "bindings": {
+    "bytes": 51674,
+    "sha256": "c2095a11d553013fef847de7fee6eb05ec38188a58ef57021f9aa57fb20c8af3"
+  },
+  "helperChildren": [
+    {
+      "executable": "/usr/bin/git",
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "productLoads": 0,
+  "nativeStarts": 0
+}

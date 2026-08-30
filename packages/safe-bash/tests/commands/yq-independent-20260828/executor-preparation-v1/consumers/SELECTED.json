@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "SELECTED_STATIC_BINDINGS_NOT_PRODUCT_RESULTS",
+  "sourceBase": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "finalCarry": "bd471ef682d768692a682d40009a874f51e3ad68",
+  "independentReview": "de89e478d8ddce62eac955708f1b87d7be1bd137",
+  "acceptedFullPackage": "6d5cf6c640d87a5e427049d329eabf5c39136259",
+  "fullPackageRecipe": "4e4fbb56ae92720735bb30c63b27708a22d248e1",
+  "fullPackageSha256": "ff230f2e9079cc843198533e412f836abb62e4ade63f4fa210b7269f7deb4eff",
+  "baselineFileCount": 846,
+  "commonFileCount": 845,
+  "readme": {
+    "path": "README.md",
+    "sourceRevision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "sourceBlob": "c3df8bd958d07298f5df85e0a81ec73589123742",
+    "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+    "bytes": 36273,
+    "mode": 420
+  },
+  "selected": [
+    {
+      "revision": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/CONTRACT.md",
+      "blob": "885a54dd028e86ad164c5d58d27d41228f06cf78",
+      "sha256": "1e31a9883fdaf3e8fbb890c736a4082246b58d6dafd7479ebbec194dd8531401",
+      "bytes": 18630
+    },
+    {
+      "revision": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/MANIFEST.json",
+      "blob": "4ab33422958b01d9ef0d9d17a01427827d05af17",
+      "sha256": "98871d5f7f98e9a9b666310d7189c176bab895d84dd313b3da2cc017ed2fd26d",
+      "bytes": 22271
+    },
+    {
+      "revision": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/SOURCES.json",
+      "blob": "d37a5821797647a08b442d2725c1de09d4428216",
+      "sha256": "11eba6977e60c33340374ecb51b002f330d2ca97a3c59384991eeff24134b5c6",
+      "bytes": 14928
+    },
+    {
+      "revision": "de89e478d8ddce62eac955708f1b87d7be1bd137",
+      "path": "tests/commands/yq-independent-20260828/final-carry-review-v1/results-v1/RESULTS.json",
+      "blob": "60d682077b1b121395233ad0b4329a564bae5f58",
+      "sha256": "5e6344c3220138a9a8e7af4180a879c74c6f1429c44125f9eafc18dceb01bc21",
+      "bytes": 31070
+    },
+    {
+      "revision": "6d5cf6c640d87a5e427049d329eabf5c39136259",
+      "path": "tests/commands/structured-length-independent-20260828/full-package-addendum-v1/result/REPORT.json",
+      "blob": "8a160ce0f2d30e4612bb926457ca49e6808670d7",
+      "sha256": "04cbb2f907badb0dabde5a5c1f16ed4f63056d2efd1a395dd1d90c7f10746100",
+      "bytes": 399587
+    },
+    {
+      "revision": "4e4fbb56ae92720735bb30c63b27708a22d248e1",
+      "path": "tests/commands/structured-length-independent-20260828/full-package-addendum-v1/RECIPE.json",
+      "blob": "ec2f6f70da5351c1a565aa84bb0b8356356dff62",
+      "sha256": "11e80b9b76e2b74fd0ffcd429b76faa4f85a699ff5739873fbee3349f9b88e9e",
+      "bytes": 1778
+    },
+    {
+      "revision": "6d5cf6c640d87a5e427049d329eabf5c39136259",
+      "path": "tests/commands/structured-length-independent-20260828/full-package-addendum-v1/SEAL.json",
+      "blob": "fa4e59b965a6d2e0c09c605fe28e73c65a8805ec",
+      "sha256": "8a6026c45c44c239a7da6d37a61fe561845a57513a86527ed8fc614536365f71",
+      "bytes": 620
+    },
+    {
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+      "blob": "889e6db198ca7521e175501e39864a42ffc71e24",
+      "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30",
+      "bytes": 12184
+    },
+    {
+      "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "blob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81",
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8",
+      "bytes": 37274
+    }
+  ],
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+      "entries": 147
+    },
+    "nodeTypes": {
+      "path": "node_modules/@types/node",
+      "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+      "entries": 83
+    },
+    "undiciTypes": {
+      "path": "node_modules/undici-types",
+      "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+      "entries": 41
+    }
+  },
+  "publicApi": {
+    "state": "PENDING_ROOT_CHECK",
+    "typescript": "export interface YqCommandsOptions {\n  readonly replace?: boolean;\n}\nexport function createYqCommand(): CommandDefinition;\nexport function createYqCommands(): readonly CommandDefinition[];\nexport function yqCommands(options: YqCommandsOptions = {}): VirtualShellPlugin;",
+    "rules": [
+      "createYqCommand and createYqCommands accept no options because fixed caps have no DI/configuration point; only plugin registration consumes replace.",
+      "yqCommands validates a non-null object, permits no own enumerable option other than replace, reads replace exactly once before creating definitions or touching a host, and accepts only undefined or boolean; undefined means false.",
+      "setup preflights the complete one-command collision set when replace is false, then registers yq with { replace }; no partial registration.",
+      "No YqLimits, defaultYqLimits, parser, query session, or adapter type is public. No export code is authorized by this document."
+    ]
+  },
+  "privateBoundary": "No limits/session/parser/adapter public exports; final CARRY supersedes old private work roles. No new limits/DI negatives.",
+  "observedPublicGap": {
+    "rootSourceRevision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "rootSourceSha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b",
+    "packageSha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+    "newYqRootExports": [],
+    "yqSubpathExport": null,
+    "status": "NOT_ADMITTED; direct materialized module is not public package proof"
+  },
+  "execution": {
+    "product": 0,
+    "build": 0,
+    "compile": 0,
+    "packageReplay": 0,
+    "imports": 0
+  }
+}

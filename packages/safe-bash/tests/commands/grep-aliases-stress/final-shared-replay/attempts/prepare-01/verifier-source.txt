@@ -1,0 +1,234 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, renameSync, symlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const repository = '/Users/kjopek/Workspace/safe-bash';
+const candidate = '0123c83d3aae72a15621acbb29a165b97b2c6ab6';
+const ancestors = ['f8819e9d6b6d535b0626e0aa004bb10a7bc36785', 'a809635432f18a235b8fb622a05367bedc54b315', '04644bc2c15d67155f5f4b170a66fc9bef3f6e3d'];
+const identities = {
+  'src/shell/input.ts': '3eec71b72f87dd48ddac572d6e7feb9097d32be4',
+  'src/commands/column': '8b32998383d1372a8624ac41d2e747551e5b6d4c',
+  'src/commands/grep-aliases': '5e8ac069bfa6ead7a337130457cd6519f2066e2c'
+};
+const seals = {
+  SHA256SUMS: '85589c8d87b556b77a174260d76250cba23d5516ecb7f6c4bf1f8b8e1967e61e',
+  'verification/gnu/SHA256SUMS': '8663488dc2345294b82daa1ed48d72c262eff178da4b29d5dfaaed566370559b',
+  'verification/SHA256SUMS': 'ec73580edebc95d1ebc8a10cd7f8ed22ac9c879c483917f6cd51fe683a01c4d2',
+  'verification/coverage-supplement/SHA256SUMS': 'f66d66d1511cdd0f93b745c7490cb81d6a093f4be472c476f6ce2699253a5555'
+};
+const [mode, argument] = process.argv.slice(2);
+assert.ok(['prepare', 'run', 'check'].includes(mode) && argument);
+const destination = resolve(argument);
+const source = join(destination, 'source');
+const consumer = join(destination, 'physically-moved-offline-consumer');
+const packageRoot = join(consumer, 'node_modules/virtual-bash');
+const oldRoot = join(source, 'tests/commands/grep-aliases-stress');
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+const json = value => `${JSON.stringify(value, null, 2)}\n`;
+const save = (name, value) => writeFileSync(join(destination, name), json(value));
+const environment = { PATH: `${dirname(process.execPath)}:/usr/bin:/bin`, HOME: join(destination, 'home'), TMPDIR: destination, LC_ALL: 'C', LANG: 'C', TZ: 'UTC', npm_config_cache: join(destination, 'npm-cache'), npm_config_offline: 'true', npm_config_audit: 'false', npm_config_fund: 'false' };
+let receipt;
+function command(name, executable, args, cwd = destination, timeout = 120000, allowFailure = false, input) {
+  const child = spawnSync(executable, args, { cwd, env: environment, timeout, maxBuffer: 16 * 1024 * 1024, killSignal: 'SIGKILL', input });
+  const captured = { name, executable, args, cwd, pid: child.pid, status: child.status, signal: child.signal, error: child.error?.message ?? null, stdoutHex: (child.stdout ?? Buffer.alloc(0)).toString('hex'), stderrHex: (child.stderr ?? Buffer.alloc(0)).toString('hex') };
+  receipt.commands.push(captured);
+  save(`${name}.json`, captured);
+  assert.equal(child.error, undefined, name);
+  assert.equal(child.signal, null, name);
+  if (!allowFailure) assert.equal(child.status, 0, `${name}: ${child.stderr?.toString()} ${child.stdout?.toString()}`);
+  return child;
+}
+function inventory(directory, relative = '') {
+  return readdirSync(join(directory, relative)).sort().flatMap(name => {
+    const path = join(relative, name);
+    const absolute = join(directory, path);
+    const metadata = lstatSync(absolute);
+    if (metadata.isDirectory()) return [{ path, kind: 'directory' }, ...inventory(directory, path)];
+    if (metadata.isSymbolicLink()) {
+      const target = readlinkSync(absolute);
+      return [{ path, kind: 'symlink', target, size: Buffer.byteLength(target), sha256: sha256(target) }];
+    }
+    assert.ok(metadata.isFile(), path);
+    return [{ path, kind: 'file', mode: metadata.mode & 0o777, size: metadata.size, sha256: sha256(readFileSync(absolute)) }];
+  });
+}
+function digestInventory(entries) {
+  return { entries: entries.length, files: entries.filter(entry => entry.kind === 'file').length, symlinks: entries.filter(entry => entry.kind === 'symlink').length, sha256: sha256(JSON.stringify(entries)) };
+}
+function verifySeals(root) {
+  return Object.entries(seals).map(([path, digest]) => {
+    const file = join(root, path);
+    const bytes = readFileSync(file);
+    assert.equal(sha256(bytes), digest, path);
+    const rows = bytes.toString().trim().split('\n');
+    for (const row of rows) {
+      const match = /^([a-f0-9]{64})  (.+)$/.exec(row);
+      assert.ok(match);
+      assert.equal(sha256(readFileSync(join(dirname(file), match[2]))), match[1], match[2]);
+    }
+    return { path, sha256: digest, payloads: rows.length };
+  });
+}
+function verifyGit(entries, rows) {
+  assert.deepEqual(entries.filter(entry => entry.kind !== 'directory').map(entry => entry.path).sort(), rows.map(row => row.path).sort());
+  for (const row of rows) {
+    const absolute = join(source, row.path);
+    const metadata = lstatSync(absolute);
+    const bytes = row.mode === '120000' ? Buffer.from(readlinkSync(absolute)) : readFileSync(absolute);
+    assert.equal(metadata.isSymbolicLink(), row.mode === '120000', row.path);
+    if (row.path.startsWith('src/')) assert.ok(metadata.isFile() && !metadata.isSymbolicLink(), row.path);
+    assert.equal(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'), row.blob, row.path);
+  }
+}
+function bindings() {
+  const files = ['dist/index.js', 'dist/commands/grep-aliases/index.js', 'dist/commands/grep/index.js', 'dist/commands/regex-execution/index.js', 'dist/commands/regex-execution/worker.js', 'dist/shell/input.js', 'package.json'];
+  return files.map(path => ({ path, url: pathToFileURL(join(packageRoot, path)).href, sha256: sha256(readFileSync(join(packageRoot, path))), regular: lstatSync(join(packageRoot, path)).isFile() }));
+}
+function checkpoint(label) {
+  const baseline = JSON.parse(readFileSync(join(destination, 'baseline.json')));
+  const actualSource = inventory(source);
+  const actualPackage = inventory(packageRoot);
+  assert.deepEqual(actualSource, baseline.source, 'Full source membership/content changed, including new entries');
+  assert.deepEqual(actualPackage, baseline.package, 'Full package membership/content changed, including new entries');
+  assert.equal(sha256(readFileSync(join(destination, 'candidate.tar'))), receipt.archiveSha256);
+  assert.equal(sha256(readFileSync(join(destination, receipt.packageFilename))), receipt.packageSha256);
+  assert.deepEqual(bindings(), receipt.loadBindings);
+  for (const dependency of receipt.dependencies) assert.deepEqual(digestInventory(inventory(dependency.installed)), dependency.inventory);
+  assert.equal(sha256(readFileSync(join(repository, 'node_modules/.package-lock.json'))), receipt.installedLockSha256);
+  const oldSeals = verifySeals(oldRoot);
+  const liveOldSeals = verifySeals(join(repository, 'tests/commands/grep-aliases-stress'));
+  return { label, at: new Date().toISOString(), fullMembershipAndNewEntryDetection: true, source: digestInventory(actualSource), package: digestInventory(actualPackage), archiveSha256: receipt.archiveSha256, packageSha256: receipt.packageSha256, loadBindings: bindings(), oldSeals, liveOldSeals, dependenciesUnchanged: true };
+}
+function compactReceipt(value) {
+  const { sourceManifest, packageManifest, ...rest } = value;
+  return { ...rest, sourceManifestReceipt: { classification: 'digest-of-transient-regular-file-manifest', entries: sourceManifest.length, sha256: sha256(JSON.stringify(sourceManifest)) }, packageManifestReceipt: { entries: packageManifest.length, sha256: sha256(JSON.stringify(packageManifest)) } };
+}
+if (mode === 'prepare') {
+  mkdirSync(destination, { recursive: false });
+  mkdirSync(environment.HOME);
+  receipt = { candidate, startedAt: new Date().toISOString(), destination, repository, node: process.version, platform: process.platform, arch: process.arch, productOverlay: false, candidateExecutions: 0, commands: [], dependencies: [], sourceManifest: [], packageManifest: [], status: 'in-progress' };
+  try {
+    assert.equal(command('candidate', 'git', ['rev-parse', `${candidate}^{commit}`], repository).stdout.toString().trim(), candidate);
+    for (const ancestor of ancestors) command(`ancestor-${ancestor.slice(0, 8)}`, 'git', ['merge-base', '--is-ancestor', ancestor, candidate], repository);
+    for (const [path, identity] of Object.entries(identities)) assert.equal(command(`identity-${path.replaceAll('/', '-')}`, 'git', ['rev-parse', `${candidate}:${path}`], repository).stdout.toString().trim(), identity);
+    receipt.authentication = { candidate, ancestors, identities, beforeProductImports: true };
+    receipt.liveStatusAtStart = command('live-status', 'git', ['status', '--short'], repository).stdout.toString();
+    receipt.indexAtStart = command('index-status', 'git', ['diff', '--cached', '--name-status'], repository).stdout.toString();
+    receipt.originalSeals = verifySeals(join(repository, 'tests/commands/grep-aliases-stress'));
+    save('authentication.json', { ...receipt.authentication, at: new Date().toISOString(), seals: receipt.originalSeals });
+    command('archive-whole', 'git', ['archive', '--format=tar', `--output=${join(destination, 'candidate.tar')}`, candidate], repository);
+    receipt.archiveSha256 = sha256(readFileSync(join(destination, 'candidate.tar')));
+    receipt.archiveBytes = lstatSync(join(destination, 'candidate.tar')).size;
+    receipt.archiveScope = 'WHOLE committed candidate; no path filters, overlays, or synthetic picks';
+    mkdirSync(source);
+    command('extract-whole', '/usr/bin/tar', ['-xf', join(destination, 'candidate.tar'), '-C', source]);
+    const tree = command('git-membership', 'git', ['ls-tree', '-r', '-z', candidate], repository).stdout;
+    const rows = tree.toString().split('\0').filter(Boolean).map(row => {
+      const match = /^(\d+) blob ([a-f0-9]+)\t([\s\S]+)$/.exec(row); assert.ok(match);
+      return { mode: match[1], blob: match[2], path: match[3] };
+    });
+    const whole = inventory(source);
+    verifyGit(whole, rows);
+    receipt.wholeGitArchive = { ...digestInventory(whole), gitRows: rows.length, gitMembershipSha256: sha256(tree), allGitBlobsAuthenticated: true, dataSymlinksPreservedWithoutTraversal: true, productFilesRegular: true };
+    receipt.sourceManifest = whole.filter(entry => entry.kind === 'file').map(({ path, size, sha256: digest }) => ({ path, size, sha256: digest }));
+    receipt.aliasSourceSha256 = sha256(readFileSync(join(source, 'src/commands/grep-aliases/index.ts')));
+    receipt.inputSourceSha256 = sha256(readFileSync(join(source, 'src/shell/input.ts')));
+    assert.deepEqual(verifySeals(oldRoot), receipt.originalSeals);
+    const lockBytes = readFileSync(join(source, 'package-lock.json'));
+    const lock = JSON.parse(lockBytes);
+    const installedLockBytes = readFileSync(join(repository, 'node_modules/.package-lock.json'));
+    const installedLock = JSON.parse(installedLockBytes);
+    receipt.packageLockSha256 = sha256(lockBytes);
+    receipt.installedLockSha256 = sha256(installedLockBytes);
+    mkdirSync(join(source, 'node_modules/@types'), { recursive: true });
+    for (const name of ['typescript', '@types/node', 'undici-types']) {
+      const metadata = lock.packages[`node_modules/${name}`];
+      assert.equal(metadata.version, installedLock.packages[`node_modules/${name}`].version);
+      assert.equal(metadata.integrity, installedLock.packages[`node_modules/${name}`].integrity);
+      const digest = Buffer.from(metadata.integrity.split('-')[1], 'base64').toString('hex');
+      const cache = join('/Users/kjopek/.npm/_cacache/content-v2/sha512', digest.slice(0, 2), digest.slice(2, 4), digest.slice(4));
+      const cached = readFileSync(cache);
+      assert.equal(`sha512-${createHash('sha512').update(cached).digest('base64')}`, metadata.integrity);
+      const verify = join(destination, `dependency-${name.replaceAll('/', '-')}`);
+      mkdirSync(verify);
+      const listing = command(`list-${name.replaceAll('/', '-')}`, '/usr/bin/tar', ['-tzf', cache]).stdout.toString();
+      assert.ok(listing.split('\n').filter(Boolean).every(path => !path.startsWith('/') && !path.split('/').includes('..')));
+      command(`extract-${name.replaceAll('/', '-')}`, '/usr/bin/tar', ['-xzf', cache, '--strip-components=1', '-C', verify]);
+      const installed = join(repository, 'node_modules', name);
+      const expected = inventory(verify);
+      assert.deepEqual(inventory(installed), expected, name);
+      assert.equal(JSON.parse(readFileSync(join(installed, 'package.json'))).version, metadata.version);
+      symlinkSync(installed, join(source, 'node_modules', name), 'dir');
+      receipt.dependencies.push({ name, version: metadata.version, integrity: metadata.integrity, cacheSha256: sha256(cached), installed, inventory: digestInventory(expected), readonlyReuse: true, installedBytesEqualLockedTarball: true });
+    }
+    command('build', process.execPath, [join(source, 'node_modules/typescript/lib/tsc.js'), '-p', 'tsconfig.build.json'], source);
+    const productPackage = JSON.parse(readFileSync(join(source, 'package.json')));
+    assert.deepEqual(productPackage.dependencies ?? {}, {});
+    receipt.runtimeDependencies = productPackage.dependencies ?? {};
+    receipt.aliasPublicSubpathExists = Object.hasOwn(productPackage.exports, './commands/grep-aliases');
+    const packed = JSON.parse(command('pack-offline', 'npm', ['pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', destination], source).stdout)[0];
+    receipt.packageFilename = packed.filename;
+    receipt.packageSha256 = sha256(readFileSync(join(destination, packed.filename)));
+    receipt.packageIntegrity = packed.integrity;
+    mkdirSync(join(destination, 'staging'));
+    command('extract-package', '/usr/bin/tar', ['-xzf', join(destination, packed.filename), '-C', join(destination, 'staging')]);
+    mkdirSync(join(consumer, 'node_modules'), { recursive: true });
+    renameSync(join(destination, 'staging/package'), packageRoot);
+    assert.equal(existsSync(join(destination, 'staging/package')), false);
+    receipt.consumer = consumer;
+    const packageEntries = inventory(packageRoot);
+    assert.ok(packageEntries.every(entry => entry.kind !== 'symlink'));
+    receipt.packageManifest = packageEntries.filter(entry => entry.kind === 'file').map(({ path, size, sha256: digest }) => ({ path, size, sha256: digest }));
+    const builtTree = inventory(source);
+    const originalMembers = builtTree.filter(entry => !entry.path.startsWith('dist/') && entry.path !== 'dist' && !entry.path.startsWith('node_modules/') && entry.path !== 'node_modules');
+    assert.deepEqual(originalMembers, whole, 'Build or pack changed original input membership/content');
+    verifyGit(originalMembers, rows);
+    receipt.loadBindings = bindings();
+    receipt.status = 'built-and-physically-moved-no-candidate-run';
+    save('baseline.json', { source: builtTree, package: packageEntries });
+    receipt.preRun = checkpoint('prepared-before-product-imports');
+  } catch (error) {
+    receipt.status = 'failed'; receipt.failure = { message: error.message, stack: error.stack }; process.exitCode = 1;
+  } finally {
+    receipt.endedAt = new Date().toISOString(); save('receipt.json', receipt); save('pack-receipt.json', compactReceipt(receipt));
+    console.log(json({ status: receipt.status, candidate, archiveSha256: receipt.archiveSha256, packageSha256: receipt.packageSha256, destination, error: receipt.failure }));
+  }
+} else {
+  receipt = JSON.parse(readFileSync(join(destination, 'receipt.json')));
+  assert.equal(receipt.candidate, candidate);
+  assert.equal(receipt.status, 'built-and-physically-moved-no-candidate-run');
+  if (mode === 'check') {
+    save('final-integrity.json', checkpoint('final-after-replay'));
+    console.log('Full source/package membership, bytes, archive, pack, dependencies and historical seals unchanged.');
+  } else {
+    const execution = { candidate, startedAt: new Date().toISOString(), before: checkpoint('immediately-before-replay'), bindings: [], cohorts: [], status: 'in-progress' };
+    try {
+      for (const cohort of ['base', 'supplement']) {
+        const original = join(oldRoot, cohort === 'base' ? 'verification/run-standalone.mjs' : 'verification/coverage-supplement/run-supplement.mjs');
+        const originalText = readFileSync(original, 'utf8');
+        const changes = cohort === 'base'
+          ? [["const root = fileURLToPath(new URL('./', import.meta.url));", `const root = ${JSON.stringify(`${join(oldRoot, 'verification')}/`)};`]]
+          : [["const base = fileURLToPath(new URL('./', import.meta.url));", `const base = ${JSON.stringify(`${join(oldRoot, 'verification/coverage-supplement')}/`)};`], ["candidate: '04644bc2c15d67155f5f4b170a66fc9bef3f6e3d'", 'candidate: receipt.candidate']];
+        let boundText = originalText;
+        for (const [before, after] of changes) { assert.equal(boundText.split(before).length, 2); boundText = boundText.replace(before, after); }
+        const driver = join(destination, `bound-${cohort}.mjs`);
+        const patch = `*** Begin Patch\n*** Add File: ${driver}\n${boundText.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`;
+        command(`bind-${cohort}`, process.env.SAFE_BASH_APPLY_PATCH ?? '/Users/kjopek/.codex/tmp/arg0/codex-arg0vCdtbY/apply_patch', [], destination, 30000, false, patch);
+        assert.equal(readFileSync(driver, 'utf8'), boundText);
+        execution.bindings.push({ cohort, original, originalSha256: sha256(originalText), boundDriver: driver, boundSha256: sha256(boundText), changes, assertionChanges: false });
+        const attempt = join(destination, `${cohort}-01`);
+        const child = command(`run-${cohort}`, process.execPath, [driver, destination, attempt], destination, 180000, true);
+        execution.cohorts.push({ cohort, processStatus: child.status, receipt: JSON.parse(readFileSync(join(attempt, 'receipt.json'))), after: checkpoint(`after-${cohort}`) });
+      }
+      execution.status = execution.cohorts.every(row => row.processStatus === 0) ? 'passed' : 'unchanged-assertions-failed';
+    } catch (error) {
+      execution.status = 'failed'; execution.failure = { message: error.message, stack: error.stack }; process.exitCode = 1;
+    } finally {
+      execution.endedAt = new Date().toISOString(); save('execution.json', execution);
+      console.log(json({ status: execution.status, cohorts: execution.cohorts.map(({ cohort, processStatus }) => ({ cohort, processStatus })), error: execution.failure }));
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "result": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/RESULT.json",
+    "bytes": 12488,
+    "sha256": "b6f4e7d9a1200dde380895a47f39af16433f829fd2c40eecdef24b0f11b74930"
+  },
+  "compilerStatus": 0,
+  "normalSourceRootCount": 267,
+  "excludedProductionPaths": 16,
+  "normalTypeResolution": true,
+  "compilerListedFiles": 433,
+  "compilerInvocations": 1
+}

@@ -1,0 +1,519 @@
+{
+  "schema": "expr-public-component-admission-v1",
+  "capturedAt": "2026-08-28T00:30:31.281Z",
+  "authorizationDateLabel": "2026-08-28; supplied instruction date, not a rewrite of fixture chronology",
+  "status": "ADDENDUM_CHECKPOINT_NO_CANDIDATE_EXECUTION",
+  "scope": "Read-only immutable Git/artifact authentication; no rebuild, install, product import, runtime, types, workers, native oracle or gate",
+  "objects": {
+    "freeze": {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "tree": "40a4478f2b672d02141d3c53002caca0edd52537",
+      "dates": [
+        "2026-08-27T18:09:48-05:00",
+        "2026-08-27T18:09:48-05:00"
+      ]
+    },
+    "source": {
+      "commit": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+      "tree": "3b32471042bc0b36cec5e0717816814aba039efc",
+      "dates": [
+        "2026-08-27T18:15:50-05:00",
+        "2026-08-27T18:15:50-05:00"
+      ]
+    },
+    "candidate": {
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+      "dates": [
+        "2026-08-27T18:31:58-05:00",
+        "2026-08-27T18:31:58-05:00"
+      ]
+    },
+    "author": {
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "tree": "81465de73be98e6a6ab1267936b69e52d7511615",
+      "dates": [
+        "2026-08-27T18:36:40-05:00",
+        "2026-08-27T18:36:40-05:00"
+      ]
+    },
+    "selectedDU75": {
+      "commit": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+      "tree": "0d6fe4cc764e047c0f4c9eb93cfaa3824be36965",
+      "dates": [
+        "2026-08-27T17:50:55-05:00",
+        "2026-08-27T17:50:55-05:00"
+      ]
+    },
+    "engine": {
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "tree": "f2f6ea3fd9d449e232d7181c1f0b03844ccc4e7f",
+      "dates": [
+        "2026-08-27T15:52:22-05:00",
+        "2026-08-27T15:52:22-05:00"
+      ]
+    }
+  },
+  "ancestry": [
+    {
+      "ancestor": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "descendant": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+      "isAncestor": true
+    },
+    {
+      "ancestor": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+      "descendant": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "isAncestor": true
+    },
+    {
+      "ancestor": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "descendant": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "isAncestor": true
+    },
+    {
+      "ancestor": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+      "descendant": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "isAncestor": true
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/integration/expr-public-independent-20260827/cases.json",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "53382467b3399f8142e6aeb2051437bc95ba7723",
+      "bytes": 5911,
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/consumer.mjs",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "75acbb977090f261e16fb8ebc15bd6ee04dc3731",
+      "bytes": 8827,
+      "sha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/positive.ts.fixture",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "1379b7e366cda2384d8b5f0d6d3c884bbd2a5995",
+      "bytes": 2382,
+      "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/negative.ts.fixture",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "de9ef8ca6a2b4fd2dda7e4169d7be720064720f5",
+      "bytes": 907,
+      "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/README.md",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "17974d7b45f9ccb7af77ac372cec221c5305252d",
+      "bytes": 6594,
+      "sha256": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/PROTOCOL.md",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "d567dd7d829d7ce80eecd38b71850094538355c7",
+      "bytes": 9749,
+      "sha256": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/self-check.mjs",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "57152e7bde69ef3c0bfe42e09b5a25cccf181144",
+      "bytes": 2291,
+      "sha256": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/provenance.json",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "89a305a44c9fa4a5aa6072f45f27be947a5c577d",
+      "bytes": 6564,
+      "sha256": "bdd6ccf8948658032b3c8c0a10953d767ff43fd223492edddf30d5867a6e156e"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/FREEZE-CHECKS.json",
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "gitBlob": "76d18286176437435528547200279ef1b7e96ebc",
+      "bytes": 1190,
+      "sha256": "18d27f15fba9fab03b308510520c3dcd33e061de84ed4c00a4038ed76a524c1c"
+    }
+  ],
+  "handoff": {
+    "path": "tests/plugins/expr-public-author/evidence-v1/REVIEW-HANDOFF.json",
+    "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+    "gitBlob": "428199c85336a8bbc2258847e7fa87278c8b65a9",
+    "bytes": 277983,
+    "sha256": "23934ad85743186b91adc772b459e78d46c802091f1b2d2aac8357480dbf8be1"
+  },
+  "selectedSourceInventory": {
+    "count": 357,
+    "selection": [
+      "src",
+      "scripts",
+      "package.json",
+      "package-lock.json",
+      "README.md",
+      "tsconfig.json",
+      "tsconfig.build.json",
+      "tests/plugins/expr-public-author",
+      "tests/plugins/agent-commands.test.ts",
+      "tests/plugins/stream-five-fixture-migration",
+      "tests/plugins/du-public-author/lifecycle.test.ts",
+      "tests/commands/du/helpers.ts",
+      "tests/plugins/html-to-markdown-public-author/lifecycle.test.ts",
+      "tests/commands/html-to-markdown/helpers.ts",
+      "tests/plugins/qualified-current-release",
+      "tests/plugins/stream-five-public",
+      "tests/integration/stream-inspection-public-author/consumer.mts"
+    ],
+    "exactGitTreeMatchesHandoff": true,
+    "sha256": "500351d1a3518eee8c44ff42288e9ec586f4f6a7d1357373e4066f084717ab2e",
+    "qualification": "Complete immutable selected Git tree, including names; not all repository tests or a canonical/full gate"
+  },
+  "engineBindings": [
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "bytes": 17704,
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99",
+      "bytes": 6889,
+      "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d"
+    },
+    {
+      "path": "src/commands/expr/index.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "bytes": 5041,
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "bytes": 6600,
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "src/commands/expr/syntax.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "352e8d330bfb54427844451711d56b7959a4d147",
+      "bytes": 5433,
+      "sha256": "68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "bytes": 15319,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "bytes": 11796,
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "bytes": 10890,
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "bytes": 1930,
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    }
+  ],
+  "publicBindings": [
+    {
+      "path": "src/index.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "32d3f6a2de96369954005c0689da00a4c2e1e7e1",
+      "bytes": 1550,
+      "sha256": "3b1f71706c8d43507d83c2fa069dd6e60c9fef565d277f8f680474d33ca357ca"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "b5685005ac287561413d59f9bc7bd00f92405761",
+      "bytes": 5953,
+      "sha256": "6a7eed948ef4ad66d4292060119e216a08c2e09d79f75170e79202fd5bd2821b"
+    },
+    {
+      "path": "package.json",
+      "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "1e6bfc1e602dd0f22b8e0a3f064067d411c57e52",
+      "bytes": 4707,
+      "sha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a"
+    }
+  ],
+  "observerBindings": [
+    {
+      "path": "tests/plugins/expr-public-author/observer.mjs",
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "gitBlob": "b214bf3e5b0736234312ca8e43f025abd746edf9",
+      "bytes": 5078,
+      "sha256": "1fffd7e99be072e87127be1af56461334a6db529d37c8be38b5418762548e37c"
+    },
+    {
+      "path": "tests/plugins/expr-public-author/public.mjs",
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "gitBlob": "852c0246edd6dc6cd38d61a68c23695cf5db7a8f",
+      "bytes": 10640,
+      "sha256": "6e4122fd4c7091874c18ad9c5420c4d0538b5345bb1ea28c16ad7c65ee7ac014"
+    },
+    {
+      "path": "tests/plugins/expr-public-author/silent-worker.mjs",
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "gitBlob": "00bb7bf4461c8f2752d26489cc95c83dbf02a1d3",
+      "bytes": 178,
+      "sha256": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed"
+    },
+    {
+      "path": "tests/plugins/expr-public-author/worker-layout-control.mjs",
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "gitBlob": "089baa435294fb5dc9b893f2957545ca41363ca9",
+      "bytes": 1512,
+      "sha256": "501889829f21348367103ec889ad02d80a467e15414ef0038ae4afac2b8ad983"
+    },
+    {
+      "path": "tests/plugins/expr-public-author/verify-public.mjs",
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "gitBlob": "c87d362adbadde9333a5e11e61fb54f8c3587a95",
+      "bytes": 18325,
+      "sha256": "2ad978e83598e8cb9b1b9b310057aa945d37f8205623302bbfa5a0af667731e0"
+    },
+    {
+      "path": "tests/plugins/expr-public-author/POLICY.md",
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "gitBlob": "308e3a00a619f0f1904ac4250df5add08ecfe527",
+      "bytes": 6429,
+      "sha256": "bc46fa95776b26c71977530b13c88d62449efc3dc3e1dfd1ec6511a5b3472c2e"
+    }
+  ],
+  "artifact": {
+    "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-public-author-Lbj5md/pack/virtual-bash-0.0.0.tgz",
+    "bytes": 727526,
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "regularFileCount": 834,
+    "allMemberNamesAndHashesMatch": true,
+    "memberInventorySha256": "663931d709fe3672393b591a5f3f630c16d43cc7179d0cf4ddadb53bddc07411",
+    "rootExport": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "exprExport": {
+      "types": "./dist/commands/expr/index.d.ts",
+      "import": "./dist/commands/expr/index.js"
+    },
+    "runtimeDependencies": {},
+    "provenance": "Actual tarball bytes independently authenticated; source-to-pack build derivation remains author evidence, not an independent rebuild"
+  },
+  "authorArchive": {
+    "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-public-author-Lbj5md/candidate.tar",
+    "bytes": 9195520,
+    "sha256": "75b2561e942e654399297d70e9d9206e18805c13aacde9acb379f182751f9cea",
+    "qualification": "Read-only author archive hash; no extraction/materializer/build duplicated"
+  },
+  "authorRawBinding": {
+    "manifest": {
+      "path": "tests/plugins/expr-public-author/evidence-v1/MANIFEST.json",
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "gitBlob": "eb0c45abc1c76039ce569e3d15150a3aafdafdd3",
+      "bytes": 33289,
+      "sha256": "07584b196c8c053398c3bccf187afe1f99dd728b95c0e9c0460bd3d05115e54b"
+    },
+    "raw": {
+      "path": "tests/plugins/expr-public-author/evidence-v1/RAW.json.gz.base64",
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "gitBlob": "6b595b896216d8487810eea7a4fc99465bc459e8",
+      "bytes": 2992913,
+      "sha256": "c0b46ef2cd04dc12e77265a471da0c9bcd60360ea2ad834779af9d5fc0d96842"
+    },
+    "payloadSha256": "6002cb4e7c205f487995f1a82933ea9891b0cae796326fcb10472411117460b5",
+    "reportSha256": "149bd7a3777570dbb32b65419864261b57fd7db478f1364dcec7ef513983f2a4",
+    "use": "Observer generator provenance only; author runtime results are not independent passes"
+  },
+  "generatedAuthorGuards": [
+    {
+      "phase": "installed",
+      "mainSha256": "34a51b8759ce435e89493e9aaf6434ef1cfef85b2781d2603b122ebad598f744",
+      "workerSha256": "43c27a7ba3d9b8489a89b2cf26f2226d74087deafa8092445e8f86cd75754717",
+      "qualification": "trusted test-only worker loader appended before unchanged worker entry; stderr receipts, no product reply injection"
+    },
+    {
+      "phase": "moved",
+      "mainSha256": "152c0d51aed555b51d723d789001aef7e004bcc0cee9ec5f3b67fd8733dfabc8",
+      "workerSha256": "1bc6d4a502faf71d0440e33749e9e1e97c817c36426b8b5cb464fdac5d7b3650",
+      "qualification": "trusted test-only worker loader appended before unchanged worker entry; stderr receipts, no product reply injection"
+    }
+  ],
+  "runtimeTools": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "version": "v22.22.2",
+      "permissionFlag": "--permission",
+      "observedSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "productExecuted": false
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "version": "v24.11.1",
+      "permissionFlag": "--permission",
+      "observedSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "productExecuted": false
+    }
+  ],
+  "inspectionTools": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "executable": "/usr/bin/git",
+      "version": "git version 2.50.1 (Apple Git-155)",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  ],
+  "checkpointFiles": [
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/ADDENDUM.md",
+      "sha256": "d4c894e971725f0a6b0ee6f8d6c20f8ad3d39a63c9ac8aa114788474e898d1b7"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/inspect.mjs",
+      "sha256": "3e294b4a9d24aa9f3159ed8671e61cd10461b48862283b409074efae041b5515"
+    }
+  ],
+  "membership": {
+    "exactFrozen75MatchesDeclaredBase": true,
+    "exactDeclared76EqualsFrozen75PlusExpr": true,
+    "acceptanceImplied": false,
+    "names": [
+      "true",
+      "false",
+      "echo",
+      "pwd",
+      "basename",
+      "dirname",
+      "printf",
+      "mkdir",
+      "touch",
+      "cp",
+      "mv",
+      "rm",
+      "rmdir",
+      "ln",
+      "readlink",
+      "realpath",
+      "ls",
+      "cat",
+      "head",
+      "tail",
+      "wc",
+      "tee",
+      "tr",
+      "sort",
+      "uniq",
+      "cut",
+      "grep",
+      "test",
+      "[",
+      "env",
+      "xargs",
+      "find",
+      "sed",
+      "awk",
+      "jq",
+      "rg",
+      "base64",
+      "base32",
+      "xxd",
+      "od",
+      "sha256sum",
+      "sha1sum",
+      "md5sum",
+      "cksum",
+      "gzip",
+      "gunzip",
+      "zcat",
+      "diff",
+      "patch",
+      "chmod",
+      "stat",
+      "mktemp",
+      "tar",
+      "paste",
+      "comm",
+      "join",
+      "tac",
+      "expand",
+      "fold",
+      "strings",
+      "seq",
+      "nl",
+      "rev",
+      "unexpand",
+      "split",
+      "date",
+      "sleep",
+      "printenv",
+      "tree",
+      "file",
+      "egrep",
+      "fgrep",
+      "column",
+      "html-to-markdown",
+      "du",
+      "expr"
+    ]
+  },
+  "holds": [
+    "accepted DU75 prerequisite",
+    "HTML admission",
+    "actual HTML34",
+    "original acceptance-gated consumer",
+    "independent P01 build reproduction",
+    "independent observer/control qualification",
+    "R25 EXEC-ONLY settlement",
+    "R26 both boundaries and sibling isolation",
+    "whole76/public acceptance"
+  ],
+  "outcomes": {
+    "productRuntimeExecuted": 0,
+    "productTypeChecksExecuted": 0,
+    "productBuilds": 0,
+    "productInstalls": 0,
+    "productWorkers": 0,
+    "nativeOracles": 0,
+    "runtimeCaseIds": 26,
+    "consumerBackedIds": 24,
+    "lifecycleProtocolIds": 2,
+    "packageProtocolIds": 8,
+    "independentPasses": 0
+  },
+  "worktree": {
+    "statusBefore": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/which-independent-20260827/review-0902/\n?? tests/integration/expr-public-independent-20260827/component-admission-v1/\n?? tests/integration/full-gate-20260827/unified76-driver/DRIVER.json\n?? tests/integration/full-gate-20260827/unified76-driver/PROFILE-RECEIPT.json\n?? tests/integration/full-gate-20260827/unified76-driver/PROFILE.json.gz.base64\n?? tests/integration/full-gate-20260827/unified76-driver/README.md\n?? tests/integration/full-gate-20260827/unified76-driver/admission.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/common.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/consumer.mts.fixture\n?? tests/integration/full-gate-20260827/unified76-driver/controls.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/fixture-proof.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/inventory-controls.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/inventory.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/negative.mts.fixture\n?? tests/integration/full-gate-20260827/unified76-driver/package-controls.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/profile.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/public.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/run.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/seal.mjs\n?? tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/\n",
+    "indexSha256Before": "f99c0ad61d9bb6eb63c34fdc2540af139bbc5bd0180e1c25b808223ae0ecc38d",
+    "indexSha256After": "f99c0ad61d9bb6eb63c34fdc2540af139bbc5bd0180e1c25b808223ae0ecc38d",
+    "originalNineMatchBeforeAndAfter": true,
+    "scopeQualification": "No original-fixture additions check claimed for live tree; new owned addendum paths are intentional. Future execution requires full input-tree addition detection."
+  }
+}

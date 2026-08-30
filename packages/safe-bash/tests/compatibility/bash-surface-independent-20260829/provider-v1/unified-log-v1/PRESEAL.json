@@ -1,0 +1,41 @@
+{
+  "schema": "d03-unified-log-v1-source-seal",
+  "at": 1787982996689,
+  "files": [
+    {
+      "path": "admin.mjs",
+      "bytes": 4098,
+      "sha256": "bcf0c729081324dfeed11b00c729cc33fcdeaca95db7a816ae7ac5b5a4eb4fcf"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 2733,
+      "sha256": "4c10007ea862acf1cd1680378dabecc3782613622d53d1d49ffd2a5be7101601"
+    },
+    {
+      "path": "selector.mjs",
+      "bytes": 2010,
+      "sha256": "52c538bbae5ec9a0f3dff4158f098e324559d3cdf1b8ab3c869ee68369b82f17"
+    },
+    {
+      "path": "runner.mjs",
+      "bytes": 5938,
+      "sha256": "0e60dbd43266b49eb9ef95360305666382032a963a7d6259a8e6f93a61373573"
+    },
+    {
+      "path": "DATA-CONTROLS.json",
+      "bytes": 4287,
+      "sha256": "8ee3f369214b76f93bb652f46b706d104ed4902e4638ad03626ea4f68ef4a241"
+    },
+    {
+      "path": "PREPARATION-ATTEMPT.json",
+      "bytes": 164,
+      "sha256": "338f7dc5ed9dba11d7ef00333e30313e6e1d698ae1f67d6392fbdf7f157658e5"
+    }
+  ],
+  "queryLaunchesBeforeSeal": 0,
+  "permittedQueries": 1,
+  "recordReadsPermitted": 0,
+  "deadline": 1787983600593,
+  "captureRoot": "/tmp/bash-surface-d03-unified-log-ISjuaa"
+}

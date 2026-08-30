@@ -1,0 +1,26 @@
+{
+  "name": "packed-configured79",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "out-configured/tests/integration/adapter-tools/matrix.test.js"
+  ],
+  "cwd": "consumer",
+  "startedAt": "2026-08-27T09:01:25.540Z",
+  "durationMs": 1749.2320409999993,
+  "status": 0,
+  "signal": null,
+  "counts": {
+    "tests": 79,
+    "pass": 79,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedRows": []
+}

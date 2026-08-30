@@ -1,0 +1,108 @@
+[
+  {
+    "id": "C3",
+    "verdict": "PASS",
+    "failures": [],
+    "effects": {
+      "closed": {
+        "text": "closed",
+        "sha256": "c3eefb58d7c42440a9d4abec51d629544d635a6d936ff3c4d3fca96d611b3cf3"
+      },
+      "effect": {
+        "text": "prepared",
+        "sha256": "b0f4b2e7996a5f4f315bdbc6233973376144870ecd6524e417c05c36dde88745"
+      },
+      "prepared": {
+        "text": "ready",
+        "sha256": "b24d6d33736ecd5604a4b17bc9c6481039fac362bb7df044ef1c10a2bfd21db6"
+      },
+      "statuses": {
+        "text": "141 141 0\n",
+        "sha256": "a63321df095b647495fb072b218721dca87faa7b97919f6ed87dca6dc93c93d8"
+      }
+    },
+    "scriptSha256": "11f1e01e098dcbf1d9b069d71373fa6d3fa6bab81a11d0192fdf794a5b809ccf",
+    "childReaped": true,
+    "comparisons": "Meaningful output/status/effects; no JavaScript demand analogue"
+  },
+  {
+    "id": "C4",
+    "verdict": "PASS",
+    "failures": [],
+    "effects": {
+      "closed": {
+        "text": "closed",
+        "sha256": "c3eefb58d7c42440a9d4abec51d629544d635a6d936ff3c4d3fca96d611b3cf3"
+      },
+      "effect": {
+        "text": "kept",
+        "sha256": "79f076abdd19a752db7267bfff2f9022161d120dea919fdaca2ffdfc24ca8c96"
+      },
+      "statuses": {
+        "text": "0 0 0\n",
+        "sha256": "a17138988e1387532b5cb0bd7a23f18a11d537123873e67154dada3c6359e53e"
+      }
+    },
+    "scriptSha256": "2cce47d5ddc5015d66cd59ef0f1fbcb6087d9e18d913d173c0203884a7581efc",
+    "childReaped": true,
+    "comparisons": "Meaningful output/status/effects; no JavaScript demand analogue"
+  },
+  {
+    "id": "C5",
+    "verdict": "PASS",
+    "failures": [],
+    "effects": {
+      "closed": {
+        "text": "closed",
+        "sha256": "c3eefb58d7c42440a9d4abec51d629544d635a6d936ff3c4d3fca96d611b3cf3"
+      },
+      "statuses": {
+        "text": "0 0 0\n",
+        "sha256": "a17138988e1387532b5cb0bd7a23f18a11d537123873e67154dada3c6359e53e"
+      }
+    },
+    "scriptSha256": "e5f097a1ef2a53911d8fe5aed08286218b68f7c53962c3b01f23b4aee07cb380",
+    "childReaped": true,
+    "comparisons": "Meaningful output/status/effects; no JavaScript demand analogue"
+  },
+  {
+    "id": "C6",
+    "verdict": "PASS",
+    "failures": [],
+    "effects": {
+      "closed": {
+        "text": "closed",
+        "sha256": "c3eefb58d7c42440a9d4abec51d629544d635a6d936ff3c4d3fca96d611b3cf3"
+      },
+      "statuses": {
+        "text": "7 7 0\n",
+        "sha256": "5dc750c9f104abd39a63d4f14e1999ddd7ef10a51c763f8591b59443984adaed"
+      }
+    },
+    "scriptSha256": "6d9e36ba26066ea831860cec8ef7a0e58949778c9148b32b8f7ec5b1396c2ec7",
+    "childReaped": true,
+    "comparisons": "Meaningful output/status/effects; no JavaScript demand analogue"
+  },
+  {
+    "id": "C7",
+    "verdict": "PASS",
+    "failures": [],
+    "effects": {
+      "closed": {
+        "text": "closed",
+        "sha256": "c3eefb58d7c42440a9d4abec51d629544d635a6d936ff3c4d3fca96d611b3cf3"
+      },
+      "prepared": {
+        "text": "ready",
+        "sha256": "b24d6d33736ecd5604a4b17bc9c6481039fac362bb7df044ef1c10a2bfd21db6"
+      },
+      "statuses": {
+        "text": "141 141 0\n",
+        "sha256": "a63321df095b647495fb072b218721dca87faa7b97919f6ed87dca6dc93c93d8"
+      }
+    },
+    "scriptSha256": "968fa6b029a1d441154cb46ab0ad22648c6c365452c0e0da5242fb198bdaf092",
+    "childReaped": true,
+    "comparisons": "Meaningful output/status/effects; no JavaScript demand analogue"
+  }
+]

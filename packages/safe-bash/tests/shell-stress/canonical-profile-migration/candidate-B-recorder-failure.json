@@ -1,0 +1,20 @@
+{
+  "phase": "B",
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.candidate-B-hwqqUo",
+  "startedAt": "2026-08-27T06:52:59.249Z",
+  "runnerStatus": 1,
+  "failure": {
+    "code": "E2BIG",
+    "syscall": "spawnSync apply_patch",
+    "location": "candidate-run.mjs:81",
+    "stage": "Publication after the child-run and guard-computation stages, before summary printing and final assertions",
+    "message": "Passing the multi-megabyte JSON patch as one OS argv exceeded the argument limit."
+  },
+  "durableTestCounts": null,
+  "durableActualImportRecords": null,
+  "acceptanceClaim": false,
+  "limitation": "Child TAP and import records were held only in terminated runner memory, and the exception printed a truncated patch. They are not reconstructed, inferred successful, or counted as passes. The archived input files remain available but cannot replace missing execution observations.",
+  "repair": "Change only owned recorder publication to apply_patch stdin. No product source, fixture, reference, or assertion changes to seek green.",
+  "nextMeasurement": "Do not rerun group B separately. Use the root-authorized final four-file integrated cohort once after group C, with a distinct artifact and attempt disclosure. That measurement, not this failed recorder, supplies final B counts."
+}

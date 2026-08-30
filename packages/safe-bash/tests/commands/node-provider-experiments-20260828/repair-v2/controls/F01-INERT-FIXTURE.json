@@ -1,0 +1,211 @@
+{
+  "schema": "node-abi-child-v1",
+  "label": "F01",
+  "identity": "F01",
+  "sourceSha256": "536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84",
+  "events": [
+    {
+      "ordinal": 1,
+      "event": "cleanup-registered"
+    },
+    {
+      "ordinal": 2,
+      "event": "budget-create"
+    },
+    {
+      "ordinal": 3,
+      "event": "engine-enter"
+    },
+    {
+      "ordinal": 4,
+      "event": "host-enter",
+      "name": "pure"
+    },
+    {
+      "ordinal": 5,
+      "event": "host-settle",
+      "name": "pure",
+      "rejected": false
+    },
+    {
+      "ordinal": 6,
+      "event": "host-enter",
+      "name": "mark"
+    },
+    {
+      "ordinal": 7,
+      "event": "guest-mark",
+      "value": 7
+    },
+    {
+      "ordinal": 8,
+      "event": "host-settle",
+      "name": "mark",
+      "rejected": false
+    },
+    {
+      "ordinal": 9,
+      "event": "host-enter",
+      "name": "fail"
+    },
+    {
+      "ordinal": 10,
+      "event": "host-settle",
+      "name": "fail",
+      "rejected": true
+    },
+    {
+      "ordinal": 11,
+      "event": "host-enter",
+      "name": "mark"
+    },
+    {
+      "ordinal": 12,
+      "event": "guest-mark",
+      "value": "PURE"
+    },
+    {
+      "ordinal": 13,
+      "event": "host-settle",
+      "name": "mark",
+      "rejected": false
+    },
+    {
+      "ordinal": 14,
+      "event": "host-enter",
+      "name": "mark"
+    },
+    {
+      "ordinal": 15,
+      "event": "guest-mark",
+      "value": "after"
+    },
+    {
+      "ordinal": 16,
+      "event": "host-settle",
+      "name": "mark",
+      "rejected": false
+    },
+    {
+      "ordinal": 17,
+      "event": "engine-settle"
+    },
+    {
+      "ordinal": 18,
+      "event": "cleanup-start"
+    },
+    {
+      "ordinal": 19,
+      "event": "cleanup-done"
+    },
+    {
+      "ordinal": 20,
+      "event": "public-settle",
+      "rejected": false
+    }
+  ],
+  "marks": [
+    7,
+    "PURE",
+    "after"
+  ],
+  "assertions": [
+    {
+      "name": "exact interpreter-dependent primitive marks",
+      "pass": true
+    },
+    {
+      "name": "one actual engine evaluation and settlement",
+      "pass": true
+    },
+    {
+      "name": "one actual Budget construction",
+      "pass": true
+    },
+    {
+      "name": "cooperative cleanup precedes actual public settlement",
+      "pass": true
+    },
+    {
+      "name": "real interpreter and envelope succeed",
+      "pass": true
+    },
+    {
+      "name": "intrinsic route actually entered where required",
+      "pass": true
+    },
+    {
+      "name": "actual host/read operations retire",
+      "pass": true
+    },
+    {
+      "name": "virtual namespace and default write denial",
+      "pass": true
+    }
+  ],
+  "unhandled": [],
+  "counters": {
+    "engineEntered": 1,
+    "engineSettled": 1,
+    "budgetCreated": 1,
+    "factoryCreated": 0,
+    "intrinsicEntered": 0,
+    "intrinsicSettled": 0,
+    "hostOperations": 5,
+    "hostOperationsSettled": 5,
+    "readsAdmitted": 0,
+    "readsSettled": 0,
+    "bytesRead": 0,
+    "guestRecordsCreated": 0,
+    "cleanupRegistrations": 1,
+    "cleanupEffects": 1,
+    "postCloseAdmissions": 0
+  },
+  "classification": "PASS",
+  "clean": true,
+  "budget": {
+    "options": {
+      "maxSteps": 2000,
+      "maxCallDepth": 32,
+      "stringLength": 4096,
+      "arrayLength": 256,
+      "dataSize": 65536,
+      "deadline": 1
+    },
+    "resetCallsObserved": null,
+    "qualification": "Construction is witnessed by budgetCreated; internal reset calls are not instrumented. Source inspection says run resets Budget. No Shell or shared Shell budget is instantiated."
+  },
+  "engineOutcome": {
+    "settled": true,
+    "thrown": false,
+    "ok": true,
+    "error": null,
+    "stats": null
+  },
+  "finalResources": {
+    "hostPending": 0,
+    "readPending": 0,
+    "intrinsicPending": 0,
+    "trackedOperations": 0,
+    "guestCacheEntries": 0,
+    "listenerDetached": true,
+    "accepting": false
+  },
+  "publicOutcome": {
+    "settled": true,
+    "rejected": false,
+    "sameEngineResult": true
+  },
+  "namespace": {
+    "entries": [
+      {
+        "name": "/work/a",
+        "bytes": [
+          65,
+          66
+        ]
+      }
+    ],
+    "writeGranted": false
+  }
+}

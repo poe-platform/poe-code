@@ -1,0 +1,14 @@
+{
+  "id": "D01",
+  "scope": "standalone exact reconciler DATA",
+  "caught": true,
+  "reason": {
+    "type": "object",
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "RECORD_ACCESSOR",
+    "stack": "AssertionError [ERR_ASSERTION]: RECORD_ACCESSOR\n    at ownRecord (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:101:34)\n    at Object.reconcileReceipt (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:135:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:203:36\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "getterCalls": 0,
+  "status": "PASS"
+}

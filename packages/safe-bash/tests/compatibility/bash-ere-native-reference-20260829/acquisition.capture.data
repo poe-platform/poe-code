@@ -1,0 +1,14 @@
+{"event":"begin","at":"2026-08-29T09:02:07.600Z","role":"SOURCE/DATA"}
+{"event":"start","args":["ls-tree","-r","-z","4eea354169492b4c47d373d504e5918e1c4f3830","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/"]}
+{"event":"retired","pid":31788,"status":0,"signal":null,"stderr":""}
+{"event":"start","args":["cat-file","--batch"]}
+{"event":"retired","pid":31790,"status":0,"signal":null,"stderr":""}
+{"event":"start","args":["ls-tree","-r","-z","73065e68469e2e514c0ee87ff34ac1db04ba51cb","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/"]}
+{"event":"retired","pid":31791,"status":0,"signal":null,"stderr":""}
+{"event":"start","args":["cat-file","--batch"]}
+{"event":"retired","pid":31792,"status":0,"signal":null,"stderr":""}
+{"event":"start","args":["ls-tree","-r","-z","a5fd225af5f9985ae805f48ab1b1790a9c3fbc7f","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v2/"]}
+{"event":"retired","pid":31793,"status":0,"signal":null,"stderr":""}
+{"event":"start","args":["cat-file","--batch"]}
+{"event":"retired","pid":31794,"status":0,"signal":null,"stderr":""}
+{"event":"complete","total":409454}

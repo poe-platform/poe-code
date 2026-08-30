@@ -1,0 +1,172 @@
+{
+  "identity": "Independent TIME-ENV fraction semantics reviewer, fresh thread 2026-08-27; neither Curie nor prior fix verifier; no delegation",
+  "frozenCasesSha256": "9dcdf67fbbf41076c96a5160d7a44edebd081b7b067bb11f919e1f10c71932f5",
+  "originalProductProcessStatus": 1,
+  "originalHarnessPasses": 301,
+  "originalHarnessFailures": 11,
+  "total": 312,
+  "noProductRerun": true,
+  "terminalHarnessFailure": "After all312 rows, deepStrictEqual(process.env, {...process.env}) rejects Node process.env exotic prototype despite identical entries. consumer.stderr preserves it; no green retry.",
+  "importEvidenceLimit": "Per-load SHA256 guard and outside-dist negative control ran before all312 rows. The import list and final environment summary were scheduled after the terminal assertion, so were not emitted; no invented successful log.",
+  "strictNativeTotal": 286,
+  "strictNativeMatches": 268,
+  "strictNativeMismatches": [
+    "new-002",
+    "new-004",
+    "new-006",
+    "new-008",
+    "new-012",
+    "new-014",
+    "new-016",
+    "new-018",
+    "new-020",
+    "new-022",
+    "new-024",
+    "new-026",
+    "new-028",
+    "new-030",
+    "new-032",
+    "new-034",
+    "new-036",
+    "new-312"
+  ],
+  "rejectionClassification": [
+    {
+      "id": "new-294",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Harness expected a direct-command thrown FsError; Shell correctly turns it into status1 and a diagnostic. Expected error message also omitted the FsError EFBIG prefix.",
+      "actualMessage": "shell: line 1: EFBIG: time-env format width limit exceeded\n"
+    },
+    {
+      "id": "new-295",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Harness expected a direct-command thrown FsError; Shell correctly turns it into status1 and a diagnostic. Expected error message also omitted the FsError EFBIG prefix.",
+      "actualMessage": "shell: line 1: EFBIG: time-env format width limit exceeded\n"
+    },
+    {
+      "id": "new-296",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Harness expected a direct-command thrown FsError; Shell correctly turns it into status1 and a diagnostic. Expected error message also omitted the FsError EFBIG prefix.",
+      "actualMessage": "shell: line 1: EFBIG: time-env format width limit exceeded\n"
+    },
+    {
+      "id": "new-297",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Harness expected a direct-command thrown FsError; Shell correctly turns it into status1 and a diagnostic. Expected error message also omitted the FsError EFBIG prefix.",
+      "actualMessage": "shell: line 1: EFBIG: time-env output limit exceeded\n"
+    },
+    {
+      "id": "new-300",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Harness expected a direct-command thrown FsError; Shell correctly turns it into status1 and a diagnostic. Expected error message also omitted the FsError EFBIG prefix.",
+      "actualMessage": "shell: line 1: EFBIG: time-env output limit exceeded\n"
+    },
+    {
+      "id": "new-302",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Harness expected a direct-command thrown FsError; Shell correctly turns it into status1 and a diagnostic. Expected error message also omitted the FsError EFBIG prefix.",
+      "actualMessage": "shell: line 1: EFBIG: time-env output limit exceeded\n"
+    },
+    {
+      "id": "new-306",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Frozen new diagnostic omitted \"or time\". Invalid date refusal and no-partial-stdout are correct.",
+      "actualMessage": "date: invalid calendar date or time\n"
+    },
+    {
+      "id": "new-307",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Frozen new diagnostic omitted \"or time\". Invalid date refusal and no-partial-stdout are correct.",
+      "actualMessage": "date: invalid calendar date or time\n"
+    },
+    {
+      "id": "new-308",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Frozen new diagnostic omitted \"or time\". Invalid date refusal and no-partial-stdout are correct.",
+      "actualMessage": "date: invalid calendar date or time\n"
+    },
+    {
+      "id": "new-309",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Frozen new diagnostic omitted \"or time\". Invalid date refusal and no-partial-stdout are correct.",
+      "actualMessage": "date: invalid calendar date or time\n"
+    },
+    {
+      "id": "new-310",
+      "retainedResult": "FAIL (not promoted)",
+      "classification": "Frozen new diagnostic omitted \"or time\". Invalid date refusal and no-partial-stdout are correct.",
+      "actualMessage": "date: invalid calendar date or time\n"
+    }
+  ],
+  "sourceProof": {
+    "rows": 1910,
+    "proofRows": 1624,
+    "sourceBranchMatches": 1624,
+    "magnitudeMatches": 1622,
+    "magnitudeFailures": [
+      "proof-804",
+      "proof-1204"
+    ],
+    "processErrors": 0,
+    "rawSha256": "92d2e95211e46aa50a0ded6c690ef07f1fb2916783d5940d7fda315477fabafc"
+  },
+  "categories": {
+    "fraction-width-flags": {
+      "rows": 18,
+      "originalPasses": 18,
+      "strictNativeMeasured": 18,
+      "strictNativeMatches": 18
+    },
+    "bare-N-strict-profile": {
+      "rows": 18,
+      "originalPasses": 18,
+      "strictNativeMeasured": 18,
+      "strictNativeMatches": 1
+    },
+    "iso-arithmetic": {
+      "rows": 228,
+      "originalPasses": 228,
+      "strictNativeMeasured": 228,
+      "strictNativeMatches": 228
+    },
+    "zone-boundary": {
+      "rows": 18,
+      "originalPasses": 18,
+      "strictNativeMeasured": 18,
+      "strictNativeMatches": 18
+    },
+    "clock-precision-samples": {
+      "rows": 10,
+      "originalPasses": 10,
+      "strictNativeMeasured": 0,
+      "strictNativeMatches": 0
+    },
+    "allocation-admission": {
+      "rows": 10,
+      "originalPasses": 4,
+      "strictNativeMeasured": 2,
+      "strictNativeMatches": 2
+    },
+    "negative-modifier": {
+      "rows": 3,
+      "originalPasses": 3,
+      "strictNativeMeasured": 0,
+      "strictNativeMatches": 0
+    },
+    "negative-calendar": {
+      "rows": 5,
+      "originalPasses": 0,
+      "strictNativeMeasured": 0,
+      "strictNativeMatches": 0
+    },
+    "canonical-proposal-control": {
+      "rows": 2,
+      "originalPasses": 2,
+      "strictNativeMeasured": 2,
+      "strictNativeMatches": 1
+    }
+  },
+  "fractionDirectiveComparisons": 3114,
+  "sourceDomainFinding": "No supported-domain fraction or ISO source defect observed in frozen rows. The unrestricted GNU negative-year magnitude proof is false; source acceptance must remain qualified.",
+  "preservedHistoricalICULabelMismatches": 5
+}

@@ -1,0 +1,31 @@
+{
+  "name": "negative-restored-cleanup-v5",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/negative-restored-cleanup/node_modules/virtual-bash",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/negative-restored-cleanup",
+  "status": 1,
+  "signal": null,
+  "pid": 7590,
+  "pgid": 7590,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:23:01.250Z",
+  "finishedAt": "2026-08-27T21:23:01.322Z",
+  "durationMs": 72.607125,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "dff5032cabff7a53ac9689afa2b7cc6f69d0ae3d1d6903fe69132fa64f0dcf87"
+}

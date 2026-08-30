@@ -1,0 +1,479 @@
+COMMAND ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--import","tsx","--test","--test-concurrency=1","--test-reporter=tap","tests/commands/internal.test.ts","tests/commands/streams.test.ts"]
+EXIT 1 SIGNAL null
+TAP version 13
+# Subtest: collect owns offset Buffer windows across next reads and finalization
+not ok 1 - collect owns offset Buffer windows across next reads and finalization
+  ---
+  duration_ms: 1.592125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/internal.test.ts:1:831'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Uint8Array(6) [
+        0,
+    +   0,
+    +   0,
+    +   0,
+    +   0,
+    +   0
+    -   255,
+    -   195,
+    -   169,
+    -   65,
+    -   10
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 0
+    1: 255
+    2: 195
+    3: 169
+    4: 65
+    5: 10
+  actual:
+    0: 0
+    1: 0
+    2: 0
+    3: 0
+    4: 0
+    5: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/internal.test.ts:32:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: lines owns unfinished Buffer fragments without losing empty or final records
+not ok 2 - lines owns unfinished Buffer fragments without losing empty or final records
+  ---
+  duration_ms: 0.632166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/internal.test.ts:1:1205'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          bytes: Uint8Array(3) [
+    -       65,
+    -       0,
+            255,
+    +       10,
+    +       255
+          ],
+          terminated: true
+        },
+        {
+          bytes: Uint8Array(0) [],
+    ...
+          bytes: Uint8Array(3) [
+    +       0,
+    +       0,
+    +       0
+    -       66,
+    -       195,
+    -       169
+          ],
+          terminated: false
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      bytes:
+        0: 65
+        1: 0
+        2: 255
+      terminated: true
+    1:
+      bytes:
+      terminated: true
+    2:
+      bytes:
+        0: 66
+        1: 195
+        2: 169
+      terminated: false
+  actual:
+    0:
+      bytes:
+        0: 255
+        1: 10
+        2: 255
+      terminated: true
+    1:
+      bytes:
+      terminated: true
+    2:
+      bytes:
+        0: 0
+        1: 0
+        2: 0
+      terminated: false
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/internal.test.ts:41:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lines retains Buffer fragments with a custom NUL separator
+not ok 3 - lines retains Buffer fragments with a custom NUL separator
+  ---
+  duration_ms: 0.240959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/internal.test.ts:1:1710'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        {
+          bytes: Uint8Array(2) [
+    -       65,
+            66,
+    +       66
+          ],
+          terminated: true
+        },
+        {
+          bytes: Uint8Array(2) [
+    +       0,
+    -       67,
+            68
+          ],
+          terminated: true
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      bytes:
+        0: 65
+        1: 66
+      terminated: true
+    1:
+      bytes:
+        0: 67
+        1: 68
+      terminated: true
+  actual:
+    0:
+      bytes:
+        0: 66
+        1: 66
+      terminated: true
+    1:
+      bytes:
+        0: 0
+        1: 68
+      terminated: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/internal.test.ts:52:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: collect owns offset Uint8Array windows across next reads and finalization
+ok 4 - collect owns offset Uint8Array windows across next reads and finalization
+  ---
+  duration_ms: 0.06825
+  type: 'test'
+  ...
+# Subtest: lines owns unfinished Uint8Array fragments without losing empty or final records
+ok 5 - lines owns unfinished Uint8Array fragments without losing empty or final records
+  ---
+  duration_ms: 0.151208
+  type: 'test'
+  ...
+# Subtest: lines retains Uint8Array fragments with a custom NUL separator
+ok 6 - lines retains Uint8Array fragments with a custom NUL separator
+  ---
+  duration_ms: 0.050208
+  type: 'test'
+  ...
+# Subtest: collect preserves its exact limit error and finalizes without mutating input
+ok 7 - collect preserves its exact limit error and finalizes without mutating input
+  ---
+  duration_ms: 0.588208
+  type: 'test'
+  ...
+# Subtest: collect preserves cancellation identity and source finalization
+ok 8 - collect preserves cancellation identity and source finalization
+  ---
+  duration_ms: 0.192417
+  type: 'test'
+  ...
+# Subtest: collect and lines propagate source failure without changing the error
+ok 9 - collect and lines propagate source failure without changing the error
+  ---
+  duration_ms: 0.235083
+  type: 'test'
+  ...
+# Subtest: lines preserves the existing byte limit at the exact boundary and overflow
+ok 10 - lines preserves the existing byte limit at the exact boundary and overflow
+  ---
+  duration_ms: 277.072042
+  type: 'test'
+  ...
+# Subtest: tail -c 4 owns borrowed Buffer readStream windows
+not ok 11 - tail -c 4 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 4.317166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:426'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Buffer(4) [Uint8Array] [
+    +   0,
+    +   0,
+    +   0,
+    +   0
+    -   195,
+    -   169,
+    -   65,
+    -   10
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 195
+    1: 169
+    2: 65
+    3: 10
+  actual:
+    0: 0
+    1: 0
+    2: 0
+    3: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:37:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: tail -n 1 owns borrowed Buffer readStream windows
+not ok 12 - tail -n 1 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.610792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:426'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Buffer(6) [Uint8Array] [
+    -   0,
+    -   255,
+    -   195,
+        169,
+        65,
+        10,
+    +   169,
+    +   65,
+    +   10
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 0
+    1: 255
+    2: 195
+    3: 169
+    4: 65
+    5: 10
+  actual:
+    0: 169
+    1: 65
+    2: 10
+    3: 169
+    4: 65
+    5: 10
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:37:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: head -c -2 owns borrowed Buffer readStream windows
+not ok 13 - head -c -2 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.737041
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:426'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Buffer(4) [Uint8Array] [
+        0,
+    +   0,
+    +   0,
+    +   0
+    -   255,
+    -   195,
+    -   169
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 0
+    1: 255
+    2: 195
+    3: 169
+  actual:
+    0: 0
+    1: 0
+    2: 0
+    3: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:37:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tail -c 4 owns borrowed Uint8Array readStream windows
+ok 14 - tail -c 4 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.425542
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Uint8Array readStream windows
+ok 15 - tail -n 1 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.367709
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Uint8Array readStream windows
+ok 16 - head -c -2 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.277083
+  type: 'test'
+  ...
+# Subtest: tail preserves its retained byte limit and finalizes the source
+ok 17 - tail preserves its retained byte limit and finalizes the source
+  ---
+  duration_ms: 118.12475
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink accept before another borrowed read
+not ok 18 - head byte omission awaits sink accept before another borrowed read
+  ---
+  duration_ms: 3.968042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:1:1884'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        65,
+    +   69,
+    +   70,
+    -   66,
+    -   67,
+        68
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 65
+    1: 66
+    2: 67
+    3: 68
+  actual:
+    0: 65
+    1: 69
+    2: 70
+    3: 68
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/streams.test.ts:105:39)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: head byte omission awaits sink cancel before another borrowed read
+ok 19 - head byte omission awaits sink cancel before another borrowed read
+  ---
+  duration_ms: 1.44925
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink reject before another borrowed read
+ok 20 - head byte omission awaits sink reject before another borrowed read
+  ---
+  duration_ms: 0.757
+  type: 'test'
+  ...
+# Subtest: cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+ok 21 - cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+  ---
+  duration_ms: 0.71525
+  type: 'test'
+  ...
+# Subtest: cat numbering, blank squeezing and visible bytes survive chunk boundaries
+ok 22 - cat numbering, blank squeezing and visible bytes survive chunk boundaries
+  ---
+  duration_ms: 0.664375
+  type: 'test'
+  ...
+# Subtest: head and tail support byte/line counts, origin counts, omission and unterminated lines
+ok 23 - head and tail support byte/line counts, origin counts, omission and unterminated lines
+  ---
+  duration_ms: 1.037041
+  type: 'test'
+  ...
+# Subtest: head stops reading when satisfied and multiple input headers are controllable
+ok 24 - head stops reading when satisfied and multiple input headers are controllable
+  ---
+  duration_ms: 0.477667
+  type: 'test'
+  ...
+# Subtest: wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+ok 25 - wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+  ---
+  duration_ms: 0.852083
+  type: 'test'
+  ...
+# Subtest: tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+ok 26 - tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+  ---
+  duration_ms: 0.41825
+  type: 'test'
+  ...
+# Subtest: tr translates, deletes, squeezes and complements byte sets across chunks
+ok 27 - tr translates, deletes, squeezes and complements byte sets across chunks
+  ---
+  duration_ms: 1.368917
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 20
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 805.968625

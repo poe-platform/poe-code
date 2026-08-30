@@ -1,0 +1,37 @@
+{
+  "schema": "FINAL_SOURCE_DIAGNOSIS_HANDOFF",
+  "commit": "ca285a4d120fcb0b96ee24a4137cb80b8236a69d",
+  "sealSha256": "53ae10c4c36e0db2a23af6726395d94efc7834201af633be40e3674f9fc62cac",
+  "primaryNodeCommit": "2645dc73720b1b4f27c49f395d3c66025ce126cc",
+  "sourceFinding": "Guard value-read of lazy WebSocket can initiate Undici llhttp async bootstrap before WASM deny installation.",
+  "runtimeAdjudication": "Consistent source explanation; exact old initiating stack/thread/Worker lifecycle remain unproved.",
+  "preferredUnrunProposal": "Separate host profile with --no-experimental-websocket in case child and explicitly qualified effective Worker argv; no prewarming/permission widening.",
+  "bindings": {
+    "localPre": 45,
+    "localPost": 45,
+    "primarySourceLocators": 18,
+    "stored759ByteStderrVerified": true
+  },
+  "executions": {
+    "NodeChildren": 0,
+    "Workers": 0,
+    "HTTPOrWasmProbes": 0,
+    "target": 0,
+    "comparator": 0,
+    "fixtures": 0
+  },
+  "history": "G01.1STOP54UNRUN0qualified931bytes remains unchanged; Worker attempt/create/peak/retire UNKNOWN.",
+  "disposition": "PAUSE comparison track after publication; no further work authorized.",
+  "knownOSBeforeFinalPublication": 9,
+  "plannedFinalPublicationOS": 4,
+  "expectedFinalKnownOS": 13,
+  "toolServiceReservation": 1,
+  "elapsedMsAtHandoff": 572179,
+  "limits": {
+    "minutes": 15,
+    "knownOS": 32,
+    "peakOS": 2,
+    "captureBytes": 33554432,
+    "workingBytes": 134217728
+  }
+}

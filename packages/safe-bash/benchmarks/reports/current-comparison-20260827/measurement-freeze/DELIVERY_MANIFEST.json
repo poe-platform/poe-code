@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "sourceSha256": "903784b4a5b1123d285e81fff65883b44d486759fb5ce3f4d28c602ed66736cf",
+  "packageSha256": "bc4f0e01d9daba5dc7c99a7d66615e52808a83a162140d59e88544c7c71fbd51",
+  "bindingSha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e",
+  "rootReceiptSha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5",
+  "files": [
+    {
+      "path": "FREEZE_MANIFEST.json",
+      "bytes": 6709,
+      "sha256": "5e0ae4878a1512f2b279d09413a71dcc93aa5b754c0e23a089669deb71d81ecd"
+    },
+    {
+      "path": "FINAL_VALIDATION.json",
+      "bytes": 10225,
+      "sha256": "2ce52fd20aca011139a735dfc20e6d0a17a5a97e338bb362f0b9f4121ec9239a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7185,
+      "sha256": "2882ff5870b8d311affa5adbc3efd43ad8c35099e6002feea7f49534cc13e554"
+    },
+    {
+      "path": "PREPARATION_NOTES.json",
+      "bytes": 1210,
+      "sha256": "743c4c51e73c276159f3b0c138fd4f1b1d49efe8300c5779efe6ffc6c7ff3c25"
+    }
+  ],
+  "primaryManifestBindsAllFrozenGeneratedEvidenceAndAuthoredToolScripts": true,
+  "bindingAndRootReceiptUnmodified": true,
+  "independentFreezeCheckPending": true,
+  "executionNotPerformed": true,
+  "selfExcluded": true
+}

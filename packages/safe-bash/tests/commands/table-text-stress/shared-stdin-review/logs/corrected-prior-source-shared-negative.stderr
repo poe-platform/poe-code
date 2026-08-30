@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: selected GNU acceptance; semantic assertion, not loader failure
+
+0 !== 1
+
+    at <anonymous> (/private/tmp/safe-bash-comm-final-review-owned/corrected-prior-source/tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts:72:8) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 0,
+  expected: 1,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

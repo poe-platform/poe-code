@@ -1,0 +1,95 @@
+{
+  "status": "PRECODE_OBSERVATIONS_AUTHENTICATED_NOT_FEATURE_ACCEPTANCE",
+  "originalFreeze": "71215d3d6fad4026df7017a1d215ab05ea6474d3",
+  "supplementalFreeze": "63cd195efdd1d4f5ee5790b86b8309f31de3a1df",
+  "nativeScriptObservations": 34,
+  "virtualScriptObservations": 34,
+  "virtualStdoutAndStatusMatches": 0,
+  "additionalNativeOnlyQuestions": 4,
+  "nativeIdentityInvocations": 2,
+  "directlyAwaitedChildren": 74,
+  "packedProductModulesPerVirtualCase": 204,
+  "sourceUnchanged": true,
+  "binaryUnchanged": true,
+  "ownedTemporaryRootsRemoved": 2,
+  "newExecutionsByVerifier": 0,
+  "qualifications": [
+    "Original bundled dirs snapshot failure retained",
+    "Supplemental four are not original34 rescore",
+    "DIRSTACK/tilde case explicitly deferred",
+    "Darwin Bash5.3 only; no Linux/Bash3.2 claim",
+    "No production changes"
+  ],
+  "files": [
+    {
+      "path": "FREEZE.json",
+      "bytes": 2742,
+      "sha256": "d438c16c7fdd1766cdf9bae6519e73beeddb76641ff5f719a670176afa32d5e8"
+    },
+    {
+      "path": "FREEZE.md",
+      "bytes": 3417,
+      "sha256": "775f950c655bab0be8ae331a6b3e2439be58371ebc566893ad2a16d9481430f8"
+    },
+    {
+      "path": "PROPOSAL.md",
+      "bytes": 13331,
+      "sha256": "d3f3aa73c02064b78bff9779b72082db5baca74387ef08a8781ecc3b560ff190"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 5546,
+      "sha256": "4a912cd5ef9c4f15811d80feaf9a83cd7b006be00a8a561e2c32c257379a4490"
+    },
+    {
+      "path": "SUPPLEMENTAL-FREEZE.json",
+      "bytes": 501,
+      "sha256": "8945a474ec543bd3fa32e710d1c5a5a01df00c2288b591364f8d836ff9d9d162"
+    },
+    {
+      "path": "cases.json",
+      "bytes": 7926,
+      "sha256": "5c4e41915c006d714d23828e9bea5e3ccdc178dd89df6672e59525d4134ee490"
+    },
+    {
+      "path": "guard.mjs",
+      "bytes": 899,
+      "sha256": "e36f93449c5a1f458b363ea274900493638c9b72ae4e33d030d6de0e76f4d114"
+    },
+    {
+      "path": "observations-01.json.gz.base64",
+      "bytes": 584233,
+      "sha256": "179d48ba3dbfe8cc81e6280df7dcbc5d49c84c5a2297b9ed8ca05f04e90cbaf2"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 11479,
+      "sha256": "0ebd185483c86e69eb63af4b894d771c3bdc5529b1d3ed4d49be9eb780d37291"
+    },
+    {
+      "path": "supplemental-cases.json",
+      "bytes": 2034,
+      "sha256": "5495431b3b668fcba980c51d7b1d49d2a91eae7efdf569e37cad6ada1a42169d"
+    },
+    {
+      "path": "supplemental-observations-01.json.gz.base64",
+      "bytes": 2873,
+      "sha256": "ecb8bd5f8653a4dad2aaa8eb22a496466a45a3e9e5229441c926b422cac680c8"
+    },
+    {
+      "path": "supplemental.mjs",
+      "bytes": 3811,
+      "sha256": "45fba3c77e8207377a0460528d556541cfba188731ec84e135958e1351753634"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 3703,
+      "sha256": "a9137c38ea13c17ca4f86c286ecad42e21a324849b59081de2735d2874624d85"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 1482,
+      "sha256": "8efeda7bfeb3b5719e757e1489a598aaa6c4ab596ae81dce09ba4588325ade48"
+    }
+  ]
+}

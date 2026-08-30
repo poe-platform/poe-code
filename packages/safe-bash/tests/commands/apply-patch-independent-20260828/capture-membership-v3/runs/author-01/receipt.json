@@ -1,0 +1,84 @@
+{
+  "schema": "c18-author-receipt-v3",
+  "started": "2026-08-28T18:48:37.102Z",
+  "sourceCommit": "33e2b4c7fb14c2ab5ad23be50ac07bcc4bfed848",
+  "presealSha256": "d7c744499fa6b3124aed52d680a17f469e66e8ced04356d521a6cfe26dac97a0",
+  "children": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/package.json",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/work",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/work/*",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/run-controls.mjs"
+      ],
+      "started": "2026-08-28T18:48:37.157Z",
+      "finished": "2026-08-28T18:48:37.248Z",
+      "startedElapsedMs": 54.45975000000001,
+      "finishedElapsedMs": 146.174042,
+      "pid": 21563,
+      "spawnAttempted": true,
+      "spawnReturned": true,
+      "spawnEvent": true,
+      "spawnThrew": false,
+      "code": 1,
+      "signal": null,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "spawnError": null,
+      "fault": null,
+      "bytes": 873,
+      "retired": true
+    }
+  ],
+  "productActual": 0,
+  "failedAttemptsPreserved": true,
+  "before": {
+    "files": 97,
+    "cumulativeBytesHashed": 114471506,
+    "entriesSha256": "f6f1a6ae1aeabc94bd903e00e2a4984a8057f0b346870c0f26ee4084957273d5",
+    "manifestsExactNamespace": true,
+    "rootExactAllowlist": true
+  },
+  "failure": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/author-run.mjs:72:73"
+  },
+  "after": {
+    "files": 97,
+    "cumulativeBytesHashed": 114471506,
+    "entriesSha256": "f6f1a6ae1aeabc94bd903e00e2a4984a8057f0b346870c0f26ee4084957273d5",
+    "manifestsExactNamespace": true,
+    "rootExactAllowlist": true
+  },
+  "cleanup": {
+    "workAbsent": true,
+    "files": 61,
+    "bytes": 18495,
+    "symlinks": 0,
+    "directories": 13,
+    "childRetired": true,
+    "ownedTimers": "supervise clears timeout, kill and hard-close timers in finally; no controller timers",
+    "persistentResources": 0
+  },
+  "finished": "2026-08-28T18:48:37.301Z",
+  "elapsedMs": 199.358917,
+  "budget": {
+    "maximumMs": 300000,
+    "children": 1,
+    "maximumChildren": 8,
+    "peakOwnedProcesses": 2,
+    "maximumPeak": 2,
+    "captureBytesBeforeReceipt": 873,
+    "maximumCaptureBytes": 16777216,
+    "maximumWorkBytes": 67108864,
+    "resourceMeaning": "owned controller + DATA child; not CLI/global peak or RSS"
+  },
+  "passed": false
+}

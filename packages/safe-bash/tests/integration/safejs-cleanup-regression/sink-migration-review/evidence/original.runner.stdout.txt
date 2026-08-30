@@ -1,0 +1,19 @@
+{"id":"literal-grep-success","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-rg-success","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-grep-early-close","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-rg-early-close","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-grep-caller-abort","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-rg-caller-abort-record","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-grep-dispose","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-rg-overlap-abort-dispose","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-grep-guest-budget","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-grep-guest-error","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-grep-retained-lifetime","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-grep-caller-sink-error","accepted":false,"status":1,"signal":null,"capture":"fail","assertion":"Expected values to be strictly equal:\n\nfalse !== true\n"}
+{"id":"literal-grep-caller-sink-status-control","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-grep-cooperative-hook","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"literal-preabort-no-admission","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"bridge-grep-success","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"bridge-rg-early-close","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"bridge-grep-caller-abort","accepted":true,"status":0,"signal":null,"capture":"pass"}
+{"id":"bridge-rg-dispose","accepted":true,"status":0,"signal":null,"capture":"pass"}

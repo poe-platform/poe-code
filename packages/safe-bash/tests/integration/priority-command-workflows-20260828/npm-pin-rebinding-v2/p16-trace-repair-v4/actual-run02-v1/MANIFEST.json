@@ -1,0 +1,127 @@
+{
+  "schema": "priority-run02-actual-evidence-manifest-v1",
+  "status": "SCOPED_PASS_78_NEW_SELECTED_CALLS",
+  "grantCommit": "96c0fb58664ce8ab8044f31acdbbaa4fcc9cf486",
+  "packet": "4088ee524e9ec6ae47ef90af3538dc35addcc3a0",
+  "codeCommit": "497c566083fac2eda1ddad14edba052e3c0a6d54",
+  "sealCommit": "8918f35bed8d9ec11f523a53e52488f885f627f3",
+  "preparationSealSha256": "0b7ecfd23d705e4d9cfa8ac66b642f33aa51a16769b0d128dda9a156099bf579",
+  "acceptedCodeDataReview": "a663c99728fad88c2a7f2ded94575bd6a4b99d69",
+  "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "packageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+  "selectionSha256": "75e43bb584f4edb791285da329460825401d82f7089418657fd9a3a8968a7c85",
+  "grant": {
+    "path": "../GO.json",
+    "bytes": 5786,
+    "sha256": "1ebca4b6d418216b672f609e2a9ac8747d4fae736d53a3da05ba9d82a6c6743f"
+  },
+  "parent": {
+    "path": "../PARENT-BUDGET.json",
+    "bytes": 300,
+    "sha256": "cda5c6fbf084925e821e17b8e8826983f38de3c5e665e8fc4fc93d49c4bbd494"
+  },
+  "archives": {
+    "runtime": {
+      "path": "RUNTIME-RAW.json.gz.base64",
+      "bytes": 6591350,
+      "sha256": "2cf0a3d090cf66e1cb56a73ec42b821477c204d6e54d212b76eaaa7eea3462b5",
+      "gzipBytes": 4879311,
+      "gzipSha256": "529e81c33b9661ee22665ca64be62f085dc79b9dc40c4eca6f727d7d28980307",
+      "decodedBytes": 41209506,
+      "decodedSha256": "2feb3f450335cf5f2728a4d8d934b494b650faf986f7a2ae947d5f2c4f8f34dd",
+      "rawFileCount": 452,
+      "decodeBound": 67108864
+    },
+    "outer": {
+      "path": "OUTER-RAW.prepublication.json.gz.base64",
+      "bytes": 9715540,
+      "sha256": "ce462b3efe1df68516dcbe91f87828154fbbb748a37f32cadd349eda60bb0ba2",
+      "gzipBytes": 7192021,
+      "gzipSha256": "b56ce23c056db46f171d2fecda23e733c412467d533f99c75b2775c609d7f804",
+      "decodedBytes": 13314439,
+      "decodedSha256": "59c92f9a8775fe14105f124b81fc16430b33254a7d16be04c82878f4e078d0c9",
+      "rawFileCount": 27,
+      "decodeBound": 33554432
+    }
+  },
+  "files": [
+    {
+      "path": "OUTER-RAW.prepublication.json.gz.base64",
+      "bytes": 9715540,
+      "sha256": "ce462b3efe1df68516dcbe91f87828154fbbb748a37f32cadd349eda60bb0ba2"
+    },
+    {
+      "path": "PREAUTH.json",
+      "bytes": 697835,
+      "sha256": "dbfde67e544f177d5d65953f5aab1414afcd8df58785b2b8c1d5478f8dbc1a90"
+    },
+    {
+      "path": "RECONCILIATION.json",
+      "bytes": 150424,
+      "sha256": "371511e65dfc903bb8b33bd5337c997708d7c4f8e9784985dc9ea6346e047a2b"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 5596,
+      "sha256": "26a93738c7e1853941e200420eb141d6b5ed9b05d86445004de11f4925a1ed92"
+    },
+    {
+      "path": "ROOT-GRANT.md",
+      "bytes": 4634,
+      "sha256": "3131768a9544a644cd530bc4a8e9276ba46ece66cf5a40e1ca507a95f177ca7e"
+    },
+    {
+      "path": "RUN-INVENTORY.json",
+      "bytes": 1236963,
+      "sha256": "4d139c2298b935e79e6bf3dd34f4d4071a8b37c326a3e010035a0c3e5248ce50"
+    },
+    {
+      "path": "RUNTIME-RAW-MEMBERS.json",
+      "bytes": 80671,
+      "sha256": "faa5e34f5b182f6fb96a720b90fbac51b6413d6dfb71d2f14ddbe00478fdb431"
+    },
+    {
+      "path": "RUNTIME-RAW.json.gz.base64",
+      "bytes": 6591350,
+      "sha256": "2cf0a3d090cf66e1cb56a73ec42b821477c204d6e54d212b76eaaa7eea3462b5"
+    }
+  ],
+  "counts": {
+    "actualPublicCalls": 78,
+    "pass": 78,
+    "ordinaryFail": 0,
+    "stop": 0,
+    "unrun": 0,
+    "setupChildren": 3,
+    "admissionChildren": 4,
+    "directChildren": 85,
+    "directChildrenReaped": 85,
+    "supervisorReaped": true,
+    "declaredOsLifetimesIncludingSupervisor": 86,
+    "declaredPeakOsProcesses": 2,
+    "productWorkerStarts": 63,
+    "productWorkerExits": 63,
+    "observedWorkerPeak": 1,
+    "productTerminateCalls": 63,
+    "productTerminateFulfilled": 63,
+    "emergencyRetirements": 0,
+    "unknownWorkerReservations": 0,
+    "workerStartsWithheld": 0,
+    "loaderRequests": 82,
+    "independentLoaderExitReceipts": null,
+    "streamBytes": 347955,
+    "logBytes": 5776082,
+    "capturedBytes": 6124037,
+    "logicalScratchBytes": 200067167
+  },
+  "remaining": {
+    "children": 0,
+    "workerStarts": 249,
+    "loaderThreads": 0,
+    "captureBytes": 350391803,
+    "scratchBytes": 336803745
+  },
+  "release": false,
+  "rawDataRoundtrip": "452 runtime files and27 prepublication outer files; integrity verification only, not additional product executions",
+  "scope": "Current evidence commit binds this manifest; no circular self-hash. Later administrative publication receipts separately scoped. RUN01 unchanged; no retry or full-gate claim."
+}

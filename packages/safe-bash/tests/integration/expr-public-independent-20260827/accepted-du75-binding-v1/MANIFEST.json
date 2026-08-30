@@ -1,0 +1,25 @@
+{
+  "schema": "expr-du75-binding-manifest/1",
+  "profile": "EXPR_ACCEPTED_DU75_PREREQUISITE_BOUND_20260828",
+  "classification": "NONEXECUTED_ACCEPTANCE_BINDING",
+  "files": {
+    "BINDING.json": {
+      "bytes": 11352,
+      "sha256": "31cb80f51c8532c995b5d2baaf88faa9ce15338ef7f022f29e45542a14d61ecd"
+    },
+    "README.md": {
+      "bytes": 3633,
+      "sha256": "69f065cbd699f5d7c0a8f9ab378839c1c9b3fa2a9f939d910009ec29018ec756"
+    },
+    "VERIFICATION.json": {
+      "bytes": 15867,
+      "sha256": "6f48c14212ebf2af58cd3e3257a2703e55824d04b969dcbd9b2746f2dc2928f2"
+    },
+    "verify.mjs": {
+      "bytes": 14079,
+      "sha256": "74069e785f61fb92bc03afac8963df6e6ebb4585187e4fba5566cb3bd471383b"
+    }
+  },
+  "self": "MANIFEST.json is excluded to avoid self-reference; final commit and externally reported manifest SHA256 bind it.",
+  "scope": "Only the four listed new artifacts. No foreign tree or original evidence resealing."
+}

@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "sourceCommit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+  "abiCommit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+  "staticChecks": {
+    "syntax": {
+      "count": 7,
+      "status": "SYNTAX_ONLY_SUCCESS",
+      "evidence": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/STATIC-PRESEAL-CHECKS.json",
+        "sha256": "e9e5f7206feb75399fe4d2a958fac31bae603ab58042ff162f223920f7e148be",
+        "bytes": 2642,
+        "mode": 420
+      }
+    },
+    "spec": {
+      "file": "ABI.md",
+      "errors": 0,
+      "warnings": 0
+    },
+    "catalog": {
+      "uniqueRecords": 194,
+      "uniqueGapIds": 135,
+      "uniqueFragments": 371,
+      "unboundFragments": 40,
+      "unboundFragmentProjectionJobs": 28,
+      "primaryRoleCounts": {
+        "command-semantic-runtime": 111,
+        "admission-error-boundary": 34,
+        "source-static-counterproof": 23,
+        "lifecycle-cooperative": 11,
+        "materialized-package-infrastructure": 4,
+        "type-consumer": 5,
+        "negative-control": 6
+      },
+      "overlayIds": [
+        "NUM-14",
+        "NUM-15",
+        "UTF-12",
+        "ENC-07",
+        "QUE-12",
+        "WRK-10",
+        "WRK-22",
+        "WRK-26"
+      ],
+      "unassignedRecordIds": 25
+    },
+    "afterSyntheticPreparedAndInputsAndHostNode": "HASH_MODE_SIZE_MEMBERSHIP_UNCHANGED",
+    "importGraph": "LITERAL_SOURCE_INSPECTION_ONLY"
+  },
+  "synthetic": {
+    "preseal": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/SYNTHETIC-PRESEAL.json",
+      "sha256": "0b927bca652f053a48cbe99a66b33af88d84b9ccafdd933f65f0e03438ce0bd1",
+      "bytes": 10331,
+      "mode": 420
+    },
+    "attempts": 1,
+    "retries": 0,
+    "failedAttempts": 0,
+    "outerPid": 24036,
+    "outerExit": 0,
+    "outerSignal": null,
+    "childPid": 24037,
+    "childExit": 0,
+    "childSignal": null,
+    "checks": 18,
+    "status": "PASS_COMPONENT_STUB_CHECKS_ONLY",
+    "knownReap": true,
+    "integrity": true,
+    "stdoutBytes": 917,
+    "stderrBytes": 0,
+    "storageBytes": 9139,
+    "observedParentIntervalNs": "264750292",
+    "evidence": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/CAPTURE-MAP.json",
+      "sha256": "9230f25258e83135110da57b20dde10e5bb397a9aab41559cbfc57218e50300f",
+      "bytes": 7380,
+      "mode": 420
+    },
+    "sourceFixtureArguments": 1,
+    "realCandidateArgumentsIngested": 0,
+    "activeOwnedChildren": []
+  },
+  "preparationErrors": [
+    {
+      "id": "ROOT-PATH-127",
+      "reference": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/PREPARATION-HISTORY.json",
+      "scope": "ROOT_REPORTED_HISTORICAL_PREPARATION_ONLY",
+      "targetActivity": false
+    },
+    {
+      "id": "AUTHOR-REPL-PROCESS-UNAVAILABLE",
+      "scope": "STATIC_METADATA_PREPARATION",
+      "message": "process is not defined",
+      "cause": "Persistent Node REPL does not expose process; metadata inspection stopped before reaching host executable identity.",
+      "resolution": "Read fixed host Node path through command -v and stat/hash. No helper/candidate was invoked.",
+      "targetActivity": false
+    },
+    {
+      "id": "STATIC-READ-MISSING-PROTOCOL-PATH",
+      "activity": "Read-only rg lookup included nonexistent composition-v4/assembly/core/protocol.mjs; subsequent cat completed. No module was imported.",
+      "compoundCommandExit": 0,
+      "diagnostic": "No such file or directory",
+      "productFinding": false
+    },
+    {
+      "id": "STATIC-READ-MISSING-ALTERNATE-PATHS",
+      "activity": "Read-only rg lookup included nonexistent data.mjs, io.mjs and protocol-data.mjs. Actual worker-api.mjs was inspected instead.",
+      "commandExit": 2,
+      "diagnostic": "No such file or directory",
+      "productFinding": false
+    }
+  ],
+  "zeroCounts": {
+    "candidateImports": 0,
+    "candidateExecutions": 0,
+    "targetCompilers": 0,
+    "productActors": 0,
+    "actualLoadedMutants": 0,
+    "privateImports": 0,
+    "nativeOracles": 0,
+    "rootGoCreated": 0,
+    "peerImports": 0
+  },
+  "limitsNotProved": [
+    "dynamic timeout/reap-failure and saturation behavior",
+    "opaque host preemption or escaped descendant absence",
+    "hard RSS ceiling",
+    "real source argument ingestion/independent proof truth",
+    "target semantics or full-record completion",
+    "peer actor/assertion correctness or composed dispatch"
+  ],
+  "foreignStagePolicy": "Exact-owned git commit --only; old packets and foreign paths untouched"
+}

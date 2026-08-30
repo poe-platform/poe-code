@@ -1,0 +1,68 @@
+{
+  "kind": "Byte-identical historical archive",
+  "artifacts": [
+    {
+      "source": "/tmp/safe-bash-routed-five-inputs.json",
+      "archive": "inputs.json",
+      "bytes": 70510,
+      "sha256": "f7104b13aa6bf328f0b75a57408d953ae81338e875320e33e8d0880450ef18bc"
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-results.json",
+      "archive": "results.json",
+      "bytes": 74650,
+      "sha256": "0fae47fcec1ebf4671871c60807a4e2ff3f019bf1d40d23237d33d2ec9ab861b"
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-before.json",
+      "archive": "before.json",
+      "bytes": 26355,
+      "sha256": "d1e713b81fd827512f13f92011d7ecf9701176718fc0aecb4c8a88e675b02908"
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-after.json",
+      "archive": "after.json",
+      "bytes": 26355,
+      "sha256": "df8b605d250f75e159a8f74fdd0f3034ceb2867d53d19a5ee80b858cff1d76f5"
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-final-state.json",
+      "archive": "final-state.json",
+      "bytes": 31651,
+      "sha256": "755d36e57b53b53faaa2c7dd723fa40bf3ae19b7213d8f46247d47ff8c15d507"
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-probe.mjs",
+      "archive": "probe.mjs",
+      "bytes": 7538,
+      "sha256": "0cbede9d9ad9ef128d2fd47a5f26e13082f6d8cbccf42b3ee1fc86f0aa900e9d"
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-finalize.mjs",
+      "archive": "finalize.mjs",
+      "bytes": 3360,
+      "sha256": "18e01a35fb6957b954169920254fa332990d5149046990a7f5fbd41eeacbe4a6"
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-report.txt",
+      "archive": "report.txt",
+      "bytes": 13728,
+      "sha256": "530de1e0686313a697bb4318ab8ab85c44657f87f8b2329b8dcf4e9e69248b84"
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-status.txt",
+      "archive": "status.txt",
+      "bytes": 1715,
+      "sha256": "3ac0e9ea976f54809a03c55eb63ec9a2273624172aa1a3c1ed0929bf1ba70609"
+    },
+    {
+      "source": "/tmp/root/safe-bash-routed-five.txt",
+      "archive": "root-notification.txt",
+      "bytes": 1267,
+      "sha256": "363dfb2def91c89aa81da2e6ce337b8d34138abf3dd8853940e4aafbcaae93cf"
+    }
+  ],
+  "derived": [
+    "frozen-eighteen-failures.json"
+  ]
+}

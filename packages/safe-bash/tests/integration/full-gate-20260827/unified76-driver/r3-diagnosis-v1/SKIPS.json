@@ -1,0 +1,93 @@
+[
+  {
+    "id": "tap-line-1498",
+    "phase": "canonical",
+    "status": "skipped",
+    "tapLine": 1498,
+    "name": "base64: Python standard-library binary oracle replaces no GNU evidence # SKIP",
+    "originalReason": "",
+    "sourcePath": "tests/commands/bytes-stress/encoding.test.ts",
+    "classification": "oracle-unexecuted",
+    "condition": "nativePrograms.python false after PATH-only python3 access discovery; no native/virtual body execution.",
+    "originalDetailSha256": "0653d163984a2eaf5f59c9f8591265516e9b842131ddae96384fe33197ab8355",
+    "noPassCredit": true
+  },
+  {
+    "id": "tap-line-1516",
+    "phase": "canonical",
+    "status": "skipped",
+    "tapLine": 1516,
+    "name": "base32: Python standard-library binary oracle replaces no GNU evidence # SKIP",
+    "originalReason": "",
+    "sourcePath": "tests/commands/bytes-stress/encoding.test.ts",
+    "classification": "oracle-unexecuted",
+    "condition": "nativePrograms.python false after PATH-only python3 access discovery; no native/virtual body execution.",
+    "originalDetailSha256": "db1bf02765d7d6aa887374eb593a05296b1abbd7037791c906d3de7c6d5e9d03",
+    "noPassCredit": true
+  },
+  {
+    "id": "tap-line-1534",
+    "phase": "canonical",
+    "status": "skipped",
+    "tapLine": 1534,
+    "name": "xxd tiny-width odd group and displaced address matrix matches installed Vim # SKIP",
+    "originalReason": "",
+    "sourcePath": "tests/commands/bytes-stress/encoding.test.ts",
+    "classification": "oracle-unexecuted",
+    "condition": "nativePrograms.xxd false after PATH-only xxd access discovery; no native/virtual body execution.",
+    "originalDetailSha256": "5f9dfe913942e8b8fee76587ce6ab0231de90da95919808d63dd1df2e7a07d8a",
+    "noPassCredit": true
+  },
+  {
+    "id": "tap-line-2542",
+    "phase": "canonical",
+    "status": "skipped",
+    "tapLine": 2542,
+    "name": "cksum: isolated installed native oracle, binary lengths and chunk boundaries # SKIP cksum is not installed on darwin 25.4.0",
+    "originalReason": "cksum is not installed on darwin 25.4.0",
+    "sourcePath": "tests/commands/bytes/checksums/native.test.ts",
+    "classification": "oracle-unexecuted",
+    "condition": "discover(cksum) exhausted declared candidates with ENOENT; the skip string is not proof that this machine has no cksum.",
+    "originalDetailSha256": "e739fbc6d9c48b7e9aa8feffb3f80da1fe36f14fc308dead3b8ab8fe94cfb094",
+    "noPassCredit": true
+  },
+  {
+    "id": "tap-line-3344",
+    "phase": "canonical",
+    "status": "skipped",
+    "tapLine": 3344,
+    "name": "native Vim xxd: exact format and reverse matrix # SKIP xxd not installed; static format tests still run",
+    "originalReason": "xxd not installed; static format tests still run",
+    "sourcePath": "tests/commands/bytes/encoding/oracle.test.ts",
+    "classification": "oracle-unexecuted",
+    "condition": "bare xxd -v returned an error; the fixture skips on any error, not only ENOENT. Raw reason does not establish system-wide absence.",
+    "originalDetailSha256": "f76120c552bf0346e0bebad7860c36cc3923822a1116a8e6499e950bcb7b6115",
+    "noPassCredit": true
+  },
+  {
+    "id": "tap-line-44693",
+    "phase": "canonical",
+    "status": "skipped",
+    "tapLine": 44693,
+    "name": "optional GNU replay requires supplied frozen identities and raw warning evidence # SKIP GNU grep unavailable to author; supply a pinned capture and set GREP_ALIASES_GNU_NATIVE=1",
+    "originalReason": "GNU grep unavailable to author; supply a pinned capture and set GREP_ALIASES_GNU_NATIVE=1",
+    "sourcePath": "tests/commands/grep-aliases/native.test.ts",
+    "classification": "oracle-unexecuted",
+    "condition": "GREP_ALIASES_GNU_NATIVE not 1; GNU capture/profile availability additionally guarded inside the body. No new replay.",
+    "originalDetailSha256": "2c1505e05d1f99a2f4f61118a70b146778443c9bc4c16eb4aff43bef94d8aed1",
+    "noPassCredit": true
+  },
+  {
+    "id": "tap-line-44699",
+    "phase": "canonical",
+    "status": "skipped",
+    "tapLine": 44699,
+    "name": "optional BSD replay requires exact recorded binaries, version and corpus # SKIP set GREP_ALIASES_NATIVE=1 for strict pinned native replay",
+    "originalReason": "set GREP_ALIASES_NATIVE=1 for strict pinned native replay",
+    "sourcePath": "tests/commands/grep-aliases/native.test.ts",
+    "classification": "oracle-unexecuted",
+    "condition": "GREP_ALIASES_NATIVE not 1; opt-in pinned BSD replay not run.",
+    "originalDetailSha256": "b2da1ddf14876321b7026dd5570efc7dea93cfba8d366d786c383b797adc9ea5",
+    "noPassCredit": true
+  }
+]

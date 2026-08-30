@@ -1,0 +1,19 @@
+{
+  "executable": "tar",
+  "args": [
+    "-xf",
+    "-",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/node_modules/candidate-02/revised"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "started": "2026-08-27T21:38:42.541Z",
+  "finished": "2026-08-27T21:38:42.636Z",
+  "timeout": 120000,
+  "maxBuffer": 33554432,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

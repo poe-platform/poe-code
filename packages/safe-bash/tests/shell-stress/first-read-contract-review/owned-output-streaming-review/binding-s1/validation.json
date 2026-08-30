@@ -1,0 +1,43 @@
+{
+  "classification": "preparation evidence only; no product runtime",
+  "checkedAt": "2026-08-27T11:27:53.434Z",
+  "node": "v22.22.2",
+  "scratch": "/tmp/safe-bash-owned-output-streaming-binding-DJ8CBB",
+  "driverSha256": "f57b423ac3aa5ff210e3a389f4c4df3c01740f0329f66194012ae551068c8b21",
+  "mappingSha256": "2fb108c178225e3381c693fb796a13b53389a2db74607158c608af9c3b4eb3f2",
+  "checks": [
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/prepare.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "mode": "syntax only; file never imported or executed"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/tmp/safe-bash-owned-output-streaming-binding-DJ8CBB/driver.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "mode": "syntax only; file never imported or executed"
+    }
+  ],
+  "inputIntegrity": "29 captured inputs verified including 19 immutable historical archives",
+  "logicalCases": 12,
+  "parameterizedRecords": 20,
+  "blockedBindings": 7,
+  "productExecutions": 0,
+  "sourceIdentity": "UNBOUND",
+  "allRecords": "UNRUN",
+  "candidateImports": 0,
+  "authorSourceReads": 0,
+  "serversStarted": 0,
+  "fixtureChildrenStarted": 0,
+  "opaqueReadsStarted": 0,
+  "backgroundProcessesStarted": 0
+}

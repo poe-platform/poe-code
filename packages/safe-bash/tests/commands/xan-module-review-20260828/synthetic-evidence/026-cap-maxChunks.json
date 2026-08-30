@@ -1,0 +1,17 @@
+{
+  "id": "cap-maxChunks",
+  "families": [
+    "F11"
+  ],
+  "observation": {
+    "returned": {
+      "code": "QUOTA",
+      "unchanged": true,
+      "defaultValue": 262144,
+      "hardCeiling": 4194304,
+      "kind": "GENERIC_COUNTER_ONLY_NOT_PRODUCT_TARGET",
+      "depthThreeGenerated": false
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

@@ -1,0 +1,40 @@
+{
+  "schema": "FUNCTIONAL_V2_REVIEWED_LAUNCH_INTENT",
+  "phase": "cohort",
+  "runId": "semantic-functional-20260829-v2-01",
+  "command": "exec -c /bin/sh '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/FUTURE-LAUNCH.sh.data' '3f12d2e88ad29d6754cef3c0da1dbe127f47c354ad1e66b0017f539a4cff2452' 'fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1'",
+  "toolShell": "/bin/sh",
+  "login": false,
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "auth": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/AUTH.json",
+    "bytes": 572,
+    "mode": 420,
+    "sha256": "3f12d2e88ad29d6754cef3c0da1dbe127f47c354ad1e66b0017f539a4cff2452"
+  },
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+    "bytes": 1325,
+    "mode": 420,
+    "sha256": "d9b4f0c5e91f2b1b7b0c4c0db6110afa7c165f51ab5892182bffc53e04fccef2"
+  },
+  "grantCommit": "1979eca53f1a878619e0442dc6184f84bec030b0",
+  "review": {
+    "commit": "37026b85275a2fa4b015cc18b04d75d90fa6dc3c",
+    "path": "tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/REVIEW.json",
+    "sha256": "f4a16fa6346397219c2c779fd30bb249759467d7da3295e5f5e7e26ab6e1e8f6"
+  },
+  "preflight": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/REAL-PAYLOAD-PREFLIGHT.json",
+    "bytes": 8275,
+    "mode": 420,
+    "sha256": "3d48916546a86cf3b1f2e3ecaf0731f5b1679d71dd94ea71ffcaef53f46001c7"
+  },
+  "recipeSha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "launchNotAfterMs": 1787988541754,
+  "actualDeadline": "Actual dispatch timestamp +5400000ms; sealed owner uses its own4500000ms interval, administration reserve900000ms.",
+  "outerCapture": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture",
+  "adminCapture": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/admin-capture",
+  "noAmbientREPL": true,
+  "oneAttempt": true
+}

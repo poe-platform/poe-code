@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "events": [
+    {
+      "role": "STATIC_SPEC_CHECK",
+      "command": "python3 /Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/SPECIFICATION.md",
+      "childStatus": 1,
+      "shellStatus": 0,
+      "rawOutput": "ERROR: missing required section: Normative Language\nFAILED: 1 error(s), 0 warning(s)\n",
+      "result": "FAILED_INITIAL_STATIC_CHECK_NOT_A_PASS",
+      "correction": "Added required Normative Language section before preseal; later check is separate. Initial compound shell ended with git status, so its zero is not claimed as aggregate success. No target or predicate execution."
+    },
+    {
+      "role": "STATIC_GIT_READ",
+      "command": "git show 5783b8e03912f7774d2a86ba1dae9de778121273:tests/commands/yq-independent-20260828/../yq-design-20260828/final-contract-v1/contract.json",
+      "childStatus": 128,
+      "parentStatus": 1,
+      "result": "FAILED_PATH_LOOKUP",
+      "correction": "Read exact normalized repository path as bound in SOURCES.json; no target execution or passing receipt."
+    }
+  ]
+}

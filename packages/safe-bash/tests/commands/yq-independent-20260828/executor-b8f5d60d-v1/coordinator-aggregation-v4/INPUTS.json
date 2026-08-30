@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "STATIC_INPUT_AUTHENTICATION_ONLY",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4",
+  "authority": "Current user single-target CC-F01 corrective assignment; no candidate executionGO.",
+  "witness": {
+    "commit": "cc6da0299760f26cdfcf0b77ad26d1e0b0b7c260",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/corrected-composition-review-v2/CC-F01-STATIC-WITNESS.json",
+    "kind": "file",
+    "bytes": 9229,
+    "sha256": "604334221f8e1b1caad5e55a17055e644960cda2bd744f1dbc3aaa8d32fb20fc",
+    "gitMode": "100644",
+    "gitBlob": "53653ae536ea80f71f4fbb1e820212ef63489e4f"
+  },
+  "preimage": {
+    "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs",
+    "kind": "file",
+    "bytes": 27596,
+    "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+    "gitMode": "100644",
+    "gitBlob": "a0d9fe3e2a2702fcf11936a649adcdb64718e917",
+    "mode": 420,
+    "posixModeAuthority": {
+      "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/FINAL-SEAL.json",
+      "sha256": "430af377d11b9a824320bedd7b163e1a314269b4b8ce5229138c7ecc13c0c7c4",
+      "pointer": "/entries/17/mode"
+    }
+  },
+  "actualReceiptProducerReadOnly": {
+    "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs",
+    "kind": "file",
+    "bytes": 7803,
+    "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+    "gitMode": "100644",
+    "gitBlob": "c27af44d2ed2adda2ceb9dd4b7f5936942bdfe4f",
+    "mode": 420,
+    "posixModeAuthority": {
+      "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/FINAL-SEAL.json",
+      "sha256": "430af377d11b9a824320bedd7b163e1a314269b4b8ce5229138c7ecc13c0c7c4",
+      "pointer": "/entries/15/mode"
+    }
+  },
+  "existingClassifierReadOnly": {
+    "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/classification.mjs",
+    "kind": "file",
+    "bytes": 1107,
+    "sha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c",
+    "gitMode": "100644",
+    "gitBlob": "adc4bfadfc5c4f2817ce3ee77b29383bf49078ae",
+    "mode": 420,
+    "posixModeAuthority": {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+      "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+      "pointer": "/manifest/files/core~1classification.mjs/mode"
+    }
+  },
+  "originalOverlaySeal": {
+    "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/FINAL-SEAL.json",
+    "kind": "file",
+    "bytes": 6327,
+    "sha256": "430af377d11b9a824320bedd7b163e1a314269b4b8ce5229138c7ecc13c0c7c4",
+    "gitMode": "100644",
+    "gitBlob": "5662c6dfa11f1b46fe4a7c80d88511cd41158377"
+  },
+  "originalAssemblyMap": {
+    "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/ASSEMBLY-OVERLAY.json",
+    "kind": "file",
+    "bytes": 11377,
+    "sha256": "397b98ac8c2355541c0a11a5162ea2cb219a64c9a5a31f91d09c67b47b29628e",
+    "gitMode": "100644",
+    "gitBlob": "64b7b53f9264ff2717b76e79b8d6c26dfff1ecbe"
+  },
+  "baselineSealReadOnly": {
+    "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+    "kind": "file",
+    "bytes": 14288,
+    "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+    "gitMode": "100644",
+    "gitBlob": "37fd983caf4de2913529f40c6a56725e3cf10889"
+  },
+  "policy": {
+    "commit": "f5fa0d3fa03532860bad120bf1a71a1b0af3caaa",
+    "path": "AGENTS.md",
+    "kind": "file",
+    "bytes": 13467,
+    "sha256": "64fde885fd30edd6751f95603defac1d15defb6a33dedca2049a82f9aace379c",
+    "gitMode": "100644",
+    "gitBlob": "9ea50cec44152958ad2aa8df423cd128aeaedc9f",
+    "liveBytesMatch": true,
+    "copied": false
+  },
+  "sourceRole": "Full supervisor bytes copied from exact immutable Git preimage plus one literal insertion, no code evaluation.",
+  "rawHashesAuthenticatedForSealedInputs": [
+    "Original FINAL-SEAL.json",
+    "CC-F01 witness",
+    "Original ASSEMBLY-OVERLAY.json",
+    "b1 ASSEMBLY-SEAL.json"
+  ],
+  "modeRules": "Git100644 records regular/nonexecutable class only. Active source mode is fresh lstat0644; prior source modes come from authenticated original seal metadata.",
+  "originalScopeBefore": {
+    "files": 19,
+    "directories": 3,
+    "bytesModesMembershipAndGitBytes": "MATCH_IMMUTABLE_946_SEAL"
+  },
+  "mutableHeadAuthority": false,
+  "candidateExecutions": 0,
+  "harnessExecutions": 0,
+  "controlExecutions": 0,
+  "rootGO": false
+}

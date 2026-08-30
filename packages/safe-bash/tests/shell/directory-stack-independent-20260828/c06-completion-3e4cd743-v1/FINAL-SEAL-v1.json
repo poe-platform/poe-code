@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "at": "2026-08-28T10:07:26.292Z",
+  "role": "final exact append-aware new subtree; self authenticated by explicit commit",
+  "entries": {
+    "": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "ACCESSIBILITY-v1.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3031,
+      "sha256": "f71e239a5211916c6efd743d0a8a7c1d1d6ba9e1811507be1653607900d1dbbf"
+    },
+    "ATTEMPTS-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 992,
+      "sha256": "7bc9582dc68a7871e973cd502190d19b9ccef60fe11ce8566e1d6d614b82a841"
+    },
+    "BINDING-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 44132,
+      "sha256": "30a7e1308e12b672973d2c5b27c031728122f5456c669f3dace362103db6a67f"
+    },
+    "CLEANUP-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 446,
+      "sha256": "345467f3dc62693fdeb03d2451a8d9d2d56554cdc90a1ca8153807be4ccb3306"
+    },
+    "EVIDENCE-MANIFEST-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 227,
+      "sha256": "71e0c5f54ce9079122450cedb2bcf94bfe8b566ccd088e34f2a6a1e44b1744c8"
+    },
+    "EVIDENCE-v1.json.gz.base64": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1105122,
+      "sha256": "6dbc287123dec7420622434d01639453b27dedca8404ee7a8fd58474442bef1c"
+    },
+    "HANDOFF.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4029,
+      "sha256": "6b532685f15bd98c5a4bb00c57914bfc778993fe0618a00d6a4ab80665b04cbd"
+    },
+    "PRECLEAN-STATIC-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 757,
+      "sha256": "ddb1fb822edefb8b71ebc66eae7418686330fb1b7243a9a9f6d35d2819e671b4"
+    },
+    "PRESEAL-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3201,
+      "sha256": "978b98cc4df8b2f391da7b69ecf1252edb271ea5f8617078e4b10b28e4d2a6c8"
+    },
+    "PROOF-ANCHORS-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13895,
+      "sha256": "0fff05debbe72454361fc82024f925ee7457b76596044b68e724179d66ce35d8"
+    },
+    "RESULTS-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1501,
+      "sha256": "a4ac6ea65389e848141e019d48778278667ff03623408ad77ba284365544e0c5"
+    },
+    "RUN-SEAL-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1672,
+      "sha256": "33caf4ee175557e5cfbf425dc86fa062c97680ba14966691bffdabbf516da13c"
+    },
+    "STATIC-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 512,
+      "sha256": "c5aa968147427b6bc81c3475d67fd362f029dad497bb563aae1201f925c8ab84"
+    },
+    "archive-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3036,
+      "sha256": "c16376dd3b3b5b73e834b5035ccbbc429208172a78bec54cafef4d2ceb987ef6"
+    },
+    "child-process-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1595,
+      "sha256": "c11e0225d3e1cb8b96e247fb8b1a7914c6057a37c6dbf0e7ef157e533e6aa7e7"
+    },
+    "integrity-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1142,
+      "sha256": "d20705194d77cce473f083e7078513fa581ec928c723c5655512ab29b2204953"
+    },
+    "load-hook-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1696,
+      "sha256": "3ddea8797c79629120fa6a1c58b700a91d74587d4050020febf4264a52a13c59"
+    },
+    "run-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10837,
+      "sha256": "2ab5673d2dfe791601b96ece0b1edf3ec00d6fff31a8128c7a28fa3916b32c06"
+    },
+    "verify-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8728,
+      "sha256": "e2a533dbf0e10ca57a4315f10d86085c2a312962d8e760827ffccefaa6860eac"
+    },
+    "worker-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7377,
+      "sha256": "b505d491a16b3d66629d989e4469f03c336511f3899cb55c0eb746b45071b508"
+    }
+  }
+}

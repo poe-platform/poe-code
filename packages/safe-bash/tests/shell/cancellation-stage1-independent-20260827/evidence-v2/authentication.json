@@ -1,0 +1,26 @@
+{
+  "commits": {
+    "freeze": "7023c28229ecb7939aee5eb7ca0f52ac57c795bb",
+    "candidate": "6747227230cd770379148552d471621717b766d7",
+    "evidence": "3d247da92459f8526afaea42c0ce25b59f3bd263",
+    "independentFreeze": "3af5da9650f36081b093e2158065a2226126ad37",
+    "design": "618d8967009117547ab476256bc6eb0a9463309a"
+  },
+  "candidateRawSha256": "adb9733fd8a7b023b6221dae4ffbfc85cdbc377a996bcc0136fcc73df1414664",
+  "candidateTree": "dbbe6732ddc4f383166876903d9a564039f5c4fe",
+  "helperBlob": "d5ceafef56a9351bd77630db66d9acfdc19a38ee",
+  "helperSha256": "cde614b830e11f2040db65d2347c5f430df4b353324684585b2dc242ac733960",
+  "sealedObjectCount": 47,
+  "sealedPathCount": 48,
+  "importClosure": [],
+  "frozenAuthorHashesVerified": 8,
+  "helperAbsentAtAuthorFreeze": true,
+  "reservedUnchanged": [
+    "src/shell/cleanup.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts",
+    "src/shell/types.ts"
+  ],
+  "rootExportsUnchangedByCandidate": true,
+  "profile": "partial raw-object path proof, not a full Git clone or commit-ancestry archive"
+}

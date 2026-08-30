@@ -1,0 +1,20 @@
+{
+  "evidenceCommit": "2585f78dcd5cfd2ea454977462c57b23f7044a12",
+  "removedOnly": [
+    "tool-inputs",
+    "attempt-01",
+    "attempt-02",
+    "continuation-01",
+    "continuation-02",
+    "continuation-03",
+    "auxiliary-01",
+    "load-controls-01"
+  ],
+  "filesArchived": 11764,
+  "uniqueBlobsArchived": 3884,
+  "archiveVerifiedBeforeRemoval": true,
+  "exactScratchInventoriesVerifiedBeforeRemoval": true,
+  "allRemovedRootsAbsent": true,
+  "controlsAndForeignStagingUnchanged": true,
+  "completedAt": "2026-08-28T06:43:35.015Z"
+}

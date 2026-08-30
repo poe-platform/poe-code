@@ -1,0 +1,127 @@
+{
+  "authorSha256": "3f5fee4185efa6437136f02bcd3fa62ab654817ad067e4f7d5e0b5a8918e8765",
+  "qualifiedSourceSha256": "088974453fb138555e68255f5c2573a21408fd66ff57b35f09c3f81d340540f9",
+  "edits": [
+    {
+      "before": "import fs from 'node:fs/promises';",
+      "after": "import fs from 'node:fs/promises';\nimport fsSync from 'node:fs';\nimport { internalLoaderArguments } from './internal-loader-arguments.mjs';",
+      "count": 1
+    },
+    {
+      "before": "'PRESEAL-v2.json'",
+      "after": "'PRESEAL.json'",
+      "count": 1
+    },
+    {
+      "before": "'EXECUTOR-v2.json'",
+      "after": "'EXECUTOR.json'",
+      "count": 1
+    },
+    {
+      "before": "const baseBytes = await fs.readFile(path.join(repo, 'tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64'));\nassert.equal(sha(baseBytes), seal.baseEvidence);\nconst base = JSON.parse(gunzipSync(Buffer.from(baseBytes.toString().trim(), 'base64'), { maxOutputLength: 67108864 }));\n",
+      "after": "const base = JSON.parse(await fs.readFile(path.join(own, 'TOOLS.json')));\n",
+      "count": 1
+    },
+    {
+      "before": "'strict-extension-v2-author-'",
+      "after": "'strict-extension-independent-'",
+      "count": 1
+    },
+    {
+      "before": "const campaignStart = Date.parse(seal.masterGrantStarted);",
+      "after": "const campaignStart = started;",
+      "count": 1
+    },
+    {
+      "before": "'strict-extension-author-v2-result'",
+      "after": "'strict-extension-independent-result-v1'",
+      "count": 1
+    },
+    {
+      "before": "async function child(label, executable, args, cwd, extra = {}, input) {\n  assert.ok(++childCount + workerCount + loaderReservations <= seal.bounds.children);\n  const guarded = args.includes('--loader');\n  if (guarded) { loaderReservations++; assert.ok(loaderReservations <= seal.bounds.loaderAdmissions); assert.ok(childCount + workerCount + loaderReservations <= seal.bounds.children); }\n  const resourceLog = path.join(output, label + '-resources.jsonl');\n  if (guarded) args = ['--import', path.join(harness, 'resources.mjs'), ...args];\n  extra = { ...extra, ...(guarded ? { RESOURCE_LOG: resourceLog, RESOURCE_ALLOWANCE: String(Math.min(seal.bounds.regexWorkers - workerCount, seal.bounds.children - childCount - workerCount - loaderReservations)) } : {}) }; assert.ok(Date.now() - campaignStart < seal.bounds.totalSeconds * 1000);\n  assert.ok(childCount <= seal.bounds.directProcessCeiling);\n  const row = { label, started: new Date().toISOString(), executable, executableSha256: await hashExecutable(executable), args, cwd, signals: [], closed: false };\n  assert.equal(row.executableSha256, executable === seal.node.path ? seal.node.sha256 : seal.developmentGit.sha256); assert.ok(executable === seal.node.path || executable === seal.developmentGit.path);\n  receipt.children.push(row);\n  const instance = spawn(executable, args, { cwd, env: { ...environment, ...extra }, stdio: ['pipe', 'pipe', 'pipe'] }); row.pid = instance.pid;\n  row.events = [];\n  instance.once('spawn', () => row.events.push({ event: 'spawn', at: new Date().toISOString() }));\n  instance.once('exit', (code, signal) => row.events.push({ event: 'exit', code, signal, at: new Date().toISOString() }));\n  for (const [name, stream] of [['stdout', instance.stdout], ['stderr', instance.stderr]]) { stream.once('end', () => row.events.push({ event: name + '-end', at: new Date().toISOString() })); stream.once('close', () => row.events.push({ event: name + '-close', at: new Date().toISOString() })); }\n  const out = [], err = []; let size = 0, rescue, spawnError, alarm = false;\n  const terminate = () => { if (alarm) return; alarm = true; row.signals.push('SIGTERM'); instance.kill('SIGTERM'); rescue = setTimeout(() => { if (!row.closed) { row.signals.push('SIGKILL'); instance.kill('SIGKILL'); } }, 1000); };\n  const timer = setTimeout(terminate, Math.min(120000, seal.bounds.totalSeconds * 1000 - (Date.now() - campaignStart)));\n  for (const [stream, chunks] of [[instance.stdout, out], [instance.stderr, err]]) stream.on('data', bytes => { size += bytes.length; captured += bytes.length; if (size > seal.bounds.childCaptureBytes || captured > seal.bounds.captureBytes) terminate(); else chunks.push(Buffer.from(bytes)); });\n  instance.on('error', error => { spawnError = String(error); }); instance.stdin.on('error', () => {}); instance.stdin.end(input);\n  const [code, signal] = await new Promise(resolve => instance.once('close', (...values) => resolve(values)));\n  row.closed = true; row.finished = new Date().toISOString(); row.events.push({ event: 'close', code, signal, at: row.finished }); clearTimeout(timer); clearTimeout(rescue);\n  if (guarded) {\n    const events = (await fs.readFile(resourceLog, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; })).trim().split('\\n').filter(Boolean).map(line => JSON.parse(line));\n    const births = events.filter(event => event.kind === 'worker-create'), exits = events.filter(event => event.kind === 'worker-exit');\n    workerCount += births.length; assert.ok(workerCount <= 8); row.resources = { events, births: births.length, exits: exits.length, loaderReservation: 1 };\n    assert.ok(childCount + workerCount + loaderReservations <= seal.bounds.children);\n    if (!events.some(event => event.kind === 'bootstrap') || births.length !== exits.length || births.some(event => !exits.some(exit => exit.id === event.id))) { row.resourceClosureUnknown = true; }\n  }\n  const stdout = Buffer.concat(out), stderr = Buffer.concat(err); Object.assign(row, { code, signal, spawnError, alarm, outputBytes: size, stdoutSha256: sha(stdout), stderrSha256: sha(stderr) });\n  await write(path.join(output, `${label}.stdout`), stdout); await write(path.join(output, `${label}.stderr`), stderr); await save();\n  row.scratchBytesAfterClose = await scratchBytes();\n  assert.ok(!row.resourceClosureUnknown && !alarm && !spawnError && signal === null && code !== 78, `safety/setup/retirement stop: ${label}`);\n  return { row, code, out: stdout, err: stderr };\n}\n",
+      "after": "async function child(label, executable, args, cwd, extra = {}, input) {\n  assert.ok(++childCount <= seal.bounds.children);\n  const guarded = args.includes('--loader');\n  if (guarded) { loaderReservations++; assert.ok(loaderReservations <= seal.bounds.loaderAdmissions); assert.ok(childCount <= seal.bounds.children); }\n  const resourceLog = path.join(output, label + '-resources.jsonl');\n  if (guarded) args = internalLoaderArguments(args, { root: await fs.realpath(output), loader: path.join(harness, 'loader.mjs'), bootstrap: path.join(harness, 'resources.mjs'), consumer: args.at(-1) });\n  extra = { ...extra, ...(guarded ? { RESOURCE_LOG: resourceLog, RESOURCE_ALLOWANCE: String(Math.min(seal.bounds.regexWorkers - workerCount, seal.bounds.regexWorkers-workerCount)) } : {}) }; assert.ok(Date.now() - campaignStart < seal.bounds.totalSeconds * 1000);\n  assert.ok(seal.plannedLabels.includes(label) && !receipt.children.some(row => row.label === label), 'unplanned/repeated child role');\n  const row = { label, executable, executableSha256: await hashExecutable(executable), args, cwd, signals: [], closed: false };\n  assert.equal(row.executableSha256, executable === seal.node.path ? seal.node.sha256 : seal.developmentGit.sha256); assert.ok(executable === seal.node.path || executable === seal.developmentGit.path);\n  receipt.children.push(row);\n  const stdoutFd = fsSync.openSync(path.join(output, label + '.stdout'), 'wx'), stderrFd = fsSync.openSync(path.join(output, label + '.stderr'), 'wx');\n  const out = [], err = []; let size = 0, rescue, spawnError, captureError, alarm = false, spawnErrorPresent = false, captureErrorPresent = false;\n  const instance = spawn(executable, args, { cwd, env: { ...environment, ...extra }, stdio: ['pipe', 'pipe', 'pipe'] }); row.pid = instance.pid;\n  const closed = new Promise(resolve => instance.once('close', (...values) => resolve(values)));\n  instance.once('error', error => { spawnErrorPresent = true; spawnError = error; }); instance.stdin.on('error', () => {});\n  const terminate = () => { if (alarm) return; alarm = true; row.signals.push('SIGTERM'); instance.kill('SIGTERM'); rescue = setTimeout(() => { if (!row.closed) { row.signals.push('SIGKILL'); instance.kill('SIGKILL'); } }, 1000); };\n  for (const [stream, chunks, descriptor] of [[instance.stdout, out, stdoutFd], [instance.stderr, err, stderrFd]]) stream.on('data', bytes => {\n    size += bytes.length; captured += bytes.length;\n    try { if (size > seal.bounds.childCaptureBytes || captured > seal.bounds.captureBytes) { terminate(); return; } fsSync.writeSync(descriptor, bytes); chunks.push(Buffer.from(bytes)); }\n    catch (error) { captureErrorPresent = true; captureError = error; terminate(); }\n  });\n  const timer = setTimeout(terminate, Math.min(120000, seal.bounds.totalSeconds * 1000 - (Date.now() - campaignStart)));\n  instance.stdin.end(input);\n  const [code, signal] = await closed;\n  row.closed = true; clearTimeout(timer); clearTimeout(rescue); fsSync.closeSync(stdoutFd); fsSync.closeSync(stderrFd);\n  Object.assign(row, { code, signal, alarm, spawnErrorPresent, captureErrorPresent });\n  await save();\n  assert.ok(!captureErrorPresent, 'capture integrity stop');\n  if (guarded) {\n    const events = (await fs.readFile(resourceLog, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; })).trim().split('\\n').filter(Boolean).map(line => JSON.parse(line));\n    const births = events.filter(event => event.kind === 'worker-create'), exits = events.filter(event => event.kind === 'worker-exit');\n    workerCount += births.length; assert.ok(workerCount <= seal.bounds.regexWorkers); row.resources = { events, births: births.length, exits: exits.length, loaderReservation: 1 };\n    assert.ok(childCount <= seal.bounds.children);\n    if (!events.some(event => event.kind === 'bootstrap') || births.length !== exits.length || births.some(event => !exits.some(exit => exit.id === event.id))) { row.resourceClosureUnknown = true; }\n  }\n  const stdout = Buffer.concat(out), stderr = Buffer.concat(err); Object.assign(row, { code, signal, spawnError, alarm, outputBytes: size, stdoutSha256: sha(stdout), stderrSha256: sha(stderr) });\n  assert.equal(sha(await fs.readFile(path.join(output, label + '.stdout'))), sha(stdout), 'raw stdout capture integrity');\n  assert.equal(sha(await fs.readFile(path.join(output, label + '.stderr'))), sha(stderr), 'raw stderr capture integrity');\n  await save();\n  row.scratchBytesAfterClose = await scratchBytes();\n  assert.ok(!row.resourceClosureUnknown && !alarm && !spawnErrorPresent && signal === null && code !== 78, `safety/setup/retirement stop: ${label}`);\n  return { row, code, out: stdout, err: stderr };\n}\n",
+      "count": 1
+    },
+    {
+      "before": "['cat-file', '--batch']",
+      "after": "['-c','gc.auto=0','-c','maintenance.auto=false','-c','core.hooksPath=/dev/null','cat-file','--batch']",
+      "count": 1
+    },
+    {
+      "before": ".map(name => [name, 'tests/integration/git-public-20260829/' + name])",
+      "after": ".map(name => [name, ['resources.mjs','loader.mjs'].includes(name) ? 'tests/integration/git-public-independent-20260829/successor-bindings-v2/' + name : 'tests/integration/git-public-20260829/' + name])",
+      "count": 1
+    },
+    {
+      "before": "'conditional.mjs', 'extension.mjs', 'extension-design.json']",
+      "after": "'conditional.mjs', 'extension.mjs', 'extension-design.json', 'novel.mjs']",
+      "count": 1
+    },
+    {
+      "before": "  for (const [destination, from] of harnessMap)",
+      "after": "  harnessMap.push(['worker-policy.mjs','tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs'],['novel.mjs','tests/compatibility/bash-strict-extension-independent-20260829/novel.mjs']);\n  for (const [destination, from] of harnessMap)",
+      "count": 1
+    },
+    {
+      "before": "path.join(harness, 'resources.mjs')])",
+      "after": "path.join(harness, 'resources.mjs'), path.join(harness, 'worker-policy.mjs')])",
+      "count": 1
+    },
+    {
+      "before": "await cohort(label + '-arrays', product, 'arrays.mjs', 12); await types(label, product);",
+      "after": "await cohort(label + '-arrays', product, 'arrays.mjs', 12); await cohort(label + '-novel', product, 'novel.mjs', 16); await types(label, product);",
+      "count": 1
+    },
+    {
+      "before": "await cohort('moved-extension', movedRoot, 'extension.mjs', 33);",
+      "after": "await cohort('moved-extension', movedRoot, 'extension.mjs', 35);",
+      "count": 1
+    },
+    {
+      "before": "await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await types('moved', movedRoot);",
+      "after": "await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await cohort('moved-novel', movedRoot, 'novel.mjs', 16); await types('moved', movedRoot);",
+      "count": 1
+    },
+    {
+      "before": "const pass = negative ? result.code === 2 && errors.length === 8 : result.code === 0 && errors.length === 0;",
+      "after": "const expected = JSON.parse(await fs.readFile(path.join(own, 'TYPE-EXPECTATIONS.json')));\n    const normalized = errors.map(line => line.slice(line.indexOf('(')));\n    const pass = negative ? result.code !== 0 && JSON.stringify(normalized) === JSON.stringify(expected) : result.code === 0 && errors.length === 0;",
+      "count": 1
+    },
+    {
+      "before": "    const outcomes = changed.out.toString().trim()",
+      "after": "    const loaded = (await fs.readFile(path.join(output, mutation.id + '-loads.jsonl'), 'utf8')).trim().split('\\n').map(line=>JSON.parse(line));\n    assert.ok(loaded.some(row=>row.file===filename && row.sha256===sha(Buffer.from(changedSource))), 'actual mutant load binding');\n    const outcomes = changed.out.toString().trim()",
+      "count": 1
+    },
+    {
+      "before": "    assert.equal(sha(await fs.readFile(filename)), tarRows.find(row => row.path === 'dist/' + mutation.file).sha256);",
+      "after": "    assert.equal(sha(await fs.readFile(filename)), tarRows.find(row => row.path === 'dist/' + mutation.file).sha256);\n    const restoredLoads = (await fs.readFile(path.join(output, mutation.id + '-restored-loads.jsonl'), 'utf8')).trim().split('\\n').map(line=>JSON.parse(line));\n    assert.ok(restoredLoads.some(row=>row.file===filename && row.sha256===sha(Buffer.from(original))), 'actual restored load binding');",
+      "count": 1
+    },
+    {
+      "before": "AUTHOR_ASSERTION_FAILURES",
+      "after": "INDEPENDENT_ASSERTION_FAILURES",
+      "count": 1
+    },
+    {
+      "before": "AUTHOR_SCOPED_PASS",
+      "after": "INDEPENDENT_SCOPED_PASS",
+      "count": 2
+    },
+    {
+      "before": "receipt.qualification = 'Fresh author-v2 strict extension35 (original32 plus3 versioned X10 identities) plus177 retained identities/layout. Old32/deadline unchanged. Five design identities OPEN; native tuples UNRUN. No aggregate DISCARD, Node integration, private/network/native/engine execution. Runner/direct process observations and loader/worker reservations are distinct; no global PGID/kernel-drain proof.'; receipt.captureBytes = captured; receipt.scratchWriteBytes = written;",
+      "after": "receipt.qualification = 'Independent resolved strict-extension profile only on exact37e793ce/9bb91c37, provisional Unit3 dependency. Five OPEN identities and all native tuples remain unqualified; no Node/liveHEAD/private/network/globalRSS claim.'; receipt.captureBytes = captured; receipt.scratchWriteBytes = written;",
+      "count": 1
+    },
+    {
+      "before": "receipt.cleanup = {",
+      "after": "for (const row of executor.files) { const bytes = await fs.readFile(path.join(repo,row.path)); assert.equal(bytes.length,row.bytes); assert.equal(sha(bytes),row.sha256,'executor postguard '+row.path); }\nreceipt.cleanup = {",
+      "count": 1
+    },
+    {
+      "before": "boundedOwnedTotal: childCount + workerCount + loaderReservations",
+      "after": "knownDirectOSChildren: childCount",
+      "count": 1
+    }
+  ],
+  "runSha256": "af1883fc20ecbf70bf8ebfe8dc584edc94c71fa05815541531ed4814bbbf1382"
+}

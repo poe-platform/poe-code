@@ -1,0 +1,141 @@
+import { createHash } from "node:crypto";
+import { mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { ProcessManager } from "./harness/process-manager.mjs";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const oracle = resolve(process.argv[2] ?? "");
+const output = resolve(process.argv[3] ?? "");
+const scratch = resolve(process.argv[4] ?? "");
+if (!process.argv[2] || !process.argv[3] || !process.argv[4]) {
+  throw new Error("usage: node native-env.mjs NATIVE_GNU_DU OUTPUT_JSON OWNED_SCRATCH");
+}
+const identity = JSON.parse(await readFile(join(here, "config", "oracle-identity.json"), "utf8"));
+const table = JSON.parse(await readFile(join(here, "fixtures", "native-env-cases.json"), "utf8"));
+const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+const manager = new ProcessManager({ defaultTimeoutMs: 30_000, termGraceMs: 500, closureTimeoutMs: 2_000 });
+manager.installSignalHandlers();
+
+const processRecord = result => ({
+  command: result.command,
+  args: result.args,
+  cwd: result.cwd,
+  status: result.status,
+  signal: result.signal,
+  pid: result.pid,
+  pgid: result.pgid,
+  timedOut: result.timedOut,
+  interruptedBy: result.interruptedBy,
+  spawnError: result.spawnError,
+  timeoutMs: result.timeoutMs,
+  stdout: result.stdout.toString(),
+  stderr: result.stderr.toString(),
+  stdoutSha256: sha256(result.stdout),
+  stderrSha256: sha256(result.stderr),
+  closure: result.closure,
+  termination: result.termination,
+});
+
+let document;
+let protocolError;
+try {
+  const actualRealpath = await realpath(oracle);
+  const actualBytes = await readFile(actualRealpath);
+  if (actualRealpath !== identity.realpath || sha256(actualBytes) !== identity.sha256) throw new Error("native oracle identity mismatch");
+  await mkdir(scratch, { recursive: true });
+  const actualCwd = await realpath(scratch);
+  const version = await manager.run(actualRealpath, ["--version"], {
+    cwd: actualCwd,
+    env: { LC_ALL: "C", LANG: "C", PATH: "/usr/bin:/bin" },
+  });
+  if (version.timedOut || version.spawnError || version.status !== 0
+    || version.stdout.toString().split("\n")[0] !== identity.versionFirstLine) {
+    throw new Error("native oracle version mismatch");
+  }
+
+  const fixturePath = join(actualCwd, table.fixture.name);
+  const payload = Buffer.alloc(table.fixture.length, table.fixture.fillByte);
+  if (sha256(payload) !== table.fixture.sha256) throw new Error("locked payload reconstruction mismatch");
+  await writeFile(fixturePath, payload, { flag: "wx" });
+  const records = [];
+  for (const testCase of table.cases) {
+    const env = { PATH: "/usr/bin:/bin", ...table.sanitizedEnvironment, ...testCase.env };
+    for (const key of table.removedAmbientKeys) if (!Object.hasOwn(testCase.env, key)) delete env[key];
+    const result = await manager.run(actualRealpath, [...testCase.args, "--", fixturePath], { cwd: actualCwd, env });
+    const stdout = result.stdout.toString();
+    const stderr = result.stderr.toString();
+    const expectedStdout = testCase.expect.statusClass === "success" ? `${testCase.expect.units}\t${fixturePath}\n` : testCase.expect.stdout;
+    const classification = testCase.expect.statusClass === "success"
+      ? !result.timedOut && !result.spawnError && result.status === 0 && stdout === expectedStdout && stderr === "" ? "literal-match" : "literal-mismatch"
+      : !result.timedOut && !result.spawnError && result.status !== 0 && stdout === expectedStdout && /invalid.*block|block.*invalid/iu.test(stderr)
+        ? "expected-strict-rejection" : "strict-rejection-mismatch";
+    records.push({
+      id: testCase.id,
+      selected: testCase.selected,
+      args: [...testCase.args, "--", fixturePath],
+      env,
+      cwd: result.cwd,
+      expected: testCase.expect,
+      expectedStdout,
+      observed: {
+        status: result.status,
+        signal: result.signal,
+        stdout,
+        stderr,
+        stdoutSha256: sha256(result.stdout),
+        stderrSha256: sha256(result.stderr),
+        pid: result.pid,
+        pgid: result.pgid,
+        timedOut: result.timedOut,
+        spawnError: result.spawnError,
+        closure: result.closure,
+      },
+      classification,
+    });
+  }
+  document = {
+    schema: 2,
+    scope: "GNU-9.7-single-file-apparent-size-environment-precedence-only",
+    oracle: {
+      realpath: actualRealpath,
+      sha256: sha256(actualBytes),
+      versionStdout: version.stdout.toString(),
+      versionStderr: version.stderr.toString(),
+      versionProcess: processRecord(version),
+    },
+    environmentPolicy: { sanitized: table.sanitizedEnvironment, removedAmbientKeys: table.removedAmbientKeys },
+    fixture: { ...table.fixture, path: fixturePath },
+    records,
+    summary: {
+      total: records.length,
+      matched: records.filter(record => record.classification === "literal-match" || record.classification === "expected-strict-rejection").length,
+      mismatched: records.filter(record => record.classification.endsWith("mismatch")).length,
+    },
+    everyCaseRecordsActualSpawnCwd: records.every(record => record.cwd === actualCwd),
+    broadNativeParityClaimed: false,
+  };
+} catch (error) {
+  protocolError = error;
+} finally {
+  await manager.shutdown(protocolError ? "native-table-failure" : "native-table-complete");
+  if (manager.interruptedBy && !protocolError) protocolError = new Error(`native table interrupted by ${manager.interruptedBy}`);
+  const closure = manager.assertClosed();
+  manager.removeSignalHandlers();
+  if (document) {
+    document.processClosure = closure;
+    if (protocolError) document.error = `${protocolError.stack ?? protocolError}`;
+  } else {
+    document = {
+      schema: 2,
+      scope: "GNU-9.7-single-file-apparent-size-environment-precedence-only",
+      error: `${protocolError?.stack ?? protocolError}`,
+      processClosure: closure,
+      partialProcessRecords: manager.history.map(processRecord),
+      broadNativeParityClaimed: false,
+    };
+  }
+}
+
+await writeFile(output, `${JSON.stringify(document, null, 2)}\n`, { flag: "wx" });
+if (protocolError || document.summary?.mismatched) process.exitCode = 1;

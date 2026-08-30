@@ -1,0 +1,123 @@
+{
+  "role": "AUTHOR_PUBLIC_APPLY_PATCH_PREEXECUTION_BINDING",
+  "files": [
+    {
+      "path": "tests/integration/apply-patch-public-20260829/PRESEAL.json",
+      "bytes": 3630,
+      "sha256": "10cd2b3f3fa020417950be831b0bb0b92ce790d67c905aa5d7f7bbe49496e12b"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/SOURCE.json",
+      "bytes": 189379,
+      "sha256": "c2cffb6d132f8fae85f5fe80382d653753a1cffba14b82e78b3ad62679ee9559"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/FIXTURE-PLAN.json",
+      "bytes": 4224,
+      "sha256": "f62872575ecc52076ab0f2082717e10eecf080775c6a8bdb470f5bfddbc4fea0"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/prepare.mjs",
+      "bytes": 7555,
+      "sha256": "db51bc2ea4be55bfdf6e9fe983b6f10740606b380818a491db3ec8df56bb8c9b"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/run.mjs",
+      "bytes": 27053,
+      "sha256": "8fbbe9bf9d7f2ada6f5dc995a14d503b4fdb0e39adbce7e56da352b914c6d87c"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/public.mjs",
+      "bytes": 15739,
+      "sha256": "1afb0c942e4e75bc2e3fbe242599292f2a585f4ebe2c5187c7898374d1be138e"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/names.mjs",
+      "bytes": 870,
+      "sha256": "c932c572bbc434e16e60f5625b283c211df6dcd43e5de1f7b20be03ac6ef8efa"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/consumer.ts.fixture",
+      "bytes": 1308,
+      "sha256": "edbb1347228546c4de95d861f7cdec82c6bb281fa9af335e5d03bfc1a33312d7"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-20260829/RECIPE.md",
+      "bytes": 4139,
+      "sha256": "357426385cd901c1350d17a6f9c9630f61db7768bac37385b5f63dc1cd4718f6"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/probe.mjs",
+      "bytes": 16819,
+      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/names.mjs",
+      "bytes": 853,
+      "sha256": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES.json",
+      "bytes": 8553,
+      "sha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES-v2-overlay.json",
+      "bytes": 1344,
+      "sha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d"
+    },
+    {
+      "path": "tests/commands/stream-format/helpers.ts",
+      "bytes": 2161,
+      "sha256": "5c07678d78bc17ee3089daa7518cd265230cbd393a02bc9c8b81ddd07b116b9f"
+    },
+    {
+      "path": "tests/commands/split/helpers.ts",
+      "bytes": 2471,
+      "sha256": "7a2fd1fe87851da795ce6ce21d2a4c6df1bc18f95b03146ca6ec669e291834d4"
+    },
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "bytes": 5201,
+      "sha256": "d2a14741fa17473089928e5f7ee739a478ed2f2b0c97c07a9103812da63f4f6b"
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "bytes": 8978,
+      "sha256": "c34d397ac76b5922d80625cad33b7667324f6ca8cd13b43fda693df579c4624a"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "bytes": 9826,
+      "sha256": "962d79dbe442d63680173a7d6a3eaae74ea72c37f77422272225a65129cd9c60"
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "bytes": 9962,
+      "sha256": "d19dd492d498c3a7754b93cc9041615ab8011b4eacbbca3a64df8011cb8c46a2"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "bytes": 7809,
+      "sha256": "0355d35504b07f687d1f85953f931f76a5bc410ba60377d123babfb2b61f63f2"
+    }
+  ],
+  "source": "c2cffb6d132f8fae85f5fe80382d653753a1cffba14b82e78b3ad62679ee9559",
+  "productRunsThisRevision": 0,
+  "nativeRuns": 0
+}

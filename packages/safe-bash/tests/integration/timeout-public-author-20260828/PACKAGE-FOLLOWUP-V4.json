@@ -1,0 +1,41 @@
+{
+  "createdAt": "2026-08-28T05:03:30.614Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "kind": "New isolated installed/moved consumer cohort; no rerun/relabel of original v3.",
+  "priorReport": {
+    "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/REPORT.json",
+    "sha256": "f8b95d722aa6d651b6686ba50b8a002ad11c8158235c2e6841fd41891a21bb44",
+    "preserved": "AUTHOR_FAIL_OR_HOLD, 83/83 canonical and 13/13 on Node22 plus13/13 Node24 then T08 mismatched diagnostic"
+  },
+  "reused": {
+    "build": 1,
+    "newProductionBuilds": 0,
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+  },
+  "typeProfile": {
+    "compiler": "TypeScript5.9.3",
+    "frozenSourceUnchanged": true,
+    "T08": {
+      "old": 2353,
+      "actual": 2561,
+      "strongerTerms": [
+        "Did you mean to write 'invoke'?",
+        "T08.mts(2,52)"
+      ],
+      "reason": "Unknown-property rejection with supported-property spelling suggestion. Not accepted invalid configuration, no API or compiler change. This is author-only explicit diagnostic overlay; Raman freeze unchanged and independent approval pending."
+    }
+  },
+  "expected": {
+    "publicPerLayoutAndRuntime": 13,
+    "layouts": 2,
+    "runtimes": [
+      "22.22.2",
+      "24.11.1"
+    ],
+    "positiveTypesPerLayout": 4,
+    "negativeTypesPerLayout": 6,
+    "streamFive": "full unchanged maintained body",
+    "denials": "source permission two layouts, three missing entrypoints"
+  },
+  "bounds": "Each supervised process180seconds/8MiB output, exact selected dependencies and tools before/after."
+}

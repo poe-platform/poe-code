@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d9694a82d3f35efc1cbfae0527ae'
+- 'eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d3f35efc1cbfae0527ae'
+
+    at file:///private/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/driver.mjs:20:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d9694a82d3f35efc1cbfae0527ae',
+  expected: 'eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d3f35efc1cbfae0527ae',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

@@ -1,0 +1,326 @@
+{
+  "schema": "timeout-independent-native-prospective/1",
+  "status": "HELD-future-explicit-capture-authorization",
+  "productProfileIdentityIsNotGNU": true,
+  "oracle": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+    "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+    "mode": 493,
+    "bytes": 95240,
+    "sha256": "36fc11afeb227c7ea50054de958b80de954088139f1d5ef4c03df95ef811a55e",
+    "executed": false
+  },
+  "shell": {
+    "path": "/bin/sh",
+    "realpath": "/bin/sh",
+    "mode": 493,
+    "bytes": 101232,
+    "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59",
+    "executed": false
+  },
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "PATH": "/usr/bin:/bin"
+  },
+  "rows": [
+    {
+      "id": "N01",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N01",
+      "argv": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N01",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N01/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N01/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N01/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N01/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N01/cleanup.json"
+      },
+      "sourceSupportedExpectation": null,
+      "classification": "version",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "prior actual stdout not available here; capture and classify separately, never synthesize"
+    },
+    {
+      "id": "N02",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N02",
+      "argv": [
+        "--help"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N02",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N02/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N02/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N02/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N02/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N02/cleanup.json"
+      },
+      "sourceSupportedExpectation": null,
+      "classification": "help",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "prior actual stdout not available here; capture and classify separately, never synthesize"
+    },
+    {
+      "id": "N03",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N03",
+      "argv": [
+        "0",
+        "/bin/sh",
+        "-c",
+        "exit 7"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N03",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N03/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N03/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N03/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N03/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N03/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 7
+      },
+      "classification": "zero-disable-status",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N04",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N04",
+      "argv": [
+        "0.5s",
+        "/bin/sh",
+        "-c",
+        "exit 0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N04",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N04/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N04/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N04/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N04/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N04/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 0
+      },
+      "classification": "unit-fraction-success",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N05",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N05",
+      "argv": [
+        "0",
+        "__virtual_bash_timeout_missing__"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N05",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N05/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N05/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N05/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N05/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N05/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 127
+      },
+      "classification": "not-found",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N06",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N06",
+      "argv": [
+        "0",
+        "./fixture-noexec"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N06",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N06/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N06/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N06/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N06/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N06/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 126
+      },
+      "classification": "cannot-invoke",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N07",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N07",
+      "argv": [
+        "0.05s",
+        "/bin/sh",
+        "-c",
+        "while :; do :; done"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N07",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N07/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N07/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N07/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N07/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N07/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 124
+      },
+      "classification": "native-timeout",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N08",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N08",
+      "argv": [
+        "--preserve-status",
+        "0",
+        "/bin/sh",
+        "-c",
+        "exit 7"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N08",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N08/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N08/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N08/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N08/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N08/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 7
+      },
+      "classification": "deliberate-profile-difference",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N09",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N09",
+      "argv": [
+        "--signal=TERM",
+        "0",
+        "/bin/sh",
+        "-c",
+        "exit 0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N09",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N09/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N09/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N09/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N09/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N09/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 0
+      },
+      "classification": "deliberate-process-control-difference",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N10",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N10",
+      "argv": [
+        "1e0",
+        "/bin/sh",
+        "-c",
+        "exit 0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N10",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N10/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N10/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N10/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N10/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N10/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 0
+      },
+      "classification": "deliberate-grammar-difference",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N11",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N11",
+      "argv": [
+        "0x1p0d",
+        "/bin/sh",
+        "-c",
+        "exit 0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N11",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N11/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N11/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N11/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N11/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N11/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 0
+      },
+      "classification": "deliberate-grammar-difference",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    },
+    {
+      "id": "N12",
+      "reference": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json#N12",
+      "argv": [
+        "999999999999999999999999999999999d",
+        "/bin/sh",
+        "-c",
+        "exit 0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N12",
+      "raw": {
+        "stdout.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N12/stdout.data",
+        "stderr.data": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N12/stderr.data",
+        "status.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N12/status.json",
+        "timing.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N12/timing.json",
+        "cleanup.json": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/native-execution-01/N12/cleanup.json"
+      },
+      "sourceSupportedExpectation": {
+        "exitCode": 0
+      },
+      "classification": "deliberate-overflow-policy-difference",
+      "execution": "HELD-NOT-RUN",
+      "outputOracleQualification": "source-supported status only; full raw output required, no uncaptured exact native output invented"
+    }
+  ],
+  "fixtureNoexec": {
+    "pathWithinN06": "fixture-noexec",
+    "mode": 420,
+    "utf8": "timeout independent non-executable fixture\n",
+    "sha256": "832ec53ecbc85a48ab0e017e25dce4a6deecf14b71877b0b370d68567468f32c"
+  },
+  "cleanup": {
+    "registerBeforeLaunch": true,
+    "eachChildExitAndPipeCloseRequired": true,
+    "naturalResourceClosureRequired": true,
+    "outerWatchdogMilliseconds": 10000,
+    "watchdogIsFailureNotTimeoutPass": true,
+    "forcedCleanupReportedSeparately": true,
+    "processGroupOwnershipBoundBeforeLaunch": true
+  },
+  "remaining": [
+    "sealed native supervisor and exact runtime/tool/helper load bindings",
+    "root explicit execution authorization"
+  ],
+  "nativeRowsExecuted": 0,
+  "parityClaim": false
+}

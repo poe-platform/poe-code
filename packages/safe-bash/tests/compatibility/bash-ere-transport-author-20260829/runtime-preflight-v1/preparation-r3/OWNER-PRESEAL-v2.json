@@ -1,0 +1,40 @@
+{
+  "schema": 3,
+  "role": "C4 remaining3 harmless children only; no normal replay",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "inputs": [
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "name": "owner-controls-v2.mjs",
+      "size": 2640,
+      "sha256": "016d09356ad4ea94d80c27a7bbf3bf2ec61ff1a0e7b8705655b3ffa4595e1f21"
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "size": 13611,
+      "sha256": "2395b583165d3be99675ff4398dc2c5baaaff4b026abdb4a38ddf0e4d5a89afe"
+    },
+    {
+      "name": "stub.mjs",
+      "size": 161,
+      "sha256": "f6d8033b9b7019fac81a5cd1999d3df672f0cb834fe237edf5a4457ea5b2ca22"
+    }
+  ],
+  "limits": {
+    "milliseconds": 30000,
+    "controllers": 1,
+    "children": 3,
+    "peak": 3,
+    "captureBytes": 1048576,
+    "workBytes": 16777216
+  }
+}

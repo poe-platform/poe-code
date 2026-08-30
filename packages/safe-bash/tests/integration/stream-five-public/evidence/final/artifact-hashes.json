@@ -1,0 +1,116 @@
+[
+  {
+    "file": "root-gate.txt",
+    "source": "/tmp/safe-bash-stream-five-public-review.ready",
+    "bytes": 4952,
+    "sha256": "53768044d85acef5e988c45205a8c1614cecc09c6bd8d93b536bed9047d995da"
+  },
+  {
+    "file": "packed-report.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/report.json",
+    "bytes": 411363,
+    "sha256": "b5d36504441cb877be8ab488b6225bd9325783935b622dbad5ce0d764b67834f"
+  },
+  {
+    "file": "runtime-results.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/runtime-results.json",
+    "bytes": 8788,
+    "sha256": "ebd5bbc0c24ab036cd16ea5325f4cd4a64ee69ec22e7f4c8bd6c34694dd04a92"
+  },
+  {
+    "file": "isolation-results.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/isolation-results.json",
+    "bytes": 1427,
+    "sha256": "aae0ee975199509eafaca2d6486931632e30b49f2445c18e8ac7ddc4bd467188"
+  },
+  {
+    "file": "closure.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/closure.json",
+    "bytes": 74013,
+    "sha256": "7ba999ad2bc311021d913bd1dccb66f09206490f847421805cc6048193644709"
+  },
+  {
+    "file": "imports.ndjson",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/imports.ndjson",
+    "bytes": 420463,
+    "sha256": "8b10881184650bd1924eebe9564db0a83cc7d73c0196c79974aecce170f0ebda"
+  },
+  {
+    "file": "types-resolution.stdout.log",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/44.stdout.log",
+    "bytes": 855709,
+    "sha256": "d7422a1727f525750b05815e6cad136a90463b69c79aa61a0ac23cc8107ba021"
+  },
+  {
+    "file": "release-report.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/report.json",
+    "bytes": 962194,
+    "sha256": "56d9b65cdb49b213eb67975bfe724ee818e4c0a1393acf6e59ea8ad4b5454d5f"
+  },
+  {
+    "file": "mandatory-metadata.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/positive-mandatory-metadata.json",
+    "bytes": 203425,
+    "sha256": "62848d2572dba003b7bc7e0ddc8d07f9f7a4b7362f5a32dedf9278a3d8dfc4f2"
+  },
+  {
+    "file": "current-stream-results.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/positive-current-stream-results.json",
+    "bytes": 350609,
+    "sha256": "51cfbac196e8f8ca5f83485f8fec3ccc7e745d7ab3af6d757086eada39844110"
+  },
+  {
+    "file": "current-stream-diagnostics.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/positive-current-stream-diagnostics-result.json",
+    "bytes": 69161,
+    "sha256": "d171d9fef3157562702ff80c76ed281313cb710c78d73ad0016f92ac46e7bdcc"
+  },
+  {
+    "file": "current-profile.json",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/positive-current-profile.json",
+    "bytes": 33248,
+    "sha256": "8f9d38459698d1e071dfcb765028c664dbde1ed466f3e93878ae39b79267605a"
+  },
+  {
+    "file": "missing-outer.stdout.log",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/09.stdout.log",
+    "bytes": 823,
+    "sha256": "5594ce8ce627f02b114f91f1668e56d9bd29f2d28c013c841b42b6c2715f7165"
+  },
+  {
+    "file": "missing-outer.stderr.log",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/09.stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "wrong-outer.stdout.log",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/10.stdout.log",
+    "bytes": 821,
+    "sha256": "af56fcb5ac0044a5452a7b0df4981138b6d11623b0104e0d26971e03b3b1dfaa"
+  },
+  {
+    "file": "wrong-outer.stderr.log",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/10.stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "positive-outer.stdout.log",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/11.stdout.log",
+    "bytes": 823,
+    "sha256": "9a318ab16caf489606aa2995e0d132eb2fa67544ea97c6b5a015dd06e1cfa2c8"
+  },
+  {
+    "file": "positive-outer.stderr.log",
+    "source": "/tmp/safe-bash-stream-five-public-verifier.29433-release-4/11.stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "summary.json",
+    "source": "derived from exact final raw reports",
+    "bytes": 5765,
+    "sha256": "6fdb087533b086cf7e38ffe0b987f2c20c03dfb2332ead477fc9c52faa40276e"
+  }
+]

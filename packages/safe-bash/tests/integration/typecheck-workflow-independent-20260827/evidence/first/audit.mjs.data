@@ -1,0 +1,286 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { gzipSync } from 'node:zlib';
+
+const repository = fileURLToPath(new URL('../../../', import.meta.url));
+const candidate = 'b9559de5c62fb679c8558fc2444ecb99f1d9eee1';
+const output = resolve(process.argv[2] ?? '');
+assert.ok(process.argv[2], 'new evidence directory required');
+assert.equal(existsSync(output), false);
+mkdirSync(output, { recursive: true });
+const temporary = mkdtempSync(join(tmpdir(), 'safe-bash-type-workflow-independent-'));
+const snapshot = join(temporary, 'candidate');
+mkdirSync(snapshot);
+const environment = { ...process.env, TSX_DISABLE_CACHE: '1' };
+for (const name of ['NODE_TEST_CONTEXT', 'NODE_OPTIONS', 'GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES']) delete environment[name];
+const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+const report = { candidate, startedAt: new Date().toISOString(), node: process.version, nodeExecutableSha256: sha256(readFileSync(process.execPath)), platform: process.platform, arch: process.arch, checks: [], commands: [], captures: [], findings: [], runtimeAcceptance: false };
+const capture = (name, bytes) => {
+  const data = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+  const path = `${name}.gz.base64`;
+  writeFileSync(join(output, path), gzipSync(data).toString('base64') + '\n');
+  const entry = { path, bytes: data.length, sha256: sha256(data) };
+  report.captures.push(entry);
+  return entry;
+};
+const command = (label, executable, args, cwd = snapshot) => {
+  const result = spawnSync(executable, args, { cwd, env: environment, encoding: 'utf8', timeout: 360000, maxBuffer: 96 * 1024 * 1024 });
+  const entry = { label, executable, args, status: result.status, signal: result.signal, error: result.error?.message, stdout: capture(`${label}.stdout`, result.stdout ?? ''), stderr: capture(`${label}.stderr`, result.stderr ?? '') };
+  report.commands.push(entry);
+  assert.equal(result.error, undefined, label);
+  assert.equal(result.signal, null, label);
+  return { ...result, entry };
+};
+const check = (name, action) => {
+  try { const details = action(); report.checks.push({ name, status: 'pass', details }); console.log(`PASS ${name}`); }
+  catch (error) { report.checks.push({ name, status: 'fail', error: error.stack }); console.error(`FAIL ${name}: ${error.message}`); }
+};
+const mutate = (path, bytes, action) => {
+  const filename = join(snapshot, path);
+  const original = existsSync(filename) ? readFileSync(filename) : undefined;
+  try {
+    if (bytes === null) rmSync(filename);
+    else { mkdirSync(dirname(filename), { recursive: true }); writeFileSync(filename, bytes); }
+    return action();
+  } finally {
+    if (original === undefined) rmSync(filename, { force: true });
+    else writeFileSync(filename, original);
+  }
+};
+const copyRegular = (source, destination, allowed = realpathSync(source)) => {
+  const actual = realpathSync(source);
+  assert.ok(actual === allowed || actual.startsWith(`${allowed}/`));
+  const metadata = lstatSync(actual);
+  if (metadata.isDirectory()) {
+    mkdirSync(destination, { recursive: true });
+    for (const name of readdirSync(actual).sort()) copyRegular(join(actual, name), join(destination, name), allowed);
+  } else {
+    assert.ok(metadata.isFile());
+    writeFileSync(destination, readFileSync(actual), { flag: 'wx', mode: metadata.mode & 0o777 });
+    assert.ok(lstatSync(destination).isFile());
+  }
+};
+const census = (root, paths) => paths.map(path => {
+  const filename = join(root, path), metadata = lstatSync(filename);
+  const bytes = metadata.isSymbolicLink() ? Buffer.from(readlinkSync(filename)) : readFileSync(filename);
+  return { path, kind: metadata.isSymbolicLink() ? 'symlink-text' : 'regular', bytes: bytes.length, sha256: sha256(bytes) };
+});
+const walk = (root, prefix = '') => readdirSync(join(root, prefix)).sort().flatMap(name => {
+  const path = join(prefix, name);
+  return lstatSync(join(root, path)).isDirectory() ? walk(root, path) : [path];
+});
+const probe = (label, args = [], npm = false) => {
+  const location = join(temporary, label);
+  const result = npm
+    ? command(label, 'npm', ['run', ...args, '--', '--report', location])
+    : command(label, process.execPath, ['scripts/typecheck.mjs', ...args, '--report', location]);
+  const details = JSON.parse(readFileSync(join(location, 'report.json')));
+  capture(`${label}.report`, JSON.stringify(details, null, 2) + '\n');
+  return { ...result, details };
+};
+const rejectPreflight = (label, pattern) => {
+  const result = probe(label);
+  assert.equal(result.status, 2);
+  assert.equal(result.details.phases.length, 0);
+  assert.match(result.details.error, pattern);
+};
+const compile = (label, args) => command(label, process.execPath, ['node_modules/typescript/bin/tsc', ...args]);
+const directGroup = (label, groupName, source = false) => {
+  const workspace = join(temporary, label);
+  mkdirSync(workspace);
+  const script = `
+    import assert from 'node:assert/strict';
+    import { spawnSync } from 'node:child_process';
+    import { writeFileSync } from 'node:fs';
+    import { consumerGroups, currentSourceConsumerGroups, negativeGroups } from './tests/plugins/qualified-current-release/consumers.mjs';
+    import { checkCurrentConsumerTypes, checkSourceConsumerTypes } from './scripts/typecheck-consumers.mjs';
+    const source = ${source};
+    const groups = source ? currentSourceConsumerGroups : consumerGroups;
+    const selected = groups.find(group => group.name === ${JSON.stringify(groupName)});
+    assert.ok(selected); groups.splice(0, groups.length, selected); negativeGroups.splice(0);
+    const phases = [];
+    const compile = (label, args) => {
+      const result = spawnSync(process.execPath, ['node_modules/typescript/bin/tsc', ...args], { encoding: 'utf8', timeout: 120000, maxBuffer: 32 * 1024 * 1024 });
+      assert.equal(result.error, undefined); assert.equal(result.signal, null);
+      phases.push({ label, status: result.status, stdout: result.stdout, stderr: result.stderr }); return result;
+    };
+    const result = (source ? checkSourceConsumerTypes : checkCurrentConsumerTypes)(process.cwd(), ${JSON.stringify(workspace)}, compile);
+    writeFileSync(${JSON.stringify(join(workspace, 'result.json'))}, JSON.stringify({ result, phases }, null, 2));
+    process.exitCode = result.passed ? 0 : 2;
+  `;
+  const result = command(label, process.execPath, ['--input-type=module', '-e', script]);
+  const details = JSON.parse(readFileSync(join(workspace, 'result.json')));
+  capture(`${label}.report`, JSON.stringify(details, null, 2) + '\n');
+  return { ...result, details, workspace };
+};
+
+try {
+  assert.equal(command('resolve-candidate', 'git', ['--no-replace-objects', 'rev-parse', candidate], repository).stdout.trim(), candidate);
+  report.tree = command('resolve-tree', 'git', ['--no-replace-objects', 'rev-parse', `${candidate}^{tree}`], repository).stdout.trim();
+  const archive = join(temporary, 'source.tar'), descriptor = openSync(archive, 'wx');
+  try {
+    const archived = spawnSync('git', ['--no-replace-objects', 'archive', '--format=tar', candidate], { cwd: repository, env: environment, stdio: ['ignore', descriptor, 'pipe'], timeout: 120000 });
+    assert.equal(archived.status, 0); assert.equal(archived.signal, null);
+  } finally { closeSync(descriptor); }
+  report.archiveSha256 = sha256(readFileSync(archive));
+  assert.equal(command('extract', 'tar', ['-xf', archive, '-C', snapshot]).status, 0);
+  assert.equal(existsSync(join(snapshot, 'dist')), false);
+  assert.equal(existsSync(join(snapshot, 'node_modules')), false);
+  assert.equal(command('isolated-git-init', 'git', ['init', '-q']).status, 0);
+  writeFileSync(join(snapshot, '.git/objects/info/alternates'), realpathSync(join(repository, '.git/objects')) + '\n');
+  assert.equal(command('isolated-index', 'git', ['read-tree', candidate]).status, 0);
+  const tracked = command('tracked-inputs', 'git', ['ls-files', '-z']).stdout.split('\0').filter(Boolean);
+  const original = census(snapshot, tracked);
+  report.sourceBefore = capture('source-before', JSON.stringify(original, null, 2) + '\n');
+  copyRegular(join(repository, 'node_modules'), join(snapshot, 'node_modules'));
+  const originalTools = census(snapshot, walk(join(snapshot, 'node_modules')).map(path => join('node_modules', path)));
+  report.tools = capture('tools', JSON.stringify(originalTools, null, 2) + '\n');
+  report.typescript = JSON.parse(readFileSync(join(snapshot, 'node_modules/typescript/package.json'))).version;
+  report.nodeTypes = JSON.parse(readFileSync(join(snapshot, 'node_modules/@types/node/package.json'))).version;
+  const classification = JSON.parse(readFileSync(join(snapshot, 'tests/plugins/qualified-current-release/captured-types.json')));
+
+  check('cold-npm-command-exits78-without-compiler', () => {
+    const result = probe('cold', ['typecheck'], true);
+    assert.equal(result.status, 78); assert.equal(result.details.phases.length, 0); assert.equal(result.details.builds, 0);
+    assert.match(result.stderr, /npm run typecheck:all/u); assert.equal(existsSync(join(snapshot, 'dist')), false);
+  });
+  check('qualified-npm-command-builds-once-and-compiles-all-declared-consumers', () => {
+    const result = probe('combined', ['typecheck:all'], true);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    const phases = result.details.phases;
+    assert.equal(result.details.builds, 1); assert.equal(phases[0].label, 'build');
+    assert.equal(phases.filter(phase => phase.label === 'build').length, 1);
+    assert.equal(phases.find(phase => phase.label === 'source-and-tests').status, 0);
+    assert.equal(phases.find(phase => phase.label === 'historical-build-first-consumer').status, 0);
+    assert.equal(result.details.sourceConsumers.groups.length, 3);
+    assert.equal(result.details.consumers.groups.length, 19);
+    assert.equal(result.details.sourceConsumers.passed, true); assert.equal(result.details.consumers.passed, true);
+    assert.deepEqual(result.details.consumers.negativeTypes.map(group => group.diagnostics).sort(), [1, 2, 5]);
+    for (const negative of result.details.consumers.negativeTypes) assert.equal(negative.status, 'pass');
+    assert.equal(result.details.runtimeExecutions, 0); assert.equal(result.details.cleaned, true);
+    report.baseline = { phases: phases.map(phase => ({ label: phase.label, status: phase.status })), sourceGroups: result.details.sourceConsumers.groups, groups: result.details.consumers.groups, negatives: result.details.consumers.negativeTypes };
+  });
+  assert.ok(report.baseline, 'stop mutation work if baseline is not established');
+  const emitted = census(join(snapshot, 'dist'), walk(join(snapshot, 'dist')));
+  report.emitted = capture('emitted', JSON.stringify(emitted, null, 2) + '\n');
+  copyRegular(join(snapshot, 'dist'), join(temporary, 'baseline-dist'));
+  check('compiler-includes-current-contracts-neighbors-and-all-source-consumers', () => {
+    const result = compile('input-discovery', ['--noEmit', '--listFilesOnly']); assert.equal(result.status, 0);
+    const inputs = new Set(result.stdout.trim().split('\n'));
+    for (const entry of classification.entries) { assert.ok(!inputs.has(join(snapshot, entry.path))); assert.ok(inputs.has(join(snapshot, entry.originalPath))); }
+    const extra = 'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__errors.ts';
+    assert.ok(inputs.has(join(snapshot, extra)));
+    for (const path of report.baseline.sourceGroups.flatMap(group => group.files)) assert.ok(inputs.has(join(snapshot, path)));
+    return { compilerInputs: inputs.size, excludedCaptures: classification.entries.length, sourceConsumerFiles: report.baseline.sourceGroups.flatMap(group => group.files) };
+  });
+  check('all-capture-bytes-and-provenance-authenticate', () => {
+    assert.equal(classification.entries.length, 5);
+    for (const entry of classification.entries) {
+      const bytes = readFileSync(join(snapshot, entry.path)); assert.equal(bytes.length, entry.bytes); assert.equal(sha256(bytes), entry.sha256);
+    }
+    for (const entry of classification.evidence) assert.equal(sha256(readFileSync(join(snapshot, entry.path))), entry.sha256);
+  });
+  check('capture-tampering-cannot-be-excluded-silently', () => mutate(classification.entries[2].path, Buffer.concat([readFileSync(join(snapshot, classification.entries[2].path)), Buffer.from('\n')]), () => rejectPreflight('capture-tamper', /captured data length changed/u)));
+  check('new-directory-exclusion-rejected-before-compiler', () => {
+    const config = JSON.parse(readFileSync(join(snapshot, 'tsconfig.json'))); config.exclude.push('tests/integration');
+    mutate('tsconfig.json', JSON.stringify(config), () => rejectPreflight('broad-exclusion', /exact authenticated entries/u));
+  });
+  check('omitting-current-test-include-rejected-before-compiler', () => {
+    const config = JSON.parse(readFileSync(join(snapshot, 'tsconfig.json'))); config.include = ['src/**/*.ts'];
+    mutate('tsconfig.json', JSON.stringify(config), () => rejectPreflight('missing-include', /source\/test coverage/u));
+  });
+  check('unknown-tracked-mts-cannot-enter-unclassified', () => {
+    const path = 'tests/independent-unknown-current-consumer.mts';
+    mutate(path, 'export {};\n', () => {
+      assert.equal(command('track-new-consumer', 'git', ['add', '--', path]).status, 0);
+      try { rejectPreflight('unknown-consumer', /Unclassified current .mts/u); }
+      finally { assert.equal(command('untrack-new-consumer', 'git', ['update-index', '--force-remove', '--', path]).status, 0); }
+    });
+  });
+  check('removing-current-mts-route-is-rejected', () => {
+    const path = 'tests/plugins/qualified-current-release/consumers.mjs', bytes = readFileSync(join(snapshot, path));
+    mutate(path, Buffer.concat([bytes, Buffer.from('\nconsumerGroups.splice(consumerGroups.findIndex(group => group.name === "env-split-public-types"), 1);\n')]), () => rejectPreflight('removed-route', /explicit compile\/runtime route/u));
+  });
+  check('missing-current-ts-consumer-is-rejected', () => mutate('tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts', null, () => rejectPreflight('missing-source-consumer', /current source consumer is missing/u)));
+  check('missing-current-mts-consumer-is-rejected', () => mutate('tests/fs/s3/http/author/public-consumer.mts', null, () => rejectPreflight('missing-moved-consumer', /current standalone consumer is missing/u)));
+  check('missing-current-contract-is-rejected', () => mutate('src/contracts/io.ts', null, () => rejectPreflight('missing-contract', /current contract source is missing/u)));
+  check('missing-public-built-subpath-requires-build', () => mutate('dist/commands/time-env/index.d.ts', null, () => {
+    const result = probe('missing-built-subpath'); assert.equal(result.status, 78); assert.equal(result.details.phases.length, 0);
+  }));
+  check('real-current-source-type-error-blocks-build-before-consumers', () => {
+    const path = 'src/contracts/path.ts';
+    mutate(path, Buffer.concat([readFileSync(join(snapshot, path)), Buffer.from('\nexport const independentTypeError: number = "invalid";\n')]), () => {
+      try {
+        const result = probe('failed-build', ['--build']); assert.equal(result.status, 2);
+        assert.deepEqual(result.details.phases.map(phase => phase.label), ['build']); assert.equal(result.details.consumers, undefined);
+        assert.match(result.stdout, /src\/contracts\/path.ts.*TS2322/u);
+      } finally { rmSync(join(snapshot, 'dist'), { recursive: true }); copyRegular(join(temporary, 'baseline-dist'), join(snapshot, 'dist')); }
+    });
+  });
+  check('new-ts-neighbor-beside-historical-data-is-typechecked', () => mutate('tests/commands/filesystem-inspection-stress/tree/sealed/inputs/current-type-negative.ts', 'export const currentNegative: number = "invalid";\n', () => {
+    const result = compile('neighbor-negative', ['--noEmit']); assert.equal(result.status, 2);
+    assert.match(result.stdout, /current-type-negative.ts.*TS2322/u); assert.equal([...result.stdout.matchAll(/error TS\d+:/gu)].length, 1);
+  }));
+  check('current-source-consumer-error-still-rejected-strictly', () => {
+    const path = 'tests/shell-stress/env-split-consumer/packed-public-types.ts';
+    mutate(path, Buffer.concat([readFileSync(join(snapshot, path)), Buffer.from('\nconst invalidInvocation: CommandInvokeOptions = { replaceEnv: "invalid" }; void invalidInvocation;\n')]), () => {
+      const result = directGroup('source-consumer-negative', 'env-split-public-source', true); assert.equal(result.status, 2);
+      assert.match(result.details.phases[0].stdout, /TS2322/u);
+    });
+  });
+  check('actual-moved-consumer-rejects-missing-public-export', () => {
+    const path = 'tests/shell-stress/env-split-validity/public-types.mts';
+    mutate(path, Buffer.concat([readFileSync(join(snapshot, path)), Buffer.from('\nimport { independentMissingExport } from "virtual-bash/contracts"; void independentMissingExport;\n')]), () => {
+      const result = directGroup('moved-consumer-negative', 'env-split-public-types'); assert.equal(result.status, 2);
+      assert.match(result.details.phases[0].stdout, /TS2305/u);
+    });
+  });
+  check('source-consumer-package-resolution-rejects-repository-src', () => {
+    const config = JSON.parse(readFileSync(join(snapshot, 'tsconfig.json'))); config.compilerOptions.paths = { 'virtual-bash': [join(snapshot, 'src/index.ts')] };
+    mutate('tsconfig.json', JSON.stringify(config), () => {
+      const result = directGroup('source-fallback-negative', 'env-split-public-source', true); assert.equal(result.status, 2);
+      assert.equal(result.details.phases[0].status, 0);
+      assert.match(result.details.result.groups[0].error, /candidate build/u);
+    });
+  });
+  check('moved-consumer-all-public-imports-bind-to-copied-current-package', () => {
+    const decoy = join(temporary, 'decoy-dist'); copyRegular(join(temporary, 'baseline-dist'), decoy);
+    writeFileSync(join(temporary, 'package.json'), JSON.stringify({ type: 'module', private: true }));
+    const declaration = join(decoy, 'contracts/index.d.ts');
+    writeFileSync(declaration, Buffer.concat([readFileSync(declaration), Buffer.from('\nexport declare const independentMissingExport: number;\n')]));
+    const configPath = 'tests/plugins/qualified-current-release/tsconfig.consumer.json';
+    const config = JSON.parse(readFileSync(join(snapshot, configPath)));
+    config.compilerOptions.paths = { 'virtual-bash/contracts': [declaration] };
+    const path = 'tests/shell-stress/env-split-validity/public-types.mts';
+    mutate(configPath, JSON.stringify(config), () => mutate(path, Buffer.concat([readFileSync(join(snapshot, path)), Buffer.from('\nimport { independentMissingExport } from "virtual-bash/contracts"; void independentMissingExport;\n')]), () => {
+      const result = directGroup('foreign-build-resolution', 'env-split-public-types');
+      const resolutions = [...result.details.phases[0].stdout.matchAll(/Module name '(virtual-bash(?:\/[^']*)?)' was successfully resolved to '([^']+)'/gu)].map(match => ({ specifier: match[1], resolved: match[2] }));
+      report.bindingMutation = { status: result.status, result: result.details.result, resolutions, declarationSha256: sha256(readFileSync(declaration)) };
+      if (result.status === 0) report.findings.push({ id: 'mixed-public-package-resolution', expected: 'reject public contract resolution outside the installed candidate', actual: 'strict compile and moved-consumer guard both accept missing candidate export supplied by alternate declarations', path: 'scripts/typecheck-consumers.mjs:7', evidence: 'foreign-build-resolution.report.gz.base64' });
+      assert.equal(result.status, 2, 'mixed real copied-package / alternate-build binding must not pass');
+    }));
+  });
+  check('existing-mandatory-runtime-coverage-controls-unchanged', () => {
+    const result = command('coverage-controls', process.execPath, ['--import', 'tsx', '--test', 'tests/integration/qualified-current-release-repair/coverage.test.ts']);
+    assert.equal(result.status, 0); assert.match(result.stdout, /# tests 24\b/u); assert.match(result.stdout, /# pass 24\b/u); assert.match(result.stdout, /# fail 0\b/u); assert.match(result.stdout, /# skipped 0\b/u);
+  });
+  check('complete-archived-source-tools-and-build-unchanged-after-controls', () => {
+    const after = census(snapshot, tracked); report.sourceAfter = capture('source-after', JSON.stringify(after, null, 2) + '\n');
+    assert.deepEqual(after, original);
+    assert.deepEqual(census(snapshot, originalTools.map(entry => entry.path)), originalTools);
+    assert.deepEqual(census(join(snapshot, 'dist'), walk(join(snapshot, 'dist'))), emitted);
+  });
+} catch (error) { report.setupFailure = error.stack; }
+finally {
+  rmSync(temporary, { recursive: true, force: true }); report.cleaned = !existsSync(temporary);
+  report.finishedAt = new Date().toISOString();
+  report.counts = { pass: report.checks.filter(check => check.status === 'pass').length, fail: report.checks.filter(check => check.status === 'fail').length, skip: 0 };
+  writeFileSync(join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+  console.log(JSON.stringify({ candidate, counts: report.counts, setupFailure: report.setupFailure, cleaned: report.cleaned, output }));
+  process.exitCode = report.setupFailure || report.counts.fail ? 1 : 0;
+}

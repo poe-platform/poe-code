@@ -1,0 +1,323 @@
+[
+  {
+    "at": "2026-08-27T04:50:26.609Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:26.711Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:26.813Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:26.915Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.015Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.117Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.218Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      },
+      {
+        "pid": 72254,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --expose-gc --unhandled-rejections=strict --import tsx --max-old-space-size=256 /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/original/benchmarks/expanded/engine.mjs"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.320Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      },
+      {
+        "pid": 72254,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --expose-gc --unhandled-rejections=strict --import tsx --max-old-space-size=256 /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/original/benchmarks/expanded/engine.mjs"
+      },
+      {
+        "pid": 72258,
+        "ppid": 72254,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.423Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      },
+      {
+        "pid": 72260,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --expose-gc --unhandled-rejections=strict --import tsx --max-old-space-size=256 /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/original/benchmarks/expanded/engine.mjs"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.526Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      },
+      {
+        "pid": 72260,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "(node)"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.628Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      },
+      {
+        "pid": 72263,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --expose-gc --unhandled-rejections=strict --import tsx --max-old-space-size=256 /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/scratch-aligned/benchmarks/expanded/engine.mjs"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.729Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      },
+      {
+        "pid": 72263,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --expose-gc --unhandled-rejections=strict --import tsx --max-old-space-size=256 /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/scratch-aligned/benchmarks/expanded/engine.mjs"
+      },
+      {
+        "pid": 72268,
+        "ppid": 72263,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.832Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      },
+      {
+        "pid": 72263,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "(node)"
+      },
+      {
+        "pid": 72268,
+        "ppid": 72263,
+        "pgid": 72233,
+        "command": "(esbuild)"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:27.933Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      },
+      {
+        "pid": 72275,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --expose-gc --unhandled-rejections=strict --import tsx --max-old-space-size=256 /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/profiles/scratch-aligned/benchmarks/expanded/engine.mjs"
+      }
+    ]
+  },
+  {
+    "at": "2026-08-27T04:50:28.036Z",
+    "processes": [
+      {
+        "pid": 72233,
+        "ppid": 72230,
+        "pgid": 72233,
+        "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/audit/phase.mjs controls"
+      },
+      {
+        "pid": 72234,
+        "ppid": 72233,
+        "pgid": 72233,
+        "command": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+      }
+    ]
+  }
+]

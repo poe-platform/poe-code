@@ -1,0 +1,29 @@
+import assert from "node:assert/strict";
+import { Shell, ShellLimitError, agentCommands, createMemoryFileSystem, writeText } from "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-author/.scratch-DT3heO/source/src/index.ts";
+const inputs = [{"id":"core-literal","script":"#!/usr/bin/env bash -e\nprintf forbidden > marker\n","scriptBase64":"IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==","scriptSha256":"621195344a4da18ebc8004e4a8823bd4da698741a9e6f6355068a8b37406f0fb","body":"printf forbidden > marker\n","containsFailingCommand":false,"cwd":"/work","command":"./script","file":"/work/script","mode":"0755"},{"id":"errexit-1","script":"#!/usr/bin/env bash -e\nprintf BAD\n","scriptBase64":"IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgQkFECg==","scriptSha256":"86b35fd610b7e39cf864287502946261432355bbdf631dae8f9063c34bba46de","body":"printf BAD\n","containsFailingCommand":false,"cwd":"/","command":"/script","file":"/script","mode":"0755"},{"id":"errexit-2","script":"#!/usr/bin/env -S bash -e\nprintf BAD\n","scriptBase64":"IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgQkFECg==","scriptSha256":"93dbdca4d22c4664354c2c356b9602546a472d77c7b24919c4270b8330a1b09f","body":"printf BAD\n","containsFailingCommand":false,"cwd":"/","command":"/script","file":"/script","mode":"0755"},{"id":"expanded-1","script":"#!/usr/bin/env bash -e\nprintf forbidden","scriptBase64":"IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVu","scriptSha256":"4df56a5458cb6c83f0e70f66d31aab99401c061497f6310e8d235027a83292d5","body":"printf forbidden","containsFailingCommand":false,"cwd":"/","command":"/script","file":"/script","mode":"0755"},{"id":"expanded-2","script":"#!/usr/bin/env -S bash -e\nprintf forbidden","scriptBase64":"IyEvdXNyL2Jpbi9lbnYgLVMgYmFzaCAtZQpwcmludGYgZm9yYmlkZGVu","scriptSha256":"4cd6ef8ac6283afb8adf58515390ba402d186cc8bd6645ef4ac3ef2a2fbc7d71","body":"printf forbidden","containsFailingCommand":false,"cwd":"/","command":"/script","file":"/script","mode":"0755"},{"id":"expanded-3","script":"#!/usr/bin/env python\nprintf forbidden","scriptBase64":"IyEvdXNyL2Jpbi9lbnYgcHl0aG9uCnByaW50ZiBmb3JiaWRkZW4=","scriptSha256":"9d69f961c35a64910c2cb679ee7482d277a75a3e772a0d01a91b512919acd080","body":"printf forbidden","containsFailingCommand":false,"cwd":"/","command":"/script","file":"/script","mode":"0755"},{"id":"expanded-4","script":"#!/usr/bin/env\nprintf forbidden","scriptBase64":"IyEvdXNyL2Jpbi9lbnYKcHJpbnRmIGZvcmJpZGRlbg==","scriptSha256":"213b5d52942043a068c998b6b5c12786ef82bd83586b7e5c49fb3f96c88c1972","body":"printf forbidden","containsFailingCommand":false,"cwd":"/","command":"/script","file":"/script","mode":"0755"},{"id":"expanded-5","script":"#!/usr/bin/env bash\r\nprintf forbidden","scriptBase64":"IyEvdXNyL2Jpbi9lbnYgYmFzaA0KcHJpbnRmIGZvcmJpZGRlbg==","scriptSha256":"1b9d398ceff4fa0af3e39c79defd9a6b4534eecf3b3468e57998dda466e30bb0","body":"printf forbidden","containsFailingCommand":false,"cwd":"/","command":"/script","file":"/script","mode":"0755"}];
+const observations = [];
+for (const input of inputs) {
+  const fs = createMemoryFileSystem();
+  const core = input.id === "core-literal";
+  if (core) { await fs.mkdir("/work"); await fs.mkdir("/other"); }
+  const shell = new Shell(core ? {fs, cwd:"/work",env:{PUBLIC:"parent value",A:"ancestor",PATH:""}} : {fs}).use(agentCommands());
+  const calls = []; let entered = 0; const failures = []; const unhandled = error => failures.push(error);
+  if (core || input.id.startsWith("errexit")) shell.use(async (context, next) => { calls.push(context.command); return next(); });
+  if (core) {
+    shell.register({name:"report",async execute(context){ entered++; await writeText(context.stdout,JSON.stringify({env:context.env,args:context.args,cwd:context.cwd,origin:context.stdinIsDefault})+"\n");return {exitCode:0}; }});
+    shell.register({name:"emit",async execute(context){ entered++; await writeText(context.stdout,"abcd");return {exitCode:0}; }});
+    process.on("unhandledRejection",unhandled);
+  }
+  const observation = {id:input.id};
+  try {
+    await fs.writeFile(input.file,Buffer.from(input.script),{mode:0o755});
+    try { const result = await shell.exec(input.command); observation.result = {status:result.exitCode,stdout:result.stdout,stderr:result.stderr,stdoutBase64:Buffer.from(result.stdoutBytes).toString("base64"),stderrBase64:Buffer.from(result.stderrBytes).toString("base64")}; }
+    catch(error) { observation.rejection = {name:error.name,message:error.message,limit:error.limit,publicShellLimitError:error instanceof ShellLimitError}; }
+    observation.entries = (await fs.readdir(input.cwd)).map(entry=>entry.name);
+    observation.scriptUnchanged = Buffer.from(await fs.readFile(input.file)).equals(Buffer.from(input.script));
+    assert.deepEqual(observation.entries,["script"]); assert.equal(observation.scriptUnchanged,true);
+    observation.calls = calls; observation.entered = entered; assert.deepEqual(failures,[]);
+  } finally {await shell.dispose();observation.disposed=true;if(core)process.off("unhandledRejection",unhandled);}
+  observations.push(observation);
+}
+console.log(JSON.stringify(observations,null,2));

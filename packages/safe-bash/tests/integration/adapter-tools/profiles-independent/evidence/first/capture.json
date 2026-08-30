@@ -1,0 +1,37 @@
+{
+  "startedAt": "2026-08-27T10:11:51.057Z",
+  "revision": "3bf672f722da2bdf1591ed112290b702987bf63a",
+  "sourceTree": "782cbec72259112e0810f9d6d9d55f2e7f37992f",
+  "archiveSha256": "d299dd849ed75428b40fed7eb83c115729222092d32cbad1f83228d91409adcc",
+  "liveHead": "7a517cecab21d9fbff204df01a6a2ad2712a7673",
+  "liveStatus": " M tests/integration/safejs-cleanup-regression/integration/child.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/adapter-tools/profiles-independent/\n?? tests/integration/safejs-cleanup-regression/integration/evidence/sink-migration-v1/\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/\n?? tests/stress/byte-ownership-20260827/fix/\n",
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/.isolated-VdnRjq",
+  "node": "v22.22.2",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "platform": "darwin",
+  "arch": "arm64",
+  "compilerSha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+  "tools": [
+    {
+      "name": "typescript",
+      "metadataSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+      "version": "5.9.3"
+    },
+    {
+      "name": "tsx",
+      "metadataSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659",
+      "version": "4.23.12"
+    },
+    {
+      "name": "esbuild",
+      "metadataSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490",
+      "version": "0.28.2"
+    },
+    {
+      "name": "@types/node",
+      "metadataSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de",
+      "version": "22.20.1"
+    }
+  ],
+  "profile": "independent exact committed product/input snapshot; own verifier input bytes captured; no service download; no live whole-product qualification"
+}

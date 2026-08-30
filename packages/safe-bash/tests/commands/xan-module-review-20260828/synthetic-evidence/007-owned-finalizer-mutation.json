@@ -1,0 +1,15 @@
+{
+  "id": "owned-finalizer-mutation",
+  "families": [
+    "F03",
+    "F07"
+  ],
+  "observation": {
+    "returned": {
+      "copy": "ab",
+      "borrowed": "XX",
+      "returned": true
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

@@ -1,0 +1,16 @@
+import { agentCommands, createAgentCommands, createExprCommand, type ExprCommandsOptions } from "virtual-bash";
+import { createExprCommands, exprCommands } from "virtual-bash/commands/expr";
+
+// @ts-expect-error N01 aggregate nested regex is prohibited
+agentCommands({ expr: { regex: { maxWorkers: 1 } } });
+// @ts-expect-error N02 aggregate nested replace is prohibited
+createAgentCommands({ expr: { replace: true } });
+// @ts-expect-error N03 direct limits require numbers
+createExprCommand({ limits: { maxNumericDigits: "64" } });
+
+createExprCommands({ limits: { maxRegexSteps: 64 } });
+// @ts-expect-error N05 direct regex retains its actual numeric policy type
+exprCommands({ regex: { startupTimeoutMs: "50" } });
+// @ts-expect-error N06 replace retains boolean policy
+const invalid: ExprCommandsOptions = { replace: "yes" };
+void invalid;

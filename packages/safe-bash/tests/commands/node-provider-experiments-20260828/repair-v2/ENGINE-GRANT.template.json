@@ -1,0 +1,40 @@
+{
+  "schema": "node-abi-root-go-v1",
+  "authorized": false,
+  "executionCommit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+  "manifestSha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+  "runId": "<unused-run-id>",
+  "reviewPath": "reviews/<raman-review>.json",
+  "reviewSha256": "<review-file-sha256>",
+  "authorizedAt": "<ISO-date strictly after review.completedAt>",
+  "evaluations": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06-object",
+    "F06-null",
+    "F07"
+  ],
+  "guestEvaluations": 8,
+  "sourceManifestSha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+  "toolManifestSha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+  "referenceAbi": "safejs-bb23ec27-values-7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269-v1",
+  "limits": {
+    "overallContainmentMs": 480000,
+    "cleanupReserveMs": 30000,
+    "workflowContainmentMs": 30000,
+    "containmentGraceMs": 1000,
+    "scratchFiles": 512,
+    "scratchBytes": 201326592,
+    "stdoutBytesPerChild": 65536,
+    "stderrBytesPerChild": 65536,
+    "loadTraceBytesPerChild": 2097152,
+    "receiptBytesPerChild": 65536,
+    "totalEvidenceBytes": 33554432,
+    "eventsPerChild": 32
+  },
+  "privateAccess": false,
+  "retry": false
+}

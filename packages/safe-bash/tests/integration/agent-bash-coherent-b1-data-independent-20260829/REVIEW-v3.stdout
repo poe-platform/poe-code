@@ -1,0 +1,8 @@
+{"stage":"begin"}
+{"stage":"recovery-tree-blobs-authenticated"}
+{"stage":"34-copies-and-original-postguards-authenticated"}
+{"stage":"15-outcomes-and-authority-retirement-data-authenticated"}
+{"stage":"six-author-data-controls-pass"}
+{"stage":"three-novel-data-controls-pass"}
+{"stage":"final-source-and-copy-postguards-pass"}
+{"disposition":"QUALIFIED_DATA_RECOVERY_ACCEPT_NOT_CAMPAIGN_PASS","files":34,"bytes":1380268,"controls":6,"novel":3,"matrix":[{"layout":"source-built","rows":[{"id":"C10","status":"PASS"},{"id":"C11","status":"PASS"},{"id":"C15","status":"PASS"},{"id":"C16","status":"PASS"},{"id":"C18","status":"PASS"}],"passed":5,"failed":0,"workerCreates":5,"workerExits":5,"workerPeak":1,"workerExitCodes":[1,1,1,1,1],"regexWorkers":0,"internalLoaderThreads":0},{"layout":"installed","rows":[{"id":"C10","status":"PASS"},{"id":"C11","status":"PASS"},{"id":"C15","status":"PASS"},{"id":"C16","status":"PASS"},{"id":"C18","status":"PASS"}],"passed":5,"failed":0,"workerCreates":5,"workerExits":5,"workerPeak":1,"workerExitCodes":[1,1,1,1,1],"regexWorkers":0,"internalLoaderThreads":0},{"layout":"physically-moved","rows":[{"id":"C10","status":"PASS"},{"id":"C11","status":"PASS"},{"id":"C15","status":"PASS"},{"id":"C16","status":"PASS"},{"id":"C18","status":"PASS"}],"passed":5,"failed":0,"workerCreates":5,"workerExits":5,"workerPeak":1,"workerExitCodes":[1,1,1,1,1],"regexWorkers":0,"internalLoaderThreads":0}],"retired":4,"preimport":78,"receiptSha256":"23361e509ec63d6887758dd3a2fc3e18db6ef5f448bd4b498de18902bd920542","readBytes":8499302}

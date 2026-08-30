@@ -1,0 +1,8 @@
+ACTIVE: v1 source/test/compiled hashes reconstructed exactly in two owned temps.
+V2 r0 frozen before execution: newauthor8/8, oldauthor12/12, adapted5/5,
+original1/5 (+head-zero1), old57/57 and9/9. Build/scoped typecheck passed.
+Now independently rerunning v1 original failure probes for exact diagnosis.
+API child(destination); borrowed input is bounded prebuffered before enrollment,
+not a new shared read lease; delayed/nonprompt behavior and file/stderr tested.
+All finished run process groups closed; authored loopbacks closed/zero sockets.
+Candidate not sealed/ready; no independent bodies inspected or live edits.

@@ -1,0 +1,74 @@
+[
+  {
+    "source": "tests/commands/expr-stress/diagnostics-review/runtime-driver.mjs",
+    "commit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+    "target": "frozen-runtime-driver.mjs",
+    "sha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-review/independent.mjs",
+    "commit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+    "target": "frozen-independent.mjs",
+    "sha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-review/inputs.json",
+    "commit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+    "target": "frozen-inputs.json",
+    "sha256": "dc758ff0c657d6ce7366e5f9b96af97d73a97773e092b17ed899f769ec251f28"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-review/freeze/runtime-binding.json",
+    "commit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+    "target": "frozen-freeze__runtime-binding.json",
+    "sha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-review/freeze/independent-native.json",
+    "commit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+    "target": "frozen-freeze__independent-native.json",
+    "sha256": "252a342ef50d6721bd156d80efa602b988f2b3e600edca3cf42c7e8901ad2ea0"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-review/FREEZE.md",
+    "commit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+    "target": "frozen-FREEZE.md",
+    "sha256": "26f22d8fb2d052f3647026d61c155a0a648db7b69d78985f3f8a5e33fcc5c29a"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-review/REPORT.md",
+    "commit": "1231700a9f049262235759bbf07f58b939ae646b",
+    "target": "frozen-REPORT.md",
+    "sha256": "548d581d97d48dd306fa16f8f630511996c5f2d7f328438f82d804a9f594e258"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-candidate-review/REPORT.md",
+    "commit": "ed21ae6c214e9b76d3361004ce6097c2be5b7136",
+    "target": "historical-REPORT.md",
+    "sha256": "64bee60709f337f2ee4b1440ae4ada26dc92d0780cdd628b197bbe02651cd7fd"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-candidate-review/replay/regressions/expr-legacy241.json",
+    "commit": "ed21ae6c214e9b76d3361004ce6097c2be5b7136",
+    "target": "historical-replay__regressions__expr-legacy241.json",
+    "sha256": "e38fd476cfaca00b6bae13516edefa339fbdfc79d886664c7c53cfa3808a6323"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-candidate-review/replay/regressions/expr-legacy241-qualified.json",
+    "commit": "ed21ae6c214e9b76d3361004ce6097c2be5b7136",
+    "target": "historical-replay__regressions__expr-legacy241-qualified.json",
+    "sha256": "a80cb2db4e616c76740632bd512ba522395168cc06b0c03279de2d9473753e27"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-candidate-review/replay/regressions/legacy-prerequisite-repair-before.json",
+    "commit": "ed21ae6c214e9b76d3361004ce6097c2be5b7136",
+    "target": "historical-replay__regressions__legacy-prerequisite-repair-before.json",
+    "sha256": "bc6f0f9ec57d613b3a7564a2102991fbb7f7e1d57190f8b2d59d07696d719f60"
+  },
+  {
+    "source": "tests/commands/expr-stress/diagnostics-candidate-review/replay/regressions/legacy-prerequisite-repair-after.json",
+    "commit": "ed21ae6c214e9b76d3361004ce6097c2be5b7136",
+    "target": "historical-replay__regressions__legacy-prerequisite-repair-after.json",
+    "sha256": "af05cd9f742f06837f17487846dd7f92a4a170dac6410f554a2c6a27721df140"
+  }
+]

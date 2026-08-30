@@ -1,0 +1,1567 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "tests/commands/structured-stress/jq-grammar-seal-proposal/verify.mjs"
+  ],
+  "status": 0,
+  "stderr": "(node:14989) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+  "proof": {
+    "scope": "UNAPPLIED TEST-ONLY historical seal migration; no product/native execution",
+    "target": "tests/commands/structured-stress/jq-42-review-fixes/evidence.test.ts",
+    "approval": "95966ca2006bfa9bb35353cbac0a14038089c4ba",
+    "proposal": "eab1d48a90456c1c2cdeb9289b32f1ed62429137",
+    "commits": {
+      "native": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+      "host": "538a7f87ec50140780fa9a58f833e116d876e7c0"
+    },
+    "oldManifest": {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/immutable-before.json",
+      "sha256": "3766803b4bd8cc39f014e13de881cda034515b1094436530cdfa6505750ce9e3",
+      "entries": 139
+    },
+    "migrationManifest": {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/patch-manifest-v3.json",
+      "sha256": "aae89dfeefab84c50ef91a84c1c1608d659c0037ac96eb93c5f828ab32c938ce",
+      "entries": 13
+    },
+    "beforeSnapshot": {
+      "path": "tests/commands/structured-stress/jq-grammar-seal-proposal/before-2026-08-27/evidence.test.ts.txt",
+      "sha256": "bc2b19133b926eccf2519885bb5ca7a16f9ce09e1fb1a9cda78b6c365a7710f8"
+    },
+    "afterSnapshot": {
+      "path": "tests/commands/structured-stress/jq-grammar-seal-proposal/afterSnapshot/evidence.test.ts.txt",
+      "sha256": "81a55856d1ec4dea51676ef09a5aeeb95d3383a7284eb1ec87deef848e430281"
+    },
+    "patch": {
+      "path": "tests/commands/structured-stress/jq-grammar-seal-proposal/seal-migration.patch",
+      "sha256": "53e2b083aa7c61444052eebd14428ba5e032500e963eb1b6e5f427806ddaa47f",
+      "gitApplyCheck": true,
+      "exactSnapshotDiff": true
+    },
+    "intersection": 10,
+    "unchangedSealedPaths": 129,
+    "newlyApprovedOutsideOldSeal": 3,
+    "pathMap": [
+      {
+        "path": "tests/commands/structured-stress/jq-grammar-native-v3.json",
+        "sealed": false,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": null,
+        "beforeSha256": null,
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-native-v3.json.txt",
+        "afterSha256": "62ca039b1fb3bb517d21d5499e4cd8467a80349f597a1231e8380368530e9e62"
+      },
+      {
+        "path": "tests/commands/structured-stress/jq-grammar-native-v3.ts",
+        "sealed": false,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": null,
+        "beforeSha256": null,
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-native-v3.ts.txt",
+        "afterSha256": "6882ecf1406ab085718b7da9cd1d90e448522c66039a3784c14a21f45fd1de2a"
+      },
+      {
+        "path": "tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts",
+        "sealed": false,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": null,
+        "beforeSha256": null,
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts.txt",
+        "afterSha256": "0a97ec591a786bc68cee14168cc7d09af312faa50cc6ab259e6fced471fac4d7"
+      },
+      {
+        "path": "tests/commands/structured-stress/harness.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/harness.ts.txt",
+        "beforeSha256": "dabc50c83133b6927d987f4763b594e793a4374cec79e5a1eead9a2612a6d482",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/harness.ts.txt",
+        "afterSha256": "47007ff2be4249e70a250084ca10f40ac2fe9108918326041169e658b7d26e1e"
+      },
+      {
+        "path": "tests/commands/structured/helpers.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/helpers.ts.txt",
+        "beforeSha256": "85810c3e66de2b343284ee9cc2bfc03a48cfb76125b4605fb797898f4dfe258c",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/helpers.ts.txt",
+        "afterSha256": "58f64bcaaedc766a7b13a77195a93dd0886770ea20f6b9c57fbe032d642950b2"
+      },
+      {
+        "path": "tests/commands/structured-stress/independent-increment/safety.test.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/independent-increment/safety.test.ts.txt",
+        "beforeSha256": "e46cdc464d16acdc1c6841d86dbb9b02274f7f22b2149751dcf1e8c44a8afcd1",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/independent-increment/safety.test.ts.txt",
+        "afterSha256": "93337441d16dfe84004576b8ce7ee07f7cd4851715fd164cf18c2eb791b5161b"
+      },
+      {
+        "path": "tests/commands/structured-stress/raw-input.test.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/raw-input.test.ts.txt",
+        "beforeSha256": "bdd6aa8c1aa330be5b161c5dc86e2ffa91a5efb1ee0e8748f2ebd131d09544bf",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/raw-input.test.ts.txt",
+        "afterSha256": "11ada84fe790a81b335d43b9776c2f0ec6fe08ebe0e9fa2558695f3444ac268f"
+      },
+      {
+        "path": "tests/commands/structured-stress/safety.test.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/safety.test.ts.txt",
+        "beforeSha256": "e50489b15c9d3fc232ef20bbd00701d507870ca5e95189caac07f156e9617611",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/safety.test.ts.txt",
+        "afterSha256": "ba9c576a8173a9aa5ff8545f88b7288faa4fee9fe2919648861a5286326b3fee"
+      },
+      {
+        "path": "tests/commands/structured/cli.test.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/cli.test.ts.txt",
+        "beforeSha256": "61b291a521f4059b52dd7db90fedb82674bbf0046c2fbab4371b7d9478b30e5c",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/cli.test.ts.txt",
+        "afterSha256": "b755f4d240d7c95f001e3a4aac6aeb8270242d694fb5db96ddbc4f7568e4afe2"
+      },
+      {
+        "path": "tests/commands/structured/resources.test.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/resources.test.ts.txt",
+        "beforeSha256": "18301807f1031dc0fd53bf0785730dbca3aff8608d646176d0f8509506371099",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/resources.test.ts.txt",
+        "afterSha256": "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061"
+      },
+      {
+        "path": "tests/commands/structured-stress/join.test.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/join.test.ts.txt",
+        "beforeSha256": "4e5ec178e0d35818f27d062af5343dc0df8acba45ca35225555d0835aee81f1d",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/join.test.ts.txt",
+        "afterSha256": "91c700cc536e17fffcaa2818fe43639a0c4108ebf6d515fbff30afed18e48146"
+      },
+      {
+        "path": "tests/commands/structured-stress/split-increment/command.test.ts",
+        "sealed": true,
+        "commit": "50434b3646d3ba1711be5bb707d44d3bfa201fe2",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/split-increment/command.test.ts.txt",
+        "beforeSha256": "04c05dd3e9f65303ac9ba0d8962c7af1d29342b62282f163e53229f85e7225d3",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/split-increment/command.test.ts.txt",
+        "afterSha256": "5c4d39cfff9622dd5712da540a278343f1262090753ea623ba336a21bb19c8f5"
+      },
+      {
+        "path": "tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+        "sealed": true,
+        "commit": "538a7f87ec50140780fa9a58f833e116d876e7c0",
+        "beforeSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts.txt",
+        "beforeSha256": "34d4a0d819eb5bcbdd7bf65b6d7daa370fe975545b960976e95f8f14086a8528",
+        "afterSnapshot": "tests/commands/structured-stress/jq-grammar-canonical-plan/after-host/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts.txt",
+        "afterSha256": "6e5b793461e41c8b392c84db81bebb49340b7d3baea4946c68f8142d830157be"
+      }
+    ],
+    "checks": {
+      "candidateTests": 2,
+      "names": [
+        "nearby native bytes remain frozen before the source fix",
+        "frozen historical evidence and exactly approved migrated canonical files retain sealed bytes"
+      ],
+      "originalHistoricalTests": 2,
+      "originalLiveFailureRetained": true,
+      "rejectedMutations": 347,
+      "totalChecks": 352
+    },
+    "mutations": [
+      {
+        "name": "old-before tamper: tests/commands/structured-stress/harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured/helpers.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured-stress/independent-increment/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured-stress/raw-input.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured-stress/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured/cli.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured/resources.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured-stress/join.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured-stress/split-increment/command.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "old-before tamper: tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/jq-grammar-native-v3.json",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/jq-grammar-native-v3.json",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/jq-grammar-native-v3.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/jq-grammar-native-v3.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured/helpers.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured/helpers.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/independent-increment/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/independent-increment/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/raw-input.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/raw-input.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured/cli.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured/cli.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured/resources.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured/resources.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/join.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/join.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/split-increment/command.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/split-increment/command.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "current-after tamper: tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "after-snapshot tamper: tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/README.md",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/capture-join.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/capture-raw-input.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/cases.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/corpus.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/corpus.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/README.md",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/fresh-native.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/fresh.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/native.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/pinned-matrix.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/post-checkpoint.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/split-report.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/verification.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/final-increment/verify.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/additive-regressions.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/cases.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/diagnose.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/exponent-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/native-regressions.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/native-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/native.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/numeric-fixes.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/numeric-safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/numeric-worker.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/overflow-comparison-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/phase1-observation.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/phase2-extra-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/phase2-final-observation.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/phase2-harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/phase2-native.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/phase2-observation.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/phase2-report.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/phase2-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/supplement-observation.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/supplement-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/supplement.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/independent-increment/verify-exponents.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/join-native.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/join-safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/ARTIFACTS.sha256",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/REPORT.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/REPORT.md",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/before.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/built-checks.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/capture.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-author.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-build.log",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-immutable.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-owned.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-safety-repeat-1.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-safety-repeat-2.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-safety-repeat-3.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-scoped-typecheck.log",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-split.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/final-typecheck.log",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/first-fix.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/first-owned.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/followup-before.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/followup.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/handoff-recheck.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/legacy-current.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/legacy-report.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/native-before.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/native-followup.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/native-reverification.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/native.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/primary-references.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/report.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/root-fix.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/second-owned.tap",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/validate.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/validation.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-author-20260827/verify-native.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/README.md",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/REVIEW.md",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/bounded-validation.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/cases.d.mts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/cases.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/common.d.mts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/common.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/evidence.d.mts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/evidence.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/evidence.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/failure-boundaries-results.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/failure-boundaries-run.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/failure-boundaries.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/freeze.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/inspect.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/legacy-native-proof.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/legacy-product-proof.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/legacy-proof.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/manifest.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/native-frozen.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/post-handoff-d1f78d4-01.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/prep-advisory-20260827.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/review.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/review.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/seal-review.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/tsconfig.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/jq-42-independent-review/validation.mjs",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/native-corpus.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/pipelines.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/raw-input-native.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/raw-input-safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/regressions.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/regressions.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/reviewer-corpus.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/README.md",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/baseline.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/capture-native.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/delivery.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/evidence.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/helper.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/interop.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/native.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/original-matrix.json",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/replay-original-matrix.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/split-increment/verify.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured-stress/verify-native.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured/hazard-worker.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured/oracle.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured/semantics.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "unlisted sealed-path change: tests/commands/structured/streaming.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "migration missing entry",
+        "rejected": true
+      },
+      {
+        "name": "migration extra allowed path",
+        "rejected": true
+      },
+      {
+        "name": "migration duplicate entry",
+        "rejected": true
+      },
+      {
+        "name": "migration changed before hash",
+        "rejected": true
+      },
+      {
+        "name": "migration changed after hash",
+        "rejected": true
+      },
+      {
+        "name": "migration changed before snapshot path",
+        "rejected": true
+      },
+      {
+        "name": "migration changed after snapshot path",
+        "rejected": true
+      },
+      {
+        "name": "wrong manifest hash even with identical JSON meaning",
+        "rejected": true
+      },
+      {
+        "name": "old manifest removed entry",
+        "rejected": true
+      },
+      {
+        "name": "old manifest extra entry",
+        "rejected": true
+      },
+      {
+        "name": "old manifest changed original hash",
+        "rejected": true
+      },
+      {
+        "name": "dated original seal test tamper",
+        "rejected": true
+      },
+      {
+        "name": "nearby native frozen bytes tamper",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-review-fixes/immutable-before.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/patch-manifest-v3.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-seal-proposal/before-2026-08-27/evidence.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-review-fixes/native-frozen.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/README.md",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/capture-join.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/capture-raw-input.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/cases.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/corpus.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/corpus.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/README.md",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/fresh-native.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/fresh.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/native.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/pinned-matrix.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/post-checkpoint.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/split-report.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/verification.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/final-increment/verify.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/additive-regressions.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/cases.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/diagnose.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/exponent-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/native-regressions.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/native-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/native.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/numeric-fixes.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/numeric-safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/numeric-worker.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/overflow-comparison-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/phase1-observation.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/phase2-extra-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/phase2-final-observation.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/phase2-harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/phase2-native.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/phase2-observation.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/phase2-report.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/phase2-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/supplement-observation.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/supplement-vectors.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/supplement.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/independent-increment/verify-exponents.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/join-native.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/join-safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/join.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/ARTIFACTS.sha256",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/REPORT.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/REPORT.md",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/before.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/built-checks.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/capture.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-author.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-build.log",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-immutable.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-owned.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-safety-repeat-1.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-safety-repeat-2.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-safety-repeat-3.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-scoped-typecheck.log",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-split.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/final-typecheck.log",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/first-fix.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/first-owned.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/followup-before.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/followup.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/followup.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/handoff-recheck.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/legacy-current.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/legacy-report.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/native-before.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/native-followup.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/native-reverification.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/native.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/primary-references.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/report.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/root-fix.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/second-owned.tap",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/validate.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/validation.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-author-20260827/verify-native.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/README.md",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/REVIEW.md",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/bounded-validation.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/cases.d.mts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/cases.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/common.d.mts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/common.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/evidence.d.mts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/evidence.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/evidence.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/failure-boundaries-results.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/failure-boundaries-run.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/failure-boundaries.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/freeze.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/harness.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/inspect.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/legacy-native-proof.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/legacy-product-proof.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/legacy-proof.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/manifest.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/native-frozen.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/post-handoff-d1f78d4-01.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/prep-advisory-20260827.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/review.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/review.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/seal-review.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/tsconfig.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-42-independent-review/validation.mjs",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/native-corpus.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/pipelines.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/raw-input-native.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/raw-input-safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/raw-input.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/regressions.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/regressions.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/reviewer-corpus.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/safety.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/README.md",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/baseline.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/capture-native.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/command.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/delivery.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/evidence.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/helper.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/interop.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/native.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/original-matrix.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/replay-original-matrix.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/split-increment/verify.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/verify-native.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured/cli.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured/hazard-worker.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured/helpers.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured/oracle.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured/resources.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured/semantics.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured/streaming.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-native-v3.json",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-native-v3.json.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-native-v3.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-native-v3.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/jq-grammar-byte-assertions-v3.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/harness.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/harness.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/helpers.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/helpers.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/independent-increment/safety.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/independent-increment/safety.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/raw-input.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/raw-input.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/safety.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/safety.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/cli.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/cli.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured/resources.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured/resources.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/join.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/join.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-native/tests/commands/structured-stress/split-increment/command.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/split-increment/command.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/after-host/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts.txt",
+        "rejected": true
+      },
+      {
+        "name": "missing bytes: tests/commands/structured-stress/jq-grammar-canonical-plan/before/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts.txt",
+        "rejected": true
+      }
+    ],
+    "historicalResult": "3757/3758 remains unchanged; full suite deliberately not rerun"
+  }
+}

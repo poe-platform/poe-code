@@ -1,0 +1,15 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: every source mutation must be detected by a semantic assertion
+    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/mutation-identity.probe.ts:85:8) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

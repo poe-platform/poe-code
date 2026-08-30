@@ -1,0 +1,128 @@
+{
+  "schema": "virtual-bash-timeout-parser-bound-clarification-v1",
+  "status": "proposed-additive-pre-freeze-clarification",
+  "date": "2026-08-28",
+  "implemented": false,
+  "implementationHeld": true,
+  "acceptedPacket": {
+    "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+    "tree": "b09ad20a5134d488dbf3f492cd9f4b516a429bf1",
+    "bytesChanged": false
+  },
+  "stage2Basis": {
+    "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+    "tree": "639d21ae58647bb3a33026549f3bb8b0e9595549",
+    "status": "unaccepted-review-pending",
+    "actualFindingsPriority": true
+  },
+  "semanticContract": {
+    "grammar": "(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)[smhd]?",
+    "millisecondMultipliers": {
+      "": 1000,
+      "s": 1000,
+      "m": 60000,
+      "h": 3600000,
+      "d": 86400000
+    },
+    "rounding": "exact rational scaling followed by one ceiling",
+    "maximumMilliseconds": 9007199254740991,
+    "semanticDurationCap": null,
+    "tokenLengthCap": null,
+    "newPublicLimit": false,
+    "newBudgetOrCounter": false,
+    "parserConfiguration": null
+  },
+  "inputDefinition": {
+    "n": "UTF-16 code units in the already-existing DURATION string, including optional suffix",
+    "validAsciiTokenUtf8BytesEqualN": true,
+    "inputStringAllocationOwnedByParser": false
+  },
+  "mechanism": {
+    "direction": "reverse",
+    "lexicalTraversals": 1,
+    "suffixProbeMaximumExtraIndexedReads": 1,
+    "maximumIndexedCodeUnitReads": "n + 1",
+    "work": "O(n)",
+    "auxiliaryStorage": "O(1)",
+    "inputSizedDigitCopy": false,
+    "bigintDigitMaterialization": false,
+    "powerOfTenMaterialization": false,
+    "parallelBeforeDecimalPointIsFound": [
+      "reverse fractional carry and sticky",
+      "checked reverse integer candidate for the no-point case"
+    ],
+    "invalidGrammarWinsOverOverflowFlag": true,
+    "scanContinuesAfterOverflowFlag": true
+  },
+  "arithmeticBounds": {
+    "multiplierMaximum": 86400000,
+    "fractionCarry": "0 <= c < M",
+    "fractionTemporary": "0 <= d*M+c <= 10*M-1 <= 863999999",
+    "fractionCeilingContribution": "0 <= c+sticky <= M",
+    "integerAdmissionQuotient": "Q=floor(9007199254740991/M)",
+    "materializedIntegerPart": "0 <= I <= Q",
+    "integerProduct": "I*M <= 9007199254740991",
+    "finalAddition": "materialize only after fractionCeilingContribution <= 9007199254740991-I*M"
+  },
+  "existingConstraintPolicy": {
+    "shellSource": "configured maxSourceBytes bounds Shell.exec source before parse and is charged separately",
+    "shellExpandedWord": "configured maxExpansionBytes bounds each produced word before handler dispatch",
+    "literalInvoke": "shape, NUL, and depth are checked before quoted-word processing; construction is caller-owned",
+    "directCustomContextUniversalArgvCap": null,
+    "standalonePrecondition": "trusted host pre-admits every finite already-created argv string and its synchronous O(n) parsing work",
+    "outputBytesAreParserWorkBudget": false,
+    "abortPreemptsSynchronousParser": false,
+    "opaqueHostPreemptionClaim": false
+  },
+  "diagnosticOrder": [
+    "accepted leading option or informational handling",
+    "missing-duration when no duration token exists",
+    "complete duration grammar validation",
+    "invalid-duration for invalid grammar even if overflow was provisionally detected",
+    "duration-overflow for grammar-valid result above maximum",
+    "missing-command for valid nonoverflowing duration without COMMAND",
+    "accepted invoker selection and later lifecycle"
+  ],
+  "prospectiveDesignCases": [
+    {
+      "shape": "arbitrarily many zeroes followed by d",
+      "outcome": "0 milliseconds"
+    },
+    {
+      "shape": "a positive fractional digit arbitrarily late after the point with s suffix",
+      "outcome": "at least 1 millisecond, exactly ceiled"
+    },
+    {
+      "input": ".001s",
+      "outcome": "1 millisecond with zero sticky remainder"
+    },
+    {
+      "input": "9007199254740.991s",
+      "outcome": "9007199254740991 milliseconds"
+    },
+    {
+      "input": "9007199254740.9911s",
+      "outcome": "duration-overflow status 125"
+    },
+    {
+      "shape": "overflowing decimal digits followed by x",
+      "outcome": "invalid-duration status 125"
+    }
+  ],
+  "unchanged": {
+    "helpAndVersion": true,
+    "publicApi": true,
+    "absentPropertyOnlyInvokerFallback": true,
+    "presentUndefinedInvokeIsUnavailable125": true,
+    "frozenEvidenceRowsAdded": 0,
+    "nativeExecution": false,
+    "sourceOrTestWork": false
+  },
+  "routing": {
+    "rootRoutesRamanAfterDU29": true,
+    "stage2AcceptanceRequired": true,
+    "independentFreezeRequired": true,
+    "explicitImplementationReleaseRequired": true,
+    "acceptanceClaimedHere": false
+  }
+}

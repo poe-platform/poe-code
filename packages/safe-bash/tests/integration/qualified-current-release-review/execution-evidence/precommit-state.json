@@ -1,0 +1,7 @@
+{
+  "recordedAt": "2026-08-27T08:31:13.237Z",
+  "status": " M tests/integration/qualified-current-release-review/REPORT.md\n?? benchmarks/reports/sort-performance-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env-stress/fix-review/\n?? tests/integration/qualified-current-release-review/.gitignore\n?? tests/integration/qualified-current-release-review/archive-handoff.mjs\n?? tests/integration/qualified-current-release-review/execute.mjs\n?? tests/integration/qualified-current-release-review/execution-evidence/\n?? tests/integration/qualified-current-release-review/postcheck.mjs\n?? tests/integration/qualified-current-release-review/seal.mjs\n?? tests/integration/qualified-current-release-review/verify-evidence.mjs\n",
+  "index": "",
+  "remainingOwnedExecutionProcesses": [],
+  "scope": "Shared foreign status is retained, never edited or staged by this leaf. Ignored owned staging/native artifacts remain intact. Atomic commit uses only the owned review path; root verifies actual leaf closure after normal exit."
+}

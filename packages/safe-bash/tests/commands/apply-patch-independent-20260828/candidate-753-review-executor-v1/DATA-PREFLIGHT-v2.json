@@ -1,0 +1,183 @@
+{
+  "schema": "AP753-preseal-data-v1",
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "classification": "DATA/syntax only; no product build, import, mutation execution, compiler, native oracle or network",
+  "results": [
+    {
+      "id": "D-SYNTAX",
+      "status": "PASS",
+      "detail": {
+        "parsed": 15,
+        "evaluated": 0,
+        "files": {
+          "bootstrap.mjs": {
+            "bytes": 1839,
+            "sha256": "41f9818f3da349c1f29f3290cf62f3cc05f6ee4ab91088fc68da23eddc8ed656",
+            "mode": 420
+          },
+          "build.mjs": {
+            "bytes": 1363,
+            "sha256": "f1b833354daa028ac4483dba21251ef1bf160ce76c686bf36422caada4227cd0",
+            "mode": 420
+          },
+          "common.mjs": {
+            "bytes": 2971,
+            "sha256": "c1362b47011358ae63b6a61e0653106bbc23f93c1a993eaf0b6509b39986407a",
+            "mode": 420
+          },
+          "composition.mjs": {
+            "bytes": 3390,
+            "sha256": "f8aaede3a3bbfb11ef33626a2d0f6447a03cde310248cd94d402d36ad726fbd9",
+            "mode": 420
+          },
+          "controller.mjs": {
+            "bytes": 34526,
+            "sha256": "f9b49f466d29f6b10f87cae8717f4daf3d4492e8a6a8c810e395405adc2037c1",
+            "mode": 420
+          },
+          "dispatch.mjs": {
+            "bytes": 3652,
+            "sha256": "28e234662c42d55b3323c8dd9b20aeef9788596b8fe6ec838d549d726dbcec65",
+            "mode": 420
+          },
+          "guard.mjs": {
+            "bytes": 2206,
+            "sha256": "bc41fa58ee7c48d588b910b18ff3145246368628c0006bec056a7df2dcd400c7",
+            "mode": 420
+          },
+          "legacy.mjs": {
+            "bytes": 26281,
+            "sha256": "7d2679ec9d1966bf854dea9548f8deb44beb6e2d8615cdd21cd7b45258903baa",
+            "mode": 420
+          },
+          "loader.mjs": {
+            "bytes": 3379,
+            "sha256": "d214641306544b012e8d78b1314c67bcfe701ea2b3ef265dfd4e2195990debf9",
+            "mode": 420
+          },
+          "package-data.mjs": {
+            "bytes": 2719,
+            "sha256": "9f40c2437c2cb0672886c4d2a4223fa7171c2ba67289c269f7f464f43320cc93",
+            "mode": 420
+          },
+          "path-bytes.mjs": {
+            "bytes": 6056,
+            "sha256": "77d326d80d16be07150722cc589030f09324796c747acaa9f3f83dc08cd04f94",
+            "mode": 420
+          },
+          "preflight.mjs": {
+            "bytes": 5369,
+            "sha256": "1591997d1752c83a7c097ea69761e7211754b4202eae55933dabae474cbaaa2f",
+            "mode": 420
+          },
+          "prepare.mjs": {
+            "bytes": 10063,
+            "sha256": "fdbb19947584f565cd77a17119402d53ff892e338309441d6198536c58d73668",
+            "mode": 420
+          },
+          "s54.mjs": {
+            "bytes": 15863,
+            "sha256": "1ed6df9124971fa61ba4096c5762e9849fe192c5f10fa16c7b2e0c4a7528a9c7",
+            "mode": 420
+          },
+          "variants.mjs": {
+            "bytes": 5809,
+            "sha256": "3e10f438e9e575dcc61f85a1da7802ee0fb9199bec6991268830ced3d3b2513c",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "id": "D-COMPOSITION",
+      "status": "PASS",
+      "detail": {
+        "selectedFiles": 274,
+        "moduleFiles": 6,
+        "derivedObjects": 11,
+        "storedAncestorObjects": 8,
+        "tree": "6a59ca403c5411344dea2ee057909ba179bf7043",
+        "instructionBodiesMaterialized": 0
+      }
+    },
+    {
+      "id": "D-COMPOSITION-NEGATIVE",
+      "status": "PASS",
+      "detail": {
+        "rejected": 4
+      }
+    },
+    {
+      "id": "D-FINITE-JOBS",
+      "status": "PASS",
+      "detail": {
+        "counts": {
+          "metadata": 1,
+          "guard": 1,
+          "build": 1,
+          "type": 15,
+          "regression": 3,
+          "fixture-tail": 3,
+          "independent-s54": 3,
+          "instrumented-s54": 1,
+          "limit": 18,
+          "adapter": 2,
+          "original-mutant": 6
+        },
+        "plannedAllOwned": 61,
+        "peakFlatOwnerPlusChild": 2,
+        "maximumTotalPeak": 4,
+        "independentBodyIds": [
+          "U01",
+          "U02",
+          "U03",
+          "U04",
+          "U05",
+          "U06",
+          "U07",
+          "U08",
+          "U09",
+          "U10",
+          "U11",
+          "U12",
+          "I01",
+          "I02",
+          "I03",
+          "I04"
+        ]
+      }
+    },
+    {
+      "id": "D-EXACT-DIAGNOSTIC",
+      "status": "PASS",
+      "detail": {
+        "permissionBytes": 40,
+        "exactBranchBytes": [
+          98,
+          92
+        ],
+        "originalFixturesUnmodified": true
+      }
+    },
+    {
+      "id": "D-OWN-DATA",
+      "status": "PASS",
+      "detail": {
+        "crossRealmPositive": 1,
+        "negative": 5,
+        "getterReads": 0
+      }
+    },
+    {
+      "id": "D-REFERENCE-AND-MUTANTS",
+      "status": "PASS",
+      "detail": {
+        "archiveBytes": 774520,
+        "archiveSha256": "f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95",
+        "files": 882,
+        "mutationGraphs": 30,
+        "evaluated": 0
+      }
+    }
+  ]
+}

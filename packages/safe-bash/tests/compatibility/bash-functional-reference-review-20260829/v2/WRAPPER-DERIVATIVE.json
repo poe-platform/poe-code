@@ -1,0 +1,7 @@
+{
+  "prefix": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "removedPayload": " /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v2/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v2/GO.json --grant-sha256 ROOT_APPROVED_GRANT_SHA256",
+  "redirections": " >/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stdout 2>/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-surface-functional-v2-20260829-01/outer/bootstrap.stderr",
+  "payload": "const fs=process.getBuiltinModule('fs');const one=fs.fstatSync(1),two=fs.fstatSync(2);const info={pid:process.pid,one:{ino:one.ino,dev:one.dev,mode:one.mode&511},two:{ino:two.ino,dev:two.dev,mode:two.mode&511}};fs.writeSync(1,JSON.stringify(info)+'\\n');fs.writeSync(1,Buffer.from([65,0,66,10]));fs.writeSync(2,'WRAPPER_STDERR\\n');const probe=Buffer.alloc(1);if(fs.readSync(1,probe,0,1,0)!==1||probe[0]!==123)process.exitCode=21;if(fs.readSync(2,probe,0,1,0)!==1||probe[0]!==87)process.exitCode=22;",
+  "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-functional-reference-review-20260829/v2"
+}

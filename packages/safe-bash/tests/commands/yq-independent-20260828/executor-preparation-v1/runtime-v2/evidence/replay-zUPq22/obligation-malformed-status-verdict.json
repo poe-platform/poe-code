@@ -1,0 +1,8 @@
+{
+  "id": "obligation-malformed-status",
+  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+  "outcome": "MATCH",
+  "failure": null,
+  "raw": "obligation-malformed-status-raw.json",
+  "semanticPasses": 0
+}

@@ -1,0 +1,12 @@
+{
+  "name": "built-boundary",
+  "args": [
+    "tests/commands/du/functional-v1/verify-built.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/du/canonical-migration-v1/.runtime-8pm9vw/.build"
+  ],
+  "startedAt": "2026-08-27T18:32:28.880Z",
+  "finishedAt": "2026-08-27T18:32:28.925Z",
+  "status": 0,
+  "signal": null,
+  "counts": {}
+}

@@ -1,0 +1,61 @@
+{
+  "candidate": "27a7793526830768484885afba5832bf8bb248b5",
+  "commands": [
+    {
+      "id": "native-prerequisites",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    },
+    {
+      "id": "watchdog-selfcheck",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    },
+    {
+      "id": "distribution",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    },
+    {
+      "id": "native-acceptance",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    },
+    {
+      "id": "frozen-controls",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    },
+    {
+      "id": "supplement",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    },
+    {
+      "id": "legacy-276",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    },
+    {
+      "id": "invocation-cleanup",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    },
+    {
+      "id": "author-abort-111",
+      "status": 0,
+      "signal": null,
+      "failure": null
+    }
+  ],
+  "completedAt": "2026-08-27T18:09:12.296Z",
+  "beforeAfterSourceInstalledFrozenIncludingAdditions": true
+}

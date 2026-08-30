@@ -1,0 +1,10 @@
+unset d3n
+declare d3n=value
+declare -ap +x d3n
+printf 'named:%s\n' "$?"
+declare -p +a d3n
+printf 'unsupported:%s\n' "$?"
+declare -p -x +x
+printf 'listing:%s\n' "$?"
+declare -p d3n
+printf 'END V301\n'

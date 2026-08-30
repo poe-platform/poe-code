@@ -1,0 +1,11 @@
+set -eu
+set -C
+[ "$#" -eq 2 ] || exit 74
+umask 022
+cd '/Users/kjopek/Workspace/safe-bash'
+printf '%s\n' "$$" > '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture/EXEC-PID.data'
+( exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/prepare-captures.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture' 'none' )
+exec 1>>'/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture/stdout.raw'
+exec 2>>'/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture/stderr.raw'
+( exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/verify-fds-v3.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/admin-capture' )
+exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' --unhandled-rejections=strict --max-old-space-size=256 '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/owner.mjs' '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/runs/activation/AUTH.json' "$1" "$2"

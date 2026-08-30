@@ -1,0 +1,230 @@
+TAP version 13
+# Subtest: real registered grep: normal waits owned native retirement
+not ok 1 - real registered grep: normal waits owned native retirement
+  ---
+  duration_ms: 162.000792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered grep: early-pipe waits owned native retirement
+not ok 2 - real registered grep: early-pipe waits owned native retirement
+  ---
+  duration_ms: 0.211292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered grep: caller-abort waits owned native retirement
+not ok 3 - real registered grep: caller-abort waits owned native retirement
+  ---
+  duration_ms: 0.020291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered grep: same-shell-sibling waits owned native retirement
+not ok 4 - real registered grep: same-shell-sibling waits owned native retirement
+  ---
+  duration_ms: 0.013292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered grep: other-shell-sibling waits owned native retirement
+not ok 5 - real registered grep: other-shell-sibling waits owned native retirement
+  ---
+  duration_ms: 0.016959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: normal waits owned native retirement
+not ok 6 - real registered rg: normal waits owned native retirement
+  ---
+  duration_ms: 0.010334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: early-pipe waits owned native retirement
+not ok 7 - real registered rg: early-pipe waits owned native retirement
+  ---
+  duration_ms: 0.041625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: caller-abort waits owned native retirement
+not ok 8 - real registered rg: caller-abort waits owned native retirement
+  ---
+  duration_ms: 0.010708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: same-shell-sibling waits owned native retirement
+not ok 9 - real registered rg: same-shell-sibling waits owned native retirement
+  ---
+  duration_ms: 0.12775
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: real registered rg: other-shell-sibling waits owned native retirement
+not ok 10 - real registered rg: other-shell-sibling waits owned native retirement
+  ---
+  duration_ms: 0.10275
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:1:1496'
+  failureType: 'hookFailed'
+  error: 'Tool symlink escaped the explicit tool tree'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:78:12)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copy (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:82:49)
+    async copyRegularTools (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:88:3)
+    async preparePublicSnapshot (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts:120:5)
+    async TestContext.before.timeout (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work/candidate/tests/shell/invocation-cleanup-public.test.ts:23:13)
+    async TestHook.run (node:internal/test_runner/test:1054:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 0
+# fail 10
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 672.364125

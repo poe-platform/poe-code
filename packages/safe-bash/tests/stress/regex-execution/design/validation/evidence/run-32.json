@@ -1,0 +1,85 @@
+{
+  "args": [
+    "policy",
+    "idle-invocation-rejection-demonstration"
+  ],
+  "pid": 69643,
+  "readyAt": 47.462125000000015,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 74.08150000000023
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 76.27841700000045
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 76.28520800000024
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "idle-invocation-rejection-demonstration",
+        "pass": true,
+        "observedAdmission": "CAPACITY_BUSY",
+        "interpretation": "invocation slot pins idle worker; not acceptable product policy",
+        "metrics": [
+          {
+            "created": 1,
+            "terminated": 1,
+            "requests": 1,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 24.119707999999996,
+            "workMs": 0.1489169999999973,
+            "terminationMs": 1.159917,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          {
+            "created": 0,
+            "terminated": 0,
+            "requests": 0,
+            "execCalls": 0,
+            "inputBytes": 0,
+            "responseBytes": 0,
+            "startupMs": 0,
+            "workMs": 0,
+            "terminationMs": 0.0013329999999953657,
+            "peakInflight": 0,
+            "listenersAfter": 0,
+            "exitCode": null
+          }
+        ]
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 658,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

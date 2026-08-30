@@ -1,0 +1,484 @@
+TAP version 13
+# Subtest: memory: independent six-family named-file probes
+ok 1 - memory: independent six-family named-file probes
+  ---
+  duration_ms: 38.281541
+  type: 'test'
+  ...
+# Subtest: memory: aggregate six-family coding-agent flow
+ok 2 - memory: aggregate six-family coding-agent flow
+  ---
+  duration_ms: 22.763583
+  type: 'test'
+  ...
+# Subtest: memory: binary stdin, compression, hashes and redirected bytes
+ok 3 - memory: binary stdin, compression, hashes and redirected bytes
+  ---
+  duration_ms: 5.304458
+  type: 'test'
+  ...
+# Subtest: memory: cwd, supplied stdin and explicitly empty stdin
+ok 4 - memory: cwd, supplied stdin and explicitly empty stdin
+  ---
+  duration_ms: 56.686958
+  type: 'test'
+  ...
+# Subtest: memory: create, copy, append, inspect and remove files
+ok 5 - memory: create, copy, append, inspect and remove files
+  ---
+  duration_ms: 2.653666
+  type: 'test'
+  ...
+# Subtest: memory: move retains bytes and removes source
+ok 6 - memory: move retains bytes and removes source
+  ---
+  duration_ms: 0.784875
+  type: 'test'
+  ...
+# Subtest: memory: touch creates an empty file successfully
+ok 7 - memory: touch creates an empty file successfully
+  ---
+  duration_ms: 0.541458
+  type: 'test'
+  ...
+# Subtest: memory: in-place edit, diff-to-patch stdin and reverse
+ok 8 - memory: in-place edit, diff-to-patch stdin and reverse
+  ---
+  duration_ms: 5.200042
+  type: 'test'
+  ...
+# Subtest: memory: missing paths, stderr redirection and command errors
+ok 9 - memory: missing paths, stderr redirection and command errors
+  ---
+  duration_ms: 15.29125
+  type: 'test'
+  ...
+# Subtest: memory: cancellation interrupts actual blocked command pipeline
+ok 10 - memory: cancellation interrupts actual blocked command pipeline
+  ---
+  duration_ms: 2.058583
+  type: 'test'
+  ...
+# Subtest: memory: output limit terminates real binary reads
+ok 11 - memory: output limit terminates real binary reads
+  ---
+  duration_ms: 0.684209
+  type: 'test'
+  ...
+# Subtest: real: independent six-family named-file probes
+ok 12 - real: independent six-family named-file probes
+  ---
+  duration_ms: 29.034583
+  type: 'test'
+  ...
+# Subtest: real: aggregate six-family coding-agent flow
+ok 13 - real: aggregate six-family coding-agent flow
+  ---
+  duration_ms: 34.028917
+  type: 'test'
+  ...
+# Subtest: real: binary stdin, compression, hashes and redirected bytes
+ok 14 - real: binary stdin, compression, hashes and redirected bytes
+  ---
+  duration_ms: 7.881959
+  type: 'test'
+  ...
+# Subtest: real: cwd, supplied stdin and explicitly empty stdin
+ok 15 - real: cwd, supplied stdin and explicitly empty stdin
+  ---
+  duration_ms: 56.152125
+  type: 'test'
+  ...
+# Subtest: real: create, copy, append, inspect and remove files
+ok 16 - real: create, copy, append, inspect and remove files
+  ---
+  duration_ms: 10.953375
+  type: 'test'
+  ...
+# Subtest: real: move retains bytes and removes source
+ok 17 - real: move retains bytes and removes source
+  ---
+  duration_ms: 6.168292
+  type: 'test'
+  ...
+# Subtest: real: touch creates an empty file successfully
+ok 18 - real: touch creates an empty file successfully
+  ---
+  duration_ms: 4.1475
+  type: 'test'
+  ...
+# Subtest: real: in-place edit, diff-to-patch stdin and reverse
+ok 19 - real: in-place edit, diff-to-patch stdin and reverse
+  ---
+  duration_ms: 18.47875
+  type: 'test'
+  ...
+# Subtest: real: missing paths, stderr redirection and command errors
+ok 20 - real: missing paths, stderr redirection and command errors
+  ---
+  duration_ms: 27.859167
+  type: 'test'
+  ...
+# Subtest: real: cancellation interrupts actual blocked command pipeline
+ok 21 - real: cancellation interrupts actual blocked command pipeline
+  ---
+  duration_ms: 4.682125
+  type: 'test'
+  ...
+# Subtest: real: output limit terminates real binary reads
+ok 22 - real: output limit terminates real binary reads
+  ---
+  duration_ms: 4.631291
+  type: 'test'
+  ...
+# Subtest: s3: independent six-family named-file probes
+ok 23 - s3: independent six-family named-file probes
+  ---
+  duration_ms: 28.127667
+  type: 'test'
+  ...
+# Subtest: s3: aggregate six-family coding-agent flow
+ok 24 - s3: aggregate six-family coding-agent flow
+  ---
+  duration_ms: 27.403166
+  type: 'test'
+  ...
+# Subtest: s3: binary stdin, compression, hashes and redirected bytes
+ok 25 - s3: binary stdin, compression, hashes and redirected bytes
+  ---
+  duration_ms: 7.759291
+  type: 'test'
+  ...
+# Subtest: s3: cwd, supplied stdin and explicitly empty stdin
+ok 26 - s3: cwd, supplied stdin and explicitly empty stdin
+  ---
+  duration_ms: 58.2965
+  type: 'test'
+  ...
+# Subtest: s3: create, copy, append, inspect and remove files
+ok 27 - s3: create, copy, append, inspect and remove files
+  ---
+  duration_ms: 5.459959
+  type: 'test'
+  ...
+# Subtest: s3: move retains bytes and removes source
+ok 28 - s3: move retains bytes and removes source
+  ---
+  duration_ms: 2.870708
+  type: 'test'
+  ...
+# Subtest: s3: touch creates an empty file successfully
+ok 29 - s3: touch creates an empty file successfully
+  ---
+  duration_ms: 1.571208
+  type: 'test'
+  ...
+# Subtest: s3: in-place edit, diff-to-patch stdin and reverse
+ok 30 - s3: in-place edit, diff-to-patch stdin and reverse
+  ---
+  duration_ms: 12.419292
+  type: 'test'
+  ...
+# Subtest: s3: missing paths, stderr redirection and command errors
+ok 31 - s3: missing paths, stderr redirection and command errors
+  ---
+  duration_ms: 25.018292
+  type: 'test'
+  ...
+# Subtest: s3: cancellation interrupts actual blocked command pipeline
+ok 32 - s3: cancellation interrupts actual blocked command pipeline
+  ---
+  duration_ms: 2.383958
+  type: 'test'
+  ...
+# Subtest: s3: output limit terminates real binary reads
+ok 33 - s3: output limit terminates real binary reads
+  ---
+  duration_ms: 1.49
+  type: 'test'
+  ...
+# Subtest: webdav: independent six-family named-file probes
+ok 34 - webdav: independent six-family named-file probes
+  ---
+  duration_ms: 74.632
+  type: 'test'
+  ...
+# Subtest: webdav: aggregate six-family coding-agent flow
+ok 35 - webdav: aggregate six-family coding-agent flow
+  ---
+  duration_ms: 74.82675
+  type: 'test'
+  ...
+# Subtest: webdav: binary stdin, compression, hashes and redirected bytes
+ok 36 - webdav: binary stdin, compression, hashes and redirected bytes
+  ---
+  duration_ms: 28.384083
+  type: 'test'
+  ...
+# Subtest: webdav: cwd, supplied stdin and explicitly empty stdin
+ok 37 - webdav: cwd, supplied stdin and explicitly empty stdin
+  ---
+  duration_ms: 69.551708
+  type: 'test'
+  ...
+# Subtest: webdav: create, copy, append, inspect and remove files
+ok 38 - webdav: create, copy, append, inspect and remove files
+  ---
+  duration_ms: 34.856625
+  type: 'test'
+  ...
+# Subtest: webdav: move retains bytes and removes source
+ok 39 - webdav: move retains bytes and removes source
+  ---
+  duration_ms: 19.313333
+  type: 'test'
+  ...
+# Subtest: webdav: touch creates an empty file successfully
+ok 40 - webdav: touch creates an empty file successfully
+  ---
+  duration_ms: 12.534583
+  type: 'test'
+  ...
+# Subtest: webdav: in-place edit, diff-to-patch stdin and reverse
+ok 41 - webdav: in-place edit, diff-to-patch stdin and reverse
+  ---
+  duration_ms: 56.239708
+  type: 'test'
+  ...
+# Subtest: webdav: missing paths, stderr redirection and command errors
+ok 42 - webdav: missing paths, stderr redirection and command errors
+  ---
+  duration_ms: 55.1465
+  type: 'test'
+  ...
+# Subtest: webdav: cancellation interrupts actual blocked command pipeline
+ok 43 - webdav: cancellation interrupts actual blocked command pipeline
+  ---
+  duration_ms: 13.050208
+  type: 'test'
+  ...
+# Subtest: webdav: output limit terminates real binary reads
+ok 44 - webdav: output limit terminates real binary reads
+  ---
+  duration_ms: 13.191041
+  type: 'test'
+  ...
+# Subtest: mount: independent six-family named-file probes
+ok 45 - mount: independent six-family named-file probes
+  ---
+  duration_ms: 32.690458
+  type: 'test'
+  ...
+# Subtest: mount: aggregate six-family coding-agent flow
+ok 46 - mount: aggregate six-family coding-agent flow
+  ---
+  duration_ms: 41.934292
+  type: 'test'
+  ...
+# Subtest: mount: binary stdin, compression, hashes and redirected bytes
+ok 47 - mount: binary stdin, compression, hashes and redirected bytes
+  ---
+  duration_ms: 11.8945
+  type: 'test'
+  ...
+# Subtest: mount: cwd, supplied stdin and explicitly empty stdin
+ok 48 - mount: cwd, supplied stdin and explicitly empty stdin
+  ---
+  duration_ms: 60.850917
+  type: 'test'
+  ...
+# Subtest: mount: create, copy, append, inspect and remove files
+ok 49 - mount: create, copy, append, inspect and remove files
+  ---
+  duration_ms: 23.200708
+  type: 'test'
+  ...
+# Subtest: mount: move retains bytes and removes source
+ok 50 - mount: move retains bytes and removes source
+  ---
+  duration_ms: 9.151
+  type: 'test'
+  ...
+# Subtest: mount: touch creates an empty file successfully
+ok 51 - mount: touch creates an empty file successfully
+  ---
+  duration_ms: 12.819166
+  type: 'test'
+  ...
+# Subtest: mount: in-place edit, diff-to-patch stdin and reverse
+ok 52 - mount: in-place edit, diff-to-patch stdin and reverse
+  ---
+  duration_ms: 25.078833
+  type: 'test'
+  ...
+# Subtest: mount: missing paths, stderr redirection and command errors
+ok 53 - mount: missing paths, stderr redirection and command errors
+  ---
+  duration_ms: 44.53825
+  type: 'test'
+  ...
+# Subtest: mount: cancellation interrupts actual blocked command pipeline
+ok 54 - mount: cancellation interrupts actual blocked command pipeline
+  ---
+  duration_ms: 6.838875
+  type: 'test'
+  ...
+# Subtest: mount: output limit terminates real binary reads
+ok 55 - mount: output limit terminates real binary reads
+  ---
+  duration_ms: 5.968416
+  type: 'test'
+  ...
+# Subtest: overlay: independent six-family named-file probes
+ok 56 - overlay: independent six-family named-file probes
+  ---
+  duration_ms: 35.858458
+  type: 'test'
+  ...
+# Subtest: overlay: aggregate six-family coding-agent flow
+ok 57 - overlay: aggregate six-family coding-agent flow
+  ---
+  duration_ms: 30.463959
+  type: 'test'
+  ...
+# Subtest: overlay: binary stdin, compression, hashes and redirected bytes
+ok 58 - overlay: binary stdin, compression, hashes and redirected bytes
+  ---
+  duration_ms: 8.152333
+  type: 'test'
+  ...
+# Subtest: overlay: cwd, supplied stdin and explicitly empty stdin
+ok 59 - overlay: cwd, supplied stdin and explicitly empty stdin
+  ---
+  duration_ms: 55.997375
+  type: 'test'
+  ...
+# Subtest: overlay: create, copy, append, inspect and remove files
+ok 60 - overlay: create, copy, append, inspect and remove files
+  ---
+  duration_ms: 5.751541
+  type: 'test'
+  ...
+# Subtest: overlay: move retains bytes and removes source
+ok 61 - overlay: move retains bytes and removes source
+  ---
+  duration_ms: 7.986084
+  type: 'test'
+  ...
+# Subtest: overlay: touch creates an empty file successfully
+ok 62 - overlay: touch creates an empty file successfully
+  ---
+  duration_ms: 1.638708
+  type: 'test'
+  ...
+# Subtest: overlay: in-place edit, diff-to-patch stdin and reverse
+ok 63 - overlay: in-place edit, diff-to-patch stdin and reverse
+  ---
+  duration_ms: 14.154459
+  type: 'test'
+  ...
+# Subtest: overlay: missing paths, stderr redirection and command errors
+ok 64 - overlay: missing paths, stderr redirection and command errors
+  ---
+  duration_ms: 38.891792
+  type: 'test'
+  ...
+# Subtest: overlay: cancellation interrupts actual blocked command pipeline
+ok 65 - overlay: cancellation interrupts actual blocked command pipeline
+  ---
+  duration_ms: 1.916875
+  type: 'test'
+  ...
+# Subtest: overlay: output limit terminates real binary reads
+ok 66 - overlay: output limit terminates real binary reads
+  ---
+  duration_ms: 1.906209
+  type: 'test'
+  ...
+# Subtest: mount: cross-backend pipeline and copy use real mount plus S3
+ok 67 - mount: cross-backend pipeline and copy use real mount plus S3
+  ---
+  duration_ms: 13.583
+  type: 'test'
+  ...
+# Subtest: overlay: edit and remove lower files without changing S3 lower
+ok 68 - overlay: edit and remove lower files without changing S3 lower
+  ---
+  duration_ms: 4.005667
+  type: 'test'
+  ...
+# Subtest: readonly: all six aggregate families can inspect without mutation
+ok 69 - readonly: all six aggregate families can inspect without mutation
+  ---
+  duration_ms: 16.77825
+  type: 'test'
+  ...
+# Subtest: structured capability gap: raw slurped text can be split into lines
+ok 70 - structured capability gap: raw slurped text can be split into lines
+  ---
+  duration_ms: 1.532375
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: printf 'changed' > target.txt
+ok 71 - readonly: rejects mutation: printf 'changed' > target.txt
+  ---
+  duration_ms: 0.725333
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: printf 'changed' >> target.txt
+ok 72 - readonly: rejects mutation: printf 'changed' >> target.txt
+  ---
+  duration_ms: 0.619833
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: mkdir denied
+ok 73 - readonly: rejects mutation: mkdir denied
+  ---
+  duration_ms: 0.477125
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: cp old.txt denied.txt
+ok 74 - readonly: rejects mutation: cp old.txt denied.txt
+  ---
+  duration_ms: 0.558417
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: mv old.txt denied.txt
+ok 75 - readonly: rejects mutation: mv old.txt denied.txt
+  ---
+  duration_ms: 0.479666
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: rm old.txt
+ok 76 - readonly: rejects mutation: rm old.txt
+  ---
+  duration_ms: 0.463
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt
+ok 77 - readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt
+  ---
+  duration_ms: 0.597375
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: patch -i change.diff
+ok 78 - readonly: rejects mutation: patch -i change.diff
+  ---
+  duration_ms: 0.845
+  type: 'test'
+  ...
+# Subtest: readonly: rejects mutation: gzip payload.bin
+ok 79 - readonly: rejects mutation: gzip payload.bin
+  ---
+  duration_ms: 0.620333
+  type: 'test'
+  ...
+1..79
+# tests 79
+# suites 0
+# pass 79
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1604.790375

@@ -1,0 +1,76 @@
+{
+  "control": "positive",
+  "pid": 88997,
+  "ppid": 86238,
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "execArgv": [
+    "--max-old-space-size=96"
+  ],
+  "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+  "assertionState": "not evaluated; persisted before coordinator assertions",
+  "proposedExitCode": 0,
+  "failure": null,
+  "result": {
+    "bytes": 1073872896,
+    "chunks": 16386,
+    "maxChunkBytes": 65536,
+    "maxProducerChunkBytes": 65536,
+    "maxRssBytes": 96960512,
+    "maxPendingConsumers": 1,
+    "sha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+    "process": {
+      "status": 0,
+      "signal": null,
+      "stderr": "{\"emitted\":1073872896,\"drains\":16351}\n",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "memory": {
+    "baseline": {
+      "rss": 47398912,
+      "heapTotal": 6963200,
+      "heapUsed": 4948880,
+      "external": 2118259,
+      "arrayBuffers": 25023
+    },
+    "fieldwisePeaks": {
+      "rss": 97009664,
+      "heapTotal": 10371072,
+      "heapUsed": 6898096,
+      "external": 33498228,
+      "arrayBuffers": 31351195
+    },
+    "latest": {
+      "rss": 97009664,
+      "heapTotal": 10371072,
+      "heapUsed": 5816192,
+      "external": 16852122,
+      "arrayBuffers": 14705089
+    },
+    "samples": 67,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "flow": {
+    "chunks": 16386,
+    "bytes": 1073872896,
+    "maxChunkBytes": 65536,
+    "pending": 0,
+    "maxPending": 1,
+    "pendingBytes": 0,
+    "maxPendingBytes": 65536
+  },
+  "consumerObservation": null,
+  "orderedObservation": null,
+  "observedSha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+  "mutation": {
+    "steps": 0,
+    "retainedBytes": 0,
+    "touchedByte": null
+  },
+  "retainedAllocations": 0,
+  "thresholdBytes": 268435456,
+  "operator": "<",
+  "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+}

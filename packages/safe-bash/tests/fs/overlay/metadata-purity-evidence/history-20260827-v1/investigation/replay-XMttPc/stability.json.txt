@@ -1,0 +1,7 @@
+{
+  "finishedAt": "2026-08-27T17:49:55.686Z",
+  "head": "27a7793526830768484885afba5832bf8bb248b5",
+  "changed": [],
+  "scope": "original tracked input paths only; not append-proof",
+  "stable": true
+}

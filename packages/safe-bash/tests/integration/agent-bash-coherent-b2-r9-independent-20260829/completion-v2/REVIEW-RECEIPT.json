@@ -1,0 +1,1551 @@
+{
+  "verdict": "FINITE DATA HOLD",
+  "authorCommit": "1a4c02b9bb72625480b3eac3ed076ed65eee522e",
+  "authenticatedPayloads": 196,
+  "payloadBytes": 10155453,
+  "checks": [
+    {
+      "id": "root-grant-source-review-and-window",
+      "pass": true
+    },
+    {
+      "id": "author-summary-and-retirement",
+      "pass": true
+    },
+    {
+      "id": "all-child-raw-bytes-and-finite-outcomes",
+      "pass": true
+    },
+    {
+      "id": "three-layout-byte-mode-postguards",
+      "pass": true
+    },
+    {
+      "id": "loader-traces-bindings-and-prepared-hashes",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n35 !== 34\n"
+    },
+    {
+      "id": "raw-lifecycle-events-present-and-closed",
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: raw lifecycle file not located in exact children directory; no ancestor inference"
+    },
+    {
+      "id": "identity-receipts-disjoint-authenticated-payload-links",
+      "pass": true
+    },
+    {
+      "id": "cache-and-preserved-reader-error",
+      "pass": true
+    }
+  ],
+  "controls": [
+    {
+      "id": "byte-tamper",
+      "rejected": true
+    },
+    {
+      "id": "pass-bit-tamper",
+      "rejected": true
+    },
+    {
+      "id": "diagnostic-message-tamper",
+      "rejected": true
+    },
+    {
+      "id": "installed-mode-escalation",
+      "rejected": true
+    }
+  ],
+  "details": {
+    "author-summary-and-retirement": {
+      "roles": [
+        {
+          "role": "retained-source-built-redirections-v3",
+          "pid": 99909,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-source-built-strict",
+          "pid": 99911,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-source-built-conditional",
+          "pid": 99912,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-source-built-extension",
+          "pid": 99913,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-source-built-arrays",
+          "pid": 99920,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-source-built-n14",
+          "pid": 99923,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "types-source-built-positive",
+          "pid": 99924,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "types-source-built-negative",
+          "pid": 99926,
+          "exit": 2,
+          "close": 2
+        },
+        {
+          "role": "offline-install",
+          "pid": 99928,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-installed-redirections-v3",
+          "pid": 99942,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-installed-strict",
+          "pid": 99943,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-installed-conditional",
+          "pid": 99944,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-installed-extension",
+          "pid": 99947,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-installed-arrays",
+          "pid": 99954,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-installed-n14",
+          "pid": 99955,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "types-installed-positive",
+          "pid": 99957,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "types-installed-negative",
+          "pid": 99959,
+          "exit": 2,
+          "close": 2
+        },
+        {
+          "role": "retained-physically-moved-redirections-v3",
+          "pid": 99960,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-physically-moved-strict",
+          "pid": 99965,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-physically-moved-conditional",
+          "pid": 99977,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-physically-moved-extension",
+          "pid": 99983,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-physically-moved-arrays",
+          "pid": 99984,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "retained-physically-moved-n14",
+          "pid": 99992,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "types-physically-moved-positive",
+          "pid": 99998,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "types-physically-moved-negative",
+          "pid": 101,
+          "exit": 2,
+          "close": 2
+        },
+        {
+          "role": "mutant-n14-drop-provenance",
+          "pid": 123,
+          "exit": 1,
+          "close": 1
+        },
+        {
+          "role": "restore-n14-drop-provenance",
+          "pid": 124,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "mutant-missing-read-zero",
+          "pid": 125,
+          "exit": 1,
+          "close": 1
+        },
+        {
+          "role": "restore-missing-read-zero",
+          "pid": 127,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "mutant-read-assignment-lhs",
+          "pid": 128,
+          "exit": 1,
+          "close": 1
+        },
+        {
+          "role": "restore-read-assignment-lhs",
+          "pid": 129,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "mutant-let-recast",
+          "pid": 137,
+          "exit": 1,
+          "close": 1
+        },
+        {
+          "role": "restore-let-recast",
+          "pid": 139,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "mutant-rollback-prefix",
+          "pid": 142,
+          "exit": 1,
+          "close": 1
+        },
+        {
+          "role": "restore-rollback-prefix",
+          "pid": 143,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "mutant-swallow-parameter-sink",
+          "pid": 144,
+          "exit": 1,
+          "close": 1
+        },
+        {
+          "role": "restore-swallow-parameter-sink",
+          "pid": 145,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "mutant-false-option-state",
+          "pid": 146,
+          "exit": 1,
+          "close": 1
+        },
+        {
+          "role": "restore-false-option-state",
+          "pid": 148,
+          "exit": 0,
+          "close": 0
+        },
+        {
+          "role": "binding-missing",
+          "pid": 151,
+          "exit": 1,
+          "close": 1
+        },
+        {
+          "role": "binding-changed",
+          "pid": 157,
+          "exit": 1,
+          "close": 1
+        }
+      ],
+      "qualification": "Cross-checked recorded exit/close rows; raw event audit separately required"
+    },
+    "mutant-n14-drop-provenance": {
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "n14-drop-provenance",
+        "expectedAssertionKill": true
+      },
+      "failedCases": [
+        {
+          "id": "N10",
+          "role": "EXACT_OWNED_PROMISE_PRODUCT_PROFILE_NOT_NATIVE",
+          "pass": false,
+          "events": [
+            "registered",
+            "diagnostic",
+            "cleanup-enter",
+            "release",
+            "cleanup-finished",
+            "diagnostic",
+            "settled"
+          ],
+          "outcome": {
+            "kind": "throw",
+            "reasonType": "boolean"
+          },
+          "writes": 2,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== 0\n\n    at forward (file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/n14.mjs:50:56)\n    at async record (file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/n14.mjs:12:9)\n    at async file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/n14.mjs:67:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    "mutant-missing-read-zero": {
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "missing-read-zero",
+        "expectedAssertionKill": true
+      },
+      "failedCases": [
+        {
+          "id": "U31",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "actual": {
+            "stdout": "1\nafter\n",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 49,
+              "1": 10,
+              "2": 97,
+              "3": 102,
+              "4": 116,
+              "5": 101,
+              "6": 114,
+              "7": 10
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:43:12\n    at async record (file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:15:9)\n    at async file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:40:3",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    "mutant-read-assignment-lhs": {
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "read-assignment-lhs",
+        "expectedAssertionKill": true
+      },
+      "failedCases": [
+        {
+          "id": "U32",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "actual": {
+            "stdout": "",
+            "stderr": "shell: line 1: missing: unbound variable\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 109,
+              "16": 105,
+              "17": 115,
+              "18": 115,
+              "19": 105,
+              "20": 110,
+              "21": 103,
+              "22": 58,
+              "23": 32,
+              "24": 117,
+              "25": 110,
+              "26": 98,
+              "27": 111,
+              "28": 117,
+              "29": 110,
+              "30": 100,
+              "31": 32,
+              "32": 118,
+              "33": 97,
+              "34": 114,
+              "35": 105,
+              "36": 97,
+              "37": 98,
+              "38": 108,
+              "39": 101,
+              "40": 10
+            },
+            "exitCode": 1
+          },
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:43:12\n    at async record (file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:15:9)\n    at async file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:40:3",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    "mutant-let-recast": {
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "let-recast",
+        "expectedAssertionKill": true
+      },
+      "failedCases": [
+        {
+          "id": "U34",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "actual": {
+            "stdout": "after\n",
+            "stderr": "shell: line 1: let: missing: unbound variable\n",
+            "stdoutBytes": {
+              "0": 97,
+              "1": 102,
+              "2": 116,
+              "3": 101,
+              "4": 114,
+              "5": 10
+            },
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 109,
+              "21": 105,
+              "22": 115,
+              "23": 115,
+              "24": 105,
+              "25": 110,
+              "26": 103,
+              "27": 58,
+              "28": 32,
+              "29": 117,
+              "30": 110,
+              "31": 98,
+              "32": 111,
+              "33": 117,
+              "34": 110,
+              "35": 100,
+              "36": 32,
+              "37": 118,
+              "38": 97,
+              "39": 114,
+              "40": 105,
+              "41": 97,
+              "42": 98,
+              "43": 108,
+              "44": 101,
+              "45": 10
+            },
+            "exitCode": 0
+          },
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:43:12\n    at async record (file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:15:9)\n    at async file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:40:3",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    "mutant-rollback-prefix": {
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "rollback-prefix",
+        "expectedAssertionKill": true
+      },
+      "failedCases": [
+        {
+          "id": "S-U06-PARTIAL-v1",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "actual": {
+            "stdout": "set-status:1\n\nafter\n",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 115,
+              "1": 101,
+              "2": 116,
+              "3": 45,
+              "4": 115,
+              "5": 116,
+              "6": 97,
+              "7": 116,
+              "8": 117,
+              "9": 115,
+              "10": 58,
+              "11": 49,
+              "12": 10,
+              "13": 10,
+              "14": 97,
+              "15": 102,
+              "16": 116,
+              "17": 101,
+              "18": 114,
+              "19": 10
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:43:12\n    at async record (file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:15:9)\n    at async file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:40:3",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    "mutant-swallow-parameter-sink": {
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "swallow-parameter-sink",
+        "expectedAssertionKill": true
+      },
+      "failedCases": [
+        {
+          "id": "X07-parameter-falsy-sink",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'return' !== 'throw'\n\n    at file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:129:12\n    at async record (file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:15:9)\n    at async file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:126:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    "mutant-false-option-state": {
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "false-option-state",
+        "expectedAssertionKill": true
+      },
+      "failedCases": [
+        {
+          "id": "S-U07-LIST-STATUS-v1",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "actual": {
+            "stdout": "errexit\toff\nnounset\toff\npipefail\toff\nlist-status:0\nafter\n",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 101,
+              "1": 114,
+              "2": 114,
+              "3": 101,
+              "4": 120,
+              "5": 105,
+              "6": 116,
+              "7": 9,
+              "8": 111,
+              "9": 102,
+              "10": 102,
+              "11": 10,
+              "12": 110,
+              "13": 111,
+              "14": 117,
+              "15": 110,
+              "16": 115,
+              "17": 101,
+              "18": 116,
+              "19": 9,
+              "20": 111,
+              "21": 102,
+              "22": 102,
+              "23": 10,
+              "24": 112,
+              "25": 105,
+              "26": 112,
+              "27": 101,
+              "28": 102,
+              "29": 97,
+              "30": 105,
+              "31": 108,
+              "32": 9,
+              "33": 111,
+              "34": 102,
+              "35": 102,
+              "36": 10,
+              "37": 108,
+              "38": 105,
+              "39": 115,
+              "40": 116,
+              "41": 45,
+              "42": 115,
+              "43": 116,
+              "44": 97,
+              "45": 116,
+              "46": 117,
+              "47": 115,
+              "48": 58,
+              "49": 48,
+              "50": 10,
+              "51": 97,
+              "52": 102,
+              "53": 116,
+              "54": 101,
+              "55": 114,
+              "56": 10
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'errexit\\toff\\nnounset\\toff\\npipefail\\toff\\nlist-status:0\\nafter\\n'\n- 'errexit\\toff\\nnounset\\ton\\npipefail\\toff\\nlist-status:0\\nafter\\n'\n\n    at file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:43:51\n    at async record (file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:15:9)\n    at async file:///private/tmp/safe-bash-b2-runtime-r9/mutant-copy/__consumer/extension.mjs:40:3",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    "binding-missing": {
+      "classification": {
+        "accepted": true,
+        "expectedRefusal": "B2_BINDING_REFUSAL:missing:/private/tmp/safe-bash-b2-runtime-r9/physically-moved/node_modules/virtual-bash/dist/index.js"
+      },
+      "stdout": "",
+      "stderr": "(node:151) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:151) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"file%3A///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/staged/new/loader.mjs\", pathToFileURL(\"./\"));'\n(node:151) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\nError: B2_BINDING_REFUSAL:missing:/private/tmp/safe-bash-b2-runtime-r9/physically-moved/node_modules/virtual-bash/dist/index.js\n    at refuse (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/staged/new/loader.mjs:31:11)\n    at load (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/staged/new/loader.mjs:33:13)\n    at nextLoad (node:internal/modules/esm/hooks:748:28)\n    at Hooks.load (node:internal/modules/esm/hooks:385:26)\n    at handleMessage (node:internal/modules/esm/worker:199:24)\n    at Immediate.checkForMessages (node:internal/modules/esm/worker:141:28)\n    at process.processImmediate (node:internal/timers:484:21)\n\nNode.js v22.22.2\n"
+    },
+    "binding-changed": {
+      "classification": {
+        "accepted": true,
+        "expectedRefusal": "B2_BINDING_REFUSAL:changed:/private/tmp/safe-bash-b2-runtime-r9/physically-moved/node_modules/virtual-bash/dist/shell/parser.js"
+      },
+      "stdout": "",
+      "stderr": "(node:157) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:157) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"file%3A///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/staged/new/loader.mjs\", pathToFileURL(\"./\"));'\n(node:157) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\nError: B2_BINDING_REFUSAL:changed:/private/tmp/safe-bash-b2-runtime-r9/physically-moved/node_modules/virtual-bash/dist/shell/parser.js\n    at refuse (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/staged/new/loader.mjs:31:11)\n    at load (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/staged/new/loader.mjs:44:30)\n    at nextLoad (node:internal/modules/esm/hooks:748:28)\n    at Hooks.load (node:internal/modules/esm/hooks:385:26)\n    at handleMessage (node:internal/modules/esm/worker:199:24)\n    at Immediate.checkForMessages (node:internal/modules/esm/worker:141:28)\n    at process.processImmediate (node:internal/timers:484:21)\n\nNode.js v22.22.2\n"
+    },
+    "all-child-raw-bytes-and-finite-outcomes": {
+      "passCases": 672,
+      "diagnostics": 24,
+      "mutants": 7,
+      "restores": 7,
+      "bindings": 2,
+      "stdoutBytes": 304439,
+      "stderrBytes": 39891,
+      "histogram": {
+        "0": 29,
+        "1": 9,
+        "2": 3
+      },
+      "caseIdentities": {
+        "source-built": [
+          {
+            "role": "retained-source-built-redirections-v3",
+            "ids": [
+              "R01",
+              "R02",
+              "R03",
+              "R04",
+              "R05",
+              "R06",
+              "R07",
+              "R08",
+              "R09",
+              "R10",
+              "R11",
+              "R12",
+              "R13",
+              "R14",
+              "R15",
+              "R16",
+              "R17",
+              "R18",
+              "R19",
+              "R20",
+              "R21",
+              "R22",
+              "R23",
+              "R24",
+              "R25",
+              "R26",
+              "R27",
+              "R28",
+              "R29",
+              "R30",
+              "R31",
+              "R32",
+              "R33",
+              "R34",
+              "R35",
+              "R36",
+              "C01-default80-display",
+              "C02-versioned-conditional-support",
+              "C03-single-open-and-raw-bytes",
+              "C04-before-open-caller-identity",
+              "C05-blocked-write-caller-identity",
+              "C06-backpressure",
+              "C07-sink-fault-profile-preserved",
+              "C08-required-file-after-downstream-close",
+              "C09-open-failure-and-prior-effect",
+              "C10-output-limit-and-cleanup",
+              "C11-closed-descriptor-error",
+              "C12-owned-real-file"
+            ]
+          },
+          {
+            "role": "retained-source-built-strict",
+            "ids": [
+              "U01",
+              "U02",
+              "U03",
+              "U04",
+              "U05",
+              "U08",
+              "U09",
+              "U10",
+              "U11",
+              "U12",
+              "U13",
+              "U14",
+              "U15",
+              "U16",
+              "U18",
+              "U19",
+              "U20",
+              "U21",
+              "U22",
+              "U23",
+              "U24",
+              "U25",
+              "U26",
+              "U29",
+              "U30",
+              "U37",
+              "U38",
+              "U39",
+              "U40",
+              "U41",
+              "U42",
+              "U43",
+              "U44",
+              "U45",
+              "U46",
+              "U47",
+              "U48",
+              "U49",
+              "U50",
+              "E01-active-file-stderr",
+              "E02-here-string",
+              "E03-ordered-redirect-effects",
+              "E04-lazy-array-zero",
+              "E05-function-option-state",
+              "E06-if-not-errexit",
+              "E07-here-document",
+              "E08-nested-sink-rejection",
+              "E09-invoke-sink-boundary",
+              "E10-primary-sink-cleanup",
+              "E11-substitution-errexit"
+            ]
+          },
+          {
+            "role": "retained-source-built-conditional",
+            "ids": [
+              "A01",
+              "A02",
+              "A03",
+              "A04",
+              "A05",
+              "A06",
+              "A07",
+              "A08",
+              "A09",
+              "A10",
+              "A11",
+              "A12",
+              "A13",
+              "A14",
+              "A15",
+              "A16",
+              "A17",
+              "A18",
+              "A19",
+              "A20",
+              "A21",
+              "A22",
+              "A23",
+              "A24",
+              "A25",
+              "A26",
+              "A27",
+              "A28",
+              "A29",
+              "A30",
+              "A31",
+              "A32",
+              "A33",
+              "A34",
+              "A35",
+              "A36",
+              "A37",
+              "A38",
+              "A39",
+              "A40",
+              "H01",
+              "H02-v4",
+              "H03",
+              "H04",
+              "H05",
+              "H06",
+              "H07",
+              "H08",
+              "H09",
+              "H10",
+              "S01-registered",
+              "S02-at",
+              "S03-star",
+              "S04-skipped",
+              "S05-ENOENT",
+              "S06-ENOTDIR",
+              "S07-EACCES",
+              "S08-EPERM",
+              "S09-ENOTSUP",
+              "S10-EOPNOTSUPP",
+              "S11-ENOSYS",
+              "S12-untyped",
+              "S13-untyped",
+              "S14-untyped",
+              "S15-unclassified",
+              "S16-code-getter",
+              "S17-limit-caller"
+            ]
+          },
+          {
+            "role": "retained-source-built-extension",
+            "ids": [
+              "U06",
+              "U07",
+              "U17",
+              "U28",
+              "U31",
+              "U32",
+              "U33",
+              "U34",
+              "U35",
+              "U36",
+              "S-U06-PARTIAL-v1",
+              "S-U07-LIST-STATUS-v1",
+              "S-ARITH-SUBSHELL-v1",
+              "S-ARITH-SUBSTITUTION-v1",
+              "E19-plus-tail",
+              "E20-subset-listing",
+              "E21-write-only-chain",
+              "E22-function-fatal",
+              "H24-preabort",
+              "H25-falsy-sink",
+              "H26-read-budget",
+              "H27-registered-cleanup",
+              "H28-caller-during-diagnostic",
+              "X01-sh-policy",
+              "X02-positional-listing",
+              "X03-errexit",
+              "X04-lazy-fixed64",
+              "X05-optind-substring",
+              "X06-existing-refusals",
+              "X07-parameter-falsy-sink",
+              "X08-parameter-limit",
+              "X09-parameter-cleanup",
+              "X10a-parameter-isolated-status-v2",
+              "X10b-parameter-isolated-null-v2",
+              "X10c-parameter-caller-cleanup-v2"
+            ]
+          },
+          {
+            "role": "retained-source-built-arrays",
+            "ids": [
+              "A01",
+              "A02",
+              "A03",
+              "A04",
+              "A05",
+              "A06",
+              "A07",
+              "A08",
+              "A09",
+              "A10",
+              "A11",
+              "A12"
+            ]
+          },
+          {
+            "role": "retained-source-built-n14",
+            "ids": [
+              "N01",
+              "N02",
+              "N03",
+              "N04",
+              "N05",
+              "N06",
+              "N07",
+              "N08",
+              "N09",
+              "N10",
+              "N11",
+              "N12"
+            ]
+          }
+        ],
+        "installed": [
+          {
+            "role": "retained-installed-redirections-v3",
+            "ids": [
+              "R01",
+              "R02",
+              "R03",
+              "R04",
+              "R05",
+              "R06",
+              "R07",
+              "R08",
+              "R09",
+              "R10",
+              "R11",
+              "R12",
+              "R13",
+              "R14",
+              "R15",
+              "R16",
+              "R17",
+              "R18",
+              "R19",
+              "R20",
+              "R21",
+              "R22",
+              "R23",
+              "R24",
+              "R25",
+              "R26",
+              "R27",
+              "R28",
+              "R29",
+              "R30",
+              "R31",
+              "R32",
+              "R33",
+              "R34",
+              "R35",
+              "R36",
+              "C01-default80-display",
+              "C02-versioned-conditional-support",
+              "C03-single-open-and-raw-bytes",
+              "C04-before-open-caller-identity",
+              "C05-blocked-write-caller-identity",
+              "C06-backpressure",
+              "C07-sink-fault-profile-preserved",
+              "C08-required-file-after-downstream-close",
+              "C09-open-failure-and-prior-effect",
+              "C10-output-limit-and-cleanup",
+              "C11-closed-descriptor-error",
+              "C12-owned-real-file"
+            ]
+          },
+          {
+            "role": "retained-installed-strict",
+            "ids": [
+              "U01",
+              "U02",
+              "U03",
+              "U04",
+              "U05",
+              "U08",
+              "U09",
+              "U10",
+              "U11",
+              "U12",
+              "U13",
+              "U14",
+              "U15",
+              "U16",
+              "U18",
+              "U19",
+              "U20",
+              "U21",
+              "U22",
+              "U23",
+              "U24",
+              "U25",
+              "U26",
+              "U29",
+              "U30",
+              "U37",
+              "U38",
+              "U39",
+              "U40",
+              "U41",
+              "U42",
+              "U43",
+              "U44",
+              "U45",
+              "U46",
+              "U47",
+              "U48",
+              "U49",
+              "U50",
+              "E01-active-file-stderr",
+              "E02-here-string",
+              "E03-ordered-redirect-effects",
+              "E04-lazy-array-zero",
+              "E05-function-option-state",
+              "E06-if-not-errexit",
+              "E07-here-document",
+              "E08-nested-sink-rejection",
+              "E09-invoke-sink-boundary",
+              "E10-primary-sink-cleanup",
+              "E11-substitution-errexit"
+            ]
+          },
+          {
+            "role": "retained-installed-conditional",
+            "ids": [
+              "A01",
+              "A02",
+              "A03",
+              "A04",
+              "A05",
+              "A06",
+              "A07",
+              "A08",
+              "A09",
+              "A10",
+              "A11",
+              "A12",
+              "A13",
+              "A14",
+              "A15",
+              "A16",
+              "A17",
+              "A18",
+              "A19",
+              "A20",
+              "A21",
+              "A22",
+              "A23",
+              "A24",
+              "A25",
+              "A26",
+              "A27",
+              "A28",
+              "A29",
+              "A30",
+              "A31",
+              "A32",
+              "A33",
+              "A34",
+              "A35",
+              "A36",
+              "A37",
+              "A38",
+              "A39",
+              "A40",
+              "H01",
+              "H02-v4",
+              "H03",
+              "H04",
+              "H05",
+              "H06",
+              "H07",
+              "H08",
+              "H09",
+              "H10",
+              "S01-registered",
+              "S02-at",
+              "S03-star",
+              "S04-skipped",
+              "S05-ENOENT",
+              "S06-ENOTDIR",
+              "S07-EACCES",
+              "S08-EPERM",
+              "S09-ENOTSUP",
+              "S10-EOPNOTSUPP",
+              "S11-ENOSYS",
+              "S12-untyped",
+              "S13-untyped",
+              "S14-untyped",
+              "S15-unclassified",
+              "S16-code-getter",
+              "S17-limit-caller"
+            ]
+          },
+          {
+            "role": "retained-installed-extension",
+            "ids": [
+              "U06",
+              "U07",
+              "U17",
+              "U28",
+              "U31",
+              "U32",
+              "U33",
+              "U34",
+              "U35",
+              "U36",
+              "S-U06-PARTIAL-v1",
+              "S-U07-LIST-STATUS-v1",
+              "S-ARITH-SUBSHELL-v1",
+              "S-ARITH-SUBSTITUTION-v1",
+              "E19-plus-tail",
+              "E20-subset-listing",
+              "E21-write-only-chain",
+              "E22-function-fatal",
+              "H24-preabort",
+              "H25-falsy-sink",
+              "H26-read-budget",
+              "H27-registered-cleanup",
+              "H28-caller-during-diagnostic",
+              "X01-sh-policy",
+              "X02-positional-listing",
+              "X03-errexit",
+              "X04-lazy-fixed64",
+              "X05-optind-substring",
+              "X06-existing-refusals",
+              "X07-parameter-falsy-sink",
+              "X08-parameter-limit",
+              "X09-parameter-cleanup",
+              "X10a-parameter-isolated-status-v2",
+              "X10b-parameter-isolated-null-v2",
+              "X10c-parameter-caller-cleanup-v2"
+            ]
+          },
+          {
+            "role": "retained-installed-arrays",
+            "ids": [
+              "A01",
+              "A02",
+              "A03",
+              "A04",
+              "A05",
+              "A06",
+              "A07",
+              "A08",
+              "A09",
+              "A10",
+              "A11",
+              "A12"
+            ]
+          },
+          {
+            "role": "retained-installed-n14",
+            "ids": [
+              "N01",
+              "N02",
+              "N03",
+              "N04",
+              "N05",
+              "N06",
+              "N07",
+              "N08",
+              "N09",
+              "N10",
+              "N11",
+              "N12"
+            ]
+          }
+        ],
+        "physically-moved": [
+          {
+            "role": "retained-physically-moved-redirections-v3",
+            "ids": [
+              "R01",
+              "R02",
+              "R03",
+              "R04",
+              "R05",
+              "R06",
+              "R07",
+              "R08",
+              "R09",
+              "R10",
+              "R11",
+              "R12",
+              "R13",
+              "R14",
+              "R15",
+              "R16",
+              "R17",
+              "R18",
+              "R19",
+              "R20",
+              "R21",
+              "R22",
+              "R23",
+              "R24",
+              "R25",
+              "R26",
+              "R27",
+              "R28",
+              "R29",
+              "R30",
+              "R31",
+              "R32",
+              "R33",
+              "R34",
+              "R35",
+              "R36",
+              "C01-default80-display",
+              "C02-versioned-conditional-support",
+              "C03-single-open-and-raw-bytes",
+              "C04-before-open-caller-identity",
+              "C05-blocked-write-caller-identity",
+              "C06-backpressure",
+              "C07-sink-fault-profile-preserved",
+              "C08-required-file-after-downstream-close",
+              "C09-open-failure-and-prior-effect",
+              "C10-output-limit-and-cleanup",
+              "C11-closed-descriptor-error",
+              "C12-owned-real-file"
+            ]
+          },
+          {
+            "role": "retained-physically-moved-strict",
+            "ids": [
+              "U01",
+              "U02",
+              "U03",
+              "U04",
+              "U05",
+              "U08",
+              "U09",
+              "U10",
+              "U11",
+              "U12",
+              "U13",
+              "U14",
+              "U15",
+              "U16",
+              "U18",
+              "U19",
+              "U20",
+              "U21",
+              "U22",
+              "U23",
+              "U24",
+              "U25",
+              "U26",
+              "U29",
+              "U30",
+              "U37",
+              "U38",
+              "U39",
+              "U40",
+              "U41",
+              "U42",
+              "U43",
+              "U44",
+              "U45",
+              "U46",
+              "U47",
+              "U48",
+              "U49",
+              "U50",
+              "E01-active-file-stderr",
+              "E02-here-string",
+              "E03-ordered-redirect-effects",
+              "E04-lazy-array-zero",
+              "E05-function-option-state",
+              "E06-if-not-errexit",
+              "E07-here-document",
+              "E08-nested-sink-rejection",
+              "E09-invoke-sink-boundary",
+              "E10-primary-sink-cleanup",
+              "E11-substitution-errexit"
+            ]
+          },
+          {
+            "role": "retained-physically-moved-conditional",
+            "ids": [
+              "A01",
+              "A02",
+              "A03",
+              "A04",
+              "A05",
+              "A06",
+              "A07",
+              "A08",
+              "A09",
+              "A10",
+              "A11",
+              "A12",
+              "A13",
+              "A14",
+              "A15",
+              "A16",
+              "A17",
+              "A18",
+              "A19",
+              "A20",
+              "A21",
+              "A22",
+              "A23",
+              "A24",
+              "A25",
+              "A26",
+              "A27",
+              "A28",
+              "A29",
+              "A30",
+              "A31",
+              "A32",
+              "A33",
+              "A34",
+              "A35",
+              "A36",
+              "A37",
+              "A38",
+              "A39",
+              "A40",
+              "H01",
+              "H02-v4",
+              "H03",
+              "H04",
+              "H05",
+              "H06",
+              "H07",
+              "H08",
+              "H09",
+              "H10",
+              "S01-registered",
+              "S02-at",
+              "S03-star",
+              "S04-skipped",
+              "S05-ENOENT",
+              "S06-ENOTDIR",
+              "S07-EACCES",
+              "S08-EPERM",
+              "S09-ENOTSUP",
+              "S10-EOPNOTSUPP",
+              "S11-ENOSYS",
+              "S12-untyped",
+              "S13-untyped",
+              "S14-untyped",
+              "S15-unclassified",
+              "S16-code-getter",
+              "S17-limit-caller"
+            ]
+          },
+          {
+            "role": "retained-physically-moved-extension",
+            "ids": [
+              "U06",
+              "U07",
+              "U17",
+              "U28",
+              "U31",
+              "U32",
+              "U33",
+              "U34",
+              "U35",
+              "U36",
+              "S-U06-PARTIAL-v1",
+              "S-U07-LIST-STATUS-v1",
+              "S-ARITH-SUBSHELL-v1",
+              "S-ARITH-SUBSTITUTION-v1",
+              "E19-plus-tail",
+              "E20-subset-listing",
+              "E21-write-only-chain",
+              "E22-function-fatal",
+              "H24-preabort",
+              "H25-falsy-sink",
+              "H26-read-budget",
+              "H27-registered-cleanup",
+              "H28-caller-during-diagnostic",
+              "X01-sh-policy",
+              "X02-positional-listing",
+              "X03-errexit",
+              "X04-lazy-fixed64",
+              "X05-optind-substring",
+              "X06-existing-refusals",
+              "X07-parameter-falsy-sink",
+              "X08-parameter-limit",
+              "X09-parameter-cleanup",
+              "X10a-parameter-isolated-status-v2",
+              "X10b-parameter-isolated-null-v2",
+              "X10c-parameter-caller-cleanup-v2"
+            ]
+          },
+          {
+            "role": "retained-physically-moved-arrays",
+            "ids": [
+              "A01",
+              "A02",
+              "A03",
+              "A04",
+              "A05",
+              "A06",
+              "A07",
+              "A08",
+              "A09",
+              "A10",
+              "A11",
+              "A12"
+            ]
+          },
+          {
+            "role": "retained-physically-moved-n14",
+            "ids": [
+              "N01",
+              "N02",
+              "N03",
+              "N04",
+              "N05",
+              "N06",
+              "N07",
+              "N08",
+              "N09",
+              "N10",
+              "N11",
+              "N12"
+            ]
+          }
+        ]
+      }
+    },
+    "three-layout-byte-mode-postguards": [
+      {
+        "layout": "source-built",
+        "members": 1014,
+        "exactNamesBytesHashes": true,
+        "expectedMode": "0644",
+        "modeMismatches": 0,
+        "inventorySha256": "adeda4ccf1b060a4b58c6150f4326d0eb305cc534fb55bcd273290b0c53ef9c9"
+      },
+      {
+        "layout": "physically-moved",
+        "members": 1014,
+        "exactNamesBytesHashes": true,
+        "expectedMode": "0600",
+        "modeMismatches": 0,
+        "inventorySha256": "f14873f90783667c6234eeace6aa496ea269cfdb0e2e253a7c84a0be80367ba5"
+      },
+      {
+        "layout": "mutant-copy",
+        "members": 1014,
+        "exactNamesBytesHashes": true,
+        "expectedMode": "0644",
+        "modeMismatches": 0,
+        "inventorySha256": "adeda4ccf1b060a4b58c6150f4326d0eb305cc534fb55bcd273290b0c53ef9c9"
+      }
+    ],
+    "lifecycleCandidates": [],
+    "identity-receipts-disjoint-authenticated-payload-links": {
+      "count": 196,
+      "sample": {
+        "path": "00bb9baba651b1bdbfa695325884a62d672cb6e5320d066d63c12e80f68ac511.json",
+        "value": {
+          "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-missing-read-zero.jsonl",
+          "dev": 16777232,
+          "ino": 190102581,
+          "bytes": 69769,
+          "sha256": "9b6f6077a8d072e9b2fda505f1e107ac144b1dfa30f6b82fb1a121f95dcac08b"
+        },
+        "sha256": "340abbe2d6372b967145abe234e4b281a06fc5b822253b8ecb5ba5880f6d5055"
+      }
+    },
+    "cache-and-preserved-reader-error": {
+      "at": "2026-08-29T17:38:14.692Z",
+      "phase": "post-runtime DATA classification",
+      "exactToolMessage": "cases.map is not a function",
+      "cause": "DATA reader supplied stdout text where frozen classifier expects parsed JSONL records; runtime already exited0; no product retry",
+      "newOSChildren": 0,
+      "recordIs": "tool-message transcription, not invented process stderr"
+    }
+  },
+  "gaps": [
+    "Exact mutant defect expectations and per-mutant changed/restored path-hash pairing require further independent binding interpretation; author accepted classifications alone do not discharge this.",
+    "Packet 7320-byte content, pinned installer origin/umask derivation, and unused-binding refusal source expectations are bound by author receipts but not independently reinterpreted here."
+  ],
+  "package": {
+    "members": 1014,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+    "source": "3adc676a0ab638c9788ef007e465931d65d2c6fe"
+  },
+  "qualifications": [
+    "HOLD is incomplete independent audit, not an observed product regression",
+    "No product/compiler/Worker/loader/npm/install executed; no archive decoding",
+    "No transfer to final1070 package or new local-a/ERE/K08",
+    "Individual loader exits UNOBSERVED; author parent retirement known-role only, not full census",
+    "49 runtime known roles is author conservative accounting, not reviewer full-process census; mutable cache best-effort non-atomic not peak quota",
+    "Corrected author DATA reader error retained, no product retry"
+  ],
+  "reviewResources": {
+    "knownStartsThroughPublication": 20,
+    "maximumKnownStarts": 20,
+    "conservativePeak": 3,
+    "dataHelperFiles": 1,
+    "dataHelperInvocations": 2,
+    "payloadBuffers": 10155453,
+    "captureCap": 33554432,
+    "logicalCap": 167772160,
+    "publicationReserve": 16777216,
+    "qualification": "No payload copies beyond bounded memory and owned textual evidence; OS/RSS/Git physical excluded"
+  },
+  "at": "2026-08-29T17:55:01.375Z"
+}

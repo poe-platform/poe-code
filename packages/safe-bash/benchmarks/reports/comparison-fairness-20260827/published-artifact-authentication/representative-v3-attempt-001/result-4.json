@@ -1,0 +1,117 @@
+{
+  "sequence": 4,
+  "profile": "original",
+  "recipeId": "network/curl/get",
+  "requestId": 4,
+  "response": {
+    "id": 4,
+    "observation": {
+      "stdout": "AMO/QQo=",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {},
+      "events": [],
+      "registryEvents": [
+        {
+          "name": "curl",
+          "args": [
+            "-s",
+            "http://127.0.0.1:52610/bytes"
+          ]
+        }
+      ],
+      "executeMs": 19.015874999999994,
+      "memory": {
+        "before": {
+          "rss": 174784512,
+          "heapTotal": 33439744,
+          "heapUsed": 15463264,
+          "external": 4064617,
+          "arrayBuffers": 144161
+        },
+        "after": {
+          "rss": 176275456,
+          "heapTotal": 34488320,
+          "heapUsed": 17444280,
+          "external": 4088477,
+          "arrayBuffers": 152463
+        },
+        "sampledPeak": {
+          "rss": 176275456,
+          "heapUsed": 17443312,
+          "external": 4088477
+        },
+        "processMaxRssKiB": 172160,
+        "sampleIntervalMs": 2
+      },
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  },
+  "comparisons": {
+    "native": {
+      "pass": false,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": false
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "oldBaseline": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "sequence": 4,
+    "profile": "original",
+    "recipeId": "network/curl/get",
+    "requestId": 4,
+    "pid": 80600,
+    "terminal": true,
+    "spawnFailed": false,
+    "code": 0,
+    "signal": null,
+    "signals": [],
+    "errors": [],
+    "normal": true
+  },
+  "errors": [],
+  "hostBytes": 0,
+  "pid": 80600,
+  "trace": {
+    "sha256": "d9a57500ed4555e4c81bd57646a2870476381ce3a9745ac7886762f88ffc9368",
+    "events": 332,
+    "forbiddenProcessAttempts": 0,
+    "limitation": "resolve/load hooks and engine ready protocol only; not universal evaluation/thread/process tracing"
+  }
+}

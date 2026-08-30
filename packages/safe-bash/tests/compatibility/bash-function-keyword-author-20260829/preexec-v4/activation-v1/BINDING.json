@@ -1,0 +1,223 @@
+{
+  "schema": "b35-v4-activation-binding-v1",
+  "checkedUTC": "2026-08-29T14:00:51.805Z",
+  "status": "DATA_BINDING_VALID_NOT_RUNTIME",
+  "bindings": [
+    {
+      "path": "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/GO.json",
+      "bytes": 991,
+      "sha256": "d483bbd28c5686e844b25bf56689538ad0a2720220d1cf1e18a8f065be9fef55",
+      "requiredMode": "0600"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/REVIEW.json",
+      "bytes": 204,
+      "sha256": "34f4d2f65854f26968e3fe6a204432f060fef2c6628db51c2cce90a88b617d32",
+      "requiredMode": "0600"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation-v1/COMMAND.pending.txt",
+      "bytes": 340,
+      "sha256": "477f1c1f142a40c906a4a7c666502e3fa07a23f9c2fd8910d12262c1f1900f8f"
+    }
+  ],
+  "reviewFields": [
+    "decision",
+    "preseal",
+    "scope",
+    "independentCommit"
+  ],
+  "template": {
+    "bytes": 263,
+    "sha256": "a0a7d5963b46df4662e69532fc9ce378ece6bc9d9a536da53d0881ac352b7860"
+  },
+  "onlyCommandDelta": "Replace two predeclared digest slots; retain all other bytes.",
+  "sourcePackageChecks": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/CASES-v2.json",
+      "bytes": 11343,
+      "sha256": "f05d92840cfa259b5f5327b9ae9bd448fde70835800ede33fbda6436352af7a5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/SOURCE-MEMBERS.json",
+      "bytes": 107278,
+      "sha256": "f877aa2a5c9fe2413d28e37464fb40b458ab90436b4ecf63821463069cffd0a7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/SOURCE-CAPSULE.json.gz.base64",
+      "bytes": 1561281,
+      "sha256": "6a49ded4f95a77ae394f418dc8a055c7d8b85cabe2861cc3c27e967f145b1af1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/TOOLS.json",
+      "bytes": 51333,
+      "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/case-driver.mjs",
+      "bytes": 2559,
+      "sha256": "96f54c1f4192726c2531ee57be5ec1bafd1080c3f79707fb45ac2165ebc975c1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package.mjs",
+      "bytes": 3509,
+      "sha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/consumer.mts.data",
+      "bytes": 275,
+      "sha256": "6c30f1f41d3823236b7a5f5bde0abcb3484db15eda91b2b17b3918233f48ed84"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/direct-child.mjs",
+      "bytes": 5589,
+      "sha256": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/guard.mjs",
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/profile.mjs",
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/case-adapter.mjs",
+      "bytes": 4448,
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package-admission.mjs",
+      "bytes": 3896,
+      "sha256": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/parse-manifest.mjs",
+      "bytes": 2862,
+      "sha256": "9d0dcb72429b36dbbb5555e06b7a645d4c415bc7a68ad953aa728f2eea085708"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/finalization.mjs",
+      "bytes": 850,
+      "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/canonical.mjs",
+      "bytes": 867,
+      "sha256": "6a173a0c5929ca28cbed2199878155b3006148ca194c0529616275356d3b9ba9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/owner-finalization.mjs",
+      "bytes": 1999,
+      "sha256": "816e01ab2995247531d2c1fb194aaac0f16ff9056e7fd91177335c9a899ce6d8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/supervisor.mjs",
+      "bytes": 14883,
+      "sha256": "a3f797438cdf450c3df449f7669c32c0c506231d047a7164d9d2b9a3ffa82237"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/activation.mjs",
+      "bytes": 2115,
+      "sha256": "9c191c863bebe5a16b605615f43cf5f054591b61f8030e87f0fabcc2742aac1a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/preauth.mjs",
+      "bytes": 339,
+      "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/outer.mjs",
+      "bytes": 2307,
+      "sha256": "72bdd48180ad5cfbcab2b816bc4cd1fd3016d29ccde596f1bb7499af1cf161e7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/collector-core.mjs",
+      "bytes": 121,
+      "sha256": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/collector.mjs",
+      "bytes": 2331,
+      "sha256": "3781793b90eb564767bb11f5d8ad0614ac89652b97222e0d9ad2a7ffe282028c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/launch.sh",
+      "bytes": 699,
+      "sha256": "ece51578710cb70b39ebaeedb23ca8560b478f781b597738491ff114a1b44e14"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/COMMAND-PLAN.json",
+      "bytes": 80089,
+      "sha256": "e5a7e7fb9e6e4c77ee786743e74acf1df3911a3ae00ddea99b6b13be6dabaa64"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/ADDITIONAL-COMMAND-BINDINGS.json",
+      "bytes": 7637,
+      "sha256": "30ede4b2967e12f090b00c0fe9451bcc7c8357fbede15023fe33f594386c1a8a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/PROFILE.md",
+      "bytes": 2701,
+      "sha256": "f091ebc422d9eb1c471fe10a1041d3c7f5459b35fb42ed424226bd9e004f1332"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/ADDENDUM.md",
+      "bytes": 2582,
+      "sha256": "f19d4311d3776c5767c9cbb03e2d45a21fcd39e2499c42b829814530ae66268e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/DELTA.json",
+      "bytes": 6791,
+      "sha256": "b294fe5ded5f21b93fe64a8d9202912aaf638e94f36bbfd89d30ecb9dcedf12b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": 493,
+      "version": "v22.22.2",
+      "qualification": "Version inherited; executable freshly hash-authenticated without running"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "mode": 493,
+      "executed": false
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57"
+    },
+    {
+      "path": "/private/tmp/safe-bash-b35-author-xSdFBJ/virtual-bash-b35.tgz",
+      "bytes": 978812,
+      "sha256": "275a6c1006a5986d9d878a2344b95158fc320187a07a1d7f25584c10d7e7959d",
+      "mode": 384,
+      "at": 1788007626111
+    }
+  ],
+  "toolRows": 247,
+  "toolInventorySha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d",
+  "sourceParserSha256": "038b5ba63429b7f190295bd8aacc096f31d5222a5a0a280542a081b17bdc476a",
+  "capsule": "Encoded source capsule hash authenticated without inflation, import or source build.",
+  "futureWorkCanonical": "/private/tmp/safe-bash-b35-v4-PLN3cC/future",
+  "captureDirectoryEmpty": true,
+  "pureValidator": {
+    "accepted": true,
+    "checkedStarted": 1788012006737,
+    "finalDeadlineIfStartedAtIssued": 1788013506737,
+    "duration": 1500000
+  },
+  "actualCalls": 0
+}

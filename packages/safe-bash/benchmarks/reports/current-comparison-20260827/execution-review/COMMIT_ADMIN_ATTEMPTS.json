@@ -1,0 +1,29 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "operation": "read-only git ls-files --stage -z before staging",
+      "result": "ENOBUFS at Node execFileSync default capture limit",
+      "capturedBytes": 1114112,
+      "gitPid": 30792,
+      "terminationSignal": "SIGTERM",
+      "childSettlement": "synchronous command returned after termination",
+      "ownedStagingReached": false,
+      "commitReached": false,
+      "productControlsAffected": false,
+      "correction": "Explicit 32MiB metadata capture cap only; product/sentinel limits unchanged"
+    },
+    {
+      "attempt": 2,
+      "operation": "precommit outside-index preservation guard",
+      "result": "Stopped before add/commit because an unrelated owner committed after the original staging snapshot",
+      "headAtOriginalSnapshot": "026e20cf38ddbb695d82de3f30cf7a1a7c88f088",
+      "headAtInspection": "b9559de5c62fb679c8558fc2444ecb99f1d9eee1",
+      "expectedOutsideIndexSha256": "302dc3fef030ba23e6c165dd38b9dd3f582ad2aa420736cee3adb25cb3bdb7b1",
+      "observedOutsideIndexSha256": "1559083a79df84001e6d3f6bb790c2d9cddbf2bad3ad9df84d278851c0af0e03",
+      "stagedOutsideOwnedAtInspection": [],
+      "commitReached": false,
+      "correction": "Preserve the original snapshot and take a fresh outside-index baseline immediately around the authorized explicit-file commit; never reset or unstage other owners"
+    }
+  ]
+}

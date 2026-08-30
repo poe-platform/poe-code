@@ -1,0 +1,50 @@
+{
+  "id": "regression-source",
+  "role": "regression",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer/fixtures-regression-source",
+    "--max-old-space-size=256",
+    "--no-warnings",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer/job-regression-source.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer",
+  "env": {
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/home",
+    "NO_COLOR": "1",
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/tmp",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "timeoutMs": 30000,
+  "maxCombinedBytes": 8388608,
+  "pid": 6251,
+  "closeObserved": true,
+  "absent": true,
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": {
+    "path": "26-regression-source.stdout.raw",
+    "bytes": 345854,
+    "sha256": "ffe8b8ecd05fb177332fdb71ce0c8b1a91b6b153a1ee26c883f818bf297b0e6d",
+    "mode": 384,
+    "observedBytes": 345854,
+    "lostBytes": 0
+  },
+  "stderr": {
+    "path": "26-regression-source.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 384,
+    "observedBytes": 0,
+    "lostBytes": 0
+  }
+}

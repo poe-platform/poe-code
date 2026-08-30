@@ -1,0 +1,78 @@
+{
+  "id": "F06",
+  "expected": "Actual candidate invalid CLI B16 exits1 with final integer children0 and terminal array[]; separate one-stub body chain persists and closes.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.232Z",
+  "finished": "2026-08-28T15:01:02.350Z",
+  "detail": {
+    "independentDynamicB16": true,
+    "actualFinal": {
+      "mode": "invalid",
+      "runId": "never-admission",
+      "status": "UNSAFE_STOP",
+      "unsafe": true,
+      "result": null,
+      "children": 0,
+      "allChildrenReaped": true
+    },
+    "actualTerminal": {
+      "schema": "BOUNDED_TERMINAL_V2",
+      "mode": "invalid",
+      "runId": "never-admission",
+      "status": "UNSAFE_STOP",
+      "unsafe": true,
+      "exitCode": 1,
+      "primary": {
+        "present": true,
+        "undefinedValue": false
+      },
+      "result": null,
+      "launchAccounting": {
+        "enrolled": 0,
+        "attempted": 0,
+        "launched": 0,
+        "closed": 0,
+        "unknownAcquisitions": 0,
+        "allChildrenReaped": null,
+        "unsafe": false
+      },
+      "children": [],
+      "failures": [
+        {
+          "phase": "prepare-or-publication",
+          "code": "REPORT_STORE_UNAVAILABLE"
+        }
+      ],
+      "historicalScoresUnchanged": true
+    },
+    "separateStubChain": {
+      "terminalChildren": [
+        {
+          "ordinal": 1,
+          "pid": 44992,
+          "group": -44992,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "reaped": true,
+          "persisted": true
+        }
+      ],
+      "launchAccounting": {
+        "enrolled": 1,
+        "attempted": 1,
+        "launched": 1,
+        "closed": 1,
+        "unknownAcquisitions": 0,
+        "allChildrenReaped": true,
+        "unsafe": false
+      }
+    },
+    "qualification": "Actual candidate invalid CLI, no configuration/staging; separate actual body-to-stub chain"
+  }
+}

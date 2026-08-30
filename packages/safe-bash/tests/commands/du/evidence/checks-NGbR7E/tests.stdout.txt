@@ -1,0 +1,322 @@
+TAP version 13
+# Subtest: actual Shell memory: apparent positive flow and allocation qualification
+ok 1 - actual Shell memory: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 6.178792
+  type: 'test'
+  ...
+# Subtest: actual Shell real: apparent positive flow and allocation qualification
+ok 2 - actual Shell real: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 14.978208
+  type: 'test'
+  ...
+# Subtest: actual Shell readonly: apparent positive flow and allocation qualification
+ok 3 - actual Shell readonly: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 2.200292
+  type: 'test'
+  ...
+# Subtest: actual Shell mount: apparent positive flow and allocation qualification
+ok 4 - actual Shell mount: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 3.361917
+  type: 'test'
+  ...
+# Subtest: actual Shell overlay: apparent positive flow and allocation qualification
+ok 5 - actual Shell overlay: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 5.744167
+  type: 'test'
+  ...
+# Subtest: actual Shell s3-mock: apparent positive flow and allocation qualification
+ok 6 - actual Shell s3-mock: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 7.127875
+  type: 'test'
+  ...
+# Subtest: actual Shell dav-mock: apparent positive flow and allocation qualification
+ok 7 - actual Shell dav-mock: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 25.255709
+  type: 'test'
+  ...
+# Subtest: real allocation survives readonly/mount/overlay selected-entry wrappers
+ok 8 - real allocation survives readonly/mount/overlay selected-entry wrappers
+  ---
+  duration_ms: 23.882125
+  type: 'test'
+  ...
+# Subtest: different mount namespaces sharing directory identity are never pruned
+ok 9 - different mount namespaces sharing directory identity are never pruned
+  ---
+  duration_ms: 0.911208
+  type: 'test'
+  ...
+# Subtest: RED provider no-effects control: actual Overlay readdir retries pending garbage deletion
+ok 10 - RED provider no-effects control: actual Overlay readdir retries pending garbage deletion
+  ---
+  duration_ms: 1.298083
+  type: 'test'
+  ...
+# Subtest: command definition and plugin collision preflight preserve replacement policy
+ok 11 - command definition and plugin collision preflight preserve replacement policy
+  ---
+  duration_ms: 1.278916
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -b tree
+ok 12 - actual Shell reporting -b tree
+  ---
+  duration_ms: 4.731125
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bac tree
+ok 13 - actual Shell reporting -bac tree
+  ---
+  duration_ms: 1.471458
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bs tree
+ok 14 - actual Shell reporting -bs tree
+  ---
+  duration_ms: 1.463208
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bad1 tree
+ok 15 - actual Shell reporting -bad1 tree
+  ---
+  duration_ms: 0.903417
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bd0 tree
+ok 16 - actual Shell reporting -bd0 tree
+  ---
+  duration_ms: 0.81125
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bs -d 0 tree
+ok 17 - actual Shell reporting -bs -d 0 tree
+  ---
+  duration_ms: 0.700583
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting --bytes --all --null tree
+ok 18 - actual Shell reporting --bytes --all --null tree
+  ---
+  duration_ms: 1.038625
+  type: 'test'
+  ...
+# Subtest: known zero, unknown, and invalid allocation never fall back to logical size
+ok 19 - known zero, unknown, and invalid allocation never fall back to logical size
+  ---
+  duration_ms: 9.745041
+  type: 'test'
+  ...
+# Subtest: unknown directory allocation preserves known descendants but suppresses ancestors
+ok 20 - unknown directory allocation preserves known descendants but suppresses ancestors
+  ---
+  duration_ms: 0.983458
+  type: 'test'
+  ...
+# Subtest: apparent directories contribute zero, final symlinks contribute their own length
+ok 21 - apparent directories contribute zero, final symlinks contribute their own length
+  ---
+  duration_ms: 0.960459
+  type: 'test'
+  ...
+# Subtest: invocation-wide hardlink dedup uses complete scoped identity; count-links overrides
+ok 22 - invocation-wide hardlink dedup uses complete scoped identity; count-links overrides
+  ---
+  duration_ms: 2.543667
+  type: 'test'
+  ...
+# Subtest: repeated directories are traversed, not globally pruned by identity
+ok 23 - repeated directories are traversed, not globally pruned by identity
+  ---
+  duration_ms: 1.356083
+  type: 'test'
+  ...
+# Subtest: literal names, --, stable sort, missing and empty operands preserve useful output
+ok 24 - literal names, --, stable sort, missing and empty operands preserve useful output
+  ---
+  duration_ms: 1.644084
+  type: 'test'
+  ...
+# Subtest: all argument and environment validation happens before any filesystem call
+ok 25 - all argument and environment validation happens before any filesystem call
+  ---
+  duration_ms: 0.748625
+  type: 'test'
+  ...
+# Subtest: context environment precedence and explicit formatting remain local
+ok 26 - context environment precedence and explicit formatting remain local
+  ---
+  duration_ms: 0.374292
+  type: 'test'
+  ...
+# Subtest: checked aggregation and invalid logical size suppress incomplete totals
+ok 27 - checked aggregation and invalid logical size suppress incomplete totals
+  ---
+  duration_ms: 0.798625
+  type: 'test'
+  ...
+# Subtest: typed listing errors propagate meaning and preserve known unrelated operands
+ok 28 - typed listing errors propagate meaning and preserve known unrelated operands
+  ---
+  duration_ms: 0.430334
+  type: 'test'
+  ...
+# Subtest: bounded maxArguments fails explicitly without printing a complete total
+ok 29 - bounded maxArguments fails explicitly without printing a complete total
+  ---
+  duration_ms: 1.514833
+  type: 'test'
+  ...
+# Subtest: bounded maxArgumentBytes fails explicitly without printing a complete total
+ok 30 - bounded maxArgumentBytes fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.351459
+  type: 'test'
+  ...
+# Subtest: bounded maxEntries fails explicitly without printing a complete total
+ok 31 - bounded maxEntries fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.837583
+  type: 'test'
+  ...
+# Subtest: bounded maxDirectoryEntries fails explicitly without printing a complete total
+ok 32 - bounded maxDirectoryEntries fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.260167
+  type: 'test'
+  ...
+# Subtest: bounded maxDepth fails explicitly without printing a complete total
+ok 33 - bounded maxDepth fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.536541
+  type: 'test'
+  ...
+# Subtest: bounded maxPathBytes fails explicitly without printing a complete total
+not ok 34 - bounded maxPathBytes fails explicitly without printing a complete total
+  ---
+  duration_ms: 1.045583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/du/safety.test.ts:1:727'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /limit exceeded/u. Input:
+    
+    'du: EFB [diagnostic truncated]\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    du: EFB [diagnostic truncated]
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/du/safety.test.ts:18:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: bounded maxMetadataBytes fails explicitly without printing a complete total
+ok 35 - bounded maxMetadataBytes fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.258833
+  type: 'test'
+  ...
+# Subtest: bounded maxOutputBytes fails explicitly without printing a complete total
+ok 36 - bounded maxOutputBytes fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.312625
+  type: 'test'
+  ...
+# Subtest: bounded maxSteps fails explicitly without printing a complete total
+ok 37 - bounded maxSteps fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.486083
+  type: 'test'
+  ...
+# Subtest: all limit settings require positive safe integers
+ok 38 - all limit settings require positive safe integers
+  ---
+  duration_ms: 0.357833
+  type: 'test'
+  ...
+# Subtest: UTF-8 argument and output bytes, not character count, consume budgets
+ok 39 - UTF-8 argument and output bytes, not character count, consume budgets
+  ---
+  duration_ms: 0.203292
+  type: 'test'
+  ...
+# Subtest: stdout and stderr share one output budget
+ok 40 - stdout and stderr share one output budget
+  ---
+  duration_ms: 0.222167
+  type: 'test'
+  ...
+# Subtest: malformed and oversized directory listings never escape the virtual tree
+ok 41 - malformed and oversized directory listings never escape the virtual tree
+  ---
+  duration_ms: 1.097833
+  type: 'test'
+  ...
+# Subtest: safe depth remains enforced with --max-depth=0 and unknown identity
+ok 42 - safe depth remains enforced with --max-depth=0 and unknown identity
+  ---
+  duration_ms: 0.228291
+  type: 'test'
+  ...
+# Subtest: sort comparisons consume bounded work rather than unbounded provider-name processing
+ok 43 - sort comparisons consume bounded work rather than unbounded provider-name processing
+  ---
+  duration_ms: 0.210334
+  type: 'test'
+  ...
+# Subtest: already aborted invocation preserves exact errno-shaped reason and performs no FS work
+ok 44 - already aborted invocation preserves exact errno-shaped reason and performs no FS work
+  ---
+  duration_ms: 0.093292
+  type: 'test'
+  ...
+# Subtest: registerCleanup precedes metadata admission; abort observes late opaque rejection
+ok 45 - registerCleanup precedes metadata admission; abort observes late opaque rejection
+  ---
+  duration_ms: 4.500792
+  type: 'test'
+  ...
+# Subtest: registered cleanup closes admission without awaiting an opaque host promise
+ok 46 - registered cleanup closes admission without awaiting an opaque host promise
+  ---
+  duration_ms: 0.259292
+  type: 'test'
+  ...
+# Subtest: awaited stdout backpressure prevents traversal from advancing
+ok 47 - awaited stdout backpressure prevents traversal from advancing
+  ---
+  duration_ms: 0.867875
+  type: 'test'
+  ...
+# Subtest: sink cancellation and repeated finally/registered cleanup release listeners
+ok 48 - sink cancellation and repeated finally/registered cleanup release listeners
+  ---
+  duration_ms: 0.246666
+  type: 'test'
+  ...
+# Subtest: sufficient traversal yields allow timer-driven cancellation
+ok 49 - sufficient traversal yields allow timer-driven cancellation
+  ---
+  duration_ms: 4.090833
+  type: 'test'
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 48
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 300.490708

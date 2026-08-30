@@ -1,0 +1,195 @@
+[
+  {
+    "name": "build",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "s3-rmdir",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/s3/rmdir.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "s3-regressions",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/s3/adapter-overrides.test.ts",
+      "tests/fs/s3/comparison.test.ts",
+      "tests/fs/s3/constructor-comparison.test.ts",
+      "tests/fs/s3/copy-races.test.ts",
+      "tests/fs/s3/faithful-decorators.test.ts",
+      "tests/fs/s3/filesystem.test.ts",
+      "tests/fs/s3/late-authority.test.ts",
+      "tests/fs/s3/mock.test.ts",
+      "tests/fs/s3/mutation-regressions.test.ts",
+      "tests/fs/s3/production-flows.test.ts",
+      "tests/fs/s3/rename-guards.test.ts",
+      "tests/fs/s3/streaming.test.ts",
+      "tests/fs/s3/stress.test.ts",
+      "tests/fs/s3/trusted-forwarding.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "http-unit",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/s3/http/unit/errors.test.ts",
+      "tests/fs/s3/http/unit/fallback.test.ts",
+      "tests/fs/s3/http/unit/signature.test.ts",
+      "tests/fs/s3/http/unit/transport.test.ts",
+      "tests/fs/s3/http/unit/xml.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "wrapper-rmdir",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/readonly/rmdir.test.ts",
+      "tests/fs/mount/rmdir.test.ts",
+      "tests/fs/overlay/rmdir.test.ts",
+      "tests/fs/overlay/rmdir-static-lower.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "required-alias49",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "tests/fs/mount/copy-identity-guards.test.ts",
+      "tests/fs/overlay/copy-identity.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "scoped-types",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/fs/s3/adapter-overrides.test.ts",
+      "tests/fs/s3/comparison.test.ts",
+      "tests/fs/s3/constructor-comparison.test.ts",
+      "tests/fs/s3/copy-races.test.ts",
+      "tests/fs/s3/faithful-decorators.test.ts",
+      "tests/fs/s3/filesystem.test.ts",
+      "tests/fs/s3/late-authority.test.ts",
+      "tests/fs/s3/mock.test.ts",
+      "tests/fs/s3/mutation-regressions.test.ts",
+      "tests/fs/s3/production-flows.test.ts",
+      "tests/fs/s3/rename-guards.test.ts",
+      "tests/fs/s3/rmdir.test.ts",
+      "tests/fs/s3/streaming.test.ts",
+      "tests/fs/s3/stress.test.ts",
+      "tests/fs/s3/trusted-forwarding.test.ts",
+      "tests/fs/s3/http/unit/errors.test.ts",
+      "tests/fs/s3/http/unit/fallback.test.ts",
+      "tests/fs/s3/http/unit/signature.test.ts",
+      "tests/fs/s3/http/unit/transport.test.ts",
+      "tests/fs/s3/http/unit/xml.test.ts",
+      "tests/fs/readonly/rmdir.test.ts",
+      "tests/fs/mount/rmdir.test.ts",
+      "tests/fs/overlay/rmdir.test.ts",
+      "tests/fs/overlay/rmdir-static-lower.test.ts",
+      "tests/fs/mount/copy-identity-guards.test.ts",
+      "tests/fs/overlay/copy-identity.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "pack",
+    "executable": "npm",
+    "args": [
+      "pack",
+      "--ignore-scripts",
+      "--json",
+      "--pack-destination",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "unpack",
+    "executable": "tar",
+    "args": [
+      "-xzf",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S/virtual-bash-0.0.0.tgz",
+      "--strip-components=1",
+      "-C",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S/consumer/node_modules/virtual-bash"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "name": "download",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S/tooling/prepare.mjs"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null
+  }
+]

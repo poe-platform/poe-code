@@ -1,0 +1,1403 @@
+{
+  "source": "da4e1cc187022255521879b00db2ac77674f79d9",
+  "sourceInputs": 305,
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+    "size": 908381,
+    "mode": 420,
+    "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+  },
+  "authenticated": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/BUILD-PRESEAL.md",
+      "size": 2096,
+      "mode": 420,
+      "sha256": "69d50c87c571b6a31ffc5853191c1774004b1d1b52a302e1dc1ab8ecd9325078"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/BUILD-RESULT.json",
+      "size": 4211,
+      "mode": 420,
+      "sha256": "f4b78826e4e476d5d38076e3ab6c1b2379b210d23a5890927f2df860c37bfe7f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/BUILD-SHA256SUMS",
+      "size": 2131,
+      "mode": 420,
+      "sha256": "76b1829b692ce5939d0b02737936fe5a1d024d8f98a9b8f57cdd49898f7eadf9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/BUILD-V2-PRESEAL.md",
+      "size": 768,
+      "mode": 420,
+      "sha256": "c92913856acdc985949ed0e5653c31b843e5b2cbccf82444631ebe2353826c53"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/BUILD-V2-SHA256SUMS",
+      "size": 2140,
+      "mode": 420,
+      "sha256": "4984264d4a3ad73c1d6f7959d93d48f3a9f783523006b2fdc78c8c6ada2b82db"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/CASES-v4.json",
+      "size": 45811,
+      "mode": 420,
+      "sha256": "278f9e51ab2eb96f0bae7564b1357ee9424166e475af10d1e5cb27b9a45fb7fb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/CONTROL-PRESEAL.md",
+      "size": 1364,
+      "mode": 420,
+      "sha256": "df8f3385d81888a269491ae7a3f61162bcaa4354e8ca2a23990556c9b9921115"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/EXECUTION-SEAL.json",
+      "size": 351213,
+      "mode": 420,
+      "sha256": "ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/HANDOFF.md",
+      "size": 6925,
+      "mode": 420,
+      "sha256": "29765043f4c74840bd87d9571d90916f3f6df89d8c4d8861fdb54f345226f3c5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/INSPECT-SHA256SUMS",
+      "size": 287,
+      "mode": 420,
+      "sha256": "2815097aedd0af1f5a27d87ec88bf3ad9d62008866f1e38fda9dff3afd4bacf8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/PREPARATION-PRESEAL.md",
+      "size": 727,
+      "mode": 420,
+      "sha256": "bf5b556421bffdd0f2f4316743aceda179b8172c3a988f4bfa03e141a72e7b41"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/SOURCE-INSPECTION.json",
+      "size": 3003,
+      "mode": 420,
+      "sha256": "2b6b2aecc80bd8b8d120bba694be7afd9dfa09bec016715f73dd0860f5c8f0db"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/START.json",
+      "size": 197,
+      "mode": 420,
+      "sha256": "97b131016cea4d785a90004faf00cd90b34a65296242047636434039e5915bd0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/array-observer.mjs",
+      "size": 3105,
+      "mode": 420,
+      "sha256": "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/build-preexec-v2.mjs",
+      "size": 13970,
+      "mode": 420,
+      "sha256": "0bcef09058ae9cded0d90623a9937b6c869a70220230d006b4c772f63576f6ab"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/build-preexec.mjs",
+      "size": 13955,
+      "mode": 420,
+      "sha256": "f09f6e2c651944ae424649f59916a3463a81343c9d5378f30a9de1bc3ee54c0a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/cell-v4.mjs",
+      "size": 7292,
+      "mode": 420,
+      "sha256": "d08db63b92ee90dc043d34b20038530997aa18896ffa29c8257b67da7ee414ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/dispatch.mjs",
+      "size": 6819,
+      "mode": 420,
+      "sha256": "656edd0a9094b4e0ffeddca309e93e9f57f17a4b7a598a7befbf3f9d9cfcce80"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/guards.mjs",
+      "size": 3236,
+      "mode": 420,
+      "sha256": "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/host-bodies.mjs",
+      "size": 9359,
+      "mode": 420,
+      "sha256": "28bbbca9ebd0a941d186a37c9a6f1fa6b4e4381c5e083fcc638bb64b851150f5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/inspect.mjs",
+      "size": 2340,
+      "mode": 420,
+      "sha256": "b090cf542b57e3059e7b1618ab5de1de1353c5350731f163b3ddc0fb3953c402"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/pure-controls.mjs",
+      "size": 7991,
+      "mode": 420,
+      "sha256": "32f780a3262c59a9ec9e3c43ef5c7f39191f9231d60dbec7071777e02418e40f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/CUSTOM-SHA256SUMS",
+      "size": 1086,
+      "mode": 420,
+      "sha256": "7a8c48079d4fad82fe3a88d1d9015c7365f3f32503796c38b93e785466386b92"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/SHA256SUMS",
+      "size": 388,
+      "mode": 420,
+      "sha256": "f6053b631c59c45999b723d5e28a4ca490f2832e2bdc15041a9190d182bb8ec1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/build-v2.stderr",
+      "size": 173,
+      "mode": 420,
+      "sha256": "9941a5cc95478d3d6ce7a661c9936e487eb704ae84dbed5caa923c0d9cdd75b0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/build-v2.stdout",
+      "size": 162,
+      "mode": 420,
+      "sha256": "1f8ba88e92ca8101dc0e452147a0edabee47e1f699874d87ed9b5191d733189c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/build.stderr",
+      "size": 755,
+      "mode": 420,
+      "sha256": "b526a2796b55e7caa9021a63f5f0bf7b5edcbdb3ac81f2c4e9d4be790f0151e0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/build.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/controller.stderr",
+      "size": 787,
+      "mode": 420,
+      "sha256": "50d14c911446e72f9ecffb146125a3497fed016fcec4484de1860860d17ae64b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/controller.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/inspect.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/raw/inspect.stdout",
+      "size": 50561,
+      "mode": 420,
+      "sha256": "476c1444e5a46e1ff09767126faaaf0147e8cd9ab932b16d0ab599ecd145b7c6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/worker-observer.mjs",
+      "size": 5913,
+      "mode": 420,
+      "sha256": "dce618236a799521be201908a63198c4f542fa674836b3520950f3fc7c0465d6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/wrapper-source.mjs",
+      "size": 2269,
+      "mode": 420,
+      "sha256": "71bc3f8e6930030e3ab13b596bcb892b83bc321e16ddfa8d8df174e84126a5f5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/HANDOFF.md",
+      "size": 8043,
+      "mode": 420,
+      "sha256": "33d9e86680ebbd0ec54d49073af028b6b39767682c6bac569e5b9c25a9d550b7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/PRESEAL.md",
+      "size": 2220,
+      "mode": 420,
+      "sha256": "77482258ee64194dca27a9398c5fd026a14ce2f513ce4522241f96e75d9ee6cd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/QUALIFICATION-SHA256SUMS",
+      "size": 1380,
+      "mode": 420,
+      "sha256": "5c114a6b6c545bffa06d8181f5fd41255b75a0e262fc0e263a79d22f9b89edef"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/prepare.mjs",
+      "size": 6300,
+      "mode": 420,
+      "sha256": "55ea955129e9eec1d44ff8003badca65779ed19705bfd52bc72f3f469e8c0f8b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/pure-controls.mjs",
+      "size": 9257,
+      "mode": 420,
+      "sha256": "95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/ADDITIONAL-CONTROLS.json",
+      "size": 2478,
+      "mode": 420,
+      "sha256": "2d580857744ee36033f4783b9675881675882992330b54a4b61c555910dfafee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/CUSTOM-SHA256SUMS",
+      "size": 1551,
+      "mode": 420,
+      "sha256": "02c5378a0709d17bda2ddb1115f5f03e5f89f95ef1fd7869bd2c3be743acc697"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/PHASE.json",
+      "size": 53,
+      "mode": 420,
+      "sha256": "6cebde2986e06f44f6a5467d446d558c64dfb37714e6c1cdddf3c1eafff96820"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/PREPARATION-SHA256SUMS",
+      "size": 844,
+      "mode": 420,
+      "sha256": "8d468013ea48991baa0f5b35c2b0dc4de4fc749ca24a16bd7dae97fe63de65e5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/PREPARED.json",
+      "size": 2038,
+      "mode": 420,
+      "sha256": "fc0f9758ea4174020a81b2f9440e7c5ec0729a5eb88714da666de76a541c5f89"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/RESULT.json",
+      "size": 2714,
+      "mode": 384,
+      "sha256": "4cdc84d8c1188a67f1cd8075c52f6cda4eee14e54e2e64b670458ff8a5b0282f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/SHA256SUMS",
+      "size": 388,
+      "mode": 420,
+      "sha256": "fa8c51ae0cf8f0fe5c920a01886b4fc39ca82a650542f773cc03969d2791ca6a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/STORAGE-SNAPSHOT.json",
+      "size": 163,
+      "mode": 420,
+      "sha256": "afe03fa5f0342aae1f05cf171b9a859acc3b54ea94255796d696f763e253ba60"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/actual-nonzero.stderr",
+      "size": 4,
+      "mode": 384,
+      "sha256": "2f04b3a77625532f0d36a27e3c3a97d307133a910f4ab2bec0e55b7cf0440965"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/actual-nonzero.stdout",
+      "size": 4,
+      "mode": 384,
+      "sha256": "ef5683848bd33d0531d8cbe5123f1a7f121764c5dce98c7de61c2fe5a1031e6c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/actual-zero.stderr",
+      "size": 4,
+      "mode": 384,
+      "sha256": "2f04b3a77625532f0d36a27e3c3a97d307133a910f4ab2bec0e55b7cf0440965"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/actual-zero.stdout",
+      "size": 4,
+      "mode": 384,
+      "sha256": "ef5683848bd33d0531d8cbe5123f1a7f121764c5dce98c7de61c2fe5a1031e6c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/children.jsonl",
+      "size": 420,
+      "mode": 384,
+      "sha256": "f2a8d46a15b8a50eb7c3cb217d8a26077425a4e35d1f80fae0031bb3f9c468ae"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/controller.stderr",
+      "size": 173,
+      "mode": 420,
+      "sha256": "7b48f721c182e2baea92a41bfb4125f8e2bfc4ae400508d8c441c2137f16690c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/controller.stdout",
+      "size": 169,
+      "mode": 420,
+      "sha256": "a5aefe941dcb9ff7580cacab0d4dbb356250a9f11199e15fb05fa2ef04eeac95"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/known-starts.log",
+      "size": 913,
+      "mode": 420,
+      "sha256": "aed1d63e8dccdaa0e9cea5259957e398aac6b24be34ac3b621f39f00edac8ec9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/prepare.stderr",
+      "size": 173,
+      "mode": 420,
+      "sha256": "49089542dbb7a01d523c9627665dc4c16f0f48071d7821b5918d24d2f03e5a60"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/prepare.stdout",
+      "size": 1836,
+      "mode": 420,
+      "sha256": "7d192c4346e1058fd468150a86dbdcd4fc8ed6e18a9a49a7637b88e18ee1dcd5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/raw/source-qualification.stdout",
+      "size": 3103,
+      "mode": 420,
+      "sha256": "8f3e05998c0f3fc047d629246d3d135bd3546285b3850ee2489d7a1fad398994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/root-binding.mjs",
+      "size": 1388,
+      "mode": 420,
+      "sha256": "d9a2fecb17a403eeb26f9bc060472ca5cd6f88075dfc41f87cdb1386e1305aa3"
+    }
+  ],
+  "layoutRows": [
+    {
+      "name": "source-built",
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-source-built.json",
+        "size": 302100,
+        "mode": 384,
+        "sha256": "521a156f4399200ffef0192de277ded2515b959d83769eab0a871ba77bb8ac56"
+      },
+      "entries": 1390,
+      "cells": 70,
+      "privateAssets": 48,
+      "wrapperRoles": [
+        "stock",
+        "checkpoint",
+        "wrong-id",
+        "wrong-operation",
+        "wrong-count",
+        "out-of-range-span",
+        "fractional-span",
+        "extra-key",
+        "late-reply",
+        "positive"
+      ]
+    },
+    {
+      "name": "installed",
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-installed.json",
+        "size": 254534,
+        "mode": 384,
+        "sha256": "702b18624838d40c1124b055006226747ad17c476b01bec415fca836b2c51e4c"
+      },
+      "entries": 1087,
+      "cells": 70,
+      "privateAssets": 48,
+      "wrapperRoles": [
+        "stock",
+        "checkpoint",
+        "wrong-id",
+        "wrong-operation",
+        "wrong-count",
+        "out-of-range-span",
+        "fractional-span",
+        "extra-key",
+        "late-reply",
+        "positive"
+      ]
+    },
+    {
+      "name": "moved",
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-moved.json",
+        "size": 254534,
+        "mode": 384,
+        "sha256": "9b479b3c4a617ffe1ef4491a429142b980f4e1a6d6e9379dce32e2be9690c38f"
+      },
+      "entries": 1087,
+      "cells": 70,
+      "privateAssets": 48,
+      "wrapperRoles": [
+        "stock",
+        "checkpoint",
+        "wrong-id",
+        "wrong-operation",
+        "wrong-count",
+        "out-of-range-span",
+        "fractional-span",
+        "extra-key",
+        "late-reply",
+        "positive"
+      ]
+    }
+  ],
+  "futureCaps": {
+    "childMaximum": 210,
+    "coordinatorMaximum": 1,
+    "knownAdministrativeAllowance": 4,
+    "totalKnownOSMaximum": 215,
+    "peakOS": 2,
+    "workerStartsMaximum": 309,
+    "workerLiveMaximum": 1,
+    "internalLoaderStarts": 0,
+    "totalMilliseconds": 7500000,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912
+  },
+  "cases": [
+    {
+      "id": "R01",
+      "route": "script",
+      "script": "LC_ALL=C; re='(ab)([0-9]+)'; [[ xab42y =~ $re ]]; printf '%s:<%s>:<%s>:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "0:<ab42>:<ab>:<42>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R02",
+      "route": "script",
+      "script": "LC_ALL=C; re='a|aa'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "0:<aa>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R03",
+      "route": "script",
+      "script": "LC_ALL=C; re='(a|aa)(a?)'; [[ aa =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<aa>\n<aa>\n<>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R04",
+      "route": "script",
+      "script": "LC_ALL=C; re='(a*)(a*)'; [[ aaa =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<aaa>\n<aaa>\n<>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R05",
+      "route": "script",
+      "script": "LC_ALL=C; re='((ab)+)(c?)'; [[ ababc =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<ababc>\n<abab>\n<ab>\n<c>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R06",
+      "route": "script",
+      "script": "LC_ALL=C; re='(a(b)?)+'; [[ aba =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<aba>\n<a>\n<>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R07",
+      "route": "script",
+      "script": "LC_ALL=C; re='(a)?(b*)'; [[ '' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[2] ]]; printf '%s\\n' \"$?\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<>\n<>\n<>\n0\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R08",
+      "route": "script",
+      "script": "LC_ALL=C; re='(a*)*'; [[ b =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<>\n",
+        "stderr": {
+          "contains": "unsupported ERE profile",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R09",
+      "route": "script",
+      "script": "LC_ALL=C; re='^a$'; [[ ba =~ $re ]]; printf '%s\\n' \"$?\"; [[ a =~ $re ]]; printf '%s\\n' \"$?\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n0\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R10",
+      "route": "script",
+      "script": "LC_ALL=C; re='(a.b)'; [[ $'a\\nb' =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "0:<a\nb>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R11",
+      "route": "script",
+      "script": "LC_ALL=C; [[ axb =~ a\".\"b ]]; printf '%s\\n' \"$?\"; [[ a.b =~ a\".\"b ]]; printf '%s\\n' \"$?\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n0\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R12",
+      "route": "script",
+      "script": "LC_ALL=C; re='a.b'; [[ axb =~ \"$re\" ]]; printf '%s\\n' \"$?\"; [[ axb =~ $re ]]; printf '%s\\n' \"$?\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n0\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R13",
+      "route": "script",
+      "script": "LC_ALL=C; [[ '$a{2}' =~ \"$\"a\"{2}\" ]]; printf '%s\\n' \"$?\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "0\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R14",
+      "route": "script",
+      "script": "LC_ALL=C; re='[[:alpha:]][[:digit:]]'; [[ A7 =~ $re ]]; printf '%s\\n' \"$?\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "0\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R15",
+      "route": "script",
+      "script": "LC_ALL=C; re='[^a-c]+'; [[ abcXYZ =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[0]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<XYZ>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R16",
+      "route": "script",
+      "script": "LC_ALL=C; re='([]-]+)'; [[ '--]' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<--]>\n<--]>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R17",
+      "route": "script",
+      "script": "LC_ALL=C; re='(ab){2,3}'; [[ abababab =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<ababab>\n<ab>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R18",
+      "route": "script",
+      "script": "LC_ALL=C; re='a{3,2}'; BASH_REMATCH=(old); [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2:<old>\n",
+        "stderr": {
+          "contains": "invalid ERE",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R19",
+      "route": "script",
+      "script": "LC_ALL=C; re='('; BASH_REMATCH=(old); [[ a =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2:<old>\n",
+        "stderr": {
+          "contains": "invalid ERE",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R20",
+      "route": "script",
+      "script": "LC_ALL=C; BASH_REMATCH=(old); [[ yes || a =~ $(printf '(') ]]; printf '<%s>\\n' \"${BASH_REMATCH[0]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<old>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R21",
+      "route": "script",
+      "script": "LC_ALL=C; [[ yes || a =~ ( ]]; printf 'after\\n'",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "contains": "Unterminated conditional regular expression group",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R22",
+      "route": "script",
+      "script": "LC_ALL=C; BASH_REMATCH=(old tail); [[ a =~ z ]]; printf '%s\\n' \"$?\"; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[0] ]]; printf '%s\\n' \"$?\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n<>\n1\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R23",
+      "route": "script",
+      "script": "LC_ALL=C; re='(a)'; [[ ! a =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1:<a>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R24",
+      "route": "script",
+      "script": "LC_ALL=C; BASH_REMATCH=(global); f(){ local BASH_REMATCH; [[ abc =~ (b) ]]; printf 'in:<%s>\\n' \"${BASH_REMATCH[1]}\"; }; f; printf 'out:<%s>\\n' \"${BASH_REMATCH[0]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "in:<b>\nout:<global>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R25",
+      "route": "script",
+      "script": "LC_ALL=C; BASH_REMATCH=(saved); readonly BASH_REMATCH; [[ abc =~ (b) ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "0:<saved>\n",
+        "stderr": {
+          "contains": "BASH_REMATCH: readonly variable",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R26",
+      "route": "script",
+      "script": "LC_ALL=C; export BASH_REMATCH=saved; [[ a =~ (a) ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1:<>\n",
+        "stderr": {
+          "contains": "exported binding cannot be indexed",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R27",
+      "route": "script",
+      "script": "LC_ALL=C; BASH_REMATCH=(outer); ( [[ abc =~ (b) ]]; printf 'sub:<%s>\\n' \"${BASH_REMATCH[1]}\" ); printf 'parent:<%s>\\n' \"${BASH_REMATCH[0]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "sub:<b>\nparent:<outer>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R28",
+      "route": "script",
+      "script": "LC_ALL=C; f(){ if [[ $1 =~ (a+) ]]; then printf '<%s>\\n' \"${BASH_REMATCH[1]}\"; fi; }; f aa; f a; printf 'last:<%s>\\n' \"${BASH_REMATCH[1]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "<aa>\n<a>\nlast:<a>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R29",
+      "route": "script",
+      "script": "LC_ALL=C; re='(a)\\1'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2:<>\n",
+        "stderr": {
+          "contains": "unsupported ERE profile",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R30",
+      "route": "script",
+      "script": "LC_ALL=C; re='[[.a.]]'; [[ a =~ $re ]]; printf '%s\\n' \"$?\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": {
+          "contains": "unsupported ERE profile",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R31",
+      "route": "script",
+      "script": "LC_ALL=C; re='(.)'; [[ 雪 =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2:<>\n",
+        "stderr": {
+          "contains": "unsupported ERE profile",
+          "qualification": "diagnostic category/source phrase, not GNU byte equivalence"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "R32",
+      "route": "script",
+      "script": "LC_ALL=C; n=0; [[ $((n+=1)) =~ ([0-9]) ]]; printf '%s:<%s>\\n' \"$n\" \"${BASH_REMATCH[1]}\"",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1:<1>\n",
+        "stderr": {
+          "exact": ""
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "H01",
+      "route": "host",
+      "workerStartsMaximum": 0
+    },
+    {
+      "id": "H02",
+      "route": "host",
+      "workerStartsMaximum": 2
+    },
+    {
+      "id": "H03",
+      "route": "host",
+      "workerStartsMaximum": 8
+    },
+    {
+      "id": "H04",
+      "route": "host",
+      "workerStartsMaximum": 4
+    },
+    {
+      "id": "H05",
+      "route": "host",
+      "workerStartsMaximum": 4
+    },
+    {
+      "id": "H06",
+      "route": "host",
+      "workerStartsMaximum": 4
+    },
+    {
+      "id": "H07",
+      "route": "host",
+      "workerStartsMaximum": 15
+    },
+    {
+      "id": "H08",
+      "route": "host",
+      "workerStartsMaximum": 2
+    },
+    {
+      "id": "EC01",
+      "route": "script",
+      "script": "bad='('; [[ x =~ $bad ]]",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC02",
+      "route": "script",
+      "script": "bad='('; [[ ! x =~ $bad ]]",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC03",
+      "route": "script",
+      "script": "bad='('; [[ ! ! x =~ $bad ]]",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC04",
+      "route": "script",
+      "script": "bad='('; [[ ! ( ! x =~ $bad ) ]]",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC05",
+      "route": "script",
+      "script": "bad='('; [[ x =~ $bad && -n t ]]",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC06",
+      "route": "script",
+      "script": "bad='('; [[ x =~ $bad || -n t ]]",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC07",
+      "route": "script",
+      "script": "bad='('; [[ x =~ $bad || -n '' ]]",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC08",
+      "route": "script",
+      "script": "bad='('; [[ -n '' && x =~ $bad ]]",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC09",
+      "route": "script",
+      "script": "bad='('; [[ -n t || x =~ $bad ]]",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC10",
+      "route": "script",
+      "script": "bad='('; [[ -n t && x =~ $bad ]]",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC11",
+      "route": "script",
+      "script": "bad='('; [[ -n '' || x =~ $bad ]]",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC12",
+      "route": "script",
+      "script": "bad='('; [[ x =~ $bad || x =~ $bad ]]",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC13",
+      "route": "script",
+      "script": "bad='('; [[ ! ( x =~ $bad || -n t ) ]]",
+      "expected": {
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC14",
+      "route": "script",
+      "script": "bad='('; [[ x =~ $bad ]] && :",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC15",
+      "route": "script",
+      "script": "bad='('; [[ x =~ $bad ]] || :",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC16",
+      "route": "script",
+      "script": "bad='('; ! [[ x =~ $bad ]]",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC17",
+      "route": "script",
+      "script": "bad='('; [[ ! x =~ $bad ]] && :",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC18",
+      "route": "script",
+      "script": "bad='('; [[ ! x =~ $bad ]] || :",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC19",
+      "route": "script",
+      "script": "bad='('; [[ -n t || x =~ ( ]]",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "contains": "Unterminated conditional regular expression group"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC20",
+      "route": "script",
+      "script": "bad='('; set -e; [[ x =~ $bad ]]; printf after",
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC21",
+      "route": "script",
+      "script": "bad='('; set -e; [[ x =~ $bad ]] || :; printf after",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "after",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC22",
+      "route": "script",
+      "script": "bad='('; set -e; [[ ! x =~ $bad ]]; printf after",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "after",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC23",
+      "route": "script",
+      "script": "bad='('; [[ ! x =~ z ]]",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC24",
+      "route": "script",
+      "script": "bad='('; [[ x =~ $bad || x =~ (x) ]]",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EC25",
+      "route": "script",
+      "script": "bad='('; [[ ! ( x =~ $bad && -n t ) ]]",
+      "expected": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": {
+          "observedCategory": "visited invalid ERE only; literal visit-count below"
+        }
+      },
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EH01",
+      "route": "host",
+      "workerStartsMaximum": 0
+    },
+    {
+      "id": "EH02",
+      "route": "host",
+      "workerStartsMaximum": 0
+    },
+    {
+      "id": "EH03",
+      "route": "host",
+      "workerStartsMaximum": 1
+    },
+    {
+      "id": "EH04",
+      "route": "host",
+      "workerStartsMaximum": 3
+    },
+    {
+      "id": "EH05",
+      "route": "host",
+      "workerStartsMaximum": 3
+    }
+  ],
+  "correspondence": [
+    {
+      "name": "owner.mjs",
+      "originalSha256": "247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4",
+      "freshSha256": "247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4",
+      "change": "byte-identical"
+    },
+    {
+      "name": "harmless.mjs",
+      "originalSha256": "6802837fd93d5f35cf42eaeba84bbe561110a1916fa33a083ca94f73ab7f3fdc",
+      "freshSha256": "6802837fd93d5f35cf42eaeba84bbe561110a1916fa33a083ca94f73ab7f3fdc",
+      "change": "byte-identical"
+    },
+    {
+      "name": "controls.mjs",
+      "originalSha256": "3e534c4ef793721b0532ac6ee7b88e97360926eea5d5905427fec6830a30416e",
+      "freshSha256": "3e534c4ef793721b0532ac6ee7b88e97360926eea5d5905427fec6830a30416e",
+      "change": "byte-identical"
+    },
+    {
+      "name": "PRESEAL.md",
+      "originalSha256": "2e1b947407bf7f10c6da8605301136e894671c06b46b0b3334671c5d08d3abe4",
+      "freshSha256": "2e1b947407bf7f10c6da8605301136e894671c06b46b0b3334671c5d08d3abe4",
+      "change": "byte-identical"
+    },
+    {
+      "name": "START.json",
+      "originalSha256": "6cebde2986e06f44f6a5467d446d558c64dfb37714e6c1cdddf3c1eafff96820",
+      "freshSha256": "d2ee4ee75627def547b7589739e348f0bc145cc53c0e4e26aad87f19403e9a88",
+      "change": "fresh owned deadline only"
+    },
+    {
+      "name": "pure-controls.mjs",
+      "originalSha256": "95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950",
+      "freshSha256": "95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950",
+      "change": "byte-identical"
+    },
+    {
+      "name": "root-binding.mjs",
+      "originalSha256": "d9a2fecb17a403eeb26f9bc060472ca5cd6f88075dfc41f87cdb1386e1305aa3",
+      "freshSha256": "f0856461098175531b77705e035ecd17915847bd1158522be735650dd8072a78",
+      "change": "exact physical control root relocation"
+    },
+    {
+      "name": "guards.mjs",
+      "originalSha256": "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b",
+      "freshSha256": "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b",
+      "change": "byte-identical"
+    },
+    {
+      "name": "array-observer.mjs",
+      "originalSha256": "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4",
+      "freshSha256": "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4",
+      "change": "byte-identical"
+    }
+  ],
+  "files": [
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/CUSTOM-SHA256SUMS",
+      "size": 1559,
+      "mode": 420,
+      "sha256": "c2fef0d8a9bf0abb19fe88bb2466c7fa8a73a9dc3d28162ad1f6be0920208a58"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/PRESEAL.md",
+      "size": 2274,
+      "mode": 384,
+      "sha256": "2e1b947407bf7f10c6da8605301136e894671c06b46b0b3334671c5d08d3abe4"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/SHA256SUMS",
+      "size": 388,
+      "mode": 420,
+      "sha256": "5855256de4373057c5894b18e825d903581f654a0e2e45ad4e735b4fad7e04f2"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/START.json",
+      "size": 29,
+      "mode": 384,
+      "sha256": "d2ee4ee75627def547b7589739e348f0bc145cc53c0e4e26aad87f19403e9a88"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/array-observer.mjs",
+      "size": 3105,
+      "mode": 384,
+      "sha256": "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/controls.mjs",
+      "size": 9724,
+      "mode": 384,
+      "sha256": "3e534c4ef793721b0532ac6ee7b88e97360926eea5d5905427fec6830a30416e"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/guards.mjs",
+      "size": 3236,
+      "mode": 384,
+      "sha256": "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/harmless.mjs",
+      "size": 120,
+      "mode": 384,
+      "sha256": "6802837fd93d5f35cf42eaeba84bbe561110a1916fa33a083ca94f73ab7f3fdc"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/owner.mjs",
+      "size": 4751,
+      "mode": 384,
+      "sha256": "247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/pure-controls.mjs",
+      "size": 9257,
+      "mode": 384,
+      "sha256": "95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/root-binding.mjs",
+      "size": 1390,
+      "mode": 384,
+      "sha256": "f0856461098175531b77705e035ecd17915847bd1158522be735650dd8072a78"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "deadline": 1788014794442,
+  "imports": 0,
+  "Workers": 0
+}

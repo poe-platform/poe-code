@@ -1,0 +1,74 @@
+[
+  {
+    "name": "size-fallback",
+    "file": "du.ts",
+    "before": ": stat.allocatedBytes;",
+    "after": ": (stat.allocatedBytes ?? stat.size);",
+    "baselineStatus": 0,
+    "buildStatus": 0,
+    "testStatus": 1,
+    "killed": true,
+    "sourceSha256": "aa75057f26c1171d87fa1b675d1649f70adf7b006ecef731cf6504bb488b2b1a",
+    "builtSha256": "e6176f94d2e1299ace639f5ca46279926c50ecf426e64f63cbbc8fe1b53e7f2d"
+  },
+  {
+    "name": "zero-omit",
+    "file": "du.ts",
+    "before": "if (!amount.complete) return;",
+    "after": "if (!amount.complete || amount.bytes === 0) return;",
+    "baselineStatus": 0,
+    "buildStatus": 0,
+    "testStatus": 1,
+    "killed": true,
+    "sourceSha256": "8b5d0a24bd04ccec70f5daa0e24c0d04a582df233f49263f095bad5350018981",
+    "builtSha256": "fac8a1b23395013bfcbb3a5e01c217182ed034ee16bd0466eebc98c35ed82780"
+  },
+  {
+    "name": "false-identity",
+    "file": "du.ts",
+    "before": "const { identityScope: scope, dev, ino } = stat;",
+    "after": "const { dev, ino } = stat;\n    const scope = Symbol.for(\"independent-mutant-shared\");",
+    "baselineStatus": 0,
+    "buildStatus": 0,
+    "testStatus": 1,
+    "killed": true,
+    "sourceSha256": "e07a3576023664ad75799ebc7a3ac3d5c9488d902b4701c348b95f43f2de0956",
+    "builtSha256": "6cf7eaf889aed88fdb3eac4d2c97d225fc5d2ccf60b4cb9ee9c1eaf4721b154f"
+  },
+  {
+    "name": "overflow",
+    "file": "du.ts",
+    "before": "if (right.bytes > Number.MAX_SAFE_INTEGER - left.bytes) {",
+    "after": "if (false) {",
+    "baselineStatus": 0,
+    "buildStatus": 0,
+    "testStatus": 1,
+    "killed": true,
+    "sourceSha256": "5799769aefbfd4072c9e5d0198e841faa7503c739f1cf4033d4c68e85706f21d",
+    "builtSha256": "0f8e8931f6309f844ad4c1643892b2022d3128e321519eb1a606389d58bad831"
+  },
+  {
+    "name": "incomplete-total",
+    "file": "du.ts",
+    "before": "if (!amount.complete) return;",
+    "after": "if (false) return;",
+    "baselineStatus": 0,
+    "buildStatus": 0,
+    "testStatus": 1,
+    "killed": true,
+    "sourceSha256": "cbaa5ec9f52c0d519fa5755b061d2691ec06de4fb22c838e193671cce9e6b9d6",
+    "builtSha256": "34a5b5ce195196409f8889b551d17ac059f6e7ec5a4cc8878cd99ba7da8bbc63"
+  },
+  {
+    "name": "output-quota",
+    "file": "budget.ts",
+    "before": "    this.check(text.length, this.limits.maxOutputBytes - this.output, \"output\");\n    const size = Buffer.byteLength(text);\n    this.check(size, this.limits.maxOutputBytes - this.output, \"output\");",
+    "after": "    this.check(text.length, Number.MAX_SAFE_INTEGER, \"output\");\n    const size = Buffer.byteLength(text);\n    this.check(size, Number.MAX_SAFE_INTEGER, \"output\");",
+    "baselineStatus": 0,
+    "buildStatus": 0,
+    "testStatus": 1,
+    "killed": true,
+    "sourceSha256": "d3dda204b7d7fb92825f6a3b5031fb9d5026dd5fa094b2f9cd3c1c961a6460fc",
+    "builtSha256": "7f2abc240efa987309b58aebe0e492d34940360540b6e2637251fc949765d193"
+  }
+]

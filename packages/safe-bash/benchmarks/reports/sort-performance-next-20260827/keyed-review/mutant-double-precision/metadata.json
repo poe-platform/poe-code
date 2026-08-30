@@ -1,0 +1,34 @@
+{
+  "commit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+  "sourceSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+  "instrumentedSha256": "67fc15dd4f3233af141dc63c388c309ecbcae11e03dd3237d22689e06b98d4ce",
+  "emittedSha256": "793ee4ab1c307fb5465c58f5cff83641b098b334e515298e8101e039ad6b05d0",
+  "recipeSource": {
+    "commit": "3fe952ea89034ceea784be26731581aabbb898c8",
+    "path": "benchmarks/reports/sort-performance-next-20260827/workloads.json",
+    "sha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504"
+  },
+  "casesSha256": "ad827e6379a40b609e70ce9d7058c5023b4988c20ca957ab26b11243ae125281",
+  "child": {
+    "args": [
+      "--test",
+      "--test-reporter=tap",
+      "loaded-worker.mjs"
+    ],
+    "pid": 34961,
+    "code": 1,
+    "signal": null,
+    "killed": null,
+    "exactChildClosed": true,
+    "outputBytes": 1382,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 0
+  },
+  "counterFailures": [],
+  "sourceBuildAndMovedPackageUnchanged": true,
+  "detectsAddedEntries": true,
+  "archiveSha256After": "c432e25d0bdddcdadf24c861d4fbf382247931f95a4120b6df4dfaba93bed08b",
+  "instrumentationOnly": true,
+  "timingClaims": false
+}

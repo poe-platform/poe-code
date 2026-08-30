@@ -1,0 +1,28 @@
+{
+  "at": "2026-08-28T09:03:04.540Z",
+  "normalizedPacketSha256": "7e40e84c099d8eaa2e9bc4c1cc73274b4a174d699737f34b7015eb4eb706ec70",
+  "files": [
+    {
+      "path": "PACKET.json",
+      "sha256": "56d45cb729ce8c60ed60834f7b86f2f08b438d34ff334c1f699d71d61a7fda47"
+    },
+    {
+      "path": "ROOT-RECEIPT.template.json",
+      "sha256": "a98704dcd79d094aba29bc6d4a85606488afb7c577449a90d3ce35e125c0457d"
+    },
+    {
+      "path": "prepare.mjs",
+      "sha256": "fa608546a7f30a695221dade902e425002e768ecd2f744eb8b515f3e6f036a54"
+    }
+  ],
+  "shippingFiles": 38,
+  "independentProofFiles": 5,
+  "fixedFourFixtureHashes": 4,
+  "invalidTemplateRejected": true,
+  "wrongModeRejected": true,
+  "pathsAbsent": true,
+  "sourceProductUnchanged": true,
+  "fullGateLaunched": false,
+  "toolsRehashed": false,
+  "qualification": "Static Git/blob/seal/argument metadata checks only; actual admission/tool verification remains mandatory after new root release."
+}

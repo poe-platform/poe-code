@@ -1,0 +1,125 @@
+{
+  "authorCommit": "5861ec9a8750de90bf38f93a2cd0df66198e8d9f",
+  "independent": "98192974514389759c96d20c7f35fe6050641c76",
+  "rootAcceptance": "cf6c47b8a976bb71bd6dd419c103e23264e71a32",
+  "parentRows": [
+    {
+      "path": "materialized/PRESEAL.json",
+      "gitBlob": "9b182ed9ddf2d2ca3b9b11eaf15d7748f1f2eccd",
+      "bytes": 6772,
+      "sha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901",
+      "mode": 384
+    },
+    {
+      "path": "materialized/admission.mjs",
+      "gitBlob": "fd54974d13dee24474346a6c7b18754151df31d8",
+      "bytes": 10000,
+      "sha256": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+      "mode": 384
+    },
+    {
+      "path": "materialized/entry.mjs",
+      "gitBlob": "b7b3ca7820e248ce5aaccf7967942036e81cd128",
+      "bytes": 7153,
+      "sha256": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+      "mode": 384
+    },
+    {
+      "path": "materialized/observation.mjs",
+      "gitBlob": "47acd115cb1292dc391c589e8101ec6cbd2b0201",
+      "bytes": 2170,
+      "sha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+      "mode": 384
+    },
+    {
+      "path": "materialized/capture.mjs",
+      "gitBlob": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+      "bytes": 1888,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "mode": 384
+    },
+    {
+      "path": "materialized/lifecycle.mjs",
+      "gitBlob": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+      "bytes": 5280,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "mode": 384
+    },
+    {
+      "path": "materialized/group-observer.mjs",
+      "gitBlob": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+      "bytes": 759,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "mode": 384
+    },
+    {
+      "path": "materialized/observer-state.mjs",
+      "gitBlob": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+      "bytes": 1240,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "mode": 384
+    },
+    {
+      "path": "materialized/state.mjs",
+      "gitBlob": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+      "bytes": 1824,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "mode": 384
+    },
+    {
+      "path": "materialized/storage.mjs",
+      "gitBlob": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+      "bytes": 3583,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "mode": 384
+    },
+    {
+      "path": "materialized/PROTOCOL.json",
+      "gitBlob": "8e146ded5b18b99b04aff44d854f731af5a34a87",
+      "bytes": 1613,
+      "sha256": "978d5ccbbe37febde406a1bbf2ea00d9313b6b32ce570221c16470db4a7ae931",
+      "mode": 384
+    },
+    {
+      "path": "materialized/TOOLS.json",
+      "gitBlob": "1e337cadb46f9454f0407cd3d98257908ac54df0",
+      "bytes": 3067,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+      "mode": 384
+    },
+    {
+      "path": "APPROVAL-PROPOSAL.template.json",
+      "gitBlob": "2413b7a0b57e95f96cb1b81b0f433d8d954ce1d5",
+      "bytes": 2902,
+      "sha256": "a6d8728e5f8c9db7e79c1c2eb1e403e2411edb72d88c02a3bf8b1a8cbf4670e7",
+      "mode": 384
+    }
+  ],
+  "verifiedTools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": 493
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "mode": 365
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "mode": 493
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "mode": 493
+    }
+  ],
+  "oldAuthorityReused": false
+}

@@ -1,0 +1,3729 @@
+{
+  "schema": "timeout-public-narrow-continuation-review/1",
+  "postProcessingOnly": true,
+  "at": "2026-08-28T05:48:50.625Z",
+  "recipeCommit": "1540a21d",
+  "manifestHash": "9d13a936dab063f7a9c2acb8a658e1e448326a8558be85ac4c3e744a6d585b8d",
+  "requestHash": "f2346c74f94f2bb8a0902395ed49f7105f61fd9417cce6a87452668471bbc3cb",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "status": "SCOPED_PUBLIC_TIMEOUT_CONTINUATION_FINDINGS",
+  "verdict": "PUBLIC_COMPONENTS_QUALIFIED_BOUNDARY_RECEIPT_HOLD",
+  "attempts": 1,
+  "retries": 0,
+  "runtime": {
+    "source": {
+      "executed": 8,
+      "passed": 8,
+      "failed": [],
+      "trailingCompletions": 8
+    },
+    "installed": {
+      "executed": 8,
+      "passed": 8,
+      "failed": [],
+      "trailingCompletions": 8
+    },
+    "moved": {
+      "executed": 8,
+      "passed": 8,
+      "failed": [],
+      "trailingCompletions": 8
+    }
+  },
+  "composedRuntime": {
+    "source": {
+      "bound": 22,
+      "newQualified": 8,
+      "qualified": 30
+    },
+    "installed": {
+      "bound": 22,
+      "newQualified": 8,
+      "qualified": 30
+    },
+    "moved": {
+      "bound": 22,
+      "newQualified": 8,
+      "qualified": 30
+    }
+  },
+  "boundProof": {
+    "priorEvidenceCommit": "2324e36d7f19c05a362d21460927c69098bbe17d",
+    "priorResultSha256": "b60816bc1c2f9b275b250fa688aef4585c9bcbeb883cfab7da2a959944cfa3f3",
+    "runtimePerLayout": 22,
+    "typeOutcomes": 20,
+    "packageNegatives": 7,
+    "freshControls": 6,
+    "priorProductMutantKills": 7,
+    "notRerun": true
+  },
+  "publicTypesExecuted": 0,
+  "focused": {
+    "schema": "timeout-public-continuation-focused-controls/1",
+    "at": "2026-08-28T05:44:50.237Z",
+    "manifestSha256": "9d13a936dab063f7a9c2acb8a658e1e448326a8558be85ac4c3e744a6d585b8d",
+    "requestSha256": "f2346c74f94f2bb8a0902395ed49f7105f61fd9417cce6a87452668471bbc3cb",
+    "results": [
+      {
+        "id": "C01-complete-admission",
+        "status": "PASS"
+      },
+      {
+        "id": "C02-no-marker",
+        "status": "PASS"
+      },
+      {
+        "id": "C03-wrong-registry",
+        "status": "PASS"
+      },
+      {
+        "id": "C04-missing-timeout",
+        "status": "PASS"
+      },
+      {
+        "id": "C05-rejected-setup",
+        "status": "PASS"
+      },
+      {
+        "id": "C06-setup-dispatch",
+        "status": "PASS"
+      },
+      {
+        "id": "C07-setup-output",
+        "status": "PASS"
+      },
+      {
+        "id": "C08-setup-timer",
+        "status": "PASS"
+      },
+      {
+        "id": "C09-raw-no-acquisition",
+        "status": "PASS"
+      },
+      {
+        "id": "C10-raw-acquisition-mutant",
+        "status": "PASS"
+      },
+      {
+        "id": "C11-gated-return",
+        "status": "PASS"
+      },
+      {
+        "id": "C12-next-content-mutant",
+        "status": "PASS"
+      },
+      {
+        "id": "C13-missing-return-mutant",
+        "status": "PASS"
+      },
+      {
+        "id": "C14-early-return-mutant",
+        "status": "PASS"
+      },
+      {
+        "id": "C15-missing-duplicate-acquisition-shell",
+        "status": "PASS"
+      },
+      {
+        "id": "C16-duplicate-return",
+        "status": "PASS"
+      },
+      {
+        "id": "C17-fulfilled-before-return",
+        "status": "PASS"
+      },
+      {
+        "id": "C18-post-bindings",
+        "status": "PASS"
+      }
+    ],
+    "passed": 18,
+    "failed": 0,
+    "productExecutions": 0,
+    "children": 0
+  },
+  "admission": [
+    {
+      "id": "A01-fresh",
+      "status": "PASS",
+      "profile": "scoped-committed-Git-blob-composition",
+      "pristineInputs": 269,
+      "patchedInputs": 3,
+      "materializedInputs": 269,
+      "fullHistoryArchiveProof": false,
+      "noLiveSourceFallback": true
+    },
+    {
+      "id": "A03-fresh",
+      "status": "PASS",
+      "wholePackSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "members": 858
+    },
+    {
+      "id": "A04-fresh",
+      "status": "PASS",
+      "physicallyMoved": true,
+      "oldInstallAbsent": true
+    },
+    {
+      "id": "A07-composed",
+      "status": "PASS",
+      "boundPriorKills": 7,
+      "newMutants": 1
+    },
+    {
+      "id": "A08-new",
+      "status": "PASS",
+      "allRecordedChildrenReaped": true,
+      "perCaseClosure": true
+    }
+  ],
+  "productMutants": [
+    {
+      "id": "M07",
+      "status": "KILLED",
+      "actualFailure": {
+        "type": "object",
+        "text": "AssertionError [ERR_ASSERTION]: HANDLER_RETURNED_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "HANDLER_RETURNED_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: HANDLER_RETURNED_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n\n    at assertCallerCollision (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/review-preparation-v1/recipe/support.mjs:34:10)\n    at callerCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/legacy-adapter.mjs:141:23)\n    at async Object.R23 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:183:15)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:197:17"
+      },
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "fulfilled",
+            "exitCode": 124,
+            "stdoutBase64": null,
+            "stderrBase64": null
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    }
+  ],
+  "boundaryControls": [
+    {
+      "id": "B01",
+      "status": "FAIL",
+      "qualificationFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "ACTUAL_BOUNDARY_OBSERVATION",
+        "stack": "AssertionError [ERR_ASSERTION]: ACTUAL_BOUNDARY_OBSERVATION\n    at runtime (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/execute.mjs:55:482)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/execute.mjs:83:216"
+      },
+      "actualFailure": {
+        "type": "object",
+        "text": "AssertionError [ERR_ASSERTION]: RAW_STDIN_ACQUIRE",
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "RAW_STDIN_ACQUIRE",
+        "stack": "AssertionError [ERR_ASSERTION]: RAW_STDIN_ACQUIRE\n    at [Symbol.asyncIterator] (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/boundaries.mjs:19:67)\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:135:134)\n    at direct (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:16:82)\n    at Object.R12 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:136:23)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:197:17"
+      },
+      "cleanup": {
+        "tracked": 1,
+        "pending": 0,
+        "timers": 0,
+        "shells": 1,
+        "disposalRejections": [],
+        "unhandled": []
+      },
+      "observations": []
+    },
+    {
+      "id": "B02",
+      "status": "KILLED",
+      "actualFailure": {
+        "type": "object",
+        "text": "AssertionError [ERR_ASSERTION]: SHELL_STDIN_NEXT\n\n1 !== 0\n",
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "SHELL_STDIN_NEXT\n\n1 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: SHELL_STDIN_NEXT\n\n1 !== 0\n\n    at assertShellInput (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/boundaries.mjs:42:10)\n    at Object.R12 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:144:7)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:197:17"
+      },
+      "cleanup": {
+        "tracked": 3,
+        "pending": 0,
+        "timers": 0,
+        "shells": 1,
+        "disposalRejections": [],
+        "unhandled": []
+      },
+      "observations": [
+        {
+          "kind": "R12-raw-before-assertion",
+          "vectorIndex": 0,
+          "argv": [],
+          "counts": {
+            "acquire": 0,
+            "next": 0,
+            "returned": 0,
+            "settled": 0,
+            "contentBytes": 0
+          },
+          "outcome": {
+            "status": "fulfilled",
+            "exitCode": 125,
+            "stdoutBase64": null,
+            "stderrBase64": null
+          },
+          "stdoutBase64": "",
+          "stderrBase64": "dGltZW91dDogbWlzc2luZyBkdXJhdGlvbgo="
+        },
+        {
+          "kind": "R12-shell-before-release",
+          "vectorIndex": 0,
+          "argv": [],
+          "counts": {
+            "acquire": 1,
+            "next": 1,
+            "returned": 1,
+            "settled": 0,
+            "contentBytes": 1
+          },
+          "outcome": {
+            "status": "pending"
+          },
+          "dispatchCounts": {
+            "child": 0,
+            "fallback": 0,
+            "rawInvoke": 0
+          },
+          "timerEvents": 0
+        }
+      ]
+    },
+    {
+      "id": "B03",
+      "status": "KILLED",
+      "actualFailure": {
+        "type": "object",
+        "text": "AssertionError [ERR_ASSERTION]: STDIN_RETURN_NOT_ENTERED: handler settled before required admission (fulfilled)",
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "STDIN_RETURN_NOT_ENTERED: handler settled before required admission (fulfilled)",
+        "stack": "AssertionError [ERR_ASSERTION]: STDIN_RETURN_NOT_ENTERED: handler settled before required admission (fulfilled)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/legacy-adapter.mjs:23:277\n    at async Object.R12 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:142:11)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:197:17"
+      },
+      "cleanup": {
+        "tracked": 3,
+        "pending": 0,
+        "timers": 0,
+        "shells": 1,
+        "disposalRejections": [],
+        "unhandled": []
+      },
+      "observations": [
+        {
+          "kind": "R12-raw-before-assertion",
+          "vectorIndex": 0,
+          "argv": [],
+          "counts": {
+            "acquire": 0,
+            "next": 0,
+            "returned": 0,
+            "settled": 0,
+            "contentBytes": 0
+          },
+          "outcome": {
+            "status": "fulfilled",
+            "exitCode": 125,
+            "stdoutBase64": null,
+            "stderrBase64": null
+          },
+          "stdoutBase64": "",
+          "stderrBase64": "dGltZW91dDogbWlzc2luZyBkdXJhdGlvbgo="
+        },
+        {
+          "kind": "required-admission-settled",
+          "label": "STDIN_RETURN_NOT_ENTERED",
+          "outcome": {
+            "status": "fulfilled",
+            "exitCode": 125,
+            "stdout": "",
+            "stderr": "timeout: missing duration\n",
+            "stdoutBase64": "",
+            "stderrBase64": "dGltZW91dDogbWlzc2luZyBkdXJhdGlvbgo="
+          }
+        },
+        {
+          "kind": "R12-return-admission-failure",
+          "vectorIndex": 0,
+          "counts": {
+            "acquire": 1,
+            "next": 0,
+            "returned": 0,
+            "settled": 0,
+            "contentBytes": 0
+          },
+          "outcome": {
+            "status": "fulfilled",
+            "exitCode": 125,
+            "stdout": "",
+            "stderr": "timeout: missing duration\n",
+            "stdoutBase64": "",
+            "stderrBase64": "dGltZW91dDogbWlzc2luZyBkdXJhdGlvbgo="
+          },
+          "error": {
+            "type": "object",
+            "text": "AssertionError [ERR_ASSERTION]: STDIN_RETURN_NOT_ENTERED: handler settled before required admission (fulfilled)",
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "STDIN_RETURN_NOT_ENTERED: handler settled before required admission (fulfilled)",
+            "stack": "AssertionError [ERR_ASSERTION]: STDIN_RETURN_NOT_ENTERED: handler settled before required admission (fulfilled)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/legacy-adapter.mjs:23:277\n    at async Object.R12 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:142:11)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:197:17"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B04",
+      "status": "KILLED",
+      "actualFailure": {
+        "type": "object",
+        "text": "AssertionError [ERR_ASSERTION]: SHELL_STDIN_RETURN_SETTLEMENT\n\n1 !== 0\n",
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "SHELL_STDIN_RETURN_SETTLEMENT\n\n1 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: SHELL_STDIN_RETURN_SETTLEMENT\n\n1 !== 0\n\n    at assertShellInput (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/boundaries.mjs:46:10)\n    at Object.R12 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:144:7)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs:197:17"
+      },
+      "cleanup": {
+        "tracked": 3,
+        "pending": 0,
+        "timers": 0,
+        "shells": 1,
+        "disposalRejections": [],
+        "unhandled": []
+      },
+      "observations": [
+        {
+          "kind": "R12-raw-before-assertion",
+          "vectorIndex": 0,
+          "argv": [],
+          "counts": {
+            "acquire": 0,
+            "next": 0,
+            "returned": 0,
+            "settled": 0,
+            "contentBytes": 0
+          },
+          "outcome": {
+            "status": "fulfilled",
+            "exitCode": 125,
+            "stdoutBase64": null,
+            "stderrBase64": null
+          },
+          "stdoutBase64": "",
+          "stderrBase64": "dGltZW91dDogbWlzc2luZyBkdXJhdGlvbgo="
+        },
+        {
+          "kind": "R12-shell-before-release",
+          "vectorIndex": 0,
+          "argv": [],
+          "counts": {
+            "acquire": 1,
+            "next": 0,
+            "returned": 1,
+            "settled": 1,
+            "contentBytes": 0
+          },
+          "outcome": {
+            "status": "fulfilled",
+            "exitCode": 125,
+            "stdout": "",
+            "stderr": "timeout: missing duration\n",
+            "stdoutBase64": "",
+            "stderrBase64": "dGltZW91dDogbWlzc2luZyBkdXJhdGlvbgo="
+          },
+          "dispatchCounts": {
+            "child": 0,
+            "fallback": 0,
+            "rawInvoke": 0
+          },
+          "timerEvents": 0
+        }
+      ]
+    }
+  ],
+  "setup": {
+    "executions": 41,
+    "semanticExecutions": 36,
+    "setupDispatches": 0,
+    "measuredDispatches": 59,
+    "records": [
+      {
+        "profile": "source",
+        "caseId": "R01",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [],
+        "clockBefore": [],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": []
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 1,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 2,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 3,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 4,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R21",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "public-child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R23",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R24",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "outer"
+          },
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R25",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 5,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 5,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R28",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "public-child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R29",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R01",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [],
+        "clockBefore": [],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": []
+      },
+      {
+        "profile": "installed",
+        "caseId": "R12",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R12",
+        "ordinal": 1,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R12",
+        "ordinal": 2,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R12",
+        "ordinal": 3,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R12",
+        "ordinal": 4,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R21",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "public-child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R23",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R24",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "outer"
+          },
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R25",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 5,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 5,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R28",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "public-child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "installed",
+        "caseId": "R29",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R01",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [],
+        "clockBefore": [],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": []
+      },
+      {
+        "profile": "moved",
+        "caseId": "R12",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R12",
+        "ordinal": 1,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R12",
+        "ordinal": 2,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R12",
+        "ordinal": 3,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R12",
+        "ordinal": 4,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R21",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "public-child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R23",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R24",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "outer"
+          },
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R25",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 5,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 5,
+            "live": 0
+          },
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R28",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "public-child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "moved",
+        "caseId": "R29",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R23",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          },
+          {
+            "phase": "measured",
+            "command": "child"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      },
+      {
+        "profile": "source",
+        "caseId": "R12",
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [
+          {
+            "phase": "measured",
+            "command": "timeout"
+          }
+        ],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      }
+    ]
+  },
+  "r12": {
+    "completedVectors": 15,
+    "records": [
+      {
+        "profile": "source",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 0,
+        "argv": [],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "source",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 1,
+        "argv": [
+          "1"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "source",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 2,
+        "argv": [
+          "bad",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "source",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 3,
+        "argv": [
+          "--unknown",
+          "1",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "source",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 4,
+        "argv": [
+          "--signal=TERM",
+          "1",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "installed",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 0,
+        "argv": [],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "installed",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 1,
+        "argv": [
+          "1"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "installed",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 2,
+        "argv": [
+          "bad",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "installed",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 3,
+        "argv": [
+          "--unknown",
+          "1",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "installed",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 4,
+        "argv": [
+          "--signal=TERM",
+          "1",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "moved",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 0,
+        "argv": [],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "moved",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 1,
+        "argv": [
+          "1"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "moved",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 2,
+        "argv": [
+          "bad",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "moved",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 3,
+        "argv": [
+          "--unknown",
+          "1",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      },
+      {
+        "profile": "moved",
+        "kind": "R12-vector-complete",
+        "vectorIndex": 4,
+        "argv": [
+          "--signal=TERM",
+          "1",
+          "child"
+        ],
+        "rawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "stderrRawCounts": {
+          "acquire": 0,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "shellCounts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 1,
+          "settled": 1,
+          "contentBytes": 0
+        },
+        "dispatchCounts": {
+          "child": 0,
+          "fallback": 0,
+          "rawInvoke": 0
+        },
+        "timerEvents": 0
+      }
+    ]
+  },
+  "collisionProof": [
+    {
+      "profile": "source",
+      "id": "R23",
+      "activations": [
+        {
+          "id": "PC01",
+          "route": "root-caller",
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "source",
+      "id": "R24",
+      "activations": [
+        {
+          "id": "PC01",
+          "route": "outer-context",
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "fulfilled",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "borrowed-outer-invoke",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 1
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "outer": {
+            "status": "fulfilled",
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "shell: line 1: [object Object]\n",
+            "stdoutBase64": "",
+            "stderrBase64": "c2hlbGw6IGxpbmUgMTogW29iamVjdCBPYmplY3RdCg=="
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "source",
+      "id": "R25",
+      "activations": [
+        {
+          "id": "PC02",
+          "actualProductRetirementEntered": true,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "handler": "rejected",
+          "registeredCleanupRejections": 1,
+          "resources": 0
+        },
+        {
+          "id": "PC02",
+          "route": "actual-Shell-cleanup-barrier",
+          "retirementEntered": 1,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "rootAggregation": false,
+          "childClosed": true,
+          "resources": 0,
+          "disposal": "fulfilled"
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC02-direct-retirement",
+          "entered": true,
+          "threw": true,
+          "sameSentinel": true,
+          "before": {
+            "status": "pending"
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0,
+          "registeredCleanupRejections": 1
+        },
+        {
+          "kind": "PC02-shell-before-assertion",
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "retirementEntered": 1,
+          "sameSentinel": true,
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "source",
+      "id": "R29",
+      "activations": [
+        {
+          "id": "F28",
+          "route": "root-caller",
+          "sameSentinel": false,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": false,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": false,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": false,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": false,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "id": "R23",
+      "activations": [
+        {
+          "id": "PC01",
+          "route": "root-caller",
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "id": "R24",
+      "activations": [
+        {
+          "id": "PC01",
+          "route": "outer-context",
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "fulfilled",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "borrowed-outer-invoke",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 1
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "outer": {
+            "status": "fulfilled",
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "shell: line 1: [object Object]\n",
+            "stdoutBase64": "",
+            "stderrBase64": "c2hlbGw6IGxpbmUgMTogW29iamVjdCBPYmplY3RdCg=="
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "id": "R25",
+      "activations": [
+        {
+          "id": "PC02",
+          "actualProductRetirementEntered": true,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "handler": "rejected",
+          "registeredCleanupRejections": 1,
+          "resources": 0
+        },
+        {
+          "id": "PC02",
+          "route": "actual-Shell-cleanup-barrier",
+          "retirementEntered": 1,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "rootAggregation": false,
+          "childClosed": true,
+          "resources": 0,
+          "disposal": "fulfilled"
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC02-direct-retirement",
+          "entered": true,
+          "threw": true,
+          "sameSentinel": true,
+          "before": {
+            "status": "pending"
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0,
+          "registeredCleanupRejections": 1
+        },
+        {
+          "kind": "PC02-shell-before-assertion",
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "retirementEntered": 1,
+          "sameSentinel": true,
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "id": "R29",
+      "activations": [
+        {
+          "id": "F28",
+          "route": "root-caller",
+          "sameSentinel": false,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": false,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": false,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": false,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": false,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "id": "R23",
+      "activations": [
+        {
+          "id": "PC01",
+          "route": "root-caller",
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "id": "R24",
+      "activations": [
+        {
+          "id": "PC01",
+          "route": "outer-context",
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "fulfilled",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "borrowed-outer-invoke",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 1
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "outer": {
+            "status": "fulfilled",
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "shell: line 1: [object Object]\n",
+            "stdoutBase64": "",
+            "stderrBase64": "c2hlbGw6IGxpbmUgMTogW29iamVjdCBPYmplY3RdCg=="
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "id": "R25",
+      "activations": [
+        {
+          "id": "PC02",
+          "actualProductRetirementEntered": true,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "handler": "rejected",
+          "registeredCleanupRejections": 1,
+          "resources": 0
+        },
+        {
+          "id": "PC02",
+          "route": "actual-Shell-cleanup-barrier",
+          "retirementEntered": 1,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "rootAggregation": false,
+          "childClosed": true,
+          "resources": 0,
+          "disposal": "fulfilled"
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC02-direct-retirement",
+          "entered": true,
+          "threw": true,
+          "sameSentinel": true,
+          "before": {
+            "status": "pending"
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0,
+          "registeredCleanupRejections": 1
+        },
+        {
+          "kind": "PC02-shell-before-assertion",
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "retirementEntered": 1,
+          "sameSentinel": true,
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "id": "R29",
+      "activations": [
+        {
+          "id": "F28",
+          "route": "root-caller",
+          "sameSentinel": false,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": false,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": false,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": false,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": false,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    }
+  ],
+  "loadProof": {
+    "B01-R12": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "B02-R12": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "B03-R12": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "B04-R12": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "M07-R23": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "installed-R01": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "installed-R12": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "installed-R21": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "installed-R23": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "installed-R24": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "installed-R25": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "installed-R28": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "installed-R29": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "moved-R01": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "moved-R12": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "moved-R21": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "moved-R23": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "moved-R24": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "moved-R25": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "moved-R28": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "moved-R29": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 0,
+      "packageResolutions": 4
+    },
+    "source-R01": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "source-R12": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "source-R21": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "source-R23": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "source-R24": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "source-R25": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "source-R28": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    },
+    "source-R29": {
+      "actualModuleLoads": 219,
+      "sourceTransforms": 210,
+      "packageResolutions": 0
+    }
+  },
+  "children": {
+    "node": 32,
+    "reaped": 32,
+    "forced": [],
+    "allChildrenReaped": true,
+    "synchronousGit": 545
+  },
+  "integrityGuards": 66,
+  "unexecuted": {
+    "runtime": [],
+    "mutants": [],
+    "boundaryControls": []
+  },
+  "archive": {
+    "archiveSha256": "c788d9ed351fdc6d10f054c0ca1c17fe1f3da9fdd891aba02eb33a53b67c6d53",
+    "retainedFiles": 875,
+    "workFiles": 5159,
+    "rawFiles": 248,
+    "removed": true,
+    "bytes": 5586342
+  },
+  "originalResultSha256": "4da6451f2fb5b57467cf631643b22bfa49bc3b37a2944554788bf9de18e23f15",
+  "noOldRescore": true,
+  "noProductChanges": true,
+  "native": 0,
+  "safeJS": 0,
+  "fullGate": false
+}

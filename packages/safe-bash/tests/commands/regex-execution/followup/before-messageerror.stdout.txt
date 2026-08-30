@@ -1,0 +1,154 @@
+TAP version 13
+# {"phase":"startup","code":"STARTUP_TIMEOUT","promptTerminationCalls":0,"settledBeforeRelease":false,"terminatedBeforeRelease":false}
+# Subtest: startup messageerror is promptly PROTOCOL and awaits exact retirement
+not ok 1 - startup messageerror is promptly PROTOCOL and awaits exact retirement
+  ---
+  duration_ms: 44.509875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:1:2185'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'STARTUP_TIMEOUT'
+    - 'PROTOCOL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PROTOCOL'
+  actual: 'STARTUP_TIMEOUT'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:83:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"phase":"active","code":"REQUEST_TIMEOUT","promptTerminationCalls":0,"settledBeforeRelease":false,"terminatedBeforeRelease":false}
+# Subtest: active messageerror is promptly PROTOCOL and awaits exact retirement
+not ok 2 - active messageerror is promptly PROTOCOL and awaits exact retirement
+  ---
+  duration_ms: 42.929625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:1:2185'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'REQUEST_TIMEOUT'
+    - 'PROTOCOL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PROTOCOL'
+  actual: 'REQUEST_TIMEOUT'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:83:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: idle messageerror retires promptly, holds capacity and close awaits cleanup
+not ok 3 - idle messageerror retires promptly, holds capacity and close awaits cleanup
+  ---
+  duration_ms: 1.014333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:1:3492'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:113:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: protocol precedence survives messageerror and awaited termination
+not ok 4 - protocol precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 0.610417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:1:4669'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'PROTOCOL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PROTOCOL'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:160:19)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: abort precedence survives messageerror and awaited termination
+ok 5 - abort precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 0.639375
+  type: 'test'
+  ...
+# Subtest: timeout precedence survives messageerror and awaited termination
+ok 6 - timeout precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 22.663459
+  type: 'test'
+  ...
+# Subtest: worker-error precedence survives messageerror and awaited termination
+ok 7 - worker-error precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 0.467625
+  type: 'test'
+  ...
+# Subtest: dispose precedence survives messageerror and awaited termination
+ok 8 - dispose precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 0.421167
+  type: 'test'
+  ...
+# Subtest: native worker receiver messageerror uses the same awaited cleanup
+not ok 9 - native worker receiver messageerror uses the same awaited cleanup
+  ---
+  duration_ms: 59.2055
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:1:5908'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'REQUEST_TIMEOUT'
+    - 'PROTOCOL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PROTOCOL'
+  actual: 'REQUEST_TIMEOUT'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/messageerror.test.ts:188:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 4
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 283.455167

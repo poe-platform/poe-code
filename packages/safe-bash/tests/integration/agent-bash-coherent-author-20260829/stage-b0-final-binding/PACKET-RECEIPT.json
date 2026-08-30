@@ -1,0 +1,15 @@
+{
+  "finished": "2026-08-29T11:55:16.646Z",
+  "elapsedSeconds": 122.124,
+  "explicitKnownStartsIncludingPublication": 15,
+  "knownPeak": 2,
+  "fullCensusClaim": false,
+  "packet": {
+    "bytes": 1643,
+    "sha256": "0c1fe3ac4c6dde32caab52c0575254bae3ad8071943ce48e5bf404f1af2b5f39"
+  },
+  "productCalls": 0,
+  "installs": 0,
+  "workers": 0,
+  "decodes": 0
+}

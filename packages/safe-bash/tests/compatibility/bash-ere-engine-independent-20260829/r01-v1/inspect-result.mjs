@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+const own=path.resolve('tests/compatibility/bash-ere-engine-independent-20260829/r01-v1');
+const file=path.join(own,'closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/RESULT.json');
+const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==310015)throw new Error('result admission');
+const bytes=fs.readFileSync(file);if(crypto.createHash('sha256').update(bytes).digest('hex')!=='016d3d567661c1a24505e48e08671d7eddfd2ab34261b5440c701e65248a422f')throw new Error('result binding');
+const result=JSON.parse(bytes.toString('utf8'));
+for(const row of result.rows.filter(row=>!row.mutated&&!row.role.endsWith('-restored')&&row.role.startsWith('source-')))console.log(JSON.stringify({role:row.role,kind:row.kind,ids:row.observed.rows.map(item=>item.id)}));
+console.log(JSON.stringify({types:result.types,mutants:result.mutants,guards:result.guards,declarations:result.declarations,elapsedMs:result.elapsedMs,children:result.children,active:result.active}));

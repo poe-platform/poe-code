@@ -1,0 +1,9 @@
+{
+  "liveApplied": false,
+  "sourceRevision": "6e99656dd9d6e285b33fb3cf99ed5fef19146a48",
+  "path": "src/commands/text.ts",
+  "beforeSha256": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+  "candidateSha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+  "patchSha256": "f13d6c89a6b43962c0b7794510d15a3fdc7b33f9113db09747c1f5484ce29811",
+  "scope": "sort-local owned record collection only; comparator, output, check mode, env and root exports unchanged"
+}

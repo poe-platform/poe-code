@@ -1,0 +1,49 @@
+{
+  "schema": "k08-actual-preflight-v1",
+  "at": "2026-08-29T15:42:46.057Z",
+  "rootActualAuthorization": "ONE attempt user instruction; finalslot21e36404a7480d72f8877e8d2d10fcef9b2e09e0",
+  "slotReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/activation-review-v1/RECEIPT.json",
+    "bytes": 2251,
+    "sha256": "8ad9f9f6547caabfb9f73a2c1a055fa91224244fe04e9237fddc055445966a14"
+  },
+  "seal": {
+    "bytes": 199449,
+    "sha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49"
+  },
+  "grant": {
+    "bytes": 976,
+    "sha256": "5faba4fe944420c29637b0d9d643c24555cc6be05638134d90910f6d59a2891b"
+  },
+  "review": {
+    "bytes": 211,
+    "sha256": "19b53c9dcc8c9eaa5b3f63b4b5599cdbcaa3e79d5ca24a587371aeaa7e50a684"
+  },
+  "command": {
+    "bytes": 346,
+    "sha256": "e48cfe86594ed6f3fd56e6add6f3a839770d9e190f45135de77342bd0fe803d9"
+  },
+  "sourceInputs": 306,
+  "shippingMembers": 1006,
+  "unusedPaths": [
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/auth.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/profile.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/guard.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/case-driver.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/helper-driver.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/case-adapter.mjs",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/CASES.json",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-installed",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-moved",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-mutant-M01",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-mutant-M02",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-mutant-M03"
+  ],
+  "futureCaptureEmpty": true,
+  "window": {
+    "finalDeadline": 1788019666057,
+    "duration": 1500000
+  },
+  "globalPublicationDeadline": 1788019666057,
+  "qualification": "Source/data preflight; no product calls yet. Earlier prelaunch deadline constrains administrative publication, never extends inherited runtime deadline."
+}

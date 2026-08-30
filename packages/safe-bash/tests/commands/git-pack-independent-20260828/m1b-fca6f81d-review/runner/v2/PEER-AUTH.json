@@ -1,0 +1,464 @@
+{
+  "schema": "m1b-v2-selected-peer-authentication",
+  "role": "SOURCE_DATA_PREPARATION_NOT_CANDIDATE_RUNTIME",
+  "peers": [
+    {
+      "name": "semantic",
+      "commit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "directory": "semantic",
+      "seal": "SEAL.json",
+      "sha256": "fcc60cc7cad15d74a1e59443b1cd3a792a02ce4d395de09b1ff30e666fb63c2d"
+    },
+    {
+      "name": "mechanical",
+      "commit": "856b0a59846ad09680cd32227c686925db882258",
+      "directory": "mechanical",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "3ca5d3fa7176f6552419e1bd2ab440e3e8443d39e44964eabe9442559e89d896"
+    },
+    {
+      "name": "type-api",
+      "commit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "directory": "mechanical-type-api-v2",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "e2a71c452cea79089296fe3051ff9686d5b7f74096305a7ab2fd01ff5eb63ea7"
+    },
+    {
+      "name": "loaded",
+      "commit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "directory": "semantic-integration-v2",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "7a26dae3833255423416068f8810e94f5f85b698f5f9a15f78095a5a4155f69a"
+    },
+    {
+      "name": "mode",
+      "commit": "5f937ee171bbcd5564c78709440e1fbbf3ef927a",
+      "directory": "semantic-mode-v3",
+      "seal": "SEAL.json",
+      "sha256": "9e597aec4494f171a4921b2617787fc682400d39531f81b9db9cd0d7ea08ae4c"
+    },
+    {
+      "name": "runner-review",
+      "commit": "adecd04c56790e3acfccaf0c3216e0a606b47e14",
+      "directory": "runner-static-review",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "80acb485fa59858f78e6b01940422edbc08b4a79bd24486fe89908d603e46f6a"
+    }
+  ],
+  "selected": [
+    {
+      "path": "semantic/semantic.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-mode-v3/semantic.mjs",
+      "sourceCommit": "5f937ee171bbcd5564c78709440e1fbbf3ef927a",
+      "role": "ACTIVE_MODE_ONLY_OVERLAY",
+      "blob": "88ac4f01330bbb2a6ff7468bf291cb308b0f7708",
+      "mode": 420,
+      "bytes": 18613,
+      "sha256": "0f8e4b79ec3cf233b9b31a166f83feef264384a62039417ef2f0e049f899da7f"
+    },
+    {
+      "path": "semantic/fixtures.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/fixtures.mjs",
+      "sourceCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "role": "ACTIVE_CODE",
+      "blob": "e8d90bc25e364c0bd54a97d595c9fa0488c134f7",
+      "mode": 420,
+      "bytes": 12591,
+      "sha256": "4595e425d2c562069d1c4529ad7af9a0c48af11017cc8ce4aa75707a95a65145"
+    },
+    {
+      "path": "semantic/FROZEN-DATA.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/FROZEN-DATA.json",
+      "sourceCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "24875b4a409ccb0791d50262aeb637b37e49fc8f",
+      "mode": 420,
+      "bytes": 128512,
+      "sha256": "a57c3da7b9354dd5d5cc1af23f5a10160aaafa0a2f05c94ee64d022946b4811d"
+    },
+    {
+      "path": "semantic/CASE-DATA.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASE-DATA.json",
+      "sourceCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "d7b30ae77aa042bc557931b38536f619b1e50094",
+      "mode": 420,
+      "bytes": 166027,
+      "sha256": "cdff96c2817366c7506e1cf785f9b4ca9056cfc1d787df232bd1dde95d6f2ff0"
+    },
+    {
+      "path": "mechanical/checkpoints.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/checkpoints.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "a29a82f4706ab0a06e85efe9cc7d8671a6034511",
+      "mode": 420,
+      "bytes": 3536,
+      "sha256": "c2d14cba023194cee68f3692370fd137f9e19ddf66618585a95a47ae8d0fa28b"
+    },
+    {
+      "path": "mechanical/counter.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/counter.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "302051f8fa9524796e6207979f37d71ec5f506ad",
+      "mode": 420,
+      "bytes": 1395,
+      "sha256": "f376fc1322132af4308825f79dec3abb231474d1584740f33d420e4fe438f575"
+    },
+    {
+      "path": "mechanical/fixture-data.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/fixture-data.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "adb18ef77e421afc7490c802cf5438a531b91841",
+      "mode": 420,
+      "bytes": 1729,
+      "sha256": "a7005b60f913bf395094bd4bea0df971052be7da265384992b702cddd0695677"
+    },
+    {
+      "path": "mechanical/ownership.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/ownership.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "aaaf0398b1f7642dd9448c3465e9fb922b11c0f6",
+      "mode": 420,
+      "bytes": 5919,
+      "sha256": "abdb7c32441578a5b2415bd484c2bdf244dba723d555afaa021210ef7264ad84"
+    },
+    {
+      "path": "mechanical/session-observation.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/session-observation.mjs",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_CODE",
+      "blob": "be78105828232939fb8a7d32e7321fe6080eaefa",
+      "mode": 420,
+      "bytes": 3368,
+      "sha256": "1161e5091ba13f0fc880244202b10778dd0ac7692a32c8b60d5595c03b6f3b14"
+    },
+    {
+      "path": "mechanical/types/T01-positive.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T01-positive.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "47c02f8efef39b315aff2c5853fb13d7cf32e2c2",
+      "mode": 420,
+      "bytes": 460,
+      "sha256": "c31d31f589ea3c923be1e4b70630cb8c94a86320d2a288fdbbfa94bf0af26cd5"
+    },
+    {
+      "path": "mechanical/types/T02-limits.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T02-limits.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "e54f2d242926f966dcb18a9d23f68156f1be87f4",
+      "mode": 420,
+      "bytes": 84,
+      "sha256": "74db8bee8a71490437b8857041423fba674cdd23211f938e12681b36d696d058"
+    },
+    {
+      "path": "mechanical/types/T03-spawn.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T03-spawn.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "8f31d19d767d1eee8a630f40741f6d85607b1708",
+      "mode": 420,
+      "bytes": 86,
+      "sha256": "3c7b02c308b1a99cf8a8874ce67a71fe059c35a19ec49f6a3c9d6ebc0535c668"
+    },
+    {
+      "path": "mechanical/types/T04-boundary.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T04-boundary.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "9e92d7cf5f7097dc927025f05710c58984fcd44a",
+      "mode": 420,
+      "bytes": 96,
+      "sha256": "9d90ba44f8598b763c8ff0e03d2f36ee2335cdc2a2991a27365dfd8e832a8aff"
+    },
+    {
+      "path": "mechanical/types/T05-replace.mts.data",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T05-replace.mts.data",
+      "sourceCommit": "856b0a59846ad09680cd32227c686925db882258",
+      "role": "ACTIVE_FIXTURE_DATA",
+      "blob": "ab0a30b2fc9caac35e06fcbd46f17148224a8ed0",
+      "mode": 420,
+      "bytes": 78,
+      "sha256": "ba3ddb82b49dc2676d151cfbd55381f772bde481f20016290abe401272d56fc7"
+    },
+    {
+      "path": "mechanical-type-api-v2/adapter.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/adapter.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "a574eab6d71bd36ffd36100a0005e831a9e89407",
+      "mode": 420,
+      "bytes": 2083,
+      "sha256": "37b4c7e98f92b0ff1795db87e8e8c4d5cd381abaa4dafb222dcf32a8fcb53c94"
+    },
+    {
+      "path": "mechanical-type-api-v2/admission.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/admission.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "44239ce76ece8fd345c84dcf11f53e535de4b5df",
+      "mode": 420,
+      "bytes": 9657,
+      "sha256": "ff45172e918204b24fc98d395b4f31a8725c26bacfa850cfbf75b3ab37012edc"
+    },
+    {
+      "path": "mechanical-type-api-v2/compiler-api-worker.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/compiler-api-worker.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "1ed8d8f1e5071f16c626ad004b3a8e6456e1b0e8",
+      "mode": 420,
+      "bytes": 4633,
+      "sha256": "78bcbcff93977889e810c70fc706f876577ab9642c2c2a7cf7174be974cbeb02"
+    },
+    {
+      "path": "mechanical-type-api-v2/compiler-host.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/compiler-host.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "bdca10f6e0054a56d6eb65e18c0fcecf598bf612",
+      "mode": 420,
+      "bytes": 9325,
+      "sha256": "97bc9c20b3438addb0561995963e51e5b2b67a12a94b47a8f1fa2f1b0fa8411c"
+    },
+    {
+      "path": "mechanical-type-api-v2/fixtures.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/fixtures.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "73a47ca5992606b3ab2813cf5269c6c6597cbcf5",
+      "mode": 420,
+      "bytes": 3208,
+      "sha256": "08631ec3df33e9587b51bc3fd5b0892b9ca6561c881221ca588b4c9912e717d6"
+    },
+    {
+      "path": "mechanical-type-api-v2/pins.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/pins.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "b1b424e22634ccec57696de580e2fc52aee46ee1",
+      "mode": 420,
+      "bytes": 471,
+      "sha256": "fe10792244dcd163126e312ba0e7bcc05ad60e8c0f5e33bf48536f8749d86e0b"
+    },
+    {
+      "path": "mechanical-type-api-v2/protocol.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/protocol.mjs",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_CODE",
+      "blob": "1c2d3252a2f9f98d870cdf0d5364ec291a86448f",
+      "mode": 420,
+      "bytes": 8586,
+      "sha256": "6e41eb4aa325ff1d9c996917386e2098ec4751d2eddfb6756893d10d155985c9"
+    },
+    {
+      "path": "mechanical-type-api-v2/TOOLS.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/TOOLS.json",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_DATA",
+      "blob": "0db2c82578341d14c51998ee4e3bb0f4c3953b43",
+      "mode": 420,
+      "bytes": 59469,
+      "sha256": "47117b49837e6ef0281778c428625200cdc4bb58db687c9d5593272bb9f3b01c"
+    },
+    {
+      "path": "mechanical-type-api-v2/SUBJECT.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/SUBJECT.json",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_DATA",
+      "blob": "c30be2f994045efc95637f8ac92e9832e738fe6a",
+      "mode": 420,
+      "bytes": 179664,
+      "sha256": "5026285d3b9817d39e161d83f5c33447a457b15826aa49581d5826eb7f5140c9"
+    },
+    {
+      "path": "mechanical-type-api-v2/FIXTURES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/FIXTURES.json",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_TYPE_API_DATA",
+      "blob": "fbfa2730f35b849c47554fd70401c86c5b528d44",
+      "mode": 420,
+      "bytes": 3434,
+      "sha256": "cb9645b29df52051c964f0bafb2cdffcc2cf045ffdb344f8b6a9eb616bbf7b85"
+    },
+    {
+      "path": "semantic-integration-v2/loaded.mjs",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/loaded.mjs",
+      "sourceCommit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "role": "ACTIVE_LOADED_CODE",
+      "blob": "79ab8c61f284c52fbc2fc0835de5e4bf1ef50654",
+      "mode": 420,
+      "bytes": 13641,
+      "sha256": "edc0d9d8e5f4f178310f69a0553722564af245769519e2afeaa7a8aa88f0d539"
+    },
+    {
+      "path": "semantic-integration-v2/WITNESSES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/WITNESSES.json",
+      "sourceCommit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "role": "ACTIVE_LOADED_DATA",
+      "blob": "c9e37affc07170759b1def6ffc7ae7b3a4e62f9b",
+      "mode": 420,
+      "bytes": 10543,
+      "sha256": "7131dbdca29346915b4d2e600fd3dc63f30a4965ae80fd7fde67a34999dba3e3"
+    },
+    {
+      "path": "semantic-integration-v2/CASES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/CASES.json",
+      "sourceCommit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "role": "ACTIVE_LOADED_DATA",
+      "blob": "2a42d8cb7c515255985af52cd17d1f33e03afd4f",
+      "mode": 420,
+      "bytes": 4546,
+      "sha256": "9fad5b63d02ff2e4961ad6cd6dc4bf84b5333c75ae146acab365a438c1a549e9"
+    },
+    {
+      "path": "semantic-integration-v2/SCHEDULE.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/SCHEDULE.json",
+      "sourceCommit": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+      "role": "ACTIVE_LOADED_DATA",
+      "blob": "7536a4f8640a6010f5664c1542b413737757396f",
+      "mode": 420,
+      "bytes": 8039,
+      "sha256": "7b6b19c71627a03f0e4873f92bdf3d832f7dc347acc83442cf2ac1adadac7ae4"
+    },
+    {
+      "path": "semantic/CASES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASES.json",
+      "sourceCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "role": "ACTIVE_CASE_MANIFEST",
+      "blob": "da16afd79d269b64a7f4bdb6941cc243cec22433",
+      "mode": 420,
+      "bytes": 47492,
+      "sha256": "bc12868ad2897c28363280d7a93f21f20f7729130f8f70bc07bd5c1acdc2d737"
+    },
+    {
+      "path": "mechanical-type-api-v2/CASES.json",
+      "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/CASES.json",
+      "sourceCommit": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+      "role": "ACTIVE_CASE_MANIFEST",
+      "blob": "a197dc111221fe4a67cb254b1ad0c02b22f8d564",
+      "mode": 420,
+      "bytes": 10747,
+      "sha256": "aa69d383d54be01306be88f4cd04660851c504f799b42c5bb05c10c75ef733c7"
+    }
+  ],
+  "metadata": [
+    {
+      "role": "DEVELOPMENT_GIT_METADATA_SOURCE_PREPARATION",
+      "command": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic"
+      ],
+      "status": 0,
+      "signal": null,
+      "pid": 67036,
+      "stdoutSha256": "5da63460f90a67d532898bbccf7a73b6954dcabd5f3f93644cea25f4c74c5081",
+      "stderr": ""
+    },
+    {
+      "role": "DEVELOPMENT_GIT_METADATA_SOURCE_PREPARATION",
+      "command": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "856b0a59846ad09680cd32227c686925db882258",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical"
+      ],
+      "status": 0,
+      "signal": null,
+      "pid": 67037,
+      "stdoutSha256": "19a85a01b1c18295b99157d5a64ae42239da5a91c013e9dbdc419d3ca4a8f3f9",
+      "stderr": ""
+    },
+    {
+      "role": "DEVELOPMENT_GIT_METADATA_SOURCE_PREPARATION",
+      "command": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2"
+      ],
+      "status": 0,
+      "signal": null,
+      "pid": 67038,
+      "stdoutSha256": "6b1f4ec86b3e255cda7ea4c62477c5cc853fd75f6d2a369f4bf03359e97d0a8f",
+      "stderr": ""
+    },
+    {
+      "role": "DEVELOPMENT_GIT_METADATA_SOURCE_PREPARATION",
+      "command": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2"
+      ],
+      "status": 0,
+      "signal": null,
+      "pid": 67039,
+      "stdoutSha256": "267a99b10608764c78fb6df5f6696928373366ea8e1ff1e5993b9f32872f4f42",
+      "stderr": ""
+    },
+    {
+      "role": "DEVELOPMENT_GIT_METADATA_SOURCE_PREPARATION",
+      "command": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "5f937ee171bbcd5564c78709440e1fbbf3ef927a",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-mode-v3"
+      ],
+      "status": 0,
+      "signal": null,
+      "pid": 67040,
+      "stdoutSha256": "009369de8985c11338602bbf67a85157b2c3a1db2f3350f2580a54ecd325cb98",
+      "stderr": ""
+    },
+    {
+      "role": "DEVELOPMENT_GIT_METADATA_SOURCE_PREPARATION",
+      "command": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "adecd04c56790e3acfccaf0c3216e0a606b47e14",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner-static-review"
+      ],
+      "status": 0,
+      "signal": null,
+      "pid": 67041,
+      "stdoutSha256": "8a0911d688d2d104a5f15c4625d9b747dd85c0216106e6a7ed6e5bd8f5947cdc",
+      "stderr": ""
+    },
+    {
+      "role": "DEVELOPMENT_GIT_STORED_ACTIVE_BLOBS",
+      "command": [
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 67319,
+      "status": 0,
+      "signal": null,
+      "requested": 30,
+      "stdoutSha256": "98ee9c8d23df7f512aba12232c0b80883679ab8d60632bae4004472d2150d736",
+      "stdoutBytes": 719595,
+      "stderr": ""
+    }
+  ],
+  "checks": "NUL path membership plus actual stored blob type/length/GitOID/SHA256/current regular mode/size; no import/evaluation",
+  "actualTargetExecutions": 0
+}

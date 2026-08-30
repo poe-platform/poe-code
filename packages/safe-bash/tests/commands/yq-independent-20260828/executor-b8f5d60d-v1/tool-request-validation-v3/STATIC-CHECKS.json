@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "scope": "AUTHOR_STATIC_PREPARATION_NOT_CONTROL_ACCEPTANCE",
+  "findingAuthenticated": true,
+  "findingSha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31",
+  "sourcePreimagesAuthenticated": 4,
+  "actualCallSiteBindings": 4,
+  "workerApiInverseEditByteEquality": true,
+  "workerApiTextEdits": 2,
+  "newHelperLines": 47,
+  "parentHelperAbsentInB1": true,
+  "sourceSyntax": [
+    {
+      "path": "tool-request.mjs",
+      "operation": "node --check only",
+      "status": 0
+    },
+    {
+      "path": "worker-api.mjs",
+      "operation": "node --check only",
+      "status": 0
+    }
+  ],
+  "specification": {
+    "result": "OK",
+    "warnings": 0
+  },
+  "staticSourceObservations": [
+    "TOOL call argument is projected before entry to rpc",
+    "Only Reflect.ownKeys and Object.getOwnPropertyDescriptor inspect original call shape",
+    "No original property getter/coercion is used to read role values",
+    "No prototype equality gate or Object.getPrototypeOf exists",
+    "Return is a fresh frozen null-prototype primitive-valued record",
+    "No catch/rethrow/serialization added to projector; async wrapper propagates reasons",
+    "Parent worker-host/tool-bridge/primitives bytes remain unchanged"
+  ],
+  "deferredControls": 24,
+  "deferredControlsExecuted": 0,
+  "passes": 0,
+  "executionCounts": {
+    "targetModules": 0,
+    "projectorCalls": 0,
+    "workerApiCalls": 0,
+    "controls": 0,
+    "classifiers": 0,
+    "getterCalls": 0,
+    "proxyConstructionOrTraps": 0,
+    "product": 0,
+    "candidate": 0,
+    "compiler": 0,
+    "loader": 0,
+    "coordinator": 0,
+    "nativeOracle": 0,
+    "copiedToolInvocations": 0,
+    "authoredImports": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "preparationFailures": [
+    {
+      "stage": "FINAL_DATA_MEMBERSHIP_CHECK",
+      "operation": "node:assert strict deepEqual on fs.readdirSync array versus node_repl-authored array",
+      "observed": "Equal string entries rejected because cross-realm array prototypes differ",
+      "scope": "Author static data checker only; no target/control execution and no staging occurred",
+      "correction": "Compare finite array lengths and each primitive string entry without prototype identity",
+      "targetCodeChanged": false
+    }
+  ],
+  "coverage": "No new Yq record, no semantic proof or denominator change",
+  "rootGO": false
+}

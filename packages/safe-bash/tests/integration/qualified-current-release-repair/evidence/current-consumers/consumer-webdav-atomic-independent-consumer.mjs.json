@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--experimental-permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-h1sR2i/consumer",
+    "--allow-worker",
+    "--unhandled-rejections=strict",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-h1sR2i/consumer/webdav-atomic-independent/emitted/consumer.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-h1sR2i/consumer",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\n  \"consumerPackage\": {\n    \"name\": \"qualified-webdav-atomic-independent\",\n    \"private\": true,\n    \"type\": \"module\"\n  },\n  \"methods\": [\n    \"PROPFIND\",\n    \"PROPFIND\",\n    \"PROPFIND\"\n  ],\n  \"calls\": 1,\n  \"modules\": [\n    {\n      \"specifier\": \"virtual-bash\",\n      \"resolved\": \"file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-h1sR2i/consumer/node_modules/virtual-bash/dist/index.js\",\n      \"actualPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-h1sR2i/consumer/node_modules/virtual-bash/dist/index.js\",\n      \"sha256\": \"77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d\"\n    },\n    {\n      \"specifier\": \"virtual-bash/fs/webdav\",\n      \"resolved\": \"file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-h1sR2i/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js\",\n      \"actualPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-h1sR2i/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js\",\n      \"sha256\": \"f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1\"\n    }\n  ],\n  \"passed\": true\n}\n",
+  "stderr": "(node:37429) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+}

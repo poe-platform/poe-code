@@ -1,0 +1,25 @@
+import assert from "node:assert/strict";
+import { mkdirSync, readFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import { execute, inventory, location, owned, readJson, save, sha, status } from "./common.mjs";
+
+const work = readFileSync(location, "utf8").trim(), manifest = readJson(join(work, "manifest.json"));
+const summary = readJson(join(work, "full-summary.json"));
+assert.equal(summary.cohorts[0].totals.tests, 3758);
+const snapshot = join(work, "snapshot-revised"), inputs = readJson(join(work, "revised-inputs.json"));
+assert.deepEqual(inventory(snapshot, Object.keys(inputs)), inputs);
+assert.deepEqual(inventory(snapshot, ["node_modules"]), manifest.dependencies);
+const config = join(snapshot, owned, "tsconfig.scoped.json");
+mkdirSync(dirname(config), { recursive: true });
+save(config, { extends: "../../../../tsconfig.json", compilerOptions: { noEmit: true }, files: Object.keys(manifest.original70).map(path => relative(dirname(config), join(snapshot, path))), include: [], exclude: [] });
+const scoped = execute(work, snapshot, "scoped-noEmit", ["node_modules/typescript/bin/tsc", "--noEmit", "-p", config, "--pretty", "false"]);
+if (scoped.status !== 0) status(`SCOPED noEmit FAILURE exit${scoped.status}: ${scoped.stdout.path}. No production fix or expectation change. Full revised/old results retained independently.`);
+const output = join(work, "build-output");
+const build = execute(work, snapshot, "isolated-build", ["node_modules/typescript/bin/tsc", "-p", "tsconfig.build.json", "--outDir", output, "--pretty", "false"]);
+if (build.status !== 0) status(`ISOLATED BUILD FAILURE exit${build.status}: ${build.stdout.path}. Emission only ${output}; live source/tests/root dist untouched.`);
+assert.deepEqual(inventory(snapshot, Object.keys(inputs)), inputs);
+assert.deepEqual(inventory(snapshot, ["node_modules"]), manifest.dependencies);
+const outputs = inventory(output, ["."]);
+const result = { scoped, build, generatedConfig: { path: config, sha256: sha(readFileSync(config)), value: readJson(config) }, outputs, buildOutputAggregate: sha(JSON.stringify(outputs)), unchangedSourceFixturesDependencies: true, rootDistTouched: false, liveNoEmitRun: false, wholeRepositoryNoEmitRun: false, fullCohorts: summary.cohorts };
+save(join(work, "validation.json"), result);
+status(`Validation complete: scoped noEmit exit${scoped.status}; isolated build exit${build.status}. Source/tests/fixtures/dependencies unchanged; no live emission. Revised ${summary.cohorts[0].totals.pass}/3758; original-current ${summary.cohorts[1].totals.pass}/3758. Preparing evidence archive.`);

@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "../../permission-profile-probe.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-adapter-corrections-0yDYsZ/04-final/archive",
+  "start": "2026-08-26T23:42:50.568Z",
+  "end": "2026-08-26T23:42:50.689Z",
+  "status": 0,
+  "signal": null
+}

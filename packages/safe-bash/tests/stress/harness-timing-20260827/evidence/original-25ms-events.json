@@ -1,0 +1,171 @@
+{
+  "failure": null,
+  "argv": [
+    "--no-config",
+    "foo",
+    "-"
+  ],
+  "profile": "original-25ms",
+  "pid": 59339,
+  "code": 0,
+  "signal": null,
+  "stdout": "foo\nbinary file matches (found \"\\0\" byte around offset 4)\n",
+  "stderr": "",
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.07429100000000233,
+      "detail": {
+        "argv": [
+          "--no-config",
+          "foo",
+          "-"
+        ],
+        "profile": "original-25ms",
+        "options": {
+          "profile": "original-25ms"
+        }
+      }
+    },
+    {
+      "event": "spawn",
+      "ms": 2.215082999999993,
+      "detail": {
+        "pid": 59339
+      }
+    },
+    {
+      "event": "write",
+      "ms": 29.480499999999992,
+      "detail": {
+        "hex": "66",
+        "end": false
+      }
+    },
+    {
+      "event": "write",
+      "ms": 56.921791,
+      "detail": {
+        "hex": "6f",
+        "end": false
+      }
+    },
+    {
+      "event": "write",
+      "ms": 82.66170799999999,
+      "detail": {
+        "hex": "6f",
+        "end": false
+      }
+    },
+    {
+      "event": "write",
+      "ms": 109.780166,
+      "detail": {
+        "hex": "0a",
+        "end": false
+      }
+    },
+    {
+      "event": "write",
+      "ms": 136.080375,
+      "detail": {
+        "hex": "00",
+        "end": false
+      }
+    },
+    {
+      "event": "write",
+      "ms": 161.864375,
+      "detail": {
+        "hex": "0a",
+        "end": false
+      }
+    },
+    {
+      "event": "write",
+      "ms": 189.094916,
+      "detail": {
+        "hex": "6e",
+        "end": false
+      }
+    },
+    {
+      "event": "write",
+      "ms": 216.4685,
+      "detail": {
+        "hex": "6f",
+        "end": false
+      }
+    },
+    {
+      "event": "write",
+      "ms": 243.73195800000002,
+      "detail": {
+        "hex": "0a",
+        "end": true
+      }
+    },
+    {
+      "event": "stdout-data",
+      "ms": 244.49200000000002,
+      "detail": {
+        "hex": "666f6f0a62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"
+      }
+    },
+    {
+      "event": "prefix-consumption-evidenced",
+      "ms": 244.514791,
+      "detail": "stdout is evidence of prior read; not a read syscall timestamp"
+    },
+    {
+      "event": "ready",
+      "ms": 244.51516600000002
+    },
+    {
+      "event": "stdin-close",
+      "ms": 244.638625
+    },
+    {
+      "event": "stderr-end",
+      "ms": 244.89975000000004
+    },
+    {
+      "event": "stdout-end",
+      "ms": 244.949
+    },
+    {
+      "event": "stdout-close",
+      "ms": 245.07050000000004
+    },
+    {
+      "event": "stderr-close",
+      "ms": 245.073083
+    },
+    {
+      "event": "exit",
+      "ms": 245.12,
+      "detail": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "event": "close",
+      "ms": 245.15425,
+      "detail": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "ready": true,
+  "actualClose": true,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "activeTimers": 0
+}

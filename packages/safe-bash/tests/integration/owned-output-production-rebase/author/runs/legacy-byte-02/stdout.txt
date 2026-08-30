@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: curl retries exact ragged offset Buffer bytes after reuse and finalization
+ok 1 - curl retries exact ragged offset Buffer bytes after reuse and finalization
+  ---
+  duration_ms: 6.678792
+  type: 'test'
+  ...
+# Subtest: curl -T replays a final Buffer offset view after finalizer mutation
+ok 2 - curl -T replays a final Buffer offset view after finalizer mutation
+  ---
+  duration_ms: 2.201208
+  type: 'test'
+  ...
+# Subtest: curl retries exact ragged offset Uint8Array bytes after reuse and finalization
+ok 3 - curl retries exact ragged offset Uint8Array bytes after reuse and finalization
+  ---
+  duration_ms: 2.917209
+  type: 'test'
+  ...
+# Subtest: curl -T replays a final Uint8Array offset view after finalizer mutation
+ok 4 - curl -T replays a final Uint8Array offset view after finalizer mutation
+  ---
+  duration_ms: 2.08475
+  type: 'test'
+  ...
+# Subtest: curl replay leaves stable Buffer input and surrounding sentinels unchanged
+ok 5 - curl replay leaves stable Buffer input and surrounding sentinels unchanged
+  ---
+  duration_ms: 2.269875
+  type: 'test'
+  ...
+# Subtest: curl replay budget accepts its exact boundary and refuses overflow without a partial replay
+ok 6 - curl replay budget accepts its exact boundary and refuses overflow without a partial replay
+  ---
+  duration_ms: 3.8435
+  type: 'test'
+  ...
+# Subtest: curl upload limit stops before publishing an overflowing retained fragment
+ok 7 - curl upload limit stops before publishing an overflowing retained fragment
+  ---
+  duration_ms: 0.310834
+  type: 'test'
+  ...
+# Subtest: curl cancellation preserves the caller reason and closes retained source storage
+ok 8 - curl cancellation preserves the caller reason and closes retained source storage
+  ---
+  duration_ms: 0.599292
+  type: 'test'
+  ...
+# Subtest: curl first upload remains transient and pull-driven while its replay is owned
+ok 9 - curl first upload remains transient and pull-driven while its replay is owned
+  ---
+  duration_ms: 1.457875
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 202.534166

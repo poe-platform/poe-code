@@ -1,0 +1,774 @@
+{
+  "schema": "guarded-review-audit-v1",
+  "candidate": "ea409a6b49d5c1523e3238f0384048218b559c4c",
+  "auditedAt": "2026-08-27T15:26:16.890Z",
+  "markers": {
+    "/tmp/safe-bash-env-shebang-guarded-authorization.txt": {
+      "sha256": "186872e8fb03a8228225d6b27a8e2651ca3eb3f51f6a755b625a95d12833cf79",
+      "content": "ROOT engineering-policy revision for the original env-S implementation task.\nThe initial closed bash/sh-only policy was an implementation choice, not a GNU/Linux requirement or an additional user restriction.\nPreserve dc262a99 and fb10ee85 at their historical 27/30 independent result; no frozen acceptance edits.\nWithin the transferred runtime shebang/interpreter/helper scope, permit literal reserved bash/sh, explicit slash-containing VFS target paths, and exact registered virtual names.\nPreserve registered bash/sh override refusal. Pin registered definitions; do not let functions/builtins shadow them.\nNo host or virtual PATH lookup, bare-filename fallback, basename aliasing, or fallback after a selected target fails.\nExpose the pinned accepted env handler as an internal middleware stage with unsplit suffix/script/user argv; target stages also use middleware.\nThe synthetic env observation adds no extra command/depth charge. Preserve existing shared limits, loaded-source handling, scope admission, exact environment/input provenance, abort/error precedence, and registered cooperative cleanup.\nDo not alter ordinary invoke/invokeScoped/executor/discovery, env core/parser, public contracts/root files, or ownedOutput. Report if this bounded source scope proves insufficient.\nThis is explicit ROOT engineering policy for the new feature, not a claim that the historical middleware witness was an already-promised public behavior.\n"
+    },
+    "/tmp/safe-bash-env-shebang-gap-design-result.txt": {
+      "sha256": "e1ee25c089f177d29419d76837e02a333e7181cf4d4ad13d2db0692ec945901e",
+      "content": "## Feasibility\n\n**All three gaps appear solvable within the transferred runtime scope, without a new public contract.** Recommend extending `envShebang` and private helpers in `src/shell/runtime.ts:1138`; no separate helper file is necessary. Leave ordinary invoke/executor/discovery, env core/parser, contracts and root exports unchanged.\n\nThis is architectural feasibility, not acceptance: **dc262a99 remains frozen at 27/30**, including s20, h04 and h05 failures.\n\n## Minimal Guarded Dispatch\n\nKeep the accepted env definition from `executionCommands` (`src/commands/execution.ts:50`). Continue passing the entire optional shebang suffix as **one argv element**, followed by the original script operand and user arguments.\n\nReplace the bash/sh-only selection inside `envShebang` with this exclusive decision:\n\n- **Literal `bash`/`sh`:** existing reserved interpreter. Preserve the current **126 refusal when that name is registered**, rather than silently changing override precedence.\n- **Operand containing `/`:** call existing `scriptFile(..., direct=true)` against the supplied VFS. Its stat/access/type checks establish executability; do not basename-normalize `/bin/bash` into reserved `bash`.\n- **Other exact registered name:** select and retain its `CommandDefinition`, then execute through a scoped middleware dispatcher. Functions and shell builtins must not shadow that registry selection.\n- **Everything else:** existing missing-command status 127. No PATH search, same-directory bare-name fallback, host lookup or fallback after a selected target fails.\n\nThat guard governs **shebang target selection**. Normal script-body execution and a registered command’s subsequent ordinary `context.invoke` retain their existing behavior; recursively restricting those would be a separate requirement.\n\n## Why Not Simply Call Existing Invoke?\n\n`Runtime.invoke` / `invokeScoped` at `src/shell/runtime.ts:1377` cannot carry cached source. It also enters ordinary resolution, where functions/builtins can precede registered definitions and missing registrations can reach PATH lookup (`src/shell/runtime.ts:865`). A registry precheck alone does not safely pin dispatch across middleware or asynchronous changes.\n\nRouting reserved bash through it would additionally reread/recharge the original script and add invocation depth. That conflicts with the existing one-read, depth-one boundary in `tests/shell/env-shebang.test.ts:60`.\n\n**Minimal alternative:** a private, scoped literal-target dispatcher—not an unobserved `definition.execute` callback. Reuse `composeMiddleware`, `InvocationScope`, existing interpreter/script execution, shared `Budget`, and stream helpers. Reproduce only the necessary invocation-context setup. Give selected registered commands their normal nested invoker using unchanged `Runtime.invoke`, bound to their own context/state/scope.\n\nIf ROOT instead requires **every selected target to traverse `Runtime.invoke` itself**, additional ownership is needed for private target-resolution/source-carrying plumbing in `invokeScoped`/dispatch. There is no existing option that supplies those guarantees.\n\n## Middleware And Contract Boundaries\n\nFor **h04**, compose the existing middleware around the **pinned accepted env terminal**, not registry discovery of `env` (`src/contracts/plugin.ts:23`).\n\nRecommended explicit policy:\n\n- Middleware receives `command: \"env\"`, the unsplit suffix/script/user argv, copied incoming exported environment, current cwd and transparent streams/provenance.\n- Middleware may short-circuit, wrap results/errors, and change writable `env`/`cwd`; validate those before use. It must await/return `next()`. The reserved terminal cannot turn into unrestricted dispatch.\n- Selected targets also traverse middleware, with the same guarded terminal selection.\n- Observing this synthetic env stage adds **no extra command/depth charge** beyond existing script and selected-target charges.\n\n**Mandatory existing contracts:** exact replacement environment, literal argv, shared budgets, middleware invocation semantics and cooperative cleanup. **Explicit engineering policy:** exposing this previously internal env stage, its pinned terminal and its accounting. The frozen witness does not retroactively establish that policy.\n\n## Required Preservation Details\n\n- **Environment/input:** implement `replaceEnv:true` as exactly the supplied map, without PWD injection or local promotion; resolve cwd independently and preserve parent state. Reserved shell initialization may still add PWD through existing `processState`. Forward unread stdin and its provenance; replacement streams follow existing origin rules. Budget replacement sinks; add no collector/output hook.\n- **Source/depth:** preserve loaded-source reuse only for the existing matching-path shell-source selection. A new explicit executable delegate undergoes its own checks/read/charge; do not reuse the outer cache to bypass executable checks. Charge new registry/VFS invocation depth so delegation cycles fail before entering a body; preserve the existing reserved-shell depth boundary.\n- **Lifecycle:** create tracked child scopes for env and target stages; bind cleanup and nested invoke to the correct scope. Assert admission before middleware/target work, interrupt execution with the scoped signal, and close scopes in `finally`. Preserve the runtime’s distinction between caller/pipeline signals and scope closure.\n- **Errors/status:** retain the current failure-capture protection against env’s `define` wrapper converting downstream failures into status 1 (`src/commands/internal.ts:106`). Rethrow captured failures inside the env terminal so middleware can observe them; validate returned statuses. Preserve caller-abort identity, limit errors and existing filesystem/status diagnostics. Drain registered cooperative cleanup, **not opaque losing handler/read promises**; observe late rejections.\n\nRead-only review completed. No edits, commits, tests, probes or new acceptance inputs were produced."
+    },
+    "/tmp/safe-bash-env-shebang-guarded-candidate.txt": {
+      "sha256": "97b069bb38b552c6cc179a3209a765d0813b64c3292252cceb93dad15a5d0f76",
+      "content": "Guarded env-shebang implementation candidate ready for ROOT's different-agent unchanged 30-case replay.\n\nSource/regressions commit: ea409a6b49d5c1523e3238f0384048218b559c4c\nRuntime SHA256: 4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06\nOwned committed paths:\n  src/shell/runtime.ts (imports, envShebang, new private shebang helpers only)\n  tests/shell/env-shebang.test.ts\n  tests/shell/env-shebang-host.test.ts\nTest SHA256s:\n  fa3920c0e09cf2c614540a0a804cc36d60d73da1e8bdf14d590c1e262de78129  env-shebang.test.ts\n  1d94c3d9bf4008915c85f373c0e14b1acc0818f4c0f7a850d4ddabb51d669537  env-shebang-host.test.ts\n\nLive scoped checks against these bytes:\n  New guarded author regressions: 19/19 pass (11 direct tests, 8 bounded host children).\n  Both author files combined: 47/48 pass; 0 skipped/cancelled/TODO.\n  Unchanged core/invoke controls: 125/126 pass.\n  Unchanged script/interpreter controls: 203/210 pass.\n  Unchanged lifecycle/provenance controls: 125/125 pass.\n  npm run build succeeds; scoped strict TypeScript succeeds; owned diff-check succeeds.\n\nKnown failures remain preserved, not expectation-migrated:\n  All eight original core/script refusal conflicts still fail unchanged.\n  One prior author closed-policy refusal now fails: registered alien returns its pinned 37, not 127.\n  Bare #!/usr/bin/env now selects the explicit /program VFS operand and cycles to shared limits;\n  the new author case proves maxSubstitutionDepth(4), not old closed-policy 127/native equivalence.\n  Initial implementation compile failure and first/second author test defects remain recorded.\n\nReserved bash/sh retain one loaded-source read/depth-one and registered override 126.\nSlash targets use direct executable VFS checks; exact other registrations are pinned through middleware;\nmissing bare names remain 127 without PATH/bare-file/host fallback. Synthetic env middleware is uncharged,\nuses the accepted pinned env handler, and preserves original downstream errors before wrapper conversion.\nRegistered target context.invoke uses unchanged normal nested semantics; no public API or executor changes.\n\nIndependent dc262a99/fb10ee85 remains historical 27/30. Frozen fixtures, harness and evidence were not edited;\nonly the disclosed three failures and design handoff were read. No independent replay or full gate claimed.\nEvidence commit: ee7d909c0379ca1237f729f55a0a22fbe35aa8f7\nEvidence: tests/shell-stress/env-shebang-author/guarded-completion/README.md\nmanifest.json verifies 3 candidate inputs and 18 retained evidence artifacts, including failed first attempts.\nThis is an after-capture artifact hash manifest, not an immutable before/after or append-proof live-tree seal.\nFinal guarded-only run explicitly confirms 19/19 without skips, cancellations or TODOs.\nOwned source/test/evidence paths and index are clean after the separate commits.\nOther owners' live src/commands/text.ts work and new independent replay output were not touched/read/staged.\nNo workers spawned. All owned bounded test children settled; no opaque handler drain awaited.\nHandoff finalized August 27, 2026, 15:23 UTC. Independent replay results are not claimed here.\n"
+    }
+  },
+  "parent": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+  "changedPaths": [
+    "src/shell/runtime.ts",
+    "tests/shell/env-shebang-host.test.ts",
+    "tests/shell/env-shebang.test.ts"
+  ],
+  "runtime": {
+    "sha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+    "blob": "1eb395676cf2c3f22ed75dfdf4454f50f9614b75"
+  },
+  "changedRuntimeMembers": [
+    "envShebang",
+    "shebangStage",
+    "shebangState",
+    "shebangTarget"
+  ],
+  "unchangedRuntimeMembers": [
+    "constructor",
+    "diagnostic",
+    "writeVariable",
+    "arithmeticVariables",
+    "run",
+    "runUnit",
+    "script",
+    "pipeline",
+    "runCommandIsolated",
+    "errexit",
+    "command",
+    "executeCommand",
+    "loopBody",
+    "document",
+    "redirect",
+    "fileOperation",
+    "assignment",
+    "simple",
+    "dispatch",
+    "dispatchScoped",
+    "internalDiscovery",
+    "discoveryBuiltin",
+    "searchPath",
+    "searchPaths",
+    "processState",
+    "interpreter",
+    "syntaxFailure",
+    "runCommandString",
+    "sourceText",
+    "runStandardInput",
+    "envShebangCommand",
+    "scriptFile",
+    "runCurrentText",
+    "evalBuiltin",
+    "sourceBuiltin",
+    "invoke",
+    "invokeScoped",
+    "builtin",
+    "words",
+    "part",
+    "substring",
+    "parameterPattern",
+    "word",
+    "glob"
+  ],
+  "memberLines": {
+    "interpreter": 1029,
+    "shebangState": 1140,
+    "shebangStage": 1152,
+    "shebangTarget": 1198,
+    "envShebang": 1244,
+    "scriptFile": 1266,
+    "invoke": 1457,
+    "invokeScoped": 1464
+  },
+  "acceptedCore": {
+    "src/commands/execution.ts": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+    "src/commands/env-split.ts": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+  },
+  "interveningSourcePathsSinceDc262a99": [
+    "src/commands/column/column.ts",
+    "src/commands/column/internal.ts",
+    "src/commands/text.ts",
+    "src/shell/runtime.ts"
+  ],
+  "originalReviewFiles": {
+    "tests/shell-stress/env-shebang-integration-review/BASELINE.md": "673603622503866c9c418ee520e877ec016c9e032983b2076eef55aa1010ceb6",
+    "tests/shell-stress/env-shebang-integration-review/CANDIDATE_DC262A99.md": "c8a1d93556c05e7c2b96360f291442df681f4b984fc10f1f2924754baf7bce47",
+    "tests/shell-stress/env-shebang-integration-review/README.md": "2783ac9379b7572f575f7a77b3ddb2513d7b25e58cc01dbcc7ac14a0a2a635b8",
+    "tests/shell-stress/env-shebang-integration-review/V2_SETUP.md": "8f66b34d39badc377a977079ba07049d9991148e6c719f2978dc1e7051d524f0",
+    "tests/shell-stress/env-shebang-integration-review/audit.mjs": "ca131ca9fb50bf4d1a84b1f278fd0b1a678dfb40a2076adf360ebbd082d07b67",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/manifest.json": "22ebba99c7682d38a28e3bbdac7386ad345b993d0a8c46c96cdf0e07179dba7b",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/native.json": "7a244514cfcd4fcf82c8b574b9e5d555168b0dd2e1a6fafd0576a10326e7b06c",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/report.json": "f8847ae3cac0985f318c9eb68709fb7cd4f848640fb1e06ecd75e8a83f0d4d22",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/manifest.json": "ad5788dc1663344e9b883f85ef6fe410e55a3d3d7497fb4e31c8fc95f03fc6d1",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/native.json": "6aef802ffe71206a736f7a53818fc42d0063b26277a0c6e75b45ba44056d4795",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/report.json": "9d9a972666aa972c35af60898abd7422acb0caeae792eb3895e762802a1ba36d",
+    "tests/shell-stress/env-shebang-integration-review/candidate-audit-dc262a99.mjs": "f812b62cdd8e2df396ee424e42a7d969738ce500a5b211940e9e3fed165dc7ca",
+    "tests/shell-stress/env-shebang-integration-review/candidate-controls-dc262a99.mjs": "6e1a8fbad89c64e5158fc7a319e9f1b0f0b3dd32becdccaf0c3a3427c8cf3b33",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-audit/manifest.json": "2432f002a01b4fed9e8399313536479d8cc490c364d8da27a57480dce31d2434",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-audit/report.json": "13eaa49f5dfd3d72c583d835d969a9930bc9ff622a4525e01e4b7e9f97c8baa7",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-audit/source-scope.patch": "7d876e8a51aeb778b9dadd6aae0a0da4596248665c17b25b22a3b28155ab57ca",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/author.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/author.tap": "0bfd2426742f0d0e42086601291e89d4f50e14d0a928eeb1d58db79d79d45b6a",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/core.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/core.tap": "94a4cbf32216c284997c31dba417209d05122ef2f9abde31375dc9d0a2976487",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/manifest.json": "3faf2e2788b7768710c7e5a06e750f69683af4df909a9e5acde17f21d15b773b",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/original-assertion-observations.json": "97d8edd86d79525cecd5b73bcbcca9b94265fc23f2d004e659693b9433dd73a4",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/report.json": "24cf711a46775b4638903105e254b9824c7fbb8532497c27e5100500dd1fc7b3",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/scripts.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/scripts.tap": "cf0d07b3641ace19ae76ddf10e86655da9f9a25f31b2c0acb1395685def96129",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99/manifest.json": "dce4d802747576a58fbee991bfbaa9d37baa0146070ffc572a29dd9557601e7a",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99/native.json": "133814e9949428f4ddb9ef4d8972352a3afc90faca05060e5d901be0dba4c1e4",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99/report.json": "901997b8b6a8c97f4207f64d28b88d3066bbbe0abc96d330ecc8575a5c7c8f40",
+    "tests/shell-stress/env-shebang-integration-review/candidate-observe-dc262a99.mjs": "52d6028f7626414f659f147264971bc3a71c0ed394177d6bae1055589edfc0a8",
+    "tests/shell-stress/env-shebang-integration-review/corpus.mjs": "9b7afcf1565f3262101d7c65886b9ede259c3260f60e87d1ea4eed6aa4a1dfe4",
+    "tests/shell-stress/env-shebang-integration-review/product-v2.mjs": "c697bdf9bb6f8b889f50b9cbf77edb75863c9d6f1f424d9b2943f0baaa1e4b40",
+    "tests/shell-stress/env-shebang-integration-review/product.mjs": "b4ade78b2ea4c0e727aaca96bde74669a15d74ca6c14aa290b23ec29950fcbbc",
+    "tests/shell-stress/env-shebang-integration-review/run-v2.mjs": "a3c48c74360cea894c688d40afb774871d03ef0525dc6f937c1d8939d26369fc",
+    "tests/shell-stress/env-shebang-integration-review/run.mjs": "74a9b20dd9b1e121595ae64221a77500d4c92077328fb23e4e2be489bc4bfa5e",
+    "tests/shell-stress/env-shebang-integration-review/seal-v2.json": "57ca1c7b58421b37d21238c073ab92a445d2b9b03b47fe1538ab98d00db26e91",
+    "tests/shell-stress/env-shebang-integration-review/seal.json": "b0325b1b6789bdf344b4cea608ec5bacd6b53d4449f8120f2012c28463381a55"
+  },
+  "baselineAudit": {
+    "sealedCases": 30,
+    "observations": 30,
+    "rawPasses": 7,
+    "qualifiedPasses": 6,
+    "failures": 23,
+    "nonProving": 1,
+    "directControls": 4,
+    "strictNative": "3/23",
+    "linuxKernelExecuted": false,
+    "cleanup": true
+  },
+  "originalCandidateAudit": {
+    "verified": "candidate-dc262a99",
+    "planned": 30,
+    "actual": 30,
+    "passed": 27,
+    "failed": 3,
+    "structured": 30,
+    "shebangPassed": 19,
+    "directPassed": 4,
+    "hostPassed": 4,
+    "nativeAvailable": 23,
+    "strictNative": 16,
+    "timeouts": 0,
+    "overflows": 0
+  },
+  "frozenAudit": {
+    "verified": "guarded-ea409a6b-20260827-review1",
+    "planned": 30,
+    "actual": 30,
+    "passed": 30,
+    "failed": 0,
+    "structured": 30,
+    "shebangPassed": 20,
+    "directPassed": 4,
+    "hostPassed": 6,
+    "nativeAvailable": 23,
+    "strictNative": 17,
+    "timeouts": 0,
+    "overflows": 0
+  },
+  "qualification": {
+    "raw": 30,
+    "qualified": 30,
+    "nestedWitness": [
+      "./script",
+      "env",
+      "bash",
+      "./inner",
+      "env",
+      "bash",
+      "printf"
+    ],
+    "strictLosses": [
+      {
+        "id": "s03",
+        "fields": {
+          "status": true,
+          "stdout": true,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "s12",
+        "fields": {
+          "status": true,
+          "stdout": false,
+          "stderr": true,
+          "effects": true
+        }
+      },
+      {
+        "id": "s17",
+        "fields": {
+          "status": true,
+          "stdout": true,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "s18",
+        "fields": {
+          "status": true,
+          "stdout": true,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "d02",
+        "fields": {
+          "status": true,
+          "stdout": true,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "d04",
+        "fields": {
+          "status": true,
+          "stdout": false,
+          "stderr": true,
+          "effects": true
+        }
+      }
+    ],
+    "sourceInputs": 225,
+    "productModuleLoads": 5220,
+    "deniedHostAttempts": 0,
+    "kernelAttempts": 20
+  },
+  "controls": {
+    "author": {
+      "tests": 48,
+      "pass": 47,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "core": {
+      "tests": 126,
+      "pass": 125,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "scripts": {
+      "tests": 210,
+      "pass": 203,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "lifecycle": {
+      "tests": 115,
+      "pass": 115,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "publicLifecycle": {
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "guardedAuthorPasses": 19,
+  "originalAssertionInputs": {
+    "tests/shell-stress/env-split-author/resume-host.ts": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+    "tests/shell/errexit-host.test.ts": "5ba8085495c5740d4f15d413eb55502d270746f3e7275ef7aa6393500593cf7f",
+    "tests/shell/expanded-gaps-env-host.test.ts": "2fd1eb106e75ace5d17d7d5145045dab0f88aa254d4110862b2964fec61b5b95"
+  },
+  "publicChildren": [
+    {
+      "pid": 28640,
+      "absent": true,
+      "scenario": "grep:normal",
+      "workers": 1,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28644,
+      "absent": true,
+      "scenario": "grep:early-pipe",
+      "workers": 1,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28663,
+      "absent": true,
+      "scenario": "grep:caller-abort",
+      "workers": 1,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28669,
+      "absent": true,
+      "scenario": "grep:same-shell-sibling",
+      "workers": 2,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28673,
+      "absent": true,
+      "scenario": "grep:other-shell-sibling",
+      "workers": 2,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28686,
+      "absent": true,
+      "scenario": "rg:normal",
+      "workers": 1,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28687,
+      "absent": true,
+      "scenario": "rg:early-pipe",
+      "workers": 1,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28697,
+      "absent": true,
+      "scenario": "rg:caller-abort",
+      "workers": 1,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28788,
+      "absent": true,
+      "scenario": "rg:same-shell-sibling",
+      "workers": 2,
+      "liveWorkers": 0
+    },
+    {
+      "pid": 28980,
+      "absent": true,
+      "scenario": "rg:other-shell-sibling",
+      "workers": 2,
+      "liveWorkers": 0
+    }
+  ],
+  "cleanup": [
+    {
+      "scratch": "/tmp/env-shebang-review-vH3WKS",
+      "scratchAbsent": true,
+      "groups": [
+        {
+          "pid": 6393,
+          "absent": true
+        },
+        {
+          "pid": 6411,
+          "absent": true
+        },
+        {
+          "pid": 6412,
+          "absent": true
+        },
+        {
+          "pid": 6413,
+          "absent": true
+        },
+        {
+          "pid": 6414,
+          "absent": true
+        },
+        {
+          "pid": 6417,
+          "absent": true
+        },
+        {
+          "pid": 6418,
+          "absent": true
+        },
+        {
+          "pid": 6420,
+          "absent": true
+        },
+        {
+          "pid": 6421,
+          "absent": true
+        },
+        {
+          "pid": 6422,
+          "absent": true
+        },
+        {
+          "pid": 6423,
+          "absent": true
+        },
+        {
+          "pid": 6424,
+          "absent": true
+        },
+        {
+          "pid": 6425,
+          "absent": true
+        },
+        {
+          "pid": 6426,
+          "absent": true
+        },
+        {
+          "pid": 6427,
+          "absent": true
+        },
+        {
+          "pid": 6428,
+          "absent": true
+        },
+        {
+          "pid": 6429,
+          "absent": true
+        },
+        {
+          "pid": 6430,
+          "absent": true
+        },
+        {
+          "pid": 6431,
+          "absent": true
+        },
+        {
+          "pid": 6432,
+          "absent": true
+        },
+        {
+          "pid": 6433,
+          "absent": true
+        },
+        {
+          "pid": 6435,
+          "absent": true
+        },
+        {
+          "pid": 6436,
+          "absent": true
+        },
+        {
+          "pid": 6442,
+          "absent": true
+        },
+        {
+          "pid": 6443,
+          "absent": true
+        },
+        {
+          "pid": 6445,
+          "absent": true
+        },
+        {
+          "pid": 6446,
+          "absent": true
+        },
+        {
+          "pid": 6453,
+          "absent": true
+        },
+        {
+          "pid": 6454,
+          "absent": true
+        },
+        {
+          "pid": 6458,
+          "absent": true
+        },
+        {
+          "pid": 6461,
+          "absent": true
+        },
+        {
+          "pid": 6478,
+          "absent": true
+        },
+        {
+          "pid": 6479,
+          "absent": true
+        },
+        {
+          "pid": 6480,
+          "absent": true
+        },
+        {
+          "pid": 6520,
+          "absent": true
+        },
+        {
+          "pid": 6535,
+          "absent": true
+        },
+        {
+          "pid": 6536,
+          "absent": true
+        },
+        {
+          "pid": 6537,
+          "absent": true
+        },
+        {
+          "pid": 6538,
+          "absent": true
+        },
+        {
+          "pid": 6539,
+          "absent": true
+        },
+        {
+          "pid": 6541,
+          "absent": true
+        },
+        {
+          "pid": 6542,
+          "absent": true
+        },
+        {
+          "pid": 6543,
+          "absent": true
+        },
+        {
+          "pid": 6544,
+          "absent": true
+        },
+        {
+          "pid": 6545,
+          "absent": true
+        },
+        {
+          "pid": 6546,
+          "absent": true
+        },
+        {
+          "pid": 6547,
+          "absent": true
+        },
+        {
+          "pid": 6548,
+          "absent": true
+        },
+        {
+          "pid": 6549,
+          "absent": true
+        },
+        {
+          "pid": 6562,
+          "absent": true
+        },
+        {
+          "pid": 6569,
+          "absent": true
+        },
+        {
+          "pid": 6584,
+          "absent": true
+        },
+        {
+          "pid": 6585,
+          "absent": true
+        },
+        {
+          "pid": 6586,
+          "absent": true
+        },
+        {
+          "pid": 6587,
+          "absent": true
+        },
+        {
+          "pid": 6588,
+          "absent": true
+        },
+        {
+          "pid": 6589,
+          "absent": true
+        },
+        {
+          "pid": 6590,
+          "absent": true
+        },
+        {
+          "pid": 6591,
+          "absent": true
+        },
+        {
+          "pid": 6593,
+          "absent": true
+        },
+        {
+          "pid": 6601,
+          "absent": true
+        },
+        {
+          "pid": 6602,
+          "absent": true
+        },
+        {
+          "pid": 6603,
+          "absent": true
+        },
+        {
+          "pid": 6604,
+          "absent": true
+        },
+        {
+          "pid": 6605,
+          "absent": true
+        },
+        {
+          "pid": 6606,
+          "absent": true
+        },
+        {
+          "pid": 6613,
+          "absent": true
+        },
+        {
+          "pid": 6614,
+          "absent": true
+        },
+        {
+          "pid": 6615,
+          "absent": true
+        },
+        {
+          "pid": 6616,
+          "absent": true
+        },
+        {
+          "pid": 6617,
+          "absent": true
+        },
+        {
+          "pid": 6618,
+          "absent": true
+        },
+        {
+          "pid": 6619,
+          "absent": true
+        },
+        {
+          "pid": 6620,
+          "absent": true
+        },
+        {
+          "pid": 6621,
+          "absent": true
+        }
+      ]
+    },
+    {
+      "scratch": "/tmp/env-shebang-review-controls-O32NVL",
+      "scratchAbsent": true,
+      "groups": [
+        {
+          "pid": 21245,
+          "absent": true
+        },
+        {
+          "pid": 21385,
+          "absent": true
+        },
+        {
+          "pid": 21529,
+          "absent": true
+        },
+        {
+          "pid": 21618,
+          "absent": true
+        },
+        {
+          "pid": 21652,
+          "absent": true
+        },
+        {
+          "pid": 21669,
+          "absent": true
+        },
+        {
+          "pid": 21670,
+          "absent": true
+        },
+        {
+          "pid": 21671,
+          "absent": true
+        },
+        {
+          "pid": 21672,
+          "absent": true
+        },
+        {
+          "pid": 21673,
+          "absent": true
+        },
+        {
+          "pid": 21674,
+          "absent": true
+        },
+        {
+          "pid": 21675,
+          "absent": true
+        },
+        {
+          "pid": 21676,
+          "absent": true
+        },
+        {
+          "pid": 21677,
+          "absent": true
+        }
+      ]
+    },
+    {
+      "scratch": "/tmp/env-shebang-review-controls-E800AN",
+      "scratchAbsent": true,
+      "groups": [
+        {
+          "pid": 28557,
+          "absent": true
+        },
+        {
+          "pid": 28580,
+          "absent": true
+        }
+      ]
+    }
+  ],
+  "nestedSnapshotCleanup": [
+    {
+      "snapshot": "/private/tmp/safe-bash-public-cleanup-current-6y8103",
+      "removed": true
+    }
+  ],
+  "supplementaryNativeTimeouts": [
+    "expanded-4"
+  ],
+  "integrityLimits": {
+    "frozenSourcePostcheck": "original regular paths only; no appended source/empty-directory/symlink census",
+    "controlsPostcheck": "regular-file paths and hashes including new regular files; not new empty directories or symlinks",
+    "publicSnapshotPostcheck": "source/dist recursive census rejects symlinks; does not census empty directories"
+  },
+  "diffSha256": "ba7ee62b739e211103a3916202fb36046fcb0ffdd604f1efa992434a6b36ed02"
+}

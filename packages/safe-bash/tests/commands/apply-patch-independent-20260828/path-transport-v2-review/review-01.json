@@ -1,0 +1,3621 @@
+{
+  "schema": "independent-repair-review-receipt-v1",
+  "repairSourceCommit": "d8cbb7d76459e14d20f57e19f7c01ce04fa08702",
+  "productSourceCommit": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "productEvidenceCommit": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+  "runnerPresealCommit": "6978a89c75284b9e7e0efb125fef7a6b78ee8572",
+  "runnerSealSha256": "47a946b1f043e8855ee2fcc6324953d8dbecc53a853d7e808ee5580bcff3793a",
+  "executionSealSha256": "c05afd4ca977cc32e81d0ea4cff9311b44e6475a72c54ebf7bcdba7f47a2b116",
+  "started": "2026-08-28T18:25:40.504Z",
+  "finished": "2026-08-28T18:25:43.903Z",
+  "elapsedMs": 3399,
+  "before": {
+    "files": 665,
+    "directories": 28,
+    "cumulativeBytesHashed": 177609104,
+    "entryListSha256": "2992db0a76c4eb34438ecfbf9a2a40e8525bb3e2dcff875baa5e137a7a163693",
+    "directoryAppendChecks": "Exact recorded directory entry lists, including entire inventory-v1 and tool directories; not an append-proof repository tree."
+  },
+  "after": {
+    "files": 665,
+    "directories": 28,
+    "cumulativeBytesHashed": 177609104,
+    "entryListSha256": "2992db0a76c4eb34438ecfbf9a2a40e8525bb3e2dcff875baa5e137a7a163693",
+    "directoryAppendChecks": "Exact recorded directory entry lists, including entire inventory-v1 and tool directories; not an append-proof repository tree."
+  },
+  "children": [
+    {
+      "executable": "/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "6978a89c75284b9e7e0efb125fef7a6b78ee8572",
+        "--",
+        "tests/commands/apply-patch-independent-20260828/path-transport-v2-review"
+      ],
+      "pid": 5158,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 2133,
+      "stdoutSha256": "592f0a8e5369822424fb43d0bdfa6e8b9ed9901d8db81e3ccc14b9e3d0aecb06",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsedMs": 32,
+      "timeoutMs": 10000,
+      "exactChildReaped": true,
+      "executionModel": "serial synchronous child, no persistent worker"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=256",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/.data-review-01",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/.data-review-01"
+      ],
+      "pid": 5159,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 144453,
+      "stdoutSha256": "34617a7d638f71ce9276be704fdb66f17df075ebc2dc986e223dbb4ba9660047",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsedMs": 2947,
+      "timeoutMs": 30000,
+      "exactChildReaped": true,
+      "executionModel": "serial synchronous child, no persistent worker"
+    }
+  ],
+  "cleanup": {
+    "exactWorkPath": "tests/commands/apply-patch-independent-20260828/path-transport-v2-review/.data-review-01",
+    "absent": true,
+    "filesRemoved": 0,
+    "bytesRemoved": 0,
+    "authority": "only unique owned synthetic temporary files",
+    "persistentResources": 0
+  },
+  "budget": {
+    "totalMs": 900000,
+    "childTimeoutsMs": [
+      10000,
+      30000
+    ],
+    "capturedBytes": 146586,
+    "syntheticWorkingBytes": 0,
+    "byteCeilings": {
+      "capture": 134217728,
+      "work": 536870912
+    },
+    "qualification": "No RSS or global CLI process-peak claim. No product/runtime processes. Tools and all admitted source/data rehashed before/after."
+  },
+  "observations": {
+    "schema": "independent-repair-data-observations-v1",
+    "candidateCommit": "d8cbb7d76459e14d20f57e19f7c01ce04fa08702",
+    "elapsedMs": 2886,
+    "originalExpectedOutcomesChanged": false,
+    "counts": {
+      "PASS": 99,
+      "FAIL": 99,
+      "UNSUPPORTED": 1,
+      "NOT_RUN": 7
+    },
+    "dynamicDenominator": 199,
+    "results": [
+      {
+        "id": "H001",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H002",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H003",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H004",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H005",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H006",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H007",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H008",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H009",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H010",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H011",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H012",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H013",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H014",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H015",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H016",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H017",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H018",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H019",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H020",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H021",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H022",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H023",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H024",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H025",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H026",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H027",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H028",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H029",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H030",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H031",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H032",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H033",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H034",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H035",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H036",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H037",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H038",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H039",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H040",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H041",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H042",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H043",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H044",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H045",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H046",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H047",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H048",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H049",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H050",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H051",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H052",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H053",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H054",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H055",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H056",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H057",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H058",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H059",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H060",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H061",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H062",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H063",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H064",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H065",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H066",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H067",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H068",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H069",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H070",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H071",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H072",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H073",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H074",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H075",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H076",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H077",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H078",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H079",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H080",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H081",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H082",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H083",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H084",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H085",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H086",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H087",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H088",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H089",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H090",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H091",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H092",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H093",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H094",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H095",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H096",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H097",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "H098",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at capturedListing (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:46:22)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:52)"
+          ]
+        }
+      },
+      {
+        "id": "P01",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "7a00b4384b16b2bc4c5e2d656d6527d23d1ac274",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P02",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "d99cb78d70b286138ffa48e9b4afb7e0f16b2650",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P03",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "77c815781db7e88fb6b13407077071c20a08b38d",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P04",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "864b383bfdb2c32899e9df16fc69554b9dfe977d",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P05",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "a218c2a9a664e82b07071ca09fef061cc7897476",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P06",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "e612612243791956c97ef9dd53124612ad06f5f0",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P07",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "bc1fb2cc90c8eefb5e55bd355864243943fef850",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P08",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "40725a8235a7e5cb084ea16bf17fb3346085f80b",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P09",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "53fb893c9660ea5a00845b7e8ab9d3823420d144",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P10",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "966757664d38d1b221710dac5c16e909e9375439",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P11",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "9f80c1f446c87e09175c9a4674d83dfc917f89bf",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P12",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "46d0a55ddd64b8605244f3260080e16a7518601f",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P13",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "9c33e30ff2aa4bcef614ffe55d8d2f132f17b84a",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P14",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "78a3ff3e754f74abb046357f0364c6f739452868",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P15",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "affc2e40b33f9ab6b335f6179d1b5e1cc12c15aa",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P16",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "8c50da285ce407358c5d923c7619ad25d3213133",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P17",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "fdc32eaee1270763baef1c986b24dc40d1168bb0",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P18",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "e6fe0bb1e80314727e528c404654f31d75686fdc",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P19",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "dc698c05dbb88946cc7f47c0203ca40db0cb87ea",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P20",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "dba070163b060e162d98bf7b28298187a585970a",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P21",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "2a7174bb6b32ab8c9ecd66ddc5a6667b33d56ea7",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P22",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "196a5bab9c0bc1dd03876c5bcc92ce11f93a5c1c",
+          "entries": 1,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P23",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "21ee4fece97741003e7d14a940611ac68b64a44a",
+          "entries": 2,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P24",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "3987e964017a7cb1d76091f94dc0f638150211f3",
+          "entries": 8,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P25",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "e7403f02a51e861059e9c35162e0bf86a3794c21",
+          "entries": 3,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P26",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "eba58a9f30349f0138ecbed8a04b182dc6b42308",
+          "entries": 4,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P27",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "4b825dc642cb6eb9a060e54bf8d69288fbee4904",
+          "entries": 0,
+          "routes": [
+            "parseTree",
+            "treeHash"
+          ]
+        }
+      },
+      {
+        "id": "P28",
+        "status": "UNSUPPORTED",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "TypeError",
+          "code": "ERR_ENCODING_INVALID_ENCODED_DATA",
+          "message": "The encoded data was not valid for encoding utf-8",
+          "stack": [
+            "TypeError: The encoded data was not valid for encoding utf-8",
+            "    at TextDecoder.decode (node:internal/encoding:449:16)",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:10:24)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)"
+          ]
+        },
+        "qualification": "Declared strict UTF8-only domain; unchanged raw-byte expected acceptance is not met."
+      },
+      {
+        "id": "P29",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "TypeError",
+          "code": "ERR_ENCODING_INVALID_ENCODED_DATA",
+          "message": "The encoded data was not valid for encoding utf-8",
+          "stack": [
+            "TypeError: The encoded data was not valid for encoding utf-8",
+            "    at TextDecoder.decode (node:internal/encoding:449:16)",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:10:24)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)"
+          ]
+        }
+      },
+      {
+        "id": "P30",
+        "status": "NOT_RUN",
+        "qualification": "SOURCEONLY",
+        "reason": "No nonrecursive record consumer exists in the repaired closure; recursive leaf parser intentionally excludes 040000/tree. Expected acceptance preserved, route NOT_RUN."
+      },
+      {
+        "id": "R01",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "truncated record",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: truncated record",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:21:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R02",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "missing header delimiter",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: missing header delimiter",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:23:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R03",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "missing header delimiter",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: missing header delimiter",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:23:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R04",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "missing header delimiter",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: missing header delimiter",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:23:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R05",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "pathname domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: pathname domain",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:8:10)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R06",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R07",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R08",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R09",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R10",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R11",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R12",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R13",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R14",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R15",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R16",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "relative canonical components",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: relative canonical components",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R17",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "relative canonical components",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: relative canonical components",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R18",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "relative canonical components",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: relative canonical components",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R19",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "relative canonical components",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: relative canonical components",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R20",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "relative canonical components",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: relative canonical components",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R21",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "relative canonical components",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: relative canonical components",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R22",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "relative canonical components",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: relative canonical components",
+            "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R23",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "duplicate path",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: duplicate path",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:30:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R24",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "duplicate path",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: duplicate path",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:30:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R25",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "file/directory conflict",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: file/directory conflict",
+            "    at treeHash (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:51:14)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:92)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R26",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "duplicate or directory/file conflict",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: duplicate or directory/file conflict",
+            "    at treeHash (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:54:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:92)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R27",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "truncated record",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: truncated record",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:21:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R28",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "missing header delimiter",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: missing header delimiter",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:23:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "R29",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: header domain",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:110:21)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C01",
+        "status": "FAIL",
+        "expectedAccepted": true,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C02",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C03",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C04",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C05",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C06",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C07",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C08",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C09",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C10",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C11",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C12",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C13",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C14",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C15",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C16",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C17",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C18",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        },
+        "qualification": "Helper accepts unreferenced file; full sealed inventory append guard is SOURCEONLY, not dynamically credited."
+      },
+      {
+        "id": "C19",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C20",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "C21",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:126:31)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "B01",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "objects": 1,
+          "routes": [
+            "batchObjects"
+          ]
+        }
+      },
+      {
+        "id": "B02",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "truncated object header",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: truncated object header",
+            "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:86:56)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:131:20)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "B03",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "truncated object payload",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: truncated object payload",
+            "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:89:43)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:131:20)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "B04",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "truncated object payload",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: truncated object payload",
+            "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:89:43)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:131:20)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "B05",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "object header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: object header domain",
+            "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:88:112)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:131:20)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "B06",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "object header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: object header domain",
+            "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:88:112)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:131:20)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "B07",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "truncated object payload",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: truncated object payload",
+            "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:89:43)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:131:20)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "B08",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "object header domain",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: object header domain",
+            "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:88:112)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:131:20)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "B09",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "extra object bytes\n\n55 !== 56\n",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: extra object bytes",
+            "",
+            "55 !== 56",
+            "",
+            "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:94:10)"
+          ]
+        }
+      },
+      {
+        "id": "B10",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ab2c6846789c5681cd5544fd3e407c6648761ab9'\n- 'd0ceabbe4448a463f6224ecc715ba3df2a6c483f'\n",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+            "+ actual - expected",
+            "",
+            "+ 'ab2c6846789c5681cd5544fd3e407c6648761ab9'",
+            "- 'd0ceabbe4448a463f6224ecc715ba3df2a6c483f'"
+          ]
+        }
+      },
+      {
+        "id": "B11",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '6e24f143faababc0f6ab21e890de44f6e8611049'\n- 'd0ceabbe4448a463f6224ecc715ba3df2a6c483f'\n",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+            "+ actual - expected",
+            "",
+            "+ '6e24f143faababc0f6ab21e890de44f6e8611049'",
+            "- 'd0ceabbe4448a463f6224ecc715ba3df2a6c483f'"
+          ]
+        }
+      },
+      {
+        "id": "B12",
+        "status": "NOT_RUN",
+        "qualification": "SOURCEONLY",
+        "reason": "OID request construction is inline controller.mjs:239-241, not an exported DATA function. No copied builder or controller dispatch is substituted. OID batch parsing and full selected bindings execute separately."
+      },
+      {
+        "id": "B13",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "bindings": 2,
+          "qualification": "Inventory mode/path/OID bindings; selected materialization intentionally permits only 100644. Inline request builder NOT_RUN."
+        }
+      },
+      {
+        "id": "D01",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "6a328474bf7bcb7058e2846b7ac14d6eb3893583",
+          "storedLookups": 0
+        }
+      },
+      {
+        "id": "D02",
+        "status": "NOT_RUN",
+        "qualification": "SOURCEONLY",
+        "reason": "No exported stored-claim admission API. Controller binds actual commit object payload/type/hash after batchObjects; missing stored-claim recipe remains unexecuted."
+      },
+      {
+        "id": "D03",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "root": "189bef24a927241d7c47a662f1ac447b56da1835",
+          "records": 50002,
+          "specialCount": 98,
+          "listingBytes": 7695763,
+          "listingSha256": "2648f28efa3a98f6d5dd4e1cd890001a2d287dfb0573304e11dbe61e58c6f689",
+          "rootPayloadBytes": 449,
+          "rootPayloadSha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0",
+          "referenceDirectories": 4911,
+          "incorrectRootRejected": "bd69c1a1dd0e65e442017ab27f86ed72a284fa95",
+          "actual98IdentitiesSha256": "46d48cf138d0e8c7601fad52e1289f914c1fc5291eb789eb01ddea3610dec0e3"
+        }
+      },
+      {
+        "id": "D04",
+        "status": "PASS",
+        "expectedAccepted": true,
+        "observedAccepted": true,
+        "observation": {
+          "baseCommit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+          "baseRoot": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40",
+          "baseCount": 37412,
+          "derivedBase": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+          "candidateComposition": "f761c0e1d7a1df48236da38ad78a18cf00a4813c",
+          "combinedCount": 37418,
+          "selected": 274,
+          "overrides": 5,
+          "storedLookupsForDerivedRoots": 0,
+          "baseListingSha256": "d158f9bf8f6d0a18053939105fa92387a0f7ab766ea94f2fb42246a3c4f29fe5",
+          "derivedRootPayloadSha256": "6b292c82a39055942f776b79a8b854d6b78e666be41c9397301f46176844e520"
+        }
+      },
+      {
+        "id": "M01",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "truncated record",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: truncated record",
+            "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:21:12)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:184:37)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "M02",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_ACCESS_DENIED",
+          "message": "Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+          "stack": [
+            "Error: Access to this API has been restricted. Use --allow-fs-write to manage permissions.",
+            "    at Object.mkdirSync (node:fs:1370:26)",
+            "    at fixture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:28:47)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:187:24)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "M03",
+        "status": "NOT_RUN",
+        "qualification": "SOURCEONLY",
+        "reason": "Declared 50002 count comparison is inline controller.mjs:237; parseTree has no declared-count parameter. No fabricated helper pass."
+      },
+      {
+        "id": "M04",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n\n'100755' !== '100644'\n",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+            "",
+            "'100755' !== '100644'",
+            "",
+            "    at verifyProjection (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:71:12)"
+          ]
+        }
+      },
+      {
+        "id": "M05",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '35ee95b3a286007917c5eb46ba48a3a96a77075e'\n- '0000000000000000000000000000000000000000'\n",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+            "+ actual - expected",
+            "",
+            "+ '35ee95b3a286007917c5eb46ba48a3a96a77075e'",
+            "- '0000000000000000000000000000000000000000'"
+          ]
+        }
+      },
+      {
+        "id": "M06",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "selected path absent",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: selected path absent",
+            "    at verifyProjection (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:75:14)",
+            "    at selectedMutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:95:10)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:183:36)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "M07",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "duplicate selected path",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: duplicate selected path",
+            "    at verifyProjection (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:69:12)",
+            "    at selectedMutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:95:10)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:183:36)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "M08",
+        "status": "PASS",
+        "expectedAccepted": false,
+        "observedAccepted": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "duplicate selected path",
+          "stack": [
+            "AssertionError [ERR_ASSERTION]: duplicate selected path",
+            "    at verifyProjection (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:69:12)",
+            "    at selectedMutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:95:10)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:183:36)",
+            "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review.mjs:197:22"
+          ]
+        }
+      },
+      {
+        "id": "M09",
+        "status": "NOT_RUN",
+        "qualification": "SOURCEONLY",
+        "reason": "Extra unreferenced capture file is the C18 helper boundary. Whole inventory append rejection exists only in controller checkHarness, which is not dispatched."
+      },
+      {
+        "id": "M10",
+        "status": "NOT_RUN",
+        "qualification": "SOURCEONLY",
+        "reason": "Bodyless-stub recipe is sourcequalified by actual imports plus negative body tests. No replacement stub or controller mutation is executed."
+      },
+      {
+        "id": "M11",
+        "status": "NOT_RUN",
+        "qualification": "SOURCEONLY",
+        "reason": "All consumer replacement is a source integration property, not a dynamically dispatched control. See SOURCE-REVIEW.md."
+      }
+    ],
+    "supplements": [],
+    "facts": {
+      "candidate": {
+        "root": "189bef24a927241d7c47a662f1ac447b56da1835",
+        "records": 50002,
+        "specialCount": 98,
+        "listingBytes": 7695763,
+        "listingSha256": "2648f28efa3a98f6d5dd4e1cd890001a2d287dfb0573304e11dbe61e58c6f689",
+        "rootPayloadBytes": 449,
+        "rootPayloadSha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0",
+        "referenceDirectories": 4911,
+        "incorrectRootRejected": "bd69c1a1dd0e65e442017ab27f86ed72a284fa95",
+        "actual98IdentitiesSha256": "46d48cf138d0e8c7601fad52e1289f914c1fc5291eb789eb01ddea3610dec0e3"
+      },
+      "actualBatch": {
+        "bytes": 2475165,
+        "sha256": "80e819e2e1ee4ddcafb20cfc2ddc35566c80b51b45b3d8ed1aa6303b863f4958",
+        "objectCount": 276,
+        "selectedPaths": 274,
+        "sourceEntriesUnchanged": true,
+        "baseManifestUnchanged": true
+      },
+      "composition": {
+        "baseCommit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+        "baseRoot": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40",
+        "baseCount": 37412,
+        "derivedBase": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+        "candidateComposition": "f761c0e1d7a1df48236da38ad78a18cf00a4813c",
+        "combinedCount": 37418,
+        "selected": 274,
+        "overrides": 5,
+        "storedLookupsForDerivedRoots": 0,
+        "baseListingSha256": "d158f9bf8f6d0a18053939105fa92387a0f7ab766ea94f2fb42246a3c4f29fe5",
+        "derivedRootPayloadSha256": "6b292c82a39055942f776b79a8b854d6b78e666be41c9397301f46176844e520"
+      }
+    },
+    "syntheticBytesWritten": 0,
+    "compilerBuildInstallProductRuntimeNativeMutantNetworkDispatches": 0,
+    "metadataChildrenInDataBody": 0,
+    "instructionPlaintextSnapshots": 0
+  }
+}

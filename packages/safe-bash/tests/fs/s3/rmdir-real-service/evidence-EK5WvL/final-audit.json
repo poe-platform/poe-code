@@ -1,0 +1,9 @@
+{
+  "headBefore": "ad837f1a650473eeefed3336558f37aed9bce352",
+  "headAfter": "6330333fca5a18d05f77f7ae0ce6df7ec4410c1a",
+  "changedLiveInputs": [],
+  "frozenChanged": [],
+  "sourcePatch": "",
+  "success": false,
+  "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/evidence-EK5WvL/service-pA9qnC"
+}

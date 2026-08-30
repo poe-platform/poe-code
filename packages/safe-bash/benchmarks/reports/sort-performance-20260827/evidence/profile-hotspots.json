@@ -1,0 +1,347 @@
+[
+  {
+    "name": "plain-5000",
+    "top": [
+      {
+        "frame": "(garbage collector)  L0",
+        "ms": 90.084,
+        "percent": 14.02996185851362
+      },
+      {
+        "frame": " base/dist/commands/text.js L90",
+        "ms": 88.875,
+        "percent": 13.84166844473378
+      },
+      {
+        "frame": " base/dist/commands/text.js L150",
+        "ms": 82.791,
+        "percent": 12.894127394744917
+      },
+      {
+        "frame": "lines base/dist/commands/internal.js L165",
+        "ms": 72.333,
+        "percent": 11.265366004083583
+      },
+      {
+        "frame": "flags base/dist/commands/text.js L99",
+        "ms": 56.331,
+        "percent": 8.773164840059618
+      },
+      {
+        "frame": "compareBytes base/dist/commands/text.js L3",
+        "ms": 45.124,
+        "percent": 7.027751863855608
+      },
+      {
+        "frame": "  L0",
+        "ms": 41.999,
+        "percent": 6.5410546611575136
+      },
+      {
+        "frame": "execute file:///private/tmp/safe-bash-sort-performance-VrG9w3/harness/worker.mjs L29",
+        "ms": 40.502,
+        "percent": 6.307907233177019
+      },
+      {
+        "frame": "concatenate base/dist/commands/internal.js L144",
+        "ms": 27.124,
+        "percent": 4.2243759763145885
+      },
+      {
+        "frame": "processTicksAndRejections node:internal/process/task_queues L71",
+        "ms": 19.46,
+        "percent": 3.030760820641568
+      },
+      {
+        "frame": "post node:inspector L118",
+        "ms": 17.166,
+        "percent": 2.6734861380849515
+      },
+      {
+        "frame": "get node:internal/bootstrap/node L475",
+        "ms": 9.084,
+        "percent": 1.4147703645790342
+      },
+      {
+        "frame": "close base/dist/shell/input.js L276",
+        "ms": 7.458,
+        "percent": 1.161532076071162
+      },
+      {
+        "frame": "memoryUsage  L0",
+        "ms": 4.5,
+        "percent": 0.7008439718852547
+      },
+      {
+        "frame": "FastBuffer node:internal/buffer L956",
+        "ms": 3,
+        "percent": 0.4672293145901698
+      },
+      {
+        "frame": "bytes base/dist/shell/runtime.js L112",
+        "ms": 3,
+        "percent": 0.4672293145901698
+      },
+      {
+        "frame": "setTimeout node:timers L133",
+        "ms": 1.542,
+        "percent": 0.24015586769934727
+      },
+      {
+        "frame": " base/dist/shell/input.js L40",
+        "ms": 1.542,
+        "percent": 0.24015586769934727
+      },
+      {
+        "frame": "digest  L0",
+        "ms": 1.542,
+        "percent": 0.24015586769934727
+      },
+      {
+        "frame": "commandInner base/dist/shell/parser.js L612",
+        "ms": 1.542,
+        "percent": 0.24015586769934727
+      },
+      {
+        "frame": "decode node:internal/encoding L442",
+        "ms": 1.542,
+        "percent": 0.24015586769934727
+      },
+      {
+        "frame": "createSequenceConverter node:internal/webidl L337",
+        "ms": 1.542,
+        "percent": 0.24015586769934727
+      }
+    ]
+  },
+  {
+    "name": "historical-sort-uniq-5000",
+    "top": [
+      {
+        "frame": "lines base/dist/commands/internal.js L165",
+        "ms": 166.622,
+        "percent": 14.900792249033946
+      },
+      {
+        "frame": "(garbage collector)  L0",
+        "ms": 128.04,
+        "percent": 11.450453358898024
+      },
+      {
+        "frame": " base/dist/commands/text.js L90",
+        "ms": 108.915,
+        "percent": 9.740129081415013
+      },
+      {
+        "frame": "processTicksAndRejections node:internal/process/task_queues L71",
+        "ms": 85.586,
+        "percent": 7.653846463407109
+      },
+      {
+        "frame": " base/dist/commands/text.js L150",
+        "ms": 73.959,
+        "percent": 6.614058731417829
+      },
+      {
+        "frame": "  L0",
+        "ms": 67.166,
+        "percent": 6.0065694337999425
+      },
+      {
+        "frame": "key base/dist/commands/text.js L191",
+        "ms": 62.79,
+        "percent": 5.615229353367751
+      },
+      {
+        "frame": "concatenate base/dist/commands/internal.js L144",
+        "ms": 46.875,
+        "percent": 4.191971268340713
+      },
+      {
+        "frame": " base/dist/commands/text.js L203",
+        "ms": 45.461,
+        "percent": 4.065519057707459
+      },
+      {
+        "frame": "flags base/dist/commands/text.js L99",
+        "ms": 45.421,
+        "percent": 4.061941908891808
+      },
+      {
+        "frame": "compareBytes base/dist/commands/text.js L3",
+        "ms": 45.082,
+        "percent": 4.031625572679168
+      },
+      {
+        "frame": "interruptible base/dist/shell/runtime.js L88",
+        "ms": 45,
+        "percent": 4.024292417607084
+      },
+      {
+        "frame": "addEventListener node:internal/event_target L610",
+        "ms": 17.957,
+        "percent": 1.605871532066009
+      },
+      {
+        "frame": " node:internal/abort_controller L330",
+        "ms": 15.874,
+        "percent": 1.4195915074909968
+      },
+      {
+        "frame": "execute file:///private/tmp/safe-bash-sort-performance-VrG9w3/harness/worker.mjs L29",
+        "ms": 13.542,
+        "percent": 1.2110437315385585
+      },
+      {
+        "frame": "write base/dist/shell/runtime.js L74",
+        "ms": 10.542,
+        "percent": 0.9427575703647529
+      },
+      {
+        "frame": "write base/dist/shell/runtime.js L186",
+        "ms": 9.083,
+        "percent": 0.8122810673138922
+      },
+      {
+        "frame": "post node:inspector L118",
+        "ms": 7.875,
+        "percent": 0.7042511730812397
+      },
+      {
+        "frame": "removeEventListener node:internal/event_target L710",
+        "ms": 7.5,
+        "percent": 0.670715402934514
+      },
+      {
+        "frame": "emitRecords base/dist/commands/text.js L68",
+        "ms": 7.417,
+        "percent": 0.6632928191420387
+      },
+      {
+        "frame": "Listener node:internal/event_target L461",
+        "ms": 6.917,
+        "percent": 0.6185784589464045
+      },
+      {
+        "frame": "get node:internal/bootstrap/node L475",
+        "ms": 6.042,
+        "percent": 0.5403283286040444
+      }
+    ]
+  },
+  {
+    "name": "numeric-stable-8000",
+    "top": [
+      {
+        "frame": "parse base/dist/commands/text.js L6",
+        "ms": 327.624,
+        "percent": 33.806165355346316
+      },
+      {
+        "frame": "latin1Slice  L0",
+        "ms": 83.166,
+        "percent": 8.581555526892815
+      },
+      {
+        "frame": "keyCompare base/dist/commands/text.js L99",
+        "ms": 67.457,
+        "percent": 6.960608796594866
+      },
+      {
+        "frame": "(garbage collector)  L0",
+        "ms": 66.791,
+        "percent": 6.891887011479428
+      },
+      {
+        "frame": "slice node:buffer L667",
+        "ms": 61.875,
+        "percent": 6.3846253063330325
+      },
+      {
+        "frame": "numericCompare base/dist/commands/text.js L5",
+        "ms": 58.749,
+        "percent": 6.0620662969173225
+      },
+      {
+        "frame": "FastBuffer node:internal/buffer L956",
+        "ms": 40.792,
+        "percent": 4.2091577453888815
+      },
+      {
+        "frame": "from node:buffer L301",
+        "ms": 40.751,
+        "percent": 4.204927124983877
+      },
+      {
+        "frame": "post node:inspector L118",
+        "ms": 32.417,
+        "percent": 3.344976138269057
+      },
+      {
+        "frame": "fromArrayLike node:buffer L526",
+        "ms": 30.751,
+        "percent": 3.1730684896169223
+      },
+      {
+        "frame": "compare base/dist/commands/text.js L122",
+        "ms": 25.794,
+        "percent": 2.661576164065523
+      },
+      {
+        "frame": "lines base/dist/commands/internal.js L165",
+        "ms": 22.376,
+        "percent": 2.308886882497098
+      },
+      {
+        "frame": "execute file:///private/tmp/safe-bash-sort-performance-VrG9w3/harness/worker.mjs L29",
+        "ms": 21.208,
+        "percent": 2.1883657938862378
+      },
+      {
+        "frame": " base/dist/commands/text.js L90",
+        "ms": 21.123,
+        "percent": 2.1795949954856186
+      },
+      {
+        "frame": " base/dist/commands/text.js L150",
+        "ms": 19,
+        "percent": 1.960531407197214
+      },
+      {
+        "frame": "  L0",
+        "ms": 9,
+        "percent": 0.9286727718302592
+      },
+      {
+        "frame": "getEncodingOps node:buffer L725",
+        "ms": 6.083,
+        "percent": 0.6276796078937186
+      },
+      {
+        "frame": "toString node:buffer L839",
+        "ms": 4.542,
+        "percent": 0.46867019218367084
+      },
+      {
+        "frame": "processTicksAndRejections node:internal/process/task_queues L71",
+        "ms": 4.501,
+        "percent": 0.46443957177866635
+      },
+      {
+        "frame": "createUnsafeBuffer node:internal/buffer L1082",
+        "ms": 3.042,
+        "percent": 0.3138913968786276
+      },
+      {
+        "frame": "get node:internal/bootstrap/node L475",
+        "ms": 3,
+        "percent": 0.3095575906100864
+      },
+      {
+        "frame": "concatenate base/dist/commands/internal.js L144",
+        "ms": 3,
+        "percent": 0.3095575906100864
+      }
+    ]
+  }
+]

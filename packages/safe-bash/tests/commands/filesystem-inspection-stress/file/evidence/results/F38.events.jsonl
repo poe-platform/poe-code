@@ -1,0 +1,12 @@
+{"at":"2026-08-27T08:27:16.216Z","kind":"case-start","id":"F38"}
+{"at":"2026-08-27T08:27:16.218Z","kind":"shell-start","invocation":1,"script":"holdout-byte-source | file -b --mime -","additionalCommands":["holdout-byte-source"],"signal":{"present":false}}
+{"at":"2026-08-27T08:27:16.223Z","kind":"shell-result","invocation":1,"stdout":"image/png; charset=binary\n","stderr":"","exitCode":0}
+{"at":"2026-08-27T08:27:16.223Z","kind":"shell-disposed","invocation":1}
+{"at":"2026-08-27T08:27:16.223Z","kind":"shell-start","invocation":2,"script":"file -b --mime - < /picture","additionalCommands":[],"signal":{"present":false}}
+{"at":"2026-08-27T08:27:16.224Z","kind":"fs-call","invocation":2,"method":"access","path":"/picture","options":{"signal":{"present":true,"signalId":1,"aborted":false}}}
+{"at":"2026-08-27T08:27:16.224Z","kind":"fs-call","invocation":2,"method":"stat","path":"/picture","options":{"signal":{"present":true,"signalId":1,"aborted":false}}}
+{"at":"2026-08-27T08:27:16.224Z","kind":"fs-call","invocation":2,"method":"readStream","path":"/picture","options":{"signal":{"present":true,"signalId":1,"aborted":false}}}
+{"at":"2026-08-27T08:27:16.224Z","kind":"signal-abort","signalId":1,"reason":{"name":"Error","message":"Invocation is closed","stack":"Error: Invocation is closed\n    at #seal (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/shell/cleanup.js:41:32)\n    at InvocationScope.close (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/shell/cleanup.js:58:23)\n    at Shell.exec (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/shell/shell.js:83:25)\n    at async Object.shell (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/child.mjs:71:22)\n    at async deadline (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/holdout/probes.mjs:16:12)\n    at async file:///private/tmp/safe-bash-file-run.WeB7Vfsc/holdout/isolated-runner.mjs:295:24\n    at async record (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/holdout/isolated-runner.mjs:48:7)\n    at async runHoldouts (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/holdout/isolated-runner.mjs:276:3)\n    at async file:///private/tmp/safe-bash-file-run.WeB7Vfsc/child.mjs:79:16"}}
+{"at":"2026-08-27T08:27:16.224Z","kind":"shell-result","invocation":2,"stdout":"image/png; charset=binary\n","stderr":"","exitCode":0}
+{"at":"2026-08-27T08:27:16.225Z","kind":"shell-disposed","invocation":2}
+{"at":"2026-08-27T08:27:16.225Z","kind":"case-finished","id":"F38","semanticStatus":"pass","nativeStatus":"not-run"}

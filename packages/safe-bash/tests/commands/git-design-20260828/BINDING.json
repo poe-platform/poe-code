@@ -1,0 +1,58 @@
+{
+  "schema": "git-readonly-design-binding-v1",
+  "date": "2026-08-28",
+  "status": "PROPOSED_NOT_IMPLEMENTATION_GO_OR_ACCEPTANCE",
+  "ownedScope": "tests/commands/git-design-20260828/**",
+  "sourceIdentity": "Selected live files authenticated individually; no Git executable or repository-object inspection, no whole-current-HEAD claim",
+  "gitExecutions": 0,
+  "nativeOracleExecutions": 0,
+  "productExecutions": 0,
+  "repositoryMaterializations": 0,
+  "privateEngineAccesses": 0,
+  "newRuntimeDependencies": 0,
+  "commit": null,
+  "commitQualification": "No Git executable invoked, including commit, under the explicit ZERO hostgit execution instruction. Files are content-bound here for root review.",
+  "documents": [
+    { "path": "README.md", "bytes": 21911, "sha256": "75a77904e143976524fa01ca1599405567e304777eac4a1e1ffb2347ddad255d" },
+    { "path": "SOURCES.md", "bytes": 2927, "sha256": "6a526346c5d58a1ce8c0661483b1cdcf7cdfb78e2e05ad7aa6a060e0e5fb4f52" },
+    { "path": "MATRIX.md", "bytes": 6073, "sha256": "303c6f3194131a93e359ada3719b9e25286e71ab2b3613f1358c4b17f1537dec" },
+    { "path": "NEUTRAL-FIXTURE.json", "bytes": 4160, "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074" }
+  ],
+  "sourceInputs": [
+    { "path": "src/contracts/command.ts", "bytes": 2968, "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c" },
+    { "path": "src/contracts/filesystem.ts", "bytes": 3897, "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522" },
+    { "path": "src/contracts/io.ts", "bytes": 7663, "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809" },
+    { "path": "src/contracts/output.ts", "bytes": 4661, "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e" },
+    { "path": "src/commands/bytes/checksums/index.ts", "bytes": 12862, "sha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab" },
+    { "path": "src/commands/bytes/compression/gunzip.ts", "bytes": 5874, "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f" },
+    { "path": "src/commands/bytes/compression/stream.ts", "bytes": 3390, "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4" },
+    { "path": "src/commands/diff-patch/shared.ts", "bytes": 6906, "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e" },
+    { "path": "src/commands/diff-patch/diff.ts", "bytes": 12580, "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e" },
+    { "path": "src/commands/diff-patch/diff-format.ts", "bytes": 5221, "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24" },
+    { "path": "src/commands/search/glob.ts", "bytes": 3157, "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da" }
+  ],
+  "dataValidation": {
+    "kind": "In-memory literal data validation, not a Git implementation or native acceptance test",
+    "validLooseObjectHashesAndDeclaredLengths": 11,
+    "indexVersion": 2,
+    "indexBytes": 184,
+    "indexChecksumValid": true,
+    "indexEntryFieldsChecked": 2,
+    "proposedOutputRowsUnexecuted": 6,
+    "draftTranscriptionHistory": {
+      "initialObjectsValid": 9,
+      "initialObjectsTotal": 11,
+      "failures": [
+        { "path": ".git/objects/b1/7f2aba562322af347fa8aa023d9d0e571a4369", "message": "invalid distance too far back", "classification": "base64 transcription typo before design seal" },
+        { "path": ".git/objects/1c/ec77171d8321d533b3aa50b7a1a9df02b10816", "message": "incorrect data check", "classification": "base64 transcription typo before design seal" }
+      ],
+      "correction": "Restored exact in-memory generation output; final 11 object hashes/lengths validate. No product bug, native oracle or historical cohort was rescored."
+    }
+  },
+  "decisionsNeeded": [
+    "M1A standalone real loose/index workflows; M1B pack/delta before default readiness for ordinary packed repositories",
+    "Raw-byte/no-renames/explicit-first-parent/literal-pathspec and UTF8 pathname profile, with explicit unsupported storage/transformation refusals",
+    "Finite limits, faithful-provider and cooperative-cleanup qualifications; no hard allocation or namespace-snapshot guarantee",
+    "New local-module implementation grant and separate isolated native-fixture execution grant after independent design review"
+  ]
+}

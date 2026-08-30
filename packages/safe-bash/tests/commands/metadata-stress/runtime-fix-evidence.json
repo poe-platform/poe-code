@@ -1,0 +1,1225 @@
+{
+  "capturedAt": "2026-08-27T00:53:21.454Z",
+  "sourceCommits": [
+    "2cacd04",
+    "0c4709f"
+  ],
+  "provenanceCommit": "220cd7e",
+  "headBefore": "a8f443f7ca53915deabcad88597fcecf7fa92a78",
+  "headAfter": "a8f443f7ca53915deabcad88597fcecf7fa92a78",
+  "scope": "Bounded runtime fixer evidence, not independent acceptance; no new corpus. Original 36 raw differences remain unchanged below.",
+  "originalProbeLogSha256": "c3296dae975516d3a1973a7b0e6367092e34f2097b9cf1b56a95a1142a59e094",
+  "originalTimestamps": [
+    {
+      "milliseconds": -16016,
+      "measured": -16015.999,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-17][-17][-17.0][-16.01][-16.015]",
+      "actual": "[-17][-17][-16.1][-16.02][-16.016]",
+      "nativeNs": "-16015999000"
+    },
+    {
+      "milliseconds": -16016,
+      "measured": -16015.999,
+      "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+      "native": "[-00016.015][-00016.015][-16.015   ]",
+      "actual": "[-00016.016][-00016.016][-16.016   ]",
+      "nativeNs": "-16015999000"
+    },
+    {
+      "milliseconds": -16016,
+      "measured": -16015.999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-16.015][-16.015][-16.015][-16.015]",
+      "actual": "[-16.016][-16.016][-16.016][-16.016]",
+      "nativeNs": "-16015999000"
+    },
+    {
+      "milliseconds": -4004,
+      "measured": -4003.999,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-5][-5][-5.0][-5.00][-4.003]",
+      "actual": "[-5][-5][-4.1][-4.01][-4.004]",
+      "nativeNs": "-4003999000"
+    },
+    {
+      "milliseconds": -4004,
+      "measured": -4003.999,
+      "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+      "native": "[-00004.003][-00004.003][-4.003    ]",
+      "actual": "[-00004.004][-00004.004][-4.004    ]",
+      "nativeNs": "-4003999000"
+    },
+    {
+      "milliseconds": -4004,
+      "measured": -4003.999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-4.003][-4.003][-4.003][-4.003  ]",
+      "actual": "[-4.004][-4.004][-4.004][-4.004]",
+      "nativeNs": "-4003999000"
+    },
+    {
+      "milliseconds": -2002,
+      "measured": -2001.999,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-3][-3][-3.0][-3.00][-2.001]",
+      "actual": "[-3][-3][-2.1][-2.01][-2.002]",
+      "nativeNs": "-2001999000"
+    },
+    {
+      "milliseconds": -2002,
+      "measured": -2001.999,
+      "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+      "native": "[-00002.001][-00002.001][-2.001    ]",
+      "actual": "[-00002.002][-00002.002][-2.002    ]",
+      "nativeNs": "-2001999000"
+    },
+    {
+      "milliseconds": -2002,
+      "measured": -2001.999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-2.001][-2.001][-2.001][-2.001  ]",
+      "actual": "[-2.002][-2.002][-2.002][-2.002]",
+      "nativeNs": "-2001999000"
+    },
+    {
+      "milliseconds": -1005,
+      "measured": -1004.999,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-2][-2][-2.0][-2.00][-1.004]",
+      "actual": "[-2][-2][-1.1][-1.01][-1.005]",
+      "nativeNs": "-1004999000"
+    },
+    {
+      "milliseconds": -1005,
+      "measured": -1004.999,
+      "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+      "native": "[-00001.004][-00001.004][-1.004    ]",
+      "actual": "[-00001.005][-00001.005][-1.005    ]",
+      "nativeNs": "-1004999000"
+    },
+    {
+      "milliseconds": -1005,
+      "measured": -1004.999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-1.004][-1.004][-1.004][-1.004  ]",
+      "actual": "[-1.005][-1.005][-1.005][-1.005]",
+      "nativeNs": "-1004999000"
+    },
+    {
+      "milliseconds": -1001,
+      "measured": -1000.999,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-2][-2][-2.0][-2.00][-2.000]",
+      "actual": "[-2][-2][-1.1][-1.01][-1.001]",
+      "nativeNs": "-1000999000"
+    },
+    {
+      "milliseconds": -1001,
+      "measured": -1000.999,
+      "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+      "native": "[-00002.000][-00002.000][-2.000    ]",
+      "actual": "[-00001.001][-00001.001][-1.001    ]",
+      "nativeNs": "-1000999000"
+    },
+    {
+      "milliseconds": -1001,
+      "measured": -1000.999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-2.000][-2.000][-2.000][-2.000  ]",
+      "actual": "[-1.001][-1.001][-1.001][-1.001]",
+      "nativeNs": "-1000999000"
+    },
+    {
+      "milliseconds": -999,
+      "measured": -999,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-1][-1][-0.9][-0.99][-0.999]",
+      "actual": "[-1][-1][-1.0][-1.00][-0.999]",
+      "nativeNs": "-999000000"
+    },
+    {
+      "milliseconds": -999,
+      "measured": -999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-0.999][-0.999][-0.999][-0.999  ]",
+      "actual": "[-0.999][-0.999][-0.999][-0.999]",
+      "nativeNs": "-999000000"
+    },
+    {
+      "milliseconds": -101,
+      "measured": -101,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-1][-1][-0.1][-0.10][-0.101]",
+      "actual": "[-1][-1][-0.2][-0.11][-0.101]",
+      "nativeNs": "-101000000"
+    },
+    {
+      "milliseconds": -101,
+      "measured": -101,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-0.101][-0.101][-0.101][-0.101  ]",
+      "actual": "[-0.101][-0.101][-0.101][-0.101]",
+      "nativeNs": "-101000000"
+    },
+    {
+      "milliseconds": -11,
+      "measured": -11,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-1][-1][-1.0][-0.01][-0.011]",
+      "actual": "[-1][-1][-0.1][-0.02][-0.011]",
+      "nativeNs": "-11000000"
+    },
+    {
+      "milliseconds": -11,
+      "measured": -11,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-0.011][-0.011][-0.011][-0.011  ]",
+      "actual": "[-0.011][-0.011][-0.011][-0.011]",
+      "nativeNs": "-11000000"
+    },
+    {
+      "milliseconds": -1,
+      "measured": -1,
+      "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+      "native": "[-1][-1][-1.0][-1.00][-0.001]",
+      "actual": "[-1][-1][-0.1][-0.01][-0.001]",
+      "nativeNs": "-1000000"
+    },
+    {
+      "milliseconds": -1,
+      "measured": -1,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[-0.001][-0.001][-0.001][-0.001  ]",
+      "actual": "[-0.001][-0.001][-0.001][-0.001]",
+      "nativeNs": "-1000000"
+    },
+    {
+      "milliseconds": 0,
+      "measured": 0,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[0.000][0.000][0.000  ][0.000 ]",
+      "actual": "[0.000][0.000][0.000][0.000]",
+      "nativeNs": "0"
+    },
+    {
+      "milliseconds": 1,
+      "measured": 1,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[0.001][0.001][0.001  ][0.001 ]",
+      "actual": "[0.001][0.001][0.001][0.001]",
+      "nativeNs": "1000000"
+    },
+    {
+      "milliseconds": 11,
+      "measured": 11,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[0.011][0.011][0.011  ][0.011 ]",
+      "actual": "[0.011][0.011][0.011][0.011]",
+      "nativeNs": "11000000"
+    },
+    {
+      "milliseconds": 999,
+      "measured": 999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[0.999][0.999][0.999  ][0.999 ]",
+      "actual": "[0.999][0.999][0.999][0.999]",
+      "nativeNs": "999000000"
+    },
+    {
+      "milliseconds": 1001,
+      "measured": 1000.999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[1.000][1.000][1.000  ][1.000 ]",
+      "actual": "[1.000][1.000][1.000][1.000]",
+      "nativeNs": "1000999000"
+    },
+    {
+      "milliseconds": 1005,
+      "measured": 1004.999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[1.004][1.004][1.004  ][1.004 ]",
+      "actual": "[1.004][1.004][1.004][1.004]",
+      "nativeNs": "1004999000"
+    },
+    {
+      "milliseconds": 16016,
+      "measured": 16015.999,
+      "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+      "native": "[16.015][16.015][16.015][16.015  ]",
+      "actual": "[16.015][16.015][16.015][16.015]",
+      "nativeNs": "16015999000"
+    }
+  ],
+  "originalChmod": [
+    {
+      "name": "file",
+      "initial": "4777",
+      "mode": "u-s,g=s,o-t",
+      "expectedMode": "4777",
+      "actualMode": "2707",
+      "nativeCode": 1,
+      "actualCode": 0,
+      "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+      "actualStderr": ""
+    },
+    {
+      "name": "file",
+      "initial": "777",
+      "mode": "u-s,g=s,o-t",
+      "expectedMode": "777",
+      "actualMode": "2707",
+      "nativeCode": 1,
+      "actualCode": 0,
+      "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+      "actualStderr": ""
+    },
+    {
+      "name": "file",
+      "initial": "1777",
+      "mode": "u-s,g=s,o-t",
+      "expectedMode": "1777",
+      "actualMode": "2707",
+      "nativeCode": 1,
+      "actualCode": 0,
+      "nativeStderr": "chmod: changing permissions of 'file': Operation not permitted\n",
+      "actualStderr": ""
+    },
+    {
+      "name": "directory",
+      "initial": "4777",
+      "mode": "u-s,g=s,o-t",
+      "expectedMode": "4777",
+      "actualMode": "2707",
+      "nativeCode": 1,
+      "actualCode": 0,
+      "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+      "actualStderr": ""
+    },
+    {
+      "name": "directory",
+      "initial": "777",
+      "mode": "u-s,g=s,o-t",
+      "expectedMode": "777",
+      "actualMode": "2707",
+      "nativeCode": 1,
+      "actualCode": 0,
+      "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+      "actualStderr": ""
+    },
+    {
+      "name": "directory",
+      "initial": "1777",
+      "mode": "u-s,g=s,o-t",
+      "expectedMode": "1777",
+      "actualMode": "2707",
+      "nativeCode": 1,
+      "actualCode": 0,
+      "nativeStderr": "chmod: changing permissions of 'directory': Operation not permitted\n",
+      "actualStderr": ""
+    }
+  ],
+  "reviewerStatusSha256": "e20c1e5771ada253f856bb9da3565fbb79b1f688903f7542d17a5ac01565bc0d",
+  "timestampClassification": {
+    "originalRows": 30,
+    "semantic": 30,
+    "calibrationOnly": 0,
+    "causes": {
+      "negative-fraction": 15,
+      "negative-fraction-and-narrow-width": 4,
+      "narrow-width": 11
+    },
+    "note": "Requested Date milliseconds differ from measured timestamps in some fixtures, but original VFS inputs already used the exact measured values. All 30 differences survive input-equality classification; none may be dismissed solely as calibration."
+  },
+  "measuredChmodClassification": [
+    {
+      "id": "C1",
+      "original": {
+        "name": "file",
+        "initial": "4777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "4777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized.",
+      "native": {
+        "code": 1,
+        "mode": "4777"
+      },
+      "real": {
+        "code": 0,
+        "mode": "707"
+      },
+      "node": {
+        "fulfilled": true,
+        "mode": "707"
+      },
+      "memory": {
+        "code": 0,
+        "mode": "2707"
+      }
+    },
+    {
+      "id": "C2",
+      "original": {
+        "name": "file",
+        "initial": "777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized.",
+      "native": {
+        "code": 1,
+        "mode": "777"
+      },
+      "real": {
+        "code": 0,
+        "mode": "707"
+      },
+      "node": {
+        "fulfilled": true,
+        "mode": "707"
+      },
+      "memory": {
+        "code": 0,
+        "mode": "2707"
+      }
+    },
+    {
+      "id": "C3",
+      "original": {
+        "name": "file",
+        "initial": "1777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "1777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized.",
+      "native": {
+        "code": 1,
+        "mode": "1777"
+      },
+      "real": {
+        "code": 0,
+        "mode": "707"
+      },
+      "node": {
+        "fulfilled": true,
+        "mode": "707"
+      },
+      "memory": {
+        "code": 0,
+        "mode": "2707"
+      }
+    },
+    {
+      "id": "C4",
+      "original": {
+        "name": "directory",
+        "initial": "4777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "4777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized.",
+      "native": {
+        "code": 1,
+        "mode": "4777"
+      },
+      "real": {
+        "code": 0,
+        "mode": "707"
+      },
+      "node": {
+        "fulfilled": true,
+        "mode": "707"
+      },
+      "memory": {
+        "code": 0,
+        "mode": "2707"
+      }
+    },
+    {
+      "id": "C5",
+      "original": {
+        "name": "directory",
+        "initial": "777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized.",
+      "native": {
+        "code": 1,
+        "mode": "777"
+      },
+      "real": {
+        "code": 0,
+        "mode": "707"
+      },
+      "node": {
+        "fulfilled": true,
+        "mode": "707"
+      },
+      "memory": {
+        "code": 0,
+        "mode": "2707"
+      }
+    },
+    {
+      "id": "C6",
+      "original": {
+        "name": "directory",
+        "initial": "1777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "1777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized.",
+      "native": {
+        "code": 1,
+        "mode": "1777"
+      },
+      "real": {
+        "code": 0,
+        "mode": "707"
+      },
+      "node": {
+        "fulfilled": true,
+        "mode": "707"
+      },
+      "memory": {
+        "code": 0,
+        "mode": "2707"
+      }
+    }
+  ],
+  "manualContradiction": {
+    "sourceUrl": "https://www.gnu.org/s/coreutils/manual/html_node/stat-invocation.html",
+    "accessedAt": "2026-08-27T00:51:43.646Z",
+    "heading": "stat invocation (GNU Coreutils 9.11)",
+    "quote": "When discarding excess precision, timestamps are truncated toward minus infinity.",
+    "policy": "User explicitly chose pinned GNU9.7 executable behavior. Current manual contradiction retained separately; not an oracle-policy switch."
+  },
+  "routing": "Poincare/root: all six host controls reproduce GNU chmod EPERM/status1 with unchanged initial modes 04777/0777/01777; virtual RealFS, direct Node chmod, and RealFS API return success but result 0707 for target02707. MemoryFS returns success with02707. Fixture uid501/gid0; calling uid501/gid20 and supplementary groups exclude0; read-only ls ACL/flags/xattr introspection captured no ACL entries and provenance xattr. This is measured syscall/status-effect divergence, not waived EPERM, not confirmed mode-parser bug. No FS edits.",
+  "replay": {
+    "total": 30,
+    "pass": 30,
+    "fail": 0,
+    "fixture": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.native-runtime-fix-J83KvA",
+    "sentinel": "unchanged",
+    "fixtureRemoved": true,
+    "rows": [
+      {
+        "original": {
+          "milliseconds": -16016,
+          "measured": -16015.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-17][-17][-17.0][-16.01][-16.015]",
+          "actual": "[-17][-17][-16.1][-16.02][-16.016]",
+          "nativeNs": "-16015999000"
+        },
+        "deterministicVfsMtimeMs": -16015.999,
+        "nativeMtimeNs": "-16015999000",
+        "nativeMtimeMs": -16015.999,
+        "actual": "[-17][-17][-17.0][-16.01][-16.015]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -16016,
+          "measured": -16015.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00016.015][-00016.015][-16.015   ]",
+          "actual": "[-00016.016][-00016.016][-16.016   ]",
+          "nativeNs": "-16015999000"
+        },
+        "deterministicVfsMtimeMs": -16015.999,
+        "nativeMtimeNs": "-16015999000",
+        "nativeMtimeMs": -16015.999,
+        "actual": "[-00016.015][-00016.015][-16.015   ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -16016,
+          "measured": -16015.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-16.015][-16.015][-16.015][-16.015]",
+          "actual": "[-16.016][-16.016][-16.016][-16.016]",
+          "nativeNs": "-16015999000"
+        },
+        "deterministicVfsMtimeMs": -16015.999,
+        "nativeMtimeNs": "-16015999000",
+        "nativeMtimeMs": -16015.999,
+        "actual": "[-16.015][-16.015][-16.015][-16.015]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -4004,
+          "measured": -4003.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-5][-5][-5.0][-5.00][-4.003]",
+          "actual": "[-5][-5][-4.1][-4.01][-4.004]",
+          "nativeNs": "-4003999000"
+        },
+        "deterministicVfsMtimeMs": -4003.999,
+        "nativeMtimeNs": "-4003999000",
+        "nativeMtimeMs": -4003.999,
+        "actual": "[-5][-5][-5.0][-5.00][-4.003]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -4004,
+          "measured": -4003.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00004.003][-00004.003][-4.003    ]",
+          "actual": "[-00004.004][-00004.004][-4.004    ]",
+          "nativeNs": "-4003999000"
+        },
+        "deterministicVfsMtimeMs": -4003.999,
+        "nativeMtimeNs": "-4003999000",
+        "nativeMtimeMs": -4003.999,
+        "actual": "[-00004.003][-00004.003][-4.003    ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -4004,
+          "measured": -4003.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-4.003][-4.003][-4.003][-4.003  ]",
+          "actual": "[-4.004][-4.004][-4.004][-4.004]",
+          "nativeNs": "-4003999000"
+        },
+        "deterministicVfsMtimeMs": -4003.999,
+        "nativeMtimeNs": "-4003999000",
+        "nativeMtimeMs": -4003.999,
+        "actual": "[-4.003][-4.003][-4.003][-4.003  ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -2002,
+          "measured": -2001.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-3][-3][-3.0][-3.00][-2.001]",
+          "actual": "[-3][-3][-2.1][-2.01][-2.002]",
+          "nativeNs": "-2001999000"
+        },
+        "deterministicVfsMtimeMs": -2001.999,
+        "nativeMtimeNs": "-2001999000",
+        "nativeMtimeMs": -2001.999,
+        "actual": "[-3][-3][-3.0][-3.00][-2.001]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -2002,
+          "measured": -2001.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00002.001][-00002.001][-2.001    ]",
+          "actual": "[-00002.002][-00002.002][-2.002    ]",
+          "nativeNs": "-2001999000"
+        },
+        "deterministicVfsMtimeMs": -2001.999,
+        "nativeMtimeNs": "-2001999000",
+        "nativeMtimeMs": -2001.999,
+        "actual": "[-00002.001][-00002.001][-2.001    ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -2002,
+          "measured": -2001.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-2.001][-2.001][-2.001][-2.001  ]",
+          "actual": "[-2.002][-2.002][-2.002][-2.002]",
+          "nativeNs": "-2001999000"
+        },
+        "deterministicVfsMtimeMs": -2001.999,
+        "nativeMtimeNs": "-2001999000",
+        "nativeMtimeMs": -2001.999,
+        "actual": "[-2.001][-2.001][-2.001][-2.001  ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -1005,
+          "measured": -1004.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-2][-2][-2.0][-2.00][-1.004]",
+          "actual": "[-2][-2][-1.1][-1.01][-1.005]",
+          "nativeNs": "-1004999000"
+        },
+        "deterministicVfsMtimeMs": -1004.999,
+        "nativeMtimeNs": "-1004999000",
+        "nativeMtimeMs": -1004.999,
+        "actual": "[-2][-2][-2.0][-2.00][-1.004]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -1005,
+          "measured": -1004.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00001.004][-00001.004][-1.004    ]",
+          "actual": "[-00001.005][-00001.005][-1.005    ]",
+          "nativeNs": "-1004999000"
+        },
+        "deterministicVfsMtimeMs": -1004.999,
+        "nativeMtimeNs": "-1004999000",
+        "nativeMtimeMs": -1004.999,
+        "actual": "[-00001.004][-00001.004][-1.004    ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -1005,
+          "measured": -1004.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-1.004][-1.004][-1.004][-1.004  ]",
+          "actual": "[-1.005][-1.005][-1.005][-1.005]",
+          "nativeNs": "-1004999000"
+        },
+        "deterministicVfsMtimeMs": -1004.999,
+        "nativeMtimeNs": "-1004999000",
+        "nativeMtimeMs": -1004.999,
+        "actual": "[-1.004][-1.004][-1.004][-1.004  ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -1001,
+          "measured": -1000.999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-2][-2][-2.0][-2.00][-2.000]",
+          "actual": "[-2][-2][-1.1][-1.01][-1.001]",
+          "nativeNs": "-1000999000"
+        },
+        "deterministicVfsMtimeMs": -1000.999,
+        "nativeMtimeNs": "-1000999000",
+        "nativeMtimeMs": -1000.999,
+        "actual": "[-2][-2][-2.0][-2.00][-2.000]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -1001,
+          "measured": -1000.999,
+          "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+          "native": "[-00002.000][-00002.000][-2.000    ]",
+          "actual": "[-00001.001][-00001.001][-1.001    ]",
+          "nativeNs": "-1000999000"
+        },
+        "deterministicVfsMtimeMs": -1000.999,
+        "nativeMtimeNs": "-1000999000",
+        "nativeMtimeMs": -1000.999,
+        "actual": "[-00002.000][-00002.000][-2.000    ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -1001,
+          "measured": -1000.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-2.000][-2.000][-2.000][-2.000  ]",
+          "actual": "[-1.001][-1.001][-1.001][-1.001]",
+          "nativeNs": "-1000999000"
+        },
+        "deterministicVfsMtimeMs": -1000.999,
+        "nativeMtimeNs": "-1000999000",
+        "nativeMtimeMs": -1000.999,
+        "actual": "[-2.000][-2.000][-2.000][-2.000  ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -999,
+          "measured": -999,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-1][-1][-0.9][-0.99][-0.999]",
+          "actual": "[-1][-1][-1.0][-1.00][-0.999]",
+          "nativeNs": "-999000000"
+        },
+        "deterministicVfsMtimeMs": -999,
+        "nativeMtimeNs": "-999000000",
+        "nativeMtimeMs": -999,
+        "actual": "[-1][-1][-0.9][-0.99][-0.999]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -999,
+          "measured": -999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-0.999][-0.999][-0.999][-0.999  ]",
+          "actual": "[-0.999][-0.999][-0.999][-0.999]",
+          "nativeNs": "-999000000"
+        },
+        "deterministicVfsMtimeMs": -999,
+        "nativeMtimeNs": "-999000000",
+        "nativeMtimeMs": -999,
+        "actual": "[-0.999][-0.999][-0.999][-0.999  ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -101,
+          "measured": -101,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-1][-1][-0.1][-0.10][-0.101]",
+          "actual": "[-1][-1][-0.2][-0.11][-0.101]",
+          "nativeNs": "-101000000"
+        },
+        "deterministicVfsMtimeMs": -101,
+        "nativeMtimeNs": "-101000000",
+        "nativeMtimeMs": -101,
+        "actual": "[-1][-1][-0.1][-0.10][-0.101]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -101,
+          "measured": -101,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-0.101][-0.101][-0.101][-0.101  ]",
+          "actual": "[-0.101][-0.101][-0.101][-0.101]",
+          "nativeNs": "-101000000"
+        },
+        "deterministicVfsMtimeMs": -101,
+        "nativeMtimeNs": "-101000000",
+        "nativeMtimeMs": -101,
+        "actual": "[-0.101][-0.101][-0.101][-0.101  ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -11,
+          "measured": -11,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-1][-1][-1.0][-0.01][-0.011]",
+          "actual": "[-1][-1][-0.1][-0.02][-0.011]",
+          "nativeNs": "-11000000"
+        },
+        "deterministicVfsMtimeMs": -11,
+        "nativeMtimeNs": "-11000000",
+        "nativeMtimeMs": -11,
+        "actual": "[-1][-1][-1.0][-0.01][-0.011]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -11,
+          "measured": -11,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-0.011][-0.011][-0.011][-0.011  ]",
+          "actual": "[-0.011][-0.011][-0.011][-0.011]",
+          "nativeNs": "-11000000"
+        },
+        "deterministicVfsMtimeMs": -11,
+        "nativeMtimeNs": "-11000000",
+        "nativeMtimeMs": -11,
+        "actual": "[-0.011][-0.011][-0.011][-0.011  ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -1,
+          "measured": -1,
+          "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+          "native": "[-1][-1][-1.0][-1.00][-0.001]",
+          "actual": "[-1][-1][-0.1][-0.01][-0.001]",
+          "nativeNs": "-1000000"
+        },
+        "deterministicVfsMtimeMs": -1,
+        "nativeMtimeNs": "-1000000",
+        "nativeMtimeMs": -1,
+        "actual": "[-1][-1][-1.0][-1.00][-0.001]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": -1,
+          "measured": -1,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[-0.001][-0.001][-0.001][-0.001  ]",
+          "actual": "[-0.001][-0.001][-0.001][-0.001]",
+          "nativeNs": "-1000000"
+        },
+        "deterministicVfsMtimeMs": -1,
+        "nativeMtimeNs": "-1000000",
+        "nativeMtimeMs": -1,
+        "actual": "[-0.001][-0.001][-0.001][-0.001  ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": 0,
+          "measured": 0,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[0.000][0.000][0.000  ][0.000 ]",
+          "actual": "[0.000][0.000][0.000][0.000]",
+          "nativeNs": "0"
+        },
+        "deterministicVfsMtimeMs": 0,
+        "nativeMtimeNs": "0",
+        "nativeMtimeMs": 0,
+        "actual": "[0.000][0.000][0.000  ][0.000 ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": 1,
+          "measured": 1,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[0.001][0.001][0.001  ][0.001 ]",
+          "actual": "[0.001][0.001][0.001][0.001]",
+          "nativeNs": "1000000"
+        },
+        "deterministicVfsMtimeMs": 1,
+        "nativeMtimeNs": "1000000",
+        "nativeMtimeMs": 1,
+        "actual": "[0.001][0.001][0.001  ][0.001 ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": 11,
+          "measured": 11,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[0.011][0.011][0.011  ][0.011 ]",
+          "actual": "[0.011][0.011][0.011][0.011]",
+          "nativeNs": "11000000"
+        },
+        "deterministicVfsMtimeMs": 11,
+        "nativeMtimeNs": "11000000",
+        "nativeMtimeMs": 11,
+        "actual": "[0.011][0.011][0.011  ][0.011 ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": 999,
+          "measured": 999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[0.999][0.999][0.999  ][0.999 ]",
+          "actual": "[0.999][0.999][0.999][0.999]",
+          "nativeNs": "999000000"
+        },
+        "deterministicVfsMtimeMs": 999,
+        "nativeMtimeNs": "999000000",
+        "nativeMtimeMs": 999,
+        "actual": "[0.999][0.999][0.999  ][0.999 ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": 1001,
+          "measured": 1000.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[1.000][1.000][1.000  ][1.000 ]",
+          "actual": "[1.000][1.000][1.000][1.000]",
+          "nativeNs": "1000999000"
+        },
+        "deterministicVfsMtimeMs": 1000.999,
+        "nativeMtimeNs": "1000999000",
+        "nativeMtimeMs": 1000.999,
+        "actual": "[1.000][1.000][1.000  ][1.000 ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": 1005,
+          "measured": 1004.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[1.004][1.004][1.004  ][1.004 ]",
+          "actual": "[1.004][1.004][1.004][1.004]",
+          "nativeNs": "1004999000"
+        },
+        "deterministicVfsMtimeMs": 1004.999,
+        "nativeMtimeNs": "1004999000",
+        "nativeMtimeMs": 1004.999,
+        "actual": "[1.004][1.004][1.004  ][1.004 ]",
+        "exitCode": 0,
+        "passed": true
+      },
+      {
+        "original": {
+          "milliseconds": 16016,
+          "measured": 16015.999,
+          "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+          "native": "[16.015][16.015][16.015][16.015  ]",
+          "actual": "[16.015][16.015][16.015][16.015]",
+          "nativeNs": "16015999000"
+        },
+        "deterministicVfsMtimeMs": 16015.999,
+        "nativeMtimeNs": "16015999000",
+        "nativeMtimeMs": 16015.999,
+        "actual": "[16.015][16.015][16.015][16.015  ]",
+        "exitCode": 0,
+        "passed": true
+      }
+    ]
+  },
+  "results": [
+    {
+      "label": "author",
+      "command": "node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/metadata/chmod.test.ts",
+        "tests/commands/metadata/integration.test.ts",
+        "tests/commands/metadata/mktemp.test.ts",
+        "tests/commands/metadata/stat.test.ts"
+      ],
+      "startedAt": "2026-08-27T00:53:11.650Z",
+      "finishedAt": "2026-08-27T00:53:12.079Z",
+      "exitCode": 0,
+      "signal": null,
+      "logFile": "/tmp/safe-bash-metadata-runtime-fix-author.log",
+      "logSha256": "fd28b23c7b2896f693b6b81763923e29ab16cbef1a910c938157252188bcf9b7",
+      "counts": {
+        "tests": 43,
+        "pass": 43,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "plugin",
+      "command": "node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/plugins/agent-commands.test.ts"
+      ],
+      "startedAt": "2026-08-27T00:53:12.080Z",
+      "finishedAt": "2026-08-27T00:53:12.347Z",
+      "exitCode": 0,
+      "signal": null,
+      "logFile": "/tmp/safe-bash-metadata-runtime-fix-plugin.log",
+      "logSha256": "c447dfc5d0346c7afa362f2d96932995c0c5629bd67aca918721ff7e7a27aed1",
+      "counts": {
+        "tests": 31,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "stress",
+      "command": "node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/metadata-stress/adversarial.test.ts",
+        "tests/commands/metadata-stress/capabilities.test.ts",
+        "tests/commands/metadata-stress/chmod-controls.test.ts",
+        "tests/commands/metadata-stress/epoch-regression.test.ts",
+        "tests/commands/metadata-stress/mktemp-controls.test.ts",
+        "tests/commands/metadata-stress/native-differential.test.ts",
+        "tests/commands/metadata-stress/provenance.test.ts",
+        "tests/commands/metadata-stress/remote-cancellation.test.ts",
+        "tests/commands/metadata-stress/stat-effects.test.ts",
+        "tests/commands/metadata-stress/stat-flags.test.ts",
+        "tests/commands/metadata-stress/stat-precision.test.ts"
+      ],
+      "startedAt": "2026-08-27T00:53:12.347Z",
+      "finishedAt": "2026-08-27T00:53:18.835Z",
+      "exitCode": 0,
+      "signal": null,
+      "logFile": "/tmp/safe-bash-metadata-runtime-fix-stress.log",
+      "logSha256": "944b2f10a3f6e9377046e25efca29181a6b0c829df733c4e56e43d29422ce296",
+      "counts": {
+        "tests": 51,
+        "pass": 51,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "types",
+      "command": "node_modules/.bin/tsc",
+      "args": [
+        "--noEmit",
+        "-p",
+        "tests/commands/metadata-stress/tsconfig.json"
+      ],
+      "startedAt": "2026-08-27T00:53:18.835Z",
+      "finishedAt": "2026-08-27T00:53:20.270Z",
+      "exitCode": 0,
+      "signal": null,
+      "logFile": "/tmp/safe-bash-metadata-runtime-fix-types.log",
+      "logSha256": "a3680b6601c39b586ea892ad2bbaa58a7f72b62a64f73917b09aa8c5f188110e",
+      "counts": {}
+    },
+    {
+      "label": "source-types",
+      "command": "node_modules/.bin/tsc",
+      "args": [
+        "--noEmit",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "startedAt": "2026-08-27T00:53:20.270Z",
+      "finishedAt": "2026-08-27T00:53:21.452Z",
+      "exitCode": 0,
+      "signal": null,
+      "logFile": "/tmp/safe-bash-metadata-runtime-fix-source-types.log",
+      "logSha256": "a3680b6601c39b586ea892ad2bbaa58a7f72b62a64f73917b09aa8c5f188110e",
+      "counts": {}
+    },
+    {
+      "label": "plugin-safejs",
+      "command": "node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/plugins/safejs-exports.test.ts"
+      ],
+      "startedAt": "2026-08-27T00:54:25.796Z",
+      "finishedAt": "2026-08-27T00:54:26.040Z",
+      "exitCode": 0,
+      "signal": null,
+      "logFile": "/tmp/safe-bash-metadata-runtime-fix-plugin-safejs.log",
+      "logSha256": "a02e4eb944cc9c3b163e497748f4331293bef71b82679e7eef8b27fe5fa7de53",
+      "counts": {
+        "tests": 5,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "inputsBefore": {
+    "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+    "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+    "tests/commands/metadata/AUTHOR_CHECKPOINT.md": "3ce30d2cc83f3fd457626529ebf854345a103c550f4419307d34593d2b56546a",
+    "tests/commands/metadata/chmod.test.ts": "b1a9885fd32616fa04cae521e8c1bd1e7ac4c52f8134ce5887182df34b92f701",
+    "tests/commands/metadata/gnu-mode-evidence.json": "aed3e93e79b9a031176fc954866981cb06e730ae7e59ff553ffff317e6c8696d",
+    "tests/commands/metadata/helpers.ts": "d12870ee140276217aa414076b9242ea42712fe52910bc819139d10f685401db",
+    "tests/commands/metadata/integration.test.ts": "dec27f85016672d84fe0961cbe91cfa627d72d2d8f39b7fcbd11c37e23164634",
+    "tests/commands/metadata/mktemp.test.ts": "a129fd7d69dccd848227083f19bb14de513d224accfc91865701791cd495522b",
+    "tests/commands/metadata/stat.test.ts": "a3597699eadbcfa3b48a7a2cb9830428d6fc98c70f197c6f6c97011219e0b3aa",
+    "tests/plugins/agent-commands.test.ts": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517",
+    "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "tests/commands/metadata-stress/epoch-regression.test.ts": "a234fc1336d0f2bf943526d7fdd3857f55a3581c3393dd1a1418cc6c16df3f74",
+    "tests/commands/metadata-stress/provenance.test.ts": "154f459bc15e800be21668f29e149522b415ccf7fe731f0a9c5ac422574f8cce",
+    "tests/commands/metadata-stress/oracle-evidence.json": "4c02d4b362245afdf81665844df3dc986e66642bc95f624c207b1e11fecef124"
+  },
+  "inputsAfter": {
+    "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+    "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+    "tests/commands/metadata/AUTHOR_CHECKPOINT.md": "3ce30d2cc83f3fd457626529ebf854345a103c550f4419307d34593d2b56546a",
+    "tests/commands/metadata/chmod.test.ts": "b1a9885fd32616fa04cae521e8c1bd1e7ac4c52f8134ce5887182df34b92f701",
+    "tests/commands/metadata/gnu-mode-evidence.json": "aed3e93e79b9a031176fc954866981cb06e730ae7e59ff553ffff317e6c8696d",
+    "tests/commands/metadata/helpers.ts": "d12870ee140276217aa414076b9242ea42712fe52910bc819139d10f685401db",
+    "tests/commands/metadata/integration.test.ts": "dec27f85016672d84fe0961cbe91cfa627d72d2d8f39b7fcbd11c37e23164634",
+    "tests/commands/metadata/mktemp.test.ts": "a129fd7d69dccd848227083f19bb14de513d224accfc91865701791cd495522b",
+    "tests/commands/metadata/stat.test.ts": "a3597699eadbcfa3b48a7a2cb9830428d6fc98c70f197c6f6c97011219e0b3aa",
+    "tests/plugins/agent-commands.test.ts": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517",
+    "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "tests/commands/metadata-stress/epoch-regression.test.ts": "a234fc1336d0f2bf943526d7fdd3857f55a3581c3393dd1a1418cc6c16df3f74",
+    "tests/commands/metadata-stress/provenance.test.ts": "154f459bc15e800be21668f29e149522b415ccf7fe731f0a9c5ac422574f8cce",
+    "tests/commands/metadata-stress/oracle-evidence.json": "4c02d4b362245afdf81665844df3dc986e66642bc95f624c207b1e11fecef124"
+  },
+  "changed": [],
+  "limitations": [
+    "Independent final replay waits runtime-fixes.closed.",
+    "Six chmod host status/effect differences remain routed to Poincare/root; no chmod or FS edits.",
+    "Epoch precision above three remains unsupported; no full GNU parity.",
+    "Four previously recorded global TS diagnostics are unowned and root-routed; no global typecheck rerun or fixes.",
+    "No build or JS emission; prior isolated snapshot build is historical only.",
+    "No product completion, superiority, or 72-hour claim."
+  ],
+  "cohortClarification": {
+    "historicalOriginal": 71,
+    "historicalMetadata": 43,
+    "historicalPlugins": 28,
+    "currentMetadata": 43,
+    "currentAgentPlugin": 31,
+    "currentSafejsPlugin": 5,
+    "pluginChangeOwner": "root commit33347b7, table-text integration; not this leaf",
+    "originalSevenMetadataArtifacts": "unchanged verified hashes",
+    "currentPluginSha256": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517",
+    "safejsPluginSha256": "b34e05a57727fde0db30103e9c0e9605717dc313ca2337f4cddf074576b4c8f6",
+    "claim": "Current plugin scope is not the historical unchanged71 cohort; no author/plugin file edited by this leaf."
+  }
+}

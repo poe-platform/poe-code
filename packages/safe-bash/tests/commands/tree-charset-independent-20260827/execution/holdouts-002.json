@@ -1,0 +1,182 @@
+{
+  "schema": 1,
+  "baseline": {
+    "label": "baseline",
+    "pid": 83087,
+    "code": 0,
+    "signal": null,
+    "absentAfterClose": true,
+    "stdout": {
+      "schema": 1,
+      "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+      "package": {
+        "rootUrl": "file:///private/tmp/safe-bash-tree-independent.htSMG3/install-moved/node_modules/virtual-bash/dist/index.js",
+        "treeUrl": "file:///private/tmp/safe-bash-tree-independent.htSMG3/install-moved/node_modules/virtual-bash/dist/commands/tree/index.js",
+        "packageRoot": "/private/tmp/safe-bash-tree-independent.htSMG3/install-moved/node_modules/virtual-bash",
+        "manifestSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+        "rootEntrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+        "treeEntrySha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a"
+      },
+      "results": [
+        {
+          "id": "registry",
+          "count": 70,
+          "treeCount": 1
+        },
+        {
+          "id": "P01",
+          "pass": true
+        },
+        {
+          "id": "P02",
+          "pass": true
+        },
+        {
+          "id": "P03",
+          "pass": true
+        },
+        {
+          "id": "P04",
+          "pass": true
+        },
+        {
+          "id": "P05",
+          "pass": true
+        },
+        {
+          "id": "P06",
+          "pass": true
+        },
+        {
+          "id": "P07",
+          "pass": true
+        },
+        {
+          "id": "P08-v2",
+          "pass": true
+        },
+        {
+          "id": "P09-v2",
+          "pass": true
+        },
+        {
+          "id": "P10-v2",
+          "pass": true
+        },
+        {
+          "id": "aliases-and-invalid-explicit",
+          "pass": true,
+          "explicitAliases": 8,
+          "localeValues": 7,
+          "invalid": 3
+        },
+        {
+          "id": "own-key-and-ambient",
+          "pass": true,
+          "ambientTreeCharset": "UTF8"
+        },
+        {
+          "id": "escaping",
+          "pass": true,
+          "outputSha256": "f82f04c08c0c3d83d04955d2002f960064dfe98b23604bbddc96154cc4c5ab36"
+        },
+        {
+          "id": "variant-equivalence",
+          "pass": true,
+          "fsCalls": 5
+        },
+        {
+          "id": "utf8-byte-cap",
+          "pass": true,
+          "codeUnits": 11,
+          "bytes": 17
+        },
+        {
+          "id": "work-admission",
+          "pass": true,
+          "fsCalls": 0
+        },
+        {
+          "id": "backpressure",
+          "pass": true,
+          "writes": 2,
+          "maxPending": 1
+        },
+        {
+          "id": "abort",
+          "pass": true,
+          "earlyFs": 0,
+          "earlyWrites": 0,
+          "middleWrites": 1
+        },
+        {
+          "id": "sink-rejection",
+          "pass": true,
+          "sinkWrites": 1
+        },
+        {
+          "id": "worker-closure",
+          "pass": true,
+          "workerExit": 0,
+          "threadIdAfterExit": -1
+        }
+      ],
+      "controls": [
+        {
+          "id": "ignored-ambient-env-mutant",
+          "caught": true
+        },
+        {
+          "id": "precedence-swap-mutant",
+          "caught": true
+        },
+        {
+          "id": "raw-escape-mutant",
+          "caught": true
+        },
+        {
+          "id": "code-unit-output-cap-mutant",
+          "caught": true
+        },
+        {
+          "id": "work-cap-disabled-mutant",
+          "caught": true
+        }
+      ],
+      "unhandled": [],
+      "pass": true
+    },
+    "stderr": ""
+  },
+  "expectedFailureControls": [
+    {
+      "label": "wrong-package-hash",
+      "pid": 83094,
+      "code": 1,
+      "signal": null,
+      "absentAfterClose": true,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n\n    at file:///private/tmp/safe-bash-tree-independent.htSMG3/install-moved/consumer.mjs:18:8 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: '2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245',\n  expected: '0000000000000000000000000000000000000000000000000000000000000000',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "label": "missing-package-no-source-fallback",
+      "pid": 83097,
+      "code": 1,
+      "signal": null,
+      "absentAfterClose": true,
+      "stdout": "",
+      "stderr": "node:internal/modules/package_json_reader:314\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package 'virtual-bash' imported from /private/tmp/safe-bash-tree-independent.htSMG3/controls-runtime-002/empty-consumer/missing-package.mjs\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:314:9)\n    at packageResolve (node:internal/modules/esm/resolve:768:81)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "label": "wrong-package-no-candidate-fallback",
+      "pid": 83105,
+      "code": 1,
+      "signal": null,
+      "absentAfterClose": true,
+      "stdout": "",
+      "stderr": "file:///private/tmp/safe-bash-tree-independent.htSMG3/controls-runtime-002/wrong-consumer/wrong-package.mjs:2\nif (loaded.marker === \"wrong-package\") throw new Error(\"wrong package was detected\");\n                                             ^\n\nError: wrong package was detected\n    at file:///private/tmp/safe-bash-tree-independent.htSMG3/controls-runtime-002/wrong-consumer/wrong-package.mjs:2:46\n\nNode.js v22.22.2\n"
+    }
+  ],
+  "childClosure": true,
+  "pass": true
+}

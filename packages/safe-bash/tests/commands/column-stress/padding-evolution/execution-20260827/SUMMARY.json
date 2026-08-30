@@ -1,0 +1,453 @@
+{
+  "classification": "bounded-independent-padding-verification-not-public-integration",
+  "sourceCommit": "a809635432f18a235b8fb622a05367bedc54b315",
+  "authorSealCommit": "60863db0",
+  "sourceTree": "8b32998383d1372a8624ac41d2e747551e5b6d4c",
+  "sourceDigest": "e4f9a8d1690600807d496ae8bc42409cc98344ee7bba10ea702a136d52cd370e",
+  "evidenceCommit": "Enclosing explicit-owned-files Git commit; reported separately after commit.",
+  "sourceChangesByVerifier": [],
+  "prepCommit": "71a623ce5f4b37018a8ef61ebad20a4aa34aec07",
+  "prepSealSha256": "93894eafdc02cc8bdee171f1301cbdf21a74b0c448697edffd3573de6f28ae8c",
+  "archive": {
+    "path": "/tmp/safe-bash-column-padding-MmS9An/a8096354.tar",
+    "sha256": "6c707cc82366675b7e39282847a3b5365a916ad9d8c48694861e7f9f99e48bad",
+    "originalGitBlobs": 26647,
+    "originalTrackedFixtureSymlinks": 12,
+    "sourceFilesAreRegular": true
+  },
+  "package": {
+    "tarPath": "/tmp/safe-bash-column-padding-MmS9An/pack-output/virtual-bash-0.0.0.tgz",
+    "tarSha256": "529496a1e75423c0de50415afca2098b421c11617447ba155799e2afdbd4a684",
+    "packageRoot": "/private/tmp/safe-bash-column-padding-MmS9An/moved/node_modules/virtual-bash",
+    "inventorySha256": "81431ee331fb93df43bf975eba01166f8304d4cbccfe5b32f43490ebd3534c54",
+    "entries": 738,
+    "originalExtractionAbsent": true,
+    "unchangedAfterRuntime": true,
+    "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/moved/node_modules/virtual-bash/dist/index.js",
+    "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/moved/node_modules/virtual-bash/dist/commands/column/index.js"
+  },
+  "decisions": {
+    "paddingScope": "GO",
+    "rootPublicIntegration": "HOLD",
+    "historicalStrongUnregisteredCleanupAssertions": "Retained failures, not relabeled into passes and not an established registered-cleanup breach under Root decision 28f13113.",
+    "currentContractRevision": "Prepared only; await Root-accepted shared fix. 3af3f628 appearance is not acceptance and was not executed."
+  },
+  "liveContext": {
+    "headAtStart": "c53bc3be9c71927876afa779b92e3f7426c76a5e",
+    "indexAtStart": [],
+    "dirtyAtStart": [
+      "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/",
+      "?? tests/commands/search-stress/.native-1m4O1e/",
+      "?? tests/integration/safejs-owned-output-prototype-review/lifecycle/validity-proposal/",
+      "?? tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/",
+      "?? tests/integration/safejs-owned-output-prototype-review/validity-independent/"
+    ],
+    "policy": "Live state recorded only. Complete actual a8096354 archive executed; no source overlays, worktrees, private writes, installs or live product aliases."
+  },
+  "cohorts": {
+    "author": {
+      "pass": 148,
+      "fail": 0,
+      "existingProspective": 113,
+      "newAuthor": 35,
+      "prospectiveAssertionChanges": 2
+    },
+    "historicalOwnedRegressions": {
+      "pass": 6,
+      "fail": 0
+    },
+    "sealedLiterals": {
+      "total": 17,
+      "pass": 17,
+      "fail": 0
+    },
+    "safety": {
+      "topLevel": 16,
+      "nested": 38,
+      "pass": 38,
+      "fail": 0,
+      "membership": [
+        {
+          "id": "E01",
+          "total": 2,
+          "pass": 2,
+          "fail": 0,
+          "names": [
+            "E01/boundary-1",
+            "E01/boundary-2"
+          ]
+        },
+        {
+          "id": "E02",
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "names": [
+            "E02/preallocation"
+          ]
+        },
+        {
+          "id": "E03",
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "names": [
+            "E03/sparse-20000x1024"
+          ]
+        },
+        {
+          "id": "E04",
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "names": [
+            "E04/sparse-20000x1024"
+          ]
+        },
+        {
+          "id": "E05",
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "names": [
+            "E05/explicit-empty"
+          ]
+        },
+        {
+          "id": "E06",
+          "total": 2,
+          "pass": 2,
+          "fail": 0,
+          "names": [
+            "E06/boundary-1",
+            "E06/boundary-2"
+          ]
+        },
+        {
+          "id": "E07",
+          "total": 2,
+          "pass": 2,
+          "fail": 0,
+          "names": [
+            "E07/boundary-1",
+            "E07/boundary-2"
+          ]
+        },
+        {
+          "id": "E08",
+          "total": 2,
+          "pass": 2,
+          "fail": 0,
+          "names": [
+            "E08/work-1",
+            "E08/work-10000"
+          ]
+        },
+        {
+          "id": "E09",
+          "total": 5,
+          "pass": 5,
+          "fail": 0,
+          "names": [
+            "E09/boundary-1",
+            "E09/boundary-2",
+            "E09/boundary-3",
+            "E09/boundary-4",
+            "E09/boundary-5"
+          ]
+        },
+        {
+          "id": "E10",
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "names": [
+            "E10/padding-backpressure"
+          ]
+        },
+        {
+          "id": "E11",
+          "total": 3,
+          "pass": 3,
+          "fail": 0,
+          "names": [
+            "E11/padding-abort-late-resolve",
+            "E11/padding-abort-late-reject",
+            "E11/registered-owned-return"
+          ]
+        },
+        {
+          "id": "E12",
+          "total": 2,
+          "pass": 2,
+          "fail": 0,
+          "names": [
+            "E12/sink-effect-false",
+            "E12/sink-effect-true"
+          ]
+        },
+        {
+          "id": "E13",
+          "total": 8,
+          "pass": 8,
+          "fail": 0,
+          "names": [
+            "E13/nul/split-false",
+            "E13/nul/split-true",
+            "E13/escape/split-false",
+            "E13/escape/split-true",
+            "E13/incomplete/split-false",
+            "E13/incomplete/split-true",
+            "E13/zwj/split-false",
+            "E13/zwj/split-true"
+          ]
+        },
+        {
+          "id": "E14",
+          "total": 4,
+          "pass": 4,
+          "fail": 0,
+          "names": [
+            "E14/partial/reuse-false",
+            "E14/partial/reuse-true",
+            "E14/unicode/reuse-false",
+            "E14/unicode/reuse-true"
+          ]
+        },
+        {
+          "id": "E15",
+          "total": 1,
+          "pass": 1,
+          "fail": 0,
+          "names": [
+            "E15/actual-shell-files"
+          ]
+        },
+        {
+          "id": "E16",
+          "total": 2,
+          "pass": 2,
+          "fail": 0,
+          "names": [
+            "E16/arguments-10",
+            "E16/arguments-9"
+          ]
+        }
+      ]
+    },
+    "supplemental": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0
+    },
+    "old40": {
+      "topLevelRecipes": 40,
+      "topLevelPass": 39,
+      "topLevelFail": 1,
+      "topLevelUnexecuted": 0,
+      "executedVariants": 88,
+      "originalRecipeVariants": 84,
+      "supplementalVariants": 4,
+      "variantPass": 87,
+      "variantFail": 1,
+      "denominatorCaveat": "Top-level and variant counts overlap, never add them; native comparisons are a separate profile partition, not extra product passes.",
+      "originalNestedPass": 83,
+      "originalNestedFail": 1,
+      "supplementalNestedPass": 4,
+      "supplementalNestedFail": 0,
+      "failedCases": [
+        {
+          "recipe": "S38",
+          "variant": "known-root-hidden-external-stdin-return-boundary",
+          "failure": {
+            "name": "AssertionError",
+            "message": "AssertionError [ERR_ASSERTION]: Root boundary: Shell.exec settled before hidden external stdin.return completed\n\ntrue !== false\n",
+            "code": "ERR_ASSERTION",
+            "stack": "AssertionError [ERR_ASSERTION]: Root boundary: Shell.exec settled before hidden external stdin.return completed\n\ntrue !== false\n\n    at file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/tests/commands/column-stress/handoff-20260827/safety.mjs:159:14\n    at async check (file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:39:9)\n    at async safety (file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/tests/commands/column-stress/handoff-20260827/safety.mjs:147:3)\n    at async file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:121:3"
+          },
+          "observations": [
+            {
+              "returns": 1,
+              "execSettledBeforeReturnRelease": true,
+              "disposeSettledBeforeReturnRelease": true,
+              "hiddenReturnGateReleased": false,
+              "owner": "Root ShellInput/Shell source ownership; column receives no return method"
+            }
+          ]
+        }
+      ],
+      "unhandled": []
+    },
+    "historicalBeforeEvolution": {
+      "source": "38cb670a",
+      "pass": 37,
+      "total": 40,
+      "unchanged": true
+    },
+    "nativeProfiles": {
+      "newCapturedRecords": {
+        "bsd-darwin": {
+          "exact": 4,
+          "different": 13
+        },
+        "util-linux-2.41.2-darwin": {
+          "exact": 17,
+          "different": 0
+        }
+      },
+      "originalCapturedRecords": {
+        "bsd-darwin": {
+          "exact": 11,
+          "different": 33
+        },
+        "util-linux-2.41.2-darwin": {
+          "exact": 20,
+          "different": 24
+        }
+      },
+      "newNativeExecutionsDuringRuntimePhase": 0
+    },
+    "negativeMutations": {
+      "rejected": 5,
+      "total": 5,
+      "rawNested": {
+        "pass": 6,
+        "fail": 16,
+        "total": 22
+      },
+      "membership": [
+        {
+          "name": "negative-wrong-padding",
+          "total": 17,
+          "pass": 5,
+          "fail": 12
+        },
+        {
+          "name": "negative-no-output-admission",
+          "total": 1,
+          "pass": 0,
+          "fail": 1
+        },
+        {
+          "name": "negative-rectangle",
+          "total": 1,
+          "pass": 0,
+          "fail": 1
+        },
+        {
+          "name": "negative-scan",
+          "total": 1,
+          "pass": 0,
+          "fail": 1
+        },
+        {
+          "name": "negative-work",
+          "total": 2,
+          "pass": 1,
+          "fail": 1
+        }
+      ]
+    },
+    "runnerNegatives": {
+      "rejected": 3,
+      "total": 3,
+      "causes": [
+        "deadline",
+        "stdout-cap",
+        "surviving-process-group"
+      ],
+      "neverProductPasses": true
+    },
+    "instrumentedReference": {
+      "pass": 1,
+      "fail": 0,
+      "widthReads": 22045,
+      "mutationWidthReadsAtGuard": 1000001,
+      "notCandidateAcceptance": true
+    },
+    "packed": {
+      "pass": 7,
+      "fail": 1,
+      "membership": [
+        {
+          "name": "public-root-and-packed-internal-entry-identities",
+          "verdict": "pass",
+          "error": null
+        },
+        {
+          "name": "single-plugin-pipeline-and-vfs-bytes",
+          "verdict": "pass",
+          "error": null
+        },
+        {
+          "name": "collision-preflight-and-intentional-replacement",
+          "verdict": "pass",
+          "error": null
+        },
+        {
+          "name": "owned-vfs-cancellation-awaits-return-and-dispose",
+          "verdict": "pass",
+          "error": null
+        },
+        {
+          "name": "direct-inherited-context-and-late-cleanup-abort",
+          "verdict": "pass",
+          "error": null
+        },
+        {
+          "name": "external-hidden-return-root-boundary-remains-blocking",
+          "verdict": "fail",
+          "error": "AssertionError [ERR_ASSERTION]: Root-owned hidden external return is not awaited by Shell.exec\n\ntrue !== false\n"
+        },
+        {
+          "name": "evolved-absent-padding-pipeline-N01",
+          "verdict": "pass",
+          "error": null
+        },
+        {
+          "name": "evolved-absent-padding-pipeline-N03",
+          "verdict": "pass",
+          "error": null
+        }
+      ],
+      "qualification": "Five inherited positive scenarios (entry check narrowed to URLs/hashes, no public-subpath assertion), unchanged strong historical cleanup assertion, two added N01/N03 pipelines."
+    }
+  },
+  "countCaveat": "These cohorts overlap. Do not sum into a distinct-test union or treat native/mutation captures as extra product passes.",
+  "checks": {
+    "build": 0,
+    "scopedStrictTypes": 0,
+    "movedStandaloneStrictTypes": 0,
+    "libraryChecking": "Enabled; no skipLibCheck in independent compiler invocations.",
+    "javascriptHarnesses": "node --check; not TypeScript checkJs certification.",
+    "runtimeMembershipBeforeSha256": "dbd982bd897077fa53e20d9994184a8bb6801323fd903cd887948475ad851ba6",
+    "runtimeMembershipAfterSha256": "dbd982bd897077fa53e20d9994184a8bb6801323fd903cd887948475ad851ba6",
+    "membership": "Exact recursive file/symlink set, including added-file detection; empty directories excluded. 26647 original Git blobs plus 7 verified dev links and 736 build outputs.",
+    "immutablePrepFiles": 9,
+    "immutableHistoricalStressFiles": 52
+  },
+  "complexity": {
+    "actualRows": 20000,
+    "maxFields": 1024,
+    "actualCells": 21023,
+    "hypotheticalRectangularSlots": 20480000,
+    "E03": {
+      "status": 1,
+      "outputBytes": 4096,
+      "workUnits": 88205
+    },
+    "E04": {
+      "status": 0,
+      "outputBytes": 40000,
+      "workUnits": 126152
+    },
+    "claim": "Source O(columns) suffix metadata, O(actual cells + rows + admitted tail output) rendering; bounded instrumented sidecars corroborate. No comparative timing/RSS claim. V8 old-space128MiB is not total memory limit."
+  },
+  "processes": {
+    "checked": 35,
+    "remainingOwnedGroups": 0,
+    "realCandidateForcedTermination": 0,
+    "negativeControlsForcedTermination": 3
+  },
+  "authorSourceSealSha256": "c1a77750cf8dc06db2e096b4251efabac718cc1ad781cb64039ce1e6696e1fdb"
+}

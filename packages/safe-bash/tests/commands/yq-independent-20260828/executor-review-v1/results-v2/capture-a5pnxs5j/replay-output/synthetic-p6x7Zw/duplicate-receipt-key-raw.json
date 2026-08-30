@@ -1,0 +1,10 @@
+{
+  "id": "duplicate-receipt-key",
+  "expected": "JSON_DUPLICATE",
+  "value": null,
+  "error": {
+    "code": "JSON_DUPLICATE",
+    "message": "JSON_DUPLICATE: schema",
+    "stack": "Error: JSON_DUPLICATE: schema\n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at readHashedJson (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:116:7)\n    at duplicate-receipt-key (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:117:150)\n    at file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:153:41"
+  }
+}

@@ -1,0 +1,79 @@
+[
+  {
+    "id": "valid-references",
+    "kind": "git",
+    "args": [
+      "show",
+      "--no-patch",
+      "--format=%H%n%P%n%s",
+      "7b2a72e9",
+      "6b4d6c6f",
+      "053c4e942c66928972af6aa227177726ca503eab",
+      "5fabc790",
+      "4088ee52",
+      "497c5660",
+      "8918f35b",
+      "0a942ed2"
+    ]
+  },
+  {
+    "id": "valid-packets",
+    "kind": "git",
+    "args": [
+      "show",
+      "--format=%H",
+      "--name-only",
+      "7b2a72e9",
+      "6b4d6c6f",
+      "053c4e942c66928972af6aa227177726ca503eab",
+      "5fabc790",
+      "4088ee52",
+      "497c5660",
+      "8918f35b",
+      "0a942ed2",
+      "--",
+      "*README.md",
+      "*REPORT*",
+      "*HANDOFF*",
+      "*POLICY*",
+      "*MANIFEST*"
+    ]
+  },
+  {
+    "id": "regex-client",
+    "kind": "git",
+    "args": [
+      "show",
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/client.ts"
+    ]
+  },
+  {
+    "id": "regex-worker",
+    "kind": "git",
+    "args": [
+      "show",
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/worker.ts"
+    ]
+  },
+  {
+    "id": "regex-protocol",
+    "kind": "git",
+    "args": [
+      "show",
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/protocol.ts"
+    ]
+  },
+  {
+    "id": "regex-matching",
+    "kind": "git",
+    "args": [
+      "show",
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/matching.ts"
+    ]
+  },
+  {
+    "id": "offline-guard",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs"
+  }
+]

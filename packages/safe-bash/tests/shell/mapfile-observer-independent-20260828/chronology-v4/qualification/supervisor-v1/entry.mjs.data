@@ -1,0 +1,190 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { registerHooks } from 'node:module';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { performance } from 'node:perf_hooks';
+
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const [entryPath, goPath, expectedGoHash, brokerToken, parentPidText, ...extra] = process.argv.slice(1);
+assert.equal(extra.length, 0); assert.ok(path.isAbsolute(entryPath)); assert.ok(path.isAbsolute(goPath));
+assert.match(expectedGoHash, /^[a-f0-9]{64}$/u);
+function boundedRead(filename, maximum = 1048576, mode = 0o644) {
+  assert.equal(fs.realpathSync(filename), filename);
+  const before = fs.lstatSync(filename); assert.ok(before.isFile() && !before.isSymbolicLink());
+  assert.equal(before.mode & 0o7777, mode); assert.ok(before.size <= maximum);
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  let bytes;
+  try { const stat=fs.fstatSync(descriptor); assert.equal(stat.dev,before.dev); assert.equal(stat.ino,before.ino); bytes=Buffer.alloc(before.size); let offset=0; while(offset<bytes.length){const count=fs.readSync(descriptor,bytes,offset,Math.min(65536,bytes.length-offset),null);assert.ok(count>0);offset+=count;} assert.equal(fs.readSync(descriptor,Buffer.alloc(1),0,1,null),0); const final=fs.fstatSync(descriptor); for(const key of ['dev','ino','mode','size','mtimeMs','ctimeMs'])assert.equal(final[key],before[key]); } finally { fs.closeSync(descriptor); }
+  const after = fs.lstatSync(filename);
+  assert.equal(bytes.length, before.size); assert.equal(after.dev, before.dev); assert.equal(after.ino, before.ino);
+  assert.equal(after.mtimeMs, before.mtimeMs); assert.equal(after.ctimeMs, before.ctimeMs); return bytes;
+}
+const goBytes = boundedRead(goPath); assert.equal(digest(goBytes), expectedGoHash);
+const go = JSON.parse(goBytes), archiveRoot = path.resolve(entryPath, '../..');
+assert.deepEqual(Object.keys(go).sort(), ['kind','qualificationCommit','manifestSha256','parentSha256','archiveRoot','evidenceRoot','runId','rootPid','tokenSha256','caseIds','runtime','binary','approvedAtMs','expiresAtMs','zeroNetwork','archiveAuthenticatedAgainstCommit','externalWatchdog','limits'].sort());
+assert.equal(go.kind, 'ROOT_HARMLESS_OBSERVER_SUPERVISOR_GO');
+assert.match(go.qualificationCommit, /^[a-f0-9]{40}$/u); assert.match(go.manifestSha256, /^[a-f0-9]{64}$/u);
+assert.equal(go.archiveRoot, archiveRoot); assert.equal(process.cwd(), archiveRoot);
+assert.equal(go.zeroNetwork, true); assert.equal(go.archiveAuthenticatedAgainstCommit, true);
+assert.equal(go.externalWatchdog, 'PARENT_OWNED_BROKER_V1');
+assert.ok(Number.isSafeInteger(go.approvedAtMs) && Number.isSafeInteger(go.expiresAtMs));
+assert.ok(go.approvedAtMs <= Date.now() && Date.now() < go.expiresAtMs && go.expiresAtMs - go.approvedAtMs <= 3600000);
+assert.match(go.evidenceRoot, /^\/private\/tmp\/mapfile-observer-hq-[A-Za-z0-9-]{1,48}$/u);
+const manifestPath = path.join(archiveRoot, 'supervisor/COMBINED.json'), manifestBytes = boundedRead(manifestPath);
+assert.equal(digest(manifestBytes), go.manifestSha256); const manifest = JSON.parse(manifestBytes);
+assert.equal(manifest.candidate, '3d3a0371729b88ced47b6e37376676746b638ad9');
+assert.deepEqual(go.runtime, manifest.runtime); assert.deepEqual(go.binary, manifest.binary);
+assert.equal(process.execPath, manifest.runtime.path); assert.equal(process.version, manifest.runtime.version);
+assert.equal(process.platform, manifest.runtime.platform); assert.equal(process.arch, manifest.runtime.arch);
+assert.deepEqual({ ...process.env }, { PATH:'', ENV:'', BASH_ENV:'', NODE_OPTIONS:'', NODE_PATH:'', HOME:go.evidenceRoot, TMPDIR:go.evidenceRoot, LANG:'C', LC_ALL:'C', TZ:'UTC' });
+const archiveFiles = new Map(Object.entries(manifest.files).map(([relative, binding]) => {
+  assert.ok(!path.isAbsolute(relative) && !relative.split('/').includes('..'));
+  return [path.join(archiveRoot, relative), binding];
+}));
+archiveFiles.set(manifestPath, { sha256: go.manifestSha256, mode: 0o644, bytes: manifestBytes.length });
+const archiveDirectories = new Set([archiveRoot]);
+for (const filename of archiveFiles.keys()) { let directory = path.dirname(filename); while (directory !== archiveRoot) { archiveDirectories.add(directory); directory = path.dirname(directory); } }
+function auditArchive() {
+  assert.equal(digest(boundedRead(goPath)), expectedGoHash);
+  for (const [filename, binding] of archiveFiles) { const bytes = boundedRead(filename, 16777216, binding.mode); assert.equal(bytes.length, binding.bytes); assert.equal(digest(bytes), binding.sha256); }
+  for (const directory of archiveDirectories) {
+    assert.equal(fs.realpathSync(directory), directory); const stat = fs.lstatSync(directory); assert.ok(stat.isDirectory()); assert.equal(stat.mode & 0o7777, 0o700);
+    const expected = [...archiveFiles.keys(), ...archiveDirectories].filter(filename => filename !== directory && path.dirname(filename) === directory).map(filename => path.basename(filename)).sort();
+    assert.deepEqual(fs.readdirSync(directory).sort(), expected);
+  }
+}
+auditArchive();
+const cases = JSON.parse(boundedRead(path.join(archiveRoot, 'qualification/CASES.json')));
+assert.deepEqual(go.caseIds, [...cases.preflight, ...cases.children].map(item => item.id));
+const controls = path.join(archiveRoot, 'controls'), moduleRoot = path.join(controls, 'observer-v1/modules');
+const moduleSealPath = path.join(controls, 'observer-v1/MODULE-SEAL.json');
+const seal = JSON.parse(boundedRead(moduleSealPath)); assert.equal(digest(boundedRead(moduleSealPath)), manifest.moduleSealSha256);
+assert.deepEqual(seal.moduleFiles, manifest.moduleFiles);
+assert.match(brokerToken, /^[a-f0-9]{64}$/u); assert.equal(digest(Buffer.from(brokerToken)), go.tokenSha256);
+const bridgePath = path.join(archiveRoot, 'supervisor/bridge.mjs.data'), bridgeBytes = boundedRead(bridgePath); assert.equal(digest(bridgeBytes), archiveFiles.get(bridgePath).sha256);
+const { installBridge } = await import('data:text/javascript;base64,' + bridgeBytes.toString('base64'));
+const bridge = installBridge(go.runId, brokerToken, Number(parentPidText)); globalThis.__qualificationBridge = bridge;
+let sourceReadBytes = 0;
+const originalReadSync = fs.readSync.bind(fs);
+fs.readSync = (...args) => { const count=originalReadSync(...args); sourceReadBytes+=count; assert.ok(sourceReadBytes<=8589934592,'entry source read ceiling'); return count; };
+const permittedBuiltins = new Set(['node:assert/strict','node:fs','node:path','node:crypto','node:child_process','node:perf_hooks','node:util/types','node:url']);
+const loaded = new Map();
+const hooks = registerHooks({ load(url, context, nextLoad) {
+  if (url === 'node:child_process') return { format:'module',source:'export const spawn = globalThis.__qualificationBridge.spawn;',shortCircuit:true };
+  if (url.startsWith('node:')) { assert.ok(permittedBuiltins.has(url)); return nextLoad(url, context); }
+  const filename = fileURLToPath(url); assert.ok(filename.startsWith(moduleRoot + '/') && filename.endsWith('.mjs'));
+  assert.notEqual(path.basename(filename), 'synthetic.mjs'); const binding = archiveFiles.get(filename); assert.ok(binding);
+  const result = nextLoad(url, context); assert.equal(digest(Buffer.from(result.source)), binding.sha256); loaded.set(filename, binding.sha256); return result;
+} });
+const { runObserver } = await import(pathToFileURL(path.join(moduleRoot, 'observer.mjs')).href);
+const { nodePort } = await import(pathToFileURL(path.join(moduleRoot, 'node-driver.mjs')).href);
+const port = nodePort('ROOT_NATIVE_GO');
+const startAt = performance.now(), trace = [], directories = [], files = [], children = [], reports = [];
+let fileBytes = 0, starts = 0, current, watchdogFired = false, failed = false, failure;
+function event(name, details = {}) { assert.ok(trace.length < 16384); trace.push({ name, at: performance.now() - startAt, ...details }); }
+function checkTime() { assert.ok(!watchdogFired && performance.now() - startAt < 60000 && Date.now() < go.expiresAtMs); }
+function identity(stat) { return `${stat.dev}:${stat.ino}`; }
+function writeOwned(filename, bytes, mode = 0o600) {
+  assert.ok(filename.startsWith(go.evidenceRoot) && Buffer.isBuffer(bytes)); assert.ok(files.length < 256 && fileBytes + bytes.length <= 8388608);
+  const record = { path: filename, planned: true, written: false, bytes: bytes.length, mode, sha256: digest(bytes) }; files.push(record); fileBytes += bytes.length;
+  fs.writeFileSync(filename, bytes, { flag: 'wx', mode }); record.written = true; record.identity = identity(fs.lstatSync(filename));
+}
+function mkdirOwned(filename) {
+  assert.ok(filename === go.evidenceRoot || go.caseIds.some(id => filename === `${go.evidenceRoot}-${id}` || filename.startsWith(`${go.evidenceRoot}-${id}/`)));
+  assert.ok(directories.length < 96); const record = { path: filename, planned: true, acquired: false, identity: null, removed: false }; directories.push(record);
+  event('mkdir-registered', { path: filename }); fs.mkdirSync(filename, { mode: 0o700 }); record.acquired = true;
+  const stat = fs.lstatSync(filename); record.identity = identity(stat); assert.ok(stat.isDirectory()); assert.equal(stat.mode & 0o7777, 0o700); event('mkdir-acquired', { path: filename });
+}
+function toolAudit() {
+  for (const tool of [manifest.runtime, manifest.binary]) { const stat = port.stat(tool.path); assert.equal(stat.kind, 'file'); assert.equal(stat.bytes, tool.bytes); assert.equal(stat.mode, tool.mode); assert.equal(port.canonical(tool.path), tool.path); assert.equal(port.hash(tool.path, tool.bytes), tool.sha256); }
+}
+function ownedAudit() {
+  for (const record of files.filter(item => item.written)) { const bytes = boundedRead(record.path, 4194304, record.mode); assert.equal(bytes.length, record.bytes); assert.equal(digest(bytes), record.sha256); assert.equal(identity(fs.lstatSync(record.path)), record.identity); }
+  for (const record of directories.filter(item => item.acquired && !item.removed)) {
+    assert.equal(fs.realpathSync(record.path), record.path); const stat = fs.lstatSync(record.path); assert.ok(stat.isDirectory()); assert.equal(stat.mode & 0o7777, 0o700); assert.equal(identity(stat), record.identity);
+    const expected = [...directories.filter(item => item.acquired && !item.removed), ...files.filter(item => item.written)].filter(item => item.path !== record.path && path.dirname(item.path) === record.path).map(item => path.basename(item.path)).sort();
+    assert.deepEqual(fs.readdirSync(record.path).sort(), expected);
+  }
+}
+toolAudit(); mkdirOwned(go.evidenceRoot);
+const watchdog = setTimeout(() => { watchdogFired = true; for (const child of children.filter(item => !item.settled)) { try { child.handle?.signalGroup('SIGKILL'); } catch {} } }, 60000);
+function safeReason(reason) { if (reason === undefined) return 'undefined'; const value = reason && Object.getOwnPropertyDescriptor(reason, 'message'); return value && Object.hasOwn(value, 'value') && typeof value.value === 'string' ? value.value.slice(0, 1024) : 'opaque host reason'; }
+const wrapped = {
+  ...port,
+  mkdir: mkdirOwned,
+  stat(filename) { if (current?.id === 'D03' && filename === current.outputRoot && directories.some(item => item.path === filename && item.acquired)) throw current.reason; return port.stat(filename); },
+  rmdir(filename) { const record = directories.find(item => item.path === filename && item.acquired && !item.removed); assert.ok(record); assert.equal(port.stat(filename).identity, record.identity); port.rmdir(filename); record.removed = true; event('rmdir', { path: filename }); },
+  writeExclusive(filename, bytes) {
+    event('receipt-attempt', { path: filename });
+    if (current.id === 'H05' && filename.endsWith('/spawn-N01.json')) { assert.equal(current.rawSpawnEvents, 1); throw current.reason; }
+    writeOwned(filename, bytes); if (filename.endsWith('/attempt-N01.json')) current.attemptAt = performance.now();
+  },
+  start(spec, callbacks) {
+    checkTime();
+    assert.ok(current.id.startsWith('H')); assert.equal(current.calls++, 0); assert.ok(starts < 5 && performance.now() - startAt < 60000 && performance.now() < current.attemptAt + 2500);
+    assert.equal(spec.executable, manifest.binary.path); assert.deepEqual(Array.from(spec.args), ['--noprofile','--norc','-c',current.script,'mapfile-design-v1']);
+    assert.equal(spec.cwd, `${current.outputRoot}/fixture`); assert.equal(Buffer.from(spec.stdin).toString('hex'), current.stdinHex);
+    assert.deepEqual({ ...spec.env }, { PATH:'', ENV:'', BASH_ENV:'', HOME:`${spec.cwd}/home`, TMPDIR:`${spec.cwd}/tmp`, LANG:'C', LC_ALL:'C', TZ:'UTC' });
+    const invocation = current;
+    const record = { id: invocation.id, registered: true, returned: false, pid: null, spawn: false, exit: false, close: false, settled: false }; children.push(record); starts++; event('start-call', { id: invocation.id });
+    const tapped = {
+      spawn() { record.spawn = true; invocation.rawSpawnEvents++; event('spawn', { id: record.id }); callbacks.spawn(); },
+      exit(code, signal) { record.exit = true; event('exit', { id: record.id, code, signal }); callbacks.exit(code, signal); },
+      close(code, signal) { record.close = true; event('close', { id: record.id, code, signal }); callbacks.close(code, signal); },
+      error(reason) { event('error', { id: record.id, reason: safeReason(reason) }); callbacks.error(reason); },
+      data(stream, bytes) { event('data', { id: record.id, stream, bytes: bytes.byteLength }); callbacks.data(stream, bytes); },
+    };
+    const handle = port.start(spec, tapped); record.handle = handle; record.returned = true; record.pid = handle.pid;
+    assert.ok(Number.isSafeInteger(handle.pid) && handle.pid > 0);
+    writeOwned(path.join(go.evidenceRoot, `pid-${record.id}.json`), Buffer.from(JSON.stringify({ id: record.id, pid: handle.pid, at: performance.now() - startAt })));
+    return { pid: handle.pid, signalGroup(signal) { event('signal-group', { id: record.id, signal }); return handle.signalGroup(signal); }, groupExists() { const exists = handle.groupExists(); event('group-query', { id: record.id, exists }); return exists; }, release() { event('release', { id: record.id }); return handle.release(); } };
+  },
+};
+async function settle(record) {
+  if (!record?.handle) return;
+  const deadline = performance.now() + 1000;
+  while (performance.now() < deadline) { if (record.close && !record.handle.groupExists()) { record.settled = true; return; } if (!record.exit) record.handle.signalGroup('SIGKILL'); await new Promise(resolve => setTimeout(resolve, 25)); }
+  throw new Error('owned child/group cleanup uncertain');
+}
+try {
+  for (const item of [...cases.preflight, ...cases.children]) {
+    checkTime(); auditArchive(); toolAudit(); checkTime();
+    current = { ...item, outputRoot: `${go.evidenceRoot}-${item.id}`, reason: Object.freeze({ message:`injected qualification ${item.id}` }), calls: 0, rawSpawnEvents: 0 };
+    const row = { id:'N01', expectation:null, script:item.script ?? ':', stdinHex:item.stdinHex ?? '' };
+    row.scriptSha256 = digest(Buffer.from(row.script)); row.stdinSha256 = digest(Buffer.from(row.stdinHex, 'hex'));
+    const recipeSha256 = digest(Buffer.from(JSON.stringify([row]))), authorizationPath = path.join(go.evidenceRoot, `authorization-${item.id}.json`);
+    const authority = { kind:item.id === 'D01' ? 'NOT_GO' : 'ROOT_NATIVE_GO', runtime:manifest.runtime, moduleSealSha256:manifest.moduleSealSha256, recipeSha256, outputRoot:current.outputRoot, rowIds:['N01'] };
+    const authorityBytes = Buffer.from(JSON.stringify(authority)); writeOwned(authorizationPath, authorityBytes, 0o644);
+    const protectedFiles = Object.fromEntries([...archiveFiles].map(([filename, binding]) => [filename, binding.sha256])); protectedFiles[goPath] = expectedGoHash; protectedFiles[authorizationPath] = digest(authorityBytes);
+    const protectedModes = Object.fromEntries(Object.keys(protectedFiles).map(filename => [filename, 0o644]));
+    if (item.id === 'D02') { const guard = path.join(go.evidenceRoot, 'guard-D02.bin'), bytes = Buffer.from('fixed-role-data'); writeOwned(guard, bytes, 0o600); protectedFiles[guard] = digest(bytes); protectedModes[guard] = 0o644; }
+    const config = { schema:'mapfile-observer-v1',mode:'native',runtime:manifest.runtime,protected:protectedFiles,protectedModes,moduleRoot,moduleFiles:seal.moduleFiles,moduleSealSha256:manifest.moduleSealSha256,authorizationPath,authorizationSha256:digest(authorityBytes),recipeSha256,rows:[row],rowIds:['N01'],outputRoot:current.outputRoot,binary:manifest.binary.path,binaryBytes:manifest.binary.bytes,binaryMode:manifest.binary.mode,binarySha256:manifest.binary.sha256 };
+    const report = await runObserver(wrapped, config); reports.push({ id:item.id, report });
+    const child = children.find(record => record.id === item.id); await settle(child);
+    assert.equal(report.success, item.success); assert.equal(current.calls, item.id.startsWith('H') ? 1 : 0);
+    if (item.id.startsWith('D')) {
+      assert.equal(report.rows.length, 0); assert.equal(report.directories.length, item.ownedCaseDirectories);
+      if (item.id === 'D03') { assert.equal(report.directories[0].acquired, true); assert.equal(report.directories[0].identity, null); assert.equal(report.failureReason, current.reason); }
+    } else {
+      const observed = report.rows[0]; assert.ok(child.spawn && child.exit && child.close && child.settled);
+      assert.equal(observed.terminal, 'closed-and-group-absent'); assert.equal(report.cleanupUncertain, false);
+      assert.equal(report.launched, 1); assert.equal(report.actualCloseEvents, 1); assert.ok(item.statuses.some(status => status.code === observed.code && status.signal === observed.signal));
+      const expectedOut = item.stdoutRepeat ? Buffer.alloc(item.stdoutRepeat.count, item.stdoutRepeat.byte) : Buffer.from(item.stdout);
+      assert.deepEqual(Buffer.from(observed.stdoutBase64, 'base64'), expectedOut); assert.deepEqual(Buffer.from(observed.stderrBase64, 'base64'), Buffer.from(item.stderr));
+      if (item.fault) assert.ok(observed.fault?.includes(item.fault)); else assert.equal(observed.fault, null);
+      if (item.observedBytes !== undefined) assert.equal(observed.observedBytes, item.observedBytes);
+      for (const signal of item.requiredSignals ?? []) assert.ok(observed.signals.includes(signal));
+      if (item.id === 'H05') assert.equal(report.failureReason, current.reason);
+    }
+    ownedAudit(); auditArchive(); toolAudit();
+  }
+} catch (reason) { failed = true; failure = reason; }
+finally { for (const record of children.filter(item => !item.settled)) { try { await settle(record); } catch (reason) { if (!failed) failure = reason; failed = true; } } clearTimeout(watchdog); }
+checkTime(); ownedAudit(); auditArchive(); toolAudit(); checkTime();
+const result = { schema:'harmless-observer-qualification-result-v1',qualificationCommit:go.qualificationCommit,candidate:manifest.candidate,success:!failed,failure:failed ? safeReason(failure) : null,reports,trace,loaded:[...loaded],directories,files,children:children.map(({handle,...record})=>record),starts,native43:0,productExecutions:0,network:0,qualification:'Actual effects only if separately ROOT-authorized; no universal OS reaping/full CLI/native43 claim' };
+const finalPath = path.join(go.evidenceRoot, 'qualification-final.json'), finalBytes = Buffer.from(JSON.stringify({ ...result, success:undefined, phase:'PROVISIONAL_BEFORE_POSTPUBLICATION_AUTHENTICATION' })); assert.ok(finalBytes.length <= 4194304); writeOwned(finalPath, finalBytes);
+ownedAudit(); auditArchive(); toolAudit(); assert.equal(digest(boundedRead(finalPath, 4194304, 0o600)), digest(finalBytes)); checkTime();
+const output = JSON.stringify({ ...result, phase:'POSTPUBLICATION_AUTHENTICATED', finalPath, finalSha256:digest(finalBytes) }); assert.ok(Buffer.byteLength(output) <= 4194304);
+process.stdout.write(output + '\n'); process.exitCode = failed ? 1 : 0; hooks.deregister(); bridge.close();

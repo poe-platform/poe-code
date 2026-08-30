@@ -1,0 +1,32 @@
+{
+  "label": "native-known-five-runner",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/native.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:37.859Z",
+  "finishedAt": "2026-08-27T10:11:38.435Z",
+  "durationMs": 575.8702499999999,
+  "timeoutMs": 20000,
+  "maxBytes": 1048576,
+  "pid": 23162,
+  "initialIdentity": "23162 22800 23162 Thu Aug 27 05:11:37 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/native.mjs",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"label\":\"native-profile\",\"status\":0,\"durationMs\":27.841874999999995,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"native-C3\",\"status\":141,\"durationMs\":92.1845,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"native-C4\",\"status\":0,\"durationMs\":94.222208,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"native-C5\",\"status\":0,\"durationMs\":90.91020800000001,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"native-C6\",\"status\":7,\"durationMs\":90.19595800000002,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n{\"label\":\"native-C7\",\"status\":141,\"durationMs\":96.70862499999998,\"timedOut\":false,\"oversized\":false,\"groupExists\":false,\"counts\":[]}\n[{\"id\":\"C3\",\"verdict\":\"PASS\",\"failures\":[]},{\"id\":\"C4\",\"verdict\":\"PASS\",\"failures\":[]},{\"id\":\"C5\",\"verdict\":\"PASS\",\"failures\":[]},{\"id\":\"C6\",\"verdict\":\"PASS\",\"failures\":[]},{\"id\":\"C7\",\"verdict\":\"PASS\",\"failures\":[]}]\n",
+  "stderr": ""
+}

@@ -1,0 +1,153 @@
+{
+  "outcomes": [
+    {
+      "id": "source-built/R01",
+      "status": "FAIL",
+      "receipt": {
+        "id": "source-built/R01",
+        "pid": 8003,
+        "exit": true,
+        "close": true,
+        "stdout": true,
+        "stderr": true,
+        "retired": true,
+        "code": 1,
+        "signal": null,
+        "cutoff": false,
+        "capture": [
+          {
+            "admitted": 293,
+            "maximum": 65536,
+            "written": 293
+          },
+          {
+            "admitted": 202,
+            "maximum": 65536,
+            "written": 202
+          }
+        ],
+        "failure": {
+          "present": false,
+          "primary": null,
+          "secondary": [],
+          "omitted": 0
+        }
+      },
+      "failure": {
+        "present": true,
+        "reason": {
+          "type": "object",
+          "opaque": true
+        }
+      },
+      "qualification": "no Worker retirement inferred from process closure"
+    },
+    {
+      "id": "source-built/R02",
+      "status": "UNRUN"
+    },
+    {
+      "id": "source-built/R05",
+      "status": "UNRUN"
+    },
+    {
+      "id": "source-built/R06",
+      "status": "UNRUN"
+    },
+    {
+      "id": "source-built/R07",
+      "status": "UNRUN"
+    },
+    {
+      "id": "source-built/R11",
+      "status": "UNRUN"
+    },
+    {
+      "id": "source-built/R12",
+      "status": "UNRUN"
+    },
+    {
+      "id": "source-built/R22",
+      "status": "UNRUN"
+    },
+    {
+      "id": "installed/R01",
+      "status": "UNRUN"
+    },
+    {
+      "id": "installed/R02",
+      "status": "UNRUN"
+    },
+    {
+      "id": "installed/R05",
+      "status": "UNRUN"
+    },
+    {
+      "id": "installed/R06",
+      "status": "UNRUN"
+    },
+    {
+      "id": "installed/R07",
+      "status": "UNRUN"
+    },
+    {
+      "id": "installed/R11",
+      "status": "UNRUN"
+    },
+    {
+      "id": "installed/R12",
+      "status": "UNRUN"
+    },
+    {
+      "id": "installed/R22",
+      "status": "UNRUN"
+    },
+    {
+      "id": "moved/R01",
+      "status": "UNRUN"
+    },
+    {
+      "id": "moved/R02",
+      "status": "UNRUN"
+    },
+    {
+      "id": "moved/R05",
+      "status": "UNRUN"
+    },
+    {
+      "id": "moved/R06",
+      "status": "UNRUN"
+    },
+    {
+      "id": "moved/R07",
+      "status": "UNRUN"
+    },
+    {
+      "id": "moved/R11",
+      "status": "UNRUN"
+    },
+    {
+      "id": "moved/R12",
+      "status": "UNRUN"
+    },
+    {
+      "id": "moved/R22",
+      "status": "UNRUN"
+    }
+  ],
+  "workerStarts": 0,
+  "failure": {
+    "present": false,
+    "primary": null,
+    "secondary": [],
+    "omitted": 0
+  },
+  "complete": false,
+  "childStarts": 3,
+  "capture": {
+    "admitted": 1567,
+    "maximum": 58720256
+  },
+  "sampledLogical": 22392758,
+  "qualification": "sampled/quiescent, non-atomic, not OS quota or peak proof"
+}

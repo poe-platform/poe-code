@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { mkdir, readFile, writeFile, stat } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = dirname(fileURLToPath(import.meta.url));
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const environment = { PATH: '/usr/bin:/bin', LC_ALL: 'C', LANG: 'C', HOME: root, MAGIC: '/usr/share/file/magic.mgc' };
+const native = (binary, args) => execFileSync(binary, args, { env: environment, cwd: root, timeout: 5000, maxBuffer: 65536 }).toString();
+await mkdir(join(root, 'references'), { recursive: true, mode: 0o700 });
+const evidence = { startedAt: new Date().toISOString(), source: 'independent verifier PREP; no candidate imports or calls', upstream: [], contracts: [], native: {} };
+for (const name of ['file.man', 'magic.man', 'libmagic.man']) {
+  const url = `https://raw.githubusercontent.com/file/file/FILE5_41/doc/${name}`;
+  const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  assert.equal(response.status, 200);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  assert(bytes.length > 1000 && bytes.length < 50000);
+  await writeFile(join(root, 'references', name), bytes, { flag: 'wx', mode: 0o600 });
+  evidence.upstream.push({ url, observedAt: new Date().toISOString(), sha256: hash(bytes), bytes: bytes.length, etag: response.headers.get('etag'), lastModified: response.headers.get('last-modified') });
+}
+for (const name of ['filesystem.ts', 'filesystem.md', 'io.ts', 'command.ts', 'command.md', 'errors.ts']) {
+  const bytes = await readFile(join(repo, 'src/contracts', name));
+  await writeFile(join(root, 'references', `contract-${name}`), bytes, { flag: 'wx', mode: 0o600 });
+  evidence.contracts.push({ path: `src/contracts/${name}`, sha256: hash(bytes), bytes: bytes.length });
+}
+for (const location of ['/usr/bin/file', '/usr/share/file/magic.mgc']) {
+  const bytes = await readFile(location);
+  const metadata = await stat(location);
+  evidence.native[location] = { bytes: bytes.length, sha256: hash(bytes), mode: metadata.mode, mtime: metadata.mtime.toISOString(), readOnlyUse: true };
+}
+evidence.native.version = native('/usr/bin/file', ['--version']);
+evidence.native.platform = native('/usr/bin/uname', ['-a']);
+evidence.native.osVersion = native('/usr/bin/sw_vers', []);
+evidence.native.environment = environment;
+evidence.native.magicPolicy = 'Explicit -m /usr/share/file/magic.mgc; isolated HOME; no ambient MAGIC/POSIXLY_CORRECT, no custom magic, no decompression, no native product calls.';
+evidence.repoHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, timeout: 5000 }).toString().trim();
+evidence.repoStatus = execFileSync('git', ['status', '--porcelain=v1'], { cwd: repo, timeout: 5000 }).toString();
+evidence.stagedPaths = execFileSync('git', ['diff', '--cached', '--name-only'], { cwd: repo, timeout: 5000 }).toString();
+evidence.node = process.version;
+evidence.finishedAt = new Date().toISOString();
+await writeFile(join(root, 'references.json'), `${JSON.stringify(evidence, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
+console.log(JSON.stringify({ captured: evidence.finishedAt, upstreamDocuments: evidence.upstream.length, contracts: evidence.contracts.length, nativeVersion: evidence.native.version }, null, 2));

@@ -1,0 +1,13 @@
+{
+  "frozenAt": "2026-08-27T19:04:40.705Z",
+  "helperCandidateAbsent": true,
+  "scope": "Root-approved phase1 only; stronger readonly and ASCII option policy override historical proposals",
+  "paths": {
+    "README.md": "a1746cced8d839aa77601093a1b9a8dfff194edc1ca8b7f7f95eb2b82cd9fa16",
+    "evidence/design-v1/archive.json": "c48b8cee0be966b3e4fdbaa146c007b3da45d0228f2c0a7f99ac2166613ec198",
+    "evidence/phase1-before.json": "29d4f98a0e2f7f37cdeae8902f5d07edae989a9e91cbec959fe85bba850e14cc",
+    "evidence/native-cohort.mjs": "9caf72f9206aa5e6c2a90db9006b97b51e2a7684a519dec26388740b8c01be36",
+    "evidence/verify.mjs": "77bb97acd565fd145743326de9d69b5d4c3e01110477838d06edfbf0b472ef4d",
+    "evidence/scanner-facts.json": "00799e9f48766bb6a42da92222a7097d5ae4f3dd064d42076f8d10a56626c4c3"
+  }
+}

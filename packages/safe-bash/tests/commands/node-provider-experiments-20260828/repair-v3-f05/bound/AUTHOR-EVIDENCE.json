@@ -1,0 +1,229 @@
+{
+  "schema": "node-bridge-repair-evidence-seal-v2",
+  "date": "2026-08-28",
+  "classification": "inert harness repair evidence, not engine/provider/CLI acceptance",
+  "codeCommit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+  "recipeManifestSha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+  "initialControlPresealCommit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+  "targetedControlPresealCommit": "8754a6ddc72979c7293682f14a2da7a978fce19c",
+  "initialPlanSha256": "a564cdfe968f84a6815a99c4c689ec264719f878c088de2045bf4ded48b66bd8",
+  "targetedPlanSha256": "10bb0138b41abd1584edd83923ac44d4f9687475c44e8d984798af2ebe664ae9",
+  "preservedIndependentHistory": {
+    "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9",
+    "expectedObservations": 9,
+    "closedChildren": 4,
+    "natural": 2,
+    "sigterm": 2,
+    "L02": "Subject did NOT reap; reviewer rescue did. Never credited as subject cleanup.",
+    "D02": "Standalone acceptance counterexample, NOT proven whole-driver bypass.",
+    "rescored": false
+  },
+  "actualRepairResults": {
+    "uniqueControls": 10,
+    "expectedObserved": 10,
+    "unexpectedFailures": 0,
+    "runs": 2,
+    "stubChildren": 7,
+    "naturalStubChildren": 4,
+    "sigtermStubChildren": 3,
+    "nodeRunners": 2,
+    "totalObservedNodeProcesses": 9,
+    "allKnownChildrenClosed": true,
+    "independentRescues": 0,
+    "launcherTerminations": 0,
+    "subjectRetirementCredit": true,
+    "unsafe": false,
+    "scratchRemoved": true,
+    "syntheticReconcilerInvocations": 7,
+    "mainEngineEvaluations": 0,
+    "compilerImports": 0,
+    "privateAccess": false,
+    "sourceMaterializationsForEngine": 0,
+    "standaloneSyntaxChecks": 0,
+    "builds": 0,
+    "installs": 0,
+    "engineGrantsIssued": 0,
+    "qualification": "Expected rejection controls are successful observations, not successful engine/guest executions. C06 rejected source identity; C10 separately rejected retirement contradiction with correct source and all composed inert prerequisites."
+  },
+  "children": [
+    {
+      "runId": "repair-v2-01",
+      "ordinal": 1,
+      "pid": 11160,
+      "status": 0,
+      "signal": null,
+      "closeObserved": true,
+      "rescueSignals": []
+    },
+    {
+      "runId": "repair-v2-01",
+      "ordinal": 2,
+      "pid": 11161,
+      "status": null,
+      "signal": "SIGTERM",
+      "closeObserved": true,
+      "rescueSignals": []
+    },
+    {
+      "runId": "repair-v2-01",
+      "ordinal": 3,
+      "pid": 11162,
+      "status": null,
+      "signal": "SIGTERM",
+      "closeObserved": true,
+      "rescueSignals": []
+    },
+    {
+      "runId": "repair-v2-01",
+      "ordinal": 4,
+      "pid": 11163,
+      "status": null,
+      "signal": "SIGTERM",
+      "closeObserved": true,
+      "rescueSignals": []
+    },
+    {
+      "runId": "repair-v2-01",
+      "ordinal": 5,
+      "pid": 11166,
+      "status": 0,
+      "signal": null,
+      "closeObserved": true,
+      "rescueSignals": []
+    },
+    {
+      "runId": "repair-v2-01",
+      "ordinal": 6,
+      "pid": 11173,
+      "status": 0,
+      "signal": null,
+      "closeObserved": true,
+      "rescueSignals": []
+    },
+    {
+      "runId": "retirement-v1-01",
+      "ordinal": 1,
+      "pid": 12649,
+      "status": 0,
+      "signal": null,
+      "closeObserved": true,
+      "rescueSignals": []
+    }
+  ],
+  "runners": [
+    {
+      "runId": "repair-v2-01",
+      "pid": 11159,
+      "elapsedMs": 967,
+      "naturalReap": "LAUNCH.json status0, nodeReaped:true, no launcher signals"
+    },
+    {
+      "runId": "retirement-v1-01",
+      "pid": 12648,
+      "elapsedMs": 302,
+      "naturalReap": "LAUNCH.json status0, nodeReaped:true, no launcher signals"
+    }
+  ],
+  "captures": [
+    {
+      "path": "controls/runs/repair-v2-01/C01.json",
+      "bytes": 1633,
+      "sha256": "fd21791c0be326a822b535e3abf5a39be9798090222d281a71cdb8ad591c93a5"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/C02.json",
+      "bytes": 1907,
+      "sha256": "1a9006095242f45f74ea69c9ec68ccbaea626ad9e3a0b40a65aec847e4afa297"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/C03.json",
+      "bytes": 1733,
+      "sha256": "2f8725bda9fe0e788007ed67cbc9a5700705270a81ec17fd191b4c9a2481d019"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/C04.json",
+      "bytes": 1871,
+      "sha256": "4eb82814b213a0dfea6641550d068e7ceb5079c3576836491d657422cf482bfd"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/C05.json",
+      "bytes": 2390,
+      "sha256": "753a93adcb5251786b34d445d5a5e0e597a9145b8c6e4b377b2c60b2ea8e2268"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/C06.json",
+      "bytes": 2643,
+      "sha256": "22fadbe8d9d0389ccfbf1e49995ec562afba1eab52bb2fa78525790784d637d4"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/C07.json",
+      "bytes": 411,
+      "sha256": "1c50588fa7ec3f52ca06ff9acafb42a6c448689f546035bc637bd205e8c734d0"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/C08.json",
+      "bytes": 415,
+      "sha256": "e7984df1e44ad18a8764a5864f500d492d63e81374ae3c4b41b4141fc33b0de1"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/C09.json",
+      "bytes": 396,
+      "sha256": "d7906b47b3069cf7da96abf560343a4d9eef4c5cb6867cb7520dd7c40dc8950a"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/CAPTURE.json",
+      "bytes": 58946,
+      "sha256": "0b93b1a2e54d19522ef52f8e79694177999a764510b7dcfed87ed42479be7edb"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/CLOSURE.json",
+      "bytes": 392,
+      "sha256": "6cf4237ec69a41fbd6b67d1c8fa418eb39ff349466482be4915c93ed1be13746"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/LAUNCH.json",
+      "bytes": 1587,
+      "sha256": "db7cc678e3ecea555d58b3de8dd843dd616da00f8e58878f164adac4bb18aa2b"
+    },
+    {
+      "path": "controls/runs/repair-v2-01/REPORT.json",
+      "bytes": 22097,
+      "sha256": "1f9d7c44b60661b636e9867e4807359829e451eb16a92422b50db5ad54a0bf67"
+    },
+    {
+      "path": "retirement-control-v1/runs/retirement-v1-01/C10.json",
+      "bytes": 2881,
+      "sha256": "e3b201c12f94fa2b8ad08c93f3c554d15337fcf119d46a2acb038af4104562b4"
+    },
+    {
+      "path": "retirement-control-v1/runs/retirement-v1-01/CAPTURE.json",
+      "bytes": 47259,
+      "sha256": "a36b308743d8bff606d6089e8200cf718942c8f456affb15963f5f639271dbce"
+    },
+    {
+      "path": "retirement-control-v1/runs/retirement-v1-01/CLOSURE.json",
+      "bytes": 392,
+      "sha256": "84a022c299cea145be0f0a2bc777c59e2d131926f9cb3a9cc86615e60ddd2360"
+    },
+    {
+      "path": "retirement-control-v1/runs/retirement-v1-01/LAUNCH.json",
+      "bytes": 1614,
+      "sha256": "fee2c16d6a9c7c39fec0595f4a9841c0902de64512b00d6f367cf65979b8a726"
+    },
+    {
+      "path": "retirement-control-v1/runs/retirement-v1-01/REPORT.json",
+      "bytes": 5407,
+      "sha256": "6eb83ea16a83f2dd6cba67c80c43850fa53b065d8c019e130c207cbe5aee81cf"
+    }
+  ],
+  "remainingQualifications": [
+    "Focused Raman review of exact repaired main recipe, not automatic HOLD closure",
+    "Fresh ROOT GO for unchanged eight engine evaluations",
+    "Actual source/load/engine semantics remain unexecuted",
+    "NP1-CJS whole preallocation/quiescence/VFS/CLI remain separate and unqualified"
+  ],
+  "preparationErrorsRetained": [
+    "Preseal Python fixture event helper duplicate name argument; no control execution/file write",
+    "C10 preseal Python unterminated dictionary-key string; no control execution/file write"
+  ]
+}

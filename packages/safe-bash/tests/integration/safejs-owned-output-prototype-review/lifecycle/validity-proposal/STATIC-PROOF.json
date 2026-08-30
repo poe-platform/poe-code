@@ -1,0 +1,861 @@
+{
+  "status": "STATIC_RECONCILIATION_INPUTS_VERIFIED_NOT_RUNTIME_ACCEPTANCE",
+  "started": "2026-08-27T15:43:59.926Z",
+  "finished": "2026-08-27T15:44:01.445Z",
+  "threadId": "01a04292-c8dd-7331-9dac-619c9861b11b",
+  "noPromotion": true,
+  "newExecutions": {
+    "guest": 0,
+    "engine": 0,
+    "product": 0,
+    "nativeCurl": 0,
+    "privateQueries": 0,
+    "privateReads": 0,
+    "builds": 0,
+    "installs": 0
+  },
+  "original": {
+    "commit": "19da254941847de60e80ea18407332bbe10b5265",
+    "files": 74,
+    "inputInventorySha256": "08b57d797534a3a7ddaf45ef7626181f0461f3788edcb395d6cfecae5310e1f7",
+    "beforeAfterIdentical": true,
+    "originalPreparation": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+    "runnerCommit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+    "rawCounts": {
+      "total": 11,
+      "logicalWorkflows": 6,
+      "executed": 9,
+      "valid": 9,
+      "pass": 8,
+      "failed": 1,
+      "invalid": 1,
+      "unproved": 0,
+      "blocked": 1
+    }
+  },
+  "source": {
+    "root": "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/source-route",
+    "files": 940,
+    "sourceFiles": 213,
+    "compiledFiles": 708,
+    "fixtureFiles": 15,
+    "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+    "compiledManifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+    "fullInventorySha256": "0f73d54ea85756147f867ade1aed3aa69978b457265e2ae27520ec99abb5438e",
+    "sourceAndPackageRoutesEqual": true,
+    "packageRoute": "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/packaged-route",
+    "packageRoot": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/consumer/node_modules/virtual-bash",
+    "packageFiles": 709,
+    "beforeAfterIdentical": true,
+    "comparedToOriginalExecutionMetadata": true,
+    "newRegularEntriesCovered": true,
+    "symlinksRejected": true,
+    "emptyDirectoryAdditionsCovered": false,
+    "metadataScope": "bytes, length, mode, mtimeMs, ctimeMs; not atime, directory metadata or atomic/intervening state",
+    "manifestIdentity": {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/tested-manifest.json",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "a608a3e00bbc86d02f21adadaedce5906203c0c6",
+      "bytes": 310135,
+      "sha256": "4e84fe7dc3a762654a6bb1865f5f73f259fc61f8aa9bcabb250663ff7c9645f9"
+    },
+    "relevantIdentities": [
+      {
+        "path": "src/contracts/command.md",
+        "bytes": 8066,
+        "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+        "mode": 292,
+        "mtimeMs": 1787842200758.377,
+        "ctimeMs": 1787842205978.364
+      },
+      {
+        "path": "src/contracts/output.ts",
+        "bytes": 4166,
+        "sha256": "483fb9c7be06ff45de0120f60f5b5ebfe977c2323236353485f2adca5b6e28d0",
+        "mode": 292,
+        "mtimeMs": 1787842201004.1252,
+        "ctimeMs": 1787842205978.561
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "bytes": 10644,
+        "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+        "mode": 292,
+        "mtimeMs": 1787842200856.0574,
+        "ctimeMs": 1787842205981.5793
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "bytes": 101302,
+        "sha256": "d352c421177b82bd0a6f77ebc8cc9ab4b490e54cb39b685bb72871388a9fcb03",
+        "mode": 292,
+        "mtimeMs": 1787842200855.872,
+        "ctimeMs": 1787842205981.464
+      },
+      {
+        "path": "src/shell/cleanup.ts",
+        "bytes": 1947,
+        "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+        "mode": 292,
+        "mtimeMs": 1787842200763.8096,
+        "ctimeMs": 1787842205981.267
+      },
+      {
+        "path": "src/shell/parser.ts",
+        "bytes": 36304,
+        "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+        "mode": 292,
+        "mtimeMs": 1787842200763.084,
+        "ctimeMs": 1787842205981.407
+      },
+      {
+        "path": "src/shell/types.ts",
+        "bytes": 2178,
+        "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "mode": 292,
+        "mtimeMs": 1787842200765.5996,
+        "ctimeMs": 1787842205981.6692
+      },
+      {
+        "path": "src/commands/safejs/README.md",
+        "bytes": 19328,
+        "sha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+        "mode": 292,
+        "mtimeMs": 1787842200690.485,
+        "ctimeMs": 1787842205974.7822
+      },
+      {
+        "path": "src/commands/safejs/index.ts",
+        "bytes": 8649,
+        "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+        "mode": 292,
+        "mtimeMs": 1787842200692.859,
+        "ctimeMs": 1787842205974.8125
+      },
+      {
+        "path": "src/commands/safejs/io.ts",
+        "bytes": 4704,
+        "sha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+        "mode": 292,
+        "mtimeMs": 1787842200691.7517,
+        "ctimeMs": 1787842205974.841
+      },
+      {
+        "path": "src/commands/network/README.md",
+        "bytes": 10805,
+        "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+        "mode": 292,
+        "mtimeMs": 1787842200707.6555,
+        "ctimeMs": 1787842205974.037
+      },
+      {
+        "path": "src/commands/network/types.ts",
+        "bytes": 1918,
+        "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+        "mode": 292,
+        "mtimeMs": 1787842200855.3076,
+        "ctimeMs": 1787842205974.3188
+      },
+      {
+        "path": "src/commands/network/shared.ts",
+        "bytes": 2606,
+        "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+        "mode": 292,
+        "mtimeMs": 1787842200707.0657,
+        "ctimeMs": 1787842205974.242
+      },
+      {
+        "path": "src/commands/network/args.ts",
+        "bytes": 8573,
+        "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+        "mode": 292,
+        "mtimeMs": 1787842200706.4128,
+        "ctimeMs": 1787842205974.076
+      },
+      {
+        "path": "src/commands/network/curl.ts",
+        "bytes": 17720,
+        "sha256": "db06650b1b55b994fe5fa83f7489062e91ac83b7d2d9c44bbb7606d57d9df057",
+        "mode": 292,
+        "mtimeMs": 1787842201004.006,
+        "ctimeMs": 1787842205974.146
+      },
+      {
+        "path": "src/commands/network/index.ts",
+        "bytes": 1049,
+        "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+        "mode": 292,
+        "mtimeMs": 1787842200709.3093,
+        "ctimeMs": 1787842205974.18
+      },
+      {
+        "path": "dist/commands/network/types.d.ts",
+        "bytes": 1754,
+        "sha256": "0efb19fc14905bd67828c3315329c5366818acab3db5d379640e5dcb38069f57",
+        "mode": 292,
+        "mtimeMs": 1787842203457.0957,
+        "ctimeMs": 1787842205951.7104
+      },
+      {
+        "path": "dist/commands/network/shared.js",
+        "bytes": 2327,
+        "sha256": "636549c0e9b1175658f9d58f9cb02b39e7e68ce86f42e62767eae15034be041e",
+        "mode": 292,
+        "mtimeMs": 1787842203459.6555,
+        "ctimeMs": 1787842205951.5483
+      },
+      {
+        "path": "dist/commands/network/args.js",
+        "bytes": 9572,
+        "sha256": "3762aff1363b06dab26b3b1430a20542dbec9538ace6cafc13e894652133bbce",
+        "mode": 292,
+        "mtimeMs": 1787842203458.6765,
+        "ctimeMs": 1787842205950.9248
+      },
+      {
+        "path": "dist/commands/network/curl.js",
+        "bytes": 20111,
+        "sha256": "8ee855c65b2e5c18a36930458404a40edc9b37178fd6de192b33da7fc30623c9",
+        "mode": 292,
+        "mtimeMs": 1787842203466.7236,
+        "ctimeMs": 1787842205951.2158
+      },
+      {
+        "path": "dist/shell/shell.js",
+        "bytes": 11221,
+        "sha256": "589f00aad0429a928ff1f2642af32e4c3852b1839f15aaf47b134eafddec17ec",
+        "mode": 292,
+        "mtimeMs": 1787842203441.1062,
+        "ctimeMs": 1787842205970.341
+      },
+      {
+        "path": "dist/shell/runtime.js",
+        "bytes": 115891,
+        "sha256": "dd5847a047829d2f5593ffb095c32316cc4102bb74d32950a68d772b23efd118",
+        "mode": 292,
+        "mtimeMs": 1787842203434.526,
+        "ctimeMs": 1787842205970.2034
+      },
+      {
+        "path": "dist/commands/safejs/index.js",
+        "bytes": 10282,
+        "sha256": "060d905b7b28b62a608d7ca523a89251e8e9c0aefef3e2160537187bd1b2b409",
+        "mode": 292,
+        "mtimeMs": 1787842203455.161,
+        "ctimeMs": 1787842205952.852
+      },
+      {
+        "path": "dist/contracts/output.d.ts",
+        "bytes": 676,
+        "sha256": "501a15692aa88f6299cb8eef285c9ddb723c2baaf9f07dcaf644075943d97ce1",
+        "mode": 292,
+        "mtimeMs": 1787842203193.1301,
+        "ctimeMs": 1787842205963.6736
+      }
+    ],
+    "unchangedNetworkInputs": [
+      {
+        "path": "src/commands/network/README.md",
+        "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+        "gitBlob": "40f97b505dead7fc10d31a4c1f1fc60ec7ae9d0a",
+        "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+      },
+      {
+        "path": "src/commands/network/shared.ts",
+        "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+        "gitBlob": "0eb39a0037af707b75193886432ebaf7fc71f6bd",
+        "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+      },
+      {
+        "path": "src/commands/network/args.ts",
+        "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+        "gitBlob": "4a58d259a98a839927aa9de70c94e4f7d9f9f1e1",
+        "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+      }
+    ]
+  },
+  "documents": [
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/CONTRACT.md",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "a88feb9cb97c4eb1b82f6d044953549719ec531b",
+      "bytes": 6419,
+      "sha256": "1a17265016074ccf02734f997f856eee4e70301e68f2a86524efadf9e3bbe620"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/CONTRACT.md",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "52a825e28e7ee86ddb2b6e2bcd9c943460e698f7",
+      "bytes": 7509,
+      "sha256": "bb7e28a71ff9cf2a8fc4b0d4fbd85218af3f757d36df50ad624f83b4740a49e8"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/REPORT.md",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "95b37b7a5d4c647d9aa9fcaa1767d241a3688122",
+      "bytes": 9165,
+      "sha256": "18fc0943cef7901c7a704f02665ad1b6ff655d450d587c74b75dd48fe7eb7db9"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/REPORT.md",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "be757b13f22fa4485bac8ade20fbd618dd67b0fd",
+      "bytes": 13686,
+      "sha256": "06053716d2a61ceb389b8d363f8fbeed9d7d263017496ccc75d72164c09bca61"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/SELECTED-BINDING-PRE-RUN.md",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "5213b7bfe7b2bbafcf79ab8ebbd56d363ef5aa0f",
+      "bytes": 1429,
+      "sha256": "ddb7944339ad6cc14495ef15f397e7f2748f5583e104ffbb417190a6e9a4e662"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/proof.json",
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "gitBlob": "3ec796656fd1c038c2098ebaac1cf2019beefdc4",
+      "bytes": 1130772,
+      "sha256": "fe19612e093ca3ef78152bcca666606966905f5736b2d0e4f090e7854a5ece99"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json",
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "gitBlob": "d037e7796b32f16e5fc4d75d6dc66493f7009719",
+      "bytes": 2713,
+      "sha256": "28f079b2cc6a7acba9aa11acf1e8b4562f935dd4bf879e81d2621a628c88ba10"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/REPORT.md",
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "gitBlob": "9271a4552e2d8671ef481feef702a22802542d72",
+      "bytes": 10814,
+      "sha256": "81a8b977284f033824815f601ab6d0f09705779f02515478ae408bf79ec3eee0"
+    }
+  ],
+  "historicalInspection": [
+    {
+      "path": "tests/commands/network/exports.test.ts",
+      "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "gitBlob": "5900383807acd17c828e7dad5e46ea1d635f5fbd",
+      "bytes": 2070,
+      "sha256": "c57beba90797dc9d216419313ec5ac52efb13f65fe8ec6b3074e5841524aa110",
+      "matches": []
+    },
+    {
+      "path": "tests/commands/network/files.test.ts",
+      "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "gitBlob": "c377bf7e1afc6197941b376e79566bd709415a6d",
+      "bytes": 6960,
+      "sha256": "25eca877ccb2058a9986765d95cb288bcbd61cb24f0ea40fb5eb47e24d179188",
+      "matches": []
+    },
+    {
+      "path": "tests/commands/network/helpers.ts",
+      "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "gitBlob": "935f345c8402a3770d38cfff83682f32caf1513b",
+      "bytes": 5919,
+      "sha256": "226fb52ab7846ca9df99a237ae6240675f2dafbd1a19d0a386c5bb6b5148236d",
+      "matches": []
+    },
+    {
+      "path": "tests/commands/network/http.test.ts",
+      "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "gitBlob": "61221f8894c3a73320f515625c3017c2d89b95ba",
+      "bytes": 5527,
+      "sha256": "c1a63e5b11da3d4270b446d6e69670d02bc1ab7a3500e16f478074042e759ba6",
+      "matches": [
+        {
+          "line": 71,
+          "text": "  const result = await run([\"--retry\", \"2\", \"--retry-delay\", \"0.001\", \"-w\", \":%{num_retries}\", host.origin + \"/retry-author\"]);"
+        },
+        {
+          "line": 77,
+          "text": "  const result = await run([\"-L\", \"--max-redirs\", \"2\", host.origin + \"/loop\"]);"
+        }
+      ]
+    },
+    {
+      "path": "tests/commands/network/safety.test.ts",
+      "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "gitBlob": "a5258830a9a070581b7f71f95caf2bb9ef898711",
+      "bytes": 7720,
+      "sha256": "aca7481eec0f93f4fbaa56e09352ed9cba0240ebe29ce2acafffce6a294dd171",
+      "matches": [
+        {
+          "line": 19,
+          "text": "  [\"-H\", \"Content-Length: 9\"], [\"-H\", \"Host: elsewhere\"], [\"--max-time\", \"NaN\"], [\"--retry\", \"-1\"],"
+        }
+      ]
+    },
+    {
+      "path": "tests/commands/network/tls.test.ts",
+      "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "gitBlob": "1f686f021ea4f050e7b3c2c217d368b734202537",
+      "bytes": 2475,
+      "sha256": "a77ad1f53e8f217c9eecd96bfbcb2a5dee4206efe7a235dc2c6b97d968879d77",
+      "matches": []
+    },
+    {
+      "path": "tests/shell/invocation-cleanup-lifecycle.test.ts",
+      "commit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "gitBlob": "3343bd92f6ba778f9e03d378632b2b2929b81f26",
+      "bytes": 15642,
+      "sha256": "e61b1d76d32ba85c97de6ed73510adea26a9a6ef40b21d1ebce4ea5eb1be2dca",
+      "matches": [
+        {
+          "line": 58,
+          "text": "test(\"execution rejection wins while every delayed cleanup failure is observed\", { timeout: 2000 }, async () => {"
+        },
+        {
+          "line": 72,
+          "text": "test(\"ordinary command throw keeps its diagnostic and status after cleanup\", { timeout: 2000 }, async () => {"
+        }
+      ]
+    }
+  ],
+  "historicalTestScope": "Six canonical network TypeScript files and one cleanup-lifecycle test from c9b; not executions or all current tests. Frozen candidate's 15 test/helper files matched separately.",
+  "originalObservations": {
+    "L05-execution-error": {
+      "classification": "FAIL",
+      "selected": {
+        "id": "L05-execution-error",
+        "workflow": "L05",
+        "guest": "guests/precedence.ajs.data",
+        "guestArgs": [],
+        "route": "literal-invoke",
+        "schedule": "real-write-and-diagnostic-rejection",
+        "expect": {
+          "publicKind": "rejection",
+          "identity": "executionError",
+          "stdout": "admitted\n",
+          "cleanupFailureObserved": "cleanupError",
+          "diagnosticSinkRejectedWithExecutionIdentity": true,
+          "cleanupDoneBeforePublicSettlement": true
+        },
+        "qualification": "Do not promote the guest/utility throw into a raw rejection. A real failing public diagnostic sink and source-selected rejection are required; a status-only observation leaves this precedence assertion UNPROVED."
+      },
+      "engineRuns": 1,
+      "events": [
+        {
+          "order": 1,
+          "event": "public-exec-enter",
+          "publicSettled": false,
+          "command": "owned-guest"
+        },
+        {
+          "order": 2,
+          "event": "owned-guest-enter",
+          "publicSettled": false
+        },
+        {
+          "order": 3,
+          "event": "cleanup-registered",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 4,
+          "event": "operation-created",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 5,
+          "event": "acquire-start",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 6,
+          "event": "engine-enter",
+          "publicSettled": false,
+          "modules": [
+            "fs",
+            "stdio",
+            "command"
+          ],
+          "filename": "<safejs -e>"
+        },
+        {
+          "order": 7,
+          "event": "accounted-write-enter",
+          "publicSettled": false,
+          "bytes": "61646d69747465640a"
+        },
+        {
+          "order": 8,
+          "event": "public-stdout-accepted",
+          "publicSettled": false,
+          "hex": "61646d69747465640a"
+        },
+        {
+          "order": 9,
+          "event": "accounted-write-settled",
+          "publicSettled": false,
+          "bytes": "61646d69747465640a"
+        },
+        {
+          "order": 10,
+          "event": "accounted-write-enter",
+          "publicSettled": false,
+          "bytes": "73656c65637465640a"
+        },
+        {
+          "order": 11,
+          "event": "public-write-rejection-point",
+          "publicSettled": false
+        },
+        {
+          "order": 12,
+          "event": "facade-signal-aborted",
+          "publicSettled": false,
+          "reason": {
+            "type": "object",
+            "name": "Error",
+            "message": "execution:L05-execution-error",
+            "stack": "Error: execution:L05-execution-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-cy2eHd/consumer/harness/child.mjs:66:24\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+          },
+          "callerIdentity": false
+        },
+        {
+          "order": 13,
+          "event": "public-diagnostic-rejected",
+          "publicSettled": false,
+          "executionIdentity": true,
+          "attemptedHex": "736166656a733a20657865637574696f6e3a4c30352d657865637574696f6e2d6572726f720a"
+        },
+        {
+          "order": 14,
+          "event": "public-diagnostic-rejected",
+          "publicSettled": false,
+          "executionIdentity": true,
+          "attemptedHex": "7368656c6c3a206c696e6520313a20657865637574696f6e3a4c30352d657865637574696f6e2d6572726f720a"
+        },
+        {
+          "order": 15,
+          "event": "engine-rejected",
+          "publicSettled": false,
+          "error": {
+            "type": "object",
+            "name": "Error",
+            "message": "execution:L05-execution-error",
+            "stack": "Error: execution:L05-execution-error"
+          }
+        },
+        {
+          "order": 16,
+          "event": "safejs-invoke-settled",
+          "publicSettled": false,
+          "status": 1
+        },
+        {
+          "order": 17,
+          "event": "close-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 18,
+          "event": "resource-release-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 19,
+          "event": "resource-release-done",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 20,
+          "event": "resource-release-rejected",
+          "publicSettled": false,
+          "cleanupIdentity": true
+        },
+        {
+          "order": 21,
+          "event": "close-rejected",
+          "publicSettled": false,
+          "label": "guest-output",
+          "cleanupIdentity": true,
+          "error": {
+            "type": "object",
+            "name": "Error",
+            "message": "cleanup:L05-execution-error",
+            "stack": "Error: cleanup:L05-execution-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-cy2eHd/consumer/harness/child.mjs:67:22\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+          }
+        },
+        {
+          "order": 22,
+          "event": "public-diagnostic-rejected",
+          "publicSettled": false,
+          "executionIdentity": true,
+          "attemptedHex": "7368656c6c3a206c696e6520313a20636c65616e75703a4c30352d657865637574696f6e2d6572726f720a"
+        },
+        {
+          "order": 23,
+          "event": "public-exec-settled",
+          "publicSettled": true
+        }
+      ],
+      "publicOutcome": {
+        "kind": "rejection",
+        "error": {
+          "type": "object",
+          "name": "Error",
+          "message": "cleanup:L05-execution-error",
+          "stack": "Error: cleanup:L05-execution-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-cy2eHd/consumer/harness/child.mjs:67:22\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+        },
+        "stdoutHex": "61646d69747465640a",
+        "stderrHex": ""
+      },
+      "atSettlement": {
+        "acquisitions": 1,
+        "releases": 1,
+        "cleanupDone": true,
+        "bridgePending": 0,
+        "cleanupErrorObserved": true,
+        "lateWriteErrorObserved": false,
+        "innerDisposed": false,
+        "callerIdentity": false,
+        "executionIdentity": false,
+        "cleanupIdentity": true,
+        "callerAborted": false,
+        "ordinaryDestinationWriteCalls": 0,
+        "accountedWriteCalls": 2,
+        "holdEntries": 0,
+        "lateEntries": 0,
+        "holdReleased": false,
+        "leftReleases": 0,
+        "rightReleases": 0,
+        "lateAcquisitionStarts": 0,
+        "lateChildCreations": 0,
+        "rightEffect": "",
+        "curlWriteoutCalls": 0,
+        "transportAbortedByConsumer": false,
+        "transportClosed": false,
+        "responseDisposed": false,
+        "uploadBeforeEof": false,
+        "uploadEof": false,
+        "authorizeCalls": 0,
+        "transportCleanupRegistered": false
+      },
+      "files": {
+        "/work/late.txt": {
+          "code": "ENOENT"
+        },
+        "/work/body.bin": {
+          "code": "ENOENT"
+        },
+        "/work/headers.txt": {
+          "code": "ENOENT"
+        }
+      }
+    },
+    "L06-curl-open": {
+      "classification": "INVALID_FIXTURE",
+      "selected": {
+        "id": "L06-curl-open",
+        "workflow": "L06",
+        "guest": "guests/curl.ajs.data",
+        "guestArgs": [],
+        "route": "shell-module",
+        "schedule": "curl-streaming-independent-effects",
+        "closeCurlConsumer": false,
+        "expect": {
+          "publicKind": "result",
+          "exitCode": 0,
+          "stdout": "200\ncurl:0\n",
+          "stderr": "independent-stderr\n",
+          "curlStatus": 0,
+          "writeoutAccountedCalls": 1,
+          "transportSignalAbortedByConsumer": false
+        }
+      },
+      "engineRuns": 0,
+      "events": [
+        {
+          "order": 1,
+          "event": "public-exec-enter",
+          "publicSettled": false,
+          "command": "owned-guest"
+        },
+        {
+          "order": 2,
+          "event": "owned-guest-enter",
+          "publicSettled": false
+        },
+        {
+          "order": 3,
+          "event": "cleanup-registered",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 4,
+          "event": "operation-created",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 5,
+          "event": "acquire-start",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 6,
+          "event": "cleanup-registered",
+          "publicSettled": false,
+          "label": "inner-shell"
+        },
+        {
+          "order": 7,
+          "event": "inner-shell-acquire",
+          "publicSettled": false
+        },
+        {
+          "order": 8,
+          "event": "resource-release-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 9,
+          "event": "resource-release-done",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 10,
+          "event": "inner-dispose-enter",
+          "publicSettled": false
+        },
+        {
+          "order": 11,
+          "event": "inner-dispose-settled",
+          "publicSettled": false
+        },
+        {
+          "order": 12,
+          "event": "public-stderr-accepted",
+          "publicSettled": false,
+          "hex": "7368656c6c3a206c696e6520313a20496e76616c6964206e6574776f726b206c696d69743a206d61785265646972656374730a"
+        },
+        {
+          "order": 13,
+          "event": "public-exec-settled",
+          "publicSettled": true
+        }
+      ],
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 1,
+          "stdout": "",
+          "stderr": "shell: line 1: Invalid network limit: maxRedirects\n"
+        },
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20496e76616c6964206e6574776f726b206c696d69743a206d61785265646972656374730a"
+      },
+      "atSettlement": {
+        "acquisitions": 1,
+        "releases": 1,
+        "cleanupDone": true,
+        "bridgePending": 0,
+        "cleanupErrorObserved": false,
+        "lateWriteErrorObserved": false,
+        "innerDisposed": true,
+        "callerIdentity": false,
+        "executionIdentity": false,
+        "cleanupIdentity": false,
+        "callerAborted": false,
+        "ordinaryDestinationWriteCalls": 0,
+        "accountedWriteCalls": 0,
+        "holdEntries": 0,
+        "lateEntries": 0,
+        "holdReleased": false,
+        "leftReleases": 0,
+        "rightReleases": 0,
+        "lateAcquisitionStarts": 0,
+        "lateChildCreations": 0,
+        "rightEffect": "",
+        "curlWriteoutCalls": 0,
+        "transportAbortedByConsumer": false,
+        "transportClosed": false,
+        "responseDisposed": false,
+        "uploadBeforeEof": false,
+        "uploadEof": false,
+        "authorizeCalls": 0,
+        "transportCleanupRegistered": false
+      },
+      "files": {
+        "/work/late.txt": {
+          "code": "ENOENT"
+        },
+        "/work/body.bin": {
+          "code": "ENOENT"
+        },
+        "/work/headers.txt": {
+          "code": "ENOENT"
+        }
+      }
+    }
+  },
+  "originalCurlInputs": {
+    "registryName": "curl",
+    "args": [
+      "-sS",
+      "-T",
+      "-",
+      "-o",
+      "/work/body.bin",
+      "-D",
+      "/work/headers.txt",
+      "-w",
+      "%{http_code}\n",
+      "https://owned.invalid/upload"
+    ],
+    "authorizedUrl": "https://owned.invalid/upload",
+    "method": "PUT",
+    "redirects": 0,
+    "uploadChunksHex": [
+      "41300a",
+      "42310a"
+    ],
+    "responseStatus": 200,
+    "responseStatusText": "OK",
+    "responseHttpVersion": "1.1",
+    "responseHeaders": [
+      [
+        "Content-Type",
+        "application/octet-stream"
+      ],
+      [
+        "Content-Length",
+        "12"
+      ]
+    ],
+    "responseChunksHex": [
+      "626f6479300a",
+      "626f6479310a"
+    ],
+    "requiredFiles": {
+      "/work/body.bin": "body0\nbody1\n",
+      "/work/headers.txt": "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\n\r\n"
+    },
+    "independentStderr": "independent-stderr\n",
+    "limits": {
+      "maxUploadBytes": 1024,
+      "maxDownloadBytes": 1024,
+      "maxBufferBytes": 4096,
+      "maxHeaderBytes": 4096,
+      "maxRedirects": 0,
+      "maxRetries": 0,
+      "maxUrls": 1,
+      "maxTimeMs": 2500
+    },
+    "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+  },
+  "executionCaveat": "JSON records are original 19da observations, not new execution. Serialized identity booleans rely on original in-child reference checks."
+}

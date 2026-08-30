@@ -1,0 +1,65 @@
+{
+  "kind": "PROPOSAL ONLY — NO PROMOTION",
+  "version": 1,
+  "at": "2026-08-27T15:53:14.451Z",
+  "authorThread": "01a04292-5421-7363-8bcb-a70b97fae4e9",
+  "differentSignedReviewProvided": false,
+  "baseRunnerCommit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+  "baseChildSha256": "5cab487b9a63feade2048a1f6b13fb3756f668d14f7a3ecacbf7b921da97c13d",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 21172,
+      "sha256": "0d9fd267a8be44a5eebd2201527e8a3a598b3b7544dc988ea86c3c45e7eba6c8"
+    },
+    {
+      "path": "authenticate.mjs",
+      "bytes": 10057,
+      "sha256": "67413d17ae5bb124f99ec196fbc9b56ce96b4c7fa7d7a0a0f10ff3fe14db11b2"
+    },
+    {
+      "path": "PROOF.json",
+      "bytes": 31220,
+      "sha256": "354ce1d79acf763021055a66d314a793047ae294d2f57982f87c0907c4e78324"
+    },
+    {
+      "path": "observer-only.patch-data",
+      "bytes": 1542,
+      "sha256": "3d84fe2f5ccfbccbe4e7f109d7bf295817661fd7d82f74316d1eee2c33c7d1ab"
+    },
+    {
+      "path": "proposed-record.data.json",
+      "bytes": 1576,
+      "sha256": "8384ae7d2478b27319650e24ca8805ad4c5f5c092e1395de23624e65679d49c9"
+    },
+    {
+      "path": "verify-proposal.mjs",
+      "bytes": 4539,
+      "sha256": "e5447ccd6069a099d7d2288c7fb4a07d513779f054e5b6b8f8c00121987d19e8"
+    }
+  ],
+  "preservedArtifacts": [
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/CLOSEOUT.json",
+      "sha256": "6db32bd2457d55b2f8a5833572b5c2fb8bfe3fa604d772e758b389d042e060dc"
+    }
+  ],
+  "guestExecutions": 0,
+  "runtimeImports": 0,
+  "productImports": 0,
+  "privateCheckoutQueries": 0,
+  "privateWrites": 0,
+  "builds": 0,
+  "installs": 0,
+  "patchApplied": false,
+  "revisedExecutableMaterialized": false,
+  "oldCountsUnchanged": {
+    "executed": 8,
+    "pass": 7,
+    "fail": 1
+  },
+  "newCount": null,
+  "validation": "verify-proposal.mjs checks inert text only; CHECKS.json binds this seal. No revised observer execution.",
+  "staticGeneration": "Node builtins and public Git reads only; authored via apply_patch"
+}

@@ -1,0 +1,1644 @@
+{
+  "at": "2026-08-27T03:09:36.106Z",
+  "phase": "One root-authorized corrected-alias final replay; same570 regular inputs",
+  "sourceDigest": "e796b3ca1b3cc3582b40e8fac18877aa93e3d1203dcd08e82ffccc6e61eb81af",
+  "tableDigest": "e4315fd33a56aa30ec9c390115c714ca958e60f13cb3f0f39a5d52592e77c7e6",
+  "helperSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+  "corrections": [
+    {
+      "path": "node_modules/.bin/esbuild",
+      "oldTarget": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild",
+      "newTarget": "../esbuild/bin/esbuild",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/bin/esbuild",
+      "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    },
+    {
+      "path": "node_modules/.bin/tsc",
+      "oldTarget": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "newTarget": "../typescript/bin/tsc",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    {
+      "path": "node_modules/.bin/tsserver",
+      "oldTarget": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsserver",
+      "newTarget": "../typescript/bin/tsserver",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsserver",
+      "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+    },
+    {
+      "path": "node_modules/.bin/tsx",
+      "oldTarget": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs",
+      "newTarget": "../tsx/dist/cli.mjs",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/cli.mjs",
+      "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+    }
+  ],
+  "containedBefore": [
+    {
+      "path": "node_modules/.bin/esbuild",
+      "target": "../esbuild/bin/esbuild",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/bin/esbuild",
+      "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    },
+    {
+      "path": "node_modules/.bin/tsc",
+      "target": "../typescript/bin/tsc",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    {
+      "path": "node_modules/.bin/tsserver",
+      "target": "../typescript/bin/tsserver",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsserver",
+      "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+    },
+    {
+      "path": "node_modules/.bin/tsx",
+      "target": "../tsx/dist/cli.mjs",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/cli.mjs",
+      "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+    }
+  ],
+  "containedAfter": [
+    {
+      "path": "node_modules/.bin/esbuild",
+      "target": "../esbuild/bin/esbuild",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/bin/esbuild",
+      "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+    },
+    {
+      "path": "node_modules/.bin/tsc",
+      "target": "../typescript/bin/tsc",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    {
+      "path": "node_modules/.bin/tsserver",
+      "target": "../typescript/bin/tsserver",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsserver",
+      "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+    },
+    {
+      "path": "node_modules/.bin/tsx",
+      "target": "../tsx/dist/cli.mjs",
+      "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/cli.mjs",
+      "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+    }
+  ],
+  "commands": [
+    {
+      "name": "corrected-runtime-resolution",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--input-type=module",
+        "-e",
+        "import assert from 'node:assert/strict'; import {createRequire} from 'node:module'; import {realpathSync} from 'node:fs'; import {resolve,relative} from 'node:path'; const base=realpathSync(process.cwd()), requireHere=createRequire(resolve('package.json')); const results=['tsx','esbuild','@esbuild/'+process.platform+'-'+process.arch+'/bin/esbuild','./node_modules/typescript/bin/tsc'].map(specifier=>{const path=realpathSync(requireHere.resolve(specifier)); assert.ok(path.startsWith(base+'/')); return {specifier,path,relative:relative(base,path)}}); console.log(JSON.stringify({cwd:base,tsxImport:import.meta.resolve('tsx'),results},null,2));"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "d9550ff786b7d48ab368b0e94e235ae50c9b02f2b5e15d6a4e26a2ea95574373",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-selected-gnu216",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "direct216"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "0e8642777c011e59cebc26c2c2b7de328af6abfe6a14cf4c8e15f10383943057",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-original104",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text-stress/contracts.test.ts",
+        "tests/commands/table-text-stress/corpus.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "238094e11e20ce66714cd0be883d51d4cdabcb6993ffb61d436eaed3fb16ac29",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 103,
+      "fail": 1,
+      "skipped": 0,
+      "failures": [
+        "independent frozen GNU: comm shared original"
+      ],
+      "loadError": false
+    },
+    {
+      "name": "corrected-original311-current-helper",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text/contracts.test.ts",
+        "tests/commands/table-text/differential.test.ts",
+        "tests/commands/table-text/integration.test.ts",
+        "tests/plugins/agent-commands.test.ts",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+        "tests/commands/structured-stress/split-increment/interop.test.ts",
+        "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {
+        "GNU_TABLE_BIN": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/metadata-stress/.oracle/coreutils-9.7/src"
+      },
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "12d19ec45db04a03f79e6a0fb71e7420276493937e20d52c55eaeec6a6c98b6b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 310,
+      "fail": 1,
+      "skipped": 0,
+      "failures": [
+        "explicit GNU duplicate-close disagreement comm: shared stdin"
+      ],
+      "loadError": false
+    },
+    {
+      "name": "corrected-selected-gnu311-current-helper",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text/contracts.test.ts",
+        "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+        "tests/commands/table-text/integration.test.ts",
+        "tests/plugins/agent-commands.test.ts",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+        "tests/commands/structured-stress/split-increment/interop.test.ts",
+        "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "bb48f8a0c918f7ef95d2d897a3b62487b4c60bbc2d36495669b52aff9ed3cfe8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 311,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-author-fix-controls",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+        "tests/commands/table-text-stress/shared-stdin-fix/shared-stdin.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "75a77d8d8e8b3cb32285fffef57c32328f0d3c1709ccf218bb5b05002db78710",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 234,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-metadata43",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/metadata/chmod.test.ts",
+        "tests/commands/metadata/integration.test.ts",
+        "tests/commands/metadata/mktemp.test.ts",
+        "tests/commands/metadata/stat.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "5049568d1535a19a9724ba1ee01ab8605882188e617aaad2412478eedc87137b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 43,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-scoped-noemit",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "comm-review-types.json"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-isolated-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-built-selected71x2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "built71"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "fec559e33197d4fe5a8e705051a0ffd95be2fee59d902db42a6cf6c001bf4802",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-prior-source-noemit",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/corrected-prior-source",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "corrected-prior-source-shared-negative",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "shared-negative"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/corrected-prior-source",
+      "env": {},
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "d46d0b0ac1289f31d92e8ed5556cc7e1ce62f45795908796b2b462ece35d99f7",
+      "stderrSha256": "8f64e782b683d98e20a376f1a5cd26f97b496faedb3a30d8c71aabc034cf1363",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    }
+  ],
+  "selectedTests": [
+    "tests/commands/table-text/contracts.test.ts",
+    "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+    "tests/commands/table-text/integration.test.ts",
+    "tests/plugins/agent-commands.test.ts",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+    "tests/commands/structured-stress/split-increment/interop.test.ts",
+    "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+  ],
+  "priorSource": {
+    "prior": "/tmp/safe-bash-comm-final-review-owned/corrected-prior-source",
+    "authorCommit": "6ef0d8ddd76b430737cc9158c9c3c509fe197097",
+    "restored": [
+      {
+        "path": "src/commands/table-text/comm.ts",
+        "fixedSha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+        "priorSha256": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f"
+      },
+      {
+        "path": "src/commands/table-text/internal.ts",
+        "fixedSha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+        "priorSha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8"
+      }
+    ],
+    "differences": [
+      {
+        "path": "src/commands/table-text/comm.ts",
+        "before": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+        "after": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f"
+      },
+      {
+        "path": "src/commands/table-text/internal.ts",
+        "before": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+        "after": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8"
+      }
+    ],
+    "priorLinks": [
+      {
+        "path": "node_modules/.bin/esbuild",
+        "target": "../esbuild/bin/esbuild",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/corrected-prior-source/node_modules/esbuild/bin/esbuild",
+        "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+      },
+      {
+        "path": "node_modules/.bin/tsc",
+        "target": "../typescript/bin/tsc",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/corrected-prior-source/node_modules/typescript/bin/tsc",
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+      },
+      {
+        "path": "node_modules/.bin/tsserver",
+        "target": "../typescript/bin/tsserver",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/corrected-prior-source/node_modules/typescript/bin/tsserver",
+        "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+      },
+      {
+        "path": "node_modules/.bin/tsx",
+        "target": "../tsx/dist/cli.mjs",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/corrected-prior-source/node_modules/tsx/dist/cli.mjs",
+        "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+      }
+    ],
+    "allOtherInputsUnchanged": true,
+    "semanticAssertion": true,
+    "observed": {
+      "mode": "shared-negative",
+      "selectedPass": 0,
+      "exactPass": 0,
+      "total": 1,
+      "profile": "Original stdout/status/stderr-presence policy; repaired shared-stdin additionally requires exact GNU diagnostic. Exact-row count is separate, with all raw stderr retained.",
+      "observations": [
+        {
+          "name": "comm: shared stdin",
+          "inputSha256": "d3e69ff19a538fc9beb7e0fbad8add1d127b0536cd13ee493fdb535f75903142",
+          "actual": {
+            "exitCode": 0,
+            "stdoutHex": "0909610a0909620a630a",
+            "stderrHex": ""
+          },
+          "selected": false,
+          "exact": false,
+          "filesUnchanged": true
+        }
+      ]
+    }
+  },
+  "cleanup": [
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-82yOK2",
+      "matchingExistingFixture": "paste seed 1",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-8699Au",
+      "matchingExistingFixture": "join first unpaired inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-9Lm1G3",
+      "matchingExistingFixture": "join seed 9",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-9qEsQ4",
+      "matchingExistingFixture": "paste seed 11",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-AH4Ko9",
+      "matchingExistingFixture": "paste seed 0",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-DBdGc6",
+      "matchingExistingFixture": "join seed 1",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-F1EjPe",
+      "matchingExistingFixture": "join NUL newline fields invalid bytes",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-FFT8EI",
+      "matchingExistingFixture": "paste seed 10",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-FhSC4X",
+      "matchingExistingFixture": "join repeated format and delimiter",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-GmyDtQ",
+      "matchingExistingFixture": "paste serial shared cursor",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-HVIkva",
+      "matchingExistingFixture": "join seed 8",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-HYrTuD",
+      "matchingExistingFixture": "paste seed 9",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-I8NsCq",
+      "matchingExistingFixture": "paste seed 14",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-I95XtE",
+      "matchingExistingFixture": "paste seed 14",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-IHpndA",
+      "matchingExistingFixture": "paste seed 15",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-J2gPLR",
+      "matchingExistingFixture": "join first unpaired inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-JgRjZ2",
+      "matchingExistingFixture": "comm NUL empty delimiter",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-JpcMUy",
+      "matchingExistingFixture": "paste seed 3",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-NFiC92",
+      "matchingExistingFixture": "paste seed 12",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-NOcHEk",
+      "matchingExistingFixture": "paste seed 6",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Nl4X3V",
+      "matchingExistingFixture": "comm shared original",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-O4cfAS",
+      "matchingExistingFixture": "paste seed 1",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-OECryy",
+      "matchingExistingFixture": "join seed 3",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-QIgpjI",
+      "matchingExistingFixture": "paste seed 13",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-QebDtJ",
+      "matchingExistingFixture": "paste seed 11",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-RrUa7d",
+      "matchingExistingFixture": "comm order ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-RzxfOZ",
+      "matchingExistingFixture": "join seed 5",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-StNqnA",
+      "matchingExistingFixture": "join seed 2",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Uu790z",
+      "matchingExistingFixture": "join seed 13",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-WFOVvx",
+      "matchingExistingFixture": "join empty opposite inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-X1gVoT",
+      "matchingExistingFixture": "join header auto empty fields",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-XqkK6M",
+      "matchingExistingFixture": "join seed 10",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-YL1F3h",
+      "matchingExistingFixture": "join empty opposite inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Z90xZR",
+      "matchingExistingFixture": "comm duplicate multiplicity totals",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-a8iMfE",
+      "matchingExistingFixture": "join whole record empty key",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-ayzRz4",
+      "matchingExistingFixture": "paste seed 7",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-b9UhPi",
+      "matchingExistingFixture": "paste seed 4",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-bEHPpt",
+      "matchingExistingFixture": "paste seed 8",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-bPoS7C",
+      "matchingExistingFixture": "paste seed 12",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-c80eN8",
+      "matchingExistingFixture": "paste seed 0",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-d2xvPZ",
+      "matchingExistingFixture": "paste seed 2",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-fX6ZDJ",
+      "matchingExistingFixture": "join seed 0",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-fc6bBi",
+      "matchingExistingFixture": "paste seed 2",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-flFBhb",
+      "matchingExistingFixture": "join seed 12",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-gAnHY9",
+      "matchingExistingFixture": "join seed 4",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-gtnLWU",
+      "matchingExistingFixture": "join seed 7",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-hmTUir",
+      "matchingExistingFixture": "paste seed 8",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-iVn2jq",
+      "matchingExistingFixture": "paste CR invalid bytes",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-jAZhCy",
+      "matchingExistingFixture": "paste NUL shared invalid bytes",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-kU00Cw",
+      "matchingExistingFixture": "paste seed 6",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-kiLbU1",
+      "matchingExistingFixture": "paste seed 5",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-lRTemL",
+      "matchingExistingFixture": "join seed 14",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-mEAXmV",
+      "matchingExistingFixture": "paste seed 3",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-mPBI2m",
+      "matchingExistingFixture": "paste seed 13",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-nGyR0Z",
+      "matchingExistingFixture": "paste seed 5",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-nUK3Yg",
+      "matchingExistingFixture": "comm shared original",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-nsppzd",
+      "matchingExistingFixture": "join large Cartesian",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-p7yQk2",
+      "matchingExistingFixture": "comm C byte collation",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-rBNLoj",
+      "matchingExistingFixture": "join empty opposite inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-sEMFpl",
+      "matchingExistingFixture": "paste seed 10",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-tKbcg7",
+      "matchingExistingFixture": "comm order ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-uCKy6D",
+      "matchingExistingFixture": "join seed 15",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-ufAS9P",
+      "matchingExistingFixture": "paste seed 9",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-vOVlep",
+      "matchingExistingFixture": "comm order ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-wDNKok",
+      "matchingExistingFixture": "paste seed 15",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-wxNJea",
+      "matchingExistingFixture": "join first unpaired inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-x31Rtu",
+      "matchingExistingFixture": "paste seed 7",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-xg0NHn",
+      "matchingExistingFixture": "paste seed 4",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-y4R5Z9",
+      "matchingExistingFixture": "join seed 11",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-yZMzF6",
+      "matchingExistingFixture": "paste shared alternating empty EOF",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-zwFQsC",
+      "matchingExistingFixture": "join seed 6",
+      "exactBytesAndNamespace": true
+    }
+  ],
+  "snapshotInputDrift": [],
+  "negativeInputDrift": [],
+  "buildHashes": {
+    "dist/commands/archive/create.d.ts": "3969cf41e2d2895819fe1ff52093661af82f317921bca565ed006940129ed0d8",
+    "dist/commands/archive/create.d.ts.map": "76208e1a68d66c98bc136eafec9632ed4e4c0a5779b25125c444a6fa7cf68fcc",
+    "dist/commands/archive/create.js": "311e1c75def85249edb21746c82ef5df32afd91b260ca5152bfb129a83bc9dc9",
+    "dist/commands/archive/create.js.map": "d2822ff32288f02865226dd48968e447b27112363e9ad02a26dc2eeb8407c137",
+    "dist/commands/archive/extract.d.ts": "daebfb1431887dded07482d20424a3332a6c6dee094219e3e1396920d3c3aa6a",
+    "dist/commands/archive/extract.d.ts.map": "ef1ebf2029066a3280df18b5527ff639d4dd670fcfa9f96920ebba899a962b38",
+    "dist/commands/archive/extract.js": "d866841a8a04a3d0415ea7f4a68baaaf976acd8c50b319d356242cdd29c0e4a1",
+    "dist/commands/archive/extract.js.map": "b709b561f4d00d986f18ff40f5a11c0399ebccd25d8e3190a51cb95a997128bd",
+    "dist/commands/archive/format.d.ts": "4657c187674dbca7454db74f4b25a498fc6f527ba0a54ad99ae0b58345f98e8a",
+    "dist/commands/archive/format.d.ts.map": "da75ac38c9128fc03e99d9bc93a98d478c15e95e41d4bd04b1dd55eb638bb007",
+    "dist/commands/archive/format.js": "4c639c1ebbed395c516c6e9d7a4155146c3d21c03a8935389290ee44dd6e689b",
+    "dist/commands/archive/format.js.map": "9a3050814329177ed146078b0670c125c7f2478f8e8421bc2d0cc8a0a2d642fc",
+    "dist/commands/archive/index.d.ts": "5915c7ed406a26ae776af185693b79fd3a6e2904fc09204ffa88046965fcebcd",
+    "dist/commands/archive/index.d.ts.map": "27bdf2e308c91b74c8e58057e08ebc45453535087b62d97811c8afb6ffd64ad5",
+    "dist/commands/archive/index.js": "e747fff64a5566c31a5ab6d7fed7fe252fbb02dcf61990c981e55c53b5487418",
+    "dist/commands/archive/index.js.map": "f86124db8caf69530dd02f06e5016a965195a51ea1729fafb667b63e07ba5027",
+    "dist/commands/archive/internal.d.ts": "53180a2ea873fbd5d8a44002cc432252c008eec5663a65b4f84e68f24adbcca3",
+    "dist/commands/archive/internal.d.ts.map": "6b489c2b64aff7b7e16e7c7906667b228a5ef475cff007db61529ffc165d8fe1",
+    "dist/commands/archive/internal.js": "1d01d6356dc8276739d708ccf6f9ea14cc8a6ec464718255e4de882693f3744f",
+    "dist/commands/archive/internal.js.map": "cf53125a8ef2acb9225923b9a572a4e40abba4aca721366cf4202e65075aaf60",
+    "dist/commands/archive/options.d.ts": "0fea889255fc81436130fb905c6875a2406f7e09ffc2677d3ef094011812c2ea",
+    "dist/commands/archive/options.d.ts.map": "a884ebef250078f1432d4f60a8fdeb7323ad092f036d66ca7953fb2730d71cb0",
+    "dist/commands/archive/options.js": "d89a7b8ebedd8c7752e068fc7d7421296665032faac7f5a8f41b8a962656c5df",
+    "dist/commands/archive/options.js.map": "4859565a33cff10d123d180dfcfa571bbbce0beb03edfbf701f7bbd3d263f74b",
+    "dist/commands/archive/stream.d.ts": "0b947ab3dd4b08d5e5c04234ee3408f413bd2714bc9977bad9a82bffdac0bacc",
+    "dist/commands/archive/stream.d.ts.map": "80244e1adb852bb3aa4bd33c7b26ce5fd9ba153852730d2a59108895a4204ce7",
+    "dist/commands/archive/stream.js": "edb4bf2bfe386c17066e3bae70f8f61396e9f536c447b3a0dbf91a4108195d7c",
+    "dist/commands/archive/stream.js.map": "3cc8488ddc62d05bfff96f83c4086743b42fd1914df813d18e38cd9c384b62ec",
+    "dist/commands/basic.d.ts": "524d620b7ed26b3f5f2f96fb13afe562dc517b81737cae4375060b547787909a",
+    "dist/commands/basic.d.ts.map": "23ecd7a4282ba5d73972e1498b4d678cf47442d15feb6f4e73280614bde5efb4",
+    "dist/commands/basic.js": "00fa8d5370d4173cb235b22b99f49997f047b76aa3d4ae08e958da161345ecd3",
+    "dist/commands/basic.js.map": "377b4e7961fd43a65ca49b99b27153f9f79097f76b117e8666937312f05d89c9",
+    "dist/commands/bytes/checksums/index.d.ts": "af966e8c947c488a6f3878e9199ba7083cb7bf3a9ea26630e0798499384c403d",
+    "dist/commands/bytes/checksums/index.d.ts.map": "6cf811422dd3fbe3f130279decf2b3e887863c2dc6eef283734f8fc2297f2cd0",
+    "dist/commands/bytes/checksums/index.js": "e9592d606ea099f2105ace37a4f832ea9045dc4a48bfee720732ce691b8b6963",
+    "dist/commands/bytes/checksums/index.js.map": "cadf84207989071542345c636d427c1826b3a3f511aff0bda3152cf598e2f185",
+    "dist/commands/bytes/compression/files.d.ts": "24060cdffcf7088e19920ebaccfb15622522e7d406fd218c10664240030d7bfd",
+    "dist/commands/bytes/compression/files.d.ts.map": "53e8e707cc8168ffc205d4d3f09e545b630d77bca81cd282b82c547ca12b249b",
+    "dist/commands/bytes/compression/files.js": "25a5a1b02c990517a8b515a55c741d74117c057733908539c47969056101237b",
+    "dist/commands/bytes/compression/files.js.map": "0911b8c82935ba7343332d28474cbde1f1b9b7feff7f1f00c853ef73f7936341",
+    "dist/commands/bytes/compression/gunzip.d.ts": "cc95b4139299cf0ad102a56c2d26dd90f462fc3fd858025883ff11b0104971fc",
+    "dist/commands/bytes/compression/gunzip.d.ts.map": "865a0a21657a34eac8c897cb85361cd2ad0a00955e2d8a6416d4a3d58b855d37",
+    "dist/commands/bytes/compression/gunzip.js": "26fa0982d758cd7a97ff70c4b119c63c8ab996150cfdb19eae48895dd5edcfe2",
+    "dist/commands/bytes/compression/gunzip.js.map": "8796b2d0615cd4382dca57e6aad5f416fa5e7560a26ab7f92961bebad4a34f11",
+    "dist/commands/bytes/compression/index.d.ts": "30fbeed686a10d77bf5e137a25340a770dd68d1e6d33a9ec22e627f2ac2c57fb",
+    "dist/commands/bytes/compression/index.d.ts.map": "759fc1a1fba3b11ac25f577a43986de5ff4314a64884894255cf5ccab9958c46",
+    "dist/commands/bytes/compression/index.js": "b9d8de948bd0fa3fe9d4c6cc34373063bd0278abd8291329022a2cb7521f816a",
+    "dist/commands/bytes/compression/index.js.map": "39bd5465ea5bb614b90e85566b15c629eae653a68ff7d54e28c6375134b881b2",
+    "dist/commands/bytes/compression/options.d.ts": "a80ccac745c0ac3a948a5a5b170b2db41c05ef33f7e5d5bdffe3a4fed9e6447c",
+    "dist/commands/bytes/compression/options.d.ts.map": "9d0fa05ef5254c4f41578400d4f8b975e32a9c53f6a8b436b794c285816681a9",
+    "dist/commands/bytes/compression/options.js": "adbcdc0d6a1383de8ffa4faca546468d15430edcd938af632aa74fc6657bdcbb",
+    "dist/commands/bytes/compression/options.js.map": "99eb7ca60c086488fc765225af419ef1334a3ebf17f4890da38af05d0f2302ca",
+    "dist/commands/bytes/compression/stream.d.ts": "52c3e3131e06223daaf1a1e7343dea087819b06900223f3f87af99a412b37540",
+    "dist/commands/bytes/compression/stream.d.ts.map": "d1e5db6f5b5bbe61fe89ae83288c898aaad90d98e1ecc149ca731df323a3f3c4",
+    "dist/commands/bytes/compression/stream.js": "d1e00786af278be2af71009f13ed5a9f243022d36e0d9bd9f0ebba1e4c4a79b1",
+    "dist/commands/bytes/compression/stream.js.map": "d964a6cf701974b449c317b2d287532082b3ce601ba2032664ba4b45bc6afa3a",
+    "dist/commands/bytes/encoding/base.d.ts": "7a22b977626ced8e1312cc132c7b2c9636a0ee388d9dbf04ddebdc97e5524295",
+    "dist/commands/bytes/encoding/base.d.ts.map": "2a1445adba6dc32e92bf8b8646b3deba3657fc8bc99e608b0f8a0f87692b97a5",
+    "dist/commands/bytes/encoding/base.js": "ac71945c17307983bcecd48224c213db5f82f04d09c0d8c1c57086af700a4043",
+    "dist/commands/bytes/encoding/base.js.map": "8b2ade7fb165a1a436df31ef6bacb1c6c8b4a455b126a1981688746657eca216",
+    "dist/commands/bytes/encoding/index.d.ts": "b5040e1e2fbfc152337ab88cafd4dbb24b97ef0462e0a917af278baf07197daa",
+    "dist/commands/bytes/encoding/index.d.ts.map": "2adbbb980c2f00e533d518b3966c71537e8a1fee6045b7d0283b17cdec8118e4",
+    "dist/commands/bytes/encoding/index.js": "46ee85946ca5cd5cfe59ba4e5f39fca4b8cd71020e903cc0354c2855057da8e5",
+    "dist/commands/bytes/encoding/index.js.map": "ae68794efd107cede8d279cd1b6025a6bacdc64da5669939a88c188864ed1f32",
+    "dist/commands/bytes/encoding/od.d.ts": "57a352e9d091866504de470544cb174741e1ffa05f8c86af2b71f857c27ffc2b",
+    "dist/commands/bytes/encoding/od.d.ts.map": "c49b5883f0779db392f9c27635c022902f95304d24041962ffa3188d81603f10",
+    "dist/commands/bytes/encoding/od.js": "b381913b231e691d3402a7823205f56417c55c2869cd4f1fdd8a658ebb75b3b0",
+    "dist/commands/bytes/encoding/od.js.map": "08cd8d2af7e862ccb3dae2cca15dd98f3aa47e3a1adc5d310e83689d0274ec1a",
+    "dist/commands/bytes/encoding/shared.d.ts": "35a59725d16b14e86a1d6d644ffffb9d6c6b292f447a1ce33265dcff2a54d5e0",
+    "dist/commands/bytes/encoding/shared.d.ts.map": "5105fd995deacbde628c02d8cdcd62d2ff8efa4ccb442d765f364e42fa2a4aaa",
+    "dist/commands/bytes/encoding/shared.js": "13a0d8756aab590eb5a09bd324446d21f94500fc12a6192ebc9b5b39b1b1062e",
+    "dist/commands/bytes/encoding/shared.js.map": "46cfe71e298511dc1a4c9fd577b5e8c2289f1992275685f7b4cec7a3ca9e73aa",
+    "dist/commands/bytes/encoding/xxd.d.ts": "dc54e96bd5503fe514ecf9d9ca2a35fc82708d611359ac3032472c25bd6c2511",
+    "dist/commands/bytes/encoding/xxd.d.ts.map": "be2132cfcbacd9268b302a5e17981c096a6ebe8eac62ff91667996ec9be3d87f",
+    "dist/commands/bytes/encoding/xxd.js": "aedf0adbbae0dd6b2178e69bdb925a114d5a6bdcef21d78d36803c31756d8654",
+    "dist/commands/bytes/encoding/xxd.js.map": "315fc15de68a6b83be1049743a90202d3609028f65557ec71ca14994fb66557d",
+    "dist/commands/bytes/index.d.ts": "b7dc95a863dfd9222d03ff2a84ae9499722849a754eec591b5ef891b8aecd78e",
+    "dist/commands/bytes/index.d.ts.map": "baf50cb308e4db4298e672bb0df2e8254d8e74b79e5ba13bb41af2f70a145252",
+    "dist/commands/bytes/index.js": "37a6150fa98c14e1c7d63b67765971e234dc72c3b88e9318db218fba36f1a87a",
+    "dist/commands/bytes/index.js.map": "6c4333409b00fd2192c46412606d9399bebacade1e342b2ba067639ca31c87c6",
+    "dist/commands/copy-identity.d.ts": "bf4bd25f33a53f6be09cbd5d197e23128f9138e88120ac010b5d0150a802d486",
+    "dist/commands/copy-identity.d.ts.map": "cb6f7ab7577e5eee8c735e744c1fa5248a9098282232bfd54154f58313ca5615",
+    "dist/commands/copy-identity.js": "c0ec43f7af13501e5bd83895b0f09799c0eaebb2d757e99aaae2593b1c1f2baa",
+    "dist/commands/copy-identity.js.map": "2068e9ba5becf970bead86cd0c26094b2ff5b19a2d6c25666bc338a5ec309c5b",
+    "dist/commands/diff-patch/diff-format.d.ts": "c0b9b2abdb19c56b556cac2ff354278c28476aa3f9eefa59747cbba193493963",
+    "dist/commands/diff-patch/diff-format.d.ts.map": "5c31dcdf134a60a6d19b47b7b11c6f74ba178fca38781e5a784cb2ca027401f3",
+    "dist/commands/diff-patch/diff-format.js": "500fc07ab484a54db0b8192ce867d3bd215ed60703b148807ec3f031d72021c3",
+    "dist/commands/diff-patch/diff-format.js.map": "d71d1057601a24bfee28952456ca8ade60f2894128188a3cf0a91e902f83c80f",
+    "dist/commands/diff-patch/diff.d.ts": "e4819e10e4a647fb92c9b3e9e4a5b768b6a3ae0c2fdd27ad047e5485fba815bc",
+    "dist/commands/diff-patch/diff.d.ts.map": "c1e05e633e8f984a323ebfb8ea51090037d02a0f9c0e46702682ae38ecc889f6",
+    "dist/commands/diff-patch/diff.js": "35351c3711344ffa3dcd7c22899af9e39a823a8df0e9ee3330480d74573746df",
+    "dist/commands/diff-patch/diff.js.map": "247d6b7f852bc06b23a43f307a1a145a5629cd8e47ed32ba01b5f6694ed12e8b",
+    "dist/commands/diff-patch/index.d.ts": "c53f04e49bcb83f71719987ca6af81aa9806375703cd6f2f7e98e2fd4e40bf00",
+    "dist/commands/diff-patch/index.d.ts.map": "f30c9524e04720d3eb8f7dc00b97fa8657d320421ed797a52b8c01bfbd264334",
+    "dist/commands/diff-patch/index.js": "55131ef605a786cbb188dfec4e3c30cf967a66285e6f7ba870ad9dba43cf4157",
+    "dist/commands/diff-patch/index.js.map": "fc51ac869e757adbc3c1058b1aab314be089dd1c0081fb917b8a29b4d8415e96",
+    "dist/commands/diff-patch/patch-envelope.d.ts": "5fd9d874f67d625837542a0ff1fecab80cc7e7f66e663ed9e3c38c66245b46f2",
+    "dist/commands/diff-patch/patch-envelope.d.ts.map": "ba376c94c7f4b2429833678ade3cd735a2f86e7f161dba22c1eb6e71aa3dd62f",
+    "dist/commands/diff-patch/patch-envelope.js": "432ce9ac2793932a05faffcaa56cb2a8b8cc81f5d2e5b789e32bc80c2fead344",
+    "dist/commands/diff-patch/patch-envelope.js.map": "c7542a8c6062d05bc7ae6a4f4a405da48675c9d9c9587790b76b02e431535630",
+    "dist/commands/diff-patch/patch-formats.d.ts": "2dd7de02e6e77d14419a8a36f9a09149f2058716ca263c402e6e7d4730d56782",
+    "dist/commands/diff-patch/patch-formats.d.ts.map": "a0e5c1f68858bf31122d027714d2bce1230dcc15e71f4250faec43f7f8993c26",
+    "dist/commands/diff-patch/patch-formats.js": "a2832ba8e180150b093af16c60529d4afd7658c4669ce57ef2d8757ee4f24e50",
+    "dist/commands/diff-patch/patch-formats.js.map": "27226cf43125ec3a301bc0a041c790b5f54c07ac208dede7cf146037ac35b53b",
+    "dist/commands/diff-patch/patch-gnu-paths.d.ts": "0468dba2a3847c0e1df716a7e7bca39a1d55e122de6fa8531109a7008b7ad72f",
+    "dist/commands/diff-patch/patch-gnu-paths.d.ts.map": "6d42d1f297b53371d557025af0ab60161bfd80e98c27f519b1d3575a0e8152a9",
+    "dist/commands/diff-patch/patch-gnu-paths.js": "76bfe60125a81ee45fcf357a386699997aa666717491c4efe1f9da9fb46185ee",
+    "dist/commands/diff-patch/patch-gnu-paths.js.map": "23c0e0bb72a97ab43542098367255f08395ac0e1979630c84fce59641459280d",
+    "dist/commands/diff-patch/patch-gnu-reject.d.ts": "3bb3c7ef619097c6fb7efd031187c4b755cf37b77c9ec2971379389d430941fb",
+    "dist/commands/diff-patch/patch-gnu-reject.d.ts.map": "868712c925fde49a8b0d56957fefb5e41c7327fa301990c172f27adfced5aabc",
+    "dist/commands/diff-patch/patch-gnu-reject.js": "a30a117968d9c8e85835e4f17a30b20cf7945ece3e56f2c78a9339f830cfa8f7",
+    "dist/commands/diff-patch/patch-gnu-reject.js.map": "f01878b5ac506e7fb2a14a40967055b9cca746768e9ab4cbf1ae1af953b5214e",
+    "dist/commands/diff-patch/patch-path.d.ts": "8755ef40146f7eba914bd7e06444722b91e446d7eeceefb2f5ebb1591b07551c",
+    "dist/commands/diff-patch/patch-path.d.ts.map": "b75bd249955214a056de2d7d82e5256680011e78a97b92cece48e39b29804580",
+    "dist/commands/diff-patch/patch-path.js": "fb4a52eeb5a8640dd9f69b1c2b1cbb2abe806a7fb7b1659e6796974d580edcfc",
+    "dist/commands/diff-patch/patch-path.js.map": "c79ed445981317919852cd70b6622eb2cd42bc38b5e5b957a2929819fc46cb46",
+    "dist/commands/diff-patch/patch.d.ts": "167c329a88ad643b0561cadbd07aab3e660bdabac6cb9c80c901b5cafdb22c1f",
+    "dist/commands/diff-patch/patch.d.ts.map": "94374c6c9aa9f1590c31e30594a78f6b4a040b221f8af81a6efdd4fb99b509b6",
+    "dist/commands/diff-patch/patch.js": "fb623db9f378b34f8b7ae78bd419cc51a98d3cdfcd715f3489a6f2c9ebd3bfe4",
+    "dist/commands/diff-patch/patch.js.map": "045a6e4177e1bc517697c23f4957faeff99f0b8511b10057b4a202ee47140a88",
+    "dist/commands/diff-patch/shared.d.ts": "8da59d0ddf0c34ac03f0377c36921f49f4a035ca9240acc48b6359b65807a66e",
+    "dist/commands/diff-patch/shared.d.ts.map": "61b4f60c242bc20f15feca313511b074f14c93b30c57dc71767703f20119c696",
+    "dist/commands/diff-patch/shared.js": "150687d3ce292ddd838819919ef0f46f7da224369c4af2862b9387ddb50b2296",
+    "dist/commands/diff-patch/shared.js.map": "3e05260bbbd674004f7e89f5cf31e3d3d8dd6b592016431a9db4d99ec09b7ebd",
+    "dist/commands/diff-patch/unified.d.ts": "e30b90a1c2e4c57e7af48c8f1c843d0adfe312b77b753cf8da3821a24268848e",
+    "dist/commands/diff-patch/unified.d.ts.map": "9f8816d0163e879a129a5ba9663284acb2e6a5d792251e8b125a27c85e657171",
+    "dist/commands/diff-patch/unified.js": "0112ba6cd45dcc659392aa8118c7f9aa0690abde03c5600d6736173ae6ad0993",
+    "dist/commands/diff-patch/unified.js.map": "54f6d9308e2eae05da37995150979216cc78fc29c8081de336e16a6ae7e28bee",
+    "dist/commands/execution.d.ts": "8600b4de53c669d370c9e26419640e26ea7ce63cf10849907ffd47347b01bf8e",
+    "dist/commands/execution.d.ts.map": "febb768379afb05a42aa05de0d3a2e2b8347800872b86004ae86fd1cac007991",
+    "dist/commands/execution.js": "bef62a84b26789b61c063147e3b08844495f6dce2b728979ff1e561fbc81e83c",
+    "dist/commands/execution.js.map": "826e9f265eb4794a6ef46f40559b40e1a354a0018ad47725d03d721a7c36a6de",
+    "dist/commands/filesystem.d.ts": "483bf9845f4f72b6f0a2ff18592947c19d578003e379fe9ae7b44e10d2ceefbe",
+    "dist/commands/filesystem.d.ts.map": "72f649b2ad62526ba0f06f0a78058e019c4cde9fd183ff32bea7b4f80f74d5a9",
+    "dist/commands/filesystem.js": "4a98f1264b572478ff786a67f7a028d200e3418562f6f78f2b040edbbf3e11b1",
+    "dist/commands/filesystem.js.map": "9fb4d71a59770475b52153d7be467ad8826a29d5f702485ad6ccf027949c3269",
+    "dist/commands/find.d.ts": "48735b69f4a2695b51d51e82a295885d947d37374dae5cb2f6220954625c187a",
+    "dist/commands/find.d.ts.map": "f08f682888c8a46d9a182f4f56d63936f5f95416b020f04967b063ccf33231aa",
+    "dist/commands/find.js": "f7d2f5833e7b1c42a2a892ca3853da62b42b7ce3aa5c5b4fb513d647f991f06e",
+    "dist/commands/find.js.map": "eac8175dac6e5587bfbd5149292b409a70e6b5e92f4914eec06db6c50efd4e73",
+    "dist/commands/grep.d.ts": "1ac04f572e7469768d578a11b3171a697c34ef77132b970aef104b6009181671",
+    "dist/commands/grep.d.ts.map": "fe3126c01b346d5cbc985b0a07474d0fb206ef8cb61983241df64f34748ad9a9",
+    "dist/commands/grep.js": "4d2bb1a77d18cc091a24d8ce39acb7cc589a321ca68f896f86f3b2df9ee1e4b9",
+    "dist/commands/grep.js.map": "9fad0c58ca7d377d711a2b3d4c798a07d521d130dcdc0665f6cfe82758d11be1",
+    "dist/commands/index.d.ts": "853ee652a2d2357175a99acf423f51fde06948d0437949015faed38940707e20",
+    "dist/commands/index.d.ts.map": "a412003eb1b878927b4ee01f5453430615588437d1e3d90c649f163ad119b2ec",
+    "dist/commands/index.js": "30582004541862fa4cc2b956079471ba19c9f5aa94e62b48733a8f5a40bfd875",
+    "dist/commands/index.js.map": "f9b0c5ca8959e9c9231f742d0469ff0e1c794282e7aa38bdd7f44faf8f384756",
+    "dist/commands/internal.d.ts": "571a15a5ded1f8349c59b7966134362cc5ac1dfd182493fa2e89cf584426ae76",
+    "dist/commands/internal.d.ts.map": "3bdbd61e1fc35bc8980534c2f2e6995eb7d5dedbb86e2d231f2314807437c596",
+    "dist/commands/internal.js": "d4258d71731362fc727fa75bf27deb8e84e0e7ea554164de72feedb3deaeee69",
+    "dist/commands/internal.js.map": "7bcaebe02f0f29782f4920f0167a9c7ac8e4a4e374e9673d5e3f09448da0745f",
+    "dist/commands/metadata/chmod.d.ts": "2e53e2246085558fef469962943b87a8f02aec005e3608ea1df2131f6503f696",
+    "dist/commands/metadata/chmod.d.ts.map": "ac4e50600ab055fb73a2530beca1c1f162a4faf5cad4b3e5ef3d4efc5878a927",
+    "dist/commands/metadata/chmod.js": "b86b19cda05825fd1279225eaca730139024b7d589a1381c87acbf8ac7746910",
+    "dist/commands/metadata/chmod.js.map": "3dfe5722ca2e4fc12bdb37cb5499f80c88b939865d66ee3f07ecd7dbdd9ce63f",
+    "dist/commands/metadata/index.d.ts": "18403dc5805350396912f6e5e2c097ffb4bc1c3a1a134ff0f9674413b8d92ef8",
+    "dist/commands/metadata/index.d.ts.map": "898ce1abaa3d7b18afbcd4ac4f47d79e0dd3075d607394ce36d1a3cd233da8c7",
+    "dist/commands/metadata/index.js": "d4a85ffa7aecb41030f006e0339739663946bf453cbe2a38aca4a126398f35e7",
+    "dist/commands/metadata/index.js.map": "88572ae0603dafc575c06ab286f91cc2e13f08d890f30aebf01847cfe38aec34",
+    "dist/commands/metadata/internal.d.ts": "7c5d9c7bc23eaa1073779c457ca1ba461d5c61dc20574cd7e0eb19b690c05e38",
+    "dist/commands/metadata/internal.d.ts.map": "e767ffa77d151145e0b973229c88b55c79033c57a4459a9451d3288ba503b7c3",
+    "dist/commands/metadata/internal.js": "b25f5e56cc417d71464aa5807b9ae4702a3ed1e9c9c300d184047c1e692c25c8",
+    "dist/commands/metadata/internal.js.map": "161ca93de2b6b2f71bc9eb7ea1715c076854042d0d12414043ca8a7d2efea0a6",
+    "dist/commands/metadata/mktemp.d.ts": "6b2509aec483e23ac696be6ace6cc4db0ac3541d6c586071af4449a0b2c5b1c8",
+    "dist/commands/metadata/mktemp.d.ts.map": "8310aa0e1c78449d13923ebf7a090b1d0bcc6f48ca3efb5d54bc8f9f88ab0cad",
+    "dist/commands/metadata/mktemp.js": "00d91c40267c93a3b25b6d4a1ceaaac46b0b06c4d9c90a15a74e732a44915303",
+    "dist/commands/metadata/mktemp.js.map": "3bb9289d4e9e64d70548b11760f48a4899173e69e5996fe37480e679dbdb26c0",
+    "dist/commands/metadata/stat.d.ts": "6dd10dd5cc1cd72bf8a88546e02da0848a052b943532acbf83c91103c25f8b36",
+    "dist/commands/metadata/stat.d.ts.map": "465907fb04ed4071a678714d319ec5cc3674ea56745d5237ebe9f41eb3139ccd",
+    "dist/commands/metadata/stat.js": "586070f9a8c527858b699e815004ba382919f1bba117a9f881ddaacc910487ab",
+    "dist/commands/metadata/stat.js.map": "80e0feacf6143fe4a58aadd08d4b5d4eed0daf46c272bd33d99f23d773b004b9",
+    "dist/commands/move.d.ts": "115cf8aa86c8e9681cf98c6ceadb940413896e30f76d42d907d6c326ea816b82",
+    "dist/commands/move.d.ts.map": "c3d2f5358403022a2b0f5ea033f3a9f78519e4c547bc2a390335e5ec72006bdf",
+    "dist/commands/move.js": "d5429dfc39e646315798ddf2473bda8e760c03c61e509b47718d9e9e9ebf52e3",
+    "dist/commands/move.js.map": "a8559c4335c9b5aa4dc9953f98914832e46e5ec1487a66091d5505a906647cfb",
+    "dist/commands/network/args.d.ts": "2713c3fc4fb454205d043be5dde8c8f97e5571f793a74892661a04d47c0d42f9",
+    "dist/commands/network/args.d.ts.map": "012071abedd5bd1b8044977c7576b1094017ad2c19d4e40042290a770ff24593",
+    "dist/commands/network/args.js": "3762aff1363b06dab26b3b1430a20542dbec9538ace6cafc13e894652133bbce",
+    "dist/commands/network/args.js.map": "7586307186b143fbd67935af7c27d27257073511ad6e4d143619d9b90992feb9",
+    "dist/commands/network/body.d.ts": "c96c53c7f96e608382432b827e4433b8b5f82e91333b88ef0b8673646e749e48",
+    "dist/commands/network/body.d.ts.map": "df76284eb94de78db3c6dc78a62ef99c2b71cf9c2a1cf709d1385713e4de37c6",
+    "dist/commands/network/body.js": "851aea9fe2df9d51cd16720caa143ef6e129af0951da158dd1588742c6d8874a",
+    "dist/commands/network/body.js.map": "eb86bac8daa90b7d0ad582dc3cbbdeda300f03bdf41552fcafff47910401c00e",
+    "dist/commands/network/curl.d.ts": "08a25441a54f8e94938682e78e5041cdcf2c02f234461a929fca145bc2f6c586",
+    "dist/commands/network/curl.d.ts.map": "ceead9361973162d12111c464963285df1fcdc76ae99dd800647e1149f09a459",
+    "dist/commands/network/curl.js": "e28d7376ad5573402f93eb5e9d5a55af42dabfd92ef4cbdb2bc6e3c4622026d3",
+    "dist/commands/network/curl.js.map": "4b1ecd50a8f7a64bb959367a4b4469988623abfac89ab551c2c1ce4d5fd07c7b",
+    "dist/commands/network/index.d.ts": "08f1489b65845afccbfff8a509b6c1223c4b232f8d568421454e2ddd3dc771fa",
+    "dist/commands/network/index.d.ts.map": "b0f7a6e2d0c127d880b3147204b17b30ef66fae3513d55e7bbe7ab83bda39de4",
+    "dist/commands/network/index.js": "44658fec914d7568f14db5c14037dac6ef02d7ea48c1c261d9fcdb6044d6fa2b",
+    "dist/commands/network/index.js.map": "8547a5261512be681c96b20ee653f61e7ec1bf382eba68093d63f411ff4f1b17",
+    "dist/commands/network/output.d.ts": "493d542eab62544f5b2f1759ec4a1787adf39ba4ec17e5f8f2291e76234c5474",
+    "dist/commands/network/output.d.ts.map": "00fe2ef520c7b76b492257884d758aa7d3fc6713674bf9ef19fad029175c105d",
+    "dist/commands/network/output.js": "320aa8dd216a927d91c452e8b9029bfe8655dc97325480fd6106d307319ae9f6",
+    "dist/commands/network/output.js.map": "cefd69ea96ab845df8b178e479d852bef73128d0fdc70a1018bbc235a1327dc2",
+    "dist/commands/network/shared.d.ts": "d703c80934beffd1b377669a092c0f7d8e6028551bd987a3d5ebb0953b354574",
+    "dist/commands/network/shared.d.ts.map": "56d6ac2596fe2ecdff7d51aa84d2b1144d947a2d2b4d3c16991a6ead5086197c",
+    "dist/commands/network/shared.js": "636549c0e9b1175658f9d58f9cb02b39e7e68ce86f42e62767eae15034be041e",
+    "dist/commands/network/shared.js.map": "f2fee1bca002d88338e7faa2f5d0a61551e47ef3c4fe82046533df810dabe9cc",
+    "dist/commands/network/transport.d.ts": "b5492b1a8475e56fe15ab7c5fcec0357bcd50411df2e029eebeacd8828299ecb",
+    "dist/commands/network/transport.d.ts.map": "b233a8eaa677f0e1516fd101a91fe586aeb94b3393509448e7a7e12d17ae10db",
+    "dist/commands/network/transport.js": "80e62768e1ed0e42cbb33edd42fd6d2f92c6c2c8b5fb9f4ffa6d922506603c92",
+    "dist/commands/network/transport.js.map": "53e8ee36975f1b6de7d0281ec9cfecc83c3852cc2f1744fa7adf4179b976d9ff",
+    "dist/commands/network/types.d.ts": "19642fe743d7e4ca82153934cc72baa3fa52c81d310ed513a6a13a8683738732",
+    "dist/commands/network/types.d.ts.map": "8b096453550019f99f0a474fcf867f594095ea9a7eb2681f18c448e38c12f2ec",
+    "dist/commands/network/types.js": "4b2b1ec8b84f9b7a2655b5044f308781daae329bb00a229a26b17d9b1551065f",
+    "dist/commands/network/types.js.map": "ea2b3f50f9425eb9f8732432104519808d8f3b27c85e52ad42d60201ebc811fb",
+    "dist/commands/predicates.d.ts": "32319d3d0287bccfc9ed4f087df4306a30d0b7d01774f39020e4ade996d06154",
+    "dist/commands/predicates.d.ts.map": "4caeb4bb4aaea61b3ace80eafbcb28676f456ce56db9abc6c30a1f2dbe30e5d2",
+    "dist/commands/predicates.js": "a9de9f16f6cb9fd2efbaf5e3b7cd1e58d071bcd636e7a39b2434b5beb6a64ee7",
+    "dist/commands/predicates.js.map": "11911336b29eb79c481dde0ae2c2065cfba1d5e988073ea28a2e393d5b4548d5",
+    "dist/commands/safejs/index.d.ts": "83938a9d51a41a96a1e9532e1650312eec655d79ddcb2a8562dfe28f5b7ed2da",
+    "dist/commands/safejs/index.d.ts.map": "e062a59607e9741bb7915ffee55e3ce57356ac25eaccd5b2b8d361b0ecc5ab80",
+    "dist/commands/safejs/index.js": "d9c8a64b80a950c628bcaa7e26247fa921e7144bf0f7b0a0cfa6a2a3c292e877",
+    "dist/commands/safejs/index.js.map": "6b426516d439fa63f0503b8b7b3304eb7293582febd834486a205692f412ba1d",
+    "dist/commands/safejs/io.d.ts": "816f2f7dd249e284b25576fba2b401e2cf3a93cf5ad3c99e74dad8280eee5df8",
+    "dist/commands/safejs/io.d.ts.map": "9179ea5e2473ddf526dbfe2e28c24bc35ee9c42752df240ec1cf1057b9bf7ecb",
+    "dist/commands/safejs/io.js": "a59ab2fa7f3d336b3e45a4a74347b08c415069c70375b4d6f5aaedb27d8c70e6",
+    "dist/commands/safejs/io.js.map": "6e527940cf76f081f7c53718cd06adfc2ce88a55ac6e2334fa979ce5b290e314",
+    "dist/commands/safejs/options.d.ts": "4b9bf9bf19a9b2f11f0ce9a6476076be98676f3d25f59c7d075c397f008e5dc3",
+    "dist/commands/safejs/options.d.ts.map": "ee4a385ba349592a15619472cf3beba0223cc4dfcc69670132ad6c3d3f94467d",
+    "dist/commands/safejs/options.js": "bab9763803074ea8f4e7c4901e4d809abbb8858f807ebba7115ceee8352da1d5",
+    "dist/commands/safejs/options.js.map": "b802556dcf6275681da1527002c2f2371cbb309d14c89e2b0fbf717e8872d21f",
+    "dist/commands/safejs/render.d.ts": "8a2422f6f434ae8f11d585a9ccc76cf98da042fbf1cfc0cf2bb4786c161a4ab7",
+    "dist/commands/safejs/render.d.ts.map": "7a070fad37f4f7439784c18037c7b4f11c627f8ef586fdb134d37c2d0a0448e9",
+    "dist/commands/safejs/render.js": "b02cd1377c592e07207388e8c7ffb46eb344fac05ed61d7c02c804e5400eae3c",
+    "dist/commands/safejs/render.js.map": "95dd927569b767b6edf09b7081e842d7cbfe975dafa4ff98bd8f945c36e1d113",
+    "dist/commands/safejs/types.d.ts": "109f0995a241787f66e563c213f03e176f0509c8fff9c1b2586ff144fd554800",
+    "dist/commands/safejs/types.d.ts.map": "391a8e612696c380d6d198c21950874a122e6e7d9890b9172b7727202c633c16",
+    "dist/commands/safejs/types.js": "0c5c7a6d40d3e5aa15db22d372cfc7cb0dfd9859aedc4cdc6b022456df2b07c6",
+    "dist/commands/safejs/types.js.map": "cc6fc5451bab58d6cc91d315005cce7ce13b56ccee8ece8808edc865d4e74356",
+    "dist/commands/search/glob.d.ts": "332025b86f45a8f1bde0bbbd5af05de3f59e157ffd44e52143fbab4141322f18",
+    "dist/commands/search/glob.d.ts.map": "ecab712f2a4ccdc663349505f94cb12129e6b8b776eda41edbd360d5bcd4394d",
+    "dist/commands/search/glob.js": "f14539e60a01ed60ca04abb6a8836791caf8f3200b2c68d9948ebd8cd56dcc45",
+    "dist/commands/search/glob.js.map": "df27ac9da2ede4b5c680d8d04ec9d4d198e9d9d76acc768ccac46622fbb93c1e",
+    "dist/commands/search/index.d.ts": "280c17bfe0589b0a038cbec3eba1e8d68be345f665bfa3344542df3d3323f7c1",
+    "dist/commands/search/index.d.ts.map": "3f254716f99d303d34b29bab2ec39d11c196828981b0dd642a840c2412b8c77e",
+    "dist/commands/search/index.js": "7ba9f2ac6b36d13971ce498c8450c5eb6daae11f2503ac886dfd3ce8fb768f77",
+    "dist/commands/search/index.js.map": "ff52e7ac2f68ba0086078045576503fab2939a5a303ce583aede73cb2e7d4a80",
+    "dist/commands/search/matcher.d.ts": "aad11a09c42ad0fb4e9faf8fba973bfaefca4cdc0ec7e86ee92ae949b18b5eb7",
+    "dist/commands/search/matcher.d.ts.map": "fa51b5ff75bd8a21cde4c2a56767e4932cd65637ebd4b90f560e4eaacde3a72e",
+    "dist/commands/search/matcher.js": "7ddcdba28153f5ac7152ce3459e918afd48c778144527fb552388065b59e544a",
+    "dist/commands/search/matcher.js.map": "13db0ed3c1c1321c0e7dfb2bee87d0c2b70b2829819f42db7fb3d8c5e4380dfd",
+    "dist/commands/search/options.d.ts": "26247834ff0e01aab6f84ae900ee3573e1b52d125419223662a9f94a1141b106",
+    "dist/commands/search/options.d.ts.map": "589da75ac78cdf3d4f5463a486f71315b917ec72ae82a088f23fdc9d9826002a",
+    "dist/commands/search/options.js": "2f027ceb2f407a8b07db774f67038885f0b79a96aa2a2c59ffaa57f32e6a55b3",
+    "dist/commands/search/options.js.map": "dab609e8c616fb788885f69a812016b849052982d1b8dcded9537dd99cc99936",
+    "dist/commands/search/output.d.ts": "51ffae90db8dccf1380bd97e7ce9427f30e8b9964b2712193834e64c77bfedf6",
+    "dist/commands/search/output.d.ts.map": "536c6b4a450d8aae7292fb71045cecc2d6ac672ddc5b6f9355f9d0078d1eb98a",
+    "dist/commands/search/output.js": "72855de33bc15f551cba7dea2ee035dfc03f8dd7645b1b49002906eff7627c2b",
+    "dist/commands/search/output.js.map": "fb17faf09e9404d140627b8d45ff6a03a363d71f17804a25f564bb2e0d01872d",
+    "dist/commands/search/rg.d.ts": "d98507a145a1b75423a34d1e591c164b2f4495aed1abc815b2c1cb1089a8a6ab",
+    "dist/commands/search/rg.d.ts.map": "720d07d9a7d26191f490afa66e8680de3b36c99e26045624039acfb0f093440a",
+    "dist/commands/search/rg.js": "9b4ea714024379fb447c39f1f4383dc54dfea84a1fa8094061a9870b488177bf",
+    "dist/commands/search/rg.js.map": "b77de91b783b9b4ce4a24bb7d53bb438bdd5b5eedd094756bf5faa53e90ee118",
+    "dist/commands/search/shared.d.ts": "cd76280af0cbe13d9a63dd987c8ea177c96c3e824222806aed65e756faa6e8b4",
+    "dist/commands/search/shared.d.ts.map": "59a36be3fa4fd0a6ff91e985738ac3fc10bfdd5c0da903d081583211e0b62fa0",
+    "dist/commands/search/shared.js": "15a42f696fb8d2747b5f1458a53f2032f62a1b03c9082537e37255149d394283",
+    "dist/commands/search/shared.js.map": "5a036188259b6de4bdc477194274ffec1aff700c5a67d69447c437a05335a08c",
+    "dist/commands/search/walk.d.ts": "972d681f7d0cb996534b2956b95146a9acd1acc1b3c65bfa373227ccad284f5b",
+    "dist/commands/search/walk.d.ts.map": "084778d29eab3a9204a815f51506f87c40a06440188b0e9c1e20009ba3b1c52a",
+    "dist/commands/search/walk.js": "0803441ea5affe1a484e67c76dcc00de34b2a2417b5e9da60cdde686fb19b589",
+    "dist/commands/search/walk.js.map": "e7c7aeb390a9c6276ea4d564c2caac1a252246d5b304635ef53e3374110efa62",
+    "dist/commands/streams.d.ts": "c48e3ec4a3aaf6d4e1860fc7476edadc925347bf0aba7239707be0fdf1b4f9e8",
+    "dist/commands/streams.d.ts.map": "11c26e281ec6d2b8464e8ff650c13393692410e1515beb47bc0d27bebe77cd8c",
+    "dist/commands/streams.js": "f9089f96a3f7b8cba82cce818e97e36f61682255537b41b73c3f7273bbff3589",
+    "dist/commands/streams.js.map": "669ea64e5aa2c824cb129c956629aceb12d43f3a19ac6864026ec8dea26d984d",
+    "dist/commands/structured/index.d.ts": "0d58f75fdabe696aea62c9b88a7f5edc086e26d084027fdef44a19864811da87",
+    "dist/commands/structured/index.d.ts.map": "a7a18b400b23025d8337adde0784605decde46493894bf9f173f61efb43584f4",
+    "dist/commands/structured/index.js": "4a3f5a5c820638f8d14dcc136ffcb09447dc647688775aaacaf62263a3a099cd",
+    "dist/commands/structured/index.js.map": "95e4490f7d16ee29f4eb676352bfaa9ab68f729c95cf5e235596a2319a5f5a05",
+    "dist/commands/structured/input.d.ts": "7c094df06aa786a4e12862ac4cb0ca835f87abafd5994615d0d833c70bfb2990",
+    "dist/commands/structured/input.d.ts.map": "45f4c6153280b08d20edc528679f7089ebe6009f9c4111566143a8c065a4cf31",
+    "dist/commands/structured/input.js": "7a647193dae661d0110fac1b108e578ca7c3618cc9908bbc55cf3728acd5432f",
+    "dist/commands/structured/input.js.map": "13cb9d8f44e85b23731846654a403f838feeccc4dcc501a6d3a9d6763693a6b6",
+    "dist/commands/structured/interpreter.d.ts": "29a0c46494f52502b7794d5d201041279ccf2403cd31eb6c056fafe387230509",
+    "dist/commands/structured/interpreter.d.ts.map": "1d3045353473592d5993ef4be8c509fa2799d1bf90c1b39ccf4a535e26871f7e",
+    "dist/commands/structured/interpreter.js": "42366cfd87db215b3ededa70c255fd8395d72706591360d503bd863f1ecb9d4c",
+    "dist/commands/structured/interpreter.js.map": "30ee80d166a237203d8ab5c30d7455beb94bb6a1ad4db71cc189e1fd380e1db2",
+    "dist/commands/structured/jq.d.ts": "2e68416651f1df81060e2546c6277ec43fc00931e6ec73b0ce1af392f942e324",
+    "dist/commands/structured/jq.d.ts.map": "34d7c186346cea22e0abd293b1321ade087deb74144bb6b6a6c00d5aa9daad40",
+    "dist/commands/structured/jq.js": "68136ba6a4afbfcedbc609fbb1aaeffe500798f68089ae0942f9850043d2c190",
+    "dist/commands/structured/jq.js.map": "bbf9c1bf3b92215f8bce1947399911fe171c6f0f93b08b84435b1e787b26a81c",
+    "dist/commands/structured/limits.d.ts": "4ad314de749a20880754430b148ff3c9fc0ee10908a47dba7afa110b1a83e352",
+    "dist/commands/structured/limits.d.ts.map": "d1497e2645063463e6810c986d4fea9fd14ec52b22a829d76c8b92aa2b527ad1",
+    "dist/commands/structured/limits.js": "f6005af75948816c4d323d4610b112bf87cb3fb7b69d0fbd18538ad3df47b149",
+    "dist/commands/structured/limits.js.map": "484903fd3c55f8b7472f6f62e4ebc39236c70a9023048e4b87227bfcc7e7f8c9",
+    "dist/commands/structured/numbers.d.ts": "aeed890779f8364639111c755c952159db4a4437f818a8f73b114726daa6b41f",
+    "dist/commands/structured/numbers.d.ts.map": "2c507432065d73d154479a6af4d2fb5f38346bbfb40bce37c49dc202bf47cf40",
+    "dist/commands/structured/numbers.js": "e54edb0ffa9fa261f18e6474b9bd2c90672d46e50adea28790d6dc048cc5200c",
+    "dist/commands/structured/numbers.js.map": "2921d070382966978adf7543b980bb4b864bbd9ddf9bffd397ebf6990538b4cc",
+    "dist/commands/structured/parser.d.ts": "7c3ad50f4dc80455131ed529ab0f0f47f1b4bd075127b360a3ab9e469f119167",
+    "dist/commands/structured/parser.d.ts.map": "93398f8d1bdd7ac92fc7f91567ac0cb7ca97266a7c963cae856d36cd4cd779f6",
+    "dist/commands/structured/parser.js": "a6aee4409ab85ec5f1ae28a2f3d8ed464874afadf6e227e4bb5e48e7c9431489",
+    "dist/commands/structured/parser.js.map": "8969798911467c45e91b0031ea160c9a27dd827e5b98beb6c4b525fcc85827d0",
+    "dist/commands/structured/split.d.ts": "25750d2a6028828b6fb1bbb058d23b4efeab3c4051414a011fd2082697424683",
+    "dist/commands/structured/split.d.ts.map": "798fc86cca1de7c2fd7e331b0d339b4cc9f1c774e5cdea4a3eb765e21bea537b",
+    "dist/commands/structured/split.js": "a98dc67ab2afa865051767fd07411569aa574f3f55490bf4f3cd0cbc2b112a68",
+    "dist/commands/structured/split.js.map": "d5dfe149ae82b564469864a8e09b0caa4de007666b038420881a7e32bef50dfb",
+    "dist/commands/structured/values.d.ts": "4b51f596bbe262fdeced245cb2dda622ccea5bb543151ccd9d6e2b88505f3a37",
+    "dist/commands/structured/values.d.ts.map": "539ca0e7f04fb027e7b27c1c5d5fbdcbd56cfa07a556c1bcc3f790ab2319f6c2",
+    "dist/commands/structured/values.js": "8cd6dd8bc7373b3b1d21dc96ae5fe483c0f016326c35fd72a253292ae713119c",
+    "dist/commands/structured/values.js.map": "9c9360e9ba0d7d1bbcc75d57eb35ff0f969bb83251ba6fb3ccc1691a489059a1",
+    "dist/commands/table-text/comm.d.ts": "4145ace02fb93a5f52cb7060fe831abc59f8668e307e3a3352ccaf4f02c1ef30",
+    "dist/commands/table-text/comm.d.ts.map": "692bdd7c1a42addc005651839049a227e4e7a97368f4f582fecc4490cf102321",
+    "dist/commands/table-text/comm.js": "e7842eaf25f827153467907b96566c052b48fadff3d98fc7b4d919e4eeea15c0",
+    "dist/commands/table-text/comm.js.map": "5ebcf5699a469c80e1c77bfa1e2d231aaa5068a35c150b2fcd2462ec2e72dc23",
+    "dist/commands/table-text/index.d.ts": "1915d898ee80fe130464e20c842e689ec555dca22db3e29b0c5e778678c75985",
+    "dist/commands/table-text/index.d.ts.map": "3d967c76fde0ef8f46459914103c1433689b1096e493fea5fa78324a81124324",
+    "dist/commands/table-text/index.js": "b5b81dfabe0b7930c4aebe27bcb8ab8d18dcf9781726fc9f20ec3748f9f31c78",
+    "dist/commands/table-text/index.js.map": "289aaee5e82b1f5699791d2094f2f78c5a336093da7fe1d7765bbd82d0efc92a",
+    "dist/commands/table-text/internal.d.ts": "3b0e5eb7846be58ab8998f5742d56d86b053698e3a8b839ae02ec9977a164ad6",
+    "dist/commands/table-text/internal.d.ts.map": "20cbf5127af130db5e222c39d986418705635bf7e515b0e0d88e04616f7b3f57",
+    "dist/commands/table-text/internal.js": "8b0b64e9ac005418c3b7f5fb4d24eb11a8da361b4491b7287bd071c92c99bbf5",
+    "dist/commands/table-text/internal.js.map": "dd39ead5c363c5a94b497330b509e8974498f602dc5fc2e0ca910e4730e34088",
+    "dist/commands/table-text/join.d.ts": "06f5e52260efdb0be8c0f004fea338247ac6b42b5bb26886652909cb5bd37b57",
+    "dist/commands/table-text/join.d.ts.map": "4123387b091ef91c4edbf8fb5d2ee78298ad2228d8164003c2629dfc646cbf8f",
+    "dist/commands/table-text/join.js": "9f21f3877e18927e2791dbb5100e3253c397f1ed97249c77fb77e2cbe12a0f6b",
+    "dist/commands/table-text/join.js.map": "8c2f641154c853d9e649f24b3d7aa3eecd0d2f56844a51da7a4476c8d81eca61",
+    "dist/commands/table-text/paste.d.ts": "beef279b5a775c720627df07d1b4e746c9d6e6acd4cff8ea2528ad7a7a587db2",
+    "dist/commands/table-text/paste.d.ts.map": "73debd18a1adde783c44a181c726a3948540c8d8ae3181fe988eddb67323f827",
+    "dist/commands/table-text/paste.js": "98938cff0b8ef2bee08cb5c81d14ad7fa2c64a1e76fcfc29282c2d52abdb6e94",
+    "dist/commands/table-text/paste.js.map": "37f88629512d102b9b9997cbcd2c5a081dcb679c68adbdfdf36d8df5e7026e24",
+    "dist/commands/text-programs/awk-runtime.d.ts": "01267fa9e2e0200a0b7263654193134c62f283bb35d8ec9dc217e3bc554bbc22",
+    "dist/commands/text-programs/awk-runtime.d.ts.map": "24cbffa3df6ffecd9468e0136f2c4a025c938898b4876254da7ed487b1ffcddd",
+    "dist/commands/text-programs/awk-runtime.js": "09a28458621149c139cbeae57e0c9ba3f6a6b5150e6c173dfcee2eeae6cb4137",
+    "dist/commands/text-programs/awk-runtime.js.map": "14b9c5d082692cd3107b1d7e0091d2dc97f63af443373b4bbb70130e8b16ea43",
+    "dist/commands/text-programs/awk-syntax.d.ts": "45edf5814045359f5d2ed34dd37a1238a12df7177ed39e42301c3b8d36842a43",
+    "dist/commands/text-programs/awk-syntax.d.ts.map": "bd9fa84ad269a558b2de3d50b64e3493b6fecdf49d9bf5c2163964f51649540d",
+    "dist/commands/text-programs/awk-syntax.js": "b9364215705ae85ef450fa6c4c529d2c748c97662ce1d53229134d555dfdd0a2",
+    "dist/commands/text-programs/awk-syntax.js.map": "ddbc1430a6cfa7caec4a036d7907e821506bf60c344a5289acdf2aad2ebd4f09",
+    "dist/commands/text-programs/awk-values.d.ts": "3badcb633555e1c6ab30e514a52c88301cbe99e1d0a072979c4aaa5227f4fa96",
+    "dist/commands/text-programs/awk-values.d.ts.map": "07e5622996ee69157f2b8bd15d876fd4a04fe77d7b3818d36eab4c5b9297a6c0",
+    "dist/commands/text-programs/awk-values.js": "5febba1b8a087ab941dbdcb1c85ecae029eeeaf5175332de8a44fdce13a9505d",
+    "dist/commands/text-programs/awk-values.js.map": "e173750dc43f7b78373e789ffa154fd3957ae3e739857866933e5dbf8638f74f",
+    "dist/commands/text-programs/awk.d.ts": "bf909ef3c0aae1c47ba8e3d787b256f7756bead188a49b24611e5ed11b1d7808",
+    "dist/commands/text-programs/awk.d.ts.map": "af1f500a05e4e19de14b997596da644fa63ff9ea941be0ec11b639e2ee9eca96",
+    "dist/commands/text-programs/awk.js": "99d834d1dd887392b0260e8f39214332151be6d4f7ca2f9fbdb0724b3a7e957b",
+    "dist/commands/text-programs/awk.js.map": "d2d98ca24545490bdb0f87544690d67064a9276772944ad27574eff7de9199bb",
+    "dist/commands/text-programs/index.d.ts": "41c59a4cdf0d39754a94725e47694048ebbd472c935dfd1d053100c418dd59ef",
+    "dist/commands/text-programs/index.d.ts.map": "2adf977c2c4ee14000b93f79e757ff086a252f7214f1fe1899876b06958d9628",
+    "dist/commands/text-programs/index.js": "75573f07a76470cca425afcb38d60c717b8554ea6ac6373f2d46c8a7cc97ac70",
+    "dist/commands/text-programs/index.js.map": "0289e96936722efd11d6f658a3b9cd7bb6287a1efa35d11364d1e1305d0b07d2",
+    "dist/commands/text-programs/regex.d.ts": "16b06d4c7aca6938e87c6a720ee20cabb5252bc7ef1adc9f17fe253df78b5fd3",
+    "dist/commands/text-programs/regex.d.ts.map": "771bd9589af68f4a536c5c61638110e74ec8e5ca75054d7f235bd14e3d306be8",
+    "dist/commands/text-programs/regex.js": "c1782156060406841051f6ba1d364860f613097fda3db27f263bb922dd96e46e",
+    "dist/commands/text-programs/regex.js.map": "2e03e130513c08088d8b3f2a58dd7e911ec580da31945ac33ddd23794c385301",
+    "dist/commands/text-programs/sed.d.ts": "d34337e77c9a8c87ed8ca7231e3c1a817a481dcaa95bd4a348326cff2b239472",
+    "dist/commands/text-programs/sed.d.ts.map": "af51de7463c8e728f7351aac2e00d5280b037a4ac0efa6f87d79a692d394e6a9",
+    "dist/commands/text-programs/sed.js": "c5e4edf5c8169bb90d7ee0b1c0928f319a12a6ecdf73fe45a2b54132cdcaea3f",
+    "dist/commands/text-programs/sed.js.map": "642aa72d11e41d5ec1f05540a302aa5e389e01de301aed2d9e02ab5d264a3f2f",
+    "dist/commands/text-programs/shared.d.ts": "a6cc39cc468b97c24fce90f3467455c24ddc68cfaf072d67b3130653564ba243",
+    "dist/commands/text-programs/shared.d.ts.map": "4956bc8f8783cd27a3e53b66ca193d974081c3aab8df607985563614e18b4330",
+    "dist/commands/text-programs/shared.js": "e17e1a73c999fbf1f0ab928748b907eca6b28374f0b440029d88ef9fc06ec3c0",
+    "dist/commands/text-programs/shared.js.map": "33da9ef5ffa30bdd14e5c6974e5a908d92c8d75b4bf827ad5fedbca3994a9ac6",
+    "dist/commands/text.d.ts": "82bfd4267f13dc080125c83f6ad9610d419a1228395581f2075a7a285430c3d3",
+    "dist/commands/text.d.ts.map": "b8abd910d7221eb30df2f490a1b260ea3950b7dd467b431d80abb431c3616a4b",
+    "dist/commands/text.js": "665056ce7e04aa4d7a4e2b454b2a732f8bcf99876a3d6d81711957cab078e6bf",
+    "dist/commands/text.js.map": "a601d347f8b400de6289dffd75f205d4b905945f74891c4efe653c4c35f6e1b2",
+    "dist/contracts/command.d.ts": "2ef4596264185344beacb931b3a7ee9b84ceff017433f068bab0f2dcc59c2493",
+    "dist/contracts/command.d.ts.map": "6c21199bac6ce25eb32fd8ea0a35c17a13e60ea78b56559a988d656008d7ea9a",
+    "dist/contracts/command.js": "18d0fe35b82ea6085d39492e61b9c0d1c9d5a2a2e7e13a7e580e94dc551e2a0f",
+    "dist/contracts/command.js.map": "e8b909c3d317d08285d41f85ab244fd8bd580f3686fbd4e3665cb12425cbbeda",
+    "dist/contracts/errors.d.ts": "b0771794e6ff1d92c0b259fdf68015474f4b8009e6102995846f56e17839c1b9",
+    "dist/contracts/errors.d.ts.map": "e457d8a5b4e178a0fa76c5b71dcf78be31bc52331c50efc327f7d136bcfe11ea",
+    "dist/contracts/errors.js": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f",
+    "dist/contracts/errors.js.map": "52acb54035e89dbdf5196d00e38e71d2db31250130a9b5dbbb67809c813ffb4f",
+    "dist/contracts/filesystem.d.ts": "23cea5e15070eb2d10395d541ed246f7721649bf8fd2007e38fad1b4cd38434e",
+    "dist/contracts/filesystem.d.ts.map": "40004f6435f680fd7990ace53f77602959fc45840571adf9a4807e34a8bde9c3",
+    "dist/contracts/filesystem.js": "54708794453284916269d96574ac9bf42c9a652f011d7a779efecfa326cace25",
+    "dist/contracts/filesystem.js.map": "e88d3c63c8938e1654ecaab85c6ca5d2115703155daad208f3fbd5297c260b78",
+    "dist/contracts/index.d.ts": "bfaa9d5faf0382dcae880d38e6dc8273b54da723573ad0a8268fa620885599b9",
+    "dist/contracts/index.d.ts.map": "7871cadb2bf363c84647a9ca93b8c6bc15cc2ea3e1b23c622d0c57a452615796",
+    "dist/contracts/index.js": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27",
+    "dist/contracts/index.js.map": "2dee239fc263d60d0c4954a777a8ea62154cf20569157d3ab3edc81d5c85ccb7",
+    "dist/contracts/io.d.ts": "462c630e7a00c37f2440d4773ce4393a2ac9abea2d9f8819fd6e356993abd162",
+    "dist/contracts/io.d.ts.map": "9d3442f93138792a65a6ad2320382af2dafd0a6dce7d968f4f610447a69093f3",
+    "dist/contracts/io.js": "866af6e5a93e9779453d3cc08507a96a94a3f7e82b201048e7ae5fc6203c2c3f",
+    "dist/contracts/io.js.map": "df6218c98f445e0ca6985a71e6cbd838b0ec9488a957aab24758bb9e90f06088",
+    "dist/contracts/path.d.ts": "1a1f13de7c072f5323be1f1d1e7a602b377c2a887730e6af2e92ad1d5bdbdc5f",
+    "dist/contracts/path.d.ts.map": "d646fb5f35dfe8912db087f251c2ede3c49242b843ee0e372b4d56749c4980f4",
+    "dist/contracts/path.js": "31d592f8412ea87ee9afbfbaf092c7fd9c7fa3981a74b3b971dad01d5966ffe7",
+    "dist/contracts/path.js.map": "9a4c30c4f2558731da2fc0e4e6e28a78ade0b4250d20cac734d5dbeb1b8e0cac",
+    "dist/contracts/plugin.d.ts": "23c31a917e681f99d0ff846c8e03e591cb0e19a5359ec79ffa570ca3a83680a0",
+    "dist/contracts/plugin.d.ts.map": "93bc597e54dab7af47d5a688fc70983e9ca3cb8e565d987577ec5bd620b9a538",
+    "dist/contracts/plugin.js": "8226301a46b88d6e655b8201c57c60b1af835df6b2b2193f6fb386b5a6888937",
+    "dist/contracts/plugin.js.map": "8b44667965f1d9bbdc3f102b6798e6ccc2510b508e0ab09d683ea9a28c380e2c",
+    "dist/fs/memory/index.d.ts": "b0a3f7beb8ec86e489b05331bb481d543d38b6a127c6d68b2c0aec8f89c0581b",
+    "dist/fs/memory/index.d.ts.map": "332b9ff6b663378ebf802ad75b47cb3ce44bed50dbaba82f760298ada0e5359a",
+    "dist/fs/memory/index.js": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c",
+    "dist/fs/memory/index.js.map": "69294d916dbbccf52e856cbeaa9898d1c0a8345ffb33c91cc83a0342301b2185",
+    "dist/fs/mount/comparison.d.ts": "baa2c6bcdb575ee54a0e892e3e39259d85a75dbfe8ba8c6ffeb449f2a72985f1",
+    "dist/fs/mount/comparison.d.ts.map": "a703faf51a6c33a23ae262ef8089ff76c64430f43f5064a6e5263bcb1076ed03",
+    "dist/fs/mount/comparison.js": "6bb00dc2d383e8f0b07b29e935a1f891c3811bf41dacd248fbf6119172f3e331",
+    "dist/fs/mount/comparison.js.map": "dd67bcaf9a651c13d9e0714057162b5a887fd26d09b2b1fd12e186d4dfd42d82",
+    "dist/fs/mount/identity.d.ts": "c82f3c8f82648691b1574693a274c79c757ed6599506fad682ba96ce52fe2a96",
+    "dist/fs/mount/identity.d.ts.map": "12a6b32c5607c3c9391bc92055d1858c61b22f770fa473747ddca14932b2d8eb",
+    "dist/fs/mount/identity.js": "7803a8b62373af24b18a0a3404c51f8b5c39bf2f9e4d6800e2ffa8a02bb80c9d",
+    "dist/fs/mount/identity.js.map": "dd04bd6c0a37edcc60c055c3f4cd54e0909ea6ff5e5811413f12f7ba5bc1cc4c",
+    "dist/fs/mount/index.d.ts": "f7c75fa6cb814e4dcc04657ab693fe69d736e27a0d1a0f96f3ca950caa90e6b7",
+    "dist/fs/mount/index.d.ts.map": "25c2b4692f958b34408f6c78bdbdbba23fb39ab80c8e8883018a1d8dbb3aeccc",
+    "dist/fs/mount/index.js": "32ebd1ed9746f1425a65d889b1272f9e99fbf38f9f872b60b5f4a2a83be7ddd5",
+    "dist/fs/mount/index.js.map": "1e2c01a8781fa707818711c5e612c62d5b764920e6cf5980f816af85f0215871",
+    "dist/fs/overlay/index.d.ts": "ae279f6375346f8c2b2f7322869e8684387332ce87594b0f8d97266ddef32fe7",
+    "dist/fs/overlay/index.d.ts.map": "5a8b3e428dee0775dd6e3ccab1686f8ca0568f96a71df78b1517534a11254933",
+    "dist/fs/overlay/index.js": "b40029ff925cbcb112ccd634595c220c620e77e1e2e047ca2e93344f89a633b5",
+    "dist/fs/overlay/index.js.map": "af9db040306cf853d595b519d7cf45ef7326cf30435ba8f23c2b35ed0bef6a79",
+    "dist/fs/readonly/index.d.ts": "71d3a85b7450a04f684f65ed382c71451591f90f20c3360520e9f60ffc642550",
+    "dist/fs/readonly/index.d.ts.map": "eefca76bfdb2fbd5a5bc37aa962d158171cb74d0211d30489d9100b97295cc4d",
+    "dist/fs/readonly/index.js": "e9a155116c7ba93605ab1be43fb1c5c4618e164398f5bfb25d6659f41eb28289",
+    "dist/fs/readonly/index.js.map": "ec50a28e7a0211ca9489b875872969e6e3a96809671e7c635f018a5d65cec5d8",
+    "dist/fs/real/index.d.ts": "10a3bbcb42aa82e74e26cf3ebf3bd60414122d39988c3b5620677f32365b48d8",
+    "dist/fs/real/index.d.ts.map": "f664ffac8cacd4995980e51f0a682c8ab57910c49e2b9843c25519cfe9598af4",
+    "dist/fs/real/index.js": "d8505d3512010372ab9148ae4da9bdc1e75ecb37f5143da8626d5fc63d49cb29",
+    "dist/fs/real/index.js.map": "cf3c90e51d6d8b59c5b4f7ed0c99a12abff4bf7697dca903f6a3fad946913fd7",
+    "dist/fs/s3/authority.d.ts": "91f6e77dc5d097dfcc461d53799d6277e62649278a611d52606b5e8d198532b1",
+    "dist/fs/s3/authority.d.ts.map": "71b2fc3aa555a54d7920c1f5d288fb84af224426cc0900d945a5484a78fd517c",
+    "dist/fs/s3/authority.js": "288ae377e216a68e0272044312eed9afc7bfe29c8d6cb680010cbe7bb60b4a83",
+    "dist/fs/s3/authority.js.map": "a429f8fb83bd58ad88f2acf3e2cca763354503a63a56ebaec81cda85d6db82d9",
+    "dist/fs/s3/filesystem.d.ts": "16d454487b0e837a5498b47d1697635f8d7e1c84593e196d49c561a0b32ab484",
+    "dist/fs/s3/filesystem.d.ts.map": "785df11a161772e3d56233bf2c6ae3330861b594e47401034e72e9d04bcc8f2f",
+    "dist/fs/s3/filesystem.js": "3ec7ddd0d52d09d3686c62d6b123ae8ff344bb4fe8f82b988141fd38a956d207",
+    "dist/fs/s3/filesystem.js.map": "f8b6f9205c479c44bde16b70fcd7d063eedea8634cc9bd00ece5ef1cd72c4242",
+    "dist/fs/s3/index.d.ts": "b6e4c85cafae50b5fdfd09566aa843fc7809ce3a500559a6bf294d2b32612918",
+    "dist/fs/s3/index.d.ts.map": "ae439915b5e1ae4778ba0fe1bf0385f588d6a992a1a9327fbbf5446cffbbbcae",
+    "dist/fs/s3/index.js": "1c174c48e88516790e1776bf32b87597a29a79b029dd06aa972acf061c3d647f",
+    "dist/fs/s3/index.js.map": "26215523c4bcb3c4e53b6ef128bdc39ad2deddfeca0cfbe592f23c9caf1e33ce",
+    "dist/fs/s3/mock.d.ts": "fd983ea8d33133cea05f15328973c7b9c6f9efa41b07e12fdc3d543f23911354",
+    "dist/fs/s3/mock.d.ts.map": "92c3c2b11edc5d3f0ae340135ab9371767322b591b47a25a91b9b56438d66bd7",
+    "dist/fs/s3/mock.js": "9b8331abce0b73ceb5f41a8ac8b0109d8d4000e55c6675922b10d62643f73911",
+    "dist/fs/s3/mock.js.map": "dcbacecdcf6c4b9873a96d3b9737e566cb685feccedac971383440ff74891145",
+    "dist/fs/s3/transport.d.ts": "ec154e2eb64d8768e8a1115ea15d4f5b971d0fcdfef7e11e579a870ee156ca1d",
+    "dist/fs/s3/transport.d.ts.map": "5a0d66e86baa57899290e1497c250a99a3bacf440f355dc975c42203116dd7e6",
+    "dist/fs/s3/transport.js": "692c8996973539886b85b208c96329daea13f8e00cafcd3f0fef1bbf8e13f5c9",
+    "dist/fs/s3/transport.js.map": "cf17e453a68b2262a0b70f9f53123774c2c80a7313410e2a3165fb39b892fce7",
+    "dist/fs/webdav/index.d.ts": "0a7f8644caca42172468acf81323150273adb7699d934c9cdbf651926ac01dbd",
+    "dist/fs/webdav/index.d.ts.map": "5b52dc42a55873d7e386f96cca36a2eee50463e814064df44ee4fdf163c4527c",
+    "dist/fs/webdav/index.js": "f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1",
+    "dist/fs/webdav/index.js.map": "40801af6db329b3986e22217256b5d2896829eb38cab8432905ba9bd84421c26",
+    "dist/fs/webdav/resource-id.d.ts": "9791d6980f57614624c0e639ea9d3dbf0d472f887127e6a8efe0739e763b7083",
+    "dist/fs/webdav/resource-id.d.ts.map": "ddc4c2642185472e8c227e495827f6a248bd24e5f3c01a520fd074a780dd5da9",
+    "dist/fs/webdav/resource-id.js": "3dd1e43036eefe79622618599d5dbc6ad9bbffc1b6a19f251e960fb3f4d28624",
+    "dist/fs/webdav/resource-id.js.map": "f7caca88693f229336d18b696cd4bd4025ec9e55d32596fbc44257c6e908904a",
+    "dist/fs/webdav/webdav.d.ts": "1eef2b53c304b65a2bed05df16cabeebb8b276d156c00801d6dfb1dc8d542e4f",
+    "dist/fs/webdav/webdav.d.ts.map": "1296730baf601872f2c8f6ce83711f38b295d8bade299dfd465854bd2e118f29",
+    "dist/fs/webdav/webdav.js": "5a85f00079c68d67bd5a2e282d7338ebcf5922b2e5e2eb90c03f8dc9493421a5",
+    "dist/fs/webdav/webdav.js.map": "97bf12ff9146fd491ee9f49d8a1f752ce81e5ac62c25d78bd0db25fd5bdb9a1d",
+    "dist/fs/webdav/xml.d.ts": "c3cf39332d7c37a4965aad8e340ee3849982728a2ad532a42f44c0960205f52b",
+    "dist/fs/webdav/xml.d.ts.map": "a85d29dc29fc8dce1fab88e01ffd89f89ff8a5d5796a7a3bc73f0a9e8e25088f",
+    "dist/fs/webdav/xml.js": "c6331ca324c6c33f4bb2c83e18acf80c5284c57c2ba534c9dc1c9e4c82f6ee04",
+    "dist/fs/webdav/xml.js.map": "c244b6df1ac0d6aa81b49d2b4331250545352fb08c1f4ed27648bc11a22bccfd",
+    "dist/index.d.ts": "690ce79a4e7429ab6a86bcae06dc61b0dd30c55ead945826f96693d8849a4974",
+    "dist/index.d.ts.map": "ac57b5208dbd66e5e1c728447b5ca6530ea751bb611f2a61af87876acb06f839",
+    "dist/index.js": "ef0e4ff0e23c6dd2ccd5dc5edfc6b3ea35da52cac2ad21f02db7726b5019ea0f",
+    "dist/index.js.map": "24c527f0e9c2a0a77649e9467203bb73ce497890fba1bb8c90ae98db07aa604c",
+    "dist/integrations/safejs/filesystem.d.ts": "72f3404c94040d1d96b3d7157cc5dca6ecfc97d9d359eb289ace969de7d7d54c",
+    "dist/integrations/safejs/filesystem.d.ts.map": "0b02f358d386c5bdf2d986489b3e451982968c6819ea8318c04e9bc3bab013dd",
+    "dist/integrations/safejs/filesystem.js": "761c7d1f865fb72813304ee7b93f48b089042fc74ca5120c76e101e4316f4423",
+    "dist/integrations/safejs/filesystem.js.map": "29bfa30e76a837af978271e2a42a48741f5b5e026916a8275a93834cf3742531",
+    "dist/integrations/safejs/index.d.ts": "6956833539abb195454e4471036a995e85b21fef721e6cb4853da31f3aafe541",
+    "dist/integrations/safejs/index.d.ts.map": "df18e477882f39236270ae00c41ea9d77ee313d67f46169bcf1f563055433c74",
+    "dist/integrations/safejs/index.js": "909b94a9b5e087f3ea16375f3fd3960b2eebd6cf0ca2d6427c170b2efed47b19",
+    "dist/integrations/safejs/index.js.map": "d7f44b202d16fbb34b115eacad56cc19b6ae94188ad547fe68ba27ec8aac7f25",
+    "dist/integrations/safejs/shell.d.ts": "a9eca7e38be42cc6f8d4705921800465caaf265c6dc311f18203008422d7c220",
+    "dist/integrations/safejs/shell.d.ts.map": "0b747d24a4a2401d411a9cdd037d8e9f1cbad071350a670d31bc7d700d59a0fa",
+    "dist/integrations/safejs/shell.js": "94319d15f2571967bd1962d64c0be89936f07b9a5bdbffb56353434799230c88",
+    "dist/integrations/safejs/shell.js.map": "6a30e54dd7f23971c711d86d3df47fd76ff40205b1ff3170dacf3645e87a3428",
+    "dist/integrations/safejs/stats.d.ts": "b598286ff34bf5fdf20558c4f64ae93a2abd0cf0229b4042ea517bd98ffe7120",
+    "dist/integrations/safejs/stats.d.ts.map": "348ce671592ad7316c465bc9a46d95e6db7a4f7c759135c61f7399ee50917ce6",
+    "dist/integrations/safejs/stats.js": "90e1e8e05dbd3c2cb8b086a292932935f24a59923e257dd0fca71f82bfdc362c",
+    "dist/integrations/safejs/stats.js.map": "8503045bfa0670be3b1f8a4b7a39f4ca1263b8b1d40b51078c85d953559cef38",
+    "dist/integrations/safejs/values.d.ts": "d3ca3ea8f72e21dcf8f8755cbcb38e4ba6605879e327bdc2f15e0581ec1e9d6b",
+    "dist/integrations/safejs/values.d.ts.map": "fa3cf053ef907ca25f958128b38f9fd93cc8fbd02b041a7a2e7c48944107709e",
+    "dist/integrations/safejs/values.js": "438c92ecec0494ed5b588da12e121c93c90f6522d8d6b89d4b5e01e019e6846d",
+    "dist/integrations/safejs/values.js.map": "6ac3cb34a5d662ee618e22042b2dcf326f5568b8f679a43080d8bf77a7bd2c37",
+    "dist/plugins/index.d.ts": "07578e8d176758a8f801e6a2e8a51d9e9515accae67430094bd448b44dc493c5",
+    "dist/plugins/index.d.ts.map": "5c4cf70b14317634314c5a953184feb60fc278b0377ff813bc593f7d7e71d0dc",
+    "dist/plugins/index.js": "d9517a7286e144a2161fab913e23ab8d87473cbb69911dd12042eddf0f66a88f",
+    "dist/plugins/index.js.map": "2decc1a21e5b19746430a8f2221aa759b6e07dca5f2107f41d51a38873415d28",
+    "dist/shell/arithmetic.d.ts": "4649302322cb7d65e5562bc825ab841aab4205fa43b03dba5f12cdebdb34eaf1",
+    "dist/shell/arithmetic.d.ts.map": "4b7b3880153da8a7a362fe64a013faffb9ccadf11b871c8c23d5756e5ef5f902",
+    "dist/shell/arithmetic.js": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138",
+    "dist/shell/arithmetic.js.map": "26a46d0eb2d43c4f98569306cfa54f912f934a66a57fca2850fab7e914abc792",
+    "dist/shell/display.d.ts": "79b7959b75d493e3345422fcce8d5535bc3c88399ef030fca685e1b4eaf2bc6a",
+    "dist/shell/display.d.ts.map": "e0865b84633260dcc3d26d6fb88b4da90edb9b1ede35ce948566d18a3786fc1c",
+    "dist/shell/display.js": "c1e7ade4879fc6f85d39dd718259eaf2bb9371fac463a3e574ec9f8a0490e368",
+    "dist/shell/display.js.map": "f6b74d9f865778db7940d70a9ce31001163b9d642e097976de5be0772529349d",
+    "dist/shell/index.d.ts": "c7d3b2a67d63d73bbe2c8bea0d549828c30476e6f0ba093a736423972dad5772",
+    "dist/shell/index.d.ts.map": "f82ee14141df1194df6d4ee0b63089471e6a63beba60008e11950b76a92ef2d0",
+    "dist/shell/index.js": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb",
+    "dist/shell/index.js.map": "faabada4d60b1ce7e0f8b2dba3ccb7c0f9f44e7cfecdbd393e3a15f6ca0e603a",
+    "dist/shell/input.d.ts": "53ab49f4afa72aecd70fe2eb5c76a3a1b725fded1e00f4a6afdfbf98000ba5bb",
+    "dist/shell/input.d.ts.map": "e3651900afd81c88bba3779c6e4fe2c3a5b962fec59323406bc1417affae301d",
+    "dist/shell/input.js": "dfae555acaa51838dba66b81da380c0cd235bc3e0b3c784ea63b888404feb331",
+    "dist/shell/input.js.map": "6ae2ccef6584e181987bba0ae8bc869b2b99edae85d466d6d49fc54ebedf3543",
+    "dist/shell/locale.d.ts": "3d7f0c95c2cc971c0bdfc196a4944f183ec0dd4256a82b04e741c22baa7feed6",
+    "dist/shell/locale.d.ts.map": "5c6e1f5b531b697d58385dedbd477f222ac94585f5f723ac62e428b888aeb88b",
+    "dist/shell/locale.js": "9f6e1cdac781cd758231bfb7af854dbc87dd6544c0e3a1309dac9362f88f36dc",
+    "dist/shell/locale.js.map": "9822d792c0f45ee3c931840d856aa3c33c18394342e7e7f62c8ec9c395e1bb78",
+    "dist/shell/parser.d.ts": "93aaede3c12e88699230a30edb02dc05ecfdff05f509377307a98c49a4c13abc",
+    "dist/shell/parser.d.ts.map": "a4bea4930bfa1345cacce74d33f3406eb1440e879962d44474f668b7b18fd6f0",
+    "dist/shell/parser.js": "54590c201ce777e238c62584633a3c0278e59a78fa8b026c0fdcc43eca8e1f42",
+    "dist/shell/parser.js.map": "c0d6657d28f6ffa449dca1fb6998dced380997e443e354a5695b3affba0cf864",
+    "dist/shell/pattern.d.ts": "6b4f6e7184ac442d78d661a22fbf96f57c38ef4c97888491149be61cf7b3690f",
+    "dist/shell/pattern.d.ts.map": "5384c67a574e601b08f69ed826bbb209abe97c89f3348bb0cc0097474810f7bd",
+    "dist/shell/pattern.js": "a4a3a5744281205d6f7f0b9fcf6aea2d6386669d9176bc2d3ca08c130087cc19",
+    "dist/shell/pattern.js.map": "dcf8ceb8c68eac06f0854d9965f81503e338ccbada8daba639129d6d8763a9de",
+    "dist/shell/runtime.d.ts": "c68cd03df14e3127e2009009b8894d66cb72716b15ff92af0a332c721b7b37a2",
+    "dist/shell/runtime.d.ts.map": "9d0d263d0dc32a12f4171902bae46e7418b274adeee59604ea3ce4e5e34c6bc2",
+    "dist/shell/runtime.js": "962d848d961446e8fda4087ebe81dbd7cdda0d4141112a2f3196e2ee40eca61c",
+    "dist/shell/runtime.js.map": "c8376bb087686164fb878f10aaa04bef4fb463f87db6bcaffcbba8f905242598",
+    "dist/shell/shell.d.ts": "a5000b8a9d94806a5ae826a393fab48d561c506c9d78943c6b0468aae243b72a",
+    "dist/shell/shell.d.ts.map": "2ac0934ba574e91f9c75e4791420056d8cdd186c917bda3c96f4cbb3768ab1a3",
+    "dist/shell/shell.js": "fefe6d73b37d4adb16e6704faa9931073048e46bb3be63c41ff3ac0db0a77c12",
+    "dist/shell/shell.js.map": "992e481a719ebe1d453bb2f066164cfd271b5ef77d6c5c6c017916fd0edc8a37",
+    "dist/shell/types.d.ts": "983ec4067a45d672ed4db6c6a42ad9225d5dc1b242e6f983cb6358c574fe56b8",
+    "dist/shell/types.d.ts.map": "39644df0b5fd8e6048530ec7a61ad5443dc4965f528beabc930c2c54bae504de",
+    "dist/shell/types.js": "8c79d4e7ff6e11e4adc173b19017e2f7c046cdeb6d7d24fb4f5057fd8d67b27c",
+    "dist/shell/types.js.map": "6c201c30db2461b2d18a21d1dd3b52329b2323c2f6a77a58a185f2785d0971fe"
+  },
+  "allChildrenExited": true,
+  "completedAt": "2026-08-27T03:11:34.777Z",
+  "archivedLogs": [
+    {
+      "command": "corrected-runtime-resolution",
+      "stream": "stdout",
+      "bytes": 1086,
+      "sha256": "d9550ff786b7d48ab368b0e94e235ae50c9b02f2b5e15d6a4e26a2ea95574373",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/corrected-runtime-resolution.stdout"
+    },
+    {
+      "command": "corrected-runtime-resolution",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-selected-gnu216",
+      "stream": "stdout",
+      "bytes": 87381,
+      "sha256": "0e8642777c011e59cebc26c2c2b7de328af6abfe6a14cf4c8e15f10383943057",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout"
+    },
+    {
+      "command": "corrected-selected-gnu216",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-original104",
+      "stream": "stdout",
+      "bytes": 17329,
+      "sha256": "238094e11e20ce66714cd0be883d51d4cdabcb6993ffb61d436eaed3fb16ac29",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/corrected-original104.stdout"
+    },
+    {
+      "command": "corrected-original104",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-original311-current-helper",
+      "stream": "stdout",
+      "bytes": 63593,
+      "sha256": "12d19ec45db04a03f79e6a0fb71e7420276493937e20d52c55eaeec6a6c98b6b",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/corrected-original311-current-helper.stdout"
+    },
+    {
+      "command": "corrected-original311-current-helper",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-selected-gnu311-current-helper",
+      "stream": "stdout",
+      "bytes": 73715,
+      "sha256": "bb48f8a0c918f7ef95d2d897a3b62487b4c60bbc2d36495669b52aff9ed3cfe8",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/corrected-selected-gnu311-current-helper.stdout"
+    },
+    {
+      "command": "corrected-selected-gnu311-current-helper",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-author-fix-controls",
+      "stream": "stdout",
+      "bytes": 45179,
+      "sha256": "75a77d8d8e8b3cb32285fffef57c32328f0d3c1709ccf218bb5b05002db78710",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/corrected-author-fix-controls.stdout"
+    },
+    {
+      "command": "corrected-author-fix-controls",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-metadata43",
+      "stream": "stdout",
+      "bytes": 8628,
+      "sha256": "5049568d1535a19a9724ba1ee01ab8605882188e617aaad2412478eedc87137b",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/corrected-metadata43.stdout"
+    },
+    {
+      "command": "corrected-metadata43",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-scoped-noemit",
+      "stream": "stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-scoped-noemit",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-isolated-build",
+      "stream": "stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-isolated-build",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-built-selected71x2",
+      "stream": "stdout",
+      "bytes": 96252,
+      "sha256": "fec559e33197d4fe5a8e705051a0ffd95be2fee59d902db42a6cf6c001bf4802",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/built-selected71x2.stdout"
+    },
+    {
+      "command": "corrected-built-selected71x2",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-prior-source-noemit",
+      "stream": "stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-prior-source-noemit",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "corrected-prior-source-shared-negative",
+      "stream": "stdout",
+      "bytes": 630,
+      "sha256": "d46d0b0ac1289f31d92e8ed5556cc7e1ce62f45795908796b2b462ece35d99f7",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/prior-source-shared-negative.stdout"
+    },
+    {
+      "command": "corrected-prior-source-shared-negative",
+      "stream": "stderr",
+      "bytes": 489,
+      "sha256": "8f64e782b683d98e20a376f1a5cd26f97b496faedb3a30d8c71aabc034cf1363",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/corrected-prior-source-shared-negative.stderr"
+    }
+  ],
+  "counts": {
+    "selectedGNU216": "216/216",
+    "exactGNU216": "195/216",
+    "independentNative216": "216/216 exact",
+    "original104": "103 pass /1 obsolete characterization failure",
+    "original311": "310 pass /1 obsolete characterization failure",
+    "selectedGNU311": "311/311",
+    "authorControls": "234/234 =216 original rows +1 exact-native216 batch +17 focused tests",
+    "metadata": "43/43 (old42/43 retained)",
+    "publicBuiltSelected": "142/142 =71 pipelines +71 redirections",
+    "publicBuiltExact": "134/142 =67 per mode",
+    "priorSourceControl": "source noEmit0,1 semantic failure (old status0/empty stderr), no load failure",
+    "historicalMutants": "4 verified hashes, not rerun"
+  },
+  "sharedStdin": {
+    "expected": {
+      "name": "comm: shared stdin",
+      "caseSha256": "d3e69ff19a538fc9beb7e0fbad8add1d127b0536cd13ee493fdb535f75903142",
+      "exitCode": 1,
+      "stdoutHex": "0909610a0909620a630a",
+      "stderrHex": "636f6d6d3a202d3a204261642066696c652064657363726970746f720a"
+    },
+    "fixed": {
+      "name": "comm: shared stdin",
+      "inputSha256": "d3e69ff19a538fc9beb7e0fbad8add1d127b0536cd13ee493fdb535f75903142",
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0909610a0909620a630a",
+        "stderrHex": "636f6d6d3a202d3a204261642066696c652064657363726970746f720a"
+      },
+      "selected": true,
+      "exact": true,
+      "filesUnchanged": true
+    },
+    "prior": {
+      "name": "comm: shared stdin",
+      "inputSha256": "d3e69ff19a538fc9beb7e0fbad8add1d127b0536cd13ee493fdb535f75903142",
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909610a0909620a630a",
+        "stderrHex": ""
+      },
+      "selected": false,
+      "exact": false,
+      "filesUnchanged": true
+    }
+  },
+  "postRunIntegrity": {
+    "regularFileHashDrift": [],
+    "liveTreeDriftSinceFreeze": [
+      {
+        "path": "src/commands/streams.ts",
+        "before": "4e2d525fc237c9d1566b57db97c9e529b01b9d41f9f9663179836b2016d3afc5",
+        "after": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d"
+      },
+      {
+        "path": "src/commands/structured/README.md",
+        "before": "9b2cee22b2af50418969f3a7fff040d444dbf92aced31c946fcd2ed930a1e704",
+        "after": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b"
+      },
+      {
+        "path": "src/commands/text.ts",
+        "before": "e49af40d9ec51c038f53235f43233af7423d661ded2886998beb5873f4bcc53c",
+        "after": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2"
+      },
+      {
+        "path": "src/fs/webdav/README.md",
+        "before": "69bfbd10c2ae82a25a9b272df1a574b5e5832551e170b239241a81646efa3b76",
+        "after": "3a621bd30d0185a2ca68604fbf4db43ca63be90285fa12698feb61f1bd2ae77b"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "before": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+        "after": "c26cb2035f76ced93319bbe50fc59c37de15eaad7285d49aa027c21a3f433101"
+      }
+    ],
+    "remainingNativeFixtureFiles": [],
+    "removedGeneratedRuntimeCaches": [
+      {
+        "path": "node-compile-cache/v22.22.2-arm64-2b4477fa-501/11b354ef",
+        "sha256": "39716c124e39e74984e20a66d4cfcfdc448fdf49985821c5c7c2fac93ee90608"
+      },
+      {
+        "path": "node-compile-cache/v22.22.2-arm64-2b4477fa-501/5d90176f",
+        "sha256": "d6fdd310b08f48530e3fdb11cd70c9adb724e4502050f2fd73f16649941fd894"
+      }
+    ],
+    "remainingRuntimeFiles": [],
+    "allRecordedRegularFilesReadOnly": true,
+    "containedAliases": [
+      {
+        "path": "node_modules/.bin/esbuild",
+        "target": "../esbuild/bin/esbuild",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/esbuild/bin/esbuild",
+        "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+      },
+      {
+        "path": "node_modules/.bin/tsc",
+        "target": "../typescript/bin/tsc",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsc",
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+      },
+      {
+        "path": "node_modules/.bin/tsserver",
+        "target": "../typescript/bin/tsserver",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/typescript/bin/tsserver",
+        "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+      },
+      {
+        "path": "node_modules/.bin/tsx",
+        "target": "../tsx/dist/cli.mjs",
+        "resolved": "/private/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/tsx/dist/cli.mjs",
+        "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+      }
+    ]
+  },
+  "originalSixBuiltChecks": "Unavailable and not run; public142-mode replay is distinct",
+  "noDelegation": true
+}

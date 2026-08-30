@@ -1,0 +1,299 @@
+{
+  "candidate": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "driverSha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6",
+  "rows": [
+    {
+      "reason": "zero",
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "result": {
+            "sameCleanupCompletion": true,
+            "firstSettledBeforeRetirementRelease": false,
+            "disposeSettledBeforeRetirementRelease": false,
+            "siblingStillPending": true,
+            "siblingAlive": true,
+            "registrationPrecedesOpen": true,
+            "firstState": "rejected",
+            "exactReason": true,
+            "actualReasonType": "number",
+            "siblingExitCode": 0,
+            "siblingOutputBase64": "MQo="
+          },
+          "events": [
+            {
+              "type": "registerCleanup",
+              "invocation": 1
+            },
+            {
+              "type": "open"
+            },
+            {
+              "type": "workerStart",
+              "worker": 1,
+              "threadId": 2
+            },
+            {
+              "type": "post",
+              "worker": 1,
+              "id": 1
+            },
+            {
+              "type": "registerCleanup",
+              "invocation": 2
+            },
+            {
+              "type": "open"
+            },
+            {
+              "type": "workerStart",
+              "worker": 2,
+              "threadId": 3
+            },
+            {
+              "type": "post",
+              "worker": 2,
+              "id": 2
+            },
+            {
+              "type": "terminate",
+              "worker": 1
+            },
+            {
+              "type": "workerExit",
+              "worker": 1
+            },
+            {
+              "type": "terminated",
+              "worker": 1
+            },
+            {
+              "type": "firstRejected"
+            },
+            {
+              "type": "terminate",
+              "worker": 2
+            },
+            {
+              "type": "workerExit",
+              "worker": 2
+            },
+            {
+              "type": "terminated",
+              "worker": 2
+            }
+          ],
+          "liveWorkers": 0,
+          "seam": "Actual installed Shell/command/session and native worker acquisition; first request intentionally held at postMessage, cooperative termination held after actual thread exit. Sibling executes real regex. Does not locate interruption inside compiler vs matcher."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 14,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      }
+    },
+    {
+      "reason": "error",
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "result": {
+            "sameCleanupCompletion": true,
+            "firstSettledBeforeRetirementRelease": false,
+            "disposeSettledBeforeRetirementRelease": false,
+            "siblingStillPending": true,
+            "siblingAlive": true,
+            "registrationPrecedesOpen": true,
+            "firstState": "rejected",
+            "exactReason": true,
+            "actualReasonType": "object",
+            "actualReasonName": "Error",
+            "siblingExitCode": 0,
+            "siblingOutputBase64": "MQo="
+          },
+          "events": [
+            {
+              "type": "registerCleanup",
+              "invocation": 1
+            },
+            {
+              "type": "open"
+            },
+            {
+              "type": "workerStart",
+              "worker": 1,
+              "threadId": 5
+            },
+            {
+              "type": "post",
+              "worker": 1,
+              "id": 1
+            },
+            {
+              "type": "registerCleanup",
+              "invocation": 2
+            },
+            {
+              "type": "open"
+            },
+            {
+              "type": "workerStart",
+              "worker": 2,
+              "threadId": 6
+            },
+            {
+              "type": "post",
+              "worker": 2,
+              "id": 2
+            },
+            {
+              "type": "terminate",
+              "worker": 1
+            },
+            {
+              "type": "workerExit",
+              "worker": 1
+            },
+            {
+              "type": "terminated",
+              "worker": 1
+            },
+            {
+              "type": "firstRejected"
+            },
+            {
+              "type": "terminate",
+              "worker": 2
+            },
+            {
+              "type": "workerExit",
+              "worker": 2
+            },
+            {
+              "type": "terminated",
+              "worker": 2
+            }
+          ],
+          "liveWorkers": 0,
+          "seam": "Actual installed Shell/command/session and native worker acquisition; first request intentionally held at postMessage, cooperative termination held after actual thread exit. Sibling executes real regex. Does not locate interruption inside compiler vs matcher."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 12,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      }
+    },
+    {
+      "reason": "undefined-native",
+      "state": "returned",
+      "value": {
+        "state": "fulfilled",
+        "value": {
+          "result": {
+            "sameCleanupCompletion": true,
+            "firstSettledBeforeRetirementRelease": false,
+            "disposeSettledBeforeRetirementRelease": false,
+            "siblingStillPending": true,
+            "siblingAlive": true,
+            "registrationPrecedesOpen": true,
+            "firstState": "rejected",
+            "exactReason": true,
+            "actualReasonType": "object",
+            "actualReasonName": "AbortError",
+            "siblingExitCode": 0,
+            "siblingOutputBase64": "MQo="
+          },
+          "events": [
+            {
+              "type": "registerCleanup",
+              "invocation": 1
+            },
+            {
+              "type": "open"
+            },
+            {
+              "type": "workerStart",
+              "worker": 1,
+              "threadId": 8
+            },
+            {
+              "type": "post",
+              "worker": 1,
+              "id": 1
+            },
+            {
+              "type": "registerCleanup",
+              "invocation": 2
+            },
+            {
+              "type": "open"
+            },
+            {
+              "type": "workerStart",
+              "worker": 2,
+              "threadId": 9
+            },
+            {
+              "type": "post",
+              "worker": 2,
+              "id": 2
+            },
+            {
+              "type": "terminate",
+              "worker": 1
+            },
+            {
+              "type": "workerExit",
+              "worker": 1
+            },
+            {
+              "type": "terminated",
+              "worker": 1
+            },
+            {
+              "type": "firstRejected"
+            },
+            {
+              "type": "terminate",
+              "worker": 2
+            },
+            {
+              "type": "workerExit",
+              "worker": 2
+            },
+            {
+              "type": "terminated",
+              "worker": 2
+            }
+          ],
+          "liveWorkers": 0,
+          "seam": "Actual installed Shell/command/session and native worker acquisition; first request intentionally held at postMessage, cooperative termination held after actual thread exit. Sibling executes real regex. Does not locate interruption inside compiler vs matcher."
+        }
+      },
+      "terminationAwaited": true,
+      "terminationCode": 0,
+      "output": [],
+      "outputBytes": 0,
+      "heartbeats": 12,
+      "deadlineMs": 2000,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 64,
+        "stackSizeMb": 4
+      }
+    }
+  ]
+}

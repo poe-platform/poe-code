@@ -1,0 +1,79 @@
+{
+  "package": {
+    "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+    "bytes": 814632,
+    "members": 898
+  },
+  "public": [
+    {
+      "layout": "source-built-public-v2",
+      "code": 0,
+      "passed": 28,
+      "total": 28,
+      "created": 23,
+      "disposed": 23,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "moved-public-v2",
+      "code": 0,
+      "passed": 28,
+      "total": 28,
+      "created": 23,
+      "disposed": 23,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "installed-public-v2",
+      "code": 0,
+      "passed": 28,
+      "total": 28,
+      "created": 23,
+      "disposed": 23,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    }
+  ],
+  "canonical": [
+    {
+      "tap": {
+        "tests": 83,
+        "pass": 79,
+        "fail": 4,
+        "skip": 0,
+        "cancel": 0
+      }
+    }
+  ],
+  "types": 6,
+  "mutants": 4,
+  "guards": 8,
+  "resources": {
+    "controlledChildren": 40,
+    "retired": 40,
+    "signals": [],
+    "capturedBytes": 2161216,
+    "terminalElapsedMs": 329193.509958,
+    "maximumChildElapsedMs": 5753.2165,
+    "maximumRuntimeChildElapsedMs": 1528.3686659999948,
+    "workingBytes": 90301197,
+    "preparedBytes": 13466754,
+    "archiveBytes": 8780277,
+    "knownCombinedBytes": 112548228,
+    "preparationGitChildren": 1,
+    "workerStarts": 0,
+    "descendantQualification": "Node child/Worker grants absent, four regex worker attempts refused; natural direct closes/group absence observed. No continuous OS-global/transient process census or RSS guarantee."
+  },
+  "archive": {
+    "path": "RAW.json.gz.base64",
+    "sha256": "95398e911fa279431a90a4dad1c093a49531b5e1ac6f8c366d04b543420c8e84",
+    "compressedSha256": "c903ca7e1c40fe9319c08f2bf89f9176429ac64fffd1e7ab3875ee7168e899fc",
+    "decodedSha256": "0806a8224551274e11388a657862d72b3349fcd2eeb64d8c24210f8ae790e20d",
+    "decodedBytes": 21697371,
+    "entries": 123,
+    "rawBytes": 16256456,
+    "rawDeleted": 0
+  }
+}

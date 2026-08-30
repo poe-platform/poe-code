@@ -1,0 +1,34 @@
+{
+  "reviewedAt": "2026-08-26",
+  "scope": "Protocol references for explicitly negotiated independent transport profiles; no deployed provider or credentials tested",
+  "references": [
+    {
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-s3-conditional-write-functionality-copy-operations/",
+      "publishedAt": "2025-10-29",
+      "finding": "AWS announced destination conditional CopyObject support on this date. Calling it unavailable in all current classic/general-purpose S3 is outdated."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html",
+      "finding": "Source CopySourceIfMatch is distinct from destination If-Match and If-None-Match. Full copy response validation remains necessary; HTTP status alone does not establish completed copy."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-writes.html",
+      "finding": "Destination If-Match and If-None-Match apply to PutObject as well as current CopyObject. A provider without destination copy conditions can instead expose truthful conditional PUT capabilities."
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-deletes.html",
+      "finding": "Conditional delete compares content ETags. This is not an object-incarnation or multi-object transaction guarantee."
+    }
+  ],
+  "profiles": {
+    "modern-copy": "Destination-conditional copy plus conditional delete; guarded PUT disabled",
+    "classic-put": "Destination-conditional CopyObject unsupported and rejected by fixture; bounded conditional PutObject plus conditional delete supported",
+    "stream-put": "Destination-conditional CopyObject unsupported; separately negotiated streaming read/conditional streaming PUT plus conditional delete supported"
+  },
+  "limits": [
+    "Compatible providers may differ; capabilities must be explicit, truthful and enforced by the transport.",
+    "Mock enforcement proves integration logic, not a deployed provider or signing client's conformance.",
+    "Buffered fallback must remain within maxReadBytes; streaming fallback is separately negotiated, not an unbounded implicit buffer.",
+    "Metadata-only changes, same-content recreation and ABA can preserve ETag; directory enumeration is not a transaction."
+  ]
+}

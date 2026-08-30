@@ -1,0 +1,74 @@
+{
+  "schema": "p16-finite-data-candidate-v4",
+  "packet": "4088ee524e9ec6ae47ef90af3538dc35addcc3a0",
+  "precode": [
+    {
+      "path": "PRECODE-SEAL.json",
+      "bytes": 3911,
+      "sha256": "daf208c80cb8f6afc55e21f391547b99ed52265be5ba206096ce8818f7785ee7"
+    },
+    {
+      "path": "DATA-CONTROLS.presealed.json",
+      "bytes": 23889,
+      "sha256": "fe9c119a3a7dc7150b0dfd8bf9479b7df9e05e6e6a45f1c57b8c920b026f2625"
+    }
+  ],
+  "code": [
+    {
+      "path": "stage-helper.mjs",
+      "bytes": 3480,
+      "sha256": "94d584b226fe296bb548498e6627ba3b58fd61b1f8c593993da178d87d5584cb"
+    },
+    {
+      "path": "future-adapter.mjs",
+      "bytes": 24017,
+      "sha256": "7565884afa9b9e901097a8febba4e7d9a739c19cbb2e7396fde7ea3d66dfd276"
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "bytes": 23859,
+      "sha256": "5908fb967c9246847ea719b0ad9113549a0f0ed022536cd207a402de0ac7acdb"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 9212,
+      "sha256": "4eb32fc668919bf820302dbd23fdae61252aefbad8c929139c53ffd94d691ab4"
+    },
+    {
+      "path": "source-auth.mjs",
+      "bytes": 6828,
+      "sha256": "6cedc606a0fddec6d962bef9b47b3d3e877f8443a65733ea4d9d50f743d64167"
+    },
+    {
+      "path": "runtime-entry.mjs",
+      "bytes": 3185,
+      "sha256": "1dd597a49853c4c19a073e4a5667fee257d9903ca2bb90e2f457aee8d0d570ad"
+    },
+    {
+      "path": "worker-observer.mjs",
+      "bytes": 5646,
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9"
+    },
+    {
+      "path": "worker-preload.mjs",
+      "bytes": 2105,
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db"
+    }
+  ],
+  "qualificationRunsAllowed": 1,
+  "forbiddenExecution": [
+    "runtime",
+    "Worker",
+    "build",
+    "npm",
+    "compiler",
+    "native oracle",
+    "private runtime",
+    "network",
+    "comparator",
+    "supervisor"
+  ],
+  "qualificationImports": [
+    "stage-helper.mjs"
+  ]
+}

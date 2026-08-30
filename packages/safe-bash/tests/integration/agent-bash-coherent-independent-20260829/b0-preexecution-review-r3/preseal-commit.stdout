@@ -1,0 +1,28 @@
+[main 5757351ba] test: seal corrective B0-r3 independent controls
+ 26 files changed, 50800 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/CONTROL-POLICY.md
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/CONTROL-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/EXTERNAL-INPUTS.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/EXTERNAL-PROCESSES.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/INPUTS.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/METADATA-HELPER-ERROR.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/METADATA-PROCESSES.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/PREP.md
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/blobs.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/blobs.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/capsule-patch.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/capsule-patch.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/capsule/stage-a-r2/common.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/capsule/stage-b0-r2/LOCATOR-IDENTITIES.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/capsule/stage-b0-r3/controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/capsule/stage-b0-r3/owner.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/dispatch.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/external-blobs.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/external-blobs.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/external-check.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/external-check.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/inventory.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/inventory.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/novel-controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/preseal-add.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/b0-preexecution-review-r3/preseal-add.stdout

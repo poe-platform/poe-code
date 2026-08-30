@@ -1,0 +1,1143 @@
+{
+  "started": "2026-08-27T19:08:52.904Z",
+  "head": "3cbcdc1aefb4007f819e36610bbabdc41c913be4",
+  "inputFreeze": "3cbcdc1aefb4007f819e36610bbabdc41c913be4",
+  "casesSha256": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "LANGUAGE": "C",
+    "TZ": "UTC"
+  },
+  "runtime": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "platform": {
+    "arguments": [],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutHex": "50726f647563744e616d653a09096d61634f530a50726f6475637456657273696f6e3a090932362e342e310a4275696c6456657273696f6e3a09093235453235330a",
+    "stderrHex": ""
+  },
+  "before": [
+    {
+      "name": "CASES.json",
+      "sha256": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0"
+    },
+    {
+      "name": "libc-probe.c",
+      "sha256": "f96c0247daea57e265d10506a8e193bc8dc3758cf2cf18fa9a0c7db03d899ff8"
+    },
+    {
+      "name": "capture.mjs",
+      "sha256": "deeea7b50e5930bcee87b102c56baf4d7df4c598a6163abbd2fb1ea11a378277"
+    }
+  ],
+  "native": {
+    "gnu": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c"
+    },
+    "apple": {
+      "path": "/bin/expr",
+      "realpath": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f"
+    },
+    "compiler": {
+      "path": "/usr/bin/cc",
+      "realpath": "/usr/bin/cc",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    "libcHelper": {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-posix-native-XlxDK4/libc-probe",
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-posix-native-XlxDK4/libc-probe",
+      "sha256": "f1b379d41ce6979ceadf1a378f0a5b0b6c28e0e52ca65a4839a3ca22d0706723"
+    }
+  },
+  "versions": {
+    "gnu": {
+      "arguments": [
+        "--version"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "657870722028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d696b65205061726b65722c204a616d657320596f756e676d616e2c20616e64205061756c204567676572742e0a",
+      "stderrHex": ""
+    },
+    "compiler": {
+      "arguments": [
+        "--version"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "4170706c6520636c616e672076657273696f6e2032312e302e302028636c616e672d323130302e312e312e313031290a5461726765743a2061726d36342d6170706c652d64617277696e32352e342e300a546872656164206d6f64656c3a20706f7369780a496e7374616c6c65644469723a202f4170706c69636174696f6e732f58636f64652e6170702f436f6e74656e74732f446576656c6f7065722f546f6f6c636861696e732f58636f646544656661756c742e7863746f6f6c636861696e2f7573722f62696e0a",
+      "stderrHex": ""
+    }
+  },
+  "historical": [
+    {
+      "commit": "53f2a4681cd22a65299576ba655cf9338c3d1de0",
+      "path": "tests/commands/expr-stress/nullable-design-review/REPORT.md",
+      "sha256": "4e43292153b3200fdfdc604c51490bdd105d58e6021792bfad5dcf30d5848dae"
+    },
+    {
+      "commit": "6580859f176b3fc172b78a42f50a339576744190",
+      "path": "tests/commands/expr-stress/c-profile-gap-review/frozen/CASES.md",
+      "sha256": "a9d667ab3d138e5da0ad2c3e90e2f11152ce8205903f51036268b4763d4ce4a6"
+    }
+  ],
+  "rows": [
+    {
+      "id": "P-empty",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)*\\1",
+          ""
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c305d2c5b302c305d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      },
+      "gnuPosixEnvironment": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "P-a",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "a",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "a",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "a",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)*\\1",
+          "a"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c305d2c5b302c305d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      },
+      "gnuPosixEnvironment": {
+        "arguments": [
+          "a",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "P-aa",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "aa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "aa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "aa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)*\\1",
+          "aa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c325d2c5b302c315d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      },
+      "gnuPosixEnvironment": {
+        "arguments": [
+          "aa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "P-aaa",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)*\\1",
+          "aaa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c335d2c5b312c325d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      },
+      "gnuPosixEnvironment": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "P-aaaa-history-neighbor",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "aaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "61610a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "aaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "61610a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "aaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)*\\1",
+          "aaaa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c345d2c5b322c335d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "Q-empty",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)\\{2\\}\\1",
+          ""
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c305d2c5b302c305d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      },
+      "gnuPosixEnvironment": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "Q-a-history-neighbor",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "a",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "a",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "a",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)\\{2\\}\\1",
+          "a"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c305d2c5b302c305d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "Q-aa-history-neighbor",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "aa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "aa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "aa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)\\{2\\}\\1",
+          "aa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c325d2c5b302c315d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "Q-aaa-history-neighbor",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)\\{2\\}\\1",
+          "aaa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c335d2c5b312c325d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "no-reference",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "aaa",
+          ":",
+          "\\(a*\\)*"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)*"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)*"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)*",
+          "aaa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c335d2c5b302c335d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "single-capture",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "aaa",
+          ":",
+          "\\(a*\\)\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)\\1",
+          "aaa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c325d2c5b302c315d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "nonnullable-repeat",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "aaa",
+          ":",
+          "\\(a\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "aaa",
+          ":",
+          "\\(a\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a\\)*\\1",
+          "aaa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c335d2c5b312c325d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "nonnullable-absent",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "a",
+          ":",
+          "\\(a\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "a",
+          ":",
+          "\\(a\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "a",
+          ":",
+          "\\(a\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a\\)*\\1",
+          "a"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a312c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b2d39392c2d39395d2c5b2d39392c2d39395d2c5b2d39392c2d39395d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "zero-count-absent",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "",
+          ":",
+          "\\(a\\)\\{0\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a\\)\\{0\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a\\)\\{0\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a\\)\\{0\\}\\1",
+          ""
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a312c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b2d39392c2d39395d2c5b2d39392c2d39395d2c5b2d39392c2d39395d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "single-empty-present",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "",
+          ":",
+          "\\(a*\\)\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a*\\)\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "",
+          ":",
+          "\\(a*\\)\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(a*\\)\\1",
+          ""
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c305d2c5b302c305d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "standard-last-capture-positive",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "ababbabb",
+          ":",
+          "\\(ab*\\)*\\1$"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6162620a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "ababbabb",
+          ":",
+          "\\(ab*\\)*\\1$"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6162620a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "ababbabb",
+          ":",
+          "\\(ab*\\)*\\1$"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6162620a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(ab*\\)*\\1$",
+          "ababbabb"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c385d2c5b322c355d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "standard-last-capture-negative",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "ababbab",
+          ":",
+          "\\(ab*\\)*\\1$"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "ababbab",
+          ":",
+          "\\(ab*\\)*\\1$"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "ababbab",
+          ":",
+          "\\(ab*\\)*\\1$"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(ab*\\)*\\1$",
+          "ababbab"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a312c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b2d39392c2d39395d2c5b2d39392c2d39395d2c5b2d39392c2d39395d5d7d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "whole-before-submatch",
+      "gnuPlus": {
+        "arguments": [
+          "+",
+          "acdacaaa",
+          ":",
+          "\\(ac*\\)c*d[ac]*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "gnuPortable": {
+        "arguments": [
+          "acdacaaa",
+          ":",
+          "\\(ac*\\)c*d[ac]*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "applePortable": {
+        "arguments": [
+          "acdacaaa",
+          ":",
+          "\\(ac*\\)c*d[ac]*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "libc": {
+        "arguments": [
+          "\\(ac*\\)c*d[ac]*\\1",
+          "acdacaaa"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c385d2c5b302c315d2c5b2d312c2d315d5d7d0a",
+        "stderrHex": ""
+      }
+    }
+  ],
+  "compile": {
+    "arguments": [
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/posix-semantics-independent-20260827/libc-probe.c",
+      "-o",
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-posix-native-XlxDK4/libc-probe"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutHex": "",
+    "stderrHex": ""
+  },
+  "linkage": {
+    "arguments": [
+      "-L",
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-posix-native-XlxDK4/libc-probe"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutHex": "2f7661722f666f6c646572732f72772f733463793736686e36763535717270306468636274706c6330303030676e2f542f657870722d706f7369782d6e61746976652d586c78444b342f6c6962632d70726f62653a0a092f7573722f6c69622f6c696253797374656d2e422e64796c69622028636f6d7061746962696c6974792076657273696f6e20312e302e302c2063757272656e742076657273696f6e20313335362e302e30290a",
+    "stderrHex": ""
+  },
+  "after": [
+    {
+      "name": "CASES.json",
+      "sha256": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0"
+    },
+    {
+      "name": "libc-probe.c",
+      "sha256": "f96c0247daea57e265d10506a8e193bc8dc3758cf2cf18fa9a0c7db03d899ff8"
+    },
+    {
+      "name": "capture.mjs",
+      "sha256": "deeea7b50e5930bcee87b102c56baf4d7df4c598a6163abbd2fb1ea11a378277"
+    }
+  ],
+  "nativeAfter": {
+    "gnu": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c"
+    },
+    "apple": {
+      "path": "/bin/expr",
+      "realpath": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f"
+    },
+    "compiler": {
+      "path": "/usr/bin/cc",
+      "realpath": "/usr/bin/cc",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  },
+  "finished": "2026-08-27T19:08:54.707Z",
+  "cleanup": {
+    "executionRootRemoved": true,
+    "activeOwnedChildren": 0,
+    "method": "spawnSync waits for each child; unique helper tree removed in finally"
+  }
+}

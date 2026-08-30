@@ -1,0 +1,166 @@
+{
+  "candidate": {
+    "finished": true,
+    "commit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+    "sourceSha256": "f9276a3524347ec20030d41c25d2d5bc033471437b7a9749094585b17693ce0c",
+    "dependencySha256": "cda0820b8443488b19d0747cb97de37f8aec7492747bff286705a33f6026402e",
+    "profile": "virtual-bash-file-v1",
+    "options": {
+      "limits": {
+        "maxSniffBytes": 65536,
+        "maxReadFileBytes": 65536
+      }
+    }
+  },
+  "effectivePrefixBytes": 65536,
+  "policy": {
+    "version": 1,
+    "caseCount": 40,
+    "contentCases": 20,
+    "workflowCases": 20,
+    "contentViewCount": 80,
+    "preCandidate": true,
+    "candidateImports": 0,
+    "candidateExecutions": 0,
+    "binding": "Public factory/plugin names and prefix option/limit are pending; root supplies mechanical adapter only after candidate finished. No proposed names imported here.",
+    "statusVocabulary": [
+      "not-run",
+      "pass",
+      "fail",
+      "unsupported",
+      "native-profile-conflict",
+      "backend-limitation",
+      "harness-defect",
+      "oracle-unavailable"
+    ],
+    "reporting": "Each case has semantic/safety and native-exact lanes. Unsupported, profile-conflict, backend-limitation, harness-defect and oracle-unavailable are NOT passes. Report 40 denominator and 80 content-view denominator separately; native probes are reference observations, never candidate passes.",
+    "assertions": "Semantic MIME alias sets are frozen before candidate inspection; native exact MIME/encoding is captured independently and never rewritten to match a candidate. Human labels use semantic regex only. Error stderr need not contain errno literals.",
+    "limits": "Classifier, not full file validator. No decompression; no full libmagic parity or unsupported-option matrix. Native bounded -P bytes=65536 fixtures only. Exact file-vs-stdin and prefix-vs-full-source differences stay visible.",
+    "sourceAuditLater": "After candidate freeze, review owned author sources for runtime deps/subprocesses/host fs/libmagic/decompression. No behavioral holdout can universally prove absence of host access; the dedicated canary only covers its exercised route."
+  },
+  "startedFromFrozenHoldouts": true,
+  "reportedAt": "2026-08-27T09:28:21.292Z",
+  "reports": [
+    {
+      "id": "F01",
+      "semanticStatus": "pass",
+      "nativeStatus": "pass",
+      "evidence": {
+        "views": [
+          {
+            "view": "brief-human",
+            "stdout": "empty\n",
+            "stderr": "",
+            "exitCode": 0,
+            "trace": [
+              {
+                "method": "lstat",
+                "path": "/input",
+                "options": {
+                  "signal": "present"
+                }
+              },
+              {
+                "method": "readStream",
+                "path": "/input",
+                "options": {
+                  "signal": "aborted",
+                  "start": 0,
+                  "endExclusive": 65536,
+                  "chunkSize": 16384
+                }
+              }
+            ],
+            "semantic": true,
+            "nativeExact": true,
+            "nativeAvailable": true
+          },
+          {
+            "view": "brief-mime",
+            "stdout": "inode/x-empty; charset=binary\n",
+            "stderr": "",
+            "exitCode": 0,
+            "trace": [
+              {
+                "method": "lstat",
+                "path": "/input",
+                "options": {
+                  "signal": "present"
+                }
+              },
+              {
+                "method": "readStream",
+                "path": "/input",
+                "options": {
+                  "signal": "aborted",
+                  "start": 0,
+                  "endExclusive": 65536,
+                  "chunkSize": 16384
+                }
+              }
+            ],
+            "semantic": true,
+            "nativeExact": true,
+            "nativeAvailable": true
+          },
+          {
+            "view": "brief-mime-type",
+            "stdout": "inode/x-empty\n",
+            "stderr": "",
+            "exitCode": 0,
+            "trace": [
+              {
+                "method": "lstat",
+                "path": "/input",
+                "options": {
+                  "signal": "present"
+                }
+              },
+              {
+                "method": "readStream",
+                "path": "/input",
+                "options": {
+                  "signal": "aborted",
+                  "start": 0,
+                  "endExclusive": 65536,
+                  "chunkSize": 16384
+                }
+              }
+            ],
+            "semantic": true,
+            "nativeExact": true,
+            "nativeAvailable": true
+          },
+          {
+            "view": "brief-mime-encoding",
+            "stdout": "binary\n",
+            "stderr": "",
+            "exitCode": 0,
+            "trace": [
+              {
+                "method": "lstat",
+                "path": "/input",
+                "options": {
+                  "signal": "present"
+                }
+              },
+              {
+                "method": "readStream",
+                "path": "/input",
+                "options": {
+                  "signal": "aborted",
+                  "start": 0,
+                  "endExclusive": 65536,
+                  "chunkSize": 16384
+                }
+              }
+            ],
+            "semantic": true,
+            "nativeExact": true,
+            "nativeAvailable": true
+          }
+        ]
+      }
+    }
+  ]
+}

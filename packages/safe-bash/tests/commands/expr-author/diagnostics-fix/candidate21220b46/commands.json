@@ -1,0 +1,104 @@
+[
+  {
+    "binary": "git",
+    "args": [
+      "archive",
+      "21220b465537bf45ffcfb36740956a69f43bf75e",
+      "src",
+      "tests/commands/expr",
+      "tests/commands/expr-author/regex-audit-cases.ts",
+      "package.json",
+      "tsconfig.json",
+      "tsconfig.build.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "failure": null
+  },
+  {
+    "binary": "/usr/bin/tar",
+    "args": [
+      "-xf",
+      "-"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-smB6Kg",
+    "status": 0,
+    "signal": null,
+    "failure": null
+  },
+  {
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-smB6Kg",
+    "status": 0,
+    "signal": null,
+    "failure": null
+  },
+  {
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "-p",
+      "diagnostics-strict.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-smB6Kg",
+    "status": 0,
+    "signal": null,
+    "failure": null
+  },
+  {
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/compare.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-smB6Kg",
+      "compare",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/baseline27a/native.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "failure": null
+  },
+  {
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "tests/commands/expr/diagnostics-regression.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-smB6Kg",
+    "status": 0,
+    "signal": null,
+    "failure": null
+  },
+  {
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "tests/commands/expr/abort-reason-regression.test.ts",
+      "tests/commands/expr/contracts.test.ts",
+      "tests/commands/expr/grammar.test.ts",
+      "tests/commands/expr/native.test.ts",
+      "tests/commands/expr/regex-lifecycle.test.ts",
+      "tests/commands/expr/regex-limits.test.ts",
+      "tests/commands/expr/regex-native.test.ts",
+      "tests/commands/expr/regex-protocol.test.ts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-author/diagnostics-fix/.work-smB6Kg",
+    "status": 1,
+    "signal": null,
+    "failure": null
+  }
+]

@@ -1,0 +1,20 @@
+import {
+  createTimeoutCommand,
+  createTimeoutCommands,
+  timeoutCommands,
+  type TimeoutCommandOptions,
+  type TimeoutCommandsOptions,
+  type TimeoutScheduler,
+} from "virtual-bash/internal-timeout-candidate";
+
+const scheduler: TimeoutScheduler = {
+  now: () => 0,
+  setTimeout: () => undefined,
+  clearTimeout: () => undefined,
+};
+const commandOptions: TimeoutCommandOptions = { invoke: undefined, scheduler, maxTimerMilliseconds: undefined };
+const commandsOptions: TimeoutCommandsOptions = { ...commandOptions, replace: undefined };
+createTimeoutCommand(commandOptions);
+createTimeoutCommands(commandsOptions);
+timeoutCommands(commandsOptions);
+

@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "classification": "AUTHOR_STATIC_ONLY_NOT_INDEPENDENT_ACCEPTANCE",
+  "sourceCommit": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+  "sourceSealSha256": "1f2a8f4670ddcfebf6a36d0c2d55ccf0666609d932de38145dbefc7798e8e891",
+  "additiveDiff": {
+    "argv": [
+      "diff",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--full-index",
+      "5b121e0c5e136a40bc4b277cab686ab0413af527^",
+      "5b121e0c5e136a40bc4b277cab686ab0413af527",
+      "--",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/BINDINGS-PENDING.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CANDIDATE-ADMISSION.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CONTROLS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/HISTORICAL-OBSERVATIONS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INPUTS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INTEGRATION-DELTA.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/JOBS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LEDGER-194.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LOADED-CONTROLS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/OBLIGATIONS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/PREPARATION-LOG.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/PRESEAL.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/README.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/REQUEST-ROUTING.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-PROOFS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-SEAL.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TOOLS-LOADER-GUARDS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TYPES.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/validate-data.mjs"
+    ],
+    "sha256": "586b0c7299585bb2911bf3e522ea5d33c0dfd1dc03a4afe5abd75e232a75a2bd",
+    "bytes": 1182774,
+    "changedPaths": [
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/BINDINGS-PENDING.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CANDIDATE-ADMISSION.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CONTROLS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/HISTORICAL-OBSERVATIONS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INPUTS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INTEGRATION-DELTA.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/JOBS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LEDGER-194.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LOADED-CONTROLS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/OBLIGATIONS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/PREPARATION-LOG.md"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/PRESEAL.md"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/README.md"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/REQUEST-ROUTING.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-PROOFS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-SEAL.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TOOLS-LOADER-GUARDS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TYPES.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/validate-data.mjs"
+      }
+    ],
+    "nonOwnedChanges": 0,
+    "sourceJobDataChanged": false
+  },
+  "data": {
+    "command": "node tests/commands/yq-independent-20260828/successor-review-preseal-v1/validate-data.mjs",
+    "exitCode": 0,
+    "stdout": "{\"classification\":\"AUTHOR_STATIC_DATA_CHECK_ONLY\",\"selectedGitReferences\":258,\"originalIds\":194,\"overlays\":8,\"immutableJobsPerEnvironment\":149,\"uniqueRuntimeIds\":132,\"outerSlots\":335,\"compilerDescendants\":12,\"globalCapMs\":23625000,\"obligationRows\":371,\"missingBindings\":135,\"gapRecords\":80,\"sourceRows\":23,\"repairRows\":4,\"directFixtures\":6,\"publicGapFixtures\":5,\"loadedSlots\":10,\"cmd22Definitions\":31,\"candidateAuthorization\":\"DENY\",\"productImports\":0,\"proposedExecutorRuns\":0,\"controlExecutions\":0,\"semanticPasses\":0}\n",
+    "stderr": "",
+    "result": {
+      "classification": "AUTHOR_STATIC_DATA_CHECK_ONLY",
+      "selectedGitReferences": 258,
+      "originalIds": 194,
+      "overlays": 8,
+      "immutableJobsPerEnvironment": 149,
+      "uniqueRuntimeIds": 132,
+      "outerSlots": 335,
+      "compilerDescendants": 12,
+      "globalCapMs": 23625000,
+      "obligationRows": 371,
+      "missingBindings": 135,
+      "gapRecords": 80,
+      "sourceRows": 23,
+      "repairRows": 4,
+      "directFixtures": 6,
+      "publicGapFixtures": 5,
+      "loadedSlots": 10,
+      "cmd22Definitions": 31,
+      "candidateAuthorization": "DENY",
+      "productImports": 0,
+      "proposedExecutorRuns": 0,
+      "controlExecutions": 0,
+      "semanticPasses": 0
+    }
+  },
+  "syntax": {
+    "command": "node --check tests/commands/yq-independent-20260828/successor-review-preseal-v1/validate-data.mjs",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "specification": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 /Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py tests/commands/yq-independent-20260828/successor-review-preseal-v1/PRESEAL.md",
+    "exitCode": 0,
+    "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/successor-review-preseal-v1/PRESEAL.md (0 warning(s))\n",
+    "stderr": ""
+  },
+  "sourceCommitVerification": {
+    "committedFiles": 20,
+    "allLiveHashesMatch": true,
+    "sourceMembershipExact": true,
+    "mode": "100644"
+  },
+  "preparationFailures": {
+    "beforeSourceSeal": 4,
+    "history": "PREPARATION-LOG.md",
+    "afterSourceSeal": [
+      {
+        "stage": "static evidence assembly",
+        "error": "process is not defined",
+        "effect": "Node REPL lacks ambient process. Data/hash/syntax checks had completed; specification subprocess was not launched by that call. Retried only the static specification checker through env, no candidate or control action."
+      }
+    ],
+    "productRetries": 0
+  },
+  "execution": {
+    "candidateKnown": false,
+    "RootGO": false,
+    "proposedExecutorRuns": 0,
+    "productImports": 0,
+    "semanticRuns": 0,
+    "typeRuns": 0,
+    "buildRuns": 0,
+    "controlRuns": 0,
+    "activeOwnedCandidateOrExecutorChildren": 0
+  },
+  "futurePhaseClockProof": false,
+  "independentAcceptance": false
+}

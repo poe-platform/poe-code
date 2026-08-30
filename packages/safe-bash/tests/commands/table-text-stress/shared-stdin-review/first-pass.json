@@ -1,0 +1,881 @@
+{
+  "phase": "Original pre-alias-correction runs; retained, not the corrected final gate",
+  "snapshot": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+  "sourceDigest": "e796b3ca1b3cc3582b40e8fac18877aa93e3d1203dcd08e82ffccc6e61eb81af",
+  "tableDigest": "e4315fd33a56aa30ec9c390115c714ca958e60f13cb3f0f39a5d52592e77c7e6",
+  "helperSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+  "commands": [
+    {
+      "name": "selected-gnu216",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "direct216"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "0e8642777c011e59cebc26c2c2b7de328af6abfe6a14cf4c8e15f10383943057",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "original104",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text-stress/contracts.test.ts",
+        "tests/commands/table-text-stress/corpus.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "1b51a6e4b9790c95508e206619b38758ea43a22ac58ec74dcc4c4a9ffe8fd37a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 103,
+      "fail": 1,
+      "skipped": 0,
+      "failures": [
+        "independent frozen GNU: comm shared original"
+      ],
+      "loadError": false
+    },
+    {
+      "name": "original311-current-helper",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text/contracts.test.ts",
+        "tests/commands/table-text/differential.test.ts",
+        "tests/commands/table-text/integration.test.ts",
+        "tests/plugins/agent-commands.test.ts",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+        "tests/commands/structured-stress/split-increment/interop.test.ts",
+        "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {
+        "GNU_TABLE_BIN": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/metadata-stress/.oracle/coreutils-9.7/src"
+      },
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "f9f99f6108412036201a2b5a0f4e82fa7240bb4c36bf0143cc1c20623c487a9f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 310,
+      "fail": 1,
+      "skipped": 0,
+      "failures": [
+        "explicit GNU duplicate-close disagreement comm: shared stdin"
+      ],
+      "loadError": false
+    },
+    {
+      "name": "author-fix-controls",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+        "tests/commands/table-text-stress/shared-stdin-fix/shared-stdin.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "abc3238c830cfea9d791f5386ad5e272c55f22315bba4228aa612fbe59129e5f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 234,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "metadata43",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/metadata/chmod.test.ts",
+        "tests/commands/metadata/integration.test.ts",
+        "tests/commands/metadata/mktemp.test.ts",
+        "tests/commands/metadata/stat.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "7417521a0f3f0a50a4d6ae59cce79df19da1620372261ece42a30126e5de245e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 43,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "scoped-noemit",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "comm-review-types.json"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "isolated-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    {
+      "name": "built-selected71x2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "built71"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "fec559e33197d4fe5a8e705051a0ffd95be2fee59d902db42a6cf6c001bf4802",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    }
+  ],
+  "snapshotDrift": [],
+  "cleanup": [
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-1ONNBr",
+      "matchingExistingFixture": "join NUL newline fields invalid bytes",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-2lbxQp",
+      "matchingExistingFixture": "paste serial shared cursor",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-2yIpGF",
+      "matchingExistingFixture": "join seed 5",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-410jwU",
+      "matchingExistingFixture": "comm order ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-4Q1jFs",
+      "matchingExistingFixture": "join seed 13",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-4tQbhs",
+      "matchingExistingFixture": "paste seed 9",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-61YgSg",
+      "matchingExistingFixture": "join repeated format and delimiter",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-8sBuuY",
+      "matchingExistingFixture": "paste seed 9",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-9j7khJ",
+      "matchingExistingFixture": "join seed 11",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-AGbF9A",
+      "matchingExistingFixture": "paste seed 0",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-B7gIbq",
+      "matchingExistingFixture": "paste seed 13",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-BIK83p",
+      "matchingExistingFixture": "comm shared original",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Dluq4f",
+      "matchingExistingFixture": "paste seed 14",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-DmmN2F",
+      "matchingExistingFixture": "paste CR invalid bytes",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-E6Ez0h",
+      "matchingExistingFixture": "join seed 15",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-EojqOO",
+      "matchingExistingFixture": "paste seed 13",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-FikdFY",
+      "matchingExistingFixture": "join seed 0",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-FnJaS1",
+      "matchingExistingFixture": "paste seed 14",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-HL4vGZ",
+      "matchingExistingFixture": "comm order ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-HhMVrs",
+      "matchingExistingFixture": "paste seed 12",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-IJO8ib",
+      "matchingExistingFixture": "join seed 2",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Iou0sc",
+      "matchingExistingFixture": "join seed 9",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-LSUb2B",
+      "matchingExistingFixture": "paste seed 15",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-LYXotM",
+      "matchingExistingFixture": "join empty opposite inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Lbk1uA",
+      "matchingExistingFixture": "join seed 3",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-MAJxKI",
+      "matchingExistingFixture": "join empty opposite inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-MKCGiV",
+      "matchingExistingFixture": "paste seed 2",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-NSoD0Z",
+      "matchingExistingFixture": "join seed 4",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-NVAB7Z",
+      "matchingExistingFixture": "paste seed 3",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-OBk57p",
+      "matchingExistingFixture": "join header auto empty fields",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-QEWhgf",
+      "matchingExistingFixture": "paste NUL shared invalid bytes",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-RTHmzm",
+      "matchingExistingFixture": "join seed 12",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-RiWuPO",
+      "matchingExistingFixture": "paste seed 2",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Rs1d4s",
+      "matchingExistingFixture": "paste seed 8",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-S0PZCx",
+      "matchingExistingFixture": "paste seed 15",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-SDgj5v",
+      "matchingExistingFixture": "paste seed 5",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-UJuFgM",
+      "matchingExistingFixture": "paste seed 10",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Ul6sI7",
+      "matchingExistingFixture": "paste seed 4",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-VdwKCb",
+      "matchingExistingFixture": "paste seed 1",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-WoWbGm",
+      "matchingExistingFixture": "comm NUL empty delimiter",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-Xt1mIc",
+      "matchingExistingFixture": "paste seed 5",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-YCDkFR",
+      "matchingExistingFixture": "paste seed 12",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-ZvI0P3",
+      "matchingExistingFixture": "join seed 8",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-akJwoN",
+      "matchingExistingFixture": "join seed 7",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-bBa0Uh",
+      "matchingExistingFixture": "paste seed 10",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-bHD9At",
+      "matchingExistingFixture": "join empty opposite inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-cDpthS",
+      "matchingExistingFixture": "join seed 1",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-dCWXuJ",
+      "matchingExistingFixture": "comm shared original",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-dpglhx",
+      "matchingExistingFixture": "comm duplicate multiplicity totals",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-dqp0yJ",
+      "matchingExistingFixture": "paste shared alternating empty EOF",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-e9nfm4",
+      "matchingExistingFixture": "join seed 14",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-mrbQK2",
+      "matchingExistingFixture": "paste seed 6",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-n2pi9H",
+      "matchingExistingFixture": "join whole record empty key",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-nCOuOo",
+      "matchingExistingFixture": "join large Cartesian",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-nCYgCd",
+      "matchingExistingFixture": "comm order ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-nPc78C",
+      "matchingExistingFixture": "paste seed 8",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-noy6v8",
+      "matchingExistingFixture": "paste seed 0",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-o0CBx0",
+      "matchingExistingFixture": "join first unpaired inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-pMnLQB",
+      "matchingExistingFixture": "paste seed 6",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-pVmm2n",
+      "matchingExistingFixture": "join first unpaired inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-rXt0vk",
+      "matchingExistingFixture": "paste seed 1",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-ujqxBD",
+      "matchingExistingFixture": "paste seed 7",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-wI8KEE",
+      "matchingExistingFixture": "join first unpaired inversion ",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-wuugnK",
+      "matchingExistingFixture": "join seed 10",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-xeeu5Z",
+      "matchingExistingFixture": "paste seed 11",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-xiY4xE",
+      "matchingExistingFixture": "paste seed 7",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-y1EaT3",
+      "matchingExistingFixture": "paste seed 4",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-y6aYkk",
+      "matchingExistingFixture": "comm C byte collation",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-yCoFbJ",
+      "matchingExistingFixture": "paste seed 3",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-yh2EXN",
+      "matchingExistingFixture": "paste seed 11",
+      "exactBytesAndNamespace": true
+    },
+    {
+      "directory": "/tmp/safe-bash-comm-final-review-owned/snapshot/tests/commands/table-text-stress/.native-z5XXOD",
+      "matchingExistingFixture": "join seed 6",
+      "exactBytesAndNamespace": true
+    }
+  ],
+  "remainingNativeArtifacts": [],
+  "allChildrenExited": true,
+  "originalSixBuiltChecks": "unavailable; not executed or claimed",
+  "buildHashesDigest": "f42d96c96627dd263052ba7912df0d3aa60d20fd703f8a52cc141f3c8cc8705e",
+  "buildHashesReference": "results.json buildHashes (verified identical)",
+  "selected311": {
+    "label": "Same311 cases: sole replacement is separately labeled selected-GNU driver; original characterization suite remains unchanged and was run separately",
+    "sourceDigest": "e796b3ca1b3cc3582b40e8fac18877aa93e3d1203dcd08e82ffccc6e61eb81af",
+    "tableDigest": "e4315fd33a56aa30ec9c390115c714ca958e60f13cb3f0f39a5d52592e77c7e6",
+    "helperSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "originalTests": [
+      "tests/commands/table-text/contracts.test.ts",
+      "tests/commands/table-text/differential.test.ts",
+      "tests/commands/table-text/integration.test.ts",
+      "tests/plugins/agent-commands.test.ts",
+      "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+    ],
+    "selectedTests": [
+      "tests/commands/table-text/contracts.test.ts",
+      "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+      "tests/commands/table-text/integration.test.ts",
+      "tests/plugins/agent-commands.test.ts",
+      "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+    ],
+    "command": {
+      "name": "selected-gnu311-current-helper",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text/contracts.test.ts",
+        "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+        "tests/commands/table-text/integration.test.ts",
+        "tests/plugins/agent-commands.test.ts",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+        "tests/commands/structured-stress/split-increment/interop.test.ts",
+        "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "9948d30fcba6c5ba64878a99deb3027fc626ebfac352742ff02090bb9f4292cb",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 311,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    "snapshotDrift": []
+  },
+  "priorSource": {
+    "authorCommit": "6ef0d8ddd76b430737cc9158c9c3c509fe197097",
+    "finalSnapshot": "/tmp/safe-bash-comm-final-review-owned/snapshot",
+    "prior": "/tmp/safe-bash-comm-final-review-owned/prior-source",
+    "finalSourceDigest": "e796b3ca1b3cc3582b40e8fac18877aa93e3d1203dcd08e82ffccc6e61eb81af",
+    "restored": [
+      {
+        "path": "src/commands/table-text/comm.ts",
+        "fixedSha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+        "priorSha256": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f"
+      },
+      {
+        "path": "src/commands/table-text/internal.ts",
+        "fixedSha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+        "priorSha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8"
+      }
+    ],
+    "differences": [
+      {
+        "path": "src/commands/table-text/comm.ts",
+        "before": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+        "after": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f"
+      },
+      {
+        "path": "src/commands/table-text/internal.ts",
+        "before": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+        "after": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8"
+      }
+    ],
+    "allOtherInputsUnchanged": true,
+    "types": {
+      "name": "prior-source-noemit",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/prior-source",
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    "result": {
+      "name": "prior-source-shared-negative",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+        "shared-negative"
+      ],
+      "cwd": "/tmp/safe-bash-comm-final-review-owned/prior-source",
+      "env": {},
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "d46d0b0ac1289f31d92e8ed5556cc7e1ce62f45795908796b2b462ece35d99f7",
+      "stderrSha256": "949a69042c33e5d7987ac7ee62a79018fce6684ae64a33232fb1a6f68fdac828",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0,
+      "failures": [],
+      "loadError": false
+    },
+    "observed": {
+      "mode": "shared-negative",
+      "selectedPass": 0,
+      "exactPass": 0,
+      "total": 1,
+      "profile": "Original stdout/status/stderr-presence policy; repaired shared-stdin additionally requires exact GNU diagnostic. Exact-row count is separate, with all raw stderr retained.",
+      "observations": [
+        {
+          "name": "comm: shared stdin",
+          "inputSha256": "d3e69ff19a538fc9beb7e0fbad8add1d127b0536cd13ee493fdb535f75903142",
+          "actual": {
+            "exitCode": 0,
+            "stdoutHex": "0909610a0909620a630a",
+            "stderrHex": ""
+          },
+          "selected": false,
+          "exact": false,
+          "filesUnchanged": true
+        }
+      ]
+    },
+    "semanticAssertion": true,
+    "inputDrift": [],
+    "finalSnapshotDrift": [],
+    "limitation": "Only the original shared-stdin input is replayed on a separate two-file prior-source clone; not final-product acceptance or a rerun of the four historical mutants."
+  },
+  "archivedLogs": [
+    {
+      "command": "selected-gnu216",
+      "stream": "stdout",
+      "bytes": 87381,
+      "sha256": "0e8642777c011e59cebc26c2c2b7de328af6abfe6a14cf4c8e15f10383943057",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout"
+    },
+    {
+      "command": "selected-gnu216",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "original104",
+      "stream": "stdout",
+      "bytes": 17333,
+      "sha256": "1b51a6e4b9790c95508e206619b38758ea43a22ac58ec74dcc4c4a9ffe8fd37a",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/original104.stdout"
+    },
+    {
+      "command": "original104",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "original311-current-helper",
+      "stream": "stdout",
+      "bytes": 63612,
+      "sha256": "f9f99f6108412036201a2b5a0f4e82fa7240bb4c36bf0143cc1c20623c487a9f",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/original311-current-helper.stdout"
+    },
+    {
+      "command": "original311-current-helper",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "author-fix-controls",
+      "stream": "stdout",
+      "bytes": 45158,
+      "sha256": "abc3238c830cfea9d791f5386ad5e272c55f22315bba4228aa612fbe59129e5f",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/author-fix-controls.stdout"
+    },
+    {
+      "command": "author-fix-controls",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "metadata43",
+      "stream": "stdout",
+      "bytes": 8628,
+      "sha256": "7417521a0f3f0a50a4d6ae59cce79df19da1620372261ece42a30126e5de245e",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/metadata43.stdout"
+    },
+    {
+      "command": "metadata43",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "scoped-noemit",
+      "stream": "stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "scoped-noemit",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "isolated-build",
+      "stream": "stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "isolated-build",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "built-selected71x2",
+      "stream": "stdout",
+      "bytes": 96252,
+      "sha256": "fec559e33197d4fe5a8e705051a0ffd95be2fee59d902db42a6cf6c001bf4802",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/built-selected71x2.stdout"
+    },
+    {
+      "command": "built-selected71x2",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "selected-gnu311-current-helper",
+      "stream": "stdout",
+      "bytes": 73720,
+      "sha256": "9948d30fcba6c5ba64878a99deb3027fc626ebfac352742ff02090bb9f4292cb",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu311-current-helper.stdout"
+    },
+    {
+      "command": "selected-gnu311-current-helper",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "prior-source-noemit",
+      "stream": "stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "prior-source-noemit",
+      "stream": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": null
+    },
+    {
+      "command": "prior-source-shared-negative",
+      "stream": "stdout",
+      "bytes": 630,
+      "sha256": "d46d0b0ac1289f31d92e8ed5556cc7e1ce62f45795908796b2b462ece35d99f7",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/prior-source-shared-negative.stdout"
+    },
+    {
+      "command": "prior-source-shared-negative",
+      "stream": "stderr",
+      "bytes": 479,
+      "sha256": "949a69042c33e5d7987ac7ee62a79018fce6684ae64a33232fb1a6f68fdac828",
+      "path": "tests/commands/table-text-stress/shared-stdin-review/logs/prior-source-shared-negative.stderr"
+    }
+  ]
+}

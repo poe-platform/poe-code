@@ -1,0 +1,118 @@
+import assert from 'node:assert/strict';
+
+export function deferred(label) {
+  let resolvePromise;
+  let rejectPromise;
+  let state = 'pending';
+  const promise = new Promise((resolve, reject) => {
+    resolvePromise = resolve;
+    rejectPromise = reject;
+  });
+  promise.catch(() => {});
+  return {
+    label,
+    promise,
+    get state() { return state; },
+    release(value) {
+      assert.equal(state, 'pending', `${label}: already settled`);
+      state = 'resolved';
+      resolvePromise(value);
+    },
+    reject(error) {
+      assert.equal(state, 'pending', `${label}: already settled`);
+      state = 'rejected';
+      rejectPromise(error);
+    }
+  };
+}
+
+export function eventRecorder(bounds) {
+  const events = [];
+  return {
+    events,
+    record(type, detail = {}) {
+      assert.ok(events.length < bounds.maxEvents, 'Harness event count exceeded');
+      const event = { sequence: events.length, type, ...detail };
+      assert.ok(Buffer.byteLength(JSON.stringify(event)) <= bounds.maxEventBytes, 'Harness event size exceeded');
+      events.push(event);
+      return event;
+    }
+  };
+}
+
+export function borrowedCursor(chunks, pendingIndex, recorder) {
+  const gate = deferred('external-owner-read-release');
+  const entered = deferred('pending-read-entered');
+  const state = { next: 0, returned: 0, cancelled: 0, closed: 0, active: 0, offset: 0, readSettled: false };
+  const cursor = {
+    [Symbol.asyncIterator]() { return this; },
+    async next() {
+      assert.equal(state.active, 0, 'Concurrent underlying borrowed next');
+      state.next += 1;
+      const index = state.offset;
+      recorder.record('borrowed-next-enter', { index });
+      if (index >= chunks.length) return { done: true, value: undefined };
+      state.active = 1;
+      try {
+        if (index === pendingIndex) {
+          entered.release(index);
+          await gate.promise;
+          state.readSettled = true;
+        }
+        const value = Buffer.from(chunks[index]);
+        state.offset += 1;
+        recorder.record('borrowed-next-settle', { index, bytes: value.length });
+        return { done: false, value };
+      } catch (error) {
+        state.offset += 1;
+        state.readSettled = true;
+        recorder.record('borrowed-next-reject', { index });
+        throw error;
+      } finally {
+        state.active = 0;
+      }
+    },
+    async return() {
+      state.returned += 1;
+      recorder.record('forbidden-borrowed-return');
+      throw new Error('Borrowed owner did not transfer return authority');
+    },
+    cancel() {
+      state.cancelled += 1;
+      recorder.record('forbidden-borrowed-cancel');
+      throw new Error('Borrowed owner did not transfer cancel authority');
+    },
+    close() {
+      state.closed += 1;
+      recorder.record('forbidden-borrowed-close');
+      throw new Error('Borrowed owner did not transfer close authority');
+    }
+  };
+  return { cursor, state, gate, entered, ownership: 'borrowed-full-visible-cursor-no-frame-or-replay' };
+}
+
+export async function selfCheck(inputs) {
+  const recorder = eventRecorder(inputs.bounds);
+  const probe = borrowedCursor(inputs.borrowedCurl.chunks, inputs.borrowedCurl.pendingChunkIndex, recorder);
+  assert.equal((await probe.cursor.next()).value.toString(), inputs.borrowedCurl.chunks[0]);
+  const pending = probe.cursor.next();
+  await probe.entered.promise;
+  assert.equal(probe.state.active, 1);
+  assert.equal(probe.state.readSettled, false);
+  recorder.record('synthetic-observation-not-product-output-close');
+  await Promise.resolve();
+  assert.equal(probe.state.readSettled, false);
+  probe.gate.release();
+  assert.equal((await pending).value.toString(), inputs.borrowedCurl.chunks[1]);
+  assert.equal((await probe.cursor.next()).value.toString(), inputs.borrowedCurl.chunks[2]);
+  assert.equal((await probe.cursor.next()).value.toString(), inputs.borrowedCurl.chunks[3]);
+  assert.equal((await probe.cursor.next()).done, true);
+  assert.equal(probe.state.returned + probe.state.cancelled + probe.state.closed, 0);
+  assert.equal(probe.state.active, 0);
+  const rejection = deferred('controlled-late-rejection');
+  const sentinel = new Error(inputs.failureReasons.lateReadErrorMessage);
+  const observed = rejection.promise.catch(error => error);
+  rejection.reject(sentinel);
+  assert.equal(await observed, sentinel);
+  return { classification: 'synthetic-fixture-self-check-not-product-execution', state: probe.state, events: recorder.events, controlledPromisesSettled: true, serversCreated: 0, productExecutions: 0 };
+}

@@ -1,0 +1,71 @@
+{
+  "schema": "PRESERVED_DRAFT",
+  "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v1-20260829",
+  "files": {
+    "AUTH-INACTIVE.json": {
+      "bytes": 237,
+      "sha256": "e5b2f549cf1e628dd1fbfa1497636236cae81b12e8f72987807d64a6eb27dbda"
+    },
+    "INSTRUMENTATION.json": {
+      "bytes": 1728,
+      "sha256": "6229bd15e324582b1f5c7fce92b64664811301a1ea1bb757c8a61e4ab30738e4"
+    },
+    "PLAN.json": {
+      "bytes": 1336,
+      "sha256": "63b71fc027cfed985fd5dfdd0252f7f767f4759c18c54d6080348a5afdb6c754"
+    },
+    "README.md": {
+      "bytes": 6012,
+      "sha256": "039ca145fac184644a7d54845879e4bd2264569631680393181f7e66ea5c4e06"
+    },
+    "case.mjs": {
+      "bytes": 12956,
+      "sha256": "085a3e809b4f7b088ea16207b45b9be74d412e435e2122ceddc074a758862158"
+    },
+    "common.mjs": {
+      "bytes": 9978,
+      "sha256": "35cb6cdb64ce285839934fd000ab81b6e68713816c5a15dd10ad6c925cd80388"
+    },
+    "controls.json": {
+      "bytes": 3022,
+      "sha256": "8c287c074fdef8e9e468d29e751310cef78df7d0380918cb3b4d97812fd0bb5e"
+    },
+    "fixtures.json": {
+      "bytes": 1162,
+      "sha256": "5ce1402b14d52c489b075b8fe6cc71b74d7d6172afa9996a35269c40883437a1"
+    },
+    "guarded-operation.mjs": {
+      "bytes": 1690,
+      "sha256": "3467a8d005f393b20bbb4905a3ccc72e154f8463180edcab8e45df5e070fd368"
+    },
+    "observer.mjs": {
+      "bytes": 8757,
+      "sha256": "85ea94dd4bca98919443c3aa43f10dfacc48fbacc77149d985384ce2f402c1c4"
+    },
+    "package.json": {
+      "bytes": 74,
+      "sha256": "ace4d0c30cd0af4d6433293b02d31872d821d730c6a3ab5c1bbd974c78620218"
+    },
+    "policy.mjs": {
+      "bytes": 3091,
+      "sha256": "50fd78a5295d4a028694ddc3ce883240b54d37476825a58edd4d2e78e34e3ee7"
+    },
+    "preload.mjs": {
+      "bytes": 5090,
+      "sha256": "8e6966ab68e86db15713b29f2b1db1777734429ce4b6873adf9ac77b898e5eb6"
+    },
+    "supervisor.mjs": {
+      "bytes": 10471,
+      "sha256": "5dafc0e1bef758000cd252573c0e289cc9aa89df82dab617e099b5bba13fa695"
+    }
+  },
+  "knownProcesses": 10,
+  "allKnownClosed": true,
+  "controlsRun": 0,
+  "workersCreated": 0,
+  "started": "2026-08-29T08:07:33.751Z",
+  "checkpoint": "2026-08-29T08:33:40.007Z",
+  "checkpointElapsedMilliseconds": 1566256,
+  "administrationIncluded": true,
+  "noAutomaticExtension": true
+}

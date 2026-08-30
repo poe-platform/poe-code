@@ -1,0 +1,15 @@
+{
+  "riskSafe": true,
+  "broadAcceptance": false,
+  "sourceCommit": "b1939d76b8e28687320a7253380a00b446424548",
+  "matchingGraph": ["worker.ts -> matching.ts", "worker.ts imports node:worker_threads transport", "matching.ts imports node:buffer isAscii", "protocol type imports erase"],
+  "observations": [
+    "Content pattern construction, compile errors, matching, fragment regex variants and fixed patterns remain inside compiled static worker; no eval, process, filesystem, network or subprocess access in matching graph.",
+    "Existing grep/search limits remain in command/worker paths; no host fast literal implementation is introduced.",
+    "Only authorized StandardCommandsOptions.regex, single existing grep factory forwarding and root type-only RegexExecutionOptions export change root wiring.",
+    "Static compiled client selects adjacent worker.js. Source-ts fallback references dist; actual verification uses compiled isolated dist only.",
+    "Default request 1000ms/startup3000ms/workers2 inspected. Separate per-definition executors, bounded queue and request-only leases; no Shell deadline added.",
+    "Known blocker: search/glob.ts:57/:61/:64 still executes CLI/ignore-derived regex on host through walk.ts. Root forbids those edits pending ownership. Controlled stdin risk cases do not use glob/ignore patterns or traversal.",
+    "Named rg backreference behavior remains unchanged, with deliberate JS dialect preserved; no compatibility rejection was implemented."
+  ]
+}

@@ -1,0 +1,5 @@
+The first invocation of the post-settlement closure helper stopped before any
+write or cleanup: its process search matched a git read of verify-v5.mjs rather
+than the Node verifier execution. The search now requires the authenticated
+Node executable and the verifier as argv[0]. This changes evidence selection
+only; no product case, control, build or replay was rerun.

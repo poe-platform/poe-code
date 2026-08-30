@@ -1,0 +1,139 @@
+{
+  "role": "STUB_NEXT_FAILURE_HOST_ONLY",
+  "result": {
+    "schema": 1,
+    "taskId": "stub/LIF-02/host-observation",
+    "capture": {
+      "stdoutHex": "",
+      "stderrHex": "",
+      "status": null,
+      "rejected": true,
+      "rejection": {
+        "kind": "object"
+      },
+      "effects": {
+        "before": [],
+        "after": []
+      },
+      "events": [
+        {
+          "index": 0,
+          "kind": "actor-input",
+          "actorKind": "LIF-02/host-observation",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "argvEntries": 4,
+          "argvUtf8Bytes": 9,
+          "argvSha256": "a69244e61d6e3f0e483d1a1d065b87f86e3bd11c41a921b9bc913d69f4c71a3d",
+          "inputBytes": 0,
+          "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunkBytes": [],
+          "producerReuse": false
+        },
+        {
+          "index": 1,
+          "kind": "factory-call"
+        },
+        {
+          "index": 2,
+          "kind": "command-execute"
+        },
+        {
+          "index": 3,
+          "kind": "iterator-acquire",
+          "name": "<stdin>"
+        },
+        {
+          "index": 4,
+          "kind": "iterator-next",
+          "name": "<stdin>",
+          "offset": 0
+        },
+        {
+          "index": 5,
+          "kind": "source-reject",
+          "callerAborted": false
+        },
+        {
+          "index": 6,
+          "kind": "iterator-return",
+          "name": "<stdin>",
+          "returned": 1
+        },
+        {
+          "index": 7,
+          "kind": "command-settled",
+          "rejected": true
+        },
+        {
+          "index": 8,
+          "kind": "actor-terminal",
+          "captureComplete": true,
+          "elapsedMs": 0.13579199999999858
+        }
+      ],
+      "cleanupErrors": []
+    },
+    "observations": [
+      {
+        "bindingId": "LIF-02::missing/0",
+        "recordId": "LIF-02",
+        "role": "runtime",
+        "status": "OBSERVED",
+        "facts": {
+          "actorKind": "LIF-02/host-observation",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "argvEntries": 4,
+          "argvUtf8Bytes": 9,
+          "argvSha256": "a69244e61d6e3f0e483d1a1d065b87f86e3bd11c41a921b9bc913d69f4c71a3d",
+          "inputBytes": 0,
+          "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunkBytes": [],
+          "producerReuse": false,
+          "sameCallerReason": false,
+          "sameHostReason": true,
+          "sameSinkReason": false,
+          "ownershipObserved": false
+        },
+        "evidenceRefs": [
+          "capture:stub/LIF-02/host-observation"
+        ]
+      },
+      {
+        "bindingId": "LIF-02::missing/1",
+        "recordId": "LIF-02",
+        "role": "runtime",
+        "status": "UNOBSERVED",
+        "facts": {
+          "actorKind": "LIF-02/host-observation",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "argvEntries": 4,
+          "argvUtf8Bytes": 9,
+          "argvSha256": "a69244e61d6e3f0e483d1a1d065b87f86e3bd11c41a921b9bc913d69f4c71a3d",
+          "inputBytes": 0,
+          "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunkBytes": [],
+          "producerReuse": false,
+          "sameCallerReason": false,
+          "sameHostReason": true,
+          "sameSinkReason": false,
+          "ownershipObserved": false
+        },
+        "evidenceRefs": [
+          "capture:stub/LIF-02/host-observation"
+        ]
+      }
+    ],
+    "local": null,
+    "localIdentityFacts": {
+      "selectedIsCaller": false,
+      "selectedIsHost": true,
+      "hasHarnessFailure": false
+    }
+  }
+}

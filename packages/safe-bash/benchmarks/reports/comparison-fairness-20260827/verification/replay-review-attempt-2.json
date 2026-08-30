@@ -1,0 +1,3003 @@
+{
+  "schema": 1,
+  "kind": "OFFLINE_REPLAY_REVIEW",
+  "createdAt": "2026-08-27T05:20:50.403Z",
+  "productExecutions": 0,
+  "profiles": {
+    "original": {
+      "rows": 224,
+      "groups": {
+        "command": 168,
+        "kernel": 36,
+        "composition": 12,
+        "network": 8
+      },
+      "groupTotals": {
+        "command": {
+          "virtual-bash": {
+            "pass": 167,
+            "fail": 1,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          },
+          "just-bash": {
+            "pass": 109,
+            "fail": 59,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          }
+        },
+        "kernel": {
+          "virtual-bash": {
+            "pass": 35,
+            "fail": 1,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          },
+          "just-bash": {
+            "pass": 36,
+            "fail": 0,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          }
+        },
+        "composition": {
+          "virtual-bash": {
+            "pass": 12,
+            "fail": 0,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          },
+          "just-bash": {
+            "pass": 8,
+            "fail": 4,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          }
+        },
+        "network": {
+          "virtual-bash": {
+            "pass": 8,
+            "fail": 0,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          },
+          "just-bash": {
+            "pass": 2,
+            "fail": 6,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          }
+        }
+      },
+      "totals": {
+        "virtual-bash": {
+          "pass": 222,
+          "fail": 2,
+          "timeout": 0,
+          "harness-or-engine-error": 0,
+          "invalid-oracle": 0
+        },
+        "just-bash": {
+          "pass": 155,
+          "fail": 69,
+          "timeout": 0,
+          "harness-or-engine-error": 0,
+          "invalid-oracle": 0
+        }
+      },
+      "intersections": {
+        "bothPass": 154,
+        "bothNonPass": [
+          "command/patch/dry-run"
+        ],
+        "virtualOnlyPass": [
+          "command/dirname/nul",
+          "command/printf/binary",
+          "command/mkdir/mode",
+          "command/touch/reference",
+          "command/cp/preserve-link",
+          "command/rm/empty-directory",
+          "command/ln/hardlink",
+          "command/readlink/no-newline",
+          "command/realpath/existing",
+          "command/realpath/missing-tail",
+          "command/realpath/relative",
+          "command/cat/binary-stdin",
+          "command/head/negative",
+          "command/tail/bytes",
+          "command/wc/words-lines",
+          "command/wc/unicode",
+          "command/tee/file",
+          "command/sort/nul-unique",
+          "command/uniq/counts",
+          "command/cut/bytes",
+          "command/cut/complement",
+          "command/env/clean",
+          "command/env/unset",
+          "command/env/nested",
+          "command/xargs/batch",
+          "command/xargs/replace",
+          "command/find/nul",
+          "command/rg/fixed",
+          "command/base64/decode",
+          "command/base32/encode",
+          "command/base32/decode",
+          "command/base32/wrap",
+          "command/xxd/plain",
+          "command/xxd/reverse",
+          "command/xxd/layout",
+          "command/od/hex",
+          "command/od/decimal",
+          "command/od/skip-count",
+          "command/cksum/stdin",
+          "command/cksum/files",
+          "command/cksum/algorithm",
+          "command/gzip/roundtrip",
+          "command/gunzip/stdin",
+          "command/zcat/stdin",
+          "command/diff/unified",
+          "command/diff/ignore-space",
+          "command/patch/apply",
+          "command/patch/reverse",
+          "command/chmod/recursive-reference",
+          "command/stat/follow",
+          "command/stat/timestamp",
+          "command/mktemp/file",
+          "command/mktemp/directory",
+          "command/mktemp/suffix-dry-run",
+          "command/paste/nul-shared",
+          "command/comm/totals",
+          "command/join/outer",
+          "command/join/duplicate",
+          "composition/text-filter/text-filter",
+          "composition/binary-roundtrip/binary-roundtrip",
+          "composition/patch-hash/patch-hash",
+          "composition/find-xargs/find-xargs",
+          "network/curl/get",
+          "network/curl/post-stdin",
+          "network/curl/post-file",
+          "network/curl/json",
+          "network/curl/redirect",
+          "network/curl/fail-body"
+        ],
+        "baselineOnlyPass": [
+          "kernel/type/type"
+        ]
+      },
+      "failures": [
+        {
+          "id": "command/dirname/nul",
+          "group": "command",
+          "command": "dirname",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/printf/binary",
+          "group": "command",
+          "command": "printf",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/mkdir/mode",
+          "group": "command",
+          "command": "mkdir",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/touch/reference",
+          "group": "command",
+          "command": "touch",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cp/preserve-link",
+          "group": "command",
+          "command": "cp",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/rm/empty-directory",
+          "group": "command",
+          "command": "rm",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/ln/hardlink",
+          "group": "command",
+          "command": "ln",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/readlink/no-newline",
+          "group": "command",
+          "command": "readlink",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/realpath/existing",
+          "group": "command",
+          "command": "realpath",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/realpath/missing-tail",
+          "group": "command",
+          "command": "realpath",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/realpath/relative",
+          "group": "command",
+          "command": "realpath",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cat/binary-stdin",
+          "group": "command",
+          "command": "cat",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/head/negative",
+          "group": "command",
+          "command": "head",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/tail/bytes",
+          "group": "command",
+          "command": "tail",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/wc/words-lines",
+          "group": "command",
+          "command": "wc",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/wc/unicode",
+          "group": "command",
+          "command": "wc",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/tee/file",
+          "group": "command",
+          "command": "tee",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/sort/nul-unique",
+          "group": "command",
+          "command": "sort",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/uniq/counts",
+          "group": "command",
+          "command": "uniq",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cut/bytes",
+          "group": "command",
+          "command": "cut",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cut/complement",
+          "group": "command",
+          "command": "cut",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/env/clean",
+          "group": "command",
+          "command": "env",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/env/unset",
+          "group": "command",
+          "command": "env",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/env/nested",
+          "group": "command",
+          "command": "env",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xargs/batch",
+          "group": "command",
+          "command": "xargs",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xargs/replace",
+          "group": "command",
+          "command": "xargs",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/find/nul",
+          "group": "command",
+          "command": "find",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/rg/fixed",
+          "group": "command",
+          "command": "rg",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/base64/decode",
+          "group": "command",
+          "command": "base64",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/base32/encode",
+          "group": "command",
+          "command": "base32",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/base32/decode",
+          "group": "command",
+          "command": "base32",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/base32/wrap",
+          "group": "command",
+          "command": "base32",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xxd/plain",
+          "group": "command",
+          "command": "xxd",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xxd/reverse",
+          "group": "command",
+          "command": "xxd",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xxd/layout",
+          "group": "command",
+          "command": "xxd",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/od/hex",
+          "group": "command",
+          "command": "od",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/od/decimal",
+          "group": "command",
+          "command": "od",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/od/skip-count",
+          "group": "command",
+          "command": "od",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cksum/stdin",
+          "group": "command",
+          "command": "cksum",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cksum/files",
+          "group": "command",
+          "command": "cksum",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cksum/algorithm",
+          "group": "command",
+          "command": "cksum",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/gzip/roundtrip",
+          "group": "command",
+          "command": "gzip",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/gunzip/stdin",
+          "group": "command",
+          "command": "gunzip",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/zcat/stdin",
+          "group": "command",
+          "command": "zcat",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/diff/unified",
+          "group": "command",
+          "command": "diff",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/diff/ignore-space",
+          "group": "command",
+          "command": "diff",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/patch/apply",
+          "group": "command",
+          "command": "patch",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/patch/dry-run",
+          "group": "command",
+          "command": "patch",
+          "engine": "virtual-bash",
+          "status": "fail",
+          "failedFields": [
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/patch/dry-run",
+          "group": "command",
+          "command": "patch",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/patch/reverse",
+          "group": "command",
+          "command": "patch",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/chmod/recursive-reference",
+          "group": "command",
+          "command": "chmod",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/stat/follow",
+          "group": "command",
+          "command": "stat",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/stat/timestamp",
+          "group": "command",
+          "command": "stat",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/mktemp/file",
+          "group": "command",
+          "command": "mktemp",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/mktemp/directory",
+          "group": "command",
+          "command": "mktemp",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/mktemp/suffix-dry-run",
+          "group": "command",
+          "command": "mktemp",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/paste/nul-shared",
+          "group": "command",
+          "command": "paste",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/comm/totals",
+          "group": "command",
+          "command": "comm",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/join/outer",
+          "group": "command",
+          "command": "join",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/join/duplicate",
+          "group": "command",
+          "command": "join",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "kernel/type/type",
+          "group": "kernel",
+          "command": "type",
+          "engine": "virtual-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "composition/text-filter/text-filter",
+          "group": "composition",
+          "command": "text-filter",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "composition/binary-roundtrip/binary-roundtrip",
+          "group": "composition",
+          "command": "binary-roundtrip",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "composition/patch-hash/patch-hash",
+          "group": "composition",
+          "command": "patch-hash",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "composition/find-xargs/find-xargs",
+          "group": "composition",
+          "command": "find-xargs",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/get",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/post-stdin",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/post-file",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/json",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/redirect",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/fail-body",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        }
+      ],
+      "controlsSeparate": {
+        "neutralityCalls": 24,
+        "transportCalls": 9,
+        "transportFailures": [
+          {
+            "name": "invalid-utf8",
+            "script": "cat",
+            "fileBytesMatch": null
+          }
+        ]
+      },
+      "dispatch": {
+        "reached": {
+          "virtual-bash": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "curl",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "just-bash": [
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "cat",
+            "chmod",
+            "comm",
+            "cp",
+            "curl",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "od",
+            "paste",
+            "printf",
+            "pwd",
+            "readlink",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "touch",
+            "tr",
+            "uniq",
+            "wc",
+            "xargs",
+            "zcat"
+          ]
+        },
+        "requiredUnshadowed": [
+          "[",
+          "awk",
+          "base32",
+          "base64",
+          "basename",
+          "cat",
+          "chmod",
+          "cksum",
+          "comm",
+          "cp",
+          "cut",
+          "diff",
+          "dirname",
+          "echo",
+          "env",
+          "find",
+          "grep",
+          "gunzip",
+          "gzip",
+          "head",
+          "join",
+          "jq",
+          "ln",
+          "ls",
+          "md5sum",
+          "mkdir",
+          "mktemp",
+          "mv",
+          "od",
+          "paste",
+          "patch",
+          "printf",
+          "readlink",
+          "realpath",
+          "rg",
+          "rm",
+          "rmdir",
+          "sed",
+          "sha1sum",
+          "sha256sum",
+          "sort",
+          "stat",
+          "tail",
+          "tar",
+          "tee",
+          "test",
+          "touch",
+          "tr",
+          "uniq",
+          "wc",
+          "xargs",
+          "xxd",
+          "zcat"
+        ],
+        "missingUnshadowed": [],
+        "curlCases": [
+          {
+            "id": "network/curl/get",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "http://127.0.0.1:57372/bytes"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/post-stdin",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "--data-binary",
+                  "@-",
+                  "http://127.0.0.1:57372/echo"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/post-file",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "--data-binary",
+                  "@input",
+                  "http://127.0.0.1:57372/echo"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/json",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "--json",
+                  "{\"answer\":42}",
+                  "http://127.0.0.1:57372/echo"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/redirect",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-sL",
+                  "http://127.0.0.1:57372/redirect"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/output",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "-o",
+                  "result",
+                  "http://127.0.0.1:57372/bytes"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/fail-body",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "--fail-with-body",
+                  "http://127.0.0.1:57372/missing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/auth-writeout",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "-u",
+                  "user:pass",
+                  "-w",
+                  "\\n%{http_code}\\n",
+                  "http://127.0.0.1:57372/auth"
+                ]
+              }
+            ]
+          }
+        ],
+        "defaultCurlRegistered": false
+      },
+      "calls": null,
+      "lifecycle": {
+        "producerGate": "PASS",
+        "shutdownKinds": [
+          {
+            "pid": 72515,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72519,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72586,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72591,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72596,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72607,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72612,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72616,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72621,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72629,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72633,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72637,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72641,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72647,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72651,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72657,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72663,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72673,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72684,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72696,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72702,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72709,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72714,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72720,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72727,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 72733,
+            "code": null,
+            "signal": "SIGTERM"
+          }
+        ],
+        "attemptedFileLoadEvents": 3096,
+        "proofLimit": "module-load event precedes nextLoad in inspected loader; successful evaluation and handler dispatch are distinct"
+      }
+    },
+    "scratch-aligned": {
+      "rows": 224,
+      "groups": {
+        "command": 168,
+        "kernel": 36,
+        "composition": 12,
+        "network": 8
+      },
+      "groupTotals": {
+        "command": {
+          "virtual-bash": {
+            "pass": 168,
+            "fail": 0,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          },
+          "just-bash": {
+            "pass": 109,
+            "fail": 59,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          }
+        },
+        "kernel": {
+          "virtual-bash": {
+            "pass": 35,
+            "fail": 1,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          },
+          "just-bash": {
+            "pass": 36,
+            "fail": 0,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          }
+        },
+        "composition": {
+          "virtual-bash": {
+            "pass": 12,
+            "fail": 0,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          },
+          "just-bash": {
+            "pass": 8,
+            "fail": 4,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          }
+        },
+        "network": {
+          "virtual-bash": {
+            "pass": 8,
+            "fail": 0,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          },
+          "just-bash": {
+            "pass": 2,
+            "fail": 6,
+            "timeout": 0,
+            "harness-or-engine-error": 0,
+            "invalid-oracle": 0
+          }
+        }
+      },
+      "totals": {
+        "virtual-bash": {
+          "pass": 223,
+          "fail": 1,
+          "timeout": 0,
+          "harness-or-engine-error": 0,
+          "invalid-oracle": 0
+        },
+        "just-bash": {
+          "pass": 155,
+          "fail": 69,
+          "timeout": 0,
+          "harness-or-engine-error": 0,
+          "invalid-oracle": 0
+        }
+      },
+      "intersections": {
+        "bothPass": 154,
+        "bothNonPass": [],
+        "virtualOnlyPass": [
+          "command/dirname/nul",
+          "command/printf/binary",
+          "command/mkdir/mode",
+          "command/touch/reference",
+          "command/cp/preserve-link",
+          "command/rm/empty-directory",
+          "command/ln/hardlink",
+          "command/readlink/no-newline",
+          "command/realpath/existing",
+          "command/realpath/missing-tail",
+          "command/realpath/relative",
+          "command/cat/binary-stdin",
+          "command/head/negative",
+          "command/tail/bytes",
+          "command/wc/words-lines",
+          "command/wc/unicode",
+          "command/tee/file",
+          "command/sort/nul-unique",
+          "command/uniq/counts",
+          "command/cut/bytes",
+          "command/cut/complement",
+          "command/env/clean",
+          "command/env/unset",
+          "command/env/nested",
+          "command/xargs/batch",
+          "command/xargs/replace",
+          "command/find/nul",
+          "command/rg/fixed",
+          "command/base64/decode",
+          "command/base32/encode",
+          "command/base32/decode",
+          "command/base32/wrap",
+          "command/xxd/plain",
+          "command/xxd/reverse",
+          "command/xxd/layout",
+          "command/od/hex",
+          "command/od/decimal",
+          "command/od/skip-count",
+          "command/cksum/stdin",
+          "command/cksum/files",
+          "command/cksum/algorithm",
+          "command/gzip/roundtrip",
+          "command/gunzip/stdin",
+          "command/zcat/stdin",
+          "command/diff/unified",
+          "command/diff/ignore-space",
+          "command/patch/apply",
+          "command/patch/dry-run",
+          "command/patch/reverse",
+          "command/chmod/recursive-reference",
+          "command/stat/follow",
+          "command/stat/timestamp",
+          "command/mktemp/file",
+          "command/mktemp/directory",
+          "command/mktemp/suffix-dry-run",
+          "command/paste/nul-shared",
+          "command/comm/totals",
+          "command/join/outer",
+          "command/join/duplicate",
+          "composition/text-filter/text-filter",
+          "composition/binary-roundtrip/binary-roundtrip",
+          "composition/patch-hash/patch-hash",
+          "composition/find-xargs/find-xargs",
+          "network/curl/get",
+          "network/curl/post-stdin",
+          "network/curl/post-file",
+          "network/curl/json",
+          "network/curl/redirect",
+          "network/curl/fail-body"
+        ],
+        "baselineOnlyPass": [
+          "kernel/type/type"
+        ]
+      },
+      "failures": [
+        {
+          "id": "command/dirname/nul",
+          "group": "command",
+          "command": "dirname",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/printf/binary",
+          "group": "command",
+          "command": "printf",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/mkdir/mode",
+          "group": "command",
+          "command": "mkdir",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/touch/reference",
+          "group": "command",
+          "command": "touch",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cp/preserve-link",
+          "group": "command",
+          "command": "cp",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/rm/empty-directory",
+          "group": "command",
+          "command": "rm",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/ln/hardlink",
+          "group": "command",
+          "command": "ln",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/readlink/no-newline",
+          "group": "command",
+          "command": "readlink",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/realpath/existing",
+          "group": "command",
+          "command": "realpath",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/realpath/missing-tail",
+          "group": "command",
+          "command": "realpath",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/realpath/relative",
+          "group": "command",
+          "command": "realpath",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cat/binary-stdin",
+          "group": "command",
+          "command": "cat",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/head/negative",
+          "group": "command",
+          "command": "head",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/tail/bytes",
+          "group": "command",
+          "command": "tail",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/wc/words-lines",
+          "group": "command",
+          "command": "wc",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/wc/unicode",
+          "group": "command",
+          "command": "wc",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/tee/file",
+          "group": "command",
+          "command": "tee",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/sort/nul-unique",
+          "group": "command",
+          "command": "sort",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/uniq/counts",
+          "group": "command",
+          "command": "uniq",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cut/bytes",
+          "group": "command",
+          "command": "cut",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cut/complement",
+          "group": "command",
+          "command": "cut",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/env/clean",
+          "group": "command",
+          "command": "env",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/env/unset",
+          "group": "command",
+          "command": "env",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/env/nested",
+          "group": "command",
+          "command": "env",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xargs/batch",
+          "group": "command",
+          "command": "xargs",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xargs/replace",
+          "group": "command",
+          "command": "xargs",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/find/nul",
+          "group": "command",
+          "command": "find",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/rg/fixed",
+          "group": "command",
+          "command": "rg",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/base64/decode",
+          "group": "command",
+          "command": "base64",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/base32/encode",
+          "group": "command",
+          "command": "base32",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/base32/decode",
+          "group": "command",
+          "command": "base32",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/base32/wrap",
+          "group": "command",
+          "command": "base32",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xxd/plain",
+          "group": "command",
+          "command": "xxd",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xxd/reverse",
+          "group": "command",
+          "command": "xxd",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/xxd/layout",
+          "group": "command",
+          "command": "xxd",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/od/hex",
+          "group": "command",
+          "command": "od",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/od/decimal",
+          "group": "command",
+          "command": "od",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/od/skip-count",
+          "group": "command",
+          "command": "od",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cksum/stdin",
+          "group": "command",
+          "command": "cksum",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cksum/files",
+          "group": "command",
+          "command": "cksum",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/cksum/algorithm",
+          "group": "command",
+          "command": "cksum",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/gzip/roundtrip",
+          "group": "command",
+          "command": "gzip",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/gunzip/stdin",
+          "group": "command",
+          "command": "gunzip",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/zcat/stdin",
+          "group": "command",
+          "command": "zcat",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/diff/unified",
+          "group": "command",
+          "command": "diff",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/diff/ignore-space",
+          "group": "command",
+          "command": "diff",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/patch/apply",
+          "group": "command",
+          "command": "patch",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/patch/dry-run",
+          "group": "command",
+          "command": "patch",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/patch/reverse",
+          "group": "command",
+          "command": "patch",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/chmod/recursive-reference",
+          "group": "command",
+          "command": "chmod",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stderr",
+            "exitCode",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/stat/follow",
+          "group": "command",
+          "command": "stat",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/stat/timestamp",
+          "group": "command",
+          "command": "stat",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/mktemp/file",
+          "group": "command",
+          "command": "mktemp",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/mktemp/directory",
+          "group": "command",
+          "command": "mktemp",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/mktemp/suffix-dry-run",
+          "group": "command",
+          "command": "mktemp",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/paste/nul-shared",
+          "group": "command",
+          "command": "paste",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/comm/totals",
+          "group": "command",
+          "command": "comm",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/join/outer",
+          "group": "command",
+          "command": "join",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "command/join/duplicate",
+          "group": "command",
+          "command": "join",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "kernel/type/type",
+          "group": "kernel",
+          "command": "type",
+          "engine": "virtual-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "composition/text-filter/text-filter",
+          "group": "composition",
+          "command": "text-filter",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "composition/binary-roundtrip/binary-roundtrip",
+          "group": "composition",
+          "command": "binary-roundtrip",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "composition/patch-hash/patch-hash",
+          "group": "composition",
+          "command": "patch-hash",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "entries"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "composition/find-xargs/find-xargs",
+          "group": "composition",
+          "command": "find-xargs",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/get",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/post-stdin",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/post-file",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/json",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/redirect",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        },
+        {
+          "id": "network/curl/fail-body",
+          "group": "network",
+          "command": "curl",
+          "engine": "just-bash",
+          "status": "fail",
+          "failedFields": [
+            "stdout",
+            "stderr",
+            "exitCode"
+          ],
+          "routing": "root classification required; raw terminal bytes alone do not prove internal corruption"
+        }
+      ],
+      "controlsSeparate": {
+        "neutralityCalls": 24,
+        "transportCalls": 9,
+        "transportFailures": [
+          {
+            "name": "invalid-utf8",
+            "script": "cat",
+            "fileBytesMatch": null
+          }
+        ]
+      },
+      "dispatch": {
+        "reached": {
+          "virtual-bash": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "curl",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "just-bash": [
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "cat",
+            "chmod",
+            "comm",
+            "cp",
+            "curl",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "od",
+            "paste",
+            "printf",
+            "pwd",
+            "readlink",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "touch",
+            "tr",
+            "uniq",
+            "wc",
+            "xargs",
+            "zcat"
+          ]
+        },
+        "requiredUnshadowed": [
+          "[",
+          "awk",
+          "base32",
+          "base64",
+          "basename",
+          "cat",
+          "chmod",
+          "cksum",
+          "comm",
+          "cp",
+          "cut",
+          "diff",
+          "dirname",
+          "echo",
+          "env",
+          "find",
+          "grep",
+          "gunzip",
+          "gzip",
+          "head",
+          "join",
+          "jq",
+          "ln",
+          "ls",
+          "md5sum",
+          "mkdir",
+          "mktemp",
+          "mv",
+          "od",
+          "paste",
+          "patch",
+          "printf",
+          "readlink",
+          "realpath",
+          "rg",
+          "rm",
+          "rmdir",
+          "sed",
+          "sha1sum",
+          "sha256sum",
+          "sort",
+          "stat",
+          "tail",
+          "tar",
+          "tee",
+          "test",
+          "touch",
+          "tr",
+          "uniq",
+          "wc",
+          "xargs",
+          "xxd",
+          "zcat"
+        ],
+        "missingUnshadowed": [],
+        "curlCases": [
+          {
+            "id": "network/curl/get",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "http://127.0.0.1:57396/bytes"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/post-stdin",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "--data-binary",
+                  "@-",
+                  "http://127.0.0.1:57396/echo"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/post-file",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "--data-binary",
+                  "@input",
+                  "http://127.0.0.1:57396/echo"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/json",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "--json",
+                  "{\"answer\":42}",
+                  "http://127.0.0.1:57396/echo"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/redirect",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-sL",
+                  "http://127.0.0.1:57396/redirect"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/output",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "-o",
+                  "result",
+                  "http://127.0.0.1:57396/bytes"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/fail-body",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "--fail-with-body",
+                  "http://127.0.0.1:57396/missing"
+                ]
+              }
+            ]
+          },
+          {
+            "id": "network/curl/auth-writeout",
+            "events": [
+              {
+                "name": "curl",
+                "args": [
+                  "-s",
+                  "-u",
+                  "user:pass",
+                  "-w",
+                  "\\n%{http_code}\\n",
+                  "http://127.0.0.1:57396/auth"
+                ]
+              }
+            ]
+          }
+        ],
+        "defaultCurlRegistered": false
+      },
+      "calls": null,
+      "lifecycle": {
+        "producerGate": "PASS",
+        "shutdownKinds": [
+          {
+            "pid": 73538,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73543,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73598,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73606,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73615,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73620,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73623,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73628,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73637,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73642,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73657,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73661,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73665,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73669,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73673,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73677,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73682,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73692,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73695,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73699,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73703,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73708,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73711,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73715,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73719,
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "pid": 73723,
+            "code": null,
+            "signal": "SIGTERM"
+          }
+        ],
+        "attemptedFileLoadEvents": 3096,
+        "proofLimit": "module-load event precedes nextLoad in inspected loader; successful evaluation and handler dispatch are distinct"
+      }
+    }
+  },
+  "blockers": [],
+  "limitations": [
+    "original: no IPC/shutdown ledger. Root-approved narrower managed cleanup is supported by sealed serial-await code, complete observations, child exits and outer census; not voluntary guest/thread cleanup.",
+    "scratch-aligned: no IPC/shutdown ledger. Root-approved narrower managed cleanup is supported by sealed serial-await code, complete observations, child exits and outer census; not voluntary guest/thread cleanup.",
+    "No product, native, performance or recipe execution. No claim about current live HEAD. Public terminal-byte API failures remain separate from internal pipe/file effects. No automatic whole-comparison acceptance."
+  ],
+  "readinessSha256": "2fc4b1143c0f6129c94598c3de289f3ada8bf690f6c63f7df070247f2b46f65a",
+  "source": {
+    "frozenHead": "c2902a6016dd4a42818e27d055895c0dc29f73f2",
+    "dirtyState": " M src/commands/safejs/README.md\n M src/commands/safejs/index.ts\n M src/shell/parser.ts\n M src/shell/runtime.ts\n M tests/commands/safejs-stress/safety.test.ts\n M tests/commands/safejs-stress/upstream-limitations.test.ts\n M tests/commands/safejs/command.test.ts\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? src/commands/stream-inspection/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/stream-inspection/\n?? tests/fs/s3/http-independent/download-service.mjs\n?? tests/fs/s3/http-independent/evidence/\n?? tests/fs/s3/http-independent/finalize-evidence.mjs\n?? tests/fs/s3/http-independent/lifecycle.test.ts\n?? tests/fs/s3/http-independent/minio-service.mjs\n?? tests/fs/s3/http-independent/mutants.mjs\n?? tests/fs/s3/http-independent/oracle-curl-check.mjs\n?? tests/fs/s3/http-independent/oracle-signature.mjs\n?? tests/fs/s3/http-independent/prepare.mjs\n?? tests/fs/s3/http-independent/public-workflow.mts\n?? tests/fs/s3/http-independent/replay-author-service.mjs\n?? tests/fs/s3/http-independent/validate.mjs\n?? tests/shell/substring-bounds.test.ts\n?? tests/shell/substring-bounds.ts\n?? tests/shell/substring-cases.ts\n?? tests/shell/substring-native.json\n?? tests/shell/substring-native.ts\n?? tests/shell/substring-positional-native.json\n?? tests/shell/substring-positional.test.ts\n?? tests/shell/substring-positional.ts\n?? tests/shell/substring-red.json\n?? tests/shell/substring-verify.mjs\n?? tests/shell/substring.test.ts\n?? tests/stress/regex-execution/design/\n",
+    "sourceTreeSha256": "76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c",
+    "product": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product",
+    "sourceFiles": 176,
+    "qualification": "same current dirty source seal for both profiles; not whole latest HEAD"
+  },
+  "freezeBefore": {
+    "files": 4046,
+    "bytes": 145609200,
+    "sha256": "f05e7cc1d1544307186b05989345f80b31545a305e49dd0ff5d21ac06dbf41ef"
+  },
+  "managedQualification": {
+    "result": "BOUNDED_MANAGED_CLEANUP_SUPPORTED",
+    "phases": {
+      "controls": {
+        "children": 4,
+        "matchedSigtermExits": 4,
+        "attempted": {
+          "events": 609,
+          "urls": 186,
+          "files": 181
+        },
+        "outerGate": "PASS",
+        "proof": "sealed awaited imports/ready startup and complete serial results; numeric PID+parent, no birth/request/socket identity"
+      },
+      "original": {
+        "children": 26,
+        "matchedSigtermExits": 26,
+        "attempted": {
+          "events": 3096,
+          "urls": 337,
+          "files": 310
+        },
+        "outerGate": "PASS",
+        "proof": "sealed awaited imports/ready startup and complete serial results; numeric PID+parent, no birth/request/socket identity"
+      },
+      "scratch-aligned": {
+        "children": 26,
+        "matchedSigtermExits": 26,
+        "attempted": {
+          "events": 3096,
+          "urls": 337,
+          "files": 310
+        },
+        "outerGate": "PASS",
+        "proof": "sealed awaited imports/ready startup and complete serial results; numeric PID+parent, no birth/request/socket identity"
+      }
+    },
+    "totalChildren": 56,
+    "observedLeaks": 0,
+    "rootDisposition": "Post-execution qualified proof scope; no invented retrospective telemetry and no actual failed lifecycle gate waived."
+  },
+  "preflightControls": {
+    "counts": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "lifecycle": "PASS",
+    "finishedAt": "2026-08-27T04:50:29.804Z"
+  },
+  "distinctRecipeIds": 224,
+  "profileCount": 2,
+  "denominatorPolicy": "Two profiles of224 IDs; not448 unique coverage. Baseline-only136 observations and historical performance excluded.",
+  "freezeAfter": {
+    "files": 4046,
+    "bytes": 145609200,
+    "sha256": "f05e7cc1d1544307186b05989345f80b31545a305e49dd0ff5d21ac06dbf41ef"
+  },
+  "result": "OFFLINE_CHECKS_COMPLETE_REQUIRES_HUMAN_FAIRNESS_REVIEW"
+}

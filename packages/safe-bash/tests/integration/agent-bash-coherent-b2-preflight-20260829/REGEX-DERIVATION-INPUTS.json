@@ -1,0 +1,79 @@
+{
+  "retainedSlots": 672,
+  "occurrences": [
+    {
+      "file": "runtime/harness/strict-design.json",
+      "line": 7,
+      "text": "  \"rule\": \"Questions and proposed invariants are not observed outputs or native goldens. No product/native/compiler/worker execution authorized.\","
+    },
+    {
+      "file": "runtime/harness/conditional.mjs",
+      "line": 38,
+      "text": "  ['A33', '[[ x+1 -eq 3 ]]', 2], ['A34', '[[ x =~ (x)+ ]]', 2],"
+    },
+    {
+      "file": "runtime/harness/conditional.mjs",
+      "line": 39,
+      "text": "  ['A35', '[[ x || x =~ (x)+ ]]', 0], ['A36', '[[ \"\" ]] > out', 1],"
+    },
+    {
+      "file": "runtime/harness/conditional.mjs",
+      "line": 77,
+      "text": "await record('H05', async () => { const reason = Object.freeze({ sink: true }); const result = await capture(create().exec('[[ x =~ x ]]', { stderr: { async write() { throw reason; } } })); assert.equal(result.reason, reason); });"
+    },
+    {
+      "file": "runtime/harness/conditional.mjs",
+      "line": 81,
+      "text": "await record('H09', async () => { const shell = create(); const result = await shell.exec('BASH_REMATCH=keep; [[ x =~ x ]]; printf \"%s\" \"$BASH_REMATCH\"'); assert.equal(result.stdout, 'keep'); assert.match(result.stderr, /unsupported conditional profile/); const parsed = parseShell('[[ \"a*\" == \"a*\" ]]'); assert.ok(parsed.lists[0].pipelines[0].commands[0].expression.left.parts.every(part => part.quoted)); });"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 3,
+      "text": "import workerThreads from 'node:worker_threads';"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 14,
+      "text": "const NativeWorker = workerThreads.Worker;"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 17,
+      "text": "workerThreads.Worker = class extends NativeWorker {"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 19,
+      "text": "    assert.ok(created < allowance && live < 2, 'owned worker admission budget');"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 21,
+      "text": "    const expected = path.join(binding.root, 'dist/commands/regex-execution/worker.js');"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 22,
+      "text": "    assert.equal(entry, expected, 'only selected RegexWorker is admitted');"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 25,
+      "text": "    const row = binding.inputs.find(item => item.path === 'commands/regex-execution/worker.js');"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 30,
+      "text": "    emit({ kind: 'worker-create', id, threadId: this.threadId, entry, sha256: row.sha256, live });"
+    },
+    {
+      "file": "runtime/harness/resources.mjs",
+      "line": 31,
+      "text": "    this.once('exit', code => { live--; emit({ kind: 'worker-exit', id, code, live }); });"
+    }
+  ],
+  "expectedRegexWorkers": null,
+  "expectedRegexLoaderAdmissions": null,
+  "status": "PENDING_CASE_DERIVED_CLOSURE",
+  "qualification": "Literal occurrences are investigation inputs, not Worker counts; no zero-resource assumption. No paused just-bash instrumentation was imported."
+}

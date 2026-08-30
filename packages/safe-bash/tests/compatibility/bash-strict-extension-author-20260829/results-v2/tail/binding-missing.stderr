@@ -1,0 +1,14 @@
+(node:30712) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/tmp/strict-extension-v2-tail-AYN6CH/harness/loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error: package binding missing member
+    at load (file:///private/tmp/strict-extension-v2-tail-AYN6CH/harness/loader.mjs:16:53)
+    at async nextLoad (node:internal/modules/esm/hooks:748:22)
+    at async Hooks.load (node:internal/modules/esm/hooks:385:20)
+    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18)
+
+Node.js v22.22.2

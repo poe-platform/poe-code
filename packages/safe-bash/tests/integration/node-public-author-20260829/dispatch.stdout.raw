@@ -1,0 +1,11 @@
+Success. Updated the following files:
+A tests/integration/node-public-author-20260829/run-v2.mjs
+A tests/integration/node-public-author-20260829/launch-v2.py
+A tests/integration/node-public-author-20260829/EXECUTOR-v2.json
+A tests/integration/node-public-author-20260829/CORRECTION-v2.json
+[main 7177c5f7] test(node): version authenticated inherited tool-map lookup
+ 4 files changed, 932 insertions(+)
+ create mode 100644 tests/integration/node-public-author-20260829/CORRECTION-v2.json
+ create mode 100644 tests/integration/node-public-author-20260829/EXECUTOR-v2.json
+ create mode 100644 tests/integration/node-public-author-20260829/launch-v2.py
+ create mode 100644 tests/integration/node-public-author-20260829/run-v2.mjs

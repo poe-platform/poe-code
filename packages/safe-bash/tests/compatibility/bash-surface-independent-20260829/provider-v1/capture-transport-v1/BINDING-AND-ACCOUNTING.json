@@ -1,0 +1,77 @@
+{
+  "schema": "capture-transport-result-binding-v1",
+  "sourceCommit": "134b94d90a4639aeb1c47c9688f6c010de8902ff",
+  "presealSha256": "9f4455364897bdb5418ba39a79f0fc40b5592699679cb272820800e1c8d8bc8a",
+  "profileSha256": "cd24747ce2db626904e4c6c3986e6a303a85dada923a9dc1e6e8496dee9a93a5",
+  "oldProfileSha256": "f0c96a5833d751c7b1ca194094390d75f91fe7c2286920c8eb3c4163afd2c58d",
+  "approvedDeltaBytes": 383,
+  "sourcePostAuthentication": true,
+  "actual": {
+    "id": "D03-regular-fd-readiness",
+    "attempted": 1,
+    "readinessPass": 0,
+    "signal": "SIGABRT",
+    "status": null,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "knownTargetRetired": true,
+    "regularFilesComplete": true,
+    "ownerOutputDescriptorsClosed": true,
+    "streamedOutputEOF": "NOT_APPLICABLE_REGULAR_FDS",
+    "cause": "UNKNOWN",
+    "retries": 0
+  },
+  "toolsCanonicalPathMetadata": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "qualification": "PATH_METADATA_ONLY_NO_LOADED_IMAGE_PROOF"
+    },
+    {
+      "path": "/usr/bin/sandbox-exec",
+      "realpath": "/usr/bin/sandbox-exec",
+      "qualification": "PATH_METADATA_ONLY_NO_LOADED_IMAGE_PROOF"
+    }
+  ],
+  "phase": {
+    "started": 1787979580078,
+    "deadline": 1787980480078,
+    "limits": {
+      "allProcesses": 24,
+      "peakProcesses": 3,
+      "captureBytes": 16777216,
+      "workBytes": 67108864,
+      "targets": 1
+    },
+    "throughDirectChild": 14,
+    "knownAdministrativeAndControllerLaunches": 14,
+    "knownTargetLaunches": 1,
+    "knownTotalLaunches": 15,
+    "knownPeakIncludingOuter": 3,
+    "allKnownRetired": true,
+    "activeKnown": 0,
+    "allKernelDescendantCensus": false,
+    "administrativeCaptureBytes": 2772,
+    "diagnosticOwnerCaptureBytes": 5170,
+    "ownedRawRegularFileBytes": 76609,
+    "logicalAccountingNotRSS": true,
+    "publicationBoundary": "Subsequent evidence-publication commands remain in retained outer capture and final checkpoint."
+  },
+  "unchangedHistory": {
+    "F01": "historical failure preserved",
+    "D01": "historical readiness success preserved",
+    "D02": "historical SIGABRT preserved",
+    "providerRemaining15": "UNRUN",
+    "native9": "UNRUN",
+    "native40": "UNRUN"
+  },
+  "rawArchive": {
+    "path": "RAW-CAPTURE.json.gz.base64",
+    "encodedBytes": 36601,
+    "encodedSha256": "17757737c36d7fd160ab51d097cfa2c0ebb2acd2b979744416b6d677fd973975",
+    "gzipBytes": 27448,
+    "gzipSha256": "62c227ee55cbaef627a76b2b1c1222933bc36664549a7836c16fd11168132e93",
+    "decodedBytes": 110748,
+    "decodedSha256": "492dd88a77f8e13063c7e383e0deb09598c63081281df95f9bf0285bc0ee2fc7"
+  }
+}

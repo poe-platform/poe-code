@@ -1,0 +1,49 @@
+{
+  "name": "packed-author-controls22",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles/.isolated-XM2Dtq/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "out/tests/integration/adapter-tools/atomic-webdav-profile/controls.js"
+  ],
+  "cwd": "consumer",
+  "startedAt": "2026-08-27T10:02:53.348Z",
+  "durationMs": 206.105375000001,
+  "status": 0,
+  "signal": null,
+  "counts": {
+    "tests": 22,
+    "pass": 22,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "names": [
+    "stock negative control: empty ENOTSUP, nonempty ENOTEMPTY, no child loss or DELETE",
+    "configured operation removes only its real backing entry and preserves siblings",
+    "helper namespace, operation and path guards reject before mutation",
+    "adapter rejects mismatched binding namespace before host callback",
+    "adapter receipt guard: wrong operation, EIO and no fallback DELETE",
+    "adapter receipt guard: wrong namespaceUrl, EIO and no fallback DELETE",
+    "adapter receipt guard: wrong path, EIO and no fallback DELETE",
+    "adapter receipt guard: wrong outcome, EIO and no fallback DELETE",
+    "configured existing child survives rmdir /empty without recursive DELETE",
+    "configured existing child survives rm -d /empty without recursive DELETE",
+    "configured late child survives rmdir /empty without recursive DELETE",
+    "configured late child survives rm -d /empty without recursive DELETE",
+    "helper respects active mock locks and pre-aborted cancellation",
+    "readonly: actual stock capability propagation through agentCommands",
+    "mount: actual stock capability propagation through agentCommands",
+    "overlay: actual stock capability propagation through agentCommands",
+    "readonly: actual configured capability propagation through agentCommands",
+    "mount: actual configured capability propagation through agentCommands",
+    "overlay: actual configured capability propagation through agentCommands",
+    "mount forwards configured removal and preserves a child created after adapter preflight",
+    "overlay with stock WebDAV lower whiteouts only its view without host removal",
+    "overlay with configured WebDAV lower whiteouts only its view without host removal"
+  ],
+  "failedRows": []
+}

@@ -1,0 +1,36 @@
+{
+  "name": "counterfactual-premature-preparation-acquisition",
+  "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/node",
+  "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "args": [
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/register-guard-v1.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^E01 ",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_NO_WARNINGS": "1",
+    "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/counterfactual-premature-preparation-acquisition/emitted/cancellation.js",
+    "CANCELLATION_MODULE_SHA256": "1366f81379a8ee58780ad732e9219e4728ce700fd5b4cc97596586d9a33ddcf2",
+    "REVIEW_ALLOWED_FILES": "[\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/counterfactual-premature-preparation-acquisition/emitted/cancellation.js\",\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs\"]",
+    "REVIEW_LOAD_LOG": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/evidence-v2/counterfactual-premature-preparation-acquisition-loads.jsonl"
+  },
+  "started": "2026-08-28T00:10:32.438Z",
+  "ended": "2026-08-28T00:10:32.573Z",
+  "pid": 54657,
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "f247d324e078e96eeda65d42de6ae9d4aa0c045438f5957fff893fd8f88e1b73",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

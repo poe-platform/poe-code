@@ -1,0 +1,21 @@
+{"atMs":0.34,"kind":"group-admitted","pid":86637,"pgid":86637,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-w3lrWQ","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-w3lrWQ","TMPDIR":"/private/tmp/safe-bash-execution-author-w3lrWQ","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":40.522,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"engine-spawn","pid":86638,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":90.29,"kind":"request-start","absoluteDeadlineMs":1490.28725}
+{"atMs":90.293,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"ready"}
+{"atMs":91.05,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"phase","phase":"exec-start"}
+{"atMs":91.097,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"phase","phase":"exec-settled"}
+{"atMs":91.28,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"phase","phase":"snapshot-complete"}
+{"atMs":91.315,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"phase","phase":"dispose-start"}
+{"atMs":91.454,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"phase","phase":"dispose-settled"}
+{"atMs":91.616,"kind":"result-received","sha256":"2b64598bf75ed226e7b51421122b77b862d9f050abc3832c93e02de175dd6054","absoluteTotalUnchangedMs":4500}
+{"atMs":124.132,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"diagnostic","stream":"stderr","base64":"eyJuYW1lIjoiRXJyb3IiLCJtZXNzYWdlIjoibGF0ZSBzeW50aGV0aWMgZXJyb3IiLCJjb2RlIjpudWxsfQo="}
+{"atMs":124.199,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"diagnostic","stream":"stderr","base64":"ZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzOjc4CiAgaWYgKG1vZGUgPT09ICdsYXRlLWVycm9yJykgc2V0VGltZW91dCgoKSA9PiB7IHRocm93IG5ldyBFcnJvcignbGF0ZSBzeW50aGV0aWMgZXJyb3InKTsgfSwgMzApOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBeCgpFcnJvcjogbGF0ZSBzeW50aGV0aWMgZXJyb3IKICAgIGF0IFRpbWVvdXQuX29uVGltZW91dCAoZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzOjc4OjU1KQogICAgYXQgbGlzdE9uVGltZW91dCAobm9kZTppbnRlcm5hbC90aW1lcnM6NTg1OjE3KQogICAgYXQgcHJvY2Vzcy5wcm9jZXNzVGltZXJzIChub2RlOmludGVybmFsL3RpbWVyczo1MjE6NykKCk5vZGUuanMgdjIyLjIyLjIK"}
+{"atMs":126.144,"kind":"sticky-failure","reason":"engine crash/forced exit"}
+{"atMs":126.175,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"engine-exit","code":1,"signal":null}
+{"atMs":126.216,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"engine-close","code":1,"signal":null}
+{"atMs":126.224,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":126.277,"id":"synthetic/late-error","nonce":"28f69313-9a01-414e-9366-59f70b5c80fe","kind":"session-complete"}
+{"atMs":126.747,"kind":"signal","signal":"SIGTERM","pgid":86637}
+{"atMs":127.822,"kind":"coordinator-exit","code":null,"signal":"SIGTERM"}
+{"atMs":127.825,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":127.829,"kind":"coordinator-close","code":null,"signal":"SIGTERM"}

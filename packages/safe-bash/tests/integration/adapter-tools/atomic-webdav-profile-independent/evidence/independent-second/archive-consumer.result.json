@@ -1,0 +1,17 @@
+{
+  "name": "archive-consumer",
+  "executable": "tar",
+  "args": [
+    "-czf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/consumer-inputs-and-emission.tar.gz",
+    "--exclude=node_modules",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer",
+    "."
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe",
+  "startedAt": "2026-08-27T09:14:50.311Z",
+  "finishedAt": "2026-08-27T09:14:50.365Z",
+  "status": 0,
+  "signal": null
+}

@@ -1,0 +1,7 @@
+{
+  "allManifestFilesStillEqual": true,
+  "failedAttemptPreserved": true,
+  "validationIsPostHocNotOriginalExitProof": true,
+  "deniedNativeAttempts": 23,
+  "nativeProcessesLaunched": 0
+}

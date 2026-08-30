@@ -1,0 +1,23 @@
+{
+  "schema": "v7-r3-admission-preparation-v1",
+  "status": "PREPARATION_ONLY_NO_ROOT_ADMISSION_GRANT",
+  "date": "2026-08-29",
+  "namespace": "admission-20260829-v7r3-01",
+  "scope": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/preparation/admission-20260829-v7r3-01/",
+  "authorization": "Latest root message authorizes only V7-r3 preparation, inert source/archive authentication, inactive templates and finite harmless checks. No actual launch/admission or semantic execution.",
+  "preparationBounds": {"milliseconds": 1800000, "allOwnedProcesses": 64, "peakIncludingOwner": 3, "captureBytes": 134217728, "workingBytes": 536870912, "metadataMilliseconds": 10000, "metadataStdoutBytes": 65536, "metadataStderrBytes": 65536},
+  "futureProvisionalBounds": {"admissionWorkers": 14, "workerCapNotOsProcessCap": 27, "allOwnedProcesses": 128, "peakIncludingOwner": 5, "concurrency": 1, "milliseconds": 4500000, "captureBytes": 268435456, "workingBytes": 805306368, "bodyBytes": 260046848, "collectorBytes": 8388608, "documentBytes": 33554432, "recordBytes": 262144, "stdoutBytes": 65536, "stderrBytes": 65536, "fd3Bytes": 262144, "workerMilliseconds": 30000, "termGraceMilliseconds": 2000, "killGraceMilliseconds": 1000, "nodeOldSpaceMiB": 256, "metadataChildrenPerAuthorityWorker": 2, "C11EmptySetups": 2, "semanticCalls": 0},
+  "review": {"commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147", "receiptSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293", "presealCommit": "6177af7d9c1b1e75b063b2c04702805a9e601c2f"},
+  "sourceComposition": ["f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98", "fe8037019610a48522a8b1b4fc8987657cfa6d7e", "d306b837da24fa970ded9ca6a0a99fe7a76ae342"],
+  "authorEvidence": "9b6c8a04d0e3227ead7d055253b80fec7479f04b",
+  "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+  "interfaceSha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18",
+  "operationPlanSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "comparator": "just-bash@3.4.2",
+  "allowedChecks": ["Authenticate exact committed review/source/recipe/interface as inert data", "Inspect launch/coordinator/worker actual process callgraph and finite authority children", "Hash admitted regular tools and existing archives as bytes; inspect bounded archive metadata without instruction plaintext", "Authenticate complete declared package/dependency projections where actually available", "Create INACTIVE wrapped templates that cannot pass the actual grant schema", "Prepare outer raw-capture and census specification before any future fallible admission", "Pre/post input guards and exact owned artifact census"],
+  "prohibitions": ["No product/comparator/engine imports, builds, installs or actual admission", "No network acquisition, private access, native oracle or HEAD fallback", "No instruction plaintext staging, symlinks, source substitution or permission widening", "No synthetic bootstrap/metadata fixtures substituted into real future inputs", "No active root grant, authorization token or reuse of consumed grants", "No 99-semantic cohort"],
+  "stop": "Any namespace collision, safety/capture/integrity/cap or unknown-retirement failure stops dependents. Missing real archive means HOLD, never substitute. Ordinary preparation-helper defects may be version-corrected with retained failure and known cleanup within this finite preparation cap.",
+  "timing": "After source appearance and accepted independent review. Before local preparation qualification and any inactive grant generation. Initial instructions/namespace discovery and two no-child helper ReferenceErrors precede this seal and will remain recorded."
+}

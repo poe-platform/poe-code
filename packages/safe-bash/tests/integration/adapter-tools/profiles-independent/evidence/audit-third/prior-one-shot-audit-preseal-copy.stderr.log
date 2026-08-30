@@ -1,0 +1,48 @@
+node:internal/errors:983
+  const err = new Error(message);
+              ^
+
+Error: Command failed: git diff --exit-code 68059389bf95e03caeae6479837187add3d07814 -- tests/integration/adapter-tools/matrix.test.ts tests/integration/adapter-tools/fixtures.ts tests/integration/adapter-tools/preflight-review/preflight.ts tests/fs/webdav/mock.ts tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts tests/integration/adapter-tools/atomic-webdav-profile/controls.ts
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:916:11)
+    at execFileSync (node:child_process:952:15)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/.audit-0WHGCG/tests/integration/adapter-tools/atomic-webdav-profile-independent/audit.mjs:52:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    Buffer(4202) [Uint8Array] [
+      100, 105, 102, 102,  32,  45,  45, 103, 105, 116,  32,  97,
+       47, 116, 101, 115, 116, 115,  47, 105, 110, 116, 101, 103,
+      114,  97, 116, 105, 111, 110,  47,  97, 100,  97, 112, 116,
+      101, 114,  45, 116, 111, 111, 108, 115,  47, 102, 105, 120,
+      116, 117, 114, 101, 115,  46, 116, 115,  32,  98,  47, 116,
+      101, 115, 116, 115,  47, 105, 110, 116, 101, 103, 114,  97,
+      116, 105, 111, 110,  47,  97, 100,  97, 112, 116, 101, 114,
+       45, 116, 111, 111, 108, 115,  47, 102, 105, 120, 116, 117,
+      114, 101, 115,  46,
+      ... 4102 more items
+    ],
+    Buffer(0) [Uint8Array] []
+  ],
+  pid: 68335,
+  stdout: Buffer(4202) [Uint8Array] [
+    100, 105, 102, 102,  32,  45,  45, 103, 105, 116,  32,  97,
+     47, 116, 101, 115, 116, 115,  47, 105, 110, 116, 101, 103,
+    114,  97, 116, 105, 111, 110,  47,  97, 100,  97, 112, 116,
+    101, 114,  45, 116, 111, 111, 108, 115,  47, 102, 105, 120,
+    116, 117, 114, 101, 115,  46, 116, 115,  32,  98,  47, 116,
+    101, 115, 116, 115,  47, 105, 110, 116, 101, 103, 114,  97,
+    116, 105, 111, 110,  47,  97, 100,  97, 112, 116, 101, 114,
+     45, 116, 111, 111, 108, 115,  47, 102, 105, 120, 116, 117,
+    114, 101, 115,  46,
+    ... 4102 more items
+  ],
+  stderr: Buffer(0) [Uint8Array] []
+}
+
+Node.js v22.22.2

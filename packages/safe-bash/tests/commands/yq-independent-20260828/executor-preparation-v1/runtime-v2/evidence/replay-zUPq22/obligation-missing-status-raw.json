@@ -1,0 +1,37 @@
+{
+  "returned": {
+    "schemaVersion": 1,
+    "aggregate": "FAIL",
+    "requested": 1,
+    "admitted": 1,
+    "stop": null,
+    "results": [
+      {
+        "jobId": "obligation-missing-status-0",
+        "admitted": true,
+        "outcome": "FAIL",
+        "failures": [
+          "assertion: AssertionError [ERR_ASSERTION]: Missing or malformed status obligation"
+        ],
+        "integrity": true,
+        "reapProof": true,
+        "metadata": {
+          "pid": 14165,
+          "group": 14165,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "spawnError": null,
+          "closed": true,
+          "reaped": true,
+          "kills": [],
+          "elapsedMs": 45
+        }
+      }
+    ],
+    "activeChildren": [],
+    "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22/host/run-2026-08-28T09-19-45.796Z-2811d1f6-316e-459b-93a4-1fb7d41cd518"
+  },
+  "error": null
+}

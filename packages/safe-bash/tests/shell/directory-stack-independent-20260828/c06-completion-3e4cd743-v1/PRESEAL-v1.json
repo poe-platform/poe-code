@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "role": "Post-sourcecommit missing C06 public subcontrols only; original main review and all cohorts immutable",
+  "candidate": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+  "mainReview": "0fe2274a28f251370e9894cf30bb215f80b600d0",
+  "layouts": ["source", "installed", "moved"],
+  "sharedReason": false,
+  "setup": "Default unlowered Shell limits; public MemoryFileSystem /c and/a; same exec pushd -n /a creates full[/c,/a]; host invokes real builtin popd with local signal and pauses its first stat(/a). Popd middleware registers cooperative lookup drain synchronously before acquisition. Parent/sibling observations use public context.invoke dirs -l -p, bounded4096-byte sinks.",
+  "commonSchedule": ["Register outer cleanup synchronously before invoke", "Actual popd reaches scripted stat(/a) pause", "Observe sibling full[/c,/a] while popd paused", "Abort only local child with false and release owned lookup; observe late provider rejection and await child settlement", "Live outer handler observes unchanged parent full[/c,/a] then explicitly throws caught false", "Runtime enters registered outer cleanup pause; observe unsettled exec for two external turns"],
+  "subcontrols": [
+    {"id":"C06-M", "missingRole":"Reason equality must not turn live outer handler's explicit rethrow of already selected child cancellation into root cancellation", "finish":"Do not abort root; release cleanup; same-exec following host command records prior status and unchanged full stack", "expect":{"execKind":"return","exitCode":1,"stdout":"/c /a\n","stderr":"shell: line 2: false\n","childReason":false,"siblingFull":"/c\n/a\n","parentFull":"/c\n/a\n","afterFull":"/c\n/a\n","afterStatus":"1","rootAborted":false}},
+    {"id":"C06-R", "missingRole":"Actual root abort must reject despite same false value as child cancellation/live outer throw; matched contrast with C06-M establishes outcome distinction, not identity alone", "finish":"Abort actual Shell.exec root controller with false during registered outer cleanup pause; exec remains unsettled until cleanup release; following host command must not run", "expect":{"execKind":"throw","exactReason":false,"childReason":false,"siblingFull":"/c\n/a\n","parentFull":"/c\n/a\n","afterEntered":false,"rootAborted":true}}
+  ],
+  "cleanupExpect":{"lookupCalls":1,"lookupNaturallyDrained":true,"outerCleanupCalls":1,"childSettledBeforeOuterThrow":true,"noPendingOwnedWorkAtDispose":true},
+  "unmeasuredBoundary":"This pair does not establish an actual escaping-control failure versus local cancellation at the private capture-to-finish boundary. No public post-capture/pre-finish pause has been authenticated. Ordinary false rethrow is explicitly mapped, not an escaping-control witness. Source proof and precise accessibility analysis remain separate; do not fabricate a ShellLimitError or lowered-budget witness.",
+  "noReplay":["prior local-only C06","138 original rows","28 corrections","types","regressions","mutation/import cohorts"],
+  "capture":"Emit raw event and final observation records before semantic assertions; natural direct-child close plus full current file/directory mode/membership guards; no descendant census claim"
+}

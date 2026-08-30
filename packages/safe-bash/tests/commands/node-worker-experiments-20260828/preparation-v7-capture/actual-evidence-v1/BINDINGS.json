@@ -1,0 +1,1614 @@
+{
+  "schema": "public-worker-v7-full-bindings",
+  "repairCommit": "8a2668f80e487b258532ec6c20469d9f7e230157",
+  "activationCommit": "acb96330fe41d8f5daf679c4d4275231827374ff",
+  "ownerSourceSha256": "2b2fbe1fb45c819e16d6dfe8378bc50e276fb2dfa0854c069fe9976a5c2719af",
+  "helperSourceSha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104",
+  "repairControlEvidenceSha256": "1684a9a062cf82896e68d97376e4c3743f4d22a0859cc33bc95833dae5db3ef2",
+  "grantSha256": "5f24cf8c0b8c71309b5bc8c67ebb799aa8962455d6485cb0cd6a47760dc5ee4d",
+  "actualPresealSha256": "ee01a355965f98deb44f3e40e29145c94307a883d50a715c62a4d6cfd4b60912",
+  "compositionSha256": "8ce0ffeba892ebf8e33f0bb0bc3b4a6aa00823959829902e3cafa164cecfab65",
+  "actualResultsSha256": "0585d0f15c24b496ca1d3e2d764222fb58f7c902edb4c030aa5a5b46ef289707",
+  "archiveSha256": "499a4a47cb0fb3e0e2002b98661e1ab7ce96378da1c048efacb1d232ecb9dfff",
+  "compilerBindings": [
+    [
+      "EVIDENCE.json",
+      "982677cf461c5e36a12bf21662d6b598a26b08c4e16b57cdd2da2fc8893fed79"
+    ],
+    [
+      "EMISSIONS.json.gz.base64",
+      "79c1d5cead359ac1b54a3d8937352983b134ac0ef8655cba94311c9ac951dca3"
+    ],
+    [
+      "EMITTED.json",
+      "850d0d6eaa3d196b1a11eb60a1234c3ae4517b105665abfa0c3f012dcdc776b7"
+    ]
+  ],
+  "immutablePost": [
+    {
+      "path": "CASES.json",
+      "bytes": 6556,
+      "sha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c"
+    },
+    {
+      "path": "ENGINE-PACKAGE.json.data",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a"
+    },
+    {
+      "path": "GRANT.template.json",
+      "bytes": 601,
+      "sha256": "eb64f745d8747934dbd64da5e979fdfe29a6242044600e0a6d7592d8b233bfac"
+    },
+    {
+      "path": "MODULES.json",
+      "bytes": 121324,
+      "sha256": "b30716d17f48a731bd60d1cd1b9c7fdae0ba4822b6a91ffca3b0e06e6b7993ad"
+    },
+    {
+      "path": "PROFILE.json",
+      "bytes": 2948,
+      "sha256": "31e8346581f657ae17b2f8a5f6794e00baab1701b8df5796aafd4033a0b4c87b"
+    },
+    {
+      "path": "SOURCES.json",
+      "bytes": 25458,
+      "sha256": "3376b6d4fd3aaee969d9716e80fbe2025ed51e58b5b19b676f82ada7ac981a78"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 2386,
+      "sha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce"
+    },
+    {
+      "path": "compiled/engine/dist/core.js",
+      "bytes": 165,
+      "sha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852"
+    },
+    {
+      "path": "compiled/engine/dist/error-codes.js",
+      "bytes": 380,
+      "sha256": "8ef9f6c15ab94c4545e81e33ab7f56cef4604f3035c85b344e11e0e1f410edac"
+    },
+    {
+      "path": "compiled/engine/dist/error/shape.js",
+      "bytes": 4684,
+      "sha256": "5276a36e63131f7fa270188ede06a491230204de323c9e39f4e8874dbab9eacb"
+    },
+    {
+      "path": "compiled/engine/dist/graph-depth.js",
+      "bytes": 3189,
+      "sha256": "16996539c9612405dc544b9cf9ac21c50fb588c4445f8956fea46aa0962b355b"
+    },
+    {
+      "path": "compiled/engine/dist/interp/arguments.js",
+      "bytes": 1926,
+      "sha256": "a946254930385dbd83a6d49a53ab703ff6f56ad834663d38f8ee0f2a021c7349"
+    },
+    {
+      "path": "compiled/engine/dist/interp/async.js",
+      "bytes": 9577,
+      "sha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1"
+    },
+    {
+      "path": "compiled/engine/dist/interp/budget.js",
+      "bytes": 8584,
+      "sha256": "5379c5240faa9310253a22820229996f5c3e47865e509f99bece5fdc5dcf942a"
+    },
+    {
+      "path": "compiled/engine/dist/interp/cancel.js",
+      "bytes": 6106,
+      "sha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068"
+    },
+    {
+      "path": "compiled/engine/dist/interp/exceptions.js",
+      "bytes": 15549,
+      "sha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970"
+    },
+    {
+      "path": "compiled/engine/dist/interp/generator.js",
+      "bytes": 4629,
+      "sha256": "82048a59fe3e45bbc091ab4f32391ac630335861ab9beb21416997330892c26e"
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/collections.js",
+      "bytes": 3774,
+      "sha256": "88ef1edce943130e884a7751b9200f6a5d215a11795e6a8a5f8660e7c5f3a349"
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/console-json.js",
+      "bytes": 9671,
+      "sha256": "bcdfe5d0651a04a9d3344afe0eb1ede780ba0d56486b6f60ca7c1f5f9d87aae6"
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/error.js",
+      "bytes": 2079,
+      "sha256": "5ec3d6755ede676a3af142a5ac2bbedfb851793321b182845b724e4335a51028"
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/math.js",
+      "bytes": 2105,
+      "sha256": "1a102f3b7d6c67c9ea222e72f5304f1baaa62d14f550789e0449d18ff997a260"
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/misc.js",
+      "bytes": 2137,
+      "sha256": "9655ed0db25a7e2be99c6f7d25e1cf5e03c18cc56b832ba77d18e89664683035"
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/object-array.js",
+      "bytes": 9929,
+      "sha256": "db28b89e56fe3e8ca148fa8c906b7eb9b5c0b28f5a302141410662bb6f87bf5d"
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/regex.js",
+      "bytes": 317,
+      "sha256": "1fea1fe74bd7d445b397234b1f649cda37fa3c4b11aee3438772dd575825211c"
+    },
+    {
+      "path": "compiled/engine/dist/interp/host-bridge.js",
+      "bytes": 28892,
+      "sha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f"
+    },
+    {
+      "path": "compiled/engine/dist/interp/host-call.js",
+      "bytes": 22060,
+      "sha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784"
+    },
+    {
+      "path": "compiled/engine/dist/interp/interpreter.js",
+      "bytes": 89873,
+      "sha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177"
+    },
+    {
+      "path": "compiled/engine/dist/interp/iteration.js",
+      "bytes": 2248,
+      "sha256": "38210e280e8096201f9c8140eceaf0f7ea139a289447e88f860929493ce1eee9"
+    },
+    {
+      "path": "compiled/engine/dist/interp/jobs.js",
+      "bytes": 2680,
+      "sha256": "99eb5ef2405fe14d17d50b354ee4a0bfbf1826d33ccdb9523aa02cc6e0b710c4"
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/array.js",
+      "bytes": 20062,
+      "sha256": "1c2829f32e3f69eea0695863c0f0d7be23bb2728580c41503abb0644936e3d49"
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/function.js",
+      "bytes": 1344,
+      "sha256": "5b86a98e4bd0ce1ae6f9969682553f8acaf618df568cd043da325d679acdc7fb"
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/generator.js",
+      "bytes": 718,
+      "sha256": "8186701b9918ce484d58ec84a2cd9bf1aa4406f4a58292d8569b4a484770db3c"
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/map.js",
+      "bytes": 2744,
+      "sha256": "57a1525ef623ddb9c249594012a76453888f9cf2760c52e5fada4c7e1ae02137"
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/number.js",
+      "bytes": 2453,
+      "sha256": "d258acca285bcbda201c7fd94189e8b4a90a87c3ac9f2525ec60d146f903707d"
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/regex.js",
+      "bytes": 1666,
+      "sha256": "01368bb129c97ade13af1ec43a6764f1fc02bc810ac2391785d6b2d1ba46f2bf"
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/set.js",
+      "bytes": 2530,
+      "sha256": "c74586e2137d5e3e0e312807659d5090f8ff25cba994767a4549f52190971565"
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/string.js",
+      "bytes": 11311,
+      "sha256": "1022751636e73d936848935a2cc2c3863102afbbefce1fd1ff27c9cda5423590"
+    },
+    {
+      "path": "compiled/engine/dist/interp/patterns.js",
+      "bytes": 7577,
+      "sha256": "72c07adb4ba16c788230b0e696726e5728f4da96b1589e22847fe4f0eff7f053"
+    },
+    {
+      "path": "compiled/engine/dist/interp/promise-replay.js",
+      "bytes": 15785,
+      "sha256": "2c812f3f6a2eaca50a287307645200b50f837ec5b02f4a5929c2762b34101707"
+    },
+    {
+      "path": "compiled/engine/dist/interp/promise-tracker.js",
+      "bytes": 1839,
+      "sha256": "c5f9facc771b3c2efd6512593ad395039e424666e8ab40b054036f0c0c7f2669"
+    },
+    {
+      "path": "compiled/engine/dist/interp/promise.js",
+      "bytes": 13405,
+      "sha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887"
+    },
+    {
+      "path": "compiled/engine/dist/interp/regex/engine.js",
+      "bytes": 9177,
+      "sha256": "693d2758fe6d278ac38751cde19ecb4bf8a050daa42d0e24e056eae190367c02"
+    },
+    {
+      "path": "compiled/engine/dist/interp/regex/parse.js",
+      "bytes": 11159,
+      "sha256": "bc5cd67be005150637d5fe657f846f5dd62b0c8d0c36dadc88960f456f2015d8"
+    },
+    {
+      "path": "compiled/engine/dist/interp/running-state.js",
+      "bytes": 1219,
+      "sha256": "e6cfc8f3e42d1422b0d8aa28c97e10d545250bb2a4c07bc9fd541cf30496cb5e"
+    },
+    {
+      "path": "compiled/engine/dist/interp/scope.js",
+      "bytes": 7345,
+      "sha256": "c1d4780c0ff46255077c0db3e63633932a6611c80e31741d466c213a352490ff"
+    },
+    {
+      "path": "compiled/engine/dist/interp/values.js",
+      "bytes": 20587,
+      "sha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb"
+    },
+    {
+      "path": "compiled/engine/dist/interp/var-hoist.js",
+      "bytes": 5190,
+      "sha256": "e4f19a664dd9ee5921e271a29b2518861e751c7ef20ef24d1643e9ba2b549a20"
+    },
+    {
+      "path": "compiled/engine/dist/lint.js",
+      "bytes": 40,
+      "sha256": "64a00e32becd30dee81e4790dda0dd37b55df224cd021f172042561927f65095"
+    },
+    {
+      "path": "compiled/engine/dist/lint/index.js",
+      "bytes": 14807,
+      "sha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+      "bytes": 21598,
+      "sha256": "9e11747ac5828525aedabeb81d6192b3978d7a8a8d0dbf3c8c24a288693423a5"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+      "bytes": 9706,
+      "sha256": "bcdfd66dc56f5689eeebdb1c6b5cfe577bb4ca0f122132d51bc9ba24d3f574ae"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+      "bytes": 14741,
+      "sha256": "dea489073144d583b185563d88a17129930452c2ddf91a2fc95cb655faffe503"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+      "bytes": 14239,
+      "sha256": "68e712f1c46cd0449ebae256f77f2032e821bb6e086dc5252163340e588ad39f"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "bytes": 22233,
+      "sha256": "110a35370998c20d46d339ad27c50a6cac8140e7e6fdd38b759048b2a86c39da"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+      "bytes": 13829,
+      "sha256": "aa05b168c86d487fc375f5bf6880bb67f1e13ef4579806e0536276a41a6bc43d"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "bytes": 3275,
+      "sha256": "306106b7124aa126f23946c962ebd49abbb4edbd0c80c3fca200378395521a3f"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "bytes": 25599,
+      "sha256": "d0fa7778a69c32dfb9cde472e879ae205a51dc0fff14032e0a602212788d1a0d"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-large-literal.js",
+      "bytes": 12029,
+      "sha256": "49359fe538509b50342d5011f42beadc066e7e7c3c5d2d8296919dc3b51d6dbe"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-missing-async.js",
+      "bytes": 20385,
+      "sha256": "fea668a4d55ada887b6d329c86693720c9ca5cf39e7023e9531842cd0186c2ef"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+      "bytes": 17646,
+      "sha256": "f465ffd79899253083fe9436b3f5e1029c68b8310ab110c9235150c9a4400cd8"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-needless-template.js",
+      "bytes": 14245,
+      "sha256": "f41b7cf99a9baf7a9052d46591aaafa9a494059823dce27ab557632616d26a75"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "bytes": 13315,
+      "sha256": "a2aa4a600c6caf7c12d6747b9a2f8450c6d92ff1689571756380f5de1a08073d"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+      "bytes": 12551,
+      "sha256": "1604d5d91f11d72831fd424f9f128734c9c4e831cfb17a484f1ae86e43f04b3c"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-unreachable.js",
+      "bytes": 10269,
+      "sha256": "9176c95e2f96aee9ad59ad6adcd1eaa8c2c7dfc426252f3317fff2a82c0f2181"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-unused-import.js",
+      "bytes": 22135,
+      "sha256": "148ae0fa99edbeab55424f7e1fbb3852f4a1a8beea6434f767c8036a05d1737c"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS001.js",
+      "bytes": 21928,
+      "sha256": "a3f9061233c2c957254681f544dd267612c0372c9848dcca43870afa68b207f3"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS003.js",
+      "bytes": 20355,
+      "sha256": "09ad2cb913f600a6a8038260fdb5f8bd5d69eaefe8ddaa1e56d6714229aba11e"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS004.js",
+      "bytes": 943,
+      "sha256": "493c0f87fc6e823a9108fd3c7c521ce689bcf750f51a88f51d0fd9937dc81d3b"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS005.js",
+      "bytes": 1456,
+      "sha256": "28c5722fa23253adfe2947ed044f67580027f3d9b33985d5fb451859cc430bd5"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS006-007.js",
+      "bytes": 21166,
+      "sha256": "e88b7277ee6d0defe9980d375af0798c155bd3d63d7efeb63667f288fe3778aa"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS008.js",
+      "bytes": 12053,
+      "sha256": "cc0adc7fbb0ea3d70dcb1ee2be78936b09afed976348b33b7aca8a96fabc37e6"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS009.js",
+      "bytes": 15987,
+      "sha256": "4ac73151cfe1a77812d5c3d6229d9a30db9bc16ebb81bee0a852c8b703644d97"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS010.js",
+      "bytes": 22441,
+      "sha256": "cdd6d668c5a19a83860e52ce81010c80e83c35bfcf4b93b607f959e10fe435e9"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS011.js",
+      "bytes": 11276,
+      "sha256": "eee4a4494f198637bb85e03a1b583893803db0de6f866a3e85e22a8d83a755f2"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS013.js",
+      "bytes": 2840,
+      "sha256": "cfc77b0d6ea41deb2fe2fc8d94949dc0cb90a6da97377a236a4525393640fa7b"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS015.js",
+      "bytes": 10802,
+      "sha256": "4c3bd61ffb05ce89d9aa0c3bf36daf75c6001d9cd9e55e629f1149e510c6e6ac"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/known-globals.js",
+      "bytes": 398,
+      "sha256": "34da3b4c2fe23900c52aa0afffa13b6c569820beb826fcc2b485cf7b79940e26"
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/module-registry.js",
+      "bytes": 4135,
+      "sha256": "d4cb50437700fd7624551c5262106308bb3d896048ee26ba0e1cce89a85b3587"
+    },
+    {
+      "path": "compiled/engine/dist/modules/registry.js",
+      "bytes": 4956,
+      "sha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0"
+    },
+    {
+      "path": "compiled/engine/dist/observability/otel.js",
+      "bytes": 2556,
+      "sha256": "207fcb25c59c7da36bc8e993c9306ca714e7ad46d5fdd60d2f5f7f21299d0b9c"
+    },
+    {
+      "path": "compiled/engine/dist/parse.js",
+      "bytes": 66,
+      "sha256": "d3ec3eaf7b687ba81d0103d8daae97a1de4db433be83ddf1f830d0725ebf6549"
+    },
+    {
+      "path": "compiled/engine/dist/parse/assign-ids.js",
+      "bytes": 3010,
+      "sha256": "8079e0f14c170b1f1aeedf49568c841772ffd60014b04491a55ebd45c63784bf"
+    },
+    {
+      "path": "compiled/engine/dist/parse/format-error.js",
+      "bytes": 6922,
+      "sha256": "34208a971171e4c3b5878f7db8295288053d5db221668a6877c44de441bdeae3"
+    },
+    {
+      "path": "compiled/engine/dist/parse/hash.js",
+      "bytes": 2846,
+      "sha256": "4a778ac7e62e5593dcf491968ea8905a331f680edd7a5254531a9847627d9be3"
+    },
+    {
+      "path": "compiled/engine/dist/parse/parse-export.js",
+      "bytes": 2161,
+      "sha256": "77d80fe4763e3975bab687b773c8976d4fe7e7eaff73debdf10c275585f427b8"
+    },
+    {
+      "path": "compiled/engine/dist/parse/parse-import-meta.js",
+      "bytes": 948,
+      "sha256": "07d443545ea0b2c6687b33aad3f5d6908f1d768742cc5671b07545aaed5898dc"
+    },
+    {
+      "path": "compiled/engine/dist/parse/parser.js",
+      "bytes": 131417,
+      "sha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436"
+    },
+    {
+      "path": "compiled/engine/dist/parse/tokenizer.js",
+      "bytes": 31558,
+      "sha256": "33d268af0338dde0abe423eea1078b93cf2f28611e008b0f207f7becacc0b8cf"
+    },
+    {
+      "path": "compiled/engine/dist/random.js",
+      "bytes": 998,
+      "sha256": "9710011b510a74a5ff991f03cff32bfdbf2e1e83937d3228aa68512b2cd2596b"
+    },
+    {
+      "path": "compiled/engine/dist/restore.js",
+      "bytes": 1627,
+      "sha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016"
+    },
+    {
+      "path": "compiled/engine/dist/run.js",
+      "bytes": 23493,
+      "sha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/arguments.js",
+      "bytes": 1442,
+      "sha256": "c2f9617cdb99204dd05817379f68ad149e3c2cb6f552a2aa64d1fb1c036fe475"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/backend.js",
+      "bytes": 5485,
+      "sha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/dump-format.js",
+      "bytes": 6985,
+      "sha256": "2a3041a933418152dfbf3a1335b216ac9a8fe27304c105539baf2398b05b4dca"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/dump.js",
+      "bytes": 5871,
+      "sha256": "897b4206d49228f08ce251f97bb952ffbe1cc14dd83a68206c6a145e166ecd6b"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/policy.js",
+      "bytes": 5109,
+      "sha256": "6220531e03288996671b95777d32005c19342167d0c766057b177204b619a75b"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/replay-data.js",
+      "bytes": 13059,
+      "sha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/replay-inputs.js",
+      "bytes": 4897,
+      "sha256": "32a77265b9824363873ff0c009e6441c754fa415c7c9d069edf4f6e356ceafea"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/scheduler.js",
+      "bytes": 2495,
+      "sha256": "fdd379446ff76b1493877f27f9750b0a2aab210604e7b5fcfce387d09d7013dc"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/serialize.js",
+      "bytes": 11838,
+      "sha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913"
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/validation.js",
+      "bytes": 28147,
+      "sha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca"
+    },
+    {
+      "path": "compiled/engine/package.json",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a"
+    },
+    {
+      "path": "compiled/support/errors.js",
+      "bytes": 3191,
+      "sha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e"
+    },
+    {
+      "path": "errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4"
+    },
+    {
+      "path": "heap-worker.mjs",
+      "bytes": 418,
+      "sha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7"
+    },
+    {
+      "path": "import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    },
+    {
+      "path": "json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "load-attestation.mjs",
+      "bytes": 962,
+      "sha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67"
+    },
+    {
+      "path": "load-guard.mjs",
+      "bytes": 2602,
+      "sha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b"
+    },
+    {
+      "path": "outcome-judge.mjs",
+      "bytes": 6605,
+      "sha256": "437e3422d7e7d370bb05791fcc375397a8ac7a0e6fe283bb94508674016ffd65"
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f"
+    },
+    {
+      "path": "package.json",
+      "bytes": 139,
+      "sha256": "41b71644b77db997946c2c19303bd2533f466301bafa8e80feca3d0a69bd9781"
+    },
+    {
+      "path": "parent-entry.mjs",
+      "bytes": 3433,
+      "sha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75"
+    },
+    {
+      "path": "parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+    },
+    {
+      "path": "receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957"
+    },
+    {
+      "path": "reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "scaffold.guest.js.data",
+      "bytes": 7000,
+      "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 6942,
+      "sha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae"
+    },
+    {
+      "path": "sync-bridge.mjs",
+      "bytes": 4769,
+      "sha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497"
+    },
+    {
+      "path": "wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "worker-body.mjs",
+      "bytes": 2232,
+      "sha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5"
+    },
+    {
+      "path": "worker-entry.mjs",
+      "bytes": 297,
+      "sha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c"
+    },
+    {
+      "path": "worker-permissions.mjs",
+      "bytes": 1261,
+      "sha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0"
+    }
+  ],
+  "generated": [
+    {
+      "path": "GRANT.json",
+      "bytes": 891,
+      "sha256": "62fe3c25d9ee17901527cf40ff6c338cb886e591ec33ec419e81de7daf2bae6c"
+    },
+    {
+      "path": "runtime/RUN-WRQ-SYNC-V3-01/CLAIM.json",
+      "bytes": 88,
+      "sha256": "e9f952ad63399b635d2c073d5d824d2fb2adb5ad606d187d4ccff81dbc2be897"
+    },
+    {
+      "path": "runtime/RUN-WRQ-SYNC-V3-01/WRQ01-L01-v3.json",
+      "bytes": 16161,
+      "sha256": "8b28acffc1721daa16d147e569cd59b45b8dc44673891f967324996008a643fc"
+    },
+    {
+      "path": "runtime/RUN-WRQ-SYNC-V3-01/WRQ01-L01-v3.judgement.json",
+      "bytes": 68,
+      "sha256": "b90fb38b705c2a8b486a5f612d42e2203218121db279dd543d6f7efe294e50e7"
+    },
+    {
+      "path": "runtime/RUN-WRQ-SYNC-V3-01/WRQ02-L02-v3.json",
+      "bytes": 15291,
+      "sha256": "3300984d05b39f1e0276919e4a901842a511f9f97fdeb56ddc55b89706c8e519"
+    },
+    {
+      "path": "runtime/RUN-WRQ-SYNC-V3-01/WRQ02-L02-v3.judgement.json",
+      "bytes": 150,
+      "sha256": "bdcaff149c171fc1b1a86974266a800adf694f98b5004d3ec08ff7801ca61229"
+    }
+  ],
+  "sourcePost": [
+    {
+      "source": "../preparation-v6-ready/CASES.json",
+      "target": "CASES.json",
+      "bytes": 6556,
+      "sha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c"
+    },
+    {
+      "source": "../preparation-v6-ready/ENGINE-PACKAGE.json.data",
+      "target": "ENGINE-PACKAGE.json.data",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a"
+    },
+    {
+      "source": "../preparation-v6-ready/GRANT.template.json",
+      "target": "GRANT.template.json",
+      "bytes": 601,
+      "sha256": "eb64f745d8747934dbd64da5e979fdfe29a6242044600e0a6d7592d8b233bfac"
+    },
+    {
+      "source": "../preparation-v6-ready/MODULES.json",
+      "target": "MODULES.json",
+      "bytes": 121324,
+      "sha256": "b30716d17f48a731bd60d1cd1b9c7fdae0ba4822b6a91ffca3b0e06e6b7993ad"
+    },
+    {
+      "source": "../preparation-v6-ready/PROFILE.json",
+      "target": "PROFILE.json",
+      "bytes": 2948,
+      "sha256": "31e8346581f657ae17b2f8a5f6794e00baab1701b8df5796aafd4033a0b4c87b"
+    },
+    {
+      "source": "../preparation-v6-ready/SOURCES.json",
+      "target": "SOURCES.json",
+      "bytes": 25458,
+      "sha256": "3376b6d4fd3aaee969d9716e80fbe2025ed51e58b5b19b676f82ada7ac981a78"
+    },
+    {
+      "source": "../preparation-v6-ready/TOOLS.json",
+      "target": "TOOLS.json",
+      "bytes": 2386,
+      "sha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/core.js",
+      "target": "compiled/engine/dist/core.js",
+      "bytes": 165,
+      "sha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/error-codes.js",
+      "target": "compiled/engine/dist/error-codes.js",
+      "bytes": 380,
+      "sha256": "8ef9f6c15ab94c4545e81e33ab7f56cef4604f3035c85b344e11e0e1f410edac"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "bytes": 4684,
+      "sha256": "5276a36e63131f7fa270188ede06a491230204de323c9e39f4e8874dbab9eacb"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/graph-depth.js",
+      "target": "compiled/engine/dist/graph-depth.js",
+      "bytes": 3189,
+      "sha256": "16996539c9612405dc544b9cf9ac21c50fb588c4445f8956fea46aa0962b355b"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/arguments.js",
+      "target": "compiled/engine/dist/interp/arguments.js",
+      "bytes": 1926,
+      "sha256": "a946254930385dbd83a6d49a53ab703ff6f56ad834663d38f8ee0f2a021c7349"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/async.js",
+      "target": "compiled/engine/dist/interp/async.js",
+      "bytes": 9577,
+      "sha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "bytes": 8584,
+      "sha256": "5379c5240faa9310253a22820229996f5c3e47865e509f99bece5fdc5dcf942a"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/cancel.js",
+      "target": "compiled/engine/dist/interp/cancel.js",
+      "bytes": 6106,
+      "sha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/exceptions.js",
+      "target": "compiled/engine/dist/interp/exceptions.js",
+      "bytes": 15549,
+      "sha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/generator.js",
+      "target": "compiled/engine/dist/interp/generator.js",
+      "bytes": 4629,
+      "sha256": "82048a59fe3e45bbc091ab4f32391ac630335861ab9beb21416997330892c26e"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/collections.js",
+      "target": "compiled/engine/dist/interp/globals/collections.js",
+      "bytes": 3774,
+      "sha256": "88ef1edce943130e884a7751b9200f6a5d215a11795e6a8a5f8660e7c5f3a349"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/console-json.js",
+      "target": "compiled/engine/dist/interp/globals/console-json.js",
+      "bytes": 9671,
+      "sha256": "bcdfe5d0651a04a9d3344afe0eb1ede780ba0d56486b6f60ca7c1f5f9d87aae6"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/error.js",
+      "target": "compiled/engine/dist/interp/globals/error.js",
+      "bytes": 2079,
+      "sha256": "5ec3d6755ede676a3af142a5ac2bbedfb851793321b182845b724e4335a51028"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/math.js",
+      "target": "compiled/engine/dist/interp/globals/math.js",
+      "bytes": 2105,
+      "sha256": "1a102f3b7d6c67c9ea222e72f5304f1baaa62d14f550789e0449d18ff997a260"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/misc.js",
+      "target": "compiled/engine/dist/interp/globals/misc.js",
+      "bytes": 2137,
+      "sha256": "9655ed0db25a7e2be99c6f7d25e1cf5e03c18cc56b832ba77d18e89664683035"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/object-array.js",
+      "target": "compiled/engine/dist/interp/globals/object-array.js",
+      "bytes": 9929,
+      "sha256": "db28b89e56fe3e8ca148fa8c906b7eb9b5c0b28f5a302141410662bb6f87bf5d"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/globals/regex.js",
+      "target": "compiled/engine/dist/interp/globals/regex.js",
+      "bytes": 317,
+      "sha256": "1fea1fe74bd7d445b397234b1f649cda37fa3c4b11aee3438772dd575825211c"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/host-bridge.js",
+      "target": "compiled/engine/dist/interp/host-bridge.js",
+      "bytes": 28892,
+      "sha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/host-call.js",
+      "target": "compiled/engine/dist/interp/host-call.js",
+      "bytes": 22060,
+      "sha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/interpreter.js",
+      "target": "compiled/engine/dist/interp/interpreter.js",
+      "bytes": 89873,
+      "sha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/iteration.js",
+      "target": "compiled/engine/dist/interp/iteration.js",
+      "bytes": 2248,
+      "sha256": "38210e280e8096201f9c8140eceaf0f7ea139a289447e88f860929493ce1eee9"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/jobs.js",
+      "target": "compiled/engine/dist/interp/jobs.js",
+      "bytes": 2680,
+      "sha256": "99eb5ef2405fe14d17d50b354ee4a0bfbf1826d33ccdb9523aa02cc6e0b710c4"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/array.js",
+      "target": "compiled/engine/dist/interp/methods/array.js",
+      "bytes": 20062,
+      "sha256": "1c2829f32e3f69eea0695863c0f0d7be23bb2728580c41503abb0644936e3d49"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/function.js",
+      "target": "compiled/engine/dist/interp/methods/function.js",
+      "bytes": 1344,
+      "sha256": "5b86a98e4bd0ce1ae6f9969682553f8acaf618df568cd043da325d679acdc7fb"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/generator.js",
+      "target": "compiled/engine/dist/interp/methods/generator.js",
+      "bytes": 718,
+      "sha256": "8186701b9918ce484d58ec84a2cd9bf1aa4406f4a58292d8569b4a484770db3c"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/map.js",
+      "target": "compiled/engine/dist/interp/methods/map.js",
+      "bytes": 2744,
+      "sha256": "57a1525ef623ddb9c249594012a76453888f9cf2760c52e5fada4c7e1ae02137"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/number.js",
+      "target": "compiled/engine/dist/interp/methods/number.js",
+      "bytes": 2453,
+      "sha256": "d258acca285bcbda201c7fd94189e8b4a90a87c3ac9f2525ec60d146f903707d"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/regex.js",
+      "target": "compiled/engine/dist/interp/methods/regex.js",
+      "bytes": 1666,
+      "sha256": "01368bb129c97ade13af1ec43a6764f1fc02bc810ac2391785d6b2d1ba46f2bf"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/set.js",
+      "target": "compiled/engine/dist/interp/methods/set.js",
+      "bytes": 2530,
+      "sha256": "c74586e2137d5e3e0e312807659d5090f8ff25cba994767a4549f52190971565"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/methods/string.js",
+      "target": "compiled/engine/dist/interp/methods/string.js",
+      "bytes": 11311,
+      "sha256": "1022751636e73d936848935a2cc2c3863102afbbefce1fd1ff27c9cda5423590"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/patterns.js",
+      "target": "compiled/engine/dist/interp/patterns.js",
+      "bytes": 7577,
+      "sha256": "72c07adb4ba16c788230b0e696726e5728f4da96b1589e22847fe4f0eff7f053"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/promise-replay.js",
+      "target": "compiled/engine/dist/interp/promise-replay.js",
+      "bytes": 15785,
+      "sha256": "2c812f3f6a2eaca50a287307645200b50f837ec5b02f4a5929c2762b34101707"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/promise-tracker.js",
+      "target": "compiled/engine/dist/interp/promise-tracker.js",
+      "bytes": 1839,
+      "sha256": "c5f9facc771b3c2efd6512593ad395039e424666e8ab40b054036f0c0c7f2669"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/promise.js",
+      "target": "compiled/engine/dist/interp/promise.js",
+      "bytes": 13405,
+      "sha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/regex/engine.js",
+      "target": "compiled/engine/dist/interp/regex/engine.js",
+      "bytes": 9177,
+      "sha256": "693d2758fe6d278ac38751cde19ecb4bf8a050daa42d0e24e056eae190367c02"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/regex/parse.js",
+      "target": "compiled/engine/dist/interp/regex/parse.js",
+      "bytes": 11159,
+      "sha256": "bc5cd67be005150637d5fe657f846f5dd62b0c8d0c36dadc88960f456f2015d8"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "bytes": 1219,
+      "sha256": "e6cfc8f3e42d1422b0d8aa28c97e10d545250bb2a4c07bc9fd541cf30496cb5e"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/scope.js",
+      "target": "compiled/engine/dist/interp/scope.js",
+      "bytes": 7345,
+      "sha256": "c1d4780c0ff46255077c0db3e63633932a6611c80e31741d466c213a352490ff"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "bytes": 20587,
+      "sha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/interp/var-hoist.js",
+      "target": "compiled/engine/dist/interp/var-hoist.js",
+      "bytes": 5190,
+      "sha256": "e4f19a664dd9ee5921e271a29b2518861e751c7ef20ef24d1643e9ba2b549a20"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint.js",
+      "target": "compiled/engine/dist/lint.js",
+      "bytes": 40,
+      "sha256": "64a00e32becd30dee81e4790dda0dd37b55df224cd021f172042561927f65095"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/index.js",
+      "target": "compiled/engine/dist/lint/index.js",
+      "bytes": 14807,
+      "sha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+      "target": "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+      "bytes": 21598,
+      "sha256": "9e11747ac5828525aedabeb81d6192b3978d7a8a8d0dbf3c8c24a288693423a5"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+      "target": "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+      "bytes": 9706,
+      "sha256": "bcdfd66dc56f5689eeebdb1c6b5cfe577bb4ca0f122132d51bc9ba24d3f574ae"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+      "target": "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+      "bytes": 14741,
+      "sha256": "dea489073144d583b185563d88a17129930452c2ddf91a2fc95cb655faffe503"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+      "target": "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+      "bytes": 14239,
+      "sha256": "68e712f1c46cd0449ebae256f77f2032e821bb6e086dc5252163340e588ad39f"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "target": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "bytes": 22233,
+      "sha256": "110a35370998c20d46d339ad27c50a6cac8140e7e6fdd38b759048b2a86c39da"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+      "target": "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+      "bytes": 13829,
+      "sha256": "aa05b168c86d487fc375f5bf6880bb67f1e13ef4579806e0536276a41a6bc43d"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "target": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "bytes": 3275,
+      "sha256": "306106b7124aa126f23946c962ebd49abbb4edbd0c80c3fca200378395521a3f"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "target": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "bytes": 25599,
+      "sha256": "d0fa7778a69c32dfb9cde472e879ae205a51dc0fff14032e0a602212788d1a0d"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-large-literal.js",
+      "target": "compiled/engine/dist/lint/rules/AS-large-literal.js",
+      "bytes": 12029,
+      "sha256": "49359fe538509b50342d5011f42beadc066e7e7c3c5d2d8296919dc3b51d6dbe"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-missing-async.js",
+      "target": "compiled/engine/dist/lint/rules/AS-missing-async.js",
+      "bytes": 20385,
+      "sha256": "fea668a4d55ada887b6d329c86693720c9ca5cf39e7023e9531842cd0186c2ef"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+      "target": "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+      "bytes": 17646,
+      "sha256": "f465ffd79899253083fe9436b3f5e1029c68b8310ab110c9235150c9a4400cd8"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-needless-template.js",
+      "target": "compiled/engine/dist/lint/rules/AS-needless-template.js",
+      "bytes": 14245,
+      "sha256": "f41b7cf99a9baf7a9052d46591aaafa9a494059823dce27ab557632616d26a75"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "target": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "bytes": 13315,
+      "sha256": "a2aa4a600c6caf7c12d6747b9a2f8450c6d92ff1689571756380f5de1a08073d"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+      "target": "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+      "bytes": 12551,
+      "sha256": "1604d5d91f11d72831fd424f9f128734c9c4e831cfb17a484f1ae86e43f04b3c"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unreachable.js",
+      "target": "compiled/engine/dist/lint/rules/AS-unreachable.js",
+      "bytes": 10269,
+      "sha256": "9176c95e2f96aee9ad59ad6adcd1eaa8c2c7dfc426252f3317fff2a82c0f2181"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unused-import.js",
+      "target": "compiled/engine/dist/lint/rules/AS-unused-import.js",
+      "bytes": 22135,
+      "sha256": "148ae0fa99edbeab55424f7e1fbb3852f4a1a8beea6434f767c8036a05d1737c"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS001.js",
+      "target": "compiled/engine/dist/lint/rules/AS001.js",
+      "bytes": 21928,
+      "sha256": "a3f9061233c2c957254681f544dd267612c0372c9848dcca43870afa68b207f3"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS003.js",
+      "target": "compiled/engine/dist/lint/rules/AS003.js",
+      "bytes": 20355,
+      "sha256": "09ad2cb913f600a6a8038260fdb5f8bd5d69eaefe8ddaa1e56d6714229aba11e"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS004.js",
+      "target": "compiled/engine/dist/lint/rules/AS004.js",
+      "bytes": 943,
+      "sha256": "493c0f87fc6e823a9108fd3c7c521ce689bcf750f51a88f51d0fd9937dc81d3b"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS005.js",
+      "target": "compiled/engine/dist/lint/rules/AS005.js",
+      "bytes": 1456,
+      "sha256": "28c5722fa23253adfe2947ed044f67580027f3d9b33985d5fb451859cc430bd5"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS006-007.js",
+      "target": "compiled/engine/dist/lint/rules/AS006-007.js",
+      "bytes": 21166,
+      "sha256": "e88b7277ee6d0defe9980d375af0798c155bd3d63d7efeb63667f288fe3778aa"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS008.js",
+      "target": "compiled/engine/dist/lint/rules/AS008.js",
+      "bytes": 12053,
+      "sha256": "cc0adc7fbb0ea3d70dcb1ee2be78936b09afed976348b33b7aca8a96fabc37e6"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS009.js",
+      "target": "compiled/engine/dist/lint/rules/AS009.js",
+      "bytes": 15987,
+      "sha256": "4ac73151cfe1a77812d5c3d6229d9a30db9bc16ebb81bee0a852c8b703644d97"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS010.js",
+      "target": "compiled/engine/dist/lint/rules/AS010.js",
+      "bytes": 22441,
+      "sha256": "cdd6d668c5a19a83860e52ce81010c80e83c35bfcf4b93b607f959e10fe435e9"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS011.js",
+      "target": "compiled/engine/dist/lint/rules/AS011.js",
+      "bytes": 11276,
+      "sha256": "eee4a4494f198637bb85e03a1b583893803db0de6f866a3e85e22a8d83a755f2"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS013.js",
+      "target": "compiled/engine/dist/lint/rules/AS013.js",
+      "bytes": 2840,
+      "sha256": "cfc77b0d6ea41deb2fe2fc8d94949dc0cb90a6da97377a236a4525393640fa7b"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS015.js",
+      "target": "compiled/engine/dist/lint/rules/AS015.js",
+      "bytes": 10802,
+      "sha256": "4c3bd61ffb05ce89d9aa0c3bf36daf75c6001d9cd9e55e629f1149e510c6e6ac"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/known-globals.js",
+      "target": "compiled/engine/dist/lint/rules/known-globals.js",
+      "bytes": 398,
+      "sha256": "34da3b4c2fe23900c52aa0afffa13b6c569820beb826fcc2b485cf7b79940e26"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/lint/rules/module-registry.js",
+      "target": "compiled/engine/dist/lint/rules/module-registry.js",
+      "bytes": 4135,
+      "sha256": "d4cb50437700fd7624551c5262106308bb3d896048ee26ba0e1cce89a85b3587"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/modules/registry.js",
+      "target": "compiled/engine/dist/modules/registry.js",
+      "bytes": 4956,
+      "sha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/observability/otel.js",
+      "target": "compiled/engine/dist/observability/otel.js",
+      "bytes": 2556,
+      "sha256": "207fcb25c59c7da36bc8e993c9306ca714e7ad46d5fdd60d2f5f7f21299d0b9c"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse.js",
+      "target": "compiled/engine/dist/parse.js",
+      "bytes": 66,
+      "sha256": "d3ec3eaf7b687ba81d0103d8daae97a1de4db433be83ddf1f830d0725ebf6549"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/assign-ids.js",
+      "target": "compiled/engine/dist/parse/assign-ids.js",
+      "bytes": 3010,
+      "sha256": "8079e0f14c170b1f1aeedf49568c841772ffd60014b04491a55ebd45c63784bf"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/format-error.js",
+      "target": "compiled/engine/dist/parse/format-error.js",
+      "bytes": 6922,
+      "sha256": "34208a971171e4c3b5878f7db8295288053d5db221668a6877c44de441bdeae3"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/hash.js",
+      "target": "compiled/engine/dist/parse/hash.js",
+      "bytes": 2846,
+      "sha256": "4a778ac7e62e5593dcf491968ea8905a331f680edd7a5254531a9847627d9be3"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/parse-export.js",
+      "target": "compiled/engine/dist/parse/parse-export.js",
+      "bytes": 2161,
+      "sha256": "77d80fe4763e3975bab687b773c8976d4fe7e7eaff73debdf10c275585f427b8"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/parse-import-meta.js",
+      "target": "compiled/engine/dist/parse/parse-import-meta.js",
+      "bytes": 948,
+      "sha256": "07d443545ea0b2c6687b33aad3f5d6908f1d768742cc5671b07545aaed5898dc"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "bytes": 131417,
+      "sha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/parse/tokenizer.js",
+      "target": "compiled/engine/dist/parse/tokenizer.js",
+      "bytes": 31558,
+      "sha256": "33d268af0338dde0abe423eea1078b93cf2f28611e008b0f207f7becacc0b8cf"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/random.js",
+      "target": "compiled/engine/dist/random.js",
+      "bytes": 998,
+      "sha256": "9710011b510a74a5ff991f03cff32bfdbf2e1e83937d3228aa68512b2cd2596b"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/restore.js",
+      "target": "compiled/engine/dist/restore.js",
+      "bytes": 1627,
+      "sha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/run.js",
+      "target": "compiled/engine/dist/run.js",
+      "bytes": 23493,
+      "sha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/arguments.js",
+      "target": "compiled/engine/dist/snapshot/arguments.js",
+      "bytes": 1442,
+      "sha256": "c2f9617cdb99204dd05817379f68ad149e3c2cb6f552a2aa64d1fb1c036fe475"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/backend.js",
+      "target": "compiled/engine/dist/snapshot/backend.js",
+      "bytes": 5485,
+      "sha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/dump-format.js",
+      "target": "compiled/engine/dist/snapshot/dump-format.js",
+      "bytes": 6985,
+      "sha256": "2a3041a933418152dfbf3a1335b216ac9a8fe27304c105539baf2398b05b4dca"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/dump.js",
+      "target": "compiled/engine/dist/snapshot/dump.js",
+      "bytes": 5871,
+      "sha256": "897b4206d49228f08ce251f97bb952ffbe1cc14dd83a68206c6a145e166ecd6b"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/policy.js",
+      "target": "compiled/engine/dist/snapshot/policy.js",
+      "bytes": 5109,
+      "sha256": "6220531e03288996671b95777d32005c19342167d0c766057b177204b619a75b"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/replay-data.js",
+      "target": "compiled/engine/dist/snapshot/replay-data.js",
+      "bytes": 13059,
+      "sha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/replay-inputs.js",
+      "target": "compiled/engine/dist/snapshot/replay-inputs.js",
+      "bytes": 4897,
+      "sha256": "32a77265b9824363873ff0c009e6441c754fa415c7c9d069edf4f6e356ceafea"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/scheduler.js",
+      "target": "compiled/engine/dist/snapshot/scheduler.js",
+      "bytes": 2495,
+      "sha256": "fdd379446ff76b1493877f27f9750b0a2aab210604e7b5fcfce387d09d7013dc"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/serialize.js",
+      "target": "compiled/engine/dist/snapshot/serialize.js",
+      "bytes": 11838,
+      "sha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/engine/dist/snapshot/validation.js",
+      "target": "compiled/engine/dist/snapshot/validation.js",
+      "bytes": 28147,
+      "sha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca"
+    },
+    {
+      "source": "../preparation-v6-ready/ENGINE-PACKAGE.json.data",
+      "target": "compiled/engine/package.json",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a"
+    },
+    {
+      "source": "../preparation-v4-compiler/run/compiled/support/errors.js",
+      "target": "compiled/support/errors.js",
+      "bytes": 3191,
+      "sha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e"
+    },
+    {
+      "source": "../preparation-v6-ready/errors.mjs",
+      "target": "errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "source": "../preparation-v6-ready/fixtures.mjs",
+      "target": "fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4"
+    },
+    {
+      "source": "../preparation-v6-ready/heap-worker.mjs",
+      "target": "heap-worker.mjs",
+      "bytes": 418,
+      "sha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7"
+    },
+    {
+      "source": "../preparation-v6-ready/import-policy.mjs",
+      "target": "import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    },
+    {
+      "source": "../preparation-v6-ready/json-size.mjs",
+      "target": "json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "source": "../preparation-v6-ready/load-attestation.mjs",
+      "target": "load-attestation.mjs",
+      "bytes": 962,
+      "sha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67"
+    },
+    {
+      "source": "../preparation-v6-ready/load-guard.mjs",
+      "target": "load-guard.mjs",
+      "bytes": 2602,
+      "sha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b"
+    },
+    {
+      "source": "../preparation-v6-ready/outcome-judge.mjs",
+      "target": "outcome-judge.mjs",
+      "bytes": 6605,
+      "sha256": "437e3422d7e7d370bb05791fcc375397a8ac7a0e6fe283bb94508674016ffd65"
+    },
+    {
+      "source": "../preparation-v6-ready/owner.mjs",
+      "target": "owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f"
+    },
+    {
+      "source": "../preparation-v6-ready/package.json",
+      "target": "package.json",
+      "bytes": 139,
+      "sha256": "41b71644b77db997946c2c19303bd2533f466301bafa8e80feca3d0a69bd9781"
+    },
+    {
+      "source": "../preparation-v6-ready/parent-entry.mjs",
+      "target": "parent-entry.mjs",
+      "bytes": 3433,
+      "sha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75"
+    },
+    {
+      "source": "../preparation-v6-ready/parent-rpc.mjs",
+      "target": "parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+    },
+    {
+      "source": "../preparation-v6-ready/receipt-schema.mjs",
+      "target": "receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957"
+    },
+    {
+      "source": "../preparation-v6-ready/reservations.mjs",
+      "target": "reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "source": "../preparation-v6-ready/scaffold.guest.js.data",
+      "target": "scaffold.guest.js.data",
+      "bytes": 7000,
+      "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833"
+    },
+    {
+      "source": "../preparation-v6-ready/supervisor.mjs",
+      "target": "supervisor.mjs",
+      "bytes": 6942,
+      "sha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae"
+    },
+    {
+      "source": "../preparation-v6-ready/sync-bridge.mjs",
+      "target": "sync-bridge.mjs",
+      "bytes": 4769,
+      "sha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497"
+    },
+    {
+      "source": "../preparation-v6-ready/wire.mjs",
+      "target": "wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "source": "../preparation-v6-ready/worker-body.mjs",
+      "target": "worker-body.mjs",
+      "bytes": 2232,
+      "sha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5"
+    },
+    {
+      "source": "../preparation-v6-ready/worker-entry.mjs",
+      "target": "worker-entry.mjs",
+      "bytes": 297,
+      "sha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c"
+    },
+    {
+      "source": "../preparation-v6-ready/worker-permissions.mjs",
+      "target": "worker-permissions.mjs",
+      "bytes": 1261,
+      "sha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0"
+    }
+  ],
+  "rawFiles": [
+    {
+      "path": "OWNER.json",
+      "bytes": 23263,
+      "sha256": "c9211077976b189814b6a13e0a0812bf1b62ecdbd50e10f386b769dccc4e15ac"
+    },
+    {
+      "path": "capsule/CASES.json",
+      "bytes": 6556,
+      "sha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c"
+    },
+    {
+      "path": "capsule/ENGINE-PACKAGE.json.data",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a"
+    },
+    {
+      "path": "capsule/GRANT.json",
+      "bytes": 891,
+      "sha256": "62fe3c25d9ee17901527cf40ff6c338cb886e591ec33ec419e81de7daf2bae6c"
+    },
+    {
+      "path": "capsule/GRANT.template.json",
+      "bytes": 601,
+      "sha256": "eb64f745d8747934dbd64da5e979fdfe29a6242044600e0a6d7592d8b233bfac"
+    },
+    {
+      "path": "capsule/MODULES.json",
+      "bytes": 121324,
+      "sha256": "b30716d17f48a731bd60d1cd1b9c7fdae0ba4822b6a91ffca3b0e06e6b7993ad"
+    },
+    {
+      "path": "capsule/PROFILE.json",
+      "bytes": 2948,
+      "sha256": "31e8346581f657ae17b2f8a5f6794e00baab1701b8df5796aafd4033a0b4c87b"
+    },
+    {
+      "path": "capsule/SOURCES.json",
+      "bytes": 25458,
+      "sha256": "3376b6d4fd3aaee969d9716e80fbe2025ed51e58b5b19b676f82ada7ac981a78"
+    },
+    {
+      "path": "capsule/TOOLS.json",
+      "bytes": 2386,
+      "sha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce"
+    },
+    {
+      "path": "capsule/errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "capsule/fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4"
+    },
+    {
+      "path": "capsule/heap-worker.mjs",
+      "bytes": 418,
+      "sha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7"
+    },
+    {
+      "path": "capsule/import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    },
+    {
+      "path": "capsule/json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "capsule/load-attestation.mjs",
+      "bytes": 962,
+      "sha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67"
+    },
+    {
+      "path": "capsule/load-guard.mjs",
+      "bytes": 2602,
+      "sha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b"
+    },
+    {
+      "path": "capsule/outcome-judge.mjs",
+      "bytes": 6605,
+      "sha256": "437e3422d7e7d370bb05791fcc375397a8ac7a0e6fe283bb94508674016ffd65"
+    },
+    {
+      "path": "capsule/owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f"
+    },
+    {
+      "path": "capsule/package.json",
+      "bytes": 139,
+      "sha256": "41b71644b77db997946c2c19303bd2533f466301bafa8e80feca3d0a69bd9781"
+    },
+    {
+      "path": "capsule/parent-entry.mjs",
+      "bytes": 3433,
+      "sha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75"
+    },
+    {
+      "path": "capsule/parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+    },
+    {
+      "path": "capsule/receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957"
+    },
+    {
+      "path": "capsule/reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "capsule/runtime/RUN-WRQ-SYNC-V3-01/CLAIM.json",
+      "bytes": 88,
+      "sha256": "e9f952ad63399b635d2c073d5d824d2fb2adb5ad606d187d4ccff81dbc2be897"
+    },
+    {
+      "path": "capsule/runtime/RUN-WRQ-SYNC-V3-01/WRQ01-L01-v3.json",
+      "bytes": 16161,
+      "sha256": "8b28acffc1721daa16d147e569cd59b45b8dc44673891f967324996008a643fc"
+    },
+    {
+      "path": "capsule/runtime/RUN-WRQ-SYNC-V3-01/WRQ01-L01-v3.judgement.json",
+      "bytes": 68,
+      "sha256": "b90fb38b705c2a8b486a5f612d42e2203218121db279dd543d6f7efe294e50e7"
+    },
+    {
+      "path": "capsule/runtime/RUN-WRQ-SYNC-V3-01/WRQ02-L02-v3.json",
+      "bytes": 15291,
+      "sha256": "3300984d05b39f1e0276919e4a901842a511f9f97fdeb56ddc55b89706c8e519"
+    },
+    {
+      "path": "capsule/runtime/RUN-WRQ-SYNC-V3-01/WRQ02-L02-v3.judgement.json",
+      "bytes": 150,
+      "sha256": "bdcaff149c171fc1b1a86974266a800adf694f98b5004d3ec08ff7801ca61229"
+    },
+    {
+      "path": "capsule/scaffold.guest.js.data",
+      "bytes": 7000,
+      "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833"
+    },
+    {
+      "path": "capsule/supervisor.mjs",
+      "bytes": 6942,
+      "sha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae"
+    },
+    {
+      "path": "capsule/sync-bridge.mjs",
+      "bytes": 4769,
+      "sha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497"
+    },
+    {
+      "path": "capsule/wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "capsule/worker-body.mjs",
+      "bytes": 2232,
+      "sha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5"
+    },
+    {
+      "path": "capsule/worker-entry.mjs",
+      "bytes": 297,
+      "sha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c"
+    },
+    {
+      "path": "capsule/worker-permissions.mjs",
+      "bytes": 1261,
+      "sha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0"
+    },
+    {
+      "path": "parent.stderr.raw",
+      "bytes": 756,
+      "sha256": "6acfce8c25adcee502e46b13321c3385cae3b8ae3753a1807ec5bdbbc6e84266"
+    },
+    {
+      "path": "parent.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

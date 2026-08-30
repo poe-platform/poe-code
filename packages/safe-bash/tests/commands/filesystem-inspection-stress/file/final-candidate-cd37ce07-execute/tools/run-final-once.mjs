@@ -1,0 +1,53 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { appendFileSync, existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = dirname(fileURLToPath(import.meta.url));
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const binding = JSON.parse(readFileSync(join(root, 'binding.json')));
+assert.equal(hash(readFileSync(join(root, 'child.mjs'))), binding.childSha256);
+assert.equal(hash(readFileSync(join(root, 'audit-loader.mjs'))), binding.loaderSha256);
+assert.equal(hash(readFileSync(join(root, 'holdout/v2-runner.mjs'))), binding.runnerSha256);
+assert.equal(hash(readFileSync(join(root, 'execution-peer-report.md'))), binding.peerReportSha256);
+assert.equal(JSON.parse(readFileSync(join(root, 'execution-preflight.json'))).allHashesVerified, true);
+assert.equal(readdirSync(join(root, 'results')).length, 0, 'Never repeat product work');
+assert(!existsSync(join(root, 'final-run.json')));
+const started = Date.now();
+writeFileSync(join(root, 'final-run.claim.json'), `${JSON.stringify({ startedAt: new Date(started).toISOString(), pid: process.pid, candidateCommit: binding.candidateCommit, runnerSha256: binding.runnerSha256, coordinatorSha256: hash(readFileSync(fileURLToPath(import.meta.url))), admittedCases: 40, retriesAuthorized: false }, null, 2)}\n`, { flag: 'wx' });
+const rows = [];
+const routed = [];
+let mechanicsStopped = false;
+for (let index = 1; index <= 40; index++) {
+  const id = `F${String(index).padStart(2, '0')}`;
+  const remaining = 600000 - (Date.now() - started);
+  if (mechanicsStopped || remaining <= 0) {
+    rows.push({ id, status: 'not-run', reason: mechanicsStopped ? 'Prior child mechanics failed; root must authorize any resume' : 'global 10-minute limit' });
+    continue;
+  }
+  assert(!existsSync(join(root, 'results', `${id}.json`)));
+  const caseStarted = new Date().toISOString();
+  const result = spawnSync(process.execPath, ['--experimental-loader', join(root, 'audit-loader.mjs'), join(root, 'child.mjs'), id], {
+    cwd: join(root, 'candidate'), timeout: Math.min(60000, remaining), killSignal: 'SIGKILL', maxBuffer: 2 * 1024 * 1024,
+    env: { PATH: '/usr/bin:/bin', HOME: root, LC_ALL: 'C', HOLDOUT_MODULE_LOG: join(root, 'results', `${id}.modules.jsonl`) },
+  });
+  writeFileSync(join(root, 'results', `${id}.stdout.txt`), result.stdout ?? '', { flag: 'wx' });
+  writeFileSync(join(root, 'results', `${id}.stderr.txt`), result.stderr ?? '', { flag: 'wx' });
+  const reportExists = existsSync(join(root, 'results', `${id}.json`));
+  const report = reportExists ? JSON.parse(readFileSync(join(root, 'results', `${id}.json`))).reports[0] : undefined;
+  const row = { id, caseStarted, caseFinished: new Date().toISOString(), pid: result.pid, status: result.status, signal: result.signal, error: result.error?.message ?? null, reportExists, semanticStatus: report?.semanticStatus ?? null, nativeStatus: report?.nativeStatus ?? null };
+  rows.push(row);
+  mechanicsStopped = result.status !== 0 || !reportExists;
+  const newProfileMismatch = report?.nativeStatus === 'native-profile-conflict' && !['F07', 'F12', 'F18'].includes(id);
+  if (mechanicsStopped || report?.semanticStatus === 'fail' || newProfileMismatch) {
+    const failure = { routedAt: new Date().toISOString(), id, candidateCommit: binding.candidateCommit, child: row, classification: mechanicsStopped ? 'execution-mechanics' : newProfileMismatch ? 'new-or-avoidable-native-mismatch-needs-root-adjudication' : 'frozen-semantic-predicate-failure-needs-root-adjudication', report: report ?? null, rawEvidence: join(root, 'results', id), retryPerformed: false };
+    routed.push(failure);
+    appendFileSync('/tmp/safe-bash-file-holdout-failures.txt', `\nFINAL-CANDIDATE IMMEDIATE ROUTE (no retry)\n${JSON.stringify(failure, null, 2)}\n`);
+    writeFileSync(join(root, 'final-failures.json'), `${JSON.stringify(routed, null, 2)}\n`);
+  }
+  writeFileSync(join(root, 'final-run.progress.json'), `${JSON.stringify(rows, null, 2)}\n`);
+  console.log(JSON.stringify(row));
+}
+writeFileSync(join(root, 'final-run.json'), `${JSON.stringify({ startedAt: new Date(started).toISOString(), finishedAt: new Date().toISOString(), elapsedMs: Date.now() - started, maximumCases: 40, caseTimeoutMs: 60000, globalTimeoutMs: 600000, childOutputCapBytes: 2 * 1024 * 1024, sequentialChildren: true, retries: 0, nativeCaptures: 0, routedFailureIds: routed.map((entry) => entry.id), rows }, null, 2)}\n`, { flag: 'wx' });

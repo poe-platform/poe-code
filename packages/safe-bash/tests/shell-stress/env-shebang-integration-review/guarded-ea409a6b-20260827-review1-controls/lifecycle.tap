@@ -1,0 +1,700 @@
+TAP version 13
+# Subtest: sole cleanup rejection preserves undefined identity
+ok 1 - sole cleanup rejection preserves undefined identity
+  ---
+  duration_ms: 3.331875
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves null identity
+ok 2 - sole cleanup rejection preserves null identity
+  ---
+  duration_ms: 0.664459
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves Error: cleanup only identity
+ok 3 - sole cleanup rejection preserves Error: cleanup only identity
+  ---
+  duration_ms: 0.339417
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: null
+ok 4 - caller abort during drain wins over execution and cleanup: null
+  ---
+  duration_ms: 0.506
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: 0
+ok 5 - caller abort during drain wins over execution and cleanup: 0
+  ---
+  duration_ms: 0.406625
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: cancel
+ok 6 - caller abort during drain wins over execution and cleanup: cancel
+  ---
+  duration_ms: 0.242291
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: [object Object]
+ok 7 - caller abort during drain wins over execution and cleanup: [object Object]
+  ---
+  duration_ms: 0.378
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: Error: caller
+ok 8 - caller abort during drain wins over execution and cleanup: Error: caller
+  ---
+  duration_ms: 1.186208
+  type: 'test'
+  ...
+# Subtest: execution rejection wins while every delayed cleanup failure is observed
+ok 9 - execution rejection wins while every delayed cleanup failure is observed
+  ---
+  duration_ms: 18.144375
+  type: 'test'
+  ...
+# Subtest: ordinary command throw keeps its diagnostic and status after cleanup
+ok 10 - ordinary command throw keeps its diagnostic and status after cleanup
+  ---
+  duration_ms: 17.153042
+  type: 'test'
+  ...
+# Subtest: noncallable registration and cleanup-time registration fail synchronously
+ok 11 - noncallable registration and cleanup-time registration fail synchronously
+  ---
+  duration_ms: 0.376167
+  type: 'test'
+  ...
+# Subtest: all hooks start while an earlier hook is pending; finally shares the owned close
+ok 12 - all hooks start while an earlier hook is pending; finally shares the owned close
+  ---
+  duration_ms: 0.76425
+  type: 'test'
+  ...
+# Subtest: normal parent closure seals detached descendants before iterator or FS acquisition
+ok 13 - normal parent closure seals detached descendants before iterator or FS acquisition
+  ---
+  duration_ms: 0.784791
+  type: 'test'
+  ...
+# Subtest: caller-aborted saved capabilities preserve exact admission reason
+ok 14 - caller-aborted saved capabilities preserve exact admission reason
+  ---
+  duration_ms: 0.3545
+  type: 'test'
+  ...
+# Subtest: late opaque rejection is observed after owned cleanup and public settlement
+ok 15 - late opaque rejection is observed after owned cleanup and public settlement
+  ---
+  duration_ms: 16.769792
+  type: 'test'
+  ...
+# Subtest: nested middleware overlays keep their cleanup closure and exact replacement environment
+ok 16 - nested middleware overlays keep their cleanup closure and exact replacement environment
+  ---
+  duration_ms: 0.590542
+  type: 'test'
+  ...
+# Subtest: dispose and cancellation isolate concurrent execs and another shell sharing an owner
+ok 17 - dispose and cancellation isolate concurrent execs and another shell sharing an owner
+  ---
+  duration_ms: 48.692625
+  type: 'test'
+  ...
+# Subtest: reentrant dispose returns the identical barrier and starts plugin disposal once
+ok 18 - reentrant dispose returns the identical barrier and starts plugin disposal once
+  ---
+  duration_ms: 16.633042
+  type: 'test'
+  ...
+# Subtest: dispose drains every owned failure before reverse plugin disposal
+ok 19 - dispose drains every owned failure before reverse plugin disposal
+  ---
+  duration_ms: 16.612875
+  type: 'test'
+  ...
+# Subtest: closed detached middleware cannot call later middleware through a saved next
+ok 20 - closed detached middleware cannot call later middleware through a saved next
+  ---
+  duration_ms: 0.447416
+  type: 'test'
+  ...
+# Subtest: each duplicate registration runs once without exposing closure authority
+ok 21 - each duplicate registration runs once without exposing closure authority
+  ---
+  duration_ms: 0.170792
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=false
+ok 22 - early downstream closure drains both owners; pipefail=false, failure=false
+  ---
+  duration_ms: 38.159667
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=true
+ok 23 - early downstream closure drains both owners; pipefail=false, failure=true
+  ---
+  duration_ms: 32.749667
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=false
+ok 24 - early downstream closure drains both owners; pipefail=true, failure=false
+  ---
+  duration_ms: 34.809792
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=true
+ok 25 - early downstream closure drains both owners; pipefail=true, failure=true
+  ---
+  duration_ms: 34.21875
+  type: 'test'
+  ...
+# Subtest: pipeline abort drains nested owners even when every handler remains opaque
+ok 26 - pipeline abort drains nested owners even when every handler remains opaque
+  ---
+  duration_ms: 17.725666
+  type: 'test'
+  ...
+# Subtest: opaque pending input and iterator return do not delay owned cleanup on cancel
+ok 27 - opaque pending input and iterator return do not delay owned cleanup on cancel
+  ---
+  duration_ms: 16.786875
+  type: 'test'
+  ...
+# Subtest: opaque sink rejection is observed without skipping cleanup or altering captured bytes
+ok 28 - opaque sink rejection is observed without skipping cleanup or altering captured bytes
+  ---
+  duration_ms: 32.30975
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows owned | pass
+ok 29 - registered cleanup follows owned | pass
+  ---
+  duration_ms: 17.268542
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows (owned)
+ok 30 - registered cleanup follows (owned)
+  ---
+  duration_ms: 17.03075
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows f() { owned; }; f
+ok 31 - registered cleanup follows f() { owned; }; f
+  ---
+  duration_ms: 16.084416
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows eval owned
+ok 32 - registered cleanup follows eval owned
+  ---
+  duration_ms: 16.19825
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows . /owned.sh
+ok 33 - registered cleanup follows . /owned.sh
+  ---
+  duration_ms: 16.949333
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows source /owned.sh
+ok 34 - registered cleanup follows source /owned.sh
+  ---
+  duration_ms: 16.578959
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows say $(owned)
+ok 35 - registered cleanup follows say $(owned)
+  ---
+  duration_ms: 16.914209
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows bash -c owned
+ok 36 - registered cleanup follows bash -c owned
+  ---
+  duration_ms: 15.741916
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows command owned
+ok 37 - registered cleanup follows command owned
+  ---
+  duration_ms: 17.106375
+  type: 'test'
+  ...
+# Subtest: pipeline output and shared output accounting preserve exact bytes after delayed drain
+ok 38 - pipeline output and shared output accounting preserve exact bytes after delayed drain
+  ---
+  duration_ms: 32.733542
+  type: 'test'
+  ...
+# Subtest: R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+ok 39 - R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+  ---
+  duration_ms: 1.226084
+  type: 'test'
+  ...
+# Subtest: R1 async admitted setup can register after acquisition without reopening external admission
+ok 40 - R1 async admitted setup can register after acquisition without reopening external admission
+  ---
+  duration_ms: 2.390583
+  type: 'test'
+  ...
+# Subtest: R1 multiple queued asynchronous setups finish before reverse plugin disposal
+ok 41 - R1 multiple queued asynchronous setups finish before reverse plugin disposal
+  ---
+  duration_ms: 0.205958
+  type: 'test'
+  ...
+# Subtest: R1 saved completed setup hosts do not borrow another setup's disposal admission
+ok 42 - R1 saved completed setup hosts do not borrow another setup's disposal admission
+  ---
+  duration_ms: 3.347083
+  type: 'test'
+  ...
+# Subtest: R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+ok 43 - R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+  ---
+  duration_ms: 0.589084
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+ok 44 - R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+  ---
+  duration_ms: 0.507542
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection undefined and successful prior disposal
+ok 45 - R1 preserves explicit setup rejection undefined and successful prior disposal
+  ---
+  duration_ms: 0.45375
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection null and successful prior disposal
+ok 46 - R1 preserves explicit setup rejection null and successful prior disposal
+  ---
+  duration_ms: 0.971292
+  type: 'test'
+  ...
+# Subtest: R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+ok 47 - R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+  ---
+  duration_ms: 0.376959
+  type: 'test'
+  ...
+# Subtest: R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+ok 48 - R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+  ---
+  duration_ms: 0.636
+  type: 'test'
+  ...
+# Subtest: cleanup is registered before acquisition and delays normal public settlement
+ok 49 - cleanup is registered before acquisition and delays normal public settlement
+  ---
+  duration_ms: 3.815667
+  type: 'test'
+  ...
+# Subtest: caller cancellation drains middleware hooks without waiting opaque next
+ok 50 - caller cancellation drains middleware hooks without waiting opaque next
+  ---
+  duration_ms: 1.316916
+  type: 'test'
+  ...
+# Subtest: normal completion seals saved registration and invoke before input acquisition
+ok 51 - normal completion seals saved registration and invoke before input acquisition
+  ---
+  duration_ms: 0.586125
+  type: 'test'
+  ...
+# Subtest: all cleanup failures survive undefined and null without hiding nonzero results
+ok 52 - all cleanup failures survive undefined and null without hiding nonzero results
+  ---
+  duration_ms: 0.63475
+  type: 'test'
+  ...
+# Subtest: dispose closes admissions and shares the active cleanup barrier before plugins
+ok 53 - dispose closes admissions and shares the active cleanup barrier before plugins
+  ---
+  duration_ms: 1.011291
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec omitted
+ok 54 - stdin origin: exec omitted
+  ---
+  duration_ms: 2.820167
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty string
+ok 55 - stdin origin: exec empty string
+  ---
+  duration_ms: 0.597541
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty bytes
+ok 56 - stdin origin: exec empty bytes
+  ---
+  duration_ms: 0.27275
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty stream
+ok 57 - stdin origin: exec empty stream
+  ---
+  duration_ms: 0.385541
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin | pass
+ok 58 - stdin origin: origin | pass
+  ---
+  duration_ms: 3.375791
+  type: 'test'
+  ...
+# Subtest: stdin origin: : | origin
+ok 59 - stdin origin: : | origin
+  ---
+  duration_ms: 1.231917
+  type: 'test'
+  ...
+# Subtest: stdin origin: : | pass | origin
+ok 60 - stdin origin: : | pass | origin
+  ---
+  duration_ms: 1.516875
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <empty
+ok 61 - stdin origin: origin <empty
+  ---
+  duration_ms: 0.583417
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<END\\nEND
+ok 62 - stdin origin: origin <<END\\nEND
+  ---
+  duration_ms: 0.578041
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<'END'\\nEND
+ok 63 - stdin origin: origin <<'END'\\nEND
+  ---
+  duration_ms: 0.4825
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<< ''
+ok 64 - stdin origin: origin <<< ''
+  ---
+  duration_ms: 1.128417
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<empty 0<&3
+ok 65 - stdin origin: origin 3<empty 0<&3
+  ---
+  duration_ms: 0.311125
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<&0 <empty 0<&3
+ok 66 - stdin origin: origin 3<&0 <empty 0<&3
+  ---
+  duration_ms: 0.307458
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <empty 3<&0 0<&3
+ok 67 - stdin origin: origin <empty 3<&0 0<&3
+  ---
+  duration_ms: 0.204542
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<&0 0<&- 0<&3
+ok 68 - stdin origin: origin 3<&0 0<&- 0<&3
+  ---
+  duration_ms: 0.191916
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<empty 0<&3 3<&-
+ok 69 - stdin origin: origin 3<empty 0<&3 3<&-
+  ---
+  duration_ms: 0.183916
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 0<&-
+ok 70 - stdin origin: origin 0<&-
+  ---
+  duration_ms: 0.132916
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 0>out
+ok 71 - stdin origin: origin 0>out
+  ---
+  duration_ms: 0.211833
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 2>out 3>other
+ok 72 - stdin origin: origin 2>out 3>other
+  ---
+  duration_ms: 0.291167
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; }; (origin)
+ok 73 - stdin origin: { origin; }; (origin)
+  ---
+  duration_ms: 0.493375
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; } <empty; origin
+ok 74 - stdin origin: { origin; } <empty; origin
+  ---
+  duration_ms: 0.29375
+  type: 'test'
+  ...
+# Subtest: stdin origin: (origin) <empty
+ok 75 - stdin origin: (origin) <empty
+  ---
+  duration_ms: 0.27125
+  type: 'test'
+  ...
+# Subtest: stdin origin: func() { origin; }; func; func <empty; origin
+ok 76 - stdin origin: func() { origin; }; func; func <empty; origin
+  ---
+  duration_ms: 0.800542
+  type: 'test'
+  ...
+# Subtest: stdin origin: func() { origin; }; : | func
+ok 77 - stdin origin: func() { origin; }; : | func
+  ---
+  duration_ms: 0.641541
+  type: 'test'
+  ...
+# Subtest: stdin origin: say "$(origin)"
+ok 78 - stdin origin: say "$(origin)"
+  ---
+  duration_ms: 1.262959
+  type: 'test'
+  ...
+# Subtest: stdin origin: { say "$(origin)"; } <empty
+ok 79 - stdin origin: { say "$(origin)"; } <empty
+  ---
+  duration_ms: 0.373541
+  type: 'test'
+  ...
+# Subtest: stdin origin: say "$(origin <empty)"; origin
+ok 80 - stdin origin: say "$(origin <empty)"; origin
+  ---
+  duration_ms: 0.2995
+  type: 'test'
+  ...
+# Subtest: stdin origin: { : | origin 0<&3; } 3<&0
+ok 81 - stdin origin: { : | origin 0<&3; } 3<&0
+  ---
+  duration_ms: 0.462833
+  type: 'test'
+  ...
+# Subtest: stdin origin: { : | origin 0<&3; } 3<empty
+ok 82 - stdin origin: { : | origin 0<&3; } 3<empty
+  ---
+  duration_ms: 0.658125
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin <&3; } 3<<END\\nEND
+ok 83 - stdin origin: { origin <&3; } 3<<END\\nEND
+  ---
+  duration_ms: 0.197083
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin <&3; } 3<<< ''
+ok 84 - stdin origin: { origin <&3; } 3<<< ''
+  ---
+  duration_ms: 0.248375
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin 0<&3; } 3<&0 <empty
+ok 85 - stdin origin: { origin 0<&3; } 3<&0 <empty
+  ---
+  duration_ms: 0.204625
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin 0<&3; } <empty 3<&0
+ok 86 - stdin origin: { origin 0<&3; } <empty 3<&0
+  ---
+  duration_ms: 0.151834
+  type: 'test'
+  ...
+# Subtest: stdin origin: { drain <&3; origin <&3; origin; } 3<empty
+ok 87 - stdin origin: { drain <&3; origin <&3; origin; } 3<empty
+  ---
+  duration_ms: 0.314959
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; } 0<&-
+ok 88 - stdin origin: { origin; } 0<&-
+  ---
+  duration_ms: 0.109666
+  type: 'test'
+  ...
+# Subtest: stdin origin: detection never reads supplied input
+ok 89 - stdin origin: detection never reads supplied input
+  ---
+  duration_ms: 0.459584
+  type: 'test'
+  ...
+# Subtest: stdin origin: zero chunks and EOF never change explicit origin
+ok 90 - stdin origin: zero chunks and EOF never change explicit origin
+  ---
+  duration_ms: 0.413541
+  type: 'test'
+  ...
+# Subtest: stdin origin: externally exhausted stream remains explicit
+ok 91 - stdin origin: externally exhausted stream remains explicit
+  ---
+  duration_ms: 0.306708
+  type: 'test'
+  ...
+# Subtest: stdin origin: duplicated descriptors share cursor without changing origin
+ok 92 - stdin origin: duplicated descriptors share cursor without changing origin
+  ---
+  duration_ms: 1.10525
+  type: 'test'
+  ...
+# Subtest: stdin origin: closed input retains bad-descriptor failures
+ok 93 - stdin origin: closed input retains bad-descriptor failures
+  ---
+  duration_ms: 0.462625
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested invocation from default=true
+ok 94 - stdin origin: nested invocation from default=true
+  ---
+  duration_ms: 0.967041
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested invocation from default=false
+ok 95 - stdin origin: nested invocation from default=false
+  ---
+  duration_ms: 0.5425
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested functions preserve saved descriptors and replacement origin
+ok 96 - stdin origin: nested functions preserve saved descriptors and replacement origin
+  ---
+  duration_ms: 0.270041
+  type: 'test'
+  ...
+# Subtest: stdin origin: middleware and transparent clones retain provenance
+ok 97 - stdin origin: middleware and transparent clones retain provenance
+  ---
+  duration_ms: 0.946333
+  type: 'test'
+  ...
+# Subtest: stdin origin: forwarding changed clones requires explicit invocation options
+ok 98 - stdin origin: forwarding changed clones requires explicit invocation options
+  ---
+  duration_ms: 0.24225
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=false
+ok 99 - stdin origin: rg integration rg match supplied=false
+  ---
+  duration_ms: 17.837959
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 100 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 13.901791
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 101 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 13.106083
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 102 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 13.101958
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match supplied=false
+ok 103 - stdin origin: rg integration printf '' | rg match supplied=false
+  ---
+  duration_ms: 13.601583
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg -e match supplied=false
+ok 104 - stdin origin: rg integration printf '' | rg -e match supplied=false
+  ---
+  duration_ms: 13.658416
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false
+ok 105 - stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false
+  ---
+  duration_ms: 13.846667
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match - supplied=false
+ok 106 - stdin origin: rg integration printf '' | rg match - supplied=false
+  ---
+  duration_ms: 13.850917
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <empty supplied=false
+ok 107 - stdin origin: rg integration rg match <empty supplied=false
+  ---
+  duration_ms: 13.256667
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <<END\\nEND supplied=false
+ok 108 - stdin origin: rg integration rg match <<END\\nEND supplied=false
+  ---
+  duration_ms: 13.294333
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <<< '' supplied=false
+ok 109 - stdin origin: rg integration rg match <<< '' supplied=false
+  ---
+  duration_ms: 13.466583
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match 3<empty 0<&3 supplied=false
+ok 110 - stdin origin: rg integration rg match 3<empty 0<&3 supplied=false
+  ---
+  duration_ms: 13.204125
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false
+ok 111 - stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false
+  ---
+  duration_ms: 13.646833
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false
+ok 112 - stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false
+  ---
+  duration_ms: 13.69775
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration env rg match supplied=false
+ok 113 - stdin origin: rg integration env rg match supplied=false
+  ---
+  duration_ms: 15.530708
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | env rg match supplied=false
+ok 114 - stdin origin: rg integration printf '' | env rg match supplied=false
+  ---
+  duration_ms: 13.592167
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match matched supplied=false
+ok 115 - stdin origin: rg integration printf '' | rg match matched supplied=false
+  ---
+  duration_ms: 13.819709
+  type: 'test'
+  ...
+1..115
+# tests 115
+# suites 0
+# pass 115
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 560.159166

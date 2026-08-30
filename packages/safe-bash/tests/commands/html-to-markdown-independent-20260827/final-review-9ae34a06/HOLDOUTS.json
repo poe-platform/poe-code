@@ -1,0 +1,14 @@
+[
+  {"id":"break-between-em","input":"<em>a</em><br><em>b</em>","runs":[["a",["Emph"]],["\n",[]],["b",["Emph"]]]},
+  {"id":"break-inside-empty-wrapper","input":"<em>a</em><span><br></span><em>b</em>","runs":[["a",["Emph"]],["\n",[]],["b",["Emph"]]]},
+  {"id":"image-between-em","input":"<em>a</em><img src='https://safe.test/i' alt='pic'><em>b</em>","runs":[["a",["Emph"]],["pic",["Image:https://safe.test/i:"]],["b",["Emph"]]],"nodes":{"Image":1}},
+  {"id":"empty-alt-image","input":"<em>a</em><img src='https://safe.test/i' alt=''><em>b</em>","runs":[["a",["Emph"]],["b",["Emph"]]],"nodes":{"Image":1}},
+  {"id":"link-between-em","input":"<em>a</em><a href='https://safe.test/l' title='title'>x</a><em>b</em>","runs":[["a",["Emph"]],["x",["Link:https://safe.test/l:title"]],["b",["Emph"]]],"nodes":{"Link":1}},
+  {"id":"code-space-between-em","input":"<em>a</em><code> </code><em>b</em>","runs":[["a",["Emph"]],[" ",["Code"]],["b",["Emph"]]],"nodes":{"Code":1}},
+  {"id":"code-punctuation-between-strong","input":"<strong>a</strong><code>* x *</code><strong>b</strong>","runs":[["a",["Strong"]],["* x *",["Code"]],["b",["Strong"]]],"nodes":{"Code":1}},
+  {"id":"whitespace-nested-separator","input":"<em>a</em><span><strong> \t </strong></span><em>b</em>","runs":[["a",["Emph"]],[" ",[]],["b",["Emph"]]]},
+  {"id":"multi-empty-ordered-trigger","input":"<p>12<span><b></b><code></code><a></a></span>) ordinary</p>","runs":[["12) ordinary",[]]]},
+  {"id":"multi-empty-strike-adjacency","input":"<del>a</del><span><em></em><b></b></span><del>b</del>","runs":[["ab",["Strikeout"]]]},
+  {"id":"literal-html-not-expanded","input":"<em>a</em><span>&lt;script&gt;x&lt;/script&gt;</span><em>b</em>","runs":[["a",["Emph"]],["<script>x</script>",[]],["b",["Emph"]]]},
+  {"id":"unsafe-link-visible-label","input":"<em>a</em><a href='javascript:bad'>x</a><em>b</em>","runs":[["a",["Emph"]],["x",[]],["b",["Emph"]]],"nodes":{"Link":0}}
+]

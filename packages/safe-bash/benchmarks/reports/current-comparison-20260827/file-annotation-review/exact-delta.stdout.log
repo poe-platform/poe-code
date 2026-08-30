@@ -1,0 +1,38 @@
+diff --git a/tests/commands/file/text-bound.test.ts b/tests/commands/file/text-bound.test.ts
+index 81ac96b9..77b853ce 100644
+--- a/tests/commands/file/text-bound.test.ts
++++ b/tests/commands/file/text-bound.test.ts
+@@ -1,5 +1,6 @@
+ import assert from "node:assert/strict";
+ import test from "node:test";
++import type { TextEncoder as NodeTextEncoder } from "node:util";
+ import { FsError, toByteSource, type CommandContext } from "../../../src/contracts/index.js";
+ import { fileCommands, type FileLimits } from "../../../src/commands/file/index.js";
+ import { SharedBudget } from "../../../src/commands/file/shared.js";
+@@ -64,7 +65,7 @@ test("TEXT-BOUND-001: MIME-only links do not escape an unused target description
+ test("TEXT-BOUND-001: output length is admitted before encoding", async context => {
+   const { budget, context: command } = directBudget({ maxOutputBytes: 16 });
+   const original = TextEncoder.prototype.encode; const lengths: number[] = [];
+-  context.mock.method(TextEncoder.prototype, "encode", function (this: TextEncoder, text?: string) {
++  context.mock.method(TextEncoder.prototype, "encode", function (this: NodeTextEncoder, text?: string) {
+     lengths.push(text?.length ?? 0); return Reflect.apply(original, this, [text]);
+   });
+   try {
+@@ -76,7 +77,7 @@ test("TEXT-BOUND-001: output length is admitted before encoding", async context
+ test("TEXT-BOUND-001: failure prefix is bounded before encoding and preserves codepoints", async context => {
+   const { budget, chunks } = directBudget({ maxOutputBytes: 17 });
+   const original = TextEncoder.prototype.encode; const lengths: number[] = [];
+-  context.mock.method(TextEncoder.prototype, "encode", function (this: TextEncoder, text?: string) {
++  context.mock.method(TextEncoder.prototype, "encode", function (this: NodeTextEncoder, text?: string) {
+     lengths.push(text?.length ?? 0); return Reflect.apply(original, this, [text]);
+   });
+   try {
+@@ -133,7 +134,7 @@ test("TEXT-BOUND-001: exact UTF-8 output bytes and work are admitted before enco
+     [directBudget({ maxSteps: 1 }), "word", /step limit exceeded/],
+   ] as const;
+   const original = TextEncoder.prototype.encode; const lengths: number[] = [];
+-  context.mock.method(TextEncoder.prototype, "encode", function (this: TextEncoder, text?: string) {
++  context.mock.method(TextEncoder.prototype, "encode", function (this: NodeTextEncoder, text?: string) {
+     lengths.push(text?.length ?? 0); return Reflect.apply(original, this, [text]);
+   });
+   for (const [{ budget, context: command }, text, failure] of cases) {

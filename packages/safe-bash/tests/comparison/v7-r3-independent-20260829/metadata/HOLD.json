@@ -1,0 +1,45 @@
+{
+  "schema": "v7-r3-independent-metadata-hold-v1",
+  "date": "2026-08-29",
+  "status": "HOLD_BEFORE_PRESEAL_OR_SYNTHETIC",
+  "repair": "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+  "authorEvidence": "9b6c8a04d0e3227ead7d055253b80fec7479f04b",
+  "processLedger": [
+    {
+      "id": "repair-inventory",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+        "--",
+        "tests/comparison/breadth-continuation-20260828"
+      ],
+      "pid": 52259,
+      "code": 0,
+      "signal": null,
+      "failure": null,
+      "closed": true,
+      "absent": false,
+      "bytes": 63238
+    }
+  ],
+  "rawRecord": {
+    "stdout": {
+      "bytes": 63238,
+      "sha256": "5f94ef6530fe45478d5e0fc002a9a0a5575a1b77c272f84422b3626c60e4f0d2"
+    },
+    "stderr": {
+      "bytes": 0
+    },
+    "terminatedByNul": true,
+    "observedCombinedBytes": 63238
+  },
+  "reason": "Retirement helper references process, which is unavailable in the Node REPL; caught ReferenceError lacked code and was reduced to absent:false. No process.kill probe executed.",
+  "actualSyntheticFamilies": 0,
+  "productLoads": 0,
+  "comparatorLoads": 0,
+  "admissionRuns": 0,
+  "noRetry": true,
+  "retirementQualification": "Child close/exit0 observed; independent PID absence not established. No further signal or process census performed."
+}

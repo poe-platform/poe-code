@@ -1,0 +1,485 @@
+{
+  "status": "ALL_UNRUN",
+  "rows": [
+    {
+      "id": "R01",
+      "script": "LC_ALL=C; re='(ab)([0-9]+)'; [[ xab42y =~ $re ]]; printf '%s:<%s>:<%s>:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"",
+      "question": "substring start and every capture",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R02",
+      "script": "LC_ALL=C; re='a|aa'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+      "question": "overall longest rather than first alternative",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R03",
+      "script": "LC_ALL=C; re='(a|aa)(a?)'; [[ aa =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "question": "capture tie disambiguation",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R04",
+      "script": "LC_ALL=C; re='(a*)(a*)'; [[ aaa =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "question": "left subexpression priority",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R05",
+      "script": "LC_ALL=C; re='((ab)+)(c?)'; [[ ababc =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "question": "nested repeated captures",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R06",
+      "script": "LC_ALL=C; re='(a(b)?)+'; [[ aba =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "question": "last repetition nested participation",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R07",
+      "script": "LC_ALL=C; re='(a)?(b*)'; [[ '' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[2] ]]; printf '%s\\n' \"$?\"",
+      "question": "unmatched versus empty captures and dense publication",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R08",
+      "script": "LC_ALL=C; re='(a*)*'; [[ b =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "question": "nullable repetition, proposed product exclusion",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R09",
+      "script": "LC_ALL=C; re='^a$'; [[ ba =~ $re ]]; printf '%s\\n' \"$?\"; [[ a =~ $re ]]; printf '%s\\n' \"$?\"",
+      "question": "anchors use whole subject boundaries",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R10",
+      "script": "LC_ALL=C; re='(a.b)'; [[ $'a\\nb' =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "question": "no REG_NEWLINE line splitting",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R11",
+      "script": "LC_ALL=C; [[ axb =~ a\".\"b ]]; printf '%s\\n' \"$?\"; [[ a.b =~ a\".\"b ]]; printf '%s\\n' \"$?\"",
+      "question": "quoted fragment dot remains literal",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R12",
+      "script": "LC_ALL=C; re='a.b'; [[ axb =~ \"$re\" ]]; printf '%s\\n' \"$?\"; [[ axb =~ $re ]]; printf '%s\\n' \"$?\"",
+      "question": "quoted expansion versus unquoted regex",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R13",
+      "script": "LC_ALL=C; [[ '$a{2}' =~ \"$\"a\"{2}\" ]]; printf '%s\\n' \"$?\"",
+      "question": "quoted dollar/braces absent from old glob escaping",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R14",
+      "script": "LC_ALL=C; re='[[:alpha:]][[:digit:]]'; [[ A7 =~ $re ]]; printf '%s\\n' \"$?\"",
+      "question": "ASCII named classes",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R15",
+      "script": "LC_ALL=C; re='[^a-c]+'; [[ abcXYZ =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[0]}\"",
+      "question": "negated bracket range",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R16",
+      "script": "LC_ALL=C; re='([]-]+)'; [[ '--]' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "question": "bracket initial closing bracket and trailing hyphen",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R17",
+      "script": "LC_ALL=C; re='(ab){2,3}'; [[ abababab =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"",
+      "question": "interval whole length and final capture",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R18",
+      "script": "LC_ALL=C; re='a{3,2}'; BASH_REMATCH=(old); [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+      "question": "invalid interval status and preservation",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R19",
+      "script": "LC_ALL=C; re='('; BASH_REMATCH=(old); [[ a =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+      "question": "runtime compile failure status and prior state",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R20",
+      "script": "LC_ALL=C; BASH_REMATCH=(old); [[ yes || a =~ $(printf '(') ]]; printf '<%s>\\n' \"${BASH_REMATCH[0]}\"",
+      "question": "skipped expansion and invalid regex never compile",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R21",
+      "script": "LC_ALL=C; [[ yes || a =~ ( ]]; printf 'after\\n'",
+      "question": "shell structural syntax is parsed even in skipped branch",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R22",
+      "script": "LC_ALL=C; BASH_REMATCH=(old tail); [[ a =~ z ]]; printf '%s\\n' \"$?\"; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[0] ]]; printf '%s\\n' \"$?\"",
+      "question": "valid nonmatch clears captures",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R23",
+      "script": "LC_ALL=C; re='(a)'; [[ ! a =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "question": "negation affects status not successful capture publication",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R24",
+      "script": "LC_ALL=C; BASH_REMATCH=(global); f(){ local BASH_REMATCH; [[ abc =~ (b) ]]; printf 'in:<%s>\\n' \"${BASH_REMATCH[1]}\"; }; f; printf 'out:<%s>\\n' \"${BASH_REMATCH[0]}\"",
+      "question": "5.3 local binding versus manual global claim",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R25",
+      "script": "LC_ALL=C; BASH_REMATCH=(saved); readonly BASH_REMATCH; [[ abc =~ (b) ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"",
+      "question": "readonly diagnostic and regex status",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R26",
+      "script": "LC_ALL=C; export BASH_REMATCH=saved; [[ a =~ (a) ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "question": "exported scalar conversion policy gap",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R27",
+      "script": "LC_ALL=C; BASH_REMATCH=(outer); ( [[ abc =~ (b) ]]; printf 'sub:<%s>\\n' \"${BASH_REMATCH[1]}\" ); printf 'parent:<%s>\\n' \"${BASH_REMATCH[0]}\"",
+      "question": "subshell snapshot isolation",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R28",
+      "script": "LC_ALL=C; f(){ if [[ $1 =~ (a+) ]]; then printf '<%s>\\n' \"${BASH_REMATCH[1]}\"; fi; }; f aa; f a; printf 'last:<%s>\\n' \"${BASH_REMATCH[1]}\"",
+      "question": "same-state functions overwrite last captures without hidden stack",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R29",
+      "script": "LC_ALL=C; re='(a)\\1'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "question": "ERE backreference libc extension, proposed refusal",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R30",
+      "script": "LC_ALL=C; re='[[.a.]]'; [[ a =~ $re ]]; printf '%s\\n' \"$?\"",
+      "question": "collating-symbol gap",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R31",
+      "script": "LC_ALL=C; re='(.)'; [[ 雪 =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"",
+      "question": "byte capture split cannot be normalized into JS string",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "R32",
+      "script": "LC_ALL=C; n=0; [[ $((n+=1)) =~ ([0-9]) ]]; printf '%s:<%s>\\n' \"$n\" \"${BASH_REMATCH[1]}\"",
+      "question": "arithmetic expansion exactly once, no new arithmetic regex parser",
+      "status": "UNRUN",
+      "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7"
+    },
+    {
+      "id": "H01",
+      "name": "preabort-before-acquisition",
+      "procedure": "Use each bounded falsy/object caller reason; reached regex must preserve identity with no Worker acquisition or BASH_REMATCH publication. Skipped regex must not create a session either.",
+      "status": "UNRUN",
+      "authority": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"
+    },
+    {
+      "id": "H02",
+      "name": "abort-owned-worker",
+      "procedure": "Gate an admitted actual matcher job, abort caller, observe exact reason and registered job/session retirement before public settlement. Gate/release must not create circular cleanup. No opaque-provider ownership inference.",
+      "status": "UNRUN",
+      "authority": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"
+    },
+    {
+      "id": "H03",
+      "name": "grammar-and-logical-limits",
+      "procedure": "Preseal exact boundary/one-over group/node/depth/interval fixtures and modest branching work/state exhaustion. Check preallocation refusals, no partial match/capture publication and no parent Budget reset; do not use oversized bombs.",
+      "status": "UNRUN",
+      "authority": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"
+    },
+    {
+      "id": "H04",
+      "name": "capture-ledger",
+      "procedure": "Preseal sums of nested overlapping captures, target replacement with old snapshots alive, F/metadata/ticket boundaries and retirement failures. Distinguish worker envelope, private array ledger and E_command; no lowered-private-hook result presented as default proof.",
+      "status": "UNRUN",
+      "authority": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"
+    },
+    {
+      "id": "H05",
+      "name": "concurrent-stale-and-readonly",
+      "procedure": "Gate between post-operand target snapshot and publication; mutate through actual context.invoke to readonly/unrelated epoch/local restoration. Caller wins, then readonly before stale. No retry/state injection as public proof.",
+      "status": "UNRUN",
+      "authority": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"
+    },
+    {
+      "id": "H06",
+      "name": "diagnostic-sink-and-cleanup",
+      "procedure": "Reject/gate exact redirected diagnostic sink for syntax and readonly routes, combine caller and registered cleanup errors, retain primary reason/backpressure. No false/no-match conversion; no blanket expected status1.",
+      "status": "UNRUN",
+      "authority": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"
+    },
+    {
+      "id": "H07",
+      "name": "reply-and-loaded-binding",
+      "procedure": "Finite wrong id/operation/group count/span/UTF8 boundary/extra key/late reply controls; actual fixed Worker/package moved-origin denial and different-source hash refusal. Count lifecycle separately from semantic capture proof.",
+      "status": "UNRUN",
+      "authority": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"
+    },
+    {
+      "id": "H08",
+      "name": "shared-budget-and-snapshots",
+      "procedure": "Two internal conditional descendants/context.invoke share admitted work and array ledger; fresh independent public exec uses established fresh boundary. Verify ordinary local, global and cloned state, recursive calls and byte-exact capture reads. Do not infer cross-exec RSS bounds.",
+      "status": "UNRUN",
+      "authority": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681"
+    },
+    {
+      "id": "EC01",
+      "script": "bad='('; [[ x =~ $bad ]]",
+      "predictedStatus": 2,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC02",
+      "script": "bad='('; [[ ! x =~ $bad ]]",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC03",
+      "script": "bad='('; [[ ! ! x =~ $bad ]]",
+      "predictedStatus": 2,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC04",
+      "script": "bad='('; [[ ! ( ! x =~ $bad ) ]]",
+      "predictedStatus": 1,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC05",
+      "script": "bad='('; [[ x =~ $bad && -n t ]]",
+      "predictedStatus": 2,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC06",
+      "script": "bad='('; [[ x =~ $bad || -n t ]]",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC07",
+      "script": "bad='('; [[ x =~ $bad || -n '' ]]",
+      "predictedStatus": 1,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC08",
+      "script": "bad='('; [[ -n '' && x =~ $bad ]]",
+      "predictedStatus": 1,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC09",
+      "script": "bad='('; [[ -n t || x =~ $bad ]]",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC10",
+      "script": "bad='('; [[ -n t && x =~ $bad ]]",
+      "predictedStatus": 2,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC11",
+      "script": "bad='('; [[ -n '' || x =~ $bad ]]",
+      "predictedStatus": 2,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC12",
+      "script": "bad='('; [[ x =~ $bad || x =~ $bad ]]",
+      "predictedStatus": 2,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC13",
+      "script": "bad='('; [[ ! ( x =~ $bad || -n t ) ]]",
+      "predictedStatus": 1,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC14",
+      "script": "bad='('; [[ x =~ $bad ]] && :",
+      "predictedStatus": 2,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC15",
+      "script": "bad='('; [[ x =~ $bad ]] || :",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC16",
+      "script": "bad='('; ! [[ x =~ $bad ]]",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC17",
+      "script": "bad='('; [[ ! x =~ $bad ]] && :",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC18",
+      "script": "bad='('; [[ ! x =~ $bad ]] || :",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC19",
+      "script": "bad='('; [[ -n t || x =~ ( ]]",
+      "predictedStatus": null,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC20",
+      "script": "bad='('; set -e; [[ x =~ $bad ]]; printf after",
+      "predictedStatus": 2,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC21",
+      "script": "bad='('; set -e; [[ x =~ $bad ]] || :; printf after",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC22",
+      "script": "bad='('; set -e; [[ ! x =~ $bad ]]; printf after",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC23",
+      "script": "bad='('; [[ ! x =~ z ]]",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC24",
+      "script": "bad='('; [[ x =~ $bad || x =~ (x) ]]",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EC25",
+      "script": "bad='('; [[ ! ( x =~ $bad && -n t ) ]]",
+      "predictedStatus": 0,
+      "status": "UNRUN",
+      "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question"
+    },
+    {
+      "id": "EH01",
+      "procedure": "Private profile3 escapes inner logical evaluation, skipped leaves consume nothing",
+      "status": "UNRUN"
+    },
+    {
+      "id": "EH02",
+      "procedure": "Outer command lists and inversion consume resulting status3 normally",
+      "status": "UNRUN"
+    },
+    {
+      "id": "EH03",
+      "procedure": "Actual global Budget/caller/host protocol/sink errors retain provenance",
+      "status": "UNRUN"
+    },
+    {
+      "id": "EH04",
+      "procedure": "Cleanup versus numeric2, falsy diagnostic and caller precedence",
+      "status": "UNRUN"
+    },
+    {
+      "id": "EH05",
+      "procedure": "N14 exact invoke Promise versus derived Promise/thenable distinctions",
+      "status": "UNRUN"
+    }
+  ]
+}

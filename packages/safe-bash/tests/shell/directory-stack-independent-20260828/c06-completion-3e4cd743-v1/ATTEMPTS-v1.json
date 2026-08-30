@@ -1,0 +1,10 @@
+{
+  "role":"Static investigation attempts only; no product execution yet",
+  "failures":[
+    {"command":"zsh loop used variable path", "result":"zsh special path array changed command PATH within that subprocess; cat/git command not found; corrected loop variable file; no repository mutation"},
+    {"command":"git show baseline:src/shell/limits.ts", "result":"path absent; actual public ShellLimitError constructor inspected at src/shell/types.ts"},
+    {"command":"git show baseline:src/shell/invocation-cancellation.ts and runtime-cancellation.ts", "result":"paths absent; InvocationCancellationOwner is in exact candidate runtime.ts"},
+    {"command":"git show baseline:src/shell/cancellation-stage.ts", "result":"path absent; read-only attempt, stderr suppressed by command; no inferred content"}
+  ],
+  "confirmedGap":"Sealed main HANDOFF, SOURCE-CLOSURE and C06 adapter explicitly measure only local-false, not matched root/control schedules. No existing completed binding found."
+}

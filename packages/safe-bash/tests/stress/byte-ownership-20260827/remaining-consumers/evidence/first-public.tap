@@ -1,0 +1,291 @@
+TAP version 13
+# (node:20780) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/loaded-hashes.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: jq raw Buffer
+ok 1 - jq raw Buffer
+  ---
+  duration_ms: 5.279333
+  type: 'test'
+  ...
+# {"name":"jq raw Buffer","status":0,"stdout":"41e282acefbfbd0a42efbfbd280a","stderr":"","files":{"/input":"41e282acff0a42c328"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: jq json Buffer
+ok 2 - jq json Buffer
+  ---
+  duration_ms: 4.062375
+  type: 'test'
+  ...
+# {"name":"jq json Buffer","status":0,"stdout":"5b7b2278223a22e282acefbfbd227d2c7b2278223a327d5d0a","stderr":"","files":{"/input":"7b2278223a22e282acff227d0a7b2278223a327d0a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: jq program Buffer
+not ok 3 - jq program Buffer
+  ---
+  duration_ms: 14.834709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/.work/first/remaining-byte-consumer/public.mjs:80:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 3,
+    +   stderr: '6a713a20756e657870656374656420636861726163746572206174206f666673657420300a',
+    +   stdout: ''
+    -   status: 0,
+    -   stderr: '',
+    -   stdout: '370a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    status: 0
+    stdout: '370a'
+    stderr: ''
+  actual:
+    status: 3
+    stdout: ''
+    stderr: '6a713a20756e657870656374656420636861726163746572206174206f666673657420300a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    expectedResult (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/.work/first/remaining-byte-consumer/public.mjs:57:10)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/.work/first/remaining-byte-consumer/public.mjs:94:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"name":"jq program Buffer","status":3,"stdout":"","stderr":"6a713a20756e657870656374656420636861726163746572206174206f666673657420300a","files":{"/input":"7b2278223a377d0a","/program":"2e78"},"sources":[{"yielded":3,"resumed":3,"finalized":true,"unchangedChecks":3}]}
+# Subtest: rg context Buffer
+ok 4 - rg context Buffer
+  ---
+  duration_ms: 17.96825
+  type: 'test'
+  ...
+# {"name":"rg context Buffer","status":0,"stdout":"6265666f72650a6869740a61667465720a","stderr":"","files":{"/input":"6265666f72650a6869740a61667465720a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: rg binary Buffer
+ok 5 - rg binary Buffer
+  ---
+  duration_ms: 15.480666
+  type: 'test'
+  ...
+# {"name":"rg binary Buffer","status":0,"stdout":"686974ff00c3280a","stderr":"","files":{"/input":"686974ff00c3280a6d6973730a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: tar tarPlain Buffer
+ok 6 - tar tarPlain Buffer
+  ---
+  duration_ms: 3.495125
+  type: 'test'
+  ...
+# {"name":"tar tarPlain Buffer","status":0,"stdout":"","stderr":"","files":{"/archive":"7061796c6f616400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030360030303030303030303030300030303733303500203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a0ff00c3280a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","/out":"directory","/out/payload":"a0ff00c3280a"},"sources":[{"yielded":30,"resumed":30,"finalized":true,"unchangedChecks":30}]}
+# Subtest: tar tarGzip Buffer
+ok 7 - tar tarGzip Buffer
+  ---
+  duration_ms: 2.368
+  type: 'test'
+  ...
+# {"name":"tar tarGzip Buffer","status":0,"stdout":"","stderr":"","files":{"/archive":"1f8b08000000000000132b48acccc94f4c61a0253030303030333000d30698344816890d1237373630655030a0a9aba0a0b4b824b188c1802e760d42b0e03fc3610dae8176c5281805a360148c027a030054b0af1900080000","/out":"directory","/out/payload":"a0ff00c3280a"},"sources":[{"yielded":3,"resumed":3,"finalized":true,"unchangedChecks":3}]}
+# Subtest: tar tarCreate Buffer
+ok 8 - tar tarCreate Buffer
+  ---
+  duration_ms: 3.395625
+  type: 'test'
+  ...
+# {"name":"tar tarCreate Buffer","status":0,"stdout":"","stderr":"","files":{"/in":"directory","/in/payload":"a0ff00c3280a","/out":"directory","/out/payload":"a0ff00c3280a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: curl download Buffer
+ok 9 - curl download Buffer
+  ---
+  duration_ms: 1.547917
+  type: 'test'
+  ...
+# {"name":"curl download Buffer","status":0,"stdout":"","stderr":"","calls":[{"url":"https://fixture.invalid/start","method":"GET","body":""}],"authorizations":[{"url":"https://fixture.invalid/start","method":"GET","attempt":0}],"disposals":[1],"files":{"/download":"a0ff00c3280a","/upload":"a0ff00c3280a"},"sources":[],"response":{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}}
+# Subtest: curl upload Buffer
+ok 10 - curl upload Buffer
+  ---
+  duration_ms: 0.670333
+  type: 'test'
+  ...
+# {"name":"curl upload Buffer","status":0,"stdout":"","stderr":"","calls":[{"url":"https://fixture.invalid/start","method":"PUT","body":"a0ff00c3280a"}],"authorizations":[{"url":"https://fixture.invalid/start","method":"PUT","attempt":0}],"disposals":[1],"files":{"/upload":"a0ff00c3280a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}],"response":{"yielded":0,"resumed":0,"finalized":false,"unchangedChecks":0}}
+# Subtest: curl replay Buffer
+not ok 11 - curl replay Buffer
+  ---
+  duration_ms: 14.851291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/.work/first/remaining-byte-consumer/public.mjs:131:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        {
+          body: '5326a0ff00c3280a',
+          method: 'POST',
+          url: 'https://fixture.invalid/start'
+        },
+        {
+    +     body: '5326000000000000',
+    -     body: '5326a0ff00c3280a',
+          method: 'POST',
+          url: 'https://fixture.invalid/next'
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      url: 'https://fixture.invalid/start'
+      method: 'POST'
+      body: '5326a0ff00c3280a'
+    1:
+      url: 'https://fixture.invalid/next'
+      method: 'POST'
+      body: '5326a0ff00c3280a'
+  actual:
+    0:
+      url: 'https://fixture.invalid/start'
+      method: 'POST'
+      body: '5326a0ff00c3280a'
+    1:
+      url: 'https://fixture.invalid/next'
+      method: 'POST'
+      body: '5326000000000000'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/.work/first/remaining-byte-consumer/public.mjs:177:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"name":"curl replay Buffer","status":0,"stdout":"","stderr":"","calls":[{"url":"https://fixture.invalid/start","method":"POST","body":"5326a0ff00c3280a"},{"url":"https://fixture.invalid/next","method":"POST","body":"5326000000000000"}],"authorizations":[{"url":"https://fixture.invalid/start","method":"POST","attempt":0},{"url":"https://fixture.invalid/next","method":"POST","attempt":0,"redirectFrom":"https://fixture.invalid/start"}],"disposals":[1,1],"files":{"/upload":"a0ff00c3280a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}],"response":{"yielded":0,"resumed":0,"finalized":false,"unchangedChecks":0}}
+# Subtest: jq raw Uint8Array
+ok 12 - jq raw Uint8Array
+  ---
+  duration_ms: 0.645084
+  type: 'test'
+  ...
+# {"name":"jq raw Uint8Array","status":0,"stdout":"41e282acefbfbd0a42efbfbd280a","stderr":"","files":{"/input":"41e282acff0a42c328"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: jq json Uint8Array
+ok 13 - jq json Uint8Array
+  ---
+  duration_ms: 3.285875
+  type: 'test'
+  ...
+# {"name":"jq json Uint8Array","status":0,"stdout":"5b7b2278223a22e282acefbfbd227d2c7b2278223a327d5d0a","stderr":"","files":{"/input":"7b2278223a22e282acff227d0a7b2278223a327d0a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: jq program Uint8Array
+ok 14 - jq program Uint8Array
+  ---
+  duration_ms: 0.892583
+  type: 'test'
+  ...
+# {"name":"jq program Uint8Array","status":0,"stdout":"370a","stderr":"","files":{"/input":"7b2278223a377d0a","/program":"2e78"},"sources":[{"yielded":3,"resumed":3,"finalized":true,"unchangedChecks":3}]}
+# Subtest: rg context Uint8Array
+ok 15 - rg context Uint8Array
+  ---
+  duration_ms: 14.484375
+  type: 'test'
+  ...
+# {"name":"rg context Uint8Array","status":0,"stdout":"6265666f72650a6869740a61667465720a","stderr":"","files":{"/input":"6265666f72650a6869740a61667465720a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: rg binary Uint8Array
+ok 16 - rg binary Uint8Array
+  ---
+  duration_ms: 13.300833
+  type: 'test'
+  ...
+# {"name":"rg binary Uint8Array","status":0,"stdout":"686974ff00c3280a","stderr":"","files":{"/input":"686974ff00c3280a6d6973730a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: tar tarPlain Uint8Array
+ok 17 - tar tarPlain Uint8Array
+  ---
+  duration_ms: 1.216167
+  type: 'test'
+  ...
+# {"name":"tar tarPlain Uint8Array","status":0,"stdout":"","stderr":"","files":{"/archive":"7061796c6f616400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030303030363030003030303030303000303030303030300030303030303030303030360030303030303030303030300030303733303500203000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000757374617200303000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a0ff00c3280a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","/out":"directory","/out/payload":"a0ff00c3280a"},"sources":[{"yielded":30,"resumed":30,"finalized":true,"unchangedChecks":30}]}
+# REMAINING_CLOSURE {"resources":["PipeWrap","PipeWrap"],"observedResults":23,"scope":"All Shell context.after disposals awaited; no servers, sockets, subprocess product commands or external network. Child hard timeout covers natural process closure."}
+# Subtest: tar tarGzip Uint8Array
+ok 18 - tar tarGzip Uint8Array
+  ---
+  duration_ms: 1.123625
+  type: 'test'
+  ...
+# {"name":"tar tarGzip Uint8Array","status":0,"stdout":"","stderr":"","files":{"/archive":"1f8b08000000000000132b48acccc94f4c61a0253030303030333000d30698344816890d1237373630655030a0a9aba0a0b4b824b188c1802e760d42b0e03fc3610dae8176c5281805a360148c027a030054b0af1900080000","/out":"directory","/out/payload":"a0ff00c3280a"},"sources":[{"yielded":3,"resumed":3,"finalized":true,"unchangedChecks":3}]}
+# Subtest: tar tarCreate Uint8Array
+ok 19 - tar tarCreate Uint8Array
+  ---
+  duration_ms: 1.53625
+  type: 'test'
+  ...
+# {"name":"tar tarCreate Uint8Array","status":0,"stdout":"","stderr":"","files":{"/in":"directory","/in/payload":"a0ff00c3280a","/out":"directory","/out/payload":"a0ff00c3280a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}]}
+# Subtest: curl download Uint8Array
+ok 20 - curl download Uint8Array
+  ---
+  duration_ms: 0.371708
+  type: 'test'
+  ...
+# {"name":"curl download Uint8Array","status":0,"stdout":"","stderr":"","calls":[{"url":"https://fixture.invalid/start","method":"GET","body":""}],"authorizations":[{"url":"https://fixture.invalid/start","method":"GET","attempt":0}],"disposals":[1],"files":{"/download":"a0ff00c3280a","/upload":"a0ff00c3280a"},"sources":[],"response":{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}}
+# Subtest: curl upload Uint8Array
+ok 21 - curl upload Uint8Array
+  ---
+  duration_ms: 0.352667
+  type: 'test'
+  ...
+# {"name":"curl upload Uint8Array","status":0,"stdout":"","stderr":"","calls":[{"url":"https://fixture.invalid/start","method":"PUT","body":"a0ff00c3280a"}],"authorizations":[{"url":"https://fixture.invalid/start","method":"PUT","attempt":0}],"disposals":[1],"files":{"/upload":"a0ff00c3280a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}],"response":{"yielded":0,"resumed":0,"finalized":false,"unchangedChecks":0}}
+# Subtest: curl replay Uint8Array
+ok 22 - curl replay Uint8Array
+  ---
+  duration_ms: 0.539
+  type: 'test'
+  ...
+# {"name":"curl replay Uint8Array","status":0,"stdout":"","stderr":"","calls":[{"url":"https://fixture.invalid/start","method":"POST","body":"5326a0ff00c3280a"},{"url":"https://fixture.invalid/next","method":"POST","body":"5326a0ff00c3280a"}],"authorizations":[{"url":"https://fixture.invalid/start","method":"POST","attempt":0},{"url":"https://fixture.invalid/next","method":"POST","attempt":0,"redirectFrom":"https://fixture.invalid/start"}],"disposals":[1,1],"files":{"/upload":"a0ff00c3280a"},"sources":[{"yielded":4,"resumed":4,"finalized":true,"unchangedChecks":4}],"response":{"yielded":0,"resumed":0,"finalized":false,"unchangedChecks":0}}
+# Subtest: jq cooperative source abort preserves reason identity
+not ok 23 - jq cooperative source abort preserves reason identity
+  ---
+  duration_ms: 0.705791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/.work/first/remaining-byte-consumer/public.mjs:182:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        finalized: true,
+        resumed: 1,
+    +   unchangedChecks: 2,
+    +   yielded: 2
+    -   unchangedChecks: 1,
+    -   yielded: 1
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    yielded: 1
+    resumed: 1
+    finalized: true
+    unchangedChecks: 1
+  actual:
+    yielded: 2
+    resumed: 1
+    finalized: true
+    unchangedChecks: 2
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/.work/first/remaining-byte-consumer/public.mjs:194:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: curl response error preserves partial bytes and closes response
+ok 24 - curl response error preserves partial bytes and closes response
+  ---
+  duration_ms: 0.472417
+  type: 'test'
+  ...
+# {"name":"curl response error preserves partial bytes and closes response","status":56,"stdout":"a0ff","stderr":"6375726c3a2028353629204e6574776f726b207472616e73666572206661696c65640a","disposed":1,"authorized":1,"files":{},"source":{"yielded":1,"resumed":1,"finalized":true,"unchangedChecks":1}}
+1..24
+# tests 24
+# suites 0
+# pass 21
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 240.70725

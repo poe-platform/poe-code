@@ -1,0 +1,65 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, cpSync, readdirSync, mkdirSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { gzipSync } from 'node:zlib';
+import { join } from 'node:path';
+
+const task = '/tmp/safe-bash-search-stdin-close-fix-20260827';
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const evidence = `${repo}/tests/commands/search-stress/direct-stdin-close-fix`;
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const hash = path => digest(readFileSync(path));
+const read = name => JSON.parse(readFileSync(`${task}/${name}`));
+const git = (...args) => execFileSync('git',args,{cwd:repo,maxBuffer:32*1024*1024});
+const save = (name,data) => writeFileSync(`${evidence}/${name}`,JSON.stringify(data,null,2)+'\n');
+const qualification = read('qualification.json');
+const candidate = read('candidate.json');
+const supplement = read('author-test-qualification.json');
+const owned = ['src/commands/search/rg.ts','tests/commands/search-stress/direct-stdin-close.test.ts'];
+for (const path of owned) assert.equal(hash(`${repo}/${path}`),hash(`${task}/after/${path}`),`STOP: foreign owned edit: ${path}`);
+for (const entry of qualification.files) assert.equal(hash(`${task}/before/${entry.path}`),entry.sha256);
+for (const entry of candidate.files) assert.equal(hash(`${task}/after/${entry.path}`),entry.sha256);
+for (const entry of supplement.files) assert.equal(hash(`${task}/after/${entry.path}`),entry.sha256);
+const inventory = (root,prefix='') => readdirSync(join(root,prefix),{withFileTypes:true}).sort((left,right)=>left.name.localeCompare(right.name)).flatMap(entry => {
+  const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+  return entry.isDirectory() ? inventory(root,path) : [{path,sha256:hash(join(root,path))}];
+});
+const beforeBuild = inventory(`${task}/before/dist`);
+const afterBuild = inventory(`${task}/after/dist`);
+const generated = qualification.sidecarGenerated.map(old => {
+  const before = hash(`${task}/before/${old.path}`); const after = hash(`${task}/after/${old.path}`);
+  const oldPath = `/tmp/safe-bash-search-sidecar-review-tnXxyl/source/${old.path}`;
+  assert.equal(hash(oldPath),old.sha256);
+  const strip = path => readFileSync(path,'utf8').replace(/^\/\/# sourceMappingURL=.*$/gm,'').trimEnd();
+  assert.equal(before,after,'worker changed after rg-only source patch');
+  return {path:old.path,before,after,sidecar:old.sha256,exactSidecarIdentity:after===old.sha256,identicalAfterRemovingSourceMapTrailer:strip(oldPath)===strip(`${task}/after/${old.path}`)};
+});
+save('build-qualification.json',{at:new Date().toISOString(),method:'task-only tsc -p tsconfig.build.json (strict NodeNext ES2023, declaration/declarationMap/sourceMap enabled)',beforeBuild,afterBuild,regexWorkerModules:generated,prePatchWorkerUsedByFirstPatchedRuns:'before task build copied to after; subsequent after build proves identical regex JS module hashes',historicalEmittedIdentityClaim:false,dependencies:inventory(`${task}/after/node_modules`),node:{version:process.version,sha256:hash(process.execPath)},versions:Object.fromEntries(['tsx','typescript','esbuild','@types/node'].map(name=>[name,JSON.parse(readFileSync(`${task}/after/node_modules/${name}/package.json`)).version]))});
+const sidecar = 'tests/shell-stress/first-read-contract-review/search-sidecar-review';
+const sidecarPaths = git('ls-tree','-r','--name-only','c5d44262ecca11009df6ce32a180005d3f3cb574',sidecar).toString().trim().split('\n');
+const sidecarIntegrity = sidecarPaths.map(path => {
+  const current = readFileSync(`${repo}/${path}`); const committed = git('show',`c5d44262ecca11009df6ce32a180005d3f3cb574:${path}`);
+  assert(current.equals(committed),path); return {path,sha256:digest(current)};
+});
+save('sidecar-integrity.json',{commit:'c5d44262ecca11009df6ce32a180005d3f3cb574',files:sidecarIntegrity});
+const archive = (label,root,files) => {
+  const records = files.map(entry => { const bytes=readFileSync(`${root}/${entry.path}`); assert.equal(digest(bytes),entry.sha256); return {...entry,bytes:bytes.length,base64:bytes.toString('base64')}; });
+  writeFileSync(`${evidence}/${label}.json.gz.data`,gzipSync(Buffer.from(JSON.stringify(records))));
+};
+archive('before-source-snapshot',`${task}/before`,qualification.files);
+archive('after-source-snapshot',`${task}/after`,[...candidate.files,...supplement.files]);
+for (const name of ['qualification.json','candidate.json','author-test-qualification.json','test-freeze.json','test-freeze-corrected.json','test-freeze-final.json']) cpSync(`${task}/${name}`,`${evidence}/${name}`);
+mkdirSync(`${evidence}/code`,{recursive:true});
+for (const name of readdirSync(task).filter(name => name.endsWith('.mjs'))) cpSync(`${task}/${name}`,`${evidence}/code/${name}.data`);
+for (const name of ['frozen-focused.test.ts.data','corrected-focused.test.ts.data','final-focused.test.ts.data']) cpSync(`${task}/${name}`,`${evidence}/code/${name}`);
+cpSync(`${task}/logs`,`${evidence}/runs`,{recursive:true});
+const runs = readdirSync(`${task}/logs`).filter(name=>name.endsWith('.json')).map(name=>read(`logs/${name}`));
+for (const run of runs) { assert.equal(run.closed,true); assert.deepEqual(run.survivors,[]); assert.deepEqual(run.signals,[]); }
+const processes = execFileSync('/bin/ps',['-axo','pid=,ppid=,pgid=,comm=']).toString();
+const survivors = processes.split('\n').filter(line=>runs.some(run=>Number(line.trim().split(/\s+/)[2])===run.pid));
+assert.deepEqual(survivors,[]);
+const drift = candidate.files.filter(entry=>existsSync(`${repo}/${entry.path}`)&&hash(`${repo}/${entry.path}`)!==entry.sha256).map(entry=>({path:entry.path,candidate:entry.sha256,current:hash(`${repo}/${entry.path}`)}));
+save('precommit-audit.json',{at:new Date().toISOString(),head:git('rev-parse','HEAD').toString().trim(),index:git('diff','--cached','--name-status').toString(),status:git('status','--short').toString(),owned:owned.map(path=>({path,sha256:hash(`${repo}/${path}`)})),currentDrift:drift,allRunGroups:runs.map(run=>({label:run.label,pid:run.pid,status:run.status,signal:run.signal,closed:run.closed,survivors:run.survivors,signals:run.signals})),finalSurvivors:survivors,nativeArtifactPreserved:existsSync(`${repo}/tests/commands/search-stress/.native-1m4O1e`),rootNotePresent:existsSync('/tmp/safe-bash-search-stdin-close-fix-root-note.txt')});
+writeFileSync(`${evidence}/source.patch-data`,git('diff','--','src/commands/search/rg.ts'));
+console.log(JSON.stringify({sourceFiles:candidate.files.filter(entry=>entry.path.startsWith('src/')).length,baseFiles:qualification.files.length,afterFiles:candidate.files.length+supplement.files.length,generated,runs:runs.length,currentDrift:drift,sourceHash:hash(`${repo}/src/commands/search/rg.ts`),testHash:hash(`${repo}/tests/commands/search-stress/direct-stdin-close.test.ts`)}));

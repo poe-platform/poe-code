@@ -1,0 +1,16 @@
+basic
+|-- Alpha.txt
+|-- b-dir
+|   |-- drop.bin
+|   |-- keep.txt
+|   `-- nested
+|       `-- last.txt
+|-- b.txt
+|-- empty
+|-- skip-dir
+|   `-- hidden-by-filter.txt
+|-- z-dir
+|   `-- deep.txt
+`-- zeta.txt
+
+6 directories, 8 files

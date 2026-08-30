@@ -1,0 +1,152 @@
+{
+  "message": "AssertionError [ERR_ASSERTION]: unexpected runtime module /Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source/dist/contracts/errors.js",
+  "stack": "AssertionError [ERR_ASSERTION]: unexpected runtime module /Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source/dist/contracts/errors.js\n    at checkClosure (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/verify.mjs:85:12)\n    at publicRun (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/verify.mjs:204:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/verify.mjs:208:23\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)",
+  "results": [
+    {
+      "name": "extract-frozen",
+      "executable": "tar",
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/frozen-inputs.tar.gz",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8",
+      "startedAt": "2026-08-27T09:13:15.732Z",
+      "finishedAt": "2026-08-27T09:13:15.858Z",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "frozen-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source",
+      "startedAt": "2026-08-27T09:13:37.850Z",
+      "finishedAt": "2026-08-27T09:13:39.501Z",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "strict-original",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.stock.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source",
+      "startedAt": "2026-08-27T09:13:39.544Z",
+      "finishedAt": "2026-08-27T09:13:40.754Z",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "original-stock79",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source",
+      "startedAt": "2026-08-27T09:13:40.754Z",
+      "finishedAt": "2026-08-27T09:13:42.619Z",
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": 79,
+        "pass": 78,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failedRows": [
+        "webdav: create, copy, append, inspect and remove files"
+      ]
+    },
+    {
+      "name": "pack",
+      "executable": "npm",
+      "args": [
+        "pack",
+        "--ignore-scripts",
+        "--json",
+        "--pack-destination",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/source",
+      "startedAt": "2026-08-27T09:13:42.620Z",
+      "finishedAt": "2026-08-27T09:13:43.378Z",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "extract-package",
+      "executable": "tar",
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-first/virtual-bash-0.0.0.tgz",
+        "--strip-components=1",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/consumer/node_modules/virtual-bash"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8",
+      "startedAt": "2026-08-27T09:13:43.379Z",
+      "finishedAt": "2026-08-27T09:13:43.541Z",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "strict-packed-stock",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json",
+        "--listFiles"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/consumer",
+      "startedAt": "2026-08-27T09:13:43.626Z",
+      "finishedAt": "2026-08-27T09:13:44.051Z",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "packed-stock79",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/observe.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "out-stock/tests/integration/adapter-tools/matrix.test.js"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-LoFht8/consumer",
+      "startedAt": "2026-08-27T09:13:44.062Z",
+      "finishedAt": "2026-08-27T09:13:45.852Z",
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": 79,
+        "pass": 78,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failedRows": [
+        "webdav: create, copy, append, inspect and remove files"
+      ]
+    }
+  ]
+}

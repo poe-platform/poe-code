@@ -1,0 +1,47 @@
+{
+  "schema": "breadth-private-consumer-scopes-v5",
+  "engines": {
+    "virtual-bash": {
+      "packageName": "breadth-target-consumer-v5",
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "packagePath": "consumer-v5/package.json",
+      "files": [
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420,
+          "source": "wrappers/target/package.json"
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "source": "wrappers/target/consumer.mjs"
+        }
+      ]
+    },
+    "just-bash": {
+      "packageName": "breadth-comparator-consumer-v5",
+      "consumerPath": "benchmarks/consumer-v5/consumer.mjs",
+      "packagePath": "benchmarks/consumer-v5/package.json",
+      "files": [
+        {
+          "path": "benchmarks/consumer-v5/package.json",
+          "bytes": 73,
+          "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a",
+          "mode": 420,
+          "source": "wrappers/comparator/package.json"
+        },
+        {
+          "path": "benchmarks/consumer-v5/consumer.mjs",
+          "bytes": 58,
+          "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+          "mode": 420,
+          "source": "wrappers/comparator/consumer.mjs"
+        }
+      ]
+    }
+  }
+}

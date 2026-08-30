@@ -1,0 +1,7 @@
+{
+  "command": "node --import tsx tests/shell-stress/invocation-closure/verify.ts post-ready-new.json new",
+  "stage": "pre-run input hashing; no virtual tests started",
+  "exitCode": 1,
+  "error": "ENOENT: no such file or directory, open 'tests/shell-stress/invocation-modes/probe.ts'",
+  "correction": "Use the inspected actual legacy probe path virtual-child.ts. No test, source, fixture or expectation changes. The temporary directory was removed by finally."
+}

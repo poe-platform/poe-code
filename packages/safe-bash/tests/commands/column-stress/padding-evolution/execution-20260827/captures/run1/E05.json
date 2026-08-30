@@ -1,0 +1,57 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "E05",
+  "mutation": "none",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "E05/explicit-empty",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            ""
+          ],
+          "limits": {
+            "maxOutputBytes": 6,
+            "maxSteps": 10000
+          },
+          "inputHex": "613a3a0a620a3a3a0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 6,
+          "stdoutSha256": "502cfaf50706b50fa88d6da1945e641af8620f79c77b759e04125bd962d1130f",
+          "stdoutHex": "610a620a200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 6,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 39,
+    "units": 41
+  },
+  "counts": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  }
+}

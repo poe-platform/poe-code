@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: memory: dangling stdin and writeFile fallback use exclusive resolved target
+ok 1 - memory: dangling stdin and writeFile fallback use exclusive resolved target
+  ---
+  duration_ms: 3.21125
+  type: 'test'
+  ...
+# Subtest: memory: target insertion at exclusive write preserves raced data and aliases
+ok 2 - memory: target insertion at exclusive write preserves raced data and aliases
+  ---
+  duration_ms: 1.923708
+  type: 'test'
+  ...
+# Subtest: memory: alias inserted during target resolution is checked before input acquisition
+ok 3 - memory: alias inserted during target resolution is checked before input acquisition
+  ---
+  duration_ms: 0.325458
+  type: 'test'
+  ...
+# Subtest: memory: subsequent link to newly created target cannot erase earlier output
+ok 4 - memory: subsequent link to newly created target cannot erase earlier output
+  ---
+  duration_ms: 0.4385
+  type: 'test'
+  ...
+# Subtest: memory: dangling current output retains partial bytes after budget failure
+ok 5 - memory: dangling current output retains partial bytes after budget failure
+  ---
+  duration_ms: 0.721084
+  type: 'test'
+  ...
+# Subtest: memory: cancellation during resolved target write preserves completed and partial bytes
+ok 6 - memory: cancellation during resolved target write preserves completed and partial bytes
+  ---
+  duration_ms: 1.308667
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: dangling stdin and writeFile fallback use exclusive resolved target
+ok 7 - explicit-root-real: dangling stdin and writeFile fallback use exclusive resolved target
+  ---
+  duration_ms: 17.200041
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: target insertion at exclusive write preserves raced data and aliases
+ok 8 - explicit-root-real: target insertion at exclusive write preserves raced data and aliases
+  ---
+  duration_ms: 16.666333
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: alias inserted during target resolution is checked before input acquisition
+ok 9 - explicit-root-real: alias inserted during target resolution is checked before input acquisition
+  ---
+  duration_ms: 4.862459
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: subsequent link to newly created target cannot erase earlier output
+ok 10 - explicit-root-real: subsequent link to newly created target cannot erase earlier output
+  ---
+  duration_ms: 5.172417
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: dangling current output retains partial bytes after budget failure
+ok 11 - explicit-root-real: dangling current output retains partial bytes after budget failure
+  ---
+  duration_ms: 6.955458
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: cancellation during resolved target write preserves completed and partial bytes
+ok 12 - explicit-root-real: cancellation during resolved target write preserves completed and partial bytes
+  ---
+  duration_ms: 5.630041
+  type: 'test'
+  ...
+# Subtest: dangling resolution propagates readlink/realpath errors without creation
+ok 13 - dangling resolution propagates readlink/realpath errors without creation
+  ---
+  duration_ms: 1.118792
+  type: 'test'
+  ...
+# Subtest: missing readlink is a narrow capability gap, not a ban on existing symlinks
+ok 14 - missing readlink is a narrow capability gap, not a ban on existing symlinks
+  ---
+  duration_ms: 0.293041
+  type: 'test'
+  ...
+# Subtest: opaque existing symlink identity stays unsupported, while absent targets need no invented identity
+ok 15 - opaque existing symlink identity stays unsupported, while absent targets need no invented identity
+  ---
+  duration_ms: 0.324042
+  type: 'test'
+  ...
+# Subtest: blocked dangling resolution forwards signal, aborts exactly and observes late rejection
+ok 16 - blocked dangling resolution forwards signal, aborts exactly and observes late rejection
+  ---
+  duration_ms: 2.044667
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 255.953166

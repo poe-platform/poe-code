@@ -1,0 +1,103 @@
+{
+  "failure": "native readiness deadline",
+  "argv": [
+    "--no-config",
+    "foo",
+    "-"
+  ],
+  "profile": "observed-prefix",
+  "pid": 59449,
+  "code": null,
+  "signal": "SIGKILL",
+  "stdout": "",
+  "stderr": "",
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.10283300000003237,
+      "detail": {
+        "argv": [
+          "--no-config",
+          "foo",
+          "-"
+        ],
+        "profile": "observed-prefix",
+        "options": {
+          "readinessMs": 2000
+        }
+      }
+    },
+    {
+      "event": "spawn",
+      "ms": 2.5034580000000233,
+      "detail": {
+        "pid": 59449
+      }
+    },
+    {
+      "event": "write",
+      "ms": 2.5316660000000297,
+      "detail": {
+        "hex": "666f6f0a",
+        "end": false
+      }
+    },
+    {
+      "event": "failure",
+      "ms": 2004.0813750000002,
+      "detail": "native readiness deadline"
+    },
+    {
+      "event": "kill",
+      "ms": 2004.2032910000003,
+      "detail": {
+        "pid": 59449
+      }
+    },
+    {
+      "event": "stdin-close",
+      "ms": 2004.243333
+    },
+    {
+      "event": "stderr-end",
+      "ms": 2004.5392500000003
+    },
+    {
+      "event": "stdout-end",
+      "ms": 2004.5613750000002
+    },
+    {
+      "event": "stdout-close",
+      "ms": 2004.6779999999999
+    },
+    {
+      "event": "stderr-close",
+      "ms": 2004.679416
+    },
+    {
+      "event": "exit",
+      "ms": 2004.692541,
+      "detail": {
+        "code": null,
+        "signal": "SIGKILL"
+      }
+    },
+    {
+      "event": "close",
+      "ms": 2004.6946659999999,
+      "detail": {
+        "code": null,
+        "signal": "SIGKILL"
+      }
+    }
+  ],
+  "ready": false,
+  "actualClose": true,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "activeTimers": 0
+}

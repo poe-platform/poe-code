@@ -1,0 +1,93 @@
+{
+  "schema": "breadth-executor-preparation-bindings-v1",
+  "preparedAt": "2026-08-28T09:17:41.990Z",
+  "originalPacket": "a045139b62164dbae923475bdca93ef109b926ff",
+  "originalManifestSha256": "19526e0eb11478107b73026bdcc5d3b309f4cfb38c57a93c7cfea1672e75e923",
+  "authorization": {
+    "availability": true,
+    "syntheticMechanisms": true,
+    "products": false,
+    "comparator": false,
+    "native": false,
+    "timingCohort": false
+  },
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "pack": {
+    "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+    "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+    "bytes": 749907,
+    "mode": 420,
+    "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+  },
+  "declaredTargetPackageMembers": 858,
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "references": {
+    "execution": {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "benchmarks/reports/current-comparison-20260827/measurement-freeze/execution-binding.json",
+      "bytes": 1172804,
+      "sha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e"
+    },
+    "target": {
+      "commit": "dd5b40c49da699c224efe162fa2abae9535d4e95",
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/runs/actual-01/CANDIDATE.json",
+      "bytes": 167198,
+      "sha256": "6d01916d6cd7c0e6f6cbc79697764fba972e1cfc45f857235965b67e45d6877a"
+    }
+  },
+  "priorAdapter": {
+    "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/reuse/breadth-assess.mjs",
+    "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb",
+    "copiedAs": "legacy-assess.mjs",
+    "byteIdentical": true,
+    "classification": "pure function only, no product imports"
+  },
+  "comparatorClosure": {
+    "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash",
+    "declaredFiles": 3844,
+    "knownForbiddenMetadataOnly": [
+      {
+        "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+        "bytes": 9231,
+        "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+        "mode": 292
+      }
+    ]
+  },
+  "synthetic": {
+    "families": 12,
+    "maxChildren": 7,
+    "nodeHeapMiB": 256,
+    "naturalDeadlineMs": 30000,
+    "termGraceMs": 2000,
+    "killGuardMs": 1000,
+    "stdoutBytes": 65536,
+    "stderrBytes": 65536,
+    "recordBytes": 262144,
+    "wholeReceiptBytes": 4194304,
+    "attempts": 1
+  },
+  "productOriginalCounts": {
+    "legacySelected": 23,
+    "legacyUnselected": 31,
+    "workflows": 10,
+    "controls": 12,
+    "executed": 0
+  },
+  "readiness": "BLOCKED: see AMENDMENT.md; no product dispatch route implemented/enabled"
+}

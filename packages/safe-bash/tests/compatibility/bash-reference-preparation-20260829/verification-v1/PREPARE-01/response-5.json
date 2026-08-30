@@ -1,0 +1,18 @@
+{
+  "url": "https://savannah.gnu.org/maintenance/UsingGpg/",
+  "cap": 131072,
+  "name": "gpg-guidance.html",
+  "startedAt": "2026-08-29T04:59:47.756Z",
+  "bytes": 5115,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:59:47 GMT",
+    "content-type": "text/html",
+    "content-length": "5115",
+    "location": null
+  },
+  "sha256": "8dcaf814b760e32a7d8ce0185baf85a7ac2c4bf512574f113877ab0ffe015d29",
+  "capture": "gpg-guidance.html.data",
+  "disposition": "PUBLISHER_RESPONSE_NOT_YET_ATTRIBUTED_SIGNER",
+  "endedAt": "2026-08-29T04:59:47.815Z"
+}

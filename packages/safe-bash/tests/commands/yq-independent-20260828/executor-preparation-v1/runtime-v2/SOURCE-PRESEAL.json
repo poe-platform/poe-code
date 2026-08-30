@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 2,
+  "version": "yq-runtime-v2-20260828",
+  "state": "PRESEALED_BEFORE_SYNTHETIC_REPLAY",
+  "sourceCommitBinding": "Pass exact committed revision and this preseal SHA-256 to validate.mjs; no HEAD fallback",
+  "recipeTreeSha256": "6a5ca19fef1237091719a4fb7571271f1c37ff02dde4a4c65253d34bd69b2878",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 7,
+      "sha256": "07cc0e3f57247b75f5278d110feba3719a32f4b2383e41234cf01325de774d40",
+      "mode": 420
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 28557,
+      "sha256": "36fb6d5de3998795f5ca680861f35843349f8b0761630795dc9f5864566a8371",
+      "mode": 420
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 8571,
+      "sha256": "807acc4a575a6c4b2fbf3a0ad9967048bf64e7a46d4cf579d4ffe0a0b7d5521a",
+      "mode": 420
+    },
+    {
+      "path": "RECIPE-SEAL.json",
+      "bytes": 3994,
+      "sha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+      "mode": 420
+    },
+    {
+      "path": "V1-V2.diff",
+      "bytes": 6923,
+      "sha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc",
+      "mode": 420
+    },
+    {
+      "path": "controls.json",
+      "bytes": 7248,
+      "sha256": "589af6e344c3599726aaae217e975b04f4dddb656b316ed0837834eabe13a30a",
+      "mode": 420
+    },
+    {
+      "path": "delta.mjs",
+      "bytes": 5957,
+      "sha256": "c4241ec7033dc47171548988c638367a96e923c7a4462f2cddb9f9783bc57ed0",
+      "mode": 420
+    },
+    {
+      "path": "frozen.mjs",
+      "bytes": 4100,
+      "sha256": "23937b43be2061780a73a27490bb8ed7009a6d485429417692e607cc1fd3ad0b",
+      "mode": 420
+    },
+    {
+      "path": "recipe.mjs",
+      "bytes": 3104,
+      "sha256": "26d426b6db948fd9f72f3d712bdd8cfdde9d0e84e99c60f140705380617a6198",
+      "mode": 420
+    },
+    {
+      "path": "synthetic-child.mjs",
+      "bytes": 2914,
+      "sha256": "21f2f539ea980b10bd859ddf965ac5e235d117771f9725f2d0971b0ead7afed8",
+      "mode": 420
+    },
+    {
+      "path": "validate.mjs",
+      "bytes": 23248,
+      "sha256": "e7ebffcebf1c00afb79a7fdc9f747dd086602d2ad44f2820d36f32d7cad65ea9",
+      "mode": 420
+    }
+  ],
+  "syntheticControls": 47,
+  "semanticPasses": 0,
+  "grantsGO": false
+}

@@ -1,0 +1,88 @@
+{
+  "status": "READY_FOR_DIFFERENT_FINAL_BINDING_REVIEW_NO_ACTUAL_GO",
+  "publishedUTC": "2026-08-29T16:52:00.518Z",
+  "phaseStart": "2026-08-29T16:50:28.839Z",
+  "phaseDeadline": "2026-08-29T16:55:28.839Z",
+  "knownRolesBeforeGitPublication": 5,
+  "reservedGitPublication": 4,
+  "knownOSCap": 16,
+  "peakKnownUpper": 2,
+  "dataHelpers": 1,
+  "knownUnresolved": 0,
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/final-binding-v2/GRANT.pending.json",
+    "bytes": 1081,
+    "sha256": "779253fa14627330e812e9522603f8e61895a91155d5e4f9fe943f0823573e80"
+  },
+  "commandSha256": "59b7adb628be811652ede031c8ea3a0726de316a5c6a9dc4663b4b3bf7b4b18f",
+  "pins": 38,
+  "postguards": 38,
+  "sourceCorrectedAndExecuted": true,
+  "previousFailuresRetained": [
+    "9f3d9efa02f78ed5d1c540e5f9f19e4dcc222da6",
+    "653c245152a39ef60435e50cff7a65851a5cf011"
+  ],
+  "capturedBytes": 1099,
+  "files": [
+    {
+      "path": "01-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "01-patch.stdout",
+      "bytes": 174,
+      "sha256": "a1f210ec0ea823a71a24d214d3d9442519bb918a0b7b42e85bd6c090cf7f542b"
+    },
+    {
+      "path": "02-bind.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "02-bind.stdout",
+      "bytes": 749,
+      "sha256": "3c6de7fb05da4574977c4138200690e9d9040a581e096e9649d760e16154b7ef"
+    },
+    {
+      "path": "02-role.json",
+      "bytes": 152,
+      "sha256": "515ea1cdf6ec86c45dc286352bf06891133cfa5413c18f82ede96fcdb4290236"
+    },
+    {
+      "path": "03-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "03-patch.stdout",
+      "bytes": 176,
+      "sha256": "ec7e46355c7d1fc0a9054fdc73ed0d73692cbb2eee598d98aa113f359fde8a7a"
+    },
+    {
+      "path": "PRELAUNCH.json",
+      "bytes": 796,
+      "sha256": "ad49ececa27a16e52c603c0cc2033b0a77f5962ae55e4e9555de2bfca85504cf"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 12887,
+      "sha256": "265e8d5ef16bb87f7a3a74eb4f413b0ff01f91410d04db37afa876327bb27602"
+    },
+    {
+      "path": "START.json",
+      "bytes": 163,
+      "sha256": "5be4c1579097bddc7d5707d6f39e36853ab05c67473a7ab3d9bfecb917222af0"
+    },
+    {
+      "path": "startup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "startup.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

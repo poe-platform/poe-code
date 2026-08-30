@@ -1,0 +1,7 @@
+{
+  "name": "matcher",
+  "before": "ledger.charge(\"captureSlots\", width, signal);",
+  "after": "void width;",
+  "base": "5427606266eb6c0d25edba6a32f5097769aa11cb3e9825d0328d5995f07007b7",
+  "changed": "fd5177f060f08a412d8295347bc8398e4583596f0db22022cec8d6812f49a311"
+}

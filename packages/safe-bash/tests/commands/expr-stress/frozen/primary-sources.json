@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "consultedDate": "2026-08-27",
+  "method": "Official GNU primary documentation and tagged source consulted with web.run. No secondary source used. Separate bounded HTTPS reads authenticated the existing archive/source hashes without installing or writing downloaded bytes.",
+  "sources": [
+    {
+      "id": "gnu-expr-invocation-current",
+      "url": "https://www.gnu.org/s/coreutils/manual/html_node/expr-invocation.html",
+      "observedVersionLabel": "GNU Coreutils 9.10 in search result; current manual is moving, NOT the 9.7 release manual",
+      "scope": "Separate argv tokens, optional minus in decimal integers, arbitrary precision, grouping, forced literal plus, and statuses 0/1/2/3. Current guidance was cross-checked against pinned 9.7 source and native observations."
+    },
+    {
+      "id": "gnu-expr-strings-current",
+      "url": "https://www.gnu.org/s/coreutils/manual/html_node/String-expressions.html",
+      "observedVersionLabel": "GNU Coreutils 9.11 in search result; moving documentation",
+      "scope": "Anchored BRE, first subexpression result, no-capture match length, empty/no-match distinctions, GNU escaped operators, match/substr/index/length and forced keyword quoting."
+    },
+    {
+      "id": "gnu-expr-numeric-current",
+      "url": "https://www.gnu.org/software/coreutils/manual/html_node/Numeric-expressions.html",
+      "observedVersionLabel": "GNU Coreutils 9.10 in search result; moving documentation",
+      "scope": "Numeric operator precedence and integer conversion errors."
+    },
+    {
+      "id": "gnu-expr-release-source",
+      "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/expr.c",
+      "retrievedAt": "2026-08-27T16:47:19.209Z",
+      "httpStatus": 200,
+      "bytes": 22920,
+      "sha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+      "scope": "eval through eval7: precedence, left associativity, syntax checks on skipped branches; evaluate guards on numeric and regex operations. null/looks_like_integer: minus/zeros versus plus. mpz_tdiv_q/r: signed division/remainder. docolon: BRE flags, anchored matching, first capture, newline policy. mbs helpers: locale-dependent logical characters, not graphemes. Source SHA matches local release-archive member."
+    },
+    {
+      "id": "gnu-authenticated-release-archive",
+      "url": "https://ftp.gnu.org/gnu/coreutils/coreutils-9.7.tar.xz",
+      "retrievedAt": "2026-08-27T16:47:18.844Z",
+      "httpStatus": 200,
+      "bytes": 6158960,
+      "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+      "scope": "Downloaded into a bounded hash stream only; matches existing dev-only archive. This leaf did not independently rerun detached-signature verification or rebuild the executable. Binary hash, version, exact path and runtime receipts are separately pinned."
+    },
+    {
+      "id": "gnu-regex-current",
+      "url": "https://www.gnu.org/s/grep/manual/grep.html",
+      "observedVersionLabel": "GNU Grep 3.12",
+      "sections": ["3.5 Back-references and Subexpressions", "3.6 Basic vs Extended Regular Expressions", "3.7 Problematic Regular Expressions", "3.8 Character Encoding"],
+      "scope": "BRE syntax and locale cautions only; grep file/binary behavior is NOT imported into expr. Invalid encoding and locale-sensitive ranges are not universal guarantees. expr-specific behavior comes from pinned expr source/receipts."
+    },
+    {
+      "id": "apple-source-context-only",
+      "url": "https://github.com/apple-oss-distributions/shell_cmds/blob/main/expr/expr.y",
+      "scope": "Official Apple source browsed only as dialect context. Moving main is NOT authenticated as source for the installed /bin/expr. The installed binary has no supported --version interface; its literal --version result, binary hash, macOS build and Darwin kernel define the measured separate profile."
+    }
+  ],
+  "unavailableRetrievals": [
+    "web.run open of the GNU release-announcement URL and some non-/s/ manual URLs returned no content. No claim relies on those empty returns; archive was directly authenticated over official HTTPS and 9.7 source independently hashed."
+  ],
+  "nonclaims": [
+    "Current online manual version labels do not upgrade the normative target beyond GNU expr 9.7.",
+    "GNU on Darwin with its build configuration is not GNU/Linux or every libc/locale.",
+    "No binary provenance is inferred solely from argv0 or a --version string."
+  ]
+}

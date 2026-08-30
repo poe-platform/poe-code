@@ -1,0 +1,71 @@
+{
+  "name": "scoped-types",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "tests/stress/harness-timing-20260827/tsconfig.scope.json"
+  ],
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "durationMs": 1183.2146250000005,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.13720800000010058,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/stress/harness-timing-20260827/tsconfig.scope.json"
+      ],
+      "timeout": 120000
+    },
+    {
+      "event": "spawn",
+      "ms": 0.9647499999991851,
+      "pid": 73034
+    },
+    {
+      "event": "stdin-close",
+      "ms": 0.996500000001106
+    },
+    {
+      "event": "stderr-end",
+      "ms": 1183.106667
+    },
+    {
+      "event": "stdout-end",
+      "ms": 1183.1268750000017
+    },
+    {
+      "event": "stdout-close",
+      "ms": 1183.1594170000026
+    },
+    {
+      "event": "stderr-close",
+      "ms": 1183.1604579999985
+    },
+    {
+      "event": "exit",
+      "ms": 1183.1832920000015,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "close",
+      "ms": 1183.1972499999974,
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "observations": [
+    {
+      "id": "C01-v1-refusal",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C01-v1-refusal-raw.json"
+    },
+    {
+      "id": "C02-v2-source",
+      "expected": "ACCEPT",
+      "matched": true,
+      "raw": "C02-v2-source-raw.json"
+    },
+    {
+      "id": "C03-packet-source",
+      "expected": "ACCEPT",
+      "matched": true,
+      "raw": "C03-packet-source-raw.json"
+    },
+    {
+      "id": "C04-packet-full-data",
+      "expected": "ACCEPT",
+      "matched": true,
+      "raw": "C04-packet-full-data-raw.json"
+    },
+    {
+      "id": "C05-baseline",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C05-baseline-raw.json"
+    },
+    {
+      "id": "C06-length",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C06-length-raw.json"
+    },
+    {
+      "id": "C07-HEAD",
+      "expected": "RECEIPT_SCHEMA",
+      "matched": true,
+      "raw": "C07-HEAD-raw.json"
+    },
+    {
+      "id": "C08-fabricated-origin",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C08-fabricated-origin-raw.json"
+    },
+    {
+      "id": "C09-wrong-fixed-origin",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C09-wrong-fixed-origin-raw.json"
+    },
+    {
+      "id": "C10-new-hash",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C10-new-hash-raw.json"
+    },
+    {
+      "id": "C11-new-mode",
+      "expected": "DESCRIPTOR",
+      "matched": true,
+      "raw": "C11-new-mode-raw.json"
+    },
+    {
+      "id": "C12-extra-addition",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C12-extra-addition-raw.json"
+    },
+    {
+      "id": "C13-missing-addition",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C13-missing-addition-raw.json"
+    },
+    {
+      "id": "C14-root-edit",
+      "expected": "SOURCE_BINDING",
+      "matched": true,
+      "raw": "C14-root-edit-raw.json"
+    },
+    {
+      "id": "C15-path",
+      "expected": "PATH",
+      "matched": true,
+      "raw": "C15-path-raw.json"
+    },
+    {
+      "id": "C16-self-override",
+      "expected": "RECEIPT_SCHEMA",
+      "matched": true,
+      "raw": "C16-self-override-raw.json"
+    },
+    {
+      "id": "C17-expected-receipt-hash",
+      "expected": "RECEIPT_HASH",
+      "matched": true,
+      "raw": "C17-expected-receipt-hash-raw.json"
+    },
+    {
+      "id": "C18-source-original271",
+      "expected": "ACCEPT",
+      "matched": true,
+      "raw": "C18-source-original271-raw.json"
+    },
+    {
+      "id": "C19-source-moved271",
+      "expected": "ACCEPT",
+      "matched": true,
+      "raw": "C19-source-moved271-raw.json"
+    },
+    {
+      "id": "C20-archive273-not-projection",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "matched": true,
+      "raw": "C20-archive273-not-projection-raw.json"
+    },
+    {
+      "id": "C21-public-pending",
+      "expected": "PUBLIC_EXPORT_GAP",
+      "matched": true,
+      "raw": "C21-public-pending-raw.json"
+    },
+    {
+      "id": "C22-mutated-driver",
+      "expected": "DRIVER_INTEGRITY",
+      "matched": true,
+      "raw": "C22-mutated-driver-raw.json"
+    },
+    {
+      "id": "C23-package-original870",
+      "expected": "ACCEPT",
+      "matched": true,
+      "raw": "C23-package-original870-raw.json"
+    },
+    {
+      "id": "C24-package-moved870",
+      "expected": "ACCEPT",
+      "matched": true,
+      "raw": "C24-package-moved870-raw.json"
+    },
+    {
+      "id": "C25-authority-mutation",
+      "expected": "RECIPE_INTEGRITY_MESSAGE",
+      "matched": true,
+      "raw": "C25-authority-mutation-raw.json"
+    }
+  ],
+  "count": 25,
+  "matched": 25,
+  "productImports": 0,
+  "productRuns": 0,
+  "compile": 0,
+  "build": 0
+}

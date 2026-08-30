@@ -1,0 +1,14 @@
+{
+  "preseal": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json",
+    "bytes": 17692,
+    "sha256": "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"
+  },
+  "launch": "B1_ROOT_GO=ROOT_B1_PUBLIC15_EXPLICIT_FRESH_AUTHORIZATION /bin/zsh tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json 007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc 17692",
+  "status": "EXECUTABLE_SOURCE_PRESEAL_CONTROLS_AND_DIFFERENT_REVIEW_PENDING",
+  "stageOriginEntries": 1117,
+  "staticImportEdges": 975,
+  "productImports": 0,
+  "engineImports": 0,
+  "actualCalls": 0
+}

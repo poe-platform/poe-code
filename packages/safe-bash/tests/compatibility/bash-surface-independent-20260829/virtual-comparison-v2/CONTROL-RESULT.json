@@ -1,0 +1,973 @@
+{
+  "schema": "virtual-comparison-v2-controls",
+  "earlyAdmission": [
+    {
+      "id": "C01",
+      "kind": "tampered",
+      "status": "PASS",
+      "reasonCode": "HASH",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C02",
+      "kind": "short",
+      "status": "PASS",
+      "reasonCode": "SIZE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [],
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C03",
+      "kind": "oversized",
+      "status": "PASS",
+      "reasonCode": "SIZE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [],
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C04",
+      "kind": "wronghash",
+      "status": "PASS",
+      "reasonCode": "HASH",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C05",
+      "kind": "directory",
+      "status": "PASS",
+      "reasonCode": "TYPE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [],
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C06",
+      "kind": "symlink",
+      "status": "PASS",
+      "reasonCode": "TYPE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [],
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C07",
+      "kind": "replacepath",
+      "status": "PASS",
+      "reasonCode": "MUTATION",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C08",
+      "kind": "mutatesource",
+      "status": "PASS",
+      "reasonCode": "MUTATION",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C09",
+      "kind": "truncateafterread",
+      "status": "PASS",
+      "reasonCode": "MUTATION",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C10",
+      "kind": "aggregate",
+      "status": "PASS",
+      "reasonCode": "AGGREGATE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "exact-hash",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 40
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C11",
+      "kind": "orderingmutant",
+      "status": "PASS",
+      "reasonCode": "HASH",
+      "counts": {
+        "decoder": 1,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C12",
+      "kind": "restored",
+      "status": "PASS",
+      "reasonCode": "HASH",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    }
+  ],
+  "mechanisms": [
+    {
+      "id": "M01",
+      "status": "PASS",
+      "evidence": {
+        "sameBuffer": true,
+        "events": [
+          "lstat-type-size",
+          "bounded-read",
+          "postread-identity",
+          "exact-hash",
+          "descriptor-closed",
+          "concurrent-buffers-reserved",
+          "decoded",
+          "parsed"
+        ]
+      }
+    },
+    {
+      "id": "M02",
+      "status": "PASS",
+      "evidence": {
+        "members": 954,
+        "payloadBytes": 0,
+        "decodedBytes": 489472,
+        "extractionCalls": 0
+      }
+    },
+    {
+      "id": "M03",
+      "status": "PASS",
+      "evidence": {
+        "row": {
+          "label": "M03",
+          "started": 1787995070119,
+          "listeners": true,
+          "exit": true,
+          "close": true,
+          "stdoutEOF": true,
+          "stderrEOF": true,
+          "status": 0,
+          "signal": null,
+          "signals": [],
+          "errors": [],
+          "events": [
+            "capture-opened",
+            "listeners-enrolled",
+            "stderr-end",
+            "stdout-end",
+            "exit",
+            "close",
+            "capture-finalization"
+          ],
+          "captures": [
+            {
+              "name": "stdout",
+              "bytes": 13,
+              "sha256": "27ea6586133a998c6f81a199a981584edc18f6f26c75f9d51bc82cd337c93bc6",
+              "base64": "TE9BREVSX1JFQURZCg==",
+              "flushed": true,
+              "closed": true
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "flushed": true,
+              "closed": true
+            }
+          ],
+          "qualified": true,
+          "pid": 59688,
+          "group": {
+            "state": "absent",
+            "error": {
+              "name": "Error",
+              "code": "ESRCH",
+              "errno": -3,
+              "syscall": "kill"
+            }
+          },
+          "escalationAttempted": false,
+          "finished": 1787995070210,
+          "primaryPresent": false,
+          "fixtureTimeoutQualified": false
+        },
+        "loader": {
+          "main": "{\"event\":\"worker-refusal-installed\",\"role\":\"M03\"}\n{\"event\":\"loader-registration-requested\",\"role\":\"M03\"}\n",
+          "loader": "{\"event\":\"loader-initialized\",\"role\":\"M03\",\"regexWorkerPermission\":0}\n{\"event\":\"module-loaded\",\"role\":\"M03\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2/fixtures/loaded.mjs\",\"bytes\":161,\"sha256\":\"6d0de42a1a5f8b1a9dd51ac888359e3fe7b4fb2771cd0899d71ec4c203832805\"}\n"
+        }
+      }
+    },
+    {
+      "id": "M04",
+      "status": "PASS",
+      "evidence": {
+        "row": {
+          "label": "M04",
+          "started": 1787995070213,
+          "listeners": true,
+          "exit": true,
+          "close": true,
+          "stdoutEOF": true,
+          "stderrEOF": true,
+          "status": 1,
+          "signal": null,
+          "signals": [],
+          "errors": [],
+          "events": [
+            "capture-opened",
+            "listeners-enrolled",
+            "stderr-end",
+            "stdout-end",
+            "exit",
+            "close",
+            "capture-finalization"
+          ],
+          "captures": [
+            {
+              "name": "stdout",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "flushed": true,
+              "closed": true
+            },
+            {
+              "name": "stderr",
+              "bytes": 608,
+              "sha256": "e8eaa0db0832ea9dd7409ba8eac2f535f2ae298b103111b034afe1f7d18c304c",
+              "base64": "Cm5vZGU6aW50ZXJuYWwvbW9kdWxlcy9ydW5fbWFpbjoxMjMKICAgIHRyaWdnZXJVbmNhdWdodEV4Y2VwdGlvbigKICAgIF4KRXJyb3I6IExPQURfSEFTSF9SRUZVU0VECiAgICBhdCBsb2FkIChmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1zdXJmYWNlLWluZGVwZW5kZW50LTIwMjYwODI5L3ZpcnR1YWwtY29tcGFyaXNvbi12Mi9sb2FkZXIubWpzOjk6Nzg2KQogICAgYXQgbmV4dExvYWQgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vaG9va3M6NzQ4OjI4KQogICAgYXQgSG9va3MubG9hZCAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9ob29rczozODU6MjYpCiAgICBhdCBNZXNzYWdlUG9ydC5oYW5kbGVNZXNzYWdlIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL3dvcmtlcjoxOTk6MjQpCiAgICBhdCBbbm9kZWpzLmludGVybmFsLmtIeWJyaWREaXNwYXRjaF0gKG5vZGU6aW50ZXJuYWwvZXZlbnRfdGFyZ2V0Ojg0MzoyMCkKICAgIGF0IE1lc3NhZ2VQb3J0Ljxhbm9ueW1vdXM+IChub2RlOmludGVybmFsL3Blcl9jb250ZXh0L21lc3NhZ2Vwb3J0OjIzOjI4KQoKTm9kZS5qcyB2MjIuMjIuMgo=",
+              "flushed": true,
+              "closed": true
+            }
+          ],
+          "qualified": true,
+          "pid": 59689,
+          "group": {
+            "state": "absent",
+            "error": {
+              "name": "Error",
+              "code": "ESRCH",
+              "errno": -3,
+              "syscall": "kill"
+            }
+          },
+          "escalationAttempted": false,
+          "finished": 1787995070297,
+          "primaryPresent": false,
+          "fixtureTimeoutQualified": false
+        },
+        "loader": {
+          "main": "{\"event\":\"worker-refusal-installed\",\"role\":\"M04\"}\n{\"event\":\"loader-registration-requested\",\"role\":\"M04\"}\n",
+          "loader": "{\"event\":\"loader-initialized\",\"role\":\"M04\",\"regexWorkerPermission\":0}\n"
+        }
+      }
+    },
+    {
+      "id": "M05",
+      "status": "PASS",
+      "evidence": {
+        "row": {
+          "label": "M05",
+          "started": 1787995070300,
+          "listeners": true,
+          "exit": true,
+          "close": true,
+          "stdoutEOF": true,
+          "stderrEOF": true,
+          "status": 1,
+          "signal": null,
+          "signals": [],
+          "errors": [],
+          "events": [
+            "capture-opened",
+            "listeners-enrolled",
+            "stderr-end",
+            "stdout-end",
+            "exit",
+            "close",
+            "capture-finalization"
+          ],
+          "captures": [
+            {
+              "name": "stdout",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "flushed": true,
+              "closed": true
+            },
+            {
+              "name": "stderr",
+              "bytes": 611,
+              "sha256": "d4e8849b268efacab85ca4ca18a778797d004d9c2616ffa61e7e43fd3cec32d3",
+              "base64": "Cm5vZGU6aW50ZXJuYWwvbW9kdWxlcy9ydW5fbWFpbjoxMjMKICAgIHRyaWdnZXJVbmNhdWdodEV4Y2VwdGlvbigKICAgIF4KRXJyb3I6IExPQURfQklORElOR19SRUZVU0VEOmZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvY29tcGF0aWJpbGl0eS9iYXNoLXN1cmZhY2UtaW5kZXBlbmRlbnQtMjAyNjA4MjkvdmlydHVhbC1jb21wYXJpc29uLXYyL2ZpeHR1cmVzL3VubGlzdGVkLm1qcwogICAgYXQgcmVzb2x2ZSAoZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXRpYmlsaXR5L2Jhc2gtc3VyZmFjZS1pbmRlcGVuZGVudC0yMDI2MDgyOS92aXJ0dWFsLWNvbXBhcmlzb24tdjIvbG9hZGVyLm1qczo4OjU2NikKICAgIGF0IGFzeW5jIG5leHRSZXNvbHZlIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2hvb2tzOjc0ODoyMikKICAgIGF0IGFzeW5jIEhvb2tzLnJlc29sdmUgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vaG9va3M6MjQwOjI0KQogICAgYXQgYXN5bmMgaGFuZGxlTWVzc2FnZSAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS93b3JrZXI6MTk5OjE4KQoKTm9kZS5qcyB2MjIuMjIuMgo=",
+              "flushed": true,
+              "closed": true
+            }
+          ],
+          "qualified": true,
+          "pid": 59690,
+          "group": {
+            "state": "absent",
+            "error": {
+              "name": "Error",
+              "code": "ESRCH",
+              "errno": -3,
+              "syscall": "kill"
+            }
+          },
+          "escalationAttempted": false,
+          "finished": 1787995070390,
+          "primaryPresent": false,
+          "fixtureTimeoutQualified": false
+        },
+        "loader": {
+          "main": "{\"event\":\"worker-refusal-installed\",\"role\":\"M05\"}\n{\"event\":\"loader-registration-requested\",\"role\":\"M05\"}\n",
+          "loader": "{\"event\":\"loader-initialized\",\"role\":\"M05\",\"regexWorkerPermission\":0}\n{\"event\":\"module-loaded\",\"role\":\"M05\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2/fixtures/unlisted-entry.mjs\",\"bytes\":25,\"sha256\":\"356f91e8d243a13655d26b75021efdd99a7aff4ba3f32cef7d8d237acf7928fc\"}\n"
+        }
+      }
+    },
+    {
+      "id": "M06",
+      "status": "PASS",
+      "evidence": {
+        "row": {
+          "label": "M06",
+          "started": 1787995070393,
+          "listeners": true,
+          "exit": true,
+          "close": true,
+          "stdoutEOF": true,
+          "stderrEOF": true,
+          "status": 0,
+          "signal": null,
+          "signals": [],
+          "errors": [],
+          "events": [
+            "capture-opened",
+            "listeners-enrolled",
+            "stderr-end",
+            "stdout-end",
+            "exit",
+            "close",
+            "capture-finalization"
+          ],
+          "captures": [
+            {
+              "name": "stdout",
+              "bytes": 21,
+              "sha256": "b05a6201d824a4db68d82c90c0876e0104ce3ec7738b825780c0ea72bd0f7532",
+              "base64": "UkVHRVhfV09SS0VSX1JFRlVTRUQK",
+              "flushed": true,
+              "closed": true
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "flushed": true,
+              "closed": true
+            }
+          ],
+          "qualified": true,
+          "pid": 59693,
+          "group": {
+            "state": "absent",
+            "error": {
+              "name": "Error",
+              "code": "ESRCH",
+              "errno": -3,
+              "syscall": "kill"
+            }
+          },
+          "escalationAttempted": false,
+          "finished": 1787995070476,
+          "primaryPresent": false,
+          "fixtureTimeoutQualified": false
+        },
+        "loader": {
+          "main": "{\"event\":\"worker-refusal-installed\",\"role\":\"M06\"}\n{\"event\":\"loader-registration-requested\",\"role\":\"M06\"}\n{\"event\":\"regex-worker-refused-before-acquisition\",\"role\":\"M06\"}\n",
+          "loader": "{\"event\":\"loader-initialized\",\"role\":\"M06\",\"regexWorkerPermission\":0}\n{\"event\":\"module-loaded\",\"role\":\"M06\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2/fixtures/worker-refusal.mjs\",\"bytes\":222,\"sha256\":\"6aef834ab776d0ef4ce40e28ecffa90ca167268dbf641283eb2dae3e6f5fbca1\"}\n"
+        }
+      }
+    },
+    {
+      "id": "M07",
+      "status": "PASS",
+      "evidence": {
+        "row": {
+          "label": "M07",
+          "started": 1787995070477,
+          "listeners": true,
+          "exit": true,
+          "close": true,
+          "stdoutEOF": true,
+          "stderrEOF": true,
+          "status": 0,
+          "signal": null,
+          "signals": [],
+          "errors": [],
+          "events": [
+            "capture-opened",
+            "listeners-enrolled",
+            "stderr-end",
+            "stdout-end",
+            "exit",
+            "close",
+            "capture-finalization"
+          ],
+          "captures": [
+            {
+              "name": "stdout",
+              "bytes": 6,
+              "sha256": "3dfa3fb239f56c778a1e9b33eb31328349edd155a95806dac4378904e88527e5",
+              "base64": "UkVBRFkK",
+              "flushed": true,
+              "closed": true
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "flushed": true,
+              "closed": true
+            }
+          ],
+          "qualified": true,
+          "pid": 59696,
+          "group": {
+            "state": "absent",
+            "error": {
+              "name": "Error",
+              "code": "ESRCH",
+              "errno": -3,
+              "syscall": "kill"
+            }
+          },
+          "escalationAttempted": false,
+          "finished": 1787995070525,
+          "primaryPresent": false,
+          "fixtureTimeoutQualified": false
+        }
+      }
+    },
+    {
+      "id": "M08",
+      "status": "FAIL",
+      "reason": "Error: SAFETY_STOP\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2/controls.mjs:82:26\n    at async add (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2/controls.mjs:70:67)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2/controls.mjs:76:2"
+    }
+  ],
+  "knownFixtureStarts": 6,
+  "loaderRegistrationRequests": 4,
+  "regexWorkerStarts": 0,
+  "ledger": {
+    "maximum": 7,
+    "peak": 1,
+    "active": 0,
+    "starts": 6,
+    "captureBytes": 1265,
+    "captureMaximum": 16777216,
+    "observedPeak": 1,
+    "rows": [
+      {
+        "label": "M03",
+        "started": 1787995070119,
+        "listeners": true,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "status": 0,
+        "signal": null,
+        "signals": [],
+        "errors": [],
+        "events": [
+          "capture-opened",
+          "listeners-enrolled",
+          "stderr-end",
+          "stdout-end",
+          "exit",
+          "close",
+          "capture-finalization"
+        ],
+        "captures": [
+          {
+            "name": "stdout",
+            "bytes": 13,
+            "sha256": "27ea6586133a998c6f81a199a981584edc18f6f26c75f9d51bc82cd337c93bc6",
+            "base64": "TE9BREVSX1JFQURZCg==",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "name": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "qualified": true,
+        "pid": 59688,
+        "group": {
+          "state": "absent",
+          "error": {
+            "name": "Error",
+            "code": "ESRCH",
+            "errno": -3,
+            "syscall": "kill"
+          }
+        },
+        "escalationAttempted": false,
+        "finished": 1787995070210,
+        "primaryPresent": false,
+        "fixtureTimeoutQualified": false
+      },
+      {
+        "label": "M04",
+        "started": 1787995070213,
+        "listeners": true,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "status": 1,
+        "signal": null,
+        "signals": [],
+        "errors": [],
+        "events": [
+          "capture-opened",
+          "listeners-enrolled",
+          "stderr-end",
+          "stdout-end",
+          "exit",
+          "close",
+          "capture-finalization"
+        ],
+        "captures": [
+          {
+            "name": "stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "name": "stderr",
+            "bytes": 608,
+            "sha256": "e8eaa0db0832ea9dd7409ba8eac2f535f2ae298b103111b034afe1f7d18c304c",
+            "base64": "Cm5vZGU6aW50ZXJuYWwvbW9kdWxlcy9ydW5fbWFpbjoxMjMKICAgIHRyaWdnZXJVbmNhdWdodEV4Y2VwdGlvbigKICAgIF4KRXJyb3I6IExPQURfSEFTSF9SRUZVU0VECiAgICBhdCBsb2FkIChmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1zdXJmYWNlLWluZGVwZW5kZW50LTIwMjYwODI5L3ZpcnR1YWwtY29tcGFyaXNvbi12Mi9sb2FkZXIubWpzOjk6Nzg2KQogICAgYXQgbmV4dExvYWQgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vaG9va3M6NzQ4OjI4KQogICAgYXQgSG9va3MubG9hZCAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9ob29rczozODU6MjYpCiAgICBhdCBNZXNzYWdlUG9ydC5oYW5kbGVNZXNzYWdlIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL3dvcmtlcjoxOTk6MjQpCiAgICBhdCBbbm9kZWpzLmludGVybmFsLmtIeWJyaWREaXNwYXRjaF0gKG5vZGU6aW50ZXJuYWwvZXZlbnRfdGFyZ2V0Ojg0MzoyMCkKICAgIGF0IE1lc3NhZ2VQb3J0Ljxhbm9ueW1vdXM+IChub2RlOmludGVybmFsL3Blcl9jb250ZXh0L21lc3NhZ2Vwb3J0OjIzOjI4KQoKTm9kZS5qcyB2MjIuMjIuMgo=",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "qualified": true,
+        "pid": 59689,
+        "group": {
+          "state": "absent",
+          "error": {
+            "name": "Error",
+            "code": "ESRCH",
+            "errno": -3,
+            "syscall": "kill"
+          }
+        },
+        "escalationAttempted": false,
+        "finished": 1787995070297,
+        "primaryPresent": false,
+        "fixtureTimeoutQualified": false
+      },
+      {
+        "label": "M05",
+        "started": 1787995070300,
+        "listeners": true,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "status": 1,
+        "signal": null,
+        "signals": [],
+        "errors": [],
+        "events": [
+          "capture-opened",
+          "listeners-enrolled",
+          "stderr-end",
+          "stdout-end",
+          "exit",
+          "close",
+          "capture-finalization"
+        ],
+        "captures": [
+          {
+            "name": "stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "name": "stderr",
+            "bytes": 611,
+            "sha256": "d4e8849b268efacab85ca4ca18a778797d004d9c2616ffa61e7e43fd3cec32d3",
+            "base64": "Cm5vZGU6aW50ZXJuYWwvbW9kdWxlcy9ydW5fbWFpbjoxMjMKICAgIHRyaWdnZXJVbmNhdWdodEV4Y2VwdGlvbigKICAgIF4KRXJyb3I6IExPQURfQklORElOR19SRUZVU0VEOmZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvY29tcGF0aWJpbGl0eS9iYXNoLXN1cmZhY2UtaW5kZXBlbmRlbnQtMjAyNjA4MjkvdmlydHVhbC1jb21wYXJpc29uLXYyL2ZpeHR1cmVzL3VubGlzdGVkLm1qcwogICAgYXQgcmVzb2x2ZSAoZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXRpYmlsaXR5L2Jhc2gtc3VyZmFjZS1pbmRlcGVuZGVudC0yMDI2MDgyOS92aXJ0dWFsLWNvbXBhcmlzb24tdjIvbG9hZGVyLm1qczo4OjU2NikKICAgIGF0IGFzeW5jIG5leHRSZXNvbHZlIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2hvb2tzOjc0ODoyMikKICAgIGF0IGFzeW5jIEhvb2tzLnJlc29sdmUgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vaG9va3M6MjQwOjI0KQogICAgYXQgYXN5bmMgaGFuZGxlTWVzc2FnZSAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS93b3JrZXI6MTk5OjE4KQoKTm9kZS5qcyB2MjIuMjIuMgo=",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "qualified": true,
+        "pid": 59690,
+        "group": {
+          "state": "absent",
+          "error": {
+            "name": "Error",
+            "code": "ESRCH",
+            "errno": -3,
+            "syscall": "kill"
+          }
+        },
+        "escalationAttempted": false,
+        "finished": 1787995070390,
+        "primaryPresent": false,
+        "fixtureTimeoutQualified": false
+      },
+      {
+        "label": "M06",
+        "started": 1787995070393,
+        "listeners": true,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "status": 0,
+        "signal": null,
+        "signals": [],
+        "errors": [],
+        "events": [
+          "capture-opened",
+          "listeners-enrolled",
+          "stderr-end",
+          "stdout-end",
+          "exit",
+          "close",
+          "capture-finalization"
+        ],
+        "captures": [
+          {
+            "name": "stdout",
+            "bytes": 21,
+            "sha256": "b05a6201d824a4db68d82c90c0876e0104ce3ec7738b825780c0ea72bd0f7532",
+            "base64": "UkVHRVhfV09SS0VSX1JFRlVTRUQK",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "name": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "qualified": true,
+        "pid": 59693,
+        "group": {
+          "state": "absent",
+          "error": {
+            "name": "Error",
+            "code": "ESRCH",
+            "errno": -3,
+            "syscall": "kill"
+          }
+        },
+        "escalationAttempted": false,
+        "finished": 1787995070476,
+        "primaryPresent": false,
+        "fixtureTimeoutQualified": false
+      },
+      {
+        "label": "M07",
+        "started": 1787995070477,
+        "listeners": true,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "status": 0,
+        "signal": null,
+        "signals": [],
+        "errors": [],
+        "events": [
+          "capture-opened",
+          "listeners-enrolled",
+          "stderr-end",
+          "stdout-end",
+          "exit",
+          "close",
+          "capture-finalization"
+        ],
+        "captures": [
+          {
+            "name": "stdout",
+            "bytes": 6,
+            "sha256": "3dfa3fb239f56c778a1e9b33eb31328349edd155a95806dac4378904e88527e5",
+            "base64": "UkVBRFkK",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "name": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "qualified": true,
+        "pid": 59696,
+        "group": {
+          "state": "absent",
+          "error": {
+            "name": "Error",
+            "code": "ESRCH",
+            "errno": -3,
+            "syscall": "kill"
+          }
+        },
+        "escalationAttempted": false,
+        "finished": 1787995070525,
+        "primaryPresent": false,
+        "fixtureTimeoutQualified": false
+      },
+      {
+        "label": "M08",
+        "started": 1787995070526,
+        "listeners": true,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "status": 0,
+        "signal": null,
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "at": 1787995071329
+          }
+        ],
+        "errors": [],
+        "events": [
+          "capture-opened",
+          "listeners-enrolled",
+          "stderr-end",
+          "stdout-end",
+          "exit",
+          "close",
+          "capture-finalization"
+        ],
+        "captures": [
+          {
+            "name": "stdout",
+            "bytes": 6,
+            "sha256": "3dfa3fb239f56c778a1e9b33eb31328349edd155a95806dac4378904e88527e5",
+            "base64": "UkVBRFkK",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "name": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "qualified": false,
+        "pid": 59697,
+        "group": {
+          "state": "unknown",
+          "error": {
+            "name": "Error",
+            "code": "EPERM",
+            "errno": -1,
+            "syscall": "kill"
+          }
+        },
+        "escalationAttempted": true,
+        "finished": 1787995071389,
+        "primaryPresent": true,
+        "primary": {
+          "kind": "object",
+          "name": "Error",
+          "message": "CHILD_DEADLINE"
+        },
+        "fixtureTimeoutQualified": false
+      }
+    ],
+    "stopped": true
+  },
+  "productionArchiveReads": 0,
+  "productImports": 0,
+  "caseAdapterInvocations": 0,
+  "nativeExecutions": 0
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "source-binding-stop-v1",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "path": "src/commands/archive/create.ts",
+  "expected": {
+    "blob": "5048ed88f35912dfe3171b4f8d75f78f8909443d",
+    "bytes": 8594,
+    "sha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c"
+  },
+  "retainedGitHeader": "bf079ada185a79aec864b068f3738ddc5520822e:src/commands/archive/create.ts missing",
+  "retainedBodySha256": null,
+  "verifiedPrecedingFiles": 0,
+  "gitStatus": 0,
+  "gitStdoutBytes": 18872,
+  "gitStdoutSha256": "fb12a9ae3e21a204d5c348b98c1de385879dc7f82eead0db4f84f811a3f2f83f",
+  "gitStderrBytes": 0,
+  "sourceExecution": false,
+  "disposition": "STOP source-admission continuation; metadata conflict retained, not assertion of live product drift. No further source archive decode, product or probe work."
+}

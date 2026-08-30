@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "verdict": "NARROW_STATIC_CORRECTION_COHERENT",
+  "role": "DIFFERENT_STATIC_REVIEW_NOT_BEHAVIOR",
+  "criteriaCommit": "952d404f558cced17b3afc8de4f51cec9a90109d",
+  "sourceCommit": "3b55c4afb81e32d719c14995a6e38620b4fabe2c",
+  "sourceFinalSealSha256": "9f8cacde18c46e9d7d7c82c3665ab0ba0e6406b9b42e6e939c2fe826164daa54",
+  "sourceOverlaySha256": "2d31ea4c244af9c0a036822bd5150984e0a047f20777493bb41b1c05b485c1fe",
+  "ownedRoot": "tests/commands/yq-independent-20260828/successor-review-independent-v1/tool-request-correction-review-v1",
+  "exactMembership": [
+    "CRITERIA.md",
+    "EVIDENCE.json",
+    "FINAL-SEAL.json",
+    "INPUTS.json",
+    "REPORT.md"
+  ],
+  "files": [
+    {
+      "path": "CRITERIA.md",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 4049,
+      "sha256": "7a7c8e7f8792cbebe8ccfb8d16e88cd5d51aa4aa37dc44a742d7a793640c1827"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 1456,
+      "sha256": "181a8cc46d8579195aee79e2d8cdf8e392d0d86305c8f8d13a14483f60d9cb55"
+    },
+    {
+      "path": "EVIDENCE.json",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 28048,
+      "sha256": "51cd38b8f6610e42ab78d51261aa876846a0d594643ee3bca6995b1fc61e26d6"
+    },
+    {
+      "path": "REPORT.md",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 5972,
+      "sha256": "9ab171708aa042d27bee336a40e8e278d13bd69e70ea682a731810abcb259eca"
+    }
+  ],
+  "self": {
+    "path": "FINAL-SEAL.json",
+    "modeOctal": "0644",
+    "sha256": "EXTERNAL_HANDOFF_ONLY_NO_CIRCULAR_SELF_HASH"
+  },
+  "newFindings": {
+    "sourceIntegrity": 0,
+    "code": 0
+  },
+  "checks": {
+    "staticDataComparisons": 92,
+    "hostSyntaxParses": 2,
+    "specificationWarnings": 0,
+    "authenticatedSourceFiles": 10,
+    "existingCallsiteProfiles": 4,
+    "futureAssemblyTargets": 2,
+    "deferredControls": 24,
+    "controlExecutions": 0,
+    "controlPasses": 0,
+    "candidateExecutions": 0,
+    "productExecutions": 0,
+    "compilerExecutions": 0,
+    "copiedToolExecutions": 0,
+    "authoredImportsOrInvocations": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "reviewPreparationFailures": [],
+  "authorPreparationFailureRetained": "STATIC-CHECKS.json cross-realm prototype-equality data check; copied verbatim in EVIDENCE.json, not rescored",
+  "originalReviewPreserved": "88f92894efd9c14de76ed6a2669292f10467dc4f",
+  "stillOpen": [
+    "FC-F02",
+    "FC-F03",
+    "FRESH_COMPOUND_ASSEMBLY_AND_RECIPE_RESEAL"
+  ],
+  "behavioralControls": "24_UNRUN_NOT_A_SOURCE_COHERENCE_BLOCKER",
+  "parentStatus": "NO_GO",
+  "newCompoundRecipe": false,
+  "rootGO": false
+}

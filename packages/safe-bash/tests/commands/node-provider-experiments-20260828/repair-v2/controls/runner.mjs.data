@@ -1,0 +1,177 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { spawn as realSpawn } from 'node:child_process';
+
+const own = '/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2';
+const controlRoot = path.join(own,'controls');
+const planBytes = fs.readFileSync(path.join(controlRoot,'PLAN.json'));
+const plan = JSON.parse(planBytes);
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+assert.equal(process.env.NP_REPAIR_CONTROL_GO,'repair-v2:'+plan.runId+':'+sha(planBytes));
+assert.equal(process.execPath,plan.node.origin); assert.equal(process.version,plan.node.version);
+const started = Date.now(), known = [], outcomes = [];
+let unsafe = false, totalEvidence = 0, created = false, sourceBaseline;
+const runRoot = path.join(controlRoot,'runs',plan.runId), scratch = path.join(runRoot,'scratch');
+const shape = reason => ({type:reason===null?'null':typeof reason,name:reason?.name??null,message:String(reason?.message??reason).slice(0,2048)});
+function hashFile(filename) {
+  const descriptor = fs.openSync(filename,'r'), buffer = Buffer.alloc(65536), digest = createHash('sha256');
+  try { let length; while((length=fs.readSync(descriptor,buffer,0,buffer.length,null))>0) digest.update(buffer.subarray(0,length)); }
+  finally { fs.closeSync(descriptor); }
+  return digest.digest('hex');
+}
+function boundedRead(filename,maximum) {
+  const stat=fs.lstatSync(filename); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size<=maximum); assert.equal(fs.realpathSync(filename),filename);
+  const bytes=fs.readFileSync(filename); assert.equal(bytes.length,stat.size); return bytes;
+}
+function guards() {
+  assert.equal(sha(boundedRead(path.join(controlRoot,'PLAN.json'),262144)),sha(planBytes));
+  assert.deepEqual(fs.readdirSync(controlRoot).filter(name=>name!=='runs').sort(),[...plan.controlFiles.map(row=>row.path),'PLAN.json'].sort());
+  const seen={};
+  for(const row of [...plan.controlFiles,...plan.protectedFiles,plan.node]) {
+    const filename=row.origin??path.join(controlRoot,row.path),stat=fs.lstatSync(filename);
+    assert.ok(stat.isFile() && !stat.isSymbolicLink()); assert.equal(stat.size,row.bytes); assert.equal(stat.mode&511,row.mode); assert.equal(hashFile(filename),row.sha256);
+    seen[filename]={sha256:row.sha256,mtimeMs:stat.mtimeMs,ctimeMs:stat.ctimeMs};
+  }
+  if(sourceBaseline) assert.deepEqual(seen,sourceBaseline); else sourceBaseline=seen;
+  return sha(JSON.stringify(seen));
+}
+function tree(root) {
+  const entries={}; let bytes=0,count=0;
+  function visit(relative) {
+    for(const name of fs.readdirSync(path.join(root,relative)).sort()) {
+      assert.ok(name!=='AGENTS.md' && !name.includes('\0'));
+      const child=path.join(relative,name),filename=path.join(root,child),stat=fs.lstatSync(filename);
+      assert.ok(!stat.isSymbolicLink()); assert.ok(++count<=plan.limits.scratchFiles);
+      if(stat.isDirectory()) visit(child);
+      else { assert.ok(stat.isFile()); bytes+=stat.size; assert.ok(bytes<=plan.limits.scratchBytes); entries[child]={bytes:stat.size,sha256:hashFile(filename)}; }
+    }
+  }
+  visit(''); return {entries,bytes,count};
+}
+function writeRecord(name,value) {
+  const bytes=Buffer.from(JSON.stringify(value,null,2)+'\n'); assert.ok(bytes.length<=plan.limits.recordBytes); totalEvidence+=bytes.length; assert.ok(totalEvidence<=plan.limits.evidenceBytes);
+  fs.writeFileSync(path.join(runRoot,name),bytes,{flag:'wx',mode:0o600}); assert.equal(sha(boundedRead(path.join(runRoot,name),plan.limits.recordBytes)),sha(bytes));
+}
+function waitBound(promise,milliseconds,label) {
+  let timer; return Promise.race([promise,new Promise((resolve,reject)=>{timer=setTimeout(()=>reject(new Error(label)),milliseconds);})]).finally(()=>clearTimeout(timer));
+}
+function enroll(executable,args,options) {
+  assert.ok(!unsafe && known.length<plan.limits.children); assert.equal(executable,plan.node.origin);
+  assert.deepEqual(args.slice(0,6),['--permission','--allow-fs-read='+scratch,'--allow-fs-write='+scratch,'--disallow-code-generation-from-strings','--unhandled-rejections=strict','--max-old-space-size=64']);
+  assert.equal(args[6],path.join(scratch,'stub.mjs')); assert.ok(['natural','hold','receipt'].includes(args[7])); assert.equal(args.length,args[7]==='receipt'?10:8);
+  let settle;
+  const resource={handle:undefined,row:{ordinal:known.length+1,closeObserved:false,stdoutBytes:0,stderrBytes:0,rescueSignals:[]},stdout:[],stderr:[],closed:new Promise(resolve=>{settle=resolve;})};
+  const handle=realSpawn(executable,args,options); resource.handle=handle; known.push(resource);
+  handle.on('error',reason=>{resource.row.error=shape(reason);});
+  handle.once('close',(status,signal)=>{resource.row.closeObserved=true;resource.row.status=status;resource.row.signal=signal;settle();});
+  resource.row.pid=handle.pid; resource.row.args=args;
+  for(const [stream,key,target] of [[handle.stdout,'stdoutBytes',resource.stdout],[handle.stderr,'stderrBytes',resource.stderr]]) {
+    stream.on('data',chunk=>{try {resource.row[key]+=chunk.length;if(resource.row[key]>plan.limits.streamBytes){unsafe=true;handle.kill('SIGTERM');}else target.push(Buffer.from(chunk));}catch(reason){unsafe=true;resource.row.captureFailure=shape(reason);handle.kill('SIGTERM');}});
+  }
+  return handle;
+}
+async function rescue(resource) {
+  if(resource.row.closeObserved)return;
+  unsafe=true;resource.row.rescueSignals.push('SIGTERM');resource.handle.kill('SIGTERM');
+  try {await waitBound(resource.closed,plan.limits.reapGraceMs,'OUTER_TERM_TIMEOUT');}
+  catch {resource.row.rescueSignals.push('SIGKILL');resource.handle.kill('SIGKILL');await waitBound(resource.closed,plan.limits.reapGraceMs,'OUTER_KILL_TIMEOUT');}
+}
+let outer;
+try {
+  guards(); assert.ok(!fs.existsSync(runRoot)); fs.mkdirSync(path.dirname(runRoot),{recursive:true,mode:0o700}); fs.mkdirSync(runRoot,{mode:0o700}); fs.mkdirSync(scratch,{mode:0o700}); created=true;
+  for(const [input,output] of [['subject.mjs.data','subject.mjs'],['stub.mjs.data','stub.mjs']]) fs.writeFileSync(path.join(scratch,output),boundedRead(path.join(controlRoot,input),262144),{flag:'wx',mode:0o600});
+  const subjectHash=hashFile(path.join(scratch,'subject.mjs')),stubHash=hashFile(path.join(scratch,'stub.mjs'));
+  const {bindSubject}=await import(pathToFileURL(path.join(scratch,'subject.mjs')).href);
+  const mainControl=JSON.parse(boundedRead(path.join(own,'recipe/CONTROL.json'),262144));
+  const fixture=JSON.parse(boundedRead(path.join(controlRoot,'F01-INERT-FIXTURE.json'),32768));
+  const loadPaths=['consumer/engine/src/run.ts','consumer/engine/src/interp/values.ts','consumer/engine/src/interp/budget.ts','consumer/engine/src/interp/host-bridge.ts'].sort();
+  const loadsFixture={sha256:'a'.repeat(64),actualEnginePaths:loadPaths,sourceAndEmissionHashesVerified:true,unknownLoads:0};
+  let savedDirect;
+  outer=setTimeout(()=>{unsafe=true;for(const resource of known)if(!resource.row.closeObserved)resource.handle.kill('SIGTERM');},plan.limits.overallMs);
+  for(const specification of plan.controls) {
+    if(unsafe)break;
+    const id=specification.id,folder=path.join(scratch,id),portCalls=[];fs.mkdirSync(folder);fs.mkdirSync(path.join(folder,'logs'));fs.mkdirSync(path.join(folder,'logs','F01'));
+    const primary=new Error(id==='C02'?'POSTSPAWN_CLOCK':'POSTSPAWN_PUBLICATION'),secondary=new Error('SECONDARY_PUBLICATION_DIAGNOSTIC');
+    let remainingCalls=0,accessorCalls=0,observation={};
+    const ports={scratch:folder,control:mainControl,limits:{...mainControl.limits,containmentGraceMs:plan.limits.subjectGraceMs,stdoutBytesPerChild:plan.limits.streamBytes,stderrBytesPerChild:plan.limits.streamBytes},spawn:enroll,
+      remaining(){remainingCalls++;if(id==='C02' && remainingCalls===2)throw primary;return 1000;},
+      write(relative,bytes,mode){if(id==='C03' && relative.endsWith('.child.json'))throw primary;const target=path.join(folder,relative);assert.ok(target.startsWith(folder+'/'));fs.writeFileSync(target,bytes,{flag:'wx',mode});},
+      errorData(reason){if(id==='C03' && reason===primary)throw secondary;return shape(reason);},
+      guard(label){portCalls.push('guard:'+label);guards();},
+      immutable(label){portCalls.push('immutable:'+label);assert.equal(hashFile(path.join(scratch,'subject.mjs')),subjectHash);assert.equal(hashFile(path.join(scratch,'stub.mjs')),stubHash);tree(scratch);},
+      auditLoads(label,admitted){portCalls.push('auditLoads:'+label);assert.deepEqual(admitted,{kind:'INERT_PORT_FIXTURE',label});const loadBytes=boundedRead(path.join(folder,'logs',label,'stub-load.json'),4096);assert.deepEqual(JSON.parse(loadBytes),{kind:'INERT_COMPOSED_LOAD_PORT_FIXTURE',stubSha256:stubHash});return {...loadsFixture,sha256:sha(loadBytes)};},
+      readLimited:boundedRead};
+    const subject=bindSubject(ports);
+    try {
+      if(['C01','C02','C03','C04','C05','C06'].includes(id)) {
+        const mode=id==='C01'?'natural':['C05','C06'].includes(id)?'receipt':'hold';
+        const args=['--permission','--allow-fs-read='+scratch,'--allow-fs-write='+scratch,'--disallow-code-generation-from-strings','--unhandled-rejections=strict','--max-old-space-size=64',path.join(scratch,'stub.mjs'),mode];
+        if(mode==='receipt') {
+          const raw=JSON.parse(JSON.stringify(fixture));
+          if(id==='C06'){raw.sourceSha256='0'.repeat(64);raw.assertions=[];raw.engineOutcome.settled=false;raw.finalResources.hostPending=1;}
+          const input=path.join(folder,'fixture.json');fs.writeFileSync(input,JSON.stringify(raw)+'\n',{flag:'wx',mode:0o600});args.push(input,path.join(folder,'logs','F01','receipt.json'));
+        }
+        let result,rejected=false,reason;
+        try {result=await waitBound(subject.child(plan.node.origin,args,{role:'workflow',label:'F01',cwd:folder,timeoutMs:id==='C04'?50:1000,env:plan.childEnv}),plan.limits.controlMs,'CONTROL_CHILD_TIMEOUT');}
+        catch(error){rejected=true;reason=error;}
+        await subject.retireActiveChild(reason);
+        const state=subject.state(),resource=known.at(-1);await waitBound(resource.closed,plan.limits.reapGraceMs,'INDEPENDENT_CLOSE_TIMEOUT');
+        assert.equal(state.activeChild,undefined);assert.equal(resource.row.closeObserved,true);
+        observation={rejected,primary:rejected?shape(reason):null,subjectRow:state.evidence.children[0],independentOrdinal:resource.row.ordinal,remainingCalls,subjectOwnedRetirement:true};
+        if(id==='C01'){assert.equal(rejected,false);assert.equal(result.stdout.toString(),'NATURAL\n');assert.equal(resource.row.signal,null);assert.equal(result.row.naturallyReaped,true);}
+        if(['C02','C03'].includes(id)){assert.equal(rejected,true);assert.equal(reason,primary);assert.equal(state.lastChildFailure.reason,primary);assert.equal(resource.row.signal,'SIGTERM');assert.equal(state.evidence.children[0].naturallyReaped,false);observation.exactPrimary=true;}
+        if(id==='C02')assert.equal(remainingCalls,2);
+        if(id==='C03'){assert.ok(state.lastChildFailure.secondary.includes(secondary));observation.exactSecondary=true;}
+        if(id==='C04'){assert.equal(rejected,true);assert.equal(reason.message,'CHILD_DEADLINE');assert.equal(resource.row.signal,'SIGTERM');assert.equal(state.evidence.children[0].naturallyReaped,false);}
+        if(mode==='receipt') {
+          assert.equal(rejected,false);assert.equal(result.row.status,0);assert.equal(resource.row.signal,null);
+          let accepted=false,refusal;
+          try {subject.acceptEvaluation('F01',{kind:'INERT_PORT_FIXTURE',label:'F01'},result);accepted=true;}catch(error){refusal=shape(error);}
+          assert.deepEqual(portCalls,['guard:after-F01','immutable:after-F01','auditLoads:F01']);
+          assert.equal(accepted,id==='C05');assert.equal(subject.state().evidence.observations.length,id==='C05'?1:0);
+          observation.composed={accepted,refusal:refusal??null,portCalls,enginePrerequisites:'authenticated INERT mock ports, not actual engine loads',actualEngineEvaluations:0,claimedEngineEntriesInFixture:1};
+          if(id==='C05') {
+            const bytes=boundedRead(path.join(folder,'logs/F01/receipt.json'),65536);savedDirect={receipt:JSON.parse(bytes),terminal:JSON.parse(result.stdout),result,bytes};
+            subject.reconcileReceipt('F01',Object.assign(Object.create(null),savedDirect.receipt),savedDirect.terminal,result,loadsFixture,bytes);observation.nullPrototypeDataAccepted=true;
+          }
+        }
+      } else {
+        assert.ok(savedDirect);const receipt=JSON.parse(JSON.stringify(savedDirect.receipt));
+        if(id==='C07')delete receipt.events[3];
+        if(id==='C08')Object.defineProperty(receipt,'sourceSha256',{enumerable:true,get(){accessorCalls++;return fixture.sourceSha256;}});
+        if(id==='C09')receipt.extra='not-admitted';
+        let rejected=false,reason;try {subject.reconcileReceipt('F01',receipt,savedDirect.terminal,savedDirect.result,loadsFixture,savedDirect.bytes);}catch(error){rejected=true;reason=shape(error);}
+        assert.equal(rejected,true);assert.equal(accessorCalls,0);observation={rejected,reason,accessorCalls,actualChildren:0,scope:'exact reconciler structural control, not composed engine proof'};
+      }
+      observation.expectedObserved=true;
+    } catch(reason) {observation.expectedObserved=false;observation.failure=shape(reason);}
+    finally {
+      for(const resource of known)try {await rescue(resource);}catch(reason){unsafe=true;observation.rescueFailure=shape(reason);}
+      try {guards();tree(scratch);}catch(reason){unsafe=true;observation.guardFailure=shape(reason);}
+      const outcome={id,expected:specification.expected,observation,safeToContinue:!unsafe};outcomes.push(outcome);writeRecord(id+'.json',outcome);
+    }
+  }
+} catch(reason) {unsafe=true;outcomes.push({id:'OUTER',failure:shape(reason)});}
+finally {
+  clearTimeout(outer);
+  for(const resource of known)try {await rescue(resource);}catch(reason){unsafe=true;resource.row.rescueFailure=shape(reason);}
+  if(created) {
+    let guardHash,removedScratch=false,archiveSha256;
+    try {
+      guardHash=guards();assert.ok(known.every(resource=>resource.row.closeObserved));
+      const snapshot=tree(scratch),payloads={};for(const relative of Object.keys(snapshot.entries))payloads[relative]=boundedRead(path.join(scratch,relative),plan.limits.scratchBytes).toString('base64');
+      const archive=Buffer.from(JSON.stringify({classification:'INERT_SYNTHETIC_CAPTURE',snapshot,payloads}));assert.ok(archive.length<=plan.limits.captureBytes);
+      fs.writeFileSync(path.join(runRoot,'CAPTURE.json'),archive,{flag:'wx',mode:0o600});archiveSha256=sha(archive);assert.equal(sha(boundedRead(path.join(runRoot,'CAPTURE.json'),plan.limits.captureBytes)),archiveSha256);
+      if(!unsafe){assert.equal(fs.realpathSync(scratch),scratch);fs.rmSync(scratch,{recursive:true,force:false});removedScratch=!fs.existsSync(scratch);guards();}
+    } catch(reason){unsafe=true;outcomes.push({id:'FINAL_GUARD',failure:shape(reason)});}
+    const children=known.map(resource=>({...resource.row,stdoutBase64:Buffer.concat(resource.stdout).toString('base64'),stderrBase64:Buffer.concat(resource.stderr).toString('base64')}));
+    const expectedObserved=outcomes.filter(row=>row.observation?.expectedObserved).length;
+    const report={schema:'node-abi-repair-inert-evidence-v2',runId:plan.runId,planSha256:sha(planBytes),nodePid:process.pid,startedAt:new Date(started).toISOString(),elapsedMs:Date.now()-started,outcomes,children,expectedObserved,unexpectedFailures:outcomes.filter(row=>row.failure||row.observation?.expectedObserved===false).length,allChildrenClosed:children.every(row=>row.closeObserved),naturalChildren:children.filter(row=>row.signal===null && row.status===0).length,sigtermChildren:children.filter(row=>row.signal==='SIGTERM').length,subjectRetirementCredit:children.every(row=>row.rescueSignals.length===0),unsafe,removedScratch,archiveSha256,guardHash,engineEvaluations:0,compilerImports:0,privateAccess:false,mainEightExecuted:0};
+    report.allExpected=!unsafe && expectedObserved===9 && children.length===6 && report.naturalChildren===3 && report.sigtermChildren===3 && report.allChildrenClosed && report.subjectRetirementCredit && removedScratch && report.elapsedMs<=plan.limits.overallMs;
+    writeRecord('REPORT.json',report);writeRecord('CLOSURE.json',{planSha256:sha(planBytes),reportSha256:sha(boundedRead(path.join(runRoot,'REPORT.json'),plan.limits.recordBytes)),archiveSha256,removedScratch,allChildrenClosed:report.allChildrenClosed,subjectRetirementCredit:report.subjectRetirementCredit,allExpected:report.allExpected,unsafe});
+    process.stdout.write(JSON.stringify({runId:plan.runId,expectedObserved,unexpectedFailures:report.unexpectedFailures,children:children.length,natural:report.naturalChildren,sigterm:report.sigtermChildren,subjectRetirementCredit:report.subjectRetirementCredit,unsafe,allExpected:report.allExpected,engineEvaluations:0})+'\n');process.exitCode=report.allExpected?0:unsafe?2:1;
+  } else process.exitCode=2;
+}

@@ -1,0 +1,5 @@
+import type { ShellLimits } from 'virtual-bash';
+const limits: ShellLimits = {
+  arrayWork: 1
+};
+void limits;

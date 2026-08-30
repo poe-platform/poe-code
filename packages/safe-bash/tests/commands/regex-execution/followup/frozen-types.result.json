@@ -1,0 +1,15 @@
+{
+  "started": "2026-08-27T06:19:07.385Z",
+  "finished": "2026-08-27T06:19:07.786Z",
+  "command": "node_modules/.bin/tsc",
+  "args": [
+    "-p",
+    "tests/commands/regex-execution/followup/tsconfig.json"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sourceChangedDuringRun": [],
+  "afterHead": "c467e8a7bdd78048985f97539bc76e38ff786b09"
+}

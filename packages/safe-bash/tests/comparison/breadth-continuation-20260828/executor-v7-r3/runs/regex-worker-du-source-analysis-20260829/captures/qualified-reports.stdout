@@ -1,0 +1,484 @@
+# Bounded internal-loader repair preparation
+
+Scoped harmless qualification complete; public80 remains HOLD. No product imports,
+build/install, RegexWorker, native oracle, private source or actual-v1 retry ran.
+The original actual-v1 commit7bd3fc8e remains consumed and unchanged.
+
+## Why the distinction matters
+
+The actual pinned Node22.22.2 custom-loader launch requires the backend Worker
+capability before the main-context resources bootstrap. Official Node HooksProxy
+source describes a separate InternalWorker for module hooks. PRIMARY-SOURCES.json
+records official references and a qualification: the fetched tag source has a
+bypass comment/different line numbers, so it is not claimed as compiled-binary
+provenance. Captured behavior and the executable hash govern this result.
+
+The repair helper admits only the exact finite reporter/loader/consumer argument
+vector. Parent admission binds loader URL/path, regular-file identity and bytes,
+bootstrap/consumer identity and finite environment. Main bootstrap installs the
+application-Worker guard before consumer imports and updates ESM/CJS builtin
+exports. A Node backend permission flag is NOT a promise of arbitrary application
+Worker access or a hostile-code sandbox. Worker permissions do not supply full
+OS/network/race-proof isolation; actual sources/options remain hash-bound.
+
+## Preserved initial result
+
+Preseal bd4bada2; CONTROL-SEAL.json SHA
+ab22dc48d9e9d809c4815bc7a02f04b4cf04580f1c1acd5ca6c6acdbd1bfdb4c.
+Initial coordinator exited1:14PASS/8FAIL.12 parent admission controls and the
+expected loader-denial/bootstrap-error cases passed. Eight consumer paths failed
+on a missing closing brace in this reviewer's inert consumer. All10 child
+processes closed naturally;9 loader starts were recorded;0 application Workers
+were created. The results/source are preserved, not relabelled or repeated.
+
+## Versioned correction
+
+Preseal bd6a1863; CONTROL-SEAL-V2.json SHA
+274d1553b23af283c81245842a214c6128060ae873f56676052422ebda378005.
+New consumer-v2 closes the brace. It places the same six option refusals BEFORE
+worker construction, preventing an exhausted allowance from masking option checks.
+Three explicitly regrouped controls ran,3PASS/0FAIL, coordinator0:
+
+- R01: internal loader starts, main bootstrap precedes consumer, undeclared
+  application Worker is refused before construction; child0.
+- R02: six malformed options and a wrong entry are refused; exact ESM/CJS Worker
+  identity is shared; one fixed harmless Worker emits its value and exits0. The
+  consumer then emits PASS but exits7, which remains explicitly nonclean.
+- R03: separate exact app-only/no-custom-loader role; one fixed harmless Worker
+  throws the owned sentinel and exits1, observed by the consumer; parent exits0.
+
+This is NOT22 fresh green groups. The14/8 predecessor and its coordinator1 remain.
+The new three groups combine mechanisms without claiming every old recipe reran.
+Consumer/coordinator/proposed-run syntax checks are separately source-only.
+
+## Exact Worker and closure scope
+
+Across both cohorts:12 internal-loader launch attempts,11 observed loader
+initializations,2 application-Worker creations and2 corresponding exit events;
+0 product RegexWorkers. Original P01 was denied before initialization.13 harmless
+Node child processes closed naturally; no cleanup signals were sent. Both
+coordinators closed. Internal loader exit events were NOT observed or invented:
+hosting-process retirement is the available qualification. Thread IDs are
+process-local, not a global identity/census.
+
+Source and fixture hashes match their seals after execution. Generated negative
+loader copies and the contained symlink were preserved as DATA then removed;
+all raw captures and immutable predecessor artifacts remain. No safety/capture/
+integrity/unknown-retirement event occurred in this preparation. The failed first
+consumer was an ordinary fully captured syntax defect, not a product finding.
+
+## Source-only successor proposal
+
+RUN-SUCCESSOR.mjs.data is NOT an executable release packet. SOURCE-CORRESPONDENCE
+proves exactly three declared differences from the frozen runner: the tested
+argument-helper import, guarded role/file/argument admission, and an honest loader
+admission counter label. All other runner logic remains byte-equivalent under
+reversal. Its syntax was checked without module linking/evaluation. Existing
+product RegexWorker policy/options/static four-file closure remain unchanged.
+
+FUTURE-PROFILE.json explicitly separates32 admitted loader-process roles from the
+existing32 cumulative RegexWorker ceiling/2active cap. Proposed resource accounting:
+43 direct children +32 loader admissions +32 maximum RegexWorkers =107;3 inner
+reserve +18 outer/controller/admin reserve =128. Peak4 refers to OS processes,
+including the capture owner, not all native threads. Future internal-loader
+counts are admissions/source expectations, not newly observed per-thread exits.
+
+Remaining barriers: a new complete execution packet/unused namespace must bind
+this source/helper/profile with all inherited inputs; the full successor runner
+and its binding-negative interactions remain source-qualified only. Fresh ROOT
+actual GO is mandatory. No build or candidate run is authorized by these files.
+The previous package950/build qualification and0-semantic actual-v1 HOLD remain.
+# Public80 successor-v2 complete binding handoff
+
+READY FOR ROOT AND PEER BINDING REVIEW; NOT ACTIVATED.
+
+Candidate c83f352f057c64917f219eb938f54aa42cdab829,292 build inputs, full950 package
+SHA2564671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156.
+Baseline79 plus only git80 authority and accepted M1B composition are retained by
+INPUT-BINDINGS.json, not reauthenticated by another product/archive run.
+Fixture-v2 is2764c0541ebe1a517965bdc73f33b1651cb15935. Original three module-only
+root-export assertion failures remain unchanged.
+
+run.mjs assembles repair seal3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d.
+The only additional runner predicate change is exact negative type diagnostics
+plus nonzero rejection instead of assuming CLI exit2. Diagnostic count/codes/lines,
+positive success, declaration hashes and physical layout binding remain required;
+no emitSkipped assumption. SOURCE-RECONCILIATION.json records17 assembly checks.
+No product, build, install, compiler, loader, RegexWorker, native oracle or private
+execution occurred in this phase. Existing authentication/control receipts were
+bound, not rerun.
+
+COHORTS.json fixes each of source-built,installed,physically-moved:45public,
+28apply,140versioned-M1A,93pack,12arrays,18coherence,12novel. Six type groups,
+83maintained body cases,21moved stream cases,3mutants/3restores/3binding refusals
+remain planned, all UNRUN here. Exact assertions/fixture hashes remain in EXECUTOR.
+No old79/83, module139/140, or actual-v1 rescore. Names/node/npm/npx policies unchanged.
+
+EXECUTION-SEAL.json binds shipping files, receipts, tools, sole prospective command
+and future unused sibling actual-v2 output. ROOT-AUTHORIZATION-TEMPLATE.json is not
+usable authorization. No actual directory is created by preparation; launcher uses
+exclusive creation before any child admission and captures startup before child
+spawn. Prior captures remain immutable. A new root receipt and peer disposition
+are the remaining activation barriers, not an automatic retry permission.
+
+ADMISSION.md defines exact loader/options/application policy and source-qualified
+observability. CENSUS.json separates proposed32 internal admissions from32 Regex
+Workers and the all-process128/peak4 budget, including owner/admin reserve.
+CONTROL-COVERAGE-MAP.json is the author-facing handoff for Plato: original eight
+failed identities stay failed, related coverage and P09 configuration gap explicit.
+
+Future sole command (DO NOT RUN in this phase):
+
+```
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -I /Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/successor-bindings-v2/launch.py --run ROOT_AUTHORIZATION.json
+```
+
+The source-only assembly has no activation effect. Final publication/census is
+recorded in PREPARATION-RECEIPT.json and its external publication receipt.
+# Independent internal-loader repair disposition
+
+**QUALIFIED ACCEPTANCE of the narrow SOURCE + harmless loader repair.**
+No blocking defect found in the reviewed distinction/argument integration.
+This is not public80 acceptance or authorization to activate actual-v2.
+The combined custom-loader/error-Worker P09 configuration remains **UNRUN**.
+
+## Frozen identities
+
+- Repair commit: `7b2a72e98c50d43fe4d06ded0773ca857e5d233a`.
+- Repair seal: `3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d`.
+- Completed successor: `6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f`.
+- Successor execution seal: `af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808`.
+- Independent preseal commit: `f0c7158f`;
+  `EXECUTION-SEAL.json` SHA256 `c660e7994c804c58278ef4b728de197e9d60f0085cfed60a5debf4236cffea86`.
+- Pinned Node22.22.2: `/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node`,
+  SHA256 `5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011`,
+  112989184 bytes, mode0755. Actual coordinator and children use this path.
+
+`AUTHENTICATION.json` binds47 selected source/fixture/receipt blobs from the two
+stored commits, with NUL-delimited pathname metadata and independently recomputed
+blob hashes, sizes, modes and current byte equality. No derived product tree
+object lookup or instruction-file copy. All47 inputs and the Node binary remain
+equal after the run. `SOURCE-INTEGRATION.json` additionally checks all20 shipping
+files against the authenticated successor execution seal. This is not another
+authentication/execution of every inherited product/tool receipt.
+
+## Actual results — no product executions
+
+| Cohort | Actual result | Qualification |
+|---|---|---|
+| Corrected R01–R03 | **3/3**, child statuses0/7/0 | Exact corrected consumer bytes, relocated regular files. R02 deliberately nonclean, not a clean product pass. |
+| Bounded hash H01–H03 | **3/3 DATA** | Exact small-data hash, directory refusal, executable112989184 bytes/1726 reads/max65536. |
+| Novel N01–N08 | **8/8** | Five harmless child cases; three DATA groups. Nested assertions are not extra groups. |
+| Coordinator | **exit0**,14/14 groups | 2180.193ms measured inside; outer2239ms. |
+
+Eight child processes closed naturally, zero signals; the coordinator also
+closed naturally. Seven custom-loader admissions and seven loader-start witnesses;
+three harmless application births and three matching exit events. No independent
+internal-Worker exit census. Hosting-process retirement is the available evidence.
+No real RegexWorker, product, compiler/build/install, native oracle, private engine
+or network execution. Child stdout/stderr6606 bytes; outer stdout/stderr181 bytes.
+Recorded pre-final-receipt working census143103 bytes is not a final self-inclusive
+directory size; `EVIDENCE-CENSUS.json` separately binds retained artifacts.
+
+The runtime used peak two owned OS processes (coordinator + serial child), at most
+one live application Worker. The outer tool host is separate. Runtime stayed below
+the sealed120s/8-child/7-loader/3-application/16MiB capture/16MiB working sublimits.
+The broader80-process grant also includes preparation/publication tooling: exact
+supervised runtime9 processes and captured development-Git receipts are separate
+from conservatively reserved inspection/editor/tool-host roles. Do not turn this
+into an independent global OS descendant census. No active owned test child remains.
+
+## Findings and boundaries
+
+1. **Internal capability is not application admission.** The exact loader argv
+   acquires `--allow-worker`, while the main bootstrap synchronizes the guarded
+   CJS/ESM constructor before consumer evaluation. R01/R02 and N02/N08 establish
+   this with harmless consumers. N02/N08 execute the **unchanged actual**
+   `resources.mjs` refusal routes, not a rewritten product policy.
+2. **Fixed closure/options remain enforced.** N01 rejects wrong loader/extra/holey/
+   accessor argv, unexpected environment, missing member and changed loader or
+   bootstrap bytes. R02's six option failures occur before construction; N06 adds
+   cross-realm own-data acceptance and exact cap/options negatives. N03 refuses
+   changed harmless application bytes. This is not execution of a changed real
+   Regex script: the real four-member Regex closure remains SOURCE-qualified.
+3. **Caught refusal is not sticky violation telemetry.** N02/N08 catch the
+   constructor assertion and exit0, with zero created Workers. The actual policy
+   does not persist a denied-attempt counter or force terminal78 for every caught
+   refusal. This meets refusal-before-construction, but cannot establish that no
+   forbidden attempt occurred. Do not describe it as hostile-caller audit/sandbox
+   enforcement. No new sticky-violation requirement is inferred here.
+4. **Early failures and terminal results remain visible.** N04 produces exact
+   EARLY_LOADER_SENTINEL/exit1 before bootstrap or consumer. R02 emits PASS then
+   exit7, which the terminal predicate rejects as clean success. N05 refuses a
+   second Worker even after the first exits: the cumulative prefix cap survives
+   live-count return to zero. All actual application exits are paired.
+5. **Bounded binary hashing is genuinely exercised.** H03 hashes with65536-byte
+   reads; N07 injects a read failure and observes the identical thrown object and
+   exactly one descriptor close, restoring fs methods in finally. Original
+   whole-buffer executable hashing remains historical noncompliance, not repaired
+   retroactively. No memory/RSS or race-free adversarial-filesystem claim.
+
+## Eight original failures — explicit relationship, not rescore
+
+| Original | New related proof | What remains different |
+|---|---|---|
+| P02 | R01 loader/bootstrap/consumer normal completion | Literal P02 not replayed. |
+| P03 | R01 denied application construction | Same target in corrected consumer; original remains failed. |
+| P04 | R02 successful application message/exit0 | Host deliberately exits7, not original standalone0. |
+| P05 | R02 wrong-entry refusal before creation | Subcheck, not literal P05 replay. |
+| P06 | R02 six invalid options/accessor counter0 | Subchecks reordered before construction. |
+| P08 | R02 guarded CJS/ESM identity and Worker | Corrected host exit7 rather than original0. |
+| P09 | R03 owned error/exit1, host0 | **No custom loader; combined configuration UNRUN.** |
+| P10 | R02 PASS followed by7 is nonclean | Includes Worker, not literal standalone P10. |
+
+`FAILURE-MAP.json` independently matches all eight IDs to original raw rows and
+records the precise consumer correction: missing closing brace; the six-option
+block moved before construction and also selected by P08; P08 added to exit7.
+The original14PASS/8FAIL/coordinator1 and author3/3/coordinator0 remain unchanged.
+The new3/3 is a fresh independent replay, not original22/22. Actual-v1
+`7bd3fc8e35b65d4bbda68f155ec9eb72534a1977` remains consumed/HOLD with zero semantics.
+
+## Actual runner integration — SOURCE only
+
+`SOURCE-INTEGRATION.json` records exact line hunks:
+
+- Original runner → initial repair: helper import, authenticated role/closure/argv
+  admission replacing conditional Worker flag, honest loader-admission cleanup label.
+- Repair → streaming proposal: hash-helper import and two binary-hash call sites.
+- Streaming proposal → completed successor: exactly one negative-type predicate
+  changes `code === 2` to `code !== 0`; exact diagnostic codes/lines and positive
+  status predicates are unchanged. No compiler executed in this review.
+
+Actual resources, Worker policy and loader are byte-identical to preparation-v3.
+Runner lines41–91 reserve loader admissions before spawn, restrict declared labels,
+authenticate loader/bootstrap/policy/consumer and binding file, use the reviewed
+argument helper, allow application Workers only for maintained-four-bodies, and
+require known child closure/application birth-exit matching. Its32+32 proposed
+profile is not established by this seven-loader/three-harmless-Worker review.
+
+## Root readiness / next authorization
+
+**Ready for root's qualified fresh actual-v2 decision**, with the P09 configuration
+gap and source-only real Regex closure explicit. No automatic actual-v2 GO is
+created by this receipt. No product80 semantics, default membership or exports
+have been retested here. Candidate remains
+`c83f352f057c64917f219eb938f54aa42cdab829`, package
+`4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156` by inherited
+binding only, not a new package run.
+
+The completed successor expects a fresh actual-v2 root authorization matching
+execution seal`af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808`,
+repair seal`3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d`,
+the exact candidate/package, actual-v2 directory,3600s/128 process ceiling,
+32 internal-loader admissions/32 application RegexWorkers, preserved failures,
+fresh nonce, valid expiry and `preparationOnly:false`. The template remains
+inactive; template SHA256`cc90c3ef500f71164be0ce894870077dd3167e7e2e355cbbb7652d3ce2c9c559`.
+Runner SHA256`a3c043a69ab6f74638c5fd4b1b9a0cb6e0a17c42a2e0098633f5abf345c529ce`;
+launcher SHA256`9d37eccaec9e7e8217b7915135002e047761d597ce048a7799969d0cb7e62f8a`.
+
+Future sole command, **not executed**:
+
+```text
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -I /Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/successor-bindings-v2/launch.py --run ROOT_AUTHORIZATION.json
+```
+
+Only this independent review subtree is written. No author/product/root/private
+files or old staging are changed or cleaned; no historical artifacts rescored.
+# Actual-v2 public80 independent checkpoint
+
+COMPLETE FIXED COHORT, EXIT1 / ASSERTION FAILURES RETAINED. NOT ALL GREEN.
+No retry, product edit, fixture correction or historical rescore was performed.
+
+## Immutable execution
+
+- Candidate: c83f352f057c64917f219eb938f54aa42cdab829.
+- Full950 archive SHA256:4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156.
+- Successor:6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f, sealaf99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808.
+- Dispatch supplement:d469a6e7bf75c8dbc2e50ebeca24a86dcb76bbe8, seal3ff48f525339d0fd60266012e89513d30e5e29cf2bf65fa1c56551dfcfa57ea4.
+- Dispatch source freeze:7b2cea72044957ab06faa374365cc98d12618515; six new controls passed before activation.
+- Peer narrow repair review:053c4e942c66928972af6aa227177726ca503eab.
+- Public-M1A fixture-v2:2764c0541ebe1a517965bdc73f33b1651cb15935.
+
+The fresh conditional root grant was exercised once. The closed Python dispatcher
+exec-replaced itself with the unchanged launcher; no extra resident dispatcher or
+REPL state was needed. Startup CLI raw capture existed before interpreter startup.
+The actual-v2 namespace is now consumed. Original7497843 had0launcher/product and
+remains a separate tool-only-exception HOLD, not a successful precursor.
+
+## Exact measured cohorts
+
+| Cohort | Source-built | Installed | Physically moved |
+| --- | --- | --- | --- |
+| Public Git |45/45|45/45|45/45|
+| Apply patch |28/28|28/28|28/28|
+| Public-profile M1A |140/140|140/140|140/140|
+| Pack |93/93|93/93|93/93|
+| Arrays |12/12|12/12|12/12|
+| Coherence |18/18|18/18|18/18|
+| Retained subtotal |336/336|336/336|336/336|
+| Independent novel |11/12|11/12|11/12|
+
+Six type groups passed: three positives with0diagnostics and three negatives with
+exact8diagnostics each (24total), expected locations/codes and authenticated layout
+declarations. Actual negative exits were retained; no exit2/emitSkipped assumption
+provided credit. These are type groups, not extra semantic rows.
+
+Maintained compiled bodies:83PASS/0FAIL/0SKIP/0TODO/0CANCELLED. Moved stream consumer:
+21PASS/0FAIL/0SKIP/0TODO/0CANCELLED. These are new measured outcomes under this profile,
+not a rescore of the historical79/83 Worker-denied suite. Loaded controls:3mutants,
+3restores and3binding refusals all met their exact expectations. No roles unexecuted.
+COUNTS.json and byte-identical raw data retain the separate denominators.
+
+## Three retained I03 failures
+
+Every failed row is I03-standalone at novel.mjs:22: Missing expected exception.
+The initial standalone git show returned the expected two plus LF before the
+failing assertion. The assertion requires Shell.use(gitCommands()) to throw
+synchronously on duplicate setup. Frozen Shell.use at src/shell/shell.ts:109
+returns this; #install queues setup on #ready.then at119. Git plugin setup registers
+commands at src/commands/git/index.ts:48. Readiness is awaited during exec at236,
+and non-syntax setup rejection propagates to the public promise at189.
+
+This is a source-supported fixture boundary mismatch, not an established Git
+product defect. I03 did not observe the later exec readiness rejection: it failed
+first and then awaited disposal. A separate versioned follow-up could retain the
+first read, call use, and await assert.rejects on a later exec; no such change or
+execution is included here. I03-SOURCE-DIAGNOSIS.json binds exact source hashes and
+all three original failures. Root/Curie disposition is still required; no self-
+waiver or all-green claim.
+
+## Capture, cleanup and postguards
+
+All43 coordinator child roles completed. Together with the exec-replaced Python
+owner and Node coordinator,45 distinct known runtime PIDs are recorded. All known
+OS processes closed naturally; no OS-process signals were sent. Outer exit was1,
+and the owned coordinator process group was observed absent. The run took68.709s
+inside the coordinator and69.434s in the launcher; these are not performance claims.
+
+32 fixed internal-loader admissions produced32 main-bootstrap witnesses. This is
+not a per-internal-Worker start/exit census. Four exact authenticated RegexWorkers
+were created and four exit events recorded (exit codes1,1,1,1; final live0). Worker
+exit1 is retained, not rewritten to0. Application Worker admission/closure is now
+actually exercised in the maintained role; the four-member dependency closure is
+still a static authenticated inventory, not an all-module runtime trace. Caught
+construction refusals are not sticky attempt telemetry. P09combined remainsUNRUN.
+Prior private writer/source-only module qualifications are not upgraded here.
+
+Independent DATA postguards matched all292 source inputs, complete288-member src
+inventory,948-member dist inventory, and the complete950-member moved package,
+including path/mode/size/hash and expected entry counts. All20 successor shipping
+files and2274 original regular tool files plus12tool links matched. Original tool
+entry checks do not prove append-free original tool directories or global HEAD.
+The installed path was absent after physical move. No private path was attested.
+
+Child raw output was3,152,967bytes. Compact evidence includes200 byte-identical raw/
+JSON artifacts totaling10,773,180bytes (overlapping data, not an additive test score).
+Original isolated scratch was72,879,561bytes. All owned runtime files were inspected
+by filename without finding an AGENTS.md materialization. No fullOS/RSS/global
+census/native Git/fullBash/comparator claim is made.
+
+## Retention and handoff
+
+The closed owned scratch was atomically relocated outside repository canonical
+TypeScript discovery. RETAINED-LOCATION.json maps historical paths to
+/tmp/safe-bash-public80-v2-retained-rhX5TH/work-x0BAYP. No content was erased or copied;
+root directory identity and four marker hashes matched after relocation. Complete
+package/source equality was measured before relocation, not silently rerun after.
+Raw historical paths remain unchanged. This is retained evidence, not a vendored
+engine or a new runtime dependency. Publication/census receipts preserve all
+administrative children separately from runtime PID/Worker counts.
+
+All prior14P8F, three corrected controls, three hash DATA checks, whole-buffer hash
+method disclosure, consumed v1, old module root-export failures and prep HOLDs
+remain intact. No new public registration, default integration or global acceptance
+is implied by this checkpoint.
+# P16 trace repair v4 handoff
+
+## Disposition
+
+DATA qualification passed once: original nine (two positive, seven negative), seven separately frozen observable-tuple negatives, and five separate binding DATA controls (one positive, four negative). No runtime, Worker, build, compiler, npm, native oracle, network, private runtime, comparator, supervisor, old accounting replay or product execution. Neither live adapter nor runtime was imported. Pure qualification imports only the focused helper.
+
+**HOLD: not an activation grant and not an unqualified preparation-compliance claim.** Different review and ROOT GO remain required. Earlier direct Git commands did not disable or instrument Git's possible automatic maintenance descendants. Direct-child registration, exit and close receipts are exact; a complete descendant census is UNKNOWN. No retroactive compliance claim. The later Git commands disable maintenance, gc auto and fsmonitor. Initial controller failures are preserved in PRECODE-SEAL.json. This limitation cannot be repaired by pretending zero unobserved children.
+
+## Architecture and limits
+
+Both mandatory safety and semantic adapter sites call the same stage-helper.mjs. CASES predeclares exact argv, stdinIsDefault, kind and result status (or thrown caller-reason identity), with multiset multiplicity and P16 find-before-first-child-before-second-child ordering. Pipeline entries are not ordered against one another. Child argv preserve notes/a b.txt as one argument. No generic nested-command allowance. Default cases declare only their original top-level tuples. The helper is copied and load-admitted with the other runtime modules and included in code identity and stored commit:path authority.
+
+The selected source path is find -> directExecutor -> context.invoke -> middleware, not a middleware bypass. Observable stolen-role differences are rejected. Identical-tuple origin is UNOBSERVABLE without existing IDs; no invented parent IDs or hostile-origin proof. stdinIsDefault is the existing observer field: explicit input has false provenance, regardless of EOF or byte count. Assertions are DATA qualification, not actual dispatch evidence.
+
+All 31 original scripts, fixtures, expected stdout/stderr, statuses and VFS effects were compared unchanged after removing only trace metadata and restoring the original P16 qualification sentence. P16 still expects 51 stdout bytes, empty stderr and unchanged VFS. Independent source composition 8437e4eda904e1248c25eeef0d9d455b1d251495 and full 858-file package 6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e are unchanged. The inherited SOURCE-AUTH source proof is authenticated, with 314 current stored-object metadata checks and eight new code commit:path checks; this is not a rerun of the full archive qualification or current tool scan.
+
+## Version bindings
+
+Initial precode/packet commit f79284d7eb50fffbb39348b1af047070b010fb40; corrected coherent packet commit 4088ee524e9ec6ae47ef90af3538dc35addcc3a0; runtime code commit 497c566083fac2eda1ddad14edba052e3c0a6d54. Final seal/template/qualification artifacts are attributed to the explicit final commit supplied in the author response, not a self-referential commit field. AUTHORITY-ROLES.json provides complete role-aware dependencies. New modified files never retain old code commit attribution. The old failed v3 seal and all prior files are unchanged.
+
+- PRECODE-SEAL.json: 3911 bytes; SHA256 daf208c80cb8f6afc55e21f391547b99ed52265be5ba206096ce8818f7785ee7
+- DATA-CONTROLS.presealed.json: 23889 bytes; SHA256 fe9c119a3a7dc7150b0dfd8bf9479b7df9e05e6e6a45f1c57b8c920b026f2625
+- MANIFEST.json: 1381 bytes; SHA256 00070b5ee6f0a358d3595e54e577b4f32f4b2dfa36a526c6541271b3c02bd98e
+- CANDIDATE.json: 1956 bytes; SHA256 9606b9f0235dd5b9adb1ef61e976d68730191fa16959410efb18ad876b7cfcb3
+- DATA-QUALIFICATION.json: 25542 bytes; SHA256 7cdec3b84a4994bba609ed5c4f9852b58ddfa55bdd9feac29be3c4b3d8ef8f4d
+- PREPARATION-SEAL-v4.json: 28972 bytes; SHA256 0b7ecfd23d705e4d9cfa8ac66b642f33aa51a16769b0d128dda9a156099bf579
+- GO.template.json: 5812 bytes; SHA256 bcfdf1b6c4081288c05acfa16ccb3da2f4c86bdbf5d8327bcc8369e1f9517cd3
+- PARENT-BUDGET.template.json: 300 bytes; SHA256 cda5c6fbf084925e821e17b8e8826983f38de3c5e665e8fc4fc93d49c4bbd494
+- SELECTION.json: 11371 bytes; SHA256 75e43bb584f4edb791285da329460825401d82f7089418657fd9a3a8968a7c85
+- SOURCE-AUTH.json: 103470 bytes; SHA256 e12b192070a3df71b2df89da25e16fb507c04f4077a14836ec0d0d4ad065964f
+- AUTHORITY-ROLES.json: 28041 bytes; SHA256 15346ee811617244a8459d02089bdb2765621efb3408e41cd06e64e725110ca4
+
+Code identity SHA256 3ae9491a5630bce2d07de60632e5b9ffaed492f0cc72c931bd5fd96918ced6e8; 15 mapped runtime/historical code rows. Seal validates exactly its listed files, not arbitrary newly appended entries. Self-excluded final receipts are separately bound by final commit.
+
+## Reservations and future command — NOT RUN
+
+Old future-run-01 is CLOSED: children77, workerStarts353, loaderThreads77, capture418174207, scratch347730492; four withheld and aggregate UNKNOWN. No refund/release/reuse/reset. Old 15 passes/P16 STOP/77 unrun remain unchanged. Historical per-command Worker attribution remains source inference, not a captured call stack.
+
+New future-run-02 is an INACTIVE template: children85, workerStarts312, loaderThreads82, capture356515840, scratch536870912. Exactly source P16 repeat + source P17-P24/C01-C07 (15), installed31, moved31 = 78. No source P01-P15 replay. Three setup + four admission children remain accepted. New actual start +1200000ms is capped by 1788026556000. Per-child4MiB/20s, setup60s, two active/four starts, cleanup2s and terminal16MiB inside512MiB remain unchanged. F1-F4 and the original supervisor finalizer body are byte-identical. No uncaptured admin transient or settlement refund fix is made.
+
+After separate review and fresh ROOT authorization only, ROOT may materialize the exact grant and budget. The copyable future command is:
+
+'/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/future-supervisor.mjs' '--grant' '/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/GO.json' '--budget' '/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/PARENT-BUDGET.json'
+
+No GO.json, active PARENT-BUDGET.json or future-run-02 directory was created. The command is not runnable from templates alone.
+
+## Evidence and accounting
+
+PREPARATION-ACCOUNTING.json records direct registered children, exact argv/PID, capture hashes/counts, exit+close, envelope/deadline, initial known-role ps snapshot, preparation failures, current scope and outer-coordinate snapshot bindings. Outer stdout/stderr are hashed only, not copied. Their final closure receipt belongs to ROOT after this author exits. No final outer capture claim is made here. Work and capture accounting distinguish disk bytes from unmeasured heap/RSS and unknown automatic descendants. This packet is held for ROOT routing; no reviewer was launched by this author.
+# RUN02 actual execution: scoped PASS
+
+## Outcome
+
+The ONE authorized supervisor dispatch completed August 28, 2026, 22:09:48.595–22:21:17.439 UTC (688844ms outer; 688147ms internal). Supervisor PID66832 exited0 with exit and close observed. No retry, alternate executor or further CLI leaf.
+
+| Layout | Selected actual calls | Pass | Fail | STOP | Unrun |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Source build | 16 | 16 | 0 | 0 | 0 |
+| Offline installed | 31 | 31 | 0 | 0 | 0 |
+| Physically moved | 31 | 31 | 0 | 0 | 0 |
+| Total | 78 | 78 | 0 | 0 | 0 |
+
+Three setup children succeeded and four admission children produced their prescribed refusals without product imports. They are separate from78 public calls. All85 direct children and the supervisor reaped; every selected call created and disposed one Shell. Outer stdout61bytes, stderr0. Actual subject stdout/stderr/status, VFS effects, request/authorization traces and lifecycle fields are retained in the raw receipts.
+
+Source P16 is a VERSIONED repeat under the approved exact top-level+child trace contract. Its two literal child rg stages were observed with the prescribed stdin provenance, argv and status; both Workers retired. Original RUN01 P16 STOP is not rescored. Source P01-P15 were not replayed; old15 passes, P16 STOP,77 unrun and four withheld/aggregate UNKNOWN remain unchanged. This is78 new selected passes, not a new93-call same-packet score or full release/compatibility acceptance.
+
+## Binding and membership
+
+Authority committed before dispatch:96c0fb58664ce8ab8044f31acdbbaa4fcc9cf486. GO5786bytes SHA1ebca4b6d418216b672f609e2a9ac8747d4fae736d53a3da05ba9d82a6c6743f; budget300bytes SHAcda5c6fbf084925e821e17b8e8826983f38de3c5e665e8fc4fc93d49c4bbd494. Packet4088ee52/code497c5660/seal8918f35b and PREPARATIONSEAL0b7ecfd23d705e4d9cfa8ac66b642f33aa51a16769b0d128dda9a156099bf579 unchanged.
+
+Fresh preauthentication checked322 stored source/code rows (including all268 selected inputs), six final stored receipts, derived8437e4eda904e1248c25eeef0d9d455b1d251495, all858 tar members, and current complete tool inventories. npm2039 original rows/12 symlinks bind76ddb347..., distinct from copied2027 dddb66e1.... No current HEAD product overlay.
+
+The fresh build matched the complete archived emitted inventory. Genuine offline pack matched759089bytes/SHA6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e; offline install matched all858 files; physical rename removed the old consumer parent. Post-run selected/emitted/moved/tool/seal checks remained exact. Full raw admissions and every actual parent/Worker load receipt are included. Parent and Worker memberships are checked separately against admitted bytes and the archived package.
+
+## Resource and retirement reconciliation
+
+- Actual85 direct children +1 supervisor; declared runtime graph peak2 OS processes. Administrative admission/commit processes are separately captured, not product calls or old-reservation consumption. No machine-wide census claim.
+-63 product Worker constructor starts,63 matching entry/preload receipts,63 exits and63 fulfilled product terminate calls. Observed product Worker peak1. ExitCode1 here records product-triggered Worker termination, not a failed test. No emergency retirement, unsettled termination, unknown Worker accounting or withheld RUN02 slots.
+-82 Node-managed loader requests; no independent loader-exit receipt is invented. Reaped OS children establish no surviving threads within those processes, not separate loader-exit observations.
+-6124037 charged capture bytes =347955 stdout/stderr bytes +5776082 log bytes. Logical retained scratch200067167bytes, including fixed16MiB terminal reservation.
+-RESULTS.json16777216bytes SHA b818c091bb32510a63aba6afc96d3978a7ae204087413277095d13ffff7cb11e contains8210629 JSON+LF bytes and8566587 trailing spaces. This is reserved padding, not truncated capture.
+-Remaining RUN02: children0, Worker starts249, loader roles0, capture350391803, scratch336803745. Retained, not released or reused. The old RUN01 balances and UNKNOWN remain immutable.
+
+All counts are logical/observed within the sealed process graph. No global OS quota, RSS/whole-invocation-memory bound, hard post-SIGKILL closure, arbitrary opaque-work drain, or transparent worker-instrumentation claim. Worker execArgv was instrumented as declared. Runtime guarded-root inventories detect appends; the external seal checks only listed paths. Identical stage-tuple provenance remains UNOBSERVABLE without IDs. Old preparation unknown resource history is not retrospectively passed.
+
+## Durable evidence
+
+RECONCILIATION.json contains per-call membership, outcome and retirement summaries; RUN-INVENTORY.json binds6125 retained entries. RUNTIME-RAW.json.gz.base64 decodes to a JSON object containing452 byte-exact files: original padded terminal plus all receipts, logs and admissions. Preserve its raw bytes; bound gunzip to64MiB and authenticate encoded/gzip/decoded/member hashes from MANIFEST.json before reading. It is DATA, not an executable replay.
+
+OUTER-RAW.prepublication.json.gz.base64 preserves raw capture enrolled before fallible admission, administrative byte-authentication output, and actual supervisor stdout/stderr/exit/close. Its snapshot ends after runtime reconciliation and before evidence publication; later metadata publication is separately qualified, not circularly self-authenticated. No existing sealed files, product sources, runtime expectations, RUN01 or old preparation history were changed. Runtime worktrees/tool copies remain retained, not broadly staged.

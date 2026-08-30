@@ -1,0 +1,39 @@
+{
+  "checked": "2026-08-27T08:14:27.162Z",
+  "fixtureCommit": "10273352f8d65d929cbf5a23e69119414dacee60",
+  "canonical": "tests/commands/regex-execution/followup/messageerror.test.ts",
+  "originalSha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+  "updatedSha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+  "exactApprovedDelta": true,
+  "fixtureCommitPaths": [
+    "tests/commands/regex-execution/followup/messageerror.test.ts"
+  ],
+  "changedIndexPaths": [
+    "src/fs/webdav/README.md",
+    "src/fs/webdav/index.ts",
+    "src/fs/webdav/webdav.ts",
+    "tests/commands/regex-execution/followup/messageerror.test.ts",
+    "tests/fs/webdav/atomic-extension/HARNESS-NOTES.md",
+    "tests/fs/webdav/atomic-extension/SOURCE.md",
+    "tests/fs/webdav/atomic-extension/capability.test.ts",
+    "tests/fs/webdav/atomic-extension/evidence/source-candidate/cleanup.json",
+    "tests/fs/webdav/atomic-extension/evidence/source-candidate/commands.json",
+    "tests/fs/webdav/atomic-extension/evidence/source-candidate/inputs.json",
+    "tests/fs/webdav/atomic-extension/evidence/source-final/cleanup.json",
+    "tests/fs/webdav/atomic-extension/evidence/source-final/commands.json",
+    "tests/fs/webdav/atomic-extension/evidence/source-final/inputs.json",
+    "tests/fs/webdav/atomic-extension/evidence/source-qualified/cleanup.json",
+    "tests/fs/webdav/atomic-extension/evidence/source-qualified/commands.json",
+    "tests/fs/webdav/atomic-extension/evidence/source-qualified/inputs.json",
+    "tests/fs/webdav/atomic-extension/evidence/unit-before/baseline.json",
+    "tests/fs/webdav/atomic-extension/evidence/unit-before/input.test.ts.txt",
+    "tests/fs/webdav/atomic-extension/evidence/unit-before/test.tap",
+    "tests/fs/webdav/atomic-extension/validate.mjs"
+  ],
+  "stagedDiff": "",
+  "concurrentCommits": "10273352f8d65d929cbf5a23e69119414dacee60 test(regex): migrate approved queued-close messageerror fixture\nd1174e2db9f4a4c92403842dee6fb3d4ff57ec96 feat(webdav): add namespace-bound strict atomic empty removal\n",
+  "initialValidatorIssues": [
+    "Default spawnSync maxBuffer truncated the 1.8-MB index output; corrected to 16 MiB with checked git status. Exact-delta assertion already passed; semicolon-separated shell proceeded to explicit fixture-only commit.",
+    "Corrected full-index equality assertion then detected concurrent WebDAV commits. No index restoration attempted. Fixture commit changes only the canonical file; changed index paths and concurrent commits retained here. Neither issue is a product/test failure."
+  ]
+}

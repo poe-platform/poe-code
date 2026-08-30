@@ -1,0 +1,22 @@
+{
+  "schema": "WRQ-review-dispositions-v3",
+  "review": "7b7a54ef5f1710d78297402a531a1fed63266cca",
+  "ratifiedChoices": { "D1": "unchanged", "D2": "unchanged", "D3": "unchanged" },
+  "findings": [
+    { "id": "R1", "prior": "F7", "disposition": "corrected source representation only", "change": "Typed path/syscall/dest absent OR own data undefined accepted; encode null, omit guest field. Strict keys/getters/required fields unchanged.", "runtimeProof": false },
+    { "id": "R2", "prior": "F3/F4", "disposition": "explicit metadata-only FINAL_ACK edge", "change": "Matching zero total/offset/tag; empty payload; precharge; state ownership; header1..8 only; no payload rewrite.", "runtimeProof": false },
+    { "id": "R3", "prior": "F1/F3", "disposition": "finite control/cache schemas", "change": "Version3 exact keys/types/ranges and invocation-local integer namespace. Explicit postcopy terminal count extension, no additional control messages.", "runtimeProof": false },
+    { "id": "R4", "prior": "F2", "disposition": "distinct acquisition receipt states", "change": "Only proven-none skips exit wait. Unknown constructor outcome/late acquired handle remains unconfirmed until actual exit; parent cleanup separate.", "runtimeProof": false },
+    { "id": "F1", "disposition": "K1 candidate source; HOLD", "change": "Interpreted lexical module/JSON roots, original fixture options data, primitive bridge. Public descriptor APIs absent, universal options unsupported." },
+    { "id": "F2", "disposition": "K2/lifecycle source; HOLD", "change": "Raw values/presence/provenance retained; no actual Shell mapping witness or construction no-acquisition proof." },
+    { "id": "F3", "disposition": "design-level resolved retained; source unrun", "change": "Complete payload and parent admission before VFS; staged data after cutoff cannot authorize effect." },
+    { "id": "F4", "disposition": "design-level resolved retained; source unrun", "change": "Global stop/wake; peer payload ownership; cleanup does not require ACK/guest return." },
+    { "id": "F5", "disposition": "K2 concrete postcopy candidate; HOLD", "change": "Marker after legitimate primitive result copy, parse and guest error construction. No ACK-based delivery or terminal-only inference." },
+    { "id": "F6", "disposition": "K3 concrete partial ledger; HOLD", "change": "Limits preserved; pool release/postcopy/journal precharge gap explicitly remains. No whole-guest/RSS claim." },
+    { "id": "F7", "disposition": "R1 corrected; actual typed provider HOLD", "change": "All28 names retained; own-undefined compiler representation not tested." }
+  ],
+  "newHardBlocker": "K4_PUBLIC66_MISSING_LINT: public core requires absent src/lint.ts and missing core emission binding. Stop; ROOT input needed; no deep-import/private/export-stub fallback.",
+  "qualifiedObligations": 0,
+  "executedWorkerInstances": 0,
+  "executedGuestEvaluations": 0
+}

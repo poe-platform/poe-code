@@ -1,0 +1,688 @@
+{
+  "schema": "priority-fixtures-v1",
+  "date": "2026-08-28",
+  "root": "/work",
+  "setup": {
+    "adapter": "MemoryFileSystem",
+    "directoriesMode": 493,
+    "filesMode": 420,
+    "scope": "whole VFS root; only / and /work plus listed relative files/ancestor directories",
+    "noImplicitHomeTmpOrBin": true
+  },
+  "rows": [
+    {
+      "id": "P01",
+      "files": {
+        "notes": {
+          "base64": "aGVhZGVyClRPRE8gYWxwaGEKaWdub3JlClRPRE8gYmV0YQpmb290ZXIK"
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P02",
+      "files": {
+        "log": {
+          "base64": "bm9pc2UKQkVHSU4KRVJST1IgbWlzc2luZwpPSwpFTkQKRVJST1Igb3V0c2lkZQo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P03",
+      "files": {
+        "config": {
+          "base64": "b3duZXI9YWxwaGEKdGVhbT1iZXRhCg=="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P04",
+      "files": {
+        "tokens": {
+          "base64": "eCB4IHgKeAo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P05",
+      "files": {
+        "items": {
+          "base64": "VG9kbyBhbHBoYQprZWVwClRPRE8gYmV0YQo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P06",
+      "files": {
+        "config": {
+          "base64": "ZGV2IHBvcnQ9ODAKZGV2IHBvcnQ9ODEK"
+        },
+        "rules": {
+          "base64": "cy9wb3J0PS9saXN0ZW49Lwo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P07",
+      "files": {
+        "config file": {
+          "base64": "aG9zdD1kZXYKbW9kZT1kZXYK"
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P08",
+      "files": {
+        "a": {
+          "base64": "VE9ETyBhbHBoYQppZ25vcmUK"
+        },
+        "b": {
+          "base64": "VE9ETyBiZXRhCmlnbm9yZQo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P09",
+      "files": {
+        "pairs": {
+          "base64": "YWxwaGEKVE9ETwpiZXRhCk9LCg=="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P10",
+      "files": {
+        "log": {
+          "base64": "REVCVUcgbm9pc2UKYmVmb3JlCldBUk4gcmV0cnkKYWZ0ZXIKZmFyCg=="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P11",
+      "files": {
+        "unicode": {
+          "base64": "VE9ETyBjYWbDqQpUT0RPIOaXpeacrAo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P12",
+      "files": {
+        "note": {
+          "base64": "c2tpcApUT0RPIGVuZA=="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P13",
+      "files": {},
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P14",
+      "files": {
+        ".hidden.ts": {
+          "base64": "VE9ETyBoaWRkZW4K"
+        },
+        "main.ts": {
+          "base64": "VE9ETyB2aXNpYmxlCg=="
+        },
+        "skip.ts": {
+          "base64": "VE9ETyBnZW5lcmF0ZWQK"
+        },
+        "readme.md": {
+          "base64": "VE9ETyBwcm9zZQo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P15",
+      "files": {
+        "docs/.a.txt": {
+          "base64": "aGlkZGVuCg=="
+        },
+        "docs/a.txt": {
+          "base64": "YWxwaGEK"
+        },
+        "docs/b.md": {
+          "base64": "bWFya2Rvd24K"
+        },
+        "docs/z.txt": {
+          "base64": "bGFzdAo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P16",
+      "files": {
+        "notes/a b.txt": {
+          "base64": "VE9ETyBhbHBoYQo="
+        },
+        "notes/z.txt": {
+          "base64": "c2tpcApUT0RPIGJldGEK"
+        },
+        "notes/omit.log": {
+          "base64": "VE9ETyBleGNsdWRlZAo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P17",
+      "files": {
+        "-lead": {
+          "base64": "LVRPRE8K"
+        },
+        "a b.txt": {
+          "base64": "LVRPRE8K"
+        },
+        "quo\"te.txt": {
+          "base64": "LVRPRE8K"
+        },
+        "it's.txt": {
+          "base64": "LVRPRE8K"
+        },
+        "line\nbreak.txt": {
+          "base64": "LVRPRE8K"
+        },
+        "empty": {
+          "base64": ""
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P18",
+      "files": {
+        "hay": {
+          "base64": "VE9ETyBvbmUKRklYTUUgdHdvCkRPTkUK"
+        }
+      },
+      "stdin": {
+        "kind": "chunks",
+        "base64": [
+          "VE9ETwpGSVhNRQo="
+        ]
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P19",
+      "files": {
+        "decoy": {
+          "base64": "VE9ETyBtdXN0IG5vdCBiZSByZWFkCg=="
+        }
+      },
+      "stdin": {
+        "kind": "chunks",
+        "base64": []
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P20",
+      "files": {
+        "data": {
+          "base64": "VE9ETyBjaG9zZW4K"
+        }
+      },
+      "stdin": {
+        "kind": "chunks",
+        "base64": [
+          "VE9ETyB3cm9uZwo="
+        ]
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P21",
+      "files": {
+        "header": {
+          "base64": "aGVhZGVyCg=="
+        },
+        "footer": {
+          "base64": "VE9ETyB0d28KZXh0cmEK"
+        }
+      },
+      "stdin": {
+        "kind": "chunks",
+        "base64": [
+          "VE9ETyBvbmUK",
+          "c2tpcAo="
+        ]
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P22",
+      "files": {},
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "P23",
+      "files": {},
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "mock-http",
+      "network": {
+        "routes": [
+          {
+            "authorize": {
+              "url": "https://mock.example/report",
+              "method": "GET",
+              "attempt": 0
+            },
+            "request": {
+              "url": "https://mock.example/report",
+              "method": "GET",
+              "headers": [
+                [
+                  "Accept",
+                  "*/*"
+                ],
+                [
+                  "User-Agent",
+                  "virtual-bash-curl/0.0"
+                ]
+              ],
+              "bodyBase64": null
+            },
+            "response": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": [
+                [
+                  "Content-Type",
+                  "text/plain"
+                ]
+              ],
+              "chunks": [
+                "VE9ETyBhcGkKc2tpcAo=",
+                "VE9ETyBkb2NzCg=="
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "P24",
+      "files": {
+        "upload": {
+          "base64": "YWxwaGEAYmV0YQo="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "mock-http",
+      "network": {
+        "routes": [
+          {
+            "authorize": {
+              "url": "https://mock.example/start",
+              "method": "POST",
+              "attempt": 0
+            },
+            "request": {
+              "url": "https://mock.example/start",
+              "method": "POST",
+              "headers": [
+                [
+                  "Accept",
+                  "*/*"
+                ],
+                [
+                  "User-Agent",
+                  "virtual-bash-curl/0.0"
+                ],
+                [
+                  "Content-Type",
+                  "application/x-www-form-urlencoded"
+                ],
+                [
+                  "Authorization",
+                  "Bearer scoped"
+                ],
+                [
+                  "X-Trace",
+                  "private"
+                ]
+              ],
+              "bodyBase64": "YWxwaGEAYmV0YQo="
+            },
+            "response": {
+              "status": 303,
+              "statusText": "See Other",
+              "headers": [
+                [
+                  "Location",
+                  "https://other.example/final"
+                ]
+              ],
+              "chunks": [
+                "bXVzdCBub3QgcmVhZA=="
+              ]
+            }
+          },
+          {
+            "authorize": {
+              "url": "https://other.example/final",
+              "method": "GET",
+              "attempt": 0,
+              "redirectFrom": "https://mock.example/start"
+            },
+            "request": {
+              "url": "https://other.example/final",
+              "method": "GET",
+              "headers": [
+                [
+                  "Accept",
+                  "*/*"
+                ],
+                [
+                  "User-Agent",
+                  "virtual-bash-curl/0.0"
+                ]
+              ],
+              "bodyBase64": null
+            },
+            "response": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": [
+                [
+                  "Content-Type",
+                  "text/plain"
+                ]
+              ],
+              "chunks": [
+                "c3RhdHVzPW9rCml0ZW09VE9ETyA=",
+                "Y2Fmw6kK"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "C01",
+      "files": {
+        "names.bin": {
+          "base64": "VE9ETwBrZWVwAA=="
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "C02",
+      "files": {},
+      "stdin": {
+        "kind": "chunks",
+        "base64": [
+          "VE9ETwo="
+        ]
+      },
+      "infrastructure": "memory"
+    },
+    {
+      "id": "C03",
+      "files": {
+        "data": {
+          "base64": "VE9ETyBvbmUK"
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "readonly-memory"
+    },
+    {
+      "id": "C04",
+      "files": {
+        "broken": {
+          "base64": "VE9ETyBpbmFjY2Vzc2libGUK"
+        }
+      },
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "fault-memory",
+      "fault": {
+        "method": "readStream",
+        "path": "/work/broken",
+        "throwOnNext": 1,
+        "error": {
+          "code": "EIO",
+          "syscall": "readStream",
+          "path": "/work/broken",
+          "message": "fixture fault"
+        }
+      }
+    },
+    {
+      "id": "C05",
+      "files": {},
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "cooperative-transport",
+      "reasonTokens": {
+        "callerReason": {
+          "tag": "root-cancel"
+        }
+      },
+      "lifecycle": {
+        "trigger": "after host.cleanup.register and host.acquire.admit; before acquire settlement",
+        "actions": [
+          "caller.abort(callerReason)",
+          "host acquisition rejects callerReason on abort",
+          "wait host.cleanup.start",
+          "assert exec still pending while cleanup gate closed",
+          "release cleanup gate once",
+          "await exec rejection",
+          "dispose shell twice; await shared promise"
+        ],
+        "noWallSleep": true
+      },
+      "network": {
+        "routes": [
+          {
+            "authorize": {
+              "url": "https://mock.example/pending",
+              "method": "GET",
+              "attempt": 0
+            },
+            "request": {
+              "url": "https://mock.example/pending",
+              "method": "GET",
+              "headers": [
+                [
+                  "Accept",
+                  "*/*"
+                ],
+                [
+                  "User-Agent",
+                  "virtual-bash-curl/0.0"
+                ]
+              ],
+              "bodyBase64": null
+            },
+            "response": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "C06",
+      "files": {},
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "owned-sink-http",
+      "network": {
+        "routes": [
+          {
+            "authorize": {
+              "url": "https://mock.example/report",
+              "method": "GET",
+              "attempt": 0
+            },
+            "request": {
+              "url": "https://mock.example/report",
+              "method": "GET",
+              "headers": [
+                [
+                  "Accept",
+                  "*/*"
+                ],
+                [
+                  "User-Agent",
+                  "virtual-bash-curl/0.0"
+                ]
+              ],
+              "bodyBase64": null
+            },
+            "response": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": [
+                [
+                  "Content-Type",
+                  "text/plain"
+                ]
+              ],
+              "chunks": [
+                "VE9ETyBhcGkKc2tpcAo=",
+                "VE9ETyBkb2NzCg=="
+              ]
+            }
+          }
+        ]
+      },
+      "sink": {
+        "ownedOutput": true,
+        "closeAt": "first response.dispose; after body file completion",
+        "reason": {
+          "code": "EPIPE",
+          "syscall": "fixture-output"
+        },
+        "plainWritesAllowed": 0,
+        "ownedWritesAllowed": 0
+      }
+    },
+    {
+      "id": "C07",
+      "files": {},
+      "stdin": {
+        "kind": "omitted"
+      },
+      "infrastructure": "opaque-authorizer",
+      "reasonTokens": {
+        "callerReason": {
+          "tag": "root-cancel"
+        },
+        "lateReason": {
+          "tag": "late-host-failure"
+        }
+      },
+      "lifecycle": {
+        "actions": [
+          "wait authorization.enter",
+          "caller.abort(callerReason)",
+          "await exec rejection while opaque gate remains pending",
+          "reject opaque gate with lateReason",
+          "observe one event-loop turn for late rejection handling",
+          "await shell.dispose"
+        ],
+        "noWallSleep": true
+      },
+      "authorization": {
+        "url": "https://mock.example/opaque",
+        "method": "GET",
+        "attempt": 0
+      }
+    }
+  ],
+  "networkLimits": {
+    "maxUploadBytes": 4096,
+    "maxDownloadBytes": 4096,
+    "maxBufferBytes": 8192,
+    "maxHeaderBytes": 4096,
+    "maxRedirects": 1,
+    "maxRetries": 0,
+    "maxUrls": 1,
+    "maxTimeMs": 5000
+  }
+}

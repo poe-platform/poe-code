@@ -1,0 +1,92 @@
+{
+  "classification": "STATIC_ROLE_AND_REFERENCE_AUDIT_NO_EXECUTION",
+  "candidateHandoff": {
+    "revision": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/HANDOFF.md",
+    "sha256": "4f8bf5635a5efd2fb41244b557b0f7685bbf3f8d82e44827ff6b905c45409685"
+  },
+  "directRuntimeDeclarationEntriesBound": {
+    "dist/commands/yq/index.js": {
+      "sha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+      "bytes": 26827,
+      "mode": 420
+    },
+    "dist/commands/yq/index.d.ts": {
+      "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+      "bytes": 419,
+      "mode": 420
+    },
+    "dist/contracts/index.js": {
+      "sha256": "f63fcc728dd4e62d6d60408f114c901ad52a9499e46a6f89b2ce97fff3fc680c",
+      "bytes": 235,
+      "mode": 420
+    },
+    "dist/contracts/index.d.ts": {
+      "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c",
+      "bytes": 237,
+      "mode": 420
+    },
+    "dist/commands/structured/query-core.js": {
+      "sha256": "63b447194c3ba3eed8fb9b65eeb09a82aa7a86a071b7052a28b333938529e3e5",
+      "bytes": 23200,
+      "mode": 420
+    },
+    "dist/commands/structured/query-core.d.ts": {
+      "sha256": "1f316b2cc3856e4254c62f3a616b0f03b49249c8f77e4cec6cacea19d8bc949e",
+      "bytes": 1307,
+      "mode": 420
+    }
+  },
+  "allowedBuiltinsAsStaticData": [
+    "node:path",
+    "node:stream/web",
+    "node:timers/promises",
+    "node:util"
+  ],
+  "loaderProof": "Direct module byte identities only; allowedBuiltins are proposed recipe data, not executed fence acceptance or new public exports.",
+  "publicIntegrationProof": false,
+  "materializedRoots": null,
+  "toolReauthentication": "NOT_PERFORMED; required before any future build/loader invocation",
+  "authorBuildClassification": "BOUND_AUTHOR_BUILD",
+  "independentlyCompiled": false,
+  "rootTrustedBuildReceipt": false,
+  "atCQualification": {
+    "WRK06": "Author C+1 rejection is not at-C success. Packet proposes a particular ASCII-comment witness masking argument at the unchanged maxSteps gate, not universal unreachability or runtime success.",
+    "WRK07": "Author parser+ledger with noopWork is not independent public-command boundary proof; quoted ASCII witness is separately masked by the stated work gate.",
+    "WRK13": "Author allocation/event evidence is not this independent source-order or runtime proof.",
+    "WRK17": "Internal maxBytes7/8 remain PROOF_CONTROL, not public cap.",
+    "particularWitnessArithmetic": {
+      "rawDocumentBytes": 8388608,
+      "commentContentCodepoints": 8388606,
+      "quotedScalarContentCodepoints": 1048576,
+      "quotedScalarSourceCodepoints": 1048578,
+      "statedFrozenMaxSteps": 1000000,
+      "commentExceedsStatedGate": true,
+      "quotedScalarExceedsStatedGate": true
+    },
+    "scope": "Arithmetic and packet source-argument qualification only; full source23/four-repair/public reachability proofs remain unaccepted and unexecuted."
+  },
+  "inspectionTiming": "Post-candidate and preexecution; bounded parser/index source text and data roles inspected after own criteria seal, not unseen precode behavior proof.",
+  "boundPlanCheckpoint": {
+    "path": "/tmp/yq-successor-preseal-v2-ready.txt",
+    "sealedHandoffPresent": false,
+    "noUnsealedPlanFilesRead": true,
+    "noFurtherPolling": true
+  },
+  "announcedPlanOnly": {
+    "outer": 336,
+    "compilerDescendants": 18,
+    "globalCapMs": 24165000,
+    "duration": "6h42m45s",
+    "arithmeticFromV1": {
+      "outerDelta": 1,
+      "compilerDelta": 6,
+      "globalDeltaMs": 540000
+    },
+    "actualJobObligationToolResourceCutoffClosureVerified": false,
+    "loadedCompiledTransformDefinitionsInspected": false,
+    "oldSSF01Rescored": false
+  },
+  "productBuildTypeLoaderControlExecutions": 0,
+  "freshGO": false
+}

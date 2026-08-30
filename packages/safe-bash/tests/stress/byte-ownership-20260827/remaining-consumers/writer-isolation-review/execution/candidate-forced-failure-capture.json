@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/failure-copy",
+  "environmentOverrides": {
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TMP": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TEMP": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp",
+    "TSX_DISABLE_CACHE": "1",
+    "VIRTUAL_BASH_DIRECT_CURL_CAPTURE": ""
+  },
+  "pid": 77453,
+  "startedAt": "2026-08-27T11:46:43.366Z",
+  "finishedAt": "2026-08-27T11:46:43.659Z",
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "childClosed": true,
+  "stdout": "{\"directory\":\"/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp/virtual-bash-direct-curl-capture-fpoxxu\",\"exitCode\":1}\n",
+  "stderr": ""
+}

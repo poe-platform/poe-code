@@ -1,0 +1,17 @@
+[
+  {
+    "destination": "fixture.json",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json",
+    "bytes": 4160,
+    "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074",
+    "mode": 420
+  },
+  {
+    "destination": "packs.json",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+    "bytes": 370847,
+    "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080",
+    "mode": 420
+  }
+]
+

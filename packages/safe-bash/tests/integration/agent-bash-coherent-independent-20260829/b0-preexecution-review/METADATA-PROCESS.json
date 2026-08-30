@@ -1,0 +1,32 @@
+[
+  {
+    "args": [
+      "ls-tree",
+      "-rlz",
+      "--full-tree",
+      "db6306798211811ffba11e8abaf6d977fcf89768",
+      "--",
+      "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2"
+    ],
+    "startedAt": "2026-08-29T11:06:06.857Z",
+    "pid": 93830,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "closed": true,
+    "finishedAt": "2026-08-29T11:06:06.920Z"
+  },
+  {
+    "args": [
+      "cat-file",
+      "--batch"
+    ],
+    "startedAt": "2026-08-29T11:06:06.923Z",
+    "pid": 93831,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "closed": true,
+    "finishedAt": "2026-08-29T11:06:06.975Z"
+  }
+]

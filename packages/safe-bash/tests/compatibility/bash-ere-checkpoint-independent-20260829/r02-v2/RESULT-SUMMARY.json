@@ -1,0 +1,823 @@
+{
+  "source": "b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb",
+  "verdict": "R02-only qualified ACCEPT; not ROOT/full-engine acceptance",
+  "main": {
+    "pass": 249,
+    "fail": 0,
+    "total": 249
+  },
+  "rows": [
+    {
+      "role": "source-author66",
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "source-checkpoints8",
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "source-empty4",
+      "pass": 4,
+      "fail": 0
+    },
+    {
+      "role": "source-remaining5",
+      "pass": 5,
+      "fail": 0
+    },
+    {
+      "role": "installed-author66",
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "installed-checkpoints8",
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "installed-empty4",
+      "pass": 4,
+      "fail": 0
+    },
+    {
+      "role": "installed-remaining5",
+      "pass": 5,
+      "fail": 0
+    },
+    {
+      "role": "moved-author66",
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "moved-checkpoints8",
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "moved-empty4",
+      "pass": 4,
+      "fail": 0
+    },
+    {
+      "role": "moved-remaining5",
+      "pass": 5,
+      "fail": 0
+    }
+  ],
+  "n01": [
+    {
+      "role": "source-empty4",
+      "row": {
+        "id": "N01-empty-fragment-first-pass",
+        "pass": true,
+        "detail": {
+          "gap": 1,
+          "usage": {
+            "patternBytes": 1,
+            "subjectBytes": 1,
+            "work": 2055,
+            "states": 2,
+            "allocationUnits": 2093,
+            "captureBytes": 1,
+            "captureSlots": 1
+          }
+        }
+      }
+    },
+    {
+      "role": "installed-empty4",
+      "row": {
+        "id": "N01-empty-fragment-first-pass",
+        "pass": true,
+        "detail": {
+          "gap": 1,
+          "usage": {
+            "patternBytes": 1,
+            "subjectBytes": 1,
+            "work": 2055,
+            "states": 2,
+            "allocationUnits": 2093,
+            "captureBytes": 1,
+            "captureSlots": 1
+          }
+        }
+      }
+    },
+    {
+      "role": "moved-empty4",
+      "row": {
+        "id": "N01-empty-fragment-first-pass",
+        "pass": true,
+        "detail": {
+          "gap": 1,
+          "usage": {
+            "patternBytes": 1,
+            "subjectBytes": 1,
+            "work": 2055,
+            "states": 2,
+            "allocationUnits": 2093,
+            "captureBytes": 1,
+            "captureSlots": 1
+          }
+        }
+      }
+    }
+  ],
+  "types": [
+    {
+      "layout": "source",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "installed",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "moved",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M01-empty",
+      "layout": "source",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "b2d9c160d651f6702895f9738bc81894c3934814d7e046fc0855dba68033dc62"
+    },
+    {
+      "id": "M01-empty",
+      "layout": "installed",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "b2d9c160d651f6702895f9738bc81894c3934814d7e046fc0855dba68033dc62"
+    },
+    {
+      "id": "M01-empty",
+      "layout": "moved",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "b2d9c160d651f6702895f9738bc81894c3934814d7e046fc0855dba68033dc62"
+    }
+  ],
+  "mutationResults": [
+    {
+      "role": "source-M01-empty",
+      "rows": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": false,
+          "reasonPresent": true,
+          "error": "AssertionError [ERR_ASSERTION]: empty-fragment charged unit gap 2050\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:60:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:53:1"
+        }
+      ]
+    },
+    {
+      "role": "installed-M01-empty",
+      "rows": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": false,
+          "reasonPresent": true,
+          "error": "AssertionError [ERR_ASSERTION]: empty-fragment charged unit gap 2050\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:60:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:53:1"
+        }
+      ]
+    },
+    {
+      "role": "moved-M01-empty",
+      "rows": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": false,
+          "reasonPresent": true,
+          "error": "AssertionError [ERR_ASSERTION]: empty-fragment charged unit gap 2050\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:60:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:53:1"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "id": "B01-content",
+      "refused": true,
+      "reason": "AssertionError [ERR_ASSERTION]: SAFETY input binding\n+ actual - expected\n\n  {\n    mode: 420,\n    path: '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/binding-negative.js',\n+   sha256: 'd67e2e944994496c8d8ec76eed0cf9f09679448d584b532bebf941852a37f5ed',\n+   size: 7\n-   sha256: '9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb',\n-   size: 8483\n  }\n",
+      "dataOnly": true
+    },
+    {
+      "id": "B02-missing",
+      "refused": true,
+      "reason": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/absent.js'",
+      "dataOnly": true
+    }
+  ],
+  "declarations": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    }
+  ],
+  "postguard": {
+    "inputs": 271,
+    "workFiles": 273,
+    "workBytes": 26185059,
+    "appendSensitive": true,
+    "compiled": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/errors.d.ts",
+        "size": 691,
+        "mode": 420,
+        "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/errors.js",
+        "size": 1045,
+        "mode": 420,
+        "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/limits.d.ts",
+        "size": 671,
+        "mode": 420,
+        "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/limits.js",
+        "size": 3265,
+        "mode": 420,
+        "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/matcher.d.ts",
+        "size": 231,
+        "mode": 420,
+        "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/matcher.js",
+        "size": 8483,
+        "mode": 420,
+        "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/package.json",
+        "size": 33,
+        "mode": 420,
+        "sha256": "89c47db7851f89caec72da4f215ebc21cf1e294aeef3b45d2583562d846ab035"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/syntax.d.ts",
+        "size": 445,
+        "mode": 420,
+        "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/syntax.js",
+        "size": 14270,
+        "mode": 420,
+        "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/types.d.ts",
+        "size": 1606,
+        "mode": 420,
+        "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted/types.js",
+        "size": 11,
+        "mode": 420,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      }
+    ]
+  },
+  "runtime": {
+    "outer": {
+      "pid": 89580,
+      "childPid": 89594,
+      "primaryPresent": false,
+      "primary": null,
+      "terminal": {
+        "code": 0,
+        "signal": null,
+        "exited": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      "captured": 0
+    },
+    "children": 25,
+    "allNatural": true,
+    "active": 0,
+    "peakChildren": 1,
+    "captureBytes": 71887,
+    "elapsedMs": 6186,
+    "receipts": [
+      {
+        "role": "strict-build",
+        "pid": 89759,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/@types",
+          "--declaration",
+          "--outDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/source/types.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/source/errors.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/source/limits.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/source/syntax.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/source/matcher.ts"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 0,
+        "retired": true
+      },
+      {
+        "role": "source-author66",
+        "pid": 89882,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/cases.json"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 3288,
+        "retired": true
+      },
+      {
+        "role": "source-checkpoints8",
+        "pid": 89904,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/checkpoints.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 10417,
+        "retired": true
+      },
+      {
+        "role": "source-empty4",
+        "pid": 89925,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 4233,
+        "retired": true
+      },
+      {
+        "role": "source-remaining5",
+        "pid": 89939,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/remaining.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 3367,
+        "retired": true
+      },
+      {
+        "role": "source-types-positive",
+        "pid": 89951,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/consumer.mts"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 0,
+        "retired": true
+      },
+      {
+        "role": "source-types-negative",
+        "pid": 89978,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/negative.mts"
+        ],
+        "code": 2,
+        "signal": null,
+        "size": 344,
+        "retired": true
+      },
+      {
+        "role": "source-M01-empty",
+        "pid": 89984,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted",
+          "N01-empty-fragment-first-pass"
+        ],
+        "code": 1,
+        "signal": null,
+        "size": 1118,
+        "retired": true
+      },
+      {
+        "role": "source-M01-empty-restore",
+        "pid": 89986,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/emitted",
+          "N01-empty-fragment-first-pass"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 769,
+        "retired": true
+      },
+      {
+        "role": "installed-author66",
+        "pid": 89987,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/cases.json"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 3363,
+        "retired": true
+      },
+      {
+        "role": "installed-checkpoints8",
+        "pid": 89991,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/checkpoints.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 10732,
+        "retired": true
+      },
+      {
+        "role": "installed-empty4",
+        "pid": 89994,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 4293,
+        "retired": true
+      },
+      {
+        "role": "installed-remaining5",
+        "pid": 89996,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/remaining.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 3427,
+        "retired": true
+      },
+      {
+        "role": "installed-types-positive",
+        "pid": 89998,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/consumer.mts"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 0,
+        "retired": true
+      },
+      {
+        "role": "installed-types-negative",
+        "pid": 90012,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/negative.mts"
+        ],
+        "code": 2,
+        "signal": null,
+        "size": 344,
+        "retired": true
+      },
+      {
+        "role": "installed-M01-empty",
+        "pid": 90017,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact",
+          "N01-empty-fragment-first-pass"
+        ],
+        "code": 1,
+        "signal": null,
+        "size": 1118,
+        "retired": true
+      },
+      {
+        "role": "installed-M01-empty-restore",
+        "pid": 90019,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact",
+          "N01-empty-fragment-first-pass"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 769,
+        "retired": true
+      },
+      {
+        "role": "moved-author66",
+        "pid": 90021,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/cases.json"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 3398,
+        "retired": true
+      },
+      {
+        "role": "moved-checkpoints8",
+        "pid": 90022,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/checkpoints.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 10879,
+        "retired": true
+      },
+      {
+        "role": "moved-empty4",
+        "pid": 90023,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 4321,
+        "retired": true
+      },
+      {
+        "role": "moved-remaining5",
+        "pid": 90026,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/remaining.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact",
+          "all"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 3455,
+        "retired": true
+      },
+      {
+        "role": "moved-types-positive",
+        "pid": 90029,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/consumer.mts"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 0,
+        "retired": true
+      },
+      {
+        "role": "moved-types-negative",
+        "pid": 90032,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/negative.mts"
+        ],
+        "code": 2,
+        "signal": null,
+        "size": 365,
+        "retired": true
+      },
+      {
+        "role": "moved-M01-empty",
+        "pid": 90037,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact",
+          "N01-empty-fragment-first-pass"
+        ],
+        "code": 1,
+        "signal": null,
+        "size": 1118,
+        "retired": true
+      },
+      {
+        "role": "moved-M01-empty-restore",
+        "pid": 90040,
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact",
+          "N01-empty-fragment-first-pass"
+        ],
+        "code": 0,
+        "signal": null,
+        "size": 769,
+        "retired": true
+      }
+    ]
+  },
+  "R01": "original seven failures/HOLD/native UNRUN unchanged; no rescore",
+  "historicalIndependent": "53058fe2 237PASS/3FAIL preserved"
+}

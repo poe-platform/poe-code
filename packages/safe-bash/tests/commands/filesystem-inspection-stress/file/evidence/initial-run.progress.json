@@ -1,0 +1,402 @@
+[
+  {
+    "id": "F01",
+    "caseStarted": "2026-08-27T08:27:13.735Z",
+    "caseFinished": "2026-08-27T08:27:13.805Z",
+    "pid": 98310,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F02",
+    "caseStarted": "2026-08-27T08:27:13.806Z",
+    "caseFinished": "2026-08-27T08:27:13.870Z",
+    "pid": 98311,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F03",
+    "caseStarted": "2026-08-27T08:27:13.870Z",
+    "caseFinished": "2026-08-27T08:27:13.939Z",
+    "pid": 98312,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F04",
+    "caseStarted": "2026-08-27T08:27:13.939Z",
+    "caseFinished": "2026-08-27T08:27:14.005Z",
+    "pid": 98313,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F05",
+    "caseStarted": "2026-08-27T08:27:14.006Z",
+    "caseFinished": "2026-08-27T08:27:14.077Z",
+    "pid": 98314,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F06",
+    "caseStarted": "2026-08-27T08:27:14.077Z",
+    "caseFinished": "2026-08-27T08:27:14.143Z",
+    "pid": 98325,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F07",
+    "caseStarted": "2026-08-27T08:27:14.144Z",
+    "caseFinished": "2026-08-27T08:27:14.210Z",
+    "pid": 98336,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F08",
+    "caseStarted": "2026-08-27T08:27:14.210Z",
+    "caseFinished": "2026-08-27T08:27:14.273Z",
+    "pid": 98337,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F09",
+    "caseStarted": "2026-08-27T08:27:14.273Z",
+    "caseFinished": "2026-08-27T08:27:14.335Z",
+    "pid": 98343,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F10",
+    "caseStarted": "2026-08-27T08:27:14.335Z",
+    "caseFinished": "2026-08-27T08:27:14.399Z",
+    "pid": 98349,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F11",
+    "caseStarted": "2026-08-27T08:27:14.400Z",
+    "caseFinished": "2026-08-27T08:27:14.466Z",
+    "pid": 98351,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F12",
+    "caseStarted": "2026-08-27T08:27:14.466Z",
+    "caseFinished": "2026-08-27T08:27:14.534Z",
+    "pid": 98357,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F13",
+    "caseStarted": "2026-08-27T08:27:14.534Z",
+    "caseFinished": "2026-08-27T08:27:14.600Z",
+    "pid": 98364,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F14",
+    "caseStarted": "2026-08-27T08:27:14.600Z",
+    "caseFinished": "2026-08-27T08:27:14.664Z",
+    "pid": 98366,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F15",
+    "caseStarted": "2026-08-27T08:27:14.664Z",
+    "caseFinished": "2026-08-27T08:27:14.727Z",
+    "pid": 98367,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F16",
+    "caseStarted": "2026-08-27T08:27:14.727Z",
+    "caseFinished": "2026-08-27T08:27:14.791Z",
+    "pid": 98368,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F17",
+    "caseStarted": "2026-08-27T08:27:14.791Z",
+    "caseFinished": "2026-08-27T08:27:14.854Z",
+    "pid": 98369,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F18",
+    "caseStarted": "2026-08-27T08:27:14.854Z",
+    "caseFinished": "2026-08-27T08:27:14.919Z",
+    "pid": 98370,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F19",
+    "caseStarted": "2026-08-27T08:27:14.919Z",
+    "caseFinished": "2026-08-27T08:27:14.983Z",
+    "pid": 98373,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F20",
+    "caseStarted": "2026-08-27T08:27:14.983Z",
+    "caseFinished": "2026-08-27T08:27:15.046Z",
+    "pid": 98374,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F21",
+    "caseStarted": "2026-08-27T08:27:15.046Z",
+    "caseFinished": "2026-08-27T08:27:15.107Z",
+    "pid": 98375,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F22",
+    "caseStarted": "2026-08-27T08:27:15.107Z",
+    "caseFinished": "2026-08-27T08:27:15.166Z",
+    "pid": 98376,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F23",
+    "caseStarted": "2026-08-27T08:27:15.166Z",
+    "caseFinished": "2026-08-27T08:27:15.226Z",
+    "pid": 98378,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F24",
+    "caseStarted": "2026-08-27T08:27:15.226Z",
+    "caseFinished": "2026-08-27T08:27:15.289Z",
+    "pid": 98379,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F25",
+    "caseStarted": "2026-08-27T08:27:15.289Z",
+    "caseFinished": "2026-08-27T08:27:15.348Z",
+    "pid": 98380,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F26",
+    "caseStarted": "2026-08-27T08:27:15.348Z",
+    "caseFinished": "2026-08-27T08:27:15.412Z",
+    "pid": 98382,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F27",
+    "caseStarted": "2026-08-27T08:27:15.412Z",
+    "caseFinished": "2026-08-27T08:27:15.479Z",
+    "pid": 98385,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F28",
+    "caseStarted": "2026-08-27T08:27:15.479Z",
+    "caseFinished": "2026-08-27T08:27:15.540Z",
+    "pid": 98392,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F29",
+    "caseStarted": "2026-08-27T08:27:15.540Z",
+    "caseFinished": "2026-08-27T08:27:15.612Z",
+    "pid": 98393,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F30",
+    "caseStarted": "2026-08-27T08:27:15.612Z",
+    "caseFinished": "2026-08-27T08:27:15.679Z",
+    "pid": 98394,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F31",
+    "caseStarted": "2026-08-27T08:27:15.679Z",
+    "caseFinished": "2026-08-27T08:27:15.747Z",
+    "pid": 98395,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F32",
+    "caseStarted": "2026-08-27T08:27:15.747Z",
+    "caseFinished": "2026-08-27T08:27:15.815Z",
+    "pid": 98397,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F33",
+    "caseStarted": "2026-08-27T08:27:15.815Z",
+    "caseFinished": "2026-08-27T08:27:15.886Z",
+    "pid": 98398,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F34",
+    "caseStarted": "2026-08-27T08:27:15.886Z",
+    "caseFinished": "2026-08-27T08:27:15.956Z",
+    "pid": 98399,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F35",
+    "caseStarted": "2026-08-27T08:27:15.956Z",
+    "caseFinished": "2026-08-27T08:27:16.023Z",
+    "pid": 98401,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F36",
+    "caseStarted": "2026-08-27T08:27:16.023Z",
+    "caseFinished": "2026-08-27T08:27:16.087Z",
+    "pid": 98402,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F37",
+    "caseStarted": "2026-08-27T08:27:16.087Z",
+    "caseFinished": "2026-08-27T08:27:16.155Z",
+    "pid": 98403,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F38",
+    "caseStarted": "2026-08-27T08:27:16.155Z",
+    "caseFinished": "2026-08-27T08:27:16.228Z",
+    "pid": 98404,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F39",
+    "caseStarted": "2026-08-27T08:27:16.228Z",
+    "caseFinished": "2026-08-27T08:27:16.301Z",
+    "pid": 98406,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  },
+  {
+    "id": "F40",
+    "caseStarted": "2026-08-27T08:27:16.302Z",
+    "caseFinished": "2026-08-27T08:27:16.370Z",
+    "pid": 98407,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "reportExists": true
+  }
+]

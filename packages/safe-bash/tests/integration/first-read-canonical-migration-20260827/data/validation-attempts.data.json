@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "classification": "ordered author validation attempts; failures retained rather than rewritten",
+  "attempts": [
+    {
+      "order": 1,
+      "kind": "narrow-strict-typecheck",
+      "status": 2,
+      "rawDiagnostics": [
+        "tests/shell/first-read-owned-fixtures.ts(256,25): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.",
+        "tests/shell/first-read-owned-fixtures.ts(257,22): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.",
+        "tests/shell/first-read-owned-fixtures.ts(261,44): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.",
+        "tests/shell/first-read-owned-fixtures.ts(262,20): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.",
+        "tests/shell/first-read-owned-fixtures.ts(266,42): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.",
+        "tests/shell/first-read-owned-fixtures.ts(342,24): error TS2554: Expected 1-2 arguments, but got 0."
+      ],
+      "correction": "Annotated the ClientRequest receiver and narrowed the no-argument Web reader to ReadableStreamDefaultReader. No policy or timing assertion changed."
+    },
+    {
+      "order": 2,
+      "kind": "narrow-strict-typecheck",
+      "status": 0
+    },
+    {
+      "order": 3,
+      "kind": "direct-child-group",
+      "scenarios": ["first-read-head-zero", "first-read-local-owned", "first-read-s3"],
+      "statuses": [1, 1, 1],
+      "rawCommonFailure": {
+        "name": "AssertionError",
+        "message": "observers install once",
+        "actual": 1,
+        "expected": 0,
+        "operator": "strictEqual",
+        "site": "tests/shell/first-read-owned-fixtures.ts:217:12",
+        "node": "v22.22.2"
+      },
+      "correction": "The install-once assertion had incorrectly counted the already registered caller-signal removal as a global observer hook. A separate private observer-installed boolean now guards fetch/prototype installation. Signal observation, ownership and deadlines were unchanged."
+    },
+    {
+      "order": 4,
+      "kind": "direct-child-group-after-explicit-harness-correction",
+      "scenarios": ["first-read-head-zero", "first-read-local-owned", "first-read-s3"],
+      "statuses": [0, 0, 0]
+    },
+    {
+      "order": 5,
+      "kind": "direct-controlled-unenrolled",
+      "scenario": "first-read-local-unenrolled-controlled",
+      "status": 0,
+      "observedPendingMs": 1200,
+      "callerAbortUsed": false
+    },
+    {
+      "order": 6,
+      "kind": "direct-original-http-group",
+      "scenarios": ["first-read-webdav", "first-read-curl-body", "first-read-curl-headers"],
+      "statuses": [0, 0, 0]
+    },
+    {
+      "order": 7,
+      "kind": "direct-acquired-and-destination-group",
+      "scenarios": ["first-read-webdav-body-acquired", "first-read-curl-body-acquired", "first-read-required-destinations"],
+      "statuses": [0, 0, 0]
+    },
+    {
+      "order": 8,
+      "kind": "canonical-target",
+      "status": 0,
+      "counts": { "tests": 10, "pass": 10, "fail": 0, "cancelled": 0, "skipped": 0, "todo": 0 },
+      "durationMs": 3377.809333,
+      "childProtections": { "deadlineMs": 3000, "outputCapBytes": 1048576, "strictUnhandledRejections": true, "residualGroupChecks": true },
+      "forcedChildren": 0
+    },
+    {
+      "order": 9,
+      "kind": "post-candidate-narrow-strict-typecheck",
+      "status": 0
+    }
+  ]
+}

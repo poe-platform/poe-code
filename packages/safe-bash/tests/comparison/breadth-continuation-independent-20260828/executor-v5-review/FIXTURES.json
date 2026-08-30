@@ -1,0 +1,14 @@
+{
+  "wrapper": "{\"name\":\"safe-bash-breadth-consumer-fixture\",\"private\":true,\"type\":\"module\"}\n",
+  "outer": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./ambient.mjs\"}}\n",
+  "selfReferenceWrapper": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n",
+  "wrongBaselineWrapper": "{\"name\":\"just-bash\",\"private\":true,\"type\":\"module\"}\n",
+  "targetPackage": "{\"name\":\"virtual-bash\",\"type\":\"module\",\"exports\":{\".\":{\"import\":\"./index.mjs\"}}}\n",
+  "baselinePackage": "{\"name\":\"just-bash\",\"type\":\"module\",\"exports\":{\".\":{\"import\":\"./index.mjs\"}}}\n",
+  "targetConsumer": "import * as library from 'virtual-bash';\nexport { library };\n",
+  "baselineConsumer": "import * as library from 'just-bash';\nexport { library };\n",
+  "targetModule": "globalThis.__syntheticEvaluations.push('target');\nexport const identity = 'target-stub';\n",
+  "baselineModule": "globalThis.__syntheticEvaluations.push('baseline');\nexport const identity = 'baseline-stub';\n",
+  "trapModule": "globalThis.__syntheticEvaluations.push('trap');\nexport const identity = 'trap-stub';\n",
+  "ambientModule": "globalThis.__syntheticEvaluations.push('ambient');\nexport const identity = 'ambient-stub';\n"
+}

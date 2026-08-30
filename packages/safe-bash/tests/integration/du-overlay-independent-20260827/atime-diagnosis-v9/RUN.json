@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-27",
+  "inputCommit": "86dfbe9a4f86e0d7c4b084ec0c7c1c865a3f7804",
+  "command": [
+    "node",
+    "tests/integration/du-overlay-independent-20260827/atime-diagnosis-v9/diagnose.mjs",
+    "tests/integration/du-overlay-independent-20260827/atime-diagnosis-v9",
+    "tests/integration/du-overlay-independent-20260827/atime-diagnosis-v9/raw-results.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "stdout": {
+    "path": "raw-stdout.txt",
+    "bytes": 420,
+    "sha256": "dd3a02046405ce68eb50d2f0a649f0f898f6c02559bf99736a73de7f93688f56"
+  },
+  "stderr": {
+    "path": "raw-stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "result": {
+    "path": "raw-results.json",
+    "bytes": 139779,
+    "sha256": "b2ee65868b1ccd15db17e945fddab7c14546840992ff8bf408b2166bbe2dd9ab"
+  },
+  "scratchPostRemoval": "ENOENT",
+  "candidateExecuted": false,
+  "nativeDuExecuted": false
+}

@@ -1,0 +1,69 @@
+{
+  "post": [
+    {
+      "domain": "selectedSource",
+      "count": 293,
+      "match": true
+    },
+    {
+      "domain": "movedPackage",
+      "count": 954,
+      "match": true
+    },
+    {
+      "domain": "executor",
+      "count": 131,
+      "match": true
+    },
+    {
+      "domain": "originalTool:typescript",
+      "count": 132,
+      "match": true
+    },
+    {
+      "domain": "originalTool:@types/node",
+      "count": 74,
+      "match": true
+    },
+    {
+      "domain": "originalTool:undici-types",
+      "count": 41,
+      "match": true
+    },
+    {
+      "domain": "originalTool:npm",
+      "count": 2039,
+      "match": true
+    }
+  ],
+  "loaded": [
+    {
+      "layout": "source",
+      "runtime": {
+        "file": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/dist/shell/runtime.js",
+        "sha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb"
+      }
+    },
+    {
+      "layout": "installed",
+      "runtime": {
+        "file": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/installed/node_modules/virtual-bash/dist/shell/runtime.js",
+        "sha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb"
+      }
+    },
+    {
+      "layout": "moved",
+      "runtime": {
+        "file": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/moved package/node_modules/virtual-bash/dist/shell/runtime.js",
+        "sha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb"
+      }
+    }
+  ],
+  "retainedWork": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS",
+  "runnerAlsoChecked": [
+    "built dist exact inventory",
+    "restored mutable mutant package exact954inventory",
+    "source original293hashes"
+  ],
+  "qualification": "Selected bound paths/tools and specified exact inventories only; no private/global workspace/RSS guarantee. Retained roots not deleted."
+}

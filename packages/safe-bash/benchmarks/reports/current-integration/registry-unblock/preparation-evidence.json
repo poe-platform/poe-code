@@ -1,0 +1,45 @@
+{
+  "preparedAt": "2026-08-27T00:25:29.845746+00:00",
+  "kind": "Static historical evidence and plan checks only",
+  "liveHeadAtInspectionOnly": "d0948bb6ee7de1ace668458a2d29521dcc161ce8",
+  "authorHandoffReceived": false,
+  "newValidationCommandsRun": [],
+  "acceptedReportCommit": "96db59ac7d355d1a94422634b4c4f53d00932ad9",
+  "acceptedArtifactsComparedToCommit": {
+    "clean-test.nonpass.json": "0dfb5f4b8cfc3505e2bb5de15c214e88f08d3a12a167716068f74e87bcc58543",
+    "clean-test.accounting.json": "f6159a21786b5351de72eff9eca32418595ea363643a385eea06cfc149d99328",
+    "clean-inputs.json": "f9501513043fa96615dea2795e8a47c8e4f5038028f51407fc6c129e4f366c22",
+    "clean-state.json": "1a5d6cc7bebfe46d1c18968e08eb6d3da74ab3c03f4da7ed70363d013ae6b135",
+    "audit.py": "5ae3eaa086b93bcd2c18d97d36950e5ff6c895e784f88163ec48bda7a044bc2a",
+    "account.py": "861d20a8bf0e46a2fb4e60ee8c5c5422989d599fc0d7568618797d965dfc1dd1",
+    "inventory.stdout.log": "89bb784d2152a9bff6a63e95f1294d16e2169e552c0371b077e77c560981ea3d",
+    "ARTIFACTS.sha256": "02081891bcb2698626a3255b2a898c222c297aada1e55951c9c5e8936f6a9f6f"
+  },
+  "historicalSnapshotReadOnly": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+  "historicalSourceFilesMatchedToManifest": {
+    "tests/integration/adapter-tools/matrix.test.ts": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+    "tests/commands/structured-stress/final-increment/fresh-interop.test.ts": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+    "tests/commands/structured-stress/split-increment/interop.test.ts": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+    "tests/integration/adapter-tools/fixtures.ts": "59ac2d1835ff329d0bbd08e3ae28bc8c656145e5bb568e6dbca0e851367cb3ab",
+    "src/plugins/index.ts": "0f715a884709bf4400f9868626b9e7ead32266fee7d3733ee2a5df235574174e",
+    "tests/commands/structured-stress/final-increment/fresh-native.json": "2724f85ce5745706a96fb9c0052d84df2cabd28e00811eb9e42ad34be105a4ca",
+    "tests/commands/structured-stress/split-increment/evidence.ts": "7c3437e366a5c034d87560189015b7cd132fea3727d3fd600acfe9c09c3561b0",
+    "tests/integration/adapter-tools-diagnostics/reference.json": "c62e4e68b6c2d79ce6e88ce958cc7df37a5b2cfa306d9779e0ba48f7f55039b4",
+    "package.json": "cd70038d1cb78ff164aa1c6819371d22afbc0c72c5d36c30345d2254602db2c3",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+  },
+  "historicalUniqueRegistryFailures": 99,
+  "matrix": 79,
+  "other": 20,
+  "otherBreakdown": {
+    "diagnostics": 8,
+    "freshInterop": 6,
+    "splitInterop": 6
+  },
+  "separateOpenJqExactDifferences": 42,
+  "executorReview": "audit.py fixed REPORT paths and account.py import-time writes make them unsafe to invoke; inspected as text only; future implementation must remain under registry-unblock",
+  "knownHistoricalAliasCaveat": "Unexecuted first-read-independent.snapshot.mjs and first-read-guard.snapshot.mjs remain out of scope; no universal computed-import claim",
+  "networkPreparation": "No network; required future loopback WebDAV policy requires root confirmation",
+  "dependencyPreparation": "No installs, dependency copies or validation execution yet; ready locked private reuse must be verified against explicit future handoff"
+}

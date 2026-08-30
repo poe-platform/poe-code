@@ -1,0 +1,45 @@
+{
+  "reason": "Initial staged whitespace check correctly found literal trailing-space context lines in raw candidate diffs and negative TAP. Preserve those exact data bytes with lossless encoding, rather than rewriting captures or relaxing checks.",
+  "entries": [
+    {
+      "original": "candidate.diff",
+      "archived": "candidate.diff.gz.base64",
+      "originalBytes": 17625,
+      "originalSha256": "7a9c2943f9bd0d102f800a99f17611fe12db774a2a38bec054c1b059d73daf57",
+      "compressedSha256": "c257dc426f7227005e208f10a869b1e035f481e8e279dcebde8f738fa64fb3bb",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-02/candidate.diff",
+      "archived": "attempt-02/candidate.diff.gz.base64",
+      "originalBytes": 17625,
+      "originalSha256": "7a9c2943f9bd0d102f800a99f17611fe12db774a2a38bec054c1b059d73daf57",
+      "compressedSha256": "c257dc426f7227005e208f10a869b1e035f481e8e279dcebde8f738fa64fb3bb",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-03/candidate.diff",
+      "archived": "attempt-03/candidate.diff.gz.base64",
+      "originalBytes": 17625,
+      "originalSha256": "7a9c2943f9bd0d102f800a99f17611fe12db774a2a38bec054c1b059d73daf57",
+      "compressedSha256": "c257dc426f7227005e208f10a869b1e035f481e8e279dcebde8f738fa64fb3bb",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-02/helper-child-3.tap",
+      "archived": "attempt-02/helper-child-3.tap.gz.base64",
+      "originalBytes": 10277,
+      "originalSha256": "5eecaaa485f88c3faa01db608fc48ca57e311bb1bade607ab9194852e687907f",
+      "compressedSha256": "ec0fd73353f19b7b346a6b4474941b90e8b1bd60fd3f2aebd8fb81e2c8c6c254",
+      "byteExactRoundTrip": true
+    },
+    {
+      "original": "attempt-03/helper-child-3.tap",
+      "archived": "attempt-03/helper-child-3.tap.gz.base64",
+      "originalBytes": 10277,
+      "originalSha256": "e3d9934dee58cc127fcd58737f1edba50605773fa5c82e4bf67bfd3d439c8d78",
+      "compressedSha256": "b4ab6a64e818dcd2d2d760d362c2c329677edac055c6c36cee30e1d44230d604",
+      "byteExactRoundTrip": true
+    }
+  ]
+}

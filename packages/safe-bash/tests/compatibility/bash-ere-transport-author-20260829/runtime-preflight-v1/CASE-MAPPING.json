@@ -1,0 +1,1920 @@
+{
+  "schema": 1,
+  "originalMatrixSha256": "a60fd1d971bc984c59e1e5b5d501c05b8e2a72857383a43fa385a512081608c5",
+  "families": 32,
+  "identities": 60,
+  "allStatus": "UNRUN",
+  "eligibleIdentities": 47,
+  "blockedIdentities": 13,
+  "cells": [
+    {
+      "id": "P01/matched-vector",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P01/matched-vector",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P01/matched-vector",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P02/empty-versus-absent",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P02/empty-versus-absent",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P02/empty-versus-absent",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P03/no-match-two-groups",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P03/no-match-two-groups",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P03/no-match-two-groups",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/undefined",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/undefined",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/undefined",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/null",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/null",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/null",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/false",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/false",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/false",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/0",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/0",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/0",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/empty-string",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/empty-string",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P04/empty-string",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/getter",
+      "layout": "built",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/getter",
+      "layout": "installed",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/getter",
+      "layout": "moved",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/proxy",
+      "layout": "built",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/proxy",
+      "layout": "installed",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/proxy",
+      "layout": "moved",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/extra-symbol",
+      "layout": "built",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/extra-symbol",
+      "layout": "installed",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P05/extra-symbol",
+      "layout": "moved",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/hole",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/hole",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/hole",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/wrong-count",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/wrong-count",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/wrong-count",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/outside-overall",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/outside-overall",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P06/outside-overall",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/over-grant",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/over-grant",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/over-grant",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/noninteger",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/noninteger",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/noninteger",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/syntax-usage",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/syntax-usage",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/syntax-usage",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/unsupported-usage",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/unsupported-usage",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/unsupported-usage",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/profile-limit-usage",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/profile-limit-usage",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P08/profile-limit-usage",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/duplicate",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/duplicate",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/duplicate",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/stale-id",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/stale-id",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/stale-id",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/wrong-operation",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/wrong-operation",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "P09/wrong-operation",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L01/register-throws",
+      "layout": "built",
+      "method": "NO_WORKER",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L01/register-throws",
+      "layout": "installed",
+      "method": "NO_WORKER",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L01/register-throws",
+      "layout": "moved",
+      "method": "NO_WORKER",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L01/closed-before-activation",
+      "layout": "built",
+      "method": "NO_WORKER",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L01/closed-before-activation",
+      "layout": "installed",
+      "method": "NO_WORKER",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L01/closed-before-activation",
+      "layout": "moved",
+      "method": "NO_WORKER",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L02/handler-setup-throws",
+      "layout": "built",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L02/handler-setup-throws",
+      "layout": "installed",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L02/handler-setup-throws",
+      "layout": "moved",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L02/postMessage-throws",
+      "layout": "built",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L02/postMessage-throws",
+      "layout": "installed",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L02/postMessage-throws",
+      "layout": "moved",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 64
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 64
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 64
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L05/reply-then-parent-abort",
+      "layout": "built",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L05/reply-then-parent-abort",
+      "layout": "installed",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L05/reply-then-parent-abort",
+      "layout": "moved",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L06/startup-timeout",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L06/startup-timeout",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L06/startup-timeout",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L06/request-timeout",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L06/request-timeout",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L06/request-timeout",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L07/worker-error",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L07/worker-error",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L07/worker-error",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L08/termination-rejects-undefined",
+      "layout": "built",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L08/termination-rejects-undefined",
+      "layout": "installed",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L08/termination-rejects-undefined",
+      "layout": "moved",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "layout": "built",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "layout": "installed",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "layout": "moved",
+      "method": "INSTRUMENTED_PARENT",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/zero",
+      "layout": "built",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/zero",
+      "layout": "installed",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/zero",
+      "layout": "moved",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/exact-boundary",
+      "layout": "built",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/exact-boundary",
+      "layout": "installed",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/exact-boundary",
+      "layout": "moved",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/one-over",
+      "layout": "built",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/one-over",
+      "layout": "installed",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B03/one-over",
+      "layout": "moved",
+      "method": "PURE",
+      "Worker": 0,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B04/crash-unproved",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B04/crash-unproved",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B04/crash-unproved",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B05/failed-syntax-then-job",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 2
+    },
+    {
+      "id": "B05/failed-syntax-then-job",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 2
+    },
+    {
+      "id": "B05/failed-syntax-then-job",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 2
+    },
+    {
+      "id": "B06/input-mutation-after-admission",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B06/input-mutation-after-admission",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "B06/input-mutation-after-admission",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "A02/source-built",
+      "layout": "built",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "A02/installed",
+      "layout": "installed",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "A02/physical-move",
+      "layout": "moved",
+      "method": "REAL_WORKER",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "A03/workerData-env-execArgv",
+      "layout": "built",
+      "method": "INSTRUMENTED_CHILD_LOAD",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "A03/workerData-env-execArgv",
+      "layout": "installed",
+      "method": "INSTRUMENTED_CHILD_LOAD",
+      "Worker": 1,
+      "requestCeiling": 1
+    },
+    {
+      "id": "A03/workerData-env-execArgv",
+      "layout": "moved",
+      "method": "INSTRUMENTED_CHILD_LOAD",
+      "Worker": 1,
+      "requestCeiling": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "P01/matched-vector",
+      "family": "P01",
+      "variant": "matched-vector",
+      "originalRole": "synthetic-protocol",
+      "expected": "Exact five-key result and seven-key usage; matching ID/grant; complete0..N non-null group0, usage.work/allocatedUnits equality; accept only once.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P02/empty-versus-absent",
+      "family": "P02",
+      "variant": "empty-versus-absent",
+      "originalRole": "synthetic-protocol",
+      "expected": "Same bounded subject with one null capture and one {start:1,end:1}; preserve distinction through transport, not truthiness.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P03/no-match-two-groups",
+      "family": "P03",
+      "variant": "no-match-two-groups",
+      "originalRole": "synthetic-protocol",
+      "expected": "Compile groupCount2, pure no-match empty vectors; adapter sends3 null spans, no values; no false truncated success.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P04/undefined",
+      "family": "P04",
+      "variant": "undefined",
+      "originalRole": "synthetic-protocol",
+      "expected": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P04/null",
+      "family": "P04",
+      "variant": "null",
+      "originalRole": "synthetic-protocol",
+      "expected": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P04/false",
+      "family": "P04",
+      "variant": "false",
+      "originalRole": "synthetic-protocol",
+      "expected": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P04/0",
+      "family": "P04",
+      "variant": "0",
+      "originalRole": "synthetic-protocol",
+      "expected": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P04/empty-string",
+      "family": "P04",
+      "variant": "empty-string",
+      "originalRole": "synthetic-protocol",
+      "expected": "Each whole reply refuses PROTOCOL; none means no-match; serialized receipt labels cannot substitute raw reason identity.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P05/getter",
+      "family": "P05",
+      "variant": "getter",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject before getter/trap/coercion invocation; assert zero observation calls, exact finite own keys.",
+      "status": "UNRUN",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P05/proxy",
+      "family": "P05",
+      "variant": "proxy",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject before getter/trap/coercion invocation; assert zero observation calls, exact finite own keys.",
+      "status": "UNRUN",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P05/extra-symbol",
+      "family": "P05",
+      "variant": "extra-symbol",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject before getter/trap/coercion invocation; assert zero observation calls, exact finite own keys.",
+      "status": "UNRUN",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P06/hole",
+      "family": "P06",
+      "variant": "hole",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject bounded sparse/cardinality/out-of-range frames before capture copying.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P06/wrong-count",
+      "family": "P06",
+      "variant": "wrong-count",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject bounded sparse/cardinality/out-of-range frames before capture copying.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P06/outside-overall",
+      "family": "P06",
+      "variant": "outside-overall",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject bounded sparse/cardinality/out-of-range frames before capture copying.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P07/over-grant",
+      "family": "P07",
+      "variant": "over-grant",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject usage overflow/fractional values and result.steps!=usage.work; preserve outstanding grant consumption.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P07/noninteger",
+      "family": "P07",
+      "variant": "noninteger",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject usage overflow/fractional values and result.steps!=usage.work; preserve outstanding grant consumption.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "family": "P07",
+      "variant": "duplicate-counter-mismatch",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject usage overflow/fractional values and result.steps!=usage.work; preserve outstanding grant consumption.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P08/syntax-usage",
+      "family": "P08",
+      "variant": "syntax-usage",
+      "originalRole": "synthetic-protocol",
+      "expected": "Every known semantic failure has full bounded seven-key usage and correct resource-null rule; no fabricated zero.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P08/unsupported-usage",
+      "family": "P08",
+      "variant": "unsupported-usage",
+      "originalRole": "synthetic-protocol",
+      "expected": "Every known semantic failure has full bounded seven-key usage and correct resource-null rule; no fabricated zero.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P08/profile-limit-usage",
+      "family": "P08",
+      "variant": "profile-limit-usage",
+      "originalRole": "synthetic-protocol",
+      "expected": "Every known semantic failure has full bounded seven-key usage and correct resource-null rule; no fabricated zero.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P09/duplicate",
+      "family": "P09",
+      "variant": "duplicate",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject repeat or other-family replies and prohibit second commit/refund or capture publication.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P09/stale-id",
+      "family": "P09",
+      "variant": "stale-id",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject repeat or other-family replies and prohibit second commit/refund or capture publication.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "P09/wrong-operation",
+      "family": "P09",
+      "variant": "wrong-operation",
+      "originalRole": "synthetic-protocol",
+      "expected": "Reject repeat or other-family replies and prohibit second commit/refund or capture publication.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L01/register-throws",
+      "family": "L01",
+      "variant": "register-throws",
+      "originalRole": "synthetic-owner",
+      "expected": "No Worker/timer/listener acquisition after registration failure or prior close; raw primary retained.",
+      "status": "UNRUN",
+      "method": "NO_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L01/closed-before-activation",
+      "family": "L01",
+      "variant": "closed-before-activation",
+      "originalRole": "synthetic-owner",
+      "expected": "No Worker/timer/listener acquisition after registration failure or prior close; raw primary retained.",
+      "status": "UNRUN",
+      "method": "NO_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L02/handler-setup-throws",
+      "family": "L02",
+      "variant": "handler-setup-throws",
+      "originalRole": "synthetic-owner",
+      "expected": "Returned Worker handle is already owned; all fallible post-acquisition routes drain, including publication failure.",
+      "status": "UNRUN",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L02/postMessage-throws",
+      "family": "L02",
+      "variant": "postMessage-throws",
+      "originalRole": "synthetic-owner",
+      "expected": "Returned Worker handle is already owned; all fallible post-acquisition routes drain, including publication failure.",
+      "status": "UNRUN",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "family": "L03",
+      "variant": "queued-abort-false",
+      "originalRole": "real-Worker-future",
+      "expected": "Bounded queued child abort(false) removes only that request; sibling finishes; raw false and parent ledger retained.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 64,
+      "blocker": null
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "family": "L04",
+      "variant": "active-abort-zero",
+      "originalRole": "real-Worker-future",
+      "expected": "Abort the active held request with actual AbortController.abort(0); preserve raw0 and require actual Worker retirement/session cleanup before settlement. Do not assume abort(undefined) produces undefined; undefined failure identity is exercised on explicit rejection/cleanup routes.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L05/reply-then-parent-abort",
+      "family": "L05",
+      "variant": "reply-then-parent-abort",
+      "originalRole": "real-Worker-future",
+      "expected": "Validated usage accounted once; caller abort before publication wins by actual runtime provenance, not payload equality.",
+      "status": "UNRUN",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L06/startup-timeout",
+      "family": "L06",
+      "variant": "startup-timeout",
+      "originalRole": "real-Worker-future",
+      "expected": "Each timed-out acquired Worker is retired; no match/syntax result; unproved grant consumed, no automatic restart refund.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L06/request-timeout",
+      "family": "L06",
+      "variant": "request-timeout",
+      "originalRole": "real-Worker-future",
+      "expected": "Each timed-out acquired Worker is retired; no match/syntax result; unproved grant consumed, no automatic restart refund.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L07/worker-error",
+      "family": "L07",
+      "variant": "worker-error",
+      "originalRole": "real-Worker-future",
+      "expected": "Bounded static fault fixture exercises each actual terminal route and exact module load; no pretend spawned/closed events.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L07/messageerror",
+      "family": "L07",
+      "variant": "messageerror",
+      "originalRole": "real-Worker-future",
+      "expected": "Bounded static fault fixture exercises each actual terminal route and exact module load; no pretend spawned/closed events.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "No source-bound genuine native deserialization-failure trigger; emit(messageerror) would be synthetic, not the frozen real route."
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "family": "L07",
+      "variant": "unexpected-exit",
+      "originalRole": "real-Worker-future",
+      "expected": "Bounded static fault fixture exercises each actual terminal route and exact module load; no pretend spawned/closed events.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L08/termination-rejects-undefined",
+      "family": "L08",
+      "variant": "termination-rejects-undefined",
+      "originalRole": "synthetic-owner",
+      "expected": "Failed termination retains presence/ownership; other cleanups attempted; cannot mark free/clean.",
+      "status": "UNRUN",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "family": "L09",
+      "variant": "instrumented-publication-rejects",
+      "originalRole": "synthetic-owner",
+      "expected": "If test instrumentation returns async work, enroll/await it and cleanup; its failure cannot mask earlier caller/execution reason. No new public observer hook.",
+      "status": "UNRUN",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "B01/root-descendants",
+      "family": "B01",
+      "variant": "root-descendants",
+      "originalRole": "runtime-integration-future",
+      "expected": "One explicit root performs successive ERE jobs through internal invoke, pipeline and substitution; shared remaining counters, no state-clone refund.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs accepted Shell descendant integration; private root stand-in cannot satisfy original role."
+    },
+    {
+      "id": "B02/fresh-independent-exec",
+      "family": "B02",
+      "variant": "fresh-independent-exec",
+      "originalRole": "runtime-integration-future",
+      "expected": "Two independent public exec calls on same Shell each create fresh ERE root; concurrent roots never share mutable usage.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs public Shell.exec independent-root mapping."
+    },
+    {
+      "id": "B03/zero",
+      "family": "B03",
+      "variant": "zero",
+      "originalRole": "data-accounting-future",
+      "expected": "After exact cap/unit approval, exercise checked arithmetic and zero unchanged; no compiler/Worker needed for accounting fixtures.",
+      "status": "UNRUN",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "B03/exact-boundary",
+      "family": "B03",
+      "variant": "exact-boundary",
+      "originalRole": "data-accounting-future",
+      "expected": "After exact cap/unit approval, exercise checked arithmetic and zero unchanged; no compiler/Worker needed for accounting fixtures.",
+      "status": "UNRUN",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "B03/one-over",
+      "family": "B03",
+      "variant": "one-over",
+      "originalRole": "data-accounting-future",
+      "expected": "After exact cap/unit approval, exercise checked arithmetic and zero unchanged; no compiler/Worker needed for accounting fixtures.",
+      "status": "UNRUN",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "B04/crash-unproved",
+      "family": "B04",
+      "variant": "crash-unproved",
+      "originalRole": "synthetic-owner",
+      "expected": "Consume complete unresolved cumulative allowance; fresh Worker cannot restore credit; live storage release waits retirement.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "family": "B04",
+      "variant": "malformed-unproved",
+      "originalRole": "synthetic-owner",
+      "expected": "Consume complete unresolved cumulative allowance; fresh Worker cannot restore credit; live storage release waits retirement.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "B05/failed-syntax-then-job",
+      "family": "B05",
+      "variant": "failed-syntax-then-job",
+      "originalRole": "synthetic-owner",
+      "expected": "Known syntax failure commits measured pure-ledger usage; next job sees residual root grant with unchanged per-input caps.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 2,
+      "blocker": null
+    },
+    {
+      "id": "B06/input-mutation-after-admission",
+      "family": "B06",
+      "variant": "input-mutation-after-admission",
+      "originalRole": "synthetic-owner",
+      "expected": "Caller mutates fragment container after awaited transfer; owned snapshot stable, copy/queue overhead precharged, no unbounded empty-fragment vector.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "B07/capture-byte-overflow",
+      "family": "B07",
+      "variant": "capture-byte-overflow",
+      "originalRole": "runtime-integration-future",
+      "expected": "Span sums/slots exceed private cap before string/array publication; status3, prior captures preserved, no maxExpansionFields fabrication.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs actual shell capture publication/Budget integration."
+    },
+    {
+      "id": "B07/capture-slot-overflow",
+      "family": "B07",
+      "variant": "capture-slot-overflow",
+      "originalRole": "runtime-integration-future",
+      "expected": "Span sums/slots exceed private cap before string/array publication; status3, prior captures preserved, no maxExpansionFields fabrication.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs actual shell capture publication/Budget integration."
+    },
+    {
+      "id": "C01/readonly-capture-target",
+      "family": "C01",
+      "variant": "readonly-capture-target",
+      "originalRole": "runtime-integration-future",
+      "expected": "Match remains0/1 under approved readonly rule, old binding unchanged, required diagnostic awaited; no attribute removal.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs readonly shell capture publication."
+    },
+    {
+      "id": "C02/public-expansion-limit",
+      "family": "C02",
+      "variant": "public-expansion-limit",
+      "originalRole": "runtime-integration-future",
+      "expected": "Actual existing Budget error identities and raw sink false survive; private profile error never replaces them.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs shared public Budget/sink boundary."
+    },
+    {
+      "id": "C02/public-output-limit",
+      "family": "C02",
+      "variant": "public-output-limit",
+      "originalRole": "runtime-integration-future",
+      "expected": "Actual existing Budget error identities and raw sink false survive; private profile error never replaces them.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs shared public Budget/sink boundary."
+    },
+    {
+      "id": "C02/sink-raw-false",
+      "family": "C02",
+      "variant": "sink-raw-false",
+      "originalRole": "runtime-integration-future",
+      "expected": "Actual existing Budget error identities and raw sink false survive; private profile error never replaces them.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs shared public Budget/sink boundary."
+    },
+    {
+      "id": "C03/short-circuited-regex",
+      "family": "C03",
+      "variant": "short-circuited-regex",
+      "originalRole": "runtime-integration-future",
+      "expected": "Unvisited RHS has zero expansion, compilation, Worker starts, usage and capture mutation; parser errors still belong to shell grammar.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs conditional runtime short-circuit."
+    },
+    {
+      "id": "A01/expr-contract-pins",
+      "family": "A01",
+      "variant": "expr-contract-pins",
+      "originalRole": "legacy-regression-future",
+      "expected": "Old RegexExecutionOptions/Descriptor/Request/Reply/Expr* declaration bodies unchanged; replay bounded already-owned expr contract cases only under future GO, never reinterpret ERE as expr-match.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Needs accepted legacy Expr contract inputs/authorization; do not substitute private types."
+    },
+    {
+      "id": "A02/source-built",
+      "family": "A02",
+      "variant": "source-built",
+      "originalRole": "package-load-future",
+      "expected": "Pin every new emitted Worker/engine/validator asset and importer edge; old installation absent after move, no raw-source or ambient-module fallback.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "A02/installed",
+      "family": "A02",
+      "variant": "installed",
+      "originalRole": "package-load-future",
+      "expected": "Pin every new emitted Worker/engine/validator asset and importer edge; old installation absent after move, no raw-source or ambient-module fallback.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "installed"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "A02/physical-move",
+      "family": "A02",
+      "variant": "physical-move",
+      "originalRole": "package-load-future",
+      "expected": "Pin every new emitted Worker/engine/validator asset and importer edge; old installation absent after move, no raw-source or ambient-module fallback.",
+      "status": "UNRUN",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "A03/workerData-env-execArgv",
+      "family": "A03",
+      "variant": "workerData-env-execArgv",
+      "originalRole": "loader-authority-future",
+      "expected": "Exact inert WorkerData, empty env and approved bootstrap execArgv; actual ERE Worker load identity observed, not merely parent hook. Legacy expr Worker flags unchanged.",
+      "status": "UNRUN",
+      "method": "INSTRUMENTED_CHILD_LOAD",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "workerCeiling": 1,
+      "requestCeiling": 1,
+      "blocker": null
+    },
+    {
+      "id": "A04/positive-new-method",
+      "family": "A04",
+      "variant": "positive-new-method",
+      "originalRole": "types-future",
+      "expected": "New internal session/type shapes compile against actual engine declarations; old descriptor/request methods reject shell-ere and no new root/export/options key appears.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Type-consumer obligations need a separate exact consumer/legacy declaration preseal; strict12 build is not their replay."
+    },
+    {
+      "id": "A04/negative-old-union",
+      "family": "A04",
+      "variant": "negative-old-union",
+      "originalRole": "types-future",
+      "expected": "New internal session/type shapes compile against actual engine declarations; old descriptor/request methods reject shell-ere and no new root/export/options key appears.",
+      "status": "UNRUN",
+      "method": "BLOCKED",
+      "layouts": [],
+      "workerCeiling": 0,
+      "requestCeiling": 1,
+      "blocker": "Type-consumer obligations need a separate exact consumer/legacy declaration preseal; strict12 build is not their replay."
+    }
+  ]
+}

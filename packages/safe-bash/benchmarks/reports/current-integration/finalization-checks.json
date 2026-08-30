@@ -1,0 +1,27 @@
+{
+  "capturedAt": "2026-08-27T00:13:17.137566+00:00",
+  "scope": "Report-only finalization; no tests/builds/comparison or source/dependency/expectation edits",
+  "historicalManifestEntriesChecked": 90,
+  "intentionalHistoricalArtifactEdits": [
+    "README.md"
+  ],
+  "otherHistoricalArtifactHashMismatches": [],
+  "independentReviewInputHashesVerified": true,
+  "processCheck": "Read-only process-table scan excluding this finalizer and its ancestors; no command referencing the dedicated audit workspace. Prior bounded-child cleanup evidence remains; not an OS confinement or universal hidden-process proof.",
+  "matchingAuditProcesses": [],
+  "isolatedTmpChildren": [],
+  "retainedSnapshots": {
+    "source": {
+      "selectedRegularFiles": 1341,
+      "unexpectedFilesOutsideRetainedDistAndDependencies": [],
+      "unexpectedFixtureDirectories": []
+    },
+    "source-clean": {
+      "selectedRegularFiles": 1266,
+      "unexpectedFilesOutsideRetainedDistAndDependencies": [],
+      "unexpectedFixtureDirectories": []
+    }
+  },
+  "stagedPathsBeforeFinalization": [],
+  "evidenceCommitDoesNotCommitAuditedDirtySource": true
+}

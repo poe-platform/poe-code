@@ -1,0 +1,348 @@
+{
+  "controls": [
+    {
+      "id": "inner-ps-and-write-fences",
+      "status": "PASS",
+      "evidence": {
+        "ps": {
+          "status": null,
+          "error": "EPERM"
+        },
+        "writeError": "EPERM"
+      }
+    },
+    {
+      "id": "foreign-pid-registration-refused",
+      "status": "PASS",
+      "evidence": {
+        "message": "observer accepts only actual direct children of its owned requester\n\n72302 !== 76926\n"
+      }
+    },
+    {
+      "id": "unknown-handle-refused",
+      "status": "PASS",
+      "evidence": {
+        "message": "unknown observation capability"
+      }
+    },
+    {
+      "id": "wrong-channel-token-refused",
+      "status": "PASS",
+      "evidence": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'independent-wrong-token'\n- '5d71538d-10f7-45e9-9e6e-8038b8324bfc'\n"
+      }
+    },
+    {
+      "id": "positive-exact-backslash-and-contained-link",
+      "status": "PASS",
+      "evidence": {
+        "result": {
+          "status": 0,
+          "signal": null,
+          "closed": true,
+          "stderrBytes": 0,
+          "survivors": [],
+          "entries": 6,
+          "bytes": 74,
+          "transferBytes": 371,
+          "hashes": {
+            "ordinary": "c66850e65f543eb51801432a07c3114c1a2d448c132f9177282973a8b9ed08d6",
+            "contained": "03822375f2aca5e53d66838a3e803183e0c1a7921da8e4056d3341ea95777cd9",
+            "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\slash": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+            "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/back\\slash": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+            "literal\\name": "fe6195ddef72414a1c4640265fbde5e1e68f8ecf4423d5197d924fc68605d6a2",
+            "literal-link": "77be8c89b3a74301e778527d628aeaf459545d91fe3be63e12504b753b91cd21"
+          },
+          "projection": {
+            "format": "unified76-logical-projection-v1",
+            "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+            "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+            "entriesSha256": "04f31dacfa7cd9fd8f13604574236130a6634012d9e2f7f34e7660a4b1d19882",
+            "logical": {
+              "entries": 6,
+              "bytes": 74
+            },
+            "physical": {
+              "entries": 6,
+              "bytes": 74
+            },
+            "metadataOnly": []
+          },
+          "method": "All original logical Git blobs streamed and authenticated; exactly pinned instruction bodies hash-discarded without plaintext files; remaining entries extracted without filters"
+        },
+        "archive": {
+          "files": {
+            "ordinary": {
+              "blob": "a76db6d0092895bbc2b2d72e9e0d5c0477f27797",
+              "sha256": "c66850e65f543eb51801432a07c3114c1a2d448c132f9177282973a8b9ed08d6",
+              "bytes": 28,
+              "mode": 420,
+              "symlink": false
+            },
+            "contained": {
+              "blob": "1dc8238bd238e49120ab4aad8afc4f037732ca83",
+              "sha256": "03822375f2aca5e53d66838a3e803183e0c1a7921da8e4056d3341ea95777cd9",
+              "bytes": 8,
+              "mode": 493,
+              "symlink": true
+            },
+            "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\slash": {
+              "blob": "63d8dbd40c23542e740659a7168a0ce3138ea748",
+              "sha256": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+              "bytes": 1,
+              "mode": 420,
+              "symlink": false
+            },
+            "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/back\\slash": {
+              "blob": "63d8dbd40c23542e740659a7168a0ce3138ea748",
+              "sha256": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+              "bytes": 1,
+              "mode": 420,
+              "symlink": false
+            },
+            "literal\\name": {
+              "blob": "56724d12d722a5900d786f17622c355317b8f647",
+              "sha256": "fe6195ddef72414a1c4640265fbde5e1e68f8ecf4423d5197d924fc68605d6a2",
+              "bytes": 24,
+              "mode": 420,
+              "symlink": false
+            },
+            "literal-link": {
+              "blob": "c4a5493cce42252251214a254b37fe046267cc6c",
+              "sha256": "77be8c89b3a74301e778527d628aeaf459545d91fe3be63e12504b753b91cd21",
+              "bytes": 12,
+              "mode": 493,
+              "symlink": true
+            }
+          },
+          "count": 6,
+          "logical": {
+            "count": 6,
+            "bytes": 74
+          },
+          "metadataOnly": [],
+          "projection": null,
+          "source": "Exact physical input/directory set plus separately verified metadata-only logical entries; streamed Git blob/SHA256/mode/type authentication"
+        },
+        "pathProfile": {
+          "platform": "darwin",
+          "arch": "arm64",
+          "syntax": "posix",
+          "separator": "/"
+        }
+      }
+    },
+    {
+      "id": "traversal",
+      "status": "PASS",
+      "evidence": {
+        "input": {
+          "entries": [
+            {
+              "path": "../ESCAPED",
+              "mode": "100644",
+              "blob": "a76db6d0092895bbc2b2d72e9e0d5c0477f27797",
+              "bytes": 28
+            }
+          ]
+        },
+        "refusal": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\n",
+          "code": "ERR_ASSERTION"
+        },
+        "destinationExists": false
+      }
+    },
+    {
+      "id": "git-metadata",
+      "status": "PASS",
+      "evidence": {
+        "input": {
+          "entries": [
+            {
+              "path": ".git/config",
+              "mode": "100644",
+              "blob": "a76db6d0092895bbc2b2d72e9e0d5c0477f27797",
+              "bytes": 28
+            }
+          ]
+        },
+        "refusal": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\n",
+          "code": "ERR_ASSERTION"
+        },
+        "destinationExists": false
+      }
+    },
+    {
+      "id": "duplicate-entry",
+      "status": "PASS",
+      "evidence": {
+        "input": {
+          "entries": [
+            {
+              "path": "ordinary",
+              "mode": "100644",
+              "blob": "a76db6d0092895bbc2b2d72e9e0d5c0477f27797",
+              "bytes": 28
+            },
+            {
+              "path": "ordinary",
+              "mode": "100644",
+              "blob": "a76db6d0092895bbc2b2d72e9e0d5c0477f27797",
+              "bytes": 28
+            }
+          ]
+        },
+        "refusal": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!seen.has(entry.path))\n",
+          "code": "ERR_ASSERTION"
+        },
+        "destinationExists": false
+      }
+    },
+    {
+      "id": "link-ancestor",
+      "status": "PASS",
+      "evidence": {
+        "input": {
+          "entries": [
+            {
+              "path": "contained",
+              "mode": "120000",
+              "blob": "1dc8238bd238e49120ab4aad8afc4f037732ca83",
+              "bytes": 8
+            },
+            {
+              "path": "contained/child",
+              "mode": "100644",
+              "blob": "a76db6d0092895bbc2b2d72e9e0d5c0477f27797",
+              "bytes": 28
+            }
+          ]
+        },
+        "refusal": {
+          "message": "symlink ancestor is not an extraction directory",
+          "code": "ERR_ASSERTION"
+        },
+        "destinationExists": false
+      }
+    },
+    {
+      "id": "wrong-platform",
+      "status": "PASS",
+      "evidence": {
+        "input": {
+          "entries": [
+            {
+              "path": "ordinary",
+              "mode": "100644",
+              "blob": "a76db6d0092895bbc2b2d72e9e0d5c0477f27797",
+              "bytes": 28
+            }
+          ],
+          "pathProfile": {
+            "platform": "win32",
+            "arch": "arm64",
+            "syntax": "posix",
+            "separator": "/"
+          }
+        },
+        "refusal": {
+          "message": "only the pinned POSIX archive path profile is supported\n+ actual - expected\n\n  {\n    arch: 'arm64',\n+   platform: 'win32',\n-   platform: 'darwin',\n    separator: '/',\n    syntax: 'posix'\n  }\n",
+          "code": "ERR_ASSERTION"
+        },
+        "destinationExists": false
+      }
+    },
+    {
+      "id": "wrong-size-header",
+      "status": "PASS",
+      "evidence": {
+        "input": {
+          "entries": [
+            {
+              "path": "ordinary",
+              "mode": "100644",
+              "blob": "a76db6d0092895bbc2b2d72e9e0d5c0477f27797",
+              "bytes": 29
+            }
+          ]
+        },
+        "refusal": {
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'a76db6d0092895bbc2b2d72e9e0d5c0477f27797 blob 28'\n- 'a76db6d0092895bbc2b2d72e9e0d5c0477f27797 blob 29'\n",
+          "code": "ERR_ASSERTION"
+        },
+        "destinationExists": false
+      }
+    },
+    {
+      "id": "missing-object-header",
+      "status": "PASS",
+      "evidence": {
+        "input": {
+          "entries": [
+            {
+              "path": "ordinary",
+              "mode": "100644",
+              "blob": "0000000000000000000000000000000000000000",
+              "bytes": 28
+            }
+          ]
+        },
+        "refusal": {
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000 missing'\n- '0000000000000000000000000000000000000000 blob 28'\n",
+          "code": "ERR_ASSERTION"
+        },
+        "destinationExists": false
+      }
+    },
+    {
+      "id": "escaping-link",
+      "status": "PASS",
+      "evidence": {
+        "input": {
+          "entries": [
+            {
+              "path": "escape",
+              "mode": "120000",
+              "blob": "530908c64177608e5adf9d4628484bd63ca6cf44",
+              "bytes": 10
+            }
+          ]
+        },
+        "refusal": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(link)&&normalized!=='..'&&!normalized.startsWith('../')&&!link.includes('\\0'))\n",
+          "code": "ERR_ASSERTION"
+        },
+        "destinationExists": true
+      }
+    }
+  ],
+  "loads": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/transport.mjs",
+      "sha256": "a4165aaef80bb07bc4a899fe297124e2ecdc6c1454aeef228b52badf75f01e10"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/projection.mjs",
+      "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/inventory.mjs",
+      "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/process-observer.mjs",
+      "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/supervise.mjs",
+      "sha256": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55"
+    }
+  ]
+}

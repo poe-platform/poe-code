@@ -1,0 +1,196 @@
+{
+  "classification": "BLOCKED_PRE_RUNTIME_AUTHENTICATION",
+  "runtimePasses": 0,
+  "runtimeFailures": 0,
+  "invalidFixtures": 0,
+  "blockedProfiles": 25,
+  "preflightRefusals": 1,
+  "invocations": 1,
+  "automaticRetries": 0,
+  "nodeParents": 0,
+  "guestChildren": 0,
+  "engineRuns": 0,
+  "authorizationCalls": 0,
+  "transportCalls": 0,
+  "zeroCallsQualification": "Not a positive workflow result; no runtime launched.",
+  "cohorts": [
+    {
+      "cohort": "surface",
+      "scheduled": 8,
+      "status": "BLOCKED",
+      "rows": [
+        {
+          "id": "01-supported-facades",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "02-direct-surface",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "03-namespace-spread",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "04-shell-module",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "05-missing-register-cleanup",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "06-missing-acquire",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "07-reflection-profile",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "08-function-spread-profile",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        }
+      ]
+    },
+    {
+      "cohort": "lifecycle",
+      "scheduled": 11,
+      "status": "BLOCKED",
+      "rows": [
+        {
+          "id": "L01-aliases",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L02-budget-positive",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L02-budget-exhausted",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L03-callback-live",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L03-callback-after-lifetime",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L04-explicit-children",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L05-caller-error",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L05-execution-error",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L05-cleanup-error",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L06-curl-open",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "L06-curl-consumer-closed",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        }
+      ]
+    },
+    {
+      "cohort": "controls",
+      "scheduled": 6,
+      "status": "BLOCKED",
+      "rows": [
+        {
+          "id": "Z01-open",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "Z01-closed",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "Z02-open",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "Z02-closed",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "Z03-open",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        },
+        {
+          "id": "Z03-closed",
+          "status": "BLOCKED",
+          "engineRuns": 0,
+          "reason": "Whole-author-tree preflight refusal before any cohort entry"
+        }
+      ]
+    }
+  ],
+  "dataOnlyNegatives": {
+    "planned": 7,
+    "executed": 0,
+    "status": "BLOCKED_NO_ACTUAL_BASELINES"
+  },
+  "hostObserverControlsExecuted": 0,
+  "noPromotion": true
+}

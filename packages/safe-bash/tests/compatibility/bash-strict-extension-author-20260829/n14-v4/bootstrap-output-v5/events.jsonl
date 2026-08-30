@@ -1,0 +1,5 @@
+{"role":"DATA_BOOTSTRAP_ONLY","pid":42335,"started":"2026-08-29T08:07:06.333Z","productExecutions":0}
+{"inheritedControls":3,"evidence":"0db27688d279423f6eb7a4f8eb5c430f50876b49","rerun":false}
+{"args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/prepare-entry-v5.mjs"],"pid":42338,"status":0,"signal":null,"prefix":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output-v5/0"}
+{"args":["/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/prepare-entry-v5.mjs","--prepare"],"pid":42339,"status":0,"signal":null,"prefix":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output-v5/1"}
+{"finished":"2026-08-29T08:07:07.472Z","inheritedControls":3,"freshSyntaxAdmission":1,"productExecutions":0}

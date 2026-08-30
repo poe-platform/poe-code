@@ -1,0 +1,351 @@
+{
+  "version": 1,
+  "execution": "NOT_RUN",
+  "scope": "Finite synthetic own-data rehearsal only. Root separately owns actual tool-role routes/admission. These are not product JSON inputs, no cross-realm ByteSource assertion, no sandbox guarantee.",
+  "validRecord": {
+    "version": 1,
+    "role": "independent-matrix",
+    "route": "synthetic-data-only",
+    "caseIds": [
+      "P01",
+      "S01"
+    ],
+    "execution": "NOT_RUN"
+  },
+  "validationContract": {
+    "keys": [
+      "version",
+      "role",
+      "route",
+      "caseIds",
+      "execution"
+    ],
+    "ownDataOnly": true,
+    "extrasIncludingSymbolsAndNonenumerables": "reject",
+    "prototypeIdentity": "irrelevant",
+    "arrayKeys": "length and exactly indices0,1; each own data; no holes/extras",
+    "values": "exact finite values and order in validRecord; no coercion",
+    "throwReason": "Unexpected thrown values remain exact values; never coerce errors for dispatch.",
+    "route": "No product dispatch for any rehearsal row. Wrong route rejects, not an alternate tool fallback."
+  },
+  "controls": [
+    {
+      "id": "T01",
+      "name": "same-realm valid own data",
+      "transformation": "identity",
+      "expected": {
+        "accepted": true,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T02",
+      "name": "cross-realm objects and arrays accepted without prototype equality",
+      "transformation": "cross-realm",
+      "expected": {
+        "accepted": true,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T03",
+      "name": "null-prototype own-data record accepted",
+      "transformation": "null-prototype",
+      "expected": {
+        "accepted": true,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T04",
+      "name": "enumerable extra key refused",
+      "transformation": "extra-enumerable",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T05",
+      "name": "nonenumerable extra key refused",
+      "transformation": "extra-nonenumerable",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T06",
+      "name": "symbol extra key refused",
+      "transformation": "extra-symbol",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T07",
+      "name": "accessor is refused without calling getter",
+      "transformation": "accessor",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T08",
+      "name": "array hole refused without inherited fill",
+      "transformation": "array-hole",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T09",
+      "name": "array own extra key refused",
+      "transformation": "array-extra",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T10",
+      "name": "case sequence reversal refused",
+      "transformation": "reverse-sequence",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T11",
+      "name": "duplicate case id refused",
+      "transformation": "duplicate-case",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T12",
+      "name": "NaN version refused without coercion",
+      "transformation": "nan-version",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T13",
+      "name": "boxed numeric version refused",
+      "transformation": "boxed-version",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T14",
+      "name": "inherited required key cannot replace own key",
+      "transformation": "inherited-role",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T15",
+      "name": "missing own field refused",
+      "transformation": "missing-field",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T16",
+      "name": "different role denied",
+      "transformation": "wrong-role",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T17",
+      "name": "unmeasured case cannot be relabeled PASS",
+      "transformation": "wrong-execution",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T18",
+      "name": "wrong route refused before dispatch",
+      "transformation": "wrong-route",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T19",
+      "name": "array index accessor refused without evaluating",
+      "transformation": "array-accessor",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    },
+    {
+      "id": "T20",
+      "name": "infinite version refused",
+      "transformation": "infinite-version",
+      "expected": {
+        "accepted": false,
+        "accessorCalls": 0,
+        "coercionCalls": 0,
+        "productDispatches": 0
+      },
+      "execution": "NOT_RUN",
+      "kind": "synthetic-own-data-control"
+    }
+  ],
+  "reasonControls": [
+    { "id": "T23", "execution": "NOT_RUN", "reason": { "kind": "primitive", "value": null }, "expected": { "sameThrownValue": true, "productDispatches": 0 } },
+    { "id": "T24", "execution": "NOT_RUN", "reason": { "kind": "primitive", "value": false }, "expected": { "sameThrownValue": true, "productDispatches": 0 } },
+    { "id": "T25", "execution": "NOT_RUN", "reason": { "kind": "primitive", "value": 0 }, "expected": { "sameThrownValue": true, "productDispatches": 0 } },
+    { "id": "T26", "execution": "NOT_RUN", "reason": { "kind": "undefined" }, "expected": { "sameThrownValue": true, "productDispatches": 0 } },
+    { "id": "T27", "execution": "NOT_RUN", "reason": { "kind": "object", "value": { "code": "EACCES", "marker": "not typed FsError" } }, "expected": { "sameThrownValue": true, "productDispatches": 0 } }
+  ],
+  "reasonControlMechanism": "Synthetic trusted host Proxy ownKeys trap throws exact fixture value. Validation must propagate it unchanged; not a hostile-JavaScript sandbox or a requirement that product patch syntax accept Proxy input.",
+  "treeControls": [
+    {
+      "id": "T21",
+      "name": "Derived-only tree authenticates canonical bytes without object existence demand",
+      "execution": "NOT_RUN",
+      "identityKind": "derived-only",
+      "leaves": [
+        {
+          "name": "a.txt",
+          "mode": "100644",
+          "bytes": {
+            "utf8": "alpha\n"
+          },
+          "blobSha1": "4a58007052a65fbc2fc3f910f2855f45a4058e74",
+          "sha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060"
+        },
+        {
+          "name": "b.txt",
+          "mode": "100644",
+          "bytes": {
+            "hex": "00ff0a"
+          },
+          "blobSha1": "506cd141ad4a679eee22d6a21dd267cca5734b92",
+          "sha256": "712450d3c4a79eea9509e75dc1dacdeff58034df538536cfae2da882bd8a0c50"
+        }
+      ],
+      "treePayloadHex": "31303036343420612e747874004a58007052a65fbc2fc3f910f2855f45a4058e7431303036343420622e74787400506cd141ad4a679eee22d6a21dd267cca5734b92",
+      "treeSha1": "6a328474bf7bcb7058e2846b7ac14d6eb3893583",
+      "expected": {
+        "accepted": true,
+        "gitObjectLookupCalls": 0,
+        "authenticateAllInputs": true,
+        "recomputeCanonicalTreeBytes": true
+      }
+    },
+    {
+      "id": "T22",
+      "name": "Derived-only proof does not authenticate claimed stored object",
+      "execution": "NOT_RUN",
+      "identityKind": "claimed-stored-tree",
+      "treeSha1": "6a328474bf7bcb7058e2846b7ac14d6eb3893583",
+      "suppliedObjectEvidence": null,
+      "expected": {
+        "accepted": false,
+        "reason": "missing stored-object authentication",
+        "gitObjectLookupCalls": 0
+      },
+      "qualification": "Synthetic control refuses an unsupported stored claim; does not assert the hash is absent from this repository. Future actual stored claims require object verification."
+    }
+  ]
+}

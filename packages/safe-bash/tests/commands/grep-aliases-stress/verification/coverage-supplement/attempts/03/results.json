@@ -1,0 +1,98 @@
+{
+  "classification": "supplement-to-S02-S03-not-a-replacement-cohort",
+  "rows": [
+    {
+      "id": "S02/egrep-4-owned-reuse-internal-pipe-to-file",
+      "status": "pass",
+      "outputHex": "6b6565703a30310a6b6565703a30320a",
+      "activeAtSettlement": 0
+    },
+    {
+      "id": "S02/egrep-8-owned-reuse-internal-pipe-to-file",
+      "status": "pass",
+      "outputHex": "6b6565703a30310a6b6565703a30320a",
+      "activeAtSettlement": 0
+    },
+    {
+      "id": "S02/fgrep-4-owned-reuse-internal-pipe-to-file",
+      "status": "pass",
+      "outputHex": "6b6565703a30310a6b6565703a30320a",
+      "activeAtSettlement": 0
+    },
+    {
+      "id": "S02/fgrep-8-owned-reuse-internal-pipe-to-file",
+      "status": "pass",
+      "outputHex": "6b6565703a30310a6b6565703a30320a",
+      "activeAtSettlement": 0
+    },
+    {
+      "id": "S03/pipeline-output-budget",
+      "status": "pass",
+      "activeAtSettlement": 0,
+      "observation": {
+        "rejectionName": "ShellLimitError",
+        "rejectionMessage": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes"
+      }
+    }
+  ],
+  "events": [
+    {
+      "event": "create",
+      "workerThreadId": 1,
+      "case": "S02/egrep-4-owned-reuse-internal-pipe-to-file",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 1,
+      "case": "S02/egrep-4-owned-reuse-internal-pipe-to-file"
+    },
+    {
+      "event": "create",
+      "workerThreadId": 2,
+      "case": "S02/egrep-8-owned-reuse-internal-pipe-to-file",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 2,
+      "case": "S02/egrep-8-owned-reuse-internal-pipe-to-file"
+    },
+    {
+      "event": "create",
+      "workerThreadId": 3,
+      "case": "S02/fgrep-4-owned-reuse-internal-pipe-to-file",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 3,
+      "case": "S02/fgrep-4-owned-reuse-internal-pipe-to-file"
+    },
+    {
+      "event": "create",
+      "workerThreadId": 4,
+      "case": "S02/fgrep-8-owned-reuse-internal-pipe-to-file",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 4,
+      "case": "S02/fgrep-8-owned-reuse-internal-pipe-to-file"
+    },
+    {
+      "event": "create",
+      "workerThreadId": 5,
+      "case": "S03/pipeline-output-budget",
+      "path": "file:///private/tmp/safe-bash-grep-aliases-acceptance.1CHqiQ/pack-fixed-01/physically-moved-offline-consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+    },
+    {
+      "event": "exit",
+      "workerThreadId": 5,
+      "case": "S03/pipeline-output-budget"
+    }
+  ],
+  "activeWorkers": 0,
+  "verifierForcedWorkerTermination": 0
+}

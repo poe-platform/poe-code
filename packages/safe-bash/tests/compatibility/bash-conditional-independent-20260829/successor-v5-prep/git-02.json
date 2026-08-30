@@ -1,0 +1,14 @@
+{
+  "args": [
+    "ls-tree",
+    "-rz",
+    "--long",
+    "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d",
+    "--",
+    "tests/compatibility/bash-conditional-author-20260829"
+  ],
+  "closed": true,
+  "pid": 57549,
+  "code": 0,
+  "signal": null
+}

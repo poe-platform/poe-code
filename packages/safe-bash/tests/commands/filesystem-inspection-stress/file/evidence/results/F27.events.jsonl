@@ -1,0 +1,9 @@
+{"at":"2026-08-27T08:27:15.473Z","kind":"case-start","id":"F27"}
+{"at":"2026-08-27T08:27:15.474Z","kind":"execute-start","invocation":1,"args":["-b","--mime","/input"],"signal":{"present":true,"signalId":1,"aborted":false}}
+{"at":"2026-08-27T08:27:15.475Z","kind":"fs-call","invocation":1,"method":"lstat","path":"/input","options":{"signal":{"present":true,"signalId":2,"aborted":false}}}
+{"at":"2026-08-27T08:27:15.475Z","kind":"fs-call","invocation":1,"method":"readStream","path":"/input","options":{"start":0,"endExclusive":65536,"chunkSize":16384,"signal":{"present":true,"signalId":3,"aborted":false}}}
+{"at":"2026-08-27T08:27:15.476Z","kind":"signal-abort","signalId":3,"reason":{"name":"FsError","message":"EPIPE: file prefix inspection ended","code":"EPIPE","stack":"FsError: EPIPE: file prefix inspection ended\n    at prefix (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:77:35)\n    at async inspect (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:125:22)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js:168:36)\n    at async Object.execute (file:///private/tmp/safe-bash-file-run.WeB7Vfsc/child.mjs:59:22)"}}
+{"at":"2026-08-27T08:27:15.476Z","kind":"sink-write","invocation":1,"stream":"stdout","bytes":26,"base64":"aW1hZ2UvcG5nOyBjaGFyc2V0PWJpbmFyeQo="}
+{"at":"2026-08-27T08:27:15.476Z","kind":"sink-resolved","invocation":1,"stream":"stdout"}
+{"at":"2026-08-27T08:27:15.476Z","kind":"execute-result","invocation":1,"result":{"exitCode":0}}
+{"at":"2026-08-27T08:27:15.476Z","kind":"case-finished","id":"F27","semanticStatus":"pass","nativeStatus":"not-run"}

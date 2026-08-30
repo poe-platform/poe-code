@@ -1,0 +1,272 @@
+[
+  {
+    "feature": "ere-core",
+    "path": "src/shell/parser.ts",
+    "blocks": [
+      {
+        "removed": "",
+        "added": "    let regexBracket = false;\n    let regexBracketFirst = false;\n    let regexBracketNegation = false;\n    let regexClass = \"\";",
+        "beforeContext": "    let conditionals = 0;\n    let patternParentheses = 0;\n    const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;\n    let plain = true;",
+        "afterContext": "    let conditionals = 0;\n    let patternParentheses = 0;\n    let regexBracket = false;\n    let regexBracketFirst = false;\n    let regexBracketNegation = false;\n    let regexClass = \"\";\n    const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;\n    let plain = true;",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "      if (conditionalPattern === \"regex\" && regexBracket && quoted && value.length) { regexBracketFirst = false; regexBracketNegation = false; }",
+        "beforeContext": "    let plain = true;\n    const text = (value: string, quoted: boolean, synthetic = false) => {\n      const previous = parts.at(-1);\n      if (previous?.kind === \"text\" && previous.quoted === quoted) {",
+        "afterContext": "    let plain = true;\n    const text = (value: string, quoted: boolean, synthetic = false) => {\n      if (conditionalPattern === \"regex\" && regexBracket && quoted && value.length) { regexBracketFirst = false; regexBracketNegation = false; }\n      const previous = parts.at(-1);\n      if (previous?.kind === \"text\" && previous.quoted === quoted) {",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "        if (current === \"(\" && (conditionalPattern === \"regex\" || patternParentheses > 0 || \"?*+@!\".includes(this.source[this.position - 1] ?? \" \"))) {",
+        "added": "        const bracketMaterial = conditionalPattern === \"regex\" && (regexBracket || current === \"[\");\n        if (bracketMaterial) {\n          if (!regexBracket) { regexBracket = true; regexBracketFirst = true; regexBracketNegation = true; }\n          else if (regexClass) {\n            if (current === \"]\" && this.source[this.position - 1] === regexClass) regexClass = \"\";\n          } else if (current === \"[\" && [\":\", \".\", \"=\"].includes(this.source[this.position + 1] ?? \"\")) { regexClass = this.source[this.position + 1]!; regexBracketFirst = false; }\n          else if (current === \"]\" && !regexBracketFirst) regexBracket = false;\n          else if (current === \"^\" && regexBracketFirst && regexBracketNegation) regexBracketNegation = false;\n          else { regexBracketFirst = false; regexBracketNegation = false; }\n        } else if (current === \"(\" && (conditionalPattern === \"regex\" || patternParentheses > 0 || \"?*+@!\".includes(this.source[this.position - 1] ?? \" \"))) {",
+        "beforeContext": "      if (conditionalPattern) {\n        if (/[ \\t\\n;]/u.test(current)) break;\n        if (current === \"(\" && (conditionalPattern === \"regex\" || patternParentheses > 0 || \"?*+@!\".includes(this.source[this.position - 1] ?? \" \"))) {\n          if (++patternParentheses > 64) this.error(\"Conditional syntax nesting exceeds 64\");\n        } else if (current === \")\" && patternParentheses > 0) patternParentheses--;",
+        "afterContext": "      if (conditionalPattern) {\n        if (/[ \\t\\n;]/u.test(current)) break;\n        const bracketMaterial = conditionalPattern === \"regex\" && (regexBracket || current === \"[\");\n        if (bracketMaterial) {\n          if (!regexBracket) { regexBracket = true; regexBracketFirst = true; regexBracketNegation = true; }\n          else if (regexClass) {\n            if (current === \"]\" && this.source[this.position - 1] === regexClass) regexClass = \"\";\n          } else if (current === \"[\" && [\":\", \".\", \"=\"].includes(this.source[this.position + 1] ?? \"\")) { regexClass = this.source[this.position + 1]!; regexBracketFirst = false; }\n          else if (current === \"]\" && !regexBracketFirst) regexBracket = false;\n          else if (current === \"^\" && regexBracketFirst && regexBracketNegation) regexBracketNegation = false;\n          else { regexBracketFirst = false; regexBracketNegation = false; }\n        } else if (current === \"(\" && (conditionalPattern === \"regex\" || patternParentheses > 0 || \"?*+@!\".includes(this.source[this.position - 1] ?? \" \"))) {\n          if (++patternParentheses > 64) this.error(\"Conditional syntax nesting exceeds 64\");\n        } else if (current === \")\" && patternParentheses > 0) patternParentheses--;",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "    if (conditionalPattern === \"regex\" && patternParentheses > 0) this.error(\"Unterminated conditional regular expression group\");",
+        "beforeContext": "      }\n    }\n    const printedNewlines = this.source.slice(offset, this.position).split(\"\\n\").length - 1 - (this.printedNewlineReduction - reduction);\n    return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === \"text\" ? part.value : \"\").join(\"\") } : {}) };",
+        "afterContext": "      }\n    }\n    if (conditionalPattern === \"regex\" && patternParentheses > 0) this.error(\"Unterminated conditional regular expression group\");\n    const printedNewlines = this.source.slice(offset, this.position).split(\"\\n\").length - 1 - (this.printedNewlineReduction - reduction);\n    return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === \"text\" ? part.value : \"\").join(\"\") } : {}) };",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "      const grouped = new WeakSet<ConditionalExpression>();",
+        "beforeContext": "      this.advance();\n      let nodes = 0;\n      const admit = (): void => { if (nodes >= 4096) this.error(\"Conditional syntax exceeds 4096 nodes\"); nodes++; };\n      const operand = (): Word => {",
+        "afterContext": "      this.advance();\n      let nodes = 0;\n      const grouped = new WeakSet<ConditionalExpression>();\n      const admit = (): void => { if (nodes >= 4096) this.error(\"Conditional syntax exceeds 4096 nodes\"); nodes++; };\n      const operand = (): Word => {",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "        if (this.is(\"!\")) { admit(); this.advance(); return { kind: \"not\", operand: primary(depth + 1) }; }\n        if (this.is(\"(\")) { this.advance(); const expression = disjunction(depth + 1); this.expect(\")\"); return expression; }",
+        "added": "        if (this.is(\"!\")) { admit(); this.advance(); const expression = primary(depth + 1); return expression.kind === \"not\" && !grouped.has(expression) ? expression.operand : { kind: \"not\", operand: expression }; }\n        if (this.is(\"(\")) { this.advance(); const expression = disjunction(depth + 1); this.expect(\")\"); grouped.add(expression); return expression; }",
+        "beforeContext": "      const primary = (depth: number): ConditionalExpression => {\n        if (depth > 64) this.error(\"Conditional syntax nesting exceeds 64\");\n        if (this.is(\"!\")) { admit(); this.advance(); return { kind: \"not\", operand: primary(depth + 1) }; }\n        if (this.is(\"(\")) { this.advance(); const expression = disjunction(depth + 1); this.expect(\")\"); return expression; }\n        admit();\n        const first = operand();",
+        "afterContext": "      const primary = (depth: number): ConditionalExpression => {\n        if (depth > 64) this.error(\"Conditional syntax nesting exceeds 64\");\n        if (this.is(\"!\")) { admit(); this.advance(); const expression = primary(depth + 1); return expression.kind === \"not\" && !grouped.has(expression) ? expression.operand : { kind: \"not\", operand: expression }; }\n        if (this.is(\"(\")) { this.advance(); const expression = disjunction(depth + 1); this.expect(\")\"); grouped.add(expression); return expression; }\n        admit();\n        const first = operand();",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      }
+    ],
+    "allAddedBlocksPresent": true,
+    "allExactContextsPresent": true,
+    "qualification": "SOURCE containment only; superseding accepted same-path changes require explicit interpretation"
+  },
+  {
+    "feature": "ere-core",
+    "path": "src/shell/runtime.ts",
+    "blocks": [
+      {
+        "removed": "",
+        "added": "import { EreTransportRoot } from \"../commands/regex-execution/ere/transport/root.js\";\nimport { EreTransportProfileLimitError, EreTransportSemanticError } from \"../commands/regex-execution/ere/transport/protocol.js\";\nimport type { EreTransportResult } from \"../commands/regex-execution/ere/transport/protocol.js\";\nimport { EreProfileLimitError, EreUnsupportedError } from \"../commands/regex-execution/ere/errors.js\";\nimport type { EreFragment } from \"../commands/regex-execution/ere/types.js\";",
+        "beforeContext": "import type { Admission } from \"./arrays/ledger.js\";\nimport type { BindingWatch, OwnedText } from \"./arrays/bindings.js\";\n\nexport const defaultLimits: Required<ShellLimits> = {",
+        "afterContext": "import type { Admission } from \"./arrays/ledger.js\";\nimport type { BindingWatch, OwnedText } from \"./arrays/bindings.js\";\nimport { EreTransportRoot } from \"../commands/regex-execution/ere/transport/root.js\";\nimport { EreTransportProfileLimitError, EreTransportSemanticError } from \"../commands/regex-execution/ere/transport/protocol.js\";\nimport type { EreTransportResult } from \"../commands/regex-execution/ere/transport/protocol.js\";\nimport { EreProfileLimitError, EreUnsupportedError } from \"../commands/regex-execution/ere/errors.js\";\nimport type { EreFragment } from \"../commands/regex-execution/ere/types.js\";\n\nexport const defaultLimits: Required<ShellLimits> = {",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "  static readonly #ereRoots = new WeakMap<Budget, { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean }>();\n\n  static registerEreRoot(budget: Budget, scope: InvocationScope): void {\n    const entry: { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean } = { closed: false };\n    scope.register(async () => {\n      entry.closed = true;\n      try { await entry.cleanup?.(); } finally { Runtime.#ereRoots.delete(budget); }\n    });\n    Runtime.#ereRoots.set(budget, entry);\n  }\n",
+        "beforeContext": "\nexport class Runtime {\n  constructor(\n    readonly fs: FileSystem,",
+        "afterContext": "\nexport class Runtime {\n  static readonly #ereRoots = new WeakMap<Budget, { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean }>();\n\n  static registerEreRoot(budget: Budget, scope: InvocationScope): void {\n    const entry: { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean } = { closed: false };\n    scope.register(async () => {\n      entry.closed = true;\n      try { await entry.cleanup?.(); } finally { Runtime.#ereRoots.delete(budget); }\n    });\n    Runtime.#ereRoots.set(budget, entry);\n  }\n\n  constructor(\n    readonly fs: FileSystem,",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "  private async ereDiagnostic(io: IO, detail: string): Promise<void> {\n    try { await this.diagnostic(io, detail); }\n    catch (reason) {\n      this.signal.throwIfAborted();\n      if (reason instanceof ShellLimitError) throw reason;\n      throw new NounsetDiagnosticFailure(reason);\n    }\n  }\n\n  private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {\n    const scope = io[invocationScope];\n    scope.assertOpen();\n    const store = requireArrays(state);\n    let operation: ArrayOwner | undefined;\n    let holding: ReturnType<ArrayOwner[\"hold\"]> | undefined;\n    let staged: IndexedBinding | undefined;\n    let closing: Promise<void> | undefined;\n    const close = (): Promise<void> => closing ??= Promise.resolve().then(async () => {\n      try { await staged?.release(); } finally { try { await operation?.close(); } finally { holding?.release(); } }\n    });\n    let primary = false;\n    try {\n      operation = ArrayOwner.create(store.owner.ledger, store.owner);\n      holding = store.owner.hold();\n      await this.prepareArrayObservers(state, operation);\n      operation.reserve({ metadata: 64, allocatedSlots: 1, work: 2 });\n      const fragments: EreFragment[] = [];\n      await this.word(pattern, state, io, false, false, false, false, (text, literal) => {\n        operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(text), work: text.length + 2 });\n        fragments.push({ text, literal });\n      });\n      const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || \"C\";\n      const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || \"C\";\n      if (![collation, characters].every(locale => locale === \"C\" || locale === \"POSIX\")) {\n        await this.ereDiagnostic(io, \"[[ unsupported ERE profile: locale must be C or POSIX\");\n        return 2;\n      }\n      await textToken(operation, subject, this.signal);\n      const name = \"BASH_REMATCH\";\n      const watch = await store.watch(name, operation, this.signal);\n      const entry = Runtime.#ereRoots.get(this.budget);\n      if (!entry || entry.closed) throw new Error(\"ERE invocation owner is closed\");\n      if (!entry.root) entry.root = new EreTransportRoot({ maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields }, cleanup => {\n        scope.assertOpen();\n        if (entry.closed) throw new Error(\"ERE invocation owner is closed\");\n        entry.cleanup = cleanup;\n      });\n      const session = entry.root.openSession(cleanup => scope.register(cleanup));\n      let result: EreTransportResult;\n      let sessionEscaping = false;\n      try { result = await session.execute({ pattern: fragments, subject }, this.signal); }\n      catch (error) {\n        sessionEscaping = true;\n        this.signal.throwIfAborted();\n        if (error instanceof EreTransportSemanticError || error instanceof EreUnsupportedError) {\n          await this.ereDiagnostic(io, `[[ ${error.message}`);\n          sessionEscaping = false;\n          return 2;\n        }\n        throw error;\n      } finally {\n        try { await session.close(); }\n        catch (error) { if (sessionEscaping) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }\n      }\n      const status = result.matched ? 0 : 1;\n      this.signal.throwIfAborted();\n      scope.assertOpen();\n      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }\n      if (state.exported.has(name)) throw new ArrayFailure(\"exported binding cannot be indexed\");\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);\n      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n      const prepared = await store.prepareName(name, operation, this.signal);\n      staged = IndexedBinding.create(store.owner);\n      if (result.matched) for (let index = 0; index < result.spans.length; index++) {\n        const span = result.spans[index]!;\n        const size = span === null ? 0 : span.end - span.start;\n        operation.reserve({ payload: size, metadata: 32, work: size + 2 });\n        const value = span === null ? \"\" : subject.slice(span.start, span.end);\n        const token = await textToken(staged.owner, value, this.signal);\n        try { staged.insert(index, token); } catch (error) { token.release(); throw error; }\n      }\n      this.signal.throwIfAborted();\n      scope.assertOpen();\n      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }\n      if (state.exported.has(name)) throw new ArrayFailure(\"exported binding cannot be indexed\");\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      let released: Promise<void> | undefined;\n      stateMonitor(state)!.publish(tickets, name, () => {\n        supersede();\n        delete state.variables[name];\n        released = store.publish(name, staged!, tickets, prepared);\n      });\n      staged = undefined;\n      watch.close();\n      await released;\n      return status;\n    } catch (error) { primary = true; throw error; }\n    finally {\n      try { await close(); }\n      catch (error) { if (primary) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }\n    }\n  }\n",
+        "beforeContext": "  ) {}\n\n  static rootCancellationAdmission(budget: Budget): CancellationAdmissionSnapshot {\n    const maxDepth = saturatedSum(budget.limits.maxCommands, saturatedSum(budget.limits.maxSubstitutionDepth, 1));",
+        "afterContext": "  ) {}\n\n  private async ereDiagnostic(io: IO, detail: string): Promise<void> {\n    try { await this.diagnostic(io, detail); }\n    catch (reason) {\n      this.signal.throwIfAborted();\n      if (reason instanceof ShellLimitError) throw reason;\n      throw new NounsetDiagnosticFailure(reason);\n    }\n  }\n\n  private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {\n    const scope = io[invocationScope];\n    scope.assertOpen();\n    const store = requireArrays(state);\n    let operation: ArrayOwner | undefined;\n    let holding: ReturnType<ArrayOwner[\"hold\"]> | undefined;\n    let staged: IndexedBinding | undefined;\n    let closing: Promise<void> | undefined;\n    const close = (): Promise<void> => closing ??= Promise.resolve().then(async () => {\n      try { await staged?.release(); } finally { try { await operation?.close(); } finally { holding?.release(); } }\n    });\n    let primary = false;\n    try {\n      operation = ArrayOwner.create(store.owner.ledger, store.owner);\n      holding = store.owner.hold();\n      await this.prepareArrayObservers(state, operation);\n      operation.reserve({ metadata: 64, allocatedSlots: 1, work: 2 });\n      const fragments: EreFragment[] = [];\n      await this.word(pattern, state, io, false, false, false, false, (text, literal) => {\n        operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(text), work: text.length + 2 });\n        fragments.push({ text, literal });\n      });\n      const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || \"C\";\n      const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || \"C\";\n      if (![collation, characters].every(locale => locale === \"C\" || locale === \"POSIX\")) {\n        await this.ereDiagnostic(io, \"[[ unsupported ERE profile: locale must be C or POSIX\");\n        return 2;\n      }\n      await textToken(operation, subject, this.signal);\n      const name = \"BASH_REMATCH\";\n      const watch = await store.watch(name, operation, this.signal);\n      const entry = Runtime.#ereRoots.get(this.budget);\n      if (!entry || entry.closed) throw new Error(\"ERE invocation owner is closed\");\n      if (!entry.root) entry.root = new EreTransportRoot({ maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields }, cleanup => {\n        scope.assertOpen();\n        if (entry.closed) throw new Error(\"ERE invocation owner is closed\");\n        entry.cleanup = cleanup;\n      });\n      const session = entry.root.openSession(cleanup => scope.register(cleanup));\n      let result: EreTransportResult;\n      let sessionEscaping = false;\n      try { result = await session.execute({ pattern: fragments, subject }, this.signal); }\n      catch (error) {\n        sessionEscaping = true;\n        this.signal.throwIfAborted();\n        if (error instanceof EreTransportSemanticError || error instanceof EreUnsupportedError) {\n          await this.ereDiagnostic(io, `[[ ${error.message}`);\n          sessionEscaping = false;\n          return 2;\n        }\n        throw error;\n      } finally {\n        try { await session.close(); }\n        catch (error) { if (sessionEscaping) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }\n      }\n      const status = result.matched ? 0 : 1;\n      this.signal.throwIfAborted();\n      scope.assertOpen();\n      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }\n      if (state.exported.has(name)) throw new ArrayFailure(\"exported binding cannot be indexed\");\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);\n      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n      const prepared = await store.prepareName(name, operation, this.signal);\n      staged = IndexedBinding.create(store.owner);\n      if (result.matched) for (let index = 0; index < result.spans.length; index++) {\n        const span = result.spans[index]!;\n        const size = span === null ? 0 : span.end - span.start;\n        operation.reserve({ payload: size, metadata: 32, work: size + 2 });\n        const value = span === null ? \"\" : subject.slice(span.start, span.end);\n        const token = await textToken(staged.owner, value, this.signal);\n        try { staged.insert(index, token); } catch (error) { token.release(); throw error; }\n      }\n      this.signal.throwIfAborted();\n      scope.assertOpen();\n      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }\n      if (state.exported.has(name)) throw new ArrayFailure(\"exported binding cannot be indexed\");\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      let released: Promise<void> | undefined;\n      stateMonitor(state)!.publish(tickets, name, () => {\n        supersede();\n        delete state.variables[name];\n        released = store.publish(name, staged!, tickets, prepared);\n      });\n      staged = undefined;\n      watch.close();\n      await released;\n      return status;\n    } catch (error) { primary = true; throw error; }\n    finally {\n      try { await close(); }\n      catch (error) { if (primary) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }\n    }\n  }\n\n  static rootCancellationAdmission(budget: Budget): CancellationAdmissionSnapshot {\n    const maxDepth = saturatedSum(budget.limits.maxCommands, saturatedSum(budget.limits.maxSubstitutionDepth, 1));",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "          return Number(!await evaluateConditional(command.expression, {",
+        "added": "          return await evaluateConditional(command.expression, {",
+        "beforeContext": "      if (command.kind === \"conditional\") {\n        try {\n          return Number(!await evaluateConditional(command.expression, {\n            fs: this.fs, cwd: state.cwd, signal: this.signal,\n            locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || \"C\",",
+        "afterContext": "      if (command.kind === \"conditional\") {\n        try {\n          return await evaluateConditional(command.expression, {\n            fs: this.fs, cwd: state.cwd, signal: this.signal,\n            locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || \"C\",",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "            regex: (subject, pattern) => this.ere(subject, pattern, state, io),",
+        "beforeContext": "            work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail(\"maxExpansionBytes\") },\n            expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(\"\"),\n            option: name => name === \"errexit\" ? !!state.errexit : name === \"nounset\" ? !!state.nounset : name === \"pipefail\" ? state.pipefail : false,\n            present: name => {",
+        "afterContext": "            work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail(\"maxExpansionBytes\") },\n            expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(\"\"),\n            regex: (subject, pattern) => this.ere(subject, pattern, state, io),\n            option: name => name === \"errexit\" ? !!state.errexit : name === \"nounset\" ? !!state.nounset : name === \"pipefail\" ? state.pipefail : false,\n            present: name => {",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "          }));",
+        "added": "          });",
+        "beforeContext": "              return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;\n            },\n          }));\n        } catch (error) {\n          this.signal.throwIfAborted();",
+        "afterContext": "              return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;\n            },\n          });\n        } catch (error) {\n          this.signal.throwIfAborted();",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "          if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }\n          if (error instanceof EreProfileLimitError || error instanceof EreTransportProfileLimitError) {\n            try { await this.diagnostic(io, `[[ ${error.message}`); }\n            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }\n            return 3;\n          }",
+        "beforeContext": "        } catch (error) {\n          this.signal.throwIfAborted();\n          if (error instanceof ConditionalUnsupported) {\n            try { await this.diagnostic(io, error.message); }",
+        "afterContext": "        } catch (error) {\n          this.signal.throwIfAborted();\n          if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }\n          if (error instanceof EreProfileLimitError || error instanceof EreTransportProfileLimitError) {\n            try { await this.diagnostic(io, `[[ ${error.message}`); }\n            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }\n            return 3;\n          }\n          if (error instanceof ConditionalUnsupported) {\n            try { await this.diagnostic(io, error.message); }",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;",
+        "added": "          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;",
+        "beforeContext": "            return 2;\n          }\n          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;\n          diagnosticFailure = new NounsetDiagnosticFailure(error);\n          throw diagnosticFailure;",
+        "afterContext": "            return 2;\n          }\n          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;\n          diagnosticFailure = new NounsetDiagnosticFailure(error);\n          throw diagnosticFailure;",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false): Promise<string[]> {",
+        "added": "  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<string[]> {",
+        "beforeContext": "  }\n\n  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false): Promise<string[]> {\n    const arrayOwned = word.parts.some(part => part.kind === \"variable\" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));\n    const owner = arrayOwned ? requireArrays(state).owner : undefined;",
+        "afterContext": "  }\n\n  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<string[]> {\n    const arrayOwned = word.parts.some(part => part.kind === \"variable\" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));\n    const owner = arrayOwned ? requireArrays(state).owner : undefined;",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "      regexAppend?.(value, !glob);",
+        "beforeContext": "      if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail(\"maxExpansionBytes\");\n      expansionBytes += size;\n      const field = fields.at(-1)!;\n      if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: value.length + 8 });",
+        "afterContext": "      if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail(\"maxExpansionBytes\");\n      expansionBytes += size;\n      regexAppend?.(value, !glob);\n      const field = fields.at(-1)!;\n      if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: value.length + 8 });",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      }
+    ],
+    "allAddedBlocksPresent": true,
+    "allExactContextsPresent": true,
+    "qualification": "SOURCE containment only; superseding accepted same-path changes require explicit interpretation"
+  },
+  {
+    "feature": "ere-transport",
+    "path": "src/commands/regex-execution/ere/transport/root.ts",
+    "blocks": [
+      {
+        "removed": "import { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply } from \"./accounting.js\";",
+        "added": "import { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply, workerValidationPrepayment } from \"./accounting.js\";",
+        "beforeContext": "import { EreProfileLimitError } from \"../errors.js\";\nimport type { EreExpansionBounds, EreLimits, EreUsage } from \"../types.js\";\nimport { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply } from \"./accounting.js\";\nimport { EreWorkerOwner } from \"./owner.js\";\nimport { EreTransportError, EreTransportProfileLimitError, EreTransportSemanticError, operation, profile } from \"./protocol.js\";",
+        "afterContext": "import { EreProfileLimitError } from \"../errors.js\";\nimport type { EreExpansionBounds, EreLimits, EreUsage } from \"../types.js\";\nimport { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply, workerValidationPrepayment } from \"./accounting.js\";\nimport { EreWorkerOwner } from \"./owner.js\";\nimport { EreTransportError, EreTransportProfileLimitError, EreTransportSemanticError, operation, profile } from \"./protocol.js\";",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "    let sent = false;",
+        "added": "    let observed = false;",
+        "beforeContext": "    let replyStorage: StorageReservation | undefined;\n    let grant: EreLimits | undefined;\n    let sent = false;\n    let reconciled = false;\n    try {",
+        "afterContext": "    let replyStorage: StorageReservation | undefined;\n    let grant: EreLimits | undefined;\n    let observed = false;\n    let reconciled = false;\n    try {",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "      grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);\n      if (workerValidationPrepayment(ticket.requestUnits, ticket.input.pattern.length) > grant.work) throw new EreProfileLimitError(\"work\", grant.work);",
+        "beforeContext": "    try {\n      this.#check(ticket);\n      replyStorage = this.#transport.reserve(479);\n      if (!this.#worker) {",
+        "afterContext": "    try {\n      this.#check(ticket);\n      grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);\n      if (workerValidationPrepayment(ticket.requestUnits, ticket.input.pattern.length) > grant.work) throw new EreProfileLimitError(\"work\", grant.work);\n      replyStorage = this.#transport.reserve(479);\n      if (!this.#worker) {",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "",
+        "added": "        observed = true;",
+        "beforeContext": "        this.#workerMetadata = this.#transport.owned(metadataUnits.worker);\n        this.#worker = new EreWorkerOwner(reason => this.#fail(reason), this.#transport);\n      }\n      await this.#worker.start();",
+        "afterContext": "        this.#workerMetadata = this.#transport.owned(metadataUnits.worker);\n        this.#worker = new EreWorkerOwner(reason => this.#fail(reason), this.#transport);\n        observed = true;\n      }\n      await this.#worker.start();",
+        "contextPresent": false,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "      grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);",
+        "added": "",
+        "beforeContext": "      await this.#worker.start();\n      this.#check(ticket);\n      grant = this.#engine.reserve(ticket.patternBytes, ticket.input.subject.length);\n      const request: EreTransportRequest = { version: 1, operation, id: ticket.id, grantId: ticket.id, profile, bounds: this.#bounds, allowance: grant, pattern: ticket.input.pattern, subject: ticket.input.subject };\n      this.#transport.visit(ticket.requestUnits);",
+        "afterContext": "      await this.#worker.start();\n      this.#check(ticket);\n      const request: EreTransportRequest = { version: 1, operation, id: ticket.id, grantId: ticket.id, profile, bounds: this.#bounds, allowance: grant, pattern: ticket.input.pattern, subject: ticket.input.subject };\n      this.#transport.visit(ticket.requestUnits);",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "      const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); sent = true; });",
+        "added": "      const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); observed = true; });",
+        "beforeContext": "      const request: EreTransportRequest = { version: 1, operation, id: ticket.id, grantId: ticket.id, profile, bounds: this.#bounds, allowance: grant, pattern: ticket.input.pattern, subject: ticket.input.subject };\n      this.#transport.visit(ticket.requestUnits);\n      const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); sent = true; });\n      const validated = validateReply(message, request, units => this.#transport.visit(units), this.#transport);\n      this.#engine.commit(grant, validated.reply.usage); reconciled = true;",
+        "afterContext": "      const request: EreTransportRequest = { version: 1, operation, id: ticket.id, grantId: ticket.id, profile, bounds: this.#bounds, allowance: grant, pattern: ticket.input.pattern, subject: ticket.input.subject };\n      this.#transport.visit(ticket.requestUnits);\n      const message = await this.#worker.request(request, () => { ticket.storage.consume(ticket.requestUnits); observed = true; });\n      const validated = validateReply(message, request, units => this.#transport.visit(units), this.#transport);\n      this.#engine.commit(grant, validated.reply.usage); reconciled = true;",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "        this.#engine.abandon(grant, sent);\n        if (sent) { replyStorage?.unknown(); this.#fail(reason); }",
+        "added": "        this.#engine.abandon(grant, observed);\n        if (observed) { replyStorage?.unknown(); this.#fail(reason); }",
+        "beforeContext": "    } catch (reason) {\n      if (grant && !reconciled) {\n        this.#engine.abandon(grant, sent);\n        if (sent) { replyStorage?.unknown(); this.#fail(reason); }\n      }\n      if (this.#worker && (this.#failurePresent || ticket.cancelled)) await this.#retireWorker().catch(() => {});",
+        "afterContext": "    } catch (reason) {\n      if (grant && !reconciled) {\n        this.#engine.abandon(grant, observed);\n        if (observed) { replyStorage?.unknown(); this.#fail(reason); }\n      }\n      if (this.#worker && (this.#failurePresent || ticket.cancelled)) await this.#retireWorker().catch(() => {});",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      }
+    ],
+    "allAddedBlocksPresent": true,
+    "allExactContextsPresent": false,
+    "qualification": "SOURCE containment only; superseding accepted same-path changes require explicit interpretation"
+  },
+  {
+    "feature": "positional-arithmetic",
+    "path": "src/shell/runtime.ts",
+    "blocks": [
+      {
+        "removed": "",
+        "added": "import { evaluatePositionalArithmetic } from \"./arithmetic-parameters.js\";",
+        "beforeContext": "import { ShellInput } from \"./input.js\";\nimport { evaluateArithmetic, prepareArithmetic } from \"./arithmetic.js\";\nimport { compilePattern, matchesPattern } from \"./pattern.js\";\nimport { byteLocale } from \"./locale.js\";",
+        "afterContext": "import { ShellInput } from \"./input.js\";\nimport { evaluateArithmetic, prepareArithmetic } from \"./arithmetic.js\";\nimport { evaluatePositionalArithmetic } from \"./arithmetic-parameters.js\";\nimport { compilePattern, matchesPattern } from \"./pattern.js\";\nimport { byteLocale } from \"./locale.js\";",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state, io.diagnosticLine)) === 0n); }",
+        "added": "        try {\n          return Number(evaluatePositionalArithmetic(command.expression, {\n            positional: state.positional, arg0: state.arg0 ?? \"virtual-bash\", owner: arrayStore(state)?.owner,\n            maximumBytes: this.budget.limits.maxExpansionBytes,\n            checkpoint: () => this.signal.throwIfAborted(),\n            requireParameter: (name, value) => this.requireParameter(value, name, state, io),\n            limit: () => this.budget.fail(\"maxExpansionBytes\"),\n          }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine))) === 0n);\n        }",
+        "beforeContext": "      }\n      if (command.kind === \"arithmetic\") {\n        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state, io.diagnosticLine)) === 0n); }\n        catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }\n      }",
+        "afterContext": "      }\n      if (command.kind === \"arithmetic\") {\n        try {\n          return Number(evaluatePositionalArithmetic(command.expression, {\n            positional: state.positional, arg0: state.arg0 ?? \"virtual-bash\", owner: arrayStore(state)?.owner,\n            maximumBytes: this.budget.limits.maxExpansionBytes,\n            checkpoint: () => this.signal.throwIfAborted(),\n            requireParameter: (name, value) => this.requireParameter(value, name, state, io),\n            limit: () => this.budget.fail(\"maxExpansionBytes\"),\n          }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine))) === 0n);\n        }\n        catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }\n      }",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      },
+      {
+        "removed": "      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))); }",
+        "added": "      try {\n        return String(evaluatePositionalArithmetic(part.expression, {\n          positional: state.positional, arg0: state.arg0 ?? \"virtual-bash\", owner: arrayStore(state)?.owner,\n          maximumBytes: this.budget.limits.maxExpansionBytes,\n          checkpoint: () => this.signal.throwIfAborted(),\n          requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),\n          limit: () => this.budget.fail(\"maxExpansionBytes\"),\n        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))));\n      }",
+        "beforeContext": "    }\n    if (part.kind === \"arithmetic\") {\n      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))); }\n      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }\n    }",
+        "afterContext": "    }\n    if (part.kind === \"arithmetic\") {\n      try {\n        return String(evaluatePositionalArithmetic(part.expression, {\n          positional: state.positional, arg0: state.arg0 ?? \"virtual-bash\", owner: arrayStore(state)?.owner,\n          maximumBytes: this.budget.limits.maxExpansionBytes,\n          checkpoint: () => this.signal.throwIfAborted(),\n          requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),\n          limit: () => this.budget.fail(\"maxExpansionBytes\"),\n        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))));\n      }\n      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }\n    }",
+        "contextPresent": true,
+        "addedPresent": true,
+        "replacedContextStillPresent": false
+      }
+    ],
+    "allAddedBlocksPresent": true,
+    "allExactContextsPresent": true,
+    "qualification": "SOURCE containment only; superseding accepted same-path changes require explicit interpretation"
+  }
+]

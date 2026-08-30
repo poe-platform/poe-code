@@ -1,0 +1,9 @@
+# Pre-edit Baseline Qualification
+
+Authenticated the read-only restored S1 at `/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate`: source `6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea`, tests `dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c`, compiled `2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f`, all358 recorded compiler inputs and restore/tool identities. Historical seal ties source patch to c5e2d338 and evidence to c1985fd5; no earlier report changed.
+
+Captured current source/config before and after reads at **2026-08-27T12:13:59.628Z–12:14:00.623Z**, matching manifests `cbdddeb2d6b319c688c38573e89b334dd5fab66f11403f8469e543dfd92f54b9`. Observed dirty HEAD `e0aa2d2314de815dcf2773889c5a46ae2d04ed8e`, not the earlier coordination HEAD and not a clean/frozen release claim. Foreign edits are preserved. The exact capture remains a separate baseline from the original pre-operation archive based on `c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79`.
+
+Current relevant curl `4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42`, transport `b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844`, runtime `2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b`, cleanup and public command contract equal the original pre-operation bytes, not the owned-operation S1 modifications. Broader current source/config drift is retained in exact inventories, not silently rebased into S1.
+
+Initial source plan: **no source change**; S2 may equal S1. Qualify exact comparisons and owned-code failure-preserving usage first. API handoff `/tmp/safe-bash-owned-output-qualified-prototype-api.txt` published before edits. If a minimal helper change proves necessary, an exact narrow proposal must precede TEMP editing; otherwise retain source S1.

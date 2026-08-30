@@ -1,0 +1,251 @@
+{
+  "sealedAt": "2026-08-28T01:39:10.907Z",
+  "verdict": "Recommend scoped Stage2 acceptance; no product defect demonstrated; not whole-gate or SafeJS acceptance",
+  "baseline": "12e196af8d8b0866339747150b02ca00b9764a09",
+  "candidate": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+  "helper": "57855a0293edb83bff98113123806497b4427416",
+  "executedProduct": "fixed baseline plus exact accepted helper and five candidate blobs, not whole fd1 HEAD",
+  "sourceArchiveSha256": "51b9013eb0ac70849059403cddf22d5f8f0fab360da7a41e308ae0ca88595e87",
+  "sourceFiles": 254,
+  "sourceHashes": {
+    "src/contracts/command.md": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+    "src/contracts/command.ts": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+    "src/shell/types.ts": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+    "src/shell/runtime.ts": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+    "src/shell/shell.ts": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+    "src/shell/cancellation.ts": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2"
+  },
+  "fixtures": {
+    "freeze": "98f400c4a33eeb03f825213054f90adc1fd979c4",
+    "amendment": "7fb923dc4b3275f34ff37936a48220245c220163",
+    "effectiveSha256": "b6ff804f0397907930fb41cbe17eb8bd4caf60a4edc2b424341aa80c1c204b7f"
+  },
+  "package": {
+    "sha256": "87c200daf413d9f1ab835b4d1738a1a93946fd3e350427b01accde4e0b23b1af",
+    "files": 834,
+    "emittedFiles": 832
+  },
+  "node": {
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "tools": {
+    "tsx": "4.23.12",
+    "esbuild": "0.28.2",
+    "@esbuild/darwin-arm64": "0.28.2",
+    "typescript": "5.9.3",
+    "@types/node": "22.20.1",
+    "undici-types": "6.21.0"
+  },
+  "layouts": {
+    "source": {
+      "runtime": {
+        "tests": 26,
+        "pass": 26,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "frozenTypeFamilies": 6,
+      "decisionTypeControls": 2,
+      "allTypeCompilationsExitZero": true,
+      "loadedProductModules": 204,
+      "moduleUrl": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-independent-C3lN5l/source/src/index.ts",
+      "publicBareResolution": null
+    },
+    "installed": {
+      "runtime": {
+        "tests": 26,
+        "pass": 26,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "frozenTypeFamilies": 6,
+      "decisionTypeControls": 2,
+      "allTypeCompilationsExitZero": true,
+      "loadedProductModules": 204,
+      "moduleUrl": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-independent-C3lN5l/installed/node_modules/virtual-bash/dist/index.js",
+      "publicBareResolution": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-independent-C3lN5l/installed/node_modules/virtual-bash/dist/index.js"
+    },
+    "moved": {
+      "runtime": {
+        "tests": 26,
+        "pass": 26,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "frozenTypeFamilies": 6,
+      "decisionTypeControls": 2,
+      "allTypeCompilationsExitZero": true,
+      "loadedProductModules": 204,
+      "moduleUrl": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-independent-C3lN5l/relocated-package-consumer/node_modules/virtual-bash/dist/index.js",
+      "publicBareResolution": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-independent-C3lN5l/relocated-package-consumer/node_modules/virtual-bash/dist/index.js"
+    }
+  },
+  "controls": {
+    "originalRuntimeMutantsRejected": [
+      "M01",
+      "M02",
+      "M03",
+      "M04",
+      "M06",
+      "M07",
+      "M08",
+      "M09"
+    ],
+    "originalRuntimeSurvivor": {
+      "id": "M05",
+      "selectedCases": [
+        "R13",
+        "R14"
+      ],
+      "pass": 2,
+      "fail": 0
+    },
+    "typeMutantRejected": {
+      "id": "M10",
+      "diagnostic": "TS2578 only"
+    },
+    "loaderControlsRejected": [
+      "G01-changed",
+      "G02-unlisted",
+      "G03-live"
+    ],
+    "supplemental": {
+      "unmodifiedCandidate": {
+        "pass": 2,
+        "fail": 0
+      },
+      "sameM05Mutant": {
+        "pass": 1,
+        "fail": 1,
+        "rejectedBy": "S01 private runtime-selection seam",
+        "survived": "S02 actual nested invocation"
+      },
+      "timing": "Both supplemental cases are post-candidate; S02 added after first control execution. Neither replaces the frozen cohort."
+    },
+    "qualification": "Ten classes exercised, not ten original runtime assertion kills. M04/M08 fail on actual admission/budget errors; M05 is rejected only by supplemental private seam."
+  },
+  "regressions": {
+    "maintained-invoke-cleanup-env-getopts": {
+      "tests": 280,
+      "pass": 280,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "maintained-core-owned-output": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "additional-runtime-state-descriptors": {
+      "tests": 68,
+      "pass": 68,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "initialRegressionFailure": {
+    "pass": 279,
+    "fail": 1,
+    "cause": "Reviewer omitted getopts provenance support; existing test ENOENT for evidence/phase1-before.json",
+    "addedBaselineFiles": [
+      "tests/shell/getopts/evidence/native-cohort.mjs",
+      "tests/shell/getopts/evidence/phase1-before.json",
+      "tests/shell/getopts/evidence/verify.mjs"
+    ],
+    "assertionChanges": 0,
+    "productChanges": 0
+  },
+  "regressionMovedClaimQualification": "Existing env-shebang moved consumer inside source tree resolves source/dist through package self-reference; its maintained pass is not moved-install proof. Focused installed/moved runs independently resolve the installed public export outside source.",
+  "originalHistory": {
+    "baselineV1": "13/26",
+    "baselineV2": "14/26",
+    "R08v3": "only outer mapped exitCode 1 amendment; all seven inner reasons and remaining assertions unchanged"
+  },
+  "omitted": [
+    "Actual SafeJS 25-profile replay/private snapshots",
+    "Whole repository gate",
+    "WHICH77 review",
+    "Timeout command or status124 mapping",
+    "Cross-platform/deployed-provider/native parity claims"
+  ],
+  "sourceBugs": [],
+  "evidence": {
+    "focused-01": {
+      "compressedSha256": "f542961daaa7a154f373278d2df86d4b53e21c238ea59614c999ca06e08d46db",
+      "completed": true,
+      "temporaryRemoved": true
+    },
+    "focused-02": {
+      "compressedSha256": "0b8d23c455983c196f95d44334aca0300570150faf28e8cd361c24a44ef06cd1",
+      "completed": true,
+      "temporaryRemoved": true
+    },
+    "controls-01": {
+      "compressedSha256": "00705c2da00dbede677ef1d9cdfc768289d728d6ba041dc449bd61334a02a4a2",
+      "completed": true,
+      "temporaryRemoved": true
+    },
+    "controls-supplement-02": {
+      "compressedSha256": "0d754d9d24165711036e397ac88266eca904fcba34f0c273b3c8f9a2eda14f29",
+      "completed": true,
+      "temporaryRemoved": true
+    },
+    "regressions-01": {
+      "compressedSha256": "e8e2af28268c67962e37c08ee37ec245519dbd27b4ecd1947fb45db081831d5b",
+      "completed": true,
+      "temporaryRemoved": true
+    },
+    "regressions-02": {
+      "compressedSha256": "b418c41ee6236ad23652ac58b37375087ebfe7d90a4a7f9730452d154a3971a2",
+      "completed": true,
+      "temporaryRemoved": true
+    }
+  },
+  "processCheck": {
+    "command": "ps -axo pid=,ppid=,command=, filtered to exact owned scratch roots",
+    "ownedRoots": [
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-independent-rXyVR6",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-independent-C3lN5l",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-controls-mQkBKd",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-controls-UKhFd9",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-regressions-iQrp1b",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/stage2-fd1-regressions-OtLZLW"
+    ],
+    "matches": [],
+    "qualification": "Bounded direct children exited without signal/watchdog; maintained subprocess tests assert direct child ESRCH. This is not a global host-process census or heap-retention proof."
+  },
+  "files": {
+    "REPORT.md": "8b9f633fa798573182ebd5c84ed761a90b2cee3a56c750ea87d7981eab944d94",
+    "controls-01.json.gz.base64": "a686270afa0b82851b89471405e1383bc3ade038368f60c143096c369620829e",
+    "controls-plan.json": "d74b604e39e82511a57eca1c96df42cff034d57afddb45d312a2a570c8698dd2",
+    "controls-supplement-02.json.gz.base64": "d9522e101415838137788e911aa2609c11058e1fd818a2c8f1d4ad15038cbbc2",
+    "controls.mjs": "686467923ed36f01fdb4c67ae49f3810b1dc3ef4554081170668baac764e4fdb",
+    "focused-01.json.gz.base64": "4fefe7f2f9d9dd9067a3a8f77491f328085f5ee46638066affbe9e5edc3b3ec4",
+    "focused-02.json.gz.base64": "9999467702342839740ec188db1415bcf1cc742aee1cd92d253fa3ec95b69f23",
+    "guard.mjs": "7d7bf8a4248a110493ce58d79d885c33ae1c27cc9f4bf8f168985d7d850b1840",
+    "regression-guard.mjs": "a42550f6956788afeace55c083dd1401b6e69d89fde24dfaa0788e41955e3bef",
+    "regressions-01.json.gz.base64": "0dd3ead9516e61c9ddc62854cc2b65109247a1baafc0b1b83790e6e2b78bf816",
+    "regressions-02.json.gz.base64": "88018c29428338d93ba1523ab486141c60b4de6a769c22dd2dd9c765d228c408",
+    "regressions.mjs": "ffe1d3203b0c83c30a842dcf61d157cc4c856721c0d7fbd039daa7756fedca97",
+    "run.mjs": "8ca4b7f883316984b78bd43d50c7cd3296eadbf5af699500db9ee4f5677e5b28",
+    "seal.mjs": "f01093bfd5815d6f80d6c73e784f75c6d64edba0583101555dd48650a5881c0c",
+    "supplement.mjs": "2b882be7ebb0d94b289a7ea6e014d304265a0da00742d7c97b3761661fa08d8a",
+    "verify.mjs": "6a40b8750951608c18f6a188f8296a97868f2b6bcf7d5f68fecfaaf6a4723a3c"
+  }
+}

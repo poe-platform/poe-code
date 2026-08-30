@@ -1,0 +1,25 @@
+{
+  "status": "METADATA_COMPLETE_NOT_BUILD_READY",
+  "toolObservations": 49,
+  "presentTools": 45,
+  "distinctToolFiles": 44,
+  "loaderFiles": 48,
+  "newLibraryFiles": 4,
+  "unresolvedLoaderEdges": 0,
+  "systemImageEdges": 123,
+  "sdk": "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk",
+  "resource": "/Library/Developer/CommandLineTools/usr/lib/clang/21",
+  "headerFiles": 366,
+  "headerBytes": 2911692,
+  "headerCandidatesUnprocessed": 0,
+  "absentOrUnresolvedHeaderCandidates": 401,
+  "stubs": 47,
+  "stubBytes": 863546,
+  "missingStubs": 1,
+  "sourceUnchanged": {
+    "source": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+    "members": 1602,
+    "sha256": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e"
+  },
+  "runtimeOrFenceQualified": false
+}

@@ -1,0 +1,921 @@
+{
+  "date": "2026-08-27",
+  "baseline": "f06f2886300885c51a90cac0794a6a6d53be53fd",
+  "headBeforeFinalCommit": "3cf57d3c0f9642475c811249f34f6968f9dd5f4a",
+  "precedingSourceCommits": [
+    "7e69fe19521d806782f135f4d1827052ef6b8976",
+    "6370e717c0f540991fb980a10b36725f301e2f3c"
+  ],
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820",
+    "shell.ts": "f4be37e13e400fb1e0cf52e3ba9f16c4ef32c8ae1a2c3d09908369a680e4931e",
+    "types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "frozen": {
+    "tests/shell/invocation-modes.test.ts": {
+      "baseline": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+      "current": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46"
+    },
+    "tests/shell/invocation-modes-cases.ts": {
+      "baseline": "eead41974e124f79181f1c1dada9aa18d4a8bd13318005574827b9569b16ee91",
+      "current": "eead41974e124f79181f1c1dada9aa18d4a8bd13318005574827b9569b16ee91"
+    },
+    "tests/shell/invocation-modes-reference.json": {
+      "baseline": "31bbc09b2348d991cede4bdd5b5878efc3f6795f864522e4ec9ce91c28cd4eeb",
+      "current": "31bbc09b2348d991cede4bdd5b5878efc3f6795f864522e4ec9ce91c28cd4eeb"
+    },
+    "tests/shell/script-entrypoint.test.ts": {
+      "baseline": "57c4b9b71249b82ca68dce2979be26d13e7be5777d2778bd17e101b7ffe70ec6",
+      "current": "57c4b9b71249b82ca68dce2979be26d13e7be5777d2778bd17e101b7ffe70ec6"
+    },
+    "tests/shell-stress/script-entrypoint/holdout.test.ts": {
+      "baseline": "c22f2c16e0ca822f4e1cffbfab2b5ae8a0de996ac13df30b1bf1021fd967ad05",
+      "current": "c22f2c16e0ca822f4e1cffbfab2b5ae8a0de996ac13df30b1bf1021fd967ad05"
+    }
+  },
+  "validation": {
+    "author": {
+      "discovery": 50,
+      "read": 70,
+      "sh": 91,
+      "total": 211,
+      "passed": 211
+    },
+    "combined": {
+      "total": 684,
+      "passed": 684,
+      "skipped": 0,
+      "todo": 0,
+      "composition": "211 new + 132 frozen invocation + 41 file-author + 300 existing semantics"
+    },
+    "fileHoldout": {
+      "total": 17,
+      "passed": 16,
+      "failed": [
+        "builtin-function-registry-shadow"
+      ],
+      "unchanged": true
+    },
+    "typechecks": {
+      "globalNoEmit": 0,
+      "buildNoEmit": 0,
+      "benchmarkNoEmit": 0
+    },
+    "dependencyGuard": {
+      "checked": 30,
+      "changed": []
+    },
+    "postValidationDependencyChanges": [
+      {
+        "url": "file:///Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts",
+        "before": "afcdeb2d4a581350dc266537f691f1e0a52f662cd4694a05bdd92e5bd351860c",
+        "after": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a"
+      }
+    ],
+    "actualTsImportCount": 30,
+    "hardBoundedNewChildren": 16
+  },
+  "native": [
+    {
+      "group": "discovery",
+      "scenarioSha256": "0a7d5d2b907303be75d74d4cca1554a3feb6916fd46bcf13173b3414f1df1cbc",
+      "profiles": [
+        {
+          "name": "GNU-5.3",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "total": 36,
+          "passed": 36,
+          "failures": []
+        },
+        {
+          "name": "historical-3.2",
+          "executable": "/bin/bash",
+          "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+          "total": 36,
+          "passed": 30,
+          "failures": [
+            {
+              "name": "mixed status",
+              "mode": "bash",
+              "differingFields": [
+                "stdout"
+              ]
+            },
+            {
+              "name": "missing verbose",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "spaces and empty path",
+              "mode": "bash",
+              "differingFields": [
+                "stdout"
+              ]
+            },
+            {
+              "name": "mixed status",
+              "mode": "sh",
+              "differingFields": [
+                "stdout"
+              ]
+            },
+            {
+              "name": "missing verbose",
+              "mode": "sh",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "spaces and empty path",
+              "mode": "sh",
+              "differingFields": [
+                "stdout"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "read",
+      "scenarioSha256": "95b442621ebe80c354f8ae99667192c33431f5d20a59d09f43181854acf8dee7",
+      "profiles": [
+        {
+          "name": "GNU-5.3",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "total": 56,
+          "passed": 56,
+          "failures": []
+        },
+        {
+          "name": "historical-3.2",
+          "executable": "/bin/bash",
+          "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+          "total": 56,
+          "passed": 2,
+          "failures": [
+            {
+              "name": "exact newline",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "zero count",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "negative zero",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "positive sign",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "leading zero",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "whitespace number",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "partial EOF",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "empty EOF",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "raw backslash",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "escaped character",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "continuation",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "trailing backslash EOF",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N ignores later delimiter",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N ignores earlier delimiter",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N ignores NUL delimiter",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N skips NUL",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "sticky N last count n",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "sticky N newline",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "last count N",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "repeat N",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "UTF8 codepoints",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "C byte boundary",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "negative count",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "invalid decimal",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "invalid hex",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N ignores IFS",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N REPLY",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "exact newline",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "zero count",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "negative zero",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "positive sign",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "leading zero",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "whitespace number",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "partial EOF",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "empty EOF",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "raw backslash",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "escaped character",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "continuation",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "trailing backslash EOF",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N ignores later delimiter",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N ignores earlier delimiter",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N ignores NUL delimiter",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N skips NUL",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "sticky N last count n",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "sticky N newline",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "last count N",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "repeat N",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "UTF8 codepoints",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "C byte boundary",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "negative count",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "invalid decimal",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "invalid hex",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N ignores IFS",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "N REPLY",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "sh",
+      "scenarioSha256": "eb8269bd66aadecc5bb625c1154f077ee60e49e3e779aab90bb6098696a38b4e",
+      "profiles": [
+        {
+          "name": "GNU-5.3",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "total": 70,
+          "passed": 70,
+          "failures": []
+        },
+        {
+          "name": "historical-3.2",
+          "executable": "/bin/bash",
+          "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+          "total": 70,
+          "passed": 37,
+          "failures": [
+            {
+              "name": "readonly special assignment",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly ordinary assignment",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly alone assignment",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly unset",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "command readonly unset",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly read cursor",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "invalid export fatal",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "command invalid export not fatal",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly multi read",
+              "mode": "bash",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "special redirection fatal",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "command redirection not fatal",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly redirection effects",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "ordinary readonly redirection",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "assignment-only readonly redirection",
+              "mode": "bash",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "special unset prefix",
+              "mode": "sh",
+              "differingFields": [
+                "stdout"
+              ]
+            },
+            {
+              "name": "command unset explicit prefix",
+              "mode": "sh",
+              "differingFields": [
+                "stdout"
+              ]
+            },
+            {
+              "name": "function temporary prefix",
+              "mode": "sh",
+              "differingFields": [
+                "stdout"
+              ]
+            },
+            {
+              "name": "local inherited profile",
+              "mode": "sh",
+              "differingFields": [
+                "stdout"
+              ]
+            },
+            {
+              "name": "readonly special assignment",
+              "mode": "sh",
+              "differingFields": [
+                "stderr",
+                "status"
+              ]
+            },
+            {
+              "name": "readonly ordinary assignment",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr",
+                "status"
+              ]
+            },
+            {
+              "name": "readonly alone assignment",
+              "mode": "sh",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly unset",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr",
+                "status"
+              ]
+            },
+            {
+              "name": "command readonly unset",
+              "mode": "sh",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly read cursor",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "invalid export fatal",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr",
+                "status"
+              ]
+            },
+            {
+              "name": "command invalid export not fatal",
+              "mode": "sh",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "special function definition",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr",
+                "status"
+              ]
+            },
+            {
+              "name": "readonly multi read",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "name": "special redirection fatal",
+              "mode": "sh",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "command redirection not fatal",
+              "mode": "sh",
+              "differingFields": [
+                "stderr"
+              ]
+            },
+            {
+              "name": "readonly redirection effects",
+              "mode": "sh",
+              "differingFields": [
+                "stderr",
+                "status"
+              ]
+            },
+            {
+              "name": "ordinary readonly redirection",
+              "mode": "sh",
+              "differingFields": [
+                "stdout",
+                "stderr",
+                "status",
+                "files"
+              ]
+            },
+            {
+              "name": "assignment-only readonly redirection",
+              "mode": "sh",
+              "differingFields": [
+                "stderr"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "redControls": {
+    "discovery": {
+      "passed": 2,
+      "total": 42
+    },
+    "read": {
+      "passed": 5,
+      "total": 69
+    },
+    "readName": {
+      "passed": 0,
+      "total": 1
+    },
+    "sh": {
+      "passed": 31,
+      "total": 71
+    },
+    "additionalSafety": {
+      "passed": 0,
+      "total": 3
+    },
+    "fileEffects": {
+      "passed": 87,
+      "total": 91
+    }
+  },
+  "publicExportNamesChanged": [],
+  "runtimeDependenciesAdded": [],
+  "knownOpen": [
+    "five custom first-read cases, not rerun",
+    "nine prior historical invocation findings, separate from new historical cohorts",
+    "old file holdout builtin/function precedence assertion requires owner review",
+    "source/dot/eval excluded pending independent checkpoint",
+    "UTF8-only variable boundaries; no arbitrary-byte variables or general libc locale emulation",
+    "no full POSIX sh, broad declaration/pretty-print/error parity, keyword/alias discovery or host/default PATH",
+    "full Bash/superiority/72-hour objective not completed"
+  ]
+}

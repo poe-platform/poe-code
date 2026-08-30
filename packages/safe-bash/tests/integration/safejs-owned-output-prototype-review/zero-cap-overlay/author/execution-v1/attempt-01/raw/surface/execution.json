@@ -1,0 +1,21 @@
+{
+  "cohort": "surface",
+  "started": "2026-08-27T18:12:47.899340+00:00",
+  "rootRelease": "/private/tmp/safe-bash-zero-overlay-author-replay-m16ispgh/ROOT-RELEASE.json",
+  "executionFreezeCommit": "8d58de4e08b9a50a8305b17686bd842a9e7d2d5e",
+  "launched": false,
+  "failure": {
+    "type": "AssertionError",
+    "message": "Private immutable input drift: status",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v1/run.py\", line 90, in main\n    assert before[key] == pins[key], f'Private immutable input drift: {key}'\n           ^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Private immutable input drift: status\n"
+  },
+  "privateUnchanged": true,
+  "sharedUnchanged": false,
+  "inputsUnchanged": false,
+  "afterGuardFailure": {
+    "type": "AssertionError",
+    "message": "",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v1/run.py\", line 131, in main\n    assert entry['sharedUnchanged'] and entry['inputsUnchanged']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+  },
+  "finished": "2026-08-27T18:12:51.160201+00:00"
+}

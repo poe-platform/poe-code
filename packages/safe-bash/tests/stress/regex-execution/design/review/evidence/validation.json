@@ -1,0 +1,42 @@
+{
+  "utc": "2026-08-27T05:06:18.470Z",
+  "syntax": [
+    {
+      "path": "tests/stress/regex-execution/design/review/fixtures.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "path": "tests/stress/regex-execution/design/review/prepare.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "path": "tests/stress/regex-execution/design/review/child.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "path": "tests/stress/regex-execution/design/review/run.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "path": "tests/stress/regex-execution/design/review/audit.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "path": "tests/stress/regex-execution/design/review/cleanup.mjs",
+      "status": 0,
+      "stderr": ""
+    }
+  ],
+  "ownedDiffCheck": {
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "temporaryAbsent": true,
+  "probeReruns": 0
+}

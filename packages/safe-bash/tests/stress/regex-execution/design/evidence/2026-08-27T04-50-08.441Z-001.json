@@ -1,0 +1,168 @@
+{
+  "args": [
+    "risk",
+    "worker-default"
+  ],
+  "pid": 68695,
+  "readyAt": 62.719583,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 139.55375
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 141.62604100000001
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 141.634125
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "risk",
+      "name": "worker-default"
+    },
+    {
+      "type": "enter",
+      "subjectBytes": 25,
+      "source": "^(a+)+$",
+      "profile": "worker-default"
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 6.415917,
+      "rss": 66437120
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 12.722917000000002,
+      "rss": 66437120
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 19.02358300000001,
+      "rss": 66453504
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 25.322542000000006,
+      "rss": 66453504
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 31.200167,
+      "rss": 66453504
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 37.558417,
+      "rss": 66469888
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 43.862625,
+      "rss": 66469888
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 50.204375000000006,
+      "rss": 66469888
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 56.52958300000001,
+      "rss": 66469888
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 62.825750000000006,
+      "rss": 66469888
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 69.115083,
+      "rss": 66469888
+    },
+    {
+      "type": "heartbeat",
+      "elapsed": 75.39904200000001,
+      "rss": 66469888
+    },
+    {
+      "type": "done",
+      "result": {
+        "status": "error",
+        "error": "WORK_DEADLINE",
+        "elapsedMs": 76.560292,
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 0,
+          "inputBytes": 50,
+          "responseBytes": 0,
+          "startupMs": 21.606917000000003,
+          "workMs": 75.49629100000001,
+          "terminationMs": 1.0711670000000026,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      },
+      "wallMs": 76.603083,
+      "heartbeats": 12,
+      "maxGap": 6.415917,
+      "peakRss": 66469888,
+      "memory": {
+        "rss": 59326464,
+        "heapTotal": 7487488,
+        "heapUsed": 5477992,
+        "external": 2155302,
+        "arrayBuffers": 18929
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": [
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 0,
+          "inputBytes": 50,
+          "responseBytes": 0,
+          "startupMs": 21.606917000000003,
+          "workMs": 75.49629100000001,
+          "terminationMs": 1.0711670000000026,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      ]
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 1695,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

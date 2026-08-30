@@ -1,0 +1,13 @@
+{
+  "args": [
+    "ls-tree",
+    "-z",
+    "be284b6f799e7501c793daff4d7bffc36ce4090b",
+    "tests/compatibility/bash-strict-mode-author-20260829/SOURCE.json"
+  ],
+  "closed": true,
+  "captureBytes": 118,
+  "pid": 99196,
+  "code": 0,
+  "signal": null
+}

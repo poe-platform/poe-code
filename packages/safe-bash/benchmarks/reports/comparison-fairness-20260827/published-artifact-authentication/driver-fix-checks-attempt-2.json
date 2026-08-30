@@ -1,0 +1,90 @@
+{
+  "at": "2026-08-27T06:29:53.482Z",
+  "actualNode": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "syntaxCheckProcesses": 7,
+  "nonProductHelperProcesses": 1,
+  "productProcesses": 0,
+  "approvalOrDriverExecution": false,
+  "records": [
+    {
+      "kind": "syntax-only",
+      "name": "supervise-representative.mjs",
+      "sha256": "ed36180c0adc9a498c231df095acc53bd5263a0cd2aee65b71d99513f253906b",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "kind": "syntax-only",
+      "name": "representative.mjs",
+      "sha256": "0e5efb239d18f985df8abbf2efd0da1f6766adc915bec16058492c27733ec5c1",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "kind": "syntax-only",
+      "name": "launch-seal.mjs",
+      "sha256": "00bd30ae42cbdebdb28a1f3c7a258dfcb1fc906897c33037b934f6a8dddcec2b",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "kind": "syntax-only",
+      "name": "driver-lifecycle.mjs",
+      "sha256": "0de8d75a0492f6bbc633301eb93a8b9a06abd79d7bfa961242d1224f255301b6",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "kind": "syntax-only",
+      "name": "observe-process.mjs",
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "kind": "syntax-only",
+      "name": "observe-load.mjs",
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "kind": "syntax-only",
+      "name": "driver-helper-check.mjs",
+      "sha256": "0e5c1ce74c692b9bc9e6fafcea975b95383ae2a6e33a4511cb09544c4e41125a",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null
+    },
+    {
+      "kind": "non-product-helper-only",
+      "name": "driver-helper-check.mjs",
+      "status": 0,
+      "signal": null,
+      "stdout": "{\n  \"kind\": \"non-product driver helper checks only\",\n  \"cases\": [\n    {\n      \"name\": \"B3 normal settlement, actual event counts and duplicate fencing\",\n      \"pass\": true\n    },\n    {\n      \"name\": \"B3 startup timeout cannot dispatch on late ready\",\n      \"pass\": true\n    },\n    {\n      \"name\": \"B3 request timeout retains late raw response without resettling\",\n      \"pass\": true\n    },\n    {\n      \"name\": \"B3 child error fences late ready\",\n      \"pass\": true\n    },\n    {\n      \"name\": \"B3 explicit closing and publication-abort fences\",\n      \"pass\": true\n    },\n    {\n      \"name\": \"B3 failed callback and synchronous send throw counted separately\",\n      \"pass\": true\n    },\n    {\n      \"name\": \"B1 bound byte hashes and exact two-addition membership\",\n      \"pass\": true\n    },\n    {\n      \"name\": \"B2 throwing cleanup and timed-out close still attempt evidence\",\n      \"pass\": true\n    }\n  ],\n  \"pass\": true,\n  \"fakeChildFixtures\": 8,\n  \"realChildren\": 0,\n  \"productImports\": 0,\n  \"productCalls\": 0,\n  \"servers\": 0,\n  \"networkRequests\": 0,\n  \"filesWrittenByChecks\": 0,\n  \"limitation\": \"In-memory EventEmitter/manual clocks plus one 2ms helper timeout; not supervisor, engine, package or OS lifecycle execution.\"\n}\n",
+      "stderr": "",
+      "error": null
+    }
+  ]
+}

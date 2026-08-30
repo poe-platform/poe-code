@@ -1,0 +1,30 @@
+{
+  "role": "DEVGIT_ADMINISTRATIVE_NOT_PRODUCT_OR_SUPERVISOR_CHILD",
+  "command": [
+    "/usr/bin/git",
+    "--no-optional-locks",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "commit.gpgsign=false",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "maintenance.auto=false",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/README.md",
+    "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/RESULT.md"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "pid": 13340,
+  "start": 1787950152726,
+  "end": 1787950152787,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutBytes": 0,
+  "stderrBytes": 0
+}

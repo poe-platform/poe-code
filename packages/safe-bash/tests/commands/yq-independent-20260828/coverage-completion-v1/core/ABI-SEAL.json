@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "kind": "EARLY_COMMON_ABI_AND_ALLOCATION_SEAL",
+  "files": [
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.json",
+      "sha256": "4d5e2ca14a50965daaf08218ea1ecc26838f9376868d8ab5b929bfef2e7178f1",
+      "bytes": 7621,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ALLOCATION.json",
+      "sha256": "2cd020b25855987f9d7af02d9e6e215f867f99d10c402c34d5e80513f92b0545",
+      "bytes": 628572,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/PREPARATION-HISTORY.json",
+      "sha256": "f115f6edb03d345ac4a73247c8b84d95b5c4ee279c4c738e8e80e458d1029a5f",
+      "bytes": 422,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.md",
+      "sha256": "8b098c06414c2fa0fc832c57629b446471fcc41d5a84da6ce65df1df30e5a79a",
+      "bytes": 3295,
+      "mode": 420
+    }
+  ],
+  "rootMode": 493,
+  "self": {
+    "path": "ABI-SEAL.json",
+    "mode": 420,
+    "sha256": "EXTERNAL_READY_HASH"
+  },
+  "routingCommit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+  "RootGO": false
+}

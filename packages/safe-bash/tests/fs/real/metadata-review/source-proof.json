@@ -1,0 +1,125 @@
+{
+  "capturedAt": "2026-08-27T01:12:22.895Z",
+  "tagUrl": "https://api.github.com/repos/apple-oss-distributions/xnu/git/ref/tags/xnu-12377.101.15",
+  "tag": {
+    "ref": "refs/tags/xnu-12377.101.15",
+    "node_id": "REF_kwDOGKblOLpyZWZzL3RhZ3MveG51LTEyMzc3LjEwMS4xNQ",
+    "url": "https://api.github.com/repos/apple-oss-distributions/xnu/git/refs/tags/xnu-12377.101.15",
+    "object": {
+      "sha": "e0049168d917cbc6d2f6b6f0880c5d98df62a21b",
+      "type": "tag",
+      "url": "https://api.github.com/repos/apple-oss-distributions/xnu/git/tags/e0049168d917cbc6d2f6b6f0880c5d98df62a21b"
+    }
+  },
+  "tagObject": {
+    "node_id": "TA_kwDOGKblONoAKGUwMDQ5MTY4ZDkxN2NiYzZkMmY2YjZmMDg4MGM1ZDk4ZGY2MmEyMWI",
+    "sha": "e0049168d917cbc6d2f6b6f0880c5d98df62a21b",
+    "url": "https://api.github.com/repos/apple-oss-distributions/xnu/git/tags/e0049168d917cbc6d2f6b6f0880c5d98df62a21b",
+    "tagger": {
+      "name": "Apple OSS Distributions",
+      "email": "91980991+AppleOSSDistributions@users.noreply.github.com",
+      "date": "2026-04-13T23:12:35Z"
+    },
+    "object": {
+      "sha": "5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291",
+      "type": "commit",
+      "url": "https://api.github.com/repos/apple-oss-distributions/xnu/git/commits/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291"
+    },
+    "tag": "xnu-12377.101.15",
+    "message": "Imported from xnu-12377.101.15.tar.gz\n",
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "sources": [
+    {
+      "repository": "apple-oss-distributions/xnu",
+      "revision": "5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291",
+      "path": "libsyscall/wrappers/unix03/chmod.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291/libsyscall/wrappers/unix03/chmod.c",
+      "bytes": 1826,
+      "sha256": "668aba30c535ba6ae952bc118e051b9ed62c67ded6fd9288133296d5522894fd",
+      "locations": {
+        "int res = __chmod(path, mode);": [
+          43
+        ],
+        "res = __chmod(path, mode ^ S_ISGID);": [
+          49
+        ]
+      }
+    },
+    {
+      "repository": "apple-oss-distributions/xnu",
+      "revision": "5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291",
+      "path": "bsd/vfs/vfs_syscalls.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291/bsd/vfs/vfs_syscalls.c",
+      "bytes": 390305,
+      "sha256": "e227c4eadadaf995c0b93a6a21fa30026b9782672c87d19baf423a079e84766f",
+      "locations": {
+        "fchmodat_internal(vfs_context_t": [
+          8267
+        ],
+        "chmod(__unused proc_t": [
+          8279
+        ],
+        "fchmodat(__unused proc_t": [
+          8286
+        ]
+      }
+    },
+    {
+      "repository": "apple-oss-distributions/xnu",
+      "revision": "5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291",
+      "path": "bsd/vfs/vfs_subr.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291/bsd/vfs/vfs_subr.c",
+      "bytes": 346302,
+      "sha256": "8c6a409de992ad34a0541951173368731354a77ad369de1efa4f94b572ca1291",
+      "locations": {
+        "if (vap->va_mode & S_ISGID)": [
+          10737,
+          11011
+        ],
+        "kauth_cred_ismember_gid(cred, group": [
+          11027
+        ]
+      }
+    },
+    {
+      "repository": "libuv/libuv",
+      "revision": "v1.51.0",
+      "path": "src/unix/fs.c",
+      "url": "https://raw.githubusercontent.com/libuv/libuv/v1.51.0/src/unix/fs.c",
+      "bytes": 59847,
+      "sha256": "ffe2cd709c894083d4e470bce5248eee71c5e5594418be3d7a6d80e44d723a61",
+      "locations": {
+        "X(CHMOD, chmod(req->path, req->mode));": [
+          1698
+        ]
+      }
+    },
+    {
+      "repository": "nodejs/node",
+      "revision": "v22.22.2",
+      "path": "src/node_file.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/src/node_file.cc",
+      "bytes": 137052,
+      "sha256": "d9bd85b74171f392d96217ca5e1fbf522b504c2cb94f0f84965ebd4ceee9ef06",
+      "locations": {
+        "uv_fs_chmod": [
+          2716,
+          2720
+        ]
+      }
+    }
+  ],
+  "interpretation": {
+    "wrapper": "Darwin UNIX03 chmod first calls __chmod with the requested mode. On EPERM with SGID requested it retries without SGID; success is returned. The remaining stale errno is not an error after a successful return.",
+    "kernel": "The version-matched XNU source sends chmod and fchmodat through fchmodat_internal. vnode_authattr rejects setting SGID for a non-root caller outside the target group. Native controls distinguish the kernel refusal from the userspace retry.",
+    "node": "The version-matched Node/libuv sources route fs chmod through uv_fs_chmod to libc chmod, not fchmodat.",
+    "limits": "Tag version matches the running xnu-12377.101.15. No kernel or shared-cache binary rebuild, signature validation, or in-kernel event trace is claimed. GNU fchmodat arguments are measured through separate development-only interposition; Node API arguments are measured through a temporary restored builtin wrapper."
+  }
+}

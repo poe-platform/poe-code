@@ -1,0 +1,51 @@
+{
+  "schema": "node-startup-v4-preseal",
+  "role": "only S05-v2 and unrun S06; no S01-04 replay, no product/Worker/engine",
+  "rootGrant": "ROOT STARTUP-v4 20min32all peak3; conditional actual separate",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "processCeiling": 2,
+  "elapsedMs": 30000,
+  "captureBytes": 1048576,
+  "files": [
+    {
+      "path": "startup-controls-v4.mjs",
+      "bytes": 2456,
+      "sha256": "783da96d00381fee8d850d1f9e63fd9699a3af7229aca72d2fafecb3ce22a3a4"
+    },
+    {
+      "path": "startup-capture-v3.mjs",
+      "bytes": 3238,
+      "sha256": "97fbc0901a25c6a50b1f554a0ef8376071a2d8adddd7bb70c0731020b17e63a0"
+    },
+    {
+      "path": "capture-v1.mjs",
+      "bytes": 3135,
+      "sha256": "745d02d2ffc87085810df9a339c8152bcd7c5fdfee13e98c7a26a01137074177"
+    },
+    {
+      "path": "harmless-v3.mjs",
+      "bytes": 38,
+      "sha256": "2a8bfd4632cf3bd28dd3336b9095acec9367a1e2217ec38ae815819393f8fceb"
+    },
+    {
+      "path": "S05-RETAINED-WARNING.txt",
+      "bytes": 210,
+      "sha256": "3cd00e54aeaf34d8c23d25cfb9ba45cd304215be0cb7287bafd9cc6a251ab495"
+    },
+    {
+      "path": "CONTROL-STARTUP-v4.json",
+      "bytes": 3395,
+      "sha256": "77d0491cac38e800f9879b0e83bf1dfaf6430ba17f33dbec9c95cf042c5307a3"
+    },
+    {
+      "path": "DISPATCH-CONTROLS-v4.mjs.data",
+      "bytes": 5059,
+      "sha256": "fa9f1d9fa37b7202a6e8682bace87b6ce294eded099c2cfff295551e113b75f6"
+    },
+    {
+      "path": "PARENTS.json",
+      "bytes": 1240,
+      "sha256": "5d6d413aadc62b5a64d500459f038c10594df51402ccf1f344fa38b0fcb22c68"
+    }
+  ]
+}

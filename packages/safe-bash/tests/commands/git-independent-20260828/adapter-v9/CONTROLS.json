@@ -1,0 +1,14 @@
+[
+  {"id":"T01","role":"synthetic","criterion":"Exact receiver/arguments/return and Promise identity; saved factory avoids recursion; data unchanged"},
+  {"id":"T02","role":"synthetic","criterion":"Private writer independently pending remains HOLD despite closed; actual synthetic join then PASS"},
+  {"id":"T03","role":"synthetic","criterion":"No-hook ordinary path has zero registrations/resources; internal cleanup still required if acquired"},
+  {"id":"T04","role":"synthetic","criterion":"Shared cleanup Promise identity; pending and falsy undefined rejection HOLD"},
+  {"id":"T05","role":"synthetic","criterion":"Shell route/scope identity and actual registration; dropped forwarding HOLD then matched cleanup PASS"},
+  {"id":"T06","role":"synthetic","criterion":"Owned return exact destruction identity enrolled before notification; delayed close HOLD then PASS; lookalike secondary HOLD"},
+  {"id":"T07","role":"synthetic","criterion":"Overflow and descriptor tampering invalidate proof but cleanup/restoration still attempted"},
+  {"id":"T08","role":"synthetic","criterion":"Two invocation identities cannot share cleanup credit"},
+  {"id":"T09","role":"synthetic","criterion":"Exact source-primary mapping before execute boundary; identical reason emitted later still HOLD"},
+  {"id":"T10","role":"synthetic","criterion":"Acquire/writer/finalizer listeners distinct; original removal identity; absent raw callback not private Promise pending"},
+  {"id":"D01","role":"data","criterion":"All transformations reconstruct/reverse/hash; unchanged await/then/catch counts; exact frozen writer extraction"},
+  {"id":"D02","role":"data","criterion":"Sealed imports and all local hashes; no candidate execution or old-control rerun"}
+]

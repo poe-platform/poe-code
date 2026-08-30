@@ -1,0 +1,422 @@
+{
+  "classification": "Independent POSTCANDIDATE supplements, not prefreeze holdouts. Direct screenMatch byte-limit checks exercise production gate; Proxy only observes scan indexing. Cancellation/cleanup qualification is cooperative, not opaque-host waiting.",
+  "rows": [
+    {
+      "id": "pattern-byte-before-scan",
+      "passed": true
+    },
+    {
+      "id": "subject-byte-before-scan",
+      "passed": true
+    },
+    {
+      "id": "both-byte-before-scan",
+      "passed": true
+    },
+    {
+      "id": "byte-boundary-equal-scans-and-charges",
+      "passed": true
+    },
+    {
+      "id": "escape-parity-1",
+      "passed": true
+    },
+    {
+      "id": "escape-parity-2",
+      "passed": true
+    },
+    {
+      "id": "escape-parity-3",
+      "passed": true
+    },
+    {
+      "id": "escape-parity-4",
+      "passed": true
+    },
+    {
+      "id": "escape-parity-5",
+      "passed": true
+    },
+    {
+      "id": "escape-parity-6",
+      "passed": true
+    },
+    {
+      "id": "remaining-work-and-cleanup-C.UTF-8",
+      "passed": true
+    },
+    {
+      "id": "remaining-work-and-cleanup-en_US.UTF-8",
+      "passed": true
+    },
+    {
+      "id": "named-scan-deducted-from-worker-allowance",
+      "passed": true
+    },
+    {
+      "id": "cancel-identity-0",
+      "passed": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'type')\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:75:127\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:24:42)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:73:145"
+    },
+    {
+      "id": "cancel-identity-1",
+      "passed": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'type')\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:75:127\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:24:42)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:73:145"
+    },
+    {
+      "id": "cancel-identity-2",
+      "passed": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'type')\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:75:127\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:24:42)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:73:145"
+    },
+    {
+      "id": "cancel-identity-3",
+      "passed": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'type')\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:75:127\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:24:42)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:73:145"
+    },
+    {
+      "id": "cancel-identity-4",
+      "passed": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'type')\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:75:127\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:24:42)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:73:145"
+    },
+    {
+      "id": "cancel-identity-5",
+      "passed": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'type')\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:75:127\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:24:42)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/supplements.mjs:73:145"
+    },
+    {
+      "id": "short-circuit-zero-jobs-0",
+      "passed": true
+    },
+    {
+      "id": "short-circuit-zero-jobs-1",
+      "passed": true
+    },
+    {
+      "id": "short-circuit-zero-jobs-2",
+      "passed": true
+    },
+    {
+      "id": "short-circuit-zero-jobs-3",
+      "passed": true
+    }
+  ],
+  "allowances": [
+    {
+      "locale": "C.UTF-8",
+      "actual": {
+        "status": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "trace": [
+          {
+            "type": "register"
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 10000,
+            "after": 9999
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9999,
+            "after": 9998
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9998,
+            "after": 9997
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9997,
+            "after": 9996
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9996,
+            "after": 9995
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9995,
+            "after": 9994
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9994,
+            "after": 9993
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9993,
+            "after": 9992
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9992,
+            "after": 9991
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9991,
+            "after": 9990
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9990,
+            "after": 9989
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9989,
+            "after": 9988
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9988,
+            "after": 9987
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9987,
+            "after": 9986
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9986,
+            "after": 9985
+          },
+          {
+            "type": "job",
+            "allowance": 9985,
+            "remaining": 9985
+          },
+          {
+            "type": "acquire"
+          },
+          {
+            "type": "result",
+            "steps": 57
+          },
+          {
+            "type": "charge",
+            "amount": 57,
+            "before": 9985,
+            "after": 9928
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9928,
+            "after": 9927
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9927,
+            "after": 9926
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9926,
+            "after": 9925
+          },
+          {
+            "type": "charge",
+            "amount": 2,
+            "before": 9925,
+            "after": 9923
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9923,
+            "after": 9922
+          }
+        ],
+        "activeAtSettlement": 0,
+        "activeAfterCleanup": 0,
+        "sameReason": true
+      }
+    },
+    {
+      "locale": "en_US.UTF-8",
+      "actual": {
+        "status": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "trace": [
+          {
+            "type": "register"
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 10000,
+            "after": 9999
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9999,
+            "after": 9998
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9998,
+            "after": 9997
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9997,
+            "after": 9996
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9996,
+            "after": 9995
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9995,
+            "after": 9994
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9994,
+            "after": 9993
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9993,
+            "after": 9992
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9992,
+            "after": 9991
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9991,
+            "after": 9990
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9990,
+            "after": 9989
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9989,
+            "after": 9988
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9988,
+            "after": 9987
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9987,
+            "after": 9986
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9986,
+            "after": 9985
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9985,
+            "after": 9984
+          },
+          {
+            "type": "job",
+            "allowance": 9984,
+            "remaining": 9984
+          },
+          {
+            "type": "acquire"
+          },
+          {
+            "type": "result",
+            "steps": 57
+          },
+          {
+            "type": "charge",
+            "amount": 57,
+            "before": 9984,
+            "after": 9927
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9927,
+            "after": 9926
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9926,
+            "after": 9925
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9925,
+            "after": 9924
+          },
+          {
+            "type": "charge",
+            "amount": 2,
+            "before": 9924,
+            "after": 9922
+          },
+          {
+            "type": "charge",
+            "amount": 1,
+            "before": 9922,
+            "after": 9921
+          }
+        ],
+        "activeAtSettlement": 0,
+        "activeAfterCleanup": 0,
+        "sameReason": true
+      }
+    }
+  ],
+  "total": 23,
+  "passed": 17,
+  "activeWorkers": 0
+}

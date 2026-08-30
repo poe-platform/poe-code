@@ -1,0 +1,295 @@
+{
+  "schema": "bash-redirection-independent-proof-map-v1",
+  "sourceCommit": "1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e",
+  "base": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "candidate": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+  "package": {
+    "sha256": "e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296",
+    "members": 950,
+    "archiveBytes": 864322,
+    "uncompressedMemberBytes": 4771203
+  },
+  "sourceInputs": 292,
+  "unchangedInputs": 289,
+  "defaults": 80,
+  "layouts": [
+    {
+      "layout": "source",
+      "redirection": {
+        "pass": 48,
+        "total": 48
+      },
+      "novel": {
+        "unchangedV2Pass": 11,
+        "originalV2Fail": 1,
+        "versionedN11Pass": 1,
+        "qualifiedUnique": 12
+      },
+      "retained": {
+        "public": 45,
+        "apply": 28,
+        "arrays": 12,
+        "coherence": 18,
+        "total": 103
+      },
+      "m1a": {
+        "pass": 139,
+        "total": 140,
+        "retainedFailure": "PUBLIC-NEGATIVE"
+      },
+      "packs": {
+        "pass": 93,
+        "total": 93
+      },
+      "types": {
+        "groups": 2,
+        "positive": 1,
+        "negative": 1,
+        "exactNegativeDiagnostics": 6
+      }
+    },
+    {
+      "layout": "installed",
+      "redirection": {
+        "pass": 48,
+        "total": 48
+      },
+      "novel": {
+        "unchangedV2Pass": 11,
+        "originalV2Fail": 1,
+        "versionedN11Pass": 1,
+        "qualifiedUnique": 12
+      },
+      "retained": {
+        "public": 45,
+        "apply": 28,
+        "arrays": 12,
+        "coherence": 18,
+        "total": 103
+      },
+      "m1a": {
+        "pass": 139,
+        "total": 140,
+        "retainedFailure": "PUBLIC-NEGATIVE"
+      },
+      "packs": {
+        "pass": 93,
+        "total": 93
+      },
+      "types": {
+        "groups": 2,
+        "positive": 1,
+        "negative": 1,
+        "exactNegativeDiagnostics": 6
+      }
+    },
+    {
+      "layout": "moved",
+      "redirection": {
+        "pass": 48,
+        "total": 48
+      },
+      "novel": {
+        "unchangedV2Pass": 11,
+        "originalV2Fail": 1,
+        "versionedN11Pass": 1,
+        "qualifiedUnique": 12
+      },
+      "retained": {
+        "public": 45,
+        "apply": 28,
+        "arrays": 12,
+        "coherence": 18,
+        "total": 103
+      },
+      "m1a": {
+        "pass": 139,
+        "total": 140,
+        "retainedFailure": "PUBLIC-NEGATIVE"
+      },
+      "packs": {
+        "pass": 93,
+        "total": 93
+      },
+      "types": {
+        "groups": 2,
+        "positive": 1,
+        "negative": 1,
+        "exactNegativeDiagnostics": 6
+      }
+    }
+  ],
+  "maintained": {
+    "code": 0,
+    "tests": 83,
+    "pass": 83,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "movedConsumer": {
+    "code": 0,
+    "tests": 21,
+    "pass": 21,
+    "fail": 0
+  },
+  "controls": [
+    {
+      "name": "omit-implicit",
+      "detected": true,
+      "originalSha256": "0204b520fcf8d80ce9bc9f73ae28ee977cc1f295e92e66850295b20f931a1dcc",
+      "mutantSha256": "fd0b78e70375890966582e737ab2e0b742f6ec844c6e0a6b3c39bacf5dbc1cd2"
+    },
+    {
+      "name": "early-implicit",
+      "detected": true,
+      "originalSha256": "0204b520fcf8d80ce9bc9f73ae28ee977cc1f295e92e66850295b20f931a1dcc",
+      "mutantSha256": "d5d2a219f694b64df059a3af7891f7990f7c5f63898fbc0f41ca4c721b5b489c"
+    },
+    {
+      "name": "omit-file-alias",
+      "detected": true,
+      "originalSha256": "d7db06b0f1ca2891c8c9a676d838cb8d10db02d8d6ad25e593ae5c56e41b8768",
+      "mutantSha256": "74aaf9afe9d716fcd42bdb566793518d4ab5738256948a2ac19d517b148c0aaa"
+    },
+    {
+      "name": "binding-missing",
+      "pass": true
+    },
+    {
+      "name": "binding-changed",
+      "pass": true
+    },
+    {
+      "name": "source-bound-private-release-observer",
+      "originalSha256": "d7db06b0f1ca2891c8c9a676d838cb8d10db02d8d6ad25e593ae5c56e41b8768",
+      "instrumentedSha256": "2061c20dfb2dec0584a37512725cb138155aa8e41777078ee1108fbb48d2aa2a",
+      "instrumentedNotNative": true
+    }
+  ],
+  "novelN11Versioned": [
+    {
+      "label": "n11-source",
+      "cases": [
+        {
+          "id": "N11-v3-later-open-error-uses-current-stderr",
+          "pass": true,
+          "observed": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1,
+            "entered": 0,
+            "entries": [
+              {
+                "name": "first",
+                "type": "file"
+              }
+            ],
+            "first": "shell: line 1: /absent/out: No such file or directory\n"
+          },
+          "disposed": true
+        }
+      ],
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "label": "n11-installed",
+      "cases": [
+        {
+          "id": "N11-v3-later-open-error-uses-current-stderr",
+          "pass": true,
+          "observed": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1,
+            "entered": 0,
+            "entries": [
+              {
+                "name": "first",
+                "type": "file"
+              }
+            ],
+            "first": "shell: line 1: /absent/out: No such file or directory\n"
+          },
+          "disposed": true
+        }
+      ],
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "label": "n11-moved",
+      "cases": [
+        {
+          "id": "N11-v3-later-open-error-uses-current-stderr",
+          "pass": true,
+          "observed": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1,
+            "entered": 0,
+            "entries": [
+              {
+                "name": "first",
+                "type": "file"
+              }
+            ],
+            "first": "shell: line 1: /absent/out: No such file or directory\n"
+          },
+          "disposed": true
+        }
+      ],
+      "pass": 1,
+      "fail": 0
+    }
+  ],
+  "unchangedHistorical": [
+    {
+      "phase": "author-original",
+      "newPass": 22,
+      "newTotal": 48,
+      "layouts": 3,
+      "failures": 78
+    },
+    {
+      "phase": "independent-original",
+      "status": "FAILED_OR_INCOMPLETE",
+      "retainedPass": 73,
+      "correctedRedirectionPass": 48,
+      "novelExecuted": 0,
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(summary)\n\n    at cohort (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/run.mjs:117:151)\n    at async layout (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/run.mjs:199:259)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/run.mjs:201:3"
+    },
+    {
+      "phase": "independent-continuation-v2",
+      "status": "INDEPENDENT_ASSERTION_HOLD",
+      "ordinaryFailures": 6,
+      "labels": [
+        "source-novel",
+        "source-m1a",
+        "installed-novel",
+        "installed-m1a",
+        "moved-novel",
+        "moved-m1a"
+      ]
+    }
+  ],
+  "uniqueBehaviorQualification": {
+    "newOperatorOutcomes": 180,
+    "retainedPublicOutcomes": 309,
+    "packOutcomes": 279,
+    "m1aPass": 417,
+    "m1aTotal": 420,
+    "maintainedPlusMoved": 104,
+    "notAdditiveWithTypesMutantsOrHistoricalFailures": true
+  },
+  "limitations": [
+    "No native Bash execution or native parity/full Bash claim",
+    "No wholeHEAD/fullgate/public80 blanket acceptance",
+    "M1A PUBLIC-NEGATIVE remains three FAILs, incompatible module-only profile",
+    "Repeated function-body AST execution qualified; arbitrary cloned/serialized AST provenance remains unproved",
+    "Release observer compiled instrumentation, not native file-descriptor allocation census",
+    "Internal loader Worker retirement inferred only from natural process/group close; four app RegexWorkers explicitly exited",
+    "Inherited Git private-writer/S02/H09/native and array SOURCEONLY/MIXED/metadata-cloning qualifications retained"
+  ]
+}

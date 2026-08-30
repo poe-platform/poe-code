@@ -1,0 +1,246 @@
+{
+  "candidate": "5ba1a0f36e77c69b9ebb617c4d2544bf62d473a7",
+  "accepted": "ea409a6b49d5c1523e3238f0384048218b559c4c",
+  "auditedAt": "2026-08-27T16:15:40.635Z",
+  "exactChangedPaths": [
+    "tests/shell-stress/env-split-author/resume-host.ts",
+    "tests/shell/errexit-host.test.ts",
+    "tests/shell/expanded-gaps-env-host.test.ts"
+  ],
+  "expectationRows": 8,
+  "fullFileWhitelistMatches": true,
+  "originalsEqualCandidateParent": true,
+  "fixtureHashes": [
+    {
+      "path": "tests/shell-stress/env-split-author/resume-host.ts",
+      "original": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+      "candidate": "f3c490e84833227b6899d9ec6b37bfaa5de0b41ab6fabb3e84b531e29984f359",
+      "whitelistedExpected": "f3c490e84833227b6899d9ec6b37bfaa5de0b41ab6fabb3e84b531e29984f359"
+    },
+    {
+      "path": "tests/shell/errexit-host.test.ts",
+      "original": "5ba8085495c5740d4f15d413eb55502d270746f3e7275ef7aa6393500593cf7f",
+      "candidate": "38a6372d6e518338a2379bef1b58cada12e5c06aceafc59b40e5afeda9fa2d36",
+      "whitelistedExpected": "38a6372d6e518338a2379bef1b58cada12e5c06aceafc59b40e5afeda9fa2d36"
+    },
+    {
+      "path": "tests/shell/expanded-gaps-env-host.test.ts",
+      "original": "2fd1eb106e75ace5d17d7d5145045dab0f88aa254d4110862b2964fec61b5b95",
+      "candidate": "d01394e6938cfc4758c6ee3c88a4f0660b0f6cf0aa2596a181ad71a26216628e",
+      "whitelistedExpected": "d01394e6938cfc4758c6ee3c88a4f0660b0f6cf0aa2596a181ad71a26216628e"
+    }
+  ],
+  "negativeInputMutations": [
+    {
+      "id": "hidden-failing-command",
+      "rejected": true
+    },
+    {
+      "id": "changed-no-final-LF-body",
+      "rejected": true
+    },
+    {
+      "id": "changed-argv",
+      "rejected": true
+    },
+    {
+      "id": "changed-cwd",
+      "rejected": true
+    },
+    {
+      "id": "changed-env",
+      "rejected": true
+    },
+    {
+      "id": "changed-registration",
+      "rejected": true
+    },
+    {
+      "id": "blanket-unsupported-127",
+      "rejected": true
+    },
+    {
+      "id": "changed-CR-header",
+      "rejected": true
+    }
+  ],
+  "historicalHashes": {
+    "tests/shell-stress/env-shebang-author/guarded-completion/README.md": "99ca9222c601ca7caf40778e4a239b4ab77aa2b81063e654d9c6fbe1b5a19b39",
+    "tests/shell-stress/env-shebang-author/guarded-completion/candidate-build.log": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+    "tests/shell-stress/env-shebang-author/guarded-completion/core-controls.tap": "3ba2e72ea217b01c1dfffe28f325ffe947a1443d32e7ea1cee70659456288ec8",
+    "tests/shell-stress/env-shebang-author/guarded-completion/first-author-runtime.patch": "13ceccd97cbe38032fc9cd311720b79a7c11167fead94052167d3062657b7cf0",
+    "tests/shell-stress/env-shebang-author/guarded-completion/first-author-tests.patch": "54978f8254a9f7c9e89a3fb5d84fe231c0ddb7ea71c1e0e16f704e5f5707b836",
+    "tests/shell-stress/env-shebang-author/guarded-completion/first-author.tap": "cb97b2c2c9fd480d7f2c80d44033149d1373769b7b39eaf5519eeaeacbfdf199",
+    "tests/shell-stress/env-shebang-author/guarded-completion/first-build.log": "920c390005370bc2cd47e737fbd4a1d68389d14e3bbecafcaaefbbe731433fb9",
+    "tests/shell-stress/env-shebang-author/guarded-completion/first-implementation.patch": "c0a8087d8744302509309fd8528b057a7d08c9f97f2ad700b4ef2a9dd469427c",
+    "tests/shell-stress/env-shebang-author/guarded-completion/first-implementation.sha256": "fb0f08a4c78cbc1111283b3e26e5f46eea7e32cee512cc1038de2c5d8bfd9a56",
+    "tests/shell-stress/env-shebang-author/guarded-completion/first-strict.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-completion/fourth-author.tap": "142e51689305f298b15a00bc39b0239b5a827dd571482e3a7ec00f3967bb2833",
+    "tests/shell-stress/env-shebang-author/guarded-completion/guarded-only.tap": "793872fa54fa0e6530d0aab75609039f58ef158824414d0c23792b3ba84fa10d",
+    "tests/shell-stress/env-shebang-author/guarded-completion/lifecycle-controls.tap": "5e962adb8732d9158c5451a515292dbaab026e9b08685b0c0163e8ae7ed54c8a",
+    "tests/shell-stress/env-shebang-author/guarded-completion/manifest.json": "8ed8592177811ab01aa5d76484fc12bf19cbf7e50fe5750a6ef8c014915d0328",
+    "tests/shell-stress/env-shebang-author/guarded-completion/script-controls.tap": "d6e32a4b19ce6589733a4bdb4cf21f5faee9aed5fe63de61a1e5e9670926d5b4",
+    "tests/shell-stress/env-shebang-author/guarded-completion/second-author.tap": "fe2638e3c84902b85284c875697faea427c9cf033a50ad620503a4dd5df71d2f",
+    "tests/shell-stress/env-shebang-author/guarded-completion/second-build.log": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+    "tests/shell-stress/env-shebang-author/guarded-completion/third-author.tap": "a8a2724e2f19c3d873b6fa2faa291b2f48cc73c0ddec0b0dfd00039ddcbe5544",
+    "tests/shell-stress/env-shebang-author/guarded-completion/tsconfig.scoped.json": "2e0b576845fd0ef4fcfe06d156e69f4d99b77491fd42ba43fb94d9a5abbe235e",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/README.md": "d971536f2082603c04bf507a642e375c3fd4ddbd375028313a63e2b37a3667e4",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-01/manifest.json": "b658dd5825928f7cf57674a7daf19cc7c59604bbcfb18d69f5fefbafb60e9e02",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-01/report.json": "b5522d4aadecaa1cd293cc0fa5349bd1002367f78783c1087063de6a244ee97b",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-01/runner.inert.data": "6ca8d87c7a395d2fc34729794a152df627eaddd82f2442e1adbd49424529d9e9",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-02/independent-prior-47-of-48.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-02/independent-prior-47-of-48.tap": "fc412f2f0c42aff4a74a5f9e2615c7790f9f1c5b39e7d2be7593ea5cdef916bc",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-02/manifest.json": "4c251ebef25ec0350c05b214369cdc402f54001efbc4ac8cc997cb038f1d5b71",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-02/report.json": "f1cf8b1565d7861db80c2036d39deb83eaa4d5c3b2806a1b0987785307b2ed0e",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-02/runner.inert.data": "722089d2cb52b8b27e49836390a1998972c421abf3a6293542841f51a185b1a6",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-02/test-only.patch": "27b29323bd128d95ecddce7988dd076055c83e9b291cdf3bd04768eb5c5259a9",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/author-48.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/author-48.stdout": "1719bc44276d2b591e746af3c6b943866c2c9fadf2e8e35417e05717565787c9",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/build.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/build.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/extract.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/extract.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/independent-prior-47-of-48.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/independent-prior-47-of-48.tap": "a0e02b530f66c14d1fab1709d3b11a96a839ecb9a0552275fc8a86e1694c52ae",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/manifest.json": "58e2bdac2bf9f98051cb70a50f710e904514ec1239533d17cfcbcb5a58067912",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/report.json": "34b1df76d49f7af39058a63e1111e886c51df956ef4370f5e5936802eb09f808",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/strict.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/strict.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/attempt-03/test-only.patch": "27b29323bd128d95ecddce7988dd076055c83e9b291cdf3bd04768eb5c5259a9",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/evidence-whitespace-check.log": "7f436169f5e70d0eb92bf6eb62f9fc5a084d50c17355e3f6be1fd35d19d9ee81",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/immutable-review-binding.json": "3158c566cc5b25e512143085cfdbec2b35dd3fbad7156c47066a700c4348cd41",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/manifest.json": "a9ee28cad58db9b0051851afa430092301babae29e4902c110e8116fc13c6857",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/pre-attempt.log": "823aba8b2ec4da4223ef55dd8bc6bd37cf2efc7f8e006a1bd30628cf5a771919",
+    "tests/shell-stress/env-shebang-author/guarded-expectation-correction/verify.mjs": "6cbb23faa23494d070ccb5a43d857c9c4ae2011630e28c575f54fe9113e476e5",
+    "tests/shell-stress/env-shebang-integration-review/BASELINE.md": "673603622503866c9c418ee520e877ec016c9e032983b2076eef55aa1010ceb6",
+    "tests/shell-stress/env-shebang-integration-review/CANDIDATE_DC262A99.md": "c8a1d93556c05e7c2b96360f291442df681f4b984fc10f1f2924754baf7bce47",
+    "tests/shell-stress/env-shebang-integration-review/GUARDED_EA409A6B_REVIEW.md": "bdd4f73f7dbf9e0d8a6df71e25ec91665af0abc2998ae634a59516fcd4cd7b2f",
+    "tests/shell-stress/env-shebang-integration-review/README.md": "2783ac9379b7572f575f7a77b3ddb2513d7b25e58cc01dbcc7ac14a0a2a635b8",
+    "tests/shell-stress/env-shebang-integration-review/V2_SETUP.md": "8f66b34d39badc377a977079ba07049d9991148e6c719f2978dc1e7051d524f0",
+    "tests/shell-stress/env-shebang-integration-review/audit.mjs": "ca131ca9fb50bf4d1a84b1f278fd0b1a678dfb40a2076adf360ebbd082d07b67",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/manifest.json": "22ebba99c7682d38a28e3bbdac7386ad345b993d0a8c46c96cdf0e07179dba7b",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/native.json": "7a244514cfcd4fcf82c8b574b9e5d555168b0dd2e1a6fafd0576a10326e7b06c",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/report.json": "f8847ae3cac0985f318c9eb68709fb7cd4f848640fb1e06ecd75e8a83f0d4d22",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/manifest.json": "ad5788dc1663344e9b883f85ef6fe410e55a3d3d7497fb4e31c8fc95f03fc6d1",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/native.json": "6aef802ffe71206a736f7a53818fc42d0063b26277a0c6e75b45ba44056d4795",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/report.json": "9d9a972666aa972c35af60898abd7422acb0caeae792eb3895e762802a1ba36d",
+    "tests/shell-stress/env-shebang-integration-review/candidate-audit-dc262a99.mjs": "f812b62cdd8e2df396ee424e42a7d969738ce500a5b211940e9e3fed165dc7ca",
+    "tests/shell-stress/env-shebang-integration-review/candidate-controls-dc262a99.mjs": "6e1a8fbad89c64e5158fc7a319e9f1b0f0b3dd32becdccaf0c3a3427c8cf3b33",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-audit/manifest.json": "2432f002a01b4fed9e8399313536479d8cc490c364d8da27a57480dce31d2434",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-audit/report.json": "13eaa49f5dfd3d72c583d835d969a9930bc9ff622a4525e01e4b7e9f97c8baa7",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-audit/source-scope.patch": "7d876e8a51aeb778b9dadd6aae0a0da4596248665c17b25b22a3b28155ab57ca",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/author.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/author.tap": "0bfd2426742f0d0e42086601291e89d4f50e14d0a928eeb1d58db79d79d45b6a",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/core.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/core.tap": "94a4cbf32216c284997c31dba417209d05122ef2f9abde31375dc9d0a2976487",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/manifest.json": "3faf2e2788b7768710c7e5a06e750f69683af4df909a9e5acde17f21d15b773b",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/original-assertion-observations.json": "97d8edd86d79525cecd5b73bcbcca9b94265fc23f2d004e659693b9433dd73a4",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/report.json": "24cf711a46775b4638903105e254b9824c7fbb8532497c27e5100500dd1fc7b3",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/scripts.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99-controls/scripts.tap": "cf0d07b3641ace19ae76ddf10e86655da9f9a25f31b2c0acb1395685def96129",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99/manifest.json": "dce4d802747576a58fbee991bfbaa9d37baa0146070ffc572a29dd9557601e7a",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99/native.json": "133814e9949428f4ddb9ef4d8972352a3afc90faca05060e5d901be0dba4c1e4",
+    "tests/shell-stress/env-shebang-integration-review/candidate-dc262a99/report.json": "901997b8b6a8c97f4207f64d28b88d3066bbbe0abc96d330ecc8575a5c7c8f40",
+    "tests/shell-stress/env-shebang-integration-review/candidate-observe-dc262a99.mjs": "52d6028f7626414f659f147264971bc3a71c0ed394177d6bae1055589edfc0a8",
+    "tests/shell-stress/env-shebang-integration-review/corpus.mjs": "9b7afcf1565f3262101d7c65886b9ede259c3260f60e87d1ea4eed6aa4a1dfe4",
+    "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/README.md": "8ef29a00dbb71970bae5b7c39c36b4aca7f5fadf5f7c5a98047ee538a68d94c5",
+    "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/SHA256SUMS": "1264850645e5a647d0c5c4359636f32fcee3c247a1ef734f0e3b7472a39d6cf5",
+    "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/input-delta.diff": "27b29323bd128d95ecddce7988dd076055c83e9b291cdf3bd04768eb5c5259a9",
+    "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/report.json": "2552a85d8799ce850508450f363d1394c639c225f3c990da914d06c4dd8f64bc",
+    "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/review-runner.mjs.data": "ef41c487869277c9bc59300650b9537373be5dceace8d03db9d1f22ba9014069",
+    "tests/shell-stress/env-shebang-integration-review/expectation-f6a3fa75/transcript.log": "91d32d5691d0a7cbc64dd6a0b3a3e0da2b665da894c152db244e55408ac51952",
+    "tests/shell-stress/env-shebang-integration-review/guarded-audit-ea409a6b-v1.mjs": "6db84d6f6a06a8311651a0ac9c2bbce3bd4b6632f5f4f2837c24de9f87024c56",
+    "tests/shell-stress/env-shebang-integration-review/guarded-controls-ea409a6b-v1.mjs": "5232a7c284edf3617fb2e386b72010ed1af149117d43a06a4965fcd800b2089b",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-audit/manifest.json": "a7a74ffd3177846343b4dd2dbefc84a84295863dce76b9c5295d3c562c00ee0b",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-audit/report.json": "650a542b773c558a77793feaa91257fdedf8d5ffb02576e6369f3c9921295bc2",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-audit/source-scope.patch": "ba7ee62b739e211103a3916202fb36046fcb0ffdd604f1efa992434a6b36ed02",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/author.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/author.tap": "a0e02b530f66c14d1fab1709d3b11a96a839ecb9a0552275fc8a86e1694c52ae",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/core.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/core.tap": "18f18ecd1b9f135461695213044b54e4f67c3cd11fa3e0d2707866151ffe8a97",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/lifecycle.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/lifecycle.tap": "6d583a1ed9ee0ad03697740e69afe7e80aaaf9f187bc21a7736bccc42f97bdea",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/manifest.json": "c52fd834e82127be5d30b761da574913350c5c84e489eacb2ee3f20def8edd1b",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/original-assertion-observations.json": "85ba9003214cb5c6f546dbea7997b24511c0c0c5edd3eae1f41cc55ae7c3af0a",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/report.json": "f0b5469f2637df517555e616e09963029a0cf2b789754bc35d711bfba2de15b8",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/scripts.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/scripts.tap": "ccafd6ff85ea06c85141100b1de2719280a34abb6fe175ecd01ae6635d3fbf37",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-public-controls/build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-public-controls/manifest.json": "6f204b90b2f605b9af383a444ee55cec6bb542414d6d4bcb27a2622febe5c881",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-public-controls/public-lifecycle.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-public-controls/public-lifecycle.tap": "585ed2e43683b9eb9b4481694c5fa21cc76ecb8b91801a1be3ce8eec09136cda",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-public-controls/report.json": "5a9c39bf1715818d80e3201c38afc5f8045fbddfee53770b8de61dab5fde3c6f",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1/manifest.json": "5d22b56b3f9c72f0e2d39df5443bdea4a3393871b4c4cb5cd1d35db558bb42ed",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1/native.json": "2a08146fe7bf9ba81e0611001f33a0f85d48c20b1671e5cf779fcbc5f1eb0370",
+    "tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1/report.json": "bc8cf21b3abf3dae5e660bf56d7d82297c0653d45961b5aee45652eb75d8895f",
+    "tests/shell-stress/env-shebang-integration-review/guarded-observe-ea409a6b-v1.mjs": "da640a2cf46d9eb45f3ee02fcdace6f1bdebc46a53acff80f0c61eefa13b49ff",
+    "tests/shell-stress/env-shebang-integration-review/guarded-public-controls-ea409a6b-v1.mjs": "e0ea005b1a7f6e3e4bf4e074b0b726ca39148eff32a0a42a6db5feb91efa8206",
+    "tests/shell-stress/env-shebang-integration-review/product-v2.mjs": "c697bdf9bb6f8b889f50b9cbf77edb75863c9d6f1f424d9b2943f0baaa1e4b40",
+    "tests/shell-stress/env-shebang-integration-review/product.mjs": "b4ade78b2ea4c0e727aaca96bde74669a15d74ca6c14aa290b23ec29950fcbbc",
+    "tests/shell-stress/env-shebang-integration-review/run-v2.mjs": "a3c48c74360cea894c688d40afb774871d03ef0525dc6f937c1d8939d26369fc",
+    "tests/shell-stress/env-shebang-integration-review/run.mjs": "74a9b20dd9b1e121595ae64221a77500d4c92077328fb23e4e2be489bc4bfa5e",
+    "tests/shell-stress/env-shebang-integration-review/seal-v2.json": "57ca1c7b58421b37d21238c073ab92a445d2b9b03b47fe1538ab98d00db26e91",
+    "tests/shell-stress/env-shebang-integration-review/seal.json": "b0325b1b6789bdf344b4cea608ec5bacd6b53d4449f8120f2012c28463381a55"
+  },
+  "historyScope": "All candidate-tracked paths in the three listed historical evidence roots; hashes cover existing file bytes, not untracked append detection or metadata.",
+  "originalInputs": [
+    {
+      "id": "core-literal",
+      "source": "#!/usr/bin/env bash -e\nprintf forbidden > marker\n",
+      "cwd": "/work",
+      "command": "./script",
+      "file": "/work/script"
+    },
+    {
+      "id": "errexit-1",
+      "source": "#!/usr/bin/env bash -e\nprintf BAD\n",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script"
+    },
+    {
+      "id": "errexit-2",
+      "source": "#!/usr/bin/env -S bash -e\nprintf BAD\n",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script"
+    },
+    {
+      "id": "expanded-1",
+      "source": "#!/usr/bin/env bash -e\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script"
+    },
+    {
+      "id": "expanded-2",
+      "source": "#!/usr/bin/env -S bash -e\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script"
+    },
+    {
+      "id": "expanded-3",
+      "source": "#!/usr/bin/env python\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script"
+    },
+    {
+      "id": "expanded-4",
+      "source": "#!/usr/bin/env\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script"
+    },
+    {
+      "id": "expanded-5",
+      "source": "#!/usr/bin/env bash\r\nprintf forbidden",
+      "cwd": "/",
+      "command": "/script",
+      "file": "/script"
+    }
+  ]
+}

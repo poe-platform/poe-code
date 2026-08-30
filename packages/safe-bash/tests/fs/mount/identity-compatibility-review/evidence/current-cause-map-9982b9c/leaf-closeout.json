@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-08-27T00:37:49.319Z",
+  "ownedStatusBeforeCommit": "?? tests/fs/mount/identity-compatibility-review/evidence/current-cause-map-9982b9c/\n",
+  "ownedScratchEntries": [],
+  "backgroundSessionsOwnedByThisLeaf": [],
+  "completedToolSessions": [
+    22456,
+    85116
+  ],
+  "completedWork": [
+    "one frozen 43-case cohort",
+    "one scoped typecheck in the existing runner",
+    "saved-result/source classification only"
+  ],
+  "otherWorkerProcessesInspected": false
+}

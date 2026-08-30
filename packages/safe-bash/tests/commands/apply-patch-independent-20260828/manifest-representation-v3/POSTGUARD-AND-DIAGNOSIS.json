@@ -1,0 +1,611 @@
+{
+  "schema": "manifest-postqualification-data-v1",
+  "sourceCommit": "5bba15291a009b88bf35bc1c04974acf8a5d525e",
+  "presealSha256": "27198bc6cb3b6289ad871fe29e4db183fa10ab54a84c1ba795e041f1c1f8a176",
+  "sealedFilesUnchanged": [
+    "AUTHORITY.patch",
+    "BINDINGS.json",
+    "CONTROL-PLAN.json",
+    "INPUT-METADATA.json",
+    "JOBS.json",
+    "PACKAGE-INVENTORY.json",
+    "PREPARATION.json",
+    "SOURCE-ADMISSIONS.md",
+    "SOURCE.patch",
+    "VARIANTS.json",
+    "VERSIONED-ROWS.json",
+    "authority.mjs",
+    "bootstrap.mjs",
+    "build.mjs",
+    "common.mjs",
+    "composition.mjs",
+    "controller.mjs",
+    "controls.mjs",
+    "dispatch.mjs",
+    "guard.mjs",
+    "legacy.mjs",
+    "loader.mjs",
+    "manifest.mjs",
+    "package-data.mjs",
+    "path-bytes.mjs",
+    "prepare-source.mjs",
+    "qualify.mjs",
+    "s54.mjs",
+    "seal-controls.mjs",
+    "variants.mjs"
+  ],
+  "qualification": {
+    "pass": 22,
+    "fail": 1,
+    "failedIds": [
+      "D02-all-overlay-differences"
+    ]
+  },
+  "variantData": {
+    "rows": 30,
+    "distinctCompleteBindingObjects": 30,
+    "rowsWithExactBindings": [
+      {
+        "id": "M01-before",
+        "family": "M01",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12931,
+            "mode": 420,
+            "sha256": "6e9d1d4f93499b732437ccec7c0e86d4946d2acc9f56cd41702936f7d72e286f"
+          }
+        }
+      },
+      {
+        "id": "M01-mutant",
+        "family": "M01",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12970,
+            "mode": 420,
+            "sha256": "70abb18a69afaab0ede81f2ea85969d84e2b34b1abadaeb6e6705c8879266c18"
+          }
+        }
+      },
+      {
+        "id": "M01-restored",
+        "family": "M01",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12935,
+            "mode": 420,
+            "sha256": "aa2e2c90004879240de73d0a3ba4a94ffa9a6cd5220280203075f68e429b19e8"
+          }
+        }
+      },
+      {
+        "id": "M03-before",
+        "family": "M03",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5826,
+            "mode": 420,
+            "sha256": "83b41219da9f1cfdac19a7fddb663c243150bb4fd7fd725d2c38cfff7bc98114"
+          }
+        }
+      },
+      {
+        "id": "M03-mutant",
+        "family": "M03",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5840,
+            "mode": 420,
+            "sha256": "01efd97d38e8c08380896e692ed8a6c9c57c24ed2e395d0c8c3f8d16d6211874"
+          }
+        }
+      },
+      {
+        "id": "M03-restored",
+        "family": "M03",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5830,
+            "mode": 420,
+            "sha256": "6dd819e22cb47cf6e72d1ff673a40b900b029adf58c108613a8dc35d9f004e6d"
+          }
+        }
+      },
+      {
+        "id": "M04-before",
+        "family": "M04",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5826,
+            "mode": 420,
+            "sha256": "7c334b71bfd2218585a6742f817693cac98bd82633488a39f205f4f7066bdab1"
+          }
+        }
+      },
+      {
+        "id": "M04-mutant",
+        "family": "M04",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5813,
+            "mode": 420,
+            "sha256": "a4f0316fac4ae4619029ce96fa239a62c582c01172477bcc7058198fa9ef1df5"
+          }
+        }
+      },
+      {
+        "id": "M04-restored",
+        "family": "M04",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5830,
+            "mode": 420,
+            "sha256": "942df0903dc633f6102f0f91e116686edac3c5d00ef8778d5ca79edd5818485a"
+          }
+        }
+      },
+      {
+        "id": "M09-before",
+        "family": "M09",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12931,
+            "mode": 420,
+            "sha256": "9e42c33f0fef1be237cb58166ba0a15a7f35c8fb04f1dec9d4c9762763f603a8"
+          }
+        }
+      },
+      {
+        "id": "M09-mutant",
+        "family": "M09",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12930,
+            "mode": 420,
+            "sha256": "ce8db2aed510cd71028159ba1c7ca0314433a6a9c7849bcb496658d73d0f1d1e"
+          }
+        }
+      },
+      {
+        "id": "M09-restored",
+        "family": "M09",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12935,
+            "mode": 420,
+            "sha256": "91053a81ebd1fd8b552b40d7165f32f33738e15708cd2db0558abbd7e74e2f54"
+          }
+        }
+      },
+      {
+        "id": "M12-before",
+        "family": "M12",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12931,
+            "mode": 420,
+            "sha256": "1f1d3f634dba8ff24accb85192e31740fc2a5b310d411ec55a5d00246f828e3c"
+          }
+        }
+      },
+      {
+        "id": "M12-mutant",
+        "family": "M12",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12914,
+            "mode": 420,
+            "sha256": "d29df01dc3b3a4b924ef7bef7416669be8fa740a6750e62eb64f08313bbfa2e1"
+          }
+        }
+      },
+      {
+        "id": "M12-restored",
+        "family": "M12",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12935,
+            "mode": 420,
+            "sha256": "28be3c84f94cf7af503e2633b5870cdb5183600f7189aac714ae7162daba1221"
+          }
+        }
+      },
+      {
+        "id": "M18-before",
+        "family": "M18",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12931,
+            "mode": 420,
+            "sha256": "1a1220adef90352f361d01ced6357964d728d88b75e87aab2ee84032ac761c71"
+          }
+        }
+      },
+      {
+        "id": "M18-mutant",
+        "family": "M18",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12951,
+            "mode": 420,
+            "sha256": "211306be72f005e1e1a5f6d39b86736c0fa445a85148560a631c2d12ee03d053"
+          }
+        }
+      },
+      {
+        "id": "M18-restored",
+        "family": "M18",
+        "instrumented": false,
+        "bindings": {
+          "dist/commands/apply-patch/apply.js": {
+            "bytes": 12935,
+            "mode": 420,
+            "sha256": "0a6c2185b9bfa8b407116675c8365b0022900c61d8b1584da4fc465b39738d54"
+          }
+        }
+      },
+      {
+        "id": "S54-bulk-copy-before",
+        "family": "bulk-copy",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9436,
+            "mode": 420,
+            "sha256": "64904ad723d0a587eed4f8c1d704425581af3a69c151483d1521ace9fe2beede"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-bulk-copy-mutant",
+        "family": "bulk-copy",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9397,
+            "mode": 420,
+            "sha256": "2f4a5a215fc6b9df7bc68777cb0308897894d42c9d3c2335dea09fda3f7dcd0d"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-bulk-copy-restored",
+        "family": "bulk-copy",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9440,
+            "mode": 420,
+            "sha256": "278b7f4007dd12a8e58166854d94b2947c6138be515f00f4b0a43d53a908ba61"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-skip-interval-before",
+        "family": "skip-interval",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9448,
+            "mode": 420,
+            "sha256": "741937caca20de2725e8b2e4b72eec0f3f435123aa6dfdaab52e701cf5fbb2a4"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-skip-interval-mutant",
+        "family": "skip-interval",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9460,
+            "mode": 420,
+            "sha256": "9dea6e8f902006a8abb3a11bdbfac5f0517dcd26132e6d1371122e14563fad14"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-skip-interval-restored",
+        "family": "skip-interval",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9452,
+            "mode": 420,
+            "sha256": "c34372bb735171fd527bc24ecb00058465ae176beef874d15881cf86ac745841"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-bulk-encode-before",
+        "family": "bulk-encode",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9440,
+            "mode": 420,
+            "sha256": "8c5875576f7ec71fa9a10d2b941a7e0854f59560d2376ec2ec8c794d768570f4"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-bulk-encode-mutant",
+        "family": "bulk-encode",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9416,
+            "mode": 420,
+            "sha256": "a7143a9d36d741ff83d5dcae88441fcf51464e39c112f6460153a303aca6ec24"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-bulk-encode-restored",
+        "family": "bulk-encode",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9444,
+            "mode": 420,
+            "sha256": "2e138cc4b2bc6c10025f783d7d38fa7651f75949585e723d8221cc6000423179"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5854,
+            "mode": 420,
+            "sha256": "5e50e30981c0366d1fa1e09d74806e5f065889b25501487d2d816e0507104221"
+          }
+        }
+      },
+      {
+        "id": "S54-stage-admit-before",
+        "family": "stage-admit",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9298,
+            "mode": 420,
+            "sha256": "bab316381aa50f11950a6ef2609ffa7d8a13333ff9bb9422f622a97ace659bb0"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5992,
+            "mode": 420,
+            "sha256": "2e3908a7a7403a1d9823de3be83b51389cd410ee9b4c15fb9f50452472b6c4f9"
+          }
+        }
+      },
+      {
+        "id": "S54-stage-admit-mutant",
+        "family": "stage-admit",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9298,
+            "mode": 420,
+            "sha256": "bab316381aa50f11950a6ef2609ffa7d8a13333ff9bb9422f622a97ace659bb0"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5969,
+            "mode": 420,
+            "sha256": "1b680fec294a6151f6ef3dc25d8a57350ad355ee76e12e889cf91131a87145ee"
+          }
+        }
+      },
+      {
+        "id": "S54-stage-admit-restored",
+        "family": "stage-admit",
+        "instrumented": true,
+        "bindings": {
+          "dist/commands/apply-patch/shared.js": {
+            "bytes": 9298,
+            "mode": 420,
+            "sha256": "bab316381aa50f11950a6ef2609ffa7d8a13333ff9bb9422f622a97ace659bb0"
+          },
+          "dist/commands/apply-patch/matcher.js": {
+            "bytes": 5996,
+            "mode": 420,
+            "sha256": "77d3cc99c858b98e5438c02c1051e43e9f1de809004cc0dd40b23cc756934c0d"
+          }
+        }
+      }
+    ],
+    "sourceExcerpts": [
+      {
+        "line": 2,
+        "text": "import { sha } from './common.mjs';"
+      },
+      {
+        "line": 4,
+        "text": "export function replaceOnce(body, needle, replacement) {"
+      },
+      {
+        "line": 6,
+        "text": "  return body.replace(needle, replacement);"
+      },
+      {
+        "line": 11,
+        "text": "  const witness = marker => `(globalThis.reviewMarkers.includes(${JSON.stringify(marker)}) || globalThis.reviewMarkers.push(${JSON.stringify(marker)}))`;"
+      },
+      {
+        "line": 13,
+        "text": "    ['M01', 'apply.js', 'const text = context.args[0];', marker => `const text = (${marker}, context.args[0]);`, marker => `const text = (${marker}, context.stdin[Symbol.asyncIterator](), context.args[0]);`, 'P02'],"
+      },
+      {
+        "line": 14,
+        "text": "    ['M03', 'matcher.js', 'work.equal(lines[candidate + offset].text, pattern[offset])', marker => `(${marker}, work.equal(lines[candidate + offset].text, pattern[offset]))`, marker => `(${marker}, work.equal(lines[candidate + offset].text.trim(), pattern[offset].trim()))`, 'P18'],"
+      },
+      {
+        "line": 15,
+        "text": "    ['M04', 'matcher.js', 'const first = eof ? last : start;', marker => `const first = (${marker}, eof ? last : start);`, marker => `const first = (${marker}, start);`, 'P16'],"
+      },
+      {
+        "line": 16,
+        "text": "    ['M09', 'apply.js', 'flag: \"wx\"', marker => `flag: (${marker}, \"wx\")`, marker => `flag: (${marker}, \"w\")`, 'S40'],"
+      },
+      {
+        "line": 17,
+        "text": "    ['M12', 'apply.js', 'chunks.push(await work.copy(chunk));', marker => `chunks.push((${marker}, await work.copy(chunk)));`, marker => `chunks.push((${marker}, chunk));`, 'S49'],"
+      },
+      {
+        "line": 18,
+        "text": "    ['M18', 'apply.js', 'work.count(\"maxInputChunks\", 1);', marker => `(${marker}, work.count(\"maxInputChunks\", 1));`, marker => `(${marker}, chunk.byteLength && work.count(\"maxInputChunks\", 1));`, 'L10'],"
+      },
+      {
+        "line": 20,
+        "text": "  for (const [id, name, needle, positive, mutant, caseId] of definitions) for (const phase of ['before', 'mutant', 'restored']) {"
+      },
+      {
+        "line": 21,
+        "text": "    const marker = `AP753:${id}:${phase}`;"
+      },
+      {
+        "line": 22,
+        "text": "    const body = replaceOnce(original(name), needle, (phase === 'mutant' ? mutant : positive)(witness(marker)));"
+      },
+      {
+        "line": 23,
+        "text": "    output.push({ id: `${id}-${phase}`, phase, family: id, marker, caseId, changes: { [`dist/commands/apply-patch/${name}`]: body },"
+      },
+      {
+        "line": 24,
+        "text": "      migration: id === 'M12' ? 'v2 applicability-only: old new Uint8Array(chunk) site became await work.copy(chunk); unchanged S49 borrowing challenge, retained-view mutant and phase semantics' : 'original mutation operation and fixture unchanged' });"
+      },
+      {
+        "line": 26,
+        "text": "  const instrument = (marker, mutation, family) => {"
+      },
+      {
+        "line": 27,
+        "text": "    let shared = original('shared.js'); let matcher = original('matcher.js');"
+      },
+      {
+        "line": 28,
+        "text": "    shared = replaceOnce(shared, 'target.set(bytes.subarray(offset, offset + count), start + offset);', 'globalThis.s54Hooks.record({ kind: \"copy\", count, units: this.units, nextYield: this.nextYield });\\n            target.set(bytes.subarray(offset, offset + count), start + offset);');"
+      },
+      {
+        "line": 29,
+        "text": "    shared = replaceOnce(shared, 'const encoded = encoder.encodeInto(chunk, target.subarray(offset, offset + bytes));', 'globalThis.s54Hooks.record({ kind: \"encode\", units: chunk.length, danglingHigh: chunk.charCodeAt(chunk.length - 1) >= 0xd800 && chunk.charCodeAt(chunk.length - 1) <= 0xdbff });\\n            const encoded = encoder.encodeInto(chunk, target.subarray(offset, offset + bytes));');"
+      },
+      {
+        "line": 30,
+        "text": "    matcher = replaceOnce(matcher, 'work.admit(units * 2 + bytes);', 'globalThis.s54Hooks.record({ kind: \"stage-admit\", bytes, units });\\n    work.admit(units * 2 + bytes);');"
+      },
+      {
+        "line": 31,
+        "text": "    matcher = replaceOnce(matcher, 'const result = new Uint8Array(bytes);', 'globalThis.s54Hooks.record({ kind: \"stage-allocation\", bytes });\\n    const result = new Uint8Array(bytes);');"
+      },
+      {
+        "line": 32,
+        "text": "    if (mutation === 'bulk-copy') shared = replaceOnce(shared, 'const count = Math.min(bytes.length - offset, this.nextYield - this.units);', 'const count = bytes.length - offset;');"
+      },
+      {
+        "line": 33,
+        "text": "    if (mutation === 'skip-interval') shared = replaceOnce(shared, 'this.nextYield += 4096;', 'this.nextYield = this.units + 4096;');"
+      },
+      {
+        "line": 34,
+        "text": "    if (mutation === 'bulk-encode') shared = replaceOnce(shared, 'let end = Math.min(text.length, index + 1024);', 'let end = text.length;');"
+      },
+      {
+        "line": 35,
+        "text": "    if (mutation === 'stage-admit') matcher = replaceOnce(matcher, 'work.admit(units * 2 + bytes);', 'void 0;');"
+      },
+      {
+        "line": 36,
+        "text": "    if (family === 'bulk-copy') shared = replaceOnce(shared, 'let offset = 0;\\n        while (offset < bytes.length)', `${witness(marker)};\\n        let offset = 0;\\n        while (offset < bytes.length)`);"
+      },
+      {
+        "line": 37,
+        "text": "    if (family === 'skip-interval') shared = replaceOnce(shared, 'if (this.units >= this.nextYield) {', `if (this.units >= this.nextYield) {\\n            ${witness(marker)};`);"
+      },
+      {
+        "line": 38,
+        "text": "    if (family === 'bulk-encode') shared = replaceOnce(shared, 'const encoder = new TextEncoder();', `${witness(marker)};\\n        const encoder = new TextEncoder();`);"
+      },
+      {
+        "line": 39,
+        "text": "    if (family === 'stage-admit') matcher = replaceOnce(matcher, 'globalThis.s54Hooks.record({ kind: \"stage-admit\", bytes, units });', `${witness(marker)};\\n    globalThis.s54Hooks.record({ kind: \"stage-admit\", bytes, units });`);"
+      },
+      {
+        "line": 40,
+        "text": "    return { 'dist/commands/apply-patch/shared.js': shared, 'dist/commands/apply-patch/matcher.js': matcher };"
+      },
+      {
+        "line": 43,
+        "text": "  for (const [family, killedBy] of families) for (const phase of ['before', 'mutant', 'restored']) {"
+      },
+      {
+        "line": 44,
+        "text": "    const id = `S54-${family}-${phase}`; const marker = `AP753:${id}`;"
+      },
+      {
+        "line": 45,
+        "text": "    output.push({ id, phase, family, instrumented: true, mutant: phase === 'mutant' ? family : null, killedBy, marker, changes: instrument(marker, phase === 'mutant' ? family : null, family) });"
+      },
+      {
+        "line": 47,
+        "text": "  return output.map(entry => ({ ...entry, bindings: Object.fromEntries(Object.entries(entry.changes).map(([name, body]) => [name, { bytes: Buffer.byteLength(body), mode: 0o644, sha256: sha(body) }])) }));"
+      }
+    ]
+  },
+  "classification": "SOURCE/DATA diagnosis, not another qualification replay; expected10 remains frozen and failed",
+  "productLoads": 0,
+  "finished": "2026-08-28T23:22:09.419Z"
+}

@@ -1,0 +1,74 @@
+{
+  "at": "2026-08-29T14:47:21.884Z",
+  "result": {
+    "code": 0,
+    "signal": null,
+    "pid": 30683,
+    "stdout": "/tmp/core70-v7-control-wcIq12/controls.stdout",
+    "stderr": "/tmp/core70-v7-control-wcIq12/controls.stderr"
+  },
+  "tests": {
+    "phase": "AUTHOR_ONLY_PURE_WRITER_CONTROLS",
+    "rows": [
+      {
+        "id": "C01-short-exact-UTF8",
+        "status": "PASS"
+      },
+      {
+        "id": "C02-invalid-write-counts",
+        "status": "PASS"
+      },
+      {
+        "id": "C03-partial-then-raw0-sticky",
+        "status": "PASS"
+      },
+      {
+        "id": "C04-cumulative-exact-cap",
+        "status": "PASS"
+      },
+      {
+        "id": "C05-UTF8-not-code-unit-cap",
+        "status": "PASS"
+      },
+      {
+        "id": "C06-serializer-raw-false",
+        "status": "PASS"
+      },
+      {
+        "id": "C07-body-primary-close-secondary",
+        "status": "PASS"
+      },
+      {
+        "id": "C08-close-first-undefined",
+        "status": "PASS"
+      },
+      {
+        "id": "C09-every-cleanup-attempted",
+        "status": "PASS"
+      },
+      {
+        "id": "C10-audit-failure-not-green",
+        "status": "PASS"
+      },
+      {
+        "id": "C11-bounded-identity-ledger-and-close-once",
+        "status": "PASS"
+      },
+      {
+        "id": "C12-versioned-source-newline-and-old-writer-control",
+        "status": "PASS"
+      }
+    ],
+    "pass": 12,
+    "fail": 0,
+    "product": 0,
+    "Workers": 0,
+    "native": 0,
+    "priorNovelNotRescored": true
+  },
+  "sealSha256": "0efb8f129c77f02a119548f9308eca39ad70ca73c5fb548c1fa9918b757326f2",
+  "bodySha256": "a083b9139e79bd49676a8d8b12c1881ba0488409f5f73dfaa3e96fbdaa3c0c59",
+  "product": 0,
+  "Workers": 0,
+  "native": 0
+}

@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: unread external return throw preserves Error identity
+ok 1 - unread external return throw preserves Error identity
+  ---
+  duration_ms: 5.03175
+  type: 'test'
+  ...
+# Subtest: unread external return throw preserves undefined identity
+ok 2 - unread external return throw preserves undefined identity
+  ---
+  duration_ms: 0.5355
+  type: 'test'
+  ...
+# Subtest: unread external return throw preserves null identity
+ok 3 - unread external return throw preserves null identity
+  ---
+  duration_ms: 0.326416
+  type: 'test'
+  ...
+# Subtest: grep early stop preserves external return throw
+ok 4 - grep early stop preserves external return throw
+  ---
+  duration_ms: 17.636208
+  type: 'test'
+  ...
+# Subtest: egrep early stop preserves external return throw
+ok 5 - egrep early stop preserves external return throw
+  ---
+  duration_ms: 16.968
+  type: 'test'
+  ...
+# Subtest: fgrep early stop preserves external return throw
+ok 6 - fgrep early stop preserves external return throw
+  ---
+  duration_ms: 16.220084
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves Error identity
+ok 7 - unread external return reject preserves Error identity
+  ---
+  duration_ms: 0.317125
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves undefined identity
+ok 8 - unread external return reject preserves undefined identity
+  ---
+  duration_ms: 0.200125
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves null identity
+ok 9 - unread external return reject preserves null identity
+  ---
+  duration_ms: 0.208375
+  type: 'test'
+  ...
+# Subtest: grep early stop preserves external return reject
+ok 10 - grep early stop preserves external return reject
+  ---
+  duration_ms: 14.313375
+  type: 'test'
+  ...
+# Subtest: egrep early stop preserves external return reject
+ok 11 - egrep early stop preserves external return reject
+  ---
+  duration_ms: 13.933084
+  type: 'test'
+  ...
+# Subtest: fgrep early stop preserves external return reject
+ok 12 - fgrep early stop preserves external return reject
+  ---
+  duration_ms: 12.662125
+  type: 'test'
+  ...
+# Subtest: nonzero command result does not erase an awaited external return failure
+ok 13 - nonzero command result does not erase an awaited external return failure
+  ---
+  duration_ms: 0.305833
+  type: 'test'
+  ...
+# Subtest: owning close shares a rejected completion and returns once
+ok 14 - owning close shares a rejected completion and returns once
+  ---
+  duration_ms: 0.086709
+  type: 'test'
+  ...
+# Subtest: EOF does not call an unnecessary rejecting return
+ok 15 - EOF does not call an unnecessary rejecting return
+  ---
+  duration_ms: 0.274834
+  type: 'test'
+  ...
+# Subtest: selected execution rejection outranks an external close rejection
+ok 16 - selected execution rejection outranks an external close rejection
+  ---
+  duration_ms: 0.341625
+  type: 'test'
+  ...
+# Subtest: a reported primary read failure is not replaced by a secondary return failure
+ok 17 - a reported primary read failure is not replaced by a secondary return failure
+  ---
+  duration_ms: 0.28175
+  type: 'test'
+  ...
+# Subtest: caller abort during an awaited return wins and observes its late rejection
+ok 18 - caller abort during an awaited return wins and observes its late rejection
+  ---
+  duration_ms: 0.717041
+  type: 'test'
+  ...
+# Subtest: disposal still interrupts an unregistered external return wait
+ok 19 - disposal still interrupts an unregistered external return wait
+  ---
+  duration_ms: 0.216
+  type: 'test'
+  ...
+# Subtest: pending opaque next does not force awaiting a rejected return
+ok 20 - pending opaque next does not force awaiting a rejected return
+  ---
+  duration_ms: 0.558334
+  type: 'test'
+  ...
+# Subtest: opaque generator queued return remains outside the public abort barrier
+ok 21 - opaque generator queued return remains outside the public abort barrier
+  ---
+  duration_ms: 0.457708
+  type: 'test'
+  ...
+# Subtest: sequential borrowers retain the cursor until one final rejecting owner close
+ok 22 - sequential borrowers retain the cursor until one final rejecting owner close
+  ---
+  duration_ms: 0.638833
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 483.93875

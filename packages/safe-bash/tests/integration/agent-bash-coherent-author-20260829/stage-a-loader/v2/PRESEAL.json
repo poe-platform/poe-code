@@ -1,0 +1,88 @@
+{
+  "role": "VERSIONED_TWO_HARMLESS_LOADER_FIXTURES",
+  "started": "2026-08-29T10:02:30.555Z",
+  "finished": "2026-08-29T10:02:30.662Z",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "inputs": [
+    {
+      "path": "outer.sh",
+      "bytes": 560,
+      "sha256": "67544174b53b427a513889922033e12b2941c09e275c81f642febff3e6edded3"
+    },
+    {
+      "path": "probe.mjs",
+      "bytes": 9396,
+      "sha256": "2af7c78942bcf35754007b51dd7323361c65902d15e0ab30eaf53d497533592f"
+    },
+    {
+      "path": "descriptor.mjs",
+      "bytes": 1790,
+      "sha256": "94199f86c26c40303f1f10f4201b8961e4f5c855b9e204d764243c2755d5fb82"
+    },
+    {
+      "path": "PROFILE.md",
+      "bytes": 1763,
+      "sha256": "2f7d52a4663201e861d5b1100e5cc40e2657e53ed0d18e36562fa21778d21d76"
+    },
+    {
+      "path": "fixture/entry.js.fixture",
+      "bytes": 40,
+      "sha256": "9dd5b814df959368c401fb5b5382314eddc3dcdc612017be3266becbf4676c05"
+    },
+    {
+      "path": "fixture/payload.js.fixture",
+      "bytes": 420,
+      "sha256": "92fac4ccd3232f185b23dcb20ef363c019aeaa71678e36d27eb9cc8974065319"
+    }
+  ],
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "stageAPresealSha256": "313ba365cb23d67187362a949087f0d264c63e5d3f776f0fc64e47f220825a2a",
+  "typescriptPackage": {
+    "sourcePath": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/typescript/package.json",
+    "relativePath": "package.json",
+    "type": "file",
+    "bytes": 3620,
+    "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+  },
+  "typescriptEntry": {
+    "sourcePath": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/typescript/lib/tsc.js",
+    "relativePath": "lib/tsc.js",
+    "type": "file",
+    "bytes": 267,
+    "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+  },
+  "capsule": "/tmp/safe-bash-stage-a-loader-20260829-r2",
+  "fixtureEntrySha256": "9dd5b814df959368c401fb5b5382314eddc3dcdc612017be3266becbf4676c05",
+  "fixturePayloadSha256": "92fac4ccd3232f185b23dcb20ef363c019aeaa71678e36d27eb9cc8974065319",
+  "cases": [
+    {
+      "id": "L01",
+      "route": "alias",
+      "expectedStatus": 1,
+      "expectedEntry": false,
+      "expectedResource": "/tmp"
+    },
+    {
+      "id": "L02",
+      "route": "physical",
+      "expectedStatus": 0,
+      "expectedEntry": true
+    }
+  ],
+  "bounds": {
+    "cases": 2,
+    "secondsPerCase": 20,
+    "cleanupSeconds": 5,
+    "allSeconds": 300,
+    "captureBytes": 1048576,
+    "workingBytes": 16777216
+  },
+  "noTypeScriptImport": true,
+  "noProductOrPack": true,
+  "oldLocatorStop": "24971010/b8e4e24b immutable zero fixtures",
+  "previousPresealSha256": "cf07bed631f05f83db4a06b7058a0e6fb8a6a67672d0c0007ef0308291e8dc66"
+}

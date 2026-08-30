@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: approved advisory mode 0 is not privacy or execute authorization
+ok 1 - approved advisory mode 0 is not privacy or execute authorization
+  ---
+  duration_ms: 3.699125
+  type: 'test'
+  ...
+# Subtest: approved advisory mode 600 is not privacy or execute authorization
+ok 2 - approved advisory mode 600 is not privacy or execute authorization
+  ---
+  duration_ms: 1.586875
+  type: 'test'
+  ...
+# Subtest: approved advisory mode 755 is not privacy or execute authorization
+ok 3 - approved advisory mode 755 is not privacy or execute authorization
+  ---
+  duration_ms: 1.013041
+  type: 'test'
+  ...
+# Subtest: approved mode0000 directory permits traversal and exact child namespace
+ok 4 - approved mode0000 directory permits traversal and exact child namespace
+  ---
+  duration_ms: 1.525167
+  type: 'test'
+  ...
+# Subtest: chmod and invalid modes reject before requests; exclusivity preserves exact bytes
+ok 5 - chmod and invalid modes reject before requests; exclusivity preserves exact bytes
+  ---
+  duration_ms: 1.282875
+  type: 'test'
+  ...
+# Subtest: readonly policy and provider denials remain errors, access is not GET/PUT authorization
+ok 6 - readonly policy and provider denials remain errors, access is not GET/PUT authorization
+  ---
+  duration_ms: 0.594792
+  type: 'test'
+  ...
+# Subtest: pre-aborted supported operations preserve cancellation without requests or mutation
+ok 7 - pre-aborted supported operations preserve cancellation without requests or mutation
+  ---
+  duration_ms: 0.72725
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 121.346083

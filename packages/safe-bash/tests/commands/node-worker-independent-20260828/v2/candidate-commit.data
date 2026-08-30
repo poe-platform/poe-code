@@ -1,0 +1,6 @@
+tree 16da8c0abbbf2a468109095a71e0021d0b11f6fc
+parent 2bca8eafcd55453fc2fee6a7e677108f306e096f
+author Kamil Jopek <kjopek@quora.com> 1787947234 -0500
+committer Kamil Jopek <kjopek@quora.com> 1787947234 -0500
+
+docs: correct WRQ sync retirement design after review

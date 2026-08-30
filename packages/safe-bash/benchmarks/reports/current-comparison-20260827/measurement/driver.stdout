@@ -1,0 +1,16 @@
+{
+  "destination": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/measurement-attempt-001",
+  "stopped": null,
+  "required": {
+    "original": 448,
+    "aligned": 448,
+    "breadth": {
+      "observations": 136,
+      "targets": 54,
+      "controls": 7,
+      "diagnostics": 7
+    },
+    "unionScore": null
+  },
+  "reviewRequired": true
+}

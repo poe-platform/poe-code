@@ -1,0 +1,252 @@
+{
+  "entries": [
+    {
+      "path": "empty",
+      "mode": 493,
+      "nlink": 2,
+      "kind": "directory"
+    },
+    {
+      "path": "home",
+      "mode": 493,
+      "nlink": 2,
+      "kind": "directory"
+    },
+    {
+      "path": "metadata.git",
+      "mode": 493,
+      "nlink": 6,
+      "kind": "directory"
+    },
+    {
+      "path": "metadata.git/HEAD",
+      "mode": 384,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 24,
+      "sha256": "37cf8b04713c10a6acf4b7f2c32190cab24147aebc6ca8d6bc62c292076a6f93"
+    },
+    {
+      "path": "metadata.git/config",
+      "mode": 384,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 49,
+      "sha256": "583e3939cc50830531b229f4cedc2565e444b5b94c16fb6635ecd5d98e9dcbc3"
+    },
+    {
+      "path": "metadata.git/objects",
+      "mode": 493,
+      "nlink": 5,
+      "kind": "directory"
+    },
+    {
+      "path": "metadata.git/objects/14",
+      "mode": 493,
+      "nlink": 3,
+      "kind": "directory"
+    },
+    {
+      "path": "metadata.git/objects/14/7aa1a5c5a862ffe2d6152c52d66bd3111c0267",
+      "mode": 384,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 129,
+      "sha256": "b88a22217c72cbbfac00c675982323b6791c856518e42e0be5d3c4af7717146a"
+    },
+    {
+      "path": "metadata.git/objects/3a",
+      "mode": 493,
+      "nlink": 3,
+      "kind": "directory"
+    },
+    {
+      "path": "metadata.git/objects/3a/c38790e22525634c1451f402d8b01f7d5caf4e",
+      "mode": 384,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 90,
+      "sha256": "0c746531dc756a602e811ed98cd1c086e49f3e92b2bbc1acec6fa3c9271388fb"
+    },
+    {
+      "path": "metadata.git/objects/f9",
+      "mode": 493,
+      "nlink": 3,
+      "kind": "directory"
+    },
+    {
+      "path": "metadata.git/objects/f9/e4014e169ed925725c571c37ff71ef81eed230",
+      "mode": 384,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 42,
+      "sha256": "6da22f7fcba5d068477d2378ad8e28a7043e891270575a7870f811d5a2a9bae7"
+    },
+    {
+      "path": "metadata.git/refs",
+      "mode": 493,
+      "nlink": 2,
+      "kind": "directory"
+    },
+    {
+      "path": "positive",
+      "mode": 448,
+      "nlink": 4,
+      "kind": "directory"
+    },
+    {
+      "path": "positive/moved",
+      "mode": 493,
+      "nlink": 13,
+      "kind": "directory"
+    },
+    {
+      "path": "positive/moved/consumer-bad-value-repair.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 42,
+      "sha256": "270919ffbfed197cb1a87fecf066972e0821d84a1373e9d9d049fd0fabdf8a52"
+    },
+    {
+      "path": "positive/moved/consumer-bad-value.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 35,
+      "sha256": "82102e9b889f19def38183d05d2afcb27e35cee61a5db7aa8b50890d7bec4340"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-bad-value-repair.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 42,
+      "sha256": "270919ffbfed197cb1a87fecf066972e0821d84a1373e9d9d049fd0fabdf8a52"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-bad-value.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 35,
+      "sha256": "82102e9b889f19def38183d05d2afcb27e35cee61a5db7aa8b50890d7bec4340"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-positive.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-root-negative.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 39,
+      "sha256": "bafd9e822c804172902e9a45b30e53bb9bbd92dc40302aa5ae25f5bf134f2c9a"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-root-repair.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 37,
+      "sha256": "68e6821a4fc72fc9d595f6969802df7ed0e08739e3f129c8718cb44ca8387ce7"
+    },
+    {
+      "path": "positive/moved/consumer-positive.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/moved/consumer-root-negative.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 39,
+      "sha256": "bafd9e822c804172902e9a45b30e53bb9bbd92dc40302aa5ae25f5bf134f2c9a"
+    },
+    {
+      "path": "positive/moved/consumer-root-repair.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 37,
+      "sha256": "68e6821a4fc72fc9d595f6969802df7ed0e08739e3f129c8718cb44ca8387ce7"
+    },
+    {
+      "path": "positive/moved/package-data.txt",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 42,
+      "sha256": "d13a8d7439891677a729a2966fe027d528c44c15c25c98bc90bdef229e4ecd88"
+    },
+    {
+      "path": "positive/refusals",
+      "mode": 448,
+      "nlink": 8,
+      "kind": "directory"
+    },
+    {
+      "path": "positive/refusals/alias",
+      "mode": 420,
+      "nlink": 2,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/refusals/alias-source",
+      "mode": 420,
+      "nlink": 2,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/refusals/different",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "eb429444a274825de244c2ca7ad89afee0b422bf29a16f3da8b52910a403fd2b"
+    },
+    {
+      "path": "positive/refusals/link-target",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/refusals/mode",
+      "mode": 384,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/refusals/symlink",
+      "mode": 493,
+      "nlink": 1,
+      "kind": "symlink",
+      "target": "link-target"
+    },
+    {
+      "path": "tmp",
+      "mode": 493,
+      "nlink": 2,
+      "kind": "directory"
+    }
+  ],
+  "bytes": 920
+}

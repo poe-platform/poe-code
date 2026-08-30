@@ -1,0 +1,19 @@
+2026-08-27T17:48:21Z
+1ebc9d71607b8b9f73bd65bd75ca91fed430ae89
+v22.22.2
+Version 5.9.3
+dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49  src/commands/regex-execution/client.ts
+3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1  src/commands/regex-execution/protocol.ts
+a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6  src/commands/regex-execution/worker.ts
+77c18accf64cc611b41c84a45d9b0faf9baf11b7a502ce3d7a51038446f34c21  dist/commands/regex-execution/client.js
+46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f  dist/commands/regex-execution/worker.js
+24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3  tests/commands/expr/abort-reason-regression.test.ts
+1db0b7dca579049ca4193d034d835f6bfe73096c73663e5ef9a0b5779939f3d0  node_modules/@types/node/web-globals/abortcontroller.d.ts
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/
+?? tests/commands/expr-author/abort-reason-fix/
+?? tests/commands/expr-stress/extension-review/execution/
+?? tests/commands/expr/abort-reason-regression.test.ts
+?? tests/commands/search-stress/.native-1m4O1e/
+?? tests/commands/tree-charset-independent-20260827/mutation-controls/
+?? tests/commands/tree-charset-independent-20260827/validation-chain/
+?? tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/inspection-v1/

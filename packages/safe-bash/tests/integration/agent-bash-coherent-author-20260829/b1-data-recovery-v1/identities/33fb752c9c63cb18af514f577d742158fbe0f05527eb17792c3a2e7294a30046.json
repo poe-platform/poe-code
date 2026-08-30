@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/physically-moved/installed-engine-receipt.json",
+    "bytes": 76582,
+    "sha256": "a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190027074,
+    "mtimeMs": 1788021741470.2754,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/physically-moved/installed-engine-receipt.json"
+    },
+    "role": "layout-installed-engine-receipt.json"
+  },
+  "dataPath": "data/33fb752c9c63cb18af514f577d742158fbe0f05527eb17792c3a2e7294a30046.raw",
+  "identityPath": "identities/33fb752c9c63cb18af514f577d742158fbe0f05527eb17792c3a2e7294a30046.json",
+  "copiedBytes": 76582,
+  "copiedMode": 420,
+  "copiedSha256": "a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de"
+}

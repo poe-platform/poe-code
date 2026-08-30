@@ -1,0 +1,727 @@
+TAP version 13
+# Subtest: date independent-review regression %12F
+ok 1 - date independent-review regression %12F
+  ---
+  duration_ms: 1.08825
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#c
+ok 2 - date independent-review regression %\#c
+  ---
+  duration_ms: 0.213292
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %-z
+ok 3 - date independent-review regression %-z
+  ---
+  duration_ms: 0.181417
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_z
+ok 4 - date independent-review regression %_z
+  ---
+  duration_ms: 0.084083
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_12z
+ok 5 - date independent-review regression %_12z
+  ---
+  duration_ms: 0.301541
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %^P
+ok 6 - date independent-review regression %^P
+  ---
+  duration_ms: 0.07125
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#^p|%^\#p|%\#^P|%^\#P|%\#^Z
+ok 7 - date independent-review regression %\#^p|%^\#p|%\#^P|%^\#P|%\#^Z
+  ---
+  duration_ms: 0.096583
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %\#A|%\#b|%^c|%\#r
+ok 8 - date independent-review regression %\#A|%\#b|%^c|%\#r
+  ---
+  duration_ms: 0.059417
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z
+ok 9 - date independent-review regression %-:z|%_:z|%-::z|%_::z|%-:::z|%_:::z
+  ---
+  duration_ms: 0.2995
+  type: 'test'
+  ...
+# Subtest: date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F
+ok 10 - date independent-review regression %_12F|%-12F|%012F|%_012F|%0_12F
+  ---
+  duration_ms: 0.236667
+  type: 'test'
+  ...
+# Subtest: date compound year width belongs to the year, including short years
+ok 11 - date compound year width belongs to the year, including short years
+  ---
+  duration_ms: 0.184542
+  type: 'test'
+  ...
+# Subtest: date timezone padding applies to signed numeric offsets, not pre-padded strings
+ok 12 - date timezone padding applies to signed numeric offsets, not pre-padded strings
+  ---
+  duration_ms: 0.257708
+  type: 'test'
+  ...
+# Subtest: fresh GNU9.7 C-locale flag/width/compound/timezone matrix
+    # Subtest: 0008-01-02T03:04:05Z UTC aAbBhcpPrZ
+    ok 1 - 0008-01-02T03:04:05Z UTC aAbBhcpPrZ
+      ---
+      duration_ms: 7.584708
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC FDxRXTYy
+    not ok 2 - 0008-01-02T03:04:05Z UTC FDxRXTYy
+      ---
+      duration_ms: 6.369542
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-D
+        + actual - expected
+        
+        + '01/02/08'
+        - '01/02/8'
+                 ^
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '01/02/8'
+      actual: '01/02/08'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC z
+    ok 3 - 0008-01-02T03:04:05Z UTC z
+      ---
+      duration_ms: 5.656666
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ
+    ok 4 - 0008-01-02T03:04:05Z UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 5.540125
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy
+    not ok 5 - 0008-01-02T03:04:05Z UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 5.317375
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-D
+        + actual - expected
+        
+        + '01/02/08'
+        - '01/02/8'
+                 ^
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '01/02/8'
+      actual: '01/02/08'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-0:30:07 z
+    ok 6 - 0008-01-02T03:04:05Z UTC-0:30:07 z
+      ---
+      duration_ms: 5.621
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ
+    ok 7 - 0008-01-02T03:04:05Z UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.295333
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy
+    not ok 8 - 0008-01-02T03:04:05Z UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 5.276334
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-D
+        + actual - expected
+        
+        + '01/02/08'
+        - '01/02/8'
+                 ^
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '01/02/8'
+      actual: '01/02/08'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC+0:00:07 z
+    ok 9 - 0008-01-02T03:04:05Z UTC+0:00:07 z
+      ---
+      duration_ms: 5.087417
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ
+    ok 10 - 0008-01-02T03:04:05Z UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 5.265
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy
+    not ok 11 - 0008-01-02T03:04:05Z UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 5.077292
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-D
+        + actual - expected
+        
+        + '01/02/08'
+        - '01/02/8'
+                 ^
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '01/02/8'
+      actual: '01/02/08'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z UTC-5:45 z
+    ok 12 - 0008-01-02T03:04:05Z UTC-5:45 z
+      ---
+      duration_ms: 4.843709
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ
+    not ok 13 - 0008-01-02T03:04:05Z America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 13.259625
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %Z
+        + actual - expected
+        
+        + 'GMT-4:56:02'
+        - 'LMT'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'LMT'
+      actual: 'GMT-4:56:02'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York FDxRXTYy
+    not ok 14 - 0008-01-02T03:04:05Z America/New_York FDxRXTYy
+      ---
+      duration_ms: 5.493125
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-D
+        + actual - expected
+        
+        + '01/01/08'
+        - '01/01/8'
+                 ^
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '01/01/8'
+      actual: '01/01/08'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z America/New_York z
+    ok 15 - 0008-01-02T03:04:05Z America/New_York z
+      ---
+      duration_ms: 5.061625
+      type: 'test'
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ
+    not ok 16 - 0008-01-02T03:04:05Z Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 8.045625
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %Z
+        + actual - expected
+        
+        + 'GMT+0:09:21'
+        - 'LMT'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'LMT'
+      actual: 'GMT+0:09:21'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris FDxRXTYy
+    not ok 17 - 0008-01-02T03:04:05Z Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 5.907583
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %-D
+        + actual - expected
+        
+        + '01/02/08'
+        - '01/02/8'
+                 ^
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: '01/02/8'
+      actual: '01/02/08'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 0008-01-02T03:04:05Z Europe/Paris z
+    ok 18 - 0008-01-02T03:04:05Z Europe/Paris z
+      ---
+      duration_ms: 5.254834
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC aAbBhcpPrZ
+    ok 19 - 2024-02-29T15:06:07Z UTC aAbBhcpPrZ
+      ---
+      duration_ms: 5.329708
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC FDxRXTYy
+    ok 20 - 2024-02-29T15:06:07Z UTC FDxRXTYy
+      ---
+      duration_ms: 5.246292
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC z
+    ok 21 - 2024-02-29T15:06:07Z UTC z
+      ---
+      duration_ms: 4.965292
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ
+    ok 22 - 2024-02-29T15:06:07Z UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 5.103042
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy
+    ok 23 - 2024-02-29T15:06:07Z UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 4.801209
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-0:30:07 z
+    ok 24 - 2024-02-29T15:06:07Z UTC-0:30:07 z
+      ---
+      duration_ms: 4.686875
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ
+    ok 25 - 2024-02-29T15:06:07Z UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 6.743875
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy
+    ok 26 - 2024-02-29T15:06:07Z UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 4.993834
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC+0:00:07 z
+    ok 27 - 2024-02-29T15:06:07Z UTC+0:00:07 z
+      ---
+      duration_ms: 4.725583
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ
+    ok 28 - 2024-02-29T15:06:07Z UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 5.350583
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy
+    ok 29 - 2024-02-29T15:06:07Z UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 4.715875
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z UTC-5:45 z
+    ok 30 - 2024-02-29T15:06:07Z UTC-5:45 z
+      ---
+      duration_ms: 4.467709
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ
+    ok 31 - 2024-02-29T15:06:07Z America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 5.2285
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York FDxRXTYy
+    ok 32 - 2024-02-29T15:06:07Z America/New_York FDxRXTYy
+      ---
+      duration_ms: 5.180334
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z America/New_York z
+    ok 33 - 2024-02-29T15:06:07Z America/New_York z
+      ---
+      duration_ms: 4.878333
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ
+    not ok 34 - 2024-02-29T15:06:07Z Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 5.326125
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %Z
+        
+        'GMT+1' !== 'CET'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'CET'
+      actual: 'GMT+1'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris FDxRXTYy
+    ok 35 - 2024-02-29T15:06:07Z Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 5.237083
+      type: 'test'
+      ...
+    # Subtest: 2024-02-29T15:06:07Z Europe/Paris z
+    ok 36 - 2024-02-29T15:06:07Z Europe/Paris z
+      ---
+      duration_ms: 4.73875
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC aAbBhcpPrZ
+    ok 37 - @-1.000000001 UTC aAbBhcpPrZ
+      ---
+      duration_ms: 5.240708
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC FDxRXTYy
+    ok 38 - @-1.000000001 UTC FDxRXTYy
+      ---
+      duration_ms: 4.956667
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC z
+    ok 39 - @-1.000000001 UTC z
+      ---
+      duration_ms: 4.846125
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 aAbBhcpPrZ
+    ok 40 - @-1.000000001 UTC-0:30:07 aAbBhcpPrZ
+      ---
+      duration_ms: 4.827125
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 FDxRXTYy
+    ok 41 - @-1.000000001 UTC-0:30:07 FDxRXTYy
+      ---
+      duration_ms: 4.753
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-0:30:07 z
+    ok 42 - @-1.000000001 UTC-0:30:07 z
+      ---
+      duration_ms: 4.431708
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 aAbBhcpPrZ
+    ok 43 - @-1.000000001 UTC+0:00:07 aAbBhcpPrZ
+      ---
+      duration_ms: 4.738583
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 FDxRXTYy
+    ok 44 - @-1.000000001 UTC+0:00:07 FDxRXTYy
+      ---
+      duration_ms: 5.521625
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC+0:00:07 z
+    ok 45 - @-1.000000001 UTC+0:00:07 z
+      ---
+      duration_ms: 4.677208
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 aAbBhcpPrZ
+    ok 46 - @-1.000000001 UTC-5:45 aAbBhcpPrZ
+      ---
+      duration_ms: 4.836917
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 FDxRXTYy
+    ok 47 - @-1.000000001 UTC-5:45 FDxRXTYy
+      ---
+      duration_ms: 4.553166
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 UTC-5:45 z
+    ok 48 - @-1.000000001 UTC-5:45 z
+      ---
+      duration_ms: 4.371792
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 America/New_York aAbBhcpPrZ
+    not ok 49 - @-1.000000001 America/New_York aAbBhcpPrZ
+      ---
+      duration_ms: 5.270208
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %Z
+        
+        'GMT-5' !== 'EST'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'EST'
+      actual: 'GMT-5'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 America/New_York FDxRXTYy
+    ok 50 - @-1.000000001 America/New_York FDxRXTYy
+      ---
+      duration_ms: 5.029708
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 America/New_York z
+    ok 51 - @-1.000000001 America/New_York z
+      ---
+      duration_ms: 5.043417
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 Europe/Paris aAbBhcpPrZ
+    not ok 52 - @-1.000000001 Europe/Paris aAbBhcpPrZ
+      ---
+      duration_ms: 5.614917
+      type: 'test'
+      location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2660'
+      failureType: 'testCodeFailure'
+      error: |-
+        %Z
+        
+        'GMT+1' !== 'CET'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'CET'
+      actual: 'GMT+1'
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:64:73)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:53:11)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: @-1.000000001 Europe/Paris FDxRXTYy
+    ok 53 - @-1.000000001 Europe/Paris FDxRXTYy
+      ---
+      duration_ms: 5.589875
+      type: 'test'
+      ...
+    # Subtest: @-1.000000001 Europe/Paris z
+    ok 54 - @-1.000000001 Europe/Paris z
+      ---
+      duration_ms: 4.989583
+      type: 'test'
+      ...
+    1..54
+not ok 13 - fresh GNU9.7 C-locale flag/width/compound/timezone matrix
+  ---
+  duration_ms: 301.972625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/format-regressions.test.ts:1:2016'
+  failureType: 'subtestsFailed'
+  error: '11 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000001"]
+ok 14 - sleep exact decimal carry ["0.0009999999","0.0000000001"]
+  ---
+  duration_ms: 1.062333
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0004999999","0.0005000001"]
+ok 15 - sleep exact decimal carry ["0.0004999999","0.0005000001"]
+  ---
+  duration_ms: 0.200083
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000000999999999999"]
+ok 16 - sleep exact decimal carry ["0.0009999999","0.0000000000999999999999"]
+  ---
+  duration_ms: 0.165958
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.0009999999","0.0000000001000000000001"]
+ok 17 - sleep exact decimal carry ["0.0009999999","0.0000000001000000000001"]
+  ---
+  duration_ms: 0.150917
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.001","1e-1000000000000000000000"]
+ok 18 - sleep exact decimal carry ["0.001","1e-1000000000000000000000"]
+  ---
+  duration_ms: 0.244625
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["1e-1000000000000000000000"]
+ok 19 - sleep exact decimal carry ["1e-1000000000000000000000"]
+  ---
+  duration_ms: 0.054792
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".000016666666666666m",".00000000000000000004"]
+ok 20 - sleep exact decimal carry [".000016666666666666m",".00000000000000000004"]
+  ---
+  duration_ms: 0.073791
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".0000000001d",".0000000001h",".0000000001m",".000990994"]
+ok 21 - sleep exact decimal carry [".0000000001d",".0000000001h",".0000000001m",".000990994"]
+  ---
+  duration_ms: 0.043833
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0.000000000000000000000000000001","0.000999999999999999999999999999"]
+ok 22 - sleep exact decimal carry ["0.000000000000000000000000000001","0.000999999999999999999999999999"]
+  ---
+  duration_ms: 0.118792
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry [".0005",".0005","1e-999999999999999999999"]
+ok 23 - sleep exact decimal carry [".0005",".0005","1e-999999999999999999999"]
+  ---
+  duration_ms: 0.217125
+  type: 'test'
+  ...
+# Subtest: sleep exact decimal carry ["0e9999999999999999999999","0e-9999999999999999999999"]
+ok 24 - sleep exact decimal carry ["0e9999999999999999999999","0e-9999999999999999999999"]
+  ---
+  duration_ms: 0.044709
+  type: 'test'
+  ...
+# Subtest: sleep bounded exact rational properties across decimal positions and units
+ok 25 - sleep bounded exact rational properties across decimal positions and units
+  ---
+  duration_ms: 6.742458
+  type: 'test'
+  ...
+# Subtest: sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers
+ok 26 - sleep sparse decimal positions bound huge exponents without allocating exponent-sized buffers
+  ---
+  duration_ms: 1.5365
+  type: 'test'
+  ...
+# Subtest: sleep exact range boundary preserves chunking and rejects excess before scheduling
+ok 27 - sleep exact range boundary preserves chunking and rejects excess before scheduling
+  ---
+  duration_ms: 0.31075
+  type: 'test'
+  ...
+# Subtest: sleep many fractional carries reach the boundary without per-operand rounding
+ok 28 - sleep many fractional carries reach the boundary without per-operand rounding
+  ---
+  duration_ms: 2.011625
+  type: 'test'
+  ...
+1..28
+# tests 82
+# suites 0
+# pass 70
+# fail 12
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 587.003208

@@ -1,0 +1,582 @@
+import assert from 'node:assert/strict';
+import { after, test, type TestContext } from 'node:test';
+import { createRequire, syncBuiltinESMExports } from 'node:module';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { Worker } from 'node:worker_threads';
+import type { ByteSink, ByteSource, CommandContext, CommandDefinition, FileSystem, InvocationCleanup, ReadStreamOptions, RegexExecutionOptions, Shell as ShellType, ShellResult, VirtualShellPlugin } from 'virtual-bash';
+
+type AliasOptions = { readonly regex?: RegexExecutionOptions; readonly replace?: boolean };
+type AliasApi = {
+  createGrepAliasCommands(options?: AliasOptions): readonly CommandDefinition[];
+  grepAliasCommands(options?: AliasOptions): VirtualShellPlugin;
+  egrepCommand(options?: AliasOptions): CommandDefinition;
+  fgrepCommand(options?: AliasOptions): CommandDefinition;
+};
+type Fixture = { utf8?: string; hex?: string };
+type NativeRow = { id: string; command: 'egrep' | 'fgrep'; args: string[]; stdin: string; files: Record<string, string>; comparison: string };
+type Tuple = { id: string; status: number; stdoutHex: string; stderrHex: string; filesAfterHex: Record<string, string> };
+type Outcome = { id: string; label: string; status: 'pass' | 'fail'; error?: string; details: Record<string, unknown>; activeWorkersAfter: number };
+
+const output = process.env.GREP_ALIASES_RUN_OUTPUT;
+assert.ok(output, 'Explicit unique isolated output directory required');
+mkdirSync(output, { recursive: false });
+const fixtureRoot = fileURLToPath(new URL('../fixtures/', import.meta.url));
+const corpus = JSON.parse(readFileSync(join(fixtureRoot, 'corpus.json'), 'utf8')) as { fixtures: Record<string, Fixture>; cases: NativeRow[] };
+const nativeGoldens = JSON.parse(readFileSync(join(fixtureRoot, 'native-goldens.json'), 'utf8')) as { rows: Tuple[] };
+const gnu = JSON.parse(readFileSync(join(fixtureRoot, 'gnu-captures.json'), 'utf8')) as { records: { id: string; runs: { status: number; stdoutHex: string; stderrHex: string; filesAfterHex: Record<string, string> }[] }[] };
+const fixture = (name: string): Buffer => {
+  const data = corpus.fixtures[name];
+  assert.ok(data, name);
+  return Buffer.from(data.hex ?? data.utf8 ?? '', data.hex === undefined ? 'utf8' : 'hex');
+};
+const activeWorkers = new Set<Worker>();
+const workerEvents: { event: string; threadId: number; case: string; detail?: unknown }[] = [];
+const outcomes: Outcome[] = [];
+const candidateRows: Tuple[] = [];
+const lateErrors: unknown[] = [];
+let currentCase = 'initialization';
+let details: Record<string, unknown> = {};
+let nextWorkerIdentity = 0;
+let messageGate: ((send: () => void) => void) | undefined;
+let messageObserver: ((message: unknown) => void) | undefined;
+const workerModule = createRequire(import.meta.url)('node:worker_threads') as { Worker: typeof Worker };
+const OriginalWorker = workerModule.Worker;
+class ObservedWorker extends OriginalWorker {
+  readonly verifierId: number;
+  constructor(...args: ConstructorParameters<typeof Worker>) {
+    super(...args);
+    this.verifierId = ++nextWorkerIdentity;
+    activeWorkers.add(this);
+    workerEvents.push({ event: 'create', threadId: this.verifierId, case: currentCase, detail: String(args[0]) });
+    this.once('exit', code => {
+      activeWorkers.delete(this);
+      workerEvents.push({ event: 'exit', threadId: this.verifierId, case: currentCase, detail: code });
+    });
+  }
+  override postMessage(...args: Parameters<Worker['postMessage']>): void {
+    workerEvents.push({ event: 'post', threadId: this.verifierId, case: currentCase });
+    const send = () => { super.postMessage(...args); messageObserver?.(args[0]); };
+    if (messageGate) messageGate(send); else send();
+  }
+  override terminate(): Promise<number> {
+    workerEvents.push({ event: 'product-terminate', threadId: this.verifierId, case: currentCase });
+    return super.terminate();
+  }
+}
+workerModule.Worker = ObservedWorker;
+syncBuiltinESMExports();
+const product = await import('virtual-bash');
+const aliases: AliasApi = await import(new URL('../node_modules/virtual-bash/dist/commands/grep-aliases/index.js', import.meta.url).href);
+const { Shell, MemoryFileSystem, CommandRegistry, createStandardCommands, ShellLimitError } = product;
+const regex: RegexExecutionOptions = { maxWorkers: 1, maxQueuedRequests: 1, maxQueuedBytes: 4096, requestTimeoutMs: 1500, startupTimeoutMs: 1500, idleTimeoutMs: 1000 };
+const options: AliasOptions = { regex };
+process.on('unhandledRejection', onUnhandled);
+function onUnhandled(reason: unknown): void { lateErrors.push(reason); }
+function deferred<Value = void>() {
+  let resolve!: (value: Value | PromiseLike<Value>) => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<Value>((resolvePromise, rejectPromise) => { resolve = resolvePromise; reject = rejectPromise; });
+  return { promise, resolve, reject };
+}
+const tick = () => new Promise<void>(resolve => setImmediate(resolve));
+async function* source(bytes: Uint8Array): AsyncGenerator<Uint8Array> { yield bytes; }
+const quote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`;
+const script = (name: string, args: readonly string[]) => [name, ...args.map(quote)].join(' ');
+function sink() {
+  const chunks: Buffer[] = [];
+  return { chunks, write: async (bytes: Uint8Array) => { chunks.push(Buffer.from(bytes)); }, bytes: () => Buffer.concat(chunks) };
+}
+function selected(name: 'egrep' | 'fgrep', family = aliases.createGrepAliasCommands(options)): CommandDefinition {
+  const definition = family.find(command => command.name === name);
+  assert.ok(definition);
+  return definition;
+}
+function context(args: readonly string[], overrides: Partial<CommandContext> = {}) {
+  const stdout = sink();
+  const stderr = sink();
+  const cleanups: InvocationCleanup[] = [];
+  const invocation: CommandContext = { command: 'caller-original-name', args, stdin: source(Buffer.from('keep:01\n')), stdinIsDefault: false, stdout, stderr, fs: new MemoryFileSystem(), cwd: '/', env: { HOLDOUT: 'fixed' }, signal: new AbortController().signal, registerCleanup: cleanup => { cleanups.push(cleanup); }, ...overrides };
+  return { invocation, stdout, stderr, cleanups };
+}
+function makeShell(fs: FileSystem = new MemoryFileSystem(), family?: readonly CommandDefinition[]) {
+  const shell = new Shell({ fs, limits: { maxOutputBytes: 65536, maxCommands: 32, pipeHighWaterMark: 128 } });
+  if (family) for (const definition of family) shell.register(definition);
+  else shell.use(aliases.grepAliasCommands(options));
+  return shell;
+}
+function helpers(shell: ShellType): void {
+  for (const definition of createStandardCommands({ regex })) if (['printf', 'head', 'cat'].includes(definition.name)) shell.register(definition);
+}
+function record(): void {
+  writeFileSync(join(output!, 'results.json'), `${JSON.stringify({ candidate: process.env.GREP_ALIASES_CANDIDATE, startedWithSealedCorpus: true, aliasUrl: new URL('../node_modules/virtual-bash/dist/commands/grep-aliases/index.js', import.meta.url).href, outcomes, candidateRows, workerEvents, activeWorkers: activeWorkers.size, lateErrorCount: lateErrors.length, forcedWorkerTerminationByVerifier: 0 }, null, 2)}\n`);
+}
+async function observe(id: string, label: string, body: () => Promise<void>): Promise<void> {
+  currentCase = `${id}/${label}`;
+  details = {};
+  try {
+    assert.equal(activeWorkers.size, 0, 'Prior invocation leaked workers');
+    await body();
+    assert.equal(activeWorkers.size, 0, 'Case leaves actual workers active');
+    outcomes.push({ id, label, status: 'pass', details, activeWorkersAfter: activeWorkers.size });
+  } catch (error) {
+    outcomes.push({ id, label, status: 'fail', error: error instanceof Error ? error.stack ?? error.message : String(error), details, activeWorkersAfter: activeWorkers.size });
+    throw error;
+  } finally { messageGate = undefined; messageObserver = undefined; record(); }
+}
+function suite(id: string, cases: readonly [string, () => Promise<void>][]): void {
+  test(id, { timeout: 20000, concurrency: false }, async (parent: TestContext) => {
+    for (const [label, body] of cases) await parent.test(label, { timeout: 5000 }, () => observe(id, label, body));
+  });
+}
+function diagnosticProfile(row: NativeRow, result: ShellResult): void {
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stdoutBytes.byteLength, 0);
+  assert.ok(result.stderr.startsWith(`${row.command}: `), result.stderr);
+  assert.doesNotMatch(result.stderr, /obsolescen/);
+  if (['N03', 'N04', 'N07', 'N08'].includes(row.id)) assert.match(result.stderr, /conflicting matchers specified/);
+  else if (['N05', 'N06'].includes(row.id)) {
+    assert.match(result.stderr, /unknown|invalid|unsupported|unrecognized/);
+    assert.match(result.stderr, /G/);
+  } else if (row.id === 'N17' || row.id === 'N26') {
+    assert.match(result.stderr, /no such file or directory/i);
+    assert.ok(result.stderr.includes(row.id === 'N17' ? 'absent.txt' : 'absent.patterns'));
+  } else if (row.id === 'N18') assert.match(result.stderr, /bracket|character class|unterminated|unbalanced|regular expression/i);
+  else if (row.id === 'N19') {
+    assert.match(result.stderr, /argument|value/);
+    assert.match(result.stderr, /e/);
+  } else assert.fail(`Unclassified profile ${row.id}`);
+}
+for (const row of corpus.cases) suite(row.id, [[row.comparison, async () => {
+  const fs = new MemoryFileSystem();
+  for (const [name, input] of Object.entries(row.files)) await fs.writeFile(`/${name}`, fixture(input));
+  const shell = makeShell(fs);
+  try {
+    assert.equal(shell.commands.has('grep'), false);
+    const result = await shell.exec(script(row.command, row.args), { stdin: fixture(row.stdin) });
+    const filesAfterHex: Record<string, string> = {};
+    for (const entry of await fs.readdir('/')) filesAfterHex[entry.name] = Buffer.from(await fs.readFile(`/${entry.name}`)).toString('hex');
+    const actual: Tuple = { id: row.id, status: result.exitCode, stdoutHex: Buffer.from(result.stdoutBytes).toString('hex'), stderrHex: Buffer.from(result.stderrBytes).toString('hex'), filesAfterHex };
+    candidateRows.push(actual);
+    details.tuple = actual;
+    const native = nativeGoldens.rows.find(golden => golden.id === row.id)!;
+    assert.deepEqual(filesAfterHex, native.filesAfterHex);
+    if (row.comparison === 'native-byte-exact') assert.deepEqual(actual, native);
+    else diagnosticProfile(row, result);
+    assert.equal(activeWorkers.size, 0, 'Workers must exit before exec returns');
+  } finally { await shell.dispose(); }
+}]]);
+
+suite('S01', [
+  ['standalone-without-grep-and-malicious-shadow', async () => {
+    for (const shadow of [false, true]) {
+      const fs = new MemoryFileSystem();
+      const shell = makeShell(fs);
+      let called = 0;
+      if (shadow) shell.register({ name: 'grep', execute: () => { called += 1; throw new Error('shadow invoked'); } });
+      try {
+        const extended = await shell.exec("egrep '^keep$'", { stdin: '$(touch sentinel)\nkeep\n' });
+        assert.deepEqual(shell.commands.list().map(command => command.name).sort(), shadow ? ['egrep', 'fgrep', 'grep'] : ['egrep', 'fgrep']);
+        const fixed = await shell.exec("fgrep '$(touch sentinel)'", { stdin: '$(touch sentinel)\nkeep\n' });
+        assert.equal(extended.stdout, 'keep\n'); assert.equal(extended.exitCode, 0);
+        assert.equal(fixed.stdout, '$(touch sentinel)\n'); assert.equal(fixed.exitCode, 0);
+        assert.equal(called, 0); assert.deepEqual(await fs.readdir('/'), []);
+      } finally { await shell.dispose(); }
+    }
+  }],
+  ['direct-invoke-bypass-and-frozen-argv', async () => {
+    for (const name of ['egrep', 'fgrep'] as const) {
+      let calls = 0;
+      const args = Object.freeze(['keep:']);
+      const direct = context(args, { invoke: async () => { calls += 1; throw new Error('invoke bypass failed'); } });
+      assert.equal((await selected(name).execute(direct.invocation)).exitCode, 0);
+      assert.equal(direct.stdout.bytes().toString(), 'keep:01\n');
+      assert.equal(calls, 0); assert.deepEqual(args, ['keep:']);
+      assert.equal(direct.invocation.command, 'caller-original-name');
+    }
+  }],
+  ['collision-preflight-and-explicit-replacement', async () => {
+    for (const collision of ['egrep', 'fgrep'] as const) {
+      const shell = new Shell({ fs: new MemoryFileSystem() });
+      const old = { name: collision, execute: () => ({ exitCode: 7 }) };
+      shell.register(old);
+      const previous = shell.commands.get(collision);
+      assert.throws(() => aliases.grepAliasCommands(options).setup(shell), /already registered/);
+      assert.deepEqual(shell.commands.list().map(command => command.name), [collision]);
+      assert.equal(shell.commands.get(collision), previous);
+      shell.register({ name: 'sentinel', execute: () => ({ exitCode: 9 }) });
+      const sentinel = shell.commands.get('sentinel');
+      shell.use(aliases.grepAliasCommands({ ...options, replace: true }));
+      assert.equal(shell.commands.get('sentinel'), sentinel);
+      assert.equal((await shell.exec("fgrep keep", { stdin: 'keep\n' })).exitCode, 0);
+      await shell.dispose();
+      const deferredShell = new Shell({ fs: new MemoryFileSystem() });
+      deferredShell.register(old); deferredShell.use(aliases.grepAliasCommands(options));
+      await assert.rejects(deferredShell.exec(''), /already registered/);
+      assert.deepEqual(deferredShell.commands.list().map(command => command.name), [collision]);
+      await deferredShell.dispose();
+    }
+  }]
+]);
+
+function reusable(width: 4 | 8): ByteSource {
+  return (async function* () {
+    const shared = Buffer.alloc(width);
+    const bytes = Buffer.from('keep:01\ndrop:xx\nkeep:02\n');
+    try { for (let offset = 0; offset < bytes.length; offset += width) { bytes.copy(shared, 0, offset, offset + width); yield shared; } }
+    finally { shared.fill(0x78); }
+  })();
+}
+class SourceFs extends MemoryFileSystem {
+  constructor(readonly replacement: (path: string, options?: ReadStreamOptions) => ByteSource) { super(); }
+  override readStream(path: string, readOptions?: ReadStreamOptions): ByteSource { return this.replacement(path, readOptions); }
+}
+suite('S02', (['egrep', 'fgrep'] as const).flatMap(name => ([4, 8] as const).flatMap(width => [
+  [`${name}-${width}-direct-owned-fragments`, async () => {
+    const direct = context([name === 'egrep' ? '^keep:' : 'keep:'], { stdin: reusable(width) });
+    assert.equal((await selected(name).execute(direct.invocation)).exitCode, 0);
+    assert.deepEqual(direct.stdout.bytes(), fixture('reuse-expected'));
+    assert.equal(direct.stderr.bytes().length, 0);
+  }] as [string, () => Promise<void>],
+  [`${name}-${width}-borrowed-shell-stdin`, async () => {
+    const shell = makeShell();
+    try { const result = await shell.exec(`${name} 'keep:'`, { stdin: reusable(width) }); assert.deepEqual(Buffer.from(result.stdoutBytes), fixture('reuse-expected')); assert.equal(result.exitCode, 0); }
+    finally { await shell.dispose(); }
+  }] as [string, () => Promise<void>],
+  [`${name}-${width}-owned-VFS-to-file`, async () => {
+    const fs = new SourceFs(path => path === '/input' ? reusable(width) : source(Buffer.from('')));
+    const shell = makeShell(fs);
+    try { const result = await shell.exec(`${name} 'keep:' input > selected`); assert.equal(result.exitCode, 0); assert.deepEqual(Buffer.from(await fs.readFile('/selected')), fixture('reuse-expected')); }
+    finally { await shell.dispose(); }
+  }] as [string, () => Promise<void>]
+])));
+
+suite('S03', [
+  ['cumulative-output-across-two-aliases', async () => {
+    const fs = new MemoryFileSystem(); await fs.writeFile('/input', Buffer.from('keep:01\n'.repeat(1024)));
+    const shell = makeShell(fs);
+    try {
+      await assert.rejects(shell.exec("egrep -m 512 'keep:' input; fgrep -m 512 'keep:' input", { limits: { maxOutputBytes: 6144 } }), error => error instanceof ShellLimitError && error.limit === 'maxOutputBytes');
+      assert.equal(activeWorkers.size, 0);
+    } finally { await shell.dispose(); }
+  }],
+  ['nested-output-and-command-budget', async () => {
+    const fs = new MemoryFileSystem(); await fs.writeFile('/input', Buffer.from('keep:01\n'.repeat(1024)));
+    const shell = makeShell(fs);
+    shell.register({ name: 'twice', execute: async command => { assert.ok(command.invoke); await command.invoke('egrep', ['-m', '512', 'keep:', 'input']); return command.invoke('fgrep', ['-m', '512', 'keep:', 'input']); } });
+    try {
+      await assert.rejects(shell.exec('twice', { limits: { maxOutputBytes: 6144 } }), error => error instanceof ShellLimitError && error.limit === 'maxOutputBytes');
+      await assert.rejects(shell.exec("egrep -m 1 keep input; fgrep -m 1 keep input", { limits: { maxCommands: 1 } }), error => error instanceof ShellLimitError && error.limit === 'maxCommands');
+    } finally { await shell.dispose(); }
+  }]
+]);
+
+suite('S04', [
+  ['shared-family-worker-queue-cancel-sibling', async () => {
+    const family = aliases.createGrepAliasCommands(options);
+    const first = makeShell(new MemoryFileSystem(), family); const second = makeShell(new MemoryFileSystem(), family);
+    const posted = deferred(); const held: (() => void)[] = [];
+    messageGate = send => { held.push(send); posted.resolve(); };
+    const firstRun = first.exec('egrep keep', { stdin: 'keep\n' });
+    const firstObserved = firstRun.then(result => ({ result }), error => ({ error }));
+    const controller = new AbortController(); const reason = { cancel: 'queued-only' };
+    try {
+      await posted.promise; assert.equal(activeWorkers.size, 1);
+      const queued = second.exec('fgrep keep', { stdin: 'keep\n', signal: controller.signal });
+      const queuedObserved = queued.then(result => ({ result }), error => ({ error }));
+      await tick();
+      const overflow = await second.exec('fgrep keep', { stdin: 'keep\n' });
+      details.overflow = overflow;
+      assert.equal(overflow.exitCode, 2); assert.match(overflow.stderr, /queued request|queue|limit/i); assert.equal(activeWorkers.size, 1);
+      controller.abort(reason);
+      const aborted = await queuedObserved; assert.ok('error' in aborted); assert.equal(aborted.error, reason);
+      assert.equal(activeWorkers.size, 1, 'Queued sibling cancellation must not kill first worker');
+      messageGate = undefined; for (const send of held.splice(0)) send();
+      const completed = await firstObserved; assert.ok('result' in completed); assert.equal(completed.result.stdout, 'keep\n');
+    } finally { messageGate = undefined; for (const send of held.splice(0)) send(); controller.abort(reason); await Promise.allSettled([firstObserved]); await first.dispose(); await second.dispose(); }
+  }],
+  ['queued-byte-limit-and-independent-factory-control', async () => {
+    const family = aliases.createGrepAliasCommands(options);
+    const shell = makeShell(new MemoryFileSystem(), family); const gate = deferred(); const held: (() => void)[] = [];
+    messageGate = send => { held.push(send); gate.resolve(); };
+    const running = shell.exec('egrep keep', { stdin: 'keep\n' }); const observed = running.then(result => ({ result }), error => ({ error }));
+    try {
+      await gate.promise;
+      const rejected = await shell.exec(script('fgrep', ['x'.repeat(8192)]), { stdin: 'x\n' });
+      details.byteOverflow = rejected; assert.equal(rejected.exitCode, 2); assert.match(rejected.stderr, /queued request|byte limit/i);
+      messageGate = undefined; for (const send of held.splice(0)) send();
+      assert.ok('result' in await observed);
+    } finally { messageGate = undefined; for (const send of held.splice(0)) send(); await observed; await shell.dispose(); }
+    const first = makeShell(new MemoryFileSystem(), [aliases.egrepCommand(options)]); const second = makeShell(new MemoryFileSystem(), [aliases.fgrepCommand(options)]);
+    const both = deferred(); const sends: (() => void)[] = []; messageGate = send => { sends.push(send); if (sends.length === 2) both.resolve(); };
+    const pending = [first.exec('egrep keep', { stdin: 'keep\n' }), second.exec('fgrep keep', { stdin: 'keep\n' })];
+    const pendingObserved = Promise.allSettled(pending);
+    try { await both.promise; assert.equal(activeWorkers.size, 2); messageGate = undefined; for (const send of sends.splice(0)) send(); assert.ok((await pendingObserved).every(result => result.status === 'fulfilled')); }
+    finally { messageGate = undefined; for (const send of sends.splice(0)) send(); await pendingObserved; await first.dispose(); await second.dispose(); }
+  }]
+]);
+
+suite('S05', [
+  ['pre-abort-no-acquisition-both-aliases', async () => {
+    for (const name of ['egrep', 'fgrep'] as const) {
+      const controller = new AbortController(); const reason = { code: 'ENOENT', marker: name }; controller.abort(reason);
+      let reads = 0; const input = { async *[Symbol.asyncIterator]() { reads += 1; yield Buffer.from('keep\n'); } };
+      const direct = context(['keep'], { signal: controller.signal, stdin: input }); const before = nextWorkerIdentity;
+      await assert.rejects(Promise.resolve().then(() => selected(name).execute(direct.invocation)), error => error === reason);
+      assert.equal(reads, 0); assert.equal(nextWorkerIdentity, before); assert.equal(direct.cleanups.length, 0);
+    }
+  }],
+  ['owned-file-signal-and-pending-abort', async () => {
+    const entered = deferred(); const pending = deferred<IteratorResult<Uint8Array>>(); let returns = 0; let suppliedSignal: AbortSignal | undefined;
+    const fs = new SourceFs((_path, readOptions) => { suppliedSignal = readOptions?.signal; return { [Symbol.asyncIterator]: () => ({ next: () => { entered.resolve(); return pending.promise; }, return: async () => { returns += 1; return { done: true, value: undefined }; } }) }; });
+    const shell = makeShell(fs); const controller = new AbortController(); const reason = { code: 'EACCES', marker: 'caller' };
+    const running = shell.exec('egrep keep owned', { signal: controller.signal }); const observed = running.then(result => ({ result }), error => ({ error }));
+    try { await entered.promise; assert.ok(suppliedSignal); controller.abort(reason); const finished = await observed; assert.ok('error' in finished); assert.equal(finished.error, reason); assert.equal(suppliedSignal.aborted, true); details.returns = returns; assert.equal(returns, 1); assert.equal(activeWorkers.size, 0); }
+    finally { pending.resolve({ done: true, value: undefined }); await observed; await shell.dispose(); }
+  }]
+]);
+
+suite('S06', [
+  ['cleanup-registration-before-acquisition-and-overlap', async () => {
+    for (const name of ['egrep', 'fgrep'] as const) {
+      const events: string[] = []; const hooks: InvocationCleanup[] = [];
+      const direct = context(['keep'], { stdin: { async *[Symbol.asyncIterator]() { events.push('input'); yield Buffer.from('keep\n'); } }, registerCleanup: cleanup => { events.push('register'); assert.equal(activeWorkers.size, 0); hooks.push(cleanup); } });
+      assert.equal((await selected(name).execute(direct.invocation)).exitCode, 0);
+      assert.equal(events[0], 'register'); assert.equal(hooks.length, 1);
+      const first = hooks[0]!(); const second = hooks[0]!(); assert.equal(first, second); await Promise.all([first, second]);
+      assert.equal(activeWorkers.size, 0);
+    }
+  }],
+  ['registration-throw-and-synchronous-close-block-admission', async () => {
+    for (const name of ['egrep', 'fgrep'] as const) {
+      const before = nextWorkerIdentity; const reason = new Error('registration sentinel');
+      const direct = context(['keep'], { registerCleanup: () => { throw reason; } });
+      await assert.rejects(Promise.resolve().then(() => selected(name).execute(direct.invocation)), error => error === reason);
+      assert.equal(nextWorkerIdentity, before);
+      const closed = context(['keep'], { registerCleanup: cleanup => { void cleanup(); } });
+      await assert.rejects(Promise.resolve().then(() => selected(name).execute(closed.invocation)), /closed/);
+      assert.equal(nextWorkerIdentity, before);
+      const without = context(['keep']); const { registerCleanup: _unused, ...withoutHook } = without.invocation;
+      assert.equal((await selected(name).execute(withoutHook)).exitCode, 0); assert.equal(activeWorkers.size, 0);
+    }
+  }]
+]);
+
+function earlySource(failure?: Error, asynchronous = false) {
+  let returns = 0;
+  let nextCalls = 0;
+  const input: ByteSource = { [Symbol.asyncIterator]: () => ({
+    next: async () => { nextCalls += 1; return { done: false, value: Buffer.from('keep:01\n') }; },
+    return: () => {
+      returns += 1;
+      if (failure) { if (asynchronous) return Promise.reject(failure); throw failure; }
+      return Promise.resolve({ done: true as const, value: undefined });
+    }
+  }) };
+  return { input, returns: () => returns, nextCalls: () => nextCalls };
+}
+suite('S07', [
+  ...(['egrep', 'fgrep'] as const).flatMap(name => [false, true].map(asynchronous => [`${name}-direct-return-${asynchronous ? 'reject' : 'throw'}`, async () => {
+    const failure = new Error(`return-sentinel-${name}-${asynchronous}`); const input = earlySource(failure, asynchronous);
+    const direct = context(['-q', 'keep'], { stdin: input.input });
+    const outcome = await Promise.resolve(selected(name).execute(direct.invocation)).then(result => ({ result }), error => ({ error }));
+    details.outcome = outcome; details.stderr = direct.stderr.bytes().toString(); details.returns = input.returns();
+    assert.equal(input.returns(), 1);
+    if ('result' in outcome) { assert.equal(outcome.result.exitCode, 2); assert.ok(direct.stderr.bytes().toString().includes(failure.message)); }
+    else assert.equal(outcome.error, failure);
+  }] as [string, () => Promise<void>])),
+  ['owned-VFS-return-rejection-not-hidden', async () => {
+    const failure = new Error('owned-file-return-sentinel'); const input = earlySource(failure, true);
+    const fs = new SourceFs(() => input.input); const shell = makeShell(fs);
+    try { const result = await shell.exec('fgrep -q keep input'); details.result = result; details.returns = input.returns(); assert.equal(input.returns(), 1); assert.equal(result.exitCode, 2); assert.ok(result.stderr.includes(failure.message)); }
+    finally { await shell.dispose(); }
+  }],
+  ['borrowed-external-Shell-stdin-return-rejection-not-waived', async () => {
+    const failure = new Error('external-return-sentinel'); const input = earlySource(failure, true); const shell = makeShell();
+    try { const result = await shell.exec('egrep -q keep', { stdin: input.input }); details.result = result; details.returns = input.returns(); details.nextCalls = input.nextCalls(); assert.equal(input.returns(), 1); assert.equal(result.exitCode, 2); assert.ok(result.stderr.includes(failure.message)); }
+    finally { await shell.dispose(); }
+  }],
+  ['actual-registered-cleanup-failure-and-abort-precedence', async () => {
+    for (const abort of [false, true]) {
+      const shell = makeShell(); const cleanupFailure = new Error('registered-cleanup-failure'); const reason = { caller: 'wins' }; const controller = new AbortController();
+      shell.use(async (invocation, next) => { assert.ok(invocation.registerCleanup); invocation.registerCleanup(() => { if (abort) controller.abort(reason); throw cleanupFailure; }); return next(); });
+      try { await assert.rejects(shell.exec('fgrep absent', { stdin: 'keep\n', signal: controller.signal }), error => error === (abort ? reason : cleanupFailure)); assert.equal(activeWorkers.size, 0); }
+      finally { await shell.dispose(); }
+    }
+  }]
+]);
+
+suite('S08', (['egrep', 'fgrep'] as const).map(name => [`${name}-awaited-backpressure-and-sink-errors`, async () => {
+  const entered = deferred(); const release = deferred(); let writes = 0; let inflight = 0; let peak = 0; const outputChunks: Buffer[] = [];
+  const stdout: ByteSink = { write: async bytes => { writes += 1; inflight += 1; peak = Math.max(peak, inflight); outputChunks.push(Buffer.from(bytes)); if (writes === 1) { entered.resolve(); await release.promise; } inflight -= 1; } };
+  const direct = context(['keep'], { stdin: source(Buffer.from('keep:01\nkeep:02\n')), stdout });
+  let settled = false; const pending = Promise.resolve(selected(name).execute(direct.invocation)).finally(() => { settled = true; });
+  try { await entered.promise; await tick(); assert.equal(settled, false); assert.equal(writes, 1); assert.equal(peak, 1); release.resolve(); assert.equal((await pending).exitCode, 0); assert.equal(peak, 1); assert.equal(Buffer.concat(outputChunks).toString(), 'keep:01\nkeep:02\n'); }
+  finally { release.resolve(); await Promise.allSettled([pending]); }
+  const failure = new Error('stdout-write-failure'); const rejecting = context(['keep'], { stdout: { write: async () => { throw failure; } } });
+  const result = await selected(name).execute(rejecting.invocation); assert.equal(result.exitCode, 2); assert.ok(rejecting.stderr.bytes().toString().includes(failure.message));
+  const stderrFailure = new Error('stderr-write-failure'); const diagnostic = context(['--invalid-holdout-option'], { stderr: { write: async () => { throw stderrFailure; } } });
+  await assert.rejects(Promise.resolve().then(() => selected(name).execute(diagnostic.invocation)), error => error === stderrFailure);
+}] as [string, () => Promise<void>]));
+
+suite('S09', (['stdin', 'owned-VFS', 'sink'] as const).map(boundary => [`late-${boundary}-error-after-caller-abort`, async () => {
+  const entered = deferred(); const pending = deferred<IteratorResult<Uint8Array>>(); const writePending = deferred();
+  const controller = new AbortController(); const reason = { code: 'ENOENT', phase: boundary }; const late = new Error(`late-${boundary}`);
+  let returns = 0;
+  const input: ByteSource = { [Symbol.asyncIterator]: () => ({ next: () => { entered.resolve(); return pending.promise; }, return: async () => { returns += 1; return { done: true, value: undefined }; } }) };
+  const fs = boundary === 'owned-VFS' ? new SourceFs(() => input) : new MemoryFileSystem(); const shell = makeShell(fs);
+  const stdout: ByteSink = { write: async () => { entered.resolve(); await writePending.promise; } };
+  const running = boundary === 'sink' ? shell.exec('fgrep keep', { stdin: 'keep\n', stdout, signal: controller.signal }) : boundary === 'stdin' ? shell.exec('egrep keep', { stdin: input, signal: controller.signal }) : shell.exec('fgrep keep owned', { signal: controller.signal });
+  const observed = running.then(result => ({ result }), error => ({ error }));
+  try {
+    await entered.promise; controller.abort(reason);
+    const outcome = await observed; assert.ok('error' in outcome); assert.equal(outcome.error, reason); assert.equal(activeWorkers.size, 0);
+    details.boundary = boundary; details.returnsAtPublicAbortSettlement = returns;
+    if (boundary === 'sink') writePending.reject(late); else pending.reject(late);
+    await tick(); await tick(); assert.deepEqual(lateErrors, []);
+  } finally { pending.resolve({ done: true, value: undefined }); writePending.resolve(); await observed; await shell.dispose(); }
+}] as [string, () => Promise<void>]));
+
+suite('S10', [
+  ['complex-pipeline-redirection-byte-readback', async () => {
+    const fs = new MemoryFileSystem(); const shell = makeShell(fs); helpers(shell); let shadowCalls = 0;
+    shell.register({ name: 'grep', execute: () => { shadowCalls += 1; throw new Error('shadow grep invoked'); } });
+    try {
+      const result = await shell.exec("printf 'aa:1\\nbb:2\\naa:3\\n' | egrep '^aa:' | fgrep -v ':9' > selected.txt; fgrep 'aa:' selected.txt");
+      details.result = result; assert.equal(result.exitCode, 0); assert.equal(result.stderr, ''); assert.deepEqual(Buffer.from(result.stdoutBytes), fixture('pipeline-expected')); assert.deepEqual(Buffer.from(await fs.readFile('/selected.txt')), fixture('pipeline-expected')); assert.equal(shadowCalls, 0); assert.equal(activeWorkers.size, 0);
+    } finally { await shell.dispose(); }
+  }],
+  ['pipefail-status-one-not-error', async () => {
+    const shell = makeShell(); helpers(shell);
+    try { const result = await shell.exec("set -o pipefail; printf 'aa:1\\nbb:2\\naa:3\\n' | egrep '^aa:' | fgrep absent"); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, ''); }
+    finally { await shell.dispose(); }
+  }]
+]);
+
+suite('S11', [
+  ['early-head-close-and-independent-sibling-lease', async () => {
+    let returned = 0; const fs = new SourceFs(() => (async function* () { try { for (let index = 0; index < 1024; index += 1) yield Buffer.from('keep:01\n'); } finally { returned += 1; } })());
+    const family = aliases.createGrepAliasCommands(options); const shell = makeShell(fs, family); helpers(shell); const sibling = makeShell(new MemoryFileSystem(), family);
+    const siblingEntered = deferred(); const siblingRelease = deferred(); const siblingRun = sibling.exec('fgrep keep', { stdin: 'keep:sibling\n', stdout: { write: async () => { siblingEntered.resolve(); await siblingRelease.promise; } } });
+    const siblingObserved = siblingRun.then(result => ({ result }), error => ({ error }));
+    try {
+      await siblingEntered.promise;
+      const result = await shell.exec("egrep '^keep:' stream.txt | fgrep 'keep:' | head -n 1");
+      details.result = result; details.ownedSourceReturns = returned; details.activeBeforeSiblingRelease = activeWorkers.size;
+      assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'keep:01\n'); assert.equal(result.stderr, ''); assert.equal(returned, 1);
+      await Promise.all([shell.dispose(), shell.dispose()]); siblingRelease.resolve(); const siblingResult = await siblingObserved; assert.ok('result' in siblingResult); assert.equal(siblingResult.result.exitCode, 0);
+    } finally { siblingRelease.resolve(); await siblingObserved; await shell.dispose(); await sibling.dispose(); }
+  }],
+  ['registered-cleanup-bars-exec-and-overlapping-dispose', async () => {
+    const shell = makeShell(); const entered = deferred(); const release = deferred(); let calls = 0;
+    shell.use(async (invocation, next) => { assert.ok(invocation.registerCleanup); invocation.registerCleanup(async () => { calls += 1; entered.resolve(); await release.promise; }); return next(); });
+    let execSettled = false; const execution = shell.exec('egrep keep', { stdin: 'keep\n' }).then(result => ({ result }), error => ({ error })).finally(() => { execSettled = true; });
+    await entered.promise; let firstSettled = false; let secondSettled = false;
+    const first = shell.dispose().finally(() => { firstSettled = true; }); const second = shell.dispose().finally(() => { secondSettled = true; });
+    try { await tick(); assert.equal(execSettled, false); assert.equal(firstSettled, false); assert.equal(secondSettled, false); assert.equal(calls, 1); }
+    finally { release.resolve(); await Promise.allSettled([execution, first, second]); }
+    assert.equal(calls, 1); assert.equal(activeWorkers.size, 0);
+  }]
+]);
+
+suite('S12', [
+  ['substitution-and-grouped-pipelines', async () => {
+    const shell = makeShell(); helpers(shell);
+    try {
+      const substitution = await shell.exec("count=$(printf 'aa:1\\nbb:2\\naa:3\\n' | egrep '^aa:' | fgrep -c 'aa:'); printf '%s\\n' \"$count\"");
+      assert.equal(substitution.exitCode, 0); assert.deepEqual(Buffer.from(substitution.stdoutBytes), fixture('count-expected')); assert.equal(substitution.stderr, '');
+      const group = await shell.exec("{ printf 'aa:1\\n'; printf 'bb:2\\n'; printf 'aa:3\\n'; } | egrep '^aa:' | fgrep ':3'");
+      assert.equal(group.exitCode, 0); assert.equal(group.stdout, 'aa:3\n'); assert.equal(group.stderr, '');
+      const missing = await shell.exec('fgrep keep missing'); assert.equal(missing.exitCode, 2); assert.match(missing.stderr, /^fgrep: .*missing/); assert.match(missing.stderr, /no such file/i);
+    } finally { await shell.dispose(); }
+  }]
+]);
+
+suite('A01', (['egrep', 'fgrep'] as const).map(name => [`${name}-inherited-structural-CommandContext-fields`, async () => {
+  const direct = context(['keep']); const inherited = Object.create(direct.invocation) as CommandContext;
+  assert.equal((await selected(name).execute(inherited)).exitCode, 0);
+  assert.equal(direct.stdout.bytes().toString(), 'keep:01\n'); assert.equal(direct.cleanups.length, 1);
+}] as [string, () => Promise<void>]));
+suite('A02', (['egrep', 'fgrep'] as const).map(name => [`${name}-nonenumerable-cleanup-hook`, async () => {
+  const direct = context(['keep']); let registered = 0;
+  Object.defineProperty(direct.invocation, 'registerCleanup', { enumerable: false, value: (cleanup: InvocationCleanup) => { registered += 1; direct.cleanups.push(cleanup); } });
+  assert.equal((await selected(name).execute(direct.invocation)).exitCode, 0);
+  assert.equal(registered, 1); assert.equal(direct.cleanups.length, 1);
+}] as [string, () => Promise<void>]));
+suite('A03', [
+  ['definition-registry-replace-and-factory-option-validation', async () => {
+    const registry = new CommandRegistry(); const original = aliases.createGrepAliasCommands(options);
+    for (const definition of original) registry.register(definition);
+    assert.throws(() => registry.register(aliases.egrepCommand(options)), /already registered/);
+    registry.register(aliases.egrepCommand(options), { replace: true });
+    assert.deepEqual(registry.list().map(command => command.name).sort(), ['egrep', 'fgrep']); assert.equal(registry.has('grep'), false);
+    for (const factory of [aliases.createGrepAliasCommands, aliases.egrepCommand, aliases.fgrepCommand]) assert.throws(() => factory({ regex: { maxWorkers: 0 } }), /maxWorkers|positive|worker/i);
+  }]
+]);
+
+suite('A04', (['egrep', 'fgrep'] as const).map(name => [`${name}-class-getters-and-cleanup-receiver`, async () => {
+  const direct = context(['keep']);
+  class HostContext implements CommandContext {
+    readonly #context = direct.invocation;
+    readonly #hooks: InvocationCleanup[] = [];
+    get command() { return this.#context.command; }
+    get args() { return this.#context.args; }
+    get stdin() { return this.#context.stdin; }
+    get stdout() { return this.#context.stdout; }
+    get stderr() { return this.#context.stderr; }
+    get cwd() { return this.#context.cwd; }
+    set cwd(value: string) { this.#context.cwd = value; }
+    get env() { return this.#context.env; }
+    set env(value: Record<string, string>) { this.#context.env = value; }
+    get fs() { return this.#context.fs; }
+    get signal() { return this.#context.signal; }
+    registerCleanup(cleanup: InvocationCleanup) { this.#hooks.push(cleanup); }
+    get hooks() { return this.#hooks; }
+  }
+  const host = new HostContext(); assert.equal((await selected(name).execute(host)).exitCode, 0);
+  assert.equal(host.hooks.length, 1); assert.equal(direct.stdout.bytes().toString(), 'keep:01\n');
+  await host.hooks[0]!();
+}] as [string, () => Promise<void>]));
+
+suite('A05', [
+  ['real-catastrophic-ERE-request-timeout-and-fixed-control', async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    shell.use(aliases.grepAliasCommands({ regex: { ...regex, requestTimeoutMs: 75 } }));
+    let dataRequests = 0;
+    messageObserver = message => { if (message && typeof message === 'object' && 'rows' in message && Array.isArray(message.rows) && message.rows.length > 0) dataRequests += 1; };
+    try {
+      const result = await shell.exec("egrep '^(a+)+$'", { stdin: `${'a'.repeat(64)}!\n` });
+      details.result = result; details.dataRequests = dataRequests;
+      assert.ok(dataRequests > 0, 'Actual data request must have reached the real worker');
+      assert.equal(result.exitCode, 2); assert.equal(result.stdout, ''); assert.match(result.stderr, /^egrep: regex REQUEST_TIMEOUT:/); assert.equal(activeWorkers.size, 0);
+      const control = await shell.exec("fgrep '^(a+)+$'", { stdin: `${'a'.repeat(64)}!\n` });
+      assert.equal(control.exitCode, 1); assert.equal(control.stderr, ''); assert.equal(activeWorkers.size, 0);
+    } finally { messageObserver = undefined; await shell.dispose(); }
+  }],
+  ['caller-abort-in-flight-real-worker-request', async () => {
+    const shell = makeShell(); const posted = deferred(); const controller = new AbortController(); const reason = { activeRequest: 'caller-abort' };
+    messageObserver = message => { if (message && typeof message === 'object' && 'rows' in message && Array.isArray(message.rows) && message.rows.length > 0) posted.resolve(); };
+    const running = shell.exec("egrep '^(a+)+$'", { stdin: `${'a'.repeat(64)}!\n`, signal: controller.signal });
+    const observed = running.then(result => ({ result }), error => ({ error }));
+    try { await posted.promise; assert.equal(activeWorkers.size, 1); controller.abort(reason); const outcome = await observed; assert.ok('error' in outcome); assert.equal(outcome.error, reason); assert.equal(activeWorkers.size, 0); }
+    finally { controller.abort(reason); messageObserver = undefined; await observed; await shell.dispose(); }
+  }]
+]);
+
+after(async () => {
+  await tick();
+  record();
+  const exact = (left: Tuple, right: Tuple) => left.status === right.status && left.stdoutHex === right.stdoutHex && left.stderrHex === right.stderrHex && JSON.stringify(left.filesAfterHex) === JSON.stringify(right.filesAfterHex);
+  const comparison = candidateRows.map(actual => {
+    const bsd = nativeGoldens.rows.find(row => row.id === actual.id)!;
+    const native = gnu.records.find(row => row.id === actual.id)!.runs[0]!;
+    return { id: actual.id, bsdExact: exact(actual, bsd), gnuExact: exact(actual, { id: actual.id, ...native }), gnuPayloadProjectionOnly: actual.status === native.status && actual.stdoutHex === native.stdoutHex && JSON.stringify(actual.filesAfterHex) === JSON.stringify(native.filesAfterHex) };
+  });
+  writeFileSync(join(output!, 'comparison.json'), `${JSON.stringify({ denominator: 26, executed: candidateRows.length, bsdExact: comparison.filter(row => row.bsdExact).length, gnuExact: comparison.filter(row => row.gnuExact).length, gnuPayloadProjectionOnly: comparison.filter(row => row.gnuPayloadProjectionOnly).length, stderrStripped: false, rows: comparison }, null, 2)}\n`);
+  process.removeListener('unhandledRejection', onUnhandled);
+  assert.equal(activeWorkers.size, 0, 'Actual workers leaked; no verifier termination allowed');
+  assert.deepEqual(lateErrors, [], 'Late errors were not observed by product');
+  workerModule.Worker = OriginalWorker;
+  syncBuiltinESMExports();
+});

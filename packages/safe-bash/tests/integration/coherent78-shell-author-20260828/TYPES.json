@@ -1,0 +1,15 @@
+{
+  "version":1,
+  "role":"strict NodeNext exactOptionalPropertyTypes consumer data, not tracked TypeScript sources",
+  "prefix":"import { Shell, MemoryFileSystem, agentCommands, createTimeoutCommand, timeoutCommands, networkCommands, WebDavFileSystem } from 'virtual-bash';\nimport type { AgentCommandsOptions, TimeoutScheduler, CommandInvokeOptions, ShellInvokeOptions } from 'virtual-bash';\nimport { createTimeoutCommands } from 'virtual-bash/commands/timeout';\nconst fs = new MemoryFileSystem();\n",
+  "positive":[
+    {"id":"T01","body":"const scheduler: TimeoutScheduler = { now(){return 0}, setTimeout(callback,milliseconds){return {callback,milliseconds}}, clearTimeout(handle){void handle} }; const options: AgentCommandsOptions = {replace:true,timeout:{scheduler,maxTimerMilliseconds:10}}; const shell = new Shell({fs}).use(agentCommands(options)); createTimeoutCommand({scheduler}); createTimeoutCommands({scheduler}); timeoutCommands({scheduler,replace:true}); void shell;"},
+    {"id":"T02","body":"const invoke: CommandInvokeOptions = { signal:undefined, replaceEnv:true, env:{} }; const local: ShellInvokeOptions = invoke; networkCommands({authorize:()=>true,transport:async request=>({status:200,statusText:'OK',headers:[],body:{async *[Symbol.asyncIterator](){request.signal.throwIfAborted();yield new Uint8Array()}},async dispose(){}})}); new WebDavFileSystem({baseUrl:'https://dav.invalid/dav/',fetch:async()=>new Response(null,{status:404})}); void local;"}
+  ],
+  "negative":[
+    {"id":"N01","body":"new Shell({fs,dotglob:true});","diagnostic":"TS2353","term":"dotglob","inversion":"new Shell({fs});"},
+    {"id":"N02","body":"const options: AgentCommandsOptions = { timeout: { replace:true } }; void options;","diagnostic":"TS2353","term":"replace","inversion":"const options: AgentCommandsOptions = { replace:true, timeout:{} }; void options;"},
+    {"id":"N03","body":"new Shell({fs,limits:{maxDirectoryStackEntries:4096}});","diagnostic":"TS2353","term":"maxDirectoryStackEntries","inversion":"new Shell({fs,limits:{maxCommands:4096}});"},
+    {"id":"N04","body":"const options: CommandInvokeOptions = {signal:42}; void options;","diagnostic":"TS2322","term":"AbortSignal","inversion":"const options: CommandInvokeOptions = {signal:new AbortController().signal}; void options;"}
+  ]
+}

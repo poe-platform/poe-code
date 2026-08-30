@@ -1,0 +1,182 @@
+
+PUBLIC AUTHOR TOP METADATA
+tests/integration/node-public-author-20260829/ACTUAL-START.json
+tests/integration/node-public-author-20260829/ADMIN.jsonl
+tests/integration/node-public-author-20260829/CENSUS.json
+tests/integration/node-public-author-20260829/CONTINUATION-v4.json
+tests/integration/node-public-author-20260829/CORRECTION-v2.json
+tests/integration/node-public-author-20260829/CORRECTION-v3.json
+tests/integration/node-public-author-20260829/EVIDENCE-MANIFEST.json
+tests/integration/node-public-author-20260829/EXECUTION-SEAL-v4.json
+tests/integration/node-public-author-20260829/EXECUTION-SEAL.json
+tests/integration/node-public-author-20260829/EXECUTOR-v2.json
+tests/integration/node-public-author-20260829/EXECUTOR-v3.json
+tests/integration/node-public-author-20260829/EXECUTOR-v4.json
+tests/integration/node-public-author-20260829/EXECUTOR.json
+tests/integration/node-public-author-20260829/FINAL-DATA-RECEIPT.json
+tests/integration/node-public-author-20260829/FIXTURE-V2.json
+tests/integration/node-public-author-20260829/HANDOFF.md
+tests/integration/node-public-author-20260829/MODULE-PRESERVATION.data.json
+tests/integration/node-public-author-20260829/PACKAGE.tgz.base64
+tests/integration/node-public-author-20260829/PRESEAL.json
+tests/integration/node-public-author-20260829/RAW-CAPTURES-v1.json.gz.base64
+tests/integration/node-public-author-20260829/README.md
+tests/integration/node-public-author-20260829/RUNNER-RECIPE.json
+tests/integration/node-public-author-20260829/SOURCE.json
+tests/integration/node-public-author-20260829/TOOLS.json
+tests/integration/node-public-author-20260829/TYPE-EXPECTATIONS.json
+tests/integration/node-public-author-20260829/dispatch-v2.stderr.raw
+tests/integration/node-public-author-20260829/dispatch-v2.stdout.raw
+tests/integration/node-public-author-20260829/dispatch-v3.stderr.raw
+tests/integration/node-public-author-20260829/dispatch-v3.stdout.raw
+tests/integration/node-public-author-20260829/dispatch-v4.stderr.raw
+tests/integration/node-public-author-20260829/dispatch-v4.stdout.raw
+tests/integration/node-public-author-20260829/dispatch.stderr.raw
+tests/integration/node-public-author-20260829/dispatch.stdout.raw
+tests/integration/node-public-author-20260829/internal-loader-arguments.mjs
+tests/integration/node-public-author-20260829/launch-v2.py
+tests/integration/node-public-author-20260829/launch-v3.py
+tests/integration/node-public-author-20260829/launch-v4.py
+tests/integration/node-public-author-20260829/launch.py
+tests/integration/node-public-author-20260829/node-batch.mjs
+tests/integration/node-public-author-20260829/node-load-guard.mjs
+tests/integration/node-public-author-20260829/node-policy.mjs
+tests/integration/node-public-author-20260829/prepare.mjs
+tests/integration/node-public-author-20260829/public-node-v2.mjs
+tests/integration/node-public-author-20260829/public-node.mjs
+tests/integration/node-public-author-20260829/run-v2.mjs
+tests/integration/node-public-author-20260829/run-v3.mjs
+tests/integration/node-public-author-20260829/run-v4.mjs
+tests/integration/node-public-author-20260829/run.mjs
+tests/integration/node-public-author-20260829/runner-node.mjs.data
+tests/integration/node-public-author-20260829/types-negative.mts.fixture
+tests/integration/node-public-author-20260829/types-positive.mts.fixture
+tests/integration/node-public-author-20260829/actual-v1/TERMINAL.json
+tests/integration/node-public-author-20260829/actual-v2/TERMINAL.json
+tests/integration/node-public-author-20260829/actual-v3/TERMINAL.json
+tests/integration/node-public-author-20260829/actual-v4/TERMINAL.json
+tests/integration/node-public-independent-20260829/ACTUAL-PRESEAL.json
+tests/integration/node-public-independent-20260829/AUTHOR-CORRECTIONS.json
+tests/integration/node-public-independent-20260829/BINDINGS-v2.json
+tests/integration/node-public-independent-20260829/BINDINGS.json
+tests/integration/node-public-independent-20260829/HANDOFF.md
+tests/integration/node-public-independent-20260829/NATIVE-PRESEAL.json
+tests/integration/node-public-independent-20260829/NOVEL-PRESEAL.json
+tests/integration/node-public-independent-20260829/PREP-RESULTS.json
+tests/integration/node-public-independent-20260829/PREP.md
+tests/integration/node-public-independent-20260829/RECIPE-v2.json.gz.base64
+tests/integration/node-public-independent-20260829/RECIPE.json.gz.base64
+tests/integration/node-public-independent-20260829/REPORT.md
+tests/integration/node-public-independent-20260829/ROOT-ACCEPTANCE.md
+tests/integration/node-public-independent-20260829/assemble.mjs
+tests/integration/node-public-independent-20260829/launch.mjs
+tests/integration/node-public-independent-20260829/m01-RAW.json.gz.base64
+tests/integration/node-public-independent-20260829/m02-INVENTORY.json
+tests/integration/node-public-independent-20260829/m02-RAW.json.gz.base64
+tests/integration/node-public-independent-20260829/m03-INPUTS.json.gz.base64
+tests/integration/node-public-independent-20260829/m03-RAW.json.gz.base64
+tests/integration/node-public-independent-20260829/m04-INPUTS.json.gz.base64
+tests/integration/node-public-independent-20260829/m04-RAW.json.gz.base64
+tests/integration/node-public-independent-20260829/m04-SPECS.json
+tests/integration/node-public-independent-20260829/m05-INPUTS.json.gz.base64
+tests/integration/node-public-independent-20260829/m05-RAW.json.gz.base64
+tests/integration/node-public-independent-20260829/m06-INPUTS.json.gz.base64
+tests/integration/node-public-independent-20260829/m06-RAW.json.gz.base64
+tests/integration/node-public-independent-20260829/m06-SPECS.json
+tests/integration/node-public-independent-20260829/metadata.mjs
+tests/integration/node-public-independent-20260829/native-consumer.mjs
+tests/integration/node-public-independent-20260829/native-guard.mjs
+tests/integration/node-public-independent-20260829/native-run.mjs
+tests/integration/node-public-independent-20260829/novel.mjs
+tests/integration/node-public-independent-20260829/seal.mjs
+tests/integration/node-public-author-20260829/CONTINUATION-v4.json:9:  "integrationCommit": "THIS_SOURCE_PRESEAL_COMMIT",
+tests/integration/node-public-author-20260829/CONTINUATION-v4.json:10:  "fixtureCommit": "THIS_SOURCE_PRESEAL_COMMIT",
+tests/integration/node-public-author-20260829/CONTINUATION-v4.json:81:  "sourceCommit": "PENDING_THIS_ATOMIC_SOURCE_PRESEAL_COMMIT",
+tests/integration/node-public-author-20260829/EXECUTOR-v3.json:182:      "path": "tests/compatibility/bash-strict-mode-independent-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EXECUTOR-v3.json:254:      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+tests/integration/node-public-author-20260829/EXECUTOR-v3.json:277:      "path": "tests/integration/git-public-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EXECUTOR-v3.json:372:      "path": "tests/integration/node-public-author-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EVIDENCE-MANIFEST.json:1595:        "sha256": "309890648b3b664acb8f00e1e70767c8540bfaed404ab5a09837cf91aff03bbd"
+tests/integration/node-public-author-20260829/EXECUTOR-v2.json:182:      "path": "tests/compatibility/bash-strict-mode-independent-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EXECUTOR-v2.json:254:      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+tests/integration/node-public-author-20260829/EXECUTOR-v2.json:277:      "path": "tests/integration/git-public-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EXECUTOR-v2.json:372:      "path": "tests/integration/node-public-author-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/HANDOFF.md:9:- SOURCE.json SHA256 **8371452bb024f99763c9240b42cb891cabe1311afafb32766e0ea24da09c6949**;308 build inputs.
+tests/integration/node-public-author-20260829/HANDOFF.md:58:Initial preseal627bfa0b9c2a40cbe72544e6f8d8b6f4e7c8eba04f3d589d3ddde67881400bae at bb4dd057; authenticated tool-map correction7177c5f7, support locator1197789e, versioned fixture/continuation0046082b. EXECUTOR-v3/v4 and their complete source/fixture/tool records, EVIDENCE-MANIFEST.json, raw archives, and PACKAGE.tgz.base64 are the reviewer inputs. Reconstruct SOURCE blobs, never substitute live HEAD or require derived tree storage. New independent execution needs ROOT authorization, not this author script's mere presence.
+tests/integration/node-public-author-20260829/README.md:7:SOURCE.json binds308 build inputs and derived-tree metadata; no live HEAD/Unit3 overlay.
+tests/integration/node-public-author-20260829/FIXTURE-V2.json:2:  "role": "AUTHOR_FIXTURE_V2_SOURCE_CORRECTIONS_NOT_OLD_RESCORE",
+tests/integration/node-public-author-20260829/CORRECTION-v2.json:10:  "correction": "Read exact immutable inherited toolBindings values from authenticated strict SOURCE authority; no product/source/permissions change.",
+tests/integration/node-public-author-20260829/PRESEAL.json:9:  "integrationCommit": "THIS_SOURCE_PRESEAL_COMMIT",
+tests/integration/node-public-author-20260829/PRESEAL.json:10:  "fixtureCommit": "THIS_SOURCE_PRESEAL_COMMIT",
+tests/integration/node-public-author-20260829/PRESEAL.json:81:  "sourceCommit": "PENDING_THIS_ATOMIC_SOURCE_PRESEAL_COMMIT",
+tests/integration/node-public-author-20260829/EXECUTOR.json:182:      "path": "tests/compatibility/bash-strict-mode-independent-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EXECUTOR.json:254:      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+tests/integration/node-public-author-20260829/EXECUTOR.json:277:      "path": "tests/integration/git-public-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EXECUTOR.json:372:      "path": "tests/integration/node-public-author-20260829/SOURCE.json",
+tests/integration/node-public-independent-20260829/REPORT.md:39:`SOURCE.json` SHA256 is
+tests/integration/node-public-author-20260829/SOURCE.json:242:      "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+tests/integration/node-public-author-20260829/SOURCE.json:260:      "sha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+tests/integration/node-public-author-20260829/SOURCE.json:464:      "blob": "309f40b1c1b2888d63e67d7009bda5235c1d7b47",
+tests/integration/node-public-author-20260829/SOURCE.json:2710:      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+tests/integration/node-public-author-20260829/SOURCE.json:2919:      "oid": "a8d5f65530994cd24ba03cb4339fa3fb417c8062",
+tests/integration/node-public-author-20260829/SOURCE.json:3187:  "ancestorAuthority": "tests/compatibility/bash-strict-mode-independent-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/TOOLS.json:45:          6213092,
+tests/integration/node-public-author-20260829/TOOLS.json:286:          "0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376"
+tests/integration/node-public-author-20260829/TOOLS.json:298:          "95f1023b824c2c511c48f1201e2d1188bcb0ca1138a309a870b956d2e92e44ab"
+tests/integration/node-public-author-20260829/TOOLS.json:562:          "2fef54945a13095fdb9b84f705f2b5994597640c46afeb2ce78352fab4cb3279"
+tests/integration/node-public-author-20260829/TOOLS.json:1199:          "1db0b7dca579049ca4193d034d835f6bfe73096c73663e5ef9a0b5779939f3d0"
+tests/integration/node-public-author-20260829/TOOLS.json:1788:          3093,
+tests/integration/node-public-author-20260829/TOOLS.json:2815:          "a8fac192d66e09fdf017ff9d48cd486948785309622c895a0c790c8cf691f829"
+tests/integration/node-public-author-20260829/TOOLS.json:2953:          "15e5f454024daddeabb158802aa4609e83238f132797968c309f433b286b4b6f"
+tests/integration/node-public-author-20260829/TOOLS.json:3283:          "b4a4c30964bccadd43b9e5cd01f8dc5e5966e50c867bc40042da1810aef97af0"
+tests/integration/node-public-author-20260829/TOOLS.json:3445:          "1c8d41d309f4375ab5149e75eb7d5d52bc905886a7d1adeba223c6b454c0bdfd"
+tests/integration/node-public-author-20260829/TOOLS.json:3463:          "0a38d20c21c1d9309af318120240829ae3ba7a9775bf857382cf7d2d8ffde706"
+tests/integration/node-public-author-20260829/TOOLS.json:3631:          "f2edd752bf3dbc3851231fe50017e2172ccf7f28eb58b43096a3c206aee4003e"
+tests/integration/node-public-author-20260829/TOOLS.json:4173:          "496a1cff821848cc5d01341a70d916b01d017a380a12553e30906a468f27a47f"
+tests/integration/node-public-author-20260829/TOOLS.json:4557:          "1e76029602ae9b21cc4e612db2496d92febed882ba13ba745f8b3309e85f9d39"
+tests/integration/node-public-author-20260829/TOOLS.json:4856:          "4814cc5d581ac2d21ffedd16b657fa7289b32309733e83b1f33a0f159a8d2983"
+tests/integration/node-public-author-20260829/TOOLS.json:4910:          "fef258b0c43099539cc0b45cc637f7ba451013516e5589c80273651366382e3f"
+tests/integration/node-public-author-20260829/TOOLS.json:5942:          "7084e10563154ac703db99141ff3311858e5fb5a3096381fcb69b1ecfa9ea1c5"
+tests/integration/node-public-author-20260829/TOOLS.json:6697:          "e80b6f193be7dafddc6d4c8eb4e0b0c1e3cfabe8d9e65f1ae309d45bebd63a91"
+tests/integration/node-public-author-20260829/TOOLS.json:6799:          "e8c614f9a59cc80ab1e95483dcc38b0c2689cc6e02c65705bb9c3092f496b998"
+tests/integration/node-public-author-20260829/TOOLS.json:7399:          "de9a2b4a6d53e41a4b0e555db60a159e1292cb9c2e7e348309d1fe23d89755b9"
+tests/integration/node-public-author-20260829/TOOLS.json:7501:          "f4d6400fe231b50fc99632b4a6ee3b3096ed6c12c14f1d179ae1435d978bb29a"
+tests/integration/node-public-author-20260829/TOOLS.json:7818:          6309,
+tests/integration/node-public-author-20260829/TOOLS.json:8430:          3309,
+tests/integration/node-public-author-20260829/TOOLS.json:8515:          "309611188a78ab629779709b5925457c43715b800feef331d53cf40907d812e1"
+tests/integration/node-public-author-20260829/TOOLS.json:8749:          "210721820e7b1d922bc0abd5028aaa0a91cbe8c262942605047ab8a99ba3098c"
+tests/integration/node-public-author-20260829/TOOLS.json:8881:          "c951fc8a2d17f469c9c6a01bbf7747cf3095fd4958d29d284b6325eb571708bb"
+tests/integration/node-public-author-20260829/TOOLS.json:9457:          "40a07f31349a8e6c42298a5bd21ab2dbdc6dc89b6c1d4c2f943096df822c9c6f"
+tests/integration/node-public-author-20260829/TOOLS.json:9763:          "4604946abac2a8cb6dd24ad2f35c0644f6c0f2342967ce916ab3091fd41477ad"
+tests/integration/node-public-author-20260829/TOOLS.json:9828:          43099,
+tests/integration/node-public-author-20260829/TOOLS.json:9865:          "309aaac9b59683cbfaa72f4d5906c9d9da88cc50a55164c043a240adfd53129d"
+tests/integration/node-public-author-20260829/TOOLS.json:10255:          "6a806d26943f783094826cb23ff23b85b112e98f86e3d2508f16d1d5c13586d8"
+tests/integration/node-public-author-20260829/TOOLS.json:10771:          "4814cc5d581ac2d21ffedd16b657fa7289b32309733e83b1f33a0f159a8d2983"
+tests/integration/node-public-author-20260829/TOOLS.json:11365:          "b1f5a99876a31fccbfba89b973e11a4eb295f47b4b00e923814215309c0a725e"
+tests/integration/node-public-author-20260829/TOOLS.json:12205:          "7edb57f7065309027de249642341292a5b21410d5773cc55bba73ff9cf01060e"
+tests/integration/node-public-author-20260829/TOOLS.json:12265:          "7edb57f7065309027de249642341292a5b21410d5773cc55bba73ff9cf01060e"
+tests/integration/node-public-author-20260829/TOOLS.json:12451:          "2152523f96b63b90ad5d67f87ad8c67670ada9662c3ca83309b18907bf65ddd4"
+tests/integration/node-public-author-20260829/TOOLS.json:12487:          "08ca7309ebef64142a5bc8f9d2d1e1260ab5f324352c215715fe586a3302e569"
+tests/integration/node-public-author-20260829/TOOLS.json:12943:          "b139d920646a7563bd3995ab07a33098fd9bdc7a25fe091dcc5dafcdf77567d5"
+tests/integration/node-public-author-20260829/TOOLS.json:13261:          "23b9c2630936c9633601c95d91165f2d5dd8f099886e058873eb282ac537fdb7"
+tests/integration/node-public-author-20260829/TOOLS.json:13315:          "7edb57f7065309027de249642341292a5b21410d5773cc55bba73ff9cf01060e"
+tests/integration/node-public-author-20260829/TOOLS.json:13441:          "abf1fa35f4710b8f74351b63e61945b59994cdbceaf78cb9e309fb8b582a3a35"
+tests/integration/node-public-author-20260829/EXECUTOR-v4.json:182:      "path": "tests/compatibility/bash-strict-mode-independent-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EXECUTOR-v4.json:254:      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+tests/integration/node-public-author-20260829/EXECUTOR-v4.json:277:      "path": "tests/integration/git-public-20260829/SOURCE.json",
+tests/integration/node-public-author-20260829/EXECUTOR-v4.json:372:      "path": "tests/integration/node-public-author-20260829/SOURCE.json",
+
+EXISTING SCOPED TEST FILES
+tests/shell/invocation-cleanup-pipeline.test.ts
+tests/shell/pipeline-effects.test.ts
+tests/integration/node-public-author-20260829/internal-loader-arguments.mjs
+tests/integration/node-public-author-20260829/node-batch.mjs
+tests/integration/node-public-author-20260829/node-load-guard.mjs
+tests/integration/node-public-author-20260829/node-policy.mjs
+tests/integration/node-public-author-20260829/prepare.mjs
+tests/integration/node-public-author-20260829/public-node-v2.mjs
+tests/integration/node-public-author-20260829/public-node.mjs
+tests/integration/node-public-author-20260829/run-v2.mjs
+tests/integration/node-public-author-20260829/run-v3.mjs
+tests/integration/node-public-author-20260829/run-v4.mjs
+tests/integration/node-public-author-20260829/run.mjs

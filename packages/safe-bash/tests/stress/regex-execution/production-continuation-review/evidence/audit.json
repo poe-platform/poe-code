@@ -1,0 +1,569 @@
+{
+  "time": "2026-08-27T07:17:34.368Z",
+  "baselineHead": "329eb2722052e8ace0ec18a751f12c30ed87a25b",
+  "candidateHead": "ef8bbe749b1d4cf129f758ded158f5611b8ac894",
+  "baselineDirty": [],
+  "candidateDirty": [],
+  "historicalVerified": 510,
+  "sourceDrift": [
+    "src/fs/mount/index.ts",
+    "src/fs/overlay/index.ts",
+    "src/fs/s3/filesystem.ts"
+  ],
+  "differences": [
+    {
+      "path": "src/commands/grep.ts",
+      "baselineSha256": "529c84fa5b3a603881fc0844691f2b2c3bd1e9e9cba13fd3bf80a51ad3072f74",
+      "candidateSha256": "f2f76418ee409c998b5c20d5ad28c93dd2ff5918eea42c81d93db7832fdbff23"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "baselineSha256": "79031a09a0d4259494d130aa47abcccebcd4230d7c83cc9feab07303ddf3a139",
+      "candidateSha256": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "baselineSha256": "cae9d51946013e8ea98c80b764c210dcdc2fb7fabb44d5b94bef851eeeb55497",
+      "candidateSha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "baselineSha256": "90abb84b235d6828d4194ea4a749910d128f66387a083767d153c680b9eeac33",
+      "candidateSha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "baselineSha256": "75ecf3769458cb67872ad8b560491cff28e4735b9f0005a508565d520da709ea",
+      "candidateSha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e"
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "baselineSha256": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "candidateSha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da"
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "baselineSha256": "6c7f37b46f491b3567b32cd673654d398e3749c4f17689154ac15c67700d69a6",
+      "candidateSha256": "4a16dea4fbd70155998f59689bec0a3678a9445fa76cd3c62e3c4f88caec0999"
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "baselineSha256": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "candidateSha256": "20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "baselineSha256": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "candidateSha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d"
+    }
+  ],
+  "harnesses": [
+    {
+      "name": "final-static-child",
+      "sha256": "6f6182401ba7628935f6426e9de1841c4ea5849c47899ca4628c119a8a25902b"
+    },
+    {
+      "name": "initial-preserved-child",
+      "sha256": "762fcbc83195484fd0205f3f4820dae8b8b3f90f2b1653a1728ad9b7f4e81ab5"
+    },
+    {
+      "name": "corrected-preserved-child",
+      "sha256": "f4852b6eff8abf0990a95e012293cac4aac5b595178a3741dd92f02aa305f69d"
+    },
+    {
+      "name": "committed-f613f17-child",
+      "sha256": "b128fbbe4e8187cd62175d07fc3323bd2c0385fb666ed7fa52eebe5c8f208cec"
+    },
+    {
+      "name": "pre-walker-child-derived-by-removing-only-walker-import-function-dispatch",
+      "sha256": "1288b367ad76c6e7ef6f32636c994a2b4213cb79e17855c415f2002d0d49842a"
+    }
+  ],
+  "children": [
+    {
+      "group": "baseline",
+      "file": "cohort-claim.json",
+      "job": "cohort",
+      "pid": 78603,
+      "pass": false,
+      "summary": {
+        "passed": 24,
+        "total": 24,
+        "cleanupFailures": 1,
+        "active": 0,
+        "peak": 2,
+        "workers": 25
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "initial-preserved-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "baseline",
+      "file": "errors-claim.json",
+      "job": "errors",
+      "pid": 9409,
+      "pass": true,
+      "summary": {
+        "passed": 2,
+        "total": 2,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 1,
+        "workers": 1
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "pre-walker-child-derived-by-removing-only-walker-import-function-dispatch",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "baseline",
+      "file": "globs-claim.json",
+      "job": "globs",
+      "pid": 78756,
+      "pass": true,
+      "summary": {
+        "passed": 7,
+        "total": 7,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 1,
+        "workers": 5
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "initial-preserved-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "baseline",
+      "file": "lifecycle-claim.json",
+      "job": "lifecycle",
+      "pid": 78835,
+      "pass": false,
+      "summary": {
+        "passed": 5,
+        "total": 6,
+        "cleanupFailures": 1,
+        "active": 0,
+        "peak": 2,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "initial-preserved-child",
+      "failures": [
+        "early-downstream-zero-active"
+      ],
+      "notApplicable": []
+    },
+    {
+      "group": "baseline",
+      "file": "public-claim.json",
+      "job": "public",
+      "pid": 79019,
+      "pass": false,
+      "summary": {
+        "passed": 2,
+        "total": 5,
+        "cleanupFailures": 2,
+        "active": 0,
+        "peak": 3,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "initial-preserved-child",
+      "failures": [
+        "registration-and-preabort-invalid-options",
+        "rg-early-downstream-zero-active",
+        "caller-abort-active-benign-request"
+      ],
+      "notApplicable": []
+    },
+    {
+      "group": "baseline",
+      "file": "public-corrected-claim.json",
+      "job": "public",
+      "pid": 91435,
+      "pass": false,
+      "summary": {
+        "passed": 3,
+        "total": 5,
+        "cleanupFailures": 2,
+        "active": 0,
+        "peak": 3,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "corrected-preserved-child",
+      "failures": [
+        "rg-early-downstream-zero-active",
+        "caller-abort-active-benign-request"
+      ],
+      "notApplicable": []
+    },
+    {
+      "group": "baseline",
+      "file": "transport-claim.json",
+      "job": "transport",
+      "pid": 6850,
+      "pass": true,
+      "summary": {
+        "passed": 15,
+        "total": 15,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 0,
+        "workers": 0
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "committed-f613f17-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "baseline",
+      "file": "walker-claim.json",
+      "job": "walker",
+      "pid": 11924,
+      "pass": true,
+      "summary": {
+        "passed": 3,
+        "total": 3,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 1,
+        "workers": 2
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": [
+        "caller-abort-glob-no-continued-filesystem-work"
+      ]
+    },
+    {
+      "group": "candidate",
+      "file": "benchmark-claim.json",
+      "job": "benchmark",
+      "pid": 26048,
+      "pass": true,
+      "summary": {
+        "passed": 3,
+        "total": 3,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 1,
+        "workers": 6
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "candidate",
+      "file": "cohort-claim.json",
+      "job": "cohort",
+      "pid": 26019,
+      "pass": false,
+      "summary": {
+        "passed": 24,
+        "total": 24,
+        "cleanupFailures": 1,
+        "active": 0,
+        "peak": 2,
+        "workers": 25
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "candidate",
+      "file": "errors-claim.json",
+      "job": "errors",
+      "pid": 26037,
+      "pass": true,
+      "summary": {
+        "passed": 2,
+        "total": 2,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 1,
+        "workers": 1
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "candidate",
+      "file": "globs-claim.json",
+      "job": "globs",
+      "pid": 26021,
+      "pass": true,
+      "summary": {
+        "passed": 7,
+        "total": 7,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 1,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "candidate",
+      "file": "lifecycle-claim.json",
+      "job": "lifecycle",
+      "pid": 26025,
+      "pass": false,
+      "summary": {
+        "passed": 5,
+        "total": 6,
+        "cleanupFailures": 1,
+        "active": 0,
+        "peak": 2,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [
+        "early-downstream-zero-active"
+      ],
+      "notApplicable": []
+    },
+    {
+      "group": "candidate",
+      "file": "public-claim.json",
+      "job": "public",
+      "pid": 26035,
+      "pass": false,
+      "summary": {
+        "passed": 3,
+        "total": 5,
+        "cleanupFailures": 2,
+        "active": 0,
+        "peak": 3,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [
+        "rg-early-downstream-zero-active",
+        "caller-abort-active-benign-request"
+      ],
+      "notApplicable": []
+    },
+    {
+      "group": "candidate",
+      "file": "transport-claim.json",
+      "job": "transport",
+      "pid": 26041,
+      "pass": true,
+      "summary": {
+        "passed": 15,
+        "total": 15,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 0,
+        "workers": 0
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "candidate",
+      "file": "walker-claim.json",
+      "job": "walker",
+      "pid": 26039,
+      "pass": false,
+      "summary": {
+        "passed": 2,
+        "total": 3,
+        "cleanupFailures": 1,
+        "active": 0,
+        "peak": 1,
+        "workers": 4
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [
+        "caller-abort-glob-no-continued-filesystem-work"
+      ],
+      "notApplicable": []
+    },
+    {
+      "group": "packed",
+      "file": "cohort-claim.json",
+      "job": "cohort",
+      "pid": 26081,
+      "pass": false,
+      "summary": {
+        "passed": 24,
+        "total": 24,
+        "cleanupFailures": 1,
+        "active": 0,
+        "peak": 2,
+        "workers": 25
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "packed",
+      "file": "errors-claim.json",
+      "job": "errors",
+      "pid": 26102,
+      "pass": true,
+      "summary": {
+        "passed": 2,
+        "total": 2,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 1,
+        "workers": 1
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "packed",
+      "file": "globs-claim.json",
+      "job": "globs",
+      "pid": 26083,
+      "pass": true,
+      "summary": {
+        "passed": 7,
+        "total": 7,
+        "cleanupFailures": 0,
+        "active": 0,
+        "peak": 1,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [],
+      "notApplicable": []
+    },
+    {
+      "group": "packed",
+      "file": "lifecycle-claim.json",
+      "job": "lifecycle",
+      "pid": 26085,
+      "pass": false,
+      "summary": {
+        "passed": 5,
+        "total": 6,
+        "cleanupFailures": 1,
+        "active": 0,
+        "peak": 2,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [
+        "early-downstream-zero-active"
+      ],
+      "notApplicable": []
+    },
+    {
+      "group": "packed",
+      "file": "public-claim.json",
+      "job": "public",
+      "pid": 26092,
+      "pass": false,
+      "summary": {
+        "passed": 3,
+        "total": 5,
+        "cleanupFailures": 2,
+        "active": 0,
+        "peak": 3,
+        "workers": 7
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [
+        "rg-early-downstream-zero-active",
+        "caller-abort-active-benign-request"
+      ],
+      "notApplicable": []
+    },
+    {
+      "group": "packed",
+      "file": "walker-claim.json",
+      "job": "walker",
+      "pid": 26103,
+      "pass": false,
+      "summary": {
+        "passed": 2,
+        "total": 3,
+        "cleanupFailures": 1,
+        "active": 0,
+        "peak": 1,
+        "workers": 4
+      },
+      "closed": true,
+      "exactWorkerCleanup": true,
+      "harness": "final-static-child",
+      "failures": [
+        "caller-abort-glob-no-continued-filesystem-work"
+      ],
+      "notApplicable": []
+    }
+  ],
+  "packagePass": true,
+  "timing": {
+    "workload": "32 files plus .ignore; expected13 selected lines; 3 alternating-order full-command pairs, startup and disposal included, VFS fixture population/import excluded",
+    "baselineMs": [
+      33.18404199999999,
+      15.27487499999998,
+      14.866666999999978
+    ],
+    "candidateMs": [
+      22.802249999999987,
+      17.544291999999984,
+      16.660167
+    ],
+    "baselineMedianMs": 15.27487499999998,
+    "candidateMedianMs": 17.544291999999984
+  },
+  "mismatches": [],
+  "riskConsumed": 0,
+  "additionalSix": "UNUSED",
+  "defaultAcceptance": false
+}

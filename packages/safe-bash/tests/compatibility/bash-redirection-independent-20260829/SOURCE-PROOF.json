@@ -1,0 +1,58 @@
+{
+  "role": "INDEPENDENT_CANONICAL_GIT_TREE_SERIALIZATION_SOURCE_DATA",
+  "base": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "baseWitnessSha256": "3085fefad1d112c19ec2cb11527502215b3425e23feebb65db63f50eac452e59",
+  "baseWitnessOid": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "computedSourceTree": "2489b9909ff30a4d2afe6dcad6e42c37e97c7011",
+  "computedTree": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+  "expectedTree": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+  "inputs": 292,
+  "changedPaths": [
+    "src/shell/display.ts",
+    "src/shell/parser.ts",
+    "src/shell/runtime.ts"
+  ],
+  "unchangedMembers": 289,
+  "AGENTS": "opaque inherited root entry only; no content fetched/materialized",
+  "revisionRule": "explicit row revision; three overlay rows authenticated against root-authorized1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e",
+  "fixtureDelta": [
+    {
+      "oldLine": 48,
+      "newLine": 48,
+      "removed": [
+        "  assert.deepEqual((await memory.readdir(\"/\")).sort(), Object.keys(row.files ?? {}).sort());"
+      ],
+      "added": [
+        "  assert.deepEqual((await memory.readdir(\"/\")).sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name))), Object.keys(row.files ?? {}).sort().map(name => ({ name, type: \"file\" })));"
+      ]
+    },
+    {
+      "oldLine": 124,
+      "newLine": 124,
+      "removed": [
+        "  assert.deepEqual(await memory.readdir(\"/\"), [\"first\"]);"
+      ],
+      "added": [
+        "  assert.deepEqual(await memory.readdir(\"/\"), [{ name: \"first\", type: \"file\" }]);"
+      ]
+    },
+    {
+      "oldLine": 152,
+      "newLine": 152,
+      "removed": [],
+      "added": [
+        ""
+      ]
+    }
+  ],
+  "baselineSourceComputed": "c19c60b97f09135a09f5e45ac676764131c6f9ca",
+  "baselineSourceExpected": "c19c60b97f09135a09f5e45ac676764131c6f9ca",
+  "modeChanges": [],
+  "actualFixtureV2": {
+    "commit": "9610e8a2bfcf5982faa13cb63d6285e78b0cfb3d",
+    "bytes": 9508,
+    "mode": 420,
+    "sha256": "b7a74ff38df3a587545c2d28b6ac9adfd6baab9938e54eebdde7e1b3eb094148",
+    "manifestMismatch": "one additional final LF; two assertion changes unchanged; original author metadata retained"
+  }
+}

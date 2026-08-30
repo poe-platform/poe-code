@@ -1,0 +1,371 @@
+{
+  "cohort": "lifecycle",
+  "rawRoot": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw",
+  "counts": {
+    "scheduled": 11,
+    "childrenLaunched": 11,
+    "engineRuns": 11,
+    "pass": 11,
+    "fail": 0,
+    "blocked": 0
+  },
+  "rows": [
+    {
+      "id": "L01-aliases",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 7,
+          "stdout": "alias\n\u0000\u007f\ufffd\n",
+          "stderr": "stderr\n"
+        },
+        "stdoutHex": "616c6961730a007fff0a",
+        "stderrHex": "7374646572720a"
+      },
+      "selector": null,
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L02-budget-positive",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 0,
+          "stdout": "before-budget\nafter-budget\n",
+          "stderr": ""
+        },
+        "stdoutHex": "6265666f72652d6275646765740a61667465722d6275646765740a",
+        "stderrHex": ""
+      },
+      "selector": null,
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L02-budget-exhausted",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 124,
+          "stdout": "before-budget\n",
+          "stderr": "safejs: Sandbox budget exceeded for steps: 2049 > 2048.\n"
+        },
+        "stdoutHex": "6265666f72652d6275646765740a",
+        "stderrHex": "736166656a733a2053616e64626f782062756467657420657863656564656420666f722073746570733a2032303439203e20323034382e0a"
+      },
+      "selector": null,
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L03-callback-live",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 0,
+          "stdout": "queued\ncallback\n",
+          "stderr": ""
+        },
+        "stdoutHex": "7175657565640a63616c6c6261636b0a",
+        "stderrHex": ""
+      },
+      "selector": null,
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L03-callback-after-lifetime",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 0,
+          "stdout": "queued\n",
+          "stderr": ""
+        },
+        "stdoutHex": "7175657565640a",
+        "stderrHex": ""
+      },
+      "selector": null,
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L04-explicit-children",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 0,
+          "stdout": "[0,0,3]\n",
+          "stderr": ""
+        },
+        "stdoutHex": "5b302c302c335d0a",
+        "stderrHex": ""
+      },
+      "selector": null,
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L05-caller-error",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "rejection",
+        "error": {
+          "type": "object",
+          "name": "Error",
+          "message": "caller:L05-caller-error",
+          "stack": "Error: caller:L05-caller-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-cJT1cR/consumer/harness/child.mjs:76:21\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+        },
+        "stdoutHex": "61646d69747465640a",
+        "stderrHex": ""
+      },
+      "selector": null,
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L05-execution-error",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "rejection",
+        "error": {
+          "type": "object",
+          "name": "Error",
+          "message": "execution:L05-execution-error",
+          "stack": "Error: execution:L05-execution-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-cJT1cR/consumer/harness/child.mjs:77:24\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+        },
+        "stdoutHex": "61646d69747465640a",
+        "stderrHex": ""
+      },
+      "selector": {
+        "calls": 1,
+        "throws": 1,
+        "publicResultAbsent": true,
+        "publicExecutionIdentity": true,
+        "callerAborted": false
+      },
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L05-cleanup-error",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "rejection",
+        "error": {
+          "type": "object",
+          "name": "Error",
+          "message": "cleanup:L05-cleanup-error",
+          "stack": "Error: cleanup:L05-cleanup-error\n    at file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-cJT1cR/consumer/harness/child.mjs:78:22\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+        },
+        "stdoutHex": "61646d69747465640a73656c65637465640a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20636c65616e75703a4c30352d636c65616e75702d6572726f720a"
+      },
+      "selector": null,
+      "network": null,
+      "zeroPolicy": null
+    },
+    {
+      "id": "L06-curl-open",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 0,
+          "stdout": "200\ncurl:0\n",
+          "stderr": "independent-stderr\n"
+        },
+        "stdoutHex": "3230300a6375726c3a300a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "selector": null,
+      "network": {
+        "authorizationJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "attempt": 0,
+            "hasRedirectFrom": false,
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportCalls": 1,
+        "transportCleanupCalls": 1,
+        "responseDisposeCalls": 1,
+        "authorizationCallsForRetry": 0,
+        "authorizationCallsWithRedirectFrom": 0,
+        "additionalTransportEntries": 0
+      },
+      "zeroPolicy": null
+    },
+    {
+      "id": "L06-curl-consumer-closed",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": "PASS",
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 141,
+          "stdout": "curl:141\n",
+          "stderr": "independent-stderr\n"
+        },
+        "stdoutHex": "6375726c3a3134310a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "selector": null,
+      "network": {
+        "authorizationJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "attempt": 0,
+            "hasRedirectFrom": false,
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportJournal": [
+          {
+            "call": 1,
+            "url": "https://owned.invalid/upload",
+            "method": "PUT",
+            "signalAborted": false,
+            "allowed": true
+          }
+        ],
+        "transportCalls": 1,
+        "transportCleanupCalls": 1,
+        "responseDisposeCalls": 1,
+        "authorizationCallsForRetry": 0,
+        "authorizationCallsWithRedirectFrom": 0,
+        "additionalTransportEntries": 0
+      },
+      "zeroPolicy": null
+    }
+  ],
+  "imports": [
+    {
+      "journal": "L01-aliases.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L02-budget-exhausted.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L02-budget-positive.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L03-callback-after-lifetime.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L03-callback-live.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L04-explicit-children.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L05-caller-error.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L05-cleanup-error.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L05-execution-error.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L06-curl-consumer-closed.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "L06-curl-open.imports.ndjson",
+      "entries": 224,
+      "engineFiles": 63,
+      "exact": true
+    }
+  ],
+  "privateBeforeAfterExact": true,
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "allKnownChildrenClosed": true,
+  "authorParentStatus": "PASS",
+  "independentAllPass": true,
+  "noPromotion": true
+}

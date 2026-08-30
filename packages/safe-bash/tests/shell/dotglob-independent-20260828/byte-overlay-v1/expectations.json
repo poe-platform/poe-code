@@ -1,0 +1,110 @@
+{
+  "originalFreeze": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+  "authority": "Root clarification: invalid short cluster identifies offending flag -z, not entire -sz; project byte decision, no new native claim.",
+  "resolves": "GAP-TOKEN",
+  "appliesTo": "leading option scanning only; later flag-looking operands retain their complete name",
+  "rows": [
+    {
+      "id": "R23-byte-1",
+      "initial": "off",
+      "args": [
+        "-sz",
+        "dotglob"
+      ],
+      "stdout": "",
+      "stderr": "shell: line 1: shopt: -z: unsupported option\nshopt: usage: shopt [-pqsu] [--] [dotglob ...]\n",
+      "exitCode": 2,
+      "postState": "off"
+    },
+    {
+      "id": "R23-byte-2",
+      "initial": "off",
+      "args": [
+        "-suz",
+        "dotglob"
+      ],
+      "stdout": "",
+      "stderr": "shell: line 1: shopt: -z: unsupported option\nshopt: usage: shopt [-pqsu] [--] [dotglob ...]\n",
+      "exitCode": 2,
+      "postState": "off"
+    },
+    {
+      "id": "R23-byte-3",
+      "initial": "off",
+      "args": [
+        "-su",
+        "-pz",
+        "dotglob"
+      ],
+      "stdout": "",
+      "stderr": "shell: line 1: shopt: -z: unsupported option\nshopt: usage: shopt [-pqsu] [--] [dotglob ...]\n",
+      "exitCode": 2,
+      "postState": "off"
+    },
+    {
+      "id": "R23-byte-4",
+      "initial": "off",
+      "args": [
+        "-s",
+        "dotglob",
+        "-sz"
+      ],
+      "stdout": "",
+      "stderr": "shell: line 1: shopt: -sz: unsupported shell option name (only dotglob is supported)\n",
+      "exitCode": 1,
+      "postState": "on"
+    },
+    {
+      "id": "R23-byte-5",
+      "initial": "on",
+      "args": [
+        "-sz",
+        "dotglob"
+      ],
+      "stdout": "",
+      "stderr": "shell: line 1: shopt: -z: unsupported option\nshopt: usage: shopt [-pqsu] [--] [dotglob ...]\n",
+      "exitCode": 2,
+      "postState": "on"
+    },
+    {
+      "id": "R23-byte-6",
+      "initial": "on",
+      "args": [
+        "-suz",
+        "dotglob"
+      ],
+      "stdout": "",
+      "stderr": "shell: line 1: shopt: -z: unsupported option\nshopt: usage: shopt [-pqsu] [--] [dotglob ...]\n",
+      "exitCode": 2,
+      "postState": "on"
+    },
+    {
+      "id": "R23-byte-7",
+      "initial": "on",
+      "args": [
+        "-su",
+        "-pz",
+        "dotglob"
+      ],
+      "stdout": "",
+      "stderr": "shell: line 1: shopt: -z: unsupported option\nshopt: usage: shopt [-pqsu] [--] [dotglob ...]\n",
+      "exitCode": 2,
+      "postState": "on"
+    },
+    {
+      "id": "R23-byte-8",
+      "initial": "on",
+      "args": [
+        "-s",
+        "dotglob",
+        "-sz"
+      ],
+      "stdout": "",
+      "stderr": "shell: line 1: shopt: -sz: unsupported shell option name (only dotglob is supported)\n",
+      "exitCode": 1,
+      "postState": "on"
+    }
+  ],
+  "counts": "Eight R23 subcases/nearby checks; not an additive new compatibility denominator. Original102/696/72/14/26 cohorts remain sealed.",
+  "futureBase": "HELD until explicitly accepted STACK composition and author candidate"
+}

@@ -1,0 +1,36 @@
+{
+  "label": "diagnostic-first-read-s3",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/diagnostic-first-read-probe.ts",
+    "first-read-s3"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:37.100Z",
+  "finishedAt": "2026-08-27T10:11:37.277Z",
+  "durationMs": 176.90604200000053,
+  "timeoutMs": 3000,
+  "maxBytes": 1048576,
+  "pid": 23131,
+  "initialIdentity": "23131 22800 23131 Thu Aug 27 05:11:37 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/diagnostic-first-read-probe.ts first-read-s3",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "first-read-s3: passed\n{\"diagnostic\":true,\"originalObservedAborted\":true,\"ioAborted\":true,\"ioReasonCode\":\"EPIPE\",\"stageAborted\":false,\"stageAbortedAtIoClose\":false,\"callerAbortedAtIoClose\":false,\"firstWrites\":0,\"scenario\":\"first-read-s3\",\"active\":0,\"reads\":1,\"returned\":1,\"abortedBeforeTeardown\":false,\"events\":[\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.headObject:input:callerAborted=false:signal=live\",\"op:S3.headObject:input/:callerAborted=false:signal=live\",\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.getObjectStream:input:callerAborted=false:signal=live\",\"assertion.before:assert.ok(options?.abortSignal);\",\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"diagnostic.io.abort\",\"transport.signal.abort:S3.listObjectsV2:list\",\"transport.signal.abort:S3.getObjectStream:input\",\"diagnostic.io.abort\",\"source.finally\",\"command.settled:cat:141\",\"command.settled:true:0\",\"assertion.before:assert.equal(result.exitCode, 0);\",\"assertion.before:assert.equal(result.stdout, \\\"\\\");\",\"assertion.before:assert.equal(result.stderr, \\\"\\\");\",\"assertion.before:assert.equal(trace.controller.signal.aborted, false);\",\"assertion.before:assert.equal(observed?.aborted, true);\",\"assertion.before:assert.equal((observed?.reason as { code: string }).code, \\\"EPIPE\\\");\",\"assertion.before:assert.equal(reads, 1);\",\"assertion.before:assert.equal(returned, 1);\",\"assertion.before:assert.equal(active, 0);\",\"assertion.before:assert.deepEqual(unhandled, []);\"]}\n{\"diagnosticAfterTeardown\":true,\"scenario\":\"first-read-s3\",\"reads\":1,\"returned\":1,\"active\":0,\"unhandled\":0,\"callerAborted\":true}\n",
+  "stderr": ""
+}

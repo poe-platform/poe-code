@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+  "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+  "classification": "INDEPENDENT_SCOPED_BUILD_WITH_EXPLICIT_SOURCE_MAP_RELOCATION",
+  "independentlyCompiled": true,
+  "rootTrustedBuildReceipt": false,
+  "buildPresealSha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+  "compilerProcess": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/COMPILER-PROCESS.json",
+    "sha256": "576130630afd01d3b0f05636e217575fcc781ea617af1f209233148beec1cabc",
+    "bytes": 2012,
+    "mode": 420
+  },
+  "comparisons": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/OUTPUT-COMPARISONS.json",
+    "sha256": "858f28b1581ade646aca4455593b9f3f6bf1e1272c8833b24d6a74bf3ccd69ad",
+    "bytes": 471772,
+    "mode": 420
+  },
+  "rawOutputMap": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RAW-OUTPUT-MAP.json",
+    "sha256": "b7ac9c9c91a8978d1ac3c34672fc75b10683f10e0144d2ee2d279eef77212278",
+    "bytes": 121061,
+    "mode": 420
+  },
+  "independentPackageMap": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-PACKAGE-MAP.json",
+    "sha256": "1b44932f2d5a1da4c1ebfde6148bc5edac9e65411e98d6c821023b55b59c757b",
+    "bytes": 121291,
+    "mode": 420
+  },
+  "packing": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/PACKING.json",
+    "sha256": "feb4cf9d2bddd7d50f8bd8b0076b1b3420319bb12713e5a5e246c642c1deb5fe",
+    "bytes": 850,
+    "mode": 420
+  },
+  "integrityAfter": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INTEGRITY-AFTER.json",
+    "sha256": "daf4d2b15c04e27b4b92085232eca32e0cf2796c09eb984a89c8d079aac0d0b0",
+    "bytes": 5962,
+    "mode": 420
+  },
+  "command": {
+    "executable": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+    "args": [
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/typescript/lib/tsc.js",
+      "--project",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source/tsconfig.build.json",
+      "--outDir",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output/dist",
+      "--typeRoots",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/types"
+    ],
+    "cwd": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+    "umask": 18,
+    "env": {
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/home",
+      "TMPDIR": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/scratch"
+    }
+  },
+  "toolPins": {
+    "node": {
+      "original": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "copied": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "bytes": 112989184,
+      "mode": 493
+    },
+    "typescript": {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+      "entries": 147
+    },
+    "nodeTypes": {
+      "path": "node_modules/@types/node",
+      "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+      "entries": 83
+    },
+    "undiciTypes": {
+      "path": "node_modules/undici-types",
+      "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+      "entries": 41
+    }
+  },
+  "sourceFiles": 271,
+  "sourceArchiveFiles": 273,
+  "compiledSourceFiles": 217,
+  "compilerOutputs": 868,
+  "rawEqualOutputs": 434,
+  "explicitlyRelocatedMaps": 434,
+  "finalEqualOutputs": 868,
+  "fullPackageFiles": 870,
+  "artifact": {
+    "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/virtual-bash-0.0.0.tgz",
+    "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+    "bytes": 782141,
+    "mode": 420
+  },
+  "evidenceSourceCommit": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+  "sourceOrigin": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "semanticPasses": 0,
+  "publicIntegration": "ABSENT_EXPECTED",
+  "rootRouting": "New proof only; old integration-v2 explicitly pins BOUND_AUTHOR_BUILD. Root must route this additive receipt without modifying history."
+}

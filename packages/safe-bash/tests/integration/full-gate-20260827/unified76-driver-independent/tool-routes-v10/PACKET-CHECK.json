@@ -1,0 +1,10 @@
+{
+  "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+  "evidence": "cdf2803ee6d7956556819be484e5b632dc407a0d",
+  "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routes-v1/evidence-v2/SOURCE-BINDING.json",
+  "sha256": "76e63f05935fc084364d06cb95e3e2f1d69ad67c17a410140c826c5ce10d38ce",
+  "authenticatedAuthorFileRecords": 37,
+  "independentDriverFiles": 38,
+  "normalizedDriver": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+  "qualification": "Compared author committed metadata with independently hashed source blobs; no author controls executed or counted."
+}

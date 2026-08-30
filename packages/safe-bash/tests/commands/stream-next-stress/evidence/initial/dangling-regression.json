@@ -1,0 +1,154 @@
+{
+  "expected": {
+    "recordedAt": "2026-08-27T06:17:07.575Z",
+    "sourceCommit": "1c745c3a633c32a8e9d87dacfdf33fcadc00caf2",
+    "fixture": {
+      "id": "post-discovery-dangling-output",
+      "command": "split",
+      "args": [
+        "-b2",
+        "input",
+        "out."
+      ],
+      "stdin": "",
+      "locale": "C",
+      "files": [
+        {
+          "path": "input",
+          "type": "file",
+          "bytes": "YWJj"
+        },
+        {
+          "path": "out.aa",
+          "type": "symlink",
+          "target": "target"
+        }
+      ]
+    },
+    "native": [
+      {
+        "profile": "gnu-darwin",
+        "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+        "binarySha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+          "-b2",
+          "input",
+          "out."
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "LANG": "C"
+        },
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "after": [
+          {
+            "path": "input",
+            "type": "file",
+            "bytes": "YWJj"
+          },
+          {
+            "path": "out.aa",
+            "type": "symlink",
+            "target": "target"
+          },
+          {
+            "path": "out.ab",
+            "type": "file",
+            "bytes": "Yw=="
+          },
+          {
+            "path": "target",
+            "type": "file",
+            "bytes": "YWI="
+          }
+        ]
+      },
+      {
+        "profile": "apple",
+        "binary": "/usr/bin/split",
+        "binarySha256": "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91",
+        "argv": [
+          "/usr/bin/split",
+          "-b2",
+          "input",
+          "out."
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "LANG": "C"
+        },
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "after": [
+          {
+            "path": "input",
+            "type": "file",
+            "bytes": "YWJj"
+          },
+          {
+            "path": "out.aa",
+            "type": "symlink",
+            "target": "target"
+          },
+          {
+            "path": "out.ab",
+            "type": "file",
+            "bytes": "Yw=="
+          },
+          {
+            "path": "target",
+            "type": "file",
+            "bytes": "YWI="
+          }
+        ]
+      }
+    ],
+    "origin": "Root-disclosed author gap, separately frozen before this regression product execution; not part of original82 independent holdouts."
+  },
+  "frozenBeforeProductSha256": "1dc5dcf448c9ef66a094d0ee4eb8b46c96a3a6ceb1827f4375be8086359343fa",
+  "observedAt": "2026-08-27T06:17:07.618Z",
+  "sourceTreeSha256": "cb0aac0879d13bd8b64cd9fa57833f28c7e307db93a0160b271b9c9e1484afab",
+  "runnerSha256": "bd5c56da6b50027bba5685b33bb6763074908747a23589fe51ee920d2e99224a",
+  "actual": [
+    {
+      "backend": "memory",
+      "status": 1,
+      "stdout": "",
+      "stderr": "c3BsaXQ6IGZpbGUgYWxyZWFkeSBleGlzdHMsIHdyaXRlU3RyZWFtICcvZml4dHVyZS9vdXQuYWEnCg==",
+      "after": [
+        {
+          "path": "input",
+          "type": "file",
+          "bytes": "YWJj"
+        },
+        {
+          "path": "out.aa",
+          "type": "symlink",
+          "target": "target"
+        }
+      ]
+    },
+    {
+      "backend": "real",
+      "status": 1,
+      "stdout": "",
+      "stderr": "c3BsaXQ6IGZpbGUgYWxyZWFkeSBleGlzdHMsIHdyaXRlU3RyZWFtICcvZml4dHVyZS9vdXQuYWEnCg==",
+      "after": [
+        {
+          "path": "input",
+          "type": "file",
+          "bytes": "YWJj"
+        },
+        {
+          "path": "out.aa",
+          "type": "symlink",
+          "target": "target"
+        }
+      ]
+    }
+  ]
+}

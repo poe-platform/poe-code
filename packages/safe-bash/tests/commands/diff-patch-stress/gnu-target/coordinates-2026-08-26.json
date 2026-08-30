@@ -1,0 +1,57 @@
+{
+  "date": "2026-08-26",
+  "identity": {
+    "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+    "dialect": "gnu",
+    "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+  },
+  "source": "live pinned GNU only; no product output",
+  "records": [
+    {
+      "name": "normal-inconsistent-new-coordinates",
+      "files": {
+        "target": "old\nkeep\nend\n"
+      },
+      "input": "1c2\n< old\n---\n> new\n",
+      "args": [
+        "--batch",
+        "--fuzz=0",
+        "--no-backup-if-mismatch",
+        "target"
+      ],
+      "result": {
+        "exitCode": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "files": {
+          "target": "new\nkeep\nend\n"
+        }
+      }
+    },
+    {
+      "name": "inconsistent-second-hunk",
+      "files": {
+        "first": "keep\n",
+        "target": "old\nmiddle\ntail\n"
+      },
+      "input": "--- first\n+++ first\n@@ -1 +1 @@\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -3 +4 @@\n-tail\n+end\n",
+      "args": [
+        "--batch",
+        "--fuzz=0",
+        "--no-backup-if-mismatch",
+        "-p0"
+      ],
+      "result": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "files": {
+          "first": "changed\n",
+          "target": "new\nmiddle\nend\n"
+        }
+      }
+    }
+  ]
+}

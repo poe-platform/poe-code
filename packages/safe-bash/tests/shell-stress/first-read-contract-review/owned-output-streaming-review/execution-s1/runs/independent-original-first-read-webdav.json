@@ -1,0 +1,36 @@
+{
+  "label": "independent-original-first-read-webdav",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/shell/first-read-probe.ts",
+    "first-read-webdav"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T11:39:55.398Z",
+  "finishedAt": "2026-08-27T11:39:55.614Z",
+  "durationMs": 216.29416700000002,
+  "timeoutMs": 3000,
+  "maxBytes": 1048576,
+  "pid": 70293,
+  "initialIdentity": "70293 70275 70293 Thu Aug 27 06:39:55 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx tests/shell/first-read-probe.ts first-read-webdav",
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"scenario\":\"first-read-webdav\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:PROPFIND:/dav/input\",\"http.response.close:PROPFIND:finished=true\",\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\",\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"transport.signal.abort:DAV.PROPFIND:/dav/input\",\"transport.signal.abort:DAV.GET:/dav/input\",\"command.settled:cat:141\",\"command.settled:true:0\"]}\n",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at <anonymous> (/private/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate/tests/shell/first-read-probe.ts:103:12) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+}

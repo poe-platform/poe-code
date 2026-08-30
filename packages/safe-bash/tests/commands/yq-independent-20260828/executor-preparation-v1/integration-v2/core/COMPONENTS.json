@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "runtime": {
+    "status": "SEALED",
+    "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+    "evidenceCommit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+    "sourceRoot": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2",
+    "sourcePreseal": {
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/SOURCE-PRESEAL.json",
+      "sha256": "c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64"
+    },
+    "seal": {
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/RECIPE-SEAL.json",
+      "sha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15"
+    },
+    "treeSha256": "6a5ca19fef1237091719a4fb7571271f1c37ff02dde4a4c65253d34bd69b2878",
+    "files": [
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/.gitignore",
+        "bytes": 7,
+        "sha256": "07cc0e3f57247b75f5278d110feba3719a32f4b2383e41234cf01325de774d40",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/BINDINGS.json",
+        "bytes": 28557,
+        "sha256": "36fb6d5de3998795f5ca680861f35843349f8b0761630795dc9f5864566a8371",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/PROTOCOL.md",
+        "bytes": 8571,
+        "sha256": "807acc4a575a6c4b2fbf3a0ad9967048bf64e7a46d4cf579d4ffe0a0b7d5521a",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/RECIPE-SEAL.json",
+        "bytes": 3994,
+        "sha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/V1-V2.diff",
+        "bytes": 6923,
+        "sha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/controls.json",
+        "bytes": 7248,
+        "sha256": "589af6e344c3599726aaae217e975b04f4dddb656b316ed0837834eabe13a30a",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/delta.mjs",
+        "bytes": 5957,
+        "sha256": "c4241ec7033dc47171548988c638367a96e923c7a4462f2cddb9f9783bc57ed0",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/frozen.mjs",
+        "bytes": 4100,
+        "sha256": "23937b43be2061780a73a27490bb8ed7009a6d485429417692e607cc1fd3ad0b",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/recipe.mjs",
+        "bytes": 3104,
+        "sha256": "26d426b6db948fd9f72f3d712bdd8cfdde9d0e84e99c60f140705380617a6198",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/synthetic-child.mjs",
+        "bytes": 2914,
+        "sha256": "21f2f539ea980b10bd859ddf965ac5e235d117771f9725f2d0971b0ead7afed8",
+        "mode": 420
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/validate.mjs",
+        "bytes": 23248,
+        "sha256": "e7ebffcebf1c00afb79a7fdc9f747dd086602d2ad44f2820d36f32d7cad65ea9",
+        "mode": 420
+      }
+    ],
+    "bootstrap": [
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/host.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7365,
+        "sha256": "fa7c2b3293604fac9d671bd4ff98f48297ce2c56299dc5db61b58502cc16ba76"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/integrity.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 3889,
+        "sha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"
+      }
+    ],
+    "materializer": {
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/recipe.mjs",
+      "sha256": "26d426b6db948fd9f72f3d712bdd8cfdde9d0e84e99c60f140705380617a6198"
+    },
+    "diffSha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc",
+    "materializedRoot": "Explicit caller-selected canonical directory; exact sealed recipe tree, never runtime-v1 fallback",
+    "rootMembership": [
+      ".gitignore",
+      "BINDINGS.json",
+      "EVIDENCE-SEAL.json",
+      "HANDOFF.md",
+      "PROTOCOL.md",
+      "RECIPE-SEAL.json",
+      "SOURCE-PRESEAL.json",
+      "STATIC-CHECKS.json",
+      "V1-V2.diff",
+      "controls.json",
+      "delta.mjs",
+      "evidence",
+      "frozen.mjs",
+      "recipe.mjs",
+      "synthetic-child.mjs",
+      "validate.mjs",
+      "work"
+    ],
+    "sourceScope": {
+      "regularFiles": "All eleven SOURCE-PRESEAL files plus the preseal; exact hashes/modes before imports and before/after children",
+      "rootMembership": "Every direct root entry including additions",
+      "nonImportedNamespaces": [
+        {
+          "path": "work",
+          "role": "Ignored unsealed author scratch; never imported or source authority"
+        },
+        {
+          "path": "evidence",
+          "role": "Sealed historical captures; never imported by this composition"
+        }
+      ],
+      "materializedRecipe": "Entire fresh eleven-file tree; all added entries/modes/hash changes rejected"
+    }
+  },
+  "consumers": {
+    "commit": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+    "preseal": "61cec1d71bf1121234de8ee727da990ff29c54e8",
+    "root": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2",
+    "seal": {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/RECIPE-SEAL.json",
+      "sha256": "69dfaf2aa833590312d80515a62d1dcc544952e55f9844aea73a3a8c2d90330b"
+    },
+    "verifier": {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/verify-recipe.mjs",
+      "sha256": "a4f2bb661d91505a22fa414b83cbba26dd6d4f63fcd5bc08d648e0368b97bba1"
+    }
+  },
+  "author": {
+    "sourceCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "evidenceCommit": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+    "handoff": {
+      "revision": "bcec1ead34aee37c8fe574b248a8242ad4f60cfa",
+      "path": "tests/commands/yq-author-20260828/HANDOFF.md",
+      "sha256": "1d9e9d40ac4f9feffa647ba6a337cee54f2f3d1bf2b965166bbb0741d335ab72"
+    },
+    "manifest": {
+      "revision": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+      "path": "tests/commands/yq-author-20260828/evidence-v4/SOURCE-MANIFEST.json",
+      "sha256": "cf63266b8970ff0369a4fd8e2ec6242857b7a401eae1b10a75cadf9532a5b740"
+    },
+    "archiveSha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc",
+    "packageSha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+    "entrySha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630"
+  },
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "contract": "bd471ef682d768692a682d40009a874f51e3ad68",
+  "independent": "de89e478d8ddce62eac955708f1b87d7be1bd137",
+  "previousIntegration": {
+    "commit": "ab729daa5a4eb891c7f3ac7f40d6ca0dbafbafe6",
+    "sealSha256": "2d57dd3eb5db77ed1e54c18c4309b96fef43aeedfde0355ffe168852aebb2e8a"
+  },
+  "packet": {
+    "commit": "71a16afd5b430175180fc4741531b75c31b25882",
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+    "fullReceipt": {
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+      "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56"
+    },
+    "buildReceipt": {
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/BOUND-AUTHOR-BUILD.json",
+      "sha256": "ef268ccd6e0e9edd1851f3acdc406ac89e939f167beb3124e82c3af106d70a2d"
+    },
+    "admissionReceipt": {
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/RESULT.json",
+      "sha256": "d0bacd61dd564b6ecfec6530aaea28b9b732af2f2677c68739b25b1ff546c2b3"
+    }
+  }
+}

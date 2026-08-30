@@ -1,0 +1,20 @@
+{
+  "exit": 0,
+  "tests": 2,
+  "pass": 2,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "records": [
+    {
+      "pass": true,
+      "name": "N1 control-first and invoke-first preserve original control through both authenticated routes"
+    },
+    {
+      "pass": true,
+      "name": "N2 false and NaN control reports do not authenticate unrelated or sibling throws"
+    }
+  ],
+  "naturalProcesses": 1
+}

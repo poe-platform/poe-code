@@ -1,0 +1,77 @@
+4447: 	      if (temp_handler == trap_handler && signal_is_trapped (SIGINT) == 0)
+4448: 		temp_handler = trap_to_sighandler (SIGINT);
+4449: 	      restore_sigint_handler ();
+4450: 	      if (temp_handler == SIG_DFL)
+4451: 		termsig_handler (SIGINT);	/* XXX */
+4452: 	      else if (temp_handler != SIG_IGN)
+4453: 		(*temp_handler) (SIGINT);
+4454: 	    }
+4455: 	}
+4456:     }
+4457: 
+4458:   return call_set_current;
+4459: }
+4460: 
+4461: /* Build the array of values for the $PIPESTATUS variable from the set of
+4462:    exit statuses of all processes in the job J. */
+4463: static void
+4464: setjstatus (int j)
+4465: {
+4466: #if defined (ARRAY_VARS)
+4467:   register int i;
+4468:   register PROCESS *p;
+4469: 
+4470:   for (i = 1, p = jobs[j]->pipe; p->next != jobs[j]->pipe; p = p->next, i++)
+4471:     ;
+4472:   i++;
+4473:   if (statsize < i)
+4474:     {
+4475:       pstatuses = (int *)xrealloc (pstatuses, i * sizeof (int));
+4476:       statsize = i;
+4477:     }
+4478:   i = 0;
+4479:   p = jobs[j]->pipe;
+4480:   do
+4481:     {
+4482:       pstatuses[i++] = process_exit_status (p->status);
+4483:       p = p->next;
+4484:     }
+4485:   while (p != jobs[j]->pipe);
+4486: 
+4487:   pstatuses[i] = -1;	/* sentinel */
+4488:   set_pipestatus_array (pstatuses, i);
+4489: #endif
+4490: }
+4491: 
+4492: void
+4493: run_sigchld_trap (int nchild)
+4494: {
+4495:   char *trap_command;
+4496:   int i;
+4497: 
+4498:   /* Turn off the trap list during the call to parse_and_execute ()
+4499:      to avoid potentially infinite recursive calls.  Preserve the
+4500:      values of last_command_exit_value, last_made_pid, and the_pipeline
+4501:      around the execution of the trap commands. */
+4502:   trap_command = savestring (trap_list[SIGCHLD]);
+4503: 
+4504:   begin_unwind_frame ("SIGCHLD trap");
+4505:   unwind_protect_int (last_command_exit_value);
+4506:   unwind_protect_int (last_command_exit_signal);
+4507:   unwind_protect_var (last_made_pid);
+4508:   unwind_protect_int (jobs_list_frozen);
+4509:   unwind_protect_pointer (the_pipeline);
+4510:   unwind_protect_pointer (subst_assign_varlist);
+4511:   unwind_protect_pointer (this_shell_builtin);
+4512:   unwind_protect_pointer (temporary_env);
+4513: 
+4514:   /* We have to add the commands this way because they will be run
+4515:      in reverse order of adding.  We don't want maybe_set_sigchld_trap ()
+4516:      to reference freed memory. */
+4517:   add_unwind_protect (xfree, trap_command);
+4518:   add_unwind_protect (uw_maybe_set_sigchld_trap, trap_command);
+4519: 
+4520:   subst_assign_varlist = (WORD_LIST *)NULL;
+4521:   the_pipeline = (PROCESS *)NULL;
+4522:   temporary_env = 0;	/* traps should not run with temporary env */
+4523: 

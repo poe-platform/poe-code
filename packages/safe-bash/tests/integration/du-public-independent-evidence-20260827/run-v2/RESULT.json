@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "seal": {
+    "commit": "5687fe0afe36749a9ec6527357acbb2eec518e4f",
+    "manifestSha256": "420da89268b544b466dda8aa3cc214dab668338233e557b3efe45dee84b6ccd7"
+  },
+  "mode": "scoped-committed-archive",
+  "startedAt": "2026-08-27T23:51:00.996Z",
+  "specifiedControls": 11,
+  "applicableControls": 9,
+  "heldControls": [
+    "A06",
+    "P03"
+  ],
+  "controls": [],
+  "authenticatedInputs": 0,
+  "materializedInputs": 0,
+  "emittedFiles": 0,
+  "packageMembers": 0,
+  "packReproduced": false,
+  "publicAdmitted": false,
+  "duCasesExecuted": 0,
+  "heldDuCases": 29,
+  "childrenStarted": 21,
+  "childrenClosed": 21,
+  "childProcessesActive": 0,
+  "peakChildOutputBytes": 0,
+  "peakObservedDiskBytes": 11359,
+  "phase": "settled",
+  "failure": {
+    "phase": "pre-authentication",
+    "name": "AssertionError",
+    "message": "never copy or read agent files in a census",
+    "stack": "AssertionError [ERR_ASSERTION]: never copy or read agent files in a census\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:67:14)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at census (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:87:3)\n    at selectedLive (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/executor.mjs:91:23)\n    at Module.run (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/executor.mjs:273:83)"
+  },
+  "scratchRemoved": true,
+  "postFailure": {
+    "message": "never copy or read agent files in a census",
+    "stack": "AssertionError [ERR_ASSERTION]: never copy or read agent files in a census\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:67:14)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:78:9)\n    at census (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs:87:3)\n    at selectedLive (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/executor.mjs:91:23)\n    at Module.run (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/admission-v2/executor.mjs:451:92)"
+  },
+  "childrenSettled": true,
+  "finishedAt": "2026-08-27T23:51:01.902Z",
+  "elapsedMs": 906,
+  "actualApplicablePasses": 0,
+  "applicableFailed": 0,
+  "applicableUnexecuted": 9,
+  "outcome": "STOPPED-no-retry"
+}

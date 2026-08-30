@@ -1,0 +1,313 @@
+{
+  "startedAt": "2026-08-27T03:24:21.253Z",
+  "fixtureSourceSha256": "57c4b9b71249b82ca68dce2979be26d13e7be5777d2778bd17e101b7ffe70ec6",
+  "fixtureSourceGitBlob": "772b70ce32a45e7d9403c6d05ef429e56b831cb9",
+  "envExecutable": {
+    "path": "/usr/bin/env",
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+  },
+  "rows": [
+    {
+      "profile": {
+        "name": "GNU5.3-primary",
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+      },
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "fixture": {
+        "name": "plain",
+        "body": "say bad",
+        "mode": 493,
+        "oldDiagnostic": "supported Bash shebang"
+      },
+      "inputBodyHex": "73617920626164",
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-vwkeES",
+      "environment": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-vwkeES/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-vwkeES",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC"
+      },
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./plain"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "6261640a",
+      "stderrHex": "",
+      "before": {
+        "env": {
+          "hex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+          "mode": 493
+        },
+        "plain": {
+          "hex": "73617920626164",
+          "mode": 493
+        },
+        "bin/bash": {
+          "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+        },
+        "bin/say": {
+          "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202725735c6e272022242a220a",
+          "mode": 493
+        },
+        "bin/sh": {
+          "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+        }
+      },
+      "after": {
+        "env": {
+          "hex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+          "mode": 493
+        },
+        "plain": {
+          "hex": "73617920626164",
+          "mode": 493
+        },
+        "bin/bash": {
+          "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+        },
+        "bin/say": {
+          "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202725735c6e272022242a220a",
+          "mode": 493
+        },
+        "bin/sh": {
+          "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+        }
+      },
+      "roles": "Profile Bash handles headerless executable fallback; say is a sandbox helper executed by the same pinned Bash."
+    },
+    {
+      "profile": {
+        "name": "GNU5.3-primary",
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+      },
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "fixture": {
+        "name": "env",
+        "body": "#!/usr/bin/env bash\nsay bad",
+        "mode": 493,
+        "oldDiagnostic": "unsupported interpreter"
+      },
+      "inputBodyHex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-vwkeES",
+      "environment": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-vwkeES/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-vwkeES",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC"
+      },
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./env"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "6261640a",
+      "stderrHex": "",
+      "before": {
+        "env": {
+          "hex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+          "mode": 493
+        },
+        "plain": {
+          "hex": "73617920626164",
+          "mode": 493
+        },
+        "bin/bash": {
+          "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+        },
+        "bin/say": {
+          "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202725735c6e272022242a220a",
+          "mode": 493
+        },
+        "bin/sh": {
+          "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+        }
+      },
+      "after": {
+        "env": {
+          "hex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+          "mode": 493
+        },
+        "plain": {
+          "hex": "73617920626164",
+          "mode": 493
+        },
+        "bin/bash": {
+          "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+        },
+        "bin/say": {
+          "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202725735c6e272022242a220a",
+          "mode": 493
+        },
+        "bin/sh": {
+          "target": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash"
+        }
+      },
+      "roles": "Profile Bash launches the executable; kernel shebang invokes actual /usr/bin/env; isolated PATH bash link selects the pinned profile; say helper also uses that profile."
+    },
+    {
+      "profile": {
+        "name": "Bash3.2-historical",
+        "executable": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+      },
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "fixture": {
+        "name": "plain",
+        "body": "say bad",
+        "mode": 493,
+        "oldDiagnostic": "supported Bash shebang"
+      },
+      "inputBodyHex": "73617920626164",
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-1kxHyU",
+      "environment": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-1kxHyU/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-1kxHyU",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC"
+      },
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./plain"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "6261640a",
+      "stderrHex": "",
+      "before": {
+        "env": {
+          "hex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+          "mode": 493
+        },
+        "plain": {
+          "hex": "73617920626164",
+          "mode": 493
+        },
+        "bin/bash": {
+          "target": "/bin/bash"
+        },
+        "bin/say": {
+          "hex": "23212f62696e2f626173680a7072696e7466202725735c6e272022242a220a",
+          "mode": 493
+        },
+        "bin/sh": {
+          "target": "/bin/bash"
+        }
+      },
+      "after": {
+        "env": {
+          "hex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+          "mode": 493
+        },
+        "plain": {
+          "hex": "73617920626164",
+          "mode": 493
+        },
+        "bin/bash": {
+          "target": "/bin/bash"
+        },
+        "bin/say": {
+          "hex": "23212f62696e2f626173680a7072696e7466202725735c6e272022242a220a",
+          "mode": 493
+        },
+        "bin/sh": {
+          "target": "/bin/bash"
+        }
+      },
+      "roles": "Profile Bash handles headerless executable fallback; say is a sandbox helper executed by the same pinned Bash."
+    },
+    {
+      "profile": {
+        "name": "Bash3.2-historical",
+        "executable": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+      },
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "fixture": {
+        "name": "env",
+        "body": "#!/usr/bin/env bash\nsay bad",
+        "mode": 493,
+        "oldDiagnostic": "unsupported interpreter"
+      },
+      "inputBodyHex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-1kxHyU",
+      "environment": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-1kxHyU/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/entrypoint-policy-review/.native-1kxHyU",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC"
+      },
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "./env"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "6261640a",
+      "stderrHex": "",
+      "before": {
+        "env": {
+          "hex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+          "mode": 493
+        },
+        "plain": {
+          "hex": "73617920626164",
+          "mode": 493
+        },
+        "bin/bash": {
+          "target": "/bin/bash"
+        },
+        "bin/say": {
+          "hex": "23212f62696e2f626173680a7072696e7466202725735c6e272022242a220a",
+          "mode": 493
+        },
+        "bin/sh": {
+          "target": "/bin/bash"
+        }
+      },
+      "after": {
+        "env": {
+          "hex": "23212f7573722f62696e2f656e7620626173680a73617920626164",
+          "mode": 493
+        },
+        "plain": {
+          "hex": "73617920626164",
+          "mode": 493
+        },
+        "bin/bash": {
+          "target": "/bin/bash"
+        },
+        "bin/say": {
+          "hex": "23212f62696e2f626173680a7072696e7466202725735c6e272022242a220a",
+          "mode": 493
+        },
+        "bin/sh": {
+          "target": "/bin/bash"
+        }
+      },
+      "roles": "Profile Bash launches the executable; kernel shebang invokes actual /usr/bin/env; isolated PATH bash link selects the pinned profile; say helper also uses that profile."
+    }
+  ],
+  "finishedAt": "2026-08-27T03:24:22.299Z",
+  "generatedFixtureNote": "Only generated native sandbox fixtures use filesystem writes, chmod and profile symlinks; exact no-final-newline bodies come from the immutable old TypeScript AST. Repository code/evidence edits use apply_patch. Scratch trees are removed in finally."
+}

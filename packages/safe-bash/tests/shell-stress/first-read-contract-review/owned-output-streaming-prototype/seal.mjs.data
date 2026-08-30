@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, existsSync, chmodSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve, relative } from 'node:path';
+import { execFileSync, spawnSync } from 'node:child_process';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const temp = '/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j';
+const candidate = resolve(temp,'candidate');
+const owned = resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const put = (path,text) => { assert.equal(existsSync(path),false,path); execFileSync('apply_patch',[],{input:`*** Begin Patch\n*** Add File: ${path}\n${text.replace(/\n$/,'').split('\n').map(line=>'+'+line).join('\n')}\n*** End Patch\n`,encoding:'utf8'}); };
+const json = (path,value) => put(path,JSON.stringify(value,null,2)+'\n');
+const walk = directory => readdirSync(directory,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(resolve(directory,entry.name)):entry.isFile()?[resolve(directory,entry.name)]:[]).sort();
+const inventory = (base,directory) => walk(resolve(base,directory)).map(path=>({path:relative(base,path),bytes:readFileSync(path).length,sha256:hash(readFileSync(path))}));
+const manifest = JSON.parse(readFileSync(resolve(owned,'tested-manifest.json')));
+for(const [directory,key] of [['src','sourceManifestSha256'],['tests','testManifestSha256'],['dist','compiledManifestSha256']]) assert.equal(hash(JSON.stringify(inventory(candidate,directory))),manifest[key]);
+for(const entry of manifest.compilerInputs) assert.equal(hash(readFileSync(entry.path)),entry.sha256);
+for(const entry of manifest.restoreInputs) assert.equal(hash(readFileSync(resolve(root,entry.path))),entry.sha256);
+for(const entry of manifest.tooling) assert.equal(hash(readFileSync(resolve(root,entry.path))),entry.sha256);
+put(resolve(owned,'seal.mjs.data'),readFileSync(resolve(temp,'seal.mjs'),'utf8'));
+const checker = '/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py';
+const checked = spawnSync('python3',[checker,resolve(owned,'CONTRACT.md')],{cwd:root,encoding:'utf8',timeout:5000});
+assert.equal(checked.status,0); assert.equal(checked.signal,null); assert.throws(()=>process.kill(checked.pid,0),{code:'ESRCH'});
+json(resolve(owned,'contract-check.json'),{command:['python3',checker,resolve(owned,'CONTRACT.md')],checkerSha256:hash(readFileSync(checker)),contractSha256:hash(readFileSync(resolve(owned,'CONTRACT.md'))),status:checked.status,signal:checked.signal,pid:checked.pid,reaped:true,stdout:checked.stdout,stderr:checked.stderr});
+const declarations = ['contracts/output.d.ts','contracts/io.d.ts','commands/network/types.d.ts','index.d.ts'].map(path=>{
+  const bytes=readFileSync(resolve(candidate,'dist',path)); const inert=readFileSync(resolve(owned,'declarations',`${path}.data`));
+  return {path,sha256:hash(bytes),base64:bytes.toString('base64'),inertTextSha256:hash(inert),textCaptureAddsTerminalNewline:!bytes.equals(inert)};
+});
+json(resolve(owned,'declarations/exact-bytes.json'),{note:'Compiled declarations have no terminal newline; inert text convenience copies add one. Base64 retains exact original bytes and compiled manifests authenticate originals.',declarations});
+const readonly = directory => { for(const entry of readdirSync(directory,{withFileTypes:true})) { const path=resolve(directory,entry.name); if(entry.isDirectory())readonly(path);else if(entry.isFile())chmodSync(path,0o444); } chmodSync(directory,0o555); };
+readonly(candidate); readonly(resolve(temp,'baseline'));
+const restored = JSON.parse(readFileSync(resolve(owned,'reconstruction-proof.json')));
+const authenticated = JSON.parse(readFileSync(resolve(owned,'authentication.json')));
+for(const target of [candidate,restored.candidate,authenticated.candidate]) {
+  assert.equal(statSync(target).mode&0o222,0);
+  assert.ok(walk(target).every(path=>(statSync(path).mode&0o222)===0));
+}
+const oldDirectories = ['tests/shell-stress/first-read-contract-review/owned-output-prototype','tests/shell-stress/first-read-contract-review/owned-output-direction-prototype'];
+assert.equal(execFileSync('git',['diff','--name-only','--',...oldDirectories],{cwd:root,encoding:'utf8'}),'');
+assert.equal(execFileSync('git',['diff','--cached','--name-only','--',...oldDirectories],{cwd:root,encoding:'utf8'}),'');
+const runs = walk(resolve(owned,'runs')).map(path=>({path:relative(owned,path),report:JSON.parse(readFileSync(path))}));
+for(const {report} of runs) { assert.equal(report.groupExistsAfterClose,false); assert.equal(report.pidAfterClose,''); assert.equal(report.closeEventObserved,true); }
+const sealedAt = new Date().toISOString();
+json(resolve(owned,'closure.json'),{sealedAt,authorLifecycle:'still executing final evidence commit; root must observe actual CLOSED after final response',allSupervisedRunsClosed:true,supervisedRuns:runs.length,supervisorSignals:runs.flatMap(({report})=>report.signals),normalNonzeroOriginalProbeRun:'historical-r0-original-five-and-head-zero exits1; preserved expected historical failures, not a passing gate',loopback:'S2 normal server.close and zero socket count asserted; adapted fixtures observe remote closure; all child groups absent on close',readonlyCandidates:[candidate,restored.candidate,authenticated.candidate],readonlyOwnedRegularFiles:true,devToolSymlink:'existing node_modules external symlink deliberately not chmodded; exact tool hashes recorded',noPollerOrStoppedWorker:true,originalEvidenceDirectoriesUnmodified:true});
+const seal = {sealedAt,status:'STREAMING_READY_READONLY_AWAIT_ACTUAL_AUTHOR_CLOSED',implementedThroughLive:'Not applicable',apiVersion:'S1',apiSha256:manifest.apiSha256,contractSha256:manifest.contractSha256,sourceManifestSha256:manifest.sourceManifestSha256,testManifestSha256:manifest.testManifestSha256,compiledManifestSha256:manifest.compiledManifestSha256,testedManifestSha256:hash(readFileSync(resolve(owned,'tested-manifest.json'))),sourceAfterRunsAuthenticated:true,candidateReadonly:true,candidate,importPath:manifest.importPath,outputImportPath:manifest.outputImportPath,declarationPath:manifest.declarationPath,reconstructedCandidate:restored.candidate,reconstructionProofSha256:hash(readFileSync(resolve(owned,'reconstruction-proof.json'))),sourceFixRounds:0,fixtureCorrectionRounds:1,authorLogicalCases:6,results:{authorR0:'6/6',authorR1:'6/6',original5:'1/5',optin5:'5/5',legacy57:'57/57',legacy9:'9/9',oldAuthor12:'12/12 separate historical replay',native5:'preserved, not rerun',old16:'not replayed',oldV2Author8AndNew7:'immutable historical, not acceptance'},baselineCommit:'ddbb4d10',sourceCommit:'c5e2d338',initialControlCommit:'15fd7426',fixtureCorrectionCommit:'ba56e1aa',observedWorkInterval:{from:authenticated.completedAt,to:sealedAt,claim:'Bounded recorded verification interval, not continuous work or 72h completion'},authorization:'No production permission/current full gate/superiority/all-original5 closure. Independent execution only when root observes actual author CLOSED.'};
+json(resolve(owned,'SEAL.json'),seal);
+const artifacts = inventory(owned,'.');
+json(resolve(owned,'ARTIFACTS.json'),{sealedAt,excludes:['ARTIFACTS.json itself'],files:artifacts,manifestSha256:hash(JSON.stringify(artifacts))});
+console.log(JSON.stringify({sealedAt,candidate,sourceManifestSha256:seal.sourceManifestSha256,ownedArtifacts:artifacts.length,actualClosedStillRequired:true}));

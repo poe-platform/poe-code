@@ -1,0 +1,311 @@
+{
+  "schema": 1,
+  "status": "STATIC_OVERLAY_NO_RECOMPOSITION_OR_GO",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3",
+  "baseComposition": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "baseAssemblySeal": {
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+    "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+    "bytes": 14288
+  },
+  "entries": [
+    {
+      "target": "core/capture-budget-v3.mjs",
+      "operation": "add-only-if-absent",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/capture-budget-v3.mjs",
+        "kind": "absent",
+        "mustBeAbsent": true
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/capture-budget-v3.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 6289,
+        "sha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/owned-process.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/owned-process.mjs",
+        "kind": "file",
+        "sha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+        "bytes": 5989,
+        "mode": 420,
+        "blob": "2e6fdcedc7ced9509aa18262671de2b805d4a020",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1owned-process.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7803,
+        "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/phase-capture.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/phase-capture.mjs",
+        "kind": "file",
+        "sha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+        "bytes": 2230,
+        "mode": 420,
+        "blob": "55fd36e6f4f2e097df673b0c617e3fd1f1f2010f",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1phase-capture.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/phase-capture.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 4240,
+        "sha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/supervisor.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/supervisor.mjs",
+        "kind": "file",
+        "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+        "bytes": 25075,
+        "mode": 420,
+        "blob": "197ffe621704ff373cdac3305018450e67c4cc67",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1supervisor.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 27596,
+        "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    }
+  ],
+  "relativeImportEdges": [
+    {
+      "from": "core/capture-budget-v3.mjs",
+      "specifier": "node:path",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/capture-budget-v3.mjs",
+      "specifier": "./primitives.mjs",
+      "target": "core/primitives.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044,
+      "mode": 420
+    },
+    {
+      "from": "core/owned-process.mjs",
+      "specifier": "node:child_process",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/owned-process.mjs",
+      "specifier": "node:crypto",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/owned-process.mjs",
+      "specifier": "node:fs",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/owned-process.mjs",
+      "specifier": "node:path",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/owned-process.mjs",
+      "specifier": "./primitives.mjs",
+      "target": "core/primitives.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044,
+      "mode": 420
+    },
+    {
+      "from": "core/owned-process.mjs",
+      "specifier": "./capture-budget-v3.mjs",
+      "target": "core/capture-budget-v3.mjs",
+      "kind": "owned-overlay"
+    },
+    {
+      "from": "core/phase-capture.mjs",
+      "specifier": "node:fs",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/phase-capture.mjs",
+      "specifier": "node:path",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/phase-capture.mjs",
+      "specifier": "./primitives.mjs",
+      "target": "core/primitives.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044,
+      "mode": 420
+    },
+    {
+      "from": "core/phase-capture.mjs",
+      "specifier": "./capture-budget-v3.mjs",
+      "target": "core/capture-budget-v3.mjs",
+      "kind": "owned-overlay"
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "node:crypto",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "node:fs",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "node:path",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "node:url",
+      "kind": "builtin"
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./primitives.mjs",
+      "target": "core/primitives.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044,
+      "mode": 420
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./admission.mjs",
+      "target": "core/admission.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "e21f6d31eaca277cb1f2ae81bc4a5e10ba844dad268303e2c34d69e71eccbd94",
+      "bytes": 9159,
+      "mode": 420
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./owned-process.mjs",
+      "target": "core/owned-process.mjs",
+      "kind": "owned-overlay"
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./phase-capture.mjs",
+      "target": "core/phase-capture.mjs",
+      "kind": "owned-overlay"
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./tool-bridge.mjs",
+      "target": "core/tool-bridge.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "5837e2f3f36fafdd9c5f935610a9b23601b4353a5302b11cde4983a67308477d",
+      "bytes": 8640,
+      "mode": 420
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./classification.mjs",
+      "target": "core/classification.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c",
+      "bytes": 1107,
+      "mode": 420
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./tool-profile.mjs",
+      "target": "core/tool-profile.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "ee9c0db3b961af6d9b2e5cab6172c6200b8ed650f2d8554cc5a361a693900ce2",
+      "bytes": 1583,
+      "mode": 420
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./coverage.mjs",
+      "target": "core/coverage.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "c4816093400d404c9b804e881b1b928d4c03265d843f43a8e1aacd6c5e757f2a",
+      "bytes": 1856,
+      "mode": 420
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./build-adapter.mjs",
+      "target": "core/build-adapter.mjs",
+      "kind": "baseline-dependency",
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "c6482449fc028b7890955203513991707e42d56e3ad37178e4466c8d69e46a45",
+      "bytes": 12497,
+      "mode": 420
+    },
+    {
+      "from": "core/supervisor.mjs",
+      "specifier": "./capture-budget-v3.mjs",
+      "target": "core/capture-budget-v3.mjs",
+      "kind": "owned-overlay"
+    }
+  ],
+  "assemblyRoot": "ROOT_OWNED_FUTURE_FRESH_COMPOUND_ONLY",
+  "parentDirectoryMode": 493,
+  "sourceFilesMode": 420,
+  "disjointFromFcF01": true,
+  "forbiddenTargetChanges": [
+    "core/worker-api.mjs",
+    "FC-F01 tool-request helper",
+    "workers/**",
+    "product/**"
+  ],
+  "combinedClosureAuthority": "Root must seal the complete fresh union, including separately accepted FC-F01. Baseline inspection references do not veto an independently approved disjoint FC-F01 overlay.",
+  "RootGO": false
+}

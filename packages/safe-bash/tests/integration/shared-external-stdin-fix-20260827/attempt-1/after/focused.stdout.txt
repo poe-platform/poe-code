@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: unread external return throw preserves Error identity
+ok 1 - unread external return throw preserves Error identity
+  ---
+  duration_ms: 3.224333
+  type: 'test'
+  ...
+# Subtest: unread external return throw preserves undefined identity
+ok 2 - unread external return throw preserves undefined identity
+  ---
+  duration_ms: 0.485625
+  type: 'test'
+  ...
+# Subtest: unread external return throw preserves null identity
+ok 3 - unread external return throw preserves null identity
+  ---
+  duration_ms: 0.312334
+  type: 'test'
+  ...
+# Subtest: grep early stop preserves external return throw
+ok 4 - grep early stop preserves external return throw
+  ---
+  duration_ms: 16.291292
+  type: 'test'
+  ...
+# Subtest: egrep early stop preserves external return throw
+ok 5 - egrep early stop preserves external return throw
+  ---
+  duration_ms: 14.588458
+  type: 'test'
+  ...
+# Subtest: fgrep early stop preserves external return throw
+ok 6 - fgrep early stop preserves external return throw
+  ---
+  duration_ms: 14.523875
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves Error identity
+ok 7 - unread external return reject preserves Error identity
+  ---
+  duration_ms: 0.290791
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves undefined identity
+ok 8 - unread external return reject preserves undefined identity
+  ---
+  duration_ms: 0.194541
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves null identity
+ok 9 - unread external return reject preserves null identity
+  ---
+  duration_ms: 0.21725
+  type: 'test'
+  ...
+# Subtest: grep early stop preserves external return reject
+ok 10 - grep early stop preserves external return reject
+  ---
+  duration_ms: 15.484166
+  type: 'test'
+  ...
+# Subtest: egrep early stop preserves external return reject
+ok 11 - egrep early stop preserves external return reject
+  ---
+  duration_ms: 13.939625
+  type: 'test'
+  ...
+# Subtest: fgrep early stop preserves external return reject
+ok 12 - fgrep early stop preserves external return reject
+  ---
+  duration_ms: 13.968958
+  type: 'test'
+  ...
+# Subtest: nonzero command result does not erase an awaited external return failure
+ok 13 - nonzero command result does not erase an awaited external return failure
+  ---
+  duration_ms: 0.325083
+  type: 'test'
+  ...
+# Subtest: owning close shares a rejected completion and returns once
+ok 14 - owning close shares a rejected completion and returns once
+  ---
+  duration_ms: 0.09275
+  type: 'test'
+  ...
+# Subtest: EOF does not call an unnecessary rejecting return
+ok 15 - EOF does not call an unnecessary rejecting return
+  ---
+  duration_ms: 0.291042
+  type: 'test'
+  ...
+# Subtest: selected execution rejection outranks an external close rejection
+ok 16 - selected execution rejection outranks an external close rejection
+  ---
+  duration_ms: 0.347042
+  type: 'test'
+  ...
+# Subtest: caller abort during an awaited return wins and observes its late rejection
+ok 17 - caller abort during an awaited return wins and observes its late rejection
+  ---
+  duration_ms: 0.783584
+  type: 'test'
+  ...
+# Subtest: disposal still interrupts an unregistered external return wait
+ok 18 - disposal still interrupts an unregistered external return wait
+  ---
+  duration_ms: 0.338875
+  type: 'test'
+  ...
+# Subtest: pending opaque next does not force awaiting a rejected return
+ok 19 - pending opaque next does not force awaiting a rejected return
+  ---
+  duration_ms: 0.640875
+  type: 'test'
+  ...
+# Subtest: opaque generator queued return remains outside the public abort barrier
+ok 20 - opaque generator queued return remains outside the public abort barrier
+  ---
+  duration_ms: 0.361708
+  type: 'test'
+  ...
+# Subtest: sequential borrowers retain the cursor until one final rejecting owner close
+ok 21 - sequential borrowers retain the cursor until one final rejecting owner close
+  ---
+  duration_ms: 0.549334
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 504.485

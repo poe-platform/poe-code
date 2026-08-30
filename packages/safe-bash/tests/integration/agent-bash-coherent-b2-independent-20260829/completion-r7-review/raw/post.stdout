@@ -1,0 +1,205 @@
+{
+  "controls": [
+    {
+      "id": "T01-short-complete",
+      "pass": true,
+      "caughtPresent": false,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T02-zero-write",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T03-oversize-write",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T04-write-false",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T05-write-undefined",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T06-close-zero",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T07-close-undefined",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "T08-primary-before-close",
+      "pass": true,
+      "caughtPresent": true,
+      "closeCalls": 1,
+      "syntheticOnly": true
+    },
+    {
+      "id": "N01-cumulative-cap",
+      "pass": true,
+      "independent": true
+    },
+    {
+      "id": "N02-sticky-failure",
+      "pass": true,
+      "independent": true
+    },
+    {
+      "id": "N03-inode-replacement",
+      "pass": true,
+      "independent": true
+    },
+    {
+      "id": "N04-retirement-required",
+      "pass": true,
+      "independent": true
+    },
+    {
+      "id": "N05-incomplete-jsonl",
+      "pass": true,
+      "independent": true
+    },
+    {
+      "id": "N06-trace-tamper",
+      "pass": true,
+      "independent": true
+    }
+  ],
+  "children": [
+    {
+      "id": "H01",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/private/tmp/b2-r7-independent-harmless-20260829",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--allow-fs-write=/private/tmp/b2-r7-independent-harmless-20260829/H01",
+        "--allow-fs-write=/private/tmp/b2-r7-independent-harmless-20260829/tmp",
+        "--allow-fs-write=/private/tmp/b2-r7-independent-harmless-20260829/H01/trace.jsonl",
+        "--allow-worker",
+        "--loader",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/loader.mjs",
+        "/private/tmp/b2-r7-independent-harmless-20260829/H01/entry.mjs"
+      ],
+      "exitPresent": true,
+      "closePresent": true,
+      "signals": [],
+      "started": "2026-08-29T15:40:58.588Z",
+      "pid": 28405,
+      "exitCode": 0,
+      "exitSignal": null,
+      "closeCode": 0,
+      "closeSignal": null,
+      "closedAt": "2026-08-29T15:40:58.659Z",
+      "stdout": {
+        "bytes": 10,
+        "sha256": "c1a4280b371237a8d19e47cb65eefd0eef66e91f28dc78510bad27978308e340"
+      },
+      "stderr": {
+        "bytes": 807,
+        "sha256": "f7e1ce4494dba2864e6617202ccc16f0050cd2f5f2d6b8c24f3277b3eb535577"
+      },
+      "trace": {
+        "bytes": 216,
+        "sha256": "6bdf71858062a64dfbb6a72fdce615369a08c3c2f399521ac15ddf43a1db925e",
+        "records": [
+          {
+            "kind": "authenticated-source-prepared",
+            "url": "file:///private/tmp/b2-r7-independent-harmless-20260829/H01/entry.mjs",
+            "member": "entry.mjs",
+            "sha256": "2db7cc97a36f4fbada2f85568374d2c7cc6d3e0f545a2856fe5670978a8d4055"
+          }
+        ],
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      "expectedLiteralObserved": true
+    },
+    {
+      "id": "H02",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/private/tmp/b2-r7-independent-harmless-20260829",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--allow-fs-write=/private/tmp/b2-r7-independent-harmless-20260829/H02",
+        "--allow-fs-write=/private/tmp/b2-r7-independent-harmless-20260829/tmp",
+        "--allow-fs-write=/private/tmp/b2-r7-independent-harmless-20260829/H02/trace.jsonl",
+        "--allow-worker",
+        "--loader",
+        "file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/loader.mjs",
+        "/private/tmp/b2-r7-independent-harmless-20260829/H02/entry.mjs"
+      ],
+      "exitPresent": true,
+      "closePresent": true,
+      "signals": [],
+      "started": "2026-08-29T15:40:58.660Z",
+      "pid": 28406,
+      "exitCode": 0,
+      "exitSignal": null,
+      "closeCode": 0,
+      "closeSignal": null,
+      "closedAt": "2026-08-29T15:40:58.730Z",
+      "stdout": {
+        "bytes": 10,
+        "sha256": "8e5b2687ddcd46841353bae8b41ebafb3553d9e87db1006ece9ad3d8645a96e9"
+      },
+      "stderr": {
+        "bytes": 807,
+        "sha256": "15f9e6982b39c938fb73175e76df8c0e4cca034585f4516e6e2586c3bcc3d972"
+      },
+      "trace": {
+        "bytes": 436,
+        "sha256": "95aeb312334b7d8c15b4723b1d53a4574d854199d30acf9cb2209b1b6d8d783e",
+        "records": [
+          {
+            "kind": "authenticated-source-prepared",
+            "url": "file:///private/tmp/b2-r7-independent-harmless-20260829/H02/entry.mjs",
+            "member": "entry.mjs",
+            "sha256": "399075c3312377eae2a2e5ed43b75fd6645069617ce887e22bfa85123218d56a"
+          },
+          {
+            "kind": "authenticated-source-prepared",
+            "url": "file:///private/tmp/b2-r7-independent-harmless-20260829/H02/literal.mjs",
+            "member": "literal.mjs",
+            "sha256": "4c37cf2542553fc25802d59efa94f8056f1342b22e7a510fc711d719065c9773"
+          }
+        ],
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      "expectedLiteralObserved": true
+    }
+  ],
+  "loaderAdmissions": 2,
+  "guestEntries": 0,
+  "productRuns": 0,
+  "started": "2026-08-29T15:40:58.579Z",
+  "status": "PASS",
+  "ended": "2026-08-29T15:40:58.731Z"
+}
+POSTGUARDS source34/package930368/no-decode/pending-null/future-roots-absent PASS
+R6 permission argv literal unchanged
+UTC 2026-08-29T15:41:36.922Z

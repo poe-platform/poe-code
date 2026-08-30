@@ -1,0 +1,12 @@
+[
+  {
+    "id": "borrowed-offset-finalizer-newline",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 13
+  },
+  {
+    "id": "borrowed-offset-finalizer-nul",
+    "script": "sort -sz -t: -k2,2n",
+    "inputBytes": 13
+  }
+]

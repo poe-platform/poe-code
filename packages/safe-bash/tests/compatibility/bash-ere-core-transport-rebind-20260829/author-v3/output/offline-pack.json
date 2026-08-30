@@ -1,0 +1,48 @@
+{
+  "id": "offline-pack",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "pack",
+    "--offline",
+    "--ignore-scripts",
+    "--json",
+    "--userconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+    "--globalconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+    "--pack-destination=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source",
+  "started": "2026-08-29T16:06:18.186Z",
+  "pid": 53117,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "signals": [],
+  "primaryPresent": false,
+  "primary": null,
+  "bytes": {
+    "stdout": 113591,
+    "stderr": 208
+  },
+  "finished": "2026-08-29T16:06:19.717Z",
+  "stdout": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.stdout",
+    "size": 113591,
+    "mode": 384,
+    "sha256": "a699777fd24947f9fb74e14755d5a07f26f1a9afc825dc9f5887b494e805619c"
+  },
+  "stderr": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.stderr",
+    "size": 208,
+    "mode": 384,
+    "sha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+  },
+  "retired": true
+}

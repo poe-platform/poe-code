@@ -1,0 +1,10 @@
+{
+  "privateUnchanged": true,
+  "eligibleAdditionsChecked": true,
+  "sourceOrEngineExecutions": 0,
+  "failure": "Reviewer assumed npm existed beside the pinned Node24 binary; actual existing npm is Node22 installation",
+  "rawSHA256": "41b39bec2c762751855065e6dd10db0c4f2c2d7ffe817b9578df8b600648773f",
+  "compressedSHA256": "293b464554b392709b9de3a9e468b974797b7ed91c20e2dc2909509814dc6dd6",
+  "entries": 1413,
+  "cleanup": "Only exact enumerated owned scratch, authenticated immediately before removal"
+}

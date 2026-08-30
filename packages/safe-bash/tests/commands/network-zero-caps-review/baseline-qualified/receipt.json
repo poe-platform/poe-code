@@ -1,0 +1,85 @@
+{
+  "mode": "baseline",
+  "commit": "bdb49bb1c2b2c5646e1ed8666bf53ebf3bb6433c",
+  "baselineCommit": "bdb49bb1c2b2c5646e1ed8666bf53ebf3bb6433c",
+  "started": "2026-08-27T16:27:19.838Z",
+  "commands": [
+    {
+      "command": "git",
+      "args": [
+        "archive",
+        "--format=tar",
+        "bdb49bb1c2b2c5646e1ed8666bf53ebf3bb6433c",
+        "src",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.build.json"
+      ],
+      "status": 0,
+      "signal": null
+    },
+    {
+      "command": "tar",
+      "args": [
+        "-xf",
+        "-",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-rNgAb3/archive"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-rNgAb3/archive/tsconfig.build.json",
+        "--outDir",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-rNgAb3/built/dist",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/entry.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"passed\":236,\"failed\":0,\"skipped\":66}",
+      "stderr": ""
+    }
+  ],
+  "scope": "Exact Git archive of all src plus package/build configuration; not whole repository gate",
+  "tools": {
+    "node": "v22.22.2",
+    "tsc": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+  },
+  "frozenProfile": "8bc90dfe73daebb944f406c5a53f506879c3ff0db5e05b5c7fa919c6a860d67c",
+  "gitArchiveSha256": "c8398018afbe04e9348c53c8a7bafdb060e15d13832a3de674de81a4fae91d84",
+  "archiveBefore": {
+    "entries": 265,
+    "sha256": "2d42d788be0ae8643e0be77fe0d8e92d02bc4ac3fe3e9097ca2bf6ab524fb0e9"
+  },
+  "runtimeStatus": 0,
+  "runtimeCounts": {
+    "passed": 236,
+    "failed": 0,
+    "skipped": 66
+  },
+  "archiveAfter": {
+    "entries": 265,
+    "sha256": "2d42d788be0ae8643e0be77fe0d8e92d02bc4ac3fe3e9097ca2bf6ab524fb0e9"
+  },
+  "scratchRemoved": true,
+  "finished": "2026-08-27T16:27:22.660Z"
+}

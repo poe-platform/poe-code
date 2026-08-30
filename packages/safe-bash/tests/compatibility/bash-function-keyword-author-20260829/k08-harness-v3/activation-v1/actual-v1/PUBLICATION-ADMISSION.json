@@ -1,0 +1,164 @@
+{
+  "schema": "k08-v3-actual-publication-admission",
+  "at": "2026-08-29T16:26:14.081Z",
+  "inclusiveDeadline": "2026-08-29T16:45:10.822Z",
+  "sourceRawRoot": "/private/tmp/safe-bash-k08-author-RAvH2m/future-v3-capture",
+  "publishedRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/actual-v1",
+  "files": [
+    {
+      "path": "raw/part-001.json",
+      "bytes": 1050143,
+      "sha256": "f212254a22d75835df3cc7ad09db9b84fd8f043fc3b8b101189e45f721404bc6"
+    },
+    {
+      "path": "raw/part-002.json",
+      "bytes": 1502254,
+      "sha256": "5b0f72645616016471f85d3ca7b5cc3394d592dec05c0e8091db47ec6c1be73a"
+    },
+    {
+      "path": "raw/part-003.json",
+      "bytes": 1530826,
+      "sha256": "94ca3b1c89a3a85053bb07b4f70a6585862ac14d91a060d00d1b17718cecc17e"
+    },
+    {
+      "path": "raw/part-004.json",
+      "bytes": 1562107,
+      "sha256": "44c1f83e54c885a1694156b295ff2abedb6163dfb8870be6dfd08c503402e4b3"
+    },
+    {
+      "path": "raw/part-005.json",
+      "bytes": 1531493,
+      "sha256": "319439192208e5134f8738ef00e455ba45971082dc51c2b4d7880e9624e8041f"
+    },
+    {
+      "path": "raw/part-006.json",
+      "bytes": 1558972,
+      "sha256": "c90c4b8b986bc8f8bf4ae8e7720a01966ba5ca565a9084526c5acbd6e247c340"
+    },
+    {
+      "path": "raw/part-007.json",
+      "bytes": 1523878,
+      "sha256": "56b69e36b02a784d86cc3988f3d615336a312f9eb1a05cff6c52e8a4f50e445c"
+    },
+    {
+      "path": "raw/part-008.json",
+      "bytes": 1551370,
+      "sha256": "6c9bd553fb4e8f0c69014d1fae5c91ff4a6d2bd81cc96489bb1686d82199445d"
+    },
+    {
+      "path": "raw/part-009.json",
+      "bytes": 1525210,
+      "sha256": "2361222e1c0382420ece13ca3d5be196567d3c6fc7631b25b0cd615192b95319"
+    },
+    {
+      "path": "raw/part-010.json",
+      "bytes": 1549246,
+      "sha256": "98d073e43b68de3dd05f005ff6cb384917ff8e09945a6344b147a3373e6a6a00"
+    },
+    {
+      "path": "raw/part-011.json",
+      "bytes": 1491339,
+      "sha256": "f6f370b1fc1b344e52b112218b4166724b40512ab626d218d30a1d51e8a27d70"
+    },
+    {
+      "path": "raw/part-012.json",
+      "bytes": 1482130,
+      "sha256": "ded5b77d20ccbdcb7aebc10b620d3aaf45bf0936e6d72936df1808844088ea4e"
+    },
+    {
+      "path": "raw/part-013.json",
+      "bytes": 1482586,
+      "sha256": "6b84b73bbd09a710181ac0ab855892dd30e2c4164dcbca72299083ddd5bf0e49"
+    },
+    {
+      "path": "raw/part-014.json",
+      "bytes": 1533609,
+      "sha256": "0e6de702f2d8766b3c32e5ee96c91d2c596b62da8a29dbfd531661113378137c"
+    },
+    {
+      "path": "raw/part-015.json",
+      "bytes": 314842,
+      "sha256": "732f3a6bd7c26e188368e166c1fd2bd9f959d913964108d85fb7ae76a1427f2b"
+    },
+    {
+      "path": "RAW-MANIFEST.json",
+      "bytes": 107852,
+      "sha256": "19473b84459e5f86f266ee98d9248e8d4935a7442ffc3d6cfe99b880e007cb59"
+    },
+    {
+      "path": "TERMINAL-SUMMARY.json",
+      "bytes": 10489,
+      "sha256": "15c4791d14871cf729929ed06e262616fa801077bcab1dfb9144971d22c566b9"
+    },
+    {
+      "path": "MATRIX.json",
+      "bytes": 67475,
+      "sha256": "b71a587f1a53d3b3760770ef690860a4d22d6f65efeed2fce8ced9b8404c76bf"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3628,
+      "sha256": "09b16452f8752ed667af1d3bd2c5e959dc477656feb2cf6f693e7159f5f158ef"
+    }
+  ],
+  "exactRawRoundtrip": {
+    "entries": 469,
+    "bytes": 15816908,
+    "allHashesVerified": true
+  },
+  "freshSamples": [
+    {
+      "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+      "at": 1788020774079,
+      "bytes": 80228029,
+      "entries": 7688,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    {
+      "root": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W",
+      "at": 1788020774080,
+      "bytes": 4188,
+      "entries": 7,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation-v1/actual-v1",
+      "at": 1788020774080,
+      "bytes": 21379449,
+      "entries": 21,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    }
+  ],
+  "combinedSampledOwnedFileBytes": 101611666,
+  "qualification": "File-based invocation-local immutable snapshots; logical sampled files, not RSS/continuous quota or historical peak",
+  "observedKnownRuntimeStarts": 79,
+  "observedAdministrativeStarts": 2,
+  "observedOutstanding": 0,
+  "reservedRemainingAdministrativeStarts": 5,
+  "maximumAllKnown": 86,
+  "administrativeLedgerPath": "/private/tmp/safe-bash-k08-v3-actual-record-TlpK9W/capture/LEDGER.json",
+  "futurePublicationRoles": [
+    "apply_patch this receipt",
+    "git add explicit scope",
+    "git diff --cached --check explicit scope",
+    "git commit --only explicit scope",
+    "git status explicit scope"
+  ],
+  "futureRoleQualification": "Reservation only; final actual counts and ledger hash will be reported after those roles settle, never inferred from this list",
+  "rawOwnerPin": {
+    "bytes": 788791,
+    "sha256": "93e85cf8af7297c0ce2280b1a0be8ef47b7a211d729544b774fe15a0a74d2d08"
+  },
+  "rawCollectorPin": {
+    "bytes": 1631,
+    "sha256": "47e069bb1048b87906011ddb3bdfdf0835325ec133d0a4782941be566561b8e1"
+  },
+  "actualCalls": {
+    "primary": 69,
+    "mutantShell": 2
+  },
+  "nativeRuns": 0,
+  "builds": 0,
+  "types": 0,
+  "restoreCalls": 0
+}

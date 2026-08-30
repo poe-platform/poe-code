@@ -1,0 +1,43 @@
+{
+  "status": "Unchanged M1A fixed values; M1B accounting proposal, not implemented",
+  "sourceCommit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "sourcePath": "src/commands/git/limits.ts",
+  "limits": {
+    "maxArgumentBytes": 65536,
+    "maxPathBytes": 4096,
+    "maxReadBytes": 67108864,
+    "maxInflatedBytes": 134217728,
+    "maxObjectBytes": 8388608,
+    "maxWorkingFileBytes": 8388608,
+    "maxIndexBytes": 16777216,
+    "maxMetadataBytes": 1048576,
+    "maxResidentBytes": 67108864,
+    "maxEntries": 20000,
+    "maxObjects": 32768,
+    "maxCommits": 2000,
+    "maxDepth": 128,
+    "maxRefDepth": 16,
+    "maxDeltaDepth": 32,
+    "maxSteps": 32000000,
+    "maxDiffCells": 1000000,
+    "maxLines": 200000,
+    "maxOutputBytes": 16777216,
+    "maxDiagnosticBytes": 65536,
+    "maxChunkBytes": 65536,
+    "maxChunks": 32768,
+    "maxPacks": 8,
+    "maxPackBytes": 33554432
+  },
+  "rules": [
+    "All caps apply simultaneously, with no public override or per-pack reset.",
+    "Inflated charges codec-produced bytes plus delta reconstructed bytes, including discarded duplicates.",
+    "Object cap independently applies to raw direct body, delta program and reconstructed body.",
+    "Resident reserves precede allocation and include concurrently live owners and index metadata.",
+    "Byte scans, checksums, copies, comparisons and delta instructions charge work before performing it.",
+    "Explicit work checkpoints at most4096 units apart preserve the M1A cooperative profile, not native preemption.",
+    "Releasing owners refunds resident occupancy only, never read/inflate/work or intrinsic delta depth.",
+    "Count physical pack entries for verification/entry work; count deduplicated object names separately.",
+    "Root direct object delta depth0; each delta edge adds1 even when its base is already cached.",
+    "Provider allocations, JS overhead and native zlib allocations are not an exact process-RSS bound."
+  ]
+}

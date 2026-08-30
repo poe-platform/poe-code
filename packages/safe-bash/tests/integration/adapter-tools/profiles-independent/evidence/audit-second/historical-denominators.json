@@ -1,0 +1,433 @@
+{
+  "oldAuthor": {
+    "revision": "b2ecb594b766b13c143cc4cfec51cb245d1817da",
+    "sourceTree": "67da7e232729bb75fc3313f80d644112558dc1fa",
+    "sourceManifestSha256": "0bf604ee810f6ac5dd2cdf771934288fe654700f9b3f6875903592df47f314d1",
+    "matrixSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+    "commandWorkloadsAndAssertionsSha256": "2d6700674dbaadd10fba3765def70a647709ed7578c10bbc2f783fe4cbac64bf",
+    "stockFixtureSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+    "configuredFixtureSha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba",
+    "mockSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "atomicHelperSha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+    "packSha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf",
+    "generatedBuildSha256": "693a50d3ba681bb3afc2f5f8e4ae8edf84091ed4f492935a95f2f54c5bd4a8e0",
+    "loadedSummary": {
+      "packed-stock79": {
+        "entries": 163,
+        "sha256": "7e6f6bb1720f1cd8d8f08c9e11a4531f9f49b0f3c90d44bbbc0e2876ca6790f2"
+      },
+      "packed-configured79": {
+        "entries": 164,
+        "sha256": "4879c7af382fb6844233dd4637ddbf473bfa161ad76e2c76f1e950d35a304997"
+      },
+      "packed-controls": {
+        "entries": 162,
+        "sha256": "74b1cd3aac6905d1414feb1de7ab3504d536a58e24726cdde30cc7f38e90a7fb"
+      }
+    },
+    "summaries": {
+      "stock-original79": {
+        "tests": 79,
+        "pass": 78,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "packed-stock79": {
+        "tests": 79,
+        "pass": 78,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "packed-configured79": {
+        "tests": 79,
+        "pass": 79,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "packed-controls": {
+        "tests": 22,
+        "pass": 20,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "delta": [
+      "+import { atomicMockBinding } from \"./atomic-webdav-profile/atomic-mock.js\";",
+      "+    atomicEmptyDirectory: atomicMockBinding(dav, baseUrl.href),"
+    ],
+    "unchangedOriginalInputs": true,
+    "unchangedCommandWorkloadsAndAssertions": true,
+    "configuredChangesInputs": true,
+    "independentVerification": "required after clean author checkpoint; not performed by this author",
+    "realInterop": "not measured; prior WsgiDAV evidence remains independent",
+    "results": [
+      {
+        "name": "build",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "cwd": "source",
+        "startedAt": "2026-08-27T09:01:15.740Z",
+        "durationMs": 2124.8549999999996,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "name": "strict-stock",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "tsconfig.stock.json"
+        ],
+        "cwd": "source",
+        "startedAt": "2026-08-27T09:01:17.911Z",
+        "durationMs": 1555.1342920000006,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "name": "stock-original79",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-reporter=tap",
+          "tests/integration/adapter-tools/matrix.test.ts"
+        ],
+        "cwd": "source",
+        "startedAt": "2026-08-27T09:01:19.467Z",
+        "durationMs": 2241.0071670000016,
+        "status": 1,
+        "signal": null,
+        "counts": {
+          "tests": 79,
+          "pass": 78,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "failedRows": [
+          "webdav: create, copy, append, inspect and remove files"
+        ]
+      },
+      {
+        "name": "pack",
+        "executable": "npm",
+        "args": [
+          "--cache",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/npm-cache",
+          "pack",
+          "--ignore-scripts",
+          "--json",
+          "--pack-destination",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final"
+        ],
+        "cwd": "source",
+        "startedAt": "2026-08-27T09:01:21.708Z",
+        "durationMs": 872.6271659999984,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "name": "strict-public-stock",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "tsconfig.json"
+        ],
+        "cwd": "consumer",
+        "startedAt": "2026-08-27T09:01:22.767Z",
+        "durationMs": 419.8256250000013,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "name": "packed-stock79",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+          "--test",
+          "--test-reporter=tap",
+          "out-stock/tests/integration/adapter-tools/matrix.test.js"
+        ],
+        "cwd": "consumer",
+        "startedAt": "2026-08-27T09:01:23.187Z",
+        "durationMs": 1873.866917000003,
+        "status": 1,
+        "signal": null,
+        "counts": {
+          "tests": 79,
+          "pass": 78,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "failedRows": [
+          "webdav: create, copy, append, inspect and remove files"
+        ]
+      },
+      {
+        "name": "strict-public-configured",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "-p",
+          "tsconfig.json"
+        ],
+        "cwd": "consumer",
+        "startedAt": "2026-08-27T09:01:25.061Z",
+        "durationMs": 431.9927920000009,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "name": "packed-configured79",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+          "--test",
+          "--test-reporter=tap",
+          "out-configured/tests/integration/adapter-tools/matrix.test.js"
+        ],
+        "cwd": "consumer",
+        "startedAt": "2026-08-27T09:01:25.540Z",
+        "durationMs": 1749.2320409999993,
+        "status": 0,
+        "signal": null,
+        "counts": {
+          "tests": 79,
+          "pass": 79,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "failedRows": []
+      },
+      {
+        "name": "packed-controls",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+          "--test",
+          "--test-reporter=tap",
+          "out-configured/tests/integration/adapter-tools/atomic-webdav-profile/controls.js"
+        ],
+        "cwd": "consumer",
+        "startedAt": "2026-08-27T09:01:27.289Z",
+        "durationMs": 203.47945900000195,
+        "status": 1,
+        "signal": null,
+        "counts": {
+          "tests": 22,
+          "pass": 20,
+          "fail": 2,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "failedRows": [
+          "overlay with stock WebDAV lower whiteouts only its view without host removal",
+          "overlay with configured WebDAV lower whiteouts only its view without host removal"
+        ]
+      },
+      {
+        "name": "public-resolution",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--input-type=module",
+          "-e",
+          "import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs'; import { agentCommands, Shell, MemoryFileSystem } from 'virtual-bash'; const consumer = JSON.parse(readFileSync('package.json')); assert.notEqual(consumer.name, 'virtual-bash'); const resolved = import.meta.resolve('virtual-bash'); assert.equal(resolved, \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/consumer/node_modules/virtual-bash/dist/index.js\"); const shell = new Shell({fs:new MemoryFileSystem()}).use(agentCommands()); assert.equal((await shell.exec(':')).exitCode, 0); const names = [\"cat\",\"cp\",\"find\",\"mkdir\",\"mv\",\"printf\",\"pwd\",\"rm\",\"rmdir\",\"sort\",\"tee\",\"test\",\"touch\",\"xargs\",\"sed\",\"awk\",\"jq\",\"rg\",\"sha256sum\",\"gzip\",\"diff\",\"patch\"]; for (const name of names) assert.equal(typeof shell.commands.get(name)?.execute, 'function', name); console.log(JSON.stringify({consumer:consumer.name,resolved,requiredCommands:names,actualAggregate:true})); await shell.dispose();"
+        ],
+        "cwd": "consumer",
+        "startedAt": "2026-08-27T09:01:27.493Z",
+        "durationMs": 91.97858400000041,
+        "status": 0,
+        "signal": null
+      }
+    ]
+  },
+  "oldIndependent": {
+    "frozen": "68059389bf95e03caeae6479837187add3d07814",
+    "checkpoint": "222e9e127b5e86fa3e9af85d3bad0ee9fa54395c",
+    "liveHead": "c1cc8fbb4f6c1f7931e0ea7f7f36c9707bff8e82",
+    "seals": {
+      "matrixSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "commandWorkloadsAndAssertionsSha256": "2d6700674dbaadd10fba3765def70a647709ed7578c10bbc2f783fe4cbac64bf",
+      "stockFixtureSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+      "configuredFixtureSha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba",
+      "mockSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+      "atomicHelperSha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+      "packSha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf",
+      "generatedBuildSha256": "693a50d3ba681bb3afc2f5f8e4ae8edf84091ed4f492935a95f2f54c5bd4a8e0",
+      "sourceManifestSha256": "0bf604ee810f6ac5dd2cdf771934288fe654700f9b3f6875903592df47f314d1"
+    },
+    "counts": {
+      "original-stock79": {
+        "tests": 79,
+        "pass": 78,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "packed-stock79": {
+        "tests": 79,
+        "pass": 78,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "configured79": {
+        "tests": 79,
+        "pass": 79,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "author-controls22": {
+        "tests": 22,
+        "pass": 22,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "independent-hidden": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-lost-capability": {
+        "tests": 27,
+        "pass": 12,
+        "fail": 15,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-ignore-nonempty": {
+        "tests": 27,
+        "pass": 22,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-recursive-child-deletion": {
+        "tests": 27,
+        "pass": 22,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-recursive-http-delete": {
+        "tests": 27,
+        "pass": 15,
+        "fail": 12,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-yield-before-delete": {
+        "tests": 27,
+        "pass": 26,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-wrong-target": {
+        "tests": 27,
+        "pass": 15,
+        "fail": 12,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-prefix-sibling-refusal": {
+        "tests": 27,
+        "pass": 15,
+        "fail": 12,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-ignore-namespace": {
+        "tests": 27,
+        "pass": 26,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-wrong-receipt": {
+        "tests": 27,
+        "pass": 20,
+        "fail": 7,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "mutation-ignore-locks": {
+        "tests": 27,
+        "pass": 26,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "hidden-restored": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "denominatorClassification": {
+      "originalMatrixRows": 79,
+      "writableBackendRows": 66,
+      "otherPositiveRows": 4,
+      "readonlyRefusalRows": 9,
+      "stockPositiveChecksPassed": 69,
+      "configuredPositiveChecksPassed": 70,
+      "originalReadonlyRefusalsPassed": 9,
+      "authorControlsSeparate": 22,
+      "independentHiddenSeparate": 27,
+      "boundedMutants": 10
+    },
+    "decision": "frozen configured test-only profile independently accepted; stock 78/79 failure retained; no canonical migration or new real-service qualification"
+  },
+  "wholeHistoricalRerun": false
+}

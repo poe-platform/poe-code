@@ -1,0 +1,51 @@
+{
+  "commit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+  "sourceSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+  "instrumentedSha256": "5bd55195a53839805a25fe41118f7cd4efde1db34fc29fcd8b1117908b5c07b9",
+  "emittedSha256": "8ee2be31489f684b48d5948b199e504f7e6349d5e4c0fa95f95376e9404faa3e",
+  "recipeSource": {
+    "commit": "3fe952ea89034ceea784be26731581aabbb898c8",
+    "path": "benchmarks/reports/sort-performance-next-20260827/workloads.json",
+    "sha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504"
+  },
+  "casesSha256": "1a31dd139fd83ce5f85d6bad9e44b0df527ae30d83084ec7bb37914dd457534d",
+  "child": {
+    "args": [
+      "--test",
+      "--test-reporter=tap",
+      "loaded-worker.mjs"
+    ],
+    "pid": 34983,
+    "code": 1,
+    "signal": null,
+    "killed": null,
+    "exactChildClosed": true,
+    "outputBytes": 1368,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 0
+  },
+  "counterFailures": [
+    {
+      "id": "whitespace-blanks-transform",
+      "rule": "exact guard construction"
+    },
+    {
+      "id": "whitespace-blanks-transform",
+      "rule": "excluded guard admission"
+    },
+    {
+      "id": "guard-numeric-fold-transform",
+      "rule": "exact guard construction"
+    },
+    {
+      "id": "guard-numeric-fold-transform",
+      "rule": "excluded guard admission"
+    }
+  ],
+  "sourceBuildAndMovedPackageUnchanged": true,
+  "detectsAddedEntries": true,
+  "archiveSha256After": "c432e25d0bdddcdadf24c861d4fbf382247931f95a4120b6df4dfaba93bed08b",
+  "instrumentationOnly": true,
+  "timingClaims": false
+}

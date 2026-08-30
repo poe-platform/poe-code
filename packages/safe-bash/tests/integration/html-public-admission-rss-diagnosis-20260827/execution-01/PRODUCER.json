@@ -1,0 +1,82 @@
+{
+  "at": "2026-08-27T23:07:13.058Z",
+  "pid": 64177,
+  "ppid": 64175,
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/stream-fixture.mjs",
+    "1073872896"
+  ],
+  "execArgv": [
+    "--max-old-space-size=96",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/producer-observer.mjs"
+  ],
+  "memory": {
+    "units": "bytes",
+    "pid": 64177,
+    "samples": 68,
+    "peak": {
+      "rss": 56262656,
+      "heapUsed": 5223936,
+      "heapTotal": 6963200,
+      "external": 1855637,
+      "arrayBuffers": 76047
+    },
+    "phases": [
+      {
+        "phase": "fresh-launch-after-observer-builtin-imports",
+        "at": "2026-08-27T23:07:12.514Z",
+        "rss": 43270144,
+        "heapTotal": 5390336,
+        "heapUsed": 4204104,
+        "external": 1692039,
+        "arrayBuffers": 10511
+      },
+      {
+        "phase": "after-observer-setup-before-fixture-import",
+        "at": "2026-08-27T23:07:12.516Z",
+        "rss": 44695552,
+        "heapTotal": 5390336,
+        "heapUsed": 4423312,
+        "external": 1790101,
+        "arrayBuffers": 10511
+      },
+      {
+        "phase": "before-first-write-after-authenticated-fixture-allocation",
+        "at": "2026-08-27T23:07:12.516Z",
+        "rss": 44793856,
+        "heapTotal": 5390336,
+        "heapUsed": 4474848,
+        "external": 1855637,
+        "arrayBuffers": 76047
+      },
+      {
+        "phase": "after-settled-producer-before-natural-exit",
+        "at": "2026-08-27T23:07:13.058Z",
+        "rss": 56262656,
+        "heapTotal": 6963200,
+        "heapUsed": 4767632,
+        "external": 1855637,
+        "arrayBuffers": 76047
+      }
+    ],
+    "scope": "current process only; sampled fieldwise maxima need not coincide; not a lifetime RSS high-water or a process-tree sum"
+  },
+  "metrics": {
+    "writes": 16386,
+    "bytes": 1073872896,
+    "minimumFragmentBytes": 65536,
+    "maximumFragmentBytes": 65536,
+    "falseWrites": 15956,
+    "drains": 15956,
+    "maximumWritableLength": 65536,
+    "maximumPendingDrain": 1,
+    "writableHighWaterMark": 65536,
+    "pendingDrainAtEnd": 0,
+    "writableLengthAtEnd": 0,
+    "writableNeedDrainAtEnd": false
+  },
+  "beforeExitCode": 0,
+  "limitations": "No callbacks added; write fragments forwarded unchanged. writableLength is observable Node queue length, not kernel pipe occupancy. Pending-drain count is not outstanding native write-request count. No retained byte chunks. Sampling every256 writes plus phases misses intervening peaks."
+}

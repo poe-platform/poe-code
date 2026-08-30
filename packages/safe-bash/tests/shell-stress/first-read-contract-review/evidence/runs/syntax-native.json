@@ -1,0 +1,33 @@
+{
+  "label": "syntax-native",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--check",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/native.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/.scratch/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T09:23:07.161Z",
+  "finishedAt": "2026-08-27T09:23:07.186Z",
+  "durationMs": 24.880833000000052,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 44913,
+  "initialIdentity": "44913 44886 44913 Thu Aug 27 04:23:07 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --check /Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/native.mjs",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "",
+  "stderr": ""
+}

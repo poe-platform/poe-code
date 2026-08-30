@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "version": "runtime-v3-cmd22-path-domain-preseal",
+  "status": "UNEXECUTED_REVIEW_PRESEAL",
+  "baseSourceCommit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+  "baseEvidenceCommit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+  "baseRecipeSealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+  "requiredBaseHashes": {
+    "assert-capture.mjs": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd",
+    "context.mjs": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
+    "integrity.mjs": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"
+  },
+  "edits": [
+    {
+      "before": "import { atomicWrite } from './integrity.mjs';",
+      "after": "import { atomicWrite } from './integrity.mjs';\nimport { assertCmd22ReadPaths } from './cmd22-read-paths.mjs';\nimport cmd22Binding from './cmd22-binding.json' with { type: 'json' };"
+    },
+    {
+      "before": "  if (job.expected.reads) assert.deepEqual(reads.map((event) => event.path), job.expected.reads);",
+      "after": "  if (job.recordId === 'CMD-22') assertCmd22ReadPaths(reads, job, evidence, cmd22Binding);\n  else if (job.expected.reads) assert.deepEqual(reads.map((event) => event.path), job.expected.reads);"
+    }
+  ],
+  "additions": {
+    "cmd22-read-paths.mjs": "read-path-binding.mjs",
+    "cmd22-binding.json": "CMD22-BINDING.json"
+  },
+  "outputHashes": {
+    "assert-capture.mjs": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0",
+    "cmd22-read-paths.mjs": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+    "cmd22-binding.json": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71"
+  },
+  "changedExistingRecipeFiles": [
+    "assert-capture.mjs"
+  ],
+  "unchangedExistingRecipeFiles": [
+    {
+      "path": "authorization.mjs",
+      "sha256": "075c713eb1dde7f0a50553d3a0f9f297813ab01dd40edee1802720627d1a1efb"
+    },
+    {
+      "path": "child.mjs",
+      "sha256": "b7d3760b337476b75cfb66b31bc62d7cb373944f6364540a4bf61771fb3e76d6"
+    },
+    {
+      "path": "context.mjs",
+      "sha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821"
+    },
+    {
+      "path": "execute.mjs",
+      "sha256": "8a1eff6c41e53f65747f6e15716bdfdb6a4e59125cdca767d2db28ad8bc52e18"
+    },
+    {
+      "path": "fixtures.mjs",
+      "sha256": "4cdac53d4cccfd3970ff0d24f9a88247dc5c31857f84a5b048d1946bbb3a4dd3"
+    },
+    {
+      "path": "host.mjs",
+      "sha256": "fa7c2b3293604fac9d671bd4ff98f48297ce2c56299dc5db61b58502cc16ba76"
+    },
+    {
+      "path": "import-fence.mjs",
+      "sha256": "2ad9cd5aaf7f36f440b525679494152ceb71fbe4a5cb5457bbdb0d9dfa60cb5c"
+    },
+    {
+      "path": "integrity.mjs",
+      "sha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"
+    },
+    {
+      "path": "inventory.json",
+      "sha256": "21e650910cf1025e20684e9ba434c66d736a376644d988199c588427d5ac355a"
+    },
+    {
+      "path": "source-bindings.json",
+      "sha256": "4acd5904bcf78688a2c7a8329d37ffcbd84a03319099bbb32d8242957d5994bc"
+    }
+  ],
+  "requiredFreshBindings": [
+    "fresh candidate commit, never consumed 35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "fresh selected source map/tree and contract/baseline composition",
+    "fresh package map/tree, entry hashes and source-to-output build attestation",
+    "new exact complete recipe seal including these assertion changes and separately authorized fresh candidate pin",
+    "new exact root execution envelope and independently authorized synthetic/candidate schedule; old authorization is consumed"
+  ],
+  "executed": false,
+  "syntheticPasses": 0,
+  "semanticPasses": 0,
+  "grantsGO": false
+}

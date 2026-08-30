@@ -1,0 +1,339 @@
+diff --git a$RUNTIME/derived/bootstrap.mjs b$RUNTIME/derived/bootstrap.mjs
+new file mode 100644
+index 00000000..dd513ff2
+--- /dev/null
++++ b$RUNTIME/derived/bootstrap.mjs
+@@ -0,0 +1,28 @@
++import { closeSync, openSync } from "node:fs";
++import { register } from "node:module";
++import { pathToFileURL } from "node:url";
++
++const caseId = process.env.LOAD_AUTH_CASE_ID;
++const loaderPath = process.env.LOAD_AUTH_LOADER_PATH;
++const recordPath = process.env.LOAD_AUTH_RECORD_PATH;
++const packageRoot = process.env.LOAD_AUTH_PACKAGE_ROOT;
++const targetsText = process.env.LOAD_AUTH_TARGETS;
++
++if (!caseId || !loaderPath || !recordPath || !packageRoot || !targetsText) {
++  throw new Error("load-auth bootstrap requires complete explicit configuration");
++}
++if (!/^[a-z0-9][a-z0-9-]*$/u.test(caseId)) {
++  throw new Error(`invalid load-auth case id: ${caseId}`);
++}
++
++const targets = JSON.parse(targetsText);
++if (!Array.isArray(targets) || targets.length < 1 || targets.length > 16) {
++  throw new Error("load-auth bootstrap requires 1..16 declared targets");
++}
++
++closeSync(openSync(recordPath, "wx"));
++register(pathToFileURL(loaderPath), {
++  parentURL: import.meta.url,
++  data: { caseId, recordPath, packageRoot, targets, maxRecords: 16, maxRecordBytes: 65536 },
++});
++
+diff --git a$RUNTIME/derived/load-hash-loader.mjs b$RUNTIME/derived/load-hash-loader.mjs
+new file mode 100644
+index 00000000..937afeb0
+--- /dev/null
++++ b$RUNTIME/derived/load-hash-loader.mjs
+@@ -0,0 +1,91 @@
++import { createHash } from "node:crypto";
++import { appendFileSync, readFileSync, realpathSync } from "node:fs";
++import { relative, resolve, sep } from "node:path";
++import { fileURLToPath, pathToFileURL } from "node:url";
++
++let state;
++
++const sha256 = value => createHash("sha256").update(value).digest("hex");
++const canonicalPath = value => realpathSync.native(resolve(value));
++const canonicalUrl = value => pathToFileURL(canonicalPath(value)).href;
++
++function sourceBytes(source) {
++  if (typeof source === "string") return Buffer.from(source, "utf8");
++  if (ArrayBuffer.isView(source)) {
++    return Buffer.from(source.buffer, source.byteOffset, source.byteLength);
++  }
++  if (source instanceof ArrayBuffer || source instanceof SharedArrayBuffer) {
++    return Buffer.from(source);
++  }
++  throw Object.assign(new Error(`target nextLoad returned unsupported source: ${typeof source}`), {
++    code: "LOAD_AUTH_SOURCE_UNAVAILABLE",
++  });
++}
++
++export function initialize(data) {
++  if (!data || typeof data !== "object") throw new Error("missing load-auth loader data");
++  const packageRoot = canonicalPath(data.packageRoot);
++  const targets = new Map();
++  for (const target of data.targets) {
++    const targetPath = canonicalPath(target.absolutePath);
++    const within = relative(packageRoot, targetPath);
++    if (within === "" || within === ".." || within.startsWith(`..${sep}`) || resolve(packageRoot, within) !== targetPath) {
++      throw new Error(`declared load-auth target outside package root: ${target.relativePath}`);
++    }
++    const url = canonicalUrl(targetPath);
++    if (targets.has(url)) throw new Error(`duplicate canonical load-auth target: ${url}`);
++    targets.set(url, { ...target, canonicalTargetURL: url });
++  }
++  state = {
++    caseId: data.caseId,
++    recordPath: data.recordPath,
++    targets,
++    maxRecords: data.maxRecords,
++    maxRecordBytes: data.maxRecordBytes,
++    records: 0,
++  };
++}
++
++export async function load(url, context, nextLoad) {
++  const result = await nextLoad(url, context);
++  if (!state || !url.startsWith("file:")) return result;
++
++  let resolvedCanonicalURL;
++  try { resolvedCanonicalURL = canonicalUrl(fileURLToPath(url)); }
++  catch { return result; }
++  const target = state.targets.get(resolvedCanonicalURL);
++  if (!target) return result;
++  if (state.records >= state.maxRecords) {
++    throw Object.assign(new Error("load-auth record bound exceeded"), { code: "LOAD_AUTH_RECORD_LIMIT" });
++  }
++
++  const bytes = sourceBytes(result.source);
++  const loadedSourceSha256 = sha256(bytes);
++  const onDiskAtLoadSha256 = sha256(readFileSync(fileURLToPath(resolvedCanonicalURL)));
++  const record = {
++    schema: 1,
++    caseId: state.caseId,
++    targetModule: target.relativePath,
++    targetURL: url,
++    resolvedCanonicalURL,
++    canonicalTargetURL: target.canonicalTargetURL,
++    format: result.format ?? null,
++    sourceBytes: bytes.byteLength,
++    loadedSourceSha256,
++    onDiskAtLoadSha256,
++    expectedLoadedSourceSha256: target.expectedLoadedSourceSha256,
++  };
++  const line = `${JSON.stringify(record)}\n`;
++  if (Buffer.byteLength(line) > state.maxRecordBytes) {
++    throw Object.assign(new Error("load-auth record byte bound exceeded"), { code: "LOAD_AUTH_RECORD_BYTES" });
++  }
++  appendFileSync(state.recordPath, line, { encoding: "utf8", flag: "a" });
++  state.records++;
++  if (loadedSourceSha256 !== target.expectedLoadedSourceSha256) {
++    throw Object.assign(new Error(
++      `load-auth hash mismatch for ${target.relativePath}: ${loadedSourceSha256} != ${target.expectedLoadedSourceSha256}`,
++    ), { code: "LOAD_AUTH_HASH_MISMATCH" });
++  }
++  return result;
++}
++
+diff --git a$RUNTIME/original/run.mjs b$RUNTIME/derived/run.mjs
+index d88851d3..8ef58ff2 100644
+--- a$RUNTIME/original/run.mjs
++++ b$RUNTIME/derived/run.mjs
+@@ -17,8 +17,8 @@ const freezeCommits = [
+   "55bd112804564605e397d3ee9948226d89efd457",
+ ];
+ const harnessRoot = dirname(fileURLToPath(import.meta.url));
+-const controlRoot = resolve(harnessRoot, "..");
+-const repositoryRoot = resolve(harnessRoot, "../../../../..");
++const controlRoot = process.env.LOAD_AUTH_OUTPUT_ROOT;
++const repositoryRoot = process.env.LOAD_AUTH_REPOSITORY_ROOT;
+ const outputLimit = 32 * 1024 * 1024;
+ const commands = [];
+ 
+@@ -281,15 +281,31 @@ async function applyMutation(packageRoot, mutation) {
+   };
+ }
+ 
+-async function runWorker(attemptRoot, variantRoot, variant) {
++async function runWorker(attemptRoot, variantRoot, variant, declaredTargets) {
+   const worker = join(variantRoot, "worker.mjs");
++  const bootstrap = join(variantRoot, "load-auth-bootstrap.mjs");
++  const loader = join(variantRoot, "load-hash-loader.mjs");
++  const recordsPath = join(attemptRoot, "raw", `worker-${variant}.loads.jsonl`);
++  const packageRoot = join(variantRoot, "node_modules/virtual-bash");
+   await copyFile(join(harnessRoot, "worker.mjs"), worker);
++  await copyFile(join(harnessRoot, "bootstrap.mjs"), bootstrap);
++  await copyFile(join(harnessRoot, "load-hash-loader.mjs"), loader);
++  const loaderTargets = declaredTargets.map(target => ({
++    relativePath: target.file,
++    absolutePath: join(packageRoot, ...target.file.split("/")),
++    expectedLoadedSourceSha256: target.afterSha256,
++  }));
+   const result = await runCommand(attemptRoot, `worker-${variant}`, process.execPath,
+-    ["--unhandled-rejections=strict", worker], {
++    ["--unhandled-rejections=strict", "--import", bootstrap, worker], {
+       cwd: variantRoot,
+       env: {
+         PATH: process.env.PATH ?? dirname(process.execPath),
+         LANG: "C", LC_ALL: "C", TZ: "UTC", MUTATION_VARIANT: variant,
++        LOAD_AUTH_CASE_ID: variant,
++        LOAD_AUTH_LOADER_PATH: loader,
++        LOAD_AUTH_RECORD_PATH: recordsPath,
++        LOAD_AUTH_PACKAGE_ROOT: packageRoot,
++        LOAD_AUTH_TARGETS: JSON.stringify(loaderTargets),
+       },
+       timeoutMs: 15000,
+       outputLimit: 2 * 1024 * 1024,
+@@ -297,7 +313,45 @@ async function runWorker(attemptRoot, variantRoot, variant) {
+   assertCommand(result);
+   const parsed = JSON.parse(result.stdout.toString("utf8"));
+   assert.equal(parsed.pid, result.record.pid);
+-  return { process: result.record, result: parsed };
++  const recordText = await readFile(recordsPath, "utf8");
++  assert.ok(Buffer.byteLength(recordText) <= 65536 * declaredTargets.length);
++  const records = recordText.split("\n").filter(Boolean).map(line => JSON.parse(line));
++  assert.equal(records.length, declaredTargets.length, `${variant}: target load record count`);
++  const loadAttestations = [];
++  for (const target of declaredTargets) {
++    const matches = records.filter(record => record.caseId === variant && record.targetModule === target.file);
++    assert.equal(matches.length, 1, `${variant}: expected one load for ${target.file}`);
++    const record = matches[0];
++    const onDiskAfterWorkerSha256 = sha256(await readFile(join(packageRoot, ...target.file.split("/"))));
++    assert.equal(record.loadedSourceSha256, target.afterSha256);
++    assert.equal(record.onDiskAtLoadSha256, target.afterSha256);
++    assert.equal(onDiskAfterWorkerSha256, target.afterSha256);
++    assert.equal(record.resolvedCanonicalURL, record.canonicalTargetURL);
++    if (target.mutated) assert.notEqual(target.afterSha256, target.baselineLoadedSourceSha256);
++    else assert.equal(target.afterSha256, target.baselineLoadedSourceSha256);
++    loadAttestations.push({
++      caseId: variant,
++      targetModule: target.file,
++      onDiskBeforeSha256: target.beforeSha256,
++      onDiskAfterSha256: target.afterSha256,
++      onDiskAfterWorkerSha256,
++      expectedMutationSha256: target.afterSha256,
++      baselineLoadedSourceSha256: target.baselineLoadedSourceSha256,
++      actualLoadedSourceSha256: record.loadedSourceSha256,
++      onDiskAtLoadSha256: record.onDiskAtLoadSha256,
++      targetURL: record.targetURL,
++      resolvedCanonicalURL: record.resolvedCanonicalURL,
++      sourceBytes: record.sourceBytes,
++      format: record.format,
++      actualLoadedHashEqualsAfterHash: record.loadedSourceSha256 === target.afterSha256,
++      actualLoadedHashDiffersFromBaselineHash: record.loadedSourceSha256 !== target.baselineLoadedSourceSha256,
++      baselineCase: !target.mutated,
++      declaration: target.mutated
++        ? "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
++        : "actualLoadedSourceSha256 == onDiskBeforeSha256 == onDiskAfterSha256",
++    });
++  }
++  return { process: result.record, result: parsed, loadAttestations };
+ }
+ 
+ async function runLoadGuard(attemptRoot, consumerRoot, label, requested, expected, expectedCode) {
+@@ -334,8 +388,8 @@ async function main(attemptRoot, workRoot) {
+     npm: await versionRecord(attemptRoot, "npm", npm, ["--version"]),
+     tar: await versionRecord(attemptRoot, "tar", tar, ["--version"]),
+   };
+-  const harnessPaths = ["run.mjs", "mutations.mjs", "worker.mjs", "load-guard.mjs"].map(name => join(harnessRoot, name));
+-  const fixturePath = join(controlRoot, "fixtures/consumer-package.json");
++  const harnessPaths = ["run.mjs", "mutations.mjs", "worker.mjs", "load-guard.mjs", "bootstrap.mjs", "load-hash-loader.mjs"].map(name => join(harnessRoot, name));
++  const fixturePath = process.env.LOAD_AUTH_FIXTURE_PATH;
+   const toolManifest = [];
+   for (const path of [...harnessPaths, fixturePath]) toolManifest.push(await fileRecord(path));
+ 
+@@ -473,9 +527,18 @@ async function main(attemptRoot, workRoot) {
+   assert.equal(outsideLoad.result.actual.manifestSha256, expectedLoad.manifestSha256);
+   assert.equal(outsideLoad.result.actual.entrySha256, expectedLoad.entrySha256);
+ 
+-  const baseline = await runWorker(attemptRoot, consumerRoot, "baseline");
++  const baselinePackageRoot = join(consumerRoot, "node_modules/virtual-bash");
++  const baselineFiles = [...new Set(mutations.map(mutation => mutation.file))];
++  const baselineTargets = [];
++  for (const file of baselineFiles) {
++    const baselineSha256 = sha256(await readFile(join(baselinePackageRoot, ...file.split("/"))));
++    baselineTargets.push({ file, beforeSha256: baselineSha256, afterSha256: baselineSha256,
++      baselineLoadedSourceSha256: baselineSha256, mutated: false });
++  }
++  const baseline = await runWorker(attemptRoot, consumerRoot, "baseline", baselineTargets);
+   assert.equal(baseline.result.pass, true, json(baseline.result));
+   assert.equal(baseline.result.failed, 0);
++  const baselineLoadByFile = new Map(baseline.loadAttestations.map(item => [item.targetModule, item]));
+ 
+   const mutantRuns = [];
+   for (const mutation of mutations) {
+@@ -483,12 +546,27 @@ async function main(attemptRoot, workRoot) {
+     await mkdir(dirname(variantRoot), { recursive: true });
+     await cp(consumerRoot, variantRoot, { recursive: true, verbatimSymlinks: true });
+     const mutationRecord = await applyMutation(join(variantRoot, "node_modules/virtual-bash"), mutation);
+-    const run = await runWorker(attemptRoot, variantRoot, mutation.id);
++    const baselineLoad = baselineLoadByFile.get(mutation.file);
++    assert.ok(baselineLoad, `${mutation.id}: missing baseline load hash`);
++    assert.equal(mutationRecord.beforeSha256, baselineLoad.actualLoadedSourceSha256);
++    assert.notEqual(mutationRecord.afterSha256, mutationRecord.beforeSha256);
++    const run = await runWorker(attemptRoot, variantRoot, mutation.id, [{
++      file: mutation.file,
++      beforeSha256: mutationRecord.beforeSha256,
++      afterSha256: mutationRecord.afterSha256,
++      baselineLoadedSourceSha256: baselineLoad.actualLoadedSourceSha256,
++      mutated: true,
++    }]);
+     assert.deepEqual(run.result.assertionPlan, baseline.result.assertionPlan, `${mutation.id}: assertion plan changed`);
+     assert.ok(run.result.failed >= 1, `${mutation.id}: mutant survived unchanged assertions`);
+     const target = run.result.checks.find(check => check.id === mutation.targetCheck);
+     assert.ok(target, `${mutation.id}: missing target check ${mutation.targetCheck}`);
+     assert.equal(target.pass, false, `${mutation.id}: target check survived`);
++    assert.equal(target.error?.name, "AssertionError", `${mutation.id}: mapped failure was not AssertionError`);
++    assert.equal(target.error?.code, "ERR_ASSERTION", `${mutation.id}: mapped failure was not ERR_ASSERTION`);
++    assert.equal(run.loadAttestations.length, 1);
++    assert.equal(run.loadAttestations[0].actualLoadedHashEqualsAfterHash, true);
++    assert.equal(run.loadAttestations[0].actualLoadedHashDiffersFromBaselineHash, true);
+     mutantRuns.push({ mutation: mutationRecord, ...run });
+   }
+ 
+@@ -512,8 +590,10 @@ async function main(attemptRoot, workRoot) {
+     item.result.checks.filter(check => !check.pass).map(check => check.id),
+   ]));
+   const output = {
+-    schema: 1,
++    schema: 2,
+     candidate,
++    mutationBaseCommit: "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad",
++    instrumentationVersion: 1,
+     createdAt: new Date().toISOString(),
+     prerequisites,
+     tools,
+@@ -536,6 +616,22 @@ async function main(attemptRoot, workRoot) {
+       containsSourcePath: packedPaths.some(path => path.startsWith("package/src/")),
+     },
+     install: { before: installedBefore, unchangedAfterRuns: true },
++    loadAuthentication: {
++      baseline: baseline.loadAttestations,
++      mutants: mutantRuns.map(item => ({
++        caseId: item.mutation.id,
++        targetCheck: item.mutation.targetCheck,
++        mappedFailure: {
++          name: item.result.checks.find(check => check.id === item.mutation.targetCheck)?.error?.name,
++          code: item.result.checks.find(check => check.id === item.mutation.targetCheck)?.error?.code,
++        },
++        attestation: item.loadAttestations[0],
++      })),
++      allMutantsLoadedDeclaredAfterHash: mutantRuns.every(item =>
++        item.loadAttestations[0]?.actualLoadedHashEqualsAfterHash === true),
++      allMutantLoadedHashesDifferFromBaseline: mutantRuns.every(item =>
++        item.loadAttestations[0]?.actualLoadedHashDiffersFromBaselineHash === true),
++    },
+     loadControls: { expected: expectedLoad, positive: positiveLoad, wrongInstalled: wrongLoad, outsideSameBytes: outsideLoad },
+     assertionPlan: baseline.result.assertionPlan,
+     baseline,
+@@ -571,12 +667,12 @@ async function main(attemptRoot, workRoot) {
+ }
+ 
+ await mkdir(controlRoot, { recursive: true });
+-const attemptEntries = await readdir(controlRoot);
+-const attemptNumbers = attemptEntries.map(name => /^attempt-(\d{3})$/u.exec(name)?.[1]).filter(Boolean).map(Number);
+-const attemptName = `attempt-${String(Math.max(0, ...attemptNumbers) + 1).padStart(3, "0")}`;
++const attemptName = process.env.LOAD_AUTH_ATTEMPT_NAME;
++assert.match(attemptName ?? "", /^attempt-\d{3}$/u);
+ const attemptRoot = join(controlRoot, attemptName);
+ const workRoot = join(controlRoot, ".work", attemptName);
+-await mkdir(join(attemptRoot, "raw"), { recursive: true });
++await mkdir(attemptRoot);
++await mkdir(join(attemptRoot, "raw"));
+ await rm(workRoot, { recursive: true, force: true });
+ await mkdir(workRoot, { recursive: true });
+ let outcome;

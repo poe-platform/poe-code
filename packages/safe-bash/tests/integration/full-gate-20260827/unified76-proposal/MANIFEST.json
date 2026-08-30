@@ -1,0 +1,69 @@
+{
+  "format": "unified76-readiness-captures-v1",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "payloadBytes": 75576179,
+  "payloadSha256": "528ee5122fa86696d12267e5ecaf8a1d2f3c9a4ac492319456a81882d6eaf816",
+  "compressedSha256": "d9875e085262cc0e7756f0725d8f29b2d60f05d79d6900de20563c702102d280",
+  "captures": [
+    {
+      "path": "audit.mjs",
+      "bytes": 5335,
+      "sha256": "91c6ba6cf0e317178e0143da8b6638d8eea50c7266a1c115b40608100e0f0515"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 7937,
+      "sha256": "362d882ae1dcbbbd68c9f8d6c6355e05622c52d4e855e8d3a4d0b6ce06ad1751"
+    },
+    {
+      "path": "AUDIT.json",
+      "bytes": 1233896,
+      "sha256": "20ef355fcbbb4f721ac9b739cde3536991253b08030c2df21bfc0970f53fbc71"
+    },
+    {
+      "path": "cold-typecheck.json",
+      "bytes": 639,
+      "sha256": "c5859292057fa3318f3304766cd359b6fda5e7004f5e8825474097a3b21dece5"
+    },
+    {
+      "path": "combined-types.json",
+      "bytes": 2075,
+      "sha256": "e82f2ce5084fe3ea50ea0f00fe597df3015c172e32c1cc84d7e0529b5ede4981"
+    },
+    {
+      "path": "types-report/report.json",
+      "bytes": 27679128,
+      "sha256": "f30b6d771bb9e94aaa22a1fa181fbf549612582947ea10c05108221453170a29"
+    },
+    {
+      "path": "type-input-closure-correction.json",
+      "bytes": 786,
+      "sha256": "03e57dfb3102e63941e2d76230fe4efe4df3cda8e3be52160e33a97de0e2319f"
+    },
+    {
+      "path": "types-complete.json",
+      "bytes": 1949,
+      "sha256": "34a1c7ca790ff89da947c5f781f3373244a42e5df2b52a1ee486a300d1fee70a"
+    },
+    {
+      "path": "types-complete-report/report.json",
+      "bytes": 27678527,
+      "sha256": "7e43ba89087d27c2d6cffbc137099ba61ddce711898898c58167ec09c0f48f20"
+    },
+    {
+      "path": "draft73-template/RECEIPT.json",
+      "bytes": 1319,
+      "sha256": "aea68f08e2557d25c9c2dc501037a0142c4513d83307179ab4026104fd412f36"
+    },
+    {
+      "path": "draft73-template/CANDIDATE.json",
+      "bytes": 42059,
+      "sha256": "42344be8f53ca199412c595a5b271e5051328ddedbf3a269affff2b139ebac8d"
+    },
+    {
+      "path": "draft73-template/cleanup-expected.json",
+      "bytes": 27233,
+      "sha256": "6fee74b588854ec223d4ebcc5a460f405b329d38aef849278ac72212fbcf73db"
+    }
+  ]
+}

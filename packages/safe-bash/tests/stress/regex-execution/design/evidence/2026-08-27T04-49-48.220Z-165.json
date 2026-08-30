@@ -1,0 +1,117 @@
+{
+  "args": [
+    "bench",
+    "short-10000",
+    "rg",
+    "worker128",
+    "0"
+  ],
+  "pid": 68659,
+  "readyAt": 41.5266249999986,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 88.44470899999942
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 90.50900000000001
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 90.51495899999827
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "bench",
+      "name": "short-10000"
+    },
+    {
+      "type": "done",
+      "result": {
+        "name": "short-10000",
+        "profile": "rg",
+        "engine": "worker128",
+        "repetition": 0,
+        "status": "completed",
+        "expectedMatches": 10000,
+        "matches": 10000,
+        "declaredInputBytes": 80000,
+        "inputUtf16Bytes": 140000,
+        "responseBytes": 530079,
+        "calls": 20000,
+        "startupMs": 21.0345,
+        "setupMs": 21.316208,
+        "steadyMs": 22.55166700000001,
+        "endToEndMs": 45.10424999999999,
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 80,
+          "execCalls": 20000,
+          "inputBytes": 140000,
+          "responseBytes": 530079,
+          "startupMs": 21.0345,
+          "workMs": 14.758955999999984,
+          "terminationMs": 1.0564169999999962,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      },
+      "wallMs": 46.077667000000005,
+      "heartbeats": 8,
+      "maxGap": 6.296125,
+      "peakRss": 80117760,
+      "memory": {
+        "rss": 70746112,
+        "heapTotal": 15876096,
+        "heapUsed": 9656664,
+        "external": 2196822,
+        "arrayBuffers": 60449
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": [
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 80,
+          "execCalls": 20000,
+          "inputBytes": 140000,
+          "responseBytes": 530079,
+          "startupMs": 21.0345,
+          "workMs": 14.758955999999984,
+          "terminationMs": 1.0564169999999962,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      ]
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 1170,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

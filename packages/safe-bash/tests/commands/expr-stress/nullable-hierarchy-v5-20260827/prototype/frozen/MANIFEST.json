@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "status": "PRE-PROTOTYPE FREEZE / POLICY BLOCKER / NO PROMOTION",
+  "scope": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/",
+  "entries": [
+    {
+      "path": "BINDINGS.json",
+      "kind": "file",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "CHECKPOINT.txt",
+      "kind": "file",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "LIMITS.json",
+      "kind": "file",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "POLICY.md",
+      "kind": "file",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "PREDICTIONS.json",
+      "kind": "file",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "SOURCES.json",
+      "kind": "file",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    }
+  ],
+  "entryInventory": "Exactly these eight files plus MANIFEST.json itself. No child directories, symlinks or extra entries. Additions/types are checked within owned freeze scope only.",
+  "selfHash": "Externally bound by final receipt and Git commit, not recursively included.",
+  "counts": {
+    "controlGroups": 12,
+    "uniqueSuppliedHistories": 36,
+    "groupMemberships": 38,
+    "rankingAndPositiveASTs": 13,
+    "negativeOnlyASTs": 3,
+    "permissiveEligibleSupplied": 36,
+    "localTailEligibleSupplied": 33,
+    "historicalBoundV4Files": 40,
+    "historicalMilestones": 17,
+    "unchangedProductFileBindings": 3
+  },
+  "actualValidation": {
+    "jsonAndMetadata": true,
+    "declaredSpanBoundsChecks": 135,
+    "declaredReferenceByteEqualities": 19,
+    "captureAliasesChecked": 23,
+    "committedBlobAndSHA256Checks": 60,
+    "scope": "Declarative data/metadata integrity only: no history construction/replay, regex matching, comparator evaluation or property execution."
+  },
+  "actualExecutions": {
+    "newPrototype": 0,
+    "suppliedHistoryReplay": 0,
+    "comparatorChecks": 0,
+    "native": 0,
+    "worker": 0,
+    "productTests": 0,
+    "oldCohorts": 0,
+    "historical137": 0
+  },
+  "preCode": "Contains only docs/declarative JSON/checkpoint. No prototype or validator implementation is added. This commit seals inputs/predictions before separately routed implementation.",
+  "sourceBinding": "BINDINGS.json; guard equals c3e40f8b. Concurrent unrelated source-tree commits are recorded, not vetoed or claimed ours."
+}

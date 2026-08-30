@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "classification": "independent-literal-native-input-data-not-typescript",
+  "state": "preparation-only-no-evolution-candidate-observed",
+  "limits": { "maxRecipes": 17, "maxNativeInvocationsPerProfile": 17, "maxInputBytesPerInvocation": 4096, "maxNativeOutputBytesPerStream": 65536, "nativeDeadlineMs": 2000 },
+  "nativeRecipes": [
+    { "id": "P01", "name": "whitespace-ragged-no-sorting", "original": "N01/literal", "oracleUse": "unchanged-original-util-linux-exact", "variants": [{ "name": "literal", "argv": ["-t"], "stdinUtf8": " z\t9  \nalpha  1 tail\n b\t22\n" }] },
+    { "id": "P02", "name": "separator-character-set-not-substring", "original": "N03/two-delimiters", "oracleUse": "unchanged-original-util-linux-exact", "variants": [{ "name": "two-delimiters", "argv": ["-t", "-s", ",:"], "stdinUtf8": "a,b:c\nd::e,\n" }] },
+    { "id": "P03", "name": "multiple-absent-trailing-cells-default-separator", "oracleUse": "util-linux-exact-ascii-layout", "variants": [{ "name": "four-columns", "argv": ["-t"], "stdinUtf8": "a bb ccc dddd\nz\nlong x\n" }] },
+    { "id": "P04", "name": "multiple-absent-trailing-cells-custom-separator", "oracleUse": "util-linux-exact-bsd-o-unsupported", "variants": [{ "name": "bars", "argv": ["-t", "-s", ":", "-o", "|"], "stdinUtf8": "a:bb:ccc:dddd\nz\nlong:x\n" }] },
+    { "id": "P05", "name": "multibyte-output-separator-ragged", "oracleUse": "util-linux-exact-supported-scalar-profile", "variants": [{ "name": "wide-separator", "argv": ["-t", "-s", ":", "-o", "界"], "stdinUtf8": "a:bb:ccc\nz\nlong:x\n" }] },
+    { "id": "P06", "name": "empty-output-separator-ragged", "oracleUse": "util-linux-exact-bsd-o-unsupported", "variants": [{ "name": "zero-separator-bytes", "argv": ["-t", "-s", ":", "-o", ""], "stdinUtf8": "a:bb:ccc\nz\nq::\n" }] },
+    { "id": "P07", "name": "explicit-leading-adjacent-trailing-empties", "oracleUse": "util-linux-exact-retain-bsd-empty-dialect", "variants": [{ "name": "four-fields", "argv": ["-t", "-s", ":"], "stdinUtf8": ":a::\nb::c:\n:::\n" }] },
+    { "id": "P08", "name": "all-empty-trailing-columns-versus-absent", "oracleUse": "util-linux-exact-retain-bsd-empty-dialect", "variants": [{ "name": "zero-width-columns", "argv": ["-t", "-s", ":"], "stdinUtf8": "a::\nb\n::\n" }] },
+    { "id": "P09", "name": "combining-only-columns-empty-separator", "oracleUse": "native-qualified-fixed-scalar-width-independent", "variants": [{ "name": "zero-display-not-zero-byte", "argv": ["-t", "-s", ":", "-o", ""], "stdinUtf8": "a:\u0301:\u0300\nb\n" }] },
+    { "id": "P10", "name": "combining-cjk-emoji-ragged", "oracleUse": "native-qualified-fixed-scalar-width-independent", "variants": [{ "name": "scalar-not-grapheme", "argv": ["-t", "-s", ":"], "stdinUtf8": "界:e\u0301:😀\na\nbb:中\n" }] },
+    { "id": "P11", "name": "ignored-blank-record-and-final-partial", "oracleUse": "util-linux-exact-retain-bsd-partial-error", "variants": [{ "name": "no-final-lf", "argv": ["-t"], "stdinUtf8": " \t\nz 9\nalpha 1 tail\nb 22" }] },
+    { "id": "P12", "name": "default-fill-unchanged-eleven-items", "oracleUse": "common-fill-exact-control", "variants": [{ "name": "width-80", "argv": [], "stdinUtf8": "z\na\nq\nb\ny\nc\nx\nd\nw\ne\nv\n" }] },
+    { "id": "P13", "name": "fillrows-remainder-width24", "oracleUse": "common-fill-exact-control", "variants": [{ "name": "across", "argv": ["-x", "-c", "24"], "stdinUtf8": "z\na\nq\nb\ny\nc\nx\n" }] },
+    { "id": "P14", "name": "fill-down-remainder-width24", "oracleUse": "common-fill-exact-control", "variants": [{ "name": "down", "argv": ["-c", "24"], "stdinUtf8": "z\na\nq\nb\ny\nc\nx\n" }] },
+    { "id": "P15", "name": "fill-one-column-never-table-pad", "oracleUse": "common-fill-exact-control", "variants": [{ "name": "narrow", "argv": ["-x", "-c", "1"], "stdinUtf8": "alpha\nb\nc\n" }] },
+    { "id": "P16", "name": "table-width-does-not-truncate-padding", "oracleUse": "util-linux-exact-ascii-layout", "variants": [{ "name": "width-one", "argv": ["-t", "-c", "1"], "stdinUtf8": "a bb ccc dddd\nz\nlong x\n" }] },
+    { "id": "P17", "name": "multibyte-input-separator-is-scalar-set", "oracleUse": "native-qualified-fixed-scalar-separator-independent", "variants": [{ "name": "comma-and-cjk", "argv": ["-t", "-s", ",界"], "stdinUtf8": "a界b,c\nd界界e,\n" }] }
+  ],
+  "safetyRecipes": []
+}

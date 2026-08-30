@@ -1,0 +1,6 @@
+07c86a8d2268f9ea5a5c72dd155d270428146151d26c0397bf215577010dd3ff  tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v5/prepare.mjs
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v5/preparation.stdout
+ebad2899241ed770e9438e6cb257b2b664c24944f37f2751c91e12def9a93bf9  tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v5/preparation.stderr
+7a09a904916b6ebd9c49678f5dabb7231157b2593f031bda316a576a8c0b9413  tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v5/STOP-HANDOFF.md
+0fa8b4f54be0375a2950fbb5fe279ba04efd9fd9699b19094069ed602ed6fe46  tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v5/STOP.json
+572a128859939ee65173c3442b25c418318838e91446ddffb7b05f170be32e2d  tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v5/PUBLICATION-UTC.txt

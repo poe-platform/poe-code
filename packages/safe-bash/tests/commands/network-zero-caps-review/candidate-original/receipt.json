@@ -1,0 +1,273 @@
+{
+  "mode": "candidate",
+  "commit": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+  "baselineCommit": "bdb49bb1c2b2c5646e1ed8666bf53ebf3bb6433c",
+  "started": "2026-08-27T16:28:42.892Z",
+  "commands": [
+    {
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29^"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "219790c55c0214e6d46524bbdced63c18c360f62",
+      "stderr": ""
+    },
+    {
+      "command": "git",
+      "args": [
+        "rev-parse",
+        "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29:src"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "2cdf194035e4833341b3cd66e2b6a945d50b7499",
+      "stderr": ""
+    },
+    {
+      "command": "git",
+      "args": [
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "src/commands/network/README.md\nsrc/commands/network/shared.ts\ntests/commands/network/zero-caps.test.ts",
+      "stderr": ""
+    },
+    {
+      "command": "git",
+      "args": [
+        "show",
+        "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29:src/commands/network/README.md"
+      ],
+      "status": 0,
+      "signal": null
+    },
+    {
+      "command": "git",
+      "args": [
+        "show",
+        "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29:src/commands/network/shared.ts"
+      ],
+      "status": 0,
+      "signal": null
+    },
+    {
+      "command": "git",
+      "args": [
+        "show",
+        "219790c55c0214e6d46524bbdced63c18c360f62:src/commands/network/shared.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "import type { CommandContext } from \"../../contracts/index.js\";\nimport { writeBytes } from \"../../contracts/index.js\";\nimport { CurlError, defaultNetworkLimits, type HttpHeaders, type NetworkLimits } from \"./types.js\";\n\nexport const encode = (text: string): Uint8Array => new TextEncoder().encode(text);\n\nexport function limitsFor(overrides: Partial<NetworkLimits> = {}): NetworkLimits {\n  const result = { ...defaultNetworkLimits, ...overrides };\n  for (const [name, value] of Object.entries(result)) {\n    if (!Number.isSafeInteger(value) || value < 1 || (name === \"maxTimeMs\" && value > 2_147_483_647)) {\n      throw new RangeError(`Invalid network limit: ${name}`);\n    }\n  }\n  return Object.freeze(result);\n}\n\nexport async function withSignal<Value>(operation: () => PromiseLike<Value> | Value, signal: AbortSignal): Promise<Value> {\n  signal.throwIfAborted();\n  return new Promise<Value>((resolve, reject) => {\n    const onAbort = (): void => { cleanup(); reject(signal.reason); };\n    const cleanup = (): void => signal.removeEventListener(\"abort\", onAbort);\n    signal.addEventListener(\"abort\", onAbort, { once: true });\n    Promise.resolve().then(operation).then(value => { cleanup(); resolve(value); }, error => { cleanup(); reject(error); });\n  });\n}\n\nexport async function delay(milliseconds: number, signal: AbortSignal): Promise<void> {\n  let timer: ReturnType<typeof setTimeout> | undefined;\n  try { await withSignal(() => new Promise<void>(resolve => { timer = setTimeout(resolve, milliseconds); }), signal); }\n  finally { clearTimeout(timer); }\n}\n\nexport function header(headers: HttpHeaders, name: string): string | undefined {\n  return headers.find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];\n}\n\nexport function networkError(error: unknown): CurlError {\n  if (error instanceof CurlError) return error;\n  const code = error && typeof error === \"object\" && \"code\" in error ? String(error.code) : \"\";\n  if ([\"ENOTFOUND\", \"EAI_AGAIN\"].includes(code)) return new CurlError(6, \"Could not resolve host\");\n  if ([\"ECONNREFUSED\", \"ENETUNREACH\", \"EHOSTUNREACH\"].includes(code)) return new CurlError(7, \"Failed to connect\");\n  if (/CERT|SELF_SIGNED|UNABLE_TO_VERIFY/.test(code)) return new CurlError(60, \"TLS certificate verification failed\");\n  if (/TLS|SSL/.test(code)) return new CurlError(35, \"TLS handshake failed\");\n  return new CurlError(56, \"Network transfer failed\");\n}\n\nexport async function diagnostic(context: CommandContext, error: CurlError): Promise<void> {\n  aw",
+      "stderr": ""
+    },
+    {
+      "command": "git",
+      "args": [
+        "show",
+        "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29:src/commands/network/shared.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "import type { CommandContext } from \"../../contracts/index.js\";\nimport { writeBytes } from \"../../contracts/index.js\";\nimport { CurlError, defaultNetworkLimits, type HttpHeaders, type NetworkLimits } from \"./types.js\";\n\nexport const encode = (text: string): Uint8Array => new TextEncoder().encode(text);\n\nexport function limitsFor(overrides: Partial<NetworkLimits> = {}): NetworkLimits {\n  const result = { ...defaultNetworkLimits, ...overrides };\n  for (const [name, value] of Object.entries(result)) {\n    const minimum = name === \"maxRedirects\" || name === \"maxRetries\" ? 0 : 1;\n    if (!Number.isSafeInteger(value) || value < minimum || (name === \"maxTimeMs\" && value > 2_147_483_647)) {\n      throw new RangeError(`Invalid network limit: ${name}`);\n    }\n  }\n  return Object.freeze(result);\n}\n\nexport async function withSignal<Value>(operation: () => PromiseLike<Value> | Value, signal: AbortSignal): Promise<Value> {\n  signal.throwIfAborted();\n  return new Promise<Value>((resolve, reject) => {\n    const onAbort = (): void => { cleanup(); reject(signal.reason); };\n    const cleanup = (): void => signal.removeEventListener(\"abort\", onAbort);\n    signal.addEventListener(\"abort\", onAbort, { once: true });\n    Promise.resolve().then(operation).then(value => { cleanup(); resolve(value); }, error => { cleanup(); reject(error); });\n  });\n}\n\nexport async function delay(milliseconds: number, signal: AbortSignal): Promise<void> {\n  let timer: ReturnType<typeof setTimeout> | undefined;\n  try { await withSignal(() => new Promise<void>(resolve => { timer = setTimeout(resolve, milliseconds); }), signal); }\n  finally { clearTimeout(timer); }\n}\n\nexport function header(headers: HttpHeaders, name: string): string | undefined {\n  return headers.find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];\n}\n\nexport function networkError(error: unknown): CurlError {\n  if (error instanceof CurlError) return error;\n  const code = error && typeof error === \"object\" && \"code\" in error ? String(error.code) : \"\";\n  if ([\"ENOTFOUND\", \"EAI_AGAIN\"].includes(code)) return new CurlError(6, \"Could not resolve host\");\n  if ([\"ECONNREFUSED\", \"ENETUNREACH\", \"EHOSTUNREACH\"].includes(code)) return new CurlError(7, \"Failed to connect\");\n  if (/CERT|SELF_SIGNED|UNABLE_TO_VERIFY/.test(code)) return new CurlError(60, \"TLS certificate verification failed\");\n  if (/TLS|SSL/.test(code)) return new CurlError(35, \"TLS handshake failed\");\n  return new CurlError(56, \"Network transfer failed\");\n}\n\nexport async ",
+      "stderr": ""
+    },
+    {
+      "command": "git",
+      "args": [
+        "archive",
+        "--format=tar",
+        "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+        "src",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.build.json"
+      ],
+      "status": 0,
+      "signal": null
+    },
+    {
+      "command": "tar",
+      "args": [
+        "-xf",
+        "-",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/archive"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/archive/tsconfig.build.json",
+        "--outDir",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/built/dist",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/entry.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"passed\":604,\"failed\":0,\"skipped\":0}",
+      "stderr": ""
+    },
+    {
+      "command": "npm",
+      "args": [
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "[\n  {\n    \"id\": \"virtual-bash@0.0.0\",\n    \"name\": \"virtual-bash\",\n    \"version\": \"0.0.0\",\n    \"size\": 637290,\n    \"unpackedSize\": 3572850,\n    \"shasum\": \"57d5b38d9357982be0e0d59899047263b1b7ec5e\",\n    \"integrity\": \"sha512-zouvY9oZcsna9UZzMQZWUcdFVb28CoIpXg3/7L5gAE9hl9M3rMSRXlKhEU1xafHQjnMHZBo8EGcc07Yo+oJWmw==\",\n    \"filename\": \"virtual-bash-0.0.0.tgz\",\n    \"files\": [\n      {\n        \"path\": \"dist/commands/archive/create.d.ts\",\n        \"size\": 714,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/create.d.ts.map\",\n        \"size\": 801,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/create.js\",\n        \"size\": 9080,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/create.js.map\",\n        \"size\": 10079,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/extract.d.ts\",\n        \"size\": 340,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/extract.d.ts.map\",\n        \"size\": 424,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/extract.js\",\n        \"size\": 17807,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/extract.js.map\",\n        \"size\": 19142,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/format.d.ts\",\n        \"size\": 1275,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/format.d.ts.map\",\n        \"size\": 1474,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/format.js\",\n        \"size\": 10000,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/format.js.map\",\n        \"size\": 12920,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/index.d.ts\",\n        \"size\": 621,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/index.d.ts.map\",\n        \"size\": 536,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/index.js\",\n        \"size\": 3942,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/index.js.map\",\n        \"size\": 3774,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/internal.d.ts\",\n        \"size\": 2569,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/internal.d.ts.map\",\n        \"size\": 2507,\n        \"mode\": 420\n      },\n      {\n        \"path\": \"dist/commands/archive/internal.js\",\n        \"size\": 7657,\n        ",
+      "stderr": "npm notice\nnpm notice New major version of npm available! 10.9.7 -> 12.0.2\nnpm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2\nnpm notice To update run: npm install -g npm@12.0.2\nnpm notice"
+    },
+    {
+      "command": "npm",
+      "args": [
+        "install",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--package-lock=false",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/built/virtual-bash-0.0.0.tgz"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "added 1 package in 648ms",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/moved/consumer/entry.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"passed\":604,\"failed\":0,\"skipped\":0}",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--strict",
+        "--outDir",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/moved/consumer/typed",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--target",
+        "ES2023",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/moved/consumer/consumer.mts"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/moved/consumer/offline.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-UwqYII/moved/consumer/typed/consumer.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "scope": "Exact Git archive of all src plus package/build configuration; not whole repository gate",
+  "tools": {
+    "node": "v22.22.2",
+    "tsc": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+  },
+  "frozenProfile": "8bc90dfe73daebb944f406c5a53f506879c3ff0db5e05b5c7fa919c6a860d67c",
+  "markerBefore": "85dbbcbe8be177b9b27de29ee944577f04b3c4d6c7b03255adf00b4c9aa7620e",
+  "parent": "219790c55c0214e6d46524bbdced63c18c360f62",
+  "sourceTree": "2cdf194035e4833341b3cd66e2b6a945d50b7499",
+  "changedPaths": [
+    "src/commands/network/README.md",
+    "src/commands/network/shared.ts",
+    "tests/commands/network/zero-caps.test.ts"
+  ],
+  "sourceHashes": {
+    "src/commands/network/README.md": "71d0f549abd8d3b08dbfdc3455a554149231fe26b1827da9b721ca5d2bde222e",
+    "src/commands/network/shared.ts": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760"
+  },
+  "gitArchiveSha256": "d522ed4b8fe8722e0bded68fd9f7c67ae3bc3612e4312d7c5c0c0338195ff9dc",
+  "archiveBefore": {
+    "entries": 265,
+    "sha256": "bff95eaa510ca81b35681ad927d836b44e88a78410edb60ca6deed4834fd863e"
+  },
+  "runtimeStatus": 0,
+  "runtimeCounts": {
+    "passed": 604,
+    "failed": 0,
+    "skipped": 0
+  },
+  "archiveAfter": {
+    "entries": 265,
+    "sha256": "bff95eaa510ca81b35681ad927d836b44e88a78410edb60ca6deed4834fd863e"
+  },
+  "package": {
+    "name": "virtual-bash",
+    "version": "0.0.0",
+    "sha256": "f95992dc28da5578343b8984414ebbc5cf33b6fc8a8f6dda63cc9ca3321d2598",
+    "integrity": "sha512-zouvY9oZcsna9UZzMQZWUcdFVb28CoIpXg3/7L5gAE9hl9M3rMSRXlKhEU1xafHQjnMHZBo8EGcc07Yo+oJWmw==",
+    "files": 737
+  },
+  "installedBefore": {
+    "entries": 776,
+    "sha256": "813eafabc90e989b3591bee50f791e82e05e0654f9b234dfffdf7f11739fa088"
+  },
+  "movedRuntimeStatus": 0,
+  "movedRuntimeCounts": {
+    "passed": 604,
+    "failed": 0,
+    "skipped": 0
+  },
+  "strictConsumer": "passed",
+  "installedAfter": {
+    "entries": 776,
+    "sha256": "813eafabc90e989b3591bee50f791e82e05e0654f9b234dfffdf7f11739fa088"
+  },
+  "markerAfter": "85dbbcbe8be177b9b27de29ee944577f04b3c4d6c7b03255adf00b4c9aa7620e",
+  "scratchRemoved": true,
+  "finished": "2026-08-27T16:28:47.714Z"
+}

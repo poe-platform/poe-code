@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 2,
+  "kind": "additive-preparation-interface-only",
+  "base": {
+    "sealPath": "SEAL.json",
+    "sealSha256": "da99ce71943feec45a2bbbae6319e38fb1816522b5ffddbe55ae28b0716ce230",
+    "contentDigest": "46efb75be0663e4606cd616c7e8282ad3e01a367c72cd180703260a55f15d9df",
+    "manifestPath": "manifest.json",
+    "preserve": "Original seal and all 10 sealed payload files remain byte-identical; no base regeneration."
+  },
+  "reviewRequest": {
+    "path": "../verification/REVIEW.md",
+    "reviewedSha256": "dcbdda0399bf8f52c71f902604bd9268227a354b241200cfa329ad6e2d054a28",
+    "requestNumber": 4,
+    "scope": "Complete shared-control enumeration without changing optional configuration or recipe bytes. Other review requests belong to their assigned owners."
+  },
+  "breadthOverrides": {
+    "sharedControlIds": [
+      "printf-positive",
+      "terminal-byte-control",
+      "curl-positive",
+      "vfs-census-control"
+    ],
+    "sharedDefaultControlIds": [
+      "printf-positive",
+      "terminal-byte-control",
+      "vfs-census-control"
+    ],
+    "sharedOptionalControlIds": [
+      "curl-positive"
+    ]
+  },
+  "optionalControlBinding": {
+    "id": "curl-positive",
+    "caseSource": "historical-breadth.json",
+    "caseSelector": { "id": "curl-positive" },
+    "cohort": "shared-optional-control",
+    "configuration": "loopback-network",
+    "recipeCanonicalSha256": "53539cb06b842e89a8924d9408b377d71b23c991f70afe3c8bd02e3f8900cd29",
+    "inputCanonicalSha256": "db9eade5f254ac83736cf6fcbb368f3428de5150b961ed940e339a323416cf45",
+    "profileSource": "profiles.json",
+    "oursConfigurationPointer": "/breadth/configurations/ours/loopback-network",
+    "baselineConfigurationPointer": "/breadth/configurations/baseline/loopback-network",
+    "networkPointer": "/breadth/network",
+    "policy": "Reference existing sealed configuration, expected fields, observations and byte payloads unchanged. Enumeration does not enable network or authorize execution."
+  },
+  "preparationClarifications": {
+    "knownIntendedAdditions": ["tree", "file"],
+    "authority": "The current user explicitly identifies tree/file for the 68-to-70 transition; not inferred from count arithmetic, source, tests or a new inventory.",
+    "supersedesHistoricalWording": "The v1 plan's unspecified-last-two wording is no longer accurate. Preserve its original bytes as history; this clarification governs the effective preparation interface.",
+    "sealedProposedRecipeCount": 24,
+    "sealedProposedTargetNames": ["date", "expand", "fold", "nl", "printenv", "rev", "seq", "sleep", "split", "strings", "tac", "unexpand"],
+    "sealedProposedTargetNameCount": 12,
+    "coversAll70": false,
+    "treeFileHoldoutStatus": "Pending a separate source-implementation-blind design, independent native-oracle phase and root-provided frozen candidate identity; no new recipes in this amendment.",
+    "candidateIdentityProvidedByThisAmendment": null,
+    "newRecipes": 0,
+    "newNativeExpectations": 0,
+    "newNameInference": false
+  },
+  "historicalCountersUnchanged": {
+    "targetRecipes": 54,
+    "historicalOverlapControls": 3,
+    "sharedDefaultControls": 3,
+    "sharedOptionalControls": 1,
+    "sharedControlsCombined": 4,
+    "primaryRecipes": 61,
+    "diagnosticRecipes": 7,
+    "totalRecipes": 68,
+    "distinctCaseEngineOutcomes": 136,
+    "targetPositives": { "ours": 0, "baseline": 47 },
+    "allPrimaryPositives": { "ours": 7, "baseline": 53 }
+  },
+  "execution": {
+    "authorized": false,
+    "productOrEngineImports": 0,
+    "productOrEngineExecutions": 0,
+    "nativeCalls": 0,
+    "newComparisons": 0,
+    "timingRuns": 0,
+    "installs": 0,
+    "privateReads": 0,
+    "newRecipes": 0
+  }
+}

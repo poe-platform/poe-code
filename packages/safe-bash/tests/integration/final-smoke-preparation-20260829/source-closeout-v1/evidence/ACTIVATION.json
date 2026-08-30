@@ -1,0 +1,18 @@
+{
+  "epochMs": 1788027086558,
+  "utc": "2026-08-29T18:11:26.558Z",
+  "phaseDeadline": 1788027362359,
+  "sourceOnly": true,
+  "installerInvocations": 0,
+  "layoutCount": 1,
+  "expectedRows": [
+    "C01",
+    "C02",
+    "C07",
+    "C12",
+    "C13",
+    "C14",
+    "R17",
+    "R16"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "rootFreshExecutorAuthorization": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/root-authorization.json",
+    "sha256": "c296d0b0652da74c342a93e6f5c30982883aafa83fbd931c367d07512c0c3275"
+  },
+  "authorActualClosedEvidence": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/actual-closed.json",
+    "sha256": "05ba4dcef2bf0c69cd3f0bcbf91ff7c1dad07801b2ce77e5f8d741222cec8ee9"
+  },
+  "streamingReady": {
+    "path": "/tmp/safe-bash-owned-output-streaming-prototype.ready",
+    "sha256": "f016214887c9827af40f54e74b3100026565dd070de4f63b9657e887db2bdb4d"
+  },
+  "sourceTestsBuildPrerequisitesAuthenticated": true,
+  "sourceManifest": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/source-manifest.json",
+    "sha256": "44b0c5d4a73b78ffc29becc031bc3854f9e067c63977b6b274a26748db317664"
+  },
+  "toolManifest": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tool-manifest.json",
+    "sha256": "e36a0fa7027aed9472ef854651495f6a5ab72b163d38d26a92532871a498874b"
+  },
+  "candidateEntry": {
+    "path": "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate/dist/index.js",
+    "sha256": "80c27f63a1ddc9ad66b875b6b307ea51aae3e54844207b25d2e58bbeafed5db0"
+  },
+  "historicalHelper": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/historical/tests/stress/remote-cancellation/helpers.ts",
+    "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678"
+  },
+  "historicalProbe": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/historical/tests/shell/first-read-probe.ts",
+    "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6"
+  },
+  "historicalFacade": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/historical/src/index.ts",
+    "sha256": "1c2deba9b2e9d1124c58663b72197a06600eb7830ba8dabb33f52dc330713fa4"
+  },
+  "tsxImport": {
+    "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+    "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+  },
+  "publicProfiles": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/public-profiles.json",
+    "sha256": "1a8e73e4a0a26b812ecc3e0c4c7f2ecebfeb8258f7ce5f7b48231bee8c03bae6"
+  },
+  "authenticatedReadOnlyCandidateEntry": "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate/dist/index.js",
+  "importClosureProof": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/import-closure-proof.json",
+    "sha256": "3a241a1136afe3c5fb65897ef3bc6a787f63cc3488c9712a686b98fd25b76c91"
+  }
+}

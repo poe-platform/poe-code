@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "scope": "No candidate execution; read-only syntax/data/authentication checks",
+  "checks": [
+    {
+      "name": "inspector syntax",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "tests/integration/expr-public-independent-20260827/component-admission-v1/inspect.mjs"
+      ],
+      "startedAt": "2026-08-28T00:30:21.863Z",
+      "endedAt": "2026-08-28T00:30:21.898Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "frozen syntax/data self-check",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "tests/integration/expr-public-independent-20260827/self-check.mjs"
+      ],
+      "startedAt": "2026-08-28T00:30:21.899Z",
+      "endedAt": "2026-08-28T00:30:21.938Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"scope\":\"syntax/data only; no product import\",\"runtimeCases\":26,\"consumerBackedCases\":24,\"lifecycleBindingsPending\":2,\"extraInputVariants\":2,\"positiveTypeFiles\":1,\"negativeTypeDirectives\":6,\"packageProtocolIds\":8,\"productExecuted\":false}\n",
+      "stderr": ""
+    },
+    {
+      "name": "immutable read-only authentication",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "tests/integration/expr-public-independent-20260827/component-admission-v1/inspect.mjs"
+      ],
+      "startedAt": "2026-08-28T00:30:21.938Z",
+      "endedAt": "2026-08-28T00:30:31.521Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stderr": "",
+      "stdoutPath": "tests/integration/expr-public-independent-20260827/component-admission-v1/AUTHENTICATION.json",
+      "stdoutSha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e"
+    }
+  ]
+}

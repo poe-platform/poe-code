@@ -1,0 +1,146 @@
+{
+  "role": "POST_SOURCE_PRIORITY_MAP_NOT_EXECUTION_GRANT",
+  "preservedFamilies": 32,
+  "preservedVariants": 60,
+  "preservedStatus": "ALL_UNRUN",
+  "schedules": [
+    {
+      "id": "T01",
+      "priority": 1,
+      "original": [
+        "L03"
+      ],
+      "schedule": "Hold active A, enqueue B(signal), abort B(false), inspect removal/settlement before releasing A; enqueue sibling C.",
+      "expected": "B removed only; raw false; C/A retained; no spent-credit refund or extra Worker.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T02",
+      "priority": 1,
+      "original": [
+        "L04",
+        "L05",
+        "B04"
+      ],
+      "schedule": "Abort active held request with 0, then deliver a bounded late valid reply or withhold it; join actual Worker/session/root retirement under the corrected sealed policy.",
+      "expected": "No execute settlement before required retirement; raw 0; validated usage counted once and unknown usage never refunded; no automatic restart.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T03",
+      "priority": 1,
+      "original": [
+        "P05",
+        "B06"
+      ],
+      "schedule": "Finite array with exact own indices and inherited Symbol.iterator getter/function; counterpart cross-realm plain data.",
+      "expected": "No inherited hook invocation; reject safely or copy own data under corrected contract; normal cross-realm data remains supported.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T04",
+      "priority": 1,
+      "original": [
+        "P05",
+        "B06"
+      ],
+      "schedule": "Finite array with inherited map override returning the original array; mutate caller fragment after admission.",
+      "expected": "No borrowed map invocation, caller array not frozen, owned snapshot stable and actual copy fully prepaid.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T05",
+      "priority": 1,
+      "original": [
+        "L01",
+        "L02"
+      ],
+      "schedule": "Whole private owner start then close before READY, with returned Worker/exited receipt and bounded unresolved-ready detector.",
+      "expected": "All start/close promises settle under the declared terminal policy; no surviving startup timer or unowned waiter.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T06",
+      "priority": 1,
+      "original": [
+        "L02",
+        "L08",
+        "L09"
+      ],
+      "schedule": "Close during pending request; separate termination-rejects-undefined schedule with known exit and concurrent root close.",
+      "expected": "Close joins pending jobs; raw primary/cleanup presence retained; all independent cleanup attempted; unknown retirement is never clean.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T07",
+      "priority": 1,
+      "original": [
+        "B03",
+        "B06"
+      ],
+      "schedule": "Corrected source-bound metadata census at B/F=(0,0),(3,0),(64,1), then a small input/ready/result path and bounded extra-key refusal.",
+      "expected": "Independent census matches cumulative T/H and live ownership; no lowered product caps or hidden exclusions. Initial 54-vs-24 is source accounting, not a measured heap threshold.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T08",
+      "priority": 2,
+      "original": [
+        "L07",
+        "L08"
+      ],
+      "schedule": "After ready/one completed job, inject unsolicited frame or one stderr byte; separately delay stream completion/error relative to exit.",
+      "expected": "Tracked fatal retirement and qualified stream settlement, no default stdout/stderr forwarding or false clean closure.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T09",
+      "priority": 2,
+      "original": [
+        "P04",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "L02",
+        "L07"
+      ],
+      "schedule": "Replay bounded frozen falsy/malformed/cardinality/counter cases; compose exit-before-result, duplicate-after-result and postMessage clone rejection.",
+      "expected": "No false nonmatch, duplicate refund or publication; source-defined sent/unknown accounting and raw reason precedence; no algorithm/R01 adjudication.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    },
+    {
+      "id": "T10",
+      "priority": 2,
+      "original": [
+        "A01",
+        "A02",
+        "A03",
+        "A04"
+      ],
+      "schedule": "After a new grant, exact source-built/installed/physically-moved asset graph with actual entry/load negatives and explicit loader/permission configuration.",
+      "expected": "Distinguish unmodified versus instrumented code, no .ts/dist/origin fallback; old Expr/public unions retained; all actual load/retirement evidence separately bound.",
+      "status": "UNRUN",
+      "timing": "SOURCE_DERIVED_AFTER_AUTHOR_IMPLEMENTATION",
+      "authorization": "NO_EXECUTION_GO; must fit a newly sealed finite recipe"
+    }
+  ]
+}

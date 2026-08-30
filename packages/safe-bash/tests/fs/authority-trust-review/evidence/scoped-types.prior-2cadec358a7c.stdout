@@ -1,0 +1,26 @@
+tests/fs/authority-trust-review/authority.test.ts(110,16): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(111,16): error TS2339: Property 'link' does not exist on type 'Promise<RealFileSystem>'.
+tests/fs/authority-trust-review/authority.test.ts(112,27): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(116,34): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(117,37): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(118,37): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(140,16): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(147,33): error TS2339: Property 'stat' does not exist on type 'Promise<RealFileSystem>'.
+tests/fs/authority-trust-review/authority.test.ts(149,62): error TS2339: Property 'readFile' does not exist on type 'Promise<RealFileSystem>'.
+tests/fs/authority-trust-review/authority.test.ts(151,22): error TS2339: Property 'writeFile' does not exist on type 'Promise<RealFileSystem>'.
+tests/fs/authority-trust-review/authority.test.ts(157,39): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(158,27): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(159,35): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(161,37): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.
+tests/fs/authority-trust-review/authority.test.ts(162,108): error TS2345: Argument of type 'Promise<RealFileSystem>' is not assignable to parameter of type 'FileSystem'.
+  Type 'Promise<RealFileSystem>' is missing the following properties from type 'FileSystem': capabilities, readFile, writeFile, appendFile, and 9 more.

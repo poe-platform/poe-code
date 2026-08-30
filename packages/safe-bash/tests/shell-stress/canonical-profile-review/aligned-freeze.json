@@ -1,0 +1,21 @@
+{
+  "createdAt": "2026-08-27T06:50:26.748Z",
+  "phase": "aligned native preparation only",
+  "candidateInspected": false,
+  "originalFrozenCommit": "a48b1e9dc8bcada35d1818ee569c3e74d90b9980",
+  "authorBackgroundRead": "ab02ed8:tests/shell-stress/canonical-profile-migration/README.md only",
+  "productSourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "newNativeCohortObservations": 176,
+  "separateExistingNameLineControls": 2,
+  "reusedDirectProductObservations": 88,
+  "newProductExecutions": 0,
+  "preflightCorrection": "Git cat-file maxBuffer increased from default 1MiB to64MiB after ENOBUFS; before any native or product observation",
+  "files": {
+    "ALIGNED_PREPARATION.md": "c831eeeb1a8db2e0b3635fed864864a6973d5c5d24a7b9ec65350a4f79d5ea0b",
+    "aligned-native.mjs": "4ff283dbfc1707234f9bb41fb601a7b5cb2e84eb189a2a68a77fcd54d6e2751c",
+    "aligned-native-20260827.json": "37dc5ed4beaca1fbee0055325658d5025b6bd74a0b13779901b992486472dc2a",
+    "aligned-compare.mjs": "dc0caac8bdc8eb3152b57dfdb8ab1c6baf7889e9b30ff79773278ead59e32af8",
+    "aligned-comparison-20260827.json": "fe054a6ad2bef561a5fd6f0f5f53f067eb634142d27a26454e1ae6482fde7273",
+    "aligned-integrity.test.mjs": "e843f094e51ca27e0beb1a51f083ef5e4acabac66864924aa88742ae6a68e777"
+  }
+}

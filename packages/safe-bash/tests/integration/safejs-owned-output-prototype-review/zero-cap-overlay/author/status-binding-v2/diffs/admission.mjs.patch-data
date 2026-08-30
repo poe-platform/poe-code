@@ -1,0 +1,92 @@
+--- previous/admission.mjs
++++ status-binding-v2/admission.mjs
+@@ -5,7 +5,7 @@
+ import { dirname, join, relative, resolve } from "node:path";
+ import { fileURLToPath } from "node:url";
+ 
+-export const author = "/private/tmp/safe-bash-zero-overlay-author-replay-m16ispgh/frozen-author";
++export const author = "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/frozen-author";
+ export const repository = "/Users/kjopek/Workspace/safe-bash";
+ const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", GIT_OPTIONAL_LOCKS: "0" };
+ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+@@ -66,6 +66,7 @@
+     assert.equal(hash(frozen), entry.sha256);
+     assert.deepEqual(regular(join(repository, entry.path)), frozen);
+   }
++  verifyBindingInputs();
+   return commit;
+ }
+ export function verifyCandidate(admission) {
+@@ -118,6 +119,72 @@
+   assert.equal(process.execPath, candidate.node.path);
+   assert.equal(hash(regular(process.execPath)), candidate.node.sha256);
+   assert.equal(process.version, "v22.22.2");
++  verifyBindingRelease(admission);
+   verifyCandidate(admission);
+   return { ...admission, freezeCommit };
+ }
++
++const bindingOwner = "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2";
++const runtimeRoot = dirname(fileURLToPath(import.meta.url));
++function verifyBindingInputs() {
++  const freezePath = relative(repository, join(bindingOwner, "EXECUTION-FREEZE.json"));
++  const commit = git("log", "-1", "--format=%H", "--", freezePath).toString().trim();
++  assert.match(commit, /^[a-f0-9]{40}$/u);
++  const bytes = regular(join(bindingOwner, "EXECUTION-FREEZE.json"));
++  assert.deepEqual(bytes, git("show", `${commit}:${freezePath}`));
++  const freeze = JSON.parse(bytes);
++  assert.deepEqual(inventory(bindingOwner).filter(entry => entry.path !== "EXECUTION-FREEZE.json"), freeze.files);
++  for (const entry of freeze.files) {
++    const filename = join(bindingOwner, entry.path);
++    assert.deepEqual(regular(filename), git("show", `${commit}:${relative(repository, filename)}`));
++  }
++  const preparation = load(join(bindingOwner, "PREPARATION.json"));
++  assert.equal(runtimeRoot, preparation.runtimeRoot);
++  assert.deepEqual(inventory(runtimeRoot), preparation.runtimeEntries);
++  assert.deepEqual(regular(join(runtimeRoot, "PRIVATE-STATUS.json")), regular(join(bindingOwner, "PRIVATE-STATUS.json")));
++  return { commit, freezeSha256: hash(bytes), preparation };
++}
++export function expectedPrivateProfile() {
++  verifyBindingInputs();
++  const profile = load(join(runtimeRoot, "PRIVATE-STATUS.json"));
++  const additions = ["?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md", "?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md"];
++  assert.deepEqual(profile.addedLines, additions);
++  const original = git("show", `${profile.historicalSnapshot.commit}:${profile.historicalSnapshot.path}`);
++  assert.equal(hash(original), profile.historicalSnapshot.sha256);
++  const expected = JSON.parse(original);
++  assert.equal(expected.status, profile.historicalStatus);
++  const anchor = "?? docs/plans/safejs-24h-audit-2026-08-27.md\n";
++  assert.equal(expected.status.split(anchor).length, 2);
++  for (const line of additions) assert.equal(expected.status.split("\n").includes(line), false);
++  const status = expected.status.replace(anchor, anchor + additions.map(line => line + "\n").join(""));
++  assert.equal(status, profile.expectedStatus);
++  expected.status = status;
++  assert.deepEqual(expected, load(join(bindingOwner, "expected-private.json.data")));
++  return expected;
++}
++function verifyBindingRelease(admission) {
++  const binding = verifyBindingInputs();
++  assert.equal(admission.bindingPreparationCommit, binding.commit);
++  assert.equal(admission.bindingFreezeSha256, binding.freezeSha256);
++  assert.equal(admission.privateStatusProfileSha256, hash(regular(join(bindingOwner, "PRIVATE-STATUS.json"))));
++  assert.equal(admission.independentReviewCommit, "88367f70feb90b589a3aa2651700ba187b1336dc");
++  assert.equal(admission.independentReviewPath, "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/admission-v1/ADMISSION.json");
++  const descriptor = resolve(process.env.ZERO_OVERLAY_ROOT_RELEASE);
++  assert.ok(descriptor.startsWith(join(repository, "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author") + "/"));
++  const descriptorPath = relative(repository, descriptor);
++  const descriptorCommit = git("log", "-1", "--format=%H", "--", descriptorPath).toString().trim();
++  assert.match(descriptorCommit, /^[a-f0-9]{40}$/u);
++  assert.notEqual(descriptorCommit, binding.commit);
++  assert.notEqual(descriptorCommit, "8d58de4e08b9a50a8305b17686bd842a9e7d2d5e");
++  assert.deepEqual(regular(descriptor), git("show", `${descriptorCommit}:${descriptorPath}`));
++  for (const key of ["candidateManifestSha256", "sourceManifestSha256", "compiledManifestSha256", "packageManifestSha256", "candidateRoot", "packageRoot"]) assert.equal(admission[key], binding.preparation[key], key);
++  assert.equal(admission.outputRoot, join(binding.preparation.temporary, "raw"));
++  assert.deepEqual(admission.allowedCohorts, ["surface", "lifecycle", "controls"]);
++  assert.match(admission.bindingReviewCommit, /^[a-f0-9]{40}$/u);
++  for (const commit of [binding.commit, admission.authorFreezeCommit, admission.independentReviewCommit, descriptorCommit]) assert.notEqual(admission.bindingReviewCommit, commit);
++  const review = JSON.parse(git("show", `${admission.bindingReviewCommit}:${admission.bindingReviewPath}`));
++  assert.equal(review.verdict, "ALLOW_REPLAY_OF_EXACT_STATUS_BINDING");
++  assert.ok(typeof review.reviewerIdentity === "string" && review.reviewerIdentity.length > 0);
++  assert.notEqual(review.reviewerIdentity, "zero-cap-overlay-author");
++  for (const key of ["bindingPreparationCommit", "bindingFreezeSha256", "privateStatusProfileSha256", "authorFreezeCommit", "candidateManifestSha256", "sourceManifestSha256", "compiledManifestSha256", "packageManifestSha256"]) assert.equal(review[key], admission[key], key);
++}

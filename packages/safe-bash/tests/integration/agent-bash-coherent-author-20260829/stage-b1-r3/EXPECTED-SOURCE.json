@@ -1,0 +1,17 @@
+[
+  {
+    "path": "run.mjs",
+    "bytes": 12877,
+    "sha256": "3307f2ad0e1aac46fb75489da3c831084e04f1a5e42f17d7251e2f3c0bd2f586"
+  },
+  {
+    "path": "bootstrap.mjs",
+    "bytes": 1369,
+    "sha256": "426f51f98bb8e94dd3bec16b0855f77b8a3e53f9118aa39fae374cc90aeb0fe7"
+  },
+  {
+    "path": "launch.sh",
+    "bytes": 395,
+    "sha256": "b5eab5c69b4691f1243a92750aa859160dd823ece7f6f7216d27060ff7345f07"
+  }
+]

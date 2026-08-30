@@ -1,0 +1,16 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/stress/s3-policy/bounded-races.test.ts",
+    "tests/stress/s3-policy/rename.test.ts"
+  ],
+  "started": "2026-08-27T00:22:53.260Z",
+  "finished": "2026-08-27T00:22:53.454Z",
+  "status": 0,
+  "signal": null,
+  "error": null
+}

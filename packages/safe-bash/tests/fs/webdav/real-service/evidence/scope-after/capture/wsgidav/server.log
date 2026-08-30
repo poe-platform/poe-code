@@ -1,0 +1,205 @@
+Client ('127.0.0.1', 51718) lost — peer dropped the TLS connection suddenly, during handshake: (8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)')
+01:40:14.032 - ERROR   : PUT: byte copy failed
+Traceback (most recent call last):
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/request_server.py", line 745, in do_PUT
+    fileobj.writelines(data_stream)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/request_server.py", line 675, in _stream_data
+    buf = environ["wsgi.input"].read(block_size)
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/server.py", line 549, in read
+    self._fetch()
+    ~~~~~~~~~~~^^
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/server.py", line 491, in _fetch
+    line = self.rfile.readline()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 547, in readline
+    b = self.read(nreadahead())
+                  ~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 526, in nreadahead
+    readahead = self.peek(1)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1124, in peek
+    return self._peek_unlocked(size)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1131, in _peek_unlocked
+    current = self.raw.read(to_read)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 729, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1304, in recv_into
+    return self.read(nbytes, buffer)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1138, in read
+    return self._sslobj.read(len, buffer)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+01:40:14.036 - ERROR   : Caught HTTPRequestException(HTTP_INTERNAL_ERROR)
+Traceback (most recent call last):
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/request_server.py", line 745, in do_PUT
+    fileobj.writelines(data_stream)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/request_server.py", line 675, in _stream_data
+    buf = environ["wsgi.input"].read(block_size)
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/server.py", line 549, in read
+    self._fetch()
+    ~~~~~~~~~~~^^
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/server.py", line 491, in _fetch
+    line = self.rfile.readline()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 547, in readline
+    b = self.read(nreadahead())
+                  ~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 526, in nreadahead
+    readahead = self.peek(1)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1124, in peek
+    return self._peek_unlocked(size)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1131, in _peek_unlocked
+    current = self.raw.read(to_read)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 729, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1304, in recv_into
+    return self.read(nbytes, buffer)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/error_printer.py", line 52, in __call__
+    for v in app_iter:
+             ^^^^^^^^
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/request_resolver.py", line 225, in __call__
+    yield from app_iter
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/request_server.py", line 125, in __call__
+    app_iter = provider.custom_request_handler(environ, start_response, method)
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/dav_provider.py", line 1621, in custom_request_handler
+    return default_handler(environ, start_response)
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/request_server.py", line 755, in do_PUT
+    util.fail(e)
+    ~~~~~~~~~^^^
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/wsgidav/util.py", line 970, in fail
+    raise e
+wsgidav.dav_error.DAVError: 500
+
+01:40:14.036 - ERROR   : e.src_exception:
+[Errno 32] Broken pipe
+Client ('127.0.0.1', 52260) lost — peer dropped the TLS connection suddenly, during handshake: (8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)')
+Exception ignored while calling deallocator <function IOBase.__del__ at 0x107ab3690>:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 418, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1318, in close
+    self.flush()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1279, in flush
+    self._flush_unlocked()
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/makefile.py", line 32, in _flush_unlocked
+    n = self.raw.write(bytes(self._write_buf))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 747, in write
+    return self._sock.send(b)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1234, in send
+    return super().send(data, flags)
+OSError: [Errno 9] Bad file descriptor
+Exception ignored while calling deallocator <function IOBase.__del__ at 0x107ab3690>:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 418, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1318, in close
+    self.flush()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1279, in flush
+    self._flush_unlocked()
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/makefile.py", line 32, in _flush_unlocked
+    n = self.raw.write(bytes(self._write_buf))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 747, in write
+    return self._sock.send(b)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1234, in send
+    return super().send(data, flags)
+OSError: [Errno 9] Bad file descriptor
+Exception ignored while calling deallocator <function IOBase.__del__ at 0x107ab3690>:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 418, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1318, in close
+    self.flush()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1279, in flush
+    self._flush_unlocked()
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/makefile.py", line 32, in _flush_unlocked
+    n = self.raw.write(bytes(self._write_buf))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 747, in write
+    return self._sock.send(b)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1234, in send
+    return super().send(data, flags)
+OSError: [Errno 9] Bad file descriptor
+Exception ignored while calling deallocator <function IOBase.__del__ at 0x107ab3690>:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 418, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1318, in close
+    self.flush()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1279, in flush
+    self._flush_unlocked()
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/makefile.py", line 32, in _flush_unlocked
+    n = self.raw.write(bytes(self._write_buf))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 747, in write
+    return self._sock.send(b)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1234, in send
+    return super().send(data, flags)
+OSError: [Errno 9] Bad file descriptor
+Exception ignored while calling deallocator <function IOBase.__del__ at 0x107ab3690>:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 418, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1318, in close
+    self.flush()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1279, in flush
+    self._flush_unlocked()
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/makefile.py", line 32, in _flush_unlocked
+    n = self.raw.write(bytes(self._write_buf))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 747, in write
+    return self._sock.send(b)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1234, in send
+    return super().send(data, flags)
+OSError: [Errno 9] Bad file descriptor
+Exception ignored while calling deallocator <function IOBase.__del__ at 0x107ab3690>:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 418, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1318, in close
+    self.flush()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1279, in flush
+    self._flush_unlocked()
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/makefile.py", line 32, in _flush_unlocked
+    n = self.raw.write(bytes(self._write_buf))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 747, in write
+    return self._sock.send(b)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1234, in send
+    return super().send(data, flags)
+OSError: [Errno 9] Bad file descriptor
+Exception ignored while calling deallocator <function IOBase.__del__ at 0x107ab3690>:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 418, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1318, in close
+    self.flush()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1279, in flush
+    self._flush_unlocked()
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/makefile.py", line 32, in _flush_unlocked
+    n = self.raw.write(bytes(self._write_buf))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 747, in write
+    return self._sock.send(b)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1234, in send
+    return super().send(data, flags)
+OSError: [Errno 9] Bad file descriptor
+Exception ignored while calling deallocator <function IOBase.__del__ at 0x107ab3690>:
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 418, in __del__
+    self.close()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1318, in close
+    self.flush()
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/_pyio.py", line 1279, in flush
+    self._flush_unlocked()
+  File "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/venv/lib/python3.14/site-packages/cheroot/makefile.py", line 32, in _flush_unlocked
+    n = self.raw.write(bytes(self._write_buf))
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 747, in write
+    return self._sock.send(b)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/ssl.py", line 1234, in send
+    return super().send(data, flags)
+OSError: [Errno 9] Bad file descriptor

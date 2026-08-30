@@ -1,0 +1,62 @@
+2155: The index of the next argument to be processed by the
+2156: .B getopts
+2157: builtin command (see
+2158: .SM
+2159: .B "SHELL BUILTIN COMMANDS"
+2160: below).
+2161: .TP
+2162: .B OSTYPE
+2163: Automatically set to a string that
+2164: describes the operating system on which
+2165: .B bash
+2166: is executing.
+2167: The default is system-dependent.
+2168: .TP
+2169: .B PIPESTATUS
+2170: An array variable (see
+2171: .B Arrays
+2172: below) containing a list of exit status values from the commands
+2173: in the most-recently-executed foreground pipeline, which may
+2174: consist of only a simple command
+2175: (see
+2176: .SM
+2177: .B "SHELL GRAMMAR"
+2178: above).
+2179: \fBBash\fP sets
+2180: .SM
+2181: .B PIPESTATUS
+2182: after executing multi-element pipelines,
+2183: timed and negated pipelines,
+2184: simple commands,
+2185: subshells created with the ( operator,
+2186: the
+2187: .B [[
+2188: and
+2189: .B ((
+2190: compound commands, and
+2191: after error conditions that result in the
+2192: shell aborting command execution.
+2193: .TP
+2194: .B PPID
+2195: The process ID of the shell's parent.
+2196: This variable is readonly.
+2197: .TP
+2198: .B PWD
+2199: The current working directory as set by the
+2200: .B cd
+2201: command.
+2202: .TP
+2203: .B RANDOM
+2204: Each time this parameter is referenced, it expands to a random integer
+2205: between 0 and 32767.
+2206: Assigning a value to
+2207: .SM
+2208: .B RANDOM
+2209: initializes (seeds) the sequence of random numbers.
+2210: Seeding the random number generator with the same constant value
+2211: produces the same sequence of values.
+2212: If
+2213: .SM
+2214: .B RANDOM
+2215: is unset, it loses its special properties, even if it is
+2216: subsequently reset.

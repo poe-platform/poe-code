@@ -1,0 +1,8 @@
+No ownership blocker. API uses explicit parent.child(destination). Borrowed
+curl stdin preparation uses bounded maxUploadBytes prebuffering, replacing
+streaming stdin upload and delaying the request; file-only body stays streaming.
+No core shared-input lease, no opaque-read preemption or rollback guarantee.
+Host-supplied bounded frames demonstrate owner/sibling byte continuity after
+closure, not implicit ownership partitioning of arbitrary shared sources.
+Root must evaluate this explicit TEMP tradeoff and observe actual CLOSED before
+independent execution. V2 currently original1/5, not forcegreen/production-ready.

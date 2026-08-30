@@ -1,0 +1,70 @@
+{
+  "createdAt": "2026-08-28T05:00:12.762Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "files": {
+    "tests/integration/timeout-public-author-20260828/FREEZE.json": "d41ca1df9d4ddd96a22ea5a9750b39e1231cd5ab654f913cf78f57e5ab69951c",
+    "tests/integration/timeout-public-author-20260828/CANDIDATE.json": "d720c94dbfa9e0a9f5c88560b8506b8a76ee1643a5ccff52e0a483935b707228",
+    "tests/integration/timeout-public-author-20260828/RECONSTRUCTION-CHAIN.json": "65a7ed7337daae7738b05cfd2628146752b7dfa4266ef97d0bde0e73d90bb1dd",
+    "tests/integration/timeout-public-author-20260828/assemble.mjs": "e883c0695da759480ac94a5ca9f701f2d55cba2859f4eed1d422388672a81f77",
+    "tests/integration/timeout-public-author-20260828/reconstruct.mjs": "ba63ca6566a46654aa3b54f275379ab2a9706e9de5f87bde40182645380a21e2",
+    "tests/integration/timeout-public-author-20260828/verify.mjs": "67f30b5dd85b683b1ed23ff96a766cff95cb188397f8fd3dd170ace1e94b6a2d",
+    "tests/integration/timeout-public-author-20260828/public.mjs": "ae029276214113bfd5e658f6f2a810ec08623a9124d69686e5e59732d24ab9ae",
+    "tests/integration/timeout-public-author-20260828/names.mjs": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs": "a4165aaef80bb07bc4a899fe297124e2ecdc6c1454aeef228b52badf75f01e10",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/projection.mjs": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tap.mjs": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/process-observer.mjs": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/INSTRUCTION-PROJECTION.json": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+    "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/types.mjs": "166ace4eaaa37a6cd7ffdeea615ddc31a01591cf06b354311bf2220e9d4879e1",
+    "tests/integration/timeout-public-author-20260828/FIXTURE-AMENDMENT-V2.json": "693af6f63126fe606eef4d5a5f6ea9cd0d92a2054dbb29493806f8be4bff50b1",
+    "tests/integration/timeout-public-author-20260828/FREEZE-V2.json": "2416d9a3e97bbed18b5ea9cdeda3b07e7f84579651f7d20c019e7d4a8d023af3",
+    "tests/integration/timeout-public-author-20260828/verify-v2.mjs": "d89372ff26e641a36eea751808b44b5f4c9d55e61619efbd2a3c2a99f08a6290",
+    "tests/integration/timeout-public-author-20260828/PUBLIC-ASSERTION-V3.json": "cbca468f574d3f453a6d4ec5b99f5fbab4b006fa4ce28e70710c042d45951f10",
+    "tests/integration/timeout-public-author-20260828/public-v3.mjs": "396fb54d34a12e5128d9904f49b96bc6b3de3bdac4e41540950982b152ae45ef",
+    "tests/integration/timeout-public-author-20260828/verify-v3.mjs": "30669617a5acde9879c94ac3eb784d8297008d3005a7578868bf52b46844b627"
+  },
+  "tools": [
+    {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    {
+      "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "origin": "/usr/bin/tar",
+      "physical": "/usr/bin/bsdtar",
+      "bytes": 275344,
+      "mode": 493,
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    }
+  ],
+  "runtimeCases": 13,
+  "strictPayloads": 10,
+  "fixtureFiles": 5,
+  "fullGateLaunched": false,
+  "productExecuted": false,
+  "qualification": "Author executor seal, not independent public acceptance. Frozen product seven-path composition, separate maintained fixture overlay, no native/SafeJS executions.",
+  "version": 3,
+  "previous": "EXECUTOR-SEAL-V2.json"
+}

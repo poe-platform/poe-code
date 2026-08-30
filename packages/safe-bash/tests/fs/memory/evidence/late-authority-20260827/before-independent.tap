@@ -1,0 +1,34 @@
+TAP version 13
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LWV4cGxpY2l0LWxhdGUtZXJyb3IiLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiY29tcGFyZVF1ZXJpZXMiOjAsImNvcHlRdWVyaWVzIjowLCJ0YXJnZXQiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09In19
+# Subtest: memory post-construction explicit comparison error is not hidden by cached authority
+not ok 1 - memory post-construction explicit comparison error is not hidden by cached authority
+  ---
+  duration_ms: 10.3935
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:8196'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'EACCES'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EACCES'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:183:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 175.526208

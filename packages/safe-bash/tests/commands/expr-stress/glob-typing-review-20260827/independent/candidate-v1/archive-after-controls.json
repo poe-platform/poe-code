@@ -1,0 +1,74 @@
+[
+  {
+    "path": "negative-helper.ts",
+    "sha256": "ca484bf70b4678e8e3a34b720b6949779ae3125af9da8fa423ece2edb94796c0"
+  },
+  {
+    "path": "negative-input-bytes.ts",
+    "sha256": "8a4fd12198d40595570dbe09042c506aa2cb14047710d142e940f1954065de82"
+  },
+  {
+    "path": "package.json",
+    "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+  },
+  {
+    "path": "positive-control.ts",
+    "sha256": "7b108ee033bbcfd50c64510cabbc5469c0e544f0f9f0341141744db592c95e47"
+  },
+  {
+    "path": "src/commands/expr/bre-worker.ts",
+    "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+  },
+  {
+    "path": "src/commands/regex-execution/client.ts",
+    "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+  },
+  {
+    "path": "src/commands/regex-execution/matching.ts",
+    "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+  },
+  {
+    "path": "src/commands/regex-execution/protocol.ts",
+    "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+  },
+  {
+    "path": "src/commands/regex-execution/worker.ts",
+    "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+  },
+  {
+    "path": "src/commands/search/glob.ts",
+    "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da"
+  },
+  {
+    "path": "src/commands/search/options.ts",
+    "sha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf"
+  },
+  {
+    "path": "src/contracts/command.ts",
+    "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  {
+    "path": "src/contracts/errors.ts",
+    "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+  },
+  {
+    "path": "src/contracts/filesystem.ts",
+    "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+  },
+  {
+    "path": "src/contracts/io.ts",
+    "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+  },
+  {
+    "path": "tests/commands/expr/regex-protocol.test.ts",
+    "sha256": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5"
+  },
+  {
+    "path": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "sha256": "65a63ccce8a60e33024a6accbce10757475954a2797c26a3f65522588efaf39f"
+  },
+  {
+    "path": "tsconfig.json",
+    "sha256": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4"
+  }
+]

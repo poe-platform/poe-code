@@ -1,0 +1,23 @@
+{
+  "kind": "SYNTAX_ONLY_NO_CANDIDATE_EXECUTION",
+  "rows": [
+    {
+      "path": "correction-worker.mjs",
+      "sha256": "0aed33e2bc20c3a4cbfad827b245be3e146983af7f59286bc52530f25ea392ab",
+      "pid": 72447,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "run-correction.mjs",
+      "sha256": "d3e1ae6de4e5fdd2adb2c5a1dd8c9f13a44c082e2df4f02ad691e617330969f7",
+      "pid": 72448,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

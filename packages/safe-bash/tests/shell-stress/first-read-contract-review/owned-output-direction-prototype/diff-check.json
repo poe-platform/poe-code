@@ -1,0 +1,7 @@
+{
+  "command": "git diff --cached --check -- <80 explicit owned evidence paths>",
+  "status": 2,
+  "stdout": "tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/restore-v1.mjs.data:53: new blank line at EOF.\n",
+  "stderr": "",
+  "disposition": "Preserve exact executed reconstruction-script bytes in inert capture; do not silently reformat evidence. No product/test fixture change."
+}

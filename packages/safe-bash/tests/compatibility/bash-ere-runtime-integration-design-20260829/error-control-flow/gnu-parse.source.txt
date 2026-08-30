@@ -1,0 +1,152 @@
+205:static int parse_arith_cmd (char **, int);
+206:#endif
+207:#if defined (COND_COMMAND)
+208:static void cond_error (void);
+209:static COND_COM *cond_expr (void);
+210:static COND_COM *cond_or (void);
+211:static COND_COM *cond_and (void);
+212:static COND_COM *cond_term (void);
+213:static int cond_skip_newlines (void);
+214:static COMMAND *parse_cond_command (void);
+215:#endif
+216:#if defined (ARRAY_VARS)
+217:static int token_is_assignment (const char *, int);
+218:static int token_is_ident (char *, int);
+219:#endif
+220:static int read_token_word (int);
+221:static void discard_parser_constructs (int);
+222:
+1409:			{ $$ = $1; }			
+1410:	|	BANG pipeline_command
+1411:			{
+1412:			  if ($2)
+1413:			    $2->flags ^= CMD_INVERT_RETURN;	/* toggle */
+1414:			  $$ = $2;
+1415:			}
+1416:	|	timespec pipeline_command
+1417:			{
+1418:			  if ($2)
+1419:			    $2->flags |= $1;
+1420:			  $$ = $2;
+1421:			}
+1422:	|	timespec nullcmd_terminator
+1423:			{
+1455:			     one to terminate the command) */
+1456:			  x.word = 0;
+1457:			  x.redirect = 0;
+1458:			  $$ = make_simple_command (x, (COMMAND *)NULL, line_number);
+1459:			  $$->flags |= CMD_INVERT_RETURN;
+1460:			  /* XXX - let's cheat and push a newline back */
+1461:			  if ($2 == '\n')
+1462:			    token_to_read = '\n';
+1463:			  else if ($2 == ';')
+1464:			    token_to_read = ';';
+1465:			  else if ($2 == '&')
+1466:			    token_to_read = '&';
+1467:			  parser_state &= ~PST_REDIRLIST;	/* make_simple_command sets this */
+1468:			}
+1469:	;
+5028:    }
+5029:}
+5030:
+5031:static COND_COM *
+5032:cond_expr (void)
+5033:{
+5034:  return (cond_or ());  
+5035:}
+5036:
+5037:static COND_COM *
+5038:cond_or (void)
+5039:{
+5040:  COND_COM *l, *r;
+5041:
+5042:  l = cond_and ();
+5043:  if (cond_token == OR_OR)
+5044:    {
+5045:      r = cond_or ();
+5046:      l = make_cond_node (COND_OR, (WORD_DESC *)NULL, l, r);
+5047:    }
+5048:  return l;
+5049:}
+5050:
+5051:static COND_COM *
+5052:cond_and (void)
+5053:{
+5054:  COND_COM *l, *r;
+5055:
+5056:  l = cond_term ();
+5057:  if (cond_token == AND_AND)
+5058:    {
+5059:      r = cond_and ();
+5060:      l = make_cond_node (COND_AND, (WORD_DESC *)NULL, l, r);
+5061:    }
+5062:  return l;
+5063:}
+5064:
+5065:static int
+5066:cond_skip_newlines (void)
+5067:{
+5068:  while ((cond_token = read_token (READ)) == '\n')
+5069:    {
+5076:#define COND_RETURN_ERROR() \
+5077:  do { cond_token = COND_ERROR; return ((COND_COM *)NULL); } while (0)
+5078:
+5079:static COND_COM *
+5080:cond_term (void)
+5081:{
+5082:  WORD_DESC *op;
+5083:  COND_COM *term, *tleft, *tright;
+5084:  int tok, lineno, local_extglob;
+5085:  char *etext;
+5086:
+5087:  /* Read a token.  It can be a left paren, a `!', a unary operator, or a
+5088:     word that should be the first argument of a binary operator.  Start by
+5089:     skipping newlines, since this is a compound command. */
+5090:  tok = cond_skip_newlines ();
+5094:      COND_RETURN_ERROR ();
+5095:    }
+5096:  else if (tok == '(')
+5097:    {
+5098:      term = cond_expr ();
+5099:      if (cond_token != ')')
+5100:	{
+5101:	  if (term)
+5102:	    dispose_cond_node (term);		/* ( */
+5103:	  if (etext = error_token_from_token (cond_token))
+5104:	    {
+5105:	      parser_error (lineno, _("unexpected token `%s', expected `)'"), etext);
+5106:	      free (etext);
+5107:	    }
+5108:	  else
+5117:  else if (tok == BANG || (tok == WORD && (yylval.word->word[0] == '!' && yylval.word->word[1] == '\0')))
+5118:    {
+5119:      if (tok == WORD)
+5120:	dispose_word (yylval.word);	/* word not needed */
+5121:      term = cond_term ();
+5122:      if (term)
+5123:	term->flags ^= CMD_INVERT_RETURN;
+5124:    }
+5125:  else if (tok == WORD && yylval.word->word[0] == '-' && yylval.word->word[1] && yylval.word->word[2] == 0 && test_unop (yylval.word->word))
+5126:    {
+5127:      op = yylval.word;
+5128:      tok = read_token (READ);
+5129:      if (tok == WORD)
+5130:	{
+5131:	  tleft = make_cond_node (COND_TERM, yylval.word, (COND_COM *)NULL, (COND_COM *)NULL);
+5132:	  term = make_cond_node (COND_UNARY, op, tleft, (COND_COM *)NULL);
+5133:	}
+5254:parse_cond_command (void)
+5255:{
+5256:  COND_COM *cexp;
+5257:
+5258:  cexp = cond_expr ();
+5259:  return (make_cond_command (cexp));
+5260:}
+5261:#endif
+5262:
+5263:#if defined (ARRAY_VARS)
+5264:/* When this is called, it's guaranteed that we don't care about anything
+5265:   in t beyond i.  We use a buffer with room for the characters we add just
+5266:   in case assignment() ends up doing something like parsing a command
+5267:   substitution that will reallocate atoken.  We don't want to write beyond
+5268:   the end of an allocated buffer. */

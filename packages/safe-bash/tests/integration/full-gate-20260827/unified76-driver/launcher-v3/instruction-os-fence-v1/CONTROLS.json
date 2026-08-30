@@ -1,0 +1,276 @@
+{
+  "createdAt": "2026-08-28T05:58:31.166Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "status": "POLICY_PROPOSAL_AND_PRE_IMPLEMENTATION_CONTROL_FREEZE",
+  "fullGate": false,
+  "productChanges": false,
+  "shippingGuardChanges": false,
+  "groups": [
+    {
+      "id": "C01",
+      "requirement": "Ordinary Node write/truncate/rename/remove and ordinary near-miss basenames succeed",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C02",
+      "requirement": "Ordinary native Git archive and tar extraction succeed with exact bytes",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C03",
+      "requirement": "One actual review-only production build/type path succeeds; duplicate-build control still fails",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C04",
+      "requirement": "Node zero-byte AGENTS.md creation is denied before any file exists",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C05",
+      "requirement": "Native shell/touch instruction-name creation denied, including empty environment",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C06",
+      "requirement": "Node child and grandchild empty env preserve OS denial without NODE_OPTIONS",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C07",
+      "requirement": "Native child/grandchild empty env preserve OS denial",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C08",
+      "requirement": "Replacing/removing JS preload cannot remove inherited OS denial",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C09",
+      "requirement": "Ordinary-file rename to instruction basename denied; source unchanged",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C10",
+      "requirement": "Hard-link destination instruction basename denied; source and link count unchanged",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C11",
+      "requirement": "Symlink named instruction basename denied; no dangling entry published",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C12",
+      "requirement": "Ordinary symlink targeting forbidden basename cannot create/write target",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C13",
+      "requirement": "Slash, dot, dot-dot and directory-alias paths cannot bypass denial",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C14",
+      "requirement": "All256 ASCII letter-case variants of AGENTS.md denied",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C15",
+      "requirement": "Unicode parent and literal-backslash POSIX parent retain the same basename boundary",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C16",
+      "requirement": "External-directory import via rename refused even for an ordinary surrogate subtree",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C17",
+      "requirement": "External-file hard-link import refused; ordinary in-universe hardlinks still succeed",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C18",
+      "requirement": "Symlink escape write refused, while safe in-universe ordinary links work",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C19",
+      "requirement": "Initial dirty/aliased writable-root admission refused before sandbox launch",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C20",
+      "requirement": "Synthetic Git tree with zero-byte AGENTS member archives opaquely; native tar reaches ordinary member but cannot publish forbidden member",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C21",
+      "requirement": "Pre-opened descriptor limitation demonstrated only with non-instruction surrogate",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C22",
+      "requirement": "Actual launcher drops all unrelated writable file handles; native and Node observers check inode identities",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C23",
+      "requirement": "Existing readonly/private/network/process fences retain actual refusal/control behavior",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C24",
+      "requirement": "Nested looser sandbox invocation cannot remove inherited instruction denial",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C25",
+      "requirement": "Changed/missing sandbox binary or unreadable-reference mismatch fails78 before target execution",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C26",
+      "requirement": "Unsupported OS/architecture and ambiguous roots fail78 before target writes",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C27",
+      "requirement": "Guard-removal/profile-tamper/receipt-omission controls cannot qualify launch",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C28",
+      "requirement": "Trusted outer observer binds only actual owned PID/group/birth; no survivors or unowned kills",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C29",
+      "requirement": "stdout/stderr ordinary pipes and required build outputs remain usable",
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "id": "C30",
+      "requirement": "Original six logical projection and opaque Git provenance remain exact, no plaintext instruction body copied",
+      "status": "NOT_EXECUTED"
+    }
+  ],
+  "bounds": {
+    "isolatedControlMs": 30000,
+    "isolatedControlOutputBytes": 1048576,
+    "totalControlOutputBytes": 33554432,
+    "syntheticArchiveBytes": 65536,
+    "mechanismProcessesMax": 96,
+    "buildTypeSlice": "Existing reviewed setup/phase bounds unchanged; requires new guarded author seal before execution"
+  },
+  "availabilityObservation": {
+    "command": "/usr/bin/sandbox-exec -p <name-only-deny-profile> /usr/bin/true",
+    "status": 0,
+    "writes": 0,
+    "qualification": "Before this freeze, availability/parser observation only; no write-denial evidence"
+  },
+  "tools": [
+    {
+      "path": "/usr/bin/sandbox-exec",
+      "physical": "/usr/bin/sandbox-exec",
+      "bytes": 102560,
+      "mode": 493,
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "path": "/usr/bin/tar",
+      "physical": "/usr/bin/bsdtar",
+      "bytes": 275344,
+      "mode": 493,
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    {
+      "path": "/bin/sh",
+      "physical": "/bin/sh",
+      "bytes": 101232,
+      "mode": 493,
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+    },
+    {
+      "path": "/usr/bin/env",
+      "physical": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+    },
+    {
+      "path": "/usr/bin/touch",
+      "physical": "/usr/bin/touch",
+      "bytes": 101792,
+      "mode": 493,
+      "sha256": "79853859b2c5e8713fcf1d3d849d5baa414a1cbf77858bf088490906580e35ca"
+    },
+    {
+      "path": "/bin/ln",
+      "physical": "/bin/ln",
+      "bytes": 102176,
+      "mode": 493,
+      "sha256": "9a31a6c750ac6465fbbc7996190c47c1e7c8354d68604d6aa7f14366c1ec3507"
+    },
+    {
+      "path": "/bin/mv",
+      "physical": "/bin/mv",
+      "bytes": 119440,
+      "mode": 493,
+      "sha256": "e17db5197afe47d1f4c8fd0a6ff32f153cce19183f3a70e33d043976a0943695"
+    },
+    {
+      "path": "/bin/ps",
+      "physical": "/bin/ps",
+      "bytes": 170816,
+      "mode": 493,
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    },
+    {
+      "path": "/usr/bin/otool",
+      "physical": "/usr/bin/otool",
+      "bytes": 118928,
+      "mode": 493,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  ],
+  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+  "manuals": [
+    {
+      "path": "/usr/share/man/man7/sandbox.7",
+      "sha256": "9043d9296715714f95b4de6c5f88a5436c5cc3b83b62641327212078c5c69b04"
+    },
+    {
+      "path": "/usr/share/man/man1/sandbox-exec.1",
+      "sha256": "0d264f72dc6a8e0db5474840f33b512542c469beb109ed146c17055da287336b"
+    }
+  ],
+  "newSystemReferencePairs": [
+    [
+      "/usr/bin/sandbox-exec",
+      "/usr/lib/libsandbox.1.dylib"
+    ],
+    [
+      "/usr/bin/sandbox-exec",
+      "/usr/lib/libSystem.B.dylib"
+    ]
+  ],
+  "newSystemExceptionApproved": false,
+  "proposalSha256": "20c19f16231eeda95a56f75c323d093c5d75df4f3a5eb492564a516063e850e2"
+}

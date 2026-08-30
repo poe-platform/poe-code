@@ -1,0 +1,9 @@
+{
+  "artifactRegular": true,
+  "artifactBytes": 872281,
+  "artifactSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "fixtureDirectory": [
+    "RESULT.json"
+  ],
+  "elapsedSeconds": 420.43
+}

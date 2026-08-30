@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-29T12:37:04.194Z",
+  "grant": {
+    "minutes": 10,
+    "knownOS": 24,
+    "peak": 2,
+    "capture": 33554432,
+    "work": 134217728
+  },
+  "scope": "npm relative file/link DATA only; no execution/inflation"
+}

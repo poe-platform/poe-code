@@ -1,0 +1,14 @@
+5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc  src/commands/regex-execution/client.ts
+dbbd571f33a5b674983a7790ea15f7af73b94ee5b7e3d4d84fe67ac9c2565bda  tests/commands/expr-author/abort-reason-fix/REPORT.md
+3531658e8e7883d670ab2c7b59985acf4c5eeb4fc6a4d45e952843025deeb747  tests/commands/expr-author/abort-reason-fix/after-manifest.txt
+9c3a2213e08dced18df1b310e8df5bb16496d7ed96b07d704879b9eacdb4caf8  tests/commands/expr-author/abort-reason-fix/before-manifest.txt
+192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0  tests/commands/expr-author/abort-reason-fix/build-after.log
+192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0  tests/commands/expr-author/abort-reason-fix/build-before.log
+ef4b9e3c78ba98e746788cade202ff43982b6ec2c01e3362fa59c33b69fdc755  tests/commands/expr-author/abort-reason-fix/commands.json
+60c2112a51b1ca7d3d831148ef0985aad80fa39fc1b8088c51027c6ccaa5a4ac  tests/commands/expr-author/abort-reason-fix/focused-after.tap
+1e3a244eb0312b6aae6488f2bb0e3b65c9912e0f05f39fbd220f0c9064336c2b  tests/commands/expr-author/abort-reason-fix/regression-after.tap
+a3ba55fbc1ed4330500d0838e4bb7b7305f492217618f056035645f18aa7421b  tests/commands/expr-author/abort-reason-fix/regression-before.tap
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/commands/expr-author/abort-reason-fix/strict-after.log
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/commands/expr-author/abort-reason-fix/strict-before.log
+9eaf3c39d96a0895dfd1ce6044dc7fd50c4758cbbcde54a5530b35d54bfb29c4  tests/commands/expr-author/abort-reason-fix/tsconfig.json
+24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3  tests/commands/expr/abort-reason-regression.test.ts

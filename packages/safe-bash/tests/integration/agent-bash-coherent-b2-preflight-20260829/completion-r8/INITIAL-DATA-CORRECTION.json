@@ -1,0 +1,7 @@
+{
+  "error": "index is not defined",
+  "stage": "display filter after all authenticated copies and ORIGIN publication",
+  "knownGitChildRetired": true,
+  "codeExecution": 0,
+  "correction": "Use explicit callback index for selected source display; no copy retry/overwrite"
+}

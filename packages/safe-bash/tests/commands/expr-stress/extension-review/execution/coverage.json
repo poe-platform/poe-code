@@ -1,0 +1,267 @@
+{
+  "schema": 1,
+  "candidate": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "acceptance": "FAIL",
+  "statusPolicy": "EXECUTED_BOUNDED reports concrete exercised cases, not universal pass or a combined feature score. PARTIAL/PROFILE_LIMIT/CONTAINMENT_ONLY/FAIL are never counted as full specification passes.",
+  "original": [
+    {
+      "id": "direct-zero-stdin-reads",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Eight direct explicit/default provenance executions; frozen argv/env and throwing stdin getter, FS and invoke traps; no reads or untrusted caller RegExp compilation."
+    },
+    {
+      "id": "await-stdout-backpressure",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Both stdout and stderr held writes prevent settlement; one admitted write and owned byte copies."
+    },
+    {
+      "id": "sink-rejection",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Distinct stdout then stderr object rejection; exact stderr rejection, one write per sink, no duplicated result."
+    },
+    {
+      "id": "preabort-and-midflight",
+      "status": "PARTIAL",
+      "evidence": "Native 0/Error/AbortError identity before execution, output, startup and active; queued zero identity; real Shell cancellation after held worker admission. Exact inside-compiler vs inside-matcher phase interruption is NOT RUN."
+    },
+    {
+      "id": "cleanup-ownership",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Synchronous registration-before-open, cleanup-close and registration throw0/Error, same idempotent completion, actual Shell exec/dispose blocked by cooperative retirement, second Shell live sibling, direct host without cleanup hook."
+    },
+    {
+      "id": "arg-byte-boundary",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "UTF8 argv sum excluding terminators at B-1/B/B+1 for ASCII and multibyte, plus oversized skipped literal."
+    },
+    {
+      "id": "digit-boundary",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "D-1/D/D+1 signed and zero-padded values, exact 128-digit result, bounded multiplication growth."
+    },
+    {
+      "id": "node-boundary",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Exact AST node boundaries, binary chains and skipped chain parse allocation."
+    },
+    {
+      "id": "depth-boundary",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Grouping and prefix recursion at H-1/H/H+1; no JS stack overflow."
+    },
+    {
+      "id": "work-boundary",
+      "status": "PARTIAL",
+      "evidence": "Restrictive and positive two-regex invocation; second allowance reflects charged first work; shared Shell command limit separately enforced. Dedicated large index-scan budget boundary is NOT RUN."
+    },
+    {
+      "id": "output-boundary",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Literal/capture O-1/O/O+1 including LF; 128-digit arithmetic; bounded errors; separate Shell aggregate at/over limits and real byte VFS pipeline."
+    },
+    {
+      "id": "required-regex-worker",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Actual installed worker URLs/threads/replies; zero caller RegExp compile attempts; worker-only static import graph and main-thread compiler guard before invalid pattern. Not a general host JS sandbox."
+    },
+    {
+      "id": "bounded-redos",
+      "status": "CONTAINMENT_ONLY",
+      "evidence": "All four exact original probes; no outer deadline, responsive heartbeat, zero owned workers after command. One explicitly unsupported nullable pattern remains unsupported, not native parity."
+    },
+    {
+      "id": "short-circuit-worker-admission",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Both frozen skipped branches through direct command and real Shell have zero worker/request jobs; paired evaluated valid/invalid patterns use actual worker."
+    },
+    {
+      "id": "unicode-contract",
+      "status": "PROFILE_LIMIT",
+      "evidence": "Declared C.UTF-8 scalar, surrogate/NUL policy and C-byte invalid output preserve meaning. Frozen en_US.UTF-8 rows fail and remain unchanged. Arbitrary invalid-byte argv unmeasured."
+    },
+    {
+      "id": "no-host-effects",
+      "status": "BOUNDED_AUDIT",
+      "evidence": "Direct FS/invoke traps remain unused; worker graph has no native child-process execution; product uses explicit VFS. No claim host JavaScript is sandboxed or that proxy counters alone prove isolation."
+    }
+  ],
+  "shellWorkflows": [
+    {
+      "id": "increment-capture-pipeline",
+      "status": "EXACT_PASS",
+      "capture": "controls-fe7083d9-first/controls.json"
+    },
+    {
+      "id": "version-parse-pipeline",
+      "status": "EXACT_PASS",
+      "capture": "controls-fe7083d9-first/controls.json"
+    },
+    {
+      "id": "false-last-pipeline-status",
+      "status": "EXACT_PASS",
+      "capture": "controls-fe7083d9-first/controls.json"
+    },
+    {
+      "id": "false-upstream-default-status",
+      "status": "EXACT_PASS",
+      "capture": "controls-fe7083d9-first/controls.json"
+    },
+    {
+      "id": "false-upstream-pipefail",
+      "status": "EXACT_PASS",
+      "capture": "controls-fe7083d9-first/controls.json"
+    },
+    {
+      "id": "arithmetic-error-and-status",
+      "status": "EXACT_PASS",
+      "capture": "controls-fe7083d9-first/controls.json"
+    },
+    {
+      "id": "vfs-build-artifact",
+      "status": "EXACT_PASS",
+      "capture": "controls-fe7083d9-first/controls.json"
+    }
+  ],
+  "extension": [
+    {
+      "id": "P01-envelope-dispatch",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "M01-M08 direct validator and actual client with positives, including grep, rg, glob legacy response separation."
+    },
+    {
+      "id": "P02-result-shape",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "M09-M16 and extra variants; exact property policy recorded, no coercion accepted."
+    },
+    {
+      "id": "P03-span-validation",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "M17-M26 plus both overall/capture endpoint variants and byte-profile partial-byte positive."
+    },
+    {
+      "id": "P04-state-consistency",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "M27-M32 plus real worker absent/unmatched/empty/no-match/repeated capture observations."
+    },
+    {
+      "id": "P05-byte-span-roundtrip",
+      "status": "PROFILE_LIMIT",
+      "evidence": "Real worker byte and scalar spans and invalid-UTF8 VFS capture pass. Exact frozen named en_US.UTF-8 CLI profile remains unsupported."
+    },
+    {
+      "id": "P06-owned-request-bytes",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Held queue; caller Buffer pattern/subject mutation does not change owned posted bytes. Not arbitrary concurrent mutation/lease safety."
+    },
+    {
+      "id": "P07-cache-and-response-isolation",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Same session changes subject/pattern/profile and mutates returned span; later actual worker outputs remain distinct."
+    },
+    {
+      "id": "P08-worker-request-rejection",
+      "status": "EXECUTED_WITH_RETIREMENT",
+      "evidence": "Eight actual malformed requests followed by fresh valid workers; bounded reply or isolated worker-error/exit, no parent crash/hang/fabricated match. Uncaught worker errors are retained, not described as graceful typed request errors."
+    },
+    {
+      "id": "L01-zero-admission",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Direct and Shell skipped branches zero worker/request; positive counterparts use worker."
+    },
+    {
+      "id": "L02-registration-order",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Actual Shell ordered events plus synchronous cleanup preventing open; same cleanup completion."
+    },
+    {
+      "id": "L03-registration-throw",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Error and numeric0 reject exactly with zero acquisition; native preabort precedence observed separately."
+    },
+    {
+      "id": "L04-late-acquisition-rejection",
+      "status": "EXECUTED_WITH_NA",
+      "evidence": "open is strictly synchronous, so async acquisition subcase NOT APPLICABLE; late startup Error during abort/held termination is observed, no unhandled rejection."
+    },
+    {
+      "id": "L05-admission-budgets",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "One worker/one queue; third refuses, queued abort restores admission, exact charged bytes258 accepted and257 queue allowance rejects; immediately runnable work not capped by queue bytes. Pre-copy order additionally source-audited."
+    },
+    {
+      "id": "L06-startup-timeout",
+      "status": "EXECUTED_WITH_SUPPLEMENT",
+      "evidence": "Original startup80 control passes. Fresh replacement with active held sibling uses separately disclosed larger sibling phase allowance; not unchanged all-80ms fixture proof."
+    },
+    {
+      "id": "L07-active-timeout",
+      "status": "EXECUTED_WITH_SUPPLEMENT",
+      "evidence": "Original active80 and PROTOCOL retirement controls pass. Fresh replacement/active held sibling uses disclosed staged readiness and larger startup allowance."
+    },
+    {
+      "id": "L08-exact-abort-reasons",
+      "status": "FAIL",
+      "evidence": "Native0/Error/AbortController(undefined generated AbortError) identity passes. Synthetic postMessage throw undefined becomes PROTOCOL; synthetic structural signal reasonundefined fulfills undefined."
+    },
+    {
+      "id": "L09-termination-latch",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Repeated session.close same completion and actual Shell registered cleanup/finally/dispose overlap await held cooperative termination."
+    },
+    {
+      "id": "L10-callerabort-and-natural-close",
+      "status": "PARTIAL",
+      "evidence": "Real Shell post-admission cancellation, live second Shell sibling, natural close and direct no-hook cleanup pass. Precise abort while matcher code is executing rather than held transport is not independently located."
+    },
+    {
+      "id": "L11-work-and-error-categories",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Seven typed worker limit dimensions with positives; shared remaining invocation work; invalid regex with empty subject still compiles; malformed charged steps rejected."
+    },
+    {
+      "id": "L12-worker-only-compile",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Authenticated installed graph, caller compiler refusal, actual nested worker requests/replies and all four outer-contained original probes. No untrusted native fallback."
+    },
+    {
+      "id": "R01-legacy-protocol-unchanged",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Same installed baseline/candidate grep/rg/glob responses/defaults including byte offsets and glob sentinel;276 unchanged archived regression tests pass with zero skips."
+    },
+    {
+      "id": "R02-installed-standalone",
+      "status": "EXECUTED_STANDALONE_ONLY",
+      "evidence": "Offline archive/build/pack/install/move, plain Node root import plus physical standalone expr, strict moved declarations; no expr package-subpath/default/root integration."
+    },
+    {
+      "id": "R03-original-separate-denominators",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Original GNU104 and separate Apple104 unchanged; original extension23 and correction1 kept separate; exact failures retained."
+    },
+    {
+      "id": "R04-installed-legacy-transcript",
+      "status": "EXECUTED_BOUNDED",
+      "evidence": "Seven actual moved-installed baseline/candidate Shell grep/rg/glob scripts have identical status/stdout/stderr."
+    }
+  ],
+  "mutationRows": {
+    "originalSpecifications": 32,
+    "malformedRows": 30,
+    "validUnmatchedEmptyRows": 2,
+    "directAndClientPositiveCounterparts": true,
+    "capture": "controls-fe7083d9-first/controls.json",
+    "additionalVariants": "boundary-variants-fe7083d9/controls.json",
+    "noProductSourceMutation": true
+  },
+  "notClaimed": [
+    "Full GNU parity",
+    "GNU/Linux semantics",
+    "public root/default expr integration",
+    "whole gate",
+    "superiority",
+    "72 hours work",
+    "all tests/fixtures typechecked",
+    "general host JavaScript sandbox",
+    "unchanged all80ms supplemental held-sibling fixture proof"
+  ]
+}

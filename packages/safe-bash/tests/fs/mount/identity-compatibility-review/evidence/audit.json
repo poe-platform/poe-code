@@ -1,0 +1,37 @@
+{
+  "pinnedRevision": "4fa4ba9502dac843bd13aa5031d128a3171f597d",
+  "sourceSetSha256": "01618dbf95c03aca3dc1bbc15e12182cf572e929c83be239a7056d4afc45ab48",
+  "actualTestAndArchiveHashesMatch": true,
+  "requiredSuccess": {
+    "total": 38,
+    "pass": 18,
+    "fail": 20
+  },
+  "rejectionControls": {
+    "total": 5,
+    "pass": 5
+  },
+  "allFailedRequiredCasesRetainExactBytesAndNamespace": true,
+  "failureNames": [
+    "REQUIRED shared memory backend mounted twice: distinct-file mv overwrite",
+    "REQUIRED cross-mount memory mv, target missing",
+    "REQUIRED cross-mount memory mv, target existing",
+    "REQUIRED s3 one-mount copy, target existing",
+    "REQUIRED s3 separate-clients copy, target existing",
+    "REQUIRED s3 separate-clients cross-mount mv, target missing",
+    "REQUIRED s3 separate-clients cross-mount mv, target existing",
+    "REQUIRED memory to-remote s3 copy, target existing",
+    "REQUIRED memory from-remote s3 copy, target existing",
+    "REQUIRED webdav one-mount copy, target missing",
+    "REQUIRED webdav one-mount copy, target existing",
+    "REQUIRED webdav separate-clients copy, target missing",
+    "REQUIRED webdav separate-clients copy, target existing",
+    "positive webdav one-mount existing-target rename (default lock policy)",
+    "REQUIRED webdav separate-clients cross-mount mv, target missing",
+    "REQUIRED webdav separate-clients cross-mount mv, target existing",
+    "REQUIRED memory to-remote webdav copy, target missing",
+    "REQUIRED memory to-remote webdav copy, target existing",
+    "REQUIRED memory from-remote webdav copy, target missing",
+    "REQUIRED memory from-remote webdav copy, target existing"
+  ]
+}

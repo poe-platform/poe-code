@@ -1,0 +1,35 @@
+{
+  "historicalRuntime": "4c16d9c5a0e8661bc326a754205559a3e7ea6a32",
+  "historicalHarness": "85e6d56017bafebf9aa8849cd9e038229e49c863",
+  "historicalPins": {
+    "src/shell/cleanup.ts": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/shell/shell.ts": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/search/rg.ts": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+    "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca"
+  },
+  "entries": [
+    {
+      "sourceCommit": "85e6d56017bafebf9aa8849cd9e038229e49c863",
+      "source": "tests/shell/invocation-cleanup-public.test.ts",
+      "stored": "original-canonical.ts.data",
+      "bytes": 5797,
+      "sha256": "0456609e8d4e90d7a5d3d6a548804b522057b939f2afed55891d070e4da96e12"
+    },
+    {
+      "sourceCommit": "85e6d56017bafebf9aa8849cd9e038229e49c863",
+      "source": "tests/shell-stress/invocation-cleanup-runtime/public-worker.mjs",
+      "stored": "original-public-worker.mjs.data",
+      "bytes": 10729,
+      "sha256": "2ca53ee66a4dcc1f85453fa9fd276e76da1d773ef6a51ea866eafeb2ddda3fe4"
+    },
+    {
+      "stored": "original-failed-hooks.json",
+      "bytes": 18151,
+      "sha256": "9713cad87062fd0ad8bf5cc16d7771a1be05050d31e2343aceda1aa627e55815"
+    }
+  ],
+  "classification": "Historical fixture/probe/source pins and original red results; not current-candidate acceptance",
+  "preservedAt": "2026-08-27T12:10:59.525Z"
+}

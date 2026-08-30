@@ -1,0 +1,43 @@
+{
+  "revision": "02704bd1291b83763d7360b97bc5c6d50403ad10",
+  "sourceTree": "782cbec72259112e0810f9d6d9d55f2e7f37992f",
+  "startedAt": "2026-08-27T10:02:44.916Z",
+  "liveHead": "02704bd1291b83763d7360b97bc5c6d50403ad10",
+  "liveStatus": " M tests/integration/adapter-tools/README.md\n M tests/integration/adapter-tools/fixtures.ts\n M tests/integration/adapter-tools/matrix.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-v2/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/adapter-tools/profiles/\n?? tests/integration/safejs-cleanup-regression/integration/\n?? tests/plugins/time-env-public-independent/\n?? tests/shell-stress/first-read-contract-review/owned-output-direction-review/\n",
+  "worktreeTests": true,
+  "productArchiveSha256": "b8d63cc22aec0a01668d017b70cecf550bdc75fc3137d3e2aa4f58f36dd6cc2a",
+  "productManifestSha256": "662bc73b335540afb0fc79ccada3a539c0775f9897e2e3322800293979269255",
+  "inputManifestSha256": "081c86b12d4f171beb04740eb7009b325c6790907888a65288b69aa301c3c122",
+  "node": "v22.22.2",
+  "nodeExecutableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "platform": "darwin",
+  "arch": "arm64",
+  "tools": [
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "packageJsonSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "packageJsonSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "packageJsonSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "packageJsonSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  ],
+  "role": "author replay, not independent review",
+  "independentMutationEnvironment": "explicitly empty",
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles/.isolated-XM2Dtq",
+  "history": "stock78/79 and configured79/79 prior evidence untouched; only full configured historical workloads replayed against this candidate",
+  "service": "no real service started/downloaded; authenticated b22d00c evidence remains independent historical basis",
+  "profile": "actual agentCommands; loopback MockDav; S3 mock snapshot-marker semantics; no performance claim under concurrent cohost work"
+}

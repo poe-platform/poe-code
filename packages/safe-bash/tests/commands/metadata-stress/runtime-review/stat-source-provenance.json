@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-08-27T00:51:43.630Z",
+  "archiveUrl": "https://ftp.gnu.org/gnu/coreutils/coreutils-9.7.tar.xz",
+  "archiveHash": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+  "malformedRecordedStatSourceHash": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c2c4b2255e4f41bea6bad",
+  "malformedLength": 62,
+  "actualStatSourceHash": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+  "actualLength": 64,
+  "archiveEntryHash": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+  "extractionCommand": "/usr/bin/tar -xOf tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz coreutils-9.7/src/stat.c",
+  "sourceBytes": 57957,
+  "note": "Independent local archive-entry comparison. No source/binary change or remote authenticity/signature claim."
+}

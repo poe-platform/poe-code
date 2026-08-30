@@ -1,0 +1,241 @@
+{
+  "status": "PASS",
+  "launcherExit": 0,
+  "attempts": 1,
+  "finalEvidenceAt": "2026-08-29T12:08:50.419Z",
+  "authorizationCommit": "6f8e55272cf2f207a2c71753bd8ccd5a430ccc07",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "preseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "resultMetadata": {
+    "status": "PASS",
+    "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+    "package": {
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    "retirement": {
+      "children": 4,
+      "attemptedBytes": 8653,
+      "storedBytes": 8653,
+      "elapsedMs": 8590.688375,
+      "failures": []
+    },
+    "workBytes": 12902570,
+    "stageBRemaining": "UNRUN",
+    "coherentAcceptance": false
+  },
+  "matrix": [
+    {
+      "layout": "source-built",
+      "pid": 70877,
+      "passed": 13,
+      "failed": 0,
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "guestEngineCalls": 0,
+      "shells": 14,
+      "cleanupFulfilled": 14
+    },
+    {
+      "layout": "installed",
+      "pid": 70881,
+      "passed": 13,
+      "failed": 0,
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "guestEngineCalls": 0,
+      "shells": 14,
+      "cleanupFulfilled": 14
+    },
+    {
+      "layout": "physically-moved",
+      "pid": 70886,
+      "passed": 13,
+      "failed": 0,
+      "regexWorkers": 0,
+      "internalLoaderAdmissions": 1,
+      "guestEngineCalls": 0,
+      "shells": 14,
+      "cleanupFulfilled": 14
+    }
+  ],
+  "totals": {
+    "executed": 39,
+    "passed": 39,
+    "failed": 0,
+    "shells": 42,
+    "cleanupFulfilled": 42,
+    "regexWorkers": 0,
+    "internalLoaderAdmissions": 3,
+    "guestEngineCalls": 0
+  },
+  "ownedRoleObservations": [
+    {
+      "role": "offline-install",
+      "pid": 70850,
+      "observations": [
+        {
+          "role": "offline-install",
+          "pid": 70850,
+          "event": "exit",
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 5654.653375
+        },
+        {
+          "role": "offline-install",
+          "pid": 70850,
+          "event": "close",
+          "status": 0,
+          "signal": null,
+          "stdoutBytes": 23,
+          "stderrBytes": 0,
+          "storedStdout": 23,
+          "storedStderr": 0,
+          "elapsedMs": 5654.773
+        },
+        {
+          "role": "offline-install",
+          "pid": 70850,
+          "groupAbsent": true,
+          "exited": true,
+          "closed": true,
+          "unknown": false,
+          "elapsedMs": 5655.151792
+        }
+      ]
+    },
+    {
+      "role": "workflow-source-built",
+      "pid": 70877,
+      "observations": [
+        {
+          "role": "workflow-source-built",
+          "pid": 70877,
+          "event": "exit",
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 6335.734334
+        },
+        {
+          "role": "workflow-source-built",
+          "pid": 70877,
+          "event": "close",
+          "status": 0,
+          "signal": null,
+          "stdoutBytes": 2125,
+          "stderrBytes": 751,
+          "storedStdout": 2125,
+          "storedStderr": 751,
+          "elapsedMs": 6335.797584
+        },
+        {
+          "role": "workflow-source-built",
+          "pid": 70877,
+          "groupAbsent": true,
+          "exited": true,
+          "closed": true,
+          "unknown": false,
+          "elapsedMs": 6335.911667
+        }
+      ]
+    },
+    {
+      "role": "workflow-installed",
+      "pid": 70881,
+      "observations": [
+        {
+          "role": "workflow-installed",
+          "pid": 70881,
+          "event": "exit",
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 7030.5692500000005
+        },
+        {
+          "role": "workflow-installed",
+          "pid": 70881,
+          "event": "close",
+          "status": 0,
+          "signal": null,
+          "stdoutBytes": 2122,
+          "stderrBytes": 748,
+          "storedStdout": 2122,
+          "storedStderr": 748,
+          "elapsedMs": 7031.002917
+        },
+        {
+          "role": "workflow-installed",
+          "pid": 70881,
+          "groupAbsent": true,
+          "exited": true,
+          "closed": true,
+          "unknown": false,
+          "elapsedMs": 7031.086334
+        }
+      ]
+    },
+    {
+      "role": "workflow-physically-moved",
+      "pid": 70886,
+      "observations": [
+        {
+          "role": "workflow-physically-moved",
+          "pid": 70886,
+          "event": "exit",
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 7702.836542
+        },
+        {
+          "role": "workflow-physically-moved",
+          "pid": 70886,
+          "event": "close",
+          "status": 0,
+          "signal": null,
+          "stdoutBytes": 2129,
+          "stderrBytes": 755,
+          "storedStdout": 2129,
+          "storedStderr": 755,
+          "elapsedMs": 7702.882459
+        },
+        {
+          "role": "workflow-physically-moved",
+          "pid": 70886,
+          "groupAbsent": true,
+          "exited": true,
+          "closed": true,
+          "unknown": false,
+          "elapsedMs": 7702.953792
+        }
+      ]
+    }
+  ],
+  "workSnapshot": {
+    "at": "2026-08-29T12:06:49.793Z",
+    "bytes": 12916428,
+    "entries": 2189
+  },
+  "conservativeExplicitStartAccounting": {
+    "authorization": 4,
+    "preflight": 8,
+    "launchIncludingFourSupervisedChildren": 7,
+    "contextOnlyInstructionReads": 4,
+    "snapshotPublication": 3,
+    "finalPublicationIncludingCommitIdentity": 6,
+    "totalInclusiveUpperCount": 32,
+    "basis": "Explicit tool/admin/helper roles; conservatively counts exec replacements as starts. Not an OS-wide/transitive census. Final publication roles complete in the outer command transcript."
+  },
+  "qualifications": [
+    "Known-role-only functional review; observed supervisor group fields are raw observations, not universal group-absence or full-census acceptance.",
+    "Parent/static Regex closure only, not nested-load tracing. Actual application Regex Worker count is separate from internal-loader admissions.",
+    "Public exec/dispose and registered cleanup observations do not establish finalization of arbitrary unenrolled provider work.",
+    "No build rerun: source-built uses authenticated actual StageA output. Offline installation and physical move executed in this attempt.",
+    "No PUBLIC95/Node guest engine/native oracle/external network/private input execution.",
+    "All50 Unit2, remaining retained/type/mutant/binding cohorts and five PUBLIC95 workflows remain later; not full coherent acceptance or 726-slot completion.",
+    "Earlier STOP/HOLD evidence and original cohorts remain unchanged."
+  ]
+}

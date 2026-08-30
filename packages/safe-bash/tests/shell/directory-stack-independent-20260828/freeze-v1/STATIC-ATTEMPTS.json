@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "kind": "static-only-attempt-ledger",
+  "attempts": [
+    {
+      "id": "static-01",
+      "startedAt": "2026-08-28T07:28:37.491Z",
+      "finishedAt": "2026-08-28T07:28:38.973Z",
+      "command": "node tests/shell/directory-stack-independent-20260828/freeze-v1/verify.mjs",
+      "node": "v22.22.2",
+      "platform": "darwin",
+      "arch": "arm64",
+      "sealSha256": "91d18940db5c384e6299b34a3f8178c6d00ff5c394917261e879a54be2b06838",
+      "verifierSha256": "d6e8207454df3d54dd5317d6ad6a0fcd3e0d1394b75d80b5bc45b057a36a1533",
+      "exitStatus": 1,
+      "stdout": "",
+      "stderr": "fatal: bad object b820fa91a3bcc904005c690d48038d9a3900cede\nnode:internal/errors:983\n  const err = new Error(message);\n              ^\n\nError: Command failed: git diff-tree --no-commit-id --name-only -r 5137a74ec855a32d8a8860eb66b62eb44d11e290^{tree} b820fa91a3bcc904005c690d48038d9a3900cede\nfatal: bad object b820fa91a3bcc904005c690d48038d9a3900cede\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at checkExecSyncError (node:child_process:916:11)\n    at execFileSync (node:child_process:952:15)\n    at git (file:///Users/kjopek/Workspace/safe-bash/tests/shell/directory-stack-independent-20260828/freeze-v1/verify.mjs:17:33)\n    at authenticateReferences (file:///Users/kjopek/Workspace/safe-bash/tests/shell/directory-stack-independent-20260828/freeze-v1/verify.mjs:142:19)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/directory-stack-independent-20260828/freeze-v1/verify.mjs:201:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  status: 128,\n  signal: null,\n  output: [\n    null,\n    Buffer(0) [Uint8Array] [],\n    Buffer(59) [Uint8Array] [\n      102,  97, 116,  97, 108,  58, 32, 98,  97, 100, 32,\n      111,  98, 106, 101,  99, 116, 32, 98,  56,  50, 48,\n      102,  97,  57,  49,  97,  51, 98, 99,  99,  57, 48,\n       52,  48,  48,  53,  99,  54, 57, 48, 100,  52, 56,\n       48,  51,  56, 100,  57,  97, 51, 57,  48,  48, 99,\n      101, 100, 101,  10\n    ]\n  ],\n  pid: 77153,\n  stdout: Buffer(0) [Uint8Array] [],\n  stderr: Buffer(59) [Uint8Array] [\n    102,  97, 116,  97, 108,  58, 32, 98,  97, 100, 32,\n    111,  98, 106, 101,  99, 116, 32, 98,  56,  50, 48,\n    102,  97,  57,  49,  97,  51, 98, 99,  99,  57, 48,\n     52,  48,  48,  53,  99,  54, 57, 48, 100,  52, 56,\n     48,  51,  56, 100,  57,  97, 51, 57,  48,  48, 99,\n    101, 100, 101,  10\n  ]\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "id": "static-02",
+      "startedAt": "2026-08-28T07:29:42.585Z",
+      "finishedAt": "2026-08-28T07:29:44.395Z",
+      "command": "node tests/shell/directory-stack-independent-20260828/freeze-v1/verify.mjs",
+      "node": "v22.22.2",
+      "platform": "darwin",
+      "arch": "arm64",
+      "sealSha256": "a14ad6eebc8fa3f67d97f629c85d1f0433e33a8c3b3e92118c3544f3e902b74c",
+      "verifierSha256": "b1343ac6dc289be1b2016b3527aafb86509b070aa270cc47aecd84b476c50a88",
+      "exitStatus": 0,
+      "stdout": "{\n  \"status\": \"static-only-pass\",\n  \"at\": \"2026-08-28T07:29:44.389Z\",\n  \"publicCasesFrozen\": 138,\n  \"sourceInvariantsFrozen\": 24,\n  \"positiveTypesFrozen\": 8,\n  \"negativeTypesFrozen\": 8,\n  \"staticNegativesRejected\": [\n    \"N01\",\n    \"N02\",\n    \"N03\",\n    \"N04\",\n    \"N05\",\n    \"N06\",\n    \"N07\",\n    \"N08\",\n    \"N09\",\n    \"N10\",\n    \"N11\",\n    \"N12\",\n    \"N13\",\n    \"N14\",\n    \"N15\",\n    \"N16\"\n  ],\n  \"futureProductMutantFamilies\": 16,\n  \"futureImportNegativeFamilies\": 6,\n  \"immutableReferencesAuthenticated\": 25,\n  \"productRuns\": 0,\n  \"nativeRuns\": 0,\n  \"typeCompiles\": 0,\n  \"providerRequests\": 0,\n  \"newCandidate\": null,\n  \"sealedCommit\": null,\n  \"appendSensitiveFrozenMembership\": true,\n  \"scope\": \"fixture/static integrity only; no implementation acceptance\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "static-03",
+      "startedAt": "2026-08-28T07:31:28.848Z",
+      "finishedAt": "2026-08-28T07:31:30.665Z",
+      "command": "node tests/shell/directory-stack-independent-20260828/freeze-v1/verify.mjs",
+      "node": "v22.22.2",
+      "platform": "darwin",
+      "arch": "arm64",
+      "sealSha256": "331fa5b52c6cc96a634eb57eb2eaa59c82edd7e25890e22c7c71b1897426528e",
+      "verifierSha256": "57916891df7ee80f57f8c677f24c3e8b9647a3ffe3bff1d3347fcc4093e5de45",
+      "exitStatus": 0,
+      "stdout": "{\n  \"status\": \"static-only-pass\",\n  \"at\": \"2026-08-28T07:31:30.659Z\",\n  \"publicCasesFrozen\": 138,\n  \"sourceInvariantsFrozen\": 24,\n  \"positiveTypesFrozen\": 8,\n  \"negativeTypesFrozen\": 8,\n  \"staticNegativesRejected\": [\n    \"N01\",\n    \"N02\",\n    \"N03\",\n    \"N04\",\n    \"N05\",\n    \"N06\",\n    \"N07\",\n    \"N08\",\n    \"N09\",\n    \"N10\",\n    \"N11\",\n    \"N12\",\n    \"N13\",\n    \"N14\",\n    \"N15\",\n    \"N16\"\n  ],\n  \"futureProductMutantFamilies\": 16,\n  \"futureImportNegativeFamilies\": 6,\n  \"immutableReferencesAuthenticated\": 25,\n  \"productRuns\": 0,\n  \"nativeRuns\": 0,\n  \"typeCompiles\": 0,\n  \"providerRequests\": 0,\n  \"newCandidate\": null,\n  \"sealedCommit\": null,\n  \"appendSensitiveFrozenMembership\": true,\n  \"scope\": \"fixture/static integrity only; no implementation acceptance\"\n}\n",
+      "stderr": ""
+    }
+  ],
+  "productRuns": 0,
+  "nativeRuns": 0,
+  "typeCompiles": 0,
+  "providerRequests": 0,
+  "qualification": "No product/runtime pass is claimed. Terminal-reported post-seal integrity reruns do not alter this immutable ledger; every failed preseal static attempt must be added before sealing.",
+  "summary": {
+    "recordedAttempts": 3,
+    "passed": 2,
+    "failed": 1,
+    "failedAttemptPreserved": "static-01 full stdout/stderr, command, timestamps, original verifier/seal hashes; missing Git tree object corrected by in-memory hash composition",
+    "recordedWorkWindow": {
+      "firstClock": "2026-08-28T07:12:50Z",
+      "through": "2026-08-28T07:31:30.665Z",
+      "claim": "elapsed local review window only, not72h, not globally authenticated absence of other-worker implementation"
+    },
+    "finalVerifierSha256": "57916891df7ee80f57f8c677f24c3e8b9647a3ffe3bff1d3347fcc4093e5de45"
+  }
+}

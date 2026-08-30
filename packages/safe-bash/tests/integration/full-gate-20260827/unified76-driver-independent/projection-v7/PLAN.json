@@ -1,0 +1,32 @@
+{
+  "schema": "unified76-independent-projection-v7-preinspection",
+  "chronology": "POSTAUTHOR/PREINSPECTION of new source and evidence bodies. Author files already exist. Only existing applicable AGENTS, user brief, prior conversation and Git identity/status/changed filenames consulted. Not pre-code or blind-authoring attestation.",
+  "source": "fb376b3a0bd390598038494235bec321a694383d",
+  "evidence": "acd04c3df74a5728fba1a29919b10c44cc4e2e0d",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "rootAuthority": {
+    "projectionStopEvidence": "a9ec3561b36505d288519804980ee1b7641ee5dd",
+    "projectionLedger": "31d354e8509b5b74acf04b3e17f01cd46b30c23c",
+    "publicPrerequisitesAccepted": "8dd78d7d099969597989ddcc9bec73e929ebe223",
+    "newRelease": "ABSENT; old release not transferred; fullgate forbidden",
+    "projection": "Exactly five candidate instruction files totaling47852 bytes and one benchmark instruction file9231 bytes: metadata only. Exact paths/blobs/hashes UNBOUND pending pinned packet. No guessed names or basename exemption.",
+    "git": "Authenticated original opaque Git objects/bundle may retain instruction blobs as inert provenance only. Never checkout instruction paths, print payloads or persist plaintext archives/instruction snapshots. Stream/hash omitted bytes and discard. Existing repository AGENTS instruction reads are normal.",
+    "system": "Only exact11 sampled unreadable system references on macOS26.4.1/build25E253; metadata not filehash/fullOS attestation. Other readable tools/dependencies hash-bound."
+  },
+  "controls": [
+    {"id":"P01","positive":"Actual complete candidate projection: original archive stream byte count/hash and all logical path/mode/blob/size/content identities bind; exactly six metadata-only records across candidate/dependencies; every other physical entry present and authenticated.","negative":"Mutate omitted path/mode/size/content digest/archive digest; actual guard/admission must refuse without instruction writes. Counts alone never establish membership."},
+    {"id":"P02","positive":"Exact approved omission list; no instruction paths physically written or retained, including own setup/dependency copies.","negative":"Changed six-list, noninstruction omission, dynamic basename exemption, renamed alias and instruction physical-presence mutations reject. Use metadata/synthetic benign names or pre-write interception; never create AGENTS paths/text for a negative."},
+    {"id":"P03","positive":"Logical/physical complete reconciliation and append-proof guard before/after outputs.","negative":"Missing/replaced/extra regular entry, symlink ancestor, escaping link and hardlink/alias as applicable reject; no live fallback or unapproved blessing of output growth."},
+    {"id":"P04","positive":"Original commit/tree/blob identity reproducible from bounded authenticated opaque reachable-object transport in independent Git storage; complete archive streamed never buffered/stored as tar.","negative":"Wrong candidate/archive binding and Git config/replace/alternate source injection refuse; no reconstructed history or working-repository-only availability proof."},
+    {"id":"P05","positive":"Complete main/npm/benchmark/tool closure bound to pinned packet; only exact approved dependency instruction metadata omitted. Actual load origins and no-parent-write fences verified.","negative":"Wrong readable tool/dependency digest or unsupported instruction exemption refuses; no broad skip, implicit private engine, install or arbitrary library exception."},
+    {"id":"P06","positive":"Actual frozen shared A10 on full projected snapshot: cold78/no build; typecheckall0/exactly1 real positive production build; expected23 maintained+3 source+3 exact negative groups and832 emit/208 declarations must be measured, not inherited.","negative":"Execute second real compiler under same audit; actual duplicate accounting must refuse. No fake counts, forked implementation or valid full-run release."},
+    {"id":"P07","positive":"Actual outer observer outside write-confined target; bounded ordinary/backslash/contained-link extraction and separate review-owned foreign sentinel survival.","negative":"Unsafe path/link/header or observer capability mutations reject with raw effects/cleanup. Inner ps remains confined, no observer stub, unrelated signals or forced-cleanup-as-positive-success."},
+    {"id":"P08","positive":"Strict lifecycle/output/cleanup receipts and original prior hashes; root release stays HOLD, public scoped prerequisites accepted but not release.","negative":"Fresh invalid/missing release refuses before fullgate; no unexecuted/failed prerequisite relabelled pass. Applicable subset only; no old22/all632/native/14phase rerun."}
+  ],
+  "limits": {"wholeExecutionMs":2400000,"phaseMs":360000,"setupChildMs":600000,"cleanupMs":5000,"chunkBytes":65536,"metadataBytes":16777216,"childCaptureBytes":67108864,"rawEvidenceBytes":268435456,"temporaryBytes":8589934592,"opaqueGitBytes":4294967296,"archiveBytes":4294967296,"smallTransportBytes":1048576},
+  "execution": "NOT_STARTED. Bind actual exposed APIs after inspection and freeze recipe before imports. Full2.382GB projected candidate explicitly authorized if required. Unique /tmp regular owned snapshot allowed; no worktree or shared Git mutation except explicit commits. Known pinned Git PATH and hash-bound bash/sandbox permission correction retained. No guarantee of kernel-hard limits or universal OS sandbox.",
+  "history": "All220 prior tracked independent files remain immutable; retain original22 assertions, v4/v5/v6 counts, forbidden-copy incident, and root stopped0/14 before materialization. New scoped matrix only; seven proofs not automatically accepted. HTML/DU/Expr scoped prerequisites accepted by new authority, not pending based on old reports.",
+  "unknowns": ["Exact committed handoff and packet hash","Exact six metadata-only records and projection digest","New normalized driver/profile/dependency bindings","Actual APIs and safe import boundaries","Original reachable-object/archive transport bounds and proof seam"]
+}

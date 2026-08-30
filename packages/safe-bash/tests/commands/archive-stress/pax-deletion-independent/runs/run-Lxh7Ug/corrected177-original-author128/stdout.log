@@ -1,0 +1,780 @@
+TAP version 13
+# Subtest: record boundary 0, plain, one-byte input fragments
+ok 1 - record boundary 0, plain, one-byte input fragments
+  ---
+  duration_ms: 98.252834
+  type: 'test'
+  ...
+# Subtest: record boundary 0, gzip, one-byte input fragments
+ok 2 - record boundary 0, gzip, one-byte input fragments
+  ---
+  duration_ms: 25.266917
+  type: 'test'
+  ...
+# Subtest: record boundary 1, plain, one-byte input fragments
+ok 3 - record boundary 1, plain, one-byte input fragments
+  ---
+  duration_ms: 84.719042
+  type: 'test'
+  ...
+# Subtest: record boundary 1, gzip, one-byte input fragments
+ok 4 - record boundary 1, gzip, one-byte input fragments
+  ---
+  duration_ms: 19.685
+  type: 'test'
+  ...
+# Subtest: record boundary 511, plain, one-byte input fragments
+ok 5 - record boundary 511, plain, one-byte input fragments
+  ---
+  duration_ms: 87.506
+  type: 'test'
+  ...
+# Subtest: record boundary 511, gzip, one-byte input fragments
+ok 6 - record boundary 511, gzip, one-byte input fragments
+  ---
+  duration_ms: 20.054125
+  type: 'test'
+  ...
+# Subtest: record boundary 512, plain, one-byte input fragments
+ok 7 - record boundary 512, plain, one-byte input fragments
+  ---
+  duration_ms: 89.00125
+  type: 'test'
+  ...
+# Subtest: record boundary 512, gzip, one-byte input fragments
+ok 8 - record boundary 512, gzip, one-byte input fragments
+  ---
+  duration_ms: 20.151292
+  type: 'test'
+  ...
+# Subtest: record boundary 513, plain, one-byte input fragments
+ok 9 - record boundary 513, plain, one-byte input fragments
+  ---
+  duration_ms: 96.793833
+  type: 'test'
+  ...
+# Subtest: record boundary 513, gzip, one-byte input fragments
+ok 10 - record boundary 513, gzip, one-byte input fragments
+  ---
+  duration_ms: 24.001625
+  type: 'test'
+  ...
+# Subtest: record boundary 65537, plain, one-byte input fragments
+ok 11 - record boundary 65537, plain, one-byte input fragments
+  ---
+  duration_ms: 1389.548125
+  type: 'test'
+  ...
+# Subtest: record boundary 65537, gzip, one-byte input fragments
+ok 12 - record boundary 65537, gzip, one-byte input fragments
+  ---
+  duration_ms: 35.982541
+  type: 'test'
+  ...
+# Subtest: positive base-256 sizes and negative base-256 timestamps are parsed exactly
+ok 13 - positive base-256 sizes and negative base-256 timestamps are parsed exactly
+  ---
+  duration_ms: 0.4575
+  type: 'test'
+  ...
+# Subtest: a leading UTF-8 BOM is filename data, not silently discarded
+ok 14 - a leading UTF-8 BOM is filename data, not silently discarded
+  ---
+  duration_ms: 1.660625
+  type: 'test'
+  ...
+# Subtest: PAX size overrides the USTAR field without losing following record alignment
+ok 15 - PAX size overrides the USTAR field without losing following record alignment
+  ---
+  duration_ms: 0.406625
+  type: 'test'
+  ...
+# Subtest: special permission bits are recorded but not restored, including verbose visibility
+ok 16 - special permission bits are recorded but not restored, including verbose visibility
+  ---
+  duration_ms: 0.93425
+  type: 'test'
+  ...
+# Subtest: unknown hardlink identity and unsupported hardlink publication are not converted to copies
+ok 17 - unknown hardlink identity and unsupported hardlink publication are not converted to copies
+  ---
+  duration_ms: 0.670333
+  type: 'test'
+  ...
+# Subtest: unknown backing identity cannot justify replacing an existing archive or named-input destination
+ok 18 - unknown backing identity cannot justify replacing an existing archive or named-input destination
+  ---
+  duration_ms: 0.3125
+  type: 'test'
+  ...
+# Subtest: link targets with internal parents cannot be activated by a later symlink replacement
+ok 19 - link targets with internal parents cannot be activated by a later symlink replacement
+  ---
+  duration_ms: 0.380083
+  type: 'test'
+  ...
+# Subtest: truncated extraction leaves only the received partial payload and fails
+ok 20 - truncated extraction leaves only the received partial payload and fails
+  ---
+  duration_ms: 0.299459
+  type: 'test'
+  ...
+# Subtest: file-list, argument and pattern work budgets fail explicitly
+ok 21 - file-list, argument and pattern work budgets fail explicitly
+  ---
+  duration_ms: 0.592167
+  type: 'test'
+  ...
+# Subtest: actual S3 mock filesystem supports ordinary tar payloads without invented metadata
+ok 22 - actual S3 mock filesystem supports ordinary tar payloads without invented metadata
+  ---
+  duration_ms: 7.5165
+  type: 'test'
+  ...
+# Subtest: archive plugin is explicit, collision-atomic, and validates limits
+ok 23 - archive plugin is explicit, collision-atomic, and validates limits
+  ---
+  duration_ms: 0.803333
+  type: 'test'
+  ...
+# Subtest: Shell binary create/list/extract plain
+ok 24 - Shell binary create/list/extract plain
+  ---
+  duration_ms: 21.521375
+  type: 'test'
+  ...
+# Subtest: Shell binary create/list/extract gzip
+ok 25 - Shell binary create/list/extract gzip
+  ---
+  duration_ms: 13.8345
+  type: 'test'
+  ...
+# Subtest: real Shell pipelines preserve binary bytes through tar, cat, gzip and gunzip
+ok 26 - real Shell pipelines preserve binary bytes through tar, cat, gzip and gunzip
+  ---
+  duration_ms: 8.658917
+  type: 'test'
+  ...
+# Subtest: verbose archive stdout stays binary; list and extract use stdout
+ok 27 - verbose archive stdout stays binary; list and extract use stdout
+  ---
+  duration_ms: 1.125
+  type: 'test'
+  ...
+# Subtest: PAX Unicode, newline names, long component and USTAR prefix split
+ok 28 - PAX Unicode, newline names, long component and USTAR prefix split
+  ---
+  duration_ms: 1.837041
+  type: 'test'
+  ...
+# Subtest: metadata preserves supported ordinary permissions and fractional timestamps
+ok 29 - metadata preserves supported ordinary permissions and fractional timestamps
+  ---
+  duration_ms: 0.679333
+  type: 'test'
+  ...
+# Subtest: duplicates replace regular files without mutating earlier hardlink aliases
+ok 30 - duplicates replace regular files without mutating earlier hardlink aliases
+  ---
+  duration_ms: 0.650041
+  type: 'test'
+  ...
+# Subtest: creation never points hardlinks at an overwritten duplicate archive pathname
+ok 31 - creation never points hardlinks at an overwritten duplicate archive pathname
+  ---
+  duration_ms: 1.036958
+  type: 'test'
+  ...
+# Subtest: safe file/symlink/directory replacement and existing external hardlink isolation
+ok 32 - safe file/symlink/directory replacement and existing external hardlink isolation
+  ---
+  duration_ms: 0.860417
+  type: 'test'
+  ...
+# Subtest: creation avoids self-inclusion and rejects explicit output payload aliases before effects
+ok 33 - creation avoids self-inclusion and rejects explicit output payload aliases before effects
+  ---
+  duration_ms: 2.25
+  type: 'test'
+  ...
+# Subtest: non-streaming adapters use bounded reads and incremental append writes
+ok 34 - non-streaming adapters use bounded reads and incremental append writes
+  ---
+  duration_ms: 3.116792
+  type: 'test'
+  ...
+# Subtest: pre-abort performs no FS or stream work
+ok 35 - pre-abort performs no FS or stream work
+  ---
+  duration_ms: 2.490084
+  type: 'test'
+  ...
+# Subtest: cancellation while reading header closes cooperative input
+ok 36 - cancellation while reading header closes cooperative input
+  ---
+  duration_ms: 1.289417
+  type: 'test'
+  ...
+# Subtest: cancellation while reading body closes cooperative input
+ok 37 - cancellation while reading body closes cooperative input
+  ---
+  duration_ms: 1.3735
+  type: 'test'
+  ...
+# Subtest: blocked stdout backpressures before payload acquisition and abort settles
+ok 38 - blocked stdout backpressures before payload acquisition and abort settles
+  ---
+  duration_ms: 16.152209
+  type: 'test'
+  ...
+# Subtest: blocked extractor writer backpressures input and receives cancellation
+ok 39 - blocked extractor writer backpressures input and receives cancellation
+  ---
+  duration_ms: 18.411709
+  type: 'test'
+  ...
+# Subtest: gzip compressor has bounded read-ahead at a blocked output sink
+ok 40 - gzip compressor has bounded read-ahead at a blocked output sink
+  ---
+  duration_ms: 36.167709
+  type: 'test'
+  ...
+# Subtest: cancellation during compressor source read closes the source task
+ok 41 - cancellation during compressor source read closes the source task
+  ---
+  duration_ms: 1.339792
+  type: 'test'
+  ...
+# Subtest: early consumer sink rejection closes plain producer
+ok 42 - early consumer sink rejection closes plain producer
+  ---
+  duration_ms: 0.873459
+  type: 'test'
+  ...
+# Subtest: early consumer sink rejection closes gzip producer
+ok 43 - early consumer sink rejection closes gzip producer
+  ---
+  duration_ms: 1.204042
+  type: 'test'
+  ...
+# Subtest: Shell head partial consumer closes plain/gzip archive pipelines
+ok 44 - Shell head partial consumer closes plain/gzip archive pipelines
+  ---
+  duration_ms: 12.584459
+  type: 'test'
+  ...
+# Subtest: gzip decoding with a blocked listing sink remains cancellable
+ok 45 - gzip decoding with a blocked listing sink remains cancellable
+  ---
+  duration_ms: 1.655792
+  type: 'test'
+  ...
+# Subtest: late producer and iterator-return rejections are observed after abort
+ok 46 - late producer and iterator-return rejections are observed after abort
+  ---
+  duration_ms: 9.904625
+  type: 'test'
+  ...
+# Subtest: bad compressed input cancels its blocked upstream producer
+ok 47 - bad compressed input cancels its blocked upstream producer
+  ---
+  duration_ms: 0.703708
+  type: 'test'
+  ...
+# Subtest: pinned GNU cross-readability BOTH directions plain
+ok 48 - pinned GNU cross-readability BOTH directions plain
+  ---
+  duration_ms: 59.812958
+  type: 'test'
+  ...
+# Subtest: pinned GNU cross-readability BOTH directions gzip
+ok 49 - pinned GNU cross-readability BOTH directions gzip
+  ---
+  duration_ms: 74.441375
+  type: 'test'
+  ...
+# Subtest: pinned GNU legacy long-name and long-link records are read without data conversion
+ok 50 - pinned GNU legacy long-name and long-link records are read without data conversion
+  ---
+  duration_ms: 13.141875
+  type: 'test'
+  ...
+# Subtest: native -C, files-from, excludes, selected strips agree on safe common fixtures
+ok 51 - native -C, files-from, excludes, selected strips agree on safe common fixtures
+  ---
+  duration_ms: 27.441875
+  type: 'test'
+  ...
+# /private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: hard: Cannot hard link to 'later': No such file or directory
+# /private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Exiting with failure status due to previous errors
+# Subtest: pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast
+ok 52 - pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast
+  ---
+  duration_ms: 10.727125
+  type: 'test'
+  ...
+# Subtest: positional -C create and file-list directory changes affect subsequent operands
+ok 53 - positional -C create and file-list directory changes affect subsequent operands
+  ---
+  duration_ms: 9.713375
+  type: 'test'
+  ...
+# Subtest: source parent prefixes are stripped without lexically bypassing symlink resolution
+ok 54 - source parent prefixes are stripped without lexically bypassing symlink resolution
+  ---
+  duration_ms: 5.377417
+  type: 'test'
+  ...
+# Subtest: null/verbatim file lists preserve dashes, spaces, backslashes and newlines
+ok 55 - null/verbatim file lists preserve dashes, spaces, backslashes and newlines
+  ---
+  duration_ms: 4.43725
+  type: 'test'
+  ...
+# Subtest: default files-from preserves spaces according to pinned GNU observation
+ok 56 - default files-from preserves spaces according to pinned GNU observation
+  ---
+  duration_ms: 0.702291
+  type: 'test'
+  ...
+# Subtest: explicit empty files-from creates a real empty archive
+ok 57 - explicit empty files-from creates a real empty archive
+  ---
+  duration_ms: 0.4195
+  type: 'test'
+  ...
+# Subtest: excludes match components/globs and selected members retain directory descendants
+ok 58 - excludes match components/globs and selected members retain directory descendants
+  ---
+  duration_ms: 1.450875
+  type: 'test'
+  ...
+# Subtest: strip-components uses original names for selectors/excludes, including ./
+ok 59 - strip-components uses original names for selectors/excludes, including ./
+  ---
+  duration_ms: 0.825625
+  type: 'test'
+  ...
+# Subtest: PAX global/local precedence, deletion and embedded newline
+ok 60 - PAX global/local precedence, deletion and embedded newline
+  ---
+  duration_ms: 0.834917
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: -cf
+ok 61 - unsupported/invalid flags are not ignored: -cf
+  ---
+  duration_ms: 0.41975
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: -cxf archive
+ok 62 - unsupported/invalid flags are not ignored: -cxf archive
+  ---
+  duration_ms: 0.365709
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: -cf archive --xz file
+ok 63 - unsupported/invalid flags are not ignored: -cf archive --xz file
+  ---
+  duration_ms: 0.170583
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: -cf archive -j file
+ok 64 - unsupported/invalid flags are not ignored: -cf archive -j file
+  ---
+  duration_ms: 0.158334
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: -cf archive --format=zip file
+ok 65 - unsupported/invalid flags are not ignored: -cf archive --format=zip file
+  ---
+  duration_ms: 0.159584
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: -cf archive --strip-components=1 file
+ok 66 - unsupported/invalid flags are not ignored: -cf archive --strip-components=1 file
+  ---
+  duration_ms: 0.150167
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: -tf - --strip-components=-1
+ok 67 - unsupported/invalid flags are not ignored: -tf - --strip-components=-1
+  ---
+  duration_ms: 0.153834
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: --create=yes
+ok 68 - unsupported/invalid flags are not ignored: --create=yes
+  ---
+  duration_ms: 0.158458
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: cf archive
+ok 69 - unsupported/invalid flags are not ignored: cf archive
+  ---
+  duration_ms: 0.14275
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: -tf - --wildcards
+ok 70 - unsupported/invalid flags are not ignored: -tf - --wildcards
+  ---
+  duration_ms: 0.141792
+  type: 'test'
+  ...
+# Subtest: unsupported/invalid flags are not ignored: cf archive file --exclude=foo
+ok 71 - unsupported/invalid flags are not ignored: cf archive file --exclude=foo
+  ---
+  duration_ms: 0.154459
+  type: 'test'
+  ...
+# Subtest: unsupported file-list grammar and stream reuse fail explicitly
+ok 72 - unsupported file-list grammar and stream reuse fail explicitly
+  ---
+  duration_ms: 0.837375
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: empty
+ok 73 - malformed archive rejected: empty
+  ---
+  duration_ms: 4.848
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: short header
+ok 74 - malformed archive rejected: short header
+  ---
+  duration_ms: 1.5005
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: missing terminators
+ok 75 - malformed archive rejected: missing terminators
+  ---
+  duration_ms: 3.853875
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: single terminator
+ok 76 - malformed archive rejected: single terminator
+  ---
+  duration_ms: 1.2765
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: body truncation
+ok 77 - malformed archive rejected: body truncation
+  ---
+  duration_ms: 0.847417
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: padding truncation
+ok 78 - malformed archive rejected: padding truncation
+  ---
+  duration_ms: 2.016291
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: checksum
+ok 79 - malformed archive rejected: checksum
+  ---
+  duration_ms: 1.010958
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: invalid octal
+ok 80 - malformed archive rejected: invalid octal
+  ---
+  duration_ms: 0.794083
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: unsafe integer
+ok 81 - malformed archive rejected: unsafe integer
+  ---
+  duration_ms: 1.349292
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: negative size
+ok 82 - malformed archive rejected: negative size
+  ---
+  duration_ms: 0.75825
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: unknown type
+ok 83 - malformed archive rejected: unknown type
+  ---
+  duration_ms: 0.527334
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: device
+ok 84 - malformed archive rejected: device
+  ---
+  duration_ms: 0.762166
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: fifo
+ok 85 - malformed archive rejected: fifo
+  ---
+  duration_ms: 0.4475
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: GNU sparse
+ok 86 - malformed archive rejected: GNU sparse
+  ---
+  duration_ms: 0.454458
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: sized symlink
+ok 87 - malformed archive rejected: sized symlink
+  ---
+  duration_ms: 0.565875
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: unknown format
+ok 88 - malformed archive rejected: unknown format
+  ---
+  duration_ms: 0.505833
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: nonzero trailing
+ok 89 - malformed archive rejected: nonzero trailing
+  ---
+  duration_ms: 1.140834
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: truncated trailing record
+ok 90 - malformed archive rejected: truncated trailing record
+  ---
+  duration_ms: 4.390667
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: PAX zero record
+ok 91 - malformed archive rejected: PAX zero record
+  ---
+  duration_ms: 0.7175
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: PAX wrong byte length
+ok 92 - malformed archive rejected: PAX wrong byte length
+  ---
+  duration_ms: 0.570417
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: PAX missing newline
+ok 93 - malformed archive rejected: PAX missing newline
+  ---
+  duration_ms: 0.613458
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: PAX oversize decimal
+ok 94 - malformed archive rejected: PAX oversize decimal
+  ---
+  duration_ms: 0.7775
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: PAX bad timestamp
+ok 95 - malformed archive rejected: PAX bad timestamp
+  ---
+  duration_ms: 0.793292
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: PAX sparse keyword
+ok 96 - malformed archive rejected: PAX sparse keyword
+  ---
+  duration_ms: 0.649083
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: PAX binary names
+ok 97 - malformed archive rejected: PAX binary names
+  ---
+  duration_ms: 3.036083
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: orphan PAX
+ok 98 - malformed archive rejected: orphan PAX
+  ---
+  duration_ms: 1.015292
+  type: 'test'
+  ...
+# Subtest: malformed archive rejected: invalid UTF8 name
+ok 99 - malformed archive rejected: invalid UTF8 name
+  ---
+  duration_ms: 0.427375
+  type: 'test'
+  ...
+# Subtest: traversal cannot hide behind stripping or exclusion: ../escape
+ok 100 - traversal cannot hide behind stripping or exclusion: ../escape
+  ---
+  duration_ms: 1.037583
+  type: 'test'
+  ...
+# Subtest: traversal cannot hide behind stripping or exclusion: a/../../escape
+ok 101 - traversal cannot hide behind stripping or exclusion: a/../../escape
+  ---
+  duration_ms: 0.644
+  type: 'test'
+  ...
+# Subtest: traversal cannot hide behind stripping or exclusion: /../escape
+ok 102 - traversal cannot hide behind stripping or exclusion: /../escape
+  ---
+  duration_ms: 0.596792
+  type: 'test'
+  ...
+# Subtest: traversal cannot hide behind stripping or exclusion: a/../safe
+ok 103 - traversal cannot hide behind stripping or exclusion: a/../safe
+  ---
+  duration_ms: 0.675875
+  type: 'test'
+  ...
+# Subtest: absolute member stripping, ./ roots, and safe nested relative symlinks
+ok 104 - absolute member stripping, ./ roots, and safe nested relative symlinks
+  ---
+  duration_ms: 1.237792
+  type: 'test'
+  ...
+# Subtest: escaping symlink target rejected: /work/outside
+ok 105 - escaping symlink target rejected: /work/outside
+  ---
+  duration_ms: 0.372958
+  type: 'test'
+  ...
+# Subtest: escaping symlink target rejected: ../../work/outside
+ok 106 - escaping symlink target rejected: ../../work/outside
+  ---
+  duration_ms: 0.295417
+  type: 'test'
+  ...
+# Subtest: preexisting and newly-created symlink ancestors never receive payload writes
+ok 107 - preexisting and newly-created symlink ancestors never receive payload writes
+  ---
+  duration_ms: 0.94225
+  type: 'test'
+  ...
+# Subtest: symlink target chains cannot hide a preexisting escape or symlink-before-dotdot
+ok 108 - symlink target chains cannot hide a preexisting escape or symlink-before-dotdot
+  ---
+  duration_ms: 1.021375
+  type: 'test'
+  ...
+# Subtest: safe nested symlink chains remain actual symlinks
+ok 109 - safe nested symlink chains remain actual symlinks
+  ---
+  duration_ms: 1.428541
+  type: 'test'
+  ...
+# Subtest: explicit -C resolves its directory; unsafe hardlinks fail honestly
+ok 110 - explicit -C resolves its directory; unsafe hardlinks fail honestly
+  ---
+  duration_ms: 0.86025
+  type: 'test'
+  ...
+# Subtest: hardlink-only selection and stripped-away targets are not silently copied
+ok 111 - hardlink-only selection and stripped-away targets are not silently copied
+  ---
+  duration_ms: 0.469125
+  type: 'test'
+  ...
+# Subtest: nonempty directory replacement fails without deleting children
+ok 112 - nonempty directory replacement fails without deleting children
+  ---
+  duration_ms: 0.302625
+  type: 'test'
+  ...
+# Subtest: late corruption returns failure but does not promise rollback
+ok 113 - late corruption returns failure but does not promise rollback
+  ---
+  duration_ms: 0.288625
+  type: 'test'
+  ...
+# Subtest: member limit rejects before unbounded allocation
+ok 114 - member limit rejects before unbounded allocation
+  ---
+  duration_ms: 0.211875
+  type: 'test'
+  ...
+# Subtest: entry limit rejects before unbounded allocation
+ok 115 - entry limit rejects before unbounded allocation
+  ---
+  duration_ms: 0.165833
+  type: 'test'
+  ...
+# Subtest: total limit rejects before unbounded allocation
+ok 116 - total limit rejects before unbounded allocation
+  ---
+  duration_ms: 0.174667
+  type: 'test'
+  ...
+# Subtest: archive limit rejects before unbounded allocation
+ok 117 - archive limit rejects before unbounded allocation
+  ---
+  duration_ms: 0.158
+  type: 'test'
+  ...
+# Subtest: path limit rejects before unbounded allocation
+ok 118 - path limit rejects before unbounded allocation
+  ---
+  duration_ms: 0.160209
+  type: 'test'
+  ...
+# Subtest: depth limit rejects before unbounded allocation
+ok 119 - depth limit rejects before unbounded allocation
+  ---
+  duration_ms: 0.165333
+  type: 'test'
+  ...
+# Subtest: PAX limit rejects before unbounded allocation
+ok 120 - PAX limit rejects before unbounded allocation
+  ---
+  duration_ms: 0.15225
+  type: 'test'
+  ...
+# Subtest: text limit rejects before unbounded allocation
+ok 121 - text limit rejects before unbounded allocation
+  ---
+  duration_ms: 0.167292
+  type: 'test'
+  ...
+# Subtest: gzip trailer fails and settles
+ok 122 - gzip trailer fails and settles
+  ---
+  duration_ms: 9.733583
+  type: 'test'
+  ...
+# Subtest: gzip truncated fails and settles
+ok 123 - gzip truncated fails and settles
+  ---
+  duration_ms: 2.97375
+  type: 'test'
+  ...
+# Subtest: gzip bomb fails and settles
+ok 124 - gzip bomb fails and settles
+  ---
+  duration_ms: 3.714292
+  type: 'test'
+  ...
+# Subtest: gzip wrong format fails and settles
+ok 125 - gzip wrong format fails and settles
+  ---
+  duration_ms: 0.476875
+  type: 'test'
+  ...
+# Subtest: source short/long reads and post-read replacement cannot silently succeed
+ok 126 - source short/long reads and post-read replacement cannot silently succeed
+  ---
+  duration_ms: 1.504458
+  type: 'test'
+  ...
+# Subtest: input archive pathname and inode aliases cannot be overwritten during extraction
+ok 127 - input archive pathname and inode aliases cannot be overwritten during extraction
+  ---
+  duration_ms: 0.410333
+  type: 'test'
+  ...
+# Subtest: RealFS extraction stays inside selected virtual root and rejects host symlink ancestors
+ok 128 - RealFS extraction stays inside selected virtual root and rejects host symlink ancestors
+  ---
+  duration_ms: 10.777792
+  type: 'test'
+  ...
+1..128
+# tests 128
+# suites 0
+# pass 128
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3621.702084

@@ -1,0 +1,22 @@
+{
+  "sourceMembershipAndHashesUnchanged": true,
+  "packageMembershipAndHashesUnchanged": true,
+  "appendProofChecks": true,
+  "freezeUnchanged": true,
+  "freezeAfter": {
+    "freeze-manifest.json": "fd247b20198e6f4a2930aad846eeb7ac41bdd48cb98ad9d63db78d07965f1954",
+    "FREEZE.md": "c4218b7c2c45e5cc9d868823a238340e0b75e8e10d768d28fee6fae3d35c5615",
+    "semantic-controls.mjs": "b6f2d107caa33b1a0358db838a49873dbd00bcdbc6cafc5d29ec7c40db5b0be2",
+    "native-holdouts.sh": "9abd42b46cb2e17daead9abdf71c61fd70a3e02cece19d29c1f2d72a9d99d17a",
+    "policy-controls.json": "774d4b0a7322f7256feb3b29773647500415920c21eff12fd1bea72620cad61e",
+    "type-probes.json": "f04f4ff24de3779946949c658d1d0ba9396f719395ac2a764dceed652e6ef661",
+    "proof-procedures.md": "8b9f6b685a0ee5cf382e03fb108ad81c62ab015a5d613f07266eeda5c4907c42",
+    "verify-freeze.mjs": "a0309b401e08d38bd3cd4bb00e71d1cd4baba4f62b6411a96a64c9a0fba0a2c7"
+  },
+  "initialIndex": "",
+  "finalIndex": "",
+  "initialStatus": " M src/commands/html-to-markdown/entities.ts\n M src/commands/html-to-markdown/input.ts\n M src/commands/html-to-markdown/parser.ts\n M src/commands/html-to-markdown/render.ts\n?? src/commands/html-to-markdown/text.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/prefix-wording-fixture-20260827/\n?? tests/commands/expr-stress/qualified-final-review-20260827/\n?? tests/commands/html-to-markdown/repair.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/owned-output-production-rebase/author/API-CHECKPOINT.md\n?? tests/integration/owned-output-production-rebase/author/BASELINE.json\n?? tests/integration/owned-output-production-rebase/author/DEVELOPMENT-ATTEMPTS.md\n?? tests/integration/owned-output-production-rebase/author/PROVENANCE.json\n?? tests/integration/owned-output-production-rebase/author/SOURCE-COMMIT.json\n?? tests/integration/owned-output-production-rebase/author/authenticate.py.data\n?? tests/integration/owned-output-production-rebase/author/capture.py.data\n?? tests/integration/owned-output-production-rebase/author/check-committed-source.py.data\n?? tests/integration/owned-output-production-rebase/author/runs/\n?? tests/shell/getopts-independent-20260827/scratch-capture-01/\n",
+  "finalStatus": " M src/commands/html-to-markdown/entities.ts\n M src/commands/html-to-markdown/input.ts\n M src/commands/html-to-markdown/parser.ts\n M src/commands/html-to-markdown/render.ts\n?? src/commands/html-to-markdown/text.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/prefix-wording-fixture-20260827/\n?? tests/commands/expr-stress/qualified-final-review-20260827/\n?? tests/commands/html-to-markdown/repair.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/owned-output-production-rebase/author/API-CHECKPOINT.md\n?? tests/integration/owned-output-production-rebase/author/BASELINE.json\n?? tests/integration/owned-output-production-rebase/author/DEVELOPMENT-ATTEMPTS.md\n?? tests/integration/owned-output-production-rebase/author/PROVENANCE.json\n?? tests/integration/owned-output-production-rebase/author/SOURCE-COMMIT.json\n?? tests/integration/owned-output-production-rebase/author/authenticate.py.data\n?? tests/integration/owned-output-production-rebase/author/capture.py.data\n?? tests/integration/owned-output-production-rebase/author/check-committed-source.py.data\n?? tests/integration/owned-output-production-rebase/author/runs/\n?? tests/shell/getopts-independent-20260827/capture-01/\n?? tests/shell/getopts-independent-20260827/scratch-capture-01/\n",
+  "foreignWorkingTreeNotOverlaid": true,
+  "wholeLiveTreeImmutabilityClaim": false
+}

@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-08-29T11:55:16.644Z",
+  "source309": "All309 exact selected file bodies checked by prepare; not a whole-source-directory census because StageA setup outputs coexist",
+  "tools": {
+    "entries": 2286,
+    "regular": 2274,
+    "links": 12,
+    "unexpectedEntries": 0
+  },
+  "dist": {
+    "entries": 1012,
+    "regular": 1012,
+    "links": 0,
+    "unexpectedEntries": 0
+  },
+  "slotAbsent": true,
+  "bodyExecution": 0
+}

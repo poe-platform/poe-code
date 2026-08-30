@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "role": "STATIC_ONLY_NO_AUTHORED_IMPORT",
+  "status": "MATCH_AFTER_PRESERVED_PREPARATION_FAILURE",
+  "origins": 20,
+  "fragments": 105,
+  "missingDispatches": 40,
+  "jobs": 28,
+  "sameRecordGapLinks": 23,
+  "capturePredicates": 15,
+  "conditionalPredicates": 25,
+  "syntax": [
+    {
+      "file": "evaluate-assertions.mjs",
+      "argv": [
+        "node",
+        "--check"
+      ],
+      "exit": 0
+    },
+    {
+      "file": "synthetic-checks.mjs",
+      "argv": [
+        "node",
+        "--check"
+      ],
+      "exit": 0
+    },
+    {
+      "file": "synthetic-supervisor.mjs",
+      "argv": [
+        "node",
+        "--check"
+      ],
+      "exit": 0
+    }
+  ],
+  "specCheck": {
+    "argv": [
+      "python3",
+      "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+      "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/SPECIFICATION.md"
+    ],
+    "exit": 0,
+    "stdout": "OK: tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/SPECIFICATION.md (0 warning(s))",
+    "initialFailurePreserved": "PREPARATION-HISTORY.json"
+  },
+  "imports": {
+    "evaluate-assertions.mjs": [
+      "node:buffer",
+      "./catalogue.json"
+    ],
+    "synthetic-checks.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:vm",
+      "./evaluate-assertions.mjs",
+      "./catalogue.json",
+      "./SYNTHETIC-CONTROLS.json"
+    ],
+    "synthetic-supervisor.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:child_process",
+      "node:url",
+      "node:path"
+    ]
+  },
+  "targetExecution": 0,
+  "predicateExecution": 0
+}

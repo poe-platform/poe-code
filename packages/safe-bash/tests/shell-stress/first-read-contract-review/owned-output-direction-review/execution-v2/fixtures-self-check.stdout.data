@@ -1,0 +1,102 @@
+{
+  "command": "self-check",
+  "classification": "partial-preparation-only-not-a-seven-case-product-driver",
+  "compiledImportParameter": null,
+  "candidateImported": false,
+  "candidateSourceInspected": false,
+  "completeProductDriver": false,
+  "logicalCases": 7,
+  "executed": 0,
+  "passed": null,
+  "cases": {
+    "D01": "pending-binding-incompatibility",
+    "D02": "pending-binding",
+    "D03": "pending-binding",
+    "D04": "pending-binding",
+    "D05": "pending-binding",
+    "D06": "pending-binding",
+    "D07": "pending-binding"
+  },
+  "blockers": [
+    "compiledImport",
+    "shellConstructor",
+    "shellRegistration",
+    "shellExec",
+    "curlRegistrationAndLoopbackAuthorization",
+    "vfsConstructionAndByteIo",
+    "operationAcquireSignature",
+    "operationCleanupSignature",
+    "operationOutputCloseObservation",
+    "exactPublicStatusAndErrorBindings"
+  ],
+  "fixtureCheck": {
+    "classification": "synthetic-fixture-self-check-not-product-execution",
+    "state": {
+      "next": 5,
+      "returned": 0,
+      "cancelled": 0,
+      "closed": 0,
+      "active": 0,
+      "offset": 4,
+      "readSettled": true
+    },
+    "events": [
+      {
+        "sequence": 0,
+        "type": "borrowed-next-enter",
+        "index": 0
+      },
+      {
+        "sequence": 1,
+        "type": "borrowed-next-settle",
+        "index": 0,
+        "bytes": 12
+      },
+      {
+        "sequence": 2,
+        "type": "borrowed-next-enter",
+        "index": 1
+      },
+      {
+        "sequence": 3,
+        "type": "synthetic-observation-not-product-output-close"
+      },
+      {
+        "sequence": 4,
+        "type": "borrowed-next-settle",
+        "index": 1,
+        "bytes": 10
+      },
+      {
+        "sequence": 5,
+        "type": "borrowed-next-enter",
+        "index": 2
+      },
+      {
+        "sequence": 6,
+        "type": "borrowed-next-settle",
+        "index": 2,
+        "bytes": 14
+      },
+      {
+        "sequence": 7,
+        "type": "borrowed-next-enter",
+        "index": 3
+      },
+      {
+        "sequence": 8,
+        "type": "borrowed-next-settle",
+        "index": 3,
+        "bytes": 12
+      },
+      {
+        "sequence": 9,
+        "type": "borrowed-next-enter",
+        "index": 4
+      }
+    ],
+    "controlledPromisesSettled": true,
+    "serversCreated": 0,
+    "productExecutions": 0
+  }
+}

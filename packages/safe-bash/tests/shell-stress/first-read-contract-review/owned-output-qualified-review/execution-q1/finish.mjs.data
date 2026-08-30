@@ -1,0 +1,72 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,copyFileSync,readdirSync,mkdirSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {resolve,dirname} from 'node:path';
+import {spawnSync} from 'node:child_process';
+const root='/Users/kjopek/Workspace/safe-bash',task='/tmp/safe-bash-owned-output-qualified-execution-zgVdib';
+const owned=resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1');
+const hash=value=>createHash('sha256').update(value).digest('hex');
+const json=path=>JSON.parse(readFileSync(path));
+const auth=json(resolve(task,'authentication-before.json')),after=json(resolve(task,'authentication-after.json'));
+assert.deepEqual(after.files,auth.files);
+const config=json(resolve(task,'config.json'));
+for(const entry of config.executionFiles)assert.equal(hash(readFileSync(entry.path)),entry.sha256,entry.path);
+const baseline=json(resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/baseline-snapshot.json'));
+assert.equal(hash(JSON.stringify(baseline.current.before)),baseline.current.id);
+assert.deepEqual(baseline.current.before,baseline.current.after);
+for(const entry of baseline.current.before)assert.equal(hash(readFileSync(resolve(task,'current-capture',entry.path))),entry.sha256);
+const corpus=json(resolve(task,'acceptance.result.json')),comparison=json(resolve(task,'results-curl.json'));
+assert.equal(corpus.runs.length,32);assert.equal(comparison.curl.length,32);
+const closure=[];
+function absent(pid,label) {
+  assert.throws(()=>process.kill(pid,0),{code:'ESRCH'});
+  assert.throws(()=>process.kill(-pid,0),{code:'ESRCH'});
+  closure.push({pid,label,directAbsent:true,groupAbsent:true});
+}
+for(const run of corpus.runs) {
+  assert.equal(run.execution.reapedDirectChild,true);assert.equal(run.execution.timedOut,false);assert.equal(run.execution.residual,false);assert.equal(run.execution.oversized,false);
+  absent(run.execution.pid,`${run.id}/${run.parameter}`);
+  assert.deepEqual(run.observation.fixtureCleanup,{failures:[],timers:0,sockets:0,tasks:0,children:0});
+}
+const summary=[];
+const hex=value=>Buffer.from(value).toString('hex');
+for(const id of ['C01','C02','C03','C04','C05','C06','C07','C08']) {
+  const get=name=>comparison.curl.find(record=>record.id===id&&record.profile===name);
+  const original=get('original-preoperation'),current=get('current-capture'),candidate=get('candidate'),native=get('native-curl8.7.1-Darwin');
+  for(const record of [original,current,candidate,native])assert.deepEqual(record.closure,{sockets:0,tasks:0,listening:false});
+  assert.deepEqual(current.outcome,original.outcome);assert.deepEqual(current.effects,original.effects);
+  assert.equal(candidate.outcome.kind,'result');
+  assert.equal(candidate.outcome.exitCode,original.outcome.exitCode);
+  assert.equal(candidate.outcome.stdoutHex,original.outcome.stdoutHex);
+  assert.deepEqual(candidate.effects['/body'],original.effects['/body']);
+  assert.deepEqual(candidate.effects['/headers'],original.effects['/headers']);
+  assert.equal(candidate.effects['/independent'].hex,hex('independent-file\n'));
+  const expectedDiagnostic=original.outcome.stderrHex||hex('independent-stderr\n');
+  assert.equal(candidate.outcome.stderrHex,expectedDiagnostic);
+  assert.equal(Buffer.from(candidate.outcome.stdoutHex,'hex').length+Buffer.from(candidate.outcome.stderrHex,'hex').length<1048576,true);
+  if(['C02','C03','C04','C05'].includes(id)){assert.equal(candidate.attempts.length,0);assert.equal(candidate.ownedClosed,true);assert.equal(candidate.stageAborted,false);assert.equal(Object.hasOwn(original,'nestedStatus'),false);}
+  if(id==='C07'){assert.equal(candidate.outcome.exitCode,23);assert.equal(candidate.nestedStatus,23);}
+  if(id==='C03'||id==='C05')assert.equal(candidate.outcome.exitCode,141);
+  if(id==='C02'||id==='C04')assert.equal(candidate.outcome.exitCode,0);
+  absent(native.pid,`native/${id}`);
+  const nativePipe=native.statuses.trim().split('\n');
+  if(['C02','C03','C04','C05','C06'].includes(id)) {
+    const names=native.events.map(event=>typeof event==='string'?event:null);
+    assert.ok(names.indexOf('fd3.request-start-barrier')>=0);
+    assert.ok(names.indexOf('fd4.consumer-fd0-closed')>names.indexOf('fd3.request-start-barrier'));
+    assert.ok(names.indexOf('server-first-response-write')>names.indexOf('fd4.consumer-fd0-closed'));
+  }
+  summary.push({id,originalStatus:original.outcome.exitCode,currentStatus:current.outcome.exitCode,candidateStatus:candidate.outcome.exitCode,candidateNested:candidate.nestedStatus,baselineNested:Object.hasOwn(original,'nestedStatus')?{available:true,value:original.nestedStatus}:{available:false,reason:'pipeline abort wins; no fabricated value'},nativeShellStatus:Number(nativePipe[0]),nativePipelineVector:nativePipe[1],publicStatusAndStdoutEqualOriginal:true,bodyAndHeaderEffectsEqualOriginal:true,independentEffectDifference:original.effects['/independent'].hex!==candidate.effects['/independent'].hex,candidateIndependentEffectsComplete:true,completeNestedOrVectorParity:false});
+}
+const conservative=corpus.runs.map(run=>({id:run.id,parameter:run.parameter,raw:run.status,qualified:run.parameter.startsWith('error-first-caller-')?'BLOCKED':run.status,reason:run.parameter.startsWith('error-first-caller-')?'Local error retained and caller/cleanup priority passed, but selectedExecution.reached=false; selected execution before caller ordering remains unproven':run.status==='BLOCKED'?'Synthetic literal-undefined public signal binding unavailable':null}));
+const count=rows=>rows.reduce((counts,row)=>(counts[row.qualified]=(counts[row.qualified]??0)+1,counts),{});
+assert.deepEqual(count(conservative),{PASS:29,BLOCKED:3});
+const evidence={at:new Date().toISOString(),preRunCommit:'4bb4ad85',rawCounts:{PASS:31,BLOCKED:1},qualifiedCounts:count(conservative),logical:{PASS:11,BLOCKED:1},parameters:conservative,comparisons:summary,comparisonDenominators:{profiles:8,productRecords:24,nativeRecords:8,total:32,notAcceptanceParameters:true},sourceFixes:0,fixtureRerunRounds:0,historicalReplays:0,sourceIds:{source:auth.sourceId,tests:auth.testId,compiled:auth.compiledId,currentSourceConfig:baseline.current.id},beforeAfter:{inputPaths:auth.files.length,identical:true,executionPaths:config.executionFiles.length,identicalExecutionBytes:true},closure:{ownedFixtureGroups:closure,allFixtureTimersSocketsTasksZero:true},safejsAudit:'NOT AUDITED; REQUIRED BEFORE PROMOTION'};
+writeFileSync(resolve(owned,'qualification.json'),JSON.stringify(evidence,null,2)+'\n');
+for(const [from,to] of [['authentication-after.json','authentication-after.json'],['results-curl.json','comparison-first.result.json'],['finish.mjs','finish.mjs.data'],['tsconfig.json','owned-tsconfig.json.data']])copyFileSync(resolve(task,from),resolve(owned,to));
+const nativeFiles=[];
+for(const profile of readdirSync(resolve(task,'native')))for(const name of readdirSync(resolve(task,'native',profile),{withFileTypes:true}))if(name.isFile()) {
+  const path=resolve(task,'native',profile,name.name),dest=resolve(owned,'native-capture',profile,name.name+'.data');mkdirSync(dirname(dest),{recursive:true});copyFileSync(path,dest);nativeFiles.push({path:dest,bytes:readFileSync(path).length,sha256:hash(readFileSync(path))});
+}
+writeFileSync(resolve(owned,'native-files.json'),JSON.stringify(nativeFiles,null,2)+'\n');
+console.log(JSON.stringify({raw:evidence.rawCounts,qualified:evidence.qualifiedCounts,comparisons:summary,groups:closure.length,unchangedInputs:auth.files.length}));

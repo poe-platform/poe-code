@@ -1,0 +1,59 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "native-neighbors.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-time-env-independent-cB2beD",
+  "pid": 69110,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 571,
+  "timeoutMs": 90000,
+  "outputBytes": 4169,
+  "observed": [
+    {
+      "pid": 69110,
+      "parent": 68501,
+      "group": 69110,
+      "born": "Thu Aug 27 03:17:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node native-neighbors.mjs"
+    },
+    {
+      "pid": 69125,
+      "parent": 69110,
+      "group": 69110,
+      "born": "Thu Aug 27 03:17:03 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69142,
+      "parent": 69110,
+      "group": 69110,
+      "born": "Thu Aug 27 03:17:03 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69162,
+      "parent": 69110,
+      "group": 69110,
+      "born": "Thu Aug 27 03:17:03 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 69183,
+      "parent": 69110,
+      "group": 69110,
+      "born": "Thu Aug 27 03:17:03 2026",
+      "command": "(date)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {}
+}

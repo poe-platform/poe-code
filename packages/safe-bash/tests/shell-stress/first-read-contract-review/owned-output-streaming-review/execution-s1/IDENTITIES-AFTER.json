@@ -1,0 +1,270 @@
+{
+  "at": "2026-08-27T11:43:14.074Z",
+  "candidateChecks": [
+    {
+      "candidate": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate",
+      "src": {
+        "files": 213,
+        "manifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+        "allReadonly": true
+      },
+      "tests": {
+        "files": 15,
+        "manifestSha256": "dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c",
+        "allReadonly": true
+      },
+      "dist": {
+        "files": 708,
+        "manifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+        "allReadonly": true
+      }
+    },
+    {
+      "candidate": "/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate",
+      "src": {
+        "files": 213,
+        "manifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+        "allReadonly": true
+      },
+      "tests": {
+        "files": 15,
+        "manifestSha256": "dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c",
+        "allReadonly": true
+      },
+      "dist": {
+        "files": 708,
+        "manifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+        "allReadonly": true
+      }
+    },
+    {
+      "candidate": "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate",
+      "src": {
+        "files": 213,
+        "manifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+        "allReadonly": true
+      },
+      "tests": {
+        "files": 15,
+        "manifestSha256": "dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c",
+        "allReadonly": true
+      },
+      "dist": {
+        "files": 708,
+        "manifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+        "allReadonly": true
+      }
+    }
+  ],
+  "bindingSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/SHA256SUMS.json",
+    "bytes": 6279,
+    "sha256": "5b4a6ccae2281fcda9c6d68eec687c918c9bf5a87c96419d47abf20ac48cc105"
+  },
+  "sourceTestBuildToolsBefore": "artifacts/authentication-before.json",
+  "after": "artifacts/authentication-after.json",
+  "reconstruction": "artifacts/reconstruction-proof.json",
+  "historicalFixtureArchives": {
+    "preparedAt": "2026-08-27T09:16:10.103Z",
+    "head": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+    "controlsSha256": "040edef95a6bd846ec33e1ce0400ee406ed510ecee093c1a385c89aeaaeb3e60",
+    "manifest": [
+      {
+        "path": "tests/shell/remote-close.test.ts",
+        "sha256": "0ca0886333c793dbddb5e14e2fdbb2a3bb457919dbf4e70d419f87fab6505474",
+        "bytes": 3116,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/remote-close.test.ts.data"
+      },
+      {
+        "path": "tests/shell/first-read-probe.ts",
+        "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6",
+        "bytes": 5048,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/first-read-probe.ts.data"
+      },
+      {
+        "path": "tests/shell/remote-close-probe.ts",
+        "sha256": "67d12606373760adbd71a1c4114de94dc184ecf76c2c5aa5cf3d1c8f9bb4d8da",
+        "bytes": 7271,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/remote-close-probe.ts.data"
+      },
+      {
+        "path": "tests/shell/helpers.ts",
+        "sha256": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+        "bytes": 1670,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/helpers.ts.data"
+      },
+      {
+        "path": "tests/stress/remote-cancellation/helpers.ts",
+        "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678",
+        "bytes": 13555,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/stress/remote-cancellation/helpers.ts.data"
+      },
+      {
+        "path": "tests/fs/webdav/mock.ts",
+        "sha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+        "bytes": 11188,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/fs/webdav/mock.ts.data"
+      },
+      {
+        "path": "tests/shell/lifecycle.test.ts",
+        "sha256": "f6dcd75da9ed5ffdd74d51c6473541af91c65f47085e27a48a042e6e3dc8002d",
+        "bytes": 5318,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/lifecycle.test.ts.data"
+      },
+      {
+        "path": "tests/shell/lifecycle-probe.ts",
+        "sha256": "0f60fadb357e53aa78acc67672fb3640da68f102d6809a34b980de208d4c95d9",
+        "bytes": 4452,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/lifecycle-probe.ts.data"
+      },
+      {
+        "path": "tests/shell/streaming.test.ts",
+        "sha256": "cfd61d72b7b7a33081e43c5f96dbe7c1161e27e72d6057489394283608ffe585",
+        "bytes": 6161,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/streaming.test.ts.data"
+      },
+      {
+        "path": "tests/contracts/io.test.ts",
+        "sha256": "0be30d243f4df7688f57fc2bdc5b7b914c3fae62203f8e5613595d4153e7f0ec",
+        "bytes": 6839,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/contracts/io.test.ts.data"
+      },
+      {
+        "path": "tests/contracts/io.stress.test.ts",
+        "sha256": "3054c43d65fb662a16e1ef45d0a1006871ac8d29d4aaccdf6cb5411fa06fb6ca",
+        "bytes": 9135,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/contracts/io.stress.test.ts.data"
+      },
+      {
+        "path": "tsconfig.build.json",
+        "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+        "bytes": 260,
+        "matchedInitialFreeze": true,
+        "classification": "unchanged execution input, archived as inert data",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tsconfig.build.json.data"
+      },
+      {
+        "path": "tests/shell/first-read-evidence.json",
+        "sha256": "2d0faecd40423539c2a74ab132785ab14a8565671d1fbbe4482819c9877da52e",
+        "bytes": 51471,
+        "matchedInitialFreeze": true,
+        "classification": "historical/reference bytes, not executed",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/first-read-evidence.json.data"
+      },
+      {
+        "path": "tests/shell/first-read-independent.snapshot.mjs",
+        "sha256": "b480b7417f7d669bf413f634a0a30b7ff296667736d52ef0a597ebd72f6ea0fa",
+        "bytes": 9489,
+        "matchedInitialFreeze": true,
+        "classification": "historical/reference bytes, not executed",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/first-read-independent.snapshot.mjs.data"
+      },
+      {
+        "path": "tests/shell/first-read-guard.snapshot.mjs",
+        "sha256": "8a9858bc16824951b9ade3f158cdb161b0a6d3870a72588220341f11e6a19031",
+        "bytes": 5198,
+        "matchedInitialFreeze": true,
+        "classification": "historical/reference bytes, not executed",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/shell/first-read-guard.snapshot.mjs.data"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/evidence/recheck/shell-first-read-plain.stdout.log",
+        "sha256": "da05f82f2742e20bcf2c46d5b4f6c1eb58559a16b5ffc861a853b36164260d9a",
+        "bytes": 19242,
+        "matchedInitialFreeze": true,
+        "classification": "historical/reference bytes, not executed",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/integration/full-gate-20260827/evidence/recheck/shell-first-read-plain.stdout.log.data"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/evidence/recheck/shell-first-read-plain.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "matchedInitialFreeze": true,
+        "classification": "historical/reference bytes, not executed",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/tests/integration/full-gate-20260827/evidence/recheck/shell-first-read-plain.stderr.log.data"
+      },
+      {
+        "path": "docs/OUTPUT_LIFECYCLE_REVIEW.md",
+        "sha256": "f5d3873b3ff7977ddb3d566aa36dd549579c630ce62d1624d512c991edb4f885",
+        "bytes": 5675,
+        "matchedInitialFreeze": false,
+        "classification": "historical/reference bytes, not executed",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/docs/OUTPUT_LIFECYCLE_REVIEW.md.data"
+      },
+      {
+        "path": "README.md",
+        "sha256": "2b64475c45990fa6c000df4b48f4523bc6a493fdc2fb9aa8465a93db474e3a8c",
+        "bytes": 21632,
+        "matchedInitialFreeze": false,
+        "classification": "historical/reference bytes, not executed",
+        "archive": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/preserved/README.md.data"
+      }
+    ],
+    "tools": [
+      {
+        "path": "node_modules/tsx/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+        "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+      },
+      {
+        "path": "node_modules/tsx/dist/loader.mjs",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+      },
+      {
+        "path": "node_modules/typescript/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+        "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+      },
+      {
+        "path": "node_modules/typescript/lib/tsc.js",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+        "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+      },
+      {
+        "path": "node_modules/typescript/lib/_tsc.js",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+        "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+      },
+      {
+        "path": "node_modules/@types/node/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/package.json",
+        "sha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+      },
+      {
+        "path": "node_modules/esbuild/package.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/package.json",
+        "sha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+      },
+      {
+        "path": "node_modules/esbuild/bin/esbuild",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild",
+        "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+      }
+    ],
+    "dependencyPolicy": "Existing ancestor dev node_modules resolution explicitly used; no install/copy/product dependencies. No packed proof."
+  },
+  "sourceCandidateMutations": 0
+}

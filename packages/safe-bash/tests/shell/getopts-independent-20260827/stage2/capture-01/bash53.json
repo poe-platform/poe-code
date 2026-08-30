@@ -1,0 +1,1118 @@
+{
+  "profile": {
+    "id": "bash53",
+    "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "version": "5.3.0(1)-release",
+    "role": "selected Darwin binding profile"
+  },
+  "identity": {
+    "version": {
+      "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "stdin": "closed",
+      "startedAt": "2026-08-27T20:13:31.160Z",
+      "milliseconds": 15.795958000000041,
+      "pid": 54274,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "closeAwaited": true,
+      "stdoutBytes": 314,
+      "stderrBytes": 0,
+      "stdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "stderr": "",
+      "stdoutBase64": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+      "stderrBase64": "",
+      "limits": {
+        "milliseconds": 5000,
+        "combinedOutputBytes": 131072
+      },
+      "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+    },
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2",
+    "binaryBefore": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "binaryAfter": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+  },
+  "freeze": {
+    "commit": "51f14914a0e7de15c3a23961424f232853bf5c33",
+    "manifestSHA256": "74f6db7a64bcb77a7223706e6461f712a753fd4404f8373c3487d0684d07f7b3",
+    "fileCount": 12,
+    "scripts": 16,
+    "invariants": 12
+  },
+  "counts": {
+    "scripts": 16,
+    "selectedProfileMatches": 14,
+    "selectedProfileMismatches": 2
+  },
+  "mismatches": [
+    "N05",
+    "N13"
+  ],
+  "results": [
+    {
+      "id": "N01",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "defaults|1|1\nbuiltin\ngetopts\ngetopts is a shell builtin\ngetopts is a shell builtin\ndirect|0|a|1|||1\nshadow\ncommand|0|b|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "declare -i OPTIND=\"1\"\ndeclare -- OPTERR=\"1\"\n",
+      "attributes": {
+        "OPTIND": {
+          "observed": {
+            "flags": "i",
+            "value": "1",
+            "exported": false
+          },
+          "expected": {
+            "exported": false
+          },
+          "match": true
+        },
+        "OPTERR": {
+          "observed": {
+            "flags": "-",
+            "value": "1",
+            "exported": false
+          },
+          "expected": {
+            "exported": false
+          },
+          "match": true
+        }
+      },
+      "productStdout": "defaults|1|1\nbuiltin\ngetopts\ngetopts is a shell builtin\ngetopts is a shell builtin\ndirect|0|a|1|||1\nshadow\ncommand|0|b|1|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "declare -p OPTIND OPTERR\nprintf \"__PRODUCT__\\n\"\nemit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\nprintf 'defaults|%s|%s\\n' \"$OPTIND\" \"$OPTERR\"\ntype -t getopts\ncommand -v getopts\ntype getopts\ncommand -V getopts\ngetopts abc opt -abc; emit direct \"$?\"\ngetopts() { printf 'shadow\\n'; }\ngetopts\ncommand getopts abc opt -abc; emit command \"$?\"\n",
+          "stage2-N01"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.176Z",
+        "milliseconds": 8.762749999999983,
+        "pid": 54275,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 181,
+        "stderrBytes": 0,
+        "stdout": "declare -i OPTIND=\"1\"\ndeclare -- OPTERR=\"1\"\n__PRODUCT__\ndefaults|1|1\nbuiltin\ngetopts\ngetopts is a shell builtin\ngetopts is a shell builtin\ndirect|0|a|1|||1\nshadow\ncommand|0|b|1|||1\n",
+        "stderr": "",
+        "stdoutBase64": "ZGVjbGFyZSAtaSBPUFRJTkQ9IjEiCmRlY2xhcmUgLS0gT1BURVJSPSIxIgpfX1BST0RVQ1RfXwpkZWZhdWx0c3wxfDEKYnVpbHRpbgpnZXRvcHRzCmdldG9wdHMgaXMgYSBzaGVsbCBidWlsdGluCmdldG9wdHMgaXMgYSBzaGVsbCBidWlsdGluCmRpcmVjdHwwfGF8MXx8fDEKc2hhZG93CmNvbW1hbmR8MHxifDF8fHwxCg==",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N02",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "defaults|1|1\nexplicit|0|b|3|x|雪🙂|1\npositionals|-a|positional\npositional|0|a|2|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "declare -ix OPTIND=\"1\"\ndeclare -x OPTERR=\"1\"\n",
+      "attributes": {
+        "OPTIND": {
+          "observed": {
+            "flags": "ix",
+            "value": "1",
+            "exported": true
+          },
+          "expected": {
+            "exported": true
+          },
+          "match": true
+        },
+        "OPTERR": {
+          "observed": {
+            "flags": "x",
+            "value": "1",
+            "exported": true
+          },
+          "expected": {
+            "exported": true
+          },
+          "match": true
+        }
+      },
+      "productStdout": "defaults|1|1\nexplicit|0|b|3|x|雪🙂|1\npositionals|-a|positional\npositional|0|a|2|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "declare -p OPTIND OPTERR\nprintf \"__PRODUCT__\\n\"\nemit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\nprintf 'defaults|%s|%s\\n' \"$OPTIND\" \"$OPTERR\"\nset -- -a positional\ngetopts ab: opt -b '雪🙂'; emit explicit \"$?\"\nprintf 'positionals|%s|%s\\n' \"$1\" \"$2\"\nOPTIND=1\ngetopts ab: opt; emit positional \"$?\"\n",
+          "stage2-N02"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "OPTIND": "7",
+          "OPTERR": "0"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.185Z",
+        "milliseconds": 7.674542000000088,
+        "pid": 54276,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 144,
+        "stderrBytes": 0,
+        "stdout": "declare -ix OPTIND=\"1\"\ndeclare -x OPTERR=\"1\"\n__PRODUCT__\ndefaults|1|1\nexplicit|0|b|3|x|雪🙂|1\npositionals|-a|positional\npositional|0|a|2|||1\n",
+        "stderr": "",
+        "stdoutBase64": "ZGVjbGFyZSAtaXggT1BUSU5EPSIxIgpkZWNsYXJlIC14IE9QVEVSUj0iMSIKX19QUk9EVUNUX18KZGVmYXVsdHN8MXwxCmV4cGxpY2l0fDB8YnwzfHh86Zuq8J+ZgnwxCnBvc2l0aW9uYWxzfC1hfHBvc2l0aW9uYWwKcG9zaXRpb25hbHwwfGF8Mnx8fDEK",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N03",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "first|0|a|1|||1\ncontinuity|0|b|1|||1\nplain|0|a|1|||1\nsame|0|a|1|||1\narithmetic|0|a|1|||1\nread|0|a|1|||1\nfor|0|a|1|||1\nexport-value|0|a|1|||1\nexport-bare|0|b|1|||1\nparameter|0|a|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "first|0|a|1|||1\ncontinuity|0|b|1|||1\nplain|0|a|1|||1\nsame|0|a|1|||1\narithmetic|0|a|1|||1\nread|0|a|1|||1\nfor|0|a|1|||1\nexport-value|0|a|1|||1\nexport-bare|0|b|1|||1\nparameter|0|a|1|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\ngetopts abc opt -abc; emit first \"$?\"\ngetopts abc opt -abc; emit continuity \"$?\"\nOPTIND=1; getopts abc opt -abc; emit plain \"$?\"\nOPTIND=$OPTIND; getopts abc opt -abc; emit same \"$?\"\n((OPTIND=1)); getopts abc opt -abc; emit arithmetic \"$?\"\nread OPTIND < ./fixtures/reset-input.data; getopts abc opt -abc; emit read \"$?\"\nfor OPTIND in 1; do :; done; getopts abc opt -abc; emit for \"$?\"\nexport OPTIND=1; getopts abc opt -abc; emit export-value \"$?\"\nexport OPTIND; getopts abc opt -abc; emit export-bare \"$?\"\nunset OPTIND; : \"${OPTIND:=1}\"; getopts abc opt -abc; emit parameter \"$?\"\n",
+          "stage2-N03"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.193Z",
+        "milliseconds": 8.53145799999993,
+        "pid": 54277,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 183,
+        "stderrBytes": 0,
+        "stdout": "first|0|a|1|||1\ncontinuity|0|b|1|||1\nplain|0|a|1|||1\nsame|0|a|1|||1\narithmetic|0|a|1|||1\nread|0|a|1|||1\nfor|0|a|1|||1\nexport-value|0|a|1|||1\nexport-bare|0|b|1|||1\nparameter|0|a|1|||1\n",
+        "stderr": "",
+        "stdoutBase64": "Zmlyc3R8MHxhfDF8fHwxCmNvbnRpbnVpdHl8MHxifDF8fHwxCnBsYWlufDB8YXwxfHx8MQpzYW1lfDB8YXwxfHx8MQphcml0aG1ldGljfDB8YXwxfHx8MQpyZWFkfDB8YXwxfHx8MQpmb3J8MHxhfDF8fHwxCmV4cG9ydC12YWx1ZXwwfGF8MXx8fDEKZXhwb3J0LWJhcmV8MHxifDF8fHwxCnBhcmFtZXRlcnwwfGF8MXx8fDEK",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N04",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "first|0|a|1|||1\nprefix|0|a|1|||1\nrestored|0|a|1|||1\nnext|0|b|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "first|0|a|1|||1\nprefix|0|a|1|||1\nrestored|0|a|1|||1\nnext|0|b|1|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\ngetopts abc opt -abc; emit first \"$?\"\nOPTIND=1 getopts abc opt -abc; emit prefix \"$?\"\ngetopts abc opt -abc; emit restored \"$?\"\ngetopts abc opt -abc; emit next \"$?\"\n",
+          "stage2-N04"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.201Z",
+        "milliseconds": 7.933791999999926,
+        "pid": 54278,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 67,
+        "stderrBytes": 0,
+        "stdout": "first|0|a|1|||1\nprefix|0|a|1|||1\nrestored|0|a|1|||1\nnext|0|b|1|||1\n",
+        "stderr": "",
+        "stdoutBase64": "Zmlyc3R8MHxhfDF8fHwxCnByZWZpeHwwfGF8MXx8fDEKcmVzdG9yZWR8MHxhfDF8fHwxCm5leHR8MHxifDF8fHwxCg==",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N05",
+      "selectedProfileExpectationMatched": false,
+      "assertions": {
+        "stdout": false,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "parent|0|a|1|||1\nbefore-local|0|b|1|||1\nlocal|0|a|1|||1\nrepeated-local|0|b|1|||1\nresumed|0|b|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "parent|0|a|1|||1\nbefore-local|0|b|1|||1\nlocal|0|a|1|||1\nrepeated-local|0|a|1|||1\nresumed|0|b|1|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\ninner() {\ngetopts abcd opt -abcd; emit before-local \"$?\"\nlocal OPTIND=1\ngetopts abcd opt -abcd; emit local \"$?\"\nlocal OPTIND\ngetopts abcd opt -abcd; emit repeated-local \"$?\"\n}\ngetopts abcd opt -abcd; emit parent \"$?\"\ninner -different\ngetopts abcd opt -abcd; emit resumed \"$?\"\n",
+          "stage2-N05"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.209Z",
+        "milliseconds": 8.441125000000056,
+        "pid": 54279,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 99,
+        "stderrBytes": 0,
+        "stdout": "parent|0|a|1|||1\nbefore-local|0|b|1|||1\nlocal|0|a|1|||1\nrepeated-local|0|a|1|||1\nresumed|0|b|1|||1\n",
+        "stderr": "",
+        "stdoutBase64": "cGFyZW50fDB8YXwxfHx8MQpiZWZvcmUtbG9jYWx8MHxifDF8fHwxCmxvY2FsfDB8YXwxfHx8MQpyZXBlYXRlZC1sb2NhbHwwfGF8MXx8fDEKcmVzdW1lZHwwfGJ8MXx8fDEK",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N06",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "inner|0|b|3|x|雪🙂|0\nlocal-after|0|b|3|x|雪🙂|0\nsuppressed|0|?|2|||0\nrestored|0|?|2|x|global|1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "inner|0|b|3|x|雪🙂|0\nlocal-after|0|b|3|x|雪🙂|0\nsuppressed|0|?|2|||0\nrestored|0|?|2|x|global|1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\ninner() { getopts ab: opt -b '雪🙂'; emit inner \"$?\"; }\nouter() {\nlocal OPTARG=local OPTERR=0\ninner\nemit local-after \"$?\"\nOPTIND=1\ngetopts a opt -z; emit suppressed \"$?\"\n}\nOPTARG=global\nouter\nemit restored \"$?\"\n",
+          "stage2-N06"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.218Z",
+        "milliseconds": 7.37179100000003,
+        "pid": 54280,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 101,
+        "stderrBytes": 0,
+        "stdout": "inner|0|b|3|x|雪🙂|0\nlocal-after|0|b|3|x|雪🙂|0\nsuppressed|0|?|2|||0\nrestored|0|?|2|x|global|1\n",
+        "stderr": "",
+        "stdoutBase64": "aW5uZXJ8MHxifDN8eHzpm6rwn5mCfDAKbG9jYWwtYWZ0ZXJ8MHxifDN8eHzpm6rwn5mCfDAKc3VwcHJlc3NlZHwwfD98Mnx8fDAKcmVzdG9yZWR8MHw/fDJ8eHxnbG9iYWx8MQo=",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N07",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "parent|0|a|1|||1\nsubshell|0|b|1|||1\nsubstitution|0|b|1|||1\npipeline|0|b|1|||1\nresumed|0|b|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "parent|0|a|1|||1\nsubshell|0|b|1|||1\nsubstitution|0|b|1|||1\npipeline|0|b|1|||1\nresumed|0|b|1|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\ngetopts abc opt -abc; emit parent \"$?\"\n( getopts abc opt -abc; emit subshell \"$?\" )\ncaptured=$(getopts abc opt -abc; emit substitution \"$?\")\nprintf '%s\\n' \"$captured\"\n: | { getopts abc opt -abc; emit pipeline \"$?\"; }\ngetopts abc opt -abc; emit resumed \"$?\"\n",
+          "stage2-N07"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.225Z",
+        "milliseconds": 10.157375000000002,
+        "pid": 54281,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 96,
+        "stderrBytes": 0,
+        "stdout": "parent|0|a|1|||1\nsubshell|0|b|1|||1\nsubstitution|0|b|1|||1\npipeline|0|b|1|||1\nresumed|0|b|1|||1\n",
+        "stderr": "",
+        "stdoutBase64": "cGFyZW50fDB8YXwxfHx8MQpzdWJzaGVsbHwwfGJ8MXx8fDEKc3Vic3RpdHV0aW9ufDB8YnwxfHx8MQpwaXBlbGluZXwwfGJ8MXx8fDEKcmVzdW1lZHwwfGJ8MXx8fDEK",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N08",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "parent|0|a|1|||1\ngroup|0|b|1|||1\nsource|0|c|1|||1\neval|0|d|1|||1\nresumed|0|e|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "parent|0|a|1|||1\ngroup|0|b|1|||1\nsource|0|c|1|||1\neval|0|d|1|||1\nresumed|0|e|1|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\ngetopts abcdef opt -abcdef; emit parent \"$?\"\n{ getopts abcdef opt -abcdef; emit group \"$?\"; }\nsource ./fixtures/shared-source.data\neval 'getopts abcdef opt -abcdef; emit eval \"$?\"'\ngetopts abcdef opt -abcdef; emit resumed \"$?\"\n",
+          "stage2-N08"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.236Z",
+        "milliseconds": 8.273708000000056,
+        "pid": 54286,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 83,
+        "stderrBytes": 0,
+        "stdout": "parent|0|a|1|||1\ngroup|0|b|1|||1\nsource|0|c|1|||1\neval|0|d|1|||1\nresumed|0|e|1|||1\n",
+        "stderr": "",
+        "stdoutBase64": "cGFyZW50fDB8YXwxfHx8MQpncm91cHwwfGJ8MXx8fDEKc291cmNlfDB8Y3wxfHx8MQpldmFsfDB8ZHwxfHx8MQpyZXN1bWVkfDB8ZXwxfHx8MQo=",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N09",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "positional|0|a|1|||1\nfunction|0|b|1|||1\nparent-argv|-abc\nset|0|c|2|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "positional|0|a|1|||1\nfunction|0|b|1|||1\nparent-argv|-abc\nset|0|c|2|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\nhelper() { getopts abc opt -abc; emit function \"$?\"; }\nset -- unused -abc\nshift\ngetopts abc opt; emit positional \"$?\"\nhelper -other\nprintf 'parent-argv|%s\\n' \"$1\"\nset -- -abc\ngetopts abc opt; emit set \"$?\"\n",
+          "stage2-N09"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.244Z",
+        "milliseconds": 8.283583000000021,
+        "pid": 54287,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 71,
+        "stderrBytes": 0,
+        "stdout": "positional|0|a|1|||1\nfunction|0|b|1|||1\nparent-argv|-abc\nset|0|c|2|||1\n",
+        "stderr": "",
+        "stdoutBase64": "cG9zaXRpb25hbHwwfGF8MXx8fDEKZnVuY3Rpb258MHxifDF8fHwxCnBhcmVudC1hcmd2fC1hYmMKc2V0fDB8Y3wyfHx8MQo=",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N10",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "index-alias|0|UNSET|0|||1\ncontinued|0|b|1|||1\nargument-alias|0|b|3|x|a|1\nunicode|0|a|3|x|雪🙂|1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "index-alias|0|UNSET|0|||1\ncontinued|0|b|1|||1\nargument-alias|0|b|3|x|a|1\nunicode|0|a|3|x|雪🙂|1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\ngetopts abc OPTIND -abc; emit index-alias \"$?\"\ngetopts abc opt -abc; emit continued \"$?\"\nOPTIND=1\ngetopts a: OPTARG -a '雪🙂'; emit argument-alias \"$?\"\nOPTIND=1\ngetopts a: opt -a '雪🙂'; emit unicode \"$?\"\n",
+          "stage2-N10"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.252Z",
+        "milliseconds": 8.086749999999938,
+        "pid": 54288,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 99,
+        "stderrBytes": 0,
+        "stdout": "index-alias|0|UNSET|0|||1\ncontinued|0|b|1|||1\nargument-alias|0|b|3|x|a|1\nunicode|0|a|3|x|雪🙂|1\n",
+        "stderr": "",
+        "stdoutBase64": "aW5kZXgtYWxpYXN8MHxVTlNFVHwwfHx8MQpjb250aW51ZWR8MHxifDF8fHwxCmFyZ3VtZW50LWFsaWFzfDB8YnwzfHh8YXwxCnVuaWNvZGV8MHxhfDN8eHzpm6rwn5mCfDEK",
+        "stderrBase64": "",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": null
+    },
+    {
+      "id": "N11",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "invalid|1|UNSET|1|||1\nnext|0|b|1|||1\nusage|2|b|1|||1\narray-name|1|b|2|||1\nend|1|?|2|||1\nprototype-key|0|a\n",
+        "status": 0,
+        "stderr": {
+          "kind": "contains",
+          "text": [
+            "bad-name",
+            "not a valid identifier",
+            "usage:",
+            "bad[0]"
+          ]
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "invalid|1|UNSET|1|||1\nnext|0|b|1|||1\nusage|2|b|1|||1\narray-name|1|b|2|||1\nend|1|?|2|||1\nprototype-key|0|a\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\nOPTARG=old\ngetopts abc bad-name -abc; emit invalid \"$?\"\ngetopts abc opt -abc; emit next \"$?\"\ngetopts abc; emit usage \"$?\"\ngetopts abc 'bad[0]' -abc; emit array-name \"$?\"\ngetopts abc opt -abc; emit end \"$?\"\nOPTIND=1\ngetopts abc __proto__ -abc\nprintf 'prototype-key|%s|%s\\n' \"$?\" \"$__proto__\"\n",
+          "stage2-N11"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.260Z",
+        "milliseconds": 8.399000000000115,
+        "pid": 54289,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 106,
+        "stderrBytes": 175,
+        "stdout": "invalid|1|UNSET|1|||1\nnext|0|b|1|||1\nusage|2|b|1|||1\narray-name|1|b|2|||1\nend|1|?|2|||1\nprototype-key|0|a\n",
+        "stderr": "stage2-N11: line 3: getopts: `bad-name': not a valid identifier\ngetopts: usage: getopts optstring name [arg ...]\nstage2-N11: line 6: getopts: `bad[0]': not a valid identifier\n",
+        "stdoutBase64": "aW52YWxpZHwxfFVOU0VUfDF8fHwxCm5leHR8MHxifDF8fHwxCnVzYWdlfDJ8YnwxfHx8MQphcnJheS1uYW1lfDF8YnwyfHx8MQplbmR8MXw/fDJ8fHwxCnByb3RvdHlwZS1rZXl8MHxhCg==",
+        "stderrBase64": "c3RhZ2UyLU4xMTogbGluZSAzOiBnZXRvcHRzOiBgYmFkLW5hbWUnOiBub3QgYSB2YWxpZCBpZGVudGlmaWVyCmdldG9wdHM6IHVzYWdlOiBnZXRvcHRzIG9wdHN0cmluZyBuYW1lIFthcmcgLi4uXQpzdGFnZTItTjExOiBsaW5lIDY6IGdldG9wdHM6IGBiYWRbMF0nOiBub3QgYSB2YWxpZCBpZGVudGlmaWVyCg==",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": "Scalar identifiers only; no array/nameref capability introduced. Diagnostic spelling is not universally byte-equal across hosts."
+    },
+    {
+      "id": "N12",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "readonly-index-first|0|a|1|||1\nreadonly-index-next|0|b|1|||1\nreadonly-index-end|1|?|1|||1\nreadonly-name-first|2|old|1|||1\nreadonly-name-next|2|old|2|||1\nreadonly-name-end|1|old|2|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "contains",
+          "text": [
+            "OPTIND: readonly variable",
+            "opt: readonly variable"
+          ]
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "readonly-index-first|0|a|1|||1\nreadonly-index-next|0|b|1|||1\nreadonly-index-end|1|?|1|||1\nreadonly-name-first|2|old|1|||1\nreadonly-name-next|2|old|2|||1\nreadonly-name-end|1|old|2|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\n(\nreadonly OPTIND\ngetopts ab opt -ab; emit readonly-index-first \"$?\"\ngetopts ab opt -ab; emit readonly-index-next \"$?\"\ngetopts ab opt -ab; emit readonly-index-end \"$?\"\n)\n(\nreadonly opt=old\ngetopts ab opt -ab; emit readonly-name-first \"$?\"\ngetopts ab opt -ab; emit readonly-name-next \"$?\"\ngetopts ab opt -ab; emit readonly-name-end \"$?\"\n)\n",
+          "stage2-N12"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.269Z",
+        "milliseconds": 10.870333000000073,
+        "pid": 54290,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 183,
+        "stderrBytes": 270,
+        "stdout": "readonly-index-first|0|a|1|||1\nreadonly-index-next|0|b|1|||1\nreadonly-index-end|1|?|1|||1\nreadonly-name-first|2|old|1|||1\nreadonly-name-next|2|old|2|||1\nreadonly-name-end|1|old|2|||1\n",
+        "stderr": "stage2-N12: line 4: OPTIND: readonly variable\nstage2-N12: line 5: OPTIND: readonly variable\nstage2-N12: line 6: OPTIND: readonly variable\nstage2-N12: line 10: opt: readonly variable\nstage2-N12: line 11: opt: readonly variable\nstage2-N12: line 12: opt: readonly variable\n",
+        "stdoutBase64": "cmVhZG9ubHktaW5kZXgtZmlyc3R8MHxhfDF8fHwxCnJlYWRvbmx5LWluZGV4LW5leHR8MHxifDF8fHwxCnJlYWRvbmx5LWluZGV4LWVuZHwxfD98MXx8fDEKcmVhZG9ubHktbmFtZS1maXJzdHwyfG9sZHwxfHx8MQpyZWFkb25seS1uYW1lLW5leHR8MnxvbGR8Mnx8fDEKcmVhZG9ubHktbmFtZS1lbmR8MXxvbGR8Mnx8fDEK",
+        "stderrBase64": "c3RhZ2UyLU4xMjogbGluZSA0OiBPUFRJTkQ6IHJlYWRvbmx5IHZhcmlhYmxlCnN0YWdlMi1OMTI6IGxpbmUgNTogT1BUSU5EOiByZWFkb25seSB2YXJpYWJsZQpzdGFnZTItTjEyOiBsaW5lIDY6IE9QVElORDogcmVhZG9ubHkgdmFyaWFibGUKc3RhZ2UyLU4xMjogbGluZSAxMDogb3B0OiByZWFkb25seSB2YXJpYWJsZQpzdGFnZTItTjEyOiBsaW5lIDExOiBvcHQ6IHJlYWRvbmx5IHZhcmlhYmxlCnN0YWdlMi1OMTI6IGxpbmUgMTI6IG9wdDogcmVhZG9ubHkgdmFyaWFibGUK",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": "D01: do not infer product statuses/partial-write order solely from native observations; readonly attributes must survive."
+    },
+    {
+      "id": "N13",
+      "selectedProfileExpectationMatched": false,
+      "assertions": {
+        "stdout": false,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "readonly-set|0|a|3|x|old|1\nno-argument|0|b|4|||1\neof|1|?|4|||1\nordinary-unset|0|?|4|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "contains",
+          "text": [
+            "OPTARG: readonly variable"
+          ]
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "readonly-set|0|a|3|x|old|1\nno-argument|0|b|4|x|old|1\neof|1|?|4|||1\nordinary-unset|0|?|4|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\nreadonly OPTARG=old\ngetopts a:b opt -a value -b; emit readonly-set \"$?\"\ngetopts a:b opt -a value -b; emit no-argument \"$?\"\ngetopts a:b opt -a value -b; emit eof \"$?\"\nunset OPTARG; emit ordinary-unset \"$?\"\n",
+          "stage2-N13"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.280Z",
+        "milliseconds": 7.760749999999916,
+        "pid": 54293,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 92,
+        "stderrBytes": 92,
+        "stdout": "readonly-set|0|a|3|x|old|1\nno-argument|0|b|4|x|old|1\neof|1|?|4|||1\nordinary-unset|0|?|4|||1\n",
+        "stderr": "stage2-N13: line 3: OPTARG: readonly variable\nstage2-N13: line 4: OPTARG: readonly variable\n",
+        "stdoutBase64": "cmVhZG9ubHktc2V0fDB8YXwzfHh8b2xkfDEKbm8tYXJndW1lbnR8MHxifDR8eHxvbGR8MQplb2Z8MXw/fDR8fHwxCm9yZGluYXJ5LXVuc2V0fDB8P3w0fHx8MQo=",
+        "stderrBase64": "c3RhZ2UyLU4xMzogbGluZSAzOiBPUFRBUkc6IHJlYWRvbmx5IHZhcmlhYmxlCnN0YWdlMi1OMTM6IGxpbmUgNDogT1BUQVJHOiByZWFkb25seSB2YXJpYWJsZQo=",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": "INTENTIONAL DIVERGENCE: retain OPTARG=old and its readonly attribute through all getopts unset intents; ordinary unset must still refuse. D01 leaves exact failure statuses/other partial effects pending."
+    },
+    {
+      "id": "N14",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "export-failed|1|a|1|||1\nafter-export|0|a|1|||1\nread-failed|1|a|1|||1\nafter-read|0|b|1|||1\nlocal-failed|1|a|1|||1\nlocal-next|0|b|1|||1\nafter-local|0|c|1|||1\nprefix-failed|0|b|1|||1\nafter-prefix|0|c|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "contains",
+          "text": [
+            "OPTIND: readonly variable"
+          ]
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "export-failed|1|a|1|||1\nafter-export|0|a|1|||1\nread-failed|1|a|1|||1\nafter-read|0|b|1|||1\nlocal-failed|1|a|1|||1\nlocal-next|0|b|1|||1\nafter-local|0|c|1|||1\nprefix-failed|0|b|1|||1\nafter-prefix|0|c|1|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\n(\ngetopts abc opt -abc; readonly OPTIND\nexport OPTIND=1; emit export-failed \"$?\"\ngetopts abc opt -abc; emit after-export \"$?\"\n)\n(\ngetopts abc opt -abc; readonly OPTIND\nread OPTIND < ./fixtures/reset-input.data; emit read-failed \"$?\"\ngetopts abc opt -abc; emit after-read \"$?\"\n)\n(\ngetopts abc opt -abc; readonly OPTIND\ninner() { local OPTIND=1; emit local-failed \"$?\"; getopts abc opt -abc; emit local-next \"$?\"; }\ninner\ngetopts abc opt -abc; emit after-local \"$?\"\n)\n(\ngetopts abc opt -abc; readonly OPTIND\nOPTIND=1 getopts abc opt -abc; emit prefix-failed \"$?\"\ngetopts abc opt -abc; emit after-prefix \"$?\"\n)\n",
+          "stage2-N14"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.288Z",
+        "milliseconds": 10.502040999999963,
+        "pid": 54294,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 203,
+        "stderrBytes": 474,
+        "stdout": "export-failed|1|a|1|||1\nafter-export|0|a|1|||1\nread-failed|1|a|1|||1\nafter-read|0|b|1|||1\nlocal-failed|1|a|1|||1\nlocal-next|0|b|1|||1\nafter-local|0|c|1|||1\nprefix-failed|0|b|1|||1\nafter-prefix|0|c|1|||1\n",
+        "stderr": "stage2-N14: line 4: OPTIND: readonly variable\nstage2-N14: line 5: OPTIND: readonly variable\nstage2-N14: line 9: OPTIND: readonly variable\nstage2-N14: line 10: OPTIND: readonly variable\nstage2-N14: line 14: local: OPTIND: readonly variable\nstage2-N14: line 14: OPTIND: readonly variable\nstage2-N14: line 16: OPTIND: readonly variable\nstage2-N14: line 20: OPTIND: readonly variable\nstage2-N14: line 20: OPTIND: readonly variable\nstage2-N14: line 21: OPTIND: readonly variable\n",
+        "stdoutBase64": "ZXhwb3J0LWZhaWxlZHwxfGF8MXx8fDEKYWZ0ZXItZXhwb3J0fDB8YXwxfHx8MQpyZWFkLWZhaWxlZHwxfGF8MXx8fDEKYWZ0ZXItcmVhZHwwfGJ8MXx8fDEKbG9jYWwtZmFpbGVkfDF8YXwxfHx8MQpsb2NhbC1uZXh0fDB8YnwxfHx8MQphZnRlci1sb2NhbHwwfGN8MXx8fDEKcHJlZml4LWZhaWxlZHwwfGJ8MXx8fDEKYWZ0ZXItcHJlZml4fDB8Y3wxfHx8MQo=",
+        "stderrBase64": "c3RhZ2UyLU4xNDogbGluZSA0OiBPUFRJTkQ6IHJlYWRvbmx5IHZhcmlhYmxlCnN0YWdlMi1OMTQ6IGxpbmUgNTogT1BUSU5EOiByZWFkb25seSB2YXJpYWJsZQpzdGFnZTItTjE0OiBsaW5lIDk6IE9QVElORDogcmVhZG9ubHkgdmFyaWFibGUKc3RhZ2UyLU4xNDogbGluZSAxMDogT1BUSU5EOiByZWFkb25seSB2YXJpYWJsZQpzdGFnZTItTjE0OiBsaW5lIDE0OiBsb2NhbDogT1BUSU5EOiByZWFkb25seSB2YXJpYWJsZQpzdGFnZTItTjE0OiBsaW5lIDE0OiBPUFRJTkQ6IHJlYWRvbmx5IHZhcmlhYmxlCnN0YWdlMi1OMTQ6IGxpbmUgMTY6IE9QVElORDogcmVhZG9ubHkgdmFyaWFibGUKc3RhZ2UyLU4xNDogbGluZSAyMDogT1BUSU5EOiByZWFkb25seSB2YXJpYWJsZQpzdGFnZTItTjE0OiBsaW5lIDIwOiBPUFRJTkQ6IHJlYWRvbmx5IHZhcmlhYmxlCnN0YWdlMi1OMTQ6IGxpbmUgMjE6IE9QVElORDogcmVhZG9ubHkgdmFyaWFibGUK",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": "D01: failed-origin side effects/status need explicit root approval; never treat failed local as a successful hidden-state restore frame."
+    },
+    {
+      "id": "N15",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "parent|0|a|1|||1\nlocal-text|1+1\nlocal-unset|0|a|1|||1\nlocal-two|0|b|2|||1\nresumed|0|b|1|||1\nbare-readonly|0|c|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "contains",
+          "text": [
+            "OPTIND: readonly variable"
+          ]
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "parent|0|a|1|||1\nlocal-text|1+1\nlocal-unset|0|a|1|||1\nlocal-two|0|b|2|||1\nresumed|0|b|1|||1\nbare-readonly|0|c|1|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\nfirst() { local OPTIND; OPTIND='1+1'; printf 'local-text|%s\\n' \"$OPTIND\"; getopts abc opt -abc operand; emit local-unset \"$?\"; }\nsecond() { local OPTIND=2; getopts abc opt -abc operand; emit local-two \"$?\"; }\ngetopts abc opt -abc operand; emit parent \"$?\"\nfirst\nsecond\ngetopts abc opt -abc operand; emit resumed \"$?\"\nreadonly OPTIND\ngetopts abc opt -abc operand; emit bare-readonly \"$?\"\n",
+          "stage2-N15"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.298Z",
+        "milliseconds": 8.451291999999967,
+        "pid": 54299,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 116,
+        "stderrBytes": 46,
+        "stdout": "parent|0|a|1|||1\nlocal-text|1+1\nlocal-unset|0|a|1|||1\nlocal-two|0|b|2|||1\nresumed|0|b|1|||1\nbare-readonly|0|c|1|||1\n",
+        "stderr": "stage2-N15: line 9: OPTIND: readonly variable\n",
+        "stdoutBase64": "cGFyZW50fDB8YXwxfHx8MQpsb2NhbC10ZXh0fDErMQpsb2NhbC11bnNldHwwfGF8MXx8fDEKbG9jYWwtdHdvfDB8YnwyfHx8MQpyZXN1bWVkfDB8YnwxfHx8MQpiYXJlLXJlYWRvbmx5fDB8Y3wxfHx8MQo=",
+        "stderrBase64": "c3RhZ2UyLU4xNTogbGluZSA5OiBPUFRJTkQ6IHJlYWRvbmx5IHZhcmlhYmxlCg==",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": "Supported scalar local/readonly declarations only, not declare/typeset flags. Readonly final status is native observation under D01."
+    },
+    {
+      "id": "N16",
+      "selectedProfileExpectationMatched": true,
+      "assertions": {
+        "stdout": true,
+        "status": true,
+        "stderrPredicate": true,
+        "startupAttributes": true,
+        "boundedSettlement": true
+      },
+      "expected": {
+        "stdout": "normal|0|?|2|||1\nsuppressed|0|?|2|||0\nsilent|0|?|2|x|z|1\ndelimiter|0|a|2|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "contains-count",
+          "text": "illegal option -- z",
+          "count": 1
+        }
+      },
+      "nativePreludeOutput": "",
+      "attributes": {},
+      "productStdout": "normal|0|?|2|||1\nsuppressed|0|?|2|||0\nsilent|0|?|2|x|z|1\ndelimiter|0|a|2|||1\n",
+      "execution": {
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "emit() { printf '%s|%s|%s|%s|%s|%s|%s\\n' \"$1\" \"$2\" \"${opt-UNSET}\" \"${OPTIND-UNSET}\" \"${OPTARG+x}\" \"${OPTARG-}\" \"${OPTERR-UNSET}\"; }\ngetopts a opt -z; emit normal \"$?\"\nOPTIND=1; OPTERR=0\ngetopts a opt -z; emit suppressed \"$?\"\nOPTIND=1; OPTERR=1\ngetopts :a opt -z; emit silent \"$?\"\nOPTIND=1\ngetopts -- a opt -a; emit delimiter \"$?\"\n",
+          "stage2-N16"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "stdin": "closed",
+        "startedAt": "2026-08-27T20:13:31.307Z",
+        "milliseconds": 7.972166999999899,
+        "pid": 54300,
+        "status": 0,
+        "signal": null,
+        "termination": null,
+        "spawnError": null,
+        "closeAwaited": true,
+        "stdoutBytes": 77,
+        "stderrBytes": 32,
+        "stdout": "normal|0|?|2|||1\nsuppressed|0|?|2|||0\nsilent|0|?|2|x|z|1\ndelimiter|0|a|2|||1\n",
+        "stderr": "stage2-N16: illegal option -- z\n",
+        "stdoutBase64": "bm9ybWFsfDB8P3wyfHx8MQpzdXBwcmVzc2VkfDB8P3wyfHx8MApzaWxlbnR8MHw/fDJ8eHx6fDEKZGVsaW1pdGVyfDB8YXwyfHx8MQo=",
+        "stderrBase64": "c3RhZ2UyLU4xNjogaWxsZWdhbCBvcHRpb24gLS0gego=",
+        "limits": {
+          "milliseconds": 5000,
+          "combinedOutputBytes": 131072
+        },
+        "processGroup": "isolated; killed on bound violation; finite builtin-only scripts otherwise"
+      },
+      "productPolicy": "Only integration diagnostic effects, not a replacement scanner projection matrix. Host sink-failure behavior is I09, not a native shell script."
+    }
+  ],
+  "interpretation": "Native observations only. No candidate Stage2 execution. Historical profile is separately retained, not required to match the selected 5.3 expectations. D01 and intentional divergences override any future product equality."
+}

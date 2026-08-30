@@ -1,0 +1,34 @@
+{
+  "sequence": 63,
+  "command": "npm",
+  "args": [
+    "pack",
+    "--dry-run",
+    "--ignore-scripts",
+    "--json",
+    "--pack-destination",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/source",
+  "status": 0,
+  "signal": null,
+  "pid": 7466,
+  "pgid": 7466,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:53.872Z",
+  "finishedAt": "2026-08-27T21:22:54.994Z",
+  "durationMs": 1122.068459,
+  "stdoutSha256": "9fe3f0be21f89cc2d6677bca89a9e8cfb57326e0a4839417f0a544a2aeabe7bc",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

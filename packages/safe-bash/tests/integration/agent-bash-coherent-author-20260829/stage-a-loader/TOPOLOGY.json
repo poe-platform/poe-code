@@ -1,0 +1,298 @@
+{
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "source309Postguard": true,
+  "toolFiles": 2274,
+  "links": [
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/arborist",
+      "type": "symlink",
+      "target": "../@npmcli/arborist/bin/index.js",
+      "resolvedRelative": "node_modules/@npmcli/arborist/bin/index.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/arborist",
+        "type": "symlink",
+        "link": "../@npmcli/arborist/bin/index.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186948613",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/@npmcli/arborist/bin/index.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/cssesc",
+      "type": "symlink",
+      "target": "../cssesc/bin/cssesc",
+      "resolvedRelative": "node_modules/cssesc/bin/cssesc",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/cssesc",
+        "type": "symlink",
+        "link": "../cssesc/bin/cssesc",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186949179",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/cssesc/bin/cssesc"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/glob",
+      "type": "symlink",
+      "target": "../glob/dist/esm/bin.mjs",
+      "resolvedRelative": "node_modules/glob/dist/esm/bin.mjs",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/glob",
+        "type": "symlink",
+        "link": "../glob/dist/esm/bin.mjs",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186949350",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/glob/dist/esm/bin.mjs"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/installed-package-contents",
+      "type": "symlink",
+      "target": "../@npmcli/installed-package-contents/bin/index.js",
+      "resolvedRelative": "node_modules/@npmcli/installed-package-contents/bin/index.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/installed-package-contents",
+        "type": "symlink",
+        "link": "../@npmcli/installed-package-contents/bin/index.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186948728",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/@npmcli/installed-package-contents/bin/index.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/node-gyp",
+      "type": "symlink",
+      "target": "../node-gyp/bin/node-gyp.js",
+      "resolvedRelative": "node_modules/node-gyp/bin/node-gyp.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/node-gyp",
+        "type": "symlink",
+        "link": "../node-gyp/bin/node-gyp.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186949791",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/node-gyp/bin/node-gyp.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/node-which",
+      "type": "symlink",
+      "target": "../which/bin/which.js",
+      "resolvedRelative": "node_modules/which/bin/which.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/node-which",
+        "type": "symlink",
+        "link": "../which/bin/which.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186950625",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/which/bin/which.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/nopt",
+      "type": "symlink",
+      "target": "../nopt/bin/nopt.js",
+      "resolvedRelative": "node_modules/nopt/bin/nopt.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/nopt",
+        "type": "symlink",
+        "link": "../nopt/bin/nopt.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186949945",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/nopt/bin/nopt.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/pacote",
+      "type": "symlink",
+      "target": "../pacote/bin/index.js",
+      "resolvedRelative": "node_modules/pacote/bin/index.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/pacote",
+        "type": "symlink",
+        "link": "../pacote/bin/index.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186950045",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/pacote/bin/index.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/qrcode-terminal",
+      "type": "symlink",
+      "target": "../qrcode-terminal/bin/qrcode-terminal.js",
+      "resolvedRelative": "node_modules/qrcode-terminal/bin/qrcode-terminal.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/qrcode-terminal",
+        "type": "symlink",
+        "link": "../qrcode-terminal/bin/qrcode-terminal.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186950174",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/qrcode-terminal/bin/qrcode-terminal.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/semver",
+      "type": "symlink",
+      "target": "../semver/bin/semver.js",
+      "resolvedRelative": "node_modules/semver/bin/semver.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/.bin/semver",
+        "type": "symlink",
+        "link": "../semver/bin/semver.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186950247",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/semver/bin/semver.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+      "type": "symlink",
+      "target": "../pacote/bin/index.js",
+      "resolvedRelative": "node_modules/@npmcli/metavuln-calculator/node_modules/pacote/bin/index.js",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+        "type": "symlink",
+        "link": "../pacote/bin/index.js",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186948751",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/@npmcli/metavuln-calculator/node_modules/pacote/bin/index.js"
+      }
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/cross-spawn/node_modules/.bin/node-which",
+      "type": "symlink",
+      "target": "../which/bin/node-which",
+      "resolvedRelative": "node_modules/cross-spawn/node_modules/which/bin/node-which",
+      "topology": {
+        "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/cross-spawn/node_modules/.bin/node-which",
+        "type": "symlink",
+        "link": "../which/bin/node-which",
+        "mode": 493,
+        "device": "16777232",
+        "inode": "186949171",
+        "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/npm/node_modules/cross-spawn/node_modules/which/bin/node-which"
+      }
+    }
+  ],
+  "parents": [
+    {
+      "path": "/",
+      "type": "directory",
+      "link": null,
+      "mode": 493,
+      "device": "16777232",
+      "inode": "2",
+      "physical": "/"
+    },
+    {
+      "path": "/tmp",
+      "type": "symlink",
+      "link": "private/tmp",
+      "mode": 493,
+      "device": "16777232",
+      "inode": "166667039",
+      "physical": "/private/tmp"
+    },
+    {
+      "path": "/private",
+      "type": "directory",
+      "link": null,
+      "mode": 493,
+      "device": "16777232",
+      "inode": "947770",
+      "physical": "/private"
+    },
+    {
+      "path": "/private/tmp",
+      "type": "directory",
+      "link": null,
+      "mode": 511,
+      "device": "16777232",
+      "inode": "166667039",
+      "physical": "/private/tmp"
+    },
+    {
+      "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1",
+      "type": "directory",
+      "link": null,
+      "mode": 448,
+      "device": "16777232",
+      "inode": "186947604",
+      "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1"
+    },
+    {
+      "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/source",
+      "type": "directory",
+      "link": null,
+      "mode": 448,
+      "device": "16777232",
+      "inode": "186947605",
+      "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/source"
+    },
+    {
+      "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools",
+      "type": "directory",
+      "link": null,
+      "mode": 448,
+      "device": "16777232",
+      "inode": "186947606",
+      "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools"
+    },
+    {
+      "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/typescript",
+      "type": "directory",
+      "link": null,
+      "mode": 493,
+      "device": "16777232",
+      "inode": "186947979",
+      "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/typescript"
+    },
+    {
+      "path": "/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/typescript/lib",
+      "type": "directory",
+      "link": null,
+      "mode": 493,
+      "device": "16777232",
+      "inode": "186947987",
+      "physical": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/typescript/lib"
+    }
+  ],
+  "typescriptPackage": {
+    "path": "package.json",
+    "type": "file",
+    "mode": 420,
+    "bytes": 3620,
+    "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+    "typeFieldPresent": false
+  },
+  "typescriptEntry": {
+    "path": "lib/tsc.js",
+    "type": "file",
+    "mode": 420,
+    "bytes": 267,
+    "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983",
+    "text": "// This file is a shim which defers loading the real module until the compile cache is enabled.\ntry {\n  const { enableCompileCache } = require(\"node:module\");\n  if (enableCompileCache) {\n    enableCompileCache();\n  }\n} catch {}\nmodule.exports = require(\"./_tsc.js\");\n"
+  }
+}

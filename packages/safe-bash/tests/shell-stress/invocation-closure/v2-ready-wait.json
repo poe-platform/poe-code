@@ -1,0 +1,10 @@
+{
+  "started": "2026-08-27T01:44:07.963Z",
+  "finished": "2026-08-27T01:47:02.967Z",
+  "elapsedMs": 175004,
+  "targetMs": 175000,
+  "maximumRequestedMs": 180000,
+  "ready": false,
+  "pid": 90191,
+  "watcherExited": true
+}

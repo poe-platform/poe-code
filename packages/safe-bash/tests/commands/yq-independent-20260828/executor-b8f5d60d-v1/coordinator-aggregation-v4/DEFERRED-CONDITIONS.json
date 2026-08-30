@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "finding": "CC-F01",
+  "status": "DATA_ONLY_ALL_UNRUN",
+  "executed": 0,
+  "passes": 0,
+  "method": "Field conditions are declarative text only. No receipt construction, classifier evaluation, error injection, import or harness execution has occurred.",
+  "isolation": "For D01-D08 only, all old final failure terms are hypothetically false to isolate the added predicate. This is source-expression reasoning, not a reachable or observed all-green current cohort.",
+  "conditions": [
+    {
+      "id": "D01",
+      "actualFields": ["parent.code === 0", "parent.signal === null", "parent.timedOut === false", "parent.overflow === false", "parent.reaped === true", "parent.spawnError is the existing nonnull fsync-error descriptor", "parent.metadataComplete === true", "parent.metadataError === undefined"],
+      "expectedAggregate": "FAIL",
+      "requiredPredicate": "parent.spawnError !== null"
+    },
+    {
+      "id": "D02",
+      "actualFields": ["parent.code === 0", "parent.spawnError is the existing nonnull close-error descriptor", "parent.metadataComplete === true", "parent.metadataError === undefined"],
+      "expectedAggregate": "FAIL",
+      "requiredPredicate": "parent.spawnError !== null"
+    },
+    {
+      "id": "D03",
+      "actualFields": ["parent.code === 0", "parent.spawnError is the existing nonnull raw-capture-error descriptor", "parent.metadataComplete === true", "parent.metadataError === undefined"],
+      "expectedAggregate": "FAIL",
+      "requiredPredicate": "parent.spawnError !== null"
+    },
+    {
+      "id": "D04",
+      "actualFields": ["parent.code === 0", "parent.spawnError === null", "parent.overflow === false", "parent.metadataComplete === false", "parent.metadataError === undefined"],
+      "expectedAggregate": "FAIL",
+      "requiredPredicate": "parent.metadataComplete !== true",
+      "reachabilityQualification": "Isolated declarative predicate condition; the existing incomplete-publication producer also sets overflow. No such actual runtime receipt was constructed."
+    },
+    {
+      "id": "D05",
+      "actualFields": ["parent.code === 0", "parent.spawnError === null", "parent.metadataComplete is absent", "parent.metadataError === undefined"],
+      "expectedAggregate": "FAIL",
+      "requiredPredicate": "parent.metadataComplete !== true",
+      "reachabilityQualification": "Missing completion cannot establish success; current producer normally sets it."
+    },
+    {
+      "id": "D06",
+      "actualFields": ["parent.code === 0", "parent.spawnError === null", "parent.metadataComplete === true", "parent.metadataError is a defined error descriptor"],
+      "expectedAggregate": "FAIL",
+      "requiredPredicate": "parent.metadataError !== undefined",
+      "reachabilityQualification": "Isolated declarative predicate condition; current publication catch also sets incomplete/spawnError."
+    },
+    {
+      "id": "D07",
+      "actualFields": ["parent.spawnError === null", "parent.metadataComplete === true", "parent.metadataError is defined but falsy: null, false, zero or empty string"],
+      "expectedAggregate": "FAIL",
+      "requiredPredicate": "parent.metadataError !== undefined",
+      "reachabilityQualification": "Strict local field convention, not an observed producer state or new external schema."
+    },
+    {
+      "id": "D08",
+      "actualFields": ["parent.spawnError is absent", "parent.metadataComplete === true", "parent.metadataError === undefined"],
+      "expectedAggregate": "FAIL",
+      "requiredPredicate": "parent.spawnError !== null",
+      "reachabilityQualification": "Consistent with the existing classifyProcess null sentinel; producer normally supplies the field."
+    },
+    {
+      "id": "D09",
+      "actualFields": ["parent.metadataComplete === false", "parent.metadataError is the existing publication-error descriptor", "parent.spawnError retains its earlier descriptor or receives that metadata descriptor if null"],
+      "expectedAggregate": "FAIL",
+      "preserved": "Original code/signal/reaped/provenance/timing and raw receipt fields remain untouched."
+    },
+    {
+      "id": "D10",
+      "actualFields": ["parent.spawnError === null", "parent.metadataComplete === true", "parent.metadataError === undefined", "one old failure term holds: parent.code !== 0, parent.signal, parent.timedOut or parent.overflow"],
+      "expectedAggregate": "FAIL",
+      "preserved": "Each existing process failure term remains an independent disjunct."
+    },
+    {
+      "id": "D11",
+      "actualFields": ["one old final failure term holds: now() >= globalDeadline, !finalReap, !finalIntegrity, unsafeStop, !coordinatorFinal or rows.length !== 336"],
+      "expectedAggregate": "FAIL",
+      "preserved": "No timing, cleanup, provenance, admission or unsafe-stop waiver."
+    },
+    {
+      "id": "D12",
+      "actualFields": ["rows.some(row => row.aggregateFailure) is true, including existing UNRUN/gap rows"],
+      "expectedAggregate": "FAIL",
+      "preserved": "Known four and other gaps are not masked or rescored."
+    },
+    {
+      "id": "D13",
+      "actualFields": ["parent is the exact object returned by await coordinator.done", "parent.spawnError is nonnull or metadata publication failed"],
+      "expectedAggregate": "FAIL",
+      "preserved": "Final parent reference remains the original object; no descriptor/caller reason replacement, wrapping or mutation; original exit/signal/reap/timing retained."
+    }
+  ],
+  "normalReceiptQualification": "For spawnError null, metadataComplete true and metadataError undefined, the added predicates contribute no failure; all old predicates still decide. This is not an expected PASS for the current cohort.",
+  "allConditionsStatus": "UNRUN",
+  "rootGO": false
+}

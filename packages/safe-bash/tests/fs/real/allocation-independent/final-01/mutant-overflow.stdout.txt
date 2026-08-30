@@ -1,0 +1,160 @@
+TAP version 13
+# (node:90900) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./load-trace.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: packed root and declared subpath exports preserve optional readonly structural types
+ok 1 - packed root and declared subpath exports preserve optional readonly structural types
+  ---
+  duration_ms: 0.598416
+  type: 'test'
+  ...
+# Subtest: packed OWN native entries match bigint stat/lstat allocation without changing data
+ok 2 - packed OWN native entries match bigint stat/lstat allocation without changing data
+  ---
+  duration_ms: 9.87375
+  type: 'test'
+  ...
+# {"profile":{"node":"v22.22.2","uv":"1.51.0","platform":"darwin","release":"25.4.0","arch":"arm64","statfsType":26},"observations":[{"name":"empty","method":"stat","blocks":"0","size":0,"allocatedBytes":0,"dev":16777232,"ino":175843369,"nlink":1,"type":"file"},{"name":"empty","method":"lstat","blocks":"0","size":0,"allocatedBytes":0,"dev":16777232,"ino":175843369,"nlink":1,"type":"file"},{"name":"dense","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175843370,"nlink":2,"type":"file"},{"name":"dense","method":"lstat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175843370,"nlink":2,"type":"file"},{"name":"sparse","method":"stat","blocks":"0","size":8388608,"allocatedBytes":0,"dev":16777232,"ino":175843371,"nlink":1,"type":"file"},{"name":"sparse","method":"lstat","blocks":"0","size":8388608,"allocatedBytes":0,"dev":16777232,"ino":175843371,"nlink":1,"type":"file"},{"name":"hardlink","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175843370,"nlink":2,"type":"file"},{"name":"hardlink","method":"lstat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175843370,"nlink":2,"type":"file"},{"name":"directory","method":"stat","blocks":"0","size":64,"allocatedBytes":0,"dev":16777232,"ino":175843374,"nlink":2,"type":"directory"},{"name":"directory","method":"lstat","blocks":"0","size":64,"allocatedBytes":0,"dev":16777232,"ino":175843374,"nlink":2,"type":"directory"},{"name":"symlink","method":"stat","blocks":"136","size":65537,"allocatedBytes":69632,"dev":16777232,"ino":175843370,"nlink":2,"type":"file"},{"name":"symlink","method":"lstat","blocks":"0","size":5,"allocatedBytes":0,"dev":16777232,"ino":175843375,"nlink":1,"type":"symlink"}],"meaning":"per-entry allocation; hardlink observations are not unique physical storage"}
+# Subtest: packed Real rejects invalid native blocks with no size or blksize fallback
+not ok 3 - packed Real rejects invalid native blocks with no size or blksize fallback
+  ---
+  duration_ms: 4.191417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-overflow/emitted/public-consumer.mjs:117:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 9007199254740992
+    - undefined
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  actual: 9007199254740992
+  operator: 'strictEqual'
+  stack: |-
+    hasAllocation (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-overflow/emitted/public-consumer.mjs:22:12)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-vz3dPQ/mutant-overflow/emitted/public-consumer.mjs:145:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: packed errors and errno-shaped abort reasons preserve identity and content
+ok 4 - packed errors and errno-shaped abort reasons preserve identity and content
+  ---
+  duration_ms: 7.814375
+  type: 'test'
+  ...
+# Subtest: packed readonly snapshots named own-hidden metadata and dynamic reports
+ok 5 - packed readonly snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.593042
+  type: 'test'
+  ...
+# Subtest: packed mount snapshots named own-hidden metadata and dynamic reports
+ok 6 - packed mount snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.566333
+  type: 'test'
+  ...
+# Subtest: packed overlay-upper snapshots named own-hidden metadata and dynamic reports
+ok 7 - packed overlay-upper snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.915417
+  type: 'test'
+  ...
+# Subtest: packed overlay-lower snapshots named own-hidden metadata and dynamic reports
+ok 8 - packed overlay-lower snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 0.807417
+  type: 'test'
+  ...
+# Subtest: packed nested snapshots named own-hidden metadata and dynamic reports
+ok 9 - packed nested snapshots named own-hidden metadata and dynamic reports
+  ---
+  duration_ms: 1.729792
+  type: 'test'
+  ...
+# Subtest: packed readonly snapshots named prototype metadata and dynamic reports
+ok 10 - packed readonly snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.3475
+  type: 'test'
+  ...
+# Subtest: packed mount snapshots named prototype metadata and dynamic reports
+ok 11 - packed mount snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.278709
+  type: 'test'
+  ...
+# Subtest: packed overlay-upper snapshots named prototype metadata and dynamic reports
+ok 12 - packed overlay-upper snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.445541
+  type: 'test'
+  ...
+# Subtest: packed overlay-lower snapshots named prototype metadata and dynamic reports
+ok 13 - packed overlay-lower snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 0.791916
+  type: 'test'
+  ...
+# Subtest: packed nested snapshots named prototype metadata and dynamic reports
+ok 14 - packed nested snapshots named prototype metadata and dynamic reports
+  ---
+  duration_ms: 2.99975
+  type: 'test'
+  ...
+# Subtest: packed synthetic mount ancestors stay unknown while backing metadata and capability change
+ok 15 - packed synthetic mount ancestors stay unknown while backing metadata and capability change
+  ---
+  duration_ms: 0.810292
+  type: 'test'
+  ...
+# Subtest: packed OWN native nested wrappers select the new upper entry after copy-up
+ok 16 - packed OWN native nested wrappers select the new upper entry after copy-up
+  ---
+  duration_ms: 19.697041
+  type: 'test'
+  ...
+# {"nativeCopyUp":{"lowerBlocks":"0","upperBlocks":"2048","lowerIno":"175843383","upperIno":"175843386","size":"1048576"}}
+# Subtest: packed copy-up switches allocation to upper 0 without metadata-read copy-up
+ok 17 - packed copy-up switches allocation to upper 0 without metadata-read copy-up
+  ---
+  duration_ms: 1.1135
+  type: 'test'
+  ...
+# Subtest: packed copy-up switches allocation to upper undefined without metadata-read copy-up
+ok 18 - packed copy-up switches allocation to upper undefined without metadata-read copy-up
+  ---
+  duration_ms: 0.748542
+  type: 'test'
+  ...
+# Subtest: packed copy-up switches allocation to upper 8192 without metadata-read copy-up
+ok 19 - packed copy-up switches allocation to upper 8192 without metadata-read copy-up
+  ---
+  duration_ms: 0.654083
+  type: 'test'
+  ...
+# Subtest: packed stat/lstat do not clean pending staging; existing readFile housekeeping does
+ok 20 - packed stat/lstat do not clean pending staging; existing readFile housekeeping does
+  ---
+  duration_ms: 1.064042
+  type: 'test'
+  ...
+# {"housekeeping":"readFile removed preexisting pending staging","removals":["/.virtual-bash-overlay-55f104e2-fde3-44e9-8792-6f348ff7c973"]}
+# Subtest: packed Memory, mock S3 and injected WebDAV metadata remain unknown
+ok 21 - packed Memory, mock S3 and injected WebDAV metadata remain unknown
+  ---
+  duration_ms: 6.236416
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 20
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 178.757916

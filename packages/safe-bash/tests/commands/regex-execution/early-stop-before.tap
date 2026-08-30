@@ -1,0 +1,126 @@
+TAP version 13
+# Subtest: grep -q does not match later available records speculatively
+not ok 1 - grep -q does not match later available records speculatively
+  ---
+  duration_ms: 16.915375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:1:8179'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   3
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 3
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:174:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: grep -m1 does not match later available records speculatively
+not ok 2 - grep -m1 does not match later available records speculatively
+  ---
+  duration_ms: 12.512042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:1:8179'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   3
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 3
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:174:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: rg -q does not match later available records speculatively
+not ok 3 - rg -q does not match later available records speculatively
+  ---
+  duration_ms: 13.17275
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:1:8179'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   3
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 3
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:174:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: rg -m1 does not match later available records speculatively
+not ok 4 - rg -m1 does not match later available records speculatively
+  ---
+  duration_ms: 12.414542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:1:8179'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   3
+    -   1
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+    0: 3
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/commands.test.ts:174:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 303.748375

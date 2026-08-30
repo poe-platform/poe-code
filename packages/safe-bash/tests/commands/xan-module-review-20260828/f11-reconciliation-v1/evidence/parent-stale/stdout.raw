@@ -1,0 +1,3 @@
+{"stage":"CASE","id":"required-a","status":"PASS","closed":true,"intact":true}
+{"stage":"CASE","id":"required-b","status":"PASS","closed":true,"intact":true}
+{"stage":"FINALIZATION","job":"parent-stale","phase":"SYNTHETIC_RECEIPT_ONLY","nonce":"stale","manifest":"be29dce60f7d3f40ad4db46758333dde738d5d4d390d7340a1d5fa44e7833db5","requiredIds":["required-a","required-b"],"rawBound":65536,"requiredCount":2,"completedCount":2,"failures":0,"complete":true,"closed":true,"intact":true}

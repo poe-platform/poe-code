@@ -1,0 +1,14 @@
+{
+  "family": "ER-16",
+  "name": "unknown-assertion",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_FAILURE_REQUIRES_REVIEW",
+  "failure": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "Expected values to be strictly equal:\n\n'PASS' !== 'FAIL'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'PASS' !== 'FAIL'\n\n    at cohortFail (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:119:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:288:13\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:73:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:285:1"
+  },
+  "input": "ER-16-unknown-assertion-input.json",
+  "raw": "ER-16-unknown-assertion-raw.json"
+}

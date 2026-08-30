@@ -1,0 +1,13 @@
+0bcef09058ae9cded0d90623a9937b6c869a70220230d006b4c772f63576f6ab  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/build-preexec-v2.mjs
+0bcef09058ae9cded0d90623a9937b6c869a70220230d006b4c772f63576f6ab  /private/tmp/safe-bash-core70-v4-20260829/build-preexec-v2.mjs
+71bc3f8e6930030e3ab13b596bcb892b83bc321e16ddfa8d8df174e84126a5f5  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/wrapper-source.mjs
+71bc3f8e6930030e3ab13b596bcb892b83bc321e16ddfa8d8df174e84126a5f5  /private/tmp/safe-bash-core70-v4-20260829/wrapper-source.mjs
+6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/guards.mjs
+dce618236a799521be201908a63198c4f542fa674836b3520950f3fc7c0465d6  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/worker-observer.mjs
+039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/array-observer.mjs
+28bbbca9ebd0a941d186a37c9a6f1fa6b4e4381c5e083fcc638bb64b851150f5  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/host-bodies.mjs
+656edd0a9094b4e0ffeddca309e93e9f57f17a4b7a598a7befbf3f9d9cfcce80  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/dispatch.mjs
+c92913856acdc985949ed0e5653c31b843e5b2cbccf82444631ebe2353826c53  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/BUILD-V2-PRESEAL.md
+ce571fd1918a163f0ff1ec657915645bd2473a9e2f0c71010697f78e881aedfc  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/cell-v3.mjs
+c26295269b50bbbf42804e5db9149bd1f9de34b117b40e467b7b4b31302644f9  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/additions.mjs
+d6cbcfa10370b46750be2f2b775520fa4ab064fd222aab427809e83d942baa49  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/CASES-v3.json

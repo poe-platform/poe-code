@@ -1,0 +1,4708 @@
+{
+  "exactOriginalSourceRestoredByReversingOnlyDeclaredPreconditionEdits": true,
+  "originalSourceHashes": {
+    "tests/commands/metadata-stress/chmod-controls.test.ts": "fe19c55a0f0a7ff380a8181db5cd3743bd517b089c3e6a2fc8e1ef86bfda189e",
+    "tests/commands/metadata-stress/native-differential.test.ts": "cd462aa78d9030caeafd2312c97fc0c4f2fe370a994c0898b8129dbb73d013b2"
+  },
+  "currentSourceHashes": {
+    "tests/commands/metadata-stress/chmod-controls.test.ts": "f93d92ce384307a5226ad85b27cdf74da1d2026125d14e575109e661eb56c02c",
+    "tests/commands/metadata-stress/native-differential.test.ts": "eb0c185f1ccef217971faeac4394150695b8f47c4906d01c0367f7094b16b999"
+  },
+  "modeVectors": [
+    "=r",
+    "=rw",
+    "=",
+    "a=r",
+    "u=rw,g=u,o=g",
+    "a-x,a+X",
+    "u+x,g+X",
+    "ug+s",
+    "a-s",
+    "o+t",
+    "u=rw+x",
+    "g=u-w",
+    "755",
+    "0755",
+    "00755",
+    "=755",
+    "+111",
+    "-111",
+    "u-rwx,g+u",
+    "+w",
+    "-w",
+    "a=rwX",
+    "u=,g=u",
+    "u+s,g-s,o=t"
+  ],
+  "masks": [
+    0,
+    18,
+    63,
+    128
+  ],
+  "transitionCount": 384,
+  "controlCount": 48,
+  "transitionsSha256": "c2384356b7ad48e37ff8494b375029bdf94b861a4038b6d2f6e9a0b9c9c0a672",
+  "controlsSha256": "3fb22152c2b7f4b0830a4110a1cce15207f8457827abeb65877dc993fd4463fd",
+  "transitions": [
+    {
+      "iteration": 0,
+      "initial": "114",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 1,
+      "initial": "473",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 2,
+      "initial": "536",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 3,
+      "initial": "445",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 4,
+      "initial": "100",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 5,
+      "initial": "237",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 6,
+      "initial": "562",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 7,
+      "initial": "51",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 8,
+      "initial": "564",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 9,
+      "initial": "103",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 10,
+      "initial": "306",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 11,
+      "initial": "555",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 12,
+      "initial": "750",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 13,
+      "initial": "47",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 14,
+      "initial": "532",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 15,
+      "initial": "361",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 16,
+      "initial": "634",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 17,
+      "initial": "113",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 18,
+      "initial": "456",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 19,
+      "initial": "265",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 20,
+      "initial": "220",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 21,
+      "initial": "257",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 22,
+      "initial": "102",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 23,
+      "initial": "271",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 24,
+      "initial": "304",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 25,
+      "initial": "523",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 26,
+      "initial": "226",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 27,
+      "initial": "375",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 28,
+      "initial": "70",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 29,
+      "initial": "67",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 30,
+      "initial": "52",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 31,
+      "initial": "601",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 32,
+      "initial": "354",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 33,
+      "initial": "533",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 34,
+      "initial": "376",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 35,
+      "initial": "105",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 36,
+      "initial": "340",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 37,
+      "initial": "277",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 38,
+      "initial": "422",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 39,
+      "initial": "511",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 40,
+      "initial": "24",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 41,
+      "initial": "143",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 42,
+      "initial": "146",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 43,
+      "initial": "215",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 44,
+      "initial": "210",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 45,
+      "initial": "107",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 46,
+      "initial": "372",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 47,
+      "initial": "21",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 48,
+      "initial": "74",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 49,
+      "initial": "153",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 50,
+      "initial": "316",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 51,
+      "initial": "725",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 52,
+      "initial": "460",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 53,
+      "initial": "317",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 54,
+      "initial": "742",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 55,
+      "initial": "731",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 56,
+      "initial": "544",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 57,
+      "initial": "563",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 58,
+      "initial": "66",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 59,
+      "initial": "35",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 60,
+      "initial": "330",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 61,
+      "initial": "127",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 62,
+      "initial": "712",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 63,
+      "initial": "241",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 64,
+      "initial": "614",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 65,
+      "initial": "573",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 66,
+      "initial": "236",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 67,
+      "initial": "545",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 68,
+      "initial": "600",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 69,
+      "initial": "337",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 70,
+      "initial": "262",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 71,
+      "initial": "151",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 72,
+      "initial": "264",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 73,
+      "initial": "203",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 74,
+      "initial": "6",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 75,
+      "initial": "655",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 76,
+      "initial": "450",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 77,
+      "initial": "147",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 78,
+      "initial": "232",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 79,
+      "initial": "461",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 80,
+      "initial": "334",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 81,
+      "initial": "213",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 82,
+      "initial": "156",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 83,
+      "initial": "365",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 84,
+      "initial": "720",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 85,
+      "initial": "357",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 86,
+      "initial": "602",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 87,
+      "initial": "371",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 88,
+      "initial": "4",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 89,
+      "initial": "623",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 90,
+      "initial": "726",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 91,
+      "initial": "475",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 92,
+      "initial": "570",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 93,
+      "initial": "167",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 94,
+      "initial": "552",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 95,
+      "initial": "701",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 96,
+      "initial": "54",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 97,
+      "initial": "633",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 98,
+      "initial": "76",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 99,
+      "initial": "205",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 100,
+      "initial": "40",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 101,
+      "initial": "377",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 102,
+      "initial": "122",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 103,
+      "initial": "611",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 104,
+      "initial": "524",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 105,
+      "initial": "243",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 106,
+      "initial": "646",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 107,
+      "initial": "315",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 108,
+      "initial": "710",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 109,
+      "initial": "207",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 110,
+      "initial": "72",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 111,
+      "initial": "121",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 112,
+      "initial": "574",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 113,
+      "initial": "253",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 114,
+      "initial": "16",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 115,
+      "initial": "25",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 116,
+      "initial": "160",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 117,
+      "initial": "417",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 118,
+      "initial": "442",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 119,
+      "initial": "31",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 120,
+      "initial": "244",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 121,
+      "initial": "663",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 122,
+      "initial": "566",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 123,
+      "initial": "135",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 124,
+      "initial": "30",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 125,
+      "initial": "227",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 126,
+      "initial": "412",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 127,
+      "initial": "341",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 128,
+      "initial": "314",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 129,
+      "initial": "673",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 130,
+      "initial": "736",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 131,
+      "initial": "645",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 132,
+      "initial": "300",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 133,
+      "initial": "437",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 134,
+      "initial": "762",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 135,
+      "initial": "251",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 136,
+      "initial": "764",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 137,
+      "initial": "303",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 138,
+      "initial": "506",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 139,
+      "initial": "755",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 140,
+      "initial": "150",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 141,
+      "initial": "247",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 142,
+      "initial": "732",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 143,
+      "initial": "561",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 144,
+      "initial": "34",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 145,
+      "initial": "313",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 146,
+      "initial": "656",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 147,
+      "initial": "465",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 148,
+      "initial": "420",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 149,
+      "initial": "457",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 150,
+      "initial": "302",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 151,
+      "initial": "471",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 152,
+      "initial": "504",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 153,
+      "initial": "723",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 154,
+      "initial": "426",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 155,
+      "initial": "575",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 156,
+      "initial": "270",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 157,
+      "initial": "267",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 158,
+      "initial": "252",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 159,
+      "initial": "1",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 160,
+      "initial": "554",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 161,
+      "initial": "733",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 162,
+      "initial": "576",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 163,
+      "initial": "305",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 164,
+      "initial": "540",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 165,
+      "initial": "477",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 166,
+      "initial": "622",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 167,
+      "initial": "711",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 168,
+      "initial": "224",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 169,
+      "initial": "343",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 170,
+      "initial": "346",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 171,
+      "initial": "415",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 172,
+      "initial": "410",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 173,
+      "initial": "307",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 174,
+      "initial": "572",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 175,
+      "initial": "221",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 176,
+      "initial": "274",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 177,
+      "initial": "353",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 178,
+      "initial": "516",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 179,
+      "initial": "125",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 180,
+      "initial": "660",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 181,
+      "initial": "517",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 182,
+      "initial": "142",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 183,
+      "initial": "131",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 184,
+      "initial": "744",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 185,
+      "initial": "763",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 186,
+      "initial": "266",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 187,
+      "initial": "235",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 188,
+      "initial": "530",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 189,
+      "initial": "327",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 190,
+      "initial": "112",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 191,
+      "initial": "441",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 192,
+      "initial": "14",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 193,
+      "initial": "773",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 194,
+      "initial": "436",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 195,
+      "initial": "745",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 196,
+      "initial": "0",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 197,
+      "initial": "537",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 198,
+      "initial": "462",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 199,
+      "initial": "351",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 200,
+      "initial": "464",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 201,
+      "initial": "403",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 202,
+      "initial": "206",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 203,
+      "initial": "55",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 204,
+      "initial": "650",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 205,
+      "initial": "347",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 206,
+      "initial": "432",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 207,
+      "initial": "661",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 208,
+      "initial": "534",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 209,
+      "initial": "413",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 210,
+      "initial": "356",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 211,
+      "initial": "565",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 212,
+      "initial": "120",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 213,
+      "initial": "557",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 214,
+      "initial": "2",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 215,
+      "initial": "571",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 216,
+      "initial": "204",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 217,
+      "initial": "23",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 218,
+      "initial": "126",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 219,
+      "initial": "675",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 220,
+      "initial": "770",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 221,
+      "initial": "367",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 222,
+      "initial": "752",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 223,
+      "initial": "101",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 224,
+      "initial": "254",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 225,
+      "initial": "33",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 226,
+      "initial": "276",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 227,
+      "initial": "405",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 228,
+      "initial": "240",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 229,
+      "initial": "577",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 230,
+      "initial": "322",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 231,
+      "initial": "11",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 232,
+      "initial": "724",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 233,
+      "initial": "443",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 234,
+      "initial": "46",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 235,
+      "initial": "515",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 236,
+      "initial": "110",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 237,
+      "initial": "407",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 238,
+      "initial": "272",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 239,
+      "initial": "321",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 240,
+      "initial": "774",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 241,
+      "initial": "453",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 242,
+      "initial": "216",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 243,
+      "initial": "225",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 244,
+      "initial": "360",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 245,
+      "initial": "617",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 246,
+      "initial": "642",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 247,
+      "initial": "231",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 248,
+      "initial": "444",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 249,
+      "initial": "63",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 250,
+      "initial": "766",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 251,
+      "initial": "335",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 252,
+      "initial": "230",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 253,
+      "initial": "427",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 254,
+      "initial": "612",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 255,
+      "initial": "541",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 256,
+      "initial": "514",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 257,
+      "initial": "73",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 258,
+      "initial": "136",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 259,
+      "initial": "45",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 260,
+      "initial": "500",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 261,
+      "initial": "637",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 262,
+      "initial": "162",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 263,
+      "initial": "451",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 264,
+      "initial": "164",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 265,
+      "initial": "503",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 266,
+      "initial": "706",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 267,
+      "initial": "155",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 268,
+      "initial": "350",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 269,
+      "initial": "447",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 270,
+      "initial": "132",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 271,
+      "initial": "761",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 272,
+      "initial": "234",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 273,
+      "initial": "513",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 274,
+      "initial": "56",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 275,
+      "initial": "665",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 276,
+      "initial": "620",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 277,
+      "initial": "657",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 278,
+      "initial": "502",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 279,
+      "initial": "671",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 280,
+      "initial": "704",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 281,
+      "initial": "123",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 282,
+      "initial": "626",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 283,
+      "initial": "775",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 284,
+      "initial": "470",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 285,
+      "initial": "467",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 286,
+      "initial": "452",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 287,
+      "initial": "201",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 288,
+      "initial": "754",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 289,
+      "initial": "133",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 290,
+      "initial": "776",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 291,
+      "initial": "505",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 292,
+      "initial": "740",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 293,
+      "initial": "677",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 294,
+      "initial": "22",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 295,
+      "initial": "111",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 296,
+      "initial": "424",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 297,
+      "initial": "543",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 298,
+      "initial": "546",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 299,
+      "initial": "615",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 300,
+      "initial": "610",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 301,
+      "initial": "507",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 302,
+      "initial": "772",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 303,
+      "initial": "421",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 304,
+      "initial": "474",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 305,
+      "initial": "553",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 306,
+      "initial": "716",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 307,
+      "initial": "325",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 308,
+      "initial": "60",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 309,
+      "initial": "717",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 310,
+      "initial": "342",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 311,
+      "initial": "331",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "0"
+    },
+    {
+      "iteration": 312,
+      "initial": "144",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 313,
+      "initial": "163",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 314,
+      "initial": "466",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 315,
+      "initial": "435",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 316,
+      "initial": "730",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 317,
+      "initial": "527",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 318,
+      "initial": "312",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 319,
+      "initial": "641",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 320,
+      "initial": "214",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 321,
+      "initial": "173",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 322,
+      "initial": "636",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 323,
+      "initial": "145",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 324,
+      "initial": "200",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 325,
+      "initial": "737",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 326,
+      "initial": "662",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 327,
+      "initial": "551",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 328,
+      "initial": "664",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 329,
+      "initial": "603",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 330,
+      "initial": "406",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 331,
+      "initial": "255",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 332,
+      "initial": "50",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 333,
+      "initial": "547",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 334,
+      "initial": "632",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 335,
+      "initial": "61",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "iteration": 336,
+      "initial": "734",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 337,
+      "initial": "613",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 338,
+      "initial": "556",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 339,
+      "initial": "765",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 340,
+      "initial": "320",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 341,
+      "initial": "757",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 342,
+      "initial": "202",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 343,
+      "initial": "771",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 344,
+      "initial": "404",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 345,
+      "initial": "223",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 346,
+      "initial": "326",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 347,
+      "initial": "75",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 348,
+      "initial": "170",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 349,
+      "initial": "567",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 350,
+      "initial": "152",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 351,
+      "initial": "301",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 352,
+      "initial": "454",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 353,
+      "initial": "233",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 354,
+      "initial": "476",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 355,
+      "initial": "605",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 356,
+      "initial": "440",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 357,
+      "initial": "777",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 358,
+      "initial": "522",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 359,
+      "initial": "211",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "77"
+    },
+    {
+      "iteration": 360,
+      "initial": "124",
+      "name": "file",
+      "argv": [
+        "--",
+        "=r",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 361,
+      "initial": "643",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=rw",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 362,
+      "initial": "246",
+      "name": "file",
+      "argv": [
+        "--",
+        "=",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 363,
+      "initial": "715",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=r",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 364,
+      "initial": "310",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw,g=u,o=g",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 365,
+      "initial": "607",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a-x,a+X",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 366,
+      "initial": "472",
+      "name": "file",
+      "argv": [
+        "--",
+        "u+x,g+X",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 367,
+      "initial": "521",
+      "name": "directory",
+      "argv": [
+        "--",
+        "ug+s",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 368,
+      "initial": "174",
+      "name": "file",
+      "argv": [
+        "--",
+        "a-s",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 369,
+      "initial": "653",
+      "name": "directory",
+      "argv": [
+        "--",
+        "o+t",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 370,
+      "initial": "416",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=rw+x",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 371,
+      "initial": "425",
+      "name": "directory",
+      "argv": [
+        "--",
+        "g=u-w",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 372,
+      "initial": "560",
+      "name": "file",
+      "argv": [
+        "--",
+        "755",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 373,
+      "initial": "17",
+      "name": "directory",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 374,
+      "initial": "42",
+      "name": "file",
+      "argv": [
+        "--",
+        "00755",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 375,
+      "initial": "431",
+      "name": "directory",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 376,
+      "initial": "644",
+      "name": "file",
+      "argv": [
+        "--",
+        "+111",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 377,
+      "initial": "263",
+      "name": "directory",
+      "argv": [
+        "--",
+        "-111",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 378,
+      "initial": "166",
+      "name": "file",
+      "argv": [
+        "--",
+        "u-rwx,g+u",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 379,
+      "initial": "535",
+      "name": "directory",
+      "argv": [
+        "--",
+        "+w",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 380,
+      "initial": "430",
+      "name": "file",
+      "argv": [
+        "--",
+        "-w",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 381,
+      "initial": "627",
+      "name": "directory",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 382,
+      "initial": "12",
+      "name": "file",
+      "argv": [
+        "--",
+        "u=,g=u",
+        "file"
+      ],
+      "umask": "200"
+    },
+    {
+      "iteration": 383,
+      "initial": "741",
+      "name": "directory",
+      "argv": [
+        "--",
+        "u+s,g-s,o=t",
+        "directory"
+      ],
+      "umask": "200"
+    }
+  ],
+  "controls": [
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "00755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "u=rwx,go=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "a-s",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "u=rw",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "g=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "o=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "+2000",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "6755",
+      "argv": [
+        "--",
+        "-6000",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "00755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "u=rwx,go=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "a-s",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "u=rw",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "g=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "o=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "+2000",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "3755",
+      "argv": [
+        "--",
+        "-6000",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "00755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "u=rwx,go=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "a-s",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "u=rw",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "g=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "o=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "+2000",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "4755",
+      "argv": [
+        "--",
+        "-6000",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "0755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "00755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "=755",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "u=rwx,go=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "a-s",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "a=rwX",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "u=rw",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "g=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "o=rx",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "+2000",
+        "directory"
+      ],
+      "umask": "22"
+    },
+    {
+      "initial": "1777",
+      "argv": [
+        "--",
+        "-6000",
+        "directory"
+      ],
+      "umask": "22"
+    }
+  ],
+  "delta": "Native group is explicitly qualified to caller primary group before setid setup; requested initial modes verified exactly. Not unchanged-all-input proof."
+}

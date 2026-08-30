@@ -1,0 +1,334 @@
+TAP version 13
+# Subtest: fixture: inline source remains exact data across source/argv boundaries
+ok 1 - fixture: inline source remains exact data across source/argv boundaries
+  ---
+  duration_ms: 2.06325
+  type: 'test'
+  ...
+# Subtest: fixture: file source remains exact data across source/argv boundaries
+ok 2 - fixture: file source remains exact data across source/argv boundaries
+  ---
+  duration_ms: 0.649958
+  type: 'test'
+  ...
+# Subtest: fixture: stdin source remains exact data across source/argv boundaries
+ok 3 - fixture: stdin source remains exact data across source/argv boundaries
+  ---
+  duration_ms: 1.244375
+  type: 'test'
+  ...
+# Subtest: fixture: inline source byte budget exact boundary includes BOM
+ok 4 - fixture: inline source byte budget exact boundary includes BOM
+  ---
+  duration_ms: 0.502291
+  type: 'test'
+  ...
+# Subtest: fixture: file source byte budget exact boundary includes BOM
+ok 5 - fixture: file source byte budget exact boundary includes BOM
+  ---
+  duration_ms: 0.530208
+  type: 'test'
+  ...
+# Subtest: fixture: stdin source byte budget exact boundary includes BOM
+ok 6 - fixture: stdin source byte budget exact boundary includes BOM
+  ---
+  duration_ms: 0.406666
+  type: 'test'
+  ...
+# Subtest: fixture: prototype keys survive snapshots and JSON without invoking accessors
+ok 7 - fixture: prototype keys survive snapshots and JSON without invoking accessors
+  ---
+  duration_ms: 0.338458
+  type: 'test'
+  ...
+# Subtest: fixture: malformed runner results and error accessors fail without evaluating getters
+ok 8 - fixture: malformed runner results and error accessors fail without evaluating getters
+  ---
+  duration_ms: 0.481125
+  type: 'test'
+  ...
+# Subtest: fixture: partial UTF-8 rejects text decoding but leaves raw bytes available
+ok 9 - fixture: partial UTF-8 rejects text decoding but leaves raw bytes available
+  ---
+  duration_ms: 0.413083
+  type: 'test'
+  ...
+# Subtest: fixture: all engine budgets are forwarded exactly and mutable budgets are never reused
+ok 10 - fixture: all engine budgets are forwarded exactly and mutable budgets are never reused
+  ---
+  duration_ms: 0.521125
+  type: 'test'
+  ...
+# Subtest: fixture: captured host operations cannot be reused after command completion
+ok 11 - fixture: captured host operations cannot be reused after command completion
+  ---
+  duration_ms: 0.351292
+  type: 'test'
+  ...
+# Subtest: fixture: registration configuration rejects unknown budgets
+ok 12 - fixture: registration configuration rejects unknown budgets
+  ---
+  duration_ms: 0.693209
+  type: 'test'
+  ...
+# Subtest: fixture: stdout/stderr/return share an exact cumulative UTF-8 byte budget
+ok 13 - fixture: stdout/stderr/return share an exact cumulative UTF-8 byte budget
+  ---
+  duration_ms: 0.547417
+  type: 'test'
+  ...
+# Subtest: fixture: fragmented binary reads preserve bytes with varying requested sizes
+ok 14 - fixture: fragmented binary reads preserve bytes with varying requested sizes
+  ---
+  duration_ms: 9.94825
+  type: 'test'
+  ...
+# Subtest: command environment is a prototype-free data copy with literal special keys
+ok 15 - command environment is a prototype-free data copy with literal special keys
+  ---
+  duration_ms: 1.704208
+  type: 'test'
+  ...
+# Subtest: missing runtime is explicit and never consumes source or stdin
+ok 16 - missing runtime is explicit and never consumes source or stdin
+  ---
+  duration_ms: 0.391625
+  type: 'test'
+  ...
+# Subtest: inline source receives exact args, virtual context and a fresh budget
+ok 17 - inline source receives exact args, virtual context and a fresh budget
+  ---
+  duration_ms: 0.5275
+  type: 'test'
+  ...
+# Subtest: stdio consumes bytes once and routes awaited output without host IO
+ok 18 - stdio consumes bytes once and routes awaited output without host IO
+  ---
+  duration_ms: 0.472834
+  type: 'test'
+  ...
+# Subtest: stdin source is not available again as guest data
+ok 19 - stdin source is not available again as guest data
+  ---
+  duration_ms: 0.411833
+  type: 'test'
+  ...
+# Subtest: usage failures occur before runner and input effects
+ok 20 - usage failures occur before runner and input effects
+  ---
+  duration_ms: 0.515416
+  type: 'test'
+  ...
+# Subtest: guest UTF-8 text preserves BOM and multibyte input across single-byte chunks
+ok 21 - guest UTF-8 text preserves BOM and multibyte input across single-byte chunks
+  ---
+  duration_ms: 0.726375
+  type: 'test'
+  ...
+# Subtest: one leading source BOM is stripped without replaying source as guest input
+ok 22 - one leading source BOM is stripped without replaying source as guest input
+  ---
+  duration_ms: 0.283458
+  type: 'test'
+  ...
+# Subtest: script loading honors a false streaming capability and requests bounded buffered reads
+ok 23 - script loading honors a false streaming capability and requests bounded buffered reads
+  ---
+  duration_ms: 0.46525
+  type: 'test'
+  ...
+# Subtest: plugin collision is explicit, replacement is opt-in, and no js alias is registered
+ok 24 - plugin collision is explicit, replacement is opt-in, and no js alias is registered
+  ---
+  duration_ms: 0.714584
+  type: 'test'
+  ...
+# Subtest: invalid host limits reject before registration: {"timeoutMs":0}
+ok 25 - invalid host limits reject before registration: {"timeoutMs":0}
+  ---
+  duration_ms: 0.086042
+  type: 'test'
+  ...
+# Subtest: invalid host limits reject before registration: {"maxInputBytes":-1}
+ok 26 - invalid host limits reject before registration: {"maxInputBytes":-1}
+  ---
+  duration_ms: 0.059834
+  type: 'test'
+  ...
+# Subtest: invalid host limits reject before registration: {"maxSteps":null}
+ok 27 - invalid host limits reject before registration: {"maxSteps":null}
+  ---
+  duration_ms: 0.035041
+  type: 'test'
+  ...
+# Subtest: invalid host limits reject before registration: {"dataSize":1.5}
+ok 28 - invalid host limits reject before registration: {"dataSize":1.5}
+  ---
+  duration_ms: 0.083458
+  type: 'test'
+  ...
+# Subtest: invalid host limits reject before registration: {"timeoutMs":2147483648}
+ok 29 - invalid host limits reject before registration: {"timeoutMs":2147483648}
+  ---
+  duration_ms: 0.033125
+  type: 'test'
+  ...
+# Subtest: partially supplied runtime factories fail closed
+ok 30 - partially supplied runtime factories fail closed
+  ---
+  duration_ms: 0.0615
+  type: 'test'
+  ...
+# Subtest: source byte limit precedes interpreter effects: inline
+ok 31 - source byte limit precedes interpreter effects: inline
+  ---
+  duration_ms: 0.931208
+  type: 'test'
+  ...
+# Subtest: source byte limit precedes interpreter effects: stdin
+ok 32 - source byte limit precedes interpreter effects: stdin
+  ---
+  duration_ms: 0.473417
+  type: 'test'
+  ...
+# Subtest: invalid UTF-8 source fails without invoking runner
+ok 33 - invalid UTF-8 source fails without invoking runner
+  ---
+  duration_ms: 0.432875
+  type: 'test'
+  ...
+# Subtest: input quota is cumulative and cannot be hidden by a caught host rejection
+ok 34 - input quota is cumulative and cannot be hidden by a caught host rejection
+  ---
+  duration_ms: 0.580125
+  type: 'test'
+  ...
+# Subtest: output quota covers stdout plus stderr and cannot be hidden by guest recovery
+ok 35 - output quota covers stdout plus stderr and cannot be hidden by guest recovery
+  ---
+  duration_ms: 0.741042
+  type: 'test'
+  ...
+# Subtest: unawaited console/stdio writes are drained in issue order before command returns
+ok 36 - unawaited console/stdio writes are drained in issue order before command returns
+  ---
+  duration_ms: 8.467541
+  type: 'test'
+  ...
+# Subtest: pending output before a runner error is drained instead of silently discarded
+ok 37 - pending output before a runner error is drained instead of silently discarded
+  ---
+  duration_ms: 5.872792
+  type: 'test'
+  ...
+# Subtest: parallel guest reads are serialized, and completed-invocation callbacks cannot write
+ok 38 - parallel guest reads are serialized, and completed-invocation callbacks cannot write
+  ---
+  duration_ms: 0.521833
+  type: 'test'
+  ...
+# Subtest: stdio rejects non-byte arrays, oversized chunks and invalid read sizes
+ok 39 - stdio rejects non-byte arrays, oversized chunks and invalid read sizes
+  ---
+  duration_ms: 0.605208
+  type: 'test'
+  ...
+# Subtest: parent cancellation interrupts blocked runner and observes late rejection
+ok 40 - parent cancellation interrupts blocked runner and observes late rejection
+  ---
+  duration_ms: 7.010375
+  type: 'test'
+  ...
+# Subtest: parent cancellation interrupts blocked input and observes late rejection
+ok 41 - parent cancellation interrupts blocked input and observes late rejection
+  ---
+  duration_ms: 6.753833
+  type: 'test'
+  ...
+# Subtest: parent cancellation interrupts blocked output and observes late rejection
+ok 42 - parent cancellation interrupts blocked output and observes late rejection
+  ---
+  duration_ms: 6.740416
+  type: 'test'
+  ...
+# Subtest: parent cancellation interrupts blocked stderr and observes late rejection
+ok 43 - parent cancellation interrupts blocked stderr and observes late rejection
+  ---
+  duration_ms: 6.648416
+  type: 'test'
+  ...
+# Subtest: parent cancellation interrupts blocked source and observes late rejection
+ok 44 - parent cancellation interrupts blocked source and observes late rejection
+  ---
+  duration_ms: 6.569292
+  type: 'test'
+  ...
+# Subtest: deadline interrupts uncooperative runner
+ok 45 - deadline interrupts uncooperative runner
+  ---
+  duration_ms: 17.601416
+  type: 'test'
+  ...
+# Subtest: deadline interrupts uncooperative input
+ok 46 - deadline interrupts uncooperative input
+  ---
+  duration_ms: 16.729417
+  type: 'test'
+  ...
+# Subtest: deadline interrupts uncooperative output
+ok 47 - deadline interrupts uncooperative output
+  ---
+  duration_ms: 17.00425
+  type: 'test'
+  ...
+# Subtest: deadline interrupts uncooperative stderr
+ok 48 - deadline interrupts uncooperative stderr
+  ---
+  duration_ms: 16.235625
+  type: 'test'
+  ...
+# Subtest: deadline interrupts uncooperative source
+ok 49 - deadline interrupts uncooperative source
+  ---
+  duration_ms: 17.513833
+  type: 'test'
+  ...
+# Subtest: uncooperative diagnostic sinks cannot hang a failed invocation
+ok 50 - uncooperative diagnostic sinks cannot hang a failed invocation
+  ---
+  duration_ms: 17.739916
+  type: 'test'
+  ...
+# Subtest: empty-only sources yield enough for timeout and cleanup
+ok 51 - empty-only sources yield enough for timeout and cleanup
+  ---
+  duration_ms: 15.364625
+  type: 'test'
+  ...
+# Subtest: return and console JSON are bounded during expansion of repeated references
+ok 52 - return and console JSON are bounded during expansion of repeated references
+  ---
+  duration_ms: 0.776167
+  type: 'test'
+  ...
+# Subtest: JSON return rendering does not invoke accessors or toJSON host callbacks
+ok 53 - JSON return rendering does not invoke accessors or toJSON host callbacks
+  ---
+  duration_ms: 0.360875
+  type: 'test'
+  ...
+# Subtest: console formatting is bounded string/JSON joining, not Node percent interpolation
+ok 54 - console formatting is bounded string/JSON joining, not Node percent interpolation
+  ---
+  duration_ms: 0.171542
+  type: 'test'
+  ...
+1..54
+# tests 54
+# suites 0
+# pass 54
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 314.881125

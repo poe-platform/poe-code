@@ -1,0 +1,154 @@
+{
+  "role": "SOURCE_ONLY_IMPLEMENTATION_CHECKPOINT_NOT_CANDIDATE_ACCEPTANCE",
+  "version": 1,
+  "date": "2026-08-29",
+  "contractCommit": "7c98314c65c12ca43ac698184ef8fa7e0aa68724",
+  "apiCommit": "0e346021f3a1caca4b34df4aaf339ce8146f479e",
+  "baseline": {
+    "kind": "derived-composition-not-required-Git-object",
+    "composition": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "acceptance": "bd772916c26dc87c54bafdaa784d18f058efa275",
+    "manifest": "tests/integration/apply-patch-public-20260829/SOURCE-v2.json",
+    "manifestSha256": "da431477e0cf1072370b8e55cdebce80e33dbf9cac8471656854572b363b9d0d",
+    "selectedInputs": 278,
+    "treeWitnessRecords": 67,
+    "uniqueSuppliedTrees": 59,
+    "suppliedTreeBytes": 41890,
+    "recomputedCompleteSrcTree": "9f3a31472742cc8113567a4df0edd449d9f57689",
+    "recomputedSrcInputs": 274,
+    "allSelectedPathBindings": 278,
+    "localInputHashMatches": 274,
+    "excludedLocalMismatches": [
+      {
+        "path": "README.md",
+        "blob": "ab6a40bae4d47769c0ed9f0a14237d1c50db95ac",
+        "bytes": 48669
+      },
+      {
+        "path": "package.json",
+        "blob": "8683b56c3868873fa49a7b20cafc0b6a362a0af0",
+        "bytes": 5130
+      },
+      {
+        "path": "src/index.ts",
+        "blob": "a71d3054900d761f2a1dcdc9520eb85db154384a",
+        "bytes": 1687
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "blob": "f794c9c26b80584e8b589c0ee96e8e5dfad57504",
+        "bytes": 6998
+      }
+    ],
+    "fullPackage": {
+      "members": 898,
+      "bytes": 814632,
+      "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+      "freshHash": false,
+      "role": "inherited accepted binding; actual archive authentication pending execution preseal"
+    }
+  },
+  "productionSources": [
+    {
+      "path": "src/commands/node/admission.ts",
+      "bytes": 15584,
+      "sha256": "8741677e0a8fc79f2e0d26d5f34d258050ac9f11d0ecb824677fe2aab1ef9c7f"
+    },
+    {
+      "path": "src/commands/node/cli.ts",
+      "bytes": 2797,
+      "sha256": "989ccbf7e5d44660ef1b842501c0bc4529de244d8415be952bc536eb5e4ac45d"
+    },
+    {
+      "path": "src/commands/node/diagnostics.ts",
+      "bytes": 1727,
+      "sha256": "869617c8c5d1c6abdabb8ea7358ac5a4d0ad268893422f851e8cab9881ba29b9"
+    },
+    {
+      "path": "src/commands/node/host.ts",
+      "bytes": 17496,
+      "sha256": "2fde45b7399c841864fea9db603dd49e671f29a056bfd5f9fa5435cdbf195a50"
+    },
+    {
+      "path": "src/commands/node/index.ts",
+      "bytes": 7244,
+      "sha256": "4a491d9a59e13d2175a52afba95878ff886ffcf1d3648f722e8f0ac295c75f8a"
+    },
+    {
+      "path": "src/commands/node/lifecycle.ts",
+      "bytes": 7886,
+      "sha256": "ce15c839e524726659b0f634fd8e894f418ffa6e714fb65dde7cde963f094c48"
+    },
+    {
+      "path": "src/commands/node/program.ts",
+      "bytes": 12040,
+      "sha256": "0974e67fb10fcb4c4c6d3ea73632c463faeae6a0c92d3007fcae70e75342cc8d"
+    },
+    {
+      "path": "src/commands/node/types.ts",
+      "bytes": 4150,
+      "sha256": "966330927b4a873a3b9b74f19a1a3d0f742a4ca938e043b1b83f60b2fe100c07"
+    },
+    {
+      "path": "src/commands/node/values.ts",
+      "bytes": 5778,
+      "sha256": "5b5a13fb321da4731adee82f8e3536092f0ec09525be1d09e0109a9ed12f4677"
+    }
+  ],
+  "providerSourceFindings": {
+    "engine": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "role": "SOURCE_INFERENCE_NOT_NEW_ENGINE_EXECUTION",
+    "inputs": [
+      {
+        "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/string.js",
+        "bytes": 11311,
+        "sha256": "1022751636e73d936848935a2cc2c3863102afbbefce1fd1ff27c9cda5423590"
+      },
+      {
+        "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/array.js",
+        "bytes": 20062,
+        "sha256": "1c2829f32e3f69eea0695863c0f0d7be23bb2728580c41503abb0644936e3d49"
+      },
+      {
+        "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/interpreter.js",
+        "bytes": 89873,
+        "sha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177"
+      },
+      {
+        "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/run.js",
+        "bytes": 23493,
+        "sha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8"
+      },
+      {
+        "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/core.js",
+        "bytes": 165,
+        "sha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852"
+      }
+    ],
+    "findings": [
+      "unlisted string/array intrinsic members are exposed by bare PUBLIC95 run",
+      "module syntax validation alone does not mediate runtime member kinds or constrain every process.env assignment",
+      "no full qualifying-provider claim; exact conforming adapter remains incomplete"
+    ]
+  },
+  "phase": {
+    "moduleImplementation": "draft",
+    "referenceProvider": "incomplete",
+    "executableAuthorPreseal": "incomplete",
+    "validationBegun": false,
+    "compilerRuns": 0,
+    "workerStarts": 0,
+    "guestEntries": 0,
+    "sourceRuns": 0,
+    "installedRuns": 0,
+    "movedRuns": 0
+  },
+  "historicalPreparationNotes": [
+    "Derived composition git-show lookup returned128; object absence is not a baseline failure and was resolved by manifest/tree bytes.",
+    "Initial COMPOSITION text admission32KiB refused its44958-byte file; explicitly bounded64KiB metadata read followed.",
+    "Initial multi-file patch encountered CLI hunk mismatch after earlier hunks applied; source edits were reconciled without product execution.",
+    "One metadata-only NodeREPL expression had a syntax error; no child/product activation.",
+    "Two metadata displays were tool-truncated; no complete-output proof is claimed from those displays."
+  ],
+  "preparationChildCountBeforeCheckpointPublication": 30
+}

@@ -1,0 +1,290 @@
+{
+  "revision": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "startedAt": "2026-08-27T16:27:17.015Z",
+  "finishedAt": "2026-08-27T16:28:09.779Z",
+  "temporary": "/private/tmp/safe-bash-column-final-5XKcCe",
+  "archiveSha256": "64fac38e43ce89009e03d24b8b3dffb8425dd98a313bea4d4133d6db8030cccf",
+  "packSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+  "sourceBlobCount": 27687,
+  "sourceInventorySha256": "ec91c80b983e34fe025c4584248c653d34688ee8931059a4b9c2234327bacea5",
+  "beforeInventorySha256": "acab0a47b52efd9b554176aa4fc89a2dd98691189f36511e4e6c1caa00f61daa",
+  "afterInventorySha256": "acab0a47b52efd9b554176aa4fc89a2dd98691189f36511e4e6c1caa00f61daa",
+  "newEntriesDetected": true,
+  "reusedDependenciesUnchanged": true,
+  "archiveUnchanged": true,
+  "packUnchanged": true,
+  "fixturesUnchanged": true,
+  "node": {
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "commands": [
+    {
+      "label": "runner-negative-deadline",
+      "wrapperStatus": 1,
+      "expectedTermination": "deadline",
+      "status": null,
+      "signal": "SIGKILL",
+      "termination": "deadline",
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "runner-negative-output",
+      "wrapperStatus": 1,
+      "expectedTermination": "stdout-cap",
+      "status": null,
+      "signal": "SIGKILL",
+      "termination": "stdout-cap",
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "runner-negative-leak",
+      "wrapperStatus": 1,
+      "expectedTermination": "surviving-process-group",
+      "status": 0,
+      "signal": null,
+      "termination": "surviving-process-group",
+      "spawnError": null,
+      "groupAliveAtClose": true,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "archive",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "extract",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "build",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "scoped-types",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "scoped-tests",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "legacy",
+      "wrapperStatus": 1,
+      "expectedTermination": null,
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "original-hidden",
+      "wrapperStatus": 1,
+      "expectedTermination": null,
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "current",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "mutant-remove-registration",
+      "wrapperStatus": 1,
+      "expectedTermination": null,
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "mutant-wrong-output",
+      "wrapperStatus": 1,
+      "expectedTermination": null,
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "mutant-wrong-error",
+      "wrapperStatus": 1,
+      "expectedTermination": null,
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "mutant-late-unhandled",
+      "wrapperStatus": 1,
+      "expectedTermination": null,
+      "status": 1,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "pack",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "unpack",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "packed-current",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    },
+    {
+      "label": "packed-types",
+      "wrapperStatus": 0,
+      "expectedTermination": null,
+      "status": 0,
+      "signal": null,
+      "termination": null,
+      "spawnError": null,
+      "groupAliveAtClose": false,
+      "groupAliveAfterRetirement": false
+    }
+  ],
+  "legacyCounts": {
+    "topLevelRecipes": 40,
+    "topLevelPass": 39,
+    "topLevelFail": 1,
+    "topLevelUnexecuted": 0,
+    "executedVariants": 88,
+    "originalRecipeVariants": 84,
+    "supplementalVariants": 4,
+    "variantPass": 87,
+    "variantFail": 1,
+    "denominatorCaveat": "Top-level and variant counts overlap, never add them; native comparisons are a separate profile partition, not extra product passes."
+  },
+  "originalHidden": {
+    "classification": "root-owned-hidden-external-stdin-return-boundary",
+    "candidate": "/private/tmp/safe-bash-column-final-5XKcCe/candidate",
+    "beforeGateRelease": {
+      "returns": 1,
+      "execSettled": true,
+      "disposeSettled": true
+    },
+    "acceptance": "HOLD",
+    "outcome": {
+      "rejection": "Error: Shell is disposed"
+    },
+    "finallyReleasedHarnessGate": true
+  },
+  "currentCounts": {
+    "total": 12,
+    "pass": 12,
+    "fail": 0
+  },
+  "packedCounts": {
+    "total": 12,
+    "pass": 12,
+    "fail": 0
+  },
+  "scopedTestCounts": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "checks": {
+    "build": 0,
+    "types": 0,
+    "tests": 0,
+    "legacy": 1,
+    "hidden": 1,
+    "current": 0,
+    "packed": 0,
+    "packedTypes": 0
+  },
+  "closure": "All child closes and process groups checked. Three intentional runner-negative terminations are separate; every other command has no timeout/output cap/leak/spawn failure. Fixture gates released and awaited. Temporary archive retained only until final audit/removal."
+}

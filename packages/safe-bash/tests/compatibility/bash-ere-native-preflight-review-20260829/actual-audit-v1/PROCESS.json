@@ -1,0 +1,53 @@
+{
+  "records": [
+    {
+      "args": [
+        "ls-tree",
+        "-rlz",
+        "--full-tree",
+        "6b4ca17046a6f86b1947df28cd5bbdb876c9031f",
+        "--",
+        "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/actual-v1"
+      ],
+      "startedAt": "2026-08-29T10:25:25.494Z",
+      "pid": 52009,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T10:25:25.554Z"
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "startedAt": "2026-08-29T10:25:25.562Z",
+      "pid": 52010,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T10:25:25.602Z"
+    },
+    {
+      "args": [
+        "show",
+        "--format=fuller",
+        "--name-only",
+        "--no-renames",
+        "08e40d41",
+        "--"
+      ],
+      "startedAt": "2026-08-29T10:25:25.608Z",
+      "pid": 52011,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T10:25:25.649Z"
+    }
+  ],
+  "captureBytes": 117855,
+  "native": 0
+}

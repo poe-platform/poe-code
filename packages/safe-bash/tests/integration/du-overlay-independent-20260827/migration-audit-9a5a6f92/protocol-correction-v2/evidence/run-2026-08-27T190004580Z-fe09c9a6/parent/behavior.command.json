@@ -1,0 +1,23 @@
+{
+  "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+    "--test",
+    "--test-name-pattern=^all argument and environment validation happens before any filesystem call$",
+    "tests/commands/du/behavior.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/parent/extracted",
+  "status": 1,
+  "signal": null,
+  "stdoutBytes": 1216,
+  "stderrBytes": 0,
+  "stdoutSha256": "c8624191a8d02b8dbbe1af979975c0a232f45ee655113f75d3ccffb957b50b86",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tap": {
+    "tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "skipped": 0
+  }
+}

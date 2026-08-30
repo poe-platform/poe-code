@@ -1,0 +1,255 @@
+[
+  {
+    "destination": "fixtures/public.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/git-public-20260829/public.mjs",
+    "bytes": 13001,
+    "sha256": "5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/apply-public.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/git-public-20260829/apply-public.mjs",
+    "bytes": 15895,
+    "sha256": "ae8e036792df4a4c6e651fd6a75691075f3b8d6fd3bd2ea59fd3f1105561b7c2",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/names.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/git-public-20260829/names.mjs",
+    "bytes": 879,
+    "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/consumer.ts.fixture",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/git-public-20260829/consumer.ts.fixture",
+    "bytes": 1336,
+    "sha256": "46a717a1902c55d2c19f6bfd301de45395a81be5e7a76540c7113d08248e1be1",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/arrays.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+    "bytes": 2507,
+    "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/ARRAY-CASES.json",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+    "bytes": 3019,
+    "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/coherence/probe.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/coherent78-shell-author-20260828/probe.mjs",
+    "bytes": 16819,
+    "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/coherence/names.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/coherent78-shell-author-20260828/names.mjs",
+    "bytes": 853,
+    "sha256": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/coherence/CASES.json",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/coherent78-shell-author-20260828/CASES.json",
+    "bytes": 8553,
+    "sha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/coherence/CASES-v2-overlay.json",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/integration/coherent78-shell-author-20260828/CASES-v2-overlay.json",
+    "bytes": 1344,
+    "sha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/redirections.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+    "bytes": 9613,
+    "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/redirection-cases.json",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/compatibility/bash-redirection-author-20260829/CASES.json",
+    "bytes": 2790,
+    "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/strict.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+    "bytes": 11148,
+    "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/strict-design.json",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+    "bytes": 9222,
+    "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/conditional.mjs",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+    "bytes": 14524,
+    "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/novel.mjs",
+    "seed": "novel.mjs",
+    "bytes": 2676,
+    "sha256": "22e3f9749fc8d92361291c6bc892dd55ef5b52da8aea9dfe5cc3dc0b9c40eb1e",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/retained.mjs",
+    "seed": "retained.mjs",
+    "bytes": 585,
+    "sha256": "c39fd9018d0aa3e31bb716a7df2123c1f6aa27287a6712a3a463cc8923544568",
+    "mode": 420
+  },
+  {
+    "destination": "fixtures/fallback.mjs",
+    "seed": "fallback.mjs",
+    "bytes": 55,
+    "sha256": "3d42d69a76f1f843dd042de7a64dc0ec90f119738d705203155cb61ac449f17e",
+    "mode": 420
+  },
+  {
+    "destination": "NOVEL-CASES.json",
+    "request": "d9e466af6212a35fe190ee7ca8636f0e491df628:tests/compatibility/bash-conditional-independent-20260829/NOVEL-CASES.json",
+    "bytes": 6004,
+    "sha256": "03add0fafc84de43e3af155413671c2bf4e88a019f4bbc8f7f1b05d474e00805",
+    "mode": 420
+  },
+  {
+    "destination": "run.mjs",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/run.mjs",
+    "bytes": 30302,
+    "sha256": "e959259df36d2bfc2d4b3ff2788ddcc1aa4a03bd21a1319fff1914f4955b4307",
+    "mode": 420
+  },
+  {
+    "destination": "launch.mjs",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/launch.mjs",
+    "bytes": 5033,
+    "sha256": "79ca51de095b5f004d979afee63bdc1345ddcee5e14ccacc5d70b462693bff4d",
+    "mode": 420
+  },
+  {
+    "destination": "prepare.mjs",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/prepare.mjs",
+    "bytes": 598,
+    "sha256": "262b26b868d58b4fb75be9561205802de01e1e91436dbba09c72491d742b9a63",
+    "mode": 420
+  },
+  {
+    "destination": "derived-tree.mjs",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/derived-tree.mjs",
+    "bytes": 2460,
+    "sha256": "035cc96d2379fc7065581cc6a051cd16d1a6f22b7486d707c23fc76568dfe244",
+    "mode": 420
+  },
+  {
+    "destination": "tool-observer.mjs",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/tool-observer.mjs",
+    "bytes": 1246,
+    "sha256": "96e0965c85070efb81e58be21a6a581d9bfec9bd85a86940b5c845261a6d71ef",
+    "mode": 420
+  },
+  {
+    "destination": "author-consumer.mts.fixture",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/author-consumer.mts.fixture",
+    "bytes": 1737,
+    "sha256": "6c055ca9f4c50357928b6b78b53825c424a3123cb84050a0ccbbda00ad2eb773",
+    "mode": 420
+  },
+  {
+    "destination": "independent-positive.mts.fixture",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/independent-positive.mts.fixture",
+    "bytes": 1158,
+    "sha256": "c8868ac3c391cff984096d98ffcc002f56ac65ae13f59db603bcda9b133ff87c",
+    "mode": 420
+  },
+  {
+    "destination": "independent-negative.mts.fixture",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/independent-negative.mts.fixture",
+    "bytes": 324,
+    "sha256": "a8b76c5c2203edb58f1eb556ad82a50bdbcff02b9f18d49d90361b5804582af9",
+    "mode": 420
+  },
+  {
+    "destination": "check-prep.mjs",
+    "request": "ca6700965da6a78a6aa7e515929413ebb78229dc:tests/compatibility/bash-conditional-independent-20260829/successor-v5/check-prep.mjs",
+    "bytes": 1240,
+    "sha256": "9a16791c12a40a195e90a08dc8a1f2636ac4632b9e18b690acc2d0ce2558f06d",
+    "mode": 420
+  },
+  {
+    "destination": "tool-closure.mjs",
+    "request": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628:tests/compatibility/bash-redirection-independent-20260829/tool-closure.mjs",
+    "bytes": 1367,
+    "sha256": "9b66741f1191a28f06e175f42d1e2437a36204a96ab213a94f06ace7dd04500d",
+    "mode": 420
+  },
+  {
+    "destination": "hash-regular-file.mjs",
+    "request": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628:tests/compatibility/bash-redirection-independent-20260829/hash-regular-file.mjs",
+    "bytes": 1255,
+    "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7",
+    "mode": 420
+  },
+  {
+    "destination": "internal-loader-arguments.mjs",
+    "request": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628:tests/compatibility/bash-redirection-independent-20260829/internal-loader-arguments.mjs",
+    "bytes": 1391,
+    "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1",
+    "mode": 420
+  },
+  {
+    "destination": "resources.mjs",
+    "request": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628:tests/compatibility/bash-redirection-independent-20260829/resources.mjs",
+    "bytes": 4271,
+    "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f",
+    "mode": 420
+  },
+  {
+    "destination": "worker-policy.mjs",
+    "request": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628:tests/compatibility/bash-redirection-independent-20260829/worker-policy.mjs",
+    "bytes": 1445,
+    "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782",
+    "mode": 420
+  },
+  {
+    "destination": "loader.mjs",
+    "request": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628:tests/compatibility/bash-redirection-independent-20260829/loader.mjs",
+    "bytes": 1355,
+    "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342",
+    "mode": 420
+  },
+  {
+    "destination": "TOOL-CENSUS.json",
+    "request": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628:tests/compatibility/bash-redirection-independent-20260829/TOOL-CENSUS.json",
+    "bytes": 558347,
+    "sha256": "6cbe2ac733f6975057db6caa4349a7222b0a3e7ac6fe6a4de0190f5f7e0d3791",
+    "mode": 420
+  },
+  {
+    "destination": "SOURCE.json",
+    "request": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d:tests/compatibility/bash-conditional-author-20260829/SOURCE-v4.json",
+    "bytes": 227922,
+    "sha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32",
+    "mode": 420
+  }
+]
+

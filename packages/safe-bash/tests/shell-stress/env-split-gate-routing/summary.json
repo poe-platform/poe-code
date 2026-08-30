@@ -1,0 +1,783 @@
+{
+  "schema": "env-split-exact-routing-classification-v1",
+  "commits": {
+    "preparation": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+    "originalAuthorBaseline": "e7f4f2e3753184415f8098445c2009cb4cd9a6e9",
+    "broadSource": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+    "broadEvidence": "954406871fae381b1c69441b34946a224201d7ad",
+    "productSource": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+    "authorCoreSeal": "a84dd195c13935587df0d53be85c86790a48e4d5",
+    "canonicalInputs": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+    "independentInputFreeze": "fbd4a2c4c8c8215bbc04a1ab923af47e1bd64d22",
+    "independentVerdict": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc"
+  },
+  "counts": {
+    "routedRows": 84,
+    "uniqueTestCases": 84,
+    "aggregateParentRows": 0,
+    "hostCases": 23,
+    "exactNativeTupleCases": 59,
+    "literalMissingTargetPolicyCases": 2,
+    "A": 0,
+    "B": 0,
+    "C": 0,
+    "D": 84,
+    "unknown": 0
+  },
+  "disposition": "D84: no live fixture migration proposed. Actual independent sealed verdict now available; no authorization inferred to edit tests or rebaseline history",
+  "classificationMeaning": {
+    "A": "Live canonical expectations obsolete under the supported feature; separately authorized narrow migration required",
+    "B": "Historical capture replay assertions that must retain their frozen original product/source profile",
+    "C": "Actual remaining product bugs",
+    "D": "Valid current canonical expectations failed only on the preimplementation source; no expectation migration"
+  },
+  "broadGate": {
+    "qualification": "invalidated diagnostic capture; counts never adjusted by focused results",
+    "tests": 16840,
+    "pass": 16520,
+    "fail": 307,
+    "skip": 13,
+    "adjustedCounts": false,
+    "nativePrerequisiteAndArtifactWriterInvalidationRetained": true,
+    "routingSha256": "661480e44691b0636b8a1dcba84b92271165b7fd361bb8c88822746ce811a260",
+    "originalTapDecodedSha256": "f51ee8beb275d7a4fd53024f57b98e614886a2ed7ae143b133d95d73e6fec3bd",
+    "encodedTapPath": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/test.stdout.log.data.gzbase64",
+    "encodedTapSha256": "9bcc6ef303a27cfc1749eece78b991acdb2e43b48f2990e5a089a751d91985f3"
+  },
+  "reconciliation": {
+    "canonicalTests": 89,
+    "nativeFile": {
+      "total": 64,
+      "exactTuples": 59,
+      "successfulTuples": 48,
+      "invalidGrammarTuples125": 11,
+      "policy": 4,
+      "importInventory": 1,
+      "failedBroad": 61
+    },
+    "hostFile": {
+      "total": 25,
+      "failedBroad": 23
+    },
+    "existingPassesNotRouted": [
+      "env split bounded host: literal-single-optional-argument",
+      "env split bounded host: preabort-no-dispatch",
+      "env split imports the current TypeScript product",
+      "env split literal missing target, not GNU stderr parity: after-assignment-is-literal-command",
+      "env split literal missing target, not GNU stderr parity: no-S-single-target"
+    ],
+    "currentUnchangedCanonicalPass": 89,
+    "nativeTuplePassIsNotFullRawCohortPass": {
+      "originalRawTotal": 63,
+      "exact": 59,
+      "retainedDiagnosticMismatches": [
+        "after-assignment-is-literal-command",
+        "empty-quoted-command",
+        "bare-dash-stops-options",
+        "no-S-single-target"
+      ]
+    },
+    "additionalAuthorLimitParentExcluded": {
+      "nodeTestCases": 1,
+      "innerControls": 10
+    },
+    "nestedParentInflation": "None among these84: all indent0 type=test testCodeFailure. 23 host wrappers each map to one scenario, not 23 extra nested tests. Full baseline 89=84 failures+5 existing passes"
+  },
+  "sourceProfiles": {
+    "originalAuthorBaseline": {
+      "commit": "e7f4f2e3753184415f8098445c2009cb4cd9a6e9",
+      "sourceTree": "782cbec72259112e0810f9d6d9d55f2e7f37992f",
+      "sources": {
+        "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+        "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+        "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+      }
+    },
+    "broadSource": {
+      "commit": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+      "sourceTree": "2b42daec96c628d1fcdf7b221e0ddd788592f6dc",
+      "sources": {
+        "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+        "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+        "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+      }
+    },
+    "productSource": {
+      "commit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "sourceTree": "f214264ae13d47e1369513a12ccd2d6cf944a6ef",
+      "sources": {
+        "src/commands/execution.ts": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+        "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+        "src/commands/env-split.ts": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+      }
+    },
+    "canonicalInputs": {
+      "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "sourceTree": "f214264ae13d47e1369513a12ccd2d6cf944a6ef",
+      "sources": {
+        "src/commands/execution.ts": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+        "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+        "src/commands/env-split.ts": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+      }
+    },
+    "independentVerdict": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sourceTree": "f214264ae13d47e1369513a12ccd2d6cf944a6ef",
+      "sources": {
+        "src/commands/execution.ts": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+        "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+        "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+        "src/commands/env-split.ts": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+      }
+    }
+  },
+  "sourceDiffs": [
+    {
+      "before": "e7f4f2e3753184415f8098445c2009cb4cd9a6e9",
+      "after": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+      "diff": "M\tsrc/commands/internal.ts\nM\tsrc/commands/network/body.ts\nM\tsrc/commands/streams.ts\nM\tsrc/commands/structured/jq.ts\nM\tsrc/index.ts\nM\tsrc/plugins/index.ts",
+      "patchSha256": "8c93ea90ad340c808345f888d7d1cbb98f34ea3cb60a365b24868143e4ddd650"
+    },
+    {
+      "before": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+      "after": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "diff": "A\tsrc/commands/env-split.ts\nM\tsrc/commands/execution.ts",
+      "patchSha256": "f3814218d1b86368eeca1a5006a600eb2a2b5e91ec7fe52a84a1db4ad31aea33"
+    },
+    {
+      "before": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "after": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "diff": "",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "before": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "after": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "diff": "",
+      "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "canonicalInputHashes": {
+    "tests/shell-stress/env-split-author/native-frozen.json": {
+      "preparation": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "gitBlob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5"
+      },
+      "broadSource": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "gitBlob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5"
+      },
+      "productSource": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "gitBlob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5"
+      },
+      "canonicalInputs": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "gitBlob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5"
+      },
+      "independentVerdict": {
+        "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+        "gitBlob": "dd23a23feb176a39e811fb4cf8ba3796b38a73b5"
+      }
+    },
+    "tests/shell-stress/env-split-author/resume-cases.json": {
+      "preparation": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "gitBlob": "8e6d32795813a16d3c085dbc50437b94f5151aba"
+      },
+      "broadSource": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "gitBlob": "8e6d32795813a16d3c085dbc50437b94f5151aba"
+      },
+      "productSource": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "gitBlob": "8e6d32795813a16d3c085dbc50437b94f5151aba"
+      },
+      "canonicalInputs": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "gitBlob": "8e6d32795813a16d3c085dbc50437b94f5151aba"
+      },
+      "independentVerdict": {
+        "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+        "gitBlob": "8e6d32795813a16d3c085dbc50437b94f5151aba"
+      }
+    },
+    "tests/shell-stress/env-split-author/resume-fixtures.ts": {
+      "preparation": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "gitBlob": "7ee005d9394a7543b01c2f2df8c9da095d45e526"
+      },
+      "broadSource": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "gitBlob": "7ee005d9394a7543b01c2f2df8c9da095d45e526"
+      },
+      "productSource": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "gitBlob": "7ee005d9394a7543b01c2f2df8c9da095d45e526"
+      },
+      "canonicalInputs": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "gitBlob": "7ee005d9394a7543b01c2f2df8c9da095d45e526"
+      },
+      "independentVerdict": {
+        "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+        "gitBlob": "7ee005d9394a7543b01c2f2df8c9da095d45e526"
+      }
+    },
+    "tests/shell-stress/env-split-author/resume-host.ts": {
+      "preparation": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "gitBlob": "e645123f91e1c9034d26eb80afe2072a42348a6e"
+      },
+      "broadSource": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "gitBlob": "e645123f91e1c9034d26eb80afe2072a42348a6e"
+      },
+      "productSource": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "gitBlob": "e645123f91e1c9034d26eb80afe2072a42348a6e"
+      },
+      "canonicalInputs": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "gitBlob": "e645123f91e1c9034d26eb80afe2072a42348a6e"
+      },
+      "independentVerdict": {
+        "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+        "gitBlob": "e645123f91e1c9034d26eb80afe2072a42348a6e"
+      }
+    },
+    "tests/shell-stress/env-split-author/resume-native.json": {
+      "preparation": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "gitBlob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573"
+      },
+      "broadSource": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "gitBlob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573"
+      },
+      "productSource": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "gitBlob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573"
+      },
+      "canonicalInputs": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "gitBlob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573"
+      },
+      "independentVerdict": {
+        "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+        "gitBlob": "5bb0423c2f6b9c1e94a2e2d7007b4d55fbc00573"
+      }
+    },
+    "tests/shell/env-split-host.test.ts": {
+      "preparation": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "gitBlob": "4aeeb2960c00a5954b11722943478832e0fea738"
+      },
+      "broadSource": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "gitBlob": "4aeeb2960c00a5954b11722943478832e0fea738"
+      },
+      "productSource": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "gitBlob": "4aeeb2960c00a5954b11722943478832e0fea738"
+      },
+      "canonicalInputs": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "gitBlob": "4aeeb2960c00a5954b11722943478832e0fea738"
+      },
+      "independentVerdict": {
+        "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+        "gitBlob": "4aeeb2960c00a5954b11722943478832e0fea738"
+      }
+    },
+    "tests/shell/env-split-native.test.ts": {
+      "preparation": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "gitBlob": "3a165493af996314bef27f0b3b857ef1d3e946e4"
+      },
+      "broadSource": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "gitBlob": "3a165493af996314bef27f0b3b857ef1d3e946e4"
+      },
+      "productSource": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "gitBlob": "3a165493af996314bef27f0b3b857ef1d3e946e4"
+      },
+      "canonicalInputs": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "gitBlob": "3a165493af996314bef27f0b3b857ef1d3e946e4"
+      },
+      "independentVerdict": {
+        "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+        "gitBlob": "3a165493af996314bef27f0b3b857ef1d3e946e4"
+      }
+    }
+  },
+  "canonicalInputDiffs": {
+    "preparationToBroad": "",
+    "broadToProduct": "",
+    "productToCurrent": ""
+  },
+  "profiles": {
+    "original-GNU-env97-Darwin-direct-exec": {
+      "platform": "darwin",
+      "release": "25.4.0",
+      "arch": "arm64",
+      "env": {
+        "name": "GNU9.7-Darwin",
+        "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+        "versionProbe": {
+          "status": 0,
+          "stdoutHex": "656e762028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e2062792052696368617264204d6c796e6172696b2c204461766964204d61634b656e7a69652c20616e6420417373616620476f72646f6e2e0a",
+          "stderrHex": ""
+        }
+      },
+      "recorderHash": "46b9b8059b827e539ac704e8bcee8b2b469f99843dbf86ce88a81a29f7ec419b",
+      "environment": {
+        "V": "inherited space",
+        "EMPTY": "",
+        "KEEP": "keep",
+        "FLAG": "old",
+        "INSERT": "a \" b \\ c ${V}; `literal`"
+      },
+      "execution": "Direct fixed GNU env9.7 binary, C recorder; original 41 non127 expected tuples. Darwin host, not GNU/Linux. Entire original GNU and Apple captures remain unchanged"
+    },
+    "supplemental-GNU-env97-Darwin-Bash53": {
+      "platform": "darwin",
+      "release": "25.4.0",
+      "arch": "arm64",
+      "env": {
+        "name": "GNU9.7-Darwin",
+        "binary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+        "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+        "versionProbe": {
+          "status": 0,
+          "stdoutHex": "656e762028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e2062792052696368617264204d6c796e6172696b2c204461766964204d61634b656e7a69652c20616e6420417373616620476f72646f6e2e0a",
+          "stderrHex": ""
+        }
+      },
+      "bash": {
+        "name": "GNU5.3",
+        "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "version": {
+          "status": 0,
+          "stdoutHex": "474e5520626173682c2076657273696f6e20352e332e302831292d72656c656173652028616172636836342d6170706c652d64617277696e32352e342e30290a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c687474703a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e0a0a54686973206973206672656520736f6674776172653b20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a",
+          "stderrHex": ""
+        }
+      },
+      "recorderHash": "46b9b8059b827e539ac704e8bcee8b2b469f99843dbf86ce88a81a29f7ec419b",
+      "execution": "Fixed GNU env9.7 via GNU Bash5.3 --noprofile --norc -c exec \"$@\"; 18 frozen supplemental expectations. Apple Bash3.2 full sibling reference retained; not per-row oracle switching"
+    },
+    "canonical-public-host-contract": {
+      "description": "Actual Shell + agentCommands, memory VFS, registered commands, middleware, inherited shared budgets, explicit ByteSource and cleanup. No native oracle; registry commands are not described as shell builtins",
+      "helperSha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+      "setup": "import assert from \"node:assert/strict\";\nimport { setTimeout as delay } from \"node:timers/promises\";\nimport { Shell, ShellLimitError, FsError, agentCommands, createMemoryFileSystem, pipeBytes, writeBytes, writeText } from \"../../../src/index.js\";\nimport type { ByteSource, ShellExecOptions } from \"../../../src/index.js\";\n\nconst quote = (value: string): string => `'${value.replaceAll(\"'\", \"'\\\\''\")}'`;\nconst scenario = process.argv[2];\nconst fs = createMemoryFileSystem();\nawait fs.mkdir(\"/work\");\nawait fs.mkdir(\"/other\");\nconst shell = new Shell({ fs, cwd: \"/work\", env: { PUBLIC: \"parent value\", A: \"ancestor\", PATH: \"\" } }).use(agentCommands());\nconst calls: string[] = [];\nlet entered = 0;\nshell.use(async (context, next) => { calls.push(context.command); return next(); });\nshell.register({ name: \"report\", async execute(context) {\n  entered++;\n  await writeText(context.stdout, JSON.stringify({ env: context.env, args: context.args, cwd: context.cwd, origin: context.stdinIsDefault }) + \"\\n\");\n  return { exitCode: 0 };\n} });\nshell.register({ name: \"emit\", async execute(context) {\n  entered++;\n  await writeText(context.stdout, \"abcd\");\n  return { exitCode: 0 };\n} });\nconst failures: unknown[] = [];\nconst unhandled = (error: unknown) => { failures.push(error); };\nprocess.on(\"unhandledRejection\", unhandled);\n\ntry {",
+      "cleanup": "  assert.deepEqual(failures, []);\n  console.log(JSON.stringify({ scenario, passed: true }));\n} finally {\n  await shell.dispose();\n  process.off(\"unhandledRejection\", unhandled);\n}\n",
+      "bounds": {
+        "perHostMs": 4000,
+        "perTestMs": 6000,
+        "perHostOutputBytes": 262144
+      }
+    },
+    "literal-registry-missing-target-policy": {
+      "expected": "127, empty stdout, nonempty stderr, no rec dispatch, no VFS entries. Four original native127 diagnostic tuples intentionally NOT asserted byte-equal; two are in this routed cohort",
+      "nativeReferencesRetained": true
+    },
+    "b494-preimplementation": {
+      "sourceCommit": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+      "wholeGateQualified": false,
+      "optionParser": "options(args, \"iu:0C:\", { \"ignore-environment\": \"i\", unset: \"u\", null: \"0\", chdir: \"C\" }, true)",
+      "missingS": true
+    },
+    "84ab-unchanged-canonical": {
+      "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "testCommit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "capture": "tests/shell-stress/env-split-gate-routing/canonical-replay.json",
+      "tests": 89,
+      "failures": 0,
+      "sourceFiles": 213,
+      "testInputFiles": 7,
+      "nativeRuns": 0
+    },
+    "sealed-84ab-valid-v2-core": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "report": "tests/shell-stress/env-split-validity-review/V2_REVIEW.md",
+      "reportSha256": "9fdc723e3fa751d026ac220359ac127c807627df01658fd6470f34ccdbd2de1a",
+      "disposition": "ACCEPT bounded core integration on exact84ab with versioned valid fixtures; NOT full native/protocol parity or broad gate",
+      "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "fixtureCommit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+      "reviewerThread": "01a042ef-2082-7a20-a1b5-c3ba7235ff76",
+      "authorThread": "01a042ee-bfce-7b80-b667-af14bd426f64"
+    }
+  },
+  "authorEvidence": {
+    "capture": "tests/shell-stress/env-split-author/core-validation.json",
+    "totalNodeTests": 90,
+    "unchangedCanonicalSubset": 89,
+    "selectedLegacy": 528,
+    "frozenPreparationUnchanged": true,
+    "duringGuards": [],
+    "laterConcurrentSourceDifferencesDisclosed": [
+      "src/commands/network/body.ts",
+      "src/commands/structured/jq.ts"
+    ],
+    "qualification": "Author capture is not substituted for exact final-source qualification: its post-commit body.ts/jq.ts differences remain disclosed; this report's fresh89 replay uses entire committed84ab source"
+  },
+  "independentEvidence": {
+    "sealed": true,
+    "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+    "verdict": "ACCEPT bounded core integration on exact84ab with versioned valid fixtures; NOT full native/protocol parity or broad gate",
+    "rawPath": "tests/shell-stress/env-split-validity-review/acceptance-v2-1.json",
+    "rawSha256": "c3d8d510ccddfd0457b506e0741507000b1fe4bdb49f80c5edebe955667ce81d",
+    "completed": true,
+    "productChildren": 191,
+    "allChildProcesses": 195,
+    "independentControls": {
+      "groups": 6,
+      "passed": 6,
+      "variants": 14
+    },
+    "summary": {
+      "originalHidden": {
+        "total": 48,
+        "strictExact": 40
+      },
+      "originalHosts": {
+        "total": 7,
+        "passed": 6
+      },
+      "originalConsumer": [
+        {
+          "profile": "primary",
+          "total": 10,
+          "assertionsPassed": 0,
+          "rawExact": 7
+        },
+        {
+          "profile": "historical",
+          "total": 10,
+          "assertionsPassed": 0,
+          "rawExact": 7
+        }
+      ],
+      "originalConsumerHosts": {
+        "cases": 3,
+        "executions": 5,
+        "passed": 0
+      },
+      "independentControls": {
+        "groups": 6,
+        "passed": 6,
+        "variants": 14
+      },
+      "hidden": [
+        {
+          "profile": "gnu97-darwin-primary",
+          "total": 48,
+          "strictExact": 40,
+          "command": {
+            "total": 42,
+            "strictExact": 39
+          },
+          "protocol": {
+            "total": 6,
+            "strictExact": 1,
+            "supportedCoreCredit": 0
+          },
+          "additionalVirtualDiagnosticChecks": 3
+        },
+        {
+          "profile": "apple-env-bash32-historical",
+          "total": 48,
+          "strictExact": 23,
+          "command": {
+            "total": 42,
+            "strictExact": 22
+          },
+          "protocol": {
+            "total": 6,
+            "strictExact": 1,
+            "supportedCoreCredit": 0
+          },
+          "additionalVirtualDiagnosticChecks": 0
+        }
+      ],
+      "hiddenHosts": {
+        "total": 7,
+        "passed": 7
+      },
+      "consumer": [
+        {
+          "profile": "primary",
+          "total": 10,
+          "strictExact": 7,
+          "supportedCore": 7,
+          "unsupportedShebang": 3
+        },
+        {
+          "profile": "historical",
+          "total": 10,
+          "strictExact": 7,
+          "supportedCore": 7,
+          "unsupportedShebang": 3
+        }
+      ],
+      "consumerHosts": {
+        "cases": 3,
+        "executions": 5,
+        "passed": 5
+      },
+      "additionalPolicyControls": {
+        "total": 12,
+        "passed": 12
+      },
+      "childProcesses": 195
+    },
+    "canonical89DirectlyRunByThisReviewer": false,
+    "qualification": "Different frozen moved-package/core cohorts are corroboration, not a name-for-name89 replay or a broad-gate result. This leaf classification does not self-issue the independent verdict",
+    "retainedPrimaryProtocolLosses": [
+      {
+        "id": "non-s-packed-bash-option",
+        "actualStatus": 126,
+        "nativeStatus": 127,
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "split-errexit",
+        "actualStatus": 126,
+        "nativeStatus": 1,
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "split-assignment-and-clear",
+        "actualStatus": 126,
+        "nativeStatus": 1,
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "split-long-plus-option",
+        "actualStatus": 126,
+        "nativeStatus": 0,
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "split-quoted-marker",
+        "actualStatus": 126,
+        "nativeStatus": 1,
+        "strictExact": false,
+        "supportedCoreCredit": 0
+      }
+    ],
+    "retainedPackedProtocolLosses": [
+      {
+        "id": "shebang-split-bash-errexit",
+        "actualStatus": 126,
+        "profiles": [
+          {
+            "role": "primary",
+            "nativeStatus": 1,
+            "strictExact": false
+          },
+          {
+            "role": "historical",
+            "nativeStatus": 1,
+            "strictExact": false
+          }
+        ],
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "shebang-long-split-sh-argv",
+        "actualStatus": 126,
+        "profiles": [
+          {
+            "role": "primary",
+            "nativeStatus": 0,
+            "strictExact": false
+          },
+          {
+            "role": "historical",
+            "nativeStatus": 0,
+            "strictExact": false
+          }
+        ],
+        "supportedCoreCredit": 0
+      },
+      {
+        "id": "non-split-header-one-argument",
+        "actualStatus": 126,
+        "profiles": [
+          {
+            "role": "primary",
+            "nativeStatus": 0,
+            "strictExact": false
+          },
+          {
+            "role": "historical",
+            "nativeStatus": 0,
+            "strictExact": false
+          }
+        ],
+        "supportedCoreCredit": 0
+      }
+    ]
+  },
+  "proposal": {
+    "migrationCount": 0,
+    "mutablePaths": [],
+    "expectationChanges": [],
+    "productionChanges": [],
+    "action": "Retain canonical files/helpers/native expectations unchanged. ROOT may authorize a later authenticated gate; preserve this b494 diagnostic capture and its original307 failures",
+    "historicalArtifactPolicy": "No routed row is an old-source pin, hence B0. Raw b494/e7 observations remain immutable historical facts; reproducing those old outcomes requires their actual frozen source. Native captures retain their own complete tool/host/grammar profiles. A live test referencing immutable native expectations is not thereby a historical product pin",
+    "exclusions": [
+      "89 historical diagnostic-driver pin rows (separate owner)",
+      "10 historical cleanup-pin rows (Plato)",
+      "foreign30/11 type diagnostics",
+      "native prerequisite staging repairs",
+      "env-S shebang/runtime feature expansion",
+      "global gate or superiority claims"
+    ]
+  },
+  "artifacts": {
+    "tests/integration/full-gate-20260827/combined-b494675c/FAILURE_ROUTING.json": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "661480e44691b0636b8a1dcba84b92271165b7fd361bb8c88822746ce811a260",
+      "bytes": 822552
+    },
+    "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/test.stdout.log.data.gzbase64": {
+      "commit": "954406871fae381b1c69441b34946a224201d7ad",
+      "sha256": "9bcc6ef303a27cfc1749eece78b991acdb2e43b48f2990e5a089a751d91985f3",
+      "bytes": 616317
+    },
+    "tests/shell-stress/env-split-gate-routing/canonical-replay.json": {
+      "sha256": "dc93784043876ce3e371a80857dd07da6e2903a801bc3dd2a5ff5f5f93a91153",
+      "bytes": 46795,
+      "role": "New bounded local classification replay, not an independent verdict"
+    },
+    "tests/shell-stress/env-split-author/native-frozen.json": {
+      "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "sha256": "78454386eeddec592bbdd79128696434fac3c19b862866b89684a2e3747c4a21",
+      "bytes": 113169
+    },
+    "tests/shell-stress/env-split-author/resume-cases.json": {
+      "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "sha256": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+      "bytes": 1741
+    },
+    "tests/shell-stress/env-split-author/resume-fixtures.ts": {
+      "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "sha256": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+      "bytes": 2928
+    },
+    "tests/shell-stress/env-split-author/resume-host.ts": {
+      "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "sha256": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+      "bytes": 13035
+    },
+    "tests/shell-stress/env-split-author/resume-native.json": {
+      "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "sha256": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+      "bytes": 48095
+    },
+    "tests/shell/env-split-host.test.ts": {
+      "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+      "bytes": 2493
+    },
+    "tests/shell/env-split-native.test.ts": {
+      "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433",
+      "bytes": 1636
+    },
+    "tests/shell-stress/env-split-author/resume-baseline.json": {
+      "commit": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+      "sha256": "4bc6a29235d0bb326b003f1c941e652245f0392ea36c119d38543e1654240fd2",
+      "bytes": 17532
+    },
+    "tests/shell-stress/env-split-author/core-validation.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "9669805848346d445ccbe0f4c8c0cf095308b34eb0313e7ed6909221a4cd1b3f",
+      "bytes": 52162
+    },
+    "tests/shell-stress/env-split-author/core-observed.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "03a1343584905640c8ef0b6361fb08b8b74cea3b10a0930a67cc7a3fef6942b9",
+      "bytes": 35292
+    },
+    "tests/shell-stress/env-split-author/core-seal.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "ad5b85aa2e5d446ec8b7e9a482b551122282cf56fed76aa2fdeb0a4ddda0319e",
+      "bytes": 25714
+    },
+    "tests/shell-stress/env-split-author/resume-red.txt": {
+      "commit": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+      "sha256": "85773a0272b5dafc96c680bc45203de9a7c6e1c091747740254d8c92a64ac785",
+      "bytes": 124071
+    },
+    "tests/shell-stress/env-split-author/resume-validation.json": {
+      "commit": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+      "sha256": "07c9aec1b96518fdf04dfec31e17e5f88ff1065ae891a2ec2f684c8d4f20133f",
+      "bytes": 5647
+    },
+    "tests/shell-stress/env-split-author/resume-source-inventory.json": {
+      "commit": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+      "sha256": "4dc57e8fed7994dcb75314af1f2c768d6f09aecd9f9d133643b1af3c0ce35dcf",
+      "bytes": 21945
+    },
+    "tests/shell-stress/env-split-author/resume-seal.json": {
+      "commit": "db3680fcfa91a7fff6ca0dad332c297094d14783",
+      "sha256": "a8821473f15aab5b6b5604c4737b3ae7a400c70f908d2242405d7e0763de97a9",
+      "bytes": 2649
+    },
+    "tests/shell-stress/env-split-author/CORE.md": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "eafea2681bc2360d056bed175a6b0fd0d0aeb585eb48c11db05f8d326a1ecba0",
+      "bytes": 8615
+    },
+    "tests/shell-stress/env-split-author/core-inputs.json": {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "sha256": "3e9423f79703367a5a48cc0290275408a8ba73c110cd527b7e2747e2de58ce01",
+      "bytes": 688090
+    },
+    "tests/shell-stress/env-split-validity-review/V2_REVIEW.md": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "9fdc723e3fa751d026ac220359ac127c807627df01658fd6470f34ccdbd2de1a",
+      "bytes": 8342
+    },
+    "tests/shell-stress/env-split-validity-review/post-v2-audit.json": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "daf63e8a87dda749eff6bc9e954143decd20a5b0bb9363a22b03e906cda41f62",
+      "bytes": 60867
+    },
+    "tests/shell-stress/env-split-validity-review/acceptance-v2-1.json": {
+      "commit": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+      "sha256": "c3d8d510ccddfd0457b506e0741507000b1fe4bdb49f80c5edebe955667ce81d",
+      "bytes": 21604569
+    },
+    "tests/shell-stress/env-split-validity-review/review-freeze-v2.json": {
+      "commit": "fbd4a2c4c8c8215bbc04a1ab923af47e1bd64d22",
+      "sha256": "e05b2ee0b4b2d1dc8968027fab472bd0b784c94cbe7a8f758185b0ee8f010056",
+      "bytes": 1842
+    },
+    "tests/shell-stress/env-split-validity-review/V2_INPUTS.md": {
+      "commit": "fbd4a2c4c8c8215bbc04a1ab923af47e1bd64d22",
+      "sha256": "9f33f1f77ef06fc9f5cb08696a941299035b9370101b4b6ba914742ad6317035",
+      "bytes": 4536
+    }
+  }
+}

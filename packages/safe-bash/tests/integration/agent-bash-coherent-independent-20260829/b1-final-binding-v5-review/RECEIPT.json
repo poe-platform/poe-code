@@ -1,0 +1,138 @@
+{
+  "schema": "B1-final-binding-v5-independent-review",
+  "decision": "ACCEPT",
+  "scope": "FINAL_SLOT_DELTA_SOURCE_DATA_PURE_NOT_ACTUAL_GO",
+  "utc": "2026-08-29T14:12:14.524Z",
+  "source": "0bf2b4981943ce5ede61b18dbcddfd6295e4c773",
+  "finalCommit": "17c3b717494be4eadbb2616d8a278a02e211cdee",
+  "finalBinding": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v5/FINAL-BINDING.json",
+    "bytes": 26277,
+    "sha256": "ef0dfcdcafe1da7b274b7f0cfaf9cfea71097796bdf542b93aed9f1e491ff3d7"
+  },
+  "independentPresealSha256": "4314958073a4b05f30b07a3fc4554aa5c89e65a428748471bd5d09f49b07262f",
+  "counts": {
+    "authorPassed": 8,
+    "authorTotal": 8,
+    "novelPassed": 4,
+    "novelTotal": 4
+  },
+  "authorIterationBodyUnchanged": true,
+  "actualFutureCLIRebound": true,
+  "helperMainExecuted": false,
+  "publisherImported": false,
+  "productImports": 0,
+  "workers": 0,
+  "helperPid": 35522,
+  "helperStatus": 0,
+  "helperSignal": null,
+  "helperReturned": true,
+  "rawCaptureBytes": 66,
+  "postguards": 83,
+  "window": {
+    "issued": "2026-08-29T14:03:58.806Z",
+    "latestStart": "2026-08-29T14:23:58.806Z",
+    "expires": "2026-08-29T14:53:58.806Z"
+  },
+  "remainingStartMs": 704282,
+  "knownReviewRolesConservative": 21,
+  "knownReviewRoleCap": 28,
+  "reviewPeakCap": 3,
+  "actualRoleCount": "UNKNOWN_UNMEASURED",
+  "actualAuthority": "ROOT_GO_REQUIRED",
+  "prospectiveBounds": {
+    "knownOS": 32,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "priorDataReceipt": {
+    "commit": "b4cdef973a996ca00199cab721c3565c5d6ee9ed",
+    "path": "tests/integration/agent-bash-coherent-final-slot-independent-20260829/v4/RECEIPT.json",
+    "blob": "f6c8d60d65759dad6d075d90f766052c24c099e6",
+    "bytes": 10278,
+    "sha256": "771a5c71c542701f63456a879c34279a3abecba47141569b07863d689758c69d"
+  },
+  "commandsArtifact": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/COMMANDS.json",
+  "qualifications": [
+    "No full source/tool recensus; authenticated unchanged Dirac receipt reused.",
+    "One PURE helper imports gate/future helper export, not future main or publisher.",
+    "Exact future ROOT grant, actual ledger and derived publication-authority identities remain unfilled.",
+    "Historical HOLD and author peak3/2 observation remain unchanged."
+  ],
+  "artifacts": [
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/REPORT.md",
+      "bytes": 7105,
+      "sha256": "1f9e43439c194c91a31629cc5122ac88a300b973ab7f6f6370ebc6615660559f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/PRESEAL.json",
+      "bytes": 27434,
+      "sha256": "4314958073a4b05f30b07a3fc4554aa5c89e65a428748471bd5d09f49b07262f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/RESULT.json",
+      "bytes": 2285,
+      "sha256": "65f67c75f29cf00a5dd25bf9c335cd8a2b4d62ae29d3222423044dfb83ce8098"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/COMMANDS.json",
+      "bytes": 4906,
+      "sha256": "0c6369869332ba1f80259f1f8039ad72d72c7c08f52eae9589e125535b1af5c6"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/DELTA-DATA.json",
+      "bytes": 2355,
+      "sha256": "129cd9e09b013dd64e3343c43f02dde1aefcf3455fb40d7c0748b4b47a510c56"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/run.stdout",
+      "bytes": 66,
+      "sha256": "b22cad1e38518cd9663f4696d7a6d2040c66cdd40924abd614dc92a158660abb"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-v5-review/run.jsonl",
+      "bytes": 167,
+      "sha256": "40e2f18308de2edde3b5add46da9bb6fee41dbf7ef0b696bc9b536cf48a0f4ee"
+    }
+  ]
+}

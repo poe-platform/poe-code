@@ -1,0 +1,23 @@
+[
+  {
+    "name": "PENDING-AUTHORITY.json",
+    "spec": "bab8cae4da9bdb780ad26c4123451df2549cc1c6:tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/PENDING-AUTHORITY.json",
+    "blob": "5ba891dd06b7eb30975ee4269372408ea7f67f72",
+    "bytes": 1720,
+    "sha256": "eeceea420098a00abcaa55a0568c5e07b59706532fdeae76d91c03ae7407eb61"
+  },
+  {
+    "name": "RECEIPT.json",
+    "spec": "bab8cae4da9bdb780ad26c4123451df2549cc1c6:tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/RECEIPT.json",
+    "blob": "b43843b3c9a3ee91c2f986fb4dfc0c784192add7",
+    "bytes": 6709,
+    "sha256": "7d4e01900cd8630d2331a237283c7e6e43bfad5e00080d8099f3cbddca67a897"
+  },
+  {
+    "name": "MEMBERSHIP-AND-AUTHORITY.json",
+    "spec": "bab8cae4da9bdb780ad26c4123451df2549cc1c6:tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/MEMBERSHIP-AND-AUTHORITY.json",
+    "blob": "ad03279c463b5f944bfc2c957c9ecb8266e9f43c",
+    "bytes": 563,
+    "sha256": "84c2e23caffc0b8f9101e9a19133d4f379e575e61216c75393d147d2f01b3fba"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-WiEeFN/snapshot/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-WiEeFN/consumer/time-env-leaf/negative.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-WiEeFN/consumer",
+  "status": 2,
+  "signal": null,
+  "stdout": "time-env-leaf/leaf-negative.mts(2,25): error TS2353: Object literal may only specify known properties, and 'unknownOption' does not exist in type 'TimeEnvCommandsOptions'.\ntime-env-leaf/leaf-negative.mts(3,25): error TS2322: Type '() => string' is not assignable to type '() => number'.\n  Type 'string' is not assignable to type 'number'.\ntime-env-leaf/leaf-negative.mts(4,25): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.\ntime-env-leaf/leaf-negative.mts(5,35): error TS2322: Type 'string' is not assignable to type 'number'.\ntime-env-leaf/leaf-negative.mts(6,52): error TS2322: Type '(_callback: string) => number' is not assignable to type '(callback: () => void, milliseconds: number) => unknown'.\n  Types of parameters '_callback' and 'callback' are incompatible.\n    Type '() => void' is not assignable to type 'string'.\n",
+  "stderr": ""
+}

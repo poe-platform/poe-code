@@ -1,0 +1,5 @@
+{
+  "message": "Error: ENOENT: no such file or directory, open '/tmp/shared-stdin-independent-baseline-attempt-1/direct-head-sync.loads.jsonl'",
+  "stack": "Error: ENOENT: no such file or directory, open '/tmp/shared-stdin-independent-baseline-attempt-1/direct-head-sync.loads.jsonl'\n    at async open (node:internal/fs/promises:639:25)\n    at async readFile (node:internal/fs/promises:1249:14)\n    at async execute (file:///Users/kjopek/Workspace/safe-bash/tests/integration/shared-external-stdin-independent-20260827/run.mjs:140:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/shared-external-stdin-independent-20260827/run.mjs:155:29",
+  "scratch": "/tmp/shared-stdin-independent-work-T8wl8P"
+}

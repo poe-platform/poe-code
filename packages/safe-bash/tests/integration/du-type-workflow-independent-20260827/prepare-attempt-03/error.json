@@ -1,0 +1,10 @@
+{
+  "naturalExit": 1,
+  "phase": "pre-execution authentication",
+  "supervisor": "../prepare-attempt-03.mjs.fixture",
+  "rawDiagnosticExcerpt": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    {\n      bytes: 10590882,\n      path: '.bin/esbuild',\n      sha256: '10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384',\n+     symlink: '/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild'\n    },",
+  "stackSite": "review.mjs:128:10",
+  "rawOutputLimit": "The interactive tool truncated its 1058-line assertion object. This preserves the available failure excerpt, not a claim that all original stderr bytes were captured.",
+  "cause": "The copied tools retained four .bin symlinks rather than the expected regular-file inventory.",
+  "correction": "Explicitly replace copied .bin links with already-authenticated target bytes before comparing the complete regular-file tool inventory. No candidate or author fixture/outcome changes."
+}

@@ -1,0 +1,331 @@
+{
+  "schema": "ATTEMPT02_INDEPENDENT_SOURCE_DATA_V1",
+  "status": "HOLD",
+  "error": {
+    "name": "Error",
+    "message": "COMMITTED_BYTES_tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/DATA-RESULT.json"
+  },
+  "checks": [
+    "exact-one-owner-literal",
+    "three-source-bodies-byte-identical",
+    "inactive-schema-review-resource-profile",
+    "source-route-mask-relative-paths",
+    "attempt02-activation-capture-absent-at-review"
+  ],
+  "bindings": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/REPAIR-SEAL.json",
+      "bytes": 26027,
+      "mode": 420,
+      "sha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46",
+      "gitBlob": "44e9fad8700f467472132ba6f8d3d155aa24b2b2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/EXECUTION-INTERFACE.json",
+      "bytes": 3166,
+      "mode": 420,
+      "sha256": "9be495e1769242cd7dac35596aaf984858fd57300b4a81a04608bc0f907124d6",
+      "gitBlob": "98f8b02e6da04e6773121bf2b448731f19f95d56"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/FUTURE-PROFILE.json",
+      "bytes": 2062,
+      "mode": 420,
+      "sha256": "485ac8e433cf2a10e1e197b321e0bd2cc20216e4230cea2ac86f0a0dbb2cb017",
+      "gitBlob": "4205fa7054ca1a123070111e9f2af7dc31297a8c"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/LITERAL-MAP.json",
+      "bytes": 4338,
+      "mode": 420,
+      "sha256": "a93a59892e92c7a96c736f0560001524e17c8ba422aa135c13993680dc0377c7",
+      "gitBlob": "42f4abe0929a4d5c64dbc87d5751480c928f8bfe"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/INACTIVE-AUTH.TEMPLATE.json",
+      "bytes": 1674,
+      "mode": 420,
+      "sha256": "e36c986dc15fdcc0cfe831d7b6c82a2daf601a3d37a254f2932547d5c6f02118",
+      "gitBlob": "c168bfde0ff5ac6ff59c9068188af58981e48b21"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/INACTIVE-ROOT-GRANT.TEMPLATE.json",
+      "bytes": 1497,
+      "mode": 420,
+      "sha256": "449fa623454dc26de565ca182053343442d452b35ab318df282215c4cc022cbd",
+      "gitBlob": "6fd08e886c43642b2450160bbf8388f7d1acbade"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/HOST-ENVIRONMENT-ALLOWANCE.json",
+      "bytes": 1205,
+      "mode": 420,
+      "sha256": "d344927ec0b3ee25f62e9ed994973f15295cced45e69200f814f81491e5ec658",
+      "gitBlob": "836718f0966f6083790e9f7210df4571b3e4d65e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/host-environment.mjs",
+      "bytes": 1076,
+      "mode": 420,
+      "sha256": "fd890ac03880d187f57285d76c1cc6e04c16a47d6efdb110ca899de111be0955",
+      "gitBlob": "0d98a8a8642120078f257b956aa3f35b8ad7742f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/verify-fds-v3.mjs",
+      "bytes": 1180,
+      "mode": 420,
+      "sha256": "741e3e694b7f345bba414de660e05c2b8014589f8442360d9a40fb901ff745c0",
+      "gitBlob": "11230ed57ea9861d92efa71127a29ebc0832271f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/prepare-captures.mjs",
+      "bytes": 2311,
+      "mode": 420,
+      "sha256": "3682ea27b29333ab9ac19b5593d68945006d748a2102820d8b16c6469a36efed",
+      "gitBlob": "a6f1e533ee5e32e6e09d9099c9e865248fcab768"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/FUTURE-LAUNCH.sh.data",
+      "bytes": 2110,
+      "mode": 420,
+      "sha256": "31564e60654168079ac586fcd526fbd2f7882094275bab028704710e724272bb",
+      "gitBlob": "451d2f8743dd7052e9b4c2a94646c1260e41cb38"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/SOURCE-DIFF.patch",
+      "bytes": 146,
+      "mode": 420,
+      "sha256": "c4316b5e4dbbffd211913a6fe950983e947c7bcf294c74e3bde86199c1344295",
+      "gitBlob": "78278ad27fe35f0a4286107d06742b3289ba6f2a"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/owner.mjs",
+      "bytes": 7180,
+      "mode": 420,
+      "sha256": "27616cedb3ccd01757dac8b78b8e0202281d9d990e695fa19b9fdff9a76c2429",
+      "gitBlob": "30022c3e10958c9d614a824c38f02a7fbdeb77dc"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/owner.mjs",
+      "bytes": 7180,
+      "mode": 420,
+      "sha256": "6a1bee486d2a2f20ed9b6622660184c38cfb275c94146b131c777e9bf6757372",
+      "gitBlob": "bf2d73f2538022cad7c1d3d4fb9d36dcba6556fe"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/capture.mjs",
+      "bytes": 14387,
+      "mode": 420,
+      "sha256": "c0b7cac1404f15726d03c4494236be4aa9518fb6a8c645241eeec65cd243f46d",
+      "gitBlob": "c50a7770696e0bd2a33b0cc3832b48a354c07598"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/capture.mjs",
+      "bytes": 14387,
+      "mode": 420,
+      "sha256": "c0b7cac1404f15726d03c4494236be4aa9518fb6a8c645241eeec65cd243f46d",
+      "gitBlob": "c50a7770696e0bd2a33b0cc3832b48a354c07598"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/controls.mjs",
+      "bytes": 14553,
+      "mode": 420,
+      "sha256": "229ad1766aa23a59af739e9f0c788b6600e9fe458aa7daaa5fda325f5e2debe3",
+      "gitBlob": "bbaa9de5b93bbc2fc973a246fec9b2fbb11d459e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/controls.mjs",
+      "bytes": 14553,
+      "mode": 420,
+      "sha256": "229ad1766aa23a59af739e9f0c788b6600e9fe458aa7daaa5fda325f5e2debe3",
+      "gitBlob": "bbaa9de5b93bbc2fc973a246fec9b2fbb11d459e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/stub.mjs",
+      "bytes": 664,
+      "mode": 420,
+      "sha256": "43ab9aef2c76a1dccefa327e7209f7fdd867b11c52dc9c905bed16759e4e9a31",
+      "gitBlob": "32eb0696b2d5a7147499a10beb79b644bc2a7590"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/stub.mjs",
+      "bytes": 664,
+      "mode": 420,
+      "sha256": "43ab9aef2c76a1dccefa327e7209f7fdd867b11c52dc9c905bed16759e4e9a31",
+      "gitBlob": "32eb0696b2d5a7147499a10beb79b644bc2a7590"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/SEAL.json",
+      "bytes": 2103,
+      "mode": 420,
+      "sha256": "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2",
+      "gitBlob": "5cd54eadeb91e056fbc45bcf0bdd1dca97f88c79"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/capture.mjs",
+      "bytes": 14387,
+      "mode": 420,
+      "sha256": "c0b7cac1404f15726d03c4494236be4aa9518fb6a8c645241eeec65cd243f46d",
+      "gitBlob": "c50a7770696e0bd2a33b0cc3832b48a354c07598"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/owner.mjs",
+      "bytes": 7180,
+      "mode": 420,
+      "sha256": "27616cedb3ccd01757dac8b78b8e0202281d9d990e695fa19b9fdff9a76c2429",
+      "gitBlob": "30022c3e10958c9d614a824c38f02a7fbdeb77dc"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/controls.mjs",
+      "bytes": 14553,
+      "mode": 420,
+      "sha256": "229ad1766aa23a59af739e9f0c788b6600e9fe458aa7daaa5fda325f5e2debe3",
+      "gitBlob": "bbaa9de5b93bbc2fc973a246fec9b2fbb11d459e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/stub.mjs",
+      "bytes": 664,
+      "mode": 420,
+      "sha256": "43ab9aef2c76a1dccefa327e7209f7fdd867b11c52dc9c905bed16759e4e9a31",
+      "gitBlob": "32eb0696b2d5a7147499a10beb79b644bc2a7590"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/CONTROL-PLAN.json",
+      "bytes": 3884,
+      "mode": 420,
+      "sha256": "22f86692a28d24329284928edde7112c87416caf1ba732c6fac6511d84f0aac5",
+      "gitBlob": "75585e14bad6abfa0e03b1401d909b78dc81d853"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/INACTIVE-GRANT-METADATA.json",
+      "bytes": 3086,
+      "mode": 420,
+      "sha256": "a15d5113c4b6dd402bc323e62077745134aa6b4e56b59c813d3ebee8043428d7",
+      "gitBlob": "3efd150d2710d39b2fcae2df389230ffe104c8f1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/README.md",
+      "bytes": 5590,
+      "mode": 420,
+      "sha256": "65c27abee29933e372b6e6c06f1634a5e442b039d0e0ef27f33a9ac1d2a79fc3",
+      "gitBlob": "5b879de26c7532e7a3685ef43bf1d48d97abc09e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/HANDOFF.md",
+      "bytes": 3460,
+      "mode": 420,
+      "sha256": "5ed3f3a0063d091186cf27b9c98866b476dd0add3a025a888dc495c3bdb7b266",
+      "gitBlob": "532c8820c3b2aaaffb25dfb1ec3898403f4da4dc"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/RESULT.json",
+      "bytes": 7456,
+      "mode": 420,
+      "sha256": "0aa3e9646d139feff417821ef4aee8899b8327861a34ba294be6706687fbeb4f",
+      "gitBlob": "7b1db405d5adebca70d1912ef5665530d7ef3de8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/DATA-RESULT.json",
+      "bytes": 2655,
+      "mode": 384,
+      "sha256": "893f5a647e57fac86e8c0cc8f29555cd85898175001142ec552154f97388ff5e",
+      "gitBlob": "daba73409f8c0064faf8219116e88c8fef155d40"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/FINAL-PUBLICATION.json",
+      "bytes": 2237,
+      "mode": 420,
+      "sha256": "3e9c436e42de791269aff6afa428079494e030c3964b91589f73b279b9ecb8b6",
+      "gitBlob": "f64f56b1fbe7a2bcf8692241ef83801f78ee8e9d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/POST-GUARDS.json",
+      "bytes": 26484,
+      "mode": 420,
+      "sha256": "d298b0070926108df0edda9798082baab13078176b8d91ad23d5227cc986d925",
+      "gitBlob": "ad7eb50d28f056ce1b3d3dcd171036437578f66f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/EVIDENCE-MANIFEST.json",
+      "bytes": 24680,
+      "mode": 420,
+      "sha256": "c23838fed123f3f0329f5a9923765209fff6f59a445303bc00a841836b9afdd9",
+      "gitBlob": "1901a76d1ef95886923d69fec3940bd14f5263a3"
+    }
+  ],
+  "children": [
+    {
+      "commit": "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+      "args": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "--full-tree",
+        "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation"
+      ],
+      "pid": 45077,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": 26597,
+      "stderr": 0
+    },
+    {
+      "commit": "e16ab245ff3f1edf6700cba59f3ac7ac546df1a9",
+      "args": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "--full-tree",
+        "e16ab245ff3f1edf6700cba59f3ac7ac546df1a9",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation"
+      ],
+      "pid": 45078,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": 33609,
+      "stderr": 0
+    },
+    {
+      "commit": "02e60f4dc0a1abf185dd89b180040439c49ce197",
+      "args": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "--full-tree",
+        "02e60f4dc0a1abf185dd89b180040439c49ce197",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation"
+      ],
+      "pid": 45079,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": 33996,
+      "stderr": 0
+    }
+  ],
+  "actualOwnerLaunches": 0,
+  "engineEvaluations": 0,
+  "authorControlReruns": 0,
+  "gitMetadataChildren": 3,
+  "helperPlusMetadataPeak": 2
+}

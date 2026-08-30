@@ -1,0 +1,3514 @@
+{
+  "capturedAt": "2026-08-26T23:59:47Z",
+  "snapshot": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+  "frozenFingerprintBefore": "5905112264b83a5e12ca549eec5a88d90f956b2838d54095e97bcec545c91560",
+  "frozenFingerprintAfter": "5905112264b83a5e12ca549eec5a88d90f956b2838d54095e97bcec545c91560",
+  "frozenChanged": [],
+  "sourceFingerprint": "20b8ecb2d2b6e47fc86784b23ba0094f0486a1197fcfcb71dcb61731cfea31ab",
+  "liveRevision": "5ddce1b0550ad7de8f2a8082f0402fae7aa001b7",
+  "liveStatus": " M src/shell/input.ts\n M src/shell/parser.ts\n M src/shell/runtime.ts\n M tests/shell/SCRIPT_ENTRYPOINTS.md\n M tests/shell/script-entrypoint.test.ts\n?? benchmarks/reports/current-integration/README.md\n?? benchmarks/reports/current-integration/account.py\n?? benchmarks/reports/current-integration/after.json\n?? benchmarks/reports/current-integration/audit.py\n?? benchmarks/reports/current-integration/benchmark-typecheck.result.json\n?? benchmarks/reports/current-integration/benchmark-typecheck.stderr.log\n?? benchmarks/reports/current-integration/benchmark-typecheck.stdout.log\n?? benchmarks/reports/current-integration/build.result.json\n?? benchmarks/reports/current-integration/build.stderr.log\n?? benchmarks/reports/current-integration/build.stdout.log\n?? benchmarks/reports/current-integration/checkpoint.txt\n?? benchmarks/reports/current-integration/clean-benchmark-typecheck.environment.json\n?? benchmarks/reports/current-integration/clean-benchmark-typecheck.result.json\n?? benchmarks/reports/current-integration/clean-benchmark-typecheck.stderr.log\n?? benchmarks/reports/current-integration/clean-benchmark-typecheck.stdout.log\n?? benchmarks/reports/current-integration/clean-build.environment.json\n?? benchmarks/reports/current-integration/clean-build.result.json\n?? benchmarks/reports/current-integration/clean-build.stderr.log\n?? benchmarks/reports/current-integration/clean-build.stdout.log\n?? benchmarks/reports/current-integration/clean-comparison.environment.json\n?? benchmarks/reports/current-integration/clean-comparison.json\n?? benchmarks/reports/current-integration/clean-comparison.result.json\n?? benchmarks/reports/current-integration/clean-comparison.stderr.log\n?? benchmarks/reports/current-integration/clean-comparison.stdout.log\n?? benchmarks/reports/current-integration/clean-contracts.accounting.json\n?? benchmarks/reports/current-integration/clean-contracts.environment.json\n?? benchmarks/reports/current-integration/clean-contracts.nonpass.json\n?? benchmarks/reports/current-integration/clean-contracts.result.json\n?? benchmarks/reports/current-integration/clean-contracts.stderr.log\n?? benchmarks/reports/current-integration/clean-contracts.stdout.log\n?? benchmarks/reports/current-integration/clean-inputs.json\n?? benchmarks/reports/current-integration/clean-state.json\n?? benchmarks/reports/current-integration/clean-test.accounting.json\n?? benchmarks/reports/current-integration/clean-test.environment.json\n?? benchmarks/reports/current-integration/clean-test.nonpass.json\n?? benchmarks/reports/current-integration/clean-test.result.json\n?? benchmarks/reports/current-integration/clean-test.stderr.log\n?? benchmarks/reports/current-integration/clean-test.stdout.log\n?? benchmarks/reports/current-integration/clean-typecheck.environment.json\n?? benchmarks/reports/current-integration/clean-typecheck.result.json\n?? benchmarks/reports/current-integration/clean-typecheck.stderr.log\n?? benchmarks/reports/current-integration/clean-typecheck.stdout.log\n?? benchmarks/reports/current-integration/comparison.json\n?? benchmarks/reports/current-integration/comparison.result.json\n?? benchmarks/reports/current-integration/comparison.stderr.log\n?? benchmarks/reports/current-integration/comparison.stdout.log\n?? benchmarks/reports/current-integration/contracts.accounting.json\n?? benchmarks/reports/current-integration/contracts.nonpass.json\n?? benchmarks/reports/current-integration/contracts.result.json\n?? benchmarks/reports/current-integration/contracts.stderr.log\n?? benchmarks/reports/current-integration/contracts.stdout.log\n?? benchmarks/reports/current-integration/coverage-cohorts.json\n?? benchmarks/reports/current-integration/dependencies.json\n?? benchmarks/reports/current-integration/dependency-after.json\n?? benchmarks/reports/current-integration/dependency-copy.json\n?? benchmarks/reports/current-integration/environment-delta.json\n?? benchmarks/reports/current-integration/environment.json\n?? benchmarks/reports/current-integration/failure-groups.json\n?? benchmarks/reports/current-integration/fixture-cleanup.json\n?? benchmarks/reports/current-integration/generated-inventory.json\n?? benchmarks/reports/current-integration/host-tool-evidence.json\n?? benchmarks/reports/current-integration/inputs.json\n?? benchmarks/reports/current-integration/inventory.environment.json\n?? benchmarks/reports/current-integration/inventory.result.json\n?? benchmarks/reports/current-integration/inventory.stderr.log\n?? benchmarks/reports/current-integration/inventory.stdout.log\n?? benchmarks/reports/current-integration/isolated-tmp-cleanup.json\n?? benchmarks/reports/current-integration/jq-delta-classification.json\n?? benchmarks/reports/current-integration/oracle-rg-copy.json\n?? benchmarks/reports/current-integration/phase-order.json\n?? benchmarks/reports/current-integration/state.json\n?? benchmarks/reports/current-integration/test-inventory.json\n?? benchmarks/reports/current-integration/test-with-rg.accounting.json\n?? benchmarks/reports/current-integration/test-with-rg.environment.json\n?? benchmarks/reports/current-integration/test-with-rg.nonpass.json\n?? benchmarks/reports/current-integration/test-with-rg.result.json\n?? benchmarks/reports/current-integration/test-with-rg.stderr.log\n?? benchmarks/reports/current-integration/test-with-rg.stdout.log\n?? benchmarks/reports/current-integration/test.accounting.json\n?? benchmarks/reports/current-integration/test.nonpass.json\n?? benchmarks/reports/current-integration/test.result.json\n?? benchmarks/reports/current-integration/test.stderr.log\n?? benchmarks/reports/current-integration/test.stdout.log\n?? benchmarks/reports/current-integration/typecheck.result.json\n?? benchmarks/reports/current-integration/typecheck.stderr.log\n?? benchmarks/reports/current-integration/typecheck.stdout.log\n?? src/commands/archive/create.ts\n?? src/commands/archive/extract.ts\n?? src/commands/archive/format.ts\n?? src/commands/archive/index.ts\n?? src/commands/archive/internal.ts\n?? src/commands/archive/options.ts\n?? src/commands/archive/stream.ts\n?? src/commands/table-text/index.ts\n?? src/commands/table-text/internal.ts\n?? src/commands/table-text/paste.ts\n?? tests/commands/archive/.gitignore\n?? tests/commands/archive/capture-native.mjs\n?? tests/commands/archive/core.test.ts\n?? tests/commands/archive/helpers.ts\n?? tests/commands/archive/native-profile.json\n?? tests/commands/archive/prepare-oracle.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/.gitignore\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/REPORT.md\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/native-preparation.json\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/original-identities.json\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/originals.mjs\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/probe.mjs\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? tests/fs/mount-identity-review/closure-capture.mjs\n?? tests/fs/mount-identity-review/closure-fs-tsconfig.json\n?? tests/fs/mount-identity-review/closure-seven-fs-tsconfig.json\n?? tests/fs/mount-identity-review/closure-supplement.mjs\n?? tests/fs/mount-identity-review/contract-edges.test.ts\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/current-global-types.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/diagnostics8.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-contract-edges.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-fs-types.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-independent19.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-native12.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-original4.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-own-types.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-required49.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-conformance.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-memory.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-mount.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-overlay.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-readonly.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-real.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-s3.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-webdav.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-generic-delegation-before-unknown-guard.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-missing-target-exclusive-removed.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-mount-alias-guard-removed.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-native-scope-per-instance.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-overlay-scope-forwarding-removed.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-readonly-scope-forwarding-removed.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-unknown-identity-guard-removed.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutation-provenance.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/previous-original4.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/previous-required49.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/provenance.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/restored-independent-and-edges.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/revised-matrix79.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-adapters.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-remote24.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-s3-bounded.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-s3-policy.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/socket-path-recheck.json\n?? tests/fs/mount-identity-review/evidence/closure-4fa4ba9/summary.json\n?? tests/fs/mount-identity-review/node-compile-cache/v22.22.2-arm64-2b4477fa-501/42fceb84\n?? tests/fs/mount-identity-review/tsx-501/17877-02d4f44ab801b3bd4b2db4e0f2696b1d485beef1\n?? tests/fs/mount-identity-review/tsx-501/17877-17d076278d513e54e806afc2fe03f1856f2d4fcb\n?? tests/fs/mount-identity-review/tsx-501/17877-36a1c9323d0cb03cc472ec1effe98090e9badbe7\n?? tests/fs/mount-identity-review/tsx-501/17877-43e1ff71d87a226527483d093e4f9d7027557636\n?? tests/fs/mount-identity-review/tsx-501/17877-46b7c290b0c26147b6421650aa73a8af44872333\n?? tests/fs/mount-identity-review/tsx-501/17877-52d5d1f4fde1143236ad463c63cb974ed2948690\n?? tests/fs/mount-identity-review/tsx-501/17877-5307c1d3a6f3977676edb13d4a104141260f9470\n?? tests/fs/mount-identity-review/tsx-501/17877-7a3fd8ce8c55ff32208b2d5f543f9f961d311ef0\n?? tests/fs/mount-identity-review/tsx-501/17877-8281b8f57a30079aa216b770a341fc74fbcc2eb6\n?? tests/fs/mount-identity-review/tsx-501/17877-87387bcee00af4e1698c1353c6d1293d8e5efd61\n?? tests/fs/mount-identity-review/tsx-501/17877-9655dae42dd46d8b35d07938f2191f6526527bd9\n?? tests/fs/mount-identity-review/tsx-501/17877-9b02bcf6466726066bb91d1801100868b99e9ade\n?? tests/fs/mount-identity-review/tsx-501/17877-ae6f0e93e3fb7f50ba65e843da9c7a30df1749eb\n?? tests/fs/mount-identity-review/tsx-501/17877-e32d14f3d90d62e23228bef69455517e60d7c6c5\n?? tests/fs/mount-identity-review/tsx-501/17877-e4d7a5ef62f612d861ab2d7feba46722d1944914\n?? tests/fs/mount-identity-review/tsx-501/17877-e840c731373ad803868a5ccebb05765b0635706e\n?? tests/fs/mount-identity-review/tsx-501/17877-ff35818f27ce78f755e307510ed654ff63ef6b84\n?? tests/fs/mount/identity-compatibility-review/.gitignore\n?? tests/fs/mount/identity-compatibility-review/compatibility.test.ts\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/compatibility.test.ts.txt\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/manifest.json\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/observations.json\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/scoped-tsconfig.json\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/source-4fa4ba9.tar.gz\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/tests.stderr.txt\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/tests.stdout.tap\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/types.stderr.txt\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned-final/types.stdout.txt\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/compatibility.test.ts.txt\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/manifest.json\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/observations.json\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/scoped-tsconfig.json\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/source-4fa4ba9.tar.gz\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/tests.stderr.txt\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/tests.stdout.tap\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/types.stderr.txt\n?? tests/fs/mount/identity-compatibility-review/evidence/pinned/types.stdout.txt\n?? tests/fs/mount/identity-compatibility-review/run.mjs\n?? tests/shell/invocation-modes-cases.ts\n?? tests/shell/invocation-modes-native.ts\n?? tests/shell/invocation-modes-probe.ts\n?? tests/shell/invocation-modes-reference.json\n?? tests/shell/invocation-modes.test.ts\n",
+  "liveFingerprint": "6e01020f8d867296eb088bf85eb92e72294645551f9b3319ea26029bac927c44",
+  "liveDrift": {
+    "AGENTS.md": {
+      "before": {
+        "sha256": "6db0ed4a25ff46bc9e2c7482528ae58d14972c5ca3d70c8ab81b4b75c184cfda",
+        "bytes": 15689,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "a0a77ca6366fd51c13e3f9d0601c2ea7a724637d187eb0abc5e148894d130f79",
+        "bytes": 16540,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "README.md": {
+      "before": {
+        "sha256": "3aac95da834ed3f0ca9527e7d848816e62159ffce7e55a54272d82e75ac1d870",
+        "bytes": 10832,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "d60d084e3d95f71e937e0c0a171292e3a89973dd6069065e5c7197775521903b",
+        "bytes": 12636,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "docs/PROJECT_LEDGER.md": {
+      "before": {
+        "sha256": "c5671c8dcaee104ebd1ca7092e3aed46cef3caca32f488b6c9f74591343f3592",
+        "bytes": 74987,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "5c69362bc3c4f115709203047bb016834bb6998001a65fa6e76f6fb0619ef999",
+        "bytes": 79338,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "src/commands/archive/create.ts": {
+      "before": null,
+      "after": {
+        "sha256": "f1e0c19269a68d6c3e3bab6aa62fb4b19b060a23a76d17fae404d245918222af",
+        "bytes": 7551,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/archive/extract.ts": {
+      "before": null,
+      "after": {
+        "sha256": "67dd42fa0ea60ece3beae7fa323688d61041a88e8f0841251c24bb710e4c95f5",
+        "bytes": 12379,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/archive/format.ts": {
+      "before": null,
+      "after": {
+        "sha256": "9cb37bd27c1d4669d201006728a380280f827249ede015bc40bab879eb438a78",
+        "bytes": 8369,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/archive/index.ts": {
+      "before": null,
+      "after": {
+        "sha256": "ec80a69f91111448108cb2626e19fc9086e5360a423ba450c5e22f597f13590e",
+        "bytes": 3343,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/archive/internal.ts": {
+      "before": null,
+      "after": {
+        "sha256": "62e2353af3db2b7346ae4ec13fddd20b108b6c5dc0d3b784755e42e95d57a833",
+        "bytes": 7994,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/archive/options.ts": {
+      "before": null,
+      "after": {
+        "sha256": "437d98c20d1c0e58c7006af445b9b66e4fe317878870ab68037a926ef72eead6",
+        "bytes": 9777,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/archive/stream.ts": {
+      "before": null,
+      "after": {
+        "sha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+        "bytes": 3715,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/table-text/index.ts": {
+      "before": null,
+      "after": {
+        "sha256": "3d185894eaaf98096189f3fafa43f5a2eb7333863f1f4d4b3656d44afc88e78e",
+        "bytes": 974,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/table-text/internal.ts": {
+      "before": null,
+      "after": {
+        "sha256": "aaaba3d981dfbdc93ab536e3958876029095c45a74418071c77be5f017dc2157",
+        "bytes": 8150,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/commands/table-text/paste.ts": {
+      "before": null,
+      "after": {
+        "sha256": "a51949df3339e92a862eae1d2baacefe1d6f115685273f7b043a648cd27631d0",
+        "bytes": 3968,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "src/fs/mount/README.md": {
+      "before": {
+        "sha256": "0b66be0c3e2f4f5a65ba6ee94122285c3c0b8d85d2a34af3dcb8d54cae00d4ef",
+        "bytes": 11505,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "ce4f791bffb1aa87e935566044a3cd529d41538ac19af2d6dabdc5bc7dde876b",
+        "bytes": 11658,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "src/fs/mount/index.ts": {
+      "before": {
+        "sha256": "a75dcad6a1e09a1af3aeebca1afc099fd8e7a632a999255e687720db5c4622c9",
+        "bytes": 24275,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "192ada25798791dcb7cf6c3f323ba3a64b814c75e749ae1cea13937de238ccc7",
+        "bytes": 24275,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "src/shell/input.ts": {
+      "before": {
+        "sha256": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+        "bytes": 8483,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+        "bytes": 9527,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "src/shell/parser.ts": {
+      "before": {
+        "sha256": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+        "bytes": 31752,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+        "bytes": 32714,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "src/shell/runtime.ts": {
+      "before": {
+        "sha256": "dabbb60ffc499a7e64fae8071f12b465b5845e7246510e19da15b406f8481d10",
+        "bytes": 63745,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+        "bytes": 70996,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/archive/.gitignore": {
+      "before": null,
+      "after": {
+        "sha256": "faca34306677355842de9efd7d6588c8a5418dae5e86897ed25f257f633e20bd",
+        "bytes": 20,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/archive/capture-native.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "891f71355c79b80b5d15bdc45dbe83e52dcd09819698b76aabcd9a24a2ba70bb",
+        "bytes": 2602,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/archive/core.test.ts": {
+      "before": null,
+      "after": {
+        "sha256": "d32602ecfb291d10097b3eb89c0d2fc1a2433acc2efae8e4617f3d90b3bf5a83",
+        "bytes": 9296,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/archive/helpers.ts": {
+      "before": null,
+      "after": {
+        "sha256": "31860a3c825e060a4efc5b59bd84ec30bfcb0100c936025b7aefa9be577bf604",
+        "bytes": 4921,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/archive/native-profile.json": {
+      "before": null,
+      "after": {
+        "sha256": "c73249e53eb22a698130579caa28fcd981e752ec2df7a25e9f6f6f0cf52c68a4",
+        "bytes": 3617,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/archive/prepare-oracle.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "0f630fcb20277f897bda7108f1a15112c804c218123835a200205a8a144e5052",
+        "bytes": 1732,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full-review/REPORT.md": {
+      "before": null,
+      "after": {
+        "sha256": "1237bed784ba0474e2fb227d93e2a26c51f47ee65983dad341475562b840e10c",
+        "bytes": 3002,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full-review/original-identities.json": {
+      "before": null,
+      "after": {
+        "sha256": "368210e9baeda929c7234f5b50adaf2308b24c02d1a51aa5b09e92c8c8fa0fe9",
+        "bytes": 39776,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full-review/originals.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "55a1de31371932698404399243668fb3af80e23399994de6c4505ea8e17dc531",
+        "bytes": 6561,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/REPORT.md": {
+      "before": null,
+      "after": {
+        "sha256": "e1dac39fdd5c3ca09ac729c5bced7c54bf390dc3f9bce45cffb6f32e1acfed03",
+        "bytes": 14051,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/delta-v1.mjs": {
+      "before": {
+        "sha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "bytes": 4252,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "bytes": 4252,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/evidence-archive.json": {
+      "before": null,
+      "after": {
+        "sha256": "7027b9241c5df980b176aac9482bca5d871cd0904906e0dfafdbf6877f727d4c",
+        "bytes": 1810406,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/finalize.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "2d4c52c4bace7f8022abcf8c0d7081b75453c166e423b567b3d8801973db12f6",
+        "bytes": 9785,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/manifest.json": {
+      "before": null,
+      "after": {
+        "sha256": "2f8a5e664b759373037585dc501e6f7e95fc97e54b48193d06b69a8a7139464c",
+        "bytes": 88761,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/proof.json": {
+      "before": null,
+      "after": {
+        "sha256": "c23323e412724c4c415290998eb1d0e577b76a81079d8968103da8420e47a0e4",
+        "bytes": 147130,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/proof.mjs": {
+      "before": {
+        "sha256": "37da0d973356a1c2e5c61dd7df4ff6e28fdc1011518e0c3e9db25e98c99ecd1a",
+        "bytes": 14105,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "0eadc2d29ecd3b4163828f6559b6f4752554e6199811f9f8d50f6e49a57c83ed",
+        "bytes": 15493,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/provenance.json": {
+      "before": null,
+      "after": {
+        "sha256": "3a11bc8b515db6bf48b8ac6ed50d8fa8e563b6c4ffe13fe5aa4221e934071d6e",
+        "bytes": 2082,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/read-evidence.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "31c5ab1722c70ad5e94dad0cf637e4377a05e13e957e067e32608decb49ee1b2",
+        "bytes": 643,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/result.json": {
+      "before": null,
+      "after": {
+        "sha256": "27afa923ffb0f17d50dfc567e8d9d68274e767edb90d5e2dcbf6ac6908b89d36",
+        "bytes": 4908,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/diff-patch-stress/gnu-revised-full/run.mjs": {
+      "before": {
+        "sha256": "8cf0648a9eee92472d9570728190cf1c432fca8d9a56a6ed8c3ce1bebb551e74",
+        "bytes": 18011,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "9f2e7b580ee866f4c74422169590d95723bdefc2720bf0c7be231abfe7e4b4af",
+        "bytes": 18695,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/metadata/AUTHOR_CHECKPOINT.md": {
+      "before": null,
+      "after": {
+        "sha256": "3ce30d2cc83f3fd457626529ebf854345a103c550f4419307d34593d2b56546a",
+        "bytes": 6812,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/commands/metadata/integration.test.ts": {
+      "before": {
+        "sha256": "0ecbb8745a2483baaea607b4192e28f3ed956c038eb618109090c072dc25f2c4",
+        "bytes": 5096,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "0ecbb8745a2483baaea607b4192e28f3ed956c038eb618109090c072dc25f2c4",
+        "bytes": 5096,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/fs/mount-identity-review/closure-capture.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "7e14c3b3a892d67246d7db84010b530cdd1ace6fefc1929b99ebf3c88bdbc377",
+        "bytes": 17075,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/closure-fs-tsconfig.json": {
+      "before": null,
+      "after": {
+        "sha256": "46e1dbdeac1db64bacccbca4135393158b64b30facf965b952a51215e1a6eb6a",
+        "bytes": 500,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/closure-seven-fs-tsconfig.json": {
+      "before": null,
+      "after": {
+        "sha256": "d3413f9d6df8c3d1489b97177f8fe4ba2049effeaf0f382405ac09bcb2eac062",
+        "bytes": 190,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/closure-supplement.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "75a8dd81c852316ff9c993bff342ebdfe1bda53d5185e770e4c0ec3a27a99866",
+        "bytes": 5260,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/contract-edges.test.ts": {
+      "before": null,
+      "after": {
+        "sha256": "0b21a6e8a5a0d481ad91a35c7b12301da5aa7c39c1addd4c602ca392cfd6c71f",
+        "bytes": 16907,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/current-global-types.json": {
+      "before": null,
+      "after": {
+        "sha256": "ae7d7c5b9ee2113eabe7a5beddfd7a977b88f891ef1c9196de15d135bb1d82a6",
+        "bytes": 2723,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/diagnostics8.json": {
+      "before": null,
+      "after": {
+        "sha256": "4567d2815fc2d2b43f12e4287afd20630e17b5f15184b492170be093c24ff53d",
+        "bytes": 16266,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-contract-edges.json": {
+      "before": null,
+      "after": {
+        "sha256": "9b1a20f318f45e01b010e1fcffef69de118d40a86afc58cb6aa6064eddbe5e7c",
+        "bytes": 71298,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-fs-types.json": {
+      "before": null,
+      "after": {
+        "sha256": "1ebd6a8d6ec1fa0c6f566b8162ffe4df0f682967bcbe6d485313a0f0ae330357",
+        "bytes": 600,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-independent19.json": {
+      "before": null,
+      "after": {
+        "sha256": "db9257c8fc7b23799b9c52d4ed05b1b51b0b04202454d76d12f326e61dbd64fe",
+        "bytes": 80470,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-native12.json": {
+      "before": null,
+      "after": {
+        "sha256": "6beaeed19b39978c5b094ab914b8a515a87bea823d3c4d4c6dc2eccca2779bd4",
+        "bytes": 72665,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-original4.json": {
+      "before": null,
+      "after": {
+        "sha256": "cfb139a14a48b81fafa1a54ca6354ac3a62c73014751211c1913158bfbf49527",
+        "bytes": 1725,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-own-types.json": {
+      "before": null,
+      "after": {
+        "sha256": "83f4e2fe082df9fda775ac81f2bf5dbd3edc1a1c9c29b35e5b64b4d185f76fb2",
+        "bytes": 590,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-required49.json": {
+      "before": null,
+      "after": {
+        "sha256": "5c6f0c16b10ba1ba9860bc9f2dc05e0d2623a2a54f673dd8e37126e486a6b669",
+        "bytes": 11542,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-conformance.json": {
+      "before": null,
+      "after": {
+        "sha256": "d345747161f854a9fe2655be055b999e9ece42350439659ef00ad9d99ca8d12b",
+        "bytes": 45083,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-memory.json": {
+      "before": null,
+      "after": {
+        "sha256": "0d743f51cfe41653a746494763f0fcba730400f91292287ca6f104e42a133869",
+        "bytes": 20733,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-mount.json": {
+      "before": null,
+      "after": {
+        "sha256": "fa76e163acbe4b9722b3dd9e0db3f535fffb7be448805fa3816cc57684953437",
+        "bytes": 39826,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-overlay.json": {
+      "before": null,
+      "after": {
+        "sha256": "47d9f27fbdaef55628f8634399ab4286fb02c1bba163caf19fbe39b14fd5e137",
+        "bytes": 39815,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-readonly.json": {
+      "before": null,
+      "after": {
+        "sha256": "25c4609ad508cfe1113130967e58de429475561752cd2c2cdf924cc2dabfc4de",
+        "bytes": 21920,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-real.json": {
+      "before": null,
+      "after": {
+        "sha256": "02260532d17ca37e0b51eadf3a795afbb02f2af4806589c3eaba10103648f030",
+        "bytes": 22861,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-s3.json": {
+      "before": null,
+      "after": {
+        "sha256": "47b3a4f6ad549b614afdb66ef88bf8118993896f4a5a4415848b376edb7a52dc",
+        "bytes": 41536,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-webdav.json": {
+      "before": null,
+      "after": {
+        "sha256": "80b7b4bdf0cbee708b8c15a6e18c3ee079e8249fe6add070143887ba6a92530c",
+        "bytes": 68932,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-generic-delegation-before-unknown-guard.json": {
+      "before": null,
+      "after": {
+        "sha256": "20c59a75a3428763784355727ccbf6446273d1aaad4e9094eecc5355fa069b22",
+        "bytes": 72784,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-missing-target-exclusive-removed.json": {
+      "before": null,
+      "after": {
+        "sha256": "3a6583c500bec41764f62dc0cc3f76105910187ffd3716c1b2b36c3ce1377dbd",
+        "bytes": 73221,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-mount-alias-guard-removed.json": {
+      "before": null,
+      "after": {
+        "sha256": "e11efb80087a1a8eb80fef930483737a4eb9a138a53e85170102207787464066",
+        "bytes": 122452,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-native-scope-per-instance.json": {
+      "before": null,
+      "after": {
+        "sha256": "f3429c22064a05173deac00861733984bd2232edfa2e76f4bbd603c36e86579a",
+        "bytes": 115818,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-overlay-scope-forwarding-removed.json": {
+      "before": null,
+      "after": {
+        "sha256": "9ad6a2e0fe87aef65b89e2a0dc68b4c4e8d672c555e81d29625bfbd4412b8911",
+        "bytes": 147456,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-readonly-scope-forwarding-removed.json": {
+      "before": null,
+      "after": {
+        "sha256": "482cf4ea72087cdf279dc69412c657bcf4290e09edeedc81a615b49087814933",
+        "bytes": 149712,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-unknown-identity-guard-removed.json": {
+      "before": null,
+      "after": {
+        "sha256": "5fadde8297e869a0a06377a726462a3ff3b12a4b3e6623c64e5d787cd5e185bd",
+        "bytes": 66038,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutation-provenance.json": {
+      "before": null,
+      "after": {
+        "sha256": "d4657755a293b60a9cd5f70004fcb72b4e23a61a10842c385f60026a4e78d323",
+        "bytes": 365765,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/previous-original4.json": {
+      "before": null,
+      "after": {
+        "sha256": "3801821f8fee56c8eeaf0b80bac429fb071b69461cafa88884b61d068affcdba",
+        "bytes": 5491,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/previous-required49.json": {
+      "before": null,
+      "after": {
+        "sha256": "8662cfd5f1927a389d4156d323e7b811ccc1d77d6d6cf683e56b506ee1aaa7d0",
+        "bytes": 56693,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/provenance.json": {
+      "before": null,
+      "after": {
+        "sha256": "e550a052371990118081d3daec3c95b4c5b91c3af9c1b77b80dcfd21064f43d2",
+        "bytes": 435309,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/restored-independent-and-edges.json": {
+      "before": null,
+      "after": {
+        "sha256": "ce75170da5ad66264e5582a77b5a4752f67c5186d2ab5ea3b2e59f15c0ef8457",
+        "bytes": 151069,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/revised-matrix79.json": {
+      "before": null,
+      "after": {
+        "sha256": "aabd836fbf73e71657fa97f35acae8b41aee65922a5ddf74d08ca7f24f28610a",
+        "bytes": 18067,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-adapters.json": {
+      "before": null,
+      "after": {
+        "sha256": "526d1bd1e22b6af401b0cf43cfa50a3d1804e162b53e959d5ce90880a8ae94b1",
+        "bytes": 25864,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-remote24.json": {
+      "before": null,
+      "after": {
+        "sha256": "64655f3d188c6df1f9baa8e1f2bbd34ba31d1813f0b59b215acc82bba7252280",
+        "bytes": 23177,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-s3-bounded.json": {
+      "before": null,
+      "after": {
+        "sha256": "04784ecef96469559a0a708d738d416fcbe3f90b370b6ab6de385a44f1dfaad8",
+        "bytes": 21114,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-s3-policy.json": {
+      "before": null,
+      "after": {
+        "sha256": "59a0bf0f44d7abed9504e5af76b6a9bc5a815035ac675b54d2961128fb1b4e9f",
+        "bytes": 10364,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/socket-path-recheck.json": {
+      "before": null,
+      "after": {
+        "sha256": "8316f202e7fec9987fc4f03254c3db7d179a5696c8a5213392409e7697bf6d2e",
+        "bytes": 26077,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/summary.json": {
+      "before": null,
+      "after": {
+        "sha256": "48bac8ee69d5570675f8b43f8f5267f9fffdf6813acba722a5f1e09ca65aaa89",
+        "bytes": 277448,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/node-compile-cache/v22.22.2-arm64-2b4477fa-501/42fceb84": {
+      "before": null,
+      "after": {
+        "sha256": "13a5c0340ea2a1d95cf952acb9836444e9bac2fe24f97433ae1bcc0b202c8991",
+        "bytes": 1322068,
+        "mode": 384,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-02d4f44ab801b3bd4b2db4e0f2696b1d485beef1": {
+      "before": null,
+      "after": {
+        "sha256": "ac67a91af4c30fe370026d43382a7367956629997108236974b9d506fb5633e8",
+        "bytes": 26895,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-17d076278d513e54e806afc2fe03f1856f2d4fcb": {
+      "before": null,
+      "after": {
+        "sha256": "b1c0dcc1b23ba84a59c197187ca99437fa770da9e6ee5b45cd8d9d1c1e1be441",
+        "bytes": 28657,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-36a1c9323d0cb03cc472ec1effe98090e9badbe7": {
+      "before": null,
+      "after": {
+        "sha256": "38c692cba9575eea12c674303061e9d61de58d62b53a0b0fc9e57e37022d8ad1",
+        "bytes": 458,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-43e1ff71d87a226527483d093e4f9d7027557636": {
+      "before": null,
+      "after": {
+        "sha256": "248029d863b2103af298a5f273473c32c72eb52c8748be380103f6e10973b988",
+        "bytes": 20477,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-46b7c290b0c26147b6421650aa73a8af44872333": {
+      "before": null,
+      "after": {
+        "sha256": "608fa943ff20692d2aa7b5b429b2b0ef03bf462e197915d53b180ca66c291795",
+        "bytes": 10067,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-52d5d1f4fde1143236ad463c63cb974ed2948690": {
+      "before": null,
+      "after": {
+        "sha256": "62301c455f771a36a103114f09d1fcbd5cdd9849e2749f888d49b08a2ba8773b",
+        "bytes": 3063,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-5307c1d3a6f3977676edb13d4a104141260f9470": {
+      "before": null,
+      "after": {
+        "sha256": "0b87db45f4d65b01b048d71f09eee2718d9ecdb5aec44be49611b01bc3adeffa",
+        "bytes": 31120,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-7a3fd8ce8c55ff32208b2d5f543f9f961d311ef0": {
+      "before": null,
+      "after": {
+        "sha256": "bb65f63066b8a1410fb3c604ed9acd508f5661c11f6e5857644947d214f4da0a",
+        "bytes": 2628,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-8281b8f57a30079aa216b770a341fc74fbcc2eb6": {
+      "before": null,
+      "after": {
+        "sha256": "e56f938b6230adb4dd3d086506c48e0be718cb6aa65f8f7ae503f0f55adf3f25",
+        "bytes": 2326,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-87387bcee00af4e1698c1353c6d1293d8e5efd61": {
+      "before": null,
+      "after": {
+        "sha256": "8bf44d8909adc5ee3fb0afe66fade9531e00a84d117c81f176b9aaf0cb1ee267",
+        "bytes": 10806,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-9655dae42dd46d8b35d07938f2191f6526527bd9": {
+      "before": null,
+      "after": {
+        "sha256": "53d7d71c59fdfe519ed0ba65ecd736bee31774171bbe38d7d6860bb7a0cb5752",
+        "bytes": 2506,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-9b02bcf6466726066bb91d1801100868b99e9ade": {
+      "before": null,
+      "after": {
+        "sha256": "8fc838fd0d1485a252934a20339f3b569727015257773dd82727783dba3cb64b",
+        "bytes": 3764,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-ae6f0e93e3fb7f50ba65e843da9c7a30df1749eb": {
+      "before": null,
+      "after": {
+        "sha256": "92b22bb2c6fa86180ddd0a713c403c70d1661682b43c2e4452115377dfc55fc6",
+        "bytes": 402,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-e32d14f3d90d62e23228bef69455517e60d7c6c5": {
+      "before": null,
+      "after": {
+        "sha256": "7bab086979ef05fa6bd7855aac85ed3bc56f19cc35d2d3fbfb42b49988cee984",
+        "bytes": 2577,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-e4d7a5ef62f612d861ab2d7feba46722d1944914": {
+      "before": null,
+      "after": {
+        "sha256": "5020c6876668185989a8fa389871a0813899061af7b087555ed0b90c24aac734",
+        "bytes": 6353,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-e840c731373ad803868a5ccebb05765b0635706e": {
+      "before": null,
+      "after": {
+        "sha256": "f9a3df303fa5c1bad2d97baaf34b302e0f47576b68ad894c7dbfd3acd08945d0",
+        "bytes": 4852,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount-identity-review/tsx-501/17877-ff35818f27ce78f755e307510ed654ff63ef6b84": {
+      "before": null,
+      "after": {
+        "sha256": "59c70045a872133ba988f6286d0b70ddca1e616694fc8c7043bb31a244604d6a",
+        "bytes": 10770,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/evidence/identity-fixed-20260826/REPORT.md": {
+      "before": null,
+      "after": {
+        "sha256": "5af0df9ca377c06a8adc4f8386ebbb52d4220390c39af58b3c7730d4f3a36bd8",
+        "bytes": 4779,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/fs/mount/evidence/identity-fixed-20260826/approved-filesystem.md.txt": {
+      "before": null,
+      "after": {
+        "sha256": "13d82a1a15d9b86370cd54c904608e8eed37da63e5ce05e754dc6e53f0ff821e",
+        "bytes": 5888,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/fs/mount/evidence/identity-fixed-20260826/approved-owner-message.txt": {
+      "before": null,
+      "after": {
+        "sha256": "3af431356a3d7da4e3a57f8420463023e602661422ab95d20627c9a23a9951b1",
+        "bytes": 1955,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/fs/mount/evidence/identity-fixed-20260826/first-checkpoint-mutation-probes.json": {
+      "before": null,
+      "after": {
+        "sha256": "eca5c22731f8daa702a21026401719c0cc597074c3352c13f52e9874c7213233",
+        "bytes": 66549,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/fs/mount/evidence/identity-fixed-20260826/manifest.json": {
+      "before": null,
+      "after": {
+        "sha256": "274373f9972100e855fdf1e6047535686f47e6ce23e3dae6f75630e59dbd6a57",
+        "bytes": 20399,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/fs/mount/evidence/identity-fixed-20260826/mutation-probes.json": {
+      "before": null,
+      "after": {
+        "sha256": "4961f606880f75f9e2622d194b43ca4fceb98fe679b4e87df6cbc7f46791a24a",
+        "bytes": 70177,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/fs/mount/evidence/identity-fixed-20260826/original-mount-constructor-tests.ts.txt": {
+      "before": null,
+      "after": {
+        "sha256": "6c32c0b2c0b343a59089ee5301e8ee8c5f68c43d201d480cae496b4543a953f8",
+        "bytes": 41731,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/.gitignore": {
+      "before": null,
+      "after": {
+        "sha256": "8d2904d159b42f98dd3bcacb943ebfaf2d1de8655232d3677738f75d04e57b82",
+        "bytes": 30,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts": {
+      "before": null,
+      "after": {
+        "sha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+        "bytes": 15028,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned-final/compatibility.test.ts.txt": {
+      "before": null,
+      "after": {
+        "sha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+        "bytes": 15028,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned-final/manifest.json": {
+      "before": null,
+      "after": {
+        "sha256": "103d3e76b2121056bf75b23d24ce7b8212d44e33fe16b5512c8468cfd2b52248",
+        "bytes": 17735,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned-final/observations.json": {
+      "before": null,
+      "after": {
+        "sha256": "29d59a0f885b1fa0532492e4581e4a904b614a1787f4142827831a6641b30c47",
+        "bytes": 122492,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned-final/scoped-tsconfig.json": {
+      "before": null,
+      "after": {
+        "sha256": "9620184239d0aa7850acf66a8116b8c309ad0564b3b3180fd271d7b9bd779fa4",
+        "bytes": 371,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned-final/source-4fa4ba9.tar.gz": {
+      "before": null,
+      "after": {
+        "sha256": "2cb5b02d9d2fa802fba6b20ff3986b7a76f1026d29528c5781bb3c81cb96f87b",
+        "bytes": 363404,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned-final/tests.stderr.txt": {
+      "before": null,
+      "after": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned-final/types.stderr.txt": {
+      "before": null,
+      "after": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned-final/types.stdout.txt": {
+      "before": null,
+      "after": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned/compatibility.test.ts.txt": {
+      "before": null,
+      "after": {
+        "sha256": "0f36852e0884269f7a8ce90830e287678ed90356116042d2edc1a1c0f00dd05b",
+        "bytes": 14439,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned/manifest.json": {
+      "before": null,
+      "after": {
+        "sha256": "cd4a769bb2874bcb685ca2664a3656d7d138fb319489f14f091c5a2ce5242959",
+        "bytes": 17227,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned/observations.json": {
+      "before": null,
+      "after": {
+        "sha256": "08d9339ded734859873bd1d79f136e86f12a4556875798eb0442fa17050cc69b",
+        "bytes": 115780,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned/scoped-tsconfig.json": {
+      "before": null,
+      "after": {
+        "sha256": "b0374f899aea5fe8ef4d68e4510b1a0f93658c29c70f3dc60edc47a08658b4d3",
+        "bytes": 371,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned/source-4fa4ba9.tar.gz": {
+      "before": null,
+      "after": {
+        "sha256": "2cb5b02d9d2fa802fba6b20ff3986b7a76f1026d29528c5781bb3c81cb96f87b",
+        "bytes": 363404,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned/tests.stderr.txt": {
+      "before": null,
+      "after": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned/types.stderr.txt": {
+      "before": null,
+      "after": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/evidence/pinned/types.stdout.txt": {
+      "before": null,
+      "after": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-compatibility-review/run.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "95d2bc4a17b2dbc20fb6015b7b3030faea840c50fdc4e967956cf8514bc8691c",
+        "bytes": 5510,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/fs/mount/identity-scope.test.ts": {
+      "before": {
+        "sha256": "ec4e95474112f7bf01dea9bf50a77e4933542edf6103fc72a0f59c94e8428d23",
+        "bytes": 7107,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "447798cb431cf52d2da3b859afea9475afb6abb495f5dfd533d558d985de32eb",
+        "bytes": 7982,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/FINDINGS.md": {
+      "before": null,
+      "after": {
+        "sha256": "db54d242b831d4c71eb3b8226f3fe3c2770566d5cf5d1666d894a5b964fd075c",
+        "bytes": 3327,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/README.md": {
+      "before": null,
+      "after": {
+        "sha256": "252d8f661aee172e908cf8a24558977fa5f03f400f29cab0aaece746e7428c07",
+        "bytes": 10501,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/audit-preparation.ts": {
+      "before": null,
+      "after": {
+        "sha256": "fd7906b9668b02e3b076ed294aec9a5ad859a70899195bc8bfd4fdae40d5808b",
+        "bytes": 3363,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/baseline-evidence.json": {
+      "before": null,
+      "after": {
+        "sha256": "28cf441d4e5347d23a9e6043362be0c5076b7b9dde7e3f23e36e2995fe4a7965",
+        "bytes": 13376,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/capture-native.ts": {
+      "before": {
+        "sha256": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+        "bytes": 4112,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+        "bytes": 4112,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/cases.ts": {
+      "before": {
+        "sha256": "4c86837e76317083098c5538a572c4eec14ddf8f1ee8ed8d08fb355415731246",
+        "bytes": 7473,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+        "bytes": 7415,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/cleanup-evidence.json": {
+      "before": null,
+      "after": {
+        "sha256": "530c25c5abfcf71e93e9b6f640694b7a85653550f0736dc0999b57c9875f05f8",
+        "bytes": 2894,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/harness.ts": {
+      "before": {
+        "sha256": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+        "bytes": 4175,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+        "bytes": 4175,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/holdout.test.ts": {
+      "before": null,
+      "after": {
+        "sha256": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+        "bytes": 4335,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/native-corrected-evidence.json": {
+      "before": null,
+      "after": {
+        "sha256": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+        "bytes": 225933,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/native-evidence.json": {
+      "before": {
+        "sha256": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f",
+        "bytes": 226480,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f",
+        "bytes": 226480,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/preparation-audit.json": {
+      "before": null,
+      "after": {
+        "sha256": "2a3c8a7c2d8a72422474a67a3661d5b9bbcb4712360b28a53199d2e7fd987421",
+        "bytes": 3072,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/ready-wait-evidence.json": {
+      "before": null,
+      "after": {
+        "sha256": "247a05df3a30513efa2498d41d7501a1ffe142979c5a7adc1d901b87bef8e183",
+        "bytes": 152,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/trace.mjs": {
+      "before": {
+        "sha256": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+        "bytes": 451,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+        "bytes": 451,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/verify.ts": {
+      "before": null,
+      "after": {
+        "sha256": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b",
+        "bytes": 3333,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell-stress/invocation-modes/virtual-child.ts": {
+      "before": null,
+      "after": {
+        "sha256": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+        "bytes": 11083,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell/SCRIPT_ENTRYPOINTS.md": {
+      "before": {
+        "sha256": "ef665159ef1f808cd2469a6f0f672ca8d0b36ea404641de2fad6288b66fddbe4",
+        "bytes": 10209,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "ca144b21599669fac5df514d8cf1707cf9287b00cd1b543939aeff643c71b531",
+        "bytes": 10516,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/shell/invocation-modes-cases.ts": {
+      "before": null,
+      "after": {
+        "sha256": "eead41974e124f79181f1c1dada9aa18d4a8bd13318005574827b9569b16ee91",
+        "bytes": 5961,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/shell/invocation-modes-native.ts": {
+      "before": null,
+      "after": {
+        "sha256": "c4253c367d43de7f9ce9cde992494df81761828f8a686363c516223c08422bbf",
+        "bytes": 7949,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/shell/invocation-modes-probe.ts": {
+      "before": null,
+      "after": {
+        "sha256": "acb89e509a1ac345a2903c46a3e6d6748f833f326504c4c793d099217c1df2cd",
+        "bytes": 4359,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/shell/invocation-modes-reference.json": {
+      "before": null,
+      "after": {
+        "sha256": "31bbc09b2348d991cede4bdd5b5878efc3f6795f864522e4ec9ce91c28cd4eeb",
+        "bytes": 35640,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/shell/invocation-modes.test.ts": {
+      "before": null,
+      "after": {
+        "sha256": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+        "bytes": 13076,
+        "mode": 420,
+        "tracked": false
+      }
+    },
+    "tests/shell/script-entrypoint.test.ts": {
+      "before": {
+        "sha256": "6b324f6b99be714bddaf51ec74f8cf97ce1b6bc8e523f30934eec36a09de3e65",
+        "bytes": 16977,
+        "mode": 420,
+        "tracked": true
+      },
+      "after": {
+        "sha256": "57c4b9b71249b82ca68dce2979be26d13e7be5777d2778bd17e101b7ffe70ec6",
+        "bytes": 17116,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/REPORT.md": {
+      "before": null,
+      "after": {
+        "sha256": "4432c32488948109b1d42eec2f0b55c617acd912050f7233247008e28a3f593d",
+        "bytes": 9684,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/SHA256SUMS": {
+      "before": null,
+      "after": {
+        "sha256": "eba83422c4eab53750b6477d782cbf0da56f326f555e4cc465e2beca1adaf76c",
+        "bytes": 3541,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/commands.json": {
+      "before": null,
+      "after": {
+        "sha256": "094e755eb07c53c9fae862081b4566c7e2e22cfe6669514653ac57470cfd69bb",
+        "bytes": 5143,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/live-owned-checkpoint.json": {
+      "before": null,
+      "after": {
+        "sha256": "75a95f45374609424ca7404a8c0e89d33910779e7824d842d0e69cdb65263ba1",
+        "bytes": 8383,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/manifest-after.json": {
+      "before": null,
+      "after": {
+        "sha256": "2c657678ff18e5cce3d8e81103b3f9aaedcce54b1367693b6e8cce0b5ccb4245",
+        "bytes": 24278,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/manifest-before.json": {
+      "before": null,
+      "after": {
+        "sha256": "2c657678ff18e5cce3d8e81103b3f9aaedcce54b1367693b6e8cce0b5ccb4245",
+        "bytes": 24278,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/original-cohort-revised.exit.json": {
+      "before": null,
+      "after": {
+        "sha256": "386d9712fd207ed19ad07be636b1a142225a6fb7e24bc6876f376531c055a0f2",
+        "bytes": 505,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/permission-observations.exit.json": {
+      "before": null,
+      "after": {
+        "sha256": "972686151cd216a711f2fee842b812f66d2663a5a4fac1e5bde56e73ec879663",
+        "bytes": 363,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/permission-profile-probe.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "42be844d985f51eb077e04b0accb4fdc09dd9aa331166d3afa105b4fba08f3b6",
+        "bytes": 1928,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/provenance.json": {
+      "before": null,
+      "after": {
+        "sha256": "5e06fccc76ed2de9fae5555c52bb497e0524394d7eef72c89a642334019eff5f",
+        "bytes": 837,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/remote-backends.exit.json": {
+      "before": null,
+      "after": {
+        "sha256": "b0921053c9f8d3e335c9e16dc8b214d3a4cddd7bd6859a113013869c64d0d21e",
+        "bytes": 1323,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/remote-conformance.exit.json": {
+      "before": null,
+      "after": {
+        "sha256": "af5abfb6437eda849ff568fdc52dce906ffcb3e3ad2e977fc804d254091e048a",
+        "bytes": 519,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-00-original-fixed-runner.patch": {
+      "before": null,
+      "after": {
+        "sha256": "20f1032ab87728c78fe8c6428c853427441ba4297dd0efac72ab470ae76e9610",
+        "bytes": 30,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-00-original.patch": {
+      "before": null,
+      "after": {
+        "sha256": "20f1032ab87728c78fe8c6428c853427441ba4297dd0efac72ab470ae76e9610",
+        "bytes": 30,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-01-truncate-fixed-runner.patch": {
+      "before": null,
+      "after": {
+        "sha256": "dc8bab0401cfc9da87ec1806c8e912ab55e75c90bb10ee49a4300adfc0a7cbe1",
+        "bytes": 18183,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-01-truncate.patch": {
+      "before": null,
+      "after": {
+        "sha256": "dc8bab0401cfc9da87ec1806c8e912ab55e75c90bb10ee49a4300adfc0a7cbe1",
+        "bytes": 18183,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-02-rename.patch": {
+      "before": null,
+      "after": {
+        "sha256": "dc5c83cbafef4d15ea074f829d512fa0f81c49557df6654113cf5d2431743a7d",
+        "bytes": 47431,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-03-webdav-corrected.patch": {
+      "before": null,
+      "after": {
+        "sha256": "b072d44d5a5099cc7670f607b4a5ead9890594c315e97ee5117881b39bd496c2",
+        "bytes": 64302,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-03-webdav.patch": {
+      "before": null,
+      "after": {
+        "sha256": "a3eae10143f2e30753a2b581c26b50e333b3f8f9fd56bb554a0e1d26f2152da1",
+        "bytes": 53853,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-04-final.patch": {
+      "before": null,
+      "after": {
+        "sha256": "96ac0047e2c534d4fb717bbdee9faaae1b99dfb01c426a175e2f6c1e5649bea7",
+        "bytes": 198272,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/replay-verification.json": {
+      "before": null,
+      "after": {
+        "sha256": "f5dca15ebf2cf63d1550db609ca5ce0d7f45cdfbcf5ab0477a5d89d06702d37e",
+        "bytes": 966,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/runner.mjs": {
+      "before": null,
+      "after": {
+        "sha256": "abf45d5601c79295224f8b8f69eacd4e8326a212da8c5ab29daed3e3691517f6",
+        "bytes": 4505,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/safe-workflows.exit.json": {
+      "before": null,
+      "after": {
+        "sha256": "8a750a35b8630c328d1fdddaea62c99384368c5c183441f5cd459ff1c2da8b6b",
+        "bytes": 394,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/scoped-types.exit.json": {
+      "before": null,
+      "after": {
+        "sha256": "16b98e19de583e2c3c0c92fad6be05d46d2d3c10ea281320ce06406c0125f63f",
+        "bytes": 2419,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/stability.json": {
+      "before": null,
+      "after": {
+        "sha256": "bd29526836b61c0f1d354bdc0dddb29c78fb05be300a39c740a4e46b0ebd1f04",
+        "bytes": 40,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/evidence/four-reds-b2d202a/04-final/stress-candidate.exit.json": {
+      "before": null,
+      "after": {
+        "sha256": "e050e25055089635afe124a1ae01c7768e29ea06d87049f908cfa1f72ddf2687",
+        "bytes": 739,
+        "mode": 420,
+        "tracked": true
+      }
+    },
+    "tests/stress/adapters/remote-safe-workflows.test.ts": {
+      "before": {
+        "sha256": "e8f5e47e15f8e601b08176954533eacff02102c4910d4c6da52547546989f4e5",
+        "bytes": 5233,
+        "mode": 420,
+        "tracked": false
+      },
+      "after": {
+        "sha256": "e8f5e47e15f8e601b08176954533eacff02102c4910d4c6da52547546989f4e5",
+        "bytes": 5233,
+        "mode": 420,
+        "tracked": true
+      }
+    }
+  },
+  "dependencies": {
+    "root": {
+      "liveUnchanged": true,
+      "copyUnchanged": true,
+      "liveFileFingerprint": "586849fa6b54ecc1e4668cc1fa9018a5209bb74a7410f13bca8ebc1a884554c1",
+      "copyFileFingerprint": "586849fa6b54ecc1e4668cc1fa9018a5209bb74a7410f13bca8ebc1a884554c1"
+    },
+    "benchmark": {
+      "liveUnchanged": true,
+      "copyUnchanged": true,
+      "liveFileFingerprint": "1262b097a360f1597e2aff1e9791c2c209152291b6af7bf5c232944da4e9b24f",
+      "copyFileFingerprint": "1262b097a360f1597e2aff1e9791c2c209152291b6af7bf5c232944da4e9b24f"
+    }
+  },
+  "generatedFiles": [
+    {
+      "path": "dist/index.js",
+      "bytes": 857
+    },
+    {
+      "path": "dist/index.js.map",
+      "bytes": 560
+    },
+    {
+      "path": "dist/index.d.ts",
+      "bytes": 859
+    },
+    {
+      "path": "dist/index.d.ts.map",
+      "bytes": 562
+    },
+    {
+      "path": "dist/plugins/index.js",
+      "bytes": 2160
+    },
+    {
+      "path": "dist/plugins/index.js.map",
+      "bytes": 2119
+    },
+    {
+      "path": "dist/plugins/index.d.ts",
+      "bytes": 1140
+    },
+    {
+      "path": "dist/plugins/index.d.ts.map",
+      "bytes": 1024
+    },
+    {
+      "path": "dist/shell/shell.js",
+      "bytes": 7848
+    },
+    {
+      "path": "dist/shell/input.d.ts.map",
+      "bytes": 789
+    },
+    {
+      "path": "dist/shell/pattern.d.ts.map",
+      "bytes": 449
+    },
+    {
+      "path": "dist/shell/shell.js.map",
+      "bytes": 7955
+    },
+    {
+      "path": "dist/shell/runtime.d.ts",
+      "bytes": 5362
+    },
+    {
+      "path": "dist/shell/arithmetic.js.map",
+      "bytes": 11677
+    },
+    {
+      "path": "dist/shell/runtime.js",
+      "bytes": 73309
+    },
+    {
+      "path": "dist/shell/types.js",
+      "bytes": 738
+    },
+    {
+      "path": "dist/shell/pattern.js",
+      "bytes": 5344
+    },
+    {
+      "path": "dist/shell/types.js.map",
+      "bytes": 656
+    },
+    {
+      "path": "dist/shell/types.d.ts",
+      "bytes": 2426
+    },
+    {
+      "path": "dist/shell/parser.js.map",
+      "bytes": 37458
+    },
+    {
+      "path": "dist/shell/input.d.ts",
+      "bytes": 762
+    },
+    {
+      "path": "dist/shell/arithmetic.js",
+      "bytes": 10808
+    },
+    {
+      "path": "dist/shell/index.js",
+      "bytes": 175
+    },
+    {
+      "path": "dist/shell/locale.d.ts",
+      "bytes": 126
+    },
+    {
+      "path": "dist/shell/locale.d.ts.map",
+      "bytes": 207
+    },
+    {
+      "path": "dist/shell/input.js.map",
+      "bytes": 9723
+    },
+    {
+      "path": "dist/shell/shell.d.ts.map",
+      "bytes": 876
+    },
+    {
+      "path": "dist/shell/pattern.js.map",
+      "bytes": 5625
+    },
+    {
+      "path": "dist/shell/locale.js.map",
+      "bytes": 286
+    },
+    {
+      "path": "dist/shell/shell.d.ts",
+      "bytes": 923
+    },
+    {
+      "path": "dist/shell/arithmetic.d.ts.map",
+      "bytes": 1148
+    },
+    {
+      "path": "dist/shell/pattern.d.ts",
+      "bytes": 377
+    },
+    {
+      "path": "dist/shell/runtime.d.ts.map",
+      "bytes": 5816
+    },
+    {
+      "path": "dist/shell/index.js.map",
+      "bytes": 244
+    },
+    {
+      "path": "dist/shell/types.d.ts.map",
+      "bytes": 2549
+    },
+    {
+      "path": "dist/shell/index.d.ts",
+      "bytes": 310
+    },
+    {
+      "path": "dist/shell/runtime.js.map",
+      "bytes": 75521
+    },
+    {
+      "path": "dist/shell/parser.d.ts",
+      "bytes": 2933
+    },
+    {
+      "path": "dist/shell/parser.js",
+      "bytes": 34144
+    },
+    {
+      "path": "dist/shell/arithmetic.d.ts",
+      "bytes": 1009
+    },
+    {
+      "path": "dist/shell/locale.js",
+      "bytes": 202
+    },
+    {
+      "path": "dist/shell/input.js",
+      "bytes": 9273
+    },
+    {
+      "path": "dist/shell/index.d.ts.map",
+      "bytes": 343
+    },
+    {
+      "path": "dist/shell/parser.d.ts.map",
+      "bytes": 3490
+    },
+    {
+      "path": "dist/contracts/io.js",
+      "bytes": 7365
+    },
+    {
+      "path": "dist/contracts/path.d.ts",
+      "bytes": 844
+    },
+    {
+      "path": "dist/contracts/filesystem.js",
+      "bytes": 121
+    },
+    {
+      "path": "dist/contracts/filesystem.d.ts.map",
+      "bytes": 4454
+    },
+    {
+      "path": "dist/contracts/io.d.ts.map",
+      "bytes": 1368
+    },
+    {
+      "path": "dist/contracts/errors.d.ts",
+      "bytes": 2102
+    },
+    {
+      "path": "dist/contracts/errors.js.map",
+      "bytes": 3333
+    },
+    {
+      "path": "dist/contracts/path.d.ts.map",
+      "bytes": 735
+    },
+    {
+      "path": "dist/contracts/filesystem.js.map",
+      "bytes": 270
+    },
+    {
+      "path": "dist/contracts/index.js",
+      "bytes": 206
+    },
+    {
+      "path": "dist/contracts/errors.d.ts.map",
+      "bytes": 917
+    },
+    {
+      "path": "dist/contracts/plugin.d.ts",
+      "bytes": 836
+    },
+    {
+      "path": "dist/contracts/command.js",
+      "bytes": 1353
+    },
+    {
+      "path": "dist/contracts/io.js.map",
+      "bytes": 7646
+    },
+    {
+      "path": "dist/contracts/plugin.js.map",
+      "bytes": 1751
+    },
+    {
+      "path": "dist/contracts/command.d.ts",
+      "bytes": 1813
+    },
+    {
+      "path": "dist/contracts/command.js.map",
+      "bytes": 1476
+    },
+    {
+      "path": "dist/contracts/errors.js",
+      "bytes": 3225
+    },
+    {
+      "path": "dist/contracts/io.d.ts",
+      "bytes": 1299
+    },
+    {
+      "path": "dist/contracts/index.js.map",
+      "bytes": 241
+    },
+    {
+      "path": "dist/contracts/path.js",
+      "bytes": 1631
+    },
+    {
+      "path": "dist/contracts/path.js.map",
+      "bytes": 1872
+    },
+    {
+      "path": "dist/contracts/command.d.ts.map",
+      "bytes": 1907
+    },
+    {
+      "path": "dist/contracts/plugin.d.ts.map",
+      "bytes": 880
+    },
+    {
+      "path": "dist/contracts/index.d.ts",
+      "bytes": 208
+    },
+    {
+      "path": "dist/contracts/plugin.js",
+      "bytes": 1878
+    },
+    {
+      "path": "dist/contracts/filesystem.d.ts",
+      "bytes": 3805
+    },
+    {
+      "path": "dist/contracts/index.d.ts.map",
+      "bytes": 243
+    },
+    {
+      "path": "dist/integrations/safejs/shell.js",
+      "bytes": 2623
+    },
+    {
+      "path": "dist/integrations/safejs/filesystem.js",
+      "bytes": 17832
+    },
+    {
+      "path": "dist/integrations/safejs/shell.js.map",
+      "bytes": 2871
+    },
+    {
+      "path": "dist/integrations/safejs/filesystem.d.ts.map",
+      "bytes": 991
+    },
+    {
+      "path": "dist/integrations/safejs/values.d.ts.map",
+      "bytes": 707
+    },
+    {
+      "path": "dist/integrations/safejs/filesystem.js.map",
+      "bytes": 20131
+    },
+    {
+      "path": "dist/integrations/safejs/index.js",
+      "bytes": 159
+    },
+    {
+      "path": "dist/integrations/safejs/stats.js.map",
+      "bytes": 1623
+    },
+    {
+      "path": "dist/integrations/safejs/shell.d.ts.map",
+      "bytes": 1280
+    },
+    {
+      "path": "dist/integrations/safejs/values.js",
+      "bytes": 2395
+    },
+    {
+      "path": "dist/integrations/safejs/shell.d.ts",
+      "bytes": 1302
+    },
+    {
+      "path": "dist/integrations/safejs/stats.d.ts.map",
+      "bytes": 436
+    },
+    {
+      "path": "dist/integrations/safejs/index.js.map",
+      "bytes": 226
+    },
+    {
+      "path": "dist/integrations/safejs/values.js.map",
+      "bytes": 2566
+    },
+    {
+      "path": "dist/integrations/safejs/index.d.ts",
+      "bytes": 464
+    },
+    {
+      "path": "dist/integrations/safejs/stats.d.ts",
+      "bytes": 340
+    },
+    {
+      "path": "dist/integrations/safejs/values.d.ts",
+      "bytes": 627
+    },
+    {
+      "path": "dist/integrations/safejs/filesystem.d.ts",
+      "bytes": 987
+    },
+    {
+      "path": "dist/integrations/safejs/stats.js",
+      "bytes": 1280
+    },
+    {
+      "path": "dist/integrations/safejs/index.d.ts.map",
+      "bytes": 426
+    },
+    {
+      "path": "dist/commands/filesystem.js",
+      "bytes": 20986
+    },
+    {
+      "path": "dist/commands/grep.d.ts.map",
+      "bytes": 205
+    },
+    {
+      "path": "dist/commands/internal.d.ts.map",
+      "bytes": 2116
+    },
+    {
+      "path": "dist/commands/filesystem.d.ts.map",
+      "bytes": 221
+    },
+    {
+      "path": "dist/commands/streams.d.ts",
+      "bytes": 164
+    },
+    {
+      "path": "dist/commands/grep.js",
+      "bytes": 8409
+    },
+    {
+      "path": "dist/commands/predicates.d.ts",
+      "bytes": 170
+    },
+    {
+      "path": "dist/commands/basic.js.map",
+      "bytes": 11096
+    },
+    {
+      "path": "dist/commands/streams.js.map",
+      "bytes": 19308
+    },
+    {
+      "path": "dist/commands/execution.js.map",
+      "bytes": 10073
+    },
+    {
+      "path": "dist/commands/text.js.map",
+      "bytes": 18490
+    },
+    {
+      "path": "dist/commands/predicates.js",
+      "bytes": 6958
+    },
+    {
+      "path": "dist/commands/execution.d.ts.map",
+      "bytes": 306
+    },
+    {
+      "path": "dist/commands/predicates.d.ts.map",
+      "bytes": 220
+    },
+    {
+      "path": "dist/commands/internal.js",
+      "bytes": 8845
+    },
+    {
+      "path": "dist/commands/filesystem.js.map",
+      "bytes": 24368
+    },
+    {
+      "path": "dist/commands/grep.d.ts",
+      "bytes": 159
+    },
+    {
+      "path": "dist/commands/find.js.map",
+      "bytes": 11673
+    },
+    {
+      "path": "dist/commands/index.js",
+      "bytes": 2118
+    },
+    {
+      "path": "dist/commands/streams.js",
+      "bytes": 17357
+    },
+    {
+      "path": "dist/commands/execution.js",
+      "bytes": 9930
+    },
+    {
+      "path": "dist/commands/find.d.ts",
+      "bytes": 203
+    },
+    {
+      "path": "dist/commands/text.d.ts.map",
+      "bytes": 206
+    },
+    {
+      "path": "dist/commands/find.d.ts.map",
+      "bytes": 242
+    },
+    {
+      "path": "dist/commands/grep.js.map",
+      "bytes": 8681
+    },
+    {
+      "path": "dist/commands/index.js.map",
+      "bytes": 2117
+    },
+    {
+      "path": "dist/commands/internal.d.ts",
+      "bytes": 2207
+    },
+    {
+      "path": "dist/commands/basic.js",
+      "bytes": 11031
+    },
+    {
+      "path": "dist/commands/basic.d.ts.map",
+      "bytes": 207
+    },
+    {
+      "path": "dist/commands/index.d.ts",
+      "bytes": 471
+    },
+    {
+      "path": "dist/commands/internal.js.map",
+      "bytes": 10465
+    },
+    {
+      "path": "dist/commands/find.js",
+      "bytes": 11669
+    },
+    {
+      "path": "dist/commands/text.d.ts",
+      "bytes": 159
+    },
+    {
+      "path": "dist/commands/execution.d.ts",
+      "bytes": 295
+    },
+    {
+      "path": "dist/commands/streams.d.ts.map",
+      "bytes": 212
+    },
+    {
+      "path": "dist/commands/filesystem.d.ts",
+      "bytes": 171
+    },
+    {
+      "path": "dist/commands/text.js",
+      "bytes": 17346
+    },
+    {
+      "path": "dist/commands/predicates.js.map",
+      "bytes": 6609
+    },
+    {
+      "path": "dist/commands/index.d.ts.map",
+      "bytes": 436
+    },
+    {
+      "path": "dist/commands/basic.d.ts",
+      "bytes": 161
+    },
+    {
+      "path": "dist/commands/bytes/index.js",
+      "bytes": 955
+    },
+    {
+      "path": "dist/commands/bytes/index.js.map",
+      "bytes": 873
+    },
+    {
+      "path": "dist/commands/bytes/index.d.ts",
+      "bytes": 360
+    },
+    {
+      "path": "dist/commands/bytes/index.d.ts.map",
+      "bytes": 359
+    },
+    {
+      "path": "dist/commands/bytes/encoding/od.d.ts.map",
+      "bytes": 217
+    },
+    {
+      "path": "dist/commands/bytes/encoding/xxd.d.ts",
+      "bytes": 166
+    },
+    {
+      "path": "dist/commands/bytes/encoding/od.js",
+      "bytes": 6788
+    },
+    {
+      "path": "dist/commands/bytes/encoding/xxd.js.map",
+      "bytes": 7160
+    },
+    {
+      "path": "dist/commands/bytes/encoding/shared.d.ts.map",
+      "bytes": 822
+    },
+    {
+      "path": "dist/commands/bytes/encoding/index.js",
+      "bytes": 323
+    },
+    {
+      "path": "dist/commands/bytes/encoding/shared.d.ts",
+      "bytes": 773
+    },
+    {
+      "path": "dist/commands/bytes/encoding/shared.js.map",
+      "bytes": 4547
+    },
+    {
+      "path": "dist/commands/bytes/encoding/base.js",
+      "bytes": 4404
+    },
+    {
+      "path": "dist/commands/bytes/encoding/xxd.js",
+      "bytes": 6556
+    },
+    {
+      "path": "dist/commands/bytes/encoding/index.js.map",
+      "bytes": 401
+    },
+    {
+      "path": "dist/commands/bytes/encoding/xxd.d.ts.map",
+      "bytes": 222
+    },
+    {
+      "path": "dist/commands/bytes/encoding/base.d.ts",
+      "bytes": 193
+    },
+    {
+      "path": "dist/commands/bytes/encoding/base.d.ts.map",
+      "bytes": 253
+    },
+    {
+      "path": "dist/commands/bytes/encoding/index.d.ts",
+      "bytes": 185
+    },
+    {
+      "path": "dist/commands/bytes/encoding/base.js.map",
+      "bytes": 5290
+    },
+    {
+      "path": "dist/commands/bytes/encoding/shared.js",
+      "bytes": 4012
+    },
+    {
+      "path": "dist/commands/bytes/encoding/od.js.map",
+      "bytes": 7940
+    },
+    {
+      "path": "dist/commands/bytes/encoding/od.d.ts",
+      "bytes": 164
+    },
+    {
+      "path": "dist/commands/bytes/encoding/index.d.ts.map",
+      "bytes": 233
+    },
+    {
+      "path": "dist/commands/bytes/checksums/index.js",
+      "bytes": 12772
+    },
+    {
+      "path": "dist/commands/bytes/checksums/index.js.map",
+      "bytes": 13563
+    },
+    {
+      "path": "dist/commands/bytes/checksums/index.d.ts",
+      "bytes": 185
+    },
+    {
+      "path": "dist/commands/bytes/checksums/index.d.ts.map",
+      "bytes": 236
+    },
+    {
+      "path": "dist/commands/bytes/compression/stream.d.ts.map",
+      "bytes": 559
+    },
+    {
+      "path": "dist/commands/bytes/compression/options.d.ts.map",
+      "bytes": 465
+    },
+    {
+      "path": "dist/commands/bytes/compression/stream.js",
+      "bytes": 3588
+    },
+    {
+      "path": "dist/commands/bytes/compression/options.d.ts",
+      "bytes": 343
+    },
+    {
+      "path": "dist/commands/bytes/compression/gunzip.js.map",
+      "bytes": 7536
+    },
+    {
+      "path": "dist/commands/bytes/compression/files.js",
+      "bytes": 10403
+    },
+    {
+      "path": "dist/commands/bytes/compression/options.js",
+      "bytes": 2027
+    },
+    {
+      "path": "dist/commands/bytes/compression/gunzip.js",
+      "bytes": 6727
+    },
+    {
+      "path": "dist/commands/bytes/compression/gunzip.d.ts.map",
+      "bytes": 309
+    },
+    {
+      "path": "dist/commands/bytes/compression/index.js",
+      "bytes": 2410
+    },
+    {
+      "path": "dist/commands/bytes/compression/stream.js.map",
+      "bytes": 3806
+    },
+    {
+      "path": "dist/commands/bytes/compression/stream.d.ts",
+      "bytes": 497
+    },
+    {
+      "path": "dist/commands/bytes/compression/options.js.map",
+      "bytes": 2062
+    },
+    {
+      "path": "dist/commands/bytes/compression/files.d.ts",
+      "bytes": 714
+    },
+    {
+      "path": "dist/commands/bytes/compression/gunzip.d.ts",
+      "bytes": 225
+    },
+    {
+      "path": "dist/commands/bytes/compression/files.d.ts.map",
+      "bytes": 775
+    },
+    {
+      "path": "dist/commands/bytes/compression/index.js.map",
+      "bytes": 2178
+    },
+    {
+      "path": "dist/commands/bytes/compression/index.d.ts",
+      "bytes": 188
+    },
+    {
+      "path": "dist/commands/bytes/compression/files.js.map",
+      "bytes": 11117
+    },
+    {
+      "path": "dist/commands/bytes/compression/index.d.ts.map",
+      "bytes": 238
+    },
+    {
+      "path": "dist/commands/network/args.d.ts",
+      "bytes": 1018
+    },
+    {
+      "path": "dist/commands/network/output.js.map",
+      "bytes": 4459
+    },
+    {
+      "path": "dist/commands/network/curl.d.ts",
+      "bytes": 254
+    },
+    {
+      "path": "dist/commands/network/body.js.map",
+      "bytes": 8693
+    },
+    {
+      "path": "dist/commands/network/types.js",
+      "bytes": 506
+    },
+    {
+      "path": "dist/commands/network/types.js.map",
+      "bytes": 603
+    },
+    {
+      "path": "dist/commands/network/body.d.ts.map",
+      "bytes": 607
+    },
+    {
+      "path": "dist/commands/network/types.d.ts",
+      "bytes": 1666
+    },
+    {
+      "path": "dist/commands/network/args.js.map",
+      "bytes": 9615
+    },
+    {
+      "path": "dist/commands/network/output.d.ts",
+      "bytes": 662
+    },
+    {
+      "path": "dist/commands/network/shared.d.ts.map",
+      "bytes": 808
+    },
+    {
+      "path": "dist/commands/network/transport.js",
+      "bytes": 3310
+    },
+    {
+      "path": "dist/commands/network/index.js",
+      "bytes": 868
+    },
+    {
+      "path": "dist/commands/network/body.js",
+      "bytes": 8101
+    },
+    {
+      "path": "dist/commands/network/curl.js.map",
+      "bytes": 17898
+    },
+    {
+      "path": "dist/commands/network/shared.d.ts",
+      "bytes": 784
+    },
+    {
+      "path": "dist/commands/network/args.d.ts.map",
+      "bytes": 1241
+    },
+    {
+      "path": "dist/commands/network/curl.js",
+      "bytes": 18048
+    },
+    {
+      "path": "dist/commands/network/transport.js.map",
+      "bytes": 3562
+    },
+    {
+      "path": "dist/commands/network/transport.d.ts",
+      "bytes": 338
+    },
+    {
+      "path": "dist/commands/network/output.js",
+      "bytes": 3958
+    },
+    {
+      "path": "dist/commands/network/shared.js.map",
+      "bytes": 2842
+    },
+    {
+      "path": "dist/commands/network/transport.d.ts.map",
+      "bytes": 398
+    },
+    {
+      "path": "dist/commands/network/body.d.ts",
+      "bytes": 568
+    },
+    {
+      "path": "dist/commands/network/index.js.map",
+      "bytes": 868
+    },
+    {
+      "path": "dist/commands/network/types.d.ts.map",
+      "bytes": 1775
+    },
+    {
+      "path": "dist/commands/network/index.d.ts",
+      "bytes": 678
+    },
+    {
+      "path": "dist/commands/network/shared.js",
+      "bytes": 2327
+    },
+    {
+      "path": "dist/commands/network/args.js",
+      "bytes": 9572
+    },
+    {
+      "path": "dist/commands/network/curl.d.ts.map",
+      "bytes": 286
+    },
+    {
+      "path": "dist/commands/network/index.d.ts.map",
+      "bytes": 555
+    },
+    {
+      "path": "dist/commands/network/output.d.ts.map",
+      "bytes": 712
+    },
+    {
+      "path": "dist/commands/search/output.js.map",
+      "bytes": 5152
+    },
+    {
+      "path": "dist/commands/search/walk.d.ts.map",
+      "bytes": 941
+    },
+    {
+      "path": "dist/commands/search/rg.d.ts",
+      "bytes": 229
+    },
+    {
+      "path": "dist/commands/search/options.d.ts.map",
+      "bytes": 1732
+    },
+    {
+      "path": "dist/commands/search/walk.d.ts",
+      "bytes": 860
+    },
+    {
+      "path": "dist/commands/search/glob.d.ts.map",
+      "bytes": 612
+    },
+    {
+      "path": "dist/commands/search/options.d.ts",
+      "bytes": 1506
+    },
+    {
+      "path": "dist/commands/search/options.js",
+      "bytes": 11714
+    },
+    {
+      "path": "dist/commands/search/output.d.ts",
+      "bytes": 1204
+    },
+    {
+      "path": "dist/commands/search/rg.js.map",
+      "bytes": 11144
+    },
+    {
+      "path": "dist/commands/search/rg.js",
+      "bytes": 10353
+    },
+    {
+      "path": "dist/commands/search/shared.d.ts.map",
+      "bytes": 1482
+    },
+    {
+      "path": "dist/commands/search/index.js",
+      "bytes": 756
+    },
+    {
+      "path": "dist/commands/search/matcher.d.ts.map",
+      "bytes": 556
+    },
+    {
+      "path": "dist/commands/search/rg.d.ts.map",
+      "bytes": 275
+    },
+    {
+      "path": "dist/commands/search/options.js.map",
+      "bytes": 9195
+    },
+    {
+      "path": "dist/commands/search/matcher.js",
+      "bytes": 6063
+    },
+    {
+      "path": "dist/commands/search/shared.d.ts",
+      "bytes": 1455
+    },
+    {
+      "path": "dist/commands/search/matcher.js.map",
+      "bytes": 6579
+    },
+    {
+      "path": "dist/commands/search/glob.js.map",
+      "bytes": 4902
+    },
+    {
+      "path": "dist/commands/search/walk.js.map",
+      "bytes": 8879
+    },
+    {
+      "path": "dist/commands/search/output.js",
+      "bytes": 3633
+    },
+    {
+      "path": "dist/commands/search/shared.js.map",
+      "bytes": 5381
+    },
+    {
+      "path": "dist/commands/search/index.js.map",
+      "bytes": 767
+    },
+    {
+      "path": "dist/commands/search/glob.d.ts",
+      "bytes": 536
+    },
+    {
+      "path": "dist/commands/search/walk.js",
+      "bytes": 8281
+    },
+    {
+      "path": "dist/commands/search/index.d.ts",
+      "bytes": 410
+    },
+    {
+      "path": "dist/commands/search/shared.js",
+      "bytes": 4690
+    },
+    {
+      "path": "dist/commands/search/glob.js",
+      "bytes": 4711
+    },
+    {
+      "path": "dist/commands/search/matcher.d.ts",
+      "bytes": 458
+    },
+    {
+      "path": "dist/commands/search/index.d.ts.map",
+      "bytes": 398
+    },
+    {
+      "path": "dist/commands/search/output.d.ts.map",
+      "bytes": 1342
+    },
+    {
+      "path": "dist/commands/structured/limits.d.ts.map",
+      "bytes": 2472
+    },
+    {
+      "path": "dist/commands/structured/input.d.ts.map",
+      "bytes": 747
+    },
+    {
+      "path": "dist/commands/structured/numbers.js.map",
+      "bytes": 7495
+    },
+    {
+      "path": "dist/commands/structured/numbers.js",
+      "bytes": 5527
+    },
+    {
+      "path": "dist/commands/structured/parser.js.map",
+      "bytes": 14192
+    },
+    {
+      "path": "dist/commands/structured/values.d.ts.map",
+      "bytes": 889
+    },
+    {
+      "path": "dist/commands/structured/input.d.ts",
+      "bytes": 693
+    },
+    {
+      "path": "dist/commands/structured/split.js.map",
+      "bytes": 2731
+    },
+    {
+      "path": "dist/commands/structured/limits.d.ts",
+      "bytes": 2328
+    },
+    {
+      "path": "dist/commands/structured/limits.js",
+      "bytes": 6091
+    },
+    {
+      "path": "dist/commands/structured/index.js",
+      "bytes": 811
+    },
+    {
+      "path": "dist/commands/structured/input.js.map",
+      "bytes": 10962
+    },
+    {
+      "path": "dist/commands/structured/numbers.d.ts",
+      "bytes": 764
+    },
+    {
+      "path": "dist/commands/structured/values.js",
+      "bytes": 7995
+    },
+    {
+      "path": "dist/commands/structured/jq.js.map",
+      "bytes": 10263
+    },
+    {
+      "path": "dist/commands/structured/interpreter.d.ts",
+      "bytes": 957
+    },
+    {
+      "path": "dist/commands/structured/jq.d.ts",
+      "bytes": 252
+    },
+    {
+      "path": "dist/commands/structured/interpreter.js.map",
+      "bytes": 27056
+    },
+    {
+      "path": "dist/commands/structured/split.d.ts.map",
+      "bytes": 300
+    },
+    {
+      "path": "dist/commands/structured/index.js.map",
+      "bytes": 814
+    },
+    {
+      "path": "dist/commands/structured/split.d.ts",
+      "bytes": 186
+    },
+    {
+      "path": "dist/commands/structured/numbers.d.ts.map",
+      "bytes": 839
+    },
+    {
+      "path": "dist/commands/structured/split.js",
+      "bytes": 2424
+    },
+    {
+      "path": "dist/commands/structured/values.js.map",
+      "bytes": 10204
+    },
+    {
+      "path": "dist/commands/structured/interpreter.js",
+      "bytes": 26436
+    },
+    {
+      "path": "dist/commands/structured/limits.js.map",
+      "bytes": 6944
+    },
+    {
+      "path": "dist/commands/structured/index.d.ts",
+      "bytes": 521
+    },
+    {
+      "path": "dist/commands/structured/parser.d.ts",
+      "bytes": 1035
+    },
+    {
+      "path": "dist/commands/structured/parser.js",
+      "bytes": 11901
+    },
+    {
+      "path": "dist/commands/structured/interpreter.d.ts.map",
+      "bytes": 1268
+    },
+    {
+      "path": "dist/commands/structured/jq.js",
+      "bytes": 9587
+    },
+    {
+      "path": "dist/commands/structured/values.d.ts",
+      "bytes": 713
+    },
+    {
+      "path": "dist/commands/structured/jq.d.ts.map",
+      "bytes": 281
+    },
+    {
+      "path": "dist/commands/structured/input.js",
+      "bytes": 10316
+    },
+    {
+      "path": "dist/commands/structured/index.d.ts.map",
+      "bytes": 461
+    },
+    {
+      "path": "dist/commands/structured/parser.d.ts.map",
+      "bytes": 1482
+    },
+    {
+      "path": "dist/commands/safejs/io.js",
+      "bytes": 4828
+    },
+    {
+      "path": "dist/commands/safejs/render.d.ts.map",
+      "bytes": 256
+    },
+    {
+      "path": "dist/commands/safejs/io.d.ts.map",
+      "bytes": 1488
+    },
+    {
+      "path": "dist/commands/safejs/options.d.ts.map",
+      "bytes": 584
+    },
+    {
+      "path": "dist/commands/safejs/types.js",
+      "bytes": 305
+    },
+    {
+      "path": "dist/commands/safejs/types.js.map",
+      "bytes": 329
+    },
+    {
+      "path": "dist/commands/safejs/render.d.ts",
+      "bytes": 157
+    },
+    {
+      "path": "dist/commands/safejs/render.js.map",
+      "bytes": 3627
+    },
+    {
+      "path": "dist/commands/safejs/options.d.ts",
+      "bytes": 522
+    },
+    {
+      "path": "dist/commands/safejs/types.d.ts",
+      "bytes": 2330
+    },
+    {
+      "path": "dist/commands/safejs/options.js",
+      "bytes": 2371
+    },
+    {
+      "path": "dist/commands/safejs/render.js",
+      "bytes": 3374
+    },
+    {
+      "path": "dist/commands/safejs/index.js",
+      "bytes": 10160
+    },
+    {
+      "path": "dist/commands/safejs/options.js.map",
+      "bytes": 2848
+    },
+    {
+      "path": "dist/commands/safejs/io.js.map",
+      "bytes": 5433
+    },
+    {
+      "path": "dist/commands/safejs/io.d.ts",
+      "bytes": 1322
+    },
+    {
+      "path": "dist/commands/safejs/index.js.map",
+      "bytes": 8907
+    },
+    {
+      "path": "dist/commands/safejs/types.d.ts.map",
+      "bytes": 2392
+    },
+    {
+      "path": "dist/commands/safejs/index.d.ts",
+      "bytes": 772
+    },
+    {
+      "path": "dist/commands/safejs/index.d.ts.map",
+      "bytes": 672
+    },
+    {
+      "path": "dist/commands/text-programs/awk-syntax.js.map",
+      "bytes": 26474
+    },
+    {
+      "path": "dist/commands/text-programs/regex.js.map",
+      "bytes": 19315
+    },
+    {
+      "path": "dist/commands/text-programs/regex.d.ts.map",
+      "bytes": 879
+    },
+    {
+      "path": "dist/commands/text-programs/awk.js.map",
+      "bytes": 2077
+    },
+    {
+      "path": "dist/commands/text-programs/sed.js",
+      "bytes": 27319
+    },
+    {
+      "path": "dist/commands/text-programs/awk-runtime.d.ts",
+      "bytes": 1264
+    },
+    {
+      "path": "dist/commands/text-programs/awk-values.d.ts",
+      "bytes": 1136
+    },
+    {
+      "path": "dist/commands/text-programs/awk-values.js",
+      "bytes": 7415
+    },
+    {
+      "path": "dist/commands/text-programs/awk-syntax.d.ts",
+      "bytes": 3047
+    },
+    {
+      "path": "dist/commands/text-programs/awk.js",
+      "bytes": 1999
+    },
+    {
+      "path": "dist/commands/text-programs/awk-values.d.ts.map",
+      "bytes": 1282
+    },
+    {
+      "path": "dist/commands/text-programs/awk-runtime.js.map",
+      "bytes": 35437
+    },
+    {
+      "path": "dist/commands/text-programs/shared.d.ts.map",
+      "bytes": 1519
+    },
+    {
+      "path": "dist/commands/text-programs/index.js",
+      "bytes": 840
+    },
+    {
+      "path": "dist/commands/text-programs/sed.js.map",
+      "bytes": 25537
+    },
+    {
+      "path": "dist/commands/text-programs/awk-values.js.map",
+      "bytes": 9160
+    },
+    {
+      "path": "dist/commands/text-programs/awk-syntax.d.ts.map",
+      "bytes": 3608
+    },
+    {
+      "path": "dist/commands/text-programs/shared.d.ts",
+      "bytes": 1520
+    },
+    {
+      "path": "dist/commands/text-programs/sed.d.ts.map",
+      "bytes": 287
+    },
+    {
+      "path": "dist/commands/text-programs/awk.d.ts.map",
+      "bytes": 285
+    },
+    {
+      "path": "dist/commands/text-programs/awk.d.ts",
+      "bytes": 240
+    },
+    {
+      "path": "dist/commands/text-programs/awk-runtime.d.ts.map",
+      "bytes": 1302
+    },
+    {
+      "path": "dist/commands/text-programs/awk-runtime.js",
+      "bytes": 31842
+    },
+    {
+      "path": "dist/commands/text-programs/shared.js.map",
+      "bytes": 4756
+    },
+    {
+      "path": "dist/commands/text-programs/sed.d.ts",
+      "bytes": 240
+    },
+    {
+      "path": "dist/commands/text-programs/regex.js",
+      "bytes": 18844
+    },
+    {
+      "path": "dist/commands/text-programs/index.js.map",
+      "bytes": 842
+    },
+    {
+      "path": "dist/commands/text-programs/awk-syntax.js",
+      "bytes": 23181
+    },
+    {
+      "path": "dist/commands/text-programs/index.d.ts",
+      "bytes": 438
+    },
+    {
+      "path": "dist/commands/text-programs/shared.js",
+      "bytes": 4045
+    },
+    {
+      "path": "dist/commands/text-programs/regex.d.ts",
+      "bytes": 750
+    },
+    {
+      "path": "dist/commands/text-programs/index.d.ts.map",
+      "bytes": 413
+    },
+    {
+      "path": "dist/commands/metadata/internal.d.ts.map",
+      "bytes": 1097
+    },
+    {
+      "path": "dist/commands/metadata/mktemp.d.ts.map",
+      "bytes": 228
+    },
+    {
+      "path": "dist/commands/metadata/stat.js.map",
+      "bytes": 11426
+    },
+    {
+      "path": "dist/commands/metadata/mktemp.js.map",
+      "bytes": 6427
+    },
+    {
+      "path": "dist/commands/metadata/internal.js",
+      "bytes": 2923
+    },
+    {
+      "path": "dist/commands/metadata/mktemp.js",
+      "bytes": 6753
+    },
+    {
+      "path": "dist/commands/metadata/index.js",
+      "bytes": 933
+    },
+    {
+      "path": "dist/commands/metadata/chmod.js",
+      "bytes": 8059
+    },
+    {
+      "path": "dist/commands/metadata/stat.d.ts.map",
+      "bytes": 224
+    },
+    {
+      "path": "dist/commands/metadata/chmod.js.map",
+      "bytes": 9017
+    },
+    {
+      "path": "dist/commands/metadata/stat.d.ts",
+      "bytes": 236
+    },
+    {
+      "path": "dist/commands/metadata/mktemp.d.ts",
+      "bytes": 240
+    },
+    {
+      "path": "dist/commands/metadata/chmod.d.ts.map",
+      "bytes": 226
+    },
+    {
+      "path": "dist/commands/metadata/index.js.map",
+      "bytes": 966
+    },
+    {
+      "path": "dist/commands/metadata/internal.d.ts",
+      "bytes": 1156
+    },
+    {
+      "path": "dist/commands/metadata/index.d.ts",
+      "bytes": 472
+    },
+    {
+      "path": "dist/commands/metadata/internal.js.map",
+      "bytes": 3516
+    },
+    {
+      "path": "dist/commands/metadata/index.d.ts.map",
+      "bytes": 418
+    },
+    {
+      "path": "dist/commands/metadata/chmod.d.ts",
+      "bytes": 238
+    },
+    {
+      "path": "dist/commands/metadata/stat.js",
+      "bytes": 9913
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-envelope.js.map",
+      "bytes": 2494
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts",
+      "bytes": 377
+    },
+    {
+      "path": "dist/commands/diff-patch/diff.d.ts",
+      "bytes": 207
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-formats.d.ts",
+      "bytes": 419
+    },
+    {
+      "path": "dist/commands/diff-patch/diff.d.ts.map",
+      "bytes": 223
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-path.d.ts",
+      "bytes": 277
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-envelope.d.ts.map",
+      "bytes": 278
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-envelope.d.ts",
+      "bytes": 166
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+      "bytes": 1947
+    },
+    {
+      "path": "dist/commands/diff-patch/patch.js",
+      "bytes": 20066
+    },
+    {
+      "path": "dist/commands/diff-patch/unified.js",
+      "bytes": 11483
+    },
+    {
+      "path": "dist/commands/diff-patch/shared.d.ts.map",
+      "bytes": 1847
+    },
+    {
+      "path": "dist/commands/diff-patch/patch.js.map",
+      "bytes": 21489
+    },
+    {
+      "path": "dist/commands/diff-patch/index.js",
+      "bytes": 826
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-paths.js.map",
+      "bytes": 10676
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-reject.js",
+      "bytes": 3679
+    },
+    {
+      "path": "dist/commands/diff-patch/shared.d.ts",
+      "bytes": 1715
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts.map",
+      "bytes": 484
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-formats.js",
+      "bytes": 11610
+    },
+    {
+      "path": "dist/commands/diff-patch/diff-format.js.map",
+      "bytes": 6458
+    },
+    {
+      "path": "dist/commands/diff-patch/diff-format.js",
+      "bytes": 5607
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-path.js.map",
+      "bytes": 5430
+    },
+    {
+      "path": "dist/commands/diff-patch/unified.d.ts.map",
+      "bytes": 2007
+    },
+    {
+      "path": "dist/commands/diff-patch/shared.js.map",
+      "bytes": 7621
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-envelope.js",
+      "bytes": 2628
+    },
+    {
+      "path": "dist/commands/diff-patch/patch.d.ts.map",
+      "bytes": 225
+    },
+    {
+      "path": "dist/commands/diff-patch/unified.d.ts",
+      "bytes": 1764
+    },
+    {
+      "path": "dist/commands/diff-patch/diff-format.d.ts",
+      "bytes": 534
+    },
+    {
+      "path": "dist/commands/diff-patch/index.js.map",
+      "bytes": 839
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts.map",
+      "bytes": 2101
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-path.js",
+      "bytes": 4602
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-formats.js.map",
+      "bytes": 12547
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-reject.js.map",
+      "bytes": 4488
+    },
+    {
+      "path": "dist/commands/diff-patch/patch.d.ts",
+      "bytes": 209
+    },
+    {
+      "path": "dist/commands/diff-patch/index.d.ts",
+      "bytes": 426
+    },
+    {
+      "path": "dist/commands/diff-patch/shared.js",
+      "bytes": 6830
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-formats.d.ts.map",
+      "bytes": 527
+    },
+    {
+      "path": "dist/commands/diff-patch/diff.js",
+      "bytes": 13696
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-path.d.ts.map",
+      "bytes": 347
+    },
+    {
+      "path": "dist/commands/diff-patch/diff-format.d.ts.map",
+      "bytes": 722
+    },
+    {
+      "path": "dist/commands/diff-patch/index.d.ts.map",
+      "bytes": 410
+    },
+    {
+      "path": "dist/commands/diff-patch/unified.js.map",
+      "bytes": 11866
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-paths.js",
+      "bytes": 9323
+    },
+    {
+      "path": "dist/commands/diff-patch/diff.js.map",
+      "bytes": 14931
+    },
+    {
+      "path": "dist/fs/readonly/index.js",
+      "bytes": 4501
+    },
+    {
+      "path": "dist/fs/readonly/index.js.map",
+      "bytes": 5363
+    },
+    {
+      "path": "dist/fs/readonly/index.d.ts",
+      "bytes": 2250
+    },
+    {
+      "path": "dist/fs/readonly/index.d.ts.map",
+      "bytes": 2474
+    },
+    {
+      "path": "dist/fs/s3/filesystem.js",
+      "bytes": 50798
+    },
+    {
+      "path": "dist/fs/s3/filesystem.d.ts.map",
+      "bytes": 3758
+    },
+    {
+      "path": "dist/fs/s3/mock.d.ts",
+      "bytes": 2251
+    },
+    {
+      "path": "dist/fs/s3/mock.d.ts.map",
+      "bytes": 2033
+    },
+    {
+      "path": "dist/fs/s3/mock.js.map",
+      "bytes": 12089
+    },
+    {
+      "path": "dist/fs/s3/filesystem.js.map",
+      "bytes": 54144
+    },
+    {
+      "path": "dist/fs/s3/transport.js",
+      "bytes": 1380
+    },
+    {
+      "path": "dist/fs/s3/index.js",
+      "bytes": 224
+    },
+    {
+      "path": "dist/fs/s3/transport.js.map",
+      "bytes": 1783
+    },
+    {
+      "path": "dist/fs/s3/transport.d.ts",
+      "bytes": 4005
+    },
+    {
+      "path": "dist/fs/s3/mock.js",
+      "bytes": 10634
+    },
+    {
+      "path": "dist/fs/s3/transport.d.ts.map",
+      "bytes": 4084
+    },
+    {
+      "path": "dist/fs/s3/index.js.map",
+      "bytes": 273
+    },
+    {
+      "path": "dist/fs/s3/index.d.ts",
+      "bytes": 625
+    },
+    {
+      "path": "dist/fs/s3/filesystem.d.ts",
+      "bytes": 3930
+    },
+    {
+      "path": "dist/fs/s3/index.d.ts.map",
+      "bytes": 573
+    },
+    {
+      "path": "dist/fs/memory/index.js",
+      "bytes": 20302
+    },
+    {
+      "path": "dist/fs/memory/index.js.map",
+      "bytes": 24034
+    },
+    {
+      "path": "dist/fs/memory/index.d.ts",
+      "bytes": 2770
+    },
+    {
+      "path": "dist/fs/memory/index.d.ts.map",
+      "bytes": 2712
+    },
+    {
+      "path": "dist/fs/real/index.js",
+      "bytes": 24206
+    },
+    {
+      "path": "dist/fs/real/index.js.map",
+      "bytes": 23368
+    },
+    {
+      "path": "dist/fs/real/index.d.ts",
+      "bytes": 4985
+    },
+    {
+      "path": "dist/fs/real/index.d.ts.map",
+      "bytes": 2621
+    },
+    {
+      "path": "dist/fs/mount/identity.d.ts.map",
+      "bytes": 285
+    },
+    {
+      "path": "dist/fs/mount/identity.js.map",
+      "bytes": 823
+    },
+    {
+      "path": "dist/fs/mount/index.js",
+      "bytes": 24660
+    },
+    {
+      "path": "dist/fs/mount/identity.d.ts",
+      "bytes": 232
+    },
+    {
+      "path": "dist/fs/mount/identity.js",
+      "bytes": 651
+    },
+    {
+      "path": "dist/fs/mount/index.js.map",
+      "bytes": 27100
+    },
+    {
+      "path": "dist/fs/mount/index.d.ts",
+      "bytes": 2595
+    },
+    {
+      "path": "dist/fs/mount/index.d.ts.map",
+      "bytes": 2681
+    },
+    {
+      "path": "dist/fs/webdav/xml.d.ts.map",
+      "bytes": 717
+    },
+    {
+      "path": "dist/fs/webdav/xml.js.map",
+      "bytes": 11628
+    },
+    {
+      "path": "dist/fs/webdav/xml.js",
+      "bytes": 11072
+    },
+    {
+      "path": "dist/fs/webdav/xml.d.ts",
+      "bytes": 647
+    },
+    {
+      "path": "dist/fs/webdav/webdav.js",
+      "bytes": 47678
+    },
+    {
+      "path": "dist/fs/webdav/index.js",
+      "bytes": 81
+    },
+    {
+      "path": "dist/fs/webdav/webdav.d.ts",
+      "bytes": 3480
+    },
+    {
+      "path": "dist/fs/webdav/webdav.d.ts.map",
+      "bytes": 3383
+    },
+    {
+      "path": "dist/fs/webdav/index.js.map",
+      "bytes": 159
+    },
+    {
+      "path": "dist/fs/webdav/index.d.ts",
+      "bytes": 156
+    },
+    {
+      "path": "dist/fs/webdav/index.d.ts.map",
+      "bytes": 214
+    },
+    {
+      "path": "dist/fs/webdav/webdav.js.map",
+      "bytes": 48620
+    },
+    {
+      "path": "dist/fs/overlay/index.js",
+      "bytes": 41953
+    },
+    {
+      "path": "dist/fs/overlay/index.js.map",
+      "bytes": 46240
+    },
+    {
+      "path": "dist/fs/overlay/index.d.ts",
+      "bytes": 3322
+    },
+    {
+      "path": "dist/fs/overlay/index.d.ts.map",
+      "bytes": 3134
+    }
+  ],
+  "isolatedTmpCleanup": [
+    "/tmp/safe-bash-current-integration-69dbdy0m/tmp/node-compile-cache",
+    "/tmp/safe-bash-current-integration-69dbdy0m/tmp/tsx-501"
+  ]
+}

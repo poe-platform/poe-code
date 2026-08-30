@@ -1,0 +1,488 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-08-28T16:27:32.994097+00:00",
+  "presealCommit": "2978c5a3b34e2df51af7e7eda08475b570647696",
+  "protectedFilesAfter": [
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "bytes": 6786,
+      "mode": 420,
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "bytes": 6565,
+      "mode": 420,
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "unchanged": true
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+      "bytes": 13020,
+      "mode": 420,
+      "sha256": "1f81d9226a09c22221a7faacb5f794e81726626b4ac438ee526a2877aec7b342",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "bytes": 22844,
+      "mode": 420,
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "bytes": 4595,
+      "mode": 420,
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/s3-http-exports/verify.mjs",
+      "bytes": 11293,
+      "mode": 420,
+      "sha256": "ae9f72b2114076c92901043f0748c5525ea7cad264994c21b04f17ca3e8c72f9",
+      "unchanged": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "bytes": 2817,
+      "mode": 420,
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "bytes": 2634,
+      "mode": 420,
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "bytes": 685,
+      "mode": 420,
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "bytes": 3677,
+      "mode": 420,
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts",
+      "bytes": 8725,
+      "mode": 420,
+      "sha256": "d1c019640fabd954808dcc2f092a6fd80de5fad8674d56e2f37cf7f75f25ad91",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts",
+      "bytes": 4452,
+      "mode": 420,
+      "sha256": "3ed6929afc27bda15ecd9732fbd446428be30eb4c4bf24ed99a620312b319e48",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "bytes": 4449,
+      "mode": 420,
+      "sha256": "144a0ab22228978c68a4b89d137ff48f27cf20cfb69ec9784f73976ad7fc9ee7",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "bytes": 6282,
+      "mode": 420,
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "bytes": 4689,
+      "mode": 420,
+      "sha256": "b933c447efda4438266f40190eecc00d9e00e195d854eb4a254cfb0e2783306f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/EVIDENCE-SEAL.json",
+      "bytes": 2287,
+      "mode": 420,
+      "sha256": "8d6824c66c92b52fffe7a4f94fd0ce60273482c368d0989fc626b00ff41869fd",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/BASELINE.json",
+      "bytes": 3858,
+      "mode": 420,
+      "sha256": "c14f53a633191c2db854f8726f7784ed60f0c9dc5efc231d0efa71a19dc516d9",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/CONTROL-RECIPE.md",
+      "bytes": 7097,
+      "mode": 420,
+      "sha256": "8e6e57890f16fcf3aaa0cf6374f0425139e6051e6158f132866876536a2e389a",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/SOURCE-CANDIDATE.json",
+      "bytes": 6245,
+      "mode": 420,
+      "sha256": "47741f284b1593aa96b012d6e2ab9e9f6b64f38d69034b17554dc52544b59e71",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/controls.mjs",
+      "bytes": 23657,
+      "mode": 420,
+      "sha256": "384d100194ffc51f7356774666051aeb5ca662972c4de33bba6b0914c9638036",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/RESULTS-v1.json",
+      "bytes": 8220,
+      "mode": 420,
+      "sha256": "34295f734e91519013a6217b014b878350602c35de8679e89564e849c184e8b5",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/HANDOFF.md",
+      "bytes": 9964,
+      "mode": 420,
+      "sha256": "269f5b4224f539ae58f75549afdebefb205b02afe0d7be95dea99ba9c984d4de",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/PRESERVATION.json",
+      "bytes": 2356,
+      "mode": 420,
+      "sha256": "48e1b4c9d73a84e50291b772eb92a012dbaf739fe765d6534671760408964fad",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/SEAL.json",
+      "bytes": 2987,
+      "mode": 420,
+      "sha256": "c66488ba05758c58acc858b68865e64523611a634bce08a6e8f7ffb315ab411b",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/inspect.mjs",
+      "bytes": 8924,
+      "mode": 420,
+      "sha256": "19f75326b0a51f9977def75cf01f07bf1429a606e19d0d299afb0d5e6b164d00",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/README.md",
+      "bytes": 2334,
+      "mode": 420,
+      "sha256": "b1d3fa1b362cff9cb4ce4a67daa07219d605970d502920d2f9c5ae311c48575a",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/CALLS.json",
+      "bytes": 4276,
+      "mode": 420,
+      "sha256": "8efa968397a1cc0f7f44e2f0a54c8f1388752517ebdd2004f3645a82bfc533b1",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/FUTURE-CONTROLS.md",
+      "bytes": 3092,
+      "mode": 420,
+      "sha256": "14a0a61c03273965b5199ee9d894bcee1ea9450f7e257718aa84ddd9eb450ff1",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/INSPECTION.json",
+      "bytes": 60545,
+      "mode": 420,
+      "sha256": "02803cbedd0e067624923a6b5cf3986a9f354a5ee806d1f70a13746133193c2d",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/SUCCESSOR-PROFILE.json",
+      "bytes": 13356,
+      "mode": 420,
+      "sha256": "71ba31dea9594c3eee23c054a40b0fa09de4a78eb129a44018103c21a5dfb36c",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/CHANGESET.json",
+      "bytes": 6344,
+      "mode": 420,
+      "sha256": "4184b31197b7e1ea47523f8a30505c5c45c59dd783356b1db8e31013d7f80772",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/HANDOFF.md",
+      "bytes": 5581,
+      "mode": 420,
+      "sha256": "f73f049dcc12e50f357bd34916085e41aa1e72c4b60b9fe0745fa0a76d9a3ded",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/table-text-stress/frozen-corpus.json",
+      "bytes": 68660,
+      "mode": 420,
+      "sha256": "65702ba5bb31442e24f4c0b00ce9ec052bf64f37c48d8a428a68c45fed82a166",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/search-stress/harness.ts",
+      "bytes": 3916,
+      "mode": 420,
+      "sha256": "4e431d4e46096c75d34c759ff0ba7674cc0067cd93df89a3e480fabe0e0279d1",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/search-stress/pipelines.test.ts",
+      "bytes": 1125,
+      "mode": 420,
+      "sha256": "d28a72f4a1bfb7a6ea600c2698d544ea7e5e375ae99f0d301ed0cde65261f2c6",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+      "bytes": 1239,
+      "mode": 420,
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-types.mjs",
+      "bytes": 4115,
+      "mode": 420,
+      "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+      "bytes": 2520,
+      "mode": 420,
+      "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/review.mjs",
+      "bytes": 38204,
+      "mode": 420,
+      "sha256": "ad7b10b01f61bc37ec6d4365ee42f4a48a471f4886e9bc8f5cd4108e3854fbe2",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/CRITERIA.md",
+      "bytes": 7108,
+      "mode": 420,
+      "sha256": "d96e7652494e0361af1afcace0da9d52833c63035964ba003ffcd911092f307a",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/BINDINGS.json",
+      "bytes": 7159,
+      "mode": 420,
+      "sha256": "601d0a17fe8e840cde80e5da5f35a37eb98d4c3c1197ec46b498c8ef8991cc80",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/COMMANDS.md",
+      "bytes": 3780,
+      "mode": 420,
+      "sha256": "78d57c106994870612a9ab7817884114e401a3a9295dc1f49630025e020b9def",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/ATTEMPT.json",
+      "bytes": 3127,
+      "mode": 420,
+      "sha256": "18ecc53b1fe4a632923201e3d983bf3e3c2f6882b29a2ad3bb3ae1fd75daa55c",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/HANDOFF.md",
+      "bytes": 10109,
+      "mode": 420,
+      "sha256": "48f80471288b6f6e7dcb76b0495f8eec7547ba94ba92d7044ec865c235cdbc35",
+      "unchanged": true
+    }
+  ],
+  "presealFilesAfter": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/review.mjs",
+      "bytes": 38221,
+      "mode": 420,
+      "sha256": "93279ff3f4723f43e48423a84f52dcf52a597d834a6942c096680d33729a3f44"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/CRITERIA.md",
+      "bytes": 7108,
+      "mode": 420,
+      "sha256": "d96e7652494e0361af1afcace0da9d52833c63035964ba003ffcd911092f307a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/PRESEAL.md",
+      "bytes": 8058,
+      "mode": 420,
+      "sha256": "00d30724afeba8f9870c5d605b894ce4b81fa317a1ab09607cbb149bbed9d4ab"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/PRESEAL.json",
+      "bytes": 46212,
+      "mode": 420,
+      "sha256": "ce1cd43bf7817f50e0f3eef9d5c627184a8d375fe7a0bb9dd9360663d69e9fc0"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/RUNNER.patch",
+      "bytes": 1770,
+      "mode": 420,
+      "sha256": "e146f4c2556ebe14425cd5e927ac4f765cbb52568cb08ca8ea9f72c75a4ae72b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/syntax.stdout.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/syntax.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/syntax.exit.txt",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  ],
+  "directoryEntryPostchecks": {
+    "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20": {
+      "names": [
+        "ATTEMPT.json",
+        "BINDINGS.json",
+        "COMMANDS.md",
+        "CRITERIA.md",
+        "HANDOFF.md",
+        "review.mjs"
+      ],
+      "unchanged": true,
+      "newImmediateEntriesDetected": true,
+      "recursiveNewEntryDetection": false
+    },
+    "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1": {
+      "names": [
+        "BASELINE.json",
+        "CONTROL-RECIPE.md",
+        "EVIDENCE-SEAL.json",
+        "HANDOFF.md",
+        "PRESERVATION.json",
+        "RESULTS-v1.json",
+        "SOURCE-CANDIDATE.json",
+        "controls.mjs"
+      ],
+      "unchanged": true,
+      "newImmediateEntriesDetected": true,
+      "recursiveNewEntryDetection": false
+    },
+    "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1": {
+      "names": [
+        "CALLS.json",
+        "CHANGESET.json",
+        "FUTURE-CONTROLS.md",
+        "HANDOFF.md",
+        "INSPECTION.json",
+        "README.md",
+        "SEAL.json",
+        "SUCCESSOR-PROFILE.json",
+        "inspect.mjs"
+      ],
+      "unchanged": true,
+      "newImmediateEntriesDetected": true,
+      "recursiveNewEntryDetection": false
+    }
+  },
+  "protectedCommittedTrees": {
+    "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1": {
+      "before": "040000 tree 93a2c4ee9b9e5ea2524f227966dd1440097ed511\ttests/integration/full-gate-20260827/unified76-driver/r3-repair-v1",
+      "after": "040000 tree 93a2c4ee9b9e5ea2524f227966dd1440097ed511\ttests/integration/full-gate-20260827/unified76-driver/r3-repair-v1",
+      "unchanged": true,
+      "liveContentsRead": false
+    },
+    "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1": {
+      "before": "040000 tree 5debad61e8741dc892424ed238750e0dee37ee49\ttests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1",
+      "after": "040000 tree 5debad61e8741dc892424ed238750e0dee37ee49\ttests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1",
+      "unchanged": true,
+      "liveContentsRead": false
+    },
+    "tests/integration/full-gate-20260827/unified76-driver-independent/r3-diagnosis-v19": {
+      "before": "040000 tree 5c531f639f66d3eecc8fd28e7d8a593d680e0b94\ttests/integration/full-gate-20260827/unified76-driver-independent/r3-diagnosis-v19",
+      "after": "040000 tree 5c531f639f66d3eecc8fd28e7d8a593d680e0b94\ttests/integration/full-gate-20260827/unified76-driver-independent/r3-diagnosis-v19",
+      "unchanged": true,
+      "liveContentsRead": false
+    },
+    "tests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1": {
+      "before": "040000 tree 495c69e9dc0d3d73595b11c5ad8853aebb6b7547\ttests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1",
+      "after": "040000 tree 495c69e9dc0d3d73595b11c5ad8853aebb6b7547\ttests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1",
+      "unchanged": true,
+      "liveContentsRead": false
+    },
+    "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11": {
+      "before": "040000 tree 4b156253a988091d46fb4cee60e9e416c06ec0bc\ttests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11",
+      "after": "040000 tree 4b156253a988091d46fb4cee60e9e416c06ec0bc\ttests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11",
+      "unchanged": true,
+      "liveContentsRead": false
+    }
+  },
+  "reviewNodeAfter": {
+    "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "bytes": 117591472,
+    "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+    "unchanged": true,
+    "runtimeLibraryClosureClaimed": false
+  },
+  "foreignIndex": {
+    "cachedRawHex": "",
+    "unchanged": true
+  },
+  "bounds": "Only 38 authenticated source/data files, six original v20 files, eight own preseal files and one explicitly bound actual review executable rehashed. Three finite immediate directory entry lists; five committed tree metadata checks. No broad historical or private roots read.",
+  "historicalRootAppendProof": false,
+  "rawEvidence": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/RUN-CLAIM.json",
+      "bytes": 279,
+      "mode": 420,
+      "sha256": "907bfa7080269147316d764c5aa58e6be9d1982df5b2a1edd3a6f45c94f7b161"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/RESULTS.json",
+      "bytes": 92628,
+      "mode": 420,
+      "sha256": "b7841c3c812b988595cd414fc2efc634de0f04e19f766ee8d3f9e407fe85cc16"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.stdout.raw",
+      "bytes": 60,
+      "mode": 420,
+      "sha256": "d121098569b9bb64393ecf3018bda292976a7467fe3b0a40105b74993470e89b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.exit.txt",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    }
+  ]
+}

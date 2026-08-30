@@ -1,0 +1,301 @@
+GNU_5_3_15 subst.c
+8216: parameter_brace_expand_error (char *name, char *value, int check_null)
+8217: {
+8218:   WORD_LIST *l;
+8219:   char *temp;
+8220: 
+8221:   set_exit_status (EXECUTION_FAILURE);	/* ensure it's non-zero */
+8222:   if (value && *value)
+8223:     {
+8224:       l = expand_string (value, 0);
+8225:       temp =  string_list (l);
+8226:       report_error ("%s: %s", name, temp ? temp : "");	/* XXX was value not "" */
+8227:       FREE (temp);
+8228:       dispose_words (l);
+8229:     }
+8230:   else if (check_null == 0)
+8231:     report_error (_("%s: parameter not set"), name);
+8232:   else
+8233:     report_error (_("%s: parameter null or not set"), name);
+8234: 
+8235:   /* Free the data we have allocated during this expansion, since we
+8236:      are about to longjmp out. */
+8237:   free (name);
+8238:   FREE (value);
+8239: }
+8240: 
+GNU_5_3_15 subst.c
+9938:       if (string[sindex - 1] != RBRACE || (valid_length_expression (name) == 0))
+9939: 	{
+9940: 	  temp = (char *)NULL;
+9941: 	  goto bad_substitution;	/* substitution error */
+9942: 	}
+9943: 
+9944:       number = parameter_brace_expand_length (name);
+9945:       if (number == INTMAX_MIN && unbound_vars_is_error)
+9946: 	{
+9947: 	  set_exit_status (EXECUTION_FAILURE);
+9948: 	  err_unboundvar (name+1);
+9949: 	  free (name);
+9950: 	  return (interactive_shell ? &expand_wdesc_error : &expand_wdesc_fatal);
+9951: 	}
+9952:       free (name);
+9953: 
+9954:       *indexp = sindex;
+9955:       if (number < 0)
+9956:         return (&expand_wdesc_error);
+9957:       else
+9958: 	{
+9959: 	  ret = alloc_word_desc ();
+9960: 	  ret->word = itos (number);
+9961: 	  return ret;
+9962: 	}
+9963:     }
+9964: 
+9965:   /* ${@} is identical to $@. */
+9966:   if (name[0] == '@' && name[1] == '\0')
+9967:     {
+9968:       if ((quoted & (Q_HERE_DOCUMENT|Q_DOUBLE_QUOTES)) && quoted_dollar_atp)
+9969: 	*quoted_dollar_atp = 1;
+9970: 
+9971:       if (contains_dollar_at)
+9972: 	*contains_dollar_at = 1;
+9973: 
+9974:       tflag |= W_DOLLARAT;
+9975:     }
+GNU_5_3_15 expr.c
+1238:       return (0);
+1239:     }
+1240: 
+1241:   tval = (value && *value) ? subexpr (value) : 0;
+1242: 
+1243:   if (lvalue)
+1244:     {
+1245:       lvalue->tokstr = tok;	/* XXX */
+1246:       lvalue->tokval = tval;
+1247:       lvalue->tokvar = v;	/* XXX */
+1248: #if defined (ARRAY_VARS)
+1249:       lvalue->ind = ind;
+1250: #else
+1251:       lvalue->ind = -1;
+1252: #endif
+1253:     }
+1254: 	  
+1255:   return (tval);
+GNU_5_3_15 expr.c
+1364: 	      e = ']';
+1365: 	    }
+1366: 	  else
+1367: 	    evalerror (_(bash_badsub_errmsg));
+1368: 	}
+1369: #endif /* ARRAY_VARS */
+1370: 
+1371:       *cp = '\0';
+1372:       /* XXX - watch out for pointer aliasing issues here */
+1373:       if (curlval.tokstr && curlval.tokstr == tokstr)
+1374: 	init_lvalue (&curlval);
+1375: 
+1376:       FREE (tokstr);
+1377:       tokstr = savestring (tp);
+1378:       *cp = c;
+1379: 
+1380:       /* XXX - make peektok part of saved token state? */
+1381:       SAVETOK (&ec);
+1382:       tokstr = (char *)NULL;	/* keep it from being freed */
+1383:       tp = savecp = cp;
+1384:       noeval = 1;
+1385:       curtok = STR;
+1386:       readtok ();
+1387:       peektok = curtok;
+1388:       if (peektok == STR)	/* free new tokstr before old one is restored */
+1389: 	FREE (tokstr);
+1390:       RESTORETOK (&ec);
+1391:       cp = savecp;
+1392: 
+1393:       /* The tests for PREINC and PREDEC aren't strictly correct, but they
+1394: 	 preserve old behavior if a construct like --x=9 is given. */
+1395:       if (lasttok == PREINC || lasttok == PREDEC || peektok != EQ)
+1396:         {
+1397:           lastlval = curlval;
+1398: 	  tokval = expr_streval (tokstr, e, &curlval);
+1399:         }
+1400:       else
+1401: 	tokval = 0;
+1402: 
+1403:       lasttok = curtok;
+1404:       curtok = STR;
+FROZEN_PRODUCT runtime
+1025:     const value = state.variables.OPTIND;
+1026:     if (value === undefined) {
+1027:       state.getopts.integer = false;
+1028:       state.getopts.cursor = createGetoptsState();
+1029:     } else state.getopts.cursor = withGetoptsIndex(state.getopts.cursor, decimalIndex(value));
+1030:   }
+1031: 
+1032:   private reconcileGetopts(state: State, previous: string | undefined): void {
+1033:     if (state.variables.OPTIND !== previous) this.syncGetopts(state);
+1034:   }
+1035: 
+1036:   private unsetVariable(state: State, name: string, internal = false): void {
+1037:     if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
+1038:     delete state.variables[name];
+1039:     state.exported.delete(name);
+1040:     if (name === "OPTIND" && !internal) this.syncGetopts(state);
+1041:   }
+1042: 
+1043:   arithmeticVariables(state: State): Record<string, string> {
+1044:     return new Proxy(state.variables, {
+1045:       get: (target, key) => {
+1046:         if (arrayStore(state)?.get(String(key))) throw new ArrayFailure("indexed arithmetic is unsupported");
+1047:         return Reflect.get(target, key);
+1048:       },
+1049:       set: (_target, key, value: string) => { this.writeVariable(state, String(key), value, "arithmetic"); return true; },
+1050:     });
+1051:   }
+1052: 
+1053:   variable(state: State, name: string): string | undefined {
+1054:     const binding = arrayStore(state)?.get(name);
+1055:     return binding ? binding.get(0) : state.variables[name];
+1056:   }
+1057: 
+1058:   private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
+1059:     if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
+1060:   }
+1061: 
+1062:   async assignVariable(state: State, name: string, value: string, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
+1063:     if (!arrayStore(state)?.get(name)) { this.writeVariable(state, name, value, origin); return; }
+1064:     await this.arrayZero(state, name, async () => value);
+1065:   }
+1066: 
+1067:   async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
+1068:     const store = requireArrays(state);
+1069:     const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+1070:     const holding = store.owner.hold();
+1071:     let binding: IndexedBinding | undefined;
+1072:     try {
+FROZEN_PRODUCT runtime
+3524:         this.requireParameter(value, `${part.name}[${selector.index}]`, state, io, part.line);
+3525:         return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+3526:       }
+3527:       if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));
+3528:       const values = await this.arrayMembers(part.name, state);
+3529:       return this.arrayJoin(store.owner, values, Array.from(state.variables.IFS ?? " ")[0] ?? "");
+3530:     }
+3531:     let value = part.name === "?" ? String(state.status)
+3532:       : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}`
+3533:       : part.name === "#" ? String(state.positional.length)
+3534:       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
+3535:       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
+3536:       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
+3537:       : this.variable(state, part.name);
+3538:     if (part.substring) {
+3539:       this.requireParameter(value, part.name, state, io, part.line);
+3540:       return this.substring(part, value, state, io);
+3541:     }
+3542:     if (part.operator) {
+3543:       if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) {
+3544:         this.requireParameter(value, part.name, state, io, part.line);
+3545:         return this.parameterPattern(part, value ?? "", state, io, hereString);
+3546:       }
+3547:       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
+3548:       const operator = part.operator.at(-1)!;
+3549:       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
+3550:         let alternate: string;
+3551:         if (operator === "=" && arrayStore(state)?.get(part.name)) {
+3552:           alternate = "";
+3553:           await this.arrayZero(state, part.name, async () => {
+3554:             alternate = await this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, io, false, false, hereString), "");
+3555:             return alternate;
+3556:           });
+3557:           value = alternate;
+3558:           return part.length ? String(Array.from(value).length) : value;
+3559:         }
+3560:         alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join("");
+3561:         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
+3562:         if (operator === "=") {
+3563:           if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error("Cannot assign special parameter");
+3564:           this.writeVariable(state, part.name, alternate);
+3565:         }
+3566:         value = alternate;
+3567:       } else if (operator === "+") value = "";
+3568:     } else this.requireParameter(value, part.name, state, io, part.line);
+3569:     return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+3570:   }
+3571: 
+3572:   async substring(part: Extract<WordPart, { kind: "variable" }>, value: string | undefined, state: State, io: IO): Promise<string> {
+3573:     const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;
+3574:     const expression = part.substring!;
+3575:     const line = io.diagnosticLine ?? part.line;
+3576:     if (!expression.offset.parts.length && !expression.length) throw new ExpansionFailure(`${expression.source}: bad substitution`, line);
+3577:     if (value === undefined) return "";
+3578:     const limit = this.budget.limits.maxExpansionBytes;
+3579:     if (Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+3580:     const variables = new Proxy(this.arithmeticVariables(state), { get: (target, key) => {
+3581:       this.signal.throwIfAborted();
+3582:       const value: unknown = Reflect.get(target, key);
+3583:       if (typeof value === "string" && Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+3584:       return value;
+3585:     } });
+3586:     const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {
+3587:       let source = "";
+3588:       let bytes = 0;
+3589:       for (const entry of word.parts) {
+3590:         this.signal.throwIfAborted();
+3591:         const text = entry.kind === "text" ? entry.value : await this.part(entry, state, io);
+3592:         bytes += Buffer.byteLength(text);
+3593:         if (bytes > limit) this.budget.fail("maxExpansionBytes");
+3594:         owner?.reserve({ metadata: 32, payload: bytes, work: text.length + 4 });
+3595:         source += text;
+3596:       }
+FROZEN_PRODUCT runtime
+1590:         this.errexit(1, state, io);
+1591:         return 1;
+1592:       }
+1593:       if (errorCode(error) === "EPIPE") { this.errexit(141, state, io); return 141; }
+1594:       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
+1595:       if (error instanceof NounsetFailure) {
+1596:         try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${message(error)}\n`); }
+1597:         catch (reason) {
+1598:           this.signal.throwIfAborted();
+1599:           if (reason instanceof ShellLimitError) throw reason;
+1600:           diagnosticFailure = new NounsetDiagnosticFailure(reason);
+1601:           throw diagnosticFailure;
+1602:         }
+1603:         throw new Flow("exit", 1);
+1604:       }
+1605:       if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
+1606:       else {
+1607:         try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
+1608:         catch { this.signal.throwIfAborted(); }
+1609:       }
+1610:       if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+1611:       if (error instanceof FatalCommandFailure) throw new Flow("exit", error.status);
+1612:       const status = error instanceof CommandFailure ? error.status : 1;
+1613:       this.errexit(status, state, io);
+1614:       return status;
+1615:     } finally {
+1616:       try {
+1617:         for (const close of outputs) close();
+1618:         await Promise.all([...inputs].map((input) => input.close()));
+1619:       } catch (error) {
+1620:         if (diagnosticFailure) io[invocationScope].failures.push(error);
+1621:         else throw error;
+1622:       }
+1623:     }
+1624:   }
+1625: 
+GNU_5_3_15 config-top.h
+34: /* Define ONESHOT if you want sh -c 'command' to avoid forking to execute
+36: #define ONESHOT
+GNU_5_3_15 execute_cmd.c
+283:    number containing the function name.  Used by executing_line_number to
+302: /* This can't be in executing_line_number() because that's used for LINENO
+308:     : executing_line_number ()
+412: executing_line_number (void)
+1488:   code = setjmp_nosigs (top_level);
+1500:     sh_longjmp (top_level, code);
+1566:     sh_longjmp (top_level, code);
+1811:   result = setjmp_nosigs (top_level);
+4240: 	  code = setjmp_nosigs (top_level);
+5529:       result = setjmp_nosigs (top_level);
+6284:   sh_longjmp (subshell_top_level, 1);

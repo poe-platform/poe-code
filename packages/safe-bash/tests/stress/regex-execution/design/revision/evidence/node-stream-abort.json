@@ -1,0 +1,91 @@
+{
+  "name": "node-stream-abort",
+  "pid": 62993,
+  "readyAt": 32.36879199999976,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 673,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 71.26175000000012
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 73.07279199999994
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 73.08004200000005
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "node-stream-abort"
+    },
+    {
+      "type": "done",
+      "name": "node-stream-abort",
+      "observations": [],
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 23.424417,
+            "workMs": 0.2606670000000051,
+            "terminationMs": 1.1592079999999996,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "released": true,
+          "capacity": 0,
+          "threadId": -1,
+          "signalListeners": 0,
+          "workerListeners": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "elapsedMs": 37.816333,
+      "memory": {
+        "rss": 52592640,
+        "heapTotal": 6963200,
+        "heapUsed": 4809304,
+        "external": 1956146,
+        "arrayBuffers": 10750
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

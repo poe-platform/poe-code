@@ -1,0 +1,1135 @@
+{
+  "schemaVersion": 1,
+  "classification": "raw-native-capture-data-not-typescript",
+  "startedAt": "2026-08-27T14:23:37.502Z",
+  "endedAt": "2026-08-27T14:23:37.789Z",
+  "profile": "apple-bsd-grep-2.6.0-freebsd-darwin25.4-arm64-c-locale",
+  "candidateExecutions": 0,
+  "corpusSha256": "a745efbc79d4c48d31b6a5e3e5e5fe51de0bd19f1a51dd66d984abc24f7161a8",
+  "captureSourceSha256": "47cdfb91de9f2b9e5f441b0fca8e8d2eae47f8f47eced6bebd913a0eb054e769",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/home",
+    "TMPDIR": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE"
+  },
+  "bounds": {
+    "timeoutMs": 2000,
+    "killSignal": "SIGKILL",
+    "maxBufferBytes": 65536,
+    "nativeChildrenAtOnce": 1
+  },
+  "nativeChildCount": 54,
+  "nativeRoot": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE",
+  "exactOwnedNativeRootRemoved": true,
+  "stderrTransformations": [],
+  "identities": {
+    "egrep": {
+      "path": "/usr/bin/egrep",
+      "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+      "realpath": "/usr/bin/egrep",
+      "version": {
+        "executable": "/usr/bin/egrep",
+        "argv": [
+          "--version"
+        ],
+        "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE",
+        "stdinHex": "",
+        "stdoutHex": "6567726570202842534420677265702c20474e5520636f6d70617469626c652920322e362e302d467265654253440a",
+        "stderrHex": "",
+        "status": 0,
+        "signal": null,
+        "launchError": null
+      }
+    },
+    "fgrep": {
+      "path": "/usr/bin/fgrep",
+      "sha256": "2146bcefd5e202919805f0b47701e4216ba636b994f272447301918267460062",
+      "realpath": "/usr/bin/fgrep",
+      "version": {
+        "executable": "/usr/bin/fgrep",
+        "argv": [
+          "--version"
+        ],
+        "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE",
+        "stdinHex": "",
+        "stdoutHex": "6667726570202842534420677265702c20474e5520636f6d70617469626c652920322e362e302d467265654253440a",
+        "stderrHex": "",
+        "status": 0,
+        "signal": null,
+        "launchError": null
+      }
+    }
+  },
+  "records": [
+    {
+      "id": "N01",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-n",
+            "^(red|blue)$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N01",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "313a7265640a323a626c75650a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-n",
+            "^(red|blue)$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N01",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "313a7265640a323a626c75650a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-n",
+            "red|blue"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N02",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "333a7265647c626c75650a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-n",
+            "red|blue"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N02",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "333a7265647c626c75650a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-F",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N03",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "612b620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-F",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N03",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "612b620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-E",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N04",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "61620a616161620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-E",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N04",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "61620a616161620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-G",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N05",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "612b620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-G",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N05",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "612b620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N06",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-G",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N06",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "612b620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-G",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N06",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "612b620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N07",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-E",
+            "-F",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N07",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "612b620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-E",
+            "-F",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N07",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "612b620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N08",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-F",
+            "-E",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N08",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "61620a616161620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-F",
+            "-E",
+            "a+b"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N08",
+          "stdinHex": "612b620a61620a616161620a615c2b620a",
+          "stdoutHex": "61620a616161620a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N09",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-e",
+            "^ant$",
+            "-e",
+            "^cat$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N09",
+          "stdinHex": "616e740a6265650a6361740a414e540a",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-e",
+            "^ant$",
+            "-e",
+            "^cat$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N09",
+          "stdinHex": "616e740a6265650a6361740a414e540a",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N10",
+      "filesBeforeHex": {
+        "patterns.txt": "616e740a6361740a",
+        "subjects.txt": "616e740a6265650a6361740a414e540a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-f",
+            "patterns.txt",
+            "subjects.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N10",
+          "stdinHex": "",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "patterns.txt": "616e740a6361740a",
+            "subjects.txt": "616e740a6265650a6361740a414e540a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-f",
+            "patterns.txt",
+            "subjects.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N10",
+          "stdinHex": "",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "patterns.txt": "616e740a6361740a",
+            "subjects.txt": "616e740a6265650a6361740a414e540a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N11",
+      "filesBeforeHex": {
+        "subjects.txt": "616e740a6265650a6361740a414e540a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-f",
+            "-",
+            "subjects.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N11",
+          "stdinHex": "5e28616e747c63617429240a",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "subjects.txt": "616e740a6265650a6361740a414e540a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-f",
+            "-",
+            "subjects.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N11",
+          "stdinHex": "5e28616e747c63617429240a",
+          "stdoutHex": "616e740a6361740a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "subjects.txt": "616e740a6265650a6361740a414e540a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N12",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-e",
+            "-needle"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N12",
+          "stdinHex": "2d6e6565646c650a6e6565646c650a2d2d6e6565646c650a",
+          "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-e",
+            "-needle"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N12",
+          "stdinHex": "2d6e6565646c650a6e6565646c650a2d2d6e6565646c650a",
+          "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N13",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "--",
+            "-needle"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N13",
+          "stdinHex": "2d6e6565646c650a6e6565646c650a2d2d6e6565646c650a",
+          "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "--",
+            "-needle"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N13",
+          "stdinHex": "2d6e6565646c650a6e6565646c650a2d2d6e6565646c650a",
+          "stdoutHex": "2d6e6565646c650a2d2d6e6565646c650a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N14",
+      "filesBeforeHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a",
+        "b.txt": "6e6f6e650a6869743a630a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-n",
+            "^hit:",
+            "a.txt",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N14",
+          "stdinHex": "",
+          "stdoutHex": "612e7478743a313a6869743a610a612e7478743a333a6869743a620a622e7478743a323a6869743a630a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a",
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-n",
+            "^hit:",
+            "a.txt",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N14",
+          "stdinHex": "",
+          "stdoutHex": "612e7478743a313a6869743a610a612e7478743a333a6869743a620a622e7478743a323a6869743a630a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a",
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N15",
+      "filesBeforeHex": {
+        "b.txt": "6e6f6e650a6869743a630a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-n",
+            "hit:",
+            "-",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N15",
+          "stdinHex": "6869743a737464696e0a",
+          "stdoutHex": "287374616e6461726420696e707574293a313a6869743a737464696e0a622e7478743a323a6869743a630a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-n",
+            "hit:",
+            "-",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N15",
+          "stdinHex": "6869743a737464696e0a",
+          "stdoutHex": "287374616e6461726420696e707574293a313a6869743a737464696e0a622e7478743a323a6869743a630a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N16",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "absent"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N16",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "",
+          "status": 1,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "absent"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N16",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "",
+          "status": 1,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N17",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "hit",
+            "absent.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N17",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a20616273656e742e7478743a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "hit",
+            "absent.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N17",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a20616273656e742e7478743a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N18",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "["
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N18",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a20627261636b65747320285b205d29206e6f742062616c616e6365640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "["
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N18",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "65677265703a20627261636b65747320285b205d29206e6f742062616c616e6365640a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N19",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-e"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N19",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d20650a75736167653a206667726570205b2d6162636444454647486849694a4c6c4d6d6e4f6f70715253735556767758785a7a5d205b2d41206e756d5d205b2d42206e756d5d205b2d435b6e756d5d5d0a095b2d65207061747465726e5d205b2d662066696c655d205b2d2d62696e6172792d66696c65733d76616c75655d205b2d2d636f6c6f723d7768656e5d0a095b2d2d636f6e746578745b3d6e756d5d5d205b2d2d6469726563746f726965733d616374696f6e5d205b2d2d6c6162656c5d205b2d2d6c696e652d62756666657265645d0a095b2d2d6e756c6c5d205b7061747465726e5d205b66696c65202e2e2e5d0a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-e"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N19",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d20650a75736167653a206667726570205b2d6162636444454647486849694a4c6c4d6d6e4f6f70715253735556767758785a7a5d205b2d41206e756d5d205b2d42206e756d5d205b2d435b6e756d5d5d0a095b2d65207061747465726e5d205b2d662066696c655d205b2d2d62696e6172792d66696c65733d76616c75655d205b2d2d636f6c6f723d7768656e5d0a095b2d2d636f6e746578745b3d6e756d5d5d205b2d2d6469726563746f726965733d616374696f6e5d205b2d2d6c6162656c5d205b2d2d6c696e652d62756666657265645d0a095b2d2d6e756c6c5d205b7061747465726e5d205b66696c65202e2e2e5d0a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N20",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-a",
+            "hit"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N20",
+          "stdinHex": "ff6869740a686974fe0a6d6973730a",
+          "stdoutHex": "ff6869740a686974fe0a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-a",
+            "hit"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N20",
+          "stdinHex": "ff6869740a686974fe0a6d6973730a",
+          "stdoutHex": "ff6869740a686974fe0a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N21",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-z",
+            "^(red|blue)$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N21",
+          "stdinHex": "72656400626c7565007265647c626c756500677265656e00",
+          "stdoutHex": "72656400626c756500",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-z",
+            "^(red|blue)$"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N21",
+          "stdinHex": "72656400626c7565007265647c626c756500677265656e00",
+          "stdoutHex": "72656400626c756500",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N22",
+      "filesBeforeHex": {},
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "hit"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N22",
+          "stdinHex": "6d6973730a6869743a6c617374",
+          "stdoutHex": "6869743a6c6173740a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "hit"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N22",
+          "stdinHex": "6d6973730a6869743a6c617374",
+          "stdoutHex": "6869743a6c6173740a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {}
+        }
+      ]
+    },
+    {
+      "id": "N23",
+      "filesBeforeHex": {
+        "empty.patterns": ""
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-f",
+            "empty.patterns"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N23",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "",
+          "status": 1,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "empty.patterns": ""
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-f",
+            "empty.patterns"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N23",
+          "stdinHex": "7265640a626c75650a7265647c626c75650a677265656e0a",
+          "stdoutHex": "",
+          "stderrHex": "",
+          "status": 1,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "empty.patterns": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "N24",
+      "filesBeforeHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-q",
+            "hit",
+            "a.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N24",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-q",
+            "hit",
+            "a.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N24",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N25",
+      "filesBeforeHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a",
+        "b.txt": "6e6f6e650a6869743a630a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-v",
+            "-c",
+            "^hit:",
+            "a.txt",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N25",
+          "stdinHex": "",
+          "stdoutHex": "612e7478743a310a622e7478743a310a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a",
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "-v",
+            "-c",
+            "^hit:",
+            "a.txt",
+            "b.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N25",
+          "stdinHex": "",
+          "stdoutHex": "612e7478743a310a622e7478743a310a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a",
+            "b.txt": "6e6f6e650a6869743a630a"
+          }
+        }
+      ]
+    },
+    {
+      "id": "N26",
+      "filesBeforeHex": {
+        "a.txt": "6869743a610a6d6973730a6869743a620a"
+      },
+      "runs": [
+        {
+          "repeat": 1,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-f",
+            "absent.patterns",
+            "a.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N26",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a20616273656e742e7061747465726e733a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a"
+          }
+        },
+        {
+          "repeat": 2,
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "-f",
+            "absent.patterns",
+            "a.txt"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE/N26",
+          "stdinHex": "",
+          "stdoutHex": "",
+          "stderrHex": "66677265703a20616273656e742e7061747465726e733a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "status": 2,
+          "signal": null,
+          "launchError": null,
+          "filesAfterHex": {
+            "a.txt": "6869743a610a6d6973730a6869743a620a"
+          }
+        }
+      ]
+    }
+  ]
+}

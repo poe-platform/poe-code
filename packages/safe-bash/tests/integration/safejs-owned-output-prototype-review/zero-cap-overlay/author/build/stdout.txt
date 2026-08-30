@@ -1,0 +1,1051 @@
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/errors.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/errors.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/errors.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/errors.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/io.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/io.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/io.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/io.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/filesystem.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/filesystem.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/filesystem.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/filesystem.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/command.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/command.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/command.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/command.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/output.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/output.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/output.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/output.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/path.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/path.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/path.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/path.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/plugin.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/plugin.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/plugin.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/plugin.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/contracts/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/internal.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/internal.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/internal.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/internal.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/basic.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/basic.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/basic.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/basic.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/copy-identity.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/copy-identity.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/copy-identity.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/copy-identity.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/move.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/move.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/move.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/move.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/filesystem.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/filesystem.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/filesystem.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/filesystem.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/streams.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/streams.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/streams.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/streams.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/protocol.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/protocol.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/protocol.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/protocol.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/client.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/client.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/client.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/client.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/grep.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/grep.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/grep.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/grep.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/predicates.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/predicates.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/predicates.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/predicates.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/execution.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/execution.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/execution.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/execution.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/find.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/find.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/find.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/find.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/regex.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/regex.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/regex.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/regex.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/sed.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/sed.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/sed.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/sed.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-values.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-values.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-values.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-values.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-syntax.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-syntax.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-syntax.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-syntax.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-runtime.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-runtime.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-runtime.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk-runtime.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/awk.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/text-programs/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/numbers.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/numbers.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/numbers.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/numbers.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/limits.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/limits.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/limits.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/limits.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/input.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/input.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/input.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/input.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/parser.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/parser.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/parser.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/parser.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/split.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/split.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/split.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/split.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/values.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/values.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/values.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/values.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/interpreter.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/interpreter.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/interpreter.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/interpreter.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/jq.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/jq.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/jq.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/jq.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/structured/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/options.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/options.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/options.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/options.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/matcher.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/matcher.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/matcher.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/matcher.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/output.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/output.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/output.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/output.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/glob.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/glob.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/glob.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/glob.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/walk.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/walk.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/walk.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/walk.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/rg.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/rg.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/rg.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/rg.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/search/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/base.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/base.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/base.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/base.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/od.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/od.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/od.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/od.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/xxd.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/xxd.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/xxd.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/xxd.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/encoding/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/checksums/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/checksums/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/checksums/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/checksums/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/options.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/options.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/options.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/options.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/gunzip.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/gunzip.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/gunzip.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/gunzip.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/stream.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/stream.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/stream.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/stream.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/files.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/files.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/files.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/files.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/compression/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/bytes/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/diff-format.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/diff-format.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/diff-format.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/diff-format.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/diff.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/diff.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/diff.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/diff.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-path.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-path.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-path.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-path.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/unified.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/unified.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/unified.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/unified.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-envelope.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-envelope.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-envelope.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-envelope.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-formats.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-formats.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-formats.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-formats.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-gnu-paths.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-gnu-paths.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-gnu-paths.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-gnu-paths.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-gnu-reject.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-gnu-reject.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-gnu-reject.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch-gnu-reject.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/patch.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/diff-patch/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/internal.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/internal.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/internal.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/internal.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/chmod.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/chmod.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/chmod.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/chmod.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/stat.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/stat.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/stat.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/stat.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/mktemp.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/mktemp.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/mktemp.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/mktemp.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/metadata/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/internal.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/internal.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/internal.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/internal.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/format.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/format.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/format.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/format.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/options.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/options.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/options.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/options.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/create.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/create.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/create.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/create.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/stream.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/stream.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/stream.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/stream.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/extract.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/extract.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/extract.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/extract.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/archive/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/internal.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/internal.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/internal.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/internal.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/paste.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/paste.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/paste.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/paste.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/comm.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/comm.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/comm.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/comm.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/join.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/join.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/join.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/join.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/table-text/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/tac.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/tac.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/tac.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/tac.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/numeric-options.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/numeric-options.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/numeric-options.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/numeric-options.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/expand.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/expand.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/expand.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/expand.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/fold.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/fold.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/fold.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/fold.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/strings.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/strings.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/strings.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/strings.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-inspection/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/seq.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/seq.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/seq.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/seq.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/nl.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/nl.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/nl.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/nl.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/rev.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/rev.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/rev.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/rev.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/unexpand.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/unexpand.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/unexpand.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/unexpand.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/stream-format/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/options.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/options.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/options.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/options.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/io.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/io.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/io.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/io.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/names.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/names.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/names.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/names.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/outputs.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/outputs.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/outputs.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/outputs.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/split.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/split.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/split.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/split.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/split/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/plugins/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/plugins/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/plugins/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/plugins/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/types.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/types.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/types.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/types.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/arithmetic.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/arithmetic.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/arithmetic.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/arithmetic.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/parser.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/parser.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/parser.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/parser.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/pattern.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/pattern.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/pattern.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/pattern.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/locale.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/locale.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/locale.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/locale.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/display.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/display.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/display.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/display.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/cleanup.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/cleanup.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/cleanup.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/cleanup.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/runtime.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/runtime.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/runtime.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/runtime.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/input.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/input.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/input.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/input.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/shell.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/shell.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/shell.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/shell.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/shell/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/stats.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/stats.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/stats.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/stats.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/values.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/values.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/values.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/values.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/filesystem.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/filesystem.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/filesystem.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/filesystem.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/shell.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/shell.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/shell.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/shell.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/integrations/safejs/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/types.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/types.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/types.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/types.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/render.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/render.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/render.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/render.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/io.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/io.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/io.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/io.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/options.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/options.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/options.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/options.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/safejs/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/types.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/types.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/types.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/types.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/args.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/args.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/args.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/args.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/body.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/body.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/body.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/body.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/output.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/output.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/output.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/output.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/transport.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/transport.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/transport.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/transport.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/curl.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/curl.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/curl.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/curl.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/network/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/identity.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/identity.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/identity.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/identity.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/comparison.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/comparison.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/comparison.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/comparison.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/transport.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/transport.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/transport.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/transport.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/authority.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/authority.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/authority.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/authority.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/resource-id.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/resource-id.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/resource-id.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/resource-id.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/memory/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/memory/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/memory/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/memory/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/real/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/real/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/real/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/real/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/filesystem.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/filesystem.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/filesystem.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/filesystem.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/mock.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/mock.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/mock.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/mock.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/types.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/types.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/types.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/types.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/request.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/request.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/request.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/request.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/signature.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/signature.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/signature.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/signature.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/xml.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/xml.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/xml.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/xml.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/transport.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/transport.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/transport.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/transport.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/s3/http/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/xml.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/xml.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/xml.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/xml.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/webdav.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/webdav.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/webdav.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/webdav.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/webdav/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/readonly/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/readonly/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/readonly/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/readonly/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/mount/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/overlay/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/overlay/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/overlay/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/fs/overlay/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/classify.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/classify.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/classify.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/classify.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/file/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/matching.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/matching.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/matching.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/matching.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/worker.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/worker.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/worker.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/regex-execution/worker.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/shared.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/shared.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/shared.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/shared.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/calendar.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/calendar.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/calendar.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/calendar.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/format.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/format.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/format.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/format.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/date.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/date.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/date.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/date.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/printenv.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/printenv.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/printenv.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/printenv.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/sleep.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/sleep.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/sleep.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/sleep.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/time-env/index.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/options.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/options.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/options.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/options.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/io.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/io.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/io.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/io.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/pattern.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/pattern.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/pattern.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/pattern.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/arguments.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/arguments.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/arguments.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/arguments.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/tree.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/tree.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/tree.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/tree.d.ts.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/index.js
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/index.js.map
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/index.d.ts
+TSFILE: /private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/dist/commands/tree/index.d.ts.map
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es5.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2016.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2017.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2018.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2019.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2021.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2022.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2023.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.core.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.collection.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.generator.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.iterable.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.promise.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.proxy.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.reflect.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.symbol.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2016.array.include.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2016.intl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2017.date.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2017.object.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2017.string.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2017.intl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2018.intl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2018.promise.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2018.regexp.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2019.array.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2019.object.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2019.string.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2019.symbol.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2019.intl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.bigint.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.date.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.promise.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.string.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.intl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2020.number.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2021.promise.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2021.string.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2021.weakref.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2021.intl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2022.array.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2022.error.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2022.intl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2022.object.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2022.string.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2022.regexp.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2023.array.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2023.collection.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.es2023.intl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.decorators.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/typescript/lib/lib.decorators.legacy.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/contracts/errors.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/contracts/io.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/contracts/filesystem.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/contracts/command.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/contracts/output.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/contracts/path.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/contracts/plugin.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/contracts/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/internal.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/basic.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/copy-identity.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/move.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/filesystem.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/streams.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/regex-execution/protocol.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/regex-execution/client.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/grep.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/predicates.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/execution.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/find.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text-programs/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text-programs/regex.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text-programs/sed.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text-programs/awk-values.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text-programs/awk-syntax.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text-programs/awk-runtime.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text-programs/awk.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/text-programs/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/numbers.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/limits.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/input.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/parser.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/split.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/values.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/interpreter.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/jq.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/structured/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/search/options.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/search/matcher.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/search/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/search/output.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/search/glob.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/search/walk.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/search/rg.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/search/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/encoding/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/encoding/base.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/encoding/od.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/encoding/xxd.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/encoding/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/checksums/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/compression/options.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/compression/gunzip.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/compression/stream.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/compression/files.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/compression/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/bytes/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/diff-format.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/diff.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/patch-path.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/unified.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/patch-envelope.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/patch-formats.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/patch-gnu-paths.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/patch-gnu-reject.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/patch.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/diff-patch/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/metadata/internal.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/metadata/chmod.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/metadata/stat.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/metadata/mktemp.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/metadata/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/archive/internal.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/archive/format.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/archive/options.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/archive/create.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/archive/stream.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/archive/extract.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/archive/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/table-text/internal.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/table-text/paste.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/table-text/comm.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/table-text/join.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/table-text/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-inspection/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-inspection/tac.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-inspection/numeric-options.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-inspection/expand.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-inspection/fold.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-inspection/strings.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-inspection/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-format/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-format/seq.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-format/nl.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-format/rev.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-format/unexpand.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/stream-format/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/split/options.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/split/io.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/split/names.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/split/outputs.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/split/split.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/split/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/plugins/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/types.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/arithmetic.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/parser.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/pattern.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/locale.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/display.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/cleanup.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/runtime.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/input.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/shell.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/shell/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/integrations/safejs/stats.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/integrations/safejs/values.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/integrations/safejs/filesystem.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/integrations/safejs/shell.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/integrations/safejs/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/safejs/types.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/safejs/render.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/safejs/io.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/safejs/options.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/safejs/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/network/types.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/network/args.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/network/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/network/body.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/network/output.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/network/transport.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/network/curl.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/network/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/mount/identity.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/mount/comparison.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/transport.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/authority.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/webdav/resource-id.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/memory/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/real/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/filesystem.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/mock.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/http/types.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/http/request.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/http/signature.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/http/xml.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/http/transport.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/s3/http/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/webdav/xml.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/webdav/webdav.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/webdav/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/readonly/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/mount/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/fs/overlay/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/file/classify.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/file/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/file/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/regex-execution/matching.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/regex-execution/worker.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/time-env/shared.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/time-env/calendar.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/time-env/format.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/time-env/date.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/time-env/printenv.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/time-env/sleep.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/time-env/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/tree/options.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/tree/io.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/tree/pattern.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/tree/arguments.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/tree/tree.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/candidate/src/commands/tree/index.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/compatibility/disposable.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/compatibility/indexable.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/compatibility/iterators.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/compatibility/index.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/globals.typedarray.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/buffer.buffer.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/globals.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/web-globals/abortcontroller.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/web-globals/domexception.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/web-globals/events.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/header.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/readable.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/file.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/fetch.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/formdata.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/connector.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/client.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/errors.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/dispatcher.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/global-dispatcher.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/global-origin.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/pool-stats.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/pool.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/handlers.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/balanced-pool.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/agent.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/mock-interceptor.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/mock-agent.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/mock-client.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/mock-pool.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/mock-errors.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/proxy-agent.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/env-http-proxy-agent.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/retry-handler.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/retry-agent.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/api.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/interceptors.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/util.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/cookies.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/patch.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/websocket.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/eventsource.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/filereader.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/diagnostics-channel.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/content-type.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/cache.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/undici-types/index.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/web-globals/fetch.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/web-globals/navigator.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/web-globals/storage.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/web-globals/streams.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/assert.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/assert/strict.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/async_hooks.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/buffer.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/child_process.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/cluster.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/console.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/constants.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/crypto.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/dgram.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/diagnostics_channel.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/dns.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/dns/promises.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/domain.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/events.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/fs.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/fs/promises.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/http.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/http2.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/https.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/inspector.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/inspector.generated.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/module.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/net.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/os.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/path.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/perf_hooks.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/process.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/punycode.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/querystring.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/readline.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/readline/promises.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/repl.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/sea.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/sqlite.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/stream.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/stream/promises.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/stream/consumers.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/stream/web.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/string_decoder.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/test.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/timers.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/timers/promises.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/tls.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/trace_events.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/tty.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/url.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/util.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/v8.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/vm.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/wasi.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/worker_threads.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/zlib.d.ts
+/private/tmp/safe-bash-zero-overlay-author-cixclc9v/node_modules/@types/node/index.d.ts

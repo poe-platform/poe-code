@@ -1,0 +1,115 @@
+{
+  "initialCommit": "d168d18b118592e04a6eec9b00eb50cc2b1e5058",
+  "sqliteCommit": "9f7fed68077a68ef3decb114ace83ad47b75ae14",
+  "finalCommit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "sourceChanges": [
+    {
+      "path": "package.json",
+      "oldSha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "finalSha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7"
+    },
+    {
+      "path": "src/commands/file/README.md",
+      "oldSha256": "d6a74577448970deb15f899f49a7778b3a4c1c9028df6a831d8f0f1bbd95ce42",
+      "finalSha256": "aaa49bf4c73705aed8571eafc030dd1cb3b3db5a0ef4121319a0c0531071d57d"
+    },
+    {
+      "path": "src/commands/file/classify.ts",
+      "oldSha256": "d3f17f0e1d5ffeff08a015ee7131d9934a3938148ab65388478702e2764f0d1e",
+      "finalSha256": "fcdee375d2f97afae9d8dc6a23eff64440258aea0a8c2adff7b2968875bc6535"
+    },
+    {
+      "path": "src/commands/file/index.ts",
+      "oldSha256": "1753ac81d099b329d52bb83b0047d5241ca25ec74f9c57b62399f254404ee825",
+      "finalSha256": "5278a91c223e182a6bfd2961b16545ff42e2f4e986c25f5dc7f35371aee0d178"
+    },
+    {
+      "path": "src/commands/file/shared.ts",
+      "oldSha256": "fa4d86f5cc1eb3a642aac34845737566c89e2b2b4983ec21a111441c3b94f87a",
+      "finalSha256": "bb6d9ac67eeace8e52220c94f7eb2d78236fe045d3d1312814c5b9dcb0755fc5"
+    },
+    {
+      "path": "src/commands/time-env/README.md",
+      "oldSha256": "5988969d14e93fb5cf00668f51320f8bf1b8aa646489ddaa5050bd5f4b966d00",
+      "finalSha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b"
+    },
+    {
+      "path": "src/commands/time-env/format.ts",
+      "oldSha256": "742160b2a241aeabae58f7b198b901ae109b9806dc75b176fbfb1a77594e70fd",
+      "finalSha256": "ddbabf9ac2918869ed32a641fb9e2c290ee71b9bbf07ccaab64f9fc3b29b22b0"
+    },
+    {
+      "path": "src/commands/time-env/sleep.ts",
+      "oldSha256": "130fa7b2e9f2d838b8908d47f89a61b67964ed3b36ed3f42d23624898fe4aed1",
+      "finalSha256": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96"
+    },
+    {
+      "path": "src/commands/tree/README.md",
+      "oldSha256": null,
+      "finalSha256": "3d8fafb9a69b35a70c99bab27269e13d63c7cbf2f67af852e1a6443390d63723"
+    },
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "oldSha256": null,
+      "finalSha256": "572db370cad20fff449ed6ce43c0a358390a8f9cfb15ea447d4ac7aaec4b8c9a"
+    },
+    {
+      "path": "src/commands/tree/index.ts",
+      "oldSha256": null,
+      "finalSha256": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc"
+    },
+    {
+      "path": "src/commands/tree/io.ts",
+      "oldSha256": null,
+      "finalSha256": "ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153"
+    },
+    {
+      "path": "src/commands/tree/options.ts",
+      "oldSha256": null,
+      "finalSha256": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483"
+    },
+    {
+      "path": "src/commands/tree/pattern.ts",
+      "oldSha256": null,
+      "finalSha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "oldSha256": null,
+      "finalSha256": "449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "oldSha256": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "finalSha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+    },
+    {
+      "path": "tsconfig.json",
+      "oldSha256": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08",
+      "finalSha256": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027"
+    }
+  ],
+  "closureChanges": [
+    {
+      "path": "dist/commands/file/classify.js",
+      "oldSha256": "eda330eedef089d772802a4df3c93dc7729f8f1ee5af7cdc62aa0a406ca7f9f9",
+      "finalSha256": "77fbdd3b6cf4976b73f47e4052122b372b8db8090758891a385fd22532f1308e"
+    },
+    {
+      "path": "dist/commands/file/index.js",
+      "oldSha256": "ffd86a04a466c8cc9072c607099dc9be00e8f49ec5e3c4e97a3a49006b535319",
+      "finalSha256": "2f63be99b23805e68498f39b71382134d70ab2929f7413460337790d8d3e5ad5"
+    },
+    {
+      "path": "dist/commands/file/shared.js",
+      "oldSha256": "a0896f522ef26b0d43f99881ce12332d114708a3e6c15c21a421d1fb11731ace",
+      "finalSha256": "6f69ed0ed46c2880ac9c18eaa24f7c0815b7ca64015511fd6b1e49885bbd4d15"
+    },
+    {
+      "path": "dist/shell/shell.js",
+      "oldSha256": "46ffa189152f3630fa990b5a63c637c7abfbb92ce0132b4a8e25cf573e5825d5",
+      "finalSha256": "38dced6b802a8aebf277a197061e83f3dcb9a9d1fed3372ce13a655f0e8ddd3d"
+    }
+  ],
+  "observation": "Static deltas only, no measured SQLite/TEXT/candidate effects yet"
+}

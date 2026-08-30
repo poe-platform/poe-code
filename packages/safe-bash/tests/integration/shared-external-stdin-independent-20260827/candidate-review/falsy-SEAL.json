@@ -1,0 +1,42 @@
+{
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "fixtureCommit": "bdb49bb1c2b2c5646e1ed8666bf53ebf3bb6433c",
+  "sealedAt": "2026-08-27T16:18:18.202Z",
+  "files": [
+    {
+      "path": "falsy-evidence/authentication.json",
+      "size": 179108,
+      "sha256": "e8b91a09a617fc354179cbdea5bc1ab90bb9fbd7eba70f2335387fc41e702bbb"
+    },
+    {
+      "path": "falsy-evidence/command.json",
+      "size": 940,
+      "sha256": "303fa98bcadbfeb74b9deb7c50ecb72c81512a4f13cc08c96e5e4664b7aad618"
+    },
+    {
+      "path": "falsy-evidence/coordination-before-falsy.txt",
+      "size": 6268,
+      "sha256": "27870c2d1d6dd51a5628be3824ff3b15e0949d9dbf3a92ed92a1f4bf3f66cef7"
+    },
+    {
+      "path": "falsy-evidence/integrity-after.json",
+      "size": 224458,
+      "sha256": "79f0785c59cb93db27c7b051079335290e26ce8a9b58dd42eb83bb6df0eae89e"
+    },
+    {
+      "path": "falsy-evidence/loads.jsonl",
+      "size": 40291,
+      "sha256": "6d089800ca13a0b0328a817a34b19e5ebe45ef3912440aea5b5ddaf211f7bc67"
+    },
+    {
+      "path": "falsy-evidence/results.json",
+      "size": 1519,
+      "sha256": "44851abfce8ccecc0ef96dbfd290610e199eb69c4a0fff85395a751a03ea6aef"
+    },
+    {
+      "path": "falsy-evidence/summary.json",
+      "size": 111,
+      "sha256": "02136eae702f874571535e45f2a6b06350136ec93a27cc7c350a65a2760a9a75"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "authorOnly": true,
+  "checkedAt": "2026-08-27T07:32:13.123Z",
+  "head": "dbe3cfd544ab4dbf099225da9e727eb7c5441ef0",
+  "sourceCommit": "5660248b1ff89572a6164d0b0c7bd22d03630d9b",
+  "sourceSha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+  "sourceUnchanged": true,
+  "oldSeals": [
+    {
+      "directory": "tests/fs/s3/rmdir-real-service",
+      "files": 606,
+      "sealSha256": "d6e50e546649b6e2085af7a148f3b58b7daddac176bfba498eaa5c2ad8dd7a62"
+    },
+    {
+      "directory": "tests/fs/s3/rmdir-real-service/list-oracle-review",
+      "files": 5,
+      "sealSha256": "bace404bdbe23c55f968cc7fabee34422f01addc3e1a2335ce575b68f779974f"
+    }
+  ],
+  "runs": [
+    {
+      "name": "evidence-6zhLg6",
+      "passed": 9,
+      "total": 20,
+      "positivePublicWorkflows": 0,
+      "cleanup": {
+        "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-nUCtb6",
+        "scratchRemoved": true,
+        "ownedDownloadRemoved": true,
+        "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/evidence-6zhLg6/service-tYxYLU",
+        "serviceShutdown": {
+          "pid": 45620,
+          "code": 0,
+          "signal": null,
+          "ownedDataRemoved": true,
+          "ownedHomeRemoved": true,
+          "time": "2026-08-27T07:23:09.630Z"
+        }
+      },
+      "pidInspection": "absent"
+    },
+    {
+      "name": "evidence-bDQayH",
+      "passed": 20,
+      "total": 20,
+      "positivePublicWorkflows": 4,
+      "cleanup": {
+        "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-pYgmNY",
+        "scratchRemoved": true,
+        "ownedDownloadRemoved": true,
+        "serviceOutput": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/evidence-bDQayH/service-BY47dp",
+        "serviceShutdown": {
+          "pid": 49527,
+          "code": 0,
+          "signal": null,
+          "ownedDataRemoved": true,
+          "ownedHomeRemoved": true,
+          "time": "2026-08-27T07:24:32.495Z"
+        }
+      },
+      "pidInspection": "absent"
+    }
+  ],
+  "syntaxChecks": [
+    {
+      "path": "tests/fs/s3/rmdir-real-service/snapshot-profile/run-service.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/fs/s3/rmdir-real-service/snapshot-profile/service-checks.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/fs/s3/rmdir-real-service/snapshot-profile/verify-package.mjs",
+      "status": 0
+    }
+  ],
+  "acceptedRunnerUnchanged": true,
+  "acceptedServiceChecksUnchanged": true,
+  "offlinePackageAuditCleaned": true
+}

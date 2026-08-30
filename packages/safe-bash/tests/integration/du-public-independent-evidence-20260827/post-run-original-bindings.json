@@ -1,0 +1,210 @@
+{
+  "role": "post-run immutable-file verification only; not admission/control rerun",
+  "timestamp": "2026-08-27T23:52:49.684Z",
+  "recipeCommit": "5687fe0afe36749a9ec6527357acbb2eec518e4f",
+  "recipeManifestSha256": "420da89268b544b466dda8aa3cc214dab668338233e557b3efe45dee84b6ccd7",
+  "runManifestSha256": "7571013470b55eae25634932ff024bed3eebe33a5c109b4af8aed820a8ca5d0b",
+  "original21": [
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/ADMISSION-ADDENDUM.v1.md",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "14ab832b829b57af923d25f42f7eb289deab0db7",
+      "sha256": "eeaaf4cc8414e8fc56d2cf77b489eced2288502a8c6ca54f9d9e02e111a29e28",
+      "bytes": 7356,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/MANIFEST.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "3f589ab2cb1535f6d17ce6e20768bdf18460b4a1",
+      "sha256": "60ccba645eb197746cd13ff2bd92d1b213affce9a896c275913e531a55b21763",
+      "bytes": 1358,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "f89ff396acb0e1d3e086184c9316796d19365fa7",
+      "sha256": "4a46fcc4cc8d5241afdb4e7672d9a7cb363edf6da9852aea064b229ec14958c9",
+      "bytes": 3400,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/controls.v1.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "13d9afd69c694bfb88af78338298274b17c0dc97",
+      "sha256": "a269a6cc4bd45c087a4e84d49cafb3077d1e55efc527d3ef6531d7c0fe7ced4b",
+      "bytes": 3440,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/preparation.v1.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "9723ce7960db41adee20a0bf8c4fdc4a7777c4c1",
+      "sha256": "537fb72f69c409578180f57a91087b5028f625676a07d37c4cbde36d0c8e8b23",
+      "bytes": 8726,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/wrapper.v1.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "2f4c26bc22ea812f5c7234198377a2c75db21ec3",
+      "sha256": "d360ece50f93a6caccb2973183b343c827fd7d035fd13e07d9ee2512cfe1d1ea",
+      "bytes": 9281,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/MANIFEST.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "84bf97a61b147be4f7bd408d480cb28fa0242552",
+      "sha256": "b180b9a384bdc3d257b243d315027a59ae792865a572b877dbe547f99149f6ff",
+      "bytes": 3202,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "ee4afd2d7e38dbfd20fba25621104d80340bff70",
+      "sha256": "7bc16552cf2b232d83f56bb94f628383dbae2af0cf3908e389aa09b62ac83f6e",
+      "bytes": 11279,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/binding-contract.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "b472a69c33f4740b7ddd7b52ca6fe23733c9bed3",
+      "sha256": "6b0f3c6c58eeab74d069c3f1934c88683e3d317c663c201a00101e623365c58d",
+      "bytes": 5145,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/bindings.template.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "f2930971b34dcc61c51fa7d6f25847dbf930bd0d",
+      "sha256": "a2bd39ebe66c22bea3397a3a336227ef3c4ecb91e474edbae96cd1f6bdec71b5",
+      "bytes": 870,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/cases.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "5776a1d59a623ac92bfd673fdfe6711e939b9cee",
+      "sha256": "c4bd0156197d8902839e4c1e24f261aeefcc52307537fa9aff05efca1b36efb2",
+      "bytes": 11315,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/consumers/negative-limits.ts.data",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "cd9859b006f64f913c975f3fe1525bfe719d0ed9",
+      "sha256": "7e5f00d6d0e51932cec4d4c5923b7513767ae8378574a88f905eb77c4da5be5a",
+      "bytes": 112,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/consumers/negative-options.ts.data",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "da424fdcbc572e0a48a41b95a989ba410549961d",
+      "sha256": "236b464bb11091248ea87eaa745b203a6a5400718070adcba9ac0c0f351e7ffd",
+      "bytes": 192,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/consumers/negative-readonly.ts.data",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "2fbd69d2b710ab7f79e8fe52f90608387a59dfdf",
+      "sha256": "fd6b0ce1b0438f342187e7a223871d2a96c66893223798e189e66d5cd080cb37",
+      "bytes": 110,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/consumers/positive.ts.data",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "d6be6ffbfbca416fd3849d4be08a33e1971db1ca",
+      "sha256": "d1d5860c82394788b51b138bf21d180a3f03471d5a9ceb3feef09c914ef0f415",
+      "bytes": 1183,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/inspection.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "5f22d3d822323f7f4f98ba0fd7135609200bd9a7",
+      "sha256": "cbbe8c1663aa1950c706d558591596ade1717d29e390a843d3beff62437d2053",
+      "bytes": 9336,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/lifecycle.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "df883ce0a09a24994a3704135f60c3208b3c300b",
+      "sha256": "f4c2141aa37be991b2afcebabc1f36eda1d0947655c313a383e047982dd6437e",
+      "bytes": 3489,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/load-proof-hook.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "1897c32368e5b68967871aff1631c8b50d4553bc",
+      "sha256": "5f31d3ff8f41988656dc792a0b62cc83878923302c088820d5233ed36626213b",
+      "bytes": 3660,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/public-cases.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "a6980ef7189a8ee4316f0b1a7d8897e609204b71",
+      "sha256": "5620dbc46f39cd5cbee3d4a0e1eed8bd4544af21715d60c15643c619ea162d3e",
+      "bytes": 6923,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/type-controls.json",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "47fa3595c8f1482bcebbb9b1f7baf6054233b7c7",
+      "sha256": "e896fb046ef9221761fb27509414ae1ba956b5804e247c1dfa1001d53cd85007",
+      "bytes": 1715,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/verify-static.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "gitBlob": "baf1a30d89528ae7a49560d9c6b9e94b97a5d4e2",
+      "sha256": "cb0036b9cce877363280de5b1968d47b3856064c833c256536fe1206015b51f6",
+      "bytes": 5551,
+      "verified": true
+    }
+  ],
+  "original15NamespaceExact": true,
+  "original15NamespaceDetectsNewEntries": true,
+  "recipeNamespaceExact": true,
+  "recipeFilesVerified": 10,
+  "runEvidenceNamespaceExact": true,
+  "completeSelectedSourceToolFixturePrePostEstablished": false,
+  "actualControlExecutions": 0,
+  "heldControls": [
+    "A06",
+    "P03"
+  ],
+  "retry": false
+}

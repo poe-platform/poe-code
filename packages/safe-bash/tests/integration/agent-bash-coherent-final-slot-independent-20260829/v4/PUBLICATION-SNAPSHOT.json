@@ -1,0 +1,78 @@
+{
+  "at": "2026-08-29T13:58:28.319Z",
+  "bytes": 65393,
+  "entries": 14,
+  "files": [
+    {
+      "path": "ACCOUNTING.md",
+      "bytes": 2002,
+      "sha256": "82c549cc23ab0c918ba66a8758393bda0c81bafdbf9ca33d04e4d4cf2b783411"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 250,
+      "sha256": "184caa2b3fb5b07cc4abc8810066410a542e3c5130a255ba92d9292bd0ae4150"
+    },
+    {
+      "path": "EXECUTION.json",
+      "bytes": 203,
+      "sha256": "56d87934c41473bbe026b7bd6fb0e8fc3d2cbd87fadd38f8928ff25dd6737178"
+    },
+    {
+      "path": "FINDINGS.json",
+      "bytes": 1821,
+      "sha256": "7a71c0681e307c689f98f15417e713b70c6d1f306d166d432e039f0c46142311"
+    },
+    {
+      "path": "HANDOFF.raw",
+      "bytes": 5270,
+      "sha256": "98e0ccaddc6f089643fbdaa03aae89517fb7140b5f0e06839e78bb8beb134ed9"
+    },
+    {
+      "path": "LOCATORS.json",
+      "bytes": 1360,
+      "sha256": "d8ecceb0c8edc0ba2ef205886ea3cb73cf55f55a3b9d4d9351012c4f46a0590d"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 749,
+      "sha256": "135051d153761195d2974d1a8ce7eb74120f35256a48dc471bcee3c552a4573b"
+    },
+    {
+      "path": "RECEIPT.json",
+      "bytes": 10278,
+      "sha256": "771a5c71c542701f63456a879c34279a3abecba47141569b07863d689758c69d"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 2461,
+      "sha256": "02a514b353d527a0734968678c055e32fbd0a277bcc403cc61d4416bed92d500"
+    },
+    {
+      "path": "ROLE-PLAN.json",
+      "bytes": 853,
+      "sha256": "f22eae36b6299996710a63fcb89a867ac004a715af1086b17565bc781c83627c"
+    },
+    {
+      "path": "SYNTAX-FAILURE-v1.json",
+      "bytes": 3125,
+      "sha256": "25f07da85a1eeaa34344371839de85bafb0427d03b73f6bdcc247f006cb72b81"
+    },
+    {
+      "path": "audit.mjs",
+      "bytes": 15225,
+      "sha256": "aaac13b31f9757aa8be246344eafaaeae9aa8426cc68c5d734d37ea911385c86"
+    },
+    {
+      "path": "audit.syntax-v1.mjs.data",
+      "bytes": 15226,
+      "sha256": "5f8663692f434d285bf2c78398a3034d4584890fb926b100426a37cbdb224ee1"
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 6570,
+      "sha256": "77fdf146c686cd3dd2b72c5c02e076bb94dc92f2d2670e9d47cfc48249d7c932"
+    }
+  ],
+  "capture": "/tmp/b1-v4-slot-publish-zzhQaC"
+}

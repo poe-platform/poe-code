@@ -1,0 +1,46 @@
+{
+  "authorized": true,
+  "phase": "worker",
+  "oneShot": true,
+  "runId": "RUN-WRQ-L04-DIAGNOSTIC-V11-01",
+  "retries": 0,
+  "profileSha256": "3238217bb8d0ef0c572c185daaf0e39d7c33c36faf1950f1caca1a07834e304d",
+  "caseSha256": "8de095942d8218e60d6e06234b0fdfd97988b2129ed9b7fc7e0480c59ed452eb",
+  "moduleSha256": "eb1a0afe541c06df37715eddac50a77b4a07680370ee20935a23f994c8e930f1",
+  "toolSha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce",
+  "sourceSha256": "1b8ba7a25e47e99935275ee1277afeac21880422a69d2b4577bb93dbc65b9a7f",
+  "reviewCommit": "702c0a448fcaaabad51294f407e9920c8d577925",
+  "reviewDecision": "accept-exact-finite-recipe",
+  "compiler": false,
+  "selectedInstances": [
+    "WRQ04-L04-diagnostic-v11"
+  ],
+  "sourceCommit": "702c0a448fcaaabad51294f407e9920c8d577925",
+  "compositionSha256": "ce0a29fd56363c48b266b12c27688c87b31792b2a2e66fd7e9fd036f34fef24a",
+  "rootAuthority": "Latest ROOT conditional single L04 diagnostic after concrete preseal and safe controls PASS; not a different-review acceptance",
+  "controlEvidenceSha256": "a57291580a1c6c38eda3822a429654e70adc406dae84664203b719f372e02cf7",
+  "newTrustedEdge": {
+    "importer": "worker-error-observation.mjs",
+    "importerSha256": "1dcb8319e5d216d2f2bbf1793f4ccacfa51c18149b3dee074b9c77900fed339a",
+    "specifier": "node:util",
+    "target": "node:util",
+    "roles": [
+      "worker"
+    ]
+  },
+  "presealSha256": "d486559c00983d116363bb38b86cffec5e4787568f6186390b811ea36131d64e",
+  "limits": {
+    "maximumMs": 300000,
+    "maximumChildren": 6,
+    "peakProcesses": 3,
+    "captureBytes": 16777216,
+    "workBytes": 268435456,
+    "workers": 1,
+    "guests": 1,
+    "retries": 0,
+    "ownerTimeoutMs": 180000,
+    "killAfterTermMs": 2000
+  },
+  "priorEvidence": "2eb0536d68684306162f9b9a38e15f001fc4917e",
+  "remainingTailAuthorized": false
+}

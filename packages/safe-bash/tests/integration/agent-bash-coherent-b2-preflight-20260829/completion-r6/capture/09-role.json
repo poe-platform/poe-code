@@ -1,0 +1,15 @@
+{
+  "role": "pure-and-harmless-control-owner",
+  "pid": 79344,
+  "start": "2026-08-29T14:28:22.158Z",
+  "maximumChildren": 4,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "end": "2026-08-29T14:28:22.478Z"
+}

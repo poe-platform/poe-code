@@ -1,0 +1,32 @@
+{
+  "schema": "remaining-harness-v4-postexit-evidence-seal",
+  "classification": "single launch STOP; no raw controller receipt; zero control passes",
+  "presealCommit": "b6cd295c05478a530937b6617723e419877b7635",
+  "presealSha256": "14019b529fcd5483d2e40e0200165a601ce32d5b5762d88fb3d239c4224ec128",
+  "files": {
+    "REPORT.md": {
+      "bytes": 6611,
+      "mode": 420,
+      "sha256": "81b90ed69e97487482f4dd55e5f6441f705e959466166d05f7295de926692a20"
+    },
+    "attempt-01/LAUNCH-OUTPUT.txt": {
+      "bytes": 763,
+      "mode": 420,
+      "sha256": "f9405c3bcfe7ccd2e2efeffcf8bae075d8f9fef3e80f46d18777261b79fedf37"
+    },
+    "attempt-01/LAUNCH.json": {
+      "bytes": 2206,
+      "mode": 420,
+      "sha256": "a3c8bafd5b359d1f2ceac85e04b9c9aa4c9e591751e7de9507d7ecef5f659c08"
+    },
+    "attempt-01/POSTEXIT-INTEGRITY.json": {
+      "bytes": 1126,
+      "mode": 420,
+      "sha256": "29f1967d76fa6b731df67b9721e204ed3c1b86f40dfa918faae7aeadafeaed57"
+    }
+  },
+  "totalBoundEvidenceBytes": 10706,
+  "membership": "exact four evidence files; EVIDENCE-SEAL.json is a separate non-self-bound envelope; presealed own files unchanged",
+  "remainingJobsExecuted": 0,
+  "admission": "NONE"
+}

@@ -1,0 +1,8 @@
+
+> virtual-bash@0.0.0 typecheck:consumers
+> npm run build && tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json
+
+
+> virtual-bash@0.0.0 build
+> tsc -p tsconfig.build.json
+

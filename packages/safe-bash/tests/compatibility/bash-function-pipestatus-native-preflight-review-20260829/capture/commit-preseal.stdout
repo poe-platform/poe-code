@@ -1,0 +1,56 @@
+[main c83a4bdebaa89a8df27aeb0c58da59e27e070372] test: preseal independent native26 preflight controls
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 42 files changed, 2488 insertions(+)
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/DETAILS.json
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/HANDOFF.raw
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/INPUTS.json
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/LOCATORS.json
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/SEAL.json
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/START.json
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/committed-handoff.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/committed-handoff.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/details.events.jsonl
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/inspect.events.jsonl
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/seal.events.jsonl
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/stage-preseal.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/stage-preseal.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/syntax-review.mjs.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/syntax-review.mjs.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/syntax-supervise.mjs.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/syntax-supervise.mjs.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/capture/syntax.events.jsonl
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/controller-inspection.source
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/details-patch.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/details-patch.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/details.outer.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/details.outer.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/inspect.outer.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/inspect.outer.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/novel.fragment.data
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/prepare-patch.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/prepare-patch.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/prepare.mjs
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/prepare.outer.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/prepare.outer.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/review.mjs
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/seal.outer.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/seal.outer.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/source-details.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/source-details.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/supervise.mjs
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/syntax-owner.outer.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/syntax-owner.outer.stdout
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/syntax.outer.stderr
+ create mode 100644 tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/syntax.outer.stdout

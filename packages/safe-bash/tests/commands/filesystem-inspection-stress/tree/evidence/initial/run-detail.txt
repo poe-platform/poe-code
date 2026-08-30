@@ -1,0 +1,116 @@
+INDEPENDENT TREE VERIFIER — COHERENT INITIAL SOURCE CHECKPOINT; STOPPED
+
+Finalized UTC: 2026-08-27T08:37:15.595Z
+Authorized candidate: e2d1b9230f4304650651572395523ca9d1644e74
+Candidate commit tree: a4f29110c2f8b28a8bfddedcf5ccfc36fcdc1f8c
+Standalone API: direct frozen src/commands/tree/index.ts, createTreeCommand,
+createTreeCommands, treeCommands and documented option types. Only
+createTreeCommand is executed by this bridge; actual Shell uses CommandRegistry.
+No root/package-subpath/default integration or public-consumer acceptance claim.
+
+ORIGINAL PRESEAL / INDEPENDENCE
+Payload b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937
+Private inventory 7080fc3c3dd527e2b49183b365253ae9ddd38f78672de5f97623ace661a976fa
+Original corpus 1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4
+Original runner 3068e51fece206bdcab38a53f5fb47b61cdfc5a71f35900f7241bf9f291fc03d
+Original native captures 5b89a6577600326878987f4d985270087d26fa7d3abd00f5c98fab973619c897
+Sealed at 2026-08-27T08:13:47.498Z, before candidate commit08:16:49Z.
+Verified before binding, after source execution, and after durable publication.
+All 97 artifacts, expected bytes, fixtures and predicates remain unchanged.
+Author-finished/root authorization preceded all 35 product invocations.
+The mistaken original attribution of ancestor-only policy as a literal user
+instruction is explicitly corrected in pre-execution profile and PRESEAL-ERRATA.
+It is our chosen bounded profile; user requested cycle handling/no false identity.
+
+FROZEN INPUTS
+Full candidate regular files: 13887, 865250846 bytes.
+Copied dependency regular files: 318, 58892156 bytes.
+Source manifest SHA256 81eddab7060fcc67dfcf5adc325218b886a4fb50d7e40a1056ad9fe379e83a9a
+Candidate regular-file manifest SHA256 0cedb2a69303e3728bf6481d692bab168a5128d710de317984165052d439d01e
+Dependency manifest SHA256 e1c37e0f0c56c70dba3ce1e19bdd1678ffce01f085f59324a6ecd6a79627400e
+Full input manifest SHA256 ef040b94780aa38b5483d5d1c2f9d263e4396cc8a0d881255665080992cce1e8
+All 14205 input files hash identically after the run.
+31 source modules plus22 loader/tool modules observed in V8 coverage were inside
+the frozen snapshot; unexpected moving file-backed imports:0. Snapshot copied
+all exact-commit regular files, not a dirty live-source overlay. Files are
+read-only; this is not an OS security boundary against trusted same-user code.
+Installed dependency versions match candidate package-lock.json; no install,
+download or rebuild was used. Test tool subprocesses are not product commands.
+Snapshot: /private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate
+Full raw/V8 evidence: /private/tmp/safe-bash-tree-initial-run-NN3E3X/raw
+Live worktree was concurrently dirty and was not used as product source.
+
+EXACT INITIAL COUNTS
+Selected38 once each; source cohort 2026-08-27T08:28:18.368Z to 2026-08-27T08:28:26.189Z.
+Elapsed 7821ms. 35 tree invocations;3 unsupported selections invoke none.
+Raw sealed predicates:30 pass,2 fail,3 unsupported-not-pass,3 characterized-not-pass.
+Native exact-predicate selections:12 pass,1 fail,3 unsupported (16 total).
+Other native-derived semantic selections:3 pass,1 fail (4 total).
+Adversarial/positive selections:15 pass,3 characterizations (18 total).
+Raw native stdout/stderr/status across all20 captured cases:12 exact matches,
+5 mismatches (N14,N16,N17,N18,N20),3 unsupported/not-run (N09,N12,N19).
+N20 parsed JSON equals native despite whitespace mismatch. N14/N17 semantic
+passes are NOT native parity. Native captures retained:20; new native runs:0.
+Adjudication:30 sealed passes,1 declared-profile conflict,1 overnarrow sealed
+predicate conflict,3 unsupported,3 characterizations. Demonstrated source bugs:0.
+Outside-core failures:0. Source/import startup errors:0. Timeouts:0.
+Watchdog cancellations:0. Missing/incomplete:0. No covert rerun or source fix.
+Per-case process cap120000ms, cohort cap600000ms; original sealed internal
+settlement guard2000ms unchanged. No cap fired; longest case667ms.
+
+FAILURE ROUTING
+/tmp/safe-bash-tree-holdout-failures.txt contains raw minimal fixtures/argv,
+exact expected/actual bytes/status, preserved stacks and reproducible commands.
+N16: explicit root symlink stays untraversed by predeclared nofollow profile;
+native follows it. Original native failure remains NOT a parity pass.
+N18: candidate rejects -L0 with status2 and 'tree: -L must be between 1 and 256'.
+Original regex demands one of level/depth/invalid/positive/greater; it rejects
+this meaningful diagnostic. Original failure remains; no regex/oracle edits.
+Root decides any future profile/harness revision while retaining this cohort.
+No demonstrated implementation bug to send for a source fix. Author stays stopped.
+
+NATIVE PROVENANCE CORROBORATED
+Official archive recorded in exact candidate tests/commands/tree/native-fixtures.json:
+https://gitlab.com/OldManProgrammer/unix-tree/-/archive/2.2.1/unix-tree-2.2.1.tar.bz2
+Archive e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5
+Binary 34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a
+Pinned manual 0900385101aa663c970b3e558ed3eec8b4fc96e175b70bedefcf32cf4f8bc3dd
+Existing originals and sealed copies match. Fifteen relevant source/header/
+Makefile/manual files in the build tree equal archive members. Exact original
+build log corroborates make CC=cc CFLAGS='-O2 -std=c11 -Wall -Wextra' LDFLAGS= tree,
+Apple clang21.0.0, one stddata_fd unused-variable warning, successful execution.
+This is recorded-build corroboration, not a new reproducible rebuild or fresh
+network attestation. Darwin arm64/C locale/ASCII profile, not GNU/Linux/latest.
+The author's six declared profile differences remain explicit; error-JSON and
+file-root-JSON differences are not measured by these38 original cases.
+
+VALIDATION / LIMITS
+Scoped frozen candidate source/tests typecheck passes (noEmit); no full gate.
+Twelve durable evidence/fixture checks pass; these execute no product commands.
+Actual Shell/registry JSON pipeline, subshell, redirection and byte stdin
+consumer execute successfully; one Shell instance is disposed. Not a stub.
+Direct pre-abort/pending-FS/pending-sink reasons preserve exact identity and
+late rejection observation; this is not public Shell cancellation proof.
+Static review found no tree content reads, hostFS/subprocess/network use or
+runtime dependencies; globs use budgeted DP rather than regex backtracking;
+scoped identity is not inferred from realpath strings. No universal audit claim.
+A33's output is C-escaped ASCII despite Unicode input names, so genuine UTF-8
+multibyte output-budget coverage is incomplete. A26 reaches entry cap before
+duplicate validation; A25 stops at first invalid entry. Unknown/malicious
+provider cases do not invent contract validation/deduplication requirements.
+No jq-specific case, newly built standalone consumer, public/default/package
+integration, deployed provider gate, performance comparison, full native parity,
+superiority or72-hour completion claim. All gaps remain recorded.
+
+DURABLE PUBLICATION / PROCESS STATE
+Owned scope: tests/commands/filesystem-inspection-stress/tree/** only, plus /tmp.
+Original seal/corpus and raw initial results are published there. Full large
+candidate snapshot and76 original V8 coverage files remain /tmp; published
+manifests/coverage indexes bind them. run-frozen.mjs supports an explicitly
+authorized new cohort against identical inputs, never overwriting this one.
+All38 cohort children emitted close; active owned cohort children:0.
+Watchers/servers started:0; created/disposed Shell instances:1/1.
+All temp fixture/snapshot/raw evidence retained. No unowned cleanup performed.
+No production/author-test/root/FS/contracts/core/default/private edits.
+No staging, commit or branch created. Index observed at finish: "".
+STOP at initial checkpoint. Root owns any subsequent author handoff.

@@ -1,0 +1,306 @@
+{
+  "recipeCommit": "0a02e846b3f4985cad4394187717ceabd0188f25",
+  "root": "evidence",
+  "entries": [
+    {
+      "path": "child-INSTALLED_MOVED",
+      "directory": true
+    },
+    {
+      "path": "child-INSTALLED_MOVED/RECEIPT.json",
+      "bytes": 756,
+      "sha256": "7fc7721093034cfa9520c3cb1298466fe67c6a04f64d4bc910f83683b58e8cd4",
+      "mode": "644"
+    },
+    {
+      "path": "child-INSTALLED_MOVED/START.json",
+      "bytes": 4247,
+      "sha256": "cfb436729d6b17af5aba5c0c38748fe32dd6b11a21555fbce3d8c74319ca1f98",
+      "mode": "644"
+    },
+    {
+      "path": "child-INSTALLED_MOVED/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-INSTALLED_MOVED/stdout.raw",
+      "bytes": 199264,
+      "sha256": "69e7ba15cf99eb67bcc64d7c6be78ad324e3c45b0de71521f93a9030e698f298",
+      "mode": "644"
+    },
+    {
+      "path": "child-intentional-timeout",
+      "directory": true
+    },
+    {
+      "path": "child-intentional-timeout/RECEIPT.json",
+      "bytes": 753,
+      "sha256": "03574da7c962846772d84aec5cc40bdee43b423e62f02c552ec086a6a74e61fc",
+      "mode": "644"
+    },
+    {
+      "path": "child-intentional-timeout/START.json",
+      "bytes": 494,
+      "sha256": "e7cbb57dd5f40cb93f4d739ed1efb5be162cb1b8c4dfa240e5567729cad46315",
+      "mode": "644"
+    },
+    {
+      "path": "child-intentional-timeout/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-intentional-timeout/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-large-stream",
+      "directory": true
+    },
+    {
+      "path": "child-large-stream/RECEIPT.json",
+      "bytes": 758,
+      "sha256": "086950d4ba73293b9636e33a5210eaf81ed576beb34c0150662cbe1c7f033bf3",
+      "mode": "644"
+    },
+    {
+      "path": "child-large-stream/START.json",
+      "bytes": 484,
+      "sha256": "79d948547739a2627af36414041a186e01cd07d657915692fcbf94ad57100739",
+      "mode": "644"
+    },
+    {
+      "path": "child-large-stream/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-large-stream/stdout.raw",
+      "bytes": 5242897,
+      "sha256": "f760459c08a89a1221abf8cc1a84d8a9af6af826fe173e94bbc51ffe9d83e2b9",
+      "mode": "644"
+    },
+    {
+      "path": "child-missing-required-phase",
+      "directory": true
+    },
+    {
+      "path": "child-missing-required-phase/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "2bc391a9eaecec5489718bebb6b9fd13ca78e73f95b9a1222db40234e051230c",
+      "mode": "644"
+    },
+    {
+      "path": "child-missing-required-phase/START.json",
+      "bytes": 502,
+      "sha256": "f32a472345eb863d98c87edf170edffc9db1aa7b33577ad409d1d32d177a7248",
+      "mode": "644"
+    },
+    {
+      "path": "child-missing-required-phase/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-missing-required-phase/stdout.raw",
+      "bytes": 298,
+      "sha256": "a04f47bf60df6c16fc0af9231f2b43e10eacbded9078816329484a931f124fe6",
+      "mode": "644"
+    },
+    {
+      "path": "child-ordinary-failure",
+      "directory": true
+    },
+    {
+      "path": "child-ordinary-failure/RECEIPT.json",
+      "bytes": 748,
+      "sha256": "d74d722a3adbd9e5e5f3d4984e1d4a35384077c0040fd59f4c13057c0d5652f2",
+      "mode": "644"
+    },
+    {
+      "path": "child-ordinary-failure/START.json",
+      "bytes": 490,
+      "sha256": "22cbaeddb11a5d2cb605908fe9ef6b120b800dc2617ab3cd6dbdfd9a5ac4a9ef",
+      "mode": "644"
+    },
+    {
+      "path": "child-ordinary-failure/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-ordinary-failure/stdout.raw",
+      "bytes": 46,
+      "sha256": "eaf76d671a44a1826e7e843df1c66cd31bf7107a50ef62a313c39f00fa3c27d2",
+      "mode": "644"
+    },
+    {
+      "path": "child-ordinary-success",
+      "directory": true
+    },
+    {
+      "path": "child-ordinary-success/RECEIPT.json",
+      "bytes": 748,
+      "sha256": "52eed4032c547df03276bbf6529be961592a9e31d4ee9bc75086dfa83dc63e0b",
+      "mode": "644"
+    },
+    {
+      "path": "child-ordinary-success/START.json",
+      "bytes": 490,
+      "sha256": "16ee311a2e84f6e7268f2af3e4c5dd5336ec351e7a9ce4b6c4d24602d697c868",
+      "mode": "644"
+    },
+    {
+      "path": "child-ordinary-success/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-ordinary-success/stdout.raw",
+      "bytes": 45,
+      "sha256": "96e49477adfa98ed9cf14bf5d7771d6103fa3efeab6a25fd5fed4ca236186f0f",
+      "mode": "644"
+    },
+    {
+      "path": "child-raw-overflow",
+      "directory": true
+    },
+    {
+      "path": "child-raw-overflow/RECEIPT.json",
+      "bytes": 761,
+      "sha256": "ed941500023c8529569ac6a465a1aa5d997ff2dc3107ed2fdd442db672e6e43f",
+      "mode": "644"
+    },
+    {
+      "path": "child-raw-overflow/START.json",
+      "bytes": 482,
+      "sha256": "0f1e20d842f1653bffbf9a48782aa70af826415c5e6e85c3034fd4ce407afb77",
+      "mode": "644"
+    },
+    {
+      "path": "child-raw-overflow/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-raw-overflow/stdout.raw",
+      "bytes": 16384,
+      "sha256": "f3336bea752b5a28743033dd2c844a4a63fba08871aaee2586a2bf2d69be83a2",
+      "mode": "644"
+    },
+    {
+      "path": "child-SOURCE",
+      "directory": true
+    },
+    {
+      "path": "child-SOURCE/RECEIPT.json",
+      "bytes": 756,
+      "sha256": "ddbf850462f6a3203f9b2b1c3f0bc466998f310f814cd243ae0536dda4c95297",
+      "mode": "644"
+    },
+    {
+      "path": "child-SOURCE/START.json",
+      "bytes": 4214,
+      "sha256": "7722aefdd01d6f13304b3aa1f4d7b34cbb6c408b6cc2bc4533a113d6cebaa01b",
+      "mode": "644"
+    },
+    {
+      "path": "child-SOURCE/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "child-SOURCE/stdout.raw",
+      "bytes": 199246,
+      "sha256": "4b445ea9bd088ff518c3ff81c5f3e2cca39339c8df3def7501b400505cb6a012",
+      "mode": "644"
+    },
+    {
+      "path": "controls.jsonl",
+      "bytes": 1597759,
+      "sha256": "4d2fdcfc5c8d5a9bbcdd411c8bde5468c4099775c6a9a538c5143d33ceb0e909",
+      "mode": "644"
+    },
+    {
+      "path": "job-INSTALLED_MOVED.json",
+      "bytes": 254861,
+      "sha256": "838fc00e31ca69fd14b7a4774faeae7cef46857509a2e85405a2e94bd56af089",
+      "mode": "644"
+    },
+    {
+      "path": "job-SOURCE.json",
+      "bytes": 254846,
+      "sha256": "9b0dee4c7a8cc22682edae6ad81f0a67487c0a5f823c7c9188f8344978678751",
+      "mode": "644"
+    },
+    {
+      "path": "layout-INSTALLED_MOVED",
+      "directory": true
+    },
+    {
+      "path": "layout-INSTALLED_MOVED/fixture-module.mjs",
+      "bytes": 2588,
+      "sha256": "a557992271b5c6f178eca5a61efa8f43602582675957c3f95e41af3240462d47",
+      "mode": "644"
+    },
+    {
+      "path": "layout-SOURCE",
+      "directory": true
+    },
+    {
+      "path": "layout-SOURCE/fixture-module.mjs",
+      "bytes": 2588,
+      "sha256": "a557992271b5c6f178eca5a61efa8f43602582675957c3f95e41af3240462d47",
+      "mode": "644"
+    },
+    {
+      "path": "physical-move",
+      "directory": true
+    },
+    {
+      "path": "physical-move/MOVE.json",
+      "bytes": 523,
+      "sha256": "0efcb2b3c2caa7d900eda39f5cd7f1128ce38518a48d5745cc004e74b1f91245",
+      "mode": "644"
+    },
+    {
+      "path": "physical-move/moved",
+      "directory": true
+    },
+    {
+      "path": "physical-move/moved/fixture-module.mjs",
+      "bytes": 2588,
+      "sha256": "a557992271b5c6f178eca5a61efa8f43602582675957c3f95e41af3240462d47",
+      "mode": "644"
+    },
+    {
+      "path": "START.json",
+      "bytes": 290,
+      "sha256": "028bbae5a8abba9b4158c518a11243707befa0f387dcdf89a28c8e9d4b8b428b",
+      "mode": "644"
+    },
+    {
+      "path": "SUMMARY.json",
+      "bytes": 1209,
+      "sha256": "15d69bba08384cd1651f9ecfe459b268de8b5623bca1d3e4b70a8d073eeaec09",
+      "mode": "644"
+    }
+  ],
+  "summary": {
+    "bytes": 1209,
+    "sha256": "15d69bba08384cd1651f9ecfe459b268de8b5623bca1d3e4b70a8d073eeaec09",
+    "mode": "644"
+  },
+  "appendAware": true
+}

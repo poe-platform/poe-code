@@ -1,0 +1,534 @@
+{
+  "author": [
+    {
+      "id": "D01",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D02",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D03",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D04",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D05",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D06",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D07",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D08",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D09",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D10",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D11",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D12",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D13",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D14",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D15",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D16",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D17",
+      "kind": "PURE",
+      "pass": true
+    },
+    {
+      "id": "D18",
+      "kind": "PURE",
+      "pass": true
+    }
+  ],
+  "prior": [
+    {
+      "id": "N01",
+      "pass": true
+    },
+    {
+      "id": "N02",
+      "pass": true
+    },
+    {
+      "id": "N03",
+      "pass": true
+    },
+    {
+      "id": "N04",
+      "pass": true
+    },
+    {
+      "id": "N05",
+      "pass": true
+    },
+    {
+      "id": "N06",
+      "pass": true
+    },
+    {
+      "id": "N07",
+      "pass": true
+    },
+    {
+      "id": "N08",
+      "pass": true
+    }
+  ],
+  "readiness": [
+    {
+      "id": "H19",
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788010244134
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788010244136
+        },
+        {
+          "name": "spawn",
+          "at": 1788010244136
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788010244189
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788010244190
+        },
+        {
+          "name": "exit",
+          "at": 1788010244190
+        },
+        {
+          "name": "close",
+          "at": 1788010244190
+        }
+      ],
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "captures": [
+        {
+          "kind": "stdout",
+          "bytes": 20,
+          "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+          "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+          "flushed": true,
+          "closed": true
+        },
+        {
+          "kind": "stderr",
+          "bytes": 756,
+          "sha256": "142e788544beac7b8ef989b5bb337dc8be5e9f00b8ab7290f1232280d06b4747",
+          "base64": "eyJzdGF0dXMiOiJQUkVBVVRIX1NUT1AiLCJwcmltYXJ5UHJlc2VudCI6dHJ1ZSwicHJpbWFyeSI6eyJraW5kIjoidW5kZWZpbmVkIn0sInNlY29uZGFyeVByZXNlbnQiOnRydWUsInNlY29uZGFyeSI6W3sicGhhc2UiOiJjb250cm9sIiwicHJlc2VudCI6dHJ1ZSwicmVhc29uIjp7ImtpbmQiOiJ1bmRlZmluZWQifX1dfQp7InN0YXR1cyI6IlBSRUFVVEhfU1RPUCIsInByaW1hcnlQcmVzZW50Ijp0cnVlLCJwcmltYXJ5Ijp7ImtpbmQiOiJudWxsIn0sInNlY29uZGFyeVByZXNlbnQiOnRydWUsInNlY29uZGFyeSI6W3sicGhhc2UiOiJjb250cm9sIiwicHJlc2VudCI6dHJ1ZSwicmVhc29uIjp7ImtpbmQiOiJudWxsIn19XX0KeyJzdGF0dXMiOiJQUkVBVVRIX1NUT1AiLCJwcmltYXJ5UHJlc2VudCI6dHJ1ZSwicHJpbWFyeSI6eyJraW5kIjoiYm9vbGVhbiIsInZhbHVlIjpmYWxzZX0sInNlY29uZGFyeVByZXNlbnQiOnRydWUsInNlY29uZGFyeSI6W3sicGhhc2UiOiJjb250cm9sIiwicHJlc2VudCI6dHJ1ZSwicmVhc29uIjp7ImtpbmQiOiJib29sZWFuIiwidmFsdWUiOmZhbHNlfX1dfQp7InN0YXR1cyI6IlBSRUFVVEhfU1RPUCIsInByaW1hcnlQcmVzZW50Ijp0cnVlLCJwcmltYXJ5Ijp7ImtpbmQiOiJudW1iZXIiLCJ2YWx1ZSI6MH0sInNlY29uZGFyeVByZXNlbnQiOnRydWUsInNlY29uZGFyeSI6W3sicGhhc2UiOiJjb250cm9sIiwicHJlc2VudCI6dHJ1ZSwicmVhc29uIjp7ImtpbmQiOiJudW1iZXIiLCJ2YWx1ZSI6MH19XX0K",
+          "flushed": true,
+          "closed": true
+        }
+      ],
+      "signals": [],
+      "forced": false,
+      "capturesQualified": true,
+      "knownOutstanding": 0,
+      "pid": 22776,
+      "status": 0,
+      "signal": null,
+      "primaryPresent": false,
+      "secondary": [],
+      "qualified": true,
+      "finished": 1788010244207,
+      "trace": {
+        "bytes": 834,
+        "sha256": "d62369e1aa6ae64da42437b5eacb6fa3559c9b46a15fa46d4fa7a930f039e516",
+        "events": [
+          {
+            "event": "permission-admitted",
+            "child": false,
+            "worker": false,
+            "loaderThreads": 0,
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H19"
+          },
+          {
+            "event": "synchronous-hooks-installed",
+            "loaderThreads": 0,
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H19"
+          },
+          {
+            "event": "module-loaded",
+            "url": "file:///private/tmp/safe-bash-b35-independent-v3-cqh41Q/qualification/H19/entry.js",
+            "bytes": 235,
+            "sha256": "3b87f7680ca3b1a47b284133f40d518ebe146b36c3bb8b3e0e4d0f81c1f3b1e0",
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H19"
+          },
+          {
+            "event": "module-loaded",
+            "url": "file:///private/tmp/safe-bash-b35-independent-v3-cqh41Q/qualification/H19/preauth.mjs",
+            "bytes": 339,
+            "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e",
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H19"
+          }
+        ]
+      }
+    },
+    {
+      "id": "H20",
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788010244265
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788010244266
+        },
+        {
+          "name": "spawn",
+          "at": 1788010244266
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788010244322
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788010244322
+        },
+        {
+          "name": "exit",
+          "at": 1788010244322
+        },
+        {
+          "name": "close",
+          "at": 1788010244322
+        }
+      ],
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "captures": [
+        {
+          "kind": "stdout",
+          "bytes": 20,
+          "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+          "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+          "flushed": true,
+          "closed": true
+        },
+        {
+          "kind": "stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": "",
+          "flushed": true,
+          "closed": true
+        }
+      ],
+      "signals": [],
+      "forced": false,
+      "capturesQualified": true,
+      "knownOutstanding": 0,
+      "pid": 22777,
+      "status": 0,
+      "signal": null,
+      "primaryPresent": false,
+      "secondary": [],
+      "qualified": true,
+      "finished": 1788010244334,
+      "trace": {
+        "bytes": 554,
+        "sha256": "56d9d362b7150c9eed8667fe5f00e6a37b2fa9134253e0da9a314cada1a3f603",
+        "events": [
+          {
+            "event": "permission-admitted",
+            "child": false,
+            "worker": false,
+            "loaderThreads": 0,
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H20"
+          },
+          {
+            "event": "synchronous-hooks-installed",
+            "loaderThreads": 0,
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H20"
+          },
+          {
+            "event": "module-loaded",
+            "url": "file:///private/tmp/safe-bash-b35-independent-v3-cqh41Q/qualification/H20/entry.js",
+            "bytes": 47,
+            "sha256": "4fdc8cbe480d46c2d2e4aa5125e0926ac2c86793a504ebcaa71077bb2986cc47",
+            "profile": "bash-surface-direct-owned-child-functional-v1",
+            "role": "H20"
+          }
+        ]
+      }
+    }
+  ],
+  "ledger": {
+    "starts": 3,
+    "maximum": 3,
+    "active": 0,
+    "stopped": false,
+    "captureBytes": 796,
+    "captureMaximum": 4194304,
+    "rows": [
+      {
+        "id": "H19",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788010244134
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788010244136
+          },
+          {
+            "name": "spawn",
+            "at": 1788010244136
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788010244189
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788010244190
+          },
+          {
+            "name": "exit",
+            "at": 1788010244190
+          },
+          {
+            "name": "close",
+            "at": 1788010244190
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 20,
+            "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+            "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 756,
+            "sha256": "142e788544beac7b8ef989b5bb337dc8be5e9f00b8ab7290f1232280d06b4747",
+            "base64": "eyJzdGF0dXMiOiJQUkVBVVRIX1NUT1AiLCJwcmltYXJ5UHJlc2VudCI6dHJ1ZSwicHJpbWFyeSI6eyJraW5kIjoidW5kZWZpbmVkIn0sInNlY29uZGFyeVByZXNlbnQiOnRydWUsInNlY29uZGFyeSI6W3sicGhhc2UiOiJjb250cm9sIiwicHJlc2VudCI6dHJ1ZSwicmVhc29uIjp7ImtpbmQiOiJ1bmRlZmluZWQifX1dfQp7InN0YXR1cyI6IlBSRUFVVEhfU1RPUCIsInByaW1hcnlQcmVzZW50Ijp0cnVlLCJwcmltYXJ5Ijp7ImtpbmQiOiJudWxsIn0sInNlY29uZGFyeVByZXNlbnQiOnRydWUsInNlY29uZGFyeSI6W3sicGhhc2UiOiJjb250cm9sIiwicHJlc2VudCI6dHJ1ZSwicmVhc29uIjp7ImtpbmQiOiJudWxsIn19XX0KeyJzdGF0dXMiOiJQUkVBVVRIX1NUT1AiLCJwcmltYXJ5UHJlc2VudCI6dHJ1ZSwicHJpbWFyeSI6eyJraW5kIjoiYm9vbGVhbiIsInZhbHVlIjpmYWxzZX0sInNlY29uZGFyeVByZXNlbnQiOnRydWUsInNlY29uZGFyeSI6W3sicGhhc2UiOiJjb250cm9sIiwicHJlc2VudCI6dHJ1ZSwicmVhc29uIjp7ImtpbmQiOiJib29sZWFuIiwidmFsdWUiOmZhbHNlfX1dfQp7InN0YXR1cyI6IlBSRUFVVEhfU1RPUCIsInByaW1hcnlQcmVzZW50Ijp0cnVlLCJwcmltYXJ5Ijp7ImtpbmQiOiJudW1iZXIiLCJ2YWx1ZSI6MH0sInNlY29uZGFyeVByZXNlbnQiOnRydWUsInNlY29uZGFyeSI6W3sicGhhc2UiOiJjb250cm9sIiwicHJlc2VudCI6dHJ1ZSwicmVhc29uIjp7ImtpbmQiOiJudW1iZXIiLCJ2YWx1ZSI6MH19XX0K",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 22776,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788010244207,
+        "trace": {
+          "bytes": 834,
+          "sha256": "d62369e1aa6ae64da42437b5eacb6fa3559c9b46a15fa46d4fa7a930f039e516",
+          "events": [
+            {
+              "event": "permission-admitted",
+              "child": false,
+              "worker": false,
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H19"
+            },
+            {
+              "event": "synchronous-hooks-installed",
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H19"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v3-cqh41Q/qualification/H19/entry.js",
+              "bytes": 235,
+              "sha256": "3b87f7680ca3b1a47b284133f40d518ebe146b36c3bb8b3e0e4d0f81c1f3b1e0",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H19"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v3-cqh41Q/qualification/H19/preauth.mjs",
+              "bytes": 339,
+              "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H19"
+            }
+          ]
+        }
+      },
+      {
+        "id": "H20",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788010244265
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788010244266
+          },
+          {
+            "name": "spawn",
+            "at": 1788010244266
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788010244322
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788010244322
+          },
+          {
+            "name": "exit",
+            "at": 1788010244322
+          },
+          {
+            "name": "close",
+            "at": 1788010244322
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 20,
+            "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+            "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 22777,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788010244334,
+        "trace": {
+          "bytes": 554,
+          "sha256": "56d9d362b7150c9eed8667fe5f00e6a37b2fa9134253e0da9a314cada1a3f603",
+          "events": [
+            {
+              "event": "permission-admitted",
+              "child": false,
+              "worker": false,
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H20"
+            },
+            {
+              "event": "synchronous-hooks-installed",
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H20"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v3-cqh41Q/qualification/H20/entry.js",
+              "bytes": 47,
+              "sha256": "4fdc8cbe480d46c2d2e4aa5125e0926ac2c86793a504ebcaa71077bb2986cc47",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H20"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "productImports": 0,
+  "workerStarts": 0
+}

@@ -1,0 +1,213 @@
+TAP version 13
+# Subtest: edit-flow native identities
+ok 1 - edit-flow native identities
+  ---
+  duration_ms: 272.808333
+  type: 'test'
+  ...
+# diff: diff (GNU diffutils) 3.12\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Paul Eggert, Mike Haertel, David Hayes,\\nRichard Stallman, and Len Tower.
+# patch: GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert
+# git: git version 2.50.1 (Apple Git-155)
+# Subtest: native golden: quoted spaces
+ok 2 - native golden: quoted spaces
+  ---
+  duration_ms: 218.275041
+  type: 'test'
+  ...
+# {"tool":"git","args":["apply","--no-index","--whitespace=nowarn","-p1","-"],"status":0,"stdout":"","stderr":""}
+# Subtest: native golden: quoted tab escape
+ok 3 - native golden: quoted tab escape
+  ---
+  duration_ms: 177.877125
+  type: 'test'
+  ...
+# {"tool":"git","args":["apply","--no-index","--whitespace=nowarn","-p1","-"],"status":0,"stdout":"","stderr":""}
+# Subtest: native golden: quoted UTF-8 octets
+ok 4 - native golden: quoted UTF-8 octets
+  ---
+  duration_ms: 160.882125
+  type: 'test'
+  ...
+# {"tool":"git","args":["apply","--no-index","--whitespace=nowarn","-p1","-"],"status":0,"stdout":"","stderr":""}
+# Subtest: native golden: mail/git preamble and signature
+ok 5 - native golden: mail/git preamble and signature
+  ---
+  duration_ms: 9.244583
+  type: 'test'
+  ...
+# {"tool":"patch","args":["-f","-p0","-F0","-p1"],"status":0,"stdout":"patching file target\\n","stderr":""}
+# Subtest: native golden: sequential same-file sections
+ok 6 - native golden: sequential same-file sections
+  ---
+  duration_ms: 10.188917
+  type: 'test'
+  ...
+# {"tool":"patch","args":["-f","-p0","-F0"],"status":0,"stdout":"patching file target\\npatching file target\\n","stderr":""}
+# Subtest: native golden: loose whitespace preserves actual context and literal additions
+ok 7 - native golden: loose whitespace preserves actual context and literal additions
+  ---
+  duration_ms: 9.454833
+  type: 'test'
+  ...
+# {"tool":"patch","args":["-f","-p0","-F0","-l"],"status":0,"stdout":"patching file target\\n","stderr":""}
+# Subtest: native golden: normal patch append change delete
+ok 8 - native golden: normal patch append change delete
+  ---
+  duration_ms: 9.205916
+  type: 'test'
+  ...
+# {"tool":"patch","args":["-f","-p0","-F0","target"],"status":0,"stdout":"patching file target\\n","stderr":""}
+# Subtest: native default diff is normal-format change
+ok 9 - native default diff is normal-format change
+  ---
+  duration_ms: 8.82225
+  type: 'test'
+  ...
+# Subtest: native -l requires a nonempty blank run
+ok 10 - native -l requires a nonempty blank run
+  ---
+  duration_ms: 11.266625
+  type: 'test'
+  ...
+# Subtest: edit-flow parity: quoted spaces
+ok 11 - edit-flow parity: quoted spaces
+  ---
+  duration_ms: 6.076833
+  type: 'test'
+  ...
+# {"status":0,"stdout":"patching file file name.txt\\n","stderr":""}
+# Subtest: edit-flow parity: quoted tab escape
+ok 12 - edit-flow parity: quoted tab escape
+  ---
+  duration_ms: 1.900917
+  type: 'test'
+  ...
+# {"status":0,"stdout":"patching file file\\tname.txt\\n","stderr":""}
+# Subtest: edit-flow parity: quoted UTF-8 octets
+ok 13 - edit-flow parity: quoted UTF-8 octets
+  ---
+  duration_ms: 1.257
+  type: 'test'
+  ...
+# {"status":0,"stdout":"patching file café.txt\\n","stderr":""}
+# Subtest: edit-flow parity: mail/git preamble and signature
+ok 14 - edit-flow parity: mail/git preamble and signature
+  ---
+  duration_ms: 1.509792
+  type: 'test'
+  ...
+# {"status":0,"stdout":"patching file target\\n","stderr":""}
+# Subtest: edit-flow parity: sequential same-file sections
+ok 15 - edit-flow parity: sequential same-file sections
+  ---
+  duration_ms: 1.706584
+  type: 'test'
+  ...
+# {"status":0,"stdout":"patching file target\\npatching file target\\n","stderr":""}
+# Subtest: edit-flow parity: loose whitespace preserves actual context and literal additions
+ok 16 - edit-flow parity: loose whitespace preserves actual context and literal additions
+  ---
+  duration_ms: 1.529375
+  type: 'test'
+  ...
+# {"status":0,"stdout":"patching file target\\n","stderr":""}
+# Subtest: edit-flow parity: normal patch append change delete
+ok 17 - edit-flow parity: normal patch append change delete
+  ---
+  duration_ms: 2.074917
+  type: 'test'
+  ...
+# {"status":0,"stdout":"patching file target\\n","stderr":""}
+# Subtest: edit-flow parity: default diff emits exact normal-format bytes
+ok 18 - edit-flow parity: default diff emits exact normal-format bytes
+  ---
+  duration_ms: 0.94175
+  type: 'test'
+  ...
+# Subtest: Shell plugin integration applies a saved mail patch through stdin redirection
+ok 19 - Shell plugin integration applies a saved mail patch through stdin redirection
+  ---
+  duration_ms: 4.295167
+  type: 'test'
+  ...
+# Subtest: GNU default without -l whitespace causes a hunk conflict and publishes rejects
+ok 20 - GNU default without -l whitespace causes a hunk conflict and publishes rejects
+  ---
+  duration_ms: 25.5125
+  type: 'test'
+  ...
+# Subtest: GNU default -l rejects an absent blank run and publishes rejects
+ok 21 - GNU default -l rejects an absent blank run and publishes rejects
+  ---
+  duration_ms: 11.260667
+  type: 'test'
+  ...
+# Subtest: atomic extension sequential section conflict preflights against staged content without early writes
+ok 22 - atomic extension sequential section conflict preflights against staged content without early writes
+  ---
+  duration_ms: 0.563
+  type: 'test'
+  ...
+# Subtest: quoted-path security: decoded absolute
+ok 23 - quoted-path security: decoded absolute
+  ---
+  duration_ms: 4.064208
+  type: 'test'
+  ...
+# Subtest: quoted-path security: decoded traversal
+ok 24 - quoted-path security: decoded traversal
+  ---
+  duration_ms: 1.404375
+  type: 'test'
+  ...
+# Subtest: quoted-path security: traversal cannot disappear during strip
+ok 25 - quoted-path security: traversal cannot disappear during strip
+  ---
+  duration_ms: 1.673167
+  type: 'test'
+  ...
+# Subtest: quoted-path security: traversal after strip
+ok 26 - quoted-path security: traversal after strip
+  ---
+  duration_ms: 1.343416
+  type: 'test'
+  ...
+# Subtest: quoted-path security: decoded NUL
+ok 27 - quoted-path security: decoded NUL
+  ---
+  duration_ms: 0.625458
+  type: 'test'
+  ...
+# Subtest: quoted-path security: decoded backslash traversal
+ok 28 - quoted-path security: decoded backslash traversal
+  ---
+  duration_ms: 0.466709
+  type: 'test'
+  ...
+# Subtest: quoted-path security: explicit target overrides absolute header without touching header names
+ok 29 - quoted-path security: explicit target overrides absolute header without touching header names
+  ---
+  duration_ms: 8.898166
+  type: 'test'
+  ...
+# Subtest: quoted-path security: quoted final symlink
+ok 30 - quoted-path security: quoted final symlink
+  ---
+  duration_ms: 1.056875
+  type: 'test'
+  ...
+# Subtest: quoted-path security: quoted ancestor symlink
+ok 31 - quoted-path security: quoted ancestor symlink
+  ---
+  duration_ms: 0.643959
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1034.278042

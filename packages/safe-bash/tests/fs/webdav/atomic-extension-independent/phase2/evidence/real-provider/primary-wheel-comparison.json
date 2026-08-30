@@ -1,0 +1,42 @@
+[
+  {
+    "tag": "request_server.py.txt",
+    "wheel": "wsgidav.request_server.py.txt",
+    "tagSha256": "1594b6cd9be9cc9eb0ac0f34e3e6b8a9f61b508701207cd47cf0c2a1d1b8c87e",
+    "wheelSha256": "232d1b902668d57eeb2be55cefe89b5b8bb269f169c1ae78bbc363198d8b6203",
+    "equalBytes": false,
+    "equalAfterCRLFNormalization": true,
+    "tagCR": 0,
+    "wheelCR": 1622
+  },
+  {
+    "tag": "lock_man-lock_manager.py.txt",
+    "wheel": "wsgidav.lock_man.lock_manager.py.txt",
+    "tagSha256": "00ed2aefbf04fc27befb598e2c4c164597315f88171d7ab96fb3858bf46682f4",
+    "wheelSha256": "3c489dd3f3e9bcaf9ceacd3f3f97363f0eb357db07d1ad4cce0dcab866c0b346",
+    "equalBytes": false,
+    "equalAfterCRLFNormalization": true,
+    "tagCR": 0,
+    "wheelCR": 498
+  },
+  {
+    "tag": "fs_dav_provider.py.txt",
+    "wheel": "wsgidav.fs_dav_provider.py.txt",
+    "tagSha256": "e86c0365fc7384171642d6b0b0ab8cb26454419f6b405475feb5c8d76bff133d",
+    "wheelSha256": "6bacc94cac0c2ce1eeab975ef7e47b30e19521d70de5f0a0dc7643bb66806d8f",
+    "equalBytes": false,
+    "equalAfterCRLFNormalization": true,
+    "tagCR": 0,
+    "wheelCR": 488
+  },
+  {
+    "tag": "http_authenticator.py.txt",
+    "wheel": "wsgidav.http_authenticator.py.txt",
+    "tagSha256": "bc44c2aa82d34b415cddef3d71b967ab276ef328edc32590b720f8d4cbe758b8",
+    "wheelSha256": "8a32dba71c27c1e27ea0eb748d7a5e65a27bd2b2be3a4eee05b0bc3548137453",
+    "equalBytes": false,
+    "equalAfterCRLFNormalization": true,
+    "tagCR": 0,
+    "wheelCR": 583
+  }
+]

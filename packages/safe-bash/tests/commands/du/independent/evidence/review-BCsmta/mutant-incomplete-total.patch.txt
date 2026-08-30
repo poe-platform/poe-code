@@ -1,0 +1,6 @@
+*** Begin Patch
+*** Update File: src/commands/du/du.ts
+@@
+-    if (!amount.complete) return;
++    if (false) return;
+*** End Patch

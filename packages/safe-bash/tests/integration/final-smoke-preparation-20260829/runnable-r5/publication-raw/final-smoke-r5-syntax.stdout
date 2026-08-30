@@ -1,0 +1,7 @@
+SYNTAX_OWNER_PID=11639
+START file=bootstrap.mjs pid=11640
+WAIT file=bootstrap.mjs pid=11640 exit=0
+START file=runtime.mjs pid=11641
+WAIT file=runtime.mjs pid=11641 exit=0
+START file=consumer-entry.mjs pid=11642
+WAIT file=consumer-entry.mjs pid=11642 exit=0

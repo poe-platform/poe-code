@@ -1,0 +1,10 @@
+{
+  "returned": null,
+  "rejected": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'added.txt',\n    'assert-capture.mjs',\n    'authorization.mjs',\n    'child.mjs',\n    'context.mjs',\n    'execute.mjs',\n",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'added.txt',\n    'assert-capture.mjs',\n    'authorization.mjs',\n    'child.mjs',\n    'context.mjs',\n    'execute.mjs',\n\n    at Module.verifyRecipe (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/recipe.mjs:46:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:176:198\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:176:9"
+  },
+  "activeChildren": []
+}

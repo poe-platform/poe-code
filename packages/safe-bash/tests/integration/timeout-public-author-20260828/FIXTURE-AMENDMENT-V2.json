@@ -1,0 +1,31 @@
+{
+  "createdAt": "2026-08-28T04:58:49.104Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "productChanged": false,
+  "originalFreeze": "FREEZE.json",
+  "originalFixtureRevision": "33d9c1cd",
+  "fixtureRevision": "bcb6481e354361764face7b2c8a1cc61786f0988",
+  "file": "tests/integration/stream-inspection-public-author/public.test.ts",
+  "line": 34,
+  "beforeSha256": "1ba1cdbb07ba518de719563b295b9a462fc56250bc9c8f681dff39d8800af0a1",
+  "afterSha256": "adcb35fe82ab64d717856377dd7db36f91363becff81786184ab0f91e26c2722",
+  "before": "\"du\", \"expr\", \"which\"]);",
+  "after": "\"du\", \"expr\", \"which\", \"timeout\"]);",
+  "chronology": "Exact one-line intent announced before patch. Machine preseal generation failed with a quoting SyntaxError; shell continued and committed fixture. This metadata seal is post-fixture/pre-v2-execution, not a claimed pre-code seal.",
+  "classification": "Maintained exact default suffix, not sealed historical fixture. Adds newly registered timeout only; fixed prefix/slice and all behaviors preserved.",
+  "boundedSweep": "All registry length/size/name/slice assertions in five presealed maintained files checked; this is the only remaining missing timeout inventory member.",
+  "originalRun": {
+    "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-msv0Uc/REPORT.json",
+    "sha256": "cdcecc1842d6fc668a660007ca0b3588bc7782f5414ffa65a7341b30a0d2cb9a",
+    "build": 0,
+    "pack": 0,
+    "fixtures": {
+      "agent": "36/36",
+      "split": "7/7",
+      "streamFormat": "19/19",
+      "streamInspection": "20/21"
+    },
+    "publicAndTypes": "NOT EXECUTED",
+    "rescore": false
+  }
+}

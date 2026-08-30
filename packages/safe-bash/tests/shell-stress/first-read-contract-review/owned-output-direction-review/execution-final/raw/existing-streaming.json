@@ -1,0 +1,17 @@
+{
+  "label": "existing-streaming",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "TAP version 13\n# Subtest: pipes preserve bytes and launch downstream before upstream completes\nok 1 - pipes preserve bytes and launch downstream before upstream completes\n  ---\n  duration_ms: 6.738125\n  type: 'test'\n  ...\n# Subtest: early downstream exit and unused pipeline input do not deadlock\nok 2 - early downstream exit and unused pipeline input do not deadlock\n  ---\n  duration_ms: 4.31775\n  type: 'test'\n  ...\n# Subtest: pipeline redirects replace endpoints without leaving blocked writers\nok 3 - pipeline redirects replace endpoints without leaving blocked writers\n  ---\n  duration_ms: 1.945791\n  type: 'test'\n  ...\n# Subtest: AbortSignal reaches commands and releases blocked pipelines\nok 4 - AbortSignal reaches commands and releases blocked pipelines\n  ---\n  duration_ms: 0.924583\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 138.776208\n",
+    "bytes": 918,
+    "base64": "VEFQIHZlcnNpb24gMTMKIyBTdWJ0ZXN0OiBwaXBlcyBwcmVzZXJ2ZSBieXRlcyBhbmQgbGF1bmNoIGRvd25zdHJlYW0gYmVmb3JlIHVwc3RyZWFtIGNvbXBsZXRlcwpvayAxIC0gcGlwZXMgcHJlc2VydmUgYnl0ZXMgYW5kIGxhdW5jaCBkb3duc3RyZWFtIGJlZm9yZSB1cHN0cmVhbSBjb21wbGV0ZXMKICAtLS0KICBkdXJhdGlvbl9tczogNi43MzgxMjUKICB0eXBlOiAndGVzdCcKICAuLi4KIyBTdWJ0ZXN0OiBlYXJseSBkb3duc3RyZWFtIGV4aXQgYW5kIHVudXNlZCBwaXBlbGluZSBpbnB1dCBkbyBub3QgZGVhZGxvY2sKb2sgMiAtIGVhcmx5IGRvd25zdHJlYW0gZXhpdCBhbmQgdW51c2VkIHBpcGVsaW5lIGlucHV0IGRvIG5vdCBkZWFkbG9jawogIC0tLQogIGR1cmF0aW9uX21zOiA0LjMxNzc1CiAgdHlwZTogJ3Rlc3QnCiAgLi4uCiMgU3VidGVzdDogcGlwZWxpbmUgcmVkaXJlY3RzIHJlcGxhY2UgZW5kcG9pbnRzIHdpdGhvdXQgbGVhdmluZyBibG9ja2VkIHdyaXRlcnMKb2sgMyAtIHBpcGVsaW5lIHJlZGlyZWN0cyByZXBsYWNlIGVuZHBvaW50cyB3aXRob3V0IGxlYXZpbmcgYmxvY2tlZCB3cml0ZXJzCiAgLS0tCiAgZHVyYXRpb25fbXM6IDEuOTQ1NzkxCiAgdHlwZTogJ3Rlc3QnCiAgLi4uCiMgU3VidGVzdDogQWJvcnRTaWduYWwgcmVhY2hlcyBjb21tYW5kcyBhbmQgcmVsZWFzZXMgYmxvY2tlZCBwaXBlbGluZXMKb2sgNCAtIEFib3J0U2lnbmFsIHJlYWNoZXMgY29tbWFuZHMgYW5kIHJlbGVhc2VzIGJsb2NrZWQgcGlwZWxpbmVzCiAgLS0tCiAgZHVyYXRpb25fbXM6IDAuOTI0NTgzCiAgdHlwZTogJ3Rlc3QnCiAgLi4uCjEuLjQKIyB0ZXN0cyA0CiMgc3VpdGVzIDAKIyBwYXNzIDQKIyBmYWlsIDAKIyBjYW5jZWxsZWQgMAojIHNraXBwZWQgMAojIHRvZG8gMAojIGR1cmF0aW9uX21zIDEzOC43NzYyMDgK",
+    "sha256": "8e4440a9beefd42015bf9d4934f893bec5099a0a6c2b1c8b62e377d625b9f0c6"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

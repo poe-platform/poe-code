@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/private/tmp/safe-bash-webdav-constructor-8tiSAh/candidate/archive",
+  "start": "2026-08-27T02:52:06.156Z",
+  "end": "2026-08-27T02:52:08.810Z",
+  "status": 0,
+  "signal": null
+}

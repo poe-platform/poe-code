@@ -1,0 +1,19 @@
+{
+  "schema": "REGEX_DU_SOURCE_ANALYSIS_V1",
+  "started": "2026-08-29T07:29:37.861Z",
+  "deadline": "2026-08-29T07:54:37.861Z",
+  "permission": "SOURCE_DATA_ONLY",
+  "initialOwnedProcesses": 4,
+  "maxOwnedProcesses": 48,
+  "peak": 3,
+  "captureBytes": 67108864,
+  "workBytes": 268435456,
+  "childDeadlineMs": 10000,
+  "childStreamBytes": 65536,
+  "target": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "comparisonReferences": ["7b2a72e9", "6b4d6c6f", "af99d459", "053c4e942c66928972af6aa227177726ca503eab", "5fabc790", "4088ee52", "497c5660", "8918f35b", "0a942ed2"],
+  "allowed": ["bounded pinned Git source and metadata reads", "authenticated regular source/data files", "owned proposal and evidence publication"],
+  "forbidden": ["product or comparator imports", "Workers", "semantic cases or probes", "engine/compiler/build/install", "native oracles", "network", "private repository access", "XAN", "instruction plaintext copying", "runtime or guard implementation", "old grant reuse"],
+  "preserve": ["actual Worker argument object contents UNKNOWN", "7 passes and 2 DU failures", "operation10 capability refusal", "89 unlaunched and raw unrun90", "invocation10/7 versus legacy9/6", "all old capture and natural/postflight qualification"]
+}

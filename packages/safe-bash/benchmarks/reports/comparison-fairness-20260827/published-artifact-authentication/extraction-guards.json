@@ -1,0 +1,98 @@
+{
+  "scope": "Owned synthetic archive guards only, no product/native recipe execution",
+  "scratch": "/private/tmp/safe-bash-published-auth-JydnQ4/guard-cases-h2ej_6h4",
+  "pass": 15,
+  "total": 15,
+  "results": [
+    {
+      "id": "positive",
+      "expectedAccepted": true,
+      "accepted": true,
+      "error": null
+    },
+    {
+      "id": "traversal",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "unsafe package path: 'package/../escape'"
+    },
+    {
+      "id": "absolute",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "unsafe name: '/escape'"
+    },
+    {
+      "id": "outside-prefix",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "unsafe package path: 'other/file'"
+    },
+    {
+      "id": "symlink",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "link/special/sparse member: 'package/link'"
+    },
+    {
+      "id": "hardlink",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "link/special/sparse member: 'package/link'"
+    },
+    {
+      "id": "fifo",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "link/special/sparse member: 'package/pipe'"
+    },
+    {
+      "id": "device",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "link/special/sparse member: 'package/device'"
+    },
+    {
+      "id": "duplicate",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "duplicate/case collision: package/file"
+    },
+    {
+      "id": "casefold",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "duplicate/case collision: package/file"
+    },
+    {
+      "id": "casefold-parent",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "casefold ancestor collision"
+    },
+    {
+      "id": "file-ancestor",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "file/directory ancestor collision"
+    },
+    {
+      "id": "backslash",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "unsafe name: 'package/..\\\\escape'"
+    },
+    {
+      "id": "empty-component",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "unsafe package path: 'package//file'"
+    },
+    {
+      "id": "control-character",
+      "expectedAccepted": false,
+      "accepted": false,
+      "error": "control character in path"
+    }
+  ]
+}

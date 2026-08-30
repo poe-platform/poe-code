@@ -1,0 +1,20 @@
+
+PUBLIC NODE SCOPES
+tests/integration/node-public-author-20260829
+tests/integration/node-public-design-20260829
+tests/integration/node-public-independent-20260829
+tests/commands/node-author-20260829
+tests/commands/node-design-20260828
+tests/commands/node-independent-20260828
+tests/commands/node-independent-20260829
+tests/commands/node-provider-experiments-20260828
+tests/commands/node-provider-experiments-independent-20260828
+tests/commands/node-worker-experiments-20260828
+tests/commands/node-worker-independent-20260828
+tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/PILOT-PRESEAL.json
+tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/PREPARATION-RECEIPT.json
+tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/PROPOSAL.md
+tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/preparation.stderr.txt
+tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/preparation.stdout.txt
+tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/prepare.mjs
+tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/selector.mjs

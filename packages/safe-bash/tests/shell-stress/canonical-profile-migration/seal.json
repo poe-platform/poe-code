@@ -1,0 +1,46 @@
+{
+  "createdAt": "2026-08-27T06:33:43.416Z",
+  "artifacts": {
+    "README.md": {
+      "sha256": "6ae1785b7196b9c7276ee1c998d84d117c245ca14a45d4d42d4a7efa6c674911",
+      "bytes": 10004
+    },
+    "prepare.mjs": {
+      "sha256": "d2087e1e2e93061ff8539951d0f2aec6d678b8da2e756f974055481b486a6329",
+      "bytes": 11809
+    },
+    "product-cohort.mjs": {
+      "sha256": "bb5992bb7d7f991de323d233656fb3a628e5a7dd485a26ee50603a42ee403a2b",
+      "bytes": 1910
+    },
+    "analyze.mjs": {
+      "sha256": "90aaf9e04b07bc082dfc052d8a3a0fdcb8150dc9aee216d176f49d9ea2ac4c9e",
+      "bytes": 11645
+    },
+    "inputs.json": {
+      "sha256": "d8f36aa191a5b30d04c2c7730282f790670dff08ca697902850fe63a582785bc",
+      "bytes": 671932
+    },
+    "native.json": {
+      "sha256": "de379916112faa3cec68f3180b5ba55758eda415f2016456d448f635c9871bf5",
+      "bytes": 547204
+    },
+    "product.json": {
+      "sha256": "30abd39adb716dfdad2892ce924aaeb1e9f36481fafe52cd2b65d72d5ebe644a",
+      "bytes": 287037
+    },
+    "comparison.json": {
+      "sha256": "c37ae65f9a95add2a1d6683a1e83b7029b57f29d7853058737268fd77dd1cd27",
+      "bytes": 1016516
+    },
+    "proposal.json": {
+      "sha256": "a2d0061c5cfd2dd6fd225acd5c2dea614c0a2150edb553f347b46e238a6f0882",
+      "bytes": 189572
+    },
+    "historical-fullgate-native.json": {
+      "sha256": "d82d1ad31aa71cf0126c1a9a20c055fa666adb18bb522a66c3911f4803b9e333",
+      "bytes": 49280
+    }
+  },
+  "originalInputsUnchanged": true
+}

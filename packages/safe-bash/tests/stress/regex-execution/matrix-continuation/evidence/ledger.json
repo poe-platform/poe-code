@@ -1,0 +1,335 @@
+{
+  "freezeCommit": "8f5f185",
+  "originalFreezeCommit": "9653d91",
+  "originalEvidenceCommit": "b0ff710",
+  "reviewCommit": "3d8f96e",
+  "status": "stopped-on-genuine-import-setup-failure",
+  "exposureConclusion": "risky-unmeasured",
+  "blocker": {
+    "id": "rg-linear-match",
+    "stderr": "setup: TypeScript parameter property is not supported in strip-only mode\n",
+    "parentExitCode": 1,
+    "childExitCode": 2,
+    "ready": false,
+    "retry": false
+  },
+  "distinctHistoricalCohorts": {
+    "static": {
+      "commit": "0d625f3",
+      "dynamicProbes": 0
+    },
+    "initialControls": {
+      "commit": "2cd1673",
+      "expected": 1,
+      "declared": 2
+    },
+    "correctedControls": {
+      "commit": "72a0d51",
+      "expected": 2,
+      "declared": 2,
+      "evidenceCommits": [
+        "d6ff6d0",
+        "6fdb702"
+      ]
+    },
+    "priorSingleGrep": {
+      "commits": [
+        "ac84d52",
+        "1207189"
+      ],
+      "commandInvocations": 1,
+      "selectedNativeExec": 1,
+      "bracketMs": 0.102
+    },
+    "originalMatrix": {
+      "freezeCommit": "9653d91",
+      "declaredCases": 12,
+      "declaredControls": 4,
+      "declaredRisky": 8,
+      "parentRunAttempts": 2,
+      "ownedChildrenLaunched": 1,
+      "executedCases": 1,
+      "executedControls": 1,
+      "completedExpectedControls": 1,
+      "executedRisky": 0,
+      "selectedNativeExec": 1,
+      "notExecutedCases": 11,
+      "prelaunchSourceDriftStops": 1,
+      "explicitSkippedCases": 10,
+      "parentKills": 0,
+      "spawnedHarnessFailures": 0,
+      "cleanupFailures": 0,
+      "activeOwnedChildren": 0,
+      "frozenFiles": 41,
+      "unchangedFilesAtAfterSnapshot": 40,
+      "drift": [
+        "src/shell/runtime.ts"
+      ],
+      "exposureConclusion": "not-measured",
+      "matrixCompleted": false
+    }
+  },
+  "preparation": {
+    "beforeFreezeGuardFailures": 1,
+    "caseChildren": 0,
+    "safetyOrApprovalRefusals": 0,
+    "record": "PREPARATION.txt"
+  },
+  "continuation": {
+    "opportunities": 11,
+    "parentRunAttempts": 2,
+    "ownedChildrenLaunched": 2,
+    "controlChildAttempts": 2,
+    "actualCommandInvocations": 1,
+    "actualControlInvocations": 1,
+    "completedExpectedControls": 1,
+    "importSetupFailures": 1,
+    "selectedNativeExec": 1,
+    "riskyInvocations": 0,
+    "completedRisky": 0,
+    "parentKills": 0,
+    "familyWatchdogSkips": 0,
+    "cohortStopSkips": 9,
+    "skippedControls": 1,
+    "skippedRisky": 8,
+    "hardGuardStops": 0,
+    "cleanupFailures": 0,
+    "activeOwnedChildren": 0,
+    "safetyOrApprovalRefusals": 0
+  },
+  "aggregateOriginalDeclaredMatrix": {
+    "declaredRows": 12,
+    "declaredControls": 4,
+    "declaredRisky": 8,
+    "uniqueChildAttemptedRows": 3,
+    "actualCommandInvocations": 2,
+    "selectedNativeExec": 2,
+    "completedExpectedControls": 2,
+    "completedRisky": 0,
+    "riskyInvocations": 0,
+    "importSetupFailures": 1,
+    "skippedControls": 1,
+    "skippedRisky": 8,
+    "skippedRows": 9,
+    "parentKills": 0,
+    "historicalPrelaunchHaltsRetained": 1,
+    "historicalOriginalSkipsRetained": 10,
+    "allFourControlsComplete": false,
+    "activeOwnedChildren": 0,
+    "allRowsAccounted": true,
+    "successfulMatrix": false
+  },
+  "rows": [
+    {
+      "id": "grep-linear-match",
+      "origin": "original-pinned",
+      "outcome": "completed",
+      "artifact": "../bounded-matrix/evidence/grep-linear-match.json"
+    },
+    {
+      "id": "grep-linear-nonmatch",
+      "origin": "continuation",
+      "outcome": "completed",
+      "artifact": "evidence/grep-linear-nonmatch.json"
+    },
+    {
+      "id": "rg-linear-match",
+      "origin": "continuation",
+      "outcome": "import/setup-failure",
+      "artifact": "evidence/rg-linear-match.json"
+    },
+    {
+      "id": "rg-linear-nonmatch",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/rg-linear-nonmatch.json"
+    },
+    {
+      "id": "grep-nested-16",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/grep-nested-16.json"
+    },
+    {
+      "id": "grep-nested-20",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/grep-nested-20.json"
+    },
+    {
+      "id": "grep-nested-24",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/grep-nested-24.json"
+    },
+    {
+      "id": "grep-nested-28",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/grep-nested-28.json"
+    },
+    {
+      "id": "rg-nested-16",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/rg-nested-16.json"
+    },
+    {
+      "id": "rg-nested-20",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/rg-nested-20.json"
+    },
+    {
+      "id": "rg-nested-24",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/rg-nested-24.json"
+    },
+    {
+      "id": "rg-nested-28",
+      "origin": "continuation",
+      "outcome": "skipped",
+      "artifact": "evidence/rg-nested-28.json"
+    }
+  ],
+  "measurements": [
+    {
+      "id": "grep-linear-match",
+      "origin": "original-pinned",
+      "outcome": "completed",
+      "childPid": 46845,
+      "selectedCalls": 1,
+      "childObservation": {
+        "calls": 1,
+        "enter": 0.553,
+        "leave": 0.571,
+        "nativeResult": "match",
+        "timerArmed": 0.527,
+        "timerDue": 5.527,
+        "timerActual": 5.75,
+        "signalEntry": false,
+        "signalLeave": false,
+        "signalDelivered": true,
+        "commandEnd": 0.652,
+        "commandExit": 0,
+        "commandError": null,
+        "signalEnd": false,
+        "facadeWinner": "command",
+        "facadeEnd": 0.654,
+        "stdout": "aaaa\n",
+        "stderr": ""
+      },
+      "selectedBracketMs": 0.018,
+      "nominalTimerDelayMs": 5,
+      "timerLatenessMs": 0.223,
+      "parentReadyMs": 71.406,
+      "parentStartMs": 71.424,
+      "parentDeadlineDueMs": 271.424,
+      "parentDeadlineActualMs": null,
+      "parentDeadlineLatenessMs": null,
+      "parentExitMs": 80.706,
+      "parentCloseMs": 80.716,
+      "parentStartToCloseMs": 9.292,
+      "parentKillToCloseMs": null,
+      "exit": [
+        0,
+        null
+      ],
+      "cleanup": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "childStderr": "",
+      "parentToolExitCode": 0
+    },
+    {
+      "id": "grep-linear-nonmatch",
+      "origin": "continuation",
+      "outcome": "completed",
+      "childPid": 70673,
+      "selectedCalls": 1,
+      "childObservation": {
+        "calls": 1,
+        "enter": 0.609,
+        "leave": 0.628,
+        "nativeResult": "null",
+        "timerArmed": 0.574,
+        "timerDue": 5.574,
+        "timerActual": 5.741,
+        "signalEntry": false,
+        "signalLeave": false,
+        "signalDelivered": true,
+        "commandEnd": 0.645,
+        "commandExit": 1,
+        "commandError": null,
+        "signalEnd": false,
+        "facadeWinner": "command",
+        "facadeEnd": 0.647,
+        "stdout": "",
+        "stderr": ""
+      },
+      "selectedBracketMs": 0.019,
+      "nominalTimerDelayMs": 5,
+      "timerLatenessMs": 0.167,
+      "parentReadyMs": 65.641,
+      "parentStartMs": 65.667,
+      "parentDeadlineDueMs": 265.667,
+      "parentDeadlineActualMs": null,
+      "parentDeadlineLatenessMs": null,
+      "parentExitMs": 76.126,
+      "parentCloseMs": 76.138,
+      "parentStartToCloseMs": 10.471,
+      "parentKillToCloseMs": null,
+      "exit": [
+        0,
+        null
+      ],
+      "cleanup": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "childStderr": "",
+      "parentToolExitCode": 0
+    },
+    {
+      "id": "rg-linear-match",
+      "origin": "continuation",
+      "outcome": "import/setup-failure",
+      "childPid": 70891,
+      "selectedCalls": 0,
+      "childObservation": null,
+      "selectedBracketMs": null,
+      "nominalTimerDelayMs": null,
+      "timerLatenessMs": null,
+      "parentReadyMs": null,
+      "parentStartMs": null,
+      "parentDeadlineDueMs": null,
+      "parentDeadlineActualMs": null,
+      "parentDeadlineLatenessMs": null,
+      "parentExitMs": 73.478,
+      "parentCloseMs": 73.49,
+      "parentStartToCloseMs": null,
+      "parentKillToCloseMs": null,
+      "exit": [
+        2,
+        null
+      ],
+      "cleanup": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "childStderr": "setup: TypeScript parameter property is not supported in strip-only mode\n",
+      "parentToolExitCode": 1
+    }
+  ]
+}

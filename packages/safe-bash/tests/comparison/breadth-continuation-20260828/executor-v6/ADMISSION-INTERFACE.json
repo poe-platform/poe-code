@@ -1,0 +1,131 @@
+{
+  "documentKind": "NON_AUTHORIZING_V6_ADMISSION_INTERFACE",
+  "usableGrantIssued": false,
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "requiredReview": {
+    "role": "different-reviewer",
+    "verdict": "PREEXECUTION_ACCEPTED",
+    "recipeSha256": "SHA256 of final V6 SEAL.json bytes"
+  },
+  "freshRootGrantFields": {
+    "role": "root",
+    "phase": "admission",
+    "attempts": 1,
+    "candidate": "same exact candidate",
+    "packSha256": "same exact full pack",
+    "recipeSha256": "SHA256 of final V6 SEAL.json bytes, NOT raw coordinator/plan hash",
+    "reviewSha256": "future committed positive different-review verdict bytes",
+    "runId": "fresh root-selected [a-z0-9-]{1,64}",
+    "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v6/runs/<same-root-runId>",
+    "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+    "command": {
+      "entry": "coordinator.mjs",
+      "phase": "admission",
+      "runId": "same-root-runId",
+      "nodeArgs": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=256"
+      ]
+    }
+  },
+  "references": "review and grant each {commit:40hex,path:repository-relative non-instruction JSON,sha256:64hex}",
+  "commandTemplate": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "tests/comparison/breadth-continuation-20260828/executor-v6/coordinator.mjs",
+    "admission",
+    "<FRESH_ROOT_RUN_ID>",
+    "<PINNED_AUTH_JSON>"
+  ],
+  "workerEdgeBinding": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+    "worker": {
+      "path": "worker.mjs",
+      "bytes": 9011,
+      "mode": 420,
+      "sha256": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f"
+    },
+    "loader": {
+      "path": "loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    "source": "fixed import.meta.url in worker body, not a new grant permission",
+    "consumerScopes": {
+      "path": "../executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    }
+  },
+  "rawOperationPlan": {
+    "path": "OPERATION-PLAN.json",
+    "bytes": 33346,
+    "mode": 420,
+    "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+  },
+  "planMeaning": "SHA256 of JSON.stringify({limits,command,phase:admission,operations:plan.admission})",
+  "preservedReview": [
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/README.md",
+      "bytes": 16678,
+      "mode": 420,
+      "sha256": "0c45ec877c2cf76059ebeb37b0ae17710d86bc5bb63e0825df74c1cf558c8e38",
+      "commit": "8d711d755637351336de718cd180f3e7ef949781"
+    },
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/REVIEW.json",
+      "bytes": 4894,
+      "mode": 420,
+      "sha256": "1a31901f328eb4e98aa5b8e760ba7a9611c1f48eb139be4907ee0dbf054e56d6",
+      "commit": "8d711d755637351336de718cd180f3e7ef949781"
+    },
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/PRESEAL.json",
+      "bytes": 2301,
+      "mode": 420,
+      "sha256": "f0fc858b6143ef33f6daf3440cfebe57145240dfa413bf8e00404e11e2b45207",
+      "commit": "8d711d755637351336de718cd180f3e7ef949781"
+    },
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/EVIDENCE-MANIFEST.json",
+      "bytes": 37455,
+      "mode": 420,
+      "sha256": "6e387f030d11f0cf347ef089729fecf30e6ee957e18ee95e2c1910ad8ba70601",
+      "commit": "8d711d755637351336de718cd180f3e7ef949781"
+    },
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/ADMISSION-INTERFACE.json",
+      "bytes": 14017,
+      "mode": 420,
+      "sha256": "a699c873f7923789c0d3319e5c4af683eb047de1f9251913c6ce521326d65b6e",
+      "commit": "8d711d755637351336de718cd180f3e7ef949781"
+    },
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/capture-01/RESULT.json",
+      "bytes": 5895,
+      "mode": 420,
+      "sha256": "d1ffc02d241c340a4aab63c0fc937f75a7f79c1dc46111c9b7f9a33b2b417941",
+      "commit": "8d711d755637351336de718cd180f3e7ef949781"
+    },
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/capture-01/entry-parent-denied.json",
+      "bytes": 25576,
+      "mode": 420,
+      "sha256": "9b8626751ff9bbc2302761c6bf75e630e0bfaeb9430ef84e767403d8b143c1fd",
+      "commit": "8d711d755637351336de718cd180f3e7ef949781"
+    }
+  ],
+  "oldAuthority": "V5 never granted; V4 c1b03b64 consumed, cannot authorize changed V6 recipe/output root",
+  "futureObligations": {
+    "admissionPlanned": 14,
+    "admissionCeiling": 27,
+    "C11Setups": 2,
+    "admissionSemantics": 0,
+    "separateLaterCohort": 99
+  },
+  "oldFailureNotRescored": true
+}

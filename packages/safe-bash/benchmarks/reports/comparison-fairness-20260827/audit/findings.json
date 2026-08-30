@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "auditDateUtc": "2026-08-27",
+  "decision": "bounded-profile evidence accepted; no superiority or additive union",
+  "reviewStatus": "independent fairness audit complete; different-leaf recommendation/final-score review remains required",
+  "findings": [
+    {
+      "id": "FAIR-001",
+      "priority": "high",
+      "topic": "cohort-denominator alignment",
+      "finding": "224 expanded recipes, 54 breadth targets, 61 breadth primary recipes and 136 case-engine observations are different units on different frozen sources and profiles. Aliases and shared controls add semantic overlap.",
+      "disposition": "Keep baseline-only complement separate even if all its recipes eventually pass; no additive union score.",
+      "evidence": ["overlap.json", "verification.json", "replay-review.json"]
+    },
+    {
+      "id": "FAIR-002",
+      "priority": "high",
+      "topic": "scratch-profile correction",
+      "finding": "d1b10a3 preserves exact four-field comparator and recipes. Native controls ground removal of only dry-run empty fixture/tmp. Historical source-to-live-source assertion was replaced by new capture provenance, not a behavior assertion; both frozen source identities independently match git.",
+      "disposition": "Accept separate profile, preserve historical failure, require different reviewer; no fake product effect and no golden edit proposed.",
+      "evidence": ["verification.json", "REPORT.md"]
+    },
+    {
+      "id": "FAIR-003",
+      "priority": "high",
+      "topic": "primary package integrity",
+      "finding": "Official pinned npm manifest/integrity matches lock; official tag manifest matches selected installed fields; 3510 installed benchmark dependency entries match frozen breadth tree. Cached tarball SRI was not verified.",
+      "disposition": "Claim metadata/lock/tree equality, not cryptographic authentication of installed files against published tarball. No latest claim.",
+      "evidence": ["provenance.json"]
+    },
+    {
+      "id": "FAIR-004",
+      "priority": "high",
+      "topic": "lifecycle and infrastructure classification",
+      "finding": "Breadth js-exec baseline guest succeeds but cleanup child fails; reviewer delivery fault is not a feature failure. New replay ENOBUFS preparation fault precedes cases. New replay outer lifecycle PASS differs from normal voluntary exit of inner persistent workers.",
+      "disposition": "Keep 47 clean target positives, 135 normal breadth children, lost-delivery launch and explicit SIGTERM classifications visible.",
+      "evidence": ["verification.json", "replay-review.json", "REPORT.md"]
+    },
+    {
+      "id": "FAIR-005",
+      "priority": "medium",
+      "topic": "coverage and effect oracle limits",
+      "finding": "Expanded checks exact projected fixture entries, selected modes, bytes/status, not outside-root metadata/provider effects. Breadth records whole-root effects but positive recipes enforce selected predicates, not cross-engine full-effect equality.",
+      "disposition": "Do not equate operational positives with native/full-effect parity; preserve terminal byte boundary versus internal file/pipe distinctions.",
+      "evidence": ["REPORT.md", "overlap.json"]
+    },
+    {
+      "id": "FAIR-006",
+      "priority": "medium",
+      "topic": "dispatch and setup fidelity",
+      "finding": "Real public shells/plugins are used. Registration, kernel classification and traced execution differ; source snapshots, environments, budgets and network transports are not identical across all cohorts. Original expanded dependency identity is weaker than new copied/traced replay.",
+      "disposition": "Do not inflate coverage from names or relabel registry tools as builtins. Treat new copied/scrubbed/traced orchestration as disclosed setup change.",
+      "evidence": ["REPORT.md", "replay-review.json", "provenance.json"]
+    },
+    {
+      "id": "FAIR-007",
+      "priority": "medium",
+      "topic": "performance denominator and equivalence",
+      "finding": "Historical30 trials are three workloads times two engines times five repeats, all exact-profile matched; binary candidate excluded on output mismatch. Baseline sort faster does not establish full-workload speed. New replay performs no performance cohort.",
+      "disposition": "Report per-workload pilot medians only, including hardware/load/warmup/order/setup and memory-boundary caveats.",
+      "evidence": ["verification.json", "REPORT.md"]
+    },
+    {
+      "id": "FAIR-008",
+      "priority": "medium",
+      "topic": "historical versus integration scores",
+      "finding": "Historical206/18 and155/69 remain intact. New dirty source freeze yields original222/2 and aligned223/1 versus155/69; no cross-profile product four-field observation changes. Only aligned ours failure is kernel/type/type.",
+      "disposition": "Pin sourceTreeSha256 and dirty/source manifest, not captured HEAD alone; require different-leaf final-score review and no superiority claim.",
+      "evidence": ["replay-review.json", "REPORT.md"]
+    }
+  ]
+}

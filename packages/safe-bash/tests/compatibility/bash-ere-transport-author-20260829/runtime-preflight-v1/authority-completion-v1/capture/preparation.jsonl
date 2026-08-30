@@ -1,0 +1,2 @@
+{"event":"start","at":"2026-08-29T14:09:01.613Z","limits":{"milliseconds":720000,"knownOS":32,"peak":3,"pureHelpers":2,"controls":6,"captureBytes":50331648,"workBytes":201326592},"executionAuthorized":false}
+{"event":"independent-subdirectories","names":[".gitignore","AUDIT.md","FINDINGS.json","LOADER.json","LOADER.md","MANIFEST.json","PRIORITY-CONTROLS.json","REPORT.md","SOURCE-BINDINGS.json","SOURCE-READS.json.gz.base64.data","SOURCE-v1.stderr","SOURCE-v1.stdout","corrections-v1","corrections-v2","t1-preexecution-r3","t1-preexecution-v1"]}

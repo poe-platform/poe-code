@@ -1,0 +1,66 @@
+{
+  "records": [
+    {
+      "role": "clock-false",
+      "started": "2026-08-29T13:56:22.768Z",
+      "exit": {
+        "present": true,
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "close": {
+        "present": true,
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "error": {
+        "present": false
+      },
+      "pid": 96143,
+      "ended": "2026-08-29T13:56:22.773Z"
+    },
+    {
+      "role": "publication-undefined",
+      "started": "2026-08-29T13:56:22.775Z",
+      "exit": {
+        "present": true,
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "close": {
+        "present": true,
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "error": {
+        "present": false
+      },
+      "pid": 96144,
+      "ended": "2026-08-29T13:56:22.776Z"
+    },
+    {
+      "role": "timeout",
+      "started": "2026-08-29T13:56:22.777Z",
+      "exit": {
+        "present": true,
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "close": {
+        "present": true,
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "error": {
+        "present": false
+      },
+      "pid": 96145,
+      "ended": "2026-08-29T13:56:22.881Z"
+    }
+  ],
+  "failure": {
+    "present": false
+  },
+  "normalReexecuted": false,
+  "instrumentation": "Fixed spawn admission and independent exit/close observers; author controller unchanged."
+}

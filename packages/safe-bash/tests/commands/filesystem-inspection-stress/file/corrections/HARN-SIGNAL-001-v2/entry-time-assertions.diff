@@ -1,0 +1,20 @@
+diff --git a/private/tmp/safe-bash-file-harness-v2.IHV2O29B/runner/v2-observation-only-runner.mjs b/private/tmp/safe-bash-file-harness-v2.IHV2O29B/runner/v2-runner.mjs
+index 40b4adc..5cdc66b 100644
+--- a/private/tmp/safe-bash-file-harness-v2.IHV2O29B/runner/v2-observation-only-runner.mjs
++++ b/private/tmp/safe-bash-file-harness-v2.IHV2O29B/runner/v2-runner.mjs
+@@ -160,10 +160,11 @@ export async function runHoldouts(adapter) {
+     successful(invocation);
+     assert.equal(stdout(invocation), 'image/png; charset=binary\n');
+     assert(rig.trace.some((entry) => entry.method === 'readFile'));
+-    for (const entry of rig.trace) {
+-      assert(entry.options?.signal instanceof AbortSignal);
+-      assert.equal(entry.options.signal.aborted, false);
+-      assert.equal(entry.options.signal.reason, undefined);
++    for (const entry of fsEntrySnapshots) {
++      assert.equal(entry.signalPresentAtEntry, true);
++      assert.equal(entry.isAbortSignalAtEntry, true);
++      assert.equal(entry.abortedAtEntry, false);
++      assert.equal(entry.reasonAtEntry, undefined);
+     }
+     row.evidence.trace = traceJson(rig.trace);
+     row.evidence.fsEntrySnapshots = fsEntrySnapshots;

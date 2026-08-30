@@ -1,0 +1,484 @@
+{
+  "schema": "native26-review-v2-known-role-accounting",
+  "at": "2026-08-29T13:02:47.887Z",
+  "owners": [
+    {
+      "mode": "old-publication",
+      "pid": 72364,
+      "start": "2026-08-29T13:00:48.814Z",
+      "end": "2026-08-29T13:00:49.316Z"
+    },
+    {
+      "mode": "prepare",
+      "pid": 72497,
+      "start": "2026-08-29T13:00:55.064Z",
+      "end": "2026-08-29T13:00:55.300Z"
+    },
+    {
+      "mode": "seal",
+      "pid": 72556,
+      "start": "2026-08-29T13:01:00.024Z",
+      "end": "2026-08-29T13:01:00.362Z"
+    },
+    {
+      "mode": "cohort",
+      "pid": 72684,
+      "start": "2026-08-29T13:01:07.612Z",
+      "end": "2026-08-29T13:01:08.606Z"
+    },
+    {
+      "mode": "report",
+      "pid": 72889,
+      "start": "2026-08-29T13:01:16.119Z",
+      "end": "2026-08-29T13:01:16.151Z"
+    }
+  ],
+  "managedChildren": [
+    {
+      "mode": "old-publication",
+      "label": "old-stage",
+      "pid": 72366,
+      "close": {
+        "at": "2026-08-29T13:00:48.974Z",
+        "event": "close",
+        "label": "old-stage",
+        "pid": 72366,
+        "code": 0,
+        "signal": null,
+        "spawnSeen": true,
+        "exitSeen": true,
+        "errorPresent": false,
+        "timedOut": false
+      }
+    },
+    {
+      "mode": "old-publication",
+      "label": "old-commit",
+      "pid": 72368,
+      "close": {
+        "at": "2026-08-29T13:00:49.246Z",
+        "event": "close",
+        "label": "old-commit",
+        "pid": 72368,
+        "code": 0,
+        "signal": null,
+        "spawnSeen": true,
+        "exitSeen": true,
+        "errorPresent": false,
+        "timedOut": false
+      }
+    },
+    {
+      "mode": "old-publication",
+      "label": "old-status",
+      "pid": 72373,
+      "close": {
+        "at": "2026-08-29T13:00:49.310Z",
+        "event": "close",
+        "label": "old-status",
+        "pid": 72373,
+        "code": 0,
+        "signal": null,
+        "spawnSeen": true,
+        "exitSeen": true,
+        "errorPresent": false,
+        "timedOut": false
+      }
+    },
+    {
+      "mode": "prepare",
+      "label": "syntax-owner.mjs",
+      "pid": 72499,
+      "close": {
+        "at": "2026-08-29T13:00:55.243Z",
+        "event": "close",
+        "label": "syntax-owner.mjs",
+        "pid": 72499,
+        "code": 0,
+        "signal": null,
+        "spawnSeen": true,
+        "exitSeen": true,
+        "errorPresent": false,
+        "timedOut": false
+      }
+    },
+    {
+      "mode": "prepare",
+      "label": "syntax-review.mjs",
+      "pid": 72501,
+      "close": {
+        "at": "2026-08-29T13:00:55.293Z",
+        "event": "close",
+        "label": "syntax-review.mjs",
+        "pid": 72501,
+        "code": 0,
+        "signal": null,
+        "spawnSeen": true,
+        "exitSeen": true,
+        "errorPresent": false,
+        "timedOut": false
+      }
+    },
+    {
+      "mode": "seal",
+      "label": "seal-stage",
+      "pid": 72559,
+      "close": {
+        "at": "2026-08-29T13:01:00.122Z",
+        "event": "close",
+        "label": "seal-stage",
+        "pid": 72559,
+        "code": 0,
+        "signal": null,
+        "spawnSeen": true,
+        "exitSeen": true,
+        "errorPresent": false,
+        "timedOut": false
+      }
+    },
+    {
+      "mode": "seal",
+      "label": "seal-commit",
+      "pid": 72565,
+      "close": {
+        "at": "2026-08-29T13:01:00.354Z",
+        "event": "close",
+        "label": "seal-commit",
+        "pid": 72565,
+        "code": 0,
+        "signal": null,
+        "spawnSeen": true,
+        "exitSeen": true,
+        "errorPresent": false,
+        "timedOut": false
+      }
+    },
+    {
+      "mode": "cohort",
+      "label": "controls",
+      "pid": 72688,
+      "close": {
+        "at": "2026-08-29T13:01:08.599Z",
+        "event": "close",
+        "label": "controls",
+        "pid": 72688,
+        "code": 0,
+        "signal": null,
+        "spawnSeen": true,
+        "exitSeen": true,
+        "errorPresent": false,
+        "timedOut": false
+      }
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "normal",
+      "pid": 72694,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "ignore-term",
+      "pid": 72695,
+      "exit": true,
+      "close": true,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "administrativeRoles": [
+    {
+      "name": "bootstrap exec apply_patch",
+      "count": 1,
+      "pidRecorded": false
+    },
+    {
+      "name": "initial owner syntax Node child before old-publication exec",
+      "count": 1,
+      "pidRecorded": false
+    },
+    {
+      "name": "accounting exec apply_patch initial and revision",
+      "count": 2,
+      "pidRecorded": false
+    },
+    {
+      "name": "this metadata helper",
+      "count": 1,
+      "pid": 76137
+    },
+    {
+      "name": "metadata helper syntax Node child",
+      "count": 1,
+      "pidRecorded": false
+    }
+  ],
+  "knownRolesThroughThisHelper": 21,
+  "remainingPlannedRoles": [
+    {
+      "name": "publication owner",
+      "count": 1
+    },
+    {
+      "name": "publication Git stage/commit/status",
+      "count": 3
+    },
+    {
+      "name": "final bounded file reader",
+      "count": 1
+    }
+  ],
+  "allExpectedKnownRolesAtHandoff": 26,
+  "roleBudget": 64,
+  "peakDirect": 3,
+  "peakCeiling": 4,
+  "controllerProcesses": 1,
+  "fixtureProcesses": 2,
+  "Bash": 0,
+  "Workers": 0,
+  "asyncLoaders": 0,
+  "observedCaptureBytesBeforeFinalPublication": 24951,
+  "captures": [
+    {
+      "path": "/tmp/native26-review-v2-old-publication-20260829.stdout",
+      "bytes": 6058,
+      "sha256": "fb93f968a73b3bdfb36e33d964b360c84ecd5f0142d9c1b11fddf231d78fa592"
+    },
+    {
+      "path": "/tmp/native26-review-v2-old-publication-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-old-publication-n3mh1k/events.jsonl",
+      "bytes": 3024,
+      "sha256": "8ba85a30e2e22bdc8b84d776a2daa78111b65ab085d43fe2ad60f7d7b93ae3ef"
+    },
+    {
+      "path": "/tmp/native26-review-v2-old-publication-n3mh1k/old-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-old-publication-n3mh1k/old-commit.stdout",
+      "bytes": 5912,
+      "sha256": "440d47a9e5409cf3829ab5a82c02cd3492e2efa36ed02d84ccd3fe8d6355bc40"
+    },
+    {
+      "path": "/tmp/native26-review-v2-old-publication-n3mh1k/old-stage.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-old-publication-n3mh1k/old-stage.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-old-publication-n3mh1k/old-status.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-old-publication-n3mh1k/old-status.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-prepare-20260829.stdout",
+      "bytes": 168,
+      "sha256": "7a9811be86748ba0acb3f3a867d8edf74c5235af7b910fa386911f6046b3902a"
+    },
+    {
+      "path": "/tmp/native26-review-v2-prepare-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-prepare-givRvJ/events.jsonl",
+      "bytes": 2002,
+      "sha256": "82323b352c99ef45923adb5ccd4e66f3c8011c72d0ea36acb86da99d6ed9adde"
+    },
+    {
+      "path": "/tmp/native26-review-v2-prepare-givRvJ/syntax-owner.mjs.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-prepare-givRvJ/syntax-owner.mjs.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-prepare-givRvJ/syntax-review.mjs.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-prepare-givRvJ/syntax-review.mjs.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-seal-20260829.stdout",
+      "bytes": 1174,
+      "sha256": "181876c673b8690d2adaffe6a5701ffbac2e8bff4f591b2c6baad91f964423f3"
+    },
+    {
+      "path": "/tmp/native26-review-v2-seal-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-seal-rpqHhA/events.jsonl",
+      "bytes": 2115,
+      "sha256": "8dda569cd373d10abc661ca346962e195221cc10115462b9fdf21a5aef4c507b"
+    },
+    {
+      "path": "/tmp/native26-review-v2-seal-rpqHhA/seal-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-seal-rpqHhA/seal-commit.stdout",
+      "bytes": 1092,
+      "sha256": "837bae0f2dc2935ad520ed60049f70dc51bf6d2e9303d99dd68d1df6fedccffe"
+    },
+    {
+      "path": "/tmp/native26-review-v2-seal-rpqHhA/seal-stage.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-seal-rpqHhA/seal-stage.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-cohort-20260829.stdout",
+      "bytes": 1362,
+      "sha256": "324b8a3d10f349b85ae468ffd6eb2fc4bb1f69f33d8143171d9fbfe264274462"
+    },
+    {
+      "path": "/tmp/native26-review-v2-cohort-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-cohort-gmQdjg/controls.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-cohort-gmQdjg/controls.stdout",
+      "bytes": 42,
+      "sha256": "463ada39cd8687747799d5c5a000506264f072c0abea2df6f90f12a9711d3f0b"
+    },
+    {
+      "path": "/tmp/native26-review-v2-cohort-gmQdjg/events.jsonl",
+      "bytes": 1069,
+      "sha256": "34df85f5b73567216c5b3694d88da75b2988f29bd45919a5c3c0050b80d0aafb"
+    },
+    {
+      "path": "/tmp/native26-review-v2-report-20260829.stdout",
+      "bytes": 147,
+      "sha256": "a31773628efc93229202052e26eb878d44ee3072bb4c5d0dfb36c5c8863ca526"
+    },
+    {
+      "path": "/tmp/native26-review-v2-report-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-report-NkfnuT/events.jsonl",
+      "bytes": 260,
+      "sha256": "8976388d8df62e01867dea0f125b218c6e6904f27b623c78416dabe060baf66c"
+    },
+    {
+      "path": "/tmp/native26-review-v2-bootstrap-20260829.stdout",
+      "bytes": 172,
+      "sha256": "f1346c8884599b7d5378b8ae1b140fc2e09c7325f9138bbe0a9b281cb4763238"
+    },
+    {
+      "path": "/tmp/native26-review-v2-bootstrap-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-accounting-patch-20260829.stdout",
+      "bytes": 177,
+      "sha256": "83345d521c1895ed49c5ef9357967c740bfb97f41171432c983dfd89b3552433"
+    },
+    {
+      "path": "/tmp/native26-review-v2-accounting-patch-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/native26-review-v2-accounting-revision-20260829.stdout",
+      "bytes": 177,
+      "sha256": "50a5a04cd33f7bfbb6c10a1fec5484027b6e42a7f8785c014648c41de1dc9cab"
+    },
+    {
+      "path": "/tmp/native26-review-v2-accounting-revision-20260829.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "qualifications": [
+    "role tally includes invocation and explicit utilities, not toolcall census",
+    "initial syntax/apply_patch PIDs not recorded; successful tool completion observed",
+    "no full transitive/tool-wrapper/OS global census claimed; reserved headroom not observed processes",
+    "publication and final reader are prospective here; final external publication journal/return completes their observations",
+    "fresh native owner-group policy is source/control-qualified only; no native execution"
+  ]
+}

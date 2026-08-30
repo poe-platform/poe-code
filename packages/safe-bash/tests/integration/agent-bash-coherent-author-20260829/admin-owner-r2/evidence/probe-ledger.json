@@ -1,0 +1,126 @@
+{
+  "schema": "B1-live-admin-ledger-v1",
+  "authorization": "HARMLESS-NOT-B1",
+  "owner": {
+    "pid": 21985,
+    "role": "administrative-owner",
+    "entryPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/prepare.mjs",
+    "entrySha256": "5e3300954d29cdfb73e0afe1028dda79c280619d8308c69cc2e79c0fd5781572",
+    "ownership": "RETAINED_UNTIL_PUBLICATION_AND_TAIL"
+  },
+  "starts": [
+    {
+      "id": "owner-21985",
+      "role": "administrative-owner",
+      "pid": 21985,
+      "startedUTC": "2026-08-29T15:34:43.966Z",
+      "state": "LIVE_ADMIN_OWNER",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false
+    },
+    {
+      "id": "git-root-21992",
+      "role": "git-root",
+      "pid": 21992,
+      "startedUTC": "2026-08-29T15:34:44.034Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "git-scoped-status-22002",
+      "role": "git-scoped-status",
+      "pid": 22002,
+      "startedUTC": "2026-08-29T15:34:44.371Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "source-materialize-22004",
+      "role": "source-materialize",
+      "pid": 22004,
+      "startedUTC": "2026-08-29T15:34:44.503Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "source-editor-22007",
+      "role": "source-edit-apply-patch",
+      "pid": 22007,
+      "startedUTC": "2026-08-29T15:34:44.549Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "git-preseal-add-22008",
+      "role": "git-preseal-add",
+      "pid": 22008,
+      "startedUTC": "2026-08-29T15:34:44.577Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "git-preseal-commit-22009",
+      "role": "git-preseal-commit",
+      "pid": 22009,
+      "startedUTC": "2026-08-29T15:34:44.698Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "git-preseal-receipt-22016",
+      "role": "git-preseal-receipt",
+      "pid": 22016,
+      "startedUTC": "2026-08-29T15:34:45.030Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "syntax-controls-22018",
+      "role": "syntax-controls",
+      "pid": 22018,
+      "startedUTC": "2026-08-29T15:34:45.120Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    }
+  ],
+  "reservations": [
+    {
+      "role": "publication-preimport",
+      "state": "RESERVED_NOT_STARTED"
+    },
+    {
+      "role": "publisher",
+      "state": "RESERVED_NOT_STARTED"
+    },
+    {
+      "role": "git-add",
+      "state": "RESERVED_NOT_STARTED"
+    },
+    {
+      "role": "git-commit",
+      "state": "RESERVED_NOT_STARTED"
+    },
+    {
+      "role": "git-receipt",
+      "state": "RESERVED_NOT_STARTED"
+    }
+  ],
+  "maxKnownOS": 36
+}

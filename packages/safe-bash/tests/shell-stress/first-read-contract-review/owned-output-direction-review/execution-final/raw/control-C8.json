@@ -1,0 +1,17 @@
+{
+  "label": "control-C8",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"scenario\":\"C8\",\"verdict\":\"PASS\",\"result\":{\"firstWriteAccepted\":true,\"secondWriteBlocked\":true,\"readsBeforeAbort\":0},\"cleanup\":0,\"reads\":0,\"events\":[{\"order\":1,\"value\":\"write1.accepted:no-reader-next\"},{\"order\":2,\"value\":\"write2.blocked:no-reader-next\"},{\"order\":3,\"value\":\"pending-write-close-read.reject:same-reason\"}]}\n{\"scenario\":\"C8\",\"teardown\":\"disposed\",\"cleanup\":0}\n",
+    "bytes": 375,
+    "base64": "eyJzY2VuYXJpbyI6IkM4IiwidmVyZGljdCI6IlBBU1MiLCJyZXN1bHQiOnsiZmlyc3RXcml0ZUFjY2VwdGVkIjp0cnVlLCJzZWNvbmRXcml0ZUJsb2NrZWQiOnRydWUsInJlYWRzQmVmb3JlQWJvcnQiOjB9LCJjbGVhbnVwIjowLCJyZWFkcyI6MCwiZXZlbnRzIjpbeyJvcmRlciI6MSwidmFsdWUiOiJ3cml0ZTEuYWNjZXB0ZWQ6bm8tcmVhZGVyLW5leHQifSx7Im9yZGVyIjoyLCJ2YWx1ZSI6IndyaXRlMi5ibG9ja2VkOm5vLXJlYWRlci1uZXh0In0seyJvcmRlciI6MywidmFsdWUiOiJwZW5kaW5nLXdyaXRlLWNsb3NlLXJlYWQucmVqZWN0OnNhbWUtcmVhc29uIn1dfQp7InNjZW5hcmlvIjoiQzgiLCJ0ZWFyZG93biI6ImRpc3Bvc2VkIiwiY2xlYW51cCI6MH0K",
+    "sha256": "d32ff8e602a44986179d96998feb176291f0d640c458eab6bbef2afdbca51aea"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

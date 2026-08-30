@@ -1,0 +1,1308 @@
+[
+  {
+    "label": "version-git",
+    "command": "/usr/bin/git",
+    "args": [
+      "--version"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7285,
+    "startedAt": "2026-08-27T17:45:22.125Z",
+    "durationMs": 29.402,
+    "timeoutMs": 10000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 35,
+    "stderrBytes": 0,
+    "stdoutSha256": "0a72a762b37a3800276a1004e2c169aed0610d4a3ba601ba59e70e1c4d9f3200",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "version-npm",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm",
+    "args": [
+      "--version"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7286,
+    "startedAt": "2026-08-27T17:45:22.158Z",
+    "durationMs": 113.935,
+    "timeoutMs": 10000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 7,
+    "stderrBytes": 0,
+    "stdoutSha256": "35217e32d288f09fea0fe2b8124665225fc00ac7ea72c312bb523db9950a13c4",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "version-tar",
+    "command": "/usr/bin/tar",
+    "args": [
+      "--version"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7288,
+    "startedAt": "2026-08-27T17:45:22.272Z",
+    "durationMs": 7.096,
+    "timeoutMs": 10000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 72,
+    "stderrBytes": 0,
+    "stdoutSha256": "e7cce3d387120ee09a085cb3cafba70e9031c5f497229c6d60846a7b2c1e4241",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-candidate-commit",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "f1a90436c45208ca248e058a039893233c608daa^{commit}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7289,
+    "startedAt": "2026-08-27T17:45:22.282Z",
+    "durationMs": 29.281,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "9be78e7238e4f38dbf11550952e1b8379537c00a005a74626edfa8dc7bcf2084",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-candidate-tree",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "f1a90436c45208ca248e058a039893233c608daa^{tree}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7290,
+    "startedAt": "2026-08-27T17:45:22.311Z",
+    "durationMs": 26.742,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "11adbd0480dedec60350fdcf706c1923a6536d59f44388452e7dfa04efd24c57",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-evidence-commit",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "0d8623634995549d8e717d310c28db83a02a9532^{commit}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7291,
+    "startedAt": "2026-08-27T17:45:22.338Z",
+    "durationMs": 24.916,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "881ebdaedabf276f2d0a4c34e9c465e8ff57b63a837e7f292bb948031d856291",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-evidence-tree",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "0d8623634995549d8e717d310c28db83a02a9532^{tree}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7292,
+    "startedAt": "2026-08-27T17:45:22.363Z",
+    "durationMs": 26.177,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "72942e6c59f975bc7d0087da14f3b2446a5cea2bed7551f7131a1608a7779f34",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-freeze-1-commit",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "a0445f4d5cff1c8451957ce684273e1225279588^{commit}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7293,
+    "startedAt": "2026-08-27T17:45:22.390Z",
+    "durationMs": 26.139,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "7a56213161c2020383f52f352058ae2446ac7afb9a8383b089c941129089ed5f",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-freeze-1-tree",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "a0445f4d5cff1c8451957ce684273e1225279588^{tree}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7294,
+    "startedAt": "2026-08-27T17:45:22.416Z",
+    "durationMs": 25.68,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "0ef7f7f486a5c7af351db3db88358fe43aeb0a6a969f325a56db41c60ae4b7e3",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-freeze-2-commit",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "55bd112804564605e397d3ee9948226d89efd457^{commit}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7295,
+    "startedAt": "2026-08-27T17:45:22.442Z",
+    "durationMs": 24.847,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "b5a014c2e089fb537bcbbf48ed6aa0ce5737670d9d4b3c7e3ec9658667438d50",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-freeze-2-tree",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "--verify",
+      "55bd112804564605e397d3ee9948226d89efd457^{tree}"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7296,
+    "startedAt": "2026-08-27T17:45:22.467Z",
+    "durationMs": 25.244,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "4d247c32c33b0d24ecbd6a6c67f8cb203b127194fbdd79e1e123d6fa314d0a9a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-7acef107c88ff282",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/SEAL.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7297,
+    "startedAt": "2026-08-27T17:45:22.492Z",
+    "durationMs": 23.726,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 1245,
+    "stderrBytes": 0,
+    "stdoutSha256": "d9062eccb2f56086614f5c35d39f9018675119ac14e5fc5956ad5d79777b5c21",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-b2a1a3e438ddf3f1",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/BREADTH.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7298,
+    "startedAt": "2026-08-27T17:45:22.516Z",
+    "durationMs": 29.586,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 60127,
+    "stderrBytes": 0,
+    "stdoutSha256": "441485df99cf68f410cb6fbb362de54eab5241d8a1f4368bd83c62564591c34b",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-fda6bd6c6d676342",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/FROZEN.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7301,
+    "startedAt": "2026-08-27T17:45:22.546Z",
+    "durationMs": 33.922,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 455623,
+    "stderrBytes": 0,
+    "stdoutSha256": "e79fa321ea9db6471f9a31cfb1956bac5041045793cb5a8d75435b25a0cae8e1",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-24e6e39a2a4b4c4a",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/NATIVE-EDGES.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7312,
+    "startedAt": "2026-08-27T17:45:22.580Z",
+    "durationMs": 28.605,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 8451,
+    "stderrBytes": 0,
+    "stdoutSha256": "6a13c39765f8eaebf98f9a606937bf7c9d74abc85d1990295d9862d73c71cb82",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-5bdb8c396b45a26d",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/README.md"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7320,
+    "startedAt": "2026-08-27T17:45:22.609Z",
+    "durationMs": 30.79,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 8589,
+    "stderrBytes": 0,
+    "stdoutSha256": "7b85aae45862afb43a66a65f1fa90fff822ef4b97d00d77f7977652f555499f7",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-1dd4dcb9fb392f2b",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/checks.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7326,
+    "startedAt": "2026-08-27T17:45:22.640Z",
+    "durationMs": 38.012,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 1247,
+    "stderrBytes": 0,
+    "stdoutSha256": "eb7160d674b21c41270a2c5c154bd2ede4ae9595f20a4d280f57d65799484246",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-432451588bc7a0a6",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/focused-02.tap"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7333,
+    "startedAt": "2026-08-27T17:45:22.678Z",
+    "durationMs": 28.483,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 10835,
+    "stderrBytes": 0,
+    "stdoutSha256": "c6e309bd8098c545c4d45cd769a03acf95d30f605e352341f51f1089ad6e811f",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-92ebce360b133ef3",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/frozen-checks.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7340,
+    "startedAt": "2026-08-27T17:45:22.706Z",
+    "durationMs": 38.989,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 5897,
+    "stderrBytes": 0,
+    "stdoutSha256": "63ec104054cca2829799e59483e47bb4bb903fcf2b4dc4369dc2bd9384c0448d",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-eed2725fd594924b",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/initial-focused.tap"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7346,
+    "startedAt": "2026-08-27T17:45:22.745Z",
+    "durationMs": 43.289,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 11659,
+    "stderrBytes": 0,
+    "stdoutSha256": "92a51623c91bb1dbe078135d8e8aa207841239eaff799d145308976f058e3807",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-a028a09bf6b1b42c",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/initial-types.txt"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7350,
+    "startedAt": "2026-08-27T17:45:22.789Z",
+    "durationMs": 34.974,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 972,
+    "stderrBytes": 0,
+    "stdoutSha256": "3c1829c9910b6a1dbf968ad789f6f67a1a183387f8bba0383b28d80e171e0517",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-64df4a4f1c476b99",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/initial-verifier.stderr"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7351,
+    "startedAt": "2026-08-27T17:45:22.824Z",
+    "durationMs": 30.96,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 1447,
+    "stderrBytes": 0,
+    "stdoutSha256": "e4f93bcf2512fff0d2047d5962af9752e86ae994b6d138463054644b9751d477",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-2a470d67285ed599",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/native-edges.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7353,
+    "startedAt": "2026-08-27T17:45:22.855Z",
+    "durationMs": 61.131,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 2507,
+    "stderrBytes": 0,
+    "stdoutSha256": "2b476757b0f2af99c9df3e9b985742b1f594eb5d2c414bde1066b1cb74a055ed",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-42a5c4ae863d2751",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/replay-breadth.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7354,
+    "startedAt": "2026-08-27T17:45:22.916Z",
+    "durationMs": 35.14,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 10049,
+    "stderrBytes": 0,
+    "stdoutSha256": "c71033d3b7dbf47f04524b12a3aa0008a143d278a168124ba47a49fc1aa37825",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-b128ff6007b8ae40",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/types-02.txt"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7355,
+    "startedAt": "2026-08-27T17:45:22.952Z",
+    "durationMs": 34.679,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 112,
+    "stderrBytes": 0,
+    "stdoutSha256": "ba8b483caa1e3c71b7ce9ca29dbdd78f1d0ff0f9eda9c89ec4d726e3e044d355",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-8fb165a3f116cec7",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/verify.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7356,
+    "startedAt": "2026-08-27T17:45:22.986Z",
+    "durationMs": 39.757,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 5315,
+    "stderrBytes": 0,
+    "stdoutSha256": "d58144b90c9c308c343fe93bf2cee6ac298bc35ef50f589cf6540acb4b3690a7",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "show-5bdb8c396b45a26d",
+    "command": "/usr/bin/git",
+    "args": [
+      "show",
+      "0d8623634995549d8e717d310c28db83a02a9532:benchmarks/reports/tree-charset-20260827/README.md"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7357,
+    "startedAt": "2026-08-27T17:45:23.026Z",
+    "durationMs": 28.51,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 8589,
+    "stderrBytes": 0,
+    "stdoutSha256": "7b85aae45862afb43a66a65f1fa90fff822ef4b97d00d77f7977652f555499f7",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-freeze-subtree-1",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "a0445f4d5cff1c8451957ce684273e1225279588:tests/commands/tree-charset-independent-20260827/freeze"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7358,
+    "startedAt": "2026-08-27T17:45:23.055Z",
+    "durationMs": 34.174,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "b89a90fc1fcf097e6befdddde7a62adaf3ed63937601b2be5db20e808a8a20fb",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "resolve-freeze-subtree-2",
+    "command": "/usr/bin/git",
+    "args": [
+      "rev-parse",
+      "55bd112804564605e397d3ee9948226d89efd457:tests/commands/tree-charset-independent-20260827/native-independent"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7359,
+    "startedAt": "2026-08-27T17:45:23.089Z",
+    "durationMs": 23.688,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 41,
+    "stderrBytes": 0,
+    "stdoutSha256": "32508a95a0b3f74d50e3ae9c77f17ba4c2382cca07c824a328bfe8684a900ca0",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "git-archive-candidate",
+    "command": "/usr/bin/git",
+    "args": [
+      "archive",
+      "--format=tar",
+      "f1a90436c45208ca248e058a039893233c608daa"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7360,
+    "startedAt": "2026-08-27T17:45:23.113Z",
+    "durationMs": 4196.295,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "stdoutSha256": "fe133818ee69dcbdac7e2330e97fefa1dd07037ba73c6135ccf106b770e7f325",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "extract-candidate",
+    "command": "/usr/bin/tar",
+    "args": [
+      "-xf",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/candidate.tar",
+      "-C",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/source"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 7519,
+    "startedAt": "2026-08-27T17:45:31.004Z",
+    "durationMs": 11118.313,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "candidate-ls-tree",
+    "command": "/usr/bin/git",
+    "args": [
+      "ls-tree",
+      "-rz",
+      "-r",
+      "f1a90436c45208ca248e058a039893233c608daa"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 8614,
+    "startedAt": "2026-08-27T17:45:42.123Z",
+    "durationMs": 96.521,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 4120261,
+    "stderrBytes": 0,
+    "stdoutSha256": "24314c7734c8ac1cbc58cf76630ecd2bca433fc50fbfe42df1a0ed929fc69c8b",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "npm-ci-candidate",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm",
+    "args": [
+      "ci",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/source",
+    "pid": 8664,
+    "startedAt": "2026-08-27T17:45:48.301Z",
+    "durationMs": 802.957,
+    "timeoutMs": 180000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 27,
+    "stderrBytes": 0,
+    "stdoutSha256": "0c39e6ad67078d73145c956ed88bb0a2d55fca8d11fbfabbf086afada42a8bec",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "npm-build-candidate",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm",
+    "args": [
+      "run",
+      "build"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/source",
+    "pid": 8666,
+    "startedAt": "2026-08-27T17:45:49.105Z",
+    "durationMs": 2822.297,
+    "timeoutMs": 180000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 58,
+    "stderrBytes": 0,
+    "stdoutSha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "npm-pack-candidate",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm",
+    "args": [
+      "pack",
+      "--json",
+      "--pack-destination",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/pack"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/source",
+    "pid": 8768,
+    "startedAt": "2026-08-27T17:45:51.929Z",
+    "durationMs": 767.32,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 85756,
+    "stderrBytes": 0,
+    "stdoutSha256": "e0fa42787cfb6ce453855cf8c28b5591bfe8cb474fa5701882d80356601e6020",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "list-packed-tarball",
+    "command": "/usr/bin/tar",
+    "args": [
+      "-tf",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/pack/virtual-bash-0.0.0.tgz"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "pid": 8769,
+    "startedAt": "2026-08-27T17:45:52.697Z",
+    "durationMs": 13.779,
+    "timeoutMs": 30000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 32203,
+    "stderrBytes": 0,
+    "stdoutSha256": "c146c3946d6b9a3431b07c26f5883e11584de2d6853ee3270f7abcd3208a3cdf",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "npm-install-packed-candidate",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm",
+    "args": [
+      "install",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      "--package-lock=false",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/pack/virtual-bash-0.0.0.tgz"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/baseline-consumer",
+    "pid": 8770,
+    "startedAt": "2026-08-27T17:45:52.713Z",
+    "durationMs": 824.966,
+    "timeoutMs": 120000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 26,
+    "stderrBytes": 0,
+    "stdoutSha256": "514e3ef5aa752a47d11c89b7459eaed57a9b57ea564d6a899723bbed5afd6ade",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-baseline",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/baseline-consumer/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/baseline-consumer",
+    "pid": 8776,
+    "startedAt": "2026-08-27T17:45:53.634Z",
+    "durationMs": 1104.041,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 12918,
+    "stderrBytes": 0,
+    "stdoutSha256": "7be9bac77828181f153092337c2acfc745729ea3520a04a6a8a167c068923985",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-environment-always-ascii",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/environment-always-ascii/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/environment-always-ascii",
+    "pid": 8786,
+    "startedAt": "2026-08-27T17:45:55.088Z",
+    "durationMs": 1104.801,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 14189,
+    "stderrBytes": 0,
+    "stdoutSha256": "6b88bf52eb36cae45d67bcfdad110a68e762361ce0fd39342c756192434f4ac4",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-explicit-precedence-ignored",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/explicit-precedence-ignored/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/explicit-precedence-ignored",
+    "pid": 8798,
+    "startedAt": "2026-08-27T17:45:56.617Z",
+    "durationMs": 1144.103,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 13966,
+    "stderrBytes": 0,
+    "stdoutSha256": "bb910f556b769dcd8a54c9777ee274d5d0c2b3484c4f4f8bdefa2013307d94bc",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-ambient-host-environment",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/ambient-host-environment/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/ambient-host-environment",
+    "pid": 9401,
+    "startedAt": "2026-08-27T17:45:58.231Z",
+    "durationMs": 1125.541,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 13844,
+    "stderrBytes": 0,
+    "stdoutSha256": "1e9614b4fa5feff3143de2c0305cf7b7425bce4fa24f823cfaac2c396a0ec796",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-inherited-key-lookup",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/inherited-key-lookup/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/inherited-key-lookup",
+    "pid": 9411,
+    "startedAt": "2026-08-27T17:45:59.706Z",
+    "durationMs": 1107.549,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 14136,
+    "stderrBytes": 0,
+    "stdoutSha256": "dab36523c580189db9c949213262668c61feb901b00bd59b6b8551f40a545cb0",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-filename-unescaped",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/filename-unescaped/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/filename-unescaped",
+    "pid": 9435,
+    "startedAt": "2026-08-27T17:46:01.233Z",
+    "durationMs": 1116.426,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 13934,
+    "stderrBytes": 0,
+    "stdoutSha256": "bae0e2daf0f324ba6f60d737dd20bae3315e331ba50c4502b07bad212f851932",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-output-code-units-not-utf8-bytes",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/output-code-units-not-utf8-bytes",
+    "pid": 9478,
+    "startedAt": "2026-08-27T17:46:02.764Z",
+    "durationMs": 1113.873,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 12552,
+    "stderrBytes": 0,
+    "stdoutSha256": "eb99b230670919f2cef9bc55a6a431c476dca3ea1c24e5880fef00ee9e307961",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-environment-work-undercharged",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/environment-work-undercharged/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/environment-work-undercharged",
+    "pid": 9489,
+    "startedAt": "2026-08-27T17:46:04.206Z",
+    "durationMs": 1100.19,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 12389,
+    "stderrBytes": 0,
+    "stdoutSha256": "73475b7037eeef7e56518e0fdcfe35b82bed497fbd2f337fdc55a1d8848dc64f",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "worker-sink-write-not-awaited",
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/sink-write-not-awaited/worker.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-001/variants/sink-write-not-awaited",
+    "pid": 9520,
+    "startedAt": "2026-08-27T17:46:05.698Z",
+    "durationMs": 1117.535,
+    "timeoutMs": 15000,
+    "timedOut": false,
+    "overflow": false,
+    "exitEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "closeEvent": {
+      "code": 0,
+      "signal": null
+    },
+    "absentAfterClose": true,
+    "stdoutBytes": 13492,
+    "stderrBytes": 0,
+    "stdoutSha256": "3d9836af787ce008cbc8ef162eaa00321aa1b41e7602a5b2de8e7ebe30ad2e86",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

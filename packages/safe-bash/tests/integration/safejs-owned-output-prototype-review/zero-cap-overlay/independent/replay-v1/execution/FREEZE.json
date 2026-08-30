@@ -1,0 +1,37 @@
+{
+  "date": "2026-08-27",
+  "reviewerIdentity": "Codex Independent Leaf Verifier; thread 01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "admissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "files": [
+    {
+      "path": "BINDINGS.json",
+      "bytes": 17447,
+      "sha256": "3dfe7ef7e80d8ba36ff1a1fa74f8e949a4ba4032b59221e7ab5b448829319681"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3772,
+      "sha256": "3717f65c3953b21f9c66eaf631bed960c4fb535d9c2664d09ccfe4a345c622b6"
+    },
+    {
+      "path": "ROOT-RELEASE.json",
+      "bytes": 1285,
+      "sha256": "27a12168e5bf65406e10c674380efd10444cc1d9fb1b332a7e2d16dad48eed2c"
+    },
+    {
+      "path": "assess.py",
+      "bytes": 12778,
+      "sha256": "08caf5d33ce427eefc48f05a9d397acb1d3851ac318de1c90da76f1397ca7522"
+    },
+    {
+      "path": "run.py",
+      "bytes": 18401,
+      "sha256": "d7533bb2bcba4b0057e0ab664dadc6521eaec3eb1ea3dc0c5b3f5af9e7ec069c"
+    }
+  ],
+  "manifestSha256": "5b9a0fbb43a0d0a3b6826a8ef840875a77b349f9ee4b02334e3e746256a9c15a",
+  "scope": "Exact25-profile first attempts, independent data-only predicates, fresh private guards and readonly exact author parents. No edits to authors or product. Freeze precedes first runtime.",
+  "actualExecutionsAtFreeze": 0,
+  "noPromotion": true
+}

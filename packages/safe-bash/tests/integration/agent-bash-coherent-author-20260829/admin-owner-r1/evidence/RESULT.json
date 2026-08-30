@@ -1,0 +1,410 @@
+{
+  "sourceCommit": "2593739541be2a31656fcdddcbf36ff9432a1097",
+  "preseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/PRESEAL.json",
+    "bytes": 4452,
+    "sha256": "e94e1004f207e578142cb0c23527f6cce77c79f20517130461373866fbd76d7a"
+  },
+  "results": [
+    {
+      "id": "C01-short",
+      "outcome": "PASS",
+      "role": "PURE"
+    },
+    {
+      "id": "C02-zero",
+      "outcome": "PASS",
+      "role": "PURE"
+    },
+    {
+      "id": "C03-second-open-dual",
+      "outcome": "PASS",
+      "role": "PURE"
+    },
+    {
+      "id": "C04-falsy",
+      "outcome": "PASS",
+      "role": "PURE"
+    },
+    {
+      "id": "C05-live-self",
+      "outcome": "PASS",
+      "role": "PURE"
+    },
+    {
+      "id": "C06-tail",
+      "outcome": "PASS",
+      "role": "PURE"
+    },
+    {
+      "id": "C07-clock",
+      "outcome": "PASS",
+      "role": "PURE"
+    },
+    {
+      "id": "C08-postpublication-bytes",
+      "outcome": "PASS",
+      "role": "PURE"
+    },
+    {
+      "id": "C09-failed-spawn",
+      "outcome": "PASS",
+      "role": "PURE_INJECTED_NO_OS_CHILD"
+    },
+    {
+      "id": "C10-unknown-tool",
+      "outcome": "PASS",
+      "role": "PURE_NO_CHILD"
+    },
+    {
+      "id": "C11-ready",
+      "outcome": "PASS",
+      "role": "ACTUAL_HARMLESS_NODE",
+      "pid": 97339
+    },
+    {
+      "id": "C11-exit7",
+      "outcome": "PASS",
+      "role": "ACTUAL_HARMLESS_NODE",
+      "pid": 97340
+    },
+    {
+      "id": "C12-duplicate",
+      "outcome": "PASS",
+      "role": "PURE_NO_CHILD"
+    }
+  ],
+  "beforePublication": {
+    "schema": "administrative-owner-r1",
+    "self": {
+      "id": "owner-97134",
+      "role": "administrative-owner",
+      "pid": 97134,
+      "startUTC": "2026-08-29T15:25:20.796Z",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false,
+      "state": "LIVE_COORDINATOR"
+    },
+    "starts": [
+      {
+        "id": "git-root-97138",
+        "role": "git-root",
+        "pid": 97138,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "startUTC": "2026-08-29T15:25:20.806Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:25:21.508Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:25:21.509Z"
+      },
+      {
+        "id": "git-scoped-status-97293",
+        "role": "git-scoped-status",
+        "pid": 97293,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1"
+        ],
+        "startUTC": "2026-08-29T15:25:21.511Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:25:21.600Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:25:21.600Z"
+      },
+      {
+        "id": "git-preseal-add-97296",
+        "role": "git-preseal-add",
+        "pid": 97296,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "add",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/prepare.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/controls.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/PRESEAL.json"
+        ],
+        "startUTC": "2026-08-29T15:25:21.606Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:25:21.739Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:25:21.739Z"
+      },
+      {
+        "id": "git-preseal-commit-97300",
+        "role": "git-preseal-commit",
+        "pid": 97300,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "commit",
+          "--only",
+          "-m",
+          "Preseal bounded administrative owner and harmless controls",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/prepare.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/controls.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/PRESEAL.json"
+        ],
+        "startUTC": "2026-08-29T15:25:21.743Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:25:22.270Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:25:22.271Z"
+      },
+      {
+        "id": "git-preseal-receipt-97336",
+        "role": "git-preseal-receipt",
+        "pid": 97336,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "startUTC": "2026-08-29T15:25:22.273Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:25:22.317Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:25:22.317Z"
+      },
+      {
+        "id": "syntax-controls-97338",
+        "role": "syntax-controls",
+        "pid": 97338,
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--check",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/controls.mjs"
+        ],
+        "startUTC": "2026-08-29T15:25:22.380Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:25:22.422Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:25:22.422Z"
+      },
+      {
+        "id": "fixture-ready-97339",
+        "role": "fixture-ready",
+        "pid": 97339,
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+          "ready"
+        ],
+        "startUTC": "2026-08-29T15:25:22.548Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:25:22.605Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:25:22.605Z"
+      },
+      {
+        "id": "fixture-exit7-97340",
+        "role": "fixture-exit7",
+        "pid": 97340,
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+          "exit7"
+        ],
+        "startUTC": "2026-08-29T15:25:22.666Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 7,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:25:22.724Z",
+        "closeCode": 7,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:25:22.725Z"
+      }
+    ],
+    "attempts": [
+      {
+        "role": "git-root",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "atUTC": "2026-08-29T15:25:20.800Z",
+        "spawned": true
+      },
+      {
+        "role": "git-scoped-status",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1"
+        ],
+        "atUTC": "2026-08-29T15:25:21.510Z",
+        "spawned": true
+      },
+      {
+        "role": "git-preseal-add",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "add",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/prepare.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/controls.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/PRESEAL.json"
+        ],
+        "atUTC": "2026-08-29T15:25:21.604Z",
+        "spawned": true
+      },
+      {
+        "role": "git-preseal-commit",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "commit",
+          "--only",
+          "-m",
+          "Preseal bounded administrative owner and harmless controls",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/prepare.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/controls.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/PRESEAL.json"
+        ],
+        "atUTC": "2026-08-29T15:25:21.741Z",
+        "spawned": true
+      },
+      {
+        "role": "git-preseal-receipt",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "atUTC": "2026-08-29T15:25:22.272Z",
+        "spawned": true
+      },
+      {
+        "role": "syntax-controls",
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--check",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/controls.mjs"
+        ],
+        "atUTC": "2026-08-29T15:25:22.379Z",
+        "spawned": true
+      },
+      {
+        "role": "fixture-ready",
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+          "ready"
+        ],
+        "atUTC": "2026-08-29T15:25:22.543Z",
+        "spawned": true
+      },
+      {
+        "role": "fixture-exit7",
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r1/harmless.mjs",
+          "exit7"
+        ],
+        "atUTC": "2026-08-29T15:25:22.664Z",
+        "spawned": true
+      }
+    ],
+    "knownStarts": 9,
+    "activeKnownPIDs": [],
+    "captureBytes": 1518,
+    "metadataBytes": 4926,
+    "elapsedMs": 1990.636792,
+    "poisoned": false
+  },
+  "status": "AUTHOR_SCOPED_CONTROLS_ONLY_ACTUAL_B1_HOLD",
+  "protocol": "Live owner cannot satisfy unchanged preimport every-start-closed predicate; publisher role formula also needs explicit admission interpretation. No implementation changes to either."
+}

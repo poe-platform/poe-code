@@ -1,0 +1,56 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+
+const root = '/Users/kjopek/Workspace/safe-bash';
+const owned = 'tests/shell/mapfile-observer-independent-20260828';
+const packet = 'tests/shell/mapfile-design-20260828';
+const candidate = 'de9dae6d52fa5066646731b01e5811c6d3108555';
+const evidence = 'a935889beab9a5f633a1e60a660eb575fdb03024';
+const prior = '075fbe24b893e3ceaa3ed9bb138c4576ab7ab032';
+const older = 'd4f3d9f91a8549ebdd3a222fbac04d379c6ce770';
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const git = (...args) => execFileSync('/usr/bin/git', args, { cwd: root, timeout: 10000, maxBuffer: 4 * 1024 * 1024 });
+assert.equal(git('rev-parse', '--show-toplevel').toString().trim(), root);
+const bundle = { schema: 'classified-immutable-git-data-v1', candidate, evidence, prior, older, inputs: [] };
+function bind(commit, filename, retain = true) {
+  const bytes = git('show', `${commit}:${filename}`);
+  const blob = git('rev-parse', `${commit}:${filename}`).toString().trim();
+  assert.equal(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'), blob);
+  const entry = { commit, path: filename, blob, sha256: digest(bytes), bytes: bytes.length };
+  if (retain) entry.base64 = bytes.toString('base64');
+  bundle.inputs.push(entry); return bytes;
+}
+const sealBytes = bind(candidate, `${packet}/observer-v1/MODULE-SEAL.json`);
+assert.equal(digest(sealBytes), 'e0e9257426d969633c75749066ac94fe75bb13083179b0e3352ece17b0001381');
+const seal = JSON.parse(sealBytes);
+for (const [filename, expected] of Object.entries(seal.artifacts)) assert.equal(digest(bind(candidate, `${packet}/${filename}`)), expected);
+bind(evidence, `${packet}/observer-v1/HANDOFF-REPAIR-v3.md`);
+for (const filename of ['README.md', 'PRESEAL.json', 'review.mjs', 'CAPTURE-01.json']) bind(prior, `tests/shell/mapfile-independent-20260828/observer-review-v1/${filename}`, false);
+bind(older, 'tests/shell/indexed-arrays-native-review-20260828/REPORT.md', false);
+const moduleNames = git('ls-tree', '--name-only', `${candidate}:${packet}/observer-v1/modules`).toString().trim().split('\n');
+assert.deepEqual(moduleNames, seal.moduleFiles);
+const metadata = filename => {
+  const canonical = fs.realpathSync(filename), stat = fs.lstatSync(canonical);
+  return { path: filename, canonical, bytes: stat.size, mode: stat.mode & 0o7777, dev: stat.dev, ino: stat.ino, mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs };
+};
+const manifest = {
+  schema: 'post-source-pre-execution-independent-freeze-v1', date: '2026-08-28', candidate, evidence, prior, older,
+  moduleSealSha256: digest(sealBytes), classification: 'all inputs and .mjs.data are opt-in SOURCE/DATA/SYNTHETIC, not canonical tests',
+  node: { ...metadata(process.execPath), version: process.version, platform: process.platform, arch: process.arch, hashStatus: 'binary bytes deliberately not read; inherited handoff hash not independently attested' },
+  git: metadata('/usr/bin/git'), dependencies: 'existing Node builtins only, no install; no external tool/binary contents read',
+  files: {},
+};
+const bundleText = JSON.stringify(bundle) + '\n';
+assert.ok(Buffer.byteLength(bundleText) <= 4194304);
+for (const filename of ['RECIPE.md', 'CASES.json', 'prepare.mjs.data', 'review.mjs.data']) {
+  const bytes = fs.readFileSync(path.join(root, owned, filename));
+  manifest.files[filename] = { bytes: bytes.length, sha256: digest(bytes), mode: fs.lstatSync(path.join(root, owned, filename)).mode & 0o7777 };
+}
+manifest.files['BUNDLE.json'] = { bytes: Buffer.byteLength(bundleText), sha256: digest(bundleText), mode: 0o644 };
+for (const filename of ['BUNDLE.json', 'MANIFEST.json']) assert.equal(fs.existsSync(path.join(root, owned, filename)), false);
+const patch = `*** Begin Patch\n*** Add File: ${owned}/BUNDLE.json\n+${bundleText.trimEnd()}\n*** Add File: ${owned}/MANIFEST.json\n${JSON.stringify(manifest, null, 2).split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`;
+execFileSync('apply_patch', [], { cwd: root, input: patch, timeout: 10000, maxBuffer: 1024 * 1024 });
+console.log(JSON.stringify({ preparedOnly: true, sourceExecutions: 0, bundleBytes: Buffer.byteLength(bundleText), bindings: bundle.inputs.length, modules: moduleNames }));

@@ -1,0 +1,19 @@
+0 verbose cli /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/tools/node /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/tools/npm/bin/npm-cli.js
+1 info using npm@10.9.7
+2 info using node@v22.22.2
+3 silly config load:file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/tools/npm/npmrc
+4 silly config load:file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/.npmrc
+5 silly config load:file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/npmrc
+6 silly config load:file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/global-npmrc
+7 verbose title npm pack
+8 verbose argv "pack" "--offline" "--ignore-scripts" "--json" "--pack-destination" "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/packs"
+9 verbose logfile logs-max:10 dir:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/cache/_logs/2026-08-28T20_40_57_861Z-
+10 verbose logfile /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/cache/_logs/2026-08-28T20_40_57_861Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+13 verbose cwd /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source
+14 verbose os Darwin 25.4.0
+15 verbose node v22.22.2
+16 verbose npm  v10.9.7
+17 verbose exit 0
+18 info ok

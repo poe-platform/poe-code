@@ -1,0 +1,224 @@
+{
+  "schema": "expr-independent-abort-readonly-postcheck-v1",
+  "capturedAt": "2026-08-28T00:52:11.896Z",
+  "freezeCommit": "eaca395fd0f90051676798971750515d04b0c005",
+  "scope": "Post-failure read-only streaming Git integrity inspection, NOT a replacement runner, admission pass, candidate execution or retry",
+  "frozen": [
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/.gitignore",
+      "bytes": 7,
+      "sha256": "07cc0e3f57247b75f5278d110feba3719a32f4b2383e41234cf01325de774d40",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/INPUTS.json",
+      "bytes": 816134,
+      "sha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/LAYOUT-PREPARATION.raw.txt",
+      "bytes": 181,
+      "sha256": "00456322b525f2b9acb3c7aee906a9bcc84f0f370e42d42e5fc0a159966204f3",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/LAYOUTS.json",
+      "bytes": 4644868,
+      "sha256": "bd87688f4e107bbd14d55b4c8761d0c8bc2880bb8a8d94d0575f591f7d6417d9",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/PREPARATION-NOTES.md",
+      "bytes": 651,
+      "sha256": "2d72ddfac0d13a9c4566749f0248b9ab0b99af8d36e81d05aa51114c63b41023",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/PREPARATION.raw.txt",
+      "bytes": 364,
+      "sha256": "f85ea0ffc12324b7fe2c33cbcd9552f97f55f53c7b4d871b677003522507daea",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/RECIPE.md",
+      "bytes": 4920,
+      "sha256": "f4ef309b148778515c876ee9ec15fece5f6aa8144e97de9be8057a1adb10e436",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/cases.json",
+      "bytes": 5911,
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/child.mjs",
+      "bytes": 10510,
+      "sha256": "12076360e83881be5ec755e121728efd7dc7378572d3fae06009b2145d6c2c19",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/common.mjs",
+      "bytes": 3294,
+      "sha256": "2f14179589b14f83ce6485b47111a0716a8fe815bf49ea02b2e2a4f8b76a2b9d",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/consumer-component.mjs",
+      "bytes": 8853,
+      "sha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/guard.mjs",
+      "bytes": 1453,
+      "sha256": "cdb6a9678e0226e82384bcd8e9424fbbe5b453427e7011de645df823962f2448",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/negative.ts.fixture",
+      "bytes": 907,
+      "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/observer.mjs",
+      "bytes": 5078,
+      "sha256": "1fffd7e99be072e87127be1af56461334a6db529d37c8be38b5418762548e37c",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/positive.ts.fixture",
+      "bytes": 2382,
+      "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/prepare-layouts.mjs",
+      "bytes": 3811,
+      "sha256": "5b4f45c30678f2509da261fd7ba044d969bf2a1a727a8dfb5b9c80ab4fcfa6cb",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/prepare.mjs",
+      "bytes": 4320,
+      "sha256": "2ac0aca8477b2ca52e4a97442ea6c8cbc8fbd46c447263617105b788bbb365cd",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/run.mjs",
+      "bytes": 27238,
+      "sha256": "b7b254bb248a9cf8eabfabc0d1c92551f8b1cde5806a3406a4e6411fa76f7227",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs",
+      "bytes": 178,
+      "sha256": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/worker-guard.mjs",
+      "bytes": 22,
+      "sha256": "fbb63fe38bed0564672e83bc960b7538059e332e34481ff44211124460ddb142",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/FREEZE.json",
+      "bytes": 4316,
+      "sha256": "b8a89ba9d399696987f2a68a1e3480fe925f9aac568e8dc51334707e57333f60",
+      "status": "unchanged",
+      "productPass": false
+    }
+  ],
+  "original": [
+    {
+      "path": "tests/integration/expr-public-independent-20260827/cases.json",
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/consumer.mjs",
+      "sha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/positive.ts.fixture",
+      "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/negative.ts.fixture",
+      "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/README.md",
+      "sha256": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/PROTOCOL.md",
+      "sha256": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/self-check.mjs",
+      "sha256": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/provenance.json",
+      "sha256": "bdd6ccf8948658032b3c8c0a10953d767ff43fd223492edddf30d5867a6e156e",
+      "status": "unchanged",
+      "productPass": false
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/FREEZE-CHECKS.json",
+      "sha256": "18d27f15fba9fab03b308510520c3dcd33e061de84ed4c00a4038ed76a524c1c",
+      "status": "unchanged",
+      "productPass": false
+    }
+  ],
+  "admission": {
+    "files": 5,
+    "status": "unchanged",
+    "productPass": false
+  },
+  "toolClosures": {
+    "status": "unchanged",
+    "newEntriesChecked": true,
+    "productPass": false
+  },
+  "noRunDirectory": true,
+  "indexUnchangedDuringPostcheck": true,
+  "productPasses": 0
+}

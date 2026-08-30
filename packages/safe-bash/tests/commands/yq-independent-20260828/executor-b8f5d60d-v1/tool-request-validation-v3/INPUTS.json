@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "finding": {
+    "commit": "2df1dab10c3176a35f4160fa12c460a7abc592fe",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+    "sha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31",
+    "bytes": 6096,
+    "classification": "CODE_TOOL_ROLE_OWN_DATA_VALIDATION_BEFORE_SERIALIZATION",
+    "status": "STATIC_CONTRADICTION_NO_EXECUTION"
+  },
+  "authority": {
+    "path": "AGENTS.md",
+    "relayedCommit": "f5fa0d3fa03532860bad120bf1a71a1b0af3caaa",
+    "relayedSha256": "64fde885fd30edd6751f95603defac1d15defb6a33dedca2049a82f9aace379c",
+    "liveReadFirst": true,
+    "liveSha256": "64fde885fd30edd6751f95603defac1d15defb6a33dedca2049a82f9aace379c",
+    "copyStored": false
+  },
+  "parentComposition": {
+    "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+    "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/",
+    "recipeSha256": "40c9e4c0a407fd1ebebbb17a421a52d2949c3ef6316b4a46499504127b64174d",
+    "status": "FROZEN_NO_GO_UNCHANGED"
+  },
+  "sourcePreimages": [
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+      "sha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876",
+      "bytes": 13187,
+      "startLine": 176,
+      "endLine": 181
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-host.mjs",
+      "sha256": "62fdb743912b058200fcaf745aac894a3878a067082b6aa2e0a0a953544b45e3",
+      "bytes": 3038,
+      "startLine": 25,
+      "endLine": 31
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/tool-bridge.mjs",
+      "sha256": "5837e2f3f36fafdd9c5f935610a9b23601b4353a5302b11cde4983a67308477d",
+      "bytes": 8640,
+      "startLine": 12,
+      "endLine": 25
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/primitives.mjs",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044,
+      "startLine": 14,
+      "endLine": 21
+    }
+  ],
+  "workerAbi": {
+    "commit": "9d582d791336fd66d865f6592b830c39a359d344",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+    "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+    "methodUnchanged": "async runTool(call) -> existing Promise tool result"
+  },
+  "candidateUnchanged": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "full870PackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "rootGO": false,
+  "targetExecutions": 0
+}

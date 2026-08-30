@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "surfaceAssessment": {
+    "commit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+    "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/surface/run.mjs",
+    "mode": "100644",
+    "blob": "a9c613e0004bf18fbc3983dd39a55b2a59784887",
+    "bytes": 23594,
+    "sha256": "ca303265266cf7533e9f912b436eb0b21965f6386c508375ad430a53d51d14a0"
+  },
+  "unchangedAssessmentFunctionSha256": "60ed99a363a14f058f493613a0ad64df23fe3e68a509480f6ad40ac6b74c1f10",
+  "loaderReference": {
+    "commit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+    "path": "tests/integration/safejs-cleanup-regression/surface/loader.mjs",
+    "mode": "100644",
+    "blob": "17540314967142b2639957ed1bcafeba6b63bfd7",
+    "bytes": 2762,
+    "sha256": "3306a11120061037c285dea765728157afd277b4ce8b566e52cf57073a03335b"
+  },
+  "childAndGuestReferences": "tests/integration/owned-output-production-rebase/author-public/profiles/REFERENCES.json at e748f20fe9d0ea1d29aefe70939d3ee76951ef68",
+  "assertionChanges": [],
+  "bindingChanges": [
+    "Surface assessment function copied exactly into a lexical factory supplying the unchanged CASES object",
+    "Surface pins retain unchanged api and privateEngine only; old product golden replaced by exact currentCandidate metadata",
+    "Exact current compiled/public/compiler/driver/engine file map checked before each import; same 63 allowed engine paths",
+    "Absolute outside/live-private/product-source imports are refused before filesystem resolution; same original boundary patterns",
+    "Each current cohort copies the already moved exact package and physically moves its own regular consumer; no historical library overlay",
+    "Private capture uses same eligible-directory profile and exact approved public status expansion; fresh before/after for each cohort including failure",
+    "Whole current committed input tree, package and compiler rechecked before/after each cohort; copied inputs including additions checked around each child"
+  ],
+  "cohorts": {
+    "surface": 8,
+    "lifecycle": 11,
+    "controls": 6
+  },
+  "noRuntimeExecutionYet": true
+}

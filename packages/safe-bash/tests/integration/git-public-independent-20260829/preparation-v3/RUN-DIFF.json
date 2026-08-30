@@ -1,0 +1,5 @@
+{
+  "authorSha256": "8bd1cbd8f1e108b231fc399692b92ada9ea0c6846217a680edb9908cdf4492d4",
+  "derivedSha256": "a108afd8578988f6a89d97d112dfca3903cf0b97fb322b1d30054e5d64978825",
+  "description": "Independent version: raw child capture, exact tar/type bindings, public fixture-v2,12novelties/layout, readonly type additions, finite Worker and Node permission profile; no product changes or execution"
+}

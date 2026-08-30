@@ -1,0 +1,71 @@
+{
+  "schema": "wrq-complete-source-seal-v1",
+  "status": "PRE_DATA_SOURCE_SEAL_NOT_RUNTIME_GO",
+  "date": "2026-08-28",
+  "files": [
+    {
+      "path": "CACHE.json",
+      "bytes": 8702,
+      "sha256": "2e8486f739e0e88b54ffda678c2439374387672825f4e8c6d1ef42482c655319"
+    },
+    {
+      "path": "CAPS.json",
+      "bytes": 11462,
+      "sha256": "5f814c8e712a1f390e86473eed747fe659575831d4aaa82871a5ebe7c4b7278b"
+    },
+    {
+      "path": "CONTRACT.md",
+      "bytes": 11184,
+      "sha256": "ba2b35086cc17aadc7ecbcbd82cd7ce56096861b849b1c1bebe43e0992fcfc5c"
+    },
+    {
+      "path": "DISPOSITIONS.json",
+      "bytes": 2911,
+      "sha256": "6bdd999383a411b309103c98b815182c9640e5587ca0e83117e914d9939a2cca"
+    },
+    {
+      "path": "ERRORS.json",
+      "bytes": 8008,
+      "sha256": "a0ff77f9b363a0d2cdb467904f29508e65129b3ffe0eeedaff41d1990643d93f"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 1785,
+      "sha256": "dcbf27191aa2b1754eafa718010667d743cd11781343fdd49f85b186db597d41"
+    },
+    {
+      "path": "OBLIGATIONS.json",
+      "bytes": 14322,
+      "sha256": "1af248e189b1aaa57ac751593580064a53485c82eada58740c19d232ad56c7db"
+    },
+    {
+      "path": "RPC.json",
+      "bytes": 21076,
+      "sha256": "30eac265ee046518347ff5bba6c6404aaa629521989c1c1c6e1728b2e997c098"
+    },
+    {
+      "path": "SOURCES.json",
+      "bytes": 773,
+      "sha256": "9aad90949af4669fba981dc7415ba79f0d368779bd09ca656537309990191148"
+    }
+  ],
+  "externalBindings": [
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/INPUTS.json",
+      "bytes": 16914,
+      "sha256": "bbc066972a1248e7036d72a4221613278685c087846eb9c54ee43fba9a39af46"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/SOURCES.json",
+      "bytes": 18567,
+      "sha256": "a00bf38fff98b78de3ba88bda5630748f2d35dc630bd8938a02f6de71775d6d5"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/PROFILE.json",
+      "bytes": 2672,
+      "sha256": "f0d0951cf31aa738747d737e9a3f34460cac41839de56c3cac6e8d86a13e321f"
+    }
+  ],
+  "inventoryRule": "Exact recursive regular-file inventory; SEAL.json excluded only from own body hash; no other new entries allowed. Complete seal body hash reported externally.",
+  "runtimeAuthorized": false
+}

@@ -1,0 +1,831 @@
+{
+  "started": "2026-08-27T19:33:38.602Z",
+  "workerSha256": "663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890",
+  "driverSha256": "a3abc13926a9e240b5960e543544de969ebc4c7c88fa69e604d0e1ebfa2be2e8",
+  "controls": [
+    {
+      "id": "corrected/maxPatternBytes",
+      "passed": true,
+      "detail": {
+        "synchronous": true,
+        "identity": "ExprMatchError",
+        "category": "limit",
+        "message": "regex input bytes limit exceeded"
+      }
+    },
+    {
+      "id": "corrected/maxSubjectBytes",
+      "passed": true,
+      "detail": {
+        "synchronous": true,
+        "identity": "ExprMatchError",
+        "category": "limit",
+        "message": "regex input bytes limit exceeded"
+      }
+    },
+    {
+      "id": "corrected/pre-abort-identity",
+      "passed": false,
+      "error": {
+        "code": "ENOENT"
+      }
+    },
+    {
+      "id": "boundary/maxSteps",
+      "passed": true,
+      "detail": {
+        "minimum": 1833
+      }
+    },
+    {
+      "id": "boundary/maxStates",
+      "passed": true,
+      "detail": {
+        "minimum": 24,
+        "searchedInterval": [
+          1,
+          65536
+        ]
+      }
+    },
+    {
+      "id": "boundary/maxAllocatedUnits",
+      "passed": true,
+      "detail": {
+        "minimum": 1670,
+        "searchedInterval": [
+          1,
+          4000000
+        ]
+      }
+    },
+    {
+      "id": "bounded/nested-growth",
+      "passed": true,
+      "detail": [
+        {
+          "length": 4,
+          "result": {
+            "offsetUnit": "byte",
+            "matched": true,
+            "hasCapture": true,
+            "overall": {
+              "start": 0,
+              "end": 4
+            },
+            "capture": {
+              "start": 0,
+              "end": 3
+            },
+            "steps": 17096
+          },
+          "interpretation": "valid bounded observation only"
+        },
+        {
+          "length": 8,
+          "category": "limit",
+          "message": "regex work limit exceeded",
+          "interpretation": "bounded refusal, not a semantic pass"
+        },
+        {
+          "length": 12,
+          "category": "limit",
+          "message": "regex work limit exceeded",
+          "interpretation": "bounded refusal, not a semantic pass"
+        }
+      ]
+    }
+  ],
+  "resourceProbes": [
+    {
+      "key": "maxSteps",
+      "value": 1833,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxSteps",
+      "value": 1832,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex work limit exceeded"
+    },
+    {
+      "key": "maxStates",
+      "value": 65536,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 32768,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 16384,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 8192,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 4096,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 2048,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 1024,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 512,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 256,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 128,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 64,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 32,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 16,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex states limit exceeded"
+    },
+    {
+      "key": "maxStates",
+      "value": 24,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 20,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex states limit exceeded"
+    },
+    {
+      "key": "maxStates",
+      "value": 22,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex states limit exceeded"
+    },
+    {
+      "key": "maxStates",
+      "value": 23,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex states limit exceeded"
+    },
+    {
+      "key": "maxStates",
+      "value": 24,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxStates",
+      "value": 23,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex states limit exceeded"
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 4000000,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 2000000,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1000000,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 500000,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 250000,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 125000,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 62500,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 31250,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 15625,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 7813,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 3907,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1954,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 977,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex allocation limit exceeded"
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1466,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex allocation limit exceeded"
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1710,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1588,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex allocation limit exceeded"
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1649,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex allocation limit exceeded"
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1680,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1665,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex allocation limit exceeded"
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1673,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1669,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex allocation limit exceeded"
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1671,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1670,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1670,
+      "accepted": true,
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      }
+    },
+    {
+      "key": "maxAllocatedUnits",
+      "value": 1669,
+      "accepted": false,
+      "category": "limit",
+      "message": "regex allocation limit exceeded"
+    }
+  ],
+  "cleanup": {
+    "workers": 15,
+    "activeBeforeSafetyCleanup": 0,
+    "activeAfter": 0
+  },
+  "integrity": "All originally enumerated compiled bytes rechecked; no append-proof claim from this follow-up alone.",
+  "finished": "2026-08-27T19:33:39.121Z",
+  "counts": {
+    "controls": 7,
+    "passed": 6,
+    "resourceProbes": 46
+  }
+}

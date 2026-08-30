@@ -1,0 +1,76 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/activation-v1/bind.mjs
+{
+  "schema": "typed6-activation-binding-v1",
+  "status": "READY_FOR_DIFFERENT_SLOT_REVIEW_NOT_ACTUAL_GO",
+  "source": "e10e371dc9c70583681add9c1747c85a710b1f59",
+  "reviewCommit": "987886897c2d013fcb31e1f2db0d073439d558db",
+  "originalReviewSha256": "0460fca591217940e54b8a15e1c4eb19d50288b070f2714ea5ae2cde715c413c",
+  "executableSha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e",
+  "readySha256": "798c191fdad35bdf6c1592afda1954764da2209ad18984d966e5488c5e80bdd0",
+  "window": {
+    "issued": "2026-08-29T14:18:40.912Z",
+    "latestFull600sStart": "2026-08-29T14:53:40.912Z",
+    "expires": "2026-08-29T15:03:40.912Z"
+  },
+  "runtimeReview": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/REVIEW-ACCEPTANCE.json",
+    "mode": 384,
+    "bytes": 460,
+    "sha256": "f5fe14c176e1c276a370cd0a2aec61c16669c4eaecd6f679cecf54c16497fc0f"
+  },
+  "preprovision": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PREPROVISION.json",
+    "mode": 384,
+    "bytes": 719,
+    "sha256": "6531c303526c676f0a6a696c7d78349e95d767e45f569227a685f028bd5a8f4f"
+  },
+  "journal": {
+    "path": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/JOURNAL.jsonl",
+    "mode": 384,
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "rootProposal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/GO.json",
+    "mode": 384,
+    "bytes": 1865,
+    "sha256": "9d971fe4c4546fa9a90d1184af9d05c573fb6e343f6dcea6546cfef762383772"
+  },
+  "resolvedApproval": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/activation-v1/APPROVAL-REQUEST.json",
+    "mode": 384,
+    "bytes": 1350,
+    "sha256": "ad70f95598e5d13de49184034b350be21e15a6af8c035a3212e35cf9ffcd8591"
+  },
+  "command": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/activation-v1/command.txt.data",
+    "mode": 384,
+    "bytes": 847,
+    "sha256": "fdc96c5fb856284fa79287a1ff30869fa82c2d90e96f0ce34426acfac430a464"
+  },
+  "preflight": "DATA_PASS",
+  "sourceMembers": 19,
+  "nativePrograms": [
+    "P19",
+    "P20",
+    "P21",
+    "P22",
+    "P23",
+    "P24"
+  ],
+  "observations": 0,
+  "capturesAbsent": true,
+  "actualFDChecks": "DEFERRED_TO_APPROVED_WRAPPER_AND_ENTRY",
+  "mode": "0600 binding records; 0700 new parent directories",
+  "initialToolShell": {
+    "scope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+    "initialToolShell": "TRUSTED HOST/tool behavior before authenticated owned entry; outside child fresh-environment and owned raw-capture qualification. login:false does not suppress all startup. No user startup inspection or modification.",
+    "bashChildren": "Fresh exact six-key environment, owned HOME/TMPDIR and empty PATH, absent BASH_ENV/ENV/functions; --noprofile --norc. No expanded permission.",
+    "wrapperEvidence": "v2 independently qualified FD derivative does not qualify initial tool-shell startup."
+  },
+  "actualAuthority": "STILL_REQUIRES_DIFFERENT_SLOT_REVIEW_ROOT_ACTUAL_GO_AND_EXACT_ESCALATED_APPROVAL",
+  "sourceUnchanged": true,
+  "retainedQualification": "independent NUL result is transcript-only; no native result or semantic policy",
+  "preparationDeadline": "2026-08-29T14:23:59.042Z"
+}

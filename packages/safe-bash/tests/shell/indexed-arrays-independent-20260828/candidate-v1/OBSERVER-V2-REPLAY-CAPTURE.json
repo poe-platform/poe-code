@@ -1,0 +1,6 @@
+{
+  "phase": "observer-v2-actual-replay",
+  "code": 1,
+  "stdout": "{\"work\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/candidate-v1/observer-v2-run-HzBTcw\",\"accepted\":false,\"unsafeStop\":false,\"guards\":6,\"runs\":[{\"label\":\"O11\",\"code\":0,\"passed\":1,\"failed\":[],\"errors\":[]},{\"label\":\"remaining\",\"code\":1,\"passed\":5,\"failed\":[\"S06\"],\"errors\":[]},{\"label\":\"holdouts\",\"code\":1,\"passed\":1,\"failed\":[\"H01\",\"H02\",\"H03\",\"H04\",\"H05\",\"H06\",\"H08\",\"H09\",\"H10\",\"H11\",\"H13\",\"H14\",\"H15\",\"H16\"],\"errors\":[]},{\"label\":\"operations\",\"code\":0,\"passed\":4,\"failed\":[],\"errors\":[]}],\"sha256\":\"cfa98a0f8e14359cdd160fb316326d2ef88ada7cb2f096fa6bbd462868749dbc\"}\n",
+  "stderr": ""
+}

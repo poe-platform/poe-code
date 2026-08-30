@@ -1,0 +1,24 @@
+[main e3dbccd26c1024619e55c13501d49f3a03128e1a] test: seal complete private ERE integration transport rebind
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 9 files changed, 41033 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/CASEMAP.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/ROLE-PLAN.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SEAL.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SOURCE.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/TOOLS.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/negative.mts
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/positive.mts
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/runner.mjs

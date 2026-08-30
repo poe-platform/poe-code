@@ -1,0 +1,62 @@
+WebDAV authority leaf → wrapper lead / root / Curie, August 27, 2026.
+
+Read approved5076b32 filesystem.md comparison96 and the private helper handoff.
+Implementing WebDavFileSystem.compareEntry by compareEntries(this,...), with
+registerEntryAuthority(this, sharedWebDavCallback) in construction. The shared
+terminal callback never calls compareEntry/compareEntries. A module-private
+provider metadata map identifies each WebDAV instance's own rooted resource-id
+query; it is NOT a second wrapper resolver/public authority registry.
+
+Each query is metadata-only Depth:0 PROPFIND explicitly requesting DAV:resource-id,
+using the existing bounded XML/request/href implementation. Require exactly the
+requested response, correctly namespaced property, successful propstat, one URI
+href, no duplicate/conflicting response/property. Missing property means unknown;
+real resource404/auth/IO/cancel propagates. No GET or mutation/lock-null operation.
+Qualified WebDAV views compare full RFC5842 resource IDs, not URLs, ETags or clients.
+Endpoints can differ and aliases can share the same returned ID. User explicitly
+authorized enhancing the OWNED original MockDav provider, while preserving its
+historical source/raw hashes and independent compatibility assertions unchanged.
+
+Generic native/memory/S3 peers remain unknown to the WebDAV protocol authority.
+RFC5842 resource IDs cannot prove that a native inode or other service is disjoint.
+Mixed-positive fixtures will use an actual provider-owned peer authority through
+the approved compareEntry seam, recognizing only the exact resources/views it
+owns. No global native-vs-remote rule or arbitrary client enrollment.
+
+If hosts need WebDAV-side generic mixed-peer resolution, proposed hook for root
+review (NOT currently implemented/approved): provider-owned callback receiving
+validated own resource-id and the resolved peer filesystem/path plus FsOptions;
+it must recognize the actual peer backing authority, metadata-only, return only
+same/distinct/unknown, propagate real errors, and never recurse into negotiation.
+Without that proof the current result stays unknown. No extra public registry.
+
+Implementation will import only the agreed ../mount/comparison.js functions;
+wrapper source remains entirely yours. Independent original43/53 integration is
+deferred until wrapper/S3 commits. I will publish exact own commit and results.
+
+CONCRETE ORIGINAL-PROVIDER INTEGRATION (updated after user clarification):
+src/fs/webdav/resource-id.ts (internal only, no index/root exports) will expose:
+  interface OwnedWebDavEntry { readonly storage: object; readonly resource: object; }
+  getOwnedWebDavEntry(view: EntryView): OwnedWebDavEntry | undefined;
+
+Descriptor comes from a module-private WeakMap of actual successful MockDav
+Response objects, copied onto the validated followed FileStat object. The mock
+registers its ACTUAL owned files Map and actual persistent resource record, not
+a fresh client identity, URL or function-name guess. Descriptor is bound to the
+adapter/path/stat observation and invalidated by overriding adapter data methods.
+Opaque injected fetch forwarders in the ORIGINAL fixture return the same Response,
+so provenance survives them. HTTP/Response cloning removes this private metadata;
+real HTTP still has the independently negotiated RFC5842 resource-id path.
+
+Wrapper lead: like getOwnedS3Entry, import getOwnedWebDavEntry in your Memory-owned
+terminal callback. Return distinct only for YOUR recognized closed Memory store
+and a recognized closed MockDav Map/resource descriptor. Do not classify arbitrary
+WebDAV/RFC IDs/native inodes as disjoint. Unknown external Memory/Real-delegating
+fetch transports have no descriptor and remain unknown. This is the actual
+provider-private storage-recognition seam needed for original mixed positives;
+no additional shared-helper registry or public transport hook is requested.
+
+MockDav will explicitly advertise resource-id properties and maintain resource
+records across PUT/bindings/MOVE, allocate a new record on creation/COPY, and retire
+on deletion. Old mock bytes/hash and old/new focused outputs are preserved as an
+intentional provider capability delta. No independent43/original38 oracle edits.

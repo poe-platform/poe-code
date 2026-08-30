@@ -1,0 +1,259 @@
+{
+  "schema": "array-harness-v4-synthetic-preparation",
+  "sealHash": "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "results": [
+    {
+      "id": "WHOLE-CONTROLLER",
+      "pass": true,
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller-controls.mjs",
+          "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+          "LIFECYCLE-01"
+        ],
+        "started": "2026-08-28T16:18:12.300Z",
+        "finished": "2026-08-28T16:18:13.853Z",
+        "startedElapsedMs": 215.505417,
+        "finishedElapsedMs": 1767.050292,
+        "pid": 12461,
+        "spawnAttempted": true,
+        "spawnReturned": true,
+        "spawnEvent": true,
+        "spawnThrew": false,
+        "code": 0,
+        "signal": null,
+        "closeObserved": true,
+        "groupAbsent": true,
+        "spawnError": null,
+        "fault": null,
+        "bytes": 202,
+        "stdout": "{\"observations\":43,\"passed\":43,\"allRetired\":true,\"ownedScratchRetired\":true,\"actualProductExecutions\":0,\"captureSha256\":\"563445ea9de328124d8244678ca5f09747816c44596c4e7d69937e103997983c\",\"failures\":[]}\n",
+        "stderr": ""
+      },
+      "captureSha256": "563445ea9de328124d8244678ca5f09747816c44596c4e7d69937e103997983c",
+      "actualPids": [
+        12462,
+        12463,
+        12464,
+        12465,
+        12466,
+        12468,
+        12469,
+        12470,
+        12472,
+        12479,
+        12480,
+        12481,
+        12482,
+        12483,
+        12486,
+        12487,
+        12488,
+        12490,
+        12492,
+        12493
+      ],
+      "nestedLaunchAttempts": 22
+    },
+    {
+      "id": "POSITIVE-BEFORE",
+      "pass": true,
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/mutant-controls.mjs",
+          "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+          "controller.mjs",
+          "[\"owner\",\"final\"]",
+          "LIFECYCLE-01-BEFORE"
+        ],
+        "started": "2026-08-28T16:18:13.998Z",
+        "finished": "2026-08-28T16:18:14.290Z",
+        "startedElapsedMs": 1912.203208,
+        "finishedElapsedMs": 2204.122042,
+        "pid": 12494,
+        "spawnAttempted": true,
+        "spawnReturned": true,
+        "spawnEvent": true,
+        "spawnThrew": false,
+        "code": 0,
+        "signal": null,
+        "closeObserved": true,
+        "groupAbsent": true,
+        "spawnError": null,
+        "fault": null,
+        "bytes": 1022,
+        "stdout": "{\"kind\":\"actual-loaded-harness-control-not-product-proof\",\"moduleName\":\"controller.mjs\",\"loads\":[{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs\",\"sha256\":\"a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3\"},{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs\",\"sha256\":\"fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31\"}],\"observations\":[{\"id\":\"owner\",\"pass\":true},{\"id\":\"final\",\"pass\":true}],\"owners\":[{\"pid\":12495,\"spawnReturned\":true,\"closeObserved\":true,\"code\":0,\"signal\":null,\"groupAbsent\":true}],\"finalCensus\":{\"final/\":{\"directory\":true,\"mode\":493},\"final/records/\":{\"directory\":true,\"mode\":493},\"final/records/FINAL.json\":{\"mode\":420,\"bytes\":456,\"sha256\":\"dad6f706a63efcc4f8d7cdcfdb662f27cef73e3a07a7372e9913631005ab27e9\"},\"owner/\":{\"directory\":true,\"mode\":493}},\"unsafe\":false,\"ownedScratchRetired\":true}\n",
+        "stderr": ""
+      },
+      "nestedLaunchAttempts": 1,
+      "loadedModule": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs",
+        "sha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3"
+      }
+    },
+    {
+      "id": "LATE-OWNER",
+      "pass": true,
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/mutant-controls.mjs",
+          "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+          "controller-late-owner.mjs",
+          "[\"owner\"]",
+          "LIFECYCLE-01-OWNER"
+        ],
+        "started": "2026-08-28T16:18:14.440Z",
+        "finished": "2026-08-28T16:18:14.728Z",
+        "startedElapsedMs": 2353.98275,
+        "finishedElapsedMs": 2641.742625,
+        "pid": 12496,
+        "spawnAttempted": true,
+        "spawnReturned": true,
+        "spawnEvent": true,
+        "spawnThrew": false,
+        "code": 1,
+        "signal": null,
+        "closeObserved": true,
+        "groupAbsent": true,
+        "spawnError": null,
+        "fault": null,
+        "bytes": 1142,
+        "stdout": "{\"kind\":\"actual-loaded-harness-control-not-product-proof\",\"moduleName\":\"controller-late-owner.mjs\",\"loads\":[{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller-late-owner.mjs\",\"sha256\":\"9cedffab87106095c9ac8233beeda41a903c053d8c459dd5e4c43d5d8c350619\"},{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs\",\"sha256\":\"fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31\"}],\"observations\":[{\"id\":\"owner\",\"pass\":false,\"error\":\"AssertionError [ERR_ASSERTION]: receipt failure must not erase newest child\\n\\n0 !== 1\\n\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/mutant-controls.mjs:40:16\\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\"}],\"owners\":[{\"pid\":12497,\"spawnReturned\":true,\"closeObserved\":true,\"code\":0,\"signal\":null,\"groupAbsent\":true}],\"finalCensus\":{\"owner/\":{\"directory\":true,\"mode\":493}},\"unsafe\":false,\"ownedScratchRetired\":true}\n",
+        "stderr": ""
+      },
+      "nestedLaunchAttempts": 1,
+      "loadedModule": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller-late-owner.mjs",
+        "sha256": "9cedffab87106095c9ac8233beeda41a903c053d8c459dd5e4c43d5d8c350619"
+      }
+    },
+    {
+      "id": "EARLY-FINISH",
+      "pass": true,
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/mutant-controls.mjs",
+          "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+          "controller-early-finish.mjs",
+          "[\"final\"]",
+          "LIFECYCLE-01-FINAL"
+        ],
+        "started": "2026-08-28T16:18:14.880Z",
+        "finished": "2026-08-28T16:18:15.110Z",
+        "startedElapsedMs": 2794.471208,
+        "finishedElapsedMs": 3024.078958,
+        "pid": 12498,
+        "spawnAttempted": true,
+        "spawnReturned": true,
+        "spawnEvent": true,
+        "spawnThrew": false,
+        "code": 1,
+        "signal": null,
+        "closeObserved": true,
+        "groupAbsent": true,
+        "spawnError": null,
+        "fault": null,
+        "bytes": 1115,
+        "stdout": "{\"kind\":\"actual-loaded-harness-control-not-product-proof\",\"moduleName\":\"controller-early-finish.mjs\",\"loads\":[{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller-early-finish.mjs\",\"sha256\":\"7076ccf5bc4f66b5a817946d6ff9b82559855352230e11edad66b2bdc300f972\"},{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs\",\"sha256\":\"fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31\"}],\"observations\":[{\"id\":\"final\",\"pass\":false,\"error\":\"AssertionError [ERR_ASSERTION]: Missing expected rejection.\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/mutant-controls.mjs:44:9\"}],\"owners\":[],\"finalCensus\":{\"final/\":{\"directory\":true,\"mode\":493},\"final/records/\":{\"directory\":true,\"mode\":493},\"final/records/FINAL.json\":{\"mode\":420,\"bytes\":53,\"sha256\":\"51b92d9e26d6a7356ddbebb99f0907fca1b08ba16fdcfe85dce2a79ef88727d5\"}},\"unsafe\":false,\"ownedScratchRetired\":true}\n",
+        "stderr": ""
+      },
+      "nestedLaunchAttempts": 0,
+      "loadedModule": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller-early-finish.mjs",
+        "sha256": "7076ccf5bc4f66b5a817946d6ff9b82559855352230e11edad66b2bdc300f972"
+      }
+    },
+    {
+      "id": "POSITIVE-AFTER",
+      "pass": true,
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/mutant-controls.mjs",
+          "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+          "controller.mjs",
+          "[\"owner\",\"final\"]",
+          "LIFECYCLE-01-AFTER"
+        ],
+        "started": "2026-08-28T16:18:15.258Z",
+        "finished": "2026-08-28T16:18:15.563Z",
+        "startedElapsedMs": 3171.822458,
+        "finishedElapsedMs": 3476.870167,
+        "pid": 12502,
+        "spawnAttempted": true,
+        "spawnReturned": true,
+        "spawnEvent": true,
+        "spawnThrew": false,
+        "code": 0,
+        "signal": null,
+        "closeObserved": true,
+        "groupAbsent": true,
+        "spawnError": null,
+        "fault": null,
+        "bytes": 1022,
+        "stdout": "{\"kind\":\"actual-loaded-harness-control-not-product-proof\",\"moduleName\":\"controller.mjs\",\"loads\":[{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs\",\"sha256\":\"a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3\"},{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs\",\"sha256\":\"fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31\"}],\"observations\":[{\"id\":\"owner\",\"pass\":true},{\"id\":\"final\",\"pass\":true}],\"owners\":[{\"pid\":12504,\"spawnReturned\":true,\"closeObserved\":true,\"code\":0,\"signal\":null,\"groupAbsent\":true}],\"finalCensus\":{\"final/\":{\"directory\":true,\"mode\":493},\"final/records/\":{\"directory\":true,\"mode\":493},\"final/records/FINAL.json\":{\"mode\":420,\"bytes\":456,\"sha256\":\"dad6f706a63efcc4f8d7cdcfdb662f27cef73e3a07a7372e9913631005ab27e9\"},\"owner/\":{\"directory\":true,\"mode\":493}},\"unsafe\":false,\"ownedScratchRetired\":true}\n",
+        "stderr": ""
+      },
+      "nestedLaunchAttempts": 1,
+      "loadedModule": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs",
+        "sha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3"
+      }
+    },
+    {
+      "id": "NO-GRANT",
+      "pass": true,
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/dispatch.mjs"
+        ],
+        "started": "2026-08-28T16:18:15.723Z",
+        "finished": "2026-08-28T16:18:15.800Z",
+        "startedElapsedMs": 3637.067333,
+        "finishedElapsedMs": 3714.250458,
+        "pid": 12506,
+        "spawnAttempted": true,
+        "spawnReturned": true,
+        "spawnEvent": true,
+        "spawnThrew": false,
+        "code": 78,
+        "signal": null,
+        "closeObserved": true,
+        "groupAbsent": true,
+        "spawnError": null,
+        "fault": null,
+        "bytes": 472,
+        "stdout": "",
+        "stderr": "AssertionError [ERR_ASSERTION]: explicit sealed recipe and new ROOT actual GO required\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/dispatch.mjs:22:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n"
+      }
+    }
+  ],
+  "allPrimaryRetired": true,
+  "actualPrimaryPids": [
+    12461,
+    12494,
+    12496,
+    12498,
+    12502,
+    12506
+  ],
+  "primary": 6,
+  "nestedLaunchAttempts": 25,
+  "capturedBytes": 4975,
+  "observedScratchBytes": 12134,
+  "elapsedBeforePublicationMs": 3872.524042,
+  "actualCandidateExecutions": 0,
+  "actualNativeCalls": 0,
+  "coordinatorNotIncludedInChildren": true,
+  "requiresZeroCoordinatorExit": true
+}

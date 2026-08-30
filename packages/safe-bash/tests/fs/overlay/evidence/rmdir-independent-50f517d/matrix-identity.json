@@ -1,0 +1,16 @@
+[
+  {
+    "path": "tests/integration/adapter-tools/matrix.test.ts",
+    "pinBlob": "6c7991d140658eb67ef248dc3a8e4ec1980efbed",
+    "priorFrozenBlob": "6c7991d140658eb67ef248dc3a8e4ec1980efbed",
+    "unchangedSincePriorFrozen": true,
+    "sha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d"
+  },
+  {
+    "path": "tests/integration/adapter-tools/fixtures.ts",
+    "pinBlob": "2ca18f3bb7fc336f54ccbfb27c228f420564afc2",
+    "priorFrozenBlob": "2ca18f3bb7fc336f54ccbfb27c228f420564afc2",
+    "unchangedSincePriorFrozen": true,
+    "sha256": "59ac2d1835ff329d0bbd08e3ae28bc8c656145e5bb568e6dbca0e851367cb3ab"
+  }
+]

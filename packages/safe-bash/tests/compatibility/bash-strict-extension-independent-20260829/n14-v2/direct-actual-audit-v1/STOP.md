@@ -1,0 +1,9 @@
+# Preserved publication startup-capture STOP
+
+The final metadata-only publication command failed with `SyntaxError: Unexpected token 'catch'`, tool chunk `aa50ab`, exit1. Parsing failed before its own `fs.openSync(.../capture/publication.raw, 'wx')`. The outer tool transcript contains the exception, but the intended independent file-based raw capture did not open. No replacement raw bytes, retrospective census or successful manifest are fabricated. No retry was authorized or executed; only this preservation and atomic publication follow.
+
+The failed command was intended to inventory **this review's own outputs only**, not the retained actual roots. It did not execute product/native/compiler/Worker code or modify the invalid historical CLOSED receipt. Its proposed `REVIEW-MANIFEST.json` was not published; no proposed counter in its source is treated as measured final data. The failure is a reviewer bootstrap/capture defect, not a new virtual37 mechanism or product defect.
+
+Known-role reconstruction before the failure: 36 tool/edit/Git roles; this failed metadata command is role37. Preservation/publication administration is additional, within the48-role grant. This is a known-role reconstruction from tool calls, not a full transitive census. All prior direct tools finished; no active owned process/session is known. The final handoff distinguishes actual evidence, failed independent assertions, and this capture STOP.
+
+Preserved useful results: exact gated raw envelope678frames /35,655,081bytes; independently recomputed111 comparisons=57equal54different;18exact differing programs/bytes/effects;115 recorded managed-child lifecycle rows;34shipping file pins; eight pure controls pass. The second helper exit1/222 wrong-wrapper assertions and metadata ENOENT remain. No product rerun, corrected test rerun, group probe, original sample repair, or retrospective campaign acceptance.

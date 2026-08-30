@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py", line 67, in execute
+    action(self)
+    ~~~~~~^^^^^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py", line 133, in action
+    return missing_reference_for_control
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'missing_reference_for_control' is not defined

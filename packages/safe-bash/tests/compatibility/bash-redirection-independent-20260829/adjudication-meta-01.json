@@ -1,0 +1,15 @@
+{
+  "args": [
+    "show",
+    "--format=fuller",
+    "--stat",
+    "--no-renames",
+    "2764c0541ebe1a517965bdc73f33b1651cb15935",
+    "9dca6b405f7059bd54848422d27a80afdf80e504"
+  ],
+  "closed": true,
+  "capture": 1944,
+  "pid": 2409,
+  "code": 0,
+  "signal": null
+}

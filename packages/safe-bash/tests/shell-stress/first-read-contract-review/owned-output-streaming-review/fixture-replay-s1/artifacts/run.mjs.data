@@ -1,0 +1,53 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { writeFileSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const temp = dirname(fileURLToPath(import.meta.url));
+const mode = process.argv[2];
+const loader = '/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs';
+const operations = {
+  qualify: { args: ['--unhandled-rejections=strict', '--import', loader, join(temp, 'qualify.mjs')], timeout: 10000 },
+  acceptance: { args: ['--unhandled-rejections=strict', join(temp, 'driver-r1.mjs'), '--execute', join(temp, 'execution-inputs.json')], timeout: 75000 },
+  history: { args: ['--unhandled-rejections=strict', join(temp, 'driver-r1.mjs'), '--historical-five', join(temp, 'execution-inputs.json')], timeout: 20000 },
+};
+assert.ok(operations[mode], 'known finite operation');
+assert.equal(existsSync(join(temp, mode + '.process.json')), false, 'never overwrite an earlier execution');
+const environment = { ...process.env, TSX_DISABLE_CACHE: '1', TMPDIR: join(temp, 'tmp'), TMP: join(temp, 'tmp'), TEMP: join(temp, 'tmp'), TSX_CACHE_DIR: join(temp, 'tmp', 'tsx') };
+const operation = operations[mode];
+const startedAt = new Date().toISOString();
+const child = spawn(process.execPath, operation.args, { cwd: temp, env: environment, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+let stdout = '';
+let stderr = '';
+let captured = 0;
+let timedOut = false;
+let oversized = false;
+let spawnError;
+const kill = () => {
+  if (!child.pid) return;
+  try { process.kill(-child.pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+};
+const interrupted = () => kill();
+process.on('SIGTERM', interrupted);
+process.on('SIGINT', interrupted);
+const timer = setTimeout(() => { timedOut = true; kill(); }, operation.timeout);
+const capture = (chunk, diagnostic) => {
+  captured += chunk.length;
+  if (captured > 1048576) { oversized = true; kill(); return; }
+  if (diagnostic) stderr += chunk.toString(); else stdout += chunk.toString();
+};
+child.stdout.on('data', chunk => capture(chunk, false));
+child.stderr.on('data', chunk => capture(chunk, true));
+child.once('error', error => { spawnError = String(error); });
+const termination = await new Promise(resolveClose => child.once('close', (exitCode, signal) => resolveClose({ exitCode, signal })));
+clearTimeout(timer);
+process.removeListener('SIGTERM', interrupted);
+process.removeListener('SIGINT', interrupted);
+let groupPresent = false;
+try { process.kill(-child.pid, 0); groupPresent = true; kill(); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+const result = { mode, startedAt, finishedAt: new Date().toISOString(), pid: child.pid, args: operation.args, timeout: operation.timeout, ...termination, timedOut, oversized, spawnError, reapedDirectChild: true, groupPresentAfterClose: groupPresent, environment: Object.fromEntries(['TMPDIR', 'TMP', 'TEMP', 'TSX_DISABLE_CACHE', 'TSX_CACHE_DIR'].map(name => [name, environment[name]])) };
+writeFileSync(join(temp, mode + '.stdout.data'), stdout);
+writeFileSync(join(temp, mode + '.stderr.data'), stderr);
+writeFileSync(join(temp, mode + '.process.json'), JSON.stringify(result, null, 2) + '\n');
+console.log(JSON.stringify(result));
+process.exitCode = timedOut || oversized || groupPresent || spawnError ? 1 : termination.exitCode ?? 1;

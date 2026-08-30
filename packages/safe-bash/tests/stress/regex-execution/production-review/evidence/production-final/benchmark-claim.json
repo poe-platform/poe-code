@@ -1,0 +1,13 @@
+{
+  "snapshotName": "production-final",
+  "job": "benchmark",
+  "label": "benchmark",
+  "time": "2026-08-27T06:25:55.950Z",
+  "risky": false,
+  "watchdogAfterReadyMs": 15000,
+  "outputCap": 65536,
+  "oldSpaceMb": 128,
+  "historical": "12 archived, prior revision 0/6; not rerun",
+  "reservation": "benign; no risk reservation consumed",
+  "harnessSha256": "dea8e28027e968916729d2cd6d2c6364c2968ccc091c164ab2599e6a921db740"
+}

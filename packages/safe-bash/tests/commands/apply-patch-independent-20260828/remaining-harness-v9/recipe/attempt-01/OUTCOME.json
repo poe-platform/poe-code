@@ -1,0 +1,457 @@
+{
+  "schema": "remaining-harness-v9-source-data-outcome",
+  "sourceCommit": "32d17fd8bf160f5807cef32747d0228b40c4d4f7",
+  "presealSha256": "baa109dabb17310edf71b76e94df612cd12f870dee8a678d9be8029b15a8bdd4",
+  "mainPresealSha256": "835cb9ace7885cc4014328988a072cbcc50b6affc2551a661aeada6e016bd3f0",
+  "startedAt": "2026-08-28T21:57:43.435Z",
+  "elapsedMs": 814.519709,
+  "ownerPid": 58392,
+  "ownerPpid": 79787,
+  "stopped": null,
+  "discoveryQualified": true,
+  "startupRefusalQualified": true,
+  "results": [
+    {
+      "kind": "control",
+      "id": "R01",
+      "detail": {
+        "physicalRename": true,
+        "oldEEXIST": 5,
+        "distinctMovedWx": 5,
+        "variants": [
+          "positive",
+          "bad-value",
+          "bad-value-repair",
+          "root-negative",
+          "root-repair"
+        ],
+        "intendedBodiesUnchanged": true
+      }
+    },
+    {
+      "kind": "control",
+      "id": "R02",
+      "detail": {
+        "exactExisting": 5,
+        "noWrites": true
+      }
+    },
+    {
+      "kind": "control",
+      "id": "R03",
+      "detail": {
+        "rejected": [
+          "bytes",
+          "mode",
+          "symlink",
+          "hardlink"
+        ],
+        "noWrites": true
+      }
+    },
+    {
+      "kind": "control",
+      "id": "B01",
+      "detail": {
+        "accepted": 64,
+        "refused": 65,
+        "ownedCopy": true,
+        "scope": "helper admission only"
+      }
+    },
+    {
+      "kind": "control",
+      "id": "G01",
+      "detail": {
+        "exactNulBytes": 152,
+        "sha256": "53efaa170347fa9310fb09d738a67949b3d591e8e974bd1b6a981326c088f01b",
+        "isolatedOnly": true
+      }
+    },
+    {
+      "kind": "control",
+      "id": "P01",
+      "detail": {
+        "denial": {
+          "kind": "nested-refused",
+          "pid": 58415,
+          "ppid": 58392,
+          "code": "ERR_ACCESS_DENIED",
+          "permission": "ChildProcess"
+        },
+        "occupiedLeaseRefused": true,
+        "closeObserved": true,
+        "absent": true
+      }
+    }
+  ],
+  "dataResults": [
+    {
+      "kind": "data",
+      "id": "D01",
+      "detail": {
+        "originalMembership": 4,
+        "exactSourceExcerpts": 4,
+        "explicitDeltas": 4,
+        "newIds": [
+          "V6-S62-CANONICAL",
+          "V6-S64-LITERAL-NOPULL",
+          "V6-S71-ACCESS-MODE",
+          "V6-S74-EXACT-BRANCH-SET"
+        ],
+        "productRuns": 0
+      }
+    },
+    {
+      "kind": "data",
+      "id": "D02",
+      "detail": {
+        "canonicalBytes": 40,
+        "exactBranchBytes": [
+          98,
+          92
+        ],
+        "nearMatchesRejected": true,
+        "timestampCausationClaim": false
+      }
+    },
+    {
+      "kind": "data",
+      "id": "D03",
+      "detail": {
+        "beforeIntentionalPull": {
+          "acquired": 1,
+          "pulls": 0,
+          "returns": 0
+        },
+        "trapVerified": true,
+        "literalSourceAndEffectsPreserved": true,
+        "scope": "synthetic iterator, not Shell"
+      }
+    },
+    {
+      "kind": "data",
+      "id": "D04",
+      "detail": {
+        "calls": [
+          {
+            "method": "access",
+            "path": "/work",
+            "mode": 0,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work",
+            "mode": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work",
+            "mode": 4,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/elsewhere",
+            "mode": 2,
+            "signalMatches": true
+          }
+        ],
+        "denialCount": 1,
+        "scope": "finite fake provider only, actual args[1]"
+      }
+    }
+  ],
+  "unrunControls": [],
+  "actualChildren": 6,
+  "spawnAttempts": 6,
+  "peakAllOwnedProcesses": 2,
+  "peakQualification": "finite inspected routes, direct handles and Node PID/PPID handshakes; not global process census",
+  "rawBytes": 7000,
+  "persistedBytesBeforeOutcome": 46023,
+  "scratchWrittenBytes": 897,
+  "receipts": [
+    {
+      "sequence": 1,
+      "id": "D00",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "discovery"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+      "registeredAtMs": 116.435167,
+      "pid": 58399,
+      "closeObserved": true,
+      "absent": true,
+      "code": 0,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "01-D00.stdout.raw",
+        "bytes": 118,
+        "sha256": "bf8bc4fe88435a5b53baeced8383b5e03dff4917f2d66d557c4deb331555cda7"
+      },
+      "stderr": {
+        "file": "01-D00.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "closedAtMs": 174.663209
+    },
+    {
+      "sequence": 2,
+      "id": "START-POSITIVE",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/data-controls.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/primitives.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/fixture-data.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/INPUTS-v6.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/FIXTURES-v6.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "positive",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+      "registeredAtMs": 277.01883399999997,
+      "pid": 58409,
+      "closeObserved": true,
+      "absent": true,
+      "code": 0,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "02-START-POSITIVE.stdout.raw",
+        "bytes": 4511,
+        "sha256": "b13dadf2644ae6bc8049fc98fcb2465c4793876aca2958fd1e8264134e5736ca"
+      },
+      "stderr": {
+        "file": "02-START-POSITIVE.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "closedAtMs": 387.370917
+    },
+    {
+      "sequence": 3,
+      "id": "START-REFUSAL",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "refusal",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+      "registeredAtMs": 398.292084,
+      "pid": 58412,
+      "closeObserved": true,
+      "absent": true,
+      "code": 1,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "03-START-REFUSAL.stdout.raw",
+        "bytes": 116,
+        "sha256": "640b787921e958eaa0be76dd93cdf1bb443d6297ccb641b8ea97ca9a03c7bb91"
+      },
+      "stderr": {
+        "file": "03-START-REFUSAL.stderr.raw",
+        "bytes": 917,
+        "sha256": "781ed19dac86c8bbae27c6ab907083d7a666ce68931661fb245838aafe8819e9"
+      },
+      "closedAtMs": 450.328042
+    },
+    {
+      "sequence": 4,
+      "id": "START-FS-REFUSAL",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "fs-refusal",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+      "registeredAtMs": 467.006667,
+      "pid": 58413,
+      "closeObserved": true,
+      "absent": true,
+      "code": 1,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "04-START-FS-REFUSAL.stdout.raw",
+        "bytes": 119,
+        "sha256": "fb37ec1f9aabf6b78655bcf530c7a8007268adabdc74ee44a6717b7b0d33f801"
+      },
+      "stderr": {
+        "file": "04-START-FS-REFUSAL.stderr.raw",
+        "bytes": 801,
+        "sha256": "087c8ce010f6258b0d2aeff0be73a5f11e029e6bb1ecb13efbf1b8fdaedca4e9"
+      },
+      "closedAtMs": 517.532542
+    },
+    {
+      "sequence": 5,
+      "id": "G01",
+      "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "args": [
+        "--no-pager",
+        "--no-replace-objects",
+        "-c",
+        "core.hooksPath=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/work/empty",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "gc.autoPackLimit=0",
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "tag.gpgsign=false",
+        "-c",
+        "credential.helper=",
+        "-c",
+        "protocol.allow=never",
+        "-c",
+        "core.attributesFile=/dev/null",
+        "--git-dir=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/work/metadata.git",
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "147aa1a5c5a862ffe2d6152c52d66bd3111c0267"
+      ],
+      "env": {
+        "PATH": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/work/empty",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/work/tmp",
+        "LC_ALL": "C",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_SYSTEM": "/dev/null",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_COUNT": "0",
+        "GIT_NO_REPLACE_OBJECTS": "1",
+        "GIT_NO_LAZY_FETCH": "1",
+        "GIT_OPTIONAL_LOCKS": "0",
+        "GIT_TERMINAL_PROMPT": "0",
+        "GIT_ATTR_NOSYSTEM": "1",
+        "GIT_EXEC_PATH": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/work/empty",
+        "GIT_PAGER": "",
+        "PAGER": "",
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+      "registeredAtMs": 539.9665,
+      "pid": 58414,
+      "closeObserved": true,
+      "absent": true,
+      "code": 0,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "05-G01.stdout.raw",
+        "bytes": 152,
+        "sha256": "53efaa170347fa9310fb09d738a67949b3d591e8e974bd1b6a981326c088f01b"
+      },
+      "stderr": {
+        "file": "05-G01.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "closedAtMs": 555.210375
+    },
+    {
+      "sequence": 6,
+      "id": "P01",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+        "nested",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+      "registeredAtMs": 568.8883340000001,
+      "pid": 58415,
+      "closeObserved": true,
+      "absent": true,
+      "code": 0,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "06-P01.stdout.raw",
+        "bytes": 266,
+        "sha256": "49a4ec9ddcd860dfa282f4c6bf66968209a543513f26d4631b19fd85ccf55a4e"
+      },
+      "stderr": {
+        "file": "06-P01.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "occupiedLeaseRefused": true,
+      "nestedDenial": {
+        "kind": "nested-refused",
+        "pid": 58415,
+        "ppid": 58392,
+        "code": "ERR_ACCESS_DENIED",
+        "permission": "ChildProcess"
+      },
+      "closedAtMs": 622.975625
+    }
+  ],
+  "cleanup": {
+    "removed": true,
+    "bytes": 920,
+    "entries": 34,
+    "inventorySha256": "12459ffdf9650d5452e7fd54de96455bf0c71ca2172186e03fd42793372d9402",
+    "identityChecked": true
+  },
+  "sourcePostguards": "own source append-aware plus named historical bindings/tools; foreign new entries not censused",
+  "productExecutions": 0,
+  "candidateImports": 0,
+  "remaining43JobsExecuted": 0,
+  "productFixtureTailExecuted": 0,
+  "admission": "NONE; different review and root GO required"
+}

@@ -1,0 +1,85 @@
+{
+  "role": "WHOLE_SHIPPING_MODULE_WITH_SYNTHETIC_DEPENDENCIES",
+  "groups": [
+    {
+      "id": "A-old-six-admission",
+      "status": "PASS",
+      "detail": {
+        "assertions": 6,
+        "role": "real bounded DATA reads, no injected native descriptor failure"
+      }
+    },
+    {
+      "id": "I01-all-falsy",
+      "status": "PASS",
+      "detail": {
+        "variants": 5,
+        "originalReviewPredicates": 4
+      }
+    },
+    {
+      "id": "I02-error-identity",
+      "status": "PASS"
+    },
+    {
+      "id": "I03-short-write",
+      "status": "PASS"
+    },
+    {
+      "id": "I04-second-open",
+      "status": "PASS"
+    },
+    {
+      "id": "I05-spawn-throw",
+      "status": "PASS"
+    },
+    {
+      "id": "I06-exit-one",
+      "status": "PASS"
+    },
+    {
+      "id": "W-zero-write",
+      "status": "PASS"
+    },
+    {
+      "id": "W-invalid-count",
+      "status": "PASS"
+    },
+    {
+      "id": "P-primary-cleanup",
+      "status": "PASS"
+    },
+    {
+      "id": "T-inclusive-start",
+      "status": "PASS"
+    },
+    {
+      "id": "T-reserve-blocks-spawn",
+      "status": "PASS"
+    },
+    {
+      "id": "T-publication-deadline",
+      "status": "PASS"
+    },
+    {
+      "id": "F-event-flush",
+      "status": "PASS"
+    },
+    {
+      "id": "F-setup-abort-and-publication",
+      "status": "PASS"
+    },
+    {
+      "id": "R-known-role-group",
+      "status": "PASS"
+    }
+  ],
+  "originalAuthorAdmissionAssertions": 6,
+  "originalReviewPredicates": 9,
+  "controllerProcesses": 1,
+  "realChildSpawns": 0,
+  "nativeFDInjection": 0,
+  "nativeSignals": 0,
+  "nativeGroupProof": false,
+  "productImports": 0
+}

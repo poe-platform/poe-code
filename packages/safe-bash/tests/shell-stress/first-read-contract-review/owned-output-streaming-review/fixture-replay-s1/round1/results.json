@@ -1,0 +1,740 @@
+{
+  "at": "2026-08-27T12:00:13.991Z",
+  "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "sourceFixCount": 0,
+  "fixtureExecutionCorrectionRounds": 1,
+  "secondRoundUsed": false,
+  "original": {
+    "parameters": {
+      "PASS": 9,
+      "FAIL": 8,
+      "BLOCKED": 3,
+      "UNRUN": 0,
+      "TIMEOUT": 0
+    },
+    "logical": {
+      "PASS": 3,
+      "FAIL": 7,
+      "BLOCKED": 2,
+      "UNRUN": 0,
+      "TIMEOUT": 0
+    },
+    "raw": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/execution-s1/artifacts/acceptance.result.json",
+      "sha256": "f84033d66942d5e700dba76beef83e7c38537f6cb53819ec9da7d77c61b5cd28"
+    }
+  },
+  "corrected": {
+    "parameters": {
+      "PASS": 17,
+      "FAIL": 0,
+      "BLOCKED": 3,
+      "UNRUN": 0,
+      "TIMEOUT": 0
+    },
+    "logical": {
+      "PASS": 10,
+      "FAIL": 0,
+      "BLOCKED": 2,
+      "UNRUN": 0,
+      "TIMEOUT": 0
+    },
+    "raw": {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/acceptance.result.json",
+      "sha256": "c874574987793a7b56a3975b2bd849eead3802aef34d0ab26a824bcc93b14d83"
+    }
+  },
+  "originalFive": {
+    "parameters": {
+      "PASS": 1,
+      "FAIL": 4,
+      "BLOCKED": 0,
+      "UNRUN": 0,
+      "TIMEOUT": 0
+    },
+    "raw": {
+      "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/historical-five.result.json",
+      "sha256": "0ed239d2cd91d65f9274bcf4777df4538db49cc8a6b5208c4e890efb9524b4a1"
+    },
+    "historicalFirstIndependentResult": "1 PASS / 4 FAIL, unchanged"
+  },
+  "unchanged57Plus9": {
+    "rerun": false,
+    "firstIndependent": "57/57 plus9/9, C9 synthetic; not a new environment execution"
+  },
+  "parameterMapping": [
+    {
+      "id": "S01",
+      "parameter": "original-local-pending-source",
+      "original": "FAIL",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": {
+        "name": "Error",
+        "message": "Cannot find module '/private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/src/fs/webdav/resource-id.js' imported from /private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/tests/fs/webdav/mock.ts",
+        "code": "ERR_MODULE_NOT_FOUND"
+      },
+      "currentFailure": null
+    },
+    {
+      "id": "S02",
+      "parameter": "original-mock-s3-pending-source",
+      "original": "FAIL",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": {
+        "name": "Error",
+        "message": "Cannot find module '/private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/src/fs/webdav/resource-id.js' imported from /private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/tests/fs/webdav/mock.ts",
+        "code": "ERR_MODULE_NOT_FOUND"
+      },
+      "currentFailure": null
+    },
+    {
+      "id": "S03",
+      "parameter": "original-loopback-body-withheld",
+      "original": "FAIL",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": {
+        "name": "Error",
+        "message": "Cannot find module '/private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/src/fs/webdav/resource-id.js' imported from /private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/tests/fs/webdav/mock.ts",
+        "code": "ERR_MODULE_NOT_FOUND"
+      },
+      "currentFailure": null
+    },
+    {
+      "id": "S04",
+      "parameter": "original-loopback-body-withheld",
+      "original": "FAIL",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": {
+        "name": "Error",
+        "message": "Cannot find module '/private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/src/fs/webdav/resource-id.js' imported from /private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/tests/fs/webdav/mock.ts",
+        "code": "ERR_MODULE_NOT_FOUND"
+      },
+      "currentFailure": null
+    },
+    {
+      "id": "S05",
+      "parameter": "original-loopback-headers-withheld",
+      "original": "FAIL",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": {
+        "name": "Error",
+        "message": "Cannot find module '/private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/src/fs/webdav/resource-id.js' imported from /private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/historical/tests/fs/webdav/mock.ts",
+        "code": "ERR_MODULE_NOT_FOUND"
+      },
+      "currentFailure": null
+    },
+    {
+      "id": "S06",
+      "parameter": "upload-before-eof",
+      "original": "FAIL",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": {
+        "name": "Error",
+        "message": "DEADLINE: request bytes MUST arrive before EOF release (1200ms)"
+      },
+      "currentFailure": null
+    },
+    {
+      "id": "S06",
+      "parameter": "retained-reused-buffer",
+      "original": "FAIL",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\n'BBBB' !== 'AAAABBBB'\n",
+        "code": "ERR_ASSERTION"
+      },
+      "currentFailure": null
+    },
+    {
+      "id": "S06",
+      "parameter": "awaited-write-backpressure",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S07",
+      "parameter": "stdout-only-request",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S07",
+      "parameter": "stdout-only-streaming-upload",
+      "original": "FAIL",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": {
+        "name": "Error",
+        "message": "DEADLINE: borrowed curl parent (1200ms)"
+      },
+      "currentFailure": null
+    },
+    {
+      "id": "S08",
+      "parameter": "required-body-file-and-stdout-writeout",
+      "original": "BLOCKED",
+      "corrected": "BLOCKED",
+      "diagnosticStatus": "OBSERVED_WITHOUT_STRICT_BINDING",
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S08",
+      "parameter": "stdout-body-and-required-header-file",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S08",
+      "parameter": "required-files-writeout-and-independent-stderr",
+      "original": "BLOCKED",
+      "corrected": "BLOCKED",
+      "diagnosticStatus": "OBSERVED_WITHOUT_STRICT_BINDING",
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S09",
+      "parameter": "three-level-overlapping-cleanup-and-late-admission",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S10",
+      "parameter": "close-child-then-parent-with-live-sibling-effects",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S11",
+      "parameter": "caller-reason-zero",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S11",
+      "parameter": "io-error-before-caller-abort",
+      "original": "BLOCKED",
+      "corrected": "BLOCKED",
+      "diagnosticStatus": "OBSERVED_WITHOUT_STRICT_BINDING",
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S11",
+      "parameter": "caller-abort-before-late-io-rejection",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S12",
+      "parameter": "opaque-read-late-resolve",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    },
+    {
+      "id": "S12",
+      "parameter": "opaque-read-late-reject",
+      "original": "PASS",
+      "corrected": "PASS",
+      "diagnosticStatus": null,
+      "firstFailure": null,
+      "currentFailure": null
+    }
+  ],
+  "strictBlockedDiagnostics": [
+    {
+      "id": "S08",
+      "parameter": "required-body-file-and-stdout-writeout",
+      "observation": {
+        "id": "S08",
+        "parameter": "required-body-file-and-stdout-writeout",
+        "status": "BLOCKED",
+        "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+        "publicResult": {
+          "kind": "value",
+          "value": {
+            "stdout": "",
+            "stderr": "independent-stderr\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 105,
+              "1": 110,
+              "2": 100,
+              "3": 101,
+              "4": 112,
+              "5": 101,
+              "6": 110,
+              "7": 100,
+              "8": 101,
+              "9": 110,
+              "10": 116,
+              "11": 45,
+              "12": 115,
+              "13": 116,
+              "14": 100,
+              "15": 101,
+              "16": 114,
+              "17": 114,
+              "18": 10
+            },
+            "exitCode": 0
+          }
+        },
+        "operationClosed": null,
+        "cooperativeCleanup": {
+          "requiredEffectsSettledBeforeOwnerFinalization": true
+        },
+        "stageAborted": [
+          {
+            "command": "mixed-owner",
+            "aborted": false,
+            "reason": null
+          },
+          {
+            "command": "curl",
+            "aborted": false,
+            "reason": null
+          }
+        ],
+        "callerAborted": false,
+        "ownerAliveAtObservation": true,
+        "argv": [
+          "curl",
+          "-o",
+          "/body",
+          "-w",
+          "code=%{http_code}\n",
+          "http://127.0.0.1:49613/owned-output"
+        ],
+        "nestedPublicResult": {
+          "kind": "value",
+          "value": {
+            "exitCode": 141
+          }
+        },
+        "bodyFileObservation": "required-body\n",
+        "stdoutWriteoutObservation": {
+          "attempted": "",
+          "delivered": ""
+        },
+        "nestedDiagnostic": "",
+        "requiredEffects": {
+          "bodyFile": true,
+          "headerFile": false,
+          "writeout": {
+            "attempted": "",
+            "delivered": ""
+          },
+          "independentFile": "independent-file\n"
+        },
+        "ownerReturnsAfterNormalFinalization": 1,
+        "diagnosticStatus": "OBSERVED_WITHOUT_STRICT_BINDING",
+        "observedBeforeTeardown": [
+          {
+            "kind": "actual-shell-stages",
+            "stages": [
+              {
+                "command": "mixed-owner",
+                "aborted": false,
+                "reason": null
+              },
+              {
+                "command": "curl",
+                "aborted": false,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "kind": "destination",
+            "consumerClosed": true,
+            "attempted": "",
+            "delivered": ""
+          },
+          {
+            "kind": "input-owner",
+            "ownerAlive": false,
+            "calls": 0,
+            "returns": 1,
+            "pending": "pending"
+          }
+        ],
+        "fixtureCleanup": {
+          "failures": [],
+          "timers": 0,
+          "sockets": 0,
+          "tasks": 0,
+          "children": 0
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "name": "fixture.capture.installed",
+            "detail": {
+              "dataListeners": 1
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 1,
+            "name": "fixture.capture.end",
+            "detail": {
+              "bytes": 0
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 2,
+            "name": "destination.consumer.close",
+            "detail": {
+              "name": "Error",
+              "message": "binding destination consumer closed",
+              "code": "EPIPE"
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 3,
+            "name": "owner.normal.finalization",
+            "detail": null,
+            "phase": "observation"
+          },
+          {
+            "sequence": 4,
+            "name": "owner.source.return",
+            "detail": {
+              "returns": 1,
+              "ownerAlive": false
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 5,
+            "name": "fixture.teardown.begin",
+            "detail": null,
+            "phase": "teardown"
+          }
+        ]
+      }
+    },
+    {
+      "id": "S08",
+      "parameter": "required-files-writeout-and-independent-stderr",
+      "observation": {
+        "id": "S08",
+        "parameter": "required-files-writeout-and-independent-stderr",
+        "status": "BLOCKED",
+        "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+        "publicResult": {
+          "kind": "value",
+          "value": {
+            "stdout": "",
+            "stderr": "independent-stderr\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 105,
+              "1": 110,
+              "2": 100,
+              "3": 101,
+              "4": 112,
+              "5": 101,
+              "6": 110,
+              "7": 100,
+              "8": 101,
+              "9": 110,
+              "10": 116,
+              "11": 45,
+              "12": 115,
+              "13": 116,
+              "14": 100,
+              "15": 101,
+              "16": 114,
+              "17": 114,
+              "18": 10
+            },
+            "exitCode": 0
+          }
+        },
+        "operationClosed": null,
+        "cooperativeCleanup": {
+          "requiredEffectsSettledBeforeOwnerFinalization": true
+        },
+        "stageAborted": [
+          {
+            "command": "mixed-owner",
+            "aborted": false,
+            "reason": null
+          },
+          {
+            "command": "curl",
+            "aborted": false,
+            "reason": null
+          }
+        ],
+        "callerAborted": false,
+        "ownerAliveAtObservation": true,
+        "argv": [
+          "curl",
+          "-o",
+          "/body",
+          "-D",
+          "/headers",
+          "-w",
+          "@/format",
+          "http://127.0.0.1:49617/owned-output"
+        ],
+        "nestedPublicResult": {
+          "kind": "value",
+          "value": {
+            "exitCode": 141
+          }
+        },
+        "bodyFileObservation": "required-body\n",
+        "headerFile": "HTTP/1.1 200 OK\r\nContent-Length: 14\r\nX-Binding: required-header\r\nDate: Thu, 27 Aug 2026 11:56:58 GMT\r\nConnection: close\r\n\r\n",
+        "stdoutWriteoutObservation": {
+          "attempted": "",
+          "delivered": ""
+        },
+        "nestedDiagnostic": "",
+        "requiredEffects": {
+          "bodyFile": true,
+          "headerFile": true,
+          "writeout": {
+            "attempted": "",
+            "delivered": ""
+          },
+          "independentFile": "independent-file\n"
+        },
+        "ownerReturnsAfterNormalFinalization": 1,
+        "diagnosticStatus": "OBSERVED_WITHOUT_STRICT_BINDING",
+        "observedBeforeTeardown": [
+          {
+            "kind": "actual-shell-stages",
+            "stages": [
+              {
+                "command": "mixed-owner",
+                "aborted": false,
+                "reason": null
+              },
+              {
+                "command": "curl",
+                "aborted": false,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "kind": "destination",
+            "consumerClosed": true,
+            "attempted": "",
+            "delivered": ""
+          },
+          {
+            "kind": "input-owner",
+            "ownerAlive": false,
+            "calls": 0,
+            "returns": 1,
+            "pending": "pending"
+          }
+        ],
+        "fixtureCleanup": {
+          "failures": [],
+          "timers": 0,
+          "sockets": 0,
+          "tasks": 0,
+          "children": 0
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "name": "fixture.capture.installed",
+            "detail": {
+              "dataListeners": 1
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 1,
+            "name": "fixture.capture.end",
+            "detail": {
+              "bytes": 0
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 2,
+            "name": "destination.consumer.close",
+            "detail": {
+              "name": "Error",
+              "message": "binding destination consumer closed",
+              "code": "EPIPE"
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 3,
+            "name": "owner.normal.finalization",
+            "detail": null,
+            "phase": "observation"
+          },
+          {
+            "sequence": 4,
+            "name": "owner.source.return",
+            "detail": {
+              "returns": 1,
+              "ownerAlive": false
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 5,
+            "name": "fixture.teardown.begin",
+            "detail": null,
+            "phase": "teardown"
+          }
+        ]
+      }
+    },
+    {
+      "id": "S11",
+      "parameter": "io-error-before-caller-abort",
+      "observation": {
+        "id": "S11",
+        "parameter": "io-error-before-caller-abort",
+        "status": "BLOCKED",
+        "sourceIdentity": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+        "publicResult": {
+          "kind": "error",
+          "error": 0
+        },
+        "operationClosed": true,
+        "cooperativeCleanup": {
+          "cleanupCount": 1
+        },
+        "stageAborted": [
+          {
+            "command": "set",
+            "aborted": true,
+            "reason": 0
+          },
+          {
+            "command": "precedence-probe",
+            "aborted": true,
+            "reason": 0
+          },
+          {
+            "command": "cat",
+            "aborted": true,
+            "reason": 0
+          }
+        ],
+        "callerAborted": {
+          "aborted": true,
+          "reason": 0
+        },
+        "ownerAliveAtObservation": null,
+        "operationReasonIdentityIsZero": false,
+        "diagnosticStatus": "OBSERVED_WITHOUT_STRICT_BINDING",
+        "observedBeforeTeardown": [
+          {
+            "kind": "actual-shell-stages",
+            "stages": [
+              {
+                "command": "set",
+                "aborted": true,
+                "reason": 0
+              },
+              {
+                "command": "precedence-probe",
+                "aborted": true,
+                "reason": 0
+              },
+              {
+                "command": "cat",
+                "aborted": true,
+                "reason": 0
+              }
+            ]
+          },
+          {
+            "kind": "explicit-operation",
+            "aborted": false,
+            "reason": null
+          }
+        ],
+        "fixtureCleanup": {
+          "failures": [],
+          "timers": 0,
+          "sockets": 0,
+          "tasks": 0,
+          "children": 0
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "name": "operation.registerCleanup.before-admission",
+            "detail": null,
+            "phase": "observation"
+          },
+          {
+            "sequence": 1,
+            "name": "io.error.delivered",
+            "detail": {
+              "name": "Error",
+              "message": "binding controlled IO failure",
+              "code": "EIO"
+            },
+            "phase": "observation"
+          },
+          {
+            "sequence": 2,
+            "name": "caller.abort.after-io-delivery",
+            "detail": 0,
+            "phase": "observation"
+          },
+          {
+            "sequence": 3,
+            "name": "fixture.teardown.begin",
+            "detail": null,
+            "phase": "teardown"
+          }
+        ]
+      }
+    }
+  ],
+  "noGenuineSourceDefectEstablished": true,
+  "independentAcceptanceComplete": false
+}

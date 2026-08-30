@@ -1,0 +1,273 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-28T03:03:33.860Z",
+  "sourceCommit": "b0ee7234b915ce1ac45aa6db6d087dc3430ea21f",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "4624ffcbafa470f21c6d122adc3e75a1c20744f8b75d80839f4e69eebcf3d0a1",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "bindings": {
+    "CANDIDATE.json": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+    "PROFILE.json.gz.base64": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+    "PROFILE-RECEIPT.json": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+    "CLEANUP.json": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+    "EXTERNAL.json.gz.base64": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "EXTERNAL-RECEIPT.json": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+    "common.mjs": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb",
+    "profile.mjs": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f",
+    "admission.mjs": "3a41490a765978c216d0609375cdd68eb1e9e1e7c6f19d6a7ef347389b5237a3",
+    "inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+    "run.mjs": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
+    "worker.mjs": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401",
+    "supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+    "execute.mjs": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
+    "policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+    "transport.mjs": "8896ffaac13bf66f81c7742b28d578c7aa719ce9d20724b4bb3dc4ee8d133404",
+    "external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+    "external-admission.mjs": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
+    "built-consumers.mjs": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+    "consumer-admission.mjs": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+    "tap.mjs": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+    "public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+    "consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+    "negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+    "build-audit.mjs": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+    "build-types.mjs": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+    "phase-runner.mjs": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3",
+    "process-observer.mjs": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+    "review-build-types.mjs": "4cde75180c22e2655b1dc4232dcc4400925d7207afbcab9c50c11ed57ad5be2f",
+    "review-build-types-worker.mjs": "1575931a035d8dbfdfc9ac334613f2bd262b53bd3bbdeaa07fadeac1961b4497",
+    "review-v4/controls.mjs": "713eb57d0b20995a2f6d01e6b25e94a741cee440f873e79963601cf5b76f4da3",
+    "review-v4/contained-probe.mjs": "b6b324c8e4726f9974a1f47244275b83357170bbac9401d0712d8b7b5657f6a3",
+    "review-v4/README.md": "d0345bd8c6d7f164235985535a7538b078279b77c3f280f7b55a5cb9364785b3"
+  },
+  "controls": [
+    {
+      "name": "explicit review-only CLI and unchanged release gate",
+      "status": "PASS",
+      "detail": {
+        "negativeRoutes": 6
+      }
+    },
+    {
+      "name": "imports are inert; real phase implementation is shared",
+      "status": "PASS",
+      "detail": {
+        "driverSha256": "4624ffcbafa470f21c6d122adc3e75a1c20744f8b75d80839f4e69eebcf3d0a1",
+        "files": 30
+      }
+    },
+    {
+      "name": "two actual compiler builds reject the one-build receipt",
+      "status": "PASS",
+      "detail": {
+        "commands": [
+          {
+            "attempt": 1,
+            "args": [
+              "--import",
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v4-controls-h6wxUQ/tiny-audit/harness/build-audit.mjs",
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v4-controls-h6wxUQ/tiny-source/node_modules/typescript/bin/tsc",
+              "-p",
+              "tsconfig.build.json"
+            ],
+            "status": 0
+          },
+          {
+            "attempt": 2,
+            "args": [
+              "--import",
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v4-controls-h6wxUQ/tiny-audit/harness/build-audit.mjs",
+              "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v4-controls-h6wxUQ/tiny-source/node_modules/typescript/bin/tsc",
+              "-p",
+              "tsconfig.build.json"
+            ],
+            "status": 0
+          }
+        ],
+        "actualCompilerBuilds": 2,
+        "productCandidateBuilds": 0,
+        "duplicateRejected": true,
+        "preloadMutationRejected": true
+      }
+    },
+    {
+      "name": "contained link uses trusted outer observer with target fences intact",
+      "status": "PASS",
+      "detail": {
+        "args": [
+          "-f",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v4-controls-h6wxUQ/contained/containment.sb",
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-v4/contained-probe.mjs",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v4-controls-h6wxUQ/contained/config.json"
+        ],
+        "policy": "(version 1)\n(allow default)\n(deny file-write*)\n(allow file-write* (subpath \"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v4-controls-h6wxUQ/contained\") (literal \"/dev/null\"))\n(deny network*)\n(deny process-exec)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\") (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/git\") (literal \"/bin/ps\") (literal \"/bin/ln\"))\n",
+        "policySha256": "b5fb43a035fc88534b78d93c1ba36cdbf322db3260d82b1b5864c1617c166797",
+        "stdout": "{\"receipt\":{\"status\":0,\"signal\":null,\"closed\":true,\"stderrBytes\":0,\"survivors\":[],\"entries\":2,\"bytes\":30,\"transferBytes\":129,\"hashes\":{\"fixture-link\":\"239f59ed55e737c77147cf55ad0c1b030b6d7ee748a7426952f9b852d5a935e5\",\"payload\":\"5a37b16fed700d58e52d753dc6159daaaf5c3489a7c6106a9ca6dfc425fa70af\"},\"method\":\"validated declared Git blobs streamed directly; no tar headers or extraction filters\"},\"verified\":{\"files\":{\"fixture-link\":{\"blob\":\"47d05ff6403c8e6c3cf635ea6eb9263738432773\",\"sha256\":\"239f59ed55e737c77147cf55ad0c1b030b6d7ee748a7426952f9b852d5a935e5\",\"bytes\":7,\"mode\":493,\"symlink\":true},\"payload\":{\"blob\":\"b6b04e99f67610fc24a1b6808513eca289cf5d72\",\"sha256\":\"5a37b16fed700d58e52d753dc6159daaaf5c3489a7c6106a9ca6dfc425fa70af\",\"bytes\":23,\"mode\":420,\"symlink\":false}},\"count\":2,\"source\":\"exact committed input and directory sets, streamed Git blob/SHA256/mode/type authentication\"},\"innerPs\":\"EPERM retained\",\"outsideWrite\":\"refused\",\"foreignPid\":\"refused\",\"foreignHandle\":\"refused\"}\n",
+        "stderr": "",
+        "result": {
+          "status": 0,
+          "signal": null
+        },
+        "forced": false,
+        "observed": {
+          "root": {
+            "pid": 77877,
+            "parent": 77254,
+            "group": 77877,
+            "born": "Thu Aug 27 22:00:08 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-v4/contained-probe.mjs /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v4-controls-h6wxUQ/contained/config.json"
+          },
+          "groups": [
+            {
+              "pid": 77883,
+              "parent": 77877,
+              "group": 77883,
+              "born": "Thu Aug 27 22:00:08 2026",
+              "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+            }
+          ],
+          "events": [
+            {
+              "id": "49301b93-e4cf-4272-83cc-5334f8bfd316",
+              "action": "register",
+              "error": "observer accepts only actual direct children of its owned requester\n\n77254 !== 77877\n"
+            },
+            {
+              "id": "c7ba8e8d-96e6-46a7-827f-01161d60efba",
+              "action": "members",
+              "error": "unknown observation capability"
+            },
+            {
+              "id": "1a0034b5-f5f1-438f-82b2-91f64f57ff79",
+              "action": "register",
+              "result": {
+                "handle": "678d35a4-87dc-41dc-a050-b1cac0168654",
+                "identity": {
+                  "pid": 77883,
+                  "parent": 77877,
+                  "group": 77883,
+                  "born": "Thu Aug 27 22:00:08 2026",
+                  "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+                }
+              }
+            },
+            {
+              "id": "10689829-ccf3-4083-aed2-675c8be0fe96",
+              "action": "members",
+              "result": {
+                "identity": {
+                  "pid": 77883,
+                  "parent": 77877,
+                  "group": 77883,
+                  "born": "Thu Aug 27 22:00:08 2026",
+                  "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+                },
+                "members": []
+              }
+            }
+          ],
+          "survivors": [],
+          "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+        }
+      }
+    }
+  ],
+  "actualAuthorReview": {
+    "attempts": 1,
+    "status": "REVIEW_ONLY_HOLD",
+    "exitCode": 1,
+    "phases": [],
+    "productionBuilds": 0,
+    "error": {
+      "message": "The expression evaluated to a falsy value:\n\n  assert.ok(typeof entry.path==='string'&&entry.path.length>0&&!entry.path.includes('\\0')&&!entry.path.includes('\\\\'))\n",
+      "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(typeof entry.path==='string'&&entry.path.length>0&&!entry.path.includes('\\0')&&!entry.path.includes('\\\\'))\n\n    at validateEntries (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs:18:12)\n    at extractCommitted (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs:58:3)\n    at reviewBuildTypes (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types.mjs:39:35)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types-worker.mjs:4:24"
+    },
+    "outerLifecycle": {
+      "closed": true,
+      "clean": true,
+      "signal": null,
+      "signals": [],
+      "survivors": []
+    }
+  },
+  "blocker": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs",
+    "line": 18,
+    "rejectedCandidateEntries": [
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\slash",
+        "mode": "100644",
+        "blob": "63d8dbd40c23542e740659a7168a0ce3138ea748",
+        "bytes": 1
+      },
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/back\\slash",
+        "mode": "100644",
+        "blob": "63d8dbd40c23542e740659a7168a0ce3138ea748",
+        "bytes": 1
+      }
+    ],
+    "presentInOldSource": true,
+    "minimalProposal": "Explicit POSIX/macOS profile: accept literal backslash filename bytes while retaining NUL/absolute/normalized-dotdot/.git/symlink-ancestor rejection, byte/mode/hash bounds; add actual extraction and traversal negative controls. No candidate or fixture edits. Not implemented or rerun in this packet."
+  },
+  "scope": {
+    "wholeGateLaunched": false,
+    "independentAccepted": false,
+    "old19of22And21of22Unchanged": true,
+    "A10": "HOLD: no actual production build/type phase reached",
+    "containedTransport": "Author exact extraction/reaping passes with inner ps EPERM and target write/network/exec fences retained; foreign PID/handle requests refused",
+    "duplicateBuildControl": "Two actual TypeScript invocations of separate tiny project; not candidate builds; one-build guard rejects second invocation",
+    "expectedPackage": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packageRebuilt": false
+  },
+  "raw": {
+    "encoding": "base64(gzip(JSON))",
+    "compressedBytes": 9202,
+    "compressedSha256": "28f95f8f2faf088a493df0220eddc7f2cc34c520d68245d71f20f867131e5fba",
+    "uncompressedBytes": 40620,
+    "uncompressedSha256": "3fbaeedc673f567cc7d5fc935c63940ba785dcff2e9c490f1942489b47fac24d",
+    "files": [
+      {
+        "path": "author-review/REPORT.json",
+        "bytes": 4302,
+        "sha256": "8a1384608a3b5d61ec2367f81953efd1da4dda71e1c8ccf18a808afc9683831b"
+      },
+      {
+        "path": "outer/REPORT.json",
+        "bytes": 11851,
+        "sha256": "6f1052377494bd2fa3f7ae72a29b37c1b0d372bc18f52dc93b633923c84c59d4"
+      },
+      {
+        "path": "outer/stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "outer/stdout",
+        "bytes": 1321,
+        "sha256": "628aeff2e217dba0753104daf4371809b530c3bd8674f23aa4302cd78407cfa5"
+      },
+      {
+        "path": "controls/REPORT.json",
+        "bytes": 11676,
+        "sha256": "8d5457a589b75a48cb09daa2781a0678c718353f5bb9442d5fa659ad7e3a457c"
+      },
+      {
+        "path": "launch/unified76-build-types-review-b0ee7234-launch.stdout",
+        "bytes": 275,
+        "sha256": "a09587172d4af5dfab4d69a2aa558e5d064ffa924b1190b741a67d0e722f1fda"
+      },
+      {
+        "path": "launch/unified76-build-types-review-b0ee7234-launch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "launch/unified76-review-v4-controls-1.json",
+        "bytes": 160,
+        "sha256": "bf7b1b51727b70231772f92afc32766eb8304972048294fdedf5134ce17738c7"
+      }
+    ]
+  }
+}

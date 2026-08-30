@@ -1,0 +1,4 @@
+{"event":"owned","id":"actual-zero","pid":51854,"retired":false,"closeObserved":false}
+{"event":"settled","id":"actual-zero","pid":51854,"retired":true,"closeObserved":true,"code":0,"signal":null,"bytes":8}
+{"event":"owned","id":"actual-nonzero","pid":51860,"retired":false,"closeObserved":false}
+{"event":"settled","id":"actual-nonzero","pid":51860,"retired":true,"closeObserved":true,"code":7,"signal":null,"bytes":8}

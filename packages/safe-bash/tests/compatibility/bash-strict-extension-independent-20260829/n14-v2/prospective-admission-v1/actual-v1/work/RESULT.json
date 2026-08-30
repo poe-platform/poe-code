@@ -1,0 +1,294 @@
+{
+  "controls": [
+    {
+      "id": "C01",
+      "kind": "tampered",
+      "status": "PASS",
+      "reasonCode": "HASH",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C02",
+      "kind": "short",
+      "status": "PASS",
+      "reasonCode": "SIZE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [],
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C03",
+      "kind": "oversized",
+      "status": "PASS",
+      "reasonCode": "SIZE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [],
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C04",
+      "kind": "wronghash",
+      "status": "PASS",
+      "reasonCode": "HASH",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C05",
+      "kind": "directory",
+      "status": "PASS",
+      "reasonCode": "TYPE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [],
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C06",
+      "kind": "symlink",
+      "status": "PASS",
+      "reasonCode": "TYPE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [],
+      "ledger": {
+        "current": 0,
+        "peak": 0,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C07",
+      "kind": "replacepath",
+      "status": "PASS",
+      "reasonCode": "MUTATION",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C08",
+      "kind": "mutatesource",
+      "status": "PASS",
+      "reasonCode": "MUTATION",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C09",
+      "kind": "truncateafterread",
+      "status": "PASS",
+      "reasonCode": "MUTATION",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C10",
+      "kind": "aggregate",
+      "status": "PASS",
+      "reasonCode": "AGGREGATE",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "exact-hash",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 40
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C11",
+      "kind": "orderingmutant",
+      "status": "PASS",
+      "reasonCode": "HASH",
+      "counts": {
+        "decoder": 1,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    },
+    {
+      "id": "C12",
+      "kind": "restored",
+      "status": "PASS",
+      "reasonCode": "HASH",
+      "counts": {
+        "decoder": 0,
+        "parser": 0,
+        "extraction": 0
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "descriptor-closed"
+      ],
+      "ledger": {
+        "current": 0,
+        "peak": 17,
+        "maximum": 4096
+      },
+      "primaryPresent": true
+    }
+  ],
+  "artifact": {
+    "status": "PASS",
+    "result": {
+      "members": 954,
+      "payloadBytes": 4821648,
+      "decodedBytes": 5545984,
+      "extractionCalls": 0
+    },
+    "compressedBytes": 872281,
+    "decodedBytes": 5545984,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "counts": {
+      "decoder": 1,
+      "parser": 1,
+      "extraction": 0
+    },
+    "events": [
+      "lstat-type-size",
+      "bounded-read",
+      "postread-identity",
+      "exact-hash",
+      "descriptor-closed",
+      "concurrent-buffers-reserved",
+      "decoded",
+      "parsed"
+    ],
+    "ledger": {
+      "current": 0,
+      "peak": 70078298,
+      "maximum": 100663296
+    }
+  },
+  "productImports": 0,
+  "extractionCalls": 0,
+  "workerLaunches": 0,
+  "childLaunches": 0
+}

@@ -1,0 +1,105 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import ts from "typescript";
+
+const evidence = dirname(fileURLToPath(import.meta.url));
+const root = resolve(evidence, "../../../..");
+const [label, selection = "all"] = process.argv.slice(2);
+assert.ok(label && /^[a-z0-9-]+$/.test(label));
+assert.ok(["strict", "all"].includes(selection));
+const strict = ["tests/fs/overlay/metadata-purity.test.ts", "tests/commands/du/overlay-purity.test.ts"];
+const focused = [
+  "tests/fs/overlay/allocation.test.ts", "tests/commands/du/backends.test.ts",
+  "tests/fs/overlay/adversarial.test.ts", "tests/fs/overlay/streaming.test.ts",
+  "tests/fs/overlay/rmdir.test.ts", "tests/fs/overlay/snapshot-rmdir.test.ts",
+  "tests/fs/overlay/scoped-links.test.ts", "tests/fs/overlay/copy-identity.test.ts",
+  "tests/fs/overlay/review-regressions.test.ts", "tests/fs/readonly/readonly.test.ts",
+  "tests/fs/readonly/metadata.test.ts", "tests/fs/readonly/snapshot-rmdir.test.ts",
+  "tests/fs/mount/comparison.test.ts", "tests/fs/mount/copy-identity-guards.test.ts",
+  "tests/fs/mount/identity-scope.test.ts", "tests/fs/mount/snapshot-rmdir.test.ts",
+  "tests/fs/mount/identity-authority-review/authority.test.ts",
+];
+const entries = selection === "strict" ? strict : [...strict, ...focused];
+const flags = ["--noEmit", "--target", "ES2023", "--lib", "ES2023", "--module", "NodeNext",
+  "--moduleResolution", "NodeNext", "--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes",
+  "--verbatimModuleSyntax", "--forceConsistentCasingInFileNames", "--skipLibCheck", "--types", "node"];
+const parsed = ts.parseCommandLine([...flags, ...entries.map(path => join(root, path))]);
+assert.equal(parsed.errors.length, 0);
+const program = ts.createProgram(parsed.fileNames, parsed.options);
+const paths = [...new Set([...program.getSourceFiles().map(source => relative(root, source.fileName))
+  .filter(path => !isAbsolute(path) && !path.startsWith("..") && !path.startsWith("node_modules/")),
+  "package.json", "package-lock.json", "tsconfig.json", "src/contracts/filesystem.md"])].sort();
+const digest = bytes => createHash("sha256").update(bytes).digest("hex");
+const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
+mkdirSync(join(evidence, "captures"), { recursive: true });
+const output = mkdtempSync(join(evidence, "captures", `${label}-`));
+const runtime = mkdtempSync(join(tmpdir(), "safe-bash-metadata-purity-"));
+const save = (name, value) => writeFileSync(join(output, name), `${JSON.stringify(value, null, 2)}\n`, { flag: "wx" });
+const before = {};
+let failed = false;
+try {
+  for (const path of paths) {
+    const bytes = readFileSync(join(root, path));
+    before[path] = digest(bytes);
+    mkdirSync(dirname(join(runtime, path)), { recursive: true });
+    writeFileSync(join(runtime, path), bytes, { flag: "wx" });
+  }
+  for (const path of entries) {
+    const destination = join(output, "inputs", `${path.replaceAll("/", "__")}.txt`);
+    mkdirSync(dirname(destination), { recursive: true });
+    writeFileSync(destination, readFileSync(join(runtime, path)), { flag: "wx" });
+  }
+  mkdirSync(join(runtime, "tests/fs/overlay/allocation-evidence"), { recursive: true });
+  symlinkSync(join(root, "node_modules"), join(runtime, "node_modules"), "dir");
+  save("manifest-before.json", before);
+  save("provenance.json", { startedAt: new Date().toISOString(), head: git("rev-parse", "HEAD"),
+    status: git("status", "--short"), label, selection, runtime, node: process.version,
+    platform: process.platform, arch: process.arch, uv: process.versions.uv, typescript: ts.version,
+    entries, driverSha256: digest(readFileSync(fileURLToPath(import.meta.url))),
+    profile: "isolated source-import snapshot, installed tooling symlink, no shared dist/build/dependency installation; author only" });
+  const commands = [["strict", ["--import", "tsx", "--test", "--test-concurrency=1", ...strict]]];
+  if (selection === "all") commands.push(["focused", ["--import", "tsx", "--test", "--test-concurrency=1", ...focused]]);
+  commands.push(["types", ["node_modules/typescript/bin/tsc", ...flags, ...entries]]);
+  for (const [name, args] of commands) {
+    const startedAt = new Date().toISOString();
+    const result = spawnSync(process.execPath, args, { cwd: runtime, encoding: "utf8", maxBuffer: 32 * 1024 * 1024,
+      env: { ...process.env, TMPDIR: runtime, TSX_DISABLE_CACHE: "1" } });
+    writeFileSync(join(output, `${name}.stdout.log`), result.stdout ?? "", { flag: "wx" });
+    writeFileSync(join(output, `${name}.stderr.log`), result.stderr ?? "", { flag: "wx" });
+    const counts = Object.fromEntries([...(result.stdout ?? "").matchAll(/^# (tests|suites|pass|fail|cancelled|skipped|todo) (\d+)$/gm)]
+      .map(match => [match[1], Number(match[2])]));
+    save(`${name}.json`, { executable: process.execPath, args, startedAt, finishedAt: new Date().toISOString(),
+      status: result.status, signal: result.signal, error: result.error?.message, counts });
+    console.log(JSON.stringify({ name, status: result.status, counts }));
+    if (result.status !== 0) failed = true;
+  }
+  const after = Object.fromEntries(paths.map(path => [path, digest(readFileSync(join(runtime, path)))]));
+  const liveChanged = paths.filter(path => before[path] !== digest(readFileSync(join(root, path))));
+  const actualFiles = [];
+  function walk(directory) {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (directory === runtime && entry.name === "node_modules") continue;
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else actualFiles.push(relative(runtime, path));
+    }
+  }
+  walk(runtime);
+  const added = actualFiles.filter(path => !paths.includes(path));
+  save("manifest-after.json", after);
+  save("stability.json", { finishedAt: new Date().toISOString(), head: git("rev-parse", "HEAD"),
+    changed: paths.filter(path => before[path] !== after[path]), addedFiles: added, liveChanged,
+    scope: "all copied input paths plus new non-node_modules runtime files; empty directories and installed tooling excluded" });
+  assert.deepEqual(after, before);
+  assert.deepEqual(added, []);
+} finally {
+  rmSync(runtime, { recursive: true, force: true });
+  save("cleanup.json", { removedOwnedRuntime: runtime, finishedAt: new Date().toISOString() });
+}
+console.log(relative(root, output));
+if (failed) process.exitCode = 1;

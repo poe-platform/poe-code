@@ -1,0 +1,14 @@
+[main 0307613b3] Record T1 authority controls and exact window schema blocker
+ 12 files changed, 165 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/HANDOFF.md
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/PUBLICATION-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/RESULT.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/add-publication.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/add-publication.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/closure.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/closure.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/commit-preseal.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/commit-preseal.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/patch-publication.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/patch-publication.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/publication.mjs

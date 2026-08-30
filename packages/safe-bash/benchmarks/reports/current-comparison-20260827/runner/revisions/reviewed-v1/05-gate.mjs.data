@@ -1,0 +1,179 @@
+import { createHash, createPublicKey, verify } from "node:crypto";
+
+export const schema = "safe-bash.comparison-preflight.v1";
+export const requiredRoles = Object.freeze([
+  "candidateFreeze", "canonicalInventory", "inventoryReview", "packManifest",
+  "packedReview", "baselineAuthentication", "dependencyClosure", "nativeProfile",
+  "cohortPlan", "executionProfile", "budgetProfile", "runnerSourceManifest",
+]);
+export const readCaps = Object.freeze({
+  manifestBytes: 1024 * 1024,
+  approvalBytes: 16384,
+  keyBytes: 16384,
+  artifactBytes: 256 * 1024 * 1024,
+  totalBytes: 1024 * 1024 * 1024,
+  files: 8192,
+});
+export const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+const digestPattern = /^[a-f0-9]{64}$/u;
+const commitPattern = /^[a-f0-9]{40}$/u;
+const identifierPattern = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/u;
+const isObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
+const demand = (condition, reason) => { if (!condition) throw new Error(reason); };
+
+export function report(status, reasons = [], extra = {}) {
+  return {
+    schema, mode: "PREPARATION_ONLY", status, reasons,
+    executorPresent: false, executionEnabled: false, timingEnabled: false,
+    engineCalls: 0, nativeWorkloadCalls: 0, childProcessesCreated: 0,
+    loopbackServersCreated: 0, performanceSamples: 0, score: null,
+    qualification: "Static preparation only; no candidate qualification or runtime proof.",
+    ...extra,
+  };
+}
+
+export function preparation() {
+  return report("WAITING_ROOT", ["No ROOT-approved future candidate freeze supplied."], {
+    requiredRoles, requiredArguments: [
+      "manifest", "approval", "approval-sha256", "root-key", "root-key-sha256",
+    ],
+    currentAuthorization: "PREPARE/PREFLIGHT and pure mock checks only",
+    artifactReadCaps: readCaps,
+  });
+}
+
+function parseJson(bytes, cap, label) {
+  demand(bytes instanceof Uint8Array && bytes.byteLength <= cap, `${label}: byte cap or input type`);
+  const result = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  demand(isObject(result), `${label}: expected an object`);
+  return result;
+}
+
+function validateManifest(manifest) {
+  demand(manifest.schema === schema && manifest.mode === "PREPARATION_ONLY", "manifest schema/mode");
+  demand(manifest.executionEnabled === false && manifest.timingEnabled === false, "execution/timing flags must remain false");
+  demand(isObject(manifest.candidate), "missing candidate freeze binding");
+  demand(commitPattern.test(manifest.candidate.commit), "candidate commit must be exact");
+  demand(digestPattern.test(manifest.candidate.sourceTreeSha256), "candidate tree hash must be exact");
+  demand(manifest.candidate.state === "FUTURE_ROOT_FROZEN", "candidate is not a future ROOT freeze");
+  demand(Array.isArray(manifest.artifacts) && manifest.artifacts.length > 0 && manifest.artifacts.length <= readCaps.files, "artifact count");
+  const artifacts = new Map();
+  const paths = new Set();
+  let total = 0;
+  for (const artifact of manifest.artifacts) {
+    demand(isObject(artifact) && identifierPattern.test(artifact.id), "invalid artifact identifier");
+    demand(!artifacts.has(artifact.id), `duplicate artifact: ${artifact.id}`);
+    demand(typeof artifact.path === "string" && artifact.path.length > 0 && artifact.path.length <= 4096 && !artifact.path.includes("\0"), "artifact path");
+    demand(!paths.has(artifact.path), "duplicate artifact path");
+    demand(digestPattern.test(artifact.sha256), `artifact digest: ${artifact.id}`);
+    demand(Number.isSafeInteger(artifact.bytes) && artifact.bytes >= 0 && artifact.bytes <= readCaps.artifactBytes, "artifact byte cap");
+    total += artifact.bytes;
+    demand(total <= readCaps.totalBytes, "aggregate artifact byte cap");
+    artifacts.set(artifact.id, artifact);
+    paths.add(artifact.path);
+  }
+  const resolveArtifact = identifier => {
+    demand(typeof identifier === "string" && artifacts.has(identifier), `unbound artifact: ${identifier}`);
+    return artifacts.get(identifier);
+  };
+  const referenceIdentity = reference => {
+    if (typeof reference === "string") {
+      resolveArtifact(reference);
+      return JSON.stringify([reference, "", null]);
+    }
+    demand(isObject(reference), "invalid data reference");
+    resolveArtifact(reference.artifact);
+    demand(typeof reference.pointer === "string" && reference.pointer.length <= 2048 && (reference.pointer === "" || reference.pointer.startsWith("/")) && !/~(?:[^01]|$)/u.test(reference.pointer), "invalid JSON pointer");
+    demand(reference.rowField === undefined || identifierPattern.test(reference.rowField), "invalid row selector");
+    return JSON.stringify([reference.artifact, reference.pointer, reference.rowField ?? null]);
+  };
+  demand(isObject(manifest.roles), "missing role bindings");
+  for (const role of requiredRoles) resolveArtifact(manifest.roles[role]);
+  demand(new Set(requiredRoles.map(role => manifest.roles[role])).size === requiredRoles.length, "distinct role documents required");
+  demand(isObject(manifest.reviews), "missing independent review bindings");
+  const reviewers = new Set();
+  for (const role of ["inventoryReview", "packedReview"]) {
+    const review = manifest.reviews[role];
+    demand(isObject(review) && review.artifact === manifest.roles[role] && review.decision === "ACCEPT", `${role}: missing acceptance`);
+    demand(typeof review.reviewer === "string" && review.reviewer.trim().length > 0, `${role}: missing reviewer`);
+    demand(review.sourceTreeSha256 === manifest.candidate.sourceTreeSha256, `${role}: stale candidate`);
+    demand(review.packManifestSha256 === resolveArtifact(manifest.roles.packManifest).sha256, `${role}: stale pack manifest`);
+    reviewers.add(review.reviewer);
+  }
+  demand(reviewers.size === 2, "inventory and packed reviews must name different reviewers");
+  demand(Array.isArray(manifest.engines) && manifest.engines.length === 2, "exactly two engine declarations required");
+  demand(JSON.stringify(manifest.engines.map(engine => engine.id).sort()) === JSON.stringify(["just-bash", "virtual-bash"]), "engine identities");
+  for (const engine of manifest.engines) {
+    for (const field of ["entry", "packageManifest", "setup", "dispatchInventory", "resolutionReceipt"]) resolveArtifact(engine[field]);
+    demand(Array.isArray(engine.locks) && engine.locks.length > 0, "missing engine lock hashes");
+    for (const identifier of engine.locks) resolveArtifact(identifier);
+    demand(engine.id !== "just-bash" || engine.version === "3.4.2", "baseline version differs from authenticated historical pin");
+  }
+  demand(Array.isArray(manifest.cohorts) && manifest.cohorts.length === 4, "four separate cohort declarations required");
+  const cohorts = new Map(manifest.cohorts.map(cohort => [cohort.id, cohort]));
+  demand(cohorts.size === 4, "duplicate cohort identifiers");
+  for (const identifier of ["expanded-original-224", "expanded-aligned-224", "baseline-only", "new-tool-holdouts"]) demand(cohorts.has(identifier), `missing cohort: ${identifier}`);
+  for (const cohort of cohorts.values()) {
+    demand(Number.isSafeInteger(cohort.recipeCount) && cohort.recipeCount > 0, "undeclared recipe denominator");
+    demand(Number.isSafeInteger(cohort.diagnosticCount) && cohort.diagnosticCount >= 0, "undeclared diagnostic denominator");
+    for (const field of ["recipes", "profile", "expectations", "predicate", "overlapMap"]) referenceIdentity(cohort[field]);
+  }
+  const original = cohorts.get("expanded-original-224");
+  const aligned = cohorts.get("expanded-aligned-224");
+  for (const cohort of [original, aligned]) demand(cohort.recipeCount === 224 && cohort.diagnosticCount === 0, "unchanged 224 denominator required");
+  demand(referenceIdentity(original.recipes) === referenceIdentity(aligned.recipes), "224 profiles must reference identical ordered recipe bytes");
+  demand(referenceIdentity(original.predicate) === referenceIdentity(aligned.predicate), "224 comparison predicates must remain identical");
+  demand(referenceIdentity(original.profile) !== referenceIdentity(aligned.profile) && referenceIdentity(original.expectations) !== referenceIdentity(aligned.expectations), "TMPDIR profiles and native captures must stay separate");
+  const breadth = cohorts.get("baseline-only");
+  demand(breadth.recipeCount === 61 && breadth.diagnosticCount === 7, "preserve historical breadth recipes/diagnostics separately");
+  demand(manifest.unionScore === null, "no score union across overlapping cohorts");
+  return artifacts;
+}
+
+function decodeBase64(value, label) {
+  demand(typeof value === "string" && value.length > 0, `${label}: missing base64`);
+  const bytes = Buffer.from(value, "base64");
+  demand(bytes.toString("base64") === value, `${label}: noncanonical base64`);
+  return bytes;
+}
+
+export async function preflight(inputs) {
+  const required = ["manifestBytes", "approvalBytes", "rootKeyBytes", "approvalSha256", "rootKeySha256"];
+  const missing = required.filter(field => inputs[field] === undefined || inputs[field] === null);
+  if (missing.length) return report("WAITING_ROOT", missing.map(field => `Missing ROOT input: ${field}`));
+  const receipts = [];
+  try {
+    const manifest = parseJson(inputs.manifestBytes, readCaps.manifestBytes, "manifest");
+    if (manifest.candidate === undefined || manifest.candidate === null) return report("WAITING_ROOT", ["Missing ROOT candidate freeze binding."]);
+    const artifacts = validateManifest(manifest);
+    demand(digestPattern.test(inputs.approvalSha256) && sha256(inputs.approvalBytes) === inputs.approvalSha256, "ROOT approval hash mismatch");
+    demand(digestPattern.test(inputs.rootKeySha256) && sha256(inputs.rootKeyBytes) === inputs.rootKeySha256, "ROOT trust-key hash mismatch");
+    demand(inputs.rootKeyBytes.byteLength <= readCaps.keyBytes, "ROOT key byte cap");
+    const approval = parseJson(inputs.approvalBytes, readCaps.approvalBytes, "approval");
+    const statementBytes = decodeBase64(approval.statementBase64, "approval statement");
+    const statement = parseJson(statementBytes, readCaps.approvalBytes, "approval statement");
+    demand(statement.schema === "safe-bash.root-approval.v1" && statement.signer === "ROOT", "ROOT approval identity");
+    demand(statement.manifestSha256 === sha256(inputs.manifestBytes), "approval binds a different manifest");
+    demand(statement.comparisonApproved === true && statement.timingApproved === false, "approval scope mismatch; timing forbidden");
+    const key = createPublicKey(inputs.rootKeyBytes);
+    demand(key.asymmetricKeyType === "ed25519", "ROOT approval requires the reviewed Ed25519 envelope");
+    const signature = decodeBase64(approval.signatureBase64, "signature");
+    demand(signature.byteLength === 64 && verify(null, statementBytes, key, signature), "invalid ROOT signature");
+    demand(typeof inputs.inspectArtifact === "function", "missing bounded artifact reader");
+    const canonicalPaths = new Set();
+    for (const artifact of artifacts.values()) {
+      const receipt = await inputs.inspectArtifact(artifact);
+      demand(receipt.bytes === artifact.bytes && receipt.sha256 === artifact.sha256, `artifact changed: ${artifact.id}`);
+      demand(typeof receipt.resolvedPath === "string" && !canonicalPaths.has(receipt.resolvedPath), "aliased artifact path");
+      canonicalPaths.add(receipt.resolvedPath);
+      receipts.push({ id: artifact.id, ...receipt });
+    }
+    return report("PREPARED_EXECUTION_DISABLED", [], {
+      manifestSha256: sha256(inputs.manifestBytes), artifactReceipts: receipts,
+      semanticGate: "ROOT review bindings authenticated; document content and source inventory NOT independently qualified by this reader.",
+      nextGate: "A separately reviewed, ROOT-authorized executor is not implemented here.",
+    });
+  } catch (error) {
+    return report(error.code === "ENOENT" ? "WAITING_ROOT" : "FAIL_PREFLIGHT", [String(error.message ?? error)], { artifactReceipts: receipts });
+  }
+}

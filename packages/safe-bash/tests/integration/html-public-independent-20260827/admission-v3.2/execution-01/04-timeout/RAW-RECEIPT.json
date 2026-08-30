@@ -1,0 +1,375 @@
+{
+  "control": "timeout",
+  "started": "2026-08-28T00:16:58.911Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=96",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs",
+    "timeout",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/04-timeout"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/04-timeout/tmp",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/04-timeout/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "freeze": "e27a62c40a317deae83fc1ef9d41d57f38d7d51d",
+  "manifestSha256": "968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980",
+  "signalsSent": [],
+  "messages": [
+    {
+      "type": "ready",
+      "producer": {
+        "pid": 89455,
+        "ppid": 89454,
+        "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "execArgv": [
+          "--max-old-space-size=96",
+          "--import",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs"
+        ],
+        "memory": {
+          "baseline": {
+            "rss": 45170688,
+            "heapTotal": 5652480,
+            "heapUsed": 4871000,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "fieldwisePeaks": {
+            "rss": 45170688,
+            "heapTotal": 5652480,
+            "heapUsed": 4871000,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "latest": {
+            "rss": 45170688,
+            "heapTotal": 5652480,
+            "heapUsed": 4871000,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "samples": 0,
+          "fieldsUnit": "bytes",
+          "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+        }
+      }
+    },
+    {
+      "type": "timeout-ready",
+      "chunks": 16
+    },
+    {
+      "type": "receipt",
+      "control": "timeout",
+      "failed": true,
+      "code": "V3_TIMEOUT",
+      "message": "CONTROL_BOUNDARY:V3_TIMEOUT"
+    }
+  ],
+  "unexpected": [],
+  "deadlineMs": 45000,
+  "naturalConsumerClose": true,
+  "ready": true,
+  "receiptForwarded": true,
+  "timeoutTriggered": true,
+  "resourceBoundary": null,
+  "producerPid": 89455,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "pid": 89454,
+  "membersAtReady": [
+    "89454 86238 89454 Ss   /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --max-old-space-size=96 /Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs timeout /Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/04-timeout",
+    "89455 89454 89454 S    /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --max-old-space-size=96 --import /Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs /Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/stream-fixture.mjs 1073872896 0"
+  ],
+  "forwardedFailureCode": "V3_TIMEOUT",
+  "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_TIMEOUT",
+  "exitObserved": {
+    "code": 17,
+    "signal": null,
+    "at": "2026-08-28T00:16:59.356Z"
+  },
+  "code": 17,
+  "signal": null,
+  "closeObserved": true,
+  "finished": "2026-08-28T00:16:59.363Z",
+  "membersAtClose": [],
+  "remainingGroupMembers": [],
+  "consumerState": {
+    "pid": 89454,
+    "state": "absent",
+    "error": "ESRCH"
+  },
+  "producerState": {
+    "pid": 89455,
+    "state": "absent",
+    "error": "ESRCH"
+  },
+  "consumer": {
+    "value": {
+      "control": "timeout",
+      "pid": 89454,
+      "ppid": 86238,
+      "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "execArgv": [
+        "--max-old-space-size=96"
+      ],
+      "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+      "assertionState": "not evaluated; persisted before coordinator assertions",
+      "proposedExitCode": 17,
+      "failure": {
+        "name": "Error",
+        "code": "V3_TIMEOUT",
+        "message": "CONTROL_BOUNDARY:V3_TIMEOUT",
+        "stack": "Error: CONTROL_BOUNDARY:V3_TIMEOUT\n    at boundary (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:22:48)\n    at consume (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:60:37)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/core.mjs:169:7)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/core.mjs:193:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:37:12",
+        "process": {
+          "status": null,
+          "signal": "SIGTERM",
+          "stderr": "",
+          "timedOut": false,
+          "stderrOverflow": false
+        }
+      },
+      "result": null,
+      "memory": {
+        "baseline": {
+          "rss": 47579136,
+          "heapTotal": 6963200,
+          "heapUsed": 4948952,
+          "external": 2118259,
+          "arrayBuffers": 25023
+        },
+        "fieldwisePeaks": {
+          "rss": 55836672,
+          "heapTotal": 7749632,
+          "heapUsed": 5471608,
+          "external": 2998743,
+          "arrayBuffers": 811499
+        },
+        "latest": {
+          "rss": 55836672,
+          "heapTotal": 7749632,
+          "heapUsed": 5471608,
+          "external": 2998743,
+          "arrayBuffers": 811499
+        },
+        "samples": 4,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "flow": {
+        "chunks": 16,
+        "bytes": 1048576,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "consumerObservation": null,
+      "orderedObservation": {
+        "control": "timeout",
+        "consumerPid": 89454,
+        "producerPid": 89455,
+        "events": [
+          {
+            "sequence": 1,
+            "monotonicNs": "119633048892333",
+            "type": "spawn",
+            "pid": 89455,
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "--max-old-space-size=96",
+              "--import",
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs",
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/stream-fixture.mjs",
+              "1073872896",
+              "0"
+            ]
+          },
+          {
+            "sequence": 2,
+            "monotonicNs": "119633414369125",
+            "type": "stop-request",
+            "reason": {
+              "code": "V3_TIMEOUT",
+              "message": "CONTROL_BOUNDARY:V3_TIMEOUT"
+            },
+            "pipeDestroyed": false
+          },
+          {
+            "sequence": 3,
+            "monotonicNs": "119633414417041",
+            "type": "signal-return",
+            "accepted": true
+          },
+          {
+            "sequence": 4,
+            "monotonicNs": "119633423469250",
+            "type": "producer-exit",
+            "status": null,
+            "signal": "SIGTERM",
+            "pipeDestroyed": false
+          },
+          {
+            "sequence": 5,
+            "monotonicNs": "119633423514125",
+            "type": "owned-pipe-destroy",
+            "exited": true,
+            "status": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "sequence": 6,
+            "monotonicNs": "119633423562916",
+            "type": "producer-close",
+            "status": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "sequence": 7,
+            "monotonicNs": "119633423582500",
+            "type": "pipe-close",
+            "exited": true
+          },
+          {
+            "sequence": 8,
+            "monotonicNs": "119633423630833",
+            "type": "throw-original",
+            "code": "V3_TIMEOUT",
+            "message": "CONTROL_BOUNDARY:V3_TIMEOUT"
+          },
+          {
+            "sequence": 9,
+            "monotonicNs": "119633423754250",
+            "type": "core-settled",
+            "exited": true,
+            "closed": true,
+            "sameFailureObject": true
+          }
+        ],
+        "sameFailureObject": true,
+        "completed": true,
+        "error": null,
+        "caller": {
+          "code": "V3_TIMEOUT",
+          "message": "CONTROL_BOUNDARY:V3_TIMEOUT"
+        },
+        "signalAccepted": true,
+        "exit": {
+          "status": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "status": null,
+          "signal": "SIGTERM"
+        }
+      },
+      "observedSha256": "9bc1b2a288b26af7257a36277ae3816a7d4f16e89c1e7e77d0a5c48bad62b360",
+      "mutation": {
+        "steps": 0,
+        "retainedBytes": 0,
+        "touchedByte": null
+      },
+      "retainedAllocations": 0,
+      "thresholdBytes": 268435456,
+      "operator": "<",
+      "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+    },
+    "error": null
+  },
+  "producer": {
+    "value": {
+      "pid": 89455,
+      "ppid": 89454,
+      "status": null,
+      "signal": "SIGTERM",
+      "uncaught": null,
+      "memory": {
+        "baseline": {
+          "rss": 45170688,
+          "heapTotal": 5652480,
+          "heapUsed": 4871000,
+          "external": 1962447,
+          "arrayBuffers": 16655
+        },
+        "fieldwisePeaks": {
+          "rss": 46956544,
+          "heapTotal": 6701056,
+          "heapUsed": 4951048,
+          "external": 2028023,
+          "arrayBuffers": 82191
+        },
+        "latest": {
+          "rss": 46956544,
+          "heapTotal": 6701056,
+          "heapUsed": 4639664,
+          "external": 2028023,
+          "arrayBuffers": 82191
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "flow": {
+        "writes": 19,
+        "acceptedBytes": 1245184,
+        "maxChunkBytes": 65536,
+        "falseWrites": 17,
+        "drains": 16,
+        "pendingDrains": 1,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 65536
+      },
+      "scope": "producer only; accepted writes are not a claim of delivered bytes"
+    },
+    "error": null
+  },
+  "producerCloseProof": {
+    "status": null,
+    "signal": "SIGTERM",
+    "stderr": "",
+    "timedOut": false,
+    "stderrOverflow": false
+  },
+  "operationSucceeded": false,
+  "supervisorMemoryExcluded": {
+    "baseline": {
+      "rss": 67469312,
+      "heapTotal": 12435456,
+      "heapUsed": 8396128,
+      "external": 8131942,
+      "arrayBuffers": 5923172
+    },
+    "fieldwisePeaks": {
+      "rss": 67469312,
+      "heapTotal": 13074432,
+      "heapUsed": 9192768,
+      "external": 8334704,
+      "arrayBuffers": 6060398
+    },
+    "latest": {
+      "rss": 66928640,
+      "heapTotal": 13074432,
+      "heapUsed": 8951448,
+      "external": 2713059,
+      "arrayBuffers": 438753
+    },
+    "samples": 4,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "assertionState": "not evaluated; all available numeric and process outcomes durable first",
+  "outputHashes": {
+    "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "harnessSettlementAt": "2026-08-28T00:16:59.447Z"
+}

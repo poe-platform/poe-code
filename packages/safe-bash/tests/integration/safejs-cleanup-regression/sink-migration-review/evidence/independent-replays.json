@@ -1,0 +1,63 @@
+{
+  "reviewer": "surfaceauditor01a04292-5421-7363-8bcb-a70b97fae4e9",
+  "startedAt": "2026-08-27T10:38:12.712Z",
+  "node": "v22.22.2",
+  "driverSha256": "5d5f7ae353e35cfa44e790ef5d87d220260ad998827e5e5d83b30f4116857ab6",
+  "attempts": [
+    {
+      "profile": "revised",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-cleanup-regression/sink-migration-review/migrations/sink-v2/run.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/revised"
+      ],
+      "startedAt": "2026-08-27T10:38:12.714Z",
+      "outerDeadlineMs": 180000,
+      "rescue": false,
+      "pid": 7574,
+      "status": 0,
+      "signal": null,
+      "waitedForClose": true,
+      "parentAlive": true,
+      "groupGone": true,
+      "finishedAt": "2026-08-27T10:38:51.426Z",
+      "captureStatus": "pass",
+      "cases": 19,
+      "accepted": 19,
+      "failed": [],
+      "guards": true,
+      "scratchRemoved": true
+    },
+    {
+      "profile": "original",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-cleanup-regression/sink-migration-review/migrations/sink-v2/run.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-cleanup-regression/sink-migration-review/evidence/original",
+        "--original"
+      ],
+      "startedAt": "2026-08-27T10:38:51.428Z",
+      "outerDeadlineMs": 180000,
+      "rescue": false,
+      "pid": 9520,
+      "status": 1,
+      "signal": null,
+      "waitedForClose": true,
+      "parentAlive": true,
+      "groupGone": true,
+      "finishedAt": "2026-08-27T10:39:28.377Z",
+      "captureStatus": "behavioral-failures",
+      "cases": 19,
+      "accepted": 18,
+      "failed": [
+        "literal-grep-caller-sink-error"
+      ],
+      "guards": true,
+      "scratchRemoved": true
+    }
+  ],
+  "status": "both-whole-cohorts-captured",
+  "finishedAt": "2026-08-27T10:39:28.379Z"
+}

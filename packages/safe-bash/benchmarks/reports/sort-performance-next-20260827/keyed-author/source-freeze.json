@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+  "textSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+  "sourceFrozen": true,
+  "guard": "exactly one key; effective n, no effective b/f; no global c; key-local flags replace global",
+  "caps": {
+    "entries": 16384,
+    "logicalRetainedStringBytes": 1048576,
+    "charge": "6*selected-key-byte-length+2"
+  },
+  "tests": {
+    "baselineNew": 24,
+    "candidateScoped": 99,
+    "build": "pass",
+    "scopedTypes": "pass with unchanged project tsconfig",
+    "precommitEvidence": "/tmp/sort-key-author-check-5420jG",
+    "initialHarnessFailure": "/tmp/sort-key-author-check-GcpSd1"
+  },
+  "reviewFreezeCheckedExistenceOnly": true,
+  "publicAPIChanged": false,
+  "sourceEditsComplete": true,
+  "remaining": "author immutable archive frozen21 / operation counts / evidence only; root final acceptance"
+}

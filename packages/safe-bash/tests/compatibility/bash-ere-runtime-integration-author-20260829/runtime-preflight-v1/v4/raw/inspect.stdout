@@ -1,0 +1,1043 @@
+
+FILE src/shell/arrays/ledger.ts
+1: export class ArrayFailure extends Error {
+2:   constructor(detail: string) { super(`indexed array: ${detail}`); }
+3: }
+4: 
+5: export interface Charge {
+6:   readonly wrappers?: number;
+7:   readonly slots?: number;
+8:   readonly payload?: number;
+9:   readonly metadata?: number;
+10:   readonly allocatedSlots?: number;
+11:   readonly work?: number;
+12:   readonly generation?: boolean | number;
+13:   readonly version?: boolean | number;
+14:   readonly epoch?: boolean | number;
+15: }
+16: 
+17: export interface Tickets {
+18:   readonly generation: number;
+19:   readonly version: number;
+20:   readonly epoch: number;
+21: }
+22: 
+23: const labels = ["wrapper", "Map slot", "payload", "metadata", "allocated byte", "allocated slot", "work"] as const;
+24: type Counters = [number, number, number, number, number, number, number];
+25: 
+26: export class Admission implements Tickets {
+27:   previous: Admission | undefined;
+28:   next: Admission | undefined;
+29:   owner: ArrayOwner | undefined;
+30:   released = false;
+31:   cleanup: (() => void) | undefined;
+32:   restorationReferences = 0;
+33: 
+34:   constructor(
+35:     readonly ledger: ArrayLedger,
+36:     readonly wrappers: number,
+37:     readonly slots: number,
+38:     readonly payload: number,
+39:     readonly metadata: number,
+40:     readonly generation: number,
+41:     readonly version: number,
+42:     readonly epoch: number,
+43:   ) {}
+44: 
+45:   release(): void {
+46:     if (this.released) return;
+47:     this.released = true;
+48:     this.cleanup?.();
+49:     this.owner?.detach(this);
+50:     this.ledger.release(this);
+51:   }
+52: }
+53: 
+54: export class ArrayLedger {
+55:   #caps: Counters | undefined;
+56:   #used: Counters = [0, 0, 0, 0, 0, 0, 0];
+57:   #lastIssued = 0;
+58:   #checkpoint = 0;
+59: 
+60:   constructor(readonly bytes: number, readonly fields: number, initialTicket = 0) {
+61:     if (!Number.isSafeInteger(initialTicket) || initialTicket < 0) throw new RangeError("Invalid private initial ticket");
+62:     this.#lastIssued = initialTicket;
+63:   }
+64: 
+65:   get active(): boolean { return this.#caps !== undefined; }
+66: 
+67:   snapshot(): { readonly caps: readonly number[] | undefined; readonly used: readonly number[]; readonly lastIssued: number } {
+68:     return { caps: this.#caps?.slice(), used: this.#used.slice(), lastIssued: this.#lastIssued };
+69:   }
+70: 
+71:   reserve(charge: Charge = {}): Admission {
+72:     const caps = this.#caps ?? this.derive();
+73:     let cursor = this.#lastIssued;
+74:     const ticket = (requested: boolean | number | undefined, label: string): number => {
+75:       if (!requested) return 0;
+76:       const count = requested === true ? 1 : requested;
+77:       if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure(`private ${label} capacity exhausted`);
+78:       cursor += count;
+79:       return cursor;
+80:     };
+81:     const generation = ticket(charge.generation, "generation");
+82:     const version = ticket(charge.version, "version");
+83:     const epoch = ticket(charge.epoch, "epoch");
+84:     const wrappers = charge.wrappers ?? 0;
+85:     const slots = charge.slots ?? 0;
+86:     const payload = charge.payload ?? 0;
+87:     const metadataRequest = BigInt(charge.metadata ?? 0) + 64n;
+88:     const allocatedSlots = charge.allocatedSlots ?? slots;
+89:     const work = BigInt(charge.work ?? 0) + 15n;
+90:     const requested = [BigInt(wrappers), BigInt(slots), BigInt(payload), metadataRequest, BigInt(payload) + metadataRequest, BigInt(allocatedSlots), work];
+91:     for (let index = 0; index < requested.length; index++) {
+92:       const amount = requested[index]!;
+93:       if (amount < 0n || amount > BigInt(caps[index]! - this.#used[index]!)) {
+94:         throw new ArrayFailure(`private ${labels[index]} limit exceeded`);
+95:       }
+96:     }
+97:     this.#caps = caps;
+98:     this.#lastIssued = cursor;
+99:     for (let index = 0; index < requested.length; index++) this.#used[index]! += Number(requested[index]!);
+100:     return new Admission(this, wrappers, slots, payload, Number(metadataRequest), generation, version, epoch);
+101:   }
+102: 
+103:   private derive(): Counters {
+104:     const bytes = BigInt(this.bytes);
+105:     const fields = BigInt(this.fields);
+106:     const values = [fields, fields, bytes, 128n * fields, 8n * bytes + 512n * fields, 8n * fields, 32n * bytes + 256n * fields];
+107:     const result: Counters = [0, 0, 0, 0, 0, 0, 0];
+108:     for (let index = 0; index < values.length; index++) {
+109:       const value = values[index]!;
+110:       if (value < 0n || value > BigInt(Number.MAX_SAFE_INTEGER)) throw new ArrayFailure(`private ${labels[index]} capacity is not representable`);
+111:       result[index] = Number(value);
+112:     }
+113:     return result;
+114:   }
+115: 
+116:   release(admission: Admission): void {
+117:     this.#used[0] -= admission.wrappers;
+118:     this.#used[1] -= admission.slots;
+119:     this.#used[2] -= admission.payload;
+120:     this.#used[3] -= admission.metadata;
+121:   }
+122: 
+123:   checkpoint(signal?: AbortSignal, units = 1): Promise<void> | undefined {
+124:     signal?.throwIfAborted();
+125:     this.#checkpoint += units;
+126:     if (this.#checkpoint >= 128) {
+127:       this.#checkpoint %= 128;
+128:       return new Promise<void>((resolve, reject) => setImmediate(() => {
+129:         try { signal?.throwIfAborted(); resolve(); }
+130:         catch (error) { reject(error); }
+131:       }));
+132:     }
+133:   }
+134: }
+135: 
+136: export function exactSum(left: number, right: number): number {
+137:   if (!Number.isSafeInteger(left) || !Number.isSafeInteger(right) || left < 0 || right < 0 || left > Number.MAX_SAFE_INTEGER - right) {
+138:     throw new ArrayFailure("private allocated byte capacity is not representable");
+139:   }
+140:   return left + right;
+141: }
+142: 
+143: export class ArrayOwner {
+144:   #head: Admission | undefined;
+145:   #firstChild: ArrayOwner | undefined;
+146:   #nextSibling: ArrayOwner | undefined;
+147:   #previousSibling: ArrayOwner | undefined;
+148:   #closed = false;
+149:   #started = false;
+150:   #resolve!: () => void;
+151:   #reject!: (error: unknown) => void;
+152:   #holds = 0;
+153:   #resolveIdle!: () => void;
+154:   readonly #idle: Promise<void>;
+155:   #releasing = false;
+156:   readonly completion: Promise<void>;
+157: 
+158:   private constructor(readonly ledger: ArrayLedger, readonly parent: ArrayOwner | undefined, readonly header: Admission) {
+159:     this.completion = new Promise<void>((resolve, reject) => { this.#resolve = resolve; this.#reject = reject; });
+160:     this.#idle = new Promise<void>(resolve => { this.#resolveIdle = resolve; });
+161:     void this.completion.catch(() => undefined);
+162:   }
+163: 
+164:   static create(ledger: ArrayLedger, parent?: ArrayOwner): ArrayOwner {
+165:     parent?.assertOpen();
+166:     const header = ledger.reserve({ metadata: 64, work: 9 });
+167:     const owner = new ArrayOwner(ledger, parent, header);
+168:     if (parent) {
+169:       owner.#nextSibling = parent.#firstChild;
+170:       if (parent.#firstChild) parent.#firstChild.#previousSibling = owner;
+171:       parent.#firstChild = owner;
+172:     }
+173:     return owner;
+174:   }
+175: 
+176:   assertOpen(): void {
+177:     if (this.#closed) throw new ArrayFailure("ownership admission is closed");
+178:     this.parent?.assertOpen();
+179:   }
+180: 
+181:   reserve(charge: Charge): Admission {
+182:     this.assertOpen();
+183:     return this.adopt(this.ledger.reserve(charge));
+184:   }
+185: 
+186:   adopt(admission: Admission, prepaid = false): Admission {
+187:     const root = this.root();
+188:     if (!prepaid || !root.#holds || root.#releasing) this.assertOpen();
+189:     if (admission.released || admission.ledger !== this.ledger) throw new Error("Invalid indexed-array ownership transfer");
+190:     admission.owner?.detach(admission);
+191:     admission.owner = this;
+192:     admission.previous = undefined;
+193:     admission.next = this.#head;
+194:     if (this.#head) this.#head.previous = admission;
+195:     this.#head = admission;
+196:     return admission;
+197:   }
+198: 
+199:   private root(): ArrayOwner {
+200:     let root: ArrayOwner = this;
+201:     while (root.parent) root = root.parent;
+202:     return root;
+203:   }
+204: 
+205:   hold(): Admission {
+206:     this.assertOpen();
+207:     const root = this.root();
+208:     if (root.#holds === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("resource capacity exhausted");
+209:     const admission = this.reserve({ metadata: 64, work: 5 });
+210:     root.#holds++;
+211:     admission.cleanup = () => {
+212:       root.#holds--;
+213:       if (!root.#holds && root.#closed) root.#resolveIdle();
+214:     };
+215:     return admission;
+216:   }
+217: 
+218:   detach(admission: Admission): void {
+219:     if (admission.previous) admission.previous.next = admission.next;
+220:     else this.#head = admission.next;
+221:     if (admission.next) admission.next.previous = admission.previous;
+222:     admission.owner = undefined;
+223:     admission.previous = undefined;
+224:     admission.next = undefined;
+225:   }
+226: 
+227:   close(): Promise<void> {
+228:     if (!this.#started) {
+229:       this.#started = true;
+230:       this.#closed = true;
+231:       void this.drain().then(this.#resolve, this.#reject);
+232:     }
+233:     return this.completion;
+234:   }
+235: 
+236:   private async drain(): Promise<void> {
+237:     if (!this.parent) {
+238:       if (this.#holds) await this.#idle;
+239:       this.#releasing = true;
+240:     }
+241:     while (this.#firstChild) {
+242:       await this.#firstChild.close();
+243:       const checkpoint = this.ledger.checkpoint();
+244:       if (checkpoint) await checkpoint;
+245:     }
+246:     while (this.#head) {
+247:       this.#head.release();
+248:       const checkpoint = this.ledger.checkpoint();
+249:       if (checkpoint) await checkpoint;
+250:     }
+251:     if (this.parent) {
+252:       if (this.#previousSibling) this.#previousSibling.#nextSibling = this.#nextSibling;
+253:       else this.parent.#firstChild = this.#nextSibling;
+254:       if (this.#nextSibling) this.#nextSibling.#previousSibling = this.#previousSibling;
+255:     }
+256:     this.header.release();
+257:   }
+258: }
+259: 
+
+FILE src/shell/arrays/bindings.ts
+1: import { Admission, ArrayFailure, ArrayLedger, ArrayOwner, exactSum } from "./ledger.js";
+2: import type { Tickets } from "./ledger.js";
+3: 
+4: export const controlNames: ReadonlySet<string> = new Set([
+5:   "PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "OPTARG", "REPLY", "LANG", "LC_ALL", "LC_CTYPE",
+6: ]);
+7: 
+8: export class OwnedText {
+9:   references = 1;
+10: 
+11:   constructor(readonly value: string, readonly bytes: number, readonly admission: Admission) {}
+12: 
+13:   retain(): this {
+14:     if (this.references === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("reference capacity is not representable");
+15:     this.references++;
+16:     return this;
+17:   }
+18: 
+19:   release(): void {
+20:     if (--this.references === 0) this.admission.release();
+21:   }
+22: }
+23: 
+24: export async function textToken(owner: ArrayOwner, value: string, signal: AbortSignal): Promise<OwnedText> {
+25:   let bytes = 0;
+26:   for (let offset = 0; offset < value.length;) {
+27:     const end = Math.min(value.length, offset + 64);
+28:     owner.reserve({ work: end - offset }).release();
+29:     while (offset < end) {
+30:       const code = value.codePointAt(offset)!;
+31:       bytes = exactSum(bytes, code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4);
+32:       offset += code > 0xffff ? 2 : 1;
+33:     }
+34:     await owner.ledger.checkpoint(signal, 64);
+35:   }
+36:   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
+37:   return new OwnedText(value, bytes, admission);
+38: }
+39: 
+40: export interface Element {
+41:   readonly text: OwnedText;
+42:   readonly slot: Admission;
+43: }
+44: 
+45: export class IndexedBinding {
+46:   readonly values = new Map<number, Element>();
+47:   maximum = -1;
+48:   generation = 0;
+49:   version = 0;
+50:   references = 1;
+51: 
+52:   private constructor(readonly owner: ArrayOwner) {}
+53: 
+54:   static create(parent: ArrayOwner): IndexedBinding {
+55:     const owner = ArrayOwner.create(parent.ledger, parent);
+56:     try {
+57:       owner.reserve({ wrappers: 1, metadata: 128, work: 7 });
+58:       return new IndexedBinding(owner);
+59:     } catch (error) {
+60:       void owner.close();
+61:       throw error;
+62:     }
+63:   }
+64: 
+65:   get(index: number): string | undefined { return this.values.get(index)?.text.value; }
+66: 
+67:   retain(): this {
+68:     if (this.references === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("reference capacity is not representable");
+69:     this.references++;
+70:     return this;
+71:   }
+72: 
+73:   release(): Promise<void> | undefined {
+74:     if (--this.references === 0) return this.owner.close();
+75:     return undefined;
+76:   }
+77: 
+78:   insert(index: number, text: OwnedText): void {
+79:     const slot = this.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+80:     const previous = this.values.get(index);
+81:     const element = { text, slot };
+82:     slot.cleanup = () => {
+83:       if (this.values.get(index) === element) this.values.delete(index);
+84:       text.release();
+85:     };
+86:     this.values.set(index, element);
+87:     if (index > this.maximum) this.maximum = index;
+88:     previous?.slot.release();
+89:   }
+90: 
+91:   async copy(signal: AbortSignal): Promise<IndexedBinding> {
+92:     const copy = IndexedBinding.create(this.owner.parent!);
+93:     this.retain();
+94:     try {
+95:       for (const [index, element] of this.values) {
+96:         copy.owner.reserve({ work: 2 }).release();
+97:         const slot = copy.owner.reserve({ slots: 1, metadata: 32, work: 5 });
+98:         const text = element.text.retain();
+99:         const cloned = { text, slot };
+100:         slot.cleanup = () => { if (copy.values.get(index) === cloned) copy.values.delete(index); text.release(); };
+101:         copy.values.set(index, cloned);
+102:         if (index > copy.maximum) copy.maximum = index;
+103:         await copy.owner.ledger.checkpoint(signal, 2);
+104:       }
+105:       return copy;
+106:     } catch (error) { await copy.release(); throw error; }
+107:     finally { await this.release(); }
+108:   }
+109: 
+110:   async indices(owner: ArrayOwner, signal: AbortSignal): Promise<number[]> {
+111:     const size = this.values.size;
+112:     owner.reserve({ metadata: exactSum(128, size * 64), allocatedSlots: size * 2, work: size * 4 + 6 });
+113:     let indices: number[] = [];
+114:     let scratch: number[] = [];
+115:     for (const index of this.values.keys()) {
+116:       indices.push(index);
+117:       await owner.ledger.checkpoint(signal);
+118:     }
+119:     for (let width = 1; width < size; width *= 2) {
+120:       for (let start = 0; start < size; start += width * 2) {
+121:         let left = start;
+122:         let right = Math.min(size, start + width);
+123:         const leftEnd = right;
+124:         const rightEnd = Math.min(size, start + width * 2);
+125:         for (let destination = start; destination < rightEnd; destination++) {
+126:           owner.reserve({ work: 2 }).release();
+127:           scratch[destination] = left < leftEnd && (right >= rightEnd || indices[left]! <= indices[right]!) ? indices[left++]! : indices[right++]!;
+128:           await owner.ledger.checkpoint(signal, 2);
+129:         }
+130:       }
+131:       const temporary = indices;
+132:       indices = scratch;
+133:       scratch = temporary;
+134:     }
+135:     return indices;
+136:   }
+137: }
+138: 
+139: interface Watch {
+140:   generation: number;
+141:   version: number;
+142:   observers: number;
+143:   typedVersion: number;
+144:   readonly admission: Admission;
+145:   readonly name: OwnedText;
+146: }
+147: 
+148: export class BindingWatch {
+149:   #closed = false;
+150:   readonly generation: number;
+151:   readonly version: number;
+152:   readonly typedVersion: number;
+153: 
+154:   constructor(readonly store: BindingStore, readonly name: string, readonly watch: Watch, readonly admission: Admission) {
+155:     this.generation = watch.generation;
+156:     this.version = watch.version;
+157:     this.typedVersion = watch.typedVersion;
+158:   }
+159: 
+160:   valid(): boolean { return this.watch.generation === this.generation && this.watch.version === this.version; }
+161: 
+162:   close(): void {
+163:     if (this.#closed) return;
+164:     this.#closed = true;
+165:     this.store.retire(this.name, this.watch);
+166:     this.admission.release();
+167:   }
+168: }
+169: 
+170: interface NamedBinding {
+
+FILE src/commands/regex-execution/ere/transport/worker-entry.ts
+1: import { isMainThread, parentPort, workerData } from "node:worker_threads";
+2: import { operation, EreTransportError } from "./protocol.js";
+3: import { record } from "./validation.js";
+4: import { executeWireRequest } from "./wire-engine.js";
+5: import { add, integer } from "./accounting.js";
+6: 
+7: if (isMainThread || !parentPort) throw new EreTransportError("PROTOCOL", "ERE entry requires its owned Worker");
+8: let startupWork = 0;
+9: const data = record(workerData, ["operation", "version"], units => { startupWork = add(startupWork, units); });
+10: if (data.operation !== operation || data.version !== 1) throw new EreTransportError("PROTOCOL", "invalid ERE Worker data");
+11: const port = parentPort;
+12: let busy = false;
+13: let lastId = 0;
+14: port.on("message", (message: unknown) => {
+15:   if (busy) throw new EreTransportError("PROTOCOL", "concurrent ERE Worker request");
+16:   let entryWork = startupWork;
+17:   const frame = record(message, ["version", "operation", "id", "grantId", "profile", "bounds", "allowance", "pattern", "subject"], units => { entryWork = add(entryWork, units); });
+18:   integer(frame.id);
+19:   if (frame.id <= lastId) throw new EreTransportError("PROTOCOL", "replayed ERE request");
+20:   lastId = frame.id;
+21:   busy = true;
+22:   startupWork = 0;
+23:   void executeWireRequest(message, entryWork).then(reply => {
+24:     port.postMessage(reply);
+25:     busy = false;
+26:   }).catch(error => { queueMicrotask(() => { throw error; }); });
+27: });
+28: port.postMessage({ version: 1, operation, kind: "ready" });
+29: 
+
+FILE src/commands/regex-execution/ere/transport/owner.ts
+1: import { Worker } from "node:worker_threads";
+2: import type { Readable } from "node:stream";
+3: import type { TransportAccounting } from "./accounting.js";
+4: import { EreTransportError, operation } from "./protocol.js";
+5: import type { EreTransportRequest } from "./protocol.js";
+6: import { record } from "./validation.js";
+7: 
+8: interface Pending {
+9:   readonly resolve: (value: unknown) => void;
+10:   readonly reject: (reason: unknown) => void;
+11:   readonly timer: ReturnType<typeof setTimeout>;
+12: }
+13: 
+14: export class EreWorkerOwner {
+15:   #worker: Worker | undefined;
+16:   #exited: Promise<void> | undefined;
+17:   #exitResolve: (() => void) | undefined;
+18:   #ready: Promise<void> | undefined;
+19:   #readyResolve: (() => void) | undefined;
+20:   #readyReject: ((reason: unknown) => void) | undefined;
+21:   #startupTimer: ReturnType<typeof setTimeout> | undefined;
+22:   #pending: Pending | undefined;
+23:   #request: Promise<unknown> | undefined;
+24:   #stdout: Promise<void> | undefined;
+25:   #stderr: Promise<void> | undefined;
+26:   #closing: Promise<void> | undefined;
+27:   #failed = false;
+28:   #failure: unknown;
+29:   #readySeen = false;
+30:   #exitListenerInstalled = false;
+31:   #notificationFailed = false;
+32:   #notificationFailure: unknown;
+33:   constructor(readonly onFailure: (reason: unknown) => void, readonly transport: TransportAccounting) {}
+34: 
+35:   #settle(reason: unknown): void {
+36:     clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
+37:     this.#readyReject?.(reason);
+38:     this.#readyReject = undefined; this.#readyResolve = undefined;
+39:     const pending = this.#pending; this.#pending = undefined;
+40:     if (pending) { clearTimeout(pending.timer); pending.reject(reason); }
+41:   }
+42: 
+43:   #fail(reason: unknown): void {
+44:     if (this.#failed) return;
+45:     this.#failed = true; this.#failure = reason;
+46:     this.#settle(reason);
+47:     try { this.onFailure(reason); }
+48:     catch (notificationFailure) { this.#notificationFailed = true; this.#notificationFailure = notificationFailure; }
+49:     void this.close().catch(() => {});
+50:   }
+51: 
+52:   #stream(stream: Readable): Promise<void> {
+53:     const ended = new Promise<void>(resolve => {
+54:       stream.once("end", resolve); stream.once("close", resolve);
+55:       stream.on("error", (reason: unknown) => this.#fail(reason));
+56:       stream.on("data", () => this.#fail(new EreTransportError("PROTOCOL", "unexpected ERE Worker output")));
+57:       if (stream.readableEnded || stream.closed) resolve();
+58:     });
+59:     return ended;
+60:   }
+61: 
+62:   start(): Promise<void> {
+63:     if (this.#failed) return Promise.reject(this.#failure);
+64:     if (this.#closing) return Promise.reject(new EreTransportError("CLOSED", "ERE Worker is closing"));
+65:     if (!this.#ready) {
+66:       this.#ready = new Promise<void>((resolve, reject) => { this.#readyResolve = resolve; this.#readyReject = reject; });
+67:       void this.#ready.catch(() => {});
+68:       this.#exited = new Promise<void>(resolve => { this.#exitResolve = resolve; });
+69:       try {
+70:         const worker = new Worker(new URL("./worker-entry.js", import.meta.url), {
+71:           workerData: { operation, version: 1 }, env: {}, execArgv: [], stdout: true, stderr: true,
+72:           resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 },
+73:         });
+74:         this.#worker = worker;
+75:         worker.once("exit", () => {
+76:           this.#exitResolve?.();
+77:           if (!this.#closing) this.#fail(new EreTransportError("WORKER_EXIT", "owned ERE Worker exited"));
+78:         });
+79:         this.#exitListenerInstalled = true;
+80:         worker.on("error", (reason: unknown) => this.#fail(reason));
+81:         worker.on("messageerror", (reason: unknown) => this.#fail(reason));
+82:         this.#stdout = this.#stream(worker.stdout);
+83:         this.#stderr = this.#stream(worker.stderr);
+84:         worker.on("message", (message: unknown) => {
+85:           if (this.#closing || this.#failed) return;
+86:           try {
+87:             if (!this.#readySeen) {
+88:               const ready = record(message, ["version", "operation", "kind"], units => this.transport.visit(units), this.transport);
+89:               if (ready.version !== 1 || ready.operation !== operation || ready.kind !== "ready") throw new EreTransportError("PROTOCOL", "invalid ERE startup frame");
+90:               this.transport.visit(14);
+91:               this.#readySeen = true; clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
+92:               this.#readyResolve?.(); this.#readyResolve = undefined; this.#readyReject = undefined; return;
+93:             }
+94:             const pending = this.#pending;
+95:             if (!pending) throw new EreTransportError("PROTOCOL", "unsolicited ERE frame");
+96:             this.#pending = undefined; clearTimeout(pending.timer); pending.resolve(message);
+97:           } catch (reason) { this.#fail(reason); }
+98:         });
+99:         this.#startupTimer = setTimeout(() => this.#fail(new EreTransportError("STARTUP_TIMEOUT", "ERE startup timeout")), 3000);
+100:       } catch (reason) {
+101:         if (!this.#worker) this.#exitResolve?.();
+102:         this.#fail(reason);
+103:       }
+104:     }
+105:     return this.#ready;
+106:   }
+107: 
+108:   request(request: EreTransportRequest, posted: () => void): Promise<unknown> {
+109:     if (this.#failed) return Promise.reject(this.#failure);
+110:     if (!this.#worker || !this.#readySeen || this.#pending || this.#closing) return Promise.reject(new EreTransportError("CLOSED", "ERE Worker request unavailable"));
+111:     const pending = new Promise<unknown>((resolve, reject) => {
+112:       const timer = setTimeout(() => this.#fail(new EreTransportError("REQUEST_TIMEOUT", "ERE request timeout")), 1000);
+113:       this.#pending = { resolve, reject, timer };
+114:     });
+115:     this.#request = pending;
+116:     void pending.catch(() => {});
+117:     try { posted(); this.#worker.postMessage(request); }
+118:     catch (reason) { this.#fail(reason); }
+119:     const forget = (): void => { if (this.#request === pending) this.#request = undefined; };
+120:     void pending.then(forget, forget);
+121:     return pending;
+122:   }
+123: 
+124:   close(): Promise<void> {
+125:     if (this.#closing) return this.#closing;
+126:     const ready = this.#ready;
+127:     const request = this.#request;
+128:     this.#closing = Promise.resolve().then(async () => {
+129:       const worker = this.#worker;
+130:       const termination = Promise.resolve().then(async () => {
+131:         if (!worker) return;
+132:         await worker.terminate();
+133:         if (!this.#exitListenerInstalled) this.#exitResolve?.();
+134:       });
+135:       const retired = await Promise.allSettled([termination, this.#exited, this.#stdout, this.#stderr]);
+136:       await Promise.allSettled([ready, request]);
+137:       for (const result of retired) if (result.status === "rejected") throw result.reason;
+138:       if (this.#notificationFailed) throw this.#notificationFailure;
+139:       this.#worker = undefined;
+140:     });
+141:     this.#settle(this.#failed ? this.#failure : new EreTransportError("CLOSED", "ERE Worker closed"));
+142:     void this.#closing.catch(() => {});
+143:     return this.#closing;
+144:   }
+145: }
+146: 
+
+FILE src/commands/regex-execution/ere/transport/validation.ts
+1: import { types as utilTypes } from "node:util";
+2: import { EreProfileLimitError, EreUnsupportedError } from "../errors.js";
+3: import { deriveEreLimits } from "../limits.js";
+4: import type { EreFragment, EreLimits, EreResource, EreUsage } from "../types.js";
+5: import { add, integer, multiply, TransportAccounting } from "./accounting.js";
+6: import { EreTransportError, EreTransportProfileLimitError, operation, profile, resources } from "./protocol.js";
+7: import type { EreTransportInput, EreTransportReply, EreTransportRequest, EreTransportResult } from "./protocol.js";
+8: 
+9: const inputKeys = Object.freeze(["pattern", "subject"]);
+10: const fragmentKeys = Object.freeze(["text", "literal"]);
+11: const resultKeys = Object.freeze(["matched", "groupCount", "spans", "steps", "allocatedUnits"]);
+12: const spanKeys = Object.freeze(["start", "end"]);
+13: const replyKeys = Object.freeze(["version", "operation", "id", "grantId", "kind", "result", "usage"]);
+14: const failureKeys = Object.freeze(["version", "operation", "id", "grantId", "kind", "category", "resource", "offset", "usage"]);
+15: 
+16: function fail(): never { throw new EreTransportError("PROTOCOL", "invalid ERE transport frame"); }
+17: 
+18: function data(value: unknown, key: string, transport?: TransportAccounting): unknown {
+19:   const scratch = transport?.owned(5);
+20:   try {
+21:     if (value === null || typeof value !== "object" || utilTypes.isProxy(value)) return fail();
+22:   const descriptor = Object.getOwnPropertyDescriptor(value, key);
+23:   if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
+24:   return descriptor.value;
+25:   } finally { scratch?.retire(); }
+26: }
+27: 
+28: function indexed(value: readonly unknown[], index: number, transport?: TransportAccounting): unknown {
+29:   const scratch = transport?.owned(16);
+30:   try { return data(value, String(index), transport); }
+31:   finally { scratch?.retire(); }
+32: }
+33: 
+34: export function record(value: unknown, keys: readonly string[], visit: (units: number) => void, transport?: TransportAccounting): Record<string, unknown> {
+35:   visit(1 + keys.length);
+36:   if (value === null || typeof value !== "object" || utilTypes.isProxy(value) || Array.isArray(value)) return fail();
+37:   const scratch = transport?.owned(add(1, multiply(keys.length, 6)));
+38:   try {
+39:     const actual = Reflect.ownKeys(value);
+40:   if (actual.length !== keys.length) return fail();
+41:   for (let index = 0; index < keys.length; index++) {
+42:     if (actual[index] !== keys[index]) return fail();
+43:     const descriptor = Object.getOwnPropertyDescriptor(value, keys[index]!);
+44:     if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
+45:   }
+46:   return value as Record<string, unknown>;
+47:   } finally { scratch?.retire(); }
+48: }
+49: 
+50: function array(value: unknown, maximum: number, visit: (units: number) => void, overLimit: () => never = fail, transport?: TransportAccounting): readonly unknown[] {
+51:   visit(1);
+52:   if (value === null || typeof value !== "object" || utilTypes.isProxy(value) || !Array.isArray(value)) return fail();
+53:   const lengthValue = data(value, "length", transport);
+54:   integer(lengthValue);
+55:   if (lengthValue > maximum) return overLimit();
+56:   visit(lengthValue);
+57:   const scratch = transport?.owned(add(2, multiply(lengthValue, 22)));
+58:   try {
+59:     const keys = Reflect.ownKeys(value);
+60:   if (keys.length !== lengthValue + 1 || keys[keys.length - 1] !== "length") return fail();
+61:   for (let index = 0; index < lengthValue; index++) {
+62:     const key = String(index);
+63:     if (keys[index] !== key) return fail();
+64:     const descriptor = Object.getOwnPropertyDescriptor(value, key);
+65:     if (!descriptor || !Object.hasOwn(descriptor, "value")) return fail();
+66:   }
+67:   return value;
+68:   } finally { scratch?.retire(); }
+69: }
+70: 
+71: function ascii(value: unknown, cap: number, visit: (units: number) => void): string {
+72:   if (typeof value !== "string" || value.length > cap) return fail();
+73:   for (let offset = 0; offset < value.length; offset++) {
+74:     visit(1);
+75:     if (value.charCodeAt(offset) === 0 || value.charCodeAt(offset) > 127) return fail();
+76:   }
+77:   return value;
+78: }
+79: 
+80: export function usage(value: unknown, allowance: EreLimits, visit: (units: number) => void, transport?: TransportAccounting): EreUsage {
+81:   const fields = record(value, resources, visit, transport);
+82:   for (const key of resources) { integer(fields[key]); if ((fields[key] as number) > allowance[key]) return fail(); }
+83:   return fields as unknown as EreUsage;
+84: }
+85: 
+86: export interface InspectedInput {
+87:   readonly input: EreTransportInput;
+88:   readonly patternBytes: number;
+89:   readonly units: number;
+90: }
+91: 
+92: export function inspectInput(value: EreTransportInput, limits: EreLimits, transport: TransportAccounting, signal?: AbortSignal): InspectedInput {
+93:   const visit = (amount: number): void => { if (signal?.aborted) throw signal.reason; transport.visit(amount); };
+94:   const input = record(value, inputKeys, visit, transport);
+95:   if (typeof input.subject !== "string") return fail();
+96:   if (input.subject.length > limits.subjectBytes) throw new EreProfileLimitError("subjectBytes", limits.subjectBytes);
+97:   const maximum = Math.max(0, Math.floor((Math.floor(transport.available / 2) - 47 - input.subject.length) / 4));
+98:   const fragments = array(input.pattern, maximum, visit, () => { throw new EreTransportProfileLimitError("transportStorage", transport.storageLimit); }, transport);
+99:   let bytes = 0;
+100:   for (let index = 0; index < fragments.length; index++) {
+101:     const item = indexed(fragments, index, transport);
+102:     const fragment = record(item, fragmentKeys, visit, transport);
+103:     if (typeof fragment.text !== "string" || typeof fragment.literal !== "boolean") return fail();
+104:     if (fragment.text.length > limits.patternBytes - bytes) throw new EreProfileLimitError("patternBytes", limits.patternBytes);
+105:     for (let offset = 0; offset < fragment.text.length; offset++) {
+106:       visit(1);
+107:       if (fragment.text.charCodeAt(offset) === 0 || fragment.text.charCodeAt(offset) > 127) throw new EreUnsupportedError("transport requires non-NUL ASCII", bytes + offset);
+108:     }
+109:     bytes += fragment.text.length;
+110:   }
+111:   for (let offset = 0; offset < input.subject.length; offset++) {
+112:     visit(1);
+113:     if (input.subject.charCodeAt(offset) === 0 || input.subject.charCodeAt(offset) > 127) throw new EreUnsupportedError("transport requires non-NUL ASCII subject", offset);
+114:   }
+115:   const units = add(add(47, multiply(fragments.length, 4)), add(bytes, input.subject.length));
+116:   if (multiply(units, 2) > transport.available) throw new EreTransportProfileLimitError("transportStorage", transport.storageLimit);
+117:   return { input: value, patternBytes: bytes, units };
+118: }
+119: 
+120: export function copyInput(inspected: InspectedInput, transport: TransportAccounting): EreTransportInput {
+121:   transport.visit(inspected.units);
+122:   const pattern: EreFragment[] = [];
+123:   for (let index = 0; index < inspected.input.pattern.length; index++) {
+124:     const fragment = indexed(inspected.input.pattern, index, transport) as EreFragment;
+125:     const text = data(fragment, "text", transport);
+126:     const literal = data(fragment, "literal", transport);
+127:     if (typeof text !== "string" || typeof literal !== "boolean") return fail();
+128:     pattern.push(Object.freeze({ text, literal }));
+129:   }
+130:   return Object.freeze({ pattern: Object.freeze(pattern), subject: inspected.input.subject });
+131: }
+132: 
+133: export function validateRequest(value: unknown, prepaidWork = 0, observed?: (units: number) => void): EreTransportRequest {
+134:   integer(prepaidWork);
+135:   let work = prepaidWork;
+136:   let workLimit: number | undefined;
+137:   const visit = (amount: number): void => {
+138:     const next = add(work, amount);
+139:     if (workLimit !== undefined && next > workLimit) throw new EreProfileLimitError("work", workLimit);
+140:     work = next;
+141:     observed?.(amount);
+142:   };
+143:   const frame = record(value, ["version", "operation", "id", "grantId", "profile", "bounds", "allowance", "pattern", "subject"], visit);
+144:   if (frame.version !== 1 || frame.operation !== operation || frame.profile !== profile) return fail();
+145:   integer(frame.id); integer(frame.grantId); if (frame.id === 0 || frame.grantId === 0) return fail();
+146:   const bounds = record(frame.bounds, ["maxExpansionBytes", "maxExpansionFields"], visit);
+147:   integer(bounds.maxExpansionBytes); integer(bounds.maxExpansionFields);
+148:   const limits = deriveEreLimits({ maxExpansionBytes: bounds.maxExpansionBytes, maxExpansionFields: bounds.maxExpansionFields });
+149:   visit(resources.length);
+150:   const allowance = usage(frame.allowance, limits, visit);
+151:   workLimit = allowance.work;
+152:   if (work > workLimit) throw new EreProfileLimitError("work", workLimit);
+153:   const fragments = array(frame.pattern, Math.floor(limits.allocationUnits / 8), visit);
+154:   let bytes = 0;
+155:   for (let index = 0; index < fragments.length; index++) {
+156:     visit(1);
+157:     const item = indexed(fragments, index);
+158:     const fragment = record(item, ["text", "literal"], visit);
+159:     const text = ascii(fragment.text, limits.patternBytes - bytes, visit);
+160:     if (typeof fragment.literal !== "boolean") return fail(); bytes += text.length;
+161:   }
+162:   const subject = ascii(frame.subject, limits.subjectBytes, visit);
+163:   if (multiply(add(add(47, multiply(fragments.length, 4)), add(bytes, subject.length)), 2) > limits.allocationUnits) return fail();
+164:   return value as EreTransportRequest;
+165: }
+166: 
+167: export function validateReply(value: unknown, request: EreTransportRequest, visit: (units: number) => void, transport?: TransportAccounting): { reply: EreTransportReply; replyUnits: number; resultUnits: number } {
+168:   if (value === null || typeof value !== "object" || utilTypes.isProxy(value)) return fail();
+169:   const kind = data(value, "kind", transport);
+170:   const keys = kind === "result" ? replyKeys : failureKeys;
+171:   const frame = record(value, keys, visit, transport);
+172:   if (frame.version !== 1 || frame.operation !== operation || frame.id !== request.id || frame.grantId !== request.grantId) return fail();
+173:   const spent = usage(frame.usage, request.allowance, visit, transport);
+174:   visit(operation.length);
+175:   if (frame.kind === "failure") {
+176:     if (frame.category !== "syntax" && frame.category !== "unsupported" && frame.category !== "profile-limit") return fail();
+177:     if (frame.category === "profile-limit") {
+178:       if (!resources.includes(frame.resource as EreResource) || frame.offset !== null) return fail();
+179:     } else {
+180:       if (frame.resource !== null) return fail();
+181:       if (frame.offset !== null) { integer(frame.offset); if (frame.offset > request.allowance.patternBytes) return fail(); }
+182:     }
+183:     const units = 34 + frame.category.length + (typeof frame.resource === "string" ? frame.resource.length : 0);
+184:     visit(7 + frame.category.length + (typeof frame.resource === "string" ? frame.resource.length : 0));
+185:     return { reply: value as EreTransportReply, replyUnits: units, resultUnits: 0 };
+186:   }
+187:   if (frame.kind !== "result") return fail();
+188:   const result = record(frame.result, resultKeys, visit, transport);
+189:   if (typeof result.matched !== "boolean") return fail();
+190:   integer(result.groupCount); integer(result.steps); integer(result.allocatedUnits);
+191:   if (result.groupCount > 32 || result.steps !== spent.work || result.allocatedUnits !== spent.allocationUnits) return fail();
+192:   const spans = array(result.spans, 33, visit, fail, transport);
+193:   if (spans.length !== result.groupCount + 1) return fail();
+194:   let participating = 0; let captureBytes = 0; let overall: { start: number; end: number } | null = null;
+195:   for (let index = 0; index < spans.length; index++) {
+196:     const item = indexed(spans, index, transport);
+197:     if (item === null) { if (index === 0 && result.matched) return fail(); continue; }
+198:     if (!result.matched) return fail();
+199:     const span = record(item, spanKeys, visit, transport); integer(span.start); integer(span.end);
+200:     if (span.start > span.end || span.end > request.subject.length) return fail();
+201:     if (index === 0) overall = span as unknown as { start: number; end: number };
+202:     else if (!overall || span.start < overall.start || span.end > overall.end) return fail();
+203:     captureBytes = add(captureBytes, span.end - span.start); participating++;
+204:   }
+205:   if (result.matched ? spent.captureSlots !== spans.length || spent.captureBytes !== captureBytes : spent.captureSlots !== 0 || spent.captureBytes !== 0) return fail();
+206:   const resultUnits = 7 + spans.length + 3 * participating;
+207:   visit(6);
+208:   return { reply: value as EreTransportReply, replyUnits: 31 + resultUnits, resultUnits };
+209: }
+210: 
+211: export function copyReplyResult(reply: Extract<EreTransportReply, { kind: "result" }>, transport?: TransportAccounting): EreTransportResult {
+212:   const value = reply.result;
+213:   const spans: ({ readonly start: number; readonly end: number } | null)[] = [];
+214:   for (let index = 0; index < value.spans.length; index++) {
+215:     const span = indexed(value.spans, index, transport);
+216:     if (span === null) spans.push(null);
+217:     else {
+218:       const start = data(span, "start", transport);
+219:       const end = data(span, "end", transport);
+220:       integer(start); integer(end);
+221:       spans.push(Object.freeze({ start, end }));
+222:     }
+223:   }
+224:   return Object.freeze({ matched: value.matched, groupCount: value.groupCount, spans: Object.freeze(spans), steps: value.steps, allocatedUnits: value.allocatedUnits });
+225: }
+226: 
+
+FILE src/commands/regex-execution/ere/limits.ts
+1: import { setImmediate } from "node:timers/promises";
+2: import { EreProfileLimitError, EreUsageUnknownError } from "./errors.js";
+3: import type { EreExpansionBounds, EreLimits, EreResource, EreUsage } from "./types.js";
+4: 
+5: const resources: readonly EreResource[] = Object.freeze([
+6:   "patternBytes", "subjectBytes", "work", "states", "allocationUnits", "captureBytes", "captureSlots",
+7: ]);
+8: 
+9: function integer(value: number): void {
+10:   if (!Number.isSafeInteger(value) || value < 0) throw new TypeError("ERE bounds must be nonnegative safe integers");
+11: }
+12: 
+13: function multiply(value: number, factor: number, ceiling: number): number {
+14:   return value > Math.floor(ceiling / factor) ? ceiling : value * factor;
+15: }
+16: 
+17: export function deriveEreLimits(bounds: EreExpansionBounds): EreLimits {
+18:   integer(bounds.maxExpansionBytes);
+19:   integer(bounds.maxExpansionFields);
+20:   const bytes = bounds.maxExpansionBytes;
+21:   const fields = bounds.maxExpansionFields;
+22:   const byteUnits = multiply(bytes, 8, 4_000_000);
+23:   const fieldUnits = multiply(fields, 128, 4_000_000);
+24:   return Object.freeze({
+25:     patternBytes: Math.min(bytes, 65_536),
+26:     subjectBytes: Math.min(bytes, 1_048_576),
+27:     work: multiply(bytes, 32, 50_000_000),
+28:     states: multiply(fields, 8, 65_536),
+29:     allocationUnits: byteUnits >= 4_000_000 - fieldUnits ? 4_000_000 : byteUnits + fieldUnits,
+30:     captureBytes: bytes,
+31:     captureSlots: fields,
+32:   });
+33: }
+34: 
+35: export class EreLedger {
+36:   readonly limits: EreLimits;
+37:   #usage: Record<EreResource, number> = {
+38:     patternBytes: 0, subjectBytes: 0, work: 0, states: 0, allocationUnits: 0, captureBytes: 0, captureSlots: 0,
+39:   };
+40:   #poison: EreUsageUnknownError | undefined;
+41:   #lastYield = 0;
+42: 
+43:   constructor(bounds: EreExpansionBounds, lowering: Partial<EreLimits> = {}) {
+44:     const limits = { ...deriveEreLimits(bounds) };
+45:     for (const resource of Object.keys(lowering)) {
+46:       if (!resources.includes(resource as EreResource)) throw new TypeError("unknown ERE limit");
+47:       const key = resource as EreResource;
+48:       const value = lowering[key];
+49:       if (value === undefined) throw new TypeError("undefined ERE limit");
+50:       integer(value);
+51:       if (value > limits[key]) throw new RangeError("ERE limits may only be lowered");
+52:       limits[key] = value;
+53:     }
+54:     this.limits = Object.freeze(limits);
+55:   }
+56: 
+57:   get usage(): EreUsage { return Object.freeze({ ...this.#usage }); }
+58: 
+59:   check(signal?: AbortSignal): void {
+60:     if (signal?.aborted) throw signal.reason;
+61:     if (this.#poison) throw this.#poison;
+62:   }
+63: 
+64:   charge(resource: EreResource, amount: number, signal?: AbortSignal): void {
+65:     this.check(signal);
+66:     integer(amount);
+67:     if (amount > this.limits[resource] - this.#usage[resource]) {
+68:       throw new EreProfileLimitError(resource, this.limits[resource]);
+69:     }
+70:     this.#usage[resource] += amount;
+71:   }
+72: 
+73:   admitInput(resource: "patternBytes" | "subjectBytes", length: number, signal?: AbortSignal): void {
+74:     this.check(signal);
+75:     integer(length);
+76:     if (length > this.limits[resource]) throw new EreProfileLimitError(resource, this.limits[resource]);
+77:     this.#usage[resource] = Math.max(this.#usage[resource], length);
+78:   }
+79: 
+80:   async checkpoint(signal?: AbortSignal): Promise<void> {
+81:     this.check(signal);
+82:     if (this.#usage.work - this.#lastYield >= 256) {
+83:       this.#lastYield = this.#usage.work;
+84:       await setImmediate();
+85:       this.check(signal);
+86:     }
+87:   }
+88: 
+89:   markUnknownUsage(reason: unknown): void {
+90:     this.#poison ??= new EreUsageUnknownError(reason);
+91:   }
+92: }
+93: 
+
+FILE src/commands/regex-execution/ere/syntax.ts
+75:   constructor(readonly pattern: string, readonly quoted: readonly boolean[] | null, readonly ledger: EreLedger, readonly signal: AbortSignal | undefined) {}
+76: 
+77:   at(character: string, offset = this.offset): boolean { return !this.quoted?.[offset] && this.pattern[offset] === character; }
+78: 
+79:   node(create: () => EreNode): EreNode {
+80:     if (this.nodes >= 4096) throw new EreUnsupportedError("4096-node grammar ceiling", this.offset);
+81:     this.ledger.charge("allocationUnits", 8, this.signal);
+82:     this.nodes++;
+83:     return Object.freeze(create());
+84:   }
+85: 
+86:   async expression(depth: number): Promise<EreNode> {
+87:     if (depth > 64) throw new EreUnsupportedError("64-level grammar ceiling", this.offset);
+88:     this.ledger.charge("allocationUnits", 1, this.signal);
+89:     const alternatives: EreNode[] = [];
+90:     while (true) {
+91:       const child = await this.sequence(depth);
+92:       this.ledger.charge("allocationUnits", 1, this.signal);
+93:       alternatives.push(child);
+94:       if (!this.at("|")) break;
+95:       this.offset++;
+96:     }
+97:     if (alternatives.length === 1) return alternatives[0]!;
+98:     this.ledger.charge("work", alternatives.length * 2, this.signal);
+99:     await this.ledger.checkpoint(this.signal);
+100:     return this.node(() => ({ kind: "alternative", children: Object.freeze(alternatives), nullable: alternatives.some(value => value.nullable), captured: alternatives.some(value => value.captured) }));
+101:   }
+102: 
+103:   async sequence(depth: number): Promise<EreNode> {
+104:     this.ledger.charge("allocationUnits", 1, this.signal);
+105:     const children: EreNode[] = [];
+106:     while (this.offset < this.pattern.length && !this.at("|") && !this.at(")")) {
+107:       this.ledger.charge("work", 1, this.signal);
+108:       await this.ledger.checkpoint(this.signal);
+109:       let child = await this.atom(depth);
+110:       const operator = this.quoted?.[this.offset] ? undefined : this.pattern[this.offset];
+111:       if (operator === "*" || operator === "+" || operator === "?" || operator === "{") {
+112:         const begin = this.offset++;
+113:         let min = operator === "+" ? 1 : 0;
+114:         let max = operator === "?" ? 1 : Infinity;
+115:         if (operator === "{") {
+116:           min = await this.count();
+117:           max = min;
+118:           if (this.at(",")) {
+119:             this.offset++;
+120:             max = this.at("}") ? Infinity : await this.count();
+121:           }
+122:           if (!this.at("}") || max < min) throw new EreSyntaxError("invalid interval", begin);
+123:           this.offset++;
+124:         }
+125:         if (child.kind === "start" || child.kind === "end") throw new EreUnsupportedError("repeated anchor", begin);
+126:         if (child.nullable && child.captured && max > 1) throw new EreUnsupportedError("nullable captured repetition", begin);
+127:         const repeated = child;
+128:         child = this.node(() => ({ kind: "repeat", child: repeated, min, max, nullable: min === 0 || repeated.nullable, captured: repeated.captured }));
+129:         const next = this.quoted?.[this.offset] ? undefined : this.pattern[this.offset];
+130:         if (next === "*" || next === "+" || next === "?" || next === "{") throw new EreUnsupportedError("stacked repetition", this.offset);
+131:       }
+132:       this.ledger.charge("allocationUnits", 1, this.signal);
+133:       children.push(child);
+134:     }
+135:     if (children.length === 0) return this.node(() => ({ kind: "empty", nullable: true, captured: false }));
+136:     if (children.length === 1) return children[0]!;
+137:     this.ledger.charge("work", children.length * 2, this.signal);
+138:     await this.ledger.checkpoint(this.signal);
+139:     return this.node(() => ({ kind: "sequence", children: Object.freeze(children), nullable: children.every(value => value.nullable), captured: children.some(value => value.captured) }));
+140:   }
+141: 
+142:   async count(): Promise<number> {
+143:     const begin = this.offset;
+144:     let value = 0;
+145:     while (!this.quoted?.[this.offset] && this.pattern[this.offset] !== undefined && this.pattern[this.offset]! >= "0" && this.pattern[this.offset]! <= "9") {
+146:       this.ledger.charge("work", 1, this.signal);
+147:       await this.ledger.checkpoint(this.signal);
+148:       value = value * 10 + this.pattern.charCodeAt(this.offset++) - 48;
+149:       if (value > 255) throw new EreUnsupportedError("interval counts exceed 255", begin);
+150:     }
+151:     if (begin === this.offset) throw new EreSyntaxError("missing interval count", begin);
+152:     return value;
+153:   }
+154: 
+155:   async atom(depth: number): Promise<EreNode> {
+156:     const begin = this.offset;
+157:     const character = this.pattern[this.offset++]!;
+158:     if (this.quoted?.[begin]) return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), nullable: false, captured: false }));
+159:     if (character === "(") {
+160:       if (this.at("?")) throw new EreUnsupportedError("extended group syntax", begin);
+161:       if (this.groups >= 32) throw new EreUnsupportedError("32-group grammar ceiling", begin);
+162:       const index = ++this.groups;
+163:       const child = await this.expression(depth + 1);
+164:       if (!this.at(")")) throw new EreSyntaxError("unclosed group", begin);
+165:       this.offset++;
+166:       return this.node(() => ({ kind: "group", index, child, nullable: child.nullable, captured: true }));
+167:     }
+168:     if (character === "[") return this.set(begin);
+169:     if (character === "\\") {
+170:       const escaped = this.pattern[this.offset++];
+171:       if (escaped === undefined) throw new EreSyntaxError("trailing escape", begin);
+172:       if (!special.includes(escaped)) throw new EreUnsupportedError("backreference or escape extension", begin);
+173:       return this.node(() => ({ kind: "literal", code: escaped.charCodeAt(0), nullable: false, captured: false }));
+174:     }
+175:     if (character === "*" || character === "+" || character === "?" || character === "{") throw new EreSyntaxError("repetition without operand", begin);
+176:     if (character === ".") return this.node(() => ({ kind: "dot", nullable: false, captured: false }));
+177:     if (character === "^") return this.node(() => ({ kind: "start", nullable: true, captured: false }));
+178:     if (character === "$") return this.node(() => ({ kind: "end", nullable: true, captured: false }));
+179:     return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), nullable: false, captured: false }));
+180:   }

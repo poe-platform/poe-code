@@ -1,0 +1,21 @@
+ M package.json
+ M tests/plugins/qualified-current-release/consumers.mjs
+ M tests/shell-stress/diagnostic-profiles/compatibility.test.ts
+ M tests/shell-stress/diagnostic-profiles/profile.ts
+ M tsconfig.json
+?? benchmarks/reports/current-comparison-20260827/execution-review/
+?? benchmarks/reports/current-comparison-20260827/execution/
+?? benchmarks/reports/current-comparison-20260827/file-annotation-review/
+?? scripts/typecheck-consumers.mjs
+?? scripts/typecheck-inputs.mjs
+?? scripts/typecheck.mjs
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/
+?? tests/commands/search-stress/.native-1m4O1e/
+?? tests/plugins/qualified-current-release/captured-types.json
+?? tests/shell-stress/diagnostic-profiles/pin-migration/
+?? tests/shell-stress/env-split-gate-routing/
+?? tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/PREPARATION-ERRORS.md
+?? tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/REPORT.md
+?? tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/REPRODUCE.md
+?? tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/collect-results.mjs.data
+?? tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/round1/

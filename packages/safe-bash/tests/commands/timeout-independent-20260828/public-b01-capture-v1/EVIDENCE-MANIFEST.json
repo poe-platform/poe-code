@@ -1,0 +1,68 @@
+{
+  "schema": "timeout-public-b01-final-composed-evidence/1",
+  "sealedAt": "2026-08-28T06:02:41.198Z",
+  "recipeCommit": "ef511785",
+  "manifestHash": "f0c032a7d6d65edec3416ddb793c0b182ce1e3d0eb909784122f2a0c25d2a5f2",
+  "requestHash": "e263e6d2230f797147ffd7f68d1a7f87404d7bd084160c40cf0de15317074a5a",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "files": [
+    {
+      "path": "FOCUSED-CONTROLS.json",
+      "bytes": 930,
+      "sha256": "573086887da521080493e34e36e3215666fca9d9f0bc8cccf01d69765fd40d47"
+    },
+    {
+      "path": "summarize.mjs",
+      "bytes": 3358,
+      "sha256": "78f0a13c98746b99533d130c8dc1af8781b96174d5318dd34d9523d55a79bbcc"
+    },
+    {
+      "path": "REVIEW.json",
+      "bytes": 11503,
+      "sha256": "dbee0fe5ef3b4a37859315e06d5c67f1530dd06186872b825d9615635b8837e4"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 5601,
+      "sha256": "cb6bc748261ee888139672bfc603391b6668ba7e8b4bbb52600e122e44e93259"
+    },
+    {
+      "path": "runs/b01-01/CANDIDATE.json",
+      "bytes": 167195,
+      "sha256": "e263e6d2230f797147ffd7f68d1a7f87404d7bd084160c40cf0de15317074a5a"
+    },
+    {
+      "path": "runs/b01-01/RESULT.json",
+      "bytes": 176957,
+      "sha256": "0aa7b2e305d75bb314c249f3374be69bf3bfb956e2fddd0d90f114732451f84c"
+    },
+    {
+      "path": "runs/b01-01/CLOSURE.json",
+      "bytes": 54324,
+      "sha256": "a212f45d9cde443f4c3cfaa9616106d25b6bf81f44bbbcca3e5ed118124e33b4"
+    },
+    {
+      "path": "runs/b01-01/RESOURCE-CLEANUP.json",
+      "bytes": 201,
+      "sha256": "706c3333ca1dad42595856ac1aaa0ac7c2aedc1b4d1715a4c5182d363aeda37a"
+    },
+    {
+      "path": "runs/b01-01/RECEIPTS.json.gz",
+      "bytes": 97871,
+      "sha256": "cf7207cf5e21093e82444101c1b1cdaa3fd0aac5eac573d2f88408cb28b3ee61"
+    }
+  ],
+  "verdict": "PASS_SCOPED_COMPOSED_PUBLIC_TIMEOUT78",
+  "rootRatificationPending": true,
+  "remainingInScopeBlocker": null,
+  "actualB01Invocations": 1,
+  "retries": 0,
+  "positiveFamilyReplays": 0,
+  "typeReplays": 0,
+  "buildPackReplays": 0,
+  "productMutantReplays": 0,
+  "noHistoricalRescore": true,
+  "native": 0,
+  "safeJS": 0,
+  "fullGate": false
+}

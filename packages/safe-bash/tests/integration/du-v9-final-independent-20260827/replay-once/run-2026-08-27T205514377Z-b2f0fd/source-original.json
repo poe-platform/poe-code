@@ -1,0 +1,30 @@
+{
+  "name": "source-original",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-original.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/work-wzQubu/source"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "pid": 49630,
+  "pgid": 49630,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T20:55:23.307Z",
+  "finishedAt": "2026-08-27T20:55:23.421Z",
+  "durationMs": 114.331459,
+  "stdoutSha256": "daea1323de6dcf6966f6cedb5d7045550d2cf8086588bb34650eaf6da8bc0926",
+  "stderrSha256": "dda3727c055596ac8610c62da04757a77499b63c8b47deed2e9bcf82296f45b5"
+}

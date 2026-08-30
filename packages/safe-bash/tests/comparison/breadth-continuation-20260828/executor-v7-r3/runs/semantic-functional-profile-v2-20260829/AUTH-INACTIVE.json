@@ -1,0 +1,51 @@
+{
+  "schema": "INACTIVE_FUNCTIONAL_V2_AUTH_TEMPLATE",
+  "active": false,
+  "proposedAUTH": {
+    "review": {
+      "commit": null,
+      "path": null,
+      "sha256": null
+    },
+    "grant": {
+      "commit": null,
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+      "sha256": null
+    }
+  },
+  "futureRootGrant": {
+    "role": "root",
+    "phase": "cohort",
+    "attempts": 1,
+    "runId": "semantic-functional-20260829-v2-01",
+    "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+    "recipeSha256": "SUCCESSOR_SEAL_RAW_SHA256_AFTER_DIFFERENT_REVIEW",
+    "reviewSha256": "FUTURE_EXACT_DIFFERENT_RECEIPT_RAW_SHA256",
+    "planSha256": "9c8a87408a8769f1151cb937a3e5409140e17186da13a592af34e18ba770e736",
+    "bootstrapProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+    "reportProtocol": "BOUNDED_SEMANTIC_TERMINAL_V2",
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "command": {
+      "entry": "coordinator.mjs",
+      "phase": "cohort",
+      "runId": "semantic-functional-20260829-v2-01",
+      "nodeArgs": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=256"
+      ]
+    },
+    "acceptedAdmission": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/RESULT.json",
+      "sha256": "22d9624cb1cfd3154b6070a3cde96d0958a202f2042ef80df37b012430bd7de0"
+    },
+    "functionalProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1_DID_FALSE_FUNCTIONAL_V2"
+  },
+  "admissionCommits": [
+    "3c4eedf2f153e12bc59851f7bcf22273a44652b6",
+    "aa36fe6225bad29d9fb4201ad5ea8006372a51e1"
+  ],
+  "noActualAuthorization": true,
+  "rootSelection": "Latest ROOT source implementation/preexecution GO only; new independent receipt and fresh actual root grant required."
+}
+

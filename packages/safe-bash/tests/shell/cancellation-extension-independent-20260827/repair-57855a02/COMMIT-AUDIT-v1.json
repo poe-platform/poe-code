@@ -1,0 +1,10 @@
+{
+  "verifiedAt": "2026-08-28T00:51:41.769Z",
+  "evidenceCommit": "f1c60f40a88c5a67920bda4b487fa068e0fbdeb0",
+  "parent": "02ccea66d1e7983056c0ed114f8842fbd7ec3255",
+  "rawObjects": 14,
+  "changedOwnedPaths": 155,
+  "boundMembers": 158,
+  "noLooseObjectAssumption": true,
+  "allChangesOwned": true
+}

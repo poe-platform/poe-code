@@ -1,0 +1,24 @@
+import * as fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { validateAuthorization, SOURCE_COMMIT, SOURCE_REVIEW } from './contract.mjs';
+
+const owned = process.argv[2];
+assert.equal(owned, 'tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2');
+const read = filename => { const stat = fs.lstatSync(filename); assert(stat.isFile() && stat.size <= 16777216); return fs.readFileSync(filename); };
+const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const rootDecisionSha256 = hash(read(owned + '/ROOT-DECISION.txt'));
+const expected = { action: 'BUILD_PACK_FREEZE', presealSha256: 'a'.repeat(64), composition: 'ff0c86a560da56b58437928c499ca7f5b9d25d70', outputRoot: '/synthetic/owned/output', rootAuthorBuildDecisionSha256: rootDecisionSha256 };
+const grant = { authorizationKind: 'ROOT_SOURCE_ACCEPTED_AUTHOR_BUILD', action: expected.action, presealSha256: expected.presealSha256, composition: expected.composition, outputRoot: expected.outputRoot, sourceCommit: SOURCE_COMMIT, sourcePureReview: SOURCE_REVIEW, rootAuthorBuildDecisionSha256: rootDecisionSha256 };
+const rows = [];
+const test = (id, body) => { try { body(); rows.push({ id, status: 'PASS' }); } catch (reason) { rows.push({ id, status: 'FAIL', reason: String(reason) }); } };
+test('C01-accepted-explicit-ROOT-author-branch', () => { const result = validateAuthorization(grant, expected); assert.equal(result.kind, 'ROOT_SOURCE_ACCEPTED_AUTHOR_BUILD'); assert.equal(result.independentProducerReview, null); });
+test('C02-missing-binding-refused', () => { for (const key of Object.keys(grant)) { const invalid = { ...grant }; delete invalid[key]; assert.throws(() => validateAuthorization(invalid, expected)); } });
+test('C03-wrong-source-or-source-review-refused', () => { assert.throws(() => validateAuthorization({ ...grant, sourceCommit: '0'.repeat(40) }, expected)); assert.throws(() => validateAuthorization({ ...grant, sourcePureReview: '0'.repeat(40) }, expected)); assert.throws(() => validateAuthorization({ ...grant, rootAuthorBuildDecisionSha256: '0'.repeat(64) }, expected)); });
+test('C04-unknown-kind-refused', () => { assert.throws(() => validateAuthorization({ ...grant, authorizationKind: 'BYPASS' }, expected)); });
+const result = { rows, pass: rows.filter(row => row.status === 'PASS').length, fail: rows.filter(row => row.status === 'FAIL').length, rootDecisionSha256, contractSha256: hash(read(owned + '/contract.mjs')), helperSha256: hash(read(owned + '/contract-controls.mjs')), product: 0, compiler: 0, pack: 0 };
+fs.writeFileSync(owned + '/CONTRACT-RESULT.json', JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+const composition = JSON.parse(read(owned + '/../COMPOSITION.json'));
+const oldSeal = JSON.parse(read('tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/EXECUTION-SEAL.json'));
+console.log(JSON.stringify({ contract: result, npmKeys: Object.keys(composition.tools.npm), npmRows: composition.tools.npm.rows.slice(0, 2), oldSealKeys: Object.keys(oldSeal), firstLayout: { ...oldSeal.layouts[0], cells: oldSeal.layouts[0].cells.slice(0, 1) }, oldController: oldSeal.controller, futureCaps: oldSeal.futureCaps }));
+process.exitCode = result.fail ? 1 : 0;

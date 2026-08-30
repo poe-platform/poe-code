@@ -1,0 +1,41 @@
+[
+  {
+    "label": "final-status",
+    "started": "2026-08-29T14:03:09.807Z",
+    "pid": 24233,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "label": "final-index",
+    "started": "2026-08-29T14:03:09.881Z",
+    "pid": 24234,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "label": "final-diff",
+    "started": "2026-08-29T14:03:09.925Z",
+    "pid": 24239,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  }
+]

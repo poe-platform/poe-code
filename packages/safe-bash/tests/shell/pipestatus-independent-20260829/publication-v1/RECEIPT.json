@@ -1,0 +1,80 @@
+{
+  "schema": "pipestatus-independent-publication-v1",
+  "at": "2026-08-29T15:48:26.939Z",
+  "source": "ACCEPT scoped frozen completion/typed-policy mapping",
+  "pure": {
+    "verdict": "ACCEPT",
+    "author": 24,
+    "novel": 12,
+    "total": 36,
+    "closedScopes": 38,
+    "newExecutions": 0
+  },
+  "preexec": {
+    "verdict": "HOLD",
+    "cases": 78,
+    "publicExec": 81,
+    "invoke": 3,
+    "executed": 0
+  },
+  "previousPhase": {
+    "allowance": 48,
+    "conservativeChargeExhausted": true,
+    "administrativeCensusCertified": false,
+    "checkpointWasUncommitted": true,
+    "schemaRefusalPreserved": true
+  },
+  "bindings": [
+    {
+      "path": "publication-v1/HANDOFF.md",
+      "bytes": 8479,
+      "sha256": "43bcb17b95efc4ddf63e410f4d581ad2cc4a99ea2e9dde0df1915b27300dc17f"
+    },
+    {
+      "path": "publication-v1/CHECKPOINT-MANIFEST.json",
+      "bytes": 14883,
+      "sha256": "b8db0ca59bad29cf9bb81316ac386c3e28117559d4ee71f46c937612a1df1c09"
+    },
+    {
+      "path": "publication-v1/seal.mjs",
+      "bytes": 3214,
+      "sha256": "8a434150715c4e1fd4800f0e25918cda87265bfb1b7f386d5292c15ca036e48f"
+    }
+  ],
+  "retained": [
+    {
+      "path": "PURE-RESULTS-v2.json",
+      "bytes": 2429,
+      "mode": 384,
+      "sha256": "89afeb5ef182ef68ea9cce256f87f2e2c2186c9749022cff25e43d850ed6c0f3",
+      "commit": true
+    },
+    {
+      "path": "SOURCE-ADMISSION-v2.json",
+      "bytes": 16900,
+      "mode": 384,
+      "sha256": "e9b5e8994f0837ded1f7eb22b1b0038b110eac2076bfed571be56934d5f0a9cc",
+      "commit": true
+    },
+    {
+      "path": "AUTH-v2.json",
+      "bytes": 73976,
+      "mode": 384,
+      "sha256": "f7acc76a28ebf6d8e8c03b252b1a91130a030b5c171d1fbaf87af67d0a0598b0",
+      "commit": true
+    },
+    {
+      "path": "NATIVE-SOURCE-RECORDS.json",
+      "bytes": 151486,
+      "mode": 384,
+      "sha256": "e24236694542ee0f367d94431c8f11b7e639093e525e4af76160a0ea90492b4a",
+      "commit": true
+    }
+  ],
+  "publication": {
+    "maximumPlannedKnownStarts": 14,
+    "peak": 1,
+    "noProductExecution": true,
+    "priorClockPrintfRefusal": "zsh printf %(: invalid directive; before evidence capture; instruction context not copied"
+  }
+}

@@ -1,0 +1,302 @@
+DESIGN_BINDING_KEYS [
+  'role',
+  'candidate',
+  'acceptedBy',
+  'sourceManifestSha256',
+  'selected',
+  'provisionalRedirection',
+  'children',
+  'native',
+  'product',
+  'compiler',
+  'workers'
+]
+ARITHMETIC_BINDING {"path":"src/shell/arithmetic.ts","revision":"67eab12e315054907ef4ef435c6bbca2f59e0c36","blob":"223101946d13ac9b44f4a898f58fd16004ba86b9","mode":"100644","bytes":9922,"sha256":"5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd","role":"accepted coherent78 unchanged"}
+PRODUCT_METADATA {
+  "records": [
+    {
+      "name": "runtime",
+      "argv": [
+        "show",
+        "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        197605,
+        0
+      ],
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "parser",
+      "argv": [
+        "show",
+        "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/parser.ts"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        39122,
+        0
+      ],
+      "sha256": "e8c19ffc7a5c2ffcd63608f0fd4722466e1999e647bc2e676b12710555a0e9a4",
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "arithmetic",
+      "argv": [
+        "show",
+        "c83f352f057c64917f219eb938f54aa42cdab829:src/shell/arithmetic.ts"
+      ],
+      "status": {
+        "code": 128,
+        "signal": null
+      },
+      "lengths": [
+        0,
+        108
+      ],
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "closed": true,
+      "failure": null
+    }
+  ],
+  "childrenClosed": 3
+}
+
+GNU_5_3_15 subst.c
+368: static void exp_jump_to_top_level (int);
+1506: 	  exp_jump_to_top_level (DISCARD);
+1798: 	  exp_jump_to_top_level (DISCARD);
+2004: 	  exp_jump_to_top_level (DISCARD);
+4296:       exp_jump_to_top_level ((result == &expand_word_error) ? DISCARD : FORCE_EOF);
+6965: 	  exp_jump_to_top_level (DISCARD);		/* XXX */
+7045: 	  exp_jump_to_top_level (DISCARD);
+8301:     number = array_length_reference (name + 1);
+11172:     exp_jump_to_top_level (FORCE_EOF);
+11174:     exp_jump_to_top_level (DISCARD);	/* XXX - maybe change later */
+11176:     exp_jump_to_top_level (DISCARD);
+11188:     exp_jump_to_top_level (FORCE_EOF);
+11190:     exp_jump_to_top_level (FORCE_EOF);
+11192:     exp_jump_to_top_level (DISCARD);
+12444: exp_jump_to_top_level (int v)
+GNU_5_3_15 eval.c
+104: 	    case FORCE_EOF:
+111: 	    case DISCARD:
+GNU_5_3_15 flags.c
+80: int unbound_vars_is_error = 0;
+185:   { 'u', &unbound_vars_is_error },
+226: change_flag (int flag, int on_or_off)
+342:   noclobber = unbound_vars_is_error = 0;
+GNU_5_3_15 builtins/common.c
+90:   if (interactive_shell == 0)
+91:     fprintf (stderr, _("line %d: "), executing_line_number ());
+92: 
+93:   if (this_command_name && *this_command_name)
+94:     fprintf (stderr, "%s: ", this_command_name);
+95: }
+96: 
+97: void
+98: builtin_error (const char *format, ...)
+99: {
+100:   va_list args;
+101: 
+102:   builtin_error_prolog ();
+103: 
+104:   va_start (args, format);
+105: 
+106:   vfprintf (stderr, format, args);
+107:   va_end (args);
+108:   fprintf (stderr, "\n");
+109: }
+110: 
+111: void
+112: builtin_warning (const char *format, ...)
+113: {
+114:   va_list args;
+115: 
+116:   builtin_error_prolog ();
+117:   fprintf (stderr, _("warning: "));
+118: 
+119:   va_start (args, format);
+120: 
+121:   vfprintf (stderr, format, args);
+122:   va_end (args);
+123:   fprintf (stderr, "\n");
+124: }
+125: 
+126: /* Print a usage summary for the currently-executing builtin command. */
+127: void
+GNU_5_3_15 expr.c
+631: {
+632:   intmax_t cval, val1, val2, rval;
+633:   int set_noeval;
+634: 
+635:   set_noeval = 0;
+636:   rval = cval = explor ();
+637:   if (curtok == QUES)		/* found conditional expr */
+638:     {
+639:       if (cval == 0)
+640: 	{
+641: 	  set_noeval = 1;
+642: 	  noeval++;
+643: 	}
+644: 
+645:       readtok ();
+646:       if (curtok == 0 || curtok == COL)
+647: 	evalerror (_("expression expected"));
+648: 
+649:       val1 = EXP_LOWEST ();
+650: 
+651:       if (set_noeval)
+652: 	noeval--;
+653:       if (curtok != COL)
+654: 	evalerror (_("`:' expected for conditional expression"));
+655: 
+656:       set_noeval = 0;
+657:       if (cval)
+658:  	{
+659:  	  set_noeval = 1;
+660: 	  noeval++;
+661:  	}
+662: 
+663:       readtok ();
+664:       if (curtok == 0)
+665: 	evalerror (_("expression expected"));
+666:       val2 = expcond ();
+667: 
+668:       if (set_noeval)
+669: 	noeval--;
+670:       rval = cval ? val1 : val2;
+671:       lasttok = COND;
+GNU_5_3_15 expr.c
+681:   int set_noeval;
+682: 
+683:   val1 = expland ();
+684: 
+685:   while (curtok == LOR)
+686:     {
+687:       set_noeval = 0;
+688:       if (val1 != 0)
+689: 	{
+690: 	  noeval++;
+691: 	  set_noeval = 1;
+692: 	}
+693:       readtok ();
+694:       val2 = expland ();
+695:       if (set_noeval)
+696: 	noeval--;
+697:       val1 = val1 || val2;
+698:       lasttok = LOR;
+699:     }
+700: 
+701:   return (val1);
+702: }
+GNU_5_3_15 arrayfunc.c
+97:     VUNSETATTR (var, att_invisible);
+134:     VUNSETATTR (var, att_invisible);
+225:   VUNSETATTR (entry, att_invisible);	/* no longer invisible */
+248:   VUNSETATTR (entry, att_invisible);	/* no longer invisible */
+275: 	entry = make_new_array_variable (nameref_cell (entry));
+278:     entry = make_new_array_variable (name);
+476: 	  var = (flags & 2) ? make_new_assoc_variable (nameref_cell (var)) : make_new_array_variable (nameref_cell (var));
+481:     var = (flags & 2) ? make_new_assoc_variable (name) : make_new_array_variable (name);
+507: assign_array_from_string (const char *name, char *value, int flags)
+551:   VUNSETATTR (var, att_invisible);	/* no longer invisible */
+929:     VUNSETATTR (var, att_invisible);	/* no longer invisible */
+GNU_5_3_15 subst.c
+10403: 	      set_exit_status (EXECUTION_FAILURE);
+10404: 	      report_error (_("$%s: cannot assign in this way"), name);
+10405: 	      free (name);
+10406: 	      free (value);
+10407: #if defined (ARRAY_VARS)
+10408: 	      flush_eltstate (&es);
+10409: #endif
+10410: 	      return &expand_wdesc_error;
+10411: 	    }
+10412: 	  else if (c == '?')
+10413: 	    {
+10414: 	      parameter_brace_expand_error (name, value, check_nullness);
+10415: #if defined (ARRAY_VARS)
+10416: 	      flush_eltstate (&es);
+10417: #endif
+10418: 	      return (interactive_shell ? &expand_wdesc_error : &expand_wdesc_fatal);
+10419: 	    }
+10420: 	  else if (c != '+')
+10421: 	    {
+10422: 	      /* XXX -- if we're double-quoted and the named variable is "$@",
+10423: 			we want to turn off any special handling of "$@" --
+10424: 			we're not using it, so whatever is on the rhs applies. */
+10425: 	      if ((quoted & (Q_HERE_DOCUMENT|Q_DOUBLE_QUOTES)) && quoted_dollar_atp)
+10426: 		*quoted_dollar_atp = 0;
+GNU_5_3_15 execute_cmd.c
+412: executing_line_number (void)
+413: {
+414:   if (executing && showing_function_line == 0 &&
+415:       (variable_context == 0 || interactive_shell == 0) &&
+416:       currently_executing_command)
+417:     {
+418: #if defined (COND_COMMAND)
+419:       if (currently_executing_command->type == cm_cond)
+420: 	return currently_executing_command->value.Cond->line;
+421: #endif
+422: #if defined (DPAREN_ARITHMETIC)
+423:       if (currently_executing_command->type == cm_arith)
+424: 	return currently_executing_command->value.Arith->line;
+425: #endif
+426: #if defined (ARITH_FOR_COMMAND)
+427:       if (currently_executing_command->type == cm_arith_for)
+428: 	return currently_executing_command->value.ArithFor->line;
+429: #endif
+430: 
+431:       return line_number;
+432:     }
+433:   else
+434:     return line_number;
+435: }
+436: 
+437: /* Execute the command passed in COMMAND.  COMMAND is exactly what
+FROZEN_PRODUCT runtime
+3500:       child.depth++;
+3501:       child.loopDepth = 0;
+3502:       const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;
+3503:       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
+3504:       const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<";
+3505:       const warningLine = io.substitutionDiagnosticLine ?? io.diagnosticLine ?? part.line;
+3506:       const substitutionDiagnosticLines = new Map<Command, number>();
+3507:       for (const [command, line] of part.script.printedLines ?? []) substitutionDiagnosticLines.set(command,
+3508:         part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1);
+3509:       const captureIO = { ...isolateIO(io), substitutionDiagnosticLines, diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
+3510:       state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);
+3511:       state.status = state.substitutionStatus;
+3512:       const bytes = capture.bytes();
+3513:       if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
+3514:       return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\n+$/u, "");
+3515:     }
+3516:     const selector = getArraySelector(part);
+3517:     if (selector) {
+3518:       const store = requireArrays(state);
+3519:       const binding = store.get(part.name);
+3520:       if (selector.kind === "element") {
+3521:         const index = numericIndex(selector.index);
+3522:         if (index === undefined) throw new ArrayFailure("index outside 0..2147483647");
+3523:         const value = binding ? binding.get(index) : index === 0 ? state.variables[part.name] : undefined;
+3524:         this.requireParameter(value, `${part.name}[${selector.index}]`, state, io, part.line);
+3525:         return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+3526:       }
+3527:       if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));
+3528:       const values = await this.arrayMembers(part.name, state);
+3529:       return this.arrayJoin(store.owner, values, Array.from(state.variables.IFS ?? " ")[0] ?? "");
+3530:     }
+3531:     let value = part.name === "?" ? String(state.status)
+3532:       : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}`
+3533:       : part.name === "#" ? String(state.positional.length)
+3534:       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")

@@ -1,0 +1,11 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/inspect.mjs:25
+  console.log('\nSTRUCT', name, JSON.stringify({ keys: Object.keys(data), first: data.inputs[0], details: Object.fromEntries(Object.entries(data).filter(([key]) => !['inputs', 'treeWitnesses', 'reconstructedTrees', 'trees', 'overlaps'].includes(key))) }, null, 2));
+                                                                                            ^
+
+TypeError: Cannot read properties of undefined (reading '0')
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/inspect.mjs:25:93
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2

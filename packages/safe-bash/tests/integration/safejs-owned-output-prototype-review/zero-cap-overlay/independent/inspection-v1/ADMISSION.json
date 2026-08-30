@@ -1,0 +1,42 @@
+{
+  "verdict": "WITHHOLD_REPLAY_OF_EXACT_FREEZE",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "reviewerIdentity": "Codex Independent Leaf Verifier; thread 01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "date": "2026-08-27",
+  "inspectionOnly": true,
+  "sourceDerivationQualified": true,
+  "independentPublicBuildMatches": true,
+  "fixtureSemanticsQualified": true,
+  "rootReplayReleaseGranted": false,
+  "blockingDecision": {
+    "id": "I01",
+    "kind": "FIRST_NONPASS_SCOPE_CLARIFICATION",
+    "surfaceFirstNonpassHalting": false,
+    "lifecycleFirstNonpassHalting": true,
+    "additionalControlsFirstNonpassHalting": true,
+    "sourceChangeRequired": false,
+    "options": [
+      "ROOT explicitly retains exact unconditional surface8 and scopes first-nonpass halting to lifecycle/controls; then obtain a new immutable admission receipt.",
+      "ROOT requires surface first-nonpass halting and authorizes a minimal separately frozen orchestration-only revision; independently inspect that revision before a new admission receipt."
+    ]
+  },
+  "gate": {
+    "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/admission.mjs",
+    "sha256": "7898b51be299cb08bf0991991b846cb91371c6b3855918eb657d26601aa7a06c",
+    "requiredReviewVerdict": "ALLOW_REPLAY_OF_EXACT_FREEZE",
+    "requiredReviewFields": ["verdict", "authorFreezeCommit", "candidateManifestSha256", "sourceManifestSha256", "reviewerIdentity"],
+    "thisReceiptAcceptedByFrozenGate": false,
+    "gateActuallyExecuted": false,
+    "qualification": "Static inspection of exact releaseFor implementation; additional conditional fields are not enforced, so this receipt intentionally withholds the permissive verdict."
+  },
+  "candidateRoot": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/candidate",
+  "packageRoot": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/consumer/node_modules/virtual-bash",
+  "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+  "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010",
+  "scheduledProfiles": {"surface": 8, "lifecycle": 11, "controls": 6},
+  "actualProductGuestEngineTransportExecutions": 0,
+  "newRuntimePasses": 0,
+  "noPromotion": true
+}

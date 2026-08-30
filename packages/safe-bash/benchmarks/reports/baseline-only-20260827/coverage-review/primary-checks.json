@@ -1,0 +1,41 @@
+{
+  "method": "web.run opened official root and each pinned primary page first; read-only curl GET obtained exact byte hashes. No runtime, dependencies, package tarballs or assets downloaded.",
+  "records": [
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/README.md",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "accessedAt": "2026-08-27T03:43:04.588Z",
+      "bytes": 28914,
+      "sha256": "3232b230a378c2d853029df513fc8740ce32819d531acc6faed41c2d780b44e2",
+      "identicalToInstalledReadme": true
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "accessedAt": "2026-08-27T03:43:04.840Z",
+      "bytes": 15541,
+      "sha256": "593eb7d65e49c27f7eb97b077d7798741a2d5ade5d4d421c09715fccdc76a591"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/interpreter/builtins/shopt.ts",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "accessedAt": "2026-08-27T03:43:05.007Z",
+      "bytes": 12632,
+      "sha256": "f81fbd03bcf19f53b1d844e8f5770a708a5fe6ea33bc8d8cd7942dfb2d5c2087"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/interpreter/builtins/hash.ts",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "accessedAt": "2026-08-27T03:43:05.184Z",
+      "bytes": 6113,
+      "sha256": "696f580e102fd6af48b9fadb89926fea67ec1e8ca5a0796a0677ce8f1f95eec2"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/alias/alias.ts",
+      "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "accessedAt": "2026-08-27T03:43:05.325Z",
+      "bytes": 3793,
+      "sha256": "9a4058da4284b0b723f50e6359d77a7d539dba40a274e965417d7a79c51e0633"
+    }
+  ]
+}

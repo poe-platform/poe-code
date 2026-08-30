@@ -1,0 +1,41 @@
+LEAF SPLIT AUTHOR FINAL — 2026-08-27T06:08:53Z
+
+APPROVED SCOPE: only new src/commands/split/** and tests/commands/split/**, plus requested /tmp coordination files. No delegation. No edits to root exports/package/default registry/root README/ledger/FS/contracts/shared helpers/core/grep/regex/existing stream tools. Independent reviewer corpus not inspected. Other worker changes/index/native artifacts preserved.
+
+COMMITS:
+7a4ee0c feat(split): bounded standalone opt-in VFS command + author/native controls
+466264a fix(split): native GNU byte-size spelling rules
+bbfbeed fix(split): empty-input output-directory behavior
+1836795 fix(split): stop prefetched output delivery on late pull after cancellation
+4244e9a test(split): final stress/compiled consumer/evidence/handoff
+SOURCE FREEZE: 1836795aed012ad734fedbd0ed56c2c98ab57f56
+TS SOURCE DIGEST: 9b6f0f7ac5e57a950212bc4d96909ef1839848e37af9b13002237613b2e2a7f6
+Digest is SHA256(sorted path + NUL + SHA256(file bytes) + newline) across six src/commands/split/*.ts modules. Per-file and observed imported-source hashes are in tests/commands/split/evidence/final-manifest.json. Shared repo has concurrent non-owned changes; this is not a frozen full-repository replay claim.
+
+API: source-module createSplitCommands(options?): readonly CommandDefinition[]; splitCommands(options?): VirtualShellPlugin; exported SplitCommandsOptions and SplitLimits. Options replace?:boolean, limits?:Partial<SplitLimits>. This is NOT an added package subpath/root export. Actual default aggregate count60, split absent (dispatch127); explicit per-Shell opt-in adds only split. No default65 claim.
+
+FLAGS: default1000 LF lines; -l/--lines; -b/--bytes; -C/--line-bytes; omitted input or '-' stdin, one file input, optional prefix defaultx; -a/--suffix-length incl0auto; -d/--numeric-suffixes[=FROM]; --additional-suffix; --; attached/grouped shorts and options after operands. GNU alphabetic/numeric suffix rollover, explicit numeric start/fixed width, binary-safe NUL/invalidUTF8, trailing/unterminated lines, empty input and long lines. Common GNU b/K/k/M/m/G/T/P/E/Z/Y/R/Q with B/iB units, safe-integer result required.
+UNIMPLEMENTED: -n/--number/chunk count; --filter/process; custom separators; hex counters; --elide-empty-files; --unbuffered; --verbose; --help/--version; obsolete -NUMBER; abbreviated long names; BSD chunk/pattern modes. No host/native fallback.
+
+LIMIT DEFAULTS: maxInputBytes256MiB; maxOutputBytes256MiB total VFS offered payload; maxFiles4096; maxBufferBytes8MiB; maxChunkBytes64KiB; maxArgumentBytes64KiB; maxSuffixLength128; maxSteps512Mi. Positive safe-integer validation. -C window <= buffer cap; nonstreaming readFile receives min(input,buffer)maxBytes and returned bytes checked; writeFile-only fallback collects bounded per-segment. Streaming VFS writes preferred, awaited with owned output slices; incoming large producer chunks accepted without wholesale copy. Shell budgets remain active and distinct from VFS file-output budget.
+
+EFFECTS/SAFETY: ordinary proven-distinct existing outputs truncate. Scoped identity/actual compareEntry authorize; same aliases fail; unknown existing backing relation ENOTSUP. Different realpaths alone not authority. Positive MemoryFS/explicit-root RealFS/configured S3 mock overwrites pass. Missing destinations wx; raced names and dangling final symlinks failEEXIST without truncating/creating target. Prior-output aliases refused rather than silently erasing earlier segments. Raw stdin cannot be linked authoritatively to a pathname. Metadata is not a lease/ABA or external hostile path-race guarantee; no inode/allocated-block/remote-privacy inventions.
+PARTIAL ERRORS: no rollback, unlink, recursive cleanup or deletion of prior outputs. Completed files remain; current stream-written file may be empty/partial or preexisting content already truncated on ENOSPC/read/budget/cancel failure. Fallback/-C lookahead may defer publication; this is explicitly not transactional safety. Post-write metadata failure can report error after full segment write. Human-readable split stderr/status1; typed FS errors used internally; exact external abort reason rethrown even errno-shaped. Late host failures observed; uncooperative host work cannot be forcibly undone/stopped.
+
+VALIDATION:
+- node --import tsx --test tests/commands/split/*.test.ts:43 passed,0failed,0skipped.
+- node_modules/.bin/tsc -p tests/commands/split/tsconfig.json:PASS
+- node_modules/.bin/tsc -p tests/commands/split/tsconfig.build.json:PASS; only owned .build emission, transitive dependencies of owned compiled-host consumer entry, no rootdist.
+- node tests/commands/split/compiled-consumer.mjs:PASS; coherent compiled host/plugin writes binary partaa.bin/partab.bin and reassembles ff00410a420a. No public export claim.
+- git diff --check -- src/commands/split tests/commands/split:PASS
+NATIVE: GNU9.7-Darwin positives43/43 strict stdout/stderr/status/bytes/names; Apple/BSD common positives20/20 strict (overlapping inputs, not additional independent GNUcoverage). GNU error effects/status/namespace9/9, strict4/9, five explicitly asserted diagnostic differences(two-modes,missing-input,missing-parent,same-input,directory-output). Edge18/18; initial7/18 failures and intermediate corrections preserved. Boundary stress8native scenarios x2producer chunk sizes=16/16variants, not16independent inputs. Four native-only GNU/Apple profile differences retain exact status/names/error controls.
+PROFILES: macOS26.4.1 build25E253 / Darwin25.4.0 arm64, Nodev22.22.2, LC_ALL=C. GNU9.7 on Darwin NOT GNU/Linux. Official GNU/Apple primary docs consulted with web.run; local pins govern tested semantics.
+GNU binary SHA256 cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958
+GNU split.c SHA256 db197761b614672fa7d05fbca75394ea1dcaecf9d6c8bc44129ae2ed6ad00087
+Apple split SHA256 7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91
+Native path: existing tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split and /usr/bin/split; no install/rebuild.
+
+EVIDENCE: tests/commands/split/AUTHOR_HANDOFF.md; src/commands/split/README.md; tests/commands/split/evidence/{final-manifest.json,final-author.tap,final-typecheck.log,final-build.log,api-declarations.txt,compiled-consumer.json}; original raw native/edge/late-pull failures retained. Fixture corrections disclosed: S3 option client->actualtransport, compiled/source class-identity mix -> coherent compiled consumer; no claim of unchanged-fixture product fix. Native/profile namespace assertions strengthened without removing original controls.
+
+OWNED STATUS/CLEANUP: clean owned git status after4244e9a; no owned .native-* leftovers; owned .build removed after successful build/consumer. No native processes/watchers/delegates left. No unrelated cleanup/staging/commits. Normal final response/closure follows, no SIGSTOP; root verifies actual closure before independent replay.
+LIMITED CLAIM: author verification only, not independent acceptance, full-project gate, deployed provider proof, broad GNU parity, just-bash superiority,72-hour or duration completion. Root owns subsequent integration decisions.

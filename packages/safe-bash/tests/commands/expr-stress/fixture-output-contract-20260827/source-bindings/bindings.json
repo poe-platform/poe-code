@@ -1,0 +1,100 @@
+[
+  {
+    "source": "src/commands/expr/index.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__commands__expr__index.ts.data",
+    "sha256": "1f4eb0b6aa5200877ce62b59f7ac488255f4b98c3d5bb8b426fb49dec372dcef",
+    "gitBlob": "2566abc10687f19fc19e7f79a5d5d2449071aca9"
+  },
+  {
+    "source": "src/commands/expr/internal.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__commands__expr__internal.ts.data",
+    "sha256": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+    "gitBlob": "112ca8b74fdf9fd390d6619a0e15be50a3e21d4d"
+  },
+  {
+    "source": "src/commands/expr/syntax.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__commands__expr__syntax.ts.data",
+    "sha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0",
+    "gitBlob": "767e82b52609e5d37587a79094b176355752f866"
+  },
+  {
+    "source": "src/commands/expr/README.md",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__commands__expr__README.md.data",
+    "sha256": "0da1befe61e8e55196e24b972ff0a5d7d4642c4a201968359a1daf01c650f0bd",
+    "gitBlob": "872dec7c707a847bb70c7102d391956178ed30cc"
+  },
+  {
+    "source": "src/contracts/io.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__contracts__io.ts.data",
+    "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "gitBlob": "738e6bb2e1055d6e575f6b342b75ed3053710f70"
+  },
+  {
+    "source": "src/contracts/command.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__contracts__command.ts.data",
+    "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2"
+  },
+  {
+    "source": "src/contracts/command.md",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__contracts__command.md.data",
+    "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592"
+  },
+  {
+    "source": "src/contracts/errors.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__contracts__errors.ts.data",
+    "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226"
+  },
+  {
+    "source": "src/shell/runtime.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__shell__runtime.ts.data",
+    "sha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+    "gitBlob": "1eb395676cf2c3f22ed75dfdf4454f50f9614b75"
+  },
+  {
+    "source": "src/shell/shell.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__shell__shell.ts.data",
+    "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+    "gitBlob": "9d535825bce412d86c4dee587c59142bcf86944d"
+  },
+  {
+    "source": "src/shell/types.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/src__shell__types.ts.data",
+    "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "gitBlob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef"
+  },
+  {
+    "source": "tests/commands/expr/diagnostics-regression.test.ts",
+    "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "snapshot": "source-bindings/tests__commands__expr__diagnostics-regression.test.ts.data",
+    "sha256": "f01f5f88b4d2bd4c43f7359f548ce64002fcf2c0bf24b7fc7300a8cb8d9795e4",
+    "gitBlob": "1b916aa47de418b1cde1032037672a7a778736ca"
+  },
+  {
+    "source": "tests/commands/expr-author/diagnostics-fix/REPORT.md",
+    "commit": "7fc76f3917a38c0cc39d46c02383c947fa3ac110",
+    "snapshot": "source-bindings/author-policy-REPORT.md.data",
+    "sha256": "1116e98d85521dcac57b795236b534b9649c8e6c4c6486cd1408e6ecde2cd931",
+    "gitBlob": "c843332d21d34615caabdc3d42645e3c1ecfedd6"
+  },
+  {
+    "source": "tests/commands/expr-author/diagnostics-fix/SEAL.json",
+    "commit": "7fc76f3917a38c0cc39d46c02383c947fa3ac110",
+    "snapshot": "source-bindings/author-policy-SEAL.json.data",
+    "sha256": "4e60e069e1453424f17131bd6708d4d5a8ee7136284aface8fad365d4ca9ba37",
+    "gitBlob": "98b18014cf2b8fd23f5397b17f69bc7ff0034bd9"
+  }
+]

@@ -1,0 +1,3 @@
+import type { AgentCommandsOptions } from 'virtual-bash';
+type ReplaceOption<Options> = Options extends { replace?: infer Value } ? Value : never;
+export const invalid: ReplaceOption<NonNullable<AgentCommandsOptions['split']>> = true;

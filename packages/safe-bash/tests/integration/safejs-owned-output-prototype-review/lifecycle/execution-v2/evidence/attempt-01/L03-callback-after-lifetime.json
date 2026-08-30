@@ -1,0 +1,412 @@
+{
+  "id": "L03-callback-after-lifetime",
+  "variantId": "L03-callback-after-lifetime",
+  "publicSource": "owned-guest",
+  "publicSourceHex": "6f776e65642d6775657374",
+  "publicSourceBytes": 11,
+  "selected": {
+    "id": "L03-callback-after-lifetime",
+    "workflow": "L03",
+    "guest": "guests/lifetime-callback.ajs.data",
+    "guestArgs": [
+      "detached"
+    ],
+    "route": "shell-module",
+    "schedule": "hold-release-during-registered-close",
+    "requiresPositive": "L03-callback-live",
+    "expect": {
+      "publicKind": "result",
+      "exitCode": 0,
+      "stdout": "queued\n",
+      "stderr": "",
+      "holdEntries": 1,
+      "lateEntries": 0,
+      "callbackEffects": 0,
+      "facadeSignalAbortedBeforeHoldRelease": true,
+      "ownedCooperativeWorkDoneBeforePublicSettlement": true
+    },
+    "qualification": "No claim that pure guest callback instructions cannot run; measure denied host effects through the real facade and invocation signal. Missing queued/admitted/settled controls is UNPROVED, not PASS."
+  },
+  "pid": 44897,
+  "node": "v22.22.2",
+  "started": "2026-08-27T16:24:53.637Z",
+  "events": [
+    {
+      "order": 1,
+      "event": "public-exec-enter",
+      "publicSettled": false,
+      "command": "owned-guest",
+      "variantId": "L03-callback-after-lifetime",
+      "sourceHex": "6f776e65642d6775657374",
+      "sourceBytes": 11
+    },
+    {
+      "order": 2,
+      "event": "owned-guest-enter",
+      "publicSettled": false
+    },
+    {
+      "order": 3,
+      "event": "cleanup-registered",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 4,
+      "event": "operation-created",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 5,
+      "event": "acquire-start",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 6,
+      "event": "cleanup-registered",
+      "publicSettled": false,
+      "label": "inner-shell"
+    },
+    {
+      "order": 7,
+      "event": "inner-shell-acquire",
+      "publicSettled": false
+    },
+    {
+      "order": 8,
+      "event": "engine-enter",
+      "publicSettled": false,
+      "modules": [
+        "fs",
+        "stdio",
+        "command",
+        "shell"
+      ],
+      "filename": "<safejs -e>"
+    },
+    {
+      "order": 9,
+      "event": "facade-executor-enter",
+      "publicSettled": false,
+      "command": "owned-hold"
+    },
+    {
+      "order": 10,
+      "event": "hold-command-enter",
+      "publicSettled": false
+    },
+    {
+      "order": 11,
+      "event": "cleanup-registered",
+      "publicSettled": false,
+      "label": "hold"
+    },
+    {
+      "order": 12,
+      "event": "hold-acquired",
+      "publicSettled": false
+    },
+    {
+      "order": 13,
+      "event": "accounted-write-enter",
+      "publicSettled": false,
+      "bytes": "7175657565640a"
+    },
+    {
+      "order": 14,
+      "event": "public-stdout-accepted",
+      "publicSettled": false,
+      "hex": "7175657565640a"
+    },
+    {
+      "order": 15,
+      "event": "accounted-write-settled",
+      "publicSettled": false,
+      "bytes": "7175657565640a"
+    },
+    {
+      "order": 16,
+      "event": "engine-return",
+      "publicSettled": false,
+      "ok": true,
+      "returnValue": "lifetime-complete"
+    },
+    {
+      "order": 17,
+      "event": "facade-signal-aborted",
+      "publicSettled": false,
+      "reason": {
+        "type": "object",
+        "name": "AbortError",
+        "message": "This operation was aborted",
+        "code": 20,
+        "stack": "AbortError: This operation was aborted\n    at new DOMException (node:internal/per_context/domexception:76:18)\n    at AbortController.abort (node:internal/abort_controller:504:18)\n    at Object.execute (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/dist/commands/safejs/index.js:156:32)\n    at async file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/dist/shell/runtime.js:1000:24\n    at async interruptible (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/dist/shell/runtime.js:111:16)\n    at async Runtime.dispatchScoped (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/dist/shell/runtime.js:1020:38)\n    at async Runtime.dispatch (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/dist/shell/runtime.js:879:20)\n    at async Runtime.simple (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/dist/shell/runtime.js:847:35)\n    at async Runtime.executeCommand (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/dist/shell/runtime.js:420:24)\n    at async Runtime.command (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/dist/shell/runtime.js:388:24)"
+      },
+      "callerIdentity": false
+    },
+    {
+      "order": 18,
+      "event": "hold-explicit-release",
+      "publicSettled": false,
+      "facadeSignalAborted": true
+    },
+    {
+      "order": 19,
+      "event": "hold-resource-released",
+      "publicSettled": false
+    },
+    {
+      "order": 20,
+      "event": "close-enter",
+      "publicSettled": false,
+      "label": "hold"
+    },
+    {
+      "order": 21,
+      "event": "close-settled",
+      "publicSettled": false,
+      "label": "hold"
+    },
+    {
+      "order": 22,
+      "event": "facade-executor-settled",
+      "publicSettled": false,
+      "command": "owned-hold"
+    },
+    {
+      "order": 23,
+      "event": "safejs-invoke-settled",
+      "publicSettled": false,
+      "status": 0
+    },
+    {
+      "order": 24,
+      "event": "close-enter",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 25,
+      "event": "resource-release-enter",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 26,
+      "event": "resource-release-done",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 27,
+      "event": "close-settled",
+      "publicSettled": false,
+      "label": "guest-output"
+    },
+    {
+      "order": 28,
+      "event": "close-enter",
+      "publicSettled": false,
+      "label": "inner-shell"
+    },
+    {
+      "order": 29,
+      "event": "inner-dispose-enter",
+      "publicSettled": false
+    },
+    {
+      "order": 30,
+      "event": "inner-dispose-settled",
+      "publicSettled": false
+    },
+    {
+      "order": 31,
+      "event": "close-settled",
+      "publicSettled": false,
+      "label": "inner-shell"
+    },
+    {
+      "order": 32,
+      "event": "public-exec-settled",
+      "publicSettled": true
+    }
+  ],
+  "classification": "PASS",
+  "containment": false,
+  "assertions": [
+    {
+      "name": "actual engine and supported helper admission",
+      "pass": true
+    },
+    {
+      "name": "frozen public result and exact accepted bytes",
+      "pass": true
+    },
+    {
+      "name": "before-settlement ownership",
+      "pass": true
+    },
+    {
+      "name": "queued callback lifetime and actual effects",
+      "pass": true
+    }
+  ],
+  "boundary": [
+    {
+      "specifier": "virtual-bash/shell/runtime",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "Error",
+        "message": "Package subpath './shell/runtime' is not defined by \"exports\" in /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs",
+        "code": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+        "stack": "Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './shell/runtime' is not defined by \"exports\" in /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:661:9)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:767:38)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:31:20)\n    at nextStep (node:internal/modules/customization_hooks:189:26)"
+      }
+    },
+    {
+      "specifier": "virtual-bash/commands/safejs/io",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "Error",
+        "message": "Package subpath './commands/safejs/io' is not defined by \"exports\" in /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs",
+        "code": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+        "stack": "Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './commands/safejs/io' is not defined by \"exports\" in /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/node_modules/virtual-bash/package.json imported from /private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/consumer/harness/child.mjs\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:661:9)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:767:38)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:31:20)\n    at nextStep (node:internal/modules/customization_hooks:189:26)"
+      }
+    },
+    {
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/dist/index.js",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "AssertionError",
+        "message": "Outside import: /Users/kjopek/Workspace/safe-bash/dist/index.js",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Outside import: /Users/kjopek/Workspace/safe-bash/dist/index.js\n    at filenameFor (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:20:10)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:32:5)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)"
+      }
+    },
+    {
+      "specifier": "file:///Users/kjopek/Workspace/poe-code/packages/safejs/src/run.ts",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "AssertionError",
+        "message": "Outside import: /Users/kjopek/Workspace/poe-code/packages/safejs/src/run.ts",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Outside import: /Users/kjopek/Workspace/poe-code/packages/safejs/src/run.ts\n    at filenameFor (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:20:10)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:32:5)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)"
+      }
+    },
+    {
+      "specifier": "file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/product/src/index.ts",
+      "blocked": true,
+      "error": {
+        "type": "object",
+        "name": "AssertionError",
+        "message": "No archive-source fallback",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: No archive-source fallback\n    at filenameFor (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:21:10)\n    at resolve (file:///private/tmp/safe-bash-owned-output-lifecycle-execution-v2-G6dnda/loader.mjs:32:5)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)"
+      }
+    }
+  ],
+  "engineRuns": 1,
+  "literalInvoke": {
+    "name": "safejs",
+    "args": [
+      "-e",
+      "import * as stdio from \"stdio\";\nimport * as command from \"command\";\nimport * as shell from \"shell\";\nconst emit = stdio.write;\nconst execute = shell.exec;\nconst deliver = async () => {\n  await emit(\"callback\\n\");\n  await execute(\"owned-late\");\n};\nconst pending = execute(\"owned-hold\");\nconst scheduled = pending.then(deliver, deliver);\nscheduled.catch(() => 0);\nawait emit(\"queued\\n\");\nif (command.args[0] === \"live\") await scheduled;\nreturn \"lifetime-complete\";\n",
+      "--",
+      "detached"
+    ]
+  },
+  "budgetOptions": {
+    "maxSteps": 200000,
+    "deadline": 1787847897624,
+    "maxCallDepth": 64,
+    "stringLength": 65536,
+    "arrayLength": 8192,
+    "dataSize": 1048576
+  },
+  "atSettlement": {
+    "acquisitions": 1,
+    "releases": 1,
+    "cleanupDone": true,
+    "bridgePending": 0,
+    "cleanupErrorObserved": false,
+    "lateWriteErrorObserved": false,
+    "innerDisposed": true,
+    "callerIdentity": false,
+    "executionIdentity": false,
+    "cleanupIdentity": false,
+    "callerAborted": false,
+    "ordinaryDestinationWriteCalls": 0,
+    "accountedWriteCalls": 1,
+    "holdEntries": 1,
+    "lateEntries": 0,
+    "holdReleased": true,
+    "holdReleaseSignalAborted": true,
+    "leftReleases": 0,
+    "rightReleases": 0,
+    "lateAcquisitionStarts": 0,
+    "lateChildCreations": 0,
+    "rightEffect": "",
+    "curlWriteoutCalls": 0,
+    "transportAbortedByConsumer": false,
+    "transportClosed": false,
+    "responseDisposed": false,
+    "uploadBeforeEof": false,
+    "uploadEof": false,
+    "authorizeCalls": 0,
+    "transportCleanupRegistered": false
+  },
+  "publicOutcome": {
+    "kind": "result",
+    "result": {
+      "exitCode": 0,
+      "stdout": "queued\n",
+      "stderr": ""
+    },
+    "stdoutHex": "7175657565640a",
+    "stderrHex": ""
+  },
+  "engine": {
+    "ok": true,
+    "returnValue": "lifetime-complete"
+  },
+  "files": {
+    "/work/late.txt": {
+      "code": "ENOENT"
+    },
+    "/work/body.bin": {
+      "code": "ENOENT"
+    },
+    "/work/headers.txt": {
+      "code": "ENOENT"
+    }
+  },
+  "preTeardown": {
+    "publicSettled": true,
+    "guard": {
+      "failures": [],
+      "activeTimers": 1,
+      "workersCreated": 0,
+      "subprocessesCreated": 0,
+      "socketsCreated": 0
+    },
+    "bridgePending": 0,
+    "releases": 1,
+    "cleanupDone": true
+  },
+  "disposed": true,
+  "disposeSettled": true,
+  "guard": {
+    "failures": [],
+    "activeTimers": 0,
+    "workersCreated": 0,
+    "subprocessesCreated": 0,
+    "socketsCreated": 0
+  },
+  "unhandled": [],
+  "finished": "2026-08-27T16:24:54.143Z"
+}

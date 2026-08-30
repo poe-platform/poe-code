@@ -1,0 +1,96 @@
+[
+  {
+    "id": "AUTHENTICATION",
+    "startOffsetMs": 0,
+    "absoluteCutoffOffsetMs": 120000,
+    "capMs": 120000,
+    "jobCount": 1
+  },
+  {
+    "id": "BUILD",
+    "startOffsetMs": 120000,
+    "absoluteCutoffOffsetMs": 420000,
+    "capMs": 300000,
+    "jobCount": 1
+  },
+  {
+    "id": "SETUP",
+    "startOffsetMs": 420000,
+    "absoluteCutoffOffsetMs": 600000,
+    "capMs": 180000,
+    "jobCount": 2
+  },
+  {
+    "id": "CONTROLS",
+    "startOffsetMs": 600000,
+    "absoluteCutoffOffsetMs": 1170000,
+    "capMs": 570000,
+    "jobCount": 19
+  },
+  {
+    "id": "SOURCE_AUDIT",
+    "startOffsetMs": 1170000,
+    "absoluteCutoffOffsetMs": 1470000,
+    "capMs": 300000,
+    "jobCount": 1
+  },
+  {
+    "id": "SOURCE_RUNTIME",
+    "startOffsetMs": 1470000,
+    "absoluteCutoffOffsetMs": 8175000,
+    "capMs": 6705000,
+    "jobCount": 149
+  },
+  {
+    "id": "MOVED_RUNTIME",
+    "startOffsetMs": 8175000,
+    "absoluteCutoffOffsetMs": 21585000,
+    "capMs": 13410000,
+    "jobCount": 149
+  },
+  {
+    "id": "TYPES",
+    "startOffsetMs": 21585000,
+    "absoluteCutoffOffsetMs": 23145000,
+    "capMs": 1560000,
+    "jobCount": 3,
+    "jobIds": [
+      "TYPE-SOURCE-DIRECT-SIX",
+      "TYPE-DIRECT-SIX",
+      "TYPE-PUBLIC-FIVE"
+    ],
+    "allocation": {
+      "sourceDirectWorker": 540000,
+      "installedMovedDirectWorker": 540000,
+      "conditionalPublicWorker": 480000,
+      "directPerEnvironment": {
+        "setup": 90000,
+        "compilerInvocations": 6,
+        "compilerMsEach": 60000,
+        "postguardsEvidence": 60000,
+        "cleanup": 30000
+      },
+      "public": {
+        "setup": 90000,
+        "compilerInvocations": 5,
+        "compilerMsEach": 60000,
+        "postguardsEvidence": 60000,
+        "cleanup": 30000
+      }
+    }
+  },
+  {
+    "id": "LOADED_CONTROLS",
+    "startOffsetMs": 23145000,
+    "absoluteCutoffOffsetMs": 24045000,
+    "capMs": 900000,
+    "jobCount": 10
+  },
+  {
+    "id": "FINALIZATION",
+    "startOffsetMs": 24045000,
+    "absoluteCutoffOffsetMs": 24165000,
+    "capMs": 120000,
+    "jobCount": 1
+  }
+]

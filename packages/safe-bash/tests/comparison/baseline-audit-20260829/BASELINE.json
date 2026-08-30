@@ -1,0 +1,295 @@
+{
+  "schema": "published-baseline-binding-v1",
+  "auditDate": "2026-08-29",
+  "observedBetween": [
+    "2026-08-29T01:19:34.684Z",
+    "2026-08-29T01:23:13.808Z"
+  ],
+  "package": "just-bash",
+  "latestDistTag": "3.4.2",
+  "mostRecentlyPublishedVersion": "3.4.2",
+  "publishedAt": "2026-08-22T03:28:27.717Z",
+  "registryModifiedAt": "2026-08-22T03:28:28.030Z",
+  "distTags": {
+    "executor": "2.15.1-executor.0",
+    "latest": "3.4.2"
+  },
+  "versionRecord": {
+    "bin": {
+      "just-bash": "dist/bin/just-bash.js",
+      "just-bash-shell": "dist/bin/shell/shell.js"
+    },
+    "bugs": {
+      "url": "https://github.com/vercel-labs/just-bash/issues"
+    },
+    "dist": {
+      "shasum": "abc0520ad5c278eae2de4cd90c3d7f88e1fdd724",
+      "tarball": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "fileCount": 955,
+      "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+      "signatures": [
+        {
+          "sig": "MEUCIQDpmnLN8KxNpkXugskT8RGCkBsIbr8YyzYz9vDF2ZHSkgIgc8v78qtaidyPqAZqeRH3DQWFyPgZYmjHx6bMvDqNHRk=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIB2ZwxuEFZzljg3+mH5ehJtZn7/S5nSBwR+r800wqitDAiEA794qgDB87LnmyaPVpcDd/DWoK5yDcE/mROmh8PFIHEU=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/just-bash@3.4.2",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 22583023
+    },
+    "main": "dist/bundle/index.js",
+    "name": "just-bash",
+    "type": "module",
+    "_from": "file:just-bash-3.4.2.tgz",
+    "types": "dist/index.d.ts",
+    "author": {
+      "name": "Malte and Claude"
+    },
+    "engines": {
+      "node": ">=20.18.1"
+    },
+    "exports": {
+      ".": {
+        "import": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/bundle/index.js"
+        },
+        "browser": "./dist/bundle/browser.js",
+        "require": {
+          "types": "./dist/index.d.cts",
+          "default": "./dist/bundle/index.cjs"
+        }
+      },
+      "./browser": {
+        "types": "./dist/browser.d.ts",
+        "import": "./dist/bundle/browser.js"
+      }
+    },
+    "license": "Apache-2.0",
+    "scripts": {
+      "knip": "knip",
+      "lint": "pnpm lint:banned",
+      "test": "vitest",
+      "build": "rm -rf dist && tsc && pnpm build:lib && pnpm build:lib:cjs && pnpm build:browser && pnpm build:cli && pnpm build:shell && pnpm build:worker && pnpm build:clean && cp dist/index.d.ts dist/index.d.cts && sed '1,/^-->/d' AGENTS.npm.md > dist/AGENTS.md",
+      "shell": "tsx src/cli/shell.ts",
+      "dev:exec": "tsx src/cli/exec.ts",
+      "lint:fix": "pnpm --workspace-root lint:fix",
+      "test:run": "vitest run --exclude src/security/fuzzing/ --exclude src/commands/python3/ --exclude src/commands/sqlite3/ --exclude src/commands/js-exec/ --exclude src/agent-examples/python-scripting.test.ts",
+      "validate": "pnpm lint && pnpm knip && pnpm typecheck && pnpm build && pnpm check:worker-sync && pnpm test:run && pnpm test:wasm && pnpm test:dist",
+      "build:cli": "esbuild dist/cli/just-bash.js --bundle --splitting --platform=node --format=esm --minify --outdir=dist/bin --entry-names=[name] --chunk-names=chunks/[name]-[hash] --banner:js='#!/usr/bin/env node\nimport{createRequire} from\"node:module\";const require=createRequire(import.meta.url);' --external:sql.js --external:quickjs-emscripten --external:@mongodb-js/zstd --external:node-liblzma --external:seek-bzip",
+      "build:lib": "esbuild dist/index.js --bundle --splitting --platform=node --format=esm --minify --outdir=dist/bundle --chunk-names=chunks/[name]-[hash] --banner:js='import{createRequire} from\"node:module\";const require=createRequire(import.meta.url);' --external:diff --external:minimatch --external:sprintf-js --external:turndown --external:sql.js --external:quickjs-emscripten --external:@mongodb-js/zstd --external:node-liblzma --external:seek-bzip",
+      "test:dist": "vitest run src/cli/just-bash.bundle.test.ts src/package-contents.test.ts",
+      "test:fuzz": "vitest run src/security/fuzzing/",
+      "test:unit": "vitest run --config vitest.unit.config.ts",
+      "test:wasm": "vitest run --config vitest.wasm.config.ts",
+      "typecheck": "tsc --noEmit",
+      "build:clean": "find dist -name '*.test.js' -delete && find dist -name '*.test.d.ts' -delete",
+      "build:shell": "esbuild dist/cli/shell.js --bundle --splitting --platform=node --format=esm --minify --outdir=dist/bin/shell --entry-names=[name] --chunk-names=chunks/[name]-[hash] --banner:js='#!/usr/bin/env node\nimport{createRequire} from\"node:module\";const require=createRequire(import.meta.url);' --external:sql.js --external:quickjs-emscripten --external:@mongodb-js/zstd --external:node-liblzma --external:seek-bzip",
+      "lint:banned": "node scripts/check-banned-patterns.js",
+      "build:worker": "esbuild src/commands/python3/worker.ts --bundle --platform=node --format=esm --outfile=src/commands/python3/worker.js --external:../../../vendor/cpython-emscripten/* && cp src/commands/python3/worker.js dist/commands/python3/worker.js && mkdir -p dist/bin/chunks && cp src/commands/python3/worker.js dist/bin/chunks/worker.js && mkdir -p dist/bundle/chunks && cp src/commands/python3/worker.js dist/bundle/chunks/worker.js && esbuild src/commands/js-exec/js-exec-worker.ts --bundle --platform=node --format=esm --outfile=src/commands/js-exec/js-exec-worker.js --external:quickjs-emscripten && cp src/commands/js-exec/js-exec-worker.js dist/commands/js-exec/js-exec-worker.js && cp src/commands/js-exec/js-exec-worker.js dist/bin/chunks/js-exec-worker.js && cp src/commands/js-exec/js-exec-worker.js dist/bundle/chunks/js-exec-worker.js && esbuild src/commands/sqlite3/worker.ts --bundle --platform=node --format=esm --outfile=src/commands/sqlite3/worker.js --external:sql.js && mkdir -p dist/commands/sqlite3 && cp src/commands/sqlite3/worker.js dist/commands/sqlite3/worker.js && cp src/commands/sqlite3/worker.js dist/bin/chunks/sqlite3-worker.js && cp src/commands/sqlite3/worker.js dist/bundle/chunks/sqlite3-worker.js",
+      "build:browser": "esbuild dist/browser.js --bundle --platform=browser --format=esm --minify --outfile=dist/bundle/browser.js --external:diff --external:minimatch --external:sprintf-js --external:turndown --external:undici --external:node:zlib --external:@mongodb-js/zstd --external:node-liblzma --external:seek-bzip --define:__BROWSER__=true --alias:node:async_hooks=./src/shims/browser-unsupported.js --alias:node:dns=./src/shims/browser-unsupported.js --alias:node:module=./src/shims/browser-unsupported.js",
+      "build:lib:cjs": "esbuild dist/index.js --bundle --platform=node --format=cjs --minify --outfile=dist/bundle/index.cjs --external:diff --external:minimatch --external:sprintf-js --external:turndown --external:sql.js --external:quickjs-emscripten --external:@mongodb-js/zstd --external:node-liblzma --external:seek-bzip",
+      "test:coverage": "vitest run --coverage",
+      "test:fuzz:long": "FUZZ_RUNS=10000 vitest run src/security/fuzzing/",
+      "test:comparison": "vitest run --config vitest.comparison.config.ts",
+      "check:worker-sync": "node scripts/check-worker-sync.js",
+      "test:coverage:unit": "vitest run --config vitest.unit.config.ts --coverage",
+      "test:comparison:record": "RECORD_FIXTURES=1 vitest run --config vitest.comparison.config.ts"
+    },
+    "_npmUser": {
+      "name": "GitHub Actions",
+      "email": "npm-oidc-no-reply@github.com",
+      "trustedPublisher": {
+        "id": "github",
+        "oidcConfigId": "oidc:e2045cfe-27ad-48e9-89f8-f669bedf2e7e"
+      }
+    },
+    "homepage": "https://github.com/vercel-labs/just-bash#readme",
+    "keywords": [],
+    "_resolved": "/tmp/19364709d6301f06012ab3729ba70307/just-bash-3.4.2.tgz",
+    "_integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+    "repository": {
+      "url": "git+https://github.com/vercel-labs/just-bash.git",
+      "type": "git"
+    },
+    "_npmVersion": "11.17.0",
+    "description": "A simulated bash environment with virtual filesystem",
+    "directories": {},
+    "maintainers": [
+      {
+        "name": "cramforce",
+        "email": "malte.ubl@gmail.com"
+      }
+    ],
+    "_nodeVersion": "24.19.0",
+    "dependencies": {
+      "ini": "^6.0.0",
+      "diff": "^8.0.4",
+      "yaml": "^2.9.0",
+      "re2js": "^1.3.3",
+      "sql.js": "^1.14.1",
+      "undici": "^7.29.0",
+      "turndown": "^7.2.4",
+      "file-type": "^21.3.4",
+      "minimatch": "^10.2.6",
+      "papaparse": "^5.6.0",
+      "seek-bzip": "^2.0.0",
+      "smol-toml": "^1.8.0",
+      "modern-tar": "^0.7.7",
+      "sprintf-js": "^1.1.3",
+      "fast-xml-parser": "^5.10.1",
+      "quickjs-emscripten": "^0.32.0"
+    },
+    "publishConfig": {
+      "access": "public"
+    },
+    "_hasShrinkwrap": false,
+    "devDependencies": {
+      "tsx": "^4.23.12",
+      "knip": "^5.88.1",
+      "vitest": "^4.1.10",
+      "esbuild": "^0.27.7",
+      "@types/ini": "^4.1.1",
+      "fast-check": "^3.23.2",
+      "typescript": "^5.9.3",
+      "@types/node": "^25.9.5",
+      "@types/sql.js": "^1.4.11",
+      "@types/turndown": "^5.0.6",
+      "@types/papaparse": "^5.5.2",
+      "@types/sprintf-js": "^1.1.4",
+      "@vitest/coverage-v8": "^4.1.10"
+    },
+    "optionalDependencies": {
+      "node-liblzma": "^2.2.0",
+      "@mongodb-js/zstd": "^7.0.0"
+    },
+    "_npmOperationalInternal": {
+      "tmp": "tmp/just-bash_3.4.2_1787369307431_0.977574678509346",
+      "host": "s3://npm-registry-packages-npm-production"
+    },
+    "_id": "just-bash@3.4.2",
+    "version": "3.4.2"
+  },
+  "publishedProvenanceStatements": [
+    {
+      "_type": "https://in-toto.io/Statement/v0.1",
+      "subject": [
+        {
+          "name": "pkg:npm/just-bash@3.4.2",
+          "digest": {
+            "sha512": "4f4569cbb6118028f125da86ded9319f46672032c9bd5c1bf211f82fee8d55da7e4dedbb8d0c63c67b335bd3838c429b5b15ae8e3f37acfe52d06431092b9f82"
+          }
+        }
+      ],
+      "predicateType": "https://github.com/npm/attestation/tree/main/specs/publish/v0.1",
+      "predicate": {
+        "name": "just-bash",
+        "version": "3.4.2",
+        "registry": "https://registry.npmjs.org"
+      }
+    },
+    {
+      "_type": "https://in-toto.io/Statement/v1",
+      "subject": [
+        {
+          "name": "pkg:npm/just-bash@3.4.2",
+          "digest": {
+            "sha512": "4f4569cbb6118028f125da86ded9319f46672032c9bd5c1bf211f82fee8d55da7e4dedbb8d0c63c67b335bd3838c429b5b15ae8e3f37acfe52d06431092b9f82"
+          }
+        }
+      ],
+      "predicateType": "https://slsa.dev/provenance/v1",
+      "predicate": {
+        "buildDefinition": {
+          "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+          "externalParameters": {
+            "workflow": {
+              "ref": "refs/heads/main",
+              "repository": "https://github.com/vercel-labs/just-bash",
+              "path": ".github/workflows/release.yml"
+            }
+          },
+          "internalParameters": {
+            "github": {
+              "event_name": "push",
+              "repository_id": "1121859126",
+              "repository_owner_id": "108547162"
+            }
+          },
+          "resolvedDependencies": [
+            {
+              "uri": "git+https://github.com/vercel-labs/just-bash@refs/heads/main",
+              "digest": {
+                "gitCommit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53"
+              }
+            }
+          ]
+        },
+        "runDetails": {
+          "builder": {
+            "id": "https://github.com/actions/runner/github-hosted"
+          },
+          "metadata": {
+            "invocationId": "https://github.com/vercel-labs/just-bash/actions/runs/32548333495/attempts/1"
+          }
+        }
+      }
+    }
+  ],
+  "source": {
+    "commit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+    "commitDate": "2026-08-22T03:12:15Z",
+    "tree": "c94265f9a1d16f97393633ef93e963affecad855",
+    "repository": "https://github.com/vercel-labs/just-bash",
+    "packagePath": "packages/just-bash/package.json",
+    "packageVersion": "3.4.2",
+    "association": "Registry-supplied SLSA statement names this commit; its subject SHA512 equals dist.integrity. Immutable GitHub tree/blob bytes and source package version/dependency fields independently matched. Signatures/transparency chain not independently verified.",
+    "publicationInvocation": "https://github.com/vercel-labs/just-bash/actions/runs/32548333495/attempts/1"
+  },
+  "historicalComparison": {
+    "oldVersion": "3.4.2",
+    "releaseVersionDelta": "NONE: current latest and explicit old version endpoints returned byte-identical 8127-byte JSON records",
+    "oldVersionRecordSha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1",
+    "latestVersionRecordSha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1",
+    "inheritedOldTarball": {
+      "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts",
+      "path": "just-bash-3.4.2.tgz",
+      "bytes": 9879070,
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d"
+    },
+    "oldTarballRehashed": false,
+    "oldTarballBytesRead": 0,
+    "qualification": "Inherited old SHA256 is not newly recomputed or converted to current registry SHA512; no byte-equivalence/reproduction claim based only on version name.",
+    "scores": "222/224 versus155 and breadth13/54 versus47/54 remain historical, not updated scores or an overall win."
+  },
+  "verificationLimits": {
+    "tarballDownloaded": false,
+    "tarballIntegrityLocallyVerified": false,
+    "sigstoreSignatureVerified": false,
+    "packageInstalled": false,
+    "comparatorExecuted": false,
+    "productExecuted": false,
+    "nativeExecuted": false,
+    "performanceMeasured": false,
+    "publicSourceBlobBindings": 30,
+    "fullSourceTreeMaterialized": false
+  },
+  "officialUrls": [
+    "https://registry.npmjs.org/-/package/just-bash/dist-tags",
+    "https://registry.npmjs.org/just-bash/latest",
+    "https://registry.npmjs.org/just-bash/3.4.2",
+    "https://registry.npmjs.org/just-bash",
+    "https://registry.npmjs.org/-/npm/v1/attestations/just-bash@3.4.2",
+    "https://api.github.com/repos/vercel-labs/just-bash/commits/a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+    "https://api.github.com/repos/vercel-labs/just-bash/git/trees/a021f95f53f7e01df48dab71b46ffd4637fb4b53?recursive=1",
+    "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/package.json"
+  ]
+}

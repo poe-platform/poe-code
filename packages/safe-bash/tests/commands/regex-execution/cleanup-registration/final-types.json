@@ -1,0 +1,42 @@
+{
+  "started": "2026-08-27T07:46:58.534Z",
+  "finished": "2026-08-27T07:46:58.996Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "b7ae676a57adec1193b51fe08a91b17eac6f5884",
+  "status": " M src/commands/grep.ts\n M src/commands/regex-execution/README.md\n M src/commands/regex-execution/client.ts\n M src/commands/search/rg.ts\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M tests/commands/regex-execution/cleanup-registration/controls.test.ts\n M tests/stress/regex-execution/cleanup-boundary-review/freeze.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/guard.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/registration.mjs\n?? src/shell/cleanup.ts\n?? tests/commands/archive-stress/native-prerequisite-review/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/regex-execution/cleanup-registration/after-controls.json\n?? tests/commands/regex-execution/cleanup-registration/after-types.json\n?? tests/commands/regex-execution/cleanup-registration/final-controls.json\n?? tests/commands/regex-execution/cleanup-registration/final-package-evidence.json\n?? tests/commands/regex-execution/cleanup-registration/isolate.mjs\n?? tests/commands/regex-execution/cleanup-registration/isolated-validation.json\n?? tests/commands/regex-execution/cleanup-registration/package-evidence.json\n?? tests/commands/regex-execution/cleanup-registration/package.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/evidence/\n?? tests/fs/s3/rmdir-independent/\n?? tests/shell-stress/env-split-author/\n?? tests/shell/invocation-cleanup-lifecycle.test.ts\n?? tests/stress/regex-execution/cleanup-boundary-review/HARNESS-CORRECTIONS.md\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-compiled-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-packed-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration-corrected-two.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration-corrected.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration.json\n?? tests/stress/regex-execution/cleanup-boundary-review/old-five.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs\n",
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "tests/commands/regex-execution/cleanup-registration/tsconfig.json"
+  ],
+  "before": {
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/search/rg.ts": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+    "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf"
+  },
+  "after": {
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/search/rg.ts": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+    "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf"
+  },
+  "statusCode": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,5206 @@
+{
+  "uniqueHistoricalIdentities": 99,
+  "counts": {
+    "pass": 97,
+    "fail": 2,
+    "skip": 0,
+    "todo": 0,
+    "cancelled": 0
+  },
+  "historicalPreflightFailures": 99,
+  "currentPreflightFailures": 0,
+  "currentDownstreamFailures": 2,
+  "cohorts": {
+    "matrix79": {
+      "unique": 79,
+      "counts": {
+        "pass": 77,
+        "fail": 2,
+        "skip": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      "footer": {
+        "tests": 79,
+        "pass": 77,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rows": [
+        {
+          "name": "memory: independent six-family named-file probes",
+          "status": "pass",
+          "line": 3,
+          "detail": null
+        },
+        {
+          "name": "memory: aggregate six-family coding-agent flow",
+          "status": "pass",
+          "line": 9,
+          "detail": null
+        },
+        {
+          "name": "memory: binary stdin, compression, hashes and redirected bytes",
+          "status": "pass",
+          "line": 15,
+          "detail": null
+        },
+        {
+          "name": "memory: cwd, supplied stdin and explicitly empty stdin",
+          "status": "pass",
+          "line": 21,
+          "detail": null
+        },
+        {
+          "name": "memory: create, copy, append, inspect and remove files",
+          "status": "pass",
+          "line": 27,
+          "detail": null
+        },
+        {
+          "name": "memory: move retains bytes and removes source",
+          "status": "pass",
+          "line": 33,
+          "detail": null
+        },
+        {
+          "name": "memory: touch creates an empty file successfully",
+          "status": "pass",
+          "line": 39,
+          "detail": null
+        },
+        {
+          "name": "memory: in-place edit, diff-to-patch stdin and reverse",
+          "status": "pass",
+          "line": 45,
+          "detail": null
+        },
+        {
+          "name": "memory: missing paths, stderr redirection and command errors",
+          "status": "pass",
+          "line": 51,
+          "detail": null
+        },
+        {
+          "name": "memory: cancellation interrupts actual blocked command pipeline",
+          "status": "pass",
+          "line": 57,
+          "detail": null
+        },
+        {
+          "name": "memory: output limit terminates real binary reads",
+          "status": "pass",
+          "line": 63,
+          "detail": null
+        },
+        {
+          "name": "real: independent six-family named-file probes",
+          "status": "pass",
+          "line": 69,
+          "detail": null
+        },
+        {
+          "name": "real: aggregate six-family coding-agent flow",
+          "status": "pass",
+          "line": 75,
+          "detail": null
+        },
+        {
+          "name": "real: binary stdin, compression, hashes and redirected bytes",
+          "status": "pass",
+          "line": 81,
+          "detail": null
+        },
+        {
+          "name": "real: cwd, supplied stdin and explicitly empty stdin",
+          "status": "pass",
+          "line": 87,
+          "detail": null
+        },
+        {
+          "name": "real: create, copy, append, inspect and remove files",
+          "status": "pass",
+          "line": 93,
+          "detail": null
+        },
+        {
+          "name": "real: move retains bytes and removes source",
+          "status": "pass",
+          "line": 99,
+          "detail": null
+        },
+        {
+          "name": "real: touch creates an empty file successfully",
+          "status": "pass",
+          "line": 105,
+          "detail": null
+        },
+        {
+          "name": "real: in-place edit, diff-to-patch stdin and reverse",
+          "status": "pass",
+          "line": 111,
+          "detail": null
+        },
+        {
+          "name": "real: missing paths, stderr redirection and command errors",
+          "status": "pass",
+          "line": 117,
+          "detail": null
+        },
+        {
+          "name": "real: cancellation interrupts actual blocked command pipeline",
+          "status": "pass",
+          "line": 123,
+          "detail": null
+        },
+        {
+          "name": "real: output limit terminates real binary reads",
+          "status": "pass",
+          "line": 129,
+          "detail": null
+        },
+        {
+          "name": "s3: independent six-family named-file probes",
+          "status": "pass",
+          "line": 135,
+          "detail": null
+        },
+        {
+          "name": "s3: aggregate six-family coding-agent flow",
+          "status": "pass",
+          "line": 141,
+          "detail": null
+        },
+        {
+          "name": "s3: binary stdin, compression, hashes and redirected bytes",
+          "status": "pass",
+          "line": 147,
+          "detail": null
+        },
+        {
+          "name": "s3: cwd, supplied stdin and explicitly empty stdin",
+          "status": "pass",
+          "line": 153,
+          "detail": null
+        },
+        {
+          "name": "s3: create, copy, append, inspect and remove files",
+          "status": "fail",
+          "line": 159,
+          "detail": "  ---\n  duration_ms: 4.566375\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:4:856'\n  failureType: 'testCodeFailure'\n  error: |-\n    rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/work/scratch/nested'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/fixtures.ts:198:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:105:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/fixtures.ts:183:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:101:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+        },
+        {
+          "name": "s3: move retains bytes and removes source",
+          "status": "pass",
+          "line": 186,
+          "detail": null
+        },
+        {
+          "name": "s3: touch creates an empty file successfully",
+          "status": "pass",
+          "line": 192,
+          "detail": null
+        },
+        {
+          "name": "s3: in-place edit, diff-to-patch stdin and reverse",
+          "status": "pass",
+          "line": 198,
+          "detail": null
+        },
+        {
+          "name": "s3: missing paths, stderr redirection and command errors",
+          "status": "pass",
+          "line": 204,
+          "detail": null
+        },
+        {
+          "name": "s3: cancellation interrupts actual blocked command pipeline",
+          "status": "pass",
+          "line": 210,
+          "detail": null
+        },
+        {
+          "name": "s3: output limit terminates real binary reads",
+          "status": "pass",
+          "line": 216,
+          "detail": null
+        },
+        {
+          "name": "webdav: independent six-family named-file probes",
+          "status": "pass",
+          "line": 222,
+          "detail": null
+        },
+        {
+          "name": "webdav: aggregate six-family coding-agent flow",
+          "status": "pass",
+          "line": 228,
+          "detail": null
+        },
+        {
+          "name": "webdav: binary stdin, compression, hashes and redirected bytes",
+          "status": "pass",
+          "line": 234,
+          "detail": null
+        },
+        {
+          "name": "webdav: cwd, supplied stdin and explicitly empty stdin",
+          "status": "pass",
+          "line": 240,
+          "detail": null
+        },
+        {
+          "name": "webdav: create, copy, append, inspect and remove files",
+          "status": "fail",
+          "line": 246,
+          "detail": "  ---\n  duration_ms: 34.929208\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:4:856'\n  failureType: 'testCodeFailure'\n  error: |-\n    rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/work/scratch/nested'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/fixtures.ts:198:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:105:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/fixtures.ts:183:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:101:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+        },
+        {
+          "name": "webdav: move retains bytes and removes source",
+          "status": "pass",
+          "line": 273,
+          "detail": null
+        },
+        {
+          "name": "webdav: touch creates an empty file successfully",
+          "status": "pass",
+          "line": 279,
+          "detail": null
+        },
+        {
+          "name": "webdav: in-place edit, diff-to-patch stdin and reverse",
+          "status": "pass",
+          "line": 285,
+          "detail": null
+        },
+        {
+          "name": "webdav: missing paths, stderr redirection and command errors",
+          "status": "pass",
+          "line": 291,
+          "detail": null
+        },
+        {
+          "name": "webdav: cancellation interrupts actual blocked command pipeline",
+          "status": "pass",
+          "line": 297,
+          "detail": null
+        },
+        {
+          "name": "webdav: output limit terminates real binary reads",
+          "status": "pass",
+          "line": 303,
+          "detail": null
+        },
+        {
+          "name": "mount: independent six-family named-file probes",
+          "status": "pass",
+          "line": 309,
+          "detail": null
+        },
+        {
+          "name": "mount: aggregate six-family coding-agent flow",
+          "status": "pass",
+          "line": 315,
+          "detail": null
+        },
+        {
+          "name": "mount: binary stdin, compression, hashes and redirected bytes",
+          "status": "pass",
+          "line": 321,
+          "detail": null
+        },
+        {
+          "name": "mount: cwd, supplied stdin and explicitly empty stdin",
+          "status": "pass",
+          "line": 327,
+          "detail": null
+        },
+        {
+          "name": "mount: create, copy, append, inspect and remove files",
+          "status": "pass",
+          "line": 333,
+          "detail": null
+        },
+        {
+          "name": "mount: move retains bytes and removes source",
+          "status": "pass",
+          "line": 339,
+          "detail": null
+        },
+        {
+          "name": "mount: touch creates an empty file successfully",
+          "status": "pass",
+          "line": 345,
+          "detail": null
+        },
+        {
+          "name": "mount: in-place edit, diff-to-patch stdin and reverse",
+          "status": "pass",
+          "line": 351,
+          "detail": null
+        },
+        {
+          "name": "mount: missing paths, stderr redirection and command errors",
+          "status": "pass",
+          "line": 357,
+          "detail": null
+        },
+        {
+          "name": "mount: cancellation interrupts actual blocked command pipeline",
+          "status": "pass",
+          "line": 363,
+          "detail": null
+        },
+        {
+          "name": "mount: output limit terminates real binary reads",
+          "status": "pass",
+          "line": 369,
+          "detail": null
+        },
+        {
+          "name": "overlay: independent six-family named-file probes",
+          "status": "pass",
+          "line": 375,
+          "detail": null
+        },
+        {
+          "name": "overlay: aggregate six-family coding-agent flow",
+          "status": "pass",
+          "line": 381,
+          "detail": null
+        },
+        {
+          "name": "overlay: binary stdin, compression, hashes and redirected bytes",
+          "status": "pass",
+          "line": 387,
+          "detail": null
+        },
+        {
+          "name": "overlay: cwd, supplied stdin and explicitly empty stdin",
+          "status": "pass",
+          "line": 393,
+          "detail": null
+        },
+        {
+          "name": "overlay: create, copy, append, inspect and remove files",
+          "status": "pass",
+          "line": 399,
+          "detail": null
+        },
+        {
+          "name": "overlay: move retains bytes and removes source",
+          "status": "pass",
+          "line": 405,
+          "detail": null
+        },
+        {
+          "name": "overlay: touch creates an empty file successfully",
+          "status": "pass",
+          "line": 411,
+          "detail": null
+        },
+        {
+          "name": "overlay: in-place edit, diff-to-patch stdin and reverse",
+          "status": "pass",
+          "line": 417,
+          "detail": null
+        },
+        {
+          "name": "overlay: missing paths, stderr redirection and command errors",
+          "status": "pass",
+          "line": 423,
+          "detail": null
+        },
+        {
+          "name": "overlay: cancellation interrupts actual blocked command pipeline",
+          "status": "pass",
+          "line": 429,
+          "detail": null
+        },
+        {
+          "name": "overlay: output limit terminates real binary reads",
+          "status": "pass",
+          "line": 435,
+          "detail": null
+        },
+        {
+          "name": "mount: cross-backend pipeline and copy use real mount plus S3",
+          "status": "pass",
+          "line": 441,
+          "detail": null
+        },
+        {
+          "name": "overlay: edit and remove lower files without changing S3 lower",
+          "status": "pass",
+          "line": 447,
+          "detail": null
+        },
+        {
+          "name": "readonly: all six aggregate families can inspect without mutation",
+          "status": "pass",
+          "line": 453,
+          "detail": null
+        },
+        {
+          "name": "structured capability gap: raw slurped text can be split into lines",
+          "status": "pass",
+          "line": 459,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: printf 'changed' > target.txt",
+          "status": "pass",
+          "line": 465,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: printf 'changed' >> target.txt",
+          "status": "pass",
+          "line": 471,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: mkdir denied",
+          "status": "pass",
+          "line": 477,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: cp old.txt denied.txt",
+          "status": "pass",
+          "line": 483,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: mv old.txt denied.txt",
+          "status": "pass",
+          "line": 489,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: rm old.txt",
+          "status": "pass",
+          "line": 495,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt",
+          "status": "pass",
+          "line": 501,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: patch -i change.diff",
+          "status": "pass",
+          "line": 507,
+          "detail": null
+        },
+        {
+          "name": "readonly: rejects mutation: gzip payload.bin",
+          "status": "pass",
+          "line": 513,
+          "detail": null
+        }
+      ]
+    },
+    "diagnostics8": {
+      "unique": 8,
+      "counts": {
+        "pass": 8,
+        "fail": 0,
+        "skip": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      "footer": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rows": [
+        {
+          "name": "memory:ENOENT",
+          "status": "pass",
+          "line": 3,
+          "detail": null
+        },
+        {
+          "name": "real:ENOENT",
+          "status": "pass",
+          "line": 10,
+          "detail": null
+        },
+        {
+          "name": "s3:ENOENT",
+          "status": "pass",
+          "line": 17,
+          "detail": null
+        },
+        {
+          "name": "webdav:ENOENT",
+          "status": "pass",
+          "line": 24,
+          "detail": null
+        },
+        {
+          "name": "mount:ENOENT",
+          "status": "pass",
+          "line": 31,
+          "detail": null
+        },
+        {
+          "name": "overlay:ENOENT",
+          "status": "pass",
+          "line": 38,
+          "detail": null
+        },
+        {
+          "name": "readonly:truncate:EROFS",
+          "status": "pass",
+          "line": 45,
+          "detail": null
+        },
+        {
+          "name": "readonly:append:EROFS",
+          "status": "pass",
+          "line": 52,
+          "detail": null
+        }
+      ]
+    },
+    "fresh6": {
+      "unique": 6,
+      "counts": {
+        "pass": 6,
+        "fail": 0,
+        "skip": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      "footer": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rows": [
+        {
+          "name": "fresh numeric/split pipelines: memory",
+          "status": "pass",
+          "line": 3,
+          "detail": null
+        },
+        {
+          "name": "fresh numeric/split pipelines: real",
+          "status": "pass",
+          "line": 9,
+          "detail": null
+        },
+        {
+          "name": "fresh numeric/split pipelines: s3",
+          "status": "pass",
+          "line": 15,
+          "detail": null
+        },
+        {
+          "name": "fresh numeric/split pipelines: webdav",
+          "status": "pass",
+          "line": 21,
+          "detail": null
+        },
+        {
+          "name": "fresh numeric/split pipelines: mount",
+          "status": "pass",
+          "line": 27,
+          "detail": null
+        },
+        {
+          "name": "fresh numeric/split pipelines: overlay",
+          "status": "pass",
+          "line": 33,
+          "detail": null
+        }
+      ]
+    },
+    "split6": {
+      "unique": 6,
+      "counts": {
+        "pass": 6,
+        "fail": 0,
+        "skip": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      "footer": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rows": [
+        {
+          "name": "split aggregate dispatch: memory stdin, files and coding pipeline",
+          "status": "pass",
+          "line": 3,
+          "detail": null
+        },
+        {
+          "name": "split aggregate dispatch: real stdin, files and coding pipeline",
+          "status": "pass",
+          "line": 9,
+          "detail": null
+        },
+        {
+          "name": "split aggregate dispatch: s3 stdin, files and coding pipeline",
+          "status": "pass",
+          "line": 15,
+          "detail": null
+        },
+        {
+          "name": "split aggregate dispatch: webdav stdin, files and coding pipeline",
+          "status": "pass",
+          "line": 21,
+          "detail": null
+        },
+        {
+          "name": "split aggregate dispatch: mount stdin, files and coding pipeline",
+          "status": "pass",
+          "line": 27,
+          "detail": null
+        },
+        {
+          "name": "split aggregate dispatch: overlay stdin, files and coding pipeline",
+          "status": "pass",
+          "line": 33,
+          "detail": null
+        }
+      ]
+    }
+  },
+  "backends": {
+    "memory": {
+      "pass": 15,
+      "fail": 0,
+      "total": 15
+    },
+    "real": {
+      "pass": 14,
+      "fail": 0,
+      "total": 14
+    },
+    "s3": {
+      "pass": 13,
+      "fail": 1,
+      "total": 14
+    },
+    "webdav": {
+      "pass": 13,
+      "fail": 1,
+      "total": 14
+    },
+    "mount": {
+      "pass": 15,
+      "fail": 0,
+      "total": 15
+    },
+    "overlay": {
+      "pass": 15,
+      "fail": 0,
+      "total": 15
+    },
+    "readonly": {
+      "pass": 12,
+      "fail": 0,
+      "total": 12
+    }
+  },
+  "identities": [
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: independent six-family named-file probes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-55049",
+      "historicalTapLine": 55049,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 3,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: aggregate six-family coding-agent flow",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-55203",
+      "historicalTapLine": 55203,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 9,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: binary stdin, compression, hashes and redirected bytes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-55357",
+      "historicalTapLine": 55357,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 15,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: cwd, supplied stdin and explicitly empty stdin",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-55511",
+      "historicalTapLine": 55511,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 21,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: create, copy, append, inspect and remove files",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-55665",
+      "historicalTapLine": 55665,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 27,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: move retains bytes and removes source",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-55819",
+      "historicalTapLine": 55819,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 33,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: touch creates an empty file successfully",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-55973",
+      "historicalTapLine": 55973,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 39,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: in-place edit, diff-to-patch stdin and reverse",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-56127",
+      "historicalTapLine": 56127,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 45,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: missing paths, stderr redirection and command errors",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-56281",
+      "historicalTapLine": 56281,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 51,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: cancellation interrupts actual blocked command pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-56435",
+      "historicalTapLine": 56435,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 57,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "memory: output limit terminates real binary reads",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-56589",
+      "historicalTapLine": 56589,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 63,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: independent six-family named-file probes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-56743",
+      "historicalTapLine": 56743,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 69,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: aggregate six-family coding-agent flow",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-56897",
+      "historicalTapLine": 56897,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 75,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: binary stdin, compression, hashes and redirected bytes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-57051",
+      "historicalTapLine": 57051,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 81,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: cwd, supplied stdin and explicitly empty stdin",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-57205",
+      "historicalTapLine": 57205,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 87,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: create, copy, append, inspect and remove files",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-57359",
+      "historicalTapLine": 57359,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 93,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: move retains bytes and removes source",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-57513",
+      "historicalTapLine": 57513,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 99,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: touch creates an empty file successfully",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-57667",
+      "historicalTapLine": 57667,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 105,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: in-place edit, diff-to-patch stdin and reverse",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-57821",
+      "historicalTapLine": 57821,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 111,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: missing paths, stderr redirection and command errors",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-57975",
+      "historicalTapLine": 57975,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 117,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: cancellation interrupts actual blocked command pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-58129",
+      "historicalTapLine": 58129,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 123,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "real: output limit terminates real binary reads",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-58283",
+      "historicalTapLine": 58283,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 129,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: independent six-family named-file probes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-58437",
+      "historicalTapLine": 58437,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 135,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: aggregate six-family coding-agent flow",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-58591",
+      "historicalTapLine": 58591,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 141,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: binary stdin, compression, hashes and redirected bytes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-58745",
+      "historicalTapLine": 58745,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 147,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: cwd, supplied stdin and explicitly empty stdin",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-58899",
+      "historicalTapLine": 58899,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 153,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: create, copy, append, inspect and remove files",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-59053",
+      "historicalTapLine": 59053,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "fail",
+      "newTapLine": 159,
+      "callbackEvidence": "failure stack inside callback at matrix.test.ts:105",
+      "failureDetail": "  ---\n  duration_ms: 4.566375\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:4:856'\n  failureType: 'testCodeFailure'\n  error: |-\n    rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/work/scratch/nested'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/fixtures.ts:198:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:105:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/fixtures.ts:183:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:101:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: move retains bytes and removes source",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-59207",
+      "historicalTapLine": 59207,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 186,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: touch creates an empty file successfully",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-59361",
+      "historicalTapLine": 59361,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 192,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: in-place edit, diff-to-patch stdin and reverse",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-59515",
+      "historicalTapLine": 59515,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 198,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: missing paths, stderr redirection and command errors",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-59669",
+      "historicalTapLine": 59669,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 204,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: cancellation interrupts actual blocked command pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-59823",
+      "historicalTapLine": 59823,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 210,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "s3: output limit terminates real binary reads",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-59977",
+      "historicalTapLine": 59977,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 216,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: independent six-family named-file probes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-60131",
+      "historicalTapLine": 60131,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 222,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: aggregate six-family coding-agent flow",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-60286",
+      "historicalTapLine": 60286,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 228,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: binary stdin, compression, hashes and redirected bytes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-60441",
+      "historicalTapLine": 60441,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 234,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: cwd, supplied stdin and explicitly empty stdin",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-60596",
+      "historicalTapLine": 60596,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 240,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: create, copy, append, inspect and remove files",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-60751",
+      "historicalTapLine": 60751,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "fail",
+      "newTapLine": 246,
+      "callbackEvidence": "failure stack inside callback at matrix.test.ts:105",
+      "failureDetail": "  ---\n  duration_ms: 34.929208\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:4:856'\n  failureType: 'testCodeFailure'\n  error: |-\n    rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/work/scratch/nested'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/fixtures.ts:198:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:105:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/fixtures.ts:183:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source/tests/integration/adapter-tools/matrix.test.ts:101:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: move retains bytes and removes source",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-60906",
+      "historicalTapLine": 60906,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 273,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: touch creates an empty file successfully",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-61061",
+      "historicalTapLine": 61061,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 279,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: in-place edit, diff-to-patch stdin and reverse",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-61216",
+      "historicalTapLine": 61216,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 285,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: missing paths, stderr redirection and command errors",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-61371",
+      "historicalTapLine": 61371,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 291,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: cancellation interrupts actual blocked command pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-61526",
+      "historicalTapLine": 61526,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 297,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "webdav: output limit terminates real binary reads",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-61681",
+      "historicalTapLine": 61681,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 303,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: independent six-family named-file probes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-61836",
+      "historicalTapLine": 61836,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 309,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: aggregate six-family coding-agent flow",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-61990",
+      "historicalTapLine": 61990,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 315,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: binary stdin, compression, hashes and redirected bytes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-62144",
+      "historicalTapLine": 62144,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 321,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: cwd, supplied stdin and explicitly empty stdin",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-62298",
+      "historicalTapLine": 62298,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 327,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: create, copy, append, inspect and remove files",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-62452",
+      "historicalTapLine": 62452,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 333,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: move retains bytes and removes source",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-62606",
+      "historicalTapLine": 62606,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 339,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: touch creates an empty file successfully",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-62760",
+      "historicalTapLine": 62760,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 345,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: in-place edit, diff-to-patch stdin and reverse",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-62914",
+      "historicalTapLine": 62914,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 351,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: missing paths, stderr redirection and command errors",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-63068",
+      "historicalTapLine": 63068,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 357,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: cancellation interrupts actual blocked command pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-63222",
+      "historicalTapLine": 63222,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 363,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: output limit terminates real binary reads",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-63376",
+      "historicalTapLine": 63376,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 369,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: independent six-family named-file probes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-63530",
+      "historicalTapLine": 63530,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 375,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: aggregate six-family coding-agent flow",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-63684",
+      "historicalTapLine": 63684,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 381,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: binary stdin, compression, hashes and redirected bytes",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-63838",
+      "historicalTapLine": 63838,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 387,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: cwd, supplied stdin and explicitly empty stdin",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-63992",
+      "historicalTapLine": 63992,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 393,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: create, copy, append, inspect and remove files",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-64146",
+      "historicalTapLine": 64146,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 399,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: move retains bytes and removes source",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-64300",
+      "historicalTapLine": 64300,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 405,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: touch creates an empty file successfully",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-64454",
+      "historicalTapLine": 64454,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 411,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: in-place edit, diff-to-patch stdin and reverse",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-64608",
+      "historicalTapLine": 64608,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 417,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: missing paths, stderr redirection and command errors",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-64762",
+      "historicalTapLine": 64762,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 423,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: cancellation interrupts actual blocked command pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-64916",
+      "historicalTapLine": 64916,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 429,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: output limit terminates real binary reads",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-65070",
+      "historicalTapLine": 65070,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 435,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "mount: cross-backend pipeline and copy use real mount plus S3",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-65224",
+      "historicalTapLine": 65224,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 441,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "overlay: edit and remove lower files without changing S3 lower",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-65378",
+      "historicalTapLine": 65378,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 447,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: all six aggregate families can inspect without mutation",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-65532",
+      "historicalTapLine": 65532,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 453,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "structured capability gap: raw slurped text can be split into lines",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-65686",
+      "historicalTapLine": 65686,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 459,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: printf 'changed' > target.txt",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-65840",
+      "historicalTapLine": 65840,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 465,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: printf 'changed' >> target.txt",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-65994",
+      "historicalTapLine": 65994,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 471,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: mkdir denied",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-66148",
+      "historicalTapLine": 66148,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 477,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: cp old.txt denied.txt",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-66302",
+      "historicalTapLine": 66302,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 483,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: mv old.txt denied.txt",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-66456",
+      "historicalTapLine": 66456,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 489,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: rm old.txt",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-66610",
+      "historicalTapLine": 66610,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 495,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-66764",
+      "historicalTapLine": 66764,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 501,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: patch -i change.diff",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-66918",
+      "historicalTapLine": 66918,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 507,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "matrix79",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "name": "readonly: rejects mutation: gzip payload.bin",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-67072",
+      "historicalTapLine": 67072,
+      "historicalSourceSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+      "newExecutionStatus": "pass",
+      "newTapLine": 513,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "diagnostics8",
+      "backend": "memory",
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "name": "memory:ENOENT",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-54296",
+      "historicalTapLine": 54296,
+      "historicalSourceSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "newExecutionStatus": "pass",
+      "newTapLine": 3,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "diagnostics8",
+      "backend": "real",
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "name": "real:ENOENT",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-54390",
+      "historicalTapLine": 54390,
+      "historicalSourceSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "newExecutionStatus": "pass",
+      "newTapLine": 10,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "diagnostics8",
+      "backend": "s3",
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "name": "s3:ENOENT",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-54484",
+      "historicalTapLine": 54484,
+      "historicalSourceSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "newExecutionStatus": "pass",
+      "newTapLine": 17,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "diagnostics8",
+      "backend": "webdav",
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "name": "webdav:ENOENT",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-54578",
+      "historicalTapLine": 54578,
+      "historicalSourceSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "newExecutionStatus": "pass",
+      "newTapLine": 24,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "diagnostics8",
+      "backend": "mount",
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "name": "mount:ENOENT",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-54673",
+      "historicalTapLine": 54673,
+      "historicalSourceSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "newExecutionStatus": "pass",
+      "newTapLine": 31,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "diagnostics8",
+      "backend": "overlay",
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "name": "overlay:ENOENT",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-54767",
+      "historicalTapLine": 54767,
+      "historicalSourceSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "newExecutionStatus": "pass",
+      "newTapLine": 38,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "diagnostics8",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "name": "readonly:truncate:EROFS",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-54861",
+      "historicalTapLine": 54861,
+      "historicalSourceSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "newExecutionStatus": "pass",
+      "newTapLine": 45,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "diagnostics8",
+      "backend": "readonly",
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "name": "readonly:append:EROFS",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-54955",
+      "historicalTapLine": 54955,
+      "historicalSourceSha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "newExecutionStatus": "pass",
+      "newTapLine": 52,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "fresh6",
+      "backend": "memory",
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "name": "fresh numeric/split pipelines: memory",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-33635",
+      "historicalTapLine": 33635,
+      "historicalSourceSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "newExecutionStatus": "pass",
+      "newTapLine": 3,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "fresh6",
+      "backend": "real",
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "name": "fresh numeric/split pipelines: real",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-33789",
+      "historicalTapLine": 33789,
+      "historicalSourceSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "newExecutionStatus": "pass",
+      "newTapLine": 9,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "fresh6",
+      "backend": "s3",
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "name": "fresh numeric/split pipelines: s3",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-33943",
+      "historicalTapLine": 33943,
+      "historicalSourceSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "newExecutionStatus": "pass",
+      "newTapLine": 15,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "fresh6",
+      "backend": "webdav",
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "name": "fresh numeric/split pipelines: webdav",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-34097",
+      "historicalTapLine": 34097,
+      "historicalSourceSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "newExecutionStatus": "pass",
+      "newTapLine": 21,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "fresh6",
+      "backend": "mount",
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "name": "fresh numeric/split pipelines: mount",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-34252",
+      "historicalTapLine": 34252,
+      "historicalSourceSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "newExecutionStatus": "pass",
+      "newTapLine": 27,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "fresh6",
+      "backend": "overlay",
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "name": "fresh numeric/split pipelines: overlay",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-34406",
+      "historicalTapLine": 34406,
+      "historicalSourceSha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "newExecutionStatus": "pass",
+      "newTapLine": 33,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "split6",
+      "backend": "memory",
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "name": "split aggregate dispatch: memory stdin, files and coding pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-41670",
+      "historicalTapLine": 41670,
+      "historicalSourceSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "newExecutionStatus": "pass",
+      "newTapLine": 3,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "split6",
+      "backend": "real",
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "name": "split aggregate dispatch: real stdin, files and coding pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-41824",
+      "historicalTapLine": 41824,
+      "historicalSourceSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "newExecutionStatus": "pass",
+      "newTapLine": 9,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "split6",
+      "backend": "s3",
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "name": "split aggregate dispatch: s3 stdin, files and coding pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-41978",
+      "historicalTapLine": 41978,
+      "historicalSourceSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "newExecutionStatus": "pass",
+      "newTapLine": 15,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "split6",
+      "backend": "webdav",
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "name": "split aggregate dispatch: webdav stdin, files and coding pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-42132",
+      "historicalTapLine": 42132,
+      "historicalSourceSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "newExecutionStatus": "pass",
+      "newTapLine": 21,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "split6",
+      "backend": "mount",
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "name": "split aggregate dispatch: mount stdin, files and coding pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-42287",
+      "historicalTapLine": 42287,
+      "historicalSourceSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "newExecutionStatus": "pass",
+      "newTapLine": 27,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    },
+    {
+      "cohort": "split6",
+      "backend": "overlay",
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "name": "split aggregate dispatch: overlay stdin, files and coding pipeline",
+      "historicalStatus": "fail",
+      "historicalTapId": "clean-test:tap-line-42441",
+      "historicalTapLine": 42441,
+      "historicalSourceSha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "newExecutionStatus": "pass",
+      "newTapLine": 33,
+      "callbackEvidence": "unchanged awaited callback assertions complete",
+      "failureDetail": null
+    }
+  ],
+  "separateNonadditiveControls": {
+    "registry-author2": {
+      "unique": 2,
+      "counts": {
+        "pass": 2,
+        "fail": 0,
+        "skip": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      "footer": {
+        "tests": 2,
+        "pass": 2,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rows": [
+        {
+          "name": "metadata root API preflights collisions and excludes optional network/runtime plugins",
+          "status": "pass",
+          "line": 3,
+          "detail": null
+        },
+        {
+          "name": "aggregate definitions are exactly the seven delivered families, each registered once",
+          "status": "pass",
+          "line": 9,
+          "detail": null
+        }
+      ]
+    },
+    "preflight-author30": {
+      "unique": 30,
+      "counts": {
+        "pass": 30,
+        "fail": 0,
+        "skip": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      "footer": {
+        "tests": 30,
+        "pass": 30,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rows": [
+        {
+          "name": "preflight rejects missing required standard command: cat",
+          "status": "pass",
+          "line": 3,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: cp",
+          "status": "pass",
+          "line": 9,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: find",
+          "status": "pass",
+          "line": 15,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: mkdir",
+          "status": "pass",
+          "line": 21,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: mv",
+          "status": "pass",
+          "line": 27,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: printf",
+          "status": "pass",
+          "line": 33,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: pwd",
+          "status": "pass",
+          "line": 39,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: rm",
+          "status": "pass",
+          "line": 45,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: rmdir",
+          "status": "pass",
+          "line": 51,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: sort",
+          "status": "pass",
+          "line": 57,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: tee",
+          "status": "pass",
+          "line": 63,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: test",
+          "status": "pass",
+          "line": 69,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: touch",
+          "status": "pass",
+          "line": 75,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required standard command: xargs",
+          "status": "pass",
+          "line": 81,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing standard plugin commands",
+          "status": "pass",
+          "line": 87,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required text command: sed",
+          "status": "pass",
+          "line": 93,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required text command: awk",
+          "status": "pass",
+          "line": 99,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing text plugin commands",
+          "status": "pass",
+          "line": 105,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required structured command: jq",
+          "status": "pass",
+          "line": 111,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing structured plugin commands",
+          "status": "pass",
+          "line": 117,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required search command: rg",
+          "status": "pass",
+          "line": 123,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing search plugin commands",
+          "status": "pass",
+          "line": 129,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required bytes command: sha256sum",
+          "status": "pass",
+          "line": 135,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required bytes command: gzip",
+          "status": "pass",
+          "line": 141,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing bytes plugin commands",
+          "status": "pass",
+          "line": 147,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required diffPatch command: diff",
+          "status": "pass",
+          "line": 153,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing required diffPatch command: patch",
+          "status": "pass",
+          "line": 159,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects missing diffPatch plugin commands",
+          "status": "pass",
+          "line": 165,
+          "detail": null
+        },
+        {
+          "name": "preflight rejects an absent aggregate plugin",
+          "status": "pass",
+          "line": 171,
+          "detail": null
+        },
+        {
+          "name": "preflight permits an unrelated executable command alongside all workflow commands",
+          "status": "pass",
+          "line": 177,
+          "detail": null
+        }
+      ]
+    },
+    "independent162": {
+      "unique": 162,
+      "counts": {
+        "pass": 162,
+        "fail": 0,
+        "skip": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      "footer": {
+        "tests": 162,
+        "pass": 162,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rows": [
+        {
+          "name": "independent literal required-command contract is exactly 22 names",
+          "status": "pass",
+          "line": 3,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command cat rejects before callback",
+          "status": "pass",
+          "line": 9,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command cp rejects before callback",
+          "status": "pass",
+          "line": 16,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command find rejects before callback",
+          "status": "pass",
+          "line": 23,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command mkdir rejects before callback",
+          "status": "pass",
+          "line": 30,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command mv rejects before callback",
+          "status": "pass",
+          "line": 37,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command printf rejects before callback",
+          "status": "pass",
+          "line": 44,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command pwd rejects before callback",
+          "status": "pass",
+          "line": 51,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command rm rejects before callback",
+          "status": "pass",
+          "line": 58,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command rmdir rejects before callback",
+          "status": "pass",
+          "line": 65,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command sort rejects before callback",
+          "status": "pass",
+          "line": 72,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command tee rejects before callback",
+          "status": "pass",
+          "line": 79,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command test rejects before callback",
+          "status": "pass",
+          "line": 86,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command touch rejects before callback",
+          "status": "pass",
+          "line": 93,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing standard command xargs rejects before callback",
+          "status": "pass",
+          "line": 100,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing text command sed rejects before callback",
+          "status": "pass",
+          "line": 107,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing text command awk rejects before callback",
+          "status": "pass",
+          "line": 114,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing structured command jq rejects before callback",
+          "status": "pass",
+          "line": 121,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing search command rg rejects before callback",
+          "status": "pass",
+          "line": 128,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing bytes command sha256sum rejects before callback",
+          "status": "pass",
+          "line": 135,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing bytes command gzip rejects before callback",
+          "status": "pass",
+          "line": 142,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing diffPatch command diff rejects before callback",
+          "status": "pass",
+          "line": 149,
+          "detail": null
+        },
+        {
+          "name": "memory: cardinality52 missing diffPatch command patch rejects before callback",
+          "status": "pass",
+          "line": 156,
+          "detail": null
+        },
+        {
+          "name": "memory: optional command addition cardinality53 executes real workflows",
+          "status": "pass",
+          "line": 163,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command cat rejects before callback",
+          "status": "pass",
+          "line": 170,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command cp rejects before callback",
+          "status": "pass",
+          "line": 177,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command find rejects before callback",
+          "status": "pass",
+          "line": 184,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command mkdir rejects before callback",
+          "status": "pass",
+          "line": 191,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command mv rejects before callback",
+          "status": "pass",
+          "line": 198,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command printf rejects before callback",
+          "status": "pass",
+          "line": 205,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command pwd rejects before callback",
+          "status": "pass",
+          "line": 212,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command rm rejects before callback",
+          "status": "pass",
+          "line": 219,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command rmdir rejects before callback",
+          "status": "pass",
+          "line": 226,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command sort rejects before callback",
+          "status": "pass",
+          "line": 233,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command tee rejects before callback",
+          "status": "pass",
+          "line": 240,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command test rejects before callback",
+          "status": "pass",
+          "line": 247,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command touch rejects before callback",
+          "status": "pass",
+          "line": 254,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing standard command xargs rejects before callback",
+          "status": "pass",
+          "line": 261,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing text command sed rejects before callback",
+          "status": "pass",
+          "line": 268,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing text command awk rejects before callback",
+          "status": "pass",
+          "line": 275,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing structured command jq rejects before callback",
+          "status": "pass",
+          "line": 282,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing search command rg rejects before callback",
+          "status": "pass",
+          "line": 289,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing bytes command sha256sum rejects before callback",
+          "status": "pass",
+          "line": 296,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing bytes command gzip rejects before callback",
+          "status": "pass",
+          "line": 303,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing diffPatch command diff rejects before callback",
+          "status": "pass",
+          "line": 310,
+          "detail": null
+        },
+        {
+          "name": "real: cardinality52 missing diffPatch command patch rejects before callback",
+          "status": "pass",
+          "line": 317,
+          "detail": null
+        },
+        {
+          "name": "real: optional command addition cardinality53 executes real workflows",
+          "status": "pass",
+          "line": 324,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command cat rejects before callback",
+          "status": "pass",
+          "line": 331,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command cp rejects before callback",
+          "status": "pass",
+          "line": 338,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command find rejects before callback",
+          "status": "pass",
+          "line": 345,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command mkdir rejects before callback",
+          "status": "pass",
+          "line": 352,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command mv rejects before callback",
+          "status": "pass",
+          "line": 359,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command printf rejects before callback",
+          "status": "pass",
+          "line": 366,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command pwd rejects before callback",
+          "status": "pass",
+          "line": 373,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command rm rejects before callback",
+          "status": "pass",
+          "line": 380,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command rmdir rejects before callback",
+          "status": "pass",
+          "line": 387,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command sort rejects before callback",
+          "status": "pass",
+          "line": 394,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command tee rejects before callback",
+          "status": "pass",
+          "line": 401,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command test rejects before callback",
+          "status": "pass",
+          "line": 408,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command touch rejects before callback",
+          "status": "pass",
+          "line": 415,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing standard command xargs rejects before callback",
+          "status": "pass",
+          "line": 422,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing text command sed rejects before callback",
+          "status": "pass",
+          "line": 429,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing text command awk rejects before callback",
+          "status": "pass",
+          "line": 436,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing structured command jq rejects before callback",
+          "status": "pass",
+          "line": 443,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing search command rg rejects before callback",
+          "status": "pass",
+          "line": 450,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing bytes command sha256sum rejects before callback",
+          "status": "pass",
+          "line": 457,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing bytes command gzip rejects before callback",
+          "status": "pass",
+          "line": 464,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing diffPatch command diff rejects before callback",
+          "status": "pass",
+          "line": 471,
+          "detail": null
+        },
+        {
+          "name": "s3: cardinality52 missing diffPatch command patch rejects before callback",
+          "status": "pass",
+          "line": 478,
+          "detail": null
+        },
+        {
+          "name": "s3: optional command addition cardinality53 executes real workflows",
+          "status": "pass",
+          "line": 485,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command cat rejects before callback",
+          "status": "pass",
+          "line": 492,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command cp rejects before callback",
+          "status": "pass",
+          "line": 499,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command find rejects before callback",
+          "status": "pass",
+          "line": 506,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command mkdir rejects before callback",
+          "status": "pass",
+          "line": 513,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command mv rejects before callback",
+          "status": "pass",
+          "line": 520,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command printf rejects before callback",
+          "status": "pass",
+          "line": 527,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command pwd rejects before callback",
+          "status": "pass",
+          "line": 534,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command rm rejects before callback",
+          "status": "pass",
+          "line": 541,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command rmdir rejects before callback",
+          "status": "pass",
+          "line": 548,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command sort rejects before callback",
+          "status": "pass",
+          "line": 555,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command tee rejects before callback",
+          "status": "pass",
+          "line": 562,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command test rejects before callback",
+          "status": "pass",
+          "line": 569,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command touch rejects before callback",
+          "status": "pass",
+          "line": 576,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing standard command xargs rejects before callback",
+          "status": "pass",
+          "line": 583,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing text command sed rejects before callback",
+          "status": "pass",
+          "line": 590,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing text command awk rejects before callback",
+          "status": "pass",
+          "line": 597,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing structured command jq rejects before callback",
+          "status": "pass",
+          "line": 604,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing search command rg rejects before callback",
+          "status": "pass",
+          "line": 611,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing bytes command sha256sum rejects before callback",
+          "status": "pass",
+          "line": 618,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing bytes command gzip rejects before callback",
+          "status": "pass",
+          "line": 625,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing diffPatch command diff rejects before callback",
+          "status": "pass",
+          "line": 632,
+          "detail": null
+        },
+        {
+          "name": "webdav: cardinality52 missing diffPatch command patch rejects before callback",
+          "status": "pass",
+          "line": 639,
+          "detail": null
+        },
+        {
+          "name": "webdav: optional command addition cardinality53 executes real workflows",
+          "status": "pass",
+          "line": 646,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command cat rejects before callback",
+          "status": "pass",
+          "line": 653,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command cp rejects before callback",
+          "status": "pass",
+          "line": 660,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command find rejects before callback",
+          "status": "pass",
+          "line": 667,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command mkdir rejects before callback",
+          "status": "pass",
+          "line": 674,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command mv rejects before callback",
+          "status": "pass",
+          "line": 681,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command printf rejects before callback",
+          "status": "pass",
+          "line": 688,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command pwd rejects before callback",
+          "status": "pass",
+          "line": 695,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command rm rejects before callback",
+          "status": "pass",
+          "line": 702,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command rmdir rejects before callback",
+          "status": "pass",
+          "line": 709,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command sort rejects before callback",
+          "status": "pass",
+          "line": 716,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command tee rejects before callback",
+          "status": "pass",
+          "line": 723,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command test rejects before callback",
+          "status": "pass",
+          "line": 730,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command touch rejects before callback",
+          "status": "pass",
+          "line": 737,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing standard command xargs rejects before callback",
+          "status": "pass",
+          "line": 744,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing text command sed rejects before callback",
+          "status": "pass",
+          "line": 751,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing text command awk rejects before callback",
+          "status": "pass",
+          "line": 758,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing structured command jq rejects before callback",
+          "status": "pass",
+          "line": 765,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing search command rg rejects before callback",
+          "status": "pass",
+          "line": 772,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing bytes command sha256sum rejects before callback",
+          "status": "pass",
+          "line": 779,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing bytes command gzip rejects before callback",
+          "status": "pass",
+          "line": 786,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing diffPatch command diff rejects before callback",
+          "status": "pass",
+          "line": 793,
+          "detail": null
+        },
+        {
+          "name": "mount: cardinality52 missing diffPatch command patch rejects before callback",
+          "status": "pass",
+          "line": 800,
+          "detail": null
+        },
+        {
+          "name": "mount: optional command addition cardinality53 executes real workflows",
+          "status": "pass",
+          "line": 807,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command cat rejects before callback",
+          "status": "pass",
+          "line": 814,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command cp rejects before callback",
+          "status": "pass",
+          "line": 821,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command find rejects before callback",
+          "status": "pass",
+          "line": 828,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command mkdir rejects before callback",
+          "status": "pass",
+          "line": 835,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command mv rejects before callback",
+          "status": "pass",
+          "line": 842,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command printf rejects before callback",
+          "status": "pass",
+          "line": 849,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command pwd rejects before callback",
+          "status": "pass",
+          "line": 856,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command rm rejects before callback",
+          "status": "pass",
+          "line": 863,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command rmdir rejects before callback",
+          "status": "pass",
+          "line": 870,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command sort rejects before callback",
+          "status": "pass",
+          "line": 877,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command tee rejects before callback",
+          "status": "pass",
+          "line": 884,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command test rejects before callback",
+          "status": "pass",
+          "line": 891,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command touch rejects before callback",
+          "status": "pass",
+          "line": 898,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing standard command xargs rejects before callback",
+          "status": "pass",
+          "line": 905,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing text command sed rejects before callback",
+          "status": "pass",
+          "line": 912,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing text command awk rejects before callback",
+          "status": "pass",
+          "line": 919,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing structured command jq rejects before callback",
+          "status": "pass",
+          "line": 926,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing search command rg rejects before callback",
+          "status": "pass",
+          "line": 933,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing bytes command sha256sum rejects before callback",
+          "status": "pass",
+          "line": 940,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing bytes command gzip rejects before callback",
+          "status": "pass",
+          "line": 947,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing diffPatch command diff rejects before callback",
+          "status": "pass",
+          "line": 954,
+          "detail": null
+        },
+        {
+          "name": "overlay: cardinality52 missing diffPatch command patch rejects before callback",
+          "status": "pass",
+          "line": 961,
+          "detail": null
+        },
+        {
+          "name": "overlay: optional command addition cardinality53 executes real workflows",
+          "status": "pass",
+          "line": 968,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command cat rejects before callback",
+          "status": "pass",
+          "line": 975,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command cp rejects before callback",
+          "status": "pass",
+          "line": 982,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command find rejects before callback",
+          "status": "pass",
+          "line": 989,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command mkdir rejects before callback",
+          "status": "pass",
+          "line": 996,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command mv rejects before callback",
+          "status": "pass",
+          "line": 1003,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command printf rejects before callback",
+          "status": "pass",
+          "line": 1010,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command pwd rejects before callback",
+          "status": "pass",
+          "line": 1017,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command rm rejects before callback",
+          "status": "pass",
+          "line": 1024,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command rmdir rejects before callback",
+          "status": "pass",
+          "line": 1031,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command sort rejects before callback",
+          "status": "pass",
+          "line": 1038,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command tee rejects before callback",
+          "status": "pass",
+          "line": 1045,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command test rejects before callback",
+          "status": "pass",
+          "line": 1052,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command touch rejects before callback",
+          "status": "pass",
+          "line": 1059,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing standard command xargs rejects before callback",
+          "status": "pass",
+          "line": 1066,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing text command sed rejects before callback",
+          "status": "pass",
+          "line": 1073,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing text command awk rejects before callback",
+          "status": "pass",
+          "line": 1080,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing structured command jq rejects before callback",
+          "status": "pass",
+          "line": 1087,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing search command rg rejects before callback",
+          "status": "pass",
+          "line": 1094,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing bytes command sha256sum rejects before callback",
+          "status": "pass",
+          "line": 1101,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing bytes command gzip rejects before callback",
+          "status": "pass",
+          "line": 1108,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing diffPatch command diff rejects before callback",
+          "status": "pass",
+          "line": 1115,
+          "detail": null
+        },
+        {
+          "name": "readonly: cardinality52 missing diffPatch command patch rejects before callback",
+          "status": "pass",
+          "line": 1122,
+          "detail": null
+        },
+        {
+          "name": "readonly: optional command addition cardinality53 executes real workflows",
+          "status": "pass",
+          "line": 1129,
+          "detail": null
+        }
+      ]
+    }
+  },
+  "independentMissingControls": [
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "cat",
+      "substitute": "registry_unblock_substitute_cat",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cat",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "cp",
+      "substitute": "registry_unblock_substitute_cp",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cp",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "find",
+      "substitute": "registry_unblock_substitute_find",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: find",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "mkdir",
+      "substitute": "registry_unblock_substitute_mkdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mkdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "mv",
+      "substitute": "registry_unblock_substitute_mv",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mv",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "printf",
+      "substitute": "registry_unblock_substitute_printf",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: printf",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "pwd",
+      "substitute": "registry_unblock_substitute_pwd",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: pwd",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "rm",
+      "substitute": "registry_unblock_substitute_rm",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rm",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "rmdir",
+      "substitute": "registry_unblock_substitute_rmdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rmdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "sort",
+      "substitute": "registry_unblock_substitute_sort",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: sort",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "tee",
+      "substitute": "registry_unblock_substitute_tee",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: tee",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "test",
+      "substitute": "registry_unblock_substitute_test",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: test",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "touch",
+      "substitute": "registry_unblock_substitute_touch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: touch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "standard",
+      "missing": "xargs",
+      "substitute": "registry_unblock_substitute_xargs",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: xargs",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "text",
+      "missing": "sed",
+      "substitute": "registry_unblock_substitute_sed",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: sed",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "text",
+      "missing": "awk",
+      "substitute": "registry_unblock_substitute_awk",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: awk",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "structured",
+      "missing": "jq",
+      "substitute": "registry_unblock_substitute_jq",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required structured command: jq",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "search",
+      "missing": "rg",
+      "substitute": "registry_unblock_substitute_rg",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required search command: rg",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "bytes",
+      "missing": "sha256sum",
+      "substitute": "registry_unblock_substitute_sha256sum",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: sha256sum",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "bytes",
+      "missing": "gzip",
+      "substitute": "registry_unblock_substitute_gzip",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: gzip",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "diffPatch",
+      "missing": "diff",
+      "substitute": "registry_unblock_substitute_diff",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: diff",
+      "callbackEntered": false
+    },
+    {
+      "backend": "memory",
+      "family": "diffPatch",
+      "missing": "patch",
+      "substitute": "registry_unblock_substitute_patch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: patch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "cat",
+      "substitute": "registry_unblock_substitute_cat",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cat",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "cp",
+      "substitute": "registry_unblock_substitute_cp",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cp",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "find",
+      "substitute": "registry_unblock_substitute_find",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: find",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "mkdir",
+      "substitute": "registry_unblock_substitute_mkdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mkdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "mv",
+      "substitute": "registry_unblock_substitute_mv",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mv",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "printf",
+      "substitute": "registry_unblock_substitute_printf",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: printf",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "pwd",
+      "substitute": "registry_unblock_substitute_pwd",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: pwd",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "rm",
+      "substitute": "registry_unblock_substitute_rm",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rm",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "rmdir",
+      "substitute": "registry_unblock_substitute_rmdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rmdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "sort",
+      "substitute": "registry_unblock_substitute_sort",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: sort",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "tee",
+      "substitute": "registry_unblock_substitute_tee",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: tee",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "test",
+      "substitute": "registry_unblock_substitute_test",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: test",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "touch",
+      "substitute": "registry_unblock_substitute_touch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: touch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "standard",
+      "missing": "xargs",
+      "substitute": "registry_unblock_substitute_xargs",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: xargs",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "text",
+      "missing": "sed",
+      "substitute": "registry_unblock_substitute_sed",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: sed",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "text",
+      "missing": "awk",
+      "substitute": "registry_unblock_substitute_awk",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: awk",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "structured",
+      "missing": "jq",
+      "substitute": "registry_unblock_substitute_jq",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required structured command: jq",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "search",
+      "missing": "rg",
+      "substitute": "registry_unblock_substitute_rg",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required search command: rg",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "bytes",
+      "missing": "sha256sum",
+      "substitute": "registry_unblock_substitute_sha256sum",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: sha256sum",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "bytes",
+      "missing": "gzip",
+      "substitute": "registry_unblock_substitute_gzip",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: gzip",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "diffPatch",
+      "missing": "diff",
+      "substitute": "registry_unblock_substitute_diff",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: diff",
+      "callbackEntered": false
+    },
+    {
+      "backend": "real",
+      "family": "diffPatch",
+      "missing": "patch",
+      "substitute": "registry_unblock_substitute_patch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: patch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "cat",
+      "substitute": "registry_unblock_substitute_cat",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cat",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "cp",
+      "substitute": "registry_unblock_substitute_cp",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cp",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "find",
+      "substitute": "registry_unblock_substitute_find",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: find",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "mkdir",
+      "substitute": "registry_unblock_substitute_mkdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mkdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "mv",
+      "substitute": "registry_unblock_substitute_mv",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mv",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "printf",
+      "substitute": "registry_unblock_substitute_printf",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: printf",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "pwd",
+      "substitute": "registry_unblock_substitute_pwd",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: pwd",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "rm",
+      "substitute": "registry_unblock_substitute_rm",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rm",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "rmdir",
+      "substitute": "registry_unblock_substitute_rmdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rmdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "sort",
+      "substitute": "registry_unblock_substitute_sort",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: sort",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "tee",
+      "substitute": "registry_unblock_substitute_tee",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: tee",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "test",
+      "substitute": "registry_unblock_substitute_test",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: test",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "touch",
+      "substitute": "registry_unblock_substitute_touch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: touch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "standard",
+      "missing": "xargs",
+      "substitute": "registry_unblock_substitute_xargs",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: xargs",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "text",
+      "missing": "sed",
+      "substitute": "registry_unblock_substitute_sed",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: sed",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "text",
+      "missing": "awk",
+      "substitute": "registry_unblock_substitute_awk",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: awk",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "structured",
+      "missing": "jq",
+      "substitute": "registry_unblock_substitute_jq",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required structured command: jq",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "search",
+      "missing": "rg",
+      "substitute": "registry_unblock_substitute_rg",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required search command: rg",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "bytes",
+      "missing": "sha256sum",
+      "substitute": "registry_unblock_substitute_sha256sum",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: sha256sum",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "bytes",
+      "missing": "gzip",
+      "substitute": "registry_unblock_substitute_gzip",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: gzip",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "diffPatch",
+      "missing": "diff",
+      "substitute": "registry_unblock_substitute_diff",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: diff",
+      "callbackEntered": false
+    },
+    {
+      "backend": "s3",
+      "family": "diffPatch",
+      "missing": "patch",
+      "substitute": "registry_unblock_substitute_patch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: patch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "cat",
+      "substitute": "registry_unblock_substitute_cat",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cat",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "cp",
+      "substitute": "registry_unblock_substitute_cp",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cp",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "find",
+      "substitute": "registry_unblock_substitute_find",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: find",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "mkdir",
+      "substitute": "registry_unblock_substitute_mkdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mkdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "mv",
+      "substitute": "registry_unblock_substitute_mv",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mv",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "printf",
+      "substitute": "registry_unblock_substitute_printf",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: printf",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "pwd",
+      "substitute": "registry_unblock_substitute_pwd",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: pwd",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "rm",
+      "substitute": "registry_unblock_substitute_rm",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rm",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "rmdir",
+      "substitute": "registry_unblock_substitute_rmdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rmdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "sort",
+      "substitute": "registry_unblock_substitute_sort",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: sort",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "tee",
+      "substitute": "registry_unblock_substitute_tee",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: tee",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "test",
+      "substitute": "registry_unblock_substitute_test",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: test",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "touch",
+      "substitute": "registry_unblock_substitute_touch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: touch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "standard",
+      "missing": "xargs",
+      "substitute": "registry_unblock_substitute_xargs",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: xargs",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "text",
+      "missing": "sed",
+      "substitute": "registry_unblock_substitute_sed",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: sed",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "text",
+      "missing": "awk",
+      "substitute": "registry_unblock_substitute_awk",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: awk",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "structured",
+      "missing": "jq",
+      "substitute": "registry_unblock_substitute_jq",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required structured command: jq",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "search",
+      "missing": "rg",
+      "substitute": "registry_unblock_substitute_rg",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required search command: rg",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "bytes",
+      "missing": "sha256sum",
+      "substitute": "registry_unblock_substitute_sha256sum",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: sha256sum",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "bytes",
+      "missing": "gzip",
+      "substitute": "registry_unblock_substitute_gzip",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: gzip",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "diffPatch",
+      "missing": "diff",
+      "substitute": "registry_unblock_substitute_diff",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: diff",
+      "callbackEntered": false
+    },
+    {
+      "backend": "webdav",
+      "family": "diffPatch",
+      "missing": "patch",
+      "substitute": "registry_unblock_substitute_patch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: patch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "cat",
+      "substitute": "registry_unblock_substitute_cat",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cat",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "cp",
+      "substitute": "registry_unblock_substitute_cp",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cp",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "find",
+      "substitute": "registry_unblock_substitute_find",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: find",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "mkdir",
+      "substitute": "registry_unblock_substitute_mkdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mkdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "mv",
+      "substitute": "registry_unblock_substitute_mv",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mv",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "printf",
+      "substitute": "registry_unblock_substitute_printf",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: printf",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "pwd",
+      "substitute": "registry_unblock_substitute_pwd",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: pwd",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "rm",
+      "substitute": "registry_unblock_substitute_rm",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rm",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "rmdir",
+      "substitute": "registry_unblock_substitute_rmdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rmdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "sort",
+      "substitute": "registry_unblock_substitute_sort",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: sort",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "tee",
+      "substitute": "registry_unblock_substitute_tee",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: tee",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "test",
+      "substitute": "registry_unblock_substitute_test",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: test",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "touch",
+      "substitute": "registry_unblock_substitute_touch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: touch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "standard",
+      "missing": "xargs",
+      "substitute": "registry_unblock_substitute_xargs",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: xargs",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "text",
+      "missing": "sed",
+      "substitute": "registry_unblock_substitute_sed",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: sed",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "text",
+      "missing": "awk",
+      "substitute": "registry_unblock_substitute_awk",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: awk",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "structured",
+      "missing": "jq",
+      "substitute": "registry_unblock_substitute_jq",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required structured command: jq",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "search",
+      "missing": "rg",
+      "substitute": "registry_unblock_substitute_rg",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required search command: rg",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "bytes",
+      "missing": "sha256sum",
+      "substitute": "registry_unblock_substitute_sha256sum",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: sha256sum",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "bytes",
+      "missing": "gzip",
+      "substitute": "registry_unblock_substitute_gzip",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: gzip",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "diffPatch",
+      "missing": "diff",
+      "substitute": "registry_unblock_substitute_diff",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: diff",
+      "callbackEntered": false
+    },
+    {
+      "backend": "mount",
+      "family": "diffPatch",
+      "missing": "patch",
+      "substitute": "registry_unblock_substitute_patch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: patch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "cat",
+      "substitute": "registry_unblock_substitute_cat",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cat",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "cp",
+      "substitute": "registry_unblock_substitute_cp",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cp",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "find",
+      "substitute": "registry_unblock_substitute_find",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: find",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "mkdir",
+      "substitute": "registry_unblock_substitute_mkdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mkdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "mv",
+      "substitute": "registry_unblock_substitute_mv",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mv",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "printf",
+      "substitute": "registry_unblock_substitute_printf",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: printf",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "pwd",
+      "substitute": "registry_unblock_substitute_pwd",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: pwd",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "rm",
+      "substitute": "registry_unblock_substitute_rm",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rm",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "rmdir",
+      "substitute": "registry_unblock_substitute_rmdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rmdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "sort",
+      "substitute": "registry_unblock_substitute_sort",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: sort",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "tee",
+      "substitute": "registry_unblock_substitute_tee",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: tee",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "test",
+      "substitute": "registry_unblock_substitute_test",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: test",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "touch",
+      "substitute": "registry_unblock_substitute_touch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: touch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "standard",
+      "missing": "xargs",
+      "substitute": "registry_unblock_substitute_xargs",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: xargs",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "text",
+      "missing": "sed",
+      "substitute": "registry_unblock_substitute_sed",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: sed",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "text",
+      "missing": "awk",
+      "substitute": "registry_unblock_substitute_awk",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: awk",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "structured",
+      "missing": "jq",
+      "substitute": "registry_unblock_substitute_jq",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required structured command: jq",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "search",
+      "missing": "rg",
+      "substitute": "registry_unblock_substitute_rg",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required search command: rg",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "bytes",
+      "missing": "sha256sum",
+      "substitute": "registry_unblock_substitute_sha256sum",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: sha256sum",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "bytes",
+      "missing": "gzip",
+      "substitute": "registry_unblock_substitute_gzip",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: gzip",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "diffPatch",
+      "missing": "diff",
+      "substitute": "registry_unblock_substitute_diff",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: diff",
+      "callbackEntered": false
+    },
+    {
+      "backend": "overlay",
+      "family": "diffPatch",
+      "missing": "patch",
+      "substitute": "registry_unblock_substitute_patch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: patch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "cat",
+      "substitute": "registry_unblock_substitute_cat",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cat",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "cp",
+      "substitute": "registry_unblock_substitute_cp",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: cp",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "find",
+      "substitute": "registry_unblock_substitute_find",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: find",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "mkdir",
+      "substitute": "registry_unblock_substitute_mkdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mkdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "mv",
+      "substitute": "registry_unblock_substitute_mv",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: mv",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "printf",
+      "substitute": "registry_unblock_substitute_printf",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: printf",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "pwd",
+      "substitute": "registry_unblock_substitute_pwd",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: pwd",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "rm",
+      "substitute": "registry_unblock_substitute_rm",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rm",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "rmdir",
+      "substitute": "registry_unblock_substitute_rmdir",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: rmdir",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "sort",
+      "substitute": "registry_unblock_substitute_sort",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: sort",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "tee",
+      "substitute": "registry_unblock_substitute_tee",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: tee",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "test",
+      "substitute": "registry_unblock_substitute_test",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: test",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "touch",
+      "substitute": "registry_unblock_substitute_touch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: touch",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "standard",
+      "missing": "xargs",
+      "substitute": "registry_unblock_substitute_xargs",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required standard command: xargs",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "text",
+      "missing": "sed",
+      "substitute": "registry_unblock_substitute_sed",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: sed",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "text",
+      "missing": "awk",
+      "substitute": "registry_unblock_substitute_awk",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required text command: awk",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "structured",
+      "missing": "jq",
+      "substitute": "registry_unblock_substitute_jq",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required structured command: jq",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "search",
+      "missing": "rg",
+      "substitute": "registry_unblock_substitute_rg",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required search command: rg",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "bytes",
+      "missing": "sha256sum",
+      "substitute": "registry_unblock_substitute_sha256sum",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: sha256sum",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "bytes",
+      "missing": "gzip",
+      "substitute": "registry_unblock_substitute_gzip",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required bytes command: gzip",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "diffPatch",
+      "missing": "diff",
+      "substitute": "registry_unblock_substitute_diff",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: diff",
+      "callbackEntered": false
+    },
+    {
+      "backend": "readonly",
+      "family": "diffPatch",
+      "missing": "patch",
+      "substitute": "registry_unblock_substitute_patch",
+      "beforeCount": 52,
+      "afterCount": 52,
+      "observed": "adapter-tools preflight: missing required diffPatch command: patch",
+      "callbackEntered": false
+    }
+  ],
+  "independentOptionalWorkflowControls": [
+    {
+      "backend": "memory",
+      "beforeCount": 52,
+      "afterCount": 53,
+      "callbackEntered": true,
+      "optionalExecuted": true,
+      "dispatched": [
+        "registry_unblock_optional",
+        "cat",
+        "sed",
+        "awk",
+        "jq",
+        "jq",
+        "xargs",
+        "find",
+        "rg",
+        "cat",
+        "gzip",
+        "gzip",
+        "diff"
+      ]
+    },
+    {
+      "backend": "real",
+      "beforeCount": 52,
+      "afterCount": 53,
+      "callbackEntered": true,
+      "optionalExecuted": true,
+      "dispatched": [
+        "registry_unblock_optional",
+        "cat",
+        "sed",
+        "awk",
+        "jq",
+        "jq",
+        "xargs",
+        "find",
+        "rg",
+        "cat",
+        "gzip",
+        "gzip",
+        "diff"
+      ]
+    },
+    {
+      "backend": "s3",
+      "beforeCount": 52,
+      "afterCount": 53,
+      "callbackEntered": true,
+      "optionalExecuted": true,
+      "dispatched": [
+        "registry_unblock_optional",
+        "cat",
+        "sed",
+        "awk",
+        "jq",
+        "jq",
+        "xargs",
+        "find",
+        "rg",
+        "cat",
+        "gzip",
+        "gzip",
+        "diff"
+      ]
+    },
+    {
+      "backend": "webdav",
+      "beforeCount": 52,
+      "afterCount": 53,
+      "callbackEntered": true,
+      "optionalExecuted": true,
+      "dispatched": [
+        "registry_unblock_optional",
+        "cat",
+        "sed",
+        "awk",
+        "jq",
+        "jq",
+        "xargs",
+        "find",
+        "rg",
+        "cat",
+        "gzip",
+        "gzip",
+        "diff"
+      ]
+    },
+    {
+      "backend": "mount",
+      "beforeCount": 52,
+      "afterCount": 53,
+      "callbackEntered": true,
+      "optionalExecuted": true,
+      "dispatched": [
+        "registry_unblock_optional",
+        "cat",
+        "sed",
+        "awk",
+        "jq",
+        "jq",
+        "xargs",
+        "find",
+        "rg",
+        "cat",
+        "gzip",
+        "gzip",
+        "diff"
+      ]
+    },
+    {
+      "backend": "overlay",
+      "beforeCount": 52,
+      "afterCount": 53,
+      "callbackEntered": true,
+      "optionalExecuted": true,
+      "dispatched": [
+        "registry_unblock_optional",
+        "cat",
+        "sed",
+        "awk",
+        "jq",
+        "jq",
+        "xargs",
+        "find",
+        "rg",
+        "cat",
+        "gzip",
+        "gzip",
+        "diff"
+      ]
+    },
+    {
+      "backend": "readonly",
+      "beforeCount": 52,
+      "afterCount": 53,
+      "callbackEntered": true,
+      "optionalExecuted": true,
+      "dispatched": [
+        "registry_unblock_optional",
+        "cat",
+        "sed",
+        "awk",
+        "jq",
+        "jq",
+        "xargs",
+        "find",
+        "rg",
+        "cat",
+        "gzip",
+        "gzip",
+        "diff"
+      ]
+    }
+  ],
+  "separateLiteralRequiredList": 1,
+  "separateStandaloneRegistry52": {
+    "kind": "separate-exact-registry-probe",
+    "expected": [
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "cat",
+      "chmod",
+      "cksum",
+      "cp",
+      "cut",
+      "diff",
+      "dirname",
+      "echo",
+      "env",
+      "false",
+      "find",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "jq",
+      "ln",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "od",
+      "patch",
+      "printf",
+      "pwd",
+      "readlink",
+      "realpath",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "sha1sum",
+      "sha256sum",
+      "sort",
+      "stat",
+      "tail",
+      "tee",
+      "test",
+      "touch",
+      "tr",
+      "true",
+      "uniq",
+      "wc",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "definitions": [
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "cat",
+      "chmod",
+      "cksum",
+      "cp",
+      "cut",
+      "diff",
+      "dirname",
+      "echo",
+      "env",
+      "false",
+      "find",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "jq",
+      "ln",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "od",
+      "patch",
+      "printf",
+      "pwd",
+      "readlink",
+      "realpath",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "sha1sum",
+      "sha256sum",
+      "sort",
+      "stat",
+      "tail",
+      "tee",
+      "test",
+      "touch",
+      "tr",
+      "true",
+      "uniq",
+      "wc",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "installed": [
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "cat",
+      "chmod",
+      "cksum",
+      "cp",
+      "cut",
+      "diff",
+      "dirname",
+      "echo",
+      "env",
+      "false",
+      "find",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "jq",
+      "ln",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "od",
+      "patch",
+      "printf",
+      "pwd",
+      "readlink",
+      "realpath",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "sha1sum",
+      "sha256sum",
+      "sort",
+      "stat",
+      "tail",
+      "tee",
+      "test",
+      "touch",
+      "tr",
+      "true",
+      "uniq",
+      "wc",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "count": 52
+  },
+  "untouchedOpenHistoricalJqDifferences": 42
+}

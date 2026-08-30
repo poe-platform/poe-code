@@ -1,0 +1,23 @@
+import http from 'node:http';
+import https from 'node:https';
+import net from 'node:net';
+import tls from 'node:tls';
+import dns from 'node:dns';
+import dnsPromises from 'node:dns/promises';
+import {syncBuiltinESMExports} from 'node:module';
+
+const refuse = () => { throw new Error('DOC_SMOKE_EXTERNAL_NETWORK_FORBIDDEN'); };
+http.request = refuse;
+http.get = refuse;
+https.request = refuse;
+https.get = refuse;
+net.connect = refuse;
+net.createConnection = refuse;
+net.Socket.prototype.connect = refuse;
+tls.connect = refuse;
+dns.lookup = refuse;
+dns.resolve = refuse;
+dnsPromises.lookup = refuse;
+dnsPromises.resolve = refuse;
+globalThis.fetch = refuse;
+syncBuiltinESMExports();

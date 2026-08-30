@@ -1,0 +1,2 @@
+assignment=0
+declare -a a=([1]="rhs-write")

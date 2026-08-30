@@ -1,0 +1,56 @@
+{
+  "mode": "ignore-term",
+  "pid": 87130,
+  "receipt": {
+    "pid": 87130,
+    "ppid": 86238,
+    "mode": "ignore-term",
+    "reason": "EXACT_FORWARDING_REASON",
+    "memory": {
+      "baseline": {
+        "rss": 45924352,
+        "heapTotal": 5914624,
+        "heapUsed": 5036344,
+        "external": 2082455,
+        "arrayBuffers": 16831
+      },
+      "fieldwisePeaks": {
+        "rss": 45924352,
+        "heapTotal": 5914624,
+        "heapUsed": 5042816,
+        "external": 2082495,
+        "arrayBuffers": 16831
+      }
+    }
+  },
+  "signals": [
+    {
+      "signal": "SIGTERM",
+      "accepted": true,
+      "at": "2026-08-28T00:16:15.518Z"
+    },
+    {
+      "signal": "SIGKILL",
+      "accepted": true,
+      "at": "2026-08-28T00:16:18.520Z"
+    }
+  ],
+  "exit": {
+    "code": null,
+    "signal": "SIGKILL"
+  },
+  "close": {
+    "code": null,
+    "signal": "SIGKILL"
+  },
+  "error": null,
+  "startedAt": "2026-08-28T00:16:15.474Z",
+  "assertionState": "not evaluated",
+  "elapsedMs": 3047.895124999999,
+  "closeObserved": true,
+  "pidState": "absent",
+  "groupMembers": [],
+  "bindingHash": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+  "originalBindingHash": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+  "markerPresent": false
+}

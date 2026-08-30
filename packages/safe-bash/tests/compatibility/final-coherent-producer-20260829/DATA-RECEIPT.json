@@ -1,0 +1,66 @@
+{
+  "status": "PRODUCER_DATA_READY_FOR_INDEPENDENT_AUDIT",
+  "sourceReview": {
+    "commit": "42c5df0d2e6c8246d18ddd331ad3d3a0ecb65582",
+    "receiptSha256": "aaee5bc24adb0460e0858eae44e10804ea6168a4470f13bfb84139b00d871a52",
+    "authorControls": 8,
+    "novelControls": 3,
+    "allPassed": true
+  },
+  "presealCommit": "949b0a8400254fa5e287a2752a4899edac1777cd",
+  "producerCommit": "ab46a006a0f324a42c563542e4545ce80de49731",
+  "producerReceiptSha256": "c5e2b614f775688d72e793fd88fad3044e8217c32a4aac8495d13d00d02f22ce",
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+    "bytes": 974493,
+    "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a"
+  },
+  "archiveCommitAuthenticatedBeforeDecode": true,
+  "sameBufferDecoded": true,
+  "tarBytes": 6195200,
+  "sourceCount": 323,
+  "sourceTree": "aaeb5e57d252aa19a7624656ecf3d8740e84357e",
+  "unchangedSourceInputs": 322,
+  "typedFiles": 115,
+  "compilerExit": 0,
+  "packExit": 0,
+  "emitCount": 1068,
+  "shippingCount": 1070,
+  "shipManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/SHIPPING.json",
+    "bytes": 200220,
+    "sha256": "7a0ff180f4cc397014b62c6478c5076f5dbfd0c2ade3dfcd5248f6b420aa8738"
+  },
+  "closure": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/CLOSURE.json",
+    "bytes": 341959,
+    "sha256": "db24aef688d4230ae8e044466793453cbfaab3791d9e0101d1ebfd94d0885ee1"
+  },
+  "usability": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/USABILITY.json",
+    "bytes": 22272,
+    "sha256": "1058ff9a622947e367bd9d49efb47baee551d0a212cc048a44f2227d7e9fe34a"
+  },
+  "sourcePostguard": "All 323 content hashes and modes unchanged; exact non-dist materialized path set unchanged; all compiled shipping bytes match complete emit inventory",
+  "resources": {
+    "knownOSStartsAtPublication": 55,
+    "knownOSMaximum": 56,
+    "conservativePeak": 3,
+    "pureHelpers": 1,
+    "dataHelpers": 2,
+    "correctedDataHelperLaunches": 2,
+    "logicalBytesAtQuiescentSamplePlusRetainedDecodeBuffers": 183161294,
+    "captureBytes": 4862403,
+    "publicationReserveBytes": 16777216,
+    "deadline": "2026-08-29T17:47:02.000Z",
+    "qualification": "quiescent sampled logical work with explicit buffer/startup reserves, not native transient peak/OS disk/RSS quota; physical Git storage excluded"
+  },
+  "qualifications": [
+    "Not an independent producer acceptance; author producer DATA ready for audit",
+    "No Shell, Worker, native Bash, product execution, install, network, or smoke",
+    "V2 C05 fixture defect and all prior failed cohorts remain immutable",
+    "Historical feature acceptance is not transferred to unified runtime proof",
+    "First inspection launch had parse-time missing brace; original helper and stderr retained, no body executed or archive decoded on that launch"
+  ],
+  "at": "2026-08-29T17:35:38.022Z"
+}

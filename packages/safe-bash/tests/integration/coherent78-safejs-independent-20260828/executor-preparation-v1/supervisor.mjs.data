@@ -1,0 +1,373 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { gzipSync, gunzipSync } from 'node:zlib';
+import { spawn } from 'node:child_process';
+
+const repository = '/Users/kjopek/Workspace/safe-bash';
+const relativeOwn = 'tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1';
+const own = path.join(repository, relativeOwn);
+const priorRoot = path.dirname(own);
+const privateRoot = '/Users/kjopek/Workspace/poe-code';
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const objectHash = (kind, bytes) => createHash('sha1').update(`${kind} ${bytes.length}\0`).update(bytes).digest('hex');
+function readLimited(filename, maximum) {
+  const stat = fs.lstatSync(filename);
+  assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= maximum, 'READ_BOUND:' + filename);
+  assert.equal(fs.realpathSync(filename), filename);
+  const bytes = fs.readFileSync(filename); assert.equal(bytes.length, stat.size); return bytes;
+}
+const token = /^C78-SAFEJS-GO:([a-f0-9]{40}):([a-f0-9]{64}):G01,G02,G03:installed,moved:6:([a-z0-9][a-z0-9-]{0,47})$/u.exec(process.env.C78_ROOT_GO ?? '');
+assert.ok(token, 'ROOT_GO_REQUIRED_NO_SIDE_EFFECTS');
+assert.equal(process.cwd(), repository);
+assert.equal(fs.realpathSync(repository), repository);
+assert.equal(fs.realpathSync(privateRoot), privateRoot);
+const [, executionCommit, manifestSha256, runId] = token;
+const manifestBytes = readLimited(path.join(own, 'MANIFEST.json'), 262144);
+assert.equal(sha(manifestBytes), manifestSha256, 'ROOT_GO_MANIFEST');
+const manifest = JSON.parse(manifestBytes);
+const names = fs.readdirSync(own).filter(name => name !== 'runs').sort();
+assert.deepEqual(names, ['MANIFEST.json', ...manifest.files.map(row => row.path)].sort());
+function safe(relative) {
+  assert.ok(relative && !path.isAbsolute(relative) && !relative.includes('\\') && !relative.includes('\0'));
+  assert.ok(!relative.split('/').some(part => ['', '.', '..', 'AGENTS.md'].includes(part)), 'UNSAFE_PATH');
+  return relative;
+}
+function boundRead(filename, expected) {
+  assert.equal(fs.realpathSync(filename), filename, 'SOURCE_SYMLINK');
+  const stat = fs.lstatSync(filename);
+  assert.ok(stat.isFile() && !stat.isSymbolicLink());
+  assert.equal(stat.mode & 511, expected.mode); assert.equal(stat.size, expected.bytes);
+  const bytes = fs.readFileSync(filename); assert.equal(sha(bytes), expected.sha256, filename);
+  return bytes;
+}
+for (const row of manifest.files) boundRead(path.join(own, safe(row.path)), row);
+const control = JSON.parse(readLimited(path.join(own, 'CONTROL.json'), 262144));
+const tools = JSON.parse(readLimited(path.join(own, 'TOOLS.json'), 2097152));
+const engine = JSON.parse(readLimited(path.join(own, 'ENGINE.json'), 262144));
+assert.equal(sha(readLimited(path.join(own, 'TOOLS.json'), 2097152)), control.toolsSha256);
+assert.equal(sha(readLimited(path.join(own, 'ENGINE.json'), 262144)), control.engineClosureSha256);
+assert.equal(engine.commit, control.engineCommit); assert.equal(engine.root, path.join(privateRoot, 'packages/safejs'));
+assert.equal(engine.generatedPackage, control.generated.enginePackage); assert.equal(engine.files.length, 63);
+assert.equal(process.execPath, tools.node.origin); assert.equal(process.version, tools.node.version);
+assert.equal(process.platform, tools.node.platform); assert.equal(process.arch, tools.node.arch);
+boundRead(tools.node.origin, tools.node); boundRead(tools.git.origin, tools.git);
+const priorManifestBytes = readLimited(path.join(priorRoot, 'MANIFEST.json'), 262144);
+assert.equal(sha(priorManifestBytes), control.priorManifestSha256);
+const priorManifest = JSON.parse(priorManifestBytes);
+for (const row of priorManifest.files) boundRead(path.join(priorRoot, safe(row.path)), row);
+const prior = JSON.parse(readLimited(path.join(priorRoot, 'BINDINGS.json'), 2097152));
+const limits = JSON.parse(readLimited(path.join(priorRoot, 'RECIPE.json'), 262144)).bounds;
+const archiveBytes = readLimited(path.join(repository, prior.archive.path), prior.archive.bytes);
+assert.equal(sha(archiveBytes), prior.archive.sha256);
+const raw = JSON.parse(gunzipSync(Buffer.from(archiveBytes.toString('utf8'), 'base64'), { maxOutputLength: 67108864 }));
+const packageBytes = Buffer.from(raw.pack.base64, 'base64');
+assert.equal(packageBytes.length, 759089); assert.equal(sha(packageBytes), control.packageSha256);
+assert.equal(sha(JSON.stringify(raw.fullInstalledBefore)), control.installedManifestSha256);
+const expectedProduct = raw.fullInstalledBefore;
+const packageTar = gunzipSync(packageBytes, { maxOutputLength: 67108864 });
+const tarMembers = new Set();
+let tarOffset = 0;
+while (tarOffset + 512 <= packageTar.length) {
+  const header = packageTar.subarray(tarOffset, tarOffset + 512);
+  if (header.every(byte => byte === 0)) break;
+  const field = (start, end) => header.subarray(start, end).toString().replace(/\0.*$/u, '').trim();
+  const length = Number.parseInt(field(124, 136), 8);
+  assert.ok(Number.isSafeInteger(length) && length >= 0);
+  let checksum = 0;
+  for (let index = 0; index < 512; index++) checksum += index >= 148 && index < 156 ? 32 : header[index];
+  assert.equal(checksum, Number.parseInt(field(148, 156), 8)); assert.equal(header[156], 48);
+  const name = (field(345, 500) ? field(345, 500) + '/' : '') + field(0, 100);
+  assert.ok(name.startsWith('package/'));
+  const relative = safe(name.slice(8)); assert.ok(!tarMembers.has(relative)); tarMembers.add(relative);
+  const bytes = packageTar.subarray(tarOffset + 512, tarOffset + 512 + length);
+  const expected = expectedProduct[relative]; assert.ok(expected?.kind === 'file');
+  assert.equal(length, expected.bytes); assert.equal(bytes.length, length); assert.equal(sha(bytes), expected.sha256); assert.equal(Number.parseInt(field(100, 108), 8) & 511, expected.mode);
+  if (relative === 'package.json') {
+    const metadata = JSON.parse(bytes);
+    for (const key of ['dependencies', 'optionalDependencies', 'peerDependencies']) assert.equal(Object.keys(metadata[key] ?? {}).length, 0);
+  }
+  tarOffset += 512 + Math.ceil(length / 512) * 512;
+}
+assert.equal(tarMembers.size, 858); assert.ok(packageTar.subarray(tarOffset).every(byte => byte === 0));
+const started = Date.now();
+const runRoot = path.join(own, 'runs', runId);
+const scratch = path.join(runRoot, 'scratch');
+assert.ok(!fs.existsSync(runRoot), 'RUN_ID_ALREADY_USED');
+let childCount = 0, gitCount = 0, activeChild;
+let created = false, integrity = true, lastOriginals;
+let consumer = path.join(scratch, 'consumer');
+const evidence = { schema: 'coherent78-safejs-six-v1', phase: 'PRE_CLEANUP_RAW', acceptanceRequires: 'Matching CLOSURE.json with allPass and removedScratch, and no STOP.json; raw workflow success alone is not final acceptance.', executionCommit, manifestSha256, authorization: process.env.C78_ROOT_GO, originalPreparation: control.originalPreparation, packageSha256: control.packageSha256, engineCommit: engine.commit, role: 'six new actual guest evaluations only; historical cohorts not replayed/rescored', sourceQualification: control.sourceQualification, children: [], guards: [], observations: [], assertions: [], safetyStops: [], allPass: false, engineCopies: 0, installs: 0, builds: 0 };
+const errorData = error => ({ name: error?.name, code: error?.code, message: String(error?.message ?? error).slice(0,8192) });
+function remaining() { const value = limits.overallContainmentMs - (Date.now() - started); assert.ok(value > 0, 'OVERALL_CONTAINMENT'); return value; }
+function tree(root, maximumEntries = limits.scratchFiles, maximumBytes = limits.scratchBytes, metadata = false) {
+  const result = {}; let entries = 0, bytes = 0;
+  function visit(prefix) {
+    for (const name of fs.readdirSync(path.join(root, prefix)).sort()) {
+      const relative = prefix ? prefix + '/' + name : name; safe(relative);
+      const absolute = path.join(root, relative), stat = fs.lstatSync(absolute);
+      assert.ok(!stat.isSymbolicLink(), 'TREE_SYMLINK:' + absolute); assert.ok(++entries <= maximumEntries, 'ENTRY_BOUND');
+      if (stat.isDirectory()) { result[relative + '/'] = { kind: 'directory', mode: stat.mode & 511, ...(metadata ? { bytes: stat.size, mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs } : {}) }; visit(relative); }
+      else {
+        assert.ok(stat.isFile()); bytes += stat.size; assert.ok(bytes <= maximumBytes, 'BYTE_BOUND');
+        result[relative] = { kind: 'file', bytes: stat.size, mode: stat.mode & 511, sha256: sha(fs.readFileSync(absolute)), ...(metadata ? { mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs } : {}) };
+      }
+    }
+  }
+  assert.ok(fs.lstatSync(root).isDirectory()); visit(''); return { entries: result, count: entries, bytes };
+}
+function single(filename, metadata = true) {
+  if (!fs.existsSync(filename)) return { absent: true };
+  const stat = fs.lstatSync(filename); assert.ok(stat.isFile() && !stat.isSymbolicLink());
+  assert.ok(stat.size <= 16777216, 'ORIGINAL_FILE_BOUND');
+  return { kind: 'file', mode: stat.mode & 511, bytes: stat.size, sha256: sha(fs.readFileSync(filename)), ...(metadata ? { mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs } : {}) };
+}
+const externalTools = [
+  { origin: tools.node.origin, ...tools.node }, { origin: tools.git.origin, ...tools.git },
+  ...tools.npm.files.map(([relative, mode, bytes, sha256]) => ({ origin: path.join(tools.npm.origin, relative), mode, bytes, sha256 })),
+  ...tools.compiler.files.map(([relative, mode, bytes, sha256]) => ({ origin: path.join(tools.compiler.origin, relative), mode, bytes, sha256 })),
+];
+function originals() {
+  const privateData = { src: tree(path.join(privateRoot, 'packages/safejs/src'), 1024, 67108864, true).entries, metadata: {} };
+  assert.equal(fs.realpathSync(path.join(privateRoot, '.git')), path.join(privateRoot, '.git'));
+  for (const relative of control.privateMetadataFiles) privateData.metadata[relative] = single(path.join(privateRoot, safe(relative)));
+  const refs = path.join(privateRoot, '.git/refs');
+  const refsSnapshot = fs.existsSync(refs) ? tree(refs, 2048, 16777216, true) : { entries: { absent: true }, count: 0, bytes: 0 };
+  privateData.refs = refsSnapshot.entries;
+  assert.ok(refsSnapshot.count + control.privateMetadataFiles.length <= 2048);
+  assert.ok(refsSnapshot.bytes + Object.values(privateData.metadata).reduce((sum, row) => sum + (row.bytes ?? 0), 0) <= 16777216);
+  privateData.directoryRoots = {};
+  for (const relative of ['packages/safejs/src', '.git/refs']) {
+    const filename = path.join(privateRoot, relative);
+    if (fs.existsSync(filename)) { const stat = fs.lstatSync(filename); assert.ok(stat.isDirectory() && !stat.isSymbolicLink()); privateData.directoryRoots[relative] = { mode: stat.mode & 511, bytes: stat.size, mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs }; }
+    else privateData.directoryRoots[relative] = { absent: true };
+  }
+  const external = {};
+  for (const row of externalTools) { boundRead(row.origin, row); const stat = fs.statSync(row.origin); external[row.origin] = { mode: stat.mode & 511, bytes: stat.size, sha256: row.sha256, mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs }; }
+  const publicFiles = {};
+  for (const row of prior.references) { const bytes = readLimited(path.join(repository, row.path), row.bytes); assert.equal(sha(bytes), row.sha256, row.path); publicFiles[row.path] = row.sha256; }
+  for (const row of control.extraGuardedReferences) { const bytes = readLimited(path.join(repository, row.path), row.bytes); assert.equal(sha(bytes), row.sha256, row.path); publicFiles[row.path] = row.sha256; }
+  for (const row of priorManifest.files) publicFiles[path.relative(repository, path.join(priorRoot, row.path))] = sha(boundRead(path.join(priorRoot, row.path), row));
+  assert.equal(sha(fs.readFileSync(path.join(priorRoot, 'MANIFEST.json'))), control.priorManifestSha256);
+  for (const row of manifest.files) publicFiles[path.relative(repository, path.join(own, row.path))] = sha(boundRead(path.join(own, row.path), row));
+  assert.equal(sha(fs.readFileSync(path.join(own, 'MANIFEST.json'))), manifestSha256);
+  return { private: privateData, selectedExternalTools: external, selectedPublicReferences: publicFiles };
+}
+let originalBaseline;
+function guard(label) {
+  try {
+    const current = originals();
+    if (originalBaseline) assert.deepEqual(current, originalBaseline, 'ORIGINAL_GUARD:' + label); else originalBaseline = current;
+    lastOriginals = current;
+    evidence.guards.push({ label, sha256: sha(JSON.stringify(current)), scope: control.originalGuardScope, appendDetection: 'private src and refs subtree membership; not excluded namespaces or selected-tool siblings' });
+  } catch (error) { integrity = false; throw error; }
+}
+function write(relative, bytes, mode = 0o644) {
+  const filename = path.join(scratch, safe(relative)); assert.ok(filename.startsWith(scratch + '/'));
+  fs.mkdirSync(path.dirname(filename), { recursive: true, mode: 0o755 });
+  fs.writeFileSync(filename, bytes, { flag: 'wx', mode }); fs.chmodSync(filename, mode);
+}
+function copy(source, relative, expected) { write(relative, boundRead(source, expected), expected.mode); }
+function census(label) {
+  const found = tree(scratch); evidence.guards.push({ label, scratchEntries: found.count, scratchBytes: found.bytes, censusOnly: true });
+  return found;
+}
+async function child(executable, args, options) {
+  remaining(); assert.ok(!activeChild); assert.ok(++childCount <= control.maximumSpawnedChildren, 'CHILD_BOUND');
+  const row = { number: childCount, role: options.role, executable, args, cwd: options.cwd, stdoutBytes: 0, stderrBytes: 0, containment: null, naturallyReaped: false };
+  evidence.children.push(row);
+  const stdout = [], stderr = [];
+  let grace, forced, deadline;
+  const result = await new Promise((resolve, reject) => {
+    const processChild = spawn(executable, args, { cwd: options.cwd, env: options.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    activeChild = processChild; row.pid = processChild.pid;
+    const contain = reason => {
+      if (row.containment) return;
+      row.containment = reason; processChild.kill('SIGTERM');
+      grace = setTimeout(() => {
+        processChild.kill('SIGKILL');
+        forced = setTimeout(() => { processChild.stdout.destroy(); processChild.stderr.destroy(); processChild.unref(); reject(new Error('DIRECT_CHILD_NOT_REAPED')); }, limits.containmentGraceMs);
+      }, limits.containmentGraceMs);
+    };
+    deadline = setTimeout(() => contain('DEADLINE'), Math.min(options.timeoutMs, remaining()));
+    processChild.on('error', error => { row.spawnError = errorData(error); });
+    processChild.stdout.on('data', chunk => { row.stdoutBytes += chunk.length; if (row.stdoutBytes > limits.stdoutBytesPerChild) contain('STDOUT_BOUND'); else stdout.push(Buffer.from(chunk)); });
+    processChild.stderr.on('data', chunk => { row.stderrBytes += chunk.length; if (row.stderrBytes > limits.stderrBytesPerChild) contain('STDERR_BOUND'); else stderr.push(Buffer.from(chunk)); });
+    processChild.once('close', (status, signal) => {
+      row.status = status; row.signal = signal; row.naturallyReaped = !row.spawnError && !row.containment && signal === null;
+      row.closeObserved = true; resolve({ stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) });
+    });
+  }).finally(() => { clearTimeout(deadline); clearTimeout(grace); clearTimeout(forced); if (row.closeObserved) activeChild = undefined; });
+  row.stdoutSha256 = sha(result.stdout); row.stderrSha256 = sha(result.stderr);
+  if (created && options.role !== 'git-read') { write('logs/' + options.label + '.stdout', result.stdout, 0o600); write('logs/' + options.label + '.stderr', result.stderr, 0o600); }
+  assert.ok(row.naturallyReaped, 'CHILD_CONTAINMENT_OR_SPAWN');
+  return { ...result, row };
+}
+async function git(root, args) {
+  assert.ok(++gitCount <= control.maximumGitChildren);
+  guard('before-git-child-' + gitCount);
+  const result = await child(tools.git.origin, ['--no-replace-objects', '-C', root, ...args], {
+    role: 'git-read', cwd: repository, timeoutMs: 5000,
+    env: { PATH: '/usr/bin:/bin', LC_ALL: 'C', GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0', GIT_NO_LAZY_FETCH: '1', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' },
+  });
+  guard('after-git-child-' + gitCount);
+  assert.equal(result.row.status, 0); assert.equal(result.stderr.length, 0); return result.stdout;
+}
+function admission(role, label) {
+  const files = {};
+  const add = (base, inventory, classify) => {
+    for (const [relative, row] of Object.entries(inventory)) if (row.kind === 'file') files[path.relative(scratch, path.join(base, relative))] = { ...row, role: classify(relative) };
+  };
+  add(path.join(scratch, 'tools'), tree(path.join(scratch, 'tools')).entries, relative => relative.startsWith('npm/') ? 'npm' : 'harness');
+  if (role === 'workflow') {
+    add(consumer, tree(consumer).entries, relative => relative.startsWith('node_modules/virtual-bash/') ? 'product' : relative.startsWith('node_modules/engine/src/') ? 'engine' : relative.startsWith('node_modules/typescript/') ? 'compiler' : relative === 'harness/child.mjs' ? 'harness' : 'harness-data');
+    for (const row of engine.files) files[path.relative(scratch, path.join(consumer, 'node_modules/engine', row.path))].emittedSha256 = row.emittedSha256;
+  }
+  const value = { role, executionToken: executionCommit + ':' + manifestSha256 + ':' + label, files, builtinAllowlist: tools.builtinAllowlist, compiler: path.relative(scratch, path.join(consumer, 'node_modules/typescript/lib/typescript.js')) };
+  const bytes = Buffer.from(JSON.stringify(value)); assert.ok(bytes.length <= 2097152);
+  const relative = 'admissions/' + label + '.json'; write(relative, bytes, 0o600);
+  return { value, filename: path.join(scratch, relative), sha256: sha(bytes) };
+}
+function environment(admitted, label) {
+  return { PATH: path.join(scratch, 'tools'), HOME: path.join(scratch, 'home'), TMPDIR: path.join(scratch, 'tmp'), LC_ALL: 'C', TZ: 'UTC', NODE_DISABLE_COMPILE_CACHE: '1', C78_SCRATCH: scratch, C78_ADMISSION: admitted.filename, C78_ADMISSION_SHA256: admitted.sha256, C78_CHILD_TOKEN: admitted.value.executionToken, C78_TRACE: path.join(scratch, 'logs', label, 'loads.jsonl'), C78_CONSUMER: consumer };
+}
+function loadAudit(label, admitted, workflow) {
+  const filename = path.join(scratch, 'logs', label, 'loads.jsonl');
+  const bytes = readLimited(filename, limits.loadTraceBytesPerChild);
+  const lines = bytes.toString().trim().split('\n').filter(Boolean); assert.ok(lines.length <= 4096);
+  const rows = lines.map(line => JSON.parse(line)); assert.ok(!rows.some(row => row.event === 'refuse'), 'LOAD_REFUSAL');
+  const loads = rows.filter(row => row.event === 'load');
+  for (const row of loads) { const expected = admitted.value.files[row.path]; assert.ok(expected); assert.equal(row.sha256, expected.sha256); assert.equal(row.role, expected.role); }
+  if (workflow) {
+    const productPrefix = path.relative(scratch, path.join(consumer, 'node_modules/virtual-bash')) + '/';
+    const productLoads = [...new Map(loads.filter(row => row.role === 'product').map(row => [row.path.slice(productPrefix.length), { relative: row.path.slice(productPrefix.length), sha256: row.sha256 }])).values()].sort((left, right) => left.relative < right.relative ? -1 : left.relative > right.relative ? 1 : 0);
+    assert.deepEqual(productLoads, raw.layouts[0].loads, 'EXACT_ACTUAL_PRODUCT_MODULE_SET');
+    const enginePrefix = path.relative(scratch, path.join(consumer, 'node_modules/engine')) + '/';
+    const engineLoads = [...new Set(loads.filter(row => row.role === 'engine').map(row => row.path.slice(enginePrefix.length)))].sort();
+    assert.deepEqual(engineLoads, engine.files.map(row => row.path).sort(), 'EXACT_ACTUAL_ENGINE63');
+    for (const row of loads.filter(row => row.role === 'engine')) { assert.equal(row.method, 'explicit-transform'); assert.equal(row.emittedSha256, admitted.value.files[row.path].emittedSha256); }
+    for (const row of loads.filter(row => row.role === 'product')) { assert.equal(row.method, 'nextLoad'); assert.equal(row.sourceExposed, true); }
+    assert.equal(loads.filter(row => row.role === 'compiler').length, 1);
+    assert.equal(loads.filter(row => row.role === 'npm').length, 0);
+  } else { assert.equal(loads.filter(row => ['product', 'engine', 'compiler'].includes(row.role)).length, 0); assert.ok(loads.some(row => row.path.endsWith('/npm/bin/npm-cli.js'))); }
+  return { label, traceSha256: sha(bytes), roles: Object.fromEntries(['product','engine','compiler','npm','harness','harness-data'].map(role => [role, new Set(loads.filter(row => row.role === role).map(row => row.path)).size])), sourceExposureQualification: 'Each file hash authenticated before load; CJS tool nextLoad may not expose source bytes, recorded without upgrading that to consumed-source proof.' };
+}
+let expectedConsumer, expectedTools;
+function immutable(label) {
+  try {
+    assert.deepEqual(tree(path.join(scratch, 'tools')).entries, expectedTools, 'TOOLS_MUTATED');
+    if (expectedConsumer) assert.deepEqual(tree(consumer).entries, expectedConsumer, 'CONSUMER_MUTATED');
+    assert.equal(sha(fs.readFileSync(path.join(scratch, 'package.tgz'))), control.packageSha256);
+    if (expectedConsumer) assert.deepEqual(tree(path.join(consumer, 'node_modules/virtual-bash')).entries, expectedProduct, 'WHOLE_INSTALLED_MANIFEST');
+    census(label);
+  } catch (error) { integrity = false; throw error; }
+}
+try {
+  const committedManifest = await git(repository, ['show', `${executionCommit}:${relativeOwn}/MANIFEST.json`]); assert.equal(sha(committedManifest), manifestSha256);
+  assert.equal((await git(privateRoot, ['rev-parse', 'HEAD'])).toString().trim(), engine.commit);
+  const commitBytes = await git(privateRoot, ['cat-file', 'commit', engine.commit]); assert.equal(objectHash('commit', commitBytes), engine.commit); assert.ok(commitBytes.toString().startsWith('tree ' + engine.commitTree + '\n'));
+  const selectedPaths = engine.files.map(row => 'packages/safejs/' + row.path);
+  const entries = (await git(privateRoot, ['ls-tree', '-r', '-z', engine.commit, '--', ...selectedPaths])).toString().split('\0').filter(Boolean);
+  assert.equal(entries.length, 63);
+  const gitFiles = new Map(entries.map(entry => { const tab = entry.indexOf('\t'); return [entry.slice(tab + 1), entry.slice(0, tab)]; }));
+  for (const row of engine.files) {
+    assert.equal(gitFiles.get('packages/safejs/' + row.path), '100644 blob ' + row.blob);
+    assert.equal(objectHash('blob', boundRead(path.join(engine.root, row.path), row)), row.blob);
+  }
+  guard('before-any-copy');
+  const runsRoot = path.dirname(runRoot);
+  if (!fs.existsSync(runsRoot)) fs.mkdirSync(runsRoot, { mode: 0o700 });
+  assert.equal(fs.realpathSync(runsRoot), runsRoot); assert.ok(fs.lstatSync(runsRoot).isDirectory());
+  fs.mkdirSync(runRoot, { mode: 0o700 }); created = true;
+  fs.mkdirSync(scratch, { mode: 0o755 }); process.umask(0o022);
+  for (const name of ['home', 'cache', 'tmp', 'logs', 'admissions']) fs.mkdirSync(path.join(scratch, name), { mode: 0o755 });
+  copy(tools.node.origin, 'tools/node', tools.node);
+  for (const [relative, mode, bytes, sha256] of tools.npm.files) copy(path.join(tools.npm.origin, safe(relative)), 'tools/npm/' + relative, { mode, bytes, sha256 });
+  const loaderRow = manifest.files.find(row => row.path === 'loader.mjs.data'); copy(path.join(own, loaderRow.path), 'tools/loader.mjs', loaderRow);
+  write('package.tgz', packageBytes); write('user.npmrc', ''); write('global.npmrc', '');
+  write('consumer/package.json', control.generated.consumerPackage);
+  expectedTools = tree(path.join(scratch, 'tools')).entries;
+  guard('after-installer-copy'); immutable('before-installer');
+  const installLabel = 'offline-install'; fs.mkdirSync(path.join(scratch, 'logs', installLabel));
+  const installAdmission = admission('installer', installLabel);
+  guard('before-installer-child');
+  const installArgs = ['--permission', '--allow-fs-read=' + scratch, ...['consumer', 'cache', 'home', 'tmp', 'logs'].map(name => '--allow-fs-write=' + path.join(scratch, name)), '--import', path.join(scratch, 'tools/loader.mjs'), path.join(scratch, 'tools/npm/bin/npm-cli.js'), 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', '--no-save', '--bin-links=false', '--update-notifier=false', '--prefix=' + consumer, '--userconfig=' + path.join(scratch, 'user.npmrc'), '--globalconfig=' + path.join(scratch, 'global.npmrc'), '--cache=' + path.join(scratch, 'cache'), path.join(scratch, 'package.tgz')];
+  const installation = await child(path.join(scratch, 'tools/node'), installArgs, { role: 'installer', label: installLabel, cwd: consumer, timeoutMs: limits.installerTimeoutMs, env: environment(installAdmission, installLabel) });
+  guard('after-installer-child'); immutable('after-installer');
+  assert.equal(installation.row.status, 0, 'OFFLINE_INSTALL_FAILED_NO_FETCH_OR_RETRY'); evidence.installs++;
+  evidence.installerLoads = loadAudit(installLabel, installAdmission, false);
+  assert.equal(fs.readFileSync(path.join(consumer, 'package.json'), 'utf8'), control.generated.consumerPackage);
+  assert.deepEqual(tree(path.join(consumer, 'node_modules/virtual-bash')).entries, expectedProduct);
+  assert.ok(fs.readdirSync(path.join(consumer, 'node_modules')).every(name => ['virtual-bash', '.package-lock.json'].includes(name)), 'UNEXPECTED_INSTALLED_DEPENDENCY');
+  guard('before-engine-and-consumer-copy');
+  for (const row of engine.files) copy(path.join(engine.root, row.path), 'consumer/node_modules/engine/' + safe(row.path), row);
+  evidence.engineCopies = 63; write('consumer/node_modules/engine/package.json', engine.generatedPackage);
+  for (const [relative, mode, bytes, sha256] of tools.compiler.files) copy(path.join(tools.compiler.origin, relative), 'consumer/node_modules/typescript/' + safe(relative), { mode, bytes, sha256 });
+  for (const name of ['CASES.json', 'RECIPE.json', 'g01.mjs.data', 'g02.mjs.data', 'g03.mjs.data']) copy(path.join(priorRoot, name), 'consumer/harness/' + name, priorManifest.files.find(row => row.path === name));
+  const childRow = manifest.files.find(row => row.path === 'child.mjs.data'); copy(path.join(own, childRow.path), 'consumer/harness/child.mjs', childRow);
+  expectedConsumer = tree(consumer).entries; guard('after-engine-and-consumer-copy'); immutable('ready');
+  for (const layout of ['installed', 'moved']) {
+    if (layout === 'moved') {
+      guard('before-physical-move'); immutable('before-move');
+      const old = consumer; consumer = path.join(scratch, 'physically moved consumer');
+      assert.ok(!fs.existsSync(consumer)); fs.renameSync(old, consumer); assert.ok(!fs.existsSync(old));
+      evidence.move = { old, current: consumer, oldAbsent: true }; immutable('after-move'); guard('after-physical-move');
+    }
+    for (const id of ['G01', 'G02', 'G03']) {
+      const label = layout + '-' + id; guard('before-child-' + label); immutable('before-child-' + label);
+      fs.mkdirSync(path.join(scratch, 'logs', label));
+      const admitted = admission('workflow', label);
+      const env = { ...environment(admitted, label), C78_CASE: id, C78_LAYOUT: layout, C78_RESULT: path.join(scratch, 'logs', label, 'receipt.json') };
+      const args = ['--permission', '--allow-fs-read=' + scratch, '--allow-fs-write=' + path.join(scratch, 'logs', label), '--import', path.join(scratch, 'tools/loader.mjs'), path.join(consumer, 'harness/child.mjs')];
+      const result = await child(path.join(scratch, 'tools/node'), args, { role: 'workflow', label, cwd: consumer, timeoutMs: limits.workflowContainmentMs, env });
+      guard('after-child-' + label); immutable('after-child-' + label);
+      const loadResult = loadAudit(label, admitted, true);
+      const receiptBytes = readLimited(env.C78_RESULT, limits.receiptBytesPerChild);
+      const receipt = JSON.parse(receiptBytes); const terminal = JSON.parse(result.stdout.toString());
+      assert.equal(receipt.case, id); assert.equal(receipt.layout, layout); assert.equal(terminal.classification, receipt.classification);
+      assert.equal(receipt.clean, true, 'RESOURCE_LEAK_STOP'); assert.ok(['PASS', 'ASSERTION_FAILURE_CLEAN'].includes(receipt.classification), 'CHILD_SAFETY_STOP');
+      assert.equal(result.row.status, receipt.classification === 'PASS' ? 0 : 1, 'CHILD_STATUS_DISAGREEMENT');
+      for (const key of ['wrapperEntered', 'wrapperSettled', 'actualRunInvoked', 'actualRunSettled', 'guestEntries', 'bridgeEntered', 'literalInvokes', 'bridgeSettled', 'shellsCreated', 'shellsDisposed', 'publicExecs']) assert.equal(receipt.counters[key], 1, 'ACTUAL_ADMISSION_COUNT:' + key);
+      evidence.observations.push({ label, status: result.row.status, receiptSha256: sha(receiptBytes), classification: receipt.classification, counters: receipt.counters, loads: loadResult });
+    }
+  }
+  assert.equal(evidence.observations.length, 6);
+  for (const key of ['wrapperEntered', 'wrapperSettled', 'actualRunInvoked', 'actualRunSettled', 'guestEntries', 'bridgeEntered', 'literalInvokes', 'bridgeSettled', 'shellsCreated', 'shellsDisposed', 'publicExecs']) assert.equal(evidence.observations.reduce((sum, row) => sum + row.counters[key], 0), 6, key);
+  remaining(); evidence.allPass = evidence.observations.every(row => row.status === 0 && row.classification === 'PASS');
+} catch (error) { evidence.safetyStops.push(errorData(error)); evidence.allPass = false; integrity = false; }
+finally {
+  if (created) {
+    try {
+      assert.ok(!activeChild, 'ACTIVE_CHILD_RETAIN_SCRATCH'); if (evidence.allPass) remaining();
+      guard('before-archive'); if (expectedTools) immutable('before-archive');
+      const logs = tree(path.join(scratch, 'logs'), 128, limits.totalEvidenceBytes);
+      const payloads = {};
+      for (const [relative, row] of Object.entries(logs.entries)) if (row.kind === 'file') payloads[relative] = fs.readFileSync(path.join(scratch, 'logs', relative)).toString('base64');
+      evidence.originalBefore = originalBaseline; evidence.originalAfter = lastOriginals;
+      evidence.finalScratch = census('final-census'); evidence.integrity = integrity;
+      evidence.directChildren = childCount; evidence.gitChildren = gitCount; evidence.totalProcessesIncludingSupervisor = childCount + 1;
+      evidence.payloads = payloads; evidence.privateGuardQualification = control.originalGuardScope;
+      const bytes = Buffer.from(JSON.stringify(evidence)); assert.ok(bytes.length <= limits.totalEvidenceBytes, 'EVIDENCE_BOUND');
+      const compressed = gzipSync(bytes, { level: 9 }); const archive = Buffer.from(compressed.toString('base64') + '\n');
+      assert.ok(archive.length <= limits.totalEvidenceBytes);
+      const destination = path.join(runRoot, 'RESULT.json.gz.base64'); fs.writeFileSync(destination, archive, { flag: 'wx', mode: 0o600 });
+      assert.deepEqual(gunzipSync(Buffer.from(fs.readFileSync(destination, 'utf8').trim(), 'base64'), { maxOutputLength: limits.totalEvidenceBytes }), bytes);
+      const closure = { archiveSha256: sha(archive), rawSha256: sha(bytes), allPass: evidence.allPass, removedScratch: false, scope: control.originalGuardScope };
+      if (integrity) {
+        guard('immediately-before-cleanup'); immutable('immediately-before-cleanup');
+        fs.rmSync(scratch, { recursive: true }); assert.ok(!fs.existsSync(scratch)); closure.removedScratch = true;
+        guard('after-owned-scratch-cleanup');
+      }
+      closure.finalOriginalGuardSha256 = sha(JSON.stringify(lastOriginals));
+      fs.writeFileSync(path.join(runRoot, 'CLOSURE.json'), JSON.stringify(closure, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+      console.log(JSON.stringify({ allPass: evidence.allPass, archiveSha256: closure.archiveSha256, removedScratch: closure.removedScratch, runRoot, directChildren: childCount, guestEvaluations: evidence.observations.reduce((sum, row) => sum + row.counters.actualRunInvoked, 0) }));
+    } catch (error) {
+      evidence.allPass = false;
+      const failure = { error: errorData(error), safetyStops: evidence.safetyStops, scratchRetained: fs.existsSync(scratch), activeChild: activeChild?.pid, phase: 'ARCHIVE_OR_CLEANUP_STOP' };
+      const filename = path.join(runRoot, 'STOP.json'); if (!fs.existsSync(filename)) fs.writeFileSync(filename, JSON.stringify(failure, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+      console.error(JSON.stringify(failure));
+    }
+  } else console.error(JSON.stringify({ allPass: false, materialized: false, safetyStops: evidence.safetyStops }));
+}
+process.exitCode = evidence.allPass ? 0 : 1;

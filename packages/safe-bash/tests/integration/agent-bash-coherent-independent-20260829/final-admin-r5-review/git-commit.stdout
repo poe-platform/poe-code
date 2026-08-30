@@ -1,0 +1,20 @@
+[main ec6daecf4491512a802bc2341addbe67715e40f5] review: hold B1 r5 on four-stream startup reservation mismatch
+ 18 files changed, 788 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/AUTHOR-RESULT.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/INDEPENDENT-RESULT.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/POSTGUARDS.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/PUBLICATION.jsonl
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/RECEIPT.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/REPORT.md
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/author.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/author.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/git-add.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/git-add.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/probe-ledger.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/probe-publisher.json
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/publication-preimport.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/publication-preimport.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/publisher.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/publisher.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/independent.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/independent.stdout

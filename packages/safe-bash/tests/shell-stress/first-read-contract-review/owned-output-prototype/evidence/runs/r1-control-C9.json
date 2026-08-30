@@ -1,0 +1,34 @@
+{
+  "label": "r1-control-C9",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/tmp/safe-bash-owned-output-prototype-Bl8HzL/controls.mjs",
+    "C9"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T09:51:19.586Z",
+  "finishedAt": "2026-08-27T09:51:19.662Z",
+  "durationMs": 76.80137500000092,
+  "timeoutMs": 3000,
+  "maxBytes": 65536,
+  "pid": 87844,
+  "initialIdentity": "87844 87615 87844 Thu Aug 27 04:51:19 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /tmp/safe-bash-owned-output-prototype-Bl8HzL/controls.mjs C9",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"scenario\":\"C9\",\"verdict\":\"PASS\",\"result\":{\"cycleObserved\":true,\"callerReasonPreserved\":true},\"cleanup\":1,\"reads\":0,\"events\":[{\"order\":1,\"value\":\"middleware.enter:set\"},{\"order\":2,\"value\":\"middleware.finally:set\"},{\"order\":3,\"value\":\"middleware.enter:produce\"},{\"order\":4,\"value\":\"producer.invoked\"},{\"order\":5,\"value\":\"producer.waitForDemand:harness-only\"},{\"order\":6,\"value\":\"middleware.enter:consume\"},{\"order\":7,\"value\":\"middleware.waitForStarted\"},{\"order\":8,\"value\":\"cycle.observed:started<-demand<-next<-started\"},{\"order\":9,\"value\":\"producer.finally:caller\"},{\"order\":10,\"value\":\"middleware.finally:produce\"}]}\n{\"scenario\":\"C9\",\"teardown\":\"disposed\",\"cleanup\":1}\n",
+  "stderr": ""
+}

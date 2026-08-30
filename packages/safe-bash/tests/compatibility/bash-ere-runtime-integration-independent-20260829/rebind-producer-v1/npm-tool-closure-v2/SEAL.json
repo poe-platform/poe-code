@@ -1,0 +1,25 @@
+{
+  "at": "2026-08-29T12:40:53.930Z",
+  "files": {
+    "supervise.mjs": {
+      "bytes": 8258,
+      "sha256": "0f0c118109ea1988f2dc47a92d3b4acc22343c8deebbb5380ebe0df2d7af6c10"
+    },
+    "audit.mjs": {
+      "bytes": 9345,
+      "sha256": "e661798cc1dc66186eea64ec101292025f6937f9a78ea2b3e627de3bb40c9465"
+    },
+    "INPUTS.json": {
+      "bytes": 843,
+      "sha256": "41ad0e0e25041cd593a007ce67ece9416bb7290637a34db036e30e49cc714212"
+    },
+    "AUTHOR-INPUTS.json": {
+      "bytes": 884,
+      "sha256": "e20ae62d3fe47293bc61a0e9b2fd30a7136996ddb0cb2aa4c2b04e0441fce354"
+    },
+    "PRESEAL.md": {
+      "bytes": 2087,
+      "sha256": "85a72c16ab17f3c5cc752e97bf70e9ccd36b7cdcc23bdae5e47720b464b7d36b"
+    }
+  }
+}

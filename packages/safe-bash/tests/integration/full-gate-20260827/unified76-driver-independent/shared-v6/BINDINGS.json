@@ -1,0 +1,237 @@
+{
+  "schema": "unified76-independent-shared-v6-bindings",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driver": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "evidence": "69a77055fb180f34d47c7e3e4306a666c0d96f68",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "driverJsonSha256": "e8ac0521c44d6c76c5a1b670f89296caa65640291a24703f36bdbd8abfc8ce10",
+  "evidenceReportSha256": "77e0eb6b43a4556257876b1de1651cb227fac7247d500931d9d1045257836bf1",
+  "handoffSha256": "8c328a2be4f1b1f98f9bf825db6bd261b19b24dae77ff2a2f6526f51716aac5c",
+  "runtimeFiles": {
+    "CANDIDATE.json": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+    "PROFILE.json.gz.base64": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+    "PROFILE-RECEIPT.json": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+    "CLEANUP.json": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+    "EXTERNAL.json.gz.base64": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "EXTERNAL-RECEIPT.json": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+    "common.mjs": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb",
+    "profile.mjs": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f",
+    "admission.mjs": "3a41490a765978c216d0609375cdd68eb1e9e1e7c6f19d6a7ef347389b5237a3",
+    "inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+    "run.mjs": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
+    "worker.mjs": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401",
+    "supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+    "execute.mjs": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
+    "policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+    "transport.mjs": "c115efe4a62c850868ddee551f5dca535c971fd0636074b21b359565f6bb6e5d",
+    "external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+    "external-admission.mjs": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
+    "built-consumers.mjs": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+    "consumer-admission.mjs": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+    "tap.mjs": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+    "public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+    "consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+    "negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+    "build-audit.mjs": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+    "build-types.mjs": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+    "phase-runner.mjs": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3",
+    "process-observer.mjs": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+    "review-build-types.mjs": "4cde75180c22e2655b1dc4232dcc4400925d7207afbcab9c50c11ed57ad5be2f",
+    "review-build-types-worker.mjs": "1575931a035d8dbfdfc9ac334613f2bd262b53bd3bbdeaa07fadeac1961b4497"
+  },
+  "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+  "nodeSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+  "driverRawSha256": "e8ac0521c44d6c76c5a1b670f89296caa65640291a24703f36bdbd8abfc8ce10",
+  "driverCanonicalSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "sharedCalls": {
+    "execute.mjs": {
+      "sha256": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
+      "callsites": [
+        {
+          "line": 21,
+          "source": "import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';"
+        },
+        {
+          "line": 22,
+          "source": "import {createPhaseRunner} from './phase-runner.mjs';"
+        },
+        {
+          "line": 88,
+          "source": "const audit=createBuildAudit(source,temporary);"
+        },
+        {
+          "line": 89,
+          "source": "const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[artifactGuard,privateGuard],requireOrdered,audit});"
+        },
+        {
+          "line": 91,
+          "source": "const approvedBuild=await runBuildTypes({phase,source,output,report,beforeAuthorizedBuild,tracked,freezeSource:guard=>{sourceGuard=guard;},audit});"
+        }
+      ]
+    },
+    "review-build-types.mjs": {
+      "sha256": "4cde75180c22e2655b1dc4232dcc4400925d7207afbcab9c50c11ed57ad5be2f",
+      "callsites": [
+        {
+          "line": 12,
+          "source": "import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';"
+        },
+        {
+          "line": 13,
+          "source": "import {createPhaseRunner} from './phase-runner.mjs';"
+        },
+        {
+          "line": 53,
+          "source": "const audit=createBuildAudit(source,temporary),harnessGuard=await createTreeGuard(join(temporary,'harness'));"
+        },
+        {
+          "line": 61,
+          "source": "const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[harnessGuard],requireOrdered,audit});"
+        },
+        {
+          "line": 64,
+          "source": "await runBuildTypes({phase,source,output,report,beforeAuthorizedBuild,tracked:async()=>{if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[]);},freezeSource:guard=>{sourceGuard=guard;},audit});"
+        }
+      ]
+    }
+  },
+  "fullCandidateMembership": {
+    "entries": 37397,
+    "metadataSha256": "62cac7ea25b6d6904438d0ebb1d2fca95d677a4ecd7e635c9d3e33fe83df89b8",
+    "equalsPinnedProfile": true,
+    "physicallyMaterializedEntries": 4640,
+    "physicallyMaterializedBytes": 35496154,
+    "noAgentsCopies": true,
+    "notWholeGateClosureExecution": true
+  },
+  "fixtures": [
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "baseBlob": "b7444047a32c83eadf4fd4a5d5c2e91d98be6d7c",
+      "candidateBlob": "88fff30270f01d7eab63279e5777cb88db1cbb8e",
+      "baseSha256": "925551e6befe9ccb1d907948a74e002f490a49f51640943069d7599ef794c705",
+      "candidateSha256": "2710d4467c42c63713cf406e3c12683c791d8d2e0e020ec54556b494732ac01e",
+      "exactDiff": "diff --git a/tests/commands/split/integration.test.ts b/tests/commands/split/integration.test.ts\nindex b7444047..88fff302 100644\n--- a/tests/commands/split/integration.test.ts\n+++ b/tests/commands/split/integration.test.ts\n@@ -37,4 +37,4 @@ for (const backend of [\"memory\", \"explicit-root-real\"]) test(`${backend}: opt-in\n \n-test(\"actual default registry contains 73 including split without duplicate installation\", async () => {\n-  assert.equal(createAgentCommands().length, 73);\n+test(\"actual default registry contains 76 including split without duplicate installation\", async () => {\n+  assert.equal(createAgentCommands().length, 76);\n   assert.equal(createAgentCommands().some(command => command.name === \"split\"), true);\n@@ -44,3 +44,3 @@ test(\"actual default registry contains 73 including split without duplicate inst\n     assert.equal((await shell.exec(\"printf abc | split -b2\")).exitCode, 0);\n-    assert.equal(shell.commands.list().length, 73);\n+    assert.equal(shell.commands.list().length, 76);\n   } finally { await shell.dispose(); }\n"
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "baseBlob": "873ab37faf8b155e562eda8bb196d02f74ca2040",
+      "candidateBlob": "23a999dfd948993e45976276225645f861af3db1",
+      "baseSha256": "f75b17b6530611215aedb8459bc8bb00b82ac1d31eb96126e0e2a8962ed9a0b1",
+      "candidateSha256": "7ae8987438c07e17bba5ff71a13c949c51937cd955e2e5eaade355672849ad08",
+      "exactDiff": "diff --git a/tests/commands/stream-format-author-stress/contracts.test.ts b/tests/commands/stream-format-author-stress/contracts.test.ts\nindex 873ab37f..23a999df 100644\n--- a/tests/commands/stream-format-author-stress/contracts.test.ts\n+++ b/tests/commands/stream-format-author-stress/contracts.test.ts\n@@ -16,5 +16,5 @@ function definition(name: string, options: StreamFormatCommandsOptions = {}) {\n \n-test(\"default factory contains73 and standalone formatting installs exactly four without split\", async () => {\n+test(\"default factory contains76 and standalone formatting installs exactly four without split\", async () => {\n   const instance = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());\n-  assert.equal(createAgentCommands().length, 73);\n+  assert.equal(createAgentCommands().length, 76);\n   for (const name of [\"curl\", \"safejs\"]) {\n@@ -25,3 +25,3 @@ test(\"default factory contains73 and standalone formatting installs exactly four\n   }\n-  assert.equal(instance.commands.list().length, 73);\n+  assert.equal(instance.commands.list().length, 76);\n   for (const name of [\"seq\", \"nl\", \"rev\", \"unexpand\", \"split\"]) assert.equal(instance.commands.has(name), true);\n"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "baseBlob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c",
+      "candidateBlob": "72a99c3d8dd8190592927d1dedfef315ee7429eb",
+      "baseSha256": "4919909cde0944c851bb9aea39bf2aae5971683d39d48d3924bb5cd668e1c2c0",
+      "candidateSha256": "c56c449a03b99ce393db85aa480af3ffe8f65b1a71cf0946c012606e49f74864",
+      "exactDiff": "diff --git a/tests/integration/stream-inspection-public-author/public.test.ts b/tests/integration/stream-inspection-public-author/public.test.ts\nindex d56a27dc..72a99c3d 100644\n--- a/tests/integration/stream-inspection-public-author/public.test.ts\n+++ b/tests/integration/stream-inspection-public-author/public.test.ts\n@@ -24,3 +24,3 @@ function host(commands = new CommandRegistry()): PluginHost {\n \n-test(\"root family exports preserve four inspection definitions in the 73-command aggregate\", async () => {\n+test(\"root family exports preserve four inspection definitions in the 76-command aggregate\", async () => {\n   const limits: Partial<StreamInspectionLimits> = { maxInputBytes: 1024 };\n@@ -30,6 +30,6 @@ test(\"root family exports preserve four inspection definitions in the 73-command\n   const definitions = createAgentCommands(aggregate).map(command => command.name);\n-  assert.equal(definitions.length, 73);\n-  assert.equal(new Set(definitions).size, 73);\n+  assert.equal(definitions.length, 76);\n+  assert.equal(new Set(definitions).size, 76);\n   assert.deepEqual(definitions.slice(56, 60), names);\n-  assert.deepEqual(definitions.slice(60), [\"seq\", \"nl\", \"rev\", \"unexpand\", \"split\", \"date\", \"sleep\", \"printenv\", \"tree\", \"file\", \"egrep\", \"fgrep\", \"column\"]);\n+  assert.deepEqual(definitions.slice(60), [\"seq\", \"nl\", \"rev\", \"unexpand\", \"split\", \"date\", \"sleep\", \"printenv\", \"tree\", \"file\", \"egrep\", \"fgrep\", \"column\", \"html-to-markdown\", \"du\", \"expr\"]);\n   const target = host();\n@@ -78,3 +78,3 @@ test(\"standalone and aggregate share one explicit replacement boundary\", async (\n   await agentCommands({ replace: true }).setup(target);\n-  assert.equal(target.commands.list().length, 74);\n+  assert.equal(target.commands.list().length, 77);\n   assert.equal(target.commands.get(\"custom\"), original.find(command => command.name === \"custom\"));\n@@ -85,3 +85,3 @@ test(\"standalone and aggregate share one explicit replacement boundary\", async (\n   await streamInspectionCommands({ replace: true }).setup(target);\n-  assert.equal(target.commands.list().length, 74);\n+  assert.equal(target.commands.list().length, 77);\n   assert.equal(target.commands.get(\"printf\"), aggregate.find(command => command.name === \"printf\"));\n"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "baseBlob": "96375d606df3f9f480d13d20d00f3a779ee330fe",
+      "candidateBlob": "4434cfa99fec9c9d8559718d45edf8c71f9c13bc",
+      "baseSha256": "79c962dd5d8686af1e9e03b60e5d3f3b1bdb5f4fa7acedbaff6c5009891276b6",
+      "candidateSha256": "cdfdb6acf03a48d315fe70ae99f0d2563ab83dc558171ea561c303d59236bb35",
+      "exactDiff": "diff --git a/tests/plugins/stream-five-public/consumer.mjs b/tests/plugins/stream-five-public/consumer.mjs\nindex 96375d60..4434cfa9 100644\n--- a/tests/plugins/stream-five-public/consumer.mjs\n+++ b/tests/plugins/stream-five-public/consumer.mjs\n@@ -32,4 +32,4 @@ test(\"moved package resolves only compiled public root and subpaths\", () => {\n   const names = createAgentCommands().map(command => command.name);\n-  assert.equal(names.length, 70);\n-  assert.equal(new Set(names).size, 70);\n+  assert.equal(names.length, 76);\n+  assert.equal(new Set(names).size, 76);\n   assert.ok([...newNames, \"tac\", \"expand\", \"fold\", \"strings\"].every(name => names.includes(name)));\n@@ -125,3 +125,3 @@ for (const name of newNames) {\n     await agentCommands({ replace: true }).setup(host);\n-    assert.equal(commands.list().length, 70);\n+    assert.equal(commands.list().length, 76);\n     assert.notEqual(commands.get(name), sentinel);\n"
+    }
+  ],
+  "srcTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+  "pack": {
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "priorIndependentSeal": "37b3c9c3c9c3e911286d0d8542c494f762e17015",
+    "reproducedHere": false,
+    "identicalCandidateAndSourceProfile": true
+  },
+  "qualifiedOS": {
+    "systemReferences": [
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libc++.1.dylib"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libz.1.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libarchive.2.dylib"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    ],
+    "host": {
+      "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+      "stderr": "",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "qualification": "Explicit trusted macOS26.4.1/build25E253 boundary for exactly these eleven sampled references only. No readable-file hash, full OS attestation, complete process-image enumeration or broader library exception."
+  },
+  "extraReadableTools": [
+    {
+      "origin": "/usr/bin/sandbox-exec",
+      "physical": "/usr/bin/sandbox-exec",
+      "bytes": 102560,
+      "mode": 493,
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+    },
+    {
+      "origin": "/bin/bash",
+      "physical": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ],
+  "actualBuildReceipt": {
+    "files": 832,
+    "canonicalSha256": "f628eb40fdd27ec3980f98c6b026238b316d345fc0eb759584c0b82d22a675b4",
+    "filesOnlySha256": "3760c3b33307ffc7e4ed26c34073cda665d48a742cd3cc69f1894f6ee50e72fc",
+    "metadataSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "declarations": 208
+  },
+  "methods": {
+    "sameSharedImplementation": true,
+    "fullExecuteImported": false,
+    "driverSourceFork": false,
+    "counterStub": false,
+    "wrapper": "Transparent Node->sandbox-exec spawn adapter retains exact actual npm/compiler argv, audit/loader, real phaseRunner/supervise. Outer ps remains outside. Read-only pinned source inspected before plan, not blind.",
+    "selection": "All committed TS/JS source/helper files, all package/tsconfig metadata, complete src, and exact inventory/captured/staged/negative diagnostic payloads consumed by the pinned type runners. Full37397 Git index membership is metadata only; all192 MTS paths preserved. This is the actual build/type slice runtime closure, not a smaller claimed full-gate closure. No AGENTS bytes, full archive, private package or dependency installation.",
+    "observer": "Actual frozen attachProcessObserver and createObserverClient; direct-child PID/group/birth capability. Exact two historical backslash candidate paths plus contained link; four real watched Git groups. No native suite or large tar."
+  }
+}

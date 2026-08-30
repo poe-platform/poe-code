@@ -1,0 +1,45 @@
+{
+  "closedAt": "2026-08-27T12:57:49.382Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "spawnError": null,
+  "stdout": {
+    "receivedBytes": 342,
+    "storedBytes": 342,
+    "receivedSha256": "4dba1aa3e34f7159bee4c23ef88a78d44c475061fa633018f659a991f19e6ab0",
+    "overflow": false,
+    "error": null
+  },
+  "stderr": {
+    "receivedBytes": 0,
+    "storedBytes": 0,
+    "receivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "overflow": false,
+    "error": null
+  },
+  "after": {
+    "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement/../measurement-freeze/execution-binding.json": {
+      "bytes": 1172804,
+      "sha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e"
+    },
+    "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement/../measurement-freeze/proposed-root-receipt.json": {
+      "bytes": 1580,
+      "sha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5"
+    },
+    "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/node": {
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  },
+  "postHashError": null,
+  "commandProcessGroupGone": true,
+  "wrapperSignalsSent": [],
+  "reviewRequired": true,
+  "score": null
+}

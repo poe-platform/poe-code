@@ -1,0 +1,5 @@
+import {Shell,MemoryFileSystem,agentCommands} from 'virtual-bash';
+const shell=new Shell({fs:new MemoryFileSystem()}).use(agentCommands());
+const result:Promise<Awaited<ReturnType<Shell['exec']>>>=shell.exec('function f { printf x; }; f');
+void result;
+void shell.dispose();

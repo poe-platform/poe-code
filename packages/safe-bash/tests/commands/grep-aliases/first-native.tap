@@ -1,0 +1,374 @@
+TAP version 13
+# Subtest: native-derived egrep-default-mode (exact BSD tuple)
+ok 1 - native-derived egrep-default-mode (exact BSD tuple)
+  ---
+  duration_ms: 15.614167
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-repeated-mode (exact BSD tuple)
+ok 2 - native-derived egrep-repeated-mode (exact BSD tuple)
+  ---
+  duration_ms: 12.85125
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-line-count (exact BSD tuple)
+ok 3 - native-derived egrep-line-count (exact BSD tuple)
+  ---
+  duration_ms: 12.272708
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-invert-number (exact BSD tuple)
+ok 4 - native-derived egrep-invert-number (exact BSD tuple)
+  ---
+  duration_ms: 12.25725
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-case-word (exact BSD tuple)
+ok 5 - native-derived egrep-case-word (exact BSD tuple)
+  ---
+  duration_ms: 12.177292
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-whole-only (exact BSD tuple)
+ok 6 - native-derived egrep-whole-only (exact BSD tuple)
+  ---
+  duration_ms: 11.806042
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-max-count (exact BSD tuple)
+ok 7 - native-derived egrep-max-count (exact BSD tuple)
+  ---
+  duration_ms: 11.8655
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-unterminated (exact BSD tuple)
+ok 8 - native-derived egrep-unterminated (exact BSD tuple)
+  ---
+  duration_ms: 12.0155
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-no-match (exact BSD tuple)
+ok 9 - native-derived egrep-no-match (exact BSD tuple)
+  ---
+  duration_ms: 11.9895
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-empty-input (exact BSD tuple)
+ok 10 - native-derived egrep-empty-input (exact BSD tuple)
+  ---
+  duration_ms: 12.236083
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-multiple-files (exact BSD tuple)
+ok 11 - native-derived egrep-multiple-files (exact BSD tuple)
+  ---
+  duration_ms: 13.236667
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-mixed-stdin-file (exact BSD tuple)
+ok 12 - native-derived egrep-mixed-stdin-file (exact BSD tuple)
+  ---
+  duration_ms: 12.393708
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-pattern-file (exact BSD tuple)
+ok 13 - native-derived egrep-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 11.984541
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-stdin-pattern-file (exact BSD tuple)
+ok 14 - native-derived egrep-stdin-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 11.848333
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-empty-pattern-file (exact BSD tuple)
+ok 15 - native-derived egrep-empty-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 11.757291
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-multiple-patterns (exact BSD tuple)
+ok 16 - native-derived egrep-multiple-patterns (exact BSD tuple)
+  ---
+  duration_ms: 11.520708
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-files-with-match (exact BSD tuple)
+ok 17 - native-derived egrep-files-with-match (exact BSD tuple)
+  ---
+  duration_ms: 11.721666
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-silent-missing (exact BSD tuple)
+ok 18 - native-derived egrep-silent-missing (exact BSD tuple)
+  ---
+  duration_ms: 11.597667
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-quiet-before-missing (exact BSD tuple)
+not ok 19 - native-derived egrep-quiet-before-missing (exact BSD tuple)
+  ---
+  duration_ms: 12.663792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases/native.test.ts:1:715'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        code: 0,
+    +   stderrBase64: '',
+    -   stderrBase64: 'ZWdyZXA6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 0
+    stdoutBase64: ''
+    stderrBase64: 'ZWdyZXA6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK'
+  actual:
+    code: 0
+    stdoutBase64: ''
+    stderrBase64: ''
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases/native.test.ts:23:17)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: native-derived egrep-dash-pattern-literal (exact BSD tuple)
+ok 20 - native-derived egrep-dash-pattern-literal (exact BSD tuple)
+  ---
+  duration_ms: 11.739792
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-conflicting-mode (qualified)
+ok 21 - native-derived egrep-conflicting-mode (qualified)
+  ---
+  duration_ms: 0.170583
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-missing-pattern (qualified)
+ok 22 - native-derived egrep-missing-pattern (qualified)
+  ---
+  duration_ms: 0.08
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-unsupported-G (qualified)
+ok 23 - native-derived egrep-unsupported-G (qualified)
+  ---
+  duration_ms: 0.065542
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-invalid-option (qualified)
+ok 24 - native-derived egrep-invalid-option (qualified)
+  ---
+  duration_ms: 0.07925
+  type: 'test'
+  ...
+# Subtest: native-derived egrep-ordered-alternative (qualified)
+ok 25 - native-derived egrep-ordered-alternative (qualified)
+  ---
+  duration_ms: 11.5265
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-default-mode (exact BSD tuple)
+ok 26 - native-derived fgrep-default-mode (exact BSD tuple)
+  ---
+  duration_ms: 11.788667
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-repeated-mode (exact BSD tuple)
+ok 27 - native-derived fgrep-repeated-mode (exact BSD tuple)
+  ---
+  duration_ms: 11.829417
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-line-count (exact BSD tuple)
+ok 28 - native-derived fgrep-line-count (exact BSD tuple)
+  ---
+  duration_ms: 11.5005
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-invert-number (exact BSD tuple)
+ok 29 - native-derived fgrep-invert-number (exact BSD tuple)
+  ---
+  duration_ms: 11.298208
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-case-word (exact BSD tuple)
+ok 30 - native-derived fgrep-case-word (exact BSD tuple)
+  ---
+  duration_ms: 11.624583
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-whole-only (exact BSD tuple)
+ok 31 - native-derived fgrep-whole-only (exact BSD tuple)
+  ---
+  duration_ms: 11.99225
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-max-count (exact BSD tuple)
+ok 32 - native-derived fgrep-max-count (exact BSD tuple)
+  ---
+  duration_ms: 11.657542
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-unterminated (exact BSD tuple)
+ok 33 - native-derived fgrep-unterminated (exact BSD tuple)
+  ---
+  duration_ms: 11.655583
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-no-match (exact BSD tuple)
+ok 34 - native-derived fgrep-no-match (exact BSD tuple)
+  ---
+  duration_ms: 11.604625
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-empty-input (exact BSD tuple)
+ok 35 - native-derived fgrep-empty-input (exact BSD tuple)
+  ---
+  duration_ms: 11.335833
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-multiple-files (exact BSD tuple)
+ok 36 - native-derived fgrep-multiple-files (exact BSD tuple)
+  ---
+  duration_ms: 11.299625
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-mixed-stdin-file (exact BSD tuple)
+ok 37 - native-derived fgrep-mixed-stdin-file (exact BSD tuple)
+  ---
+  duration_ms: 11.658083
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-pattern-file (exact BSD tuple)
+ok 38 - native-derived fgrep-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 11.574333
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-stdin-pattern-file (exact BSD tuple)
+ok 39 - native-derived fgrep-stdin-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 11.423125
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-empty-pattern-file (exact BSD tuple)
+ok 40 - native-derived fgrep-empty-pattern-file (exact BSD tuple)
+  ---
+  duration_ms: 11.671541
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-multiple-patterns (exact BSD tuple)
+ok 41 - native-derived fgrep-multiple-patterns (exact BSD tuple)
+  ---
+  duration_ms: 11.833125
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-files-with-match (exact BSD tuple)
+ok 42 - native-derived fgrep-files-with-match (exact BSD tuple)
+  ---
+  duration_ms: 11.640417
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-silent-missing (exact BSD tuple)
+ok 43 - native-derived fgrep-silent-missing (exact BSD tuple)
+  ---
+  duration_ms: 11.375458
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-quiet-before-missing (exact BSD tuple)
+not ok 44 - native-derived fgrep-quiet-before-missing (exact BSD tuple)
+  ---
+  duration_ms: 11.859292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases/native.test.ts:1:715'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        code: 0,
+    +   stderrBase64: '',
+    -   stderrBase64: 'ZmdyZXA6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 0
+    stdoutBase64: ''
+    stderrBase64: 'ZmdyZXA6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK'
+  actual:
+    code: 0
+    stdoutBase64: ''
+    stderrBase64: ''
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases/native.test.ts:23:17)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: native-derived fgrep-dash-pattern-literal (exact BSD tuple)
+ok 45 - native-derived fgrep-dash-pattern-literal (exact BSD tuple)
+  ---
+  duration_ms: 11.216208
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-literal-argv (exact BSD tuple)
+ok 46 - native-derived fgrep-literal-argv (exact BSD tuple)
+  ---
+  duration_ms: 11.18575
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-conflicting-mode (qualified)
+ok 47 - native-derived fgrep-conflicting-mode (qualified)
+  ---
+  duration_ms: 0.12075
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-missing-pattern (qualified)
+ok 48 - native-derived fgrep-missing-pattern (qualified)
+  ---
+  duration_ms: 0.061458
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-unsupported-G (qualified)
+ok 49 - native-derived fgrep-unsupported-G (qualified)
+  ---
+  duration_ms: 0.054708
+  type: 'test'
+  ...
+# Subtest: native-derived fgrep-invalid-option (qualified)
+ok 50 - native-derived fgrep-invalid-option (qualified)
+  ---
+  duration_ms: 0.067792
+  type: 'test'
+  ...
+# Subtest: optional BSD replay requires exact recorded binaries, version and corpus
+ok 51 - optional BSD replay requires exact recorded binaries, version and corpus # SKIP set GREP_ALIASES_NATIVE=1 for strict pinned native replay
+  ---
+  duration_ms: 0.011125
+  type: 'test'
+  ...
+1..51
+# tests 51
+# suites 0
+# pass 48
+# fail 2
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 634.817041

@@ -1,0 +1,37 @@
+{
+  "cohort": "controls",
+  "started": "2026-08-27T19:00:08.516328+00:00",
+  "rootRelease": "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v2/ROOT-RELEASE.json",
+  "executionFreezeCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "launched": true,
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/runtime/controls/run.mjs",
+    "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/raw/controls"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "pid": 5476,
+  "finished": "2026-08-27T19:00:50.952059+00:00",
+  "exitCode": 0,
+  "knownControllerReaped": true,
+  "outputBytes": 1523,
+  "containment": null,
+  "rawRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/raw/controls",
+  "privateUnchanged": true,
+  "sharedUnchanged": true,
+  "inputsUnchanged": true,
+  "assessment": {
+    "status": "PASS",
+    "counts": {
+      "total": 6,
+      "launched": 6,
+      "engineRuns": 6,
+      "pass": 6,
+      "failed": 0,
+      "blocked": 0,
+      "invalid": 0,
+      "unproved": 0
+    },
+    "inputOrFixtureBindingBlocker": false
+  }
+}

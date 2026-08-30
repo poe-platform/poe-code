@@ -1,0 +1,408 @@
+{
+  "version": "initial-restricted-expr-closure-20260827",
+  "mode": "Read-only source/evidence authentication; no product, test, native, build, pack or new cohort execution",
+  "acceptedProduct": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "quotaAncestor": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "sourceTree": "8be381b8970f76df3e290acd330417403219b82c",
+  "fixtureCommit": "860967af44b20918e3096230f6c7445d4c9cf133",
+  "authorEvidenceCommit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+  "initialIndependentCommit": "0219616f7e2dc2f13aebc155933fd52fe1dfac9e",
+  "correctiveControlCommit": "6db3b699904e8c25b6667f1900c80e75d1b0a30d",
+  "finalIndependentCommit": "c14363bd191042d42defc8498c4d084cf9411375",
+  "priorHandoffCommit": "253a6d307ba9ab3c205597d52611692af039de1d",
+  "supersedes": "Only pending sink-migration acceptance and noted README drift; original profile253 files/seals and all original results remain immutable",
+  "publicExpr": "HOLD; physical dist module only",
+  "runtimeDependencies": 0,
+  "readme": {
+    "path": "src/commands/expr/README.md",
+    "commit": "82a54135bfb85723f192e54e7a7f4408eeba504a",
+    "parent": "d0312f83b1e14e468b70e5be800268d1d84eca66",
+    "oldSha256": "65bb55fec818a2d7cd28c09140d6fab6c812032a2263450b568d4aacc56518b5",
+    "newSha256": "e6f315c0de81abb4a3ade52dba9280a9079f65a77328827bd4cc106484c13131",
+    "diffSha256": "b9c3638fcfbfaae00af342fa09f01ac60e2a5523d83944da39820a32c09efde9",
+    "diffCommand": "git diff --no-ext-diff --no-renames 82a54135bfb85723f192e54e7a7f4408eeba504a^ 82a54135bfb85723f192e54e7a7f4408eeba504a -- src/commands/expr/README.md",
+    "insertions": 31,
+    "deletions": 21,
+    "hunks": 6,
+    "onlyChangedPath": "src/commands/expr/README.md"
+  },
+  "sourceEqualityScope": [
+    {
+      "path": "src/commands/expr/index.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "src/commands/expr/syntax.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d"
+    },
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    }
+  ],
+  "package": {
+    "tarSha256": "8331e853455f295dfda24ff53d612514212067ca2075df09e8b60339bda58a5e",
+    "priorPrimarySourceArchiveSha256": "c29675ec05c0697b3d56b13a0fad075bd148df6b0c3a91e597f628a21cee0fa7",
+    "independentCoreSourceArchiveSha256": "66d53b29c609957e3f5b7ee27c7734c72a959771b68e3b9b6417df0dd379b97f",
+    "compiledWorkerEntrySha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+    "qualification": "Different selected source archives are not conflated; common moved package hash and complete compiled inventories verified from bound reports, not rebuilt here"
+  },
+  "counts": {
+    "canonical": {
+      "original": [
+        236,
+        237
+      ],
+      "revised": [
+        237,
+        237
+      ]
+    },
+    "core": {
+      "original": [
+        145,
+        146
+      ],
+      "revised": [
+        146,
+        146
+      ]
+    },
+    "quotaFinalV2": {
+      "original": [
+        46,
+        47
+      ],
+      "revised": [
+        47,
+        47
+      ]
+    },
+    "nearby": {
+      "original": [
+        15,
+        16
+      ],
+      "revised": [
+        16,
+        16
+      ]
+    },
+    "additive": false
+  },
+  "negativeProof": {
+    "acceptedBehaviorMutants": 22,
+    "unchangedCanonicalCoreNearbyEach": 5,
+    "correctedQuotaMutants": 7,
+    "freshQuotaPositives": 4,
+    "initialQuotaFalsePositivesPreserved": 2,
+    "structuralAcrossBothPhases": 10,
+    "noProductMutation": true
+  },
+  "separatePriorProof": {
+    "encounter": [
+      61,
+      61
+    ],
+    "correctedQuota": [
+      21,
+      21
+    ],
+    "movedPhysicalSmoke": [
+      19,
+      19
+    ],
+    "sharedOutsideGit": [
+      276,
+      276
+    ],
+    "originalSharedPreserved": [
+      275,
+      276
+    ],
+    "newExecution": false
+  },
+  "readOnlyChecks": {
+    "priorHandoffBindings": 40,
+    "authorSealEntries": 163,
+    "independentImmutableInitialEntries": 322,
+    "independentCurrentEntries": 440,
+    "appendAwareEvidenceChecks": true,
+    "selectedRuntimeFilesEqualC3": 10,
+    "initialScopeFailure": {
+      "path": "src/index.ts",
+      "expectedC3Sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+      "observedSha256": "b6c2761f3af4809033c4be77f0139bd5f6afa9b963ecad65bafe923c185f35ec",
+      "reason": "Overbroad check included concurrent HTML public wiring; retained foreign edits, narrowed equality to the ten listed expr/shared-regex/I/O files, inspected current public wiring separately"
+    },
+    "globalLiveTreeCertification": false
+  },
+  "requestedIndependentReceipt": {
+    "path": "/tmp/expr-sink-migration-independent-v3-20260827-result.txt",
+    "existsAtBinding": true,
+    "actualFinalReceipt": "/tmp/expr-sink-migration-independent-v3-20260827-receipt.txt",
+    "firstInspectionAbsent": true
+  },
+  "receipts": [
+    {
+      "role": "author-final",
+      "path": "/tmp/expr-sink-migration-author-v3-20260827-result.txt",
+      "commit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+      "bytes": 1049,
+      "sha256": "c821ca1d9904a164e8c6073a36992471128591104f322a957a0e282e5eed8ea0",
+      "text": "Committed only the authorized paths:\n- Canonical test: `860967af44b20918e3096230f6c7445d4c9cf133`\n- Overlays/evidence: `098ce3f4fefed0eebf98881bd835eac1ed9b6e4c`\n\nReplayed exact product `c3e40f8bd721da5e496f3b3abfd51aee45db5a84`:\n\n| Cohort | Original | Revised |\n|---|---:|---:|\n| Canonical | 236/237 | 237/237 |\n| Core | 145/146 | 146/146 |\n| Nearby | 15/16 | 16/16 |\n| Quota | 46/47 | 47/47 |\n\nQuota’s final overlay adds one target-only, post-settlement `===` identity/no-diagnostic assertion. Historical originals, initial captures and audit corrections remain separately preserved.\n\n- Manifest: `tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/MANIFEST-v2.json:1`\n- Report: `tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/REPORT.md:1`\n\nTen audit checks and the append-aware seal pass. Selected source/runtime/original-evidence inventories remain unchanged—not a global or transient-mutation guarantee. No production/root/package/config edits. Owned scratch removed; `/tmp` verifier handoff updated."
+    },
+    {
+      "role": "independent-final",
+      "path": "/tmp/expr-sink-migration-independent-v3-20260827-receipt.txt",
+      "commit": "c14363bd191042d42defc8498c4d084cf9411375",
+      "bytes": 6300,
+      "sha256": "6a0af02784383e157732fa0c307cf4175b319425a327b1a174909b9ebb861657",
+      "text": "FINAL INDEPENDENT LEAF RECEIPT — 2026-08-27\n\nFinal acceptance evidence commit: c14363bd191042d42defc8498c4d084cf9411375\nCorrective control freeze commit: 6db3b699904e8c25b6667f1900c80e75d1b0a30d\nInitial independent evidence commit: 0219616f7e2dc2f13aebc155933fd52fe1dfac9e\nInitial control freeze commit: c2d6b7c395c522e173526d9311f04f53c568285b\nAuthor final evidence commit inspected: 098ce3f4fefed0eebf98881bd835eac1ed9b6e4c\nAuthor canonical-only commit: 860967af44b20918e3096230f6c7445d4c9cf133\nHistorical independent binding: beba7b00d5ba277d2ac6770968d8e4b15c846171\n\nEXACT PRODUCT/BINDING\nOnly c3e40f8bd721da5e496f3b3abfd51aee45db5a84 product/root inputs; no live HEAD overlay.\nSource Git tree: 8be381b8970f76df3e290acd330417403219b82c\nSource archive SHA-256: 66d53b29c609957e3f5b7ee27c7734c72a959771b68e3b9b6417df0dd379b97f\nExpr entry source SHA-256: e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e\nPacked artifact SHA-256: 8331e853455f295dfda24ff53d612514212067ca2075df09e8b60339bda58a5e\nCompiled worker entry SHA-256: 46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f\nAll emitted files match previously validated beba core binding, including the four-module worker closure. Both independent offline builds/packs match the same archive, every compiled byte, and the identical package artifact hash. Actual npm offline install, empty private caches, consumer physically renamed before replay, physical installed dist/commands/expr module, no public expr export claim. Zero runtime/private/global dependencies; no shared dist or native recapture.\n\nFINAL COUNTS — ORIGINAL RAW REDS RETAINED, SEPARATE OVERLAYS\nCanonical exact beba legacyNoNative six-file scope: 236/237 -> 237/237.\nOld core: 145/146 -> 146/146.\nQuota: 46/47 -> 47/47 using quota-identity-v2/probe.mjs.\nNearby: 15/16 -> 16/16.\nCanonical/core/nearby raw results: independent/run-02/. Their author sources are byte-identical at final author commit. No needless repeat of unchanged cohorts for quota followup.\nQuota final raw results: independent/quota-followup-01/. Original47, initially revised47 and corrected47 are separately preserved. Initially revised47 remains comparator-qualified and is NOT used to certify exact identity.\n\nDEMONSTRATED TEST-ORACLE ISSUE / VERIFIED CORRECTION\nInitial quota comparator's fallback String(outcome.error) can collide with its 'sink' identity marker. Actual literal 'sink' and distinct toString()->'sink' rejection mutants falsely pass the initial oracle. These false positives are preserved. Initial independent report's quota identity conclusion is superseded, not silently rewritten.\nIssue notice: /tmp/expr-sink-migration-independent-v3-20260827-issue.txt (now includes resolved followup).\nAuthor's corrected probe SHA-256: d654ad3b0623430481a6e306a8d64fdbb888092e4394ccd0e473cb2fb6f37dfd\nExact added target-only assertion: outcome.error === sinkReason && attempts.length === 1 && attempts[0].channel === 'stdout'. It runs after original settlement/cleanup. Probe remainder, cases/common, argv ['1'], cap2, callbacks, options, jobs, descriptors and cleanup unchanged. No casts/suppressions/exclusions/cap raises/comparator weakening.\nBoth collision mutants fail ONLY the new named direct-identity assertion; all other assertions pass, proving actual sensitivity. Corrected target also rejects swallow, diagnostic/status recast, same-message copied Error, another sentinel, and duplicate diagnostics. Four fresh positive controls pass. Final accepted-profile total: 22 behavior mutants detected (canonical5/core5/nearby5/corrected quota7). Initial controls and ten structural negative-audit results across both phases retained; no generic setup/import rejection counted as sensitivity.\n\nAUDIT / CLEANUP\nExact old/new hashes, paths and minimal hunks: independent/audit-03/audit.json and independent/quota-followup-01/FOLLOWUP-FREEZE.json.\nCanonical assertion-support delta disclosed: captured original stdout Error identity plus zero stderr-write counter; argv/options unchanged and later diagnostic sink identity assertions byte-identical. Core assertions only; nearby expectation only; final quota adds minimal direct-identity/one-write assertion plumbing.\nStrict typechecks of both canonical profiles pass; emitted canonical test imports were reversibly rebound to installed dist, all assertion bytes unchanged. Product/rootfiles untouched by leaf.\n174 worker starts/exits for each canonical profile; zero quota safety terminations; nearby no active workers; core real VFS scratch removed and no outer timeout. Both unique task OS-temp roots removed, including /var and /private/var aliases. No SIGSTOP; bounded owned child process-group timeout cleanup. Append-aware source/dist/installed and full evidence inventories verified.\nTwo auditor schema setup attempts and initial macOS /var path-alias replay failure retained, including initial driver hashes. First replay is explicitly not acceptance evidence; fresh run-02 corrected only physical bindings. Initial blind-review limitation is disclosed in CONTROL-FREEZE and report. No original/author/product file edited by leaf.\nCode/prose whitespace and syntax checks pass. Full evidence whitespace checks reported four original historical TAP trailing-space lines, plus one blank context line in the exact author patch copy; bytes intentionally preserved, checks not falsely claimed green.\n\nFINAL REPORT / READ-ONLY VERIFICATION\n/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/followup/REPORT.md\nnode tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/followup/verify.mjs\nNew seal authenticates all current entries including the unchanged initial seal and all 322 initial sealed entries; appended entries detected. Original standalone verifier is historical because explicit followup entries were appended; it was not weakened.\n\nScoped conclusion: no unresolved demonstrated core defect. The demonstrated quota test-oracle defect is closed by separately verified assertion plumbing. Unsupported nullable-repeat/backreference behavior and unmeasured cases remain outside this acceptance. No universal bug-absence, parity, superiority, public-export acceptance, elapsed-72-hour, or full-completion claim. No redelegation.\n"
+    },
+    {
+      "role": "independent-final-summary",
+      "path": "/tmp/expr-sink-migration-independent-v3-20260827-result.txt",
+      "commit": "c14363bd191042d42defc8498c4d084cf9411375",
+      "bytes": 648,
+      "sha256": "029d9d8184f72a8858f489f7c563767878798678e6c6eb6046bdd9d0e0f4ebbb",
+      "text": "Committed final evidence as `c14363bd`; initial evidence remains in `0219616f`.\n\n- Canonical: **236/237 → 237/237**; core: **145/146 → 146/146**.\n- Quota: **46/47 → 47/47**; nearby: **15/16 → 16/16**.\n- Reproduced the quota-oracle identity collision and verified the author’s minimal correction; preserved both false positives.\n- **22 accepted-profile behavior mutants detected.** Exact c3 package binding, physical relocation, integrity and cleanup verified.\n\nReceipt: `/tmp/expr-sink-migration-independent-v3-20260827-receipt.txt:1`\n\nNo unresolved demonstrated core defect **within this scope**; no universal parity or completion claim."
+    }
+  ],
+  "bindings": [
+    {
+      "id": "profile253-REPORT.md",
+      "commit": "253a6d307ba9ab3c205597d52611692af039de1d",
+      "path": "tests/commands/expr-stress/initial-profile-handoff-20260827/REPORT.md",
+      "blob": "872bd482efce67cb1739cf3e9ce693ec8aff0cb9",
+      "bytes": 25629,
+      "sha256": "c83429a5ea70cce3b43bed3583a3386846a7cb8de37229cde5c900fd78695575"
+    },
+    {
+      "id": "profile253-MANIFEST.json",
+      "commit": "253a6d307ba9ab3c205597d52611692af039de1d",
+      "path": "tests/commands/expr-stress/initial-profile-handoff-20260827/MANIFEST.json",
+      "blob": "106bf6da47e71226a3549e91870477891d7aafe3",
+      "bytes": 24431,
+      "sha256": "55fd75a12b47bc677c4c2c49ed4a8732d776c84cc110323892ba9c941025851b"
+    },
+    {
+      "id": "profile253-PENDING.md",
+      "commit": "253a6d307ba9ab3c205597d52611692af039de1d",
+      "path": "tests/commands/expr-stress/initial-profile-handoff-20260827/PENDING.md",
+      "blob": "b568dd3d37ce8a3627075b4a6a03e156940fcbdd",
+      "bytes": 2441,
+      "sha256": "8b6044ef6c15991ae328bb6817aca26f0fcdd6d850be095279e6c1afcb269404"
+    },
+    {
+      "id": "author-REPORT.md",
+      "commit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/REPORT.md",
+      "blob": "3c6be1909ecd1eac63b0158b356d413395a157fe",
+      "bytes": 10583,
+      "sha256": "e78ea53cbe0fd57ce3d5e8b58a26fe9a412857b2f166668da4d6da3a6d3d8dfb"
+    },
+    {
+      "id": "author-MANIFEST-v2.json",
+      "commit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/MANIFEST-v2.json",
+      "blob": "56c4ff9c7c184be8a9b48678a32acb2b6cb41db3",
+      "bytes": 23158,
+      "sha256": "52eb62127fe1cc7156ddaeeb56f2bcef073e34da040799ca2b0b1533329043ee"
+    },
+    {
+      "id": "author-FREEZE-v2.json",
+      "commit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/FREEZE-v2.json",
+      "blob": "e9953587f048eea11b3254016f19144fc0269034",
+      "bytes": 1071,
+      "sha256": "83913d2d9646e7a1cd5d6c9b1db1ba85c7bc9da391e00ef3b4ae5e3b91a87ee7"
+    },
+    {
+      "id": "author-SEAL.json",
+      "commit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/SEAL.json",
+      "blob": "3ea99fba0d6561fd5abe5327383dec4262ac8f49",
+      "bytes": 27167,
+      "sha256": "7a276d1d4d1fb2d0cdabd54fc0bd97089aa282d20dda62da88299c352271d876"
+    },
+    {
+      "id": "author-candidate-02/SUMMARY.json",
+      "commit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/candidate-02/SUMMARY.json",
+      "blob": "cd42826eca4869e18e3273ef692bf1cd887629be",
+      "bytes": 2188,
+      "sha256": "c17b9fac94f41fc3552e5efae46b49178d5d90d4d7437a8932b87bc23aa5922c"
+    },
+    {
+      "id": "author-candidate-02/AUDIT.json",
+      "commit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/candidate-02/AUDIT.json",
+      "blob": "a22614647433e87ed21513d5e99d4e0144f42ee4",
+      "bytes": 6446,
+      "sha256": "9065dcf2676bf218bc65c84954f9e2fce2d0bdd2abcc5c371bf3525ecd4e7809"
+    },
+    {
+      "id": "author-quota-identity-v2/probe.mjs",
+      "commit": "098ce3f4fefed0eebf98881bd835eac1ed9b6e4c",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/quota-identity-v2/probe.mjs",
+      "blob": "fe2adb3795772008baf7b946a991156e9e516d73",
+      "bytes": 9607,
+      "sha256": "d654ad3b0623430481a6e306a8d64fdbb888092e4394ccd0e473cb2fb6f37dfd"
+    },
+    {
+      "id": "initial-independent-REPORT.md",
+      "commit": "0219616f7e2dc2f13aebc155933fd52fe1dfac9e",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/REPORT.md",
+      "blob": "7679f8785784f11b86bad771d6a052763035c93d",
+      "bytes": 9666,
+      "sha256": "dc13344ad6edfbd368b60c60c0afa0fe660bfaf596d8fc579e150f0ddd81e7a8"
+    },
+    {
+      "id": "initial-independent-SEAL.json",
+      "commit": "0219616f7e2dc2f13aebc155933fd52fe1dfac9e",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/SEAL.json",
+      "blob": "5b1dada727c01e81e9191f35dd4e9e45026d83a4",
+      "bytes": 47992,
+      "sha256": "407ce28b0d012713b24404841819bc55180c617d0da1772d46563534ef90d7b5"
+    },
+    {
+      "id": "initial-independent-run-02/replay-summary.json",
+      "commit": "0219616f7e2dc2f13aebc155933fd52fe1dfac9e",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/run-02/replay-summary.json",
+      "blob": "59de3e52a2b261835bca05506dbf1544790df224",
+      "bytes": 1159,
+      "sha256": "1dfc6bcb360007b9483cded3651983ed029ea1ed287a7170956776cd72fca20e"
+    },
+    {
+      "id": "initial-independent-run-02/final-integrity.json",
+      "commit": "0219616f7e2dc2f13aebc155933fd52fe1dfac9e",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/run-02/final-integrity.json",
+      "blob": "ba347fe0c40428ab418a8d8453ad0e57996b95d2",
+      "bytes": 12953,
+      "sha256": "f2a1882f8e876e063c03c645063329c6b18a10d0e518ebc446b437edb8c86eac"
+    },
+    {
+      "id": "final-independent-followup/REPORT.md",
+      "commit": "c14363bd191042d42defc8498c4d084cf9411375",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/followup/REPORT.md",
+      "blob": "2a9e6dc210337ee1bf427f3d84514644988766e7",
+      "bytes": 6351,
+      "sha256": "1696ca990113791c0ec1b32b1cbb60e2f0147bd52627025c99b913420a2b796c"
+    },
+    {
+      "id": "final-independent-followup/SEAL.json",
+      "commit": "c14363bd191042d42defc8498c4d084cf9411375",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/followup/SEAL.json",
+      "blob": "7a023cd51c570b9bb8722503ace8f7f2b5eacd0c",
+      "bytes": 67353,
+      "sha256": "874c3ecc58f8a77a3f2ec7e9ebb2e013024ae9a2f391fb582dcf1d2e27df6d5d"
+    },
+    {
+      "id": "final-independent-quota-followup-01/SUMMARY.json",
+      "commit": "c14363bd191042d42defc8498c4d084cf9411375",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/quota-followup-01/SUMMARY.json",
+      "blob": "90ca43102a354439794812ce815259ce5cae7c9c",
+      "bytes": 10918,
+      "sha256": "62748db85a41a2e6c1912d5d6ec4a9e4c8ee02b83df068f01d5ecfa78c8c12e7"
+    },
+    {
+      "id": "final-independent-quota-followup-01/FOLLOWUP-FREEZE.json",
+      "commit": "c14363bd191042d42defc8498c4d084cf9411375",
+      "path": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/quota-followup-01/FOLLOWUP-FREEZE.json",
+      "blob": "2a5a1753d48137d0d64976170c756f377d1e119c",
+      "bytes": 138013,
+      "sha256": "419ff339e9e471331faab99791cbe54ce216c3be0c5ba227bf3c47b3996f05a4"
+    },
+    {
+      "id": "original-canonical-fixture",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "tests/commands/expr/contracts.test.ts",
+      "blob": "61b4c30b8b26d4ab140d8fc043a499b7dd86b79b",
+      "bytes": 10494,
+      "sha256": "6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197"
+    },
+    {
+      "id": "revised-canonical-fixture",
+      "commit": "860967af44b20918e3096230f6c7445d4c9cf133",
+      "path": "tests/commands/expr/contracts.test.ts",
+      "blob": "725abbf9af5cd37e9787a8e9a6544c0cb98e3b39",
+      "bytes": 10638,
+      "sha256": "ce900757c3d61c85e76960260f54e90fa4ae1edb0d71b070b8bf639b9a2326b7"
+    },
+    {
+      "id": "review-summary",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/SUMMARY.json",
+      "blob": "e1b116f15be594922911afa6cee758206011041f",
+      "bytes": 8313,
+      "sha256": "369471d093f91a28efdd5f75c4da64c3382de753d7938878b249d77bcc8460ae"
+    },
+    {
+      "id": "review-package",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/package.json",
+      "blob": "d4a26ff820d875e5e115d24245492dba5903ef33",
+      "bytes": 93752,
+      "sha256": "54bdd04bcda1b265f7cc7c959db1352e6b15c0e06c6dc74a402fe8953adca143"
+    },
+    {
+      "id": "shared-summary",
+      "commit": "3ad8f4d5f19f7df87290dff0a03b0c6b1a676c23",
+      "path": "tests/commands/expr-stress/encounter-shared-outside-review-v2-20260827/candidate-01/SUMMARY.json",
+      "blob": "b694261f8ca13298da87c62548166e3179590033",
+      "bytes": 696,
+      "sha256": "ccfa640bbabc3a0c8eb25b4691429adc80b20753cbd9f18fba5435894fc88a51"
+    }
+  ],
+  "ownedEntries": [
+    "BINDINGS.json",
+    "CONSOLIDATED-HANDOFF.md"
+  ],
+  "ownedFiles": [
+    {
+      "path": "CONSOLIDATED-HANDOFF.md",
+      "bytes": 8338,
+      "sha256": "7e99b5d3a1f4ebccdb96acf261be74d79fb3921938cd6725278a37d4ad1f3171"
+    }
+  ],
+  "selfBinding": "BINDINGS.json is authenticated by its closure Git commit, not a recursive self-hash"
+}

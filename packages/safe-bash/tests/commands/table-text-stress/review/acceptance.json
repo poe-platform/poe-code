@@ -1,0 +1,1471 @@
+{
+  "closure": "production+tests/evidence frozen\nevidenceCommit=ae1d44d5d239f093c4b635a8d6f40d40b3b17815\nfixtureCommit=0a1167d\ncontrolsCommit=faf6dd1\nhandoffSha256=28a1452cdfad6d4e316675b0501e84e2ed9729ea1a4d9045f9d4da2b7a1b7ef3\nisolatedAcceptanceSha256=a3f3d2670e62412769aad0adbe5fb746249887fba9d1de2770332bbe51cf9116\nindependentNode=104/104\nnativeCorpus=70match+1knownDisagreement/71\nauthorNode=311/311\nsourceFixes=none\nfinalReview=pendingDifferentAgent\n",
+  "time": "2026-08-27T01:20:00.532Z",
+  "node": "v22.22.2",
+  "nodeBinarySha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "cwd": "/tmp/safe-bash-table-review-owned/closed",
+  "commands": [
+    {
+      "name": "closed-author311",
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text/contracts.test.ts",
+        "tests/commands/table-text/differential.test.ts",
+        "tests/commands/table-text/integration.test.ts",
+        "tests/plugins/agent-commands.test.ts",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+        "tests/commands/structured-stress/split-increment/interop.test.ts",
+        "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+      ],
+      "env": {
+        "GNU_TABLE_BIN": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src"
+      },
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "logSha256": "63ffa18f386fdc662967b26dda06084bfbab0d8fa174d9180ca1f863333c1725",
+      "pass": 311,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "closed-independent",
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/table-text-stress/contracts.test.ts",
+        "tests/commands/table-text-stress/corpus.test.ts"
+      ],
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "logSha256": "8304423fcdced8d6e9b260ce3865dfd9ac1f891b075fcf7ce5d1028d5ee45e83",
+      "pass": 104,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "closed-scoped-types",
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/commands/table-text-stress/tsconfig.json"
+      ],
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "closed-build",
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "closed-built-replay",
+      "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "safe-bash-table-review-built.mjs"
+      ],
+      "env": {},
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "logSha256": "852efdef15078088b176560d431d226da15748cc87582c7754995a2b95343e5a",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "snapshotDrift": [],
+  "liveDrift": [],
+  "auditToClosedDrift": [
+    {
+      "path": "src/commands/structured/input.ts",
+      "before": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935",
+      "after": "e375af3eab2855664d30bf7619c2b5e05c2fe3770c79613068082d622af4ef4d"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "before": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02",
+      "after": "57efe4e40beb00d1cb527e33bd700925fed6cd08b2d309e1d5b4134466e3d6b3"
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "before": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "after": "e94247b32d53a5f85a082aaad7494dda86e5ec80db3ea26c86766978df31696c"
+    },
+    {
+      "path": "src/fs/mount/COMPARISON.md",
+      "before": "bcab4b184d6e4b45b9bde3933496516441fde7365658e72a2ca6f6901b46a60f",
+      "after": "da2ad79b019d6e09f7e4c46440c810a733b2551326be187cf30ee7d419319f10"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "before": "f4be37e13e400fb1e0cf52e3ba9f16c4ef32c8ae1a2c3d09908369a680e4931e",
+      "after": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e"
+    },
+    {
+      "path": "tests/commands/archive-stress/README.md",
+      "before": "906a3e376d739487dea668200f7b9752c873285d976994fef8322a603c79344c",
+      "after": "4e8f6413e5103cc314bcf706318847aa7b205cbc334cb94b52a5388042508819"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/ROOTREVIEW.md",
+      "before": null,
+      "after": "55bac6a9802a6c1db66167587bef9e813726da840df769e1c57b02a14167fd5f"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/BSD-independent.tar",
+      "before": null,
+      "after": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/BSD-native.tar",
+      "before": null,
+      "after": "c163b61a2c38dfaff11ca64e42538f462a1c79a751626f1e38e787068aa20948"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/BSD-native.tar.gz",
+      "before": null,
+      "after": "cd779263dd8aa8ff2a64d5ebf0b3e0605a6e6cb23abfc9532dc573aca56ff1e5"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/BSD-virtual.tar",
+      "before": null,
+      "after": "bb1ff6365c73b9e41ff43ca2d64d1b03d6ccd7c3f2e2e5096861fe38fa661a03"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/BSD-virtual.tar.gz",
+      "before": null,
+      "after": "3facd8bcb5e1628d1c59a6af131c9542b86284a4e5769f43e1db12103c2bd6b7"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/GNU-independent.tar",
+      "before": null,
+      "after": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/GNU-native.tar",
+      "before": null,
+      "after": "6bdafbec2b8e050a4c489a6d252accabb5f195bfb5bdb9a1ccd08d4bd2ed30ad"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/GNU-native.tar.gz",
+      "before": null,
+      "after": "327c7f1c5d26615061368a40da1552ddea3b29f84b8ecc8241376689bfb18c66"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/GNU-virtual.tar",
+      "before": null,
+      "after": "cdc6b1894256af32a2b75986b220fbc6e6d0332212e544a98df17551513043fa"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/GNU-virtual.tar.gz",
+      "before": null,
+      "after": "222fde7c7ba8afb1abf3332501a92da1afb75c52e70c65d8fba237830192084c"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/author-128.tap",
+      "before": null,
+      "after": "931c5b64ec7799d465a8d85c066172773afe0398629bab02d6f70c0d69125423"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/bsd-version.log",
+      "before": null,
+      "after": "e7cce3d387120ee09a085cb3cafba70e9031c5f497229c6d60846a7b2c1e4241"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/built-package.log",
+      "before": null,
+      "after": "550083dc4cf861bf2f2791cdacafb909fd69ee11f26cf596fa99839c8de1fe05"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/default-wiring-1.tap",
+      "before": null,
+      "after": "3e1b36af84e04f1f5e926c0ae4d5a9b3c65721171cdc02bebe370dd96abdaf78"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/evidence.json",
+      "before": null,
+      "after": "c794511fe12403bf8e9301855750eb171e8c8d117623848e5b8961e1a131941b"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/gnu-version.log",
+      "before": null,
+      "after": "b112e5578260c103cafae7150e33b8fe1b5d0720a158d88be5ea8f6d9d26f478"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/gunzip-version.log",
+      "before": null,
+      "after": "dec005e03434f304eb16b1751dc4954549c68b4d7d5e1dcc32d5660057c71dd3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/gzip-version.log",
+      "before": null,
+      "after": "dec005e03434f304eb16b1751dc4954549c68b4d7d5e1dcc32d5660057c71dd3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/independent-30.tap",
+      "before": null,
+      "after": "7d7d9aa8bd7d53f8f72115ab2fdc3e4fa1c84b3d19c0af38ada24498fda878d2"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/native-BSD-in.json",
+      "before": null,
+      "after": "d4c37b546f3a0f6e0a1cb521268e49b28ecfdbc7a79f6529cbecc056b14506ec"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/native-BSD-out.json",
+      "before": null,
+      "after": "0c616ba6506a25213b8a71ab073aa9544a894e91f10455288df0361780fae318"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/native-GNU-in.json",
+      "before": null,
+      "after": "c57939109ad8ca40aed117d910f541ea9cdac2e61984cd5da49a10d9cbe3e5df"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/native-GNU-out.json",
+      "before": null,
+      "after": "a5351427b6d1b35c4f447c12fd47ef8da7873b2721bfaab864a388798e781264"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/native-author-subset-5.tap",
+      "before": null,
+      "after": "f8045cb1097b89c0a1831d2de538e1d575f3b22b15a719c608621ba4b132c514"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/scoped-types.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-3ecvdu/source-build.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/BSD-independent.tar",
+      "before": null,
+      "after": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/BSD-native.tar",
+      "before": null,
+      "after": "cad09f9b44b83a348eb9eeda7d607f00b5a7e284dc8b60b7c4be8fe4c6a0f908"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/BSD-native.tar.gz",
+      "before": null,
+      "after": "7df708e0ccf4a8d1b46acb60fe3ce6e61d5f68c39e158f98dea3220a606252ff"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/BSD-virtual.tar",
+      "before": null,
+      "after": "86e8abded2c7e051ad65b5cb1815ce69ef55399ef0c2737c0c72f78b9ae057f8"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/BSD-virtual.tar.gz",
+      "before": null,
+      "after": "65bb3e894010927987411a22eaa6b11120327af6b799788253d3941b2ffaab28"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/GNU-independent.tar",
+      "before": null,
+      "after": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/GNU-native.tar",
+      "before": null,
+      "after": "cab5119a0ff1c305c9e4dff74d93c1e44a5e6edec8ddf0634ae5b5037d5d4d1c"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/GNU-native.tar.gz",
+      "before": null,
+      "after": "0492143b0d4dc8baa021fa29c499948a4f8be0ad49867cc2c5d63432cf974a59"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/GNU-virtual.tar",
+      "before": null,
+      "after": "72c188369a04d52c5968027ce9892d0d072dbf8d78703bbb310aa9e2b85a7367"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/GNU-virtual.tar.gz",
+      "before": null,
+      "after": "bf17f9a6b44f4152e9c5d90dd5131980452b0a274c24cca26638184c254d363e"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/author-128.tap",
+      "before": null,
+      "after": "5101f48f54d3ed284fb9c4578a4d9a4ba3e2445d9f3b8882db3baa5565517929"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/bsd-version.log",
+      "before": null,
+      "after": "e7cce3d387120ee09a085cb3cafba70e9031c5f497229c6d60846a7b2c1e4241"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/built-package.log",
+      "before": null,
+      "after": "550083dc4cf861bf2f2791cdacafb909fd69ee11f26cf596fa99839c8de1fe05"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/default-wiring-1.tap",
+      "before": null,
+      "after": "fe4f7f154fa76149d6fe9efc1f02df58c00e794706aeb055c00d49181c6c5353"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/evidence.json",
+      "before": null,
+      "after": "6405ad6c90ee54c54aa39f25d53b6ae7f19c580dd788570797d20793dc4c1a6b"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/gnu-version.log",
+      "before": null,
+      "after": "b112e5578260c103cafae7150e33b8fe1b5d0720a158d88be5ea8f6d9d26f478"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/gunzip-version.log",
+      "before": null,
+      "after": "dec005e03434f304eb16b1751dc4954549c68b4d7d5e1dcc32d5660057c71dd3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/gzip-version.log",
+      "before": null,
+      "after": "dec005e03434f304eb16b1751dc4954549c68b4d7d5e1dcc32d5660057c71dd3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/independent-30.tap",
+      "before": null,
+      "after": "edefa0bce97d5898cd9e8f58a2eb45bdafd2df03b74ead7315b40579c27c6154"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/native-BSD-in.json",
+      "before": null,
+      "after": "58c713cb39de42ed2bbf54f92e4dcbe1c93218c5b39a0f4feb580a1f9168e5d3"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/native-BSD-out.json",
+      "before": null,
+      "after": "78b0efde51ab175e7e9242b2e3d903cacf167ea733d3ffc26d09673abb1d8424"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/native-GNU-in.json",
+      "before": null,
+      "after": "f6cbca8d07810e5093c0f477005e4536ef2f7dc073f86bf6c106c91cd782519e"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/native-GNU-out.json",
+      "before": null,
+      "after": "044c10b12313a952fe8385f7c8ed8d816275fff227d2fc5dddd5b67a4001f00d"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/native-author-subset-5.tap",
+      "before": null,
+      "after": "5accfe9b81a3b3589c2f5ce20908fdd24fe41b3179613630368a6702672e688c"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/scoped-types.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/gate-XsPINZ/source-build.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/run-final.mjs",
+      "before": null,
+      "after": "f75d810edff6d227b9826fe27b85e0e70c87e005527f00763513c5b9c362bfe4"
+    },
+    {
+      "path": "tests/commands/archive-stress/final-evidence/tsconfig.scope.json",
+      "before": null,
+      "after": "a2c697270bab393f8251cf36a6a2e5b5b722ee71bd2a7ac66813e3f46d15c3e2"
+    },
+    {
+      "path": "tests/commands/entry-comparison.test.ts",
+      "before": "497228bd11ea61ced34d8a5591cec0cef1602ec338dd1ac3c79eed150478cc1b",
+      "after": "85bc12350662758f78191f171b2cec922fdd642cfdbdee12fc2627ec3583cbb7"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/README.md",
+      "before": null,
+      "after": "9543623c30da6e13463a833736834f2f9b78ca92e4897cebb110e4ee3a358a7e"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/baseline-author.tap",
+      "before": "b2b0d3aa2e3f5bd9cc9ab4f6ae73e8f847d1d21494daacb6d08899f12f483567",
+      "after": null
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/baseline-author.tap.json",
+      "before": null,
+      "after": "d0e8c83a9db3359b0c880dcd52b44081723388640ceee3acd26e8cc9eafec741"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/baseline-independent.tap",
+      "before": "826aea192725d46ab389b0eb2b0eb5565b9747e36d19b8caae8739535052f05b",
+      "after": null
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/baseline-independent.tap.json",
+      "before": null,
+      "after": "de1af97f878d2897133fd6e2a6d5df49659e7e374b1ad3031c74d2b8929d8f76"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/fixed-author.tap",
+      "before": "abb239e07d0b569e218c05207a57070425a6ea38fa5952db26095546c5cf63c7",
+      "after": null
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/fixed-author.tap.json",
+      "before": null,
+      "after": "44f01452418344eda4fcdc32493c363e56c9867b2d9476b9cb8012d76c948b6d"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/fixed-independent.tap",
+      "before": "877189adf0ffa35ec443d91b385c8fdf90e76acbb14a9a63d0ba8ed6a10236f0",
+      "after": null
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/fixed-independent.tap.json",
+      "before": null,
+      "after": "8f7550c194e1a2c193636d4725e56d7d3af75c12a836b8ed44f7a8b130cc56ee"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/owner-integration-author.tap.json",
+      "before": null,
+      "after": "af9a8b3d8d7d231911f638de3ab8d1acc7643683b22b5ea4f5708c1926cdeab6"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/owner-integration-independent.tap.json",
+      "before": null,
+      "after": "424893e25e8438b8d4b024991063820b327c774615f2d9e4f39c6e418a37bd2e"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/evidence/review.json",
+      "before": "f4ca2b410933c46f0ac45508bb90a37a0812b9e29591027605853918d54d0a0b",
+      "after": "405cb3b90f034b5bce5da328fc26b995ef90ee2b60cff6a5369e8e7d0c9a9be0"
+    },
+    {
+      "path": "tests/commands/filesystem-authority-stress/review.ts",
+      "before": "108bc4d8b26637600a3b998b44e4bc448df6912acdd916a3da7d37f5252b185f",
+      "after": "f1b8e681ad71784da0b023ee28e8d1504677acbbab2bcb33caab3e427adf25be"
+    },
+    {
+      "path": "tests/commands/move-cross-device.test.ts",
+      "before": "7ee609cc0bff98d28a9ea841a7d7155f8ba40cffb241884af16d877e46a669e4",
+      "after": "67f772e8dc1c6e95c524ea12d8b237be17b205aa0610412884c5d915562a1c49"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/ARTIFACTS.sha256",
+      "before": null,
+      "after": "77331eeaa483e36a5793cbd3d9b0224396c7cec3c036e79e47f8f0a3830696ea"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/REMAINING.md",
+      "before": null,
+      "after": "41816292b2600783f57641233b720cc941d9db125dcb60f1a9996a82f6a8e7ee"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/REPORT.json",
+      "before": null,
+      "after": "27099afef40ebd81b080b1b00097eece953195d16e34aae8f4c928d74d3915ce"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/REPORT.md",
+      "before": null,
+      "after": "b0972ed966297cb83b2d2604088246874cecfbb4acb756c6408a5a59bcef4c02"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/artifacts.mjs",
+      "before": null,
+      "after": "0054bd6e68b820de1e6b6164f0bc8b48c49c66481f6f015a94094f3f2f946bef"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/before-legacy.json",
+      "before": null,
+      "after": "94bb252251bbb499bf36c5357412df589c4568ae83777afb2b97b00768204728"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/before-main.json",
+      "before": null,
+      "after": "6acb179e6c987aa1391dad5c16abba757a5d8ff62db8e3443228b25b94438ce8"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/before-tests.json",
+      "before": null,
+      "after": "5f7d733d32f9cf9134ddd69637e52ba0f0d07de77030fa5a4434a6b8c417016c"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/boundaries.test.ts",
+      "before": null,
+      "after": "d318ad964f5df1db776e3cb0da44ac56e0f6508a830005094b645288893a94bf"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/capture.mjs",
+      "before": null,
+      "after": "e5c97ddb56b53157fea0e0a758d2d709f7067dc4e931fffc08f6513bcc2642d6"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/evidence.test.ts",
+      "before": null,
+      "after": "bc2b19133b926eccf2519885bb5ca7a16f9ce09e1fb1a9cda78b6c365a7710f8"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-author.json",
+      "before": null,
+      "after": "7747758607760d7bf04904f95d210fba64c80e1e52115453e2d9341bd9876de2"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-build.json",
+      "before": null,
+      "after": "8d9c2db7ace5f9f15948d8160f477376068169654ee02477acbf4502e20a18de"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-built.json",
+      "before": null,
+      "after": "54cd8442241cdd4e7e346029ebdf34003daf0b31709256c02be1043cccc340a8"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-historical.json",
+      "before": null,
+      "after": "a74d2451d5d6b9c331d19b6fe79e43318dd39e19b1437518bd8c849431fb39af"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-legacy.json",
+      "before": null,
+      "after": "29abfd353635e84d93512712f4580b7b87c97fa4864fe7ba0dc75495e8ca7edc"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-main.json",
+      "before": null,
+      "after": "0a5373a27af15dd3cc619a947e39a8d5ea6f95b5ee6e03dfc712216539d0067b"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-nearby.json",
+      "before": null,
+      "after": "a58d23f0f3c88c9be5af5f3a696b403ca2846f3643caec275c9c928854b0c1cd"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-owned.json",
+      "before": null,
+      "after": "93df4ca108e86e5bd07ff4b9541e9ee03bf1320d24fe16a31ec1378e0fc39a67"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-safety-1.json",
+      "before": null,
+      "after": "18cfcf75b4072e5f3896e39b194bed8f6e0ba28a2f022afd05a7ed18248a56a1"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-safety-2.json",
+      "before": null,
+      "after": "00830dfc160f15037491185f57b3c237c6bcf760ee340823c5ee6e0ae19144ce"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-safety-3.json",
+      "before": null,
+      "after": "01440d9eb3d81feef168ce7160a4f2bf626161170db6dd99a1124d4d554a6a55"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-typecheck-with-evidence.json",
+      "before": null,
+      "after": "438f626cb6480128bde67cd57175d2e8f9db3888ef5503a71c920d1215b0c75f"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/final-typecheck.json",
+      "before": null,
+      "after": "7226dde5e88e6d66d3291f94d0beb99e6ccf27d1de898988ca24f6f8dcf61264"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/first-fix-tests.json",
+      "before": null,
+      "after": "e4185f47517c6719e75c1f6c5fe0c620481b877e7c38216971866967a1ee1bbd"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/immutable-before.json",
+      "before": null,
+      "after": "3766803b4bd8cc39f014e13de881cda034515b1094436530cdfa6505750ce9e3"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/immutable.mjs",
+      "before": null,
+      "after": "ecdc5db77877c5505f6171665c532396211a4ec3e2bfcbe98f95ccec571197a9"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/native-frozen.json",
+      "before": null,
+      "after": "dd7a8d16d32ed2083e2fef49de2f9b59471aeb6b0ebe6959b38e3a42d7b35743"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/nearby.test.ts",
+      "before": null,
+      "after": "ffc862f79f39c42d43c89bdb3af46fdb3b4ac2d1e77f3499556237a7f06c0ca7"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/replay.mjs",
+      "before": null,
+      "after": "0e12b6488c71cc0894ddb572ac851441a1489fc34db81bb103f3da9a74118dd8"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/run-command.mjs",
+      "before": null,
+      "after": "9540743b6e8fb277bf6d20c3b45cc9dcf010a09ce68ae87838fb9999643509ba"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-review-fixes/seal.mjs",
+      "before": null,
+      "after": "35f52056d7445cb4ae905b92db04e09ceed9d8df87dbe0f86b0c0e8d9c76f2f5"
+    },
+    {
+      "path": "tests/commands/table-text-stress/README.md",
+      "before": null,
+      "after": "b2c01c849dea20e21dd23c663f305d54af12750844902aa5ab24c0a91aee3110"
+    },
+    {
+      "path": "tests/commands/table-text-stress/acceptance-final.json",
+      "before": null,
+      "after": "b004ea982b85bdf507630931419389bbe21141fbbdeeb97341d398076a2c5644"
+    },
+    {
+      "path": "tests/commands/table-text-stress/acceptance.json",
+      "before": null,
+      "after": "1e668e5688ba53499266e9ec32f63b8b6f641886e14ddf9fe211718b653c73b0"
+    },
+    {
+      "path": "tests/commands/table-text-stress/acceptance.ts",
+      "before": null,
+      "after": "746401874ac7664043beace74a8465b24db5a732547cc29871249e1d8f540ae7"
+    },
+    {
+      "path": "tests/commands/table-text-stress/closure.json",
+      "before": null,
+      "after": "4953ab6f1781737c5af162ef756d72062994e9423dcb8eecb0e771dccccfbe2a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/contracts.test.ts",
+      "before": "ca5c08160d8d8915abe66099aa6d3602d862c6e26cb9aec705c02c4418f26022",
+      "after": "65a0c124ca264527a15c93d3526b648ae05edb4160948f7b2bca7e384b1dc5c0"
+    },
+    {
+      "path": "tests/commands/table-text-stress/corpus.test.ts",
+      "before": "671fac0f31101f66f5df7831e5e25b4efb7c5a333721a3eac06fed613e25c8e2",
+      "after": "765eb2bd9f78ef12dfd877206bff31bbbddf36e04ea066041d61d71894d994e5"
+    },
+    {
+      "path": "tests/commands/table-text-stress/handoff.json",
+      "before": null,
+      "after": "28a1452cdfad6d4e316675b0501e84e2ed9729ea1a4d9045f9d4da2b7a1b7ef3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/isolated-acceptance.json",
+      "before": null,
+      "after": "a3f3d2670e62412769aad0adbe5fb746249887fba9d1de2770332bbe51cf9116"
+    },
+    {
+      "path": "tests/commands/table-text-stress/mutation-evidence.json",
+      "before": null,
+      "after": "7c8638154f20b391c1a07f012e14bf73f468d1f0a3111e35cb784ec6bf922d5a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/mutation-final.json",
+      "before": null,
+      "after": "8d6a05eabf0d6cc723bdcf4922c47f612de15e521d81d0330133b22c67bb9c82"
+    },
+    {
+      "path": "tests/commands/table-text-stress/mutation.ts",
+      "before": null,
+      "after": "6c399eff666bef58c784f35ae41ee128c791c9aaf74fe880f4f0d12015b4b150"
+    },
+    {
+      "path": "tests/commands/table-text-stress/readme-correction.json",
+      "before": null,
+      "after": "7c45d88c1679f119cb9836aa8161dbff8b3f9b17df3428466b6ec435f984651f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/snapshot.ts",
+      "before": null,
+      "after": "d87190e12788e64ffbfa8c09cd2f5461ffb8c57bebb6d1cde72e62ba34ec46b5"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "before": "35305c7be7229af1b10eed658d94f65bd948c1c453fb84395b08a44f096f9573",
+      "after": "54cc1fc805761d2a78985609b6af521dfdd487c69259490d9147834b8eb2dadc"
+    },
+    {
+      "path": "tests/fs/memory/comparison.test.ts",
+      "before": null,
+      "after": "1a5a38905d21c09710615c073fcca70dc03a9510523682d0c58a45a447909296"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/FINDINGS.md",
+      "before": "34de24de70f1c5057b03356895643a02143f2b46c2f077112ccdcbd5d7606083",
+      "after": "8fbe42a2d913ec5161fc7efba314ce87f0eb72ae5ac031f095bcd0c26625397d"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/REPORT.md",
+      "before": "5f5d371ca48f0325429791075aaeba2e20c6c93eaf041fa806bcd42840b7caa9",
+      "after": "8befc3012a98da552f76c3b0f485a413b4fc065c95e29f426117b8e51b860bf6"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/capture.mjs.txt",
+      "before": null,
+      "after": "050521c8db3c79bf53584bf3f078a6d8c3d89d8a5877445a1f2fe7b960220ab9"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/comparison-internal-handoff.txt",
+      "before": null,
+      "after": "e382a949763525fffcea43396211c584f6145ce7fdb354825071b9e83a365468"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/manifest.json",
+      "before": null,
+      "after": "f85a86427dd6ab9d26e61cc37c1136ea3444f84962f6b7d2d54062e7580666d1"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/observations.json",
+      "before": null,
+      "after": "378f7019a18eebca4267b8a02e785533536de61254a8f37159224f63c8b8078c"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/public-comparison.test.ts.txt",
+      "before": null,
+      "after": "5863faba4a084160d64a3990cc8cc0b33f8b43251e26ca41ea11af071145137a"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/remote-comparison.test.ts.txt",
+      "before": null,
+      "after": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/s3-authority-handoff.txt",
+      "before": null,
+      "after": "f4ea8b9ac1f867788c0072b5db5d83ffe723745050b48528efb232ad33cc2534"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/source.tar.gz",
+      "before": null,
+      "after": "099e84243e8896b14e8e94d6752dc6b25d022c0c66d544fedf0a8f78bc583467"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/support.ts.txt",
+      "before": null,
+      "after": "46a07a38dcc11f99fd37fc2a4986bbbac8ae7241872f460b1a7ccf76a4b8de1b"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/tests.stderr.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/tests.stdout.tap",
+      "before": null,
+      "after": "efd20f75910bce5e23fa1c7aff6b6842062d86abb279d82093bacec4e5280d73"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/tsconfig.json",
+      "before": null,
+      "after": "24dfe6a98332618cc5583524b7b7e5fb0dde0b05147c479a637d86c0c23b2f14"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/types.stderr.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/types.stdout.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/webdav-authority-handoff.txt",
+      "before": null,
+      "after": "ef1690a2877636911ae43a7dfa71ae73b79a01ffc20dd5917cf920887f14eefe"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/capture.mjs.txt",
+      "before": null,
+      "after": "050521c8db3c79bf53584bf3f078a6d8c3d89d8a5877445a1f2fe7b960220ab9"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/comparison-internal-handoff.txt",
+      "before": null,
+      "after": "e382a949763525fffcea43396211c584f6145ce7fdb354825071b9e83a365468"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/manifest.json",
+      "before": null,
+      "after": "d8bad5d829341302f2306bee163b23b3ba37e8c733f7574bd072899617aa0bbf"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/observations.json",
+      "before": null,
+      "after": "93c5638f082decbd4791ad7d3ec07b0d0b998097f72089378492fb036c26ee07"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/public-comparison.test.ts.txt",
+      "before": null,
+      "after": "5863faba4a084160d64a3990cc8cc0b33f8b43251e26ca41ea11af071145137a"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/remote-comparison.test.ts.txt",
+      "before": null,
+      "after": "64e1d1556ddc84a77cd89ce648c54cc66a3e9dedeb89180e9212dae30609756b"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/s3-authority-handoff.txt",
+      "before": null,
+      "after": "f4ea8b9ac1f867788c0072b5db5d83ffe723745050b48528efb232ad33cc2534"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/source.tar.gz",
+      "before": null,
+      "after": "9f84488feddd9ec0fad2820d1afd4f9a399a01179e9e9fd0e69d3551518e9a8d"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/support.ts.txt",
+      "before": null,
+      "after": "46a07a38dcc11f99fd37fc2a4986bbbac8ae7241872f460b1a7ccf76a4b8de1b"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/tests.stderr.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/tests.stdout.tap",
+      "before": null,
+      "after": "38a8323bdcf50595b562b1fb4026e2ee690ff7010c07366194eae1f25ed55163"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/tsconfig.json",
+      "before": null,
+      "after": "a5225f6a0d675f6423c6b2f7038d8f5d8eb2cf775ab3506d86699ba6135fb553"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/types.stderr.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/types.stdout.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/corrected-protocol-46/webdav-authority-handoff.txt",
+      "before": null,
+      "after": "8dd9cf9d02ab62107d38f631298518406c3bf7700947d9a3709f67171d7b8529"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/capture.mjs.txt",
+      "before": null,
+      "after": "050521c8db3c79bf53584bf3f078a6d8c3d89d8a5877445a1f2fe7b960220ab9"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/comparison-internal-handoff.txt",
+      "before": null,
+      "after": "e382a949763525fffcea43396211c584f6145ce7fdb354825071b9e83a365468"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/manifest.json",
+      "before": null,
+      "after": "c9b6bc39a9932a95551fa4dc955a444c7226a94333b3a346b693eb72bb061390"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/observations.json",
+      "before": null,
+      "after": "0901b6013c7cd723ae10b310beeb3639e6d4d6a1b6a3d04c158a011ea2877b28"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/public-comparison.test.ts.txt",
+      "before": null,
+      "after": "5863faba4a084160d64a3990cc8cc0b33f8b43251e26ca41ea11af071145137a"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/remote-comparison.test.ts.txt",
+      "before": null,
+      "after": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/s3-authority-handoff.txt",
+      "before": null,
+      "after": "f4ea8b9ac1f867788c0072b5db5d83ffe723745050b48528efb232ad33cc2534"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/source.tar.gz",
+      "before": null,
+      "after": "2c3383c19fbbc8db11e39c3f35f391546c1e886b469698949dcf1c70e35d2528"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/support.ts.txt",
+      "before": null,
+      "after": "46a07a38dcc11f99fd37fc2a4986bbbac8ae7241872f460b1a7ccf76a4b8de1b"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/tests.stderr.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/tests.stdout.tap",
+      "before": null,
+      "after": "bf461f94b221e9cfb086b99aa8c3d8981420574aaee6ebfbd9dd80b96d8a3a2b"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/tsconfig.json",
+      "before": null,
+      "after": "364d48c629003cbb9ba6acf8c25c55fd121360e33077a8e10333c7ff7c102666"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/types.stderr.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/types.stdout.txt",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/evidence/webdav-operation-override/webdav-authority-handoff.txt",
+      "before": null,
+      "after": "8dd9cf9d02ab62107d38f631298518406c3bf7700947d9a3709f67171d7b8529"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+      "before": "2a3b76327463011d1a296dbb5943e5ec24804d00e0519b50c1c9e4e85e966cd8",
+      "after": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660"
+    },
+    {
+      "path": "tests/fs/mount/mutation-identity.probe.ts",
+      "before": "5834bcd8e5a69bb39f9d2372235b7ca35a23589cfba273ffe00d333efc8afa44",
+      "after": "ceb9c4584334d984f50c24e317b8def0a2d0671f27f7a19760df484c96e46baf"
+    },
+    {
+      "path": "tests/fs/real/metadata-review/README.md",
+      "before": null,
+      "after": "dc4ecd4d12dcab909f3768141db077bdccbb16a2ecfc76e63abe308e9024db98"
+    },
+    {
+      "path": "tests/fs/real/metadata-review/classification.test.ts",
+      "before": null,
+      "after": "acd62000fa92d03712b636d6f99feb453800bf9046c551ce2fcbc14071466e2d"
+    },
+    {
+      "path": "tests/fs/real/metadata-review/final-evidence.json",
+      "before": null,
+      "after": "fbb39aedeb0155e249f16413e294575dc570629394c22e562bb5f5706a712ae4"
+    },
+    {
+      "path": "tests/fs/real/metadata-review/repeat-evidence.json",
+      "before": null,
+      "after": "72e6a1ecf6cd5aaa72e6d147ed65fd5c1082e225df455523e8f4049a0d919826"
+    },
+    {
+      "path": "tests/fs/real/metadata-review/reproduce.mjs",
+      "before": "f98642d953890de30fca68f5115be876ba4a8928f7945490e9f0b2883e03ada5",
+      "after": "e0e38027f720e64a12102f8f5ea5288ca805efe1bee0ae8b55e0c148c6149f50"
+    },
+    {
+      "path": "tests/fs/real/metadata-review/source-proof.json",
+      "before": null,
+      "after": "010a22e7ddffc00436f258274d500b9432fb13841aeb40207e7cf77afbe3a67f"
+    },
+    {
+      "path": "tests/fs/real/metadata-review/source-proof.mjs",
+      "before": null,
+      "after": "92b88ad09ea8e199ccfd4b1540bb294902902aa2c8d2bd033a8cddb34b5ac438"
+    },
+    {
+      "path": "tests/fs/real/metadata-review/validation.json",
+      "before": null,
+      "after": "47a7c3c9a7bbf494f4e43d5e442e0cb54c5bface8f5d183aaa8739df2058f198"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/REPORT.md",
+      "before": null,
+      "after": "c16d7c4bac96521dd035e3f3262244aae1a8b89dfdd8120fcbcee8501251536e"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/SHA256SUMS",
+      "before": null,
+      "after": "37c888c9edbc70513e352dc6ed9ab1e197d3efe919a19e29db0ebdd02c600125"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline.commands.json",
+      "before": null,
+      "after": "5f3331bd8cd59afd15dbd1e0447d0f04900568c4b047466dd4b6968ad29e1663"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/input.patch",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/manifest-after.json",
+      "before": null,
+      "after": "d73c49993085b6f3c005f1cfb95630d991b6074e8c36cfbdf926175d44de1482"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/manifest-before.json",
+      "before": null,
+      "after": "d73c49993085b6f3c005f1cfb95630d991b6074e8c36cfbdf926175d44de1482"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/original-webdav15.exit.json",
+      "before": null,
+      "after": "c7a3fe59e02628f360443ec9981e6c9eb55fef13afe557dac239b1d612b1a99a"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/original-webdav15.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/original-webdav15.stdout",
+      "before": null,
+      "after": "27d63866ce3d8bbf65dfcf5abdfb29ee570e0ca8a3cc8a0bb1e2b964cca718bf"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/provenance.json",
+      "before": null,
+      "after": "2943238b045f13169e5e0c3294e59871ee3688d24de9ebcc899c288682129987"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/webdav-existing.exit.json",
+      "before": null,
+      "after": "de9bc77a3e92e904f6a34aee57b45b58862edf73e8b85dd37d1576bf2ef29592"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/webdav-existing.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/baseline/webdav-existing.stdout",
+      "before": null,
+      "after": "ab19dc791be568c5a1fd06aa94d4575ff691ae4350203df7b69f9496845b2ea2"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate.commands.json",
+      "before": null,
+      "after": "72f3072f1d0c7f11e903021c219e705ed709f65edfd6da83ce6ee6eb055fafb1"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/input.patch",
+      "before": null,
+      "after": "44cd77f8cf702ef643fc4e2dfc0a23afd137b6bc2d6e8135a300e9f1d4eda36e"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/manifest-after.json",
+      "before": null,
+      "after": "cc4411078a5caf5344c128f92fbff844b01d98446db04b85062585331445c8c9"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/manifest-before.json",
+      "before": null,
+      "after": "cc4411078a5caf5344c128f92fbff844b01d98446db04b85062585331445c8c9"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/original-webdav15.exit.json",
+      "before": null,
+      "after": "710ab15c56bce0ca7a70e1d20ef6baf188a700f732f74592467a07e5955e6e9c"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/original-webdav15.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/original-webdav15.stdout",
+      "before": null,
+      "after": "d78fc9eaf39b274c20081c801b66ba31b72722853ee444826fc511689f7bc19d"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/provenance.json",
+      "before": null,
+      "after": "7859d118789a413d63a0c6ca12e634961aa84b53e921a14d1446752e52826801"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/resource-id.exit.json",
+      "before": null,
+      "after": "098f5c1ac25e45ba1ebcbc44898bf0d37d955e5e1c3dd46787f95f65ad6da764"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/resource-id.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/resource-id.stdout",
+      "before": null,
+      "after": "515ed08247b8ed0c62b65cd50543c9d78230d9e063044b30b469ced9e6d56505"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/types.exit.json",
+      "before": null,
+      "after": "7ad6a312731ae6c98cc14658ba14eaf7217328f7d05476eb2c576c335775e0b5"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/types.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/types.stdout",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/webdav-all.exit.json",
+      "before": null,
+      "after": "ce082e6226806d6c4e213d5a11b07be78d399d01feca843c919bf05a625d6d9b"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/webdav-all.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/webdav-all.stdout",
+      "before": null,
+      "after": "f0d26f161ead0f1a756d90f761f014dc58ce059f4541230a4996285bf3296275"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/webdav-conformance.exit.json",
+      "before": null,
+      "after": "081bed92fb481eb6a4212c2bd3bdebbfdfbfc633da313684b8a7d334b1c5700b"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/webdav-conformance.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/candidate/webdav-conformance.stdout",
+      "before": null,
+      "after": "1cc1a4a32fbf71a22df86eee77851d9e6c43f05688ea120c04c8c821e1fcf8b5"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final.commands.json",
+      "before": null,
+      "after": "72f3072f1d0c7f11e903021c219e705ed709f65edfd6da83ce6ee6eb055fafb1"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/input.patch",
+      "before": null,
+      "after": "464b5feb71abdcc19c2919c3d7632bc30cc6a615de96eb9ddf3d9d07c8d18055"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/manifest-after.json",
+      "before": null,
+      "after": "2de4ea2635745aca060aaf814254213760bca96ac449a8544d4d9b1e2caafe09"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/manifest-before.json",
+      "before": null,
+      "after": "2de4ea2635745aca060aaf814254213760bca96ac449a8544d4d9b1e2caafe09"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/original-webdav15.exit.json",
+      "before": null,
+      "after": "9c041b3cff11ab050a66a48eb87f1f17c0655530e12bdfeb062b208c8df2ece2"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/original-webdav15.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/original-webdav15.stdout",
+      "before": null,
+      "after": "f99226b4685cdb78aee03eb5b7058dbde8303516392e5577ef7d7552102a3814"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/provenance.json",
+      "before": null,
+      "after": "8f2c6cc4d9dcbc3d0ba692a8e760a3d4e1ca6c58533f0e71886d024639078292"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/resource-id.exit.json",
+      "before": null,
+      "after": "7c620db0ca15933dec6d639d54c3347359faac5b1a8c6f435979dae3c53d5247"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/resource-id.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/resource-id.stdout",
+      "before": null,
+      "after": "7adee1ad714977ccc48b34ca0f1bebdc3f1e776f8ec6c83102cd7a4e9102e760"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/types.exit.json",
+      "before": null,
+      "after": "2508e4fcc1808b0ef51a403e1f0766924c0349420302bb9a0f6398e7afc6e561"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/types.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/types.stdout",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/webdav-all.exit.json",
+      "before": null,
+      "after": "c54fcb6dfacbcd552fb3c66a380bd65e2aa817902767387ef06a5dd0259107c2"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/webdav-all.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/webdav-all.stdout",
+      "before": null,
+      "after": "94a3183d79b6f91c711d347a81571372d59ee9231107fa65be8e93c0d5e17f12"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/webdav-conformance.exit.json",
+      "before": null,
+      "after": "12bf71748f7f5575e12872097c89d8db27262fc120aee77d7d0743907606c7ca"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/webdav-conformance.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/final/webdav-conformance.stdout",
+      "before": null,
+      "after": "b733b81a3f77847b50f054eba017ed58eb182b00ce7c696e078452e664cde77d"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/handoff.txt",
+      "before": null,
+      "after": "ef1690a2877636911ae43a7dfa71ae73b79a01ffc20dd5917cf920887f14eefe"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection.commands.json",
+      "before": null,
+      "after": "5f3331bd8cd59afd15dbd1e0447d0f04900568c4b047466dd4b6968ad29e1663"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/input.patch",
+      "before": null,
+      "after": "269e1ae1c07c5654830cbe20dc8c44b92e03ee2b2876e12c797764ee2824fa3f"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/manifest-after.json",
+      "before": null,
+      "after": "ce2b2475939ee2c22c99824d2862ecf8837788ec98b30f9c6f6a93a3c5744131"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/manifest-before.json",
+      "before": null,
+      "after": "ce2b2475939ee2c22c99824d2862ecf8837788ec98b30f9c6f6a93a3c5744131"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/original-webdav15.exit.json",
+      "before": null,
+      "after": "f067a0abb884927c0901bf8667df167d07b022536f42d8a3107d40913de9789f"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/original-webdav15.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/original-webdav15.stdout",
+      "before": null,
+      "after": "69407874fb8596fb065171adcdcfd7892a852f65e3a8ec5f54e2c8c7d0a7e666"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/provenance.json",
+      "before": null,
+      "after": "184b6e37ba9be1fd1abbdd7859b103fc3a11cead7f0b9d88c5cd273a06fac111"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/webdav-existing.exit.json",
+      "before": null,
+      "after": "d7fe7b44a40d1804ad04a1b71ea8fb7f9121590e3ff9e8c7be9ba4b71ac5efd9"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/webdav-existing.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/inspection/webdav-existing.stdout",
+      "before": null,
+      "after": "8320c6879dd67cdc3ca4b259fb7a227b69f499c05febd1591c6d442234633e08"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/original/src/fs/webdav/webdav.ts.txt",
+      "before": null,
+      "after": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/original/tests/fs/mount/identity-compatibility-review/compatibility.test.ts.txt",
+      "before": null,
+      "after": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/original/tests/fs/webdav/mock.ts.txt",
+      "before": null,
+      "after": "f46b18da28ed03b8096dc2b8a10fc0aba768947b9af5ebf0ebae602b289d8ce0"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned.commands.json",
+      "before": null,
+      "after": "72f3072f1d0c7f11e903021c219e705ed709f65edfd6da83ce6ee6eb055fafb1"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/input.patch",
+      "before": null,
+      "after": "489c8971b7f0e6a6992cafafb7905e8a6574fa40f35f79b9a03ffc2dec613c98"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/manifest-after.json",
+      "before": null,
+      "after": "3e5c73d2c656ab68eafb77bfc4eddf0d0fe9704583f27c06c09f8152f99b5163"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/manifest-before.json",
+      "before": null,
+      "after": "3e5c73d2c656ab68eafb77bfc4eddf0d0fe9704583f27c06c09f8152f99b5163"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/original-webdav15.exit.json",
+      "before": null,
+      "after": "ff8da742834b155afee53feca492d93c99b3a92e2fbba0795ba2cb961e6c0c9d"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/original-webdav15.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/original-webdav15.stdout",
+      "before": null,
+      "after": "466e2e9f0200e597187588e0c8645f3bc6db842550038fce988ae119b88dc17a"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/provenance.json",
+      "before": null,
+      "after": "94fbc1b6669fcc8d189b4ffc66197b8611fd3c3f151abb23b2c0633ed34c1390"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/resource-id.exit.json",
+      "before": null,
+      "after": "7cb780dfd2d618fba1939b57c25442d48e0b33e4765bc2de425c57a1a74ba91f"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/resource-id.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/resource-id.stdout",
+      "before": null,
+      "after": "1b07df4db57c778f771b321406a12605be92e9f3b5f8b654cd840dda72ece9e0"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/types.exit.json",
+      "before": null,
+      "after": "b7353e4756a9ff0f77db8336f3787eed2ff8b99acbc37ef2c45109ff713596ac"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/types.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/types.stdout",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/webdav-all.exit.json",
+      "before": null,
+      "after": "293aa067d7f492985f3e25a37aa6909d231f5fb6e1ff9bbcfb85602622f3fd60"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/webdav-all.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/webdav-all.stdout",
+      "before": null,
+      "after": "1f5bcb31f209fbcdc7ac9ab89dfc70ad847e73d113c98d028c85aed9cf1da6c5"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/webdav-conformance.exit.json",
+      "before": null,
+      "after": "7dd0333a84691cbc3e6477dd75dbc2e1ad89d91b9207f2deb08d12b323c5657b"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/webdav-conformance.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/pinned/webdav-conformance.stdout",
+      "before": null,
+      "after": "b74599d6a4746d13ff576a20d370b1da48081bbb3942015c2da21d65924f4fba"
+    },
+    {
+      "path": "tests/fs/webdav/evidence/resource-authority-5076b32/run.mjs",
+      "before": null,
+      "after": "53e08fc9c1356e68389254c818d0eda3e9e275562ba6c160c88c8102ac4cc092"
+    },
+    {
+      "path": "tests/shell/bom-capture-fix.json",
+      "before": null,
+      "after": "5c56be5fd998613b5ab12b7e154954806fa54f81780663ce5ec2bce98b25d650"
+    },
+    {
+      "path": "tests/shell/bom-capture-fix.md",
+      "before": null,
+      "after": "902f2f4fa755434fca1929da08000089f46120391b5d5d29713f068c54b4003c"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "utc": "2026-08-29T15:15:12.273Z",
+  "runtimeLaunchAttempted": false,
+  "files": [
+    {
+      "name": "administration/06-role.json",
+      "bytes": 280,
+      "text": "{\n  \"role\": \"one-scheduling-timer\",\n  \"pid\": 68311,\n  \"started\": \"2026-08-29T15:07:17.771Z\",\n  \"children\": 0,\n  \"runtimeLaunched\": false,\n  \"exit\": {\n    \"code\": 0,\n    \"signal\": null\n  },\n  \"close\": {\n    \"code\": 0,\n    \"signal\": null\n  },\n  \"ended\": \"2026-08-29T15:15:12.266Z\"\n}"
+    },
+    {
+      "name": "administration/06-scheduler.stdout",
+      "bytes": 538,
+      "text": "{\"phase\":\"scheduled\",\"entered\":\"2026-08-29T15:07:17.813Z\",\"notBefore\":\"2026-08-29T15:15:12.109Z\",\"oneTimer\":true,\"runtimeLaunched\":false}\n{\"status\":\"READY_FOR_EXACT_ONE_DISPATCH\",\"entered\":\"2026-08-29T15:07:17.813Z\",\"ready\":\"2026-08-29T15:15:12.253Z\",\"schedulerMilliseconds\":474440,\"remainingActiveMilliseconds\":1619856,\"remainingInclusiveMilliseconds\":1799856,\"packetMembersAuthenticated\":30,\"consumedPins\":10,\"tools\":4,\"unusedRuntimeRoot\":true,\"unusedRuntimeCapture\":true,\"runtimeLaunched\":false,\"children\":0,\"sourceCodeChanges\":false}\n"
+    },
+    {
+      "name": "administration/06-scheduler.stderr",
+      "bytes": 0,
+      "text": ""
+    },
+    {
+      "name": "DISPATCH-READY.json",
+      "bytes": 457,
+      "text": "{\n  \"status\": \"READY_FOR_EXACT_ONE_DISPATCH\",\n  \"entered\": \"2026-08-29T15:07:17.813Z\",\n  \"ready\": \"2026-08-29T15:15:12.253Z\",\n  \"schedulerMilliseconds\": 474440,\n  \"remainingActiveMilliseconds\": 1619856,\n  \"remainingInclusiveMilliseconds\": 1799856,\n  \"packetMembersAuthenticated\": 30,\n  \"consumedPins\": 10,\n  \"tools\": 4,\n  \"unusedRuntimeRoot\": true,\n  \"unusedRuntimeCapture\": true,\n  \"runtimeLaunched\": false,\n  \"children\": 0,\n  \"sourceCodeChanges\": false\n}\n"
+    },
+    {
+      "filename": "/private/tmp/safe-bash-b2-runtime-r6",
+      "present": false
+    },
+    {
+      "filename": "/private/tmp/safe-bash-b2-runtime-r6.outer.raw",
+      "present": false
+    }
+  ]
+}

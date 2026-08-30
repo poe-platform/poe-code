@@ -1,0 +1,19 @@
+{
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "source": {
+    "scripts/verify-current-consumers.mjs": "0877c045fb2c7feb093903ae528ddc518c7d371a73460f69f3ccf853938ed632",
+    "scripts/verify-qualified-release.mjs": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768"
+  },
+  "profiles": [],
+  "controls": [],
+  "failures": [
+    {
+      "message": "ENOENT: no such file or directory, open '/tmp/safe-bash-package-8670-20260827-v1/virtual-bash-0.1.0.tgz'",
+      "stack": "Error: ENOENT: no such file or directory, open '/tmp/safe-bash-package-8670-20260827-v1/virtual-bash-0.1.0.tgz'\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/runtime-permission-compatibility-20260827/controls.mjs:38:24\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+    }
+  ],
+  "privateAccess": false,
+  "fullConsumerInventoryExecuted": false,
+  "temporaryRemoved": true,
+  "status": "author-controls-failed"
+}

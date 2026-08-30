@@ -1,0 +1,175 @@
+HTML74 admission RSS bounded independent diagnosis — 2026-08-27
+
+Disposition: historical HOLD34/35 UNCHANGED; actual34=0. This is one telemetry
+execution, not a control retry, admission run, rescore or product acceptance.
+Recipe freeze: fe284b27b1e46995b62017d4ce6af900e51c421f.
+Recipe MANIFEST SHA256: c88355e2068d708e15891fc1a8f274cdd0802436d666f9a1b30663523028b790.
+Recipe: 8 files including manifest; 7 covered. Result evidence has its own root
+MANIFEST.json. Source/capture authentication is recorded in AUTHENTICATION-INITIAL.json
+and execution-01/AUTHENTICATION-PRE.json; 35 selected small historical files match
+their sealed Git commits and hashes. This count is files, not another35-control run.
+
+ESTABLISHED CODE MECHANISM
+
+Paths below are relative to tests/integration/html-public-independent-20260827/admission-v2.
+core.mjs:158 initializes maxRssBytes with process.memoryUsage().rss in the CONSUMER
+process. core.mjs:171 samples that same current RSS every256 processed chunks,
+after awaited consumption; core.mjs:177 samples again after successful size/hash
+checks. This is neither process.resourceUsage().maxRSS nor a lifetime high-water
+nor baseline-subtracted allocation. Earlier peaks are not automatically included
+once their resident pages have gone away. Any prior allocation still resident at
+the stream's initial/subsequent samples IS included, regardless of reachability.
+There are no before-stream heap/external/arrayBuffer baselines in the old captures.
+
+core.mjs:181 spawns a separate producer, and core.mjs:193 hashes child.stdout in
+the consumer. The metric does NOT sum producer, supervisor, sibling workers or
+other processes. Host co-load can indirectly influence scheduling/memory behavior;
+it was not isolated/measured, and must not be called part of an RSS sum.
+controls.mjs:81 applies strict result.maxRssBytes <268435456 to this entire
+consumer process, not exclusively stream buffers. The independent supervisor
+launched that consumer with --max-old-space-size=96; controls.mjs:75 applies the
+same option to the positive producer. This option was preserved in this probe,
+not reinterpreted as a whole-process/external-memory RSS cap.
+
+controls.mjs:12 retains parsed binding; controls.mjs:16 retains the full tree;
+controls.mjs:20 retains result/error rows. The authenticated initial metadata
+control reports36351 entries,410 inputs,12 links. controls.mjs:36 structuredClone
+mutations, spreads/filters in subsequent controls, and core.mjs:64 validation Maps
+allocate transient data. controls.mjs:19 inventories/hashes files before controls;
+core.mjs:12 allocates a64KiB hashing buffer per file. The old author's PRE inventory
+has25 files; the independent PRE inventory has108, a concrete setup difference.
+No new inventory/archive traversal was run to obtain those historical counts.
+The controls are awaited sequentially, not concurrently executing fixture controls.
+The top-level tree/binding coexist with streaming; preceding temporary allocations
+can leave resident allocator/GC footprint. Their exact live/released status during
+the old stream is unknown. Rows store scalar results/error strings rather than
+intentionally accumulating the mutated tree copies; no established unbounded
+tree retention follows from this code review.
+
+core.mjs:159 consumes one async-iterator raw fragment at a time, rejecting producer
+fragments above1048576; core.mjs:162 slices each into at most65536-byte views,
+updates an incremental hash, and awaits consume at169 before advancing. There is
+no array of retained stdout chunks. maxPendingConsumers in native metrics is
+assigned1 rather than independently tracking concurrency; this probe independently
+counts consumer pending calls and iterator-next concurrency. core.mjs:182 retains
+stderr copies but admits at most65536 bytes before overflow handling. This is not
+an unbounded stdout collector. stream-fixture.mjs:4 creates a single65536-byte0x61
+buffer; line7 makes a view and line8 awaits drain on a false write return. The
+recipe did not change that producer behavior, buffer pool or stream implementation.
+core.mjs:185 and195 await child close; line196 clears the timer. Native hashStream's
+last RSS sample precedes hashProcess close settlement, another scope distinction.
+
+OLD NUMBER: NOT RECOVERABLE FROM THE BOUNDED AUTHENTICATED MATERIALS
+
+The independent031 capture has only AssertionError and its assertion/stack; the
+numeric result lived inside the callback and was not returned before line81 threw.
+controls.mjs:28-30 saves name/message/code/stack/process, not that local result.
+The supervisor captures only summary stdout and empty stderr. Relevant PRE,
+positive/negative captures, SUMMARY, supervisor and diagnosis documents contain
+no missing independent numeric measurement. Exact original RSS is NOT recovered,
+estimated or reconstructed here. Search scope and matching lines are preserved in
+the authentication records. No assertion relaxation or synthetic old result.
+The author positive's261767168-byte maxRssBytes is preserved as a DIFFERENT run;
+it is not the independent old measurement. The independent failure establishes
+the strict guard was false, not its exact overshoot or cause.
+
+SINGLE FROZEN TELEMETRY EXECUTION
+
+Natural process group64175, producer64177. Started2026-08-27T23:07:12.446Z,
+settled2026-08-27T23:07:13.105Z. Both status0, no signal, no timeout, no stderr
+overflow. Supervisor exited0; ps found no remaining group members. No kill signals
+sent. Producer beforeExit observed; consumer pending/iterator pending, producer
+writableLength/pendingDrain, and consumer readableLength all0 at final observations.
+TMPDIR/HOME were owned execution-01/tmp, empty after completion.
+
+Consumer memory BYTES (fieldwise sampled maxima, not necessarily simultaneous):
+phase                 RSS        heapUsed  heapTotal external arrayBuffers
+fresh launch          44744704   4576168   5652480   1910158  16425
+after imports/setup   47071232   5240624   5914624   2157316  34522
+before stream         47071232   5241680   5914624   2157316  34522
+sampled peak          102547456  6501976   10108928  32744725 30621931
+after settled stream  102547456  4995040   10108928  3253563  1130769
+
+Native unmodified hashStream maxRssBytes=102498304.
+Strict diagnostic boolean102498304 <268435456 = true. NOT old-case pass/rescore.
+The observer's102547456 peak is distinct: its after-settlement snapshot occurs
+after native sampling and observes slightly more RSS. Consumer RSS remains high
+at settlement while external/arrayBuffers decline from their sampled peaks; this
+is compatible with resident allocator footprint, not proof of its exact mechanism
+or of the old failure's cause. Do not subtract baselines to change the guard.
+
+Producer memory BYTES, separately sampled:
+phase                 RSS       heapUsed heapTotal external arrayBuffers
+fresh launch          43270144  4204104  5390336   1692039  10511
+observer setup        44695552  4423312  5390336   1790101  10511
+before first write    44793856  4474848  5390336   1855637  76047
+sampled peak          56262656  5223936  6963200   1855637  76047
+after settled         56262656  4767632  6963200   1855637  76047
+
+Both memory observers took68 samples:64 every256 chunks/writes plus4 phases.
+Fresh means earliest observer code after module imports, not OS-exec startup.
+No process.resourceUsage maxRSS measurement was taken or confused with current RSS.
+Supervisor RSS was not sampled, and neither peak is a process-tree total.
+
+Stream bytes1073872896, SHA256
+f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f.
+Producer writes16386; consumer iterator raw fragments16386; processed chunks16386.
+All observed fragments/chunks were65536 bytes. Counts and bytes agree across
+producer observer, native producer stderr, consumer observer and native result.
+Both readableHighWaterMark and writableHighWaterMark65536; sampled maximum
+readableLength and writableLength65536. Native consumer pending1, measured
+consumer pending maximum1, iterator-next maximum1, pending-drain maximum1.
+Producer false writes15956 and drain events15956, matching original stderr.
+These are Node queue/flow observations, not kernel occupancy or native in-flight
+write-request counts. Read-queue samples may miss between-observation peaks;
+highWaterMark is not presented as an absolute physical memory bound.
+
+Observation adds iterator delegation/scheduling, memory calls, stdout.write
+forwarding and a producer preload. No byte chunks are retained by the observers,
+no producer bytes/options/limits are changed, and no garbage collection is forced.
+The probe uses no binding/tree/inventory/prefix controls: unlike the historical
+consumer, it starts without their resident footprint. Therefore its fresh-process
+outcome cannot explain, invalidate or turn the old failure into a pass. One probe
+and periodic samples cannot establish absence of unbounded retention universally.
+
+CAUSE CLASSIFICATION AND MINIMAL AUTHOR RECOMMENDATION
+
+Established: mixed whole-consumer RSS accounting includes resident fixture baseline;
+the original assertion loses its numeric telemetry; the stream code uses awaited,
+bounded fragments with no identified unbounded stdout retention. Prior process
+lifetime high-water inclusion is ruled out as the metric mechanism. Concurrent
+external process RSS summation is ruled out. Co-resident fixture/allocator footprint
+is a plausible contributor but NOT established as the old threshold-crossing cause.
+Historical cause remains genuinely UNDETERMINED because the numeric measurement,
+baseline and memory breakdown were discarded/not captured. This single fresh
+probe provides no evidence that requires a behavioral stream implementation fix.
+
+Route to Meitner only through root: minimal harness repair is to persist the full
+positive native result, producer metadata and baseline/peak/settled memory fields
+BEFORE assertions, or attach them to the caught failure without losing the raw
+assertion. Explicitly name consumer current-RSS sampling and record producer
+metrics separately, alongside pre-fixture and pre-stream baselines and flags.
+Keep the strict256MiB policy unchanged. Do not replace it with a delta, raise it,
+force GC, swap buffers, waive the failure or call the isolated probe a passing old
+control. Root may separately authorize isolation of the streaming measurement in
+a fresh process and a repaired admission replay, with cohort/setup differences
+explicitly disclosed. Neither authorization nor repair/replay occurs here.
+
+Post-run authenticated relevant35 files and tools unchanged; frozen recipe file
+AND directory inventory unchanged, including detection of new empty directories.
+No full historical/archive append-proof claim: only the explicit relevant file
+hashes are rechecked there. Foreign index equality was not required. No product,
+config, private package, ledger, old evidence or frozen recipe edits after seal.
+No TS artifacts, exclusions, broad cohort, archive hashing/build/pack/install or
+reconstruction. Existing independent34/35 remains HOLD, actual34=0. Four later
+EXTRA controls, positive materialization, compiler/build/pack and reconstruction
+remain independently UNEXECUTED, not new failures/passes. Original032-035 negative
+stream controls DID execute in the old35; they are not those unexecuted extra4.
+Author39/39 and830/828 stay author-only. Missing old-admission rejection remains
+missing; three author development failures and TWO path-scoped-not-full-clone
+reconstruction qualifications are preserved unchanged.
+
+Sealing check note: whole-owned git diff --check reports one trailing blank line
+in raw SUPERVISOR.stdout.data (console.log of already newline-terminated JSON).
+Those captured bytes are intentionally preserved, not formatted. Authored-file
+whitespace checks and the read-only result/integrity validator are separate.

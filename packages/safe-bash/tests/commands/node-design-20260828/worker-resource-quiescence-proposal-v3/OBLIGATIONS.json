@@ -1,0 +1,144 @@
+{
+  "schema": "WRQ-obligations-v3",
+  "classification": "Source-only v3 correction; all original identities and deferred async/Q expectations retained; no rescore",
+  "originalMatrix": {
+    "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+    "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/CASES.json",
+    "sha256": "cd1005348825c85ec2b6bff2feca061fc8fc4d0fae5eb9d2e13b81e440efd729",
+    "disposition": "Original bytes/inputs/instance ceilings/outcomes unchanged. v2 expectations are a separate version, not an original-matrix pass or silent replacement."
+  },
+  "rootMapping": {
+    "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+    "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/OPEN-OBLIGATIONS.json"
+  },
+  "counts": {
+    "identities": 8,
+    "plannedQualificationObligations": 8,
+    "executedQualificationObligations": 0,
+    "qualified": 0,
+    "newGuestInputs": 0,
+    "newExecutableDrivers": 0,
+    "newControls": 0,
+    "newWorkers": 0,
+    "newEngineEvaluations": 0,
+    "historicalPrivateAbiPlanned": 8,
+    "historicalPrivateAbiExecuted": 0
+  },
+  "common": "All sourceProof entries are source/data reasoning only. Every futureAction requires separately frozen provider/inputs/observations, independent review and explicit later ROOT authorization; no instance budget is granted here. Actual result/limit/effect observations cannot be replaced by self-reported labels.",
+  "obligations": [
+    {
+      "id": "WRQ01",
+      "rootId": "L01",
+      "topic": "Blocked sync text and useful entry workflows",
+      "sourceProof": "S2 ordinary callback is synchronous; RPC credit/data/result/ACK transitions specify parent-independent progress. Existing source preflight and explicit VFS grants are retained.",
+      "futureAction": "Hold authorized parent read one turn while Worker sync call waits, then deliver exact text; require original call order with no Promise value. Under this same identity bind .cjs JSON editing with w and wx, eval, primitive-p publication+LF before terminal, and stdin-source then fd0 EOF.",
+      "expected": "Actual bytes/effects and original try/statement ordering; wx exclusive or ENOTSUP before mutation; no source replay. Status0 only after valid entry terminal, confirmed exit and parent cleanup. Primitive output failure follows real sink route.",
+      "limits": "source256KiB; per-text1MiB; cumulative read/write4MiB each; output1MiB; no speculative write before full payload. This is not complete CLI/native parity.",
+      "hold": "K1 wx/options, intrinsic/grammar and hidden scaffold qualification absent. Original pureAdd contrast is historical, not a new control or pass.",
+      "postreviewVersion": "v3",
+      "postreviewExpected": "See exact versioned CASES.json and its per-identity unqualified obligations; original expected retained verbatim; no outcome measured",
+      "remainingHold": "PUBLIC66 lacks core/lint public closure; K1-K4 unqualified"
+    },
+    {
+      "id": "WRQ02",
+      "rootId": "L02",
+      "topic": "Typed rejection, delivery and raw identity",
+      "sourceProof": "S2 copies thrown errors and creates fresh return maps; ERRORS covers all28 contract codes/fields. Final ACK is explicitly not delivery.",
+      "futureAction": "Delay an actual typed ENOENT into original sync catch; bind ELOOP/ENAMETOOLONG/ECANCELED field coverage as finite error-schema obligations, and a copy/handoff-failure schedule where ACK exists but delivery does not. Preserve historical guest object/host-undefined conversion discriminators.",
+      "expected": "Caught delivered typed FS error retains qualified name/code/message/errno/optional fields. Unknown/forged/malformed code object cannot become typed success/denial. Undelivered rejection remains exact parent failure, no clean0; original control/sink/cleanup values never cross by DTO.",
+      "limits": "1024-byte message/path/dest/syscall fields and8192-byte total metadata; overlimit retained parent failure, no truncation or invented errno.",
+      "hold": "K2 exact legitimate post-bridge witness and guest-field survival unproved. Source predicates are not dynamic passes or wholeNP1 thrown-value identity acceptance.",
+      "postreviewVersion": "v3",
+      "postreviewExpected": "See exact versioned CASES.json and its per-identity unqualified obligations; original expected retained verbatim; no outcome measured",
+      "remainingHold": "PUBLIC66 lacks core/lint public closure; K1-K4 unqualified"
+    },
+    {
+      "id": "WRQ03",
+      "rootId": "L03",
+      "topic": "Guest cache roots, mutation and per-slot reuse",
+      "sourceProof": "S2 fresh map per host return and S8 import-cache distinction require guest-local roots. CACHE names one-run scaffold/root ownership and reauthorization.",
+      "futureAction": "Compare fs/node:fs and canonical JSON aliases inside guest; mutate cached JSON then require again, overwrite backing JSON and confirm retained cache value, deny subsequent authorization and require refusal. Hold per-operation cleanup after final ACK and attempt reuse/late callback (T1).",
+      "expected": "Actual guest reference identity and shared mutation, first successful JSON read only, no cached authority bypass. No FREE/reuse until real cleanup; late seq cannot publish into reused slot. No fabricated per-client namespace identity.",
+      "limits": "32 JSON entries/input1MiB,4 module roots maximum (3 selected),128 operation sequences; cache mutation does not reset engine budget; no graph-size inference.",
+      "hold": "K1 interpreted scaffold/intrinsic/hiding and namespace binding remain unqualified. Repeated hostObject return identity is deliberately not guaranteed.",
+      "postreviewVersion": "v3",
+      "postreviewExpected": "See exact versioned CASES.json and its per-identity unqualified obligations; original expected retained verbatim; no outcome measured",
+      "remainingHold": "PUBLIC66 lacks core/lint public closure; K1-K4 unqualified"
+    },
+    {
+      "id": "WRQ04",
+      "rootId": "L04",
+      "topic": "Selected sync lifetime versus deferred async/Q",
+      "sourceProof": "D1 explicitly selects entry-return; public run settlement is not all-jobs receipt. Slots1/2 inactive, no async-fs or process.exit route.",
+      "futureAction": "Bind same-identity sync-first refusal expectations for fs/promises, fs.promises and modeled exit; where allowed grammar retains pending guest-only continuations, observe selected actual run settlement without claiming their completion. Keep T4/T5 as deferred async design warnings, not an async acceptance run.",
+      "expected": "Literal unsupported targets refuse at complete preflight; computed unsupported access refuses when called after prior effects. No async slot is serviced. On valid normal retirement, unknown abandoned guest work stays unknown; no all-job or natural-Node-exit claim.",
+      "limits": "One evaluator run/session;5000ms admission timer closes at normal cutoff; no fresh budget or postcutoff continuation service.",
+      "hold": "Original WRQ04 Q and L-guest-exit inputs remain unchanged/unrun/deferred, not modified to pass. No promise workflow qualification transfers to this slice.",
+      "postreviewVersion": "v3",
+      "postreviewExpected": "See exact versioned CASES.json and its per-identity unqualified obligations; original expected retained verbatim; no outcome measured",
+      "remainingHold": "PUBLIC66 lacks core/lint public closure; K1-K4 unqualified"
+    },
+    {
+      "id": "WRQ05",
+      "rootId": "L05",
+      "topic": "Blocked cancellation without payload races",
+      "sourceProof": "Independent permanent stop/wake and parent provenance address F4; command contract binds caller/control priority and cleanup barrier.",
+      "futureAction": "Use the original three parent reason instances present-undefined, false and unique object while sync read is held; bind stop during upload ownership (T2) and early-notify/before-wait race. Observe termination request immediately without Worker JS listener.",
+      "expected": "Exact parent reason presence/value/reference and route survive; blocked wait wakes; gate never reopens even if guest catches converted error. No postcancel effects or payload overwrite; actual exit and parent cleanup observed separately.",
+      "limits": "Zero grace, no hard termination time; no epoch/frame wrap. Unknown exit or unclosed work means public ownership remains pending, never numeric clean failure.",
+      "hold": "No blocked Worker/cancellation schedule executed. A DTO reason or equal-valued rejection cannot establish provenance.",
+      "postreviewVersion": "v3",
+      "postreviewExpected": "See exact versioned CASES.json and its per-identity unqualified obligations; original expected retained verbatim; no outcome measured",
+      "remainingHold": "PUBLIC66 lacks core/lint public closure; K1-K4 unqualified"
+    },
+    {
+      "id": "WRQ06",
+      "rootId": "L06",
+      "topic": "Exit, held cleanup and failed publication",
+      "sourceProof": "Parent cutoff/drain distinguishes registered ownership, actual exit and destination-specific output close. D2 rows only apply after both ownership boundaries.",
+      "futureAction": "Retain original X partial-effect/held-cleanup/closed-stdout schedule with primary sink and secondary cleanup failure; observe actual Worker exit before releasing parent cleanup (T6). Bind normal cutoff followed by caller cancellation during drain and T5 ACK-without-qualified-delivery.",
+      "expected": "No public resolve/reject before registered cleanup; X persists; closing stdout does not cancel sibling file/stderr. Primary remains unchanged and all secondary failures retained. No0/1/2 or signal/termination code masks actual sink/cleanup/control failure.",
+      "limits": "No5s/100ms cleanup completion bound, no new diagnostic privilege, no waiting for opaque host work disguised as tracked resource ownership.",
+      "hold": "Original async-origin input remains held; sync-first expectation is versioned, not proof of original async acceptance. Exact actual-Shell propagation still unqualified.",
+      "postreviewVersion": "v3",
+      "postreviewExpected": "See exact versioned CASES.json and its per-identity unqualified obligations; original expected retained verbatim; no outcome measured",
+      "remainingHold": "PUBLIC66 lacks core/lint public closure; K1-K4 unqualified"
+    },
+    {
+      "id": "WRQ07",
+      "rootId": "L07",
+      "topic": "Finite protocol, complete payload and cutoff",
+      "sourceProof": "RPC specifies14 transition rows, ownership CAS, credit/data phases, allocated global frames versus per-slot predecessor and parent effect ordinals. SCHEDULES T1-T9 remain bound design inputs.",
+      "futureAction": "Before any Worker grant, separately bind a finite data model covering all allowed/forbidden state-phase edges, exact/zero/oversized chunks, final ACK+cleanup reuse, stale/duplicate/session errors, and cutoff before/after complete staging (T3). Preserve original six own-data admission inputs, T7/T8 descriptor caveat and T9 global-order versus per-slot reasoning.",
+      "expected": "No hidden partial write/empty truncation before actual effect admission; cutoff prevents late staging authorization. Valid cross-realm own-data accepted without prototype matching; holes/accessors/extras/unknown routes refused without coercion. Lower global frame in another slot is not an ordering violation in the abstract allocator; selected profile separately refuses all inactive-slot use.",
+      "limits": "197056 SAB;65536 payload;8192 metadata;128 sequences;4096 global frames;8192 wakes; parent max129 ordinals. Frame allocation does not assert observation order.",
+      "hold": "Finite machine is specification data, not an executed state-model check or revised broad cohort. Old six controls are not claimed run; no executable model supplied.",
+      "postreviewVersion": "v3",
+      "postreviewExpected": "See exact versioned CASES.json and its per-identity unqualified obligations; original expected retained verbatim; no outcome measured",
+      "remainingHold": "PUBLIC66 lacks core/lint public closure; K1-K4 unqualified"
+    },
+    {
+      "id": "WRQ08",
+      "rootId": "L08",
+      "topic": "Resource ledger and closed trusted recipe",
+      "sourceProof": "Layout arithmetic and retained numeric caps are data-verifiable. CAPS explicitly accounts full-frame/double-buffer lifetimes and separates engine/producer/VM unknowns.",
+      "futureAction": "First authenticate new static parent/Worker/scaffold and complete public loader/tool closure with explicit launch/env/stdio, producer and memory enforcement contracts; only after separate ROOT approval may the original bounded resource-control obligation seek enforcement/actual-exit observations.",
+      "expected": "Precharges before each named allocation; no unlisted loads/worker/native guest capability. Distinguish actual heap-limit failure from bounded-loop completion (latter not enforcement pass), capture closes independently and unconfirmed owner remains pending.",
+      "limits": "16MiB named live reservations, fixed197056 SAB, V8 old32/young8/code8/stack4MiB,engine100000/depth128,parser65536/depth128,5s admission only; no RSS/wholeguest8MiB claim.",
+      "hold": "No Worker/heap/control/engine/tool execution, build or install. Prior tools/66 blobs/37 body hashes are evidence inputs, not complete Worker launch closure or provider acceptance.",
+      "postreviewVersion": "v3",
+      "postreviewExpected": "See exact versioned CASES.json and its per-identity unqualified obligations; original expected retained verbatim; no outcome measured",
+      "remainingHold": "PUBLIC66 lacks core/lint public closure; K1-K4 unqualified"
+    }
+  ],
+  "sourcePreparation": {
+    "declaredWorkers": 11,
+    "declaredGuests": 10,
+    "candidateSourceWorkers": 9,
+    "candidateSourceGuests": 9,
+    "admissible": 0,
+    "executed": 0,
+    "schedules": "tests/commands/node-worker-experiments-20260828/preparation-v1/CASES.json"
+  },
+  "countInterpretation": "Inherited counts are executions/previous document baseline; sourcePreparation separately records new frozen candidate source, not evaluations or accepted executable-driver proof."
+}

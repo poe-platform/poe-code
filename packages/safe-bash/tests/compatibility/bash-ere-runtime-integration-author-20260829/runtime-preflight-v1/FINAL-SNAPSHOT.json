@@ -1,0 +1,54 @@
+{
+  "at": "2026-08-29T13:05:51.631Z",
+  "elapsedMs": 1260083,
+  "seal": {
+    "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/EXECUTION-SEAL.json",
+    "size": 584392,
+    "mode": 420,
+    "sha256": "42c5cef6c87bff404edb7a21b199bc5bca174054b89b062e88ba5731f917b12e"
+  },
+  "privateRoot": "/private/tmp/safe-bash-core70-20260829-0I1ScK",
+  "postguard": "all declared layout and controller/harness bytes/modes unchanged; no runtime captures produced",
+  "edgeNote": {
+    "totalSyntacticEdges": 33,
+    "relativePackagedEdges": 29,
+    "builtinEdges": [
+      {
+        "importer": "dist/commands/regex-execution/ere/limits.js",
+        "specifier": "node:timers/promises",
+        "target": "node:timers/promises",
+        "qualification": "static source edge only; no nested-load execution witness"
+      },
+      {
+        "importer": "dist/commands/regex-execution/ere/transport/owner.js",
+        "specifier": "node:worker_threads",
+        "target": "node:worker_threads",
+        "qualification": "static source edge only; no nested-load execution witness"
+      },
+      {
+        "importer": "dist/commands/regex-execution/ere/transport/validation.js",
+        "specifier": "node:util",
+        "target": "node:util",
+        "qualification": "static source edge only; no nested-load execution witness"
+      },
+      {
+        "importer": "dist/commands/regex-execution/ere/transport/worker-entry.js",
+        "specifier": "node:worker_threads",
+        "target": "node:worker_threads",
+        "qualification": "static source edge only; no nested-load execution witness"
+      }
+    ],
+    "qualification": "Count domains explicit; all are static SOURCE edges, no actual nested loads."
+  },
+  "knownRolesBeforeGit": 25,
+  "gitRolesPending": [
+    "A26",
+    "A27",
+    "A28"
+  ],
+  "allActualProductCases": 0,
+  "Workers": 0,
+  "presealedHarmlessHelpers": 2,
+  "controls": 16,
+  "readiness": "HOLD seven adapter IDs and full-owner fault controls"
+}

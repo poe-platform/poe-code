@@ -1,0 +1,18 @@
+{
+  "date": "2026-08-27",
+  "kind": "author byte-source ownership regression, not a native oracle",
+  "baselineSourceCommit": "9d1e0fa",
+  "sourceFile": "src/commands/table-text/internal.ts",
+  "cause": "Buffer.slice returns a shared view; an unfinished record retained producer-owned fragments across the next read",
+  "firstYieldHex": "6120",
+  "producerMutationBeforeSecondYieldHex": "7878",
+  "secondYieldHex": "76616c75650a",
+  "baseline": { "tests": 3, "pass": 0, "fail": 3, "skip": 0 },
+  "observations": [
+    { "command": "paste", "expectedStdoutHex": "612076616c75650a", "actualStdoutHex": "787876616c75650a" },
+    { "command": "comm", "expectedStdoutHex": "0909612076616c75650a", "actualStdoutHex": "09612076616c75650a787876616c75650a" },
+    { "command": "join", "expectedStdoutHex": "612076616c7565206f746865720a", "actualStdoutHex": "" }
+  ],
+  "fix": "Copy producer chunks into an owned plain Uint8Array before retaining fragments",
+  "expectationsChanged": false
+}

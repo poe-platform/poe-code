@@ -1,0 +1,23 @@
+{
+  "id": "preparation-inventory",
+  "args": [
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "fe8037019610a48522a8b1b4fc8987657cfa6d7e",
+    "--",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/"
+  ],
+  "pid": 57791,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "bytes": 5726,
+  "stdoutSha256": "88b37a4a4c09fb42f75dd3b3802cfde6862d484f53ee35baf0a099e74ca7ed7e",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,69 @@
+{
+  "schema": "d03-unified-log-v1-preseal",
+  "authority": "ROOT ONE historical query only, exact UTC window and exact node(17408) token; no retries or broadening",
+  "started": 1787982700593,
+  "deadline": 1787983600593,
+  "phaseLimits": {
+    "allProcesses": 24,
+    "peak": 2,
+    "captureBytes": 16777216,
+    "workBytes": 67108864
+  },
+  "tool": {
+    "path": "/usr/bin/log",
+    "bytes": 809648,
+    "mode": 493,
+    "sha256": "1bafc9c6e18012e315cc924d28c0a5c27147ef443d8c8db758080b2fa58a049d"
+  },
+  "args": [
+    "show",
+    "--style",
+    "json",
+    "--start",
+    "2026-08-29 05:06:21+0000",
+    "--end",
+    "2026-08-29 05:06:28+0000",
+    "--timezone",
+    "UTC",
+    "--info",
+    "--debug",
+    "--predicate",
+    "(process == \"kernel\" OR process == \"sandboxd\" OR subsystem == \"com.apple.sandbox.reporting\") AND (eventMessage MATCHES[c] \"(?s).*(^|[^A-Za-z0-9_])(deny|denied|denial)([^A-Za-z0-9_]|$).*\") AND (eventMessage MATCHES \"(?s).*(^|[^A-Za-z0-9_])node[(]17408[)]([^A-Za-z0-9_]|$).*\")"
+  ],
+  "env": {
+    "PATH": "",
+    "HOME": "/tmp/bash-surface-d03-unified-log-ISjuaa/home",
+    "TMPDIR": "/tmp/bash-surface-d03-unified-log-ISjuaa/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/tmp/bash-surface-d03-unified-log-ISjuaa",
+  "queryLimits": {
+    "activeMs": 12000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "stdoutBytes": 1048576,
+    "stderrBytes": 65536
+  },
+  "identityBranch": "Exact bounded node(17408) message-token branch of ROOT PID-or-token authorization. Does not retrieve PID-only records lacking that token; no undocumented predicate PID key guessed.",
+  "rawPolicy": "Raw bounded stdout/stderr retained0600 only in owned capture; hash/byte counts published, never full log rows. Local selection keeps only authorized matching timestamp/process/pid/denialOperation/deniedPath/result.",
+  "manual": {
+    "path": "/usr/share/man/man1/log.1",
+    "bytes": 28166,
+    "sha256": "ffea5e751ff3a2bdf5b3a126b4d0ed17e3e43bdabe9ee823c8b4cde7ea11b35a",
+    "basis": "show JSON array; start/end accept explicit numeric UTC offset; timezone is display timezone; NSPredicate process/subsystem/eventMessage keys documented locally"
+  },
+  "primaryReference": "https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Predicates/Articles/pSyntax.html",
+  "controls": [
+    "exact-token-loader-denial",
+    "wrong-pid",
+    "prefix-not-token",
+    "suffix-not-token",
+    "outside-window",
+    "unrelated-reporter",
+    "non-denial",
+    "private-denied-target-redacted"
+  ],
+  "stop": "Nonzero/timeout/cap/capture/identity/unknown retirement/empty/unsupported: retain result, no alternate predicate or retry. No native target or profile launch."
+}

@@ -1,0 +1,115 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, copyFileSync, chmodSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const review = root + '/tests/shell-stress/first-read-contract-review/owned-output-streaming-review';
+const owned = review + '/fixture-replay-s1';
+const temp = dirname(fileURLToPath(import.meta.url));
+const first = review + '/execution-s1';
+const author = root + '/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype';
+const hash = content => createHash('sha256').update(content).digest('hex');
+const artifact = path => ({ path, sha256: hash(readFileSync(path)) });
+const readJson = path => JSON.parse(readFileSync(path));
+const put = (path, content) => {
+  mkdirSync(dirname(path), { recursive: true });
+  execFileSync('apply_patch', [], { input: `*** Begin Patch\n*** Add File: ${path}\n${content.replace(/\n$/, '').split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n` });
+};
+const json = (path, value) => put(path, JSON.stringify(value, null, 2) + '\n');
+const inputs = readJson(temp + '/pre-import-inputs.json');
+const auth = readJson(temp + '/authentication-before.json');
+const proof = readJson(temp + '/import-closure-proof.json');
+assert.equal(readJson(temp + '/qualify.process.json').exitCode, 0);
+assert.equal(proof.selectedRuntimeClosureAuthenticated, true);
+for (const section of ['candidateFiles', 'immutableFiles', 'protectedFiles', 'liveFiles']) for (const entry of auth[section]) assert.equal(artifact(entry.path).sha256, entry.sha256, entry.path);
+const require = createRequire(root + '/package.json');
+const ts = require('typescript');
+const scenarioAssertions = path => {
+  const content = readFileSync(path, 'utf8').split('async function executionConfig(')[0];
+  const source = ts.createSourceFile(path, content, ts.ScriptTarget.Latest, true);
+  const assertions = [];
+  const scan = node => {
+    if (ts.isCallExpression(node) && (node.expression.getText(source).startsWith('assert.') || node.expression.getText(source) === 'assertProfile')) assertions.push(node.getText(source));
+    ts.forEachChild(node, scan);
+  };
+  scan(source);
+  return assertions;
+};
+const oldAssertions = scenarioAssertions(temp + '/driver-original.mjs.data');
+assert.deepEqual(scenarioAssertions(temp + '/driver-r1.mjs'), oldAssertions);
+json(temp + '/assertions-proof.json', { assertions: oldAssertions, count: oldAssertions.length, unchangedExactTextAndOrder: true, scope: 'all assertions before executionConfig; provenance/environment gates differ only as disclosed' });
+const syntax = spawnSync(process.execPath, ['--check', temp + '/driver-r1.mjs'], { encoding: 'utf8', env: process.env, timeout: 3000 });
+assert.equal(syntax.status, 0, syntax.stderr);
+json(temp + '/syntax-check.json', { status: syntax.status, signal: syntax.signal, stdout: syntax.stdout, stderr: syntax.stderr, error: syntax.error?.message });
+const previousConfig = readJson(first + '/artifacts/execution-inputs-r2.json');
+const authorization = readJson(first + '/artifacts/root-authorization.json');
+authorization.bindingDriverSha256 = artifact(temp + '/driver-r1.mjs').sha256;
+authorization.evidenceBasis = 'Fresh root fixture-repair/replay leaf assignment; root reports author17223/prep93709/binder82828/executor24323 EXIT0. Transcribed authority, not direct exit attestation. Same S1 source; no production permission.';
+json(temp + '/root-authorization.json', authorization);
+copyFileSync(first + '/artifacts/actual-closed.json', temp + '/actual-closed.json');
+const historicalFiles = inputs.history.map(entry => artifact(temp + '/historical/' + entry.path));
+historicalFiles.push(artifact(temp + '/historical/package.json'), ...inputs.facade);
+const sourceManifest = {
+  sourceIdentity: previousConfig.sourceIdentity,
+  completeImportClosureAuthenticatedByExecutor: true,
+  qualification: 'Complete runtime graph of exact selected historical helper/probe plus compiled modules; erased types are recorded, dormant reference snapshots are not executed. Prior first config closure claim was premature and remains retracted.',
+  rootAuthenticatedWholeBuild: false,
+  files: [...auth.candidateFiles, ...historicalFiles, artifact(temp + '/import-closure-proof.json'), artifact(author + '/tested-manifest.json'), artifact(first + '/PRE-RUN.md')],
+};
+json(temp + '/source-manifest.json', sourceManifest);
+const config = { ...previousConfig,
+  rootFreshExecutorAuthorization: artifact(temp + '/root-authorization.json'),
+  authorActualClosedEvidence: artifact(temp + '/actual-closed.json'),
+  sourceManifest: artifact(temp + '/source-manifest.json'),
+  toolManifest: artifact(temp + '/tool-manifest.json'),
+  candidateEntry: artifact(inputs.candidate + '/dist/index.js'),
+  authenticatedReadOnlyCandidateEntry: inputs.candidate + '/dist/index.js',
+  historicalHelper: artifact(temp + '/historical/tests/stress/remote-cancellation/helpers.ts'),
+  historicalProbe: artifact(temp + '/historical/tests/shell/first-read-probe.ts'),
+  historicalFacade: artifact(temp + '/historical/src/index.ts'),
+  publicProfiles: artifact(temp + '/public-profiles.json'),
+  importClosureProof: artifact(temp + '/import-closure-proof.json'),
+};
+json(temp + '/execution-inputs.json', config);
+for (const [before, after, target] of [
+  [temp + '/driver-original.mjs.data', temp + '/driver-r1.mjs', 'driver-fixture-delta.patch-data'],
+  [first + '/artifacts/execution-inputs-r2.json', temp + '/execution-inputs.json', 'config-fixture-delta.patch-data'],
+  [first + '/artifacts/source-manifest-r2.json', temp + '/source-manifest.json', 'manifest-fixture-delta.patch-data'],
+]) {
+  const diff = spawnSync('diff', ['-u', before, after], { encoding: 'utf8', maxBuffer: 4194304 });
+  assert.ok(diff.status === 0 || diff.status === 1, diff.stderr);
+  writeFileSync(temp + '/' + target, diff.stdout);
+}
+const names = ['driver-r1.mjs', 'execution-inputs.json', 'binding-map.json', 'public-profiles.json', 'source-manifest.json', 'tool-manifest.json', 'root-authorization.json', 'actual-closed.json', 'import-closure-proof.json', 'assertions-proof.json', 'fixture-order-proof.json', 'driver-fixture-delta.patch-data', 'config-fixture-delta.patch-data', 'manifest-fixture-delta.patch-data', 'prepare.mjs', 'qualify.mjs', 'run.mjs', 'fixture-order.mjs', 'freeze.mjs'];
+json(temp + '/pre-replay-seal.json', { at: new Date().toISOString(), productReplayNotStarted: true, safeImportQualificationOnly: true, fixtureCorrectionRound: 1, maximumExecutionCorrectionRounds: 2, sourceFixCount: 0, plan: artifact(owned + '/PLAN.md'), sourceIdentity: config.sourceIdentity, files: names.map(name => artifact(temp + '/' + name)), previousRaw: artifact(first + '/artifacts/acceptance.result.json'), unchangedPublicProfiles: artifact(first + '/artifacts/public-profiles.json'), unchangedExpected: artifact(review + '/binding-s1/expected-observations.json'), strictParameters: { qualified: 17, blocked: 3 }, mapping: { logical: 12, parameters: 20 } });
+mkdirSync(owned + '/artifacts', { recursive: true });
+for (const name of readdirSync(temp)) {
+  if (['historical', 'tmp'].includes(name)) continue;
+  const target = owned + '/artifacts/' + name + (name.endsWith('.mjs') ? '.data' : '');
+  copyFileSync(temp + '/' + name, target);
+}
+mkdirSync(owned + '/original', { recursive: true });
+for (const name of ['REPORT.md', 'FINAL-NOTES.md', 'PRE-RUN.md', 'FINAL-SEAL.json', 'artifacts/acceptance.result.json', 'artifacts/execution-inputs.json', 'artifacts/execution-inputs-r2.json', 'artifacts/public-profiles.json', 'artifacts/first-run-transcript.txt', 'artifacts/second-run-transcript.txt']) {
+  const target = owned + '/original/' + name;
+  mkdirSync(dirname(target), { recursive: true });
+  copyFileSync(first + '/' + name, target);
+}
+for (const name of ['driver.mjs.data', 'binding-map.json', 'expected-observations.json', 'historical-inputs.json']) copyFileSync(review + '/binding-s1/' + name, owned + '/original/' + name);
+copyFileSync(author + '/tested-manifest.json', owned + '/original/tested-manifest.json');
+for (const entry of inputs.history) {
+  const target = owned + '/historical/' + entry.path + '.data';
+  mkdirSync(dirname(target), { recursive: true });
+  copyFileSync(temp + '/historical/' + entry.path, target);
+}
+for (const entry of inputs.facade) {
+  const relative = entry.path.slice((temp + '/historical/').length);
+  const target = owned + '/historical/' + relative + '.data';
+  mkdirSync(dirname(target), { recursive: true });
+  copyFileSync(entry.path, target);
+}
+for (const name of names) chmodSync(temp + '/' + name, 0o444);
+chmodSync(temp + '/pre-replay-seal.json', 0o444);
+console.log(JSON.stringify({ frozen: true, assertionsUnchanged: oldAssertions.length, seal: artifact(temp + '/pre-replay-seal.json'), driver: artifact(temp + '/driver-r1.mjs'), config: artifact(temp + '/execution-inputs.json') }));

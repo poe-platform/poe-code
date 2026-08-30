@@ -1,0 +1,30 @@
+5095:    }
+5096:  else if (tok == '(')
+5097:    {
+5098:      term = cond_expr ();
+5099:      if (cond_token != ')')
+5100:	{
+5101:	  if (term)
+5102:	    dispose_cond_node (term);		/* ( */
+5103:	  if (etext = error_token_from_token (cond_token))
+5104:	    {
+5105:	      parser_error (lineno, _("unexpected token `%s', expected `)'"), etext);
+5106:	      free (etext);
+5107:	    }
+5108:	  else
+5109:	    parser_error (lineno, _("expected `)'"));
+5110:	  if (cond_token == WORD)
+5111:	    dispose_word (yylval.word);
+5112:	  COND_RETURN_ERROR ();
+5113:	}
+5114:      term = make_cond_node (COND_EXPR, (WORD_DESC *)NULL, term, (COND_COM *)NULL);
+5115:      (void)cond_skip_newlines ();
+5116:    }
+5117:  else if (tok == BANG || (tok == WORD && (yylval.word->word[0] == '!' && yylval.word->word[1] == '\0')))
+5118:    {
+5119:      if (tok == WORD)
+5120:	dispose_word (yylval.word);	/* word not needed */
+5121:      term = cond_term ();
+5122:      if (term)
+5123:	term->flags ^= CMD_INVERT_RETURN;
+5124:    }

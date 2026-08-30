@@ -1,0 +1,114 @@
+{
+  "schema": "T1-final-slot-independent-data-review-v1",
+  "decision": "ACCEPT",
+  "scope": "FINAL_SLOT_SOURCE_DATA_PURE_NOT_RUNTIME_GO",
+  "utc": "2026-08-29T14:27:24.015Z",
+  "finalCommit": "ac19b6d5df58e3177e15e27549f2b3f312dc1f1c",
+  "grantSha256": "72ef43c2659d4fc33f4d12721e34e523c2704075b1d72035a1d809a2351b0bef",
+  "bindingSha256": "8819b11b65c33ab02b5cbf40329f7d86aba8becc22c7b9a01735e7a1f06e015d",
+  "authoritySha256": "ceb6f3571dfd5fe93e5928083c74b6714cc11f84beba589995a956ec54569101",
+  "executionProfileSha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+  "priorIndependentReceiptSha256": "04ef22c058ba46eca71c93ceab787fdebf474cbd55296d5573035bf3eee41743",
+  "window": {
+    "issued": "2026-08-29T14:18:55.007Z",
+    "latest": "2026-08-29T14:38:55.007Z",
+    "expires": "2026-08-29T15:13:55.007Z",
+    "externallyEnforced": true
+  },
+  "remainingStartMs": 690992,
+  "activationFiles": 15,
+  "inputPins": 26,
+  "toolIdentities": 3,
+  "externalBuiltinOccurrences": 12,
+  "externalRelativeEdges": 5,
+  "caseMaps": 135,
+  "a03Cells": 3,
+  "a03NestedModulesEach": 9,
+  "positiveGrant": true,
+  "negativeGroupsPassed": 4,
+  "negativeGroupsTotal": 4,
+  "firstDataPreflight": "FAILED_REVIEWER_LAYOUT_PREFIX_BEFORE_PURE_IMPORT_OR_CONTROLS_PRESERVED",
+  "checkProcessInvocations": 2,
+  "pureHelperExecutions": 1,
+  "rawCheckCaptureBytes": 808,
+  "grantInstalled": false,
+  "actualProductCalls": 0,
+  "workerStarts": 0,
+  "actualOwnerEvaluated": false,
+  "knownReviewRolesConservative": 24,
+  "reviewRoleCap": 24,
+  "reviewPeakCap": 3,
+  "prospectiveLimits": {
+    "knownOS": 146,
+    "peakKnownOS": 3,
+    "Workers": 111,
+    "peakWorkers": 1,
+    "captureBytes": 67108864,
+    "workBytes": 268435456,
+    "wallMilliseconds": 2100000,
+    "caseMilliseconds": 10000,
+    "termMilliseconds": 2000,
+    "postKillObservationMilliseconds": 1000,
+    "publicationReserveMilliseconds": 180000
+  },
+  "actualKnownRoleCounts": "UNMEASURED",
+  "nativeHelperThreads": "UNKNOWN",
+  "authority": "FRESH_ROOT_ACTUAL_GO_REQUIRED",
+  "artifacts": [
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/REPORT.md",
+      "bytes": 7489,
+      "sha256": "a5c13afbb9b6bda467fc5ecbdbb8bb83d44819f568c48832b4461829eed320f9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/HELPER-PRESEAL.json",
+      "bytes": 342,
+      "sha256": "f23eea042a54af011d294f04e4bc4dbbb4d594e64dc7fa0ea3352bcbdd4ffd62"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/HELPER-PRESEAL-v2.json",
+      "bytes": 487,
+      "sha256": "63563204547ff7a7a0a87fa4e0825bf867ab4849a9df0a96064fe2f70c9375f1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/check.mjs",
+      "bytes": 9525,
+      "sha256": "bd22daf83540e38abbf078333f9da077fbf248c676d29987ea877ac933935232"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/check-v2.mjs",
+      "bytes": 9894,
+      "sha256": "0bcaef01eba12a3faf718fc10692072cf75b77c0ec5a5584d51b42d2e122d608"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/RESULT.json",
+      "bytes": 3947,
+      "sha256": "a18d535c316587d424182b28f5dec17cb6584a27b7735f29d552c53f96a6b145"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/check.stdout",
+      "bytes": 68,
+      "sha256": "f0345e6d06d60f25ba1aee0a42e39d536f5f5330e7c93b35626ca4da966c2f50"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/check.stderr",
+      "bytes": 484,
+      "sha256": "39f1776d1e52a2fa7a23bcfe079bd763b796ba9ed886cd34108d15f837836706"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/check-v2.stdout",
+      "bytes": 256,
+      "sha256": "fc20b433f4519ba1ea6c7bd88296cfb40966d774d314a86f9605bf08f160d9bb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/check-v2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-transport-independent-20260829/runtime-final-slot-review-v1/inventory.stdout",
+      "bytes": 2567,
+      "sha256": "e1e75c32a3d0467ec50f57937b6a52adaabe1657a4354b9793bd5bcb2235a80a"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "v6Source": "49500bf8cd961788b1c212c862171306767ac069",
+  "v6Evidence": "a3b7ae8ee8ab05cdc5a9562ba0e560cc34f54266",
+  "v6Fullseal": "3eddac0c38ef0b6831982e7a67f0b567a730e3e1",
+  "unchanged": [
+    {
+      "source": "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/data-controls.mjs",
+      "destination": "tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/data-controls.mjs",
+      "sha256": "cd879bb07ac734be761fba8c1201d30485e3ffc4ae09444c3147a83b5a9e774f",
+      "bytes": 7923
+    },
+    {
+      "source": "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/primitives.mjs",
+      "destination": "tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/primitives.mjs",
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65",
+      "bytes": 2593
+    },
+    {
+      "source": "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/fixture-data.mjs",
+      "destination": "tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/fixture-data.mjs",
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd",
+      "bytes": 1450
+    },
+    {
+      "source": "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/INPUTS-v6.json",
+      "destination": "tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/INPUTS-v6.json",
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf",
+      "bytes": 618
+    },
+    {
+      "source": "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/FIXTURES-v6.json",
+      "destination": "tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/FIXTURES-v6.json",
+      "sha256": "ec2f4f1a29c85b65630ffaf4773634d202b62c438111933b18ec259ce80d0837",
+      "bytes": 30950
+    }
+  ],
+  "controls": [
+    "R01",
+    "R02",
+    "R03",
+    "B01",
+    "G01",
+    "P01"
+  ],
+  "dataChecks": [
+    "D01",
+    "D02",
+    "D03",
+    "D04"
+  ],
+  "changedBootstrapFiles": [
+    "owner.mjs",
+    "child.mjs"
+  ],
+  "extraControl": "START-FS-REFUSAL; not one of six/four"
+}

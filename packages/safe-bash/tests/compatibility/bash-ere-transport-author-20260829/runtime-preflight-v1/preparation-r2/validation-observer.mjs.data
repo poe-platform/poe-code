@@ -1,0 +1,1 @@
+import * as original from './package/ere/transport/validation.js';import {state} from './bridge-state.mjs';export * from './package/ere/transport/validation.js';export function validateReply(...args){const result=original.validateReply(...args);state.afterValidation?.();return result;}

@@ -1,0 +1,128 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { copyFile, mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { verifyMutants } from "./mutants.mjs";
+
+const directory = fileURLToPath(new URL(".", import.meta.url));
+const root = resolve(directory, "../../../..");
+const commit = "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3";
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+await mkdir(join(directory, "evidence"), { recursive: true });
+await mkdir(join(directory, ".work"), { recursive: true });
+const output = await mkdtemp(join(directory, "evidence/review-"));
+const work = await mkdtemp(join(directory, ".work/run-"));
+const candidate = join(work, "candidate");
+await mkdir(candidate);
+const manifest = { commit, started: new Date().toISOString(), platform: process.platform, arch: process.arch, node: process.version, steps: [], output, work };
+const execute = async (name, command, args, cwd = candidate, env = process.env) => {
+  const result = spawnSync(command, args, { cwd, env, encoding: "utf8", timeout: 180000, maxBuffer: 16 * 1024 * 1024 });
+  await writeFile(join(output, `${name}.stdout.txt`), result.stdout ?? "");
+  await writeFile(join(output, `${name}.stderr.txt`), result.stderr ?? "");
+  manifest.steps.push({ name, command, args, status: result.status, signal: result.signal, error: result.error?.message });
+  console.log(name, result.status);
+  return result;
+};
+const inventory = async directory => {
+  const result = {};
+  const walk = async prefix => {
+    for (const entry of await readdir(join(directory, prefix), { withFileTypes: true })) {
+      if (["node_modules", "dist"].includes(entry.name) || entry.name === ".oracle") continue;
+      const path = join(prefix, entry.name);
+      if (entry.isDirectory()) await walk(path);
+      else if (entry.isFile()) result[path] = hash(await readFile(join(directory, path)));
+      else result[path] = "unexpected non-file";
+    }
+  };
+  await walk("");
+  return result;
+};
+try {
+  manifest.harness = {};
+  await mkdir(join(output, "harness"));
+  for (const entry of await readdir(directory)) {
+    if (!/\.(?:mjs|ts)$/u.test(entry)) continue;
+    const bytes = await readFile(join(directory, entry));
+    manifest.harness[entry] = hash(bytes);
+    await writeFile(join(output, "harness", `${entry}.txt`), bytes);
+  }
+  const oracle = await realpath(join(root, "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du"));
+  manifest.oracle = { path: oracle, sha256: hash(await readFile(oracle)), sourceSha256: hash(await readFile(`${oracle}.c`)) };
+  assert.equal(manifest.oracle.sha256, "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b");
+  const version = await execute("oracle-version", oracle, ["--version"], root, { PATH: "/usr/bin:/bin", LC_ALL: "C" });
+  assert.match(version.stdout, /^du \(GNU coreutils\) 9\.7\n/u);
+  const archive = spawnSync("git", ["archive", commit, "src", "tests/commands/du", "tests/fs/webdav/mock.ts", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json", "README.md"], { cwd: root, maxBuffer: 64 * 1024 * 1024 });
+  assert.equal(archive.status, 0, archive.stderr?.toString());
+  manifest.archiveSha256 = hash(archive.stdout);
+  const unpack = spawnSync("tar", ["-xf", "-", "-C", candidate], { input: archive.stdout });
+  assert.equal(unpack.status, 0, unpack.stderr?.toString());
+  manifest.frozenInputs = await inventory(candidate);
+  await symlink(join(root, "node_modules"), join(candidate, "node_modules"));
+  const oracleDirectory = join(candidate, "tests/commands/metadata-stress/.oracle/coreutils-9.7/src");
+  await mkdir(oracleDirectory, { recursive: true });
+  await symlink(oracle, join(oracleDirectory, "du"));
+  const author = await execute("author-tests", process.execPath, ["--import", "tsx", "--test", ...["backends", "behavior", "native", "safety"].map(name => `tests/commands/du/${name}.test.ts`)]);
+  const types = await execute("scoped-types", join(root, "node_modules/.bin/tsc"), ["-p", "tests/commands/du/tsconfig.json"]);
+  const build = await execute("build", join(root, "node_modules/.bin/tsc"), ["-p", "tsconfig.build.json"]);
+  if (build.status === 0) {
+    await writeFile(join(output, "built-files.json"), JSON.stringify(await inventory(join(candidate, "dist")), null, 2) + "\n");
+    manifest.loadedBuild = {};
+    for (const path of ["index.js", "commands/du/index.js", "commands/du/du.js", "commands/du/arguments.js", "commands/du/budget.js", "commands/du/format.js", "commands/du/options.js", "shell/index.js", "fs/memory/index.js", "fs/real/index.js"]) {
+      manifest.loadedBuild[path] = hash(await readFile(join(candidate, "dist", path)));
+    }
+    await execute("author-built-boundary", process.execPath, ["tests/commands/du/verify-built.mjs", join(candidate, "dist")]);
+    const typedRoot = join(work, "typed-fixture");
+    const typedDirectory = join(typedRoot, "tests/commands/du/independent");
+    await mkdir(typedDirectory, { recursive: true });
+    await symlink(join(candidate, "src"), join(typedRoot, "src"));
+    await symlink(join(root, "node_modules"), join(typedRoot, "node_modules"));
+    await copyFile(join(candidate, "package.json"), join(typedRoot, "package.json"));
+    await copyFile(join(directory, "typed-oldstats.ts"), join(typedDirectory, "typed-oldstats.ts"));
+    const legacyTypes = await execute("typed-oldstats", join(root, "node_modules/.bin/tsc"), ["--noEmit", "--target", "ES2023", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict", "--exactOptionalPropertyTypes", "--skipLibCheck", "--types", "node", join(typedDirectory, "typed-oldstats.ts")], typedRoot);
+    if (legacyTypes.status !== 0) process.exitCode = 1;
+    const independent = await execute("independent", process.execPath, ["--import", "tsx", join(directory, "probe.mjs"), candidate, output, oracle], candidate, { ...process.env, DU_BLOCK_SIZE: "bad-ambient-must-not-be-read", BLOCK_SIZE: "bad-ambient" });
+    if (independent.status !== 0) process.exitCode = 1;
+    else {
+      const npmCache = join(work, "npm-cache");
+      const userConfig = join(work, "user.npmrc"), globalConfig = join(work, "global.npmrc");
+      await writeFile(userConfig, ""); await writeFile(globalConfig, "");
+      const pack = await execute("npm-pack", "npm", ["pack", "--ignore-scripts", "--offline", "--json", "--pack-destination", work, "--cache", npmCache, "--userconfig", userConfig, "--globalconfig", globalConfig], candidate, { PATH: process.env.PATH, npm_config_update_notifier: "false" });
+      if (pack.status !== 0) process.exitCode = 1;
+      else {
+        const packed = JSON.parse(pack.stdout)[0];
+        manifest.packedArchiveSha256 = hash(await readFile(join(work, packed.filename)));
+        const consumer = join(work, "consumer");
+        const packageRoot = join(consumer, "node_modules/virtual-bash");
+        await mkdir(packageRoot, { recursive: true });
+        await writeFile(join(consumer, "package.json"), JSON.stringify({ name: "independent-du-consumer", private: true, type: "module" }) + "\n");
+        const unpacked = await execute("unpack-public", "tar", ["-xzf", join(work, packed.filename), "--strip-components=1", "-C", packageRoot]);
+        assert.equal(unpacked.status, 0);
+        assert.equal(hash(await readFile(join(packageRoot, "package.json"))), manifest.frozenInputs["package.json"]);
+        await copyFile(join(directory, "packed-consumer.mjs"), join(consumer, "consumer.mjs"));
+        const publicResult = await execute("packed-public", process.execPath, [join(consumer, "consumer.mjs"), output], consumer);
+        if (publicResult.status !== 0) process.exitCode = 1;
+        await execute("packed-du-named-import", process.execPath, ["--input-type=module", "-e", 'import { duCommands } from "virtual-bash"; console.log(duCommands);'], consumer);
+      }
+      await verifyMutants({ candidate, directory, work, output, root, execute });
+    }
+  }
+  const after = await inventory(candidate);
+  manifest.integrity = { equal: JSON.stringify(after) === JSON.stringify(manifest.frozenInputs), checksNewEntries: true, excluded: ["node_modules", "dist", ".oracle"] };
+  manifest.oracle.afterSha256 = hash(await readFile(oracle));
+  manifest.oracle.afterSourceSha256 = hash(await readFile(`${oracle}.c`));
+  assert.deepEqual(after, manifest.frozenInputs);
+  assert.equal(manifest.oracle.afterSha256, manifest.oracle.sha256);
+  assert.equal(manifest.oracle.afterSourceSha256, manifest.oracle.sourceSha256);
+  if (author.status !== 0 || types.status !== 0 || build.status !== 0) process.exitCode = 1;
+} catch (error) {
+  manifest.error = error.stack;
+  process.exitCode = 1;
+} finally {
+  await rm(work, { recursive: true, force: true });
+  manifest.cleaned = true;
+  manifest.ended = new Date().toISOString();
+  await writeFile(join(output, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
+  console.log(output);
+}

@@ -1,0 +1,74 @@
+diff --git a/src/commands/text.ts b/src/commands/text.ts
+index e1f2d07b..175ecac4 100644
+--- a/src/commands/text.ts
++++ b/src/commands/text.ts
+@@ -4,15 +4,16 @@ import { bufferLimit, concatenate, define, diagnostic, encoder, input, integer,
+ function compareBytes(left: Uint8Array, right: Uint8Array): number { return Buffer.compare(left, right); }
+ function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 97 && byte <= 122 ? byte - 32 : byte); }
+ 
+-function numericCompare(left: Uint8Array, right: Uint8Array): number {
+-  const parse = (bytes: Uint8Array) => {
+-    const match = /^[ \t]*(-?)([0-9]*)(?:\.([0-9]*))?/u.exec(Buffer.from(bytes).toString("latin1"))!;
+-    const whole = (match[2] ?? "").replace(/^0+/u, "") || "0";
+-    const fraction = (match[3] ?? "").replace(/0+$/u, "");
+-    return { whole, fraction, negative: match[1] === "-" && (whole !== "0" || fraction !== "") };
+-  };
+-  const first = parse(left);
+-  const second = parse(right);
++interface NumericValue { whole: string; fraction: string; negative: boolean }
++
++function parseNumeric(bytes: Uint8Array): NumericValue {
++  const match = /^[ \t]*(-?)([0-9]*)(?:\.([0-9]*))?/u.exec(Buffer.from(bytes).toString("latin1"))!;
++  const whole = (match[2] ?? "").replace(/^0+/u, "") || "0";
++  const fraction = (match[3] ?? "").replace(/0+$/u, "");
++  return { whole, fraction, negative: match[1] === "-" && (whole !== "0" || fraction !== "") };
++}
++
++function compareNumericValues(first: NumericValue, second: NumericValue): number {
+   if (first.negative !== second.negative) return first.negative ? -1 : 1;
+   let compared = first.whole.length - second.whole.length;
+   if (!compared) compared = first.whole < second.whole ? -1 : first.whole > second.whole ? 1 : 0;
+@@ -25,6 +26,10 @@ function numericCompare(left: Uint8Array, right: Uint8Array): number {
+   return first.negative ? -compared : compared;
+ }
+ 
++function numericCompare(left: Uint8Array, right: Uint8Array): number {
++  return compareNumericValues(parseNumeric(left), parseNumeric(right));
++}
++
+ interface SortKey { start: number; startCharacter: number; end?: number; endCharacter?: number; flags: Set<string> }
+ 
+ function sortKey(specification: string): SortKey {
+@@ -111,6 +116,23 @@ export function textCommands(): CommandDefinition[] {
+       const keys = (parsed.values.get("k") ?? []).map(sortKey);
+       const simple = !keys.length && !["b", "f", "n"].some(flag => parsed.flags.has(flag));
+       const direction = parsed.flags.has("r") ? -1 : 1;
++      let compareNumeric = numericCompare;
++      if (!keys.length && parsed.flags.has("n") && !["b", "f", "c"].some(flag => parsed.flags.has(flag))) {
++        const numericValues = new Map<Uint8Array, NumericValue>();
++        let retainedBytes = 0;
++        const numericValue = (bytes: Uint8Array): NumericValue => {
++          const cached = numericValues.get(bytes);
++          if (cached !== undefined) return cached;
++          context.signal.throwIfAborted();
++          const charge = 6 * bytes.length + 2;
++          if (numericValues.size >= 16_384 || charge > 1_048_576 - retainedBytes) return parseNumeric(bytes);
++          const parsedValue = parseNumeric(bytes);
++          numericValues.set(bytes, parsedValue);
++          retainedBytes += charge;
++          return parsedValue;
++        };
++        compareNumeric = (left, right) => compareNumericValues(numericValue(left), numericValue(right));
++      }
+       const keyCompare = simple ? (left: Uint8Array, right: Uint8Array) => compareBytes(left, right) * direction : (left: Uint8Array, right: Uint8Array) => {
+         for (const key of keys.length ? keys : [undefined]) {
+           const flags = key?.flags.size ? key.flags : parsed.flags;
+@@ -121,7 +143,7 @@ export function textCommands(): CommandDefinition[] {
+             first = trim(first); second = trim(second);
+           }
+           if (flags.has("f")) { first = fold(first); second = fold(second); }
+-          let result = flags.has("n") ? numericCompare(first, second) : compareBytes(first, second);
++          let result = flags.has("n") ? compareNumeric(first, second) : compareBytes(first, second);
+           if (flags.has("r")) result = -result;
+           if (result) return result;
+         }

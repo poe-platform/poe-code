@@ -1,0 +1,18 @@
+BOUNDED PROTOTYPE, NOT PRODUCTION ACCEPTANCE. r1 adapted5=5/5, existing57=57/57,
+review9=9/9, author12=12/12; original5 baseline=0/5 and r1=1/5 (separate binding).
+Minimum unresolved ownership decision found in source review (NOT a new executed
+failure claim): curl can borrow stdin for upload/data/writeout format, but the
+stdout-only transfer currently enrolls its combined signal before those reads.
+That borrowed read path has no explicit lease/rollback abstraction in the frozen
+baseline. The authored borrowed-input case proves untouched shared input survives
+an independent operation, not active borrowed upload preservation. Do NOT infer
+the stronger property from author12 or adapted5. Root must decide whether such
+transfer preparation remains unenrolled until borrowing completes, or requires
+an explicit non-destructive borrowed-read lease. This leaf stops rather than
+expanding the frozen contract/source scope or silently claiming full compliance.
+Also: operation.output is opaque to a second independently constructed operation;
+transitive nested-operation ownership is not established by the independent-
+destination nested-invoke case. Any broader public API decision belongs to root.
+No live source change or production API approval is requested here. Immutable
+evidence/handoff is being prepared. Independent verifier must wait for root READY
+after actual leaf CLOSED; no changes after handoff.

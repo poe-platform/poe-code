@@ -1,0 +1,28 @@
+{
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer",
+  "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/node_modules/virtual-bash",
+  "rootPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/node_modules/virtual-bash/dist/index.js",
+  "duPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/node_modules/virtual-bash/dist/commands/du/index.js",
+  "rootUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/9a5a6f92-EzKOvu/relocated/consumer/node_modules/virtual-bash/dist/index.js",
+  "packageRelativeToConsumer": "node_modules/virtual-bash",
+  "duSha256": "b8257103248aa0f4a21cb6dab6d916661a5fb04423e414475e68370807cdc5c4",
+  "rootSha256": "fca3b3db1ff1cfbc8ed59d1eefce52d088839288109990d9fa05bd9200a5aa54",
+  "result": {
+    "stdout": "17\t/moved\n",
+    "stderr": "",
+    "stdoutBytes": {
+      "0": 49,
+      "1": 55,
+      "2": 9,
+      "3": 47,
+      "4": 109,
+      "5": 111,
+      "6": 118,
+      "7": 101,
+      "8": 100,
+      "9": 10
+    },
+    "stderrBytes": {},
+    "exitCode": 0
+  }
+}

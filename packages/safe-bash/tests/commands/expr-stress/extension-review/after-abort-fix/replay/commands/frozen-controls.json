@@ -1,0 +1,14 @@
+{
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/extension-review/after-abort-fix/replay/accept-controls.mjs",
+    "controls-27a77935"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 120000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\"subcases\":146,\"failed\":[],\"destination\":\"tests/commands/expr-stress/extension-review/after-abort-fix/replay/controls-27a77935\"}\n",
+  "stderr": ""
+}

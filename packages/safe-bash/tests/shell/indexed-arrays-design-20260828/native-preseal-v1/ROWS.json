@@ -1,0 +1,152 @@
+{
+  "schema": "indexed-array-native-preseal-rows-v1",
+  "execution": "NOT_AUTHORIZED",
+  "nativeCalls": 0,
+  "qualification": "Static future GNU 5.3 questions, not tests or observed tuples. Every PROJECTcandidate is a source-grounded proposal, not ratified. Native output cannot authorize product work.",
+  "rows": [
+    {
+      "id": "N01",
+      "question": "Does an already-exported scalar convert to indexed, and how do native declaration/export listings represent it?",
+      "script": "export a=scalar\na=([2]=two)\nprintf 'assignment=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+      "PROJECTcandidate": "Reject indexed conversion of exported scalar before RHS, status 1; preserve scalar and export membership. Deliberately stricter than any unobserved native behavior.",
+      "nativeexpected": null,
+      "qualification": "Native declaration/export listing only; not external-process environment proof.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N02",
+      "question": "What does native export of an existing array do, including empty elements and attribute display?",
+      "script": "a=([2]=two [9]='')\nexport a\nprintf 'export=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+      "PROJECTcandidate": "Reject export a with status 1, preserve unexported indexed binding; do not serialize zero or JSON. Product export-p remains unsupported.",
+      "nativeexpected": null,
+      "qualification": "No child exec and no inferred array environment encoding.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N03",
+      "question": "How do declare +a and whole-variable unset differ for conversion back to scalar?",
+      "script": "a=([3]=three)\ndeclare +a a\nprintf 'plus_a=%s\\n' \"$?\"\ndeclare -p a\nunset a\na=scalar\ndeclare -p a\n",
+      "PROJECTcandidate": "declare +a is future/unsupported, no success stub; unset a followed by assignment creates scalar without inherited export/readonly attributes.",
+      "nativeexpected": null,
+      "qualification": "Native declaration attribute behavior remains unknown until GO.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N04",
+      "question": "How are a readonly empty array and failed unset displayed?",
+      "script": "a=()\nreadonly a\ndeclare -p a\nreadonly -p\nunset a\nprintf 'unset=%s\\n' \"$?\"\ndeclare -p a\n",
+      "PROJECTcandidate": "Empty array is present; readonly freezes the binding and blocks unset. Product readonly listing encountering array refuses status 2 with no stdout until accurate formatter is separately authorized.",
+      "nativeexpected": null,
+      "qualification": "GNU may list unrelated startup readonly names; retain bounded exact output without assuming a line count.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N05",
+      "question": "Does local a retain indexed kind without values, and does local a=value restore outer sparse contents on return?",
+      "script": "a=([2]=outer [7]='')\nf() { local a; declare -p a; local a=inner; declare -p a; return 7; }\nf\nprintf 'function=%s\\n' \"$?\"\ndeclare -p a\n",
+      "PROJECTcandidate": "Save whole typed outer once; local indexed shadow starts empty, initializer writes zero; restore outer on return including empty element.",
+      "nativeexpected": null,
+      "qualification": "Native local inheritance tuple not yet observed; candidate is explicit profile policy.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N06",
+      "question": "Does unsetting local array expose outer immediately, and what kind is a subsequent local assignment?",
+      "script": "a=([2]=outer)\nf() { local a=inner; unset a; declare -p a; a=scalar; declare -p a; }\nf\ndeclare -p a\n",
+      "PROJECTcandidate": "Unset retains an absent local shadow; next assignment creates scalar. Outer typed snapshot restores only on function exit.",
+      "nativeexpected": null,
+      "qualification": "Nonzero declaration status inside function is an observation, no set-e.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N07",
+      "question": "Can local shadow readonly outer indexed binding with or without initializer?",
+      "script": "a=([2]=outer)\nreadonly a\nf() { local a; printf 'local=%s\\n' \"$?\"; local a=inner; printf 'initialized=%s\\n' \"$?\"; declare -p a; }\nf\ndeclare -p a\n",
+      "PROJECTcandidate": "Reject both local operations status 1 after declaration argument expansion, before snapshot/publication; preserve outer readonly array.",
+      "nativeexpected": null,
+      "qualification": "Keeps accepted scalar readonly-shadow rule; no claimed GNU diagnostic parity.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N08",
+      "question": "Which export/readonly attributes survive local creation, local unset and return?",
+      "script": "export a=outer\nf() { local a; declare -p a; unset a; a=inner; readonly a; declare -p a; return 4; }\nf\nprintf 'function=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+      "PROJECTcandidate": "Scalar local creation preserves accepted export membership; unset removes it; local readonly changes are removed on return and whole exported outer restored. Indexed local snapshots follow the same full-attribute discipline.",
+      "nativeexpected": null,
+      "qualification": "Focused scalar-attribute boundary companion, not a new scalar implementation or passing array case.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N09",
+      "question": "During compound replacement, do RHS references see old elements or earlier entries of the replacement?",
+      "script": "a=([0]=old0 [2]=old2)\na=([0]=new0 [1]=\"${a[0]}\" [2]=\"${a[2]}\")\ndeclare -p a\n",
+      "PROJECTcandidate": "All RHS references resolve live prior target, never private stage; replacement publication is one guarded transfer.",
+      "nativeexpected": null,
+      "qualification": "RHS visibility is an open native qualification, not assumed from documentation.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N10",
+      "question": "During compound append with an explicit replacement index, do later RHS references see earlier staged replacement?",
+      "script": "a=([0]=old0 [2]=old2)\na+=([0]=new0 [3]=\"${a[0]}\")\ndeclare -p a\n",
+      "PROJECTcandidate": "Clone old slots, stage changes, RHS sees prior target; no intermediate target publication.",
+      "nativeexpected": null,
+      "qualification": "No resource or arithmetic-index probe.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N11",
+      "question": "Does known readonly compound target prevent RHS state effects, and what state is visible on shell exit?",
+      "script": "a=([0]=old)\nside=before\nreadonly a\ntrap 'declare -p a side fresh' EXIT\na=(\"${side:=kept}\" \"${fresh:=created}\")\nprintf 'assignment=%s fresh=%s\\n' \"$?\" \"${fresh-unset}\"\n",
+      "PROJECTcandidate": "Known readonly array fails before array RHS, no fresh assignment; existing scalar RHS-before-readonly path is unchanged.",
+      "nativeexpected": null,
+      "qualification": "Static EXIT trap inspects target/side/fresh even if native terminates, retaining a missing-name diagnostic when applicable. No assumed exit status.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N12",
+      "question": "After a later RHS parameter error, are earlier target entries published and are unrelated RHS assignments retained?",
+      "script": "a=([0]=old [5]=tail)\ntrap 'declare -p a side' EXIT\na=([0]=new [1]=\"${side:=kept}\" [2]=\"${missing:?preseal-stop}\")\nprintf 'after\\n'\n",
+      "PROJECTcandidate": "Discard target stage; preserve side=kept and original target unless RHS independently mutated it. Expansion failure remains primary.",
+      "nativeexpected": null,
+      "qualification": "EXIT trap is fixed builtin inspection; parameter-error termination is not set-e behavior.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N13",
+      "question": "What happens when a RHS scalar-default assignment mutates the same array whose zero element was absent?",
+      "script": "a=([2]=old2)\na=([1]=\"${a:=rhs-write}\")\nprintf 'assignment=%s\\n' \"$?\"\ndeclare -p a\n",
+      "PROJECTcandidate": "Parameter assignment writes zero once on live target and advances version; stage rejects stale target status 1, preserving RHS mutation and old element 2 without resurrection/retry.",
+      "nativeexpected": null,
+      "qualification": "Parent-state self-mutation via parameter assignment, not arithmetic or a subshell-reentrancy claim.",
+      "nestedChildContextsUpperBound": 0
+    },
+    {
+      "id": "N14",
+      "question": "Does readonly set by a function in command substitution affect parent target attributes?",
+      "script": "a=([0]=old)\nf() { readonly a; printf replacement; }\na=(\"$(f)\")\ndeclare -p a\n",
+      "PROJECTcandidate": "Function runs in isolated substitution clone, so readonly is not a parent race; RHS executes once and parent staged replacement can publish absent other conflicts.",
+      "nativeexpected": null,
+      "qualification": "Cannot qualify host/async parent readonly timing or cancellation. Exactly one command-substitution child context.",
+      "nestedChildContextsUpperBound": 1
+    },
+    {
+      "id": "N15",
+      "question": "Does an owned-file RHS effect survive a later compound expansion failure while target state is inspectable?",
+      "script": "a=([0]=old)\nf() { printf 'kept\\n' > \"$TMPDIR/rhs.txt\"; printf replacement; }\ntrap 'declare -p a; IFS= read -r receipt < \"$TMPDIR/rhs.txt\"; printf \"receipt=%s\\n\" \"$receipt\"' EXIT\na=(\"$(f)\" \"${missing:?preseal-stop}\")\n",
+      "PROJECTcandidate": "Array stage fails without publication; completed owned-file side effect remains. Never claim whole-command transaction rollback.",
+      "nativeexpected": null,
+      "qualification": "Only future fixture write, five fixed bytes, one substitution child; no file or native process created during preseal.",
+      "nestedChildContextsUpperBound": 1
+    },
+    {
+      "id": "N16",
+      "question": "How does a scalar command prefix on an existing indexed array interact with function visibility and restoration?",
+      "script": "a=([2]=outer)\nf() { declare -p a; export -p; }\na=temporary f\nprintf 'command=%s\\n' \"$?\"\ndeclare -p a\n",
+      "PROJECTcandidate": "First profile rejects scalar command prefix on indexed target status 1 before dispatch; standalone scalar assignment still targets zero. Indexed/compound command prefixes remain excluded.",
+      "nativeexpected": null,
+      "qualification": "Builtin visibility only, no external environment or implicit serialization inference.",
+      "nestedChildContextsUpperBound": 0
+    }
+  ]
+}

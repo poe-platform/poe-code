@@ -1,0 +1,508 @@
+{
+  "schemaVersion": 1,
+  "snapshot": {
+    "revision": "6a259ff4c38f64efb506e39812166ff7f003f6ce",
+    "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW",
+    "archiveSha256": "5b4c6ce6d2d459fa8fd4830d2b8ca98da4e58d96b0bb297b902284ba9f01a228",
+    "manifests": {
+      "package.json": "fcd844888bf09a475b3b50b65ef429132abb0fb80ac082f46588588266dcd443",
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    }
+  },
+  "startedAt": "2026-08-26T21:07:02.580Z",
+  "finishedAt": "2026-08-26T21:07:03.736Z",
+  "node": "v22.22.2",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools/matrix.test.ts"
+  ],
+  "exitCode": 1,
+  "error": null,
+  "summary": {
+    "tests": 79,
+    "pass": 58,
+    "fail": 21,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 1118.280458
+  },
+  "families": {
+    "memory": {
+      "total": 11,
+      "pass": 11,
+      "fail": 0,
+      "skip": 0,
+      "todo": 0,
+      "pending": 0
+    },
+    "real": {
+      "total": 11,
+      "pass": 11,
+      "fail": 0,
+      "skip": 0,
+      "todo": 0,
+      "pending": 0
+    },
+    "s3": {
+      "total": 11,
+      "pass": 1,
+      "fail": 10,
+      "skip": 0,
+      "todo": 0,
+      "pending": 0
+    },
+    "webdav": {
+      "total": 11,
+      "pass": 5,
+      "fail": 6,
+      "skip": 0,
+      "todo": 0,
+      "pending": 0
+    },
+    "mount": {
+      "total": 12,
+      "pass": 10,
+      "fail": 2,
+      "skip": 0,
+      "todo": 0,
+      "pending": 0
+    },
+    "overlay": {
+      "total": 12,
+      "pass": 11,
+      "fail": 1,
+      "skip": 0,
+      "todo": 0,
+      "pending": 0
+    },
+    "readonly": {
+      "total": 10,
+      "pass": 9,
+      "fail": 1,
+      "skip": 0,
+      "todo": 0,
+      "pending": 0
+    },
+    "structured capability gap": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1,
+      "skip": 0,
+      "todo": 0,
+      "pending": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "memory: independent six-family named-file probes",
+      "status": "pass",
+      "raw": "# Subtest: memory: independent six-family named-file probes\nok 1 - memory: independent six-family named-file probes\n  ---\n  duration_ms: 30.053708\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: aggregate six-family coding-agent flow",
+      "status": "pass",
+      "raw": "# Subtest: memory: aggregate six-family coding-agent flow\nok 2 - memory: aggregate six-family coding-agent flow\n  ---\n  duration_ms: 16.243458\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: binary stdin, compression, hashes and redirected bytes",
+      "status": "pass",
+      "raw": "# Subtest: memory: binary stdin, compression, hashes and redirected bytes\nok 3 - memory: binary stdin, compression, hashes and redirected bytes\n  ---\n  duration_ms: 4.11775\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: cwd, supplied stdin and explicitly empty stdin",
+      "status": "pass",
+      "raw": "# Subtest: memory: cwd, supplied stdin and explicitly empty stdin\nok 4 - memory: cwd, supplied stdin and explicitly empty stdin\n  ---\n  duration_ms: 3.142667\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: create, copy, append, inspect and remove files",
+      "status": "pass",
+      "raw": "# Subtest: memory: create, copy, append, inspect and remove files\nok 5 - memory: create, copy, append, inspect and remove files\n  ---\n  duration_ms: 2.995375\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: move retains bytes and removes source",
+      "status": "pass",
+      "raw": "# Subtest: memory: move retains bytes and removes source\nok 6 - memory: move retains bytes and removes source\n  ---\n  duration_ms: 0.798917\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: touch creates an empty file successfully",
+      "status": "pass",
+      "raw": "# Subtest: memory: touch creates an empty file successfully\nok 7 - memory: touch creates an empty file successfully\n  ---\n  duration_ms: 0.480041\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: in-place edit, diff-to-patch stdin and reverse",
+      "status": "pass",
+      "raw": "# Subtest: memory: in-place edit, diff-to-patch stdin and reverse\nok 8 - memory: in-place edit, diff-to-patch stdin and reverse\n  ---\n  duration_ms: 4.842833\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: missing paths, stderr redirection and command errors",
+      "status": "pass",
+      "raw": "# Subtest: memory: missing paths, stderr redirection and command errors\nok 9 - memory: missing paths, stderr redirection and command errors\n  ---\n  duration_ms: 1.241083\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: cancellation interrupts actual blocked command pipeline",
+      "status": "pass",
+      "raw": "# Subtest: memory: cancellation interrupts actual blocked command pipeline\nok 10 - memory: cancellation interrupts actual blocked command pipeline\n  ---\n  duration_ms: 4.412125\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "memory: output limit terminates real binary reads",
+      "status": "pass",
+      "raw": "# Subtest: memory: output limit terminates real binary reads\nok 11 - memory: output limit terminates real binary reads\n  ---\n  duration_ms: 0.754\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: independent six-family named-file probes",
+      "status": "pass",
+      "raw": "# Subtest: real: independent six-family named-file probes\nok 12 - real: independent six-family named-file probes\n  ---\n  duration_ms: 22.341333\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: aggregate six-family coding-agent flow",
+      "status": "pass",
+      "raw": "# Subtest: real: aggregate six-family coding-agent flow\nok 13 - real: aggregate six-family coding-agent flow\n  ---\n  duration_ms: 25.540792\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: binary stdin, compression, hashes and redirected bytes",
+      "status": "pass",
+      "raw": "# Subtest: real: binary stdin, compression, hashes and redirected bytes\nok 14 - real: binary stdin, compression, hashes and redirected bytes\n  ---\n  duration_ms: 11.745667\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: cwd, supplied stdin and explicitly empty stdin",
+      "status": "pass",
+      "raw": "# Subtest: real: cwd, supplied stdin and explicitly empty stdin\nok 15 - real: cwd, supplied stdin and explicitly empty stdin\n  ---\n  duration_ms: 9.884792\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: create, copy, append, inspect and remove files",
+      "status": "pass",
+      "raw": "# Subtest: real: create, copy, append, inspect and remove files\nok 16 - real: create, copy, append, inspect and remove files\n  ---\n  duration_ms: 16.892459\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: move retains bytes and removes source",
+      "status": "pass",
+      "raw": "# Subtest: real: move retains bytes and removes source\nok 17 - real: move retains bytes and removes source\n  ---\n  duration_ms: 6.960959\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: touch creates an empty file successfully",
+      "status": "pass",
+      "raw": "# Subtest: real: touch creates an empty file successfully\nok 18 - real: touch creates an empty file successfully\n  ---\n  duration_ms: 6.208958\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: in-place edit, diff-to-patch stdin and reverse",
+      "status": "pass",
+      "raw": "# Subtest: real: in-place edit, diff-to-patch stdin and reverse\nok 19 - real: in-place edit, diff-to-patch stdin and reverse\n  ---\n  duration_ms: 21.857167\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: missing paths, stderr redirection and command errors",
+      "status": "pass",
+      "raw": "# Subtest: real: missing paths, stderr redirection and command errors\nok 20 - real: missing paths, stderr redirection and command errors\n  ---\n  duration_ms: 6.233583\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: cancellation interrupts actual blocked command pipeline",
+      "status": "pass",
+      "raw": "# Subtest: real: cancellation interrupts actual blocked command pipeline\nok 21 - real: cancellation interrupts actual blocked command pipeline\n  ---\n  duration_ms: 6.157667\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "real: output limit terminates real binary reads",
+      "status": "pass",
+      "raw": "# Subtest: real: output limit terminates real binary reads\nok 22 - real: output limit terminates real binary reads\n  ---\n  duration_ms: 5.875458\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "s3: independent six-family named-file probes",
+      "status": "fail",
+      "raw": "# Subtest: s3: independent six-family named-file probes\nnot ok 23 - s3: independent six-family named-file probes\n  ---\n  duration_ms: 9.100792\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:1:620'\n  failureType: 'testCodeFailure'\n  error: |-\n    every named-file probe must pass; no capability-based skips\n    + actual - expected\n    \n    + [\n    +   \"cat old.txt: AssertionError [ERR_ASSERTION]: cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n',\n    +   \"rg --no-heading --no-filename '^TODO' src/tasks.txt: AssertionError [ERR_ASSERTION]: rg: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/src/tasks.txt'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '2 !== 0\\n',\n    +   \"sed 's/beta/BETA/' old.txt: AssertionError [ERR_ASSERTION]: sed: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n',\n    +   \"awk '{ print $1 }' old.txt: AssertionError [ERR_ASSERTION]: awk: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n',\n    +   \"jq -c '.names' config.json: AssertionError [ERR_ASSERTION]: jq: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/config.json'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '2 !== 0\\n',\n    +   \"sha256sum payload.bin: AssertionError [ERR_ASSERTION]: sha256sum: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/payload.bin'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n',\n    +   'set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\\n' +\n    +     'gzip: unexpected end of file\\n' +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n',\n    +   \"diff -q old.txt target.txt: AssertionError [ERR_ASSERTION]: diff: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '2 !== 0\\n',\n    +   \"patch --dry-run -i change.diff: AssertionError [ERR_ASSERTION]: patch: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/change.diff'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '2 !== 0\\n'\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0: |-\n      cat old.txt: AssertionError [ERR_ASSERTION]: cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\n      \n      \n      1 !== 0\n      \n    1: |-\n      rg --no-heading --no-filename '^TODO' src/tasks.txt: AssertionError [ERR_ASSERTION]: rg: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/src/tasks.txt'\n      \n      \n      2 !== 0\n      \n    2: |-\n      sed 's/beta/BETA/' old.txt: AssertionError [ERR_ASSERTION]: sed: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\n      \n      \n      1 !== 0\n      \n    3: |-\n      awk '{ print $1 }' old.txt: AssertionError [ERR_ASSERTION]: awk: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\n      \n      \n      1 !== 0\n      \n    4: |-\n      jq -c '.names' config.json: AssertionError [ERR_ASSERTION]: jq: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/config.json'\n      \n      \n      2 !== 0\n      \n    5: |-\n      sha256sum payload.bin: AssertionError [ERR_ASSERTION]: sha256sum: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/payload.bin'\n      \n      \n      1 !== 0\n      \n    6: |-\n      set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\n      gzip: unexpected end of file\n      \n      \n      1 !== 0\n      \n    7: |-\n      diff -q old.txt target.txt: AssertionError [ERR_ASSERTION]: diff: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\n      \n      \n      2 !== 0\n      \n    8: |-\n      patch --dry-run -i change.diff: AssertionError [ERR_ASSERTION]: patch: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/change.diff'\n      \n      \n      2 !== 0\n      \n  operator: 'deepStrictEqual'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:43:14)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:17:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# cat old.txt: AssertionError [ERR_ASSERTION]: cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\\\\n\\\\n\\\\n1 !== 0\\\\n\n# rg --no-heading --no-filename '^TODO' src/tasks.txt: AssertionError [ERR_ASSERTION]: rg: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/src/tasks.txt'\\\\n\\\\n\\\\n2 !== 0\\\\n\n# sed 's/beta/BETA/' old.txt: AssertionError [ERR_ASSERTION]: sed: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\\\\n\\\\n\\\\n1 !== 0\\\\n\n# awk '{ print $1 }' old.txt: AssertionError [ERR_ASSERTION]: awk: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\\\\n\\\\n\\\\n1 !== 0\\\\n\n# jq -c '.names' config.json: AssertionError [ERR_ASSERTION]: jq: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/config.json'\\\\n\\\\n\\\\n2 !== 0\\\\n\n# sha256sum payload.bin: AssertionError [ERR_ASSERTION]: sha256sum: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/payload.bin'\\\\n\\\\n\\\\n1 !== 0\\\\n\n# set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\\\\ngzip: unexpected end of file\\\\n\\\\n\\\\n1 !== 0\\\\n\n# diff -q old.txt target.txt: AssertionError [ERR_ASSERTION]: diff: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\\\\n\\\\n\\\\n2 !== 0\\\\n\n# patch --dry-run -i change.diff: AssertionError [ERR_ASSERTION]: patch: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/change.diff'\\\\n\\\\n\\\\n2 !== 0\\\\n\n"
+    },
+    {
+      "name": "s3: aggregate six-family coding-agent flow",
+      "status": "fail",
+      "raw": "# Subtest: s3: aggregate six-family coding-agent flow\nnot ok 24 - s3: aggregate six-family coding-agent flow\n  ---\n  duration_ms: 4.840583\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:2:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/src/tasks.txt'\n    cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/report.json'\n    \n    \n    123 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 123\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:50:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:48:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "s3: binary stdin, compression, hashes and redirected bytes",
+      "status": "fail",
+      "raw": "# Subtest: s3: binary stdin, compression, hashes and redirected bytes\nnot ok 25 - s3: binary stdin, compression, hashes and redirected bytes\n  ---\n  duration_ms: 6.477625\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:3:774'\n  failureType: 'testCodeFailure'\n  error: |-\n    cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/roundtrip.bin'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:78:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:72:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "s3: cwd, supplied stdin and explicitly empty stdin",
+      "status": "fail",
+      "raw": "# Subtest: s3: cwd, supplied stdin and explicitly empty stdin\nnot ok 26 - s3: cwd, supplied stdin and explicitly empty stdin\n  ---\n  duration_ms: 2.312333\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:4:73'\n  failureType: 'testCodeFailure'\n  error: |-\n    cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/src/tasks.txt'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:89:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:88:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "s3: create, copy, append, inspect and remove files",
+      "status": "fail",
+      "raw": "# Subtest: s3: create, copy, append, inspect and remove files\nnot ok 27 - s3: create, copy, append, inspect and remove files\n  ---\n  duration_ms: 3.724666\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:4:856'\n  failureType: 'testCodeFailure'\n  error: |-\n    cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/scratch/nested/copy.txt'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:102:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:101:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "s3: move retains bytes and removes source",
+      "status": "fail",
+      "raw": "# Subtest: s3: move retains bytes and removes source\nnot ok 28 - s3: move retains bytes and removes source\n  ---\n  duration_ms: 2.43475\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:5:284'\n  failureType: 'testCodeFailure'\n  error: |-\n    mv: ENOTSUP: S3 does not support atomic rename; explicitly enable allowNonAtomicRename for copy/delete semantics with the configured transport, atomic rename; explicitly enable allowNonAtomicRename for copy/delete semantics '/work/move-source.bin'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:111:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:110:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "s3: touch creates an empty file successfully",
+      "status": "fail",
+      "raw": "# Subtest: s3: touch creates an empty file successfully\nnot ok 29 - s3: touch creates an empty file successfully\n  ---\n  duration_ms: 1.423458\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:5:612'\n  failureType: 'testCodeFailure'\n  error: |-\n    touch: ENOTSUP: S3 does not support utimes with the configured transport, utimes '/work/touched.txt'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:121:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:118:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "s3: in-place edit, diff-to-patch stdin and reverse",
+      "status": "fail",
+      "raw": "# Subtest: s3: in-place edit, diff-to-patch stdin and reverse\nnot ok 30 - s3: in-place edit, diff-to-patch stdin and reverse\n  ---\n  duration_ms: 1.32075\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:5:934'\n  failureType: 'testCodeFailure'\n  error: |-\n    sed: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:127:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:126:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "s3: missing paths, stderr redirection and command errors",
+      "status": "fail",
+      "raw": "# Subtest: s3: missing paths, stderr redirection and command errors\nnot ok 31 - s3: missing paths, stderr redirection and command errors\n  ---\n  duration_ms: 1.431208\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:5:1709'\n  failureType: 'testCodeFailure'\n  error: |-\n    The input did not match the regular expression /ENOENT.*missing\\.txt/. Input:\n    \n    \"cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/missing.txt'\\n\"\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual: |-\n    cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/missing.txt'\n    \n  operator: 'match'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:143:14)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:138:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "s3: cancellation interrupts actual blocked command pipeline",
+      "status": "pass",
+      "raw": "# Subtest: s3: cancellation interrupts actual blocked command pipeline\nok 32 - s3: cancellation interrupts actual blocked command pipeline\n  ---\n  duration_ms: 3.128375\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "s3: output limit terminates real binary reads",
+      "status": "fail",
+      "raw": "# Subtest: s3: output limit terminates real binary reads\nnot ok 33 - s3: output limit terminates real binary reads\n  ---\n  duration_ms: 2.399458\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:5:3990'\n  failureType: 'testCodeFailure'\n  error: |-\n    cat: ENOTSUP: S3 does not support streaming read with the configured transport, streaming read '/work/old.txt'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:204:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:201:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "webdav: independent six-family named-file probes",
+      "status": "fail",
+      "raw": "# Subtest: webdav: independent six-family named-file probes\nnot ok 34 - webdav: independent six-family named-file probes\n  ---\n  duration_ms: 73.511083\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:1:620'\n  failureType: 'testCodeFailure'\n  error: |-\n    every named-file probe must pass; no capability-based skips\n    + actual - expected\n    \n    + [\n    +   'sha256sum payload.bin: AssertionError [ERR_ASSERTION]: sha256sum: ENOTSUP: checksum file input requires VFS readStream\\n' +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n',\n    +   'set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\\n' +\n    +     'gzip: unexpected end of file\\n' +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n'\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0: |-\n      sha256sum payload.bin: AssertionError [ERR_ASSERTION]: sha256sum: ENOTSUP: checksum file input requires VFS readStream\n      \n      \n      1 !== 0\n      \n    1: |-\n      set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\n      gzip: unexpected end of file\n      \n      \n      1 !== 0\n      \n  operator: 'deepStrictEqual'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:43:14)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:17:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# sha256sum payload.bin: AssertionError [ERR_ASSERTION]: sha256sum: ENOTSUP: checksum file input requires VFS readStream\\\\n\\\\n\\\\n1 !== 0\\\\n\n# set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\\\\ngzip: unexpected end of file\\\\n\\\\n\\\\n1 !== 0\\\\n\n"
+    },
+    {
+      "name": "webdav: aggregate six-family coding-agent flow",
+      "status": "fail",
+      "raw": "# Subtest: webdav: aggregate six-family coding-agent flow\nnot ok 35 - webdav: aggregate six-family coding-agent flow\n  ---\n  duration_ms: 32.567917\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:2:592'\n  failureType: 'testCodeFailure'\n  error: |-\n    shell: ENOTSUP: access permission checks has no safe portable WebDAV equivalent, access permission checks '/work/report.json'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:52:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:48:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "webdav: binary stdin, compression, hashes and redirected bytes",
+      "status": "fail",
+      "raw": "# Subtest: webdav: binary stdin, compression, hashes and redirected bytes\nnot ok 36 - webdav: binary stdin, compression, hashes and redirected bytes\n  ---\n  duration_ms: 32.867625\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:3:774'\n  failureType: 'testCodeFailure'\n  error: |-\n    sha256sum: ENOTSUP: checksum file input requires VFS readStream\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:81:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:72:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "webdav: cwd, supplied stdin and explicitly empty stdin",
+      "status": "fail",
+      "raw": "# Subtest: webdav: cwd, supplied stdin and explicitly empty stdin\nnot ok 37 - webdav: cwd, supplied stdin and explicitly empty stdin\n  ---\n  duration_ms: 19.922666\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:4:73'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + \"shell: ENOTSUP: access permission checks has no safe portable WebDAV equivalent, access permission checks '/work/empty.txt'\\n\"\n    - ''\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: ''\n  actual: |-\n    shell: ENOTSUP: access permission checks has no safe portable WebDAV equivalent, access permission checks '/work/empty.txt'\n    \n  operator: 'strictEqual'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:94:16)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:88:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "webdav: create, copy, append, inspect and remove files",
+      "status": "pass",
+      "raw": "# Subtest: webdav: create, copy, append, inspect and remove files\nok 38 - webdav: create, copy, append, inspect and remove files\n  ---\n  duration_ms: 49.392083\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "webdav: move retains bytes and removes source",
+      "status": "pass",
+      "raw": "# Subtest: webdav: move retains bytes and removes source\nok 39 - webdav: move retains bytes and removes source\n  ---\n  duration_ms: 27.208083\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "webdav: touch creates an empty file successfully",
+      "status": "fail",
+      "raw": "# Subtest: webdav: touch creates an empty file successfully\nnot ok 40 - webdav: touch creates an empty file successfully\n  ---\n  duration_ms: 16.309417\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:5:612'\n  failureType: 'testCodeFailure'\n  error: |-\n    touch: ENOTSUP: utimes has no safe portable WebDAV equivalent, utimes '/work/touched.txt'\n    \n    \n    1 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 1\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:121:7)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:118:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "webdav: in-place edit, diff-to-patch stdin and reverse",
+      "status": "pass",
+      "raw": "# Subtest: webdav: in-place edit, diff-to-patch stdin and reverse\nok 41 - webdav: in-place edit, diff-to-patch stdin and reverse\n  ---\n  duration_ms: 71.143625\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "webdav: missing paths, stderr redirection and command errors",
+      "status": "fail",
+      "raw": "# Subtest: webdav: missing paths, stderr redirection and command errors\nnot ok 42 - webdav: missing paths, stderr redirection and command errors\n  ---\n  duration_ms: 20.309875\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:5:1709'\n  failureType: 'testCodeFailure'\n  error: |-\n    The input did not match the regular expression /ENOENT.*missing\\.txt/. Input:\n    \n    \"shell: ENOTSUP: access permission checks has no safe portable WebDAV equivalent, access permission checks '/work/missing.txt'\\n\"\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual: |-\n    shell: ENOTSUP: access permission checks has no safe portable WebDAV equivalent, access permission checks '/work/missing.txt'\n    \n  operator: 'match'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:146:14)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:138:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "webdav: cancellation interrupts actual blocked command pipeline",
+      "status": "pass",
+      "raw": "# Subtest: webdav: cancellation interrupts actual blocked command pipeline\nok 43 - webdav: cancellation interrupts actual blocked command pipeline\n  ---\n  duration_ms: 13.752792\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "webdav: output limit terminates real binary reads",
+      "status": "pass",
+      "raw": "# Subtest: webdav: output limit terminates real binary reads\nok 44 - webdav: output limit terminates real binary reads\n  ---\n  duration_ms: 18.904208\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: independent six-family named-file probes",
+      "status": "fail",
+      "raw": "# Subtest: mount: independent six-family named-file probes\nnot ok 45 - mount: independent six-family named-file probes\n  ---\n  duration_ms: 19.345292\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:1:620'\n  failureType: 'testCodeFailure'\n  error: |-\n    every named-file probe must pass; no capability-based skips\n    + actual - expected\n    \n    + [\n    +   'set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\\n' +\n    +     'gzip: unexpected end of file\\n' +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n'\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0: |-\n      set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\n      gzip: unexpected end of file\n      \n      \n      1 !== 0\n      \n  operator: 'deepStrictEqual'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:43:14)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:17:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\\\\ngzip: unexpected end of file\\\\n\\\\n\\\\n1 !== 0\\\\n\n"
+    },
+    {
+      "name": "mount: aggregate six-family coding-agent flow",
+      "status": "pass",
+      "raw": "# Subtest: mount: aggregate six-family coding-agent flow\nok 46 - mount: aggregate six-family coding-agent flow\n  ---\n  duration_ms: 33.410667\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: binary stdin, compression, hashes and redirected bytes",
+      "status": "pass",
+      "raw": "# Subtest: mount: binary stdin, compression, hashes and redirected bytes\nok 47 - mount: binary stdin, compression, hashes and redirected bytes\n  ---\n  duration_ms: 13.374792\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: cwd, supplied stdin and explicitly empty stdin",
+      "status": "pass",
+      "raw": "# Subtest: mount: cwd, supplied stdin and explicitly empty stdin\nok 48 - mount: cwd, supplied stdin and explicitly empty stdin\n  ---\n  duration_ms: 15.667583\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: create, copy, append, inspect and remove files",
+      "status": "pass",
+      "raw": "# Subtest: mount: create, copy, append, inspect and remove files\nok 49 - mount: create, copy, append, inspect and remove files\n  ---\n  duration_ms: 29.886584\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: move retains bytes and removes source",
+      "status": "pass",
+      "raw": "# Subtest: mount: move retains bytes and removes source\nok 50 - mount: move retains bytes and removes source\n  ---\n  duration_ms: 11.602959\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: touch creates an empty file successfully",
+      "status": "pass",
+      "raw": "# Subtest: mount: touch creates an empty file successfully\nok 51 - mount: touch creates an empty file successfully\n  ---\n  duration_ms: 7.14175\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: in-place edit, diff-to-patch stdin and reverse",
+      "status": "pass",
+      "raw": "# Subtest: mount: in-place edit, diff-to-patch stdin and reverse\nok 52 - mount: in-place edit, diff-to-patch stdin and reverse\n  ---\n  duration_ms: 28.991958\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: missing paths, stderr redirection and command errors",
+      "status": "pass",
+      "raw": "# Subtest: mount: missing paths, stderr redirection and command errors\nok 53 - mount: missing paths, stderr redirection and command errors\n  ---\n  duration_ms: 7.511583\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: cancellation interrupts actual blocked command pipeline",
+      "status": "pass",
+      "raw": "# Subtest: mount: cancellation interrupts actual blocked command pipeline\nok 54 - mount: cancellation interrupts actual blocked command pipeline\n  ---\n  duration_ms: 7.895375\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: output limit terminates real binary reads",
+      "status": "pass",
+      "raw": "# Subtest: mount: output limit terminates real binary reads\nok 55 - mount: output limit terminates real binary reads\n  ---\n  duration_ms: 6.751125\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: independent six-family named-file probes",
+      "status": "fail",
+      "raw": "# Subtest: overlay: independent six-family named-file probes\nnot ok 56 - overlay: independent six-family named-file probes\n  ---\n  duration_ms: 17.11925\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:1:620'\n  failureType: 'testCodeFailure'\n  error: |-\n    every named-file probe must pass; no capability-based skips\n    + actual - expected\n    \n    + [\n    +   'set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\\n' +\n    +     'gzip: unexpected end of file\\n' +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n'\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0: |-\n      set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\n      gzip: unexpected end of file\n      \n      \n      1 !== 0\n      \n  operator: 'deepStrictEqual'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:43:14)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:17:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# set -o pipefail; gzip -c payload.bin | gzip -dc: AssertionError [ERR_ASSERTION]: gzip: ENOTSUP: named input requires VFS streaming reads; no readFile fallback\\\\ngzip: unexpected end of file\\\\n\\\\n\\\\n1 !== 0\\\\n\n"
+    },
+    {
+      "name": "overlay: aggregate six-family coding-agent flow",
+      "status": "pass",
+      "raw": "# Subtest: overlay: aggregate six-family coding-agent flow\nok 57 - overlay: aggregate six-family coding-agent flow\n  ---\n  duration_ms: 20.398458\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: binary stdin, compression, hashes and redirected bytes",
+      "status": "pass",
+      "raw": "# Subtest: overlay: binary stdin, compression, hashes and redirected bytes\nok 58 - overlay: binary stdin, compression, hashes and redirected bytes\n  ---\n  duration_ms: 4.731167\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: cwd, supplied stdin and explicitly empty stdin",
+      "status": "pass",
+      "raw": "# Subtest: overlay: cwd, supplied stdin and explicitly empty stdin\nok 59 - overlay: cwd, supplied stdin and explicitly empty stdin\n  ---\n  duration_ms: 5.338666\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: create, copy, append, inspect and remove files",
+      "status": "pass",
+      "raw": "# Subtest: overlay: create, copy, append, inspect and remove files\nok 60 - overlay: create, copy, append, inspect and remove files\n  ---\n  duration_ms: 6.107834\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: move retains bytes and removes source",
+      "status": "pass",
+      "raw": "# Subtest: overlay: move retains bytes and removes source\nok 61 - overlay: move retains bytes and removes source\n  ---\n  duration_ms: 7.582917\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: touch creates an empty file successfully",
+      "status": "pass",
+      "raw": "# Subtest: overlay: touch creates an empty file successfully\nok 62 - overlay: touch creates an empty file successfully\n  ---\n  duration_ms: 1.58025\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: in-place edit, diff-to-patch stdin and reverse",
+      "status": "pass",
+      "raw": "# Subtest: overlay: in-place edit, diff-to-patch stdin and reverse\nok 63 - overlay: in-place edit, diff-to-patch stdin and reverse\n  ---\n  duration_ms: 13.574958\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: missing paths, stderr redirection and command errors",
+      "status": "pass",
+      "raw": "# Subtest: overlay: missing paths, stderr redirection and command errors\nok 64 - overlay: missing paths, stderr redirection and command errors\n  ---\n  duration_ms: 1.959833\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: cancellation interrupts actual blocked command pipeline",
+      "status": "pass",
+      "raw": "# Subtest: overlay: cancellation interrupts actual blocked command pipeline\nok 65 - overlay: cancellation interrupts actual blocked command pipeline\n  ---\n  duration_ms: 1.774584\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "overlay: output limit terminates real binary reads",
+      "status": "pass",
+      "raw": "# Subtest: overlay: output limit terminates real binary reads\nok 66 - overlay: output limit terminates real binary reads\n  ---\n  duration_ms: 1.714625\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "mount: cross-backend pipeline and copy use real mount plus S3",
+      "status": "fail",
+      "raw": "# Subtest: mount: cross-backend pipeline and copy use real mount plus S3\nnot ok 67 - mount: cross-backend pipeline and copy use real mount plus S3\n  ---\n  duration_ms: 9.259791\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:5:4306'\n  failureType: 'testCodeFailure'\n  error: |-\n    pipeline and both cross-backend copy directions must succeed\n    + actual - expected\n    \n    + [\n    +   \"set -o pipefail; cat payload.bin | gzip -c > /objects/archive.gz: AssertionError [ERR_ASSERTION]: shell: ENOTSUP: operation not supported, writeFile '/objects/archive.gz'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n',\n    +   \"cp payload.bin /objects/copied.bin: AssertionError [ERR_ASSERTION]: cp: ENOTSUP: operation not supported, stat '/objects/copied.bin'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n',\n    +   \"cp /objects/seed.bin returned.bin: AssertionError [ERR_ASSERTION]: cp: ENOTSUP: operation not supported, lstat '/objects/seed.bin'\\n\" +\n    +     '\\n' +\n    +     '\\n' +\n    +     '1 !== 0\\n'\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0: |-\n      set -o pipefail; cat payload.bin | gzip -c > /objects/archive.gz: AssertionError [ERR_ASSERTION]: shell: ENOTSUP: operation not supported, writeFile '/objects/archive.gz'\n      \n      \n      1 !== 0\n      \n    1: |-\n      cp payload.bin /objects/copied.bin: AssertionError [ERR_ASSERTION]: cp: ENOTSUP: operation not supported, stat '/objects/copied.bin'\n      \n      \n      1 !== 0\n      \n    2: |-\n      cp /objects/seed.bin returned.bin: AssertionError [ERR_ASSERTION]: cp: ENOTSUP: operation not supported, lstat '/objects/seed.bin'\n      \n      \n      1 !== 0\n      \n  operator: 'deepStrictEqual'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:225:12)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:210:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# set -o pipefail; cat payload.bin | gzip -c > /objects/archive.gz: AssertionError [ERR_ASSERTION]: shell: ENOTSUP: operation not supported, writeFile '/objects/archive.gz'\\\\n\\\\n\\\\n1 !== 0\\\\n\n# cp payload.bin /objects/copied.bin: AssertionError [ERR_ASSERTION]: cp: ENOTSUP: operation not supported, stat '/objects/copied.bin'\\\\n\\\\n\\\\n1 !== 0\\\\n\n# cp /objects/seed.bin returned.bin: AssertionError [ERR_ASSERTION]: cp: ENOTSUP: operation not supported, lstat '/objects/seed.bin'\\\\n\\\\n\\\\n1 !== 0\\\\n\n"
+    },
+    {
+      "name": "overlay: edit and remove lower files without changing S3 lower",
+      "status": "pass",
+      "raw": "# Subtest: overlay: edit and remove lower files without changing S3 lower\nok 68 - overlay: edit and remove lower files without changing S3 lower\n  ---\n  duration_ms: 3.865833\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: all six aggregate families can inspect without mutation",
+      "status": "pass",
+      "raw": "# Subtest: readonly: all six aggregate families can inspect without mutation\nok 69 - readonly: all six aggregate families can inspect without mutation\n  ---\n  duration_ms: 7.760666\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "structured capability gap: raw slurped text can be split into lines",
+      "status": "fail",
+      "raw": "# Subtest: structured capability gap: raw slurped text can be split into lines\nnot ok 70 - structured capability gap: raw slurped text can be split into lines\n  ---\n  duration_ms: 0.539292\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:7:282'\n  failureType: 'testCodeFailure'\n  error: |-\n    jq: unsupported function split/1 at offset 12\n    \n    \n    3 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 3\n  operator: 'strictEqual'\n  stack: |-\n    success (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:196:10)\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:262:5)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:260:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: printf 'changed' > target.txt",
+      "status": "pass",
+      "raw": "# Subtest: readonly: rejects mutation: printf 'changed' > target.txt\nok 71 - readonly: rejects mutation: printf 'changed' > target.txt\n  ---\n  duration_ms: 0.5965\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: printf 'changed' >> target.txt",
+      "status": "pass",
+      "raw": "# Subtest: readonly: rejects mutation: printf 'changed' >> target.txt\nok 72 - readonly: rejects mutation: printf 'changed' >> target.txt\n  ---\n  duration_ms: 0.483167\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: mkdir denied",
+      "status": "pass",
+      "raw": "# Subtest: readonly: rejects mutation: mkdir denied\nok 73 - readonly: rejects mutation: mkdir denied\n  ---\n  duration_ms: 0.421333\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: cp old.txt denied.txt",
+      "status": "pass",
+      "raw": "# Subtest: readonly: rejects mutation: cp old.txt denied.txt\nok 74 - readonly: rejects mutation: cp old.txt denied.txt\n  ---\n  duration_ms: 0.487333\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: mv old.txt denied.txt",
+      "status": "pass",
+      "raw": "# Subtest: readonly: rejects mutation: mv old.txt denied.txt\nok 75 - readonly: rejects mutation: mv old.txt denied.txt\n  ---\n  duration_ms: 0.483166\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: rm old.txt",
+      "status": "pass",
+      "raw": "# Subtest: readonly: rejects mutation: rm old.txt\nok 76 - readonly: rejects mutation: rm old.txt\n  ---\n  duration_ms: 0.401167\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt",
+      "status": "pass",
+      "raw": "# Subtest: readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt\nok 77 - readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt\n  ---\n  duration_ms: 0.483708\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: patch -i change.diff",
+      "status": "pass",
+      "raw": "# Subtest: readonly: rejects mutation: patch -i change.diff\nok 78 - readonly: rejects mutation: patch -i change.diff\n  ---\n  duration_ms: 0.656917\n  type: 'test'\n  ...\n"
+    },
+    {
+      "name": "readonly: rejects mutation: gzip payload.bin",
+      "status": "fail",
+      "raw": "# Subtest: readonly: rejects mutation: gzip payload.bin\nnot ok 79 - readonly: rejects mutation: gzip payload.bin\n  ---\n  duration_ms: 0.515917\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:7:840'\n  failureType: 'testCodeFailure'\n  error: 'actual readonly filesystem error, not an unrelated command failure'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual: |-\n    gzip: ENOTSUP: file output requires VFS streaming writes (use -c for stdout)\n    \n  operator: 'match'\n  stack: |-\n    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:282:14)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async withFixture (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/fixtures.ts:181:5)\n    async TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-adapter-matrix-39q3FW/tests/integration/adapter-tools/matrix.test.ts:273:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..79\n# tests 79\n# suites 0\n# pass 58\n# fail 21\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1118.280458\n"
+    }
+  ],
+  "stderr": "",
+  "stdoutSha256": "4c5584093b556280b2c11156eddadea3a593b9e6a31fa8a31e74fc882d33f30d",
+  "claims": {
+    "realCloudCredentialsTested": false,
+    "liveInternetWebDavTested": false,
+    "movingWorktreeTested": false,
+    "expectedValuesChanged": false,
+    "capabilitySkipsAccepted": false,
+    "fullGoalComplete": false
+  }
+}

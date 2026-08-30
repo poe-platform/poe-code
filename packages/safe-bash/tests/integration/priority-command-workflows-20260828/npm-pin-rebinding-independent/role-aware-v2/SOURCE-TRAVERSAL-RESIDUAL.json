@@ -1,0 +1,48 @@
+{
+  "id": "RV2-SOURCE-TRAVERSAL",
+  "role": "reviewer-side proof-method residual; not an author or product defect",
+  "failedAssertion": "O6-derived8437",
+  "reason": "Reviewer treated archived reachable/reconstructed tree witnesses as a complete forest. A declared subtree pointer has no corresponding witness in that map. The captured stored source rows and selected bytes still match; no missing-object Git query occurred.",
+  "sourceInputs": 268,
+  "matchedByAttemptedTraversal": 48,
+  "unresolvedByAttemptedTraversal": 220,
+  "firstTrace": [
+    {
+      "tree": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+      "witnessPresent": true,
+      "component": "src",
+      "entry": {
+        "mode": "40000",
+        "name": "src",
+        "oid": "c166305018bda50625b908b4884b745ff7a14f80"
+      }
+    },
+    {
+      "tree": "c166305018bda50625b908b4884b745ff7a14f80",
+      "witnessPresent": true,
+      "component": "commands",
+      "entry": {
+        "mode": "40000",
+        "name": "commands",
+        "oid": "14ed49ade7c46c05ba19b4e5e9fdd12f0a4598d6"
+      }
+    },
+    {
+      "tree": "14ed49ade7c46c05ba19b4e5e9fdd12f0a4598d6",
+      "witnessPresent": true,
+      "component": "archive",
+      "entry": {
+        "mode": "40000",
+        "name": "archive",
+        "oid": "fdbb9d78316afeeb53523db4302151e791c23634"
+      }
+    },
+    {
+      "tree": "fdbb9d78316afeeb53523db4302151e791c23634",
+      "witnessPresent": false,
+      "component": "README.md",
+      "entry": null
+    }
+  ],
+  "disposition": "Sticky independent review failure; do not retry or silently rescore. Finish other safe obligations only."
+}

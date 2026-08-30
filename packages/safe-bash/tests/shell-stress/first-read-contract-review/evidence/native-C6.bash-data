@@ -1,0 +1,8 @@
+umask 022
+set -o pipefail
+producer() { for attempt in {1..100}; do [[ -f closed ]] && break; /bin/sleep 0.01; done; [[ -f closed ]] || exit 98; /bin/sleep 0.05; printf 'delayed-error\n' >&2; return 7; }
+consumer() {  printf closed > closed; :; }
+producer | consumer
+outcome=( "$?" "${PIPESTATUS[@]}" )
+printf '%s\n' "${outcome[*]}" > statuses
+exit "${outcome[0]}"

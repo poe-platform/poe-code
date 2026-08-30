@@ -1,0 +1,56 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, existsSync, realpathSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve, relative } from 'node:path';
+import { execFileSync, spawnSync } from 'node:child_process';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const temp = '/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j';
+const candidate = resolve(temp,'candidate');
+const owned = resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const put = (path,text) => { if (existsSync(path)) { assert.equal(readFileSync(path,'utf8'),text); return; } execFileSync('apply_patch',[],{input:`*** Begin Patch\n*** Add File: ${path}\n${text.replace(/\n$/,'').split('\n').map(line=>'+'+line).join('\n')}\n*** End Patch\n`,encoding:'utf8'}); };
+const json = (path,value) => put(path,JSON.stringify(value,null,2)+'\n');
+const walk = directory => readdirSync(directory,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(resolve(directory,entry.name)):entry.isFile()?[resolve(directory,entry.name)]:[]).sort();
+const inventory = directory => walk(resolve(candidate,directory)).map(path=>({path:relative(candidate,path),bytes:readFileSync(path).length,sha256:hash(readFileSync(path))}));
+const frozen = JSON.parse(readFileSync(resolve(owned,'freeze-r1.json')));
+const source = inventory('src'); const tests = inventory('tests'); const compiled = inventory('dist');
+assert.equal(hash(JSON.stringify(source)),frozen.sourceManifestSha256);
+assert.equal(hash(JSON.stringify(tests)),frozen.testManifestSha256);
+const runs = [];
+for (const path of walk(resolve(temp,'evidence/runs')).filter(path=>path.endsWith('.json'))) {
+  const report = JSON.parse(readFileSync(path));
+  assert.equal(report.closeEventObserved,true); assert.equal(report.groupExistsAfterClose,false);
+  assert.equal(report.pidAfterClose,''); assert.equal(report.timedOut,false); assert.equal(report.oversized,false);
+  put(resolve(owned,'runs',relative(resolve(temp,'evidence/runs'),path)),readFileSync(path,'utf8'));
+  runs.push({path:relative(owned,resolve(owned,'runs',relative(resolve(temp,'evidence/runs'),path))),label:report.label,status:report.status,signal:report.signal,pid:report.pid,normalClose:true,reaped:true,sourceManifestSha256:frozen.sourceManifestSha256,sha256:hash(readFileSync(path))});
+}
+for(const name of ['supervisor.mjs','run-prototype.mjs','controls.mjs','run-consumer.mjs','consumer.mts','consumer-runtime.mjs','archive.mjs']) put(resolve(owned,`${name}.data`),readFileSync(resolve(temp,name),'utf8'));
+for(const name of ['contracts/output.d.ts','contracts/io.d.ts','commands/network/types.d.ts','index.d.ts']) put(resolve(owned,'declarations',`${name}.data`),readFileSync(resolve(candidate,'dist',name),'utf8'));
+const fixtureDiff = spawnSync('/usr/bin/git',['diff','--no-index','--',resolve(owned,'author-r0.test.ts.data'),resolve(owned,'author-r1.test.ts.data')],{encoding:'utf8'});
+assert.equal(fixtureDiff.status,1); assert.equal(fixtureDiff.signal,null);
+put(resolve(owned,'fixture-r0-to-r1.patch-data'),fixtureDiff.stdout);
+const parseDiagnostics = report => report.stdout.split('\n').filter(line=>line.startsWith('# {"scenario"')).map(line=>JSON.parse(line.slice(2).replaceAll('\\\\','\\'))).map(outer=>({ ...outer, observation:JSON.parse(outer.stdout.split('\n').find(line=>line.startsWith('{'))??'{}') }));
+const original = parseDiagnostics(JSON.parse(readFileSync(resolve(temp,'evidence/runs/historical-r0-original-five-and-head-zero.json'))));
+const adapted = parseDiagnostics(JSON.parse(readFileSync(resolve(temp,'evidence/runs/historical-r0-adapted-five.json'))));
+assert.equal(original.length,6); assert.equal(adapted.length,5);
+const identities = tests.filter(entry=>['tests/shell/first-read-probe.ts','tests/shell/remote-close.test.ts','tests/shell/adapted-first-read-probe.ts','tests/shell/adapted-remote-close.test.ts','tests/stress/remote-cancellation/helpers.ts'].includes(entry.path));
+json(resolve(owned,'cohort-results.json'),{sourceManifestSha256:frozen.sourceManifestSha256,original5:original.filter(entry=>entry.scenario!=='first-read-head-zero'),headZero:original.find(entry=>entry.scenario==='first-read-head-zero'),optin5:adapted,identities,originalProbeDeadlineMs:1200,unchangedChildHardDeadlineMs:3000,barrier:'unchanged middleware head waits started before close',original5Passes:1,optin5Passes:5,legacy57:{remote:19,io:28,shared:5,streaming:4,headZero:1},legacy9:'all pass; C9 synthetic is not product proof',oldAuthor12:'12/12 historical replay; not new acceptance',newAuthor6:{r0:'6/6',r1:'6/6 with same source and S3 curl binding correction'},allScenariosResidualFalse:[...original,...adapted].every(entry=>!entry.residual),relocation:'Original/adapted fixture bytes identical to authenticated v1. TMP root changes only. controls/supervisor paths replace v2 temp with this owned temp; no probe/deadline/barrier delta.'});
+const native = JSON.parse(readFileSync(resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-direction-prototype/native-preserved.json')));
+for(const entry of native.artifacts) assert.equal(hash(readFileSync(resolve(root,entry.path))),entry.sha256);
+json(resolve(owned,'native-preserved.json'),{...native,newCandidateExecutedNative:false});
+const compilerReport = JSON.parse(readFileSync(resolve(temp,'evidence/runs/r1-scoped-typecheck.json')));
+assert.equal(compilerReport.status,0);
+const canonical = realpathSync(candidate);
+const compilerInputs = compilerReport.stdout.trim().split('\n').map(path=>({path,normalizedPath:realpathSync(path).startsWith(canonical+'/')?'CANDIDATE/'+relative(canonical,realpathSync(path)):realpathSync(path),sha256:hash(readFileSync(path)),classification:realpathSync(path).startsWith(canonical+'/')?'temporary-copied-source-or-fixture':'existing-authenticated-development-tooling'}));
+const tooling = ['node_modules/tsx','node_modules/esbuild','node_modules/@esbuild/darwin-arm64','node_modules/get-tsconfig','node_modules/resolve-pkg-maps'].flatMap(path=>existsSync(resolve(root,path))?walk(resolve(root,path)):[]).map(path=>({path:relative(root,path),sha256:hash(readFileSync(path))}));
+const inputs = [
+  'tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data',
+  'tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data',
+  'tests/shell-stress/first-read-contract-review/owned-output-prototype/handoff.json',
+  'tests/shell-stress/first-read-contract-review/owned-output-prototype/reconstruction.json',
+  ...['owned-output-author.test.ts','adapted-first-read-probe.ts','adapted-remote-close.test.ts'].map(name=>`tests/shell-stress/first-read-contract-review/owned-output-prototype/${name}.data`),
+  ...['baseline-current-retention.patch-data','source-S1-r0.patch-data','author-r1.test.ts.data','API-S1.txt.data','CONTRACT.md'].map(name=>relative(root,resolve(owned,name))),
+].map(path=>({path,sha256:hash(readFileSync(resolve(root,path)))}));
+const manifest = {preparedAt:new Date().toISOString(),status:'tested-source-frozen; candidate chmod/seal follows verified reconstruction',apiVersion:'S1',temp,candidate,source,tests,compiled,sourceManifestSha256:hash(JSON.stringify(source)),testManifestSha256:hash(JSON.stringify(tests)),compiledManifestSha256:hash(JSON.stringify(compiled)),compilerInputs,tooling,tools:{node:{path:process.execPath,version:process.version,sha256:hash(readFileSync(process.execPath))},compiler:frozen.tools.filter(entry=>entry.path.includes('typescript'))},config:['package.json','package-lock.json','tsconfig.json','tsconfig.build.json'].map(path=>({path,sha256:hash(readFileSync(resolve(candidate,path)))})),restoreInputs:inputs,runs,apiSha256:frozen.apiSha256,contractSha256:frozen.contractSha256,authorLogicalCases:6,sourceFixRounds:0,fixtureCorrectionRounds:1,sourceAfterRunsAuthenticated:true,importPath:resolve(candidate,'dist/index.js'),outputImportPath:resolve(candidate,'dist/contracts/output.js'),declarationPath:resolve(candidate,'dist/contracts/output.d.ts'),limits:['Not live or current-release source','Original5 remains1/5','No universal opaque preemption/drain/handback','No prebuffer/lease/demandgate','Independent execution only after actual author CLOSED'],harnessNote:'Exploratory TAP JSON extraction initially omitted TAP backslash unescaping and threw SyntaxError; raw TAP retained unchanged. Correct extraction reverses TAP doubled backslashes before JSON parse; no fixture or source change.'};
+json(resolve(owned,'tested-manifest.json'),manifest);
+console.log(JSON.stringify({sourceManifestSha256:manifest.sourceManifestSha256,testManifestSha256:manifest.testManifestSha256,compiledManifestSha256:manifest.compiledManifestSha256,source:source.length,tests:tests.length,compiled:compiled.length,compilerInputs:compilerInputs.length,runs:runs.length}));

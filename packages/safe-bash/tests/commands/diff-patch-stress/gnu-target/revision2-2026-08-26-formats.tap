@@ -1,0 +1,6430 @@
+TAP version 13
+# FORMAT_ORACLES [{"tool":"diff","path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","version":"diff (GNU diffutils) 3.12\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Paul Eggert, Mike Haertel, David Hayes,\\nRichard Stallman, and Len Tower.","dialect":"gnu","sha256":"f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"},{"tool":"patch","path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"}]
+# Subtest: context merging exact boundary C0/gap0
+ok 1 - context merging exact boundary C0/gap0
+  ---
+  duration_ms: 19.842959
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C0/gap1
+ok 2 - context merging exact boundary C0/gap1
+  ---
+  duration_ms: 15.376583
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C0/gap2
+ok 3 - context merging exact boundary C0/gap2
+  ---
+  duration_ms: 10.802958
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C0/gap3
+ok 4 - context merging exact boundary C0/gap3
+  ---
+  duration_ms: 13.413417
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C0/gap4
+ok 5 - context merging exact boundary C0/gap4
+  ---
+  duration_ms: 16.32775
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C0/gap5
+ok 6 - context merging exact boundary C0/gap5
+  ---
+  duration_ms: 12.401
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C0/gap6
+ok 7 - context merging exact boundary C0/gap6
+  ---
+  duration_ms: 18.370166
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C0/gap7
+ok 8 - context merging exact boundary C0/gap7
+  ---
+  duration_ms: 12.490709
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C0/gap8
+ok 9 - context merging exact boundary C0/gap8
+  ---
+  duration_ms: 14.477875
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap0
+ok 10 - context merging exact boundary C1/gap0
+  ---
+  duration_ms: 9.777791
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap1
+ok 11 - context merging exact boundary C1/gap1
+  ---
+  duration_ms: 11.632166
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap2
+ok 12 - context merging exact boundary C1/gap2
+  ---
+  duration_ms: 12.051375
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap3
+ok 13 - context merging exact boundary C1/gap3
+  ---
+  duration_ms: 10.009834
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap4
+ok 14 - context merging exact boundary C1/gap4
+  ---
+  duration_ms: 17.945458
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap5
+ok 15 - context merging exact boundary C1/gap5
+  ---
+  duration_ms: 15.668083
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap6
+ok 16 - context merging exact boundary C1/gap6
+  ---
+  duration_ms: 13.628
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap7
+ok 17 - context merging exact boundary C1/gap7
+  ---
+  duration_ms: 12.574125
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C1/gap8
+ok 18 - context merging exact boundary C1/gap8
+  ---
+  duration_ms: 10.215166
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap0
+ok 19 - context merging exact boundary C2/gap0
+  ---
+  duration_ms: 10.285708
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap1
+ok 20 - context merging exact boundary C2/gap1
+  ---
+  duration_ms: 10.217083
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap2
+ok 21 - context merging exact boundary C2/gap2
+  ---
+  duration_ms: 11.938875
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap3
+ok 22 - context merging exact boundary C2/gap3
+  ---
+  duration_ms: 11.958958
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap4
+ok 23 - context merging exact boundary C2/gap4
+  ---
+  duration_ms: 19.981208
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap5
+ok 24 - context merging exact boundary C2/gap5
+  ---
+  duration_ms: 14.430875
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap6
+ok 25 - context merging exact boundary C2/gap6
+  ---
+  duration_ms: 13.091292
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap7
+ok 26 - context merging exact boundary C2/gap7
+  ---
+  duration_ms: 14.157708
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C2/gap8
+ok 27 - context merging exact boundary C2/gap8
+  ---
+  duration_ms: 9.92025
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap0
+ok 28 - context merging exact boundary C3/gap0
+  ---
+  duration_ms: 10.510708
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap1
+ok 29 - context merging exact boundary C3/gap1
+  ---
+  duration_ms: 10.4315
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap2
+ok 30 - context merging exact boundary C3/gap2
+  ---
+  duration_ms: 10.628416
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap3
+ok 31 - context merging exact boundary C3/gap3
+  ---
+  duration_ms: 13.319416
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap4
+ok 32 - context merging exact boundary C3/gap4
+  ---
+  duration_ms: 9.287959
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap5
+ok 33 - context merging exact boundary C3/gap5
+  ---
+  duration_ms: 9.514125
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap6
+ok 34 - context merging exact boundary C3/gap6
+  ---
+  duration_ms: 11.266875
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap7
+ok 35 - context merging exact boundary C3/gap7
+  ---
+  duration_ms: 14.435375
+  type: 'test'
+  ...
+# Subtest: context merging exact boundary C3/gap8
+ok 36 - context merging exact boundary C3/gap8
+  ---
+  duration_ms: 11.85125
+  type: 'test'
+  ...
+# Subtest: option interactions -c -q/labels=false
+ok 37 - option interactions -c -q/labels=false
+  ---
+  duration_ms: 13.442042
+  type: 'test'
+  ...
+# Subtest: option interactions -c -q/labels=true
+ok 38 - option interactions -c -q/labels=true
+  ---
+  duration_ms: 11.861625
+  type: 'test'
+  ...
+# Subtest: option interactions -qc/labels=false
+ok 39 - option interactions -qc/labels=false
+  ---
+  duration_ms: 12.271292
+  type: 'test'
+  ...
+# Subtest: option interactions -qc/labels=true
+ok 40 - option interactions -qc/labels=true
+  ---
+  duration_ms: 11.836708
+  type: 'test'
+  ...
+# Subtest: option interactions -q --normal/labels=false
+ok 41 - option interactions -q --normal/labels=false
+  ---
+  duration_ms: 17.007209
+  type: 'test'
+  ...
+# Subtest: option interactions -q --normal/labels=true
+ok 42 - option interactions -q --normal/labels=true
+  ---
+  duration_ms: 11.304667
+  type: 'test'
+  ...
+# Subtest: option interactions -C0 -q -w/labels=false
+ok 43 - option interactions -C0 -q -w/labels=false
+  ---
+  duration_ms: 10.5585
+  type: 'test'
+  ...
+# Subtest: option interactions -C0 -q -w/labels=true
+ok 44 - option interactions -C0 -q -w/labels=true
+  ---
+  duration_ms: 11.619333
+  type: 'test'
+  ...
+# Subtest: option interactions -C0 -c/labels=false
+ok 45 - option interactions -C0 -c/labels=false
+  ---
+  duration_ms: 10.018167
+  type: 'test'
+  ...
+# Subtest: option interactions -C0 -c/labels=true
+ok 46 - option interactions -C0 -c/labels=true
+  ---
+  duration_ms: 11.830833
+  type: 'test'
+  ...
+# Subtest: option interactions -C1 --context/labels=false
+ok 47 - option interactions -C1 --context/labels=false
+  ---
+  duration_ms: 9.877708
+  type: 'test'
+  ...
+# Subtest: option interactions -C1 --context/labels=true
+ok 48 - option interactions -C1 --context/labels=true
+  ---
+  duration_ms: 13.317708
+  type: 'test'
+  ...
+# Subtest: option interactions --context=10000/labels=false
+ok 49 - option interactions --context=10000/labels=false
+  ---
+  duration_ms: 9.742125
+  type: 'test'
+  ...
+# Subtest: option interactions --context=10000/labels=true
+ok 50 - option interactions --context=10000/labels=true
+  ---
+  duration_ms: 9.009167
+  type: 'test'
+  ...
+# Subtest: option interactions -c -u/labels=false
+ok 51 - option interactions -c -u/labels=false
+  ---
+  duration_ms: 11.408791
+  type: 'test'
+  ...
+# Subtest: option interactions -c -u/labels=true
+ok 52 - option interactions -c -u/labels=true
+  ---
+  duration_ms: 9.541541
+  type: 'test'
+  ...
+# Subtest: option interactions -u -c/labels=false
+ok 53 - option interactions -u -c/labels=false
+  ---
+  duration_ms: 9.810292
+  type: 'test'
+  ...
+# Subtest: option interactions -u -c/labels=true
+ok 54 - option interactions -u -c/labels=true
+  ---
+  duration_ms: 10.074625
+  type: 'test'
+  ...
+# Subtest: option interactions --normal -c/labels=false
+ok 55 - option interactions --normal -c/labels=false
+  ---
+  duration_ms: 10.709167
+  type: 'test'
+  ...
+# Subtest: option interactions --normal -c/labels=true
+ok 56 - option interactions --normal -c/labels=true
+  ---
+  duration_ms: 10.649959
+  type: 'test'
+  ...
+# Subtest: option interactions -C0 -U0/labels=false
+ok 57 - option interactions -C0 -U0/labels=false
+  ---
+  duration_ms: 9.53475
+  type: 'test'
+  ...
+# Subtest: option interactions -C0 -U0/labels=true
+ok 58 - option interactions -C0 -U0/labels=true
+  ---
+  duration_ms: 15.599084
+  type: 'test'
+  ...
+# Subtest: option interactions -q -c -u/labels=false
+ok 59 - option interactions -q -c -u/labels=false
+  ---
+  duration_ms: 9.674458
+  type: 'test'
+  ...
+# Subtest: option interactions -q -c -u/labels=true
+ok 60 - option interactions -q -c -u/labels=true
+  ---
+  duration_ms: 9.25825
+  type: 'test'
+  ...
+# Subtest: option interactions -c -q --normal/labels=false
+ok 61 - option interactions -c -q --normal/labels=false
+  ---
+  duration_ms: 10.431792
+  type: 'test'
+  ...
+# Subtest: option interactions -c -q --normal/labels=true
+ok 62 - option interactions -c -q --normal/labels=true
+  ---
+  duration_ms: 12.317042
+  type: 'test'
+  ...
+# Subtest: independent static normal range 0
+ok 63 - independent static normal range 0
+  ---
+  duration_ms: 10.187208
+  type: 'test'
+  ...
+# Subtest: independent static normal range 1
+ok 64 - independent static normal range 1
+  ---
+  duration_ms: 12.8755
+  type: 'test'
+  ...
+# Subtest: independent static normal range 2
+ok 65 - independent static normal range 2
+  ---
+  duration_ms: 11.711542
+  type: 'test'
+  ...
+# Subtest: independent static normal range 3
+ok 66 - independent static normal range 3
+  ---
+  duration_ms: 11.426333
+  type: 'test'
+  ...
+# Subtest: format budget atomic normal/{"maxInputBytes":3}
+ok 67 - format budget atomic normal/{"maxInputBytes":3}
+  ---
+  duration_ms: 0.739167
+  type: 'test'
+  ...
+# Subtest: format budget atomic normal/{"maxOutputBytes":6}
+ok 68 - format budget atomic normal/{"maxOutputBytes":6}
+  ---
+  duration_ms: 0.308834
+  type: 'test'
+  ...
+# Subtest: format budget atomic normal/{"maxLines":2}
+ok 69 - format budget atomic normal/{"maxLines":2}
+  ---
+  duration_ms: 0.173375
+  type: 'test'
+  ...
+# Subtest: format budget atomic normal/{"maxMatrixCells":1}
+ok 70 - format budget atomic normal/{"maxMatrixCells":1}
+  ---
+  duration_ms: 0.175
+  type: 'test'
+  ...
+# Subtest: format budget atomic normal/{"maxWork":3}
+ok 71 - format budget atomic normal/{"maxWork":3}
+  ---
+  duration_ms: 0.09
+  type: 'test'
+  ...
+# Subtest: format budget atomic normal/{"maxHunks":1}
+ok 72 - format budget atomic normal/{"maxHunks":1}
+  ---
+  duration_ms: 0.178083
+  type: 'test'
+  ...
+# Subtest: format budget atomic -C0/{"maxInputBytes":3}
+ok 73 - format budget atomic -C0/{"maxInputBytes":3}
+  ---
+  duration_ms: 0.183125
+  type: 'test'
+  ...
+# Subtest: format budget atomic -C0/{"maxOutputBytes":6}
+ok 74 - format budget atomic -C0/{"maxOutputBytes":6}
+  ---
+  duration_ms: 0.18175
+  type: 'test'
+  ...
+# Subtest: format budget atomic -C0/{"maxLines":2}
+ok 75 - format budget atomic -C0/{"maxLines":2}
+  ---
+  duration_ms: 0.199
+  type: 'test'
+  ...
+# Subtest: format budget atomic -C0/{"maxMatrixCells":1}
+ok 76 - format budget atomic -C0/{"maxMatrixCells":1}
+  ---
+  duration_ms: 0.186458
+  type: 'test'
+  ...
+# Subtest: format budget atomic -C0/{"maxWork":3}
+ok 77 - format budget atomic -C0/{"maxWork":3}
+  ---
+  duration_ms: 0.074083
+  type: 'test'
+  ...
+# Subtest: format budget atomic -C0/{"maxHunks":1}
+ok 78 - format budget atomic -C0/{"maxHunks":1}
+  ---
+  duration_ms: 0.18375
+  type: 'test'
+  ...
+# Subtest: format cancellation during normalized comparison normal
+ok 79 - format cancellation during normalized comparison normal
+  ---
+  duration_ms: 1.907583
+  type: 'test'
+  ...
+# Subtest: format cancellation interrupts blocked stdout normal
+ok 80 - format cancellation interrupts blocked stdout normal
+  ---
+  duration_ms: 2.031333
+  type: 'test'
+  ...
+# Subtest: format cancellation during normalized comparison -C3
+ok 81 - format cancellation during normalized comparison -C3
+  ---
+  duration_ms: 3.43075
+  type: 'test'
+  ...
+# Subtest: format cancellation interrupts blocked stdout -C3
+ok 82 - format cancellation interrupts blocked stdout -C3
+  ---
+  duration_ms: 0.579875
+  type: 'test'
+  ...
+# Subtest: Shell plugin normal diff-to-patch pipeline
+ok 83 - Shell plugin normal diff-to-patch pipeline
+  ---
+  duration_ms: 11.597
+  type: 'test'
+  ...
+# Subtest: Shell plugin context diff-to-patch pipeline
+ok 84 - Shell plugin context diff-to-patch pipeline
+  ---
+  duration_ms: 2.541792
+  type: 'test'
+  ...
+# Subtest: patch atomic extension format budget normal/{"maxInputBytes":4}
+ok 85 - patch atomic extension format budget normal/{"maxInputBytes":4}
+  ---
+  duration_ms: 0.515375
+  type: 'test'
+  ...
+# Subtest: patch atomic extension format budget normal/{"maxOutputBytes":2}
+ok 86 - patch atomic extension format budget normal/{"maxOutputBytes":2}
+  ---
+  duration_ms: 0.909958
+  type: 'test'
+  ...
+# Subtest: patch atomic extension format budget context/{"maxInputBytes":4}
+ok 87 - patch atomic extension format budget context/{"maxInputBytes":4}
+  ---
+  duration_ms: 0.303375
+  type: 'test'
+  ...
+# Subtest: patch atomic extension format budget context/{"maxOutputBytes":2}
+ok 88 - patch atomic extension format budget context/{"maxOutputBytes":2}
+  ---
+  duration_ms: 0.88975
+  type: 'test'
+  ...
+# FORMAT_ORACLES [{"tool":"diff","path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","version":"diff (GNU diffutils) 3.12\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Paul Eggert, Mike Haertel, David Hayes,\\nRichard Stallman, and Len Tower.","dialect":"gnu","sha256":"f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"},{"tool":"patch","path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"}]
+# Subtest: corpus has 128 independent inputs, including 14 alignment-ambiguous pairs
+ok 89 - corpus has 128 independent inputs, including 14 alignment-ambiguous pairs
+  ---
+  duration_ms: 4.50225
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-0/C0
+ok 90 - native-native control normal/insert-0/C0
+  ---
+  duration_ms: 64.002125
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-0/C0
+ok 91 - independent formatter normal/insert-0/C0
+  ---
+  duration_ms: 39.329667
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-0/C0
+ok 92 - independent parser normal/insert-0/C0
+  ---
+  duration_ms: 20.176917
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-0/C0
+ok 93 - native-native control context/insert-0/C0
+  ---
+  duration_ms: 33.3025
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-0/C0
+ok 94 - independent formatter context/insert-0/C0
+  ---
+  duration_ms: 32.46725
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-0/C0
+ok 95 - independent parser context/insert-0/C0
+  ---
+  duration_ms: 22.055542
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-0/C1
+ok 96 - native-native control normal/delete-0/C1
+  ---
+  duration_ms: 37.413708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-0/C1
+ok 97 - independent formatter normal/delete-0/C1
+  ---
+  duration_ms: 33.771167
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-0/C1
+ok 98 - independent parser normal/delete-0/C1
+  ---
+  duration_ms: 13.876875
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-0/C1
+ok 99 - native-native control context/delete-0/C1
+  ---
+  duration_ms: 40.394
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-0/C1
+ok 100 - independent formatter context/delete-0/C1
+  ---
+  duration_ms: 37.563625
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-0/C1
+ok 101 - independent parser context/delete-0/C1
+  ---
+  duration_ms: 12.24325
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-0/C3
+ok 102 - native-native control normal/replace-0/C3
+  ---
+  duration_ms: 32.943458
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-0/C3
+ok 103 - independent formatter normal/replace-0/C3
+  ---
+  duration_ms: 33.11175
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-0/C3
+ok 104 - independent parser normal/replace-0/C3
+  ---
+  duration_ms: 13.132583
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-0/C3
+ok 105 - native-native control context/replace-0/C3
+  ---
+  duration_ms: 36.478584
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-0/C3
+ok 106 - independent formatter context/replace-0/C3
+  ---
+  duration_ms: 40.167833
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-0/C3
+ok 107 - independent parser context/replace-0/C3
+  ---
+  duration_ms: 12.266417
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-0/C32
+ok 108 - native-native control normal/expand-0/C32
+  ---
+  duration_ms: 31.720584
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-0/C32
+ok 109 - independent formatter normal/expand-0/C32
+  ---
+  duration_ms: 35.374625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-0/C32
+ok 110 - independent parser normal/expand-0/C32
+  ---
+  duration_ms: 11.698417
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-0/C32
+ok 111 - native-native control context/expand-0/C32
+  ---
+  duration_ms: 28.85625
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-0/C32
+ok 112 - independent formatter context/expand-0/C32
+  ---
+  duration_ms: 30.691209
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-0/C32
+ok 113 - independent parser context/expand-0/C32
+  ---
+  duration_ms: 10.704541
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-0/C0
+ok 114 - native-native control normal/contract-0/C0
+  ---
+  duration_ms: 34.566
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-0/C0
+ok 115 - independent formatter normal/contract-0/C0
+  ---
+  duration_ms: 31.5815
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-0/C0
+ok 116 - independent parser normal/contract-0/C0
+  ---
+  duration_ms: 13.411083
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-0/C0
+ok 117 - native-native control context/contract-0/C0
+  ---
+  duration_ms: 33.341625
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-0/C0
+ok 118 - independent formatter context/contract-0/C0
+  ---
+  duration_ms: 35.955625
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-0/C0
+ok 119 - independent parser context/contract-0/C0
+  ---
+  duration_ms: 11.50075
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-0/C1
+ok 120 - native-native control normal/separated-0/C1
+  ---
+  duration_ms: 32.705292
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-0/C1
+ok 121 - independent formatter normal/separated-0/C1
+  ---
+  duration_ms: 28.7445
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-0/C1
+ok 122 - independent parser normal/separated-0/C1
+  ---
+  duration_ms: 10.411208
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-0/C1
+ok 123 - native-native control context/separated-0/C1
+  ---
+  duration_ms: 37.017416
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-0/C1
+ok 124 - independent formatter context/separated-0/C1
+  ---
+  duration_ms: 44.160167
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-0/C1
+ok 125 - independent parser context/separated-0/C1
+  ---
+  duration_ms: 10.455083
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-0/C3
+ok 126 - native-native control normal/prepend-0/C3
+  ---
+  duration_ms: 29.369792
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-0/C3
+ok 127 - independent formatter normal/prepend-0/C3
+  ---
+  duration_ms: 30.988916
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-0/C3
+ok 128 - independent parser normal/prepend-0/C3
+  ---
+  duration_ms: 10.057417
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-0/C3
+ok 129 - native-native control context/prepend-0/C3
+  ---
+  duration_ms: 39.347709
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-0/C3
+ok 130 - independent formatter context/prepend-0/C3
+  ---
+  duration_ms: 32.199209
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-0/C3
+ok 131 - independent parser context/prepend-0/C3
+  ---
+  duration_ms: 13.535167
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-0/C32
+ok 132 - native-native control normal/append-0/C32
+  ---
+  duration_ms: 42.706667
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-0/C32
+ok 133 - independent formatter normal/append-0/C32
+  ---
+  duration_ms: 30.283834
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-0/C32
+ok 134 - independent parser normal/append-0/C32
+  ---
+  duration_ms: 10.409375
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-0/C32
+ok 135 - native-native control context/append-0/C32
+  ---
+  duration_ms: 32.268334
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-0/C32
+ok 136 - independent formatter context/append-0/C32
+  ---
+  duration_ms: 34.62525
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-0/C32
+ok 137 - independent parser context/append-0/C32
+  ---
+  duration_ms: 10.476917
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-1/C1
+ok 138 - native-native control normal/insert-1/C1
+  ---
+  duration_ms: 30.941583
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-1/C1
+ok 139 - independent formatter normal/insert-1/C1
+  ---
+  duration_ms: 31.919416
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-1/C1
+ok 140 - independent parser normal/insert-1/C1
+  ---
+  duration_ms: 10.132625
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-1/C1
+ok 141 - native-native control context/insert-1/C1
+  ---
+  duration_ms: 27.717708
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-1/C1
+ok 142 - independent formatter context/insert-1/C1
+  ---
+  duration_ms: 28.060042
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-1/C1
+ok 143 - independent parser context/insert-1/C1
+  ---
+  duration_ms: 10.626417
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-1/C3
+ok 144 - native-native control normal/delete-1/C3
+  ---
+  duration_ms: 33.717541
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-1/C3
+ok 145 - independent formatter normal/delete-1/C3
+  ---
+  duration_ms: 33.125792
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-1/C3
+ok 146 - independent parser normal/delete-1/C3
+  ---
+  duration_ms: 10.591833
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-1/C3
+ok 147 - native-native control context/delete-1/C3
+  ---
+  duration_ms: 31.933667
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-1/C3
+ok 148 - independent formatter context/delete-1/C3
+  ---
+  duration_ms: 31.30725
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-1/C3
+ok 149 - independent parser context/delete-1/C3
+  ---
+  duration_ms: 9.97175
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-1/C32
+ok 150 - native-native control normal/replace-1/C32
+  ---
+  duration_ms: 29.751458
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-1/C32
+ok 151 - independent formatter normal/replace-1/C32
+  ---
+  duration_ms: 29.051834
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-1/C32
+ok 152 - independent parser normal/replace-1/C32
+  ---
+  duration_ms: 9.154709
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-1/C32
+ok 153 - native-native control context/replace-1/C32
+  ---
+  duration_ms: 38.405666
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-1/C32
+ok 154 - independent formatter context/replace-1/C32
+  ---
+  duration_ms: 30.851084
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-1/C32
+ok 155 - independent parser context/replace-1/C32
+  ---
+  duration_ms: 10.624791
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-1/C0
+ok 156 - native-native control normal/expand-1/C0
+  ---
+  duration_ms: 30.739166
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-1/C0
+ok 157 - independent formatter normal/expand-1/C0
+  ---
+  duration_ms: 29.069958
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-1/C0
+ok 158 - independent parser normal/expand-1/C0
+  ---
+  duration_ms: 12.418083
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-1/C0
+ok 159 - native-native control context/expand-1/C0
+  ---
+  duration_ms: 28.722958
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-1/C0
+ok 160 - independent formatter context/expand-1/C0
+  ---
+  duration_ms: 33.763375
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-1/C0
+ok 161 - independent parser context/expand-1/C0
+  ---
+  duration_ms: 10.58475
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-1/C1
+ok 162 - native-native control normal/contract-1/C1
+  ---
+  duration_ms: 28.637833
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-1/C1
+ok 163 - independent formatter normal/contract-1/C1
+  ---
+  duration_ms: 29.434708
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-1/C1
+ok 164 - independent parser normal/contract-1/C1
+  ---
+  duration_ms: 10.197
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-1/C1
+ok 165 - native-native control context/contract-1/C1
+  ---
+  duration_ms: 31.501459
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-1/C1
+ok 166 - independent formatter context/contract-1/C1
+  ---
+  duration_ms: 33.948084
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-1/C1
+ok 167 - independent parser context/contract-1/C1
+  ---
+  duration_ms: 9.625041
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-1/C3
+ok 168 - native-native control normal/separated-1/C3
+  ---
+  duration_ms: 30.835209
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-1/C3
+ok 169 - independent formatter normal/separated-1/C3
+  ---
+  duration_ms: 32.215333
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-1/C3
+ok 170 - independent parser normal/separated-1/C3
+  ---
+  duration_ms: 11.781416
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-1/C3
+ok 171 - native-native control context/separated-1/C3
+  ---
+  duration_ms: 30.034583
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-1/C3
+ok 172 - independent formatter context/separated-1/C3
+  ---
+  duration_ms: 32.05025
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-1/C3
+ok 173 - independent parser context/separated-1/C3
+  ---
+  duration_ms: 10.050917
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-1/C32
+ok 174 - native-native control normal/prepend-1/C32
+  ---
+  duration_ms: 29.409625
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-1/C32
+ok 175 - independent formatter normal/prepend-1/C32
+  ---
+  duration_ms: 27.662041
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-1/C32
+ok 176 - independent parser normal/prepend-1/C32
+  ---
+  duration_ms: 10.432583
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-1/C32
+ok 177 - native-native control context/prepend-1/C32
+  ---
+  duration_ms: 30.487458
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-1/C32
+ok 178 - independent formatter context/prepend-1/C32
+  ---
+  duration_ms: 32.145083
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-1/C32
+ok 179 - independent parser context/prepend-1/C32
+  ---
+  duration_ms: 11.751208
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-1/C0
+ok 180 - native-native control normal/append-1/C0
+  ---
+  duration_ms: 28.392083
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-1/C0
+ok 181 - independent formatter normal/append-1/C0
+  ---
+  duration_ms: 30.451209
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-1/C0
+ok 182 - independent parser normal/append-1/C0
+  ---
+  duration_ms: 9.655875
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-1/C0
+ok 183 - native-native control context/append-1/C0
+  ---
+  duration_ms: 34.853583
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-1/C0
+ok 184 - independent formatter context/append-1/C0
+  ---
+  duration_ms: 35.769791
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-1/C0
+ok 185 - independent parser context/append-1/C0
+  ---
+  duration_ms: 14.901667
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-2/C3
+ok 186 - native-native control normal/insert-2/C3
+  ---
+  duration_ms: 28.862541
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-2/C3
+ok 187 - independent formatter normal/insert-2/C3
+  ---
+  duration_ms: 29.422083
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-2/C3
+ok 188 - independent parser normal/insert-2/C3
+  ---
+  duration_ms: 11.050167
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-2/C3
+ok 189 - native-native control context/insert-2/C3
+  ---
+  duration_ms: 32.288417
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-2/C3
+ok 190 - independent formatter context/insert-2/C3
+  ---
+  duration_ms: 26.6545
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-2/C3
+ok 191 - independent parser context/insert-2/C3
+  ---
+  duration_ms: 9.804375
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-2/C32
+ok 192 - native-native control normal/delete-2/C32
+  ---
+  duration_ms: 27.815
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-2/C32
+ok 193 - independent formatter normal/delete-2/C32
+  ---
+  duration_ms: 28.486416
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-2/C32
+ok 194 - independent parser normal/delete-2/C32
+  ---
+  duration_ms: 10.497625
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-2/C32
+ok 195 - native-native control context/delete-2/C32
+  ---
+  duration_ms: 31.0485
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-2/C32
+ok 196 - independent formatter context/delete-2/C32
+  ---
+  duration_ms: 29.233791
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-2/C32
+ok 197 - independent parser context/delete-2/C32
+  ---
+  duration_ms: 10.729125
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-2/C0
+ok 198 - native-native control normal/replace-2/C0
+  ---
+  duration_ms: 28.904125
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-2/C0
+ok 199 - independent formatter normal/replace-2/C0
+  ---
+  duration_ms: 26.514
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-2/C0
+ok 200 - independent parser normal/replace-2/C0
+  ---
+  duration_ms: 9.728833
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-2/C0
+ok 201 - native-native control context/replace-2/C0
+  ---
+  duration_ms: 30.247292
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-2/C0
+ok 202 - independent formatter context/replace-2/C0
+  ---
+  duration_ms: 32.42725
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-2/C0
+ok 203 - independent parser context/replace-2/C0
+  ---
+  duration_ms: 9.596458
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-2/C1
+ok 204 - native-native control normal/expand-2/C1
+  ---
+  duration_ms: 30.402834
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-2/C1
+ok 205 - independent formatter normal/expand-2/C1
+  ---
+  duration_ms: 29.641917
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-2/C1
+ok 206 - independent parser normal/expand-2/C1
+  ---
+  duration_ms: 11.13375
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-2/C1
+ok 207 - native-native control context/expand-2/C1
+  ---
+  duration_ms: 29.482334
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-2/C1
+ok 208 - independent formatter context/expand-2/C1
+  ---
+  duration_ms: 28.12125
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-2/C1
+ok 209 - independent parser context/expand-2/C1
+  ---
+  duration_ms: 11.642583
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-2/C3
+ok 210 - native-native control normal/contract-2/C3
+  ---
+  duration_ms: 28.251708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-2/C3
+ok 211 - independent formatter normal/contract-2/C3
+  ---
+  duration_ms: 28.177959
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-2/C3
+ok 212 - independent parser normal/contract-2/C3
+  ---
+  duration_ms: 10.361791
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-2/C3
+ok 213 - native-native control context/contract-2/C3
+  ---
+  duration_ms: 27.09125
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-2/C3
+ok 214 - independent formatter context/contract-2/C3
+  ---
+  duration_ms: 29.523625
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-2/C3
+ok 215 - independent parser context/contract-2/C3
+  ---
+  duration_ms: 11.113875
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-2/C32
+ok 216 - native-native control normal/separated-2/C32
+  ---
+  duration_ms: 34.201583
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-2/C32
+ok 217 - independent formatter normal/separated-2/C32
+  ---
+  duration_ms: 27.295875
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-2/C32
+ok 218 - independent parser normal/separated-2/C32
+  ---
+  duration_ms: 13.518167
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-2/C32
+ok 219 - native-native control context/separated-2/C32
+  ---
+  duration_ms: 30.341417
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-2/C32
+ok 220 - independent formatter context/separated-2/C32
+  ---
+  duration_ms: 28.069292
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-2/C32
+ok 221 - independent parser context/separated-2/C32
+  ---
+  duration_ms: 9.516583
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-2/C0
+ok 222 - native-native control normal/prepend-2/C0
+  ---
+  duration_ms: 27.105916
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-2/C0
+ok 223 - independent formatter normal/prepend-2/C0
+  ---
+  duration_ms: 29.143334
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-2/C0
+ok 224 - independent parser normal/prepend-2/C0
+  ---
+  duration_ms: 12.66225
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-2/C0
+ok 225 - native-native control context/prepend-2/C0
+  ---
+  duration_ms: 26.812667
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-2/C0
+ok 226 - independent formatter context/prepend-2/C0
+  ---
+  duration_ms: 27.423542
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-2/C0
+ok 227 - independent parser context/prepend-2/C0
+  ---
+  duration_ms: 9.648333
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-2/C1
+ok 228 - native-native control normal/append-2/C1
+  ---
+  duration_ms: 28.733708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-2/C1
+ok 229 - independent formatter normal/append-2/C1
+  ---
+  duration_ms: 27.830792
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-2/C1
+ok 230 - independent parser normal/append-2/C1
+  ---
+  duration_ms: 9.151458
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-2/C1
+ok 231 - native-native control context/append-2/C1
+  ---
+  duration_ms: 30.044375
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-2/C1
+ok 232 - independent formatter context/append-2/C1
+  ---
+  duration_ms: 29.009375
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-2/C1
+ok 233 - independent parser context/append-2/C1
+  ---
+  duration_ms: 9.196
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-3/C32
+ok 234 - native-native control normal/insert-3/C32
+  ---
+  duration_ms: 25.144584
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-3/C32
+ok 235 - independent formatter normal/insert-3/C32
+  ---
+  duration_ms: 28.494792
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-3/C32
+ok 236 - independent parser normal/insert-3/C32
+  ---
+  duration_ms: 10.124167
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-3/C32
+ok 237 - native-native control context/insert-3/C32
+  ---
+  duration_ms: 28.26725
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-3/C32
+ok 238 - independent formatter context/insert-3/C32
+  ---
+  duration_ms: 26.529917
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-3/C32
+ok 239 - independent parser context/insert-3/C32
+  ---
+  duration_ms: 8.758792
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-3/C0
+ok 240 - native-native control normal/delete-3/C0
+  ---
+  duration_ms: 27.474
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-3/C0
+ok 241 - independent formatter normal/delete-3/C0
+  ---
+  duration_ms: 29.656625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-3/C0
+ok 242 - independent parser normal/delete-3/C0
+  ---
+  duration_ms: 9.407916
+  type: 'test'
+  ...
+# Subtest: GNU C0 calibration only context/delete-3/C0
+ok 243 - GNU C0 calibration only context/delete-3/C0
+  ---
+  duration_ms: 29.410583
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-3/C0
+ok 244 - independent formatter context/delete-3/C0
+  ---
+  duration_ms: 28.94075
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-3/C0
+ok 245 - independent parser context/delete-3/C0
+  ---
+  duration_ms: 10.429041
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-3/C1
+ok 246 - native-native control normal/replace-3/C1
+  ---
+  duration_ms: 31.953
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-3/C1
+ok 247 - independent formatter normal/replace-3/C1
+  ---
+  duration_ms: 28.779166
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-3/C1
+ok 248 - independent parser normal/replace-3/C1
+  ---
+  duration_ms: 9.951
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-3/C1
+ok 249 - native-native control context/replace-3/C1
+  ---
+  duration_ms: 34.699708
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-3/C1
+ok 250 - independent formatter context/replace-3/C1
+  ---
+  duration_ms: 52.995708
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-3/C1
+ok 251 - independent parser context/replace-3/C1
+  ---
+  duration_ms: 10.103125
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-3/C3
+ok 252 - native-native control normal/expand-3/C3
+  ---
+  duration_ms: 28.938
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-3/C3
+ok 253 - independent formatter normal/expand-3/C3
+  ---
+  duration_ms: 28.184625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-3/C3
+ok 254 - independent parser normal/expand-3/C3
+  ---
+  duration_ms: 10.729708
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-3/C3
+ok 255 - native-native control context/expand-3/C3
+  ---
+  duration_ms: 27.672791
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-3/C3
+ok 256 - independent formatter context/expand-3/C3
+  ---
+  duration_ms: 27.289459
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-3/C3
+ok 257 - independent parser context/expand-3/C3
+  ---
+  duration_ms: 11.032916
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-3/C32
+ok 258 - native-native control normal/contract-3/C32
+  ---
+  duration_ms: 27.356542
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-3/C32
+ok 259 - independent formatter normal/contract-3/C32
+  ---
+  duration_ms: 28.735208
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-3/C32
+ok 260 - independent parser normal/contract-3/C32
+  ---
+  duration_ms: 10.255333
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-3/C32
+ok 261 - native-native control context/contract-3/C32
+  ---
+  duration_ms: 31.62325
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-3/C32
+ok 262 - independent formatter context/contract-3/C32
+  ---
+  duration_ms: 29.051292
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-3/C32
+ok 263 - independent parser context/contract-3/C32
+  ---
+  duration_ms: 10.335459
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-3/C0
+ok 264 - native-native control normal/separated-3/C0
+  ---
+  duration_ms: 27.970958
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-3/C0
+ok 265 - independent formatter normal/separated-3/C0
+  ---
+  duration_ms: 28.748542
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-3/C0
+ok 266 - independent parser normal/separated-3/C0
+  ---
+  duration_ms: 9.919916
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-3/C0
+ok 267 - native-native control context/separated-3/C0
+  ---
+  duration_ms: 28.034458
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-3/C0
+ok 268 - independent formatter context/separated-3/C0
+  ---
+  duration_ms: 27.808
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-3/C0
+ok 269 - independent parser context/separated-3/C0
+  ---
+  duration_ms: 10.308209
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-3/C1
+ok 270 - native-native control normal/prepend-3/C1
+  ---
+  duration_ms: 29.313416
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-3/C1
+ok 271 - independent formatter normal/prepend-3/C1
+  ---
+  duration_ms: 29.214
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-3/C1
+ok 272 - independent parser normal/prepend-3/C1
+  ---
+  duration_ms: 11.457917
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-3/C1
+ok 273 - native-native control context/prepend-3/C1
+  ---
+  duration_ms: 27.2645
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-3/C1
+ok 274 - independent formatter context/prepend-3/C1
+  ---
+  duration_ms: 27.334333
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-3/C1
+ok 275 - independent parser context/prepend-3/C1
+  ---
+  duration_ms: 9.847083
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-3/C3
+ok 276 - native-native control normal/append-3/C3
+  ---
+  duration_ms: 31.007416
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-3/C3
+ok 277 - independent formatter normal/append-3/C3
+  ---
+  duration_ms: 25.069375
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-3/C3
+ok 278 - independent parser normal/append-3/C3
+  ---
+  duration_ms: 8.853292
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-3/C3
+ok 279 - native-native control context/append-3/C3
+  ---
+  duration_ms: 25.244667
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-3/C3
+ok 280 - independent formatter context/append-3/C3
+  ---
+  duration_ms: 25.846625
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-3/C3
+ok 281 - independent parser context/append-3/C3
+  ---
+  duration_ms: 12.345875
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-4/C0
+ok 282 - native-native control normal/insert-4/C0
+  ---
+  duration_ms: 27.651959
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-4/C0
+ok 283 - independent formatter normal/insert-4/C0
+  ---
+  duration_ms: 24.900834
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-4/C0
+ok 284 - independent parser normal/insert-4/C0
+  ---
+  duration_ms: 9.11475
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-4/C0
+ok 285 - native-native control context/insert-4/C0
+  ---
+  duration_ms: 26.535083
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-4/C0
+ok 286 - independent formatter context/insert-4/C0
+  ---
+  duration_ms: 29.993834
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-4/C0
+ok 287 - independent parser context/insert-4/C0
+  ---
+  duration_ms: 8.13
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-4/C1
+ok 288 - native-native control normal/delete-4/C1
+  ---
+  duration_ms: 30.674667
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-4/C1
+ok 289 - independent formatter normal/delete-4/C1
+  ---
+  duration_ms: 31.550916
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-4/C1
+ok 290 - independent parser normal/delete-4/C1
+  ---
+  duration_ms: 11.108541
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-4/C1
+ok 291 - native-native control context/delete-4/C1
+  ---
+  duration_ms: 29.442458
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-4/C1
+ok 292 - independent formatter context/delete-4/C1
+  ---
+  duration_ms: 26.240583
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-4/C1
+ok 293 - independent parser context/delete-4/C1
+  ---
+  duration_ms: 10.171333
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-4/C3
+ok 294 - native-native control normal/replace-4/C3
+  ---
+  duration_ms: 25.093042
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-4/C3
+ok 295 - independent formatter normal/replace-4/C3
+  ---
+  duration_ms: 24.8285
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-4/C3
+ok 296 - independent parser normal/replace-4/C3
+  ---
+  duration_ms: 9.825583
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-4/C3
+ok 297 - native-native control context/replace-4/C3
+  ---
+  duration_ms: 28.539708
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-4/C3
+ok 298 - independent formatter context/replace-4/C3
+  ---
+  duration_ms: 28.163333
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-4/C3
+ok 299 - independent parser context/replace-4/C3
+  ---
+  duration_ms: 11.125958
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-4/C32
+ok 300 - native-native control normal/expand-4/C32
+  ---
+  duration_ms: 53.174333
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-4/C32
+ok 301 - independent formatter normal/expand-4/C32
+  ---
+  duration_ms: 35.27175
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-4/C32
+ok 302 - independent parser normal/expand-4/C32
+  ---
+  duration_ms: 9.264791
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-4/C32
+ok 303 - native-native control context/expand-4/C32
+  ---
+  duration_ms: 34.716833
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-4/C32
+ok 304 - independent formatter context/expand-4/C32
+  ---
+  duration_ms: 26.404542
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-4/C32
+ok 305 - independent parser context/expand-4/C32
+  ---
+  duration_ms: 11.169917
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-4/C0
+ok 306 - native-native control normal/contract-4/C0
+  ---
+  duration_ms: 28.388625
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-4/C0
+ok 307 - independent formatter normal/contract-4/C0
+  ---
+  duration_ms: 27.366458
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-4/C0
+ok 308 - independent parser normal/contract-4/C0
+  ---
+  duration_ms: 9.38375
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-4/C0
+ok 309 - native-native control context/contract-4/C0
+  ---
+  duration_ms: 25.052959
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-4/C0
+ok 310 - independent formatter context/contract-4/C0
+  ---
+  duration_ms: 28.596583
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-4/C0
+ok 311 - independent parser context/contract-4/C0
+  ---
+  duration_ms: 8.830833
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-4/C1
+ok 312 - native-native control normal/separated-4/C1
+  ---
+  duration_ms: 26.641166
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-4/C1
+ok 313 - independent formatter normal/separated-4/C1
+  ---
+  duration_ms: 28.814083
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-4/C1
+ok 314 - independent parser normal/separated-4/C1
+  ---
+  duration_ms: 10.997625
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-4/C1
+ok 315 - native-native control context/separated-4/C1
+  ---
+  duration_ms: 24.230208
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-4/C1
+ok 316 - independent formatter context/separated-4/C1
+  ---
+  duration_ms: 27.72275
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-4/C1
+ok 317 - independent parser context/separated-4/C1
+  ---
+  duration_ms: 9.719791
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-4/C3
+ok 318 - native-native control normal/prepend-4/C3
+  ---
+  duration_ms: 25.288708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-4/C3
+ok 319 - independent formatter normal/prepend-4/C3
+  ---
+  duration_ms: 27.409042
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-4/C3
+ok 320 - independent parser normal/prepend-4/C3
+  ---
+  duration_ms: 8.900084
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-4/C3
+ok 321 - native-native control context/prepend-4/C3
+  ---
+  duration_ms: 30.902917
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-4/C3
+ok 322 - independent formatter context/prepend-4/C3
+  ---
+  duration_ms: 27.08175
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-4/C3
+ok 323 - independent parser context/prepend-4/C3
+  ---
+  duration_ms: 8.956042
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-4/C32
+ok 324 - native-native control normal/append-4/C32
+  ---
+  duration_ms: 24.0415
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-4/C32
+ok 325 - independent formatter normal/append-4/C32
+  ---
+  duration_ms: 26.31225
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-4/C32
+ok 326 - independent parser normal/append-4/C32
+  ---
+  duration_ms: 8.293666
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-4/C32
+ok 327 - native-native control context/append-4/C32
+  ---
+  duration_ms: 23.867041
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-4/C32
+ok 328 - independent formatter context/append-4/C32
+  ---
+  duration_ms: 24.769875
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-4/C32
+ok 329 - independent parser context/append-4/C32
+  ---
+  duration_ms: 8.614833
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-5/C1
+ok 330 - native-native control normal/insert-5/C1
+  ---
+  duration_ms: 26.1125
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-5/C1
+ok 331 - independent formatter normal/insert-5/C1
+  ---
+  duration_ms: 26.68025
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-5/C1
+ok 332 - independent parser normal/insert-5/C1
+  ---
+  duration_ms: 9.642
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-5/C1
+ok 333 - native-native control context/insert-5/C1
+  ---
+  duration_ms: 25.261791
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-5/C1
+ok 334 - independent formatter context/insert-5/C1
+  ---
+  duration_ms: 25.852792
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-5/C1
+ok 335 - independent parser context/insert-5/C1
+  ---
+  duration_ms: 8.094333
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-5/C3
+ok 336 - native-native control normal/delete-5/C3
+  ---
+  duration_ms: 24.549334
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-5/C3
+ok 337 - independent formatter normal/delete-5/C3
+  ---
+  duration_ms: 27.044584
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-5/C3
+ok 338 - independent parser normal/delete-5/C3
+  ---
+  duration_ms: 10.009292
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-5/C3
+ok 339 - native-native control context/delete-5/C3
+  ---
+  duration_ms: 25.819459
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-5/C3
+ok 340 - independent formatter context/delete-5/C3
+  ---
+  duration_ms: 29.877292
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-5/C3
+ok 341 - independent parser context/delete-5/C3
+  ---
+  duration_ms: 9.526166
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-5/C32
+ok 342 - native-native control normal/replace-5/C32
+  ---
+  duration_ms: 23.547834
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-5/C32
+ok 343 - independent formatter normal/replace-5/C32
+  ---
+  duration_ms: 24.855166
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-5/C32
+ok 344 - independent parser normal/replace-5/C32
+  ---
+  duration_ms: 8.03725
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-5/C32
+ok 345 - native-native control context/replace-5/C32
+  ---
+  duration_ms: 24.048917
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-5/C32
+ok 346 - independent formatter context/replace-5/C32
+  ---
+  duration_ms: 27.365
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-5/C32
+ok 347 - independent parser context/replace-5/C32
+  ---
+  duration_ms: 8.906791
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-5/C0
+ok 348 - native-native control normal/expand-5/C0
+  ---
+  duration_ms: 24.76525
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-5/C0
+ok 349 - independent formatter normal/expand-5/C0
+  ---
+  duration_ms: 27.365042
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-5/C0
+ok 350 - independent parser normal/expand-5/C0
+  ---
+  duration_ms: 17.664459
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-5/C0
+ok 351 - native-native control context/expand-5/C0
+  ---
+  duration_ms: 28.921292
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-5/C0
+ok 352 - independent formatter context/expand-5/C0
+  ---
+  duration_ms: 23.178625
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-5/C0
+ok 353 - independent parser context/expand-5/C0
+  ---
+  duration_ms: 8.741125
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-5/C1
+ok 354 - native-native control normal/contract-5/C1
+  ---
+  duration_ms: 24.726708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-5/C1
+ok 355 - independent formatter normal/contract-5/C1
+  ---
+  duration_ms: 24.893542
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-5/C1
+ok 356 - independent parser normal/contract-5/C1
+  ---
+  duration_ms: 9.453834
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-5/C1
+ok 357 - native-native control context/contract-5/C1
+  ---
+  duration_ms: 22.638334
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-5/C1
+ok 358 - independent formatter context/contract-5/C1
+  ---
+  duration_ms: 25.824125
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-5/C1
+ok 359 - independent parser context/contract-5/C1
+  ---
+  duration_ms: 7.953084
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-5/C3
+ok 360 - native-native control normal/separated-5/C3
+  ---
+  duration_ms: 24.810375
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-5/C3
+ok 361 - independent formatter normal/separated-5/C3
+  ---
+  duration_ms: 24.277792
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-5/C3
+ok 362 - independent parser normal/separated-5/C3
+  ---
+  duration_ms: 7.934875
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-5/C3
+ok 363 - native-native control context/separated-5/C3
+  ---
+  duration_ms: 25.997625
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-5/C3
+ok 364 - independent formatter context/separated-5/C3
+  ---
+  duration_ms: 24.256083
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-5/C3
+ok 365 - independent parser context/separated-5/C3
+  ---
+  duration_ms: 9.681875
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-5/C32
+ok 366 - native-native control normal/prepend-5/C32
+  ---
+  duration_ms: 25.265667
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-5/C32
+ok 367 - independent formatter normal/prepend-5/C32
+  ---
+  duration_ms: 24.836
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-5/C32
+ok 368 - independent parser normal/prepend-5/C32
+  ---
+  duration_ms: 8.0475
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-5/C32
+ok 369 - native-native control context/prepend-5/C32
+  ---
+  duration_ms: 27.289875
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-5/C32
+ok 370 - independent formatter context/prepend-5/C32
+  ---
+  duration_ms: 26.315458
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-5/C32
+ok 371 - independent parser context/prepend-5/C32
+  ---
+  duration_ms: 8.489625
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-5/C0
+ok 372 - native-native control normal/append-5/C0
+  ---
+  duration_ms: 26.870416
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-5/C0
+ok 373 - independent formatter normal/append-5/C0
+  ---
+  duration_ms: 26.965875
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-5/C0
+ok 374 - independent parser normal/append-5/C0
+  ---
+  duration_ms: 8.905083
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-5/C0
+ok 375 - native-native control context/append-5/C0
+  ---
+  duration_ms: 29.835
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-5/C0
+ok 376 - independent formatter context/append-5/C0
+  ---
+  duration_ms: 25.458417
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-5/C0
+ok 377 - independent parser context/append-5/C0
+  ---
+  duration_ms: 11.908791
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-6/C3
+ok 378 - native-native control normal/insert-6/C3
+  ---
+  duration_ms: 24.386792
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-6/C3
+ok 379 - independent formatter normal/insert-6/C3
+  ---
+  duration_ms: 28.039125
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-6/C3
+ok 380 - independent parser normal/insert-6/C3
+  ---
+  duration_ms: 8.935125
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-6/C3
+ok 381 - native-native control context/insert-6/C3
+  ---
+  duration_ms: 26.362708
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-6/C3
+ok 382 - independent formatter context/insert-6/C3
+  ---
+  duration_ms: 25.760667
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-6/C3
+ok 383 - independent parser context/insert-6/C3
+  ---
+  duration_ms: 10.744167
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-6/C32
+ok 384 - native-native control normal/delete-6/C32
+  ---
+  duration_ms: 24.445708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-6/C32
+ok 385 - independent formatter normal/delete-6/C32
+  ---
+  duration_ms: 27.853292
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-6/C32
+ok 386 - independent parser normal/delete-6/C32
+  ---
+  duration_ms: 9.000083
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-6/C32
+ok 387 - native-native control context/delete-6/C32
+  ---
+  duration_ms: 30.9745
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-6/C32
+ok 388 - independent formatter context/delete-6/C32
+  ---
+  duration_ms: 27.136542
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-6/C32
+ok 389 - independent parser context/delete-6/C32
+  ---
+  duration_ms: 10.619791
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-6/C0
+ok 390 - native-native control normal/replace-6/C0
+  ---
+  duration_ms: 25.660125
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-6/C0
+ok 391 - independent formatter normal/replace-6/C0
+  ---
+  duration_ms: 25.844
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-6/C0
+ok 392 - independent parser normal/replace-6/C0
+  ---
+  duration_ms: 10.175958
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-6/C0
+ok 393 - native-native control context/replace-6/C0
+  ---
+  duration_ms: 26.13525
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-6/C0
+ok 394 - independent formatter context/replace-6/C0
+  ---
+  duration_ms: 27.423542
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-6/C0
+ok 395 - independent parser context/replace-6/C0
+  ---
+  duration_ms: 9.616333
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-6/C1
+ok 396 - native-native control normal/expand-6/C1
+  ---
+  duration_ms: 25.970709
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-6/C1
+ok 397 - independent formatter normal/expand-6/C1
+  ---
+  duration_ms: 26.756208
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-6/C1
+ok 398 - independent parser normal/expand-6/C1
+  ---
+  duration_ms: 8.981958
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-6/C1
+ok 399 - native-native control context/expand-6/C1
+  ---
+  duration_ms: 23.8155
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-6/C1
+ok 400 - independent formatter context/expand-6/C1
+  ---
+  duration_ms: 23.765334
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-6/C1
+ok 401 - independent parser context/expand-6/C1
+  ---
+  duration_ms: 8.731667
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-6/C3
+ok 402 - native-native control normal/contract-6/C3
+  ---
+  duration_ms: 23.807542
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-6/C3
+ok 403 - independent formatter normal/contract-6/C3
+  ---
+  duration_ms: 25.712417
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-6/C3
+ok 404 - independent parser normal/contract-6/C3
+  ---
+  duration_ms: 10.989417
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-6/C3
+ok 405 - native-native control context/contract-6/C3
+  ---
+  duration_ms: 29.134333
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-6/C3
+ok 406 - independent formatter context/contract-6/C3
+  ---
+  duration_ms: 26.145375
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-6/C3
+ok 407 - independent parser context/contract-6/C3
+  ---
+  duration_ms: 8.218083
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-6/C32
+ok 408 - native-native control normal/separated-6/C32
+  ---
+  duration_ms: 26.39875
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-6/C32
+ok 409 - independent formatter normal/separated-6/C32
+  ---
+  duration_ms: 23.557542
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-6/C32
+ok 410 - independent parser normal/separated-6/C32
+  ---
+  duration_ms: 7.935208
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-6/C32
+ok 411 - native-native control context/separated-6/C32
+  ---
+  duration_ms: 25.311709
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-6/C32
+ok 412 - independent formatter context/separated-6/C32
+  ---
+  duration_ms: 26.497291
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-6/C32
+ok 413 - independent parser context/separated-6/C32
+  ---
+  duration_ms: 9.030875
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-6/C0
+ok 414 - native-native control normal/prepend-6/C0
+  ---
+  duration_ms: 24.564792
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-6/C0
+ok 415 - independent formatter normal/prepend-6/C0
+  ---
+  duration_ms: 24.302625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-6/C0
+ok 416 - independent parser normal/prepend-6/C0
+  ---
+  duration_ms: 8.669
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-6/C0
+ok 417 - native-native control context/prepend-6/C0
+  ---
+  duration_ms: 24.393375
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-6/C0
+ok 418 - independent formatter context/prepend-6/C0
+  ---
+  duration_ms: 26.615625
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-6/C0
+ok 419 - independent parser context/prepend-6/C0
+  ---
+  duration_ms: 8.238875
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-6/C1
+ok 420 - native-native control normal/append-6/C1
+  ---
+  duration_ms: 23.636958
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-6/C1
+ok 421 - independent formatter normal/append-6/C1
+  ---
+  duration_ms: 26.795916
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-6/C1
+ok 422 - independent parser normal/append-6/C1
+  ---
+  duration_ms: 9.133167
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-6/C1
+ok 423 - native-native control context/append-6/C1
+  ---
+  duration_ms: 26.152375
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-6/C1
+ok 424 - independent formatter context/append-6/C1
+  ---
+  duration_ms: 30.633834
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-6/C1
+ok 425 - independent parser context/append-6/C1
+  ---
+  duration_ms: 9.422459
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-7/C32
+ok 426 - native-native control normal/insert-7/C32
+  ---
+  duration_ms: 24.289459
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-7/C32
+ok 427 - independent formatter normal/insert-7/C32
+  ---
+  duration_ms: 25.667042
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-7/C32
+ok 428 - independent parser normal/insert-7/C32
+  ---
+  duration_ms: 8.856125
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-7/C32
+ok 429 - native-native control context/insert-7/C32
+  ---
+  duration_ms: 25.836916
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-7/C32
+ok 430 - independent formatter context/insert-7/C32
+  ---
+  duration_ms: 24.35375
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-7/C32
+ok 431 - independent parser context/insert-7/C32
+  ---
+  duration_ms: 10.166667
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-7/C0
+ok 432 - native-native control normal/delete-7/C0
+  ---
+  duration_ms: 24.88775
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-7/C0
+ok 433 - independent formatter normal/delete-7/C0
+  ---
+  duration_ms: 28.945959
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-7/C0
+ok 434 - independent parser normal/delete-7/C0
+  ---
+  duration_ms: 9.001542
+  type: 'test'
+  ...
+# Subtest: GNU C0 calibration only context/delete-7/C0
+ok 435 - GNU C0 calibration only context/delete-7/C0
+  ---
+  duration_ms: 23.139875
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-7/C0
+ok 436 - independent formatter context/delete-7/C0
+  ---
+  duration_ms: 23.839875
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-7/C0
+ok 437 - independent parser context/delete-7/C0
+  ---
+  duration_ms: 8.514042
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-7/C1
+ok 438 - native-native control normal/replace-7/C1
+  ---
+  duration_ms: 24.214
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-7/C1
+ok 439 - independent formatter normal/replace-7/C1
+  ---
+  duration_ms: 26.928125
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-7/C1
+ok 440 - independent parser normal/replace-7/C1
+  ---
+  duration_ms: 8.223916
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-7/C1
+ok 441 - native-native control context/replace-7/C1
+  ---
+  duration_ms: 28.644875
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-7/C1
+ok 442 - independent formatter context/replace-7/C1
+  ---
+  duration_ms: 26.1485
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-7/C1
+ok 443 - independent parser context/replace-7/C1
+  ---
+  duration_ms: 8.319625
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-7/C3
+ok 444 - native-native control normal/expand-7/C3
+  ---
+  duration_ms: 25.430708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-7/C3
+ok 445 - independent formatter normal/expand-7/C3
+  ---
+  duration_ms: 24.373125
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-7/C3
+ok 446 - independent parser normal/expand-7/C3
+  ---
+  duration_ms: 9.204125
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-7/C3
+ok 447 - native-native control context/expand-7/C3
+  ---
+  duration_ms: 24.491916
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-7/C3
+ok 448 - independent formatter context/expand-7/C3
+  ---
+  duration_ms: 23.814666
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-7/C3
+ok 449 - independent parser context/expand-7/C3
+  ---
+  duration_ms: 9.840875
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-7/C32
+ok 450 - native-native control normal/contract-7/C32
+  ---
+  duration_ms: 22.486625
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-7/C32
+ok 451 - independent formatter normal/contract-7/C32
+  ---
+  duration_ms: 24.675625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-7/C32
+ok 452 - independent parser normal/contract-7/C32
+  ---
+  duration_ms: 10.579458
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-7/C32
+ok 453 - native-native control context/contract-7/C32
+  ---
+  duration_ms: 25.1315
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-7/C32
+ok 454 - independent formatter context/contract-7/C32
+  ---
+  duration_ms: 28.05675
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-7/C32
+ok 455 - independent parser context/contract-7/C32
+  ---
+  duration_ms: 8.221041
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-7/C0
+ok 456 - native-native control normal/separated-7/C0
+  ---
+  duration_ms: 24.259083
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-7/C0
+ok 457 - independent formatter normal/separated-7/C0
+  ---
+  duration_ms: 25.293125
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-7/C0
+ok 458 - independent parser normal/separated-7/C0
+  ---
+  duration_ms: 8.38025
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-7/C0
+ok 459 - native-native control context/separated-7/C0
+  ---
+  duration_ms: 28.116209
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-7/C0
+ok 460 - independent formatter context/separated-7/C0
+  ---
+  duration_ms: 25.98825
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-7/C0
+ok 461 - independent parser context/separated-7/C0
+  ---
+  duration_ms: 11.30575
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-7/C1
+ok 462 - native-native control normal/prepend-7/C1
+  ---
+  duration_ms: 25.708875
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-7/C1
+ok 463 - independent formatter normal/prepend-7/C1
+  ---
+  duration_ms: 27.339334
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-7/C1
+ok 464 - independent parser normal/prepend-7/C1
+  ---
+  duration_ms: 8.338667
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-7/C1
+ok 465 - native-native control context/prepend-7/C1
+  ---
+  duration_ms: 25.871417
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-7/C1
+ok 466 - independent formatter context/prepend-7/C1
+  ---
+  duration_ms: 26.831625
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-7/C1
+ok 467 - independent parser context/prepend-7/C1
+  ---
+  duration_ms: 8.660291
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-7/C3
+ok 468 - native-native control normal/append-7/C3
+  ---
+  duration_ms: 27.488
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-7/C3
+ok 469 - independent formatter normal/append-7/C3
+  ---
+  duration_ms: 27.091209
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-7/C3
+ok 470 - independent parser normal/append-7/C3
+  ---
+  duration_ms: 11.897916
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-7/C3
+ok 471 - native-native control context/append-7/C3
+  ---
+  duration_ms: 28.350958
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-7/C3
+ok 472 - independent formatter context/append-7/C3
+  ---
+  duration_ms: 27.948625
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-7/C3
+ok 473 - independent parser context/append-7/C3
+  ---
+  duration_ms: 10.410625
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-8/C0
+ok 474 - native-native control normal/insert-8/C0
+  ---
+  duration_ms: 26.974334
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-8/C0
+ok 475 - independent formatter normal/insert-8/C0
+  ---
+  duration_ms: 27.751583
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-8/C0
+ok 476 - independent parser normal/insert-8/C0
+  ---
+  duration_ms: 9.296208
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-8/C0
+ok 477 - native-native control context/insert-8/C0
+  ---
+  duration_ms: 26.972958
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-8/C0
+ok 478 - independent formatter context/insert-8/C0
+  ---
+  duration_ms: 26.395625
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-8/C0
+ok 479 - independent parser context/insert-8/C0
+  ---
+  duration_ms: 9.111
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-8/C1
+ok 480 - native-native control normal/delete-8/C1
+  ---
+  duration_ms: 24.985292
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-8/C1
+ok 481 - independent formatter normal/delete-8/C1
+  ---
+  duration_ms: 25.983416
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-8/C1
+ok 482 - independent parser normal/delete-8/C1
+  ---
+  duration_ms: 9.482458
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-8/C1
+ok 483 - native-native control context/delete-8/C1
+  ---
+  duration_ms: 27.490541
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-8/C1
+ok 484 - independent formatter context/delete-8/C1
+  ---
+  duration_ms: 24.531291
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-8/C1
+ok 485 - independent parser context/delete-8/C1
+  ---
+  duration_ms: 9.679333
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-8/C3
+ok 486 - native-native control normal/replace-8/C3
+  ---
+  duration_ms: 24.271958
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-8/C3
+ok 487 - independent formatter normal/replace-8/C3
+  ---
+  duration_ms: 29.905625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-8/C3
+ok 488 - independent parser normal/replace-8/C3
+  ---
+  duration_ms: 11.006291
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-8/C3
+ok 489 - native-native control context/replace-8/C3
+  ---
+  duration_ms: 26.678041
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-8/C3
+ok 490 - independent formatter context/replace-8/C3
+  ---
+  duration_ms: 26.059666
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-8/C3
+ok 491 - independent parser context/replace-8/C3
+  ---
+  duration_ms: 9.368875
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-8/C32
+ok 492 - native-native control normal/expand-8/C32
+  ---
+  duration_ms: 26.136875
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-8/C32
+ok 493 - independent formatter normal/expand-8/C32
+  ---
+  duration_ms: 24.271625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-8/C32
+ok 494 - independent parser normal/expand-8/C32
+  ---
+  duration_ms: 8.5035
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-8/C32
+ok 495 - native-native control context/expand-8/C32
+  ---
+  duration_ms: 27.452208
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-8/C32
+ok 496 - independent formatter context/expand-8/C32
+  ---
+  duration_ms: 23.118875
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-8/C32
+ok 497 - independent parser context/expand-8/C32
+  ---
+  duration_ms: 10.751041
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-8/C0
+ok 498 - native-native control normal/contract-8/C0
+  ---
+  duration_ms: 27.631666
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-8/C0
+ok 499 - independent formatter normal/contract-8/C0
+  ---
+  duration_ms: 24.228791
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-8/C0
+ok 500 - independent parser normal/contract-8/C0
+  ---
+  duration_ms: 11.558292
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-8/C0
+ok 501 - native-native control context/contract-8/C0
+  ---
+  duration_ms: 23.316916
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-8/C0
+ok 502 - independent formatter context/contract-8/C0
+  ---
+  duration_ms: 26.873792
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-8/C0
+ok 503 - independent parser context/contract-8/C0
+  ---
+  duration_ms: 8.345291
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-8/C1
+ok 504 - native-native control normal/separated-8/C1
+  ---
+  duration_ms: 23.957125
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-8/C1
+ok 505 - independent formatter normal/separated-8/C1
+  ---
+  duration_ms: 24.31525
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-8/C1
+ok 506 - independent parser normal/separated-8/C1
+  ---
+  duration_ms: 8.7145
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-8/C1
+ok 507 - native-native control context/separated-8/C1
+  ---
+  duration_ms: 25.5175
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-8/C1
+ok 508 - independent formatter context/separated-8/C1
+  ---
+  duration_ms: 23.548791
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-8/C1
+ok 509 - independent parser context/separated-8/C1
+  ---
+  duration_ms: 8.77925
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-8/C3
+ok 510 - native-native control normal/prepend-8/C3
+  ---
+  duration_ms: 22.873333
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-8/C3
+ok 511 - independent formatter normal/prepend-8/C3
+  ---
+  duration_ms: 23.777916
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-8/C3
+ok 512 - independent parser normal/prepend-8/C3
+  ---
+  duration_ms: 8.805208
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-8/C3
+ok 513 - native-native control context/prepend-8/C3
+  ---
+  duration_ms: 24.052125
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-8/C3
+ok 514 - independent formatter context/prepend-8/C3
+  ---
+  duration_ms: 28.430042
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-8/C3
+ok 515 - independent parser context/prepend-8/C3
+  ---
+  duration_ms: 7.93525
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-8/C32
+ok 516 - native-native control normal/append-8/C32
+  ---
+  duration_ms: 44.309791
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-8/C32
+ok 517 - independent formatter normal/append-8/C32
+  ---
+  duration_ms: 25.777291
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-8/C32
+ok 518 - independent parser normal/append-8/C32
+  ---
+  duration_ms: 8.480458
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-8/C32
+ok 519 - native-native control context/append-8/C32
+  ---
+  duration_ms: 25.23275
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-8/C32
+ok 520 - independent formatter context/append-8/C32
+  ---
+  duration_ms: 26.359166
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-8/C32
+ok 521 - independent parser context/append-8/C32
+  ---
+  duration_ms: 8.4655
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-9/C1
+ok 522 - native-native control normal/insert-9/C1
+  ---
+  duration_ms: 49.492375
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-9/C1
+ok 523 - independent formatter normal/insert-9/C1
+  ---
+  duration_ms: 45.518
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-9/C1
+ok 524 - independent parser normal/insert-9/C1
+  ---
+  duration_ms: 9.896458
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-9/C1
+ok 525 - native-native control context/insert-9/C1
+  ---
+  duration_ms: 39.965542
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-9/C1
+ok 526 - independent formatter context/insert-9/C1
+  ---
+  duration_ms: 66.423333
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-9/C1
+ok 527 - independent parser context/insert-9/C1
+  ---
+  duration_ms: 44.871834
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-9/C3
+ok 528 - native-native control normal/delete-9/C3
+  ---
+  duration_ms: 78.82775
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-9/C3
+ok 529 - independent formatter normal/delete-9/C3
+  ---
+  duration_ms: 40.117916
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-9/C3
+ok 530 - independent parser normal/delete-9/C3
+  ---
+  duration_ms: 13.693625
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-9/C3
+ok 531 - native-native control context/delete-9/C3
+  ---
+  duration_ms: 39.851208
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-9/C3
+ok 532 - independent formatter context/delete-9/C3
+  ---
+  duration_ms: 43.721875
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-9/C3
+ok 533 - independent parser context/delete-9/C3
+  ---
+  duration_ms: 14.496917
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-9/C32
+ok 534 - native-native control normal/replace-9/C32
+  ---
+  duration_ms: 44.962375
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-9/C32
+ok 535 - independent formatter normal/replace-9/C32
+  ---
+  duration_ms: 53.538208
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-9/C32
+ok 536 - independent parser normal/replace-9/C32
+  ---
+  duration_ms: 15.613041
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-9/C32
+ok 537 - native-native control context/replace-9/C32
+  ---
+  duration_ms: 39.691292
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-9/C32
+ok 538 - independent formatter context/replace-9/C32
+  ---
+  duration_ms: 38.268333
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-9/C32
+ok 539 - independent parser context/replace-9/C32
+  ---
+  duration_ms: 11.901458
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-9/C0
+ok 540 - native-native control normal/expand-9/C0
+  ---
+  duration_ms: 35.645041
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-9/C0
+ok 541 - independent formatter normal/expand-9/C0
+  ---
+  duration_ms: 33.367958
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-9/C0
+ok 542 - independent parser normal/expand-9/C0
+  ---
+  duration_ms: 12.2905
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-9/C0
+ok 543 - native-native control context/expand-9/C0
+  ---
+  duration_ms: 46.720792
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-9/C0
+ok 544 - independent formatter context/expand-9/C0
+  ---
+  duration_ms: 40.736542
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-9/C0
+ok 545 - independent parser context/expand-9/C0
+  ---
+  duration_ms: 14.126959
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-9/C1
+ok 546 - native-native control normal/contract-9/C1
+  ---
+  duration_ms: 46.603958
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-9/C1
+ok 547 - independent formatter normal/contract-9/C1
+  ---
+  duration_ms: 44.530291
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-9/C1
+ok 548 - independent parser normal/contract-9/C1
+  ---
+  duration_ms: 12.573042
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-9/C1
+ok 549 - native-native control context/contract-9/C1
+  ---
+  duration_ms: 43.375583
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-9/C1
+ok 550 - independent formatter context/contract-9/C1
+  ---
+  duration_ms: 39.33025
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-9/C1
+ok 551 - independent parser context/contract-9/C1
+  ---
+  duration_ms: 11.573083
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-9/C3
+ok 552 - native-native control normal/separated-9/C3
+  ---
+  duration_ms: 38.383458
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-9/C3
+ok 553 - independent formatter normal/separated-9/C3
+  ---
+  duration_ms: 34.207166
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-9/C3
+ok 554 - independent parser normal/separated-9/C3
+  ---
+  duration_ms: 11.91475
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-9/C3
+ok 555 - native-native control context/separated-9/C3
+  ---
+  duration_ms: 37.638125
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-9/C3
+ok 556 - independent formatter context/separated-9/C3
+  ---
+  duration_ms: 38.551334
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-9/C3
+ok 557 - independent parser context/separated-9/C3
+  ---
+  duration_ms: 12.506417
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-9/C32
+ok 558 - native-native control normal/prepend-9/C32
+  ---
+  duration_ms: 40.325917
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-9/C32
+ok 559 - independent formatter normal/prepend-9/C32
+  ---
+  duration_ms: 37.640958
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-9/C32
+ok 560 - independent parser normal/prepend-9/C32
+  ---
+  duration_ms: 12.692
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-9/C32
+ok 561 - native-native control context/prepend-9/C32
+  ---
+  duration_ms: 34.079459
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-9/C32
+ok 562 - independent formatter context/prepend-9/C32
+  ---
+  duration_ms: 40.3175
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-9/C32
+ok 563 - independent parser context/prepend-9/C32
+  ---
+  duration_ms: 13.052333
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-9/C0
+ok 564 - native-native control normal/append-9/C0
+  ---
+  duration_ms: 34.239
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-9/C0
+ok 565 - independent formatter normal/append-9/C0
+  ---
+  duration_ms: 33.807875
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-9/C0
+ok 566 - independent parser normal/append-9/C0
+  ---
+  duration_ms: 11.977833
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-9/C0
+ok 567 - native-native control context/append-9/C0
+  ---
+  duration_ms: 34.640125
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-9/C0
+ok 568 - independent formatter context/append-9/C0
+  ---
+  duration_ms: 38.56925
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-9/C0
+ok 569 - independent parser context/append-9/C0
+  ---
+  duration_ms: 11.910166
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-10/C3
+ok 570 - native-native control normal/insert-10/C3
+  ---
+  duration_ms: 33.247792
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-10/C3
+ok 571 - independent formatter normal/insert-10/C3
+  ---
+  duration_ms: 34.561917
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-10/C3
+ok 572 - independent parser normal/insert-10/C3
+  ---
+  duration_ms: 16.401375
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-10/C3
+ok 573 - native-native control context/insert-10/C3
+  ---
+  duration_ms: 38.26
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-10/C3
+ok 574 - independent formatter context/insert-10/C3
+  ---
+  duration_ms: 32.581
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-10/C3
+ok 575 - independent parser context/insert-10/C3
+  ---
+  duration_ms: 18.975833
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-10/C32
+ok 576 - native-native control normal/delete-10/C32
+  ---
+  duration_ms: 34.688333
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-10/C32
+ok 577 - independent formatter normal/delete-10/C32
+  ---
+  duration_ms: 32.7155
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-10/C32
+ok 578 - independent parser normal/delete-10/C32
+  ---
+  duration_ms: 10.444833
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-10/C32
+ok 579 - native-native control context/delete-10/C32
+  ---
+  duration_ms: 31.3905
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-10/C32
+ok 580 - independent formatter context/delete-10/C32
+  ---
+  duration_ms: 29.2345
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-10/C32
+ok 581 - independent parser context/delete-10/C32
+  ---
+  duration_ms: 9.990417
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-10/C0
+ok 582 - native-native control normal/replace-10/C0
+  ---
+  duration_ms: 24.737959
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-10/C0
+ok 583 - independent formatter normal/replace-10/C0
+  ---
+  duration_ms: 27.729542
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-10/C0
+ok 584 - independent parser normal/replace-10/C0
+  ---
+  duration_ms: 9.455542
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-10/C0
+ok 585 - native-native control context/replace-10/C0
+  ---
+  duration_ms: 28.141375
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-10/C0
+ok 586 - independent formatter context/replace-10/C0
+  ---
+  duration_ms: 26.615917
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-10/C0
+ok 587 - independent parser context/replace-10/C0
+  ---
+  duration_ms: 9.409041
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-10/C1
+ok 588 - native-native control normal/expand-10/C1
+  ---
+  duration_ms: 28.386542
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-10/C1
+ok 589 - independent formatter normal/expand-10/C1
+  ---
+  duration_ms: 28.483417
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-10/C1
+ok 590 - independent parser normal/expand-10/C1
+  ---
+  duration_ms: 10.550458
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-10/C1
+ok 591 - native-native control context/expand-10/C1
+  ---
+  duration_ms: 25.183167
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-10/C1
+ok 592 - independent formatter context/expand-10/C1
+  ---
+  duration_ms: 28.069917
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-10/C1
+ok 593 - independent parser context/expand-10/C1
+  ---
+  duration_ms: 8.699375
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-10/C3
+ok 594 - native-native control normal/contract-10/C3
+  ---
+  duration_ms: 26.350417
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-10/C3
+ok 595 - independent formatter normal/contract-10/C3
+  ---
+  duration_ms: 26.870375
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-10/C3
+ok 596 - independent parser normal/contract-10/C3
+  ---
+  duration_ms: 8.9435
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-10/C3
+ok 597 - native-native control context/contract-10/C3
+  ---
+  duration_ms: 26.147292
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-10/C3
+ok 598 - independent formatter context/contract-10/C3
+  ---
+  duration_ms: 28.331792
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-10/C3
+ok 599 - independent parser context/contract-10/C3
+  ---
+  duration_ms: 9.936625
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-10/C32
+ok 600 - native-native control normal/separated-10/C32
+  ---
+  duration_ms: 29.195875
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-10/C32
+ok 601 - independent formatter normal/separated-10/C32
+  ---
+  duration_ms: 30.269209
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-10/C32
+ok 602 - independent parser normal/separated-10/C32
+  ---
+  duration_ms: 8.267167
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-10/C32
+ok 603 - native-native control context/separated-10/C32
+  ---
+  duration_ms: 23.363417
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-10/C32
+ok 604 - independent formatter context/separated-10/C32
+  ---
+  duration_ms: 23.51925
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-10/C32
+ok 605 - independent parser context/separated-10/C32
+  ---
+  duration_ms: 8.146708
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-10/C0
+ok 606 - native-native control normal/prepend-10/C0
+  ---
+  duration_ms: 24.559333
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-10/C0
+ok 607 - independent formatter normal/prepend-10/C0
+  ---
+  duration_ms: 24.382959
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-10/C0
+ok 608 - independent parser normal/prepend-10/C0
+  ---
+  duration_ms: 9.669084
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-10/C0
+ok 609 - native-native control context/prepend-10/C0
+  ---
+  duration_ms: 25.500958
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-10/C0
+ok 610 - independent formatter context/prepend-10/C0
+  ---
+  duration_ms: 27.452625
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-10/C0
+ok 611 - independent parser context/prepend-10/C0
+  ---
+  duration_ms: 8.626042
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-10/C1
+ok 612 - native-native control normal/append-10/C1
+  ---
+  duration_ms: 22.78075
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-10/C1
+ok 613 - independent formatter normal/append-10/C1
+  ---
+  duration_ms: 27.205667
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-10/C1
+ok 614 - independent parser normal/append-10/C1
+  ---
+  duration_ms: 8.762959
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-10/C1
+ok 615 - native-native control context/append-10/C1
+  ---
+  duration_ms: 24.903208
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-10/C1
+ok 616 - independent formatter context/append-10/C1
+  ---
+  duration_ms: 25.80675
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-10/C1
+ok 617 - independent parser context/append-10/C1
+  ---
+  duration_ms: 8.390167
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-11/C32
+ok 618 - native-native control normal/insert-11/C32
+  ---
+  duration_ms: 26.771375
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-11/C32
+ok 619 - independent formatter normal/insert-11/C32
+  ---
+  duration_ms: 26.419083
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-11/C32
+ok 620 - independent parser normal/insert-11/C32
+  ---
+  duration_ms: 8.397916
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-11/C32
+ok 621 - native-native control context/insert-11/C32
+  ---
+  duration_ms: 24.912792
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-11/C32
+ok 622 - independent formatter context/insert-11/C32
+  ---
+  duration_ms: 26.712792
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-11/C32
+ok 623 - independent parser context/insert-11/C32
+  ---
+  duration_ms: 9.525666
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-11/C0
+ok 624 - native-native control normal/delete-11/C0
+  ---
+  duration_ms: 26.768958
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-11/C0
+ok 625 - independent formatter normal/delete-11/C0
+  ---
+  duration_ms: 22.813875
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-11/C0
+ok 626 - independent parser normal/delete-11/C0
+  ---
+  duration_ms: 9.189417
+  type: 'test'
+  ...
+# Subtest: GNU C0 calibration only context/delete-11/C0
+ok 627 - GNU C0 calibration only context/delete-11/C0
+  ---
+  duration_ms: 25.567041
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-11/C0
+ok 628 - independent formatter context/delete-11/C0
+  ---
+  duration_ms: 27.996375
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-11/C0
+ok 629 - independent parser context/delete-11/C0
+  ---
+  duration_ms: 10.223041
+  type: 'test'
+  ...
+# Subtest: native-native control normal/replace-11/C1
+ok 630 - native-native control normal/replace-11/C1
+  ---
+  duration_ms: 30.165416
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/replace-11/C1
+ok 631 - independent formatter normal/replace-11/C1
+  ---
+  duration_ms: 24.506791
+  type: 'test'
+  ...
+# Subtest: independent parser normal/replace-11/C1
+ok 632 - independent parser normal/replace-11/C1
+  ---
+  duration_ms: 7.534417
+  type: 'test'
+  ...
+# Subtest: native-native control context/replace-11/C1
+ok 633 - native-native control context/replace-11/C1
+  ---
+  duration_ms: 25.651083
+  type: 'test'
+  ...
+# Subtest: independent formatter context/replace-11/C1
+ok 634 - independent formatter context/replace-11/C1
+  ---
+  duration_ms: 26.623625
+  type: 'test'
+  ...
+# Subtest: independent parser context/replace-11/C1
+ok 635 - independent parser context/replace-11/C1
+  ---
+  duration_ms: 7.935708
+  type: 'test'
+  ...
+# Subtest: native-native control normal/expand-11/C3
+ok 636 - native-native control normal/expand-11/C3
+  ---
+  duration_ms: 24.895292
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/expand-11/C3
+ok 637 - independent formatter normal/expand-11/C3
+  ---
+  duration_ms: 23.41625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/expand-11/C3
+ok 638 - independent parser normal/expand-11/C3
+  ---
+  duration_ms: 10.000542
+  type: 'test'
+  ...
+# Subtest: native-native control context/expand-11/C3
+ok 639 - native-native control context/expand-11/C3
+  ---
+  duration_ms: 24.966833
+  type: 'test'
+  ...
+# Subtest: independent formatter context/expand-11/C3
+ok 640 - independent formatter context/expand-11/C3
+  ---
+  duration_ms: 25.830375
+  type: 'test'
+  ...
+# Subtest: independent parser context/expand-11/C3
+ok 641 - independent parser context/expand-11/C3
+  ---
+  duration_ms: 8.341041
+  type: 'test'
+  ...
+# Subtest: native-native control normal/contract-11/C32
+ok 642 - native-native control normal/contract-11/C32
+  ---
+  duration_ms: 26.575791
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/contract-11/C32
+ok 643 - independent formatter normal/contract-11/C32
+  ---
+  duration_ms: 23.975292
+  type: 'test'
+  ...
+# Subtest: independent parser normal/contract-11/C32
+ok 644 - independent parser normal/contract-11/C32
+  ---
+  duration_ms: 9.293791
+  type: 'test'
+  ...
+# Subtest: native-native control context/contract-11/C32
+ok 645 - native-native control context/contract-11/C32
+  ---
+  duration_ms: 23.27125
+  type: 'test'
+  ...
+# Subtest: independent formatter context/contract-11/C32
+ok 646 - independent formatter context/contract-11/C32
+  ---
+  duration_ms: 28.008084
+  type: 'test'
+  ...
+# Subtest: independent parser context/contract-11/C32
+ok 647 - independent parser context/contract-11/C32
+  ---
+  duration_ms: 12.173709
+  type: 'test'
+  ...
+# Subtest: native-native control normal/separated-11/C0
+ok 648 - native-native control normal/separated-11/C0
+  ---
+  duration_ms: 23.208042
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/separated-11/C0
+ok 649 - independent formatter normal/separated-11/C0
+  ---
+  duration_ms: 27.943
+  type: 'test'
+  ...
+# Subtest: independent parser normal/separated-11/C0
+ok 650 - independent parser normal/separated-11/C0
+  ---
+  duration_ms: 8.585958
+  type: 'test'
+  ...
+# Subtest: native-native control context/separated-11/C0
+ok 651 - native-native control context/separated-11/C0
+  ---
+  duration_ms: 23.231917
+  type: 'test'
+  ...
+# Subtest: independent formatter context/separated-11/C0
+ok 652 - independent formatter context/separated-11/C0
+  ---
+  duration_ms: 27.3405
+  type: 'test'
+  ...
+# Subtest: independent parser context/separated-11/C0
+ok 653 - independent parser context/separated-11/C0
+  ---
+  duration_ms: 8.496041
+  type: 'test'
+  ...
+# Subtest: native-native control normal/prepend-11/C1
+ok 654 - native-native control normal/prepend-11/C1
+  ---
+  duration_ms: 27.555875
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/prepend-11/C1
+ok 655 - independent formatter normal/prepend-11/C1
+  ---
+  duration_ms: 27.835541
+  type: 'test'
+  ...
+# Subtest: independent parser normal/prepend-11/C1
+ok 656 - independent parser normal/prepend-11/C1
+  ---
+  duration_ms: 9.198417
+  type: 'test'
+  ...
+# Subtest: native-native control context/prepend-11/C1
+ok 657 - native-native control context/prepend-11/C1
+  ---
+  duration_ms: 27.512041
+  type: 'test'
+  ...
+# Subtest: independent formatter context/prepend-11/C1
+ok 658 - independent formatter context/prepend-11/C1
+  ---
+  duration_ms: 29.391416
+  type: 'test'
+  ...
+# Subtest: independent parser context/prepend-11/C1
+ok 659 - independent parser context/prepend-11/C1
+  ---
+  duration_ms: 7.965916
+  type: 'test'
+  ...
+# Subtest: native-native control normal/append-11/C3
+ok 660 - native-native control normal/append-11/C3
+  ---
+  duration_ms: 22.289375
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/append-11/C3
+ok 661 - independent formatter normal/append-11/C3
+  ---
+  duration_ms: 24.657541
+  type: 'test'
+  ...
+# Subtest: independent parser normal/append-11/C3
+ok 662 - independent parser normal/append-11/C3
+  ---
+  duration_ms: 8.819041
+  type: 'test'
+  ...
+# Subtest: native-native control context/append-11/C3
+ok 663 - native-native control context/append-11/C3
+  ---
+  duration_ms: 23.443041
+  type: 'test'
+  ...
+# Subtest: independent formatter context/append-11/C3
+ok 664 - independent formatter context/append-11/C3
+  ---
+  duration_ms: 26.506084
+  type: 'test'
+  ...
+# Subtest: independent parser context/append-11/C3
+ok 665 - independent parser context/append-11/C3
+  ---
+  duration_ms: 9.75575
+  type: 'test'
+  ...
+# Subtest: native-native control normal/empty-both/C0
+ok 666 - native-native control normal/empty-both/C0
+  ---
+  duration_ms: 24.25375
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/empty-both/C0
+ok 667 - independent formatter normal/empty-both/C0
+  ---
+  duration_ms: 24.559625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/empty-both/C0
+ok 668 - independent parser normal/empty-both/C0
+  ---
+  duration_ms: 7.29475
+  type: 'test'
+  ...
+# Subtest: native-native control context/empty-both/C0
+ok 669 - native-native control context/empty-both/C0
+  ---
+  duration_ms: 22.069583
+  type: 'test'
+  ...
+# Subtest: independent formatter context/empty-both/C0
+ok 670 - independent formatter context/empty-both/C0
+  ---
+  duration_ms: 22.682458
+  type: 'test'
+  ...
+# Subtest: independent parser context/empty-both/C0
+ok 671 - independent parser context/empty-both/C0
+  ---
+  duration_ms: 7.951416
+  type: 'test'
+  ...
+# Subtest: native-native control normal/insert-into-empty/C1
+ok 672 - native-native control normal/insert-into-empty/C1
+  ---
+  duration_ms: 24.924334
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/insert-into-empty/C1
+ok 673 - independent formatter normal/insert-into-empty/C1
+  ---
+  duration_ms: 26.589959
+  type: 'test'
+  ...
+# Subtest: independent parser normal/insert-into-empty/C1
+ok 674 - independent parser normal/insert-into-empty/C1
+  ---
+  duration_ms: 10.522375
+  type: 'test'
+  ...
+# Subtest: native-native control context/insert-into-empty/C1
+ok 675 - native-native control context/insert-into-empty/C1
+  ---
+  duration_ms: 24.270875
+  type: 'test'
+  ...
+# Subtest: independent formatter context/insert-into-empty/C1
+ok 676 - independent formatter context/insert-into-empty/C1
+  ---
+  duration_ms: 24.765292
+  type: 'test'
+  ...
+# Subtest: independent parser context/insert-into-empty/C1
+ok 677 - independent parser context/insert-into-empty/C1
+  ---
+  duration_ms: 9.350666
+  type: 'test'
+  ...
+# Subtest: native-native control normal/delete-to-empty/C3
+ok 678 - native-native control normal/delete-to-empty/C3
+  ---
+  duration_ms: 25.167125
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/delete-to-empty/C3
+ok 679 - independent formatter normal/delete-to-empty/C3
+  ---
+  duration_ms: 25.622042
+  type: 'test'
+  ...
+# Subtest: independent parser normal/delete-to-empty/C3
+ok 680 - independent parser normal/delete-to-empty/C3
+  ---
+  duration_ms: 9.00625
+  type: 'test'
+  ...
+# Subtest: native-native control context/delete-to-empty/C3
+ok 681 - native-native control context/delete-to-empty/C3
+  ---
+  duration_ms: 24.2255
+  type: 'test'
+  ...
+# Subtest: independent formatter context/delete-to-empty/C3
+ok 682 - independent formatter context/delete-to-empty/C3
+  ---
+  duration_ms: 24.209125
+  type: 'test'
+  ...
+# Subtest: independent parser context/delete-to-empty/C3
+ok 683 - independent parser context/delete-to-empty/C3
+  ---
+  duration_ms: 8.552375
+  type: 'test'
+  ...
+# Subtest: native-native control normal/empty-to-incomplete/C32
+ok 684 - native-native control normal/empty-to-incomplete/C32
+  ---
+  duration_ms: 27.582125
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/empty-to-incomplete/C32
+ok 685 - independent formatter normal/empty-to-incomplete/C32
+  ---
+  duration_ms: 29.679208
+  type: 'test'
+  ...
+# Subtest: independent parser normal/empty-to-incomplete/C32
+ok 686 - independent parser normal/empty-to-incomplete/C32
+  ---
+  duration_ms: 7.703208
+  type: 'test'
+  ...
+# Subtest: native-native control context/empty-to-incomplete/C32
+ok 687 - native-native control context/empty-to-incomplete/C32
+  ---
+  duration_ms: 24.507167
+  type: 'test'
+  ...
+# Subtest: independent formatter context/empty-to-incomplete/C32
+ok 688 - independent formatter context/empty-to-incomplete/C32
+  ---
+  duration_ms: 25.765875
+  type: 'test'
+  ...
+# Subtest: independent parser context/empty-to-incomplete/C32
+ok 689 - independent parser context/empty-to-incomplete/C32
+  ---
+  duration_ms: 9.34625
+  type: 'test'
+  ...
+# Subtest: native-native control normal/incomplete-to-empty/C0
+ok 690 - native-native control normal/incomplete-to-empty/C0
+  ---
+  duration_ms: 24.031375
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/incomplete-to-empty/C0
+ok 691 - independent formatter normal/incomplete-to-empty/C0
+  ---
+  duration_ms: 24.957791
+  type: 'test'
+  ...
+# Subtest: independent parser normal/incomplete-to-empty/C0
+ok 692 - independent parser normal/incomplete-to-empty/C0
+  ---
+  duration_ms: 16.045666
+  type: 'test'
+  ...
+# Subtest: native-native control context/incomplete-to-empty/C0
+ok 693 - native-native control context/incomplete-to-empty/C0
+  ---
+  duration_ms: 25.576292
+  type: 'test'
+  ...
+# Subtest: independent formatter context/incomplete-to-empty/C0
+ok 694 - independent formatter context/incomplete-to-empty/C0
+  ---
+  duration_ms: 24.235166
+  type: 'test'
+  ...
+# Subtest: independent parser context/incomplete-to-empty/C0
+ok 695 - independent parser context/incomplete-to-empty/C0
+  ---
+  duration_ms: 8.230833
+  type: 'test'
+  ...
+# Subtest: native-native control normal/empty-to-blank/C1
+ok 696 - native-native control normal/empty-to-blank/C1
+  ---
+  duration_ms: 22.492542
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/empty-to-blank/C1
+ok 697 - independent formatter normal/empty-to-blank/C1
+  ---
+  duration_ms: 24.438208
+  type: 'test'
+  ...
+# Subtest: independent parser normal/empty-to-blank/C1
+ok 698 - independent parser normal/empty-to-blank/C1
+  ---
+  duration_ms: 7.802458
+  type: 'test'
+  ...
+# Subtest: native-native control context/empty-to-blank/C1
+ok 699 - native-native control context/empty-to-blank/C1
+  ---
+  duration_ms: 24.376125
+  type: 'test'
+  ...
+# Subtest: independent formatter context/empty-to-blank/C1
+ok 700 - independent formatter context/empty-to-blank/C1
+  ---
+  duration_ms: 23.371459
+  type: 'test'
+  ...
+# Subtest: independent parser context/empty-to-blank/C1
+ok 701 - independent parser context/empty-to-blank/C1
+  ---
+  duration_ms: 8.029292
+  type: 'test'
+  ...
+# Subtest: native-native control normal/blank-to-empty/C3
+ok 702 - native-native control normal/blank-to-empty/C3
+  ---
+  duration_ms: 24.109083
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/blank-to-empty/C3
+ok 703 - independent formatter normal/blank-to-empty/C3
+  ---
+  duration_ms: 25.277292
+  type: 'test'
+  ...
+# Subtest: independent parser normal/blank-to-empty/C3
+ok 704 - independent parser normal/blank-to-empty/C3
+  ---
+  duration_ms: 7.672667
+  type: 'test'
+  ...
+# Subtest: native-native control context/blank-to-empty/C3
+ok 705 - native-native control context/blank-to-empty/C3
+  ---
+  duration_ms: 24.942667
+  type: 'test'
+  ...
+# Subtest: independent formatter context/blank-to-empty/C3
+ok 706 - independent formatter context/blank-to-empty/C3
+  ---
+  duration_ms: 24.775541
+  type: 'test'
+  ...
+# Subtest: independent parser context/blank-to-empty/C3
+ok 707 - independent parser context/blank-to-empty/C3
+  ---
+  duration_ms: 9.130542
+  type: 'test'
+  ...
+# Subtest: native-native control normal/eof-add-newline/C32
+ok 708 - native-native control normal/eof-add-newline/C32
+  ---
+  duration_ms: 24.137167
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/eof-add-newline/C32
+ok 709 - independent formatter normal/eof-add-newline/C32
+  ---
+  duration_ms: 25.218709
+  type: 'test'
+  ...
+# Subtest: independent parser normal/eof-add-newline/C32
+ok 710 - independent parser normal/eof-add-newline/C32
+  ---
+  duration_ms: 8.556833
+  type: 'test'
+  ...
+# Subtest: native-native control context/eof-add-newline/C32
+ok 711 - native-native control context/eof-add-newline/C32
+  ---
+  duration_ms: 23.745667
+  type: 'test'
+  ...
+# Subtest: independent formatter context/eof-add-newline/C32
+ok 712 - independent formatter context/eof-add-newline/C32
+  ---
+  duration_ms: 28.275958
+  type: 'test'
+  ...
+# Subtest: independent parser context/eof-add-newline/C32
+ok 713 - independent parser context/eof-add-newline/C32
+  ---
+  duration_ms: 8.133917
+  type: 'test'
+  ...
+# Subtest: native-native control normal/eof-delete-newline/C1
+ok 714 - native-native control normal/eof-delete-newline/C1
+  ---
+  duration_ms: 22.665042
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/eof-delete-newline/C1
+ok 715 - independent formatter normal/eof-delete-newline/C1
+  ---
+  duration_ms: 24.7
+  type: 'test'
+  ...
+# Subtest: independent parser normal/eof-delete-newline/C1
+ok 716 - independent parser normal/eof-delete-newline/C1
+  ---
+  duration_ms: 7.821459
+  type: 'test'
+  ...
+# Subtest: native-native control context/eof-delete-newline/C1
+ok 717 - native-native control context/eof-delete-newline/C1
+  ---
+  duration_ms: 23.607583
+  type: 'test'
+  ...
+# Subtest: independent formatter context/eof-delete-newline/C1
+ok 718 - independent formatter context/eof-delete-newline/C1
+  ---
+  duration_ms: 27.053125
+  type: 'test'
+  ...
+# Subtest: independent parser context/eof-delete-newline/C1
+ok 719 - independent parser context/eof-delete-newline/C1
+  ---
+  duration_ms: 10.201333
+  type: 'test'
+  ...
+# Subtest: native-native control normal/eof-change-incomplete/C3
+ok 720 - native-native control normal/eof-change-incomplete/C3
+  ---
+  duration_ms: 23.506667
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/eof-change-incomplete/C3
+ok 721 - independent formatter normal/eof-change-incomplete/C3
+  ---
+  duration_ms: 28.111375
+  type: 'test'
+  ...
+# Subtest: independent parser normal/eof-change-incomplete/C3
+ok 722 - independent parser normal/eof-change-incomplete/C3
+  ---
+  duration_ms: 10.04025
+  type: 'test'
+  ...
+# Subtest: native-native control context/eof-change-incomplete/C3
+ok 723 - native-native control context/eof-change-incomplete/C3
+  ---
+  duration_ms: 34.204958
+  type: 'test'
+  ...
+# Subtest: independent formatter context/eof-change-incomplete/C3
+ok 724 - independent formatter context/eof-change-incomplete/C3
+  ---
+  duration_ms: 26.676
+  type: 'test'
+  ...
+# Subtest: independent parser context/eof-change-incomplete/C3
+ok 725 - independent parser context/eof-change-incomplete/C3
+  ---
+  duration_ms: 8.571792
+  type: 'test'
+  ...
+# Subtest: native-native control normal/eof-context-incomplete/C32
+ok 726 - native-native control normal/eof-context-incomplete/C32
+  ---
+  duration_ms: 25.683625
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/eof-context-incomplete/C32
+ok 727 - independent formatter normal/eof-context-incomplete/C32
+  ---
+  duration_ms: 29.086625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/eof-context-incomplete/C32
+ok 728 - independent parser normal/eof-context-incomplete/C32
+  ---
+  duration_ms: 9.309125
+  type: 'test'
+  ...
+# Subtest: native-native control context/eof-context-incomplete/C32
+ok 729 - native-native control context/eof-context-incomplete/C32
+  ---
+  duration_ms: 26.203833
+  type: 'test'
+  ...
+# Subtest: independent formatter context/eof-context-incomplete/C32
+ok 730 - independent formatter context/eof-context-incomplete/C32
+  ---
+  duration_ms: 24.742666
+  type: 'test'
+  ...
+# Subtest: independent parser context/eof-context-incomplete/C32
+ok 731 - independent parser context/eof-context-incomplete/C32
+  ---
+  duration_ms: 8.590208
+  type: 'test'
+  ...
+# Subtest: native-native control normal/crlf-replace/C0
+ok 732 - native-native control normal/crlf-replace/C0
+  ---
+  duration_ms: 25.731417
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/crlf-replace/C0
+ok 733 - independent formatter normal/crlf-replace/C0
+  ---
+  duration_ms: 25.894459
+  type: 'test'
+  ...
+# Subtest: independent parser normal/crlf-replace/C0
+ok 734 - independent parser normal/crlf-replace/C0
+  ---
+  duration_ms: 8.549042
+  type: 'test'
+  ...
+# Subtest: native-native control context/crlf-replace/C0
+ok 735 - native-native control context/crlf-replace/C0
+  ---
+  duration_ms: 23.776541
+  type: 'test'
+  ...
+# Subtest: independent formatter context/crlf-replace/C0
+ok 736 - independent formatter context/crlf-replace/C0
+  ---
+  duration_ms: 26.156375
+  type: 'test'
+  ...
+# Subtest: independent parser context/crlf-replace/C0
+ok 737 - independent parser context/crlf-replace/C0
+  ---
+  duration_ms: 9.366625
+  type: 'test'
+  ...
+# Subtest: native-native control normal/mixed-line-endings/C1
+ok 738 - native-native control normal/mixed-line-endings/C1
+  ---
+  duration_ms: 26.371208
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/mixed-line-endings/C1
+ok 739 - independent formatter normal/mixed-line-endings/C1
+  ---
+  duration_ms: 24.945959
+  type: 'test'
+  ...
+# Subtest: independent parser normal/mixed-line-endings/C1
+ok 740 - independent parser normal/mixed-line-endings/C1
+  ---
+  duration_ms: 8.490292
+  type: 'test'
+  ...
+# Subtest: native-native control context/mixed-line-endings/C1
+ok 741 - native-native control context/mixed-line-endings/C1
+  ---
+  duration_ms: 25.352625
+  type: 'test'
+  ...
+# Subtest: independent formatter context/mixed-line-endings/C1
+ok 742 - independent formatter context/mixed-line-endings/C1
+  ---
+  duration_ms: 24.011417
+  type: 'test'
+  ...
+# Subtest: independent parser context/mixed-line-endings/C1
+ok 743 - independent parser context/mixed-line-endings/C1
+  ---
+  duration_ms: 8.531875
+  type: 'test'
+  ...
+# Subtest: native-native control normal/unicode/C3
+ok 744 - native-native control normal/unicode/C3
+  ---
+  duration_ms: 26.459292
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/unicode/C3
+ok 745 - independent formatter normal/unicode/C3
+  ---
+  duration_ms: 23.45575
+  type: 'test'
+  ...
+# Subtest: independent parser normal/unicode/C3
+ok 746 - independent parser normal/unicode/C3
+  ---
+  duration_ms: 7.8495
+  type: 'test'
+  ...
+# Subtest: native-native control context/unicode/C3
+ok 747 - native-native control context/unicode/C3
+  ---
+  duration_ms: 25.640333
+  type: 'test'
+  ...
+# Subtest: independent formatter context/unicode/C3
+ok 748 - independent formatter context/unicode/C3
+  ---
+  duration_ms: 26.156084
+  type: 'test'
+  ...
+# Subtest: independent parser context/unicode/C3
+ok 749 - independent parser context/unicode/C3
+  ---
+  duration_ms: 9.449417
+  type: 'test'
+  ...
+# Subtest: native-native control normal/bom-context/C32
+ok 750 - native-native control normal/bom-context/C32
+  ---
+  duration_ms: 26.013458
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/bom-context/C32
+ok 751 - independent formatter normal/bom-context/C32
+  ---
+  duration_ms: 24.057166
+  type: 'test'
+  ...
+# Subtest: independent parser normal/bom-context/C32
+ok 752 - independent parser normal/bom-context/C32
+  ---
+  duration_ms: 11.228791
+  type: 'test'
+  ...
+# Subtest: native-native control context/bom-context/C32
+ok 753 - native-native control context/bom-context/C32
+  ---
+  duration_ms: 77.834667
+  type: 'test'
+  ...
+# Subtest: independent formatter context/bom-context/C32
+ok 754 - independent formatter context/bom-context/C32
+  ---
+  duration_ms: 30.770291
+  type: 'test'
+  ...
+# Subtest: independent parser context/bom-context/C32
+ok 755 - independent parser context/bom-context/C32
+  ---
+  duration_ms: 9.665
+  type: 'test'
+  ...
+# Subtest: native-native control normal/bom-change/C0
+ok 756 - native-native control normal/bom-change/C0
+  ---
+  duration_ms: 32.617375
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/bom-change/C0
+ok 757 - independent formatter normal/bom-change/C0
+  ---
+  duration_ms: 28.615917
+  type: 'test'
+  ...
+# Subtest: independent parser normal/bom-change/C0
+ok 758 - independent parser normal/bom-change/C0
+  ---
+  duration_ms: 8.857875
+  type: 'test'
+  ...
+# Subtest: native-native control context/bom-change/C0
+ok 759 - native-native control context/bom-change/C0
+  ---
+  duration_ms: 27.053
+  type: 'test'
+  ...
+# Subtest: independent formatter context/bom-change/C0
+ok 760 - independent formatter context/bom-change/C0
+  ---
+  duration_ms: 26.772333
+  type: 'test'
+  ...
+# Subtest: independent parser context/bom-change/C0
+ok 761 - independent parser context/bom-change/C0
+  ---
+  duration_ms: 8.469208
+  type: 'test'
+  ...
+# Subtest: native-native control normal/long-line/C3
+ok 762 - native-native control normal/long-line/C3
+  ---
+  duration_ms: 26.716208
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/long-line/C3
+ok 763 - independent formatter normal/long-line/C3
+  ---
+  duration_ms: 28.748834
+  type: 'test'
+  ...
+# Subtest: independent parser normal/long-line/C3
+ok 764 - independent parser normal/long-line/C3
+  ---
+  duration_ms: 9.851208
+  type: 'test'
+  ...
+# Subtest: native-native control context/long-line/C3
+ok 765 - native-native control context/long-line/C3
+  ---
+  duration_ms: 31.251583
+  type: 'test'
+  ...
+# Subtest: independent formatter context/long-line/C3
+ok 766 - independent formatter context/long-line/C3
+  ---
+  duration_ms: 25.08475
+  type: 'test'
+  ...
+# Subtest: independent parser context/long-line/C3
+ok 767 - independent parser context/long-line/C3
+  ---
+  duration_ms: 9.873958
+  type: 'test'
+  ...
+# Subtest: native-native control normal/syntax-looking-lines/C32
+ok 768 - native-native control normal/syntax-looking-lines/C32
+  ---
+  duration_ms: 24.645083
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/syntax-looking-lines/C32
+ok 769 - independent formatter normal/syntax-looking-lines/C32
+  ---
+  duration_ms: 23.708667
+  type: 'test'
+  ...
+# Subtest: independent parser normal/syntax-looking-lines/C32
+ok 770 - independent parser normal/syntax-looking-lines/C32
+  ---
+  duration_ms: 7.95875
+  type: 'test'
+  ...
+# Subtest: native-native control context/syntax-looking-lines/C32
+ok 771 - native-native control context/syntax-looking-lines/C32
+  ---
+  duration_ms: 26.0695
+  type: 'test'
+  ...
+# Subtest: independent formatter context/syntax-looking-lines/C32
+ok 772 - independent formatter context/syntax-looking-lines/C32
+  ---
+  duration_ms: 25.550833
+  type: 'test'
+  ...
+# Subtest: independent parser context/syntax-looking-lines/C32
+ok 773 - independent parser context/syntax-looking-lines/C32
+  ---
+  duration_ms: 8.166334
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-0/C0
+ok 774 - native-native control normal/repeated-alignment-0/C0
+  ---
+  duration_ms: 24.7935
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-0/C0
+ok 775 - independent formatter normal/repeated-alignment-0/C0
+  ---
+  duration_ms: 19.797125
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-0/C0
+ok 776 - independent parser normal/repeated-alignment-0/C0
+  ---
+  duration_ms: 7.462458
+  type: 'test'
+  ...
+# Subtest: GNU C0 calibration only context/repeated-alignment-0/C0
+ok 777 - GNU C0 calibration only context/repeated-alignment-0/C0
+  ---
+  duration_ms: 24.527833
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-0/C0
+ok 778 - independent formatter context/repeated-alignment-0/C0
+  ---
+  duration_ms: 18.402167
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-0/C0
+ok 779 - independent parser context/repeated-alignment-0/C0
+  ---
+  duration_ms: 8.776584
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-1/C1
+ok 780 - native-native control normal/repeated-alignment-1/C1
+  ---
+  duration_ms: 25.7525
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-1/C1
+ok 781 - independent formatter normal/repeated-alignment-1/C1
+  ---
+  duration_ms: 18.092958
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-1/C1
+ok 782 - independent parser normal/repeated-alignment-1/C1
+  ---
+  duration_ms: 7.808583
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-1/C1
+ok 783 - native-native control context/repeated-alignment-1/C1
+  ---
+  duration_ms: 28.134917
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-1/C1
+ok 784 - independent formatter context/repeated-alignment-1/C1
+  ---
+  duration_ms: 18.608042
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-1/C1
+ok 785 - independent parser context/repeated-alignment-1/C1
+  ---
+  duration_ms: 7.534541
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-2/C3
+ok 786 - native-native control normal/repeated-alignment-2/C3
+  ---
+  duration_ms: 24.486333
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-2/C3
+ok 787 - independent formatter normal/repeated-alignment-2/C3
+  ---
+  duration_ms: 17.018959
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-2/C3
+ok 788 - independent parser normal/repeated-alignment-2/C3
+  ---
+  duration_ms: 8.479291
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-2/C3
+ok 789 - native-native control context/repeated-alignment-2/C3
+  ---
+  duration_ms: 25.294792
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-2/C3
+ok 790 - independent formatter context/repeated-alignment-2/C3
+  ---
+  duration_ms: 17.939458
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-2/C3
+ok 791 - independent parser context/repeated-alignment-2/C3
+  ---
+  duration_ms: 9.322708
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-3/C32
+ok 792 - native-native control normal/repeated-alignment-3/C32
+  ---
+  duration_ms: 25.090708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-3/C32
+ok 793 - independent formatter normal/repeated-alignment-3/C32
+  ---
+  duration_ms: 19.468541
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-3/C32
+ok 794 - independent parser normal/repeated-alignment-3/C32
+  ---
+  duration_ms: 8.276083
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-3/C32
+ok 795 - native-native control context/repeated-alignment-3/C32
+  ---
+  duration_ms: 25.416208
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-3/C32
+ok 796 - independent formatter context/repeated-alignment-3/C32
+  ---
+  duration_ms: 22.896334
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-3/C32
+ok 797 - independent parser context/repeated-alignment-3/C32
+  ---
+  duration_ms: 9.209792
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-4/C0
+ok 798 - native-native control normal/repeated-alignment-4/C0
+  ---
+  duration_ms: 26.070708
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-4/C0
+ok 799 - independent formatter normal/repeated-alignment-4/C0
+  ---
+  duration_ms: 16.208542
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-4/C0
+ok 800 - independent parser normal/repeated-alignment-4/C0
+  ---
+  duration_ms: 8.62225
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-4/C0
+ok 801 - native-native control context/repeated-alignment-4/C0
+  ---
+  duration_ms: 23.270417
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-4/C0
+ok 802 - independent formatter context/repeated-alignment-4/C0
+  ---
+  duration_ms: 17.094958
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-4/C0
+ok 803 - independent parser context/repeated-alignment-4/C0
+  ---
+  duration_ms: 8.621
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-5/C1
+ok 804 - native-native control normal/repeated-alignment-5/C1
+  ---
+  duration_ms: 26.586125
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-5/C1
+ok 805 - independent formatter normal/repeated-alignment-5/C1
+  ---
+  duration_ms: 15.724958
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-5/C1
+ok 806 - independent parser normal/repeated-alignment-5/C1
+  ---
+  duration_ms: 9.886834
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-5/C1
+ok 807 - native-native control context/repeated-alignment-5/C1
+  ---
+  duration_ms: 24.87725
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-5/C1
+ok 808 - independent formatter context/repeated-alignment-5/C1
+  ---
+  duration_ms: 17.674833
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-5/C1
+ok 809 - independent parser context/repeated-alignment-5/C1
+  ---
+  duration_ms: 8.857542
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-6/C32
+ok 810 - native-native control normal/repeated-alignment-6/C32
+  ---
+  duration_ms: 24.741209
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-6/C32
+ok 811 - independent formatter normal/repeated-alignment-6/C32
+  ---
+  duration_ms: 15.930584
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-6/C32
+ok 812 - independent parser normal/repeated-alignment-6/C32
+  ---
+  duration_ms: 7.919375
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-6/C32
+ok 813 - native-native control context/repeated-alignment-6/C32
+  ---
+  duration_ms: 25.972625
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-6/C32
+ok 814 - independent formatter context/repeated-alignment-6/C32
+  ---
+  duration_ms: 23.295167
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-6/C32
+ok 815 - independent parser context/repeated-alignment-6/C32
+  ---
+  duration_ms: 13.684292
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-7/C0
+ok 816 - native-native control normal/repeated-alignment-7/C0
+  ---
+  duration_ms: 27.018917
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-7/C0
+ok 817 - independent formatter normal/repeated-alignment-7/C0
+  ---
+  duration_ms: 15.953583
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-7/C0
+ok 818 - independent parser normal/repeated-alignment-7/C0
+  ---
+  duration_ms: 8.749084
+  type: 'test'
+  ...
+# Subtest: GNU C0 calibration only context/repeated-alignment-7/C0
+ok 819 - GNU C0 calibration only context/repeated-alignment-7/C0
+  ---
+  duration_ms: 28.937
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-7/C0
+ok 820 - independent formatter context/repeated-alignment-7/C0
+  ---
+  duration_ms: 16.036333
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-7/C0
+ok 821 - independent parser context/repeated-alignment-7/C0
+  ---
+  duration_ms: 9.892834
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-8/C1
+ok 822 - native-native control normal/repeated-alignment-8/C1
+  ---
+  duration_ms: 25.968792
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-8/C1
+ok 823 - independent formatter normal/repeated-alignment-8/C1
+  ---
+  duration_ms: 17.59
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-8/C1
+ok 824 - independent parser normal/repeated-alignment-8/C1
+  ---
+  duration_ms: 9.136041
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-8/C1
+ok 825 - native-native control context/repeated-alignment-8/C1
+  ---
+  duration_ms: 25.296542
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-8/C1
+ok 826 - independent formatter context/repeated-alignment-8/C1
+  ---
+  duration_ms: 16.4815
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-8/C1
+ok 827 - independent parser context/repeated-alignment-8/C1
+  ---
+  duration_ms: 10.444667
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-9/C3
+ok 828 - native-native control normal/repeated-alignment-9/C3
+  ---
+  duration_ms: 25.25775
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-9/C3
+ok 829 - independent formatter normal/repeated-alignment-9/C3
+  ---
+  duration_ms: 17.817625
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-9/C3
+ok 830 - independent parser normal/repeated-alignment-9/C3
+  ---
+  duration_ms: 9.190375
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-9/C3
+ok 831 - native-native control context/repeated-alignment-9/C3
+  ---
+  duration_ms: 24.751083
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-9/C3
+ok 832 - independent formatter context/repeated-alignment-9/C3
+  ---
+  duration_ms: 18.860375
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-9/C3
+ok 833 - independent parser context/repeated-alignment-9/C3
+  ---
+  duration_ms: 8.565625
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-10/C32
+ok 834 - native-native control normal/repeated-alignment-10/C32
+  ---
+  duration_ms: 25.027
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-10/C32
+ok 835 - independent formatter normal/repeated-alignment-10/C32
+  ---
+  duration_ms: 15.631708
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-10/C32
+ok 836 - independent parser normal/repeated-alignment-10/C32
+  ---
+  duration_ms: 7.756667
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-10/C32
+ok 837 - native-native control context/repeated-alignment-10/C32
+  ---
+  duration_ms: 25.454667
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-10/C32
+ok 838 - independent formatter context/repeated-alignment-10/C32
+  ---
+  duration_ms: 23.06875
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-10/C32
+ok 839 - independent parser context/repeated-alignment-10/C32
+  ---
+  duration_ms: 9.55775
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-11/C0
+ok 840 - native-native control normal/repeated-alignment-11/C0
+  ---
+  duration_ms: 25.224083
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-11/C0
+ok 841 - independent formatter normal/repeated-alignment-11/C0
+  ---
+  duration_ms: 18.698542
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-11/C0
+ok 842 - independent parser normal/repeated-alignment-11/C0
+  ---
+  duration_ms: 9.000125
+  type: 'test'
+  ...
+# Subtest: GNU C0 calibration only context/repeated-alignment-11/C0
+ok 843 - GNU C0 calibration only context/repeated-alignment-11/C0
+  ---
+  duration_ms: 26.492042
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-11/C0
+ok 844 - independent formatter context/repeated-alignment-11/C0
+  ---
+  duration_ms: 15.648042
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-11/C0
+ok 845 - independent parser context/repeated-alignment-11/C0
+  ---
+  duration_ms: 8.3145
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-12/C1
+ok 846 - native-native control normal/repeated-alignment-12/C1
+  ---
+  duration_ms: 27.206917
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-12/C1
+ok 847 - independent formatter normal/repeated-alignment-12/C1
+  ---
+  duration_ms: 17.832833
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-12/C1
+ok 848 - independent parser normal/repeated-alignment-12/C1
+  ---
+  duration_ms: 9.404375
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-12/C1
+ok 849 - native-native control context/repeated-alignment-12/C1
+  ---
+  duration_ms: 26.221459
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-12/C1
+ok 850 - independent formatter context/repeated-alignment-12/C1
+  ---
+  duration_ms: 15.448167
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-12/C1
+ok 851 - independent parser context/repeated-alignment-12/C1
+  ---
+  duration_ms: 8.636417
+  type: 'test'
+  ...
+# Subtest: native-native control normal/repeated-alignment-13/C3
+ok 852 - native-native control normal/repeated-alignment-13/C3
+  ---
+  duration_ms: 24.275041
+  type: 'test'
+  ...
+# Subtest: independent formatter normal/repeated-alignment-13/C3
+ok 853 - independent formatter normal/repeated-alignment-13/C3
+  ---
+  duration_ms: 16.375208
+  type: 'test'
+  ...
+# Subtest: independent parser normal/repeated-alignment-13/C3
+ok 854 - independent parser normal/repeated-alignment-13/C3
+  ---
+  duration_ms: 8.280666
+  type: 'test'
+  ...
+# Subtest: native-native control context/repeated-alignment-13/C3
+ok 855 - native-native control context/repeated-alignment-13/C3
+  ---
+  duration_ms: 28.301375
+  type: 'test'
+  ...
+# Subtest: independent formatter context/repeated-alignment-13/C3
+ok 856 - independent formatter context/repeated-alignment-13/C3
+  ---
+  duration_ms: 16.117292
+  type: 'test'
+  ...
+# Subtest: independent parser context/repeated-alignment-13/C3
+ok 857 - independent parser context/repeated-alignment-13/C3
+  ---
+  duration_ms: 8.644375
+  type: 'test'
+  ...
+# FORMAT_ORACLES [{"tool":"diff","path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","version":"diff (GNU diffutils) 3.12\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Paul Eggert, Mike Haertel, David Hayes,\\nRichard Stallman, and Len Tower.","dialect":"gnu","sha256":"f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"},{"tool":"patch","path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"}]
+# DIALECT_CONTROL {"case":"C0-c-order","gnu":"*** target\\n--- target\\n***************\\n*** 1,3 ****\\n  a\\n! b\\n  c\\n--- 1,3 ----\\n  a\\n! B\\n  c\\n","apple":"*** target\\n--- target\\n***************\\n*** 2 ****\\n! b\\n--- 2 ----\\n! B\\n"}
+# Subtest: GNU selector regression: -C0 followed by -c resets to three lines
+ok 858 - GNU selector regression: -C0 followed by -c resets to three lines
+  ---
+  duration_ms: 39.031167
+  type: 'test'
+  ...
+# Subtest: empty native diff is a successful explicit-target patch no-op
+ok 859 - empty native diff is a successful explicit-target patch no-op
+  ---
+  duration_ms: 20.662584
+  type: 'test'
+  ...
+# Subtest: normal replacement with incomplete final lines applies independent static input
+ok 860 - normal replacement with incomplete final lines applies independent static input
+  ---
+  duration_ms: 17.9315
+  type: 'test'
+  ...
+# FORMAT_ORACLES [{"tool":"diff","path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","version":"diff (GNU diffutils) 3.12\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Paul Eggert, Mike Haertel, David Hayes,\\nRichard Stallman, and Len Tower.","dialect":"gnu","sha256":"f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"},{"tool":"patch","path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"}]
+# Subtest: GNU whitespace static control -w/leading-absent-present
+ok 861 - GNU whitespace static control -w/leading-absent-present
+  ---
+  duration_ms: 22.060541
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/leading-absent-present
+ok 862 - whitespace normal/-w/leading-absent-present
+  ---
+  duration_ms: 12.701292
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/leading-absent-present
+ok 863 - whitespace -C3/-w/leading-absent-present
+  ---
+  duration_ms: 16.310917
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/leading-absent-present
+ok 864 - GNU whitespace static control -b/leading-absent-present
+  ---
+  duration_ms: 12.730083
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/leading-absent-present
+ok 865 - whitespace normal/-b/leading-absent-present
+  ---
+  duration_ms: 15.375708
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/leading-absent-present
+ok 866 - whitespace -C3/-b/leading-absent-present
+  ---
+  duration_ms: 11.426834
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/leading-nonempty
+ok 867 - GNU whitespace static control -w/leading-nonempty
+  ---
+  duration_ms: 22.183375
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/leading-nonempty
+ok 868 - whitespace normal/-w/leading-nonempty
+  ---
+  duration_ms: 14.925917
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/leading-nonempty
+ok 869 - whitespace -C3/-w/leading-nonempty
+  ---
+  duration_ms: 11.567541
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/leading-nonempty
+ok 870 - GNU whitespace static control -b/leading-nonempty
+  ---
+  duration_ms: 12.495208
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/leading-nonempty
+ok 871 - whitespace normal/-b/leading-nonempty
+  ---
+  duration_ms: 10.753042
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/leading-nonempty
+ok 872 - whitespace -C3/-b/leading-nonempty
+  ---
+  duration_ms: 12.069541
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/trailing-absent-present
+ok 873 - GNU whitespace static control -w/trailing-absent-present
+  ---
+  duration_ms: 10.992709
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/trailing-absent-present
+ok 874 - whitespace normal/-w/trailing-absent-present
+  ---
+  duration_ms: 17.778541
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/trailing-absent-present
+ok 875 - whitespace -C3/-w/trailing-absent-present
+  ---
+  duration_ms: 14.786458
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/trailing-absent-present
+ok 876 - GNU whitespace static control -b/trailing-absent-present
+  ---
+  duration_ms: 13.668583
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/trailing-absent-present
+ok 877 - whitespace normal/-b/trailing-absent-present
+  ---
+  duration_ms: 14.456833
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/trailing-absent-present
+ok 878 - whitespace -C3/-b/trailing-absent-present
+  ---
+  duration_ms: 9.222875
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/internal-absent-present
+ok 879 - GNU whitespace static control -w/internal-absent-present
+  ---
+  duration_ms: 10.8315
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/internal-absent-present
+ok 880 - whitespace normal/-w/internal-absent-present
+  ---
+  duration_ms: 9.815333
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/internal-absent-present
+ok 881 - whitespace -C3/-w/internal-absent-present
+  ---
+  duration_ms: 11.828917
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/internal-absent-present
+ok 882 - GNU whitespace static control -b/internal-absent-present
+  ---
+  duration_ms: 12.501417
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/internal-absent-present
+ok 883 - whitespace normal/-b/internal-absent-present
+  ---
+  duration_ms: 13.510333
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/internal-absent-present
+ok 884 - whitespace -C3/-b/internal-absent-present
+  ---
+  duration_ms: 17.840458
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/internal-nonempty
+ok 885 - GNU whitespace static control -w/internal-nonempty
+  ---
+  duration_ms: 14.026958
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/internal-nonempty
+ok 886 - whitespace normal/-w/internal-nonempty
+  ---
+  duration_ms: 12.179959
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/internal-nonempty
+ok 887 - whitespace -C3/-w/internal-nonempty
+  ---
+  duration_ms: 12.7105
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/internal-nonempty
+ok 888 - GNU whitespace static control -b/internal-nonempty
+  ---
+  duration_ms: 8.625625
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/internal-nonempty
+ok 889 - whitespace normal/-b/internal-nonempty
+  ---
+  duration_ms: 11.121833
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/internal-nonempty
+ok 890 - whitespace -C3/-b/internal-nonempty
+  ---
+  duration_ms: 13.183625
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/empty-line-nonempty-space
+ok 891 - GNU whitespace static control -w/empty-line-nonempty-space
+  ---
+  duration_ms: 9.772666
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/empty-line-nonempty-space
+ok 892 - whitespace normal/-w/empty-line-nonempty-space
+  ---
+  duration_ms: 11.953333
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/empty-line-nonempty-space
+ok 893 - whitespace -C3/-w/empty-line-nonempty-space
+  ---
+  duration_ms: 10.426792
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/empty-line-nonempty-space
+ok 894 - GNU whitespace static control -b/empty-line-nonempty-space
+  ---
+  duration_ms: 8.832917
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/empty-line-nonempty-space
+ok 895 - whitespace normal/-b/empty-line-nonempty-space
+  ---
+  duration_ms: 12.399833
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/empty-line-nonempty-space
+ok 896 - whitespace -C3/-b/empty-line-nonempty-space
+  ---
+  duration_ms: 15.652167
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/empty-file-whitespace-line
+ok 897 - GNU whitespace static control -w/empty-file-whitespace-line
+  ---
+  duration_ms: 12.473167
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/empty-file-whitespace-line
+ok 898 - whitespace normal/-w/empty-file-whitespace-line
+  ---
+  duration_ms: 12.181208
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/empty-file-whitespace-line
+ok 899 - whitespace -C3/-w/empty-file-whitespace-line
+  ---
+  duration_ms: 9.588833
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/empty-file-whitespace-line
+ok 900 - GNU whitespace static control -b/empty-file-whitespace-line
+  ---
+  duration_ms: 14.917625
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/empty-file-whitespace-line
+ok 901 - whitespace normal/-b/empty-file-whitespace-line
+  ---
+  duration_ms: 12.6825
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/empty-file-whitespace-line
+ok 902 - whitespace -C3/-b/empty-file-whitespace-line
+  ---
+  duration_ms: 13.355125
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/empty-file-incomplete-space
+ok 903 - GNU whitespace static control -w/empty-file-incomplete-space
+  ---
+  duration_ms: 11.696166
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/empty-file-incomplete-space
+ok 904 - whitespace normal/-w/empty-file-incomplete-space
+  ---
+  duration_ms: 11.24625
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/empty-file-incomplete-space
+ok 905 - whitespace -C3/-w/empty-file-incomplete-space
+  ---
+  duration_ms: 10.914583
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/empty-file-incomplete-space
+ok 906 - GNU whitespace static control -b/empty-file-incomplete-space
+  ---
+  duration_ms: 10.071375
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/empty-file-incomplete-space
+ok 907 - whitespace normal/-b/empty-file-incomplete-space
+  ---
+  duration_ms: 12.3565
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/empty-file-incomplete-space
+ok 908 - whitespace -C3/-b/empty-file-incomplete-space
+  ---
+  duration_ms: 10.52325
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/extra-blank-line
+ok 909 - GNU whitespace static control -w/extra-blank-line
+  ---
+  duration_ms: 11.33075
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/extra-blank-line
+ok 910 - whitespace normal/-w/extra-blank-line
+  ---
+  duration_ms: 11.226375
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/extra-blank-line
+ok 911 - whitespace -C3/-w/extra-blank-line
+  ---
+  duration_ms: 11.154791
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/extra-blank-line
+ok 912 - GNU whitespace static control -b/extra-blank-line
+  ---
+  duration_ms: 8.911417
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/extra-blank-line
+ok 913 - whitespace normal/-b/extra-blank-line
+  ---
+  duration_ms: 10.730542
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/extra-blank-line
+ok 914 - whitespace -C3/-b/extra-blank-line
+  ---
+  duration_ms: 9.582834
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/line-boundary
+ok 915 - GNU whitespace static control -w/line-boundary
+  ---
+  duration_ms: 10.119417
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/line-boundary
+ok 916 - whitespace normal/-w/line-boundary
+  ---
+  duration_ms: 10.693334
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/line-boundary
+ok 917 - whitespace -C3/-w/line-boundary
+  ---
+  duration_ms: 9.470833
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/line-boundary
+ok 918 - GNU whitespace static control -b/line-boundary
+  ---
+  duration_ms: 15.922583
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/line-boundary
+ok 919 - whitespace normal/-b/line-boundary
+  ---
+  duration_ms: 9.748
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/line-boundary
+ok 920 - whitespace -C3/-b/line-boundary
+  ---
+  duration_ms: 9.398959
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/eof-newline-ignored
+ok 921 - GNU whitespace static control -w/eof-newline-ignored
+  ---
+  duration_ms: 11.56925
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/eof-newline-ignored
+ok 922 - whitespace normal/-w/eof-newline-ignored
+  ---
+  duration_ms: 11.549917
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/eof-newline-ignored
+ok 923 - whitespace -C3/-w/eof-newline-ignored
+  ---
+  duration_ms: 10.430334
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/eof-newline-ignored
+ok 924 - GNU whitespace static control -b/eof-newline-ignored
+  ---
+  duration_ms: 12.046125
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/eof-newline-ignored
+ok 925 - whitespace normal/-b/eof-newline-ignored
+  ---
+  duration_ms: 9.530791
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/eof-newline-ignored
+ok 926 - whitespace -C3/-b/eof-newline-ignored
+  ---
+  duration_ms: 10.944917
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/eof-space-newline-ignored
+ok 927 - GNU whitespace static control -w/eof-space-newline-ignored
+  ---
+  duration_ms: 12.643417
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/eof-space-newline-ignored
+ok 928 - whitespace normal/-w/eof-space-newline-ignored
+  ---
+  duration_ms: 16.001834
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/eof-space-newline-ignored
+ok 929 - whitespace -C3/-w/eof-space-newline-ignored
+  ---
+  duration_ms: 10.684
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/eof-space-newline-ignored
+ok 930 - GNU whitespace static control -b/eof-space-newline-ignored
+  ---
+  duration_ms: 9.245875
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/eof-space-newline-ignored
+ok 931 - whitespace normal/-b/eof-space-newline-ignored
+  ---
+  duration_ms: 10.150042
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/eof-space-newline-ignored
+ok 932 - whitespace -C3/-b/eof-space-newline-ignored
+  ---
+  duration_ms: 11.695292
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/eof-actual-change
+ok 933 - GNU whitespace static control -w/eof-actual-change
+  ---
+  duration_ms: 10.729375
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/eof-actual-change
+ok 934 - whitespace normal/-w/eof-actual-change
+  ---
+  duration_ms: 10.209709
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/eof-actual-change
+ok 935 - whitespace -C3/-w/eof-actual-change
+  ---
+  duration_ms: 12.3625
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/eof-actual-change
+ok 936 - GNU whitespace static control -b/eof-actual-change
+  ---
+  duration_ms: 9.397792
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/eof-actual-change
+ok 937 - whitespace normal/-b/eof-actual-change
+  ---
+  duration_ms: 10.446834
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/eof-actual-change
+ok 938 - whitespace -C3/-b/eof-actual-change
+  ---
+  duration_ms: 11.952291
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/eof-blank-to-incomplete
+ok 939 - GNU whitespace static control -w/eof-blank-to-incomplete
+  ---
+  duration_ms: 10.374042
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/eof-blank-to-incomplete
+ok 940 - whitespace normal/-w/eof-blank-to-incomplete
+  ---
+  duration_ms: 12.690042
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/eof-blank-to-incomplete
+ok 941 - whitespace -C3/-w/eof-blank-to-incomplete
+  ---
+  duration_ms: 17.6505
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/eof-blank-to-incomplete
+ok 942 - GNU whitespace static control -b/eof-blank-to-incomplete
+  ---
+  duration_ms: 12.001917
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/eof-blank-to-incomplete
+ok 943 - whitespace normal/-b/eof-blank-to-incomplete
+  ---
+  duration_ms: 13.705125
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/eof-blank-to-incomplete
+ok 944 - whitespace -C3/-b/eof-blank-to-incomplete
+  ---
+  duration_ms: 15.07575
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/vertical-tab
+ok 945 - GNU whitespace static control -w/vertical-tab
+  ---
+  duration_ms: 10.13
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/vertical-tab
+ok 946 - whitespace normal/-w/vertical-tab
+  ---
+  duration_ms: 9.899791
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/vertical-tab
+ok 947 - whitespace -C3/-w/vertical-tab
+  ---
+  duration_ms: 9.315542
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/vertical-tab
+ok 948 - GNU whitespace static control -b/vertical-tab
+  ---
+  duration_ms: 9.357334
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/vertical-tab
+ok 949 - whitespace normal/-b/vertical-tab
+  ---
+  duration_ms: 9.841375
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/vertical-tab
+ok 950 - whitespace -C3/-b/vertical-tab
+  ---
+  duration_ms: 10.644042
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/form-feed
+ok 951 - GNU whitespace static control -w/form-feed
+  ---
+  duration_ms: 10.097875
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/form-feed
+ok 952 - whitespace normal/-w/form-feed
+  ---
+  duration_ms: 9.275125
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/form-feed
+ok 953 - whitespace -C3/-w/form-feed
+  ---
+  duration_ms: 20.454833
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/form-feed
+ok 954 - GNU whitespace static control -b/form-feed
+  ---
+  duration_ms: 10.423083
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/form-feed
+ok 955 - whitespace normal/-b/form-feed
+  ---
+  duration_ms: 11.367667
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/form-feed
+ok 956 - whitespace -C3/-b/form-feed
+  ---
+  duration_ms: 10.401917
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/carriage-return
+ok 957 - GNU whitespace static control -w/carriage-return
+  ---
+  duration_ms: 9.436708
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/carriage-return
+ok 958 - whitespace normal/-w/carriage-return
+  ---
+  duration_ms: 12.050375
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/carriage-return
+ok 959 - whitespace -C3/-w/carriage-return
+  ---
+  duration_ms: 18.548916
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/carriage-return
+ok 960 - GNU whitespace static control -b/carriage-return
+  ---
+  duration_ms: 10.65225
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/carriage-return
+ok 961 - whitespace normal/-b/carriage-return
+  ---
+  duration_ms: 11.350042
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/carriage-return
+ok 962 - whitespace -C3/-b/carriage-return
+  ---
+  duration_ms: 9.928291
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/crlf-lf
+ok 963 - GNU whitespace static control -w/crlf-lf
+  ---
+  duration_ms: 10.86075
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/crlf-lf
+ok 964 - whitespace normal/-w/crlf-lf
+  ---
+  duration_ms: 10.369208
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/crlf-lf
+ok 965 - whitespace -C3/-w/crlf-lf
+  ---
+  duration_ms: 10.477042
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/crlf-lf
+ok 966 - GNU whitespace static control -b/crlf-lf
+  ---
+  duration_ms: 8.873209
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/crlf-lf
+ok 967 - whitespace normal/-b/crlf-lf
+  ---
+  duration_ms: 11.553541
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/crlf-lf
+ok 968 - whitespace -C3/-b/crlf-lf
+  ---
+  duration_ms: 10.400667
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/unicode-nbsp-significant
+ok 969 - GNU whitespace static control -w/unicode-nbsp-significant
+  ---
+  duration_ms: 10.295417
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/unicode-nbsp-significant
+ok 970 - whitespace normal/-w/unicode-nbsp-significant
+  ---
+  duration_ms: 11.960875
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/unicode-nbsp-significant
+ok 971 - whitespace -C3/-w/unicode-nbsp-significant
+  ---
+  duration_ms: 12.212917
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/unicode-nbsp-significant
+ok 972 - GNU whitespace static control -b/unicode-nbsp-significant
+  ---
+  duration_ms: 10.800084
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/unicode-nbsp-significant
+ok 973 - whitespace normal/-b/unicode-nbsp-significant
+  ---
+  duration_ms: 11.138708
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/unicode-nbsp-significant
+ok 974 - whitespace -C3/-b/unicode-nbsp-significant
+  ---
+  duration_ms: 11.369625
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/unicode-em-space-significant
+ok 975 - GNU whitespace static control -w/unicode-em-space-significant
+  ---
+  duration_ms: 9.101416
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/unicode-em-space-significant
+ok 976 - whitespace normal/-w/unicode-em-space-significant
+  ---
+  duration_ms: 12.566334
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/unicode-em-space-significant
+ok 977 - whitespace -C3/-w/unicode-em-space-significant
+  ---
+  duration_ms: 10.455291
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/unicode-em-space-significant
+ok 978 - GNU whitespace static control -b/unicode-em-space-significant
+  ---
+  duration_ms: 9.191375
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/unicode-em-space-significant
+ok 979 - whitespace normal/-b/unicode-em-space-significant
+  ---
+  duration_ms: 9.829583
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/unicode-em-space-significant
+ok 980 - whitespace -C3/-b/unicode-em-space-significant
+  ---
+  duration_ms: 9.019125
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/unicode-line-separator-significant
+ok 981 - GNU whitespace static control -w/unicode-line-separator-significant
+  ---
+  duration_ms: 10.465917
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/unicode-line-separator-significant
+ok 982 - whitespace normal/-w/unicode-line-separator-significant
+  ---
+  duration_ms: 8.718917
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/unicode-line-separator-significant
+ok 983 - whitespace -C3/-w/unicode-line-separator-significant
+  ---
+  duration_ms: 10.612875
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/unicode-line-separator-significant
+ok 984 - GNU whitespace static control -b/unicode-line-separator-significant
+  ---
+  duration_ms: 11.488083
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/unicode-line-separator-significant
+ok 985 - whitespace normal/-b/unicode-line-separator-significant
+  ---
+  duration_ms: 9.524958
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/unicode-line-separator-significant
+ok 986 - whitespace -C3/-b/unicode-line-separator-significant
+  ---
+  duration_ms: 10.357875
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/unicode-nel-significant
+ok 987 - GNU whitespace static control -w/unicode-nel-significant
+  ---
+  duration_ms: 11.213
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/unicode-nel-significant
+ok 988 - whitespace normal/-w/unicode-nel-significant
+  ---
+  duration_ms: 9.668625
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/unicode-nel-significant
+ok 989 - whitespace -C3/-w/unicode-nel-significant
+  ---
+  duration_ms: 10.164417
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/unicode-nel-significant
+ok 990 - GNU whitespace static control -b/unicode-nel-significant
+  ---
+  duration_ms: 9.088916
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/unicode-nel-significant
+ok 991 - whitespace normal/-b/unicode-nel-significant
+  ---
+  duration_ms: 13.607084
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/unicode-nel-significant
+ok 992 - whitespace -C3/-b/unicode-nel-significant
+  ---
+  duration_ms: 11.101667
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/bom-significant
+ok 993 - GNU whitespace static control -w/bom-significant
+  ---
+  duration_ms: 9.480083
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/bom-significant
+ok 994 - whitespace normal/-w/bom-significant
+  ---
+  duration_ms: 8.511625
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/bom-significant
+ok 995 - whitespace -C3/-w/bom-significant
+  ---
+  duration_ms: 10.960709
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/bom-significant
+ok 996 - GNU whitespace static control -b/bom-significant
+  ---
+  duration_ms: 9.152583
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/bom-significant
+ok 997 - whitespace normal/-b/bom-significant
+  ---
+  duration_ms: 10.475542
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/bom-significant
+ok 998 - whitespace -C3/-b/bom-significant
+  ---
+  duration_ms: 11.895417
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/embedded-bom-significant
+ok 999 - GNU whitespace static control -w/embedded-bom-significant
+  ---
+  duration_ms: 11.127125
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/embedded-bom-significant
+ok 1000 - whitespace normal/-w/embedded-bom-significant
+  ---
+  duration_ms: 10.05875
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/embedded-bom-significant
+ok 1001 - whitespace -C3/-w/embedded-bom-significant
+  ---
+  duration_ms: 11.638708
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/embedded-bom-significant
+ok 1002 - GNU whitespace static control -b/embedded-bom-significant
+  ---
+  duration_ms: 8.894375
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/embedded-bom-significant
+ok 1003 - whitespace normal/-b/embedded-bom-significant
+  ---
+  duration_ms: 9.95375
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/embedded-bom-significant
+ok 1004 - whitespace -C3/-b/embedded-bom-significant
+  ---
+  duration_ms: 9.50225
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/unicode-normalization-significant
+ok 1005 - GNU whitespace static control -w/unicode-normalization-significant
+  ---
+  duration_ms: 8.353208
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/unicode-normalization-significant
+ok 1006 - whitespace normal/-w/unicode-normalization-significant
+  ---
+  duration_ms: 10.467167
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/unicode-normalization-significant
+ok 1007 - whitespace -C3/-w/unicode-normalization-significant
+  ---
+  duration_ms: 9.744584
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/unicode-normalization-significant
+ok 1008 - GNU whitespace static control -b/unicode-normalization-significant
+  ---
+  duration_ms: 7.902709
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/unicode-normalization-significant
+ok 1009 - whitespace normal/-b/unicode-normalization-significant
+  ---
+  duration_ms: 16.926
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/unicode-normalization-significant
+ok 1010 - whitespace -C3/-b/unicode-normalization-significant
+  ---
+  duration_ms: 14.552042
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/case-significant
+ok 1011 - GNU whitespace static control -w/case-significant
+  ---
+  duration_ms: 9.894209
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/case-significant
+ok 1012 - whitespace normal/-w/case-significant
+  ---
+  duration_ms: 11.687833
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/case-significant
+ok 1013 - whitespace -C3/-w/case-significant
+  ---
+  duration_ms: 9.520625
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/case-significant
+ok 1014 - GNU whitespace static control -b/case-significant
+  ---
+  duration_ms: 10.309333
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/case-significant
+ok 1015 - whitespace normal/-b/case-significant
+  ---
+  duration_ms: 9.173417
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/case-significant
+ok 1016 - whitespace -C3/-b/case-significant
+  ---
+  duration_ms: 9.174125
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/punctuation-significant
+ok 1017 - GNU whitespace static control -w/punctuation-significant
+  ---
+  duration_ms: 9.446667
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/punctuation-significant
+ok 1018 - whitespace normal/-w/punctuation-significant
+  ---
+  duration_ms: 14.145667
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/punctuation-significant
+ok 1019 - whitespace -C3/-w/punctuation-significant
+  ---
+  duration_ms: 9.105375
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/punctuation-significant
+ok 1020 - GNU whitespace static control -b/punctuation-significant
+  ---
+  duration_ms: 9.551833
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/punctuation-significant
+ok 1021 - whitespace normal/-b/punctuation-significant
+  ---
+  duration_ms: 9.82975
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/punctuation-significant
+ok 1022 - whitespace -C3/-b/punctuation-significant
+  ---
+  duration_ms: 10.478166
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -w/whitespace-not-reorder
+ok 1023 - GNU whitespace static control -w/whitespace-not-reorder
+  ---
+  duration_ms: 8.215417
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-w/whitespace-not-reorder
+ok 1024 - whitespace normal/-w/whitespace-not-reorder
+  ---
+  duration_ms: 9.637458
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-w/whitespace-not-reorder
+ok 1025 - whitespace -C3/-w/whitespace-not-reorder
+  ---
+  duration_ms: 10.779084
+  type: 'test'
+  ...
+# Subtest: GNU whitespace static control -b/whitespace-not-reorder
+ok 1026 - GNU whitespace static control -b/whitespace-not-reorder
+  ---
+  duration_ms: 9.714875
+  type: 'test'
+  ...
+# Subtest: whitespace normal/-b/whitespace-not-reorder
+ok 1027 - whitespace normal/-b/whitespace-not-reorder
+  ---
+  duration_ms: 10.537208
+  type: 'test'
+  ...
+# Subtest: whitespace -C3/-b/whitespace-not-reorder
+ok 1028 - whitespace -C3/-b/whitespace-not-reorder
+  ---
+  duration_ms: 11.242875
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -w/normal
+ok 1029 - mixed actual changes preserve each original side -w/normal
+  ---
+  duration_ms: 12.418791
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -w/-C0
+ok 1030 - mixed actual changes preserve each original side -w/-C0
+  ---
+  duration_ms: 9.1395
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -w/-C1
+ok 1031 - mixed actual changes preserve each original side -w/-C1
+  ---
+  duration_ms: 9.208041
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -w/-C32
+ok 1032 - mixed actual changes preserve each original side -w/-C32
+  ---
+  duration_ms: 11.1675
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -w/-U3
+ok 1033 - mixed actual changes preserve each original side -w/-U3
+  ---
+  duration_ms: 11.9835
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -b/normal
+ok 1034 - mixed actual changes preserve each original side -b/normal
+  ---
+  duration_ms: 9.948125
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -b/-C0
+ok 1035 - mixed actual changes preserve each original side -b/-C0
+  ---
+  duration_ms: 10.276209
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -b/-C1
+ok 1036 - mixed actual changes preserve each original side -b/-C1
+  ---
+  duration_ms: 9.275542
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -b/-C32
+ok 1037 - mixed actual changes preserve each original side -b/-C32
+  ---
+  duration_ms: 13.283917
+  type: 'test'
+  ...
+# Subtest: mixed actual changes preserve each original side -b/-U3
+ok 1038 - mixed actual changes preserve each original side -b/-U3
+  ---
+  duration_ms: 8.620083
+  type: 'test'
+  ...
+# Subtest: static context -w output retains old and new context bytes independently
+ok 1039 - static context -w output retains old and new context bytes independently
+  ---
+  duration_ms: 0.325958
+  type: 'test'
+  ...
+# Subtest: all-space dominates flag ordering -w -b
+ok 1040 - all-space dominates flag ordering -w -b
+  ---
+  duration_ms: 0.185083
+  type: 'test'
+  ...
+# Subtest: all-space dominates flag ordering -b -w
+ok 1041 - all-space dominates flag ordering -b -w
+  ---
+  duration_ms: 0.222875
+  type: 'test'
+  ...
+# Subtest: all-space dominates flag ordering -wb
+ok 1042 - all-space dominates flag ordering -wb
+  ---
+  duration_ms: 0.153167
+  type: 'test'
+  ...
+# Subtest: all-space dominates flag ordering -bw
+ok 1043 - all-space dominates flag ordering -bw
+  ---
+  duration_ms: 0.312667
+  type: 'test'
+  ...
+# Subtest: all-space dominates flag ordering --ignore-all-space --ignore-space-change
+ok 1044 - all-space dominates flag ordering --ignore-all-space --ignore-space-change
+  ---
+  duration_ms: 0.370709
+  type: 'test'
+  ...
+# Subtest: patch -l normal/nonempty-blanks
+ok 1045 - patch -l normal/nonempty-blanks
+  ---
+  duration_ms: 21.968833
+  type: 'test'
+  ...
+# Subtest: patch -l -C3/nonempty-blanks
+ok 1046 - patch -l -C3/nonempty-blanks
+  ---
+  duration_ms: 20.793667
+  type: 'test'
+  ...
+# Subtest: patch -l -U3/nonempty-blanks
+ok 1047 - patch -l -U3/nonempty-blanks
+  ---
+  duration_ms: 20.452833
+  type: 'test'
+  ...
+# Subtest: patch -l normal/leading-blanks
+ok 1048 - patch -l normal/leading-blanks
+  ---
+  duration_ms: 22.407167
+  type: 'test'
+  ...
+# Subtest: patch -l -C3/leading-blanks
+ok 1049 - patch -l -C3/leading-blanks
+  ---
+  duration_ms: 22.082875
+  type: 'test'
+  ...
+# Subtest: patch -l -U3/leading-blanks
+ok 1050 - patch -l -U3/leading-blanks
+  ---
+  duration_ms: 19.929625
+  type: 'test'
+  ...
+# Subtest: patch -l normal/missing-internal-blanks
+ok 1051 - patch -l normal/missing-internal-blanks
+  ---
+  duration_ms: 20.6455
+  type: 'test'
+  ...
+# Subtest: patch -l -C3/missing-internal-blanks
+ok 1052 - patch -l -C3/missing-internal-blanks
+  ---
+  duration_ms: 20.347
+  type: 'test'
+  ...
+# Subtest: patch -l -U3/missing-internal-blanks
+ok 1053 - patch -l -U3/missing-internal-blanks
+  ---
+  duration_ms: 28.100667
+  type: 'test'
+  ...
+# Subtest: patch -l normal/missing-leading-blanks
+ok 1054 - patch -l normal/missing-leading-blanks
+  ---
+  duration_ms: 19.068375
+  type: 'test'
+  ...
+# Subtest: patch -l -C3/missing-leading-blanks
+ok 1055 - patch -l -C3/missing-leading-blanks
+  ---
+  duration_ms: 20.761209
+  type: 'test'
+  ...
+# Subtest: patch -l -U3/missing-leading-blanks
+ok 1056 - patch -l -U3/missing-leading-blanks
+  ---
+  duration_ms: 19.639625
+  type: 'test'
+  ...
+# Subtest: patch -l normal/extra-internal-blanks
+ok 1057 - patch -l normal/extra-internal-blanks
+  ---
+  duration_ms: 19.809
+  type: 'test'
+  ...
+# Subtest: patch -l -C3/extra-internal-blanks
+ok 1058 - patch -l -C3/extra-internal-blanks
+  ---
+  duration_ms: 22.475792
+  type: 'test'
+  ...
+# Subtest: patch -l -U3/extra-internal-blanks
+ok 1059 - patch -l -U3/extra-internal-blanks
+  ---
+  duration_ms: 21.994041
+  type: 'test'
+  ...
+# Subtest: patch -l normal/nonblank-change
+ok 1060 - patch -l normal/nonblank-change
+  ---
+  duration_ms: 20.930166
+  type: 'test'
+  ...
+# Subtest: patch -l -C3/nonblank-change
+ok 1061 - patch -l -C3/nonblank-change
+  ---
+  duration_ms: 19.720708
+  type: 'test'
+  ...
+# Subtest: patch -l -U3/nonblank-change
+ok 1062 - patch -l -U3/nonblank-change
+  ---
+  duration_ms: 20.009708
+  type: 'test'
+  ...
+# Subtest: patch -l normal/unicode-space-not-blank
+ok 1063 - patch -l normal/unicode-space-not-blank
+  ---
+  duration_ms: 19.827708
+  type: 'test'
+  ...
+# Subtest: patch -l -C3/unicode-space-not-blank
+ok 1064 - patch -l -C3/unicode-space-not-blank
+  ---
+  duration_ms: 19.463958
+  type: 'test'
+  ...
+# Subtest: patch -l -U3/unicode-space-not-blank
+ok 1065 - patch -l -U3/unicode-space-not-blank
+  ---
+  duration_ms: 29.175
+  type: 'test'
+  ...
+# Subtest: patch -l normal/bom-not-blank
+ok 1066 - patch -l normal/bom-not-blank
+  ---
+  duration_ms: 22.779709
+  type: 'test'
+  ...
+# Subtest: patch -l -C3/bom-not-blank
+ok 1067 - patch -l -C3/bom-not-blank
+  ---
+  duration_ms: 21.287667
+  type: 'test'
+  ...
+# Subtest: patch -l -U3/bom-not-blank
+ok 1068 - patch -l -U3/bom-not-blank
+  ---
+  duration_ms: 20.26475
+  type: 'test'
+  ...
+# DIALECT_CONTROL {"case":"EOF-newline-with-w","apple":{"exitCode":0,"stdout":"","stderr":""},"gnu":{"exitCode":0,"stdout":"","stderr":""}}
+# Subtest: Apple EOF whitespace control is diagnostic, not a product expectation
+ok 1069 - Apple EOF whitespace control is diagnostic, not a product expectation
+  ---
+  duration_ms: 24.559166
+  type: 'test'
+  ...
+1..1069
+# tests 1069
+# suites 0
+# pass 1069
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17241.168958

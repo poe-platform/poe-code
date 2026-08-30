@@ -1,0 +1,54 @@
+{
+  "at": "2026-08-29T15:29:49.722Z",
+  "checks": [
+    {
+      "id": "V01",
+      "name": "Only owner/root production changes",
+      "passed": true
+    },
+    {
+      "id": "V02",
+      "name": "Ten unchanged accepted source modules",
+      "passed": true
+    },
+    {
+      "id": "V03",
+      "name": "Admitted emissions and private package",
+      "passed": true
+    },
+    {
+      "id": "V04",
+      "name": "16 replay plus ten novel identities",
+      "passed": true
+    },
+    {
+      "id": "V05",
+      "name": "Exact private loaded byte closure",
+      "passed": true
+    },
+    {
+      "id": "V06",
+      "name": "Actual seven-counter no-refund data",
+      "passed": true
+    },
+    {
+      "id": "V07",
+      "name": "13-cell proposal and separate six/seven gates",
+      "passed": true
+    },
+    {
+      "id": "V08",
+      "name": "Prospective fixture hash and historical status",
+      "passed": true
+    },
+    {
+      "id": "V09",
+      "name": "Fresh owned census and publication reserve",
+      "passed": true
+    }
+  ],
+  "source": "ACCEPT_PRIVATE_POLICY",
+  "pure": "26_OF_26_FIXED_CONTROLS",
+  "preexec": "HOLD",
+  "actualGO": false
+}

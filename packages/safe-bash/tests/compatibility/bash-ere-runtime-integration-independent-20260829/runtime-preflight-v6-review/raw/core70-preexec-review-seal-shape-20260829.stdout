@@ -1,0 +1,491 @@
+{
+  "keys": [
+    "status",
+    "sourceTree",
+    "sourceInputs",
+    "archive",
+    "node",
+    "layouts",
+    "controller",
+    "deferredCells",
+    "proofQualifications",
+    "futureCaps",
+    "authorityRequired"
+  ],
+  "sourceTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+    "size": 908381,
+    "mode": 420,
+    "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+  },
+  "futureCaps": {
+    "childMaximum": 210,
+    "coordinatorMaximum": 1,
+    "knownAdministrativeAllowance": 4,
+    "totalKnownOSMaximum": 215,
+    "peakOS": 2,
+    "workerStartsMaximum": 309,
+    "workerLiveMaximum": 1,
+    "internalLoaderStarts": 0,
+    "totalMilliseconds": 7500000,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912
+  },
+  "controller": [
+    {
+      "path": "/private/tmp/safe-bash-core70-v4-20260829/controller/owner.mjs",
+      "size": 4751,
+      "mode": 384,
+      "sha256": "247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-core70-v4-20260829/controller/dispatch.mjs",
+      "size": 6819,
+      "mode": 384,
+      "sha256": "656edd0a9094b4e0ffeddca309e93e9f57f17a4b7a598a7befbf3f9d9cfcce80"
+    }
+  ],
+  "caseKeys": [
+    "original",
+    "status",
+    "rows"
+  ],
+  "caseHead": {
+    "original": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/CASEMAP.json",
+      "size": 21146,
+      "mode": 420,
+      "sha256": "6437a80825871347d82e9b1d8f4208ffd69ed612a1d4ee23818f0332f01f6625"
+    },
+    "status": "210_CONCRETE_CALLS_ALL_RUNTIME_UNRUN_REQUIRES_INDEPENDENT_PREEXEC_AND_ROOT_RELEASE",
+    "rows": {
+      "length": 70,
+      "first": {
+        "id": "R01",
+        "script": "LC_ALL=C; re='(ab)([0-9]+)'; [[ xab42y =~ $re ]]; printf '%s:<%s>:<%s>:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"",
+        "question": "substring start and every capture",
+        "status": "UNRUN",
+        "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+        "state": "UNRUN",
+        "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+        "workerStartsMaximum": 1,
+        "route": "script",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "0:<ab42>:<ab>:<42>\n",
+          "stderr": {
+            "exact": ""
+          }
+        }
+      }
+    }
+  },
+  "layouts": [
+    {
+      "name": "source-built",
+      "app": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app",
+      "packageRoot": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package",
+      "packageMembers": 1305,
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-source-built.json",
+        "size": 302100,
+        "mode": 384,
+        "sha256": "521a156f4399200ffef0192de277ded2515b959d83769eab0a871ba77bb8ac56"
+      },
+      "cells": {
+        "count": 70,
+        "first": {
+          "id": "source-built/R01",
+          "originalId": "R01",
+          "capture": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures/R01.jsonl",
+          "stdout": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures/R01.jsonl.stdout",
+          "stderr": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures/R01.jsonl.stderr",
+          "cwd": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "argv": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app",
+            "--allow-fs-write=/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures",
+            "--allow-worker",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/cell.mjs",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/cells/R01.json",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures/R01.jsonl"
+          ],
+          "env": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+            "HOME": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/home",
+            "TMPDIR": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/tmp",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "caseMs": 30000,
+          "retireMs": 3000,
+          "childCapture": 262144,
+          "workerStartsMaximum": 1
+        }
+      },
+      "wrapperRoles": [
+        {
+          "name": "stock",
+          "file": null
+        },
+        {
+          "name": "checkpoint",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-checkpoint.mjs",
+            "size": 1999,
+            "mode": 384,
+            "sha256": "d809fe5b185377050a6e5bbb3ed17d6f3e48aafe778d506f8344da98da3cd9d3"
+          }
+        },
+        {
+          "name": "wrong-id",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-wrong-id.mjs",
+            "size": 1997,
+            "mode": 384,
+            "sha256": "4a04c9a56bc6ccefa77bf7d92f432f5b3be6e521a0a83ac73e8c032bf528b8ac"
+          }
+        },
+        {
+          "name": "wrong-operation",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-wrong-operation.mjs",
+            "size": 2004,
+            "mode": 384,
+            "sha256": "0cbc423f100a47a401492d2e3725a04fe1fae07043a8abf11272b86cf5f6b5ca"
+          }
+        },
+        {
+          "name": "wrong-count",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-wrong-count.mjs",
+            "size": 2000,
+            "mode": 384,
+            "sha256": "12c8c865cdf3c0811b11274243649d636edc4e7556e2633628e3a2cbe409625f"
+          }
+        },
+        {
+          "name": "out-of-range-span",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-out-of-range-span.mjs",
+            "size": 2006,
+            "mode": 384,
+            "sha256": "cf2b4fafc475f19c2f884735e734841077308bed2544fab202cc5e2096d26d2b"
+          }
+        },
+        {
+          "name": "fractional-span",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-fractional-span.mjs",
+            "size": 2004,
+            "mode": 384,
+            "sha256": "9b551323183379b4428a0eb5dfd440cdf64e12e8e505f066142adb862b531f9a"
+          }
+        },
+        {
+          "name": "extra-key",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-extra-key.mjs",
+            "size": 1998,
+            "mode": 384,
+            "sha256": "ff5ca0905ea3e6f257f38954f90bc95e15857b3f6433677c845d428a581180e0"
+          }
+        },
+        {
+          "name": "late-reply",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-late-reply.mjs",
+            "size": 1999,
+            "mode": 384,
+            "sha256": "957f06b4824ae46067663731f55ca4941d7f9851bf3740c0e302bcd9f19efc2d"
+          }
+        },
+        {
+          "name": "positive",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-positive.mjs",
+            "size": 1997,
+            "mode": 384,
+            "sha256": "20ea9cd003904cc3d42f7fa4a5c622064b546f87971f08f837b72c2119f5db3a"
+          }
+        }
+      ],
+      "privateAssets": 48
+    },
+    {
+      "name": "installed",
+      "app": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app",
+      "packageRoot": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/node_modules/virtual-bash",
+      "packageMembers": 1002,
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-installed.json",
+        "size": 254534,
+        "mode": 384,
+        "sha256": "702b18624838d40c1124b055006226747ad17c476b01bec415fca836b2c51e4c"
+      },
+      "cells": {
+        "count": 70,
+        "first": {
+          "id": "installed/R01",
+          "originalId": "R01",
+          "capture": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/captures/R01.jsonl",
+          "stdout": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/captures/R01.jsonl.stdout",
+          "stderr": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/captures/R01.jsonl.stderr",
+          "cwd": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "argv": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app",
+            "--allow-fs-write=/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/captures",
+            "--allow-worker",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/cell.mjs",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/cells/R01.json",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/captures/R01.jsonl"
+          ],
+          "env": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+            "HOME": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/home",
+            "TMPDIR": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/tmp",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "caseMs": 30000,
+          "retireMs": 3000,
+          "childCapture": 262144,
+          "workerStartsMaximum": 1
+        }
+      },
+      "wrapperRoles": [
+        {
+          "name": "stock",
+          "file": null
+        },
+        {
+          "name": "checkpoint",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-checkpoint.mjs",
+            "size": 2029,
+            "mode": 384,
+            "sha256": "ecd916cebe1fd28e5acdc7103162abec13d7e187caa0b26e43580cd4eccd3219"
+          }
+        },
+        {
+          "name": "wrong-id",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-wrong-id.mjs",
+            "size": 2027,
+            "mode": 384,
+            "sha256": "11fecf01611aae9152d2cd9e82096549c902da594340ae00cc268ca33b9fc141"
+          }
+        },
+        {
+          "name": "wrong-operation",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-wrong-operation.mjs",
+            "size": 2034,
+            "mode": 384,
+            "sha256": "3796f0f66c4a7e92813a9029f34a4aa2420b8f9f2844f2ba6745f476a44c1773"
+          }
+        },
+        {
+          "name": "wrong-count",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-wrong-count.mjs",
+            "size": 2030,
+            "mode": 384,
+            "sha256": "6c8c6596aaf1a9fe627ad5ce5c05322550c8e1b3726c4ab3432c6e4c6bd414e2"
+          }
+        },
+        {
+          "name": "out-of-range-span",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-out-of-range-span.mjs",
+            "size": 2036,
+            "mode": 384,
+            "sha256": "bf47d30f86a77856d0d3a33cedccb664782f8f2c1552bd024285a4b8fc91946e"
+          }
+        },
+        {
+          "name": "fractional-span",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-fractional-span.mjs",
+            "size": 2034,
+            "mode": 384,
+            "sha256": "3615ca9184bd2d42ff0f9d131632dd4373c5acf31cfe4da6351fbaee4cfef78d"
+          }
+        },
+        {
+          "name": "extra-key",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-extra-key.mjs",
+            "size": 2028,
+            "mode": 384,
+            "sha256": "ae43679af3aa35400828c5f6c4bfc589fafc1271a60558026f6c5717b7221559"
+          }
+        },
+        {
+          "name": "late-reply",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-late-reply.mjs",
+            "size": 2029,
+            "mode": 384,
+            "sha256": "e75bf8fa7ca1733bf9593c2108c10d0414fef582b8123f19b5c0cfe822d17b66"
+          }
+        },
+        {
+          "name": "positive",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/installed/app/harness/worker-positive.mjs",
+            "size": 2027,
+            "mode": 384,
+            "sha256": "a7cd298df6fe96c4807adf5bf835ffc8e77bd4c5429186fd3fa1c4c128fd4e26"
+          }
+        }
+      ],
+      "privateAssets": 48
+    },
+    {
+      "name": "moved",
+      "app": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app",
+      "packageRoot": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/node_modules/virtual-bash",
+      "packageMembers": 1002,
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-moved.json",
+        "size": 254534,
+        "mode": 384,
+        "sha256": "9b479b3c4a617ffe1ef4491a429142b980f4e1a6d6e9379dce32e2be9690c38f"
+      },
+      "cells": {
+        "count": 70,
+        "first": {
+          "id": "moved/R01",
+          "originalId": "R01",
+          "capture": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/captures/R01.jsonl",
+          "stdout": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/captures/R01.jsonl.stdout",
+          "stderr": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/captures/R01.jsonl.stderr",
+          "cwd": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "argv": [
+            "--permission",
+            "--allow-fs-read=/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app",
+            "--allow-fs-write=/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/captures",
+            "--allow-worker",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/cell.mjs",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/cells/R01.json",
+            "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/captures/R01.jsonl"
+          ],
+          "env": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+            "HOME": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/home",
+            "TMPDIR": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/tmp",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "caseMs": 30000,
+          "retireMs": 3000,
+          "childCapture": 262144,
+          "workerStartsMaximum": 1
+        }
+      },
+      "wrapperRoles": [
+        {
+          "name": "stock",
+          "file": null
+        },
+        {
+          "name": "checkpoint",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-checkpoint.mjs",
+            "size": 2021,
+            "mode": 384,
+            "sha256": "297eded735656db9670c089524d659e50dff427186bda5fb1d8356e8f2ea7403"
+          }
+        },
+        {
+          "name": "wrong-id",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-wrong-id.mjs",
+            "size": 2019,
+            "mode": 384,
+            "sha256": "09adffbe9678cad9676c97fe42ea5adb868376497f8de044e2031e0988488574"
+          }
+        },
+        {
+          "name": "wrong-operation",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-wrong-operation.mjs",
+            "size": 2026,
+            "mode": 384,
+            "sha256": "994f0677335651f141148c3f0857a03092b18e208295a265e16964df9f24293e"
+          }
+        },
+        {
+          "name": "wrong-count",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-wrong-count.mjs",
+            "size": 2022,
+            "mode": 384,
+            "sha256": "660b57110073aec691b8ffb2e7e58d6763b7dc839b1bbc6bd8efe074071612be"
+          }
+        },
+        {
+          "name": "out-of-range-span",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-out-of-range-span.mjs",
+            "size": 2028,
+            "mode": 384,
+            "sha256": "e00c1398cb825e39798b9e5678ac9180d340908e04964578885ce8f9c1cfa171"
+          }
+        },
+        {
+          "name": "fractional-span",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-fractional-span.mjs",
+            "size": 2026,
+            "mode": 384,
+            "sha256": "153c3c5402d95383793df20319a35e1d8f31397a4decee45017ab8110ee184d4"
+          }
+        },
+        {
+          "name": "extra-key",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-extra-key.mjs",
+            "size": 2020,
+            "mode": 384,
+            "sha256": "d9d20fa59f8c949ab847fde065c46f3b33572316b975e16078015ecc9c9b9818"
+          }
+        },
+        {
+          "name": "late-reply",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-late-reply.mjs",
+            "size": 2021,
+            "mode": 384,
+            "sha256": "e031292ea2180f3d2902d534ae75e94b15f54ee78015985a4a818e849637216f"
+          }
+        },
+        {
+          "name": "positive",
+          "file": {
+            "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/moved/app/harness/worker-positive.mjs",
+            "size": 2019,
+            "mode": 384,
+            "sha256": "5c70d6f748c748fd27f01f3853f29ff2f24408cb3f48e0a73baf3a0d9d9170ce"
+          }
+        }
+      ],
+      "privateAssets": 48
+    }
+  ]
+}

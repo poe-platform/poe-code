@@ -1,0 +1,13 @@
+{
+  "classification": "INERT_DATA_NOT_MATERIALIZED_NOT_EXECUTABLE",
+  "emptyConfigBase64": "",
+  "hook": {"text": "INERT_HOOK_MUST_NOT_EXECUTE", "mode": 256},
+  "pager": {"text": "INERT_PAGER_MUST_NOT_EXECUTE", "mode": 256},
+  "entry": {"text": "INERT_ENTRY_MUST_NOT_LOAD_PRODUCT", "mode": 256},
+  "guardFailure": {"kind": "SYNTHETIC_OWN_IDENTITY_OBJECT"},
+  "cleanupFailure": {"kind": "SYNTHETIC_DISTINCT_IDENTITY_OBJECT"},
+  "allowedCanaryBase64": "QUxMT1dFRC1DQU5BUlkK",
+  "foreignCanaryBase64": "T1dORUQtTkVHQVRJVkUtQ0FOQVJZCg==",
+  "instructionCanary": {"basename": "aGeNtS.Md", "base64": "AAECAw==", "neverReadContents": true},
+  "environmentInjection": {"NODE_OPTIONS": "INERT", "DYLD_INSERT_LIBRARIES": "INERT", "GIT_CONFIG_PARAMETERS": "INERT", "GIT_PAGER": "INERT"}
+}

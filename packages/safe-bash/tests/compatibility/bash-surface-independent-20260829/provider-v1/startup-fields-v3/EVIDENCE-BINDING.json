@@ -1,0 +1,33 @@
+{
+  "schema": "d03-startup-fields-evidence-binding-v3",
+  "sourceCommit": "f0d67d5ebd6f50679f5075856ce99f159ccd7159",
+  "presealSha256": "362d4ce04c74bf1cbc82ab4091656c7090f462344d72241961c9742fdec624cd",
+  "rawRecord": {
+    "bytes": 6779,
+    "sha256": "4c9a28200253d2364fa094f6331efd37bb7a4fc02df49ae1a81e32962910c69e",
+    "device": 16777232,
+    "inode": 184664820
+  },
+  "artifacts": [
+    {
+      "path": "SELECTED-RESULT.json",
+      "bytes": 2561,
+      "sha256": "ed627dee8d343e9bb71b7d0c7ac29bbb2d40bca3353a3667e6b9e07d8dd26ae7"
+    },
+    {
+      "path": "SELECTED-EVENTS.jsonl",
+      "bytes": 2217,
+      "sha256": "07693a7c119194d66c37e5a1e1840240ce5406c96ba0a6de83d6fc4b806d37c1"
+    },
+    {
+      "path": "CAPTURE-CLOSED.json",
+      "bytes": 143,
+      "sha256": "0f85057d1e19cde9f4f5276460557b4739fd444df7a1dc074b580040de7caf4a"
+    }
+  ],
+  "readAttempts": 1,
+  "rawRecordCaptured": false,
+  "recordHandlesOpen": 0,
+  "nativeQualificationCalls": 0,
+  "semanticCalls": 0
+}

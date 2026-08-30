@@ -1,0 +1,191 @@
+{
+  "schema": "k08-retained-observation-binding-v1",
+  "originalFixture": {
+    "id": "K08",
+    "kind": "recursive-function",
+    "program": "function f { if test \"$1\" -gt 0; then f \"$(($1 - 1))\"; else printf done; fi; }; f 3",
+    "legacy": "f() { if test \"$1\" -gt 0; then f \"$(($1 - 1))\"; else printf done; fi; }; f 3",
+    "programSha256": "7189ed1f258fe32a07880de7382e677458bc301acd23bb8825fcd8f01ed1fbbc",
+    "legacySha256": "7d461fe8f5e4fa1af33ba8c7d8677d61d39eb3e8c17406bbc17b3f507e87462c",
+    "expected": {
+      "status": 0,
+      "stdoutBase64": "ZG9uZQ==",
+      "stderr": "empty",
+      "outputFile": null
+    },
+    "evidence": "source-derived/metamorphic PROJECT expectation, not native observation"
+  },
+  "sourceAndNativeQualification": "K08 source-derived/metamorphic expectation, not native observation. Retained actuals below are virtual product observations from the already consumed attempt.",
+  "manifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/CAPTURE-MANIFEST.json",
+    "sha256": "8cc406c381214b718062f1ea1f822f1ee593304f2ae998f68b066a53f0e1cd26"
+  },
+  "rows": [
+    {
+      "layout": "source-built",
+      "receiptPin": {
+        "path": "case-source-built-K08.json",
+        "bytes": 100696,
+        "sha256": "d9654c0b727eb148cd9f34dafe487166791c3804d25ce32eb5b0af4a4856495c",
+        "mode": 384
+      },
+      "pass": false,
+      "failures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "observations": [
+        {
+          "kind": "resolved",
+          "status": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 87,
+            "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+            "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+          },
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          }
+        },
+        {
+          "kind": "resolved",
+          "status": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 87,
+            "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+            "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+          },
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          }
+        }
+      ]
+    },
+    {
+      "layout": "installed",
+      "receiptPin": {
+        "path": "case-installed-K08.json",
+        "bytes": 106951,
+        "sha256": "ab61647f0b84f595a6131600b16f3a8172ef35d2be33ac5cdbfe5ca190688e10",
+        "mode": 384
+      },
+      "pass": false,
+      "failures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "observations": [
+        {
+          "kind": "resolved",
+          "status": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 87,
+            "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+            "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+          },
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          }
+        },
+        {
+          "kind": "resolved",
+          "status": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 87,
+            "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+            "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+          },
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          }
+        }
+      ]
+    },
+    {
+      "layout": "physically-moved",
+      "receiptPin": {
+        "path": "case-physically-moved-K08.json",
+        "bytes": 107708,
+        "sha256": "84dea3d8aa2b4da6d323934c8f67b68099c130d6bd32bd58a27c27cb5e077f9c",
+        "mode": 384
+      },
+      "pass": false,
+      "failures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "observations": [
+        {
+          "kind": "resolved",
+          "status": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 87,
+            "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+            "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+          },
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          }
+        },
+        {
+          "kind": "resolved",
+          "status": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 87,
+            "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+            "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+          },
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          }
+        }
+      ]
+    }
+  ],
+  "noRetry": true
+}

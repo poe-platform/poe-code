@@ -1,0 +1,19 @@
+node:assert:150
+  throw new AssertionError(obj);
+  ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+23 !== 0
+
+    at process.<anonymous> (file:///private/tmp/sort-unkeyed-review-pinned-PWSHqY/baseline/worker.mjs:46:10)
+    at process.emit (node:events:519:28) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 23,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

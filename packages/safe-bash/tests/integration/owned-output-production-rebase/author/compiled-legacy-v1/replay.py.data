@@ -1,0 +1,363 @@
+import datetime
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import signal
+import stat
+import subprocess
+import tarfile
+import tempfile
+import time
+
+REPOSITORY = Path("/Users/kjopek/Workspace/safe-bash")
+OWNER = Path("tests/integration/owned-output-production-rebase/author/compiled-legacy-v1")
+PREVIOUS = "tests/integration/owned-output-production-rebase/author/"
+CANDIDATE = "eba049535d154f4e028f57ffd8efd7622b2239ca"
+TREE = "62d75ef09e89d4d3b6afc032c518d2846dcd03b7"
+EVIDENCE = "f27b7b595c529d26161a21cf86d2a86fc0d2cee3"
+BASELINE = "a03b9288a6f4b652387be9fefa8faf17ef58b9e7"
+SOURCE_ID = "40914b93fe1a1a82d9abdcdf4f4cc4360ab6e85ab16b5d9f75768e00c73213ec"
+PATCH_ID = "83b339002970df881efb56cc50fa0e0e74f1f832edb6c8706287827a3dc5e4ad"
+RUNS = [("core", "legacy-core-final-02", 505), ("state", "legacy-state-final", 203),
+        ("focused-types", "focused-types-final-02", None), ("source-types", "source-types-final-02", None)]
+PACKAGES = ["tsx", "typescript", "@types/node", "esbuild", "@esbuild/darwin-arm64", "undici-types", "fsevents"]
+
+
+def now():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def encoded(value):
+    return json.dumps(value, separators=(",", ":"), ensure_ascii=False).encode()
+
+
+def git(*arguments):
+    return subprocess.check_output(["git", *arguments], cwd=REPOSITORY)
+
+
+def save(name, content):
+    target = OWNER / name
+    assert not target.exists(), f"Refusing to replace evidence: {target}"
+    text = content if isinstance(content, str) else json.dumps(content, indent=2) + "\n"
+    subprocess.run(["apply_patch", "*** Begin Patch\n*** Add File: " + str(target) + "\n" +
+                    "".join("+" + line + "\n" for line in text.splitlines()) + "*** End Patch\n"],
+                   cwd=REPOSITORY, check=True, stdout=subprocess.DEVNULL)
+    assert target.read_bytes() == text.encode(), f"Evidence bytes changed: {target}"
+
+
+def file_record(path, relative):
+    details = path.lstat()
+    assert stat.S_ISREG(details.st_mode), f"Expected regular file: {path}"
+    return {"path": relative, "kind": "file", "mode": stat.S_IMODE(details.st_mode),
+            "bytes": details.st_size, "sha256": sha(path.read_bytes())}
+
+
+def inventory(root):
+    assert root.is_dir() and not root.is_symlink()
+    result = []
+    for path in sorted(root.rglob("*")):
+        details = path.lstat()
+        relative = path.relative_to(root).as_posix()
+        if stat.S_ISDIR(details.st_mode):
+            result.append({"path": relative, "kind": "directory", "mode": stat.S_IMODE(details.st_mode)})
+        else:
+            result.append(file_record(path, relative))
+    return result
+
+
+def installed_inventory():
+    return {package: inventory(REPOSITORY / "node_modules" / package) for package in PACKAGES}
+
+
+def external_inventory(paths):
+    return [file_record(Path(path), path) for path in paths]
+
+
+def counts(text):
+    return {key: int(match[1]) for key in ("tests", "pass", "fail", "cancelled", "skipped", "todo")
+            if (match := re.search(r"^# " + key + r" (\d+)$", text, re.MULTILINE))}
+
+
+assert Path.cwd() == REPOSITORY
+assert not (OWNER / "PREFLIGHT.json").exists()
+assert git("rev-parse", CANDIDATE + "^{tree}").decode().strip() == TREE
+assert git("rev-parse", "--show-toplevel").decode().strip() == str(REPOSITORY)
+source_receipt = json.loads(git("show", EVIDENCE + ":" + PREVIOUS + "SOURCE-CANDIDATE.json"))
+owned_paths = [row["path"] for row in source_receipt["sourcePaths"]]
+assert sha(git("diff", "--binary", BASELINE, CANDIDATE, "--", *owned_paths)) == PATCH_ID
+commands = {}
+receipts = []
+for name, historical, expected_count in RUNS:
+    receipt_path = PREVIOUS + "runs/" + historical + "/RUN.json"
+    payload = git("show", EVIDENCE + ":" + receipt_path)
+    commands[name] = json.loads(payload)["command"]
+    receipts.append({"name": name, "path": receipt_path, "commit": EVIDENCE,
+                     "sha256": sha(payload), "command": commands[name], "expectedTests": expected_count})
+assert len([value for value in commands["core"] if value.endswith(".test.ts")]) == 27
+assert len([value for value in commands["state"] if value.endswith(".test.ts")]) == 6
+assert "--noEmit" in commands["focused-types"] and "--noEmit" in commands["source-types"]
+
+author_inputs = [value for value in commands["focused-types"] if value.startswith("tests/")]
+selection = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json",
+             "tests/contracts", "tests/shell", "tests/commands/network", "tests/commands/network-zero-caps-review",
+             "tests/commands/helpers.ts", "tests/commands/streams.test.ts", "tests/commands/pipelines.test.ts", *author_inputs]
+archive = git("archive", CANDIDATE, *selection)
+expected = {}
+source_rows = []
+with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
+    for member in bundle.getmembers():
+        assert not member.name.startswith("/") and ".." not in member.name.split("/")
+        assert member.isdir() or member.isfile(), member.name
+        if member.isfile():
+            payload = bundle.extractfile(member).read()
+            expected[member.name] = {"path": member.name, "bytes": len(payload), "sha256": sha(payload)}
+            if member.name.startswith("src/"):
+                source_rows.append(expected[member.name])
+source_rows.sort(key=lambda row: row["path"])
+assert sha(encoded(source_rows)) == SOURCE_ID
+for command in commands.values():
+    for argument in command:
+        if argument.startswith("tests/"):
+            assert argument in expected, argument
+
+node = json.loads(subprocess.check_output(["node", "-p", "JSON.stringify({path:process.execPath,version:process.version,platform:process.platform,arch:process.arch})"]))
+assert node["platform"] == "darwin" and node["arch"] == "arm64"
+external_paths = [str(Path(node["path"]).resolve()), "/bin/bash", "/usr/bin/curl"]
+external_before = external_inventory(external_paths)
+installed_before = installed_inventory()
+previous_profile = json.loads(git("show", "f8fdae7289162494d09f887bed4846edfd6575cf:" + PREVIOUS + "committed-legacy-followup/PREFLIGHT.json"))
+assert installed_before == previous_profile["installedToolsBefore"], "Pinned installed tools changed"
+assert external_before == previous_profile["externalToolsBefore"], "Pinned external tools changed"
+lock = json.loads(git("show", CANDIDATE + ":package-lock.json"))
+versions = {}
+for package in PACKAGES:
+    package_data = json.loads((REPOSITORY / "node_modules" / package / "package.json").read_text())
+    assert package_data["version"] == lock["packages"]["node_modules/" + package]["version"]
+    versions[package] = {"version": package_data["version"], "dependencies": package_data.get("dependencies", {}),
+                         "optionalDependencies": package_data.get("optionalDependencies", {})}
+versions["node"] = node
+versions["bash"] = subprocess.check_output(["/bin/bash", "--version"]).decode()
+versions["curl"] = subprocess.check_output(["/usr/bin/curl", "--version"]).decode()
+
+temporary = Path(tempfile.mkdtemp(prefix="safe-bash-owned-output-built-legacy-", dir="/tmp"))
+snapshot = temporary / "candidate"
+snapshot.mkdir()
+subprocess.run(["tar", "-xf", "-", "-C", str(snapshot)], input=archive, check=True)
+original = inventory(snapshot)
+actual_files = {row["path"]: {key: row[key] for key in ("path", "bytes", "sha256")}
+                for row in original if row["kind"] == "file"}
+assert actual_files == expected
+for package in PACKAGES:
+    target = snapshot / "node_modules" / package
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(REPOSITORY / "node_modules" / package, target)
+    assert inventory(target) == installed_before[package]
+assert installed_inventory() == installed_before
+before = inventory(snapshot)
+preflight = {"candidate": CANDIDATE, "tree": TREE, "sourceManifestSha256": SOURCE_ID, "sourcePatchSha256": PATCH_ID,
+             "started": now(), "liveHeadObservationOnly": git("rev-parse", "HEAD").decode().strip(),
+             "foreignStatusObservationOnly": git("status", "--short").decode(), "receipts": receipts,
+             "selection": selection, "archiveSha256": sha(archive), "archiveBytes": len(archive),
+             "archiveFiles": sorted(expected.values(), key=lambda row: row["path"]),
+             "sourceEntries": len(source_rows), "snapshot": str(snapshot), "temporaryRoot": str(temporary),
+             "versions": versions, "installedToolRoots": [str(REPOSITORY / "node_modules" / package) for package in PACKAGES],
+             "installedToolsBefore": installed_before, "externalToolsBefore": external_before,
+             "snapshotBefore": before, "snapshotBeforeSha256": sha(encoded(before)),
+             "networkProfile": "Only unchanged test-owned explicit loopback/native-oracle work; no dependency/service network introduced; no syscall firewall claim",
+             "artifactProfile": "compiled-legacy-v1", "oneIsolatedPublicBuildAuthorized": True,
+             "noPackNoInstallNoPrivate": True,
+             "integrityScope": "Recursive regular-file bytes/modes and directory names/modes; added files/directories detected; symlinks/special nodes rejected; no mtime/ctime/atime/xattr or external OS-library closure claim"}
+preflight["historicalHelper"] = {"commit": "f8fdae7289162494d09f887bed4846edfd6575cf",
+    "path": PREVIOUS + "committed-legacy-followup/replay.py.data", "sha256": "29c2abbb150a4b393827fff1247a73719315de3796fe6f45a8b143c6dd4fb7f6"}
+preflight["compilerEntry"] = file_record(snapshot / "node_modules/typescript/bin/tsc", "node_modules/typescript/bin/tsc")
+preflight["compilerImplementation"] = file_record(snapshot / "node_modules/typescript/lib/_tsc.js", "node_modules/typescript/lib/_tsc.js")
+preflight["configGitBlobs"] = {name: git("rev-parse", CANDIDATE + ":" + name).decode().strip()
+                               for name in ("tsconfig.json", "tsconfig.build.json", "package.json", "package-lock.json")}
+preflight["sourceAndTestGitTree"] = git("ls-tree", "-r", CANDIDATE, "--", *selection).decode().splitlines()
+preflight["artifactInputPolicy"] = "No dist in archive; only this run's compiler may add dist; no copied build outputs"
+assert not (snapshot / "dist").exists()
+save("PREFLIGHT.json", preflight)
+
+
+def without_dist(rows):
+    return [row for row in rows if row["path"] != "dist" and not row["path"].startswith("dist/")]
+
+
+def process_group_present(process_id):
+    try:
+        os.killpg(process_id, 0)
+        return True
+    except ProcessLookupError:
+        return False
+
+
+results = []
+build_inventory = None
+artifact_manifest = None
+failed = False
+
+
+def run(name, command, expected_count=None, allow_dist=False, expected_stdout=None):
+    global build_inventory
+    print("START", name, flush=True)
+    scratch = temporary / (name + "-scratch")
+    scratch.mkdir()
+    home = scratch / "home"
+    home.mkdir()
+    temp = scratch / "tmp"
+    temp.mkdir()
+    environment = {"PATH": str(Path(node["path"]).parent) + ":/usr/bin:/bin:/usr/sbin:/sbin",
+                   "HOME": str(home), "TMPDIR": str(temp), "TMP": str(temp), "TEMP": str(temp),
+                   "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "TSX_DISABLE_CACHE": "1"}
+    assert shutil.which("node", path=environment["PATH"]) == node["path"]
+    inputs_before = inventory(snapshot)
+    expected_before = build_inventory if build_inventory is not None else before
+    assert inputs_before == expected_before
+    assert installed_inventory() == installed_before
+    assert external_inventory(external_paths) == external_before
+    started = now()
+    clock = time.monotonic()
+    process = subprocess.Popen(command, cwd=snapshot, env=environment,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    timed_out = False
+    killed = False
+    try:
+        stdout, stderr = process.communicate(timeout=300)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        os.killpg(process.pid, signal.SIGTERM)
+        try:
+            stdout, stderr = process.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            killed = True
+            os.killpg(process.pid, signal.SIGKILL)
+            stdout, stderr = process.communicate()
+    elapsed = time.monotonic() - clock
+    inputs_after = inventory(snapshot)
+    tools_after = installed_inventory()
+    binaries_after = external_inventory(external_paths)
+    remaining_group = process_group_present(process.pid)
+    source_integrity = without_dist(inputs_after) == before
+    artifact_integrity = allow_dist or inputs_after == inputs_before
+    integrity = source_integrity and artifact_integrity and tools_after == installed_before and binaries_after == external_before
+    observed_counts = counts(stdout.decode())
+    expected_counts = {"tests": expected_count, "pass": expected_count, "fail": 0, "cancelled": 0, "skipped": 0, "todo": 0}
+    count_match = expected_count is None or observed_counts == expected_counts
+    stdout_match = expected_stdout is None or stdout.decode() == expected_stdout
+    passed = process.returncode == 0 and not timed_out and not remaining_group and count_match and stdout_match and integrity
+    report = {"candidate": CANDIDATE, "artifactProfile": "compiled-legacy-v1", "name": name,
+              "command": command, "cwd": str(snapshot), "environment": environment,
+              "started": started, "finished": now(), "elapsedSeconds": elapsed, "pid": process.pid,
+              "exitCode": process.returncode, "outerTimeout": timed_out, "outerKill": killed,
+              "remainingOwnProcessGroupObserved": remaining_group, "counts": observed_counts,
+              "expectedTests": expected_count, "countMatch": count_match, "stdoutMatch": stdout_match, "passed": passed,
+              "stdoutBytes": len(stdout), "stdoutSha256": sha(stdout), "stderrBytes": len(stderr), "stderrSha256": sha(stderr),
+              "snapshotBeforeSha256": sha(encoded(inputs_before)), "snapshotAfterSha256": sha(encoded(inputs_after)),
+              "sourceTestsConfigCopiedToolsIncludingEntriesUnchanged": source_integrity,
+              "compiledArtifactsUnchanged": None if allow_dist else artifact_integrity,
+              "installedToolsAfterSha256": sha(encoded(tools_after)), "externalToolsAfterSha256": sha(encoded(binaries_after)),
+              "allPermittedIntegrityChecksPassed": integrity, "scratchAfter": inventory(scratch), "privateQueries": 0}
+    if not integrity:
+        report["unexpectedSnapshotAfter"] = inputs_after
+        report["unexpectedInstalledToolsAfter"] = tools_after
+        report["unexpectedExternalToolsAfter"] = binaries_after
+    save("runs/" + name + "/stdout.txt", stdout.decode())
+    save("runs/" + name + "/stderr.txt", stderr.decode())
+    save("runs/" + name + "/RUN.json", report)
+    results.append({key: report[key] for key in ("name", "exitCode", "elapsedSeconds", "counts", "passed", "allPermittedIntegrityChecksPassed", "remainingOwnProcessGroupObserved")})
+    print("RESULT", json.dumps(results[-1]), flush=True)
+    if allow_dist:
+        build_inventory = inputs_after
+    return passed
+
+
+worker_probe = r'''import { Worker } from "node:worker_threads";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+const moduleUrl = pathToFileURL(resolve("dist/commands/regex-execution/worker.js")).href;
+const bootstrap = `const { parentPort } = require("node:worker_threads"); import(${JSON.stringify(moduleUrl)}).then(() => parentPort.close());`;
+const worker = new Worker(bootstrap, { eval: true });
+let ready = false;
+worker.on("message", message => { if (message?.ready === true) ready = true; });
+worker.on("error", error => { console.error(error); process.exitCode = 1; });
+worker.on("exit", code => {
+  if (code !== 0 || !ready) process.exitCode = 1;
+  console.log(JSON.stringify({ ready, exitCode: code, naturalPortClosure: true }));
+});
+'''
+
+try:
+    if not run("compiler-version", ["node", "node_modules/typescript/bin/tsc", "--version"], expected_stdout="Version 5.9.3\n"):
+        failed = True
+    elif not run("build", ["node", "node_modules/typescript/bin/tsc", "-p", "tsconfig.build.json"], allow_dist=True):
+        failed = True
+    else:
+        dist = snapshot / "dist"
+        artifact_manifest = inventory(dist)
+        output_files = {row["path"] for row in artifact_manifest if row["kind"] == "file"}
+        expected_outputs = {row["path"][4:-3] + suffix for row in source_rows
+                            if row["path"].endswith(".ts") and not row["path"].endswith(".d.ts")
+                            for suffix in (".js", ".js.map", ".d.ts", ".d.ts.map")}
+        worker_record = file_record(dist / "commands/regex-execution/worker.js", "commands/regex-execution/worker.js")
+        source_maps = []
+        for name in sorted(output_files):
+            if name.endswith(".map"):
+                mapping = json.loads((dist / name).read_text())
+                for original_source in mapping["sources"]:
+                    mapped = ((dist / name).parent / mapping.get("sourceRoot", "") / original_source).resolve().relative_to(snapshot.resolve()).as_posix()
+                    assert mapped in expected and mapped.startswith("src/"), (name, mapped)
+                    source_maps.append({"map": name, "source": mapped, "sourceSha256": expected[mapped]["sha256"]})
+        output_match = output_files == expected_outputs
+        output_report = {"candidate": CANDIDATE, "artifactProfile": "compiled-legacy-v1", "freshOutputOnly": True,
+                         "buildCommand": ["node", "node_modules/typescript/bin/tsc", "-p", "tsconfig.build.json"],
+                         "manifest": artifact_manifest, "manifestSha256": sha(encoded(artifact_manifest)),
+                         "regularFiles": len(output_files), "expectedRegularFiles": len(expected_outputs),
+                         "exactExpectedOutputs": output_match, "missing": sorted(expected_outputs - output_files),
+                         "unexpected": sorted(output_files - expected_outputs), "worker": worker_record,
+                         "sourceMaps": source_maps, "snapshotAfterBuildSha256": sha(encoded(build_inventory))}
+        save("BUILD-OUTPUT.json", output_report)
+        print("BUILD-OUTPUT", json.dumps({key: output_report[key] for key in ("manifestSha256", "regularFiles", "exactExpectedOutputs", "worker")}), flush=True)
+        if not output_match:
+            failed = True
+        elif not run("worker-prerequisite", ["node", "--unhandled-rejections=strict", "--input-type=module", "--eval", worker_probe],
+                     expected_stdout='{"ready":true,"exitCode":0,"naturalPortClosure":true}\n'):
+            failed = True
+        else:
+            for name, historical, expected_count in RUNS:
+                if not run(name, commands[name], expected_count):
+                    failed = True
+                    break
+except Exception as error:
+    failed = True
+    save("SETUP-OR-INTEGRITY-ERROR.json", {"type": type(error).__name__, "message": str(error), "time": now()})
+    raise
+finally:
+    closing_inventory = inventory(snapshot)
+    closing_tools = installed_inventory()
+    closing_binaries = external_inventory(external_paths)
+    closing_artifacts = inventory(snapshot / "dist") if (snapshot / "dist").is_dir() else None
+    completed_names = [result["name"] for result in results]
+    closure = {"candidate": CANDIDATE, "artifactProfile": "compiled-legacy-v1", "finished": now(), "failed": failed,
+               "results": results, "notRun": [name for name, _, _ in RUNS if name not in completed_names],
+               "snapshotFinalSha256": sha(encoded(closing_inventory)),
+               "immutableSourceTestsConfigCopiedToolsIncludingEntriesUnchanged": without_dist(closing_inventory) == before,
+               "compiledArtifactsFinalSha256": sha(encoded(closing_artifacts)) if closing_artifacts is not None else None,
+               "compiledArtifactsUnchangedAfterBuild": closing_artifacts == artifact_manifest,
+               "installedToolsFinalSha256": sha(encoded(closing_tools)), "installedToolsUnchangedIncludingEntries": closing_tools == installed_before,
+               "externalToolsFinalSha256": sha(encoded(closing_binaries)), "externalToolsUnchanged": closing_binaries == external_before,
+               "buildsAttempted": int("build" in completed_names), "packs": 0, "installs": 0, "privateQueries": 0,
+               "snapshotRetention": "Retained only in this author's new regular TMP; no other worker output accessed",
+               "handlesLimit": "Each command exits naturally unless timeout is recorded; own process-group presence probed once after exit; not host-wide detached-process/FD/syscall proof"}
+    if without_dist(closing_inventory) != before:
+        closure["unexpectedSnapshotFinal"] = closing_inventory
+    save("CLOSURE.json", closure)
+if failed:
+    raise SystemExit(1)

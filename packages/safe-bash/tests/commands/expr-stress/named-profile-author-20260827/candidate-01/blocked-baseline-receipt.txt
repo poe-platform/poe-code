@@ -1,0 +1,35 @@
+STATUS: BLOCKED BASELINE ONLY — NO IMPLEMENTATION CANDIDATE OR NEW COMMIT
+Date: 2026-08-27T19:15:18Z.
+Delegated leaf; no redelegation. Owned assignment preserved. Repository source/test/doc files untouched; no staging, commits, native artifact deletion, or other-worker edits.
+Blocker: required /tmp/expr-locale-design-20260827-candidate.txt frozen evidence commit receipt absent after bounded investigation/wait. Design directory remains uncommitted. Draft design inspected read-only; source approval prerequisite not bypassed.
+
+Accepted baseline commit: 21220b465537bf45ffcfb36740956a69f43bf75e
+Last observed live HEAD: 8897ece39c730812b74164377180b90d6cd02444 (concurrent unrelated commits; NOT a named-profile candidate).
+Actual five expr product module bytes match accepted baseline exactly (git diff exit 0).
+SHA-256:
+src/commands/expr/internal.ts 12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56
+src/commands/expr/index.ts 1f4eb0b6aa5200877ce62b59f7ac488255f4b98c3d5bb8b426fb49dec372dcef
+src/commands/expr/evaluate.ts 80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61
+src/commands/expr/syntax.ts 4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0
+src/commands/expr/bre-worker.ts f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0
+tests/commands/expr-stress/c-profile-gap-review/frozen/CASE_MATRIX.json ae334dcecc459d59e89d0183067b828ae4848ef48db300391dbe0971ec6046d2
+
+Scoped baseline checks (live source, not isolated archive or candidate qualification):
+node --import tsx --test tests/commands/expr/contracts.test.ts tests/commands/expr/regex-limits.test.ts tests/commands/expr/regex-lifecycle.test.ts: 48/48 pass, 0 fail/skip; subset of next result, not additive.
+node --import tsx --test tests/commands/expr/*.test.ts: 312/312 pass, 0 fail/skip, 11.426 seconds. Existing authenticated native oracle tests included and passed.
+node --import tsx --test tests/commands/regex-execution/executor.test.ts tests/commands/regex-execution/commands.test.ts tests/commands/regex-execution/cleanup-registration/controls.test.ts: 85/85 pass, 0 fail/skip, 1.239 seconds.
+node_modules/.bin/tsc -p tests/commands/expr/tsconfig.json: exit 0.
+No build/source changes, no global suite, no new native oracle cohort, no capture writes to committed evidence.
+Logs: /tmp/expr-named-profile-author-20260827-baseline.tap; /tmp/expr-named-profile-author-20260827-baseline-expr.tap; /tmp/expr-named-profile-author-20260827-baseline-shared.tap; /tmp/expr-named-profile-author-20260827-baseline-types.log.
+
+Observation cohorts:
+/tmp/expr-named-profile-author-20260827-baseline-cohort.json: original ten named inputs, exact environments and historical expected/actual copied beside fresh baseline observations. Nine character refusals and one continued collation refusal. No historical mismatch rewritten, no named success claimed.
+/tmp/expr-named-profile-author-20260827-baseline-boundaries.json: 28 current matcher controls (four category combinations, seven plain/dot/capture/bracket/escape cases); observation only, not candidate acceptance.
+Cleanup: baseline abortReasonWorkers=138 and exprWorkers=20, each activeBeforeSafetyCleanup=0 and activeAfter=0. Existing falsey reason preservation and synchronous cleanup-before-acquisition tests pass. Temp baseline logs/data intentionally retained for handoff. No owned active process remains.
+
+Implementation readiness:
+Use internal.ts for exact en_US.UTF-8 scalar admission and budgeted escape-aware bracket screen; index.ts matcher calls it before session.matchExpr. Preserve pattern AND subject byte caps before scan, charge whole scan before scanning, compute remaining worker work after screen. Refuse every unescaped bracket opener if either effective category is outside C/POSIX/C.UTF-8/C.utf8; disclose literal lists as conservatively unsupported. Plain literals, dot, captures and escaped literal brackets retain existing worker behavior; trailing escapes stay worker diagnostics. No descriptor/protocol/mainthread RegExp/native/dependency changes.
+Per-operation CTYPE/COLLATE precedence and empty fallthrough remain independent; arithmetic/numeric comparison never globally rejected. Named string collation remains refused.
+Ownership conflict needing integration attention: tests/commands/expr/contracts.test.ts:40 currently asserts en_US.UTF-8 length fails. Approved feature will invalidate this single existing assertion. File is outside assigned write scope; preserved without waiver or modification. Oldgrammar fixtures untouched.
+
+Limitations: implementation/new tests/evidence/docs commits NOT performed because frozen design receipt is absent. This does not certify the proposed named profile, public/default availability, full named locale, POSIX/GNU parity, superiority, a full gate, or elapsed-duration completion. Resume only once authenticated design evidence receipt is available and source sequencing remains authorized.

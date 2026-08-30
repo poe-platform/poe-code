@@ -1,0 +1,117 @@
+{
+  "scope": "Owned harness, inventory, report and retained raw evidence; excludes ignored execution trees and this seal itself. Source/test/build hashes are in current-result.json. Not independent verification.",
+  "entries": [
+    {
+      "path": "scripts/verify-current-consumers.mjs",
+      "sha256": "d87496c30fddfdbe8202ae0f9d298f48da2eaa08bf63aa83ed6495b1e0d1ab29"
+    },
+    {
+      "path": "scripts/verify-qualified-release.mjs",
+      "sha256": "848a0e37bb67a53d79c9131077c0f5b4611dd4caa7ad4964577c70a0734bd949"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/.gitignore",
+      "sha256": "416c368351d655294bc29cfb669584917dfdbdc1f6166378117900ce07135c08"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/README.md",
+      "sha256": "7873e9d5e0075e1e2215fee97c5a433926f0c1b12830959ff40ffdfc0b8d1231"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/REPORT.md",
+      "sha256": "d7146a5af1d55735ba9f92688d54859166676bbb43fe2128531e0c7dbe3ba6de"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "2dcbbfb1bb9657533af888e08a907408563389e6693cf17926d63a36c54a4347"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-binding.json",
+      "sha256": "dfd68639b12fe5c513cded221f3446968b1e093fe24ef5a822f5f7f8bcf0657c"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-metadata.json",
+      "sha256": "88de3bbebc211e8f3185b5798653b221585aaf93992708ed1bda686463e94030"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-missing-outer.json",
+      "sha256": "08cf160f06dd85aa81573e1bd6b7d9625a1f1babaeb9ff1c32338651de8a252c"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-outer.json",
+      "sha256": "a95ce98bbfa9a1a5123a0ca22310d1f4b74b5eac388e42d164a6a4ec14ddbbf0"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-result.json",
+      "sha256": "5933169d18f064b1f31ba749a2933a90f061858f7029a5f66cff2d7a33616cc8"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-setup-controls.json",
+      "sha256": "2aa95e2ac5b57dee40c622c5699ba6e267569cc136b0d6b784a6a45affc148b7"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-setup-positive-outer.json",
+      "sha256": "911471ea176f60ea9e2e2d5d1da2121fcb6250c5b6511d1211daf57ad72fadae"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-stream-diagnostics.json",
+      "sha256": "0b6635bd513f8e13fa278ab675001660e00a7a7ec56e9f5a93ff910e0ed3d5c3"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-stream-results.json",
+      "sha256": "51cfbac196e8f8ca5f83485f8fec3ccc7e745d7ab3af6d757086eada39844110"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-unset-with-env-outer.json",
+      "sha256": "abd9d35f5f1ca7e8248dfc71e772d656effa74cae6a89a7fde0e9e750e1d1aab"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/current-wrong-outer.json",
+      "sha256": "85c0f91dbfadb657cb33f557ea6f1481c68c423f931f516b88270fa5ca9ae692"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/first-inventory-failure.json",
+      "sha256": "b18e6c2fa2fa512c97f178e41d6554d0dc460897310bd61d1b1da9650510893e"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/first-runtime-discovery-failure.json",
+      "sha256": "fc88cbf1f2441df92be0c1f4e3746a4ec9f224fa90dbf18608792188f7ce6dd3"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/tar-missing-outer.json",
+      "sha256": "3542cc989d10378331cf7e262ce7f782ca041805a8c00350827bd0f24dfeaa3a"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/tar-unset-with-env-outer.json",
+      "sha256": "05c57dfa6320e36c28a1a9b71f77264507de09c5c8c569d461acb9083c90f711"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/tar-wrong-outer.json",
+      "sha256": "0a123139a6919deaa74a1e90cb45c7c3225ccb658957f6dd518b1867ab7783c7"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/evidence/webdav-without-permission-control.json",
+      "sha256": "aa3d1bf66a498075503b83d93afbd53ec5319a6f803c467f5ad8fab681a46a91"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/inventory.json",
+      "sha256": "0669eb3b582dc4219e9ebf0b1b80458a1abe348924783ece6439bcc98a5dd850"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/prerequisites.mjs",
+      "sha256": "052dc58ece76f3136ad03212b9f938502cf2f0ca5ebfd03876c3be9ea11eaf39"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/prerequisites.test.mjs",
+      "sha256": "4c7688d503a3b9f66931e5d959af941aad1078f2df892b575487592c30ad32da"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "3b108b3bd1d8d942c1fd727064c9e471cce1b883e69f7a51967e71fc9eb68d43"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/tsconfig.consumer.json",
+      "sha256": "e848f92d4ac977a05d457b2bb13ad99163a0f16426decfe8a34389a78e506068"
+    }
+  ]
+}

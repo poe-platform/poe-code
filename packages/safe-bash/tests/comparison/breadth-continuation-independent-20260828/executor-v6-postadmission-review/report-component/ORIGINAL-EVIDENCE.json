@@ -1,0 +1,424 @@
+{
+  "schema": "INDEPENDENT_ORIGINAL_EVIDENCE_V1",
+  "date": "2026-08-28",
+  "presealCommit": "2d44ae1a",
+  "presealSha256": "15dd68e13d9ca753a45f510e4b737383473895e3235075f6f27ac5059fa09c07",
+  "rawHarnessCounts": {
+    "pass": 19,
+    "fail": 1,
+    "unrun": 0
+  },
+  "independentAuditCounts": {
+    "qualifiedPass": 18,
+    "failure": 1,
+    "unqualifiedFixturePrecondition": 1,
+    "unrun": 0
+  },
+  "qualification": "D13 reproduces assessor TypeError; S20 captured overflow but closed by SIGTERM, not exit0. Its raw PASS does not establish the predeclared closed-exit0 truncation case. Original harness omitted the exact exit0 assertion. Raw evidence is immutable; one separately presealed corrected child may use the sixth and final child budget slot.",
+  "archive": {
+    "path": "original-raw.json.gz",
+    "bytes": 32542,
+    "mode": 420,
+    "sha256": "d7390c3f8f8a1b94287f7c087e91a2930f269513d47006eb285cc5b994529018",
+    "expandedBytes": 2993120,
+    "rawBytes": 2237825,
+    "members": [
+      {
+        "path": "D01/OBSERVATION.json",
+        "bytes": 50,
+        "mode": 420,
+        "sha256": "219af906c7e7547d2cb04c901e53993db212261eb9dbab072b8056197ff97421"
+      },
+      {
+        "path": "D02/OBSERVATION.json",
+        "bytes": 36,
+        "mode": 420,
+        "sha256": "9a62f043f29a8bc5ede4fb8030b418f8aef82aa80a27f1d245d689dabf1aaab6"
+      },
+      {
+        "path": "D03/OBSERVATION.json",
+        "bytes": 167,
+        "mode": 420,
+        "sha256": "974f2d84df998b214ba475756644fde8651a0b00b7c57c2638bfe330b36373dd"
+      },
+      {
+        "path": "D04/OBSERVATION.json",
+        "bytes": 104,
+        "mode": 420,
+        "sha256": "6fac5f03d169fe1c1a4dfc2a11cee4307a8eca12dc84eb235191ae1bfc722298"
+      },
+      {
+        "path": "D05/OBSERVATION.json",
+        "bytes": 261,
+        "mode": 420,
+        "sha256": "a8c90af68555264fcac460497f0735a84a142b88db428d8aa3716f14dd6c863c"
+      },
+      {
+        "path": "D05/exact.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "d509bff642a353f88582e8a846ecae041c333b79c57a7a24ff310fbdb7e914e9"
+      },
+      {
+        "path": "D06/OBSERVATION.json",
+        "bytes": 1385,
+        "mode": 420,
+        "sha256": "62c82bc7ac2e91f997cb9b0058822efd4b622c09743710b9e1428c213751b3f9"
+      },
+      {
+        "path": "D06/parts-2/quota.json.part-0000.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "c1e61317a3686034cd30b488bc03fb1f7d213f7e63a98d8e9a1469bd65f4c8b0"
+      },
+      {
+        "path": "D06/parts-3/quota.json.part-0000.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "c1e61317a3686034cd30b488bc03fb1f7d213f7e63a98d8e9a1469bd65f4c8b0"
+      },
+      {
+        "path": "D06/parts-3/quota.json.part-0001.data",
+        "bytes": 3,
+        "mode": 420,
+        "sha256": "5f578633bae5f0b5d93b7d0d0740e52c01a0cc08883a36fb48a996021f5ecea9"
+      },
+      {
+        "path": "D06/small/first.data",
+        "bytes": 6,
+        "mode": 420,
+        "sha256": "b7fb217694ae2d305e766608d250f797daa984e4ac4b5fa638a729be352f2fcd"
+      },
+      {
+        "path": "D07/OBSERVATION.json",
+        "bytes": 1543,
+        "mode": 420,
+        "sha256": "cf5defd6fe294ce1fcc8d86f89541e022ea6a056ca70eefea0361f892651b81d"
+      },
+      {
+        "path": "D07/null/partial.data",
+        "bytes": 2,
+        "mode": 420,
+        "sha256": "5dde896887f6754c9b15bfe3a441ae4806df2fde94001311e08bf110622e0bbe"
+      },
+      {
+        "path": "D07/undefined/partial.data",
+        "bytes": 2,
+        "mode": 420,
+        "sha256": "5dde896887f6754c9b15bfe3a441ae4806df2fde94001311e08bf110622e0bbe"
+      },
+      {
+        "path": "D07/zero/partial.data",
+        "bytes": 2,
+        "mode": 420,
+        "sha256": "5dde896887f6754c9b15bfe3a441ae4806df2fde94001311e08bf110622e0bbe"
+      },
+      {
+        "path": "D08/OBSERVATION.json",
+        "bytes": 255,
+        "mode": 420,
+        "sha256": "2f2a15d8f9928948ae2dcf9ed510f76be605e9ce719410fdeba614831a32df63"
+      },
+      {
+        "path": "D08/existing.json",
+        "bytes": 8,
+        "mode": 420,
+        "sha256": "2b7847b7b705781d7cf21a05e9c1bb37cbf078aea103bc3edcc6aca52ab65453"
+      },
+      {
+        "path": "D09/OBSERVATION.json",
+        "bytes": 1076,
+        "mode": 420,
+        "sha256": "8ed4e44475b5d003c1d74c365119ab65feaf29a37b1d85fdb38c1aede30598d9"
+      },
+      {
+        "path": "D09/PUBLICATION-FAILURE.json",
+        "bytes": 1823,
+        "mode": 420,
+        "sha256": "8417df054b39f0a0b0e7f125c295439189b30846fcb623b779a3d2151b17751b"
+      },
+      {
+        "path": "D09/RESULT.json",
+        "bytes": 1,
+        "mode": 420,
+        "sha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96"
+      },
+      {
+        "path": "D09/RESULT.json.part-0000.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "1979719db7f33bd3b009d50396fbc58ebc2c8b0d3368e0e222bcdb092eba6053"
+      },
+      {
+        "path": "D09/RESULT.json.part-0001.data",
+        "bytes": 38274,
+        "mode": 420,
+        "sha256": "53e1ed386895670c376722791ccf698f7eb8af44e87c7c1222e5f7de2325eb88"
+      },
+      {
+        "path": "D10/OBSERVATION.json",
+        "bytes": 4562,
+        "mode": 420,
+        "sha256": "dff381dcee93956bf335cd80a52177b3e0aa25f04ecb78fea79516922b34d699"
+      },
+      {
+        "path": "D11/OBSERVATION.json",
+        "bytes": 384,
+        "mode": 420,
+        "sha256": "740ffaca96275926b99ac20fedd251135758d8e882255e66821c28a7cfb2963f"
+      },
+      {
+        "path": "D11/RESULT.json",
+        "bytes": 405,
+        "mode": 420,
+        "sha256": "55e0d7181eb658677e56a4ba707ac057ceda2d2850cb42f9d3227aaf22c8bc86"
+      },
+      {
+        "path": "D11/TERMINAL-FAILURE.json",
+        "bytes": 1597,
+        "mode": 420,
+        "sha256": "7e50c37a55458bcd2c35eb80407d944c420dd39410a7f08c62d83d34d9ef410e"
+      },
+      {
+        "path": "D12/OBSERVATION.json",
+        "bytes": 104,
+        "mode": 420,
+        "sha256": "0418413498dd5fa53def6b325be988a40d5a462ef45c2c4d0e9c8069bb551e1f"
+      },
+      {
+        "path": "D12/missing/read.json",
+        "bytes": 406,
+        "mode": 420,
+        "sha256": "c0853a756883f21b44a515b102b235bef37a34a117ae4b9afb6894e417a530ab"
+      },
+      {
+        "path": "D12/mode.json",
+        "bytes": 3,
+        "mode": 384,
+        "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+      },
+      {
+        "path": "D12/read.json",
+        "bytes": 406,
+        "mode": 420,
+        "sha256": "c0853a756883f21b44a515b102b235bef37a34a117ae4b9afb6894e417a530ab"
+      },
+      {
+        "path": "D12/read.json.part-0000.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "e8555de95990637a2404369d8cb618b3b7d9e9e639dfef59aee8916648922e7b"
+      },
+      {
+        "path": "D12/read.json.part-0001.data",
+        "bytes": 15,
+        "mode": 420,
+        "sha256": "fdc22c211a9b2332ebba1b8b94312e2e17d434e1d5ffe3e9f2aa779f5b21bb36"
+      },
+      {
+        "path": "D13/MALFORMED-TERMINAL.json",
+        "bytes": 600,
+        "mode": 420,
+        "sha256": "e4fd15bf6d0034d77663db335fa9af55cee1ec17f7106d34c4329fee4cc319c5"
+      },
+      {
+        "path": "D13/OBSERVATION.json",
+        "bytes": 180,
+        "mode": 420,
+        "sha256": "5f0b609a37ded520349dae4a86bc781c181f3c5d2b9008bfe79b090d04cfe886"
+      },
+      {
+        "path": "D13/RESULT.json",
+        "bytes": 405,
+        "mode": 420,
+        "sha256": "55e0d7181eb658677e56a4ba707ac057ceda2d2850cb42f9d3227aaf22c8bc86"
+      },
+      {
+        "path": "D14/OBSERVATION.json",
+        "bytes": 269,
+        "mode": 420,
+        "sha256": "42def9a75a47b820b23b34207ec883c2a7bd7992b88565a4dda0f9e0973bcbc8"
+      },
+      {
+        "path": "D14/first.json",
+        "bytes": 5,
+        "mode": 420,
+        "sha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+      },
+      {
+        "path": "D14/outside.data",
+        "bytes": 128,
+        "mode": 420,
+        "sha256": "24da1b81d0b16df6428eee73c69fcb2a93c76bc6df706f0c6670fe6bfe800464"
+      },
+      {
+        "path": "D14/second.json",
+        "bytes": 5,
+        "mode": 420,
+        "sha256": "38e0b9de817f645c4bec37c0d4a3e58baecccb040f5718dc069a72c7385a0bed"
+      },
+      {
+        "path": "D15/OBSERVATION.json",
+        "bytes": 842,
+        "mode": 420,
+        "sha256": "d827968b5703fca99da02ec4dafe5d375aa57376cdf77a9016344a9335176247"
+      },
+      {
+        "path": "D15/inherited/RESULT.json",
+        "bytes": 397,
+        "mode": 420,
+        "sha256": "0209061d92183af7422717d28bf3925857f4d134c88c7c796a854325c21e65fa"
+      },
+      {
+        "path": "D15/known-data-only/RESULT.json",
+        "bytes": 710,
+        "mode": 420,
+        "sha256": "bbce093a5f1260689c394ed951d0bad96d9f4e0a3987914aa603caa24501fc3b"
+      },
+      {
+        "path": "D15/unknown/RESULT.json",
+        "bytes": 574,
+        "mode": 420,
+        "sha256": "9c240efea9417aad4ae3016656cedcd0225ced3b12873e48f30830b544b95c67"
+      },
+      {
+        "path": "D16/OBSERVATION.json",
+        "bytes": 957,
+        "mode": 420,
+        "sha256": "9c9a3f0636bac2bb665c6eb32b1ff75db85b02d74f08d41461ce8ba298bde1c3"
+      },
+      {
+        "path": "D16/RESULT.json",
+        "bytes": 554,
+        "mode": 420,
+        "sha256": "0079b5826bb257092446cee36d6a5864d3c7ed8ea07336231631e9d66ea20e4a"
+      },
+      {
+        "path": "D16/RESULT.json.part-0000.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "2a02c0a7419eea0131c271e78979a6b56414da1ba5ed18a5d38531d96f76ce02"
+      },
+      {
+        "path": "D16/RESULT.json.part-0001.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "00e382b66905f1808b6ed5d7aab1509cc792759a876772ffbda2f7bba795df45"
+      },
+      {
+        "path": "D16/RESULT.json.part-0002.data",
+        "bytes": 146210,
+        "mode": 420,
+        "sha256": "833710990ba54cf0c1a9c6737978dd57dcbf6b2f437263b3e638656af66052a2"
+      },
+      {
+        "path": "DRIVER.json",
+        "bytes": 1173,
+        "mode": 420,
+        "sha256": "b5427bfadd5dd827f3be72b30341071277bc51dd740b8fd723bd57480eac2e2e"
+      },
+      {
+        "path": "EVIDENCE.json",
+        "bytes": 98658,
+        "mode": 420,
+        "sha256": "ffaf01e1710475cd7cfb3ade2d863507c3dc291fc05fe599b3c0037a37bfdac0"
+      },
+      {
+        "path": "S17/OBSERVATION.json",
+        "bytes": 256,
+        "mode": 420,
+        "sha256": "9f12b227d3e8a0b002e8e07e3ef991b7f5753d1d619902cb8ce82a2cf9dab20f"
+      },
+      {
+        "path": "S17/RECEIPT.json",
+        "bytes": 1227,
+        "mode": 420,
+        "sha256": "f86b4d87ef0336badaf47d354de8f6ee1da13f020b1a775e5fb4b32ad07dbd6c"
+      },
+      {
+        "path": "S17/RESULT.json",
+        "bytes": 426,
+        "mode": 420,
+        "sha256": "16b99ac4694797802cbec0aca74c31352b0f7cce5d076277244e8454bc28cecb"
+      },
+      {
+        "path": "S18/OBSERVATION.json",
+        "bytes": 153,
+        "mode": 420,
+        "sha256": "e0926aebb711920dc6bb67875928f1150ae4ce42acc3770ee3ee15da47469448"
+      },
+      {
+        "path": "S18/RECEIPT.json",
+        "bytes": 1217,
+        "mode": 420,
+        "sha256": "59aede9e91db71cbc3c41e4cb00bed882b03481d447bb7565d6e9ff8ec154887"
+      },
+      {
+        "path": "S18/RESULT.json",
+        "bytes": 423,
+        "mode": 420,
+        "sha256": "80d63e5598257e2e8c5ba2630e87625702648cf40d740e5c4eacd4d851c56326"
+      },
+      {
+        "path": "S19/OBSERVATION.json",
+        "bytes": 511,
+        "mode": 420,
+        "sha256": "00df38d13923a0f20d9d7c26eb05784f069f9130291961d1bbd0597be3405644"
+      },
+      {
+        "path": "S19/RESULT.json",
+        "bytes": 432,
+        "mode": 420,
+        "sha256": "eb1df33d9a89a2b29753e27d257ddef71d6f936c33b55fe8f395e0ae115a5341"
+      },
+      {
+        "path": "S19/TERMINAL-FAILURE.json",
+        "bytes": 1215,
+        "mode": 420,
+        "sha256": "747c2ff6ce36ddad1a7b324079e8b32b99e26e0279cedfdc8a4935072d30a07f"
+      },
+      {
+        "path": "S19/closure/RESULT.json",
+        "bytes": 3303,
+        "mode": 420,
+        "sha256": "3d2da27aeed17281ff74918c0af4c145fb9c82e63dc554ef8a36efaf2309e62a"
+      },
+      {
+        "path": "S20/OBSERVATION.json",
+        "bytes": 437,
+        "mode": 420,
+        "sha256": "2897c7f20a4a56a3fb2ddb8748ad768d0a1ce258aca329526ba4fc0bcd408bc2"
+      },
+      {
+        "path": "S20/RECEIPT.json",
+        "bytes": 88044,
+        "mode": 420,
+        "sha256": "fb7d114593441026d50ec4188cf7b0be518f6e0f85152613ebf818683f745062"
+      },
+      {
+        "path": "S20/RESULT.json",
+        "bytes": 426,
+        "mode": 420,
+        "sha256": "acb1cd662bb3c75d9d04fa96e6bad000b5c66c2d7cfbc0c92f732c6138e934a1"
+      },
+      {
+        "path": "START.json",
+        "bytes": 200,
+        "mode": 420,
+        "sha256": "bfbc3647cfbac0e8adb5bfe009e61b00e74cbf8b08bb5ec6e0b243bd3eba3993"
+      }
+    ]
+  },
+  "childrenIncludingDriver": 5,
+  "exactAllClosed": true,
+  "activeResources": [],
+  "authorUnchanged": {
+    "inputs": 71,
+    "harness": 7,
+    "authorMembers": 55,
+    "nodeChecked": true,
+    "passed": true
+  },
+  "generatedInputUpperBound": 36584917,
+  "historicalEvidenceChanged": false
+}

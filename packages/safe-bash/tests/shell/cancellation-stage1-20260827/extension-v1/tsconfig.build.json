@@ -1,0 +1,9 @@
+{
+  "extends": "../../../../tsconfig.build.json",
+  "compilerOptions": {
+    "rootDir": "../../../..",
+    "outDir": "./.build"
+  },
+  "include": ["../../../../src/shell/cancellation.ts"]
+}
+

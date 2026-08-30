@@ -1,0 +1,1440 @@
+{
+  "at": "2026-08-27T02:37:49.814Z",
+  "snapshotHead": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+  "currentHeadLabel": "95966ca2006bfa9bb35353cbac0a14038089c4ba",
+  "dirty": "M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/commands/execution.ts\n M tests/commands/archive-stress/limits-effects.test.ts\n M tests/commands/archive-stress/native.test.ts\n M tests/commands/core-expanded/regressions.test.ts\n M tests/commands/execution.test.ts\n?? tests/commands/archive-stress/b02-observation-evidence/\n?? tests/commands/archive-stress/pax-extensibility-evidence/\n?? tests/commands/archive-stress/pax-extensibility.test.ts\n?? tests/commands/archive-stress/pax-independent/\n?? tests/commands/archive-stress/pax-native.test.ts\n?? tests/commands/core-env/capture-order.mjs\n?? tests/commands/core-env/native-order.json\n?? tests/commands/core-env/order.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/routed-five-review/\n?? tests/commands/search-stress/.native-1m4O1e/",
+  "index": "",
+  "snapshotBeforeDigest": "8c860e67d658a8e62c9fea49d0373ad0dd1c633b2555816f0b011846b5ae7570",
+  "snapshotAfterDigest": "8c860e67d658a8e62c9fea49d0373ad0dd1c633b2555816f0b011846b5ae7570",
+  "snapshotDrift": [],
+  "originalSnapshotDrift": [],
+  "currentLiveDrift": [
+    {
+      "path": "src/commands/execution.ts",
+      "before": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "after": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+    },
+    {
+      "path": "src/commands/structured/README.md",
+      "before": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "after": "9b2cee22b2af50418969f3a7fff040d444dbf92aced31c946fcd2ed930a1e704"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "before": "8f17ce0a4f886a932fdadf6bb5a66dc7a3c8ba94ef8ca98744189c65b1266053",
+      "after": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc"
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "before": "f099e0ba0e9cdf1d5e0250449edaa5a04b78bbba743e271d1b804ba3e456cfa9",
+      "after": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51"
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "before": "7c4334f964a1af67324d73542bbb271044cfa6c8310f7352ba1d92c12e4ac9ab",
+      "after": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "before": null,
+      "after": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "before": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "after": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+    },
+    {
+      "path": "src/fs/s3/COMPARISON.md",
+      "before": "0b94393b625c7b35fbb87eb26489891a10411ca502a6f83f99deb3ab14b50fd2",
+      "after": "3732efbce0d3ded5a76a3ccd5063d39baa167e49c9dab347bb7fcba0712d176f"
+    },
+    {
+      "path": "tests/commands/archive-stress/b02-observation-evidence/REPORT.md",
+      "before": null,
+      "after": "01b68001e11989141e08cc48a640ede6915ff4d68b92e7ae337e71279b0762d6"
+    },
+    {
+      "path": "tests/commands/archive-stress/b02-observation-evidence/control.mjs",
+      "before": null,
+      "after": "33d23e73ab9bd99d38058adb802a2e8b002f2aeb587beac323149f3ab0598d23"
+    },
+    {
+      "path": "tests/commands/archive-stress/b02-observation-evidence/evidence.json",
+      "before": null,
+      "after": "39bca153ea4498750f955b27e10400b72efce06991a752600564ee697382b45f"
+    },
+    {
+      "path": "tests/commands/archive-stress/b02-observation-evidence/recheck.json",
+      "before": null,
+      "after": "73ebfc2e182f453e59ce9127c5245964d33e9a085f6c93a66bdae0e5db4982b8"
+    },
+    {
+      "path": "tests/commands/archive-stress/b02-observation-evidence/run.mjs",
+      "before": null,
+      "after": "fc0df1eccec04a76fd873431dfd0bd349e236580369db5221405c15c7ad25322"
+    },
+    {
+      "path": "tests/commands/archive-stress/limits-effects.test.ts",
+      "before": "b7962d85dd8362b5da7f4df5839fb6e7b1f9cbd19295607252717a4e7018f2ae",
+      "after": "7bedea0eddefcf40feb216fe41a600d2af429ff10813ed8a64df2e2d63329efe"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/observation-control.mjs",
+      "before": null,
+      "after": "6bd2e01d72e0bd887ecb3db22a0c989db49efdb89d3d7f96695d923c6c4500c7"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/run.mjs",
+      "before": "088f5425cd60d572d7f7d4216da9c77bee6f5fa29c03659992171e153a001008",
+      "after": "3bb49df25800f2489425d5ae275cbfc8f8d064f4a93061621d042ae9f0ee9ee5"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-default-gzip.tar.gz",
+      "before": null,
+      "after": "e5b4a6b5ec304f2fd7a01f8a12753cadd69b30e82e155dfa6c2e741e7e592afe"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-default-plain.tar",
+      "before": null,
+      "after": "7155fc5c359de50bfb24cd2af2b2b4a9f4f34585fd0fc02467665eae141812ad"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-observations.json",
+      "before": null,
+      "after": "7390d7a7ec247e608079adb4df6f4d347bde8f6350ce6bf94f303f862d81c4f0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-pax-gzip.tar.gz",
+      "before": null,
+      "after": "eec441d53b2c70bb748ffa63e1d0519edf462f065f83254249c6c797a922a61f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-pax-plain.tar",
+      "before": null,
+      "after": "3e4c5cf978fc36d02479cd3122e804a185a625d011d59f189e0758d7bae49961"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-virtual-default-gzip.tar.gz",
+      "before": null,
+      "after": "93efb22333a3a1db86dc90cc03e08484cba170d79ab36cb16b95d6b3861e8067"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-virtual-default-plain.tar",
+      "before": null,
+      "after": "fa395a314bc060f66623823239b31c2d5a97cdbb6f7d0e6438acc4a20f55aa03"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-virtual-pax-gzip.tar.gz",
+      "before": null,
+      "after": "66269482ed526f7c5335367bdb3f59ea5ef1d3b6468083cfcf96c11d72cb530f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-crossread-virtual-pax-plain.tar",
+      "before": null,
+      "after": "292247044bf3c4efcc0ab6d76770063d491aa3c468190c597c1a709be1e5fdfb"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-mtime-profile-control.tar",
+      "before": null,
+      "after": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-mtime-profile-observations.json",
+      "before": null,
+      "after": "6427c3c9b4f93071798706862af82f74045059712174f4808bff0a9bd691165b"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/BSD-mtime-profile-times.json",
+      "before": null,
+      "after": "03cba635ca90a7894d2eb6e0186cd5613a42ca71c849ca10bcbb1fdd9af31d68"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-BSD-raw-default-gzip-observations.json",
+      "before": null,
+      "after": "71c45aa8fed731a07eb57739a55288d3a5ca3f5fb8017f3c9f403544d9c4a6e3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-BSD-raw-default-gzip-presentation-control.json",
+      "before": null,
+      "after": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-BSD-raw-default-plain-observations.json",
+      "before": null,
+      "after": "9d3ae9e118016881b5aa282281797c6482469ae9f6ce549b738b5c28d99f5c36"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-BSD-raw-default-plain-presentation-control.json",
+      "before": null,
+      "after": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-BSD-raw-pax-gzip-observations.json",
+      "before": null,
+      "after": "736d4a1d69e8b656d68d7be9efb214cd96f53a76497abd1ae35db7e123d9a4df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-BSD-raw-pax-gzip-presentation-control.json",
+      "before": null,
+      "after": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-BSD-raw-pax-plain-observations.json",
+      "before": null,
+      "after": "42a6ea98a3b8f43655c517cb47c90147672e709e752daecb2003fbdb921c9872"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-BSD-raw-pax-plain-presentation-control.json",
+      "before": null,
+      "after": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-default-gzip.tar.gz",
+      "before": null,
+      "after": "e00b6d59f6fef69a0d6e7ecc9d55bd0f0ca9f7d59ffed1e0216ae4ab3162d9b4"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-default-plain.tar",
+      "before": null,
+      "after": "de3678f969044f8c876c32734aa5a72f8cfe700a5689428684ad0d95c3af546f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-observations.json",
+      "before": null,
+      "after": "8a93bed165b1437bcfe6e492eca5aa27fa4695ee4a126f942a7f0fb82031e669"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-pax-gzip.tar.gz",
+      "before": null,
+      "after": "ccaac01081568d70a7fde00c03afce6676fe1ea8f2446852647a34bc3d20dabf"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-pax-plain.tar",
+      "before": null,
+      "after": "6ca69f7a5a70ba386f6e8808d5a196ef29b374dbb76296879f5fa72efb7620b3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-virtual-default-gzip.tar.gz",
+      "before": null,
+      "after": "c812f2f460f30ebe2fa2f43a1323acf36a5a1e01a9f23ca4c37cbcfa0fb58899"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-virtual-default-plain.tar",
+      "before": null,
+      "after": "19834bcde8444f5a9dd4cfbc741d7b537a917e62bd410d69e8dc69f0d396bc42"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-virtual-pax-gzip.tar.gz",
+      "before": null,
+      "after": "a52082a63f1745342cd1e8f4d02e30db3546b44707298de198be689a38887f81"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-crossread-virtual-pax-plain.tar",
+      "before": null,
+      "after": "009e60c9201eaee59a24feff11745d8139884e92584f172892b0e4e66e74920e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-mtime-profile-control.tar",
+      "before": null,
+      "after": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-mtime-profile-observations.json",
+      "before": null,
+      "after": "e716f58f862779bee8f351c4e6765bae6f49c519a4aae6924cee9a07980457e0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/GNU-mtime-profile-times.json",
+      "before": null,
+      "after": "382f6f6fe77c68b1e6b2c9e4a284c766eebc9c09ef0a3bb9c9751c10e194cb65"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/author-targets/stdout.log",
+      "before": null,
+      "after": "afd8c43866168188552234c18549f1965d3395d743a4e99e9b9be2f824cdd5b8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/bsd-version/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/bsd-version/stdout.log",
+      "before": null,
+      "after": "e7cce3d387120ee09a085cb3cafba70e9031c5f497229c6d60846a7b2c1e4241"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/built4/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/built4/stdout.log",
+      "before": null,
+      "after": "550083dc4cf861bf2f2791cdacafb909fd69ee11f26cf596fa99839c8de1fe05"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/evidence.json",
+      "before": null,
+      "after": "b7cbe9c7eccd5a8fd09fbfb33ae7fe9df9a0fca1f6892fcb66599fba736898d6"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-build/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-build/stdout.log",
+      "before": null,
+      "after": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-inputs-frozen-after.stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-inputs-frozen-after.stdout.log",
+      "before": null,
+      "after": "3c384c3e02bd4a1aa6a05435ad4e8e78b46b17062829026b2a09c64850f7b302"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-inputs-frozen-before.stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-inputs-frozen-before.stdout.log",
+      "before": null,
+      "after": "3c384c3e02bd4a1aa6a05435ad4e8e78b46b17062829026b2a09c64850f7b302"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-inputs-live-after.stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-inputs-live-after.stdout.log",
+      "before": null,
+      "after": "22ea0a49d201254c78d41d14e9e7ff298ef38557cce90613b540edc8d95da3b7"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-inputs-live-before.stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-inputs-live-before.stdout.log",
+      "before": null,
+      "after": "22ea0a49d201254c78d41d14e9e7ff298ef38557cce90613b540edc8d95da3b7"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-typecheck/stderr.log",
+      "before": null,
+      "after": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/global-typecheck/stdout.log",
+      "before": null,
+      "after": "1fdde720d88bceb0944ea367ca22ed421eb773fe2037128aef9cf9646f975e47"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/gnu-version/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/gnu-version/stdout.log",
+      "before": null,
+      "after": "b112e5578260c103cafae7150e33b8fe1b5d0720a158d88be5ea8f6d9d26f478"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/independent-observation-control/stderr.log",
+      "before": null,
+      "after": "9820efe08d21a00feae17f60199ef6c23011cddb807a12c8cf528811eaa6d1ab"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/independent-observation-control/stdout.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/independent6/independent-BSD-fixed.tar",
+      "before": null,
+      "after": "259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/independent6/independent-BSD-sidecar.tar",
+      "before": null,
+      "after": "8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/independent6/independent-GNU-fixed.tar",
+      "before": null,
+      "after": "259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/independent6/independent-GNU-sidecar.tar",
+      "before": null,
+      "after": "8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/independent6/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/independent6/stdout.log",
+      "before": null,
+      "after": "d11891e150dbaeac4a7228b62976cf0b85aa80b5924d1452bfe492176d936249"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/BSD-independent.tar",
+      "before": null,
+      "after": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/BSD-native.tar",
+      "before": null,
+      "after": "5088f1c062f9a86a22fbaaefc6d7a2f2ea9d4482cc4888ede74105ad259eca76"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/BSD-native.tar.gz",
+      "before": null,
+      "after": "6d5253c85700b2db80efa9b9ea30159a60a85c27394dec0e4fe6843a5d784907"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/BSD-virtual.tar",
+      "before": null,
+      "after": "5e6a12f48b2c656288129125f3f220c755d6056c219b3964b066be90ae2ebd10"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/BSD-virtual.tar.gz",
+      "before": null,
+      "after": "319c74009a7a8799287672927185004b406d70cd418846dda022a60a32fd8f18"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/GNU-independent.tar",
+      "before": null,
+      "after": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/GNU-native.tar",
+      "before": null,
+      "after": "7d54f2519d08e511740240cc5b5aa0f388f43cd7c05c1e22374b131ac79ea13e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/GNU-native.tar.gz",
+      "before": null,
+      "after": "4f4e88b8b50f0a2febc5ea0f47fc25cfb9cf0dab2812bdb4f9aa7e2f2183f9b9"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/GNU-virtual.tar",
+      "before": null,
+      "after": "fb97071cb326c276ad0e85ac6ac3def7de1ccf8f4c155f41e3bb01beb0be0a59"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/GNU-virtual.tar.gz",
+      "before": null,
+      "after": "27692c14742d3d6c76c18e5f0f15a2bc12ed160ff249148b9fbf6a2e38dcadb6"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/native-BSD-in.json",
+      "before": null,
+      "after": "98e07e853fee91d7f2b85b767b532a8e2572cafd4dca3f7af7a8cff5c4026596"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/native-BSD-out.json",
+      "before": null,
+      "after": "e160e90d3266bc71488c99e315a84716e09e408a3f83d701653b7694b92e1a31"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/native-GNU-in.json",
+      "before": null,
+      "after": "3d9ee2bbeb34abda6f22491b32fb6cf67bd2f1214f7d3bac77a5f4edca2c7a8f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/native-GNU-out.json",
+      "before": null,
+      "after": "e96d3e9eb0021546e8d7633ca93af562a387e1e59410707f080500874a6ba2a0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/native-profile-b02-observation-refactored-stress30/stdout.log",
+      "before": null,
+      "after": "064d1ebcea4998ae3b0ded6eacbf442a9b07fc38c7a0f53e59bb880e60c2563e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/original-author128/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/original-author128/stdout.log",
+      "before": null,
+      "after": "67d6538263210f5efb81b7ec3d30162cf6884947f282bd9b9aecf25df069bac4"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/original-wiring1/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/original-wiring1/stdout.log",
+      "before": null,
+      "after": "1cea805f84b0902508f43f7040c226de761942104532bef170b316fdc2dde2ad"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/ready.json",
+      "before": null,
+      "after": "a2b8c1e23e325f04be7eda15220311606dd87269675a8b4f8457022ea6548687"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/scoped-types/stderr.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/runs/run-x0G87j/scoped-types/stdout.log",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/core-env/capture-order.mjs",
+      "before": null,
+      "after": "a25e716f9a2f9ec7680f8b3d1ebe93388fcbf0c95556f7ca6be1521d03cfaa1b"
+    },
+    {
+      "path": "tests/commands/core-env/forwarding.test.ts",
+      "before": null,
+      "after": "4d770dd352d2057598b2aad6f917ed877f3577c44b94dd45428e4075310267ae"
+    },
+    {
+      "path": "tests/commands/core-env/native-order.json",
+      "before": null,
+      "after": "7260181f981a6de819ebe41b718373b0f45de05fd961ad6e63667f150297fe54"
+    },
+    {
+      "path": "tests/commands/core-env/order.test.ts",
+      "before": null,
+      "after": "bced0ea317cd459bac803fe2185485277cf5d8e86734d42a2d800eeb031eebaa"
+    },
+    {
+      "path": "tests/commands/core-expanded/regressions.test.ts",
+      "before": "d5c00e1642dcdff17f36eee94ec96800b7a0ddde488c2e360814ed5c6a5e3849",
+      "after": "59e234d6e605cc583263193765e0e9006bee3a6d4b7bb2286b3c63b546c7abc4"
+    },
+    {
+      "path": "tests/commands/execution.test.ts",
+      "before": "29e15366eb888381b611be28936dc00dd4c86dca236ec0c647dff0a9fd225782",
+      "after": "03ddae21929bc2d4966e170a35434b4412386873a36eb99760d0c075c12ae2f1"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/MANIFEST.sha256",
+      "before": null,
+      "after": "0ef69c3a742c553dc2128b59b82de6bf6a593266dee757ffa0a3d2f180393e02"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/PROPOSAL.md",
+      "before": null,
+      "after": "ea005db6d62b92afb71d75ad8ea1e2bafe463e7c44b549ae5658847410c7ec62"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/README.md",
+      "before": null,
+      "after": "bb6e40b54a1efaef381bc2814092b515ddb9f9159fe72ff3c4e373dfaa198f57"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/document.mjs",
+      "before": null,
+      "after": "d74a1e6ed51f1ef451d39abf7976ab376399d0802fa039ef6dc0849ec9c0d4f5"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/handoff-v3.json",
+      "before": null,
+      "after": "1146115e368fa83f0c4082be2daa79a034685d6d0db494da9cb5adde10a70386"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/pinned-review-v3.json",
+      "before": null,
+      "after": "f9b0d3b706fd8b94162cc4b20b7f0fe76dafde99e9d93ced6a9741321d0d471e"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/proof-links-v3.json",
+      "before": null,
+      "after": "8459fd6bd023060cd6691db5ac52cff10bf71648b494fe7ae4c0e6f136169ceb"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-canonical-plan/seal.mjs",
+      "before": null,
+      "after": "067b207d18a970784f779701aa258f953de954282fee5ab8c5c3b7691a9c73b9"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/PRE_APPLICATION.md",
+      "before": null,
+      "after": "4ec6c25b3636275a9e77a468a2bb0447af56718f6014e5f49cfad56f7b7f4183"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/audit.mjs",
+      "before": null,
+      "after": "e7be56caccc54273f5661be47febe57c9763b5fb1d011f8116e11764c8b98e8d"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/build.mjs",
+      "before": null,
+      "after": "89ad72915cb48dbc57db0d8925e10d85094e0d216f2e2ae86cfee378999ab7c4"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/cohorts.mjs",
+      "before": null,
+      "after": "43e13de20c4c7757538ae9a2549865f4149a7bfe736537fb806ea2ff47ca4f1b"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/common.mjs",
+      "before": null,
+      "after": "3fd8a87defdc872e46f5ce05ebd12fa44373693495d5dad6250a16a87c3720ed"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/focused.mjs",
+      "before": null,
+      "after": "34239a83505a4a60ca8a393ec034fef379c9426d07674dd4ca46737867e78c1d"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/gates.mjs",
+      "before": null,
+      "after": "bbb3587123f7ea04ead56e69f09f1ace115c204fcbc8d16678984a3f539290a0"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/host.mjs",
+      "before": null,
+      "after": "f20e24a711f81fdf41c8840bcec4d7da4efd5b1a4004305fa454468b375a9063"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-approval-audit.json",
+      "before": null,
+      "after": "eb60e368e745f769c8e5a66701d87da5889e2776d1ffc77e616c8eaf6f1fb417"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-author-limits9.json",
+      "before": null,
+      "after": "3fd7030fc6ae99f1bfda0bf354c814f81c7d472e876257c8c57d85b179232347"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-author-nearby117.json",
+      "before": null,
+      "after": "5664e5d8ba1560cc94aa494875c11c6894acfc4c4f0e983b4d90773ddc8bbedd"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-author-new.json",
+      "before": null,
+      "after": "d0b45d074ed175c56249d7bbd221db2dd8f5db9acb4d726904641adba5b4da74"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-author-scoped-types.json",
+      "before": null,
+      "after": "6c0ff9beaea596bc7c2489fc5aca443d0ac053f05a45e3884a709e8285c05152"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-author114.json",
+      "before": null,
+      "after": "fd77a56efba74e2867780eb2ac4e073caadfdc754c70dc1595249eafd6930da6"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-broad-unchanged.json",
+      "before": null,
+      "after": "25c2a584ec944990808bb468f81a69cc4ad4316bf2f2d92986f8ca9dcaf8e14a"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-commit-preservation.json",
+      "before": null,
+      "after": "80645077ce01624325fd07ee5ef85856d44a50090b89609bc6354b1e02341843"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-compiled-cohorts.json",
+      "before": null,
+      "after": "42f4b045d72df71f51e61a7e6248372f50873111eff792525d77ed4c37ce9a69"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-compiled-command.json",
+      "before": null,
+      "after": "d43a1063d3b45456555ff3481e5c90192fe9d618e7fb513ed323e2bf77d25bb5"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-focused-compiled.json",
+      "before": null,
+      "after": "763392678ba9899b9d0b766a23eb2525e6c933c074e83bb3014983162fc8a4f8"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-focused-source.json",
+      "before": null,
+      "after": "8b2fb3eac3e84c4b50084dd2df9a4be66fc0df2fe6e23c4d0fbf19e871e71ee4"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-gates.json",
+      "before": null,
+      "after": "dc5162e3f8ca3dfc7ab53ae32c9b59cb74472b05391aacc93b73b3ea8bd7f41d"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-global-types.json",
+      "before": null,
+      "after": "c060a07ebf1e2968db815c5d44a81472a23f7f764879bddb1e4eb7ae1f2eb1fc"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-historical238.json",
+      "before": null,
+      "after": "d7c9806d3082cda58fdfa733f56569c631cd05b99e2c892f9a0308d0b2541842"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-host-compiled.json",
+      "before": null,
+      "after": "88af053b9e9414a337458a191a46c3a4d0bdaaf98d41bbdf271494000e562439"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-host-source.json",
+      "before": null,
+      "after": "ae6e10edc9094ba144056c88d79b0afe18ec70ed4221607d91a3dd63c2b6e5b3"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-new-limits6.json",
+      "before": null,
+      "after": "5737d04ff632ac22f0f44431ba8ff889d8aa4f461884ca448075a7afa806da9a"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-proposal-verify.json",
+      "before": null,
+      "after": "93f62745a0c6105370600dd108f318aa6be7d5cb2c3c37b6baee92cf7e121380"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-safety-1.json",
+      "before": null,
+      "after": "bc3a36a392e8d56d8d4fa6e5f00c325bdea3085416974bd87c4fc04bc3b3f5b2"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-scoped-types.json",
+      "before": null,
+      "after": "32476be560cf284cd3fd928a02f4aa3ef68fd38f37db279efcbdbbe509dc4fc5"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-seven-boundaries-1.json",
+      "before": null,
+      "after": "da0283a4211b1be22fff90a68bff30be01f8d005a3e8615eb29cfdfb5025f8f6"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-seven-boundaries-2.json",
+      "before": null,
+      "after": "83d34933a4ae826427405580bfb89cfda6e3f525ea7dc8baeef472195f1bb476"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-seven-boundaries-3.json",
+      "before": null,
+      "after": "9dfdb8ea0a9b74870f35e3a65be7df62419790ebba1be4153243bbd991617acb"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-source-cohorts.json",
+      "before": null,
+      "after": "74994a9e29950b2c3f1da8db71fdee003b0da1e2b0936be23b4e143afc83046c"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/pre-source-command.json",
+      "before": null,
+      "after": "57b2c001722cc79afa5c98fd524b475cefa376c1175cc4fdcf0f8ffd94535940"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/preservation.mjs",
+      "before": null,
+      "after": "314ee188aeeb77854c2b5faa0fb94b84e78736f05ea23fc25fa4fe53f9e0c31d"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-final-review/record.mjs",
+      "before": null,
+      "after": "2a911da48c98794c112a1a8d4f5722a3af1ba2c254fab34681014f1c37b31703"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/MANIFEST.sha256",
+      "before": null,
+      "after": "d887d93dcb1bb5c18a6198aa571968442ace308bc4cbd58525544e5db6cf2dd9"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/README.md",
+      "before": null,
+      "after": "1aacaea9269ad5b4cb45d7e28aa80e1c8099a42ad44d6fe9cd864fe327c71db7"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/REPORT.md",
+      "before": null,
+      "after": "26c53f3583c03298459e1d4e34ef36e6a36f450a5c82790635b8f0f378478742"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-compiled-cohorts.json",
+      "before": null,
+      "after": "db15309e49e923d0e5ec8868d33e504bb882db2a78c7ff96313b88bccbe6b9ce"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-compiled-command.json",
+      "before": null,
+      "after": "ddd33ff72bcbdb57650e433b837b2cbe66fea987f4d6a9c3335cfb8210c400cb"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-focused-compiled-precommit.json",
+      "before": null,
+      "after": "3fe76135f9c31574d37e6508688f90277a1257d128e155f45b3619230ed5d819"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-focused-compiled.json",
+      "before": null,
+      "after": "16c062ea4af9300edad8dedc0a12bd649d308a09bd865cb685c27dfc4abf63ae"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-focused-source-precommit.json",
+      "before": null,
+      "after": "f0094a7070a97725b57f7ee25c6f631d66c48cfaedd6114808d033579dc3a690"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-focused-source.json",
+      "before": null,
+      "after": "48682362432c5f46d11d3b3942117237da21f884ac5661361bf487039e465b04"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-host-compiled.json",
+      "before": null,
+      "after": "015122abaad3af3ac64151afe8200d4006320583f08ab7f2d3b2b2eca42f59f0"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-host-source.json",
+      "before": null,
+      "after": "e07fb44ee1d1e63f1fab445fed47423da02bcc8e08bbc26e1c424c6f900f181e"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-source-cohorts.json",
+      "before": null,
+      "after": "dd78ea546fae24c03d2418eafcbb7c830e1982d68b7309e9ff2b331132fdecfc"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/after-source-command.json",
+      "before": null,
+      "after": "5884798b148e3c740389c6e7ad899b7698ec7979a65a4d21febc5b29fee52435"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/audit.json",
+      "before": null,
+      "after": "61d09ca9189ffadc41c7aad519dcc1e741489d85cbc187ff9aee3d46976aa7fe"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/audit.mjs",
+      "before": null,
+      "after": "f621fbdbfc9252be021deee1ec46507f3f99f288d63d02fe56381f59cc0b6b4a"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/author-nearby117.json",
+      "before": null,
+      "after": "46c666ef574fb7cba9b5eef8fb224b41665355071466df7ba3e8e9f61e0b402b"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/author-new.json",
+      "before": null,
+      "after": "b77c4694a8505cf0df55c7cc43de8634c53edf11265d2067a3fd5e207adb80fe"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/author-scoped-types.json",
+      "before": null,
+      "after": "83bc5585c4230c312b38d4a2fd5e5aa8390b79436bcfdb8b8406e563924421cc"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/author114.json",
+      "before": null,
+      "after": "ab886ca739ba779d12bfe8b8563cc048aaffdc700204f3c11abfdec233059e7d"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/broad-unchanged.json",
+      "before": null,
+      "after": "6e2504cedd734793d629df6371ed35b95fce8b7fa2712c9989f61b776d42e943"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/global-types.json",
+      "before": null,
+      "after": "1fd2989cb182c65176e74df7924d231adf5b7bc82aada5e512d9adc276581cf5"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/historical238.json",
+      "before": null,
+      "after": "1f30ad57f2c3ba458a25cb5e9348cfea1442c76de02a822eee55e96ee39932a7"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/host.mjs",
+      "before": null,
+      "after": "f20e24a711f81fdf41c8840bcec4d7da4efd5b1a4004305fa454468b375a9063"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/integrity.test.mjs",
+      "before": null,
+      "after": "55c789c8d7e0fb58b3c1db6fd37835f7081663d5bfddd68e32dc7bd4690c045a"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/limits.test.ts",
+      "before": null,
+      "after": "e3cbea29f8661193eba400c608c8ffa2012f1b42225e6a3544559891b9b7e513"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/new-limits.json",
+      "before": null,
+      "after": "a0ba457804c2f4cf88b64bf6a198a2db9aeaa12083346a96c4de8a69525bc59e"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/owned-types.json",
+      "before": null,
+      "after": "cdd209b08fc4464f7b65da18e88fbac8a854155e0eceee98b72356952b89b933"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/scoped-types.json",
+      "before": null,
+      "after": "8f0e9e780815c7509d0dea2f3587218c539c503c6f6bd323d5242cdf2cfa9a56"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/seven-boundaries-1.json",
+      "before": null,
+      "after": "006b36a203bb5863cb3f6bfb23c3fb42f824a689d93558e3380b484850914a82"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/seven-boundaries-2.json",
+      "before": null,
+      "after": "75f77672c78c491ed1a8a250195bbd428321746419ce706d44661a8282b88847"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/seven-boundaries-3.json",
+      "before": null,
+      "after": "42b94e3097394f18a1db8e5633d272c4f26a059fea189704c3d2771cdf6ff8e1"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/tsconfig.json",
+      "before": null,
+      "after": "8e0d063d5877a32feb0d2f992ba6ece186cadc0669dd4e66ab4ee1e9d04b4afa"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/validate.mjs",
+      "before": null,
+      "after": "06984b2334a200b0ed14295dfd130bd68ab9b71a886254ec637df9ca61f0bce8"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-grammar-review-fixes/validation-summary.json",
+      "before": null,
+      "after": "e0ee52485cc7c0858fc9a5cbe4433e97d0e1eed82e2f4bfcc14c85cf1f9b160c"
+    },
+    {
+      "path": "tests/contracts/invoke.test.ts",
+      "before": "bd3a63db93559cd1f13977662a10eb9936a0cbb02b037468221289f00e2edefc",
+      "after": "59602d002a642f6a45bd01b55733bde8c1c02b9ec929527ef6784b81aff14a31"
+    },
+    {
+      "path": "tests/fs/memory/binding-violations.characterization.ts",
+      "before": null,
+      "after": "242a9652de56b6f0b96ec34faf5eb059129a95d93760eec6c4dee2c215ae0b6e"
+    },
+    {
+      "path": "tests/fs/memory/comparison.test.ts",
+      "before": "a5f25f3e6423d8e1961e4c456a31f5ae01a6b604dccedd3af42034ed8d208fae",
+      "after": "55b6f3b4ff9e78a96d44466a65ec6a11fc1ac4a64547ed0ae67e1da89a33f562"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/REPORT.md",
+      "before": null,
+      "after": "8ff891bc4c7c15fab888a695a110225a16f21203201d4e5fc90a8e35a24fcb78"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/after.json",
+      "before": null,
+      "after": "50a60143e967a85b9c5bc9e849db731e1e6c210240f2a2856ffd860dfbbf9353"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/artifacts.json",
+      "before": null,
+      "after": "496dbe8d8b9993ff8fb9ffdc8fc663d3dc884601f22b3a5fe997f5646b049cad"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/before.json",
+      "before": null,
+      "after": "f012a1b193abe36a66a00cd4b025b38238c7ff200200cb58c2992e39b40101ce"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/characterization-probe.tap",
+      "before": null,
+      "after": "1e5e08aa7d95ee16e6f4e491a76cdd8ac52a856208c99efe7d64e7c07a87e5b5"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/characterization-probe.ts.txt",
+      "before": null,
+      "after": "d06bb8d401a69f41f1a82e7e52b66036df0f11a08eb4953952828521d27de604"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/characterizations13.tap",
+      "before": null,
+      "after": "7fbe4cbe0d55deab7ddc2d9a1acf17cf6bfc1f2bd5a4edf4f6f4428ce338a910"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/compliant145.tap",
+      "before": null,
+      "after": "167dcea97eba7074f64052de6c2e639eeef823c25af07794274c53eb42f48234"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/types.txt",
+      "before": null,
+      "after": "180aec34bc4a4c6984c301dfc86ff9f298700656d43d94f84af434febf07253c"
+    },
+    {
+      "path": "tests/fs/memory/evidence/trusted-binding-policy-alignment-20260827/unchanged-guards53.tap",
+      "before": null,
+      "after": "d548b7af16d363e855c14c5217363d0c160ad0d74e3f1c0f31534a6ccf6e61a7"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/author-integration-eab1d48.mjs",
+      "before": null,
+      "after": "113eaa6de7dede894704067fa6fd2714ab4e684b3107f41a0afe07322c3a34ea"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/REPORT.md",
+      "before": null,
+      "after": "30a95f4ccf73045315eee5986e32bed57371669895a3defb00c8c477a09cce41"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/artifact-sha256.json",
+      "before": null,
+      "after": "3449108cc07a7fb71bb69811df5d35f32530104de9448e970f770e2ea44f159d"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/cleanup.json",
+      "before": null,
+      "after": "452fdb1fd32c30b6089f5d256fcb6b456b88029879678c5cd268b9f1fbbe1abe"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/former-seven.json",
+      "before": null,
+      "after": "22eb1a81fbc187aa79667885107cb9617dcff7e609c7ac86da363044ef540001"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/manifest-after.json",
+      "before": null,
+      "after": "6738fc86608bd6e9f902d98ac7caefe5ed1ce46b3b8e826b585ca39a6a91374a"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/manifest-before.json",
+      "before": null,
+      "after": "364c5a28dab86373bf2866bbda4d1267a7ac30639c9043b5f18bde168bb612cc"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/original4.json",
+      "before": null,
+      "after": "4208b2e9eb09b19a6ec4194da57cbbb31d541944b1478e2d840bb639f7d698b5"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/original4.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/original4.stdout",
+      "before": null,
+      "after": "146a4691b1734d89eaa5dee2cd4de831aab274c947346e4d755e4ebe6ab644c6"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/original43.json",
+      "before": null,
+      "after": "624946bc97b627f401fb29044600e5c3943f280b5071bd3a14eef4bb534559ef"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/original43.observations.json",
+      "before": null,
+      "after": "0b6324ad5a805151c44a510b16ec937fa824b068c756beb7bfbb89d444bb68a8"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/original43.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/original43.stdout",
+      "before": null,
+      "after": "9dac207d7d70b5b8bf52cadbb934b340014bd8328bfc107584e4559200d02103"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/required49.json",
+      "before": null,
+      "after": "0d5baaabed70709024c8e75a1bfdceb1c99fea2f3779b48d511eb8cabd98f2b3"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/required49.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/required49.stdout",
+      "before": null,
+      "after": "b1edc4fc65101877be02bc056e6b18a0ddf400dc72a5ac4015113cb7e7344432"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/scoped-types-config.json",
+      "before": null,
+      "after": "1dcd7afec1a569246a4988142f0c8194eacde62e2f003e724deea17e02405581"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/scoped-types.json",
+      "before": null,
+      "after": "b7b398e06b371db1e44209ac5e82db5c08be72a8c0a7f3caf81836c25dc6641b"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/scoped-types.stderr",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/scoped-types.stdout",
+      "before": null,
+      "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/summary.json",
+      "before": null,
+      "after": "0ac48f014f3547f90f1c7272d9e5cbb57c3a5738d121a30d58fea482c5fb42f0"
+    },
+    {
+      "path": "tests/fs/s3/faithful-decorators/REPORT.md",
+      "before": null,
+      "after": "eb00fe48bee7bd29bdbc1608aaf457920860b94dfbd4bfc1e330627540d756e1"
+    },
+    {
+      "path": "tests/fs/s3/faithful-decorators/SHA256SUMS",
+      "before": null,
+      "after": "1d7fd9c4700afb50487351dc3b193998e14cab2a6974423264684c774f889b38"
+    },
+    {
+      "path": "tests/fs/s3/faithful-decorators/classification.json",
+      "before": null,
+      "after": "fefa680b0851213c022ec163e8be83e8a682166a3a749018d0d1f95736330a74"
+    },
+    {
+      "path": "tests/fs/s3/faithful-decorators/old-adapter-overrides.source.txt",
+      "before": null,
+      "after": "39f658d5f917528f88f962ec147c3afcbc20c691bdb9f6e9e04c463232b2b93c"
+    },
+    {
+      "path": "tests/fs/s3/faithful-decorators/old-comparison.source.txt",
+      "before": null,
+      "after": "a9187d8bf038d453715bb9cf13c9cb0d3a3f845f7a4ab518106f46df675b01c8"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/ACCEPTANCE.md",
+      "before": null,
+      "after": "e586a49874d263078e405bf93338599afea71fb5b976389116cb73d2efaa43a0"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-benchmark-489c8b7.json",
+      "before": null,
+      "after": "bfb71b1fcab130f967dede7a70d738652d3121b233c1864c29e09fa42bbf99d1"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-build-489c8b7.json",
+      "before": null,
+      "after": "952db00b4a72740d3bec36a31a5b85fc9aa929579e9e13be2786e0c756afffd3"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-compare.mjs",
+      "before": null,
+      "after": "78a4e6b3725a60d7bcb13412f7740965b380e694f39066cac3527a022f9c2d91"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-comparison-adapter-489c8b7.json",
+      "before": null,
+      "after": "395efdcdec067bfe9059276990ab206e10286b0af3cf8c532589b42b13923808"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-diagnostics48-489c8b7.json",
+      "before": null,
+      "after": "b8054ea7c25f92f21822cd48122ed54d6532432dab6af50f5a8ef5dc2b447cad"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-endpoint-489c8b7.json",
+      "before": null,
+      "after": "43ebcadd87395701e55483322c27bb7a8927a5c73e46cab2b8e958f45ba3cd9b"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-global-489c8b7.json",
+      "before": null,
+      "after": "fa21aa24170650656ba7326e73569300e39f33c2e74e2446a2f3e191de6cc94f"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-independent43-489c8b7.json",
+      "before": null,
+      "after": "426272db482e145dd3321042e992bb526fb1141b31113980653ca5f9c4096918"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-independent43-transport-fixed-489c8b7.json",
+      "before": null,
+      "after": "d2fd850ef1c9690df747ef81c80e715e97056fa5e57e170f7989cc7e6f29d958"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-legacy132-489c8b7.json",
+      "before": null,
+      "after": "021331ba77105d660f1624fd1c3ac519aad7b975ebaebf2d1ace48b8e2e95625"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-legacy57-comparison-489c8b7.json",
+      "before": null,
+      "after": "8d1c9cd960ce2e603bccef749c05df60e9115bcd7b5cbe1b344059f144ad22eb"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-legacy57-input-489c8b7.json",
+      "before": null,
+      "after": "0b8152d74642c4386aaadbeb35383daaaf2da391c4af00133cc029bf20541aa1"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-legacy72-489c8b7.json",
+      "before": null,
+      "after": "6f85aae9e70c9f58761fa27fce43daf58455d98c7503cf758e915fbf293e8993"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-native-comparison-489c8b7.json",
+      "before": null,
+      "after": "926e8880480d82ace4ddd5e3333fbf48a4820b5e554fa1712b93ed61755b6a9e"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-native64-489c8b7.json",
+      "before": null,
+      "after": "abeb2d2616000af96009ffcfcbbcdb4dcfe8d2ecd687e7392fa974c1a07beaaa"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-per-row-imports-489c8b7.json",
+      "before": null,
+      "after": "3f810294b902dcea028f4ff8d32edd6a400806c8423c8192ec5aaf3c3600f355"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-prior211-489c8b7.json",
+      "before": null,
+      "after": "46a28354c59d79bd68f71726bcc679e44eef7daca87cbbbf547438af1b79bd40"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-raw57-489c8b7.json",
+      "before": null,
+      "after": "c18a7381af679fdca9ae620faef434c6689b815d0da2dde133f4df3d9d5e120b"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-run.mjs",
+      "before": null,
+      "after": "8ca4d3caad80b4bcf4f16b2918068a9db9440e1c14e20f5c1844711e9f3118b3"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-source-eval86-489c8b7.json",
+      "before": null,
+      "after": "60316c370b90322fd545d370938977b6924c89952ed75ab75eb007642046fc5a"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-start-489c8b7.json",
+      "before": null,
+      "after": "c9aff24e1f59184ef32b73df4da5914f9c5dcf759e287c77d541dbdace220791"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-start-transport-fixed-489c8b7.json",
+      "before": null,
+      "after": "21133e2e71898210a4df610c86c1ce23040ba73eaf20e697eea70248ddbe1b4a"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-summary-489c8b7.json",
+      "before": null,
+      "after": "85a7b8faf04d25cd202ee8cfcda6752fc5dc8899f73b79a9c2d286769a835d0e"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/acceptance-trace.mjs",
+      "before": null,
+      "after": "787511298f23c9536bb9b4a4b9cb8c5ff323e50b1df28cc512e1703c52cc40dc"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/native-ready-diagnostics-489c8b7.json",
+      "before": null,
+      "after": "1e4d06b4211da5de3259add6bb0e830ac047abea3cdc1a91eb5fd1a9272a71b5"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/ready-diagnostics-489c8b7.json",
+      "before": null,
+      "after": "7fd258756da883965a9804a1e256c899a9d41f53c15988fed7ba7f18d2951797"
+    },
+    {
+      "path": "tests/shell-stress/current-shell/support.mjs",
+      "before": "e1d2c60bb20ebd94ce47dbbba366e457fa402ee51dc2fcb615bcfeb60c560e63",
+      "after": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a"
+    },
+    {
+      "path": "tests/shell-stress/expanded-kernel/POSTFIX.md",
+      "before": null,
+      "after": "4d283468b113167989ba211e03b9b486a74d1c4a3bfa6f6c1a6d8aa4b13481eb"
+    },
+    {
+      "path": "tests/shell-stress/expanded-kernel/postfix-ready-seal.json",
+      "before": null,
+      "after": "fd14b9573cd650cc028b09ab09397cdd9bf9849f528d6a74922ff6418da1998e"
+    },
+    {
+      "path": "tests/shell-stress/expanded-kernel/postfix-ready-wait.json",
+      "before": null,
+      "after": "ce374d9f132964b2611da5e483a9ee7b89dd5c62db0bdf54f4f23207205a33f8"
+    },
+    {
+      "path": "tests/shell-stress/expanded-kernel/postfix-validation.json",
+      "before": null,
+      "after": "67291ff3da7ec46ffed0aa66a28bec8988d31b2d4bd461d38239d87bea05e046"
+    },
+    {
+      "path": "tests/shell-stress/expanded-kernel/replay-postfix-20260827t0228.json",
+      "before": null,
+      "after": "7ab01fab5770081dc9506280cff16b7a28bef3619fc549e60d7d5460eec39ca7"
+    },
+    {
+      "path": "tests/shell/source-dot-eval-diagnostics-audit.json",
+      "before": null,
+      "after": "0cc6ddc51464117b1a3d9aef34b371ecbd01e701da8d9b6dcad9c92bb04b421b"
+    },
+    {
+      "path": "tests/shell/source-dot-eval-diagnostics-report.md",
+      "before": null,
+      "after": "0ecd2f8d189a39dfa9ed89160e979b4833b43a44049b702c0f0e31e3bfed58f5"
+    }
+  ],
+  "nativeFinal": {
+    "bash": {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    "patch": {
+      "path": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "stat": {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+    },
+    "sha256sum": {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+      "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604"
+    },
+    "diff": {
+      "path": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+    },
+    "metadata-stat": {
+      "path": "/private/tmp/safe-bash-five-final-review/snapshot/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+      "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea"
+    },
+    "benchmark-stat": {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+    },
+    "metadata-touch": {
+      "path": "/private/tmp/safe-bash-five-final-review/snapshot/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+      "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68"
+    },
+    "table-paste": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c"
+    },
+    "table-comm": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3"
+    },
+    "table-join": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123"
+    }
+  },
+  "nodeFinalSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "priorTableMutation": {
+    "path": "tests/commands/table-text-stress/review/mutation-results-verified.json",
+    "sha256": "c85323ed021c2e36372145ed24a69b8a9a89c635b6a4e58efb01e8074550e6f9",
+    "controls": 4,
+    "sourceSha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+    "newMutationExecutions": 0
+  },
+  "commands": [
+    {
+      "name": "review-evidence-tests",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/diff-patch-stress/routed-five-review/review.test.ts"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdoutBase64": "VEFQIHZlcnNpb24gMTMKIyBTdWJ0ZXN0OiByb3V0ZWQgcmV2aWV3IHByZXNlcnZlcyB0aGUgZXhhY3QgZml2ZSBoaXN0b3JpY2FsIHJlY2lwZXMgYW5kIHRoZSByZW1haW5pbmcgdG1wIG1pc21hdGNoCm9rIDEgLSByb3V0ZWQgcmV2aWV3IHByZXNlcnZlcyB0aGUgZXhhY3QgZml2ZSBoaXN0b3JpY2FsIHJlY2lwZXMgYW5kIHRoZSByZW1haW5pbmcgdG1wIG1pc21hdGNoCiAgLS0tCiAgZHVyYXRpb25fbXM6IDIuNDIyNjI1CiAgdHlwZTogJ3Rlc3QnCiAgLi4uCiMgU3VidGVzdDogcm91dGVkIHJldmlldyBkaXN0aW5ndWlzaGVzIHNvdXJjZSBmaXhlcywgbGVnYWN5IHByb2ZpbGUgY29uZmxpY3QgYW5kIHNlbWFudGljIGNvbnRyb2xzCm9rIDIgLSByb3V0ZWQgcmV2aWV3IGRpc3Rpbmd1aXNoZXMgc291cmNlIGZpeGVzLCBsZWdhY3kgcHJvZmlsZSBjb25mbGljdCBhbmQgc2VtYW50aWMgY29udHJvbHMKICAtLS0KICBkdXJhdGlvbl9tczogNC44MDUxMjUKICB0eXBlOiAndGVzdCcKICAuLi4KIyBTdWJ0ZXN0OiByb3V0ZWQgcmV2aWV3IHZlcmlmaWVzIGJvdGggdW5jaGFuZ2VkIGhpc3RvcmljYWwgYXJjaGl2ZXMgd2l0aG91dCByZXJ1bm5pbmcgU0dJRApvayAzIC0gcm91dGVkIHJldmlldyB2ZXJpZmllcyBib3RoIHVuY2hhbmdlZCBoaXN0b3JpY2FsIGFyY2hpdmVzIHdpdGhvdXQgcmVydW5uaW5nIFNHSUQKICAtLS0KICBkdXJhdGlvbl9tczogNi42OTc3OTIKICB0eXBlOiAndGVzdCcKICAuLi4KIyBTdWJ0ZXN0OiByb3V0ZWQgcmV2aWV3IHJldGFpbnMgdGhlIHRhYmxlIHByb2ZpbGUgYW5kIHRoZSBzdHJpY3Qgb3JpZ2luYWwtaGVscGVyIGxvYWQgYmxvY2tlcgpvayA0IC0gcm91dGVkIHJldmlldyByZXRhaW5zIHRoZSB0YWJsZSBwcm9maWxlIGFuZCB0aGUgc3RyaWN0IG9yaWdpbmFsLWhlbHBlciBsb2FkIGJsb2NrZXIKICAtLS0KICBkdXJhdGlvbl9tczogMC45NDIKICB0eXBlOiAndGVzdCcKICAuLi4KIyBTdWJ0ZXN0OiByb3V0ZWQgcmV2aWV3IHJhdyBsb2dzIHJldGFpbiBleGFjdCBieXRlcywgaW5jbHVkaW5nIGZhaWxlZCBhbmQgY29ycmVjdGVkIGF0dGVtcHRzCm9rIDUgLSByb3V0ZWQgcmV2aWV3IHJhdyBsb2dzIHJldGFpbiBleGFjdCBieXRlcywgaW5jbHVkaW5nIGZhaWxlZCBhbmQgY29ycmVjdGVkIGF0dGVtcHRzCiAgLS0tCiAgZHVyYXRpb25fbXM6IDAuOTI2OTU4CiAgdHlwZTogJ3Rlc3QnCiAgLi4uCjEuLjUKIyB0ZXN0cyA1CiMgc3VpdGVzIDAKIyBwYXNzIDUKIyBmYWlsIDAKIyBjYW5jZWxsZWQgMAojIHNraXBwZWQgMAojIHRvZG8gMAojIGR1cmF0aW9uX21zIDEyMy4yMDcxNjYK",
+      "stderrBase64": "",
+      "stdoutSha256": "85b5250af1c1fd23dbcd016edd6a535fbe5fe8e1b4fc1d4f17b31a9c940900e4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 5
+    },
+    {
+      "name": "review-evidence-types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/commands/diff-patch-stress/routed-five-review/tsconfig.json"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0
+    }
+  ],
+  "cleanup": {
+    "fiveNativeRemoved": true,
+    "tableNativeDirectoriesVerifiedAndRemoved": 71,
+    "runtimeSentinelVerified": true,
+    "runtimeFiles": [
+      {
+        "path": "node-compile-cache/v22.22.2-arm64-2b4477fa-501/42fceb84",
+        "bytes": 1322076,
+        "sha256": "e764c2658906c97738e48af73a991a0a170ddb18dbcc859e7fc57ac1594da03c"
+      },
+      {
+        "path": "sentinel",
+        "bytes": 36,
+        "sha256": "cd92d237928062ed5d375ac221ac8f848ff2800337ba5a86a7a82c33256e9c43"
+      }
+    ],
+    "runtimeRemoved": "/tmp/safe-bash-five-final-review/runtime-temp",
+    "remainingOwnedNativeDirectories": [],
+    "ownedProcesses": "All spawned replay/test/build/native children exited normally; no owned background child remains, no SIGSTOP used.",
+    "unattributedNativeArtifacts": "Not modified or deleted"
+  },
+  "productionEditsByReviewer": 0,
+  "sourceFixCommits": 2,
+  "archiveCommits": 2,
+  "originalRecipeOrOracleChangesByReviewer": 0,
+  "currentHelperReplay": {
+    "pass": 311,
+    "fail": 0,
+    "authorization": "/tmp/safe-bash-table-current-helper-replay.ready"
+  },
+  "strictOriginalHelper": {
+    "pass": 291,
+    "failedFileLoads": 3,
+    "intendedTestsNotExecuted": 20
+  },
+  "limits": [
+    "One accidental legacy Apple-stat invocation is retained/disclosed and excluded from GNU source acceptance.",
+    "Historical five4/5 exact; native-only dry-run tmp mismatch retained.",
+    "Old human three-digit fixture conflict and2/19 native precision gaps remain.",
+    "Original SGID6 unresolved; no SGID rerun.",
+    "Table native70/71 profile unchanged;311 current-helper acceptance does not erase strict historical dependency blocker.",
+    "Current built71x2 is not historical author6; no broad/full/global/72-hour/superiority claim."
+  ]
+}

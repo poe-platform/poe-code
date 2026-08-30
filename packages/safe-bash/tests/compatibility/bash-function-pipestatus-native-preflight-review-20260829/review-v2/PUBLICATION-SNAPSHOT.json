@@ -1,0 +1,290 @@
+{
+  "at": "2026-08-29T13:02:56.392Z",
+  "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829/review-v2",
+  "entries": 56,
+  "bytes": 123334,
+  "files": [
+    {
+      "path": "ACCOUNTING.json",
+      "bytes": 13974,
+      "mode": 384,
+      "sha256": "97e3e013aadf1e5b0c3ac3a289f63f36b8a00ebe2aac8a5daaf336514def3339"
+    },
+    {
+      "path": "COHORT-EXECUTION.json",
+      "bytes": 262,
+      "mode": 384,
+      "sha256": "3865833e4754b5d880ce9d8c4043f73f87b39c26f750a4bc23a658ab780a93f6"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 25602,
+      "mode": 384,
+      "sha256": "895848e054a736aa287f6a2abe01d9ab41678abf817da642ddb84729dddf16e1"
+    },
+    {
+      "path": "LIFECYCLE-LEDGER.json",
+      "bytes": 290,
+      "mode": 384,
+      "sha256": "81c099693505b0cb113ec7ac99449f6f4ea10cf4f78aa6350592b44f38203de3"
+    },
+    {
+      "path": "OLD-RESULTS-SNAPSHOT.json",
+      "bytes": 14661,
+      "mode": 384,
+      "sha256": "207eed38c432ccc69992bfe14db5a69ddf15462f0fc28c98c204151c518615da"
+    },
+    {
+      "path": "OLD-STOP.md",
+      "bytes": 584,
+      "mode": 384,
+      "sha256": "62d4636e1bae127113f8beb443fc18be1f5055294c283fc02ab406dfa0258352"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 2835,
+      "mode": 384,
+      "sha256": "0c18f75ad6ec451554f1b1b9a6071d31694cd57a75a9fd7ba498609f7f001240"
+    },
+    {
+      "path": "RECEIPT.json",
+      "bytes": 7916,
+      "mode": 384,
+      "sha256": "0233f45056a17fc87d3d1f8efd8a5937ff0a05ce5eb3c0acabb4f52311e6fbb3"
+    },
+    {
+      "path": "REPORT-BINDINGS.json",
+      "bytes": 1155,
+      "mode": 384,
+      "sha256": "71752a1b3634168989267e7f33768fa9c7009241e36622f7c4e85a86da60f194"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 3222,
+      "mode": 384,
+      "sha256": "07001e29e42b6d4b1e642fd7484e3326a851c95b67185bd0ea0c2045d55030e2"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 2188,
+      "mode": 384,
+      "sha256": "a5dc8ff21bd782a0b5b605daac765b61f57493f4ee5df468f301a229d0f4856e"
+    },
+    {
+      "path": "ROLE-PLAN.json",
+      "bytes": 1361,
+      "mode": 384,
+      "sha256": "13b7052751114b3987e71a201efefe80c4039f7b3992f5188de0e1862f7d809c"
+    },
+    {
+      "path": "START.json",
+      "bytes": 102,
+      "mode": 384,
+      "sha256": "f0d4a1b6221443663f97cb1842b6b3042a0579cfec7ab18cc8c10eac32624efd"
+    },
+    {
+      "path": "accounting.mjs",
+      "bytes": 4199,
+      "mode": 420,
+      "sha256": "54a13d49ac5ba0a62b4312a2c2190b4a2322fcc1b1c87b608bcfcec652619fab"
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 18292,
+      "mode": 420,
+      "sha256": "c9cfb472034e3938eb5dd49348a922d711869d09307b234d5c63c05eda40919d"
+    },
+    {
+      "path": "raw/D01.json",
+      "bytes": 75,
+      "mode": 384,
+      "sha256": "ac38683ecf3b41a7b2c452c2e6f36c084619baa4b4fb24b9a59445b0128c0e67"
+    },
+    {
+      "path": "raw/D02.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "6e6af098e506c5f31f5d0620edefa3fd2f8baecfbcf12dac7481da360b6e9a7e"
+    },
+    {
+      "path": "raw/D03.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "e879cb0ba98a71c3ff2d4f05de0b6908b05a0d00f554af46c6c3879bed937f90"
+    },
+    {
+      "path": "raw/D04.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "52d50525b729f747048ac8bfe483361b965626766f5a88dc8ddec155f02d8806"
+    },
+    {
+      "path": "raw/D05.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "7d02257228ae594e007bd788a6d4292ba4145a4d3f26214bd6dbd166fc55f0a1"
+    },
+    {
+      "path": "raw/D06.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "d1e3ea481bf9137f36ca9dd0deee7375eaad688eeddf65cecef86c8e26e1e9ed"
+    },
+    {
+      "path": "raw/D07.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "e2bb023e7248f04528defa9dbeadf1fcabb506ae75be9ff87f5fa2dd08663868"
+    },
+    {
+      "path": "raw/D08.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "4f6080bf251bd7d5abba38b25d09ce5071ead7587ff510c685c8256152c20cac"
+    },
+    {
+      "path": "raw/D09.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "f2928502aecf8796f9d8f5277c4b887dc0241c4669d66ab2393434d6cc326758"
+    },
+    {
+      "path": "raw/D10.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "b9b29bbd94bf8b26f90fb69ce94ccd5a5de5ff5a66948f69cda11b731b1b62bd"
+    },
+    {
+      "path": "raw/D11.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "c0778f3998ba60d4c770dd6b930d399fea61698b7f8c3b733dee1894d9787d12"
+    },
+    {
+      "path": "raw/D12.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "3ed6c778f146a474dce587a1368650a4034418c145d41a7d54b29da87ff5fa2f"
+    },
+    {
+      "path": "raw/N01.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "7f63c0ce4878e34723ea860faf09c5988bf14ad5dde1d57dd4cb0a327ed9169f"
+    },
+    {
+      "path": "raw/N02.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "1b8e7aa851499fa1deb40d8d0b1dcf6fbd75ade056e431b216f39e896ac88219"
+    },
+    {
+      "path": "raw/N03.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "9bd91b0d5b3dd66df38b684ad9cf0e8ecf9781e6c58314503bac020418f38fd3"
+    },
+    {
+      "path": "raw/N04.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "874a22f2b762375afb496619a6d4501eb556a2df8f53b2f8d2bc3dee78ba297a"
+    },
+    {
+      "path": "raw/N05.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "f721646cc09fb044407e4401d4bf1be7c01df1b1d953f9811a269e8da70ae3bc"
+    },
+    {
+      "path": "raw/N06.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "34b7b0e2f290b39fe6483f6c2bbe9acee0cd851a10519540be03ae32b030e791"
+    },
+    {
+      "path": "raw/N07.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "bfc18787c81ca62a3d0fc24b095c3c34cb215c977460eb573d623e03a684d4e4"
+    },
+    {
+      "path": "raw/N08.json",
+      "bytes": 74,
+      "mode": 384,
+      "sha256": "c362d7f1b8b49c8f2e67ac4ad18c87010ee173b6cbe34f6e1469b28ba357205f"
+    },
+    {
+      "path": "raw/lifecycle-ignore-term.json",
+      "bytes": 2438,
+      "mode": 384,
+      "sha256": "c388ec86c5a43831e8ef82bc46b3b9353f1b88d74edee03f7fc22eb3f4e11742"
+    },
+    {
+      "path": "raw/lifecycle-normal.json",
+      "bytes": 1944,
+      "mode": 384,
+      "sha256": "fbf992a1ae228f0facaf2540f4e83883d74d15c25b0ed89e24a83283bdc8541a"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 17540,
+      "mode": 384,
+      "sha256": "ee15e4fe3f526ff61a87e72d9279163cbf223e6f6617acc9631ebb6d79729434"
+    },
+    {
+      "path": "work/fd/outer/bootstrap.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/lifecycle/JOURNAL.jsonl",
+      "bytes": 3266,
+      "mode": 384,
+      "sha256": "c1642dd7f46a873f1fb8a8c0e0af90d31ff3b3a309c03a42fcdf8ab311fa63b7"
+    },
+    {
+      "path": "work/lifecycle/ignore-term/stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/lifecycle/ignore-term/stdout",
+      "bytes": 5,
+      "mode": 384,
+      "sha256": "b24d6d33736ecd5604a4b17bc9c6481039fac362bb7df044ef1c10a2bfd21db6"
+    },
+    {
+      "path": "work/lifecycle/normal/stderr",
+      "bytes": 3,
+      "mode": 384,
+      "sha256": "d9eb253e06987fa74a5d3189f73d9f7a8104cca786fafbb52bc9555972f5477f"
+    },
+    {
+      "path": "work/lifecycle/normal/stdout",
+      "bytes": 3,
+      "mode": 384,
+      "sha256": "28af88e2874e97b45995c097a86a97d705969a16f185701a7d393cd516f2adad"
+    },
+    {
+      "path": "work/novel-fd/linked",
+      "bytes": 2,
+      "mode": 384,
+      "sha256": "38164fbd17603d73f696b8b4d72664d735bb6a7c88577687fd2ae33fd6964153"
+    },
+    {
+      "path": "work/novel-fd/outer/bootstrap.stdout",
+      "bytes": 2,
+      "mode": 384,
+      "sha256": "38164fbd17603d73f696b8b4d72664d735bb6a7c88577687fd2ae33fd6964153"
+    },
+    {
+      "path": "work/pin",
+      "bytes": 7,
+      "mode": 384,
+      "sha256": "be302461cda285db3ed2d45fb767b23e08ca8808b35a638009937df22b332d73"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "kind": "ACTUAL_V6_BODY_ADAPTER_NOT_AUTHORIZATION",
+  "predecessor": "../executor-v5-review/EXPECTATIONS.json",
+  "predecessorSha256": "e04320d003a19e1a4a3011d48545e7d1c96681cca58a53dfe88630330a1fa6d6",
+  "originalCount": 15,
+  "originalPositive": 4,
+  "originalNegative": 11,
+  "adapter": {
+    "boundary": "Use candidate's exact role-specific wrapper bytes and paths, not the predecessor's 77-byte illustrative spelling.",
+    "names": "Wrong names are padded to the authentic boundary length; FILE_HASH must reject before JSON interpretation.",
+    "diagnostics": "Only selfref-trap and missingboundary-resolver omit view.engine, retaining predecessor diagnosticBoundaryBypass; these exercise the actual loader's scope-less synthetic path, not an engine-worker preflight bypass.",
+    "entry": "Actual V6 installLoader receives the independent worker import.meta.url, never config or observed context. Original F1 54-byte allowlisted intermediate stays unchanged. ENTRY_PARENT maps to CONSUMER_ENTRY_PARENT, with exactly one intermediate source and ZERO consumer/target source/evaluation. All other original evaluation/refusal expectations are unchanged.",
+    "loads": "Original model path/load names do not bind V6 role-specific layouts. Enforce original load counts except F1: one intermediate source but zero consumer source. Four positive controls require both exact worker-consumer and consumer-bare edges. No expectation weakened."
+  },
+  "codes": {
+    "bareexports-target": null,
+    "bareexports-baseline": null,
+    "cwd-independent-target": null,
+    "selfref-trap": "UNBOUND_MODULE",
+    "missingboundary-resolver": "UNBOUND_MODULE",
+    "missingboundary-preflight": "CONSUMER_BOUNDARY_MISSING",
+    "wrongname-target": "FILE_HASH",
+    "wrongname-baseline": "FILE_HASH",
+    "unboundtarget": "UNBOUND_MODULE",
+    "movedoriginabsence": null,
+    "hash-beforeload": "LOAD_HASH",
+    "mode-beforeload": "LOAD_METADATA",
+    "wrapper-hash-beforeload": "FILE_HASH",
+    "wrapper-mode-beforeload": "FILE_METADATA",
+    "entry-parent-denied": "CONSUMER_ENTRY_PARENT"
+  },
+  "supplementalImports": [
+    {
+      "id": "missing-binding",
+      "expectedCode": "CONSUMER_ENTRY_BINDING"
+    },
+    {
+      "id": "binding-query",
+      "expectedCode": "CONSUMER_ENTRY_BINDING"
+    },
+    {
+      "id": "parent-absent",
+      "expectedCode": "CONSUMER_ENTRY_PARENT"
+    },
+    {
+      "id": "parent-percent",
+      "expectedCode": "CONSUMER_ENTRY_PARENT"
+    },
+    {
+      "id": "parent-fragment",
+      "expectedCode": "CONSUMER_ENTRY_PARENT"
+    },
+    {
+      "id": "consumer-percent",
+      "expectedCode": "CONSUMER_ENTRY_URL"
+    },
+    {
+      "id": "consumer-query",
+      "expectedCode": "CONSUMER_ENTRY_URL"
+    },
+    {
+      "id": "consumer-fragment",
+      "expectedCode": "CONSUMER_ENTRY_URL"
+    },
+    {
+      "id": "consumer-relative",
+      "expectedCode": "CONSUMER_ENTRY_URL"
+    },
+    {
+      "id": "bare-parent-denied",
+      "expectedCode": "CONSUMER_PARENT"
+    }
+  ],
+  "dataControls": [
+    "candidate-packet-authentication",
+    "metadata-projection-closure",
+    "unchanged-inherited-identities",
+    "phase-plan-positive",
+    "old-output-root-denied",
+    "wrong-run-denied",
+    "wrong-plan-denied",
+    "wrong-command-denied",
+    "case-in-admission-denied",
+    "probe-in-cohort-denied",
+    "null-primary-retained",
+    "undefined-primary-retained",
+    "enrollment-before-EEXIST",
+    "unsafe-tail-preserved"
+  ],
+  "limits": {
+    "children": 26,
+    "concurrent": 1,
+    "heapMiB": 64,
+    "deadlineMs": 10000,
+    "graceMs": 2000,
+    "killMs": 1000,
+    "stdoutBytes": 65536,
+    "stderrBytes": 65536,
+    "recordsBytes": 262144
+  },
+  "prohibited": [
+    "product imports",
+    "comparator imports",
+    "coordinator invocation",
+    "actual archive staging",
+    "archive instruction plaintext",
+    "C11",
+    "XAN",
+    "native oracle",
+    "network",
+    "install",
+    "timing",
+    "fresh grant"
+  ],
+  "actualV5Preseal": "aca546d437b80c5f126f02e4b914860dc65912e8",
+  "actualV5Evidence": "8d711d755637351336de718cd180f3e7ef949781",
+  "classification": {
+    "original15": "15 SYNTHETIC actual Node stub imports/constructor controls; 4 evaluations expected, 11 refusals",
+    "supplementalImports": "10 SYNTHETIC independent edge controls, all refusals",
+    "dataControls": "First 3 DATA identity/index checks; remaining 11 SYNTHETIC helper invocations. 14 controls in one helper child, not 14 children."
+  }
+}

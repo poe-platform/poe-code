@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "jobId": "fence-static-v2-0",
+  "outcome": "CAPTURED",
+  "result": {
+    "accepted": true,
+    "available": true
+  }
+}

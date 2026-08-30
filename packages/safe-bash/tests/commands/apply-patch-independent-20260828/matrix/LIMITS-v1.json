@@ -1,0 +1,1082 @@
+{
+  "version": 1,
+  "execution": "NOT_RUN",
+  "counting": "14 cap rows, 28 explicit at/over endpoints; two extra file/path probes are separate, not hidden passes.",
+  "fixedPrivateLimits": true,
+  "publicOptionsForbidden": true,
+  "probeRule": "At-cap means this charge is admitted, never unconditional whole-command acceptance. If another fixed cap or shell cap prevents observing the intended one, record NOT_REACHED, not PASS. No fixture text is executable code.",
+  "cases": [
+    {
+      "id": "L01",
+      "cap": "maxPatchBytes",
+      "limit": 4194304,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 4194304,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 4194305,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "concat": [
+                {
+                  "utf8": "*** Begin Patch\n*** Add File: a\n+"
+                },
+                {
+                  "repeat": {
+                    "utf8": "x"
+                  },
+                  "count": {
+                    "endpointMinus": 48
+                  }
+                },
+                {
+                  "utf8": "\n*** End Patch\n"
+                }
+              ]
+            }
+          ],
+          "eof": true
+        },
+        "before": {
+          "files": {}
+        },
+        "atExpected": {
+          "files": {
+            "/work/a": {
+              "concat": [
+                {
+                  "repeat": {
+                    "utf8": "x"
+                  },
+                  "count": 4194256
+                },
+                {
+                  "utf8": "\n"
+                }
+              ]
+            }
+          },
+          "stdout": {
+            "utf8": "Success. Updated the following files:\nA a\n"
+          },
+          "exitCode": 0
+        },
+        "overExpected": {
+          "files": {},
+          "fsCalls": 0
+        }
+      },
+      "binding": "Literal byte count fixed by endpoint; no lowering caps. Whole-command success at equality still must not be masked by other counters.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ]
+    },
+    {
+      "id": "L02",
+      "cap": "maxFileBytes",
+      "limit": 8388608,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 8388608,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 8388609,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "patch": {
+          "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "concat": [
+                {
+                  "repeat": {
+                    "utf8": "x"
+                  },
+                  "count": {
+                    "endpointMinus": 5
+                  }
+                },
+                {
+                  "utf8": "\nold\n"
+                }
+              ]
+            }
+          }
+        },
+        "atExpected": {
+          "files": {
+            "/work/a": {
+              "concat": [
+                {
+                  "repeat": {
+                    "utf8": "x"
+                  },
+                  "count": 8388603
+                },
+                {
+                  "utf8": "\nnew\n"
+                }
+              ]
+            }
+          },
+          "stdout": {
+            "utf8": "Success. Updated the following files:\nM a\n"
+          },
+          "exitCode": 0
+        },
+        "overExpected": {
+          "unchanged": true,
+          "commandMutationCalls": 0
+        },
+        "requiredReadFileMaxBytes": 8388608
+      },
+      "binding": "Original/read boundary concrete. Repeat resulting-file boundary with original 8388608 bytes and pure +x insertion: computed output 8388610 refuses before allocation/write.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "additionalProbe": {
+        "patch": {
+          "utf8": "*** Begin Patch\n*** Update File: a\n@@\n+x\n*** End Patch\n"
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "repeat": {
+                "utf8": "x"
+              },
+              "count": 8388608
+            }
+          }
+        },
+        "expected": {
+          "exitCode": 1,
+          "unchanged": true,
+          "commandMutationCalls": 0
+        }
+      }
+    },
+    {
+      "id": "L03",
+      "cap": "maxStagedBytes",
+      "limit": 33554432,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 33554432,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 33554433,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "construction": "Four existing files /work/f0..f3 each 8388608 bytes: x repeated 8388603 then LF old LF. Four Update sections replace old with new. Over endpoint adds fifth existing empty file /work/f4 and one pure insertion of an empty record (+ followed by LF), resulting one LF byte.",
+        "patchTemplate": {
+          "utf8": "*** Update File: f{index}\n@@\n-old\n+new\n"
+        },
+        "original": {
+          "concat": [
+            {
+              "repeat": {
+                "utf8": "x"
+              },
+              "count": 8388603
+            },
+            {
+              "utf8": "\nold\n"
+            }
+          ]
+        },
+        "atOutputs": {
+          "repeatFileCount": 4,
+          "each": {
+            "concat": [
+              {
+                "repeat": {
+                  "utf8": "x"
+                },
+                "count": 8388603
+              },
+              {
+                "utf8": "\nnew\n"
+              }
+            ]
+          }
+        },
+        "overAdditional": {
+          "patch": {
+            "utf8": "*** Update File: f4\n@@\n+\n"
+          },
+          "before": {
+            "utf8": ""
+          },
+          "after": {
+            "utf8": "\n"
+          }
+        }
+      },
+      "binding": "SOURCE_BINDING_REQUIRED: other work/aggregate-read ceilings may mask this staged-byte endpoint. Freeze checked-add boundary now; never claim unobserved at-limit product success.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "sourceReviewRequired": true,
+      "overEffects": {
+        "commandMutationCalls": 0
+      }
+    },
+    {
+      "id": "L04",
+      "cap": "maxReadBytes",
+      "limit": 67108864,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 67108864,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 67108865,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "publication-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "construction": "Eight Delete sections f0..f7, each binary file 4194304 repetitions of byte ff. Initial snapshots total33554432; one full revalidation per Delete totals another33554432. No staged output bytes.",
+        "patchTemplate": {
+          "utf8": "*** Delete File: f{index}\n"
+        },
+        "eachOriginal": {
+          "repeat": {
+            "hex": "ff"
+          },
+          "count": 4194304
+        },
+        "atExpected": {
+          "absentTemplate": "/work/f{index}",
+          "indices": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        "overCheckpoint": {
+          "alreadyCharged": 67108863,
+          "nextRead": {
+            "hex": "ff00"
+          },
+          "remainingAllowance": 1
+        }
+      },
+      "binding": "Exact 64MiB initial-plus-revalidation ledger must be observed. Over checkpoint is a synthetic accounting seam, not a claim a particular whole fixture reaches it.",
+      "phase": "publication-revalidation",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "sourceReviewRequired": true,
+      "overEffects": {
+        "earlierCompletedDeletesRemain": true,
+        "noLaterMutation": true,
+        "failingReadDoesNotAuthorizeItsDelete": true
+      }
+    },
+    {
+      "id": "L05",
+      "cap": "maxFiles",
+      "limit": 256,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 256,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 257,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "patch": {
+          "prefix": {
+            "utf8": "*** Begin Patch\n"
+          },
+          "indexedRepeat": {
+            "count": "endpoint",
+            "indexBase": 0,
+            "template": "*** Add File: f{index}\n"
+          },
+          "suffix": {
+            "utf8": "*** End Patch\n"
+          }
+        },
+        "atExpected": {
+          "fileCount": 256,
+          "pathTemplate": "/work/f{index}",
+          "fileBytes": {
+            "utf8": ""
+          },
+          "stdout": {
+            "prefix": {
+              "utf8": "Success. Updated the following files:\n"
+            },
+            "indexedRepeat": {
+              "count": 256,
+              "indexBase": 0,
+              "template": "A f{index}\n"
+            }
+          }
+        },
+        "overExpected": {
+          "commandMutationCalls": 0
+        }
+      },
+      "binding": "Literal decimal index substitution; syntactically valid empty Adds. File ceiling is 256 operations; Move counts one.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ]
+    },
+    {
+      "id": "L06",
+      "cap": "maxHunks",
+      "limit": 4096,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 4096,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 4097,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "patch": {
+          "concat": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n"
+            },
+            {
+              "repeat": {
+                "utf8": "@@\n+x\n"
+              },
+              "count": "endpoint"
+            },
+            {
+              "utf8": "*** End Patch\n"
+            }
+          ]
+        },
+        "before": {
+          "files": {
+            "/work/a": {
+              "utf8": ""
+            }
+          }
+        },
+        "atExpected": {
+          "files": {
+            "/work/a": {
+              "repeat": {
+                "utf8": "x\n"
+              },
+              "count": 4096
+            }
+          },
+          "exitCode": 0
+        },
+        "overExpected": {
+          "unchanged": true,
+          "commandMutationCalls": 0
+        }
+      },
+      "binding": "4096 bare hunks, not named-anchor ambiguity. Additional named-anchor accounting needs source witness; cap remains fixed.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ]
+    },
+    {
+      "id": "L07",
+      "cap": "maxPathBytes",
+      "limit": 16384,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 16384,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 16385,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "patch": {
+          "concat": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: /"
+            },
+            {
+              "repeat": {
+                "utf8": "x"
+              },
+              "count": {
+                "endpointMinus": 1
+              }
+            },
+            {
+              "utf8": "\n+\n*** End Patch\n"
+            }
+          ]
+        },
+        "target": {
+          "concat": [
+            {
+              "utf8": "/"
+            },
+            {
+              "repeat": {
+                "utf8": "x"
+              },
+              "count": {
+                "endpointMinus": 1
+              }
+            }
+          ]
+        },
+        "atExpected": {
+          "targetBytes": {
+            "utf8": "\n"
+          },
+          "exitCode": 0
+        },
+        "overExpected": {
+          "commandMutationCalls": 0
+        }
+      },
+      "binding": "Absolute virtual path makes raw and normalized lengths equal. Synthetic VFS must not inherit a host single-component name limit.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "additionalProbe": {
+        "rawRelative": {
+          "repeat": {
+            "utf8": "x"
+          },
+          "count": 16379
+        },
+        "cwd": "/work",
+        "rawBytes": 16379,
+        "normalizedBytes": 16385,
+        "expected": {
+          "exitCode": 1,
+          "commandMutationCalls": 0
+        }
+      }
+    },
+    {
+      "id": "L08",
+      "cap": "maxPathComponents",
+      "limit": 256,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 256,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 257,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "target": {
+          "concat": [
+            {
+              "repeat": {
+                "utf8": "/x"
+              },
+              "count": "endpoint"
+            }
+          ]
+        },
+        "patchTemplate": "*** Begin Patch\n*** Add File: {target}\n+x\n*** End Patch\n",
+        "before": {
+          "directories": [
+            "/"
+          ]
+        },
+        "atExpected": {
+          "targetBytes": {
+            "utf8": "x\n"
+          },
+          "mkdirCount": 255
+        },
+        "overExpected": {
+          "commandMutationCalls": 0
+        }
+      },
+      "binding": "256 nonempty absolute components; absent parents created one level at a time only after preflight. Raw and normalized component charges both apply.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ]
+    },
+    {
+      "id": "L09",
+      "cap": "maxLines",
+      "limit": 262144,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 262144,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 262145,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "patchSeed": {
+          "utf8": "*** Begin Patch\n*** Update File: a\n@@\n x\n*** End Patch\n"
+        },
+        "targetSeed": {
+          "utf8": "x\n"
+        },
+        "checkpoint": {
+          "alreadyRetained": 262143,
+          "nextRetainedRecords": [
+            {
+              "text": "",
+              "ending": "LF"
+            }
+          ],
+          "overRetainedRecords": [
+            {
+              "text": "",
+              "ending": "LF"
+            },
+            {
+              "text": "",
+              "ending": "LF"
+            }
+          ]
+        }
+      },
+      "binding": "SOURCE_BINDING_REQUIRED: identify aggregate retained record lifetime/sharing; do not infer exact totals from newline counts or lower cap.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "sourceReviewRequired": true,
+      "overEffects": {
+        "commandMutationCalls": 0
+      }
+    },
+    {
+      "id": "L10",
+      "cap": "maxInputChunks",
+      "limit": 65536,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 65536,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 65537,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "stdin": {
+          "chunks": {
+            "concat": [
+              {
+                "repeatChunk": {
+                  "hex": ""
+                },
+                "count": {
+                  "endpointMinus": 1
+                }
+              },
+              {
+                "oneChunk": {
+                  "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+                }
+              }
+            ]
+          },
+          "eof": true
+        },
+        "atExpected": {
+          "files": {
+            "/work/a": {
+              "utf8": "x\n"
+            }
+          },
+          "exitCode": 0
+        },
+        "overExpected": {
+          "files": {},
+          "fsCalls": 0
+        }
+      },
+      "binding": "Every yielded chunk counts, including empty Buffer/Uint8Array; count before retaining/pulling another.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ]
+    },
+    {
+      "id": "L11",
+      "cap": "maxFsCalls",
+      "limit": 65536,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 65536,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 65537,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "patchSeed": {
+          "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+        },
+        "checkpoint": {
+          "alreadyCalled": 65535,
+          "nextCall": {
+            "method": "lstat",
+            "path": "/work",
+            "signalRef": "root"
+          },
+          "overCall": {
+            "method": "lstat",
+            "path": "/work",
+            "signalRef": "root"
+          }
+        }
+      },
+      "binding": "SOURCE_BINDING_REQUIRED: count actual public VFS calls, not backend RPCs or read-side housekeeping. No artificial recursive peer negotiation.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "sourceReviewRequired": true,
+      "overEffects": {
+        "forbiddenCallIssued": false,
+        "commandMutationCalls": 0
+      }
+    },
+    {
+      "id": "L12",
+      "cap": "maxWork",
+      "limit": 134217728,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 134217728,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 134217729,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "patchSeed": {
+          "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+        },
+        "targetSeed": {
+          "utf8": "old\n"
+        },
+        "checkpoint": {
+          "alreadyCharged": 134217727,
+          "atCharge": 1,
+          "overCharge": 2
+        },
+        "expected": {
+          "yieldEveryUnits": 4096,
+          "checkSignalBeforeAfterYield": true,
+          "checkSignalAtFinalFlush": true
+        }
+      },
+      "binding": "SOURCE_BINDING_REQUIRED: enumerate inspected/copied code units and records/probes; freeze inclusive checked-subtraction algebra, not an invented exact scan cost.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "sourceReviewRequired": true,
+      "overEffects": {
+        "forbiddenWorkPerformed": false,
+        "commandMutationCalls": 0
+      }
+    },
+    {
+      "id": "L13",
+      "cap": "maxOutputBytes",
+      "limit": 1048576,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 1048576,
+          "expected": {
+            "admitThisCharge": true,
+            "semanticStatus": "NOT_RUN; whole command success requires other caps and contracts"
+          }
+        },
+        {
+          "key": "over",
+          "value": 1048577,
+          "expected": {
+            "admitThisCharge": false,
+            "outcome": {
+              "kind": "return",
+              "exitCode": 1
+            },
+            "stdout": {
+              "utf8": ""
+            },
+            "stderr": {
+              "semantic": "preflight-diagnostic"
+            }
+          }
+        }
+      ],
+      "fixture": {
+        "construction": "256 empty Add operations with unique absolute single-component paths. For indices0..254 path is /f plus decimal index left padded to three digits plus x repeated4091 (4096 bytes total). Last path begins /f255 and is padded with x to make full specified success summary exactly endpoint bytes.",
+        "summaryPrefix": {
+          "utf8": "Success. Updated the following files:\n"
+        },
+        "summaryRowTemplate": "A {path}\n",
+        "first255PathBytes": 4096,
+        "lastPathBytes": {
+          "endpointMinus": 1045286
+        },
+        "expectedFiles": "256 empty regular files at exactly those paths"
+      },
+      "binding": "Full UTF8 success summary reservation before first mkdir/write/rm; over endpoint fails before publication, even if sink itself would accept.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "overEffects": {
+        "commandMutationCalls": 0,
+        "stdout": {
+          "utf8": ""
+        }
+      }
+    },
+    {
+      "id": "L14",
+      "cap": "maxDiagnosticBytes",
+      "limit": 16384,
+      "execution": "NOT_RUN",
+      "endpoints": [
+        {
+          "key": "at",
+          "value": 16384,
+          "expected": {
+            "exitCode": 1,
+            "diagnosticBytes": 16384,
+            "originalFailureMeaningPreserved": true
+          }
+        },
+        {
+          "key": "over",
+          "value": 16385,
+          "expected": {
+            "exitCode": 1,
+            "diagnosticBytesAtMost": 16384,
+            "suffix": " [truncated]\n",
+            "originalFailureMeaningPreserved": true
+          }
+        }
+      ],
+      "fixture": {
+        "failure": {
+          "kind": "FsError",
+          "code": "EACCES",
+          "path": "/work/a",
+          "messageSeed": {
+            "utf8": "denied "
+          }
+        },
+        "checkpoint": "Use diagnostic builder source witness to produce final command-owned diagnostic of endpoint bytes including apply_patch prefix and newline.",
+        "requiredSuffix": {
+          "utf8": " [truncated]\n"
+        }
+      },
+      "binding": "SOURCE_BINDING_REQUIRED: prose length is not independently specified. Diagnostic ceiling truncates rather than hiding original failure; preserve valid UTF8 and reserve suffix before unbounded construction.",
+      "phase": "initial-preflight",
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "BOUNDED"
+      ],
+      "sourceReviewRequired": true
+    }
+  ]
+}

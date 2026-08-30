@@ -1,0 +1,5 @@
+{
+  "id": "reject-invocations",
+  "polarity": "negative",
+  "passed": true
+}

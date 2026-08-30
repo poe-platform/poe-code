@@ -1,0 +1,20 @@
+[
+  {
+    "path": "variables.c",
+    "bytes": 173996,
+    "sha256": "e5c8be22b2805b32edcc50d75bf36fc767e8f540b403c50c2e48b6783591bd2e",
+    "hashBeforeDecode": true
+  },
+  {
+    "path": "subst.c",
+    "bytes": 383471,
+    "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+    "hashBeforeDecode": true
+  },
+  {
+    "path": "shell.c",
+    "bytes": 59208,
+    "sha256": "5f3d539f15e19c032a09ece500efecc9c63d050d408e985b6f385c64329bf73d",
+    "hashBeforeDecode": true
+  }
+]

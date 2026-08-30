@@ -1,0 +1,4140 @@
+{
+  "schema": "B2_FIXED_LITERAL_STATIC_CLOSURE_R4",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "fixtureRoots": [
+    {
+      "file": "runtime/harness/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "file": "runtime/harness/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "file": "runtime/harness/close-observer.mjs",
+      "bytes": 957,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"
+    },
+    {
+      "file": "runtime/harness/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+    },
+    {
+      "file": "runtime/harness/extension-design.json",
+      "bytes": 14968,
+      "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f"
+    },
+    {
+      "file": "runtime/harness/extension.mjs",
+      "bytes": 14101,
+      "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc"
+    },
+    {
+      "file": "runtime/harness/n14.mjs",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+    },
+    {
+      "file": "runtime/harness/redirection-cases.json",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+    },
+    {
+      "file": "runtime/harness/redirections.mjs",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561"
+    },
+    {
+      "file": "runtime/harness/strict-design.json",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff"
+    },
+    {
+      "file": "runtime/harness/strict.mjs",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"
+    }
+  ],
+  "excludedConfigurationOnly": [
+    "names.mjs",
+    "resources.mjs",
+    "loader.mjs"
+  ],
+  "excludedCommandRoots": [
+    "grep",
+    "egrep",
+    "fgrep",
+    "rg",
+    "sed",
+    "expr",
+    "node"
+  ],
+  "rootHits": [],
+  "workerSites": [
+    {
+      "path": "src/commands/node/worker-provider.ts",
+      "blob": "e22ff37000aa8af4e54384d5c437da37110dc522",
+      "sha256": "992758197bc26ee55674d7f5eb049dcc28a455abd83279c434edc1c74a9f72df"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    }
+  ],
+  "client": {
+    "path": "src/commands/regex-execution/client.ts",
+    "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+    "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+    "constructor": "Policy only; empty slots/queue; Worker Slot allocated by pump only after request queue admission"
+  },
+  "conditional": {
+    "path": "src/shell/conditional.ts",
+    "blob": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+    "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0",
+    "profile": "Frozen conditional evaluator does not import Regex execution/Worker; not current HEAD ERE"
+  },
+  "retainedCaseCounts": [
+    {
+      "slot": "source-built/redirections-v3/R01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R27",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/R36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C01-default80-display",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C02-versioned-conditional-support",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C03-single-open-and-raw-bytes",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C04-before-open-caller-identity",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C05-blocked-write-caller-identity",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C06-backpressure",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C07-sink-fault-profile-preserved",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C08-required-file-after-downstream-close",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C09-open-failure-and-prior-effect",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C10-output-limit-and-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C11-closed-descriptor-error",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/redirections-v3/C12-owned-real-file",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U37",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U38",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U39",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U40",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U41",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U42",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U43",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U44",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U45",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U46",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U47",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U48",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U49",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/U50",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E01-active-file-stderr",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E02-here-string",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E03-ordered-redirect-effects",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E04-lazy-array-zero",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E05-function-option-state",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E06-if-not-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E07-here-document",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E08-nested-sink-rejection",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E09-invoke-sink-boundary",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E10-primary-sink-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/strict/E11-substitution-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A27",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A37",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A38",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A39",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/A40",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H02-v4",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/H10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S01-registered",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S02-at",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S03-star",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S04-skipped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S05-ENOENT",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S06-ENOTDIR",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S07-EACCES",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S08-EPERM",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S09-ENOTSUP",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S10-EOPNOTSUPP",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S11-ENOSYS",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S12-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S13-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S14-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S15-unclassified",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S16-code-getter",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/conditional/S17-limit-caller",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/U36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/S-U06-PARTIAL-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/S-U07-LIST-STATUS-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/S-ARITH-SUBSHELL-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/S-ARITH-SUBSTITUTION-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/E19-plus-tail",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/E20-subset-listing",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/E21-write-only-chain",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/E22-function-fatal",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/H24-preabort",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/H25-falsy-sink",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/H26-read-budget",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/H27-registered-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/H28-caller-during-diagnostic",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X01-sh-policy",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X02-positional-listing",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X03-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X04-lazy-fixed64",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X05-optind-substring",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X06-existing-refusals",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X07-parameter-falsy-sink",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X08-parameter-limit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X09-parameter-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X10a-parameter-isolated-status-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X10b-parameter-isolated-null-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/extension/X10c-parameter-caller-cleanup-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/arrays/A12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "source-built/n14/N12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R27",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/R36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C01-default80-display",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C02-versioned-conditional-support",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C03-single-open-and-raw-bytes",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C04-before-open-caller-identity",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C05-blocked-write-caller-identity",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C06-backpressure",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C07-sink-fault-profile-preserved",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C08-required-file-after-downstream-close",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C09-open-failure-and-prior-effect",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C10-output-limit-and-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C11-closed-descriptor-error",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/redirections-v3/C12-owned-real-file",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U37",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U38",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U39",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U40",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U41",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U42",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U43",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U44",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U45",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U46",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U47",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U48",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U49",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/U50",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E01-active-file-stderr",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E02-here-string",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E03-ordered-redirect-effects",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E04-lazy-array-zero",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E05-function-option-state",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E06-if-not-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E07-here-document",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E08-nested-sink-rejection",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E09-invoke-sink-boundary",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E10-primary-sink-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/strict/E11-substitution-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A27",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A37",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A38",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A39",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/A40",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H02-v4",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/H10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S01-registered",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S02-at",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S03-star",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S04-skipped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S05-ENOENT",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S06-ENOTDIR",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S07-EACCES",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S08-EPERM",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S09-ENOTSUP",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S10-EOPNOTSUPP",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S11-ENOSYS",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S12-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S13-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S14-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S15-unclassified",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S16-code-getter",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/conditional/S17-limit-caller",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/U36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/S-U06-PARTIAL-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/S-U07-LIST-STATUS-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/S-ARITH-SUBSHELL-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/S-ARITH-SUBSTITUTION-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/E19-plus-tail",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/E20-subset-listing",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/E21-write-only-chain",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/E22-function-fatal",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/H24-preabort",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/H25-falsy-sink",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/H26-read-budget",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/H27-registered-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/H28-caller-during-diagnostic",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X01-sh-policy",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X02-positional-listing",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X03-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X04-lazy-fixed64",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X05-optind-substring",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X06-existing-refusals",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X07-parameter-falsy-sink",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X08-parameter-limit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X09-parameter-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X10a-parameter-isolated-status-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X10b-parameter-isolated-null-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/extension/X10c-parameter-caller-cleanup-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/arrays/A12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "installed/n14/N12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R27",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/R36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C01-default80-display",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C02-versioned-conditional-support",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C03-single-open-and-raw-bytes",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C04-before-open-caller-identity",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C05-blocked-write-caller-identity",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C06-backpressure",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C07-sink-fault-profile-preserved",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C08-required-file-after-downstream-close",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C09-open-failure-and-prior-effect",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C10-output-limit-and-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C11-closed-descriptor-error",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/redirections-v3/C12-owned-real-file",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U37",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U38",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U39",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U40",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U41",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U42",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U43",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U44",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U45",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U46",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U47",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U48",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U49",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/U50",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E01-active-file-stderr",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E02-here-string",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E03-ordered-redirect-effects",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E04-lazy-array-zero",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E05-function-option-state",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E06-if-not-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E07-here-document",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E08-nested-sink-rejection",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E09-invoke-sink-boundary",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E10-primary-sink-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/strict/E11-substitution-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A13",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A14",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A15",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A16",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A18",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A19",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A20",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A21",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A22",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A23",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A24",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A25",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A26",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A27",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A29",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A30",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A37",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A38",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A39",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/A40",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H02-v4",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/H10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S01-registered",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S02-at",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S03-star",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S04-skipped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S05-ENOENT",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S06-ENOTDIR",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S07-EACCES",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S08-EPERM",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S09-ENOTSUP",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S10-EOPNOTSUPP",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S11-ENOSYS",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S12-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S13-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S14-untyped",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S15-unclassified",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S16-code-getter",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/conditional/S17-limit-caller",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U17",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U28",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U31",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U32",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U33",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U34",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U35",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/U36",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/S-U06-PARTIAL-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/S-U07-LIST-STATUS-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/S-ARITH-SUBSHELL-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/S-ARITH-SUBSTITUTION-v1",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/E19-plus-tail",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/E20-subset-listing",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/E21-write-only-chain",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/E22-function-fatal",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/H24-preabort",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/H25-falsy-sink",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/H26-read-budget",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/H27-registered-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/H28-caller-during-diagnostic",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X01-sh-policy",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X02-positional-listing",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X03-errexit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X04-lazy-fixed64",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X05-optind-substring",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X06-existing-refusals",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X07-parameter-falsy-sink",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X08-parameter-limit",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X09-parameter-cleanup",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X10a-parameter-isolated-status-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X10b-parameter-isolated-null-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/extension/X10c-parameter-caller-cleanup-v2",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/arrays/A12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N01",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N02",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N03",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N04",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N05",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N06",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N07",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N08",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N09",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N10",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N11",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    },
+    {
+      "slot": "physically-moved/n14/N12",
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0
+    }
+  ],
+  "controlsUseSameFixtureBranches": true,
+  "mainAsyncLoaderAdmissions": 34,
+  "mainAsyncLoaderPeak": 1,
+  "knownOwnedWorkerThreadsTotal": 34,
+  "knownOwnedWorkerThreadsPeak": 1,
+  "qualification": "Closed trusted literal fixture/command graph and lazy executor construction; not universal dynamic/OS thread census. Old independent 744 zero is not the premise. Node V8/libuv host implementation threads are outside the known owned Worker-role inventory."
+}

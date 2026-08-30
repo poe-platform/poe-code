@@ -1,0 +1,2120 @@
+{
+  "schema": "unified76-release-packet/3-inherited-routes",
+  "createdAt": "2026-08-28T10:44:31.068Z",
+  "executionAuthorized": false,
+  "fullGateLaunched": false,
+  "product": {
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "packageManifestSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packageRebuiltHere": false,
+    "fixtureReceipt": {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+      "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+      "blob": "70d776fafe01afacdc29299e2f33867aabdcb691",
+      "mode": "100644",
+      "bytes": 4663,
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd"
+    }
+  },
+  "driver": {
+    "source": "96daebc077381fb63ab6447a26ab707ce790ff25",
+    "implementationCommit": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+    "normalizedSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
+    "files": [
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "8b2b9e5bd9c1d4c77ecfc5f16816e319b8305045",
+        "mode": "100644",
+        "bytes": 4332,
+        "sha256": "acbb37f19f8d83c2c068520f4eb25edffe5841cb99eb9c3a2a7d2bbf7211ee5b"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "70d776fafe01afacdc29299e2f33867aabdcb691",
+        "mode": "100644",
+        "bytes": 4663,
+        "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "3a662ce727c931a5cdd3065a8d95d3ff4e1e02d6",
+        "mode": "100644",
+        "bytes": 1409701,
+        "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "cc0049a0568f3924b47fd705651fb705dfeecd81",
+        "mode": "100644",
+        "bytes": 976,
+        "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "161431a7a7ac90755bb895f3ff9c1fc3f5124626",
+        "mode": "100644",
+        "bytes": 27233,
+        "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "cb03f3cab771028df57fe70aade72574d2b3921b",
+        "mode": "100644",
+        "bytes": 476241,
+        "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "4cbafbae57d48d1fd4b1aae515005f6b2eeb46bf",
+        "mode": "100644",
+        "bytes": 592,
+        "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+        "mode": "100644",
+        "bytes": 6427,
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/profile.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "a5a31d596998be0e801a0aaa4107fd17e4cded12",
+        "mode": "100644",
+        "bytes": 8384,
+        "sha256": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "5caa46278fb84c010fdc027a1f70764030eaff97",
+        "mode": "100644",
+        "bytes": 4523,
+        "sha256": "b4e38b581d8be10604c8ea823b74551912e43bfc9806fbdb138b304d40bc7f90"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "429b8c73aba142c18d510e93d91ff6a765978b45",
+        "mode": "100644",
+        "bytes": 5911,
+        "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "2b467083dce5c3bf8ff8de08b3b64043bb4bb0bf",
+        "mode": "100644",
+        "bytes": 2811,
+        "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+        "mode": "100644",
+        "bytes": 537,
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+        "mode": "100644",
+        "bytes": 6047,
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "abfad1d5c051c070406bd71971966aa9bb8f3387",
+        "mode": "100644",
+        "bytes": 21106,
+        "sha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "49228227576c2d4e750edd6a00ed3f8611a3e69a",
+        "mode": "100644",
+        "bytes": 4441,
+        "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "f00563f5583154e494b8f97605141f0a28ab0bfb",
+        "mode": "100644",
+        "bytes": 9553,
+        "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "684372da6826145d119fe4cbc2c0ef94b60d7374",
+        "mode": "100644",
+        "bytes": 6032,
+        "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external-admission.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "ee15d4353eb3b54fad59d92382d5dbb975051ed1",
+        "mode": "100644",
+        "bytes": 4991,
+        "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/built-consumers.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "4a712e0a36261c6c1a73aa1df65354841d4e4e1a",
+        "mode": "100644",
+        "bytes": 2958,
+        "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer-admission.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "95e05dd5d3c689c68d6c4c108b18e41aebdb8d76",
+        "mode": "100644",
+        "bytes": 1940,
+        "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tap.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "4913ccc42598b861b6bf0f9e34238901d5e8ebcd",
+        "mode": "100644",
+        "bytes": 3405,
+        "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/public.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "13aaed92eec7fd29db226c194202f862b0a96942",
+        "mode": "100644",
+        "bytes": 2892,
+        "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer.mts.fixture",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "212a6cb22f7c70b72a9106431a642a250e3fddef",
+        "mode": "100644",
+        "bytes": 840,
+        "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/negative.mts.fixture",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "ea76b2f6ead1689fe8f751ffdda0b25a0ec6a491",
+        "mode": "100644",
+        "bytes": 250,
+        "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "1f7389579d9cb04812b81a05b238387c7736ed66",
+        "mode": "100644",
+        "bytes": 1239,
+        "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-types.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "f9cf36f20696032c607910df66922a0674ec300d",
+        "mode": "100644",
+        "bytes": 4115,
+        "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/phase-runner.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "2a5bdddcd55867219f0b405edea6e84b4217ead9",
+        "mode": "100644",
+        "bytes": 2528,
+        "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/process-observer.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+        "mode": "100644",
+        "bytes": 3667,
+        "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "c657767026174b0a3da0084759fbbf7df49462ea",
+        "mode": "100644",
+        "bytes": 9630,
+        "sha256": "ef79cc344dc0259bfef3d2351fa61ea5a2f716ac8c427dfab346294498d0a507"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types-worker.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "17fc149caf58eaa4a8e12399720bb8cbe9c60320",
+        "mode": "100644",
+        "bytes": 351,
+        "sha256": "e69573ee434436bb9ab9bda807155cfaaa5a687a2eb32a09a4b6b0d54214f295"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/projection.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "e1ecc3bda2e4313fa40281e1a6b97cbe38b05a82",
+        "mode": "100644",
+        "bytes": 5765,
+        "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/INSTRUCTION-PROJECTION.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "b3954b6ade7d6eaedde0a4284e95694cf9abbd4c",
+        "mode": "100644",
+        "bytes": 2542,
+        "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/os-instruction-fence.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "71baaf76ac8097454dc27b147793b198eb5ea121",
+        "mode": "100644",
+        "bytes": 6239,
+        "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+        "mode": "100644",
+        "bytes": 7580,
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/OS-INSTRUCTION-FENCE.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "28ef6498c599fa37f1293532453470b842eea15e",
+        "mode": "100644",
+        "bytes": 1845,
+        "sha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "7c5ab250fcc41b71cad174599963242caf278e83",
+        "mode": "100644",
+        "bytes": 16268,
+        "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "5836669cb9ef9929977ad2b05c6fb5091c92e293",
+        "mode": "100644",
+        "bytes": 2520,
+        "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7"
+      }
+    ],
+    "byteIdenticalInheritedFiles": [
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "70d776fafe01afacdc29299e2f33867aabdcb691",
+        "mode": "100644",
+        "bytes": 4663,
+        "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "3a662ce727c931a5cdd3065a8d95d3ff4e1e02d6",
+        "mode": "100644",
+        "bytes": 1409701,
+        "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "cc0049a0568f3924b47fd705651fb705dfeecd81",
+        "mode": "100644",
+        "bytes": 976,
+        "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "161431a7a7ac90755bb895f3ff9c1fc3f5124626",
+        "mode": "100644",
+        "bytes": 27233,
+        "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "cb03f3cab771028df57fe70aade72574d2b3921b",
+        "mode": "100644",
+        "bytes": 476241,
+        "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "4cbafbae57d48d1fd4b1aae515005f6b2eeb46bf",
+        "mode": "100644",
+        "bytes": 592,
+        "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+        "mode": "100644",
+        "bytes": 6427,
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/profile.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "a5a31d596998be0e801a0aaa4107fd17e4cded12",
+        "mode": "100644",
+        "bytes": 8384,
+        "sha256": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "5caa46278fb84c010fdc027a1f70764030eaff97",
+        "mode": "100644",
+        "bytes": 4523,
+        "sha256": "b4e38b581d8be10604c8ea823b74551912e43bfc9806fbdb138b304d40bc7f90"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "429b8c73aba142c18d510e93d91ff6a765978b45",
+        "mode": "100644",
+        "bytes": 5911,
+        "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "2b467083dce5c3bf8ff8de08b3b64043bb4bb0bf",
+        "mode": "100644",
+        "bytes": 2811,
+        "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+        "mode": "100644",
+        "bytes": 537,
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+        "mode": "100644",
+        "bytes": 6047,
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "49228227576c2d4e750edd6a00ed3f8611a3e69a",
+        "mode": "100644",
+        "bytes": 4441,
+        "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "f00563f5583154e494b8f97605141f0a28ab0bfb",
+        "mode": "100644",
+        "bytes": 9553,
+        "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "684372da6826145d119fe4cbc2c0ef94b60d7374",
+        "mode": "100644",
+        "bytes": 6032,
+        "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external-admission.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "ee15d4353eb3b54fad59d92382d5dbb975051ed1",
+        "mode": "100644",
+        "bytes": 4991,
+        "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/built-consumers.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "4a712e0a36261c6c1a73aa1df65354841d4e4e1a",
+        "mode": "100644",
+        "bytes": 2958,
+        "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer-admission.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "95e05dd5d3c689c68d6c4c108b18e41aebdb8d76",
+        "mode": "100644",
+        "bytes": 1940,
+        "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tap.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "4913ccc42598b861b6bf0f9e34238901d5e8ebcd",
+        "mode": "100644",
+        "bytes": 3405,
+        "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/public.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "13aaed92eec7fd29db226c194202f862b0a96942",
+        "mode": "100644",
+        "bytes": 2892,
+        "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer.mts.fixture",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "212a6cb22f7c70b72a9106431a642a250e3fddef",
+        "mode": "100644",
+        "bytes": 840,
+        "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/negative.mts.fixture",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "ea76b2f6ead1689fe8f751ffdda0b25a0ec6a491",
+        "mode": "100644",
+        "bytes": 250,
+        "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "1f7389579d9cb04812b81a05b238387c7736ed66",
+        "mode": "100644",
+        "bytes": 1239,
+        "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-types.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "f9cf36f20696032c607910df66922a0674ec300d",
+        "mode": "100644",
+        "bytes": 4115,
+        "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/phase-runner.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "2a5bdddcd55867219f0b405edea6e84b4217ead9",
+        "mode": "100644",
+        "bytes": 2528,
+        "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/process-observer.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+        "mode": "100644",
+        "bytes": 3667,
+        "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "c657767026174b0a3da0084759fbbf7df49462ea",
+        "mode": "100644",
+        "bytes": 9630,
+        "sha256": "ef79cc344dc0259bfef3d2351fa61ea5a2f716ac8c427dfab346294498d0a507"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types-worker.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "17fc149caf58eaa4a8e12399720bb8cbe9c60320",
+        "mode": "100644",
+        "bytes": 351,
+        "sha256": "e69573ee434436bb9ab9bda807155cfaaa5a687a2eb32a09a4b6b0d54214f295"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/projection.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "e1ecc3bda2e4313fa40281e1a6b97cbe38b05a82",
+        "mode": "100644",
+        "bytes": 5765,
+        "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/INSTRUCTION-PROJECTION.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "b3954b6ade7d6eaedde0a4284e95694cf9abbd4c",
+        "mode": "100644",
+        "bytes": 2542,
+        "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/os-instruction-fence.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "71baaf76ac8097454dc27b147793b198eb5ea121",
+        "mode": "100644",
+        "bytes": 6239,
+        "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+        "mode": "100644",
+        "bytes": 7580,
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/OS-INSTRUCTION-FENCE.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "28ef6498c599fa37f1293532453470b842eea15e",
+        "mode": "100644",
+        "bytes": 1845,
+        "sha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+        "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "blob": "5836669cb9ef9929977ad2b05c6fb5091c92e293",
+        "mode": "100644",
+        "bytes": 2520,
+        "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7"
+      }
+    ],
+    "changedFiles": [
+      {
+        "before": {
+          "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+          "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+          "blob": "ee51d1117b7dcd9bcfaeb7ba054e907f301e55f5",
+          "mode": "100644",
+          "bytes": 4332,
+          "sha256": "966848549f5a9969faa0eee9345991698afd8275dcef0abcb90379cf07666f96"
+        },
+        "after": {
+          "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+          "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+          "blob": "8b2b9e5bd9c1d4c77ecfc5f16816e319b8305045",
+          "mode": "100644",
+          "bytes": 4332,
+          "sha256": "acbb37f19f8d83c2c068520f4eb25edffe5841cb99eb9c3a2a7d2bbf7211ee5b"
+        }
+      },
+      {
+        "before": {
+          "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+          "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+          "blob": "ac336a9683bc3696abb4deb6ba834ffec6204f7e",
+          "mode": "100644",
+          "bytes": 20764,
+          "sha256": "fadf7b45c9fb628c0f91cf9c0af514733421942bee6c1a9f0e9fd1437f1de040"
+        },
+        "after": {
+          "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+          "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+          "blob": "abfad1d5c051c070406bd71971966aa9bb8f3387",
+          "mode": "100644",
+          "bytes": 21106,
+          "sha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275"
+        }
+      },
+      {
+        "before": {
+          "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs",
+          "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+          "blob": "58ca434dd543c8a74af4369922a1ffe405060714",
+          "mode": "100644",
+          "bytes": 11917,
+          "sha256": "b3cbdfb52fdae6067d58a8c1f57d5890a2b0f2755f29c66c6744ec028582cdb6"
+        },
+        "after": {
+          "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs",
+          "revision": "96daebc077381fb63ab6447a26ab707ce790ff25",
+          "blob": "7c5ab250fcc41b71cad174599963242caf278e83",
+          "mode": "100644",
+          "bytes": 16268,
+          "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+        }
+      }
+    ]
+  },
+  "independent": {
+    "acceptedCommit": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+    "qualificationCommit": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+    "recipeCommit": "13c50ab58b76423e53f0e49da859dff584343fe9",
+    "priorAcceptedCommit": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+    "priorMetadataCommit": "7fd7c7aee3902e8a8a0cc66460858e8ea6966e13",
+    "proofFiles": [
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/HANDOFF.md",
+        "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+        "blob": "b38ed8f27d1a2d86feb7fd8a6e21bc260b7fffbd",
+        "mode": "100644",
+        "bytes": 11393,
+        "sha256": "105e4679403b2d8b7d36da5c133844ae8accf4dc635c527acdffa55869618358"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/BINDINGS.json",
+        "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+        "blob": "3202293bb43c3eaf01eb755dbbc1e811ed4ef175",
+        "mode": "100644",
+        "bytes": 123457,
+        "sha256": "fb3fc4e54159eda8856cc5a18dea19c28bc104653716143ed857d2f487df50b3"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/QUALIFICATIONS.json",
+        "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+        "blob": "098cff60ccc8cd424fbcddb98d7bc30c848d7d65",
+        "mode": "100644",
+        "bytes": 2675,
+        "sha256": "e9bcf0e1942a413ec57a2b93b14868596355a93f1d162ec667725d99e72025d4"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/PACKET-CHECK.json",
+        "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+        "blob": "4c3945917df70f0c887c7deb89dcef40ebbafbb8",
+        "mode": "100644",
+        "bytes": 622,
+        "sha256": "e1895a13ce6a83d62e96e371ba5642a6a315e79c10df4b3b2226e4a096fc0e0a"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/RESULTS.json",
+        "revision": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+        "blob": "6064d52a11f9b9a9ae21d65ec4bea6975ce24023",
+        "mode": "100644",
+        "bytes": 33018,
+        "sha256": "c923d6233ec5c91097ed0f5f3886716c6e47e8d26206f932ee6362e6565e6ca5"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/release-packet-v11/HANDOFF.md",
+        "revision": "7fd7c7aee3902e8a8a0cc66460858e8ea6966e13",
+        "blob": "2831fbc382a79d0881247110f026c000750c2028",
+        "mode": "100644",
+        "bytes": 6760,
+        "sha256": "f92913337200b7cf4d7793b1fe5b18d812cd724cdee6736af8d346ca5df93b6a"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/release-packet-v11/RECEIPT.json",
+        "revision": "7fd7c7aee3902e8a8a0cc66460858e8ea6966e13",
+        "blob": "11fce580618b24becb29dfbd199512db0855947f",
+        "mode": "100644",
+        "bytes": 19847,
+        "sha256": "9f3712d193c1763226c036432013b30acafb58d201dd8199c927c5fa58df13d1"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/HANDOFF.md",
+        "revision": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "blob": "dccb7f5414e84d880531291f27d02c6c3b40a6cd",
+        "mode": "100644",
+        "bytes": 7197,
+        "sha256": "7dc8a520f06dbfbefbd131dfe6ed082a2d697f3cf5f83eb90508683043daf8e5"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/FINAL.json",
+        "revision": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "blob": "5f1cd0f741e97d2a52325ee30e46a25c8657a9c9",
+        "mode": "100644",
+        "bytes": 22188,
+        "sha256": "9f5cee246dd9017b89f31ff20d8bb8dd88349a03d6a8a693409a9b6da76c26c7"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/RESULTS.json",
+        "revision": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "blob": "ecfd0382b83ad5ab46ab6b01eac7db0040f47877",
+        "mode": "100644",
+        "bytes": 170154,
+        "sha256": "8181af4c97b8a01fc26c45ad9b3b4e53ba2ae167d2cd0c783d423030283a80b1"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/ARTIFACTS.json",
+        "revision": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "blob": "db1bff5373ee041c734518cfde455064bdad9a90",
+        "mode": "100644",
+        "bytes": 6309,
+        "sha256": "f2c3c68731c2c16fa62f52e11f53204f5c458055e424d21006afcb812c72ff1e"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/HANDOFF.md",
+        "revision": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+        "blob": "4c8cc540ebae05447aba082275d4d1c17f19a5a6",
+        "mode": "100644",
+        "bytes": 6338,
+        "sha256": "de10e1725937664a728a755aa3e87219bb2b2a06c2ccd656ff1af1bd2ec0e8cc"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/FINAL.json",
+        "revision": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+        "blob": "de18c396ad39024f1644811e3fc42fc130086c1b",
+        "mode": "100644",
+        "bytes": 20575,
+        "sha256": "6d3aa06ae77f5b47967fffb15e1a4f8641c8245f1394167d7f21e76307c9a2c8"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/RESULTS.json",
+        "revision": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+        "blob": "de3a3d537faf4a066aa54a96c6af5b8e679b920b",
+        "mode": "100644",
+        "bytes": 76951,
+        "sha256": "e25fbc91edcc719fcb7ef96736b2873d77f158ac7b9a530e88b2308a09f418e5"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/ARTIFACTS.json",
+        "revision": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+        "blob": "4fb30b204b8f951622933a345896665fa538e04f",
+        "mode": "100644",
+        "bytes": 6324,
+        "sha256": "37b9e903865bb2eec18983d503741522af3f41fb23377eba9c861635ffba9394"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/OUTER-CAPTURE.json",
+        "revision": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+        "blob": "a1eefe7dbd6c684d9c6efc35db7add46530d93fe",
+        "mode": "100644",
+        "bytes": 973,
+        "sha256": "4c7d40257843360104e106b4becb8ab1e14c8be50437bdb3c4a4179493c4144c"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/RECIPE.json",
+        "revision": "13c50ab58b76423e53f0e49da859dff584343fe9",
+        "blob": "8f7bff9cf1c1c2275fff45ba4667a05eebca3339",
+        "mode": "100644",
+        "bytes": 24525,
+        "sha256": "32594007fba6a60aa4ea2623f84475be09d801d61bc16918a9627e4e9fe88657"
+      }
+    ],
+    "newPacketMetadataReview": "PENDING",
+    "qualification": "Root-accepted scoped inherited-route review, not gate release. Old97c/7fd evidence applies only to enumerated35 byte-identical shipping members; changed3 newly reviewed. No complete-prerequisites/privateState/A10/pack/fullgate replay.",
+    "cohorts": {
+      "original": {
+        "pass": 30,
+        "harnessFail": 2,
+        "unexecuted": 1,
+        "unchanged": true
+      },
+      "new": {
+        "pass": 14,
+        "fail": 0,
+        "unexecuted": 0,
+        "originalAuthorityObligations": 2,
+        "separateAdapterCases": 2,
+        "otherControls": 10
+      },
+      "unsupported": "E03.3 all-nonempty ambient GIT restoration remains inadmissible/unexecuted; admission refusal and present-empty restoration are separate controls.",
+      "actual": "Two shipping-fenced bare-Git reads and coordinator exit0; pre-dispatch route resolution and actual outcomes, NOT kernel exec trace. Original EPERM target UNKNOWN."
+    }
+  },
+  "profile": {
+    "normalizedSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "defaultCount": 76,
+    "testConcurrency": 2,
+    "reporter": "tap",
+    "scopeEntries": 37397,
+    "canonicalPaths": 632,
+    "classifiedMts": 192,
+    "cleanupInputs": 256,
+    "cleanupNormalizedSha256": "55361331843d217f88218dd8bd85598cb02fd72bd58668075e75e9d8070a4e1a",
+    "support": {
+      "tests/integration/full-gate-20260827/account.mjs": "279f552950ee9f90a884c448f31d19903add6672da042d4a195b89fd84de742c",
+      "tests/integration/full-gate-20260827/supervise.mjs": "e68ef77eb0ad1610177521a1aeab9f6f189e47de47476dafcab7ad05097ebfb9",
+      "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs": "4e328502a8713fe6bba64f231cab846ceb1d2dc5454a8276205de3009d17944e",
+      "tests/integration/full-gate-20260827/preflight-repair/policy.json": "eb2575674ba51a5c8a8f5c82609281e56f5cbff77889e4e86e22dc7974cdc11e",
+      "tests/integration/full-gate-20260827/runtime-profile-20260827/profile.mjs": "900cc0f387ff1c0845b6dd6c87402e535224234ecc2511920883f93c7b2a7266",
+      "tests/integration/full-gate-20260827/integrity-73/tree.mjs": "5af624e28e38c4001f6b77dbc1c153292e667da28d1a07aa851f31a6150f06a9",
+      "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+      "tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114",
+      "tests/integration/full-gate-20260827/combined-8670ebe8/committed-archive.mjs": "d5a2de6679bda3830d7f376e1f374bee286d0e9ca17e460f78b02988a7c7aee3",
+      "tests/integration/full-gate-20260827/combined-b494675c/inspect.mjs": "1669457da2280de3c769ec5e516f65c7bbb0d635b2249afc13a06e8f68a14d1e"
+    }
+  },
+  "projection": {
+    "normalizedSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+    "candidateEntries": [
+      {
+        "path": "AGENTS.md",
+        "mode": "100644",
+        "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+        "bytes": 12424,
+        "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+      },
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      }
+    ],
+    "dependencyEntries": [
+      {
+        "role": "benchmark",
+        "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "path": "just-bash/dist/AGENTS.md",
+        "mode": "100644",
+        "bytes": 9231,
+        "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+      }
+    ],
+    "logical": {
+      "entries": 37397,
+      "bytes": 2382440321
+    },
+    "physical": {
+      "entries": 37392,
+      "bytes": 2382392469
+    },
+    "opaqueGit": "Original authenticated Git object/pack bytes may retain historical instruction blobs as inert provenance only. No checkout, plaintext instruction snapshots, substituted instruction text, or reading those blobs as instructions."
+  },
+  "tools": {
+    "routesNormalizedSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+    "routes": {
+      "schema": "unified76-tool-routes/1",
+      "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "approval": "Root explicitly approved the exact direct otool-classic binary and its two ENOENT system-reference pairs on 2026-08-28; existing Mach-O inspection only, no other DeveloperTools or unknown-library exception.",
+      "inspector": {
+        "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "bytes": 472320,
+        "mode": 493,
+        "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+      },
+      "systemReferences": [
+        "/usr/lib/libc++.1.dylib",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      "environment": {
+        "PATH": "/dev/null",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "inspectionTargets": [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/bin/tar",
+        "/usr/bin/sandbox-exec"
+      ],
+      "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "gitCore": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+      "aliases": {
+        "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "sh": "/bin/sh",
+        "tar": "/usr/bin/tar",
+        "ps": "/bin/ps",
+        "lsof": "/usr/sbin/lsof",
+        "sw_vers": "/usr/bin/sw_vers",
+        "bsdtar": "/usr/bin/bsdtar",
+        "gzip": "/usr/bin/gzip",
+        "gunzip": "/usr/bin/gunzip",
+        "bash": "/bin/bash",
+        "sed": "/usr/bin/sed",
+        "awk": "/usr/bin/awk",
+        "jq": "/usr/bin/jq",
+        "curl": "/usr/bin/curl",
+        "rev": "/usr/bin/rev",
+        "expand": "/usr/bin/expand",
+        "fold": "/usr/bin/fold"
+      },
+      "deniedSelectorExecutables": [
+        "/usr/bin/otool",
+        "/usr/bin/git",
+        "/usr/bin/xcrun",
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool"
+      ],
+      "qualification": "Finite declared PATH, not an ambient host-command directory or a universal executable/library sandbox. Existing native staging remains separately bound. Unlisted required commands are explicit failures, never fallback successes. Missing OS library files are metadata trust, not file hashes or full OS attestation."
+    },
+    "externalReceipt": {
+      "schema": 3,
+      "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "observationCandidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+      "sha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+      "encodedSha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "qualification": "Exact readable identities reused only after fresh verification; original observation retains its pre-approval incomplete-binding status. Root separately approved precisely eleven macOS26.4.1/build25E253 references; no full OS or unknown-image attestation."
+    },
+    "readableTools": [
+      {
+        "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "bytes": 117591472,
+        "mode": 493,
+        "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+      },
+      {
+        "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "physical": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      {
+        "origin": "/usr/bin/git",
+        "physical": "/usr/bin/git",
+        "bytes": 118928,
+        "mode": 493,
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+      },
+      {
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "bytes": 3704880,
+        "mode": 493,
+        "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+      },
+      {
+        "origin": "/bin/sh",
+        "physical": "/bin/sh",
+        "bytes": 101232,
+        "mode": 493,
+        "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+      },
+      {
+        "origin": "/usr/bin/tar",
+        "physical": "/usr/bin/bsdtar",
+        "bytes": 275344,
+        "mode": 493,
+        "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+      },
+      {
+        "origin": "/bin/ps",
+        "physical": "/bin/ps",
+        "bytes": 170816,
+        "mode": 493,
+        "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+      },
+      {
+        "origin": "/usr/sbin/lsof",
+        "physical": "/usr/sbin/lsof",
+        "bytes": 307600,
+        "mode": 493,
+        "sha256": "1c7ea75ae284bfb569f693ce50ad25c04a780dfe5ae80ae93a5d2ed285c6b456"
+      },
+      {
+        "origin": "/usr/bin/otool",
+        "physical": "/usr/bin/otool",
+        "bytes": 118928,
+        "mode": 493,
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+      },
+      {
+        "origin": "/usr/bin/sw_vers",
+        "physical": "/usr/bin/sw_vers",
+        "bytes": 135536,
+        "mode": 493,
+        "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+        "bytes": 6158960,
+        "mode": 420,
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+        "bytes": 18743,
+        "mode": 420,
+        "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+        "bytes": 57957,
+        "mode": 420,
+        "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+        "bytes": 10194,
+        "mode": 420,
+        "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+        "bytes": 13085,
+        "mode": 420,
+        "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+        "bytes": 14595,
+        "mode": 420,
+        "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+        "bytes": 667701,
+        "mode": 420,
+        "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+        "bytes": 122392,
+        "mode": 493,
+        "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+        "bytes": 186328,
+        "mode": 493,
+        "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+        "bytes": 95160,
+        "mode": 493,
+        "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "bytes": 92680,
+        "mode": 493,
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "bytes": 98072,
+        "mode": 493,
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "bytes": 118824,
+        "mode": 493,
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+        "bytes": 142760,
+        "mode": 493,
+        "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68"
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+        "bytes": 187016,
+        "mode": 493,
+        "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+        "bytes": 456096,
+        "mode": 365,
+        "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66"
+      },
+      {
+        "origin": "/usr/bin/bsdtar",
+        "physical": "/usr/bin/bsdtar",
+        "bytes": 275344,
+        "mode": 493,
+        "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+      },
+      {
+        "origin": "/usr/bin/gzip",
+        "physical": "/usr/bin/gzip",
+        "bytes": 171712,
+        "mode": 493,
+        "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3"
+      },
+      {
+        "origin": "/usr/bin/gunzip",
+        "physical": "/usr/bin/gunzip",
+        "bytes": 197504,
+        "mode": 493,
+        "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73"
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+        "bytes": 93752,
+        "mode": 493,
+        "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44"
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+        "bytes": 93816,
+        "mode": 493,
+        "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710"
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+        "bytes": 114328,
+        "mode": 493,
+        "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604"
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+        "bytes": 113864,
+        "mode": 493,
+        "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3"
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+        "bytes": 113832,
+        "mode": 493,
+        "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7"
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+        "bytes": 189576,
+        "mode": 493,
+        "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c"
+      },
+      {
+        "origin": "/bin/bash",
+        "physical": "/bin/bash",
+        "bytes": 1293840,
+        "mode": 365,
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+      },
+      {
+        "origin": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "physical": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "bytes": 1395864,
+        "mode": 493,
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+      },
+      {
+        "origin": "/usr/bin/sed",
+        "physical": "/usr/bin/sed",
+        "bytes": 170336,
+        "mode": 493,
+        "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360"
+      },
+      {
+        "origin": "/usr/bin/awk",
+        "physical": "/usr/bin/awk",
+        "bytes": 302368,
+        "mode": 493,
+        "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+      },
+      {
+        "origin": "/usr/bin/jq",
+        "physical": "/usr/bin/jq",
+        "bytes": 1492208,
+        "mode": 493,
+        "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+      },
+      {
+        "origin": "/usr/bin/curl",
+        "physical": "/usr/bin/curl",
+        "bytes": 552624,
+        "mode": 493,
+        "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg",
+        "bytes": 4030432,
+        "mode": 365,
+        "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+        "bytes": 131504,
+        "mode": 493,
+        "sha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+        "bytes": 178336,
+        "mode": 493,
+        "sha256": "f53799fe27723aa0e61075b4d698b5dca44e5e96b4e38544b3ae047c7bed0d2e"
+      },
+      {
+        "origin": "/usr/bin/rev",
+        "physical": "/usr/bin/rev",
+        "bytes": 101328,
+        "mode": 493,
+        "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+        "bytes": 95400,
+        "mode": 493,
+        "sha256": "ea0e663158cd8d84c4e7869139b4180bd6d9a8dc6b9f09dda1c615484a4145fa"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+        "bytes": 127592,
+        "mode": 493,
+        "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "bytes": 137288,
+        "mode": 493,
+        "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+        "bytes": 92600,
+        "mode": 493,
+        "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+        "bytes": 89896,
+        "mode": 493,
+        "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9"
+      },
+      {
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tac",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tac",
+        "bytes": 180816,
+        "mode": 493,
+        "sha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41"
+      },
+      {
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+        "bytes": 95656,
+        "mode": 493,
+        "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b"
+      },
+      {
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+        "bytes": 92984,
+        "mode": 493,
+        "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559"
+      },
+      {
+        "origin": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+        "physical": "/private/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+        "bytes": 554568,
+        "mode": 365,
+        "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f"
+      },
+      {
+        "origin": "/usr/bin/expand",
+        "physical": "/usr/bin/expand",
+        "bytes": 101616,
+        "mode": 493,
+        "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78"
+      },
+      {
+        "origin": "/usr/bin/fold",
+        "physical": "/usr/bin/fold",
+        "bytes": 101808,
+        "mode": 493,
+        "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035"
+      },
+      {
+        "origin": "/usr/bin/strings",
+        "physical": "/usr/bin/strings",
+        "bytes": 118928,
+        "mode": 493,
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+      },
+      {
+        "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings",
+        "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings",
+        "bytes": 178224,
+        "mode": 493,
+        "sha256": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9"
+      },
+      {
+        "origin": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+        "physical": "/private/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+        "bytes": 114488,
+        "mode": 493,
+        "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+        "bytes": 257240,
+        "mode": 493,
+        "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+        "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+        "bytes": 274496,
+        "mode": 493,
+        "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b"
+      }
+    ],
+    "dependencyTrees": {
+      "main": {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+        "entries": 367,
+        "bytes": 48179371,
+        "sha256": "2f7cc0954648d94c2413f933da309bcee4274ef5a30333551080f62f51d4bf2c"
+      },
+      "benchmarks": {
+        "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "entries": 3889,
+        "bytes": 75292558,
+        "sha256": "126a50714ee3f825d860ba922eb503be32fda20462e82ded91ae1c1d36618013"
+      },
+      "npm": {
+        "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+        "entries": 2557,
+        "bytes": 12446245,
+        "sha256": "52031d4ab5f0c6e400c0e7d73e996641811c752c978c3322c9cb8dec4554590f"
+      },
+      "gitCore": {
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+        "entries": 197,
+        "bytes": 16319360,
+        "sha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b"
+      }
+    },
+    "nativeAssets": [
+      {
+        "name": "coreutils-9.7.tar.xz",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+        "executable": false,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+        "mode": 420
+      },
+      {
+        "name": "chmod.c",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+        "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+        "executable": false,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+        "mode": 420
+      },
+      {
+        "name": "stat.c",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+        "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+        "executable": false,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+        "mode": 420
+      },
+      {
+        "name": "mktemp.c",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+        "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+        "executable": false,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+        "mode": 420
+      },
+      {
+        "name": "modechange.c",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+        "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+        "executable": false,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+        "mode": 420
+      },
+      {
+        "name": "comm.c",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+        "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+        "executable": false,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+        "mode": 420
+      },
+      {
+        "name": "coreutils.texi",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+        "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "executable": false,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "mode": 420
+      },
+      {
+        "name": "chmod",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+        "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+        "mode": 493
+      },
+      {
+        "name": "stat",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+        "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+        "mode": 493
+      },
+      {
+        "name": "mktemp",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+        "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+        "mode": 493
+      },
+      {
+        "name": "paste",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "mode": 493
+      },
+      {
+        "name": "comm",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "mode": 493
+      },
+      {
+        "name": "join",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "mode": 493
+      },
+      {
+        "name": "touch",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+        "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+        "mode": 493
+      },
+      {
+        "name": "stat",
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+        "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "executable": true,
+        "authority": "prior metadata/table native preflight capture",
+        "actualSha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "mode": 493
+      },
+      {
+        "name": "gtar",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+        "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+        "executable": true,
+        "target": "snapshot:tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+        "authority": "prior tar profile capture",
+        "actualSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+        "mode": 365
+      },
+      {
+        "name": "bsdtar",
+        "origin": "/usr/bin/bsdtar",
+        "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+        "executable": true,
+        "authority": "prior tar profile capture",
+        "actualSha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+        "mode": 493
+      },
+      {
+        "name": "gzip",
+        "origin": "/usr/bin/gzip",
+        "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+        "executable": true,
+        "authority": "prior tar profile capture",
+        "actualSha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+        "mode": 493
+      },
+      {
+        "name": "gunzip",
+        "origin": "/usr/bin/gunzip",
+        "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+        "executable": true,
+        "authority": "prior tar profile capture",
+        "actualSha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+        "mode": 493
+      },
+      {
+        "name": "base64",
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+        "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+        "executable": true,
+        "target": "native:bytes/base64",
+        "authority": "prior pinned GNU byte profile",
+        "actualSha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+        "mode": 493
+      },
+      {
+        "name": "base32",
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+        "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+        "executable": true,
+        "target": "native:bytes/base32",
+        "authority": "prior pinned GNU byte profile",
+        "actualSha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+        "mode": 493
+      },
+      {
+        "name": "sha256sum",
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+        "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+        "executable": true,
+        "target": "native:bytes/sha256sum",
+        "authority": "prior pinned GNU byte profile",
+        "actualSha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+        "mode": 493
+      },
+      {
+        "name": "sha1sum",
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+        "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+        "executable": true,
+        "target": "native:bytes/sha1sum",
+        "authority": "prior pinned GNU byte profile",
+        "actualSha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+        "mode": 493
+      },
+      {
+        "name": "md5sum",
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+        "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+        "executable": true,
+        "target": "native:bytes/md5sum",
+        "authority": "prior pinned GNU byte profile",
+        "actualSha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+        "mode": 493
+      },
+      {
+        "name": "gzip",
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+        "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+        "executable": true,
+        "target": "native:bytes/gzip",
+        "authority": "prior pinned GNU byte profile",
+        "actualSha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+        "mode": 493
+      },
+      {
+        "name": "bash3.2",
+        "origin": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "executable": true,
+        "authority": "prior actual native identity",
+        "actualSha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "mode": 365
+      },
+      {
+        "name": "bash5.3",
+        "origin": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "executable": true,
+        "authority": "prior actual native identity",
+        "actualSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "mode": 493
+      },
+      {
+        "name": "sed",
+        "origin": "/usr/bin/sed",
+        "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+        "executable": true,
+        "authority": "prior actual native identity",
+        "actualSha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+        "mode": 493
+      },
+      {
+        "name": "awk",
+        "origin": "/usr/bin/awk",
+        "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+        "executable": true,
+        "authority": "prior actual native identity",
+        "actualSha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+        "mode": 493
+      },
+      {
+        "name": "jq",
+        "origin": "/usr/bin/jq",
+        "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+        "executable": true,
+        "authority": "prior actual native identity",
+        "actualSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+        "mode": 493
+      },
+      {
+        "name": "curl",
+        "origin": "/usr/bin/curl",
+        "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+        "executable": true,
+        "authority": "prior actual native identity",
+        "actualSha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+        "mode": 493
+      },
+      {
+        "name": "rg",
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg",
+        "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+        "executable": true,
+        "authority": "prior actual native identity",
+        "target": "native:rg",
+        "originEnv": "RG_NATIVE_BIN",
+        "actualSha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+        "mode": 365
+      },
+      {
+        "name": "seq",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+        "sha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+        "authority": "stream-format/evidence/freeze-native.json",
+        "actualSha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f",
+        "mode": 493
+      },
+      {
+        "name": "nl",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+        "sha256": "f53799fe27723aa0e61075b4d698b5dca44e5e96b4e38544b3ae047c7bed0d2e",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+        "authority": "stream-format/evidence/freeze-native.json",
+        "actualSha256": "f53799fe27723aa0e61075b4d698b5dca44e5e96b4e38544b3ae047c7bed0d2e",
+        "mode": 493
+      },
+      {
+        "name": "rev",
+        "origin": "/usr/bin/rev",
+        "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247",
+        "executable": true,
+        "authority": "stream-format/evidence/freeze-native.json",
+        "actualSha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247",
+        "mode": 493
+      },
+      {
+        "name": "unexpand",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+        "sha256": "ea0e663158cd8d84c4e7869139b4180bd6d9a8dc6b9f09dda1c615484a4145fa",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+        "authority": "stream-format/evidence/freeze-native.json",
+        "actualSha256": "ea0e663158cd8d84c4e7869139b4180bd6d9a8dc6b9f09dda1c615484a4145fa",
+        "mode": 493
+      },
+      {
+        "name": "split",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+        "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+        "authority": "split/native.test.ts exact pin",
+        "actualSha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "mode": 493
+      },
+      {
+        "name": "date",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "version": "date (GNU coreutils) 9.7",
+        "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion",
+        "actualSha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+        "mode": 493
+      },
+      {
+        "name": "sleep",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+        "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+        "version": "sleep (GNU coreutils) 9.7",
+        "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion",
+        "actualSha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+        "mode": 493
+      },
+      {
+        "name": "printenv",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+        "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+        "executable": true,
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+        "version": "printenv (GNU coreutils) 9.7",
+        "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion",
+        "actualSha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+        "mode": 493
+      },
+      {
+        "name": "tac",
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tac",
+        "sha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+        "executable": true,
+        "target": "native:stream/tac",
+        "authority": "stream-inspection/oracle.ts",
+        "actualSha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+        "mode": 493
+      },
+      {
+        "name": "expand",
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+        "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+        "executable": true,
+        "target": "native:stream/expand",
+        "authority": "stream-inspection/oracle.ts",
+        "actualSha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+        "mode": 493
+      },
+      {
+        "name": "fold",
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+        "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+        "executable": true,
+        "target": "native:stream/fold",
+        "authority": "stream-inspection/oracle.ts",
+        "actualSha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+        "mode": 493
+      },
+      {
+        "name": "strings",
+        "origin": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+        "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+        "executable": true,
+        "target": "native:stream/strings",
+        "authority": "stream-inspection/gnu-strings-oracle.ts",
+        "actualSha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+        "mode": 365
+      },
+      {
+        "name": "expand",
+        "origin": "/usr/bin/expand",
+        "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78",
+        "executable": true,
+        "authority": "stream-inspection/evidence/native-corrected.json",
+        "actualSha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78",
+        "mode": 493
+      },
+      {
+        "name": "fold",
+        "origin": "/usr/bin/fold",
+        "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+        "executable": true,
+        "authority": "stream-inspection/evidence/native-corrected.json",
+        "actualSha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+        "mode": 493
+      },
+      {
+        "name": "strings",
+        "origin": "/usr/bin/strings",
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+        "executable": true,
+        "authority": "stream-inspection/evidence/native-corrected.json",
+        "actualSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+        "mode": 493
+      },
+      {
+        "name": "strings",
+        "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings",
+        "sha256": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9",
+        "executable": true,
+        "authority": "stream-inspection/evidence/native-corrected.json",
+        "actualSha256": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9",
+        "mode": 493
+      },
+      {
+        "name": "tree",
+        "originEnv": "TREE_NATIVE_BIN",
+        "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+        "executable": true,
+        "target": "native:tree",
+        "authority": "tree/native-fixtures.json; caller must explicitly supply exact pinned binary",
+        "origin": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+        "actualSha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+        "mode": 493
+      },
+      {
+        "name": "expr",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+        "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+        "executable": true,
+        "authority": "GNU9.7 author oracle; independent source/profile acceptance remains external",
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+        "actualSha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+        "mode": 493
+      },
+      {
+        "name": "du",
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+        "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+        "executable": true,
+        "authority": "GNU9.7 author oracle; live presence and profile acceptance remain explicit",
+        "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+        "actualSha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+        "mode": 493
+      }
+    ],
+    "systemBoundary": {
+      "host": {
+        "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+        "stderr": "",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "sampledOriginalReferences": 11,
+      "sandboxReferences": 2,
+      "inspectorReferences": 2,
+      "qualification": "Exact tool/reference pairs, not15 unique libraries or file-hash/full-OS attestation. No broader DeveloperTools/unknown/readable-library exception."
+    },
+    "recheckedHere": false,
+    "mandatoryPrelaunchRecheck": true
+  },
+  "policies": {
+    "rootInstructions": "Exact six metadata-only omissions; never write instruction bodies/alternate snapshots; authenticated opaque Git provenance allowed inertly.",
+    "writes": "Inert outside symlink references permitted; resolved outside/protected writes and physical outside hardlink/directory imports denied. Preopened-FD/TOCTOU/dynamic-image limits retained.",
+    "runtime": "Node24.11.1 qualified gate profile; no product minimum change; permission/explicit TAP/concurrency2 and one audited driver build reused by typing.",
+    "sourceIsolation": "Fixed f5 only; excludes later77/78/helper/Stage2/CD/LET/stack/YQ/XAN/timeout changes and maintained200-entry inventory96ed7733. Historical research data in f5 is not a production overlay.",
+    "release": "AWAITING new packet metadata review and fresh explicit ROOT_RELEASE_UNIFIED76. One run only after release; no prior/consumed GO, retries, permission widening or mutable overlays. Unknown route/guard/cleanup failure => nonzero HOLD.",
+    "inheritedRoutes": "Three-key process-local cooperating scope, complete awaited prerequisites plus both outer private guards; fresh route validation, exact restoration, overlap/drift rejection, multiple-error retention and poisoned unrestored state. Settlement/disconnection is not detached-child closure; explicit nested environments unchanged."
+  },
+  "bounds": {
+    "archiveEntries": 37397,
+    "archiveBytes": 2382440321,
+    "archiveTransferBytes": 3221225472,
+    "historyTransferBytes": 8589934592,
+    "dependencyBytes": 1073741824,
+    "setupStderrBytes": 1048576,
+    "phaseOutputBytes": 268435456,
+    "allPhaseOutputBytes": 4294967296,
+    "setupTimeoutMs": 600000,
+    "phaseTimeoutMs": 1800000,
+    "cleanupTimeoutMs": 5000,
+    "chunkBytes": 65536,
+    "maximumLineBytes": 1048576,
+    "totalSupervisorMs": 25805000,
+    "observerRequests": 4096,
+    "maintainedConsumerTimeoutMs": 900000,
+    "secondaryDiagnosticBytes": 8388608,
+    "maximumTapCases": 100000
+  },
+  "phases": [
+    {
+      "name": "safejs-availability",
+      "expectedStatus": 0
+    },
+    {
+      "name": "cold-typecheck",
+      "expectedStatus": 78
+    },
+    {
+      "name": "typecheck-all",
+      "expectedStatus": 0
+    },
+    {
+      "name": "benchmark-types",
+      "expectedStatus": 0
+    },
+    {
+      "name": "env-source-binding",
+      "expectedStatus": 0
+    },
+    {
+      "name": "canonical",
+      "expectedStatus": 0
+    },
+    {
+      "name": "current-consumers",
+      "expectedStatus": 0
+    },
+    {
+      "name": "pack",
+      "expectedStatus": 0
+    },
+    {
+      "name": "public-runtime",
+      "expectedStatus": 0
+    },
+    {
+      "name": "public-types",
+      "expectedStatus": 0
+    },
+    {
+      "name": "negative-types",
+      "expectedStatus": 2
+    },
+    {
+      "name": "missing-root",
+      "expectedStatus": 1
+    },
+    {
+      "name": "missing-contracts",
+      "expectedStatus": 1
+    },
+    {
+      "name": "final-sweep",
+      "expectedStatus": 0
+    }
+  ],
+  "launch": {
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "executable": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    "script": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs",
+    "args": [
+      "--candidate",
+      "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "--run",
+      "/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+      "--release",
+      "/tmp/unified76-release-f5-scopedenv-20260828-r2.json",
+      "--committed-archive"
+    ],
+    "output": "/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+    "physicalOutput": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+    "authorizationFile": "/tmp/unified76-release-f5-scopedenv-20260828-r2.json",
+    "supervisorOutputPattern": "<physical parent tmpdir>/unified76-supervisor-*; bind actual path in fresh outer receipt",
+    "writeRootPattern": "/private/tmp/unified76-os-write-*",
+    "profileNativeEnvironment": {
+      "STREAM_NATIVE_LIVE": "1",
+      "STREAM_GNU_BIN": "$NATIVE/stream",
+      "STREAM_GNU_STRINGS": "$NATIVE/stream/strings",
+      "GNU_TABLE_BIN": "$SNAPSHOT/tests/commands/metadata-stress/.oracle/coreutils-9.7/src",
+      "TREE_NATIVE_BIN": "$NATIVE/tree",
+      "BYTE_GNU_COREUTILS_DIR": "$NATIVE/bytes",
+      "BYTE_GNU_GZIP": "$NATIVE/bytes/gzip"
+    },
+    "qualification": "Output/authorization paths checked absent now; do not create output before authorized launcher. Rendered fence/inodes bind actual roots at setup; no future envelope invented.",
+    "preRunStatus": "NOT AUTHORIZED; destinations absent at preparation; no output/authorization created."
+  },
+  "verification": {
+    "newArchive": false,
+    "instructionBodiesCopied": false,
+    "productBuilds": 0,
+    "productExecutions": 0,
+    "privateReads": false,
+    "nativeOracleExecutions": 0,
+    "gateToolProbes": 0,
+    "gitMetadataCommands": 121,
+    "metadataOnly": true,
+    "toolsRehashed": false,
+    "qualification": "Read-only Git metadata/blob queries and bounded JSON/hash checks. No tool/oracle probe, setup, native/control replay, build, pack or private access. Actual shipping admission must recheck current external identities after fresh root release."
+  },
+  "supersedes": {
+    "packet": {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/release-packet-v2-final-routes/PACKET.json",
+      "revision": "d9dd698a33421b197ee15432a6606ad91dd06c63",
+      "blob": "038a560de95f0e7dd37a09dfee44db8f911ddedd",
+      "mode": "100644",
+      "bytes": 76721,
+      "sha256": "56d45cb729ce8c60ed60834f7b86f2f08b438d34ff334c1f699d71d61a7fda47"
+    },
+    "normalizedSha256": "7e40e84c099d8eaa2e9bc4c1cc73274b4a174d699737f34b7015eb4eb706ec70",
+    "consumedAuthorization": "8e6b40ecd2cec2b6dcaf2ce80c0cff477d39e6eb",
+    "failedAttempt": "df89d474bb863b3815f6e81f81917dcef4227779",
+    "originalPhases": 0,
+    "totalPhases": 14,
+    "originalEpermTarget": "UNKNOWN",
+    "qualification": "Old launch consumed authorization; retained roots/raw failure/absent private postguard unchanged. No old GO transfers."
+  },
+  "helper": {
+    "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+    "revision": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "blob": "086108cffbc4e299e9ceb9fa018a9c7b0d43e636",
+    "mode": "100644",
+    "bytes": 5589,
+    "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db"
+  }
+}

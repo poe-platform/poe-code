@@ -1,0 +1,5 @@
+source/matcher.ts(173,3): error TS2322: Type 'Readonly<{ matched: false; captures: readonly never[]; values: readonly never[]; }>' is not assignable to type 'EreResult'.
+  Type 'Readonly<{ matched: false; captures: readonly never[]; values: readonly never[]; }>' is not assignable to type 'EreNoMatch'.
+    Types of property 'captures' are incompatible.
+      Type 'readonly never[]' is not assignable to type 'readonly []'.
+        Target allows only 0 element(s) but source may have more.

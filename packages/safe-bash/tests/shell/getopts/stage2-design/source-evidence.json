@@ -1,0 +1,309 @@
+{
+  "format": "getopts-stage2-design-code-reading-v1",
+  "recordedAt": "2026-08-27T20:33:41.557Z",
+  "classification": "Design-only code reading and scoped file integrity, no candidate/native/test execution",
+  "ownership": "Only new tests/shell/getopts/stage2-design files; runtime.ts/shell.ts reserved to Sagan",
+  "initialReadHead": "c4b6b3a06c3bc777b7cffa075188ce39ab3b70f2",
+  "recordingHead": "35909b63e39496965d56913669da1f3f0ba04a1e",
+  "ownedOutputCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "ownedOutputProductionPaths": [
+    "src/commands/network/curl.ts",
+    "src/commands/network/transport.ts",
+    "src/commands/network/types.ts",
+    "src/commands/streams.ts",
+    "src/contracts/index.ts",
+    "src/contracts/io.ts",
+    "src/contracts/output.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts"
+  ],
+  "ownedOutputProductionPathCount": 9,
+  "sources": {
+    "src/commands/execution.ts": {
+      "bytes": 9269,
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "ebaSHA256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "headSHA256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "initialReadHeadSHA256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c"
+    },
+    "src/commands/network/curl.ts": {
+      "bytes": 17904,
+      "sha256": "22feaa13f6127cb94f3ad9f928a245d6592aff0432ba0ee35fc57804f8692dce",
+      "ebaSHA256": "22feaa13f6127cb94f3ad9f928a245d6592aff0432ba0ee35fc57804f8692dce",
+      "headSHA256": "22feaa13f6127cb94f3ad9f928a245d6592aff0432ba0ee35fc57804f8692dce",
+      "initialReadHeadSHA256": "22feaa13f6127cb94f3ad9f928a245d6592aff0432ba0ee35fc57804f8692dce",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "21384b3a89411e832af7a4214c9869885b055a63"
+    },
+    "src/commands/network/transport.ts": {
+      "bytes": 3613,
+      "sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05",
+      "ebaSHA256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05",
+      "headSHA256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05",
+      "initialReadHeadSHA256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "020adb18e650364469ed450d0898d70aab942a00"
+    },
+    "src/commands/network/types.ts": {
+      "bytes": 1918,
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+      "ebaSHA256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+      "headSHA256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+      "initialReadHeadSHA256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "41d192aaadeb0a727990392cc4df3e05d94aab31"
+    },
+    "src/commands/streams.ts": {
+      "bytes": 17782,
+      "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "ebaSHA256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "headSHA256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "initialReadHeadSHA256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "3ea14daa9679a18f03e9d819cb829b18f6ea43c8"
+    },
+    "src/contracts/command.md": {
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "ebaSHA256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "headSHA256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "initialReadHeadSHA256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "16371126acaccd07a8db2505b53a0625eb9b4592"
+    },
+    "src/contracts/command.ts": {
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "ebaSHA256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "headSHA256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "initialReadHeadSHA256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "671327d43c48c5964658ad8c630578fe889421e2"
+    },
+    "src/contracts/index.ts": {
+      "bytes": 202,
+      "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "ebaSHA256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "headSHA256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "initialReadHeadSHA256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "bde8cdfbe7f5b14da1b064d3b4f3a8c31d9c45ef"
+    },
+    "src/contracts/io.ts": {
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "ebaSHA256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "headSHA256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "initialReadHeadSHA256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "6dc0efb87132376763228a845b2e62638898268a"
+    },
+    "src/contracts/output.ts": {
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "ebaSHA256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "headSHA256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "initialReadHeadSHA256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8"
+    },
+    "src/contracts/plugin.ts": {
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "ebaSHA256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "headSHA256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "initialReadHeadSHA256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4"
+    },
+    "src/shell/arithmetic.ts": {
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "ebaSHA256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "headSHA256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "initialReadHeadSHA256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "223101946d13ac9b44f4a898f58fd16004ba86b9"
+    },
+    "src/shell/cleanup.ts": {
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "ebaSHA256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "headSHA256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "initialReadHeadSHA256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "eae04650a553e4820da9c7b08b0255a6b20fc01c"
+    },
+    "src/shell/getopts.ts": {
+      "bytes": 9964,
+      "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "ebaSHA256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "headSHA256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "initialReadHeadSHA256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "bb502b076063c0fb95766911648dba788000f8b4"
+    },
+    "src/shell/input.ts": {
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "ebaSHA256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "headSHA256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "initialReadHeadSHA256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4"
+    },
+    "src/shell/runtime.ts": {
+      "bytes": 108731,
+      "sha256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c",
+      "ebaSHA256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c",
+      "headSHA256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c",
+      "initialReadHeadSHA256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "038f2019c32fab0bf1712f8b7b8e1671e60a9a12"
+    },
+    "src/shell/shell.ts": {
+      "bytes": 10644,
+      "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+      "ebaSHA256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+      "headSHA256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+      "initialReadHeadSHA256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "6c9392e357e7f9da3ccd6ddff1c001a8d7a17b8f"
+    },
+    "src/shell/types.ts": {
+      "bytes": 2178,
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "ebaSHA256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "headSHA256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "initialReadHeadSHA256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "equalsEba": true,
+      "equalsHead": true,
+      "equalsInitialReadHead": true,
+      "ebaBlob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef"
+    }
+  },
+  "scopedDiffFromEbaToLive": "",
+  "scopedDiffFromEbaToHead": "",
+  "scopedWorkingStatus": "",
+  "ebaRuntimeShellDiffFromParent": "diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts\nindex 1eb39567..038f2019 100644\n--- a/src/shell/runtime.ts\n+++ b/src/shell/runtime.ts\n@@ -86,6 +86,16 @@ export class Budget {\n     const ownership = budgetedSinks.get(sink);\n     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);\n     const output: ByteSink = {\n+      ...(sink.ownedOutput ? { ownedOutput: {\n+        consumerClosed: sink.ownedOutput.consumerClosed,\n+        write: async (chunk: Uint8Array) => {\n+          signal.throwIfAborted();\n+          if (!(chunk instanceof Uint8Array)) throw new TypeError(\"Shell output must be Uint8Array\");\n+          if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail(\"maxOutputBytes\");\n+          this.bytes += chunk.byteLength;\n+          await interruptible(sink.ownedOutput!.write(chunk), signal);\n+        },\n+      } } : {}),\n       write: async (chunk) => {\n         signal.throwIfAborted();\n         if (!(chunk instanceof Uint8Array)) throw new TypeError(\"Shell output must be Uint8Array\");\n@@ -232,7 +242,13 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {\n   const ownership = budgetedSinks.get(sink);\n   const owned = ownership?.write === sink.write ? ownership : undefined;\n   const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);\n-  const output: ByteSink = { async write(chunk) { signal.throwIfAborted(); await interruptible(write(chunk), signal); } };\n+  const output: ByteSink = {\n+    ...(sink.ownedOutput ? { ownedOutput: {\n+      consumerClosed: sink.ownedOutput.consumerClosed,\n+      async write(chunk: Uint8Array) { signal.throwIfAborted(); await interruptible(sink.ownedOutput!.write(chunk), signal); },\n+    } } : {}),\n+    async write(chunk) { signal.throwIfAborted(); await interruptible(write(chunk), signal); },\n+  };\n   if (owned) budgetedSinks.set(output, { budget: owned.budget, write: output.write });\n   return output;\n }\n@@ -332,7 +348,7 @@ export class Runtime {\n         const commandSignal = AbortSignal.any([this.commandSignal, controllers[index]!.signal]);\n         const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, commandSignal);\n         const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);\n-        const pipeOutput: ByteSink | undefined = outgoing && { write: async (chunk) => {\n+        const pipeOutput: ByteSink | undefined = outgoing && { ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {\n           try {\n             await outgoing.writable.write(chunk);\n             if (chunk.byteLength) written.add(index);\n@@ -377,7 +393,7 @@ export class Runtime {\n         status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;\n       } finally {\n         for (const close of closing) clearImmediate(close);\n-        for (const controller of controllers) controller.abort(new PipelineClosed());\n+        for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());\n         await Promise.all(pipes.map((pipe) => pipe.abort()));\n       }\n     }\ndiff --git a/src/shell/shell.ts b/src/shell/shell.ts\nindex 9d535825..6c9392e3 100644\n--- a/src/shell/shell.ts\n+++ b/src/shell/shell.ts\n@@ -113,6 +113,13 @@ export class Shell implements PluginHost {\n     const stdout = new Capture();\n     const stderr = new Capture();\n     const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({\n+      ...(external?.ownedOutput ? { ownedOutput: {\n+        consumerClosed: external.ownedOutput.consumerClosed,\n+        write: async (chunk: Uint8Array) => {\n+          await capture.write(chunk);\n+          await external.ownedOutput!.write(chunk);\n+        },\n+      } } : {}),\n       write: async (chunk) => {\n         await capture.write(chunk);\n         if (external) await external.write(chunk);\n",
+  "frozenEvidenceCommit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+  "frozenInputs": {
+    "tests/shell/getopts-independent-20260827/stage2/RESULT.md": {
+      "bytes": 6129,
+      "sha256": "899da61f85d2caf60374df117e2e57541f0197599f71e877c52d42d3d28ea044",
+      "evidenceCommitSHA256": "899da61f85d2caf60374df117e2e57541f0197599f71e877c52d42d3d28ea044",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/CORRECTIONS.md": {
+      "bytes": 3507,
+      "sha256": "f321eb57b60964bf1690125b073f80513e927def64cb8f6d2a8444cb205295dd",
+      "evidenceCommitSHA256": "f321eb57b60964bf1690125b073f80513e927def64cb8f6d2a8444cb205295dd",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/FREEZE.md": {
+      "bytes": 3720,
+      "sha256": "e4bec8de8cf5069f10b16c86a4ed292f72dacd11c1b0ee6d01600e69fcd33383",
+      "evidenceCommitSHA256": "e4bec8de8cf5069f10b16c86a4ed292f72dacd11c1b0ee6d01600e69fcd33383",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/invariants.json": {
+      "bytes": 9523,
+      "sha256": "853a01496f1beea6401e21d09791db6584921082debd4a2acd2074314e266bff",
+      "evidenceCommitSHA256": "853a01496f1beea6401e21d09791db6584921082debd4a2acd2074314e266bff",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/corpus.mjs": {
+      "bytes": 12422,
+      "sha256": "6be0ae0f6bfaf96606837f67183e5f5df7ba0debb9ccd1449a1cc292da8dab71",
+      "evidenceCommitSHA256": "6be0ae0f6bfaf96606837f67183e5f5df7ba0debb9ccd1449a1cc292da8dab71",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/baseline.json": {
+      "bytes": 6109,
+      "sha256": "1187b748a3dd2f03cb4f152c2b9280a0fdc8f353e64d543ccb250086cd8b6593",
+      "evidenceCommitSHA256": "1187b748a3dd2f03cb4f152c2b9280a0fdc8f353e64d543ccb250086cd8b6593",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/sources.json": {
+      "bytes": 2842,
+      "sha256": "70dfc1a99acef0800261319c6ff0eaf4241bf3a5f4db1ba6f9dadc3da3a98db2",
+      "evidenceCommitSHA256": "70dfc1a99acef0800261319c6ff0eaf4241bf3a5f4db1ba6f9dadc3da3a98db2",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/capture-01/bash53.json": {
+      "bytes": 52819,
+      "sha256": "e6a54e03cf3c5e7daf0deb452476457bbb4e149e9bd5c4babddbdb251e985378",
+      "evidenceCommitSHA256": "e6a54e03cf3c5e7daf0deb452476457bbb4e149e9bd5c4babddbdb251e985378",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/capture-01/bash32.json": {
+      "bytes": 51697,
+      "sha256": "27b1fc517b3deb882eb9eda5a7754a9e9c6fb1078d967d9e1eab71625acccb2d",
+      "evidenceCommitSHA256": "27b1fc517b3deb882eb9eda5a7754a9e9c6fb1078d967d9e1eab71625acccb2d",
+      "equalsEvidenceCommit": true
+    },
+    "tests/shell/getopts-independent-20260827/stage2/evidence-manifest.json": {
+      "bytes": 4300,
+      "sha256": "2810268b574d643be05fab252b92877d7385d2fec67eb8831f33e1ae90e25235",
+      "evidenceCommitSHA256": "2810268b574d643be05fab252b92877d7385d2fec67eb8831f33e1ae90e25235",
+      "equalsEvidenceCommit": true
+    }
+  },
+  "additionalAuthorityHashes": {
+    "AGENTS.md": "6fc4b23357522dd3c3cf20347a9d6586268fb8e42cc04f35d3cbe3e4beeac75c",
+    "tests/shell/getopts/README.md": "a1746cced8d839aa77601093a1b9a8dfff194edc1ca8b7f7f95eb2b82cd9fa16",
+    "tests/shell/getopts/AUTHOR_HANDOFF.md": "e512df0a8e7e71b36e4f49f3944bd9d01237476b00a98ffd177547bb1645ee8d",
+    "tests/shell/getopts/evidence/design-v1/archive.json": "c48b8cee0be966b3e4fdbaa146c007b3da45d0228f2c0a7f99ac2166613ec198"
+  },
+  "archiveReportEmbeddedSHA256": "2c9740082cefa4617d8a09b95f51c522726ef93625866c92052a7a0b6de1eebc",
+  "executions": {
+    "product": 0,
+    "tests": 0,
+    "builds": 0,
+    "native": 0,
+    "curie36Reruns": 0
+  },
+  "qualifications": [
+    "Scope-limited byte/hash comparison, not whole-tree immutability or an append-proof archive verification.",
+    "Foreign live edits and staging remain outside this design ownership; no source or frozen file was written.",
+    "Historical native results retain original denominators; no host invariants were executed by this leaf.",
+    "Runtime behavior deductions and private adapter proposals are not implementation or test-pass claims.",
+    "DU9a5a6f92 and O060 remain deferred; Stage2 runtime ownership was not released."
+  ]
+}

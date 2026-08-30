@@ -1,0 +1,11 @@
+{
+  "code": 0,
+  "signal": null,
+  "bytes": 2340945920,
+  "chunks": 45992,
+  "maxChunkBytes": 65536,
+  "sha256": "cb7f6b6d68f5946c3300e28156367ba42d1af83b12cb1b4be88832c50dfbfd07",
+  "stderr": "",
+  "timedOut": false,
+  "closeObserved": true
+}

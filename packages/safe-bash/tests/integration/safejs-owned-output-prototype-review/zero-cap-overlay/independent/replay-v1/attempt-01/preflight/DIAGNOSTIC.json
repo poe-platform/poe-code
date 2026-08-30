@@ -1,0 +1,30 @@
+{
+  "kind": "SUBSEQUENT_READONLY_STATIC_INVENTORY_DIAGNOSIS_NOT_RETRY",
+  "date": "2026-08-27",
+  "expectedCount": 88,
+  "observedCount": 97,
+  "addedPaths": [
+    "execution-v1/ADMISSION.json.data",
+    "execution-v1/PREPARATION-INPUTS.json",
+    "execution-v1/PREPARATION-SHARED.json",
+    "execution-v1/PREPARATION.json",
+    "execution-v1/ROOT-RELEASE.json",
+    "execution-v1/admission-relocation.mjs.data",
+    "execution-v1/admission-relocation.patch-data",
+    "execution-v1/prepare.py",
+    "execution-v1/shared.py"
+  ],
+  "missingPaths": [],
+  "changedOriginalRecords": [],
+  "sameMappings": false,
+  "sameOrder": false,
+  "firstOrderDifference": {
+    "index": 36,
+    "expected": "fixture-deltas/controls-CASES.json.patch-data",
+    "observed": "execution-v1/ADMISSION.json.data"
+  },
+  "interpretation": "All88 sealed original author entries still match; nine new files were observed under the whole-tree-authenticated author root. This is real file-set drift, not merely ordering. No semantic inspection or adoption of the appended author's unsealed work occurred.",
+  "qualification": "The first failing assertion did not serialize its inventory. These97/9 counts are from the following static diagnostic, not retroactively claimed as the exact first-failure count. No additional author runtime or provenance is inferred from the new filenames.",
+  "runtimeExecutions": 0,
+  "noPromotion": true
+}

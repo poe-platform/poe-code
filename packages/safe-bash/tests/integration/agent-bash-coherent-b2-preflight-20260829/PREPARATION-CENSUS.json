@@ -1,0 +1,254 @@
+{
+  "version": "b2-preparation-packet-deriver-r2.1",
+  "sampling": "Invocation-local immutable inventory; not ambient REPL counters",
+  "helperChildStarts": [
+    {
+      "role": "metadata-reader-01",
+      "executable": "/usr/bin/git",
+      "args": [
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 72628,
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "role": "fixture-reader-02",
+      "executable": "/usr/bin/git",
+      "args": [
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 72636,
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "role": "frozen-binding-reader-03",
+      "executable": "/usr/bin/git",
+      "args": [
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 83127,
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "role": "selected-source-reader-04",
+      "executable": "/usr/bin/git",
+      "args": [
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "maintenance.auto=false",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 83128,
+      "status": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "helperChildren": 4,
+  "helperPeakKnownChildren": 1,
+  "knownOsStartsBeforeFinalizer": 42,
+  "knownOsStartsThroughFinalizer": 45,
+  "expectedPublicationKnownStarts": 10,
+  "expectedTotalKnownStarts": 55,
+  "ceiling": 56,
+  "accounting": "Includes wrapper shells, explicitly invoked metadata/edit/copy/seal utilities and four Node helper/check starts; initial trusted host/zsh startup excluded. This is a declared known-role ledger, not a universal OS descendant census.",
+  "peakKnownOs": 3,
+  "initialCaptureBytesAtSnapshot": 1576350,
+  "rawBytesAtSnapshot": 8243924,
+  "ownedBytesAtSnapshot": 11851907,
+  "workInventory": [
+    {
+      "relative": "finalize-preseal.sha256",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/finalize-preseal.sha256",
+      "bytes": 142,
+      "sha256": "57ba9cc8f50631de0c073f042d29fe55827c24c44217904e780f1b814fec9af6",
+      "mode": 384
+    },
+    {
+      "relative": "finalize-r2.mjs",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/finalize-r2.mjs",
+      "bytes": 35799,
+      "sha256": "de89c1e315bfeb9710a0b4f88a995a28ddd0061be1ed1d971df5548fc6f2335d",
+      "mode": 384
+    },
+    {
+      "relative": "finalize.stderr.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/finalize.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "finalize.stdout.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/finalize.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "fixture-reader-02.stderr.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/fixture-reader-02.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "fixture-reader-02.stdout.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/fixture-reader-02.stdout.raw",
+      "bytes": 93215,
+      "sha256": "53fd653d0aa50cb8a4af5d6a06a564d96b94a7ddb5c05faf9ad86c5c899a2f12",
+      "mode": 384
+    },
+    {
+      "relative": "frozen-binding-reader-03.stderr.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/frozen-binding-reader-03.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "frozen-binding-reader-03.stdout.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/frozen-binding-reader-03.stdout.raw",
+      "bytes": 496770,
+      "sha256": "fe4333fc0c0d46a3eb55ed5fd126be2af0fa55e3d45a9989858e040aab7e0ffa",
+      "mode": 384
+    },
+    {
+      "relative": "inspect.stderr.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/inspect.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "inspect.stdout.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/inspect.stdout.raw",
+      "bytes": 20782,
+      "sha256": "b424452e7c437c55e68d7df6e1f8e4c336a61f8f53540305e058c9b8107be6f8",
+      "mode": 384
+    },
+    {
+      "relative": "inspection.json",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/inspection.json",
+      "bytes": 3564561,
+      "sha256": "c9f14318a12caca009018ef60f4deead8b753b633ba9262f2a7c4014b029adb5",
+      "mode": 384
+    },
+    {
+      "relative": "inspection.sha256",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/inspection.sha256",
+      "bytes": 142,
+      "sha256": "cd370de298de26c8f6f17b1cce2e73f7d16d7704438870695d8b1bedda76404e",
+      "mode": 384
+    },
+    {
+      "relative": "metadata-reader-01.stderr.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/metadata-reader-01.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "metadata-reader-01.stdout.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/metadata-reader-01.stdout.raw",
+      "bytes": 3204981,
+      "sha256": "c070e8b796f3e6e74c19c6eef936ed9d52acc0b443e320dd9f848fe2b4b445a9",
+      "mode": 384
+    },
+    {
+      "relative": "prepare-r2.mjs",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/prepare-r2.mjs",
+      "bytes": 7339,
+      "sha256": "4f551b1df4c7bcdda2e7b9e0d743842241290fbde4f368f6d4ce45c73e998912",
+      "mode": 384
+    },
+    {
+      "relative": "selected-source-reader-04.stderr.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/selected-source-reader-04.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "selected-source-reader-04.stdout.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/selected-source-reader-04.stdout.raw",
+      "bytes": 2851826,
+      "sha256": "d28c5ecf3668f03a79033396bb1792008534b2f363c8256e162b6e839f06b379",
+      "mode": 384
+    },
+    {
+      "relative": "syntax-finalize.stderr.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/syntax-finalize.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "syntax-finalize.stdout.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/syntax-finalize.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "syntax-prepare.stderr.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/syntax-prepare.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "relative": "syntax-prepare.stdout.raw",
+      "path": "/private/tmp/safe-bash-b2-preparation-r2-01a04d95/syntax-prepare.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    }
+  ],
+  "elapsedSecondsAtSnapshot": 872.2834479980469,
+  "deadlineEpochMs": 1788009690173.552,
+  "publicationReserveSeconds": 60,
+  "status": "PREPUBLICATION_SNAPSHOT_FINAL_ADMINISTRATION_REMAINS",
+  "runtime": {
+    "retainedCalls": 0,
+    "typeChecks": 0,
+    "mutants": 0,
+    "restores": 0,
+    "bindingChecks": 0,
+    "regexWorkers": 0,
+    "guestEngines": 0,
+    "productImports": 0,
+    "decoders": 0
+  }
+}

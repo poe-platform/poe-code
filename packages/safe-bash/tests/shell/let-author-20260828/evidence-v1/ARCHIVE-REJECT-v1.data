@@ -1,0 +1,17 @@
+Post-run artifact validation attempt 1 exited 1 before product execution.
+Exact first rejection:
+AssertionError [ERR_ASSERTION]: UNLISTED_ARCHIVE_ENTRY:._README.md
+    at onReadEntry (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/verify-artifacts.mjs:33:37)
+Node.js v22.22.2
+
+Original selected-inputs.tar.gz SHA256:
+f97b3a776bbc4c79fafd152c7348425b8d3cff594368f7b6c612390cedc262db
+The macOS bsdtar creation included an AppleDouble sidecar. Unknown entries are
+NOT accepted or ignored; this archive is rejected for the strict265-file profile.
+Its bytes, original report/hash and original validator are preserved.
+The failed pass did not reach package archive validation or final receipt checks.
+
+Correction is archive-only: use the already bound npm tar regular-file writer
+with portable/noPax metadata for exactly the same265 authenticated files; no
+source/build/pack/type/product/native rerun. Strict path/mode/size/hash equality
+and rejection of unknown entries remain unchanged in corrected validation.

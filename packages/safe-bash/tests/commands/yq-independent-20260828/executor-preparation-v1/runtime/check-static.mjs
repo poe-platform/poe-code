@@ -1,0 +1,61 @@
+import assert from 'node:assert/strict';
+import { readFileSync, realpathSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { authorize } from './recipe/authorization.mjs';
+import { createFixtureContext } from './recipe/context.mjs';
+import { loadData, materializeJobs } from './recipe/fixtures.mjs';
+import { parseReceipt } from './recipe/host.mjs';
+import { jsonHash, sha256, treeSnapshot, verifyGuards } from './recipe/integrity.mjs';
+
+const runtime = dirname(fileURLToPath(import.meta.url));
+const repository = realpathSync(resolve(runtime, '../../../../..'));
+const recipe = join(runtime, 'recipe');
+const data = loadData(recipe, repository);
+const inventory = data.inventory;
+assert.equal(inventory.rows.length, 194);
+assert.equal(new Set(inventory.rows.map((row) => row.id)).size, 194);
+const expectedCounts = { COMMAND: 24, PARSER: 36, NUMERIC: 16, ENCODER: 10, QUERY: 12, ALIAS: 15, UTF8: 22, WORK: 26, LIFECYCLE: 10, FS: 6, MOVED: 3, TYPE: 8, NEGATIVE_CONTROL: 6 };
+for (const [category, expected] of Object.entries(expectedCounts)) assert.equal(inventory.rows.filter((row) => row.category === category).length, expected);
+assert.deepEqual(inventory.overlays, ['NUM-14', 'NUM-15', 'UTF-12', 'ENC-07', 'QUE-12', 'WRK-10', 'WRK-22', 'WRK-26']);
+const actualRoles = {};
+for (const row of inventory.rows) {
+  actualRoles[row.primaryRole] = (actualRoles[row.primaryRole] ?? 0) + 1;
+  assert.equal(row.result, 'PENDING_AUTHORIZED_CANDIDATE');
+  const packet = data.sources.get(row.frozen.source);
+  const original = packet.cases.find((entry) => entry.id === row.id);
+  assert.equal(jsonHash(original), row.frozen.recordSha256);
+  assert.equal(jsonHash(original.input), row.frozen.inputSha256);
+  assert.equal(jsonHash(packet.defaults ?? {}), row.frozen.defaultsSha256);
+  assert.equal(row.semanticDenominatorEligible, row.primaryRole === 'command-semantic-runtime');
+  if (!row.runtimeProofRole) assert(row.missingBindings.length > 0);
+}
+assert.deepEqual(actualRoles, inventory.roleCounts);
+const selected = inventory.rows.filter((row) => row.runtimeProofRole).map((row) => row.id);
+const jobs = materializeJobs(data, selected);
+assert.equal(new Set(jobs.map((job) => job.id)).size, jobs.length);
+assert.equal(selected.length, inventory.denominators.preparedRecordProjections);
+for (const job of jobs) {
+  assert(Number.isInteger(job.expected.status), `Unbound expected status: ${job.id}`);
+  assert(job.stdinChunksHex.every((hex) => /^(?:[a-f0-9]{2})*$/.test(hex)));
+  assert(job.argv.every((argument) => typeof argument === 'string'));
+  assert.equal(job.sourceReference.revision, 'f074c142411ba839cbd9da45a499cc798965149d');
+}
+const allCuts = jobs.filter((job) => job.recordId === 'UTF-01');
+assert.equal(allCuts.length, Buffer.from('"é中🙂"\n').length + 1);
+const replay = jobs.find((job) => job.recordId === 'UTF-22');
+const fixture = createFixtureContext(replay);
+const fragments = [];
+for await (const chunk of fixture.context.stdin) fragments.push(new Uint8Array(chunk));
+assert.equal(Buffer.concat(fragments).toString('hex'), '5b312c325d0a');
+assert.throws(() => materializeJobs(data, ['ENC-08']), /Missing adapter binding/);
+assert.throws(() => materializeJobs(data, ['CMD-01', 'CMD-01']), /Duplicate selected ID/);
+assert.throws(() => authorize({}), /Missing explicit candidate authorization/);
+assert.throws(() => authorize({ authorizationPath: '/not-admitted', authorizationSha256: 'wrong' }), /Missing explicit candidate authorization/);
+assert.throws(() => parseReceipt(Buffer.from('{"schemaVersion":1,"jobId":"wrong","jobId":"job","outcome":"PASS"}\n'), 'job'), /duplicate-key/);
+assert.throws(() => parseReceipt(Buffer.from('{"schemaVersion":1,"outcome":"PASS"}\n'), 'job'), /Wrong or missing/);
+assert.throws(() => parseReceipt(Buffer.from('{"schemaVersion":1,"jobId":"job","outcome":"PASS"}\n\n'), 'job'), /Exactly one/);
+const guards = data.bindings.scopes.map((scope) => ({ kind: 'tree', path: join(repository, scope.path), sha256: jsonHash(scope.entries) }));
+verifyGuards(guards);
+const recipeHash = jsonHash(treeSnapshot(recipe));
+console.log(JSON.stringify({ classification: 'STATIC_SYNTHETIC_PREPARATION_ONLY', records: 194, overlays: 8, roleCounts: actualRoles, selectedProjections: selected.length, jobVariants: jobs.length, jobsSha256: jsonHash(jobs), inventorySha256: sha256(readFileSync(join(recipe, 'inventory.json'))), recipeHash, missingBindings: inventory.rows.filter((row) => row.missingBindings.length).length, semanticProductPasses: 0, productImports: 0 }));

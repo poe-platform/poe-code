@@ -1,0 +1,73 @@
+{
+  "schema": "V7_R3_FUTURE_OUTER_CAPTURE_SELECTION",
+  "status": "SPECIFIED_BUT_NOT_ACTIVATED_OR_EXECUTION_QUALIFIED",
+  "entrypoint": "executor-v7-r3/launch.mjs -> coordinator.mjs -> exact planned worker.mjs/synthetic-worker.mjs",
+  "node": {
+    "role": "node",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "nodeArgs": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256"
+  ],
+  "launchArgv": [
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs",
+    "admission",
+    "admission-20260829-v7r3-01",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/AUTH.json",
+    "EXACT_RAW_AUTH_SHA256_AFTER_FRESH_ROOT_GO"
+  ],
+  "ownership": "One persistent capture owner; direct spawn, no retained shell or CLI leaf. Open raw output/capture receipt before hashing/admission/launch. No prepare.mjs/test.mjs or metadata stubs.",
+  "streamBounds": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "fd3": 262144,
+    "metadataRecord": 262144,
+    "document": 33554432
+  },
+  "lifecycle": {
+    "checkedTotalMilliseconds": 4500000,
+    "workerMilliseconds": 30000,
+    "termGraceMilliseconds": 2000,
+    "killGraceMilliseconds": 1000,
+    "metadataMilliseconds": 10000,
+    "unknownRetirement": "UNSAFE_STOP; never report all reaped from exit code alone",
+    "hardPreemption": false,
+    "rssClaim": false
+  },
+  "captureSteps": [
+    "Reserve a fresh outer namespace; open bounded stdout.raw/stderr.raw/records.raw and intent before any fallible admission",
+    "Enroll launcher PID/handle and install exit/close listeners before any receipt publication; preserve primary including null/undefined plus later errors",
+    "Capture raw bytes with observed/retained counters and hashes, pause for disk writes, no unbounded queued fragments; capture/pipe/publication/cap failures stop dependents",
+    "Retain natural exit/close and inner full authority/worker disposition receipts; ordinary failures cannot trigger automatic retry",
+    "Verify body+collector+external actual evidence census and all-mode/hash/postguards before qualifying; partial/missing/unobserved data never pass"
+  ],
+  "existingReviewedOwner": {
+    "path": "tests/comparison/v7-r3-independent-20260829/review-v2/owner.mjs",
+    "sha256": "ca9c97d81ef1f28c5b23a4cbb1aa885528d5e01de2c33270a500252314d29e9c",
+    "reuseUnchanged": false,
+    "reason": "Only prepare/eight/novel ids, at most3 launches,300000ms timeout and old capture allowances; not a valid actual-admission owner."
+  },
+  "sourceBootstrapFinding": {
+    "path": "launch.mjs",
+    "finding": "authenticatePacket and launcher tool validation happen before observeCoordinator opens the inner collector; the launcher does not itself supply durable raw capture for those failures.",
+    "classification": "SOURCE placement fact, not an observed failed launch"
+  },
+  "allocationDecision": {
+    "rootProvisionalCombined": 268435456,
+    "existingBody": 260046848,
+    "existingCollector": 8388608,
+    "additionalExternalRawMax": 393216,
+    "additionalExternalReceiptReserve": 131072,
+    "sumIfSimplyAdded": 268959744,
+    "approvedLimitRaised": false,
+    "scope": "A separate512KiB outer allowance cannot silently be added on top of248+8MiB. Source arithmetic only; no current overrun occurred.",
+    "requiredRootChoice": "Bind a concrete parent capture implementation/provider and its accounting within the existing total, or explicitly authorize a narrow versioned shared/reserved collector adapter and review it. If capture excludes immutable working projections, that classification and per-phase bound must be explicit, not presumed.",
+    "existingImplementationProvidesSharedReservation": false
+  },
+  "activationBlocker": true,
+  "actualCaptureOwnerRun": false
+}

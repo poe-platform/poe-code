@@ -1,0 +1,20 @@
+{
+  "name": "over1GiB-hard-limit",
+  "expectedBoundary": "STREAM_LIMIT",
+  "started": "2026-08-27T22:23:34.740Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:STREAM_LIMIT",
+    "code": "STREAM_LIMIT",
+    "stack": "Error: BOUNDARY:STREAM_LIMIT\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:165:7)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:193:19)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:86:1",
+    "process": {
+      "status": null,
+      "signal": "SIGTERM",
+      "stderr": "{\"emitted\":1073938432,\"drains\":16185}\n",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:23:35.295Z"
+}

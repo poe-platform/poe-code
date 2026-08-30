@@ -1,0 +1,96 @@
+{
+  "returned": {
+    "values": [
+      {
+        "kind": "undefined"
+      },
+      {
+        "kind": "null"
+      },
+      {
+        "kind": "boolean",
+        "value": "false"
+      },
+      {
+        "kind": "boolean",
+        "value": "true"
+      },
+      {
+        "kind": "number",
+        "value": "0"
+      },
+      {
+        "kind": "number",
+        "value": "-0"
+      },
+      {
+        "kind": "number",
+        "value": "NaN"
+      },
+      {
+        "kind": "number",
+        "value": "Infinity"
+      },
+      {
+        "kind": "bigint",
+        "value": "1"
+      },
+      {
+        "kind": "string",
+        "value": "1"
+      }
+    ],
+    "stable": [
+      {
+        "kind": "symbol",
+        "value": "Symbol(equal)",
+        "identity": {
+          "scope": "d13112f7-4bb6-4c15-8d2a-6c412a84faf6",
+          "token": 1
+        }
+      },
+      {
+        "kind": "symbol",
+        "value": "Symbol(equal)",
+        "identity": {
+          "scope": "d13112f7-4bb6-4c15-8d2a-6c412a84faf6",
+          "token": 1
+        }
+      }
+    ],
+    "distinct": {
+      "kind": "symbol",
+      "value": "Symbol(equal)",
+      "identity": {
+        "scope": "d13112f7-4bb6-4c15-8d2a-6c412a84faf6",
+        "token": 2
+      }
+    },
+    "scopes": [
+      {
+        "kind": "object",
+        "identity": {
+          "scope": "d13112f7-4bb6-4c15-8d2a-6c412a84faf6",
+          "token": 3
+        },
+        "name": "",
+        "message": "[object Object]",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "object",
+        "identity": {
+          "scope": "6382195f-1a1b-4daf-9fcc-895073a777e5",
+          "token": 1
+        },
+        "name": "",
+        "message": "[object Object]",
+        "code": "",
+        "stack": ""
+      }
+    ]
+  },
+  "rejected": null,
+  "activeChildren": []
+}

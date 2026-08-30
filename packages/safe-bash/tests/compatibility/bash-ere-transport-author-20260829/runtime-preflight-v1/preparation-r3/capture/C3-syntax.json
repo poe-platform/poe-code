@@ -1,0 +1,78 @@
+[
+  {
+    "name": "bridge-state.mjs.data",
+    "diagnostics": []
+  },
+  {
+    "name": "case-runner.mjs.data",
+    "diagnostics": []
+  },
+  {
+    "name": "child-bootstrap.mjs.data",
+    "diagnostics": []
+  },
+  {
+    "name": "controls-v2.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "controls.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "data-controls-r3.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "data-controls-v2.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "data-support.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "materializer.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "owned-process.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "owner-controls-v2.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "owner-controls.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "prepare-data.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "receipt-fixture.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "receipt-gate.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "stub.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "supervisor.mjs",
+    "diagnostics": []
+  },
+  {
+    "name": "validation-observer.mjs.data",
+    "diagnostics": []
+  },
+  {
+    "name": "worker-bridge.mjs.data",
+    "diagnostics": []
+  }
+]

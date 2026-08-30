@@ -1,0 +1,614 @@
+SEAL.json BYTES 61914
+{
+  "baseline": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "engineBaseline": "f97fd06024cb63edfd01873d81d84576a22189db",
+  "sources": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/errors.ts",
+      "size": 1003,
+      "mode": 420,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/limits.ts",
+      "size": 3471,
+      "mode": 420,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/syntax.ts",
+      "size": 13033,
+      "mode": 420,
+      "sha256": "be0082e84d90783731163aa3a92fa3fc56b379c2c8c522fee567bafc5654b64f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/matcher.ts",
+      "size": 8543,
+      "mode": 420,
+      "sha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8"
+    }
+  ],
+  "originals": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/source/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/source/errors.ts",
+      "size": 1003,
+      "mode": 420,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/source/limits.ts",
+      "size": 3471,
+      "mode": 420,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/source/syntax.ts",
+      "size": 12570,
+      "mode": 420,
+      "sha256": "cf928a8e09a2fbe4bdd67c187849e40bde1d02e9eb1e79f509827b0a2f5cde6d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/source/matcher.ts",
+      "size": 8470,
+      "mode": 420,
+      "sha256": "d9eb7ec7b18648ddcbd853085aef6972cd5938d3817df458796b0a7354b0abeb"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+      "size": 10900,
+      "mode": 420,
+      "sha256": "7ede0384b30d5e566b08fd16da747a1e9a731222bca64366ed1b2e7e9d3a3c78"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/cases.json",
+      "size": 4114,
+      "mode": 420,
+      "sha256": "c19afeb49fc6f830aeeafcd6464fe9bb30da1504d9964ac3f2f7d2e7f5bc919b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/consumer.mts",
+      "size": 887,
+      "mode": 420,
+      "sha256": "ced5f2393ab9be8860b908f9f2637e0285acaf4f9a25f6c653bed271eba6409f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/negative.mts",
+      "size": 387,
+      "mode": 420,
+      "sha256": "443b8571d120fe9d83258fcf6bbe48cbe3d87e076fe09c5d2c0c708a1a4b4074"
+    }
+  ],
+  "reversionInputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/emitted/matcher.js",
+      "size": 8414,
+      "mode": 420,
+      "sha256": "5427606266eb6c0d25edba6a32f5097769aa11cb3e9825d0328d5995f07007b7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/emitted/syntax.js",
+      "size": 13724,
+      "mode": 420,
+      "sha256": "1dd893b7afdcd0afae025cd51562bc3255e3c78030e3876e6e33c5750f818a02"
+    }
+  ],
+  "harness": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/runner.mjs",
+      "size": 14319,
+      "mode": 420,
+      "sha256": "d8747bb76e6f90bb636f288c17dbd7183dd308f8cd1c41ff9a2ee99679b9ab5b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs",
+      "size": 6724,
+      "mode": 420,
+      "sha256": "fa5dc0a16853775fc50505108db2a22790e55d6c94a234aae0f9bd0144de8023"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/RECIPE.md",
+      "size": 4833,
+      "mode": 420,
+      "sha256": "ebbac1139fdb81edba613ecacc2c18b6a55435a6962fc077b26ac07114eaf10c"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "tools": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+      "size": 6213092,
+      "mode": 420,
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsserver.js",
+      "size": 27888,
+      "mode": 420,
+      "sha256": "0efcc88cdf0593cc1dcc8b6afd605c7bed9eca6f648c70c8f0df8695114bf6d7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_typingsInstaller.js",
+      "size": 10363,
+      "mode": 420,
+      "sha256": "62a69c574365f1c81633b86b3214f9df860aad08843028dd5244b00aa7f1e190"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/cs/diagnosticMessages.generated.json",
+      "size": 320453,
+      "mode": 420,
+      "sha256": "5b30e58d35f877521e14c16551c86320b2ed19ddb70fe5f41841b561d27f18c2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/de/diagnosticMessages.generated.json",
+      "size": 344426,
+      "mode": 420,
+      "sha256": "a4031a8028febc35f92ba317104878d93f02c1750e6ee16351c2270ab4dff517"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/es/diagnosticMessages.generated.json",
+      "size": 340054,
+      "mode": 420,
+      "sha256": "3c7844125e1f2a3a2227e16dd1fed75218a3454919706b34cd8a5da9d43cda22"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/fr/diagnosticMessages.generated.json",
+      "size": 346016,
+      "mode": 420,
+      "sha256": "9fc1836d7575840a8b7a63dacdedd99e90e4144c0bbe29a4b7fa78a86e0e8bf5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/it/diagnosticMessages.generated.json",
+      "size": 339409,
+      "mode": 420,
+      "sha256": "a740fe2b2338d72a8d165fb8c7c22ac1393a18b6aa7f1ed6d45b79887867f98a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/ja/diagnosticMessages.generated.json",
+      "size": 381398,
+      "mode": 420,
+      "sha256": "ae1a2d439bfb60b9fa32408bde0e9ec39840a33d621014fcb5b2fb4e69a606de"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/ko/diagnosticMessages.generated.json",
+      "size": 346139,
+      "mode": 420,
+      "sha256": "31b27d2d556fc037eeac1672f771bf940ec70afba342e977faa75a2fa292a8be"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.d.ts",
+      "size": 992,
+      "mode": 420,
+      "sha256": "a7297ff837fcdf174a9524925966429eb8e5feecc2cc55cc06574e6b092c1eaa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.d.ts",
+      "size": 13192,
+      "mode": 420,
+      "sha256": "8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.legacy.d.ts",
+      "size": 1326,
+      "mode": 420,
+      "sha256": "782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.asynciterable.d.ts",
+      "size": 1887,
+      "mode": 420,
+      "sha256": "d7a3c8b952931daebdfc7a2897c53c0a1c73624593fa070e46bd537e64dcd20a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.d.ts",
+      "size": 1874901,
+      "mode": 420,
+      "sha256": "080941d9f9ff9307f7e27a83bcd888b7c8270716c39af943532438932ec1d0b9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.iterable.d.ts",
+      "size": 29802,
+      "mode": 420,
+      "sha256": "2e80ee7a49e8ac312cc11b77f1475804bee36b3b2bc896bead8b6e1266befb43"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.collection.d.ts",
+      "size": 5229,
+      "mode": 420,
+      "sha256": "dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.core.d.ts",
+      "size": 22866,
+      "mode": 420,
+      "sha256": "c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.d.ts",
+      "size": 1241,
+      "mode": 420,
+      "sha256": "45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.generator.d.ts",
+      "size": 2557,
+      "mode": 420,
+      "sha256": "515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+      "size": 18200,
+      "mode": 420,
+      "sha256": "0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.promise.d.ts",
+      "size": 3200,
+      "mode": 420,
+      "sha256": "0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+      "size": 5251,
+      "mode": 420,
+      "sha256": "ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+      "size": 6493,
+      "mode": 420,
+      "sha256": "8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+      "size": 1649,
+      "mode": 420,
+      "sha256": "4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+      "size": 11010,
+      "mode": 420,
+      "sha256": "fb0f136d372979348d59b3f5020b4cdb81b5504192b1cacff5d1fbba29378aa1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+      "size": 5204,
+      "mode": 420,
+      "sha256": "d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.d.ts",
+      "size": 965,
+      "mode": 420,
+      "sha256": "3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.full.d.ts",
+      "size": 1032,
+      "mode": 420,
+      "sha256": "807e0e0bdc67605dd28efe18f20ab5fcd75d944ef95936120702335f9379094b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.intl.d.ts",
+      "size": 1484,
+      "mode": 420,
+      "sha256": "68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts",
+      "size": 915,
+      "mode": 420,
+      "sha256": "eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.d.ts",
+      "size": 1162,
+      "mode": 420,
+      "sha256": "e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescrip
+runner.mjs BYTES 14319
+1: import { open, lstat, readFile, writeFile, mkdir, copyFile, rename, readdir, chmod } from 'node:fs/promises';
+2: import { createReadStream } from 'node:fs';
+3: import { createHash } from 'node:crypto';
+4: import { spawn } from 'node:child_process';
+5: import { dirname, join, resolve, relative, basename } from 'node:path';
+6: import { fileURLToPath } from 'node:url';
+7: import assert from 'node:assert/strict';
+8: 
+9: const own = dirname(fileURLToPath(import.meta.url));
+10: const author = dirname(own); const repo = resolve(own, '../../../..');
+11: const [mode, label] = process.argv.slice(2);
+12: if (!['seal','run'].includes(mode) || !/^[A-Z0-9-]{1,40}$/.test(label ?? '')) throw new Error('explicit mode/unique label required');
+13: const started = Date.now(); const deadline = started + (mode === 'seal' ? 10 : 35) * 60000;
+14: const output = join(own, label); await mkdir(output);
+15: const outer = await open(join(output, 'outer.jsonl'), 'wx');
+16: let active = 0, count = 0, peak = 0, captureBytes = 0;
+17: const receipts = [];
+18: const event = value => outer.write(JSON.stringify({ at: new Date().toISOString(), elapsed: Date.now() - started, ...value }) + '\n');
+19: function time() { if (Date.now() >= deadline) throw new Error('SAFETY deadline'); }
+20: async function hash(path) {
+21:   time(); const stat = await lstat(path);
+22:   if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 128 * 1024 * 1024) throw new Error('SAFETY regular-file/size admission');
+23:   const digest = createHash('sha256'); for await (const buffer of createReadStream(path, { highWaterMark: 65536 })) { time(); digest.update(buffer); }
+24:   return { path, size: stat.size, mode: stat.mode & 0o777, sha256: digest.digest('hex') };
+25: }
+26: async function text(path) {
+27:   const record = await hash(path); if (record.size > 1048576) throw new Error('SAFETY text cap');
+28:   const bytes = await readFile(path); assert.equal(createHash('sha256').update(bytes).digest('hex'), record.sha256, 'SAFETY read drift');
+29:   return bytes.toString('utf8');
+30: }
+31: async function bound(entries) { for (const expected of entries) assert.deepEqual(await hash(expected.path), expected, 'SAFETY input binding'); }
+32: async function census(directory) {
+33:   const stat = await lstat(directory); assert.ok(stat.isDirectory() && !stat.isSymbolicLink(), 'SAFETY directory');
+34:   const entries = [];
+35:   for (const name of (await readdir(directory)).sort()) {
+36:     const path = join(directory, name); const stat = await lstat(path); assert.ok(!stat.isSymbolicLink(), 'SAFETY symlink');
+37:     if (stat.isDirectory()) entries.push(...await census(path)); else entries.push(await hash(path));
+38:   }
+39:   return entries;
+40: }
+41: async function child(role, args, cwd, timeout = 30000) {
+42:   time(); if (++count > 30 || active !== 0) throw new Error('SAFETY dispatch cap');
+43:   const prefix = `${String(count).padStart(2,'0')}-${role}`;
+44:   const out = await open(join(output, prefix + '.stdout'), 'wx'); const err = await open(join(output, prefix + '.stderr'), 'wx');
+45:   const chunks = { stdout: [], stderr: [] }; const writes = [];
+46:   let failure, timer; let size = 0;
+47:   const worker = spawn(process.execPath, args, { cwd, env: { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C', HOME: output }, stdio: ['ignore','pipe','pipe'] });
+48:   active++; peak = Math.max(peak, active);
+49:   const closed = new Promise(resolveClose => {
+50:     worker.once('error', error => { failure ??= error; });
+51:     worker.once('close', (code, signal) => { active--; clearTimeout(timer); resolveClose({ code, signal }); });
+52:   });
+53:   for (const [channel, handle] of [['stdout',out],['stderr',err]]) worker[channel].on('data', bytes => {
+54:     size += bytes.length; captureBytes += bytes.length;
+55:     if (size > 8 * 1024 * 1024 || captureBytes > 128 * 1024 * 1024) { failure ??= new Error('SAFETY capture cap'); worker.kill('SIGKILL'); return; }
+56:     chunks[channel].push(bytes); writes.push(handle.write(bytes).catch(error => { failure ??= error; worker.kill('SIGKILL'); }));
+57:   });
+58:   timer = setTimeout(() => { failure ??= new Error('SAFETY deadline/child timeout'); worker.kill('SIGKILL'); }, Math.min(timeout, Math.max(1, deadline - Date.now())));
+59:   try { await event({ event: 'spawn', role, pid: worker.pid ?? null, args, cwd }); } catch (error) { failure ??= error; worker.kill('SIGKILL'); }
+60:   const terminal = await closed; await Promise.all(writes); await out.close(); await err.close();
+61:   const receipt = { role, pid: worker.pid ?? null, args, ...terminal, size, retired: true }; receipts.push(receipt); await event({ event: 'close', ...receipt });
+62:   if (failure || terminal.signal) throw failure ?? new Error('SAFETY unexpected signal'); time();
+63:   return { ...receipt, stdout: Buffer.concat(chunks.stdout).toString('utf8'), stderr: Buffer.concat(chunks.stderr).toString('utf8') };
+64: }
+65: try {
+66:   await event({ event: 'start', mode, label, started, deadline, pid: process.pid, execPath: process.execPath, version: process.version });
+67:   if (mode === 'seal') {
+68:     const previous = JSON.parse(await text(join(author, 'SEAL-v3.json')));
+69:     await bound([previous.node, ...previous.tools]);
+70:     const sources = [];
+71:     const originals = [];
+72:     for (const entry of previous.sources) {
+73:       sources.push(await hash(entry.path));
+74:       const original = await hash(join(author, 'ACTUAL-03/work/source', basename(entry.path)));
+75:       assert.equal(original.sha256, entry.sha256); originals.push(original);
+76:       if (!['matcher.ts','syntax.ts'].includes(basename(entry.path))) assert.deepEqual(sources.at(-1), entry);
+77:     }
+78:     const fixtures = [];
+79:     for (const name of ['suite.mjs','cases.json','consumer.mts','negative.mts']) {
+80:       const row = await hash(join(author, name)); const expected = previous.inputs.find(entry => entry.path === row.path); assert.deepEqual(row, expected); fixtures.push(row);
+81:     }
+82:     const oldResult = JSON.parse(await text(join(author, 'ACTUAL-03/RESULT.json')));
+83:     const reversionInputs = oldResult.emittedBinding.filter(entry => /\/(syntax|matcher)\.js$/.test(entry.path)); await bound(reversionInputs);
+84:     const harness = []; for (const name of ['runner.mjs','checkpoints.mjs','RECIPE.md']) harness.push(await hash(join(own, name)));
+85:     const seal = { baseline: previous.baseline, engineBaseline: 'f97fd06024cb63edfd01873d81d84576a22189db', sources, originals, fixtures, reversionInputs, harness, node: previous.node, tools: previous.tools, tscFlags: previous.tscFlags, compiler: previous.compiler, noCompression: true, expectedChildren: 19, caseGroups: { author: 66, targeted: 8, layouts: 3 }, deadlineMs: 2100000 };
+86:     await writeFile(join(own, 'SEAL.json'), JSON.stringify(seal, null, 2) + '\n', { flag: 'wx' });
+87:     await event({ event: 'sealed', seal: await hash(join(own, 'SEAL.json')) });
+88:   } else {
+89:     const seal = JSON.parse(await text(join(own, 'SEAL.json')));
+90:     const inputs = [seal.node, ...seal.sources, ...seal.originals, ...seal.fixtures, ...seal.reversionInputs, ...seal.harness, ...seal.tools]; await bound(inputs);
+91:     const work = join(output, 'work'); await mkdir(work);
+92:     for (const entry of seal.tools) {
+93:       const destination = join(work, relative(repo, entry.path)); await mkdir(dirname(destination), { recursive: true }); await copyFile(entry.path, destination); await chmod(destination, entry.mode);
+94:       assert.equal((await hash(destination)).sha256, entry.sha256);
+95:     }
+96:     const source = join(work, 'source'); await mkdir(source);
+97:     for (const entry of seal.sources) { const destination = join(source, basename(entry.path)); await copyFile(entry.path, destination); assert.equal((await hash(destination)).sha256, entry.sha256); }
+98:     await writeFile(join(source, 'package.json'), '{"type":"module","private":true}\n');
+99:     const compiler = join(work, relative(repo, seal.compiler)); const typeRoots = join(work, 'node_modules/@types'); const emitted = join(work, 'emitted');
+100:     const build = await child('strict-build', [compiler, ...seal.tscFlags, '--typeRoots', typeRoots, '--declaration', '--outDir', emitted, ...seal.sources.map(entry => join(source, basename(entry.path)))], work, 120000);
+101:     if (build.code !== 0) throw new Error('ORDINARY compiler failure; dependent product loads withheld');
+102:     await writeFile(join(emitted, 'package.json'), '{"type":"module","private":true}\n'); const emittedBindings = await census(emitted);
+103:     const rows = []; const types = [];
+104:     async function runCases(role, directory, target = false, selection = 'all', mutated = null) {
+105:       const script = target ? join(own, 'checkpoints.mjs') : join(author, 'suite.mjs');
+106:       const args = target ? [script,directory,selection] : [script,directory,join(author,'cases.json')];
+107:       const result = await child(role,args,work);
+108:       const records = result.stdout.trim().split('\n').map(line => JSON.parse(line));
+109:       const observed = records.find(record => record.event === 'results'); const loaded = records.find(record => record.event === 'loaded');
+110:       if (!observed || !loaded || observed.rows.length === 0 || result.code !== (observed.fail ? 1 : 0)) throw new Error('SAFETY result/exit/capture mismatch');
+111:       assert.equal(loaded.execPath, seal.node.path, 'SAFETY child binary');
+112:       for (const [name, entry] of Object.entries(loaded.files)) {
+113:         const expected = emittedBindings.find(item => basename(item.path) === `${name}.js`);
+114:         const actual = await hash(join(directory, `${name}.js`)); assert.equal(entry.sha256, actual.sha256, 'SAFETY loaded witness');
+115:         if (name === mutated) assert.notEqual(entry.sha256, expected.sha256); else assert.equal(entry.sha256, expected.sha256, 'SAFETY artifact member binding');
+116:       }
+117:       rows.push({ role, mutated, exitCode: result.code, observed, loaded }); return observed;
+118:     }
+119:     const app = join(work,'installed-app'); await mkdir(join(app,'artifact'),{recursive:true}); await writeFile(join(app,'package.json'),'{"type":"module"}\n');
+120:     for (const entry of emittedBindings) await copyFile(entry.path,join(app,'artifact',basename(entry.path)));
+121:     for (const name of ['consumer.mts','negative.mts']) await copyFile(join(author,name),join(app,name));
+122:     for (const layout of ['source','installed','moved']) {
+123:       const location = layout === 'moved' ? join(work,'physically-moved-app') : app;
+124:       if (layout === 'moved') { await rename(app,location); await assert.rejects(lstat(app),error=>error.code==='ENOENT'); }
+125:       const directory = layout === 'source' ? emitted : join(location,'artifact');
+126:       await runCases(`${layout}-author66`,directory); await runCases(`${layout}-checkpoints8`,directory,true);
+127:       const positive = await child(`${layout}-types-positive`,[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'consumer.mts')],work,120000);
+128:       const negative = await child(`${layout}-types-negative`,[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'negative.mts')],work,120000);
+129:       const diagnostics = [...negative.stdout.matchAll(/error TS(\d+):/g)].map(entry=>Number(entry[1]));
+130:       types.push({layout,positive:positive.code,negative:negative.code,diagnostics,pass:positive.code===0 && negative.code===2 && JSON.stringify(diagnostics)==='[2345,2339,2322]'});
+131:     }
+132:     const mutations = [
+133:       {id:'M01',name:'matcher',start:'async function historyOrder(',oldStart:'async function historyOrder(',end:'async function preferred(',selection:'C01'},
+134:       {id:'M02',name:'syntax',start:'    async count()',oldStart:'    count()',end:'    async atom(',selection:'C05'},
+135:       {id:'M03',name:'syntax',start:'    async set(begin)',oldStart:'    set(begin)',end:'\n}\nexport async function compileEre',selection:'C07'},
+136:     ];
+137:     const mutants = [];
+138:     for (const spec of mutations) {
+139:       const location = join(emitted,`${spec.name}.js`); const original = await text(location);
+140:       const oldLocation = seal.reversionInputs.find(entry=>basename(entry.path)===`${spec.name}.js`).path; const old = await text(oldLocation);
+141:       const begin=original.indexOf(spec.start), end=original.indexOf(spec.end,begin), oldBegin=old.indexOf(spec.oldStart), oldEnd=old.indexOf(spec.end,oldBegin);
+142:       if ([begin,end,oldBegin,oldEnd].some(index=>index<0)) { mutants.push({id:spec.id,activated:false,reason:'exact method marker absent'}); continue; }
+143:       const changed = original.slice(0,begin)+old.slice(oldBegin,oldEnd)+original.slice(end); assert.notEqual(changed,original);
+144:       await writeFile(location,changed); let outcome;
+145:       try { outcome=await runCases(spec.id,emitted,true,spec.selection,spec.name); } finally { await writeFile(location,original); }
+146:       await bound(emittedBindings); const restored=await runCases(`${spec.id}-restore`,emitted,true,spec.selection);
+147:       mutants.push({id:spec.id,activated:true,killed:outcome.fail>0,restored:restored.fail===0,methodSha256:createHash('sha256').update(old.slice(oldBegin,oldEnd)).digest('hex')});
+148:     }
+149:     const bad = join(work,'binding-negative.js'); await writeFile(bad,'changed');
+150:     const expected = { ...emittedBindings.find(entry=>basename(entry.path)==='matcher.js'),path:bad };
+151:     const guards=[];
+152:     for (const [id,entry] of [['B01-content',expected],['B02-missing',{...expected,path:join(work,'absent.js')}]]) {
+153:       let reason; try { await bound([entry]); } catch(error) {reason=String(error);}
+154:       assert.ok(reason); guards.push({id,refused:true,reason,dataOnly:true});
+155:     }
+156:     await bound(inputs); await bound(emittedBindings); const finalCensus=await census(work); const workBytes=finalCensus.reduce((sum,entry)=>sum+entry.size,0);
+157:     if(workBytes>512*1024*1024) throw new Error('SAFETY work cap');
+158:     const result={sourceBindings:seal.sources,emittedBindings,rows,types,mutants,guards,receipts,children:count,peakChildren:peak,active,captureBytes,workBytes,finalCensus,elapsedMs:Date.now()-started};
+159:     await writeFile(join(output,'RESULT.json'),JSON.stringify(result,null,2)+'\n');
+160:     const failed=rows.some(row=>!row.mutated&&row.observed.fail)||types.some(row=>!row.pass)||mutants.some(row=>!row.activated||!row.killed||!row.restored);
+161:     await event({event:'complete',failed,children:count,active,captureBytes,workBytes}); if(failed) process.exitCode=1;
+162:   }
+163: } catch(error) { await event({event:'failure',error:String(error?.stack??error),receipts,active}); process.exitCode=1; }
+164: finally { await event({event:'settled',active,count,peak,captureBytes}); await outer.close(); if(active) process.exitCode=78; }
+165: 
+checkpoints.mjs BYTES 6724
+1: import assert from 'node:assert/strict';
+2: import { readFile } from 'node:fs/promises';
+3: import { createHash } from 'node:crypto';
+4: import { pathToFileURL } from 'node:url';
+5: import { setImmediate as immediate } from 'node:timers/promises';
+6: 
+7: const [directory, selection = 'all'] = process.argv.slice(2);
+8: const loads = {};
+9: for (const name of ['types','errors','limits','syntax','matcher']) {
+10:   const path = `${directory}/${name}.js`;
+11:   loads[name] = { path, sha256: createHash('sha256').update(await readFile(path)).digest('hex') };
+12: }
+13: console.log(JSON.stringify({ event: 'loaded', execPath: process.execPath, version: process.version, files: loads }));
+14: const { EreLedger } = await import(pathToFileURL(`${directory}/limits.js`));
+15: const { compileEre } = await import(pathToFileURL(`${directory}/syntax.js`));
+16: const { matchEre } = await import(pathToFileURL(`${directory}/matcher.js`));
+17: const { EreProfileLimitError } = await import(pathToFileURL(`${directory}/errors.js`));
+18: const bounds = { maxExpansionBytes: 1048576, maxExpansionFields: 8192 };
+19: class ObservedLedger extends EreLedger {
+20:   units = 0; previous = 0; maximum = 0; calls = 0; observer;
+21:   charge(resource, amount, signal) { super.charge(resource, amount, signal); if (resource === 'work' && amount === 1) this.units++; }
+22:   async checkpoint(signal) {
+23:     this.maximum = Math.max(this.maximum, this.units - this.previous);
+24:     this.previous = this.units; this.calls++;
+25:     this.observer?.();
+26:     await super.checkpoint(signal);
+27:   }
+28:   finish() { this.maximum = Math.max(this.maximum, this.units - this.previous); }
+29: }
+30: const rows = [];
+31: async function check(id, body) {
+32:   if (selection !== 'all' && selection !== id) return;
+33:   try { const detail = await body(); rows.push({ id, pass: true, detail }); }
+34:   catch (error) { rows.push({ id, pass: false, error: String(error?.stack ?? error) }); }
+35: }
+36: const witness = '(a){255}(|)';
+37: const subject = 'a'.repeat(255);
+38: await check('C01', async () => {
+39:   const ledger = new ObservedLedger(bounds, { work: 200000, states: 5000, allocationUnits: 100000 });
+40:   const program = await compileEre(witness, ledger);
+41:   const result = await matchEre(program, subject, ledger); ledger.finish();
+42:   assert.deepEqual(result.values, [subject, 'a', '']);
+43:   assert.deepEqual(result.captures, [{ start: 0, end: 255 }, { start: 254, end: 255 }, { start: 255, end: 255 }]);
+44:   assert.ok(ledger.usage.work >= 65025);
+45:   assert.ok(ledger.maximum <= 256, `charged unit gap ${ledger.maximum}`);
+46:   return { maximumUnitGap: ledger.maximum, calls: ledger.calls, usage: ledger.usage };
+47: });
+48: async function cancellation(reason) {
+49:   const ledger = new ObservedLedger(bounds, { work: 200000, states: 5000, allocationUnits: 100000 });
+50:   const program = await compileEre(witness, ledger);
+51:   const controller = new AbortController(); let aborter; let phase;
+52:   ledger.observer = () => {
+53:     if (!aborter && ledger.usage.work >= 5000) {
+54:       phase = new Error('checkpoint location').stack;
+55:       aborter = immediate().then(() => controller.abort(reason));
+56:     }
+57:   };
+58:   let caught = Symbol('not rejected');
+59:   try { await matchEre(program, subject, ledger, controller.signal); } catch (error) { caught = error; }
+60:   if (aborter) await aborter;
+61:   ledger.finish(); assert.ok(aborter, 'actual checkpoint must schedule the caller abort');
+62:   assert.match(phase, /historyOrder/); assert.equal(caught, reason);
+63:   const usage = ledger.usage; await immediate(); assert.deepEqual(ledger.usage, usage);
+64:   assert.ok(ledger.maximum <= 256);
+65:   return { usage, phase, maximumUnitGap: ledger.maximum };
+66: }
+67: await check('C02', () => cancellation(0));
+68: await check('C03', async () => { const observations = []; for (const reason of [false, '', null]) observations.push(await cancellation(reason)); return observations; });
+69: await check('C04', async () => {
+70:   const ledger = new ObservedLedger(bounds, { work: 100000, states: 5000, allocationUnits: 100000 });
+71:   const program = await compileEre(witness, ledger);
+72:   await matchEre(program, subject, ledger); const first = ledger.usage;
+73:   await assert.rejects(matchEre(program, subject, ledger), error => error instanceof EreProfileLimitError && error.resource === 'work' && error.status === 3);
+74:   assert.equal(ledger.usage.work, 100000); assert.equal(ledger.usage.captureSlots, first.captureSlots);
+75:   assert.ok(first.work > 65025); return { first, final: ledger.usage };
+76: });
+77: await check('C05', async () => {
+78:   const ledger = new ObservedLedger(bounds, { work: 10000 });
+79:   const program = await compileEre(`a{${'0'.repeat(1024)}1}`, ledger);
+80:   assert.deepEqual((await matchEre(program, 'a', ledger)).values, ['a']); ledger.finish();
+81:   assert.ok(ledger.maximum <= 256, `count unit gap ${ledger.maximum}`); return { maximumUnitGap: ledger.maximum, usage: ledger.usage };
+82: });
+83: await check('C06', async () => {
+84:   const ledger = new ObservedLedger(bounds, { work: 20000 });
+85:   const input = 'a'.repeat(1000);
+86:   const program = await compileEre([{ text: input, literal: true }], ledger);
+87:   assert.deepEqual((await matchEre(program, input, ledger)).values, [input]); ledger.finish();
+88:   assert.ok(ledger.maximum <= 256, `fragment/sequence unit gap ${ledger.maximum}`); return { maximumUnitGap: ledger.maximum, usage: ledger.usage };
+89: });
+90: await check('C07', async () => {
+91:   const observations = [];
+92:   for (const pattern of [`[${'a'.repeat(1024)}]`, `[^${'[:digit:]'.repeat(8)}]`]) {
+93:     const ledger = new ObservedLedger(bounds, { work: 10000 });
+94:     const program = await compileEre(pattern, ledger);
+95:     const value = pattern.startsWith('[^') ? 'A' : 'a';
+96:     assert.deepEqual((await matchEre(program, value, ledger)).values, [value]); ledger.finish();
+97:     assert.ok(ledger.maximum <= 256, `bracket unit gap ${ledger.maximum}`); observations.push({ maximumUnitGap: ledger.maximum, usage: ledger.usage });
+98:   }
+99:   return observations;
+100: });
+101: await check('C08', async () => {
+102:   const ledger = new ObservedLedger(bounds, { work: 10000 });
+103:   const controller = new AbortController(); const reason = { caller: 'count-loop' }; let aborter; let phase;
+104:   ledger.observer = () => {
+105:     if (!aborter && ledger.usage.work >= 1500) {
+106:       phase = new Error('checkpoint location').stack;
+107:       aborter = immediate().then(() => controller.abort(reason));
+108:     }
+109:   };
+110:   let caught;
+111:   try { await compileEre(`a{${'0'.repeat(1024)}1}`, ledger, controller.signal); } catch (error) { caught = error; }
+112:   if (aborter) await aborter;
+113:   assert.ok(aborter); assert.match(phase, /Parser.count/); assert.equal(caught, reason);
+114:   return { usage: ledger.usage, phase };
+115: });
+116: console.log(JSON.stringify({ event: 'results', rows, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length }));
+117: if (rows.length === 0 || rows.some(row => !row.pass)) process.exitCode = 1;
+118: 

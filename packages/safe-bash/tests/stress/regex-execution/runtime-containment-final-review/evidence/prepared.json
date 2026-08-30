@@ -1,0 +1,219 @@
+{
+  "time": "2026-08-27T09:13:47.186Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "61c66bca1212ad511af2ce057f866c8839027b8a",
+  "expectationsCommit": "a3d3f773bac699bd11ac37f53694004cc4842797",
+  "chronology": "expectations frozen before reading migration marker/diff, but author first correction commit 5a93969 precedes expectations commit by 10 seconds; do not claim pre-author-commit preregistration",
+  "package": {
+    "sourceCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+    "sourceCount": 216,
+    "emittedCount": 704,
+    "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash",
+    "snapshotRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified",
+    "archive": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/virtual-bash-0.0.0.tgz",
+      "sha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b"
+    },
+    "freeze": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-freeze.json",
+      "sha256": "ef7d7c018ca19cc699a3ddcd009b8d1197de416f154651885738ce7537369b2e"
+    },
+    "build": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-verified-build.json",
+      "sha256": "9194095150789c25ff250aa746b567aac584d433a6330180f37d4924195a30d9"
+    },
+    "assets": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js",
+        "sha256": "80c27f63a1ddc9ad66b875b6b307ea51aae3e54844207b25d2e58bbeafed5db0"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+        "sha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js",
+        "sha256": "05ead3047ea08e9ef673d0ab008e23cdb81af34e33cdd33f41a47fe6d9fbbc65"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+        "sha256": "92416db354410d84172a13d53a2fd757d61d9979745a38bd0c297a06309e17f5"
+      }
+    ]
+  },
+  "policy": {
+    "requestTimeoutMs": 1000,
+    "startupTimeoutMs": 3000,
+    "maxWorkers": 2,
+    "maxQueuedRequests": 64,
+    "maxQueuedBytes": 134217728,
+    "idleTimeoutMs": 100,
+    "workerOldGenerationMb": 128,
+    "workerStackMb": 4
+  },
+  "fixture": {
+    "commit": "8d0909ff3cf29290051e3d91dc3205e629ef6bda",
+    "originalSha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007",
+    "correctedSha256": "f0bfe258a8851d5709c10b5fc581a9c32d0daa2cbdd1f5dc828716102ff7cf22",
+    "transformedSha256": "74bafb6993500e0ce60056fcd552744a5049f5a90373bc8d226202c8485c6d2a",
+    "transformation": "exact one import-line replacement to bare public virtual-bash; assertions unchanged",
+    "authorCompiledResult": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/oracle-migration/corrected-compiled-r1-result.json",
+      "sha256": "7009c39ab51a2cff3dce60b7dde3167accee306dd644de0204dd8b0fe027d479"
+    },
+    "authorCompiledCounts": "9/9 groups; independent packed not yet run"
+  },
+  "matrix": [
+    {
+      "slot": 1,
+      "job": "grep-default",
+      "state": "UNUSED",
+      "pathologicalRequests": 1,
+      "watchdogMs": 6000
+    },
+    {
+      "slot": 2,
+      "job": "rg-default",
+      "state": "UNUSED",
+      "pathologicalRequests": 1,
+      "watchdogMs": 6000
+    },
+    {
+      "slot": 3,
+      "job": "grep-abort",
+      "state": "UNUSED",
+      "pathologicalRequests": 1,
+      "watchdogMs": 6000
+    },
+    {
+      "slot": 4,
+      "job": "rg-abort",
+      "state": "UNUSED",
+      "pathologicalRequests": 1,
+      "watchdogMs": 6000
+    },
+    {
+      "slot": 5,
+      "job": "grep-queued-abort",
+      "state": "UNUSED",
+      "pathologicalRequests": 0,
+      "watchdogMs": 8000
+    },
+    {
+      "slot": 6,
+      "job": "rg-queued-abort",
+      "state": "UNUSED",
+      "pathologicalRequests": 0,
+      "watchdogMs": 8000
+    }
+  ],
+  "totalTargetBudget": 6,
+  "pathologicalRequestBudget": 4,
+  "targetSlotsConsumed": 0,
+  "privatePackageBoundary": "independent-runtime-containment-final-review",
+  "priorControls": [
+    {
+      "path": "runtime-acceptance-workloads/guard.mjs",
+      "sha256": "eab23888c87e18aeb1effc79ec29ef3ace4ec170f2d0344cf3cf004b6349f336",
+      "sameAsCurrent": true
+    },
+    {
+      "path": "runtime-acceptance-workloads/observe.mjs",
+      "sha256": "a5226d1e24a8c091be3d98f5ed477b2b07e0b1bdcd6dec51cfe56467e8be3312",
+      "sameAsCurrent": true
+    },
+    {
+      "path": "runtime-acceptance-workloads/child.mjs",
+      "sha256": "382f844e71317844bbc61e824f335a27fed8b40704d4ddb491e718b3eb3f0374",
+      "sameAsCurrent": true
+    },
+    {
+      "path": "runtime-acceptance-workloads/evidence/controls.json",
+      "sha256": "724f6b5ebe749fbac740fa27f04595310c42e0ca65da6bada54c7d8bc5f6ee10",
+      "sameAsCurrent": true
+    },
+    {
+      "path": "runtime-acceptance-workloads/evidence/prepared.json",
+      "sha256": "75e2c89496a1d7f9f19c8bb1bbbcefc3ca8898fb0fd5f263bc95f3c4a4987b87",
+      "sameAsCurrent": true
+    }
+  ],
+  "controlsPlan": "d9e277b concepts reused with modified guard: run four new benign supervisor controls, not claim exact-code reuse",
+  "files": [
+    {
+      "path": "EXPECTATIONS.md",
+      "sha256": "30469e4df682ae1cac6b3c50fb451d82ae44b2a5a6df821010c2935a9ba7fa8d"
+    },
+    {
+      "path": "package.json",
+      "sha256": "a790406a4e167dd7427facb3ca6fafcb64f6b6578ccef76d84da2b734d987cf2"
+    },
+    {
+      "path": "binding.mjs",
+      "sha256": "80ca81e687e08415565cf284808cbcf346e99d012d0aece1aaa9609ec6d8f094"
+    },
+    {
+      "path": "observe.mjs",
+      "sha256": "ea4c906432a7aa6f5bbf589bb6ae6b3926f5d6ec72e61f954fc51cbe3a37f1b6"
+    },
+    {
+      "path": "child.mjs",
+      "sha256": "2fc8b08f1f94eae07f314d3e8ce1d67aa2e39d7e33686bf31d9d276edce2b1ad"
+    },
+    {
+      "path": "benign-entry.mjs",
+      "sha256": "c4269d5998b3880a8fd8e457d44b3d858d15cfac85f12ee3cb530a6d3fe3de3a"
+    },
+    {
+      "path": "supervise.mjs",
+      "sha256": "1c53aa4f536b26ad70e8e6b85141826d6e9b87cf131e67e018bf23e582746afc"
+    },
+    {
+      "path": "guard.mjs",
+      "sha256": "8e114a362750b154c58fc149c0777c37ccff7b510d3af3f2b1ef6bb13250ae53"
+    },
+    {
+      "path": "prepare.mjs",
+      "sha256": "2080f38e23c5a57c476197b36acb28e5ca0929a3be14ac77c616484c46c037e4"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "639c5f8b2c8868f52fd4d3ac4f542e5e03deaa8a1b7f92c812dcc157b2994f83"
+    },
+    {
+      "path": "evidence/original-runtime.mjs.txt",
+      "sha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007"
+    },
+    {
+      "path": "evidence/corrected-runtime.mjs.txt",
+      "sha256": "f0bfe258a8851d5709c10b5fc581a9c32d0daa2cbdd1f5dc828716102ff7cf22"
+    },
+    {
+      "path": "evidence/fixture.diff",
+      "sha256": "8069e1277a93c698c027d4d08946c793713a0422f8fdd6adee3cf6d52f341276"
+    },
+    {
+      "path": "evidence/migration-marker.txt",
+      "sha256": "687dec4ec6fe1f998d5859ac99a7a8689beca5539ef16b6c4b418b18f11da65a"
+    },
+    {
+      "path": ".temporary/compiled/child.mjs",
+      "sha256": "c207940071951d7a6d6550b549e182076a85169c4e0f879d616e048af488d4a4"
+    },
+    {
+      "path": ".temporary/compiled/observe.mjs",
+      "sha256": "a5c83d949e504243eb12309a7d872f84efd7909d0d32ca97010b1646ebeafeb3"
+    },
+    {
+      "path": ".temporary/compiled/benign-entry.mjs",
+      "sha256": "a11f61e67ea2d5bbf50da346f2e601ec78182732bd62e03889afeac2fa325820"
+    },
+    {
+      "path": ".temporary/compiled/fixture/runtime.mjs",
+      "sha256": "06b9455f6a6b548cd1a81afb2c7920bad3db85bc2a7ef00a0e725ff0166a5cc2"
+    }
+  ],
+  "defaultAcceptance": false
+}

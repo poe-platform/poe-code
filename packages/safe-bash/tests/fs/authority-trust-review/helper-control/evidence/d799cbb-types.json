@@ -1,0 +1,62 @@
+{
+  "name": "d799cbb-types",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "helper-types.json"
+  ],
+  "cwd": "/tmp/safe-bash-helper-control-BhKTOp",
+  "startedAt": "2026-08-27T03:34:46.420Z",
+  "finishedAt": "2026-08-27T03:34:47.126Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "residualGroup": false,
+  "before": {
+    "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+    "helperSha256": "f46b18da28ed03b8096dc2b8a10fc0aba768947b9af5ebf0ebae602b289d8ce0",
+    "fixtureSha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+    "inputsChecked": 165,
+    "allOther164InputsUnchanged": true,
+    "inputSetSha256": "66e632eea2da285949b4bd0d47507ab43538dfaec095fd450950b04b111cf75b",
+    "noLiveAliases": true
+  },
+  "after": {
+    "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+    "helperSha256": "f46b18da28ed03b8096dc2b8a10fc0aba768947b9af5ebf0ebae602b289d8ce0",
+    "fixtureSha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+    "inputsChecked": 165,
+    "allOther164InputsUnchanged": true,
+    "inputSetSha256": "66e632eea2da285949b4bd0d47507ab43538dfaec095fd450950b04b111cf75b",
+    "noLiveAliases": true
+  },
+  "rawNodeCounts": {
+    "tests": -1,
+    "pass": -1,
+    "fail": -1,
+    "skipped": -1,
+    "cancelled": -1,
+    "todo": -1
+  },
+  "originalCases": {
+    "executed": 0,
+    "pass": 0,
+    "fail": 0
+  },
+  "webdavPositives": {
+    "executed": 0,
+    "pass": 0,
+    "fail": 0
+  },
+  "webdavControls": {
+    "executed": 0,
+    "pass": 0,
+    "fail": 0
+  },
+  "cases": [],
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

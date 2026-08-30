@@ -1,0 +1,11 @@
+links
+|-- alias-a -> target
+|   `-- leaf.txt
+|-- alias-b -> target
+|   `-- leaf.txt
+|-- dangling -> missing
+|-- file-link -> target/leaf.txt
+`-- target
+    `-- leaf.txt
+
+4 directories, 5 files

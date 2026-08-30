@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
+const task = '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA';
+const api = await import(resolve(task, 'candidate/dist/index.js'));
+const encode = text => new TextEncoder().encode(text);
+const describe = value => value === undefined ? { kind: 'undefined' } : value instanceof Error ? { kind: 'Error', name: value.name, message: value.message } : { kind: typeof value, value };
+const outcome = promise => promise.then(value => ({ kind: 'result', value }), error => ({ kind: 'error', error }));
+const records = [];
+for (const id of ['P05', 'P06', 'P07']) {
+  const primary = id === 'P05' ? 0 : id === 'P06' ? undefined : new Error('local IO');
+  const cleanup = id === 'P07' ? 0 : new Error('cleanup');
+  const events = []; let operation; let localSeen = false; let selectedSeen = false; let calls = 0; let held;
+  const shell = new api.Shell({ fs: new api.MemoryFileSystem() });
+  shell.register({ name: 'selected', async execute(context) {
+    operation = api.createOutputOperation(context, { async write() { throw primary; } });
+    operation.registerCleanup(() => { calls++; events.push('cleanup'); throw cleanup; });
+    let failed = false; let failure;
+    try { await operation.output.write(encode('x')); } catch (error) { failed = true; failure = error; localSeen = Object.is(error, primary); events.push('local-throw'); }
+    let cleanupFailed = false; let cleanupFailure;
+    try { await operation.close(); } catch (error) { cleanupFailed = true; cleanupFailure = error; held = error; }
+    if (failed) throw failure;
+    if (cleanupFailed) throw cleanupFailure;
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await outcome(shell.exec('selected\n)', { stderr: { async write(chunk) {
+      const text = new TextDecoder().decode(chunk); events.push({ diagnostic: text });
+      if (text.startsWith('shell: Expected command at offset ')) { selectedSeen = true; events.push('outer-selected-rejection'); throw primary; }
+    } } }));
+    const passed = result.kind === 'error' && Object.is(result.error, primary) && localSeen && selectedSeen && calls === 1 && Object.is(held, cleanup) && operation.signal.aborted === false;
+    records.push({ id, binding: 'Same frozen value parameter, separate explicit outer syntax-diagnostic sink rejection after command-status conversion; not silent command-throw promotion', passed, public: result.kind === 'error' ? describe(result.error) : { kind: 'result', status: result.value.exitCode }, localIdentity: localSeen, publicIdentity: result.kind === 'error' && Object.is(result.error, primary), selectedSeen, cleanupIdentity: Object.is(held, cleanup), cleanupCalls: calls, operationAborted: operation.signal.aborted, events });
+  } finally { await shell.dispose(); }
+}
+writeFileSync(resolve(task, 'results-selected-binding.json'), JSON.stringify({ completedAt: new Date().toISOString(), records }, null, 2) + '\n');
+console.log(JSON.stringify(records, null, 2));
+if (records.some(record => !record.passed)) process.exitCode = 1;

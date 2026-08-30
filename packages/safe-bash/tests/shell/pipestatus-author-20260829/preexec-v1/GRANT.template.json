@@ -1,0 +1,7 @@
+{
+  "action": "execute-pipestatus-78-v1",
+  "sealSha256": "56ad847540e583706fe34e69832bf9c439a0b69e416c742941e3e45196ef7402",
+  "rootReceipt": "REQUIRES_FUTURE_ROOT_DURABLE_40_HEX_COMMIT",
+  "started": "REQUIRES_FUTURE_INTEGER_MS",
+  "deadline": "started+1800000"
+}

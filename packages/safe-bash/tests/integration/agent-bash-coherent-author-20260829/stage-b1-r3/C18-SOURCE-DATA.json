@@ -1,0 +1,91 @@
+{
+  "sources": [
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "authority": {
+        "bytes": 137864,
+        "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+      }
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "authority": {
+        "bytes": 137864,
+        "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+      }
+    },
+    {
+      "path": "src/commands/node/index.ts",
+      "bytes": 9619,
+      "sha256": "b55193aceb8d2f960a444372166bfef598fc5bfec5f53159d49363035bb7b6ce",
+      "authority": {
+        "bytes": 137864,
+        "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+      }
+    }
+  ],
+  "results": [
+    {
+      "layout": "source-built",
+      "identity": {
+        "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/01-workflow-source-built.stdout",
+        "bytes": 3553,
+        "sha256": "c76edc51f8bc695b44412b11986354c1b1b00714d9d84290480aa3f672937c07"
+      },
+      "row": {
+        "id": "C18",
+        "status": "FAIL",
+        "primaryPresent": true,
+        "reason": {
+          "type": "object",
+          "description": "Error: workflow C18 failed"
+        },
+        "facts": {
+          "id": "C18",
+          "role": "PUBLIC_ENGINE_REQUIRED",
+          "status": "FAIL",
+          "events": [],
+          "shells": 1,
+          "cleanup": [
+            "fulfilled"
+          ],
+          "prepares": 0
+        }
+      }
+    },
+    {
+      "layout": "installed",
+      "identity": {
+        "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/02-workflow-installed.stdout",
+        "bytes": 3550,
+        "sha256": "11562337ba59bfb753e3c1b55e107c7196aab783c6549365ab7520fd3c6a3edb"
+      },
+      "row": {
+        "id": "C18",
+        "status": "FAIL",
+        "primaryPresent": true,
+        "reason": {
+          "type": "object",
+          "description": "Error: workflow C18 failed"
+        },
+        "facts": {
+          "id": "C18",
+          "role": "PUBLIC_ENGINE_REQUIRED",
+          "status": "FAIL",
+          "events": [],
+          "shells": 1,
+          "cleanup": [
+            "fulfilled"
+          ],
+          "prepares": 0
+        }
+      }
+    }
+  ],
+  "nativeOrProductExecution": 0,
+  "qualification": "Captured wrapper omits original cause; first failing assertion is source-supported, not directly observed error stack."
+}

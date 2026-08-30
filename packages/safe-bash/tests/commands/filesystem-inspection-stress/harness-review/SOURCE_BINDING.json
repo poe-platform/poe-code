@@ -1,0 +1,126 @@
+{
+  "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "fileBaseline": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "snapshot": "/tmp/safe-bash-inspection-final-YZxhi8/snapshot",
+  "method": "git ls-tree/rev-parse/show at exact commits, SHA256 of raw bytes, comparison to approved regular snapshot; no imports/build/runtime execution",
+  "fullFrozenInventory": "safety-run-evidence/original-root-approved.json (920 entries; independent source-only build provenance separately copied)",
+  "modules": [
+    {
+      "path": "src/commands/file/README.md",
+      "gitBlob": "77e0aad76a49b422ed9813bb256209a46e0a0870",
+      "bytes": 11869,
+      "sha256": "aaa49bf4c73705aed8571eafc030dd1cb3b3db5a0ef4121319a0c0531071d57d",
+      "fileBaselineIdentical": true
+    },
+    {
+      "path": "src/commands/file/classify.ts",
+      "gitBlob": "05231698609b94ec1170ac13e303f525ecae482d",
+      "bytes": 7260,
+      "sha256": "fcdee375d2f97afae9d8dc6a23eff64440258aea0a8c2adff7b2968875bc6535",
+      "fileBaselineIdentical": true
+    },
+    {
+      "path": "src/commands/file/index.ts",
+      "gitBlob": "599e8b914ff67f9da5142bdfc1c675f8dec4afa7",
+      "bytes": 10496,
+      "sha256": "5278a91c223e182a6bfd2961b16545ff42e2f4e986c25f5dc7f35371aee0d178",
+      "fileBaselineIdentical": true
+    },
+    {
+      "path": "src/commands/file/shared.ts",
+      "gitBlob": "5ac1d09ac66227a99806ff3017b74f800b7f188c",
+      "bytes": 6937,
+      "sha256": "bb6d9ac67eeace8e52220c94f7eb2d78236fe045d3d1312814c5b9dcb0755fc5",
+      "fileBaselineIdentical": true
+    },
+    {
+      "path": "src/commands/tree/README.md",
+      "gitBlob": "64cd79d00634263639b56d0dc7df3747ce878d1c",
+      "bytes": 13361,
+      "sha256": "d330462d2d11e5d97e2d5f93933593beb796ad43fce2f283dbe096cf7aa9a4e6"
+    },
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "gitBlob": "545875a99b37617cd4e8741ea22c74068cb92395",
+      "bytes": 4552,
+      "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762"
+    },
+    {
+      "path": "src/commands/tree/index.ts",
+      "gitBlob": "08351d6de8cd9940a6b01c54b7aae5dec2683c8c",
+      "bytes": 934,
+      "sha256": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc"
+    },
+    {
+      "path": "src/commands/tree/io.ts",
+      "gitBlob": "799c1edcca260704c0ba31a22694fc4dcdb4756b",
+      "bytes": 3768,
+      "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1"
+    },
+    {
+      "path": "src/commands/tree/options.ts",
+      "gitBlob": "c053ac2a3a73e11ce02f44aa4963f526f8880abd",
+      "bytes": 1013,
+      "sha256": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483"
+    },
+    {
+      "path": "src/commands/tree/pattern.ts",
+      "gitBlob": "10856009329db0d2729fe911ab022c638239ab25",
+      "bytes": 3061,
+      "sha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "gitBlob": "70948ef642b4d6cc9f26eee9f78a7a581d6a588a",
+      "bytes": 10748,
+      "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1"
+    }
+  ],
+  "compiled": [
+    {
+      "path": "dist/shell/index.js",
+      "bytes": 175,
+      "sha256": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb"
+    },
+    {
+      "path": "dist/contracts/index.js",
+      "bytes": 206,
+      "sha256": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27"
+    },
+    {
+      "path": "dist/commands/tree/index.js",
+      "bytes": 772,
+      "sha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a"
+    },
+    {
+      "path": "dist/commands/file/index.js",
+      "bytes": 11943,
+      "sha256": "2f63be99b23805e68498f39b71382134d70ab2929f7413460337790d8d3e5ad5"
+    },
+    {
+      "path": "dist/commands/tree/index.d.ts",
+      "bytes": 489,
+      "sha256": "29cef61ca31995ef8c2c0ccbcaf8f2149902bf4000ae44d09a4cae856518119a"
+    },
+    {
+      "path": "dist/commands/tree/tree.d.ts",
+      "bytes": 251,
+      "sha256": "ed2a37862328c39bccba7f5d21e020e802889358761df4f4052e5f90ea340524"
+    },
+    {
+      "path": "dist/commands/tree/options.d.ts",
+      "bytes": 583,
+      "sha256": "6cd4145544773cdd7592ea71096064af1a6d18999eeee647332d6f0b34a6469c"
+    },
+    {
+      "path": "dist/commands/file/index.d.ts",
+      "bytes": 538,
+      "sha256": "82cbaf66cfc7ab1908387b9c7e3ec05fb87b66d5835dcad0575cebdfdcfc08e7"
+    },
+    {
+      "path": "dist/commands/file/shared.d.ts",
+      "bytes": 1782,
+      "sha256": "41219db9290c5092d89f0501e2eb81fe8f9e9ff3e5e5d13d6101675897254bee"
+    }
+  ]
+}

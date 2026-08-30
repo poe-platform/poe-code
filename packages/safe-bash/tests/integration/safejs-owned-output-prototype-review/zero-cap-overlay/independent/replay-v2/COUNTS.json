@@ -1,0 +1,174 @@
+{
+  "attempt": 2,
+  "status": "PRIVATE_PREREQUISITE_NONPASS_BEFORE_RUNTIME",
+  "invocations": 1,
+  "retries": 0,
+  "nodeParents": 0,
+  "guestEngineRuns": 0,
+  "runtimePass": 0,
+  "runtimeFail": 0,
+  "invalidFixture": 0,
+  "blocked": 25,
+  "preRuntimeRefusals": 1,
+  "cohorts": [
+    {
+      "cohort": "surface",
+      "scheduled": 8,
+      "executed": 0,
+      "blocked": 8,
+      "rows": [
+        {
+          "id": "01-supported-facades",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "02-direct-surface",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "03-namespace-spread",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "04-shell-module",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "05-missing-register-cleanup",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "06-missing-acquire",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "07-reflection-profile",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "08-function-spread-profile",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        }
+      ]
+    },
+    {
+      "cohort": "lifecycle",
+      "scheduled": 11,
+      "executed": 0,
+      "blocked": 11,
+      "rows": [
+        {
+          "id": "L01-aliases",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L02-budget-positive",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L02-budget-exhausted",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L03-callback-live",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L03-callback-after-lifetime",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L04-explicit-children",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L05-caller-error",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L05-execution-error",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L05-cleanup-error",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L06-curl-open",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "L06-curl-consumer-closed",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        }
+      ]
+    },
+    {
+      "cohort": "controls",
+      "scheduled": 6,
+      "executed": 0,
+      "blocked": 6,
+      "rows": [
+        {
+          "id": "Z01-open",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "Z01-closed",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "Z02-open",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "Z02-closed",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "Z03-open",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        },
+        {
+          "id": "Z03-closed",
+          "status": "BLOCKED",
+          "engineRuns": 0
+        }
+      ]
+    }
+  ],
+  "authorizationTransportCalls": 0,
+  "zeroCallsIsNotPositiveWorkflow": true,
+  "privateSnapshots": 2,
+  "dataOnlyControls": {
+    "planned": 7,
+    "executed": 0,
+    "status": "BLOCKED"
+  },
+  "finiteHostObserverControlsExecuted": 0,
+  "noPromotion": true
+}

@@ -1,0 +1,17 @@
+{
+  "name": "normal",
+  "pid": 43939,
+  "spawned": true,
+  "closed": true,
+  "code": 0,
+  "signal": null,
+  "stdoutBytes": 13,
+  "stderrBytes": 0,
+  "termRequested": false,
+  "killRequested": false,
+  "stdoutClosed": true,
+  "stderrClosed": true,
+  "primaryPresent": false,
+  "primaryFalse": false,
+  "secondary": 0
+}

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-08-28T04:04:07.978Z",
+  "status": "ROOT_RELEASE_RECEIVED_BUT_INSTRUCTION_COPY_ADMISSION_BLOCKED",
+  "runnableReleaseReceipt": false,
+  "rootAuthorizedOneFullGate": true,
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSource": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "releasePacket": "39dd983bf60c6934d9d8721e39557eae487d88ef",
+  "rootAcceptedIndependentReview": "5c32f061c36081919a21cbc7e77b2865f0c49c0a",
+  "rootAcceptedBindingReview": "8dd78d7d099969597989ddcc9bec73e929ebe223",
+  "public74": true,
+  "public75": true,
+  "public76": true,
+  "rootCondition": "No AGENTS snapshots/materialization. If existing approved gate requires forbidden copy, STOP before write and surface narrow correction. Do not silently weaken complete candidate/provenance proof.",
+  "rootOtherConditions": [
+    "Use all14 phases, native49+2,632 canonical paths,192 classifications,256 cleanup inputs, exact tool hashes and readonly/private guards.",
+    "One production build reused; test-owned builds separately labelled.",
+    "Collect ordinary independent failures when safe/reaped; integrity or cleanup admission failure halts dependent phases.",
+    "No automatic rerun or fixes during gate. Foreign processes/index untouched.",
+    "This is historical76 composition, not current77 or an overall superiority claim."
+  ],
+  "action": "RECORD_CONDITIONAL_ROOT_AUTHORITY_ONLY",
+  "executionStarted": false,
+  "reasonNoRunnableReceipt": "The accepted extractor has no metadata-only instruction projection. Recording ROOT_RELEASE_UNIFIED76 as executable despite this known root condition would misstate admission."
+}

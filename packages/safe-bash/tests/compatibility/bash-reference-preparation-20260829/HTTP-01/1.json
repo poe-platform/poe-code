@@ -1,0 +1,21 @@
+{
+  "method": "GET",
+  "url": "https://ftp.gnu.org/gnu/bash/",
+  "startedAt": "2026-08-29T04:34:05.042Z",
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:34:04 GMT",
+    "last-modified": null,
+    "etag": null,
+    "content-type": "text/html;charset=UTF-8",
+    "content-length": null,
+    "location": null
+  },
+  "body": {
+    "path": "1.body.data",
+    "bytes": 38942,
+    "sha256": "f21ff7373237cec92a11396ead0a53065d6795b9fa54df835e6ab86bc3c9fd20"
+  },
+  "disposition": "HTTP_METADATA_ONLY",
+  "endedAt": "2026-08-29T04:34:05.442Z"
+}

@@ -1,0 +1,11 @@
+# Corrected receipt-layer DATA audit v2
+
+Frozen product and 111 raw records/goldens/role counts are unchanged. Old 05707e3b exit1/222 wrong-layer assertions and publication startup STOP remain immutable. Original campaign administrative false-zero accounting remains HOLD.
+
+Only comparison correction: persisted wrapper `.receipt.observation` is the published virtual outcome, and JSON-parsed child stdout is wrapper `.receipt` (not the persisted wrapper's complete serialization). Authenticate outer/inner case and layout fields. Reproduce the same eight framing/comparison controls; recompute all111 five-field comparisons, frame/lifecycle/trace/source bindings. Source-qualified wrapper mapping becomes a fresh DATA check, not new product execution.
+
+Use the previously correctly admitted 678-frame index authenticated from committed 05707e3b AUDIT.json, and re-read existing raw files under the manifest's explicit capture root with exact regular-file/size/hash checks, one at a time. No compressed decode is needed. The index's original gzip admission remains inherited proof, not silently rerun. No extraction, product imports, compiler/native/Worker/network/private execution. Whole read buffers are bounded to2MiB except the bounded Node binary hash streamed in64KiB pieces. No193MiB-scale archive allocation or hard-RSS claim.
+
+One intended PURE audit process, maximum2 only if explicitly needed within authority; no product child starts. Known-role plan26 including instruction read, edit frontends, supervisors, syntax children, two Git preseal steps and publication/status; ceiling32, peak3,15min,48MiB capture,192MiB own work. All helper/syntax/Git stdout/stderr go to exclusive direct-file captures. Each shell bootstrap opens its own direct-file stdout/stderr before invoking the file-based supervisor. No ambient REPL/global census.
+
+Local census returns one immutable invocation-local snapshot of this review directory only, before publication. It is not a final sample of the historical actual roots or a reconstructed old zero. Live post-commit publication captures remain identified as live evidence, not claimed committed in an earlier commit. No source/helper automatic retry after safety/capture/integrity/unknown retirement STOP.

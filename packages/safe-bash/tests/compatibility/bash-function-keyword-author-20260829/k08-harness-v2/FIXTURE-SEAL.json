@@ -1,0 +1,46 @@
+{
+  "schema": "k08-harmless-drain-preseal-v1",
+  "issuedAt": "2026-08-29T15:14:10.750Z",
+  "phaseDeadline": 1788017112721,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "files": {
+    "fixture-owner.mjs": {
+      "bytes": 2224,
+      "sha256": "7efd86ec5629914def5fd798e1572173b345558bf87c9709e4a0c61db18d6f53"
+    },
+    "direct-child.mjs": {
+      "bytes": 5895,
+      "sha256": "97b818b690af71f59e85e8c0f5f87536aabdc5352fa391fcb0fb3495e66c3120"
+    },
+    "auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    }
+  },
+  "childArgs": [
+    "--permission",
+    "-e",
+    "process.on('SIGTERM',()=>{});process.stdout.write('READY\\n');setInterval(()=>{},1000);"
+  ],
+  "childEnv": {
+    "HOME": "/private/tmp/safe-bash-k08-preexec-v2-1O68JM",
+    "PATH": "",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "knownRoles": 2,
+  "peak": 3,
+  "ownerMs": 10000,
+  "childBodyMs": 6000,
+  "childFinalMs": 8000,
+  "capturePerStream": 65536,
+  "qualification": "Two harmless Node roles; no product, native shell, Worker or network. Child intentionally ignoresTERM; forcedretirement is the expected bounded fixture. Any unknown retirement/capture fault isSTOP."
+}

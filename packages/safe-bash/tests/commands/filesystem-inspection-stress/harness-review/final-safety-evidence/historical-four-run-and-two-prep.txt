@@ -1,0 +1,205 @@
+INDEPENDENT INSPECTION SAFETY — ORIGINAL RUN + TWO-ROW PREPARATION
+August27,2026. No staging or commit this turn. STOP for independent/root review.
+
+DECISION SUMMARY
+Original unchanged six-row runner invoked EXACTLY ONCE: four scoped passes,
+two HOLD with zero invocation. Actual new product commands this turn=4;
+derived correction commands=0; total across phases so far=4, not6.
+Derived two-row corpus is PREPARED ONLY / HOLD FOR INDEPENDENT REVIEW AND ROOT
+AUTHORIZATION. No full38/full40 outcome or blanket source-safety acceptance.
+No retry, new native oracle, product source/shared executor/root/FS change.
+
+FROZEN SOURCE AND AUTHORIZATION
+Source:436bda3e21b2b6041409fac7408cf072b5d3fe5e
+Snapshot:/private/tmp/safe-bash-inspection-final-YZxhi8/snapshot
+User-facing equivalent:/tmp/safe-bash-inspection-final-YZxhi8/snapshot
+File baseline confirmed by separate proof:cd37ce07c1f41f3797e19e0f701b662823338843
+Separate proof thread:01a04288-717a-7081-b42a-da4831f7178b
+Read:/tmp/safe-bash-inspection-final-proof-detail.txt
+Proof SHA256:152e4763a2f34eace88afe192c895773616b6cc890f44f86e35ae1cad4a98e7c
+Root-approved document:/tmp/safe-bash-inspection-safety-root-approved.json
+SHA256:e4d048afb4784f802047de589212519465bb7589ccdb99e10ba677add39cee1c
+Original proposed SHA256:4f096db838c296579e52811c5d3a349cd0ecdae0278fe4045219e895c205c11f
+Builtins-only deep comparison confirms ONLY approval marker changed.
+Original dpNonEliminated and sortByteCost proofs remain invalidated.
+Before execution, original authorize() verified all920 permitted snapshot
+artifacts, source identity, original eight-file runtime identity and six seals.
+Current approved builtin closure was not widened for the original run.
+No compiler/build/install or source edit was performed by this peer.
+
+EXACT ORIGINAL EXECUTION COMMAND — ONCE, NO RETRY
+node tests/commands/filesystem-inspection-stress/harness-review/safety-v1/run.mjs --execute /tmp/safe-bash-inspection-safety-root-approved.json e4d048afb4784f802047de589212519465bb7589ccdb99e10ba677add39cee1c /tmp/safe-bash-inspection-safety-original-run-20260827-01
+Controller stdout:/tmp/safe-bash-inspection-safety-original-run-stdout.txt
+Controller stderr:/tmp/safe-bash-inspection-safety-original-run-stderr.txt (empty)
+Controller status:/tmp/safe-bash-inspection-safety-original-run-exit.txt (1)
+Exit1 preserves the two HOLDs; it is not four failures or six passes.
+Start:2026-08-27T09:36:27.714Z End:2026-08-27T09:36:28.249Z
+Duration is bookkeeping only, not a performance/timing assertion.
+
+ACTUAL ROWS (new command count; Shell status; stdout/stderr bytes)
+T-empty-many:PASS;1;status0;8262/0
+T-DP-cumulative:HOLD;0;NOT RUN;no pid/report/bytes
+T-sort-many:HOLD;0;NOT RUN;no pid/report/bytes
+F-JSON-cumulative:PASS;1;status1;29/26
+F-header-many:PASS bounded classification only;1;status0;1192/0
+F-metadata-many:PASS first text-admission rejection only;1;status1;0/28
+
+Four child starts and four observed command-start messages, one command per
+completed report. PIDs71963/71964/71965/71966 each closed code0, signal=null.
+All four reports shellDisposed=true; zero mutation and zero observed unhandled
+rejection after the child's two observation turns. No stop reason, incomplete
+child or unknown final product effect. These observations are finite, not a
+promise that arbitrary uncooperative host work is forcefully cancelled.
+
+RESOURCES / EFFECTS / CLEANUP
+Original limits unchanged:5s owned child watchdog,30s whole batch,128MiB heap,
+256MiB observed-RSS stop,64KiB combined product/transport capture; no retries.
+Heap limit was134217728 bytes in every child before product import.
+Observed RSS bytes:tree81412096,JSON80887808,header81477632,metadata80658432.
+Maximum81477632 is observed telemetry, not a hard native-memory containment
+claim. Node experimental-loader warning is448 transport-stderr bytes per child,
+preserved separately from product stderr and charged to capture. Largest
+combined capture=8710 bytes for tree. All children closed and controller command
+settled; no ongoing tool execution session remains.
+
+Tree empty case:65 lstats+1 readdir, all64 names retained, exact8262-byte output.
+JSON:two different8190-byte input streams, next9 each, normal EOF, return0;
+only first classification line emitted, then 'file: step limit exceeded\n'.
+Header:32 distinct paths,512 bytes/next5/return0 each;16384 total input bytes,
+32 bounded records; no format-validity/security/native-certification claim.
+Metadata:one root operand lstat/readlink, zero content reads, empty stdout,
+'file: output limit exceeded\n'28 bytes. Only first oversize expansion attempted.
+Return0 denotes exhausted producers here, not missing early-iterator cleanup.
+Module logs:25 loads for tree,21 for each file case, all hashes in approved
+manifest. Observed loads are not the static union closure or a full module gate.
+
+RAW EVIDENCE PRESERVATION
+Raw summary:/tmp/safe-bash-inspection-safety-original-run-20260827-01/summary.json
+SHA256:67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465
+Durable owned copy:tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/summary.json
+All26 copied proof/provenance/raw-result files are exact byte copies, bound by
+safety-run-evidence/MANIFEST.json SHA256:
+22555f0ea0af50825bd4bd9ee51cbc84ff822186feaa3d9c765e8467a09b1b9c
+No compiler, engine, product source, dependency installation or native fixture
+was copied. Provenance contains hashes/names/build metadata and bounded static
+inventory; source proofs remain attributed to the separate leaf.
+Original root approval, proposal, proof, four raw row reports, module logs,
+transport outputs, controller exit and raw six-row summary remain intact.
+
+Original22 committed peer artifacts match2070378359e479e7b589d46705d4275181ae0ad2
+byte-for-byte, including six inputs, all v1/v2 harness-review history and seals.
+Original PRESEAL:b72b5e9f109e3da38732c931980d3730bbda14dc0eef16cdea7c3fa632e92ebb
+Original runtime:428424f50da19fcbe970f962f8149eb9674dccd475db7e720b52d83c1b1d4905
+Original native/profile/unsupported/characterization and raw38/40 failures have
+not been rewritten, executed anew, or promoted to passes by this run.
+
+DERIVED TWO-ROW PREPARATION — NO PRODUCT EXECUTION
+Owned root:tests/commands/filesystem-inspection-stress/harness-review/safety-v2/
+Both cases preserve all original entries, order, types, arguments and pattern.
+Only DP maxSteps4096→16384 plus both declared expected-oracle corrections change.
+Sort keeps4096 and the same64 common-prefix names/dirsfirst input.
+Both now require resolved Shell status1, empty stdout, bounded meaningful
+single-line tree work-limit diagnostic with matching cap; no outer rejected
+promise/empty-stderr demand and no fabricated EFBIG report object.
+Common byte/status/effect/cancellation/cleanup assertions remain. No generic
+nonempty/status-only or unrelated-limit diagnostic substitute is accepted.
+
+DP arithmetic:startup55;listing+filter4517;singleton4573 fits16384;
+three filters13606;four full filters18123. Fourth candidate after listing,
+alternative and initial row13737;token10 leaves16317;token11 demands16575 and
+fails before allocation. Values beyond cap are demanded, not performed work.
+Frozen loop reaches sort only after all listing entries are consumed.
+Derived trace requires first4 original names,next4,yielded4,done=false,return1;
+only root lstat/readdir. A per-entry-reset implementation reaching a later-sort
+limit consumes all64 names and fails this oracle even with identical stderr.
+Trace does not count DP tokens; independently reviewed source arithmetic is
+mandatory. No monkeypatch of product counters, sorting or matcher implementation.
+
+Sort arithmetic:startup66;comparison reserve1+512+512=1025;three3141;
+fourth4166>4096 before Buffer.compare/child stat/output. Requires complete
+64-name trace,next65,done=true,return0,only root lstat/readdir. Byte-span
+reservation is not an arbitrary constant cost or exact measured comparison
+work. The dirsfirst second pass is statically metered, not reached by this row.
+
+Telemetry-only VFS wrapper preserves Array entries/order/options but wraps
+Symbol.iterator and adds a bounded no-resource return observation. It does not
+inject/swallow product errors. The unchanged original VFS remains separate.
+This disclosed instrumentation and phase reasoning require the independent
+proof leaf's approval; mock controls alone do not establish source behavior.
+
+NEW EXECUTION GATE
+Exactly two case IDs in derived seal; parent max2 children; child max1 command.
+Only the four original valid results are reused by exact summary hash, NOT rerun.
+Fixed exclusive claim before fork prevents retry with another output path:
+/tmp/safe-bash-inspection-derived-two-436bda3-execution-claim.json (NOT CREATED).
+Approved original evidence4 plus at most2 new commands keeps total<=6. A future
+partial failure consumes the claim rather than silently retrying. Same resource
+caps and existing cleanup behavior remain; no product worker/session API added.
+Derived child.mjs is byte-identical to original; controller/loader/oracle exact
+literal transformations are recorded in derivation.json and selfchecked.
+Loader permits sealed sibling v1 helpers for reuse; forbidden product host/
+process/network/worker imports remain forbidden. No engine/compiler is vendored.
+
+CANDIDATE HASHES / ROOT REVIEW HANDOFF
+safety-v2/SEAL.json:
+8111403a37f392dd8934c3e0f9d89bc6b8338bf5d14becb3471bc68a6ee682df
+Derived runtime identity:
+f29c603e3205e69716d6fafff4b256d128c981cd010fc8c0021d604ae2c06b77
+safety-v2/root-review-proposal.json:
+b1a162cfbe24a418d9c960ec4acb3ec85b0c9781cc5e552f99ee57b3df8a9267
+safety-v2/derived-cases.json:
+9a6311c6514fe95739459af32ca0b18a38fecfecb700407a94a72766a70c675c
+Derived DP canonical case:
+9bca8031edc1f3bcd1a429081dadaa0057d49c3a25e1efbf5d65093a3df01fe1
+Derived sort canonical case:
+cb58f411a1d5396d96383b387c561d2a500d4b9738e4ec62457e937320d26aa1
+safety-v2/case-diff.json:
+36feec0fd37f5096c6a298743125e342114de465c916855edc56ccf4f453e43f
+safety-v2/derivation.json:
+1cfafb797f63a4075fc0862ea17ff9553f4abc0a989ee35cff139d477cc8e39d
+
+Proposal marker=PENDING_ROOT;both proof statuses=PENDING_INDEPENDENT_REVIEW.
+Positive coefficient/phase fields are proposed premises, not reviewed facts
+about a new run. No executable approval document was created. Root should route
+STATIC_PROOF.md,case-diff.json,derivation.json,SEAL.json,root-review-proposal.json,
+runtime helpers and saved mock evidence to the independent proof leaf. That
+review must address trace semantics, cumulative phase, singleton arithmetic,
+Shell diagnostic grammar, loader helper binding and exact-two-child gate.
+Future authorization must bind its review path/hash, approved proof fields,
+same original snapshot/base approval/previous summary, derived seal/runtime and
+ROOT_TWO_ROW_CORRECTION_EXECUTION_AUTHORIZED. It is a separate document; do not
+modify original invalidated proofs or call the original six-row runner again.
+
+NONPRODUCT CHECKS / EXACT COMMANDS
+node --test tests/commands/filesystem-inspection-stress/harness-review/safety-v2/selfcheck.test.mjs
+Result7/7 pass,0fail/skip/cancel/TODO; saved safety-v2/selfcheck.tap.
+Two positive synthetic Shell reports use actual fixture iteration telemetry.
+DP14 and sort13 altered-report negatives reject;3 positive diagnostic forms
+and10 diagnostic negatives;6 bad proof-field controls;pending authorization
+rejected without acquiring claim. Pure arithmetic/diff/seal checks included.
+
+node tests/commands/filesystem-inspection-stress/harness-review/safety-v2/validate.mjs
+Result PASS: all copied evidence hashes, original approval-only diff, saved
+4pass/2HOLD counters, module hashes, resource observations and cleanup validate
+offline. Saved safety-v2/offline-validation.json. No product replay occurred.
+
+node tests/commands/filesystem-inspection-stress/harness-review/safety-v2/run.mjs --check
+Result PASS, derived preparation only; saved safety-v2/PREPARATION.json.
+The inherited presealSha256 field denotes derived SEAL, not changed v1 PRESEAL.
+node --check ran for each of10 safety-v2 .mjs files; all passed, no imports.
+
+Authored files/copies used apply_patch. One /tmp generator patch attempt lacked
+its Begin Patch header and failed; the following Node call consequently reported
+MODULE_NOT_FOUND. Corrected only the /tmp script, then generated artifacts once.
+No seal/input/product evidence was overwritten; no product retry resulted.
+
+OWNERSHIP / INVENTORY / STOP
+All new repository files are within owned safety-v2/ and safety-run-evidence/.
+49 new UTF-8 text files;971625 bytes. No symlinks, binary/NUL payload or vendored
+source/compiler. Full per-file count/bytes/SHA256 manifest:
+/tmp/safe-bash-inspection-safety-run-owned-manifest.json
+SHA256:846e7f419fb9f208270e5ab94c222b283fb296b255aa78d6ad4a1118f93a72e5
+No tracked file changed; original22 hashes verified. Index is empty; no git add,
+commit, amend, branch, install or unowned edit. Concurrent unowned work preserved.
+This detail is /tmp-only. No further product/native execution and no atomic
+artifact commit before the root's next review/authorization step. STOP.

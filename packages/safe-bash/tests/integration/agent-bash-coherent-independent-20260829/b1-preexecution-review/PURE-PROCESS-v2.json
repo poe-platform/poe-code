@@ -1,0 +1,17 @@
+{
+  "role": "PURE-B1-review-v2",
+  "start": "2026-08-29T12:47:59.896Z",
+  "seal": "3744d43eca2b47b42d847db344017a6ebd7be6f00cd9e696242047ec424a3e8f",
+  "pid": 42534,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "end": "2026-08-29T12:48:00.315Z",
+  "stdoutBytes": 339,
+  "stderrBytes": 0
+}

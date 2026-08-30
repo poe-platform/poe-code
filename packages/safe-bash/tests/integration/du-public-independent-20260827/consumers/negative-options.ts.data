@@ -1,0 +1,4 @@
+import { createDuCommand } from 'virtual-bash';
+import { createDuCommands } from 'virtual-bash/commands/du';
+createDuCommand({ notADuOption: true });
+createDuCommands({ notADuOption: true });

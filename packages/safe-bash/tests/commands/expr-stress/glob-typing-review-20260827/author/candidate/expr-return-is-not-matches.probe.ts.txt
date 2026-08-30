@@ -1,0 +1,9 @@
+
+import type { ExprMatchDescriptor, ExprMatchResult } from "../../../../src/commands/regex-execution/protocol.js";
+declare const exprDescriptor: ExprMatchDescriptor;
+declare const regexDescriptor: Descriptor;
+declare const unionDescriptor: Descriptor | ExprMatchDescriptor;
+declare const probeRows: readonly Row[];
+declare const probeSignal: AbortSignal;
+const probeExecutor = new RegexExecutor();
+const wrong: Promise<Match[][]> = probeExecutor.request(exprDescriptor, probeRows, probeSignal);

@@ -1,0 +1,157 @@
+[
+  {
+    "id": "M01-installed-K01",
+    "caseId": "K01",
+    "layout": "installed",
+    "cwd": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M01",
+    "entry": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M01/case-driver.mjs",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M01",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M01-installed-K01.role.json",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M01-installed-K01.trace",
+      "--allow-fs-write=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M01-installed-K01.trace",
+      "--import",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M01/guard.mjs",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M01/case-driver.mjs"
+    ],
+    "env": {
+      "HOME": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/home",
+      "TMPDIR": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/tmp",
+      "PATH": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/empty-path",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "SURFACE_ROLE": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M01-installed-K01.role.json",
+      "SURFACE_ROLE_BYTES": "exact freshly serialized role bytes before spawn",
+      "SURFACE_ROLE_SHA256": "SHA256 of those same role bytes before spawn"
+    },
+    "timeoutMs": 30000,
+    "roleDerivation": "sealed supervisor launch; no unbound user options",
+    "status": "UNRUN"
+  },
+  {
+    "id": "M02-installed-K03",
+    "caseId": "K03",
+    "layout": "installed",
+    "cwd": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M02",
+    "entry": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M02/case-driver.mjs",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M02",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M02-installed-K03.role.json",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M02-installed-K03.trace",
+      "--allow-fs-write=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M02-installed-K03.trace",
+      "--import",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M02/guard.mjs",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M02/case-driver.mjs"
+    ],
+    "env": {
+      "HOME": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/home",
+      "TMPDIR": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/tmp",
+      "PATH": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/empty-path",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "SURFACE_ROLE": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M02-installed-K03.role.json",
+      "SURFACE_ROLE_BYTES": "exact freshly serialized role bytes before spawn",
+      "SURFACE_ROLE_SHA256": "SHA256 of those same role bytes before spawn"
+    },
+    "timeoutMs": 30000,
+    "roleDerivation": "sealed supervisor launch; no unbound user options",
+    "status": "UNRUN"
+  },
+  {
+    "id": "M03-installed-K12",
+    "caseId": "K12",
+    "layout": "installed",
+    "cwd": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M03",
+    "entry": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M03/case-driver.mjs",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M03",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M03-installed-K12.role.json",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M03-installed-K12.trace",
+      "--allow-fs-write=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M03-installed-K12.trace",
+      "--import",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M03/guard.mjs",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/mutant-M03/case-driver.mjs"
+    ],
+    "env": {
+      "HOME": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/home",
+      "TMPDIR": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/tmp",
+      "PATH": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/empty-path",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "SURFACE_ROLE": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/M03-installed-K12.role.json",
+      "SURFACE_ROLE_BYTES": "exact freshly serialized role bytes before spawn",
+      "SURFACE_ROLE_SHA256": "SHA256 of those same role bytes before spawn"
+    },
+    "timeoutMs": 30000,
+    "roleDerivation": "sealed supervisor launch; no unbound user options",
+    "status": "UNRUN"
+  },
+  {
+    "id": "N01-physically-moved-K01",
+    "caseId": "K01",
+    "layout": "physically-moved",
+    "cwd": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app",
+    "entry": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app/case-driver.mjs",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/N01-physically-moved-K01.role.json",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/N01-physically-moved-K01.trace",
+      "--allow-fs-write=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/N01-physically-moved-K01.trace",
+      "--import",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app/guard.mjs",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app/case-driver.mjs"
+    ],
+    "env": {
+      "HOME": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/home",
+      "TMPDIR": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/tmp",
+      "PATH": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/empty-path",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "SURFACE_ROLE": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/N01-physically-moved-K01.role.json",
+      "SURFACE_ROLE_BYTES": "exact freshly serialized role bytes before spawn",
+      "SURFACE_ROLE_SHA256": "SHA256 of those same role bytes before spawn"
+    },
+    "timeoutMs": 30000,
+    "roleDerivation": "sealed supervisor launch; no unbound user options",
+    "status": "UNRUN"
+  },
+  {
+    "id": "N02-physically-moved-K01",
+    "caseId": "K01",
+    "layout": "physically-moved",
+    "cwd": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app",
+    "entry": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app/case-driver.mjs",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/N02-physically-moved-K01.role.json",
+      "--allow-fs-read=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/N02-physically-moved-K01.trace",
+      "--allow-fs-write=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/N02-physically-moved-K01.trace",
+      "--import",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app/guard.mjs",
+      "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/moved-app/case-driver.mjs"
+    ],
+    "env": {
+      "HOME": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/home",
+      "TMPDIR": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/tmp",
+      "PATH": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/empty-path",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "SURFACE_ROLE": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/capture/N02-physically-moved-K01.role.json",
+      "SURFACE_ROLE_BYTES": "exact freshly serialized role bytes before spawn",
+      "SURFACE_ROLE_SHA256": "SHA256 of those same role bytes before spawn"
+    },
+    "timeoutMs": 30000,
+    "roleDerivation": "sealed supervisor launch; no unbound user options",
+    "status": "UNRUN"
+  }
+]

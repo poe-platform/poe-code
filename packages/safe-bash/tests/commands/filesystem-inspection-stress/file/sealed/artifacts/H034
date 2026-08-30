@@ -1,0 +1,65 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { chmod, mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { fixtures, cases, policy } from './corpus.mjs';
+
+const root = dirname(fileURLToPath(import.meta.url));
+const fixtureRoot = join(root, 'native-fixtures');
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+await mkdir(fixtureRoot, { mode: 0o700 });
+const environment = { PATH: '/usr/bin:/bin', LC_ALL: 'C', LANG: 'C', HOME: root, MAGIC: '/usr/share/file/magic.mgc' };
+const baseArgs = ['-m', '/usr/share/file/magic.mgc', '-P', 'bytes=65536'];
+const observations = [];
+const run = (id, view, args, input) => {
+  const result = spawnSync('/usr/bin/file', [...baseArgs, ...args], { cwd: fixtureRoot, env: environment, input, timeout: 3000, maxBuffer: 65536 });
+  const observation = { id, view, executable: '/usr/bin/file', argv: [...baseArgs, ...args], stdinBytes: input?.length ?? null, stdinSha256: input === undefined ? null : hash(input), status: result.status, signal: result.signal, error: result.error?.message ?? null, stdout: result.stdout?.toString('utf8') ?? '', stderr: result.stderr?.toString('utf8') ?? '', observedAt: new Date().toISOString() };
+  observations.push(observation);
+  return observation;
+};
+const views = [['brief-human', ['-b']], ['brief-mime', ['-b', '--mime']], ['brief-mime-type', ['-b', '--mime-type']], ['brief-mime-encoding', ['-b', '--mime-encoding']]];
+const manifest = [];
+for (const entry of fixtures) {
+  assert(entry.bytes.length <= 65536);
+  const filename = `${entry.id}-${entry.name}`;
+  await writeFile(join(fixtureRoot, filename), entry.bytes, { flag: 'wx', mode: 0o600 });
+  manifest.push({ id: entry.id, filename, bytes: entry.bytes.length, sha256: hash(entry.bytes), base64: entry.bytes.toString('base64') });
+  for (const [view, flags] of views) run(entry.id, view, [...flags, '--', filename]);
+}
+await mkdir(join(fixtureRoot, 'directory'), { mode: 0o700 });
+await symlink('F09-picture.txt', join(fixtureRoot, 'link'));
+await symlink('missing', join(fixtureRoot, 'dangling'));
+await symlink('cycle-b', join(fixtureRoot, 'cycle-a'));
+await symlink('cycle-a', join(fixtureRoot, 'cycle-b'));
+await writeFile(join(fixtureRoot, 'denied'), fixtures[1].bytes, { flag: 'wx', mode: 0o600 });
+await chmod(join(fixtureRoot, 'denied'), 0);
+for (const [id, operand, flags] of [['F21', 'directory', []], ['F22', 'link', ['-h']], ['F23', 'link', ['-L']], ['F24', 'dangling', ['-L']], ['F25', 'cycle-a', ['-L']], ['F36', 'denied', []]]) {
+  for (const [view, viewFlags] of views) run(id, view, [...flags, ...viewFlags, '--', operand]);
+}
+run('F36', 'denied-then-readable', ['--mime', '--', 'denied', 'F09-picture.txt']);
+run('F36', 'missing-then-readable', ['--mime', '--', 'missing', 'F09-picture.txt']);
+run('F38', 'native-byte-stdin', ['-b', '--mime', '-'], fixtures[8].bytes);
+run('F39', 'native-multiinputs', ['--mime', '--', 'F02-letter.png', '-', 'F01-empty.pdf'], fixtures[8].bytes);
+run('F39', 'native-brief-multiinputs', ['-b', '--mime', '--', 'F02-letter.png', '-', 'F01-empty.pdf'], fixtures[8].bytes);
+await chmod(join(fixtureRoot, 'denied'), 0o600);
+const expected = fixtures.map((entry) => ({
+  id: entry.id,
+  nativeExact: Object.fromEntries(observations.filter((observation) => observation.id === entry.id).map((observation) => [observation.view, { stdout: observation.stdout, stderr: observation.stderr, status: observation.status, available: !observation.error && observation.signal === null }])),
+  semantic: entry.semantic,
+  qualification: entry.qualification,
+  status: 'not-run',
+}));
+const documentation = await readFile(join(root, 'references.json'));
+for (const [filename, value] of [['fixture-manifest.json', manifest], ['cases.json', { policy, cases }], ['native-observations.json', { environment, baseArgs, observations }], ['expectations.json', expected]]) {
+  await writeFile(join(root, filename), `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
+}
+assert.equal(manifest.length, 20);
+assert.equal(cases.length, 40);
+assert.equal(observations.length, 109);
+const failures = observations.filter((observation) => observation.error || observation.signal);
+const summary = { preparedAt: new Date().toISOString(), caseCount: cases.length, fixtureCount: manifest.length, fixtureBytes: manifest.reduce((total, entry) => total + entry.bytes, 0), nativeObservations: observations.length, nativeExecutionErrors: failures, referenceManifestSha256: hash(documentation), candidateRuns: 0 };
+await writeFile(join(root, 'prep-summary.json'), `${JSON.stringify(summary, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
+console.log(JSON.stringify(summary, null, 2));
+for (const entry of expected) console.log(entry.id, entry.nativeExact['brief-mime'].stdout.trim(), '|', entry.nativeExact['brief-human'].stdout.trim());

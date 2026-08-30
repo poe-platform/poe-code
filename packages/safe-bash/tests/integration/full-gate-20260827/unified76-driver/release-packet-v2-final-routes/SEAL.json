@@ -1,0 +1,39 @@
+{
+  "at": "2026-08-28T09:06:23.676Z",
+  "scope": "pending-release metadata only",
+  "normalizedPacketSha256": "7e40e84c099d8eaa2e9bc4c1cc73274b4a174d699737f34b7015eb4eb706ec70",
+  "files": [
+    {
+      "path": "PACKET.json",
+      "bytes": 76721,
+      "sha256": "56d45cb729ce8c60ed60834f7b86f2f08b438d34ff334c1f699d71d61a7fda47"
+    },
+    {
+      "path": "ROOT-RECEIPT.template.json",
+      "bytes": 806,
+      "sha256": "a98704dcd79d094aba29bc6d4a85606488afb7c577449a90d3ce35e125c0457d"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 953,
+      "sha256": "1eb3c37b0864d1c2754c6bfe02e7d431531c06ccc0f8376de71d747a6b93ac23"
+    },
+    {
+      "path": "LAUNCH.md",
+      "bytes": 8406,
+      "sha256": "13a7e4921279feee9c24d08d907f2278659a383c4dc44d2aa9c14c705c0f762a"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 11240,
+      "sha256": "fa608546a7f30a695221dade902e425002e768ecd2f744eb8b515f3e6f036a54"
+    }
+  ],
+  "shippingFiles": 38,
+  "independentProofFiles": 5,
+  "driverUnchanged": true,
+  "launches": 0,
+  "builds": 0,
+  "sourceArchiveCopies": 0,
+  "privateReads": 0
+}

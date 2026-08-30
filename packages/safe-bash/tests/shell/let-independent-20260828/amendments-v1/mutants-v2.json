@@ -1,0 +1,73 @@
+[
+  {
+    "id": "M1",
+    "kind": "literal",
+    "caseIds": [
+      "P35",
+      "P36"
+    ],
+    "candidateSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+    "needle": "    if (args.length === offset) throw new CommandFailure(\"let: expression expected\", 1);\n    const variables = new Proxy(this.arithmeticVariables(state), { get: (target, key) => {",
+    "replacement": "    if (args.length === offset) throw new CommandFailure(\"let: expression expected\", 1);\n    { const host = globalThis as typeof globalThis & { __letIndependentMutation?: { id: string; hits: number } }; host.__letIndependentMutation = { id: \"M1\", hits: (host.__letIndependentMutation?.hits ?? 0) + 1 }; }\n    const variables = new Proxy(state.variables, { get: (target, key) => {",
+    "resultSha256": "e9700da106c56aafaafcbe730301f70809252de31b0b8adb4b4a7fd81beb2624"
+  },
+  {
+    "id": "M2",
+    "kind": "literal",
+    "caseIds": [
+      "P16",
+      "P21"
+    ],
+    "candidateSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+    "needle": "    const { args } = context;\n    if (!Array.isArray(args)) throw new CommandFailure(\"let: argument array required\", 2);",
+    "replacement": "    { const host = globalThis as typeof globalThis & { __letIndependentMutation?: { id: string; hits: number } }; host.__letIndependentMutation = { id: \"M2\", hits: (host.__letIndependentMutation?.hits ?? 0) + 1 }; }\n    const args = context.args.length > 1 ? [context.args.join(\" \")] : context.args;\n    if (!Array.isArray(args)) throw new CommandFailure(\"let: argument array required\", 2);",
+    "resultSha256": "3a4dadd0a28d2de63ddb447a1805b6381a9c09e079eab0a78018cbd418e2cb56"
+  },
+  {
+    "id": "M3",
+    "kind": "literal",
+    "caseIds": [
+      "P21"
+    ],
+    "candidateSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+    "needle": "    let value = 0n;\n    for (let index = offset; index < args.length; index++) {",
+    "replacement": "    { const host = globalThis as typeof globalThis & { __letIndependentMutation?: { id: string; hits: number } }; host.__letIndependentMutation = { id: \"M3-v2\", hits: (host.__letIndependentMutation?.hits ?? 0) + 1 }; }\n    for (const argument of args.slice(offset)) { const program = prepareArithmetic(argument); if (program.error) evaluateArithmetic(program, variables); }\n    let value = 0n;\n    for (let index = offset; index < args.length; index++) {",
+    "resultSha256": "9cd95bfdf096b6725a4a800e6aa22f06096c939f83409cf29d3dd88b6808939d"
+  },
+  {
+    "id": "M4",
+    "kind": "literal",
+    "caseIds": [
+      "P03",
+      "P04",
+      "P06"
+    ],
+    "candidateSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+    "needle": "    return Number(value === 0n);",
+    "replacement": "    { const host = globalThis as typeof globalThis & { __letIndependentMutation?: { id: string; hits: number } }; host.__letIndependentMutation = { id: \"M4\", hits: (host.__letIndependentMutation?.hits ?? 0) + 1 }; }\n    return Number(value !== 0n);",
+    "resultSha256": "9d6c7e6b60f62bf75e11c4ea9588dad3b2fe8522003c2606a4641a3eaaa2122b"
+  },
+  {
+    "id": "M5",
+    "kind": "synthetic",
+    "caseIds": [
+      "S12",
+      "S13"
+    ],
+    "candidateSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+    "needle": "    if (!Array.isArray(args)) throw new CommandFailure(\"let: argument array required\", 2);\n    if (args.length + 1 > fields) this.budget.fail(\"maxExpansionFields\");\n    admit(context.command);\n    for (let index = 0; index < args.length; index++) {\n      this.signal.throwIfAborted();\n      admit(args[index]);\n      if ((index + 1) % 128 === 0) await checkpoint();\n    }",
+    "replacement": "    { const host = globalThis as typeof globalThis & { __letIndependentMutation?: { id: string; hits: number } }; host.__letIndependentMutation = { id: \"M5\", hits: (host.__letIndependentMutation?.hits ?? 0) + 1 }; }",
+    "resultSha256": "1238a51d929315bd3813216ef96d759f4cc9b0a157aa2db7511aa23fecd661bf"
+  },
+  {
+    "id": "M6",
+    "kind": "synthetic",
+    "caseIds": [
+      "S20"
+    ],
+    "candidateSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+    "needle": "      if ((index - offset + 1) % 128 === 0) await checkpoint();",
+    "replacement": "    { const host = globalThis as typeof globalThis & { __letIndependentMutation?: { id: string; hits: number } }; host.__letIndependentMutation = { id: \"M6\", hits: (host.__letIndependentMutation?.hits ?? 0) + 1 }; }",
+    "resultSha256": "dc7e9a5bbd0cebf741fb9fc74c23bad2854df24fec020e5d4e4d1ab4d38441fa"
+  }
+]

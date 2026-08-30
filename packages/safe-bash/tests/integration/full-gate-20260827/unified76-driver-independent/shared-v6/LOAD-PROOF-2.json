@@ -1,0 +1,1781 @@
+{
+  "actualChildLogRows": 661,
+  "processesWithModuleLogs": 37,
+  "uniqueChildModules": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/harness/build-audit.mjs",
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/cli.js",
+      "sha256": "67666f06479f9b0bbc01412c198caadd4287d34d5ed74a02871ea78f186451e7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/cli/validate-engines.js",
+      "sha256": "020024abce0210bfd929526cfc3672317c7134ba6962b23109ab7e48cba40db7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/package.json",
+      "sha256": "9845f841112330e2ac0b6714afd0bb488328ecb2631eda7bff73a2b222bfdd2b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/cli/entry.js",
+      "sha256": "1024d2511a619c857fd67f79c3fb4d509c690cf2430373953b94713f18020b26"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/graceful-fs/graceful-fs.js",
+      "sha256": "7da35669b6b6b0e4aafee31674c033f2cebb0c8f9ae010f709dcc185d3f17786"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/graceful-fs/polyfills.js",
+      "sha256": "66ea1687ed5edf39d67296d26edccc8da695d9a869303a78d0e580cd770aca27"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/graceful-fs/legacy-streams.js",
+      "sha256": "60a6a7ecf7c3e55a3ffaae13433b6cff388b7205bba6daf393c863f77a949e36"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/graceful-fs/clone.js",
+      "sha256": "7258eca52e65d69845759503f9fdd66c252f40e5eafb76db5d481172e31ac9ed"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/satisfies.js",
+      "sha256": "8cf5e122b757251671ed6c9d9680904b71cd375845853f05312e608cf2cc2946"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/classes/range.js",
+      "sha256": "cf8f8eb6934663ae2a9d04838d4d71555427a2abd3c8748ee5219507969a6b46"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/internal/lrucache.js",
+      "sha256": "14d087c87da87b6f5c36fc4cdd7d2d14077874b14a68e20fce5b6138fa2ca34f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/internal/parse-options.js",
+      "sha256": "fdf51d0de8d5442c35a997ef58cd530d239ce206f961d14c5121354451b01d01"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/classes/comparator.js",
+      "sha256": "054202956430d63d5ff4599fae09760ce465b489e4f0b5ef5ce7cc7ac21157ac"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/internal/re.js",
+      "sha256": "6a47e73c279fa8c4011f670471f50830a39922b43797b2884e6cc03f65b64d6c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/internal/constants.js",
+      "sha256": "38a112baf27ceca0260082ff26ac2fd7a9861cab1af12dd65e720277f68e6ce9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/internal/debug.js",
+      "sha256": "8a9f420572260f3cf944463b5090d62a60f0730589dc23a7ec4ca25e2ee41bb3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/cmp.js",
+      "sha256": "a63d74e87b73788e78e9ce0a4892b5333d6b809c0de88b31e4ed76cbf17f94b3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/eq.js",
+      "sha256": "b6e30a7168e52723216fc163d300e2bbabf92ec0251f9ac5438bb6ccf57c8936"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/compare.js",
+      "sha256": "d404b5aa48aaddc8a654c5da8fb7d4443404b7948589b21ac4b045d1cee4e34c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/classes/semver.js",
+      "sha256": "d5ba57e5c93f031b1d234fca4bb746746fcd1fe51be7e5ee895601e2c12e2083"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/internal/identifiers.js",
+      "sha256": "b4916b09dc7869ae0eb05e71c855c942a3a7365f7e6e89185d59a9e45a2451d7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/neq.js",
+      "sha256": "a662883751918822c162183b46b9e20d09489132f82686c92ab78bee67f3a127"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/gt.js",
+      "sha256": "135523704aa48cd98834dd170ee9f74f0e68043b379f32d021db11e6304c5c93"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/gte.js",
+      "sha256": "991c5bbe48ecb210a562646872f05862ad9fc0d42186d85aa60bdc6fa323eb9d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/lt.js",
+      "sha256": "1c897a9bc849320e2e9dc0f6c09555c01ee3ddf30734515d717b88ad7740ea25"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/lte.js",
+      "sha256": "3a8d0b1d00423f60cc7cb810b36ab77b61330831ad237dbe73eb5cecfa412800"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/cli/exit-handler.js",
+      "sha256": "2a511c59346c1e82457746be74d7ce4d83732973d691c06baf2fe2085f837f20"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/proc-log/lib/index.js",
+      "sha256": "6bfa074637f4fdd7f112b99ed6939bfebed3c55bce698222a9ebde20f7f32b44"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/error-message.js",
+      "sha256": "faa38f504edb46890c330070a763c2f091e0a28fb1a93005cff1a08f9c3c1c67"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/redact/lib/index.js",
+      "sha256": "9ccb5d4a8da4f242d4890d49fe366e964aefd07ce48582cc930005c7287c864a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/redact/lib/matchers.js",
+      "sha256": "6816dd0f44a9f8027c42dd046df4bf4b80016eaa8580e8de3ea7917d030048b7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/redact/lib/utils.js",
+      "sha256": "885bd8e64c2a098ff8273103eb4c5216b66e4f7fb41f09d2e3010ec786a6ca9c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/npm.js",
+      "sha256": "3800acd5f01f77e2f7efa874f02c33f1c40ea7d7baca14d718540c313c23f659"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/index.js",
+      "sha256": "aa283456b6e3c72396b0bc8230d31072665f753d5b80e04efa556713339adbad"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/walk-up-path/dist/cjs/index.js",
+      "sha256": "538108698af3d815aeea020ae4aab322c5ddea0735ed87f64ac3a0825a1cc085"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ini/lib/ini.js",
+      "sha256": "007123836ffec243f41c8b35584fb3db0498aa12a440a9e0efc675d0000f4c32"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/nopt/lib/nopt.js",
+      "sha256": "0cd507599b0b67afaaf6aa1019dfb2ea9dc958efd1d79f5e74cd997205d65469"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/nopt/lib/nopt-lib.js",
+      "sha256": "73cf6ad54ac9ea1a29b59954fc0473e28693069aede1586ac4acf64a92899d2e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/abbrev/lib/index.js",
+      "sha256": "92f1fd161bdab2f33a468e4849c58d3a1dfe9bba4988e5b3686cdd4c81706caa"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/nopt/lib/debug.js",
+      "sha256": "b05ff7b220d143feb139105e9a37d1e42705f952e862d476786bb18a801c013a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/nopt/lib/type-defs.js",
+      "sha256": "230fee3a48e92b863c5d2d9d62e5c8de020cdb636037cd589730ddebe221c902"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/type-defs.js",
+      "sha256": "c0302947dd7fa087476cea7781650c3df4c0e777628c31bd405808cfc8f3bd00"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/umask.js",
+      "sha256": "d57c2005b5fcae25c90f91228e09d259b70fcb8e52770d4d63996cb763df858f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/valid.js",
+      "sha256": "0de7ea736cb7807179d46dfac09c830a9338e02b6a07db12d7040cde2def6025"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/parse.js",
+      "sha256": "29a69e15b6d02fe381d573f861881a89590e9d0f0f0ca740c5f85eaf0234c4ad"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/nerf-dart.js",
+      "sha256": "3e31e086d77052598a13bd4e536c319837b3848fa3a155ecf9c69433fcd36345"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/env-replace.js",
+      "sha256": "00b7741354d9d71e46df424fb426d7ef05155db3e7970769873586f58cb8468f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/parse-field.js",
+      "sha256": "e80d5fa3875f1317ed4ab070d2e6644c741ba22e64e3abc20ec74c421f0be7aa"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/set-envs.js",
+      "sha256": "da9af50cf698b394c8166a9caa4715010710c101b59e3659e68ffc5360705ab8"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/which/lib/index.js",
+      "sha256": "d9d32d45a01826692a1a0c70d40c6182aa0405713166ecd4a3bd3df68d3b90bf"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/which/node_modules/isexe/dist/commonjs/index.min.js",
+      "sha256": "abf1fa35f4710b8f74351b63e61945b59994cdbceaf78cb9e309fb8b582a3a35"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/definitions/index.js",
+      "sha256": "b082879408e5f9bde7d95cd65f9db8d39b1aac97f2ce26c920eba8e8e28ef760"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/definitions/definitions.js",
+      "sha256": "4eb277f5649c00d5672059a4e61747660d60f72f4335cf1c197b52b4b20a72fe"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/definitions/definition.js",
+      "sha256": "0d12ba5f4cef491b6bc2fca2d7a71ede23c199698b8373017859532cc46f29a6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ci-info/index.js",
+      "sha256": "94772d86a718ebeefa1273918175b3816fa051a4d544ce565bcc53c58d5fc74f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ci-info/vendors.json",
+      "sha256": "6f7c8fb6aa7e53b4bd3bcd02f462af6e632b9ab90af842bb7678306dea30875b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/npm-usage.js",
+      "sha256": "376952e674039266f50afabb56ba4e4aa8346a86387ac98dba0d0b54330b9757"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/cmd-list.js",
+      "sha256": "4045cea92a3d0efb18420c149d78dc12be2c680107a96dba57895dc261e9a757"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/log-file.js",
+      "sha256": "31f369934a85b7cc9a782c3374a227b7036e5eab536a57cfc86af3b2ecbfb2f2"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/fs-minipass/lib/index.js",
+      "sha256": "912b77fd03d013203ad1c3fa7c8712660f599e4d194af41815fceb059ff88faf"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass/dist/commonjs/index.js",
+      "sha256": "085dc9747f0f4b28a196353df3702e2ff8cf0bc883a02378df062525a7cf9a38"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/format.js",
+      "sha256": "d36ee8515c85db22881835743febe7e4441a3e4b34210ec10b909e1ca0389840"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/timers.js",
+      "sha256": "7460bb4f2d2ef8719ee2a52c9f84c24157a3b96e81e4d6e67d9f2c7b15f426ab"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/display.js",
+      "sha256": "d656e510c2bbfb1c51dc57a7ea0048c17879cb0473848381dcab4bf30f4c3525"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/explain-eresolve.js",
+      "sha256": "503d1ea958f01a9bd172f453cf45a6f99af737209b2a4bdc5e4df6da1d10f38f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/explain-dep.js",
+      "sha256": "edaa1e678284b7db35f605336335c9fa3bd9ed703e5b557f8325f850b6c98996"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/utils/output-error.js",
+      "sha256": "6287b5e2eac2590fb3898dd536bae06b876a2de4353ddb58583cf8f90a5744e6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/index.js",
+      "sha256": "3c104c9a50a529349c9520101ad4cd53a2dd5c9a4b24c1ae97aa722f288df94f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/json-parse-even-better-errors/lib/index.js",
+      "sha256": "cff04b1536a14babc7786d0c47af3f94c9617cd63889f32ccc95b6cb76baeca9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/update-dependencies.js",
+      "sha256": "3585272de6bc9da718f06c486b8a975c32959b7c4ac46ff7ba76ce400d6b053f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/update-scripts.js",
+      "sha256": "7acce587127a827829967c378da8f23cb3b800171e1e37d0d843619586a2b873"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/update-workspaces.js",
+      "sha256": "56805fd3b326bf9fcc2532e8e11d72e49f060b300e187f91d87f4f7632b5a057"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/normalize.js",
+      "sha256": "11f92b58fb31075f1272695482d6322511258e8bc36b3f93592db75b384c196f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/clean.js",
+      "sha256": "4eadb0892844cf3ae295121a86163a66c73f89acd1b7f0b114ec115b4539512f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/read-package.js",
+      "sha256": "2bca2d4464b83d6436f81ebe2fd8fae6da5ab79aed381e5577a0c7286783da47"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/sort.js",
+      "sha256": "841cef6a034d4c0a56b0ba23f0b8c1d02a2401e5e273eb47dea03b207c3b4a98"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/chalk/source/index.js",
+      "sha256": "64b22b1c442e6d460069807b521bf0a84e112c00c2b4163bc59deab20a9292db"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/supports-color/index.js",
+      "sha256": "13b5fc8a0b139d257260d1e625726744609c24a3b58535afbb602389997e60d6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/chalk/source/vendor/ansi-styles/index.js",
+      "sha256": "92efdc3e5203d02d1710ff60dea3965066f97a77c0feaaa919b2693c989b7ec1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/chalk/source/vendor/supports-color/index.js",
+      "sha256": "e82368a5f05d145e33de6ae3464056511664b620735ef58d1800a7bcda6691e5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/chalk/source/utilities.js",
+      "sha256": "698ce3cb21b00b570631742d3a9e168de31df74b3a88220c4bcf18ac30fd00cd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/commands/run-script.js",
+      "sha256": "a4bf6e78c889ceb9111ba3b5ce691342834dc1c0b1774be483f54ebf6e379ce2"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/base-cmd.js",
+      "sha256": "286c3042a3d2762ba9a77a7dd2e01a9e3ce19ffe4ae99befabed83c62ee690e1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/lib/cli/update-notifier.js",
+      "sha256": "777c2519fcacf76c2e97260d1a6a8c4c9c3b2f5d33ae970e0caeb00123cabdae"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/index.js",
+      "sha256": "3f4a6a8d7ae3eb72ad61e567bae8d05356cc0a7439e9f7006701728a3af95d32"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/fetcher.js",
+      "sha256": "1a385341f75d6c77496d30e7751012ad91489bb8c4e4e4db5e4568d2b9432a79"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/index.js",
+      "sha256": "56745bdddf064be6ded0e82452c7327c3a960a82d5fb26b021aef41fa01e2b94"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/get.js",
+      "sha256": "4127c3adb8bc9f530dcb6ed80a0c6c00288f1db8c6939146957d03454cac06c9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-collect/index.js",
+      "sha256": "554b86b1de808d862951e2cfa8561a4024674e9b937be2d939d3b6a08432c6fc"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-pipeline/index.js",
+      "sha256": "3deadcd27f94ba4ebff5affcaaaa5241ef441444e9169d6c37ac069c6b008cf1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-pipeline/node_modules/minipass/index.js",
+      "sha256": "dbc5220c4bc8b470da9c8e561b6a5382cf3fa9dcd97cace955ac6fd34a27970c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/entry-index.js",
+      "sha256": "65cc91f2f1a2148e616969aa49dd75d61c8dfc913a2ed2fbb7e34eb50163e7fa"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ssri/lib/index.js",
+      "sha256": "263feacb5262ab2932638958f593cfab6f9085c78a27847ac5e6c57437351fe2"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/unique-filename/lib/index.js",
+      "sha256": "8f3c7e1002f2161e6d8f5900c73cf2e5aa82b4a1028bb0a96e201ff3db6e355b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/unique-slug/lib/index.js",
+      "sha256": "d070132af11f52d51935af8baaac90d8ba6ed27253613d7e7c359da5db3df86b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/imurmurhash/imurmurhash.js",
+      "sha256": "45368bfe11080c4504b7804602015d93873303c5b13d5710af6c42e9abc35b4a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/content/path.js",
+      "sha256": "7ec9682ee3472435d866bdd35d18e2d570ffe98621bc230f30d31443bd04d8f7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/package.json",
+      "sha256": "3b4d9ce8c3a3f853d903c06b5ec38a06c8ac9a2ccb236bf6a532d92cfe1b07de"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/util/hash-to-segments.js",
+      "sha256": "ed10c878cb3c2b8570a32954b52da3c49539549f64e36b3ce3ab38d7e524bf19"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/index.js",
+      "sha256": "54747b38cb1f467bc5e50f1af7388159186bfe594d85c68bb43f3deb8325d2c3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/cp/index.js",
+      "sha256": "f92557b351461096d1e9e9dc5446e0d7241cc26fca08b4627a1b00246d54fc73"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/common/get-options.js",
+      "sha256": "9effc9eb07753c26041c78a42338687c9dbc3a2fe7580256277d1e6f9b6ce4e1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/common/node.js",
+      "sha256": "3682e75ccd114a154ec490db83cb92e4e81a7001f98551305ce8e1f78cef3cbd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/index.js",
+      "sha256": "646e0b707f56dca7cb90cebc6fe687278bcc1a16fdcc83756dbe23083ff15e06"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/inc.js",
+      "sha256": "952069fc8690b7d3af0fe9d55f7c54fe2ac067b48c5e74f6a54f9ce19a334493"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/diff.js",
+      "sha256": "7a11fd39b987cdf06c65e928cb1aca49bec583feb86fb5c8fe47a6fd61d7de31"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/major.js",
+      "sha256": "5c678480d882f511200fed2c16ec3847dfedb08a1d70328dc2f031d35d825276"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/minor.js",
+      "sha256": "1b051794f1713adec2a236517196691687c35f82e0b596ff3316a78b3cc10ae6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/patch.js",
+      "sha256": "f02d3c1b059fe3d96ce124886f7eef321d381a95638fd3c4a8d5ccd8e76ffadd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/prerelease.js",
+      "sha256": "baedbf503d5610ad041bfb56071efa48feb331ca278295c399537d35d3ffb593"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/rcompare.js",
+      "sha256": "84fa5e88adf08d15c993cac8cdec6d1a65045b7e95a9c55184230a7f807f4dc0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/compare-loose.js",
+      "sha256": "07b6a3a1db0a5210ceb784c1708bd4679f3a94fc73a9c9eb349349e7070a6f78"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/compare-build.js",
+      "sha256": "5ab651d5b40af289bd85c645a92b6d8cfe1a986dc413c797cfcc8d623d7c844c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/sort.js",
+      "sha256": "c2fe2d3ed0be8a4e9de8f02abdfd5d9c0d3bcc510d88e87af84185592882c4b8"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/rsort.js",
+      "sha256": "6ec659ce3b6c2b173c719286caab04409adba046c0917874ec3b5e36ddfbc7e3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/functions/coerce.js",
+      "sha256": "28a251c5ab210ddf9e97551b9f37a53329fcce91f0c3943dcbc02de1a1de915a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/to-comparators.js",
+      "sha256": "6c5e966210cff270fa2850668aaf8460fac7759f8d99f282521ef7a78f4564e9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/max-satisfying.js",
+      "sha256": "e1a2c0d6144cc772cd20bbc8ecb9e8a3a4074e9172a3d8e794838b591cdeb416"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/min-satisfying.js",
+      "sha256": "2681abf54098aa670f12826b76a6ec77a2441186ae4243afde3be8ae4908f7ca"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/min-version.js",
+      "sha256": "fefba0a88c2bf74d5cede504b5ae50a8dc3edfd69cf0174a491e2cf3e442614b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/valid.js",
+      "sha256": "5ef6f995af801868925940cf8df5735d565ebabb090b068695cae65218bcd3ac"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/outside.js",
+      "sha256": "3a2b0b23593d2f49419c06af2af75450cab103b0c25d665d48fe5bca495a21ca"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/gtr.js",
+      "sha256": "8fadad28e36d28e93d498ac7ac20badba2a407312845eabc18e82e90a0732b19"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/ltr.js",
+      "sha256": "e5186fcc03018acf9be6d968755d4c49727aeb0d981d179eb568ae5fbe983038"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/intersects.js",
+      "sha256": "fe87ac5d3020010ad3ec00636dadbf0c669ff07d0f57e0a8165a8264f79a676f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/simplify.js",
+      "sha256": "7b78581c13322bc68ece2088685386b2a9b51c15b94d0a2063bdf2546bd41934"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/ranges/subset.js",
+      "sha256": "87387952fbe154f5874d5f09dd2173e782e894a76fa8370ce23f4120e2ae7eae"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/cp/polyfill.js",
+      "sha256": "39f6e60d75218eb0b26dfbaa10b805778ee633502a6d1156d92cdb6c6e78bf37"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/cp/errors.js",
+      "sha256": "a7d09952191cde9205664ff85cd97edf0b765ac0903105039c6c735249269861"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/with-temp-dir.js",
+      "sha256": "866d28b80e53a2a09985c23d99dbac867487dbd5dfdc8cf3df5c844c6beafbf8"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/readdir-scoped.js",
+      "sha256": "5aeb27ad14fcaf82c879df66b79068d670c9e10e91e0483d0b72fdc87c00658c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/fs/lib/move-file.js",
+      "sha256": "0684a070abd953942292192e65a81bc79d404a478ae7de17bc61827cb464d5e2"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/memoization.js",
+      "sha256": "f53cc4c8f9e85c4f96019c89b2c84b27c8abc0a5fc936e0e9a60736aad3b73d0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/lru-cache/dist/commonjs/index.js",
+      "sha256": "75dd41905c662621d02fc6f3f6c6d678342fdfd87d32d6cabd0afab1b1793a3e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/content/read.js",
+      "sha256": "08b1980f18a8539c55190b005df788b916abc31f120afe9db4768f9cdcf7e495"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/put.js",
+      "sha256": "b131954efbcb17f785e93278c53f4b0491c53009698b937ef68bbc7342134872"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/content/write.js",
+      "sha256": "5230de0ca3d99936e42220445f44f5a688fa154ce6a16c643762714bfe0d8b82"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-flush/index.js",
+      "sha256": "56d0dfbd2acbaffd7a592eb25130eed4ab12bc1c10844677b2d869d5992c36a9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-flush/node_modules/minipass/index.js",
+      "sha256": "dbc5220c4bc8b470da9c8e561b6a5382cf3fa9dcd97cace955ac6fd34a27970c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/rm.js",
+      "sha256": "5155f5560ed63bea74732c87d6a10732d5c6e5639785dcfdcdcf93a01943abf6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/util/glob.js",
+      "sha256": "a9fd56a76f0b4c39ffd94785128e79ddbc337210b9feb4b09530616948adeb69"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/glob/dist/commonjs/index.js",
+      "sha256": "be0581401dff74824abe8ecd4f177d96535fdc1fe1b6698a9b4a4a9c4448bb61"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minimatch/dist/commonjs/index.js",
+      "sha256": "a958a41536f57484cc427a03a10a6a094eb062a004c58261add4dbb6dd77bbda"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/brace-expansion/index.js",
+      "sha256": "d17b00a9899156c1444356be153533174650432db0d728d6afb29dbdd5cd1f40"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/balanced-match/index.js",
+      "sha256": "06e4d0037715251cb3be2b2db063662f555b3538d9e30a9c517a54374d941cbc"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minimatch/dist/commonjs/assert-valid-pattern.js",
+      "sha256": "fcd3b0e6efee67b11249804cc64bf4d22c883395491f79bfb484869d61823600"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minimatch/dist/commonjs/ast.js",
+      "sha256": "fbf87b713254f8fcc915092093b6aa4dc0f4f7ff43ac646ee20875b229803e92"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minimatch/dist/commonjs/brace-expressions.js",
+      "sha256": "9af1c8892ed1e6a153d2f158438722c666aa906eb7e2ec8a27fce7cf035b4278"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minimatch/dist/commonjs/unescape.js",
+      "sha256": "ff3e0dd4664576cfe078c3b494724d7cf2f691cdf960304e354e7c34fa6b5a30"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minimatch/dist/commonjs/escape.js",
+      "sha256": "55e384815856f5708dad6e501aa47314bc08dcb4b90d11db85e413716f948c17"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/glob/dist/commonjs/glob.js",
+      "sha256": "85078777a79f3e4f9026009c57bf0316d947913f579462e73626df94cf409dd6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/path-scurry/dist/commonjs/index.js",
+      "sha256": "50edb73845960820ba0897d60d238cd29f60fb4f7efb66fa7ce4ea17d90d7268"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/glob/dist/commonjs/pattern.js",
+      "sha256": "de9a2b4a6d53e41a4b0e555db60a159e1292cb9c2e7e348309d1fe23d89755b9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/glob/dist/commonjs/walker.js",
+      "sha256": "1138ced9d5429681a1740af32d13391a38184a3376d1d9d56eea64b7a43274a1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/glob/dist/commonjs/ignore.js",
+      "sha256": "793e155177f3b9600432ea3d0978c32ce0c9981c702fff77d587333fc731cfbb"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/glob/dist/commonjs/processor.js",
+      "sha256": "5c36f0422d39637dd6654a478d34a7465aa8a28bb728ea2c9f9c373f93b3e7b6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/glob/dist/commonjs/has-magic.js",
+      "sha256": "1e4a9acafa68903d5331e17635339ca59c52b71152e82e195438adc46ef7381a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/content/rm.js",
+      "sha256": "f3f706375bbc097bc0fd091f0eea8d07b98b8e1f7a1d203f3b87337312272672"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/verify.js",
+      "sha256": "ebcf90260890644ab7c8760f7858c6cf90f6c2e55f7de7cd9f6175050183445e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cacache/lib/util/tmp.js",
+      "sha256": "9bc9bad862208b2ee66aeae5222d8b1d8d1d288f335fdf3ff998ad200f71ce64"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/installed-package-contents/lib/index.js",
+      "sha256": "4a320ac32ea62d17e4c76a0a3919c17289ce4aec370ada617b622b2894e60274"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-bundled/lib/index.js",
+      "sha256": "1f732cb65d2783e12b3744dd9121efe2f5b6af49716c4f3f027b4fff0f244a96"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-normalize-package-bin/lib/index.js",
+      "sha256": "5d5fb5cae6d9c04079c01e6e1978de69d19c77ff160f523df462d08bca44b2dd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-package-arg/lib/npa.js",
+      "sha256": "36e001c155380d6114fb916519b29848da8fa4726169775159996f3d2edb11e9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/hosted-git-info/lib/index.js",
+      "sha256": "37f3c1042f5202d6e10ee1b39797a281e8ba1d3620193427a51c89b55101ba77"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/hosted-git-info/lib/hosts.js",
+      "sha256": "f3e2789d82827fa06273d9d10dd350ae787a2b42d93e502a3c87c827a47c0a10"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/hosted-git-info/lib/from-url.js",
+      "sha256": "be08a3f35f54a3a9510b0c2ed3e6db03e1427965d5b189eb00bd09659938f52a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/hosted-git-info/lib/parse-url.js",
+      "sha256": "9444d54e19cdaf56d4b257ca38a0850466bc3572677340fb132c48f2d3890b7c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/validate-npm-package-name/lib/index.js",
+      "sha256": "903c4513191f3413c0b67e6eded261e303fe83d9b9a968d0d05b0bc639b4d3f8"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/promise-retry/index.js",
+      "sha256": "93c1b8ff5fd1fdb14105573d7eec21351894ce3c5f86090ca6a33fb89d65d559"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/err-code/index.js",
+      "sha256": "d523ab544dd4e8d0b4b48e7d47c37addd2d53d28a98fe799ed63862ae1efb6db"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/retry/index.js",
+      "sha256": "003f04e5fb5913675c886ac938e9b7bbd33754eb17ee8f00e074e1bf888bec1e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/retry/lib/retry.js",
+      "sha256": "4388d78729faa0dea430e2a7fa572aee6a15a407da05097b41ee44106d336616"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/retry/lib/retry_operation.js",
+      "sha256": "eaca13037da35523326c8870e39c4fd236c4f38b5822a2af0f33d0f4e0b21d02"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tar/dist/commonjs/index.min.js",
+      "sha256": "a036eeb91e004ebf57e75d0f748d51b86a2fff1daf10ea46ddd6917a25faaadd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/util/protected.js",
+      "sha256": "3b47c89f7d003a89f4fb9e20cc8f8cb479ea25acb302948e44d4fc49e5ac73eb"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/util/cache-dir.js",
+      "sha256": "b3b77272a4a66e4976a121c028857fa46d8600c7b385cb0db9e0f7c729a72e4f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/util/is-package-bin.js",
+      "sha256": "4814cc5d581ac2d21ffedd16b657fa7289b32309733e83b1f33a0f159a8d2983"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/util/trailing-slashes.js",
+      "sha256": "d41ed7d724edd3ce667e60959d63c22da512954912074f2aeb1d986ee99b075f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/git.js",
+      "sha256": "7f9ff7edc1ae77dce385d74f0334d1f18aa223e3f4520b2a3bb2834962aa0291"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/index.js",
+      "sha256": "ce74e39939a74d25cba6c789ba1cb143af903884829e6cb105d2f1d69351d324"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/clone.js",
+      "sha256": "459ec3db39773683346d39233c9cec9176667e1785240f6c861d276ddf9e9b8a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/revs.js",
+      "sha256": "5a9b3a8394d30e8dea8163ae19c1c1b9f3953bc1d714a5dc167bf755a6b2d597"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/spawn.js",
+      "sha256": "b3bd593aaf0a38b468c405e3a3b11feb4fbd7e4418e125cab36de60f123594d4"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/promise-spawn/lib/index.js",
+      "sha256": "9e220f7040270955627603056ae02f0348b671962892001c3cf5f574b08cfc84"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/promise-spawn/lib/escape.js",
+      "sha256": "51a4d9dd16035bb7167ade5a8c636465ac168e3cd74b528f0257cc26c679766d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/make-error.js",
+      "sha256": "b8ca6e2a780804c7577b2d84f8897b4c9441e8822464d99bc415d670e28175a1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/errors.js",
+      "sha256": "e0d5d61cc750723ef875b2d5b56370a959bd80842fe105a7b5d6db988398655f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/opts.js",
+      "sha256": "8134a53ca4ba794c33b34673e3aab6daf3be92c3da9742a9949f6fa42b47ad3e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/lines-to-revs.js",
+      "sha256": "9e41fc2ef265ed22c37b769cfc86ee7bf781b7fd1e7549b63d8a56f2fe88b58f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/utils.js",
+      "sha256": "f9661fc6b4639b39215c8b8505a6e6d184fd1e7a4e2e2fc0b501f071e477ba98"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-pick-manifest/lib/index.js",
+      "sha256": "d999a3a66673dec0df43b929b7ceddfdd6ee69887842f87702ae9fdf3bcbbbe3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-install-checks/lib/index.js",
+      "sha256": "2372095fc73982184f77759432935af6259b51201c750464fe7ed52033ab0640"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-install-checks/lib/current-env.js",
+      "sha256": "7b3ad15e71fdb142e2b40fbe311cee9e271f45e395a5051526d4ca0aa1920886"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-install-checks/lib/dev-engines.js",
+      "sha256": "65bca3235b114e450755be049ab17c625b686fcfb54596eb10fc905aead413fd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/is.js",
+      "sha256": "bed8a09b70bfbfdd5d6ab4ec85654fb102b00333763a788bdec093bad700d503"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/find.js",
+      "sha256": "60b0559e699b01ae777e941cac75a8b8bd541f524bea8ba05b5c9055250733f3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/git/lib/is-clean.js",
+      "sha256": "886581add04269ea242570ea702a14a2a1419914ecaa504dcfb288e6b85903ec"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/dir.js",
+      "sha256": "8089bcad46b8272055ba90dd471c4e0c0112c5e2a6f50c5b3b4e90d86ece44af"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-packlist/lib/index.js",
+      "sha256": "2a2316ffc1165eca2115924226abd572784bc3eb87760481d4d347a7d54f183d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ignore-walk/lib/index.js",
+      "sha256": "10610ac2fdc62669c21893f3ff772f2dc8b5831b54d80040629a121aae70c0d6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/run-script.js",
+      "sha256": "daceffb5ae860499cc8e0696c8c33ef5d705f62f597974858b6472fcd1215f79"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/run-script-pkg.js",
+      "sha256": "94dea9ff50028869f4f88c4ec5e520d56fa7c2f6cc03422a9f06c44d291a0c34"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/make-spawn-args.js",
+      "sha256": "d1647624f0ce227e5cff1c4570f3e754e0eaaf08041db354102ec2bdbbd721df"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/set-path.js",
+      "sha256": "bf86a1c1976d631c8012369e66362f12c03f0c0295c3ad572e79f43a1ff9f0f2"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/package-envs.js",
+      "sha256": "ff502d71d89b640fb42d643060dcfefb2b499c355e86aeb77e5486e29dd16880"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/node-gyp/lib/index.js",
+      "sha256": "0208905f53bda93670e98e3ee145ad9f87469d9375001f7f913c99b8ef25c228"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/signal-manager.js",
+      "sha256": "0e8c0860b3aa32ec683b8bdc8197e7d6674f2efe4cc13370b14d9ffa38e7e90a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/is-server-package.js",
+      "sha256": "7aa8ee56f3b7db0c948a555d7575e0a86777608cd2ecdd43345ffeda92bca8c5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/validate-options.js",
+      "sha256": "bd1266cef7afed9317072b35756e20db420bfe3e64f9b9f9904856151e95528a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/file.js",
+      "sha256": "e56e384ee34175b52b960bbb52e0f4127978cca1df3d5e7b1edaff5a24d1fba4"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/util/tar-create-options.js",
+      "sha256": "87c387d44fea5d1aaef41decd6896e19c45a8a8dfd560334777db2f2cf02a840"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/remote.js",
+      "sha256": "d4843de4eec468b75632de2f431eb769a333dbd345b1b294f57a4a9eb077192c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-registry-fetch/lib/index.js",
+      "sha256": "70be42b89bf61f0fa8e69c7d671bf4baac5e8cda650ef3fddd693b0f285746d1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-registry-fetch/lib/errors.js",
+      "sha256": "b696bdb1b9a5cbb54b4289f4fda745fa42ce5a70847cc0e92f32d4d1f806cf03"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-registry-fetch/lib/check-response.js",
+      "sha256": "3be275e675da6d9e16709ba875216c2218d291704ce174127dc95b2fc996ea52"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/lib/index.js",
+      "sha256": "b263a13aa2f71ad80804b3da45080d45523610e654eded4a0008df222618e7d6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minizlib/dist/commonjs/index.js",
+      "sha256": "1545b857e5a597a4fb9294e5040f8b8e3f207e53901f935de2b135a4200abbbf"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minizlib/dist/commonjs/constants.js",
+      "sha256": "1574ad656e72d59598f1fd44bf2d242ff57d05ebd27cdf177b504e24b3e64fdf"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/lib/body.js",
+      "sha256": "d15239f5082038d1828105abc5d20e5df6986cb9e83d6825b017d60817c540c7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-sized/index.js",
+      "sha256": "21c8904d1ce6960362bc6aa7261e3b371b8f203b60fcc57e1b54a701e96ec77d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-sized/node_modules/minipass/index.js",
+      "sha256": "dbc5220c4bc8b470da9c8e561b6a5382cf3fa9dcd97cace955ac6fd34a27970c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/lib/blob.js",
+      "sha256": "f53cb813c7f8159fb10bafc8a20181c65797ded22d5e350511ab2f847b2db861"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/lib/fetch-error.js",
+      "sha256": "0ef76c82e13164deedb94685b0e8781136f7e596421f5e29f47854f268630b20"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/encoding/lib/encoding.js",
+      "sha256": "9d4bb3d5942dd1c97da48470dbc3775fad31387e8aea997f20b07cb16ec1439d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/iconv-lite/lib/index.js",
+      "sha256": "0cb1506e70126aa00bc5bdf12f2200db89db032e8dabf23dcdd6a92b37d0f2af"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/safer-buffer/safer.js",
+      "sha256": "37f9716144105051ab302f6a0c30a52ff5de7269b9e1173ac22be798fc11ccad"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/iconv-lite/lib/bom-handling.js",
+      "sha256": "c230d25d8e7fbb50960c634b636b71327c409e9a77e67fe9446b566bdcea362d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/iconv-lite/lib/streams.js",
+      "sha256": "368596cfa80b9b9c6b93f2fde73615f10e89d650e6a1c92d3c07d56c34e4e393"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/lib/response.js",
+      "sha256": "5ca89c930583ca0d3de066e7b58ca6cd57fd9271a5ca5ff30cd2ae7085d6ac7a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/lib/headers.js",
+      "sha256": "25a7cc3bb7c6b4a64f1ed839dd08a9cc4172ccb00d5c0a0259cc08ecc6177dc0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/lib/request.js",
+      "sha256": "37d47ad0f3d7f91ec56b4187475d3fa218c1fad55f79334b17123337fa5b8da8"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/package.json",
+      "sha256": "75e1d21fe4253c6a01b012e347900cf44c13f0ff541a5e000ff930faa504d84b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/minipass-fetch/lib/abort-error.js",
+      "sha256": "beef50fea16c75e829bb5288e8135d0c8d5e9c1425c123978dd38a2754afc007"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-registry-fetch/lib/default-opts.js",
+      "sha256": "ace91c62bdccb1e4ea86db3c4d497ae64c6b8f5a91d3783288cff2ce2fd4f840"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-registry-fetch/package.json",
+      "sha256": "35822c442c35ffe2ac4d2d6285ef591863f422b9f575033cbde229da64a4531a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-registry-fetch/lib/auth.js",
+      "sha256": "fc50e1fa09f89b75eebfb632d7c4063a26881ec10791246ae4b30cfc47a8bd84"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/index.js",
+      "sha256": "c6fa07e324498f7bbd05e98892790186556bf55c6265d0c07f45900a6941a57c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/options.js",
+      "sha256": "b067a3566cf03d9a4cc77478efb88c2b3d8cc4081a311b2ae9ea67a500bf3c0e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/fetch.js",
+      "sha256": "7d57bfd656a6ae2a53738fb3f25365d074d9cb7364794005bc70317ff2bf81e8"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/cache/policy.js",
+      "sha256": "2014cf549fceb8808cba81e8760315b9060f502b6c62b7cb79e1b024abde54c3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/http-cache-semantics/index.js",
+      "sha256": "01b7d66c854b2fe53ac05c98feb6e0d64722ab8898a778e2d2426a8b468d178f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/negotiator/index.js",
+      "sha256": "55a4073302ef1e581a74027daa054d53ab8a1b8a0c42551e0b50699a6c0de254"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/negotiator/lib/charset.js",
+      "sha256": "e6522a2df58f21a6cdf8d146f7e85b9a49bcaf68b813dec15068a8e84fc582c3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/negotiator/lib/encoding.js",
+      "sha256": "b1a7d9ac13dd4441361504233bcbb2ddd2ff0545910c3d42edfb5444b5d92437"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/negotiator/lib/language.js",
+      "sha256": "4aebb44da06094f2d56f0b20b4fbdd542cda00a4c9295e10bbe55203701c9024"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/negotiator/lib/mediaType.js",
+      "sha256": "4ed7ff46904e6d4ccd292c7de5abab119ae39e90ccfe687dfdc243bbb595d580"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/cache/index.js",
+      "sha256": "b9a47e604b9d6ec9211e5129636ba7366c408c074ea1d4b8c859cf221c347071"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/cache/errors.js",
+      "sha256": "5e8a91f9e801e9eb81e00c52451c7fe4e354674cdd671713299f392ddc8ff324"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/cache/entry.js",
+      "sha256": "c448d1d1601ad2ec99c2963fc4dd093a57d884ff4ea089bb08a05496d01015c7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/pipeline.js",
+      "sha256": "082bb7c9c7f020c816c2582fe436c992b9851e0727339723337b580d6f6c1707"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/cache/key.js",
+      "sha256": "ae7da8b3fbc282391fc70df8a625de765062f955fc85587e575479cbe9c33adb"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/lib/remote.js",
+      "sha256": "c951fc8a2d17f469c9c6a01bbf7747cf3095fd4958d29d284b6325eb571708bb"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/agent/lib/index.js",
+      "sha256": "8d7b321c0eb45d3ddacc78b48448b2ed02ad79284f931d73f4bd0a67d0f5a4dd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/agent/lib/options.js",
+      "sha256": "c475022b830424dbdf75987670549f32bc08c43c224731fd20cdc4f747f56901"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/agent/lib/dns.js",
+      "sha256": "58a0abcfb7ab16ece73a1fea304b8cb4539f650c4f2726e2d5980c285a96351b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/agent/lib/proxy.js",
+      "sha256": "192a78a72232f67d0cbd46fe8f9dbd994f98c197cb345570c312aaac12831111"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/http-proxy-agent/dist/index.js",
+      "sha256": "fd33b43da34da60d4914780e13fae5d52a7faaa996d687eea5335128de148627"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/debug/src/index.js",
+      "sha256": "aa127ff1752b7d9c7415c5c7bb6994d9aa722b81bcbcab4bd48316b013d23bf3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/debug/src/node.js",
+      "sha256": "d7b26d7c92f8ea7794b77ce11f3c11cd18c9084df7c357e3c7025344fa28aac6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/debug/src/common.js",
+      "sha256": "dbe83d2bb5837f3c4d7fe537b8004c585987270eceed5b06b8e078deb0ae214a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ms/index.js",
+      "sha256": "e5f0b6a946a9b2b356a28557728410717df54ea2f599edb619f9839df6b7b0e9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/agent-base/dist/index.js",
+      "sha256": "c6503bd5e007db8b73fedf07b6eaaf4a94d5541953f0d06c8a17d1644c29a0c5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/agent-base/dist/helpers.js",
+      "sha256": "6043c5c1bb76491992f6c56f65895e2e9167ae10122fef4d58d6638ebac4ba05"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/https-proxy-agent/dist/index.js",
+      "sha256": "30165586fac3becbc9dbf2b7b5bdaa802a77ac34af9926208f6e94a3bd87ef31"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/https-proxy-agent/dist/parse-proxy-response.js",
+      "sha256": "36a30ebcd66060fa8e3aba8295854757afbd60f2643d8992814727f249c5eba0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/socks-proxy-agent/dist/index.js",
+      "sha256": "47958f0349e5310272e1ed3b9a7e80c0369f88426b0df5e53e8049b613e89b4f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/socks/build/index.js",
+      "sha256": "c82822bfe17665a9de990c99e1aea5d94874bcbc072f95b42c617bab3d097df7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/socks/build/client/socksclient.js",
+      "sha256": "4b473feca4862b5c66ec0efa39ea2d40d07c845886b6081813b07d489fabd897"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/smart-buffer/build/smartbuffer.js",
+      "sha256": "6a73858a0aa6f7ac078d8156187ef97a713e44d52afccf6679a0a032539be0cc"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/smart-buffer/build/utils.js",
+      "sha256": "451b2e82d359f3d8782be4830bd5d9df895434adbbbd911fbeb27e64fc59167d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/socks/build/common/constants.js",
+      "sha256": "82009a5397740e3622c48bb3393aff5ccb9d86ec496e085e53bfee5f8e96ac7c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/socks/build/common/helpers.js",
+      "sha256": "dcbb2f1bcb2e7450ae05a2cc911c925151ee0a03baa501823b4e8e82ada48393"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/socks/build/common/util.js",
+      "sha256": "917aa278ecf8a4eb0e90e448eac98dd75eb9a4c985de0d7a04e04407e8caf8f6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/ip-address.js",
+      "sha256": "3e38a4b349282e67a811aece46e273b1b24abbba2897bea707a00170ebdfc200"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/ipv4.js",
+      "sha256": "869d830744deedc7750af27c4b06f1eaac1b3085df289969bcb895b1dd2e6d23"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/common.js",
+      "sha256": "b14f33694ade039873939dc66b39f45c41ebf5f40da198b00846fc38826011b7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/v4/constants.js",
+      "sha256": "db6c8d9507342ed5a3ac4ef1ee228388624e341750e4a9091e538d474871c8a1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/address-error.js",
+      "sha256": "d0bb8495a78ce2a1e2c1ad231c15b3a8146fec8c8ea32b121fcbe1e032b9cc0e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/ipv6.js",
+      "sha256": "800922b163944659b08372094e67fc113a0043ff4a0367ffca22ee4cc73bd396"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/v6/constants.js",
+      "sha256": "4464f24386ba2058b521d8fdc6c4cd45be4491f611171d343b21bea267b5ac2e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/v6/helpers.js",
+      "sha256": "f0171bed16637e0f839b0d619fb3a7cf58607967ac0b25616bd420d06b9f58ff"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/ip-address/dist/v6/regular-expressions.js",
+      "sha256": "31f99f670ac43ebe9694dc84b6cc9a00eb5af08f90c0ca0d2d8c5c63e5b67415"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/socks/build/common/receivebuffer.js",
+      "sha256": "49feb670a5499e20899d892740f80d1e3ef24deb64888a21dcabf6fe7419b4e8"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/agent/lib/errors.js",
+      "sha256": "f4ee0f8a8ac25830be4a902246059d260e5254ba9e2e766eef84972eeb66926d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/agent/lib/agents.js",
+      "sha256": "1cf43ea63fa71a1a992a15e335ffec4ae3029711d933f382521f828f63aadb71"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/make-fetch-happen/package.json",
+      "sha256": "279b653b3c792aefb9cef4f0822747a5d81c1fd135bc92bc1251112ddc695b84"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/npm-registry-fetch/lib/json-stream.js",
+      "sha256": "ead684585aef82b5920c4f50a16cfe65fd9c10feae19a873fb8144dd1370fe1e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/jsonparse/jsonparse.js",
+      "sha256": "8fee0da896c802ccc73d8f0db740625ad0dd6b403a7bc5c86f4afdd17ba8941e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/package.json",
+      "sha256": "874de452ca436ca261620e503b47cc0e5ba81b4778bf42daf486148f3fa03b70"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/util/add-git-sha.js",
+      "sha256": "971ab30cf8aeffeb2ebe8d52578a8fbf75fa2e92b4a658523d74955055acc3d3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/util/npm.js",
+      "sha256": "7caa5a0e9c7abcf7e902911ec8523ba9264b5731122246cfa54207223b05e9f8"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/lib/registry.js",
+      "sha256": "f77f415d14cbef4da51bd95b1ecf6ba185819e6912ecad8de575c53f53679b7b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/sigstore/dist/index.js",
+      "sha256": "aee7dc5eac1544339fc93e1b35afc6a02eaab078512426177ffdd272a2ca0482"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/bundle/dist/index.js",
+      "sha256": "898210069b039c525273a8d15d7aa055c87f18bcc544a6b04af7ab21353ba430"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/bundle/dist/build.js",
+      "sha256": "837927ac999d1beb76607f516a7e030388274a8f0eeef77f1604e17d003fa684"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/index.js",
+      "sha256": "3df467c311527639effd4766bfd9e405616549f7d13a43ff0036e9755cc4461a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/__generated__/envelope.js",
+      "sha256": "8cb9c024df36769f49fd7761ede2a96f5893a1792ece3c65c78cc8b892356ed9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/__generated__/sigstore_bundle.js",
+      "sha256": "88230c5b80fe41a032ad21c2f858fcfc03522bf105f077831d5c810562a971f9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/__generated__/sigstore_common.js",
+      "sha256": "60e24ddcad348f0e74c0ebd18b916cb9f58f656e6846cb0376e5b51aa118c165"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/__generated__/google/protobuf/timestamp.js",
+      "sha256": "fd86228151f74659376e481216852dd1e899d92e832bbd90c9f7e8e7881c5a5d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/__generated__/sigstore_rekor.js",
+      "sha256": "bd1b006936a6a16dfa554295ed9405a66203d1c45a0a84d885494fb5898a22ad"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/__generated__/sigstore_trustroot.js",
+      "sha256": "5957bdc3b56c3b2126ce762d268d0f2c2384adec82676b814da62aa7b5f2a38c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/protobuf-specs/dist/__generated__/sigstore_verification.js",
+      "sha256": "d2f29d9c8a662187d8b5238fb81a47dfbd5d553b0e606ecb33b21966064ca89e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/bundle/dist/bundle.js",
+      "sha256": "07a67e2910a034bae697b28520584f5e6dae1bfd54dfe85c04f9194bbee28353"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/bundle/dist/error.js",
+      "sha256": "f8b5a5ae2f675471fae1747740a083e6c77f05f766d4b9fa23d771a946131444"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/bundle/dist/serialized.js",
+      "sha256": "98edf6005530cb390ecdfa2a0cb56206a716077c6c5d4b8346e9c2f0882aa993"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/bundle/dist/validate.js",
+      "sha256": "8510442c81ecd4ef54cd912ee9e45d72ac455edb8cfc64c91d2264a502a84c43"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/index.js",
+      "sha256": "e50ec700a3c52848b9e495b6b5b500a65bfda28a21f6c1c786411baae1b5d909"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/bundler/index.js",
+      "sha256": "6f3d74edb2b02681103608166b7e91fa17b59393b2bcc76c2ba2e92202cb819a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/bundler/dsse.js",
+      "sha256": "dfc7f2bf6d60002334bd5298288de0d5e025120a82d3158f4aa5c12eda999818"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/util/index.js",
+      "sha256": "f8a7b21c599d9d2c9655ea48d47ad692afe8913beb10761f62e301de7c1dfee7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/index.js",
+      "sha256": "2eaf6968abd62a8159bf27e8a4d174b4f0dce7fe5366aa456212e1c0940fb3ac"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/asn1/index.js",
+      "sha256": "07377c8dc320b991517dd832068c540a86d949a40563b233b07191621d7513d6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/asn1/obj.js",
+      "sha256": "ad50d1e556e10aa366517bec17fb4b980d1ce656e8f1670d499d4b31452c62b7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/stream.js",
+      "sha256": "cb73854a9eafc083aad9daa313cc58d13a7f5e01c9b9bbefabf0120fcc956bad"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/asn1/error.js",
+      "sha256": "31d1305e0ab546f5a2fedd81f6f157f4102dae3782220fd6e0e7afb50b1a6b95"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/asn1/length.js",
+      "sha256": "2e0c896894bf8eff3d9d7c2620315680eab1994a2d7ce08ad099f19d7a9af6c1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/asn1/parse.js",
+      "sha256": "f818ca72eafbe3cd97f52df756ce3288fd806d0be2627eab0b613a91a6727bc9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/asn1/tag.js",
+      "sha256": "19900299c9f598ca27427ee5185b8638e7664869702685edb4d53d95525fd5aa"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/crypto.js",
+      "sha256": "aa7b977c00750de31c455a39e5738cf4d66a447c19987b0404d3cc209424cd17"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/dsse.js",
+      "sha256": "950fddee6b5070ddc0ab923d3ce74a7368475bc0fcbcfb200a4019a9da61bc91"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/encoding.js",
+      "sha256": "0cba784e1e688fdb2d03dd89c78fbced64a8542e7210ac19ed6e22586fd8d050"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/json.js",
+      "sha256": "eba8aef02dd4f005abeb9cef37b06d49a74d9799f922170a397b3a859be5ecbb"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/pem.js",
+      "sha256": "f520e6b379ec5c763edd7d5bf6a1a1d3991a6c7565ce16dce214790ef7eae0bf"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/rfc3161/index.js",
+      "sha256": "97c1ff010c638c997c0b15f218bb908d1b6ecc4161e8f3e112cbe28756e3c709"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/rfc3161/timestamp.js",
+      "sha256": "c6fe3c1db2adeb0d813f755e0d6364abcf0759a9d6f0f5e8fbe2d94cd15ceb36"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/oid.js",
+      "sha256": "290f20b614ea5ec8d108e38c5c81df226c06b88d8d72b39adca90ca848ff6fe9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/rfc3161/error.js",
+      "sha256": "a9dc1ebc92fa89f11c68cb8f77ad144b1dc33151b747f3389483fca34214f8a5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/rfc3161/tstinfo.js",
+      "sha256": "8bae99260cd63dc28cb27ed1e1a15904d7514980c7795d82fa14cb3ef0cbde0b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/x509/index.js",
+      "sha256": "d44814772e0f843d131d4c0b854a382e110607014edde185262bb058f5845500"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/x509/cert.js",
+      "sha256": "cfae0b429e647b4837df6475dd1bcf846cf003b7bbebb9be2bb568ff24b8f644"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/x509/ext.js",
+      "sha256": "b5385568abdb5bbc3b75a933fd58eaa0bcc4abd5b456701748d7bae6a0352d10"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/core/dist/x509/sct.js",
+      "sha256": "e50377dd238485d52ae13bfbd7ab5e3716fc563ad0d64848f8a54c62cee6750b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/util/oidc.js",
+      "sha256": "8f0a923e536473621e7d414cd55ba5939160ed608e6422e747db20c83c9a5446"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/util/ua.js",
+      "sha256": "e4418fdf916be56ec105a8a90e13875e78cb4d23e8db38ec31b0e4b96e34c941"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/bundler/base.js",
+      "sha256": "ed47decaa0069fd895dd3d25ef5bf532e16c9c1fcbd46f9d3b2cd6e785d7e525"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/bundler/bundle.js",
+      "sha256": "f28d4157ed51790e359b9d08ccbb6be6f50ba65cde3f3a58f588a3cd9c1fa4f3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/bundler/message.js",
+      "sha256": "88ea267bba9d3032ac3cb79811a4ef8843bb71a75fbf90145925616c1bf32bcd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/error.js",
+      "sha256": "c39bbb391ee813c9f6a25241e9a911bcbdf5ed90f70dcbd14fb385c802dffb9a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/external/error.js",
+      "sha256": "9774457ecb0a51fadd9e4fb6f116340e3651916c2259c91783421b756501a6f3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/identity/index.js",
+      "sha256": "ce801c2b4439faad508a9cbb84c2bbe841a38cd54f46c849c6284e4f28a8afa0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/identity/ci.js",
+      "sha256": "8c59e9dd26adb98c4f3129cdf82fbfa46f7cce4279f5fdc8cd062cef1a52371b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/signer/index.js",
+      "sha256": "31a1fff7d16e5236c17d5371195832f562be980aea318ee7dded3ea0e08ffbd9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/signer/fulcio/index.js",
+      "sha256": "cc4124686b7b6d10f3fe1128f22714920852b639f939f58ff290701821ece3ec"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/signer/fulcio/ca.js",
+      "sha256": "ff25d072c94cecfa909e4a77c56f4cff5f2fd468afb970cd039d583cdcec52f3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/external/fulcio.js",
+      "sha256": "73a87f5a05dc96047038a857754bac61b73d4a1f4ac177ccf9930873d91060f4"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/external/fetch.js",
+      "sha256": "ec9bc8b35ebd57a1560f6d300613570a465c7d0fc9d9a50768eb9734c74cddcb"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/signer/fulcio/ephemeral.js",
+      "sha256": "03bbbbe11e2eb159cd37ca3a0b4e90e62537083f8d6ddc7dbc1126fcce91c212"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/witness/index.js",
+      "sha256": "f4cb97854db5337839363e904c28e5ea116772e6ee797f215be7d37b56032ea6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/witness/tlog/index.js",
+      "sha256": "6bce51b1078c1a314bfd955a580cf209274f4e1aa82bdcd7bdff60eac7454770"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/witness/tlog/client.js",
+      "sha256": "6f547bd619d7e84075580e1610af9c55cbeeb122bc29332e1e215d9d4edbaad0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/external/rekor.js",
+      "sha256": "92d7152a24d17297b11f6f306df2b803ad0db7bfcdb7eb90139aa58bdf6ed16a"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/witness/tlog/entry.js",
+      "sha256": "b3e689530dea3e1a26464164946409a7cc517a7fd94a416b591accc6b12dc683"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/witness/tsa/index.js",
+      "sha256": "ad48014e42815de0d9096046e7257cb13741b790dfe0acfeababb457c7d77d7d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/witness/tsa/client.js",
+      "sha256": "460842b229f17e6678b5c2d10fa4c6be3d7008c620705b5fd4a4882f9257f4dd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/sign/dist/external/tsa.js",
+      "sha256": "abd4ece9c839dcc9e6ca1b30eb09b842ff10c38883a10d733801910f7a85eaf0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/tuf/dist/index.js",
+      "sha256": "c19e0089a40d91ee5dfd279793cd8a515383f9c6e99dfb56c1113d0a5acdfc9c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/tuf/dist/appdata.js",
+      "sha256": "78166a2b1f15e101d3514cd2f2dd5890deb25198002897ce2e071a2e3ef8e36e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/tuf/dist/client.js",
+      "sha256": "d3eaa44e0e0f156315bb9ba26e9ab134e71b565b5c070f673664003df8d416fe"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/dist/index.js",
+      "sha256": "083cb168f0b1767c299012aa47a00f53bd50ee9b565313ff1768526e9c095180"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/index.js",
+      "sha256": "8960b468a312ebb4fd20f3e54771ac355954bfb9cb6155de6639299f6c57e067"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/base.js",
+      "sha256": "f44417cde6070c0080753dac8a25255d343e2ef6441bf69ee8cde4653a348d99"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/error.js",
+      "sha256": "4ec122572002e8f15805046186dd88aecfb266154fd8cf7d30b75f5fe3ed208c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/utils/index.js",
+      "sha256": "1e07953532f3914f5638e2ae937d0a27f8ab07be85a8ceb00e42365308ffd2aa"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/utils/guard.js",
+      "sha256": "abcd67fdc0bafcf763797b63af7b3cf8c608604b088acef7f58b60b2a0e869c6"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/utils/verify.js",
+      "sha256": "21d223eed0ebb5a993e9b8099c651d5915aea666744d95c4e62afb76674d6b6f"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@tufjs/canonical-json/lib/index.js",
+      "sha256": "7084e10563154ac703db99141ff3311858e5fb5a3096381fcb69b1ecfa9ea1c5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/file.js",
+      "sha256": "4433d780c9be2db1c58d376ab3dfa49244900d3ca62916fcaf4cd6eaea8b3537"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/key.js",
+      "sha256": "45067f50c3a8377a699fa990af4f4dcd175bd037d22edd31bf0f6766bbe331ba"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/utils/key.js",
+      "sha256": "94083a9b8cd5514c6264ad4548374d3e6ac70a5e9993619842670a2ec9429ca5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/utils/oid.js",
+      "sha256": "7fa1bc055ce5d10f06f7f27c4dc4da621e92b1545b8d74e1d9161bb804f0e4e1"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/metadata.js",
+      "sha256": "cf1aef30eb4074abafbb5c05f0e1cfc5daae429333f13a86f3bb4f7e7c3e1e91"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/root.js",
+      "sha256": "802c47ba94b920f01a2a0a7930ae7d8816bfac0720dc20cd28faf1a68670261c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/role.js",
+      "sha256": "5e6cae5ab295b616fd9fb009d2ccfd9ab05861268136306f871048cf4f61d280"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/signature.js",
+      "sha256": "2a0350dce32ec3c94caafc03cf177c6d527431ed36a6c7e931d49c8e5832c265"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/snapshot.js",
+      "sha256": "a5748407dc6ad2d8b455e945b0c950520aaf6b9f532817ea133477a0c3af5aed"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/targets.js",
+      "sha256": "d7aba469face9bc1e055d73e76ac45117ef62b863c0d84ebc6eb5b4645e19adf"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/delegations.js",
+      "sha256": "651325e74fcb6e96664761483eb07dda1f4a7da6dfcde6527799e8c8ffee769e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/node_modules/@tufjs/models/dist/timestamp.js",
+      "sha256": "9bfe638cd3c9273f13d8073344c22957e6ed58813101f08a3c156afa557a68fd"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/dist/fetcher.js",
+      "sha256": "85af1222019cfcdec24b877cdcff787417a82685bc4e74c0092b064abbc44e93"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/dist/error.js",
+      "sha256": "bcbff8c5990c9acf37e9360ca5dd432891e8add24b90501abef36e301ac4f0be"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/dist/utils/tmpfile.js",
+      "sha256": "d34560fed7be090f0fc61bb9ef9be64aa2e23019f96d1cb9b20ebb627ac9c28c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/dist/updater.js",
+      "sha256": "31893a3fbe6aba10d1d5628c19d9708625d479e257ecd2be287f5baab200e1fe"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/dist/config.js",
+      "sha256": "2c79709ad42cff0d6797807c84c9e2b753abbced832d3b8e8997f55db149940c"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/dist/store.js",
+      "sha256": "b54892ac7487f47d329e5ff5aa969032290bbcd61622ec52bbee887832d19361"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/tuf-js/dist/utils/url.js",
+      "sha256": "f2fabb4905b0804ea51a95e79ebb106df223141cacaebd70341e641a6f08a4a7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/tuf/dist/target.js",
+      "sha256": "789883a86c8c5c6a87e98ac259e61c0102c6fe30093f4f211190e17d40e31b9e"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/tuf/dist/error.js",
+      "sha256": "e16c8271f369436d70c0292146eee60142d92ef3b25ba2809af36608dd7e2132"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/index.js",
+      "sha256": "1edb0652ccb4bf7490f288a522fc2d9807c7d8780f4a7ff294c37259b0f30f84"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/bundle/index.js",
+      "sha256": "a1e12b3ccfacbf8bbcd71793a4d9afae7de10b11985dbbb1b59c736d157e7392"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/bundle/dsse.js",
+      "sha256": "5ffea714687a0bf9d35c8a002fc30277c9608fca054b7ddfc2e04c35733f33ba"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/bundle/message.js",
+      "sha256": "213f01e6231d47719eff90dadb074c5d036f3c8cef5f17201cd29009f3b12cbc"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/error.js",
+      "sha256": "c8a2a1b2f0767485709de761d9a22998bb98fcc18e30e7d348314040198eeeb3"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/trust/index.js",
+      "sha256": "cc4e67a588b4535e79598662a3f8324a69c098975cc2fb66ec052f5f189bc023"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/trust/filter.js",
+      "sha256": "38b3126be45b639685ceb7e96c489ecb27bee211e32c468798b9a2e7fbf3a6d0"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/verifier.js",
+      "sha256": "faf70df5e1e92197f59886fdf5b41779dc0b4a3c77b50d7ed8cfc963caadeb72"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/key/index.js",
+      "sha256": "145d96bf6a6acf3de36d57818720b749842a120b8a4087451abde3b6cd8818ab"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/key/certificate.js",
+      "sha256": "6d12302979ea44eb64496d8fcc8b90f06437b32fc0603316574ab15866446319"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/key/sct.js",
+      "sha256": "d45dc2e67ee382746aa6a0442dfca5fd10d74db34c7659e3493632284c1407e4"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/policy.js",
+      "sha256": "0eed090524c902628dcb6031df51a56c46a2324a10d302e1fb369ca4fb72cc8d"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/timestamp/index.js",
+      "sha256": "04e6a17e82d7ed1557f6606b5d84bcf459ac2edf9fb5cdc0ec597dc3f76d4288"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/timestamp/checkpoint.js",
+      "sha256": "18d44171abe480153865ceb84ffe7287a97827492501654bc80c42ee06198fa7"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/timestamp/merkle.js",
+      "sha256": "0232ca5d216e75f491a2b587ad4aee086c3d76efd996103f048413d3ef43ca2b"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/timestamp/set.js",
+      "sha256": "a1927245ae0bb1b8f91fead209d16ae884d076f91700335bbe3bd42d992966c5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/timestamp/tsa.js",
+      "sha256": "da992ca078d3ba149cff2e434185ab007c5449ebecb56d3948a10e510960a280"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/tlog/index.js",
+      "sha256": "f04e7fff83d6826be6da5f7a8be563cf95ad6cf409d6881aa01830e591af43d9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/tlog/dsse.js",
+      "sha256": "13410a2220afa6cbb98c7bf8bad03b342fdc081525d0c31cfa314a00050e9117"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/tlog/hashedrekord.js",
+      "sha256": "1b4f198e94ac03dad87afb1ccd1cd1160eeca5341f36bc8ca2ff2aba2f088232"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@sigstore/verify/dist/tlog/intoto.js",
+      "sha256": "cb68fbf291a74ad0689355b09332ca7c025a094765766fffc7a733de98a835d4"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/sigstore/dist/sigstore.js",
+      "sha256": "56bd4efe96b695a366bd1fe7d64f0a7f2634458138e507b992fe17c6100bfb89"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/sigstore/dist/config.js",
+      "sha256": "8e2067981d52721988a681543e9e04973ce30e40ea8c8ce65632f7d059089634"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/scripts/typecheck.mjs",
+      "sha256": "3bd6ead5b5d2141d3adcd708a2e1013e463e27112b097ba444371a329e226ec0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/scripts/typecheck-inputs.mjs",
+      "sha256": "94db499f97fb7dbdc30043bc23978dd8c647492503750e5399bb9331f6e5e736"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/scripts/typecheck-consumers.mjs",
+      "sha256": "7c5747ded3491deed236486c930bd402b129a381cf4f2148dd272fe729ec1a37"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "dd907b3f09da229685d5275be73160d0fd5f93eb6b9bc499793349a32e21e9d6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/scripts/typecheck-staged-inputs.mjs",
+      "sha256": "99365eb838c17fe07960183f256b5ae4b1fc83dbc80e251809a243d9cb19109a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc",
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/lib/tsc.js",
+      "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/lib/_tsc.js",
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    }
+  ],
+  "parentLoads": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/admission.mjs",
+      "sha256": "3a41490a765978c216d0609375cdd68eb1e9e1e7c6f19d6a7ef347389b5237a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/common.mjs",
+      "sha256": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/profile.mjs",
+      "sha256": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/transport.mjs",
+      "sha256": "c115efe4a62c850868ddee551f5dca535c971fd0636074b21b359565f6bb6e5d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/external-admission.mjs",
+      "sha256": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/external.mjs",
+      "sha256": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/inventory.mjs",
+      "sha256": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/build-types.mjs",
+      "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/phase-runner.mjs",
+      "sha256": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/supervise.mjs",
+      "sha256": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/tap.mjs",
+      "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/process-observer.mjs",
+      "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/scripts/typecheck-consumers.mjs",
+      "sha256": "7c5747ded3491deed236486c930bd402b129a381cf4f2148dd272fe729ec1a37"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "dd907b3f09da229685d5275be73160d0fd5f93eb6b9bc499793349a32e21e9d6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    }
+  ],
+  "qualification": "Every recorded child resolution digest independently matches selected committed inputs, authenticated copied dependencies, authenticated npm tree, or exact frozen guard/audit. Compiler resolution trace assertions additionally bind consumer declarations. No claim of complete syscall/process-image tracing."
+}

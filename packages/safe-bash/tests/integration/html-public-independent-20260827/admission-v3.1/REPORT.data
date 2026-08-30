@@ -1,0 +1,149 @@
+ADMISSION v3.1 — ONE FROZEN EXECUTION, STOPPED / HOLD — 2026-08-27
+
+ROOT HANDOFF FOR RAMAN — NO DIRECT REVIEWER CHANNEL
+Freeze commit: 2461f905416b7260ff02742af87fba8bc31c2977
+Recipe manifest SHA256:
+0974e68b90790ff10296997e0c03c9f3883b87a0e7ec4d68e5fed4ef57cbe4a3
+The separate evidence commit introduces this REPORT, MANIFEST and captures.
+Its commit/hash are supplied in the final root handoff, not circularly embedded.
+
+DISPOSITION / EXACT COUNTS
+Exactly one frozen recipe execution; supervisor exit1; no retry or source edit
+after execution. Synthetic:28 declared/executed/expected, 2 acceptances and26
+rejections; each reached its frozen expected predicate reason, none unexecuted.
+These are explicitly invented predicate inputs, not real process evidence.
+Real controls:5 declared,4 executed,3 expected,1 unexpected; allocation-mutant
+UNEXECUTED under frozen fail-fast. Actual consumer-failure demonstrated the new
+authorized predicate. Strict timeout FAILED. Real touched allocating-mutant
+detection/kill was NOT demonstrated. The recipe as a whole remains HOLD.
+HTML34, four later materializer/reconstruction controls and full410/build/pack
+remain HELD and unexecuted. No admission, superiority or global-gate claim.
+
+ACTUAL RUN / MEMORY
+Run controls span2026-08-27T23:58:04.154Z to23:58:07.859Z (UTC).
+1 positive: consumer34613, producer34614, both natural status0/signalnull.
+  Bytes1073872896, consumer chunks16386, producer writes16386, maxchunk65536;
+  SHA256 f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f.
+  Native current sampled RSS maximum97058816 bytes; consumer observed sampled
+  RSS peak97075200, baseline46350336. Both strict absolute <268435456.
+  Producer RSS baseline45236224/peak57147392, separately accounted.
+  Consumer pending max1, pending bytes max65536, both settled0.
+  Producer false writes/drains16361/16361, pending drains max1/settled0,
+  sampled writableLength max65536/settled0. No kernel occupancy claim.
+  Consumer and producer each67 nonbaseline memory samples plus baseline.
+2 producer-exit7: consumer34624 naturally exited17, producer34625 exited7;
+  exact core STREAM_PROCESS forwarding, full bytes/digest, both reaped.
+  Consumer RSS baseline46415872/peak99516416; producer45154304/57671680.
+3 consumer-failure: consumer34638 naturally exited17, producer34639 exited1,
+  both signalnull. Exact V3_CONSUMER_FAILURE and message
+  CONTROL_BOUNDARY:V3_CONSUMER_FAILURE forwarded; same caller error object
+  survived core rejection. Real16 chunks/1048576 consumed bytes.
+  Consumer RSS baseline46219264/peak55017472; producer45203456/47169536.
+4 timeout: consumer34642 naturally exited17, producer34643 exited1/signalnull.
+  Consumer RSS baseline46137344/peak54067200; producer45203456/47120384.
+  Real16 chunks/1048576 consumed bytes; actual250ms supervisor timeout abort
+  was sent and V3_TIMEOUT reached coordinator. The original SIGTERM predicate
+  failed at frozen coordinator.mjs:219: null !== 'SIGTERM'. This is not an
+  import/parse error, not an approved alternative, and not a pass.
+  Stderr prints write EPIPE, but no structured producer observer ran for timeout;
+  that text is NOT promoted to structured proof or the consumer-only exception.
+5 allocation-mutant: not reached; no allocations, detection or kill result.
+
+All five memory fields (rss, heapUsed, heapTotal, external, arrayBuffers), full
+baselines/fieldwise peaks/latest/samples, flow/chunk/backpressure data, partial
+failure byte effects, exact statuses and stdout/stderr are preserved in original
+raw files and VALIDATION.json. Producer accepted writes are not delivered bytes.
+Metric is absolute sampled RSS of the dedicated fresh consumer PROCESS only,
+not delta, thread, lifetime resourceUsage, whole supervisor/verifier/process tree.
+Producer/supervisor are separate; supervisor memory explicitly preserved.
+No threshold increase, baseline subtraction, forced GC, continuous peak bound
+or host-load isolation. Observer import/setup costs remain included.
+
+STRUCTURED EPIPE / CLEANUP BARRIER
+The actual consumer case reached structured-closed-consumer-EPIPE, not a string
+fallback. Producer uncaughtExceptionMonitor captured codeEPIPE/syscallwrite/
+errno-32/originunhandledRejection. It was the exact error object first observed
+by non-handling stdout events.errorMonitor, fd1, producer34639/parent34638,
+matching random token136d68f5-716e-4acc-9d3c-96f0ed7f0467 and the durable caller
+marker with those PIDs, control, chunk16 and exact code/message. Producer
+status1/null matched core-reported process status and independently observed
+exit/close. stdoutErroredSameObjectAtUncaught=false and stdoutDestroyed=false
+are honestly preserved, not rewritten to fit the abandoned static assumption.
+
+Local consumer monotonic event chronology:
+1 spawn118501252803833ns
+2 caller-failure118501318175166ns
+3 consumer-pipe-close118501326140166ns, destroyedtrue
+4 producer-exit118501338695083ns, status1/null
+5 producer-close118501338705333ns, status1/null
+6 core-settled118501338806708ns, stdoutDestroyedtrue, producer PID absent.
+Producer close was20.530167ms after caller failure; core settled later.
+Supervisor received exact failure receipt at23:58:07.228Z; consumer close
+at23:58:07.236Z; both PIDs absent/empty group before harness observation ended
+at23:58:07.321Z. Overall246ms <45000ms. No supervisor termination signal.
+Do not impose cross-process monotonic/wall-clock ordering not recorded here.
+
+All four executed cases have awaited worker close, both PIDs absent, no group
+members at close or after probes, no supervisor emergency/kill. Numeric receipts
+and RAW-RECEIPT were durable before assertions, including the strict timeout
+failure. Source inspection and actual consumer chronology show no cleanup
+barrier violation. A source child.kill() does not establish SIGTERM delivery;
+pipe close can lead to the separately proven consumer EPIPE exit instead.
+Timeout remains a terminal-predicate failure, not evidence of a barrier bug.
+
+EXACT BASE / PATCHED SOURCE BINDINGS
+Base v2 aa4374b0ab5f0789e51026b7c6fe163c044a9a6c; seal
+82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7.
+Full core SHA unchanged:
+446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d.
+Producer fixture SHA unchanged:
+74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c.
+telemetry/authenticate also copied byte-identically. All old recipe files are
+authenticated from immutable Git; recipe/AMENDMENT.json gives every copied
+base/patched hash plus new runtime file hashes. Changed runtime copies:
+coordinator base b14647986c684491dd4107f6457cdda2843cc2edd99e4b174a74b478a4be5674
+  patched ea67c3b73e5af666c660a0d8bb76ac8a02bfd59b35d2d4eb17d35bfda91988ff
+worker base 12a85db40f94cc175d40bb495cefa007ced2ae51f56754d60c7bd268937c0a5a
+  patched 7cbf5454c97b20033515147934eff2b2e57e4e711612806fc9b81a1358449eb0
+producer-observer base 77e9d5c70d02f7422fbb17292aa15ab8ccd797a306bf437a428f3e63c1c5cf85
+  patched 5394054ac87d331a327ef31a3e57fc3c00dd3213b69438f4160c269e734c3ca0
+PIN base 04e113086b826ffacce1920b64146395b1a160c79939858080428e31033f31cb
+  patched 10a7426689ce09863e1db949826b9b7f3b7872ecc43cd0b9d173187cc4487c69.
+
+STATIC HISTORY / AUTHENTICITY / INVENTORY
+No synthetic/actual development execution. Initial10 syntax checks passed but
+did not prove observation semantics. Narrow pinned Node source reading found
+stdout dummyDestroy/_undestroy invalidated the draft errored/destroyed identity
+assumption. STATIC-MISTAKE-01.json preserves the exact prior draft bytes/hashes
+and static finding. Observer-only events.errorMonitor identity corrected it
+BEFORE freeze. Final10 syntax checks passed;28 case declarations parsed only.
+No runtime retry was used to discover or fix that mistake.
+Pinned Node22.22.2/darwin-arm64/OS25.4.0, Node/git/ps hashes and25 historical
+source bindings authenticated before freeze and in PRE/POST. Children use
+--max-old-space-size=96; shell launcher unset NODE_OPTIONS/NODE_PATH and enabled
+noclobber. Exact execution command is frozen in recipe/RECIPE.data.
+18 post-run read-only authenticity/saved-telemetry consistency checks passed;
+these do NOT reevaluate predicates, retry controls or change the failure.
+Recipe file/directory inventories detect additions as well as changes/deletions.
+Evidence MANIFEST includes all raw files, recipe, validation/verifier/report and
+runtime directory inventory. Empty runtime tmp directories are recorded, not
+Git-storable entries; no whole-repository append-proof claim. File hashes bind
+committed evidence. Only this owned new subtree is committed; unrelated index,
+concurrent edits and native temporary artifacts are preserved.
+
+PRIOR HOLD / NO HISTORICAL RESCORE
+Prior v3 freeze eb56ed1eff6e7061aa219fb4877bc2382cf15a27, recipe manifest
+35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037;
+evidence769678dda195c8f77a91563274accec6e685ec4d, manifest
+0399f7e288c22a52447383684a1d3d790d066171041e299bf41eb042e783454c remain HOLD:
+5 planned/3 executed/2 expected/1 failed; timeout and mutant unexecuted.
+Their RSS117342208, three v2 development failures and old v3 static mistake
+remain unaltered. Old independent numeric RSS and exact causeUNKNOWN; original
+runner raw rejection unrecovered. No repair to old attestations. Diagnosis
+e579a96ca8889174b24d9c805a00a1f3d48305e2 is an authenticated input, not a rescore.
+Candidate aff899aa94ed0c57a936b08fd36d185688f5c0bb,
+source28cf1518eb3e1a27c5439ba89ff1801e3f852c3b,
+tree9641374115db435022ac172ec9c99d305e07dbe4 are provenance only.
+Archivecb7f6b6d68f5946c3300e28156367ba42d1af83b12cb1b4be88832c50dfbfd07 and
+packd9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7 NOT rerun.
+Stop here: no authorization inferred for timeout amendment or another execution.

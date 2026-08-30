@@ -1,0 +1,53 @@
+{
+  "addedToAllowlist": [],
+  "requiresRootDecision": true,
+  "exactMissing": [
+    {
+      "builtin": "node:util",
+      "roles": [
+        "trusted-engine"
+      ],
+      "sites": [
+        "src/modules/fs.ts:4-5 inspect, error formatting and promisify metadata",
+        "src/snapshot/validation.ts:587 types.isProxy"
+      ],
+      "risk": "trusted type inspection only; no guest module admission"
+    },
+    {
+      "builtin": "node:async_hooks",
+      "roles": [
+        "trusted-engine"
+      ],
+      "sites": [
+        "src/interp/jobs.ts:9 activeJob AsyncLocalStorage",
+        "src/interp/promise-replay.ts:330 promiseReplayContext",
+        "src/interp/promise-tracker.ts:69 activePromiseTracker"
+      ],
+      "risk": "internal job/replay attribution, not guest ALS"
+    },
+    {
+      "builtin": "node:fs/promises",
+      "roles": [
+        "trusted-engine module-load only"
+      ],
+      "sites": [
+        "src/modules/fs.ts:337 options.fs ?? nodeFsPromises",
+        "src/snapshot/backend.ts:41,67,132,161,169,194 readFile/unlink/stat/writeFile/rename"
+      ],
+      "risk": "contains native FS implementations: MUST NOT activate default native module provider or snapshot backend; separate ROOT authority required before loader admission"
+    },
+    {
+      "builtin": "node:path",
+      "roles": [
+        "trusted-engine"
+      ],
+      "sites": [
+        "src/modules/canonical-path.ts:61,77,169 lexical/canonical path operations",
+        "src/modules/fs.ts:504,664 resolve paths",
+        "src/snapshot/backend.ts:85 dirname"
+      ],
+      "risk": "trusted path computations; not guest host-path authority"
+    }
+  ],
+  "guests": "No guest import of process/fs/Worker/SAB/native modules; guest facade remains fixed VFS only"
+}

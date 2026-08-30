@@ -1,0 +1,13 @@
+{
+  "name": "executable-build-link",
+  "expectedBoundary": "BUILD_LINK",
+  "started": "2026-08-27T22:49:13.556Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:BUILD_LINK scripts/evil.mjs",
+    "code": "BUILD_LINK",
+    "stack": "Error: BOUNDARY:BUILD_LINK scripts/evil.mjs\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:73:7)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:43:58\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:43:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:49:13.582Z"
+}

@@ -1,0 +1,65 @@
+{
+  "commit": "b2f84cc190318bc136731a05d1bc2d4fe681162e",
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/CONTROLS.json",
+      "bytes": 799,
+      "sha256": "aef11bad46a63f05993568184478ddc9daf84f24b473d591ade0f8fb9b2ed3eb",
+      "blob": "d3e999fc66a6933720cbabb369305d1d688bf8b2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/HANDOFF.md",
+      "bytes": 2452,
+      "sha256": "ac9ec4aff9ac0ec1d2ad76d0fc91768af8f34b58cb13a79ee6266dfe5ef2c4b1",
+      "blob": "d5270c43b96a3dbd114de04d1871179ec5c970f6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/PRESEAL.json",
+      "bytes": 3718,
+      "sha256": "c970b59e29472bc110f37e1e2367784fc97bcb0e429bd4f054d4d4a9bd446883",
+      "blob": "30fa13321014ff06898ee0fb1c0151a1352d12c7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/PROPOSAL.json",
+      "bytes": 6093,
+      "sha256": "d810f10dfa60fa004ad5af252a2ceef320abe05f7e525f0c362319d89af9b76d",
+      "blob": "47fd397b1a58ed765f0f6be6fdce997700fa86b5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/SELECTION.json",
+      "bytes": 3719,
+      "sha256": "ed06313ab94e398796b27f429a8300c8413366f3986dfb2b2e8faab3fb17f51a",
+      "blob": "bbad9e7009e4b79a9b5bfeab6158b3cebc83c4d4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/consumer.mjs",
+      "bytes": 1489,
+      "sha256": "002f6e60fe807f89cdd729ffec34f5a00997e5737c84c88f1ea545fa64ee4f58",
+      "blob": "a71457fa060e89bb19ce90fb17e30e2489f28041"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/contract.mjs",
+      "bytes": 3041,
+      "sha256": "d81c8c0a23e2ed3091e0e25fddd6ef6f5d965c0d1572a174ba97e7f14b8e5269",
+      "blob": "93f033ac53dcdb7dcbb26408453adc9b727a4a5d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/coordinator.mjs",
+      "bytes": 1685,
+      "sha256": "71984fea06606e1c784d7bf6b3406bd4200b605cc8bfc14476588375fd67fcee",
+      "blob": "bcd39a9b1006e5c10de82da6b1926b9b1d8ba43c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/finish.mjs",
+      "bytes": 10608,
+      "sha256": "9620b8c5e62c2a200c83b0a71ee12a26c08b708d78ea8569300ae9fe442d8bff",
+      "blob": "9ed9c7a191028eacd29f97a48a0863e8bcf6a2cb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/prepare.mjs",
+      "bytes": 3906,
+      "sha256": "f8db585b899119c16a0f3f3d49144eb26bc829e66d9788ef9341be1e87d320cb",
+      "blob": "4f82b6607513e6e87ccbccbb7f413f9d0f3ad5bb"
+    }
+  ]
+}

@@ -1,0 +1,471 @@
+[
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ec75784d98001cf2de06e40193aa5e98cde786c3",
+    "bytes": 1448,
+    "path": "tests/integration/node-public-author-20260829/ACTUAL-START.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4f11e1ce08858e86ba22b256dd8dc777770ff90b",
+    "bytes": 4378,
+    "path": "tests/integration/node-public-author-20260829/ADMIN.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b15cf59323da4070865f105d8ff622e03265104d",
+    "bytes": 2661,
+    "path": "tests/integration/node-public-author-20260829/CENSUS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "95186717af7956272b6eaba8dabe8414f82d0c1d",
+    "bytes": 8026,
+    "path": "tests/integration/node-public-author-20260829/CONTINUATION-v4.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "16b98fe8299599f6b3ec317fe1f7403ac80a8dc5",
+    "bytes": 2183,
+    "path": "tests/integration/node-public-author-20260829/CORRECTION-v2.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "64a3675f237e3a5b7f9d710ff207fea4ad01a967",
+    "bytes": 1072,
+    "path": "tests/integration/node-public-author-20260829/CORRECTION-v3.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8ebf982fa603d908d89dd3aeb6b9dfc48c76021f",
+    "bytes": 74686,
+    "path": "tests/integration/node-public-author-20260829/EVIDENCE-MANIFEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "34100b8950ae8c2340ece33389898da41dfab303",
+    "bytes": 790,
+    "path": "tests/integration/node-public-author-20260829/EXECUTION-SEAL-v4.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "417b150e78baa29a2e2b5972ee8ffac43f9aed35",
+    "bytes": 913,
+    "path": "tests/integration/node-public-author-20260829/EXECUTION-SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6c478e6c3fe786498b513a04458103010470b230",
+    "bytes": 20332,
+    "path": "tests/integration/node-public-author-20260829/EXECUTOR-v2.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "946f870ee677831f817a09b9ea911ca3ed019b05",
+    "bytes": 20717,
+    "path": "tests/integration/node-public-author-20260829/EXECUTOR-v3.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e2ef25560c4a86aa921263de618a447c19ab3b3e",
+    "bytes": 21699,
+    "path": "tests/integration/node-public-author-20260829/EXECUTOR-v4.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4dd5b7d3a377e7239d4d4e20da150577e11a1969",
+    "bytes": 19895,
+    "path": "tests/integration/node-public-author-20260829/EXECUTOR.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3f91d3732bbdef5fe56f42c117251cc297c1ade1",
+    "bytes": 1118,
+    "path": "tests/integration/node-public-author-20260829/FINAL-DATA-RECEIPT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9e6419d339112a79cadf7a81f1c9c8dbd95ad7f6",
+    "bytes": 4691,
+    "path": "tests/integration/node-public-author-20260829/FIXTURE-V2.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8678a8b2c6d9e144c03adaed03a607d62422a630",
+    "bytes": 8924,
+    "path": "tests/integration/node-public-author-20260829/HANDOFF.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c615880319d53027728bbe0750985586b2e066bc",
+    "bytes": 489,
+    "path": "tests/integration/node-public-author-20260829/MODULE-PRESERVATION.data.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f5618bd1e241a0438cf4b772c79f24ff45dd7021",
+    "bytes": 1230005,
+    "path": "tests/integration/node-public-author-20260829/PACKAGE.tgz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2e8481dfedbe02902e48109c3d2806bba29c5a0a",
+    "bytes": 8681,
+    "path": "tests/integration/node-public-author-20260829/PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b4a2ecbc73500cd18e872cfd49815407991e8364",
+    "bytes": 12417553,
+    "path": "tests/integration/node-public-author-20260829/RAW-CAPTURES-v1.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "85c8a6284a6b2d862ccf39847cf7710ba821c0a9",
+    "bytes": 4385,
+    "path": "tests/integration/node-public-author-20260829/README.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "86aff68eebdcc3cabac0e1ee4488d6eef7f5a228",
+    "bytes": 14749,
+    "path": "tests/integration/node-public-author-20260829/RUNNER-RECIPE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "396ce4f4630559634638434be304c694c05b8ebe",
+    "bytes": 178199,
+    "path": "tests/integration/node-public-author-20260829/SOURCE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "102e8ce49f78c7c2aaf083a9a32d02242294548a",
+    "bytes": 417978,
+    "path": "tests/integration/node-public-author-20260829/TOOLS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "aa1f5b02ebb60d1adf8b4b79854a6c345e016dae",
+    "bytes": 808,
+    "path": "tests/integration/node-public-author-20260829/TYPE-EXPECTATIONS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b985150f30d4695e15c3461ac00d933f9793e9bd",
+    "bytes": 209,
+    "path": "tests/integration/node-public-author-20260829/actual-v1/TERMINAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9607681d3c4d42eb2ef2729479fe3581639a521e",
+    "bytes": 464,
+    "path": "tests/integration/node-public-author-20260829/actual-v1/events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-author-20260829/actual-v1/stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a6f31aff49e854349d3765e5c1e88b8ab8a86ba6",
+    "bytes": 346,
+    "path": "tests/integration/node-public-author-20260829/actual-v1/stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1719178484b89238caee1397c17b304c784fbce6",
+    "bytes": 208,
+    "path": "tests/integration/node-public-author-20260829/actual-v2/TERMINAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4a93781f5ff75ec50f8263b223b60bb5c05ef0fc",
+    "bytes": 466,
+    "path": "tests/integration/node-public-author-20260829/actual-v2/events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-author-20260829/actual-v2/stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "deb783fde4e9151089b9b43c1dfe0a1e1bc6bb2c",
+    "bytes": 346,
+    "path": "tests/integration/node-public-author-20260829/actual-v2/stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60e8a71ef73204bd54b9ea0c22a42ceac203e9d5",
+    "bytes": 209,
+    "path": "tests/integration/node-public-author-20260829/actual-v3/TERMINAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "342072aa3f8c0e508b024469674d7644e9d909e6",
+    "bytes": 467,
+    "path": "tests/integration/node-public-author-20260829/actual-v3/events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-author-20260829/actual-v3/stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c110b635f55a3a94a80a6aa1e6549b40afd217df",
+    "bytes": 429,
+    "path": "tests/integration/node-public-author-20260829/actual-v3/stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1514f88471f350b3fce940067a37fb9261eccfb7",
+    "bytes": 209,
+    "path": "tests/integration/node-public-author-20260829/actual-v4/TERMINAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "836a329159d6df0296931a07687f74318e7cbb8f",
+    "bytes": 467,
+    "path": "tests/integration/node-public-author-20260829/actual-v4/events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-author-20260829/actual-v4/stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ae71424ea776fb93f767a3f31350234a1c4b6fd9",
+    "bytes": 354,
+    "path": "tests/integration/node-public-author-20260829/actual-v4/stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-author-20260829/dispatch-v2.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "291bb3289c2884b72ab7213e7fc9b5b867d22709",
+    "bytes": 720,
+    "path": "tests/integration/node-public-author-20260829/dispatch-v2.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-author-20260829/dispatch-v3.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "af49241654b33396d90af39ad0baf020030e4555",
+    "bytes": 1243,
+    "path": "tests/integration/node-public-author-20260829/dispatch-v3.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-author-20260829/dispatch-v4.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fffd138d27d6b440d0059cdd20a8bd300c77e893",
+    "bytes": 1589,
+    "path": "tests/integration/node-public-author-20260829/dispatch-v4.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/node-public-author-20260829/dispatch.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3fa955eec8e50f51c079db12342864a79408ef1d",
+    "bytes": 726,
+    "path": "tests/integration/node-public-author-20260829/dispatch.stdout.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f833c2d2924e523fc2a841cc750c6e9dc5162b05",
+    "bytes": 1391,
+    "path": "tests/integration/node-public-author-20260829/internal-loader-arguments.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3b709f71adaedf5e8b66c13a20199020ee64320a",
+    "bytes": 4659,
+    "path": "tests/integration/node-public-author-20260829/launch-v2.py"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5c12af4dfa864ab1e084a69965d3ed9ac315a25a",
+    "bytes": 4659,
+    "path": "tests/integration/node-public-author-20260829/launch-v3.py"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0791257dac50da94c5da4dc95167c7996b51a956",
+    "bytes": 4667,
+    "path": "tests/integration/node-public-author-20260829/launch-v4.py"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "86497bae64ad90c55d4320524adb72fecfc1cb84",
+    "bytes": 4653,
+    "path": "tests/integration/node-public-author-20260829/launch.py"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e1ded290d5f580b46396b10393287f328ff3ec96",
+    "bytes": 1692,
+    "path": "tests/integration/node-public-author-20260829/node-batch.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e51cdc7002b40411cce299098a28e35047c1d2d2",
+    "bytes": 2613,
+    "path": "tests/integration/node-public-author-20260829/node-load-guard.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c5521498401f809bb2ba90ec51fd691ac25b00e6",
+    "bytes": 3534,
+    "path": "tests/integration/node-public-author-20260829/node-policy.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "59d24946528a1670aa92aa9c462477419c8b5841",
+    "bytes": 1180,
+    "path": "tests/integration/node-public-author-20260829/prepare.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bf6e00b3446229a94d56328745ff9610ccbea880",
+    "bytes": 11595,
+    "path": "tests/integration/node-public-author-20260829/public-node-v2.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4dd969c1c93eb552c64049d4525a7a480eb8a2c7",
+    "bytes": 11663,
+    "path": "tests/integration/node-public-author-20260829/public-node.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "416c9217023db774908d392ce7e0e5a365361d48",
+    "bytes": 37672,
+    "path": "tests/integration/node-public-author-20260829/run-v2.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "67321c1517b80c727966a88b5d1b9133c7324abc",
+    "bytes": 37717,
+    "path": "tests/integration/node-public-author-20260829/run-v3.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "af2caa975999fb0fc7d2e8f512c974026c60a3bd",
+    "bytes": 28466,
+    "path": "tests/integration/node-public-author-20260829/run-v4.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "85ca7e4d98edb75846febc3bde5d2c02d5efb4d7",
+    "bytes": 36765,
+    "path": "tests/integration/node-public-author-20260829/run.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ce862ad3746f5dc24091503186f71facf02b9f10",
+    "bytes": 8276,
+    "path": "tests/integration/node-public-author-20260829/runner-node.mjs.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "65c8c0745373dcabe48ecaac492b72e65fcc67d1",
+    "bytes": 368,
+    "path": "tests/integration/node-public-author-20260829/types-negative.mts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d8a475fde44a0d095f5ef2f265d518a8bd63ab39",
+    "bytes": 1206,
+    "path": "tests/integration/node-public-author-20260829/types-positive.mts.fixture"
+  }
+]

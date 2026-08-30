@@ -1,0 +1,14 @@
+{
+  "sealedAt": "2026-08-27T10:14:42.079Z",
+  "productExecutedWithRevision": false,
+  "focusedExecutableFixRound": 1,
+  "frozenIntentionsUnchanged": true,
+  "originalSealSha256": "5de357198847410855f0fadda72e75ce1c1745c02fafdef22418b6f00e0a6222",
+  "initialExecutableSha256": "89e7126e946dd8eee07e547891bd83ba5db15a28f22890bbce6fa31e99a1fd98",
+  "correctedExecutableSha256": "c8a139b02533c8c964fef8eea829532a528fe85cbfa7d660bc8109e0c17ddd09",
+  "exactDeltaSha256": "e07dcfd2f7cf2d4d3dee9671afeeddf9c8e1a106568d7a23e109661c13b8ef24",
+  "diagnosisSha256": "e1babe0bb2f8ed3572c9f82c90de5524bc52714162f6e10d540d1cb47d8c651d",
+  "correction": "H12 selected public rejection is now the authenticated public ShellLimitError, not an ordinary diagnostic/status-converted object. Frozen requirement and exact-identity assertion unchanged. Other changes add raw socket-write byte capture for H09-H11 and explicit same-promise disposal assertion for H13; no input/status-set change.",
+  "sourceManifestSha256": "c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44",
+  "compiledManifestSha256": "c4df1c6910557948441eb47b3b7a9a9d069267e14e3745541f5d1e8c6d766bb0"
+}

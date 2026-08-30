@@ -1,0 +1,252 @@
+{
+  "source": "fb376b3a0bd390598038494235bec321a694383d",
+  "evidence": "acd04c3df74a5728fba1a29919b10c44cc4e2e0d",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "driverCanonicalSha256": "2922ac6400ecccce808431952e3aaccc97e20c2b4b2acc93041b514f52818809",
+  "driverFileSha256": "0c9c4da58534d1c6542a05e94afb318e5371369f58229a8b5fa096456f352212",
+  "runtimeFiles": {
+    "CANDIDATE.json": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+    "PROFILE.json.gz.base64": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+    "PROFILE-RECEIPT.json": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+    "CLEANUP.json": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+    "EXTERNAL.json.gz.base64": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "EXTERNAL-RECEIPT.json": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+    "common.mjs": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4",
+    "profile.mjs": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e",
+    "admission.mjs": "c1b708c1becb5ab6335c6021a5c02ab9394e24ff46c27b1237f7059938b36e65",
+    "inventory.mjs": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
+    "run.mjs": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
+    "worker.mjs": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401",
+    "supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+    "execute.mjs": "77c52b1becfb4175a9324f31e95813dd6ab84337bd94eb779f238002bc8a92b7",
+    "policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+    "transport.mjs": "a4165aaef80bb07bc4a899fe297124e2ecdc6c1454aeef228b52badf75f01e10",
+    "external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+    "external-admission.mjs": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
+    "built-consumers.mjs": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+    "consumer-admission.mjs": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+    "tap.mjs": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+    "public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+    "consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+    "negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+    "build-audit.mjs": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+    "build-types.mjs": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+    "phase-runner.mjs": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3",
+    "process-observer.mjs": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+    "review-build-types.mjs": "70569dbc68e9613e8d9b007ad989c6ecfb630146dab8b4049e45404e31d4b749",
+    "review-build-types-worker.mjs": "1575931a035d8dbfdfc9ac334613f2bd262b53bd3bbdeaa07fadeac1961b4497",
+    "projection.mjs": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8",
+    "INSTRUCTION-PROJECTION.json": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537"
+  },
+  "handoff": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/HANDOFF.md",
+    "sha256": "89614b55c594840bd40805fe244ff6a13c17510ea312b783f5f7886edd448e6a"
+  },
+  "packet": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/PACKET-SEAL.json",
+    "sha256": "15744b733badae980b6e47d11ca934a91953bb2572c39b86f47c6827887d2915",
+    "body": {
+      "createdAt": "2026-08-28T04:37:40.404Z",
+      "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "source": "fb376b3a0bd390598038494235bec321a694383d",
+      "driverSha256": "2922ac6400ecccce808431952e3aaccc97e20c2b4b2acc93041b514f52818809",
+      "files": {
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/CONTROLS-V2.json.gz.base64": "486cad61e7894726b82e817503b13e99fdec5ee3c1b4738fa87b8740a014eb8c",
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/CONTROLS-V3.json.gz.base64": "248a9ed8c5a387d276bd0e3815009eb746756a77b832c79120dd9b7c9beebfc7",
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/BUILD-TYPES.json.gz.base64": "40159c1ed938b0ea1793d194062db0d079019e97d46a2a38bc5306dadc72c2c4",
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/TYPECHECK.json.gz.base64": "bcd16aa2af0feb14feff0ced511fc21c7e9064960f4b27bbb03b0487d527ef2a",
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/OUTER.json.gz.base64": "4973367171c40a31785495e88c0b708d3b33a8de5f11b2a0cf4bcb4645d601a7",
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/RAW-INDEX.json": "97bdefdea3830435b819bb74673a14c7783401e208af3ec823c755976161a7c9",
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/SUMMARY.json": "03d20b59207f1ce268a781a131b34e1a842ae45c7f25cb3548e762a76fa733e5",
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/VALIDATION.json": "abed651f23fc94f244b4ffb55b7b6cb2a2aed4ba89efb5145dafc9c3f8ba81b8",
+        "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/HANDOFF.md": "89614b55c594840bd40805fe244ff6a13c17510ea312b783f5f7886edd448e6a"
+      },
+      "independentReview": "PENDING_DIRAC",
+      "fullRelease": "HOLD_REBOUND_ROOT_RELEASE_REQUIRED",
+      "fullGateLaunched": false
+    }
+  },
+  "projection": {
+    "fileSha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+    "canonicalSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+    "body": {
+      "schema": "unified76-instruction-projection-v1",
+      "authority": "ROOT narrow metadata-only projection after a9ec3561; full release not transferred",
+      "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+      "pathProfile": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "syntax": "posix",
+        "separator": "/"
+      },
+      "candidateEntries": [
+        {
+          "path": "AGENTS.md",
+          "mode": "100644",
+          "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+          "bytes": 12424,
+          "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+        },
+        {
+          "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        }
+      ],
+      "dependencyEntries": [
+        {
+          "role": "benchmark",
+          "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+          "path": "just-bash/dist/AGENTS.md",
+          "mode": "100644",
+          "bytes": 9231,
+          "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+        }
+      ],
+      "logical": {
+        "entries": 37397,
+        "bytes": 2382440321
+      },
+      "physical": {
+        "entries": 37392,
+        "bytes": 2382392469
+      },
+      "opaqueGit": "Original authenticated Git object/pack bytes may retain historical instruction blobs as inert provenance only. No checkout, plaintext instruction snapshots, substituted instruction text, or reading those blobs as instructions.",
+      "fullGateReleased": false
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+  },
+  "additionalTools": [
+    {
+      "path": "/usr/bin/sandbox-exec",
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+    },
+    {
+      "path": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ],
+  "sourceCalls": {
+    "execute.mjs": [
+      {
+        "line": 8,
+        "text": "import {candidate,directory,repository,copyDependencies,blob,sha,save,node24,npm,git,copySelection} from './common.mjs';"
+      },
+      {
+        "line": 11,
+        "text": "import {capture,createTreeGuard,requireBuildDelta,verifyArchive} from './inventory.mjs';"
+      },
+      {
+        "line": 14,
+        "text": "import {extractCommitted,transferHistory,cleanGitEnvironment} from './transport.mjs';"
+      },
+      {
+        "line": 21,
+        "text": "import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';"
+      },
+      {
+        "line": 22,
+        "text": "import {createPhaseRunner} from './phase-runner.mjs';"
+      },
+      {
+        "line": 51,
+        "text": "  report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,entries:profile.scopeInputs,destination:source,environment});"
+      },
+      {
+        "line": 52,
+        "text": "  report.archive=await verifyArchive(source,profile.scopeInputs,report.archiveTransport);assert.equal(report.archive.logical.count,profile.scopeInputs.length);"
+      },
+      {
+        "line": 55,
+        "text": "  report.historyTransport=await transferHistory({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,destination:source,environment});"
+      },
+      {
+        "line": 59,
+        "text": "  report.dependencyProjection=[copyDependencies(join(source,'node_modules')),copyDependencies(join(source,'benchmarks/node_modules'),join(repository,'benchmarks/node_modules'))];"
+      },
+      {
+        "line": 91,
+        "text": "  const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[artifactGuard,privateGuard],requireOrdered,audit});"
+      },
+      {
+        "line": 93,
+        "text": "  const approvedBuild=await runBuildTypes({phase,source,output,report,beforeAuthorizedBuild,tracked,freezeSource:guard=>{sourceGuard=guard;},audit});"
+      }
+    ],
+    "review-build-types.mjs": [
+      {
+        "line": 6,
+        "text": "import {candidate,repository,directory,node24,npm,sha,save,blob,copyDependencies} from './common.mjs';"
+      },
+      {
+        "line": 10,
+        "text": "import {extractCommitted,cleanGitEnvironment} from './transport.mjs';"
+      },
+      {
+        "line": 11,
+        "text": "import {capture,createTreeGuard,verifyArchive} from './inventory.mjs';"
+      },
+      {
+        "line": 12,
+        "text": "import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';"
+      },
+      {
+        "line": 13,
+        "text": "import {createPhaseRunner} from './phase-runner.mjs';"
+      },
+      {
+        "line": 39,
+        "text": "    report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:PRODUCT,entries:profile.scopeInputs,destination:source,environment});"
+      },
+      {
+        "line": 40,
+        "text": "    report.archive=await verifyArchive(source,profile.scopeInputs,report.archiveTransport);"
+      },
+      {
+        "line": 47,
+        "text": "    report.dependencyProjection=[copyDependencies(join(source,'node_modules')),copyDependencies(join(source,'benchmarks/node_modules'),join(repository,'benchmarks/node_modules'))];"
+      },
+      {
+        "line": 61,
+        "text": "    const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[harnessGuard],requireOrdered,audit});"
+      },
+      {
+        "line": 64,
+        "text": "    await runBuildTypes({phase,source,output,report,beforeAuthorizedBuild,tracked:async()=>{if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[]);},freezeSource:guard=>{sourceGuard=guard;},audit});"
+      }
+    ]
+  },
+  "recipe": "Direct actual frozen transport.transferHistory + extractCommitted + verifyArchive, common.copyDependencies, shared build-types/phase-runner/supervise and outer observer. Opaque original Git storage in owned /tmp, original and isolated Git archive streams hash-discarded, complete physical candidate projection built with all remaining dependencies. No full execute/reviewMain/admission/private imports or valid release. Host npm stays authenticated readonly because common pins its absolute path; exact full npm tree checked before/after.",
+  "negativeBoundary": "Actual projection APIs and verifyArchive/validateProfile; corrupt metadata never allowed to create instruction paths. Exact-six may not be broadened. Independent fs write hooks throw before instruction file creation, not silently skip. Full cohort stops on relevant genuine admission contradiction.",
+  "priorMethods": "Known v6 sandbox bash/Git PATH corrections retained. Its broad own dependency-basename omission is NOT reused; actual new exact projection common.copyDependencies used instead.",
+  "release": "HOLD_NEW_ROOT_RELEASE_ABSENT; HTML/DU/Expr scoped prerequisites accepted under8dd78d7d; original stopped0/14 stays historical"
+}

@@ -1,0 +1,97 @@
+diff --git a/recipe/assert-capture.mjs b/recipe/assert-capture.mjs
+--- a/recipe/assert-capture.mjs
++++ b/recipe/assert-capture.mjs
+@@ -11,6 +11,29 @@
+   const stderr = Buffer.from(capture.stderrHex, 'hex');
+   atomicWrite(join(evidence, 'command-stdout.bin'), stdout);
+   atomicWrite(join(evidence, 'command-stderr.bin'), stderr);
++
++  const expected = job.expected;
++  const unfulfilled = [];
++  const supported = new Set(['status', 'stdoutHex', 'stdoutUtf8', 'reads', 'documents', 'diagnosticCode', 'effectProfile', 'assertions']);
++  assert(expected && typeof expected === 'object' && !Array.isArray(expected), 'Malformed expectations');
++  for (const key of Object.keys(expected)) {
++    if (!supported.has(key)) unfulfilled.push({ path: 'expected.' + key, value: expected[key], reason: 'No assertion adapter bound' });
++  }
++  if (Object.hasOwn(expected, 'assertions')) {
++    if (!Array.isArray(expected.assertions)) unfulfilled.push({ path: 'expected.assertions', value: expected.assertions, reason: 'Malformed assertion obligations' });
++    else for (const [index, value] of expected.assertions.entries()) unfulfilled.push({ path: 'expected.assertions[' + index + ']', value, reason: 'Natural-language obligation has no executable proof binding' });
++  }
++  if (Object.hasOwn(expected, 'documents') && !(Array.isArray(expected.documents) && job.argv.includes('json') && job.argv.includes('-c') && !job.argv.includes('-r'))) unfulfilled.push({ path: 'expected.documents', value: expected.documents, reason: 'JSON document projection not applicable' });
++  if (Object.hasOwn(expected, 'effectProfile') && !['information', 'cli-rejection', 'compile-rejection'].includes(expected.effectProfile)) unfulfilled.push({ path: 'expected.effectProfile', value: expected.effectProfile, reason: 'Unknown effect profile' });
++  if (Object.hasOwn(expected, 'reads') && !Array.isArray(expected.reads)) unfulfilled.push({ path: 'expected.reads', value: expected.reads, reason: 'Malformed read obligation' });
++  if (Object.hasOwn(expected, 'diagnosticCode') && (typeof expected.diagnosticCode !== 'string' || !expected.diagnosticCode)) unfulfilled.push({ path: 'expected.diagnosticCode', value: expected.diagnosticCode, reason: 'Malformed diagnostic obligation' });
++  for (const key of ['stdoutHex', 'stdoutUtf8']) if (Object.hasOwn(expected, key) && typeof expected[key] !== 'string') unfulfilled.push({ path: 'expected.' + key, reason: 'Malformed byte obligation' });
++  if (Object.hasOwn(job, 'missingBindings') && !Array.isArray(job.missingBindings)) unfulfilled.push({ path: 'missingBindings', reason: 'Malformed missing bindings' });
++  else for (const value of job.missingBindings ?? []) unfulfilled.push({ path: 'missingBindings', value, reason: 'Frozen missing proof binding' });
++  if (job.fullRecordEligibleAfterProjection === false) unfulfilled.push({ path: 'fullRecordEligibleAfterProjection', value: false, reason: 'Frozen partial record remains incomplete' });
++  atomicWrite(join(evidence, 'obligations.json'), JSON.stringify({ schemaVersion: 2, status: unfulfilled.length ? 'INCOMPLETE' : 'BOUND_PROJECTION_ONLY', unfulfilled, semanticFullRecordPass: false }) + '\n');
++  assert.equal(unfulfilled.length, 0, 'UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS');
++  assert(Number.isSafeInteger(expected.status) && expected.status >= 0 && expected.status <= 255, 'Missing or malformed status obligation');
+   assert.equal(capture.rejected, false, `Unexpected raw rejection: ${JSON.stringify(capture.rejection)}`);
+   assert.deepEqual(capture.cleanupErrors, []);
+   assert.equal(capture.status, job.expected.status);
+diff --git a/recipe/authorization.mjs b/recipe/authorization.mjs
+--- a/recipe/authorization.mjs
++++ b/recipe/authorization.mjs
+@@ -21,6 +21,7 @@
+   assert(commit(authorization.candidateCommit), 'Exact immutable candidate commit required');
+   assert.equal(authorization.baselineCommit, baseline);
+   assert.equal(authorization.acceptedLengthCommit, length);
++  assert.equal(authorization.candidateCommit, '35da18547ca82a67be9ca22b4adc21e3b8060780', 'Runtime v2 is bound only to the selected candidate');
+   assert.equal(authorization.contractCommit, 'bd471ef682d768692a682d40009a874f51e3ad68');
+   assert.equal(authorization.independentReviewCommit, 'de89e478d8ddce62eac955708f1b87d7be1bd137');
+   const recipeRoot = dirname(fileURLToPath(import.meta.url));
+diff --git a/recipe/context.mjs b/recipe/context.mjs
+--- a/recipe/context.mjs
++++ b/recipe/context.mjs
+@@ -1,12 +1,32 @@
+ import assert from 'node:assert/strict';
++import { randomUUID } from 'node:crypto';
+ import { posix } from 'node:path';
+ 
+-export function encodeRejection(reason) {
+-  if (reason === undefined) return { kind: 'undefined' };
+-  if (reason === null) return { kind: 'null' };
+-  if (['string', 'boolean', 'number'].includes(typeof reason)) return { kind: typeof reason, value: String(reason) };
+-  return { kind: typeof reason, name: String(reason?.name ?? ''), message: String(reason?.message ?? reason), code: String(reason?.code ?? ''), stack: String(reason?.stack ?? '') };
++export function createRejectionEncoder() {
++  const scope = randomUUID();
++  const objects = new WeakMap();
++  const symbols = new Map();
++  let nextToken = 0;
++  const identity = (reason, identities) => {
++    if (!identities.has(reason)) identities.set(reason, ++nextToken);
++    return { scope, token: identities.get(reason) };
++  };
++  const describe = (read) => { try { return String(read()); } catch { return '<unprintable>'; } };
++  return (reason) => {
++    if (reason === undefined) return { kind: 'undefined' };
++    if (reason === null) return { kind: 'null' };
++    const kind = typeof reason;
++    if (['string', 'boolean', 'number', 'bigint'].includes(kind)) return { kind, value: Object.is(reason, -0) ? '-0' : String(reason) };
++    if (kind === 'symbol') return { kind, value: String(reason), identity: identity(reason, symbols) };
++    return {
++      kind, identity: identity(reason, objects),
++      name: describe(() => reason.name ?? ''), message: describe(() => reason.message ?? reason),
++      code: describe(() => reason.code ?? ''), stack: describe(() => reason.stack ?? ''),
++    };
++  };
+ }
++
++export const encodeRejection = createRejectionEncoder();
+ 
+ export function createFixtureContext(job) {
+   const events = [];
+diff --git a/recipe/import-fence.mjs b/recipe/import-fence.mjs
+--- a/recipe/import-fence.mjs
++++ b/recipe/import-fence.mjs
+@@ -3,7 +3,7 @@
+ import { fileURLToPath } from 'node:url';
+ 
+ let compiledRoot;
+-const allowedBuiltins = new Set(['node:path', 'node:util', 'node:buffer', 'node:stream', 'node:stream/web']);
++const allowedBuiltins = new Set(['node:path', 'node:util', 'node:buffer', 'node:stream', 'node:stream/web', 'node:timers/promises']);
+ 
+ export function initialize(data) {
+   compiledRoot = data.compiledRoot;

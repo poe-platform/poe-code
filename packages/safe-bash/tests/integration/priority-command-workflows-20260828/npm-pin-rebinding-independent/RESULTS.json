@@ -1,0 +1,36 @@
+{
+  "schema": "npm-pin-independent-review-result-v1",
+  "verdict": "REVIEW_PREPARATION_FAIL",
+  "acceptedRebind": false,
+  "authorDefectEstablished": false,
+  "reason": "REVIEW-PREP-01: reviewer generated null commit expression for a historical-reference artifactMap row; unsafe stop, no retry",
+  "reviewPresealCommit": "a38a588643084ce73264cd27624742127efd8f46",
+  "reviewChildren": 3,
+  "reviewChildExitCodes": [0, 0, 0],
+  "reviewRawStreamBytes": 12077471,
+  "captureAccounting": "sum persisted per-child byte receipts; exception-time REPL scalar was stale",
+  "retryCount": 0,
+  "laterSourceAdmissions": 0,
+  "authorDataControls": {
+    "claimedTotal": 34,
+    "claimedPositive": 12,
+    "claimedNegative": 22,
+    "independentReplays": 0,
+    "independentAcceptance": false
+  },
+  "workflowCounts": {"actualExecutions": 0, "unrun": 93},
+  "reservationActions": 0,
+  "goCreated": false,
+  "remainingReviewObligations": [
+    "original2039 versus copied2027 canonical tuples and twelve symlinks",
+    "historical root PRESEAL authority versus old wrong-domain BINDINGS",
+    "seven exact metadata/path replacements in three executable byte strings",
+    "six unchanged packet files and exact dependent manifest",
+    "314 authority rows with eight rebound entries and 110 original files",
+    "requested seal/template/supervisor digests and unchanged case/candidate/package bindings",
+    "no execution-semantics/permission/limit changes",
+    "34 author DATA controls: role/count assessment without pass inheritance",
+    "author actual wall/charge/allowance accounting and immutable HOLD/reservation"
+  ],
+  "nextAction": "Fresh root-routed independent review with new preseal; no automatic retry or target GO"
+}

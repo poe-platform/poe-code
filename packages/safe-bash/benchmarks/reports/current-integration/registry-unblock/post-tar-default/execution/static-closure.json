@@ -1,0 +1,3037 @@
+{
+  "root": "/private/tmp/safe-bash-registry-post-tar-refined-ujuf3ja1/source",
+  "entries": [
+    "tests/integration/adapter-tools/matrix.test.ts",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+    "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+    "tests/commands/structured-stress/split-increment/interop.test.ts",
+    "tests/plugins/agent-commands.test.ts",
+    "tests/commands/metadata/integration.test.ts",
+    "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+    "src/index.ts"
+  ],
+  "files": [
+    "src/commands/archive/create.ts",
+    "src/commands/archive/extract.ts",
+    "src/commands/archive/format.ts",
+    "src/commands/archive/index.ts",
+    "src/commands/archive/internal.ts",
+    "src/commands/archive/options.ts",
+    "src/commands/archive/stream.ts",
+    "src/commands/basic.ts",
+    "src/commands/bytes/checksums/index.ts",
+    "src/commands/bytes/compression/files.ts",
+    "src/commands/bytes/compression/gunzip.ts",
+    "src/commands/bytes/compression/index.ts",
+    "src/commands/bytes/compression/options.ts",
+    "src/commands/bytes/compression/stream.ts",
+    "src/commands/bytes/encoding/base.ts",
+    "src/commands/bytes/encoding/index.ts",
+    "src/commands/bytes/encoding/od.ts",
+    "src/commands/bytes/encoding/shared.ts",
+    "src/commands/bytes/encoding/xxd.ts",
+    "src/commands/bytes/index.ts",
+    "src/commands/copy-identity.ts",
+    "src/commands/diff-patch/diff-format.ts",
+    "src/commands/diff-patch/diff.ts",
+    "src/commands/diff-patch/index.ts",
+    "src/commands/diff-patch/patch-envelope.ts",
+    "src/commands/diff-patch/patch-formats.ts",
+    "src/commands/diff-patch/patch-gnu-paths.ts",
+    "src/commands/diff-patch/patch-gnu-reject.ts",
+    "src/commands/diff-patch/patch-path.ts",
+    "src/commands/diff-patch/patch.ts",
+    "src/commands/diff-patch/shared.ts",
+    "src/commands/diff-patch/unified.ts",
+    "src/commands/execution.ts",
+    "src/commands/filesystem.ts",
+    "src/commands/find.ts",
+    "src/commands/grep.ts",
+    "src/commands/index.ts",
+    "src/commands/internal.ts",
+    "src/commands/metadata/chmod.ts",
+    "src/commands/metadata/index.ts",
+    "src/commands/metadata/internal.ts",
+    "src/commands/metadata/mktemp.ts",
+    "src/commands/metadata/stat.ts",
+    "src/commands/move.ts",
+    "src/commands/network/args.ts",
+    "src/commands/network/body.ts",
+    "src/commands/network/curl.ts",
+    "src/commands/network/index.ts",
+    "src/commands/network/output.ts",
+    "src/commands/network/shared.ts",
+    "src/commands/network/transport.ts",
+    "src/commands/network/types.ts",
+    "src/commands/predicates.ts",
+    "src/commands/safejs/index.ts",
+    "src/commands/safejs/io.ts",
+    "src/commands/safejs/options.ts",
+    "src/commands/safejs/render.ts",
+    "src/commands/safejs/types.ts",
+    "src/commands/search/glob.ts",
+    "src/commands/search/index.ts",
+    "src/commands/search/matcher.ts",
+    "src/commands/search/options.ts",
+    "src/commands/search/output.ts",
+    "src/commands/search/rg.ts",
+    "src/commands/search/shared.ts",
+    "src/commands/search/walk.ts",
+    "src/commands/streams.ts",
+    "src/commands/structured/index.ts",
+    "src/commands/structured/input.ts",
+    "src/commands/structured/interpreter.ts",
+    "src/commands/structured/jq.ts",
+    "src/commands/structured/limits.ts",
+    "src/commands/structured/numbers.ts",
+    "src/commands/structured/parser.ts",
+    "src/commands/structured/split.ts",
+    "src/commands/structured/values.ts",
+    "src/commands/text-programs/awk-runtime.ts",
+    "src/commands/text-programs/awk-syntax.ts",
+    "src/commands/text-programs/awk-values.ts",
+    "src/commands/text-programs/awk.ts",
+    "src/commands/text-programs/index.ts",
+    "src/commands/text-programs/regex.ts",
+    "src/commands/text-programs/sed.ts",
+    "src/commands/text-programs/shared.ts",
+    "src/commands/text.ts",
+    "src/contracts/command.ts",
+    "src/contracts/errors.ts",
+    "src/contracts/filesystem.ts",
+    "src/contracts/index.ts",
+    "src/contracts/io.ts",
+    "src/contracts/path.ts",
+    "src/contracts/plugin.ts",
+    "src/fs/memory/index.ts",
+    "src/fs/mount/identity.ts",
+    "src/fs/mount/index.ts",
+    "src/fs/overlay/index.ts",
+    "src/fs/readonly/index.ts",
+    "src/fs/real/index.ts",
+    "src/fs/s3/filesystem.ts",
+    "src/fs/s3/index.ts",
+    "src/fs/s3/mock.ts",
+    "src/fs/s3/transport.ts",
+    "src/fs/webdav/index.ts",
+    "src/fs/webdav/webdav.ts",
+    "src/fs/webdav/xml.ts",
+    "src/index.ts",
+    "src/integrations/safejs/filesystem.ts",
+    "src/integrations/safejs/index.ts",
+    "src/integrations/safejs/shell.ts",
+    "src/integrations/safejs/stats.ts",
+    "src/integrations/safejs/values.ts",
+    "src/plugins/index.ts",
+    "src/shell/arithmetic.ts",
+    "src/shell/display.ts",
+    "src/shell/index.ts",
+    "src/shell/input.ts",
+    "src/shell/locale.ts",
+    "src/shell/parser.ts",
+    "src/shell/pattern.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts",
+    "src/shell/types.ts",
+    "tests/commands/metadata/helpers.ts",
+    "tests/commands/metadata/integration.test.ts",
+    "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+    "tests/commands/structured-stress/independent-increment/harness.ts",
+    "tests/commands/structured-stress/split-increment/evidence.ts",
+    "tests/commands/structured-stress/split-increment/interop.test.ts",
+    "tests/fs/webdav/mock.ts",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+    "tests/integration/adapter-tools/fixtures.ts",
+    "tests/integration/adapter-tools/matrix.test.ts",
+    "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+    "tests/integration/adapter-tools/preflight-review/preflight.ts",
+    "tests/plugins/agent-commands.test.ts"
+  ],
+  "imports": [
+    {
+      "file": "src/index.ts",
+      "line": 1,
+      "specifier": "./contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 2,
+      "specifier": "./plugins/index.js",
+      "target": "src/plugins/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 3,
+      "specifier": "./shell/index.js",
+      "target": "src/shell/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 4,
+      "specifier": "./commands/index.js",
+      "target": "src/commands/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 5,
+      "specifier": "./commands/text-programs/index.js",
+      "target": "src/commands/text-programs/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 6,
+      "specifier": "./commands/structured/index.js",
+      "target": "src/commands/structured/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 7,
+      "specifier": "./commands/search/index.js",
+      "target": "src/commands/search/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 8,
+      "specifier": "./commands/bytes/index.js",
+      "target": "src/commands/bytes/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 9,
+      "specifier": "./commands/diff-patch/index.js",
+      "target": "src/commands/diff-patch/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 10,
+      "specifier": "./commands/safejs/index.js",
+      "target": "src/commands/safejs/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 11,
+      "specifier": "./commands/network/index.js",
+      "target": "src/commands/network/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 12,
+      "specifier": "./commands/metadata/index.js",
+      "target": "src/commands/metadata/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 13,
+      "specifier": "./commands/archive/index.js",
+      "target": "src/commands/archive/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 14,
+      "specifier": "./fs/memory/index.js",
+      "target": "src/fs/memory/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 15,
+      "specifier": "./fs/real/index.js",
+      "target": "src/fs/real/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 16,
+      "specifier": "./fs/s3/index.js",
+      "target": "src/fs/s3/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 17,
+      "specifier": "./fs/webdav/index.js",
+      "target": "src/fs/webdav/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 18,
+      "specifier": "./fs/readonly/index.js",
+      "target": "src/fs/readonly/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 19,
+      "specifier": "./fs/mount/index.js",
+      "target": "src/fs/mount/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 20,
+      "specifier": "./fs/overlay/index.js",
+      "target": "src/fs/overlay/index.ts"
+    },
+    {
+      "file": "src/index.ts",
+      "line": 21,
+      "specifier": "./integrations/safejs/index.js",
+      "target": "src/integrations/safejs/index.ts"
+    },
+    {
+      "file": "src/integrations/safejs/index.ts",
+      "line": 1,
+      "specifier": "./filesystem.js",
+      "target": "src/integrations/safejs/filesystem.ts"
+    },
+    {
+      "file": "src/integrations/safejs/index.ts",
+      "line": 2,
+      "specifier": "./filesystem.js",
+      "target": "src/integrations/safejs/filesystem.ts"
+    },
+    {
+      "file": "src/integrations/safejs/index.ts",
+      "line": 3,
+      "specifier": "./shell.js",
+      "target": "src/integrations/safejs/shell.ts"
+    },
+    {
+      "file": "src/integrations/safejs/index.ts",
+      "line": 4,
+      "specifier": "./shell.js",
+      "target": "src/integrations/safejs/shell.ts"
+    },
+    {
+      "file": "src/integrations/safejs/shell.ts",
+      "line": 1,
+      "specifier": "../../contracts/filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/integrations/safejs/shell.ts",
+      "line": 2,
+      "specifier": "./values.js",
+      "target": "src/integrations/safejs/values.ts"
+    },
+    {
+      "file": "src/contracts/filesystem.ts",
+      "line": 1,
+      "specifier": "./io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/contracts/io.ts",
+      "line": 1,
+      "specifier": "node:stream/web"
+    },
+    {
+      "file": "src/contracts/io.ts",
+      "line": 2,
+      "specifier": "./errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/contracts/errors.ts",
+      "line": 1,
+      "specifier": "node:util"
+    },
+    {
+      "file": "src/integrations/safejs/filesystem.ts",
+      "line": 1,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "src/integrations/safejs/filesystem.ts",
+      "line": 2,
+      "specifier": "node:path"
+    },
+    {
+      "file": "src/integrations/safejs/filesystem.ts",
+      "line": 3,
+      "specifier": "node:url"
+    },
+    {
+      "file": "src/integrations/safejs/filesystem.ts",
+      "line": 4,
+      "specifier": "node:fs"
+    },
+    {
+      "file": "src/integrations/safejs/filesystem.ts",
+      "line": 14,
+      "specifier": "node:fs/promises"
+    },
+    {
+      "file": "src/integrations/safejs/filesystem.ts",
+      "line": 15,
+      "specifier": "../../contracts/filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/integrations/safejs/filesystem.ts",
+      "line": 16,
+      "specifier": "./stats.js",
+      "target": "src/integrations/safejs/stats.ts"
+    },
+    {
+      "file": "src/integrations/safejs/filesystem.ts",
+      "line": 17,
+      "specifier": "./values.js",
+      "target": "src/integrations/safejs/values.ts"
+    },
+    {
+      "file": "src/integrations/safejs/stats.ts",
+      "line": 1,
+      "specifier": "node:fs"
+    },
+    {
+      "file": "src/integrations/safejs/stats.ts",
+      "line": 2,
+      "specifier": "../../contracts/filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/fs/overlay/index.ts",
+      "line": 1,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "src/fs/overlay/index.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/fs/overlay/index.ts",
+      "line": 5,
+      "specifier": "../mount/identity.js",
+      "target": "src/fs/mount/identity.ts"
+    },
+    {
+      "file": "src/fs/overlay/index.ts",
+      "line": 6,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/contracts/index.ts",
+      "line": 1,
+      "specifier": "./command.js",
+      "target": "src/contracts/command.ts"
+    },
+    {
+      "file": "src/contracts/index.ts",
+      "line": 2,
+      "specifier": "./errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/contracts/index.ts",
+      "line": 3,
+      "specifier": "./filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/contracts/index.ts",
+      "line": 4,
+      "specifier": "./io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/contracts/index.ts",
+      "line": 5,
+      "specifier": "./path.js",
+      "target": "src/contracts/path.ts"
+    },
+    {
+      "file": "src/contracts/index.ts",
+      "line": 6,
+      "specifier": "./plugin.js",
+      "target": "src/contracts/plugin.ts"
+    },
+    {
+      "file": "src/contracts/plugin.ts",
+      "line": 1,
+      "specifier": "./command.js",
+      "target": "src/contracts/command.ts"
+    },
+    {
+      "file": "src/contracts/plugin.ts",
+      "line": 2,
+      "specifier": "./filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/contracts/command.ts",
+      "line": 1,
+      "specifier": "./filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/contracts/command.ts",
+      "line": 2,
+      "specifier": "./io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/contracts/path.ts",
+      "line": 1,
+      "specifier": "node:path"
+    },
+    {
+      "file": "src/contracts/path.ts",
+      "line": 2,
+      "specifier": "./errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/mount/identity.ts",
+      "line": 1,
+      "specifier": "../../contracts/filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/fs/mount/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/mount/index.ts",
+      "line": 2,
+      "specifier": "../../contracts/errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/mount/index.ts",
+      "line": 3,
+      "specifier": "../../contracts/filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/fs/mount/index.ts",
+      "line": 8,
+      "specifier": "../../contracts/io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/fs/mount/index.ts",
+      "line": 9,
+      "specifier": "../../contracts/io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/fs/mount/index.ts",
+      "line": 10,
+      "specifier": "../../contracts/path.js",
+      "target": "src/contracts/path.ts"
+    },
+    {
+      "file": "src/fs/mount/index.ts",
+      "line": 11,
+      "specifier": "./identity.js",
+      "target": "src/fs/mount/identity.ts"
+    },
+    {
+      "file": "src/fs/readonly/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/fs/readonly/index.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/fs/webdav/index.ts",
+      "line": 1,
+      "specifier": "./webdav.js",
+      "target": "src/fs/webdav/webdav.ts"
+    },
+    {
+      "file": "src/fs/webdav/index.ts",
+      "line": 2,
+      "specifier": "./webdav.js",
+      "target": "src/fs/webdav/webdav.ts"
+    },
+    {
+      "file": "src/fs/webdav/webdav.ts",
+      "line": 1,
+      "specifier": "../../contracts/errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/webdav/webdav.ts",
+      "line": 2,
+      "specifier": "../../contracts/errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/webdav/webdav.ts",
+      "line": 3,
+      "specifier": "../../contracts/io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/fs/webdav/webdav.ts",
+      "line": 4,
+      "specifier": "../../contracts/io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/fs/webdav/webdav.ts",
+      "line": 5,
+      "specifier": "../../contracts/filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/fs/webdav/webdav.ts",
+      "line": 9,
+      "specifier": "./xml.js",
+      "target": "src/fs/webdav/xml.ts"
+    },
+    {
+      "file": "src/fs/webdav/webdav.ts",
+      "line": 10,
+      "specifier": "./xml.js",
+      "target": "src/fs/webdav/xml.ts"
+    },
+    {
+      "file": "src/fs/s3/index.ts",
+      "line": 1,
+      "specifier": "./filesystem.js",
+      "target": "src/fs/s3/filesystem.ts"
+    },
+    {
+      "file": "src/fs/s3/index.ts",
+      "line": 2,
+      "specifier": "./filesystem.js",
+      "target": "src/fs/s3/filesystem.ts"
+    },
+    {
+      "file": "src/fs/s3/index.ts",
+      "line": 3,
+      "specifier": "./mock.js",
+      "target": "src/fs/s3/mock.ts"
+    },
+    {
+      "file": "src/fs/s3/index.ts",
+      "line": 4,
+      "specifier": "./mock.js",
+      "target": "src/fs/s3/mock.ts"
+    },
+    {
+      "file": "src/fs/s3/index.ts",
+      "line": 5,
+      "specifier": "./transport.js",
+      "target": "src/fs/s3/transport.ts"
+    },
+    {
+      "file": "src/fs/s3/index.ts",
+      "line": 6,
+      "specifier": "./transport.js",
+      "target": "src/fs/s3/transport.ts"
+    },
+    {
+      "file": "src/fs/s3/mock.ts",
+      "line": 1,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "src/fs/s3/mock.ts",
+      "line": 2,
+      "specifier": "../../contracts/io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/fs/s3/mock.ts",
+      "line": 3,
+      "specifier": "./transport.js",
+      "target": "src/fs/s3/transport.ts"
+    },
+    {
+      "file": "src/fs/s3/mock.ts",
+      "line": 4,
+      "specifier": "./transport.js",
+      "target": "src/fs/s3/transport.ts"
+    },
+    {
+      "file": "src/fs/s3/mock.ts",
+      "line": 5,
+      "specifier": "./transport.js",
+      "target": "src/fs/s3/transport.ts"
+    },
+    {
+      "file": "src/fs/s3/filesystem.ts",
+      "line": 1,
+      "specifier": "node:path"
+    },
+    {
+      "file": "src/fs/s3/filesystem.ts",
+      "line": 2,
+      "specifier": "../../contracts/errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/s3/filesystem.ts",
+      "line": 3,
+      "specifier": "../../contracts/errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/s3/filesystem.ts",
+      "line": 4,
+      "specifier": "../../contracts/filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/fs/s3/filesystem.ts",
+      "line": 8,
+      "specifier": "../../contracts/io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/fs/s3/filesystem.ts",
+      "line": 9,
+      "specifier": "../../contracts/io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/fs/s3/filesystem.ts",
+      "line": 10,
+      "specifier": "./transport.js",
+      "target": "src/fs/s3/transport.ts"
+    },
+    {
+      "file": "src/fs/s3/filesystem.ts",
+      "line": 11,
+      "specifier": "./transport.js",
+      "target": "src/fs/s3/transport.ts"
+    },
+    {
+      "file": "src/fs/real/index.ts",
+      "line": 1,
+      "specifier": "node:fs"
+    },
+    {
+      "file": "src/fs/real/index.ts",
+      "line": 2,
+      "specifier": "node:fs/promises"
+    },
+    {
+      "file": "src/fs/real/index.ts",
+      "line": 3,
+      "specifier": "node:path"
+    },
+    {
+      "file": "src/fs/real/index.ts",
+      "line": 4,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/fs/real/index.ts",
+      "line": 7,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/fs/memory/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/memory/index.ts",
+      "line": 2,
+      "specifier": "../../contracts/errors.js",
+      "target": "src/contracts/errors.ts"
+    },
+    {
+      "file": "src/fs/memory/index.ts",
+      "line": 3,
+      "specifier": "../../contracts/filesystem.js",
+      "target": "src/contracts/filesystem.ts"
+    },
+    {
+      "file": "src/fs/memory/index.ts",
+      "line": 8,
+      "specifier": "../../contracts/io.js",
+      "target": "src/contracts/io.ts"
+    },
+    {
+      "file": "src/commands/archive/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/archive/index.ts",
+      "line": 2,
+      "specifier": "./create.js",
+      "target": "src/commands/archive/create.ts"
+    },
+    {
+      "file": "src/commands/archive/index.ts",
+      "line": 3,
+      "specifier": "./extract.js",
+      "target": "src/commands/archive/extract.ts"
+    },
+    {
+      "file": "src/commands/archive/index.ts",
+      "line": 4,
+      "specifier": "./internal.js",
+      "target": "src/commands/archive/internal.ts"
+    },
+    {
+      "file": "src/commands/archive/index.ts",
+      "line": 5,
+      "specifier": "./options.js",
+      "target": "src/commands/archive/options.ts"
+    },
+    {
+      "file": "src/commands/archive/index.ts",
+      "line": 6,
+      "specifier": "./stream.js",
+      "target": "src/commands/archive/stream.ts"
+    },
+    {
+      "file": "src/commands/archive/index.ts",
+      "line": 8,
+      "specifier": "./internal.js",
+      "target": "src/commands/archive/internal.ts"
+    },
+    {
+      "file": "src/commands/archive/index.ts",
+      "line": 9,
+      "specifier": "./internal.js",
+      "target": "src/commands/archive/internal.ts"
+    },
+    {
+      "file": "src/commands/archive/internal.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/archive/stream.ts",
+      "line": 1,
+      "specifier": "node:zlib"
+    },
+    {
+      "file": "src/commands/archive/stream.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/archive/stream.ts",
+      "line": 3,
+      "specifier": "./internal.js",
+      "target": "src/commands/archive/internal.ts"
+    },
+    {
+      "file": "src/commands/archive/options.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/archive/options.ts",
+      "line": 2,
+      "specifier": "./internal.js",
+      "target": "src/commands/archive/internal.ts"
+    },
+    {
+      "file": "src/commands/archive/extract.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/archive/extract.ts",
+      "line": 2,
+      "specifier": "./format.js",
+      "target": "src/commands/archive/format.ts"
+    },
+    {
+      "file": "src/commands/archive/extract.ts",
+      "line": 3,
+      "specifier": "./internal.js",
+      "target": "src/commands/archive/internal.ts"
+    },
+    {
+      "file": "src/commands/archive/extract.ts",
+      "line": 4,
+      "specifier": "./options.js",
+      "target": "src/commands/archive/options.ts"
+    },
+    {
+      "file": "src/commands/archive/extract.ts",
+      "line": 5,
+      "specifier": "./stream.js",
+      "target": "src/commands/archive/stream.ts"
+    },
+    {
+      "file": "src/commands/archive/format.ts",
+      "line": 1,
+      "specifier": "./internal.js",
+      "target": "src/commands/archive/internal.ts"
+    },
+    {
+      "file": "src/commands/archive/create.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/archive/create.ts",
+      "line": 2,
+      "specifier": "./format.js",
+      "target": "src/commands/archive/format.ts"
+    },
+    {
+      "file": "src/commands/archive/create.ts",
+      "line": 3,
+      "specifier": "./internal.js",
+      "target": "src/commands/archive/internal.ts"
+    },
+    {
+      "file": "src/commands/archive/create.ts",
+      "line": 4,
+      "specifier": "./options.js",
+      "target": "src/commands/archive/options.ts"
+    },
+    {
+      "file": "src/commands/metadata/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/metadata/index.ts",
+      "line": 2,
+      "specifier": "./chmod.js",
+      "target": "src/commands/metadata/chmod.ts"
+    },
+    {
+      "file": "src/commands/metadata/index.ts",
+      "line": 3,
+      "specifier": "./stat.js",
+      "target": "src/commands/metadata/stat.ts"
+    },
+    {
+      "file": "src/commands/metadata/index.ts",
+      "line": 4,
+      "specifier": "./mktemp.js",
+      "target": "src/commands/metadata/mktemp.ts"
+    },
+    {
+      "file": "src/commands/metadata/index.ts",
+      "line": 5,
+      "specifier": "./internal.js",
+      "target": "src/commands/metadata/internal.ts"
+    },
+    {
+      "file": "src/commands/metadata/index.ts",
+      "line": 6,
+      "specifier": "./internal.js",
+      "target": "src/commands/metadata/internal.ts"
+    },
+    {
+      "file": "src/commands/metadata/internal.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/metadata/internal.ts",
+      "line": 2,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/internal.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/metadata/mktemp.ts",
+      "line": 1,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "src/commands/metadata/mktemp.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/metadata/mktemp.ts",
+      "line": 3,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/metadata/mktemp.ts",
+      "line": 4,
+      "specifier": "./internal.js",
+      "target": "src/commands/metadata/internal.ts"
+    },
+    {
+      "file": "src/commands/metadata/stat.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/metadata/stat.ts",
+      "line": 2,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/metadata/stat.ts",
+      "line": 3,
+      "specifier": "./internal.js",
+      "target": "src/commands/metadata/internal.ts"
+    },
+    {
+      "file": "src/commands/metadata/chmod.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/metadata/chmod.ts",
+      "line": 2,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/metadata/chmod.ts",
+      "line": 3,
+      "specifier": "./internal.js",
+      "target": "src/commands/metadata/internal.ts"
+    },
+    {
+      "file": "src/commands/network/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/network/index.ts",
+      "line": 2,
+      "specifier": "./curl.js",
+      "target": "src/commands/network/curl.ts"
+    },
+    {
+      "file": "src/commands/network/index.ts",
+      "line": 3,
+      "specifier": "./types.js",
+      "target": "src/commands/network/types.ts"
+    },
+    {
+      "file": "src/commands/network/index.ts",
+      "line": 5,
+      "specifier": "./types.js",
+      "target": "src/commands/network/types.ts"
+    },
+    {
+      "file": "src/commands/network/index.ts",
+      "line": 6,
+      "specifier": "./transport.js",
+      "target": "src/commands/network/transport.ts"
+    },
+    {
+      "file": "src/commands/network/index.ts",
+      "line": 7,
+      "specifier": "./curl.js",
+      "target": "src/commands/network/curl.ts"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 1,
+      "specifier": "node:path"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 2,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 3,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 4,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 5,
+      "specifier": "./args.js",
+      "target": "src/commands/network/args.ts"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 6,
+      "specifier": "./body.js",
+      "target": "src/commands/network/body.ts"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 7,
+      "specifier": "./output.js",
+      "target": "src/commands/network/output.ts"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 8,
+      "specifier": "./shared.js",
+      "target": "src/commands/network/shared.ts"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 9,
+      "specifier": "./transport.js",
+      "target": "src/commands/network/transport.ts"
+    },
+    {
+      "file": "src/commands/network/curl.ts",
+      "line": 10,
+      "specifier": "./types.js",
+      "target": "src/commands/network/types.ts"
+    },
+    {
+      "file": "src/commands/network/types.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/network/transport.ts",
+      "line": 1,
+      "specifier": "node:http"
+    },
+    {
+      "file": "src/commands/network/transport.ts",
+      "line": 2,
+      "specifier": "node:https"
+    },
+    {
+      "file": "src/commands/network/transport.ts",
+      "line": 3,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/network/transport.ts",
+      "line": 4,
+      "specifier": "./types.js",
+      "target": "src/commands/network/types.ts"
+    },
+    {
+      "file": "src/commands/network/transport.ts",
+      "line": 5,
+      "specifier": "./shared.js",
+      "target": "src/commands/network/shared.ts"
+    },
+    {
+      "file": "src/commands/network/shared.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/network/shared.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/network/shared.ts",
+      "line": 3,
+      "specifier": "./types.js",
+      "target": "src/commands/network/types.ts"
+    },
+    {
+      "file": "src/commands/network/output.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/network/output.ts",
+      "line": 2,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/network/output.ts",
+      "line": 3,
+      "specifier": "./shared.js",
+      "target": "src/commands/network/shared.ts"
+    },
+    {
+      "file": "src/commands/network/output.ts",
+      "line": 4,
+      "specifier": "./types.js",
+      "target": "src/commands/network/types.ts"
+    },
+    {
+      "file": "src/commands/network/body.ts",
+      "line": 1,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "src/commands/network/body.ts",
+      "line": 2,
+      "specifier": "node:path"
+    },
+    {
+      "file": "src/commands/network/body.ts",
+      "line": 3,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/network/body.ts",
+      "line": 4,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/network/body.ts",
+      "line": 5,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/network/body.ts",
+      "line": 6,
+      "specifier": "./args.js",
+      "target": "src/commands/network/args.ts"
+    },
+    {
+      "file": "src/commands/network/body.ts",
+      "line": 7,
+      "specifier": "./shared.js",
+      "target": "src/commands/network/shared.ts"
+    },
+    {
+      "file": "src/commands/network/body.ts",
+      "line": 8,
+      "specifier": "./types.js",
+      "target": "src/commands/network/types.ts"
+    },
+    {
+      "file": "src/commands/network/args.ts",
+      "line": 1,
+      "specifier": "node:http"
+    },
+    {
+      "file": "src/commands/network/args.ts",
+      "line": 2,
+      "specifier": "./types.js",
+      "target": "src/commands/network/types.ts"
+    },
+    {
+      "file": "src/commands/safejs/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/safejs/index.ts",
+      "line": 2,
+      "specifier": "../../integrations/safejs/index.js",
+      "target": "src/integrations/safejs/index.ts"
+    },
+    {
+      "file": "src/commands/safejs/index.ts",
+      "line": 3,
+      "specifier": "../../integrations/safejs/values.js",
+      "target": "src/integrations/safejs/values.ts"
+    },
+    {
+      "file": "src/commands/safejs/index.ts",
+      "line": 4,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/safejs/index.ts",
+      "line": 5,
+      "specifier": "./io.js",
+      "target": "src/commands/safejs/io.ts"
+    },
+    {
+      "file": "src/commands/safejs/index.ts",
+      "line": 6,
+      "specifier": "./options.js",
+      "target": "src/commands/safejs/options.ts"
+    },
+    {
+      "file": "src/commands/safejs/index.ts",
+      "line": 7,
+      "specifier": "./types.js",
+      "target": "src/commands/safejs/types.ts"
+    },
+    {
+      "file": "src/commands/safejs/index.ts",
+      "line": 10,
+      "specifier": "./types.js",
+      "target": "src/commands/safejs/types.ts"
+    },
+    {
+      "file": "src/commands/safejs/types.ts",
+      "line": 1,
+      "specifier": "../../integrations/safejs/index.js",
+      "target": "src/integrations/safejs/index.ts"
+    },
+    {
+      "file": "src/commands/safejs/options.ts",
+      "line": 1,
+      "specifier": "../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/safejs/options.ts",
+      "line": 2,
+      "specifier": "./types.js",
+      "target": "src/commands/safejs/types.ts"
+    },
+    {
+      "file": "src/commands/safejs/io.ts",
+      "line": 1,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/safejs/io.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/safejs/io.ts",
+      "line": 3,
+      "specifier": "./types.js",
+      "target": "src/commands/safejs/types.ts"
+    },
+    {
+      "file": "src/commands/safejs/io.ts",
+      "line": 4,
+      "specifier": "./render.js",
+      "target": "src/commands/safejs/render.ts"
+    },
+    {
+      "file": "src/commands/safejs/render.ts",
+      "line": 1,
+      "specifier": "../../integrations/safejs/values.js",
+      "target": "src/integrations/safejs/values.ts"
+    },
+    {
+      "file": "src/commands/safejs/render.ts",
+      "line": 2,
+      "specifier": "./types.js",
+      "target": "src/commands/safejs/types.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/index.ts",
+      "line": 2,
+      "specifier": "./diff.js",
+      "target": "src/commands/diff-patch/diff.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/index.ts",
+      "line": 3,
+      "specifier": "./patch.js",
+      "target": "src/commands/diff-patch/patch.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/index.ts",
+      "line": 4,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/index.ts",
+      "line": 6,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/shared.ts",
+      "line": 1,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/diff-patch/shared.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch.ts",
+      "line": 2,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch.ts",
+      "line": 3,
+      "specifier": "./unified.js",
+      "target": "src/commands/diff-patch/unified.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch.ts",
+      "line": 4,
+      "specifier": "./patch-path.js",
+      "target": "src/commands/diff-patch/patch-path.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch.ts",
+      "line": 5,
+      "specifier": "./patch-envelope.js",
+      "target": "src/commands/diff-patch/patch-envelope.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch.ts",
+      "line": 6,
+      "specifier": "./patch-formats.js",
+      "target": "src/commands/diff-patch/patch-formats.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch.ts",
+      "line": 7,
+      "specifier": "./patch-gnu-paths.js",
+      "target": "src/commands/diff-patch/patch-gnu-paths.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch.ts",
+      "line": 8,
+      "specifier": "./patch-gnu-reject.js",
+      "target": "src/commands/diff-patch/patch-gnu-reject.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "line": 1,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "line": 2,
+      "specifier": "./unified.js",
+      "target": "src/commands/diff-patch/unified.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/unified.ts",
+      "line": 1,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/unified.ts",
+      "line": 2,
+      "specifier": "./patch-path.js",
+      "target": "src/commands/diff-patch/patch-path.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-path.ts",
+      "line": 1,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "line": 2,
+      "specifier": "./patch-path.js",
+      "target": "src/commands/diff-patch/patch-path.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "line": 3,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "line": 4,
+      "specifier": "./unified.js",
+      "target": "src/commands/diff-patch/unified.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-formats.ts",
+      "line": 1,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-formats.ts",
+      "line": 2,
+      "specifier": "./unified.js",
+      "target": "src/commands/diff-patch/unified.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-formats.ts",
+      "line": 3,
+      "specifier": "./patch-path.js",
+      "target": "src/commands/diff-patch/patch-path.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/patch-envelope.ts",
+      "line": 1,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/diff.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/diff.ts",
+      "line": 2,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/diff.ts",
+      "line": 3,
+      "specifier": "./diff-format.js",
+      "target": "src/commands/diff-patch/diff-format.ts"
+    },
+    {
+      "file": "src/commands/diff-patch/diff-format.ts",
+      "line": 1,
+      "specifier": "./shared.js",
+      "target": "src/commands/diff-patch/shared.ts"
+    },
+    {
+      "file": "src/commands/bytes/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/index.ts",
+      "line": 2,
+      "specifier": "./encoding/index.js",
+      "target": "src/commands/bytes/encoding/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/index.ts",
+      "line": 3,
+      "specifier": "./checksums/index.js",
+      "target": "src/commands/bytes/checksums/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/index.ts",
+      "line": 4,
+      "specifier": "./compression/index.js",
+      "target": "src/commands/bytes/compression/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/index.ts",
+      "line": 1,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/index.ts",
+      "line": 2,
+      "specifier": "../../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/index.ts",
+      "line": 3,
+      "specifier": "./files.js",
+      "target": "src/commands/bytes/compression/files.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/index.ts",
+      "line": 4,
+      "specifier": "./options.js",
+      "target": "src/commands/bytes/compression/options.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/index.ts",
+      "line": 5,
+      "specifier": "./stream.js",
+      "target": "src/commands/bytes/compression/stream.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/stream.ts",
+      "line": 1,
+      "specifier": "node:stream"
+    },
+    {
+      "file": "src/commands/bytes/compression/stream.ts",
+      "line": 2,
+      "specifier": "node:stream/promises"
+    },
+    {
+      "file": "src/commands/bytes/compression/stream.ts",
+      "line": 3,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/bytes/compression/stream.ts",
+      "line": 4,
+      "specifier": "node:zlib"
+    },
+    {
+      "file": "src/commands/bytes/compression/stream.ts",
+      "line": 5,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/stream.ts",
+      "line": 6,
+      "specifier": "./options.js",
+      "target": "src/commands/bytes/compression/options.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/stream.ts",
+      "line": 7,
+      "specifier": "./gunzip.js",
+      "target": "src/commands/bytes/compression/gunzip.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/gunzip.ts",
+      "line": 1,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/bytes/compression/gunzip.ts",
+      "line": 2,
+      "specifier": "node:zlib"
+    },
+    {
+      "file": "src/commands/bytes/compression/gunzip.ts",
+      "line": 3,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/options.ts",
+      "line": 1,
+      "specifier": "../../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/files.ts",
+      "line": 1,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "src/commands/bytes/compression/files.ts",
+      "line": 2,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/files.ts",
+      "line": 6,
+      "specifier": "../../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/files.ts",
+      "line": 7,
+      "specifier": "./options.js",
+      "target": "src/commands/bytes/compression/options.ts"
+    },
+    {
+      "file": "src/commands/bytes/compression/files.ts",
+      "line": 8,
+      "specifier": "./stream.js",
+      "target": "src/commands/bytes/compression/stream.ts"
+    },
+    {
+      "file": "src/commands/bytes/checksums/index.ts",
+      "line": 1,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "src/commands/bytes/checksums/index.ts",
+      "line": 2,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/checksums/index.ts",
+      "line": 3,
+      "specifier": "../../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/index.ts",
+      "line": 1,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/index.ts",
+      "line": 2,
+      "specifier": "./base.js",
+      "target": "src/commands/bytes/encoding/base.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/index.ts",
+      "line": 3,
+      "specifier": "./od.js",
+      "target": "src/commands/bytes/encoding/od.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/index.ts",
+      "line": 4,
+      "specifier": "./xxd.js",
+      "target": "src/commands/bytes/encoding/xxd.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/xxd.ts",
+      "line": 1,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/xxd.ts",
+      "line": 2,
+      "specifier": "../../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/xxd.ts",
+      "line": 3,
+      "specifier": "./shared.js",
+      "target": "src/commands/bytes/encoding/shared.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/shared.ts",
+      "line": 1,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/bytes/encoding/shared.ts",
+      "line": 2,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/shared.ts",
+      "line": 3,
+      "specifier": "../../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/od.ts",
+      "line": 1,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/od.ts",
+      "line": 2,
+      "specifier": "../../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/od.ts",
+      "line": 3,
+      "specifier": "./shared.js",
+      "target": "src/commands/bytes/encoding/shared.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/base.ts",
+      "line": 1,
+      "specifier": "../../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/base.ts",
+      "line": 2,
+      "specifier": "../../internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/bytes/encoding/base.ts",
+      "line": 3,
+      "specifier": "./shared.js",
+      "target": "src/commands/bytes/encoding/shared.ts"
+    },
+    {
+      "file": "src/commands/search/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/search/index.ts",
+      "line": 2,
+      "specifier": "./rg.js",
+      "target": "src/commands/search/rg.ts"
+    },
+    {
+      "file": "src/commands/search/index.ts",
+      "line": 3,
+      "specifier": "./options.js",
+      "target": "src/commands/search/options.ts"
+    },
+    {
+      "file": "src/commands/search/index.ts",
+      "line": 5,
+      "specifier": "./options.js",
+      "target": "src/commands/search/options.ts"
+    },
+    {
+      "file": "src/commands/search/rg.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/search/rg.ts",
+      "line": 2,
+      "specifier": "./matcher.js",
+      "target": "src/commands/search/matcher.ts"
+    },
+    {
+      "file": "src/commands/search/rg.ts",
+      "line": 3,
+      "specifier": "./options.js",
+      "target": "src/commands/search/options.ts"
+    },
+    {
+      "file": "src/commands/search/rg.ts",
+      "line": 4,
+      "specifier": "./output.js",
+      "target": "src/commands/search/output.ts"
+    },
+    {
+      "file": "src/commands/search/rg.ts",
+      "line": 5,
+      "specifier": "./shared.js",
+      "target": "src/commands/search/shared.ts"
+    },
+    {
+      "file": "src/commands/search/rg.ts",
+      "line": 6,
+      "specifier": "./walk.js",
+      "target": "src/commands/search/walk.ts"
+    },
+    {
+      "file": "src/commands/search/walk.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/search/walk.ts",
+      "line": 2,
+      "specifier": "./glob.js",
+      "target": "src/commands/search/glob.ts"
+    },
+    {
+      "file": "src/commands/search/walk.ts",
+      "line": 3,
+      "specifier": "./options.js",
+      "target": "src/commands/search/options.ts"
+    },
+    {
+      "file": "src/commands/search/walk.ts",
+      "line": 4,
+      "specifier": "./shared.js",
+      "target": "src/commands/search/shared.ts"
+    },
+    {
+      "file": "src/commands/search/shared.ts",
+      "line": 1,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/search/shared.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/search/shared.ts",
+      "line": 3,
+      "specifier": "./options.js",
+      "target": "src/commands/search/options.ts"
+    },
+    {
+      "file": "src/commands/search/glob.ts",
+      "line": 1,
+      "specifier": "./options.js",
+      "target": "src/commands/search/options.ts"
+    },
+    {
+      "file": "src/commands/search/output.ts",
+      "line": 1,
+      "specifier": "node:buffer"
+    },
+    {
+      "file": "src/commands/search/output.ts",
+      "line": 2,
+      "specifier": "./matcher.js",
+      "target": "src/commands/search/matcher.ts"
+    },
+    {
+      "file": "src/commands/search/output.ts",
+      "line": 3,
+      "specifier": "./options.js",
+      "target": "src/commands/search/options.ts"
+    },
+    {
+      "file": "src/commands/search/output.ts",
+      "line": 4,
+      "specifier": "./shared.js",
+      "target": "src/commands/search/shared.ts"
+    },
+    {
+      "file": "src/commands/search/matcher.ts",
+      "line": 1,
+      "specifier": "node:buffer"
+    },
+    {
+      "file": "src/commands/search/matcher.ts",
+      "line": 2,
+      "specifier": "./options.js",
+      "target": "src/commands/search/options.ts"
+    },
+    {
+      "file": "src/commands/structured/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/structured/index.ts",
+      "line": 2,
+      "specifier": "./jq.js",
+      "target": "src/commands/structured/jq.ts"
+    },
+    {
+      "file": "src/commands/structured/index.ts",
+      "line": 3,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/index.ts",
+      "line": 5,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/index.ts",
+      "line": 6,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/limits.ts",
+      "line": 1,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/structured/limits.ts",
+      "line": 2,
+      "specifier": "./numbers.js",
+      "target": "src/commands/structured/numbers.ts"
+    },
+    {
+      "file": "src/commands/structured/numbers.ts",
+      "line": 1,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/jq.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/structured/jq.ts",
+      "line": 2,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/jq.ts",
+      "line": 3,
+      "specifier": "./input.js",
+      "target": "src/commands/structured/input.ts"
+    },
+    {
+      "file": "src/commands/structured/jq.ts",
+      "line": 4,
+      "specifier": "./interpreter.js",
+      "target": "src/commands/structured/interpreter.ts"
+    },
+    {
+      "file": "src/commands/structured/jq.ts",
+      "line": 5,
+      "specifier": "./parser.js",
+      "target": "src/commands/structured/parser.ts"
+    },
+    {
+      "file": "src/commands/structured/parser.ts",
+      "line": 1,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/parser.ts",
+      "line": 2,
+      "specifier": "./numbers.js",
+      "target": "src/commands/structured/numbers.ts"
+    },
+    {
+      "file": "src/commands/structured/interpreter.ts",
+      "line": 1,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/interpreter.ts",
+      "line": 2,
+      "specifier": "./numbers.js",
+      "target": "src/commands/structured/numbers.ts"
+    },
+    {
+      "file": "src/commands/structured/interpreter.ts",
+      "line": 3,
+      "specifier": "./input.js",
+      "target": "src/commands/structured/input.ts"
+    },
+    {
+      "file": "src/commands/structured/interpreter.ts",
+      "line": 4,
+      "specifier": "./parser.js",
+      "target": "src/commands/structured/parser.ts"
+    },
+    {
+      "file": "src/commands/structured/interpreter.ts",
+      "line": 5,
+      "specifier": "./split.js",
+      "target": "src/commands/structured/split.ts"
+    },
+    {
+      "file": "src/commands/structured/interpreter.ts",
+      "line": 6,
+      "specifier": "./values.js",
+      "target": "src/commands/structured/values.ts"
+    },
+    {
+      "file": "src/commands/structured/values.ts",
+      "line": 1,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/values.ts",
+      "line": 2,
+      "specifier": "./numbers.js",
+      "target": "src/commands/structured/numbers.ts"
+    },
+    {
+      "file": "src/commands/structured/values.ts",
+      "line": 3,
+      "specifier": "./input.js",
+      "target": "src/commands/structured/input.ts"
+    },
+    {
+      "file": "src/commands/structured/input.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/structured/input.ts",
+      "line": 2,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/structured/input.ts",
+      "line": 3,
+      "specifier": "./numbers.js",
+      "target": "src/commands/structured/numbers.ts"
+    },
+    {
+      "file": "src/commands/structured/split.ts",
+      "line": 1,
+      "specifier": "./limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "src/commands/text-programs/index.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/text-programs/index.ts",
+      "line": 2,
+      "specifier": "./sed.js",
+      "target": "src/commands/text-programs/sed.ts"
+    },
+    {
+      "file": "src/commands/text-programs/index.ts",
+      "line": 3,
+      "specifier": "./awk.js",
+      "target": "src/commands/text-programs/awk.ts"
+    },
+    {
+      "file": "src/commands/text-programs/index.ts",
+      "line": 4,
+      "specifier": "./shared.js",
+      "target": "src/commands/text-programs/shared.ts"
+    },
+    {
+      "file": "src/commands/text-programs/index.ts",
+      "line": 6,
+      "specifier": "./shared.js",
+      "target": "src/commands/text-programs/shared.ts"
+    },
+    {
+      "file": "src/commands/text-programs/shared.ts",
+      "line": 1,
+      "specifier": "node:timers/promises"
+    },
+    {
+      "file": "src/commands/text-programs/shared.ts",
+      "line": 2,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk.ts",
+      "line": 2,
+      "specifier": "./awk-syntax.js",
+      "target": "src/commands/text-programs/awk-syntax.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk.ts",
+      "line": 3,
+      "specifier": "./awk-runtime.js",
+      "target": "src/commands/text-programs/awk-runtime.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk.ts",
+      "line": 4,
+      "specifier": "./shared.js",
+      "target": "src/commands/text-programs/shared.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-runtime.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-runtime.ts",
+      "line": 2,
+      "specifier": "./awk-syntax.js",
+      "target": "src/commands/text-programs/awk-syntax.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-runtime.ts",
+      "line": 3,
+      "specifier": "./awk-syntax.js",
+      "target": "src/commands/text-programs/awk-syntax.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-runtime.ts",
+      "line": 4,
+      "specifier": "./awk-values.js",
+      "target": "src/commands/text-programs/awk-values.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-runtime.ts",
+      "line": 5,
+      "specifier": "./regex.js",
+      "target": "src/commands/text-programs/regex.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-runtime.ts",
+      "line": 6,
+      "specifier": "./shared.js",
+      "target": "src/commands/text-programs/shared.ts"
+    },
+    {
+      "file": "src/commands/text-programs/regex.ts",
+      "line": 1,
+      "specifier": "./shared.js",
+      "target": "src/commands/text-programs/shared.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-values.ts",
+      "line": 1,
+      "specifier": "./shared.js",
+      "target": "src/commands/text-programs/shared.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-syntax.ts",
+      "line": 1,
+      "specifier": "./regex.js",
+      "target": "src/commands/text-programs/regex.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-syntax.ts",
+      "line": 2,
+      "specifier": "./shared.js",
+      "target": "src/commands/text-programs/shared.ts"
+    },
+    {
+      "file": "src/commands/text-programs/awk-syntax.ts",
+      "line": 3,
+      "specifier": "./awk-values.js",
+      "target": "src/commands/text-programs/awk-values.ts"
+    },
+    {
+      "file": "src/commands/text-programs/sed.ts",
+      "line": 1,
+      "specifier": "../../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/text-programs/sed.ts",
+      "line": 2,
+      "specifier": "./regex.js",
+      "target": "src/commands/text-programs/regex.ts"
+    },
+    {
+      "file": "src/commands/text-programs/sed.ts",
+      "line": 3,
+      "specifier": "./shared.js",
+      "target": "src/commands/text-programs/shared.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 2,
+      "specifier": "./basic.js",
+      "target": "src/commands/basic.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 3,
+      "specifier": "./filesystem.js",
+      "target": "src/commands/filesystem.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 4,
+      "specifier": "./streams.js",
+      "target": "src/commands/streams.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 5,
+      "specifier": "./text.js",
+      "target": "src/commands/text.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 6,
+      "specifier": "./grep.js",
+      "target": "src/commands/grep.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 7,
+      "specifier": "./predicates.js",
+      "target": "src/commands/predicates.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 8,
+      "specifier": "./execution.js",
+      "target": "src/commands/execution.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 9,
+      "specifier": "./find.js",
+      "target": "src/commands/find.ts"
+    },
+    {
+      "file": "src/commands/index.ts",
+      "line": 10,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/find.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/find.ts",
+      "line": 2,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/execution.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/execution.ts",
+      "line": 2,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/predicates.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/predicates.ts",
+      "line": 2,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/grep.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/grep.ts",
+      "line": 2,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/text.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/text.ts",
+      "line": 2,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/streams.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/streams.ts",
+      "line": 2,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/filesystem.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/filesystem.ts",
+      "line": 5,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/filesystem.ts",
+      "line": 6,
+      "specifier": "./copy-identity.js",
+      "target": "src/commands/copy-identity.ts"
+    },
+    {
+      "file": "src/commands/filesystem.ts",
+      "line": 7,
+      "specifier": "./move.js",
+      "target": "src/commands/move.ts"
+    },
+    {
+      "file": "src/commands/move.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/move.ts",
+      "line": 2,
+      "specifier": "./copy-identity.js",
+      "target": "src/commands/copy-identity.ts"
+    },
+    {
+      "file": "src/commands/move.ts",
+      "line": 3,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/commands/copy-identity.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/basic.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/commands/basic.ts",
+      "line": 2,
+      "specifier": "./internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/shell/index.ts",
+      "line": 1,
+      "specifier": "./shell.js",
+      "target": "src/shell/shell.ts"
+    },
+    {
+      "file": "src/shell/index.ts",
+      "line": 2,
+      "specifier": "./parser.js",
+      "target": "src/shell/parser.ts"
+    },
+    {
+      "file": "src/shell/index.ts",
+      "line": 3,
+      "specifier": "./types.js",
+      "target": "src/shell/types.ts"
+    },
+    {
+      "file": "src/shell/index.ts",
+      "line": 4,
+      "specifier": "./types.js",
+      "target": "src/shell/types.ts"
+    },
+    {
+      "file": "src/shell/types.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/shell/parser.ts",
+      "line": 1,
+      "specifier": "./types.js",
+      "target": "src/shell/types.ts"
+    },
+    {
+      "file": "src/shell/parser.ts",
+      "line": 2,
+      "specifier": "./arithmetic.js",
+      "target": "src/shell/arithmetic.ts"
+    },
+    {
+      "file": "src/shell/parser.ts",
+      "line": 3,
+      "specifier": "./arithmetic.js",
+      "target": "src/shell/arithmetic.ts"
+    },
+    {
+      "file": "src/shell/arithmetic.ts",
+      "line": 1,
+      "specifier": "./types.js",
+      "target": "src/shell/types.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 2,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 6,
+      "specifier": "./parser.js",
+      "target": "src/shell/parser.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 7,
+      "specifier": "./input.js",
+      "target": "src/shell/input.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 8,
+      "specifier": "./locale.js",
+      "target": "src/shell/locale.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 9,
+      "specifier": "./runtime.js",
+      "target": "src/shell/runtime.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 10,
+      "specifier": "./runtime.js",
+      "target": "src/shell/runtime.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 11,
+      "specifier": "./types.js",
+      "target": "src/shell/types.ts"
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "line": 12,
+      "specifier": "./types.js",
+      "target": "src/shell/types.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 4,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 7,
+      "specifier": "./parser.js",
+      "target": "src/shell/parser.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 8,
+      "specifier": "./parser.js",
+      "target": "src/shell/parser.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 9,
+      "specifier": "./types.js",
+      "target": "src/shell/types.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 10,
+      "specifier": "./types.js",
+      "target": "src/shell/types.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 11,
+      "specifier": "./input.js",
+      "target": "src/shell/input.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 12,
+      "specifier": "./arithmetic.js",
+      "target": "src/shell/arithmetic.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 13,
+      "specifier": "./pattern.js",
+      "target": "src/shell/pattern.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 14,
+      "specifier": "./locale.js",
+      "target": "src/shell/locale.ts"
+    },
+    {
+      "file": "src/shell/runtime.ts",
+      "line": 15,
+      "specifier": "./display.js",
+      "target": "src/shell/display.ts"
+    },
+    {
+      "file": "src/shell/display.ts",
+      "line": 1,
+      "specifier": "./parser.js",
+      "target": "src/shell/parser.ts"
+    },
+    {
+      "file": "src/shell/input.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/shell/input.ts",
+      "line": 2,
+      "specifier": "./runtime.js",
+      "target": "src/shell/runtime.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 1,
+      "specifier": "../contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 2,
+      "specifier": "../commands/index.js",
+      "target": "src/commands/index.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 3,
+      "specifier": "../commands/internal.js",
+      "target": "src/commands/internal.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 4,
+      "specifier": "../commands/text-programs/index.js",
+      "target": "src/commands/text-programs/index.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 5,
+      "specifier": "../commands/structured/index.js",
+      "target": "src/commands/structured/index.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 6,
+      "specifier": "../commands/search/index.js",
+      "target": "src/commands/search/index.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 7,
+      "specifier": "../commands/bytes/index.js",
+      "target": "src/commands/bytes/index.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 8,
+      "specifier": "../commands/diff-patch/index.js",
+      "target": "src/commands/diff-patch/index.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 9,
+      "specifier": "../commands/metadata/index.js",
+      "target": "src/commands/metadata/index.ts"
+    },
+    {
+      "file": "src/plugins/index.ts",
+      "line": 10,
+      "specifier": "../commands/archive/index.js",
+      "target": "src/commands/archive/index.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+      "line": 2,
+      "specifier": "node:test"
+    },
+    {
+      "file": "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+      "line": 3,
+      "specifier": "../../../../src/index.js",
+      "target": "src/index.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+      "line": 4,
+      "specifier": "../fixtures.js",
+      "target": "tests/integration/adapter-tools/fixtures.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/preflight-review/preflight.test.ts",
+      "line": 5,
+      "specifier": "./preflight.js",
+      "target": "tests/integration/adapter-tools/preflight-review/preflight.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+      "line": 2,
+      "specifier": "../../../../src/index.js",
+      "target": "src/index.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/fixtures.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/integration/adapter-tools/fixtures.ts",
+      "line": 2,
+      "specifier": "node:fs/promises"
+    },
+    {
+      "file": "tests/integration/adapter-tools/fixtures.ts",
+      "line": 3,
+      "specifier": "node:http"
+    },
+    {
+      "file": "tests/integration/adapter-tools/fixtures.ts",
+      "line": 4,
+      "specifier": "node:url"
+    },
+    {
+      "file": "tests/integration/adapter-tools/fixtures.ts",
+      "line": 5,
+      "specifier": "../../../src/index.js",
+      "target": "src/index.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/fixtures.ts",
+      "line": 13,
+      "specifier": "../../fs/webdav/mock.js",
+      "target": "tests/fs/webdav/mock.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/fixtures.ts",
+      "line": 14,
+      "specifier": "./preflight-review/preflight.js",
+      "target": "tests/integration/adapter-tools/preflight-review/preflight.ts"
+    },
+    {
+      "file": "tests/fs/webdav/mock.ts",
+      "line": 1,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "tests/fs/webdav/mock.ts",
+      "line": 2,
+      "specifier": "../../../src/fs/webdav/index.js",
+      "target": "src/fs/webdav/index.ts"
+    },
+    {
+      "file": "tests/commands/metadata/integration.test.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/commands/metadata/integration.test.ts",
+      "line": 2,
+      "specifier": "node:test"
+    },
+    {
+      "file": "tests/commands/metadata/integration.test.ts",
+      "line": 3,
+      "specifier": "../../../src/index.js",
+      "target": "src/index.ts"
+    },
+    {
+      "file": "tests/commands/metadata/integration.test.ts",
+      "line": 8,
+      "specifier": "./helpers.js",
+      "target": "tests/commands/metadata/helpers.ts"
+    },
+    {
+      "file": "tests/commands/metadata/helpers.ts",
+      "line": 1,
+      "specifier": "../../../src/contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "tests/commands/metadata/helpers.ts",
+      "line": 2,
+      "specifier": "../../../src/commands/metadata/index.js",
+      "target": "src/commands/metadata/index.ts"
+    },
+    {
+      "file": "tests/plugins/agent-commands.test.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/plugins/agent-commands.test.ts",
+      "line": 2,
+      "specifier": "node:test"
+    },
+    {
+      "file": "tests/plugins/agent-commands.test.ts",
+      "line": 3,
+      "specifier": "../../src/index.js",
+      "target": "src/index.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "line": 2,
+      "specifier": "node:test"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "line": 3,
+      "specifier": "../../../integration/adapter-tools/fixtures.js",
+      "target": "tests/integration/adapter-tools/fixtures.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "line": 4,
+      "specifier": "./evidence.js",
+      "target": "tests/commands/structured-stress/split-increment/evidence.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/evidence.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/evidence.ts",
+      "line": 2,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/evidence.ts",
+      "line": 3,
+      "specifier": "node:fs"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/evidence.ts",
+      "line": 4,
+      "specifier": "../../../../src/commands/structured/limits.js",
+      "target": "src/commands/structured/limits.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "line": 2,
+      "specifier": "node:fs"
+    },
+    {
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "line": 3,
+      "specifier": "node:test"
+    },
+    {
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "line": 4,
+      "specifier": "../../../integration/adapter-tools/fixtures.js",
+      "target": "tests/integration/adapter-tools/fixtures.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "line": 5,
+      "specifier": "../independent-increment/harness.js",
+      "target": "tests/commands/structured-stress/independent-increment/harness.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 2,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 3,
+      "specifier": "node:fs"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 4,
+      "specifier": "../../../../src/commands/structured/index.js",
+      "target": "src/commands/structured/index.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 5,
+      "specifier": "../../../../src/contracts/index.js",
+      "target": "src/contracts/index.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 6,
+      "specifier": "../../../../src/fs/memory/index.js",
+      "target": "src/fs/memory/index.ts"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 7,
+      "specifier": "../../../../src/shell/index.js",
+      "target": "src/shell/index.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "line": 2,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "line": 3,
+      "specifier": "node:fs"
+    },
+    {
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "line": 4,
+      "specifier": "node:test"
+    },
+    {
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "line": 5,
+      "specifier": "../../../src/index.js",
+      "target": "src/index.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "line": 6,
+      "specifier": "../adapter-tools/fixtures.js",
+      "target": "tests/integration/adapter-tools/fixtures.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "line": 1,
+      "specifier": "node:assert/strict"
+    },
+    {
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "line": 2,
+      "specifier": "node:crypto"
+    },
+    {
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "line": 3,
+      "specifier": "node:test"
+    },
+    {
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "line": 4,
+      "specifier": "node:zlib"
+    },
+    {
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "line": 5,
+      "specifier": "../../../src/index.js",
+      "target": "src/index.ts"
+    },
+    {
+      "file": "tests/integration/adapter-tools/matrix.test.ts",
+      "line": 6,
+      "specifier": "./fixtures.js",
+      "target": "tests/integration/adapter-tools/fixtures.ts"
+    }
+  ],
+  "computed": [],
+  "data": [
+    {
+      "file": "tests/integration/adapter-tools/fixtures.ts",
+      "line": 66,
+      "relativeURL": "./.real-"
+    },
+    {
+      "file": "tests/commands/structured-stress/split-increment/evidence.ts",
+      "line": 18,
+      "relativeURL": "./native.json"
+    },
+    {
+      "file": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "line": 8,
+      "relativeURL": "./fresh-native.json"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 25,
+      "relativeURL": "./native-vectors.json"
+    },
+    {
+      "file": "tests/commands/structured-stress/independent-increment/harness.ts",
+      "line": 28,
+      "relativeURL": "./supplement-vectors.json"
+    },
+    {
+      "file": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "line": 8,
+      "relativeURL": "./reference.json"
+    }
+  ],
+  "violations": [],
+  "limits": "Conservative AST static import/export closure includes type-only edges. Literal relative imports resolve inside the regular snapshot; this is not proof about every possible computed import or unexecuted entrypoint."
+}

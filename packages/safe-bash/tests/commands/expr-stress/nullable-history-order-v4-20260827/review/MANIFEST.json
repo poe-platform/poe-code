@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "status": "DESIGN-ONLY / NOT PROMOTION; bounded supplied-history model reviewed",
+  "date": "2026-08-27",
+  "controlsFreezeCommit": "a5c2aed54437f68dff5708a0e652fe1e72039c21",
+  "normativeCommit": "44eed610f6b656e8c6c78d60a48089569ed5b8d5",
+  "inputCommit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+  "inputManifestSha256": "458c5c9e5def60b32d963572364998c463f3e185692f6a25ed09d6069f822589",
+  "candidateCommit": "938fdbc6f128c5ba124d13879c3354a9ee46fc95",
+  "candidateManifestSha256": "34efc77d4d53f1bed318f05ca2a948f86ab646ea155d53cadc236dc5004eca90",
+  "modelSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+  "sourceTreeAtFreezeAndFinal": "74ced3db47d5288bbd17cf9e27f181faa8f663ea",
+  "counts": {
+    "groups": 8,
+    "assertions": 52,
+    "passed": 46,
+    "failed": 6,
+    "mutantsKilled": 5,
+    "mutantsAttempted": 5,
+    "primarySources": 3,
+    "authorSuiteRuns": 1,
+    "independentControlRuns": 2,
+    "authorFrozenPredictionFailuresPreserved": 2,
+    "nativeCalls": 0,
+    "productExecutions": 0,
+    "workersCreated": 0,
+    "historical137Rerun": 0
+  },
+  "firstAttempt": {
+    "assertions": 50,
+    "passed": 44,
+    "failed": 6,
+    "adapterError": "C8 initially compared origin activation IDs as part of semantic final registers; corrected representation only, original source/results preserved.",
+    "additionalFinalAssertions": "Split C6 profile checks into separate rows; semantic control groups remain8."
+  },
+  "modelCandidateAuthenticated": true,
+  "ownedEntryInventory": [
+    "AUTHENTICATION.json",
+    "CONTROLS.json",
+    "DESIGN-REVIEW.md",
+    "FREEZE.md",
+    "MANIFEST.json",
+    "PRIMARY-SOURCES.json",
+    "REPORT.md",
+    "attempt-01-runner.mjs.data",
+    "author-replay.json",
+    "controls-01.json",
+    "controls-final.json",
+    "run-controls.mjs"
+  ],
+  "inventoryPolicy": "Exact entry inventory includes new files/directories/symlinks in this review subtree only; all entries must be regular files. Archive pre/post inventory likewise detects added entries. Neither is a whole-repository audit.",
+  "artifacts": [
+    {
+      "path": "AUTHENTICATION.json",
+      "bytes": 7842,
+      "sha256": "14c6767734b4bc61a3e72962e0f2ee52e66c5d53b21539287ba8af18308d0ab7"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 6025,
+      "sha256": "7ea6cd225abeee23cad4f9fa323d889348a9b4b95e55c054a05fd8d29ba96d86"
+    },
+    {
+      "path": "DESIGN-REVIEW.md",
+      "bytes": 6380,
+      "sha256": "a3fdb22befc70d8b9b65903e503158fcdacc7ec16289bbf61556f1349c568251"
+    },
+    {
+      "path": "FREEZE.md",
+      "bytes": 1551,
+      "sha256": "eda6c0e24e046806472813b0c7de134d873763b8ec4531c3d9f9073da6199441"
+    },
+    {
+      "path": "PRIMARY-SOURCES.json",
+      "bytes": 2394,
+      "sha256": "e68f3180726d23583c07a8f4c3e0918149dfe1df1dabb5b39bd288b86098f78d"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 10364,
+      "sha256": "0f2c32d9b3d445025529b43beeab6886653d730a2ba905718f29f60c8d107dfb"
+    },
+    {
+      "path": "attempt-01-runner.mjs.data",
+      "bytes": 17963,
+      "sha256": "487370729182e29a9476022564a488e0df181424aec3f64303e55bfaf0c859d3"
+    },
+    {
+      "path": "author-replay.json",
+      "bytes": 569,
+      "sha256": "d3ffb0ff79f8c4aacd738280dff3680931ac46977c0b9108053b43c32792d8a9"
+    },
+    {
+      "path": "controls-01.json",
+      "bytes": 44613,
+      "sha256": "1333b567a390b77ddb7237652c510381784e8b1060e046ee3f8a6bb9f3b893d9"
+    },
+    {
+      "path": "controls-final.json",
+      "bytes": 49404,
+      "sha256": "5d7a6319de8f3cb8966c0a60e8892976e16a25343756268b49299a51e126f8a4"
+    },
+    {
+      "path": "run-controls.mjs",
+      "bytes": 18701,
+      "sha256": "c6b81f9e9c4432e094eeb2c480a25289d126b0476aed30e196e3faef037d607b"
+    }
+  ],
+  "manifestIntegrity": "Final Git commit authenticates MANIFEST.json; no circular self-hash.",
+  "cleanup": "All owned children settled; no worker/server. Task-owned archive, fetch directory, and intermediate temp evidence removed at seal. Requested checkpoint/candidate receipts retained."
+}

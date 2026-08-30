@@ -1,0 +1,29 @@
+{
+  "candidate": "/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "harnessHashesBefore": {
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/runner.mjs": "32ca0e1ad0425b6084cfd1bd3c4eb8f3c8d06cafee545a6df8ea7bbc0688cf2a",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/run-cohorts.mjs": "3982930a183d7065700f1124e064cda0c9f1150fa81a4b50528dce343be9f210"
+  },
+  "authorTestFiles": [
+    "tests/commands/column/behavior.test.ts",
+    "tests/commands/column/lifecycle.test.ts",
+    "tests/commands/column/limits.test.ts",
+    "tests/commands/column/native.test.ts",
+    "tests/commands/column/padding-evolution/preserved-source.test.ts",
+    "tests/commands/column/padding-evolution/profile.test.ts",
+    "tests/commands/column/padding-evolution/sparse.test.ts",
+    "tests/commands/column/padding-evolution/streaming.test.ts"
+  ],
+  "authorTypeFiles": [
+    "tests/commands/column/behavior.test.ts",
+    "tests/commands/column/helpers.ts",
+    "tests/commands/column/lifecycle.test.ts",
+    "tests/commands/column/limits.test.ts",
+    "tests/commands/column/native.test.ts",
+    "tests/commands/column/padding-evolution/preserved-source.test.ts",
+    "tests/commands/column/padding-evolution/profile.test.ts",
+    "tests/commands/column/padding-evolution/sparse.test.ts",
+    "tests/commands/column/padding-evolution/streaming.test.ts"
+  ]
+}

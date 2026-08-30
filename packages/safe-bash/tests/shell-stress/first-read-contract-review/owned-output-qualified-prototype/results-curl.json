@@ -1,0 +1,2093 @@
+{
+  "startedAt": "2026-08-27T12:23:41.650Z",
+  "mode": "curl",
+  "curl": [
+    {
+      "profile": "original-preoperation",
+      "id": "C01",
+      "mode": "drain",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "573a3230300a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 0,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50398",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 0,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C01",
+      "mode": "drain",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "573a3230300a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 0,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50400",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 0,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C01",
+      "mode": "drain",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "573a3230300a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 0,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": true
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50402",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 0,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C01",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-o",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/body",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/headers",
+        "-w",
+        "W:%{http_code}\\n",
+        "http://127.0.0.1:50404/fixture"
+      ],
+      "script": "'/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-o' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/body' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/headers' '-w' 'W:%{http_code}\\n' 'http://127.0.0.1:50404/fixture' | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'drain' 'http://127.0.0.1:50404'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/independent'",
+      "pid": 38112,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "0\n0 0\n",
+      "stdoutHex": "573a3230300a",
+      "stderrHex": "696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50404",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "original-preoperation",
+      "id": "C02",
+      "mode": "closed",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/independent'",
+            "code": "ENOENT"
+          }
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50406",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C02",
+      "mode": "closed",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/independent'",
+            "code": "ENOENT"
+          }
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50408",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C02",
+      "mode": "closed",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 141,
+      "attempts": [],
+      "ownedClosed": true,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50410",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "owned-consumer-closed",
+        "barrier-released",
+        "server-first-response-write",
+        {
+          "nestedStatus": 141,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C02",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-o",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C02/body",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C02/headers",
+        "-w",
+        "W:%{http_code}\\n",
+        "http://127.0.0.1:50412/fixture"
+      ],
+      "script": "'/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-o' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C02/body' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C02/headers' '-w' 'W:%{http_code}\\n' 'http://127.0.0.1:50412/fixture' | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'closed' 'http://127.0.0.1:50412'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C02/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C02/independent'",
+      "pid": 38116,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "0\n0 0\n",
+      "stdoutHex": "",
+      "stderrHex": "696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50412",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "native-reader-closed",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "original-preoperation",
+      "id": "C03",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 141,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/independent'",
+            "code": "ENOENT"
+          }
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50416",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C03",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 141,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/independent'",
+            "code": "ENOENT"
+          }
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50418",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C03",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 141,
+        "stdoutHex": "",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 141,
+      "attempts": [],
+      "ownedClosed": true,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50420",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "owned-consumer-closed",
+        "barrier-released",
+        "server-first-response-write",
+        {
+          "nestedStatus": 141,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C03",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-o",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C03/body",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C03/headers",
+        "-w",
+        "W:%{http_code}\\n",
+        "http://127.0.0.1:50422/fixture"
+      ],
+      "script": "set -o pipefail; '/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-o' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C03/body' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C03/headers' '-w' 'W:%{http_code}\\n' 'http://127.0.0.1:50422/fixture' | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'closed' 'http://127.0.0.1:50422'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C03/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C03/independent'",
+      "pid": 38122,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "0\n0 0\n",
+      "stdoutHex": "",
+      "stderrHex": "696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50422",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "native-reader-closed",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "original-preoperation",
+      "id": "C04",
+      "mode": "closed",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "attempts": [
+        {
+          "hex": "72657175697265642d626f64790a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/independent'",
+            "code": "ENOENT"
+          }
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50426",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C04",
+      "mode": "closed",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "attempts": [
+        {
+          "hex": "72657175697265642d626f64790a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/independent'",
+            "code": "ENOENT"
+          }
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50428",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C04",
+      "mode": "closed",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 141,
+      "attempts": [],
+      "ownedClosed": true,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50430",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "owned-consumer-closed",
+        "barrier-released",
+        "server-first-response-write",
+        {
+          "nestedStatus": 141,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C04",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C04/headers",
+        "-w",
+        "W:%{http_code}\\n",
+        "http://127.0.0.1:50432/fixture"
+      ],
+      "script": "'/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C04/headers' '-w' 'W:%{http_code}\\n' 'http://127.0.0.1:50432/fixture' | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'closed' 'http://127.0.0.1:50432'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C04/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C04/independent'",
+      "pid": 38128,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "0\n23 0\n",
+      "stdoutHex": "",
+      "stderrHex": "696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, open '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C04/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50432",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "native-reader-closed",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "original-preoperation",
+      "id": "C05",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 141,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "attempts": [
+        {
+          "hex": "72657175697265642d626f64790a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/independent'",
+            "code": "ENOENT"
+          }
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50436",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C05",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 141,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "attempts": [
+        {
+          "hex": "72657175697265642d626f64790a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/independent'",
+            "code": "ENOENT"
+          }
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50438",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C05",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 141,
+        "stdoutHex": "",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 141,
+      "attempts": [],
+      "ownedClosed": true,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50440",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "owned-consumer-closed",
+        "barrier-released",
+        "server-first-response-write",
+        {
+          "nestedStatus": 141,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C05",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C05/headers",
+        "-w",
+        "W:%{http_code}\\n",
+        "http://127.0.0.1:50442/fixture"
+      ],
+      "script": "set -o pipefail; '/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C05/headers' '-w' 'W:%{http_code}\\n' 'http://127.0.0.1:50442/fixture' | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'closed' 'http://127.0.0.1:50442'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C05/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C05/independent'",
+      "pid": 38131,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "23\n23 0\n",
+      "stdoutHex": "",
+      "stderrHex": "696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "Error",
+            "message": "ENOENT: no such file or directory, open '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C05/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50442",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "native-reader-closed",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "original-preoperation",
+      "id": "C06",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 0,
+      "attempts": [],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50446",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write",
+        {
+          "nestedStatus": 0,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C06",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 0,
+      "attempts": [],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50448",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "barrier-released",
+        "server-first-response-write",
+        {
+          "nestedStatus": 0,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C06",
+      "mode": "closed",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 0,
+      "attempts": [],
+      "ownedClosed": true,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50450",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "reader-returned",
+        "owned-consumer-closed",
+        "barrier-released",
+        "server-first-response-write",
+        {
+          "nestedStatus": 0,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C06",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-o",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C06/body",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C06/headers",
+        "http://127.0.0.1:50452/fixture"
+      ],
+      "script": "set -o pipefail; '/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-o' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C06/body' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C06/headers' 'http://127.0.0.1:50452/fixture' | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'closed' 'http://127.0.0.1:50452'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C06/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C06/independent'",
+      "pid": 38134,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "0\n0 0\n",
+      "stdoutHex": "",
+      "stderrHex": "696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50452",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "native-reader-closed",
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "original-preoperation",
+      "id": "C07",
+      "mode": "error",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 23,
+        "stdoutHex": "",
+        "stderrHex": "6375726c3a2028323329204661696c65642077726974696e672077726974652d6f757420726573756c740a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 23,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50456",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 23,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C07",
+      "mode": "error",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 23,
+        "stdoutHex": "",
+        "stderrHex": "6375726c3a2028323329204661696c65642077726974696e672077726974652d6f757420726573756c740a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 23,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50458",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 23,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C07",
+      "mode": "error",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 23,
+        "stdoutHex": "",
+        "stderrHex": "6375726c3a2028323329204661696c65642077726974696e672077726974652d6f757420726573756c740a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 23,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50460",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 23,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C07",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-o",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C07/body",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C07/headers",
+        "-w",
+        "W:%{http_code}\\n",
+        "http://127.0.0.1:50462/fixture"
+      ],
+      "script": "'/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-o' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C07/body' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C07/headers' '-w' 'W:%{http_code}\\n' 'http://127.0.0.1:50462/fixture' 1>&- | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'drain' 'http://127.0.0.1:50462'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C07/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C07/independent'",
+      "pid": 38137,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "0\n0 0\n",
+      "stdoutHex": "",
+      "stderrHex": "696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50462",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "original-preoperation",
+      "id": "C08",
+      "mode": "drain",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 23,
+        "stdoutHex": "573a3230300a",
+        "stderrHex": "6375726c3a2028323329204661696c65642077726974696e67207669727475616c206f75747075742066696c650a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 23,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "EISDIR: illegal operation on a directory, readFile '/body'",
+            "code": "EISDIR"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50464",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 23,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C08",
+      "mode": "drain",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 23,
+        "stdoutHex": "573a3230300a",
+        "stderrHex": "6375726c3a2028323329204661696c65642077726974696e67207669727475616c206f75747075742066696c650a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 23,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "EISDIR: illegal operation on a directory, readFile '/body'",
+            "code": "EISDIR"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50466",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 23,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C08",
+      "mode": "drain",
+      "pipefail": true,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 23,
+        "stdoutHex": "573a3230300a",
+        "stderrHex": "6375726c3a2028323329204661696c65642077726974696e67207669727475616c206f75747075742066696c650a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 23,
+      "attempts": [
+        {
+          "hex": "573a3230300a",
+          "owned": true
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "EISDIR: illegal operation on a directory, readFile '/body'",
+            "code": "EISDIR"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "accept",
+            "*/*",
+            "user-agent",
+            "virtual-bash-curl/0.0",
+            "Host",
+            "127.0.0.1:50468",
+            "Connection",
+            "close"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write",
+        {
+          "nestedStatus": 23,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C08",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-o",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C08/body",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C08/headers",
+        "-w",
+        "W:%{http_code}\\n",
+        "http://127.0.0.1:50470/fixture"
+      ],
+      "script": "set -o pipefail; '/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-o' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C08/body' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C08/headers' '-w' 'W:%{http_code}\\n' 'http://127.0.0.1:50470/fixture' | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'drain' 'http://127.0.0.1:50470'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C08/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C08/independent'",
+      "pid": 38141,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "23\n23 0\n",
+      "stdoutHex": "573a3230300a",
+      "stderrHex": "6375726c3a2028323329204661696c7572652077726974696e67206f757470757420746f2064657374696e6174696f6e2c207061737365642031342072657475726e656420343239343936373239350a696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "Error",
+            "message": "EISDIR: illegal operation on a directory, read",
+            "code": "EISDIR"
+          }
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50470",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    }
+  ],
+  "precedence": [],
+  "auxiliary": [],
+  "failures": [],
+  "completedAt": "2026-08-27T12:23:42.245Z"
+}

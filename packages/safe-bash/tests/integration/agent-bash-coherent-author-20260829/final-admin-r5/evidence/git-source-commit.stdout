@@ -1,0 +1,27 @@
+[main c4a2cc65e] Bind output-only r5 runtime to one live administrative owner
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 12 files changed, 1525 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/COMMAND.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/FINAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/HANDOFF.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-BINDING.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/finish.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch-preparation.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/prepare.mjs

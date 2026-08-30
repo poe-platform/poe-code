@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "timing": "Policy overlay7ddf8c15 sealed before new execution. Corrected v8 fixture setup reused as new version, not replaying old missing-compiler failure.",
+  "bindings": "BINDINGS.json; actual code copies authenticated against source DRIVER.json, normalized drivera99c9f24, exact candidatef5 unchanged",
+  "entry": "review.mjs -> frozen superviseFencedWorker -> independent worker.mjs -> frozen openFencedWorker/createPhaseRunner -> actual outer attachPhaseSupervisor/instructionFenceInvocation/supervise -> sandbox-exec -> independent probes",
+  "phases": ["outside-links", "alias-targets", "physical-imports", "descendants", "shipping-fds"],
+  "oracles": "POLICY R01-R05; explicit outside snapshots include contents SHA256/inode/device/nlink/mode/entries. Inert symlink creation positive; no payload-string veto or independent write interception. Fresh forbidden target absent. Failed probe logs prior events before asserting.",
+  "preconditions": "Unfenced review-owned ordinary hardlink and directory rename/back positive on same filesystem before capture. Existing writable r+ outside canary remains open in trusted parent but is not passed in shipping stdio. No real instruction file or private data setup.",
+  "limits": {"phaseMs":20000,"workerMs":180000,"capturePerPhaseBytes":1048576,"controllerOutputBytes":1048576},
+  "stop": "Any actual protected/outside write or physical directory/hardlink import success stops historical tar/A10. Loader/setup errors are not protection passes. Preserve cohorts and freeze followup before retry.",
+  "next": "Only safety PASS permits separately frozen streamed historical Git/native tar and actual shared A10 recipes. FD mechanism limitation carried from v8; no duplicate escape score. Fullgate remains prohibited."
+}

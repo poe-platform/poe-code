@@ -1,0 +1,283 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { setTimeout as delay } from "node:timers/promises";
+import { FsError } from "../../../../src/contracts/errors.js";
+import type { FileSystem } from "../../../../src/contracts/filesystem.js";
+import { WebDavFileSystem } from "../../../../src/fs/webdav/index.js";
+import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest, WebDavAtomicEmptyDirectoryResult } from "../../../../src/fs/webdav/index.js";
+import { MockDav } from "../mock.js";
+
+const namespaceUrl = "https://dav.test/dav/";
+type Remove = WebDavAtomicEmptyDirectoryBinding["removeEmptyDirectory"];
+const receipt = (request: WebDavAtomicEmptyDirectoryRequest): WebDavAtomicEmptyDirectoryResult => ({
+  operation: request.operation, namespaceUrl: request.namespaceUrl, path: request.path, outcome: "removed",
+});
+function rejected(code: string, path: string) {
+  return (error: unknown) => {
+    assert.ok(error instanceof FsError);
+    assert.equal(error.code, code);
+    assert.equal(error.path, path);
+    assert.equal(error.syscall, "rmdir");
+    return true;
+  };
+}
+function fixture(remove?: Remove, timeoutMs = 2000) {
+  const mock = new MockDav();
+  mock.files.set("/empty", null);
+  const fs = new WebDavFileSystem({ baseUrl: namespaceUrl, fetch: mock.fetch, timeoutMs,
+    ...(remove ? { atomicEmptyDirectory: { namespaceUrl, removeEmptyDirectory: remove } } : {}) });
+  return { fs, mock };
+}
+
+for (const bound of ["https://DAV.TEST/dav/", "https://dav.test:443/dav/", "https://dav.test/dav",
+  "https://dav.test/d%61v/", "https://dav.test/dav//", "https://dav.test/dav/?x=1",
+  "https://dav.test/dav/#fragment", "http://dav.test/dav/", "https://dav.test/stock/"]) {
+  test(`ordinary noncanonical/mismatched binding is rejected before effects: ${bound}`, () => {
+    let effects = 0;
+    assert.throws(() => new WebDavFileSystem({ baseUrl: namespaceUrl,
+      fetch: async () => { effects++; throw new Error("no transport"); },
+      atomicEmptyDirectory: { namespaceUrl: bound, removeEmptyDirectory: async request => { effects++; return receipt(request); } },
+    }), (error: unknown) => error instanceof FsError && error.code === "EINVAL");
+    assert.equal(effects, 0);
+  });
+}
+
+test("canonical binding accepts canonicalized configured base, without transport", () => {
+  let effects = 0;
+  new WebDavFileSystem({ baseUrl: "https://DAV.TEST:443/d%61v", fetch: async () => { effects++; throw new Error(); },
+    atomicEmptyDirectory: { namespaceUrl, removeEmptyDirectory: async request => { effects++; return receipt(request); } } });
+  assert.equal(effects, 0);
+});
+
+for (const [path, code] of [["/x/..", "EBUSY"], ["./", "EBUSY"], ["/empty\0", "EINVAL"],
+  ["/empty\\child", "EINVAL"], ["/\ud800", "EINVAL"], ["/empty/../../escape", "EACCES"]] as const) {
+  test(`invalid/root path ${JSON.stringify(path)} cannot reach metadata or callback`, async () => {
+    let calls = 0;
+    const { fs, mock } = fixture(async request => { calls++; return receipt(request); });
+    await assert.rejects(fs.rmdir(path), rejected(code, path));
+    assert.equal(calls, 0);
+    assert.equal(mock.requests.length, 0);
+  });
+}
+
+for (const [path, canonical] of [["//empty//./", "/empty"], ["empty", "/empty"],
+  ["/empty/../other/", "/other"], ["/percent%2Fname/", "/percent%2Fname"],
+  ["/snow 雪 & #?%/", "/snow 雪 & #?%"]] as const) {
+  test(`callback and metadata agree on literal canonical path ${path}`, async () => {
+    const seen: string[] = [];
+    const { fs, mock } = fixture(async request => {
+      assert.equal(Object.isFrozen(request), true);
+      assert.equal(request.namespaceUrl, namespaceUrl);
+      seen.push(request.path);
+      return receipt(request);
+    });
+    mock.files.set(canonical, null);
+    await fs.rmdir(path);
+    assert.deepEqual(seen, [canonical]);
+    assert.equal(mock.requests.length, 1);
+    assert.equal(mock.requests[0]!.init.method, "PROPFIND");
+    assert.equal(new Headers(mock.requests[0]!.init.headers).get("Depth"), "0");
+    assert.equal(decodeURIComponent(new URL(mock.requests[0]!.url).pathname).replace(/\/$/u, ""), `/dav${canonical}`);
+  });
+}
+
+test("configured nonempty observation reaches native decision without snapshot listing", async () => {
+  let calls = 0;
+  const bytes = new Uint8Array([0, 255, 13, 10]);
+  const { fs, mock } = fixture(async () => { calls++; throw Object.assign(new Error("nonempty"), { code: "ENOTEMPTY" }); });
+  mock.files.set("/empty/child", bytes);
+  await assert.rejects(fs.rmdir("/empty/"), rejected("ENOTEMPTY", "/empty/"));
+  assert.equal(calls, 1);
+  assert.deepEqual(mock.files.get("/empty/child"), bytes);
+  assert.equal(mock.requests.length, 1);
+});
+
+test("a file cannot become an extension dispatch even with trailing slash", async () => {
+  let calls = 0;
+  const { fs, mock } = fixture(async request => { calls++; return receipt(request); });
+  mock.files.set("/file", new Uint8Array([255]));
+  await assert.rejects(fs.rmdir("/file/"), rejected("ENOTDIR", "/file/"));
+  assert.equal(calls, 0);
+});
+
+for (const failure of [null, "failure", { code: "NOT_ERRNO" }, Object.assign(new Error("io"), { code: "EAGAIN" }), new FsError("ENOSPC")]) {
+  test(`synchronous host rejection maps original path and retains cause ${String(failure)}`, async () => {
+    const { fs } = fixture(() => { throw failure; });
+    const expected = failure instanceof FsError ? failure.code : failure instanceof Error ? "EAGAIN" : "EIO";
+    await assert.rejects(fs.rmdir("//empty/./"), (error: unknown) => {
+      rejected(expected, "//empty/./")(error);
+      assert.equal((error as Error).cause, failure);
+      return true;
+    });
+  });
+}
+
+for (const change of [{ path: "/empty/" }, { namespaceUrl: "https://DAV.TEST/dav/" }, { outcome: "absent" }, { operation: "atomic-empty-rmdir/v2" }]) {
+  test(`receipt mismatch after actual effect is uncertain, never retried: ${JSON.stringify(change)}`, async () => {
+    let calls = 0;
+    const { fs, mock } = fixture(async request => {
+      calls++;
+      mock.files.delete(request.path);
+      return { ...receipt(request), ...change } as WebDavAtomicEmptyDirectoryResult;
+    });
+    await assert.rejects(fs.rmdir("/empty/"), (error: unknown) => {
+      rejected("EIO", "/empty/")(error);
+      assert.match((error as Error).message, /uncertain/u);
+      return true;
+    });
+    assert.equal(calls, 1);
+    assert.equal(mock.files.has("/empty"), false);
+    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+  });
+}
+
+test("native effect followed by transport rejection is not rollback or retry", async () => {
+  let calls = 0;
+  const cause = Object.assign(new Error("connection lost"), { code: "EIO" });
+  const { fs, mock } = fixture(async request => { calls++; mock.files.delete(request.path); throw cause; });
+  await assert.rejects(fs.rmdir("/empty"), rejected("EIO", "/empty"));
+  assert.equal(calls, 1);
+  assert.equal(mock.files.has("/empty"), false);
+  assert.equal(mock.requests.length, 1);
+});
+
+for (const late of ["resolve", "reject"] as const) {
+  test(`timeout bounds callback; late ${late} remains observed without rollback`, async () => {
+    let finish!: () => void;
+    let signal!: AbortSignal;
+    let calls = 0;
+    const { fs, mock } = fixture(request => {
+      calls++;
+      signal = request.signal!;
+      return new Promise((resolve, reject) => {
+        finish = () => {
+          mock.files.delete(request.path);
+          if (late === "resolve") resolve(receipt(request));
+          else reject(new Error("legitimate late rejection"));
+        };
+      });
+    }, 30);
+    const keepAlive = setTimeout(() => {}, 1000);
+    try { await assert.rejects(fs.rmdir("/empty/"), rejected("ETIMEDOUT", "/empty/")); }
+    finally { clearTimeout(keepAlive); }
+    assert.equal(signal.aborted, true);
+    assert.equal(mock.files.has("/empty"), true);
+    finish();
+    await delay(5);
+    assert.equal(mock.files.has("/empty"), false);
+    assert.equal(calls, 1);
+  });
+}
+
+test("callback cancellation wins errno-shaped reasons and keeps caller reason", async () => {
+  const controller = new AbortController();
+  const reason = new FsError("ENOENT");
+  const { fs } = fixture(async request => {
+    controller.abort(reason);
+    assert.equal(request.signal?.reason, reason);
+    throw new FsError("ENOTEMPTY");
+  });
+  await assert.rejects(fs.rmdir("//empty/", { signal: controller.signal }), rejected("ECANCELED", "//empty/"));
+});
+
+test("stock default and strict extension never advertise snapshot or atomic rename", async () => {
+  for (const fs of [fixture().fs, fixture(async request => receipt(request)).fs]) {
+    assert.notEqual((fs as FileSystem).capabilities.snapshotRmdir, true);
+    assert.equal(fs.capabilities.atomicRename, false);
+  }
+  const { fs, mock } = fixture();
+  await assert.rejects(fs.rmdir("/empty"), rejected("ENOTSUP", "/empty"));
+  assert.equal(mock.files.has("/empty"), true);
+  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+});
+
+test("shared legitimate backing provenance stays same across distinct extension bindings", async () => {
+  const mock = new MockDav();
+  mock.files.set("/file", new Uint8Array([255, 0]));
+  const make = () => new WebDavFileSystem({ baseUrl: namespaceUrl, fetch: mock.fetch,
+    atomicEmptyDirectory: { namespaceUrl, removeEmptyDirectory: async request => receipt(request) } });
+  const left = make();
+  const right = make();
+  assert.equal(await left.compareEntry("/file", right, "/file"), "same");
+  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+});
+
+for (const publishIdentity of [true, false]) {
+  test(`legitimate URL alias never becomes distinct storage, identity supplied=${publishIdentity}`, async () => {
+    const mock = new MockDav();
+    mock.files.set("/file", new Uint8Array([255, 0]));
+    const make = (prefix: string) => {
+      const baseUrl = `https://dav.test/${prefix}/`;
+      return new WebDavFileSystem({ baseUrl,
+        fetch: async (url, init) => {
+          const response = await mock.fetch(url.replace(`/${prefix}/`, "/dav/"), init);
+          let body = (await response.text()).replaceAll("/dav/", `/${prefix}/`);
+          if (!publishIdentity) body = body.replace(/<z:resource-id>.*?<\/z:resource-id>/gu, "");
+          return new Response(body, { status: response.status, headers: response.headers });
+        }, atomicEmptyDirectory: { namespaceUrl: baseUrl, removeEmptyDirectory: async request => receipt(request) } });
+    };
+    const left = make("dav");
+    const right = make("alias");
+    assert.equal(await left.compareEntry("/file", right, "/file"), publishIdentity ? "same" : "unknown");
+    assert.equal((await left.stat("/file")).identityScope, undefined);
+    assert.equal((await right.stat("/file")).identityScope, undefined);
+    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+  });
+}
+
+for (const status of [403, 423, 500]) {
+  test(`metadata HTTP ${status} fails before callback with original path`, async () => {
+    let calls = 0;
+    const fs = new WebDavFileSystem({ baseUrl: namespaceUrl, fetch: async () => new Response(null, { status }),
+      atomicEmptyDirectory: { namespaceUrl, removeEmptyDirectory: async request => { calls++; return receipt(request); } } });
+    await assert.rejects(fs.rmdir("//empty/./"), rejected(status === 403 ? "EACCES" : status === 423 ? "EBUSY" : "EIO", "//empty/./"));
+    assert.equal(calls, 0);
+  });
+}
+
+test("cancelling one invocation does not poison a parallel binding invocation", async () => {
+  const controller = new AbortController();
+  let entered!: () => void;
+  let finish!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const { fs, mock } = fixture(request => {
+    if (request.path === "/other") {
+      assert.equal(request.signal?.aborted, false);
+      mock.files.delete("/other");
+      return Promise.resolve(receipt(request));
+    }
+    entered();
+    return new Promise(resolve => { finish = () => resolve(receipt(request)); });
+  });
+  mock.files.set("/other", null);
+  const pending = fs.rmdir("/empty", { signal: controller.signal });
+  const cancelled = assert.rejects(pending, rejected("ECANCELED", "/empty"));
+  await started;
+  controller.abort();
+  await fs.rmdir("/other");
+  await cancelled;
+  finish();
+  await delay(1);
+  assert.equal(mock.files.has("/other"), false);
+  assert.equal(mock.files.has("/empty"), true);
+});
+
+for (const operation of ["copyFile", "rename"] as const) {
+  test(`${operation} still honors alias/unknown authority with extension enabled`, async () => {
+    for (const comparison of ["same", "unknown"] as const) {
+      const mock = new MockDav();
+      mock.files.set("/source", new Uint8Array([255]));
+      mock.files.set("/target", new Uint8Array([128]));
+      let calls = 0;
+      const fs = new WebDavFileSystem({ baseUrl: namespaceUrl, fetch: mock.fetch,
+        compareEntry: async () => comparison,
+        atomicEmptyDirectory: { namespaceUrl, removeEmptyDirectory: async request => { calls++; return receipt(request); } } });
+      await assert.rejects(fs[operation]("/source", "/target"), (error: unknown) =>
+        error instanceof FsError && error.code === (comparison === "same" ? "EINVAL" : "ENOTSUP"));
+      assert.equal(calls, 0);
+      assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
+      assert.deepEqual(mock.files.get("/source"), new Uint8Array([255]));
+      assert.deepEqual(mock.files.get("/target"), new Uint8Array([128]));
+    }
+  });
+}

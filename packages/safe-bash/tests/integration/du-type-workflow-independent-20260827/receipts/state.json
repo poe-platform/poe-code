@@ -1,0 +1,11 @@
+{
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P",
+  "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/candidate",
+  "index": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/candidate.index",
+  "destination": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/receipts",
+  "runtimePaths": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+  ],
+  "package": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/extracted/package"
+}

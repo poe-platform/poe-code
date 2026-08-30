@@ -1,0 +1,22 @@
+{
+  "schema": "unified76-developer-tool-routes/1",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "shippingSource": "86038b27d1bee03333f13560e374ad407db417b8",
+  "chronology": "After independent v9 source/trace inspection; before any replacement-tool execution or route implementation.",
+  "status": "FROZEN_EXPECTATIONS_NOT_EXECUTED_PENDING_EXACT_OS_REFERENCE_APPROVAL",
+  "controls": [
+    {"id":"R01","expect":"Direct pinned linkage inspector executes required -L work for all four existing targets; exact linkage expectations retained."},
+    {"id":"R02","expect":"Missing or changed executable bytes/mode/physical route refuse before a target marker; a mere basename match is insufficient."},
+    {"id":"R03","expect":"Unknown executable route and unapproved transitive image/reference refuse admission; no post-execution hash labeled preflight."},
+    {"id":"R04","expect":"DEVELOPER_DIR, TOOLCHAINS, SDKROOT, xcrun cache/selection and loader injections refuse or are explicitly absent in bound child environment; no ambient selector runs."},
+    {"id":"R05","expect":"Actual frozen typing helper reaches direct bound Git for ls-files without body changes; argv, environment and binary identity recorded."},
+    {"id":"R06","expect":"Empty-environment Node/native descendants with a declared absolute route execute real required work; an undeclared default-path fallback cannot silently become accepted."},
+    {"id":"R07","expect":"Existing exact system-reference pairs unchanged; new tool's two pairs require explicit approval; readable replacements or extra/non-system references refuse."},
+    {"id":"R08","expect":"Linkage output changes/missing dependencies are detected; inspection cannot be removed while admission still reports success."},
+    {"id":"R09","expect":"Direct Git ordinary repository/archive work succeeds with fixed identities; no instruction-body checkout/materialization, no private checkout mutation."},
+    {"id":"R10","expect":"No xcodebuild/xcrun/llvm-wrapper selector is admitted as an incidental route; unknown route observation is HOLD, not a new trusted-OS exception."},
+    {"id":"R11","expect":"OS instruction-write profile and descriptor/process/readonly/private fences remain intact; inert symlink references do not imply writable aliases."},
+    {"id":"R12","expect":"All owned children settle/reap; unknown survivors/cleanup or provenance violations yield nonzero/HOLD even if functional output matches."}
+  ],
+  "qualification": "Planned route controls only, not twelve safety/product passes. A10 and full-gate execution require the separately applicable authorization. No full-gate release exists for a successor."
+}

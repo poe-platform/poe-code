@@ -1,0 +1,78 @@
+TAP version 13
+# Subtest: worker globs retain code-unit strings, Unicode predicates and ancestor policy
+ok 1 - worker globs retain code-unit strings, Unicode predicates and ancestor policy
+  ---
+  duration_ms: 15.784416
+  type: 'test'
+  ...
+# Subtest: glob validation preserves first invalid rule and ignore-file literal brackets
+ok 2 - glob validation preserves first invalid rule and ignore-file literal brackets
+  ---
+  duration_ms: 55.666167
+  type: 'test'
+  ...
+# Subtest: glob batching caps ordinary descriptors without reordering matches
+not ok 3 - glob batching caps ordinary descriptors without reordering matches
+  ---
+  duration_ms: 16.5905
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/[eval1]:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        [
+    -     127,
+          128,
+    +     128
+        ],
+        [
+          128,
+          128
+        ],
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      0: 127
+      1: 128
+    1:
+      0: 128
+      1: 128
+    2:
+      0: 4
+      1: 4
+  actual:
+    0:
+      0: 128
+      1: 128
+    1:
+      0: 128
+      1: 128
+    2:
+      0: 4
+      1: 4
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/[eval1]:66:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: glob queue accounting includes options and UTF16LE path bytes
+ok 4 - glob queue accounting includes options and UTF16LE path bytes
+  ---
+  duration_ms: 0.169125
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90.247083

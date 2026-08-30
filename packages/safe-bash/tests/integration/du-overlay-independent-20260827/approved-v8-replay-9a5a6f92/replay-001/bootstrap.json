@@ -1,0 +1,25 @@
+{
+  "freezeCommit": "ae0f8b3f4f927b06718fc51e176ca7a54b517364",
+  "candidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "admissionControl": {
+    "rejected": true,
+    "writes": 0,
+    "forbiddenPathWasNeverCreated": true
+  },
+  "packlistControl": {
+    "rejected": true,
+    "archiveCreations": 0,
+    "writes": 0,
+    "extractions": 0,
+    "forbiddenPathWasNeverCreated": true
+  },
+  "freezeManifestSha256": "e8f957bd9ea434b0af5388ab0e2ed2d936d5338fcbca5344f3793b08e5e38af7",
+  "freezeArchiveSha256": "0432708baa1140a823d329cfabf4f4254f84d7ed4359cafc5b5a250ecf04899c",
+  "materializedBeforeChild": {
+    "phase": "bootstrap-materialized-before-child",
+    "completeFileCount": 22,
+    "everyByteSizeSha256AndGitBlobVerified": true,
+    "exactInventoryNoNewOrDeletedEntries": true,
+    "inventorySha256": "5bf4b5ca1a2c560f8c9be39e81813f9c12bb943748275d3def20da46562d6269"
+  }
+}

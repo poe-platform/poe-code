@@ -1,0 +1,31 @@
+{
+  "totalSyntacticEdges": 33,
+  "relativePackagedEdges": 29,
+  "builtinEdges": [
+    {
+      "importer": "dist/commands/regex-execution/ere/limits.js",
+      "specifier": "node:timers/promises",
+      "target": "node:timers/promises",
+      "qualification": "static source edge only; no nested-load execution witness"
+    },
+    {
+      "importer": "dist/commands/regex-execution/ere/transport/owner.js",
+      "specifier": "node:worker_threads",
+      "target": "node:worker_threads",
+      "qualification": "static source edge only; no nested-load execution witness"
+    },
+    {
+      "importer": "dist/commands/regex-execution/ere/transport/validation.js",
+      "specifier": "node:util",
+      "target": "node:util",
+      "qualification": "static source edge only; no nested-load execution witness"
+    },
+    {
+      "importer": "dist/commands/regex-execution/ere/transport/worker-entry.js",
+      "specifier": "node:worker_threads",
+      "target": "node:worker_threads",
+      "qualification": "static source edge only; no nested-load execution witness"
+    }
+  ],
+  "qualification": "Count domains explicit; all are static SOURCE edges, no actual nested loads."
+}

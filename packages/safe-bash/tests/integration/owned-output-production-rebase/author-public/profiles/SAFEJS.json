@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "fixtureCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "statusBindingCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "phase": "PREPARATION_ONLY",
+  "rows": {
+    "surface": [
+      "01-supported-facades",
+      "02-direct-surface",
+      "03-namespace-spread",
+      "04-shell-module",
+      "05-missing-register-cleanup",
+      "06-missing-acquire",
+      "07-reflection-profile",
+      "08-function-spread-profile"
+    ],
+    "lifecycle": [
+      "L01-aliases",
+      "L02-budget-positive",
+      "L02-budget-exhausted",
+      "L03-callback-live",
+      "L03-callback-after-lifetime",
+      "L04-explicit-children",
+      "L05-caller-error",
+      "L05-execution-error",
+      "L05-cleanup-error",
+      "L06-curl-open",
+      "L06-curl-consumer-closed"
+    ],
+    "controls": [
+      "Z01-open",
+      "Z01-closed",
+      "Z02-open",
+      "Z02-closed",
+      "Z03-open",
+      "Z03-closed"
+    ]
+  },
+  "private": {
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "tree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+    "engineInventorySha256": "e3af7cb5d53cb3c64d22f7ac20c187cc3b7347754857811f210b8c32a937d90f",
+    "eligibleFiles": 264,
+    "loadedFiles": 63,
+    "queryAuthorized": false
+  },
+  "historicalReferencesOnly": {
+    "acceptedAuthor": "ed21ae6c",
+    "acceptedDifferent": "9f15ac3f",
+    "rawCohortsPreserved": true,
+    "currentCandidate": null
+  }
+}

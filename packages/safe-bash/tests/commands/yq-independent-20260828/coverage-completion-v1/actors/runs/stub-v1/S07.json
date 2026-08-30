@@ -1,0 +1,123 @@
+{
+  "role": "STUB_SWALLOWS_CAPTURE_ERROR_NOT_PRODUCT",
+  "result": {
+    "schema": 1,
+    "taskId": "stub/WRK-04/at-cap",
+    "capture": {
+      "stdoutHex": "6161616161616161",
+      "stderrHex": "",
+      "status": 0,
+      "rejected": false,
+      "rejection": null,
+      "effects": {
+        "before": [],
+        "after": []
+      },
+      "events": [
+        {
+          "index": 0,
+          "kind": "actor-input",
+          "actorKind": "WRK-04/at-cap",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "argvEntries": 1,
+          "argvUtf8Bytes": 8192,
+          "argvSha256": "71d6be000c23506d2cb5d7165d8eeb7e2a8236b7861785723b297f85edddc8e3",
+          "inputBytes": 0,
+          "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunkBytes": [],
+          "producerReuse": false
+        },
+        {
+          "index": 1,
+          "kind": "factory-call"
+        },
+        {
+          "index": 2,
+          "kind": "command-execute"
+        },
+        {
+          "index": 3,
+          "kind": "sink-write-begin",
+          "name": "stdout",
+          "bytes": 16
+        },
+        {
+          "index": 4,
+          "kind": "sink-bytes-retained",
+          "name": "stdout",
+          "attempted": 16,
+          "accepted": 8
+        },
+        {
+          "index": 5,
+          "kind": "actor-terminal",
+          "captureComplete": false,
+          "elapsedMs": 0.23745800000000017
+        }
+      ],
+      "cleanupErrors": []
+    },
+    "observations": [
+      {
+        "bindingId": "WRK-04::missing/0",
+        "recordId": "WRK-04",
+        "role": "runtime",
+        "status": "UNOBSERVED",
+        "facts": {
+          "actorKind": "WRK-04/at-cap",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": false,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "argvEntries": 1,
+          "argvUtf8Bytes": 8192,
+          "argvSha256": "71d6be000c23506d2cb5d7165d8eeb7e2a8236b7861785723b297f85edddc8e3",
+          "inputBytes": 0,
+          "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunkBytes": [],
+          "producerReuse": false,
+          "sameCallerReason": false,
+          "sameHostReason": false,
+          "sameSinkReason": false,
+          "ownershipObserved": false
+        },
+        "evidenceRefs": [
+          "capture:stub/WRK-04/at-cap"
+        ]
+      },
+      {
+        "bindingId": "WRK-04::missing/1",
+        "recordId": "WRK-04",
+        "role": "runtime",
+        "status": "UNOBSERVED",
+        "facts": {
+          "actorKind": "WRK-04/at-cap",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": false,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "argvEntries": 1,
+          "argvUtf8Bytes": 8192,
+          "argvSha256": "71d6be000c23506d2cb5d7165d8eeb7e2a8236b7861785723b297f85edddc8e3",
+          "inputBytes": 0,
+          "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "chunkBytes": [],
+          "producerReuse": false,
+          "sameCallerReason": false,
+          "sameHostReason": false,
+          "sameSinkReason": false,
+          "ownershipObserved": false
+        },
+        "evidenceRefs": [
+          "capture:stub/WRK-04/at-cap"
+        ]
+      }
+    ],
+    "local": null,
+    "localIdentityFacts": {
+      "selectedIsCaller": false,
+      "selectedIsHost": false,
+      "hasHarnessFailure": true
+    }
+  }
+}

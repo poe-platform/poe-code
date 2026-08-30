@@ -1,0 +1,55 @@
+{
+  "at": "2026-08-29T13:36:31.764Z",
+  "source": "5861ec9a8750de90bf38f93a2cd0df66198e8d9f",
+  "actualSeal": {
+    "bytes": 67586,
+    "sha256": "98b005cf2ed86002f08da295161cd6b54546ee509164be9b549ba926546fbf42"
+  },
+  "files": [
+    {
+      "path": "owner.mjs",
+      "bytes": 8633,
+      "sha256": "fdfd4b5ec63c0f4f3de322afe849a6bfcfbee5d5a2146d6372ad2ed902e9377f"
+    },
+    {
+      "path": "audit.mjs",
+      "bytes": 19062,
+      "sha256": "76ece415eedb47644f61a90780482349df9f508575d5eb3bca0d5188a96a1ce9"
+    },
+    {
+      "path": "ROLE-PLAN.json",
+      "bytes": 918,
+      "sha256": "8990080ba79e32a29f43736ef68020beb56940848f26b598ca03f313b4808b5d"
+    }
+  ],
+  "membership": {
+    "observations": 26,
+    "artifactFiles": 125,
+    "captureFiles": 109,
+    "sourcePinRecords": 154,
+    "tools": 4,
+    "controls": [
+      "C01 valid binary frame",
+      "C02 wrong magic",
+      "C03 missing final NUL",
+      "C04 extra field",
+      "C05 length mismatch",
+      "C06 noncanonical base64",
+      "C07 mismatched ID",
+      "C08 invalid status and raw-hash tamper"
+    ]
+  },
+  "boundary": "PURE DATA only; no source-helper or product module imports, process/Worker/native calls or old PID probes; one audit helper",
+  "reviewRoles": {
+    "plannedThroughPublication": 20,
+    "ceiling": 32,
+    "peak": 2,
+    "additionalSourceReadersFromReserve": 4,
+    "priorTwoFailures": "not rescored"
+  },
+  "qualifications": [
+    "expected bytes/hash before JSON/frame decode",
+    "recorded owner exit0 is ROOT report, not independent approval-service/exit telemetry",
+    "receiptPublished false in persisted rows precedes later credit; authenticate journal + RESULTS separately"
+  ]
+}

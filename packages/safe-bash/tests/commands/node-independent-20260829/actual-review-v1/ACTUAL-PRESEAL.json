@@ -1,0 +1,174 @@
+{
+  "schema": "independent-node-executable-preseal-v1",
+  "candidate": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3",
+  "authorEvidence": "af66b7748af06319751b6cf87acacbe43acc48fd",
+  "fullPackage": "f6b13bd116196cd5559a2d6b5d8578c5c7f614af095f7f00515bd341366c4092",
+  "conditionalRootGrant": "latest user actual-review grant; only after this preseal committed",
+  "inputs": [
+    {
+      "path": "launch.mjs",
+      "bytes": 4842,
+      "sha256": "3a70fa64977b85fb925802abc2fcd387b9d47fb8b06505ce4bfd7d1aaf883aee"
+    },
+    {
+      "path": "capsule-v2/BASE-PACKAGE-v1.json",
+      "bytes": 127885,
+      "sha256": "3f97f00039e1e12d9afdd6fe800b6ae437d375c0f4e3c994825ce7818f926c51"
+    },
+    {
+      "path": "capsule-v2/BUILTINS-v5.json",
+      "bytes": 63685,
+      "sha256": "e4771ac7c4e80a3bfe274dfecc623cec440a805d6989b43e73f45860a1e52711"
+    },
+    {
+      "path": "capsule-v2/CONTROL-v5.json",
+      "bytes": 4835,
+      "sha256": "f7fa600b2cb5e836ddf9efd52226224cac06fd3bbd8d1efc4f8bf5163bfc528f"
+    },
+    {
+      "path": "capsule-v2/INPUTS-v1.json.gz.base64",
+      "bytes": 1939657,
+      "sha256": "18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4"
+    },
+    {
+      "path": "capsule-v2/MODULE-v5.json",
+      "bytes": 189595,
+      "sha256": "5210a762b00e1ea614d881a4fb3a3aad1e4953601faca294d20fa0e4af4bbb9d"
+    },
+    {
+      "path": "capsule-v2/MUTATIONS-v5.json",
+      "bytes": 1719,
+      "sha256": "531c2ca73ddeceed30c2b93278dea24dfe5a344e2c131965d5176a580cf27a4a"
+    },
+    {
+      "path": "capsule-v2/PRESEAL-v5.json",
+      "bytes": 3487,
+      "sha256": "945c7e202e54146d63bb2b6abb7e4225f60eb8fa407c985ca1989ba977dd9647"
+    },
+    {
+      "path": "capsule-v2/WORKER-CASES-v5.json",
+      "bytes": 2616,
+      "sha256": "b0389072f54d6d822a7d0cb4eaa535ae3b347ce89583279c668af6c5279c551e"
+    },
+    {
+      "path": "capsule-v2/capture-v1.mjs",
+      "bytes": 3135,
+      "sha256": "745d02d2ffc87085810df9a339c8152bcd7c5fdfee13e98c7a26a01137074177"
+    },
+    {
+      "path": "capsule-v2/case-runner-v5.mjs",
+      "bytes": 1312,
+      "sha256": "3a6cd63b6bfa537fd2059daf78f8f52a8d2024367c9166505f4c1a362dfb7bf7"
+    },
+    {
+      "path": "capsule-v2/engine-adapter-noise-v1.mjs",
+      "bytes": 282,
+      "sha256": "e9001c5a4dde7202d1223c97de9248dc9ed3714f33aa98af13e989defbe19653"
+    },
+    {
+      "path": "capsule-v2/engine-adapter-v1.mjs",
+      "bytes": 1484,
+      "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"
+    },
+    {
+      "path": "capsule-v2/focused-v5.mjs",
+      "bytes": 16082,
+      "sha256": "646d306d0cd9f59c26e9615ac6672df0f38ef6c705d12979577f1582fcd4372b"
+    },
+    {
+      "path": "capsule-v2/host-guard-v1.mjs",
+      "bytes": 643,
+      "sha256": "f5cbc54f084b0a5b2f81a12e32e28ed058e302b5fbd152ef919314e31110ad1e"
+    },
+    {
+      "path": "capsule-v2/independent.mjs",
+      "bytes": 10810,
+      "sha256": "a647087f3d91d0a574a1265c5f3d84e760a850456a8b1c450370a818d1a7292d"
+    },
+    {
+      "path": "capsule-v2/judge-v5.mjs",
+      "bytes": 9047,
+      "sha256": "76e442cf05a014cde8d86a0f028950e00050db4eaefcf0bf4b25842276cec132"
+    },
+    {
+      "path": "capsule-v2/load-guard-v1.mjs",
+      "bytes": 2450,
+      "sha256": "0c5098f8ad78441d0a002f05ff29ca7f6c473381a94db6e96d7ae85dcc92055c"
+    },
+    {
+      "path": "capsule-v2/load-negative-v1.mjs.data",
+      "bytes": 650,
+      "sha256": "cf10fa1da5c1437b76108da925cf6df586aeadf678bd963712918978da250a4a"
+    },
+    {
+      "path": "capsule-v2/owner-v5.mjs",
+      "bytes": 29346,
+      "sha256": "6148785b3f53f20cfdfd358cba83a0718d181425a9b0289a9049b4be68506a21"
+    },
+    {
+      "path": "capsule-v2/raw-controls.mjs",
+      "bytes": 7070,
+      "sha256": "a220a9a77e615d94a884e4590a098015a1b7207527bdd8691d140805ce2939a4"
+    },
+    {
+      "path": "capsule-v2/types-v1.mts.data",
+      "bytes": 3022,
+      "sha256": "2bf84e25975a71b916176d90adf66c344c27967f9384ed6d43f497d965e377ee"
+    },
+    {
+      "path": "capsule-v2/workers-v5.mjs",
+      "bytes": 13383,
+      "sha256": "c3691d8d2502cb36f9ec698034cd07de88273a28714535d6ba00115248afb971"
+    }
+  ],
+  "plan": {
+    "authorMappedIdentities": 61,
+    "newBOMIdentities": 2,
+    "mainAuthorExecutions": 189,
+    "mainIndependentRows": 66,
+    "rawIndependentIdentities": 12,
+    "engineIndependentIdentities": 10,
+    "mainWorkerCeiling": 141,
+    "mainGuestCeiling": 141,
+    "mutantFamilies": 6,
+    "mutationCaseProcesses": 12,
+    "loadNegativeFamilies": 6,
+    "typePositiveIdentities": 12,
+    "typeNegativeIdentities": 12,
+    "typeProcesses": 6,
+    "strictBuild": 1,
+    "pack": 1,
+    "offlineInstall": 1,
+    "expectedOwnerChildStarts": 120
+  },
+  "actualLimits": {
+    "wallMs": 4500000,
+    "allOS": 192,
+    "peakOS": 4,
+    "captureBytes": 268435456,
+    "workBytes": 1073741824,
+    "workers": 256,
+    "guests": 256,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "ownerReserved": {
+    "children": 140,
+    "workers": 192,
+    "guests": 192,
+    "wallMs": 3600000
+  },
+  "administrationReserve": {
+    "prepAndPublicationOS": 48
+  },
+  "scope": "Node-only selected composition; no private/network/native oracle/root changes",
+  "knownQualification": [
+    "61 versionmapped author identities plus2new BOM identities=63, not original61 rescored",
+    "22 independent rows:12 raw controls,10 selected actual-engine/preflight families; detailed38-family mapping explicitly partial",
+    "8type/6load families mapped to actual strict declarations/loadcontrols, not extra hidden cohorts",
+    "6 loaded mutation classes with exact restored blobs; a missing emission anchor remains UNRUN",
+    "W23 old loop telemetry unknown; W23-v2 diagnostic detail UNKNOWN remains",
+    "No full Node, all-jobs, RSS, or whole-guest8MiB claim"
+  ],
+  "timing": "post-author and post-sourceinspection; no compiler/product/Worker/guest before committed seal"
+}

@@ -1,0 +1,1951 @@
+{
+  "schema": "independent-owned-output-validity-phase1-inputs-v1",
+  "reviewerThread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "mode": "STATIC_ONLY_NO_PROMOTION",
+  "beforeAt": "2026-08-27T15:40:34.227890+00:00",
+  "afterAt": "2026-08-27T15:47:13.747910+00:00",
+  "preliminaryReadsBeforeSnapshot": true,
+  "privateQueries": 0,
+  "snapshotRoots": [
+    {
+      "root": "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/source-route",
+      "directories": 79,
+      "groups": {
+        "all": {
+          "files": 940,
+          "sha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28"
+        },
+        "source": {
+          "files": 213,
+          "sha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea"
+        },
+        "compiled": {
+          "files": 708,
+          "sha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f"
+        }
+      }
+    },
+    {
+      "root": "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/packaged-route",
+      "directories": 79,
+      "groups": {
+        "all": {
+          "files": 940,
+          "sha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28"
+        },
+        "source": {
+          "files": 213,
+          "sha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea"
+        },
+        "compiled": {
+          "files": 708,
+          "sha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f"
+        }
+      }
+    },
+    {
+      "root": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine",
+      "directories": 20,
+      "groups": {
+        "all": {
+          "files": 264,
+          "sha256": "e3af7cb5d53cb3c64d22f7ac20c187cc3b7347754857811f210b8c32a937d90f"
+        }
+      }
+    }
+  ],
+  "sharedBytesModeMtimeCtimeAndDirectoryNamesUnchanged": true,
+  "newEntryDetection": "Complete regular-file and directory-name re-enumeration; symlinks refused; includes new empty directories in the three scoped roots",
+  "excludedClaims": [
+    "directory metadata",
+    "atime",
+    "atomic/intervening/future state",
+    "private checkout current identity",
+    "unrelated public working tree unchanged",
+    "runtime acceptance"
+  ],
+  "completeTemporarySnapshotRecords": [
+    {
+      "path": "/tmp/safe-bash-owned-output-validity-independent-01a043dd-before.json",
+      "sha256": "fc86775be6dc8149c292a51fa03fddd6795738628144096ca7ff9ffc9ba01a59"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-validity-independent-01a043dd-after.json",
+      "sha256": "4bf4485abc87f5aa95926930785f000b1889d6fbd073a4930b97ffe593e71e4d"
+    }
+  ],
+  "dataInspectionHelper": {
+    "path": "/tmp/safe-bash-owned-output-validity-independent-01a043dd-audit.py",
+    "sha256": "d9def242337554c6891f545760fb862faed9d344779a9c8e4cab550bf9bc95fd",
+    "scope": "Git objects and regular-file bytes/metadata only; no product imports or execution"
+  },
+  "assemblyReceiptInventory": {
+    "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+    "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/proof.json",
+    "selector": "routes.candidateFiles",
+    "matchedCompleteEntriesPerRoute": 940
+  },
+  "engineReceiptInventory": {
+    "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+    "path": "tests/integration/safejs-owned-output-prototype-review/provenance/snapshot-after.json",
+    "selector": "private.engine",
+    "matchedCompleteEntries": 264,
+    "historicalPrivateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e"
+  },
+  "frozenBindings": [
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/REPORT.md",
+      "bytes": 10729,
+      "sha256": "9fa7c7d6ccb629a2b695d890809263828c429708e58b2029481f44d29da708ca",
+      "currentMatches": false
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/SEAL.json",
+      "bytes": 7575,
+      "sha256": "708d69df8972c0dab3f5663689f86f82ff1d8a027acccc90e9becc5825f8a40d",
+      "currentMatches": false
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/STAGES.md",
+      "bytes": 10465,
+      "sha256": "530775960c0bc71e0094f1c4dd1fc918b6e6b58de71293fc5d48dbffb0827a7b",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/children.json",
+      "bytes": 392347,
+      "sha256": "bfed44575342486943a998feb3956ee66f0548da41f9355cc34d20b94f5f1b7d",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/extract.py.data",
+      "bytes": 1890,
+      "sha256": "77c0b5bf504915143463713a5523b3b4b2c0dd15f0c4068b550a98f7c736dc5e",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/inspect-declarations.mjs.data",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/private-after.json",
+      "bytes": 125215,
+      "sha256": "37df96aa44e5c605f82ad9eb60ad61e600d1e2009998f34c82a9cc255cf6e012",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/private-before.json",
+      "bytes": 124831,
+      "sha256": "f418bce0c9b96eebfe7613fca0f825e52cc96b0940c20e1804c25583891b69fa",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/proof.json",
+      "bytes": 654690,
+      "sha256": "5b0f7c9c9c29a9713dd502295e8452b2e7be61a346af4e9eb55a92e597e7b75d",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/review.mjs.data",
+      "bytes": 28103,
+      "sha256": "235cb9bc910304c653b049e9007d9ac3d2c8db1c114920ce55e89ffab3564b4c",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/scratch-cleanup.json",
+      "bytes": 131,
+      "sha256": "187d75d418cf01b096c0d016ef738e087702a29f8ea4e3172f6599fac022dbbd",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/children.json",
+      "bytes": 395697,
+      "sha256": "3cb134eba00589009973c0025fec12b82949e1d8fa08fb5427182501fdf609e6",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/extract.py.data",
+      "bytes": 3263,
+      "sha256": "a7e67d93b70356bfafbe3894a3e7ea3bb3683ccf9ba128c4249ec9643f1c982c",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/inspect-declarations.mjs.data",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/private-after.json",
+      "bytes": 125542,
+      "sha256": "1ccde61f48578744a23e13812bbc8e8cc027f7ada263ae021bac57b004172763",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/private-before.json",
+      "bytes": 125313,
+      "sha256": "d310e9f65dbb8cd48470d9eefc66c050ca1d82d49aebeba24991002235e73d30",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/proof.json",
+      "bytes": 832227,
+      "sha256": "e22adc4de482f939afc792c74327856b9faf4f9c6ccc5a42bcd613efcf143d4b",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/review.mjs.data",
+      "bytes": 28398,
+      "sha256": "4755aff7d920c3f4d3ba53c06f9a7c5fec22c12c4956cd6cf93d2ddc7d6f5183",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/scratch-cleanup.json",
+      "bytes": 131,
+      "sha256": "8c2ce4d258f3d3e66e5ea0834cb561fc235f195fb69ba2e1ac29bee28a95c034",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/start.mjs.data",
+      "bytes": 2524,
+      "sha256": "784c52b17b87c717cb7f6a20c82bde633d9f4d499c38c11b2c8c9235321f0c6f",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/children.json",
+      "bytes": 399525,
+      "sha256": "74fc587c133cc4c2a9e7f7c48fb365e3720b88de39a96b9d4b55386f7b2ce532",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/private-after.json",
+      "bytes": 125509,
+      "sha256": "a8b2fd6cca0416c45b947ccad3c30aded3b157cbcfb9f93962c2579b4041dcea",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/private-before.json",
+      "bytes": 125239,
+      "sha256": "7422703e7e4c590f4345d18a5cec04ef87cb3ab53ddac2bdb2ac601841b5f12a",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/proof.json",
+      "bytes": 1130772,
+      "sha256": "fe19612e093ca3ef78152bcca666606966905f5736b2d0e4f090e7854a5ece99",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/extract.py",
+      "bytes": 3263,
+      "sha256": "a7e67d93b70356bfafbe3894a3e7ea3bb3683ccf9ba128c4249ec9643f1c982c",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/inspect-declarations.mjs",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/review.mjs",
+      "bytes": 29721,
+      "sha256": "1ef5a588fbe676ecea45cdbca3ee949ebbacec36a012b9a67dde38ea087010bd",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/start.mjs",
+      "bytes": 2524,
+      "sha256": "784c52b17b87c717cb7f6a20c82bde633d9f4d499c38c11b2c8c9235321f0c6f",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json",
+      "bytes": 2713,
+      "sha256": "28f079b2cc6a7acba9aa11acf1e8b4562f935dd4bf879e81d2621a628c88ba10",
+      "currentMatches": true
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verify-results.mjs",
+      "bytes": 5656,
+      "sha256": "ef9d0bff71f3f33ae89a4e7ca73cbbc3fa688b5c3577acd69425690f6eff295e",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/REPORT.md",
+      "bytes": 10814,
+      "sha256": "81a8b977284f033824815f601ab6d0f09705779f02515478ae408bf79ec3eee0",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/SEAL.json",
+      "bytes": 7575,
+      "sha256": "c4bac8f66badf7c8a8827929366f6ece4e9da0ca52f7285a13296e54026f5a8a",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/STAGES.md",
+      "bytes": 10465,
+      "sha256": "530775960c0bc71e0094f1c4dd1fc918b6e6b58de71293fc5d48dbffb0827a7b",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/children.json",
+      "bytes": 392347,
+      "sha256": "bfed44575342486943a998feb3956ee66f0548da41f9355cc34d20b94f5f1b7d",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/extract.py.data",
+      "bytes": 1890,
+      "sha256": "77c0b5bf504915143463713a5523b3b4b2c0dd15f0c4068b550a98f7c736dc5e",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/inspect-declarations.mjs.data",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/private-after.json",
+      "bytes": 125215,
+      "sha256": "37df96aa44e5c605f82ad9eb60ad61e600d1e2009998f34c82a9cc255cf6e012",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/private-before.json",
+      "bytes": 124831,
+      "sha256": "f418bce0c9b96eebfe7613fca0f825e52cc96b0940c20e1804c25583891b69fa",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/proof.json",
+      "bytes": 654690,
+      "sha256": "5b0f7c9c9c29a9713dd502295e8452b2e7be61a346af4e9eb55a92e597e7b75d",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/review.mjs.data",
+      "bytes": 28103,
+      "sha256": "235cb9bc910304c653b049e9007d9ac3d2c8db1c114920ce55e89ffab3564b4c",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r0/scratch-cleanup.json",
+      "bytes": 131,
+      "sha256": "187d75d418cf01b096c0d016ef738e087702a29f8ea4e3172f6599fac022dbbd",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/children.json",
+      "bytes": 395697,
+      "sha256": "3cb134eba00589009973c0025fec12b82949e1d8fa08fb5427182501fdf609e6",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/extract.py.data",
+      "bytes": 3263,
+      "sha256": "a7e67d93b70356bfafbe3894a3e7ea3bb3683ccf9ba128c4249ec9643f1c982c",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/inspect-declarations.mjs.data",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/private-after.json",
+      "bytes": 125542,
+      "sha256": "1ccde61f48578744a23e13812bbc8e8cc027f7ada263ae021bac57b004172763",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/private-before.json",
+      "bytes": 125313,
+      "sha256": "d310e9f65dbb8cd48470d9eefc66c050ca1d82d49aebeba24991002235e73d30",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/proof.json",
+      "bytes": 832227,
+      "sha256": "e22adc4de482f939afc792c74327856b9faf4f9c6ccc5a42bcd613efcf143d4b",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/review.mjs.data",
+      "bytes": 28398,
+      "sha256": "4755aff7d920c3f4d3ba53c06f9a7c5fec22c12c4956cd6cf93d2ddc7d6f5183",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/scratch-cleanup.json",
+      "bytes": 131,
+      "sha256": "8c2ce4d258f3d3e66e5ea0834cb561fc235f195fb69ba2e1ac29bee28a95c034",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r1/start.mjs.data",
+      "bytes": 2524,
+      "sha256": "784c52b17b87c717cb7f6a20c82bde633d9f4d499c38c11b2c8c9235321f0c6f",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/children.json",
+      "bytes": 399525,
+      "sha256": "74fc587c133cc4c2a9e7f7c48fb365e3720b88de39a96b9d4b55386f7b2ce532",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/private-after.json",
+      "bytes": 125509,
+      "sha256": "a8b2fd6cca0416c45b947ccad3c30aded3b157cbcfb9f93962c2579b4041dcea",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/private-before.json",
+      "bytes": 125239,
+      "sha256": "7422703e7e4c590f4345d18a5cec04ef87cb3ab53ddac2bdb2ac601841b5f12a",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/proof.json",
+      "bytes": 1130772,
+      "sha256": "fe19612e093ca3ef78152bcca666606966905f5736b2d0e4f090e7854a5ece99",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/extract.py",
+      "bytes": 3263,
+      "sha256": "a7e67d93b70356bfafbe3894a3e7ea3bb3683ccf9ba128c4249ec9643f1c982c",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/inspect-declarations.mjs",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/review.mjs",
+      "bytes": 29721,
+      "sha256": "1ef5a588fbe676ecea45cdbca3ee949ebbacec36a012b9a67dde38ea087010bd",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/start.mjs",
+      "bytes": 2524,
+      "sha256": "784c52b17b87c717cb7f6a20c82bde633d9f4d499c38c11b2c8c9235321f0c6f",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json",
+      "bytes": 2713,
+      "sha256": "28f079b2cc6a7acba9aa11acf1e8b4562f935dd4bf879e81d2621a628c88ba10",
+      "currentMatches": true
+    },
+    {
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verify-results.mjs",
+      "bytes": 5656,
+      "sha256": "ef9d0bff71f3f33ae89a4e7ca73cbbc3fa688b5c3577acd69425690f6eff295e",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/CASES.json",
+      "bytes": 32535,
+      "sha256": "ea3c11a8b8ffaa3d39eb92034dd633e9f4d7343568817f5677ff605399b64dda",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/FREEZE-v2.json",
+      "bytes": 4546,
+      "sha256": "62c7f2a5bddf5b9b9c5ed6b236e4509560d32d14f7f702df2a2dc77fc4668852",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/FREEZE.json",
+      "bytes": 3516,
+      "sha256": "5236cc51ee25fc6d19bbc2f79a229f268c733a52b49f00fc462ae812f0f0fd1c",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/PINS.json",
+      "bytes": 28218,
+      "sha256": "b8f437199991fd6afda5ba63da4cde9b29d9b3217164e3bbd90969b3c8da7992",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/README-v2.md",
+      "bytes": 2756,
+      "sha256": "d57ab3c1b103b2bce89326fc755ff401dfe70004122aefd3854a84e4dca0d83c",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/README.md",
+      "bytes": 4684,
+      "sha256": "900a2757d8abcbd2f7c1094ac6962bc58b61380cebaf985dd6a151a390ca101b",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/RUNNER-PLAN.md",
+      "bytes": 11349,
+      "sha256": "c04cde76c6ce36cb44647eb632fa2432b4ccb9e49538cab9c6ea60818d892844",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/TOOL-RESOLUTION.json",
+      "bytes": 477,
+      "sha256": "6bdc5715b38fc14787f58ee7ef032f220806f888905f3942d550971437c8c7a9",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/01-supported-facades.guest.txt",
+      "bytes": 404,
+      "sha256": "4c6885f6a955bfcf152fa3650606509bd69a73afa7f69f6bd769cc54bd564bbb",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/02-direct-surface.guest.txt",
+      "bytes": 1086,
+      "sha256": "970a33f3f8322914a2ee1b80f42402247e9a2b3c2b7c90cb357c108dc283ca96",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/03-namespace-spread.guest.txt",
+      "bytes": 1389,
+      "sha256": "9ec871073ce7cca53f43c9cf6a5e8fbb9ffef80f3a988decbf7dcf704b2f72b9",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/04-shell-module.guest.txt",
+      "bytes": 837,
+      "sha256": "197fb4d9644385be82ffbd2f2e9544cb43cd078b58f7c0bee9efbebcd4e08b38",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/05-missing-register-cleanup.guest.txt",
+      "bytes": 459,
+      "sha256": "5b6e48ffba4e45212a6e9c4b31c8d445f5a71b2e4d54de28b38e5ba60bb61f50",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/06-missing-acquire.guest.txt",
+      "bytes": 543,
+      "sha256": "07f8c9ad71d5f102ba0b4d6d8388a2e6e085c4a1a2f7b189b4996015f2012a8d",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/07-reflection-profile.guest.txt",
+      "bytes": 666,
+      "sha256": "f17be70596dafc1d96cc0700f3af708efca0d33f4e4c701ed2d45d0c8310d009",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/08-function-spread-profile.guest.txt",
+      "bytes": 52,
+      "sha256": "96a9b23cc16568b930baaa636e16ed8a6134c9e18f4d8d289d0ccb4378a41462",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/09-conditional-finite-marker.guest.txt",
+      "bytes": 280,
+      "sha256": "83f4f6eae4a3be6fd789ddaf8e9645393a0e3d0b0adbed7d054ec211d4452af8",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/public-workspace-before.json",
+      "bytes": 39003,
+      "sha256": "47e1a41b0f8ed24db9fe6193d3693bf4ad45284f13e89555042a8cb27d93042e",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/static-check-failure-01.json",
+      "bytes": 1398,
+      "sha256": "5e5ea3e86baccde136f4a5750849cce09fe554b424a4fb928737c3af608f8a89",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/static-check-v2.json",
+      "bytes": 6278,
+      "sha256": "7267c1a2b142bf1bccc34f4d6a42cc5c722c5ebcdf08356ab54f8b2624fe8756",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/verify-prepared-v2.mjs",
+      "bytes": 9343,
+      "sha256": "62cc8325405a7024b7908583da3e1b26c81d6a5aae6ed075f0508d0a473a7e23",
+      "currentMatches": true
+    },
+    {
+      "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/verify-prepared.mjs",
+      "bytes": 8564,
+      "sha256": "fed4a55c0b82022fafbf70385cd7f32a4e7bc2f5dd9b5414287d402a40d7dc13",
+      "currentMatches": true
+    },
+    {
+      "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/README.md",
+      "bytes": 3734,
+      "sha256": "a6bc55b72627070825d1e62714e27606b9e5f218fbca12f3ac0c5c525425c48f",
+      "currentMatches": true
+    },
+    {
+      "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/RELEASE.json",
+      "bytes": 1759,
+      "sha256": "de6f5c35dd4b962e5a3e4cbd426cd87d0a5cdb11761b8bc9159079b2107f471a",
+      "currentMatches": true
+    },
+    {
+      "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/RUNNER-FREEZE.json",
+      "bytes": 1094,
+      "sha256": "f8423823ad7af2ed4e880bf5ce74a73a3ff7ab498c47ad02dc3050deda1ef4f0",
+      "currentMatches": true
+    },
+    {
+      "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/child.mjs",
+      "bytes": 12759,
+      "sha256": "5cab487b9a63feade2048a1f6b13fb3756f668d14f7a3ecacbf7b921da97c13d",
+      "currentMatches": true
+    },
+    {
+      "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/run.mjs",
+      "bytes": 22406,
+      "sha256": "91c6af3375fe486366206b080032a7f3f86d218d12faf018b8a38b0689ae0460",
+      "currentMatches": true
+    },
+    {
+      "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/syntax-check.json",
+      "bytes": 437,
+      "sha256": "e15e0a2f79025a35f4be645627661708abb99eda6ad899f2c65712b91b2b26c7",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/CAPTURE-MANIFEST.json",
+      "bytes": 9754,
+      "sha256": "a6b8fdad3e77a6ab23aa932212ad3074b5f76e2b834a1831f90bfaa961d03e4b",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/CLOSEOUT.json",
+      "bytes": 3503,
+      "sha256": "6db32bd2457d55b2f8a5833572b5c2fb8bfe3fa604d772e758b389d042e060dc",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/OBSERVATIONS.json",
+      "bytes": 7424,
+      "sha256": "7d12077bd106fa600ebd96b196d2590fd53b638fc694603c652370f8074267c3",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/REPORT.md",
+      "bytes": 10172,
+      "sha256": "ce8465f691158d54a9cd94abe2757f3b114195565fb55b4f900e86767975101c",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/01-supported-facades/actual.json",
+      "bytes": 122927,
+      "sha256": "ed0dac30dcf90263c438cc955d4b511674d8e48a77aa19356ee5c92c37131e2d",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/01-supported-facades/assessment.json",
+      "bytes": 1269,
+      "sha256": "5454ddd7f6675e4581256a9f7446d22ee6c479ae85b5dc84715fed6b36204b4f",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/01-supported-facades/child.json",
+      "bytes": 341,
+      "sha256": "c98eee97d98546b9359832ec68be944767698467f37557ba07954c28ac5254ae",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/01-supported-facades/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "985adee0b4723d6118ed124c4c0d14d918aa86e29f36102fe0ef802c73b96a83",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/01-supported-facades/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/01-supported-facades/stdout.log",
+      "bytes": 68,
+      "sha256": "7f26b055bb14eb059a624b64d85e1d0431145604b047c864d8f397d59e2b1cf9",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/02-direct-surface/actual.json",
+      "bytes": 151217,
+      "sha256": "043ace7511442d1b6d01ba78880d89d548e150d47246dfc3467fbd65cbd05910",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/02-direct-surface/assessment.json",
+      "bytes": 2162,
+      "sha256": "0b1499de816e91c062f4a3f703b3a21cb913c59364f6d18472026c9623dcfa18",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/02-direct-surface/child.json",
+      "bytes": 338,
+      "sha256": "91f834723cb2491b342400e84787225cc3c085ff076dba5d47fea68caa58f8e2",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/02-direct-surface/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "5866aeae1c6a4f03a879f25b08738fd2d3358353d21c7e0ce06451af4edf532c",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/02-direct-surface/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/02-direct-surface/stdout.log",
+      "bytes": 65,
+      "sha256": "2b55fd05907f1b82a33e0ac63c013c3ee2ec4e96023b2fdaa5a22d5e03c96584",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/03-namespace-spread/actual.json",
+      "bytes": 148178,
+      "sha256": "e5115218587d21b9d58fac8d701dda3dcea357d2663308e729794afb96aa7854",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/03-namespace-spread/assessment.json",
+      "bytes": 2065,
+      "sha256": "3493123e9b4aaf5e9514441353b197429638eca3c7d17fbe2279defcabc5e0bd",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/03-namespace-spread/child.json",
+      "bytes": 340,
+      "sha256": "dd81adbad95fe54c7497ddb199e002db40b48ae7a0f49692e3a8869b15623ab5",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/03-namespace-spread/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "5df4e96672207dc5c630f73e3efdb1a19eac39914d2db5f354a517d992d6cf25",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/03-namespace-spread/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/03-namespace-spread/stdout.log",
+      "bytes": 67,
+      "sha256": "b0a2ebd4885b6064dc3d3516b90c8fedbbf1cb9530c759f3257c9f97ad2085d3",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/04-shell-module/actual.json",
+      "bytes": 137636,
+      "sha256": "7188bc3ff3dc2fd2b0acea6eaa066bac77608d8d6ac7c5a9b9e441f51bc9e517",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/04-shell-module/assessment.json",
+      "bytes": 1645,
+      "sha256": "3895ab05083ad3badcc6e4c5f3b6e70f4b43a8808a5eb3d15207c131d54cbe34",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/04-shell-module/child.json",
+      "bytes": 336,
+      "sha256": "b937a0eb10435d7ed8f6c7739251ae0b561271bb21055cb3e169adec355225aa",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/04-shell-module/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "51fd019a2a1fd948453301bccf7f6de8b831423a8a10e6d31be5784cc0d716c5",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/04-shell-module/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/04-shell-module/stdout.log",
+      "bytes": 63,
+      "sha256": "f6bec38e8bbe007eadafeeaba3e513b6c4ddb7db3c6b8b904989dc70c187ae1b",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/05-missing-register-cleanup/actual.json",
+      "bytes": 122682,
+      "sha256": "04ac8f82991dbdae60f3f64088c2e64f1ef15b6a6e5a2a2c73c079c9f0251aa4",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/05-missing-register-cleanup/assessment.json",
+      "bytes": 1276,
+      "sha256": "bf0af86675f3c4cf1528548196bc42cd37d047f6941cd748bdb40ed5458b94e5",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/05-missing-register-cleanup/child.json",
+      "bytes": 348,
+      "sha256": "4c30aeb22c0fdcf1b7daa7b94a32ad06607b5ae724f12518af9ee7e6612456b0",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/05-missing-register-cleanup/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "043b286c2418de4e96f83b20091b28de51ef92f1d4a7f0c7f7407dff16cc4846",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/05-missing-register-cleanup/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/05-missing-register-cleanup/stdout.log",
+      "bytes": 75,
+      "sha256": "8d244a7c305214b150f369f193b3b0d3a69a87176e7b047a83d6f809acdf9a66",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/06-missing-acquire/actual.json",
+      "bytes": 122866,
+      "sha256": "ec9eeab687e3a98d958bfe2cf1d5bd4e9db5444892d55b40205bee5fbe33777c",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/06-missing-acquire/assessment.json",
+      "bytes": 1267,
+      "sha256": "c5cc0156676d9ed8fdfe77fba5e1f90825f7402afe7009202a80ea1baab5909b",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/06-missing-acquire/child.json",
+      "bytes": 339,
+      "sha256": "7dc7a05dcbdb63c4424dee3c5a7b3906b8eaa278999325d2e5a08f401ee9864a",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/06-missing-acquire/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "7832d7c2b424eaee75586eb0fdd8c008d0c11bbfab96268cf7f3b8eb973c35d6",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/06-missing-acquire/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/06-missing-acquire/stdout.log",
+      "bytes": 66,
+      "sha256": "d62258beb95546519025aa16846c128be5fb4e0117b374e4d8205410caf4138c",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/actual.json",
+      "bytes": 123837,
+      "sha256": "944050ba327e2b4ed7bde6d0127976cb783ebc32c63da8c4146b0499e6fd6198",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/assessment.json",
+      "bytes": 1292,
+      "sha256": "1d5df6971d45f20ce8b1754f194a15618c7cac5ccb6b9b786cb4b07983a5159b",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/child.json",
+      "bytes": 342,
+      "sha256": "71f70c80e67c501a2c2dc4b3e2650957d647f4202a3ef68f50953e3933d570a7",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "2fa4313ce54ef2d8db98491f25d194da316e1f78a23635b85bc920f903d28381",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/stdout.log",
+      "bytes": 69,
+      "sha256": "d5dad48d9954d3a941ebb41a5a09f5003bd1dd6e1829dca2e6046bd07bb9348d",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/actual.json",
+      "bytes": 121414,
+      "sha256": "ff76cdea1644b406cf71318fa99c96e9bf5cd90ee34a0c400a451265ae26c4e1",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/assessment.json",
+      "bytes": 1388,
+      "sha256": "bcc53fc278bb7180a52d13f9e6296c17603e20d769941702d7107886033dfd83",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/child.json",
+      "bytes": 345,
+      "sha256": "3a52b5ec5e26542d9eb23c3bcc4be76cf6c063e6725ea5aac8a9c70e5b602330",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/imports.ndjson",
+      "bytes": 41350,
+      "sha256": "21dd9e86f3720ad7b87f56a5538f93bf0aaf214a33b70bb3e0766c4bec412e36",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/stdout.log",
+      "bytes": 74,
+      "sha256": "813aa23d16efb0f126613ee7f0b7573375bc019527f24dd4744efafdec7e0fe3",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/copy-provenance.json",
+      "bytes": 380466,
+      "sha256": "1c670094f988e9273551b8aa3c970f9a728a306bb470cf9847e79ce99f805c3a",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/import-allowlist.json",
+      "bytes": 269733,
+      "sha256": "0dfa16c9d6603dfd221a4a829bd416b30d4af8803b6091e7a6a703dc44f8dd5f",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/inputs-after.json",
+      "bytes": 582373,
+      "sha256": "562049b6f2e0fde5c43f46c0221269c87c18c156f160f9e16421c14cb05fbf56",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/inputs-before.json",
+      "bytes": 582373,
+      "sha256": "562049b6f2e0fde5c43f46c0221269c87c18c156f160f9e16421c14cb05fbf56",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/journal.json",
+      "bytes": 423469,
+      "sha256": "88cf841e3dd51d9111d96dacf2b6ec465c5a0e339ceb6dd9e91b8c4e2b21016f",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/private-after.json",
+      "bytes": 69616,
+      "sha256": "6bc2ec3c43cfdaec2e055583d23fa2aab12fb1370eb2bf7dd4efca3f1685cd6e",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/private-before.json",
+      "bytes": 69616,
+      "sha256": "48f3ffc5238604772381ed7ae7746733013f8e2d5335723f7694f0529daf6da8",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/public-before.json",
+      "bytes": 56596,
+      "sha256": "017ec7191e3a773f876140d5c5fa19149e1d9481d0fae1e8ba855bf06fb0c7fa",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/shared-guard.json",
+      "bytes": 2434,
+      "sha256": "c82f540dafee6c1a1b9fe43a97b8444ce81d699218cef90422724173fae4fb76",
+      "currentMatches": true
+    },
+    {
+      "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/verify-evidence.mjs",
+      "bytes": 6054,
+      "sha256": "f3e267233e68d38b546cdab8a0342d4110ecff5d7c973c6b33fd710548b554aa",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/CASES.json",
+      "bytes": 9256,
+      "sha256": "acdc370de3e67573a1f3033740688a39cce6b35f9e4c511484598f56408809b3",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/FREEZE.json",
+      "bytes": 19582,
+      "sha256": "ebda136b328bce311fcf5d41d09b438c5706bd162917e508cbb5f438d0c35bb5",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/HARNESS-PLAN.md",
+      "bytes": 20818,
+      "sha256": "53296a65dd9b224531319bdab40588e4f1476cae52c0a65f08cbc5d997452d52",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/PREPARATION-NOTES.md",
+      "bytes": 1366,
+      "sha256": "e51ca7abfc3a073a57e234757e16b9cd103d4937cf6d44e1f8b70a1184695ee1",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/README.md",
+      "bytes": 4498,
+      "sha256": "698cd4155d4671d2455949fe4eb2a282317c200a17dc096fe8c00958a1055e10",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/SOURCE-PINS.json",
+      "bytes": 17846,
+      "sha256": "4b50b445e623976f52d5e16bb6023b16f3f427d95575c4350ee8bfa540b241d2",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/guests/aliases.ajs.data",
+      "bytes": 287,
+      "sha256": "0bd9972ad3287df00cb92f66727de788255ce9b7af9a4e1aee9bbac6ec57cd0c",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/guests/budget-callback.ajs.data",
+      "bytes": 322,
+      "sha256": "e1657c2e8201b754ca2203a611c48f71bbeda66957628dd5dbef75307e8dafd8",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/guests/children.ajs.data",
+      "bytes": 406,
+      "sha256": "c740c72d5d4d91786b597897287f8679809f5262676017a53bf8768f9dc6dfda",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/guests/curl.ajs.data",
+      "bytes": 355,
+      "sha256": "75da33a2321c9d19efe15ccb64a31b7a309b8d8b6b11abef7464f5ec88a18363",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/guests/lifetime-callback.ajs.data",
+      "bytes": 462,
+      "sha256": "21cb95c43780bd27b185ff1f21c6b921722de39aa269062cb7fba77a4e0b6063",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/guests/precedence.ajs.data",
+      "bytes": 170,
+      "sha256": "d08209d733eac4792eb3bd4033c2a8fa7c92eae25accdcb99a1b7e6cf90bb69c",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/inspect-source-pins.mjs",
+      "bytes": 8750,
+      "sha256": "a3c34748c4d95aece2178dd3eed7bf4284738bc32eecc0221e7bf393f98030ef",
+      "currentMatches": true
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/verify-freeze.mjs",
+      "bytes": 5109,
+      "sha256": "cb34f2e86e13492c8745872a971500ba8d14328b32547083519b200040e9153b",
+      "currentMatches": true
+    },
+    {
+      "commit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/README.md",
+      "bytes": 2960,
+      "sha256": "4f50ce20b6d35c74f4ff1c226b1d948ff746263a96f591090936200dedf75632",
+      "currentMatches": true
+    },
+    {
+      "commit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/RUNNER-FREEZE.json",
+      "bytes": 1425,
+      "sha256": "5e87a9bbc67be7d426f0228157c7bd21bde3dfc27ef7bf38a86b35453e665e54",
+      "currentMatches": true
+    },
+    {
+      "commit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/child.mjs",
+      "bytes": 29173,
+      "sha256": "920b35f341b394486f89e4d0c314f30daa86c96d99fabfab60ae05f63881f112",
+      "currentMatches": true
+    },
+    {
+      "commit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/common.mjs",
+      "bytes": 4639,
+      "sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553",
+      "currentMatches": true
+    },
+    {
+      "commit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/guard.mjs",
+      "bytes": 5232,
+      "sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8",
+      "currentMatches": true
+    },
+    {
+      "commit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/run.mjs",
+      "bytes": 15580,
+      "sha256": "3cf17701b773e2d9f29dd917f14fde4f2104def950aeea58b3424fc370511a0a",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/README.md",
+      "bytes": 2960,
+      "sha256": "4f50ce20b6d35c74f4ff1c226b1d948ff746263a96f591090936200dedf75632",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/REPORT.md",
+      "bytes": 11916,
+      "sha256": "e96375403585b5b08e9c8ee9348150fe4e527791c2ab8c1e95ed5b67b623f949",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/RUNNER-FREEZE.json",
+      "bytes": 1425,
+      "sha256": "5e87a9bbc67be7d426f0228157c7bd21bde3dfc27ef7bf38a86b35453e665e54",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/SEAL-PROVENANCE.json",
+      "bytes": 77662,
+      "sha256": "7a63c67aaaa5b6bddafa6c6db848454b4f9a3c9741ec69f25ff47454101b39e5",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/VERIFICATION.json",
+      "bytes": 3081,
+      "sha256": "ca60db36b3bbd3ffa847691829e717a5c9c002768bb4f8422547e9b36f5e680d",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/child.mjs",
+      "bytes": 29173,
+      "sha256": "920b35f341b394486f89e4d0c314f30daa86c96d99fabfab60ae05f63881f112",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/common.mjs",
+      "bytes": 4639,
+      "sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L01-aliases.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "dc73b667ad5305616a3eb4f42db903fb2cad0360122efc4607a10f93240ef5e7",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L01-aliases.json",
+      "bytes": 14730,
+      "sha256": "976e42f4eb72fb2f05ecab78fa8a6da88b42bc238102cd415338ca1bcd705081",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L01-aliases.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L01-aliases.stdout.txt",
+      "bytes": 324,
+      "sha256": "81d5717e10032c1806d2992aab1358b1d98c6818591438610a7f705f424fc824",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L02-budget-exhausted.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "c50470d89f0dbc62c33374cca8ceedb7fd5001c1b59558813119c17f68aebef8",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L02-budget-exhausted.json",
+      "bytes": 15563,
+      "sha256": "d50899a66ca374dbad69a22ec87d53a2aecb349e7c6c9a72a85856d9c6191cf3",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L02-budget-exhausted.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L02-budget-exhausted.stdout.txt",
+      "bytes": 371,
+      "sha256": "21ce71bb9922371839c9d95579ea9386b60e569665b3c613ec448c49c1232501",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L02-budget-positive.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "5ff2ba77f0ff2c66dafb0ccb95d13ed475d827a6651acf39bdf6b5681449fb36",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L02-budget-positive.json",
+      "bytes": 14817,
+      "sha256": "b2bda89c57f1e09b6b9b0683e0d785dab3585051989a2989cc6a532abe554d4c",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L02-budget-positive.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L02-budget-positive.stdout.txt",
+      "bytes": 370,
+      "sha256": "d7ed74b721de9cb7f757d0bc86a48c4f3ba88c04b0aff9ef7ef48b1c82d3e257",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L03-callback-after-lifetime.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "31bf8dad3336bbd1669da9161d651a2dc86bb2aab93adaeda9ae9776493c554e",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L03-callback-after-lifetime.json",
+      "bytes": 16654,
+      "sha256": "79704bb4aafb76171c3953e7a32a507c63866dd9c049fdff5601c5deaf4caee4",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L03-callback-after-lifetime.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L03-callback-after-lifetime.stdout.txt",
+      "bytes": 393,
+      "sha256": "185ba137cb7bcbcf74ca16234173f392da5f93f37d949b2a497ce32d574c2438",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L03-callback-live.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "cb336582de20a45a90933cf3bc8a6054dc031408e9dd8f7b3d865f16fa646518",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L03-callback-live.json",
+      "bytes": 17153,
+      "sha256": "021ec3e51c6468fae94ed0bcfda7e4ee477076a72c07b82bbf8114a11f23cb7c",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L03-callback-live.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L03-callback-live.stdout.txt",
+      "bytes": 383,
+      "sha256": "4662f4a8fed5ddd6bf07f13c2375033578783a500b9420b706d9e90222ad16bd",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L04-explicit-children.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "d875d4348ff5c7826f2941b5a3254b002113dde0c6821c7042dd2445b5a7f5d6",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L04-explicit-children.json",
+      "bytes": 24227,
+      "sha256": "73e5ea1b2bcdf10912c81f1982c778575c8eccbe91db47ad6471cdc2d87a0009",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L04-explicit-children.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L04-explicit-children.stdout.txt",
+      "bytes": 390,
+      "sha256": "604a84dfbf7f5670114ad6cbb54a0b8f26754231a81018853d943d3e59d60548",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-caller-error.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "c9d05f4ef48bd76d646deeb5c6ccca937eaf84adcb03acae7e241c4ba6c5cb7c",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-caller-error.json",
+      "bytes": 15147,
+      "sha256": "b3908999550acc681fbb41fd688adce96376cbb60775a54adaf1414faaa61913",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-caller-error.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-caller-error.stdout.txt",
+      "bytes": 384,
+      "sha256": "77a090ffc5ba2ae6c0faa9d534d57a73e7d0f9feadbdb7c4a001fdcc772c73ea",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-cleanup-error.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "474355dfa9fcdafeaffa9edf086b02ba00f7eb4a9074d6b98e848b53dfc69621",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-cleanup-error.json",
+      "bytes": 16043,
+      "sha256": "6030f2d356b8cf7a6f3ef55f1b17a8cd13eec45a80c1c0c5a690f09cc15c1eda",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-cleanup-error.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-cleanup-error.stdout.txt",
+      "bytes": 385,
+      "sha256": "e8b4681d23159213ea79b8c4439056ddf76066cbc5657aba1c9d80f520891cbf",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-execution-error.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "e541840f9e3568f3255bb9bc3a4a6674e145b084e577dd7d2ce6535072807e51",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-execution-error.json",
+      "bytes": 16560,
+      "sha256": "dffae7b993baea9da8119efadc8f7c297d56231d8e15ddb1187cd16b518ae8df",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-execution-error.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L05-execution-error.stdout.txt",
+      "bytes": 388,
+      "sha256": "143d08f2ec4f6cd47bd381f2a2ad8fc69cea0a8f975e7ee70020f35676d9b4a9",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L06-curl-open.imports.ndjson",
+      "bytes": 41963,
+      "sha256": "ab570438dd5bc660877c6220e45c73ab17050a86f44b6e689189192c42a24fe7",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L06-curl-open.json",
+      "bytes": 13449,
+      "sha256": "f924d4c74cd91868f5401f0ac10f47aed361088c682882dbf32f436525da72c8",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L06-curl-open.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/L06-curl-open.stdout.txt",
+      "bytes": 402,
+      "sha256": "3c3a8d68751d2b1a2456fa7a6cf0b75bff792f039643d7d13b94f79bc8d39f52",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/immutable-after.json",
+      "bytes": 562982,
+      "sha256": "58143e4417467f45bb5468d8213a5c95ef227e4ac35979b6fdf451901ff29711",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/immutable-before.json",
+      "bytes": 562982,
+      "sha256": "58143e4417467f45bb5468d8213a5c95ef227e4ac35979b6fdf451901ff29711",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/original-freeze.json",
+      "bytes": 19582,
+      "sha256": "ebda136b328bce311fcf5d41d09b438c5706bd162917e508cbb5f438d0c35bb5",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/private-after.json",
+      "bytes": 69271,
+      "sha256": "b09af5cd11c3ea2448666417e787eb67d07fc5a99afa3cb84e24a4f221fe7d93",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/private-before.json",
+      "bytes": 69271,
+      "sha256": "b09af5cd11c3ea2448666417e787eb67d07fc5a99afa3cb84e24a4f221fe7d93",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/report-before-removal.json",
+      "bytes": 776455,
+      "sha256": "28897376d852c0a8d5488ecbe8c7ba7050b280fd07d9a3c1cc7678ce0bd07d29",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/report.json",
+      "bytes": 776454,
+      "sha256": "98e9657f26f747cfcc17b2b4b70007572e95b292b09f2e33e83d4303c933e247",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/runner-freeze.json",
+      "bytes": 1425,
+      "sha256": "5e87a9bbc67be7d426f0228157c7bd21bde3dfc27ef7bf38a86b35453e665e54",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/shared-after.json",
+      "bytes": 1551257,
+      "sha256": "f70b9733d4a7c7a2c5f468787a494097fc3d0c390a6554870fec27f7f0abae68",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/shared-before.json",
+      "bytes": 1551257,
+      "sha256": "f70b9733d4a7c7a2c5f468787a494097fc3d0c390a6554870fec27f7f0abae68",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/guard.mjs",
+      "bytes": 5232,
+      "sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/run.mjs",
+      "bytes": 15580,
+      "sha256": "3cf17701b773e2d9f29dd917f14fde4f2104def950aeea58b3424fc370511a0a",
+      "currentMatches": true
+    },
+    {
+      "commit": "19da254941847de60e80ea18407332bbe10b5265",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/verify-evidence.mjs",
+      "bytes": 6730,
+      "sha256": "dd25ab8dd7bd8167696052bf668d74ca31cc89e04dc2ab5a86f7cf056766c926",
+      "currentMatches": true
+    }
+  ],
+  "frozenBindingCount": 230,
+  "frozenDistinctPaths": 194,
+  "authorizedHistoricalDifferences": [
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/REPORT.md",
+      "bytes": 10729,
+      "sha256": "9fa7c7d6ccb629a2b695d890809263828c429708e58b2029481f44d29da708ca",
+      "currentMatches": false
+    },
+    {
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/SEAL.json",
+      "bytes": 7575,
+      "sha256": "708d69df8972c0dab3f5663689f86f82ff1d8a027acccc90e9becc5825f8a40d",
+      "currentMatches": false
+    }
+  ],
+  "supplementalHistoricalBindings": [
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "README.md",
+      "bytes": 26938,
+      "sha256": "3efb55d50b1003148b83f49096cc0ed61b41ed26a6db976e02f7b9a19ac22c39"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/CONTRACT.md",
+      "bytes": 7509,
+      "sha256": "bb7e28a71ff9cf2a8fc4b0d4fbd85218af3f757d36df50ad624f83b4740a49e8"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/FIXTURE-CORRECTION.md",
+      "bytes": 2229,
+      "sha256": "a357d00e5f831139f5334aca4626a4c8ba2de413f0025a166973e2d15feabf6a"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/SELECTED-BINDING-PRE-RUN.md",
+      "bytes": 1429,
+      "sha256": "ddb7944339ad6cc14495ef15f397e7f2748f5583e104ffbb417190a6e9a4e662"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/selected-binding.mjs.data",
+      "bytes": 3169,
+      "sha256": "dfefea9261e4bce2ebc6a6ff459ca7654b0dde80838b4fc4c191cb6109be670e"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/controls.mjs.data",
+      "bytes": 20818,
+      "sha256": "a89cc03edfef3c163e1e80559185802882ec0ad6426bd08c2264b7cb7f7be139"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-review/execution-q1/REPORT.md",
+      "bytes": 10074,
+      "sha256": "ae856275d9e5e248ef2325e9dac6dd975a74e883a4e7d29145ba600caa930d9f"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/commands/network-stress/product.ts",
+      "bytes": 11878,
+      "sha256": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/commands/network-stress/product-v2.ts",
+      "bytes": 11974,
+      "sha256": "230c2a9188fe071b38a840fbb10c5a746ba2f2167f9c8fc216e1f590f33b83cf"
+    }
+  ],
+  "staticTestSearchTrees": [
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/commands/network",
+      "tree": "c939e83b0c46071c4bb988b31fdbb09ba3301d24",
+      "search": "maxRedirects|maxRetries|Invalid network limit",
+      "qualification": "Static scoped source search only; not test execution or all-input acceptance"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/commands/network-stress",
+      "tree": "14bcff797795839abe4172ecd0dcc1b38069cff8",
+      "search": "maxRedirects|maxRetries|Invalid network limit",
+      "qualification": "Static scoped source search only; not test execution or all-input acceptance"
+    },
+    {
+      "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+      "path": "tests/commands/network-policy-stress",
+      "tree": "d5e00a293e3512b05524cd2c1fda04f832aa09ff",
+      "search": "maxRedirects|maxRetries|Invalid network limit",
+      "qualification": "Static scoped source search only; not test execution or all-input acceptance"
+    }
+  ],
+  "selectedPublicInputHashes": [
+    {
+      "path": "package.json",
+      "bytes": 3526,
+      "sha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7"
+    },
+    {
+      "path": "src/index.ts",
+      "bytes": 1190,
+      "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "bytes": 7679,
+      "sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "bytes": 4166,
+      "sha256": "483fb9c7be06ff45de0120f60f5b5ebfe977c2323236353485f2adca5b6e28d0"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "bytes": 10644,
+      "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "bytes": 101302,
+      "sha256": "d352c421177b82bd0a6f77ebc8cc9ab4b490e54cb39b685bb72871388a9fcb03"
+    },
+    {
+      "path": "src/commands/safejs/index.ts",
+      "bytes": 8649,
+      "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb"
+    },
+    {
+      "path": "src/commands/safejs/README.md",
+      "bytes": 19328,
+      "sha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102"
+    },
+    {
+      "path": "src/commands/network/README.md",
+      "bytes": 10805,
+      "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "bytes": 1918,
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "bytes": 2606,
+      "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+    },
+    {
+      "path": "src/commands/network/args.ts",
+      "bytes": 8573,
+      "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "bytes": 17720,
+      "sha256": "db06650b1b55b994fe5fa83f7489062e91ac83b7d2d9c44bbb7606d57d9df057"
+    },
+    {
+      "path": "src/commands/network/index.ts",
+      "bytes": 1049,
+      "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+    },
+    {
+      "path": "dist/commands/network/types.d.ts",
+      "bytes": 1754,
+      "sha256": "0efb19fc14905bd67828c3315329c5366818acab3db5d379640e5dcb38069f57"
+    },
+    {
+      "path": "dist/commands/network/shared.js",
+      "bytes": 2327,
+      "sha256": "636549c0e9b1175658f9d58f9cb02b39e7e68ce86f42e62767eae15034be041e"
+    },
+    {
+      "path": "dist/shell/runtime.js",
+      "bytes": 115891,
+      "sha256": "dd5847a047829d2f5593ffb095c32316cc4102bb74d32950a68d772b23efd118"
+    }
+  ],
+  "selectedCopiedPrivateInputHashesOnly": [
+    {
+      "path": "src/run.ts",
+      "bytes": 25016,
+      "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b"
+    },
+    {
+      "path": "src/interp/interpreter.ts",
+      "bytes": 97921,
+      "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715"
+    }
+  ],
+  "baselineNetworkComparisons": [
+    {
+      "path": "src/commands/network/README.md",
+      "baselineCommit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "baselineSha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "candidateSha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "identical": true
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "baselineCommit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "baselineSha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "candidateSha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "identical": true
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "baselineCommit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "baselineSha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "candidateSha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+      "identical": false
+    },
+    {
+      "path": "src/commands/network/args.ts",
+      "baselineCommit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+      "baselineSha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "candidateSha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "identical": true
+    }
+  ],
+  "publicHeadBefore": "b592c43cd6e3531e8ef20cac9ebcc7466ab5efb8",
+  "publicHeadAfter": "774644f9ea39b41f824db4c829e7a97e6e1386be",
+  "foreignStagingBefore": "",
+  "foreignStagingAfter": "",
+  "inspectionAttemptNotes": [
+    "An initial static-helper assertion mistakenly treated preparation assembly.engineFiles (a count) as an inventory; corrected lookup to frozen snapshot-after.private.engine before the successful before snapshot. No candidate/engine mismatch or runtime failure resulted.",
+    "Read-only jq/path/line lookup mistakes were corrected without product execution, changed inputs, or proposal reads."
+  ]
+}

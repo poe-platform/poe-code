@@ -1,0 +1,319 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "INDEPENDENT_BUILD_AND_BYTE_EXACT_PACKAGE_PASS",
+  "proofRole": "PART_A_BUILD_ONLY_NOT_RUNTIME_OR_TYPES_ACCEPTANCE",
+  "presealCommit": "94573dcaefad7db5d9ccf9a17c958a04eb8b422c",
+  "commits": {
+    "packet": "71a16afd5b430175180fc4741531b75c31b25882",
+    "source": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "evidence": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+    "handoff": "bcec1ead34aee37c8fe574b248a8242ad4f60cfa",
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "length": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "compositionReview": "7ed356ade4509e492e15615587408eb4b41f92e0",
+    "runtimeReview": "6af0eb2d627f3ed80255c295b79299708436d372",
+    "consumers": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+    "runtimeSource": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+    "runtimeEvidence": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+    "integrationSource": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+    "integrationEvidence": "83035d641c415019ac62a0d0114cf2836ba77e45"
+  },
+  "artifacts": {
+    "BUILD-PRESEAL.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/BUILD-PRESEAL.json",
+      "sha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+      "bytes": 2792,
+      "mode": 420
+    },
+    "INPUTS.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+      "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+      "bytes": 116989,
+      "mode": 420
+    },
+    "COMPILER-PROCESS.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/COMPILER-PROCESS.json",
+      "sha256": "576130630afd01d3b0f05636e217575fcc781ea617af1f209233148beec1cabc",
+      "bytes": 2012,
+      "mode": 420
+    },
+    "compiler.stdout.txt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/compiler.stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    "compiler.stderr.txt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/compiler.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    "RAW-OUTPUT-MAP.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RAW-OUTPUT-MAP.json",
+      "sha256": "b7ac9c9c91a8978d1ac3c34672fc75b10683f10e0144d2ee2d279eef77212278",
+      "bytes": 121061,
+      "mode": 420
+    },
+    "OUTPUT-COMPARISONS.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/OUTPUT-COMPARISONS.json",
+      "sha256": "858f28b1581ade646aca4455593b9f3f6bf1e1272c8833b24d6a74bf3ccd69ad",
+      "bytes": 471772,
+      "mode": 420
+    },
+    "INDEPENDENT-PACKAGE-MAP.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-PACKAGE-MAP.json",
+      "sha256": "1b44932f2d5a1da4c1ebfde6148bc5edac9e65411e98d6c821023b55b59c757b",
+      "bytes": 121291,
+      "mode": 420
+    },
+    "INTEGRITY-AFTER.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INTEGRITY-AFTER.json",
+      "sha256": "daf4d2b15c04e27b4b92085232eca32e0cf2796c09eb984a89c8d079aac0d0b0",
+      "bytes": 5962,
+      "mode": 420
+    },
+    "PACKING.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/PACKING.json",
+      "sha256": "feb4cf9d2bddd7d50f8bd8b0076b1b3420319bb12713e5a5e246c642c1deb5fe",
+      "bytes": 850,
+      "mode": 420
+    },
+    "INDEPENDENT-BUILD-RECEIPT.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-BUILD-RECEIPT.json",
+      "sha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+      "bytes": 4718,
+      "mode": 420
+    },
+    "FULL-RECEIPT.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/FULL-RECEIPT.json",
+      "sha256": "edf7a483436475c87a3fb8293517788905d4669fb8515790be1e098a6fdbb14d",
+      "bytes": 7454,
+      "mode": 420
+    },
+    "RESULT.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RESULT.json",
+      "sha256": "51a866934331d0f45d336d87f15b17464bcec75dadee795dbfa6c6b390a324ea",
+      "bytes": 3266,
+      "mode": 420
+    },
+    "EXPECTED-HASHES.json": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/EXPECTED-HASHES.json",
+      "sha256": "00d6b2c83977085cf60e2e038bb4a6792f8fd2fde0134a885be0212c4e09987c",
+      "bytes": 979,
+      "mode": 420
+    }
+  },
+  "packageArtifact": {
+    "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/virtual-bash-0.0.0.tgz",
+    "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+    "bytes": 782141,
+    "mode": 420
+  },
+  "rawTar": {
+    "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/independent-package.tar",
+    "sha256": "a0e8e4bde1cd9981d5e47d5018dc67cb25b0d3ba7fe5363396a942192d1c9c8b",
+    "bytes": 4999168,
+    "mode": 420
+  },
+  "source": {
+    "root": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+    "fileCount": 271,
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "runtimeTree": {
+      "sha256": "62784dcec8eeb324e3260cc9f1962e31bbf22c1d0ff23d771b5206ee1eb2b0a0",
+      "entries": 316,
+      "method": "Accepted runtime/integrity.mjs treeSnapshot JSON shape derived from already verified complete byte/mode/membership maps; no runtime execution"
+    }
+  },
+  "compiled": {
+    "root": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/independent-package",
+    "fileCount": 870,
+    "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+    "runtimeTree": {
+      "sha256": "782b3b4e92d66339c2f2d037f16b6f55ac281550fd99c440bac5828a04c13742",
+      "entries": 914,
+      "method": "Accepted runtime/integrity.mjs treeSnapshot JSON shape derived from already verified complete byte/mode/membership maps; no runtime execution"
+    },
+    "entries": {
+      "dist/commands/yq/index.js": {
+        "sha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630",
+        "bytes": 22115,
+        "mode": 420
+      },
+      "dist/commands/yq/index.d.ts": {
+        "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+        "bytes": 419,
+        "mode": 420
+      },
+      "dist/contracts/index.js": {
+        "sha256": "f63fcc728dd4e62d6d60408f114c901ad52a9499e46a6f89b2ce97fff3fc680c",
+        "bytes": 235,
+        "mode": 420
+      },
+      "dist/contracts/index.d.ts": {
+        "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c",
+        "bytes": 237,
+        "mode": 420
+      }
+    },
+    "proofRole": "direct-compiled-factory-handler-not-public-package"
+  },
+  "compilerMapCohorts": {
+    "sourceMaps": {
+      "files": 217,
+      "rawIdentityMapSha256": "05a658d8344b7d4bceb302c5cb8658419fc8a8400711001af2b1be926fcef300",
+      "relocatedIdentityMapSha256": "490de07e77205c8ea97bd81f13e1e7e18d0d8f3174bc28d2a6ab406ce7eb2797",
+      "expectedIdentityMapSha256": "490de07e77205c8ea97bd81f13e1e7e18d0d8f3174bc28d2a6ab406ce7eb2797",
+      "rawByteEqual": 0,
+      "finalByteEqual": 217
+    },
+    "declarationMaps": {
+      "files": 217,
+      "rawIdentityMapSha256": "dc1f770cff257777e6a054d7d95b97aecd7a33ab1b36e74f732475ffca4469e1",
+      "relocatedIdentityMapSha256": "919d4e3aad0d26dc463fac835f275929322eb060688afaba3f862c179b9d79ab",
+      "expectedIdentityMapSha256": "919d4e3aad0d26dc463fac835f275929322eb060688afaba3f862c179b9d79ab",
+      "rawByteEqual": 0,
+      "finalByteEqual": 217
+    }
+  },
+  "compiler": {
+    "pid": 86780,
+    "startedAt": "2026-08-28T10:17:29.000Z",
+    "exitedAt": "2026-08-28T10:17:33.813Z",
+    "closedAt": "2026-08-28T10:17:33.813Z",
+    "elapsedMs": 4812.600917,
+    "exitCode": 0,
+    "signal": null,
+    "spawnError": null,
+    "timedOut": false,
+    "overflow": false,
+    "exitSeen": true,
+    "closeObserved": true,
+    "reapTimedOut": false,
+    "reaped": true,
+    "groupAbsent": true,
+    "signals": [],
+    "stdoutObservedBytes": 0,
+    "stderrObservedBytes": 0,
+    "command": {
+      "executable": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+      "args": [
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/typescript/lib/tsc.js",
+        "--project",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source/tsconfig.build.json",
+        "--outDir",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output/dist",
+        "--typeRoots",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/types"
+      ],
+      "cwd": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+      "umask": 18,
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/home",
+        "TMPDIR": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/scratch"
+      }
+    },
+    "bounds": {
+      "deadlineMs": 120000,
+      "termGraceMs": 2000,
+      "reapMs": 5000,
+      "captureBytesPerStream": 4194304,
+      "treeBytes": 67108864,
+      "treeEntries": 4096
+    },
+    "stdout": {
+      "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/compiler.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    "stderr": {
+      "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/compiler.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    "captureBeforeAssertion": true,
+    "rawOutputRoot": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output"
+  },
+  "tools": {
+    "node": {
+      "original": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "copied": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "bytes": 112989184,
+      "mode": 493
+    },
+    "typescript": {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+      "entries": 147
+    },
+    "nodeTypes": {
+      "path": "node_modules/@types/node",
+      "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+      "entries": 83
+    },
+    "undiciTypes": {
+      "path": "node_modules/undici-types",
+      "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+      "entries": 41
+    }
+  },
+  "fullCounts": {
+    "source": 271,
+    "archivedSource": 273,
+    "compiledSource": 217,
+    "compilerOutputs": 868,
+    "rawEqual": 434,
+    "relocatedMaps": 434,
+    "finalEqual": 868,
+    "fullPackage": 870,
+    "baselinePackage": 846,
+    "additions": 24
+  },
+  "retainedSourceArchive": {
+    "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-archive-273",
+    "rawPath": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/artifacts/SOURCE.tar",
+    "sha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc",
+    "bytes": 2713600,
+    "files": 273,
+    "mode": 420,
+    "notTheConsumerProjection": true
+  },
+  "baselineReadme": {
+    "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+    "bytes": 36273,
+    "mode": 420
+  },
+  "rootRouting": {
+    "rootTrustedBuildReceipt": false,
+    "newProofRequiresExplicitRoute": true,
+    "integrationV2StillPinsOldAuthorReceipt": true,
+    "oldPacketUnchanged": true,
+    "publicIntegration": "ABSENT_EXPECTED",
+    "remaining": [
+      "Root routing of new independent build proof; fixed integration-v2 still pins original author receipt",
+      "Actual semantic/type/moved/lifecycle/CARRY review elsewhere",
+      "Public exports remain absent; no global typecheck acceptance"
+    ]
+  },
+  "execution": {
+    "compilerAttempts": 1,
+    "productImports": 0,
+    "productRuns": 0,
+    "declarationConsumerRuns": 0,
+    "semanticVectors": 0,
+    "authorTestRuns": 0,
+    "npm": 0,
+    "nativeYaml": 0,
+    "retries": 0
+  }
+}

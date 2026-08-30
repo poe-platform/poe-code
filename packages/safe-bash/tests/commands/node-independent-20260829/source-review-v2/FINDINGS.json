@@ -1,0 +1,42 @@
+{
+  "source": "c10d338331d56e1f293970010c7015fa602b6a8d",
+  "role": "SOURCE_ONLY_NOT_RUNTIME_ACCEPTANCE",
+  "findings": [
+    {
+      "id": "V2-F01",
+      "severity": "build-blocker",
+      "classification": "exact source-byte defect; compiler not executed",
+      "anchors": ["src/commands/node/rules.ts:1", "src/commands/node/rules.ts:133", "src/commands/node/program.ts:4"],
+      "observation": "Literal bytes92,96 follow String.raw and occur before final delimiter; not display escaping.",
+      "recommendation": "Correct only erroneous delimiter escapes in successor; preserve c10 input and obtain actual compiler proof."
+    },
+    {
+      "id": "V2-F02",
+      "severity": "ownership-blocker",
+      "classification": "source-demonstrated missing private profile cancellation; event scenario unexecuted",
+      "anchors": ["src/commands/node/worker-provider.ts:54", "src/commands/node/worker-provider.ts:70", "src/commands/node/worker-provider.ts:121", "src/commands/node/worker-provider.ts:209", "src/commands/node/lifecycle.ts:88", "src/commands/node/lifecycle.ts:128"],
+      "observation": "Explicit profileFailure/cancel can leave cooperative parent work's signal live while retirement waits the message/request chain.",
+      "recommendation": "Cancel invocation-private parent work for fatal profile completion without upgrading it to escaping start rejection; keep normal entry-return nonaborting and caller/sibling isolated.",
+      "preparedControl": "candidate-binding-preparation/raw-controls.mjs.data R03-profile-parent-job",
+      "actualWorkerControl": "Still to preseal: native diagnostic overflow while an admitted cooperative VFS read is pending; no claim this ordering has been executed."
+    }
+  ],
+  "questions": [
+    {
+      "id": "V2-Q02",
+      "classification": "new observer completion contract ambiguity; original helper repaired",
+      "anchors": ["src/commands/node/worker-types.ts:24", "src/commands/node/worker-provider.ts:44", "src/commands/node/diagnostics.ts:26"],
+      "observation": "observe return is ignored; async callbacks satisfy void typing but delayed rejection is outside the synchronous catch.",
+      "recommendation": "Explicitly declare/check synchronous-only notification or enroll/await async publication. Do not infer completion from void; retain raw error presence."
+    }
+  ],
+  "originalRepairs": {
+    "F01": "escaping branch repaired SOURCE; profile branch separately open",
+    "F02": "genuine isFsError then finite own-data extraction SOURCE",
+    "F03": "inert early diagnostic host SOURCE",
+    "Q01": "explicit fail/start/completion provenance SOURCE",
+    "Q02": "Promise-returning helper awaited SOURCE; observe seam not covered",
+    "Q03": "only stack/cause ignored unread after genuine recognition SOURCE"
+  },
+  "executions": { "product": 0, "compiler": 0, "workers": 0, "guestEntries": 0 }
+}

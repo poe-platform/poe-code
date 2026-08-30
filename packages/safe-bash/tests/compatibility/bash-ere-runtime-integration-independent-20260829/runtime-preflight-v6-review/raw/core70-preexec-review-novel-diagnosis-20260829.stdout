@@ -1,0 +1,32 @@
+
+---tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/NOVEL-EXECUTION.json---
+{
+  "code": 1,
+  "signal": null,
+  "stdout": "/tmp/core70-review-run-rLxyFp/novel.stdout",
+  "stderr": "/tmp/core70-review-run-rLxyFp/novel.stderr"
+}
+
+---/tmp/core70-review-run-rLxyFp/novel.stdout---
+
+---/tmp/core70-review-run-rLxyFp/novel.stderr---
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'const emit = row => fs.writeSync(output, `${JSON.stringify(row)}\\n`);'
+- 'const emit = row => fs.writeSync(output, `${JSON.stringify(row)}\n`);'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/novel.mjs:20:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'const emit = row => fs.writeSync(output, `${JSON.stringify(row)}\\n`);',
+  expected: 'const emit = row => fs.writeSync(output, `${JSON.stringify(row)}\n`);',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

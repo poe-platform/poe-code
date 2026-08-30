@@ -1,0 +1,117 @@
+{
+  "sequence": 1,
+  "profile": "original",
+  "recipeId": "command/echo/multiple",
+  "requestId": 1,
+  "response": {
+    "id": 1,
+    "observation": {
+      "stdout": "YWxwaGEgYmV0YQo=",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {},
+      "events": [],
+      "registryEvents": [
+        {
+          "name": "echo",
+          "args": [
+            "alpha",
+            "beta"
+          ]
+        }
+      ],
+      "executeMs": 12.28562500000001,
+      "memory": {
+        "before": {
+          "rss": 174866432,
+          "heapTotal": 33439744,
+          "heapUsed": 15456064,
+          "external": 4064545,
+          "arrayBuffers": 144089
+        },
+        "after": {
+          "rss": 175538176,
+          "heapTotal": 33964032,
+          "heapUsed": 16564360,
+          "external": 4083941,
+          "arrayBuffers": 160484
+        },
+        "sampledPeak": {
+          "rss": 175538176,
+          "heapUsed": 16563744,
+          "external": 4083941
+        },
+        "processMaxRssKiB": 171440,
+        "sampleIntervalMs": 2
+      },
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  },
+  "comparisons": {
+    "native": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "oldBaseline": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "sequence": 1,
+    "profile": "original",
+    "recipeId": "command/echo/multiple",
+    "requestId": 1,
+    "pid": 80554,
+    "terminal": true,
+    "spawnFailed": false,
+    "code": 0,
+    "signal": null,
+    "signals": [],
+    "errors": [],
+    "normal": true
+  },
+  "errors": [],
+  "hostBytes": 0,
+  "pid": 80554,
+  "trace": {
+    "sha256": "5d5618fb5e22ec5cbdc170be2f9a835261eabcdce3f6f57ed24f32b24a0610fa",
+    "events": 329,
+    "forbiddenProcessAttempts": 0,
+    "limitation": "resolve/load hooks and engine ready protocol only; not universal evaluation/thread/process tracing"
+  }
+}

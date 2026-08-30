@@ -1,0 +1,31 @@
+export type ByteSource = AsyncIterable<Uint8Array>;
+export interface ByteSink {
+    write(chunk: Uint8Array): Promise<void>;
+    readonly ownedOutput?: {
+        readonly consumerClosed: AbortSignal;
+        write(chunk: Uint8Array): Promise<void>;
+    };
+}
+export interface BytePipe {
+    readonly readable: ByteSource;
+    readonly writable: ByteSink;
+    close(): Promise<void>;
+    abort(reason?: unknown): Promise<void>;
+}
+export interface BytePipeOptions {
+    readonly highWaterMark?: number;
+    readonly signal?: AbortSignal;
+}
+export interface CollectOptions {
+    readonly maxBytes: number;
+    readonly signal?: AbortSignal;
+}
+export declare function createBytePipe(options?: BytePipeOptions): BytePipe;
+export declare function toByteSource(input: string | Uint8Array): ByteSource;
+export declare function writeText(sink: ByteSink, text: string): Promise<void>;
+export declare function writeBytes(sink: ByteSink, chunk: Uint8Array, signal?: AbortSignal): Promise<void>;
+export declare function pipeBytes(source: ByteSource, sink: ByteSink, signal?: AbortSignal): Promise<void>;
+export declare function collectBytes(source: ByteSource, options: CollectOptions): Promise<Uint8Array>;
+export declare function collectText(source: ByteSource, options: CollectOptions): Promise<string>;
+export declare function readBytes(source: ByteSource, signal?: AbortSignal): AsyncGenerator<Uint8Array>;
+//# sourceMappingURL=io.d.ts.map

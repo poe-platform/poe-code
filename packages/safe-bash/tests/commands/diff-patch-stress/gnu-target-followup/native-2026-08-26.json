@@ -1,0 +1,2124 @@
+{
+  "patch": {
+    "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+    "dialect": "gnu",
+    "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+  },
+  "diff": {
+    "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+    "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+    "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+    "dialect": "gnu",
+    "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+  },
+  "timeoutMs": 3000,
+  "shell": false,
+  "records": [
+    {
+      "probe": {
+        "id": "metadata between-sections: rename from target",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\nrename from target\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "0654ae80292f69c0380fc6b8135d45a2b4aac090c0229bf493a9737a86dd197d",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: rename to sentinel",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\nrename to sentinel\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "dd8474aff0004d550207b396265cced18a8e789884a278bfbea9aa45d741f397",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: copy from target",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\ncopy from target\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "0821c990755d3c8190b98c331973186c77e86c13f263e44dc84ad3dc8b3d3384",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: copy to sentinel",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\ncopy to sentinel\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "6fda346c74073835963565eb13723de7c9d5533bc914af3e9df48f479bb3584c",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: new file mode 120000",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\nnew file mode 120000\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "465bf8fae33543e17523dc3989fd8b36fa6eada1ca96cd64b614e03b16ec54bd",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: deleted file mode 120000",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\ndeleted file mode 120000\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "db9c79a3752351792be5b36f4a9e7789743575d73daeaa55e8f32d2b2fd5a9a3",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: old mode 120000",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\nold mode 120000\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "ed44594844b2c8cc490308a15cc3e982e1c7e15bd448160008da1d690e59b678",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: new mode 120000",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\nnew mode 120000\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "9c3b12151bd5731f7dbac149a8520a52842ca6d71efb58aea22347bdefb86357",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: similarity index 100%",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\nsimilarity index 100%\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "8823802a9aad99f798a22d3c204159dd788b2514763de71ba8842f780d470eef",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: dissimilarity index 100%",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\ndissimilarity index 100%\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "b33818524e5fa1e8fa9fe03da28981fc4b60d0f65bfa82e3027dffcc90434930",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: GIT binary patch",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\nGIT binary patch\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "6d7da5ffb9eb10eba26a89795c8128632c72fbf3c1394fe3d767078342748fc9",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "metadata between-sections: unknown extension metadata",
+        "args": [
+          "-p1"
+        ],
+        "input": "From 0123456789012345678901234567890123456789 Mon Sep 17 00:00:00 2001\nFrom: Path Verifier <verifier@example.invalid>\nSubject: [PATCH] quoted filename\n\nChange one literal path.\n---\n file | 2 +-\n\n--- a/first\n+++ a/first\n@@ -1 +1 @@\n-old\n+new\nunknown extension metadata\n--- a/target\n+++ a/target\n@@ -1 +1 @@\n-old\n+new\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/sentinel": "untouched\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/�": "old\n",
+          "/target": "outside target\n",
+          "/sandbox/sentinel": "outside sentinel\n"
+        }
+      },
+      "inputSha256": "6c45c3f0698cdc31e1866cdc411de8033494a957e783ee23eff47d011075044a",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/sentinel",
+            "type": "file",
+            "hex": "6f7574736964652073656e74696e656c0a"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/sentinel",
+            "type": "file",
+            "hex": "756e746f75636865640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/�",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          },
+          {
+            "path": "/target",
+            "type": "file",
+            "hex": "6f757473696465207461726765740a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "missing parent default strip",
+        "args": [],
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- /dev/null\n+++ missing/child\n@@ -0,0 +1 @@\n+created\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/patch": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "/sandbox/work/blocker": "old\n"
+        }
+      },
+      "inputSha256": "3dbef4e918cb6f67841b2a3b43235d009da8f5417a57316ea13b2d45bb280621",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file child\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/blocker",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/patch",
+            "type": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/blocker",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/child",
+            "type": "file",
+            "hex": "637265617465640a"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/patch",
+            "type": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "missing parent explicit -p0",
+        "args": [
+          "-p0"
+        ],
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- /dev/null\n+++ missing/child\n@@ -0,0 +1 @@\n+created\n",
+        "files": {
+          "/sandbox/work/first": "old\n",
+          "/sandbox/work/target": "old\n",
+          "/sandbox/work/dir/target": "old\n",
+          "/sandbox/work/patch": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "/sandbox/work/blocker": "old\n"
+        }
+      },
+      "inputSha256": "3dbef4e918cb6f67841b2a3b43235d009da8f5417a57316ea13b2d45bb280621",
+      "native": {
+        "exitCode": 0,
+        "stdout": "patching file first\npatching file missing/child\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/blocker",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/patch",
+            "type": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/blocker",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/dir",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/dir/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/first",
+            "type": "file",
+            "hex": "6e65770a"
+          },
+          {
+            "path": "/sandbox/work/missing",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/missing/child",
+            "type": "file",
+            "hex": "637265617465640a"
+          },
+          {
+            "path": "/sandbox/work/patch",
+            "type": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "normal-overlapping-old-hunks",
+        "input": "1c1\n< old\n---\n> new\n1c1\n< old\n---\n> new\n",
+        "args": [
+          "--batch",
+          "--forward",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "files": {
+          "/sandbox/work/target": "old\nkeep\nend\n",
+          "/sandbox/work/other": "old\n"
+        }
+      },
+      "inputSha256": "0a04ddacac324e09bd5ddae48d545944e1b911f9557458e539cfa54d2faad029",
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file reject\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/other",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a6b6565700a656e640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/other",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/reject",
+            "type": "file",
+            "hex": "2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a6b6565700a656e640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ]
+      }
+    },
+    {
+      "probe": {
+        "id": "context-overlapping-hunks",
+        "input": "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n",
+        "args": [
+          "--batch",
+          "--forward",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "files": {
+          "/sandbox/work/target": "old\nkeep\nend\n",
+          "/sandbox/work/other": "old\n"
+        }
+      },
+      "inputSha256": "c13bdb73a0e9abe0b1ec0b3da5f58721d854c7e435d0004ffc4af74f32c60eae",
+      "native": {
+        "exitCode": 1,
+        "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file reject\n",
+        "stderr": "",
+        "before": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/other",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6f6c640a6b6565700a656e640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ],
+        "after": [
+          {
+            "path": "/",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work",
+            "type": "directory"
+          },
+          {
+            "path": "/sandbox/work/other",
+            "type": "file",
+            "hex": "6f6c640a"
+          },
+          {
+            "path": "/sandbox/work/reject",
+            "type": "file",
+            "hex": "2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a"
+          },
+          {
+            "path": "/sandbox/work/target",
+            "type": "file",
+            "hex": "6e65770a6b6565700a656e640a"
+          },
+          {
+            "path": "/sentinel",
+            "type": "file",
+            "hex": "666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a"
+          }
+        ]
+      }
+    }
+  ]
+}

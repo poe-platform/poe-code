@@ -1,0 +1,72 @@
+{
+  "job": {
+    "id": "TYP-02",
+    "name": "factory-command-extra",
+    "fixture": "fixtures/factory-command-extra.mts.data",
+    "mode": "DIRECT_AND_FUTURE_PUBLIC",
+    "outcome": "reject",
+    "diagnostic": {
+      "code": 2554,
+      "line": 2
+    },
+    "authority": "final#/publicApi"
+  },
+  "raw": {
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "stderr": "",
+    "stdout": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/moved-package/dist/commands/yq/index.d.ts(2,1): error TS2554: Expected 0 arguments, but got 1.\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/fake-compiler-data/negative.mts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/moved-package/dist/commands/yq/index.d.ts\n"
+  },
+  "files": {
+    "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/fake-compiler-data",
+    "fixture": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/fake-compiler-data/negative.mts",
+    "candidate": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/moved-package",
+    "candidateFiles": {
+      "README.md": {
+        "sha256": "bb28e7210d5931d9164152049cc8d31e8a2e919fb421fb35c9ab4cabec13740e",
+        "bytes": 32,
+        "mode": 420
+      },
+      "dist/contracts/index.d.ts": {
+        "sha256": "e42e38e7ab00d0ed142d388933bd0cb542ee6d793d631cbfc8de860541d8b126",
+        "bytes": 40,
+        "mode": 420
+      },
+      "dist/contracts/index.js": {
+        "sha256": "9c8d337cd3e680263ed34f2acbb334d9649b4d790eb7ea8eb973bb9c2ec2e06a",
+        "bytes": 30,
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+        "bytes": 18,
+        "mode": 420
+      },
+      "dist/commands/yq/index.d.ts": {
+        "sha256": "ffea8fe1d54a7060365469070adac78357a4a9200c8ed220ad95cfe745dce4d6",
+        "bytes": 37,
+        "mode": 420
+      },
+      "dist/commands/yq/index.d.ts.map": {
+        "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+        "bytes": 3,
+        "mode": 420
+      },
+      "dist/commands/yq/index.js": {
+        "sha256": "f6b5fc15dd8ca29afc35311f9736e4160769ef96abded049b3940b587e9857e5",
+        "bytes": 39,
+        "mode": 420
+      },
+      "dist/commands/yq/index.js.map": {
+        "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+        "bytes": 3,
+        "mode": 420
+      }
+    },
+    "tools": [],
+    "requiredDeclarations": [
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/moved-package/dist/commands/yq/index.d.ts"
+    ]
+  }
+}

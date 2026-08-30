@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "commit": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "runtime": {
+    "path": "src/shell/runtime.ts",
+    "blob": "9e70a9d556e46ecf23b977a048f089b1c0d25e5c",
+    "bytes": 139761,
+    "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193"
+  },
+  "trees": {
+    "e6fca9203a2d6be96e389f94a277e422b8f9f395": {
+      "rawBase64": "MTAwNjQ0IC5naXRpZ25vcmUASjpjj79qK4Sr++QGk9OCaguHY9gxMDA2NDQgQUdFTlRTLm1kAC8uK3TWaTgoa1ekAW3BVqumWL9yMTAwNjQ0IFJFQURNRS5tZABTTHrdjNJ+JEcu9u+GIvWU8OuiVTQwMDAwIGJlbmNobWFya3MAf6OxDM+PvgF7cz5y1nZwp/FPIKg0MDAwMCBkb2NzAN/MkSTLDHaZDaqzQIEjJdQSXFp8MTAwNjQ0IHBhY2thZ2UtbG9jay5qc29uAF1lYtpmOqGzY8XOXxAe2Eac7OTaMTAwNjQ0IHBhY2thZ2UuanNvbgDEqV0DnmmnxDe1WfKKjhQgTA7NozQwMDAwIHNjcmlwdHMApeb6njlLw0Awzpy9U1xPEeuDNdw0MDAwMCBzcmMA5pnCkIvlOdpQ5sMXmJN50wg7V2c0MDAwMCB0ZXN0cwBtKHZfqWX/Imef15lSDgyNpHSiPDEwMDY0NCB0c2NvbmZpZy5idWlsZC5qc29uAInmtWF7lJhYxukJU7Vhs4CJx43XMTAwNjQ0IHRzY29uZmlnLmpzb24Aal8GiMforB1j1i7vkVmX0vzKMbY=",
+      "entries": [
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "4a3a638fbf6a2b84abfbe40693d3826a0b8763d8",
+          "name": ".gitignore"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "2f2e2b74d66938286b57a4016dc156aba658bf72",
+          "name": "AGENTS.md"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "534c7add8cd27e24472ef6ef8622f594f0eba255",
+          "name": "README.md"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "7fa3b10ccf8fbe017b733e72d67670a7f14f20a8",
+          "name": "benchmarks"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "dfcc9124cb0c76990daab340812325d4125c5a7c",
+          "name": "docs"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+          "name": "package-lock.json"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "c4a95d039e69a7c437b559f28a8e14204c0ecda3",
+          "name": "package.json"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "a5e6fa9e394bc34030ce9cbd535c4f11eb8335dc",
+          "name": "scripts"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "e699c2908be539da50e6c317989379d3083b5767",
+          "name": "src"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "6d28765fa965ff22679fd799520e0c8da474a23c",
+          "name": "tests"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "89e6b5617b949858c6e90953b561b38089c78dd7",
+          "name": "tsconfig.build.json"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "6a5f0688c7e8ac1d63d62eef915997d2fcca31b6",
+          "name": "tsconfig.json"
+        }
+      ]
+    },
+    "e699c2908be539da50e6c317989379d3083b5767": {
+      "rawBase64": "NDAwMDAgY29tbWFuZHMANLzwtDmCJrOBs/YYL43710RM8jY0MDAwMCBjb250cmFjdHMABUAXwF7wlGOs1Bsg5tM2Bi6So5w0MDAwMCBmcwCxzgop/CEemMFnIQDT3Ebysjp6xDEwMDY0NCBpbmRleC50cwD1QZnOMMAuqhWmlWQ03z/wFj0XxDQwMDAwIGludGVncmF0aW9ucwBGpkwD0vI8BAMipGqdteqqJQmwazQwMDAwIHBsdWdpbnMA/mHC31bgK0uIt/3mTCx+xvCtbPM0MDAwMCBzaGVsbABxhSgPROQ18X6nD7wp3yOh7lEFBg==",
+      "entries": [
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "34bcf0b4398226b381b3f6182f8dfbd7444cf236",
+          "name": "commands"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "054017c05ef09463acd41b20e6d336062e92a39c",
+          "name": "contracts"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "b1ce0a29fc211e98c1672100d3dc46f2b23a7ac4",
+          "name": "fs"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "f54199ce30c02eaa15a6956434df3ff0163d17c4",
+          "name": "index.ts"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "46a64c03d2f23c040322a46a9db5eaaa2509b06b",
+          "name": "integrations"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "fe61c2df56e02b4b88b7fde64c2c7ec6f0ad6cf3",
+          "name": "plugins"
+        },
+        {
+          "mode": "040000",
+          "type": "tree",
+          "object": "7185280f44e435f17ea70fbc29df23a1ee510506",
+          "name": "shell"
+        }
+      ]
+    },
+    "7185280f44e435f17ea70fbc29df23a1ee510506": {
+      "rawBase64": "MTAwNjQ0IGFyaXRobWV0aWMudHMAIjEBlG0TrJtE9KiY9Y/RYAS6hrkxMDA2NDQgY2FuY2VsbGF0aW9uLnRzAKDmjHv7LVQZZBlNOO8wpKWQvsHeMTAwNjQ0IGNsZWFudXAudHMA6uBGUKVT5IINqcewiwJVprIPwBwxMDA2NDQgZGlzcGxheS50cwDs/4vxhc1UKUBgennuUlfykuhE9TEwMDY0NCBnZXRvcHRzLnRzALtQKwdgY8D7lXZpEWSNuniAAPi0MTAwNjQ0IGluZGV4LnRzAAEQvZ1cA4jcb+FavCfyehjdems4MTAwNjQ0IGlucHV0LnRzAD7scbcvh91I3axXLW5/65CX0yvkMTAwNjQ0IGxvY2FsZS50cwBaLNpkF/LyivOLM/LTKlYnHA9aWDEwMDY0NCBwYXJzZXIudHMA9XAjXR9lreD3J5zKz4BewTMxVfcxMDA2NDQgcGF0dGVybi50cwC+hznua2yekyPFWa/xXy3SfOgnHDEwMDY0NCBydW50aW1lLnRzAJ5wqdVW5G7PI7l3oEjwibHA0l5cMTAwNjQ0IHNoZWxsLnRzAAuWqC9Owp2k291EeAbMpqL1FDEaMTAwNjQ0IHR5cGVzLnRzAHY9LuCtKxXH7XrzHnxhcfc5yYSG",
+      "entries": [
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+          "name": "arithmetic.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+          "name": "cancellation.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+          "name": "cleanup.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "ecff8bf185cd542940607a79ee5257f292e844f5",
+          "name": "display.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "bb502b076063c0fb95766911648dba788000f8b4",
+          "name": "getopts.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+          "name": "index.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+          "name": "input.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+          "name": "locale.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "f570235d1f65ade0f7279ccacf805ec1333155f7",
+          "name": "parser.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+          "name": "pattern.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "9e70a9d556e46ecf23b977a048f089b1c0d25e5c",
+          "name": "runtime.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+          "name": "shell.ts"
+        },
+        {
+          "mode": "100644",
+          "type": "blob",
+          "object": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+          "name": "types.ts"
+        }
+      ]
+    }
+  },
+  "role": "hash and raw-tree data proof only; prerequisite runtime not executed or substituted as stack"
+}

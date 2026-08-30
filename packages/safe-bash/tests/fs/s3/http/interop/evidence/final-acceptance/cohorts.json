@@ -1,0 +1,22 @@
+{
+  "download": "/tmp/safe-bash-minio-download-vbA02J",
+  "services": {
+    "intermediate-17-of-18": "/tmp/safe-bash-s3-service-ZztxNN",
+    "initial-fallback-10-of-14": "/tmp/safe-bash-s3-service-5vD3J7",
+    "corrected-fallback-14-of-14": "/tmp/safe-bash-s3-service-bLxB9N",
+    "repeated-native-guards-13-of-17": "/tmp/safe-bash-s3-service-K2ESxz",
+    "committed-17-of-18": "/tmp/safe-bash-s3-service-5kXLAP",
+    "final-18-of-18": "/tmp/safe-bash-s3-service-GdN07e",
+    "final-fallback-14-of-14": "/tmp/safe-bash-s3-service-WQpvcf"
+  },
+  "builds": {
+    "intermediate-17-of-18": "/tmp/safe-bash-s3-http-interop-URiuZf",
+    "initial-fallback-10-of-14": "/tmp/safe-bash-s3-http-interop-P2W7bv",
+    "corrected-fallback-14-of-14": "/tmp/safe-bash-s3-http-interop-GOo3IN",
+    "committed-17-of-18": "/tmp/safe-bash-s3-http-interop-nd2uau",
+    "final-18-of-18": "/tmp/safe-bash-s3-http-interop-FCRmpn",
+    "final-fallback-14-of-14": "/tmp/safe-bash-s3-http-interop-qKfq6y"
+  },
+  "finalTransport": "/tmp/safe-bash-s3-http-interop-FCRmpn",
+  "finalFallback": "/tmp/safe-bash-s3-http-interop-qKfq6y"
+}

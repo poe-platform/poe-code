@@ -1,0 +1,2958 @@
+{
+  "status": "PREPARATION ONLY; stop for root profile/scope confirmation before any existing-test edit",
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "inventory": [
+    {
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "testName": "remaining-gap independent Bash: move-output-really-closes-source",
+      "sourceAssertionLine": 11,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-92198",
+        "line": 92198,
+        "indent": 0,
+        "ordinal": 13471,
+        "name": "remaining-gap independent Bash: move-output-really-closes-source",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 791.444291\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    move-output-really-closes-source\n    script: { printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-\n    Bash: {\"stdout\":\"status=1\",\"stderr\":\"shell-stress: 3: Bad file descriptor\\n\",\"stdoutBase64\":\"c3RhdHVzPTE=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==\",\"exitCode\":0,\"files\":{\"saved\":{\"type\":\"file\",\"base64\":\"bW92ZWQ=\"}}}\n    virtual: {\"stdout\":\"status=1\",\"stderr\":\"shell: line 1: 3: Bad file descriptor\\n\",\"exitCode\":0,\"files\":{\"saved\":{\"type\":\"file\",\"base64\":\"bW92ZWQ=\"}},\"stdoutBase64\":\"c3RhdHVzPTE=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          saved: {\n            base64: 'bW92ZWQ=',\n    ...\n        },\n    +   stderr: 'shell: line 1: 3: Bad file descriptor\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=',\n    -   stderr: 'shell-stress: 3: Bad file descriptor\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==',\n        stdout: 'status=1',\n        stdoutBase64: 'c3RhdHVzPTE='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'status=1'\n    stderr: |-\n      shell-stress: 3: Bad file descriptor\n      \n    stdoutBase64: 'c3RhdHVzPTE='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg=='\n    exitCode: 0\n    files:\n      saved:\n        type: 'file'\n        base64: 'bW92ZWQ='\n  actual:\n    stdout: 'status=1'\n    stderr: |-\n      shell: line 1: 3: Bad file descriptor\n      \n    exitCode: 0\n    files:\n      saved:\n        type: 'file'\n        base64: 'bW92ZWQ='\n    stdoutBase64: 'c3RhdHVzPTE='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "current-gaps",
+        "name": "move-output-really-closes-source",
+        "invocationName": "shell-stress",
+        "source": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+        "sourceSha256": "b441053e86988f84008d56b20ac54c64f51fb55a82d2f80161d0121b781e65ad",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-vtwYyF",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-vtwYyF",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-vtwYyF",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {
+          "saved": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "6d6f766564"
+          }
+        },
+        "status": 0,
+        "stdoutHex": "7374617475733d31",
+        "stderrHex": "7368656c6c2d7374726573733a20333a204261642066696c652064657363726970746f720a",
+        "pid": 34523,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "current-gaps",
+        "name": "move-output-really-closes-source",
+        "invocationName": "shell",
+        "source": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+        "sourceSha256": "b441053e86988f84008d56b20ac54c64f51fb55a82d2f80161d0121b781e65ad",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-TePNop",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-TePNop",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-TePNop",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {
+          "saved": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "6d6f766564"
+          }
+        },
+        "status": 0,
+        "stdoutHex": "7374617475733d31",
+        "stderrHex": "7368656c6c3a206c696e6520313a20333a204261642066696c652064657363726970746f720a",
+        "pid": 34309,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "current-gaps",
+        "name": "move-output-really-closes-source",
+        "source": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-",
+        "inputHex": "",
+        "before": {},
+        "after": {
+          "saved": {
+            "type": "file",
+            "mode": 33206,
+            "hex": "6d6f766564"
+          }
+        },
+        "status": 0,
+        "stdoutHex": "7374617475733d31",
+        "stderrHex": "7368656c6c3a206c696e6520313a20333a204261642066696c652064657363726970746f720a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "testName": "remaining-gap independent Bash: move-input-really-closes-source",
+      "sourceAssertionLine": 11,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-92260",
+        "line": 92260,
+        "indent": 0,
+        "ordinal": 13472,
+        "name": "remaining-gap independent Bash: move-input-really-closes-source",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 720.918875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    move-input-really-closes-source\n    script: { IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-\n    Bash: {\"stdout\":\"<first>status=1\",\"stderr\":\"shell-stress: 3: Bad file descriptor\\n\",\"stdoutBase64\":\"PGZpcnN0PnN0YXR1cz0x\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==\",\"exitCode\":0,\"files\":{\"input\":{\"type\":\"file\",\"base64\":\"Zmlyc3QKc2Vjb25kCg==\"}}}\n    virtual: {\"stdout\":\"<first>status=1\",\"stderr\":\"shell: line 1: 3: Bad file descriptor\\n\",\"exitCode\":0,\"files\":{\"input\":{\"type\":\"file\",\"base64\":\"Zmlyc3QKc2Vjb25kCg==\"}},\"stdoutBase64\":\"PGZpcnN0PnN0YXR1cz0x\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          input: {\n            base64: 'Zmlyc3QKc2Vjb25kCg==',\n    ...\n        },\n    +   stderr: 'shell: line 1: 3: Bad file descriptor\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=',\n    -   stderr: 'shell-stress: 3: Bad file descriptor\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==',\n        stdout: '<first>status=1',\n        stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: '<first>status=1'\n    stderr: |-\n      shell-stress: 3: Bad file descriptor\n      \n    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg=='\n    exitCode: 0\n    files:\n      input:\n        type: 'file'\n        base64: 'Zmlyc3QKc2Vjb25kCg=='\n  actual:\n    stdout: '<first>status=1'\n    stderr: |-\n      shell: line 1: 3: Bad file descriptor\n      \n    exitCode: 0\n    files:\n      input:\n        type: 'file'\n        base64: 'Zmlyc3QKc2Vjb25kCg=='\n    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "current-gaps",
+        "name": "move-input-really-closes-source",
+        "invocationName": "shell-stress",
+        "source": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+        "sourceSha256": "317691e439758cfbcaec9d4e20f0a89645f15a5f2fc32fbbfa14abd3944efa82",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-OJWHZA",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-OJWHZA",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-OJWHZA",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {
+          "input": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "66697273740a7365636f6e640a"
+          }
+        },
+        "after": {
+          "input": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "66697273740a7365636f6e640a"
+          }
+        },
+        "status": 0,
+        "stdoutHex": "3c66697273743e7374617475733d31",
+        "stderrHex": "7368656c6c2d7374726573733a20333a204261642066696c652064657363726970746f720a",
+        "pid": 34524,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "current-gaps",
+        "name": "move-input-really-closes-source",
+        "invocationName": "shell",
+        "source": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+        "sourceSha256": "317691e439758cfbcaec9d4e20f0a89645f15a5f2fc32fbbfa14abd3944efa82",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-g2L3Go",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-g2L3Go",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-g2L3Go",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {
+          "input": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "66697273740a7365636f6e640a"
+          }
+        },
+        "after": {
+          "input": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "66697273740a7365636f6e640a"
+          }
+        },
+        "status": 0,
+        "stdoutHex": "3c66697273743e7374617475733d31",
+        "stderrHex": "7368656c6c3a206c696e6520313a20333a204261642066696c652064657363726970746f720a",
+        "pid": 34310,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "current-gaps",
+        "name": "move-input-really-closes-source",
+        "source": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+        "inputHex": "",
+        "before": {
+          "input": {
+            "type": "file",
+            "mode": 33206,
+            "hex": "66697273740a7365636f6e640a"
+          }
+        },
+        "after": {
+          "input": {
+            "type": "file",
+            "mode": 33206,
+            "hex": "66697273740a7365636f6e640a"
+          }
+        },
+        "status": 0,
+        "stdoutHex": "3c66697273743e7374617475733d31",
+        "stderrHex": "7368656c6c3a206c696e6520313a20333a204261642066696c652064657363726970746f720a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "testName": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+      "sourceAssertionLine": 11,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-92358",
+        "line": 92358,
+        "indent": 0,
+        "ordinal": 13479,
+        "name": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 667.530166\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    prevalidation-prior-output-and-file\n    script: printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after\n    Bash: {\"stdout\":\"beforeafter\",\"stderr\":\"shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n\",\"stdoutBase64\":\"YmVmb3JlYWZ0ZXI=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK\",\"exitCode\":0,\"files\":{\"marker\":{\"type\":\"file\",\"base64\":\"bWFya2Vy\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: -c: line 1: syntax error near unexpected token `)'\\nshell: -c: line 1: `printf before; printf marker >marker; printf \\\"%s\\\" \\\"$(true |)\\\"; printf after'\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 127,\n    +   files: {},\n    +   stderr: \"shell: -c: line 1: syntax error near unexpected token `)'\\n\" +\n    +     'shell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after\\'\\n',\n    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=',\n    +   stdout: '',\n    +   stdoutBase64: ''\n    -   exitCode: 0,\n    -   files: {\n    -     marker: {\n    -       base64: 'bWFya2Vy',\n    -       type: 'file'\n    -     }\n    -   },\n    -   stderr: 'shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK',\n    -   stdout: 'beforeafter',\n    -   stdoutBase64: 'YmVmb3JlYWZ0ZXI='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'beforeafter'\n    stderr: |-\n      shell-stress: command substitution: line 1: syntax error: unexpected end of file\n      \n    stdoutBase64: 'YmVmb3JlYWZ0ZXI='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK'\n    exitCode: 0\n    files:\n      marker:\n        type: 'file'\n        base64: 'bWFya2Vy'\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: -c: line 1: syntax error near unexpected token `)'\n      shell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "current-gaps",
+        "name": "prevalidation-prior-output-and-file",
+        "invocationName": "shell-stress",
+        "source": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+        "sourceSha256": "91b0dca9f0bf65206e4bb1366b305e15e098ab07311ae7d1138da41336d6597e",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-uNidvR",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-uNidvR",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-uNidvR",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {
+          "marker": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "6d61726b6572"
+          }
+        },
+        "status": 0,
+        "stdoutHex": "6265666f72656166746572",
+        "stderrHex": "7368656c6c2d7374726573733a20636f6d6d616e6420737562737469747574696f6e3a206c696e6520313a2073796e746178206572726f723a20756e657870656374656420656e64206f662066696c650a",
+        "pid": 34536,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "current-gaps",
+        "name": "prevalidation-prior-output-and-file",
+        "invocationName": "shell",
+        "source": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+        "sourceSha256": "91b0dca9f0bf65206e4bb1366b305e15e098ab07311ae7d1138da41336d6597e",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-aqKObj",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-aqKObj",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-aqKObj",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a202d633a206c696e6520313a2073796e746178206572726f72206e65617220756e657870656374656420746f6b656e206029270a7368656c6c3a202d633a206c696e6520313a20607072696e7466206265666f72653b207072696e7466206d61726b6572203e6d61726b65723b207072696e746620222573222022242874727565207c29223b207072696e7466206166746572270a",
+        "pid": 34323,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "current-gaps",
+        "name": "prevalidation-prior-output-and-file",
+        "source": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after",
+        "inputHex": "",
+        "before": {},
+        "after": {},
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a202d633a206c696e6520313a2073796e746178206572726f72206e65617220756e657870656374656420746f6b656e206029270a7368656c6c3a202d633a206c696e6520313a20607072696e7466206265666f72653b207072696e7466206d61726b6572203e6d61726b65723b207072696e746620222573222022242874727565207c29223b207072696e7466206166746572270a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "testName": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+      "sourceAssertionLine": 11,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-92424",
+        "line": 92424,
+        "indent": 0,
+        "ordinal": 13480,
+        "name": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 616.861792\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-parameter-preserves-only-earlier-effects\n    script: printf before >before; : \"${missing:?stop}\"; printf after >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":127,\"files\":{\"before\":{\"type\":\"file\",\"base64\":\"YmVmb3Jl\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":127,\"files\":{\"before\":{\"type\":\"file\",\"base64\":\"YmVmb3Jl\"}},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 127,\n        files: {\n          before: {\n            base64: 'YmVmb3Jl',\n    ...\n        },\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 127\n    files:\n      before:\n        type: 'file'\n        base64: 'YmVmb3Jl'\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 127\n    files:\n      before:\n        type: 'file'\n        base64: 'YmVmb3Jl'\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "current-gaps",
+        "name": "fatal-parameter-preserves-only-earlier-effects",
+        "invocationName": "shell-stress",
+        "source": "printf before >before; : \"${missing:?stop}\"; printf after >after",
+        "sourceSha256": "c992b72c0cd35311e32841cd09c4d0154d3151b2f444d62a6a0199ff45d36116",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf before >before; : \"${missing:?stop}\"; printf after >after",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-aRjy45",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-aRjy45",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-aRjy45",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {
+          "before": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "6265666f7265"
+          }
+        },
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c2d7374726573733a206d697373696e673a2073746f700a",
+        "pid": 34538,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "current-gaps",
+        "name": "fatal-parameter-preserves-only-earlier-effects",
+        "invocationName": "shell",
+        "source": "printf before >before; : \"${missing:?stop}\"; printf after >after",
+        "sourceSha256": "c992b72c0cd35311e32841cd09c4d0154d3151b2f444d62a6a0199ff45d36116",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf before >before; : \"${missing:?stop}\"; printf after >after",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-cwX0ZA",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-cwX0ZA",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-cwX0ZA",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {
+          "before": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "6265666f7265"
+          }
+        },
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e673a2073746f700a",
+        "pid": 34324,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "current-gaps",
+        "name": "fatal-parameter-preserves-only-earlier-effects",
+        "source": "printf before >before; : \"${missing:?stop}\"; printf after >after",
+        "inputHex": "",
+        "before": {},
+        "after": {
+          "before": {
+            "type": "file",
+            "mode": 33206,
+            "hex": "6265666f7265"
+          }
+        },
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e673a2073746f700a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/differential.test.ts",
+      "testName": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "sourceAssertionLine": 16,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-93808",
+        "line": 93808,
+        "indent": 0,
+        "ordinal": 13650,
+        "name": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 672.460125\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    nested-substitution-syntax-error-does-not-prevent-earlier-effects\n    script: printf touched >marker; printf '%s' \"$(true |)\"\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK\",\"exitCode\":0,\"files\":{\"marker\":{\"type\":\"file\",\"base64\":\"dG91Y2hlZA==\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: -c: line 1: syntax error near unexpected token `)'\\nshell: -c: line 1: `printf touched >marker; printf '%s' \\\"$(true |)\\\"'\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 127,\n    +   files: {},\n    +   stderr: \"shell: -c: line 1: syntax error near unexpected token `)'\\n\" +\n    +     'shell: -c: line 1: `printf touched >marker; printf \\'%s\\' \"$(true |)\"\\'\\n',\n    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==',\n    -   exitCode: 0,\n    -   files: {\n    -     marker: {\n    -       base64: 'dG91Y2hlZA==',\n    -       type: 'file'\n    -     }\n    -   },\n    -   stderr: 'shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: command substitution: line 1: syntax error: unexpected end of file\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK'\n    exitCode: 0\n    files:\n      marker:\n        type: 'file'\n        base64: 'dG91Y2hlZA=='\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: -c: line 1: syntax error near unexpected token `)'\n      shell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "differential",
+        "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "invocationName": "shell-stress",
+        "source": "printf touched >marker; printf '%s' \"$(true |)\"",
+        "sourceSha256": "7e06621b33e9dc8e60a753d8378fa411e0cbbf4b952619f154268f46fff6da26",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf touched >marker; printf '%s' \"$(true |)\"",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-K6fg7a",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-K6fg7a",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-K6fg7a",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {
+          "marker": {
+            "type": "file",
+            "mode": 33188,
+            "hex": "746f7563686564"
+          }
+        },
+        "status": 0,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c2d7374726573733a20636f6d6d616e6420737562737469747574696f6e3a206c696e6520313a2073796e746178206572726f723a20756e657870656374656420656e64206f662066696c650a",
+        "pid": 34428,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "differential",
+        "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "invocationName": "shell",
+        "source": "printf touched >marker; printf '%s' \"$(true |)\"",
+        "sourceSha256": "7e06621b33e9dc8e60a753d8378fa411e0cbbf4b952619f154268f46fff6da26",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "printf touched >marker; printf '%s' \"$(true |)\"",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-EKUyCr",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-EKUyCr",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-EKUyCr",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a202d633a206c696e6520313a2073796e746178206572726f72206e65617220756e657870656374656420746f6b656e206029270a7368656c6c3a202d633a206c696e6520313a20607072696e746620746f7563686564203e6d61726b65723b207072696e746620272573272022242874727565207c2922270a",
+        "pid": 34221,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "differential",
+        "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "source": "printf touched >marker; printf '%s' \"$(true |)\"",
+        "inputHex": "",
+        "before": {},
+        "after": {},
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a202d633a206c696e6520313a2073796e746178206572726f72206e65617220756e657870656374656420746f6b656e206029270a7368656c6c3a202d633a206c696e6520313a20607072696e746620746f7563686564203e6d61726b65723b207072696e746620272573272022242874727565207c2922270a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/differential.test.ts",
+      "testName": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+      "sourceAssertionLine": 16,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-93890",
+        "line": 93890,
+        "indent": 0,
+        "ordinal": 13654,
+        "name": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 518.635625\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-parameter-expansion-prevents-following-file-effect\n    script: : \"${missing:?stop}\"; : >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":127,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    \n      {\n        exitCode: 127,\n        files: {},\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 127\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "differential",
+        "name": "fatal-parameter-expansion-prevents-following-file-effect",
+        "invocationName": "shell-stress",
+        "source": ": \"${missing:?stop}\"; : >after",
+        "sourceSha256": "e5cd15e33d5fed72fbdd7ae51a2ad9dde9024d0c814f587771a9e9db7f89af1c",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ": \"${missing:?stop}\"; : >after",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-LlJ3TI",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-LlJ3TI",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-LlJ3TI",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c2d7374726573733a206d697373696e673a2073746f700a",
+        "pid": 34440,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "differential",
+        "name": "fatal-parameter-expansion-prevents-following-file-effect",
+        "invocationName": "shell",
+        "source": ": \"${missing:?stop}\"; : >after",
+        "sourceSha256": "e5cd15e33d5fed72fbdd7ae51a2ad9dde9024d0c814f587771a9e9db7f89af1c",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ": \"${missing:?stop}\"; : >after",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-2ModML",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-2ModML",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-2ModML",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e673a2073746f700a",
+        "pid": 34232,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "differential",
+        "name": "fatal-parameter-expansion-prevents-following-file-effect",
+        "source": ": \"${missing:?stop}\"; : >after",
+        "inputHex": "",
+        "before": {},
+        "after": {},
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e673a2073746f700a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/differential.test.ts",
+      "testName": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+      "sourceAssertionLine": 16,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-93942",
+        "line": 93942,
+        "indent": 0,
+        "ordinal": 13655,
+        "name": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 517.217292\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-arithmetic-expansion-prevents-following-file-effect\n    script: : \"$((1/0))\"; : >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: 1/0: division by 0 (error token is \\\"0\\\")\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK\",\"exitCode\":1,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: 1/0: division by 0 (error token is \\\"0\\\")\\n\",\"exitCode\":1,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==\"}\n    + actual - expected\n    \n      {\n        exitCode: 1,\n        files: {},\n    +   stderr: 'shell: line 1: 1/0: division by 0 (error token is \"0\")\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==',\n    -   stderr: 'shell-stress: 1/0: division by 0 (error token is \"0\")\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: 1/0: division by 0 (error token is \"0\")\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK'\n    exitCode: 1\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: 1/0: division by 0 (error token is \"0\")\n      \n    exitCode: 1\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "differential",
+        "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+        "invocationName": "shell-stress",
+        "source": ": \"$((1/0))\"; : >after",
+        "sourceSha256": "566818c42dd821dd5ec560ae6198cabe69763d20ee2c4f7e4744cf8d7dbaf49e",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ": \"$((1/0))\"; : >after",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-oHEVTm",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-oHEVTm",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-oHEVTm",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c2d7374726573733a20312f303a206469766973696f6e206279203020286572726f7220746f6b656e20697320223022290a",
+        "pid": 34441,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "differential",
+        "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+        "invocationName": "shell",
+        "source": ": \"$((1/0))\"; : >after",
+        "sourceSha256": "566818c42dd821dd5ec560ae6198cabe69763d20ee2c4f7e4744cf8d7dbaf49e",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ": \"$((1/0))\"; : >after",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-vlLRiN",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-vlLRiN",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-vlLRiN",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20312f303a206469766973696f6e206279203020286572726f7220746f6b656e20697320223022290a",
+        "pid": 34233,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "differential",
+        "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+        "source": ": \"$((1/0))\"; : >after",
+        "inputHex": "",
+        "before": {},
+        "after": {},
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20312f303a206469766973696f6e206279203020286572726f7220746f6b656e20697320223022290a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/differential.test.ts",
+      "testName": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+      "sourceAssertionLine": 16,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-93994",
+        "line": 93994,
+        "indent": 0,
+        "ordinal": 13656,
+        "name": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 446.745\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-expansion-in-substitution-stops-substitution-only\n    script: value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"\n    Bash: {\"stdout\":\"<>:1\\n\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"PD46MQo=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":0,\"files\":{}}\n    virtual: {\"stdout\":\"<>:1\\n\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":0,\"files\":{},\"stdoutBase64\":\"PD46MQo=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    \n      {\n        exitCode: 0,\n        files: {},\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '<>:1\\n',\n        stdoutBase64: 'PD46MQo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <>:1\n      \n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: 'PD46MQo='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 0\n    files:\n  actual:\n    stdout: |-\n      <>:1\n      \n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 0\n    files:\n    stdoutBase64: 'PD46MQo='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "differential",
+        "name": "fatal-expansion-in-substitution-stops-substitution-only",
+        "invocationName": "shell-stress",
+        "source": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+        "sourceSha256": "62903c66e4b1b440551bcd6c3c59a7169369d123b1749f80bfc83c92a39e9421",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-dvn3iF",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-dvn3iF",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-dvn3iF",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 0,
+        "stdoutHex": "3c3e3a310a",
+        "stderrHex": "7368656c6c2d7374726573733a206d697373696e673a2073746f700a",
+        "pid": 34442,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "differential",
+        "name": "fatal-expansion-in-substitution-stops-substitution-only",
+        "invocationName": "shell",
+        "source": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+        "sourceSha256": "62903c66e4b1b440551bcd6c3c59a7169369d123b1749f80bfc83c92a39e9421",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-oHPv31",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-oHPv31",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-oHPv31",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 0,
+        "stdoutHex": "3c3e3a310a",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e673a2073746f700a",
+        "pid": 34234,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "differential",
+        "name": "fatal-expansion-in-substitution-stops-substitution-only",
+        "source": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"",
+        "inputHex": "",
+        "before": {},
+        "after": {},
+        "status": 0,
+        "stdoutHex": "3c3e3a310a",
+        "stderrHex": "7368656c6c3a206c696e6520313a206d697373696e673a2073746f700a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/differential.test.ts",
+      "testName": "Bash differential: command-substitution-removes-nul-bytes",
+      "sourceAssertionLine": 16,
+      "classification": "bash-native-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-94097",
+        "line": 94097,
+        "indent": 0,
+        "ordinal": 13665,
+        "name": "Bash differential: command-substitution-removes-nul-bytes",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 408.915416\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    command-substitution-removes-nul-bytes\n    script: value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"\n    Bash: {\"stdout\":\"<ab>\\n\",\"stderr\":\"\",\"stdoutBase64\":\"PGFiPgo=\",\"stderrBase64\":\"\",\"exitCode\":0,\"files\":{}}\n    virtual: {\"stdout\":\"<ab>\\n\",\"stderr\":\"shell: line 1: warning: command substitution: ignored null byte in input\\n\",\"exitCode\":0,\"files\":{},\"stdoutBase64\":\"PGFiPgo=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==\"}\n    + actual - expected\n    \n      {\n        exitCode: 0,\n        files: {},\n    +   stderr: 'shell: line 1: warning: command substitution: ignored null byte in input\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==',\n    -   stderr: '',\n    -   stderrBase64: '',\n        stdout: '<ab>\\n',\n        stdoutBase64: 'PGFiPgo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <ab>\n      \n    stderr: ''\n    stdoutBase64: 'PGFiPgo='\n    stderrBase64: ''\n    exitCode: 0\n    files:\n  actual:\n    stdout: |-\n      <ab>\n      \n    stderr: |-\n      shell: line 1: warning: command substitution: ignored null byte in input\n      \n    exitCode: 0\n    files:\n    stdoutBase64: 'PGFiPgo='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-and-invocation-protocol",
+      "originalHistorical": {
+        "profile": "Bash3.2-historical",
+        "cohort": "differential",
+        "name": "command-substitution-removes-nul-bytes",
+        "invocationName": "shell-stress",
+        "source": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+        "sourceSha256": "3c80bb015276c39998b24226f4d8e392adc690a62ccaf9b4b80dc58b156ef2d4",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+          "shell-stress"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-nLhARs",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-nLhARs",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-nLhARs",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 0,
+        "stdoutHex": "3c61623e0a",
+        "stderrHex": "",
+        "pid": 34454,
+        "signal": null,
+        "error": null
+      },
+      "proposedNative": {
+        "profile": "GNU5.3-primary",
+        "cohort": "differential",
+        "name": "command-substitution-removes-nul-bytes",
+        "invocationName": "shell",
+        "source": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+        "sourceSha256": "3c80bb015276c39998b24226f4d8e392adc690a62ccaf9b4b80dc58b156ef2d4",
+        "inputHex": "",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+          "shell"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-ZBNZA1",
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-ZBNZA1",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/canonical-profile-migration/.native-ZBNZA1",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "before": {},
+        "after": {},
+        "status": 0,
+        "stdoutHex": "3c61623e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a207761726e696e673a20636f6d6d616e6420737562737469747574696f6e3a2069676e6f726564206e756c6c206279746520696e20696e7075740a",
+        "pid": 34246,
+        "signal": null,
+        "error": null
+      },
+      "product": {
+        "cohort": "differential",
+        "name": "command-substitution-removes-nul-bytes",
+        "source": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"",
+        "inputHex": "",
+        "before": {},
+        "after": {},
+        "status": 0,
+        "stdoutHex": "3c61623e0a",
+        "stderrHex": "7368656c6c3a206c696e6520313a207761726e696e673a20636f6d6d616e6420737562737469747574696f6e3a2069676e6f726564206e756c6c206279746520696e20696e7075740a"
+      },
+      "change": "Uniform -c EXACT_SCRIPT shell protocol across complete72+5+11 cohorts; only invocation-name argument changes, not script text/line numbering/diagnostic bytes. Existing tuple assertions remain exact."
+    },
+    {
+      "path": "tests/shell-stress/invocation-closure/holdout.test.ts",
+      "testName": "closure primary: query-V-verbose",
+      "sourceAssertionLine": 37,
+      "classification": "registered-command-label",
+      "rawOriginalFailure": {
+        "id": "tap-line-94355",
+        "line": 94355,
+        "indent": 0,
+        "ordinal": 13697,
+        "name": "closure primary: query-V-verbose",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 274.187958\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62'\n  failureType: 'testCodeFailure'\n  error: |-\n    Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared\n    + actual - expected\n    \n    + '7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n    - '7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n  actual: '7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:37:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "safeplugin-not-native-parity",
+      "nativePrimary": {
+        "id": "query-V-verbose",
+        "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+        "sourceHash": "8776189b1b692c7b45030c6cde30ec9990c85690cfd35dccfc4f3506b8c7b502",
+        "inputHex": "",
+        "renderedFixtures": [
+          {
+            "path": "tools/closuretool",
+            "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+            "sha256": "507606319cc0051bca7efc5df2b5f6c37d2f9cf9d8a9f27ed22760040fbbb52e",
+            "mode": 493
+          }
+        ],
+        "result": {
+          "argv": [
+            "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+            "bash"
+          ],
+          "argv0": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-BqvL6K",
+          "env": {
+            "PATH": "unused",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 89675,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d4271764c364b2f746f6f6c732f636c6f73757265746f6f6c0a",
+          "stderrHex": "",
+          "stdout": "printf is a shell builtin\nclosurefn is a function\nclosurefn () \n{ \n    :\n}\nclosuretool is /Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-BqvL6K/tools/closuretool\n",
+          "stderr": "",
+          "elapsedMs": 8.52045799999999
+        },
+        "effects": {}
+      },
+      "nativeHistorical": {
+        "id": "query-V-verbose",
+        "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+        "sourceHash": "8776189b1b692c7b45030c6cde30ec9990c85690cfd35dccfc4f3506b8c7b502",
+        "inputHex": "",
+        "renderedFixtures": [
+          {
+            "path": "tools/closuretool",
+            "hex": "23212f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+            "sha256": "229f1bc76f435117d4a1247988edac2a161b0ea1aa88aa7d932a7a3a693e6720",
+            "mode": 493
+          }
+        ],
+        "result": {
+          "argv": [
+            "/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+            "bash"
+          ],
+          "argv0": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-iuXhu1",
+          "env": {
+            "PATH": "unused",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 89725,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d6975586875312f746f6f6c732f636c6f73757265746f6f6c0a",
+          "stderrHex": "",
+          "stdout": "printf is a shell builtin\nclosurefn is a function\nclosurefn () \n{ \n    :\n}\nclosuretool is /Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-iuXhu1/tools/closuretool\n",
+          "stderr": "",
+          "elapsedMs": 6.351541999999881
+        },
+        "effects": {}
+      },
+      "proposedPolicyTuple": {
+        "status": 0,
+        "stdout": "printf is a registered command\nclosurefn is a function\nclosurefn () \n{ \n    :\n}\nclosuretool is /work/tools/closuretool\n",
+        "stderrHex": "",
+        "stdoutHex": "7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a"
+      },
+      "change": "Two explicit full literal safeplugin tuples, not blanket builtin-word replacement; preserve primary/native bytes as mismatch evidence and keep status/stderr/path checks."
+    },
+    {
+      "path": "tests/shell-stress/invocation-closure/holdout.test.ts",
+      "testName": "closure primary: type-multiple-status",
+      "sourceAssertionLine": 37,
+      "classification": "registered-command-label",
+      "rawOriginalFailure": {
+        "id": "tap-line-94381",
+        "line": 94381,
+        "indent": 0,
+        "ordinal": 13698,
+        "name": "closure primary: type-multiple-status",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 217.666084\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62'\n  failureType: 'testCodeFailure'\n  error: |-\n    Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared\n    + actual - expected\n    \n    + '636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n    - '6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n  actual: '636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:37:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "safeplugin-not-native-parity",
+      "nativePrimary": {
+        "id": "type-multiple-status",
+        "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+        "sourceHash": "16550a6e91a9ab999c3e590b63021aaefa74fe41c64c89697097c554eefd537c",
+        "inputHex": "",
+        "renderedFixtures": [
+          {
+            "path": "tools/closuretool",
+            "hex": "23212f746d702f736166652d626173682d676e752d626173682d352e332e5561357430322f696e7374616c6c2f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+            "sha256": "507606319cc0051bca7efc5df2b5f6c37d2f9cf9d8a9f27ed22760040fbbb52e",
+            "mode": 493
+          }
+        ],
+        "result": {
+          "argv": [
+            "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+            "bash"
+          ],
+          "argv0": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-TOHGYu",
+          "env": {
+            "PATH": "unused",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 89676,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+          "stderrHex": "",
+          "stdout": "builtin\nfunction\nfile\nmixed:1\nprintf is a shell builtin\nclosuretool is tools/closuretool\n",
+          "stderr": "",
+          "elapsedMs": 8.603208999999993
+        },
+        "effects": {}
+      },
+      "nativeHistorical": {
+        "id": "type-multiple-status",
+        "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+        "sourceHash": "16550a6e91a9ab999c3e590b63021aaefa74fe41c64c89697097c554eefd537c",
+        "inputHex": "",
+        "renderedFixtures": [
+          {
+            "path": "tools/closuretool",
+            "hex": "23212f62696e2f626173680a7072696e7466202766696c653a3c25733e5c6e2720222440220a",
+            "sha256": "229f1bc76f435117d4a1247988edac2a161b0ea1aa88aa7d932a7a3a693e6720",
+            "mode": 493
+          }
+        ],
+        "result": {
+          "argv": [
+            "/bin/bash",
+            "--noprofile",
+            "--norc",
+            "-c",
+            "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+            "bash"
+          ],
+          "argv0": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-uKl46o",
+          "env": {
+            "PATH": "unused",
+            "HOME": "/nonexistent",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "pid": 89726,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a300a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+          "stderrHex": "",
+          "stdout": "builtin\nfunction\nfile\nmixed:0\nprintf is a shell builtin\nclosuretool is tools/closuretool\n",
+          "stderr": "",
+          "elapsedMs": 7.3276250000001255
+        },
+        "effects": {}
+      },
+      "proposedPolicyTuple": {
+        "status": 0,
+        "stdout": "command\nfunction\nfile\nmixed:1\nprintf is a registered command\nclosuretool is tools/closuretool\n",
+        "stderrHex": "",
+        "stdoutHex": "636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a"
+      },
+      "change": "Two explicit full literal safeplugin tuples, not blanket builtin-word replacement; preserve primary/native bytes as mismatch evidence and keep status/stderr/path checks."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/bash/empty-path",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101541",
+        "line": 101541,
+        "indent": 0,
+        "ordinal": 14861,
+        "name": "historical-3.2/bash/empty-path",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1.846209\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n        stderrHex: '',\n    +   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202e2f6c6f63616c746f6f6c0a'\n    -   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  actual:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202e2f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "empty-path",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-empty-path",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "PATH=; command -V localtool; command -v localtool; type localtool",
+          "shell"
+        ],
+        "source": "PATH=; command -V localtool; command -v localtool; type localtool",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a",
+          "stderrHex": "",
+          "status": 0
+        }
+      },
+      "proposedNative": {
+        "name": "empty-path",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-empty-path",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "PATH=; command -V localtool; command -v localtool; type localtool",
+          "shell"
+        ],
+        "source": "PATH=; command -V localtool; command -v localtool; type localtool",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d677031394b672f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202e2f6c6f63616c746f6f6c0a",
+          "stderrHex": "",
+          "status": 0
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/bash/terminator",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101665",
+        "line": 101665,
+        "indent": 0,
+        "ordinal": 14877,
+        "name": "historical-3.2/bash/terminator",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.901\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 1,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n        stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  actual:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "terminator",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-terminator",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+          "shell"
+        ],
+        "source": "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a",
+          "status": 1
+        }
+      },
+      "proposedNative": {
+        "name": "terminator",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-terminator",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+          "shell"
+        ],
+        "source": "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d677031394b672f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a",
+          "status": 1
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/bash/unknown-z",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101705",
+        "line": 101705,
+        "indent": 0,
+        "ordinal": 14879,
+        "name": "historical-3.2/bash/unknown-z",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 2.688\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-z",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-unknown-z",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -z true",
+          "shell"
+        ],
+        "source": "command -z true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-z",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-unknown-z",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -z true",
+          "shell"
+        ],
+        "source": "command -z true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/bash/unknown-x",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101739",
+        "line": 101739,
+        "indent": 0,
+        "ordinal": 14880,
+        "name": "historical-3.2/bash/unknown-x",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.772667\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-x",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-unknown-x",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -x true",
+          "shell"
+        ],
+        "source": "command -x true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-x",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-unknown-x",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -x true",
+          "shell"
+        ],
+        "source": "command -x true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/bash/unknown-combined",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101773",
+        "line": 101773,
+        "indent": 0,
+        "ordinal": 14881,
+        "name": "historical-3.2/bash/unknown-combined",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.476\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-combined",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-unknown-combined",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -vVz true",
+          "shell"
+        ],
+        "source": "command -vVz true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-combined",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-unknown-combined",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -vVz true",
+          "shell"
+        ],
+        "source": "command -vVz true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/bash/unknown-first",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101807",
+        "line": 101807,
+        "indent": 0,
+        "ordinal": 14882,
+        "name": "historical-3.2/bash/unknown-first",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.41225\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-first",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-unknown-first",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -zv true",
+          "shell"
+        ],
+        "source": "command -zv true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-first",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-unknown-first",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -zv true",
+          "shell"
+        ],
+        "source": "command -zv true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/bash/unknown-long",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101841",
+        "line": 101841,
+        "indent": 0,
+        "ordinal": 14883,
+        "name": "historical-3.2/bash/unknown-long",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.370875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-long",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-unknown-long",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command --wat true",
+          "shell"
+        ],
+        "source": "command --wat true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-long",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-unknown-long",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command --wat true",
+          "shell"
+        ],
+        "source": "command --wat true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/bash/unknown-line",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101875",
+        "line": 101875,
+        "indent": 0,
+        "ordinal": 14884,
+        "name": "historical-3.2/bash/unknown-line",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.416792\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-line",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/bash-unknown-line",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ":\ncommand -z true",
+          "shell"
+        ],
+        "source": ":\ncommand -z true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-line",
+        "mode": "bash",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/bash-unknown-line",
+        "argv0": "bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ":\ncommand -z true",
+          "shell"
+        ],
+        "source": ":\ncommand -z true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/sh/empty-path",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-101921",
+        "line": 101921,
+        "indent": 0,
+        "ordinal": 14887,
+        "name": "historical-3.2/sh/empty-path",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.659042\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n        stderrHex: '',\n    +   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a'\n    -   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  actual:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "empty-path",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-empty-path",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "PATH=; command -V localtool; command -v localtool; type localtool",
+          "shell"
+        ],
+        "source": "PATH=; command -V localtool; command -v localtool; type localtool",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a",
+          "stderrHex": "",
+          "status": 0
+        }
+      },
+      "proposedNative": {
+        "name": "empty-path",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-empty-path",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "PATH=; command -V localtool; command -v localtool; type localtool",
+          "shell"
+        ],
+        "source": "PATH=; command -V localtool; command -v localtool; type localtool",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d677031394b672f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d677031394b672f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d677031394b672f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a",
+          "stderrHex": "",
+          "status": 0
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/sh/terminator",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-102045",
+        "line": 102045,
+        "indent": 0,
+        "ordinal": 14903,
+        "name": "historical-3.2/sh/terminator",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 2.303084\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 1,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n        stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  actual:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "terminator",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-terminator",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+          "shell"
+        ],
+        "source": "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a",
+          "status": 1
+        }
+      },
+      "proposedNative": {
+        "name": "terminator",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-terminator",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+          "shell"
+        ],
+        "source": "PATH=tools; command -V -- closuretool; command -v -- closuretool; command -- true; command -V -- -z",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d677031394b672f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d677031394b672f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a",
+          "status": 1
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/sh/unknown-z",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-102085",
+        "line": 102085,
+        "indent": 0,
+        "ordinal": 14905,
+        "name": "historical-3.2/sh/unknown-z",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.521875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-z",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-unknown-z",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -z true",
+          "shell"
+        ],
+        "source": "command -z true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-z",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-unknown-z",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -z true",
+          "shell"
+        ],
+        "source": "command -z true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/sh/unknown-x",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-102119",
+        "line": 102119,
+        "indent": 0,
+        "ordinal": 14906,
+        "name": "historical-3.2/sh/unknown-x",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.367167\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-x",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-unknown-x",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -x true",
+          "shell"
+        ],
+        "source": "command -x true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-x",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-unknown-x",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -x true",
+          "shell"
+        ],
+        "source": "command -x true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/sh/unknown-combined",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-102153",
+        "line": 102153,
+        "indent": 0,
+        "ordinal": 14907,
+        "name": "historical-3.2/sh/unknown-combined",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.340834\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-combined",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-unknown-combined",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -vVz true",
+          "shell"
+        ],
+        "source": "command -vVz true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-combined",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-unknown-combined",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -vVz true",
+          "shell"
+        ],
+        "source": "command -vVz true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/sh/unknown-first",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-102187",
+        "line": 102187,
+        "indent": 0,
+        "ordinal": 14908,
+        "name": "historical-3.2/sh/unknown-first",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.336958\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-first",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-unknown-first",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -zv true",
+          "shell"
+        ],
+        "source": "command -zv true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-first",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-unknown-first",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command -zv true",
+          "shell"
+        ],
+        "source": "command -zv true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/sh/unknown-long",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-102221",
+        "line": 102221,
+        "indent": 0,
+        "ordinal": 14909,
+        "name": "historical-3.2/sh/unknown-long",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.330666\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-long",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-unknown-long",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command --wat true",
+          "shell"
+        ],
+        "source": "command --wat true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-long",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-unknown-long",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "command --wat true",
+          "shell"
+        ],
+        "source": "command --wat true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    },
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "testName": "historical-3.2/sh/unknown-line",
+      "sourceAssertionLine": 35,
+      "classification": "historical-bash32-profile",
+      "rawOriginalFailure": {
+        "id": "tap-line-102255",
+        "line": 102255,
+        "indent": 0,
+        "ordinal": 14910,
+        "name": "historical-3.2/sh/unknown-line",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.37825\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      },
+      "kind": "uniform-primary-discovery-profile",
+      "originalNative": {
+        "name": "unknown-line",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-DXlfpK/sh-unknown-line",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ":\ncommand -z true",
+          "shell"
+        ],
+        "source": ":\ncommand -z true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "proposedNative": {
+        "name": "unknown-line",
+        "mode": "sh",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.invocation-discovery-fixes-native-gp19Kg/sh-unknown-line",
+        "argv0": "sh",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          ":\ncommand -z true",
+          "shell"
+        ],
+        "source": ":\ncommand -z true",
+        "before": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "after": {
+          "localtool": "file:23212f62696e2f626173680a657869742032330a",
+          "space dir": "directory",
+          "space dir/space tool": "file:23212f62696e2f626173680a657869742032330a",
+          "sub": "directory",
+          "sub/tools": "directory",
+          "sub/tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools": "directory",
+          "tools/closuretool": "file:23212f62696e2f626173680a657869742032330a",
+          "tools/linktool": "link:closuretool"
+        },
+        "result": {
+          "stdoutHex": "",
+          "stderrHex": "7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+          "status": 2
+        }
+      },
+      "change": "Canonical execution uses the entire GNU-5.3 profile, not selected rows; historical strict52 retained in separately executable profile and immutable capture. No expected bytes rewritten."
+    }
+  ],
+  "counts": {
+    "unchangedArchive": {
+      "tests": 235,
+      "pass": 208,
+      "fail": 27,
+      "skip": 0,
+      "cancel": 0,
+      "todo": 0
+    },
+    "historicalRouting": {
+      "quoted": "27 canonical historicalprofile failures +2truthfulclassification assertions",
+      "enumerated": {
+        "discovery": 16,
+        "strictNative": 9,
+        "truthfulRegistry": 2,
+        "total": 27,
+        "historicalOnly": 25
+      },
+      "reconciliation": "The category table contains 27 total, not 29. No two additional rows exist in the named categories."
+    },
+    "rawNativeFresh": 352,
+    "reusedNativeObservations": 156,
+    "productActorRows": 88,
+    "proposedCanonical": {
+      "discovery": 60,
+      "differential": 78,
+      "currentGaps": 11,
+      "closure": 34,
+      "total": 183
+    },
+    "separatedHistoricalDiscovery": {
+      "total": 52,
+      "currentStrictFailures": 16
+    },
+    "note": "52 historical discovery profile comparisons move out of the canonical current-profile denominator, not silently become passes. All 52 logical discovery inputs remain in primary; original strict capture and executable historical profile remain. This denominator change requires root confirmation."
+  },
+  "plannedFiles": [
+    {
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "change": "Select full named GNU-5.3 profile after hash/name/cohort integrity checks; retain all8 host/safety controls. Separate full historical52 into new owned explicit historical runner preserving strict comparisons and losses; no fixture/native-file edit."
+    },
+    {
+      "path": "tests/shell-stress/differential.test.ts",
+      "change": "Use new owned frozen-primary observation/identity helper in place of ambient /bin/bash reference imports; retain runVirtualScript/sourceEvidence and every equality/syntax/effect assertion.72 differential+5 syntax+1 provenance groups unchanged."
+    },
+    {
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "change": "Use the same frozen-primary helper for all11 original inputs; keep exact complete equality, not status-only or stderr normalization."
+    },
+    {
+      "path": "tests/shell-stress/invocation-closure/holdout.test.ts",
+      "change": "Name only two explicit cases safeplugin and compare their full policy tuples, leaving all other primary/host rows and exact diagnostics/status guards intact. Keep original native evidence/cases/probe/support unchanged."
+    },
+    {
+      "path": "tests/shell-stress/canonical-profile-migration/**",
+      "change": "Add immutable exact native primary tuples, input hashes, explicit profile loader and historical strict runner; canonical tests need no binary install/network/ambient Bash. Native recapture remains explicit, pin-verified and separate."
+    }
+  ],
+  "requiredRootDecisions": [
+    "Confirm27 total=25 historical+2 registry labels, not29.",
+    "Confirm current-profile canonical denominator183 plus separate historical discovery52 (16 losses), without counting historical artifact checks as parity passes.",
+    "Confirm explicit uniform shell invocation-name protocol and primary GNU5.3 frozen native tuples for all88 inputs; preserve raw shell-stress captures.",
+    "Acknowledge40 supplementary mode mismatches, outside existing tuple assertions; no FS/source/mode policy acceptance implied.",
+    "Independent canonical-profile-review owner freezes controls separately; its fixtures were not inspected."
+  ],
+  "docs": [
+    {
+      "url": "https://www.gnu.org/s/bash/manual/html_node/Invoking-Bash.html",
+      "basis": "The first argument after the -c command string supplies $0; protocol name alignment is explicit, not a diagnostic rewrite."
+    },
+    {
+      "url": "https://www.gnu.org/s/bash/manual/html_node/Bash-Builtins.html",
+      "basis": "command -V describes resolution; type -t native categories include builtin/file/function. The custom registry command category is separately declared safeplugin behavior, not native Bash parity."
+    }
+  ],
+  "limits": [
+    "No assertions, original helpers, fixtures, reports, native artifacts, source or manifests edited.",
+    "Unchanged canonical archive tests and explicit all-input actor only; no global/fullgate/kernel/first-read/custom5 lifecycle reruns.",
+    "Trace covers actual public src/index for the all-input actor; legacy child scrub limits remain explicit.",
+    "Existing old results and current frozen6e results stay separate; no acceptance/fullBash/parity claim."
+  ]
+}

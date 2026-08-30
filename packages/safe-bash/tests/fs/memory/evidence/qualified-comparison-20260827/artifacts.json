@@ -1,0 +1,20 @@
+{
+  "algorithm": "sha256",
+  "artifacts": {
+    "REPORT.md": "280175a1bc650a0a31c25bbc4305402163054fe3ed0069d3132163ea980e8c47",
+    "before-manifest.json": "8cfdbf09f0cbf6ec76c16d02ef983da8bf2fa8447b58fa9b755a7166dbb11d85",
+    "conformance202.tap": "d83598a41d5759d7b06c0d0e2561b3b3f242c637150b094f0abe55ff86ac6fec",
+    "focused118.tap": "def4c15ee12116a64b57bbf0e1a6c25661aa98efa78589aaeae8ba2dc500e5c8",
+    "independent47.tap": "c4310670fbc69f1f1b774da63d330ab6eb40997feda193b7dd56ffb30739ed22",
+    "initial-focused106.tap": "34d21a7793ece45354841d74c5d8cdea82c4d56ecad62653d3ddd6c306afdb28",
+    "memory-before.ts.txt": "e94247b32d53a5f85a082aaad7494dda86e5ec80db3ea26c86766978df31696c",
+    "moving-validation-end.json": "e83b519d0c599f04319d38d992ff96bcf5950dbce55bf6f42fc7d68763f0bd12",
+    "moving-validation-start.json": "abef4495aab7d664902ab13110509b4ba598ac49b93fe87f7221fc256210ef5f",
+    "mutations8.json": "f4713ef8d2404d40a214705b682d31fcedcfd7a774c0d011911e7c0195f0351a",
+    "original43.tap": "4ee77e77c8904c6021809daf01b033aeba4d476d7d4132cb7ea1b383355b0503",
+    "override-tests.ts.txt": "686a4561ecc4efae44bbb772d0c689c15d183f61c034a59994375e5b6dffe817",
+    "overrides-before.tap": "4ca17ccbfff086f8f59546b5217ce46da6d377b537f87b10216bce0a1890339c",
+    "owned716.tap": "d7df49fb7ece06efe5accaeef9f93790134a24adf827852d1003ee485fb05b1d",
+    "sealed-manifest.json": "9633fbfb9f6669521b88c976299acb65f7e0a11778167cfcf15f3372a98728e1"
+  }
+}

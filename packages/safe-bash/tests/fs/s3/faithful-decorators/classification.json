@@ -1,0 +1,73 @@
+{
+  "authority": "cd8b5c8 and explicit faithful-FileSystem decorator followup approval",
+  "beforeCount": 82,
+  "afterCount": 82,
+  "changes": [
+    {
+      "oldCaseId": "S3 adapter subclass-before buffered overrides cannot authorize source damage",
+      "newCaseId": "S3 adapter subclass-before buffered remapping drops inherited binding before copy",
+      "baselineOrdinal": 1,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "S3 adapter prototype-before buffered overrides cannot authorize source damage",
+      "newCaseId": "S3 adapter prototype-before buffered remapping drops inherited binding before copy",
+      "baselineOrdinal": 2,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "S3 adapter instance-after buffered overrides cannot authorize source damage",
+      "newCaseId": "S3 adapter instance-after buffered remapping drops inherited binding before copy",
+      "baselineOrdinal": 3,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "S3 adapter prototype-after buffered overrides cannot authorize source damage",
+      "newCaseId": "S3 adapter prototype-after buffered remapping drops inherited binding before copy",
+      "baselineOrdinal": 4,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "S3 adapter subclass-before streamed overrides cannot authorize source damage",
+      "newCaseId": "S3 adapter subclass-before streamed remapping drops inherited binding before copy",
+      "baselineOrdinal": 5,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "S3 adapter prototype-before streamed overrides cannot authorize source damage",
+      "newCaseId": "S3 adapter prototype-before streamed remapping drops inherited binding before copy",
+      "baselineOrdinal": 6,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "S3 adapter instance-after streamed overrides cannot authorize source damage",
+      "newCaseId": "S3 adapter instance-after streamed remapping drops inherited binding before copy",
+      "baselineOrdinal": 7,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "S3 adapter prototype-after streamed overrides cannot authorize source damage",
+      "newCaseId": "S3 adapter prototype-after streamed remapping drops inherited binding before copy",
+      "baselineOrdinal": 8,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "private Memory descriptor consumer rejects a pre-overridden buffered S3 destination",
+      "newCaseId": "Memory consumer preserves source when buffered S3 remapping drops inherited binding",
+      "baselineOrdinal": 12,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "private Memory descriptor consumer rejects a pre-overridden streamed S3 destination",
+      "newCaseId": "Memory consumer preserves source when streamed S3 remapping drops inherited binding",
+      "baselineOrdinal": 13,
+      "classification": "data remapping must drop inherited provider binding; revised fixture clones stat; all source/sentinel/zero-effect assertions retained"
+    },
+    {
+      "oldCaseId": "cached stat, copied stat and path poisoning cannot manufacture provider proof",
+      "newCaseId": "cache drops stale stat binding; copied stat and path or filesystem poisoning remain unqualified",
+      "baselineOrdinal": 22,
+      "classification": "cache must drop old private provenance rather than pass an old marked object as fresh; copied/path/FS guards retained"
+    }
+  ]
+}

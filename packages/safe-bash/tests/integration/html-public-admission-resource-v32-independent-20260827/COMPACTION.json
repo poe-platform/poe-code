@@ -1,0 +1,64 @@
+{
+  "at": "2026-08-28T00:39:53.922Z",
+  "commands": [
+    {
+      "executable": "/usr/bin/tar",
+      "realpath": "/usr/bin/bsdtar",
+      "args": [
+        "-czf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/captures.tgz",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827",
+        "raw"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/tar",
+      "realpath": "/usr/bin/bsdtar",
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/captures.tgz"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "raw/\nraw/FINAL-PROCESS-PROBE.json\nraw/stdout.data\nraw/PRE-AUTH.json\nraw/LAUNCH-START.json\nraw/SETTLED.json\nraw/READ-ONLY-POSTCHECK.json\nraw/POST-AUTH.json\nraw/observations/\nraw/LAUNCH-RESULT.json\nraw/execution-01/\nraw/tmp/\nraw/stderr.data\nraw/execution-01/SUMMARY.json\nraw/execution-01/05-allocation-mutant/\nraw/execution-01/03-consumer-failure/\nraw/execution-01/02-producer-exit7/\nraw/execution-01/01-positive/\nraw/execution-01/04-timeout/\nraw/execution-01/PRE.json\nraw/execution-01/POST.json\nraw/execution-01/04-timeout/producer.receipt.json\nraw/execution-01/04-timeout/BINDINGS.json\nraw/execution-01/04-timeout/consumer.samples.jsonl\nraw/execution-01/04-timeout/producer.start.json\nraw/execution-01/04-timeout/supervisor.events.jsonl\nraw/execution-01/04-timeout/ORDERED-PREDICATE.json\nraw/execution-01/04-timeout/consumer.receipt.json\nraw/execution-01/04-timeout/VERDICT.json\nraw/execution-01/04-timeout/producer.samples.jsonl\nraw/execution-01/04-timeout/START.json\nraw/execution-01/04-timeout/stdout.data\nraw/execution-01/04-timeout/SAFETY.json\nraw/execution-01/04-timeout/RAW-RECEIPT.json\nraw/execution-01/04-timeout/tmp/\nraw/execution-01/04-timeout/stderr.data\nraw/execution-01/04-timeout/ORDERED-STOP.json\nraw/execution-01/01-positive/producer.receipt.json\nraw/execution-01/01-positive/BINDINGS.json\nraw/execution-01/01-positive/consumer.samples.jsonl\nraw/execution-01/01-positive/producer.start.json\nraw/execution-01/01-positive/supervisor.events.jsonl\nraw/execution-01/01-positive/consumer.receipt.json\nraw/execution-01/01-positive/VERDICT.json\nraw/execution-01/01-positive/producer.samples.jsonl\nraw/execution-01/01-positive/START.json\nraw/execution-01/01-positive/stdout.data\nraw/execution-01/01-positive/SAFETY.json\nraw/execution-01/01-positive/RAW-RECEIPT.json\nraw/execution-01/01-positive/tmp/\nraw/execution-01/01-positive/stderr.data\nraw/execution-01/02-producer-exit7/producer.receipt.json\nraw/execution-01/02-producer-exit7/BINDINGS.json\nraw/execution-01/02-producer-exit7/consumer.samples.jsonl\nraw/execution-01/02-producer-exit7/producer.start.json\nraw/execution-01/02-producer-exit7/supervisor.events.jsonl\nraw/execution-01/02-producer-exit7/consumer.receipt.json\nraw/execution-01/02-producer-exit7/VERDICT.json\nraw/execution-01/02-producer-exit7/producer.samples.jsonl\nraw/execution-01/02-producer-exit7/START.json\nraw/execution-01/02-producer-exit7/stdout.data\nraw/execution-01/02-producer-exit7/SAFETY.json\nraw/execution-01/02-producer-exit7/RAW-RECEIPT.json\nraw/execution-01/02-producer-exit7/tmp/\nraw/execution-01/02-producer-exit7/stderr.data\nraw/execution-01/03-consumer-failure/producer.receipt.json\nraw/execution-01/03-consumer-failure/BINDINGS.json\nraw/execution-01/03-consumer-failure/consumer.samples.jsonl\nraw/execution-01/03-consumer-failure/producer.start.json\nraw/execution-01/03-consumer-failure/supervisor.events.jsonl\nraw/execution-01/03-consumer-failure/CALLER-FAILURE.json\nraw/execution-01/03-consumer-failure/consumer.receipt.json\nraw/execution-01/03-consumer-failure/VERDICT.json\nraw/execution-01/03-consumer-failure/producer.samples.jsonl\nraw/execution-01/03-consumer-failure/START.json\nraw/execution-01/03-consumer-failure/stdout.data\nraw/execution-01/03-consumer-failure/SAFETY.json\nraw/execution-01/03-consumer-failure/CONSUMER-OBSERVATION.json\nraw/execution-01/03-consumer-failure/PRODUCER-UNCAUGHT.json\nraw/execution-01/03-consumer-failure/RAW-RECEIPT.json\nraw/execution-01/03-consumer-failure/TERMINAL-PREDICATE.json\nraw/execution-01/03-consumer-failure/tmp/\nraw/execution-01/03-consumer-failure/stderr.data\nraw/execution-01/05-allocation-mutant/RESOURCE-BOUNDARY.json\nraw/execution-01/05-allocation-mutant/producer.receipt.json\nraw/execution-01/05-allocation-mutant/BINDINGS.json\nraw/execution-01/05-allocation-mutant/consumer.samples.jsonl\nraw/execution-01/05-allocation-mutant/producer.start.json\nraw/execution-01/05-allocation-mutant/supervisor.events.jsonl\nraw/execution-01/05-allocation-mutant/ORDERED-PREDICATE.json\nraw/execution-01/05-allocation-mutant/consumer.receipt.json\nraw/execution-01/05-allocation-mutant/VERDICT.json\nraw/execution-01/05-allocation-mutant/producer.samples.jsonl\nraw/execution-01/05-allocation-mutant/START.json\nraw/execution-01/05-allocation-mutant/stdout.data\nraw/execution-01/05-allocation-mutant/SAFETY.json\nraw/execution-01/05-allocation-mutant/RAW-RECEIPT.json\nraw/execution-01/05-allocation-mutant/BEFORE-KILL.json\nraw/execution-01/05-allocation-mutant/tmp/\nraw/execution-01/05-allocation-mutant/stderr.data\nraw/execution-01/05-allocation-mutant/ORDERED-STOP.json\nraw/observations/97253.jsonl\nraw/observations/97395.jsonl\nraw/observations/97109.jsonl\nraw/observations/97110.jsonl\nraw/observations/97394.jsonl\nraw/observations/97252.jsonl\nraw/observations/96964.jsonl\nraw/observations/96794.jsonl\nraw/observations/96652.jsonl\nraw/observations/96965.jsonl\nraw/observations/96795.jsonl\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/usr/bin/tar",
+      "realpath": "/usr/bin/bsdtar",
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/captures.tgz",
+        "-C",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/compact-check"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "archiveSha256": "b7c98a088b835831c23121e794e5bb946264db7ec9eccb6a5aacd78a42975ac3",
+  "files": 98,
+  "directories": 13,
+  "archiveEntries": 112,
+  "exactExtractedInventoryVerified": true,
+  "originalRawUnchangedBeforeRemoval": true,
+  "rawAndExtractedScratchRemoved": true,
+  "tarToolAliasNotBuildSymlink": {
+    "path": "/usr/bin/tar",
+    "realpath": "/usr/bin/bsdtar",
+    "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+    "lstatSymlink": true
+  },
+  "fileFsyncBeforeRemoval": true,
+  "controlReruns": 0
+}

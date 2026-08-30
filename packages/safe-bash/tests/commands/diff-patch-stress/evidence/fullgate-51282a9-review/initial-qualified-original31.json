@@ -1,0 +1,39 @@
+{
+  "capturedAt": "2026-08-27T06:32:18.798Z",
+  "directory": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/scratch/initial",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern",
+    "^(?:quoted-path security: quoted ancestor symlink|GNU default: normal/-E/apply|GNU default: normal/--remove-empty-files/apply|GNU default: context/-E/apply|GNU default: context/--remove-empty-files/apply|GNU default: unified/-E/apply|GNU default: unified/--remove-empty-files/apply|atomic extension malformed backward-second-hunk is not swallowed after a valid file section|GNU chmod directory setid controls compare actual host preservation|GNU chmod verbose/changes/reference/error controls preserve bytes and aliases|GNU stat exact millisecond epoch values do not lose a millisecond in scaling|GNU 9\\.7 negative fractions retain runtime rounding for the existing nine timestamp rows|GNU 9\\.7 narrow widths retain trailing bytes for the existing sixteen timestamp rows|GNU mktemp template grammar and quiet diagnostics: 24 controls|GNU chmod seeded symbolic/numeric differential: 384 mode transitions|GNU stat format matrix compares exact bytes over actual RealFS metadata|GNU mktemp option/template controls preserve result shape and private modes|GNU chmod recursive symlink control: tree|GNU chmod recursive symlink control: start|GNU chmod recursive symlink control: dangling|GNU native source identities are complete SHA256 hashes matching the pinned source|GNU oracle binaries/archive match the independently captured exact identities|all seven original author artifacts retain their handoff hashes|GNU stat types/link-follow/aliases compare exact bytes without namespace mutation|stat missing/dangling operands preserve later output, typed API errors and all entries|stat unsigned fields ignore sign flags while epoch fields retain them|GNU 9\\.7 human timestamps: distinct pinned builds, measured native nanoseconds and numeric-capacity gaps|GNU stat precision and UTF-8 byte width: 45 bounded format comparisons|GNU invalid percent modifiers fail; virtual rendering buffers the current operand|independent live GNU rechecks all 71 frozen rows exactly|pinned GNU9\\.7 exact original216 native bytes)$",
+    "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+    "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+    "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+    "tests/commands/metadata-stress/chmod-controls.test.ts",
+    "tests/commands/metadata-stress/epoch-regression.test.ts",
+    "tests/commands/metadata-stress/mktemp-controls.test.ts",
+    "tests/commands/metadata-stress/native-differential.test.ts",
+    "tests/commands/metadata-stress/provenance.test.ts",
+    "tests/commands/metadata-stress/stat-effects.test.ts",
+    "tests/commands/metadata-stress/stat-flags.test.ts",
+    "tests/commands/metadata-stress/stat-human-native.test.ts",
+    "tests/commands/metadata-stress/stat-precision.test.ts",
+    "tests/commands/table-text-stress/corpus.test.ts",
+    "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts"
+  ],
+  "status": 1,
+  "signal": null,
+  "summary": {
+    "tests": 31,
+    "pass": 22,
+    "fail": 9,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "785b62babdb93352926bf91d8b117ca4f366012067e21e88ee18174405d7a0da",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

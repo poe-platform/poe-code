@@ -1,0 +1,50 @@
+{
+  "queriedAt": "2026-08-27T01:39:51.037Z",
+  "url": "https://registry.npmjs.org/just-bash",
+  "responseSha256": "0237c0e44b0499d3523f146e8be82c18999f1bf7400a1c19f8ac9397eb74b90d",
+  "tags": {
+    "executor": "2.15.1-executor.0",
+    "latest": "3.4.2"
+  },
+  "latest": "3.4.2",
+  "published": "2026-08-22T03:28:27.717Z",
+  "dist": {
+    "shasum": "abc0520ad5c278eae2de4cd90c3d7f88e1fdd724",
+    "tarball": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+    "fileCount": 955,
+    "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+    "signatures": [
+      {
+        "sig": "MEUCIQDpmnLN8KxNpkXugskT8RGCkBsIbr8YyzYz9vDF2ZHSkgIgc8v78qtaidyPqAZqeRH3DQWFyPgZYmjHx6bMvDqNHRk=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEUCIB2ZwxuEFZzljg3+mH5ehJtZn7/S5nSBwR+r800wqitDAiEA794qgDB87LnmyaPVpcDd/DWoK5yDcE/mROmh8PFIHEU="
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/just-bash@3.4.2",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 22583023
+  },
+  "repository": {
+    "url": "git+https://github.com/vercel-labs/just-bash.git",
+    "type": "git"
+  },
+  "installed": "3.4.2",
+  "installedManifestSha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd",
+  "installedBundleSha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+  "isolatedLockSha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70",
+  "newInstallRequired": false,
+  "primaryReferences": [
+    "https://github.com/vercel-labs/just-bash",
+    "https://raw.githubusercontent.com/vercel-labs/just-bash/main/packages/just-bash/package.json",
+    "https://www.gnu.org/software/bash/manual/bash.html",
+    "https://www.gnu.org/software/coreutils/manual/coreutils.html"
+  ],
+  "caveat": "Release registry metadata and installed artifact hashes are separate from mutable main-branch documentation. No package install performed."
+}

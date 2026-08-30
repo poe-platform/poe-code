@@ -1,0 +1,35 @@
+{
+  "schema": "m1b-runner-v2-review-deltas",
+  "reviewCommit": "adecd04c56790e3acfccaf0c3216e0a606b47e14",
+  "reviewSeal": "80acb485fa59858f78e6b01940422edbc08b4a79bd24486fe89908d603e46f6a",
+  "snapshot": "a3021720f22c44b66eab7f0bacbfe1d7955a10ae",
+  "findings": [
+    {
+      "id": "RS-F01",
+      "fix": "outer.mjs owns bounded startup raw before fallible route/source admission and coordinator launch; all nesting observed."
+    },
+    {
+      "id": "RS-F02",
+      "fix": "coordinator phase() checks and records outgoing deadline, including final outgoing phase."
+    },
+    {
+      "id": "RS-F03",
+      "fix": "absolute batch deadline begins before preparation; supervise records observed close/post-close capture/receipt lateness; cases/coordinator check final guards and deletion."
+    }
+  ],
+  "qualification": "SOURCE_IMPLEMENTED_DYNAMIC_UNRUN_DIFFERENT_V2_REVIEW_PENDING",
+  "knownIntegrations": [
+    "sealed mode-only overlay",
+    "normal TypeScript compiler API diagnostics transport",
+    "same-root semantic loaded witnesses",
+    "sticky safe within-batch continuation"
+  ],
+  "preparationFailures": [
+    {
+      "id": "V2-PREP-01",
+      "role": "INSPECTOR_STATE_ONLY",
+      "detail": "First read expected a previous Node REPL m1b binding; reference was absent. No filesystem edits, subprocess or target activity occurred. Reinitialized only Node builtins and literal paths."
+    }
+  ],
+  "actualTargetExecution": 0
+}

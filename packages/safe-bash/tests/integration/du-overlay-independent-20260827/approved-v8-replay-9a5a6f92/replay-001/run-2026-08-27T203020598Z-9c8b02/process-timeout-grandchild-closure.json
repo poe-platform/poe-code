@@ -1,0 +1,9 @@
+{
+  "rootPid": 97363,
+  "ownedPgid": 97363,
+  "grandchildPid": 97364,
+  "timedOut": true,
+  "rootPidGone": true,
+  "ownedGroupGone": true,
+  "grandchildPidGone": true
+}

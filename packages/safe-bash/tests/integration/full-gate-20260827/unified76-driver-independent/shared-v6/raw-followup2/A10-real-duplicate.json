@@ -1,0 +1,77 @@
+{
+  "id": "A10-real-duplicate",
+  "startedAt": "2026-08-28T03:46:14.932Z",
+  "evidence": {
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/tsconfig.build.json"
+    ],
+    "result": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc",
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/tsconfig.build.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source",
+      "pid": 35390,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": true,
+      "elapsedMs": 3308,
+      "timeoutMs": 360000,
+      "outputBytes": 0,
+      "observed": [
+        {
+          "pid": 35390,
+          "parent": 33334,
+          "group": 35390,
+          "born": "Thu Aug 27 22:46:14 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/tsconfig.build.json"
+        }
+      ],
+      "signals": [],
+      "survivors": [],
+      "listeners": [],
+      "cleanupRequired": false,
+      "clean": true
+    },
+    "refusal": "unexpected duplicate driver production build",
+    "events": [
+      {
+        "nonce": "94d272fc-c076-45f2-8505-1b4a838bbf24",
+        "pid": 34360,
+        "parent": 34339,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc",
+        "project": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/tsconfig.build.json",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source",
+        "args": [
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T03:45:18.932Z"
+      },
+      {
+        "nonce": "94d272fc-c076-45f2-8505-1b4a838bbf24",
+        "pid": 35390,
+        "parent": 33334,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc",
+        "project": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/tsconfig.build.json",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source",
+        "args": [
+          "-p",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T03:46:14.999Z"
+      }
+    ],
+    "qualification": "Two real production compiler commands: first positive shared slice, second intentional negative duplicate. Positive receipt frozen before second invocation."
+  },
+  "status": "PASS",
+  "finishedAt": "2026-08-28T03:46:20.439Z"
+}

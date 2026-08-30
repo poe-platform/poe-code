@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "sealed": "2026-08-27T22:13:33.025Z",
+  "freezeCommit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+  "entries": [
+    {
+      "path": "baseline-01.json",
+      "kind": "file",
+      "bytes": 359911,
+      "sha256": "ba0e829cd2dffdda9a48395cf194a46118de3658cc9bdda9b25194d530a02de7"
+    },
+    {
+      "path": "baseline-probe.mjs",
+      "kind": "file",
+      "bytes": 10546,
+      "sha256": "87977131accfc4b6f44d0ed12b25caa8611b8ebe8bfe3a1c10ec05f4ec0ecdb7"
+    },
+    {
+      "path": "BASELINE-REPORT.md",
+      "kind": "file",
+      "bytes": 8958,
+      "sha256": "a95445525e034478f7198f0d13e8f6af7b709826b0d4afd50f9784a72f49d265"
+    },
+    {
+      "path": "common.mjs",
+      "kind": "file",
+      "bytes": 3084,
+      "sha256": "c4ca716dacf8c933df98d517eb628ca10e411a436c6c462af4353f5e23b38127"
+    },
+    {
+      "path": "EXPECTED-PROFILES.json",
+      "kind": "file",
+      "bytes": 28145,
+      "sha256": "d2e08c7aa9c93da0b56aa4bae4d5314420b71911935d80a85570ae2c3851d08e"
+    },
+    {
+      "path": "FREEZE-MANIFEST.json",
+      "kind": "file",
+      "bytes": 123198,
+      "sha256": "458c5c9e5def60b32d963572364998c463f3e185692f6a25ed09d6069f822589"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "bytes": 5320,
+      "sha256": "121d5dde6dd77148828feb775408288f98755c975d855e54a4a00040e25f8504"
+    },
+    {
+      "path": "native-01.json",
+      "kind": "file",
+      "bytes": 93973,
+      "sha256": "45bc5333b6daa06767c4c9be66d347efcd375dc555061c3f956f446401b4dd29"
+    },
+    {
+      "path": "native-capture.mjs",
+      "kind": "file",
+      "bytes": 3605,
+      "sha256": "02e33f8bd1c91773bd4724f15912ace4496bdc05e7f781deba1542214dfe8284"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "bytes": 2930,
+      "sha256": "5aa2e6c7779cb94294bec222840377d37b2f02bc61a3ad5f59ebde0e72701d0c"
+    },
+    {
+      "path": "run-baseline.mjs",
+      "kind": "file",
+      "bytes": 5649,
+      "sha256": "0e6a8e95c04dad6897f56e68533d110b8d20f24eb0fa84833564736ef83b4c8a"
+    },
+    {
+      "path": "seal-freeze.mjs",
+      "kind": "file",
+      "bytes": 4271,
+      "sha256": "5663b69235dab767f71160a24c26fa8ec303c02c95de3eb49fb2c9c381865e7a"
+    },
+    {
+      "path": "verify-baseline.mjs",
+      "kind": "file",
+      "bytes": 4788,
+      "sha256": "da2950d413925c0995e0581f63a27637f6d96b2707cbdd83ffc3e9b5ce4c420c"
+    },
+    {
+      "path": "verify-freeze.mjs",
+      "kind": "file",
+      "bytes": 1902,
+      "sha256": "8c51d3cecb8053089ada55ef9e28805def2479781f8aab604e4d9e0edb4f752c"
+    }
+  ],
+  "scope": "Complete final owned file/directory inventory; rejects symlinks and new empty directories. No claim about unrelated live repository."
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "let-selected-archive-v2",
+  "candidate": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "file": "selected-inputs-v2.tar.gz",
+  "sha256": "0ba67572a10e707f7e7210577f9497fe78a8d4d30053dcaa9078876e67f99c1d",
+  "selectedInputs": 265,
+  "priorRejectedSHA256": "f97b3a776bbc4c79fafd152c7348425b8d3cff594368f7b6c612390cedc262db",
+  "writer": "authenticated npm tar, portable/noPax, exact original selected regular inputs",
+  "sourceChanged": false,
+  "productReruns": 0,
+  "nativeExecutions": 0,
+  "prePostInputGuards": "passed"
+}

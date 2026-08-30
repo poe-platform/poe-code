@@ -1,0 +1,85 @@
+{
+  "classification": "SEALED_CONTRACT_RECIPES; FULL_FREEZE_BLOCKED_B01; NOT_EXECUTED",
+  "familyCount": 12,
+  "binding": "1168432e12568e63ff307e92ed83d64d78a03a3c profile plus MANIFEST source identities; no new shared capability or public API",
+  "schedules": {
+    "P0": "one complete byte delivery, then done; no delivery for empty source",
+    "P1": "all bytes individually, then done",
+    "P2": "cycle nonempty byte lengths 2,5,1,3; truncate last span",
+    "P3": "cycle 7,1,4,2; insert one empty delivery after every second nonempty delivery",
+    "CUT": "for each integer k from 1 through byteLength-1, exactly two deliveries [0,k) and [k,end); preserve bytes, never reverse content"
+  },
+  "scopeRules": "Baseline each concrete case at P0. P1/P2/P3/CUT apply only to F02's fixed selected IDs; no grammar Cartesian expansion. Compare exact byte outcomes away from quota boundaries, whose admitted read-ahead/chunk counts may legitimately differ. No native pipe scheduling inference.",
+  "families": [
+    {
+      "id": "F01", "caseIds": ["P01","P03","O11","Z09","Z10"],
+      "recipe": "Actual Shell/registry workflow: select numeric 2,0,2 over P03 input into fresh first.csv; slice -l 1 first.csv into fresh second.csv; count second.csv. Independent bytes: first.csv right,left,right\\nC,A,C\\n; second.csv same; final count 1\\n. Also dispatch h and headers -j over identical input.",
+      "expected": "Same logical command output through file versus internal byte pipe; exact source and destination effects; no implicit host files/native fallback. Preserve middleware and parent budgets. Do not bypass public settlement with only a stub context.",
+      "prerequisite": "Bind actual candidate factory/registration from inspected API after root route; current design names are proposals, not published imports. Workflow commands count separately in future batch ledger."
+    },
+    {
+      "id": "F02", "caseIds": ["T02S","T02L","T03S","T09S","T10S","U01","U02","U03"],
+      "recipe": "Apply P1/P2/P3/CUT to exactly these byte inputs, including every possible split of the three-byte BOM, CRLF, quote pair and multibyte scalar. All outcomes must match their P0 literal/semantic specification. U03 remains exact status/empty stdout with NONEXACT invalid-UTF8 diagnostic, not an invented byte-position golden.",
+      "expected": "Command-specific CR and quoted-EOF/BOM profile is chunk-invariant. Select T02S preserves and quotes both CR values; Slice T02L alone removes its final record CR. No dropped partial EF/EFBB at EOF, no replacement characters in byte-preserving output.",
+      "prerequisite": "Chunk and input limits have slack; poison-tail variants separately charge delivered but unparsed bytes. Do not claim all chunk schedules from native captures."
+    },
+    {
+      "id": "F03", "caseIds": ["T03S","T09S","T10S","Z08","U02"],
+      "recipe": "For P2 repeat with fresh allocations, reused Uint8Array storage, Buffer.subarray views, and a producer that overwrites its prior delivery on next() or on next() returning done. Owned-source return/finalizer also overwrites its buffer. Gate transient sink write completion; do not mutate externally while a legal transient write is pending.",
+      "expected": "Retained header/raw-spanning/decoded/tail-ring fragments survive advance/finalization because copied into owned bytes. Await transient writes before reuse. Buffer.slice/subarray views are not ownership. Fresh and legal reused-producer schedules have identical exact outputs.",
+      "limit": "No arbitrary concurrent-mutation, host allocation, lease or universal return-preemption guarantee."
+    },
+    {
+      "id": "F04", "caseIds": ["P01","P02","O07","O08","E01","E02","E04","E05","E08","E09","HCR","U03"],
+      "recipe": "Use exact empty/duplicate/header cases. For header-only commands supply valid header followed by invalid UTF8/quote bytes in an already delivered chunk and in a poison next. Repeat empty borrowed stdin with stdinIsDefault true and false without changing the bytes.",
+      "expected": "Empty input is not one empty cell or a two-cell delimiter record; duplicate summary is occurrence-sensitive, not set equality. Headers stops after first record, so unread body does not trigger validation. Origin flag describes provenance, not EOF/readability; transparent forwarding preserves it."
+    },
+    {
+      "id": "F05", "caseIds": ["P03","P04","P05","P06","P07","X02","O19"],
+      "recipe": "Resolve concrete valid selectors against independently enumerated columns; preserve order/repeated selections, duplicate occurrence, complement order and selected raw bytes. Exact vectors are the CASES literals, not output from a production selector parser.",
+      "expected": "No UTF8 replacement in numeric selection, no accidental set/dedup for an ordinary select list, no global BOM removal. Named selection does not require decoding unrelated invalid header bytes.",
+      "blocked": "B01: repeated options, whitespace-only numeric tokens, malformed selector clauses/cursor quirks and mixed slice modes have NO frozen success/rejection outcome here. Explicit root resolution is required; neither strict rejection nor native precedence is assumed."
+    },
+    {
+      "id": "F06", "caseIds": ["Z01","Z02","Z03","Z04","Z05","Z06","Z07","Z08","Z09","Z10","Z11"],
+      "recipe": "Use exact ordinary zero-range and uppercase zero-tail literals. Z02 uses a borrowed source whose iterator acquisition throws; Z10 uses a valid file path with metadata operations available but readStream acquisition throwing. Neither may acquire/read input. Header-enabled zero tail receives one complete header then poison next.",
+      "expected": "Uppercase -L0: no data rows, header if enabled; -n no iterator/read. Do not skip argv/path/limit checks, alias guards or required empty -o publication. Missing/unknown/alias output variants still refuse. Lowercase -l0/start=end/end0 retain captured post-write-loop behavior, not no-read optimization. Positive tail reads EOF and retains bounded owned rows."
+    },
+    {
+      "id": "F07", "caseIds": ["P01","Z01","Z02","Z07","Z09"],
+      "recipe": "Log acquisition, next, return, release and close events. Normal finite completion gets poison next after its final needed record; repeat with extra unread body already delivered. Borrowed input's return/throw must never be called by xan. Owned cooperative iterators are released through registered cleanup and finally.",
+      "expected": "No extra next just to discover EOF after a satisfied stop. Input charges include whole delivered chunk, not fictitious parsing of its tail. readBytes normally awaits return on early exit; abort only observes opaque return rejection. Stronger settlement comes only from explicitly registered cooperative owner cleanup, not iterator shape.",
+      "normalVsAbort": "Normal return, caller interruption, local destination close and disposal are distinct variants; count/full zero-length ordinary slice must not be mislabeled early returns."
+    },
+    {
+      "id": "F08", "caseIds": ["T09S","Z09","Z10"],
+      "recipe": "Actual public exec/dispose event gates: pre-aborted caller; abort during read/write; late admitted cooperative acquisition; overlapping command finally/registered close/repeated dispose; one failing cleanup plus another gated cleanup; opaque losing next/write rejects after public settlement. Use caller reason as primitive and errno-shaped object, with an equal-valued local reason in a separate provenance channel.",
+      "expected": "Register synchronously before acquisition/admission. Closing permanently prevents new acquisitions, releases already-admitted cooperative work once, and overlapping callers share completion. Public exec/dispose waits registered cooperative drains/root barrier before resolving or rejecting; start/drain all cleanups even when one fails. Caller exact reason wins, then existing escaping execution/control failure, then cleanup-only rejection(s); never reconstruct escaping error from mapped status. Local close is not caller abort. Opaque losing work is observed, not universally awaited/preempted.",
+      "teardown": "Release every harness-owned cooperative gate, observe late rejections, remove own listeners and timers. Direct host without registerCleanup is a limited finally-only control, not public settlement evidence. No deliberately endless registered cleanup or global-worker-zero assertion."
+    },
+    {
+      "id": "F09", "caseIds": ["O07","X01","Z10"],
+      "recipe": "Gate awaited destination writes; exercise enrolled stdout closure while separately rooted required -o file/stderr remains active, required file failure after an acknowledged prefix, and opaque unenrolled sink. Repeat positive file cases with writeStream absent and a truthful bounded writeFile implementation; whole-result fallback admits simultaneous segments+assembly+still-live metadata before publication.",
+      "expected": "createOutputOperation precedes owned resource acquisition. Closing stdout does not cancel sibling file/stderr/context; wrapper alone is not child ownership. No empty-write probe or universal opaque-sink preemption. Successful -o requires actual final file bytes with empty stdout. Whole-result prepublication failure leaves destination unchanged; admitted writer may leave partial/truncated effects, no rollback. Never empty-create then append. Await owned cooperative resource work, not opaque provider promises.",
+      "fallbackAccounting": "L-1/L/L+1 relative to independently enumerated simultaneous owned capacities and parent/output reservations, including old and new buffers while both live. No final-length-only accounting, phase reset, provider-memory/RSS claim or new fallback-size limit."
+    },
+    {
+      "id": "F10", "caseIds": ["O07","X01","Z10"],
+      "recipe": "Use new wx output, complete-identity distinct existing w output, same lexical path, hardlink, followed symlink, dangling destination symlink, unknown identity, borrowed stdin+existing output, conflicting/invalid compareEntry, permission error and raced creator. Repeat aliases with faithful wrappers and changed write/copy-up backing; no fabricated client-specific scope.",
+      "expected": "Alias preflight before potentially eager content acquisition or destructive output. Complete identity bypasses queries; otherwise each distinct operand authority queried at most once, metadata-only with signal. Same => EINVAL, unknown/dangling existing symlink => ENOTSUP, invalid/conflicting answers => EIO; raced actual wx => EEXIST preserving raced contents. Expected FsError yields status 1 and NONEXACT human-readable utility diagnostic preserving meaning/path; do not require serialized code/errno or swallow cancellation-shaped errors. Actual escaping/caller reason identity remains unchanged.",
+      "capabilities": "Missing readStream refuses ENOTSUP when input is needed. Missing actual conditional wx support refuses, never retries w; method presence/streamingWrite flag is not authority. Omit explicit mode; permissions:false is advisory, no chmod/mkdir workaround. Injected ENOENT/EACCES/EROFS/ENOSPC retain error meaning and exact observed byte/namespace effects. No atomic identity-conditioned open, ABA lease, symlink containment or deployed-provider certification.",
+      "effects": "For preflight refusals all source/destination bytes and namespace unchanged; read/acquire/write counts zero after the relevant rejecting boundary. For an admitted partial writer, store exact acknowledged prefix and error; no deletion/restoration. Z10 empty publication keeps the same guards despite no input read."
+    },
+    {
+      "id": "F11", "caseIds": ["Z10","T10S","O07"],
+      "recipe": "LIMITS.json binds all 18 approved defaults and ceilings plus boundary recipes. Count each counter across header files, skipped rows, selector expansion, output/file/stderr and diagnostics; add parent limits below local limits. Calibrate with independent byte/capacity/event arithmetic, never registry-derived expectations.",
+      "expected": "Pre-admit before exceeding allocation/publication; no successful truncated result or out-of-budget emergency diagnostic. Retained counters refund only actual releases; total input/output/work/records never reset. Configuration hard-ceiling checks and runtime attainable-boundary controls remain distinct. Unreachable grammar/depth/default-scale cases are NOT_REACHABLE/NOT_EXECUTED, not passes."
+    },
+    {
+      "id": "F12", "caseIds": ["T02S","T02L","T05S","T09S","T11S","X01","X02","O18","R01","R02","R03","R04","R05"],
+      "recipe": "Byte goldens plus independently declared decoded vectors below (T02 bodies exclude the header; X02 includes its reordered header). Reparse with an independently specified approved-dialect decoder later, not the implementation under test as its own oracle.",
+      "logicalVectors": {"T02S":[["x\ry","z"],["u","v\r"]],"T02L":[["x\ry","z"],["u","v"]],"X01":[["x;y"]],"T11S":[["x,y","a;b"],["",""],["u\r\nv","q\"r"]],"T05S":[["\uFEFFz","x"]],"X02":[["\uFEFFz","x"],["2","1"]]},
+      "expected": "Cross-delimiter output is canonical and logical-cell reversible, including double-quote decoding exactly once. Same-comma data raw only when writer-valid and data-faithful; CR/BOM/EOF repairs deliberately differ from native raw Select. Advanced flags explicitly refuse before effects. Native literal references certify only those historical observations, never all profiles/parity/security."
+    }
+  ]
+}

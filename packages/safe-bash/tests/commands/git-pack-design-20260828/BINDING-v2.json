@@ -1,0 +1,216 @@
+{
+  "role": "M1B_DESIGN_AND_DATA_ONLY",
+  "date": "2026-08-28",
+  "designPreseal": "7447166d",
+  "dataToolsPreseal": "bacf99cb",
+  "sourceCommit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "sourceInputsUnchanged": [
+    {
+      "path": "src/commands/git/README.md",
+      "bytes": 4752,
+      "mode": 420,
+      "sha256": "9ce7ceb150ac1b4d9e0201cdf811e9cfd39603c26dcc32b60a3bc9357c1d1055",
+      "blob": "a9c51cf863cc2929875229866a69c2dbd04fd8bd"
+    },
+    {
+      "path": "src/commands/git/arguments.ts",
+      "bytes": 7169,
+      "mode": 420,
+      "sha256": "4cb4fdde9fb488e8b12e75b32d1040580819665c7179bff074baf6717a14765b",
+      "blob": "455b6cc673fde406bf8a8c57d00a17a88ce2b3b0"
+    },
+    {
+      "path": "src/commands/git/codec.ts",
+      "bytes": 4631,
+      "mode": 420,
+      "sha256": "442bd6956340565599afcc1e0762eb7a8d8e001fe8880e9ec8185b1e200bd868",
+      "blob": "02ad268a05e6e88edae8410c73328a65ac82d3e3"
+    },
+    {
+      "path": "src/commands/git/config.ts",
+      "bytes": 4293,
+      "mode": 420,
+      "sha256": "fff5abf533238a842aa5f8ef4e5423335247e979782be376b122d99326bf5b2b",
+      "blob": "ff2aca9befa8401f6e99d8184a4bc23ab79370ef"
+    },
+    {
+      "path": "src/commands/git/diff.ts",
+      "bytes": 6122,
+      "mode": 420,
+      "sha256": "aac30cb828d7c3f415bcb33bac2ab2a93b09767ec33d32e3e41fbad52510a525",
+      "blob": "c73910833c1a14ce0419c267e5a25d967f29b01e"
+    },
+    {
+      "path": "src/commands/git/ignore.ts",
+      "bytes": 5634,
+      "mode": 420,
+      "sha256": "03c16d4b46010623906e215ab9e68a2b217760344a336ad93abced09cd19ca44",
+      "blob": "a97895669ff7be420d2b1f76a9282eaa89f5d548"
+    },
+    {
+      "path": "src/commands/git/index.ts",
+      "bytes": 2521,
+      "mode": 420,
+      "sha256": "618f005b204c8f6e72059e83dcfe0a34cbddc1b8577907bef20ae2f05b107a1e",
+      "blob": "8fbd242b09ff209c6652049856385966c3d1d1b4"
+    },
+    {
+      "path": "src/commands/git/io.ts",
+      "bytes": 11765,
+      "mode": 420,
+      "sha256": "624beea98087860e1a6d98727830228bba0754231562ac64c620530b251b01cd",
+      "blob": "99125d708586329dbdc337e718ac13e2160384e5"
+    },
+    {
+      "path": "src/commands/git/limits.ts",
+      "bytes": 1975,
+      "mode": 420,
+      "sha256": "23175737832fdca114176825e1224daaa7f498fada7697f00cdf5064e08202df",
+      "blob": "7b9cea64680f0a8d57eb8655f200c451ee6a44f9"
+    },
+    {
+      "path": "src/commands/git/queries.ts",
+      "bytes": 13155,
+      "mode": 420,
+      "sha256": "28b7b89203ddc3d7442647863cfeaf008664d2bf2b4f213522743faaa7230c0e",
+      "blob": "81d78f8a340447922d32ee709a5e6cc3acd831a3"
+    },
+    {
+      "path": "src/commands/git/repository.ts",
+      "bytes": 21491,
+      "mode": 420,
+      "sha256": "b3753919e00f59ff941d43cba8e1265eebf5b523dfec287f1fa6ac1d5856d223",
+      "blob": "e325ee7e8ec1fd816bed49e8b551df89c8e6776d"
+    }
+  ],
+  "beforeObservation": "Eleven live source SHA256 values logged before data generation; development Git diff against9885390f empty before and after. This seal is the post-data source check, not a claimed product loader trace.",
+  "runtime": {
+    "version": "v22.22.2",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "fixedLimitValuesMatched": 24,
+  "fixtureSha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080",
+  "evidenceInputs": [
+    {
+      "name": "CHECK-v1.exit.txt",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "name": "CHECK-v1.json",
+      "bytes": 3327,
+      "mode": 420,
+      "sha256": "d87505a3c992f24da9a69e07e7220a4d4266cb913117b5ccbd2432e2ae764b44"
+    },
+    {
+      "name": "CHECK-v1.stderr.txt",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "DATA-RECIPE.md",
+      "bytes": 3127,
+      "mode": 420,
+      "sha256": "360d2371dafdd1f9ed460b8efda648416ba1d39984ead7feceb38a5aad5c290f"
+    },
+    {
+      "name": "DECISIONS.md",
+      "bytes": 9715,
+      "mode": 420,
+      "sha256": "53083bf397cd35034148f59dc491386126704b0691cde0eec93e82fa7846ecc6"
+    },
+    {
+      "name": "GENERATION-v1.exit.txt",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "name": "GENERATION-v1.json",
+      "bytes": 642,
+      "mode": 420,
+      "sha256": "f32d1f15da506353280d760941a648ed88e99e2f4f2c4c35b7367153f409458a"
+    },
+    {
+      "name": "GENERATION-v1.stderr.txt",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "LIMITS.json",
+      "bytes": 1939,
+      "mode": 420,
+      "sha256": "e9ca0e94394738e8a2a6623b4d86111babfa75c83171f351986e65f57e0fb873"
+    },
+    {
+      "name": "MATRIX.md",
+      "bytes": 4293,
+      "mode": 420,
+      "sha256": "62b14bae223b3cdbaf4de05b7de8591101d3584ebf790287c0eef25a4c668139"
+    },
+    {
+      "name": "NATIVE-RECIPES.md",
+      "bytes": 2968,
+      "mode": 420,
+      "sha256": "993abc10be7df660bc74d68f9f4fc3bb268b22f699107443f9dce25237164b34"
+    },
+    {
+      "name": "NEUTRAL-PACKS.json",
+      "bytes": 370847,
+      "mode": 420,
+      "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080"
+    },
+    {
+      "name": "SEAL-v1-FAILURE.txt",
+      "bytes": 644,
+      "mode": 420,
+      "sha256": "859277811f38f506971e3d9a88196a2ebc02e658d1795ff1ddacb4475f40bf62"
+    },
+    {
+      "name": "SEAL-v2.stderr.txt",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "SOURCES.md",
+      "bytes": 2934,
+      "mode": 420,
+      "sha256": "16cf0ececf19b7c6f4b10f7c4deca7d8cbd23a7c5a132b1e0df75ab526be7bfe"
+    },
+    {
+      "name": "SPEC.md",
+      "bytes": 13338,
+      "mode": 420,
+      "sha256": "201eb25e5af87d3b6ef14f78c747ca4691a7d015a88283b1687ca9346fa2f7a1"
+    },
+    {
+      "name": "check-data.mjs",
+      "bytes": 15891,
+      "mode": 420,
+      "sha256": "fb6bd2a8a0819d2dcf705d75662510ae61ac34a9f356e4db408033128f9e07ce"
+    },
+    {
+      "name": "generate-data.mjs",
+      "bytes": 13748,
+      "mode": 420,
+      "sha256": "5657e8d2472bcd73a13075d3bd69afeaaaf6cbc45b9521100fa506e6cd512f1f"
+    },
+    {
+      "name": "seal-data.mjs",
+      "bytes": 3712,
+      "mode": 420,
+      "sha256": "3b6ac4fd5499a69eaebb76d623eccfa7583184bcb30129e1251ffee4e60d7b64"
+    }
+  ],
+  "productExecutions": 0,
+  "nativeGitExecutions": 0,
+  "builds": 0,
+  "installedOrMovedPackageExecutions": 0,
+  "implementationGo": false,
+  "status": "Different design review and ROOT D1/D2/D3 decisions pending; defaults78 unchanged"
+}

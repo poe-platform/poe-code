@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+const root = process.cwd();
+const parent = `${root}/tests/shell-stress/first-read-contract-review/owned-output-prototype-review`;
+const author = `${root}/tests/shell-stress/first-read-contract-review/owned-output-prototype`;
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const pinned = {
+  'handoff.json': '2707169adcf3fa6be4b58fc57a67f8950c0420d2a3f2a94456496eb92482a4ab',
+  'source-r1.patch-data': 'd73bb2637d54b97f62fd6e1baa57100cf0018a763679c31386349e30a19cc4e2',
+  'adapted-fixture.patch-data': '616c94783319f28ce796fef166692cc3916d260ea68842921360793d78bc07ba',
+  'API.txt.data': '3bd68b98b18250c778b91b0e21d6e8ed687edd34fc5e4de4c5725ff67ba9c91a',
+};
+for (const [name, digest] of Object.entries(pinned)) assert.equal(sha(readFileSync(`${author}/${name}`)), digest, name);
+assert.equal(sha(readFileSync(`${parent}/intentions-freeze.json`)), 'aabc0ea5c7d7f03b4c4038b3c94952e7a08d9c98e2d40b9dbbf76417503be972');
+assert.equal(sha(readFileSync(`${parent}/binding-freeze.json`)), 'ed00497a9503623e51922f3d0b65ed15aec5a5c03608d06f265e223cb923b8b1');
+assert.equal(sha(execFileSync('git', ['show', '044aaaca:tests/shell-stress/first-read-contract-review/owned-output-prototype-review/binding-freeze.json'])), sha(readFileSync(`${parent}/binding-freeze.json`)));
+const intentions = JSON.parse(readFileSync(`${parent}/intentions-freeze.json`));
+const binding = JSON.parse(readFileSync(`${parent}/binding-freeze.json`));
+for (const entry of [...intentions.intentions, ...binding.binding, binding.declaration]) assert.equal(sha(readFileSync(`${parent}/${entry.path}`)), entry.sha256, entry.path);
+const handoff = JSON.parse(readFileSync(`${author}/handoff.json`));
+for (const [field, digest] of [['source', handoff.sourceManifestSha256], ['tests', handoff.testManifestSha256], ['compiled', handoff.compiledManifestSha256]]) assert.equal(sha(JSON.stringify(handoff[field])), digest, field);
+const authenticated = [];
+for (const name of ['restore-handoff.mjs-data', 'reconstruction.json', 'supervisor.mjs.data', 'run-existing.mjs.data', 'run-controls.mjs.data', 'controls.mjs.data', 'native.mjs.data', 'run-prototype.mjs.data', 'adapted-first-read-probe.ts.data', 'adapted-remote-close.test.ts.data', 'owned-output-author.test.ts.data']) {
+  const relative = `tests/shell-stress/first-read-contract-review/owned-output-prototype/${name}`;
+  const current = readFileSync(`${root}/${relative}`);
+  const committed = execFileSync('git', ['show', `1ff82cb748c60145740dba354610ac7ed7a7f15f:${relative}`], {maxBuffer: 8 * 1024 * 1024});
+  assert.equal(sha(current), sha(committed), name);
+  authenticated.push({path: relative, sha256: sha(current)});
+}
+const restoration = readFileSync(`${author}/restore-handoff.mjs-data`, 'utf8').replace("mkdtempSync('/tmp/safe-bash-owned-output-prototype-replay-')", "mkdtempSync('/tmp/safe-bash-owned-output-prototype-review-execution-')");
+assert.notEqual(restoration, readFileSync(`${author}/restore-handoff.mjs-data`, 'utf8'));
+const stdout = execFileSync(process.execPath, ['--input-type=module'], {input: restoration, encoding: 'utf8', timeout: 45000, maxBuffer: 4 * 1024 * 1024});
+const proof = JSON.parse(stdout);
+proof.authenticatedHarness = authenticated;
+proof.restorationDelta = 'Only mkdtemp prefix changed to executor-owned namespace; no candidate/source/test changes.';
+proof.restorationExecutableSha256 = sha(restoration);
+proof.intentionsSealSha256 = sha(readFileSync(`${parent}/intentions-freeze.json`));
+proof.bindingSealSha256 = sha(readFileSync(`${parent}/binding-freeze.json`));
+writeFileSync(`${proof.temp}/authentication.json`, JSON.stringify(proof, null, 2) + '\n', {flag: 'wx'});
+console.log(JSON.stringify(proof, null, 2));

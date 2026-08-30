@@ -1,0 +1,2363 @@
+{
+  "schema": "unified76-independent-final-component-completion/v4.2",
+  "started": "2026-08-28T02:17:12.688Z",
+  "bindings": {
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+    "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "fixtureSource": "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+    "driver": "2713defc1f53a00dd975931946de4782a980836d",
+    "evidence": "b283eb0dad7a895168ad6b5df47db4066a95b7e3",
+    "prefix": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/",
+    "reportSha256": "30fa2e1f40501edd8656026a4f72910083bb55ba277d9f7fbb37e3b7a0df0625",
+    "driverFileSha256": "169e8d6ba2f5c4dac5a93ad359969810dc50854adfd49cbe687eb2c31821217a",
+    "driverCanonicalJsonSha256": "3a3019e02830baf599f7df46c938c44552067d160819e548688ccf6027a1441c",
+    "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "profileEncodedSha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+    "cleanupSha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+    "packSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packageJsonSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "nodeSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+    "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+  },
+  "groups": [
+    {
+      "id": "A06",
+      "controls": [
+        {
+          "name": "actual archive accepts regular origin and declared contained fixture link",
+          "status": "PASS",
+          "detail": {
+            "files": {
+              "input.mjs": {
+                "blob": "f6499606c0122255a3d438bacdce5bbb974c063c",
+                "sha256": "992a93455c71fedd36ac9bbc439952c041cf61445958472af479269b8d873513",
+                "bytes": 5,
+                "mode": 420,
+                "symlink": false
+              },
+              "link": {
+                "blob": "b016b391a280697d908a975e792a995b2e48e7bc",
+                "sha256": "ec4208bd73a694f5c1809e99073f7e678eb4c6b24801521ef53c1f44f768bf80",
+                "bytes": 9,
+                "mode": 493,
+                "symlink": true
+              }
+            },
+            "count": 2,
+            "source": "exact committed input and directory sets, streamed Git blob/SHA256/mode/type authentication"
+          }
+        },
+        {
+          "name": "actual source-origin link substitution",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n"
+          }
+        },
+        {
+          "name": "actual archive rejects lexical escaping fixture link",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: archive symlink escape"
+          }
+        },
+        {
+          "name": "actual archive rejects new input",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: archive added/missing input\n+ actual - expected\n\n  [\n    'input.mjs',\n    'link',\n+   'new.json'\n  ]\n"
+          }
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "A12",
+      "controls": [
+        {
+          "name": "actual small streamed extraction and independently compared bytes",
+          "status": "PASS",
+          "detail": {
+            "receipt": {
+              "status": 0,
+              "signal": null,
+              "closed": true,
+              "stderrBytes": 0,
+              "survivors": [],
+              "entries": 2,
+              "bytes": 31,
+              "transferBytes": 130,
+              "hashes": {
+                "golden": "5ac03da17d7d5241b49a9a94f86b08a431d7052c8585ca997b373f0bc7da0dcc",
+                "helper.mjs": "2fefedd35a52c398135d25527b37037cfd4394f20652e6004ee040a2aaf2edc3"
+              },
+              "method": "validated declared Git blobs streamed directly; no tar headers or extraction filters"
+            },
+            "verified": {
+              "files": {
+                "golden": {
+                  "blob": "e233e55fd431cbfe13bd9c8a0a5800e4d98337ac",
+                  "sha256": "5ac03da17d7d5241b49a9a94f86b08a431d7052c8585ca997b373f0bc7da0dcc",
+                  "bytes": 7,
+                  "mode": 420,
+                  "symlink": false
+                },
+                "helper.mjs": {
+                  "blob": "b0942edec9a7b2234e0d76a4998d0c33cff6fa46",
+                  "sha256": "2fefedd35a52c398135d25527b37037cfd4394f20652e6004ee040a2aaf2edc3",
+                  "bytes": 24,
+                  "mode": 420,
+                  "symlink": false
+                }
+              },
+              "count": 2,
+              "source": "exact committed input and directory sets, streamed Git blob/SHA256/mode/type authentication"
+            }
+          }
+        },
+        {
+          "name": "actual reachable-object stream into owned Git database",
+          "status": "PASS",
+          "detail": {
+            "bytes": 307,
+            "stdout": 46,
+            "lifecycle": [
+              {
+                "status": 0,
+                "signal": null,
+                "closed": true,
+                "stderrBytes": 0,
+                "survivors": []
+              },
+              {
+                "status": 0,
+                "signal": null,
+                "closed": true,
+                "stderrBytes": 0,
+                "survivors": []
+              }
+            ]
+          }
+        },
+        {
+          "name": "actual transport wrong-size",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'e233e55fd431cbfe13bd9c8a0a5800e4d98337ac blob 7'\n- 'e233e55fd431cbfe13bd9c8a0a5800e4d98337ac blob 8'\n"
+          }
+        },
+        {
+          "name": "actual transport missing-object",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000 missing'\n- '0000000000000000000000000000000000000000 blob 7'\n"
+          }
+        },
+        {
+          "name": "charge beyond reviewed small limit",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: Profile resource bound exceeded before growth"
+          }
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "A13",
+      "controls": [
+        {
+          "name": "actual path refusal ../escape",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\n"
+          }
+        },
+        {
+          "name": "actual path refusal /absolute",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\n"
+          }
+        },
+        {
+          "name": "actual path refusal .git/config",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\n"
+          }
+        },
+        {
+          "name": "actual path refusal a/../b",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\n"
+          }
+        },
+        {
+          "name": "actual path refusal a\\b",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(typeof entry.path==='string'&&entry.path.length>0&&!entry.path.includes('\\0')&&!entry.path.includes('\\\\'))\n"
+          }
+        },
+        {
+          "name": "duplicate path",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(!seen.has(entry.path))\n"
+          }
+        },
+        {
+          "name": "declared link ancestor",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: symlink ancestor is not an extraction directory"
+          }
+        },
+        {
+          "name": "actual streamed escape target rejected before link creation",
+          "status": "PASS",
+          "detail": {
+            "rejected": true,
+            "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(link)&&normalized!=='..'&&!normalized.startsWith('../')&&!link.includes('\\0'))\n"
+          }
+        },
+        {
+          "name": "no outside-owned destination effect",
+          "status": "PASS"
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "A20",
+      "controls": [
+        {
+          "name": "actual run and worker imports remain inert",
+          "status": "PASS"
+        },
+        {
+          "name": "actual clean-environment unreleased --run refuses before product",
+          "status": "PASS",
+          "detail": {
+            "error": "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/NO-RELEASE.json'",
+            "removedAmbientKeys": [
+              "GIT_PAGER"
+            ],
+            "noReleaseConstructed": true,
+            "noGateWorker": true
+          }
+        }
+      ],
+      "status": "PASS"
+    }
+  ],
+  "sources": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/CANDIDATE.json",
+      "name": "CANDIDATE.json",
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/PROFILE.json.gz.base64",
+      "name": "PROFILE.json.gz.base64",
+      "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/PROFILE-RECEIPT.json",
+      "name": "PROFILE-RECEIPT.json",
+      "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/CLEANUP.json",
+      "name": "CLEANUP.json",
+      "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/EXTERNAL.json.gz.base64",
+      "name": "EXTERNAL.json.gz.base64",
+      "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/EXTERNAL-RECEIPT.json",
+      "name": "EXTERNAL-RECEIPT.json",
+      "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/common.mjs",
+      "name": "common.mjs",
+      "sha256": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/profile.mjs",
+      "name": "profile.mjs",
+      "sha256": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/admission.mjs",
+      "name": "admission.mjs",
+      "sha256": "565fc81134f3874718d68d2e4dc9f1dadb0075e7ab67eb607d964fe68e2a4c46",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/inventory.mjs",
+      "name": "inventory.mjs",
+      "sha256": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/run.mjs",
+      "name": "run.mjs",
+      "sha256": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/worker.mjs",
+      "name": "worker.mjs",
+      "sha256": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/supervise.mjs",
+      "name": "supervise.mjs",
+      "sha256": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/execute.mjs",
+      "name": "execute.mjs",
+      "sha256": "316320b4c019e116030a9d5cea58b814a981dff5c668041d817a4f51a4d887c9",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "name": "policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/transport.mjs",
+      "name": "transport.mjs",
+      "sha256": "3b319780a805f55ad943b2da5231b4c7c221ee7cf261687453edb6d6015c6053",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/external.mjs",
+      "name": "external.mjs",
+      "sha256": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/external-admission.mjs",
+      "name": "external-admission.mjs",
+      "sha256": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/built-consumers.mjs",
+      "name": "built-consumers.mjs",
+      "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/consumer-admission.mjs",
+      "name": "consumer-admission.mjs",
+      "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/tap.mjs",
+      "name": "tap.mjs",
+      "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/public.mjs",
+      "name": "public.mjs",
+      "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/consumer.mts.fixture",
+      "name": "consumer.mts.fixture",
+      "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/negative.mts.fixture",
+      "name": "negative.mts.fixture",
+      "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/DRIVER.json",
+      "name": "DRIVER.json",
+      "sha256": "169e8d6ba2f5c4dac5a93ad359969810dc50854adfd49cbe687eb2c31821217a",
+      "revision": "2713defc1f53a00dd975931946de4782a980836d"
+    }
+  ],
+  "commands": [
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "941d2d55dca52da5a5177f48dfe4ee3e353f7544d5186b34edf72cc3b6290ad8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "2535\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 2535,
+      "stdoutSha256": "169e8d6ba2f5c4dac5a93ad359969810dc50854adfd49cbe687eb2c31821217a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "{\n  \"schema\": 3,\n  \"createdAt\": \"2026-08-28T01:45:18.509Z\",\n  \"candidate\": \"f5e9fc49b6abb38e180cc9de16c95fced102ff75\",\n  \"tree\": \"5687cbdebc46ec6d3618d32072c4de708118b9bb\",\n  \"files\": {\n    \"CANDIDATE.json\": \"b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd\",\n    \"PROFILE.json.gz.base64\": \"a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37\",\n    \"PROFILE-RECEIPT.json\": \"bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0\",\n    \"CLEANUP.json\": \"0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde\",\n    \"EXTERNAL.json.gz.base64\": \"ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e\",\n    \"EXTERNAL-RECEIPT.json\": \"0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84\",\n    \"common.mjs\": \"b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb\",\n    \"profile.mjs\": \"382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f\",\n    \"admission.mjs\": \"565fc81134f3874718d68d2e4dc9f1dadb0075e7ab67eb607d964fe68e2a4c46\",\n    \"inventory.mjs\": \"075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2\",\n    \"run.mjs\": \"6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e\",\n    \"worker.mjs\": \"2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401\",\n    \"supervise.mjs\": \"0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55\",\n    \"execute.mjs\": \"316320b4c019e116030a9d5cea58b814a981dff5c668041d817a4f51a4d887c9\",\n    \"policy.mjs\": \"23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86\",\n    \"transport.mjs\": \"3b319780a805f55ad943b2da5231b4c7c221ee7cf261687453edb6d6015c6053\",\n    \"external.mjs\": \"c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da\",\n    \"external-admission.mjs\": \"7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1\",\n    \"built-consumers.mjs\": \"ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8\",\n    \"consumer-admission.mjs\": \"2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7\",\n    \"tap.mjs\": \"76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b\",\n    \"public.mjs\": \"0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70\",\n    \"consumer.mts.fixture\": \"8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba\",\n    \"negative.mts.fixture\": \"03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3\"\n  },\n  \"wholeGateLaunched\": false,\n  \"qualification\": \"Versioned integrated launcher for review only; explicit root release and independent driver acceptance required.\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "53655366efe7f7f983d4a064eb04e33712208764ea87745cc1b2714d544991df",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "4663\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4663,
+      "stdoutSha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "{\n  \"schema\": 3,\n  \"createdAt\": \"2026-08-28T01:25:03.693Z\",\n  \"candidate\": \"f5e9fc49b6abb38e180cc9de16c95fced102ff75\",\n  \"tree\": \"5687cbdebc46ec6d3618d32072c4de708118b9bb\",\n  \"base\": \"44f00bf84278e3361b52106478d59c707ab7b2bc\",\n  \"fixtureSourceCommit\": \"284a4c5a193e2001c373fd35806e920bf3ffb90f\",\n  \"sourceTree\": \"5876c6bf4ad9bc07f22cc46f8dbee99461981862\",\n  \"changes\": [\n    {\n      \"path\": \"tests/commands/split/integration.test.ts\",\n      \"beforeSha256\": \"925551e6befe9ccb1d907948a74e002f490a49f51640943069d7599ef794c705\",\n      \"afterSha256\": \"2710d4467c42c63713cf406e3c12683c791d8d2e0e020ec54556b494732ac01e\",\n      \"beforeBlob\": \"b7444047a32c83eadf4fd4a5d5c2e91d98be6d7c\",\n      \"replacements\": [\n        [\n          \"contains 73 including\",\n          \"contains 76 including\"\n        ],\n        [\n          \"createAgentCommands().length, 73\",\n          \"createAgentCommands().length, 76\"\n        ],\n        [\n          \"shell.commands.list().length, 73\",\n          \"shell.commands.list().length, 76\"\n        ]\n      ],\n      \"afterBlob\": \"88fff30270f01d7eab63279e5777cb88db1cbb8e\"\n    },\n    {\n      \"path\": \"tests/commands/stream-format-author-stress/contracts.test.ts\",\n      \"beforeSha256\": \"f75b17b6530611215aedb8459bc8bb00b82ac1d31eb96126e0e2a8962ed9a0b1\",\n      \"afterSha256\": \"7ae8987438c07e17bba5ff71a13c949c51937cd955e2e5eaade355672849ad08\",\n      \"beforeBlob\": \"873ab37faf8b155e562eda8bb196d02f74ca2040\",\n      \"replacements\": [\n        [\n          \"contains73 and standalone\",\n          \"contains76 and standalone\"\n        ],\n        [\n          \"createAgentCommands().length, 73\",\n          \"createAgentCommands().length, 76\"\n        ],\n        [\n          \"instance.commands.list().length, 73\",\n          \"instance.commands.list().length, 76\"\n        ]\n      ],\n      \"afterBlob\": \"23a999dfd948993e45976276225645f861af3db1\"\n    },\n    {\n      \"path\": \"tests/integration/stream-inspection-public-author/public.test.ts\",\n      \"beforeSha256\": \"4919909cde0944c851bb9aea39bf2aae5971683d39d48d3924bb5cd668e1c2c0\",\n      \"afterSha256\": \"c56c449a03b99ce393db85aa480af3ffe8f65b1a71cf0946c012606e49f74864\",\n      \"beforeBlob\": \"d56a27dc4f2b6e84ca2c01471fe474ffe989b34c\",\n      \"replacements\": [\n        [\n          \"target.commands.list().length, 74\",\n          \"target.commands.list().length, 77\",\n          2\n        ],\n        [\n          \"assert.equal(definitions.length, 73);\",\n          \"assert.equal(definitions.length, 76);\"\n        ],\n        [\n          \"root family exports preserve four inspection definitions in the 73-command aggregate\",\n          \"root family exports preserve four inspection definitions in the 76-command aggregate\"\n        ],\n        [\n          \"assert.equal(new Set(definitions).size, 73);\",\n          \"assert.equal(new Set(definitions).size, 76);\"\n        ],\n        [\n          \"\\\"tree\\\", \\\"file\\\", \\\"egrep\\\", \\\"fgrep\\\", \\\"column\\\"]\",\n          \"\\\"tree\\\", \\\"file\\\", \\\"egrep\\\", \\\"fgrep\\\", \\\"column\\\", \\\"html-to-markdown\\\", \\\"du\\\", \\\"expr\\\"]\"\n        ]\n      ],\n      \"afterBlob\": \"72a99c3d8dd8190592927d1dedfef315ee7429eb\"\n    },\n    {\n      \"path\": \"tests/plugins/stream-five-public/consumer.mjs\",\n      \"beforeSha256\": \"79c962dd5d8686af1e9e03b60e5d3f3b1bdb5f4fa7acedbaff6c5009891276b6\",\n      \"afterSha256\": \"cdfdb6acf03a48d315fe70ae99f0d2563ab83dc558171ea561c303d59236bb35\",\n      \"beforeBlob\": \"96375d606df3f9f480d13d20d00f3a779ee330fe\",\n      \"replacements\": [\n        [\n          \"names.length, 70\",\n          \"names.length, 76\"\n        ],\n        [\n          \"new Set(names).size, 70\",\n          \"new Set(names).size, 76\"\n        ],\n        [\n          \"commands.list().length, 70\",\n          \"commands.list().length, 76\"\n        ]\n      ],\n      \"afterBlob\": \"4434cfa99fec9c9d8559718d45edf8c71f9c13bc\"\n    }\n  ],\n  \"rawCommitBase64\": \"dHJlZSA1Njg3Y2JkZWJjNDZlYzZkMzYxOGQzMjA3MmM0ZGU3MDgxMThiOWJiCnBhcmVudCA0NGYwMGJmODQyNzhlMzM2MWI1MjEwNjQ3OGQ1OWM3MDdhYjdiMmJjCmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg4MDMwMyAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4ODAzMDMgLTA1MDAKClVuaWZ5NzYgdjM6IGNvbXBsZXRlIGF1dGhvcml6ZWQgaW52ZW50b3J5IHN3ZWVwIGluIHRoZSBzYW1lIGZvdXIgZml4dHVyZSBwYXRocwo=\",\n  \"rawCommitSha256\": \"c97a53f90fa4abac622e5a854138b12cbb5bee09027a8597a1a56a38abd6e30e\",\n  \"expectedPackageSha256\": \"c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd\",\n  \"release\": \"HOLD_PUBLIC_AND_DRIVER_REVIEW\",\n  \"wholeGateLaunched\": false,\n  \"previousCandidate\": \"2ffcb23d6029250c48950030120ed0adad2e5769\",\n  \"previousDriver\": \"86f75025b423f9d25a9dbcb35d07e73e95d33f9d\",\n  \"amendmentFreezeSha256\": \"ae02625a495954ac26994316f64dc623da7bdb5dafc17098ff4260b5bd5d02b2\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 8,
+      "stdoutSha256": "6ad48bb9d73094f72ffe67597c73534c8f5dbb60146a372a82a193acc6365e0e",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "1409701\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 1409701,
+      "stdoutSha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4,
+      "stdoutSha256": "76a88c35536fd1673b1f8776a998ad4ac472b25dfcacc8f048c254878da12ce1",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "976\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 976,
+      "stdoutSha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "{\n  \"candidate\": \"f5e9fc49b6abb38e180cc9de16c95fced102ff75\",\n  \"tree\": \"5687cbdebc46ec6d3618d32072c4de708118b9bb\",\n  \"profileSha256\": \"8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f\",\n  \"encodedSha256\": \"a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37\",\n  \"canonical\": 632,\n  \"mts\": 192,\n  \"cleanup\": 256,\n  \"nativeBase\": 49,\n  \"nativeExtensions\": 2,\n  \"sourceFiles\": 249,\n  \"closure\": {\n    \"kind\": \"complete committed-tree conservative runtime-input superset, not compact typing selection\",\n    \"entries\": 37397,\n    \"bytes\": 2382440321,\n    \"storedArchive\": false,\n    \"streamedAtExecution\": true,\n    \"qualification\": \"Historical canonical audits read captured data and Git history. No claim that a smaller static-import selection is complete; all committed tree blobs and ancestor Git objects are retained in isolated temporary storage.\"\n  },\n  \"temporary\": \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-profile-53NkTh\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 6,
+      "stdoutSha256": "44b3e4112483e5b813c9c99e12eb73378735d88763f3b70adf3145db054b71bf",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "27233\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 27233,
+      "stdoutSha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 7,
+      "stdoutSha256": "78212e0c28c2998187d65083aaa0371f3c833d1b7fddb67c2d1af39e0194aab0",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "476241\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 476241,
+      "stdoutSha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4,
+      "stdoutSha256": "fbbbdc7231dc30612154b1808efeaf4b6f7e8756db6c205e6ff94579e0ba8aa0",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "592\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 592,
+      "stdoutSha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "{\n  \"schema\": 3,\n  \"candidate\": \"f5e9fc49b6abb38e180cc9de16c95fced102ff75\",\n  \"observationCandidate\": \"2ffcb23d6029250c48950030120ed0adad2e5769\",\n  \"sha256\": \"23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48\",\n  \"encodedSha256\": \"ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e\",\n  \"qualification\": \"Exact readable identities reused only after fresh verification; original observation retains its pre-approval incomplete-binding status. Root separately approved precisely eleven macOS26.4.1/build25E253 references; no full OS or unknown-image attestation.\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "ea8933bd049a7ebd7736a7e6c9e4f061d22970b5ac3f468c41e3083c3052b079",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "4581\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4581,
+      "stdoutSha256": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {execFileSync} from 'node:child_process';\nimport {createHash} from 'node:crypto';\nimport {chmodSync,cpSync,lstatSync,mkdirSync,readFileSync,readdirSync,realpathSync,writeFileSync} from 'node:fs';\nimport {dirname,join,relative,resolve} from 'node:path';\nimport {fileURLToPath} from 'node:url';\nimport {cleanGitEnvironment} from './transport.mjs';\n\nexport const directory=dirname(fileURLToPath(import.meta.url));\nexport const repository=resolve(directory,'../../../../..');\nexport const candidate=JSON.parse(readFileSync(join(directory,'CANDIDATE.json')));\nexport const sha=bytes=>createHash('sha256').update(bytes).digest('hex');\nexport const git=(args,options={})=>execFileSync('/Applications/Xcode.app/Contents/Developer/usr/bin/git',['--no-replace-objects',...args],{cwd:repository,timeout:600000,maxBuffer:32*1024*1024,env:cleanGitEnvironment(process.env),...options});\nexport const text=args=>git(args).toString().trim();\nexport const blob=(path,revision=candidate.candidate)=>git(['show',`${revision}:${path}`]);\nexport const save=(path,value)=>writeFileSync(path,JSON.stringify(value,null,2)+'\\n',{flag:'wx'});\nexport const node24='/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node';\nexport const npm='/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js';\nexport function entries(revision=candidate.candidate) {\n  return git(['ls-tree','-rlz',revision]).toString().split('\\0').filter(Boolean).map(row=>{\n    const split=row.indexOf('\\t'),[mode,type,object,size]=row.slice(0,split).trim().split(/\\s+/u);\n    assert.equal(type,'blob');return{path:row.slice(split+1),mode,blob:object,bytes:Number(size)};\n  });\n}\nexport function copySelection(root,paths,revision=candidate.candidate) {\n  const selected=entries(revision).filter(entry=>paths.some(path=>entry.path===path||entry.path.startsWith(path+'/')));\n  for(const entry of selected){assert.ok(['100644','100755'].includes(entry.mode));const target=join(root,entry.path);mkdirSync(dirname(target),{recursive:true});const bytes=blob(entry.path,revision);writeFileSync(target,bytes,{flag:'wx'});chmodSync(target,entry.mode==='100755'?0o755:0o644);entry.sha256=sha(bytes);}\n  return selected;\n}\nexport function copyDependencies(destination,origin=join(repository,'node_modules')) {\n  const visit=(source,target)=>{\n    for(const name of readdirSync(source).sort()){\n      const from=join(source,name),to=join(target,name),stat=lstatSync(from);\n      if(name==='.bin')continue;\n      assert.equal(stat.isSymbolicLink(),false,from);\n      if(stat.isDirectory()){mkdirSync(to,{recursive:true});visit(from,to);}else{assert.ok(stat.isFile());cpSync(from,to);assert.equal(sha(readFileSync(to)),sha(readFileSync(from)));}\n    }\n  };\n  mkdirSync(destination,{recursive:true});visit(origin,destination);\n  mkdirSync(join(destination,'.bin'));\n  for(const name of readdirSync(join(origin,'.bin')).sort()){\n    const target=realpathSync(join(origin,'.bin',name));assert.ok(target.startsWith(origin+'/'));\n    const installed=join(destination,relative(origin,target));assert.ok(lstatSync(installed).isFile());\n    const quote=value=>\"'\"+value.replaceAll(\"'\",\"'\\\\''\")+\"'\";\n    writeFileSync(join(destination,'.bin',name),'#!/bin/sh\\nexec '+quote(installed)+' \"$@\"\\n',{mode:0o755});\n  }\n}\nexport function verifyAssembly(receipt=candidate) {\n  assert.equal(text(['rev-parse',`${receipt.base}:src`]),receipt.sourceTree);\n  assert.equal(text(['rev-parse',`${receipt.candidate}:src`]),receipt.sourceTree);\n  assert.equal(text(['rev-parse',`${receipt.candidate}^{tree}`]),receipt.tree);\n  assert.deepEqual(text(['show','-s','--format=%P',receipt.candidate]),receipt.base);\n  assert.deepEqual(text(['diff','--name-only',receipt.base,receipt.candidate]).split('\\n').sort(),receipt.changes.map(entry=>entry.path).sort());\n  const raw=Buffer.from(receipt.rawCommitBase64,'base64');assert.equal(sha(raw),receipt.rawCommitSha256);assert.deepEqual(raw,git(['cat-file','commit',receipt.candidate]));\n  for(const entry of receipt.changes){let expected=blob(entry.path,receipt.base).toString();assert.equal(sha(expected),entry.beforeSha256);for(const[from,to,count=1]of entry.replacements){assert.equal(expected.split(from).length-1,count);expected=expected.replaceAll(from,to);}assert.equal(sha(expected),entry.afterSha256);assert.deepEqual(Buffer.from(expected),blob(entry.path));assert.deepEqual(blob(entry.path,receipt.fixtureSourceCommit),blob(entry.path));}\n  return{candidate:receipt.candidate,tree:receipt.tree,sourceTree:receipt.sourceTree,paths:receipt.changes.length};\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/profile.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "a331354ae0ecb759e1ef27e93efba473fefbceb5f851ad56cb5c9b55fd76c5ad",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "8207\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/profile.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 8207,
+      "stdoutSha256": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {gunzipSync,gzipSync} from 'node:zlib';\nimport {mkdtempSync,readFileSync,writeFileSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join,resolve} from 'node:path';\nimport {pathToFileURL} from 'node:url';\nimport {candidate,directory,entries,blob,sha,save,verifyAssembly} from './common.mjs';\n\nexport const supportPaths=[\n  'tests/integration/full-gate-20260827/account.mjs',\n  'tests/integration/full-gate-20260827/supervise.mjs',\n  'tests/integration/full-gate-20260827/preflight-repair/preflight.mjs',\n  'tests/integration/full-gate-20260827/preflight-repair/policy.json',\n  'tests/integration/full-gate-20260827/runtime-profile-20260827/profile.mjs',\n  'tests/integration/full-gate-20260827/integrity-73/tree.mjs',\n  'tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs',\n  'tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs',\n  'tests/integration/full-gate-20260827/combined-8670ebe8/committed-archive.mjs',\n  'tests/integration/full-gate-20260827/combined-b494675c/inspect.mjs',\n];\nexport async function generateProfile() {\n  verifyAssembly();\n  const helper='tests/integration/full-gate-20260827/candidate-profile-73/prepare.mjs';\n  const absolute=resolve(directory,'../../../../..',helper);\n  assert.equal(sha(readFileSync(absolute)),sha(blob(helper)));\n  const {prepare}=await import(pathToFileURL(absolute));\n  const temporary=mkdtempSync(join(tmpdir(),'unified76-profile-'));\n  prepare(candidate.candidate,join(temporary,'draft'));\n  const draft=JSON.parse(readFileSync(join(temporary,'draft/policy.json')));\n  const tree=entries(),cleanup=JSON.parse(readFileSync(join(temporary,'draft/cleanup-expected.json')));\n  const inventory=JSON.parse(blob('tests/plugins/qualified-current-release/inventory.json'));\n  const mts=tree.filter(entry=>entry.path.endsWith('.mts'));\n  assert.equal(tree.length,37397);assert.equal(draft.canonicalFiles.length,632);assert.equal(mts.length,192);assert.equal(Object.keys(cleanup.files).length,256);assert.equal(draft.native.length,51);\n  for(const entry of mts)assert.equal(inventory.entries.filter(row=>row.path===entry.path).length,1,entry.path);\n  const policy={schema:1,candidate:candidate.candidate,tree:candidate.tree,sourceTree:candidate.sourceTree,\n    platform:'darwin',arch:'arm64',testConcurrency:2,reporter:'tap',defaultCount:76,\n    expectedPackageSha256:candidate.expectedPackageSha256,\n    closure:{kind:'complete committed-tree conservative runtime-input superset, not compact typing selection',entries:tree.length,bytes:tree.reduce((sum,entry)=>sum+entry.bytes,0),storedArchive:false,streamedAtExecution:true,qualification:'Historical canonical audits read captured data and Git history. No claim that a smaller static-import selection is complete; all committed tree blobs and ancestor Git objects are retained in isolated temporary storage.'},\n    scopeInputs:tree,canonicalFiles:draft.canonicalFiles,native:draft.native,environment:draft.environment,\n    historicalBindings:draft.historicalBindings,blockedWriters:draft.blockedWriters,\n    cleanup,classifiedMts:mts.map(entry=>({...entry,classification:inventory.entries.find(row=>row.path===entry.path)})),\n    support:Object.fromEntries(supportPaths.map(path=>[path,sha(blob(path))])),\n    sourceBindings:Object.fromEntries(tree.filter(entry=>entry.path.startsWith('src/')).map(entry=>[entry.path,sha(blob(entry.path))])),\n    packageManifestSha256:sha(blob('package.json')),inventorySha256:sha(blob('tests/plugins/qualified-current-release/inventory.json')),\n    release:'HOLD_PUBLIC_AND_DRIVER_REVIEW',wholeGateLaunched:false};\n  const data=Buffer.from(JSON.stringify(policy));const encoded=gzipSync(data,{level:9}).toString('base64')+'\\n';\n  return{policy,encoded,receipt:{candidate:policy.candidate,tree:policy.tree,profileSha256:sha(data),encodedSha256:sha(encoded),canonical:632,mts:192,cleanup:256,nativeBase:49,nativeExtensions:2,sourceFiles:Object.keys(policy.sourceBindings).length,closure:policy.closure,temporary}};\n}\nexport function readProfile() {\n  const encoded=readFileSync(join(directory,'PROFILE.json.gz.base64'));\n  const receipt=JSON.parse(readFileSync(join(directory,'PROFILE-RECEIPT.json')));\n  assert.equal(sha(encoded),receipt.encodedSha256);const bytes=gunzipSync(Buffer.from(encoded.toString().trim(),'base64'));assert.equal(sha(bytes),receipt.profileSha256);\n  const profile=JSON.parse(bytes);validateProfile(profile);return profile;\n}\nexport function validateProfile(profile) {\n  verifyAssembly();assert.equal(profile.candidate,candidate.candidate);assert.equal(profile.tree,candidate.tree);\n  assert.equal(profile.sourceTree,candidate.sourceTree);assert.deepEqual(profile.scopeInputs,entries());\n  assert.equal(profile.packageManifestSha256,sha(blob('package.json')));\n  assert.deepEqual(JSON.parse(blob('package.json')).dependencies??{},{});\n  const paths=profile.scopeInputs.map(entry=>entry.path);\n  assert.deepEqual(profile.canonicalFiles,paths.filter(path=>/^tests\\/.*\\.test\\.ts$/u.test(path)&&!path.startsWith('tests/commands/regex-execution/continuation/artifacts/native/')).sort());\n  assert.equal(profile.canonicalFiles.length,632);assert.equal(profile.testConcurrency,2);assert.equal(profile.reporter,'tap');assert.equal(profile.defaultCount,76);\n  const inventory=JSON.parse(blob('tests/plugins/qualified-current-release/inventory.json'));\n  assert.equal(profile.inventorySha256,sha(blob('tests/plugins/qualified-current-release/inventory.json')));\n  assert.deepEqual(profile.classifiedMts,profile.scopeInputs.filter(entry=>entry.path.endsWith('.mts')).map(entry=>({...entry,classification:inventory.entries.find(row=>row.path===entry.path)})));\n  assert.equal(profile.classifiedMts.length,192);assert.ok(profile.classifiedMts.every(entry=>entry.classification));\n  assert.equal(profile.cleanup.revision,candidate.candidate);assert.equal(profile.cleanup.tree,candidate.tree);\n  const expectedCleanup=[...paths.filter(path=>path.startsWith('src/')),'package.json','package-lock.json','tsconfig.json','tsconfig.build.json','tests/shell/invocation-cleanup-public.test.ts','tests/shell-stress/invocation-cleanup-runtime/public-worker.mjs','tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts'].sort();\n  assert.deepEqual(Object.keys(profile.cleanup.files).sort(),expectedCleanup);assert.equal(expectedCleanup.length,256);\n  for(const [path,expected]of Object.entries(profile.cleanup.files))assert.equal(sha(blob(path)),expected,path);\n  assert.deepEqual(Object.keys(profile.sourceBindings).sort(),paths.filter(path=>path.startsWith('src/')).sort());\n  for(const[path,expected]of Object.entries(profile.sourceBindings))assert.equal(sha(blob(path)),expected,path);\n  assert.deepEqual(Object.keys(profile.support).sort(),supportPaths.slice().sort());\n  for(const[path,expected]of Object.entries(profile.support))assert.equal(sha(blob(path)),expected,path);\n  assert.equal(profile.expectedPackageSha256,candidate.expectedPackageSha256);assert.equal(profile.native.length,51);\n  const original=JSON.parse(blob('tests/integration/full-gate-20260827/combined-8670ebe8/policy.json','6699804ace9f5522aa67be6a017a8008bfc09f30'));\n  assert.deepEqual(profile.native.slice(0,49),original.native.map(asset=>asset.name==='rg'?{...asset,originEnv:'RG_NATIVE_BIN'}:asset));\n  assert.deepEqual(profile.native.slice(49).map(({name,sha256})=>({name,sha256})),[{name:'expr',sha256:'e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c'},{name:'du',sha256:JSON.parse(blob('tests/commands/du/native-profile.json')).binarySha256}]);\n  assert.deepEqual(profile.environment,original.environment);assert.deepEqual(profile.historicalBindings,original.historicalBindings);assert.deepEqual(profile.blockedWriters,original.blockedWriters);\n  return profile;\n}\nif(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){\n  assert.equal(process.argv[2],'--generate-external');const result=await generateProfile();\n  writeFileSync(join(result.receipt.temporary,'PROFILE.json.gz.base64'),result.encoded,{flag:'wx'});save(join(result.receipt.temporary,'PROFILE-RECEIPT.json'),result.receipt);console.log(JSON.stringify(result.receipt));\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "feea5a6aa65f3b9d7fc5c69d3f1f7a9312aa2bf300127b4dd7ca1dc7011de07f",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "4184\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4184,
+      "stdoutSha256": "565fc81134f3874718d68d2e4dc9f1dadb0075e7ab67eb607d964fe68e2a4c46",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {readFileSync,realpathSync,lstatSync} from 'node:fs';\nimport {resolve,join} from 'node:path';\nimport {pathToFileURL} from 'node:url';\nimport {directory,repository,candidate,sha,blob,git} from './common.mjs';\nimport {readProfile,validateProfile} from './profile.mjs';\nimport {parseArgs} from './policy.mjs';\n\nexport const order=['safejs-availability','cold-typecheck','typecheck-all','benchmark-types','env-source-binding','canonical','current-consumers','pack','public-runtime','public-types','negative-types','missing-root','missing-contracts','final-sweep'];\nexport const runtimeFiles=['CANDIDATE.json','PROFILE.json.gz.base64','PROFILE-RECEIPT.json','CLEANUP.json','EXTERNAL.json.gz.base64','EXTERNAL-RECEIPT.json','common.mjs','profile.mjs','admission.mjs','inventory.mjs','run.mjs','worker.mjs','supervise.mjs','execute.mjs','policy.mjs','transport.mjs','external.mjs','external-admission.mjs','built-consumers.mjs','consumer-admission.mjs','tap.mjs','public.mjs','consumer.mts.fixture','negative.mts.fixture'];\nexport function requireOrdered(completed,next){assert.equal(next,order[completed.length],'phase omitted or reordered');assert.deepEqual(completed,order.slice(0,completed.length));}\nexport function canonicalArguments(profile){return ['--import','tsx','--test','--test-reporter=tap',`--test-concurrency=${profile.testConcurrency}`,...profile.canonicalFiles];}\nexport function requireCanonicalArguments(args,profile){assert.deepEqual(args,canonicalArguments(profile),'canonical discovery, TAP and concurrency are mandatory');}\nexport function parse(args){\n  return parseArgs(args);\n}\nexport function requireRelease(receipt,seal,profile){\n  assert.equal(receipt.action,'ROOT_RELEASE_UNIFIED76');assert.equal(receipt.candidate,candidate.candidate);assert.equal(receipt.driverSha256,sha(JSON.stringify(seal)));\n  assert.equal(receipt.profileSha256,sha(JSON.stringify(profile)));assert.equal(receipt.packageSha256,candidate.expectedPackageSha256);\n  assert.equal(receipt.public74,true);assert.equal(receipt.public75,true);assert.equal(receipt.public76,true);assert.equal(receipt.independentDriverAccepted,true);\n  assert.match(receipt.authorization,/\\S/u);assert.match(receipt.independentEvidence,/\\S/u);\n}\nexport function verifyDriverSeal(){\n  const seal=JSON.parse(readFileSync(join(directory,'DRIVER.json')));\n  assert.deepEqual(Object.keys(seal.files).sort(),runtimeFiles.slice().sort(),'driver closure may not omit or add executable bindings');\n  for(const[path,expected]of Object.entries(seal.files)){const file=join(directory,path);const stat=lstatSync(file);assert.ok(stat.isFile()&&!stat.isSymbolicLink());assert.equal(sha(readFileSync(file)),expected,path);}\n  assert.equal(seal.candidate,candidate.candidate);return seal;\n}\nexport async function admission(profile=readProfile(),environment=process.env){\n  validateProfile(profile);\n  for(const[path,expected]of Object.entries(profile.support))assert.equal(sha(readFileSync(join(repository,path))),expected,`external driver support differs from fixed product: ${path}`);\n  const runtime=await import(pathToFileURL(join(repository,'tests/integration/full-gate-20260827/runtime-profile-20260827/profile.mjs')));\n  const preflight=await import(pathToFileURL(join(repository,'tests/integration/full-gate-20260827/preflight-repair/preflight.mjs')));\n  const observed=runtime.inspectRuntime();const native=preflight.assessNative(profile.native,repository,environment);\n  const issues=[...native.issues];if(!observed.supported)issues.push({kind:'runtime-unqualified',runtime:observed});\n  if(realpathSync(process.execPath)!==observed.identity.path||process.version!==observed.identity.version)issues.push({kind:'launcher-child-runtime-mismatch'});\n  if(process.platform!==profile.platform||process.arch!==profile.arch)issues.push({kind:'host-profile'});\n  return{candidate:profile.candidate,tree:profile.tree,mode:'explicit committed archive independent of unrelated live modifications',runtime:observed,native,issues,status:issues.length?'preflight-rejected-before-suite':'preflight-admitted-not-product-acceptance',environment:profile.environment,suiteLaunched:false};\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "5a6052daa2769fc46fded14641cf61937167d971004ff05153b61ae6fcce21e6",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "5405\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5405,
+      "stdoutSha256": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {createHash} from 'node:crypto';\nimport {createReadStream} from 'node:fs';\nimport {lstat,readdir,readlink} from 'node:fs/promises';\nimport {join,resolve,posix} from 'node:path';\n\nexport async function capture(root){\n  const entries=[];\n  async function visit(path){\n    const file=path==='.'?root:join(root,path),before=await lstat(file),mode=before.mode&0o7777;\n    if(before.isSymbolicLink()){assert.notEqual(path,'.');entries.push({path,kind:'symlink',mode,target:await readlink(file)});}\n    else if(before.isDirectory()){entries.push({path,kind:'directory',mode});for(const name of (await readdir(file)).sort())await visit(path==='.'?name:`${path}/${name}`);}\n    else{\n      assert.ok(before.isFile());const hash=createHash('sha256');let bytes=0;\n      for await(const chunk of createReadStream(file,{highWaterMark:64*1024})){hash.update(chunk);bytes+=chunk.length;}\n      const after=await lstat(file);assert.ok(after.isFile()&&after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mode===before.mode&&after.mtimeMs===before.mtimeMs&&bytes===before.size,'file changed during inventory: '+path);\n      entries.push({path,kind:'file',mode,bytes,sha256:hash.digest('hex')});\n    }\n  }\n  assert.ok((await lstat(root)).isDirectory());await visit('.');entries.sort((left,right)=>left.path<right.path?-1:left.path>right.path?1:0);\n  return{format:'unified76-streamed-inventory-v1',entries,sha256:createHash('sha256').update(JSON.stringify(entries)).digest('hex')};\n}\nexport function compare(before,after){\n  assert.equal(before.format,'unified76-streamed-inventory-v1');assert.equal(after.format,before.format);\n  const expected=new Map(before.entries.map(entry=>[entry.path,entry])),actual=new Map(after.entries.map(entry=>[entry.path,entry]));assert.equal(expected.size,before.entries.length);assert.equal(actual.size,after.entries.length);\n  const changes=[];\n  for(const path of [...new Set([...expected.keys(),...actual.keys()])].sort()){\n    if(!expected.has(path))changes.push({path,kind:'added'});else if(!actual.has(path))changes.push({path,kind:'removed'});else if(JSON.stringify(expected.get(path))!==JSON.stringify(actual.get(path)))changes.push({path,kind:'changed'});\n  }\n  return changes;\n}\nexport async function createTreeGuard(root){\n  const path=resolve(root),serialized=JSON.stringify(await capture(path));\n  return Object.freeze({before:()=>JSON.parse(serialized),async check(){try{return{changes:compare(JSON.parse(serialized),await capture(path))};}catch(error){return{changes:[{path:'.',kind:'unreadable',error:error.message}]};}}});\n}\nexport function requireBuildDelta(before,after){\n  assert.equal(before.entries.some(entry=>entry.path==='dist'||entry.path.startsWith('dist/')),false,'build must start cold');\n  assert.ok(after.entries.some(entry=>entry.path==='dist'&&entry.kind==='directory'));\n  const withoutDist={...after,entries:after.entries.filter(entry=>entry.path!=='dist'&&!entry.path.startsWith('dist/'))};\n  assert.deepEqual(compare(before,withoutDist),[],'only new dist outputs are authorized during build; no other new inputs may be blessed');\n}\nexport async function verifyArchive(root,expected){\n  const files=[],directories=[];\n  async function visit(prefix){for(const name of(await readdir(join(root,prefix))).sort()){const path=prefix?`${prefix}/${name}`:name,stat=await lstat(join(root,path));if(stat.isDirectory()&&!stat.isSymbolicLink()){directories.push(path);await visit(path);}else files.push(path);}}\n  await visit('');assert.deepEqual(files.sort(),expected.map(entry=>entry.path).sort(),'archive added/missing input');\n  const wantedDirectories=new Set();for(const entry of expected){let parent=posix.dirname(entry.path);while(parent!=='.'){wantedDirectories.add(parent);parent=posix.dirname(parent);}}\n  assert.deepEqual(directories.sort(),[...wantedDirectories].sort(),'archive added/missing directory');\n  const manifest={};\n  for(const entry of expected){\n    const file=join(root,entry.path),before=await lstat(file),link=entry.mode==='120000';assert.equal(before.isSymbolicLink(),link);\n    const gitHash=createHash('sha1').update(`blob ${entry.bytes}\\0`),hash=createHash('sha256');let bytes=0;\n    if(link){const target=await readlink(file),normalized=posix.normalize(posix.join(posix.dirname(entry.path),target));assert.ok(!posix.isAbsolute(target)&&normalized!=='..'&&!normalized.startsWith('../'),'archive symlink escape');const content=Buffer.from(target);gitHash.update(content);hash.update(content);bytes=content.length;}\n    else{assert.ok(before.isFile()&&before.nlink===1);assert.equal(before.mode&0o777,Number.parseInt(entry.mode.slice(-3),8));for await(const chunk of createReadStream(file,{highWaterMark:64*1024})){gitHash.update(chunk);hash.update(chunk);bytes+=chunk.length;}}\n    const after=await lstat(file);assert.ok(after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mode===before.mode&&after.mtimeMs===before.mtimeMs,'archive input changed during authentication');\n    assert.equal(bytes,entry.bytes);assert.equal(gitHash.digest('hex'),entry.blob,entry.path);manifest[entry.path]={blob:entry.blob,sha256:hash.digest('hex'),bytes,mode:before.mode&0o777,symlink:link};\n  }\n  return{files:manifest,count:expected.length,source:'exact committed input and directory sets, streamed Git blob/SHA256/mode/type authentication'};\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "ff5fcd5b7adc5169067e6cb21ea8d10a3886d67b661f00dc3967902e5637596b",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "2664\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 2664,
+      "stdoutSha256": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import {parseArgs,BOUNDS,PHASES,gateVerdict} from './policy.mjs';\n\nexport async function main(args){\n  const options=parseArgs(args);\n  if(!options.execute){const{execute}=await import('./execute.mjs');return execute(options);}\n  const{verifyExternal}=await import('./external-admission.mjs');await verifyExternal();\n  const{readProfile}=await import('./profile.mjs');const{verifyDriverSeal,requireRelease}=await import('./admission.mjs');\n  const{readFileSync,mkdtempSync,writeFileSync,existsSync}=await import('node:fs');const{join}=await import('node:path');const{tmpdir}=await import('node:os');\n  const{directory,node24,sha}=await import('./common.mjs');const seal=verifyDriverSeal();requireRelease(JSON.parse(readFileSync(options.release)),seal,readProfile());\n  if(existsSync(options.output))throw Object.assign(new Error('Output already exists'),{exitCode:78});\n  const outer=mkdtempSync(join(tmpdir(),'unified76-supervisor-'));\n  const{supervise}=await import('./supervise.mjs');\n  const result=await supervise(node24,[join(directory,'worker.mjs'),JSON.stringify(options)],{cwd:directory,env:process.env,stdout:join(outer,'stdout'),stderr:join(outer,'stderr'),observeSockets:true,setupSentinel:join(options.output,'SETUP-COMPLETE.json'),setupTimeoutMs:BOUNDS.setupTimeoutMs,timeoutMs:BOUNDS.setupTimeoutMs+PHASES.length*BOUNDS.phaseTimeoutMs+BOUNDS.cleanupTimeoutMs,maxOutputBytes:BOUNDS.phaseOutputBytes});\n  let innerVerdict;try{const inner=JSON.parse(readFileSync(join(options.output,'REPORT.json')));innerVerdict=gateVerdict(inner);if(inner.driverSha256!==sha(JSON.stringify(seal))||inner.verdict?.exitCode!==0)innerVerdict={exitCode:1,problems:['inner driver binding or verdict failed']};}catch(error){innerVerdict={exitCode:1,problems:['missing or invalid inner report: '+error.message]};}\n  const success=result.status===0&&result.clean&&result.closed&&!result.signals.length&&!result.survivors.length&&innerVerdict.exitCode===0;\n  const receipt={candidate:options.candidate,driverSha256:sha(JSON.stringify(seal)),outer,result,innerVerdict,status:success?'QUALIFIED_ZERO_SKIP_GATE':'HOLD_OR_QUALIFIED_RED',qualification:'Outer setup/total deadline and descendant cleanup qualification; inner report is required, never overridden by a successful TAP footer'};\n  writeFileSync(join(outer,'REPORT.json'),JSON.stringify(receipt,null,2)+'\\n',{flag:'wx'});console.log(JSON.stringify({outer,status:receipt.status,candidate:options.candidate}));\n  return success?0:result.status===78?78:1;\n}\n\nif(import.meta.main){\n  try{process.exitCode=await main(process.argv.slice(2));}\n  catch(error){console.error(error.stack);process.exitCode=error.exitCode??78;}\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4,
+      "stdoutSha256": "9a1f8059e8bea1d6bb8868d0fd8ba25953a5ee111633c56cf96b3b995bf05f8a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "431\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 431,
+      "stdoutSha256": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import {parseArgs} from './policy.mjs';\n\nif(import.meta.main){\n  try{\n    const supplied=JSON.parse(process.argv[2]);\n    const options=parseArgs(['--candidate',supplied.candidate,'--run',supplied.output,'--release',supplied.release,'--committed-archive']);\n    const{execute}=await import('./execute.mjs');process.exitCode=await execute(options);\n  }catch(error){console.error(error.stack);process.exitCode=error.exitCode??78;}\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "2795ac87043f1402279305ce2352aa6ccd3756283d71e9cef910d7de69215f69",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "5541\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5541,
+      "stdoutSha256": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from \"node:assert/strict\";\nimport { execFileSync, spawn } from \"node:child_process\";\nimport { createWriteStream, mkdirSync, existsSync } from \"node:fs\";\nimport { dirname } from \"node:path\";\nimport { setTimeout as delay } from \"node:timers/promises\";\n\nexport function processes() {\n  return execFileSync(\"/bin/ps\", [\"-axo\", \"pid=,ppid=,pgid=,lstart=,command=\"], { encoding: \"utf8\", timeout: 2000, maxBuffer: 8 * 1024 * 1024 }).split(\"\\n\").filter(Boolean).map(line => {\n    const parts = line.trim().split(/\\s+/); return { pid: Number(parts[0]), parent: Number(parts[1]), group: Number(parts[2]), born: parts.slice(3, 8).join(\" \"), command: parts.slice(8).join(\" \") };\n  });\n}\nexport async function supervise(executable, args, options) {\n  mkdirSync(dirname(options.stdout), { recursive: true });\n  const stdout = createWriteStream(options.stdout, { flags: \"wx\" }), stderr = createWriteStream(options.stderr, { flags: \"wx\" });\n  const child = spawn(executable, args, { cwd: options.cwd, env: options.env, detached: true, stdio: [\"ignore\", \"pipe\", \"pipe\"] });\n  const known = new Map(), signals = [], listeners = [];\n  let bytes = 0, timedOut = false, outputExceeded = false, spawnError, closed = false, rootExitedAt, observerError;\n  const started = Date.now();\n  const observe = () => {\n    const rows = processes();\n    let changed;\n    do {\n      changed = false;\n      for (const row of rows) if (row.pid === child.pid || row.group === child.pid || (known.has(row.parent) && known.get(row.parent).born === rows.find(parent => parent.pid === row.parent)?.born)) {\n        if (row.pid === process.pid || row.pid === process.ppid) continue;\n        if (!known.has(row.pid)) { known.set(row.pid, row); changed = true; }\n      }\n    } while (changed);\n    return rows.filter(row => known.get(row.pid)?.born === row.born);\n  };\n  const terminate = signal => {\n    for (const row of observe()) {\n      try { process.kill(row.pid, signal); signals.push({ pid: row.pid, born: row.born, signal }); } catch (error) { if (error.code !== \"ESRCH\") observerError = String(error); }\n    }\n  };\n  const relay = signal => { observerError = `Supervisor received ${signal}`; terminate(\"SIGTERM\"); };\n  const onInterrupt = () => relay(\"SIGINT\"), onTerminate = () => relay(\"SIGTERM\");\n  process.once(\"SIGINT\", onInterrupt); process.once(\"SIGTERM\", onTerminate);\n  for (const output of [stdout, stderr]) output.on(\"error\", error => { observerError = \"output stream failure: \" + error.message; terminate(\"SIGKILL\"); });\n  for (const [input, output] of [[child.stdout, stdout], [child.stderr, stderr]]) input.on(\"data\", chunk => {\n    bytes += chunk.length;\n    if (bytes > (options.maxOutputBytes ?? 256 * 1024 * 1024)) { if (!outputExceeded) { outputExceeded = true; terminate(\"SIGKILL\"); } return; }\n    if (!output.write(chunk)) { input.pause(); output.once(\"drain\", () => input.resume()); }\n  });\n  const completion = new Promise(resolve => {\n    child.once(\"error\", error => { spawnError = String(error); });\n    child.once(\"exit\", () => { rootExitedAt = Date.now(); });\n    child.once(\"close\", (status, signal) => { closed = true; resolve({ status, signal }); });\n  });\n  let polls = 0;\n  const interval = setInterval(() => {\n    try {\n      const alive = observe(); polls++;\n      if (options.setupSentinel && !existsSync(options.setupSentinel) && Date.now() - started > options.setupTimeoutMs) { observerError = \"setup deadline exceeded before first phase\"; terminate(\"SIGKILL\"); }\n      if (rootExitedAt && Date.now() - rootExitedAt > 300 && alive.length) terminate(\"SIGKILL\");\n      if (options.observeSockets && polls % 10 === 0 && alive.length) {\n        try {\n          const output = execFileSync(\"/usr/sbin/lsof\", [\"-nP\", \"-a\", \"-p\", alive.map(row => row.pid).join(\",\"), \"-iTCP\", \"-sTCP:LISTEN\", \"-Fpn\"], { encoding: \"utf8\", timeout: 2000, maxBuffer: 1024 * 1024 });\n          for (const line of output.split(\"\\n\").filter(line => line.startsWith(\"n\"))) {\n            const address = line.slice(1); listeners.push(address);\n            if (!address.startsWith(\"127.\") && !address.startsWith(\"[::1]:\")) { observerError = `Non-loopback owned TCP listener: ${address}`; terminate(\"SIGKILL\"); }\n          }\n        } catch (error) { if (error.status !== 1) observerError = `Socket observation: ${error.message}`; }\n      }\n    } catch (error) { observerError = String(error); }\n  }, 100);\n  const timeout = setTimeout(() => { timedOut = true; terminate(\"SIGKILL\"); }, options.timeoutMs);\n  let result;\n  try { observe(); result = await completion; }\n  finally {\n    clearTimeout(timeout); clearInterval(interval); process.removeListener(\"SIGINT\", onInterrupt); process.removeListener(\"SIGTERM\", onTerminate);\n    if (observe().length) { terminate(\"SIGTERM\"); await delay(100); if (observe().length) terminate(\"SIGKILL\"); }\n    for (let attempt = 0; attempt < 20 && observe().length; attempt++) await delay(50);\n    await Promise.all([new Promise(resolve => stdout.end(resolve)), new Promise(resolve => stderr.end(resolve))]);\n  }\n  const survivors = observe();\n  return { executable, args, cwd: options.cwd, pid: child.pid, ...result, spawnError, timedOut, outputExceeded, observerError, closed,\n    elapsedMs: Date.now() - started, timeoutMs: options.timeoutMs, outputBytes: bytes, observed: [...known.values()], signals, survivors, listeners: [...new Set(listeners)],\n    cleanupRequired: signals.length > 0,\n    clean: !spawnError && !timedOut && !outputExceeded && !observerError && signals.length === 0 && survivors.length === 0 };\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 6,
+      "stdoutSha256": "63670d8c5a5722abea203e4b05898f6798277ed7bfbebdbe3e951a40c3c05fa5",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "22346\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 22346,
+      "stdoutSha256": "316320b4c019e116030a9d5cea58b814a981dff5c668041d817a4f51a4d887c9",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "6e5dde06b13efbbbab31844d0c270abb549ed7af96abfe64db54b1ef9bfdaa13",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "4441\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4441,
+      "stdoutSha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\n\nexport const PRODUCT = 'f5e9fc49b6abb38e180cc9de16c95fced102ff75';\nexport const BOUNDS = Object.freeze({\n  archiveEntries: 37397,\n  archiveBytes: 2382440321,\n  archiveTransferBytes: 3 * 1024 * 1024 * 1024,\n  historyTransferBytes: 8 * 1024 * 1024 * 1024,\n  dependencyBytes: 1024 * 1024 * 1024,\n  setupStderrBytes: 1024 * 1024,\n  phaseOutputBytes: 256 * 1024 * 1024,\n  allPhaseOutputBytes: 4 * 1024 * 1024 * 1024,\n  setupTimeoutMs: 600000,\n  phaseTimeoutMs: 1800000,\n  cleanupTimeoutMs: 5000,\n  chunkBytes: 64 * 1024,\n  maximumLineBytes: 1024 * 1024,\n});\n\nexport const PHASES = Object.freeze([\n  ['safejs-availability', 0], ['cold-typecheck', 78], ['typecheck-all', 0],\n  ['benchmark-types', 0], ['env-source-binding', 0], ['canonical', 0],\n  ['current-consumers', 0], ['pack', 0], ['public-runtime', 0],\n  ['public-types', 0], ['negative-types', 2], ['missing-root', 1],\n  ['missing-contracts', 1], ['final-sweep', 0],\n].map(entry => Object.freeze(entry)));\n\nexport function parseArgs(args) {\n  assert.ok(args.length === 3 || args.length === 7, 'Explicit --candidate with --inspect or --run/output/--release/receipt/--committed-archive required');\n  assert.equal(args[0], '--candidate');\n  assert.equal(args[1], PRODUCT);\n  if (args.length === 3) {\n    assert.equal(args[2], '--inspect');\n    return Object.freeze({ candidate: PRODUCT, execute: false });\n  }\n  assert.equal(args[2], '--run');\n  assert.equal(args[4], '--release');\n  assert.equal(args[6], '--committed-archive');\n  assert.match(args[3], /^\\/tmp\\/full-gate-unified76-[A-Za-z0-9_-]+$/u);\n  assert.ok(typeof args[5] === 'string' && args[5].startsWith('/') && !args[5].includes('\\0'));\n  return Object.freeze({ candidate: PRODUCT, execute: true, output: args[3], release: args[5] });\n}\n\nexport function validateBounds(bounds, archive) {\n  assert.deepEqual(bounds, BOUNDS, 'Bounds must match the reviewed finite profile');\n  for (const value of Object.values(bounds)) assert.ok(Number.isSafeInteger(value) && value > 0);\n  assert.equal(archive.entries, bounds.archiveEntries);\n  assert.equal(archive.bytes, bounds.archiveBytes);\n  assert.ok(archive.bytes < bounds.archiveTransferBytes);\n}\n\nexport function enforceCharge(current, addition, maximum) {\n  assert.ok(Number.isSafeInteger(current) && current >= 0);\n  assert.ok(Number.isSafeInteger(addition) && addition >= 0);\n  assert.ok(Number.isSafeInteger(maximum) && maximum >= 0);\n  assert.ok(current <= maximum && addition <= maximum - current, 'Profile resource bound exceeded before growth');\n  return current + addition;\n}\n\nexport function gateVerdict(report) {\n  const problems = [];\n  if (report.candidate !== PRODUCT) problems.push('wrong candidate');\n  if (report.bindingComplete !== true) problems.push('missing source/tool/dependency/package binding');\n  if (report.guardsPassed !== true) problems.push('guard failure or missing final sweep');\n  if (report.driverProductionBuilds !== 1) problems.push('expected exactly one driver-managed production build');\n  if (report.cleanupComplete !== true) problems.push('cleanup incomplete');\n  if (!Array.isArray(report.phases) || report.phases.length !== PHASES.length) problems.push('missing or extra phase');\n  for (const [index, [name, expectedStatus]] of PHASES.entries()) {\n    const phase = report.phases?.[index];\n    if (!phase || phase.label !== name || phase.status !== expectedStatus) problems.push(`unexpected phase outcome: ${name}`);\n    if (name !== 'final-sweep' && (!phase || phase.clean !== true || phase.closed !== true\n      || phase.signal != null || phase.timedOut || phase.outputExceeded || phase.spawnError\n      || phase.observerError || !Array.isArray(phase.survivors) || phase.survivors.length\n      || !Array.isArray(phase.signals) || phase.signals.length)) problems.push(`unclean process lifecycle: ${name}`);\n  }\n  const tap = report.canonical;\n  if (!tap || tap.reconciled !== true || !Number.isSafeInteger(tap.counts?.pass) || tap.counts.pass < 1) problems.push('incomplete canonical TAP');\n  for (const name of ['fail', 'skipped', 'todo', 'cancelled']) if (tap?.counts?.[name] !== 0) problems.push(`canonical ${name} is nonzero or missing`);\n  if (report.canonicalMissingPaths?.length !== 0) problems.push('missing canonical execution coverage');\n  return Object.freeze({ status: problems.length ? 'HOLD_OR_QUALIFIED_RED' : 'QUALIFIED_ZERO_SKIP_GATE', exitCode: problems.length ? 1 : 0, problems });\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "4ce8902e7314c5e36b84236241b97fbfd14ef62dabcd2b22dbbad1ee6fc64ad0",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "7903\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 7903,
+      "stdoutSha256": "3b319780a805f55ad943b2da5231b4c7c221ee7cf261687453edb6d6015c6053",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {spawn,execFileSync} from 'node:child_process';\nimport {createHash} from 'node:crypto';\nimport {mkdir,open,symlink} from 'node:fs/promises';\nimport {dirname,join,posix} from 'node:path';\nimport {Transform} from 'node:stream';\nimport {pipeline} from 'node:stream/promises';\nimport {setTimeout as delay} from 'node:timers/promises';\nimport {BOUNDS,enforceCharge} from './policy.mjs';\n\nexport function cleanGitEnvironment(environment){\n  const result=Object.fromEntries(Object.entries(environment).filter(([key])=>!key.startsWith('GIT_')));\n  return{...result,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null',GIT_ATTR_NOSYSTEM:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_OPTIONAL_LOCKS:'0',GIT_TERMINAL_PROMPT:'0',GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'core.hooksPath',GIT_CONFIG_VALUE_0:'/dev/null'};\n}\nexport function validateEntries(entries,bounds=BOUNDS){\n  assert.equal(entries.length,bounds.archiveEntries);const seen=new Set();let bytes=0;\n  for(const entry of entries){\n    assert.ok(typeof entry.path==='string'&&entry.path.length>0&&!entry.path.includes('\\0')&&!entry.path.includes('\\\\'));\n    assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'));\n    assert.ok(!seen.has(entry.path));seen.add(entry.path);assert.ok(['100644','100755','120000'].includes(entry.mode));assert.match(entry.blob,/^[a-f0-9]{40}$/u);\n    bytes=enforceCharge(bytes,entry.bytes,bounds.archiveBytes);\n  }\n  const links=new Set(entries.filter(entry=>entry.mode==='120000').map(entry=>entry.path));\n  for(const entry of entries){let parent=posix.dirname(entry.path);while(parent!=='.'){assert.ok(!links.has(parent),'symlink ancestor is not an extraction directory');parent=posix.dirname(parent);}}\n  assert.equal(bytes,bounds.archiveBytes);return{entries:entries.length,bytes};\n}\nfunction groupMembers(pid){\n  return execFileSync('/bin/ps',['-axo','pid=,pgid='],{encoding:'utf8',timeout:2000,maxBuffer:BOUNDS.setupStderrBytes}).split('\\n').filter(Boolean).map(line=>line.trim().split(/\\s+/u).map(Number)).filter(row=>row[1]===pid).map(row=>row[0]);\n}\nfunction managed(command,args,options){\n  const child=spawn(command,args,{...options,detached:true,stdio:['pipe','pipe','pipe']});let stderrBytes=0,stderr='',failure,closed=false;\n  const kill=()=>{if(child.pid)try{process.kill(-child.pid,'SIGKILL');}catch(error){if(error.code!=='ESRCH')failure??=error;}};\n  const done=new Promise(resolve=>{child.once('error',error=>{failure=error;});child.once('close',(status,signal)=>{closed=true;resolve({status,signal});});});\n  child.stderr.on('data',chunk=>{try{stderrBytes=enforceCharge(stderrBytes,chunk.length,BOUNDS.setupStderrBytes);stderr+=chunk.toString();}catch(error){failure=error;kill();}});\n  const timer=setTimeout(()=>{failure=new Error('bounded setup deadline exceeded');kill();},BOUNDS.setupTimeoutMs);\n  const finish=async()=>{\n    const result=await done;clearTimeout(timer);let survivors=child.pid?groupMembers(child.pid):[];\n    if(survivors.length){failure??=new Error('setup left descendants');kill();const deadline=Date.now()+BOUNDS.cleanupTimeoutMs;while(survivors.length&&Date.now()<deadline){await delay(25);survivors=groupMembers(child.pid);}}\n    assert.equal(closed,true);assert.equal(survivors.length,0,'setup descendants unreaped');if(failure)throw failure;\n    assert.equal(result.signal,null);assert.equal(result.status,0,stderr);return{...result,closed,stderrBytes,survivors};\n  };\n  return{child,done,kill,finish};\n}\nclass Reader{\n  constructor(stream){this.iterator=stream[Symbol.asyncIterator]();this.chunk=Buffer.alloc(0);this.offset=0;this.transferred=0;}\n  async take(maximum){\n    if(this.offset===this.chunk.length){const next=await this.iterator.next();if(next.done)throw Error('truncated Git blob stream');this.chunk=next.value;this.offset=0;this.transferred=enforceCharge(this.transferred,this.chunk.length,BOUNDS.archiveTransferBytes);}\n    const count=Math.min(maximum,this.chunk.length-this.offset,BOUNDS.chunkBytes),bytes=this.chunk.subarray(this.offset,this.offset+count);this.offset+=count;return bytes;\n  }\n  async line(){const bytes=[];for(let count=0;count<256;count++){const byte=(await this.take(1))[0];if(byte===10)return Buffer.from(bytes).toString();bytes.push(byte);}throw Error('oversized Git batch header');}\n  async end(){assert.equal(this.offset,this.chunk.length,'unexpected buffered Git output');assert.equal((await this.iterator.next()).done,true,'unexpected trailing Git output');}\n}\nexport async function extractCommitted({git,repository,candidate,entries,destination,environment,bounds=BOUNDS}){\n  validateEntries(entries,bounds);\n  const process=managed(git,['--no-replace-objects','cat-file','--batch'],{cwd:repository,env:cleanGitEnvironment(environment)});\n  const reader=new Reader(process.child.stdout);const hashes={};let written=0;\n  try{\n    for(const entry of entries){\n      process.child.stdin.write(entry.blob+'\\n');assert.equal(await reader.line(),`${entry.blob} blob ${entry.bytes}`);\n      const target=join(destination,entry.path);await mkdir(dirname(target),{recursive:true});\n      const digest=createHash('sha1').update(`blob ${entry.bytes}\\0`),sha256=createHash('sha256');let remaining=entry.bytes;\n      const chunks=[];const file=entry.mode==='120000'?null:await open(target,'wx',Number.parseInt(entry.mode.slice(-3),8));\n      if(!file)assert.ok(entry.bytes<=4096,'bounded symlink target');\n      try{while(remaining){const bytes=await reader.take(remaining);digest.update(bytes);sha256.update(bytes);written=enforceCharge(written,bytes.length,bounds.archiveBytes);remaining-=bytes.length;if(file){let offset=0;while(offset<bytes.length){const result=await file.write(bytes,offset,bytes.length-offset);assert.ok(result.bytesWritten>0);offset+=result.bytesWritten;}}else chunks.push(Buffer.from(bytes));}}\n      finally{await file?.close();}\n      assert.equal((await reader.take(1))[0],10);assert.equal(digest.digest('hex'),entry.blob,'Git content/hash mismatch');\n      if(!file){const link=Buffer.concat(chunks).toString(),normalized=posix.normalize(posix.join(posix.dirname(entry.path),link));assert.ok(!posix.isAbsolute(link)&&normalized!=='..'&&!normalized.startsWith('../')&&!link.includes('\\0'));await symlink(link,target);}\n      hashes[entry.path]=sha256.digest('hex');\n    }\n    process.child.stdin.end();await reader.end();const lifecycle=await process.finish();return{...lifecycle,entries:entries.length,bytes:written,transferBytes:reader.transferred,hashes,method:'validated declared Git blobs streamed directly; no tar headers or extraction filters'};\n  }catch(error){process.kill();process.child.stdin.destroy();process.child.stdout.destroy();await process.finish().catch(()=>{});throw error;}\n}\nexport async function transferHistory({git,repository,candidate,destination,environment}){\n  const env=cleanGitEnvironment(environment),producer=managed(git,['--no-replace-objects','pack-objects','--stdout','--revs'],{cwd:repository,env}),consumer=managed(git,['--no-replace-objects','--git-dir',join(destination,'.git'),'index-pack','--stdin'],{cwd:repository,env});\n  let bytes=0,stdout=0;consumer.child.stdout.on('data',chunk=>{try{stdout=enforceCharge(stdout,chunk.length,BOUNDS.setupStderrBytes);}catch{producer.kill();consumer.kill();}});\n  producer.child.stdin.end(candidate+'\\n');\n  const charge=new Transform({transform(chunk,encoding,callback){try{bytes=enforceCharge(bytes,chunk.length,BOUNDS.historyTransferBytes);callback(null,chunk);}catch(error){callback(error);}}});\n  try{await pipeline(producer.child.stdout,charge,consumer.child.stdin);const lifecycle=await Promise.all([producer.finish(),consumer.finish()]);return{bytes,stdout,lifecycle};}\n  catch(error){producer.kill();consumer.kill();await Promise.allSettled([producer.finish(),consumer.finish()]);throw error;}\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "168f9bf4d8076913dbfee17c28eca182c006cf71d9676d10793fdc8406360f57",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "6129\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 6129,
+      "stdoutSha256": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {createReadStream} from 'node:fs';\nimport {lstat,readdir,readlink,realpath,mkdtemp,writeFile,readFile} from 'node:fs/promises';\nimport {createHash} from 'node:crypto';\nimport {spawnSync} from 'node:child_process';\nimport {dirname,join,resolve} from 'node:path';\nimport {tmpdir} from 'node:os';\nimport {fileURLToPath,pathToFileURL} from 'node:url';\nimport {gunzipSync} from 'node:zlib';\nimport {PRODUCT,BOUNDS,enforceCharge} from './policy.mjs';\n\nconst hash=bytes=>createHash('sha256').update(bytes).digest('hex');\nexport async function fileIdentity(path) {\n  const physical=await realpath(path),before=await lstat(physical);\n  assert.ok(before.isFile());assert.ok(before.size <= BOUNDS.dependencyBytes);\n  const digest=createHash('sha256');let bytes=0;\n  for await(const chunk of createReadStream(physical,{highWaterMark:BOUNDS.chunkBytes})){bytes=enforceCharge(bytes,chunk.length,before.size);digest.update(chunk);}\n  const after=await lstat(physical);assert.equal(bytes,before.size);assert.equal(after.ino,before.ino);assert.equal(after.dev,before.dev);assert.equal(after.mtimeMs,before.mtimeMs);assert.equal(after.mode,before.mode);\n  return{origin:path,physical,bytes,mode:before.mode&0o777,sha256:digest.digest('hex')};\n}\n\nexport async function directoryIdentity(origin) {\n  const root=await realpath(origin),entries=[];let bytes=0;\n  const visit=async local=>{\n    enforceCharge(entries.length,1,50000);\n    const path=join(root,local),stat=await lstat(path);\n    if(stat.isSymbolicLink()){\n      const target=await readlink(path),physical=await realpath(path),targetStat=await lstat(physical);\n      entries.push({path:local,kind:'symlink',mode:stat.mode&0o777,target,physical,insideOrigin:physical===root||physical.startsWith(root+'/'),targetFile:targetStat.isFile()?await fileIdentity(path):null});\n    }else if(stat.isDirectory()){\n      entries.push({path:local,kind:'directory',mode:stat.mode&0o777});\n      for(const name of(await readdir(path)).sort())await visit(local==='.'?name:local+'/'+name);\n    }else{\n      assert.ok(stat.isFile());bytes=enforceCharge(bytes,stat.size,BOUNDS.dependencyBytes);\n      entries.push({path:local,kind:'file',...await fileIdentity(path)});\n    }\n  };\n  await visit('.');return{origin,root,entries,bytes,sha256:hash(JSON.stringify(entries))};\n}\n\nexport async function captureExternal() {\n  const directory=dirname(fileURLToPath(import.meta.url)),repository=resolve(directory,'../../../../..');\n  const profile=JSON.parse(gunzipSync(Buffer.from((await readFile(join(directory,'PROFILE.json.gz.base64'),'utf8')).trim(),'base64')));\n  assert.equal(profile.candidate,PRODUCT);\n  const preflightPath=join(repository,'tests/integration/full-gate-20260827/preflight-repair/preflight.mjs');\n  assert.equal(hash(await readFile(preflightPath)),profile.support['tests/integration/full-gate-20260827/preflight-repair/preflight.mjs']);\n  const {assessNative}=await import(pathToFileURL(preflightPath));\n  const native=assessNative(profile.native,repository,{RG_NATIVE_BIN:'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg',TREE_NATIVE_BIN:'/tmp/safe-bash-tree-external-oracle-TbVJVK/tree'});\n  assert.deepEqual(native.issues,[]);assert.equal(native.assets.length,51);\n  const directories={};\n  for(const[name,origin]of Object.entries({main:join(repository,'node_modules'),benchmarks:join(repository,'benchmarks/node_modules'),npm:'/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm',gitCore:'/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core'}))directories[name]=await directoryIdentity(origin);\n  const origins=[...new Set(['/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node','/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node','/usr/bin/git','/Applications/Xcode.app/Contents/Developer/usr/bin/git','/bin/sh','/usr/bin/tar','/bin/ps','/usr/sbin/lsof','/usr/bin/otool','/usr/bin/sw_vers',...native.assets.map(asset=>asset.origin)])];\n  const tools=[];for(const origin of origins)tools.push(await fileIdentity(origin));\n  const host=spawnSync('/usr/bin/sw_vers',[],{encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});assert.equal(host.status,0);assert.equal(host.signal,null);\n  const linkage=[];\n  for(const origin of ['/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node','/Applications/Xcode.app/Contents/Developer/usr/bin/git','/usr/bin/tar']){\n    const result=spawnSync('/usr/bin/otool',['-L',origin],{encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});assert.equal(result.status,0);assert.equal(result.signal,null);\n    const dependencies=[];\n    for(const line of result.stdout.split('\\n').slice(1).filter(line=>line.trim())){\n      const path=line.trim().split(' (compatibility version ')[0];\n      try{dependencies.push({path,identity:await fileIdentity(path)});}catch(error){dependencies.push({path,identity:null,error:error.code??error.message});}\n    }\n    linkage.push({origin,stdout:result.stdout,stderr:result.stderr,dependencies});\n  }\n  return{schema:3,capturedAt:new Date().toISOString(),candidate:PRODUCT,native,directories,tools,host:{stdout:host.stdout,stderr:host.stderr,platform:process.platform,arch:process.arch},linkage,bindingComplete:false,qualification:'Readable external code trees and tools are byte-bound observations; native linkage sampling is incomplete and OS-resident library bytes are not authenticated. No gate acceptance or approved trusted-OS boundary is inferred.',fullGateLaunched:false};\n}\n\nif(import.meta.main){\n  assert.deepEqual(process.argv.slice(2),['--capture']);\n  const output=await mkdtemp(join(tmpdir(),'unified76-external-v3-'));\n  const report=await captureExternal();await writeFile(join(output,'REPORT.json'),JSON.stringify(report,null,2)+'\\n',{flag:'wx'});\n  console.log(JSON.stringify({output,candidate:PRODUCT,directories:Object.fromEntries(Object.entries(report.directories).map(([name,value])=>[name,{entries:value.entries.length,bytes:value.bytes,sha256:value.sha256}])),tools:report.tools.length,native:report.native.assets.length,bindingComplete:false,fullGateLaunched:false}));\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external-admission.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "8750ede9bc1ae4bb0e0c588784a85f0f8a2bdef023c6c23b007035a8c4ed28c9",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "4835\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external-admission.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4835,
+      "stdoutSha256": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {spawnSync} from 'node:child_process';\nimport {readFileSync} from 'node:fs';\nimport {gunzipSync} from 'node:zlib';\nimport {fileIdentity,directoryIdentity} from './external.mjs';\nimport {BOUNDS} from './policy.mjs';\nimport {sha,directory,candidate} from './common.mjs';\nimport {join} from 'node:path';\n\nexport const SYSTEM_REFERENCES=Object.freeze([\n  ['/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node','/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation'],\n  ['/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node','/System/Library/Frameworks/Security.framework/Versions/A/Security'],\n  ['/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node','/usr/lib/libc++.1.dylib'],\n  ['/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node','/usr/lib/libSystem.B.dylib'],\n  ['/Applications/Xcode.app/Contents/Developer/usr/bin/git','/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices'],\n  ['/Applications/Xcode.app/Contents/Developer/usr/bin/git','/usr/lib/libz.1.dylib'],\n  ['/Applications/Xcode.app/Contents/Developer/usr/bin/git','/usr/lib/libiconv.2.dylib'],\n  ['/Applications/Xcode.app/Contents/Developer/usr/bin/git','/usr/lib/libSystem.B.dylib'],\n  ['/Applications/Xcode.app/Contents/Developer/usr/bin/git','/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation'],\n  ['/usr/bin/tar','/usr/lib/libarchive.2.dylib'],\n  ['/usr/bin/tar','/usr/lib/libSystem.B.dylib'],\n]);\nexport function rejectAmbientInjection(environment){\n  for(const[key,value]of Object.entries(environment))if(value&&(key==='NODE_OPTIONS'||key==='NODE_PATH'||key.startsWith('DYLD_')||key.startsWith('LD_')||key.startsWith('GIT_')))throw Object.assign(new Error('ambient loader/Git injection refused: '+key),{exitCode:78});\n}\nexport function validateSystemBoundary(report){\n  assert.equal(report.host.platform,'darwin');assert.equal(report.host.arch,'arm64');\n  assert.match(report.host.stdout,/ProductVersion:\\s+26\\.4\\.1(?:\\s|$)/u);assert.match(report.host.stdout,/BuildVersion:\\s+25E253(?:\\s|$)/u);\n  const references=report.linkage.flatMap(tool=>tool.dependencies.map(entry=>[tool.origin,entry.path]));\n  assert.deepEqual(references,SYSTEM_REFERENCES,'system exception is exactly eleven sampled tool/reference pairs');\n  assert.ok(report.linkage.every(tool=>tool.dependencies.every(entry=>entry.identity===null&&entry.error==='ENOENT')));\n  return{systemReferences:SYSTEM_REFERENCES,host:report.host,qualification:'Explicit trusted macOS26.4.1/build25E253 boundary for exactly these eleven sampled references only. No readable-file hash, full OS attestation, complete process-image enumeration or broader library exception.'};\n}\nexport function externalReceipt(){\n  const receipt=JSON.parse(readFileSync(join(directory,'EXTERNAL-RECEIPT.json')));\n  assert.equal(receipt.candidate,candidate.candidate,'external identity receipt belongs to this exact unified candidate');\n  const encoded=readFileSync(join(directory,'EXTERNAL.json.gz.base64'));assert.equal(sha(encoded),receipt.encodedSha256);\n  const bytes=gunzipSync(Buffer.from(encoded.toString().trim(),'base64'));assert.equal(sha(bytes),receipt.sha256);\n  const report=JSON.parse(bytes);validateSystemBoundary(report);return{receipt,report};\n}\nexport async function verifyUnreadableSystemReferences(identity=fileIdentity){\n  for(const[,path]of SYSTEM_REFERENCES){let missing=false;try{await identity(path);}catch(error){assert.equal(error.code,'ENOENT','OS exception requires the captured absent-file condition');missing=true;}assert.ok(missing,'new readable library requires an explicit file-hash binding: '+path);}\n}\nexport async function verifyExternal(environment=process.env){\n  rejectAmbientInjection(environment);const{receipt,report}=externalReceipt();\n  for(const tool of report.tools)assert.deepEqual(await fileIdentity(tool.origin),tool,'readable tool identity changed: '+tool.origin);\n  for(const tree of Object.values(report.directories))assert.deepEqual(await directoryIdentity(tree.origin),tree,'dependency closure changed: '+tree.origin);\n  const host=spawnSync('/usr/bin/sw_vers',[],{encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});assert.equal(host.status,0);assert.equal(host.signal,null);assert.equal(host.stdout,report.host.stdout);\n  await verifyUnreadableSystemReferences();\n  for(const tool of report.linkage){const result=spawnSync('/usr/bin/otool',['-L',tool.origin],{encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});assert.equal(result.status,0);assert.equal(result.signal,null);assert.equal(result.stdout,tool.stdout);}\n  return{sha256:receipt.sha256,tools:report.tools.length,directories:Object.keys(report.directories),native:report.native.assets.length,systemBoundary:validateSystemBoundary(report),readableBindingsVerified:true};\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/built-consumers.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "9b6cf6752cdddc0a26a41c3b606fcb0b6990be6a9555f7e54145cac8452db85a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "2958\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/built-consumers.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 2958,
+      "stdoutSha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {createHash} from 'node:crypto';\nimport {resolve} from 'node:path';\nimport {pathToFileURL} from 'node:url';\nimport {PRODUCT} from './policy.mjs';\n\nexport const ORIGINAL_BUILD = [\n  '  assert.equal(existsSync(join(report.root, \"dist\")), false, \"current consumer gate requires a cold isolated candidate\");',\n  '  step(report, \"current-consumers-build\", process.execPath, [compiler, \"-p\", \"tsconfig.build.json\"]);',\n].join('\\n');\n\nexport const REUSED_BUILD = [\n  '  assert.equal(report.sourceCommit, \"'+PRODUCT+'\");',\n  '  assert.equal(report.approvedBuild.candidate, report.sourceCommit);',\n  '  assert.equal(report.approvedBuild.productionBuilds, 1);',\n  '  assert.equal(report.approvedBuild.buildStatus, 0);',\n  '  assert.deepEqual(manifest(report.root, \"dist\"), report.approvedBuild.files, \"reuse exactly the driver-managed authenticated emitted package\");',\n  '  report.productionBuildsInThisPhase = 0;',\n].join('\\n');\n\nconst imports = Object.freeze([\n  '../tests/plugins/stream-five-public/harness.mjs',\n  '../tests/plugins/stream-five-public/current-profile.mjs',\n  '../tests/plugins/qualified-current-release/consumers.mjs',\n  '../tests/plugins/qualified-current-release/runtime-coverage.mjs',\n  '../tests/plugins/qualified-current-release/snapshot.mjs',\n]);\n\nexport function renderBuiltConsumerRunner(original, expectedSha256, sourceRoot) {\n  const sha=bytes=>createHash('sha256').update(bytes).digest('hex');\n  assert.equal(sha(original),expectedSha256,'selected current-consumer runner bytes changed');\n  assert.equal(original.split(ORIGINAL_BUILD).length,2,'exact historical cold/build seam required');\n  let amended=original.replace(ORIGINAL_BUILD,REUSED_BUILD);\n  const bindings=[];\n  for(const specifier of imports){\n    const before='from '+JSON.stringify(specifier)+';';\n    assert.equal(amended.split(before).length,2,'explicit runner import must occur once');\n    const physical=resolve(sourceRoot,'scripts',specifier),after='from '+JSON.stringify(pathToFileURL(physical).href)+';';\n    amended=amended.replace(before,after);bindings.push({specifier,path:physical,after});\n  }\n  return{source:amended,originalSha256:expectedSha256,executedSha256:sha(amended),imports:bindings,buildReplacement:{before:ORIGINAL_BUILD,after:REUSED_BUILD},qualification:'Versioned external harness only. Product source and consumer fixture/config bodies remain unchanged. Controller must independently authenticate approvedBuild before invocation.'};\n}\n\nexport function renderConsumerEntry(runner,input,report){\n  return[\n    \"import{readFileSync,writeFileSync}from'node:fs';\",\n    'import{currentConsumers}from '+JSON.stringify(pathToFileURL(runner).href)+';',\n    'const report=JSON.parse(readFileSync('+JSON.stringify(input)+'));',\n    'try{currentConsumers(report);}finally{writeFileSync('+JSON.stringify(report)+',JSON.stringify(report,null,2)+'+JSON.stringify('\\n')+\",{flag:'wx'});}\",\n  ].join('\\n')+'\\n';\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer-admission.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "c956810869802e2d7ec2ef93a9e3d982ae79270257c370cdc67a46a4829a1505",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "1940\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer-admission.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 1940,
+      "stdoutSha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {readFileSync,lstatSync} from 'node:fs';\nimport {join} from 'node:path';\nimport {pathToFileURL} from 'node:url';\n\nexport async function verifyConsumerSelection(source,profile,read=path=>{\n  const file=join(source,path),stat=lstatSync(file);\n  assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=8*1024*1024,'bounded current-consumer metadata/evidence input');return readFileSync(file);\n}){\n  const load=path=>import(pathToFileURL(join(source,path)));\n  const{selectedPaths}=await load('tests/plugins/stream-five-public/harness.mjs');\n  const{archiveInputs,currentConsumerPaths,negativeGroups,ownerPath}=await load('tests/plugins/qualified-current-release/consumers.mjs');\n  const{verifyInventory}=await load('tests/plugins/qualified-current-release/inventory-check.mjs');\n  const inventory=JSON.parse(read(join(ownerPath,'inventory.json'))),tracked=profile.scopeInputs.map(row=>row.path),currentPaths=currentConsumerPaths();\n  const counts=verifyInventory(inventory,tracked,currentPaths,negativeGroups.map(group=>group.path),read);\n  const selected=[...new Set([...selectedPaths,'README.md',ownerPath,'scripts/verify-current-consumers.mjs',...archiveInputs,...currentPaths,...negativeGroups.flatMap(group=>[group.path,group.expected])])];\n  const tests=profile.scopeInputs.filter(row=>row.path.startsWith('tests/')&&!row.path.startsWith(ownerPath+'/evidence/')&&selected.some(prefix=>row.path===prefix||row.path.startsWith(prefix+'/')));\n  assert.ok(tests.every(row=>row.mode!=='120000'&&row.bytes<=8*1024*1024),'all original selected consumer test files must fit the bounded metadata profile; never silently omit oversized files');\n  return{inventory,counts,tests,selected,qualification:'Original candidate snapshot inventory validator and exact selection semantics executed without creating a second archive or build; larger whole-tree preservation stays with streamed guards.'};\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tap.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "294254179cac0e62bf9c81d2f063c451f2d6003a660443d58837ec6a50106528",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "3405\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tap.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 3405,
+      "stdoutSha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {createReadStream} from 'node:fs';\nimport {BOUNDS,enforceCharge} from './policy.mjs';\n\nexport async function accountFile(file){\n  const summary={},cases=[];let pending='',lineNumber=0,totalBytes=0,active,diagnosticIndent;\n  const finish=()=>{if(!active)return;const match=active.match,fields={};for(const key of ['type','failureType','location','code','error'])fields[key]=active.fields[key]??null;\n    const skip=/ # SKIP\\b(.*)$/iu.exec(match[4]),todo=/ # TODO\\b(.*)$/iu.exec(match[4]);\n    const status=skip?'skipped':todo?'todo':['cancelledByParent','testTimeoutFailure','testAborted'].includes(fields.failureType)?'cancelled':match[2]==='ok'?'pass':'fail';\n    assert.ok(cases.length<100000,'bounded TAP case inventory');cases.push({id:`tap-line-${active.line}`,line:active.line,indent:match[1].length,ordinal:Number(match[3]),name:match[4],status,reason:skip?.[1]?.trim()??todo?.[1]?.trim(),...fields,...status==='pass'?{}:{detail:active.detail.join('\\n')}});active=undefined;\n  };\n  const line=value=>{\n    lineNumber++;const total=/^# (tests|suites|pass|fail|cancelled|skipped|todo|duration_ms) ([\\d.]+)$/u.exec(value);if(total)summary[total[1]]=Number(total[2]);\n    if(active){if(value.trim()&&value.length-value.trimStart().length<=active.match[1].length)finish();else{active.detailBytes=enforceCharge(active.detailBytes,Buffer.byteLength(value)+1,BOUNDS.maximumLineBytes);active.detail.push(value);for(const key of ['type','failureType','location','code','error']){const found=new RegExp('^\\\\s*'+key+': (.*)$','u').exec(value);if(found&&active.fields[key]===undefined)active.fields[key]=found[1].replace(/^['\"]|['\"]$/gu,'');}}}\n    if(diagnosticIndent!==undefined){if(value===' '.repeat(diagnosticIndent)+'...')diagnosticIndent=undefined;return;}\n    if(value.trim()==='---'){diagnosticIndent=value.length-value.trimStart().length;return;}\n    const match=/^( *)(not ok|ok) (\\d+) - (.*)$/u.exec(value);if(match){finish();active={match,line:lineNumber,fields:{},detail:[],detailBytes:0};}\n  };\n  const decoder=new TextDecoder();for await(const chunk of createReadStream(file,{highWaterMark:BOUNDS.chunkBytes})){totalBytes=enforceCharge(totalBytes,chunk.length,BOUNDS.phaseOutputBytes);pending+=decoder.decode(chunk,{stream:true});let end;while((end=pending.indexOf('\\n'))!==-1){const text=pending.slice(0,end).replace(/\\r$/u,'');assert.ok(Buffer.byteLength(text)<=BOUNDS.maximumLineBytes);line(text);pending=pending.slice(end+1);}assert.ok(Buffer.byteLength(pending)<=BOUNDS.maximumLineBytes);}\n  pending+=decoder.decode();if(pending)line(pending);finish();\n  const tests=cases.filter(entry=>entry.type!=='suite'),counts={pass:0,fail:0,skipped:0,todo:0,cancelled:0};for(const entry of tests)counts[entry.status]++;\n  const reconciliation={completeFooter:Number.isInteger(summary.tests),testInstances:tests.length===summary.tests,statuses:Object.fromEntries(Object.entries(counts).map(([name,value])=>[name,value===summary[name]]))};\n  return{summary,counts,reconciled:reconciliation.completeFooter&&reconciliation.testInstances&&Object.values(reconciliation.statuses).every(Boolean),reconciliation,cases:tests,suites:cases.filter(entry=>entry.type==='suite'),nonpassing:tests.filter(entry=>entry.status!=='pass'),qualification:'Streamed bounded TAP with unchanged status classification; skip/TODO/characterization is never feature acceptance'};\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/public.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "2138015f080475c382d233a43caae7efb9afba2db98325c3bc3f3dbc597ddffc",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "2892\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/public.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 2892,
+      "stdoutSha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import assert from 'node:assert/strict';\nimport {readFileSync,realpathSync} from 'node:fs';\nimport {fileURLToPath} from 'node:url';\nimport {join} from 'node:path';\nimport {Shell,MemoryFileSystem,agentCommands,createAgentCommands,createHtmlToMarkdownCommands,createDuCommands,createExprCommands} from 'virtual-bash';\n\nconst expected=['true','false','echo','pwd','basename','dirname','printf','mkdir','touch','cp','mv','rm','rmdir','ln','readlink','realpath','ls','cat','head','tail','wc','tee','tr','sort','uniq','cut','grep','test','[','env','xargs','find','sed','awk','jq','rg','base64','base32','xxd','od','sha256sum','sha1sum','md5sum','cksum','gzip','gunzip','zcat','diff','patch','chmod','stat','mktemp','tar','paste','comm','join','tac','expand','fold','strings','seq','nl','rev','unexpand','split','date','sleep','printenv','tree','file','egrep','fgrep','column','html-to-markdown','du','expr'];\nassert.deepEqual(createAgentCommands().map(command=>command.name),expected);\nconst root=realpathSync(join(process.cwd(),'node_modules/virtual-bash'));\nconst metadata=JSON.parse(readFileSync(join(root,'package.json')));assert.deepEqual(metadata.dependencies??{},{});\nconst imports=[];\nfor(const key of Object.keys(metadata.exports).filter(key=>!key.includes('*'))){const specifier=key==='.'?'virtual-bash':'virtual-bash/'+key.slice(2);const resolved=realpathSync(fileURLToPath(import.meta.resolve(specifier)));assert.ok(resolved.startsWith(root+'/dist/'));await import(specifier);imports.push({specifier,resolved});}\nassert.equal(createHtmlToMarkdownCommands,(await import('virtual-bash/commands/html-to-markdown')).createHtmlToMarkdownCommands);\nassert.equal(createDuCommands,(await import('virtual-bash/commands/du')).createDuCommands);\nassert.equal(createExprCommands,(await import('virtual-bash/commands/expr')).createExprCommands);\nconst fs=new MemoryFileSystem();const shell=new Shell({fs});await shell.use(agentCommands());\nconst workflows=[];\ntry{\n  assert.deepEqual(shell.commands.list().map(command=>command.name).sort(),expected.slice().sort());\n  assert.equal(shell.commands.has('curl'),false);assert.equal(shell.commands.has('safejs'),false);\n  for(const[input,stdout]of [[\"printf '<p>Hello <em>world</em></p>' | html-to-markdown\",'Hello *world*\\n'],[\"expr 7 + 9\",'16\\n'],[\"printf 'hello' > /sample; du -b /sample\",'5\\t/sample\\n'],[\"printf 'alpha\\\\nbeta\\\\n' | egrep '^a'\",'alpha\\n'],[\"printf 'alpha\\\\nbeta\\\\n' | fgrep 'beta'\",'beta\\n']]){const result=await shell.exec(input);assert.equal(result.exitCode,0,input);assert.equal(result.stderr,'',input);assert.equal(result.stdout,stdout,input);workflows.push({input,exitCode:result.exitCode,stdout:result.stdout});}\n}finally{await shell.dispose();}\nconsole.log(JSON.stringify({count:expected.length,imports,workflows,optionalNetwork:false,optionalSafejs:false,qualification:'bounded package smoke, not full command semantics'}));\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer.mts.fixture"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4,
+      "stdoutSha256": "f964eafdc685eb25641b61a7e613b893063b577ca9b851350519bc6b04842d74",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "840\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer.mts.fixture"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 840,
+      "stdoutSha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import {createAgentCommands,htmlToMarkdownCommands,duCommands,exprCommands,type AgentCommandsOptions,type HtmlToMarkdownCommandsOptions,type DuCommandsOptions,type ExprCommandsOptions} from 'virtual-bash';\nimport {createHtmlToMarkdownCommands} from 'virtual-bash/commands/html-to-markdown';\nimport {createDuCommands} from 'virtual-bash/commands/du';\nimport {createExprCommands} from 'virtual-bash/commands/expr';\nconst html:HtmlToMarkdownCommandsOptions={};\nconst du:DuCommandsOptions={};\nconst expr:ExprCommandsOptions={};\nconst aggregate:AgentCommandsOptions={replace:true,htmlToMarkdown:html,du,expr:{limits:{maxNumericDigits:32}},regex:{maxWorkers:1}};\nvoid [createAgentCommands(aggregate),htmlToMarkdownCommands(html),duCommands(du),exprCommands(expr),createHtmlToMarkdownCommands(html),createDuCommands(du),createExprCommands(expr)];\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/negative.mts.fixture"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4,
+      "stdoutSha256": "e4355a05c3a4b156700c4a1a32867d8f7a25a0dd24c6146c2deb2a1c96a6c93c",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "250\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/negative.mts.fixture"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 250,
+      "stdoutSha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "import {type AgentCommandsOptions,__missingUnified76Export} from 'virtual-bash';\nconst replace:AgentCommandsOptions={expr:{replace:true}};\nconst regex:AgentCommandsOptions={expr:{regex:{maxWorkers:1}}};\nvoid [replace,regex,__missingUnified76Export];\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-s",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5,
+      "stdoutSha256": "941d2d55dca52da5a5177f48dfe4ee3e353f7544d5186b34edf72cc3b6290ad8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "2535\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "show",
+        "2713defc1f53a00dd975931946de4782a980836d:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 2535,
+      "stdoutSha256": "169e8d6ba2f5c4dac5a93ad359969810dc50854adfd49cbe687eb2c31821217a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "{\n  \"schema\": 3,\n  \"createdAt\": \"2026-08-28T01:45:18.509Z\",\n  \"candidate\": \"f5e9fc49b6abb38e180cc9de16c95fced102ff75\",\n  \"tree\": \"5687cbdebc46ec6d3618d32072c4de708118b9bb\",\n  \"files\": {\n    \"CANDIDATE.json\": \"b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd\",\n    \"PROFILE.json.gz.base64\": \"a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37\",\n    \"PROFILE-RECEIPT.json\": \"bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0\",\n    \"CLEANUP.json\": \"0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde\",\n    \"EXTERNAL.json.gz.base64\": \"ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e\",\n    \"EXTERNAL-RECEIPT.json\": \"0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84\",\n    \"common.mjs\": \"b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb\",\n    \"profile.mjs\": \"382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f\",\n    \"admission.mjs\": \"565fc81134f3874718d68d2e4dc9f1dadb0075e7ab67eb607d964fe68e2a4c46\",\n    \"inventory.mjs\": \"075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2\",\n    \"run.mjs\": \"6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e\",\n    \"worker.mjs\": \"2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401\",\n    \"supervise.mjs\": \"0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55\",\n    \"execute.mjs\": \"316320b4c019e116030a9d5cea58b814a981dff5c668041d817a4f51a4d887c9\",\n    \"policy.mjs\": \"23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86\",\n    \"transport.mjs\": \"3b319780a805f55ad943b2da5231b4c7c221ee7cf261687453edb6d6015c6053\",\n    \"external.mjs\": \"c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da\",\n    \"external-admission.mjs\": \"7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1\",\n    \"built-consumers.mjs\": \"ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8\",\n    \"consumer-admission.mjs\": \"2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7\",\n    \"tap.mjs\": \"76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b\",\n    \"public.mjs\": \"0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70\",\n    \"consumer.mts.fixture\": \"8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba\",\n    \"negative.mts.fixture\": \"03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3\"\n  },\n  \"wholeGateLaunched\": false,\n  \"qualification\": \"Versioned integrated launcher for review only; explicit root release and independent driver acceptance required.\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/bin/ln",
+      "args": [
+        "-s",
+        "input.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/archive/link"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/bin/ln",
+      "args": [
+        "-s",
+        "link",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/archive/input.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/bin/ln",
+      "args": [
+        "-s",
+        "../archive/input.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/archive/link"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/bin/ln",
+      "args": [
+        "-s",
+        "input.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/archive/link"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "init",
+        "--quiet",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/tiny-git"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "add",
+        "--",
+        "helper.mjs",
+        "golden"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/tiny-git",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "-c",
+        "user.name=Independent bounded fixture",
+        "-c",
+        "user.email=bounded@example.invalid",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "commit",
+        "--quiet",
+        "-m",
+        "Tiny regular transport"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/tiny-git",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "rev-parse",
+        "HEAD"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/tiny-git",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 41,
+      "stdoutSha256": "cf925ac5d4aedb498a3e9956be7116bb132f3e29e4e369583f0121a7ae219e80",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "26f90dcee6a247f5b842aeb6c9f01f103e0db905\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "ls-tree",
+        "-rlz",
+        "HEAD"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/tiny-git",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 140,
+      "stdoutSha256": "1333b4082779202d1e732399dbc291498dfc418c77b18ddfc33a8e54fbfb67f0",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "100644 blob e233e55fd431cbfe13bd9c8a0a5800e4d98337ac       7\tgolden\u0000100644 blob b0942edec9a7b2234e0d76a4998d0c33cff6fa46      24\thelper.mjs\u0000",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "init",
+        "--quiet",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/history"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "-t",
+        "26f90dcee6a247f5b842aeb6c9f01f103e0db905"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/history",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 7,
+      "stdoutSha256": "50836eee574ecff79dea3b4fd40673d7d000f7a5f177d8a6a3000b59c78383b8",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "commit\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "hash-object",
+        "-w",
+        "--stdin"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/tiny-git",
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 41,
+      "stdoutSha256": "f70ccc0bb8f90b44260eecdf514155a754105d7f3b558a553eddeb7f80d5b18e",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "d09b80733baa4f6b198f2cf2d62bbfc5b6cbf1f0\n",
+      "stderr": ""
+    }
+  ],
+  "trace": [
+    {
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/inventory.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/inventory.mjs",
+      "sha256": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2"
+    },
+    {
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/transport.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/transport.mjs",
+      "sha256": "3b319780a805f55ad943b2da5231b4c7c221ee7cf261687453edb6d6015c6053"
+    },
+    {
+      "specifier": "./policy.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/transport.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/run.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/run.mjs",
+      "sha256": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e"
+    },
+    {
+      "specifier": "./policy.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/run.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/worker.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/worker.mjs",
+      "sha256": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401"
+    },
+    {
+      "specifier": "./policy.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/worker.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "specifier": "./external-admission.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/run.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/external-admission.mjs",
+      "sha256": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1"
+    },
+    {
+      "specifier": "./external.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/external-admission.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/external.mjs",
+      "sha256": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da"
+    },
+    {
+      "specifier": "./policy.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/external-admission.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "specifier": "./common.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/external-admission.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/common.mjs",
+      "sha256": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb"
+    },
+    {
+      "specifier": "./policy.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/external.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "specifier": "./transport.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/common.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/transport.mjs",
+      "sha256": "3b319780a805f55ad943b2da5231b4c7c221ee7cf261687453edb6d6015c6053"
+    },
+    {
+      "specifier": "./profile.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/run.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/profile.mjs",
+      "sha256": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f"
+    },
+    {
+      "specifier": "./common.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/profile.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/common.mjs",
+      "sha256": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb"
+    },
+    {
+      "specifier": "./admission.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/run.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/admission.mjs",
+      "sha256": "565fc81134f3874718d68d2e4dc9f1dadb0075e7ab67eb607d964fe68e2a4c46"
+    },
+    {
+      "specifier": "./common.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/admission.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/common.mjs",
+      "sha256": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb"
+    },
+    {
+      "specifier": "./profile.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/admission.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/profile.mjs",
+      "sha256": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f"
+    },
+    {
+      "specifier": "./policy.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/admission.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "specifier": "./common.mjs",
+      "parent": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/run.mjs",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/common.mjs",
+      "sha256": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb"
+    }
+  ],
+  "children": [
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 36409,
+      "started": 1787883433321,
+      "closed": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 7
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "pack-objects",
+        "--stdout",
+        "--revs"
+      ],
+      "pid": 36416,
+      "started": 1787883433368,
+      "closed": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 9
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "--git-dir",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/data-completion/history/.git",
+        "index-pack",
+        "--stdin"
+      ],
+      "pid": 36417,
+      "started": 1787883433368,
+      "closed": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 32
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 36422,
+      "started": 1787883433430,
+      "closed": true,
+      "status": null,
+      "signal": "SIGKILL",
+      "elapsedMs": 6
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 36424,
+      "started": 1787883433457,
+      "closed": true,
+      "status": null,
+      "signal": "SIGKILL",
+      "elapsedMs": 6
+    },
+    {
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "--no-replace-objects",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 36427,
+      "started": 1787883433494,
+      "closed": true,
+      "status": null,
+      "signal": "SIGKILL",
+      "elapsedMs": 7
+    }
+  ],
+  "wholeGateLaunched": false,
+  "rootRelease": "HOLD",
+  "reviewOnlySetupTool": {
+    "origin": "/bin/ln",
+    "physical": "/bin/ln",
+    "sha256": "9a31a6c750ac6465fbbc7996190c47c1e7c8354d68604d6aa7f14366c1ec3507",
+    "qualification": "Review-owned fixture setup only; not an oracle or gate dependency substitute"
+  },
+  "dataBeforeCleanup": {
+    "format": "unified76-streamed-inventory-v1",
+    "entries": [
+      {
+        "path": ".",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "archive",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "archive/input.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 5,
+        "sha256": "992a93455c71fedd36ac9bbc439952c041cf61445958472af479269b8d873513"
+      },
+      {
+        "path": "archive/link",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "input.mjs"
+      },
+      {
+        "path": "archive/new.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 2,
+        "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      {
+        "path": "escape-target",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "extracted",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "extracted/golden",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7,
+        "sha256": "5ac03da17d7d5241b49a9a94f86b08a431d7052c8585ca997b373f0bc7da0dcc"
+      },
+      {
+        "path": "extracted/helper.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 24,
+        "sha256": "2fefedd35a52c398135d25527b37037cfd4394f20652e6004ee040a2aaf2edc3"
+      },
+      {
+        "path": "history",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git/HEAD",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 21,
+        "sha256": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "history/.git/config",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 137,
+        "sha256": "cae33efdb02cf774435c1ff9cb16bcc1014606908530c6e1dc727615fe3e8cda"
+      },
+      {
+        "path": "history/.git/description",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 73,
+        "sha256": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "history/.git/hooks",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git/hooks/applypatch-msg.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 478,
+        "sha256": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "history/.git/hooks/commit-msg.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 896,
+        "sha256": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "history/.git/hooks/fsmonitor-watchman.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 4726,
+        "sha256": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "history/.git/hooks/post-update.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 189,
+        "sha256": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "history/.git/hooks/pre-applypatch.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 424,
+        "sha256": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "history/.git/hooks/pre-commit.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 1649,
+        "sha256": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "history/.git/hooks/pre-merge-commit.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 416,
+        "sha256": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "history/.git/hooks/pre-push.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 1374,
+        "sha256": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "history/.git/hooks/pre-rebase.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 4898,
+        "sha256": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "history/.git/hooks/pre-receive.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 544,
+        "sha256": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "history/.git/hooks/prepare-commit-msg.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 1492,
+        "sha256": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "history/.git/hooks/push-to-checkout.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 2783,
+        "sha256": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "history/.git/hooks/sendemail-validate.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 2308,
+        "sha256": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "history/.git/hooks/update.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 3650,
+        "sha256": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "history/.git/info",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git/info/exclude",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 240,
+        "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "history/.git/objects",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git/objects/info",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git/objects/pack",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git/objects/pack/pack-12fdee80ab8e6765667b1bd17775c913e64ff693.idx",
+        "kind": "file",
+        "mode": 292,
+        "bytes": 1184,
+        "sha256": "0489e25a5b53681d2a46db24e1caab02f65dcbe9c977610ef37dcac642210b4c"
+      },
+      {
+        "path": "history/.git/objects/pack/pack-12fdee80ab8e6765667b1bd17775c913e64ff693.pack",
+        "kind": "file",
+        "mode": 292,
+        "bytes": 307,
+        "sha256": "baec1be304dd1dcd20d761d2833f4a0ae6839a8b4d9511ba4e939b99bb96716d"
+      },
+      {
+        "path": "history/.git/objects/pack/pack-12fdee80ab8e6765667b1bd17775c913e64ff693.rev",
+        "kind": "file",
+        "mode": 292,
+        "bytes": 68,
+        "sha256": "73670cb5c590dca2be7d47a6ef20c0290ae4bda1e6c0e9b50c6c8728b05e1317"
+      },
+      {
+        "path": "history/.git/refs",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git/refs/heads",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "history/.git/refs/tags",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "missing-object",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/COMMIT_EDITMSG",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 23,
+        "sha256": "a697f079fd46ae8ffd847f2952a25471da06a250124f57bc5ee5be5d95766735"
+      },
+      {
+        "path": "tiny-git/.git/HEAD",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 21,
+        "sha256": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "tiny-git/.git/config",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 137,
+        "sha256": "cae33efdb02cf774435c1ff9cb16bcc1014606908530c6e1dc727615fe3e8cda"
+      },
+      {
+        "path": "tiny-git/.git/description",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 73,
+        "sha256": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "tiny-git/.git/hooks",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/hooks/applypatch-msg.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 478,
+        "sha256": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "tiny-git/.git/hooks/commit-msg.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 896,
+        "sha256": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "tiny-git/.git/hooks/fsmonitor-watchman.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 4726,
+        "sha256": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "tiny-git/.git/hooks/post-update.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 189,
+        "sha256": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "tiny-git/.git/hooks/pre-applypatch.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 424,
+        "sha256": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "tiny-git/.git/hooks/pre-commit.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 1649,
+        "sha256": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "tiny-git/.git/hooks/pre-merge-commit.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 416,
+        "sha256": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "tiny-git/.git/hooks/pre-push.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 1374,
+        "sha256": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "tiny-git/.git/hooks/pre-rebase.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 4898,
+        "sha256": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "tiny-git/.git/hooks/pre-receive.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 544,
+        "sha256": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "tiny-git/.git/hooks/prepare-commit-msg.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 1492,
+        "sha256": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "tiny-git/.git/hooks/push-to-checkout.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 2783,
+        "sha256": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "tiny-git/.git/hooks/sendemail-validate.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 2308,
+        "sha256": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "tiny-git/.git/hooks/update.sample",
+        "kind": "file",
+        "mode": 493,
+        "bytes": 3650,
+        "sha256": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "tiny-git/.git/index",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 217,
+        "sha256": "cad1cae02185434df335cb942302995921cb633e010174ffbf046b6b1a1e62a4"
+      },
+      {
+        "path": "tiny-git/.git/info",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/info/exclude",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 240,
+        "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "tiny-git/.git/logs",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/logs/HEAD",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 194,
+        "sha256": "3d82f431967b2f97646def6e86ee5a73a9ec2b7f357c3831f0c4115f474d1699"
+      },
+      {
+        "path": "tiny-git/.git/logs/refs",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/logs/refs/heads",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/logs/refs/heads/main",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 194,
+        "sha256": "3d82f431967b2f97646def6e86ee5a73a9ec2b7f357c3831f0c4115f474d1699"
+      },
+      {
+        "path": "tiny-git/.git/objects",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/objects/08",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/objects/08/2e6cbfd4b57bd2be571a92f5bd08804f2d82b7",
+        "kind": "file",
+        "mode": 292,
+        "bytes": 85,
+        "sha256": "3be2732d32510c400a9519a88aa8263eb260009b37f6b9d8de15834663521867"
+      },
+      {
+        "path": "tiny-git/.git/objects/26",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/objects/26/f90dcee6a247f5b842aeb6c9f01f103e0db905",
+        "kind": "file",
+        "mode": 292,
+        "bytes": 152,
+        "sha256": "5435656243a4dc7a1d4fa24fc40f98f09c61119a915db25e766c387449679e54"
+      },
+      {
+        "path": "tiny-git/.git/objects/b0",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/objects/b0/942edec9a7b2234e0d76a4998d0c33cff6fa46",
+        "kind": "file",
+        "mode": 292,
+        "bytes": 40,
+        "sha256": "856dd233eac10c9cf3b223024001ff0fb30060e642970e36311eb3ba90654410"
+      },
+      {
+        "path": "tiny-git/.git/objects/d0",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/objects/d0/9b80733baa4f6b198f2cf2d62bbfc5b6cbf1f0",
+        "kind": "file",
+        "mode": 292,
+        "bytes": 26,
+        "sha256": "f83933c0b16c8c0adf19e755eff8b92ff5c7f55aee06b547f966337239b053ca"
+      },
+      {
+        "path": "tiny-git/.git/objects/e2",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/objects/e2/33e55fd431cbfe13bd9c8a0a5800e4d98337ac",
+        "kind": "file",
+        "mode": 292,
+        "bytes": 22,
+        "sha256": "7f99e35a4bc8fe7a330568e51960b4c9ea64550404f71931309ee5ceb124e133"
+      },
+      {
+        "path": "tiny-git/.git/objects/info",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/objects/pack",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/refs",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/refs/heads",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/.git/refs/heads/main",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 41,
+        "sha256": "cf925ac5d4aedb498a3e9956be7116bb132f3e29e4e369583f0121a7ae219e80"
+      },
+      {
+        "path": "tiny-git/.git/refs/tags",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "tiny-git/golden",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7,
+        "sha256": "5ac03da17d7d5241b49a9a94f86b08a431d7052c8585ca997b373f0bc7da0dcc"
+      },
+      {
+        "path": "tiny-git/helper.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 24,
+        "sha256": "2fefedd35a52c398135d25527b37037cfd4394f20652e6004ee040a2aaf2edc3"
+      },
+      {
+        "path": "wrong-size",
+        "kind": "directory",
+        "mode": 493
+      }
+    ],
+    "sha256": "a66c0865e0d9341498ba70a85319ce27018bd3478a844ddb4bc63b0dfba8c549"
+  },
+  "ownedTemporaryTreeRemoved": true,
+  "preserved": {
+    "COMPLETION-PLAN.json": "5f986b35a4731371d47e874cf408853b4f94d04e7535fae5f9bc6977dc3c94db",
+    "EXECUTION.txt": "b25095e1d34e8d5fee047de86cb1486406aa0274056b7823abeb36d6b545bd8e",
+    "FOLLOWUP-EXECUTION.txt": "760c44752a70585f29c2f5d61bd4f18d66fdd557f774be43a5ea455bef418ed2",
+    "FOLLOWUP-PLAN.json": "1cff3ee755d52674920bf7740e40c367f9308195fa020c78ea07326a510c9a3b",
+    "FOLLOWUP-RAW.ndjson": "0a898b2ae1f78b7150b0524be24481cbac397a1653073a29b163e0c8b55a2fbd",
+    "FOLLOWUP-RESULTS.json": "373f587ab9c1a8afec44c2656307683146ac439ad521e2f20725659a09af44ce",
+    "PLAN.json": "6828a41e7dfa70aa86651fcc03424fa2604ff964b2cfad515bf1ba864cd3d3a4",
+    "RAW-COMMANDS.ndjson": "800dc7bd16b192c5fc6cf14a04846c03a072289f1acc6eb769dd29310f374595",
+    "RESULTS.json": "706f365dfa2748275fb0a90a05870edcd422ee423e3e6a306c252c62b167e9b0",
+    "completion.mjs": "be8a498859eb80f400e74c38f073f805c16ca9d35129254dbff0309be537b567",
+    "followup.mjs": "a2b20c7ea49491db18727126becf3fc0e99af4acc7f84e8d505af4f63fc2380e",
+    "review.mjs": "7e4822ee798961c5e830ae171b2aff6b984d6d6ccbb318e51065f5f5f9ee1301"
+  },
+  "finished": "2026-08-28T02:17:15.862Z",
+  "summary": {
+    "PASS": 4,
+    "FAIL": 0
+  }
+}

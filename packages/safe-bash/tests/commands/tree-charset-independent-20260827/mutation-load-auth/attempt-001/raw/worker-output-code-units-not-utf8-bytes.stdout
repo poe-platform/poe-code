@@ -1,0 +1,256 @@
+{
+  "schema": 1,
+  "variant": "output-code-units-not-utf8-bytes",
+  "pid": 35667,
+  "assertionPlan": [
+    "package-provenance-and-default-count",
+    "wrong-package-load-control",
+    "outside-source-load-control",
+    "environment-selection",
+    "explicit-precedence",
+    "ambient-host-isolation",
+    "inherited-key-isolation",
+    "filename-escaping",
+    "utf8-output-byte-cap",
+    "environment-work-cap",
+    "awaited-backpressure"
+  ],
+  "checks": [
+    {
+      "id": "package-provenance-and-default-count",
+      "pass": true,
+      "observation": {
+        "requested": [
+          "virtual-bash",
+          "virtual-bash/commands/tree"
+        ],
+        "resolved": [
+          "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/index.js",
+          "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/index.js"
+        ],
+        "expectedPrefix": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/",
+        "packageName": "virtual-bash",
+        "packageVersion": "0.0.0",
+        "packageManifestSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+        "defaultCommandCount": 70,
+        "treeCommandCount": 1
+      }
+    },
+    {
+      "id": "wrong-package-load-control",
+      "pass": true,
+      "observation": {
+        "requestedSpecifier": "virtual-bash-mutation-control-wrong",
+        "parentUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs",
+        "resolvedUrl": null,
+        "resolutionError": {
+          "name": "Error",
+          "message": "Cannot find package 'virtual-bash-mutation-control-wrong' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs",
+          "code": "ERR_MODULE_NOT_FOUND",
+          "stack": [
+            "Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'virtual-bash-mutation-control-wrong' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs",
+            "    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:314:9)",
+            "    at packageResolve (node:internal/modules/esm/resolve:768:81)",
+            "    at moduleResolve (node:internal/modules/esm/resolve:855:18)",
+            "    at defaultResolve (node:internal/modules/esm/resolve:985:11)",
+            "    at nextResolve (node:internal/modules/esm/hooks:748:28)",
+            "    at Hooks.resolve (node:internal/modules/esm/hooks:240:30)",
+            "    at MessagePort.handleMessage (node:internal/modules/esm/worker:199:24)"
+          ]
+        },
+        "loadError": {
+          "name": "Error",
+          "message": "Cannot find package 'virtual-bash-mutation-control-wrong' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs",
+          "code": "ERR_MODULE_NOT_FOUND",
+          "stack": [
+            "Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'virtual-bash-mutation-control-wrong' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs",
+            "    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:314:9)",
+            "    at packageResolve (node:internal/modules/esm/resolve:768:81)",
+            "    at moduleResolve (node:internal/modules/esm/resolve:855:18)",
+            "    at defaultResolve (node:internal/modules/esm/resolve:985:11)",
+            "    at nextResolve (node:internal/modules/esm/hooks:748:28)",
+            "    at Hooks.resolve (node:internal/modules/esm/hooks:240:30)",
+            "    at MessagePort.handleMessage (node:internal/modules/esm/worker:199:24)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "outside-source-load-control",
+      "pass": true,
+      "observation": {
+        "requestedUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/outside-source-not-installed/index.js",
+        "parentUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs",
+        "resolvedUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/outside-source-not-installed/index.js",
+        "loadError": {
+          "name": "Error",
+          "message": "Cannot find module '/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/outside-source-not-installed/index.js' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs",
+          "code": "ERR_MODULE_NOT_FOUND",
+          "stack": [
+            "Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/outside-source-not-installed/index.js' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs",
+            "    at finalizeResolution (node:internal/modules/esm/resolve:275:11)",
+            "    at moduleResolve (node:internal/modules/esm/resolve:861:10)",
+            "    at defaultResolve (node:internal/modules/esm/resolve:985:11)",
+            "    at nextResolve (node:internal/modules/esm/hooks:748:28)",
+            "    at Hooks.resolve (node:internal/modules/esm/hooks:240:30)",
+            "    at MessagePort.handleMessage (node:internal/modules/esm/worker:199:24)",
+            "    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "environment-selection",
+      "pass": true,
+      "observation": {
+        "exitCode": 0,
+        "stdout": ".\n└── file\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "explicit-precedence",
+      "pass": true,
+      "observation": {
+        "exitCode": 0,
+        "stdout": ".\n`-- file\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "ambient-host-isolation",
+      "pass": true,
+      "observation": {
+        "exitCode": 0,
+        "stdout": ".\n`-- file\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "inherited-key-isolation",
+      "pass": true,
+      "observation": {
+        "exitCode": 0,
+        "stdout": ".\n`-- file\n",
+        "stderr": "",
+        "inheritedReads": 0
+      }
+    },
+    {
+      "id": "filename-escaping",
+      "pass": true,
+      "observation": {
+        "actual": {
+          "exitCode": 0,
+          "stdout": ".\n└── line\\nsnow\\351\\233\\252\n",
+          "stderr": ""
+        },
+        "expected": {
+          "exitCode": 0,
+          "stdout": ".\n└── line\\nsnow\\351\\233\\252\n",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "id": "utf8-output-byte-cap",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "message": "The input did not match the regular expression /tree output limit exceeded/u. Input:\n\n''\n",
+        "code": "ERR_ASSERTION",
+        "actual": "",
+        "expected": {},
+        "operator": "match",
+        "observation": {
+          "codeUnitCap": 11,
+          "encodedBytes": 17,
+          "rejection": null
+        },
+        "stack": [
+          "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /tree output limit exceeded/u. Input:",
+          "",
+          "''",
+          "",
+          "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs:195:12",
+          "    at asserted (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs:39:9)",
+          "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs:193:10",
+          "    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs:46:25)"
+        ]
+      }
+    },
+    {
+      "id": "environment-work-cap",
+      "pass": true,
+      "observation": {
+        "envCodeUnits": 8,
+        "admittedCharge": 9,
+        "maxSteps": 8,
+        "fsCalls": 0,
+        "rejection": {
+          "name": "FsError",
+          "message": "EFBIG: tree work limit exceeded (8)",
+          "code": "EFBIG",
+          "stack": [
+            "FsError: EFBIG: tree work limit exceeded (8)",
+            "    at WalkBudget.check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/io.js:44:19)",
+            "    at WalkBudget.step (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/io.js:46:28)",
+            "    at ownValue (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/charset.js:20:16)",
+            "    at environmentCharset (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/charset.js:24:24)",
+            "    at parse (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/arguments.js:111:26)",
+            "    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/tree.js:226:24)",
+            "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/worker.mjs:72:54)"
+          ]
+        },
+        "resolved": null
+      }
+    },
+    {
+      "id": "awaited-backpressure",
+      "pass": true,
+      "observation": {
+        "beforeRelease": {
+          "commandSettled": false,
+          "writeCount": 1,
+          "outstanding": 1
+        },
+        "afterRelease": {
+          "commandSettled": true,
+          "writeCount": 2,
+          "outstanding": 0,
+          "allWritesClosed": true,
+          "lateWriteCount": 0,
+          "lateCompletionCount": 0,
+          "settlementSnapshot": {
+            "writeCount": 2,
+            "outstanding": 0
+          }
+        },
+        "writes": [
+          {
+            "index": 0,
+            "bytes": 2,
+            "enteredWithCommandSettled": false,
+            "closedWithCommandSettled": false,
+            "closed": true
+          },
+          {
+            "index": 1,
+            "bytes": 15,
+            "enteredWithCommandSettled": false,
+            "closedWithCommandSettled": false,
+            "closed": true
+          }
+        ],
+        "result": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    }
+  ],
+  "passed": 10,
+  "failed": 1,
+  "pass": false
+}

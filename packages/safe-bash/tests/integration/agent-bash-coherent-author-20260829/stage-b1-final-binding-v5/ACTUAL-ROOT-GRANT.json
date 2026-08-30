@@ -1,0 +1,52 @@
+{
+  "action": "ROOT_B1_PUBLIC15_ACTUAL",
+  "authorization": "ROOT-2026-08-29-B1-PUBLIC15-ONE-ATTEMPT-5c2be374",
+  "rootMessage": "Fresh ROOT ACTUAL B1 PUBLIC15 GO, one attempt, finalslot5c2be374/receipt51271e09; exact binding17c3b717; no retries or recipe changes",
+  "finalPacketSha256": "ef0dfcdcafe1da7b274b7f0cfaf9cfea71097796bdf542b93aed9f1e491ff3d7",
+  "startedUTC": "2026-08-29T14:14:03.563Z",
+  "latestStartUTC": "2026-08-29T14:23:58.806Z",
+  "expiresUTC": "2026-08-29T14:53:58.806Z",
+  "metadataHome": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/home",
+  "independentEvidence": "5c2be374fe2a1f146dbb38b99e983a6184ed2188 / 51271e09544d861a0967f49b36c1f40fc67cf945522aa25e97fb9b2d795f05f3; ebf511e8; 7c8fb0e3 explicit logical publication profile",
+  "limits": {
+    "knownOS": 32,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "measuredRoleLedger": "created only from actual observed starts after runtime retirement; not prepopulated",
+  "qualification": "Git internal physical storage trusted/unobserved; startup reservation not OS interception; no full census, nested-load, or guaranteed persistence claim"
+}

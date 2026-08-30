@@ -1,0 +1,30 @@
+{
+  "predecessor": {
+    "commit": "71cce3b10e7d1cdb6a122dc90c917d04555ac860",
+    "tree": "142273be8056e667b3a25d18cf5a0ecf509a7f1e",
+    "path": "tests/commands/tree-charset-independent-20260827/validation-chain/attempt-007/package-authentication.json",
+    "blob": "ccebad7f309d810999ae89bdc7a1af3229a31921",
+    "fileCount": 761
+  },
+  "main": {
+    "commit": "92d1dacd041d90f58fee81922815bbd606cceb8e",
+    "tree": "a9861f570f46d2f3d758c1ecc72ddd134ea31a57",
+    "path": "tests/commands/tree-charset-independent-20260827/execution/package-authentication-001.json",
+    "blob": "adc0f273fd2e11b38f903f40b97ead6ec074b8d1",
+    "fileCount": 762
+  },
+  "reconciledFileCount": 762,
+  "commonFileCount": 761,
+  "onlyInReconciled": [
+    "README.md"
+  ],
+  "onlyInPredecessor": [],
+  "changedFromPredecessor": [],
+  "addedPackagingInput": {
+    "path": "README.md",
+    "gitBlob": "b282b7a2b8748d3c6f77e249a26ed45958f81931",
+    "sha256": "3efb55d50b1003148b83f49096cc0ed61b41ed26a6db976e02f7b9a19ac22c39",
+    "bytes": 26938
+  },
+  "allReconciledContentMatchesMain": true
+}

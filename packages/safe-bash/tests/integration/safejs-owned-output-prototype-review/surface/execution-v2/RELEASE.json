@@ -1,0 +1,79 @@
+{
+  "at": "2026-08-27T16:15:35.090Z",
+  "reviewerThread": "01a04292-5421-7363-8bcb-a70b97fae4e9",
+  "authority": "ROOT explicit user approval: implement, freeze and author-execute exact signed surface observer plus case08 rejection profile; no promotion; different actual replay required",
+  "inputCommit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+  "commitCheck": "c0d3cb8b21987ca5ac3d63e110825ecea7748f8a",
+  "receipts": [
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/REPORT.md",
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "bytes": 10814,
+      "sha256": "81a8b977284f033824815f601ab6d0f09705779f02515478ae408bf79ec3eee0"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/proof.json",
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "bytes": 1130772,
+      "sha256": "fe19612e093ca3ef78152bcca666606966905f5736b2d0e4f090e7854a5ece99"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json",
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "bytes": 2713,
+      "sha256": "28f079b2cc6a7acba9aa11acf1e8b4562f935dd4bf879e81d2621a628c88ba10"
+    },
+    {
+      "commit": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/phase2/REPORT.md",
+      "bytes": 20896,
+      "sha256": "bee19aa27d5ce91e1aaa222a99ad476ba72b13a734859320f86745dff4a5c326"
+    },
+    {
+      "commit": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/phase2/SIGNATURE.json",
+      "bytes": 3026,
+      "sha256": "e5aded9a598edf429d8e30eb37ff48f209571e86729c09a6b1d7195fa78acd45"
+    },
+    {
+      "commit": "d8bb351619c2b14a8d633dfea5f670b8f8adabcf",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/README.md",
+      "bytes": 21172,
+      "sha256": "0d9fd267a8be44a5eebd2201527e8a3a598b3b7544dc988ea86c3c45e7eba6c8"
+    },
+    {
+      "commit": "d8bb351619c2b14a8d633dfea5f670b8f8adabcf",
+      "path": "tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/observer-only.patch-data",
+      "bytes": 1542,
+      "sha256": "3d84fe2f5ccfbccbe4e7f109d7bf295817661fd7d82f74316d1eee2c33c7d1ab"
+    }
+  ],
+  "unconditionalCases": 8,
+  "conditionalCase": "09 only after exact frozen host and guest registration-authority premise, immediate ROOT finding before effect",
+  "initialLookupFailure": {
+    "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/verification.json",
+    "error": "ENOENT",
+    "guestExecutions": 0,
+    "correctPath": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json"
+  },
+  "qualification": "TEMP actual prototype only; not source promotion or private installed-package acceptance",
+  "version": 2,
+  "authorThread": "01a04292-5421-7363-8bcb-a70b97fae4e9",
+  "originalRunnerCommit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+  "originalEvidenceCommit": "b0ff1977c9c912054edd136510d62819d28cf890",
+  "proposalCommit": "d8bb351619c2b14a8d633dfea5f670b8f8adabcf",
+  "signedPhase1": "65a887ac7aa0e361216b827f9fedee20389bc609",
+  "signedPhase2": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+  "initialLookupFailureQualification": "Inherited v1 historical lookup failure, not a v2 guest attempt",
+  "preparationAttempts": [
+    {
+      "operation": "Read private instructions",
+      "exitCode": 127,
+      "error": "zsh loop variable path changed PATH; cat/find command not found",
+      "guestExecutions": 0,
+      "privateRuntimeImports": 0,
+      "remedy": "Repeated only read-only instruction lookup with filename variable and absolute binaries",
+      "remedyExitCode": 0
+    }
+  ]
+}

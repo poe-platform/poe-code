@@ -1,0 +1,622 @@
+{
+  "schema": "k08-actual-attempt-v1",
+  "status": "STOP_BEFORE_CASE_ADMISSION",
+  "attempts": 1,
+  "consumed": true,
+  "source": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "seal": {
+    "bytes": 199449,
+    "sha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49"
+  },
+  "archive": {
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+  },
+  "toolResult": {
+    "code": 1,
+    "session": null,
+    "returnedAfterMs": 371,
+    "qualification": "exec_command reported process exited1; no new process/session retry"
+  },
+  "owner": {
+    "primaryPresent": true,
+    "primary": {
+      "kind": "object",
+      "name": "Error",
+      "message": "manifest cardinality or tar alignment"
+    },
+    "secondary": [],
+    "status": "STOP",
+    "resultPin": {
+      "bytes": 929,
+      "sha256": "308c7763c11e64d1b5fac82dbd21cf272e6050f6ebd9b9b144a2db466f875832"
+    },
+    "ledger": {
+      "starts": 1,
+      "maximum": 78,
+      "active": 0,
+      "stopped": false,
+      "captureBytes": 196608,
+      "captureMaximum": 100663296,
+      "rows": []
+    }
+  },
+  "collector": {
+    "primaryPresent": true,
+    "primary": {
+      "kind": "object",
+      "name": "Error",
+      "message": "OWNER_RESULT_QUALIFICATION"
+    },
+    "secondary": [],
+    "status": "STOP",
+    "descendantSettlement": "UNKNOWN",
+    "resultPin": {
+      "bytes": 1558,
+      "sha256": "ca5b8512220c851001cdfce1246a7304239ec9586843eb569a1adba16949b88f"
+    }
+  },
+  "outcomes": {
+    "primary": [
+      {
+        "id": "P01-keyword",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P01-keyword",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P01-keyword",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P01-legacy",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P01-legacy",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P01-legacy",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P02-top",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P02-top",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P02-top",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P03-frames",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P03-frames",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P03-frames",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P04-decimals",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P04-decimals",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P04-decimals",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P05-precedence",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P05-precedence",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P05-precedence",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P05-signed",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P05-signed",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P05-signed",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P06-repeated",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P06-repeated",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P06-repeated",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P07-quote",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P07-quote",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P07-quote",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P08-skipped",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P08-skipped",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P08-skipped",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P08-active",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P08-active",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P08-active",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P09-missing",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P09-missing",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P09-missing",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P09-empty",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P09-empty",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P09-empty",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P10-injection",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P10-injection",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P10-injection",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P11-write",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P11-write",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P11-write",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P11-readonly",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P11-readonly",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P11-readonly",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-below",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-below",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-below",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-at",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-at",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-at",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-above",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-above",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P12-above",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-command",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-command",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-command",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-division",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-division",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-division",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-let",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-let",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P14-let",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P15-static",
+        "layout": "source-built",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P15-static",
+        "layout": "installed",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      },
+      {
+        "id": "P15-static",
+        "layout": "physically-moved",
+        "disposition": "UNRUN",
+        "reason": "Owner stopped in archive admission before first case"
+      }
+    ],
+    "mutantShell": [
+      {
+        "id": "M01",
+        "disposition": "UNRUN"
+      },
+      {
+        "id": "M02",
+        "disposition": "UNRUN"
+      }
+    ],
+    "helperBaseline": [
+      {
+        "layout": "source-built",
+        "disposition": "UNRUN"
+      },
+      {
+        "layout": "installed",
+        "disposition": "UNRUN"
+      },
+      {
+        "layout": "physically-moved",
+        "disposition": "UNRUN"
+      }
+    ],
+    "helperMutant": [
+      {
+        "id": "M03",
+        "disposition": "UNRUN"
+      }
+    ],
+    "bindings": [
+      {
+        "id": "N01",
+        "disposition": "UNRUN"
+      },
+      {
+        "id": "N02",
+        "disposition": "UNRUN"
+      }
+    ],
+    "types": "Not scheduled by frozen recipe; no rerun",
+    "build": "buildMs0; no build executed",
+    "restore": "No restore execution/credit"
+  },
+  "counts": {
+    "primaryExecuted": 0,
+    "primaryUnrun": 69,
+    "mutantShellExecuted": 0,
+    "mutantShellUnrun": 2,
+    "helpersExecuted": 0,
+    "bindingsExecuted": 0,
+    "caseChildrenStarted": 0,
+    "runtimeKnownStarts": 2,
+    "ownerLedgerStarts": 1,
+    "collectorLedgerStarts": 2,
+    "recordedCaseWorkers": 0,
+    "recordedAsyncLoaders": 0
+  },
+  "retirement": {
+    "owner": {
+      "id": "author-owner",
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788018174034
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788018174036
+        },
+        {
+          "name": "spawn",
+          "at": 1788018174036
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788018174362
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788018174362
+        },
+        {
+          "name": "exit",
+          "at": 1788018174363
+        },
+        {
+          "name": "close",
+          "at": 1788018174363
+        }
+      ],
+      "exit": true,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "captures": [
+        {
+          "kind": "stdout",
+          "bytes": 242,
+          "sha256": "50da70cd72c19e5cdecdd0225d651dd7da5437667cf7f22d4a30e01ad9a27f92",
+          "base64": "eyJzdGF0dXMiOiJTVE9QIiwicHJpbWFyeVByZXNlbnQiOnRydWUsInB1YmxpY2F0aW9uU3VjY2VlZGVkIjp0cnVlLCJyZXN1bHRTdGF0dXMiOiJTVE9QIiwicmVzdWx0UHVibGljYXRpb24iOnsiYnl0ZXMiOjkyOSwic2hhMjU2IjoiMzA4Yzc3NjNjMTFlNjRkMWI1ZmFjODJkYmQyMWNmMjcyZTYwNTBmNmViZDliOWIxNDRhMmRiNDY2Zjg3NTgzMiIsInF1YWxpZmllZCI6dHJ1ZX0sImtub3duT3duZWRSZXRpcmVkIjp0cnVlfQo=",
+          "flushed": true,
+          "closed": true
+        },
+        {
+          "kind": "stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": "",
+          "flushed": true,
+          "closed": true
+        }
+      ],
+      "signals": [],
+      "forced": false,
+      "capturesQualified": true,
+      "knownOutstanding": 0,
+      "pid": 29033,
+      "status": 1,
+      "signal": null,
+      "primaryPresent": false,
+      "secondary": [],
+      "qualified": true,
+      "finished": 1788018174371
+    },
+    "collectorToolExit": 1,
+    "knownOwnerChildOutstanding": 0,
+    "ownerActive": 0,
+    "caseRows": 0,
+    "collectorDescendantSettlement": "UNKNOWN",
+    "qualification": "Do not replace collector UNKNOWN with a universal-retirement claim. Owner directexit/close/EOF/capture and empty case ledger are distinct retained observations."
+  },
+  "time": {
+    "preflightUTC": "2026-08-29T15:42:46.057Z",
+    "collectorStartedUTC": "2026-08-29T15:42:53.920Z",
+    "runtimeDeadlineUTC": "2026-08-29T16:07:53.920Z",
+    "administrativeDeadlineUTC": "2026-08-29T16:07:46.057Z",
+    "finishedUTC": "2026-08-29T15:44:19.813Z"
+  },
+  "capture": {
+    "files": 7,
+    "bytes": 5450,
+    "rawRoot": "/private/tmp/safe-bash-k08-author-RAvH2m/future-capture",
+    "qualification": "Outer launcher streams are regular-file captures authenticated after tool-returned exit; no independent fsync or streamEOF claim for those outer files. Owner direct streams have their own qualified receipt."
+  },
+  "historical": "B35 51/54+24/24 and2MiB capture-archiveSTOP unchanged. This attempt not retried/rescored; no parse/decode retry or product patch."
+}

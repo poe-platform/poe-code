@@ -1,0 +1,110 @@
+{
+  "publishedAt": "2026-08-29T11:50:06.474Z",
+  "publicationDeadline": "2026-08-29T11:53:14.829Z",
+  "authority": "Explicit ROOT user decision; finite qualified preexecution acceptance",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "candidatePreseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "selectedSource": {
+    "tree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+    "inputs": 309,
+    "manifestSha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+  },
+  "package": {
+    "members": 1014,
+    "actualDistFiles": 1012,
+    "compressedBytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "acceptedEvidence": {
+    "review": "eff15eba6788731fc89a6c12f71983fa99630f66",
+    "reviewReceiptSha256": "290dd9eefbc9543a840689447b49fe8102777f4ed9adc79b4d561dcbc31a7877",
+    "adjudication": "5c45aced892ede0ddecfaa196dff71c6556adf75",
+    "adjudicationReceiptSha256": "9d76960c00522272ffb9d4dd4822377678473191b7444832181051ce63685aeb",
+    "sourcePlusPureGroups": 24,
+    "knownRolesExitClose0": 3,
+    "controllerGroupsAbsent": 2,
+    "parentGroup": "UNKNOWN",
+    "discardedCause": "IRRETRIEVABLE",
+    "originalHoldUnchanged": true,
+    "objectJsonDiagnosticsAbbreviated": true
+  },
+  "prospectiveReviewerProfile": "KNOWN_ROLE_ONLY_FUNCTIONAL; unresolved known work STOP; no exit-implies-group-absence",
+  "plannedActual": {
+    "ids": [
+      "C01",
+      "C02",
+      "C03",
+      "C04",
+      "C05",
+      "C06",
+      "C07",
+      "C08",
+      "C09",
+      "C12",
+      "C13",
+      "C14",
+      "C17"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 39,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "knownOSStarts": 32,
+    "peakOS": 3,
+    "supervisedChildren": 4,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 420,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368,
+    "regexWorkersPerLayout": 2,
+    "regexWorkersTotal": 6,
+    "regexLivePerConsumer": 2,
+    "internalLoaderAdmissions": 3,
+    "nodeGuestWorkers": 0
+  },
+  "remainingAuthority": [
+    "fresh ROOT actual39 GO",
+    "final exact bootstrap/source/preseal/package/tool/fixture binding review",
+    "fresh absent work-root and exclusive outer-capture admission",
+    "inclusive clock, permissions, finite known-role/Worker/loader accounting and publication binding",
+    "separate authority for larger726/retained/types/mutants/all50Unit2/layout and five PUBLIC95 workflows"
+  ],
+  "actual39AuthorizedByThisDocument": false,
+  "publicationExecutions": {
+    "runtime": 0,
+    "retests": 0,
+    "product": 0,
+    "workers": 0,
+    "native": 0
+  },
+  "document": {
+    "path": "ROOT-B0-PREEXECUTION-ACCEPTANCE.md",
+    "bytes": 6820,
+    "sha256": "9d8b223859e76c55abde2ff9f1e3c74a987dec1de5b9a0dc8df58eee86d71fe4"
+  },
+  "publicationAccounting": {
+    "knownRoles": "patch shell+utility and final shell+four Git metadata/publication operations",
+    "plannedKnownOSStarts": 7,
+    "peak": 2,
+    "grantKnownOSStarts": 12,
+    "grantCaptureBytes": 16777216,
+    "grantWorkBytes": 67108864,
+    "notUniversalCensus": true
+  }
+}

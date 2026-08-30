@@ -1,0 +1,100 @@
+[
+  {
+    "path": "src/shell/display.ts",
+    "hunks": [
+      {
+        "oldLine": 7,
+        "newLine": 7,
+        "removed": [
+          "    `${index ? `${list.operators[index - 1]} ` : \"\"}${pipeline.negate ? \"! \" : \"\"}${pipeline.commands.map(command => commandText(command, indent)).join(\" | \")}`,"
+        ],
+        "added": [
+          "    `${index ? `${list.operators[index - 1]} ` : \"\"}${pipeline.negate ? \"! \" : \"\"}${pipeline.commands.map((command, commandIndex) => `${commandIndex ? pipeline.commands[commandIndex - 1]!.redirects.some(redirect => redirect.implicitPipeline) ? \" |& \" : \" | \" : \"\"}${commandText(command, indent)}`).join(\"\")}`,"
+        ]
+      },
+      {
+        "oldLine": 30,
+        "newLine": 30,
+        "removed": [],
+        "added": [
+          "    if (redirect.implicitPipeline) continue;"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "src/shell/parser.ts",
+    "hunks": [
+      {
+        "oldLine": 52,
+        "newLine": 52,
+        "removed": [],
+        "added": [
+          "  readonly implicitPipeline?: boolean;"
+        ]
+      },
+      {
+        "oldLine": 151,
+        "newLine": 152,
+        "removed": [
+          "    const operator = /^(?:;;&|<<<|<<-|;&|&&|\\|\\||>>|>&|<&|>\\||<<|;;|&>|[;\\n|&()<>])/u.exec(logical)?.[0];"
+        ],
+        "added": [
+          "    const operator = /^(?:;;&|<<<|<<-|&>>|;&|&&|\\|\\||\\|&|>>|>&|<&|>\\||<<|;;|&>|[;\\n|&()<>])/u.exec(logical)?.[0];"
+        ]
+      },
+      {
+        "oldLine": 153,
+        "newLine": 154,
+        "removed": [
+          "      if ([\"&\", \"&>\"].includes(operator)) this.error(`Unsupported operator ${operator}`);"
+        ],
+        "added": [
+          "      if ([\"&\", \"&>>\"].includes(operator)) this.error(`Unsupported operator ${operator}`);"
+        ]
+      },
+      {
+        "oldLine": 577,
+        "newLine": 578,
+        "removed": [
+          "    while (this.is(\"|\")) {",
+          "      this.advance();"
+        ],
+        "added": [
+          "    while (this.is(\"|\") || this.is(\"|&\")) {",
+          "      const operator = this.advance();",
+          "      if (operator.value === \"|&\") commands.at(-1)!.redirects.push({",
+          "        descriptor: 2, operator: \">&\", implicitPipeline: true,",
+          "        target: { offset: operator.offset, plain: \"1\", spelling: \"1\", parts: [{ kind: \"text\", value: \"1\", quoted: false }] },",
+          "      });"
+        ]
+      },
+      {
+        "oldLine": 745,
+        "newLine": 750,
+        "removed": [
+          "    if (!/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\\|)$/u.test(this.current.value) || this.current.kind !== \"operator\") return undefined;"
+        ],
+        "added": [
+          "    if (!/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\\||&>)$/u.test(this.current.value) || this.current.kind !== \"operator\") return undefined;"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "src/shell/runtime.ts",
+    "hunks": [
+      {
+        "oldLine": 1747,
+        "newLine": 1747,
+        "removed": [],
+        "added": [
+          "          if (redirect.operator === \"&>\") {",
+          "            replaced.add(2);",
+          "            descriptors.set(2, { output });",
+          "          }"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,1 @@
+false; readonly PIPESTATUS; true; declare -p PIPESTATUS

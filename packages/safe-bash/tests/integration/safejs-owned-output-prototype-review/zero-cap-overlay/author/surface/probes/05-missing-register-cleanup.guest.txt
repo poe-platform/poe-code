@@ -1,0 +1,13 @@
+import { write } from "stdio";
+const candidate = write.registerCleanup;
+if (typeof candidate !== "undefined") {
+  return { exposurePath: "stdio.write.registerCleanup", type: typeof candidate };
+}
+let callbackCalls = 0;
+let errorMessage = "no-error";
+try {
+  candidate(() => { callbackCalls += 1; return "bounded-uninvoked-callback"; });
+} catch (error) {
+  errorMessage = error.message;
+}
+return { memberType: typeof candidate, callbackCalls, errorMessage };

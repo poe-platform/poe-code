@@ -1,0 +1,49 @@
+{
+  "id": "installed-supplement-b",
+  "role": "product",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/node_modules/virtual-bash",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/fixtures-installed-supplement-b",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/job-installed-supplement-b.json"
+  ],
+  "started": "2026-08-28T20:01:57.532Z",
+  "finished": "2026-08-28T20:01:57.857Z",
+  "startedElapsedMs": 159339.646125,
+  "finishedElapsedMs": 159664.563042,
+  "pid": 71220,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 1,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 173018,
+  "fragments": [
+    {
+      "name": "019-installed-supplement-b-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "5c268380d8450caefe96e7be068c995d08005046e728780408114624874b381a"
+    },
+    {
+      "name": "019-installed-supplement-b-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "5e67c63b9e670c48baedbf472d9530def31f2ce14a9015c26190f62a7f9850a4"
+    },
+    {
+      "name": "019-installed-supplement-b-stdout-131072.json",
+      "bytes": 41946,
+      "sha256": "bb4def167662de6c0cb29ffc70ce0115f57edf41fd38ff0aeec7ebafdd74d385"
+    }
+  ],
+  "stdoutSha256": "cc1f1641960a72af06caa840fa4e9f449dffb2d601863bdf852a078018995cec",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

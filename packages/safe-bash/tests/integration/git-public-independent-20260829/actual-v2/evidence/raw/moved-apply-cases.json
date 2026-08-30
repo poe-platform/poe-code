@@ -1,0 +1,176 @@
+{
+  "cases": [
+    {
+      "id": "P01-public-exports",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "P02-exact80",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P03-standalone",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P04-collision-global-false",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "P05-replace-global-true",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "P06-invalid-options-atomic",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "P07-forwarded-limit",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P08-literal-argument",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P09-heredoc-input",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P10-update",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P11-move",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P12-delete",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P13-staging-before-publication",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P14-readonly",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P15-mount",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P16-symlink-refusal",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P17-traversal-refusal",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P18-invalid-encoding",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P19-pipeline",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P20-array-arguments",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P21-local-array-scope",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P22-borrowed-input",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P23-preabort-identity",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P24-required-stderr",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P25-output-failure-after-publication",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P26-registered-cleanups-idempotent",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    },
+    {
+      "id": "P27-caller-abort-after-publication",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    },
+    {
+      "id": "P28-awaited-output",
+      "pass": true,
+      "shells": 1,
+      "closed": 1
+    }
+  ],
+  "pass": 28,
+  "fail": 0,
+  "nativeRuns": 0,
+  "privateRuns": 0
+}

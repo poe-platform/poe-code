@@ -1,0 +1,10 @@
+{
+  "candidate": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "candidateRuntimeSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+  "precode": "8600ca5730a130316b16f13c4cd54689a4b015a9",
+  "executor": "7a4ccb782cfbeca21ca710aa6f8f8839e491dc41",
+  "authorEvidence": "5353df4d96b741cce3fe84310e70b86c2668552f",
+  "authorPackSha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+  "composition": "265 frozen selected inputs; candidate runtime overlay only; README included in full846 npm package",
+  "purpose": "Original type/body failures remain failures; type failures aggregate after child reaping rather than suppressing other controls."
+}

@@ -1,0 +1,43 @@
+{
+  "authPath": "/tmp/safe-bash-inspection-safety-root-approved.json",
+  "authSha256": "e4d048afb4784f802047de589212519465bb7589ccdb99e10ba677add39cee1c",
+  "proposalPath": "/tmp/safe-bash-inspection-final-proof-authorization.proposed.json",
+  "proposalSha256": "4f096db838c296579e52811c5d3a349cd0ecdae0278fe4045219e895c205c11f",
+  "onlyApprovalChanged": true,
+  "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "snapshot": "/private/tmp/safe-bash-inspection-final-YZxhi8/snapshot",
+  "filesVerified": 920,
+  "rows": [
+    {
+      "id": "T-empty-many",
+      "status": "approved",
+      "basis": "pattern.ts:46-50 charges and skips each empty alternative before any DP row. This is rowless handling, not token-array compaction: all 256 alternatives remain charged. Compile767 + root FS2 +64*(listing1+alternatives256)=17217 before sort; successful total17281+257*C including64 child lstats. At most952 engine comparisons fit262144; C is not measured. The old2113536 DP initial-row bytes are eliminated; metadata25360 and output8262 remain bounded separately. Approval is static premise review, not an observed pass."
+    },
+    {
+      "id": "T-DP-cumulative",
+      "status": "invalidated",
+      "basis": "Changed allocation/transition coefficient invalidates the sealed singleton premise: startup53 compilation+2 FS=55; each matcher costs1+129+17*258=4516 plus listing1. First filter4572 and singleton completion4573 both exceed4096. Token16 requests258 at accepted4056 and rejects at attempted4314 before allocation; no cumulative-many-entry stress is reached. All64 filters would289143. No suffix optimization, no reset. Independently frozen Shell runtime.ts:494-512 converts this FsError to stderr/status1, contrary to sealed outer-rejection/empty-stderr oracle. Keep original input HOLD, not pass/source bug."
+    },
+    {
+      "id": "T-sort-many",
+      "status": "invalidated",
+      "basis": "Static metering is valid: tree.ts:114-117 reserves1025 per512/512-byte name comparison before Buffer.compare; startup66, three accepted comparisons reach3141, fourth rejects at4166 before any child stat/output. Complete-sort lower bound63 comparisons reserves64512 byte-span units. dirsfirst:128-131 separately reserves1 per constant-size grouping comparison on same budget. However required actual Shell catches the propagated EFBIG in runtime.ts:494-512, emits human stderr and returns exitCode1. Sealed oracle demands outer rejected=true, EFBIG, empty stderr, so this row is HOLD with no invocation. Not a source defect and no fixture/oracle rewrite."
+    },
+    {
+      "id": "F-JSON-cumulative",
+      "status": "approved",
+      "basis": "One SharedBudget covers all operands. Parse startup88 includes all10 argument fields. Each entry charges loop1+eight chunks+sample8190+output29=8228. First complete8316 fits16384. After first line and second operand/chunks, accepted8325; second sample reservation demands16515 and fails before classify, after two distinct8190-byte streams. First invalid JSON is bounded ASCII text; no per-operand resets. Two complete16544/all eight65912 are hypothetical beyond cap, not performed work. Diagnostics use fixed64-unit emergency reserve, no normal-work reset."
+    },
+    {
+      "id": "F-header-many",
+      "status": "approved",
+      "basis": "classify.ts:21-66 guards every DataView/fixed signature read by sample lengths. PDF regex input<=16; tar checksum<=8 then fixed512 loop; MZ requires64 before offset read and offset>=64&&offset<=sample.length-24 before PE check; no offset initiates VFS I/O. SQLite guarded100-byte profile. Sample charge precedes decode/control/ASCII/JSON passes. Startup392; entries546/558/555/558 by near-miss group; total18128<32768, input16384, output1192. Expected labels are static characterizations only. No dynamic execution or valid-file certification."
+    },
+    {
+      "id": "F-metadata-many",
+      "status": "approved",
+      "basis": "shared.ts:88-91 checks raw4096 target units against remaining input/output/work before scan, then meters actual metadata UTF8 and checks each escaped piece before retention. Startup320+loop1+target4096=4417. U+0001 yields5 bytes:819 retained pieces=4095, piece820 attempts4100 and rejects before push/join/full20510-byte line construction. One readlink, zero content reads, empty stdout predicted. Input charged820; fixed emergency diagnostic28 bytes, shared output/work/input counters not reset. Pre-admission permits one bounded rejected piece and individually bounded fragments, not zero allocation or hard memory containment."
+    }
+  ],
+  "productExecutions": 0
+}

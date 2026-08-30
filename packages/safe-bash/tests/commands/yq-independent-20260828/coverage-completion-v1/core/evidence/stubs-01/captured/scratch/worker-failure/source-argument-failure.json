@@ -1,0 +1,1 @@
+{"status":"FAIL","rawArtifact":{"path":"/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/scratch/worker-failure/source-arguments-raw.json","sha256":"c9d3c0b592f871bac325c6c4f6b72a1b10ff9674588328604a291f2465114130","bytes":1741,"mode":384},"classification":"SOURCE_ARGUMENT_ADMISSION_FAILURE","reasonIdentityPreservedByRethrow":true}

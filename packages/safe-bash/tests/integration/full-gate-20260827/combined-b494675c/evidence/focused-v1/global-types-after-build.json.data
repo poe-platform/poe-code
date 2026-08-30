@@ -1,0 +1,32 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/tmp/full-gate-b494-diagnose-btuFy0/source/node_modules/typescript/bin/tsc",
+    "--noEmit"
+  ],
+  "cwd": "/private/tmp/full-gate-b494-diagnose-btuFy0/source",
+  "pid": 34775,
+  "status": 2,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 6776,
+  "timeoutMs": 180000,
+  "outputBytes": 1934,
+  "observed": [
+    {
+      "pid": 34775,
+      "parent": 34404,
+      "group": 34775,
+      "born": "Thu Aug 27 06:25:35 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /private/tmp/full-gate-b494-diagnose-btuFy0/source/node_modules/typescript/bin/tsc --noEmit"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "global-types-after-build"
+}

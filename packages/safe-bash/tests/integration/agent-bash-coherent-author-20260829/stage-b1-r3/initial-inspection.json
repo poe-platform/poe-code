@@ -1,0 +1,22 @@
+{
+  "utc": "2026-08-29T14:30:38.128Z",
+  "pid": 90180,
+  "receipts": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/run.mjs",
+      "bytes": 12887,
+      "sha256": "5f94ab64d58ebfa4c3ea7ff7dbdb16a8bafd8e8e37425c74615bc64583f2765a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json",
+      "bytes": 17692,
+      "sha256": "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh",
+      "bytes": 395,
+      "sha256": "1536452f59950c0686c21582cb3c26440e990ac12346d990fa41452e0f6b3dcd"
+    }
+  ],
+  "total": 30974
+}

@@ -1,0 +1,1246 @@
+TAP version 13
+# Subtest: script cannot inject through raw malformed neighbors
+ok 1 - script cannot inject through raw malformed neighbors
+  ---
+  duration_ms: 11.707625
+  type: 'test'
+  ...
+# Subtest: style cannot inject through raw malformed neighbors
+ok 2 - style cannot inject through raw malformed neighbors
+  ---
+  duration_ms: 12.265208
+  type: 'test'
+  ...
+# Subtest: numeric and named URI obfuscation stays inactive
+ok 3 - numeric and named URI obfuscation stays inactive
+  ---
+  duration_ms: 5.004042
+  type: 'test'
+  ...
+# Subtest: empty input chunks are bounded work and yield cancellation
+ok 4 - empty input chunks are bounded work and yield cancellation
+  ---
+  duration_ms: 0.597709
+  type: 'test'
+  ...
+# Subtest: large parser token and deep nesting refuse without output
+ok 5 - large parser token and deep nesting refuse without output
+  ---
+  duration_ms: 0.429625
+  type: 'test'
+  ...
+# Subtest: table expansion and code fences obey the output cap
+ok 6 - table expansion and code fences obey the output cap
+  ---
+  duration_ms: 0.889209
+  type: 'test'
+  ...
+# Subtest: timer cancellation while rendering consumes no host resources
+ok 7 - timer cancellation while rendering consumes no host resources
+  ---
+  duration_ms: 5.923667
+  type: 'test'
+  ...
+# Subtest: plugin collision preflight and intentional replace
+ok 8 - plugin collision preflight and intentional replace
+  ---
+  duration_ms: 0.626375
+  type: 'test'
+  ...
+# Subtest: limit settings copied at construction
+ok 9 - limit settings copied at construction
+  ---
+  duration_ms: 0.874417
+  type: 'test'
+  ...
+# Subtest: long zero-output adjacency 256
+ok 10 - long zero-output adjacency 256
+  ---
+  duration_ms: 39.315959
+  type: 'test'
+  ...
+# Subtest: long zero-output adjacency 2048
+ok 11 - long zero-output adjacency 2048
+  ---
+  duration_ms: 157.123208
+  type: 'test'
+  ...
+# Subtest: long zero-output adjacency 8192
+ok 12 - long zero-output adjacency 8192
+  ---
+  duration_ms: 432.401833
+  type: 'test'
+  ...
+# Subtest: nested empty styles and transparent wrappers preserve adjacency
+ok 13 - nested empty styles and transparent wrappers preserve adjacency
+  ---
+  duration_ms: 1.0485
+  type: 'test'
+  ...
+# Subtest: ragged style aliases coalesce without copying accumulated prefixes
+ok 14 - ragged style aliases coalesce without copying accumulated prefixes
+  ---
+  duration_ms: 274.564833
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxWorkUnits
+ok 15 - normalization keeps maxWorkUnits
+  ---
+  duration_ms: 0.509334
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxDepth
+ok 16 - normalization keeps maxDepth
+  ---
+  duration_ms: 0.4825
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxTokens
+ok 17 - normalization keeps maxTokens
+  ---
+  duration_ms: 0.452166
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxNodes
+ok 18 - normalization keeps maxNodes
+  ---
+  duration_ms: 0.687042
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxTokenBytes
+ok 19 - normalization keeps maxTokenBytes
+  ---
+  duration_ms: 0.4445
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxOutputBytes
+ok 20 - normalization keeps maxOutputBytes
+  ---
+  duration_ms: 0.589125
+  type: 'test'
+  ...
+# Subtest: normalization charges empty visits before growth and scales linearly
+ok 21 - normalization charges empty visits before growth and scales linearly
+  ---
+  duration_ms: 188.013042
+  type: 'test'
+  ...
+# Subtest: charged normalization yields in flight and preserves exact reason
+ok 22 - charged normalization yields in flight and preserves exact reason
+  ---
+  duration_ms: 273.037209
+  type: 'test'
+  ...
+# Subtest: normalized large output awaits sink backpressure
+ok 23 - normalized large output awaits sink backpressure
+  ---
+  duration_ms: 24.529416
+  type: 'test'
+  ...
+# Subtest: sink failure preserves only the accepted prefix
+ok 24 - sink failure preserves only the accepted prefix
+  ---
+  duration_ms: 20.676208
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-em-period
+ok 25 - semantic inline normalization: empty-em-period
+  ---
+  duration_ms: 6.603333
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-code-paren
+ok 26 - semantic inline normalization: empty-code-paren
+  ---
+  duration_ms: 15.716917
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-anchor-period
+ok 27 - semantic inline normalization: empty-anchor-period
+  ---
+  duration_ms: 2.086125
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-strong-between-em
+ok 28 - semantic inline normalization: empty-strong-between-em
+  ---
+  duration_ms: 1.720083
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-anchor-between-em
+ok 29 - semantic inline normalization: empty-anchor-between-em
+  ---
+  duration_ms: 2.195209
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: transparent-empty-strong
+ok 30 - semantic inline normalization: transparent-empty-strong
+  ---
+  duration_ms: 2.495875
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-em-between-strong
+ok 31 - semantic inline normalization: empty-em-between-strong
+  ---
+  duration_ms: 2.642959
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-space-separator
+ok 32 - semantic inline normalization: nonempty-space-separator
+  ---
+  duration_ms: 2.035875
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-transparent-period-control
+ok 33 - semantic inline normalization: empty-transparent-period-control
+  ---
+  duration_ms: 2.311792
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-em-digit-control
+ok 34 - semantic inline normalization: nonempty-em-digit-control
+  ---
+  duration_ms: 1.472792
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: split-numeral
+ok 35 - semantic inline normalization: split-numeral
+  ---
+  duration_ms: 3.184125
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-unknown-chain
+ok 36 - semantic inline normalization: empty-unknown-chain
+  ---
+  duration_ms: 7.134167
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: strike-adjacency
+ok 37 - semantic inline normalization: strike-adjacency
+  ---
+  duration_ms: 1.005
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: alias-adjacency
+ok 38 - semantic inline normalization: alias-adjacency
+  ---
+  duration_ms: 1.396042
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: mixed-adjacency
+ok 39 - semantic inline normalization: mixed-adjacency
+  ---
+  duration_ms: 0.878375
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: reverse-mixed-adjacency
+ok 40 - semantic inline normalization: reverse-mixed-adjacency
+  ---
+  duration_ms: 1.409
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: punctuation-through-empty
+ok 41 - semantic inline normalization: punctuation-through-empty
+  ---
+  duration_ms: 0.936625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: punctuation-inside-empty
+ok 42 - semantic inline normalization: punctuation-inside-empty
+  ---
+  duration_ms: 3.083042
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: text-separator
+ok 43 - semantic inline normalization: text-separator
+  ---
+  duration_ms: 1.287292
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: numeric-space-boundary
+ok 44 - semantic inline normalization: numeric-space-boundary
+  ---
+  duration_ms: 0.657
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: ascii-space-preserved
+ok 45 - semantic inline normalization: ascii-space-preserved
+  ---
+  duration_ms: 0.879209
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-anchor-text
+ok 46 - semantic inline normalization: inactive-anchor-text
+  ---
+  duration_ms: 1.835625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-anchor-empty
+ok 47 - semantic inline normalization: inactive-anchor-empty
+  ---
+  duration_ms: 2.170041
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-image-empty
+ok 48 - semantic inline normalization: inactive-image-empty
+  ---
+  duration_ms: 5.1225
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-image-label
+ok 49 - semantic inline normalization: inactive-image-label
+  ---
+  duration_ms: 1.421875
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-destination-label
+ok 50 - semantic inline normalization: empty-destination-label
+  ---
+  duration_ms: 1.842208
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: meaningful-break
+ok 51 - semantic inline normalization: meaningful-break
+  ---
+  duration_ms: 0.993125
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: code-whitespace
+ok 52 - semantic inline normalization: code-whitespace
+  ---
+  duration_ms: 1.512334
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-code
+ok 53 - semantic inline normalization: nonempty-code
+  ---
+  duration_ms: 3.951458
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-empty-link
+ok 54 - semantic inline normalization: active-empty-link
+  ---
+  duration_ms: 1.272416
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-empty-image
+ok 55 - semantic inline normalization: active-empty-image
+  ---
+  duration_ms: 1.180292
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-link-label
+ok 56 - semantic inline normalization: active-link-label
+  ---
+  duration_ms: 1.328625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nested-style
+ok 57 - semantic inline normalization: nested-style
+  ---
+  duration_ms: 1.892875
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-code-raw-wrapper
+ok 58 - semantic inline normalization: empty-code-raw-wrapper
+  ---
+  duration_ms: 1.333458
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: merged-em-strong
+ok 59 - semantic inline normalization: merged-em-strong
+  ---
+  duration_ms: 6.845458
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: merged-em-strike
+ok 60 - semantic inline normalization: merged-em-strike
+  ---
+  duration_ms: 3.765833
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: merged-strike-strong
+ok 61 - semantic inline normalization: merged-strike-strong
+  ---
+  duration_ms: 1.582208
+  type: 'test'
+  ...
+# Subtest: files and repeated stdin share one cursor and preserve VFS
+ok 62 - files and repeated stdin share one cursor and preserve VFS
+  ---
+  duration_ms: 7.9175
+  type: 'test'
+  ...
+# Subtest: readFile-only backend receives remaining cap and exact signal
+ok 63 - readFile-only backend receives remaining cap and exact signal
+  ---
+  duration_ms: 2.175833
+  type: 'test'
+  ...
+# Subtest: missing file produces status1 and leaves previous output explicit
+ok 64 - missing file produces status1 and leaves previous output explicit
+  ---
+  duration_ms: 2.490542
+  type: 'test'
+  ...
+# Subtest: borrowed byteOffset chunks copied before next/finalization
+ok 65 - borrowed byteOffset chunks copied before next/finalization
+  ---
+  duration_ms: 1.057083
+  type: 'test'
+  ...
+# Subtest: preabort does not acquire resources and preserves reason identity
+ok 66 - preabort does not acquire resources and preserves reason identity
+  ---
+  duration_ms: 0.751375
+  type: 'test'
+  ...
+# Subtest: registration rejection occurs before acquisition
+ok 67 - registration rejection occurs before acquisition
+  ---
+  duration_ms: 0.264542
+  type: 'test'
+  ...
+# Subtest: pending read cancels and iterator return executes exactly once
+ok 68 - pending read cancels and iterator return executes exactly once
+  ---
+  duration_ms: 0.631125
+  type: 'test'
+  ...
+# Subtest: large single chunk yields for cancellation without publishing output
+ok 69 - large single chunk yields for cancellation without publishing output
+  ---
+  duration_ms: 6.909292
+  type: 'test'
+  ...
+# Subtest: producer failure stays primary over finalization failure
+ok 70 - producer failure stays primary over finalization failure
+  ---
+  duration_ms: 1.015958
+  type: 'test'
+  ...
+# Subtest: output awaits backpressure and cancellation does not publish later chunks
+ok 71 - output awaits backpressure and cancellation does not publish later chunks
+  ---
+  duration_ms: 53.635459
+  type: 'test'
+  ...
+# Subtest: sink rejection stops output and is not returned as success
+ok 72 - sink rejection stops output and is not returned as success
+  ---
+  duration_ms: 41.409042
+  type: 'test'
+  ...
+# Subtest: help does not read input, unknown options do not masquerade as success
+ok 73 - help does not read input, unknown options do not masquerade as success
+  ---
+  duration_ms: 0.518584
+  type: 'test'
+  ...
+# Subtest: standalone registration and actual VFS pipeline
+ok 74 - standalone registration and actual VFS pipeline
+  ---
+  duration_ms: 14.97675
+  type: 'test'
+  ...
+# Subtest: explicit curl companion pipeline fetches only through injected authorized transport
+ok 75 - explicit curl companion pipeline fetches only through injected authorized transport
+  ---
+  duration_ms: 16.707209
+  type: 'test'
+  ...
+# Subtest: normal downstream head closes a finite conversion pipeline
+ok 76 - normal downstream head closes a finite conversion pipeline
+  ---
+  duration_ms: 88.431458
+  type: 'test'
+  ...
+# Subtest: enforced maxInputBytes
+ok 77 - enforced maxInputBytes
+  ---
+  duration_ms: 1.878042
+  type: 'test'
+  ...
+# Subtest: enforced maxOutputBytes
+ok 78 - enforced maxOutputBytes
+  ---
+  duration_ms: 0.602458
+  type: 'test'
+  ...
+# Subtest: enforced maxTokenBytes
+ok 79 - enforced maxTokenBytes
+  ---
+  duration_ms: 0.395375
+  type: 'test'
+  ...
+# Subtest: enforced maxTokens
+ok 80 - enforced maxTokens
+  ---
+  duration_ms: 0.439916
+  type: 'test'
+  ...
+# Subtest: enforced maxNodes
+ok 81 - enforced maxNodes
+  ---
+  duration_ms: 0.283292
+  type: 'test'
+  ...
+# Subtest: enforced maxDepth
+ok 82 - enforced maxDepth
+  ---
+  duration_ms: 0.17575
+  type: 'test'
+  ...
+# Subtest: enforced maxAttributes
+ok 83 - enforced maxAttributes
+  ---
+  duration_ms: 0.924833
+  type: 'test'
+  ...
+# Subtest: enforced maxTableCells
+ok 84 - enforced maxTableCells
+  ---
+  duration_ms: 1.039875
+  type: 'test'
+  ...
+# Subtest: enforced maxTableCellBytes
+ok 85 - enforced maxTableCellBytes
+  ---
+  duration_ms: 0.840958
+  type: 'test'
+  ...
+# Subtest: enforced maxWorkUnits
+ok 86 - enforced maxWorkUnits
+  ---
+  duration_ms: 0.397333
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 0
+ok 87 - invalid configured limit 0
+  ---
+  duration_ms: 0.198792
+  type: 'test'
+  ...
+# Subtest: invalid configured limit -1
+ok 88 - invalid configured limit -1
+  ---
+  duration_ms: 0.037291
+  type: 'test'
+  ...
+# Subtest: invalid configured limit NaN
+ok 89 - invalid configured limit NaN
+  ---
+  duration_ms: 0.028625
+  type: 'test'
+  ...
+# Subtest: invalid configured limit Infinity
+ok 90 - invalid configured limit Infinity
+  ---
+  duration_ms: 0.027208
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 1.1
+ok 91 - invalid configured limit 1.1
+  ---
+  duration_ms: 0.030541
+  type: 'test'
+  ...
+# Subtest: invalid configured limit 9007199254740991
+ok 92 - invalid configured limit 9007199254740991
+  ---
+  duration_ms: 0.030334
+  type: 'test'
+  ...
+# Subtest: exact input/output boundary
+ok 93 - exact input/output boundary
+  ---
+  duration_ms: 0.66275
+  type: 'test'
+  ...
+# Subtest: diagnostics are byte bounded
+ok 94 - diagnostics are byte bounded
+  ---
+  duration_ms: 0.268459
+  type: 'test'
+  ...
+# Subtest: file and argument limits reject before opening input
+ok 95 - file and argument limits reject before opening input
+  ---
+  duration_ms: 0.122709
+  type: 'test'
+  ...
+# Subtest: whitespace normalization spans tokenizer text fragments
+ok 96 - whitespace normalization spans tokenizer text fragments
+  ---
+  duration_ms: 37.744458
+  type: 'test'
+  ...
+# Subtest: empty
+ok 97 - empty
+  ---
+  duration_ms: 0.245667
+  type: 'test'
+  ...
+# Subtest: whitespace
+ok 98 - whitespace
+  ---
+  duration_ms: 0.183375
+  type: 'test'
+  ...
+# Subtest: paragraph
+ok 99 - paragraph
+  ---
+  duration_ms: 1.306209
+  type: 'test'
+  ...
+# Subtest: headings
+ok 100 - headings
+  ---
+  duration_ms: 1.176875
+  type: 'test'
+  ...
+# Subtest: inline
+ok 101 - inline
+  ---
+  duration_ms: 1.597875
+  type: 'test'
+  ...
+# Subtest: inline whitespace
+ok 102 - inline whitespace
+  ---
+  duration_ms: 1.090417
+  type: 'test'
+  ...
+# Subtest: line breaks
+ok 103 - line breaks
+  ---
+  duration_ms: 0.736583
+  type: 'test'
+  ...
+# Subtest: unknown elements
+ok 104 - unknown elements
+  ---
+  duration_ms: 0.990917
+  type: 'test'
+  ...
+# Subtest: malformed tail
+ok 105 - malformed tail
+  ---
+  duration_ms: 0.734291
+  type: 'test'
+  ...
+# Subtest: literal less than
+ok 106 - literal less than
+  ---
+  duration_ms: 0.388667
+  type: 'test'
+  ...
+# Subtest: mismatched closing
+ok 107 - mismatched closing
+  ---
+  duration_ms: 0.472792
+  type: 'test'
+  ...
+# Subtest: omitted paragraphs
+ok 108 - omitted paragraphs
+  ---
+  duration_ms: 0.239875
+  type: 'test'
+  ...
+# Subtest: comment and doctype
+ok 109 - comment and doctype
+  ---
+  duration_ms: 0.148875
+  type: 'test'
+  ...
+# Subtest: unterminated comment
+ok 110 - unterminated comment
+  ---
+  duration_ms: 0.227958
+  type: 'test'
+  ...
+# Subtest: script raw text
+ok 111 - script raw text
+  ---
+  duration_ms: 0.35975
+  type: 'test'
+  ...
+# Subtest: style raw text
+ok 112 - style raw text
+  ---
+  duration_ms: 0.201583
+  type: 'test'
+  ...
+# Subtest: unterminated script
+ok 113 - unterminated script
+  ---
+  duration_ms: 0.300417
+  type: 'test'
+  ...
+# Subtest: safe links
+ok 114 - safe links
+  ---
+  duration_ms: 1.692834
+  type: 'test'
+  ...
+# Subtest: relative spaces
+ok 115 - relative spaces
+  ---
+  duration_ms: 0.553625
+  type: 'test'
+  ...
+# Subtest: fragment
+ok 116 - fragment
+  ---
+  duration_ms: 0.361959
+  type: 'test'
+  ...
+# Subtest: mailto
+ok 117 - mailto
+  ---
+  duration_ms: 0.487833
+  type: 'test'
+  ...
+# Subtest: image
+ok 118 - image
+  ---
+  duration_ms: 0.344333
+  type: 'test'
+  ...
+# Subtest: image data denied
+ok 119 - image data denied
+  ---
+  duration_ms: 0.392334
+  type: 'test'
+  ...
+# Subtest: duplicate attributes first wins
+ok 120 - duplicate attributes first wins
+  ---
+  duration_ms: 0.223
+  type: 'test'
+  ...
+# Subtest: quoted greater than
+ok 121 - quoted greater than
+  ---
+  duration_ms: 0.168875
+  type: 'test'
+  ...
+# Subtest: unquoted URL trailing slash
+ok 122 - unquoted URL trailing slash
+  ---
+  duration_ms: 0.602625
+  type: 'test'
+  ...
+# Subtest: entities
+ok 123 - entities
+  ---
+  duration_ms: 0.356167
+  type: 'test'
+  ...
+# Subtest: unknown and nonrecursive entities
+ok 124 - unknown and nonrecursive entities
+  ---
+  duration_ms: 1.834625
+  type: 'test'
+  ...
+# Subtest: invalid scalar entities
+ok 125 - invalid scalar entities
+  ---
+  duration_ms: 0.429041
+  type: 'test'
+  ...
+# Subtest: NBSP
+ok 126 - NBSP
+  ---
+  duration_ms: 0.447541
+  type: 'test'
+  ...
+# Subtest: code span
+ok 127 - code span
+  ---
+  duration_ms: 0.437375
+  type: 'test'
+  ...
+# Subtest: code span padding
+ok 128 - code span padding
+  ---
+  duration_ms: 0.264917
+  type: 'test'
+  ...
+# Subtest: code whitespace
+ok 129 - code whitespace
+  ---
+  duration_ms: 0.31375
+  type: 'test'
+  ...
+# Subtest: pre fence
+ok 130 - pre fence
+  ---
+  duration_ms: 0.479667
+  type: 'test'
+  ...
+# Subtest: pre blank lines
+ok 131 - pre blank lines
+  ---
+  duration_ms: 0.274041
+  type: 'test'
+  ...
+# Subtest: unordered list
+ok 132 - unordered list
+  ---
+  duration_ms: 0.289666
+  type: 'test'
+  ...
+# Subtest: ordered start
+ok 133 - ordered start
+  ---
+  duration_ms: 0.2165
+  type: 'test'
+  ...
+# Subtest: nested list
+ok 134 - nested list
+  ---
+  duration_ms: 0.24825
+  type: 'test'
+  ...
+# Subtest: blockquote
+ok 135 - blockquote
+  ---
+  duration_ms: 0.380958
+  type: 'test'
+  ...
+# Subtest: table header
+ok 136 - table header
+  ---
+  duration_ms: 0.603292
+  type: 'test'
+  ...
+# Subtest: table no invented data header
+ok 137 - table no invented data header
+  ---
+  duration_ms: 0.427541
+  type: 'test'
+  ...
+# Subtest: table caption and ragged rows
+ok 138 - table caption and ragged rows
+  ---
+  duration_ms: 0.426417
+  type: 'test'
+  ...
+# Subtest: table cell pipes
+ok 139 - table cell pipes
+  ---
+  duration_ms: 0.58825
+  type: 'test'
+  ...
+# Subtest: UTF8 and CRLF
+ok 140 - UTF8 and CRLF
+  ---
+  duration_ms: 0.541542
+  type: 'test'
+  ...
+# Subtest: leading BOM
+ok 141 - leading BOM
+  ---
+  duration_ms: 0.358584
+  type: 'test'
+  ...
+# Subtest: textarea RCDATA
+ok 142 - textarea RCDATA
+  ---
+  duration_ms: 0.519792
+  type: 'test'
+  ...
+# Subtest: title RCDATA
+ok 143 - title RCDATA
+  ---
+  duration_ms: 0.220166
+  type: 'test'
+  ...
+# Subtest: raw literal iframe
+ok 144 - raw literal iframe
+  ---
+  duration_ms: 0.19
+  type: 'test'
+  ...
+# Subtest: raw missing close
+ok 145 - raw missing close
+  ---
+  duration_ms: 0.155375
+  type: 'test'
+  ...
+# Subtest: raw false close
+ok 146 - raw false close
+  ---
+  duration_ms: 0.222417
+  type: 'test'
+  ...
+# Subtest: raw close whitespace
+ok 147 - raw close whitespace
+  ---
+  duration_ms: 0.180042
+  type: 'test'
+  ...
+# Subtest: plaintext never parses tail
+ok 148 - plaintext never parses tail
+  ---
+  duration_ms: 0.160459
+  type: 'test'
+  ...
+# Subtest: nested link repair
+ok 149 - nested link repair
+  ---
+  duration_ms: 0.250458
+  type: 'test'
+  ...
+# Subtest: anchor boundary spaces
+ok 150 - anchor boundary spaces
+  ---
+  duration_ms: 0.197709
+  type: 'test'
+  ...
+# Subtest: blocked anchor boundary spaces
+ok 151 - blocked anchor boundary spaces
+  ---
+  duration_ms: 0.409375
+  type: 'test'
+  ...
+# Subtest: adjacent inline spaces
+ok 152 - adjacent inline spaces
+  ---
+  duration_ms: 0.3475
+  type: 'test'
+  ...
+# Subtest: chunk boundaries 1
+ok 153 - chunk boundaries 1
+  ---
+  duration_ms: 7.692459
+  type: 'test'
+  ...
+# Subtest: chunk boundaries 2
+ok 154 - chunk boundaries 2
+  ---
+  duration_ms: 3.375458
+  type: 'test'
+  ...
+# Subtest: chunk boundaries 3
+ok 155 - chunk boundaries 3
+  ---
+  duration_ms: 7.879541
+  type: 'test'
+  ...
+# Subtest: chunk boundaries 7
+ok 156 - chunk boundaries 7
+  ---
+  duration_ms: 2.123416
+  type: 'test'
+  ...
+# Subtest: chunk boundaries 4096
+ok 157 - chunk boundaries 4096
+  ---
+  duration_ms: 2.224666
+  type: 'test'
+  ...
+# Subtest: entities straddling tokenizer flush boundary
+ok 158 - entities straddling tokenizer flush boundary
+  ---
+  duration_ms: 96.2305
+  type: 'test'
+  ...
+# Subtest: inactive destination javascript:alert(1)
+ok 159 - inactive destination javascript:alert(1)
+  ---
+  duration_ms: 0.486916
+  type: 'test'
+  ...
+# Subtest: inactive destination JaVaScRiPt:alert(1)
+ok 160 - inactive destination JaVaScRiPt:alert(1)
+  ---
+  duration_ms: 0.484875
+  type: 'test'
+  ...
+# Subtest: inactive destination java&\#x73;cript:alert(1)
+ok 161 - inactive destination java&\#x73;cript:alert(1)
+  ---
+  duration_ms: 0.421166
+  type: 'test'
+  ...
+# Subtest: inactive destination javascript&colon;alert(1)
+ok 162 - inactive destination javascript&colon;alert(1)
+  ---
+  duration_ms: 0.308834
+  type: 'test'
+  ...
+# Subtest: inactive destination java&\#9;script:alert(1)
+ok 163 - inactive destination java&\#9;script:alert(1)
+  ---
+  duration_ms: 0.332667
+  type: 'test'
+  ...
+# Subtest: inactive destination data:text/html,x
+ok 164 - inactive destination data:text/html,x
+  ---
+  duration_ms: 0.255917
+  type: 'test'
+  ...
+# Subtest: inactive destination vbscript:x
+ok 165 - inactive destination vbscript:x
+  ---
+  duration_ms: 0.291375
+  type: 'test'
+  ...
+# Subtest: inactive destination file:///etc/passwd
+ok 166 - inactive destination file:///etc/passwd
+  ---
+  duration_ms: 0.233958
+  type: 'test'
+  ...
+# Subtest: inactive destination //example.test/x
+ok 167 - inactive destination //example.test/x
+  ---
+  duration_ms: 0.286125
+  type: 'test'
+  ...
+# Subtest: inactive destination https:\\evil.test
+ok 168 - inactive destination https:\\evil.test
+  ---
+  duration_ms: 0.345209
+  type: 'test'
+  ...
+# Subtest: inactive destination https://example.test/%0afoo
+ok 169 - inactive destination https://example.test/%0afoo
+  ---
+  duration_ms: 0.530041
+  type: 'test'
+  ...
+# Subtest: inactive destination javascript&madeup;:x
+ok 170 - inactive destination javascript&madeup;:x
+  ---
+  duration_ms: 0.498334
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 is a visible error, not lossy successful conversion
+ok 171 - invalid UTF8 is a visible error, not lossy successful conversion
+  ---
+  duration_ms: 0.628208
+  type: 'test'
+  ...
+# Subtest: repair literal <p>1. ordinary sentence</p>
+ok 172 - repair literal <p>1. ordinary sentence</p>
+  ---
+  duration_ms: 6.623
+  type: 'test'
+  ...
+# Subtest: repair literal <p>1) ordinary sentence</p>
+ok 173 - repair literal <p>1) ordinary sentence</p>
+  ---
+  duration_ms: 3.494709
+  type: 'test'
+  ...
+# Subtest: repair literal <p>~~ordinary~~</p>
+ok 174 - repair literal <p>~~ordinary~~</p>
+  ---
+  duration_ms: 3.117708
+  type: 'test'
+  ...
+# Subtest: repair literal <p>text<br>===</p>
+ok 175 - repair literal <p>text<br>===</p>
+  ---
+  duration_ms: 1.893292
+  type: 'test'
+  ...
+# Subtest: repair literal <p>1<span>.</span> ordinary</p>
+ok 176 - repair literal <p>1<span>.</span> ordinary</p>
+  ---
+  duration_ms: 2.540917
+  type: 'test'
+  ...
+# Subtest: repair literal <p><em>a</em><em>b</em></p>
+ok 177 - repair literal <p><em>a</em><em>b</em></p>
+  ---
+  duration_ms: 1.947125
+  type: 'test'
+  ...
+# Subtest: repair literal <strong>a</strong><b>b</b>
+ok 178 - repair literal <strong>a</strong><b>b</b>
+  ---
+  duration_ms: 8.752167
+  type: 'test'
+  ...
+# Subtest: repair literal <s>a</s><del>b</del>
+ok 179 - repair literal <s>a</s><del>b</del>
+  ---
+  duration_ms: 1.506416
+  type: 'test'
+  ...
+# Subtest: repair literal <em>a</em><span><i>b</i></span>
+ok 180 - repair literal <em>a</em><span><i>b</i></span>
+  ---
+  duration_ms: 1.231334
+  type: 'test'
+  ...
+# Subtest: repair literal <em>a<em>b</em>c</em>
+ok 181 - repair literal <em>a<em>b</em>c</em>
+  ---
+  duration_ms: 2.23975
+  type: 'test'
+  ...
+# Subtest: repair literal <p>A<em>B
+ok 182 - repair literal <p>A<em>B
+  ---
+  duration_ms: 1.212
+  type: 'test'
+  ...
+# Subtest: repair literal <p>Hello <strong>world</strong>.</p>
+ok 183 - repair literal <p>Hello <strong>world</strong>.</p>
+  ---
+  duration_ms: 1.233125
+  type: 'test'
+  ...
+# Subtest: repair literal <em>a</em><strong>b</strong>
+ok 184 - repair literal <em>a</em><strong>b</strong>
+  ---
+  duration_ms: 3.077541
+  type: 'test'
+  ...
+# Subtest: repair literal <strong>a</strong><em>b</em>
+ok 185 - repair literal <strong>a</strong><em>b</em>
+  ---
+  duration_ms: 1.615167
+  type: 'test'
+  ...
+# Subtest: repair literal a<em>!</em>b
+ok 186 - repair literal a<em>!</em>b
+  ---
+  duration_ms: 1.07025
+  type: 'test'
+  ...
+# Subtest: repair literal <code>1. ~~x~~ =</code>
+ok 187 - repair literal <code>1. ~~x~~ =</code>
+  ---
+  duration_ms: 0.876625
+  type: 'test'
+  ...
+# Subtest: repair literal <pre>1. ~~x~~ =</pre>
+ok 188 - repair literal <pre>1. ~~x~~ =</pre>
+  ---
+  duration_ms: 1.231417
+  type: 'test'
+  ...
+# Subtest: repair literal <a href="&\#9;https://safe.test">label</a>
+ok 189 - repair literal <a href="&\#9;https://safe.test">label</a>
+  ---
+  duration_ms: 1.52325
+  type: 'test'
+  ...
+# Subtest: repair literal <img src="https://safe.test&\#10;" alt="label">
+ok 190 - repair literal <img src="https://safe.test&\#10;" alt="label">
+  ---
+  duration_ms: 1.460916
+  type: 'test'
+  ...
+# Subtest: repair literal <a href="&\#9;javascript:alert(1)">label</a>
+ok 191 - repair literal <a href="&\#9;javascript:alert(1)">label</a>
+  ---
+  duration_ms: 8.630208
+  type: 'test'
+  ...
+# Subtest: repair literal <a href=" https://safe.test ">label</a>
+ok 192 - repair literal <a href=" https://safe.test ">label</a>
+  ---
+  duration_ms: 1.875875
+  type: 'test'
+  ...
+# Subtest: repair literal <a href="https://safe.test/%0A">label</a>
+ok 193 - repair literal <a href="https://safe.test/%0A">label</a>
+  ---
+  duration_ms: 1.328458
+  type: 'test'
+  ...
+# Subtest: repair literal <a href="https://safe.test/&unknown;">label</a>
+ok 194 - repair literal <a href="https://safe.test/&unknown;">label</a>
+  ---
+  duration_ms: 0.993833
+  type: 'test'
+  ...
+# Subtest: entity token boundary rejects instead of reinterpreting &amp;
+ok 195 - entity token boundary rejects instead of reinterpreting &amp;
+  ---
+  duration_ms: 2.509875
+  type: 'test'
+  ...
+# Subtest: entity token boundary rejects instead of reinterpreting &\#1114112;
+ok 196 - entity token boundary rejects instead of reinterpreting &\#1114112;
+  ---
+  duration_ms: 4.0555
+  type: 'test'
+  ...
+# Subtest: entity token boundary rejects instead of reinterpreting &\#x1f600;
+ok 197 - entity token boundary rejects instead of reinterpreting &\#x1f600;
+  ---
+  duration_ms: 1.554083
+  type: 'test'
+  ...
+# Subtest: entity token boundary rejects instead of reinterpreting &unknown;
+ok 198 - entity token boundary rejects instead of reinterpreting &unknown;
+  ---
+  duration_ms: 2.526875
+  type: 'test'
+  ...
+# Subtest: numeric entity too large for text token fails explicitly inside an element
+ok 199 - numeric entity too large for text token fails explicitly inside an element
+  ---
+  duration_ms: 0.473292
+  type: 'test'
+  ...
+# Subtest: destination rejects every edge C0/C1 control before ASCII-space trimming
+ok 200 - destination rejects every edge C0/C1 control before ASCII-space trimming
+  ---
+  duration_ms: 1.593834
+  type: 'test'
+  ...
+# Subtest: trim visits edges only and charges a requested copy
+ok 201 - trim visits edges only and charges a requested copy
+  ---
+  duration_ms: 0.595791
+  type: 'test'
+  ...
+# Subtest: destination reference scan charges work before scanning an adversarial suffix
+ok 202 - destination reference scan charges work before scanning an adversarial suffix
+  ---
+  duration_ms: 0.223625
+  type: 'test'
+  ...
+# Subtest: trim scan yields and preserves exact caller reason
+ok 203 - trim scan yields and preserves exact caller reason
+  ---
+  duration_ms: 11.88
+  type: 'test'
+  ...
+# Subtest: destination scan yields and preserves exact caller reason
+ok 204 - destination scan yields and preserves exact caller reason
+  ---
+  duration_ms: 5.705625
+  type: 'test'
+  ...
+# Subtest: entities scan yields and preserves exact caller reason
+ok 205 - entities scan yields and preserves exact caller reason
+  ---
+  duration_ms: 0.64875
+  type: 'test'
+  ...
+# Subtest: normalize scan yields and preserves exact caller reason
+ok 206 - normalize scan yields and preserves exact caller reason
+  ---
+  duration_ms: 2.469542
+  type: 'test'
+  ...
+1..206
+# tests 206
+# suites 0
+# pass 206
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1818.287458

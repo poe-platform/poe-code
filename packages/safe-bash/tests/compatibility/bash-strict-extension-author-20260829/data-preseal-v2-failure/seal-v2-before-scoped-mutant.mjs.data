@@ -1,0 +1,83 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const capture = fs.mkdtempSync('/tmp/strict-extension-v2-seal-');
+const log = fs.openSync(path.join(capture, 'events.jsonl'), 'wx');
+const note = value => fs.writeSync(log, JSON.stringify(value) + '\n');
+const own = path.dirname(fileURLToPath(import.meta.url));
+const repo = path.resolve(own, '../../..');
+const prep = '/tmp/strict-extension-v2-prep-VIBsVO';
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const rows = [];
+function admitted(file) {
+  assert.ok(!file.split('/').includes('AGENTS.md'));
+  const stat = fs.lstatSync(file); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size < 16 * 1024 * 1024);
+  return fs.readFileSync(file);
+}
+function check(id, execute) { execute(); rows.push({ id, role: 'DATA_STRUCTURE_NOT_PRODUCT', pass: true }); }
+function structural(text) {
+  const section = text.slice(text.indexOf("await record('X10c-"));
+  assert.ok(section.includes('context.registerCleanup('));
+  assert.ok(section.indexOf('context.registerCleanup(') < section.indexOf("return context.invoke('f', []);"));
+  assert.ok(section.includes("return context.invoke('f', []);"));
+  assert.ok(section.includes('} finally { release(); releases.delete(release); }'));
+  assert.ok(section.indexOf('} finally { release();') < section.indexOf('const outcome = await pending;'));
+  assert.ok(!section.includes('return { exitCode: 0 }'));
+}
+try {
+  note({ started: new Date().toISOString(), pid: process.pid, ppid: process.ppid, role: 'FRESH_V2_DATA_PRESEAL', productExecutions: 0 });
+  fs.appendFileSync(path.join(prep, 'admin.jsonl'), JSON.stringify({ action: 'seal-v2', pid: process.pid, ppid: process.ppid, started: new Date().toISOString(), capture }) + '\n');
+  assert.deepEqual(process.argv.slice(2), ['--seal']);
+  const oldExecutor = JSON.parse(admitted(path.join(own, 'EXECUTOR.json')));
+  const original = admitted(path.join(own, 'extension.mjs'));
+  const revised = admitted(path.join(own, 'extension-v2.mjs'));
+  const before = original.toString(), after = revised.toString();
+  const originalStart = before.indexOf("await record('X10-parameter-isolation-caller'"), revisedStart = after.indexOf("await record('X10a-");
+  const summary = 'console.log(JSON.stringify({ summary:';
+  check('D01-original-authenticated', () => assert.equal(sha(original), oldExecutor.files.find(row => row.path.endsWith('/extension.mjs')).sha256));
+  check('D02-first32-prefix-unchanged', () => assert.equal(before.slice(0, originalStart), after.slice(0, revisedStart)));
+  check('D03-summary-suffix-unchanged', () => assert.equal(before.slice(before.indexOf(summary)), after.slice(after.indexOf(summary))));
+  check('D04-registered-invoke-finally', () => structural(after));
+  check('D05-isolation-assertions-preserved', () => { assert.ok(after.includes("assert.equal(status.exitCode, 1); assert.equal(status.stdout, '');")); assert.ok(after.includes("assert.equal(rejected.kind, 'throw'); assert.equal(rejected.reason, null);")); });
+  check('D06-event-obligations', () => { for (const event of ['cleanup-registered', 'diagnostic-entered', 'caller-abort', 'gate-release', 'cleanup-entry', 'cleanup-finished', 'public-settlement']) assert.ok(after.includes("'" + event + "'")); });
+  const activation = JSON.parse(admitted(path.join(own, 'ACTIVATION-v2.json')));
+  check('D07-counts-and-open-roles', () => { assert.equal(activation.activated, 23); assert.equal(activation.open, 5); assert.equal(activation.addedProtocols.length, 12); assert.equal(activation.totalMainIdentities, 636); });
+  const sourceBytes = admitted(path.join(own, 'SOURCE.json')), source = JSON.parse(sourceBytes);
+  check('D08-fixed-source', () => { assert.equal(sha(sourceBytes), '9924773241f116d4cd5008fa7cd7f7fc3d95521f5e57b33299dbf2ed7cc2bf69'); assert.equal(source.computedTree, '37e793ce6dce48a958030e7cc86fa8315d0b112e'); assert.equal(source.inputs.length, 293); });
+  const stopped = JSON.parse(admitted(path.join(own, 'results-v1-stop/raw/RESULT.json')));
+  check('D09-retained-pack-binding', () => { assert.equal(stopped.package.sha256, 'aaabea71bc3a7f1982a2ded488cbf5a905de304f0bc6f39302d15e293da8495f'); assert.equal(stopped.package.members.length, 954); });
+  const runner = admitted(path.join(own, 'run-v2.mjs')).toString();
+  check('D10-versioned-dispatch', () => { assert.ok(runner.includes("'extension.mjs', 35")); assert.ok(runner.includes('/extension-v2.mjs')); assert.ok(runner.includes('seal.expectedPackageSha256')); assert.ok(runner.includes('row.events.push')); });
+  check('D11-remove-invoke-mutant', () => assert.throws(() => structural(after.replace("return context.invoke('f', []);", 'return { exitCode: 0 };'))));
+  check('D12-remove-finally-mutant', () => assert.throws(() => structural(after.replace('} finally { release(); releases.delete(release); }', '} finally {}'))));
+  const mutations = JSON.parse(runner.slice(runner.indexOf('const mutations = [') + 'const mutations = '.length, runner.indexOf('\n];', runner.indexOf('const mutations = [')) + 2));
+  for (const mutation of mutations) {
+    const file = path.join('/tmp/conditional-author-dEbqvd/source/dist', mutation.file), bytes = admitted(file);
+    const bound = stopped.package.members.find(row => row.path === 'dist/' + mutation.file);
+    assert.equal(sha(bytes), bound.sha256);
+    check('D13-anchor-' + mutation.id, () => assert.equal(bytes.toString().split(mutation.before).length, 2));
+  }
+  const inherited = JSON.parse(admitted(path.join(own, 'PRESEAL.json')));
+  for (const name of ['extension-v2.mjs', 'run-v2.mjs', 'launch-v2.mjs']) {
+    const result = spawnSync(inherited.node.path, ['--check', path.join(own, name)], { encoding: 'utf8', maxBuffer: 1048576, timeout: 10000 });
+    note({ command: 'node --check', name, pid: result.pid, status: result.status, signal: result.signal });
+    fs.writeFileSync(path.join(capture, name + '.stdout'), result.stdout, { flag: 'wx' }); fs.writeFileSync(path.join(capture, name + '.stderr'), result.stderr, { flag: 'wx' });
+    assert.equal(result.signal, null); assert.equal(result.status, 0); rows.push({ id: 'D14-syntax-' + name, role: 'SYNTAX_ONLY_NO_IMPORT', pass: true });
+  }
+  const controls = { role: 'DATA_STRUCTURE_AND_SYNTAX_ONLY', productExecutions: 0, cases: rows, pass: rows.length, capture };
+  fs.writeFileSync(path.join(own, 'DATA-CONTROLS-v2.json'), JSON.stringify(controls, null, 2) + '\n', { flag: 'wx' });
+  const seal = { ...inherited, version: 'fresh-author-v2', role: 'FIXTURE_ONLY_FRESH_V2', expectedPackageSha256: stopped.package.sha256, masterGrantStarted: new Date().toISOString(), bounds: { ...inherited.bounds, children: 96, directProcessCeiling: 48, knownOSGrant: 112, totalSeconds: 2700 }, cohorts: { extension: 35, conditional: 67, strict: 50, redirections: 48, arrays: 12 }, plannedChildren: { direct: 39, loaders: 29, regexWorkersMax: 8, administrativeStarts: 'Recorded separately, not reservation-derived measurement' }, originalStop: 'c5a8068dd339c18953beb6c6846ff85557fad3c8', dataControls: sha(Buffer.from(JSON.stringify(controls, null, 2) + '\n')) };
+  fs.writeFileSync(path.join(own, 'PRESEAL-v2.json'), JSON.stringify(seal, null, 2) + '\n', { flag: 'wx' });
+  const additions = ['extension-v2.mjs', 'run-v2.mjs', 'launch-v2.mjs', 'seal-v2.mjs', 'PLAN-v2.md', 'ACTIVATION-v2.json', 'DATA-CONTROLS-v2.json', 'PRESEAL-v2.json'];
+  const files = oldExecutor.files.map(row => { const bytes = admitted(path.join(repo, row.path)); assert.equal(sha(bytes), row.sha256); return row; });
+  for (const name of additions) { const bytes = admitted(path.join(own, name)); files.push({ path: path.relative(repo, path.join(own, name)), bytes: bytes.length, sha256: sha(bytes) }); }
+  const executor = { role: 'FRESH_V2', source: sha(sourceBytes), executions: 0, files };
+  fs.writeFileSync(path.join(own, 'EXECUTOR-v2.json'), JSON.stringify(executor, null, 2) + '\n', { flag: 'wx' });
+  note({ finished: new Date().toISOString(), pass: rows.length, productExecutions: 0, seal: sha(admitted(path.join(own, 'PRESEAL-v2.json'))), executor: sha(admitted(path.join(own, 'EXECUTOR-v2.json'))) });
+  console.log(JSON.stringify({ capture, pass: rows.length, source: executor.source, candidate: source.computedTree, mainIdentities: 636, productExecutions: 0 }));
+} catch (error) { note({ failure: String(error), stack: error?.stack }); throw error; }
+finally { fs.closeSync(log); }

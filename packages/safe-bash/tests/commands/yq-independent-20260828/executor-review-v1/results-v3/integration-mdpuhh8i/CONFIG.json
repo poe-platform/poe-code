@@ -1,0 +1,283 @@
+{
+  "preseal": "d3cf71539c9bade4faaedc92954843240b6c45e4",
+  "core": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core",
+  "scratch": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r",
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-mdpuhh8i",
+  "files": [
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/PREPARATION-LOG.md",
+      "gitMode": "100644",
+      "blob": "8aa6e2e691cc78d7267bb8d8a8baf1737aa2e1fd",
+      "mode": 420,
+      "bytes": 2708,
+      "sha256": "43a088cfe879cd77c8d38cb62893f11b7cad8bcaa22f3640e3464f81dfffce3a",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/PREPARATION-LOG.md"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/PROTOCOL.md",
+      "gitMode": "100644",
+      "blob": "86d0bab69e199c61433251aa22daaa74f9fcc89d",
+      "mode": 420,
+      "bytes": 6496,
+      "sha256": "f68b949239704b945a4703c4f8d0b950912f38e3584104395455887d022e9975",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/PROTOCOL.md"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/README.md",
+      "gitMode": "100644",
+      "blob": "5d7a3e114fe7c33c3f06153f4dccf0bcaaa085df",
+      "mode": 420,
+      "bytes": 7258,
+      "sha256": "29acf8aa201d6c2b8d9e7e965270fee6da58705df57b7f1a884f0bace8d1afc8",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/README.md"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL-v2.json",
+      "gitMode": "100644",
+      "blob": "11e4e5505dc5936fc4144b2f06e2a6863ad76912",
+      "mode": 420,
+      "bytes": 3946,
+      "sha256": "7913ee63d03ef1d58e76358a12e80132888e093df992879bfe94be7cf9d6ef04",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL-v2.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL-v3.json",
+      "gitMode": "100644",
+      "blob": "5c8cea30b7c3b5330b8df03aad13017dfa911b2d",
+      "mode": 420,
+      "bytes": 3975,
+      "sha256": "fa3399ea20b407de7c16f5c1137d945d9b214df5d5abf3cd636cebc59690d7ce",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL-v3.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL-v4.json",
+      "gitMode": "100644",
+      "blob": "c2d6a96b678dadc572ac71f0b5b20eb18a997c9f",
+      "mode": 420,
+      "bytes": 3984,
+      "sha256": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL-v4.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL.json",
+      "gitMode": "100644",
+      "blob": "da61b5d074aa0aff2703014b8834e2b5182309aa",
+      "mode": 420,
+      "bytes": 3679,
+      "sha256": "d7ccbbfd35bb916874789f66f3de7cea4125f2f724e79446b0482ce49ebfc236",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SOURCE-DELTA-v2.json",
+      "gitMode": "100644",
+      "blob": "8bf10a39382e34830a8ca8df1f8d3c9475ca693e",
+      "mode": 420,
+      "bytes": 48694,
+      "sha256": "616f64e1966f43ab37a241414026b4b82b88b5679956573bc16aa1c7c1a9ac3f",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SOURCE-DELTA-v2.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SOURCE-DELTA.json",
+      "gitMode": "100644",
+      "blob": "339dbd846f42cc65dc559e4253d5f20ee15fa877",
+      "mode": 420,
+      "bytes": 46144,
+      "sha256": "9ef7bc778df9663e7538751f70f34d562713a883666c6a3ac9ce310d09ab005c",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SOURCE-DELTA.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/V1-INPUTS.json",
+      "gitMode": "100644",
+      "blob": "008a8d060c0a8dff5320febf17ca7fac29885539",
+      "mode": 420,
+      "bytes": 2006,
+      "sha256": "714c59023c5ad1939d2afbd1180acea4f25d84a153f87eeb54dadef4c3598496",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/V1-INPUTS.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/COMPONENTS.json",
+      "gitMode": "100644",
+      "blob": "ae066e641ccf7e3bbf64a8e9741069cb4e0e50af",
+      "mode": 420,
+      "bytes": 8649,
+      "sha256": "b5ede57be63a39918d2037dd12284df1596e2e14fea9ad6aceb776c4c6ed8e36",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/COMPONENTS.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/DATA-CONTROLS.json",
+      "gitMode": "100644",
+      "blob": "799d8e9f03f14521377ce196cebb9fa2a32f36e5",
+      "mode": 420,
+      "bytes": 888,
+      "sha256": "c1acb570c332425e1da1945a78b5d1c15545922e92a1a1bb5ca9e88234d3834b",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/DATA-CONTROLS.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/RECIPE.json",
+      "gitMode": "100644",
+      "blob": "30d27a0379a9e421ec5845baa36e0ef6fa13ade0",
+      "mode": 420,
+      "bytes": 48754,
+      "sha256": "eecdc319fc90ccc89bdae0fbb7900beb33dbd07807c4fa78738280b77e412158",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/RECIPE.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/SYNTHETIC.json",
+      "gitMode": "100644",
+      "blob": "55e37d8d90c9d233f293b2fa87f4537fd2913083",
+      "mode": 420,
+      "bytes": 949,
+      "sha256": "55195098d059ce21b7bc60872ad757b4a61df6913f9181d7be13bc6747f876a6",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/SYNTHETIC.json"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/binding.mjs",
+      "gitMode": "100644",
+      "blob": "e21d049b0e64d498d182dc1df051a79815ebb5f9",
+      "mode": 420,
+      "bytes": 8443,
+      "sha256": "e9850cafbb4d2cca31cca098408f5ce65ad7cac1d1d700d85855032f9fbef542",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/binding.mjs"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/check.mjs",
+      "gitMode": "100644",
+      "blob": "b39683841e359636f0d8725d444e3e8ce675e375",
+      "mode": 420,
+      "bytes": 12620,
+      "sha256": "254bbcbf2a060f3455d56bdaf0585910df771f36d49e047ca8b464a354b670ed",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/check.mjs"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/components.mjs",
+      "gitMode": "100644",
+      "blob": "1f746598bfb0383a353602f7a9c5e58222a78836",
+      "mode": 420,
+      "bytes": 5103,
+      "sha256": "b2da6eac27533d2bb223b10385a2b2c8bb74e2d4cd502828006b59c0255dd25f",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/components.mjs"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/data-check.mjs",
+      "gitMode": "100644",
+      "blob": "db4db4d401859887ccfd553bddf7835d00672bd9",
+      "mode": 420,
+      "bytes": 12086,
+      "sha256": "179133edf6558e195f9d736d5d325ad7d64fa7409e481c1e9db0349669cc660f",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/data-check.mjs"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/materialize-runtime.mjs",
+      "gitMode": "100644",
+      "blob": "01db374273dcec2d25b482be765de38ca32276d1",
+      "mode": 420,
+      "bytes": 1095,
+      "sha256": "b0e665f5f6d455e33dcfbba99c9feba06773f46264e30514a9f6726e0205a25c",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/materialize-runtime.mjs"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/prepare-runtime.mjs",
+      "gitMode": "100644",
+      "blob": "c2eb66003613547381afd6ec952a12a36303068c",
+      "mode": 420,
+      "bytes": 3456,
+      "sha256": "52848cddbc3a34f7724c87a63bff075455aeb95d76de215fa87b5cf4e55b6671",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/prepare-runtime.mjs"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/run.mjs",
+      "gitMode": "100644",
+      "blob": "8bc36889ac9aebba2546bae80c70d87df8188e1c",
+      "mode": 420,
+      "bytes": 9665,
+      "sha256": "46f5a026659e99bd3c54c3d9bcc189622d141adba035fb0b79e9ed9e72ec5346",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/run.mjs"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs",
+      "gitMode": "100644",
+      "blob": "1bc62bafef4154b754356474a1bdb7d5e42d0b5e",
+      "mode": 420,
+      "bytes": 6681,
+      "sha256": "61188fffbd45445e4ad199f80e531637a0b16d50e97a1e5e0703bad10981b8f6",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs"
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/worker.mjs",
+      "gitMode": "100644",
+      "blob": "c3099b61dd6bfa33a72654c6924acce9e63def12",
+      "mode": 420,
+      "bytes": 4556,
+      "sha256": "a6bc93827644010add919af2796831f0596d19804efe0c5668b3e09a3616bdb1",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/worker.mjs"
+    },
+    {
+      "commit": "71a16afd5b430175180fc4741531b75c31b25882",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/MAPS.json",
+      "gitMode": "100644",
+      "blob": "91a2f1cd0f1c575efe5e05253aa3b76b04fd4e3d",
+      "mode": 420,
+      "bytes": 504342,
+      "sha256": "4759a03c95d51330176a196ba6d10bc7724d1a8f964071de4efc1f4bd3993506",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/MAPS.json"
+    },
+    {
+      "commit": "71a16afd5b430175180fc4741531b75c31b25882",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+      "gitMode": "100644",
+      "blob": "6291861d631b8b0e5d4d9cd6e2f481afe68b30c5",
+      "mode": 420,
+      "bytes": 7441,
+      "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json"
+    },
+    {
+      "commit": "71a16afd5b430175180fc4741531b75c31b25882",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/BOUND-AUTHOR-BUILD.json",
+      "gitMode": "100644",
+      "blob": "a66573113ab07ae72781ad72b6c83504ab9367a4",
+      "mode": 420,
+      "bytes": 1052,
+      "sha256": "ef268ccd6e0e9edd1851f3acdc406ac89e939f167beb3124e82c3af106d70a2d",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/BOUND-AUTHOR-BUILD.json"
+    },
+    {
+      "commit": "71a16afd5b430175180fc4741531b75c31b25882",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/RESULT.json",
+      "gitMode": "100644",
+      "blob": "71061b08b8fba91bb616e5c8fb05faa32451fe4d",
+      "mode": 420,
+      "bytes": 21870,
+      "sha256": "d0bacd61dd564b6ecfec6530aaea28b9b732af2f2677c68739b25b1ff546c2b3",
+      "copy": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/RESULT.json"
+    }
+  ],
+  "sealPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/SEAL-v4.json",
+  "sealHash": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+  "mapsPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/MAPS.json",
+  "fullReceiptPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+}

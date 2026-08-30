@@ -1,0 +1,322 @@
+TAP version 13
+# Subtest: long zero-output adjacency 256
+ok 1 - long zero-output adjacency 256
+  ---
+  duration_ms: 31.613625
+  type: 'test'
+  ...
+# Subtest: long zero-output adjacency 2048
+ok 2 - long zero-output adjacency 2048
+  ---
+  duration_ms: 128.768666
+  type: 'test'
+  ...
+# Subtest: long zero-output adjacency 8192
+ok 3 - long zero-output adjacency 8192
+  ---
+  duration_ms: 457.16025
+  type: 'test'
+  ...
+# Subtest: nested empty styles and transparent wrappers preserve adjacency
+ok 4 - nested empty styles and transparent wrappers preserve adjacency
+  ---
+  duration_ms: 1.162833
+  type: 'test'
+  ...
+# Subtest: ragged style aliases coalesce without copying accumulated prefixes
+ok 5 - ragged style aliases coalesce without copying accumulated prefixes
+  ---
+  duration_ms: 267.464542
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxWorkUnits
+ok 6 - normalization keeps maxWorkUnits
+  ---
+  duration_ms: 0.592625
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxDepth
+ok 7 - normalization keeps maxDepth
+  ---
+  duration_ms: 0.524709
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxTokens
+ok 8 - normalization keeps maxTokens
+  ---
+  duration_ms: 0.503541
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxNodes
+ok 9 - normalization keeps maxNodes
+  ---
+  duration_ms: 0.871
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxTokenBytes
+ok 10 - normalization keeps maxTokenBytes
+  ---
+  duration_ms: 0.33625
+  type: 'test'
+  ...
+# Subtest: normalization keeps maxOutputBytes
+ok 11 - normalization keeps maxOutputBytes
+  ---
+  duration_ms: 0.273042
+  type: 'test'
+  ...
+# Subtest: normalization charges empty visits before growth and scales linearly
+ok 12 - normalization charges empty visits before growth and scales linearly
+  ---
+  duration_ms: 216.581209
+  type: 'test'
+  ...
+# Subtest: charged normalization yields in flight and preserves exact reason
+ok 13 - charged normalization yields in flight and preserves exact reason
+  ---
+  duration_ms: 312.416666
+  type: 'test'
+  ...
+# Subtest: normalized large output awaits sink backpressure
+ok 14 - normalized large output awaits sink backpressure
+  ---
+  duration_ms: 31.439166
+  type: 'test'
+  ...
+# Subtest: sink failure preserves only the accepted prefix
+ok 15 - sink failure preserves only the accepted prefix
+  ---
+  duration_ms: 23.749833
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-em-period
+ok 16 - semantic inline normalization: empty-em-period
+  ---
+  duration_ms: 7.901375
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-code-paren
+ok 17 - semantic inline normalization: empty-code-paren
+  ---
+  duration_ms: 4.306792
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-anchor-period
+ok 18 - semantic inline normalization: empty-anchor-period
+  ---
+  duration_ms: 2.21375
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-strong-between-em
+ok 19 - semantic inline normalization: empty-strong-between-em
+  ---
+  duration_ms: 2.590084
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-anchor-between-em
+ok 20 - semantic inline normalization: empty-anchor-between-em
+  ---
+  duration_ms: 1.687625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: transparent-empty-strong
+ok 21 - semantic inline normalization: transparent-empty-strong
+  ---
+  duration_ms: 3.171833
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-em-between-strong
+ok 22 - semantic inline normalization: empty-em-between-strong
+  ---
+  duration_ms: 2.768625
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-space-separator
+ok 23 - semantic inline normalization: nonempty-space-separator
+  ---
+  duration_ms: 1.755792
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-transparent-period-control
+ok 24 - semantic inline normalization: empty-transparent-period-control
+  ---
+  duration_ms: 1.131667
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-em-digit-control
+ok 25 - semantic inline normalization: nonempty-em-digit-control
+  ---
+  duration_ms: 1.149125
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: split-numeral
+ok 26 - semantic inline normalization: split-numeral
+  ---
+  duration_ms: 3.381875
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-unknown-chain
+ok 27 - semantic inline normalization: empty-unknown-chain
+  ---
+  duration_ms: 1.653792
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: strike-adjacency
+ok 28 - semantic inline normalization: strike-adjacency
+  ---
+  duration_ms: 5.614584
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: alias-adjacency
+ok 29 - semantic inline normalization: alias-adjacency
+  ---
+  duration_ms: 1.752083
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: mixed-adjacency
+ok 30 - semantic inline normalization: mixed-adjacency
+  ---
+  duration_ms: 0.955708
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: reverse-mixed-adjacency
+ok 31 - semantic inline normalization: reverse-mixed-adjacency
+  ---
+  duration_ms: 1.262417
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: punctuation-through-empty
+ok 32 - semantic inline normalization: punctuation-through-empty
+  ---
+  duration_ms: 0.958916
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: punctuation-inside-empty
+ok 33 - semantic inline normalization: punctuation-inside-empty
+  ---
+  duration_ms: 2.748667
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: text-separator
+ok 34 - semantic inline normalization: text-separator
+  ---
+  duration_ms: 1.091417
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: numeric-space-boundary
+ok 35 - semantic inline normalization: numeric-space-boundary
+  ---
+  duration_ms: 1.176584
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: ascii-space-preserved
+ok 36 - semantic inline normalization: ascii-space-preserved
+  ---
+  duration_ms: 1.900709
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-anchor-text
+ok 37 - semantic inline normalization: inactive-anchor-text
+  ---
+  duration_ms: 1.85775
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-anchor-empty
+ok 38 - semantic inline normalization: inactive-anchor-empty
+  ---
+  duration_ms: 1.65725
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-image-empty
+ok 39 - semantic inline normalization: inactive-image-empty
+  ---
+  duration_ms: 5.130459
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: inactive-image-label
+ok 40 - semantic inline normalization: inactive-image-label
+  ---
+  duration_ms: 1.204709
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-destination-label
+ok 41 - semantic inline normalization: empty-destination-label
+  ---
+  duration_ms: 1.6345
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: meaningful-break
+ok 42 - semantic inline normalization: meaningful-break
+  ---
+  duration_ms: 1.27825
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: code-whitespace
+ok 43 - semantic inline normalization: code-whitespace
+  ---
+  duration_ms: 1.043417
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nonempty-code
+ok 44 - semantic inline normalization: nonempty-code
+  ---
+  duration_ms: 1.4185
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-empty-link
+ok 45 - semantic inline normalization: active-empty-link
+  ---
+  duration_ms: 3.197292
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-empty-image
+ok 46 - semantic inline normalization: active-empty-image
+  ---
+  duration_ms: 1.282208
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: active-link-label
+ok 47 - semantic inline normalization: active-link-label
+  ---
+  duration_ms: 0.986334
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: nested-style
+ok 48 - semantic inline normalization: nested-style
+  ---
+  duration_ms: 1.185292
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: empty-code-raw-wrapper
+ok 49 - semantic inline normalization: empty-code-raw-wrapper
+  ---
+  duration_ms: 1.3595
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: merged-em-strong
+ok 50 - semantic inline normalization: merged-em-strong
+  ---
+  duration_ms: 5.377833
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: merged-em-strike
+ok 51 - semantic inline normalization: merged-em-strike
+  ---
+  duration_ms: 3.567292
+  type: 'test'
+  ...
+# Subtest: semantic inline normalization: merged-strike-strong
+ok 52 - semantic inline normalization: merged-strike-strong
+  ---
+  duration_ms: 1.349875
+  type: 'test'
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1717.6815

@@ -1,0 +1,50 @@
+[
+  {
+    "name": "restore endpoint backslash normalization",
+    "file": "transport.ts",
+    "before": "[^\\\\/?#]",
+    "after": "[^/?#]",
+    "test": "endpoint origin validation",
+    "failed": 2,
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "endpoint origin validation",
+      "tests/fs/s3/http-independent/protocol.test.ts",
+      "tests/fs/s3/http-independent/lifecycle.test.ts"
+    ],
+    "originalSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "mutatedSha256": "452cf4192a887ecf3ec03d10471e57ebf0432dae6e58bf1150cfa54d884686ad",
+    "status": 1,
+    "signal": null,
+    "stdout": "TAP version 13\n1..0\n# Subtest: tests/fs/s3/http-independent/lifecycle.test.ts\nok 1 - tests/fs/s3/http-independent/lifecycle.test.ts\n  ---\n  duration_ms: 159.117459\n  type: 'test'\n  ...\n# Subtest: endpoint origin validation rejects normalized path: http://127.0.0.1\\\\unexpected\nnot ok 2 - endpoint origin validation rejects normalized path: http://127.0.0.1\\\\unexpected\n  ---\n  duration_ms: 1.453916\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-s3-http-independent-8BQSOD/mutation-source/tests/fs/s3/http-independent/protocol.test.ts:1:3303'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'InvalidArgument'\n  operator: 'throws'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-s3-http-independent-8BQSOD/mutation-source/tests/fs/s3/http-independent/protocol.test.ts:58:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.start (node:internal/test_runner/test:944:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n# Subtest: endpoint origin validation rejects normalized path: https://example.invalid\\\\@path\nnot ok 3 - endpoint origin validation rejects normalized path: https://example.invalid\\\\@path\n  ---\n  duration_ms: 0.14\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-s3-http-independent-8BQSOD/mutation-source/tests/fs/s3/http-independent/protocol.test.ts:1:3303'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'InvalidArgument'\n  operator: 'throws'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-s3-http-independent-8BQSOD/mutation-source/tests/fs/s3/http-independent/protocol.test.ts:58:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 1\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 165.638\n",
+    "stderr": ""
+  },
+  {
+    "name": "accept trailing hyphen XML comments",
+    "file": "xml.ts",
+    "before": " || comment.endsWith(\"-\")",
+    "after": "",
+    "test": "COPY rejects malformed",
+    "failed": 2,
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "COPY rejects malformed",
+      "tests/fs/s3/http-independent/protocol.test.ts",
+      "tests/fs/s3/http-independent/lifecycle.test.ts"
+    ],
+    "originalSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+    "mutatedSha256": "9cc8d31b67f17b988748df046920539116528e21cb038b1427400de51bad22aa",
+    "status": 0,
+    "signal": null,
+    "stdout": "TAP version 13\n1..0\n# Subtest: tests/fs/s3/http-independent/lifecycle.test.ts\nok 1 - tests/fs/s3/http-independent/lifecycle.test.ts\n  ---\n  duration_ms: 130.775\n  type: 'test'\n  ...\n1..0\n# Subtest: tests/fs/s3/http-independent/protocol.test.ts\nok 2 - tests/fs/s3/http-independent/protocol.test.ts\n  ---\n  duration_ms: 133.5665\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 138.69425\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "role": "READ_ONLY_STATIC_VALIDATION_NOT_TARGET_EXECUTION",
+  "reportSpecShapeQualification": "The report is an audit, not a normative specification. The spec-only checker was applied outside its intended document format; its exit1 and seven diagnostics remain exact, not rerun or rescored. Criteria-spec checker exits0. No target/source defect is inferred and no all-validation-success claim is made.",
+  "specChecks": [
+    {
+      "argv": [
+        "python3",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-peer-corrections-v2/CRITERIA.md"
+      ],
+      "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-peer-corrections-v2/CRITERIA.md (0 warning(s))\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "argv": [
+        "python3",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-peer-corrections-v2/REPORT.md"
+      ],
+      "stdout": "ERROR: first line must be an H1 ending in or containing 'Specification'\nERROR: missing required section: Normative Language\nERROR: missing required section: Problem Statement\nERROR: missing required section: Goals and Non-Goals\nERROR: missing required section: Test and Validation Matrix\nERROR: missing required section: Conformance Criteria\nERROR: contains no RFC 2119 normative requirements\nFAILED: 7 error(s), 0 warning(s)\n",
+      "stderr": "",
+      "exitCode": 1
+    }
+  ],
+  "jsonDuplicateKeyAndSyntaxChecks": [
+    "ASSEMBLY-AUDIT.json",
+    "AUTHENTICATION.json",
+    "INPUTS.json",
+    "SYNTAX-CHECKS.json",
+    "TOOL-BINDINGS.json",
+    "VERDICT.json"
+  ],
+  "jsonErrors": 0,
+  "criteriaOriginalCommit": "671b49f0d3aa71aba7c3d97fa19ed4edb9d24e72",
+  "criteriaAndInputsUnchanged": true,
+  "originalConcreteReviewCommit": "73578f6c24a77d0e52bd91b9a445cda0954ce499",
+  "originalConcreteReviewFilesComparedUnchanged": 10,
+  "acceptedDataReportBinding": {
+    "revision": "dffc3047c2e06651cde6356338b3f73ec9cfd7af",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/bound-review-v1/REVIEW.md",
+    "sha256": "a033a3a79aefac5a7a6b7c8d840f320dd7e2158c4617255060cded429d2e9599",
+    "bytes": 9550,
+    "archivesReaudited": false
+  },
+  "scope": "Only concrete-peer-corrections-v2 report/evidence files added; no author source changes.",
+  "targetExecutions": 0,
+  "semanticPasses": 0,
+  "controlPasses": 0,
+  "rootGO": false
+}

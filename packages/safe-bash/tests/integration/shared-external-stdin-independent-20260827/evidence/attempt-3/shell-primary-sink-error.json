@@ -1,0 +1,32 @@
+{
+  "id": "shell-primary-sink-error",
+  "mutant": "none",
+  "pass": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "expected rejection, not fulfilled result\n\ntrue !== false\n",
+    "stack": "AssertionError [ERR_ASSERTION]: expected rejection, not fulfilled result\n\ntrue !== false\n\n    at rejected (file:///private/tmp/shared-stdin-independent-work-MWKICN/moved-consumer/fixtures/probe.mjs:75:46)\n    at run (file:///private/tmp/shared-stdin-independent-work-MWKICN/moved-consumer/fixtures/probe.mjs:134:5)\n    at async file:///private/tmp/shared-stdin-independent-work-MWKICN/moved-consumer/fixtures/probe.mjs:301:7"
+  },
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "return",
+    "return-entered:release",
+    "fulfilled:{\"stdout\":\"\\u0000�\",\"stderr\":\"shell: line 1: independent-primary-failure\\n\",\"stdoutBytes\":{\"0\":0,\"1\":255},\"stderrBytes\":{\"0\":115,\"1\":104,\"2\":101,\"3\":108,\"4\":108,\"5\":58,\"6\":32,\"7\":108,\"8\":105,\"9\":110,\"10\":101,\"11\":32,\"12\":49,\"13\":58,\"14\":32,\"15\":105,\"16\":110,\"17\":100,\"18\":101,\"19\":112,\"20\":101,\"21\":110,\"22\":100,\"23\":101,\"24\":110,\"25\":116,\"26\":45,\"27\":112,\"28\":114,\"29\":105,\"30\":109,\"31\":97,\"32\":114,\"33\":121,\"34\":45,\"35\":102,\"36\":97,\"37\":105,\"38\":108,\"39\":117,\"40\":114,\"41\":101,\"42\":10},\"exitCode\":1}"
+  ],
+  "input": {
+    "reads": 1,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [
+    "00ff"
+  ],
+  "stderr": [
+    "shell: line 1: independent-primary-failure\n"
+  ],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

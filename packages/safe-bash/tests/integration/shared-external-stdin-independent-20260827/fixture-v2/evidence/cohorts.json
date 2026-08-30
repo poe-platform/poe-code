@@ -1,0 +1,667 @@
+{
+  "main": {
+    "name": "authorized-v2-35",
+    "count": 35,
+    "passes": 35,
+    "failures": []
+  },
+  "column": {
+    "name": "authorized-v2-column6",
+    "count": 6,
+    "passes": 6,
+    "status": 0
+  },
+  "negativeAssertions": {
+    "executions": 3,
+    "rows": 8,
+    "detectedExecutions": 3,
+    "details": [
+      {
+        "label": "wrong-primary-shell-primary-read-zero",
+        "status": 1,
+        "signal": null,
+        "expired": false,
+        "overLimit": false,
+        "closed": true,
+        "loadedCount": 176,
+        "loadsSha256": "8c39c55fd335861da63aac3b36bbeda6f16a14ed8e8c82461e64b965255cb51a",
+        "pass": false,
+        "result": {
+          "id": "shell-primary-read-zero",
+          "mutant": "none",
+          "pass": false,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'shell: line 1: 0\\n'\n- 'shell: line 1: independent-return-failure\\n'\n                  ^\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'shell: line 1: 0\\n'\n- 'shell: line 1: independent-return-failure\\n'\n                  ^\n\n    at run (file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/probe-wrong-primary.mjs:125:12)\n    at async file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/probe-wrong-primary.mjs:304:7"
+          },
+          "events": [
+            "next:0",
+            "next-entered:release",
+            "return",
+            "return-entered:release",
+            "fulfilled:{\"stdout\":\"\",\"stderr\":\"shell: line 1: 0\\n\",\"stdoutBytes\":{},\"stderrBytes\":{\"0\":115,\"1\":104,\"2\":101,\"3\":108,\"4\":108,\"5\":58,\"6\":32,\"7\":108,\"8\":105,\"9\":110,\"10\":101,\"11\":32,\"12\":49,\"13\":58,\"14\":32,\"15\":48,\"16\":10},\"exitCode\":1}"
+          ],
+          "input": {
+            "reads": 1,
+            "returns": 1,
+            "acquired": 1,
+            "concurrent": 0,
+            "maxConcurrent": 1
+          },
+          "output": [],
+          "stderr": [
+            "shell: line 1: 0\n"
+          ],
+          "strictUnhandled": true,
+          "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+        },
+        "detected": true
+      },
+      {
+        "label": "wrong-primary-shell-primary-read-error",
+        "status": 1,
+        "signal": null,
+        "expired": false,
+        "overLimit": false,
+        "closed": true,
+        "loadedCount": 176,
+        "loadsSha256": "405cf74a41e2e645ad9bd9cbad4f7a13eb4dfe110adc2ce23f9d7a11731f2726",
+        "pass": false,
+        "result": {
+          "id": "shell-primary-read-error",
+          "mutant": "none",
+          "pass": false,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'shell: line 1: independent-primary-failure\\n'\n- 'shell: line 1: independent-return-failure\\n'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'shell: line 1: independent-primary-failure\\n'\n- 'shell: line 1: independent-return-failure\\n'\n\n    at run (file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/probe-wrong-primary.mjs:125:12)\n    at async file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/probe-wrong-primary.mjs:304:7"
+          },
+          "events": [
+            "next:0",
+            "next-entered:release",
+            "return",
+            "return-entered:release",
+            "fulfilled:{\"stdout\":\"\",\"stderr\":\"shell: line 1: independent-primary-failure\\n\",\"stdoutBytes\":{},\"stderrBytes\":{\"0\":115,\"1\":104,\"2\":101,\"3\":108,\"4\":108,\"5\":58,\"6\":32,\"7\":108,\"8\":105,\"9\":110,\"10\":101,\"11\":32,\"12\":49,\"13\":58,\"14\":32,\"15\":105,\"16\":110,\"17\":100,\"18\":101,\"19\":112,\"20\":101,\"21\":110,\"22\":100,\"23\":101,\"24\":110,\"25\":116,\"26\":45,\"27\":112,\"28\":114,\"29\":105,\"30\":109,\"31\":97,\"32\":114,\"33\":121,\"34\":45,\"35\":102,\"36\":97,\"37\":105,\"38\":108,\"39\":117,\"40\":114,\"41\":101,\"42\":10},\"exitCode\":1}"
+          ],
+          "input": {
+            "reads": 1,
+            "returns": 1,
+            "acquired": 1,
+            "concurrent": 0,
+            "maxConcurrent": 1
+          },
+          "output": [],
+          "stderr": [
+            "shell: line 1: independent-primary-failure\n"
+          ],
+          "strictUnhandled": true,
+          "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+        },
+        "detected": true
+      },
+      {
+        "label": "wrong-column-code6",
+        "status": 1,
+        "signal": null,
+        "expired": false,
+        "overLimit": false,
+        "closed": true,
+        "loadedCount": 181,
+        "loadsSha256": "7ccb16bd0fd91f11de3f7531370b77eed6513de71a9e4572b8b5f1214cc84a10",
+        "pass": false,
+        "result": {
+          "label": "post-inspection targeted column supplement, NOT frozen holdouts",
+          "rows": [
+            {
+              "boundary": "direct",
+              "style": "sync",
+              "observed": {
+                "ok": true,
+                "exitCode": 1,
+                "reason": "undefined",
+                "sameReturnReason": false,
+                "reads": 1,
+                "returns": 1,
+                "stderr": "column: EFBIG: column input limit exceeded\n",
+                "stdoutHex": ""
+              },
+              "pass": false,
+              "failure": {
+                "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+                "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+              }
+            },
+            {
+              "boundary": "direct",
+              "style": "reject",
+              "observed": {
+                "ok": true,
+                "exitCode": 1,
+                "reason": "undefined",
+                "sameReturnReason": false,
+                "reads": 1,
+                "returns": 1,
+                "stderr": "column: EFBIG: column input limit exceeded\n",
+                "stdoutHex": ""
+              },
+              "pass": false,
+              "failure": {
+                "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+                "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+              }
+            },
+            {
+              "boundary": "direct",
+              "style": "zero",
+              "observed": {
+                "ok": true,
+                "exitCode": 1,
+                "reason": "undefined",
+                "sameReturnReason": false,
+                "reads": 1,
+                "returns": 1,
+                "stderr": "column: EFBIG: column input limit exceeded\n",
+                "stdoutHex": ""
+              },
+              "pass": false,
+              "failure": {
+                "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+                "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+              }
+            },
+            {
+              "boundary": "Shell",
+              "style": "sync",
+              "observed": {
+                "ok": false,
+                "reason": "Error: column-Shell-sync-return",
+                "sameReturnReason": true,
+                "reads": 1,
+                "returns": 1,
+                "stderr": "column: EFBIG: column input limit exceeded\n",
+                "stdoutHex": ""
+              },
+              "pass": false,
+              "failure": {
+                "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+                "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+              }
+            },
+            {
+              "boundary": "Shell",
+              "style": "reject",
+              "observed": {
+                "ok": false,
+                "reason": "Error: column-Shell-reject-return",
+                "sameReturnReason": true,
+                "reads": 1,
+                "returns": 1,
+                "stderr": "column: EFBIG: column input limit exceeded\n",
+                "stdoutHex": ""
+              },
+              "pass": false,
+              "failure": {
+                "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+                "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+              }
+            },
+            {
+              "boundary": "Shell",
+              "style": "zero",
+              "observed": {
+                "ok": false,
+                "reason": "0",
+                "sameReturnReason": true,
+                "reads": 1,
+                "returns": 1,
+                "stderr": "column: EFBIG: column input limit exceeded\n",
+                "stdoutHex": ""
+              },
+              "pass": false,
+              "failure": {
+                "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n",
+                "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'column: EFBIG: column input limit exceeded\\n'\n- 'column: EIO: column input limit exceeded\\n'\n\n    at file:///private/tmp/shared-stdin-fixture-v2-work-ys9tnY/moved-consumer/fixtures/column-wrong-code.mjs:33:14"
+              }
+            }
+          ]
+        },
+        "detected": true
+      }
+    ]
+  },
+  "executions": [
+    {
+      "label": "direct-head-sync",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "bc20e5548515b7fe542a14797a9c02fc79c36076acc90354509ce317671825e9",
+      "pass": true
+    },
+    {
+      "label": "direct-head-reject",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "5889d1422b015820e4dbd4e1fb925e3ce8465b97453437baa4547f8345ad5dc1",
+      "pass": true
+    },
+    {
+      "label": "direct-head-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "a4238f90b8ddd629ecd003535ea822029d48d386b3d53f75acc817bcbdd9f1c1",
+      "pass": true
+    },
+    {
+      "label": "direct-helper-eof-no-close",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "ea3d67ecb0abd9420a28887305c342f51c3f8b46fc2f3208c4266e76144288f7",
+      "pass": true
+    },
+    {
+      "label": "direct-helper-deferred-return",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "327e2d07c10fb24bc08089b2b7162bd62674882ecb6f0e42c97457769a732be4",
+      "pass": true
+    },
+    {
+      "label": "shell-eof-sync",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "7d0e7dbe58adbddc7488e474104313961b88f78e79124714e34c7e80b7c7e48b",
+      "pass": true
+    },
+    {
+      "label": "shell-eof-reject",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "0c271e5324b8b548f0acede07f22e7fd2eef36218382c830b6fbb5141a9a2fdd",
+      "pass": true
+    },
+    {
+      "label": "shell-eof-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "b37d80df4312720daf95533111dec1c699579330abc14b4abb59ca9451a1303e",
+      "pass": true
+    },
+    {
+      "label": "shell-early-sync",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "a086a43948d33fc5c6af81c314c799c60b4af7794837de1d92acb0a2f3e76625",
+      "pass": true
+    },
+    {
+      "label": "shell-early-reject",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "ec87d699b18c1da790963babf74062cc2f322fba675a9d6bcbae1ae2edfcf118",
+      "pass": true
+    },
+    {
+      "label": "shell-early-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "a9cd5a47452ffbfad3baab2d3dc23ae9848ed0889a33b429bcefc46ebe3af58f",
+      "pass": true
+    },
+    {
+      "label": "shell-status17-unread-sync",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "a81b112a9a3213a16ae555f2a330033aba3d6062d47fc9d4d23b8edc1b85804f",
+      "pass": true
+    },
+    {
+      "label": "shell-status17-unread-reject",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "dda89245bd5d6595dd3014fbf47120ab7a1f93ad4bca9c4082b63ee910ff43f8",
+      "pass": true
+    },
+    {
+      "label": "shell-status17-unread-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "09944cb3bf44249d909fe77685204590978372bf764d375532162cba8fc2814b",
+      "pass": true
+    },
+    {
+      "label": "shell-deferred-early-return",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "d91466d490d78292d80a93451abc0c581494868d63127da7de17010060ec0f1d",
+      "pass": true
+    },
+    {
+      "label": "shell-primary-read-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "eb5d1cb338374cd1ec7c5ce46911ab323943ef4ca53f8820c33638f407bf3918",
+      "pass": true
+    },
+    {
+      "label": "shell-primary-read-error",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "9157b3cdfa1e9f4b23f7666a39fc85351b23fb0a6b0bd466786c4ba141bfe758",
+      "pass": true
+    },
+    {
+      "label": "shell-primary-sink-error",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "2f20921d354081e3ccc5a90fd5a81cea899a41036334329fb907fbf6fd2b4cdb",
+      "pass": true
+    },
+    {
+      "label": "direct-primary-read-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "613dabad1f090db22fd29b9e3f0660b2b5503c927bb9751c97ce06844216b3ed",
+      "pass": true
+    },
+    {
+      "label": "direct-primary-read-error",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "69ef1848373810e004132463634a160187bc308c6c5676728d8b10f0b1d72ea7",
+      "pass": true
+    },
+    {
+      "label": "shell-selected-limit-error",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "f0da59552095fbbbe40deeb41d8125aff3d3aacceca1ee8b73b887fe8ac26445",
+      "pass": true
+    },
+    {
+      "label": "shell-abort-pending-next-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "2691d65e4539d014485de3620d5efb9f6c7a983f018b3dcaa26677d20e25a283",
+      "pass": true
+    },
+    {
+      "label": "shell-abort-pending-next-error",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "7b12328a80154b00c0d2696b71c420f23464daf71fbdcb918f619770fa11a0b0",
+      "pass": true
+    },
+    {
+      "label": "shell-abort-pending-return-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "28cd65ce57200b078a61caa08b05613c37c46adf6003008d20c8272ad6cc8132",
+      "pass": true
+    },
+    {
+      "label": "shell-dispose-pending-return",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "e04dae71790f4d5189c164be6f25de8d98e304a2fbda1c0eacbef7e234b04e9d",
+      "pass": true
+    },
+    {
+      "label": "shell-opaque-generator-abort",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "05161c4c3651717324c585334c0ebeaa58eb3fb6a39b1b6091f623cf987b0f1c",
+      "pass": true
+    },
+    {
+      "label": "shell-opaque-generator-dispose",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "40cfd23e1551695327d76dd18dbf370841127719e1bd7ef80484c6f5f7a13ff8",
+      "pass": true
+    },
+    {
+      "label": "shell-sequential-nested-binary",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "a4b94a81ed41d705feec08c39218373683f9619d0cc719519aaba83753d3b41f",
+      "pass": true
+    },
+    {
+      "label": "shell-concurrent-sibling-abort-isolation",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "19487a1d861835511b6fbc57943d7e381077ea4a3a4b47e840e6ebccc7b198c8",
+      "pass": true
+    },
+    {
+      "label": "registered-host-normal",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "d2c96dce1488e41939a118e11c6e4f5b212aced4d61eb87e1802f1f3aa4da00e",
+      "pass": true
+    },
+    {
+      "label": "registered-host-dispose",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "fba32b8647c9dc0aa1b77d58c7c826c111bbbfcc69f1644c36cfe6df97a980e5",
+      "pass": true
+    },
+    {
+      "label": "registered-vfs-normal",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "e5505511ba6e6ca8a24fe138df848f5058de554189b0c293c8eacdd1c86a9293",
+      "pass": true
+    },
+    {
+      "label": "registered-vfs-dispose",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "28a0cfe283b1c04103f58505f85921924e7596bd5f4d534da95e8d3b0bdc41b8",
+      "pass": true
+    },
+    {
+      "label": "registered-host-abort-zero",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "8db68cd9ad244b76f5a995c32bb7791462eb19861425d19e5efdde8ab51bb19c",
+      "pass": true
+    },
+    {
+      "label": "registered-vfs-status17-cleanup-error",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "2748907211ad819740a9a9b46867cab4be9f0b4545bf3f2eaa9f5852a2681d4c",
+      "pass": true
+    },
+    {
+      "label": "column6",
+      "status": 0,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 181,
+      "loadsSha256": "835ef648735e4675251392d93f04a13979ee57875f7c9d8002520befc10ae32d",
+      "pass": true
+    },
+    {
+      "label": "wrong-primary-shell-primary-read-zero",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "8c39c55fd335861da63aac3b36bbeda6f16a14ed8e8c82461e64b965255cb51a",
+      "pass": false,
+      "detected": true
+    },
+    {
+      "label": "wrong-primary-shell-primary-read-error",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 176,
+      "loadsSha256": "405cf74a41e2e645ad9bd9cbad4f7a13eb4dfe110adc2ce23f9d7a11731f2726",
+      "pass": false,
+      "detected": true
+    },
+    {
+      "label": "wrong-column-code6",
+      "status": 1,
+      "signal": null,
+      "expired": false,
+      "overLimit": false,
+      "closed": true,
+      "loadedCount": 181,
+      "loadsSha256": "7ccb16bd0fd91f11de3f7531370b77eed6513de71a9e4572b8b5f1214cc84a10",
+      "pass": false,
+      "detected": true
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "author": "6699804ace9f5522aa67be6a017a8008bfc09f30",
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "authorEvidenceCommit": "05360c918c645031ff83680ba54f5049af91115a",
+  "authorAttemptsAuthenticatedNotReexecuted": 2,
+  "files": {
+    "attempt-1/ARCHIVE-MANIFEST.json": {
+      "bytes": 7754225,
+      "sha256": "dfa2b60f8de87af6500c1a25565c5bb6138610a6a4a98c3df75684252b620f0b"
+    },
+    "attempt-1/frozen-cases.json": {
+      "bytes": 4753,
+      "sha256": "0af0aa3afeaa2a7f496b91704892cd67279900a1e485cd208d3547a56b7b971e"
+    },
+    "attempt-1/RESULT.json": {
+      "bytes": 51518,
+      "sha256": "305e4406a647963ed3e21be7188f723fed41b8e21d798965baf5ca60f53628cb"
+    },
+    "README.md": {
+      "bytes": 6922,
+      "sha256": "24db0d373f76585b0af20e00375d453bd7b9af8070439b18ee5f4bb5042e8462"
+    },
+    "run.mjs": {
+      "bytes": 25649,
+      "sha256": "9f9941e12d684ee7ce7f08f76ae789be675eeadc6b981ec44f1e406c5b927261"
+    },
+    "verify.mjs": {
+      "bytes": 5611,
+      "sha256": "9814683cd456fea938d323f554857e84146758e5ca397c8775c0850c4d265761"
+    }
+  }
+}

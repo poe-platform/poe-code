@@ -1,0 +1,976 @@
+TAP version 13
+# Subtest: GNU default: normal/without-E-retains-empty
+ok 1 - GNU default: normal/without-E-retains-empty
+  ---
+  duration_ms: 5.93625
+  type: 'test'
+  ...
+# Subtest: GNU default: normal/-E/apply
+not ok 2 - GNU default: normal/-E/apply
+  ---
+  duration_ms: 3.397584
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    no decoys, reject files, backup files, or unrelated paths changed
+    + actual - expected
+    
+      {
+        '/': {
+          mode: 16877,
+    +     nlink: 3,
+    -     nlink: 4,
+          type: 'directory'
+        },
+        '/work': {
+          mode: 16895,
+          nlink: 2,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 4
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  actual:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 3
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: normal/-E/dry
+ok 3 - GNU default: normal/-E/dry
+  ---
+  duration_ms: 1.439125
+  type: 'test'
+  ...
+# Subtest: GNU default: normal/-E/reverse
+ok 4 - GNU default: normal/-E/reverse
+  ---
+  duration_ms: 1.857791
+  type: 'test'
+  ...
+# Subtest: GNU default: normal/--remove-empty-files/apply
+not ok 5 - GNU default: normal/--remove-empty-files/apply
+  ---
+  duration_ms: 2.662917
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    no decoys, reject files, backup files, or unrelated paths changed
+    + actual - expected
+    
+      {
+        '/': {
+          mode: 16877,
+    +     nlink: 3,
+    -     nlink: 4,
+          type: 'directory'
+        },
+        '/work': {
+          mode: 16895,
+          nlink: 2,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 4
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  actual:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 3
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: normal/--remove-empty-files/dry
+ok 6 - GNU default: normal/--remove-empty-files/dry
+  ---
+  duration_ms: 1.475875
+  type: 'test'
+  ...
+# Subtest: GNU default: normal/--remove-empty-files/reverse
+ok 7 - GNU default: normal/--remove-empty-files/reverse
+  ---
+  duration_ms: 1.376375
+  type: 'test'
+  ...
+# Subtest: GNU default: context/without-E-retains-empty
+ok 8 - GNU default: context/without-E-retains-empty
+  ---
+  duration_ms: 1.661083
+  type: 'test'
+  ...
+# Subtest: GNU default: context/-E/apply
+not ok 9 - GNU default: context/-E/apply
+  ---
+  duration_ms: 2.044666
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    no decoys, reject files, backup files, or unrelated paths changed
+    + actual - expected
+    
+      {
+        '/': {
+          mode: 16877,
+    +     nlink: 3,
+    -     nlink: 4,
+          type: 'directory'
+        },
+        '/work': {
+          mode: 16895,
+          nlink: 2,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 4
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  actual:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 3
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: context/-E/dry
+ok 10 - GNU default: context/-E/dry
+  ---
+  duration_ms: 2.262833
+  type: 'test'
+  ...
+# Subtest: GNU default: context/-E/reverse
+ok 11 - GNU default: context/-E/reverse
+  ---
+  duration_ms: 0.737958
+  type: 'test'
+  ...
+# Subtest: GNU default: context/--remove-empty-files/apply
+not ok 12 - GNU default: context/--remove-empty-files/apply
+  ---
+  duration_ms: 0.777333
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    no decoys, reject files, backup files, or unrelated paths changed
+    + actual - expected
+    
+      {
+        '/': {
+          mode: 16877,
+    +     nlink: 3,
+    -     nlink: 4,
+          type: 'directory'
+        },
+        '/work': {
+          mode: 16895,
+          nlink: 2,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 4
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  actual:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 3
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: context/--remove-empty-files/dry
+ok 13 - GNU default: context/--remove-empty-files/dry
+  ---
+  duration_ms: 0.379958
+  type: 'test'
+  ...
+# Subtest: GNU default: context/--remove-empty-files/reverse
+ok 14 - GNU default: context/--remove-empty-files/reverse
+  ---
+  duration_ms: 1.003541
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/without-E-retains-empty
+ok 15 - GNU default: unified/without-E-retains-empty
+  ---
+  duration_ms: 0.852333
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/-E/apply
+not ok 16 - GNU default: unified/-E/apply
+  ---
+  duration_ms: 0.916417
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    no decoys, reject files, backup files, or unrelated paths changed
+    + actual - expected
+    
+      {
+        '/': {
+          mode: 16877,
+    +     nlink: 3,
+    -     nlink: 4,
+          type: 'directory'
+        },
+        '/work': {
+          mode: 16895,
+          nlink: 2,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 4
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  actual:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 3
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: unified/-E/dry
+ok 17 - GNU default: unified/-E/dry
+  ---
+  duration_ms: 0.583208
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/-E/reverse
+ok 18 - GNU default: unified/-E/reverse
+  ---
+  duration_ms: 0.763125
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/--remove-empty-files/apply
+not ok 19 - GNU default: unified/--remove-empty-files/apply
+  ---
+  duration_ms: 0.8665
+  type: 'test'
+  location: '/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:1:245'
+  failureType: 'testCodeFailure'
+  error: |-
+    no decoys, reject files, backup files, or unrelated paths changed
+    + actual - expected
+    
+      {
+        '/': {
+          mode: 16877,
+    +     nlink: 3,
+    -     nlink: 4,
+          type: 'directory'
+        },
+        '/work': {
+          mode: 16895,
+          nlink: 2,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 4
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  actual:
+    /:
+      type: 'directory'
+      mode: 16877
+      nlink: 3
+    /work:
+      type: 'directory'
+      mode: 16895
+      nlink: 2
+    /work/new-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'bmV3IGRlY295Cg=='
+    /work/old-label:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'b2xkIGRlY295Cg=='
+    /work/sentinel:
+      type: 'file'
+      mode: 33206
+      nlink: 1
+      bytes: 'ZG8gbm90IHRvdWNoCg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/full-gate-recheck-flvqGb/source/tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts:18:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU default: unified/--remove-empty-files/dry
+ok 20 - GNU default: unified/--remove-empty-files/dry
+  ---
+  duration_ms: 0.576541
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/--remove-empty-files/reverse
+ok 21 - GNU default: unified/--remove-empty-files/reverse
+  ---
+  duration_ms: 0.777459
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/auto/missing/apply
+ok 22 - GNU default: context/null/forward/auto/missing/apply
+  ---
+  duration_ms: 0.821583
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/auto/missing/dry
+ok 23 - GNU default: context/null/forward/auto/missing/dry
+  ---
+  duration_ms: 0.629292
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/auto/empty/apply
+ok 24 - GNU default: context/null/forward/auto/empty/apply
+  ---
+  duration_ms: 0.670209
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/auto/empty/dry
+ok 25 - GNU default: context/null/forward/auto/empty/dry
+  ---
+  duration_ms: 4.247958
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/forward/auto/occupied/apply
+ok 26 - atomic extension no-publication: context/null/forward/auto/occupied/apply
+  ---
+  duration_ms: 0.555834
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/forward/auto/occupied/dry
+ok 27 - atomic extension no-publication: context/null/forward/auto/occupied/dry
+  ---
+  duration_ms: 0.484208
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/absolute/missing/apply
+ok 28 - GNU default: context/null/forward/absolute/missing/apply
+  ---
+  duration_ms: 0.607792
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/absolute/missing/dry
+ok 29 - GNU default: context/null/forward/absolute/missing/dry
+  ---
+  duration_ms: 0.436542
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/absolute/empty/apply
+ok 30 - GNU default: context/null/forward/absolute/empty/apply
+  ---
+  duration_ms: 0.48125
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/forward/absolute/empty/dry
+ok 31 - GNU default: context/null/forward/absolute/empty/dry
+  ---
+  duration_ms: 0.459666
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/forward/absolute/occupied/apply
+ok 32 - atomic extension no-publication: context/null/forward/absolute/occupied/apply
+  ---
+  duration_ms: 0.552542
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/forward/absolute/occupied/dry
+ok 33 - atomic extension no-publication: context/null/forward/absolute/occupied/dry
+  ---
+  duration_ms: 0.450209
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/auto/missing/apply
+ok 34 - GNU default: context/null/reverse/auto/missing/apply
+  ---
+  duration_ms: 0.533
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/auto/missing/dry
+ok 35 - GNU default: context/null/reverse/auto/missing/dry
+  ---
+  duration_ms: 0.447417
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/auto/empty/apply
+ok 36 - GNU default: context/null/reverse/auto/empty/apply
+  ---
+  duration_ms: 0.47875
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/auto/empty/dry
+ok 37 - GNU default: context/null/reverse/auto/empty/dry
+  ---
+  duration_ms: 0.400625
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/reverse/auto/occupied/apply
+ok 38 - atomic extension no-publication: context/null/reverse/auto/occupied/apply
+  ---
+  duration_ms: 0.5435
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/reverse/auto/occupied/dry
+ok 39 - atomic extension no-publication: context/null/reverse/auto/occupied/dry
+  ---
+  duration_ms: 0.466875
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/absolute/missing/apply
+ok 40 - GNU default: context/null/reverse/absolute/missing/apply
+  ---
+  duration_ms: 0.603834
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/absolute/missing/dry
+ok 41 - GNU default: context/null/reverse/absolute/missing/dry
+  ---
+  duration_ms: 0.486583
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/absolute/empty/apply
+ok 42 - GNU default: context/null/reverse/absolute/empty/apply
+  ---
+  duration_ms: 0.538875
+  type: 'test'
+  ...
+# Subtest: GNU default: context/null/reverse/absolute/empty/dry
+ok 43 - GNU default: context/null/reverse/absolute/empty/dry
+  ---
+  duration_ms: 0.4435
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/reverse/absolute/occupied/apply
+ok 44 - atomic extension no-publication: context/null/reverse/absolute/occupied/apply
+  ---
+  duration_ms: 0.645334
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: context/null/reverse/absolute/occupied/dry
+ok 45 - atomic extension no-publication: context/null/reverse/absolute/occupied/dry
+  ---
+  duration_ms: 0.483667
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/auto/missing/apply
+ok 46 - GNU default: unified/null/forward/auto/missing/apply
+  ---
+  duration_ms: 0.486625
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/auto/missing/dry
+ok 47 - GNU default: unified/null/forward/auto/missing/dry
+  ---
+  duration_ms: 0.378042
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/auto/empty/apply
+ok 48 - GNU default: unified/null/forward/auto/empty/apply
+  ---
+  duration_ms: 0.452625
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/auto/empty/dry
+ok 49 - GNU default: unified/null/forward/auto/empty/dry
+  ---
+  duration_ms: 0.373708
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/forward/auto/occupied/apply
+ok 50 - atomic extension no-publication: unified/null/forward/auto/occupied/apply
+  ---
+  duration_ms: 0.456959
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/forward/auto/occupied/dry
+ok 51 - atomic extension no-publication: unified/null/forward/auto/occupied/dry
+  ---
+  duration_ms: 0.400958
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/absolute/missing/apply
+ok 52 - GNU default: unified/null/forward/absolute/missing/apply
+  ---
+  duration_ms: 0.682083
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/absolute/missing/dry
+ok 53 - GNU default: unified/null/forward/absolute/missing/dry
+  ---
+  duration_ms: 0.409292
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/absolute/empty/apply
+ok 54 - GNU default: unified/null/forward/absolute/empty/apply
+  ---
+  duration_ms: 0.606958
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/forward/absolute/empty/dry
+ok 55 - GNU default: unified/null/forward/absolute/empty/dry
+  ---
+  duration_ms: 0.647292
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/forward/absolute/occupied/apply
+ok 56 - atomic extension no-publication: unified/null/forward/absolute/occupied/apply
+  ---
+  duration_ms: 0.544958
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/forward/absolute/occupied/dry
+ok 57 - atomic extension no-publication: unified/null/forward/absolute/occupied/dry
+  ---
+  duration_ms: 0.575667
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/auto/missing/apply
+ok 58 - GNU default: unified/null/reverse/auto/missing/apply
+  ---
+  duration_ms: 0.581458
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/auto/missing/dry
+ok 59 - GNU default: unified/null/reverse/auto/missing/dry
+  ---
+  duration_ms: 0.377
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/auto/empty/apply
+ok 60 - GNU default: unified/null/reverse/auto/empty/apply
+  ---
+  duration_ms: 0.365208
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/auto/empty/dry
+ok 61 - GNU default: unified/null/reverse/auto/empty/dry
+  ---
+  duration_ms: 0.308833
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/reverse/auto/occupied/apply
+ok 62 - atomic extension no-publication: unified/null/reverse/auto/occupied/apply
+  ---
+  duration_ms: 0.318625
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/reverse/auto/occupied/dry
+ok 63 - atomic extension no-publication: unified/null/reverse/auto/occupied/dry
+  ---
+  duration_ms: 2.827334
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/absolute/missing/apply
+ok 64 - GNU default: unified/null/reverse/absolute/missing/apply
+  ---
+  duration_ms: 0.594167
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/absolute/missing/dry
+ok 65 - GNU default: unified/null/reverse/absolute/missing/dry
+  ---
+  duration_ms: 0.333834
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/absolute/empty/apply
+ok 66 - GNU default: unified/null/reverse/absolute/empty/apply
+  ---
+  duration_ms: 0.437833
+  type: 'test'
+  ...
+# Subtest: GNU default: unified/null/reverse/absolute/empty/dry
+ok 67 - GNU default: unified/null/reverse/absolute/empty/dry
+  ---
+  duration_ms: 0.310167
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/reverse/absolute/occupied/apply
+ok 68 - atomic extension no-publication: unified/null/reverse/absolute/occupied/apply
+  ---
+  duration_ms: 0.339417
+  type: 'test'
+  ...
+# Subtest: atomic extension no-publication: unified/null/reverse/absolute/occupied/dry
+ok 69 - atomic extension no-publication: unified/null/reverse/absolute/occupied/dry
+  ---
+  duration_ms: 0.327916
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed normal/unified delete-recreate forward commits final state once
+ok 70 - atomic extension mixed normal/unified delete-recreate forward commits final state once
+  ---
+  duration_ms: 0.645542
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed normal/unified delete-recreate reverse commits final state once
+ok 71 - atomic extension mixed normal/unified delete-recreate reverse commits final state once
+  ---
+  duration_ms: 0.429958
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed context/unified delete-recreate forward commits final state once
+ok 72 - atomic extension mixed context/unified delete-recreate forward commits final state once
+  ---
+  duration_ms: 0.427625
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed context/unified delete-recreate reverse commits final state once
+ok 73 - atomic extension mixed context/unified delete-recreate reverse commits final state once
+  ---
+  duration_ms: 0.410833
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed unified/unified delete-recreate forward commits final state once
+ok 74 - atomic extension mixed unified/unified delete-recreate forward commits final state once
+  ---
+  duration_ms: 0.542417
+  type: 'test'
+  ...
+# Subtest: atomic extension mixed unified/unified delete-recreate reverse commits final state once
+ok 75 - atomic extension mixed unified/unified delete-recreate reverse commits final state once
+  ---
+  duration_ms: 0.414584
+  type: 'test'
+  ...
+# Subtest: atomic extension later hunk rejects staged removal without early writes
+ok 76 - atomic extension later hunk rejects staged removal without early writes
+  ---
+  duration_ms: 0.455584
+  type: 'test'
+  ...
+# Subtest: atomic extension later occupied-creation rejects staged removal without early writes
+ok 77 - atomic extension later occupied-creation rejects staged removal without early writes
+  ---
+  duration_ms: 0.44575
+  type: 'test'
+  ...
+# Subtest: symlink create rejected without mutations
+ok 78 - symlink create rejected without mutations
+  ---
+  duration_ms: 0.470333
+  type: 'test'
+  ...
+# Subtest: symlink remove rejected without mutations
+ok 79 - symlink remove rejected without mutations
+  ---
+  duration_ms: 0.280833
+  type: 'test'
+  ...
+# Subtest: hardlink create rejected without mutations
+ok 80 - hardlink create rejected without mutations
+  ---
+  duration_ms: 0.307375
+  type: 'test'
+  ...
+# Subtest: hardlink remove rejected without mutations
+ok 81 - hardlink remove rejected without mutations
+  ---
+  duration_ms: 1.471291
+  type: 'test'
+  ...
+# Subtest: ancestor-symlink create rejected without mutations
+ok 82 - ancestor-symlink create rejected without mutations
+  ---
+  duration_ms: 0.284459
+  type: 'test'
+  ...
+# Subtest: ancestor-symlink remove rejected without mutations
+ok 83 - ancestor-symlink remove rejected without mutations
+  ---
+  duration_ms: 0.27025
+  type: 'test'
+  ...
+# Subtest: pre-cancelled create performs no filesystem work
+ok 84 - pre-cancelled create performs no filesystem work
+  ---
+  duration_ms: 0.324584
+  type: 'test'
+  ...
+# Subtest: pre-cancelled remove performs no filesystem work
+ok 85 - pre-cancelled remove performs no filesystem work
+  ---
+  duration_ms: 0.109791
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure before effect reports partial commit, not rollback
+ok 86 - atomic extension writeFile failure before effect reports partial commit, not rollback
+  ---
+  duration_ms: 0.881792
+  type: 'test'
+  ...
+# Subtest: atomic extension writeFile failure after effect reports partial commit, not rollback
+ok 87 - atomic extension writeFile failure after effect reports partial commit, not rollback
+  ---
+  duration_ms: 0.750709
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure before effect reports partial commit, not rollback
+ok 88 - atomic extension rm failure before effect reports partial commit, not rollback
+  ---
+  duration_ms: 0.975291
+  type: 'test'
+  ...
+# Subtest: atomic extension rm failure after effect reports partial commit, not rollback
+ok 89 - atomic extension rm failure after effect reports partial commit, not rollback
+  ---
+  duration_ms: 0.711208
+  type: 'test'
+  ...
+1..89
+# tests 89
+# suites 0
+# pass 83
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 265.495041

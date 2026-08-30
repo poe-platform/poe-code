@@ -1,0 +1,14 @@
+{
+  "role": "NEW_STAGE_A_DATA_ONLY_NOT_INHERITED12_RERUN",
+  "controls": [
+    "same-buffer-literal-positive",
+    "wrong-size",
+    "wrong-hash",
+    "encoded-cap",
+    "directory",
+    "missing",
+    "traversal",
+    "instruction-path"
+  ],
+  "productExecutions": 0
+}

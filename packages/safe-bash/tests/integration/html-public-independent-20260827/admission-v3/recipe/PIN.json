@@ -1,0 +1,97 @@
+{
+  "schema": "html-admission-v3-pin/1",
+  "authorityDate": "2026-08-27",
+  "nodeVersion": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "osRelease": "25.4.0",
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "git": {
+      "path": "/usr/bin/git",
+      "realpath": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    "ps": {
+      "path": "/bin/ps",
+      "realpath": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    }
+  },
+  "sources": [
+    {
+      "name": "v2-seal",
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c",
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/SEAL.json",
+      "sha256": "82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7"
+    },
+    {
+      "name": "v2-core",
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c",
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/core.mjs",
+      "sha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+    },
+    {
+      "name": "v2-producer",
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c",
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/stream-fixture.mjs",
+      "sha256": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c"
+    },
+    {
+      "name": "v2-controls",
+      "commit": "aa4374b0ab5f0789e51026b7c6fe163c044a9a6c",
+      "path": "tests/integration/html-public-independent-20260827/admission-v2/controls.mjs",
+      "sha256": "f060af44af319af2a9f808857c2018d19e0c1d5ce52aae2fcbbdf89775261016"
+    },
+    {
+      "name": "diagnosis",
+      "commit": "e579a96ca8889174b24d9c805a00a1f3d48305e2",
+      "path": "tests/integration/html-public-admission-rss-diagnosis-20260827/DIAGNOSIS.data",
+      "sha256": "e44cf29f08c9d5fef8fbc377e929a1c4e6bc8039a4a419f1f28656ab6db94e6b"
+    },
+    {
+      "name": "diagnosis-manifest",
+      "commit": "e579a96ca8889174b24d9c805a00a1f3d48305e2",
+      "path": "tests/integration/html-public-admission-rss-diagnosis-20260827/MANIFEST.json",
+      "sha256": "499314cd3672714796aed5244cea61d996cb654ea9b267374e15c540bb16c9a9"
+    },
+    {
+      "name": "independent-supervisor",
+      "commit": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48",
+      "path": "tests/integration/html-public-admission-v2-independent-20260827/supervise.mjs",
+      "sha256": "f61f1d9ab315e984cfd6da3d9b398e02c56741b881d936441dd93240a30061a6"
+    }
+  ],
+  "bindings": {
+    "originalFreeze": "54f1e4d819e0d3cde422c1f305a84474932e3bac",
+    "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+    "source": "28cf1518eb3e1a27c5439ba89ff1801e3f852c3b",
+    "tree": "9641374115db435022ac172ec9c99d305e07dbe4",
+    "fullArchiveSha256": "cb7f6b6d68f5946c3300e28156367ba42d1af83b12cb1b4be88832c50dfbfd07",
+    "fullPackSha256": "d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7"
+  },
+  "policy": {
+    "bytes": 1073872896,
+    "producerWrites": 16386,
+    "sha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+    "rssExclusiveBytes": 268435456,
+    "heapFlag": "--max-old-space-size=96",
+    "controlDeadlineMs": 45000,
+    "cleanupGraceMs": 3000,
+    "timeoutAfterReadyMs": 250,
+    "allocationStepBytes": 8388608,
+    "allocationMaxSteps": 40,
+    "allocationOvershootMaxBytes": 67108864,
+    "controls": [
+      "positive",
+      "producer-exit7",
+      "consumer-failure",
+      "timeout",
+      "allocation-mutant"
+    ]
+  }
+}

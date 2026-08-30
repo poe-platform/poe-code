@@ -1,0 +1,27 @@
+{
+  "classification": "Selected amended B18 qualification only",
+  "candidate": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "overlayCommit": "5194b7579ebc090d737d59f78793afeff9774976",
+  "captureSha256": "961904c2ac51dcccefa789d723f09b32d00754379f511bc80e10700a9d728359",
+  "effectiveCohortSha256": "d433d826a5f8314ea8947e4a3dcc5cbf8a74c0470f24c0df60a881501898e313",
+  "source": {
+    "passed": 1,
+    "failed": 0
+  },
+  "moved": {
+    "passed": 1,
+    "failed": 0
+  },
+  "scopedBuildStatus": 0,
+  "all26Rescored": false,
+  "original": "25/26 per layout retained unchanged",
+  "nativeRuns": 0,
+  "publicRuns": 0,
+  "activeOwnedProcesses": [],
+  "taskRootRemoved": true,
+  "harnessHashes": {
+    "run.mjs": "416cd7c120ddf84d80ce56027f79ed0928e3f3a80c339143ef99531e26d2ae2c",
+    "verify-result.mjs": "df8ff5e142ecadafa50f84b2a8ee8d976c64024fd80617c4a08b52d68c0b69be",
+    "QUALIFICATION.md": "46efb31201e90f1086af89f7d83254d155ddc703d542007a28ae673eb4b71207"
+  }
+}

@@ -1,0 +1,955 @@
+{
+  "date": "2026-08-27",
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "a02b7eac1403da9813098cad69e858fd053dfaef55c6ecb943485c4ba01edca4",
+    "shell.ts": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+    "types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "scenarios": "0a7d5d2b907303be75d74d4cca1554a3feb6916fd46bcf13173b3414f1df1cbc",
+  "directShebangInterpreter": "/bin/bash (historical 3.2, even beneath primary parent)",
+  "profiles": [
+    {
+      "name": "GNU-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "observations": [
+        {
+          "name": "builtin discovery",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-ITYOgi",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQpmYWxzZQpyZWFkCmNvbW1hbmQKdHlwZQpidWlsdGluCmJ1aWx0aW4KYnVpbHRpbgpidWlsdGluCmJ1aWx0aW4K",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "verbose discovery",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-Vn4Dva",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZSBpcyBhIHNoZWxsIGJ1aWx0aW4KZmFsc2UgaXMgYSBzaGVsbCBidWlsdGluCnRydWUgaXMgYSBzaGVsbCBidWlsdGluCmZhbHNlIGlzIGEgc2hlbGwgYnVpbHRpbgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "mixed status",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-ZH4GIh",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQp2OjAKYnVpbHRpbgp0OjEK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "missing verbose",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-okXsty",
+          "locale": "C",
+          "observation": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMTogdHlwZTogbWlzc2luZzogbm90IGZvdW5kCnByb2JlOiBsaW5lIDE6IGNvbW1hbmQ6IGFic2VudDogbm90IGZvdW5kCg==",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "empty invocations",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-yqDvbh",
+          "locale": "C",
+          "observation": {
+            "stdout": "MAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function precedence",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-BF6vsx",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuY3Rpb24KZnVuY3Rpb24KdHJ1ZQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function definition",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-XmVhdl",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuIGlzIGEgZnVuY3Rpb24KZnVuICgpIAp7IAogICAgcHJpbnRmICclc1xuJyAiJDEiOwogICAgOgp9CmZ1biBpcyBhIGZ1bmN0aW9uCmZ1biAoKSAKeyAKICAgIHByaW50ZiAnJXNcbicgIiQxIjsKICAgIDoKfQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function bypass",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-Vz9CXD",
+          "locale": "C",
+          "observation": {
+            "stdout": "MAoxCg==",
+            "stderr": "",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "type options",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-uqhq1P",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuY3Rpb24KYnVpbHRpbgpidWlsdGluCmZ1bmN0aW9uCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "option ordering",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-Rsl04g",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZSBpcyBhIHNoZWxsIGJ1aWx0aW4KdHJ1ZQpidWlsdGluCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "literal terminator",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-Ll2PPS",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQpidWlsdGluCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "command assignment isolation",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-DichUj",
+          "locale": "C",
+          "observation": {
+            "stdout": "b2xkOm9rCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "path candidate",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-Ffypzh",
+          "locale": "C",
+          "observation": {
+            "stdout": "YmluL3Rvb2wKdG9vbCBpcyBiaW4vdG9vbApmaWxlCmJpbi90b29sCnRvb2w6aGkK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJ0b29sOiVzXG4iICIkMSIK"
+            }
+          }
+        },
+        {
+          "name": "spaces and empty path",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-4eVhD6",
+          "locale": "C",
+          "observation": {
+            "stdout": "Li9hIGIKYSBiIGlzIC4vYSBiCnNwYWNlCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "a b": "IyEvYmluL2Jhc2gKcHJpbnRmICJzcGFjZVxuIgo="
+            }
+          }
+        },
+        {
+          "name": "multiple paths",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-lw1EDt",
+          "locale": "C",
+          "observation": {
+            "stdout": "b25lL3Rvb2wKdHdvL3Rvb2wKb25lL3Rvb2wKdHdvL3Rvb2wKb25lL3Rvb2wKb25lCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "one/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJvbmVcbiIK",
+              "two/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJ0d29cbiIK"
+            }
+          }
+        },
+        {
+          "name": "prefix path",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-KdC7sT",
+          "locale": "C",
+          "observation": {
+            "stdout": "YmluL3Rvb2wKcHJlZml4Cg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJwcmVmaXhcbiIK"
+            }
+          }
+        },
+        {
+          "name": "local path",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-80upL3",
+          "locale": "C",
+          "observation": {
+            "stdout": "YmluL3Rvb2wKbG9jYWwKMQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJsb2NhbFxuIgo="
+            }
+          }
+        },
+        {
+          "name": "cwd refresh",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-CoKmCk",
+          "locale": "C",
+          "observation": {
+            "stdout": "Li90b29sCi4vdG9vbAppbm5lcgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJpbm5lclxuIgo=",
+              "tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJvdXRlclxuIgo="
+            }
+          }
+        },
+        {
+          "name": "builtin discovery",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-EPcfCp",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQpmYWxzZQpyZWFkCmNvbW1hbmQKdHlwZQpidWlsdGluCmJ1aWx0aW4KYnVpbHRpbgpidWlsdGluCmJ1aWx0aW4K",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "verbose discovery",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-dgzhlW",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZSBpcyBhIHNoZWxsIGJ1aWx0aW4KZmFsc2UgaXMgYSBzaGVsbCBidWlsdGluCnRydWUgaXMgYSBzaGVsbCBidWlsdGluCmZhbHNlIGlzIGEgc2hlbGwgYnVpbHRpbgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "mixed status",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-w3VPZX",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQp2OjAKYnVpbHRpbgp0OjEK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "missing verbose",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-YpWF6l",
+          "locale": "C",
+          "observation": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMTogdHlwZTogbWlzc2luZzogbm90IGZvdW5kCnByb2JlOiBsaW5lIDE6IGNvbW1hbmQ6IGFic2VudDogbm90IGZvdW5kCg==",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "empty invocations",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-cTKlkl",
+          "locale": "C",
+          "observation": {
+            "stdout": "MAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function precedence",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-8lo1Cu",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuY3Rpb24KZnVuY3Rpb24KdHJ1ZQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function definition",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-pogGs3",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuIGlzIGEgZnVuY3Rpb24KZnVuICgpIAp7IAogICAgcHJpbnRmICclc1xuJyAiJDEiOwogICAgOgp9CmZ1biBpcyBhIGZ1bmN0aW9uCmZ1biAoKSAKeyAKICAgIHByaW50ZiAnJXNcbicgIiQxIjsKICAgIDoKfQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function bypass",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-xNunIP",
+          "locale": "C",
+          "observation": {
+            "stdout": "MAoxCg==",
+            "stderr": "",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "type options",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-i2sp57",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuY3Rpb24KYnVpbHRpbgpidWlsdGluCmZ1bmN0aW9uCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "option ordering",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-RJDGXm",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZSBpcyBhIHNoZWxsIGJ1aWx0aW4KdHJ1ZQpidWlsdGluCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "literal terminator",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-m7T2ZQ",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQpidWlsdGluCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "command assignment isolation",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-VZU3hY",
+          "locale": "C",
+          "observation": {
+            "stdout": "b2xkOm9rCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "path candidate",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-8cxWLZ",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLThjeFdMWi9iaW4vdG9vbAp0b29sIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS04Y3hXTFovYmluL3Rvb2wKZmlsZQovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvLmludm9jYXRpb24tY2xvc3VyZS1uYXRpdmUtOGN4V0xaL2Jpbi90b29sCnRvb2w6aGkK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJ0b29sOiVzXG4iICIkMSIK"
+            }
+          }
+        },
+        {
+          "name": "spaces and empty path",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-cdd6ZG",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLWNkZDZaRy8uL2EgYgphIGIgaXMgL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLWNkZDZaRy8uL2EgYgpzcGFjZQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "a b": "IyEvYmluL2Jhc2gKcHJpbnRmICJzcGFjZVxuIgo="
+            }
+          }
+        },
+        {
+          "name": "multiple paths",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-wMFYZT",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLXdNRllaVC9vbmUvdG9vbAovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvLmludm9jYXRpb24tY2xvc3VyZS1uYXRpdmUtd01GWVpUL3R3by90b29sCi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS13TUZZWlQvb25lL3Rvb2wKL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLXdNRllaVC90d28vdG9vbAovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvLmludm9jYXRpb24tY2xvc3VyZS1uYXRpdmUtd01GWVpUL29uZS90b29sCm9uZQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "one/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJvbmVcbiIK",
+              "two/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJ0d29cbiIK"
+            }
+          }
+        },
+        {
+          "name": "prefix path",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-2V0uH5",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLTJWMHVINS9iaW4vdG9vbApwcmVmaXgK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJwcmVmaXhcbiIK"
+            }
+          }
+        },
+        {
+          "name": "local path",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-rw8Fyh",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLXJ3OEZ5aC9iaW4vdG9vbApsb2NhbAoxCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJsb2NhbFxuIgo="
+            }
+          }
+        },
+        {
+          "name": "cwd refresh",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-IsU64o",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLUlzVTY0by8uL3Rvb2wKL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLUlzVTY0by9zdWIvLi90b29sCmlubmVyCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJpbm5lclxuIgo=",
+              "tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJvdXRlclxuIgo="
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "observations": [
+        {
+          "name": "builtin discovery",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-fJuhhP",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQpmYWxzZQpyZWFkCmNvbW1hbmQKdHlwZQpidWlsdGluCmJ1aWx0aW4KYnVpbHRpbgpidWlsdGluCmJ1aWx0aW4K",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "verbose discovery",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-l1vMMZ",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZSBpcyBhIHNoZWxsIGJ1aWx0aW4KZmFsc2UgaXMgYSBzaGVsbCBidWlsdGluCnRydWUgaXMgYSBzaGVsbCBidWlsdGluCmZhbHNlIGlzIGEgc2hlbGwgYnVpbHRpbgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "mixed status",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-pyf3sv",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQp2OjAKYnVpbHRpbgp0OjAK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "missing verbose",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-nH4kgf",
+          "locale": "C",
+          "observation": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMDogdHlwZTogbWlzc2luZzogbm90IGZvdW5kCnByb2JlOiBsaW5lIDA6IGNvbW1hbmQ6IGFic2VudDogbm90IGZvdW5kCg==",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "empty invocations",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-NDwMHV",
+          "locale": "C",
+          "observation": {
+            "stdout": "MAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function precedence",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-oQwBev",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuY3Rpb24KZnVuY3Rpb24KdHJ1ZQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function definition",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-h2oyxf",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuIGlzIGEgZnVuY3Rpb24KZnVuICgpIAp7IAogICAgcHJpbnRmICclc1xuJyAiJDEiOwogICAgOgp9CmZ1biBpcyBhIGZ1bmN0aW9uCmZ1biAoKSAKeyAKICAgIHByaW50ZiAnJXNcbicgIiQxIjsKICAgIDoKfQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function bypass",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-PRxwDs",
+          "locale": "C",
+          "observation": {
+            "stdout": "MAoxCg==",
+            "stderr": "",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "type options",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-Dg93JU",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuY3Rpb24KYnVpbHRpbgpidWlsdGluCmZ1bmN0aW9uCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "option ordering",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-mcQKT1",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZSBpcyBhIHNoZWxsIGJ1aWx0aW4KdHJ1ZQpidWlsdGluCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "literal terminator",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-9yFExq",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQpidWlsdGluCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "command assignment isolation",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-IM6EEw",
+          "locale": "C",
+          "observation": {
+            "stdout": "b2xkOm9rCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "path candidate",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-Qgsit0",
+          "locale": "C",
+          "observation": {
+            "stdout": "YmluL3Rvb2wKdG9vbCBpcyBiaW4vdG9vbApmaWxlCmJpbi90b29sCnRvb2w6aGkK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJ0b29sOiVzXG4iICIkMSIK"
+            }
+          }
+        },
+        {
+          "name": "spaces and empty path",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-afiAhL",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLWFmaUFoTC9hIGIKYSBiIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1hZmlBaEwvYSBiCnNwYWNlCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "a b": "IyEvYmluL2Jhc2gKcHJpbnRmICJzcGFjZVxuIgo="
+            }
+          }
+        },
+        {
+          "name": "multiple paths",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-c6CkwP",
+          "locale": "C",
+          "observation": {
+            "stdout": "b25lL3Rvb2wKdHdvL3Rvb2wKb25lL3Rvb2wKdHdvL3Rvb2wKb25lL3Rvb2wKb25lCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "one/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJvbmVcbiIK",
+              "two/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJ0d29cbiIK"
+            }
+          }
+        },
+        {
+          "name": "prefix path",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-E5cWv7",
+          "locale": "C",
+          "observation": {
+            "stdout": "YmluL3Rvb2wKcHJlZml4Cg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJwcmVmaXhcbiIK"
+            }
+          }
+        },
+        {
+          "name": "local path",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-aF1ZVM",
+          "locale": "C",
+          "observation": {
+            "stdout": "YmluL3Rvb2wKbG9jYWwKMQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJsb2NhbFxuIgo="
+            }
+          }
+        },
+        {
+          "name": "cwd refresh",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-aOwmGi",
+          "locale": "C",
+          "observation": {
+            "stdout": "Li90b29sCi4vdG9vbAppbm5lcgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJpbm5lclxuIgo=",
+              "tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJvdXRlclxuIgo="
+            }
+          }
+        },
+        {
+          "name": "builtin discovery",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-ggy3UQ",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQpmYWxzZQpyZWFkCmNvbW1hbmQKdHlwZQpidWlsdGluCmJ1aWx0aW4KYnVpbHRpbgpidWlsdGluCmJ1aWx0aW4K",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "verbose discovery",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-QUKTQ8",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZSBpcyBhIHNoZWxsIGJ1aWx0aW4KZmFsc2UgaXMgYSBzaGVsbCBidWlsdGluCnRydWUgaXMgYSBzaGVsbCBidWlsdGluCmZhbHNlIGlzIGEgc2hlbGwgYnVpbHRpbgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "mixed status",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-EmxUgb",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQp2OjAKYnVpbHRpbgp0OjAK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "missing verbose",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-lV0lKx",
+          "locale": "C",
+          "observation": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMDogdHlwZTogbWlzc2luZzogbm90IGZvdW5kCnByb2JlOiBsaW5lIDA6IGNvbW1hbmQ6IGFic2VudDogbm90IGZvdW5kCg==",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "empty invocations",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-mnx0gM",
+          "locale": "C",
+          "observation": {
+            "stdout": "MAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function precedence",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-QiIPuS",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuY3Rpb24KZnVuY3Rpb24KdHJ1ZQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function definition",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-5UC6rs",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuIGlzIGEgZnVuY3Rpb24KZnVuICgpIAp7IAogICAgcHJpbnRmICclc1xuJyAiJDEiOwogICAgOgp9CmZ1biBpcyBhIGZ1bmN0aW9uCmZ1biAoKSAKeyAKICAgIHByaW50ZiAnJXNcbicgIiQxIjsKICAgIDoKfQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "function bypass",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-ZNELze",
+          "locale": "C",
+          "observation": {
+            "stdout": "MAoxCg==",
+            "stderr": "",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "type options",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-0Kx4Oe",
+          "locale": "C",
+          "observation": {
+            "stdout": "ZnVuY3Rpb24KYnVpbHRpbgpidWlsdGluCmZ1bmN0aW9uCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "option ordering",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-NwHBp8",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZSBpcyBhIHNoZWxsIGJ1aWx0aW4KdHJ1ZQpidWlsdGluCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "literal terminator",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-spRjNk",
+          "locale": "C",
+          "observation": {
+            "stdout": "dHJ1ZQpidWlsdGluCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "command assignment isolation",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-nMvWW9",
+          "locale": "C",
+          "observation": {
+            "stdout": "b2xkOm9rCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "path candidate",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-YxeYUt",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLVl4ZVlVdC9iaW4vdG9vbAp0b29sIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1ZeGVZVXQvYmluL3Rvb2wKZmlsZQovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvLmludm9jYXRpb24tY2xvc3VyZS1uYXRpdmUtWXhlWVV0L2Jpbi90b29sCnRvb2w6aGkK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJ0b29sOiVzXG4iICIkMSIK"
+            }
+          }
+        },
+        {
+          "name": "spaces and empty path",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-WDzfY4",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLVdEemZZNC9hIGIKYSBiIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1XRHpmWTQvYSBiCnNwYWNlCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "a b": "IyEvYmluL2Jhc2gKcHJpbnRmICJzcGFjZVxuIgo="
+            }
+          }
+        },
+        {
+          "name": "multiple paths",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-vAJjRT",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLXZBSmpSVC9vbmUvdG9vbAovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvLmludm9jYXRpb24tY2xvc3VyZS1uYXRpdmUtdkFKalJUL3R3by90b29sCi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS12QUpqUlQvb25lL3Rvb2wKL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLXZBSmpSVC90d28vdG9vbAovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvLmludm9jYXRpb24tY2xvc3VyZS1uYXRpdmUtdkFKalJUL29uZS90b29sCm9uZQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "one/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJvbmVcbiIK",
+              "two/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJ0d29cbiIK"
+            }
+          }
+        },
+        {
+          "name": "prefix path",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-QkQqmg",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLVFrUXFtZy9iaW4vdG9vbApwcmVmaXgK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJwcmVmaXhcbiIK"
+            }
+          }
+        },
+        {
+          "name": "local path",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-3Slrwi",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLTNTbHJ3aS9iaW4vdG9vbApsb2NhbAoxCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "bin/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJsb2NhbFxuIgo="
+            }
+          }
+        },
+        {
+          "name": "cwd refresh",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/.invocation-closure-native-f5yjSR",
+          "locale": "C",
+          "observation": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLWY1eWpTUi8uL3Rvb2wKL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLWY1eWpTUi9zdWIvLi90b29sCmlubmVyCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJpbm5lclxuIgo=",
+              "tool": "IyEvYmluL2Jhc2gKcHJpbnRmICJvdXRlclxuIgo="
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

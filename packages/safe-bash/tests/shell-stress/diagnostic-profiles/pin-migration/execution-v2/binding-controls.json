@@ -1,0 +1,64 @@
+{
+  "label": "binding-controls",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/tmp",
+    "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_TSCONFIG_PATH": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tsconfig.json"
+  },
+  "timeout": 240000,
+  "maxBuffer": 16777216,
+  "pid": 23256,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 233,
+  "counts": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cohortCounts": {
+    "original-differential": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "original-syntax": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "current-gaps": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    },
+    "identity": {
+      "tests": 0,
+      "pass": 0,
+      "fail": 0
+    }
+  },
+  "hookFailures": 0,
+  "failures": [],
+  "stdoutSha256": "3e026b5e7639ca5238574a07236aa709ae9ce54f744130167dec828d6225d27f",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "processGroupClosed": true
+}

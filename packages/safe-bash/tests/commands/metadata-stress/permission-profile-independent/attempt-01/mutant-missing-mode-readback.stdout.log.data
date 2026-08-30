@@ -1,0 +1,45 @@
+TAP version 13
+# Subtest: independent helper: authorized member group before mode, exact readback after mode
+not ok 1 - independent helper: authorized member group before mode, exact readback after mode
+  ---
+  duration_ms: 28.724292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/review.test.ts:1:7672'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/review.test.ts:166:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: independent helper: ownership, symlink, namespace and identity rejection before mutation
+ok 2 - independent helper: ownership, symlink, namespace and identity rejection before mutation
+  ---
+  duration_ms: 47.439167
+  type: 'test'
+  ...
+# Subtest: independent helper: unavailable chgrp and dishonest group readback fail explicitly
+ok 3 - independent helper: unavailable chgrp and dishonest group readback fail explicitly
+  ---
+  duration_ms: 9.22
+  type: 'test'
+  ...
+# Subtest: independent helper: changed entry/group/root and invalid modes cannot reach chmod
+ok 4 - independent helper: changed entry/group/root and invalid modes cannot reach chmod
+  ---
+  duration_ms: 13.602958
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 537.292916

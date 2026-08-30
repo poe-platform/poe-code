@@ -1,0 +1,72 @@
+{
+  "schema": "V7_R3_OUTER_PREEXECUTION_SEAL_V1",
+  "date": "2026-08-29",
+  "files": [
+    {
+      "path": "capture.mjs",
+      "bytes": 14387,
+      "mode": 420,
+      "sha256": "c0b7cac1404f15726d03c4494236be4aa9518fb6a8c645241eeec65cd243f46d"
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 7180,
+      "mode": 420,
+      "sha256": "27616cedb3ccd01757dac8b78b8e0202281d9d990e695fa19b9fdff9a76c2429"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 14553,
+      "mode": 420,
+      "sha256": "229ad1766aa23a59af739e9f0c788b6600e9fe458aa7daaa5fda325f5e2debe3"
+    },
+    {
+      "path": "stub.mjs",
+      "bytes": 664,
+      "mode": 420,
+      "sha256": "43ab9aef2c76a1dccefa327e7209f7fdd867b11c52dc9c905bed16759e4e9a31"
+    },
+    {
+      "path": "CONTROL-PLAN.json",
+      "bytes": 3884,
+      "mode": 420,
+      "sha256": "22f86692a28d24329284928edde7112c87416caf1ba732c6fac6511d84f0aac5"
+    },
+    {
+      "path": "INACTIVE-GRANT-METADATA.json",
+      "bytes": 3086,
+      "mode": 420,
+      "sha256": "a15d5113c4b6dd402bc323e62077745134aa6b4e56b59c813d3ebee8043428d7"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5590,
+      "mode": 420,
+      "sha256": "65c27abee29933e372b6e6c06f1634a5e442b039d0e0ef27f33a9ac1d2a79fc3"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "bindings": {
+    "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+    "interfaceSha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18",
+    "launch": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs",
+      "bytes": 2584,
+      "mode": 420,
+      "sha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed"
+    }
+  },
+  "controls": {
+    "cases": 25,
+    "attempts": 1,
+    "actualStubChildren": 17,
+    "spawnAttempts": 18,
+    "actualEngines": 0
+  },
+  "actualAuthorized": false
+}

@@ -1,0 +1,34 @@
+{
+  "label": "new7-r0-D06",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs",
+    "D06"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:01.291Z",
+  "finishedAt": "2026-08-27T10:38:01.382Z",
+  "durationMs": 91.58816699999988,
+  "timeoutMs": 5000,
+  "maxBytes": 262144,
+  "pid": 5410,
+  "initialIdentity": "5410  4804  5410 Thu Aug 27 05:38:01 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs D06",
+  "status": 0,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"D06\",\"passed\":true,\"records\":[{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"pending.snapshot\",\"next\":2,\"active\":1,\"requests\":0},{\"event\":\"curl.result\",\"result\":{\"exitCode\":0,\"stdout\":\"\",\"stderr\":\"mixed-stderr-completes\\n\"},\"statuses\":[141],\"reads\":3,\"requests\":1},{\"event\":\"vfs.effects\",\"/direction/body\":\"mixed-body-kept\\n\",\"/direction/headers\":\"HTTP/1.1 200 OK\\r\\nContent-Length: 16\\r\\nX-Direction: mixed\\r\\nConnection: close\\r\\n\\r\\n\",\"/direction/independent\":\"file-still-completes\\n\"},{\"event\":\"wire\",\"value\":\"HTTP/1.1 200 OK\\r\\nContent-Length: 16\\r\\nX-Direction: mixed\\r\\nConnection: close\\r\\n\\r\\nmixed-body-kept\\n\"},{\"event\":\"network.before-teardown\",\"requests\":[{\"url\":\"/mixed\",\"body\":\"mixed-prefix\\nmixed-late\\n\"}],\"sockets\":0,\"borrowed\":{\"next\":3,\"returns\":0,\"cancel\":0,\"close\":0,\"active\":0,\"maxActive\":1,\"delivered\":[0,1]}},{\"event\":\"server.cleanup\",\"sockets\":0}],\"failures\":[],\"unhandled\":[]}\n",
+  "stderr": ""
+}

@@ -1,0 +1,332 @@
+{
+  "profile": "Apple /usr/bin/rev Darwin25.4.0 arm64, not coreutils or util-linux",
+  "cases": [
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "6162630a0a6c617374",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "6362610a0a7473616c0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6362610a0a7473616c0a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "610062ff0a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "ff6200610a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "ff6200610a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "c3a9f09f99820a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "82999ff0a9c30a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "82999ff0a9c30a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "POSIX"
+      },
+      "inputHex": "c3a9f09f99820a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "82999ff0a9c30a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "82999ff0a9c30a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {},
+      "inputHex": "61ff620a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "62ff610a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "62ff610a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "c3a9f09f99820a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "f09f9982c3a90a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "f09f9982c3a90a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "61cc81f09f99820aefbbbf780a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "f09f9982cc81610a78efbbbf0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "f09f9982cc81610a78efbbbf0a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "6100620a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "6200610a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6200610a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "61ff620a630a",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "610a",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "610a",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "ff0a",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "61c3",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "610a",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "610a",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "61c30a",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "610a",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "610a",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "c3a9ff0a",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "c3a90a",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "c3a90a",
+        "stderr": "rev: stdin: Illegal byte sequence\n"
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "6162",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "62610a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "62610a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-x"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "/usr/bin/rev: illegal option -- x\nusage: rev [file ...]\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "rev: invalid option -- 'x'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "rev: -: No such file or directory\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "rev: ENOENT: no such file or directory, stat '/-'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    }
+  ]
+}

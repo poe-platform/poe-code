@@ -1,0 +1,114 @@
+{
+  "classification": "AUTHOR_CAPTURE_LOGS_ORIGINAL_BYTES_AS_UTF8_STRINGS",
+  "sourceDirectory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-8HPo92",
+  "logs": [
+    {
+      "name": "author-runtime.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "author-runtime.stdout.log",
+      "bytes": 5469,
+      "sha256": "823feae9540cc2442ee711ff0b4324381795fb76dc415e3d26631d63df2706cb",
+      "text": "TAP version 13\n# Subtest: factory validation: all eighteen defaults/hard ceilings and invalid values\nok 1 - factory validation: all eighteen defaults/hard ceilings and invalid values\n  ---\n  duration_ms: 5.047458\n  type: 'test'\n  ...\n# Subtest: literal consuming selectors: order, occurrence, signed, range, complement, quote oddities\nok 2 - literal consuming selectors: order, occurrence, signed, range, complement, quote oddities\n  ---\n  duration_ms: 45.847791\n  type: 'test'\n  ...\n# Subtest: S/N selectors and argv fail before metadata or iterator acquisition\nok 3 - S/N selectors and argv fail before metadata or iterator acquisition\n  ---\n  duration_ms: 6.105333\n  type: 'test'\n  ...\n# Subtest: R resolution reads exactly one header and never touches poison next or output\nok 4 - R resolution reads exactly one header and never touches poison next or output\n  ---\n  duration_ms: 2.901791\n  type: 'test'\n  ...\n# Subtest: CSV command-specific CR, count quote splitting, BOM, EOF and chunk boundaries\nok 5 - CSV command-specific CR, count quote splitting, BOM, EOF and chunk boundaries\n  ---\n  duration_ms: 88.44525\n  type: 'test'\n  ...\n# Subtest: byte ownership with reused producer buffer and mutation at finalization\nok 6 - byte ownership with reused producer buffer and mutation at finalization\n  ---\n  duration_ms: 4.649333\n  type: 'test'\n  ...\n# Subtest: binary invalid UTF-8 is confined to headers display, with byte-exact indexed cells\nok 7 - binary invalid UTF-8 is confined to headers display, with byte-exact indexed cells\n  ---\n  duration_ms: 1.81425\n  type: 'test'\n  ...\n# Subtest: headers presentation, multiple inputs duplicate tally and transposed CSV\nok 8 - headers presentation, multiple inputs duplicate tally and transposed CSV\n  ---\n  duration_ms: 4.722625\n  type: 'test'\n  ...\n# Subtest: slice ordinary post-write zero ranges, indices, tail ring, and uniform L0\nok 9 - slice ordinary post-write zero ranges, indices, tail ring, and uniform L0\n  ---\n  duration_ms: 8.894958\n  type: 'test'\n  ...\n# Subtest: early output stops avoid poison chunks and do not return borrowed stdin\nok 10 - early output stops avoid poison chunks and do not return borrowed stdin\n  ---\n  duration_ms: 1.251375\n  type: 'test'\n  ...\n# Subtest: count is width-independent; selected/sliced ragged rows preserve earlier output\nok 11 - count is width-independent; selected/sliced ragged rows preserve earlier output\n  ---\n  duration_ms: 0.460708\n  type: 'test'\n  ...\n# Subtest: all eighteen limit boundaries: pure ledgers and command refusal recipes\nok 12 - all eighteen limit boundaries: pure ledgers and command refusal recipes\n  ---\n  duration_ms: 4.161042\n  type: 'test'\n  ...\n# Subtest: diagnostic is all-or-nothing and shares stdout budget\nok 13 - diagnostic is all-or-nothing and shares stdout budget\n  ---\n  duration_ms: 1.010209\n  type: 'test'\n  ...\n# Subtest: caller cancellation exact primitives/errors and sink failures escape unchanged\nok 14 - caller cancellation exact primitives/errors and sink failures escape unchanged\n  ---\n  duration_ms: 3.395542\n  type: 'test'\n  ...\n# Subtest: backpressure, already closed stdout, independent file destination and stderr\nok 15 - backpressure, already closed stdout, independent file destination and stderr\n  ---\n  duration_ms: 8.40175\n  type: 'test'\n  ...\n# Subtest: output alias guards, actual exclusive creation, dangling links, partial file and fallback\nok 16 - output alias guards, actual exclusive creation, dangling links, partial file and fallback\n  ---\n  duration_ms: 5.35625\n  type: 'test'\n  ...\n# Subtest: missing readStream refuses, owned early cleanup registers before acquisition and is idempotent\nok 17 - missing readStream refuses, owned early cleanup registers before acquisition and is idempotent\n  ---\n  duration_ms: 5.275208\n  type: 'test'\n  ...\n# Subtest: actual baseline Shell registry pipeline and parent output budget\nok 18 - actual baseline Shell registry pipeline and parent output budget\n  ---\n  duration_ms: 15.856375\n  type: 'test'\n  ...\n# Subtest: registered owned cooperative return drains on abort without waiting opaque next\nok 19 - registered owned cooperative return drains on abort without waiting opaque next\n  ---\n  duration_ms: 1.280709\n  type: 'test'\n  ...\n# Subtest: cleanup failure beats ordinary status but never original sink/caller rejection\nok 20 - cleanup failure beats ordinary status but never original sink/caller rejection\n  ---\n  duration_ms: 1.207042\n  type: 'test'\n  ...\n# Subtest: cooperative work yields, aborts before full scan and preserves exact reason\nok 21 - cooperative work yields, aborts before full scan and preserves exact reason\n  ---\n  duration_ms: 327.76475\n  type: 'test'\n  ...\n# Subtest: whole-result fallback checks simultaneous staging before publication\nok 22 - whole-result fallback checks simultaneous staging before publication\n  ---\n  duration_ms: 3.77425\n  type: 'test'\n  ...\n# Subtest: opaque metadata and file sink promises are observed, not cleanup barriers\nok 23 - opaque metadata and file sink promises are observed, not cleanup barriers\n  ---\n  duration_ms: 0.795\n  type: 'test'\n  ...\n# Subtest: delimiter inference, independent output inference, literal leading-dash paths and help\nok 24 - delimiter inference, independent output inference, literal leading-dash paths and help\n  ---\n  duration_ms: 2.418542\n  type: 'test'\n  ...\n1..24\n# tests 24\n# suites 0\n# pass 24\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 783.620042\n"
+    },
+    {
+      "name": "baseline-archive.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-archive.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-build.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-typecheck.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-typecheck.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "candidate-build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "candidate-build.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "candidate-typecheck.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "candidate-typecheck.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "moved-smoke.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "moved-smoke.stdout.log",
+      "bytes": 62,
+      "sha256": "b318852241aa43473384a00094cb06ed70a4fc4458d8e6a6dd868bb842f80613",
+      "text": "compiled internal factory smoke only; not semantic acceptance\n"
+    },
+    {
+      "name": "moved-strict.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "moved-strict.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "tools-archive.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "tools-archive.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    }
+  ]
+}

@@ -1,0 +1,325 @@
+# Future comparison protocol — NOT AUTHORIZED TO EXECUTE
+
+## 1. Preserve cohorts, profiles and byte/effect predicates
+
+**Expanded original224:** use the exact ordered224 records from the cohort owner's
+captured JSON, not by importing `recipes.mjs`. Preserve IDs, script bytes, base64
+stdin/files, modes/times, directories, native exit expectation, projection order,
+command/kernel labels and every original result/failure. The original environment
+is `PATH=/usr/bin:/bin`, `HOME=/fixture`, `LANG=C`, `LC_ALL=C`, `TZ=UTC`, cwd
+`/fixture`; virtual TMPDIR is omitted, not replaced by an empty string or `/tmp`.
+Original native TMPDIR points at a nonexistent child of its fixture. The future
+profile must pin the original VFS constructor defaults; do not silently create
+extra directories. Default stdin provenance is recorded separately from bytes.
+
+**Expanded aligned224:** exact same recipes and comparison predicate, with
+preexisting virtual `/tmp` and `TMPDIR=/tmp`; native scratch is a precreated
+external directory projected to `/tmp`. Keep its separate native oracle. The old
+one-point change came from the native `command/patch/dry-run` empty `tmp` entry,
+not changed product bytes. Do not synthesize `/fixture/tmp`, hide directories,
+change stderr matching, or relabel this profile as the original. Preserve original
+and aligned result tables even if the new engine results happen to match.
+
+Each expanded comparison preserves exact equality of the historical stored,
+projected stdout/stderr representations, exit status and final recursive fixture
+entries (names/types/file bytes/link targets, mode where `specimen.modes`) under
+the unchanged four-field predicate. Keep original JSON/key ordering rules,
+selected metadata and root/origin projections. Capture limits are channel- and
+API-specific: native and virtual byte-backed captures and byte-preserving
+projections are not text-only. Baseline stderr crosses a public-text/UTF-8 boundary
+before base64 storage; original bytes lost at that boundary cannot be recovered
+by base64. This does not assert a particular historical row was corrupted or that
+all stdout/stderr channels share that text boundary.
+
+Future raw-byte capture, where available before such conversions, is separately
+labeled supplemental evidence, not retroactive proof of raw-byte fidelity for
+every channel in all224 historical cases. Do not recapture, alter goldens, broaden
+or relax the old predicate, or adjust scores for this wording correction. Root
+metadata, most times, ownership, outside-fixture effects and provider operations
+were not comprehensively scored historically; separately labeled supplemental
+censuses do not rewrite the224 assertion denominator.
+
+**Breadth:** exact61 primary plus7 reachability diagnostics per engine, with the
+original54 target spellings, three overlap controls and four shared controls.
+Keep original declared-intent predicates and complete raw before/after censuses;
+they are not a full cross-engine equality predicate or native goldens. Preserve
+help/informational, no-op, diagnostic-stub, parser/prerequisite-blocked,
+unsupported/setup-unavailable and reached-handler classifications. A diagnostic
+does not gain positive functionality credit. Both failing never means parity.
+The historical JS guest success/cleanup failure remains a failure, even if
+termination eventually removes its worker. Preserve attempt001, corrected002,
+reviewer lost-delivery/continuation and unknown product phase rather than inventing
+a completed137th observation. No private SafeJS checkout/runtime is accessed.
+
+Breadth's env differs: `PATH=/usr/bin:/bin`, `HOME=/home/user`, `TMPDIR=/tmp`,
+`LANG=C`, `LC_ALL=C`, `TZ=UTC`, `USER=user`, plus explicit recipe exports. Preserve
+the actual corrected setup `/tmp` and `/home/user`, not stale `/fixture/tmp` prose.
+Pin ordinary/optional configurations and exact runtime assets separately; a missing
+legitimate runtime is unavailable, never a fabricated runtime failure or pass.
+
+**New holdouts:** sibling v1 proposes24 recipes for12 documented names, not
+holdouts for the known planned tree/file additions or proof all12 are new. Their new native expectations
+are null. ROOT must bind the exact future names/diff and authorize an independent
+native capture before measurement. Keep proposed1MiB/channel,64KiB input,128
+entries and10s deadline as a separate profile. Its guest PATH is not supplied in
+the proposal; ROOT must explicitly choose and record PATH and ambient-default
+policy before setup, not silently copy the historical PATH. Keep real stdin
+provenance, explicit UTC epochs and named printenv queries. No sleep precision
+or performance assertions, cloud effects, network/private writes or new du work.
+
+There is **no union score** for the expanded224, breadth54/61/68 and proposed24.
+Overlap maps disclose exact/partial semantic families; disjoint hashes or names
+do not establish disjoint workflows. Never suppress baseline-only failures or
+unmeasured names to improve the apparent denominator.
+
+## 2. Package/public entry, dispatch and environmental evidence
+
+Future execution must use ROOT's actual packed public product entries. A replay
+using the old source-entry harness would be a separately disclosed source profile,
+not packed-consumer evidence. The historical baseline entry is
+`dist/bundle/index.js`, authenticated SHA256
+`70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c` for3.4.2.
+Record the actual new resolved URLs/realpaths/bytes, package exports, lockfiles and
+installed transitive/optional assets; manifests of intended paths are not observed
+evaluation. Retain immutable explicit load roots and pre/post membership hashes.
+
+Use public `agentCommands()` once, with its inspected collision policy; only
+explicit curl cases add its legitimate optional network plugin. SafeJS remains
+separate and needs injected legitimate hooks; compatible spellings do not install
+that capability. Record kernel builtins, registered plugins/handlers, aliases,
+function shadowing and actual dispatch as different fields. `true`, `false`, `pwd`
+were historically kernel-shadowed; `type -t` is not authority to relabel plugin
+tools as builtins. Wrappers must forward original argv/return/signals without
+substitution; validate neutrality with separately counted, approved controls.
+Capture actual unshadowed target dispatch, not just a static command inventory.
+
+Every engine process has an explicit allowlisted host environment: no ambient
+`NODE_OPTIONS`, `NODE_PATH`, `LD_*`/`DYLD_*`, proxy or cloud credential inheritance.
+ROOT supplies exact host PATH/cwd/HOME/temp values; no inherited value is silently
+used. Record both actual host/guest maps and deliberate omissions/defaults.
+Scrubbing the old inherited host environment and using packed entries are disclosed
+orchestration changes; unchanged recipes do not mean an unchanged whole harness.
+
+Use fresh, explicit memory VFS fixtures per case. No implicit host files or native
+fallback. Fixed initial modes/times/bytes, symlink targets and selected root/scratch
+setup are captured before execution. Native scratch uses isolated role paths,
+explicit `umask022`, role-bin PATH and pinned GNU Bash5.3/coreutils9.7 plus actual
+mixed Darwin tools. Record native binary/library/OS identities: GNU on Darwin is
+not GNU/Linux. Preserve GNU sed4.9 policy and BSD evidence; POSIX env order stays
+unspecified. Provider/backend workflows require their own later profiles and are
+not proved by memory, injected SecureFetch, loopback or helper tests.
+
+No universal module trace claim: distinguish resolve/load/return/evaluation
+events, ESM/CJS, worker realms, WASM/assets and unobserved/native/syscall paths.
+Main-thread loader traces are not all-thread evaluation. Inspect worker preload
+inheritance explicitly; never inject a loader into guest runtimes by accident.
+Managed process ledgers are not kernel birth identity or proof of every host task.
+
+## 3. Common external caps; honest per-engine internal budgets
+
+All values below are **proposed caps, not measured timings or authorization**.
+ROOT must approve the exact mapping to the future inspected public APIs. Do not
+raise a failing case's budget or retry it under a larger envelope and count a pass.
+Retain original exhausted attempt and a separately approved profile if changed.
+
+| Expanded224 resource | virtual-bash internal | just-bash3.4.2 internal | Common external parent bound |
+| --- | --- | --- | --- |
+| Guest execution | propagated5s AbortSignal | same5s signal; maxExecutionTimeMs5000 | Guest deadline5s; sticky timeout even after late success |
+| Command/loop limits |10000 each; family limits separate |10000 each | No claim identical accounting semantics |
+| Output |4MiB public output setting |4MiB maxOutputSize |4MiB combined stdout/stderr raw capture; disclose this common transport cap versus internal semantics |
+| Pipes/network |4096-byte pipe watermark; explicit curl policy | native implementation;4s curl network timeout | No fake shared family budget; exact network policy below |
+| Startup/import | Node old-space256MiB | Node old-space256MiB |15s readiness; memory limit is not RSS/external/WASM cap |
+| Request incl. fixture setup | no separate budget inflation | no separate budget inflation |10s absolute, starts before setup, never reset by a result |
+| Settle/snapshot/dispose | real supported dispose required | record unavailable public dispose honestly |1s each within10s; no invented baseline dispose API |
+| Natural close | await owned cleanup, IPC disconnect | await actual guest/runtime resources |1s within10s for exit0, pipe close and known-resource census |
+| Emergency fallback | cannot create a clean pass | same | TERM1s -> KILL1s -> bounded stop-wait;28s total from launch |
+| Fixture snapshot | actual supplied VFS/signal | public raw byte reads |4096 entries/depth32,4MiB/file,32MiB aggregate |
+| Host diagnostic capture | bytes, not UTF8 code units | same |64KiB combined; truncate only with explicit failure and retained prefix/hash |
+| Framed report/IPC | bounded transport | same |64MiB total decoded transport, bounded metadata/events<=4096; fail oversized input before unbounded deserialization |
+
+Request budget includes setup and cleanup; the5s guest plus1s settlement,
+snapshot, disposal and natural-close ceilings do not each reset the10s deadline.
+Startup15s + request10s + TERM1s + KILL-close1s + watchdog slack1s =28s. The outer
+watchdog caps the entire child lifetime even if every inner event loop is blocked.
+`lifecycle-model.mjs` checks these deadlines with integers, not actual clocks.
+
+Breadth keeps its distinct30s ordinary/120s optional product profile,100-command/
+loop family settings where historically configured,4MiB output and10s cleanup
+grace. Do not silently inflate224 to120s to accommodate optional JS/Python. The
+historical parent envelope was budget+2*10s:50s ordinary/140s optional; propose
+keeping that absolute total including startup/setup/dispose/natural-close/fallback,
+with final TERM/KILL-close1s each reserved **inside** that envelope. Maintain
+10s natural cleanup grace only where it fits; failures remain failures. Freeze
+separate per-engine constructor/optional-runtime mappings before any call; V8
+heap/RSS ceilings for that optional profile need explicit root review, not the
+unjustified application or enlargement of the expanded heap budget. New holdouts
+have their own stricter profile and still need resource mapping review.
+
+Reader caps (256MiB per artifact/1GiB total) are not guest caps. V8 limits do not
+bound RSS, external buffers, uncooperative native work or WASM. A future host-level
+memory constraint must be honestly platform-qualified and identically applied;
+absence of such a guarantee is an explicit limitation, not a hidden safety claim.
+
+## 4. Required real lifecycle implementation and controls, later
+
+No real supervisor is delivered. The future implementation must satisfy this
+state machine independently for each engine, without a shared engine failure
+cancelling the other result or sharing a mutable shell budget:
+
+1. External parent/watchdog starts before engine admission. Record owned child/
+   group IDs and spawn receipt before readiness; scope signals only to that
+   admitted group, never name-based `pkill`. No invisible descendants or retries.
+   An additional watchdog outside a stalled coordinator bounds both coordinator
+   and owned engine group. Check group/capture closure, not only leader exit.
+2. At ready, send one hash-addressed case with exact IDs/nonce/sequence and a
+   single absolute request deadline. Reject malformed/duplicate/unsolicited/late
+   frames. Apply byte/count limits while reading before JSON/IPC allocation, with
+   backpressure. A returned IPC promise/callback is admission, not execution proof.
+3. Register cooperative cleanup before acquiring invocation-owned resources.
+   Record request/setup/actual exec start, signal propagation, guest result and
+   public exec settlement independently. Opaque/uncooperative work cannot be
+   forcibly settled by AbortController. Observe late rejections; never use a
+   raced promise as evidence of cleanup or let a late result replace a timeout.
+4. On guest deadline/cancel, close admission and signal abort. Wait only the
+   remaining bounded settlement interval. Track admitted cooperative resource
+   work, take a bounded snapshot when safe, call supported dispose in `finally`,
+   and await the same idempotent cleanup completion. Already-completed effects
+   cannot be undone; partial effects/capture remain raw evidence.
+5. Complete bounded snapshot and disposal, flush the final result/capture, await
+   final send callback, disconnect IPC, and allow **natural** child exit. Observe
+   separate `exit` and `close`/stdout+stderr EOF, worker/resource counts and group
+   closure. Do not `process.exit(0)`, terminate workers as routine cleanup, or
+   infer settlement merely because an observation was sent.
+6. Any stuck guest, setup, settlement, snapshot, disposal, pipe, child or worker
+   is a sticky failure. Send TERM at the earliest deadline, KILL after1s if still
+   owned/alive, and stop waiting after at most another1s/outer deadline. Record
+   signal-send errors, exit code/signal, captured bytes and unresolved/leaked
+   ownership; a KILL request is not observed termination. If closure is unknown,
+   report `FAIL_LEAK_OR_UNVERIFIED_CLOSE` and abort further admissions.
+7. Final outer watchdog handles an unresponsive coordinator and persists its
+   bounded journal independently. Once recovery is needed, classify failure even
+   if the worker later disappears. A leaked worker is **FAIL**, not cleaned-pass.
+   Product status0, lifecycle pass, native predicate pass and profile validity are
+   separate fields. Public API no-dispose is recorded as such, not a fabricated
+   successful dispose event. Parent/group death cannot prove all opaque host
+   promises settled; report the precise observable boundary.
+
+Future real mock children must cover never-ready import, sync guest stall, async
+late fulfillment/rejection, aborted exec still acquiring work, never-settling
+dispose, guest-correct worker leak, descendant/pipe retention, oversized stdout/
+stderr/IPC/snapshot, duplicate/late result, ignored TERM, missing close after KILL,
+and stalled coordinator. They require later approval; this task runs only pure
+event transcripts. Any observed failing control must be retained by attempt ID,
+and blocks measurement; independent stress/fix review is still outstanding.
+
+Historical expanded processes were long-lived across fresh VFS cases. A fresh
+per-case child provides defensible natural-close evidence but changes that host
+lifecycle and import/cache profile; label it an orchestration delta, not identical
+old execution. If ROOT requires a long-lived replay, prescribe per-case resource
+censuses and a separately approved closure phase; do not present that as per-case
+natural-child-close proof. Timing profiles must not mix these alternatives.
+
+## 5. Future curl: explicit bounded loopback only
+
+Current network capability is disabled and **no socket is opened here**. If later
+approved, bind only `127.0.0.1` on an OS-chosen port, record the actual numeric
+destination/port before case substitution, never wildcard/hostname/cloud. Parent
+owns server and sockets under the same watchdog; keep network off on all other
+cases. Preserve old8 curl workflows in each224 table, not a silently reduced216
+subset. Until approved, network rows are unexecuted, not skipped passes.
+
+Expand exact `{{BASE}}` substitution from the ROOT hash-bound case descriptor; authorize
+every redirect hop and method/path/port. Root approves the exact fixture bytes,
+status/headers and request sequence before measurement. Proposed maximums for the
+historical8: one request per nonredirect row, two for redirect =9 per engine/profile
+(36 across two engines/two profiles). Redirect is only same-origin `/redirect` to
+`/bytes`; no DNS/proxy or arbitrary destination. Requests are GET `/bytes`, POST
+`/echo` (stdin/file/json), GET `/redirect`, GET `/bytes` for output, GET `/missing`,
+GET `/auth`, with exact per-case method/path/body/auth and redirect-hop logs.
+The separate breadth curl uses one GET `/fixture.txt` per engine, different body
+and provider configuration, not the expanded binary fixture or a merged pass.
+
+Proposed per-request body/response4MiB,4s network timeout within the guest limit,
+max one redirect and exact aggregate expected requests; server request/header/
+connection limits must be fixed in the future profile. Extra or missing requests
+fail. Denied routes never dispatch to a real destination. Do not claim adversarial
+credential/redirect security from same-origin positives: separately approved
+controls are needed, with an exact additional call/request count. Use synthetic
+credentials only, strip cross-origin credential forwarding, never inherit host
+credentials or bypass certificate/global-environment settings. Curl remains a
+legitimate explicit plugin, with streaming/cancellation and VFS input/output.
+
+The old injected-SecureFetch breadth setup is not the same provider as Node
+transport; preserve both actual implementations and observed requests. No
+real/S3/WebDAV/deployed-provider claims arise from these deterministic fixtures.
+
+## 6. Later performance protocol, no timing now
+
+If ROOT later authorizes timing, first require complete matching status/raw bytes/
+projected effects under one exact source/profile, with no resource/cleanup failure.
+Ineligible/differing cases stay in the functional table, not filtered into apparent
+performance wins. Freeze workload IDs, exact iterations, cold/warm boundaries,
+memory measures, sample counts and host state before any measurement.
+
+Proposal: separate benchmark process profile, one explicit untimed warmup per
+fresh child, then five independent paired rounds per eligible workload. Alternate
+AB/BA by a predeclared balanced schedule (ten blocks if exact balance is required),
+retain each run and report median per engine and paired ratios with all raw
+samples/spread. One warmup/child, actual dispatch/effect checks and any extra
+neutrality controls count in ROOT's exact call allowance. No adaptive repeats,
+outlier deletion or comparisons against a historical machine/run.
+
+Same host/Node/CPU affinity policy where supported, sequential engines, no competing
+benchmark owners, fixed env/setup, host load/memory-pressure observations before/
+during/after. Predeclare a common-host-load exclusion or postponement rule; noisy
+rejected rounds stay archived. Shared-host scheduling is still a caveat, not a
+claim of controlled hardware. Report import/setup/exec/snapshot/cleanup separately;
+do not mix old execution-only time with process-lifetime memory. V8 heap, external,
+RSS and process maximum RSS differ; sampled peaks can miss synchronous spikes.
+No general superiority follows from a selected median, command count or cohort.
+
+Only mock integer deadline arithmetic runs now: no clocks sampled, performance
+API, warmup, native probe, benchmark or timing authorization is present.
+
+## 7. Whole-phase admission and report contract
+
+Historical preparation can select any nonempty cohort subset without approving
+all phases, including new24 or inventing oracles. Candidate execution approval
+remains separate. Tree/file are known planned additions, not count-inferred names.
+
+If all four inventories were later selected for execution, the illustrative
+case-bearing request arithmetic with the current unapproved24-holdout proposal is
+896 expanded requests (224*2 engines*2 profiles),136 breadth (68*2) and48 holdouts
+(24*2), **1080 case-bearing requests, not an approved total exec-call allowance**.
+Historical virtual setup also invoked `shell.exec("")`; if retained for both224
+profiles that alone adds448 product API calls. The future adapter must enumerate
+every setup, readiness, neutrality, transport, dispatch, cleanup and diagnostic
+product/native call, not hide empty calls or count constructor readiness as free
+proof. Controls and native capture are separately authorized; there is no timing
+warmup now. Missing approvals mean zero calls, not a partial selective score.
+
+ROOT's run manifest supplies exact ordered `(phase, profile, case, engine,
+purpose)` admissions and counts; reject unknown/duplicate/retry IDs. Fix at most
+one active engine child at a time, plus the declared coordinator/watchdog and
+explicitly accounted guest-owned workers. Never silently omit guest workers from
+the ownership ledger. Provider and worker-count limits need per-profile approval,
+not an unsupported promise that all engines use exactly one OS task.
+
+The outer phase deadline is fixed before launch as the sum of approved per-child
+envelopes plus explicitly capped supervisor/server setup and shutdown allowances.
+It never resets on progress, IPC success, retry, result or child replacement.
+It enforces a bounded call count, total captured bytes, and a predeclared total
+artifact-storage cap as well as each child's limits. Requests lacking an approved
+envelope (including new holdouts pending oracle/setup decisions) cannot enter the
+queue. Abort remaining admissions if ownership/closure becomes unknown; retain
+unexecuted rows in the declared denominator with their actual blocking reason.
+
+Each immutable attempt records input/approval/runner/entry/lock hashes; full host
+and guest profile; raw/projection-aware byte captures; guest status/signal; VFS
+before/after and partial effects; assertion fields; actual dispatch; all phase
+events and errors; timeout/cancellation/settlement/dispose facts; child and group
+exit/close; leftover resources; capture truncation and reasons. Lifecycle failure,
+invalid/unavailable oracle, unknown dispatch, unsupported runtime and unexecuted
+rows are not passes. Retain failed controls/retries beside later corrections with
+new IDs and approval hashes. No unsupported claim of universal module tracing or
+complete kernel-level process observation follows from this report structure.

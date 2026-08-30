@@ -1,0 +1,6 @@
+{
+  "id": "D07",
+  "name": "PC01 rejects shared caller and local signal",
+  "classification": "development-only-synthetic-control",
+  "status": "PASS"
+}

@@ -1,0 +1,29 @@
+{
+  "role": "ONLY_PHYSICAL_ROOT_AND_CAPTURE_NAMESPACE_DELTA",
+  "started": "2026-08-29T10:10:04.616Z",
+  "oldPresealSha256": "313ba365cb23d67187362a949087f0d264c63e5d3f776f0fc64e47f220825a2a",
+  "common": {
+    "before": "export const scope=path.join(repo,'tests/integration/agent-bash-coherent-author-20260829/stage-a');",
+    "after": "export const scope=path.join(repo,'tests/integration/agent-bash-coherent-author-20260829/stage-a-r2');"
+  },
+  "producer": {
+    "before": "work=seal.workRoot;assert.ok(!fs.existsSync(work));fs.mkdirSync(work,{mode:448});",
+    "after": "work=seal.workRoot;assert.ok(!fs.existsSync(work));assert.equal(fs.realpathSync(path.dirname(work)),path.dirname(work));fs.mkdirSync(work,{mode:448});assert.equal(fs.realpathSync(seal.aliasRoot),work);const physicalRootStat=fs.lstatSync(work),aliasRootStat=fs.statSync(seal.aliasRoot);assert.ok(physicalRootStat.isDirectory()&&!physicalRootStat.isSymbolicLink());assert.equal(aliasRootStat.dev,physicalRootStat.dev);assert.equal(aliasRootStat.ino,physicalRootStat.ino);json(path.join(work,'ROOT-IDENTITY.json'),{physical:work,alias:seal.aliasRoot,device:String(physicalRootStat.dev),inode:String(physicalRootStat.ino)});"
+  },
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceInputs": 309,
+  "selected": [
+    {
+      "path": "common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "produce.mjs",
+      "bytes": 12388,
+      "sha256": "90e859b3d261295875038789ccc99fd3625aaa1d2c31509143c50d3ed9690842"
+    }
+  ],
+  "fixtureSealSha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c",
+  "productionExecutions": 0
+}

@@ -1,0 +1,58 @@
+{
+  "stage": "PROVISIONAL PREP / NOT FROZEN / NOT EXECUTED",
+  "classification": "read-only evidence locators and preparation binding; not a finalized fixture or oracle",
+  "commits": {
+    "design": "91bcc1c9ec64e8e0bdb5db3055ee4c8609cd27a2",
+    "protocol": "4e2e582847bc3438f3092f963db05d12fc3bc6c5",
+    "observations": "4628da200ba3f79f13a07ea8f5881206f70e6819",
+    "localContracts": "b9ce9e61115c7d99dfa6a76591b3dcfdaee9ce21",
+    "authorRepositoryBase": "0e83ced9ef58f95dc49e1ecbd5d18a7995d9f35f"
+  },
+  "nativeProfileFromAuthorReceiptNotReauthenticated": {
+    "version": "0.54.0",
+    "sourceCommit": "2f9156c8ec79a3ecc09e0879735ac68ec8997b7a",
+    "binarySha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+    "publisherArchiveSha256": "fded89ddb5941a848a31e40c966c792754ea38dea6b2771fce02879ef197f6c0",
+    "platform": "Darwin arm64 25.4.0; author Node v22.22.2; non-TTY byte pipes",
+    "firstNativeStart": "2026-08-28T02:15:03.613Z",
+    "lastNativeClose": "2026-08-28T02:15:04.122Z",
+    "authorCalls": 28,
+    "authorStatus0": 23,
+    "authorStatus1": 5,
+    "meaning": "Observations, not passes; no independent rerun; checksum/version is not signature or reproducible-source-build proof",
+    "primarySourceInspectionHere": "None outside repository; original source-map/provenance references only"
+  },
+  "readOnlyInputs": [
+    {"commitKey":"design","path":"src/commands/xan/DESIGN.md","sha256":"8e27ec025c8277cf4fe422d19f9582c2a1b0ab9f9a5577200a1e449703b11c75","bytes":36792,"initialLiveSha256":"eab4712dd4a62081995626c642f833bce75d5cfce5e101cdfbb2b881a970228f"},
+    {"commitKey":"design","path":"src/commands/xan/design-evidence/RECEIPT.md","sha256":"99cfe1c2da8aa09b055113134cb48700685752411d9df18664cbe8c8292c1869","bytes":6531},
+    {"commitKey":"design","path":"src/commands/xan/design-evidence/SOURCE-MAP.md","sha256":"7bef1e1e9815441dd396c65cc99207fc14d6a64746f3e2aea577e3a99a9f85c7","bytes":5613},
+    {"commitKey":"protocol","path":"tests/commands/xan-oracle-prep-20260828/PROTOCOL.md","sha256":"ad03e7126c841358e812e6b4be38a44bceb530bc8dfb5e56420e39ee6591fd80","bytes":3473},
+    {"commitKey":"protocol","path":"tests/commands/xan-oracle-prep-20260828/ROWS.json","sha256":"7a019c039971f45e612a1bfffd17fc940bf425f326d19f84036cb68ed9d69db2","bytes":2809},
+    {"commitKey":"protocol","path":"tests/commands/xan-oracle-prep-20260828/provenance.json","sha256":"30b3343ea7c99a8168a366dd5e11b04dd87a472dddf2210db5f61684cef17aa4","bytes":13191},
+    {"commitKey":"protocol","path":"tests/commands/xan-oracle-prep-20260828/run.mjs","sha256":"57460aabc8a0863c7073c34d5d0bfbdea7f9dd9e9a20d0f170a182b672f027ca","bytes":5549},
+    {"commitKey":"observations","path":"tests/commands/xan-oracle-prep-20260828/OBSERVATIONS.md","sha256":"beeb74a4930b0695450b3cd3357e5e3370aa51827578890d9f822fc701aa99f2","bytes":3139},
+    {"commitKey":"observations","path":"tests/commands/xan-oracle-prep-20260828/RESULTS.json","sha256":"402fcdc93732d32ca87cdcb2b9bc4e896568f6763c5162c1dae4924771fc987a","bytes":54174},
+    {"commitKey":"localContracts","path":"src/contracts/command.md","sha256":"ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6","bytes":9253},
+    {"commitKey":"localContracts","path":"src/contracts/command.ts","sha256":"d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c","bytes":2968},
+    {"commitKey":"localContracts","path":"src/contracts/io.ts","sha256":"ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809","bytes":7663},
+    {"commitKey":"localContracts","path":"src/contracts/output.ts","sha256":"5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e","bytes":4661},
+    {"commitKey":"localContracts","path":"src/contracts/filesystem.md","sha256":"fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a","bytes":20876},
+    {"commitKey":"localContracts","path":"src/contracts/filesystem.ts","sha256":"e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522","bytes":3897},
+    {"commitKey":"localContracts","path":"src/commands/copy-identity.ts","sha256":"f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe","bytes":2179}
+  ],
+  "liveBindingRule": "At prewrite checkpoint all listed live paths matched sha256 except DESIGN, whose distinct initialLiveSha256 is explicit; compare original paths only, not append-proof tree integrity",
+  "literalObservationAnchors": [
+    {"row":"23-slice-zero","status":0,"stdoutHex":"610a300a310a","stderrHex":"","meaning":"Exact original row only; root separately chooses all-record -l 0 behavior"},
+    {"row":"24-slice-headless-zero","status":0,"stdoutHex":"300a310a","stderrHex":"","meaning":"Exact original -n row only; no mixed-mode observation"},
+    {"row":"12-count-bom-only","status":0,"stdoutHex":"300a","stderrHex":"","meaning":"Does not establish split-BOM/malformed policy"},
+    {"row":"19-select-invalid-utf8","status":0,"stdoutHex":"ff0aff0a","stderrHex":"","meaning":"Byte index selection on this exact input, not textual UTF-8 policy"},
+    {"row":"20-select-ragged","status":1,"stdoutHex":"612c620a","meaning":"Header preceded failure; full exact stderr retained only in immutable RESULTS.json"},
+    {"row":"21-select-unterminated","status":0,"stdoutHex":"612c620a312c22780a790a","stderrHex":"","meaning":"Native incomplete raw quote retained; not blanket product raw-copy permission"},
+    {"row":"07-headers-multi-csv","status":0,"stdoutHex":"","outputPath":"out.csv","outputHex":"612e6373762c622e6373760a612c620a622c630a2c640a","meaning":"Required file output distinct from stdout; full inputs/effects remain in original evidence"},
+    {"row":"17-select-delimiter-output","status":0,"stdoutHex":"","outputPath":"out.tsv","outputHex":"7809613b620a7a090a","meaning":"Original semicolon-to-TAB observation only; not every cross-delimiter ambiguity"}
+  ],
+  "preparationExecutionCounts": {"product":0,"native":0,"tests":0,"oracleProcessCohorts":0,"benchmarks":0},
+  "permittedChecks": ["owned JSON syntax/metadata", "immutable Git-object hashes", "listed original-path hashes", "owned whitespace/diff checks"],
+  "artifactCheckReceipt": {"checkpointUTC":"2026-08-28T02:55:24Z","jsonParsed":2,"familyIds":12,"invocationCeilingSum":184,"literalAnchorsMatched":8,"immutableHashesMatched":16,"originalLiveHashesMatched":16,"appendProof":false,"meaning":"Preparation metadata/hash checks only; zero tests or native/product/process-cohort execution"},
+  "ownershipLimit": "Only PREPARATION.md, FAMILIES.json, EVIDENCE.json in this new subtree; no source/capture copying or author/76 freeze mutation"
+}

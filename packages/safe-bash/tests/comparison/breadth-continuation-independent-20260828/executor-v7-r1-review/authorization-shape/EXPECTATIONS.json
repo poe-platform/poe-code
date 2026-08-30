@@ -1,0 +1,82 @@
+[
+  {
+    "id": "A01",
+    "expectation": "canonical string references accepted",
+    "fixture": "runs/paths/A01/AUTH.json",
+    "sha256": "af42c0c3de12d12e53d327f394e8b44e2f653fa0ce5e5fcadc57323ef32b694c",
+    "expected": {
+      "outcome": "accepted",
+      "code": null
+    }
+  },
+  {
+    "id": "A02",
+    "expectation": "single-element array commit rejected",
+    "fixture": "runs/paths/A02/AUTH.json",
+    "sha256": "5c5393bf20340e764137bd53d8fa7a0fdd0b68ea0bcbd4700042a60e4c24e172",
+    "expected": {
+      "outcome": "rejected",
+      "code": "AUTH_REFERENCE_SCHEMA"
+    }
+  },
+  {
+    "id": "A03",
+    "expectation": "numeric commit rejected",
+    "fixture": "runs/paths/A03/AUTH.json",
+    "sha256": "59502a11a3f5724a44f9ad6a29bf63bda9f8a11f41f75f33df5d4c7151e87302",
+    "expected": {
+      "outcome": "rejected",
+      "code": "AUTH_REFERENCE_SCHEMA"
+    }
+  },
+  {
+    "id": "A04",
+    "expectation": "array path rejected",
+    "fixture": "runs/paths/A04/AUTH.json",
+    "sha256": "7b5f6933133ee73a5162a881f6852d2b0cb9ce25bd3030b8a256a011755f9b3e",
+    "expected": {
+      "outcome": "rejected",
+      "code": "AUTH_REFERENCE_SCHEMA"
+    }
+  },
+  {
+    "id": "A05",
+    "expectation": "array sha256 rejected",
+    "fixture": "runs/paths/A05/AUTH.json",
+    "sha256": "47088debd33e6a31cfd2f333ec6b83b769b72521886c12a7f2d7e885bb8e3fa2",
+    "expected": {
+      "outcome": "rejected",
+      "code": "AUTH_REFERENCE_SCHEMA"
+    }
+  },
+  {
+    "id": "A06",
+    "expectation": "extra reference key rejected",
+    "fixture": "runs/paths/A06/AUTH.json",
+    "sha256": "f974bb09ce50f2fd21a6301f1c69d4fc61981c8b2515a2941b4e9ef8a480fbfb",
+    "expected": {
+      "outcome": "rejected",
+      "code": "AUTH_REFERENCE_SCHEMA"
+    }
+  },
+  {
+    "id": "A07",
+    "expectation": "missing reference key rejected",
+    "fixture": "runs/paths/A07/AUTH.json",
+    "sha256": "785f27252dade62a0052db6d94201d71f3a59e391466d4a97b8e4bc13af197d3",
+    "expected": {
+      "outcome": "rejected",
+      "code": "AUTH_REFERENCE_SCHEMA"
+    }
+  },
+  {
+    "id": "A08",
+    "expectation": "top-level array rejected",
+    "fixture": "runs/paths/A08/AUTH.json",
+    "sha256": "87b5db2fa0a2c9275b3635f7c30b6134e5f3039b2ad3018bdc73b00cc8ab9b57",
+    "expected": {
+      "outcome": "rejected",
+      "code": "AUTH_FILE_SCHEMA"
+    }
+  }
+]

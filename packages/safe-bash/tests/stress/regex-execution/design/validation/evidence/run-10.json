@@ -1,0 +1,80 @@
+{
+  "args": [
+    "vector",
+    "grep-bre-backref"
+  ],
+  "pid": 69557,
+  "readyAt": 42.9039580000001,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 72.16966700000012
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 74.25925000000007
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 74.26729200000023
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "grep-bre-backref",
+        "expected": {
+          "stdoutHex": "61610a",
+          "status": 0
+        },
+        "outputs": {
+          "current": {
+            "stdoutHex": "61610a",
+            "stderrHex": "",
+            "status": 0
+          },
+          "worker": {
+            "stdoutHex": "61610a",
+            "stderrHex": "",
+            "status": 0
+          }
+        },
+        "matchesExpected": true,
+        "equivalent": true,
+        "pass": true,
+        "adapter": {
+          "active": 0,
+          "peak": 1,
+          "completed": 1,
+          "created": 1,
+          "terminated": 1,
+          "peakWaiting": 1,
+          "idleWorkers": 0
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 398,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

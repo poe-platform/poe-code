@@ -1,0 +1,850 @@
+TAP version 13
+# Subtest: actual Shell memory: apparent positive flow and allocation qualification
+ok 1 - actual Shell memory: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 7.222417
+  type: 'test'
+  ...
+# Subtest: actual Shell real: apparent positive flow and allocation qualification
+ok 2 - actual Shell real: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 26.024416
+  type: 'test'
+  ...
+# Subtest: actual Shell readonly: apparent positive flow and allocation qualification
+ok 3 - actual Shell readonly: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 4.025792
+  type: 'test'
+  ...
+# Subtest: actual Shell mount: apparent positive flow and allocation qualification
+ok 4 - actual Shell mount: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 3.653291
+  type: 'test'
+  ...
+# Subtest: actual Shell overlay: apparent positive flow and allocation qualification
+ok 5 - actual Shell overlay: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 7.352583
+  type: 'test'
+  ...
+# Subtest: actual Shell s3-mock: apparent positive flow and allocation qualification
+ok 6 - actual Shell s3-mock: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 11.913125
+  type: 'test'
+  ...
+# Subtest: actual Shell dav-mock: apparent positive flow and allocation qualification
+ok 7 - actual Shell dav-mock: apparent positive flow and allocation qualification
+  ---
+  duration_ms: 43.180666
+  type: 'test'
+  ...
+# Subtest: real allocation survives readonly/mount/overlay selected-entry wrappers
+ok 8 - real allocation survives readonly/mount/overlay selected-entry wrappers
+  ---
+  duration_ms: 45.674833
+  type: 'test'
+  ...
+# Subtest: different mount namespaces sharing directory identity are never pruned
+ok 9 - different mount namespaces sharing directory identity are never pruned
+  ---
+  duration_ms: 2.181458
+  type: 'test'
+  ...
+# Subtest: RED provider no-effects control: actual Overlay readdir retries pending garbage deletion
+ok 10 - RED provider no-effects control: actual Overlay readdir retries pending garbage deletion
+  ---
+  duration_ms: 2.147167
+  type: 'test'
+  ...
+# Subtest: command definition and plugin collision preflight preserve replacement policy
+ok 11 - command definition and plugin collision preflight preserve replacement policy
+  ---
+  duration_ms: 1.551833
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -b tree
+ok 12 - actual Shell reporting -b tree
+  ---
+  duration_ms: 5.9235
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bac tree
+ok 13 - actual Shell reporting -bac tree
+  ---
+  duration_ms: 1.823917
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bs tree
+ok 14 - actual Shell reporting -bs tree
+  ---
+  duration_ms: 2.023167
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bad1 tree
+ok 15 - actual Shell reporting -bad1 tree
+  ---
+  duration_ms: 1.160958
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bd0 tree
+ok 16 - actual Shell reporting -bd0 tree
+  ---
+  duration_ms: 0.889
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bs -d 0 tree
+ok 17 - actual Shell reporting -bs -d 0 tree
+  ---
+  duration_ms: 0.753417
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting --bytes --all --null tree
+ok 18 - actual Shell reporting --bytes --all --null tree
+  ---
+  duration_ms: 1.135084
+  type: 'test'
+  ...
+# Subtest: known zero, unknown, and invalid allocation never fall back to logical size
+ok 19 - known zero, unknown, and invalid allocation never fall back to logical size
+  ---
+  duration_ms: 15.176625
+  type: 'test'
+  ...
+# Subtest: unknown directory allocation preserves known descendants but suppresses ancestors
+ok 20 - unknown directory allocation preserves known descendants but suppresses ancestors
+  ---
+  duration_ms: 1.126166
+  type: 'test'
+  ...
+# Subtest: apparent directories contribute zero, final symlinks contribute their own length
+ok 21 - apparent directories contribute zero, final symlinks contribute their own length
+  ---
+  duration_ms: 1.101625
+  type: 'test'
+  ...
+# Subtest: invocation-wide hardlink dedup uses complete scoped identity; count-links overrides
+ok 22 - invocation-wide hardlink dedup uses complete scoped identity; count-links overrides
+  ---
+  duration_ms: 5.670042
+  type: 'test'
+  ...
+# Subtest: repeated directories are traversed, not globally pruned by identity
+ok 23 - repeated directories are traversed, not globally pruned by identity
+  ---
+  duration_ms: 3.133041
+  type: 'test'
+  ...
+# Subtest: known identity never hides an unknown allocation observation on a later alias
+ok 24 - known identity never hides an unknown allocation observation on a later alias
+  ---
+  duration_ms: 0.758417
+  type: 'test'
+  ...
+# Subtest: literal names, --, stable sort, missing and empty operands preserve useful output
+ok 25 - literal names, --, stable sort, missing and empty operands preserve useful output
+  ---
+  duration_ms: 2.307917
+  type: 'test'
+  ...
+# Subtest: all argument and environment validation happens before any filesystem call
+ok 26 - all argument and environment validation happens before any filesystem call
+  ---
+  duration_ms: 1.394375
+  type: 'test'
+  ...
+# Subtest: context environment precedence and explicit formatting remain local
+ok 27 - context environment precedence and explicit formatting remain local
+  ---
+  duration_ms: 0.556875
+  type: 'test'
+  ...
+# Subtest: checked aggregation and invalid logical size suppress incomplete totals
+ok 28 - checked aggregation and invalid logical size suppress incomplete totals
+  ---
+  duration_ms: 2.071541
+  type: 'test'
+  ...
+# Subtest: typed listing errors propagate meaning and preserve known unrelated operands
+ok 29 - typed listing errors propagate meaning and preserve known unrelated operands
+  ---
+  duration_ms: 0.827417
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 0:-bh
+ok 30 - GNU 9.7 captured profile: 0:-bh
+  ---
+  duration_ms: 6.306834
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 0:-b -B si
+ok 31 - GNU 9.7 captured profile: 0:-b -B si
+  ---
+  duration_ms: 1.209416
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 0:-b -B K
+ok 32 - GNU 9.7 captured profile: 0:-b -B K
+  ---
+  duration_ms: 0.569959
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 0:-b -B 1KB
+ok 33 - GNU 9.7 captured profile: 0:-b -B 1KB
+  ---
+  duration_ms: 0.638334
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1:-bh
+ok 34 - GNU 9.7 captured profile: 1:-bh
+  ---
+  duration_ms: 0.597042
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1:-b -B si
+ok 35 - GNU 9.7 captured profile: 1:-b -B si
+  ---
+  duration_ms: 0.644209
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1:-b -B K
+ok 36 - GNU 9.7 captured profile: 1:-b -B K
+  ---
+  duration_ms: 0.598917
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1:-b -B 1KB
+ok 37 - GNU 9.7 captured profile: 1:-b -B 1KB
+  ---
+  duration_ms: 0.728875
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1023:-bh
+ok 38 - GNU 9.7 captured profile: 1023:-bh
+  ---
+  duration_ms: 1.78925
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1023:-b -B si
+ok 39 - GNU 9.7 captured profile: 1023:-b -B si
+  ---
+  duration_ms: 2.046583
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1023:-b -B K
+ok 40 - GNU 9.7 captured profile: 1023:-b -B K
+  ---
+  duration_ms: 0.674083
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1023:-b -B 1KB
+ok 41 - GNU 9.7 captured profile: 1023:-b -B 1KB
+  ---
+  duration_ms: 0.757167
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1024:-bh
+ok 42 - GNU 9.7 captured profile: 1024:-bh
+  ---
+  duration_ms: 0.59475
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1024:-b -B si
+ok 43 - GNU 9.7 captured profile: 1024:-b -B si
+  ---
+  duration_ms: 0.765208
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1024:-b -B K
+ok 44 - GNU 9.7 captured profile: 1024:-b -B K
+  ---
+  duration_ms: 0.505
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1024:-b -B 1KB
+ok 45 - GNU 9.7 captured profile: 1024:-b -B 1KB
+  ---
+  duration_ms: 2.158
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1025:-bh
+ok 46 - GNU 9.7 captured profile: 1025:-bh
+  ---
+  duration_ms: 0.710292
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1025:-b -B si
+ok 47 - GNU 9.7 captured profile: 1025:-b -B si
+  ---
+  duration_ms: 0.635834
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1025:-b -B K
+ok 48 - GNU 9.7 captured profile: 1025:-b -B K
+  ---
+  duration_ms: 0.700417
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1025:-b -B 1KB
+ok 49 - GNU 9.7 captured profile: 1025:-b -B 1KB
+  ---
+  duration_ms: 0.411042
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10239:-bh
+ok 50 - GNU 9.7 captured profile: 10239:-bh
+  ---
+  duration_ms: 0.350417
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10239:-b -B si
+ok 51 - GNU 9.7 captured profile: 10239:-b -B si
+  ---
+  duration_ms: 0.32025
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10239:-b -B K
+ok 52 - GNU 9.7 captured profile: 10239:-b -B K
+  ---
+  duration_ms: 0.667084
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10239:-b -B 1KB
+ok 53 - GNU 9.7 captured profile: 10239:-b -B 1KB
+  ---
+  duration_ms: 0.350333
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10240:-bh
+ok 54 - GNU 9.7 captured profile: 10240:-bh
+  ---
+  duration_ms: 0.272625
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10240:-b -B si
+ok 55 - GNU 9.7 captured profile: 10240:-b -B si
+  ---
+  duration_ms: 0.333875
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10240:-b -B K
+ok 56 - GNU 9.7 captured profile: 10240:-b -B K
+  ---
+  duration_ms: 0.418
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10240:-b -B 1KB
+ok 57 - GNU 9.7 captured profile: 10240:-b -B 1KB
+  ---
+  duration_ms: 1.1295
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10241:-bh
+ok 58 - GNU 9.7 captured profile: 10241:-bh
+  ---
+  duration_ms: 0.574792
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10241:-b -B si
+ok 59 - GNU 9.7 captured profile: 10241:-b -B si
+  ---
+  duration_ms: 0.291917
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10241:-b -B K
+ok 60 - GNU 9.7 captured profile: 10241:-b -B K
+  ---
+  duration_ms: 0.63975
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 10241:-b -B 1KB
+ok 61 - GNU 9.7 captured profile: 10241:-b -B 1KB
+  ---
+  duration_ms: 0.527959
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048575:-bh
+ok 62 - GNU 9.7 captured profile: 1048575:-bh
+  ---
+  duration_ms: 0.617625
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048575:-b -B si
+ok 63 - GNU 9.7 captured profile: 1048575:-b -B si
+  ---
+  duration_ms: 0.677458
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048575:-b -B K
+ok 64 - GNU 9.7 captured profile: 1048575:-b -B K
+  ---
+  duration_ms: 2.103333
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048575:-b -B 1KB
+ok 65 - GNU 9.7 captured profile: 1048575:-b -B 1KB
+  ---
+  duration_ms: 0.6375
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048576:-bh
+ok 66 - GNU 9.7 captured profile: 1048576:-bh
+  ---
+  duration_ms: 0.364791
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048576:-b -B si
+ok 67 - GNU 9.7 captured profile: 1048576:-b -B si
+  ---
+  duration_ms: 0.487416
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048576:-b -B K
+ok 68 - GNU 9.7 captured profile: 1048576:-b -B K
+  ---
+  duration_ms: 0.396292
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048576:-b -B 1KB
+ok 69 - GNU 9.7 captured profile: 1048576:-b -B 1KB
+  ---
+  duration_ms: 0.906708
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048577:-bh
+ok 70 - GNU 9.7 captured profile: 1048577:-bh
+  ---
+  duration_ms: 0.574917
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048577:-b -B si
+ok 71 - GNU 9.7 captured profile: 1048577:-b -B si
+  ---
+  duration_ms: 0.62675
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048577:-b -B K
+ok 72 - GNU 9.7 captured profile: 1048577:-b -B K
+  ---
+  duration_ms: 0.578917
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: 1048577:-b -B 1KB
+ok 73 - GNU 9.7 captured profile: 1048577:-b -B 1KB
+  ---
+  duration_ms: 0.32475
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:
+ok 74 - GNU 9.7 captured profile: tree:
+  ---
+  duration_ms: 0.916167
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-a
+ok 75 - GNU 9.7 captured profile: tree:-a
+  ---
+  duration_ms: 0.880875
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-s
+ok 76 - GNU 9.7 captured profile: tree:-s
+  ---
+  duration_ms: 0.513833
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-c
+ok 77 - GNU 9.7 captured profile: tree:-c
+  ---
+  duration_ms: 1.443042
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-ac
+ok 78 - GNU 9.7 captured profile: tree:-ac
+  ---
+  duration_ms: 0.967459
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-d0
+ok 79 - GNU 9.7 captured profile: tree:-d0
+  ---
+  duration_ms: 0.911125
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-ad1
+ok 80 - GNU 9.7 captured profile: tree:-ad1
+  ---
+  duration_ms: 0.667209
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-s -d0
+ok 81 - GNU 9.7 captured profile: tree:-s -d0
+  ---
+  duration_ms: 0.90475
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-as
+ok 82 - GNU 9.7 captured profile: tree:-as
+  ---
+  duration_ms: 0.694
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-s -d1
+ok 83 - GNU 9.7 captured profile: tree:-s -d1
+  ---
+  duration_ms: 1.538292
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: tree:-0a
+ok 84 - GNU 9.7 captured profile: tree:-0a
+  ---
+  duration_ms: 0.684667
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: -b link broken
+ok 85 - GNU 9.7 captured profile: -b link broken
+  ---
+  duration_ms: 0.413667
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: -b link/
+ok 86 - GNU 9.7 captured profile: -b link/
+  ---
+  duration_ms: 0.630667
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: -bc tree/a alias
+ok 87 - GNU 9.7 captured profile: -bc tree/a alias
+  ---
+  duration_ms: 0.389459
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: -blc tree/a alias
+ok 88 - GNU 9.7 captured profile: -blc tree/a alias
+  ---
+  duration_ms: 0.573167
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: -b tree tree
+ok 89 - GNU 9.7 captured profile: -b tree tree
+  ---
+  duration_ms: 0.621791
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: -b missing tree/a
+ok 90 - GNU 9.7 captured profile: -b missing tree/a
+  ---
+  duration_ms: 0.511541
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: -b 
+ok 91 - GNU 9.7 captured profile: -b 
+  ---
+  duration_ms: 0.427417
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: -b tree/a --unsupported
+ok 92 - GNU 9.7 captured profile: -b tree/a --unsupported
+  ---
+  duration_ms: 0.337
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:1
+ok 93 - GNU 9.7 captured profile: block:1
+  ---
+  duration_ms: 0.283125
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:K
+ok 94 - GNU 9.7 captured profile: block:K
+  ---
+  duration_ms: 0.283875
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:kB
+ok 95 - GNU 9.7 captured profile: block:kB
+  ---
+  duration_ms: 0.271875
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:KiB
+ok 96 - GNU 9.7 captured profile: block:KiB
+  ---
+  duration_ms: 0.251542
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:KB
+ok 97 - GNU 9.7 captured profile: block:KB
+  ---
+  duration_ms: 0.231958
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:2K
+ok 98 - GNU 9.7 captured profile: block:2K
+  ---
+  duration_ms: 0.233625
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:M
+ok 99 - GNU 9.7 captured profile: block:M
+  ---
+  duration_ms: 0.214916
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:1M
+ok 100 - GNU 9.7 captured profile: block:1M
+  ---
+  duration_ms: 0.244791
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:m
+ok 101 - GNU 9.7 captured profile: block:m
+  ---
+  duration_ms: 0.283916
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:b
+ok 102 - GNU 9.7 captured profile: block:b
+  ---
+  duration_ms: 1.448542
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:0
+ok 103 - GNU 9.7 captured profile: block:0
+  ---
+  duration_ms: 1.034084
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:-1
+ok 104 - GNU 9.7 captured profile: block:-1
+  ---
+  duration_ms: 0.591208
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:1.5K
+ok 105 - GNU 9.7 captured profile: block:1.5K
+  ---
+  duration_ms: 0.827958
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:human-readable
+ok 106 - GNU 9.7 captured profile: block:human-readable
+  ---
+  duration_ms: 0.901541
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:si
+ok 107 - GNU 9.7 captured profile: block:si
+  ---
+  duration_ms: 3.155375
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:Q
+ok 108 - GNU 9.7 captured profile: block:Q
+  ---
+  duration_ms: 0.397875
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: block:1Q
+ok 109 - GNU 9.7 captured profile: block:1Q
+  ---
+  duration_ms: 0.782333
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{}
+ok 110 - GNU 9.7 captured profile: env:{}
+  ---
+  duration_ms: 0.495291
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"POSIXLY_CORRECT":""}
+ok 111 - GNU 9.7 captured profile: env:{"POSIXLY_CORRECT":""}
+  ---
+  duration_ms: 0.409208
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"BLOCKSIZE":"2K"}
+ok 112 - GNU 9.7 captured profile: env:{"BLOCKSIZE":"2K"}
+  ---
+  duration_ms: 0.303
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"BLOCK_SIZE":"4K","BLOCKSIZE":"2K"}
+ok 113 - GNU 9.7 captured profile: env:{"BLOCK_SIZE":"4K","BLOCKSIZE":"2K"}
+  ---
+  duration_ms: 0.420709
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"8K","BLOCK_SIZE":"4K"}
+ok 114 - GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"8K","BLOCK_SIZE":"4K"}
+  ---
+  duration_ms: 1.172917
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"bad"}
+ok 115 - GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"bad"}
+  ---
+  duration_ms: 1.108667
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"","BLOCK_SIZE":"2K"}
+ok 116 - GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"","BLOCK_SIZE":"2K"}
+  ---
+  duration_ms: 0.652042
+  type: 'test'
+  ...
+# Subtest: live pinned GNU 9.7 versus rooted Real allocation, hardlinks and sparse files
+ok 117 - live pinned GNU 9.7 versus rooted Real allocation, hardlinks and sparse files
+  ---
+  duration_ms: 268.62525
+  type: 'test'
+  ...
+# Subtest: bounded maxArguments fails explicitly without printing a complete total
+ok 118 - bounded maxArguments fails explicitly without printing a complete total
+  ---
+  duration_ms: 1.869333
+  type: 'test'
+  ...
+# Subtest: bounded maxArgumentBytes fails explicitly without printing a complete total
+ok 119 - bounded maxArgumentBytes fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.352292
+  type: 'test'
+  ...
+# Subtest: bounded maxEntries fails explicitly without printing a complete total
+ok 120 - bounded maxEntries fails explicitly without printing a complete total
+  ---
+  duration_ms: 1.159875
+  type: 'test'
+  ...
+# Subtest: bounded maxDirectoryEntries fails explicitly without printing a complete total
+ok 121 - bounded maxDirectoryEntries fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.424
+  type: 'test'
+  ...
+# Subtest: bounded maxDepth fails explicitly without printing a complete total
+ok 122 - bounded maxDepth fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.577458
+  type: 'test'
+  ...
+# Subtest: bounded maxPathBytes fails explicitly without printing a complete total
+ok 123 - bounded maxPathBytes fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.123042
+  type: 'test'
+  ...
+# Subtest: bounded maxMetadataBytes fails explicitly without printing a complete total
+ok 124 - bounded maxMetadataBytes fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.253833
+  type: 'test'
+  ...
+# Subtest: bounded maxOutputBytes fails explicitly without printing a complete total
+ok 125 - bounded maxOutputBytes fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.380167
+  type: 'test'
+  ...
+# Subtest: bounded maxSteps fails explicitly without printing a complete total
+ok 126 - bounded maxSteps fails explicitly without printing a complete total
+  ---
+  duration_ms: 0.557125
+  type: 'test'
+  ...
+# Subtest: all limit settings require positive safe integers
+ok 127 - all limit settings require positive safe integers
+  ---
+  duration_ms: 0.694459
+  type: 'test'
+  ...
+# Subtest: UTF-8 argument and output bytes, not character count, consume budgets
+ok 128 - UTF-8 argument and output bytes, not character count, consume budgets
+  ---
+  duration_ms: 0.443667
+  type: 'test'
+  ...
+# Subtest: stdout and stderr share one output budget
+ok 129 - stdout and stderr share one output budget
+  ---
+  duration_ms: 0.507333
+  type: 'test'
+  ...
+# Subtest: malformed and oversized directory listings never escape the virtual tree
+ok 130 - malformed and oversized directory listings never escape the virtual tree
+  ---
+  duration_ms: 1.581
+  type: 'test'
+  ...
+# Subtest: safe depth remains enforced with --max-depth=0 and unknown identity
+ok 131 - safe depth remains enforced with --max-depth=0 and unknown identity
+  ---
+  duration_ms: 0.334125
+  type: 'test'
+  ...
+# Subtest: sort comparisons consume bounded work rather than unbounded provider-name processing
+ok 132 - sort comparisons consume bounded work rather than unbounded provider-name processing
+  ---
+  duration_ms: 0.265417
+  type: 'test'
+  ...
+# Subtest: already aborted invocation preserves exact errno-shaped reason and performs no FS work
+ok 133 - already aborted invocation preserves exact errno-shaped reason and performs no FS work
+  ---
+  duration_ms: 0.138583
+  type: 'test'
+  ...
+# Subtest: registerCleanup precedes metadata admission; abort observes late opaque rejection
+ok 134 - registerCleanup precedes metadata admission; abort observes late opaque rejection
+  ---
+  duration_ms: 4.109416
+  type: 'test'
+  ...
+# Subtest: registered cleanup closes admission without awaiting an opaque host promise
+ok 135 - registered cleanup closes admission without awaiting an opaque host promise
+  ---
+  duration_ms: 0.233333
+  type: 'test'
+  ...
+# Subtest: overlapping cleanup shares completion and drains its own blocked-output cancellation
+ok 136 - overlapping cleanup shares completion and drains its own blocked-output cancellation
+  ---
+  duration_ms: 0.28
+  type: 'test'
+  ...
+# Subtest: awaited stdout backpressure prevents traversal from advancing
+ok 137 - awaited stdout backpressure prevents traversal from advancing
+  ---
+  duration_ms: 0.964833
+  type: 'test'
+  ...
+# Subtest: sink cancellation and repeated finally/registered cleanup release listeners
+ok 138 - sink cancellation and repeated finally/registered cleanup release listeners
+  ---
+  duration_ms: 0.515833
+  type: 'test'
+  ...
+# Subtest: sufficient traversal yields allow timer-driven cancellation
+ok 139 - sufficient traversal yields allow timer-driven cancellation
+  ---
+  duration_ms: 5.522417
+  type: 'test'
+  ...
+# Subtest: actual Shell caller abort preserves reason and stops later DU metadata admission
+ok 140 - actual Shell caller abort preserves reason and stops later DU metadata admission
+  ---
+  duration_ms: 7.560541
+  type: 'test'
+  ...
+1..140
+# tests 140
+# suites 0
+# pass 140
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 679.775291

@@ -1,0 +1,73 @@
+{
+  "receiptCommit": "90811f46e54b771ee6d30002fd10cb1b5cdf7bc7",
+  "sealSha256": "1563390d2c49cc71626faa2c56b3b118b96227e10d9c2c6c85be9c1653f9951a",
+  "startedAt": "2026-08-28T14:50:03.986Z",
+  "removed": [
+    {
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-author-20260828/s06-v1/baseline-attempt-eZqFQv",
+      "archive": "baseline-01-raw.json.gz.base64",
+      "archiveSha256": "bc344a9a6f5ad060d09567a3c317fc3cc6e1a10bcdc236e1e8a774b400ad5154",
+      "entriesVerified": 1237,
+      "fileBytesModesAndLinksVerified": true,
+      "appendAwareCensus": true,
+      "processGroupsAbsent": [
+        12329,
+        12340
+      ]
+    },
+    {
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-author-20260828/s06-v2/baseline-attempt-YGwBis",
+      "archive": "baseline-02-raw.json.gz.base64",
+      "archiveSha256": "9448fe2fa1352d0584e37cad6df4539c866fc121a29f7103daf38ba3724a5a4e",
+      "entriesVerified": 2718,
+      "fileBytesModesAndLinksVerified": true,
+      "appendAwareCensus": true,
+      "processGroupsAbsent": [
+        16179,
+        16225,
+        16260,
+        16274,
+        16279,
+        16288,
+        16302,
+        16307,
+        16488,
+        16566
+      ]
+    },
+    {
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-author-20260828/s06-v2/successor-attempt-zs5pBq",
+      "archive": "successor-01-raw.json.gz.base64",
+      "archiveSha256": "b445eebbed0c257cd25fb6a4c2d528f0a060eabbffe21eb1237b56a55c88c515",
+      "entriesVerified": 2718,
+      "fileBytesModesAndLinksVerified": true,
+      "appendAwareCensus": true,
+      "processGroupsAbsent": [
+        19975,
+        20038,
+        20160,
+        20168,
+        20188,
+        20197,
+        20214,
+        20221,
+        20228,
+        20233,
+        20241,
+        20246,
+        20260,
+        20266,
+        20271,
+        20282,
+        20300,
+        20302,
+        20321,
+        20342,
+        20346,
+        20347
+      ]
+    }
+  ],
+  "complete": true,
+  "finishedAt": "2026-08-28T14:50:06.936Z"
+}

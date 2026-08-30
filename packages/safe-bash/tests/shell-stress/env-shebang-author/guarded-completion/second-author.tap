@@ -1,0 +1,206 @@
+TAP version 13
+# Subtest: env shebang uses the public Shell without registering env
+ok 1 - env shebang uses the public Shell without registering env
+  ---
+  duration_ms: 6.491958
+  type: 'test'
+  ...
+# Subtest: single optional argument is not shell-tokenized without S
+ok 2 - single optional argument is not shell-tokenized without S
+  ---
+  duration_ms: 1.151334
+  type: 'test'
+  ...
+# Subtest: short, attached, long and nested S preserve quoting and literal arguments
+ok 3 - short, attached, long and nested S preserve quoting and literal arguments
+  ---
+  duration_ms: 6.027875
+  type: 'test'
+  ...
+# Subtest: split expansion reads incoming exports before clear, unset and assignments
+ok 4 - split expansion reads incoming exports before clear, unset and assignments
+  ---
+  duration_ms: 2.927708
+  type: 'test'
+  ...
+# Subtest: C resolves actual selected source and keeps parent cwd and state
+ok 5 - C resolves actual selected source and keeps parent cwd and state
+  ---
+  duration_ms: 2.10875
+  type: 'test'
+  ...
+# Subtest: absolute original source survives C and is charged and read only once
+ok 6 - absolute original source survives C and is charged and read only once
+  ---
+  duration_ms: 0.913584
+  type: 'test'
+  ...
+# Subtest: alternate operand, c and s select source rather than original body
+ok 7 - alternate operand, c and s select source rather than original body
+  ---
+  duration_ms: 2.716417
+  type: 'test'
+  ...
+# Subtest: explicit interpreters ignore env headers without relaxing other interpreter guards
+ok 8 - explicit interpreters ignore env headers without relaxing other interpreter guards
+  ---
+  duration_ms: 2.550334
+  type: 'test'
+  ...
+# Subtest: bash/sh flags retain e, +e, --, combinations and invalid flag status
+ok 9 - bash/sh flags retain e, +e, --, combinations and invalid flag status
+  ---
+  duration_ms: 2.309083
+  type: 'test'
+  ...
+# Subtest: env errors retain parser, usage and VFS status and ordering
+ok 10 - env errors retain parser, usage and VFS status and ordering
+  ---
+  duration_ms: 2.651375
+  type: 'test'
+  ...
+# Subtest: registry, function and PATH names cannot hijack the reserved interpreter
+not ok 11 - registry, function and PATH names cannot hijack the reserved interpreter
+  ---
+  duration_ms: 2.856875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-shebang.test.ts:5:239'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    37 !== 127
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 127
+  actual: 37
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-shebang.test.ts:154:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: binary stdin, pipelines, unread cursor and inherited descriptors survive
+ok 12 - binary stdin, pipelines, unread cursor and inherited descriptors survive
+  ---
+  duration_ms: 5.870791
+  type: 'test'
+  ...
+# Subtest: stdin provenance is forwarded without probing or local promotion
+ok 13 - stdin provenance is forwarded without probing or local promotion
+  ---
+  duration_ms: 4.120417
+  type: 'test'
+  ...
+# Subtest: initial and alternate file permission, binary and syntax refusals retain effects
+ok 14 - initial and alternate file permission, binary and syntax refusals retain effects
+  ---
+  duration_ms: 1.283875
+  type: 'test'
+  ...
+# Subtest: shared source, command, output, depth, loop and generated argv limits
+ok 15 - shared source, command, output, depth, loop and generated argv limits
+  ---
+  duration_ms: 2.858209
+  type: 'test'
+  ...
+# Subtest: aggregate plugin direct env behavior remains literal and separate
+ok 16 - aggregate plugin direct env behavior remains literal and separate
+  ---
+  duration_ms: 3.438083
+  type: 'test'
+  ...
+# Subtest: selected file, c string and s input each charge their actual source
+ok 17 - selected file, c string and s input each charge their actual source
+  ---
+  duration_ms: 2.07975
+  type: 'test'
+  ...
+# Subtest: env parser caps and carriage-return command bytes survive the bridge
+ok 18 - env parser caps and carriage-return command bytes survive the bridge
+  ---
+  duration_ms: 12.379458
+  type: 'test'
+  ...
+# Subtest: guarded completion: executable VFS delegates retain literal argv and normal body resolution
+ok 19 - guarded completion: executable VFS delegates retain literal argv and normal body resolution
+  ---
+  duration_ms: 1.248334
+  type: 'test'
+  ...
+# Subtest: guarded completion: slash targets never normalize basenames or bypass VFS checks
+ok 20 - guarded completion: slash targets never normalize basenames or bypass VFS checks
+  ---
+  duration_ms: 3.223916
+  type: 'test'
+  ...
+# Subtest: guarded completion: exact registered definitions beat functions and builtins and stay pinned
+ok 21 - guarded completion: exact registered definitions beat functions and builtins and stay pinned
+  ---
+  duration_ms: 1.4185
+  type: 'test'
+  ...
+# Subtest: guarded completion: missing bare names refuse PATH, files, functions and builtins
+ok 22 - guarded completion: missing bare names refuse PATH, files, functions and builtins
+  ---
+  duration_ms: 1.026833
+  type: 'test'
+  ...
+# Subtest: guarded completion: env and target middleware observe exact exports, cwd, argv and provenance
+ok 23 - guarded completion: env and target middleware observe exact exports, cwd, argv and provenance
+  ---
+  duration_ms: 1.604917
+  type: 'test'
+  ...
+# Subtest: guarded completion: env pipeline middleware is transparent and adds no command or depth charge
+ok 24 - guarded completion: env pipeline middleware is transparent and adds no command or depth charge
+  ---
+  duration_ms: 1.26075
+  type: 'test'
+  ...
+# Subtest: guarded completion: env middleware short circuits, wraps and observes original target errors
+not ok 25 - guarded completion: env middleware short circuits, wraps and observes original target errors
+  ---
+  duration_ms: 1.882792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-shebang.test.ts:12:1376'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /exitCode/u. Input:
+    
+    'shell: line 1: Exit status must be an integer between 0 and 255\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    shell: line 1: Exit status must be an integer between 0 and 255
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-shebang.test.ts:420:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: guarded completion: registered nested invoke stays ordinary and replacement streams share budgets
+ok 26 - guarded completion: registered nested invoke stays ordinary and replacement streams share budgets
+  ---
+  duration_ms: 2.043
+  type: 'test'
+  ...
+# Subtest: guarded completion: direct delegate cycles and registered cycles use shared limits
+ok 27 - guarded completion: direct delegate cycles and registered cycles use shared limits
+  ---
+  duration_ms: 5.296208
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 25
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 407.634875

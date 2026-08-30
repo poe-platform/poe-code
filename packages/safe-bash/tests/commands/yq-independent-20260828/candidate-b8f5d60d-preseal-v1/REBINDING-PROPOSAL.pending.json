@@ -1,0 +1,176 @@
+{
+  "schema": 1,
+  "status": "INCOMPLETE_PROPOSAL_NOT_GUARD_RECEIPT",
+  "admission": "DENY",
+  "candidate": {
+    "source": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "evidence": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "handoff": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "wholeGitTreeOid": null,
+    "identityRole": "These exact commits are origins, not a fabricated composite or mutable HEAD"
+  },
+  "selection": {
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "interpreter": "src/commands/structured/interpreter.ts",
+    "newSourceOrigin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "sevenPaths": [
+      "src/commands/structured/query-core.ts",
+      "src/commands/yq/README.md",
+      "src/commands/yq/accounting.ts",
+      "src/commands/yq/encoder.ts",
+      "src/commands/yq/errors.ts",
+      "src/commands/yq/index.ts",
+      "src/commands/yq/parser.ts"
+    ],
+    "changedProductCommitPaths": [
+      "src/commands/structured/query-core.ts",
+      "src/commands/yq/accounting.ts",
+      "src/commands/yq/encoder.ts",
+      "src/commands/yq/index.ts",
+      "src/commands/yq/parser.ts"
+    ],
+    "selectedSourceDeltaVerified": false,
+    "excludedSourceCommitWrites": [
+      "tests/commands/yq-author-20260828/repair-allocation-v1/PROTOCOL.md",
+      "tests/commands/yq-author-20260828/repair-allocation-v1/repair.test.ts"
+    ]
+  },
+  "inputs": {
+    "handoff": {
+      "revision": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/HANDOFF.md"
+    },
+    "manifest": {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE-MANIFEST.json",
+      "sha256": null
+    },
+    "archive": {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+      "rootExpectedSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+      "independentlyVerifiedRawSha256": null,
+      "verifiedMapSha256": null
+    },
+    "package": {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+      "rootExpectedSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+      "independentlyVerifiedRawSha256": null,
+      "verifiedMapSha256": null
+    }
+  },
+  "countRoles": {
+    "manifestEntriesInitiallyRead": 281,
+    "manifestTestDataEntriesInitiallyRead": 8,
+    "authorArchiveEntries": 273,
+    "expectedConsumerProjectionEntries": 271,
+    "authorFullPackageEntries": 870,
+    "baselinePackageExpected": 846,
+    "authorizedEmissionsExpected": 24,
+    "successorVerifiedArchiveEntryCount": null,
+    "successorVerifiedProjectionEntryCount": null,
+    "successorVerifiedPackageEntryCount": null,
+    "successorVerifiedChangedPackageEntries": null
+  },
+  "futureConsumers": {
+    "suggestedUnassignedRoot": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-b8f5d60d-v1/",
+    "referenceVersion": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+    "sourceAuthorityChanges": {
+      "candidateCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "evidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "handoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+      "manifest": "New exact manifest path, raw SHA and blob after successful audit",
+      "handoff": "New exact handoff path and raw SHA",
+      "archive": "New path and independently verified raw SHA",
+      "package": "New path and independently verified raw SHA",
+      "newSources": "Exact ordered seven manifest entries after Git/membership audit; preserve manifest ordering",
+      "unchanged": [
+        "schema=2",
+        "selected-source composition policy",
+        "baseline",
+        "acceptedLength",
+        "interpreter",
+        "frozenV1"
+      ]
+    },
+    "guardDeltaWriteSetProposal": [
+      {
+        "path": "SOURCE-AUTHORITY.json",
+        "change": "New candidate data; no old35da active pin"
+      },
+      {
+        "path": "guards.mjs",
+        "change": "Prefer same v2 guard body, freshly sealed under new root; no demonstrated policy change required"
+      },
+      {
+        "path": "frozen-v1.mjs",
+        "change": "Prefer unchanged source identity and semantics; fresh relative binding"
+      },
+      {
+        "path": "verify-recipe.mjs",
+        "change": "Prefer unchanged body; fresh exact recipe pins"
+      },
+      {
+        "path": "type-worker.mjs",
+        "change": "Prefer unchanged body; new entry/recipe binding without type execution now"
+      },
+      {
+        "path": "recipe/pretest seals and receipts",
+        "change": "Fresh root-selected exact versions; names not invented as completed artifacts"
+      }
+    ],
+    "existingGuardsReadOnly": true,
+    "oldGuardObservation": "Static inspection only: selected-origin pins35da and would reject new candidate; no guard was executed"
+  },
+  "receiptProposal": {
+    "sourceOnlyFields": [
+      "schema",
+      "sourceBase",
+      "acceptedLength",
+      "candidateCommit",
+      "sourceAdditions"
+    ],
+    "fullAdditionalFields": [
+      "packageAdditions",
+      "packageDirectories",
+      "entries",
+      "allowedBuiltins",
+      "buildReceipt"
+    ],
+    "sourcesSchemaVersion": 1,
+    "entries": {
+      "yq": "dist/commands/yq/index.js",
+      "contracts": "dist/contracts/index.js"
+    },
+    "declarationEntries": [
+      "dist/commands/yq/index.d.ts",
+      "dist/contracts/index.d.ts"
+    ],
+    "queryAdapterEntries": [
+      "dist/commands/structured/query-core.js",
+      "dist/commands/structured/query-core.d.ts"
+    ],
+    "builtins": "Must derive from verified new module closure; not populated from old runtime",
+    "directories": "Exact verified map plus separately sealed materialization mode policy; no source tree currently created",
+    "buildReceipt": "Future exact absolute immutable path and SHA, root routed; author-only artifact provenance is not independent build proof",
+    "issuedSourceReceipt": null,
+    "issuedFullReceipt": null,
+    "issuedSourceAuthority": null
+  },
+  "rootRoute": {
+    "requires": [
+      "Additive corrected static-data preseal and explicit continuation authorization; no retry occurred here",
+      "Complete new source/archive/package map and raw SHA authentication",
+      "New exact consumer/runtime/integration/loader/build-source seals",
+      "Fresh explicit root execution GO after complete preseal"
+    ],
+    "separateOwners": [
+      "successor-review-preseal-v1",
+      "runtime-v3-cmd22",
+      "old handoff artifact ledger"
+    ],
+    "publicIntegration": "Held/absent according to immutable author handoff; proposed direct module binding only"
+  }
+}

@@ -1,0 +1,318 @@
+{
+  "authorPreparationCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "freezeSha256": "2d3f9fb25ad60f0b11e3d38f122249b0c7eab972267e0d5f95b904f713cc26d0",
+  "privateStatusProfileSha256": "5633dad0df72d6a0305bb665665eb768482f90fadcae88b46305fa8a417747c7",
+  "temporary": "/private/tmp/safe-bash-zero-status-independent-review-2z0b2sy4",
+  "sealedInputRoot": "/private/tmp/safe-bash-zero-status-independent-review-2z0b2sy4/sealed",
+  "runtimeExactAuthorRoot": "/private/tmp/safe-bash-zero-status-independent-review-2z0b2sy4/runtime-exact-author",
+  "files": [
+    {
+      "path": "EXECUTION-FREEZE.json",
+      "bytes": 5638,
+      "sha256": "2d3f9fb25ad60f0b11e3d38f122249b0c7eab972267e0d5f95b904f713cc26d0"
+    },
+    {
+      "path": "GUARD-COVERAGE.json",
+      "bytes": 6516,
+      "sha256": "2eb75974beb8183fb76c9f4f8a8d093c0460a790271a2a8ab90e28d3a2fb7d1c"
+    },
+    {
+      "path": "IMPORTS.json",
+      "bytes": 8671,
+      "sha256": "20b9f3ee13154bbd0dbfa777f823d6ee255df66c280827c2d616c8767bfd279d"
+    },
+    {
+      "path": "PREPARATION-INPUTS.json",
+      "bytes": 671049,
+      "sha256": "117c3ceb33dd80641a123353c21eea2ac039232f503285a34c47769dbd76baf3"
+    },
+    {
+      "path": "PREPARATION-SHARED.json",
+      "bytes": 2932830,
+      "sha256": "07eaf2a06aa23fe7f6de4cb07d1506f41b2b0789b0ccfedd8b7eb42edc35d889"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 68317,
+      "sha256": "1ca2f5a81a8a70eba8d96aa71f71fb06161075a7d7cbfd01916f351e55b95297"
+    },
+    {
+      "path": "PRIVATE-STATUS.json",
+      "bytes": 2003,
+      "sha256": "5633dad0df72d6a0305bb665665eb768482f90fadcae88b46305fa8a417747c7"
+    },
+    {
+      "path": "PROVENANCE.json",
+      "bytes": 37889,
+      "sha256": "b32a01e4266e0c388b8276f2240cb52118fea65f03c66adfc20dfa9352163766"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5042,
+      "sha256": "7b956cc3c11657b855900515cab9b2afedce06781411e2dcb671b56052f833b9"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6764,
+      "sha256": "9ac9b1b9bd32bdbf518679002f4f58d550fbdb7c16e336f39d81a1d39cb1fd22"
+    },
+    {
+      "path": "ROOT-RELEASE.pending.json",
+      "bytes": 1375,
+      "sha256": "86f8e98a36ef1bca5b263cf186c34720438da4bb8c3c9767bc4f9619baf7c92f"
+    },
+    {
+      "path": "SOURCE-ADMISSION.json.data",
+      "bytes": 1432,
+      "sha256": "eb18baa7c27950b687c148da31ce1de7006861492aae61a0d94be1ac55eb8f03"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "bytes": 2183,
+      "sha256": "8a5e9b6706c14cf17e9dca64f53ba9081e8e0fc851321760561e2eeb9f46a693"
+    },
+    {
+      "path": "assess.py",
+      "bytes": 13629,
+      "sha256": "9f364aafda091214b216e8563d52a95da7616607a7763049368bbed78f214027"
+    },
+    {
+      "path": "binding.py",
+      "bytes": 4434,
+      "sha256": "e27d69da7eb1127bb7fb3666d0af0953f18e3300ce58b0abd7916a261192aa8f"
+    },
+    {
+      "path": "diffs/admission.mjs.patch-data",
+      "bytes": 6157,
+      "sha256": "5f5131ca9c004f2f0b7648a1620dcc208eb6db586ba1484686b1867c9ce916ba"
+    },
+    {
+      "path": "diffs/controls/run.mjs.patch-data",
+      "bytes": 1443,
+      "sha256": "41016de5744aeea4f2a02d7f2b08ad9424f1cade5b6d86436d5947e0ee5a8a1e"
+    },
+    {
+      "path": "diffs/lifecycle/run.mjs.patch-data",
+      "bytes": 1446,
+      "sha256": "f022f79107f9f04739e1352677891dd46e184f6b79ba1817cfcb3fd279e4d2c2"
+    },
+    {
+      "path": "diffs/private-expected.json.patch-data",
+      "bytes": 858,
+      "sha256": "d5a00a42b7d5abc247927638b6a6f4029262ffb63f1b1e8a66c339d3aea43790"
+    },
+    {
+      "path": "diffs/run.py.patch-data",
+      "bytes": 4790,
+      "sha256": "b7dce0b02557ac563d9b3a274d4588d7cc0bf8c56bd979d8ba5313596e2144d1"
+    },
+    {
+      "path": "driver-copies/admission.mjs.data",
+      "bytes": 12205,
+      "sha256": "55111892712ab028205fa469788f9692d6f3c47930f7142bb584a0b132bb9e46"
+    },
+    {
+      "path": "driver-copies/controls/run.mjs.data",
+      "bytes": 16984,
+      "sha256": "e72a6f3dc0b617370a71a059f62264e3edad4de920b8ced1010eff0197903a72"
+    },
+    {
+      "path": "driver-copies/lifecycle/run.mjs.data",
+      "bytes": 16853,
+      "sha256": "e9d8ff3d8354f0362f115125e9137fe52a33d8a4a9e4e523f3e069f437c0bacd"
+    },
+    {
+      "path": "expected-private.json.data",
+      "bytes": 69396,
+      "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+    },
+    {
+      "path": "parent-binding.mjs.data",
+      "bytes": 4833,
+      "sha256": "88fca81584f4d16a3d68da53bd3123c4684dee38680910440eb1afd040e38a15"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 21672,
+      "sha256": "9fbf1c9924de3b0d268b753bc2e70273a26b233dc999339567fd85723dd76644"
+    },
+    {
+      "path": "run.py",
+      "bytes": 9564,
+      "sha256": "76e4565d545648a97bb185bf68a32e3164d451f125e430a5480c6aff7bc4bd3c"
+    },
+    {
+      "path": "shared.py",
+      "bytes": 5945,
+      "sha256": "18aee4e4836487ab0857998b772c786197428bdf6b4fdaed9decceb3e606bba0"
+    }
+  ],
+  "provenanceEntriesAuthenticated": 107,
+  "runtimeFiles": 38,
+  "unchangedRuntimeFilesFromA61": 34,
+  "guardOnlyChangedFiles": [
+    "admission.mjs",
+    "controls/run.mjs",
+    "lifecycle/run.mjs"
+  ],
+  "addedRuntimeStatusData": 1,
+  "original88GitInputsAuthenticated": true,
+  "onlyExpectedPrivateChange": [
+    "status"
+  ],
+  "capturedStateProjection": [
+    {
+      "commit": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v2/attempt-01/raw/independent-surface/private-before.json",
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3",
+      "projectedMatchesExpected": true,
+      "metadataRecords": 271
+    },
+    {
+      "commit": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v2/attempt-01/raw/independent-surface/private-after.json",
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3",
+      "projectedMatchesExpected": true,
+      "metadataRecords": 271
+    },
+    {
+      "commit": "06426bb62b6cc79f0be04dbf208efd17cfb84082",
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v1/attempt-01/raw/surface/private-before.json",
+      "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd",
+      "projectedMatchesExpected": true,
+      "metadataRecords": 271
+    },
+    {
+      "commit": "06426bb62b6cc79f0be04dbf208efd17cfb84082",
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/execution-v1/attempt-01/raw/surface/private-after.json",
+      "sha256": "89a80c50e466a618905e0f1fafa40887d5446006825967c90bc417402fd7b1bd",
+      "projectedMatchesExpected": true,
+      "metadataRecords": 271
+    }
+  ],
+  "bothFullRawBeforeAfterPairsEqual": true,
+  "allFourRequiredRawStatesEqual": true,
+  "authorOnlyCaptureFields": [
+    "qualification",
+    "engineShape"
+  ],
+  "metadataRecordsPerProjection": 271,
+  "staticPreparationRefusals": [
+    {
+      "attempt": 1,
+      "failure": "Cross-author whole JSON equality assertion failed: author capture has qualification and engineShape fields absent from independent capture. Each full before/after pair and every required state field match exactly. No runtime or private query occurred."
+    },
+    {
+      "attempt": 2,
+      "failure": "Static helper initially reversed the direction of the two schema-only extra fields; corrected to author-only after printing exact key sets. No expected private state changed."
+    }
+  ],
+  "noNumericToleranceOrRoundingAdded": true,
+  "privateCheckoutQueries": 0,
+  "parserOnlyChecks": [
+    {
+      "path": "admission.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/child.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/common.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/guard.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/profile.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "controls/run.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/child.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/common.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/guard.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/profile.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "surface/child.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "surface/controls.mjs",
+      "exitCode": 0
+    },
+    {
+      "path": "surface/run.mjs",
+      "exitCode": 0
+    }
+  ],
+  "dataOnlyNegatives": [
+    {
+      "id": "remove-authorized-line",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "add-third-line",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "reorder-authorized-lines",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "change-newline",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "change-head",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "change-index-byte-hash",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "change-staging",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "change-metadata-byte-hash",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "change-engine-byte-hash",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "change-historical-millisecond",
+      "exactComparisonRejects": true
+    },
+    {
+      "id": "raw-after-one-nanosecond-drift",
+      "rawBeforeAfterExactComparisonRejects": true
+    }
+  ],
+  "productPrivateEngineGuestTransportExecutions": 0,
+  "noPromotion": true
+}

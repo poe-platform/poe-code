@@ -1,0 +1,39 @@
+{
+  "at": "2026-08-27T15:20:09.919Z",
+  "version": 1,
+  "phase": "FROZEN_BEFORE_FIRST_GUEST",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3734,
+      "sha256": "a6bc55b72627070825d1e62714e27606b9e5f218fbca12f3ac0c5c525425c48f"
+    },
+    {
+      "path": "RELEASE.json",
+      "bytes": 1759,
+      "sha256": "de6f5c35dd4b962e5a3e4cbd426cd87d0a5cdb11761b8bc9159079b2107f471a"
+    },
+    {
+      "path": "child.mjs",
+      "bytes": 12759,
+      "sha256": "5cab487b9a63feade2048a1f6b13fb3756f668d14f7a3ecacbf7b921da97c13d"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 22406,
+      "sha256": "91c6af3375fe486366206b080032a7f3f86d218d12faf018b8a38b0689ae0460"
+    },
+    {
+      "path": "syntax-check.json",
+      "bytes": 437,
+      "sha256": "e15e0a2f79025a35f4be645627661708abb99eda6ad899f2c65712b91b2b26c7"
+    }
+  ],
+  "guestExecutionsAtFreeze": 0,
+  "productImportsAtFreeze": 0,
+  "privateEngineImportsAtFreeze": 0,
+  "inputCommit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+  "unconditionalCases": 8,
+  "conditionalCases": 1,
+  "noGuestOrExpectationChanges": true
+}

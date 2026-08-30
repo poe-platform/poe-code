@@ -1,0 +1,19 @@
+{
+  "role": "03-scope",
+  "pid": 40420,
+  "args": [
+    "status",
+    "--porcelain=v1",
+    "--",
+    "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/final-binding-v1"
+  ],
+  "started": "2026-08-29T14:51:56.688Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

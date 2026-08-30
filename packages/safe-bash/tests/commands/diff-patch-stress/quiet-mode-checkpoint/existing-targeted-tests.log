@@ -1,0 +1,868 @@
+TAP version 13
+# Subtest: diff rejects pre-aborted signals without reading or writing
+ok 1 - diff rejects pre-aborted signals without reading or writing
+  ---
+  duration_ms: 1.431209
+  type: 'test'
+  ...
+# Subtest: patch rejects pre-aborted signals without reading or writing
+ok 2 - patch rejects pre-aborted signals without reading or writing
+  ---
+  duration_ms: 0.269917
+  type: 'test'
+  ...
+# Subtest: patch aborts waiting for stdin and observes late iterator failures
+ok 3 - patch aborts waiting for stdin and observes late iterator failures
+  ---
+  duration_ms: 21.386125
+  type: 'test'
+  ...
+# Subtest: diff aborts a blocked output sink and observes its late failure
+ok 4 - diff aborts a blocked output sink and observes its late failure
+  ---
+  duration_ms: 22.884208
+  type: 'test'
+  ...
+# Subtest: filesystem waits propagate the signal and observe late rejection
+ok 5 - filesystem waits propagate the signal and observe late rejection
+  ---
+  duration_ms: 22.80225
+  type: 'test'
+  ...
+# Subtest: diff computation yields for cancellation before producing output
+ok 6 - diff computation yields for cancellation before producing output
+  ---
+  duration_ms: 10.568916
+  type: 'test'
+  ...
+# Subtest: patch matching yields for cancellation and preflight leaves bytes intact
+ok 7 - patch matching yields for cancellation and preflight leaves bytes intact
+  ---
+  duration_ms: 10.042666
+  type: 'test'
+  ...
+# Subtest: cancellation during commit leaves only the already-committed prefix
+ok 8 - cancellation during commit leaves only the already-committed prefix
+  ---
+  duration_ms: 3.162958
+  type: 'test'
+  ...
+# Subtest: endless empty stdin chunks yield and remain cancellable
+ok 9 - endless empty stdin chunks yield and remain cancellable
+  ---
+  duration_ms: 107.438209
+  type: 'test'
+  ...
+# Subtest: publication oracle is exactly the pinned GNU patch 2.8 binary
+ok 10 - publication oracle is exactly the pinned GNU patch 2.8 binary
+  ---
+  duration_ms: 19.14175
+  type: 'test'
+  ...
+# Subtest: GNU publication: unified partial succeeds then rejects
+ok 11 - GNU publication: unified partial succeeds then rejects
+  ---
+  duration_ms: 25.813334
+  type: 'test'
+  ...
+# Subtest: GNU publication: unified partial rejects then succeeds
+ok 12 - GNU publication: unified partial rejects then succeeds
+  ---
+  duration_ms: 15.744875
+  type: 'test'
+  ...
+# Subtest: GNU publication: context partial retains timestamps and section labels
+ok 13 - GNU publication: context partial retains timestamps and section labels
+  ---
+  duration_ms: 19.070833
+  type: 'test'
+  ...
+# Subtest: GNU publication: normal partial uses Index and context reject format
+ok 14 - GNU publication: normal partial uses Index and context reject format
+  ---
+  duration_ms: 16.770625
+  type: 'test'
+  ...
+# Subtest: GNU publication: normal explicit target accepts bare diff preamble
+ok 15 - GNU publication: normal explicit target accepts bare diff preamble
+  ---
+  duration_ms: 14.385625
+  type: 'test'
+  ...
+# Subtest: GNU publication: bare diff preamble does not supply normal target
+ok 16 - GNU publication: bare diff preamble does not supply normal target
+  ---
+  duration_ms: 11.95275
+  type: 'test'
+  ...
+# Subtest: GNU publication: explicit -n skips unlocated normal target
+ok 17 - GNU publication: explicit -n skips unlocated normal target
+  ---
+  duration_ms: 8.526458
+  type: 'test'
+  ...
+# Subtest: GNU publication: unlocated normal section does not stop later indexed section
+ok 18 - GNU publication: unlocated normal section does not stop later indexed section
+  ---
+  duration_ms: 9.764583
+  type: 'test'
+  ...
+# Subtest: GNU publication: normal Index is stripped in rejects
+ok 19 - GNU publication: normal Index is stripped in rejects
+  ---
+  duration_ms: 12.77575
+  type: 'test'
+  ...
+# Subtest: GNU publication: header names take precedence over Index
+ok 20 - GNU publication: header names take precedence over Index
+  ---
+  duration_ms: 12.481708
+  type: 'test'
+  ...
+# Subtest: GNU publication: existing reject is replaced
+ok 21 - GNU publication: existing reject is replaced
+  ---
+  duration_ms: 10.761292
+  type: 'test'
+  ...
+# Subtest: GNU publication: rejects append during one invocation
+ok 22 - GNU publication: rejects append during one invocation
+  ---
+  duration_ms: 15.436458
+  type: 'test'
+  ...
+# Subtest: GNU publication: explicit reject file
+ok 23 - GNU publication: explicit reject file
+  ---
+  duration_ms: 11.531125
+  type: 'test'
+  ...
+# Subtest: GNU publication: long explicit reject file
+ok 24 - GNU publication: long explicit reject file
+  ---
+  duration_ms: 9.577167
+  type: 'test'
+  ...
+# Subtest: GNU publication: discard rejects still creates mismatch backup
+ok 25 - GNU publication: discard rejects still creates mismatch backup
+  ---
+  duration_ms: 11.26
+  type: 'test'
+  ...
+# Subtest: GNU publication: reject parent is not implicitly created
+ok 26 - GNU publication: reject parent is not implicitly created
+  ---
+  duration_ms: 10.178209
+  type: 'test'
+  ...
+# Subtest: GNU publication: no backup if mismatch
+ok 27 - GNU publication: no backup if mismatch
+  ---
+  duration_ms: 11.009958
+  type: 'test'
+  ...
+# Subtest: GNU publication: default backup replaces existing orig
+ok 28 - GNU publication: default backup replaces existing orig
+  ---
+  duration_ms: 9.823459
+  type: 'test'
+  ...
+# Subtest: GNU publication: existing numbered backups select next version
+ok 29 - GNU publication: existing numbered backups select next version
+  ---
+  duration_ms: 10.552041
+  type: 'test'
+  ...
+# Subtest: GNU publication: clean first section suppresses later mismatch backup
+ok 30 - GNU publication: clean first section suppresses later mismatch backup
+  ---
+  duration_ms: 10.862875
+  type: 'test'
+  ...
+# Subtest: GNU publication: clean target can coexist with later orig target
+ok 31 - GNU publication: clean target can coexist with later orig target
+  ---
+  duration_ms: 9.631708
+  type: 'test'
+  ...
+# Subtest: GNU publication: offset match produces orig backup
+ok 32 - GNU publication: offset match produces orig backup
+  ---
+  duration_ms: 11.313
+  type: 'test'
+  ...
+# Subtest: GNU publication: default fuzz two produces orig backup
+ok 33 - GNU publication: default fuzz two produces orig backup
+  ---
+  duration_ms: 11.0375
+  type: 'test'
+  ...
+# Subtest: GNU publication: explicit fuzz zero rejects without narrowing default
+ok 34 - GNU publication: explicit fuzz zero rejects without narrowing default
+  ---
+  duration_ms: 10.980917
+  type: 'test'
+  ...
+# Subtest: GNU publication: batch reverses previously applied patch
+ok 35 - GNU publication: batch reverses previously applied patch
+  ---
+  duration_ms: 9.242
+  type: 'test'
+  ...
+# Subtest: GNU publication: force does not reverse
+ok 36 - GNU publication: force does not reverse
+  ---
+  duration_ms: 8.847083
+  type: 'test'
+  ...
+# Subtest: GNU publication: batch does not cancel force
+ok 37 - GNU publication: batch does not cancel force
+  ---
+  duration_ms: 10.539083
+  type: 'test'
+  ...
+# Subtest: GNU publication: last grouped format selector chooses unified
+ok 38 - GNU publication: last grouped format selector chooses unified
+  ---
+  duration_ms: 10.15075
+  type: 'test'
+  ...
+# Subtest: GNU publication: last grouped format selector rejects unified as context
+ok 39 - GNU publication: last grouped format selector rejects unified as context
+  ---
+  duration_ms: 8.776958
+  type: 'test'
+  ...
+# Subtest: GNU publication: last long format selector chooses unified
+ok 40 - GNU publication: last long format selector chooses unified
+  ---
+  duration_ms: 9.49325
+  type: 'test'
+  ...
+# Subtest: GNU publication: reverse keeps section order
+ok 41 - GNU publication: reverse keeps section order
+  ---
+  duration_ms: 9.183417
+  type: 'test'
+  ...
+# Subtest: GNU publication: default dry-run reads unmodified filesystem
+ok 42 - GNU publication: default dry-run reads unmodified filesystem
+  ---
+  duration_ms: 10.167167
+  type: 'test'
+  ...
+# Subtest: GNU publication: dry-run leaves existing backup and reject
+ok 43 - GNU publication: dry-run leaves existing backup and reject
+  ---
+  duration_ms: 8.860625
+  type: 'test'
+  ...
+# Subtest: GNU publication: later missing target continues to third
+ok 44 - GNU publication: later missing target continues to third
+  ---
+  duration_ms: 10.062709
+  type: 'test'
+  ...
+# Subtest: GNU publication: later malformed section retains completed prefix
+ok 45 - GNU publication: later malformed section retains completed prefix
+  ---
+  duration_ms: 12.130875
+  type: 'test'
+  ...
+# Subtest: GNU publication: failed overlap permits a later matching hunk
+ok 46 - GNU publication: failed overlap permits a later matching hunk
+  ---
+  duration_ms: 9.105667
+  type: 'test'
+  ...
+# Subtest: GNU publication: subsequent zero-range insertion has GNU coordinates
+ok 47 - GNU publication: subsequent zero-range insertion has GNU coordinates
+  ---
+  duration_ms: 7.909375
+  type: 'test'
+  ...
+# Subtest: GNU publication: overlapping old range is a hunk conflict
+ok 48 - GNU publication: overlapping old range is a hunk conflict
+  ---
+  duration_ms: 10.081083
+  type: 'test'
+  ...
+# Subtest: GNU publication: overlapping new range is a hunk conflict
+ok 49 - GNU publication: overlapping new range is a hunk conflict
+  ---
+  duration_ms: 10.05175
+  type: 'test'
+  ...
+# Subtest: GNU publication: repeated old coordinates are a hunk conflict
+ok 50 - GNU publication: repeated old coordinates are a hunk conflict
+  ---
+  duration_ms: 13.043375
+  type: 'test'
+  ...
+# Subtest: GNU publication: reject coordinates track successful insertion
+ok 51 - GNU publication: reject coordinates track successful insertion
+  ---
+  duration_ms: 9.358292
+  type: 'test'
+  ...
+# Subtest: GNU publication: incomplete reject lines reproduce GNU bytes
+ok 52 - GNU publication: incomplete reject lines reproduce GNU bytes
+  ---
+  duration_ms: 8.645416
+  type: 'test'
+  ...
+# Subtest: GNU publication: creation over nonempty file assumes reversal
+ok 53 - GNU publication: creation over nonempty file assumes reversal
+  ---
+  duration_ms: 10.835625
+  type: 'test'
+  ...
+# Subtest: GNU publication: creation over nonempty file force retains forward reject
+ok 54 - GNU publication: creation over nonempty file force retains forward reject
+  ---
+  duration_ms: 9.261167
+  type: 'test'
+  ...
+# Subtest: GNU publication: deletion of missing target assumes creation
+ok 55 - GNU publication: deletion of missing target assumes creation
+  ---
+  duration_ms: 9.616583
+  type: 'test'
+  ...
+# Subtest: GNU publication: incomplete deletion publishes successful removal
+ok 56 - GNU publication: incomplete deletion publishes successful removal
+  ---
+  duration_ms: 9.3485
+  type: 'test'
+  ...
+# Subtest: GNU publication: creation makes missing parents
+ok 57 - GNU publication: creation makes missing parents
+  ---
+  duration_ms: 9.583042
+  type: 'test'
+  ...
+# Subtest: --atomic retains GNU coordinates and preflights conflicts: subsequent zero-range insertion has GNU coordinates
+ok 58 - --atomic retains GNU coordinates and preflights conflicts: subsequent zero-range insertion has GNU coordinates
+  ---
+  duration_ms: 9.685
+  type: 'test'
+  ...
+# Subtest: --atomic retains GNU coordinates and preflights conflicts: overlapping old range is a hunk conflict
+ok 59 - --atomic retains GNU coordinates and preflights conflicts: overlapping old range is a hunk conflict
+  ---
+  duration_ms: 8.61625
+  type: 'test'
+  ...
+# Subtest: --atomic retains GNU coordinates and preflights conflicts: overlapping new range is a hunk conflict
+ok 60 - --atomic retains GNU coordinates and preflights conflicts: overlapping new range is a hunk conflict
+  ---
+  duration_ms: 8.796959
+  type: 'test'
+  ...
+# Subtest: --atomic retains GNU coordinates and preflights conflicts: repeated old coordinates are a hunk conflict
+ok 61 - --atomic retains GNU coordinates and preflights conflicts: repeated old coordinates are a hunk conflict
+  ---
+  duration_ms: 10.960416
+  type: 'test'
+  ...
+# Subtest: --atomic retains GNU coordinates and preflights conflicts: reject coordinates track successful insertion
+ok 62 - --atomic retains GNU coordinates and preflights conflicts: reject coordinates track successful insertion
+  ---
+  duration_ms: 10.815625
+  type: 'test'
+  ...
+# Subtest: noninteractive default explicitly chooses batch reversal, not force
+ok 63 - noninteractive default explicitly chooses batch reversal, not force
+  ---
+  duration_ms: 10.836833
+  type: 'test'
+  ...
+# Subtest: reject replacement resets across invocations
+ok 64 - reject replacement resets across invocations
+  ---
+  duration_ms: 19.400708
+  type: 'test'
+  ...
+# Subtest: --atomic paired control retains complete namespace: "--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n@@ -3 +3 @@ function\\n-tail\\n+TAIL\\n"
+ok 65 - --atomic paired control retains complete namespace: "--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n@@ -3 +3 @@ function\\n-tail\\n+TAIL\\n"
+  ---
+  duration_ms: 0.843167
+  type: 'test'
+  ...
+# Subtest: --atomic paired control retains complete namespace: "--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n--- missing\\n+++ missing\\n@@ -1 +1 @@\\n-old\\n+new\\n"
+ok 66 - --atomic paired control retains complete namespace: "--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n--- missing\\n+++ missing\\n@@ -1 +1 @@\\n-old\\n+new\\n"
+  ---
+  duration_ms: 0.52075
+  type: 'test'
+  ...
+# Subtest: --atomic paired control retains complete namespace: "--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n--- missing\\n+++ missing\\n@@ -1 +1 @@\\n-old\\n"
+ok 67 - --atomic paired control retains complete namespace: "--- target\\n+++ target\\n@@ -1 +1 @@\\n-old\\n+new\\n--- missing\\n+++ missing\\n@@ -1 +1 @@\\n-old\\n"
+  ---
+  duration_ms: 0.129375
+  type: 'test'
+  ...
+# Subtest: publication safety default: .orig symlink
+ok 68 - publication safety default: .orig symlink
+  ---
+  duration_ms: 0.373125
+  type: 'test'
+  ...
+# Subtest: publication safety default: .orig hardlink
+ok 69 - publication safety default: .orig hardlink
+  ---
+  duration_ms: 0.308
+  type: 'test'
+  ...
+# Subtest: publication safety default: .rej symlink
+ok 70 - publication safety default: .rej symlink
+  ---
+  duration_ms: 0.320709
+  type: 'test'
+  ...
+# Subtest: publication safety default: .rej hardlink
+ok 71 - publication safety default: .rej hardlink
+  ---
+  duration_ms: 1.886583
+  type: 'test'
+  ...
+# Subtest: publication safety atomic: .orig symlink
+ok 72 - publication safety atomic: .orig symlink
+  ---
+  duration_ms: 0.387541
+  type: 'test'
+  ...
+# Subtest: publication safety atomic: .orig hardlink
+ok 73 - publication safety atomic: .orig hardlink
+  ---
+  duration_ms: 0.330333
+  type: 'test'
+  ...
+# Subtest: publication safety atomic: .rej symlink
+ok 74 - publication safety atomic: .rej symlink
+  ---
+  duration_ms: 0.393917
+  type: 'test'
+  ...
+# Subtest: publication safety atomic: .rej hardlink
+ok 75 - publication safety atomic: .rej hardlink
+  ---
+  duration_ms: 0.242917
+  type: 'test'
+  ...
+# Subtest: patch reads -i, dry-run does not modify, and reverse restores bytes
+ok 76 - patch reads -i, dry-run does not modify, and reverse restores bytes
+  ---
+  duration_ms: 7.2945
+  type: 'test'
+  ...
+# Subtest: space-containing filenames and tab-delimited timestamps
+ok 77 - space-containing filenames and tab-delimited timestamps
+  ---
+  duration_ms: 4.071792
+  type: 'test'
+  ...
+# Subtest: standard git text preambles and -p1
+ok 78 - standard git text preambles and -p1
+  ---
+  duration_ms: 31.776708
+  type: 'test'
+  ...
+# Subtest: native patch offset matching and explicit fuzz preserve actual context
+ok 79 - native patch offset matching and explicit fuzz preserve actual context
+  ---
+  duration_ms: 18.052583
+  type: 'test'
+  ...
+# Subtest: offset-only matching succeeds at fuzz zero and carries offsets across hunks
+ok 80 - offset-only matching succeeds at fuzz zero and carries offsets across hunks
+  ---
+  duration_ms: 14.667541
+  type: 'test'
+  ...
+# Subtest: fuzz never ignores deletion content
+ok 81 - fuzz never ignores deletion content
+  ---
+  duration_ms: 1.086375
+  type: 'test'
+  ...
+# Subtest: --atomic preflights all hunks before modifying one file
+ok 82 - --atomic preflights all hunks before modifying one file
+  ---
+  duration_ms: 0.402
+  type: 'test'
+  ...
+# Subtest: --atomic preflights all files before modifying any file
+ok 83 - --atomic preflights all files before modifying any file
+  ---
+  duration_ms: 0.751542
+  type: 'test'
+  ...
+# Subtest: multifile creation/deletion reverses without reject files
+ok 84 - multifile creation/deletion reverses without reject files
+  ---
+  duration_ms: 15.297042
+  type: 'test'
+  ...
+# Subtest: --atomic create/delete failures preserve preexisting content
+ok 85 - --atomic create/delete failures preserve preexisting content
+  ---
+  duration_ms: 0.930541
+  type: 'test'
+  ...
+# Subtest: creation makes missing parent directories with -p0
+ok 86 - creation makes missing parent directories with -p0
+  ---
+  duration_ms: 1.730375
+  type: 'test'
+  ...
+# Subtest: empty patch is a successful no-op
+ok 87 - empty patch is a successful no-op
+  ---
+  duration_ms: 0.115417
+  type: 'test'
+  ...
+# Subtest: --atomic --force repeated target conflict has no early writes
+ok 88 - --atomic --force repeated target conflict has no early writes
+  ---
+  duration_ms: 0.420417
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: missing new header
+ok 89 - --atomic malformed patch rejected before modification: missing new header
+  ---
+  duration_ms: 0.135625
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: missing hunks
+ok 90 - --atomic malformed patch rejected before modification: missing hunks
+  ---
+  duration_ms: 0.115916
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: truncated body
+ok 91 - --atomic malformed patch rejected before modification: truncated body
+  ---
+  duration_ms: 0.134959
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: extra body line
+ok 92 - --atomic malformed patch rejected before modification: extra body line
+  ---
+  duration_ms: 0.101583
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: bad body prefix
+ok 93 - --atomic malformed patch rejected before modification: bad body prefix
+  ---
+  duration_ms: 0.12225
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: zero nonempty start
+ok 94 - --atomic malformed patch rejected before modification: zero nonempty start
+  ---
+  duration_ms: 0.077416
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: unsafe integer
+ok 95 - --atomic malformed patch rejected before modification: unsafe integer
+  ---
+  duration_ms: 0.0755
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: empty range
+ok 96 - --atomic malformed patch rejected before modification: empty range
+  ---
+  duration_ms: 0.070416
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: no changes
+ok 97 - --atomic malformed patch rejected before modification: no changes
+  ---
+  duration_ms: 0.071583
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: unknown marker
+ok 98 - --atomic malformed patch rejected before modification: unknown marker
+  ---
+  duration_ms: 0.075334
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: empty incomplete line
+ok 99 - --atomic malformed patch rejected before modification: empty incomplete line
+  ---
+  duration_ms: 0.189083
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: duplicate marker
+ok 100 - --atomic malformed patch rejected before modification: duplicate marker
+  ---
+  duration_ms: 0.129
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: content after missing newline
+ok 101 - --atomic malformed patch rejected before modification: content after missing newline
+  ---
+  duration_ms: 0.090375
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: truncated physical line
+ok 102 - --atomic malformed patch rejected before modification: truncated physical line
+  ---
+  duration_ms: 0.070875
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: unsupported preamble
+ok 103 - --atomic malformed patch rejected before modification: unsupported preamble
+  ---
+  duration_ms: 0.078166
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: git symlink metadata
+ok 104 - --atomic malformed patch rejected before modification: git symlink metadata
+  ---
+  duration_ms: 0.071625
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: git rename metadata
+ok 105 - --atomic malformed patch rejected before modification: git rename metadata
+  ---
+  duration_ms: 0.065708
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: metadata without patch
+ok 106 - --atomic malformed patch rejected before modification: metadata without patch
+  ---
+  duration_ms: 0.265917
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: unterminated quoted filename
+ok 107 - --atomic malformed patch rejected before modification: unterminated quoted filename
+  ---
+  duration_ms: 0.206375
+  type: 'test'
+  ...
+# Subtest: --atomic malformed patch rejected before modification: both null
+ok 108 - --atomic malformed patch rejected before modification: both null
+  ---
+  duration_ms: 0.091542
+  type: 'test'
+  ...
+# Subtest: patch rejects unsupported or invalid options ["-p-1"]
+ok 109 - patch rejects unsupported or invalid options ["-p-1"]
+  ---
+  duration_ms: 0.096791
+  type: 'test'
+  ...
+# Subtest: patch rejects unsupported or invalid options ["--fuzz=NaN"]
+ok 110 - patch rejects unsupported or invalid options ["--fuzz=NaN"]
+  ---
+  duration_ms: 0.043
+  type: 'test'
+  ...
+# Subtest: patch rejects unsupported or invalid options ["-i"]
+ok 111 - patch rejects unsupported or invalid options ["-i"]
+  ---
+  duration_ms: 0.07
+  type: 'test'
+  ...
+# Subtest: patch rejects unsupported or invalid options ["--output=elsewhere"]
+ok 112 - patch rejects unsupported or invalid options ["--output=elsewhere"]
+  ---
+  duration_ms: 0.039166
+  type: 'test'
+  ...
+# Subtest: patch rejects unsupported or invalid options ["a","b"]
+ok 113 - patch rejects unsupported or invalid options ["a","b"]
+  ---
+  duration_ms: 0.04325
+  type: 'test'
+  ...
+# Subtest: patch rejects unsupported or invalid options ["/dev/null"]
+ok 114 - patch rejects unsupported or invalid options ["/dev/null"]
+  ---
+  duration_ms: 0.073208
+  type: 'test'
+  ...
+# Subtest: patch rejects unsupported or invalid options ["--strip=9007199254740992"]
+ok 115 - patch rejects unsupported or invalid options ["--strip=9007199254740992"]
+  ---
+  duration_ms: 0.042333
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "../target"
+ok 116 - patch rejects unsafe header before or after strip: "../target"
+  ---
+  duration_ms: 4.0605
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "dir/../../target"
+ok 117 - patch rejects unsafe header before or after strip: "dir/../../target"
+  ---
+  duration_ms: 1.083625
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "/work/target"
+ok 118 - patch rejects unsafe header before or after strip: "/work/target"
+  ---
+  duration_ms: 0.333167
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "a/../target"
+ok 119 - patch rejects unsafe header before or after strip: "a/../target"
+  ---
+  duration_ms: 1.112542
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "C:/target"
+ok 120 - patch rejects unsafe header before or after strip: "C:/target"
+  ---
+  duration_ms: 0.532084
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "a\\\\target"
+ok 121 - patch rejects unsafe header before or after strip: "a\\\\target"
+  ---
+  duration_ms: 0.946667
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "target\\rname"
+ok 122 - patch rejects unsafe header before or after strip: "target\\rname"
+  ---
+  duration_ms: 0.38175
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "./.."
+ok 123 - patch rejects unsafe header before or after strip: "./.."
+  ---
+  duration_ms: 0.312875
+  type: 'test'
+  ...
+# Subtest: patch rejects unsafe header before or after strip: "target"
+ok 124 - patch rejects unsafe header before or after strip: "target"
+  ---
+  duration_ms: 0.361583
+  type: 'test'
+  ...
+# Subtest: explicit targets reject traversal even with safe patch headers
+ok 125 - explicit targets reject traversal even with safe patch headers
+  ---
+  duration_ms: 0.592375
+  type: 'test'
+  ...
+# Subtest: strip removing the entire pathname is an error
+ok 126 - strip removing the entire pathname is an error
+  ---
+  duration_ms: 0.232917
+  type: 'test'
+  ...
+# Subtest: selected-path policy rejects symlink target, retained ancestor (-p0), and patch input
+ok 127 - selected-path policy rejects symlink target, retained ancestor (-p0), and patch input
+  ---
+  duration_ms: 2.069667
+  type: 'test'
+  ...
+# Subtest: dangling symlinks cannot become creation targets
+ok 128 - dangling symlinks cannot become creation targets
+  ---
+  duration_ms: 0.533292
+  type: 'test'
+  ...
+# Subtest: hard-linked targets are rejected to avoid modifying aliases
+ok 129 - hard-linked targets are rejected to avoid modifying aliases
+  ---
+  duration_ms: 0.526
+  type: 'test'
+  ...
+# Subtest: directory targets are never overwritten
+ok 130 - directory targets are never overwritten
+  ---
+  duration_ms: 0.610792
+  type: 'test'
+  ...
+# Subtest: binary rejection preserves bytes 0041
+ok 131 - binary rejection preserves bytes 0041
+  ---
+  duration_ms: 2.271458
+  type: 'test'
+  ...
+# Subtest: binary rejection preserves bytes ff0a
+ok 132 - binary rejection preserves bytes ff0a
+  ---
+  duration_ms: 1.450959
+  type: 'test'
+  ...
+# Subtest: binary rejection preserves bytes c30a
+ok 133 - binary rejection preserves bytes c30a
+  ---
+  duration_ms: 1.462292
+  type: 'test'
+  ...
+# Subtest: line/matrix/work/input/output limits fail closed
+ok 134 - line/matrix/work/input/output limits fail closed
+  ---
+  duration_ms: 3.589667
+  type: 'test'
+  ...
+# Subtest: file and hunk budgets apply across complete invocations
+ok 135 - file and hunk budgets apply across complete invocations
+  ---
+  duration_ms: 0.63625
+  type: 'test'
+  ...
+# Subtest: invalid configuration reports usage failure before mutation
+ok 136 - invalid configuration reports usage failure before mutation
+  ---
+  duration_ms: 0.173375
+  type: 'test'
+  ...
+# Subtest: commit failures stop later files and disclose the committed prefix
+ok 137 - commit failures stop later files and disclose the committed prefix
+  ---
+  duration_ms: 0.850417
+  type: 'test'
+  ...
+# Subtest: --atomic late mutation in precommit validation prevents all command writes
+ok 138 - --atomic late mutation in precommit validation prevents all command writes
+  ---
+  duration_ms: 0.481583
+  type: 'test'
+  ...
+# Subtest: output budget is checked before writing any patch target
+ok 139 - output budget is checked before writing any patch target
+  ---
+  duration_ms: 0.46375
+  type: 'test'
+  ...
+# Subtest: hostile directory entry names never become filesystem paths
+ok 140 - hostile directory entry names never become filesystem paths
+  ---
+  duration_ms: 0.190792
+  type: 'test'
+  ...
+# Subtest: excessive path lengths and depths are bounded before filesystem traversal
+ok 141 - excessive path lengths and depths are bounded before filesystem traversal
+  ---
+  duration_ms: 7.427917
+  type: 'test'
+  ...
+# Subtest: diagnostics have a separate fixed bound even for huge invalid options
+ok 142 - diagnostics have a separate fixed bound even for huge invalid options
+  ---
+  duration_ms: 0.328
+  type: 'test'
+  ...
+# Subtest: patch updates preserve existing permission bits
+ok 143 - patch updates preserve existing permission bits
+  ---
+  duration_ms: 1.925667
+  type: 'test'
+  ...
+1..143
+# tests 143
+# suites 0
+# pass 143
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 832.206166

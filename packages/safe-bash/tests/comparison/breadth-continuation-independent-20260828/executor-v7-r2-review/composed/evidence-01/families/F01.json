@@ -1,0 +1,109 @@
+{
+  "identifier": "F01",
+  "status": "PASS",
+  "checks": 135,
+  "observation": {
+    "outcomes": [
+      {
+        "identifier": "A01",
+        "sha256": "af42c0c3de12d12e53d327f394e8b44e2f653fa0ce5e5fcadc57323ef32b694c",
+        "readerAccepted": true,
+        "downstreamCode": "AUTH_CONTEXT_SCHEMA",
+        "sameOriginalJSON": true
+      },
+      {
+        "identifier": "A02",
+        "sha256": "5c5393bf20340e764137bd53d8fa7a0fdd0b68ea0bcbd4700042a60e4c24e172",
+        "readerAccepted": false,
+        "downstreamCode": "AUTHORIZATION_BINDING",
+        "sameOriginalJSON": true
+      },
+      {
+        "member": "review",
+        "variant": "array-commit",
+        "sha256": "d114514eb6b8968f3f0393f7145e97424947ed76f665ec4017f0fab1466f6252",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "review",
+        "variant": "object-commit",
+        "sha256": "cc65c7469d693d990aeb80be1ee3b7915d6b808f8760e5a5d6138dadf070a3ae",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "review",
+        "variant": "array-path",
+        "sha256": "05057bed8ee598f088d16d70e9a3cbd1e7a1bf652847ca60f88dedd6021a2b86",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "review",
+        "variant": "array-hash",
+        "sha256": "0eb9413e5395874b5bd0abccae7331799f3a019bcf9742d0de95a248557104fb",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "review",
+        "variant": "extra",
+        "sha256": "de891c518f678e239692b398714d3c6e3ee33dd9de23d4b1dcc5304b9bd0bcfa",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "grant",
+        "variant": "array-commit",
+        "sha256": "ed7dd80b39631cf584fc721b008eb8f4da6534ed68a9a75158f6011e75f56a04",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "grant",
+        "variant": "object-commit",
+        "sha256": "9fdb833390568967287f1d66e0d0de840a323b525f630b4b253905c431ec0849",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "grant",
+        "variant": "array-path",
+        "sha256": "ba07fd3c14cb61857cbb9bbafb97622d80a5bc62f4969865ecb325f14cf5f5d8",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "grant",
+        "variant": "array-hash",
+        "sha256": "b0af44fc9479df93f33618a7ca538dac40b87491c385a934f0bf95438ae332f1",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      },
+      {
+        "member": "grant",
+        "variant": "extra",
+        "sha256": "27c0c72f31ab8461d205516929c4650979d8679a217d8664fc561b3e19721b61",
+        "reader": "AUTH_REFERENCE_SCHEMA",
+        "downstream": "AUTHORIZATION_BINDING",
+        "helper": "AUTHORIZATION_BINDING"
+      }
+    ],
+    "getters": 0,
+    "coercions": 0,
+    "invalidReads": 0,
+    "invalidObservations": 0,
+    "realAuthorityCalls": 0,
+    "schemaOnlyInertGrantNotPersisted": true
+  }
+}

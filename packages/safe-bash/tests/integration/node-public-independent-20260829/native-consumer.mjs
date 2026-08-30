@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import * as root from 'virtual-bash';
+import * as node from 'virtual-bash/commands/node';
+const symbols=['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError'].sort();
+assert.deepEqual(Object.keys(node).sort(),symbols,'NATIVE_PUBLIC_EXPORT_MISMATCH');
+for(const name of symbols)assert.equal(root[name],node[name],'NATIVE_PUBLIC_EXPORT_MISMATCH');
+assert.equal(root.createAgentCommands().length,80);
+assert(!root.createAgentCommands().some(definition=>definition.name==='node'));
+let prepared=0;
+const provider={profile:node.NODE_PROFILE,identity:'native-inert-public-control',prepare(){prepared++;throw Error('unexpected prepare');}};
+assert.equal(node.createNodeCommands({provider})[0].name,'node');
+assert.equal(node.nodeCommands({provider}).name,'node-commands');
+assert.equal(prepared,0);
+for(const suffix of ['host','lifecycle','worker-main','index.js'])await assert.rejects(import('virtual-bash/commands/node/'+suffix),{code:'ERR_PACKAGE_PATH_NOT_EXPORTED'});
+console.log(JSON.stringify({role:'I13-native-public-resolution',symbols:9,privateRefusals:4,defaultCount:80,prepared,aliases:false}));

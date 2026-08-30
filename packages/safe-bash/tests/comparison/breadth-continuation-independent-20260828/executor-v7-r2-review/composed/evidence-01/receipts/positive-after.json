@@ -1,0 +1,87 @@
+{
+  "pid": 96758,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "authority-observed",
+      "receipt": {
+        "role": "synthetic-authority-metadata",
+        "ordinal": 1,
+        "reference": {
+          "commit": "0000000000000000000000000000000000000000",
+          "path": "tests/INERT-INDEPENDENT-metadata-review.json",
+          "sha256": "292709c6d86b947d54298b1cf9c7a2eaa8b650b690b85420c881cfcc5fb88c8c"
+        },
+        "pid": 96717,
+        "group": -96717,
+        "status": 0,
+        "signal": null,
+        "errorCode": null,
+        "stdoutBytes": 39,
+        "stdoutSha256": "292709c6d86b947d54298b1cf9c7a2eaa8b650b690b85420c881cfcc5fb88c8c",
+        "stderrBase64": "",
+        "reaped": true
+      }
+    },
+    {
+      "sequence": 1,
+      "kind": "authority-observed",
+      "receipt": {
+        "role": "synthetic-authority-metadata",
+        "ordinal": 2,
+        "reference": {
+          "commit": "0000000000000000000000000000000000000000",
+          "path": "tests/INERT-INDEPENDENT-metadata-grant.json",
+          "sha256": "f72ef798a00135d07b75a53c561a0ba7f55976c6c0678d75b04dccf7d13b6fb9"
+        },
+        "pid": 96718,
+        "group": -96718,
+        "status": 0,
+        "signal": null,
+        "errorCode": null,
+        "stdoutBytes": 38,
+        "stdoutSha256": "f72ef798a00135d07b75a53c561a0ba7f55976c6c0678d75b04dccf7d13b6fb9",
+        "stderrBase64": "",
+        "reaped": true
+      }
+    },
+    {
+      "sequence": 2,
+      "kind": "final",
+      "report": {
+        "mode": "admission",
+        "runId": "synthetic",
+        "status": "ADMISSION_ACCEPTED",
+        "unsafe": false,
+        "result": {
+          "path": "RESULT.json",
+          "bytes": 5191,
+          "sha256": "6185d36d233c1d0599d0db5683ad258379396bc2aaf3946a9f2b419c11f100db",
+          "mode": 420
+        },
+        "children": 2,
+        "allChildrenReaped": true
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 783,
+    "stderr": 0,
+    "records": 1296
+  },
+  "stdout": "eyJzY2hlbWEiOiJCT1VOREVEX1RFUk1JTkFMX1YzIiwibW9kZSI6ImFkbWlzc2lvbiIsInJ1bklkIjoic3ludGhldGljIiwic3RhdHVzIjoiQURNSVNTSU9OX0FDQ0VQVEVEIiwidW5zYWZlIjpmYWxzZSwiZXhpdENvZGUiOjAsInByaW1hcnkiOnsicHJlc2VudCI6ZmFsc2UsInVuZGVmaW5lZFZhbHVlIjpmYWxzZX0sInJlc3VsdCI6eyJwYXRoIjoiUkVTVUxULmpzb24iLCJieXRlcyI6NTE5MSwic2hhMjU2IjoiNjE4NWQzNmQyMzNjMWQwNTk5ZDBkYjU2ODNhZDI1ODM3OTM5NmJjMmFhZjM5NDZhOWYyYjQxOWMxMWYxMDBkYiIsIm1vZGUiOjQyMH0sImxhdW5jaEFjY291bnRpbmciOnsiZW5yb2xsZWQiOjIsImF0dGVtcHRlZCI6MiwibGF1bmNoZWQiOjIsImNsb3NlZCI6MiwidW5rbm93bkFjcXVpc2l0aW9ucyI6MCwiYWxsQ2hpbGRyZW5SZWFwZWQiOnRydWUsInVuc2FmZSI6ZmFsc2V9LCJjaGlsZHJlbiI6W3sib3JkaW5hbCI6MSwicGlkIjo5NjczNiwiZ3JvdXAiOi05NjczNiwiZXhpdCI6eyJjb2RlIjowLCJzaWduYWwiOm51bGx9LCJjbG9zZSI6eyJjb2RlIjowLCJzaWduYWwiOm51bGx9LCJyZWFwZWQiOnRydWUsInBlcnNpc3RlZCI6dHJ1ZX0seyJvcmRpbmFsIjoyLCJwaWQiOjk2NzM3LCJncm91cCI6LTk2NzM3LCJleGl0Ijp7ImNvZGUiOjcsInNpZ25hbCI6bnVsbH0sImNsb3NlIjp7ImNvZGUiOjcsInNpZ25hbCI6bnVsbH0sInJlYXBlZCI6dHJ1ZSwicGVyc2lzdGVkIjp0cnVlfV0sImZhaWx1cmVzIjpbXSwiaGlzdG9yaWNhbFNjb3Jlc1VuY2hhbmdlZCI6dHJ1ZX0K",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImF1dGhvcml0eS1vYnNlcnZlZCIsInJlY2VpcHQiOnsicm9sZSI6InN5bnRoZXRpYy1hdXRob3JpdHktbWV0YWRhdGEiLCJvcmRpbmFsIjoxLCJyZWZlcmVuY2UiOnsiY29tbWl0IjoiMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInBhdGgiOiJ0ZXN0cy9JTkVSVC1JTkRFUEVOREVOVC1tZXRhZGF0YS1yZXZpZXcuanNvbiIsInNoYTI1NiI6IjI5MjcwOWM2ZDg2Yjk0N2Q1NDI5OGIxY2Y5YzdhMmVhYThiNjUwYjY5MGI4NTQyMGM4ODFjZmNjNWZiODhjOGMifSwicGlkIjo5NjcxNywiZ3JvdXAiOi05NjcxNywic3RhdHVzIjowLCJzaWduYWwiOm51bGwsImVycm9yQ29kZSI6bnVsbCwic3Rkb3V0Qnl0ZXMiOjM5LCJzdGRvdXRTaGEyNTYiOiIyOTI3MDljNmQ4NmI5NDdkNTQyOThiMWNmOWM3YTJlYWE4YjY1MGI2OTBiODU0MjBjODgxY2ZjYzVmYjg4YzhjIiwic3RkZXJyQmFzZTY0IjoiIiwicmVhcGVkIjp0cnVlfX0KeyJzZXF1ZW5jZSI6MSwia2luZCI6ImF1dGhvcml0eS1vYnNlcnZlZCIsInJlY2VpcHQiOnsicm9sZSI6InN5bnRoZXRpYy1hdXRob3JpdHktbWV0YWRhdGEiLCJvcmRpbmFsIjoyLCJyZWZlcmVuY2UiOnsiY29tbWl0IjoiMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInBhdGgiOiJ0ZXN0cy9JTkVSVC1JTkRFUEVOREVOVC1tZXRhZGF0YS1ncmFudC5qc29uIiwic2hhMjU2IjoiZjcyZWY3OThhMDAxMzVkMDdiNzVhNTNjNTYxYTBiYTdmNTU5NzZjNmMwNjc4ZDc1YjA0ZGNjZjdkMTNiNmZiOSJ9LCJwaWQiOjk2NzE4LCJncm91cCI6LTk2NzE4LCJzdGF0dXMiOjAsInNpZ25hbCI6bnVsbCwiZXJyb3JDb2RlIjpudWxsLCJzdGRvdXRCeXRlcyI6MzgsInN0ZG91dFNoYTI1NiI6ImY3MmVmNzk4YTAwMTM1ZDA3Yjc1YTUzYzU2MWEwYmE3ZjU1OTc2YzZjMDY3OGQ3NWIwNGRjY2Y3ZDEzYjZmYjkiLCJzdGRlcnJCYXNlNjQiOiIiLCJyZWFwZWQiOnRydWV9fQp7InNlcXVlbmNlIjoyLCJraW5kIjoiZmluYWwiLCJyZXBvcnQiOnsibW9kZSI6ImFkbWlzc2lvbiIsInJ1bklkIjoic3ludGhldGljIiwic3RhdHVzIjoiQURNSVNTSU9OX0FDQ0VQVEVEIiwidW5zYWZlIjpmYWxzZSwicmVzdWx0Ijp7InBhdGgiOiJSRVNVTFQuanNvbiIsImJ5dGVzIjo1MTkxLCJzaGEyNTYiOiI2MTg1ZDM2ZDIzM2MxZDA1OTlkMGRiNTY4M2FkMjU4Mzc5Mzk2YmMyYWFmMzk0NmE5ZjJiNDE5YzExZjEwMGRiIiwibW9kZSI6NDIwfSwiY2hpbGRyZW4iOjIsImFsbENoaWxkcmVuUmVhcGVkIjp0cnVlfX0K",
+  "natural": true
+}

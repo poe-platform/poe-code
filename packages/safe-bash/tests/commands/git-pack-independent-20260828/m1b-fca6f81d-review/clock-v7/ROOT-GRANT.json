@@ -1,0 +1,109 @@
+{
+  "schema": "m1b-clock-v7-root-grant-v1",
+  "authority": "USER_ROOT_CONDITIONAL_ONE_REMAINING33_SINGLE_RELATIVE_DEADLINE",
+  "acceptedPresealCommit": "1a21ae22a19f850f9c0a526689aff8cb5030432a",
+  "recipeSha256": "f0adf8d086383d70fbae6489387515ee0835b702afda928206c0cf3bd0f8708f",
+  "finalSealSha256": "73edccde374954c3b2e574cdffff34be082ade4134efeee785eb03abaad75752",
+  "assemblySha256": "cf234efcbea6d5b8782fc98d9e4f299e3ec86905593cb946886ebec6067efed6",
+  "executableClosureSha256": "2724251e074b5cc71adfdeff9081d8faa194c8ffd5f595a5e826e1d4f83ee732",
+  "reviewReceiptSha256": "60e0ac25164d3eda450d3118abe4e93eba72299c63d055948ac9838476d9417b",
+  "sourceCommit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "evidenceCommit": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+  "derivedTree": "23074ef0c443ca618c4f26204b5f3d2274b86895",
+  "packageSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+  "sourceInputs": 282,
+  "packageMembers": 910,
+  "calls": {
+    "types": 9,
+    "loaded": 24,
+    "total": 33,
+    "completed214Replay": 0,
+    "completed27Replay": 0
+  },
+  "host": {
+    "platform": "darwin",
+    "uid": 501,
+    "additionalEnvironment": {
+      "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+    },
+    "unknownEnvironmentAllowed": false,
+    "secretCapture": false
+  },
+  "caps": {
+    "wallMs": 7200000,
+    "allOwnedStarts": 168,
+    "peakProcesses": 4,
+    "combinedCaptureBytes": 268435456,
+    "runtimeCaptureBytes": 255852544,
+    "workingBytes": 1073741824,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "processProposal": {
+    "runtimeIncludingOuter": 43,
+    "sourceAuthenticationIncludingController": 14,
+    "syntheticControlController": 1,
+    "route": 1,
+    "cleanup": 1,
+    "otherMetadataHelperCeiling": 40,
+    "totalCeiling": 100
+  },
+  "conditions": [
+    "one fresh monotonic origin starts before fresh source preauthorization and includes cleanup",
+    "no retry after safety/capture/integrity/unknown-retirement stop",
+    "ordinary assertions aggregate only after safe teardown",
+    "no product edits/native Git/private/network/YQ/XAN",
+    "preserve old214PASS26FAIL34unfulfilled/S02/H09 and private-writer qualifications",
+    "one continuation; new queries do not rescore original bare-OID failures",
+    "No replay of8827ae25 completed27",
+    "Existing30s body and hashes unchanged; explicit120s post-retirement verification within one global clock",
+    "38synthetic phase controls required before actual; no actual watchdog claim from synthetic controls",
+    "47924ab0 rawT01-M3/3 remains0fullyverified33unfulfilled; no elapsed-timeout or product-failure reinterpretation",
+    "one exact relative deadline; no epsilon/guard tolerance/cap raise/absolute roundtrip"
+  ],
+  "typePreflight": {
+    "emitSkippedPredicate": false,
+    "nativeCliExit2Predicate": false,
+    "missingNamedExportFixture": false,
+    "protocol": "TYPESCRIPT_COMPILER_API; exact expected diagnostics means successful wrapper0, not native CLI status",
+    "fixtureCodes": {
+      "T01": [],
+      "T02": [
+        2353
+      ],
+      "T03": [
+        2353
+      ],
+      "T04": [
+        2322
+      ],
+      "T05": [
+        2322
+      ]
+    },
+    "role": "SOURCE_ONLY not new compiler execution"
+  },
+  "phasePolicy": {
+    "bodyMs": 30000,
+    "postRetirementVerificationMs": 120000,
+    "outerOwnedWatchdog": true,
+    "maximumRequiredWindowsMs": 6150000,
+    "wholeRunMs": 7200000,
+    "insufficientPhaseBudget": "UNRUN before body",
+    "bodyIncludesExistingAdmissionAndInflightRPC": true,
+    "relativeClock": {
+      "units": "binary64 milliseconds; no integer conversion/new rounding",
+      "root": "single monotonic hrtime origin",
+      "deadline": "constructed once using root-relative start and phase/global remaining; exact same values retained over IPC and END",
+      "localAbsolute": "timer/admit interface only; never retranslates into deadline authority",
+      "domainMs": [
+        0,
+        7200000
+      ],
+      "epsilon": 0,
+      "guardTolerance": 0,
+      "bodyCapMs": 30000,
+      "verificationCapMs": 120000
+    }
+  }
+}

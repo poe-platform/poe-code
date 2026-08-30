@@ -1,0 +1,15 @@
+{
+  "schema": "node-abi-raman-review-v1",
+  "reviewer": "Raman",
+  "disposition": "HOLD",
+  "executionCommit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+  "manifestSha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+  "completedAt": "2026-08-28T19:42:52.115130Z",
+  "findings": [
+    "BLOCKING F05: unchanged reference emits nativePromise:false for synchronous cached-return intrinsic; supervisor:379 demands true. P06 source-conformant full composed INERT receipt rejected false!==true. Actual engine0; verifier defect, not provider failure.",
+    "20/21 qualification checks; P06 fails; three unscored diagnostics; no unrun tail. B1 repaired lifecycle paths have actual owned retirement; prior B2 source/settlement/resource contradictions rejected.",
+    "Eleven harmless children closed: seven natural/four subject SIGTERM; zero rescue; unsafe=false; scratch removed; all capture retained.",
+    "N01 reordered ledger accepted by standalone reconciler, not demonstrated full-driver bypass; exact reference runOnce source and guarded composition provide entry-before-settle producer precondition.",
+    "HOLD actual8 engine evaluations pending narrow field/branch verifier repair, reseal/different review/fresh ROOT GO. Worker proposal and NP1-CJS provider qualification separate."
+  ]
+}

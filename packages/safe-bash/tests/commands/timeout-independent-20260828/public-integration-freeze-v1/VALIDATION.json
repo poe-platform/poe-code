@@ -1,0 +1,238 @@
+{
+  "schema": "timeout-public-freeze-validation/1",
+  "completedAt": "2026-08-28T04:33:04.509Z",
+  "manifestSha256": "18e3c23c425065f79c92ff6a17e7853c643e316db3e38d5806c3450a63448991",
+  "node": "v22.22.2",
+  "outcomes": [
+    {
+      "id": "C01",
+      "name": "exact78",
+      "expectation": "accept",
+      "status": "PASS"
+    },
+    {
+      "id": "C02",
+      "name": "old77",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C03",
+      "name": "duplicate",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C04",
+      "name": "curl-substitution",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C05",
+      "name": "builtin-substitution",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C06",
+      "name": "synthetic-composition",
+      "expectation": "accept",
+      "status": "PASS"
+    },
+    {
+      "id": "C07",
+      "name": "wrong-base",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C08",
+      "name": "wrong-module",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C09",
+      "name": "unknown-input",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C10",
+      "name": "missing-input",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C11",
+      "name": "module-tamper",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C12",
+      "name": "mode-tamper",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C13",
+      "name": "AGENTS-name-only",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C14",
+      "name": "symlink-mode",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C15",
+      "name": "escape-path",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C16",
+      "name": "wrong-public-blob",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C17",
+      "name": "concurrent-WebDAV-change",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C18",
+      "name": "explicit-export-delta",
+      "expectation": "accept",
+      "status": "PASS"
+    },
+    {
+      "id": "C19",
+      "name": "missing-subpath",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C20",
+      "name": "wrong-export-target",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C21",
+      "name": "new-runtime-dependency",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C22",
+      "name": "root-leaf-identity",
+      "expectation": "accept",
+      "status": "PASS"
+    },
+    {
+      "id": "C23",
+      "name": "missing-root-export",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C24",
+      "name": "replacement-export-function",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C25",
+      "name": "leaf-read-without-root",
+      "expectation": "accept",
+      "status": "PASS"
+    },
+    {
+      "id": "C26",
+      "name": "wrong-leaf-entrypoint",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C27",
+      "name": "root-read-missing",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C28",
+      "name": "type-source-fallback",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C29",
+      "name": "unrelated-diagnostic",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C30",
+      "name": "intended-negative-type",
+      "expectation": "accept",
+      "status": "PASS"
+    },
+    {
+      "id": "C31",
+      "name": "extra-diagnostic",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C32",
+      "name": "public-commit-mismatch",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C33",
+      "name": "undeclared-public-path",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C34",
+      "name": "unbound-declaration",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C35",
+      "name": "wrong-diagnostic-meaning",
+      "expectation": "reject",
+      "status": "PASS"
+    },
+    {
+      "id": "C36",
+      "name": "public-mode-change",
+      "expectation": "reject",
+      "status": "PASS"
+    }
+  ],
+  "passed": 36,
+  "failed": 0,
+  "guardFailures": [],
+  "protectedFiles": 243,
+  "children": 0,
+  "pendingResources": 0,
+  "publicCandidate": null,
+  "actualPublicCases": 0,
+  "actualPublicTypes": 0,
+  "productImports": 0,
+  "actualBuilds": 0,
+  "native": 0,
+  "safeJS": 0,
+  "retries": 0
+}

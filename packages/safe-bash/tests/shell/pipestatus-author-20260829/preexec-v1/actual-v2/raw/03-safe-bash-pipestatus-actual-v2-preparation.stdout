@@ -1,0 +1,11 @@
+actual-v2 preparation: outer capture established; role1 shell
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/ROOT-AUTHORIZATION.md
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/prepare-grant.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/RESULT.json
+role2 apply_patch returned
+role3 git-add returned
+role4 git-commit returned
+role5 streaming Node authentication returned
+role6 sole timestamp/schema Node helper returned
+terminal exec launch-v2 follows; no waiting outer shell

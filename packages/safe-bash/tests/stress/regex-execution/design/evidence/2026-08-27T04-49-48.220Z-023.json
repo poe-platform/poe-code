@@ -1,0 +1,134 @@
+{
+  "args": [
+    "vector",
+    "named-backreference-current-gap",
+    "rg"
+  ],
+  "pid": 68425,
+  "readyAt": 36.82504199999994,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 61.89087500000005
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 63.65658399999984
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 63.6619169999999
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "vector",
+      "name": "named-backreference-current-gap"
+    },
+    {
+      "type": "done",
+      "result": {
+        "name": "named-backreference-current-gap",
+        "profile": "rg",
+        "status": "exact-native-worker",
+        "current": [
+          {
+            "start": 0,
+            "end": 2
+          }
+        ],
+        "descriptor": {
+          "source": "(?:(?<part>a)\\k<part>)",
+          "flags": "gu"
+        },
+        "direct": {
+          "hits": [
+            [
+              {
+                "pattern": 0,
+                "start": 0,
+                "end": 2,
+                "captures": [
+                  "aa",
+                  "a"
+                ]
+              }
+            ]
+          ],
+          "bytes": 57,
+          "execCalls": 2
+        },
+        "bounded": {
+          "status": "unsupported-or-budget",
+          "error": "quantifier without an expression"
+        },
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 4,
+          "responseBytes": 57,
+          "startupMs": 21.589084,
+          "workMs": 0.24920800000000298,
+          "terminationMs": 0.9299159999999986,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      },
+      "wallMs": 24.166083000000004,
+      "heartbeats": 4,
+      "maxGap": 5.937166999999995,
+      "peakRss": 66502656,
+      "memory": {
+        "rss": 59392000,
+        "heapTotal": 7749632,
+        "heapUsed": 5530160,
+        "external": 2184611,
+        "arrayBuffers": 19113
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": [
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 4,
+          "responseBytes": 57,
+          "startupMs": 21.589084,
+          "workMs": 0.24920800000000298,
+          "terminationMs": 0.9299159999999986,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      ]
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 1226,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

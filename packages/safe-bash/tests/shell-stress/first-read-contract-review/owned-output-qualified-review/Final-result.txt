@@ -1,0 +1,87 @@
+FINITE INDEPENDENT PREPARATION COMPLETE — READINESS UNBOUND
+
+Ownership: ONLY tests/shell-stress/first-read-contract-review/owned-output-qualified-review/**
+and /tmp/safe-bash-owned-output-qualified-review-prep-ryyXw9/ plus the explicitly
+requested /tmp/safe-bash-owned-output-qualified-review-status.txt marker.
+Exact owned artifact inventory: preparation-seal.json lists its 21 input files;
+add preparation-seal.json and this Final-result.txt (23 files total).
+No author child, product/API/root/config/old fixture/old report was edited.
+Foreign index/work/native artifacts preserved; no broad staging or delegation.
+
+Commits:
+  Independent first freeze: 266abd7c85bd3d33981ce4e7985a59d2a7485c0c
+  Prepared inert artifacts: 552ba58468be063d7e8627d90f20f4e8e7432dcc
+  Final handoff: the commit introducing this file; exact hash is published in
+  /tmp/safe-bash-owned-output-qualified-review-status.txt after committing.
+All commits use git commit --only explicit owned file paths.
+
+Freeze was published before the sole authorized declaration check. That check
+found /tmp/safe-bash-owned-output-qualified-prototype-api.txt ABSENT.
+Declaration version/hash null. No subsequent recheck/poll. No new author source,
+tests, private notes or declaration body read. No author actual-close or new
+qualified-ready evidence authenticated; old S1 marker never accepted as readiness.
+
+Frozen count: 12 logical / 32 parameters = immutable original20 + targeted12.
+Exactly three authorized expectation-profile deltas: S08 first/third and S11
+IO-first. Paired closed/open/genuine-failure S08 arms remain subruns, not new
+parameters. Historical12/20, original three blocked parameters/two cases, old
+9PASS/8FAIL/3BLOCKED, corrected17PASS/3BLOCKED and original5/57+9 remain separate
+and unchanged. No old reports or fixture inputs were rewritten.
+
+Input and output identities (SHA-256):
+  Historical evidence commit: 669c881b7ae73e7731d721f124f457d10e7d8ec5
+  Corrected prerequisite freeze: 9e6c5e2394d5d36df42529d74d1dd21301ddeab6
+  Corrected input driver:
+    28c090b7b2cfa0a6d9cb1f5c1837ca3d0726734dea630ab4557beb0a9da8bd82
+  Exact historical fixture-delta patch:
+    1f44d0a78d2664a78281e5dac9e5bc8ffe28071a10c4cbdcfe3c784dcba12e31
+  New unbound qualified driver:
+    66d145aa6c06f717fcf2e50330ae76c3ac846899b5a351b3ebebea14d0de99c3
+  FREEZE.md:
+    0e560ee1a35d729e6669087ce79403264d84cbbb2dff8e3710839701e2d54b8a
+  Preparation seal:
+    5bce8c213d4ae41905108c006cec5594400099a40a1fddafc2d2bf5c27d99cdc
+  All eight original git blob/SHA-256 identities: input-identities.json.
+  Exact new driver changes: driver-qualified-delta.patch-data.
+
+Checks performed:
+  Four completed/reaped node --check tooling processes; syntax success only.
+  Byte authentication of eight historical captures against immutable git inputs.
+  Original20 mapping fields retained except explicitly labeled binding status;
+  all three revised expectations separately identified, exact12 additions/count32.
+  TMP driver/helper bytes match inert committed captures; all metadata JSON parses.
+  Limited assertion-line audit recorded; not a full AST/fixture-binding proof.
+  git diff --cached --check initially exit2 only for blank unified-diff context
+  lines in the two .patch-data artifacts (eight warnings). Exact captured bytes
+  preserved intentionally. The same scoped check excluding only those two named
+  inert patch files passed. No test waiver or source assertion relaxation.
+
+Execution counters: product0, candidate imports0, native curl0, fixture children0,
+loopbacks0, original-five0, old57+9=0, outstanding owned processes0.
+No build/fullsuite/typecheck/install/rootdist/globaltyping. Tooling syntax-check
+processes are not fixture or product executions. No SIGSTOP, dormant worker or wait.
+
+Reconstruction: see PREPARATION.md. In a fresh task TMP copy
+driver-qualified.mjs.data -> driver-qualified.mjs,
+qualified-criteria.mjs.data -> qualified-criteria.mjs, and binding-map.json unchanged.
+Authenticate preparation-seal.json and historical input identities. node --check
+only is authorized here. Executable copies never belong in the repository.
+
+Remaining bindings: all new public signatures/declaration version, candidate/
+baseline source/test/build/import/tool identities, exact curl baseline and pinned
+native profiles, public reachability/intentional-close witness, three-arm S08
+fixture wiring, concrete12 lifetime fixture bindings and legitimate synthetic
+literal-undefined caller compatibility. These are UNBOUND, not inferred APIs or
+implementation-ready fixtures. The hard guard blocks before candidate import.
+Historical S1 authentication metadata below it is unreachable and must be replaced
+by an independently authenticated committed supplement, not merely unguarded.
+Reason identity assertion helpers are implemented without evaluating their bodies;
+deterministic fixture protocols are frozen privately in LIFETIME-PROTOCOL.md.
+
+SafeJS privileged ownedOutput hook leak/membrane audit NOT DONE; REQUIRED BEFORE
+PROMOTION. No assumption metadata is safe; no live SafeJS changes.
+
+Finite prep returns normally. Root verifies actual preparer and author exit and
+NEW immutable qualified-ready, then fresh-launches an independent executor.
+No product passes, whole-candidate closure, release permission, universal parity,
+superiority, elapsed72h or full task completion claims.

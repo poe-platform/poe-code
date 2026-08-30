@@ -1,0 +1,17 @@
+{
+  "classification": "assertion-only-recapture-after-output-filename-collision",
+  "at": "2026-08-27T16:53:54.998Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases-stress/settlement-v2/assertion-controls.mjs",
+    "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/assertion-control-results.json"
+  ],
+  "sourceSha256": "d83158b451bf03a82b9f006d11ab8019eb4169a86d832424fb3458bfdfea9d9d",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "pid": 98800,
+  "stdoutHex": "",
+  "stderrHex": "",
+  "productExecutions": 0
+}

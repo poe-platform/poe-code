@@ -1,0 +1,122 @@
+{
+  "schema": "provider-readiness-diagnosis-v1",
+  "authority": "ROOT two new harmless readiness-only Node controls after preseal, not F01 replay",
+  "phaseStarted": 1787978560333,
+  "phaseDeadline": 1787979760333,
+  "root": "/private/tmp/safe-bash-surface-provider-diagnosis-v1",
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "execution": "author-fixture-role"
+    },
+    {
+      "role": "sandbox",
+      "path": "/usr/bin/sandbox-exec",
+      "bytes": 102560,
+      "mode": 493,
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+      "execution": "author-fixture-role"
+    }
+  ],
+  "originalProfile": {
+    "path": "/private/tmp/safe-bash-surface-provider-author-v1/profiles/F01.sb",
+    "bytes": 5745,
+    "sha256": "f0c96a5833d751c7b1ca194094390d75f91fe7c2286920c8eb3c4163afd2c58d",
+    "policy": "EXACT_BYTE_UNCHANGED"
+  },
+  "rows": [
+    {
+      "id": "D01-unfenced-readiness",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--eval",
+        "process.stdout.write(\"PROVIDER_DIAGNOSTIC_READY\\n\");"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/work",
+      "stdinBase64": "",
+      "stdio": [
+        "pipe",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "shell": false,
+      "expected": {
+        "stdoutBase64": "UFJPVklERVJfRElBR05PU1RJQ19SRUFEWQo=",
+        "stderrBase64": "",
+        "status": 0,
+        "signal": null
+      }
+    },
+    {
+      "id": "D02-original-fence-readiness",
+      "executable": "/usr/bin/sandbox-exec",
+      "args": [
+        "-f",
+        "/private/tmp/safe-bash-surface-provider-author-v1/profiles/F01.sb",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--eval",
+        "process.stdout.write(\"PROVIDER_DIAGNOSTIC_READY\\n\");"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/work",
+      "stdinBase64": "",
+      "stdio": [
+        "pipe",
+        "pipe",
+        "pipe",
+        "pipe"
+      ],
+      "detached": true,
+      "shell": false,
+      "expected": {
+        "stdoutBase64": "UFJPVklERVJfRElBR05PU1RJQ19SRUFEWQo=",
+        "stderrBase64": "",
+        "status": 0,
+        "signal": null
+      }
+    }
+  ],
+  "limits": {
+    "targets": 2,
+    "controllerProcesses": 1,
+    "knownPeakIncludingOuter": 3,
+    "activeMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "cohortMs": 20000,
+    "perStreamBytes": 65536,
+    "totalCaptureBytes": 1048576,
+    "workBytes": 16777216
+  },
+  "stop": "Any signal, nonzero status, wrong/missing readiness, capture/integrity/cap failure or unknown retirement stops dependent diagnostics; no retries or alternate fence.",
+  "profileQualification": "D02 uses the exact original F01 profile file bytes and same already-owned cwd/env paths. New IDs/output-only literal avoid importing the old fixture; existing files remain unchanged.",
+  "excluded": [
+    "Bash/version/native9/semantic40",
+    "product/build/compiler/Worker",
+    "target file/import/child-process/network operations",
+    "host crash/unified logs",
+    "fence modification",
+    "dependency permission widening"
+  ]
+}

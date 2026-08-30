@@ -1,0 +1,16 @@
+READONLY routed-five leaf complete. Final: /tmp/safe-bash-routed-five-report.txt.
+Exact current count 5/5 still-fails; none already-fixed/current-differs/blocked.
+All five fresh native observations exactly match frozen capture. HEAD stable
+29a61222a8744ce479601ff33061a38b4a193b78 during replay, source/input hashes stable.
+Four patch rows still reject -s; metadata %y still prints three fractional digits.
+Both implicated source files equal frozen bd2cacb; 2cacd04/0c4709f are already
+ancestors of frozen source and only fix numeric epoch formatting, not %y.
+Important separate fairness issue: GNU dry-run leaves empty tmp in fixture under
+native-only TMPDIR; no approximation or oracle edits. Do not fabricate VFS tmp
+just to make namespace comparison pass. No SGID overlap or extra host probes.
+No repo/Git modifications, no implementation, no full suites, no peer API calls.
+Original18, original3750/3758 vs revised3758/3758, historical14/30 untouched.
+Final capture drifted concurrently to90cbf287b8533c2dad9211d87d6cb66290a80132;
+filesystem.ts/streams.ts changed, not target patch/stat or frozen inputs. Do NOT
+claim this validates90cbf28: five-case results cover stable29a6122 replay only.
+Owned native profile cleaned after sentinel/exact-entry verification.

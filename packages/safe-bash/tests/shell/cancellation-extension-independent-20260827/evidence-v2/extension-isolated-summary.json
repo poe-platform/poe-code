@@ -1,0 +1,59 @@
+{
+  "exit": 1,
+  "tests": 12,
+  "pass": 11,
+  "fail": 1,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "records": [
+    {
+      "pass": true,
+      "name": "E01 inert read-once preparation copies inputs and reserves nothing"
+    },
+    {
+      "pass": true,
+      "name": "E02 ancestor/getter/closed admission precedence is inert and exact"
+    },
+    {
+      "pass": true,
+      "name": "E03 TEST-LOCAL registrar precedes activation acquisition"
+    },
+    {
+      "pass": true,
+      "name": "E04 activation rechecks parent closure abort and local/control order"
+    },
+    {
+      "pass": true,
+      "name": "E05 owned borrowed and failed preparations are single-use"
+    },
+    {
+      "pass": true,
+      "name": "E06 no-control omitted and undefined preparations borrow without resources"
+    },
+    {
+      "pass": false,
+      "name": "E07 nested original controls inherit lineage without inventing invoke rank"
+    },
+    {
+      "pass": true,
+      "name": "E08 runtime selector distinguishes authentic observation from equal falsy rejection"
+    },
+    {
+      "pass": true,
+      "name": "E09 authenticated descendant reports require exact target and reason"
+    },
+    {
+      "pass": true,
+      "name": "E10 close fixes selection and retains exact ordered callback failures"
+    },
+    {
+      "pass": true,
+      "name": "E11 failed activation rolls back admitted listeners and parent capacity"
+    },
+    {
+      "pass": true,
+      "name": "E12 preparation does not reserve capacity and activation rechecks bounds"
+    }
+  ]
+}

@@ -1,0 +1,1187 @@
+{
+  "cases": [
+    {
+      "id": "nested-inactive-prefix-no-locale",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "|",
+        "length",
+        "index",
+        "HIDDEN",
+        "H",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "independent-unsupported"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": [],
+      "encodes": [
+        "1",
+        "0"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "stdout-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-substr-no-allocation-or-number",
+      "args": [
+        "0",
+        "&",
+        "substr",
+        "HIDDEN",
+        "999",
+        "999"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "jobs": [],
+      "encodes": [
+        "0",
+        "0"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "stdout-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "nested-inactive-arity-still-errors",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "&",
+        "index",
+        "HIDDEN",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "jobs": [],
+      "encodes": [],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 35
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-regex-plus-late-close",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "match",
+        "HIDDEN",
+        "["
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '['\n"
+      },
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '['\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "["
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 44
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "nested-runtime-before-late-token",
+      "args": [
+        "(",
+        "(",
+        "9",
+        "/",
+        "0",
+        ")",
+        ")",
+        "junk"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'junk'\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "junk"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 47
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "stderr"
+      ],
+      "passed": false
+    },
+    {
+      "id": "prefix-regex-before-late-token",
+      "args": [
+        "length",
+        "match",
+        "a",
+        "a",
+        "junk"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'junk'\n"
+      },
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'junk'\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "junk"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 47
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "exact encounter-order submissions"
+      ],
+      "passed": false
+    },
+    {
+      "id": "three-workers-once-encounter-order",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")",
+        "+",
+        "(",
+        "c",
+        ":",
+        "c",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 19947,
+          "steps": 57
+        },
+        {
+          "subject": "b",
+          "pattern": "b",
+          "allowance": 19882,
+          "steps": 57
+        },
+        {
+          "subject": "c",
+          "pattern": "c",
+          "allowance": 19813,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "b",
+        "b",
+        "c",
+        "c",
+        "3"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/regex-execution/worker.js"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "match-enter",
+          "index": 2
+        },
+        {
+          "kind": "match-result",
+          "index": 2
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "match-enter",
+          "index": 3
+        },
+        {
+          "kind": "match-result",
+          "index": 3
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "stdout-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "active-then-inactive-then-active",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        "|",
+        "match",
+        "HIDDEN",
+        "[",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999942,
+          "steps": 57
+        },
+        {
+          "subject": "b",
+          "pattern": "b",
+          "allowance": 7999876,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "b",
+        "b",
+        "2"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/regex-execution/worker.js"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "match-enter",
+          "index": 2
+        },
+        {
+          "kind": "match-result",
+          "index": 2
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "stdout-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "abort-result-before-late-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": "caller"
+      },
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after 'a'\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 44
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "rejection identity/output",
+        "exact encounter-order submissions"
+      ],
+      "passed": false
+    },
+    {
+      "id": "abort-in-stdout-after-worker",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": "caller"
+      },
+      "observed": {
+        "rejected": "caller",
+        "message": "independent caller abort",
+        "stdout": "",
+        "stderr": ""
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999985,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "1"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/regex-execution/worker.js"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "await-stdout-after-worker",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999985,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "1"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/regex-execution/worker.js"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "delayed-sink-observation",
+          "executeSettled": false
+        },
+        {
+          "kind": "stdout-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "stdout-failure-no-regex-replay",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999985,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "1"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/regex-execution/worker.js"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "stderr-failure-after-regex",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "junk"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": "sink"
+      },
+      "observed": {
+        "rejected": "sink",
+        "message": "independent sink failure",
+        "stdout": "",
+        "stderr": ""
+      },
+      "jobs": [],
+      "encodes": [
+        "junk"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 47
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "exact encounter-order submissions"
+      ],
+      "passed": false
+    },
+    {
+      "id": "inactive-prefix-node-limit",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "length",
+        "HIDDEN",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "jobs": [],
+      "encodes": [],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 30
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-nested-parser-limit",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "(",
+        "length",
+        "HIDDEN",
+        ")",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "jobs": [],
+      "encodes": [],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-chain-structural-depth",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "2",
+        "+",
+        "3",
+        "+",
+        "4",
+        "+",
+        "5",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "jobs": [],
+      "encodes": [],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  ],
+  "imports": [
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/expr/evaluate.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/expr/internal.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/expr/syntax.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/regex-execution/client.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/commands/regex-execution/protocol.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/contracts/command.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/contracts/errors.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/contracts/filesystem.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/contracts/index.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/contracts/io.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/contracts/output.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/contracts/path.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01/dist/contracts/plugin.js",
+    "node:path",
+    "node:stream/web",
+    "node:util",
+    "node:worker_threads"
+  ],
+  "activeWorkers": 0
+}

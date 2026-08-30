@@ -1,0 +1,417 @@
+{
+  "schemaVersion": 1,
+  "kind": "DERIVED_PHASE_APPLICABILITY_NOT_NEW_AVAILABILITY_AUDIT",
+  "revision": "independent-review-request-2",
+  "authority": {
+    "review": {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/REVIEW.md",
+      "bytes": 7648,
+      "sha256": "dcbdda0399bf8f52c71f902604bd9268227a354b241200cfa329ad6e2d054a28"
+    },
+    "selector": "Exact fix requests / 2. Separate missing-native from replay prerequisites.",
+    "userInstruction": "Narrow preparation revision; provenance/** plus tmp; preserve original observations; no new execution or full hash audit"
+  },
+  "sourceEvidence": [
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/INVENTORY.json",
+      "bytes": 4725336,
+      "sha256": "27593beb311ae11c49de582993a99325486da84d2533ceaed8a0b16578f8ea05"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/UNAVAILABLE.json",
+      "bytes": 5217,
+      "sha256": "820ad57f389fee5064c296aab6c40e626f7822847db91374c93a4e773a0ea2b3"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/MANIFEST.json",
+      "bytes": 2677,
+      "sha256": "02f0b1180f3a8e1f3e5f2445cb9caa57bb93715cbd9a69d66fe743e1c3633395"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/NATIVE_VERSIONS.json",
+      "bytes": 9719,
+      "sha256": "b6b8beb1af7c05ee91d89e36cdbf5cb7e592ef474e3bba37527de4f19e65b18a"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/history/request2/PROVENANCE_PLAN.v1.md",
+      "bytes": 19528,
+      "sha256": "3bda6590cba23b545b56a9fbfcbd83ff0524afe64fdcfdbf6619ac9889d59c08",
+      "originalPath": "benchmarks/reports/current-comparison-20260827/provenance/PROVENANCE_PLAN.md"
+    }
+  ],
+  "originalAggregateAudit": {
+    "exitCode": 2,
+    "unchanged": true,
+    "rerun": false,
+    "universalReplayVeto": false,
+    "phaseAwareReadinessVerdict": false,
+    "meaning": "Historical aggregate inventory findings. Apply individual requirements to the selected phase/recipe/closure; neither indiscriminate replay veto nor installation/recovery requirement."
+  },
+  "execution": {
+    "authorized": false,
+    "newCandidateFrozen": false,
+    "phaseReadiness": "NOT_ASSESSED_FOR_A_NEW_CANDIDATE",
+    "candidate": {
+      "rootCommit": null,
+      "gitTree": null,
+      "acceptedDirtyCaptureOrCleanSource": null,
+      "packedArtifact": null,
+      "accepted70Names": null,
+      "acceptedTrackedConsumerInventory": null,
+      "acceptedDifferentAgentPackedReview": null,
+      "authorization": null
+    },
+    "productEngineImports": 0,
+    "engineCalls": 0,
+    "nativeVersionChildren": 0,
+    "nativeCaptureCalls": 0,
+    "comparisonCalls": 0,
+    "timingTrials": 0,
+    "downloads": 0,
+    "underlyingArtifactHashAuditRuns": 0
+  },
+  "unavailableNativePrerequisites": [
+    {
+      "originalObservation": {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/strings",
+        "error": "ENOENT",
+        "disposition": "Missing exact recorded strings prerequisite; no substitute search/install."
+      },
+      "observationKind": "EXACT_RECORDED_NATIVE_PATH",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "column",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "file",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": "file5.41-libmagic-Darwin"
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "rev",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "tree",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": "tree2.2.1-Darwin"
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "sqlite3",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "xan",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "yq",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "html-to-markdown",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "js-exec",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "python",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "python3",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    },
+    {
+      "originalObservation": {
+        "name": "time",
+        "status": "BLOCKED_PREREQUISITE",
+        "reason": "No usable identity in the historical baseline-only harness; do not substitute another profile or silently install.",
+        "independentlyRecordedProfile": null
+      },
+      "observationKind": "HISTORICAL_NATIVE_IDENTITY_NOT_A_RUNTIME_FAILURE",
+      "applicability": {
+        "staticPreparation": "NOT_REQUIRED_FOR_STATIC_DERIVATION",
+        "old224OriginalCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "old224AlignedCapturedGoldenReplay": "DOES_NOT_BLOCK_BY_NATIVE_ABSENCE_ALONE",
+        "breadthDeclaredIntentPredicates": "NO_UNIVERSAL_NATIVE_ORACLE_REQUIREMENT",
+        "freshNativeCaptureOrLiveNativeCase": "BLOCKS_WHEN_EXECUTABLE_OR_NATIVE_IDENTITY_IS_REQUIRED",
+        "newHoldoutMeasurement": "FUTURE_INDEPENDENT_CAPTURE_REQUIRED; native needs follow the independently approved capture profile"
+      }
+    }
+  ],
+  "closureProfiles": {
+    "base3842": {
+      "originalObservation": {
+        "path": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+        "error": "TREE_MEMBERSHIP_OR_BYTES_MISMATCH",
+        "disposition": "Base 3842-file closure cannot be reused as exact-membership unchanged. Separate 3844-file primary v3 profile verifies; no implicit profile substitution."
+      },
+      "recordedStatus": "BLOCKED_PREREQUISITE",
+      "recordedExpectedFiles": 3842,
+      "recordedMatchingExpectedFiles": 3842,
+      "recordedExtraPaths": [
+        "auth-observer/observe-load.mjs",
+        "auth-observer/observe-process.mjs"
+      ],
+      "blocksOnlyWhen": "A consumer selects/requires the exact 3842-file base closure.",
+      "universalReplayVeto": false,
+      "rechecked": false
+    },
+    "observerInclusive3844": {
+      "recordedStatus": "VERIFIED_BYTES_AND_MEMBERSHIP",
+      "recordedFiles": 3844,
+      "recordedRoot": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+      "primaryRecord": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/execution-post-run-check-attempt-1.json",
+      "observationQualifier": "RECORDED_MATCH_NOT_RECHECKED_THIS_REVISION",
+      "differentProfileNotRepair": true,
+      "automaticSubstitutionAllowed": false,
+      "authorizesExecution": false
+    }
+  },
+  "phases": [
+    {
+      "id": "static-preparation",
+      "nativeExecutablesRequired": false,
+      "permittedScope": "Bounded static derivation from retained report bytes only",
+      "executionAuthorized": false
+    },
+    {
+      "id": "old224-original-captured-golden-replay",
+      "oracleBasis": "EXACT_AUTHENTICATED_CAPTURED_GOLDEN",
+      "captureExecutablesMustStillExist": false,
+      "missingNativeExecutableAloneBlocks": false,
+      "requiresFreshCapture": false,
+      "requiredEvidence": [
+        "exact authenticated original captured golden, recipes, stdin/file/fixture/helper identities",
+        "original nonexistent fixture TMPDIR profile, not the aligned golden",
+        "selected candidate, applicable engine runtime and closure identities, accepted review and explicit future execution authorization"
+      ],
+      "executionAuthorized": false
+    },
+    {
+      "id": "old224-aligned-captured-golden-replay",
+      "oracleBasis": "EXACT_AUTHENTICATED_CAPTURED_GOLDEN",
+      "captureExecutablesMustStillExist": false,
+      "missingNativeExecutableAloneBlocks": false,
+      "requiresFreshCapture": false,
+      "requiredEvidence": [
+        "exact authenticated aligned captured golden, recipes, stdin/file/fixture/helper identities",
+        "aligned external scratch profile, not the original golden",
+        "selected candidate, applicable engine runtime and closure identities, accepted review and explicit future execution authorization"
+      ],
+      "executionAuthorized": false
+    },
+    {
+      "id": "breadth-declared-intent",
+      "oracleBasis": "DECLARED_INTENT_PREDICATES_NOT_NATIVE_GOLDENS",
+      "universalNativeOracleRequired": false,
+      "missingNativeExecutableAloneBlocks": false,
+      "nativeParityClaim": false,
+      "perRecipeNativeRequirement": "Only an explicitly live-native-dependent recipe requires its corresponding native prerequisites.",
+      "requiredEvidence": [
+        "unchanged declared predicates and recipe identities",
+        "applicable engine/runtime/optional network configuration and lifecycle evidence",
+        "accepted candidate/reviews and explicit future execution authorization"
+      ],
+      "executionAuthorized": false
+    },
+    {
+      "id": "fresh-native-capture-or-live-native-case",
+      "oracleBasis": "FRESH_OR_LIVE_NATIVE_OBSERVATION",
+      "nativeExecutablesRequired": "ONLY_THOSE_REQUIRED_BY_SELECTED_CAPTURE_OR_CASE",
+      "missingRequiredNativeExecutableBlocks": true,
+      "missingOrMismatchedRequiredDatabaseOrProfileBlocks": true,
+      "onMissing": "BLOCKED_PREREQUISITE",
+      "silentInstallOrFallbackAllowed": false,
+      "requiredEvidence": [
+        "exact authorized native/database/profile identities and capture inputs",
+        "bounded independent capture and child cleanup",
+        "explicit future authorization"
+      ],
+      "executionAuthorized": false
+    },
+    {
+      "id": "new24-proposed-holdouts",
+      "oracleBasis": "FUTURE_INDEPENDENT_CAPTURE",
+      "expectations": null,
+      "independentCaptureRequiredBeforeMeasurement": true,
+      "status": "BLOCKED_FUTURE_INDEPENDENT_CAPTURE",
+      "reuseOldGoldensOrBreadthPredicatesAsNewExpectations": false,
+      "nativeRequirements": "Must be bound to the future independently approved capture profile; no capture is authorized here.",
+      "executionAuthorized": false
+    }
+  ],
+  "accounting": {
+    "releaseGate": "BLOCKED_NO_AUTHORIZED_FUTURE_CANDIDATE",
+    "applicableMissingRequiredInput": "BLOCKED_PREREQUISITE",
+    "nonApplicableNativeAbsence": "NOT_AN_ADDITIONAL_BLOCKER_NOT_A_PASS_NOT_SKIP_NOT_RUN",
+    "diagnosticNotRunLabel": "SKIP_NOT_RUN",
+    "diagnosticNotRunRequires": "Separate diagnostic authorization and a missing prerequisite actually applicable to that phase/recipe.",
+    "nativeAbsenceAloneSkipsCapturedGoldenOrIndependentBreadthRow": false,
+    "notRunRowsRemainInRequiredDenominator": true,
+    "originalAndAlignedRemainSeparate": true,
+    "originalFailuresAndInventoryStatusesUnchanged": true,
+    "installOrRecoveryRequiredSolelyForOld224CapturedReplay": false
+  },
+  "preservation": {
+    "originalInventoryAndUnavailableUntouched": true,
+    "originalReceiptsAndHashesUntouched": true,
+    "originalManifestUntouched": true,
+    "originalPlanArchivedAt": "benchmarks/reports/current-comparison-20260827/provenance/history/request2/PROVENANCE_PLAN.v1.md",
+    "historyRelabeledGreen": false,
+    "newCaseInputsOrExpectationsCreated": false
+  }
+}

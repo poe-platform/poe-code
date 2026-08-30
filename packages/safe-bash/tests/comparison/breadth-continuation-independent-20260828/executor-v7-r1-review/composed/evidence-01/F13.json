@@ -1,0 +1,12 @@
+{
+  "id": "F13",
+  "expected": "Tail failure after real stub closure preserves object primary identity and refuses.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.500Z",
+  "finished": "2026-08-28T15:01:02.560Z",
+  "detail": {
+    "exactPrimaryIdentity": true,
+    "childClosedBeforeTail": true,
+    "primaryPhase": "tail"
+  }
+}

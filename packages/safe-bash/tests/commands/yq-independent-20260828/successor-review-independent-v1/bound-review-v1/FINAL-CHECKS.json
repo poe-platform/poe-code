@@ -1,0 +1,16 @@
+{
+  "classification": "STATIC_PUBLICATION_VALIDATION_NOT_RUNTIME",
+  "ownJsonFilesCheckedBeforeThisRecord": 6,
+  "sealedPacketJsonFilesChecked": 17,
+  "duplicateKeysRejected": true,
+  "ownPythonSyntaxValid": true,
+  "finalReadOnlyAuditorExit": 0,
+  "finalAuditorStdoutMatchesArtifactAudit": true,
+  "finalAuditorStdoutSha256": "1c840ee2c7df4067fa60a6ca495dcb39540e2a667324a1313fd89e5a451aff9f",
+  "finalAuditorSourceSha256": "34ae207e8763222e06c112aa08462cf7df70e65b49562f8822a618b56369edeb",
+  "previousReviewsUnchangedAgainst": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+  "boundPlanSealedHandoffAtRecordedCheckpoint": false,
+  "boundPlanRepolled": false,
+  "authoredInspectorAdapterPredicateControlInvocations": 0,
+  "productBuildTypeLoaderHarnessExecutions": 0
+}

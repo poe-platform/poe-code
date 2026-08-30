@@ -1,0 +1,448 @@
+{
+  "schema": "unified76-r3-five-platform-helpers-prospective/1",
+  "date": "2026-08-28",
+  "status": "PREPARATION_ONLY_HOLD_NOT_RUNNABLE",
+  "baseCandidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "successorCandidate": null,
+  "fixtureRepairSource": "437778996f60109e212e20b1b242455866fda285",
+  "repairEvidence": "2ae74702",
+  "expectedProductPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "packageQualification": "Derived unchanged product inputs only; not newly built/packed.",
+  "previousRoutes": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+    "rawSha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+    "normalizedSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+    "aliasCount": 18
+  },
+  "explicitRouteDiff": [
+    {
+      "op": "add",
+      "path": "/aliases/cut",
+      "value": "/usr/bin/cut"
+    },
+    {
+      "op": "add",
+      "path": "/aliases/sort",
+      "value": "/usr/bin/sort"
+    },
+    {
+      "op": "add",
+      "path": "/aliases/tee",
+      "value": "/usr/bin/tee"
+    },
+    {
+      "op": "add",
+      "path": "/aliases/xargs",
+      "value": "/usr/bin/xargs"
+    },
+    {
+      "op": "add",
+      "path": "/aliases/cat",
+      "value": "/bin/cat"
+    }
+  ],
+  "prospectiveAliases": {
+    "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "sh": "/bin/sh",
+    "tar": "/usr/bin/tar",
+    "ps": "/bin/ps",
+    "lsof": "/usr/sbin/lsof",
+    "sw_vers": "/usr/bin/sw_vers",
+    "bsdtar": "/usr/bin/bsdtar",
+    "gzip": "/usr/bin/gzip",
+    "gunzip": "/usr/bin/gunzip",
+    "bash": "/bin/bash",
+    "sed": "/usr/bin/sed",
+    "awk": "/usr/bin/awk",
+    "jq": "/usr/bin/jq",
+    "curl": "/usr/bin/curl",
+    "rev": "/usr/bin/rev",
+    "expand": "/usr/bin/expand",
+    "fold": "/usr/bin/fold",
+    "cut": "/usr/bin/cut",
+    "sort": "/usr/bin/sort",
+    "tee": "/usr/bin/tee",
+    "xargs": "/usr/bin/xargs",
+    "cat": "/bin/cat"
+  },
+  "aliasCount": 23,
+  "tools": [
+    {
+      "name": "cut",
+      "origin": "/usr/bin/cut",
+      "physical": "/usr/bin/cut",
+      "mode": 493,
+      "bytes": 102480,
+      "sha256": "f2199a84b3bcad698217c78448615f296ee30d2b8dca713036cf8cdce3b783da",
+      "linkChain": [
+        {
+          "path": "/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/cut",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "roles": [
+        {
+          "id": "tap-line-54560",
+          "script": "rg -n TODO src | cut -d: -f1 | sort -u | tee report",
+          "invocations": [
+            {
+              "name": "cut",
+              "args": [
+                "-d:",
+                "-f1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tap-line-54644",
+          "script": "cat input | rg -nbo foo | cut -d: -f1 | sort -u",
+          "invocations": [
+            {
+              "name": "cut",
+              "args": [
+                "-d:",
+                "-f1"
+              ]
+            }
+          ]
+        }
+      ],
+      "version": {
+        "profile": "Apple system utility file on macOS26.4.1/25E253",
+        "semanticVersion": null,
+        "executedVersion": false
+      }
+    },
+    {
+      "name": "sort",
+      "origin": "/usr/bin/sort",
+      "physical": "/usr/bin/sort",
+      "mode": 493,
+      "bytes": 206032,
+      "sha256": "e1cae8c9638af1466950fd7c241434c81242d4bbc54fff5f2d18e0e86ea9c7e3",
+      "linkChain": [
+        {
+          "path": "/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/sort",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "roles": [
+        {
+          "id": "tap-line-54560",
+          "script": "rg -n TODO src | cut -d: -f1 | sort -u | tee report",
+          "invocations": [
+            {
+              "name": "sort",
+              "args": [
+                "-u"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tap-line-54616",
+          "script": "rg --files -g '*.ts' src | sort | rg 'space|a.ts'",
+          "invocations": [
+            {
+              "name": "sort",
+              "args": []
+            }
+          ]
+        },
+        {
+          "id": "tap-line-54644",
+          "script": "cat input | rg -nbo foo | cut -d: -f1 | sort -u",
+          "invocations": [
+            {
+              "name": "sort",
+              "args": [
+                "-u"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tap-line-54680",
+          "script": "rg -c TODO src | sort",
+          "invocations": [
+            {
+              "name": "sort",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "version": {
+        "profile": "Apple system utility file on macOS26.4.1/25E253",
+        "semanticVersion": null,
+        "executedVersion": false
+      }
+    },
+    {
+      "name": "tee",
+      "origin": "/usr/bin/tee",
+      "physical": "/usr/bin/tee",
+      "mode": 493,
+      "bytes": 101232,
+      "sha256": "97832f8519ebacf737782b40cf0a33dc5b27bd4bfe7493e952c6c65ef309bea0",
+      "linkChain": [
+        {
+          "path": "/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/tee",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "roles": [
+        {
+          "id": "tap-line-54560",
+          "script": "rg -n TODO src | cut -d: -f1 | sort -u | tee report",
+          "invocations": [
+            {
+              "name": "tee",
+              "args": [
+                "report"
+              ]
+            }
+          ]
+        }
+      ],
+      "version": {
+        "profile": "Apple system utility file on macOS26.4.1/25E253",
+        "semanticVersion": null,
+        "executedVersion": false
+      }
+    },
+    {
+      "name": "xargs",
+      "origin": "/usr/bin/xargs",
+      "physical": "/usr/bin/xargs",
+      "mode": 493,
+      "bytes": 135984,
+      "sha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213",
+      "linkChain": [
+        {
+          "path": "/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/xargs",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "roles": [
+        {
+          "id": "tap-line-54588",
+          "script": "rg -l0 TODO src | xargs -0 cat | rg -n TODO",
+          "invocations": [
+            {
+              "name": "xargs",
+              "args": [
+                "-0",
+                "cat"
+              ]
+            }
+          ]
+        }
+      ],
+      "version": {
+        "profile": "Apple system utility file on macOS26.4.1/25E253",
+        "semanticVersion": null,
+        "executedVersion": false
+      }
+    },
+    {
+      "name": "cat",
+      "origin": "/bin/cat",
+      "physical": "/bin/cat",
+      "mode": 493,
+      "bytes": 118992,
+      "sha256": "580599dd318fa34bb0f91c29106894852c49c3a3df724b637113df95c6758fe6",
+      "linkChain": [
+        {
+          "path": "/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/bin/cat",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "roles": [
+        {
+          "id": "tap-line-54588",
+          "script": "rg -l0 TODO src | xargs -0 cat | rg -n TODO",
+          "invocations": [
+            {
+              "name": "cat",
+              "argsFrom": "NUL-separated rg --sort=path -l0 TODO src results, passed as separate path operands by xargs"
+            }
+          ]
+        },
+        {
+          "id": "tap-line-54644",
+          "script": "cat input | rg -nbo foo | cut -d: -f1 | sort -u",
+          "invocations": [
+            {
+              "name": "cat",
+              "args": [
+                "input"
+              ]
+            }
+          ]
+        }
+      ],
+      "version": {
+        "profile": "Apple system utility file on macOS26.4.1/25E253",
+        "semanticVersion": null,
+        "executedVersion": false
+      }
+    }
+  ],
+  "readableDependency": {
+    "origin": "/usr/lib/dyld",
+    "physical": "/usr/lib/dyld",
+    "mode": 493,
+    "bytes": 2357376,
+    "sha256": "a572fe3d9d46fc2c6461745a13940ec63de8c9ab333fcba5ef1e112783e521a7",
+    "role": "Observed LC_LOAD_DYLINKER target; file binding only, no PATH alias/new subject dispatch"
+  },
+  "pendingOSMetadataPairs": [
+    {
+      "tool": "/usr/bin/cut",
+      "library": "/usr/lib/libSystem.B.dylib",
+      "observedError": "ENOENT",
+      "fileSha256": null,
+      "hostPlistSha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+      "decision": "EXPLICIT_PAIR_APPROVAL_REQUIRED_NO_INHERITANCE"
+    },
+    {
+      "tool": "/usr/bin/sort",
+      "library": "/usr/lib/libSystem.B.dylib",
+      "observedError": "ENOENT",
+      "fileSha256": null,
+      "hostPlistSha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+      "decision": "EXPLICIT_PAIR_APPROVAL_REQUIRED_NO_INHERITANCE"
+    },
+    {
+      "tool": "/usr/bin/tee",
+      "library": "/usr/lib/libSystem.B.dylib",
+      "observedError": "ENOENT",
+      "fileSha256": null,
+      "hostPlistSha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+      "decision": "EXPLICIT_PAIR_APPROVAL_REQUIRED_NO_INHERITANCE"
+    },
+    {
+      "tool": "/usr/bin/xargs",
+      "library": "/usr/lib/libSystem.B.dylib",
+      "observedError": "ENOENT",
+      "fileSha256": null,
+      "hostPlistSha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+      "decision": "EXPLICIT_PAIR_APPROVAL_REQUIRED_NO_INHERITANCE"
+    },
+    {
+      "tool": "/bin/cat",
+      "library": "/usr/lib/libSystem.B.dylib",
+      "observedError": "ENOENT",
+      "fileSha256": null,
+      "hostPlistSha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+      "decision": "EXPLICIT_PAIR_APPROVAL_REQUIRED_NO_INHERITANCE"
+    }
+  ],
+  "executionRouteFacts": {
+    "parent": "/bin/bash",
+    "childCommand": "xargs -0 cat",
+    "childTarget": "/bin/cat",
+    "environment": {
+      "inherit": "Complete caller process.env after existing gate finite-route/private/loader guards, not current interactive shell environment",
+      "set": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "RIPGREP_CONFIG_PATH": "",
+        "NO_COLOR": "1"
+      },
+      "delete": [
+        "NODE_TEST_CONTEXT"
+      ],
+      "PATH": "Existing authenticated native-root:finite-tool-directory; propose only five exact additional aliases, no ambient directories",
+      "TMPDIR": "Unchanged existing owned-root gate binding"
+    },
+    "oldNativeAssets": 51,
+    "existingNativeAssetNameCollisions": 0,
+    "qualification": "Parsed route intent, not actual dispatch telemetry. Runtime dlopen/additional helper routes remain unproved and not admitted."
+  },
+  "unchanged": {
+    "generalPathDirectories": true,
+    "existingAliases": true,
+    "originalF5Manifest": true,
+    "all632CanonicalBodiesInHistoricalF5": true,
+    "existingNativePermissions": true,
+    "toolSelectorRefusals": true,
+    "loaderObserverGuards": true,
+    "privateGuards": true,
+    "instructionProjection": true,
+    "structuralSignalDirectoryModeSocketEnvSExpectations": true
+  },
+  "requiredFutureShippingDelta": [
+    "Version the new exact five external-tool identity records plus read-only loader binding; do not append broad directories to permissions or PATH.",
+    "Version exact alias-set validation and pre-dispatch checks with all old members preserved; reject native-root shadowing and missing/extra bindings.",
+    "Bind any approved OS-metadata pairs explicitly; unknown/missing/new dependencies remain fatal. No system-prefix or family-level trust.",
+    "Select reconstructible f5+13 repair-fixture candidate separately. Reseal all affected closure/profile/driver/evidence/tool-path bindings before a future admission.",
+    "Do not execute unchanged shipping launcher against this proposal. No launcher code, OS-fence rights, historical admission result or product source changes here."
+  ],
+  "futureControls": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/FUTURE-CONTROLS.md",
+    "families": 20,
+    "executed": 0,
+    "actualFutureScripts": 5,
+    "actualScriptsExecuted": 0
+  },
+  "qualifications": [
+    "Five source-called platform helpers, not GNU substitution or historical successful version proof.",
+    "Missing libraries are observed metadata, not approved trust, file hashes or full transitive/dynamic closure.",
+    "No new native pass/admission; old R3 19425P/132F/7skip and 6/14 remain unchanged.",
+    "Full 632-path command-use census is not claimed; scope is five exact G08 failed scripts."
+  ]
+}

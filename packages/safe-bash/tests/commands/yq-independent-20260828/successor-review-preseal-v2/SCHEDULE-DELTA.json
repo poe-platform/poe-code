@@ -1,0 +1,352 @@
+{
+  "schema": 2,
+  "state": "EXPLICIT_SS_F01_PREEXECUTION_CORRECTION_NOT_GO",
+  "finding": {
+    "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/schedule-review-v1/FINDING-SS-F01.json",
+    "sha256": "5f09e7606f4038c90769ebc1496adb4084142690db39ca0b9a750decda2112e9",
+    "bytes": 4476
+  },
+  "baseJobs": {
+    "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+    "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/JOBS.json",
+    "sha256": "ae2969c22e1c3d5d955bf9edf460c9d59db006dd5134bd3b9e50c82a4b741e8f",
+    "bytes": 292256
+  },
+  "baseSchedule": {
+    "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+    "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json",
+    "sha256": "ff21793f53b42719b9e4bc764b6c00442a49ba75d489699c6dc69835e00a04dc",
+    "bytes": 23015
+  },
+  "reason": "Current requirement is six direct fixtures in EACH of two environments. Declaration equality is not a second compiler run. Adopt completed SS-F01 minimum additive correction without shrinking other slots.",
+  "before": {
+    "outerSlots": 335,
+    "maxCompilerDescendants": 12,
+    "globalCapMs": 23625000,
+    "directTypeCompilerInvocations": 6
+  },
+  "after": {
+    "outerSlots": 336,
+    "maxCompilerDescendants": 18,
+    "globalCapMs": 24165000,
+    "globalDuration": "6h42m45s",
+    "directTypeCompilerInvocations": 12,
+    "conditionalPublicCompilerInvocations": 5,
+    "independentBuildCompilerInvocations": 1
+  },
+  "addedJob": {
+    "insertBefore": "TYPE-DIRECT-SIX",
+    "job": {
+      "id": "TYPE-SOURCE-DIRECT-SIX",
+      "phase": "TYPES",
+      "role": "type-consumer",
+      "state": "UNRUN_NO_SUCCESSOR_GO",
+      "executionAuthorized": false,
+      "recordIds": [
+        "TYP-01",
+        "TYP-02",
+        "TYP-03",
+        "TYP-07"
+      ],
+      "fixtures": [
+        "positive",
+        "factory-command-extra",
+        "factory-array-extra",
+        "unknown-limits",
+        "replace-string",
+        "replace-undefined"
+      ],
+      "maxCompilerDescendants": 6,
+      "environment": "source-built-direct",
+      "sourceBuiltOnly": true,
+      "installedMovedOnly": false,
+      "slotCapMs": 540000,
+      "phaseAbsoluteCutoffOffsetMs": 23145000
+    }
+  },
+  "updatedExistingJobFields": [
+    {
+      "id": "TYPE-DIRECT-SIX",
+      "phaseAbsoluteCutoffOffsetMs": 23145000
+    },
+    {
+      "id": "TYPE-PUBLIC-FIVE",
+      "phaseAbsoluteCutoffOffsetMs": 23145000
+    },
+    {
+      "id": "source-built-direct/LOAD-POSITIVE",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "source-built-direct/MUT-RETAINED-VIEW",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "source-built-direct/MUT-QUOTED-DEL-DOUBLE",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "source-built-direct/MUT-QUOTED-DEL-SINGLE",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "source-built-direct/MUT-PENDING-SHADOW",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "installed-moved-direct/LOAD-POSITIVE",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "installed-moved-direct/MUT-QUOTED-DEL-DOUBLE",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "installed-moved-direct/MUT-QUOTED-DEL-SINGLE",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "installed-moved-direct/MUT-PENDING-SHADOW",
+      "phaseAbsoluteCutoffOffsetMs": 24045000
+    },
+    {
+      "id": "FINAL-GUARDS-REAP-SEAL",
+      "phaseAbsoluteCutoffOffsetMs": 24165000
+    }
+  ],
+  "effectivePhases": [
+    {
+      "id": "AUTHENTICATION",
+      "startOffsetMs": 0,
+      "absoluteCutoffOffsetMs": 120000,
+      "capMs": 120000,
+      "jobCount": 1
+    },
+    {
+      "id": "BUILD",
+      "startOffsetMs": 120000,
+      "absoluteCutoffOffsetMs": 420000,
+      "capMs": 300000,
+      "jobCount": 1
+    },
+    {
+      "id": "SETUP",
+      "startOffsetMs": 420000,
+      "absoluteCutoffOffsetMs": 600000,
+      "capMs": 180000,
+      "jobCount": 2
+    },
+    {
+      "id": "CONTROLS",
+      "startOffsetMs": 600000,
+      "absoluteCutoffOffsetMs": 1170000,
+      "capMs": 570000,
+      "jobCount": 19
+    },
+    {
+      "id": "SOURCE_AUDIT",
+      "startOffsetMs": 1170000,
+      "absoluteCutoffOffsetMs": 1470000,
+      "capMs": 300000,
+      "jobCount": 1
+    },
+    {
+      "id": "SOURCE_RUNTIME",
+      "startOffsetMs": 1470000,
+      "absoluteCutoffOffsetMs": 8175000,
+      "capMs": 6705000,
+      "jobCount": 149
+    },
+    {
+      "id": "MOVED_RUNTIME",
+      "startOffsetMs": 8175000,
+      "absoluteCutoffOffsetMs": 21585000,
+      "capMs": 13410000,
+      "jobCount": 149
+    },
+    {
+      "id": "TYPES",
+      "startOffsetMs": 21585000,
+      "absoluteCutoffOffsetMs": 23145000,
+      "capMs": 1560000,
+      "jobCount": 3,
+      "jobIds": [
+        "TYPE-SOURCE-DIRECT-SIX",
+        "TYPE-DIRECT-SIX",
+        "TYPE-PUBLIC-FIVE"
+      ],
+      "allocation": {
+        "sourceDirectWorker": 540000,
+        "installedMovedDirectWorker": 540000,
+        "conditionalPublicWorker": 480000,
+        "directPerEnvironment": {
+          "setup": 90000,
+          "compilerInvocations": 6,
+          "compilerMsEach": 60000,
+          "postguardsEvidence": 60000,
+          "cleanup": 30000
+        },
+        "public": {
+          "setup": 90000,
+          "compilerInvocations": 5,
+          "compilerMsEach": 60000,
+          "postguardsEvidence": 60000,
+          "cleanup": 30000
+        }
+      }
+    },
+    {
+      "id": "LOADED_CONTROLS",
+      "startOffsetMs": 23145000,
+      "absoluteCutoffOffsetMs": 24045000,
+      "capMs": 900000,
+      "jobCount": 10
+    },
+    {
+      "id": "FINALIZATION",
+      "startOffsetMs": 24045000,
+      "absoluteCutoffOffsetMs": 24165000,
+      "capMs": 120000,
+      "jobCount": 1
+    }
+  ],
+  "effectiveJobsCanonicalSha256": "e8684e9a919ea285532296b271160142c63b9ce47b08c901680500048aa0dd17",
+  "effectivePhasesCanonicalSha256": "a5738318c71567a28e83a922f265f444f00840b8f621795e2592cff916cf86f7",
+  "toolResourceDeltas": {
+    "outerWorkerLaunchMaximum": {
+      "before": 335,
+      "after": 336
+    },
+    "compilerLaunchMaximum": {
+      "before": 12,
+      "after": 18
+    },
+    "maximumGitHelpersPerOuterJob": 32768,
+    "globalMaximumGitHelpers": {
+      "before": 10977280,
+      "after": 11010048
+    },
+    "maximumRetainedPackageCopies": {
+      "before": 179,
+      "after": 180
+    },
+    "workerRawCaptureBytes": 16777216,
+    "compilerRawCaptureBytes": 8388608,
+    "maximumCohortStorageBytes": 25769803776,
+    "storageRationale": "180*64MiB package allowance +336*16MiB worker raw capture +18*8MiB compiler raw capture, plus bounded base/source/tools, fits unchanged24GiB. Added source-type materialization is included; no implicit extra copy or timeout."
+  },
+  "clockRule": "Same one-t0 reservation/min absolute phase/job/subphase algorithm. All phase cutoffs after added TYPES allocation shift explicitly by540000ms; no live run or budget reset exists.",
+  "allOtherSlotsUnchanged": true,
+  "sourceMovedRuntimeJobsPerEnvironment": 149,
+  "newPolicyCases": 0,
+  "unrunGapBindings": 135,
+  "semanticPasses": 0,
+  "documentOverrides": {
+    "jobs": [
+      {
+        "pointer": "/counts/outerJobs",
+        "value": 336
+      },
+      {
+        "pointer": "/counts/maxCompilerDescendants",
+        "value": 18
+      },
+      {
+        "pointer": "/counts/directTypeCompilerInvocations",
+        "value": 12
+      },
+      {
+        "pointer": "/counts/directTypeFixturesPerEnvironment",
+        "value": 6
+      },
+      {
+        "pointer": "/typeEnvironmentQualification",
+        "value": "Six direct fixtures run separately on source-built and installed/moved declarations; declaration equality is not a compiler run. Five public-only gaps remain one conditional worker."
+      }
+    ],
+    "schedule": [
+      {
+        "pointer": "/globalMonotonicCapMs",
+        "value": 24165000
+      },
+      {
+        "pointer": "/globalCapSeconds",
+        "value": 24165
+      },
+      {
+        "pointer": "/maxOuterJobSlots",
+        "value": 336
+      },
+      {
+        "pointer": "/maxCompilerDescendants",
+        "value": 18
+      },
+      {
+        "pointer": "/metadataToolBounds/globalMaximumGitHelpers",
+        "value": 11010048
+      },
+      {
+        "pointer": "/metadataToolBounds/maximumCompilerInvocations",
+        "value": 18
+      },
+      {
+        "pointer": "/parentTopology/maxOuterWorkers",
+        "value": 336
+      },
+      {
+        "pointer": "/parentTopology/maxNestedCompilers",
+        "value": 18
+      }
+    ],
+    "tools": [
+      {
+        "pointer": "/resourceBounds/outerWorkerSlots",
+        "value": 336
+      },
+      {
+        "pointer": "/resourceBounds/maximumRetainedPackageCopies",
+        "value": 180
+      },
+      {
+        "pointer": "/toolInvocationTemplates/2/countCeiling",
+        "value": 336
+      },
+      {
+        "pointer": "/toolInvocationTemplates/3/countCeiling",
+        "value": 18
+      }
+    ],
+    "ledgerAppendJobLinks": [
+      {
+        "recordId": "TYP-01",
+        "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+        "state": "UNRUN_NO_SUCCESSOR_GO",
+        "fullRecordPass": false
+      },
+      {
+        "recordId": "TYP-02",
+        "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+        "state": "UNRUN_NO_SUCCESSOR_GO",
+        "fullRecordPass": false
+      },
+      {
+        "recordId": "TYP-03",
+        "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+        "state": "UNRUN_NO_SUCCESSOR_GO",
+        "fullRecordPass": false
+      },
+      {
+        "recordId": "TYP-07",
+        "appendSuccessorJob": "TYPE-SOURCE-DIRECT-SIX",
+        "state": "UNRUN_NO_SUCCESSOR_GO",
+        "fullRecordPass": false
+      }
+    ],
+    "requestRoutingTypeQualification": "Six direct fixtures per each of two environments;12 direct compiler invocations; public5 conditional gap; no global typecheck."
+  }
+}

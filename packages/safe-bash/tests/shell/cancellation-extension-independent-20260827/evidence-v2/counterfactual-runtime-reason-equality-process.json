@@ -1,0 +1,36 @@
+{
+  "name": "counterfactual-runtime-reason-equality",
+  "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/node",
+  "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "args": [
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/register-guard-v1.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern",
+    "^E08 ",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_NO_WARNINGS": "1",
+    "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/counterfactual-runtime-reason-equality/emitted/cancellation.js",
+    "CANCELLATION_MODULE_SHA256": "a85758a38e1493b8052ab29550f0bc65d40de46164cf4c472d46c41340a0597d",
+    "REVIEW_ALLOWED_FILES": "[\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/counterfactual-runtime-reason-equality/emitted/cancellation.js\",\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs\"]",
+    "REVIEW_LOAD_LOG": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/evidence-v2/counterfactual-runtime-reason-equality-loads.jsonl"
+  },
+  "started": "2026-08-28T00:10:33.633Z",
+  "ended": "2026-08-28T00:10:33.774Z",
+  "pid": 54669,
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "90b5078e9005c35fcebfc9fa577c5774bb13b396386046e5f378c42341b594b4",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

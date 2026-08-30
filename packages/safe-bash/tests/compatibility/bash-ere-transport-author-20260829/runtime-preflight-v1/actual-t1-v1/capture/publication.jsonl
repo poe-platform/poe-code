@@ -1,0 +1,2 @@
+{"event":"actual-evidence-publication-start","at":"2026-08-29T14:33:10.456Z","attemptConsumed":true,"rerun":false}
+{"event":"existing-supervisor-archive-authenticated-and-retained","at":"2026-08-29T14:33:10.582Z","compressedBytes":5657653,"decodedBytes":21499087,"entryCount":4421,"rawBytes":15511403,"sha256":"d6b6acd6490baf4735ce22716b13a4fdfc61275d0042370b7771b1b62236a093","newArchiveConstructed":false}

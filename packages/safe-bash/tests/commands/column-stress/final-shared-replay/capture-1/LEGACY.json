@@ -1,0 +1,3063 @@
+{
+  "classification": "independent-frozen-recipe-execution-not-full-gate",
+  "capturedAt": "2026-08-27T16:27:49.210Z",
+  "candidate": "/private/tmp/safe-bash-column-final-5XKcCe/candidate",
+  "rootEntry": "file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/dist/index.js",
+  "columnEntry": "file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/dist/commands/column/index.js",
+  "rootEntrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnEntrySha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "recipeSha256": "e6db28115a575c6da046a9efa81841ed05dc28a04c8860630141c461bf20d2aa",
+  "expectationsSha256": "22ba6a1096b2613dc28b93e5b017f461d38b9901849b92b19b20500ef27eac52",
+  "harnessSha256": "97731e477c33f5de4497c1ceff69b415d2e527ca5172bd92f15e7f9389d8d6ff",
+  "safetySha256": "82c36f9e6c47e88d27a957647c370b8797afa753188c11675c51e2119d489012",
+  "node": "v22.22.2",
+  "cases": [
+    {
+      "recipe": "N01",
+      "variant": "literal",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N01/literal",
+        "status": 0,
+        "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a202020202020390a616c7068612020312020207461696c0a6220202020202032320a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N02",
+      "variant": "colon",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N02/colon",
+        "status": 0,
+        "stdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "610a622020630a286e756c6c290a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-separator-dialect"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-separator-dialect"
+        }
+      ]
+    },
+    {
+      "recipe": "N03",
+      "variant": "two-delimiters",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "6120206220206320200a6420202020206520200a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N03/two-delimiters",
+        "status": 0,
+        "stdoutHex": "6120206220206320200a6420202020206520200a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "612020622020630a642020650a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-separator-dialect"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6120206220206320200a6420202020206520200a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-separator-dialect"
+        }
+      ]
+    },
+    {
+      "recipe": "N04",
+      "variant": "visible-bars",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "61202020207c2062620a6c6f6e67207c20630a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N04/visible-bars",
+        "status": 0,
+        "stdoutHex": "61202020207c2062620a6c6f6e67207c20630a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "61202020207c2062620a6c6f6e67207c20630a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        }
+      ]
+    },
+    {
+      "recipe": "N05",
+      "variant": "zero-bytes",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "61620a78790a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N05/zero-bytes",
+        "status": 0,
+        "stdoutHex": "61620a78790a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "61620a78790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        }
+      ]
+    },
+    {
+      "recipe": "N06",
+      "variant": "eleven-items",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N06/eleven-items",
+        "status": 0,
+        "stdoutHex": "7a097109790978097709760a6109620963096409650a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N07",
+      "variant": "seven-in-24",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "7a096209780a6109790a7109630a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N07/seven-in-24",
+        "status": 0,
+        "stdoutHex": "7a096209780a6109790a7109630a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a096209780a6109790a7109630a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a096209780a6109790a7109630a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N08",
+      "variant": "seven-in-24",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "7a096109710a62097909630a780a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N08/seven-in-24",
+        "status": 0,
+        "stdoutHex": "7a096109710a62097909630a780a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a096109710a62097909630a780a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a096109710a62097909630a780a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N09",
+      "variant": "width-one",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "616c7068616265740a620a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N09/width-one",
+        "status": 0,
+        "stdoutHex": "616c7068616265740a620a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "616c7068616265740a620a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "616c7068616265740a620a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N10",
+      "variant": "fill",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "6120202020202020620a3132333435363720630a7a0a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N10/fill",
+        "status": 0,
+        "stdoutHex": "6120202020202020620a3132333435363720630a7a0a",
+        "stderrEmpty": true,
+        "basis": "Retained tabs expand from entry origin; maximum width nine gives one column at width 24."
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6109620a3132333435363709630a7a0a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-tab-profile"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6109620a3132333435363709630a7a0a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-tab-profile"
+        }
+      ]
+    },
+    {
+      "recipe": "N10",
+      "variant": "explicit-table",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "6120202020202020622020630a7878202020202020202020640a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N10/explicit-table",
+        "status": 0,
+        "stdoutHex": "6120202020202020622020630a7878202020202020202020640a",
+        "stderrEmpty": true,
+        "basis": "Cell-relative tab expansion and fixed scalar widths, not native raw tab byte width."
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6109622020630a78782020640a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-tab-profile"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6109622020630a78782020640a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-tab-profile"
+        }
+      ]
+    },
+    {
+      "recipe": "N11",
+      "variant": "empty-source",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N11/empty-source",
+        "status": 0,
+        "stdoutHex": "",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-empty-profile"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-empty-profile"
+        }
+      ]
+    },
+    {
+      "recipe": "N11",
+      "variant": "blank-table",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N11/blank-table",
+        "status": 0,
+        "stdoutHex": "",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-empty-profile"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-empty-profile"
+        }
+      ]
+    },
+    {
+      "recipe": "N11",
+      "variant": "blank-fill",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "7a09610a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N11/blank-fill",
+        "status": 0,
+        "stdoutHex": "7a09610a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a09610a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-empty-profile"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "7a09610a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-empty-profile"
+        }
+      ]
+    },
+    {
+      "recipe": "N12",
+      "variant": "no-final-lf",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "61202020620a63632020640a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N12/no-final-lf",
+        "status": 0,
+        "stdoutHex": "61202020620a63632020640a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "612020620a",
+          "rawNativeStderrHex": "636f6c756d6e3a206c696e6520746f6f206c6f6e670a",
+          "originalOracleUse": "common-options-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "61202020620a63632020640a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N13",
+      "variant": "two-files",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020202020620a6c6f6e672020630a78202020202079790a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {
+            "first.txt": "612062",
+            "second.txt": "6c6f6e6720630a782079790a"
+          }
+        }
+      ],
+      "expected": {
+        "key": "N13/two-files",
+        "status": 0,
+        "stdoutHex": "612020202020620a6c6f6e672020630a78202020202079790a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "6c6f6e672020630a78202020202079790a",
+          "rawNativeStderrHex": "636f6c756d6e3a206c696e6520746f6f206c6f6e670a",
+          "originalOracleUse": "common-options-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "612020202020620a6c6f6e672020630a78202020202079790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N14",
+      "variant": "dash-file-dash",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "732020202020310a74202020202032320a66696c652020330a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {
+            "middle.txt": "66696c6520330a"
+          }
+        }
+      ],
+      "expected": {
+        "key": "N14/dash-file-dash",
+        "status": 0,
+        "stdoutHex": "732020202020310a74202020202032320a66696c652020330a",
+        "stderrEmpty": true,
+        "basis": "Explicit shared stdin cursor and record order; both native dash-filename diagnostics remain separate."
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "66696c652020330a",
+          "rawNativeStderrHex": "636f6c756d6e3a202d3a204e6f20737563682066696c65206f72206469726563746f72790a636f6c756d6e3a202d3a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "originalOracleUse": "qualified-dash-operand-dialect"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "66696c652020330a",
+          "rawNativeStderrHex": "636f6c756d6e3a202d3a204e6f20737563682066696c65206f72206469726563746f72790a636f6c756d6e3a202d3a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "originalOracleUse": "qualified-dash-operand-dialect"
+        }
+      ]
+    },
+    {
+      "recipe": "N15",
+      "variant": "missing-first",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "6f6b202076616c75650a",
+          "stderrHex": "636f6c756d6e3a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207374617420272f616273656e742e747874270a",
+          "rejection": null,
+          "effects": {
+            "good.txt": "6f6b2076616c75650a"
+          }
+        }
+      ],
+      "expected": {
+        "key": "N15/missing-first",
+        "status": 1,
+        "stdoutHex": "6f6b202076616c75650a",
+        "stderrEmpty": false,
+        "basis": "Documented missing-open continuation plus nonzero error status.",
+        "stderrContains": "absent.txt"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "6f6b202076616c75650a",
+          "rawNativeStderrHex": "636f6c756d6e3a20616273656e742e7478743a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "originalOracleUse": "qualified-error-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6f6b202076616c75650a",
+          "rawNativeStderrHex": "636f6c756d6e3a20616273656e742e7478743a204e6f20737563682066696c65206f72206469726563746f72790a",
+          "originalOracleUse": "qualified-error-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N16",
+      "variant": "literal-file",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020202020620a6c6f6e672020630a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {
+            "-odd": "6120620a6c6f6e6720630a"
+          }
+        }
+      ],
+      "expected": {
+        "key": "N16/literal-file",
+        "status": 0,
+        "stdoutHex": "612020202020620a6c6f6e672020630a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "612020202020620a6c6f6e672020630a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "612020202020620a6c6f6e672020630a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "common-options-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N17",
+      "variant": "separator-alias",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "617c620a787c790a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N17/separator-alias",
+        "status": 0,
+        "stdoutHex": "617c620a787c790a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d202d0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "617c620a787c790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        }
+      ]
+    },
+    {
+      "recipe": "N17",
+      "variant": "input-separator-alias",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020620a782020790a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N17/input-separator-alias",
+        "status": 0,
+        "stdoutHex": "612020620a782020790a",
+        "stderrEmpty": true,
+        "basis": "Explicit alias supported in proposal and README, absent from pinned native 2.41.2."
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d202d0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "636f6c756d6e3a20756e7265636f676e697a6564206f7074696f6e20602d2d696e7075742d736570617261746f72270a5472792027636f6c756d6e202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        }
+      ]
+    },
+    {
+      "recipe": "N17",
+      "variant": "fill-aliases",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "6109620a630a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N17/fill-aliases",
+        "status": 0,
+        "stdoutHex": "6109620a630a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d202d0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6109620a630a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "util-linux-option-bsd-unsupported-retained"
+        }
+      ]
+    },
+    {
+      "recipe": "N18",
+      "variant": "zero",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a206f7574707574207769647468206578636565647320636f6e66696775726564207769647468206c696d6974206f72206973207a65726f0a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N18/zero",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "610a620a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-width-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "610a620a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-width-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N18",
+      "variant": "negative",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20696e76616c6964206f75747075742077696474680a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N18/negative",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "610a620a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-width-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "636f6c756d6e3a20696e76616c696420636f6c756d6e7320617267756d656e743a20272d31273a20526573756c7420746f6f206c617267650a",
+          "originalOracleUse": "qualified-width-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N18",
+      "variant": "not-number",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20696e76616c6964206f75747075742077696474680a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N18/not-number",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "610a620a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-width-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "636f6c756d6e3a20696e76616c696420636f6c756d6e7320617267756d656e743a20276e6f7065270a",
+          "originalOracleUse": "qualified-width-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N19",
+      "variant": "missing-width",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a206f7074696f6e202d6320726571756972657320616e20617267756d656e740a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N19/missing-width",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d20630a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "common-error-inputs-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "636f6c756d6e3a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d20630a5472792027636f6c756d6e202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+          "originalOracleUse": "common-error-inputs-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N19",
+      "variant": "missing-input-separator",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a206f7074696f6e202d7320726571756972657320616e20617267756d656e740a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N19/missing-input-separator",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d20730a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "common-error-inputs-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "636f6c756d6e3a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d20730a5472792027636f6c756d6e202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+          "originalOracleUse": "common-error-inputs-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N19",
+      "variant": "missing-output-separator",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a206f7074696f6e202d6f20726571756972657320616e20617267756d656e740a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N19/missing-output-separator",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "common-error-inputs-raw-comparison"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "636f6c756d6e3a206f7074696f6e20726571756972657320616e20617267756d656e74202d2d206f0a5472792027636f6c756d6e202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+          "originalOracleUse": "common-error-inputs-raw-comparison"
+        }
+      ]
+    },
+    {
+      "recipe": "N20",
+      "variant": "json",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f72746564206f7074696f6e3a202d4a0a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N20/json",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d204a0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "qualified-supported-surface"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "636f6c756d6e3a206f7074696f6e202d2d7461626c652d636f6c756d6e73206f72202d2d7461626c652d636f6c756d6e20726571756972656420666f72202d2d6a736f6e0a",
+          "originalOracleUse": "qualified-supported-surface"
+        }
+      ]
+    },
+    {
+      "recipe": "N21",
+      "variant": "combining-acute",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "65cc81202020780a61622020790a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N21/combining-acute",
+        "status": 0,
+        "stdoutHex": "65cc81202020780a61622020790a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "65cc81202020780a61622020790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-unicode-not-grapheme"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "65cc81202020780a61622020790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-unicode-not-grapheme"
+        }
+      ]
+    },
+    {
+      "recipe": "N22",
+      "variant": "ideograph",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "e7958c2020780a61202020790a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N22/ideograph",
+        "status": 0,
+        "stdoutHex": "e7958c2020780a61202020790a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "e7958c2020780a61202020790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-unicode-not-grapheme"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "e7958c2020780a61202020790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-unicode-not-grapheme"
+        }
+      ]
+    },
+    {
+      "recipe": "N23",
+      "variant": "emoji-zwj",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b323030440a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N23/emoji-zwj",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "README fixed profile rejects retained U+200D; this resolves the original named handoff prerequisite, not a candidate-observed waiver.",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "f09f988020202020780af09f91a9e2808df09f92bb2020790a6120202020207a0a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-unicode-not-grapheme"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "f09f988020202020780af09f91a9e2808df09f92bb2020790a6120202020207a0a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-unicode-not-grapheme"
+        }
+      ]
+    },
+    {
+      "recipe": "N24",
+      "variant": "invalid-leading-byte",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20696e76616c6964205554462d3820696e7075740a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N24/invalid-leading-byte",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-strict-decoding"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-strict-decoding"
+        }
+      ]
+    },
+    {
+      "recipe": "N24",
+      "variant": "truncated-multibyte",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20696e76616c6964205554462d3820696e7075740a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N24/truncated-multibyte",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-strict-decoding"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-strict-decoding"
+        }
+      ]
+    },
+    {
+      "recipe": "N24",
+      "variant": "overlong",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20696e76616c6964205554462d3820696e7075740a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N24/overlong",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-strict-decoding"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-strict-decoding"
+        }
+      ]
+    },
+    {
+      "recipe": "N25",
+      "variant": "nul",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303030300a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N25/nul",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "636f6c756d6e3a206c696e6520746f6f206c6f6e670a",
+          "originalOracleUse": "qualified-control-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "610a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N25",
+      "variant": "ansi-escape",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303031420a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N25/ansi-escape",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "1b5b33316d612020780a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "1b5b33316d612020780a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N25",
+      "variant": "bell",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303030370a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N25/bell",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6107622020780a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6107622020780a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N25",
+      "variant": "backspace",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303030380a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N25/backspace",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6108622020780a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6108622020780a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N26",
+      "variant": "default-whitespace",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020622020632020642020650a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N26/default-whitespace",
+        "status": 0,
+        "stdoutHex": "612020622020632020642020650a",
+        "stderrEmpty": true,
+        "basis": "ASCII TAB VT FF CR delimit before cell validation."
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "612020620b630c640d650a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "612020620b630c640d650a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N26",
+      "variant": "explicit-colon",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303030420a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N26/explicit-colon",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "610b622020630a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "610b622020630a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-control-policy"
+        }
+      ]
+    },
+    {
+      "recipe": "N27",
+      "variant": "table-width-one",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "616c7068616265742020780a62622020202020202020790a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N27/table-width-one",
+        "status": 0,
+        "stdoutHex": "616c7068616265742020780a62622020202020202020790a",
+        "stderrEmpty": true,
+        "basis": "unchanged frozen util-linux native literal output, where supported product text/layout rules agree"
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "616c7068616265742020780a62622020202020202020790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-table-width-profile"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "616c7068616265742020780a62622020202020202020790a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-table-width-profile"
+        }
+      ]
+    },
+    {
+      "recipe": "N28",
+      "variant": "help",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "55736167653a20636f6c756d6e205b2d745d205b2d7320636861726163746572735d205b2d6f20737472696e675d205b2d632077696474685d205b2d785d205b66696c65202e2e2e5d0a20202d742c202d2d7461626c652020202020202020202020202020616c69676e206669656c64733b2064656661756c7420415343494920776869746573706163652073706c697474696e670a20202d732c202d2d736570617261746f72202020202020202020207461626c6520696e7075742064656c696d6974657220636861726163746572733b20707265736572766520656d707479206669656c64730a2020202020202d2d696e7075742d736570617261746f72202020616c69617320666f72202d2d736570617261746f720a20202d6f2c202d2d6f75747075742d736570617261746f722020207461626c65206f757470757420736570617261746f72202864656661756c742074776f20737061636573290a20202d632c202d2d6f75747075742d776964746820202020202020706f7369746976652066696c6c207769647468202864656661756c74203830293b206e6f207461626c65207472756e636174696f6e0a20202d782c202d2d66696c6c726f7773202020202020202020202066696c6c206163726f737320726f777320696e7374656164206f6620646f776e20636f6c756d6e730a20202d682c202d2d68656c70202020202020202020202020202073686f77207468697320737570706f727465642070726f66696c650a20202d2d20202020202020202020202020202020202020202020656e64206f7074696f6e733b202d2072656164732073686172656420737464696e0a537472696374205554462d383b2064657465726d696e6973746963207363616c6172207769647468733b2072657461696e6564207461627320657870616e6420617420382d636f6c756d6e2073746f70732e0a4e6f207465726d696e616c2f6c6f63616c6520646574656374696f6e2c20414e534920636f6e74726f6c732c207772617070696e672c20686561646572732c204a534f4e2c206f722074726565206d6f64652e0a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N28/help",
+        "status": 0,
+        "stdoutHex": null,
+        "stderrEmpty": true,
+        "basis": "Help wording is not a frozen native requirement.",
+        "help": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d202d0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "qualified-supported-surface"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": true,
+          "stdoutEqual": false,
+          "stderrEqual": true,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "0a55736167653a0a20636f6c756d6e205b6f7074696f6e735d205b3c66696c653e2e2e2e5d0a0a436f6c756d6e617465206c697374732e0a0a4f7074696f6e733a0a202d742c202d2d7461626c65202020202020202020202020202020202020202020206372656174652061207461626c650a202d6e2c202d2d7461626c652d6e616d65203c6e616d653e202020202020202020207461626c65206e616d6520666f72204a534f4e206f75747075740a202d4f2c202d2d7461626c652d6f72646572203c636f6c756d6e733e20202020202073706563696679206f72646572206f66206f757470757420636f6c756d6e730a202d432c202d2d7461626c652d636f6c756d6e203c70726f706572746965733e2020646566696e6520636f6c756d6e0a202d4e2c202d2d7461626c652d636f6c756d6e73203c6e616d65733e202020202020636f6d6d612073657061726174656420636f6c756d6e73206e616d65730a202d6c2c202d2d7461626c652d636f6c756d6e732d6c696d6974203c6e756d3e20206d6178696d616c206e756d626572206f6620696e70757420636f6c756d6e730a202d452c202d2d7461626c652d6e6f65787472656d65203c636f6c756d6e733e2020646f6e277420636f756e74206c6f6e6720746578742066726f6d2074686520636f6c756d6e7320746f20636f6c756d6e2077696474680a202d642c202d2d7461626c652d6e6f68656164696e67732020202020202020202020646f6e2774207072696e74206865616465720a202d6d2c202d2d7461626c652d6d61786f757420202020202020202020202020202066696c6c20616c6c20617661696c61626c652073706163650a202d652c202d2d7461626c652d6865616465722d72657065617420202020202020207265706561742068656164657220666f72206561636820706167650a202d482c202d2d7461626c652d68696465203c636f6c756d6e733e20202020202020646f6e2774207072696e742074686520636f6c756d6e730a202d522c202d2d7461626c652d7269676874203c636f6c756d6e733e202020202020726967687420616c69676e207465787420696e20746865736520636f6c756d6e730a202d542c202d2d7461626c652d7472756e63617465203c636f6c756d6e733e2020207472756e63617465207465787420696e2074686520636f6c756d6e73207768656e206e65636573736172790a202d572c202d2d7461626c652d77726170203c636f6c756d6e733e2020202020202077726170207465787420696e2074686520636f6c756d6e73207768656e206e65636573736172790a202d4c2c202d2d6b6565702d656d7074792d6c696e65732020202020202020202020646f6e27742069676e6f726520656d707479206c696e65730a202d4a2c202d2d6a736f6e2020202020202020202020202020202020202020202020757365204a534f4e206f757470757420666f726d617420666f72207461626c650a0a202d722c202d2d74726565203c636f6c756d6e3e2020202020202020202020202020636f6c756d6e20746f2075736520747265652d6c696b65206f757470757420666f7220746865207461626c650a202d692c202d2d747265652d6964203c636f6c756d6e3e20202020202020202020206c696e6520494420746f2073706563696679206368696c642d706172656e742072656c6174696f6e0a202d702c202d2d747265652d706172656e74203c636f6c756d6e3e20202020202020706172656e7420746f2073706563696679206368696c642d706172656e742072656c6174696f6e0a0a202d632c202d2d6f75747075742d7769647468203c77696474683e202020202020207769647468206f66206f757470757420696e206e756d626572206f6620636861726163746572730a202d6f2c202d2d6f75747075742d736570617261746f72203c737472696e673e2020636f6c756d6e7320736570617261746f7220666f72207461626c65206f7574707574202864656661756c742069732074776f20737061636573290a202d732c202d2d736570617261746f72203c737472696e673e202020202020202020706f737369626c65207461626c652064656c696d69746572730a202d782c202d2d66696c6c726f77732020202020202020202020202020202020202066696c6c20726f7773206265666f726520636f6c756d6e730a202d532c202d2d7573652d737061636573203c6e756d6265723e20202020202020206d696e696d616c207768697465737061636573206265747765656e20636f6c756d6e7320286e6f2074616273290a0a202d682c202d2d68656c702020202020202020202020202020202020202020202020646973706c617920746869732068656c700a202d562c202d2d76657273696f6e2020202020202020202020202020202020202020646973706c61792076657273696f6e0a0a466f72206d6f72652064657461696c732073656520636f6c756d6e2831292e0a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-supported-surface"
+        }
+      ]
+    },
+    {
+      "recipe": "N28",
+      "variant": "output-separator-without-table",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20696e7075742f6f757470757420736570617261746f72732072657175697265202d742f2d2d7461626c650a",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "expected": {
+        "key": "N28/output-separator-without-table",
+        "status": 1,
+        "stdoutHex": "",
+        "stderrEmpty": false,
+        "basis": "frozen independent rejection requirement plus documented supported surface/strict decoder/control policy",
+        "stderrNonempty": true
+      },
+      "nativeComparisons": [
+        {
+          "profile": "bsd-darwin",
+          "statusEqual": true,
+          "stdoutEqual": true,
+          "stderrEqual": false,
+          "rawNativeStatus": 1,
+          "rawNativeStdoutHex": "",
+          "rawNativeStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "originalOracleUse": "qualified-supported-surface"
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "statusEqual": false,
+          "stdoutEqual": false,
+          "stderrEqual": false,
+          "rawNativeStatus": 0,
+          "rawNativeStdoutHex": "6109620a",
+          "rawNativeStderrHex": "",
+          "originalOracleUse": "qualified-supported-surface"
+        }
+      ]
+    },
+    {
+      "recipe": "S29",
+      "variant": "literal-1",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020620a632020640a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "limits": {
+          "maxInputBytes": 8
+        },
+        "expect": "Both four-byte files fit exactly."
+      }
+    },
+    {
+      "recipe": "S29",
+      "variant": "literal-2",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "limits": {
+          "maxInputBytes": 7
+        },
+        "expect": "Reject cumulative eighth byte; do not reset the budget between files."
+      }
+    },
+    {
+      "recipe": "S30",
+      "variant": "literal-1",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020202020620a2020206320200a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "limits": {
+          "maxRows": 2,
+          "maxCells": 6,
+          "maxFields": 3,
+          "maxFiles": 2
+        },
+        "expect": "Exact boundaries fit two rows, six logical cells, three fields per row, two files."
+      }
+    },
+    {
+      "recipe": "S30",
+      "variant": "literal-2",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20726f7773206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "limits": {
+          "maxRows": 1
+        },
+        "expect": "Second file cannot reset cumulative rows."
+      }
+    },
+    {
+      "recipe": "S30",
+      "variant": "literal-3",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e2063656c6c73206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "limits": {
+          "maxCells": 5
+        },
+        "expect": "Preserved empty fields count as cells; the sixth logical cell exceeds budget."
+      }
+    },
+    {
+      "recipe": "S30",
+      "variant": "literal-4",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e206669656c64732070657220726f77206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "limits": {
+          "maxFields": 2
+        },
+        "expect": "A three-field record exceeds its field bound before growth."
+      }
+    },
+    {
+      "recipe": "S30",
+      "variant": "literal-5",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a2066696c65206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "limits": {
+          "maxFiles": 1
+        },
+        "expect": "Second file is not admitted; record whether validation preflights all operands or stops at the admission boundary."
+      }
+    },
+    {
+      "recipe": "S31",
+      "variant": "literal-1",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "c3a92020780a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "chunksHex": [
+          "c3",
+          "a920",
+          "780a"
+        ],
+        "limits": {
+          "maxRecordBytes": 4,
+          "maxChunkBytes": 2
+        },
+        "expect": "A valid split UTF-8 scalar is decoded once; four content bytes fit if record budget excludes the line delimiter."
+      }
+    },
+    {
+      "recipe": "S31",
+      "variant": "literal-2",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e207265636f7264206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "chunksHex": [
+          "c3",
+          "a920",
+          "780a"
+        ],
+        "limits": {
+          "maxRecordBytes": 3
+        },
+        "expect": "Four content bytes exceed the record limit independent of scalar count."
+      }
+    },
+    {
+      "recipe": "S31",
+      "variant": "literal-3",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e206368756e6b206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "chunksHex": [
+          "6120780a"
+        ],
+        "limits": {
+          "maxChunkBytes": 3
+        },
+        "expect": "Reject four-byte chunk before retaining or splitting it; line size does not bypass the chunk bound."
+      }
+    },
+    {
+      "recipe": "S32",
+      "variant": "literal-1",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20776f726b206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "stdinUtf8": ":::::::\n:::::::\n",
+        "limits": {
+          "maxSteps": 1
+        },
+        "expect": "Reject boundedly; delimiter scanning, cell creation and padding cannot evade work accounting."
+      }
+    },
+    {
+      "recipe": "S32",
+      "variant": "literal-2",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20776f726b206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "sourceRecipe": {
+          "emptyChunks": 32,
+          "thenUtf8": "a:b\n"
+        },
+        "limits": {
+          "maxSteps": 4
+        },
+        "expect": "Bound zero-byte producer progress or abort after a deterministic pull ceiling; do not turn the probe into an infinite source."
+      }
+    },
+    {
+      "recipe": "S33",
+      "variant": "literal-1",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020620a632020640a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "stdinUtf8": "a:b\nc:d\n",
+        "limits": {
+          "maxOutputBytes": 10
+        },
+        "expect": "Exact output a-two-spaces-b-LF c-two-spaces-d-LF fits ten bytes."
+      }
+    },
+    {
+      "recipe": "S33",
+      "variant": "literal-2",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "612020620a63202064",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e206f7574707574206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "stdinUtf8": "a:b\nc:d\n",
+        "limits": {
+          "maxOutputBytes": 9
+        },
+        "expect": "Never write more than nine stdout bytes; preserve any written prefix rather than assuming transactional output."
+      }
+    },
+    {
+      "recipe": "S33",
+      "variant": "literal-3",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "61",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e206f7574707574206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "argv": [
+          "-t",
+          "-s",
+          ":",
+          "-o",
+          "          "
+        ],
+        "stdinUtf8": "a:b:c:d\nx:y:z:w\n",
+        "limits": {
+          "maxOutputBytes": 8
+        },
+        "expect": "Reject expansion before allocating/joining a complete oversized padded output; do not merely detect it at the final sink."
+      }
+    },
+    {
+      "recipe": "S33",
+      "variant": "literal-4",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": {
+            "name": "RangeError",
+            "message": "RangeError: Invalid column limit: maxWidth (expected integer 1..67108864)",
+            "code": null,
+            "stack": "RangeError: Invalid column limit: maxWidth (expected integer 1..67108864)\n    at settings (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/dist/commands/column/options.js:14:19)\n    at Module.createColumnCommand (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/dist/commands/column/column.js:32:20)\n    at direct (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:65:40)\n    at async file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/safety.mjs:13:22\n    at async check (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:39:9)\n    at async safety (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/safety.mjs:6:63)\n    at async file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:121:3"
+          }
+        }
+      ],
+      "literalRecipeVariant": {
+        "argv": [
+          "-c",
+          "1000000000"
+        ],
+        "stdinUtf8": "a\nb\n",
+        "limits": {
+          "maxWidth": 1000000000,
+          "maxOutputBytes": 8
+        },
+        "expect": "Tiny input cannot trigger a width-sized array/string before output/work bounds; use isolated memory-capped candidate process only after handoff."
+      },
+      "qualification": "Unchanged maxWidth=1,000,000,000 recipe exceeds the documented 67,108,864 configuration ceiling; bounded factory refusal, not proof of allocating safely at an admitted billion-wide setting."
+    },
+    {
+      "recipe": "S34",
+      "variant": "literal-1",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20617267756d656e74206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "argv": [
+          "-t",
+          "-o",
+          "界界"
+        ],
+        "stdinUtf8": "a b\n",
+        "limits": {
+          "maxArgumentBytes": 9
+        },
+        "expect": "Two two-byte ASCII options plus six separator bytes exceed nine aggregate argv bytes; byte counting must not use JS string length."
+      }
+    },
+    {
+      "recipe": "S34",
+      "variant": "literal-2",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a206f7574707574207769647468206d757374206265206120706f73697469766520626f756e64656420646563696d616c20696e74656765720a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "argv": [
+          "-c",
+          "9007199254740992"
+        ],
+        "stdinUtf8": "a\n",
+        "expect": "Reject unsafe integer before input admission or padding allocation."
+      }
+    },
+    {
+      "recipe": "S34",
+      "variant": "literal-3",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a206f7574707574207769647468206578636565647320636f6e66696775726564207769647468206c696d6974206f72206973207a65726f0a",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "argv": [
+          "-c",
+          "33"
+        ],
+        "stdinUtf8": "a\n",
+        "limits": {
+          "maxWidth": 32
+        },
+        "expect": "Reject width above configured bound before input."
+      }
+    },
+    {
+      "recipe": "S34",
+      "variant": "literal-4",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "literalRecipeVariant": {
+        "argv": [
+          "-c",
+          "32"
+        ],
+        "stdinUtf8": "a\n",
+        "limits": {
+          "maxWidth": 32
+        },
+        "expect": "The exact positive width boundary fits."
+      }
+    },
+    {
+      "recipe": "S33",
+      "variant": "admitted-padding-before-repeat",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "78787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878787878782020610a62",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e206f75747075742070616464696e67206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "repeatCalls": []
+    },
+    {
+      "recipe": "S35",
+      "variant": "before-exec",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": {
+            "name": "object",
+            "message": "[object Object]",
+            "code": "ENOENT",
+            "stack": null
+          },
+          "effects": {
+            "one.txt": "6120620a",
+            "two.txt": "6320640a"
+          }
+        }
+      ],
+      "events": [],
+      "pulls": 0,
+      "returns": 0
+    },
+    {
+      "recipe": "S35",
+      "variant": "after-first-chunk-before-next-resolves",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": {
+            "name": "object",
+            "message": "[object Object]",
+            "code": "EACCES",
+            "stack": null
+          },
+          "effects": {
+            "one.txt": "6120620a",
+            "two.txt": "6320640a"
+          }
+        }
+      ],
+      "events": [
+        {
+          "path": "/one.txt",
+          "signalSupplied": true
+        },
+        "acquire",
+        "return"
+      ],
+      "pulls": 2,
+      "returns": 1
+    },
+    {
+      "recipe": "S35",
+      "variant": "during-awaited-sink-write",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": {
+            "name": "string",
+            "message": "caller-write",
+            "code": null,
+            "stack": null
+          },
+          "effects": {
+            "one.txt": "6120620a",
+            "two.txt": "6320640a"
+          }
+        }
+      ],
+      "events": [],
+      "pulls": 0,
+      "returns": 0
+    },
+    {
+      "recipe": "S36",
+      "variant": "retain-first-write-until-explicit-release",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "sink": {
+        "writes": 9,
+        "maximumOutstanding": 1,
+        "stdoutHex": "61202020620a63632020640a"
+      }
+    },
+    {
+      "recipe": "S36",
+      "variant": "first-write-rejects-sentinel",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2073696e6b2072656a656374696f6e2073656e74696e656c0a",
+          "rejection": null
+        }
+      ],
+      "sink": {
+        "writes": 1,
+        "maximumOutstanding": 1,
+        "stdoutHex": ""
+      }
+    },
+    {
+      "recipe": "S36",
+      "variant": "abort-then-reject-pending-write-sentinel",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": {
+            "name": "object",
+            "message": "[object Object]",
+            "code": "ENOENT",
+            "stack": null
+          }
+        }
+      ],
+      "sink": {
+        "writes": 1,
+        "maximumOutstanding": 1,
+        "stdoutHex": ""
+      }
+    },
+    {
+      "recipe": "S37",
+      "variant": "reuse-1",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "61612020620a63202020640a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "pulls": 5,
+      "returns": 0
+    },
+    {
+      "recipe": "S37",
+      "variant": "reuse-2",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "61612020620a63202020640a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "pulls": 2,
+      "returns": 0
+    },
+    {
+      "recipe": "S37",
+      "variant": "reuse-3",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "61612020620a63202020640a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "pulls": 1,
+      "returns": 0
+    },
+    {
+      "recipe": "S38",
+      "variant": "deferred-success",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "returns": 1,
+      "overlapSharedPromise": true,
+      "hookResults": [
+        {
+          "status": "fulfilled",
+          "reason": null
+        },
+        {
+          "status": "fulfilled",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "recipe": "S38",
+      "variant": "deferred-reject-cleanup-sentinel",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+          "rejection": null
+        }
+      ],
+      "returns": 1,
+      "overlapSharedPromise": true,
+      "hookResults": [
+        {
+          "status": "rejected",
+          "reason": "Error: cooperative return rejection"
+        },
+        {
+          "status": "rejected",
+          "reason": "Error: cooperative return rejection"
+        }
+      ]
+    },
+    {
+      "recipe": "S38",
+      "variant": "deferred-reject-after-caller-abort",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+          "rejection": {
+            "name": "object",
+            "message": "[object Object]",
+            "code": null,
+            "stack": null
+          }
+        }
+      ],
+      "returns": 1,
+      "overlapSharedPromise": true,
+      "hookResults": [
+        {
+          "status": "rejected",
+          "reason": "Error: cooperative return rejection"
+        },
+        {
+          "status": "rejected",
+          "reason": "Error: cooperative return rejection"
+        }
+      ]
+    },
+    {
+      "recipe": "S38",
+      "variant": "actual-owned-vfs-cleanup-failure-precedence",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+          "rejection": {
+            "name": "Error",
+            "message": "Error: owned VFS return failed",
+            "code": null,
+            "stack": "Error: owned VFS return failed\n    at file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/safety.mjs:136:65\n    at async check (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:39:9)\n    at async safety (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/safety.mjs:134:3)\n    at async file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:121:3"
+          },
+          "effects": {}
+        }
+      ],
+      "returns": 1
+    },
+    {
+      "recipe": "S38",
+      "variant": "known-root-hidden-external-stdin-return-boundary",
+      "verdict": "fail",
+      "observations": [
+        {
+          "returns": 1,
+          "execSettledBeforeReturnRelease": true,
+          "disposeSettledBeforeReturnRelease": true,
+          "hiddenReturnGateReleased": false,
+          "owner": "Root ShellInput/Shell source ownership; column receives no return method"
+        }
+      ],
+      "finalExitCode": null,
+      "finalError": "Error: Shell is disposed",
+      "harnessGateReleasedAfterObservation": true,
+      "failure": {
+        "name": "AssertionError",
+        "message": "AssertionError [ERR_ASSERTION]: Root boundary: Shell.exec settled before hidden external stdin.return completed\n\ntrue !== false\n",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Root boundary: Shell.exec settled before hidden external stdin.return completed\n\ntrue !== false\n\n    at file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/safety.mjs:159:14\n    at async check (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:39:9)\n    at async safety (file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/safety.mjs:147:3)\n    at async file:///private/tmp/safe-bash-column-final-5XKcCe/candidate/tests/commands/column-stress/handoff-20260827/stress.mjs:121:3"
+      }
+    },
+    {
+      "recipe": "S39",
+      "variant": "pending-stat-is-opaque-no-late-acquisition",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": {
+            "name": "object",
+            "message": "[object Object]",
+            "code": null,
+            "stack": null
+          },
+          "effects": {}
+        }
+      ],
+      "events": [
+        {
+          "stat": "/first.txt",
+          "hasSignal": true
+        }
+      ],
+      "streamsAfterLateStat": 0,
+      "qualification": "FileSystem.readStream acquisition is synchronous; an opaque stat promise is not an owned cooperative lease. This exact boundary complements, rather than weakens, the admitted-source barrier case."
+    },
+    {
+      "recipe": "S39",
+      "variant": "registered-before-acquisition-owned-drain-and-dispose",
+      "verdict": "pass",
+      "observations": [],
+      "beforeRelease": {
+        "execSettled": false,
+        "disposeSettled": false,
+        "returns": 1,
+        "events": [
+          "registered",
+          {
+            "acquired": "/first.txt",
+            "signalSupplied": true
+          }
+        ]
+      },
+      "afterRelease": {
+        "execSettled": true,
+        "disposeSettled": true,
+        "returns": 1,
+        "events": [
+          "registered",
+          {
+            "acquired": "/first.txt",
+            "signalSupplied": true
+          },
+          "retired"
+        ]
+      }
+    },
+    {
+      "recipe": "S40",
+      "variant": "actual-complex-pipeline-vfs-byte-effects",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020207c620a6c6f6e677c630a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "outputFileHex": "612020207c620a6c6f6e677c630a"
+    },
+    {
+      "recipe": "S40",
+      "variant": "actual-literal-nested-invoke-and-env",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020207c620a6c6f6e677c630a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ],
+      "middleware": [
+        {
+          "command": "nested",
+          "stdinIsDefault": false,
+          "environment": {
+            "PARENT": "kept",
+            "PWD": "/"
+          }
+        },
+        {
+          "command": "column",
+          "stdinIsDefault": false,
+          "environment": {
+            "ONLY": "child"
+          }
+        }
+      ]
+    },
+    {
+      "recipe": "S40",
+      "variant": "standalone-plugin-collision-replace",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020620a",
+          "commands": [
+            "column"
+          ]
+        }
+      ]
+    },
+    {
+      "recipe": "X01",
+      "variant": "nonenumerable-frozen-context-keeps-caller-structure",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "612020620a",
+          "stderrHex": "",
+          "rejection": null
+        }
+      ],
+      "basis": "Additional concrete context-adapter regression; original forty recipe inputs/expectations remain unchanged."
+    },
+    {
+      "recipe": "X02",
+      "variant": "emoji-without-forbidden-zwj",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 0,
+          "stdoutHex": "f09f98802020780a61202020790a",
+          "stderrHex": "",
+          "rejection": null,
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "recipe": "X03",
+      "variant": "late-fallback-readFile-rejection",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": null,
+          "stdoutHex": "",
+          "stderrHex": "",
+          "rejection": {
+            "name": "object",
+            "message": "[object Object]",
+            "code": "EIO",
+            "stack": null
+          },
+          "effects": {}
+        }
+      ]
+    },
+    {
+      "recipe": "X04",
+      "variant": "iterator-read-failure-has-no-layout-publication",
+      "verdict": "pass",
+      "observations": [
+        {
+          "status": 1,
+          "stdoutHex": "",
+          "stderrHex": "636f6c756d6e3a2045494f3a20696e7075742f6f7574707574206572726f7220272f66697273742e747874270a",
+          "rejection": null,
+          "effects": {
+            "first.txt": "6120620a",
+            "second.txt": "6320640a"
+          }
+        }
+      ],
+      "lifecycle": {
+        "pulls": 2,
+        "returns": 1,
+        "acquisitions": 1
+      }
+    }
+  ],
+  "recipeVerdicts": {
+    "N01": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N02": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N03": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N04": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N05": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N06": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N07": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N08": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N09": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N10": {
+      "executedVariants": 2,
+      "verdict": "pass"
+    },
+    "N11": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "N12": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N13": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N14": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N15": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N16": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N17": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "N18": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "N19": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "N20": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N21": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N22": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N23": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N24": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "N25": {
+      "executedVariants": 4,
+      "verdict": "pass"
+    },
+    "N26": {
+      "executedVariants": 2,
+      "verdict": "pass"
+    },
+    "N27": {
+      "executedVariants": 1,
+      "verdict": "pass"
+    },
+    "N28": {
+      "executedVariants": 2,
+      "verdict": "pass"
+    },
+    "S29": {
+      "executedVariants": 2,
+      "verdict": "pass"
+    },
+    "S30": {
+      "executedVariants": 5,
+      "verdict": "pass"
+    },
+    "S31": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "S32": {
+      "executedVariants": 2,
+      "verdict": "pass"
+    },
+    "S33": {
+      "executedVariants": 5,
+      "verdict": "pass"
+    },
+    "S34": {
+      "executedVariants": 4,
+      "verdict": "pass"
+    },
+    "S35": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "S36": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "S37": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    },
+    "S38": {
+      "executedVariants": 5,
+      "verdict": "fail"
+    },
+    "S39": {
+      "executedVariants": 2,
+      "verdict": "pass"
+    },
+    "S40": {
+      "executedVariants": 3,
+      "verdict": "pass"
+    }
+  },
+  "unhandledRejections": [],
+  "counts": {
+    "topLevelRecipes": 40,
+    "topLevelPass": 39,
+    "topLevelFail": 1,
+    "topLevelUnexecuted": 0,
+    "executedVariants": 88,
+    "originalRecipeVariants": 84,
+    "supplementalVariants": 4,
+    "variantPass": 87,
+    "variantFail": 1,
+    "denominatorCaveat": "Top-level and variant counts overlap, never add them; native comparisons are a separate profile partition, not extra product passes."
+  }
+}

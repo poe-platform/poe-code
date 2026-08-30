@@ -1,0 +1,68 @@
+{
+  "pass": 12,
+  "fail": 0,
+  "results": [
+    {
+      "name": "exit-active",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "error-active",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "exit-error-abort-race",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "partial-live-close",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "pending-source-reject",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "pending-source-abort",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "uncooperative-pending-abort",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "downstream-close-pending",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "downstream-throw",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "single-next-order",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "batch-byte-cap",
+      "failed": false,
+      "killed": false
+    },
+    {
+      "name": "capacity-policy",
+      "failed": false,
+      "killed": false
+    }
+  ],
+  "activeOwnedChildren": 0,
+  "newRiskConsumed": 0
+}

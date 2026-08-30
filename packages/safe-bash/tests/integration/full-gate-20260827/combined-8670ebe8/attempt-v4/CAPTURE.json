@@ -1,0 +1,19 @@
+{
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "files": [
+    {
+      "name": "raw-capture.tar.gz.b64",
+      "encoding": "base64(tar.gz)",
+      "originalBytes": 8918923,
+      "originalSha256": "8a2beed3df62cfc0ceabe1c8f8ca9730d9873aecbc2f741947a2702f072d7648",
+      "encodedPayloadSha256": "8a2beed3df62cfc0ceabe1c8f8ca9730d9873aecbc2f741947a2702f072d7648"
+    },
+    {
+      "name": "launcher.log.gz.b64",
+      "encoding": "base64(gzip(raw))",
+      "originalBytes": 4517180,
+      "originalSha256": "91698332a3c36f5bf2bf05c7fa255fcea1dcce5867a330fce8773c546e028517",
+      "encodedPayloadSha256": "bae2f280a635a0f28ee32ea542ff9889bade8b3d6f6c8fd9f4a736af9a6d55e8"
+    }
+  ]
+}

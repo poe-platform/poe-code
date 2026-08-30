@@ -1,0 +1,13 @@
+{
+  "role": "05-seal",
+  "pid": 65829,
+  "started": "2026-08-29T15:06:55.173Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

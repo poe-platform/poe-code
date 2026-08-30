@@ -1,0 +1,167 @@
+{
+  "schema": "direct-profile-executable-control-seal-v1",
+  "profile": "bash-surface-direct-owned-child-functional-v1",
+  "sealedAt": "2026-08-29T09:57:00.344Z",
+  "phaseStarted": 1787998885059,
+  "phaseDeadline": 1787999125059,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "files": {
+    "CONTROL-PROTOCOL.json": {
+      "bytes": 3938,
+      "sha256": "329b5532661c058b9259a1dc08045372fbfe71c97ca8de12bdeb74e3382c3282"
+    },
+    "MATRIX.json": {
+      "bytes": 201975,
+      "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+    },
+    "NODE.json": {
+      "bytes": 304,
+      "sha256": "e676eb89a43070cef8b34bda26e167fe321911b7b41ec6d411a3daa303ce3a03"
+    },
+    "PACKAGE-MEMBERS.json": {
+      "bytes": 166933,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    "PRODUCT-CLOSURE.json": {
+      "bytes": 446,
+      "sha256": "ae279ef98ea8617aae9c466d788dcd929e6997e6df330deb4e76240430931218"
+    },
+    "README.md": {
+      "bytes": 2880,
+      "sha256": "b92f0639779fee41f00ebd0994759cc9f4a923ae21e9abd6eb4e01c49ad9b624"
+    },
+    "REUSED-SOURCES.json": {
+      "bytes": 3089,
+      "sha256": "27778ca74db273b16e3126b643a6af7078a9d51332b3bb2a8cb92fad7acd5830"
+    },
+    "SOURCE-MEMBERS.json": {
+      "bytes": 68225,
+      "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+    },
+    "STATIC-EDGES.json": {
+      "bytes": 31738,
+      "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+    },
+    "auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    "case-adapter.mjs": {
+      "bytes": 4448,
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    },
+    "case-driver.mjs": {
+      "bytes": 1504,
+      "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c"
+    },
+    "case-launch.mjs": {
+      "bytes": 2722,
+      "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746"
+    },
+    "controls.mjs": {
+      "bytes": 8737,
+      "sha256": "ad0867b1693a86480ee0ef66f3b6221146c50156f15f7b48095bcc3aae69a4f1"
+    },
+    "data.mjs": {
+      "bytes": 3196,
+      "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+    },
+    "direct-child.mjs": {
+      "bytes": 4583,
+      "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+    },
+    "fixtures/H01.mjs": {
+      "bytes": 1783,
+      "sha256": "10d0d529939fd3f9293a7be7fdffd64d5abb9ede3c440ffaab97bdfab05f3949"
+    },
+    "fixtures/H02.mjs": {
+      "bytes": 1080,
+      "sha256": "e362befc407d6b12ece3bfc6f4c53fcb20eb10b2090081cefbb224a8c9c06d51"
+    },
+    "fixtures/H03.mjs": {
+      "bytes": 696,
+      "sha256": "8f891bf665db048f67b73e028125de02b02480b0fecd52da3a41a8dac6c73332"
+    },
+    "fixtures/H04.mjs": {
+      "bytes": 1023,
+      "sha256": "c02fe3e541a8ed6951a209870a169947939193cb7acc94be8dcc1c91f0d0ce4e"
+    },
+    "fixtures/extra-child.mjs": {
+      "bytes": 54,
+      "sha256": "4fc6a3b2a471c2f6e45b40241acf92f90a04f1f07d24165d8704d71c8ac3e0b3"
+    },
+    "fixtures/extra-worker.mjs": {
+      "bytes": 39,
+      "sha256": "158d93cc23b8719f54d7ca40ebfb79335558ce85292468b06b196c3927fd917f"
+    },
+    "fixtures/loaded.mjs": {
+      "bytes": 47,
+      "sha256": "e366442209ccb341c519e71b885ce82c7938738d72405e5817b76ef07fe68cf8"
+    },
+    "fixtures/unlisted.mjs": {
+      "bytes": 35,
+      "sha256": "3ffba3b303c750d328840a001249b9798de14d9eb6fe587000ad7d9432bb32cf"
+    },
+    "fixtures/wrong.mjs": {
+      "bytes": 38,
+      "sha256": "2938b404b5e5522fe95b6b8868f968d4a1f95d1aa74dff53a7c99e19df491d72"
+    },
+    "guard.mjs": {
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    "mechanism.mjs": {
+      "bytes": 2506,
+      "sha256": "dcfe9557af108fdd521d43a179286ca78d0320c11c0e3b9cb68193c34382bbf0"
+    },
+    "package-admission.mjs": {
+      "bytes": 3895,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    "parse-manifest.mjs": {
+      "bytes": 2860,
+      "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+    },
+    "profile.mjs": {
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    "publication-admin.mjs": {
+      "bytes": 4069,
+      "sha256": "32feee2c6c27c920b0ecb2b6fbb8b7c4b993ccfb0c7b288f1980f6affeeace63"
+    },
+    "setup.mjs": {
+      "bytes": 4088,
+      "sha256": "701f410894358b08830c545a430a47f38c00882f2bf3664235486da2f1d42628"
+    }
+  },
+  "controlProtocolSha256": "329b5532661c058b9259a1dc08045372fbfe71c97ca8de12bdeb74e3382c3282",
+  "productCalls": 0,
+  "productClosure": "HOLD_WAITING_DIRAC",
+  "physicalPacket": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1",
+  "physicalWork": "/private/tmp/direct-profile-independent-v2-bShSbp",
+  "futureExtraFailCleanupCeilings": {
+    "osChildren": 2,
+    "workers": 2
+  },
+  "customLoaderThreads": 0,
+  "controls": [
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "D05",
+    "D06",
+    "H01",
+    "H02",
+    "H03",
+    "H04"
+  ]
+}

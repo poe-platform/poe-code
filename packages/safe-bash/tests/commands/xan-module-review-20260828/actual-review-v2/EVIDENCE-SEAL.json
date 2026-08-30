@@ -1,0 +1,77 @@
+{
+  "classification": "ACTUAL_V2_FULL_RAW_BUNDLE_NOT_RESCORE",
+  "created": "2026-08-28T06:41:23.665Z",
+  "appendAware": true,
+  "entries": [
+    {
+      "path": "CHILDREN.json",
+      "bytes": 831,
+      "sha256": "60c9fa4d9ce759c6b193f1ed940b0893d5eab046bcf596d3725ed07acd354434",
+      "mode": "644"
+    },
+    {
+      "path": "COVERAGE.json",
+      "bytes": 338177,
+      "sha256": "4d147fed04a99f5700e0a9a9140c9518305c609fc53dc94905e45e1c337ed92a",
+      "mode": "644"
+    },
+    {
+      "path": "OUTCOMES.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "mode": "644"
+    },
+    {
+      "path": "PRE-RUN.json",
+      "bytes": 484,
+      "sha256": "46fc0b80833e80b009b17b4e9227de263647c6c569ed61707854933cd1c69af7",
+      "mode": "644"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 41784,
+      "sha256": "52fe996757fab93f74338f4b6d3f5fc21855f22289f18778bfe862d5505bac0d",
+      "mode": "644"
+    },
+    {
+      "path": "build/",
+      "directory": true
+    },
+    {
+      "path": "build/RECEIPT.json",
+      "bytes": 756,
+      "sha256": "4f5317f98de1012ebf3099e0cf9143af533dcd38f9c0f5fb4c3eb813886b15c4",
+      "mode": "644"
+    },
+    {
+      "path": "build/START.json",
+      "bytes": 1827,
+      "sha256": "1d475bd601d86e314c302a60e4e1310b9ddaa38c13d301c37962aad082a63f6a",
+      "mode": "644"
+    },
+    {
+      "path": "build/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "build/stdout.preview",
+      "bytes": 225576,
+      "sha256": "3ceb554f1fc67c3940f41c4537140bcaa13aa32c4cda233ccae936385d1eba47",
+      "mode": "644"
+    },
+    {
+      "path": "build/stdout.raw",
+      "bytes": 225576,
+      "sha256": "3ceb554f1fc67c3940f41c4537140bcaa13aa32c4cda233ccae936385d1eba47",
+      "mode": "644"
+    }
+  ],
+  "archive": {
+    "bytes": 58547,
+    "sha256": "56b39958959ec5cf574adf8b5dfd881f3916077c445c49465330401da68218ef",
+    "mode": "644"
+  },
+  "totalPayloadBytes": 835014
+}

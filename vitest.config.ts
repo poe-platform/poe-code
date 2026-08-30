@@ -134,6 +134,7 @@ export default defineConfig({
     ],
     exclude: [
       "**/node_modules/**",
+      "packages/safe-bash/**",
       "scripts/**/*.lifecycle.test.ts",
       "**/*.e2e.test.ts" // E2E tests run separately
     ],

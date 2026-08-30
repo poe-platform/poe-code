@@ -1,0 +1,77 @@
+{
+  "artifactApproval": "NOT APPROVED; archival only",
+  "reviewedPatchSHA256": "5a12e79d07fc9379c9a6a67897f8aa72767467cc775fac5ea88e55a5bcde95d3",
+  "sourceCopies": {
+    "independent-review.txt": {
+      "source": "/tmp/safe-bash-safejs-v3-independent-detail.txt",
+      "sourceSHA256": "c0c7cf5fae775173bef9462145b23ace0aa4d0c7fa67a5074a032dd62a70bea5",
+      "archivalText": "Terminal newline normalized if absent; no semantic editing."
+    },
+    "independent-result.txt": {
+      "source": "/tmp/safe-bash-safejs-v3-independent-result.txt",
+      "sourceSHA256": "10fefb447724ec073b2c3ad2b034fb5e7156ad4d05615c28b0d2ce7b3c95bdb8",
+      "archivalText": "Terminal newline normalized if absent; no semantic editing."
+    },
+    "independent-proof.json": {
+      "source": "/tmp/safejs-security-recheck-2XgUgs/independent-proof.json",
+      "sourceSHA256": "591646a04190c4b81a68bd51405db872b5eedeb662a0e2becbe700aeb0a0a02a",
+      "archivalText": "Terminal newline normalized if absent; no semantic editing."
+    },
+    "independent-delta-proof.json": {
+      "source": "/tmp/safejs-security-recheck-2XgUgs/final-delta-proof.json",
+      "sourceSHA256": "32dae7f94b982201adfbf3d79754dbfecf2ecabbb8bb58cd1a19159fd1085eac",
+      "archivalText": "Terminal newline normalized if absent; no semantic editing."
+    },
+    "independent-artifact-guards.log": {
+      "source": "/tmp/safejs-security-recheck-2XgUgs/artifact-guards.log",
+      "sourceSHA256": "9a9baa0916ce0bdfa7cac62c64163408cf91c3942126c1d7765c49bb5a8db759",
+      "archivalText": "Terminal newline normalized if absent; no semantic editing."
+    },
+    "independent-source-guards.log": {
+      "source": "/tmp/safejs-security-recheck-2XgUgs/source-guards.log",
+      "sourceSHA256": "ce9ddb8b7472c866e4530cf15917a9653288b1506e5e79b5250b53dea66af147",
+      "archivalText": "Terminal newline normalized if absent; no semantic editing."
+    },
+    "independent-commands.json": {
+      "source": "/tmp/safe-bash-safejs-isolated-R0mMav/commands.json",
+      "sourceSHA256": "6e22e8025baff155d0cb7bc267d682ea413d17924fd2e5031f514cb12f8c9de0",
+      "archivalText": "Terminal newline normalized if absent; no semantic editing."
+    }
+  },
+  "ownedGuards": {
+    "tests": 2,
+    "pass": 2,
+    "fail": 0,
+    "exit": 0,
+    "log": "independent-artifact-guards.log"
+  },
+  "sourceGuards": {
+    "checks": 4,
+    "pass": 4,
+    "log": "independent-source-guards.log",
+    "rootAliasPolicy": "canonicalized, not rejected",
+    "nestedSourceLink": "rejected",
+    "patchLeafLink": "rejected; outside inert fixture unchanged"
+  },
+  "liveBaselineRefusal": {
+    "source": "/tmp/safejs-security-recheck-2XgUgs/private-pin-rejection.log",
+    "sha256": "ecf8a04d97bf95c45b7f26ab6e3b148a40ef21a6204e2cbe0f8e64e751eec9cf",
+    "bytes": 59971,
+    "exit": 1,
+    "stage": "exact-baseline mismatch before snapshot/application",
+    "excerpt": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Exact baseline mismatch; input is never patched\n+ actual - expected\n... Skipped lines\n\n  {\n+   'CHECKPOINT_REPLAY.md': '1b10518240840559e8fdfa74ce76c480129f062842be489fa0158433da81976f',\n-   'CHECKPOINT_REPLAY.md': '494f57f35623522995665981fdf7070309252b06243a9a3b11f75170ff6decd5',\n    'README.md': 'ddc8ba2d4a18e87a8f337ab49917b4182bf8045538d10e4bb568745075ebc1ae',\n    'examples/experiment.md': '69a8f49a9fca5176790cd5c170373acdc8681406e14bf85efe86a35c59335631',\n    'examples/pipeline.md': '9cc5e963a4fc357960091b9c09c7b4832246e92f5ffa4c5d2f1feaeab9eef249',\n    'examples/superintendent.md': 'ae5c55f39db29fd05094868303bca6eda9eeb5af64c28ad36e0f4bba4531168e',\n    'package.json': 'ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a',\n...\n    'src/interp/arguments.ts': '5eab3d8f1e094babdb96b1ac0031a6aed89279341d88e1b01ef0e31ef77bd186',"
+  },
+  "assertionsInspected": [
+    "baseline exit1 and exact 0/10",
+    "patched 10/10 remains required",
+    "private engine/revision/status/index/license drift cannot pass"
+  ],
+  "additionalSyntheticCountInjectionRun": false,
+  "limitations": [
+    "Raw Error identity pending upstream decision",
+    "Conservative quota overcount unchanged",
+    "Eight same baseline typecheck diagnostics are not success",
+    "Current private baseline differs from pin",
+    "Exact cause graph is not recursively sanitized"
+  ]
+}

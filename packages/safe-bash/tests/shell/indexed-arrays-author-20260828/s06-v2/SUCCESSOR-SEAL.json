@@ -1,0 +1,437 @@
+{
+  "profile": "narrow S06 author proof; independent successor acceptance remains Plato/root",
+  "sealedAt": "2026-08-28T14:47:26.116Z",
+  "sourceCommit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+  "testsCommit": "0286a6ff0ed46faf00a071736e6bc9e269f63afe",
+  "sourceTree": "30f88590b66b88dc9694a56c85f1ee690f02218b",
+  "selectedBuildInputs": 269,
+  "packageSha256": "e12ed19882b6722503a8fb962ca88e0d6c40300a7e76acc3f81aef5961e0a3a3",
+  "packageFiles": 862,
+  "packageBytes": 787736,
+  "sourceOverlays": {
+    "src/shell/runtime.ts": {
+      "sha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd",
+      "blob": "7660086a09c9dedbdd86bd15ae10ea729886654e"
+    },
+    "src/shell/parser.ts": {
+      "sha256": "c27fd9dc218ae20be18c99eec7ab037910f222ef927cbdec75c3c513f512a779",
+      "blob": "518cd9e9107b1270f5e5dc98b18bebe7ec7f6a00"
+    },
+    "src/shell/shell.ts": {
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7"
+    },
+    "src/shell/arrays/bindings.ts": {
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3"
+    },
+    "src/shell/arrays/ledger.ts": {
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89"
+    },
+    "src/shell/arrays/state.ts": {
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa"
+    },
+    "src/shell/arrays/syntax.ts": {
+      "sha256": "6868288c25bc6c2760adb327528e616890dddd18f2739452432f152ff0c40da0",
+      "blob": "d74d8f5fde70dfd7b4fa44213f29e6fdf38e7564"
+    }
+  },
+  "sourceTests": {
+    "unchangedOriginal": 32,
+    "originalPublicExecs": 69,
+    "newTargeted": 51,
+    "total": 83,
+    "passed": 83,
+    "failed": 0,
+    "skipped": 0
+  },
+  "baseline": {
+    "sourceTree": "d6c17f62d2d3062b5ab074044a86b8a455820373",
+    "packageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+    "originalTests": 32,
+    "originalPublicExecs": 69,
+    "targeted": 51,
+    "passed": 42,
+    "failed": 9,
+    "failures": [
+      "S06-two-empty",
+      "three-empty",
+      "repeated-empty",
+      "separate-quote-groups",
+      "single-empty-at",
+      "quoted-unquoted-empty",
+      "unquoted-quoted-empty",
+      "unquoted-scalar-between",
+      "lazy-alternate-empty-aggregate"
+    ]
+  },
+  "loadedSourceFiles": 35,
+  "loadedTargetedFiles": 34,
+  "layouts": [
+    {
+      "label": "installed",
+      "loadedFiles": 214,
+      "publicFlows": 6,
+      "s06PublicFlows": 50
+    },
+    {
+      "label": "moved",
+      "loadedFiles": 214,
+      "publicFlows": 6,
+      "s06PublicFlows": 50
+    }
+  ],
+  "mutants": [
+    {
+      "name": "copied-slot-ownership",
+      "file": "src/shell/arrays/bindings.ts",
+      "originalSha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "alteredSha256": "088e3a27a69559fadad5c43cc071032272c76bff0b1f0ebcf4dd5274de37a58d",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "static-overflow-planning",
+      "file": "src/shell/runtime.ts",
+      "originalSha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd",
+      "alteredSha256": "1490d3c58f0ac9e234245db1c79fcfb5bedbba9b39a924ad5e2732c8a92c920c",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "zero-view",
+      "file": "src/shell/runtime.ts",
+      "originalSha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd",
+      "alteredSha256": "849a644beee5685c4c303adbc1b9dd6ed0ac35d73a1773dd1c4d37aa2dfbb101",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "final-stage-stale-guard",
+      "file": "src/shell/runtime.ts",
+      "originalSha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd",
+      "alteredSha256": "f5f8caba17f380d5702486953baddfd0160f2d3daf399c938dd76cc5a74a74fd",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "snapshot-epoch",
+      "file": "src/shell/arrays/state.ts",
+      "originalSha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "alteredSha256": "3d2dce7d8804caa4e64a23adcc4c373e3cb2ea7b1b46f1970effa5b2a9662884",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "atomic-ticket-cursor",
+      "file": "src/shell/arrays/ledger.ts",
+      "originalSha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "alteredSha256": "62cd4d49b6faaf7e201807fb0aba48901d62b75b26c144fb2a370299e4a9c27c",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "cumulative-nonrefund",
+      "file": "src/shell/arrays/ledger.ts",
+      "originalSha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "alteredSha256": "af64cf7cf0e3fbea85387035d3a1cad7115474245f5beb0cb62fed25c80c7281",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "observer-retirement",
+      "file": "src/shell/arrays/bindings.ts",
+      "originalSha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "alteredSha256": "00047ea9a1b93c442d1e72e158f5f26ca77509f41389d38ce80b1f360d422cc1",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "root-work-drain",
+      "file": "src/shell/arrays/ledger.ts",
+      "originalSha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "alteredSha256": "e1428f184ce37fbdc5567016464d249234e7e96fa3c99c9cb73ca1be061694f1",
+      "executedAssertionRejected": true
+    },
+    {
+      "name": "repeated-aggregate-splice",
+      "file": "src/shell/runtime.ts",
+      "originalSha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd",
+      "alteredSha256": "4b882f1e42a7cd8ab5c58a961667e94f410d7d6f4beaab6e75ec304c36bb0877",
+      "executedAssertionRejected": true
+    }
+  ],
+  "changedPackageFiles": [
+    "dist/shell/arrays/syntax.d.ts",
+    "dist/shell/arrays/syntax.d.ts.map",
+    "dist/shell/arrays/syntax.js",
+    "dist/shell/arrays/syntax.js.map",
+    "dist/shell/parser.d.ts.map",
+    "dist/shell/parser.js",
+    "dist/shell/parser.js.map",
+    "dist/shell/runtime.d.ts.map",
+    "dist/shell/runtime.js",
+    "dist/shell/runtime.js.map"
+  ],
+  "unchangedPublicDeclarations": true,
+  "toolchain": {
+    "node": "v22.22.2",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "compilerSha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+    "loaderSha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2",
+    "versions": {
+      "typescript": "5.9.3",
+      "tsx": "4.23.12",
+      "@types/node": "22.20.1"
+    }
+  },
+  "successorStartedAt": "2026-08-28T14:43:29.298Z",
+  "successorFinishedAt": "2026-08-28T14:44:08.385Z",
+  "successorChildGroupsReaped": 22,
+  "attempts": [
+    {
+      "name": "baseline-01",
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-author-20260828/s06-v1/baseline-attempt-eZqFQv",
+      "archive": "baseline-01-raw.json.gz.base64",
+      "archiveSha256": "bc344a9a6f5ad060d09567a3c317fc3cc6e1a10bcdc236e1e8a774b400ad5154",
+      "reportSha256": "386c7ee87eb08da5ebe8a3ce1b3bdad6272461b426093bbc3db1181c12d1499e",
+      "capsuleSha256": "4f2fb6ac9258f75e6baa342bf9a4394327d5e28ec72a7e223264620dbe298293",
+      "entries": 1237,
+      "files": 1142,
+      "success": false,
+      "commands": [
+        {
+          "label": "selected-production-build",
+          "status": 0,
+          "pid": 12329,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "strict-owned-consumers",
+          "status": 2,
+          "pid": 12340,
+          "processGroupAbsent": true
+        }
+      ]
+    },
+    {
+      "name": "baseline-02",
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-author-20260828/s06-v2/baseline-attempt-YGwBis",
+      "archive": "baseline-02-raw.json.gz.base64",
+      "archiveSha256": "9448fe2fa1352d0584e37cad6df4539c866fc121a29f7103daf38ba3724a5a4e",
+      "reportSha256": "91c3ee125a72f870747b5ee48e9b4b7b6e84a744708a27a09e56df478f4e659b",
+      "capsuleSha256": "ed3800046802eeeadfd3846746fc551cff64c207fd808c199197cda3cd4345d1",
+      "entries": 2718,
+      "files": 2565,
+      "success": true,
+      "commands": [
+        {
+          "label": "selected-production-build",
+          "status": 0,
+          "pid": 16179,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "strict-owned-consumers",
+          "status": 0,
+          "pid": 16225,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "source-foundation-and-syntax",
+          "status": 0,
+          "pid": 16260,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "source-S06-controls",
+          "status": 1,
+          "pid": 16274,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "package-artifact",
+          "status": 0,
+          "pid": 16279,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "installed-strict",
+          "status": 0,
+          "pid": 16288,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "installed-runtime",
+          "status": 0,
+          "pid": 16302,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "moved-strict",
+          "status": 0,
+          "pid": 16307,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "moved-runtime",
+          "status": 0,
+          "pid": 16488,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "unchanged-public-api-negative-control",
+          "status": 2,
+          "pid": 16566,
+          "processGroupAbsent": true
+        }
+      ]
+    },
+    {
+      "name": "successor-01",
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-author-20260828/s06-v2/successor-attempt-zs5pBq",
+      "archive": "successor-01-raw.json.gz.base64",
+      "archiveSha256": "b445eebbed0c257cd25fb6a4c2d528f0a060eabbffe21eb1237b56a55c88c515",
+      "reportSha256": "ae1083cb704630a37956107f1d0da78d92a2f8a9ad2db546aee8d8d15ef7bd3f",
+      "capsuleSha256": "9ea1a25e3f2ae8b903edd5b60f2ca6f51627c5762846154eba43dcfa22543f02",
+      "entries": 2718,
+      "files": 2565,
+      "success": true,
+      "commands": [
+        {
+          "label": "selected-production-build",
+          "status": 0,
+          "pid": 19975,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "strict-owned-consumers",
+          "status": 0,
+          "pid": 20038,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "source-foundation-and-syntax",
+          "status": 0,
+          "pid": 20160,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "source-S06-controls",
+          "status": 0,
+          "pid": 20168,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-copied-slot-ownership",
+          "status": 1,
+          "pid": 20188,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-static-overflow-planning",
+          "status": 1,
+          "pid": 20197,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-zero-view",
+          "status": 1,
+          "pid": 20214,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-final-stage-stale-guard",
+          "status": 1,
+          "pid": 20221,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-snapshot-epoch",
+          "status": 1,
+          "pid": 20228,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-atomic-ticket-cursor",
+          "status": 1,
+          "pid": 20233,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-cumulative-nonrefund",
+          "status": 1,
+          "pid": 20241,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-observer-retirement",
+          "status": 1,
+          "pid": 20246,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-root-work-drain",
+          "status": 1,
+          "pid": 20260,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "loaded-mutant-repeated-aggregate-splice",
+          "status": 1,
+          "pid": 20266,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "package-artifact",
+          "status": 0,
+          "pid": 20271,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "installed-strict",
+          "status": 0,
+          "pid": 20282,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "installed-runtime",
+          "status": 0,
+          "pid": 20300,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "installed-S06-runtime",
+          "status": 0,
+          "pid": 20302,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "moved-strict",
+          "status": 0,
+          "pid": 20321,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "moved-runtime",
+          "status": 0,
+          "pid": 20342,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "moved-S06-runtime",
+          "status": 0,
+          "pid": 20346,
+          "processGroupAbsent": true
+        },
+        {
+          "label": "unchanged-public-api-negative-control",
+          "status": 2,
+          "pid": 20347,
+          "processGroupAbsent": true
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "No independent successor acceptance",
+    "No native/oracle/comparator execution",
+    "G4A logical private accounting, not whole-command or RSS bounds",
+    "No declaration implementation or O11 cleanup inference",
+    "No whole foreign gate or superiority claim"
+  ]
+}

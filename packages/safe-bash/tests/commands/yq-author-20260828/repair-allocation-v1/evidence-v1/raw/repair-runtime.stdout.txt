@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: WRK-06 raw document admission precedes retained copy and decode
+ok 1 - WRK-06 raw document admission precedes retained copy and decode
+  ---
+  duration_ms: 4.100208
+  type: 'test'
+  ...
+# Subtest: WRK-07 scalar projection/admission precedes scalar construction
+ok 2 - WRK-07 scalar projection/admission precedes scalar construction
+  ---
+  duration_ms: 1.630292
+  type: 'test'
+  ...
+# Subtest: WRK-13 prospective collection member admission precedes child parsing
+ok 3 - WRK-13 prospective collection member admission precedes child parsing
+  ---
+  duration_ms: 1.332208
+  type: 'test'
+  ...
+# Subtest: WRK-17 escaped-fragment byte admission precedes escaped construction
+ok 4 - WRK-17 escaped-fragment byte admission precedes escaped construction
+  ---
+  duration_ms: 1.667041
+  type: 'test'
+  ...
+# Subtest: fixed public caps remain literal and are not replaced by proof thresholds
+ok 5 - fixed public caps remain literal and are not replaced by proof thresholds
+  ---
+  duration_ms: 1.153459
+  type: 'test'
+  ...
+# Subtest: WRK-06 public raw document boundary counts CRLF bytes before normalization
+ok 6 - WRK-06 public raw document boundary counts CRLF bytes before normalization
+  ---
+  duration_ms: 636.488041
+  type: 'test'
+  ...
+# Subtest: WRK-07 real parser accepts C and rejects C+1 decoded scalar bytes
+ok 7 - WRK-07 real parser accepts C and rejects C+1 decoded scalar bytes
+  ---
+  duration_ms: 180.521208
+  type: 'test'
+  ...
+# Subtest: WRK-17 actual encoders reserve exact escaped bytes before emitting fragments
+ok 8 - WRK-17 actual encoders reserve exact escaped bytes before emitting fragments
+  ---
+  duration_ms: 1.132709
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1175.964625

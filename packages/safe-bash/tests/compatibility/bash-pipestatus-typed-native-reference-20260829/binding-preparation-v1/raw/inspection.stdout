@@ -1,0 +1,790 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/inspect.mjs
+--- materialized/admission.mjs 1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8 ---
+1: import fs from 'node:fs';
+2: import path from 'node:path';
+3: import {createHash} from 'node:crypto';
+4: export const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+5: const requireValue=(value,message)=>{if(!value)throw Error(message);};
+6: const hex=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
+7: export const startupScope='INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE';
+8: export function validateStartupScope(value){requireValue(value===startupScope,'STARTUP_SCOPE');return true;}
+9: export function exactKeys(value,keys){
+10:  requireValue(value!==null&&typeof value==='object'&&!Array.isArray(value),'OBJECT');
+11:  const actual=Reflect.ownKeys(value);requireValue(actual.length===keys.length&&actual.every((key,index)=>key===keys[index]),'KEYS');
+12:  for(const key of keys){const property=Object.getOwnPropertyDescriptor(value,key);requireValue(property&&Object.hasOwn(property,'value'),'DATA_PROPERTY');}
+13:  return true;
+14: }
+15: function metadata(stat,pin,maximum){requireValue(stat.isFile()&&stat.nlink===1&&Number.isSafeInteger(pin.bytes)&&pin.bytes>=0&&stat.size===pin.bytes&&stat.size<=maximum&&Number.isSafeInteger(pin.mode)&&(stat.mode&511)===pin.mode&&hex(pin.sha256),'PIN_METADATA');}
+16: export function pinned(filename,pin,{maximum=134217728}={}){
+17:  requireValue(path.isAbsolute(filename)&&fs.realpathSync(filename)===filename,'PIN_PATH');
+18:  const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+19:  try{const before=fs.fstatSync(descriptor);metadata(before,pin,maximum);const digest=createHash('sha256'),buffer=Buffer.alloc(Math.min(1048576,Math.max(1,before.size)));let total=0,count;while((count=fs.readSync(descriptor,buffer,0,buffer.length,null))>0){total+=count;requireValue(total<=before.size,'PIN_GROWTH');digest.update(buffer.subarray(0,count));}requireValue(total===before.size&&digest.digest('hex')===pin.sha256,'PIN_HASH');const after=fs.fstatSync(descriptor);requireValue(after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mtimeMs===before.mtimeMs,'PIN_RACE');}finally{fs.closeSync(descriptor);}return true;
+20: }
+21: export function small(filename,pin){
+22:  requireValue(path.isAbsolute(filename)&&fs.realpathSync(filename)===filename,'PIN_PATH');const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+23:  try{const before=fs.fstatSync(descriptor);metadata(before,pin,1048576);const bytes=fs.readFileSync(descriptor),after=fs.fstatSync(descriptor);requireValue(bytes.length===before.size&&hash(bytes)===pin.sha256&&after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mtimeMs===before.mtimeMs,'PIN_BYTES_OR_RACE');return bytes;}finally{fs.closeSync(descriptor);}
+24: }
+25: export function validateReview(receipt,expected){
+26:  exactKeys(receipt,['schema','decision','profile','presealSha256','requestsSha256','reviewer','reviewCommit']);
+27:  requireValue(receipt.schema==='pipestatus-typed-independent-acceptance-v1'&&receipt.decision==='ACCEPT'&&receipt.profile==='pipestatus-typed-reference-v1'&&hex(receipt.presealSha256)&&hex(receipt.requestsSha256)&&receipt.presealSha256===expected.presealSha256&&receipt.requestsSha256===expected.requestsSha256&&typeof receipt.reviewer==='string'&&receipt.reviewer.length>0&&receipt.reviewer.length<=128&&typeof receipt.reviewCommit==='string'&&/^[0-9a-f]{40}$/.test(receipt.reviewCommit),'REVIEW_CONTENT');return true;
+28: }
+29: export function validateGrant(grant,now){
+30:  exactKeys(grant,['schema','decision','profile','issuedEpochMs','deadlineEpochMs','startupScope','preseal','independentReviewReceipt','preprovision','limits','failedLookupNames']);
+31:  requireValue(grant.schema==='pipestatus-typed-root-grant-v1'&&grant.decision==='GO'&&grant.profile==='pipestatus-typed-reference-v1'&&Number.isSafeInteger(grant.issuedEpochMs)&&grant.issuedEpochMs<=now&&Number.isSafeInteger(grant.deadlineEpochMs)&&grant.deadlineEpochMs-grant.issuedEpochMs===2700000&&now+600000<=grant.deadlineEpochMs&&JSON.stringify(grant.failedLookupNames)===JSON.stringify([]),'GRANT_CONTENT');validateStartupScope(grant.startupScope);return true;
+32: }
+33: export function validateManifest(seal){
+34:  requireValue(seal.schema==='pipestatus-typed-executable-preseal-v1'&&Array.isArray(seal.files)&&seal.files.length>9&&seal.files.length<=64,'SEAL');
+35:  const names=new Set();for(const item of seal.files){requireValue(typeof item.path==='string'&&/^(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+$/.test(item.path)&&!item.path.split('/').some(part=>part==='.'||part==='..')&&!names.has(item.path),'SEAL_PATH');names.add(item.path);}
+36:  for(const name of ['entry.mjs','admission.mjs','capture.mjs','lifecycle.mjs','group-observer.mjs','observer-state.mjs','state.mjs','storage.mjs','observation.mjs','REQUESTS.json','COHORT.json','PROTOCOL.json','TOOLS.json'])requireValue(names.has(name),'SEAL_MEMBER');
+37:  for(const name of ['GO.json','REVIEW-ACCEPTANCE.json','PREPROVISION.json','PRESEAL.json'])requireValue(!names.has(name),'SEAL_CYCLE');
+38:  return true;
+39: }
+40: export function validateCohort(audit,requests,root){
+41:  const ids=['P19','P20','P21','P22','P23','P24'];
+42:  const forks={P22:2,P23:2};
+43:  requireValue(Array.isArray(audit.cases)&&audit.cases.length===6&&Array.isArray(requests)&&requests.length===6&&Array.isArray(audit.fixtures)&&audit.fixtures.length===0,'EXACT6');
+44:  for(let index=0;index<6;index++){
+45:   const literal=audit.cases[index],request=requests[index],id=ids[index],caseRoot=root+'/cases/'+id;
+46:   requireValue(literal.id===id&&request.id===id,'ID');
+47:   requireValue(typeof literal.program==='string'&&hash(Buffer.from(literal.program))===literal.programSha256&&JSON.stringify(request.argv)===JSON.stringify(['--noprofile','--norc','-c',literal.program,'pipestatus-typed-case'])&&request.executable==='/bin/bash','LITERAL_BINDING');
+48:   requireValue(literal.stdinBase64===''&&request.stdinBase64===''&&request.cwd===caseRoot+'/work'&&request.extraProcessReservation===(forks[id]??0),'REQUEST_BINDING');
+49:   const expected={LC_ALL:'C',LANG:'C',TZ:'UTC',HOME:caseRoot+'/home',TMPDIR:caseRoot+'/tmp',PATH:caseRoot+'/empty-path'};exactKeys(request.environment,Object.keys(expected));requireValue(JSON.stringify(request.environment)===JSON.stringify(expected),'ENVIRONMENT_BINDING');
+50:  }
+51:  return true;
+52: }
+53: export function validateOuter(root,name,fd,operations=fs){
+54:  requireValue((name==='stdout'&&fd===1)||(name==='stderr'&&fd===2),'OUTER_ROLE');
+55:  const filename=root+'/outer/bootstrap.'+name,stat=operations.fstatSync(fd),named=operations.lstatSync(filename);
+56:  requireValue(stat.isFile()&&named.isFile()&&!named.isSymbolicLink()&&stat.ino===named.ino&&stat.dev===named.dev&&stat.nlink===1&&(stat.mode&511)===384&&operations.realpathSync(filename)===filename,'OUTER_FD_BINDING');
+57:  operations.readSync(fd,Buffer.alloc(1),0,1,0);operations.writeSync(fd,Buffer.alloc(0),0,0,0);
+58:  return {name,fd,ino:stat.ino,path:filename};
+59: }
+60: export function validateProvision(provision,root,operations=fs){
+61:  exactKeys(provision,['parents']);const expected=[root,root+'/outer',root+'/cases',root+'/captures'];requireValue(Array.isArray(provision.parents)&&provision.parents.length===4,'PROVISION_MEMBERSHIP');
+62:  for(let index=0;index<4;index++){const parent=provision.parents[index];exactKeys(parent,['path','device','inode','mode']);requireValue(parent.path===expected[index]&&typeof parent.device==='string'&&/^\d+$/.test(parent.device)&&typeof parent.inode==='string'&&/^\d+$/.test(parent.inode)&&parent.mode===448,'PROVISION_ROLE');const stat=operations.lstatSync(parent.path,{bigint:true});requireValue(stat.isDirectory()&&!stat.isSymbolicLink()&&String(stat.dev)===parent.device&&String(stat.ino)===parent.inode&&Number(stat.mode&511n)===parent.mode&&operations.realpathSync(parent.path)===parent.path,'PREPROVISION_DRIFT');}
+63:  return true;
+64: }
+65: export function admit(directory,grantPath,grantSha256){
+66:  requireValue(grantPath===directory+'/GO.json'&&hex(grantSha256),'GRANT_PATH_OR_HASH');const stat=fs.lstatSync(grantPath),grantRaw=small(grantPath,{mode:384,bytes:stat.size,sha256:grantSha256}),grant=JSON.parse(grantRaw);validateGrant(grant,Date.now());
+67:  const sealRaw=small(directory+'/PRESEAL.json',grant.preseal),seal=JSON.parse(sealRaw);validateManifest(seal);for(const item of seal.files)pinned(directory+'/'+item.path,item,{maximum:1048576});
+68:  const requestsRaw=small(directory+'/REQUESTS.json',seal.files.find(item=>item.path==='REQUESTS.json'));
+69:  const reviewPin=grant.independentReviewReceipt;requireValue(reviewPin&&reviewPin.path===directory+'/REVIEW-ACCEPTANCE.json'&&reviewPin.mode===384&&Number.isSafeInteger(reviewPin.bytes)&&reviewPin.bytes>0&&reviewPin.bytes<=65536&&hex(reviewPin.sha256),'REVIEW_PIN');
+70:  const review=JSON.parse(small(reviewPin.path,reviewPin));validateReview(review,{presealSha256:hash(sealRaw),requestsSha256:hash(requestsRaw)});
+71:  const provisionPin=grant.preprovision;requireValue(provisionPin&&provisionPin.path===directory+'/PREPROVISION.json'&&provisionPin.mode===384&&Number.isSafeInteger(provisionPin.bytes)&&provisionPin.bytes>0&&provisionPin.bytes<=65536&&hex(provisionPin.sha256),'PROVISION_PIN');
+72:  const provision=JSON.parse(small(provisionPin.path,provisionPin));return {grant,seal,review,provision,requests:JSON.parse(requestsRaw)};
+73: }
+74: export function resolveApproval(template,resolved,grantSha256){
+75:  requireValue(hex(grantSha256),'GRANT_SHA');const token='ROOT_APPROVED_GRANT_SHA256';requireValue(template.parameters.cmd.split(token).length===2,'SLOT_COUNT');
+76:  const expected=structuredClone(template.parameters);expected.cmd=expected.cmd.replace(token,grantSha256);
+77:  exactKeys(resolved,Object.keys(expected));requireValue(JSON.stringify(resolved)===JSON.stringify(expected)&&resolved.login===false&&resolved.sandbox_permissions==='require_escalated'&&!Object.hasOwn(resolved,'prefix_rule'),'APPROVAL_DRIFT');return true;
+78: }
+79: 
+--- materialized/PRESEAL.json ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e ---
+1: {
+2:   "schema": "pipestatus-typed-executable-preseal-v1",
+3:   "files": [
+4:     {
+5:       "path": "admission.mjs",
+6:       "bytes": 9767,
+7:       "sha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8",
+8:       "mode": 384
+9:     },
+10:     {
+11:       "path": "entry.mjs",
+12:       "bytes": 7137,
+13:       "sha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd",
+14:       "mode": 384
+15:     },
+16:     {
+17:       "path": "observation.mjs",
+18:       "bytes": 1499,
+19:       "sha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b",
+20:       "mode": 384
+21:     },
+22:     {
+23:       "path": "capture.mjs",
+24:       "bytes": 1888,
+25:       "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+26:       "mode": 384
+27:     },
+28:     {
+29:       "path": "lifecycle.mjs",
+30:       "bytes": 5280,
+31:       "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+32:       "mode": 384
+33:     },
+34:     {
+35:       "path": "group-observer.mjs",
+36:       "bytes": 759,
+37:       "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+38:       "mode": 384
+39:     },
+40:     {
+41:       "path": "observer-state.mjs",
+42:       "bytes": 1240,
+43:       "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+44:       "mode": 384
+45:     },
+46:     {
+47:       "path": "state.mjs",
+48:       "bytes": 1824,
+49:       "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+50:       "mode": 384
+51:     },
+52:     {
+53:       "path": "storage.mjs",
+54:       "bytes": 3583,
+55:       "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+56:       "mode": 384
+57:     },
+58:     {
+59:       "path": "COHORT.json",
+60:       "bytes": 1723,
+61:       "sha256": "9c76abda8f03a76cbe3a7e84bf3705816f9b232e3e7171a4bea113103fee563a",
+62:       "mode": 384
+63:     },
+64:     {
+65:       "path": "REQUESTS.json",
+66:       "bytes": 4572,
+67:       "sha256": "ba16facd14e5e31172b7b027f7c1081a58f29e6eee209d56eed359d43d1c8e8d",
+68:       "mode": 384
+69:     },
+70:     {
+71:       "path": "PROTOCOL.json",
+72:       "bytes": 1676,
+73:       "sha256": "54878260d6e58e2339ebf933c84985f7817a573cb9a95a6885ace6c37eca7cbf",
+74:       "mode": 384
+75:     },
+76:     {
+77:       "path": "TOOLS.json",
+78:       "bytes": 3067,
+79:       "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+80:       "mode": 384
+81:     },
+82:     {
+83:       "path": "programs/P19.bash.data",
+84:       "bytes": 21,
+85:       "sha256": "b09abcbeb244d0d3391c11c31ac6e9d1151c4bd46a07f885132b88218e620583",
+86:       "mode": 384
+87:     },
+88:     {
+89:       "path": "programs/P20.bash.data",
+90:       "bytes": 49,
+91:       "sha256": "6b8392098b86a3c9dfe0c058bb4b5ed9079e829c98e53241d024cdcdf23a6990",
+92:       "mode": 384
+93:     },
+94:     {
+95:       "path": "programs/P21.bash.data",
+96:       "bytes": 55,
+97:       "sha256": "e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857",
+98:       "mode": 384
+99:     },
+100:     {
+101:       "path": "programs/P22.bash.data",
+102:       "bytes": 95,
+103:       "sha256": "9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93",
+104:       "mode": 384
+105:     },
+106:     {
+107:       "path": "programs/P23.bash.data",
+108:       "bytes": 98,
+109:       "sha256": "281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8",
+110:       "mode": 384
+111:     },
+112:     {
+113:       "path": "programs/P24.bash.data",
+114:       "bytes": 45,
+115:       "sha256": "4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801",
+116:       "mode": 384
+117:     }
+118:   ]
+119: }
+120: 
+--- READY-SEAL.json 798c191fdad35bdf6c1592afda1954764da2209ad18984d966e5488c5e80bdd0 ---
+1: {
+2:   "schema": "pipestatus-typed-preparation-publication-v1",
+3:   "files": [
+4:     {
+5:       "path": "APPROVAL-PROPOSAL.template.json",
+6:       "bytes": 2861,
+7:       "mode": 384,
+8:       "sha256": "8f14ef69db395a8dffd4bcd573e6944bc03bddf324ac204846c6b1c6412e6f4e"
+9:     },
+10:     {
+11:       "path": "CONTROL-PRESEAL.json",
+12:       "bytes": 1800,
+13:       "mode": 384,
+14:       "sha256": "eb8963c028f4f34880216b3209e5576255dc889cc7a6a4a4867753b2315773b3"
+15:     },
+16:     {
+17:       "path": "CONTROL-RESULT.json",
+18:       "bytes": 1471,
+19:       "mode": 384,
+20:       "sha256": "72198874fe7144bbdbe45d75bd02311f0a4ba5869f46679a3d5995d13fdad7cc"
+21:     },
+22:     {
+23:       "path": "GO.template.json",
+24:       "bytes": 1760,
+25:       "mode": 384,
+26:       "sha256": "75422a2a18e06a86c1e0985072f45222e7af545b566768cfb43a8a3c67c92844"
+27:     },
+28:     {
+29:       "path": "HANDOFF.md",
+30:       "bytes": 3360,
+31:       "mode": 384,
+32:       "sha256": "3e547b4b0fbb53d6ee024006e2b13ca1e8e7c72d06126df7ee6562086c646678"
+33:     },
+34:     {
+35:       "path": "PREPARE.md",
+36:       "bytes": 2585,
+37:       "mode": 420,
+38:       "sha256": "d75c5ae903a4577f7f2dd2d9854c2e78b84b40f81f59f13cc5f4490ab43a62b8"
+39:     },
+40:     {
+41:       "path": "PROGRAMS.json",
+42:       "bytes": 829,
+43:       "mode": 420,
+44:       "sha256": "2961585eaaf0c2a28c010ff80b754c78f923ebaa8e97de9dc65ea5972b262133"
+45:     },
+46:     {
+47:       "path": "REVIEW-ACCEPTANCE.template.json",
+48:       "bytes": 361,
+49:       "mode": 384,
+50:       "sha256": "8946073cbadad02a168b8c3fd34daa9215091e3c585e1918d8bc41899c3cd35b"
+51:     },
+52:     {
+53:       "path": "SOURCE-AUTH.json",
+54:       "bytes": 4110,
+55:       "mode": 384,
+56:       "sha256": "d3c6533102bf38921b56f481813a0cefebd49880ea53b3b007c3c0c3f784237a"
+57:     },
+58:     {
+59:       "path": "SOURCE-DELTA.json",
+60:       "bytes": 2142,
+61:       "mode": 384,
+62:       "sha256": "4fed7e03b88cc0215724d24705d8e7bfa1f1964100631a762fd901544363522c"
+63:     },
+64:     {
+65:       "path": "SYNTAX-RESULT.json",
+66:       "bytes": 511,
+67:       "mode": 384,
+68:       "sha256": "d64e57af57c243392068577e92a475d33b8f80410b876c7f5c55383bdacbeb0e"
+69:     },
+70:     {
+71:       "path": "cohort.fragment.data",
+72:       "bytes": 1244,
+73:       "mode": 420,
+74:       "sha256": "309adee644c6f385a330a7a4d706158bb18e3ed654571daad9cf3053bd5197f3"
+75:     },
+76:     {
+77:       "path": "control-work/fd/outer/bootstrap.stdout",
+78:       "bytes": 0,
+79:       "mode": 384,
+80:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+81:     },
+82:     {
+83:       "path": "materialized/COHORT.json",
+84:       "bytes": 1723,
+85:       "mode": 384,
+86:       "sha256": "9c76abda8f03a76cbe3a7e84bf3705816f9b232e3e7171a4bea113103fee563a"
+87:     },
+88:     {
+89:       "path": "materialized/PRESEAL.json",
+90:       "bytes": 3283,
+91:       "mode": 384,
+92:       "sha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e"
+93:     },
+94:     {
+95:       "path": "materialized/PROTOCOL.json",
+96:       "bytes": 1676,
+97:       "mode": 384,
+98:       "sha256": "54878260d6e58e2339ebf933c84985f7817a573cb9a95a6885ace6c37eca7cbf"
+99:     },
+100:     {
+101:       "path": "materialized/REQUESTS.json",
+102:       "bytes": 4572,
+103:       "mode": 384,
+104:       "sha256": "ba16facd14e5e31172b7b027f7c1081a58f29e6eee209d56eed359d43d1c8e8d"
+105:     },
+106:     {
+107:       "path": "materialized/TOOLS.json",
+108:       "bytes": 3067,
+109:       "mode": 384,
+110:       "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+111:     },
+112:     {
+113:       "path": "materialized/admission.mjs",
+114:       "bytes": 9767,
+115:       "mode": 384,
+116:       "sha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8"
+117:     },
+118:     {
+119:       "path": "materialized/capture.mjs",
+120:       "bytes": 1888,
+121:       "mode": 384,
+122:       "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+123:     },
+124:     {
+125:       "path": "materialized/entry.mjs",
+126:       "bytes": 7137,
+127:       "mode": 384,
+128:       "sha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd"
+129:     },
+130:     {
+131:       "path": "materialized/group-observer.mjs",
+132:       "bytes": 759,
+133:       "mode": 384,
+134:       "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+135:     },
+136:     {
+137:       "path": "materialized/lifecycle.mjs",
+138:       "bytes": 5280,
+139:       "mode": 384,
+140:       "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+141:     },
+142:     {
+143:       "path": "materialized/observation.mjs",
+144:       "bytes": 1499,
+145:       "mode": 384,
+146:       "sha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b"
+147:     },
+148:     {
+149:       "path": "materialized/observer-state.mjs",
+150:       "bytes": 1240,
+151:       "mode": 384,
+152:       "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+153:     },
+154:     {
+155:       "path": "materialized/programs/P19.bash.data",
+156:       "bytes": 21,
+157:       "mode": 384,
+158:       "sha256": "b09abcbeb244d0d3391c11c31ac6e9d1151c4bd46a07f885132b88218e620583"
+159:     },
+160:     {
+161:       "path": "materialized/programs/P20.bash.data",
+162:       "bytes": 49,
+163:       "mode": 384,
+164:       "sha256": "6b8392098b86a3c9dfe0c058bb4b5ed9079e829c98e53241d024cdcdf23a6990"
+165:     },
+166:     {
+167:       "path": "materialized/programs/P21.bash.data",
+168:       "bytes": 55,
+169:       "mode": 384,
+170:       "sha256": "e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857"
+171:     },
+172:     {
+173:       "path": "materialized/programs/P22.bash.data",
+174:       "bytes": 95,
+175:       "mode": 384,
+176:       "sha256": "9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93"
+177:     },
+178:     {
+179:       "path": "materialized/programs/P23.bash.data",
+180:       "bytes": 98,
+181:       "mode": 384,
+182:       "sha256": "281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8"
+183:     },
+184:     {
+185:       "path": "materialized/programs/P24.bash.data",
+186:       "bytes": 45,
+187:       "mode": 384,
+188:       "sha256": "4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801"
+189:     },
+190:     {
+191:       "path": "materialized/state.mjs",
+192:       "bytes": 1824,
+193:       "mode": 384,
+194:       "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+195:     },
+196:     {
+197:       "path": "materialized/storage.mjs",
+198:       "bytes": 3583,
+199:       "mode": 384,
+200:       "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+201:     },
+202:     {
+203:       "path": "prepare.mjs",
+204:       "bytes": 26523,
+205:       "mode": 420,
+206:       "sha256": "0eac1cd66ddf4806857bc469714e01bf02e539d7698726a8607128ff7a34bc32"
+207:     },
+208:     {
+209:       "path": "raw/D01.json",
+210:       "bytes": 75,
+211:       "mode": 384,
+212:       "sha256": "2953bdf0f486968a2803277b6f7439a27d88a558491988f13657b48d36213c16"
+213:     },
+214:     {
+215:       "path": "raw/D02.json",
+216:       "bytes": 74,
+217:       "mode": 384,
+218:       "sha256": "6e6af098e506c5f31f5d0620edefa3fd2f8baecfbcf12dac7481da360b6e9a7e"
+219:     },
+220:     {
+221:       "path": "raw/D03.json",
+222:       "bytes": 75,
+223:       "mode": 384,
+224:       "sha256": "5600b66fa44b7aa9a5217f3550ebd0cfb8ba2d345fa22b204e888b7cbad7ec53"
+225:     },
+226:     {
+227:       "path": "raw/D04.json",
+228:       "bytes": 74,
+229:       "mode": 384,
+230:       "sha256": "a8e9b51ee413e98ec8f510a605e53b6d0a7eaf3e1a9d862a9a6a9aa42d03085f"
+231:     },
+232:     {
+233:       "path": "raw/D05.json",
+234:       "bytes": 74,
+235:       "mode": 384,
+236:       "sha256": "f6bc0712b94c3d7c0e980915061bbabd02ecaa0167225d361a926279d10429b4"
+237:     },
+238:     {
+239:       "path": "raw/D06.json",
+240:       "bytes": 75,
+241:       "mode": 384,
+242:       "sha256": "5c346dce2a995c92d759911957fd67243301033eecd46d13b51f28a3d224641c"
+243:     },
+244:     {
+245:       "path": "raw/D07.json",
+246:       "bytes": 74,
+247:       "mode": 384,
+248:       "sha256": "140f1384c57ecac73436566faf5fed238e19b0fe37cf194d56dacd894b4a852a"
+249:     },
+250:     {
+251:       "path": "raw/D08.json",
+252:       "bytes": 74,
+253:       "mode": 384,
+254:       "sha256": "5e464e91514390b7fa5d8d4093a7406d4beec896cecb3d20d2f0c99d053a9585"
+255:     },
+256:     {
+257:       "path": "raw/D09.json",
+258:       "bytes": 74,
+259:       "mode": 384,
+260:       "sha256": "099a77f267bc4b54f02bbfd063c590bf91518bd8639c32bd62c96400b43ce3c4"
+261:     },
+262:     {
+263:       "path": "raw/D10.json",
+264:       "bytes": 75,
+265:       "mode": 384,
+266:       "sha256": "f7c7a4f421eef33fda5501d37c58436c626069192f649fcaff0ddec6b1d80833"
+267:     },
+268:     {
+269:       "path": "raw/D11.json",
+270:       "bytes": 74,
+271:       "mode": 384,
+272:       "sha256": "b8c049108b5bbad74f5a5e3745cebfdf58fc60dea626dd9aa48fbece2d502eb3"
+273:     },
+274:     {
+275:       "path": "raw/D12.json",
+276:       "bytes": 75,
+277:       "mode": 384,
+278:       "sha256": "fd067a43a913c9a0eb93653ce412bc7b2be19c16163907f290fcf035a8c573fe"
+279:     },
+280:     {
+281:       "path": "raw/bootstrap-syntax.stderr",
+282:       "bytes": 0,
+283:       "mode": 420,
+284:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+285:     },
+286:     {
+287:       "path": "raw/bootstrap-syntax.stdout",
+288:       "bytes": 0,
+289:       "mode": 420,
+290:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+291:     },
+292:     {
+293:       "path": "raw/node-tool.sha256",
+294:       "bytes": 117,
+295:       "mode": 384,
+296:       "sha256": "c1a38e233b14242d37444401ffa1aab4e9ca75f73967ad62c204a406c4c0ad44"
+297:     },
+298:     {
+299:       "path": "raw/parent-tree.nul",
+300:       "bytes": 7175,
+301:       "mode": 384,
+302:       "sha256": "c3eed03e6057f224798b9766d144036f0b92386380a6c9429c69b1874b1f242a"
+303:     },
+304:     {
+305:       "path": "raw/prepare.stderr",
+306:       "bytes": 0,
+307:       "mode": 420,
+308:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+309:     },
+310:     {
+311:       "path": "raw/prepare.stdout",
+312:       "bytes": 292,
+313:       "mode": 420,
+314:       "sha256": "00627e84bab4f0888ddbf56a69f8d68892c5c98389a68ae8ba63532c275903f4"
+315:     },
+316:     {
+317:       "path": "raw/startup.stderr",
+318:       "bytes": 0,
+319:       "mode": 384,
+320:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+321:     },
+322:     {
+323:       "path": "raw/startup.stdout",
+324:       "bytes": 169,
+325:       "mode": 384,
+326:       "sha256": "875441af1d7af7957ed2b74d24d76e083d8020ed317688d9cfb9ad9df3c84214"
+327:     },
+328:     {
+329:       "path": "raw/syntax-admission.json",
+330:       "bytes": 116,
+331:       "mode": 384,
+332:       "sha256": "44e29ef571772d9de17ff068e69452859962fb23d437616c4bc4e9eab35fe1e0"
+333:     },
+334:     {
+335:       "path": "raw/syntax-admission.stderr",
+336:       "bytes": 0,
+337:       "mode": 384,
+338:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+339:     },
+340:     {
+341:       "path": "raw/syntax-admission.stdout",
+342:       "bytes": 0,
+343:       "mode": 384,
+344:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+345:     },
+346:     {
+347:       "path": "raw/syntax-entry.json",
+348:       "bytes": 112,
+349:       "mode": 384,
+350:       "sha256": "566100e1aa21655c683e75ff51d680a3de669c2c30955e1a0ff81e9d422c27d4"
+351:     },
+352:     {
+353:       "path": "raw/syntax-entry.stderr",
+354:       "bytes": 0,
+355:       "mode": 384,
+356:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+357:     },
+358:     {
+359:       "path": "raw/syntax-entry.stdout",
+360:       "bytes": 0,
+361:       "mode": 384,
+362:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+363:     },
+364:     {
+365:       "path": "raw/syntax-observation.json",
+366:       "bytes": 118,
+367:       "mode": 384,
+368:       "sha256": "a526f333c41e9cdd0c6d505bf00157b06f2faa209adb5ed4d2a700b8416f99e1"
+369:     },
+370:     {
+371:       "path": "raw/syntax-observation.stderr",
+372:       "bytes": 0,
+373:       "mode": 384,
+374:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+375:     },
+376:     {
+377:       "path": "raw/syntax-observation.stdout",
+378:       "bytes": 0,
+379:       "mode": 384,
+380:       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+381:     }
+382:   ],
+383:   "bytes": 106210,
+384:   "allSixUnrun": true,
+385:   "excludes": [
+386:     "READY-SEAL.json",
+387:     "raw/controls.stdout",
+388:     "raw/controls.stderr",
+389:     "later publication metadata"
+390:   ],
+391:   "deadline": 1788012702742.8252
+392: }
+393: 
+--- GO.template.json 75422a2a18e06a86c1e0985072f45222e7af545b566768cfb43a8a3c67c92844 ---
+1: {
+2:   "schema": "pipestatus-typed-root-grant-v1",
+3:   "decision": "PENDING",
+4:   "profile": "pipestatus-typed-reference-v1",
+5:   "issuedEpochMs": "PENDING",
+6:   "deadlineEpochMs": "PENDING",
+7:   "startupScope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+8:   "preseal": {
+9:     "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PRESEAL.json",
+10:     "mode": 384,
+11:     "bytes": 3283,
+12:     "sha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e"
+13:   },
+14:   "independentReviewReceipt": {
+15:     "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/REVIEW-ACCEPTANCE.json",
+16:     "mode": 384,
+17:     "bytes": "PENDING",
+18:     "sha256": "PENDING"
+19:   },
+20:   "preprovision": {
+21:     "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PREPROVISION.json",
+22:     "mode": 384,
+23:     "bytes": "PENDING",
+24:     "sha256": "PENDING"
+25:   },
+26:   "limits": {
+27:     "totalMs": 600000,
+28:     "setupMs": 60000,
+29:     "finalizationTailMs": 60000,
+30:     "perCaseMs": 3000,
+31:     "termMs": 2000,
+32:     "killMs": 1000,
+33:     "knownManagedProcessCeiling": 7,
+34:     "knownPeakCeiling": 2,
+35:     "allKnownProcessProposalCeiling": 29,
+36:     "allKnownPeakProposalCeiling": 5,
+37:     "ownerStarts": 1,
+38:     "nativeStarts": 6,
+39:     "administrativeChildStarts": 0,
+40:     "sourceInternalForkReservations": 4,
+41:     "perStreamBytes": 65536,
+42:     "aggregateCaptureBytes": 33554432,
+43:     "workingBytes": 134217728,
+44:     "emergencyReserveBytes": 65536,
+45:     "ownerWriteBytes": 262144,
+46:     "snapshotEntries": 32,
+47:     "snapshotFileBytes": 65536,
+48:     "snapshotBytes": 262144
+49:   },
+50:   "failedLookupNames": []
+51: }
+52: 
+--- REVIEW-ACCEPTANCE.template.json 8946073cbadad02a168b8c3fd34daa9215091e3c585e1918d8bc41899c3cd35b ---
+1: {
+2:   "schema": "pipestatus-typed-independent-acceptance-v1",
+3:   "decision": "PENDING",
+4:   "profile": "pipestatus-typed-reference-v1",
+5:   "presealSha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e",
+6:   "requestsSha256": "ba16facd14e5e31172b7b027f7c1081a58f29e6eee209d56eed359d43d1c8e8d",
+7:   "reviewer": "PENDING",
+8:   "reviewCommit": "PENDING"
+9: }
+10: 
+--- APPROVAL-PROPOSAL.template.json 8f14ef69db395a8dffd4bcd573e6944bc03bddf324ac204846c6b1c6412e6f4e ---
+1: {
+2:   "schema": "pipestatus-typed-approval-proposal-v1",
+3:   "status": "PENDING_DIFFERENT_REVIEW_FRESH_ROOT_GO",
+4:   "parameters": {
+5:     "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/GO.json --grant-sha256 ROOT_APPROVED_GRANT_SHA256 >/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 2>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr",
+6:     "workdir": "/Users/kjopek/Workspace/safe-bash",
+7:     "shell": "/bin/zsh",
+8:     "login": false,
+9:     "sandbox_permissions": "require_escalated",
+10:     "justification": "Allow only six freshly reviewed literal P19–P24 local Bash3.2.57 typed PIPESTATUS observations, builtins only with zero input fixtures or effects, outside the custom test sandbox; initial tool-shell startup is trusted host, not clean-env/capture or containment qualified?",
+11:     "yield_time_ms": 1000,
+12:     "max_output_tokens": 4096
+13:   },
+14:   "prefixRule": "NONE",
+15:   "soleLaterMutableSlot": "ROOT_APPROVED_GRANT_SHA256",
+16:   "requiredBeforeResolution": [
+17:     "materialize and authenticate exact reviewed draft bodies and assets; create fresh runtime PRESEAL without GO/receipt/template cycles",
+18:     "independent accepted runtime receipt pinned to new PRESEAL/REQUESTS",
+19:     "ROOT fresh GO pins receipt/new PRESEAL/profile/limits/exact namespace/future absolute expiry",
+20:     "resolve sole SHA slot; separate DATA review of exact command then require_escalated tool approval"
+21:   ],
+22:   "initialToolShellStartup": {
+23:     "scope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+24:     "initialToolShell": "TRUSTED HOST/tool behavior before authenticated owned entry; outside child fresh-environment and owned raw-capture qualification. login:false does not suppress all startup. No user startup inspection or modification.",
+25:     "bashChildren": "Fresh exact six-key environment, owned HOME/TMPDIR and empty PATH, absent BASH_ENV/ENV/functions; --noprofile --norc. No expanded permission.",
+26:     "wrapperEvidence": "v2 independently qualified FD derivative does not qualify initial tool-shell startup."
+27:   },
+28:   "oldGrantReused": false,
+29:   "absoluteUtc": {
+30:     "issued": "PENDING",
+31:     "expiry": "PENDING_ISSUED_PLUS_45_MINUTES",
+32:     "latestFull600sStart": "PENDING_EXPIRY_MINUS_600_SECONDS"
+33:   },
+34:   "withheldUntilRootScope": []
+35: }
+36: 
+--- HANDOFF.md 3e547b4b0fbb53d6ee024006e2b13ca1e8e7c72d06126df7ee6562086c646678 ---
+1: # Typed PIPESTATUS six-probe reference preparation
+2: 
+3: Date: 2026-08-29. AUTHOR READY for DIFFERENT preexecution review. **No actual native authority. P19–P24 all UNRUN; no expected outputs or semantic policy chosen.**
+4: 
+5: Exact root-supplied literals are in PROGRAMS.json and materialized/programs; six hashes/argv/env/empty-stdin bindings in COHORT/REQUESTS. P19 is exactly declare -p PIPESTATUS as first command, no prologue. No eval/source/profile/external command/variable-command/slash lookup/network/private path. Only fixed f invocations, builtin declarations/readonly/assignment/true/false and two finite pipelines. Zero fixtures and zero permitted effects.
+6: 
+7: Parent author5861ec9a8750de90bf38f93a2cd0df66198e8d9f; independent98192974514389759c96d20c7f35fe6050641c76; ROOTcf6c47b8a976bb71bd6dd419c103e23264e71a32 are retained references, not reused authority. SOURCE-AUTH.json binds selected stored parent blobs and fresh tool hashes. Three owner modules change (admission/entry/observation); six remain byte-identical. Old F05 effects permission is removed, all lookups forbidden, IDs/counts/profile/paths are separately versioned. Host FNPIPEOBS1 framing and raw byte preservation remain unchanged.
+8: 
+9: DATA controls 12/12 PASS, 0 FAIL, 120 assertions. Three changed-module Node syntax children retired. No lifecycle fixture child, Bash, actual entry, native version, compiler/build/product/Worker or network ran. Bootstrap syntax/prepare/controls are the three controller images. All individual raw captures and failures, if any, are retained.
+10: 
+11: Executable preseal SHA256 ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e; control result 72198874fe7144bbdbe45d75bd02311f0a4ba5869f46679a3d5995d13fdad7cc; exact prospective command string d4e97d0e932825d3c8318792b2c2d98bd4aa997800805f95bdfa1f091326140e. New runtime review/GO templates have strict finite fields and reject PENDING/non-numeric/old-profile authority. issued/expiry/latest-start UTC remain PENDING. Future preprovision must create fresh owned parents and empty journal; bootstrap captures remain absent until the exact noclobber/read-write wrapper. No actual root or runtime slot file is created here.
+12: 
+13: Prospective actual:600s inclusive/setup60s/tail60s, case3s/TERM2/KILL1;7 managed(owner1+Bash6)+4 UNOBSERVED stage reservations(P22/P23 two each)+18 admin=29 proposed slots. Managed peak2+2 unobserved stage allowance+margin1=peak5. Not observed census or OS quota.64KiB/stream,32MiB capture,128MiB work. Exact six-key child environment, owned empty PATH, no BASH_ENV/ENV/exported functions, --noprofile --norc. Initial tool/zsh startup remains trusted host outside child clean-env/raw-capture qualification; no containment or GNU5.3 claim.
+14: 
+15: Actual recipe: DIFFERENT preexec ACCEPT, fresh committed runtime ROOT review/GO/preprovision and fixed UTC window, separate resolved sole-slot DATA review, then EXACT exec_command require_escalated/login:false/no prefix with sealed APPROVAL-PROPOSAL.template.json parameters. No automatic follow-on, old grant reuse or actual request.
+16: 
+17: Old26/12/37 observations, accounting holds and ambiguities remain unchanged. These six unrun type probes are intended to distinguish startup/readonly indexed versus nonarray/local bindings; preparation alone resolves none. F05 timing and ordinary command-substitution source limits are not rescored.
+18: 
+--- review commit metadata ---
+commit 987886897c2d013fcb31e1f2db0d073439d558db
+Author:     Kamil Jopek <kjopek@bamboo.quora.net>
+AuthorDate: Sat Aug 29 09:12:08 2026 -0500
+Commit:     Kamil Jopek <kjopek@bamboo.quora.net>
+CommitDate: Sat Aug 29 09:12:08 2026 -0500
+
+    test: publish typed PIPESTATUS six-native preexecution verdict
+
+ .../ACCOUNTING.md                                  |  11 +
+ .../EXECUTION.json                                 |   7 +
+ .../FULL-OWNED-SNAPSHOT.json                       | 636 +++++++++++++++++++++
+ .../PUBLICATION-SNAPSHOT.json                      | 104 ++++
+ .../RECEIPT.json                                   | 153 +++++
+ .../REPORT.md                                      |  23 +
+ .../RESULT.json                                    | 132 +++++
+ .../SCRATCH-SNAPSHOT.json                          |  13 +
+ .../accounting.mjs                                 |  57 ++
+ .../raw/D01.json                                   |   6 +
+ .../raw/D02.json                                   |   6 +
+ .../raw/D03.json                                   |   6 +
+ .../raw/D04.json                                   |   6 +
+ .../raw/D05.json                                   |   6 +
+ .../raw/D06.json                                   |   6 +
+ .../raw/D07.json                                   |   6 +
+ .../raw/D08.json                                   |   6 +
+ .../raw/D09.json                                   |   6 +
+ .../raw/D10.json                                   |   6 +
+ .../raw/D11.json                                   |   6 +
+ .../raw/D12.json                                   |   6 +
+ .../raw/N01.json                                   |   6 +
+ .../raw/N02.json                                   |   6 +
+ .../raw/N03.json                                   |   6 +
+ .../raw/N04.json                                   |   6 +
+ .../raw/N05.json                                   |   6 +
+ .../raw/N06.json                                   |   6 +
+ .../raw/N07.json                                   |   6 +
+ .../raw/N08.json                                   |   6 +
+ ...pestatus-typed-review-bootstrap-20260829.stderr |   0
+ ...pestatus-typed-review-bootstrap-20260829.stdout |   2 +
+ ...us-typed-review-controls-source-20260829.stderr |   0
+ ...us-typed-review-controls-source-20260829.stdout |  56 ++
+ .../pipestatus-typed-review-fields-20260829.stderr |   0
+ .../pipestatus-typed-review-fields-20260829.stdout | 387 +++++++++++++
+ ...-typed-review-implementation-v2-20260829.stderr |   0
+ ...-typed-review-implementation-v2-20260829.stdout |   6 +
+ ...pipestatus-typed-review-inspect-20260829.stderr |   0
+ ...pipestatus-typed-review-inspect-20260829.stdout | 114 ++++
+ .../events.jsonl                                   |   5 +
+ .../handoff.stderr                                 |   0
+ .../handoff.stdout                                 |  17 +
+ ...pipestatus-typed-review-prepare-20260829.stderr |   0
+ ...pipestatus-typed-review-prepare-20260829.stdout |   4 +
+ .../events.jsonl                                   |   5 +
+ .../syntax-replay.stderr                           |   0
+ .../syntax-replay.stdout                           |   0
+ ...yped-review-publication-inspect-20260829.stderr |   0
+ ...yped-review-publication-inspect-20260829.stdout | 206 +++++++
+ .../pipestatus-typed-review-replay-20260829.stderr |   0
+ .../pipestatus-typed-review-replay-20260829.stdout |   4 +
+ .../events.jsonl                                   |   5 +
+ .../pure-replay.stderr                             |   0
+ .../pure-replay.stdout                             |   1 +
+ .../pipestatus-typed-review-seal-20260829.stderr   |   0
+ .../pipestatus-typed-review-seal-20260829.stdout   |   4 +
+ .../commit-preseal.stderr                          |   0
+ .../commit-preseal.stdout                          |  25 +
+ .../events.jsonl                                   |   8 +
+ .../stage-preseal.stderr                           |   0
+ .../stage-preseal.stdout                           |   0
+ .../work/fd/outer/bootstrap.stdout                 |   0
+ 62 files changed, 2105 insertions(+)
+

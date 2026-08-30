@@ -1,0 +1,11 @@
+declare decl_scalar=value
+declare -a decl_array=([4]=four)
+declare -ap decl_scalar
+printf 'named_ap=%s\n' "$?"
+declare -rp decl_scalar
+printf 'named_rp=%s\n' "$?"
+declare -p decl_scalar decl_missing decl_scalar
+printf 'missing=%s\n' "$?"
+declare -axp
+printf 'empty_filter=%s\n' "$?"
+printf 'END D02\n'

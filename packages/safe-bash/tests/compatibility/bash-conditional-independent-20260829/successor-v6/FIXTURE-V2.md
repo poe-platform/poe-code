@@ -1,0 +1,8 @@
+# Ordinary bootstrap fixture correction
+
+ACTUAL-01 closed naturally in13420ms: strict build and exact954 package match; source author67/67, then source-novel exit1 ERR_PACKAGE_PATH_NOT_EXPORTED before module evaluation. Runner required nonempty loaded traces and stopped. All5 direct children closed, zero signals/RegexWorkers; two internal-loader admissions, no individual internal-worker exit census. Outer process group absent. No capture, integrity, cap or unknown-retirement failure observed. This is an ordinary mistaken public subpath, not a binding-guard exception or product failure.
+
+Accepted package exports never included virtual-bash/shell. Root parseShell remains the actual public AST API. Versioned novel consumer replaces only nonexistent leaf import and identity assertion with actual virtual-bash/contracts FsError/root identity. Positive type fixture retains all conditional AST/exhaustive-root checks, replaces fictitious leaf parser check with declared contracts FsError assignability. No script/output/FS expectations or other fixtures changed; original copies/failed raw remain. This corrects reviewer API assumption, not product expectation.
+
+Fresh namespace ACTUAL-02 carries original activation timestamp 1787985986890; no60min reset. Prior5 children/two loader admissions/capture/work debited in PRESEAL-v2. Explicit version correction is inside ROOT ordinary fully captured/retired helper authority. Candidate, source293, package954 and tool/permission identities unchanged. Build/pack will repeat solely for fresh self-contained layout; original67 remain historical duplicates, not additional unique coverage. Full updated per-layout scope unchanged.
+

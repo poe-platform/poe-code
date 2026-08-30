@@ -1,0 +1,32 @@
+{
+  "label": "current-controls",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=128",
+    "--import",
+    "tsx",
+    "--test",
+    "--experimental-test-isolation=none",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/queued-close-adjudication/.run-cNSdPy/current/tests/stress/regex-execution/queued-close-adjudication/controls.test.ts"
+  ],
+  "pid": 37635,
+  "started": "2026-08-27T08:03:00.049Z",
+  "stdout": "TAP version 13\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n{\"code\":\"CLOSED\",\"message\":\"regex CLOSED: invocation is closed\",\"sameOwnerReasonIdentity\":true,\"status\":\"not applicable: direct session rejection\"}\n# Subtest: idle messageerror plus queued close rejects CLOSED and awaits the exact retirement\nok 1 - idle messageerror plus queued close rejects CLOSED and awaits the exact retirement\n  ---\n  duration_ms: 2.738459\n  type: 'test'\n  ...\n{\"workers\":2,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n# Subtest: an OPEN queued sibling gets a replacement only after idle messageerror retirement\nok 2 - an OPEN queued sibling gets a replacement only after idle messageerror retirement\n  ---\n  duration_ms: 1.309916\n  type: 'test'\n  ...\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n# Subtest: queued close neither terminates nor waits for an active sibling lease\nok 3 - queued close neither terminates nor waits for an active sibling lease\n  ---\n  duration_ms: 0.6195\n  type: 'test'\n  ...\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n# Subtest: startup PROTOCOL selection survives later caller abort and awaits retirement\nok 4 - startup PROTOCOL selection survives later caller abort and awaits retirement\n  ---\n  duration_ms: 0.407959\n  type: 'test'\n  ...\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n# Subtest: active PROTOCOL selection survives later caller abort and awaits retirement\nok 5 - active PROTOCOL selection survives later caller abort and awaits retirement\n  ---\n  duration_ms: 0.404125\n  type: 'test'\n  ...\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n# Subtest: prior caller reason is strict identity through messageerror/close: Error: prior caller reason\nok 6 - prior caller reason is strict identity through messageerror/close: Error: prior caller reason\n  ---\n  duration_ms: 0.375125\n  type: 'test'\n  ...\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n# Subtest: prior caller reason is strict identity through messageerror/close: false\nok 7 - prior caller reason is strict identity through messageerror/close: false\n  ---\n  duration_ms: 0.288167\n  type: 'test'\n  ...\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n# Subtest: prior caller reason is strict identity through messageerror/close: 0\nok 8 - prior caller reason is strict identity through messageerror/close: 0\n  ---\n  duration_ms: 0.317167\n  type: 'test'\n  ...\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n# Subtest: prior caller reason is strict identity through messageerror/close: \nok 9 - prior caller reason is strict identity through messageerror/close: \n  ---\n  duration_ms: 0.292667\n  type: 'test'\n  ...\n{\"workers\":1,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n{\"workers\":0,\"retiredExactlyOnce\":true,\"remainingListeners\":0}\n{\"totalFakeWorkers\":11,\"nativeWorkers\":0,\"strictUnhandled\":true}\n# Subtest: prior caller reason is strict identity through messageerror/close: null\nok 10 - prior caller reason is strict identity through messageerror/close: null\n  ---\n  duration_ms: 0.860542\n  type: 'test'\n  ...\n# Subtest: synchronous empty-owner cleanup rejects late acquisition before executor.open\nok 11 - synchronous empty-owner cleanup rejects late acquisition before executor.open\n  ---\n  duration_ms: 0.151375\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 112.926459\n",
+  "stderr": "",
+  "events": [
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "pidAbsent": true,
+  "finished": "2026-08-27T08:03:00.201Z"
+}

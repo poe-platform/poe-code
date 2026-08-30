@@ -1,0 +1,36 @@
+{
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v5/ACTUAL-ROOT-GRANT.json",
+    "bytes": 1881,
+    "sha256": "35b00d3819e087a5d415eba27b9d1bca04276149843db2c9b24c8379316ee3f9"
+  },
+  "atUTC": "2026-08-29T14:15:57.469Z",
+  "metadata": [
+    {
+      "id": "review-type",
+      "role": "review-type",
+      "pid": 47716,
+      "startedUTC": "2026-08-29T14:15:57.246Z",
+      "status": 0,
+      "signal": null,
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "qualification": "synchronous metadata return with drained stdio, not event-trace"
+    },
+    {
+      "id": "review-body",
+      "role": "review-body",
+      "pid": 47717,
+      "startedUTC": "2026-08-29T14:15:57.288Z",
+      "status": 0,
+      "signal": null,
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true,
+      "qualification": "synchronous metadata return with drained stdio, not event-trace"
+    }
+  ],
+  "preflight": "accepted receipt and exact runtime/publisher/helper/node/package hashes; all actual slots absent before grant write",
+  "actualRuntimeCalls": 0
+}

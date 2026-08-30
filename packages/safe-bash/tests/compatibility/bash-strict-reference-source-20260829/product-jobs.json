@@ -1,0 +1,6 @@
+[
+  ["runtime", ["show", "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts"]],
+  ["parser", ["show", "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/parser.ts"]],
+  ["arithmetic", ["show", "c83f352f057c64917f219eb938f54aa42cdab829:src/shell/arithmetic.ts"]],
+  ["author-handoff", ["show", "be284b6f799e7501c793daff4d7bffc36ce4090b:tests/compatibility/bash-strict-mode-author-20260829/HANDOFF.md"]]
+]

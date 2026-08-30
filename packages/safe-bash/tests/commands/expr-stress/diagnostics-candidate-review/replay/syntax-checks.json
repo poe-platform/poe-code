@@ -1,0 +1,170 @@
+[
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/bind.mjs",
+    "sha256": "507a1b0aa33f7692ecfcad6cabf4d5fd741514cf238808b19b8b8f6c45de627f",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/execute.mjs",
+    "sha256": "8bbba4d15d00a0fb63704121b6de2883e0b879b9729c6c06863b83a2c941643e",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/finalize.mjs",
+    "sha256": "6d761ecc4eb1c89841a4d34f08ce241f7cd01a60d4d13f3c40a6f4416821bb0d",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/independent.mjs",
+    "sha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/integrity.mjs",
+    "sha256": "0f660f28b11d11d283846a2a2a0aa320c88d8989effe44f2b97c601b121978ad",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/observations.mjs",
+    "sha256": "b1e9bf78de2e722ffb6689fad3a9f0a1d70690596f06aec8ce742c3100d4253f",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/repair-legacy.mjs",
+    "sha256": "63dafb49ea68e9178393b46bdc73e509f8726bec07d146ba20f8e71fc67bebf2",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/accept-controls.mjs",
+    "sha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/accept-native.mjs",
+    "sha256": "e3a6f2d40b4c468e41fa42fcb77633c68b41b16deadf7008e9d2fc408960532e",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/comparators.mjs",
+    "sha256": "bb234f6c5baeb04d42cd1e0733a87164c5e0b587936513e4b36757143e19d9ab",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/distribution.mjs",
+    "sha256": "cc65dcb177350c1b2868b497e0cf77ac13fa737927e77b8b4b818f6aa9f5be44",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/extra-driver.mjs",
+    "sha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/frozen-comparators/extension-original20-runner.mjs",
+    "sha256": "ac40665793ea0230274b6f4523430b6d3c45f3f614700808289f20bf23493a11",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/frozen-comparators/original95-runner.mjs",
+    "sha256": "41aea89a81b5e83eafd072ab585844c8590f6bdc766cd2cc59726674562fb9d8",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/lifecycle-driver.mjs",
+    "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/protocol-driver.mjs",
+    "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/review.mjs",
+    "sha256": "f2a18aae775f0b72d224643865d98d88ef555d25c631d68fdfa4e09e4b1b8949",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/runtime-driver.mjs",
+    "sha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/shell-lifecycle-driver.mjs",
+    "sha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/stage.mjs",
+    "sha256": "29a023099d0d65528791f80848fe951475d90a58b5206ee8b3b70394766d944a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/supplement.mjs",
+    "sha256": "4df7544c5b0a7847b88c34283ba073e5c7cb98ccfc729dbd3139b48e98cb7f65",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/replay/watchdog.mjs",
+    "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/runtime-driver.mjs",
+    "sha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "path": "tests/commands/expr-stress/diagnostics-candidate-review/verify.mjs",
+    "sha256": "9ebdd029e91cc47cfa53dc660cfd5c2c538902e29e0b6b4edbbd7e3d1854401a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

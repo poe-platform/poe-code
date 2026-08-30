@@ -1,0 +1,58 @@
+{
+  "schema": "v8-stopped-d02-source-data-finding",
+  "id": "V6-S62-CANONICAL",
+  "actualExpectedDiagnostic": "apply_patch: permission denied: /work/a\n",
+  "actualExpectedDiagnosticBytes": 40,
+  "actualExpectedDiagnosticHex": "6170706c795f70617463683a207065726d697373696f6e2064656e6965643a202f776f726b2f610a",
+  "assertionExpectedBytes": 38,
+  "assertionLiteral": "apply_patch: permission denied: /work/a\n",
+  "assertionLiteralBytes": 40,
+  "originalInvocation": {
+    "route": "literal-command",
+    "cwd": "/work",
+    "args": [],
+    "stdin": {
+      "chunks": [
+        {
+          "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+        }
+      ],
+      "eof": true
+    }
+  },
+  "deltas": [
+    {
+      "op": "set",
+      "path": "/id",
+      "value": "V6-S62-CANONICAL",
+      "reason": "New denominator; never rescore original ID."
+    },
+    {
+      "op": "set",
+      "path": "/independence",
+      "value": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+      "reason": "Disclose informed fixture change."
+    },
+    {
+      "op": "set",
+      "path": "/name",
+      "value": "Typed EACCES canonical diagnostic; not truncation evidence",
+      "reason": "Discarded provider message does not prove truncation."
+    },
+    {
+      "op": "set",
+      "path": "/expected/stderr",
+      "value": {
+        "utf8": "apply_patch: permission denied: /work/a\n"
+      },
+      "reason": "Root authorizes exact 38-byte canonical diagnostic."
+    },
+    {
+      "op": "remove",
+      "path": "/expected/diagnosticTruncationSuffix",
+      "reason": "Original suffix expectation failed and remains in original data."
+    }
+  ],
+  "fixturesSha256": "ec2f4f1a29c85b65630ffaf4773634d202b62c438111933b18ec259ce80d0837",
+  "classification": "unchanged inherited DATA inconsistency; not product finding; no fixture correction or replay"
+}

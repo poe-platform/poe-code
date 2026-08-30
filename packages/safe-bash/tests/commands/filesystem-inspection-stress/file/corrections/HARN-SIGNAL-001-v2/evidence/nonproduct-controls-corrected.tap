@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: only F29 observation time changes; original and peer history are preserved
+ok 1 - only F29 observation time changes; original and peer history are preserved
+  ---
+  duration_ms: 0.501375
+  type: 'test'
+  ...
+# Subtest: positive cleanup-aborted-after-entry passes v2 while preserved v1 rejects
+ok 2 - positive cleanup-aborted-after-entry passes v2 while preserved v1 rejects
+  ---
+  duration_ms: 0.857042
+  type: 'test'
+  ...
+# Subtest: positive active-at-entry and settlement preserves exact maxBytes and promises
+ok 3 - positive active-at-entry and settlement preserves exact maxBytes and promises
+  ---
+  duration_ms: 0.445625
+  type: 'test'
+  ...
+# Subtest: already-aborted entry, missing signal, incorrect reason and duck signal are rejected
+ok 4 - already-aborted entry, missing signal, incorrect reason and duck signal are rejected
+  ---
+  duration_ms: 0.559459
+  type: 'test'
+  ...
+# Subtest: successful PNG/status/stderr/readFile use and original size guard still reject bad controls
+ok 5 - successful PNG/status/stderr/readFile use and original size guard still reject bad controls
+  ---
+  duration_ms: 1.950708
+  type: 'test'
+  ...
+# Subtest: F33/F34 remain byte-identical and observation wrapper adds no promise handlers
+ok 6 - F33/F34 remain byte-identical and observation wrapper adds no promise handlers
+  ---
+  duration_ms: 3.317167
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 49.741792

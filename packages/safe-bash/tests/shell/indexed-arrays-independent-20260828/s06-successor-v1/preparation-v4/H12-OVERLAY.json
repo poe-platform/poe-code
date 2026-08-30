@@ -1,0 +1,10 @@
+{
+  "schema": "root-ratified-h12-default-ifs-v2",
+  "originalHoldoutsSha256": "b38508ef94dcd8ce42329c7cf1e173ab460a200e3ddb96e4f5e4cfdd8b3e5e95",
+  "originalId": "H12",
+  "versionedId": "H12-v2",
+  "profile": "default-IFS-only; isolated virtual environment does not supply IFS",
+  "script": "a=([0]=v [2]=w); b=\"${a[@]}:${a[@]}\"; printf '%s\\n' \"$b\"",
+  "expected": { "stdout": "v w:v w\n", "stderr": "", "exitCode": 0 },
+  "basis": "Root project-profile decision from independent documentation reasoning; not a native observation, candidate proof or G8 implication. Original H12 had no expected output and never ran. No nondefault/empty-IFS inference."
+}

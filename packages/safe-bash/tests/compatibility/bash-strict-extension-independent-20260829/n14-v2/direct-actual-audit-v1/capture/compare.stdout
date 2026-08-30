@@ -1,0 +1,1015 @@
+{
+  "at": "2026-08-29T11:43:58.411Z",
+  "rawFrames": 678,
+  "rawBytes": 35655081,
+  "observations": 111,
+  "equal": 57,
+  "different": 54,
+  "controls": [
+    {
+      "name": "wrong bytes",
+      "pass": true
+    },
+    {
+      "name": "wrong hash",
+      "pass": true
+    },
+    {
+      "name": "noncanonical framing",
+      "pass": true
+    },
+    {
+      "name": "missing presence",
+      "pass": true
+    },
+    {
+      "name": "valid NUL byte",
+      "pass": true
+    },
+    {
+      "name": "false status is not zero",
+      "pass": true
+    },
+    {
+      "name": "file mode difference retained",
+      "pass": true
+    },
+    {
+      "name": "stderr difference retained",
+      "pass": true
+    }
+  ],
+  "checks": 1460,
+  "failed": [
+    {
+      "name": "source-built-B01 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B01 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B02 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B02 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B03 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B03 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B04 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B04 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B05 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B05 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B06 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B06 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B07 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B07 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B08 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B08 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B09 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B09 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B10 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B10 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B11 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B11 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B12 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B12 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B13 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B13 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B14 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B14 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B15 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B15 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B16 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B16 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B17 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B17 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B18 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B18 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B19 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B19 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B20 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B20 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B21 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B21 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B22 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B22 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B23 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B23 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B24 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B24 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B25 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B25 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B29 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B29 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B30 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B30 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B31 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B31 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B32 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B32 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B33 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B33 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B34 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B34 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B35 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B35 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B36 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B36 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B37 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B37 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B38 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B38 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B39 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B39 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "source-built-B40 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "source-built-B40 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B01 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B01 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B02 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B02 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B03 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B03 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B04 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B04 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B05 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B05 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B06 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B06 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B07 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B07 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B08 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B08 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B09 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B09 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B10 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B10 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B11 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B11 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B12 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B12 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B13 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B13 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B14 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B14 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B15 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B15 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B16 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B16 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B17 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B17 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B18 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B18 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B19 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B19 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B20 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B20 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B21 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B21 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B22 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B22 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B23 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B23 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B24 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B24 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B25 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B25 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B29 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B29 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B30 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B30 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B31 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B31 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B32 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B32 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B33 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B33 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B34 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B34 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B35 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B35 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B36 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B36 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B37 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B37 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B38 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B38 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B39 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B39 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "installed-B40 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "installed-B40 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B01 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B01 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B02 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B02 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B03 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B03 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B04 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B04 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B05 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B05 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B06 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B06 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B07 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B07 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B08 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B08 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B09 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B09 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B10 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B10 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B11 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B11 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B12 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B12 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B13 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B13 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B14 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B14 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B15 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B15 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B16 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B16 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B17 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B17 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B18 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B18 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B19 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B19 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B20 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B20 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B21 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B21 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B22 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B22 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B23 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B23 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B24 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B24 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B25 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B25 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B29 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B29 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B30 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B30 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B31 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B31 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B32 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B32 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B33 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B33 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B34 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B34 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B35 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B35 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B36 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B36 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B37 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B37 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B38 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B38 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B39 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B39 raw stdout exactly receipt",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B40 receipt equals published virtual outcome",
+      "pass": false
+    },
+    {
+      "name": "physically-moved-B40 raw stdout exactly receipt",
+      "pass": false
+    }
+  ],
+  "knownChildRows": 115,
+  "sourceDiffIds": [
+    "B12",
+    "B13",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B30",
+    "B32",
+    "B34",
+    "B35",
+    "B36",
+    "B38",
+    "B39"
+  ],
+  "membership": {
+    "postflight": {
+      "sourceShippingChecks": 954,
+      "movedShippingChecks": 954,
+      "sourceInputChecks": 293,
+      "archiveAnd34SealedFilesUnchanged": true,
+      "installedParentAbsent": true,
+      "scope": "known pinned members only; no append-proof/full-VFS census claim"
+    },
+    "archiveAdmission": {
+      "receipt": {
+        "result": {
+          "members": 954,
+          "payloadBytes": 4821648,
+          "decodedBytes": 5545984,
+          "extractionCalls": 0
+        },
+        "compressedBytes": 872281,
+        "decodedBytes": 5545984,
+        "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49"
+      },
+      "ledger": {
+        "current": 0,
+        "peak": 70078298,
+        "maximum": 100663296
+      },
+      "events": [
+        "lstat-type-size",
+        "bounded-read",
+        "postread-identity",
+        "exact-hash",
+        "descriptor-closed",
+        "concurrent-buffers-reserved",
+        "decoded",
+        "parsed"
+      ]
+    },
+    "permissions": {
+      "admittedCaseRoles": 111,
+      "childProcessPermission": false,
+      "workerPermission": false,
+      "asynchronousLoaderThreads": 0,
+      "unexpectedTraceEvents": 0,
+      "qualification": "permission-admitted synchronous-hook receipts and known roles; not universal OS/thread census"
+    },
+    "knownExecutionRoles": {
+      "owner": 1,
+      "build": 1,
+      "typechecks": 3,
+      "cases": 111,
+      "total": 116,
+      "managedChildren": 115,
+      "allManagedChildrenQualified": true,
+      "managedActive": 0,
+      "ownerRetirement": "exec_command session22882 exited code0; own regular captures finalized; no tool PID or universal census invented"
+    },
+    "ownerStarted": "2026-08-29T11:25:36.325Z",
+    "ownerDeadline": "2026-08-29T11:55:36.325Z",
+    "publicationConservativeDeadline": "2026-08-29T11:55:00.140Z"
+  },
+  "qualification": "Only existing raw DATA authenticated; no new semantic execution or complete campaign compliance. Invalid final accounting remains HOLD."
+}

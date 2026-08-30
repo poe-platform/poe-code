@@ -1,0 +1,19 @@
+{
+  "role": "DATA-only compressed archive and retained actual Stage-A files; no import",
+  "checkedAt": "2026-08-29T11:16:07.602Z",
+  "compressed": {
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+    "hashBeforeInflation": true,
+    "sameBuffer": true
+  },
+  "tarBytes": 5900800,
+  "members": 1014,
+  "retainedActualDistFiles": 1012,
+  "retainedAllPackageFiles": 1014,
+  "bytesChecked": 5130403,
+  "retainedRoot": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source",
+  "dependencies": {},
+  "packageMetadataHash": "58b4a3498274a8901f98d6a290671251fa8ca292d72bd5c4987bc8ec8e15411b",
+  "sourceLayoutNotTarRelabel": true
+}

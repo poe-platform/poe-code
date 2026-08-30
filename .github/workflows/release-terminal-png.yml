@@ -18,6 +18,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Check release tree admission
+        id: release-admission
+        uses: ./.github/actions/release-tree-admission
+        with:
+          paths: |
+            packages/terminal-png
+            packages/terminal-png-mcp
       - uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
@@ -55,6 +65,7 @@ jobs:
             exit 0
           fi
           npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'
       - name: Publish terminal-png-mcp
         working-directory: packages/terminal-png-mcp
         env:
@@ -65,3 +76,4 @@ jobs:
             exit 0
           fi
           npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'

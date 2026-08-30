@@ -1,0 +1,67 @@
+{
+  "schema": "bash-surface-independent-bindings-v1",
+  "role": "SOURCE_DATA_ONLY_NO_EXECUTION_QUALIFICATION",
+  "auditCommit": "5e7ca89d958c68504e410faf1dbc82e0a2525e2c",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "candidateAcceptance": "public80 author candidate, not independently accepted",
+  "sourceManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-20260829/SOURCE.json",
+    "sha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450",
+    "bytes": 220097,
+    "selectedInputs": 292,
+    "derivedCompositionNotRecomputedHere": true
+  },
+  "package": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-20260829/results-v1/PACKAGE.tgz.base64",
+    "encodedSha256": "8b7469552ae12314b99eec790167f52c567a421cd4b5cea57c90f3a4aadb2c4d",
+    "encodedBytes": 1152001,
+    "sha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+    "bytes": 864000,
+    "members": 950
+  },
+  "cases": {
+    "sha256": "45ab3659b3769d33dc0a50fd9547ba96949540048aa7240385a674d85131ea29",
+    "bytes": 5682,
+    "count": 40,
+    "expected": null
+  },
+  "binaries": [
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "versionExecuted": false,
+      "version": null,
+      "dependencyClosureQualified": false
+    },
+    {
+      "path": "/opt/homebrew/bin/bash",
+      "status": "ABSENT_NOT_VERSION_PROBED"
+    },
+    {
+      "path": "/usr/bin/sandbox-exec",
+      "bytes": 102560,
+      "mode": 493,
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+      "versionExecuted": false,
+      "version": null,
+      "dependencyClosureQualified": false
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "versionExecuted": false,
+      "version": null,
+      "dependencyClosureQualified": false
+    }
+  ],
+  "otherBashInstallations": "NOT_INVENTORIED",
+  "reference": {
+    "profile": "GNU Bash5.3 patch015 source reference, not local runtime qualification",
+    "localVersion": "UNKNOWN"
+  },
+  "preparationCapture": "/tmp/bash-surface-independent-prep-wBudtM"
+}

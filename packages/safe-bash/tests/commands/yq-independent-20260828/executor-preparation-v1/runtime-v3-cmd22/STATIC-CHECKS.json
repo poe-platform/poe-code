@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "status": "STATIC_ONLY_NO_RUNTIME_VERDICT",
+  "historicalGitEntriesAuthenticated": 33,
+  "historicalLiveSelectedPathsAuthenticated": [
+    "v2:RECIPE-SEAL.json",
+    "v2:SOURCE-PRESEAL.json",
+    "v2:delta.mjs",
+    "v2:V1-V2.diff",
+    "v2:PROTOCOL.md",
+    "v2:EVIDENCE-SEAL.json",
+    "v2:HANDOFF.md",
+    "v1:assert-capture.mjs",
+    "v1:context.mjs",
+    "v1:integrity.mjs",
+    "v1:source-bindings.json",
+    "actual-review",
+    "actual-declared-jobs",
+    "CMD22:boundary.json",
+    "CMD22:child.json",
+    "CMD22:command-stderr.bin",
+    "CMD22:command-stdout.bin",
+    "CMD22:obligations.json",
+    "CMD22:receipt.json",
+    "CMD22:stderr.bin",
+    "CMD22:stdout.bin",
+    "CMD22:verdict.json",
+    "FS05:receipt",
+    "FS05:verdict",
+    "carry-contract",
+    "original-inventory",
+    "packet:freeze-command-parser",
+    "packet:freeze-value-query",
+    "packet:freeze-utf8",
+    "packet:freeze-accounting",
+    "packet:freeze-integration"
+  ],
+  "staticTextDeltaChecks": {
+    "completedBeforeSpecificationHeadingCorrection": true,
+    "baseAssertionSha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd",
+    "outputHashes": {
+      "assert-capture.mjs": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0",
+      "cmd22-read-paths.mjs": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "cmd22-binding.json": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71"
+    },
+    "deltaSha256": "0994215bbb73e93d6102dd04b61efc1c6a222a742140c313d3073f8044924e6c",
+    "method": "Read immutable v1 bytes and v2 unified diff as data; reconstruct base text; apply declared literal edits as data; independently reconstruct each successor diff hunk and compare all three output hashes. No adapter/predicate import or evaluation."
+  },
+  "syntaxChecks": {
+    "completedBeforeSpecificationHeadingCorrection": true,
+    "exitCode": 0,
+    "files": [
+      "adapter.mjs",
+      "deferred-fixtures.mjs",
+      "read-path-binding.mjs",
+      "future assert-capture.mjs from text delta on stdin"
+    ],
+    "importsResolved": false,
+    "modulesEvaluated": false
+  },
+  "specificationChecker": {
+    "exitCode": 0,
+    "output": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/PROTOCOL.md (0 warning(s))",
+    "priorFailurePreserved": "STATIC-PREPARATION.md"
+  },
+  "declaredControlDataCount": 31,
+  "fixtureDataMatchesHistorical": true,
+  "baseAndPredicateModulesImported": 0,
+  "adapterCalls": 0,
+  "resolverCalls": 0,
+  "fixtureCalls": 0,
+  "oldRecipeMaterializedImportValidation": 0,
+  "controlReplays": 0,
+  "productImports": 0,
+  "productExecutions": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "syntheticPasses": 0,
+  "semanticPasses": 0,
+  "grantsGO": false,
+  "integrityQualification": "Selected historical Git/live-path byte checks, not a whole-repository append-proof or transient-write guarantee."
+}

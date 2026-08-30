@@ -1,0 +1,157 @@
+COMPLETED FOLLOW-UP — AUGUST 27, 2026
+Both correction reports arrived during the subsequent static safety review.
+Latest verdicts: N18 HOLD (irrelevant same-line constraint and contradictory
+next-line zero range accepted); F29 HOLD (post-success liveness overconstraint);
+F33 GO and F34 GO for narrow correction/evidence acceptance only.
+Exact counterexamples, executed builtins-only mock checks, integrity hashes,
+counts, required root routing and static source findings are recorded in:
+  /tmp/safe-bash-inspection-safety-peer-detail.txt
+  tests/commands/filesystem-inspection-stress/harness-review/SAFETY_FINDINGS.md
+No product/native execution by this peer. Earlier waiting checkpoint preserved
+below as historical, superseded only in availability and verdict explanation.
+
+INDEPENDENT HARNESS PEER REVIEW — BOUNDED WAITING CHECKPOINT
+Date: August 27, 2026. Integrity observation: 2026-08-27T08:42:55.152Z.
+
+VERDICTS
+Tree N18 correction: HOLD — finished correction report and predicate unavailable.
+File F29 correction: HOLD — finished replacement predicate unavailable.
+File F33 correction: HOLD — finished predicate and actual late-read injection evidence unavailable.
+File F34 correction: HOLD — finished predicate and actual late-return injection evidence unavailable.
+These are availability holds, not findings that unseen corrections are defective.
+Neither /tmp/safe-bash-tree-harness-correction-detail.txt nor
+/tmp/safe-bash-file-harness-correction-detail.txt existed at the integrity check
+or subsequent availability check. No correction directory was found in either
+owned reviewer corpus during preparation. Stop bounded; do not approve unknown work.
+
+ROOT ROUTING / REQUIRED FOLLOW-UP
+Once both reviewers publish, route their exact correction paths, hashes, minimal
+diffs, selected-child commands and raw results back to this peer for completion.
+Authorize no broader suite on this checkpoint. The existing authorization is
+one corrected tree case and three corrected file cases on OLD FROZEN candidates.
+Before GO, verify that the additive runners alter only the indicated predicates
+and disclosed selected-case/evidence instrumentation; preserve every other
+assertion, fixture, old runner, raw initial observation and original seal.
+An absent report is not proof that reviewers have not begun or executed work.
+
+TREE ACCEPTANCE CRITERIA / REQUIRED PURE COUNTEREXAMPLES
+Original runner line 73 requires /level|depth|invalid|positive|greater/iu.
+The surrounding original branch checks a nonzero exit, but combines stdout and
+stderr. A corrected N18 check must also retain/establish empty error stdout,
+meaningful stderr, and diagnostic relevance to -L/depth/level. No generic
+nonempty diagnostic, status-only check, or fixture-specific exact-output escape.
+Accept the meaningful positive range in 'tree: -L must be between 1 and 256'.
+Retain meaningful positive-depth rejections such as the original native
+'tree: Invalid level, must be greater than 0.' without demanding exact text.
+Pure predicate negatives must reject: exit 0 with otherwise matching diagnostic;
+nonempty stdout; empty stderr; an unrelated diagnostic; a different option's
+range; '-L must be between 0 and 256'; and a range with no valid positive values.
+Matching 'between', 'invalid', or an incidental numeral alone is insufficient.
+Do not turn actual native status 1 versus product status 2/text difference into
+exact parity. Preserve N16 rootlink -> links/target as a separate chosen-profile
+conflict, never a parity pass. Preserve N14/N17/N20 native differences too.
+Original native denominator remains 20: match12, mismatch5, unsupported-not-run3.
+Original intended cohort remains 38: raw pass30, fail2, unsupported3,
+characterization3; actual tree invocations35. No additional run occurred here.
+An eventual corrected N18 result is additive, not a rewrite of this denominator
+or evidence of a rerun of the other 37 original cases.
+
+FILE ACCEPTANCE CRITERIA / REQUIRED PURE COUNTEREXAMPLES
+Original selected runner line145 requires FS/context signal reference identity.
+F29 must retain successful status, empty stderr via successful(), exact PNG MIME
+bytes and actual readFile use. Replace only overstrong signal reference equality
+with meaningful supplied-signal checks, permitting legitimate AbortSignal.any
+composition. Do not require post-completion signal liveness: resource cleanup
+can legitimately abort an operation-owned signal. F29's successful case alone
+does not demonstrate cancellation propagation; F33/F34 supply that evidence.
+Original selected runner line205 requires captured/caller signal identity.
+Both cancellation cases MUST retain exact rejection reason reference identity,
+captured FS signal presence, capturedSignal.aborted === true and
+capturedSignal.reason === caller sentinel. Matching reason.code/message alone
+is insufficient. A distinct composed signal preserving the reason must pass;
+missing/unaborted signals and equal-looking but distinct reasons must fail.
+Keep started-next synchronization, cancellation deadline and returned === 1
+before late gate release. Do not broaden this into a new timing benchmark.
+ACTUALLY call pendingRead.reject(lateReadError) in F33 AND F34, and
+pendingReturn.reject(lateReturnError) in F34, after cancellation/return checks.
+Retain unhandledRejection observation through the subsequent event-loop turns.
+Instrumentation must not itself attach rejection-swallowing catches to the
+mock gates and thereby hide product non-observation. Require reachable injection
+and completion evidence, not merely a zero count after finally resolved gates.
+Keep early-iterator cleanup and return counts unchanged elsewhere, including
+the original F27/F28/F32 rows, without rerunning them in this narrow correction.
+Do not change source to disable valid signal composition.
+
+RETAINED FILE COUNTS / SEPARATE SQLITE WORK
+Initial40 children, no timeouts, no native recaptures, no repeated cases.
+Raw35 pass /3 fail /2 backend-limitation; adjudicated31 pass /4 native-profile-
+conflict /3 harness-defect /2 backend-limitation. Unsupported0. Native rows16
+pass /4 conflict /20 not-run; machine MIME/encoding views50/60 exact; semantic
+content views80/80 accepted. F30/F31 remain backend characterizations, not passes.
+F07/F12/F16/F18 native-profile conflicts stay visible. PE/Wasm were not executed
+independent holdouts. Initial F33/F34 late-rejection assertions were NOT executed.
+F16's old application/x-sqlite3 versus application/vnd.sqlite3 discrepancy and
+the separate author's canonical MIME source fix must not be attributed to these
+harness corrections. No native fixture changes or new captures are authorized.
+
+READ-ONLY CONTRACT GROUNDING
+Read current src/contracts/command.md, filesystem.md clauses and filesystem.ts
+signal interface; read src/contracts/io.ts cancellation/iterator implementation
+as text only. abortable rejects with signal.reason and observes the underlying
+promise; readBytes requests early iterator.return and observes cleanup rejection
+on abort. These do not require signal object identity across composition.
+Read src/commands/file/README.md streaming/cancellation clauses and current byte
+family docs src/commands/bytes/README.md: signal propagation, awaited writes and
+bounded byte streams; no promise to forcibly stop uncooperative host work.
+docs/PROJECT_LEDGER.md lines350–369 records existing byte-helper guarantees.
+docs/OUTPUT_LIFECYCLE_REVIEW.md is explicitly design-only, not authority to add
+a new lease API or strengthen these corrections into unrelated lifecycle scope.
+
+EXACT EXECUTED VALIDATION COMMANDS / RESULTS
+From /Users/kjopek/Workspace/safe-bash:
+  node tests/commands/filesystem-inspection-stress/harness-review/inspect-evidence.mjs > /tmp/safe-bash-inspection-harness-peer-integrity.json
+Exit0, Node v22.22.2. Node builtins only: filesystem reads, SHA-256 and assertions.
+Verified every one of 316 tree EVIDENCE-MANIFEST entries and 54 file catalog
+artifacts against recorded byte lengths, hashes and symlink kind. Asserted old
+file cohort/counter fields, including unexecuted late probes. This is integrity
+verification, not product correctness or a corrected-predicate countercheck.
+  git diff --check -- tests/commands/filesystem-inspection-stress/harness-review
+Exit0; new untracked files are not validated by git diff --check itself.
+  shasum -a 256 tests/commands/filesystem-inspection-stress/harness-review/inspect-evidence.mjs /tmp/safe-bash-inspection-harness-peer-integrity.json
+All product/native invocations: ZERO. Corrected predicate counterchecks: ZERO,
+because no corrected predicate was available. No tests/dependencies/public
+integration/source changes, staging or commits. Existing root package.json,
+tsconfig.json modifications and other untracked workers' work were left alone.
+
+PINNED IDENTITIES / SHA-256
+Full per-artifact hashes and current contract/document hashes are in the JSON
+integrity report; immutable-manifest matching is stronger than a new snapshot
+for the covered original entries. Other report hashes are current observations,
+not claims of an independently verified pre-existing seal for those files.
+Tree candidate: e2d1b9230f4304650651572395523ca9d1644e74
+Tree original preseal: b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937
+Tree source manifest (initial routing): 81eddab7060fcc67dfcf5adc325218b886a4fb50d7e40a1056ad9fe379e83a9a
+File candidate: d168d18b118592e04a6eec9b00eb50cc2b1e5058
+File original seal (binding): 8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297
+File source manifest (freeze): 606adf1a2f78b0668ec1f4cf0c3253115faf089f69c7617abd88b03fb83b5f2f
+inspect-evidence.mjs: 30c44316223f762dfb21dd97faf4131e775fd4aabd3a5b565ed8a67cc02d02cf
+peer-integrity.json: 44123aa8737bfa7b6297fae8198dc8cec86ccfda1ee25be900d823184bd0ed52
+tree/EVIDENCE-MANIFEST.json: 66ecd953ee0959f249387b3eab9f7d9f20afa32eca36bb123a82810187997b01
+tree/sealed/run.mjs: 3068e51fece206bdcab38a53f5fb47b61cdfc5a71f35900f7241bf9f291fc03d
+tree/evidence/initial/analysis.json: ed853d29a78a0082c088437be6583e97613808f9f1e817c08ee432ba9abdd1d2
+tree/evidence/initial/raw/N18/observations.json: 70008efe2658f591d5102bf24290b35c9553154029fa05e9f2cfbae0d77d0167
+tree/evidence/initial/raw/N18/product.stderr.bin: f2ae9594b1aee9d6a32cc23fe24d722a99f4ac8144cc12eafdcbbece4cd88abe
+file/sealed/catalog.json: a51b992ff036b5cd53e6cb59b3ad72e57805b4f7c416de793a5c39e20e1f6552
+file/evidence/summary.json: 75adba94dd37d5c1bc331a1aa9a6f3e9c5bd87b621317802c70d0dae4f872dd1
+file/evidence/results/F29.json: cca9dee735710eec09e05968438836de6ff06dc65e1220be713238ddbd768fd1
+file/evidence/results/F33.json: f2f431583fd4fc6880b6646b403b2cb98643cbb62949b22e9073ef64fe82deef
+file/evidence/results/F34.json: 2a0f60a9ba7da11d10ffe45ceb53880e6cf797ba13ca642fee64a58afdb4540f
+file isolated original-run selector: 5116aaf53899715e2497140528e5a2338664673e2d284eb688e009dd6e2a2fb5
+src/contracts/io.ts: e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb
+tree failure route: 9a404b1296a527f5b5f48a43247cc9066c19d32fbe4984624ec076c3a3afe275
+file failure route: 31b5dfac7a19dd64faccd3c80beaac7cfd76a65a8a48b0895ac9fb6461b64641
+
+Only newly authored repository path:
+tests/commands/filesystem-inspection-stress/harness-review/inspect-evidence.mjs
+Final checkpoint path: /tmp/safe-bash-inspection-harness-peer-detail.txt
+No final correction approval, parity/superiority claim or completion claim.

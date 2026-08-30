@@ -1,0 +1,35 @@
+{"name":"canonical","started":"2026-08-27T15:02:42.921Z","finished":"2026-08-27T15:02:44.275Z","command":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--import","tsx","--test","--test-reporter=tap","tests/commands/split/native.test.ts","tests/commands/split/native-errors.test.ts"],"capture":false,"status":0,"signal":null,"error":null}
+TAP version 13
+# Subtest: GNU errors: exact status/effects, separately asserted diagnostic profiles
+ok 1 - GNU errors: exact status/effects, separately asserted diagnostic profiles
+  ---
+  duration_ms: 85.516083
+  type: 'test'
+  ...
+# Subtest: explicit GNU versus Apple naming/profile differences remain visible
+ok 2 - explicit GNU versus Apple naming/profile differences remain visible
+  ---
+  duration_ms: 251.340667
+  type: 'test'
+  ...
+# Subtest: native gnu9.7-darwin: exact status/stdout/stderr/file bytes
+ok 3 - native gnu9.7-darwin: exact status/stdout/stderr/file bytes
+  ---
+  duration_ms: 798.768875
+  type: 'test'
+  ...
+# Subtest: native apple-bsd: exact status/stdout/stderr/file bytes
+ok 4 - native apple-bsd: exact status/stdout/stderr/file bytes
+  ---
+  duration_ms: 329.714417
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1315.362666

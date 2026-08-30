@@ -1,0 +1,24 @@
+startupBirthEpochSeconds=1788012786
+fixedPublicationDeadlineEpochSeconds=1788013266
+publicationEpochSeconds=1788012906.7476871014
+Success. Updated the following files:
+M /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/HANDOFF.md
+commitEpochSeconds=1788012907.1029329300
+[main 1a1d11ac142b11df8f08ccb79833178abbee5040] test: hold typed PIPESTATUS binding on frozen window mismatch
+ 16 files changed, 1027 insertions(+)
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/HANDOFF.md
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/INSPECTED-SOURCE.json
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/inspect.mjs
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/final-publication.stderr
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/final-publication.stdout
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/inspect-syntax.stderr
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/inspect-syntax.stdout
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/inspection.stderr
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/inspection.stdout
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/node-tool.sha256
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/publication.stderr
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/publication.stdout
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/review-commit.txt
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/source-tree.nul
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/startup.stderr
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-reference-20260829/binding-preparation-v1/raw/startup.stdout

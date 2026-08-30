@@ -1,0 +1,306 @@
+{
+  "name": "concurrent-1-streaming",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/commands/search-stress/streaming-cases.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/",
+  "startedAtOffset": 8344.319708,
+  "durationMs": 253.55370799999946,
+  "pid": 91254,
+  "code": 0,
+  "signal": null,
+  "failures": [],
+  "exitSeen": true,
+  "closeSeen": true,
+  "streamDestroyed": {
+    "stdin": true,
+    "stdout": true,
+    "stderr": true
+  },
+  "ownedListenersRemaining": 0,
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.04199999999946158,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/search-stress/streaming-cases.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/",
+      "timeoutMs": 45000,
+      "dueMs": 45000,
+      "loadavg": [
+        4.4482421875,
+        6.173828125,
+        6.859375
+      ]
+    },
+    {
+      "event": "spawn",
+      "ms": 0.4397499999995489,
+      "pid": 91254,
+      "notApplicationReadiness": true
+    },
+    {
+      "event": "stdin-close",
+      "ms": 0.47566699999879347
+    },
+    {
+      "event": "first-byte",
+      "ms": 115.47283299999981,
+      "stream": "stdout"
+    },
+    {
+      "event": "stdout-data",
+      "ms": 115.47437499999978,
+      "bytes": 91
+    },
+    {
+      "event": "stdout-data",
+      "ms": 117.27095799999915,
+      "bytes": 163
+    },
+    {
+      "event": "stdout-data",
+      "ms": 120.85774999999921,
+      "bytes": 15
+    },
+    {
+      "event": "stdout-data",
+      "ms": 130.40641699999833,
+      "bytes": 2347
+    },
+    {
+      "event": "stdout-data",
+      "ms": 133.4737499999992,
+      "bytes": 104
+    },
+    {
+      "event": "stdout-data",
+      "ms": 134.0149169999986,
+      "bytes": 102
+    },
+    {
+      "event": "stdout-data",
+      "ms": 134.05799999999908,
+      "bytes": 111
+    },
+    {
+      "event": "stdout-data",
+      "ms": 135.4434169999986,
+      "bytes": 106
+    },
+    {
+      "event": "stdout-data",
+      "ms": 136.00220799999988,
+      "bytes": 167
+    },
+    {
+      "event": "stdout-data",
+      "ms": 138.37020799999846,
+      "bytes": 83
+    },
+    {
+      "event": "stdout-data",
+      "ms": 138.6083329999983,
+      "bytes": 131
+    },
+    {
+      "event": "stdout-data",
+      "ms": 146.06395799999882,
+      "bytes": 2345
+    },
+    {
+      "event": "stdout-data",
+      "ms": 150.64716699999917,
+      "bytes": 104
+    },
+    {
+      "event": "stdout-data",
+      "ms": 150.9157499999983,
+      "bytes": 102
+    },
+    {
+      "event": "stdout-data",
+      "ms": 150.95945799999936,
+      "bytes": 108
+    },
+    {
+      "event": "stdout-data",
+      "ms": 152.09449999999924,
+      "bytes": 106
+    },
+    {
+      "event": "stdout-data",
+      "ms": 152.21762499999932,
+      "bytes": 167
+    },
+    {
+      "event": "stdout-data",
+      "ms": 154.23908299999857,
+      "bytes": 83
+    },
+    {
+      "event": "stdout-data",
+      "ms": 154.2982919999995,
+      "bytes": 79
+    },
+    {
+      "event": "stdout-data",
+      "ms": 154.3109579999982,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 162.28062499999942,
+      "bytes": 2338
+    },
+    {
+      "event": "stdout-data",
+      "ms": 168.05074999999852,
+      "bytes": 104
+    },
+    {
+      "event": "stdout-data",
+      "ms": 168.3087919999998,
+      "bytes": 102
+    },
+    {
+      "event": "stdout-data",
+      "ms": 168.34745799999837,
+      "bytes": 110
+    },
+    {
+      "event": "stdout-data",
+      "ms": 169.4958749999987,
+      "bytes": 106
+    },
+    {
+      "event": "stdout-data",
+      "ms": 179.81533299999865,
+      "bytes": 83
+    },
+    {
+      "event": "stdout-data",
+      "ms": 179.8975419999988,
+      "bytes": 79
+    },
+    {
+      "event": "stdout-data",
+      "ms": 180.25637499999903,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 195.42766699999993,
+      "bytes": 80
+    },
+    {
+      "event": "stdout-data",
+      "ms": 195.45054199999868,
+      "bytes": 76
+    },
+    {
+      "event": "stdout-data",
+      "ms": 195.45929199999955,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 221.38383299999987,
+      "bytes": 73
+    },
+    {
+      "event": "stdout-data",
+      "ms": 221.4164579999997,
+      "bytes": 121
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.5577919999996,
+      "bytes": 78
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.60820799999965,
+      "bytes": 74
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.61604199999965,
+      "bytes": 52
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.76295799999934,
+      "bytes": 5
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.77383299999929,
+      "bytes": 10
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.7842499999988,
+      "bytes": 11
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.8229999999985,
+      "bytes": 9
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.83924999999908,
+      "bytes": 35
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.8501669999987,
+      "bytes": 9
+    },
+    {
+      "event": "stdout-data",
+      "ms": 248.8661669999983,
+      "bytes": 25
+    },
+    {
+      "event": "stderr-end",
+      "ms": 253.3456669999996
+    },
+    {
+      "event": "stderr-close",
+      "ms": 253.42274999999972
+    },
+    {
+      "event": "stdout-end",
+      "ms": 253.4312919999993
+    },
+    {
+      "event": "exit",
+      "ms": 253.45166699999936,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "close",
+      "ms": 253.47245799999837,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "stdout-close",
+      "ms": 253.47379199999887
+    }
+  ],
+  "stdout": "HARNESS_TIMING {\"pid\":91254,\"event\":\"streaming-module-ready\",\"atMs\":98.227541,\"detail\":{}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"semantic-watchdog-armed\",\"atMs\":100.194791,\"detail\":{\"timerId\":1,\"milliseconds\":15000,\"armedMs\":100.1885,\"dueMs\":15100.1885}}\nTAP version 13\nHARNESS_TIMING {\"pid\":91254,\"event\":\"native-delivery\",\"atMs\":113.296416,\"detail\":{\"repetition\":1,\"argv\":[\"--no-config\",\"--line-buffered\",\"foo\",\"-\"],\"profile\":\"observed-prefix\",\"pid\":91270,\"code\":0,\"signal\":null,\"stdout\":\"foo\\nbinary file matches (found \\\"\\\\0\\\" byte around offset 4)\\n\",\"stderr\":\"\",\"events\":[{\"event\":\"launch\",\"ms\":0.11645900000000609,\"detail\":{\"argv\":[\"--no-config\",\"--line-buffered\",\"foo\",\"-\"],\"profile\":\"observed-prefix\",\"options\":{\"lineBuffered\":true}}},{\"event\":\"timer-armed\",\"ms\":2.123874999999998,\"detail\":{\"timerId\":1,\"label\":\"readiness\",\"milliseconds\":10000,\"armedMs\":2.117500000000007,\"dueMs\":10002.1175}},{\"event\":\"spawn\",\"ms\":3.3545000000000016,\"detail\":{\"pid\":91270}},{\"event\":\"write\",\"ms\":3.3712090000000074,\"detail\":{\"hex\":\"666f6f0a\",\"end\":false}},{\"event\":\"stdout-data\",\"ms\":12.033375000000007,\"detail\":{\"hex\":\"666f6f0a\"}},{\"event\":\"prefix-consumption-evidenced\",\"ms\":12.052542000000003,\"detail\":\"stdout is evidence of prior read; not a read syscall timestamp\"},{\"event\":\"ready\",\"ms\":12.053708999999998},{\"event\":\"timer-cleared\",\"ms\":12.069500000000005,\"detail\":{\"timerId\":1}},{\"event\":\"timer-armed\",\"ms\":12.073875000000001,\"detail\":{\"timerId\":2,\"label\":\"completion\",\"milliseconds\":10000,\"armedMs\":12.070999999999998,\"dueMs\":10012.071}},{\"event\":\"write\",\"ms\":12.090958999999998,\"detail\":{\"hex\":\"000a6e6f0a\",\"end\":true}},{\"event\":\"stdin-close\",\"ms\":12.291125000000008},{\"event\":\"stdout-data\",\"ms\":12.300459000000004,\"detail\":{\"hex\":\"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a\"}},{\"event\":\"stderr-end\",\"ms\":12.618875000000003},{\"event\":\"stdout-end\",\"ms\":12.650917000000007},{\"event\":\"stdout-close\",\"ms\":12.76325},{\"event\":\"stderr-close\",\"ms\":12.765667000000008},{\"event\":\"exit\",\"ms\":12.802125000000004,\"detail\":{\"code\":0,\"signal\":null}},{\"event\":\"timer-cleared\",\"ms\":12.806916999999999,\"detail\":{\"timerId\":2}},{\"event\":\"timer-armed\",\"ms\":12.814750000000004,\"detail\":{\"timerId\":3,\"label\":\"cleanup\",\"milliseconds\":5000,\"armedMs\":12.813000000000002,\"dueMs\":5012.813}},{\"event\":\"close\",\"ms\":12.839875000000006,\"detail\":{\"code\":0,\"signal\":null}},{\"event\":\"timer-cleared\",\"ms\":12.842584000000002,\"detail\":{\"timerId\":3}}],\"ready\":true,\"actualClose\":true,\"closeObserved\":true,\"ownedListenersRemaining\":0,\"streamsDestroyed\":[true,true,true],\"activeTimers\":0}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-entered-read\",\"atMs\":116.384583,\"detail\":{\"repetition\":1}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-first-data\",\"atMs\":116.940791,\"detail\":{\"repetition\":1}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-suffix-after-output\",\"atMs\":116.992375,\"detail\":{\"repetition\":1}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"semantic-watchdog-cleared\",\"atMs\":118.357916,\"detail\":{\"timerId\":1}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"semantic-watchdog-armed\",\"atMs\":118.932875,\"detail\":{\"timerId\":2,\"milliseconds\":15000,\"armedMs\":118.929416,\"dueMs\":15118.929416}}\n# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 1\nok 1 - output-acknowledged prefix delivery (native explicitly line-buffered) 1\n  ---\n  duration_ms: 18.711042\n  type: 'test'\n  ...\nHARNESS_TIMING {\"pid\":91254,\"event\":\"native-delivery\",\"atMs\":128.926791,\"detail\":{\"repetition\":2,\"argv\":[\"--no-config\",\"--line-buffered\",\"foo\",\"-\"],\"profile\":\"observed-prefix\",\"pid\":91286,\"code\":0,\"signal\":null,\"stdout\":\"foo\\nbinary file matches (found \\\"\\\\0\\\" byte around offset 4)\\n\",\"stderr\":\"\",\"events\":[{\"event\":\"launch\",\"ms\":0.05570799999999565,\"detail\":{\"argv\":[\"--no-config\",\"--line-buffered\",\"foo\",\"-\"],\"profile\":\"observed-prefix\",\"options\":{\"lineBuffered\":true}}},{\"event\":\"timer-armed\",\"ms\":1.7978329999999971,\"detail\":{\"timerId\":1,\"label\":\"readiness\",\"milliseconds\":10000,\"armedMs\":1.7954999999999899,\"dueMs\":10001.7955}},{\"event\":\"spawn\",\"ms\":2.2048329999999936,\"detail\":{\"pid\":91286}},{\"event\":\"write\",\"ms\":2.2138750000000016,\"detail\":{\"hex\":\"666f6f0a\",\"end\":false}},{\"event\":\"stdout-data\",\"ms\":9.408540999999985,\"detail\":{\"hex\":\"666f6f0a\"}},{\"event\":\"prefix-consumption-evidenced\",\"ms\":9.423708000000005,\"detail\":\"stdout is evidence of prior read; not a read syscall timestamp\"},{\"event\":\"ready\",\"ms\":9.424165999999985},{\"event\":\"timer-cleared\",\"ms\":9.433540999999991,\"detail\":{\"timerId\":1}},{\"event\":\"timer-armed\",\"ms\":9.436707999999982,\"detail\":{\"timerId\":2,\"label\":\"completion\",\"milliseconds\":10000,\"armedMs\":9.434957999999995,\"dueMs\":10009.434958}},{\"event\":\"write\",\"ms\":9.446875000000006,\"detail\":{\"hex\":\"000a6e6f0a\",\"end\":true}},{\"event\":\"stdin-close\",\"ms\":9.544707999999986},{\"event\":\"stdout-data\",\"ms\":9.553374999999988,\"detail\":{\"hex\":\"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a\"}},{\"event\":\"stderr-end\",\"ms\":9.771832999999987},{\"event\":\"stdout-end\",\"ms\":9.789500000000004},{\"event\":\"stdout-close\",\"ms\":9.900416000000007},{\"event\":\"stderr-close\",\"ms\":9.901457999999991},{\"event\":\"exit\",\"ms\":9.914083000000005,\"detail\":{\"code\":0,\"signal\":null}},{\"event\":\"timer-cleared\",\"ms\":9.920165999999995,\"detail\":{\"timerId\":2}},{\"event\":\"timer-armed\",\"ms\":9.92349999999999,\"detail\":{\"timerId\":3,\"label\":\"cleanup\",\"milliseconds\":5000,\"armedMs\":9.922207999999983,\"dueMs\":5009.922208}},{\"event\":\"close\",\"ms\":9.928915999999987,\"detail\":{\"code\":0,\"signal\":null}},{\"event\":\"timer-cleared\",\"ms\":9.930499999999995,\"detail\":{\"timerId\":3}}],\"ready\":true,\"actualClose\":true,\"closeObserved\":true,\"ownedListenersRemaining\":0,\"streamsDestroyed\":[true,true,true],\"activeTimers\":0}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-entered-read\",\"atMs\":133.552208,\"detail\":{\"repetition\":2}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-first-data\",\"atMs\":133.842791,\"detail\":{\"repetition\":2}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-suffix-after-output\",\"atMs\":133.895,\"detail\":{\"repetition\":2}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"semantic-watchdog-cleared\",\"atMs\":135.018166,\"detail\":{\"timerId\":2}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"semantic-watchdog-armed\",\"atMs\":135.151833,\"detail\":{\"timerId\":3,\"milliseconds\":15000,\"armedMs\":135.150041,\"dueMs\":15135.150041}}\n# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 2\nok 2 - output-acknowledged prefix delivery (native explicitly line-buffered) 2\n  ---\n  duration_ms: 16.195375\n  type: 'test'\n  ...\nHARNESS_TIMING {\"pid\":91254,\"event\":\"native-delivery\",\"atMs\":145.182166,\"detail\":{\"repetition\":3,\"argv\":[\"--no-config\",\"--line-buffered\",\"foo\",\"-\"],\"profile\":\"observed-prefix\",\"pid\":91302,\"code\":0,\"signal\":null,\"stdout\":\"foo\\nbinary file matches (found \\\"\\\\0\\\" byte around offset 4)\\n\",\"stderr\":\"\",\"events\":[{\"event\":\"launch\",\"ms\":0.05595800000000395,\"detail\":{\"argv\":[\"--no-config\",\"--line-buffered\",\"foo\",\"-\"],\"profile\":\"observed-prefix\",\"options\":{\"lineBuffered\":true}}},{\"event\":\"timer-armed\",\"ms\":1.536625000000015,\"detail\":{\"timerId\":1,\"label\":\"readiness\",\"milliseconds\":10000,\"armedMs\":1.5344169999999906,\"dueMs\":10001.534417}},{\"event\":\"spawn\",\"ms\":1.8968749999999943,\"detail\":{\"pid\":91302}},{\"event\":\"write\",\"ms\":1.9025829999999928,\"detail\":{\"hex\":\"666f6f0a\",\"end\":false}},{\"event\":\"stdout-data\",\"ms\":9.396582999999993,\"detail\":{\"hex\":\"666f6f0a\"}},{\"event\":\"prefix-consumption-evidenced\",\"ms\":9.411957999999998,\"detail\":\"stdout is evidence of prior read; not a read syscall timestamp\"},{\"event\":\"ready\",\"ms\":9.412458000000015},{\"event\":\"timer-cleared\",\"ms\":9.420041999999995,\"detail\":{\"timerId\":1}},{\"event\":\"timer-armed\",\"ms\":9.424042000000014,\"detail\":{\"timerId\":2,\"label\":\"completion\",\"milliseconds\":10000,\"armedMs\":9.421625000000006,\"dueMs\":10009.421625}},{\"event\":\"write\",\"ms\":9.435417000000001,\"detail\":{\"hex\":\"000a6e6f0a\",\"end\":true}},{\"event\":\"stdin-close\",\"ms\":9.517333000000008},{\"event\":\"stdout-data\",\"ms\":9.526292000000012,\"detail\":{\"hex\":\"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a\"}},{\"event\":\"stderr-end\",\"ms\":9.81966700000001},{\"event\":\"stderr-close\",\"ms\":9.856124999999992},{\"event\":\"stdout-end\",\"ms\":9.867416999999989},{\"event\":\"exit\",\"ms\":9.918499999999995,\"detail\":{\"code\":0,\"signal\":null}},{\"event\":\"timer-cleared\",\"ms\":9.920582999999993,\"detail\":{\"timerId\":2}},{\"event\":\"timer-armed\",\"ms\":9.923167000000007,\"detail\":{\"timerId\":3,\"label\":\"cleanup\",\"milliseconds\":5000,\"armedMs\":9.921875,\"dueMs\":5009.921875}},{\"event\":\"close\",\"ms\":9.982583000000005,\"detail\":{\"code\":0,\"signal\":null}},{\"event\":\"timer-cleared\",\"ms\":9.984125000000006,\"detail\":{\"timerId\":3}},{\"event\":\"stdout-close\",\"ms\":10.007875000000013}],\"ready\":true,\"actualClose\":true,\"closeObserved\":true,\"ownedListenersRemaining\":0,\"streamsDestroyed\":[true,true,true],\"activeTimers\":0}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-entered-read\",\"atMs\":150.969208,\"detail\":{\"repetition\":3}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-first-data\",\"atMs\":151.240416,\"detail\":{\"repetition\":3}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"virtual-suffix-after-output\",\"atMs\":151.28275,\"detail\":{\"repetition\":3}}\nHARNESS_TIMING {\"pid\":91254,\"event\":\"semantic-watchdog-cleared\",\"atMs\":152.425916,\"detail\":{\"timerId\":3}}\n# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 3\nok 3 - output-acknowledged prefix delivery (native explicitly line-buffered) 3\n  ---\n  duration_ms: 17.353875\n  type: 'test'\n  ...\n# Subtest: whole-write delivery retains the distinct warning-only native result\nok 4 - whole-write delivery retains the distinct warning-only native result\n  ---\n  duration_ms: 25.403709\n  type: 'test'\n  ...\n# Subtest: binary-aware output respects backpressure before another read\nok 5 - binary-aware output respects backpressure before another read\n  ---\n  duration_ms: 25.869209\n  type: 'test'\n  ...\n# Subtest: binary-aware output cancels under backpressure before another read\nok 6 - binary-aware output cancels under backpressure before another read\n  ---\n  duration_ms: 27.411167\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 132.749125\n",
+  "stderr": ""
+}

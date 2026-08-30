@@ -1,0 +1,179 @@
+{
+  "classification": "AUTHENTICATED_SEALED_DATA_INSPECTOR_FAILURE_HISTORY_ONLY",
+  "handoffCheckpoint": "One bounded checkpoint; failure notice present; no waiting or subsequent packet polling.",
+  "presealCommit": "a59ac90a60ebdf3e87eb17814e7718b8177c125c",
+  "evidenceCommit": "90a633e89d35085183a1d57716451438335b93f3",
+  "finalSealSha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+  "dataPresealSha256": "665962b00ee3bd745296eff0f36e00a08db98cb82f75abd67b425edc68dda664",
+  "presealFilesUnchanged": 4,
+  "packetFilesAuthenticated": 13,
+  "entries": [
+    {
+      "path": "BINDING-SPEC.md",
+      "sha256": "c94883c42c25a6ef5c2c6fc391840e3ee1684c1a01dee970c21a3fa8e561b375",
+      "bytes": 8997,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "16687eaeeed53bf8497026b6e34d1ad6fecea2b1"
+    },
+    {
+      "path": "DATA-PRESEAL.json",
+      "sha256": "665962b00ee3bd745296eff0f36e00a08db98cb82f75abd67b425edc68dda664",
+      "bytes": 1780,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "735bfb4c0ddbbcfd0bd8d3354f412818393f2a28"
+    },
+    {
+      "path": "FAILURE-DIAGNOSTIC.json",
+      "sha256": "a32a9b2d6dd5b92181488bb42ad8ff4a9dc34696615fa0f6e77da243f6995d42",
+      "bytes": 1506,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "e8b87305d311d9a8f6747f51981d97ab91572ab5"
+    },
+    {
+      "path": "FAILURE.md",
+      "sha256": "ea37224070e8e2ced9127f94b28a3a0e9b5eaf8b48508737747f0203c49be6a8",
+      "bytes": 3521,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "b789a52b690ba3cd7da470146b389fd648d9a23e"
+    },
+    {
+      "path": "INSPECTION-PLAN.md",
+      "sha256": "05c78ccc8f0f0b4944bcb9762865ef7582125632b339ba07423d05e7eb897d88",
+      "bytes": 3592,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "9cc3eefa307a50a97089f2724dd7838784270278"
+    },
+    {
+      "path": "README.md",
+      "sha256": "a4b353b8cc7322b302411049ab92be70cd0582a51374c0c7ce2fd25b5c02ed69",
+      "bytes": 1836,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "3527497d567d7ef7ca25e3f105583cd2ad713b91"
+    },
+    {
+      "path": "REBINDING-PROPOSAL.pending.json",
+      "sha256": "c91f2348e70322d89fa6f3dda7cada35a5cdfe062ac9f95de06881082d55b033",
+      "bytes": 6965,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "97dfe26198fdca99c4b2a0bcbb8917e0b1723185"
+    },
+    {
+      "path": "SOURCE-OBSERVATIONS.md",
+      "sha256": "1443707a3aa13abe8568f4b4e3432ecfa82fc665df930915496ecfb94ae9e67e",
+      "bytes": 4683,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "93b6e27e3a5c66c5cca89588bcd7a1c308c2b4ae"
+    },
+    {
+      "path": "STATIC-CAPTURE.json",
+      "sha256": "96d475ba1805ca8b1c5ad1826a069c0ebd302b66cb1fb37a520ecc1a1c6b2de4",
+      "bytes": 1663,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "2ae511adf44af1bc20d17ac08f87724d8695ff73"
+    },
+    {
+      "path": "STATUS.json",
+      "sha256": "cd512930edf3b4b2e3f205ddc98d5ff4f08cf8cb187ab43bfbd119ae8c8a6806",
+      "bytes": 2174,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "2b74611916d1da9e6496885cbedc92718e51d233"
+    },
+    {
+      "path": "TOOLCHAIN-ROLES.pending.json",
+      "sha256": "622e832940afda9cfe90d07dc504be1558b21349bbe842db61ef76f7761fb2ba",
+      "bytes": 3806,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "6dc88f4ea751a43c633a36bd087ae681a3f1fd45"
+    },
+    {
+      "path": "inspect-data.mjs",
+      "sha256": "88e84e21e2ed3359beeeb0aac985b00ece0f2ea2f2724aa484508bc5a3f29453",
+      "bytes": 31676,
+      "mode": 420,
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "d310a687f06a21ae409c8e349648027653011c80"
+    }
+  ],
+  "diagnostic": {
+    "schema": 1,
+    "classification": "OWN_STATIC_INSPECTOR_GIT_MODE_ASSUMPTION_FAILURE_NOT_PRODUCT_FINDING",
+    "capture": "STATIC-CAPTURE.json",
+    "failedCondition": "actual POSIX mode384 equals parseInt(Git mode100644,8)&4095 =420",
+    "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/COMPOUND-RESULT.json",
+    "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+    "gitBlob": "b2f438c6dac6d04ed1c2b71947cbb8ffc04256d8",
+    "gitMode": "100644",
+    "actualMode": 384,
+    "bytes": 64460,
+    "sha256": "f70f554c513e6a52c45496cf515c20cd796591c37e5eea2aa155e32fbac9f8a8",
+    "singleEntryByteEqualCommitted": true,
+    "originalSeal": {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/FINAL-SEAL.json",
+      "sha256": "c1d91e34da93ba6ee547e5d6fc9647ca7116bfbbcc731afda51a13790ac07321",
+      "matchingEntry": {
+        "path": "raw-compound/COMPOUND-RESULT.json",
+        "kind": "file",
+        "sha256": "f70f554c513e6a52c45496cf515c20cd796591c37e5eea2aa155e32fbac9f8a8",
+        "bytes": 64460,
+        "mode": 384
+      }
+    },
+    "diagnosticScope": "Single failure entry only; no restarted inspector, archive scan or full historical before/after result",
+    "correction": "Future new preseal: compare Git blob/type/executable bit, POSIX modes against original exact seals and complete before/after snapshot. No chmod, omission or weakened candidate archive modes.",
+    "correctedInspector": null,
+    "retryCount": 0
+  },
+  "rawHistoricalCapture": {
+    "role": "OWN_STATIC_DATA_INSPECTOR_NOT_PRODUCT_OR_HARNESS_COHORT",
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs",
+      "665962b00ee3bd745296eff0f36e00a08db98cb82f75abd67b425edc68dda664"
+    ],
+    "startedAt": "2026-08-28T11:17:07.729Z",
+    "elapsedMs": 922,
+    "exit": 1,
+    "signal": null,
+    "error": null,
+    "reaped": true,
+    "stdout": "",
+    "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n384 !== 420\n\n    at snapshotHistory (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs:120:167)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs:161:62\n    at Array.map (<anonymous>)\n    at main (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs:161:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs:225:7\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 384,\n  expected: 420,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+  },
+  "independentConclusion": "Git normalized regular mode100644 does not require exact POSIX0644; the original seal explicitly records0600 for this old data file, and its committed bytes match. This supports the inspector-assumption diagnosis, not a candidate mutation finding. No historical live-tree resnapshot or inspector rerun occurred.",
+  "rawExitPreserved": 1,
+  "scopeLimit": "Only failure packet and single historical failure-entry binding authenticated. New candidate artifacts, five-file delta, source maps,271/273/870 maps and receipts remain unverified. SOURCE-OBSERVATIONS and pending proposals were hash-authenticated only; no candidate body inspection or adoption.",
+  "candidateSourceExpectedOnly": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "candidateEvidenceExpectedOnly": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "candidateHandoffExpectedOnly": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "candidateArchiveExpectedOnly": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+  "candidatePackageExpectedOnly": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "noModeChangesOrDroppedEntries": true,
+  "newCandidateAdmission": false,
+  "newControlRuntimeProductExecutions": 0,
+  "newPasses": 0,
+  "requiredRoute": "Additive corrected static data preseal and exact candidate receipt, preserving failed original evidence; separately routed candidate binding before fresh GO. No product fix proposed."
+}

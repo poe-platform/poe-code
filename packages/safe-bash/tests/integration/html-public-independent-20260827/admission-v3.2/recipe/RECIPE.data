@@ -1,0 +1,119 @@
+AUTHORITY DATE 2026-08-27 / v3.2 isolated HARNESS overlay
+
+Ownership: only NEW admission-v3.2/**. This is the delegated substantive author,
+not a root coordinator. No product/config/package/AGENTS/private-repo writes.
+All HTML34/candidate/archive/materializer/build/pack/full-gate work HELD.
+TAP is Dirac-owned and is not executed. Expr26 remains queued after admission,
+Raman and HTML34. Route results through root to Raman, not a direct channel.
+
+One freeze commit precedes ALL synthetic and actual control runtime. Preparation
+only authenticates Git/file/tool bytes, writes copied overlay inputs, parses JSON,
+and runs node --check. One invocation follows the freeze. No retries, no post-run
+recipe edits. A second commit seals evidence. Existing v2/v3/v3.1 stay unchanged.
+
+FIVE TERMINAL ASSUMPTIONS, ASSESSED BEFORE FREEZE
+positive: complete drain permits natural producer 0/null and consumer 0/null.
+producer-exit7: complete drain permits natural producer 7/null; STREAM_PROCESS
+must encode that exact terminal outcome and remain the forwarded failure.
+consumer-failure: unchanged v3.1 caller identity/token/actual stdout errorMonitor
+and uncaughtExceptionMonitor predicate; its narrowly proven EPIPE alternative
+is NOT granted to any other control. The original 28 synthetic cases are copied
+byte-identically. No global producer error handling changes.
+timeout: throwing in the blocked consume callback closes the async iterator's
+pipe before core catch signals the producer. That race cannot justify SIGTERM.
+allocation-mutant: its controlled abort has the same ordering race. It also
+requires a real touched allocation boundary and an actual supervisor kill.
+
+ORDERING DELTA ONLY FOR TWO CONTROLLED ABORTS
+The overlay captures the actual ChildProcess through a worker-local spawn hook,
+as the existing consumer observer already does, without modifying core.mjs.
+While consumption remains blocked and stdout is owned/open, send SIGTERM through
+that child handle. Await exit (Node has closed its process handle at exit), THEN
+destroy the owned stdout, await child close, then throw the original boundary
+error object. Record all stages plus actual exit/close status and object identity.
+Do not await child close while leaving already-touched unread stdout open: close
+depends on stdio closure and can deadlock. The chosen sequence waits process exit
+first, not a PID-absence polling loop, then completes pipe cleanup before throw.
+The pinned Node internal/child_process source hash is in PREFLIGHT.json.
+No guarantee against hostile external process intervention is invented. Wrong
+terminal results still fail strictly. Producer SIGTERM receipt alone is not proof:
+actual ChildProcess exit/close and core.process must match. Errors/timeouts in
+ordered cleanup are unsafe STOP, never semantic waivers.
+
+LIMITS AND BOUNDARIES
+All PIN.policy values, fixture and complete core bytes remain unchanged. Consumer
+absolute CURRENT sampled RSS must remain strictly below 268435456 for positive;
+no baseline subtraction, no threshold increase. Producer/supervisor metrics stay
+separate. Consumer heap flag stays --max-old-space-size=96. Fixture remains
+1073872896 bytes, 16386 writes; negative controls consume a proper prefix.
+Allocation retains touched 8388608-byte Buffers, one supervised allocation at a
+time, at most 40. At >=268435456, stop further allocation; ordered SIGTERM/reap of
+producer precedes exact V3_RSS_LIMIT and durable consumer receipt; supervisor then
+actually SIGTERMs the still-owned consumer. The existing overshoot ceiling remains.
+Both controlled stop stages share the existing 3000ms cleanup grace. Overall
+supervisor control deadline remains 45000ms; existing TERM then KILL grace is now
+followed by an explicit terminal bound at deadline + two cleanup graces. No
+unbounded await of child close remains in the supervisor. Native ps probes have
+their existing bounded 10000ms calls and may delay timer dispatch; this is not a
+hard real-time guarantee. Missing final closure proof is an unsafe STOP even if
+later cleanup happens. No post-exit signal targets a stale recorded leader PID;
+group emergency signals require a still-owned non-exited child leader and record
+current group membership. Lost ownership is reported unsafe, never assumed reaped.
+
+AGGREGATION DELTA
+Persist raw receipts before assertions. Then independently authenticate the
+frozen recipe/tool/history bindings and all 78 live v3.1 files; require valid
+numeric receipts, observed worker exit/close, core's producer-close result,
+both observed PIDs absent, empty process group, completed owned cleanup.
+Only after this safety proof can an ordinary semantic assertion failure permit
+the NEXT independent control. Such failure permanently keeps aggregate exit 1.
+Cleanup/integrity/missing proof stops the cohort. All five real controls are
+planned in one invocation; allocation is not hidden behind ordinary assertion
+failure. Failed predicates are neither rerun nor rescored.
+Ordinary synthetic/forwarding expectation failures also keep aggregate exit1
+without suppressing safe real controls; forwarding physical safety failure stops.
+
+FROZEN FORWARDING CONTROLS
+Six small actual supervised cohorts use the same aggregation/safety functions:
+ordinary failure followed by marker after reap; TERM-ignoring child forced KILL
+then unsafe cleanup stop; private test-binding corruption stops marker; missing
+receipt stops; reap-proof omission after actual successful reap stops; exact
+reason loss despite exit0 fails while later marker runs and aggregate remains1.
+These create eight actual small child executions if all expectations hold.
+They are not the five stream controls. Their physical reap/recipe integrity must
+hold even when a test deliberately invalidates its private proof. A real physical
+cleanup or real recipe integrity failure stops subsequent controls.
+Eight constructed ordered-predicate controls retain two strict accepts and reject
+six failures: lost timeout/RSS reason, wrong timeout/RSS terminal, lost identity,
+and early pipe close. These are synthetic, not actual producer executions.
+All original 28 consumer terminal controls remain byte-identical (2 accept,
+26 reject); their observed outcomes are not adapted.
+
+ONE EXECUTION (from repository root, after committed recipe freeze)
+owned=tests/integration/html-public-independent-20260827/admission-v3.2
+freeze=<exact first commit>
+manifest=<SHA256 of recipe/MANIFEST.json>
+set -o noclobber
+env -u NODE_OPTIONS -u NODE_PATH /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node \
+  "$owned/recipe/coordinator.mjs" "$freeze" "$manifest" "$owned/execution-01" \
+  > "$owned/execution-01.stdout.data" 2> "$owned/execution-01.stderr.data"
+Record shell exit once in LAUNCH-RESULT.json. Output must not already exist.
+Scratch HOME/TMPDIR are case-local, derived from the output root, not historical
+absolute scratch. Host Node/OS/tool pins intentionally remain nonportable.
+
+HISTORY IS NOT REPAIRED
+v3.1 freeze2461f905416b7260ff02742af87fba8bc31c2977;
+recipeSHA0974e68b90790ff10296997e0c03c9f3883b87a0e7ec4d68e5fed4ef57cbe4a3.
+v3.1 evidence80c402da10314ccbca5fdd4a3832ef32049e3950;
+manifestSHAd2adbd44b2ab241c04fa1523ea18ee7d0350a3ad0c5c12e503f936444fb0eba2.
+Its 28 expected synthetic outcomes, 3 expected real, 1 strict timeout failure,
+1 unexecuted mutant remain HOLD. Timeout stderr EPIPE text is NOT structured
+proof. v3 remains 3 executed/2 expected/1 failure/2 unrun. Original v2 numeric RSS
+unrecoverable/cause UNKNOWN; original frozen raw rejection missing. Three v2
+development failures and v3/v3.1 static mistakes are retained, not retro-fixed.
+Raman diagnosis e579a96ca8889174b24d9c805a00a1f3d48305e2 stays an input.
+Candidate aff899aa94ed0c57a936b08fd36d185688f5c0bb, source
+28cf1518eb3e1a27c5439ba89ff1801e3f852c3b and full-pack SHA
+d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7 are PROVENANCE ONLY.
+This scoped harness cannot establish HTML34, service acceptance, full admission,
+full gate, superiority, or 72 hours of work.

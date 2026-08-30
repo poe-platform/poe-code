@@ -1,0 +1,112 @@
+{
+  "schema": "user-command-priorities-source-audit-v1",
+  "date": "2026-08-28",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "package": "virtual-bash",
+  "observedHead": "00bb4765459176dafc4b5c77fc97d2630c46a689",
+  "method": "Read source and sealed evidence metadata only; no product, native, compiler, build, private engine or gate execution",
+  "statistics": {
+    "authority": "USER_PROVIDED_NOT_INDEPENDENTLY_VERIFIED",
+    "rawTable": "sed33218424.60%;rg14700010.89%;git1178978.73%;printf1070737.93%;npm720005.33%;nl592624.39%;cat573314.25%;node424603.15%;head395582.93%;apply_patch344472.55%;echo308122.28%;find260851.93%;tail255401.89%;ls215851.60%;npx205141.52%",
+    "exactExclusion": "without the npm stuff",
+    "interpretation": "Exclude npm/npx PRODUCT commands only; retain product node and curl and npm/Node/TypeScript development/oracle tooling",
+    "rows": [
+      { "command": "sed", "count": 332184, "share": "24.60%", "productPriority": true },
+      { "command": "rg", "count": 147000, "share": "10.89%", "productPriority": true },
+      { "command": "git", "count": 117897, "share": "8.73%", "productPriority": true },
+      { "command": "printf", "count": 107073, "share": "7.93%", "productPriority": true },
+      { "command": "npm", "count": 72000, "share": "5.33%", "productPriority": false },
+      { "command": "nl", "count": 59262, "share": "4.39%", "productPriority": true },
+      { "command": "cat", "count": 57331, "share": "4.25%", "productPriority": true },
+      { "command": "node", "count": 42460, "share": "3.15%", "productPriority": true },
+      { "command": "head", "count": 39558, "share": "2.93%", "productPriority": true },
+      { "command": "apply_patch", "count": 34447, "share": "2.55%", "productPriority": true },
+      { "command": "echo", "count": 30812, "share": "2.28%", "productPriority": true },
+      { "command": "find", "count": 26085, "share": "1.93%", "productPriority": true },
+      { "command": "tail", "count": 25540, "share": "1.89%", "productPriority": true },
+      { "command": "ls", "count": 21585, "share": "1.60%", "productPriority": true },
+      { "command": "npx", "count": 20514, "share": "1.52%", "productPriority": false }
+    ],
+    "separateRequirement": { "command": "curl", "exactQuote": "i also need curl", "count": null, "share": null, "productPriority": true }
+  },
+  "inventory": {
+    "defaultMeaning": "Installed by .use(agentCommands()), not automatic bare-Shell builtin registration",
+    "registration": "src/plugins/index.ts:61",
+    "rows": [
+      { "command": "sed", "status": "default", "source": "src/commands/text-programs/sed.ts:347", "family": "textProgramCommands" },
+      { "command": "rg", "status": "default", "source": "src/commands/search/rg.ts:120", "family": "searchCommands" },
+      { "command": "git", "status": "missing", "source": null, "qualification": "Host development Git is not a product command" },
+      { "command": "printf", "status": "default", "source": "src/commands/basic.ts:52", "family": "standardCommands" },
+      { "command": "nl", "status": "default", "source": "src/commands/stream-format/nl.ts:29", "family": "streamFormatCommands" },
+      { "command": "cat", "status": "default", "source": "src/commands/streams.ts:191", "family": "standardCommands" },
+      { "command": "node", "status": "missing", "source": null, "qualification": "Optional injected SafeJS is not Node compatibility" },
+      { "command": "head", "status": "default", "source": "src/commands/streams.ts:110", "family": "standardCommands" },
+      { "command": "apply_patch", "status": "missing", "source": null, "qualification": "Existing diff/patch and agent editing tools are different protocols" },
+      { "command": "echo", "status": "default", "source": "src/commands/basic.ts:8", "family": "standardCommands" },
+      { "command": "find", "status": "default", "source": "src/commands/find.ts:25", "family": "standardCommands" },
+      { "command": "tail", "status": "default", "source": "src/commands/streams.ts:110", "family": "standardCommands" },
+      { "command": "ls", "status": "default", "source": "src/commands/filesystem.ts:309", "family": "standardCommands" },
+      { "command": "curl", "status": "opt-in", "source": "src/commands/network/curl.ts:73", "family": "networkCommands", "qualification": "Explicit authorization; VFS byte I/O; not ambient network or DNS confinement" }
+    ],
+    "counts": { "requestedDefault": 10, "requestedMissing": 3, "separateOptIn": 1 },
+    "noNewRuntimeExecution": true,
+    "detailReport": "docs/COMMAND_PRIORITIES.md"
+  },
+  "acceptedCoherent78": {
+    "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+    "evidenceCommit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+    "report": "tests/integration/coherent78-shell-independent-20260828/REPORT.md",
+    "evidence": "tests/integration/coherent78-shell-independent-20260828/EVIDENCE.json",
+    "encodedSourceTable": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+    "encodedSourceTableSha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+    "sourceInputCount": 268,
+    "archivedReconstructedTreeCount": 13,
+    "compositionObjectLocallyStored": false,
+    "packageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+    "installedManifestSha256": "484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d",
+    "packageFiles": 858,
+    "packageBytes": 759089,
+    "qualification": "Historical independent composition proof; this audit compares selected source metadata only, not a full dependency closure, reconstruction or execution"
+  },
+  "selectedSourceComparisons": [
+    { "path": "package.json", "currentAndAcceptedSha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12", "match": true },
+    { "path": "src/index.ts", "currentAndAcceptedSha256": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472", "match": true },
+    { "path": "src/plugins/index.ts", "currentAndAcceptedSha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751", "match": true },
+    { "path": "src/commands/index.ts", "currentAndAcceptedSha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9", "match": true },
+    { "path": "src/commands/basic.ts", "currentAndAcceptedSha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f", "match": true },
+    { "path": "src/commands/streams.ts", "currentAndAcceptedSha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d", "match": true },
+    { "path": "src/commands/filesystem.ts", "currentAndAcceptedSha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f", "match": true },
+    { "path": "src/commands/find.ts", "currentAndAcceptedSha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2", "match": true },
+    { "path": "src/commands/text-programs/sed.ts", "currentAndAcceptedSha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9", "match": true },
+    { "path": "src/commands/search/rg.ts", "currentAndAcceptedSha256": "1c38e14b811a46795af958a99b9fae6b02b415b6ff8363e5755ecd15bfdd9d5f", "match": true },
+    { "path": "src/commands/stream-format/nl.ts", "currentAndAcceptedSha256": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e", "match": true },
+    { "path": "src/commands/network/curl.ts", "currentAndAcceptedSha256": "22feaa13f6127cb94f3ad9f928a245d6592aff0432ba0ee35fc57804f8692dce", "match": true },
+    { "path": "src/commands/network/body.ts", "currentAndAcceptedSha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880", "match": true },
+    { "path": "src/commands/safejs/index.ts", "currentAndAcceptedSha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb", "match": true },
+    { "path": "src/shell/runtime.ts", "currentSha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd", "acceptedSha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3", "match": false }
+  ],
+  "sourceDocumentDiscrepancy": {
+    "document": "src/commands/search/README.md:192",
+    "actualSource": "src/commands/search/glob.ts:12",
+    "finding": "Historical host-glob limitation is stale: current matching calls RegexSession.run with a glob descriptor; this does not establish universal regex safety",
+    "moduleDocumentationEdited": false
+  },
+  "nextWork": {
+    "status": "PROPOSAL_NOT_IMPLEMENTATION_AUTHORIZATION",
+    "highestFrequencyMissing": "git",
+    "firstScope": "Read-only VFS repository/index reader; real rev-parse and ls-files semantics with explicit unsupported-format refusals; status/diff follow only with necessary object/index support",
+    "possibleOwnedPaths": ["src/commands/git/**", "tests/commands/git/**"],
+    "otherPriorities": ["sed/rg targeted workflow and option gaps", "distinct VFS apply_patch protocol", "explicit Node compatibility design without substituting SafeJS"],
+    "restrictions": ["zero runtime dependencies", "TypeScript", "no host subprocess/eval/native fallback", "no implicit host paths or credentials", "different-agent verification before public acceptance"]
+  },
+  "historicalGateUnchanged": {
+    "evidence": "c23a8de8/55d9bb1a",
+    "passes": 19425,
+    "failures": 132,
+    "skips": 7,
+    "phases": "6/14",
+    "integrity": false,
+    "cleanup": false,
+    "rescored": false
+  }
+}

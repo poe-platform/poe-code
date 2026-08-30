@@ -1,0 +1,18 @@
+{
+  "candidate": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+  "parent": "219790c55c0214e6d46524bbdced63c18c360f62",
+  "sourceTree": "2cdf194035e4833341b3cd66e2b6a945d50b7499",
+  "classification": "Opt-in author replay of the author's canonical suite; NOT independent holdouts or a full gate",
+  "startedAt": "2026-08-27T16:29:44.395Z",
+  "node": "v22.22.2",
+  "steps": [],
+  "harness": {
+    "verify.mjs": "e9b538a32542ee62869af0d08aae33fb7188ffd890d43472729ccbdcd997a968",
+    "offline.mjs": "77b425ca04d9b3d82b952fb1cbf97c9ae693a0703f8d9c50952a7a999b2a5f38"
+  },
+  "success": false,
+  "error": "Error: spawnSync git ENOBUFS",
+  "integrity": "Complete before/after inventories re-enumerate names, directories, modes and file hashes: additions, deletions and changes detected. Snapshot excludes only generated dist/node_modules; installed package has no exclusions. No claim about arbitrary concurrent mutation during execution.",
+  "scratchRemoved": true,
+  "finishedAt": "2026-08-27T16:29:44.445Z"
+}

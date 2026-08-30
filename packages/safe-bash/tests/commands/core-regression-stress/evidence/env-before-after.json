@@ -1,0 +1,593 @@
+{
+  "temporary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-env-independent-Aj2rvR",
+  "reports": {
+    "before": {
+      "revision": "bdaaf50b3eccdd261349c1f32c19407fa348a64f",
+      "archiveSha256": "65cbef281560f415c5bf1a6c32867cf16de231faa925902c5a62770e6b3a86a6",
+      "exitCode": 1,
+      "capturedAt": "2026-08-27T03:08:56.983Z",
+      "source": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-env-independent-Aj2rvR/before",
+      "node": "v22.22.2",
+      "sourceHashes": {
+        "src/shell/runtime.ts": "e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a",
+        "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+        "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+        "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+        "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+      },
+      "nativeSource": {
+        "path": "tests/shell-stress/env-replacement/native-frozen.json",
+        "sha256": "b8a1581da898bd609011b681ad5f4e8cb8e5b64edbb3e4b48c3083b7a77c78d9",
+        "envTool": {
+          "path": "/usr/bin/env",
+          "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+          "role": "Apple system env in BOTH Bash profiles, not GNU coreutils env; outer PATH=/usr/bin:/bin. Bare env after -i uses system default search, not a profile symlink."
+        }
+      },
+      "totals": {
+        "cases": 18,
+        "pass": 9,
+        "fail": 9
+      },
+      "observed": [
+        {
+          "id": "entry-order-raw-control",
+          "expected": {
+            "stdout": "QT0xCkI9Mgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "work/": null
+            }
+          },
+          "actual": {
+            "stdout": "Qj0yCkE9MQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "work/": null
+            }
+          },
+          "pass": false,
+          "profile": "UNCHANGED Apple env order under GNU Bash5.3; not the approved GNU coreutils env ordering profile"
+        },
+        {
+          "id": "sink-forward/omitted/implicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": true
+        },
+        {
+          "id": "sink-forward/omitted/explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 2,
+            "output": "1234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/omitted/nested-explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/false/implicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": true
+        },
+        {
+          "id": "sink-forward/false/explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 2,
+            "output": "1234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/false/nested-explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/true/implicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": true
+        },
+        {
+          "id": "sink-forward/true/explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 2,
+            "output": "1234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/true/nested-explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "shared-budget-dispatch-witnesses/maxOutputBytes",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes"
+          },
+          "actual": {
+            "calls": 2,
+            "output": "1234",
+            "limit": "maxOutputBytes"
+          },
+          "pass": false
+        },
+        {
+          "id": "distinct-pipeline-writes/7",
+          "actual": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes"
+          },
+          "expected": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes"
+          },
+          "pass": true
+        },
+        {
+          "id": "distinct-pipeline-writes/8",
+          "actual": {
+            "calls": 1,
+            "output": "1234",
+            "limit": null
+          },
+          "expected": {
+            "calls": 1,
+            "output": "1234",
+            "limit": null
+          },
+          "pass": true
+        },
+        {
+          "id": "repeated-identical-buffer/freshSink=false",
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes"
+          },
+          "pass": true
+        },
+        {
+          "id": "repeated-identical-buffer/freshSink=true",
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes"
+          },
+          "pass": true
+        },
+        {
+          "id": "minimal-one-write/omitted",
+          "expected": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "actual": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "pass": true
+        },
+        {
+          "id": "minimal-one-write/same-sink",
+          "expected": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "actual": {
+            "output": "",
+            "error": "ShellLimitError",
+            "limit": "maxOutputBytes"
+          },
+          "pass": false
+        },
+        {
+          "id": "minimal-one-write/new-sink",
+          "expected": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "actual": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "pass": true
+        }
+      ],
+      "interpretation": "Shared output budget is cumulative write-boundary accounting, not only final visible bytes. Identity-transparent forwarding should match omitted sinks; repeated payloads and real pipeline stages remain separate charges. Existing Budget.sink precharges before downstream success. No runtime change or content-based deduplication made."
+    },
+    "after": {
+      "revision": "954f2302e4b2f42f90cb5ffd5670d1936f47390c",
+      "archiveSha256": "55be6daf90adce7fce5cc8fa120d124678ef48bdd94c5933d53eb46c4e62722a",
+      "exitCode": 1,
+      "capturedAt": "2026-08-27T03:08:57.293Z",
+      "source": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-env-independent-Aj2rvR/after",
+      "node": "v22.22.2",
+      "sourceHashes": {
+        "src/shell/runtime.ts": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+        "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+        "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+        "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+      },
+      "nativeSource": {
+        "path": "tests/shell-stress/env-replacement/native-frozen.json",
+        "sha256": "b8a1581da898bd609011b681ad5f4e8cb8e5b64edbb3e4b48c3083b7a77c78d9",
+        "envTool": {
+          "path": "/usr/bin/env",
+          "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+          "role": "Apple system env in BOTH Bash profiles, not GNU coreutils env; outer PATH=/usr/bin:/bin. Bare env after -i uses system default search, not a profile symlink."
+        }
+      },
+      "totals": {
+        "cases": 18,
+        "pass": 9,
+        "fail": 9
+      },
+      "observed": [
+        {
+          "id": "entry-order-raw-control",
+          "expected": {
+            "stdout": "QT0xCkI9Mgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "work/": null
+            }
+          },
+          "actual": {
+            "stdout": "Qj0yCkE9MQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "work/": null
+            }
+          },
+          "pass": false,
+          "profile": "UNCHANGED Apple env order under GNU Bash5.3; not the approved GNU coreutils env ordering profile"
+        },
+        {
+          "id": "sink-forward/omitted/implicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": true
+        },
+        {
+          "id": "sink-forward/omitted/explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 2,
+            "output": "1234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/omitted/nested-explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/false/implicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": true
+        },
+        {
+          "id": "sink-forward/false/explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 2,
+            "output": "1234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/false/nested-explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/true/implicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": true
+        },
+        {
+          "id": "sink-forward/true/explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 2,
+            "output": "1234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "sink-forward/true/nested-explicit",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "actual": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes",
+            "error": "ShellLimitError"
+          },
+          "pass": false
+        },
+        {
+          "id": "shared-budget-dispatch-witnesses/maxOutputBytes",
+          "expected": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes"
+          },
+          "actual": {
+            "calls": 2,
+            "output": "1234",
+            "limit": "maxOutputBytes"
+          },
+          "pass": false
+        },
+        {
+          "id": "distinct-pipeline-writes/7",
+          "actual": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes"
+          },
+          "expected": {
+            "calls": 1,
+            "output": "",
+            "limit": "maxOutputBytes"
+          },
+          "pass": true
+        },
+        {
+          "id": "distinct-pipeline-writes/8",
+          "actual": {
+            "calls": 1,
+            "output": "1234",
+            "limit": null
+          },
+          "expected": {
+            "calls": 1,
+            "output": "1234",
+            "limit": null
+          },
+          "pass": true
+        },
+        {
+          "id": "repeated-identical-buffer/freshSink=false",
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes"
+          },
+          "pass": true
+        },
+        {
+          "id": "repeated-identical-buffer/freshSink=true",
+          "actual": {
+            "calls": 3,
+            "output": "12341234",
+            "limit": "maxOutputBytes"
+          },
+          "pass": true
+        },
+        {
+          "id": "minimal-one-write/omitted",
+          "expected": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "actual": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "pass": true
+        },
+        {
+          "id": "minimal-one-write/same-sink",
+          "expected": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "actual": {
+            "output": "",
+            "error": "ShellLimitError",
+            "limit": "maxOutputBytes"
+          },
+          "pass": false
+        },
+        {
+          "id": "minimal-one-write/new-sink",
+          "expected": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "actual": {
+            "output": "1234",
+            "exitCode": 0
+          },
+          "pass": true
+        }
+      ],
+      "interpretation": "Shared output budget is cumulative write-boundary accounting, not only final visible bytes. Identity-transparent forwarding should match omitted sinks; repeated payloads and real pipeline stages remain separate charges. Existing Budget.sink precharges before downstream success. No runtime change or content-based deduplication made."
+    }
+  }
+}

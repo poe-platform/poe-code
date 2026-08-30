@@ -1,0 +1,7 @@
+{
+  "role": "SOURCE_DATA_AND_ONE_HARMLESS_PROBE_ONLY",
+  "maximumMs": 180000,
+  "maximumProcesses": 2,
+  "maximumCapture": 8388608,
+  "maximumWork": 134217728
+}

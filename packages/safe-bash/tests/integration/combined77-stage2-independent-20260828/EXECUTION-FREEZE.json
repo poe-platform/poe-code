@@ -1,0 +1,19 @@
+{
+  "sealedAt": "2026-08-28T02:33:54.605Z",
+  "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "semanticFreeze": "1445dd79",
+  "candidateInspected": true,
+  "candidateExecuted": false,
+  "hashes": {
+    "runtime.mjs": "ac99bf4a69dcf8f5d00567c6e60604511710d3989bf16c8f6d3b18ea2f1ca30b",
+    "guard.mjs": "4a832aef8caf484e5e4b58663ae88b490bd5647295781eb683203d38827e2d6b",
+    "run.mjs": "44bcf1ebceac7c176ed729d7322c26693fff4d5806f20367ecc118569312f49a",
+    "types.mts.fixture": "3554df08598ff08023325dc081fc693e6595a9c3fe76dee5935e8424b529884a",
+    "mutations.json": "8e9903844597888fe670c2f9382c5b86d9d7eb9a193ea856b884b0be047d5c2f",
+    "CASES.json": "f0bf59f94d1fd977b2f7dd2980080e6b843f621fc682e10cc2cb4d5f1cc2c366",
+    "FREEZE.md": "437f6e5c7f8506724e9185628eb259d0da32669fde8e863b654d9974ccb3c86a",
+    "FREEZE.json": "91bc290c69065ed2df62c22c0b49282575054ed4eb8fb9a0635521c3cf234f34",
+    "BINDING.md": "091db2167133a2e83942970e51263183c804a0aa2bc0503cbdab8085277ae7c7"
+  },
+  "policy": "Exact API/CLI binding after candidate inspection, before execution; semantic families unchanged; three compiled-copy mutations and provenance controls"
+}

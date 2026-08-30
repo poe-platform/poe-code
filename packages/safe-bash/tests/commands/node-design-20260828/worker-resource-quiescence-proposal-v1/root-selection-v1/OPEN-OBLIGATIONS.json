@@ -1,0 +1,139 @@
+{
+  "schema": "WRQ-root-selection-L-obligations-v1",
+  "date": "2026-08-28",
+  "classification": "DOCUMENT/DATA ONLY; no executable driver, token, implementation or experiment authorization",
+  "authority": "Current ROOT user-message decision; recording commit is evidence of this document, not a fabricated ROOT decision commit",
+  "selected": {
+    "direction": "L-explicit-lifetime-retirement",
+    "strictQSelected": false,
+    "separateResourceProfileMayBeEvaluated": "RESOURCE-WRQ-1",
+    "originalNP1": "unchanged/HOLD; whole-guest8MiB and original requirements not rewritten",
+    "ownership": "Confirmed Worker exit AND distinct parent job/output cleanup required; unknown exit or uncooperative cleanup is unsafe/unproven, never clean",
+    "privateAbiEightEvaluations": "held/unrun/separate; possibly unnecessary for Worker direction, not deleted",
+    "runtimeOrExperimentGo": false
+  },
+  "notSelectedByImplication": [
+    "entry-return versus guest-exit, or a supported invocation selector",
+    "every numerical cap, cutoff/drain semantic detail or status mapping",
+    "provider qualification, closed Worker load/source/tool recipe, executable preseal or review signoff",
+    "RSS, whole-guest8MiB, all-jobs-settled or bounded uncooperative termination/cleanup guarantees"
+  ],
+  "candidateProtocol": {
+    "name": "L-CUT-1",
+    "ratified": false,
+    "operationCeiling": "Inherited candidate128, never replenished",
+    "parentOrdinalCeiling": "Derived129 = at most128 effect admissions plus one cutoff; not an extra operation",
+    "cutoff": "Serial parent OPEN-to-CLOSED transaction. Worker send time, callback start, staged payload or a terminal receipt string is not parent effect admission.",
+    "effectAdmission": "Exact finite own-data validation, session/sequence, route/grant, shared reservations and OPEN check; enroll operation/cleanup before acquisition. Complete parent-owned write/output payload required. No await/reentry between final OPEN check and enrollment.",
+    "afterCutoffAllowed": [
+      "Settlement/close of exactly the preadmitted bounded parent read/write/output set, including their previously authorized effects/publication",
+      "Cancellation/cleanup/termination and observation of late failures, without guest reentry or new resource authority",
+      "Retirement of transport/session only upon confirmed exit, without fabricated ACK/reuse"
+    ],
+    "afterCutoffForbidden": [
+      "New guest-triggered effect admissions or expansion of preadmitted paths, payload, grants, metadata operations or output",
+      "Deliberate delivery of remaining RPC responses to service additional guest continuations",
+      "Counter reset, extra per-call/drain budget, idle-turn success or unknown engine counts represented as zero"
+    ],
+    "continuationDisclosure": "Previously queued engine reactions may run until termination; no complete runnable/pending census is established. Report possibly abandoned/unobserved guest continuations with count unknown, not settled or never executed.",
+    "normalDrain": "Do not abort preadmitted VFS work merely because normal L retirement was triggered. Drain actual settlement/publication/close; a later cancellation or failure can select the existing control/containment path.",
+    "cancellation": "Parent raw control presence/value/provenance retained; shared stop/wake independent of Worker callbacks; cooperative host cancellation plus termination and distinct parent cleanup. Known owned work remains owned on timeout or unconfirmed exit.",
+    "priorityAuthority": "Live AGENTS.md: root-caller cancellation > escaping execution/control failure > local cancellation. No new tie-breaker or escalation from mapped status; exact future Shell contract mapping must be bound.",
+    "successCandidate": "Selected normal trigger plus preadmitted host settlement/close with reconciled outcomes, successful output publication, actual Worker exit, parent cleanup and no retained failure/control. Ordinary FS rejection delivered through the guest bridge before cutoff follows guest execution outcome, not automatic host-failure escalation. Delivery does not prove every guest handler ran. Intentional retirement is disclosed, not guest-job completion; requested nonzero status is distinct from clean ownership.",
+    "failureCandidate": "Known preadmitted host rejection not delivered before cutoff, or publication/close failure, prevents normal success even if an abandoned handler might have caught it. Preserve primary plus secondary failures; no rollback. Numeric mapping remains unratified.",
+    "reportRequirements": {
+      "parentFacts": ["trigger", "cutoffOrdinal", "admittedOperationIds", "settledOperationIds", "stillActiveOperationIds", "closedOperationIds", "knownUndeliveredRpcOutcomes", "publishedByteCounts", "workerExitConfirmation", "parentCleanupConfirmation"],
+      "engineFactsWithoutCompleteObservation": {"active": "unknown", "runnable": "unknown", "pending": "unknown", "unobservedContinuations": "unknown", "abandoned": "possibly; count unknown"},
+      "validation": "Exact finite own-data types/keys and sequence order; no holes/accessors/extras/coercion or prototype-identity shortcut. Parent facts must match independently owned operation/publication/exit observations, not arbitrary counter strings. Raw parent reasons remain host-side and are not serialized as identity evidence."
+    }
+  },
+  "inheritedCandidateLimits": {
+    "source": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9:tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/RPC.json#/limits",
+    "commandOwnedLiveReservedBytesMax": 16777216,
+    "sharedArrayBufferBytes": 197056,
+    "workerResourceLimits": {"maxOldGenerationSizeMb": 32, "maxYoungGenerationSizeMb": 8, "codeRangeSizeMb": 8, "stackSizeMb": 4},
+    "slots": 3,
+    "operationSequenceMax": 128,
+    "framesAllDirectionsMax": 4096,
+    "executionAdmissionMs": 5000,
+    "engineStepsMax": 100000,
+    "readBytesCumulativeMax": 4194304,
+    "writeBytesCumulativeMax": 4194304,
+    "outputBytesCumulativeMax": 1048576,
+    "ratification": "Carried forward for review only; other original limits remain in the bound immutable RPC. No resets, new drain allowance, bytes-as-commands mapping, exact whole-guest/RSS claim or hard exit/cleanup deadline is inferred."
+  },
+  "obligations": [
+    {
+      "id": "L01",
+      "mapsTo": ["WRQ01"],
+      "topic": "Normal entry trigger and synchronous result/publication cutoff",
+      "sourceProof": "Bind actual evaluator result event, Worker local gate, parent admission/cutoff ordinal and primitive -p publication enrollment. Existing public run completion is not an all-job receipt.",
+      "futureDynamicProof": "Witness ordinary sync value/order, effect admissions around terminal intent and actual result/output/exit/drain; no postcutoff acquisition.",
+      "existingInputCoverage": "Partial: WRQ01 contains sync/order/pure-call observations, not CLI -p or the new terminal-admission race. Exact same-identity variant/schedule must be separately presealed if needed; no variant is executed or granted here."
+    },
+    {
+      "id": "L02",
+      "mapsTo": ["WRQ02"],
+      "topic": "Errors and reason identity without inventing precedence",
+      "sourceProof": "Bind guest Error conversion versus parent raw control storage, actual existing priority/mapping, and candidate treatment of postcutoff parent rejection.",
+      "futureDynamicProof": "Delayed rejection/catch and actual guest thrown values remain observed engine questions; output/error/cleanup evidence cannot be replaced with normalized strings.",
+      "existingInputCoverage": "Existing WRQ02 error observations remain unrun. It does not alone prove late-parent-error priority after cutoff; a narrow presealed schedule binding is required."
+    },
+    {
+      "id": "L03",
+      "mapsTo": ["WRQ03"],
+      "topic": "Session/cache retirement and retained logical resources",
+      "sourceProof": "Bind guest cache ownership versus ordinary host copies, per-invocation ledger, no cross-session reuse, and release only after confirmed Worker exit plus parent cleanup.",
+      "futureDynamicProof": "Actual returned-object/module aliases and cache identity remain separate from parent ownership counters; retirement does not imply whole-guest8MiB or settled continuations.",
+      "existingInputCoverage": "Existing WRQ03 identity input remains unrun; terminal session/cache close observations need exact future recipe binding."
+    },
+    {
+      "id": "L04",
+      "mapsTo": ["WRQ04"],
+      "topic": "Async VFS continuation service and explicit lifetime trigger",
+      "sourceProof": "Bind selected entry-return/guest-exit policy, modeled-exit non-return if selected, no deliberate postcutoff RPC continuation service, and unknown engine job fields.",
+      "futureDynamicProof": "Observe actual async read/JSON/write completion before explicit exit, or explicitly report the abandoned continuation under entry-return; confirmed exit never changes a pending Promise to settled.",
+      "existingInputCoverage": "Original WRQ04 Q variant is not selected under this ROOT direction, remains immutable/unrun and is not rescored. Original L guest-exit variant remains unrun. Selecting entry-return needs a separately bound same-identity variant, not silent expectation replacement."
+    },
+    {
+      "id": "L05",
+      "mapsTo": ["WRQ05"],
+      "topic": "Blocked sync cancellation with raw parent reasons",
+      "sourceProof": "Bind shared stop/wake and permanently closed parent admission, provenance/presence of actual reasons including falsy values, termination and cooperative host cleanup route.",
+      "futureDynamicProof": "Use the existing three reason instances to observe blocked wake, no postcutoff write, actual reason identity and independent Worker/parent retirement; mapped status is not reason provenance.",
+      "existingInputCoverage": "Existing WRQ05 instances remain unrun; the exact new epoch race and closure observations require preseal, not additional automatically authorized instances."
+    },
+    {
+      "id": "L06",
+      "mapsTo": ["WRQ06"],
+      "topic": "Held parent cleanup, distinct exit and failed publication",
+      "sourceProof": "Bind cleanup-before-acquisition, primary/secondary retention, normal drain versus cancellation, closed-stdout destination scope and no clean settlement on unknown ownership.",
+      "futureDynamicProof": "Confirmed Worker exit while VFS cleanup remains held must not complete parent cleanup; actual partial effects remain. Publication/late-close failures cannot become clean status0.",
+      "existingInputCoverage": "Existing WRQ06 held-cleanup input is relevant but unrun. Unconfirmed Worker exit needs an exact finite future schedule under this identity; no real hang/control is introduced now."
+    },
+    {
+      "id": "L07",
+      "mapsTo": ["WRQ07"],
+      "topic": "Cutoff transaction, finite receipt schema and capability admission",
+      "sourceProof": "Bind complete-payload versus partial-staging ownership, ordinal linearization, preadmitted set membership, exact own-data validation and immutable closed load/source/tool membership.",
+      "futureDynamicProof": "Observe stale/in-flight request refusal and independent operations/output/load/exit reconciliation, with no metadata or effect expansion and no guest native capability.",
+      "existingInputCoverage": "Original WRQ07 protocol negatives are not a demonstrated L-CUT-1 implementation. Exact composed cutoff fixtures remain a later preseal obligation, not new controls or passes."
+    },
+    {
+      "id": "L08",
+      "mapsTo": ["WRQ08"],
+      "topic": "Resource admission, containment and closed static Worker recipe",
+      "sourceProof": "Bind candidate caps, inherited shared deadline/counters, parent launch/Worker options, exact static entry and complete actual loader/tool/source/capture/cleanup closure; unknown loads stop without expansion.",
+      "futureDynamicProof": "Any separately approved resource control must distinguish logical/SAB/V8 limits from RSS, confirm actual exit and maintain ownership if confirmation/cleanup fails.",
+      "existingInputCoverage": "WRQ08 is a held trusted-entry resource control, not an engine evaluation. No heap stress, Worker creation, harmless control or renewed execution approval occurs here."
+    }
+  ],
+  "remainingRootDecisions": [
+    {"id": "D1", "question": "Choose entry-return, guest-exit, or explicitly invocation-selected support for both; define no-default admission accordingly."},
+    {"id": "D2", "question": "Accept or revise L-CUT-1 zero postcutoff guest continuation service, complete-payload effect admission and conservative late-parent-error failure policy; bind exact existing Shell outcome mapping without new priority invention."},
+    {"id": "D3", "question": "Ratify precise separate-profile caps and containment/admission behavior for unconfirmed exit or uncooperative cleanup. Such ownership is already unsafe/unproven, never clean; hard completion/RSS guarantees are not supplied."}
+  ],
+  "counts": {"mappedExistingWrqIdentities": 8, "obligations": 8, "remainingRootDecisions": 3, "newGuestInputs": 0, "newExecutableFixtures": 0, "newControls": 0, "newGuestEvaluations": 0, "newWorkers": 0, "historicalPrivateAbiPlannedEvaluations": 8, "historicalPrivateAbiExecutedEvaluations": 0},
+  "executionSelection": "No new instance count or execution subset is sealed/authorized here. Original WRQ matrix remains intact, including its historical both-alternatives ceiling; mapping does not delete/rescore the unselected Q variant.",
+  "proofRoles": "This task authenticates committed documents/manifests and validates new JSON/counts/hashes only. Source claims are inherited bound inspections; dynamic observations are pending obligations. New independent review and any later ROOT execution decision remain distinct."
+}

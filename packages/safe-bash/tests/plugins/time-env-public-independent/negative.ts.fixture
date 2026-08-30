@@ -1,0 +1,7 @@
+import { agentCommands, type SleepScheduler, type TimeEnvCommandsOptions } from 'virtual-bash';
+import { createTimeEnvCommands } from 'virtual-bash/commands/time-env';
+agentCommands({ timeEnv: { replace: true } });
+createTimeEnvCommands({ clock: () => 'invalid' });
+const timer: SleepScheduler = { now: () => 0, setTimeout: () => 0 };
+const options: TimeEnvCommandsOptions = { limits: { maxOutputBytes: 'invalid' } };
+void timer; void options;

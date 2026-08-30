@@ -1,0 +1,68 @@
+{
+  "identifier": "F04",
+  "status": "PASS",
+  "checks": 59,
+  "observation": {
+    "results": [
+      {
+        "type": "string",
+        "value": "0",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "boolean",
+        "value": "false",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "boolean",
+        "value": "true",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "number",
+        "value": "NaN",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "number",
+        "value": "Infinity",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "number",
+        "value": "-Infinity",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "number",
+        "value": "-1",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "number",
+        "value": "256",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "number",
+        "value": "0.5",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "undefined",
+        "value": "undefined",
+        "rejectedAtExitAndClose": true
+      },
+      {
+        "type": "object",
+        "value": "null",
+        "rejectedAtExitAndClose": true
+      }
+    ],
+    "finiteNullableSignalShapeAccepted": true,
+    "ordinarySignalTerminationNotSuccess": true,
+    "actualStatus7RequiresControl": true,
+    "getterCalls": 0
+  }
+}

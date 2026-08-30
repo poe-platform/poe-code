@@ -1,0 +1,628 @@
+{
+  "schema": "expr-independent-evidence-v4",
+  "freezeCommit": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+  "inputsSha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+  "payloadSha256": "c77a1c03a1e0abd1025c228c36a8621667293b9312c2e8071fe5ac3b4d28cda0",
+  "payloadBytes": 9367160,
+  "compressedSha256": "e777827a02eacaa53052200d0928b7f99925d19f652e9aee2312d6fff983d829",
+  "compressedBytes": 1893941,
+  "entries": [
+    {
+      "path": "P01-build.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1945,
+      "sha256": "4d6fedae4e0b01e4bf70bbca29bbd51a58e652068b5ec349c00632f5dd868ea2"
+    },
+    {
+      "path": "P01-emission-prelaunch.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1174,
+      "sha256": "697ea54e4de268adf4793ea60b6bc97a07c3ce9315eae9a419f499eaf99b9277"
+    },
+    {
+      "path": "P01-pack.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 106485,
+      "sha256": "8a0914a2e5dddbdf3b1bca28f04069622aa2b351bcc7262f422e67a5b0fa1dd7"
+    },
+    {
+      "path": "REPORT.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 542632,
+      "sha256": "d17c78beadbaba297a353843cd6da7634a816d0dff2dc4c6a51180b91e07df8f"
+    },
+    {
+      "path": "binding-installed-node22-root-negative.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 257771,
+      "sha256": "77c934ac1a33795f82d52abe737799a8c146cbd0c015c7a0b41082f5c6045a0f"
+    },
+    {
+      "path": "binding-installed-node22-source-fallback.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 259662,
+      "sha256": "ea2d08c0f235d97070637a61dd0d08140300fb57ab595593ae9d62ed247adefc"
+    },
+    {
+      "path": "binding-installed-node22-subpath-negative.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 260294,
+      "sha256": "b4f6ecf72216a94fefc616f9ca6d49232928f81d566214793142574914766a0f"
+    },
+    {
+      "path": "binding-installed-node22-worker-negative.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 259138,
+      "sha256": "9c1c9bcf779f51312e26cebe50d1e6bc34158064f91b4431cad6388dde99cd30"
+    },
+    {
+      "path": "binding-installed.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 232541,
+      "sha256": "93b96ce9ea8de26f25c084ecb61b2db853886fe8e2cbe5a697735bbed830b7a4"
+    },
+    {
+      "path": "build-complete-after.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 296366,
+      "sha256": "fff045b437721f5446c4da712973afa93d27065cd4806a42a466bde09704d2b2"
+    },
+    {
+      "path": "build-complete-before.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 130463,
+      "sha256": "1dd9e67fbe9e8c4926f7d5431a06205ef88c9cf306d655d00ad809525434da5e"
+    },
+    {
+      "path": "build-source-before.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 76451,
+      "sha256": "b88f343effe62e93658e1dbca051fd83d790a2670711bbea619d49985bc07ba4"
+    },
+    {
+      "path": "independent-pack.tgz.base64",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 970037,
+      "sha256": "4c63017ad2d22e9f68af64df3b45b7b08794f65e3eea6cd73774d653a4a918d8"
+    },
+    {
+      "path": "installed-node22-held-release.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69883,
+      "sha256": "b18ad84c1d6af3f49f9d309975c02d83472b05af93d3fa7634100e6c340eaa12"
+    },
+    {
+      "path": "installed-node22-held-withhold.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69827,
+      "sha256": "0047f0af805ebde0318ce9cc549ace196e90996fc7e6523d0060f65ff410b26c"
+    },
+    {
+      "path": "installed-node22-ordinary.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69609,
+      "sha256": "9baeefab6f3d588e3bdc691168e9548eafb8e147767412a2b5acd7cc68a89815"
+    },
+    {
+      "path": "installed-node22-package-before.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 166252,
+      "sha256": "4fb027bc16c63757347177515e1415fb3e02b7099d2c51a01d5509cf5393fe61"
+    },
+    {
+      "path": "installed-node22-root-negative.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 72118,
+      "sha256": "ff353c4a741df6a6f016aab4f000ba63be1886438eb18e9100dd3e75e14dd6f4"
+    },
+    {
+      "path": "installed-node22-source-poison-unguarded.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2421,
+      "sha256": "43c1319ae780bde40aafeab1a02f5607393eed43d749c391ddeec3e797a8c31f"
+    },
+    {
+      "path": "installed-node22-source-poison.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 73835,
+      "sha256": "fc3734ce491f21a14f81164fb9f8161a18cc4995cecf0f5c934b693679711442"
+    },
+    {
+      "path": "installed-node22-subpath-negative.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3765,
+      "sha256": "c7f86da882e2f6eb3a4a2e6a5b594e2c104f4eded3f952777cdc00e482020745"
+    },
+    {
+      "path": "installed-node22-subpath-restored.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69633,
+      "sha256": "28a91fc35022d2ba7be6d0eae46351176c3f2d540f05c60fb1c032d0d0ae4a2d"
+    },
+    {
+      "path": "installed-node22-type-positive.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1056434,
+      "sha256": "da88e7c397d06a03f967778605241409ac8c5022fcd5c1df73a5c5c57711cb46"
+    },
+    {
+      "path": "installed-node22-worker-negative.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 75845,
+      "sha256": "b12231d015796882023d25c6f15d9d0693bbaad0398b8a4201bfd07502a22a41"
+    },
+    {
+      "path": "installed-node22-worker-restored.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69630,
+      "sha256": "f373b768060df8656769693bb67b6a6d24fdf0024ac8103f38a2605151f6deba"
+    },
+    {
+      "path": "repair-aggregate-failed-P01.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12276,
+      "sha256": "c32c45575f9dfaa944bf865c9f62b6816f3271ca60f53b911778cad56f06fb69"
+    },
+    {
+      "path": "repair-aggregate-failed-check.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12295,
+      "sha256": "624c514d3ca7589cf975f9af2b8c7b9eecabdef5b583881f97c70262ef12cac8"
+    },
+    {
+      "path": "repair-aggregate-failed-control.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12318,
+      "sha256": "de157dd347bf1f468c4545ca70b0acce819a215166d1b8289a74b904a1bd4755"
+    },
+    {
+      "path": "repair-aggregate-failed-finalization.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12312,
+      "sha256": "ba4ebda270a843aa977dba139aa340689df56f8152c3f8854e8d451acb07e98f"
+    },
+    {
+      "path": "repair-aggregate-failed-repair.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12292,
+      "sha256": "2d3a3fe637e9e1d690c0c7107fdcdf047de52957271d1971bc2779c00317fde3"
+    },
+    {
+      "path": "repair-aggregate-failed-type.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12298,
+      "sha256": "ec1d1bd5d512f3c30d77378de993bab5faaeabd959b088ca752b204b62326aa4"
+    },
+    {
+      "path": "repair-aggregate-integrity-held.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12347,
+      "sha256": "1e9936ec3f3828e690b2bb589eb81f2f34929f532017af4d9b12a18530538fc5"
+    },
+    {
+      "path": "repair-aggregate-missing-P01.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12249,
+      "sha256": "4c3788e6ceb9a2b82a73ff1356d3f140f11473602ef5971a041aa3ed72573c7c"
+    },
+    {
+      "path": "repair-aggregate-missing-admission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12242,
+      "sha256": "e96d43df20d836138b937c95120fcc233f7e7485bee29f6fe825086dc33f2307"
+    },
+    {
+      "path": "repair-aggregate-missing-context.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9876,
+      "sha256": "e3429e528bd62c79f4a5b15a34ee5a0a656100aebef0a6d4fd43bf20b7108ffc"
+    },
+    {
+      "path": "repair-aggregate-missing-controls.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11896,
+      "sha256": "af20faac633ffc50c29aa195f43d6dae917353fd0b7225a961d409672d723822"
+    },
+    {
+      "path": "repair-aggregate-missing-finalization.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12276,
+      "sha256": "f23e660dc0729df6d840585ce101bb3f750d94abbfbf6a5643f98a5ae5421a15"
+    },
+    {
+      "path": "repair-aggregate-missing-repair.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12235,
+      "sha256": "37a74ee593910466a11ba64d005240e94b399b29d0e47b6911d626f7d1134c82"
+    },
+    {
+      "path": "repair-aggregate-missing-types.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11725,
+      "sha256": "1f6b314dd7d37b8c16fc0fb62bf633e91766101dfdb7b67839b209c15479cd4f"
+    },
+    {
+      "path": "repair-aggregate-positive.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12278,
+      "sha256": "838a0a1d451b33d8c05856ebc6548eedf5f36a35e88957d3273c4d1f514f5476"
+    },
+    {
+      "path": "repair-aggregate-unclosed-child.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12299,
+      "sha256": "1c0cf64284ddb133f7505486b167ae21ee09934497dc16d87659f7a597f82242"
+    },
+    {
+      "path": "repair-aggregate-unrun-case.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12299,
+      "sha256": "64f8f7f54670d5c0f33d180d0bc913e7acf8c5053c1cce4ab65c11cf30df8f87"
+    },
+    {
+      "path": "repair-cases-hash-mismatch.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3012,
+      "sha256": "0ed213e49b5b213817d62fde3efc8132acae1d89337c9ab9002bf977652cbcdd"
+    },
+    {
+      "path": "repair-cases-missing.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3169,
+      "sha256": "53b8b8fba2b0bf0b3bd599ac8de9386e0752e5e652546d4230a7e6fa16ba5827"
+    },
+    {
+      "path": "repair-cases-positive.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1949,
+      "sha256": "dc611859725c14d04fa9158d47600816715f100d3c703b6ce2e9ca427ef0a315"
+    },
+    {
+      "path": "repair-control-aggregate-failed-P01.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24287,
+      "sha256": "bf3857ac8f6bc34a5790d6796035601293bcf07180ee3af93d995b765e416318"
+    },
+    {
+      "path": "repair-control-aggregate-failed-check.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24304,
+      "sha256": "2b54513dc350cc02506395ea259f93b9ea183063a8135764a5f00f1ff41e0765"
+    },
+    {
+      "path": "repair-control-aggregate-failed-control.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24325,
+      "sha256": "d5b35411e795cc3cabdc724527c99d21af6b58718fef1c387c0031582596bd75"
+    },
+    {
+      "path": "repair-control-aggregate-failed-finalization.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24314,
+      "sha256": "15fafaf6f48c7f536f86158a148a0aba6711065caca8e07c00c88ace094d8521"
+    },
+    {
+      "path": "repair-control-aggregate-failed-repair.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24300,
+      "sha256": "a12c005da7afc14f7ddc7969f13809782fe143ddd28ffc0654f685d49017e9f5"
+    },
+    {
+      "path": "repair-control-aggregate-failed-type.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24308,
+      "sha256": "b2971c414e660efc5b45b319ad22cf1aacb31cebcb8daec94d9e91b1a2754e1a"
+    },
+    {
+      "path": "repair-control-aggregate-integrity-held.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24360,
+      "sha256": "efb479669e99cd78f484f805504706fb5b4a9ec8f87459e17a8d6b84ea0f3cbe"
+    },
+    {
+      "path": "repair-control-aggregate-missing-P01.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24234,
+      "sha256": "997d7428021642abda14f8b0ac4119458f8e97a3d3622c05e7f331b5e833b850"
+    },
+    {
+      "path": "repair-control-aggregate-missing-admission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24219,
+      "sha256": "addeecfce92e239a977d8d84312b1f67c2838d7591f88ab9223ba01919c8cc51"
+    },
+    {
+      "path": "repair-control-aggregate-missing-context.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18610,
+      "sha256": "28586ed6c466163abf6a26bd0c9c1f89f8a6fba7a97c1ef8652f3a95ed793b15"
+    },
+    {
+      "path": "repair-control-aggregate-missing-controls.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 23366,
+      "sha256": "5061358755ccf7cd781525199cabde16bc02817507a93550c053ec7930d0859f"
+    },
+    {
+      "path": "repair-control-aggregate-missing-finalization.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24258,
+      "sha256": "fa5f264c9ae1eb383949bc1cef9d39f5b51af3174fc0d0f4fecb87877fc23ac8"
+    },
+    {
+      "path": "repair-control-aggregate-missing-repair.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24207,
+      "sha256": "5acaa50a06c2ab3dbce04db94cdc5a7470381f95da58882d65546d607b2b4eb8"
+    },
+    {
+      "path": "repair-control-aggregate-missing-types.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 22980,
+      "sha256": "3dddd40b845265c7eef5b718f218bf699be622b4ec4e340ff1fb42676af1c74b"
+    },
+    {
+      "path": "repair-control-aggregate-positive.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24277,
+      "sha256": "945cac5baff2803f09ca516c0ee2b45025b5e5ac6deb3f7d1954214001021d52"
+    },
+    {
+      "path": "repair-control-aggregate-unclosed-child.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24306,
+      "sha256": "d23bab9f6687143f612ebf20fe8b41476d86413a3903034a7bced55e75a888bf"
+    },
+    {
+      "path": "repair-control-aggregate-unrun-case.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24310,
+      "sha256": "72aa1a3233cd02a347bd75eb18d2d2fde398cad00c2ee921b67f9e222c6b1760"
+    },
+    {
+      "path": "repair-control-cases-hash-mismatch.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1207,
+      "sha256": "a5299af593237940f2911ec463308fbc4296c087eee1d0c0414897176f80761f"
+    },
+    {
+      "path": "repair-control-cases-missing.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1378,
+      "sha256": "5f0e9081cfdcc64ccaa6053b486926bf4d466f196a8cfe515a97c302815831a4"
+    },
+    {
+      "path": "repair-control-cases-positive.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 180,
+      "sha256": "fc6d0ea6eb31457e951d1f5c97362c158307f1073fc62f051f2f55d5483be2f6"
+    },
+    {
+      "path": "repair-control-node22-absent-directory.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1370,
+      "sha256": "99d4cb8c5cc14cf59e1f4fe38ede21a3a67e6149e097bc04fb221385c8398af1"
+    },
+    {
+      "path": "repair-control-node22-permission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2595,
+      "sha256": "6785fdcd2210c29e9c459b632b67dc33536cf38b0044c3e09f87b91211ac67a5"
+    },
+    {
+      "path": "repair-control-node22-positive-emission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 899,
+      "sha256": "edc98db80b5155255ff967581654dc8f12a6dd148ec83360c5589a038ef4d154"
+    },
+    {
+      "path": "repair-control-node22-wrong-binding.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1355,
+      "sha256": "50308d968d4c61571d0267675f934c71bf6f7f6cf3c043f0e625d62c30f303a6"
+    },
+    {
+      "path": "repair-control-node24-absent-directory.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1370,
+      "sha256": "89a010dafe87fac9d3ec3d2e591c523574fe865f213ae75593223523b07bff71"
+    },
+    {
+      "path": "repair-control-node24-permission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2595,
+      "sha256": "5ac7e0f2fcf5eaae33de8f9423eb9e3d4ec561fc4cbf3c1b97d08d63836faca6"
+    },
+    {
+      "path": "repair-control-node24-positive-emission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 899,
+      "sha256": "1c4d4d2659a807fa04b53b8b0697844e68ac82c0e73f38cd64d3d789f502c434"
+    },
+    {
+      "path": "repair-control-node24-wrong-binding.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1355,
+      "sha256": "bb1d82e886cf35e5640322f6c9190947a6548543e35620f86878aa5736fdbaa6"
+    },
+    {
+      "path": "repair-controls.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 485252,
+      "sha256": "acbcb4b2a9ffe7f17ee749a5d5af93dd332ae8ba0ee93139a4db0143b851a752"
+    },
+    {
+      "path": "repair-node22-absent-directory.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3279,
+      "sha256": "3cfc0ea24e4a6b41237724143999570908b65394aa747092b0af836e81193d06"
+    },
+    {
+      "path": "repair-node22-permission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5413,
+      "sha256": "d7b3c4d898d7aa4e7dc28e1ca298a530a1d8ec8956777e64f3c4caefe39034dc"
+    },
+    {
+      "path": "repair-node22-positive-emission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2071,
+      "sha256": "9512c93fe5a47ee81b092a3a8b652b548ceb5c8b166467469696d4bb6a9dcadb"
+    },
+    {
+      "path": "repair-node22-wrong-binding.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3263,
+      "sha256": "d74f565b24ef57688c30c12bbbf750a2010a039933b97eae0028dc6917cd8b9f"
+    },
+    {
+      "path": "repair-node24-absent-directory.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3279,
+      "sha256": "af5252b3952aa8cabab07bdcf343c10ee05d14cd3035951620b57fcf6ca41752"
+    },
+    {
+      "path": "repair-node24-permission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5413,
+      "sha256": "73208e606df948df5817f4defce41b544131d7a4da464b89293221dd6a98c174"
+    },
+    {
+      "path": "repair-node24-positive-emission.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2071,
+      "sha256": "f4641c893a87f2fc994ddd9df1d5a7065dc500c61321fe26146c890653ebf0d9"
+    },
+    {
+      "path": "repair-node24-wrong-binding.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3263,
+      "sha256": "4302baf66e5ff88ab9ca1b782a62a3d6b141581687a6d70e29be8c57549f1e46"
+    },
+    {
+      "path": "runtime-package-members.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 146072,
+      "sha256": "ed3917383e7dfe5eca93de2b9c140304e5d29865577c553ab79e423c32640052"
+    },
+    {
+      "path": "tools-before.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 526862,
+      "sha256": "12b3d527971a21398c6f35e68a0f0ff40ca8de6b943e2b1a63a29d63295a4b55"
+    }
+  ],
+  "counts": {
+    "plannedRuntimeContexts": 4,
+    "plannedRuntimeAssertions": 104,
+    "executed": 0,
+    "pass": 0,
+    "fail": 0,
+    "unrun": 104,
+    "controlsExecuted": 9,
+    "controlsPass": 9,
+    "typeInvocations": 1,
+    "typePass": 0
+  },
+  "P01": {
+    "status": "pass",
+    "buildExecuted": true,
+    "buildStatus": 0,
+    "independentInputs": 357,
+    "exactPackRequired": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packExecuted": true,
+    "packStatus": 0,
+    "actualPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packBytes": 727526
+  },
+  "holds": [
+    "accepted-DU75 remains HELD/unrescored",
+    "HTML accepted by root separately; not rerun or certified here",
+    "whole76 HELD",
+    "original acceptance-gated consumer HELD"
+  ]
+}

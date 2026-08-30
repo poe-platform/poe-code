@@ -1,0 +1,215 @@
+{
+  "startedAt": "2026-08-27T05:49:40.971Z",
+  "finishedAt": "2026-08-27T05:49:41.660Z",
+  "scratch": "/private/tmp/safe-bash-published-auth-JydnQ4",
+  "node": "v22.22.2",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/private/tmp/safe-bash-published-auth-JydnQ4/home",
+    "TMPDIR": "/private/tmp/safe-bash-published-auth-JydnQ4/tmp",
+    "npm_config_cache": "/private/tmp/safe-bash-published-auth-JydnQ4/npm-cache",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "platformEnvironmentRemoved": [
+    "__CF_USER_TEXT_ENCODING"
+  ],
+  "limits": {
+    "metadataBytes": 2097152,
+    "tarballBytes": 16777216,
+    "requestMs": 30000,
+    "totalMs": 90000,
+    "redirects": 3
+  },
+  "officialMetadata": {
+    "url": "https://registry.npmjs.org/just-bash/3.4.2",
+    "bytes": 8127,
+    "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1"
+  },
+  "officialTarball": {
+    "url": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+    "path": "/private/tmp/safe-bash-published-auth-JydnQ4/just-bash-3.4.2.tgz"
+  },
+  "expected": {
+    "shasum": "abc0520ad5c278eae2de4cd90c3d7f88e1fdd724",
+    "tarball": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+    "fileCount": 955,
+    "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+    "signatures": [
+      {
+        "sig": "MEUCIQDpmnLN8KxNpkXugskT8RGCkBsIbr8YyzYz9vDF2ZHSkgIgc8v78qtaidyPqAZqeRH3DQWFyPgZYmjHx6bMvDqNHRk=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEUCIB2ZwxuEFZzljg3+mH5ehJtZn7/S5nSBwR+r800wqitDAiEA794qgDB87LnmyaPVpcDd/DWoK5yDcE/mROmh8PFIHEU=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/just-bash@3.4.2",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 22583023
+  },
+  "actual": {
+    "bytes": 9879070,
+    "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+    "sha1": "abc0520ad5c278eae2de4cd90c3d7f88e1fdd724",
+    "sha512": "4f4569cbb6118028f125da86ded9319f46672032c9bd5c1bf211f82fee8d55da7e4dedbb8d0c63c67b335bd3838c429b5b15ae8e3f37acfe52d06431092b9f82",
+    "sriSha512": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg=="
+  },
+  "integrityMatches": true,
+  "requests": [
+    {
+      "url": "https://registry.npmjs.org/just-bash/3.4.2",
+      "requestedAt": "2026-08-27T05:49:40.971Z",
+      "method": "GET",
+      "requestHeaders": {
+        "Accept": "*/*",
+        "Accept-Encoding": "identity",
+        "User-Agent": "safe-bash-pinned-artifact-audit/1"
+      },
+      "tls": {
+        "authorized": true,
+        "authorizationError": null,
+        "protocol": "TLSv1.2",
+        "peerFingerprint256": "4C:76:5B:8D:62:2F:F6:00:10:29:D3:E8:5E:20:98:D4:4E:FD:BE:40:90:DC:21:4F:6A:B2:D9:F1:C0:F8:05:B3",
+        "servername": "registry.npmjs.org"
+      },
+      "responseAt": "2026-08-27T05:49:41.239Z",
+      "statusCode": 200,
+      "statusMessage": "OK",
+      "httpVersion": "1.1",
+      "rawHeaders": [
+        "Date",
+        "Thu, 27 Aug 2026 05:49:41 GMT",
+        "Content-Type",
+        "application/json",
+        "Content-Length",
+        "8127",
+        "Connection",
+        "close",
+        "set-cookie",
+        "__cf_bm=YCcmJWZUitfMZqPfGro4Iz0vIRaLoar5t4Qi9bNm3yU-1787809781.2148356-1.0.1.1-WokTzy1zs2RoTDA8RgDz2o0oiKtRNjlnZh25fU.nMUeIzoCxTMOJDyFoyZ7cg8UlrQCyOXNmoi2lnwpIPMMfBdz7x2xkKiZlTtkDz7T8_QY_HGLFQcd4lQEMfzOofFr1; HttpOnly; SameSite=None; Secure; Path=/; Domain=npmjs.org; Expires=Thu, 27 Aug 2026 06:19:41 GMT",
+        "set-cookie",
+        "_cfuvid=M6kkAEcRD_cFNSZeAtdrkEQK55EC8Ubwnt7dmKLkTzI-1787809781.2148356-1.0.1.1-axk4UiO1sKnC2rn5nun1xGwn0Kozwilc83yV.ImeWQ4; HttpOnly; SameSite=None; Secure; Path=/; Domain=npmjs.org",
+        "CF-Ray",
+        "a318cb5c9b75f176-ATL",
+        "CF-Cache-Status",
+        "DYNAMIC",
+        "Access-Control-Allow-Origin",
+        "*",
+        "Cache-Control",
+        "max-age=300",
+        "Server",
+        "cloudflare",
+        "Vary",
+        "accept-encoding, accept"
+      ],
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:49:41 GMT",
+        "content-type": "application/json",
+        "content-length": "8127",
+        "connection": "close",
+        "set-cookie": [
+          "__cf_bm=YCcmJWZUitfMZqPfGro4Iz0vIRaLoar5t4Qi9bNm3yU-1787809781.2148356-1.0.1.1-WokTzy1zs2RoTDA8RgDz2o0oiKtRNjlnZh25fU.nMUeIzoCxTMOJDyFoyZ7cg8UlrQCyOXNmoi2lnwpIPMMfBdz7x2xkKiZlTtkDz7T8_QY_HGLFQcd4lQEMfzOofFr1; HttpOnly; SameSite=None; Secure; Path=/; Domain=npmjs.org; Expires=Thu, 27 Aug 2026 06:19:41 GMT",
+          "_cfuvid=M6kkAEcRD_cFNSZeAtdrkEQK55EC8Ubwnt7dmKLkTzI-1787809781.2148356-1.0.1.1-axk4UiO1sKnC2rn5nun1xGwn0Kozwilc83yV.ImeWQ4; HttpOnly; SameSite=None; Secure; Path=/; Domain=npmjs.org"
+        ],
+        "cf-ray": "a318cb5c9b75f176-ATL",
+        "cf-cache-status": "DYNAMIC",
+        "access-control-allow-origin": "*",
+        "cache-control": "max-age=300",
+        "server": "cloudflare",
+        "vary": "accept-encoding, accept"
+      },
+      "completedAt": "2026-08-27T05:49:41.241Z",
+      "bytes": 8127,
+      "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1"
+    },
+    {
+      "url": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "requestedAt": "2026-08-27T05:49:41.242Z",
+      "method": "GET",
+      "requestHeaders": {
+        "Accept": "*/*",
+        "Accept-Encoding": "identity",
+        "User-Agent": "safe-bash-pinned-artifact-audit/1"
+      },
+      "tls": {
+        "authorized": true,
+        "authorizationError": null,
+        "protocol": "TLSv1.2",
+        "peerFingerprint256": "4C:76:5B:8D:62:2F:F6:00:10:29:D3:E8:5E:20:98:D4:4E:FD:BE:40:90:DC:21:4F:6A:B2:D9:F1:C0:F8:05:B3",
+        "servername": "registry.npmjs.org"
+      },
+      "responseAt": "2026-08-27T05:49:41.368Z",
+      "statusCode": 200,
+      "statusMessage": "OK",
+      "httpVersion": "1.1",
+      "rawHeaders": [
+        "Date",
+        "Thu, 27 Aug 2026 05:49:41 GMT",
+        "Content-Type",
+        "application/octet-stream",
+        "Content-Length",
+        "9879070",
+        "Connection",
+        "close",
+        "set-cookie",
+        "__cf_bm=TxQATdwEDJUHW56iVht8NQ3yQbn2QWsRsBkq_Nr3Lpo-1787809781.4416316-1.0.1.1-moxaH9OXfKBB3U1L1l6QkNm9eQt0gaXlt5MBdMuB.Rw2GmVkefQ91rp4gmaPYrZf3V1l6SlEt9CGHH8IHzOVmGtk5Q1nJVjMBrjTv4U8v6Wc2sgfgkWxJNZMrZ7bGNHh; HttpOnly; SameSite=None; Secure; Path=/; Domain=npmjs.org; Expires=Thu, 27 Aug 2026 06:19:41 GMT",
+        "set-cookie",
+        "_cfuvid=Jaj76p1Ucmwua7IXdEYzBULj8EsMRF67pxjijEXSqJY-1787809781.4416316-1.0.1.1-VcZHYJi2Y2Dk4wP8uwlOECmW6uU756VbRjhPnH7CBS0; HttpOnly; SameSite=None; Secure; Path=/; Domain=npmjs.org",
+        "CF-Ray",
+        "a318cb5e0bc764e3-ATL",
+        "CF-Cache-Status",
+        "HIT",
+        "Accept-Ranges",
+        "bytes",
+        "Access-Control-Allow-Origin",
+        "*",
+        "Age",
+        "440472",
+        "Cache-Control",
+        "public, immutable, max-age=31557600",
+        "ETag",
+        "\"b820c2d6ea7101d35cde6e2bc9488956\"",
+        "Last-Modified",
+        "Sat, 22 Aug 2026 03:28:29 GMT",
+        "Server",
+        "cloudflare"
+      ],
+      "headers": {
+        "date": "Thu, 27 Aug 2026 05:49:41 GMT",
+        "content-type": "application/octet-stream",
+        "content-length": "9879070",
+        "connection": "close",
+        "set-cookie": [
+          "__cf_bm=TxQATdwEDJUHW56iVht8NQ3yQbn2QWsRsBkq_Nr3Lpo-1787809781.4416316-1.0.1.1-moxaH9OXfKBB3U1L1l6QkNm9eQt0gaXlt5MBdMuB.Rw2GmVkefQ91rp4gmaPYrZf3V1l6SlEt9CGHH8IHzOVmGtk5Q1nJVjMBrjTv4U8v6Wc2sgfgkWxJNZMrZ7bGNHh; HttpOnly; SameSite=None; Secure; Path=/; Domain=npmjs.org; Expires=Thu, 27 Aug 2026 06:19:41 GMT",
+          "_cfuvid=Jaj76p1Ucmwua7IXdEYzBULj8EsMRF67pxjijEXSqJY-1787809781.4416316-1.0.1.1-VcZHYJi2Y2Dk4wP8uwlOECmW6uU756VbRjhPnH7CBS0; HttpOnly; SameSite=None; Secure; Path=/; Domain=npmjs.org"
+        ],
+        "cf-ray": "a318cb5e0bc764e3-ATL",
+        "cf-cache-status": "HIT",
+        "accept-ranges": "bytes",
+        "access-control-allow-origin": "*",
+        "age": "440472",
+        "cache-control": "public, immutable, max-age=31557600",
+        "etag": "\"b820c2d6ea7101d35cde6e2bc9488956\"",
+        "last-modified": "Sat, 22 Aug 2026 03:28:29 GMT",
+        "server": "cloudflare"
+      },
+      "completedAt": "2026-08-27T05:49:41.625Z",
+      "bytes": 9879070,
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d"
+    }
+  ],
+  "transportLimits": [
+    "TLS verified using Node default trust; no ambient proxy/profile/credential/TLS option environment.",
+    "rawHeaders preserves Node-received header names/order/values, not an independently captured raw TLS wire transcript.",
+    "No signature/attestation verification or other package downloads."
+  ]
+}

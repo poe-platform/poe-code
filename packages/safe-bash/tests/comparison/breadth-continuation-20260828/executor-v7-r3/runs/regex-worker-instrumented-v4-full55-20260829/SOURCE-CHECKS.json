@@ -1,0 +1,94 @@
+{
+  "checks": [
+    {
+      "path": "owned-writer.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "early-record.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "deferred-collector.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "common.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "case.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "supervisor.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "writer-controls.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "fixture-child.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "fixture-parent.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "capture.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "guarded-operation.mjs",
+      "stage": "final-before-seal",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "case.mjs",
+      "stage": "final-before-seal",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "supervisor.mjs",
+      "stage": "final-before-seal",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "early-record.mjs",
+      "stage": "final-before-seal",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "scope": "parse-only, no imports/evaluation",
+  "passed": 14
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "expr-v5-required-phase-verdict/1",
+  "commit": "94b040e35d2a2c40ee006e65062a42f8f46292ff",
+  "status": "HELD",
+  "exitCode": 1,
+  "reasons": [
+    "reported-failures",
+    "installed-node22:types",
+    "installed-node22:runtime",
+    "installed-node24:types",
+    "installed-node24:runtime",
+    "moved-node22:types",
+    "moved-node22:runtime",
+    "moved-node24:types",
+    "moved-node24:runtime"
+  ],
+  "errors": [],
+  "durableBeforeExit": true
+}

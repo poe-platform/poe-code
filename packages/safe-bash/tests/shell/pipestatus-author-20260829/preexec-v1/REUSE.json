@@ -1,0 +1,52 @@
+[
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/auth.mjs",
+    "bytes": 3951,
+    "mode": 420,
+    "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9",
+    "name": "auth.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/auth.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/profile.mjs",
+    "bytes": 2114,
+    "mode": 420,
+    "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc",
+    "name": "profile.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/profile.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/guard.mjs",
+    "bytes": 2245,
+    "mode": 420,
+    "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9",
+    "name": "guard.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/guard.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/finalization.mjs",
+    "bytes": 850,
+    "mode": 420,
+    "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6",
+    "name": "finalization.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/finalization.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/direct-child.mjs",
+    "bytes": 5895,
+    "mode": 420,
+    "sha256": "97b818b690af71f59e85e8c0f5f87536aabdc5352fa391fcb0fb3495e66c3120",
+    "name": "direct-child.mjs",
+    "origin": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/direct-child.mjs",
+    "qualifiedSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+    "byteExact": true
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "schema": "selected-d03-attribution-v2",
+  "role": "SOURCE_DATA_REASONING_ON_NEW_SELECTED_FIELDS_NOT_OLD_RESULT_RESCORE",
+  "recordSha256": "4c9a28200253d2364fa094f6331efd37bb7a4fc02df49ae1a81e32962910c69e",
+  "recordBytes": 6779,
+  "exactPid": 17408,
+  "parentPid": 17404,
+  "discoveredImage": "node",
+  "privacyPath": "/Users/USER/*/node",
+  "utcLaunch": "2026-08-29T05:06:24.4173Z",
+  "utcEvent": "2026-08-29T05:06:24.8063Z",
+  "eventAfterObservedFinishMs": 345.300048828125,
+  "oldSourcePredicates": {
+    "pidMatches": true,
+    "processNameAllowed": true,
+    "expectedExactPathMatches": false,
+    "oldOneSecondTimePredicate": true,
+    "parentPredicate": true
+  },
+  "oldFailureExplanation": "Exact expected process-path comparison fails on the Apple privacy-placeholder path. Old +/-1second predicate happens to pass these newly acquired values; it was still an unjustified restriction and is removed in v2. Original old NO_EXACT_MATCH remains unchanged.",
+  "boundary": "Record reports node process image and a dyld used-image entry; this narrows away from sandbox-exec being the reported terminating image, but does not prove JavaScript/readiness ran or establish the aborting instruction.",
+  "exception": {
+    "type": "EXC_CRASH",
+    "signal": "SIGABRT",
+    "codes": "0x0000000000000000, 0x0000000000000000"
+  },
+  "termination": {
+    "namespace": "<0x23>",
+    "code": 2
+  },
+  "preciseCause": "UNKNOWN",
+  "missingEvidence": "No dyld/sandbox reason string selected; no full stack, unselected messages, environment or raw-record bytes published. No specific denied operation or permission is established.",
+  "sourceContext": {
+    "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/main/bsd/sys/reason.h",
+    "observedDefinition": "OS_REASON_LIBIGNITION 35",
+    "qualification": "Current upstream primary-source context only, not pinned to this running OS build. No authoritative matching-build code2 interpretation obtained; do not infer a sandbox permission fix."
+  }
+}

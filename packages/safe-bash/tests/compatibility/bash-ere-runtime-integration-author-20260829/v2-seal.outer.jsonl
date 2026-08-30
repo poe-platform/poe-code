@@ -1,0 +1,3 @@
+{"at":"2026-08-29T11:43:41.493Z","event":"startup","pid":40928,"execPath":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","mode":"seal"}
+{"at":"2026-08-29T11:43:41.813Z","event":"sealed","sources":305,"tools":241,"cases":70}
+{"at":"2026-08-29T11:43:41.813Z","event":"complete","starts":0,"capture":0,"elapsedMs":320}

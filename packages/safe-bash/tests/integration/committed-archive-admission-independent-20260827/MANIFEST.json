@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "scope": "Preparation only; explicit archive-mode author handoff pending",
+  "files": [
+    {
+      "path": "PREPARATION.json",
+      "bytes": 4991,
+      "sha256": "7d53e341ea5e38595c24cd7b12266dd3a9e497b639438b41670aefd7870d0388"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4634,
+      "sha256": "23ac12131abc05d9aa4fc8291a582dcdd6ae6df27692bf9b4e2dca0dc913945b"
+    },
+    {
+      "path": "guard-cases.json",
+      "bytes": 4753,
+      "sha256": "0af0aa3afeaa2a7f496b91704892cd67279900a1e485cd208d3547a56b7b971e"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 6885,
+      "sha256": "80e835a1d20e7179a553f50a28a204ac00c3c5669726d9373d44542328ce998b"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 3044,
+      "sha256": "abffddf811d34a3a7c75ecfe3992945bcccd0c625b4bcc4ccca9985d6673881b"
+    }
+  ]
+}

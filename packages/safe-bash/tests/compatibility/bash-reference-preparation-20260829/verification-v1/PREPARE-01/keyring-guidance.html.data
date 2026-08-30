@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>GpgKeyrings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" href="../style.css" type="text/css" />
+
+<link rel="stylesheet" href="../local.css" type="text/css" />
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+<div class="page">
+
+<div class="pageheader">
+<div class="header">
+<span>
+<span class="parentlinks">
+
+<a href="../">Savannah documentation</a>/ 
+
+</span>
+<span class="title">
+GpgKeyrings
+
+</span>
+</span>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+<div id="pagebody">
+
+<div id="content" role="main">
+<h1>Handling GnuPG keyrings</h1>
+
+<p>This page contains general hints about building and updating sets
+of GnuPG keys for uploading them to Savannah.</p>
+
+<p>For the user, two forms of GnuPG key sets exist,</p>
+
+<ul>
+<li>exported in a file</li>
+<li>imported in a GnuPG home directory</li>
+</ul>
+
+
+<p>GnuPG can only edit keys in a home directory.  GnuPG provides two ways
+to select the home directory to operate on, the <code>--homedir</code> option
+and the <code>GNUPGHOME</code> environment variable.  This page will use the former.</p>
+
+<h2>Downloading the current keyring</h2>
+
+<p>This is how you can get the current keyring of a group
+(where <b>group</b> is the 'unix group name'),</p>
+
+<pre><code>wget --content-disposition \
+  'https://savannah.gnu.org/p/release-gpgkeys.php?group=<b>group</b>&download=1'
+</code></pre>
+
+
+<p>The command saves the keyring in a file named <b>group</b>-keyring.gpg.</p>
+
+<p>You can list the downloaded keys with the <code>gpg --show-keys</code> command,</p>
+
+<pre><code>gpg --show-keys <b>group</b>-keyring.gpg
+</pre>
+
+
+<p></code></p>
+
+<h2>Creating a fresh GnuPG home directory</h2>
+
+<p>Usually, the default home directory contains all keys used for your everyday
+work.  Many of them may have signatures, user IDs or subkeys you want to omit
+in the resulting keyring, or they may be completely unrelated to the keyring
+in question, so it's convenient to use a separate home directory for editing
+the keyring.</p>
+
+<p>In order to make it, just create a new directory denying with the access
+restricted to the owner:</p>
+
+<pre><code>mkdir -m og= keyring
+</code></pre>
+
+<p>GnuPG will detect an empty directory and automatically initialize
+it when first invoked on it.</p>
+
+<h2>Generating a new keypair</h2>
+
+<p>In short, <code>gpg --generate-key</code> and stick to the defaults.  This will
+create a secret key needed to make signatures and decrypt messages
+encrypted to it, so a non-temporary home directory should be used,
+like the GnuPG default (<code>~/.gnupg</code>).</p>
+
+<h2>Importing keys</h2>
+
+<p>Import the old keyring first,</p>
+
+<pre><code>gpg --homedir keyring --import old-keyring.gpg
+</code></pre>
+
+<p>Here old-keyring.gpg is the file containing the previous revision
+of the keyring.</p>
+
+<p>Then, you can import more keys if needed,</p>
+
+<pre><code>gpg --homedir keyring --import new-keys.gpg
+</code></pre>
+
+<p>You can import keys from multiple files at once,</p>
+
+<pre><code>gpg --homedir keyring --import old-keyring.gpg new-keys.gpg
+</code></pre>
+
+<p>When all files have the same format (ASCII or binary), you
+can even concatenate them,</p>
+
+<pre><code>cat old-keyring.gpg new-keys.gpg | gpg --homedir keyring --import -
+</code></pre>
+
+<h2>Selecting keys</h2>
+
+<p>When listing, deleting, editing and exporting keys, <code>gpg</code> accepts
+key specifications in forms of:</p>
+
+<ul>
+<li>40-digit hexadecimal key fingerprint,</li>
+<li>last 8 or last 16 digits of the fingerprint,</li>
+<li>part of the user ID (case-insensitive),</li>
+<li>other forms like keygrips.</li>
+</ul>
+
+
+<h2>Listing keys</h2>
+
+<pre><code>gpg --homedir keyring --list-keys [<b>key</b>...]
+</code></pre>
+
+
+<p>When no keys are specified, all keys in the home directory are listed.</p>
+
+<h2>Deleting keys</h2>
+
+<pre><code>gpg --homedir keyring --delete-keys <b>key</b> [<b>another_key</b>...]
+</code></pre>
+
+
+<p>GnuPG will ask for confirmation.</p>
+
+<h2>Editing keys</h2>
+
+<p>GnuPG lets edit existing keys interactively with the <code>--edit-key</code>
+command.  Operations like extending the expiry date, adding user IDs,
+subkeys, signatures require a secret key, so you may want to specify
+a different working directory that contains it.  After that, you can
+export the key, import it in the temporary directory and edit
+the key there to remove the data that shouldn't come into the final keyring.</p>
+
+<pre><code>gpg --homedir keyring --edit-key <b>key</b>
+</code></pre>
+
+
+<p>The most useful commands in the <code>--edit-key</code> menu are <code>help</code>,
+<code>uid</code>, <code>key</code>, <code>delsig</code>, <code>deluid</code>, <code>delkey</code>, <code>sign</code>, <code>expire</code>, <code>clean</code>,
+<code>minimize</code>, <code>save</code>.</p>
+
+<p>When extending the expiry dates, be sure to extend both the date of the primary
+key and all subkeys that should be usable.  A simple way not to forget about
+extending the dates of the subkeys is to make them never expire---the expiry
+date of the primary key will still limit their usage.</p>
+
+<h2>Exporting keys</h2>
+
+<pre><code>gpg --homedir keyring --armor --export [<b>key</b>...] &gt; new-keyring.asc
+</code></pre>
+
+
+<p>When no keys are specified, all keys from the home directory are exported.</p>
+
+<p>Note the <code>--armor</code> option.  It makes GnuPG export in the ASCII format;
+by default, the format is binary.  The binary format has two disadvantages.</p>
+
+<p>First, it's harder to copy and paste into the browser
+without unintentional corruption.</p>
+
+<p>Then, the ASCII format allows using a plain text editor to join
+a few sub-keyrings interleaved with comments in a free form, and even
+with a signed GnuPG message, like</p>
+
+<pre><code>Totally historical keys.
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQENBFr1PisBCAC9xQcWyOZRLa6K2g7NJbvQmm7p89/xifFYXPpMTQAnlSoCtUdZ
+...
+=hZua
+-----END PGP PUBLIC KEY BLOCK-----
+
+J.R Hacker's &lt;jrh&gt; current key.
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+PisBCAC9xQmQhZuaENBFm7p89/xXr1cWyOZRLa6K2g7NJblSoCtUdZvQmPpMTQAn
+...
+=ifFY
+-----END PGP PUBLIC KEY BLOCK-----
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Keys used for releases of Foobar
+
+0.1
+39EC528A6D072CD393B0051CBDBFDE8E21107A93
+...
+-----BEGIN PGP SIGNATURE-----
+
+iIYEARYKAC4WIQQQXWtqoNRQAwZOtn1mPwJRYifeRgUCaH4j+BAcYm9iQHNhdmFu
+...
+=buB6
+-----END PGP SIGNATURE-----
+</code></pre>
+
+<p>When importing the keyring with the <code>--import</code> command, GnuPG will ignore
+anything outside the markers of public key blocks.</p>
+
+<h2>More info</h2>
+
+<ul>
+<li><a href="../GpgAgent/">Caching your GnuPG passphrase</a></li>
+<li><a href="../UsingGpg/">Using GnuPG on Savannah</a></li>
+<li>GnuPG manual, <code>info gnupg</code></li>
+<li><a href="https://www.gnupg.org/">GnuPG website</a> has more tutorials, manuals
+and other documentation.</li>
+</ul>
+
+
+<p>Copyright &copy; 2025 Ineiev</p>
+
+<p>Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.</p>
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+<div id="footer" class="pagefooter" role="contentinfo">
+
+<div id="pageinfo">
+
+
+
+
+
+
+<div id="backlinks">
+Links:
+
+<a href="../DownloadArea/">DownloadArea</a>
+
+<a href="../UsingGpg/">UsingGpg</a>
+
+<a href="../back-page/">back-page</a>
+
+
+</div>
+
+
+
+
+
+
+<div class="pagedate">
+Last edited <span class="date">Tue Jul 22 12:51:20 2025</span>
+<!-- Created <span class="date">Mon Jul 21 10:26:42 2025</span> -->
+</div>
+
+</div>
+
+
+<!-- from Savannah documentation -->
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding-v3/PACKET.json",
+  "bytes": 20152,
+  "sha256": "86721fa44a10c997abd2fbeb56673cacf6221c5d2f9830c40c3682af777928ca",
+  "issuedUTC": "2026-08-29T13:37:54.428Z",
+  "latestStartUTC": "2026-08-29T13:57:54.428Z",
+  "expiresUTC": "2026-08-29T14:27:54.428Z",
+  "gitChildren": 5,
+  "productCalls": 0
+}

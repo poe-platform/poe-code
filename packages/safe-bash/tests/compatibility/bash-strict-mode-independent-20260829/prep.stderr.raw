@@ -1,0 +1,12 @@
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
++   'src/shell/display.ts',
+-   'src/contracts/ast.ts',
+    'src/shell/parser.ts',
+    'src/shell/runtime.ts'
+  ]
+
+    at /Users/kjopek/Workspace/.node_repl_cell_14.mjs:6:2836
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)

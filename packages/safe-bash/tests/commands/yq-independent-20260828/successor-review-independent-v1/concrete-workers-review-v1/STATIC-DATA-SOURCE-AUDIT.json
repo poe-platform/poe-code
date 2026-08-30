@@ -1,0 +1,774 @@
+{
+  "schema": 1,
+  "classification": "STATIC_DATA_SOURCE_ONLY_NOT_CONTROL_EXECUTION",
+  "workerCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "references": [
+    {
+      "revision": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/TOOL-LOADER-TYPES.json",
+      "sha256": "649c5da87a0bde485dfc3be77ce98e4e63c00aee06ef8857bd74b7edd3e9cab8",
+      "bytes": 29633,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "649c5da87a0bde485dfc3be77ce98e4e63c00aee06ef8857bd74b7edd3e9cab8",
+      "actualBytes": 29633,
+      "matches": true
+    },
+    {
+      "revision": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/MUTANT-TRANSFORMS.json",
+      "sha256": "97d4e4cd9827a6fa159a7cc7ffe2e66cae1ad52b44f74f9a5e2acd2319eddac2",
+      "bytes": 13771,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "97d4e4cd9827a6fa159a7cc7ffe2e66cae1ad52b44f74f9a5e2acd2319eddac2",
+      "actualBytes": 13771,
+      "matches": true
+    },
+    {
+      "revision": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SCHEDULE-DELTA.json",
+      "sha256": "40f23c539f5b329f1c60d94969250b72d5090adf357a491b889efa6d1c67b556",
+      "bytes": 10159,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "40f23c539f5b329f1c60d94969250b72d5090adf357a491b889efa6d1c67b556",
+      "actualBytes": 10159,
+      "matches": true
+    },
+    {
+      "revision": "9d582d791336fd66d865f6592b830c39a359d344",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+      "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+      "bytes": 8164,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+      "actualBytes": 8164,
+      "matches": true
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+      "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+      "bytes": 25587,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+      "actualBytes": 25587,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/BASELINE-PACKAGE.json",
+      "sha256": "8ba0f0aa078a213b96ee54a25db773b68b2795a740d17acb9e3bf5b40b4608d7",
+      "bytes": 116848,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "8ba0f0aa078a213b96ee54a25db773b68b2795a740d17acb9e3bf5b40b4608d7",
+      "actualBytes": 116848,
+      "matches": true
+    },
+    {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+      "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+      "bytes": 786778,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+      "actualBytes": 786778,
+      "matches": true
+    },
+    {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+      "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+      "bytes": 2727936,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "REUSED_ACCEPTED_DFFC_SOURCE_ARCHIVE_RAW_BINDING",
+      "matches": true
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/DECLARED-JOBS-149.json",
+      "sha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6",
+      "bytes": 1058682,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6",
+      "actualBytes": 1058682,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/positive.mts.data",
+      "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "bytes": 1036,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "actualBytes": 1036,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-command-extra.mts.data",
+      "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "bytes": 63,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "actualBytes": 63,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-array-extra.mts.data",
+      "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "bytes": 80,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "actualBytes": 80,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/unknown-limits.mts.data",
+      "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "bytes": 78,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "actualBytes": 78,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-string.mts.data",
+      "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "bytes": 69,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "actualBytes": 69,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-undefined.mts.data",
+      "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "bytes": 73,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "actualBytes": 73,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-limits.mts.data",
+      "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "bytes": 76,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "actualBytes": 76,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-defaults.mts.data",
+      "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "bytes": 86,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "actualBytes": 86,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-session.mts.data",
+      "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "bytes": 88,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "actualBytes": 88,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-factory.mts.data",
+      "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "bytes": 96,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "actualBytes": 96,
+      "matches": true
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-parser.mts.data",
+      "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "bytes": 68,
+      "role": "HISTORICAL_CONTENT_REFERENCE",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED",
+      "verification": "READ_COMMITTED_RAW_HASH_SIZE",
+      "actualSha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "actualBytes": 68,
+      "matches": true
+    }
+  ],
+  "referenceCount": 20,
+  "directRawReferences": 19,
+  "sourceArchiveReusedNotReopened": true,
+  "referenceHashesAgree": true,
+  "fixtures": [
+    {
+      "name": "positive",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "accept",
+      "diagnostic": null,
+      "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "bytes": 1036,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "factory-command-extra",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2554,
+        "line": 2
+      },
+      "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "bytes": 63,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "factory-array-extra",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2554,
+        "line": 2
+      },
+      "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "bytes": 80,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "unknown-limits",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2353,
+        "line": 2
+      },
+      "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "bytes": 78,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "replace-string",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2322,
+        "line": 2
+      },
+      "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "bytes": 69,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "replace-undefined",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2379,
+        "line": 2
+      },
+      "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "bytes": 73,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "hidden-limits",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "bytes": 76,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "hidden-defaults",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "bytes": 86,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "hidden-session",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "bytes": 88,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "hidden-factory",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "bytes": 96,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    },
+    {
+      "name": "hidden-parser",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "bytes": 68,
+      "sameFrozenBytes": true,
+      "descriptorMatches": true,
+      "sameFrozenDiagnostic": true
+    }
+  ],
+  "typeSlots": [
+    {
+      "id": "TYPE-SOURCE-DIRECT-SIX",
+      "environment": "source-built-direct",
+      "fixtures": [
+        "positive",
+        "factory-command-extra",
+        "factory-array-extra",
+        "unknown-limits",
+        "replace-string",
+        "replace-undefined"
+      ],
+      "capMs": 540000
+    },
+    {
+      "id": "TYPE-DIRECT-SIX",
+      "environment": "installed-moved-direct",
+      "fixtures": [
+        "positive",
+        "factory-command-extra",
+        "factory-array-extra",
+        "unknown-limits",
+        "replace-string",
+        "replace-undefined"
+      ],
+      "capMs": 540000
+    },
+    {
+      "id": "TYPE-PUBLIC-FIVE",
+      "environment": null,
+      "fixtures": [
+        "hidden-limits",
+        "hidden-defaults",
+        "hidden-session",
+        "hidden-factory",
+        "hidden-parser"
+      ],
+      "capMs": 480000,
+      "conditional": true
+    }
+  ],
+  "directCompilerRequests": 12,
+  "publicReservedButCurrentUnrun": 5,
+  "typeCapMs": 1560000,
+  "compilerMaximumIncludingBuild": 18,
+  "maps": [
+    {
+      "path": "maps/pristine.json",
+      "rawSha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "canonicalSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+      "expectedCanonicalSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+      "matches": true,
+      "files": 870,
+      "directories": 44,
+      "membershipUnchanged": true,
+      "directoriesUnchanged": true,
+      "changedFiles": [],
+      "READMEUnchanged": true,
+      "compactBytes": 121291
+    },
+    {
+      "path": "maps/retained-view.json",
+      "rawSha256": "9192ff9472d89e5311b5010a862ea8d31841c48ea128624c6a7fcab1018211c6",
+      "canonicalSha256": "02465758ecf126a017a5d89803b87016165d17f805fc4dbf15ee9d3d6d37f264",
+      "expectedCanonicalSha256": "02465758ecf126a017a5d89803b87016165d17f805fc4dbf15ee9d3d6d37f264",
+      "matches": true,
+      "files": 870,
+      "directories": 44,
+      "membershipUnchanged": true,
+      "directoriesUnchanged": true,
+      "changedFiles": [
+        "dist/commands/yq/index.js"
+      ],
+      "READMEUnchanged": true,
+      "compactBytes": 121291
+    },
+    {
+      "path": "maps/quoted-del.json",
+      "rawSha256": "cbdd27df0009a439a2b6612de57ca9cd6d19c03a259e2c711b56c7c3c880bfe7",
+      "canonicalSha256": "c87c4e1d83dd968908ed92940b4d1176e58ac0a8d49e37fd02433aefaea82c12",
+      "expectedCanonicalSha256": "c87c4e1d83dd968908ed92940b4d1176e58ac0a8d49e37fd02433aefaea82c12",
+      "matches": true,
+      "files": 870,
+      "directories": 44,
+      "membershipUnchanged": true,
+      "directoriesUnchanged": true,
+      "changedFiles": [
+        "dist/commands/yq/parser.js"
+      ],
+      "READMEUnchanged": true,
+      "compactBytes": 121291
+    },
+    {
+      "path": "maps/pending-shadow.json",
+      "rawSha256": "f28d8d9538599055d5845eb92b347f51c6756024a5f661b8634bf6bb3b139e80",
+      "canonicalSha256": "0a3adddf47427121882818c10e0480ea1756aa513d3580b724bf67af8771570d",
+      "expectedCanonicalSha256": "0a3adddf47427121882818c10e0480ea1756aa513d3580b724bf67af8771570d",
+      "matches": true,
+      "files": 870,
+      "directories": 44,
+      "membershipUnchanged": true,
+      "directoriesUnchanged": true,
+      "changedFiles": [
+        "dist/commands/yq/parser.js"
+      ],
+      "READMEUnchanged": true,
+      "compactBytes": 121291
+    }
+  ],
+  "variants": [
+    {
+      "id": "retained-view",
+      "originalTransformFieldsUnchanged": true,
+      "coreEditKeysExact": true,
+      "coreLiteralEditsMatch": true,
+      "chainContinuous": true,
+      "stageCount": 1,
+      "literalOccurrences": 1
+    },
+    {
+      "id": "quoted-del",
+      "originalTransformFieldsUnchanged": true,
+      "coreEditKeysExact": true,
+      "coreLiteralEditsMatch": true,
+      "chainContinuous": true,
+      "stageCount": 1,
+      "literalOccurrences": 2
+    },
+    {
+      "id": "pending-shadow",
+      "originalTransformFieldsUnchanged": true,
+      "coreEditKeysExact": true,
+      "coreLiteralEditsMatch": true,
+      "chainContinuous": true,
+      "stageCount": 2,
+      "literalOccurrences": 2
+    }
+  ],
+  "newIntermediateHashCheck": {
+    "reason": "Only new worker pending-shadow coreVariant introduces an intermediate stage hash not reported in prior49af audit. Read one already-root-hash-authenticated regular parser.js payload into memory to verify that new chain; no source archive, candidate tree or full package replay.",
+    "packageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "parserSha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+    "stages": [
+      {
+        "preSha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+        "declaredPreSha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+        "postSha256": "674d67f21103af58d584d571bde3a416802ac00b09c2de70cca96daea369805f",
+        "declaredPostSha256": "674d67f21103af58d584d571bde3a416802ac00b09c2de70cca96daea369805f",
+        "occurrences": 1,
+        "declaredOccurrences": 1,
+        "matches": true
+      },
+      {
+        "preSha256": "674d67f21103af58d584d571bde3a416802ac00b09c2de70cca96daea369805f",
+        "declaredPreSha256": "674d67f21103af58d584d571bde3a416802ac00b09c2de70cca96daea369805f",
+        "postSha256": "23d566e2234d90f28fd444eca8936ef0bb40192c61dcba1347ed5c294c77ee3c",
+        "declaredPostSha256": "23d566e2234d90f28fd444eca8936ef0bb40192c61dcba1347ed5c294c77ee3c",
+        "occurrences": 1,
+        "declaredOccurrences": 1,
+        "matches": true
+      }
+    ],
+    "postimagesWritten": 0,
+    "authoredMaterializerInvocations": 0
+  },
+  "witnesses": [
+    {
+      "id": "UTF-22--whole",
+      "hash": "96c842953b880ccc65f3df2d38f9c0547d2c968adf6d62a868dab2bf7b89840e",
+      "expectedHash": "96c842953b880ccc65f3df2d38f9c0547d2c968adf6d62a868dab2bf7b89840e",
+      "wholeObjectUnchanged": true,
+      "expectedUnchanged": true,
+      "frozenNaturalLanguageObligations": [
+        "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."
+      ],
+      "quoteStyle": null
+    },
+    {
+      "id": "UTF-02--single-byte",
+      "hash": "400ed7ad2fb3e25654b6a1f3856db9771f849c559316e762dc3c9194f54ef716",
+      "expectedHash": "400ed7ad2fb3e25654b6a1f3856db9771f849c559316e762dc3c9194f54ef716",
+      "wholeObjectUnchanged": true,
+      "expectedUnchanged": true,
+      "frozenNaturalLanguageObligations": [],
+      "quoteStyle": "single"
+    },
+    {
+      "id": "UTF-03--whole",
+      "hash": "7e4641b06cf5e451e25a966b06e3bc4d64568b46116a9ee24d85bca6c5601041",
+      "expectedHash": "7e4641b06cf5e451e25a966b06e3bc4d64568b46116a9ee24d85bca6c5601041",
+      "wholeObjectUnchanged": true,
+      "expectedUnchanged": true,
+      "frozenNaturalLanguageObligations": [],
+      "quoteStyle": "double"
+    },
+    {
+      "id": "ALS-04--whole",
+      "hash": "760421327aa9dcb1f18aff118df2b82d36cb55a3fe9edfdeb229cc7abb9800c0",
+      "expectedHash": "760421327aa9dcb1f18aff118df2b82d36cb55a3fe9edfdeb229cc7abb9800c0",
+      "wholeObjectUnchanged": true,
+      "expectedUnchanged": true,
+      "frozenNaturalLanguageObligations": [],
+      "quoteStyle": null
+    }
+  ],
+  "loadedSlots": [
+    {
+      "id": "source-built-direct/LOAD-POSITIVE",
+      "environment": "source-built-direct",
+      "runtimeJobId": "UTF-22--whole",
+      "variantId": null,
+      "capMs": 90000
+    },
+    {
+      "id": "source-built-direct/MUT-RETAINED-VIEW",
+      "environment": "source-built-direct",
+      "runtimeJobId": "UTF-22--whole",
+      "variantId": "retained-view",
+      "actualQuoteStyle": null,
+      "capMs": 90000
+    },
+    {
+      "id": "source-built-direct/MUT-QUOTED-DEL-DOUBLE",
+      "environment": "source-built-direct",
+      "runtimeJobId": "UTF-02--single-byte",
+      "variantId": "quoted-del",
+      "actualQuoteStyle": "single",
+      "capMs": 90000
+    },
+    {
+      "id": "source-built-direct/MUT-QUOTED-DEL-SINGLE",
+      "environment": "source-built-direct",
+      "runtimeJobId": "UTF-03--whole",
+      "variantId": "quoted-del",
+      "actualQuoteStyle": "double",
+      "capMs": 90000
+    },
+    {
+      "id": "source-built-direct/MUT-PENDING-SHADOW",
+      "environment": "source-built-direct",
+      "runtimeJobId": "ALS-04--whole",
+      "variantId": "pending-shadow",
+      "actualQuoteStyle": null,
+      "capMs": 90000
+    },
+    {
+      "id": "installed-moved-direct/LOAD-POSITIVE",
+      "environment": "installed-moved-direct",
+      "runtimeJobId": "UTF-22--whole",
+      "variantId": null,
+      "capMs": 90000
+    },
+    {
+      "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+      "environment": "installed-moved-direct",
+      "runtimeJobId": "UTF-22--whole",
+      "variantId": "retained-view",
+      "actualQuoteStyle": null,
+      "capMs": 90000
+    },
+    {
+      "id": "installed-moved-direct/MUT-QUOTED-DEL-DOUBLE",
+      "environment": "installed-moved-direct",
+      "runtimeJobId": "UTF-02--single-byte",
+      "variantId": "quoted-del",
+      "actualQuoteStyle": "single",
+      "capMs": 90000
+    },
+    {
+      "id": "installed-moved-direct/MUT-QUOTED-DEL-SINGLE",
+      "environment": "installed-moved-direct",
+      "runtimeJobId": "UTF-03--whole",
+      "variantId": "quoted-del",
+      "actualQuoteStyle": "double",
+      "capMs": 90000
+    },
+    {
+      "id": "installed-moved-direct/MUT-PENDING-SHADOW",
+      "environment": "installed-moved-direct",
+      "runtimeJobId": "ALS-04--whole",
+      "variantId": "pending-shadow",
+      "actualQuoteStyle": null,
+      "capMs": 90000
+    }
+  ],
+  "loadedSlotCount": 10,
+  "loadedCapMs": 900000,
+  "positiveCount": 2,
+  "mutantCount": 8,
+  "loadedProfiles": [
+    "installed-moved-direct",
+    "source-built-direct"
+  ],
+  "samePrimitivePrerequisiteUnavailable": [
+    "source-built-direct/LOAD-POSITIVE",
+    "source-built-direct/MUT-RETAINED-VIEW",
+    "installed-moved-direct/LOAD-POSITIVE",
+    "installed-moved-direct/MUT-RETAINED-VIEW"
+  ],
+  "unavailableReason": "CW-F02: unchanged UTF22 assertion makes the required whole-witness F01 projection INCOMPLETE. This is not a changed expected value or a runtime outcome.",
+  "sourceImports": [
+    {
+      "path": "worker-support.mjs",
+      "sha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905",
+      "lines": 110,
+      "staticImports": [
+        "node:crypto",
+        "node:fs/promises",
+        "node:path",
+        "node:url"
+      ],
+      "exportedFunctions": [
+        "requireFact",
+        "sha256",
+        "canonical",
+        "inside",
+        "directory",
+        "regularBytes",
+        "ownProjection",
+        "readPlan",
+        "validateApi",
+        "guard",
+        "checkedMaterialization",
+        "captureIdentity",
+        "finish"
+      ]
+    },
+    {
+      "path": "type-worker.mjs",
+      "sha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+      "lines": 152,
+      "staticImports": [
+        "node:fs/promises",
+        "node:path",
+        "./worker-support.mjs"
+      ],
+      "exportedFunctions": [
+        "runWorker"
+      ]
+    },
+    {
+      "path": "loaded-worker.mjs",
+      "sha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+      "lines": 126,
+      "staticImports": [
+        "node:path",
+        "./worker-support.mjs"
+      ],
+      "exportedFunctions": [
+        "runWorker"
+      ]
+    }
+  ],
+  "apiMethodsCalled": [
+    "assertProjection",
+    "captureSemantic",
+    "guard",
+    "materializePackage",
+    "note",
+    "phase",
+    "readBoundJson",
+    "runTool",
+    "writeJson"
+  ],
+  "forbiddenSpawnImportClockTokensFound": [],
+  "limits": "Text scan is supporting source inspection, not a sandbox, dynamic proof or complete syntax parser. All source lines were manually inspected.",
+  "deferredControlDefinitions": 20,
+  "deferredControlsExecuted": 0,
+  "candidateExecutions": 0,
+  "compilerExecutions": 0,
+  "runtimePasses": 0,
+  "controlPasses": 0
+}

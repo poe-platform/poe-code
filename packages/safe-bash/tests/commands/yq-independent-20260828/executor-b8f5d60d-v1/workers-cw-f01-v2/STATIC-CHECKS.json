@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "AUTHOR_STATIC_CHECKS_NOT_DIFFERENT_REVIEW_ACCEPTANCE",
+  "groups": 9,
+  "checks": [
+    {
+      "id": "PREVALIDATION-SEAL",
+      "status": "STATIC_PASS",
+      "files": 4,
+      "sha256": "8b2509578e6ac09770cff0e465183d9c8efbd4579741b8714680e71c6847ed6f"
+    },
+    {
+      "id": "DEFECT-AND-PARENT",
+      "status": "STATIC_PASS",
+      "defect": {
+        "revision": "9189eb71d6cc16e028793318543fd2c0437c3a4d",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-workers-review-v1/CW-F01-STATIC-WITNESS.json",
+        "blob": "0b41b26fe6f9b67e7abe3c2ce9fb6510d5a20def",
+        "sha256": "a99d9d943663981b5f7d5fe75239b6465e85d268bc7f08ce4bf4a7c40df6338f",
+        "bytes": 2794,
+        "gitMode": "100644",
+        "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+      },
+      "parent": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/type-worker.mjs",
+        "blob": "de83516b3c1619abc405060bace220524c5d2652",
+        "sha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+        "bytes": 10863,
+        "gitMode": "100644",
+        "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+      }
+    },
+    {
+      "id": "ONE-FILE-SOURCE-DELTA",
+      "status": "STATIC_PASS",
+      "changedExecutableFiles": 1,
+      "changedHunks": 1,
+      "parentStartLine": 87,
+      "removedLines": 8,
+      "addedLines": 12,
+      "allOutsideHunkBytesUnchanged": true,
+      "privateClassifierExecuted": false
+    },
+    {
+      "id": "STATIC-IMPORT-GRAPH",
+      "status": "STATIC_PASS",
+      "imports": [
+        "node:fs/promises",
+        "node:path",
+        "./worker-support.mjs"
+      ],
+      "importsExecuted": 0,
+      "helper": "Absent in overlay directory by design; supplied only in fresh parent-bound compound assembly"
+    },
+    {
+      "id": "UNCHANGED-INPUT-BINDINGS",
+      "status": "STATIC_PASS",
+      "count": 29,
+      "freshAssembly": "UNRUN",
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "id": "DEFERRED-DATA-AUTHENTICATION",
+      "status": "STATIC_PASS",
+      "controls": 24,
+      "exactReviewerInputSha256": "99f34c0f65697db2d183b75a545df3a71e55d23ecba9696a7e23058dcd9fd710",
+      "declaredAccept": 5,
+      "declaredReject": 19,
+      "actualCalls": 0,
+      "shadowClassifierCalls": 0
+    },
+    {
+      "id": "STATIC-CONTINUATION-REFERENCE",
+      "status": "STATIC_PASS",
+      "files": 2,
+      "version": "5.9.3",
+      "compilerRuns": 0,
+      "actualEmission": "UNRUN"
+    },
+    {
+      "id": "SYNTAX-AND-SPECIFICATION",
+      "status": "STATIC_PASS",
+      "syntaxChecks": 1,
+      "specChecks": 1,
+      "authoredModuleImports": 0
+    },
+    {
+      "id": "FRESH-PROJECTION-MODES",
+      "status": "STATIC_PASS",
+      "files": 5,
+      "mode": 420,
+      "directoryMode": 493,
+      "symlinks": 0
+    }
+  ],
+  "rawCommands": [
+    {
+      "argv": [
+        "node",
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/type-worker.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/SPECIFICATION.md"
+      ],
+      "exit": 0,
+      "signal": null,
+      "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/SPECIFICATION.md (0 warning(s))\n",
+      "stderr": ""
+    }
+  ],
+  "unifiedDiff": "--- c0353685540288d504b93f206735fe4c448268ef/workers/type-worker.mjs\n+++ cw-f01-v2/assembled/workers/type-worker.mjs\n@@ -87,8 +87,12 @@\n-  const diagnostics = [];\n-  let unexpectedOutput = false;\n-  for (const line of text.split(/\\r?\\n/u)) {\n-    if (line === '') continue;\n-    const match = /^(.+)\\((\\d+),(\\d+)\\): error TS(\\d+): (.+)$/u.exec(line);\n-    if (match) diagnostics.push({ file: resolve(raw.provenance.cwd, match[1]), line: Number(match[2]), column: Number(match[3]), code: Number(match[4]), message: match[5] });\n-    else if (diagnostics.length === 0 || !/^ {2,}\\S/u.test(line)) unexpectedOutput = true;\n-  }\n+  const diagnostics = [];\n+  const continuationLines = fixture.name === 'replace-undefined' && fixture.diagnostic?.code === 2379\n+    ? [\"  Types of property 'replace' are incompatible.\", \"    Type 'undefined' is not assignable to type 'boolean'.\"]\n+    : [];\n+  const lines = text.split(/\\r?\\n/u);\n+  if (lines.at(-1) === '') lines.pop();\n+  let unexpectedOutput = lines.length !== 1 + continuationLines.length;\n+  for (const [index, line] of lines.entries()) {\n+    const match = /^(.+)\\((\\d+),(\\d+)\\): error TS(\\d+): (.+)$/u.exec(line);\n+    if (match) diagnostics.push({ file: resolve(raw.provenance.cwd, match[1]), line: Number(match[2]), column: Number(match[3]), code: Number(match[4]), message: match[5] });\n+    else if (index === 0 || line !== continuationLines[index - 1]) unexpectedOutput = true;\n+  }\n",
+  "sourceInference": "The old arbitrary-indentation branch is absent. Exact content-line count and fixture-specific ordered literal comparisons replace it. CW-F01 cannot use the removed waiver; this is source inference, not an executed control outcome.",
+  "executionCounts": {
+    "compiler": 0,
+    "classifier": 0,
+    "shadowClassifier": 0,
+    "worker": 0,
+    "control": 0,
+    "product": 0,
+    "moduleImports": 0
+  },
+  "remainingDynamicProof": "All24 control outcomes and actual compiler continuation emission UNRUN. Fresh compound assembly/core routing/independent review/freshGO remain prerequisites.",
+  "rootGO": false
+}

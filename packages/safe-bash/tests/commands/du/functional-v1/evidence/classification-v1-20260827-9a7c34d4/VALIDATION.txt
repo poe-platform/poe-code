@@ -1,0 +1,5 @@
+Validation note, 2026-08-27
+
+The first final-report audit correctly verified all 18 raw case fields and the 12 diagnostic-only count, then hit a report-tooling assertion on the two output filenames. node:fs returned an Array from the host realm while the expected array literal belonged to the Node REPL realm; node:assert/strict reported equal structure but non-identical prototypes. No product execution, file edit, or native expectation change occurred at that assertion. Rechecking the sorted filename strings (without cross-realm Array prototype comparison) passed. All 244 independent committed files, 55 author-sealed files and the native binary were rechecked unchanged. This was an audit-harness issue, not a DU or GNU behavior failure.
+
+Final validation: 18 complete cases; 12 exact-status/stdout diagnostic differences; 3/3 new native-only ordering corroborations exactly match their frozen native records; original repository artifacts unchanged; zero repository writes/staging/commits.

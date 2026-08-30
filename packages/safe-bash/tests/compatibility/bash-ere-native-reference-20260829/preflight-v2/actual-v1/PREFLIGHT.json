@@ -1,0 +1,83 @@
+{
+  "schema": "ere12-actual-preflight-v1",
+  "decision": "PASS",
+  "started": 1787998589774,
+  "deadline": 1787999189774,
+  "at": "2026-08-29T10:16:29.976Z",
+  "grantSha256": "9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec",
+  "commandStringSha256": "9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25",
+  "resolvedSha256": "d2dca84a74ff36a2a7fae05986f237acd5cf3d8c35caa3e4d97ee96344d6460d",
+  "presealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "reviewCommit": "a1d03bcb9be30b60b784b25abe510a7e2a23c9eb",
+  "reviewPath": "tests/compatibility/bash-ere-native-preflight-review-20260829/resolved-slot-v1/REPORT.md",
+  "reviewSha256": "00c702c726774d8acf3f144b932b65f179e39cb4bf3b7797d9bb9658e99c803f",
+  "gitRows": [
+    {
+      "id": "slot-size",
+      "args": [
+        "cat-file",
+        "-s",
+        "a1d03bcb9be30b60b784b25abe510a7e2a23c9eb:tests/compatibility/bash-ere-native-preflight-review-20260829/resolved-slot-v1/REPORT.md"
+      ],
+      "pid": 41024,
+      "status": 0,
+      "signal": null,
+      "bytes": 5,
+      "sha256": "01540bf2961839f4c7788e71a10ce3841ecfc8d3df84c944bfadf4bdb3f17ac0",
+      "retired": true
+    },
+    {
+      "id": "slot-report",
+      "args": [
+        "cat-file",
+        "blob",
+        "a1d03bcb9be30b60b784b25abe510a7e2a23c9eb:tests/compatibility/bash-ere-native-preflight-review-20260829/resolved-slot-v1/REPORT.md"
+      ],
+      "pid": 41030,
+      "status": 0,
+      "signal": null,
+      "bytes": 5650,
+      "sha256": "00c702c726774d8acf3f144b932b65f179e39cb4bf3b7797d9bb9658e99c803f",
+      "retired": true
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "at": "2026-08-29T10:16:29.957Z"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "at": "2026-08-29T10:16:29.962Z"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "at": "2026-08-29T10:16:29.963Z"
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "at": "2026-08-29T10:16:29.966Z"
+    }
+  ],
+  "expiresAt": "2026-08-29T10:46:09.884Z",
+  "latestFullWindowStart": "2026-08-29T10:36:09.884Z",
+  "root": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+  "entryImported": false,
+  "nativeChildrenBeforeApproval": 0,
+  "knownStartsBeforeApproval": 11,
+  "plannedManagedStarts": 13,
+  "plannedPublicationStarts": 8,
+  "allKnownCeiling": 40
+}

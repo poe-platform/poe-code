@@ -1,0 +1,101 @@
+{
+  "completedAt": "2026-08-27T11:13:39.267Z",
+  "temp": "/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM",
+  "candidate": "/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate",
+  "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "testManifestSha256": "dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c",
+  "compiledManifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+  "compilerInputsMatched": 358,
+  "sourceAfterBuildAuthenticated": true,
+  "candidateReadonly": true,
+  "liveSourceFallback": false,
+  "children": [
+    {
+      "command": "/usr/bin/tar",
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data"
+      ],
+      "pid": 88433,
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "command": "/usr/bin/tar",
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data",
+        "-C",
+        "/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate"
+      ],
+      "pid": 88435,
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data"
+      ],
+      "pid": 88436,
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/baseline-current-retention.patch-data"
+      ],
+      "pid": 88488,
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "command": "/usr/bin/git",
+      "args": [
+        "apply",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/source-S1-r0.patch-data"
+      ],
+      "pid": 88489,
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "pid": 88507,
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--listFiles",
+        "-p",
+        "tsconfig.json"
+      ],
+      "pid": 88509,
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    }
+  ],
+  "importPath": "/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate/dist/index.js",
+  "declarationPath": "/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate/dist/contracts/output.d.ts",
+  "replayAuthor": "cd /tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate && node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 tests/shell/owned-output-streaming-author.test.ts",
+  "restriction": "No postseal build/source mutation. Root must separately observe actual author CLOSED before independent execution."
+}

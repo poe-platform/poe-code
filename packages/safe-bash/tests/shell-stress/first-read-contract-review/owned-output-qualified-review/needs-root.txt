@@ -1,0 +1,21 @@
+PRIVATE reviewer-to-root handoff; do not forward case bodies/questions to author.
+Freeze commit 266abd7c85bd3d33981ce4e7985a59d2a7485c0c published before declaration read.
+FREEZE.md SHA256 0e560ee1a35d729e6669087ce79403264d84cbbb2dff8e3710839701e2d54b8a.
+Readiness UNBOUND. Product executions 0.
+Exact frozen scope: 12 logical / original20 + additional12 = 32 parameters.
+Author46954 reported active; no actual-ready claim. Authorized declaration ABSENT
+at the one post-freeze check; hash/version null. No new source/tests/private notes read.
+No polling or later declaration recheck. Finite preparation ends normally.
+Root must launch a fresh executor only after actual author/preparer exit and NEW
+immutable qualified-ready authentication. This finite preparation never executes.
+Needed later: authenticated public declaration/signatures; immutable candidate and
+source/test/compiled/tool identities; exact source-authentic existing curl baseline;
+bounded pinned-native profile with verifier replay; explicit synthetic-undefined
+caller compatibility. Missing profiles remain BLOCKED/UNBOUND, never invented.
+SafeJS privileged-hook/membrane audit NOT DONE; required before promotion.
+Concrete lifetime fixture adapter and S08 paired controls are UNBOUND, not implemented
+against guessed product APIs. Executable TMP skeleton hard-blocks before candidate
+imports; the inert driver preserves the proven old harness plus exact authorized
+expectation delta. Do not remove guard and trust historical S1 authentication.
+Four TMP node --check tooling processes completed/reaped; no fixture processes.
+See PREPARATION.md, LIFETIME-PROTOCOL.md and binding-requirements.json privately.

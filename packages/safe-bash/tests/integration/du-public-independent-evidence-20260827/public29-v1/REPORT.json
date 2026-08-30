@@ -1,0 +1,123 @@
+{
+  "schema": "du-public29-independent-checkpoint/1",
+  "at": "2026-08-28T02:01:37.960Z",
+  "verdict": "HOLD_VERIFIER_T03_DECLARATION_ROUTE",
+  "recipeCommit": "22a76e7854776aeb5234698bd8346bfe82ab653f",
+  "recipeManifestSha256": "bbb98d5a46a7636e77548d1060da17c617f39c74b1f4962b146fad7af6770889",
+  "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+  "freeze": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+  "package": {
+    "authenticatedMembers": 834,
+    "tarballBytes": 726693,
+    "tarballSha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+    "installed": true,
+    "physicallyMoved": true,
+    "oldLocationAbsent": true,
+    "publicExecutionBeforeMove": 0,
+    "typesBeforeMove": 0,
+    "boundFullPackReproduction": {
+      "commit": "5508a2a236763754be97baf7347a36ce27e5ef92",
+      "recipe": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+      "manifestSha256": "d369aa59e1e92c4dde6140bd22f230239e93a24b1d81f69f8ba6627511463489",
+      "fullPackReproduced": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+      "selectedInputs": 771,
+      "members": 834,
+      "profile": "scoped-committed-archive-not-full-history"
+    }
+  },
+  "R07": {
+    "bindingSha256": "b515548426a60c2d3acd7c092b41e258b584e484bec9c86d5e76815d8d285f51",
+    "chronology": "postcandidate-preexecution",
+    "source": "PASS",
+    "moved": "PASS",
+    "observationsPerProfile": 9,
+    "family": "htmlToMarkdown",
+    "optionalRoutingCounterfactual": "not implemented by existing frozen framework; no coverage claimed"
+  },
+  "counts": {
+    "sourceRuntime": 19,
+    "movedRuntime": 19,
+    "uniqueFrozenCases": 29,
+    "acceptedFrozenCases": 22,
+    "attemptedUnaccepted": [
+      "T03"
+    ],
+    "neverExecuted": [
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "T04",
+      "T05"
+    ],
+    "typeInvocations": 3,
+    "acceptedTypeCases": [
+      "T01",
+      "T02"
+    ],
+    "controlledNegativeCompilerStatuses": {
+      "T02": 2,
+      "T03": 2
+    },
+    "A06": "PASS-new-release",
+    "addendumP03": "UNEXECUTED",
+    "lifecycleMappingsPerRuntimeProfile": 8,
+    "naturalChildren": 42,
+    "activeChildren": 0,
+    "watchdogs": 0,
+    "synchronousGitReturns": 881,
+    "successfulIntegrityGuards": 85
+  },
+  "observations": {
+    "source": {
+      "loads": 3857,
+      "productLoads": 3781,
+      "uniqueProduct": 199
+    },
+    "moved": {
+      "loads": 3857,
+      "productLoads": 3781,
+      "uniqueProduct": 199
+    }
+  },
+  "tools": {
+    "actualCommonJsCompiles": 559,
+    "actualFileReadObservations": 1272,
+    "regularFilesPrebound": 2274,
+    "aliasesMetadataOnly": 12
+  },
+  "failure": {
+    "class": "verifier-contract-mismatch",
+    "location": "recipe/executor.mjs:94",
+    "exactCause": "validateTool unconditionally requires dist/index.d.ts even when original T03 imports only virtual-bash/commands/du.",
+    "originalFixture": "consumers/negative-limits.ts.data",
+    "actualSubpathDeclarationRead": true,
+    "rootDeclarationRead": false,
+    "exactCompilerOutput": "consumer.ts(2,29): error TS2322: Type 'string' is not assignable to type 'number'.\n",
+    "status": 2,
+    "stderr": "",
+    "productBugEstablished": false,
+    "rescore": false
+  },
+  "recommendation": "Root may authorize a separately sealed minimal per-fixture declaration-route predicate. Require both root/subpath for T01/T02, subpath for T03/T04, root for T05, and the declared missing-export route for P03. Keep actual read hashes, full diagnostic sets, permissions and all original fixtures unchanged; test missing/wrong-route/hash controls first. Do not replay source/moved cohorts or call this original invocation a pass.",
+  "rawQualification": "Original RESULT.json uses unexecuted for all unaccepted IDs and therefore includes executed T03. It remains unchanged; this report explicitly distinguishes T03 post-compiler harness rejection from six genuinely unexecuted cases.",
+  "integrity": "protected inputs, original15, recipe, tools and fresh source/package trees unchanged at final audit; repeated post-only authentication before compaction",
+  "history": {
+    "previous3e02038d": "0/29 preexecution hold unchanged",
+    "firstAdmissionStop": "b0a7b441 unchanged",
+    "acceptedAdmission": "5508a2a2 bound, not rerun",
+    "originalModuleAndNative": "unchanged separate qualifications",
+    "preparation": "PREPARATION-01.json preserves unsealed inventory-order failure and missing complete terminal stderr"
+  },
+  "boundaries": {
+    "fullGate": false,
+    "whole76": false,
+    "public29Accepted": false,
+    "privateHelperApproved": false,
+    "privateHelperLoaded": false,
+    "physicalAllocationClaims": false,
+    "duplicateOperandsO060": "deferred profile gap",
+    "newNativeOrMetadataCohort": false,
+    "fullHistoryArchiveProof": false
+  }
+}

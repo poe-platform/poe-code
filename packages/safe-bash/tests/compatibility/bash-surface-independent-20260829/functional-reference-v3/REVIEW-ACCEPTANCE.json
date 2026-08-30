@@ -1,0 +1,9 @@
+{
+  "schema": "functional-reference-independent-acceptance-v3",
+  "decision": "ACCEPT",
+  "profile": "functional-reference-v3",
+  "presealSha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533",
+  "requestsSha256": "e69d98fc697e20462193d7e5a794537394fa66004ee685da3a8da401ea50c22d",
+  "reviewer": "Sagan independent of Faraday; generic-sha256=8c122fab60856a744c97b299f327313dd08460e28a33388040baf822705008c3",
+  "reviewCommit": "9b3d1c1d408a62c612132f335f6b6a6c8a239b2f"
+}

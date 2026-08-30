@@ -1,0 +1,22 @@
+{
+  "schema": "FUNCTIONAL_V2_SOURCE_DELTA",
+  "baseCommit": "428cb8c0ec1c3aa1737c4138198bedce300ebea5",
+  "baseSeal": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d",
+  "sourceRecommendation": "aaea816cd835431d34cf13896c8450fb0c5d653a",
+  "externalGuardsChanged": false,
+  "caseInputsChanged": false,
+  "thirdPartyPatched": false,
+  "targetOptionsChanged": false,
+  "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1_DID_FALSE_FUNCTIONAL_V2",
+  "changes": [
+    "new namespaced copies only; run/home/terminal version literals",
+    "comparator public constructor defenseInDepth:false only",
+    "new exact grant field functionalProfile and independent successor seal",
+    "new caller-side attempt/outcome records, primary-preserving setup diagnostic",
+    "coordinator observes records before receipt persistence; publication aggregates separately from legacy completion",
+    "assessor reconstructs every invocation/config/profile/final record independently",
+    "no active AUTH and no real execution"
+  ],
+  "originalFailures": "91d75f2b/2084983a unchanged; no rescore; V6 lost294045 and N02 unknown718 preserved; W07 uncredited/W03 partial"
+}
+

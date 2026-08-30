@@ -1,0 +1,28 @@
+{
+  "parents": [
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2",
+      "device": "16777232",
+      "inode": "188189891",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/outer",
+      "device": "16777232",
+      "inode": "188189892",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases",
+      "device": "16777232",
+      "inode": "188189893",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/captures",
+      "device": "16777232",
+      "inode": "188189894",
+      "mode": 448
+    }
+  ]
+}

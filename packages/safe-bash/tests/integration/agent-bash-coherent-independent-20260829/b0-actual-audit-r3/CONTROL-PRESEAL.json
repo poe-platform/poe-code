@@ -1,0 +1,51 @@
+{
+  "created": "2026-08-29T12:16:09.970Z",
+  "deadline": "2026-08-29T12:25:08.829Z",
+  "candidateEvidence": "d116d79a5604cae5c5d73ff6ecf861ab095581ae",
+  "files": [
+    {
+      "path": "audit.mjs",
+      "bytes": 13820,
+      "sha256": "12219f6f2661663474ba90af82fb80e124ae79cfeba90e39fbcfc3ef3cb8a6ea"
+    },
+    {
+      "path": "CONTROL-POLICY.md",
+      "bytes": 2035,
+      "sha256": "793add2fa755d69f6002f30412301db81fa3818a57f9edc1b7cebe6a39fc11bb"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 950489,
+      "sha256": "25de0acbc6cf2d7c4af72fdfe84ae023d812340f71c3b239ce18c44751f09c9f"
+    },
+    {
+      "path": "SOURCE-INPUTS.json",
+      "bytes": 1305540,
+      "sha256": "baaf079822d0fe0e8311d0908d91d3faa6730245d97990a1978c8adfc863ecb8"
+    }
+  ],
+  "workRoot": "/private/tmp/safe-bash-coherent-b0-20260829-r3",
+  "roles": [
+    {
+      "id": "actual-data-audit",
+      "entry": "audit.mjs",
+      "pureData": true,
+      "seconds": 120,
+      "captureBytes": 2097152
+    }
+  ],
+  "maxHelpers": 2,
+  "tamperClasses": [
+    "T01",
+    "T02",
+    "T03",
+    "T04",
+    "T05",
+    "T06",
+    "T07",
+    "T08"
+  ],
+  "newProductExecutions": 0,
+  "knownRoleProfile": true,
+  "groupProbes": 0
+}

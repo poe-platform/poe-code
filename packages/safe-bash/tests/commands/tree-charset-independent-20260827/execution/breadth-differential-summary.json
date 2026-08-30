@@ -1,0 +1,212 @@
+{
+  "before": {
+    "candidate": "8b89c0e76dfe581ce57418b391e74ce299686af7",
+    "cases": 34,
+    "exactMatches": 26
+  },
+  "after": {
+    "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+    "cases": 34,
+    "exactMatches": 31
+  },
+  "fixed": [
+    "charset-utf8-all",
+    "charset-utf8-lang",
+    "charset-ctype-precedence",
+    "charset-empty-all",
+    "charset-tree-utf8"
+  ],
+  "newRegressions": [],
+  "counts": [
+    {
+      "id": "count-empty",
+      "native": [
+        0,
+        0
+      ],
+      "virtual": [
+        0,
+        0
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-files",
+      "native": [
+        1,
+        1
+      ],
+      "virtual": [
+        1,
+        1
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-empty-child",
+      "native": [
+        2,
+        0
+      ],
+      "virtual": [
+        2,
+        0
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-hidden",
+      "native": [
+        0,
+        0
+      ],
+      "virtual": [
+        0,
+        0
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-hidden-visible",
+      "native": [
+        1,
+        1
+      ],
+      "virtual": [
+        1,
+        1
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-filtered-all",
+      "native": [
+        0,
+        0
+      ],
+      "virtual": [
+        0,
+        0
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-files-filtered",
+      "native": [
+        0,
+        0
+      ],
+      "virtual": [
+        0,
+        0
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-directories-only-files",
+      "native": [
+        0,
+        null
+      ],
+      "virtual": [
+        0,
+        null
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-directories-only-tree",
+      "native": [
+        2,
+        null
+      ],
+      "virtual": [
+        2,
+        null
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-level-one",
+      "native": [
+        2,
+        1
+      ],
+      "virtual": [
+        2,
+        1
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-repeat",
+      "native": [
+        4,
+        4
+      ],
+      "virtual": [
+        4,
+        4
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-mixed-roots",
+      "native": [
+        2,
+        3
+      ],
+      "virtual": [
+        2,
+        3
+      ],
+      "totalsMatch": true,
+      "exact": false
+    },
+    {
+      "id": "count-json",
+      "native": null,
+      "virtual": null,
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-links",
+      "native": [
+        2,
+        1
+      ],
+      "virtual": [
+        2,
+        1
+      ],
+      "totalsMatch": true,
+      "exact": true
+    },
+    {
+      "id": "count-follow-links",
+      "native": [
+        2,
+        2
+      ],
+      "virtual": [
+        2,
+        2
+      ],
+      "totalsMatch": true,
+      "exact": true
+    }
+  ],
+  "totalMatches": 15
+}

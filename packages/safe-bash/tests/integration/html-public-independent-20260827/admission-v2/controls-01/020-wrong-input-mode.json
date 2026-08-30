@@ -1,0 +1,13 @@
+{
+  "name": "wrong-input-mode",
+  "expectedBoundary": "INPUT_MODE",
+  "started": "2026-08-27T22:23:32.738Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:INPUT_MODE README.md",
+    "code": "INPUT_MODE",
+    "stack": "Error: BOUNDARY:INPUT_MODE README.md\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:89:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:51:53\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:51:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:23:32.817Z"
+}

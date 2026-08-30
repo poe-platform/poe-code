@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "role": "Bounded model evidence, no product candidate promotion",
+  "witnessFreezeCommit": "a6ce736d0130bc26e78f4323f176fa0f7569c2e5",
+  "independentFreezeCommit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+  "primaryReportCommit": "44eed610f6b656e8c6c78d60a48089569ed5b8d5",
+  "historical137": {
+    "executed": 0,
+    "boundCounts": [
+      {
+        "name": "regex-protocol",
+        "count": 5
+      },
+      {
+        "name": "regex-lifecycle",
+        "count": 11
+      },
+      {
+        "name": "regex-limits",
+        "count": 10
+      },
+      {
+        "name": "abort-reason-regression",
+        "count": 111
+      }
+    ]
+  },
+  "liveGuardAtSeal": {
+    "path": "src/commands/expr/bre-worker.ts",
+    "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "equalBaseline": true,
+    "qualification": "one scoped live-file check, not append-proof source tree audit"
+  },
+  "inventory": "Complete design subtree entry set excluding this self-hashed MANIFEST.data; verifier admits no extra files/directories/symlinks",
+  "entries": [
+    {
+      "path": "DESIGN.md",
+      "kind": "file",
+      "bytes": 3790,
+      "sha256": "38c571713defdd7228f6efa145ae655659f17da5111a5fec8b39b1df7d80b1b1"
+    },
+    {
+      "path": "REPORT.md",
+      "kind": "file",
+      "bytes": 17146,
+      "sha256": "ccdaf9e31bd546ad0ae3a9622057291415234bf1e31d99131ee19f977da31b18"
+    },
+    {
+      "path": "WITNESSES.data",
+      "kind": "file",
+      "bytes": 7727,
+      "sha256": "c86c457ba6a4a6d995ba757c23bf2024f7327411dd19dfb5d531a23d7e4c71a5"
+    },
+    {
+      "path": "model-01.data",
+      "kind": "file",
+      "bytes": 6443,
+      "sha256": "0fda59281392d7350681628a4b8cd0e79f2190b4f16976160316c0749d382d3c"
+    },
+    {
+      "path": "model.mjs",
+      "kind": "file",
+      "bytes": 12331,
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0"
+    },
+    {
+      "path": "run-model.mjs",
+      "kind": "file",
+      "bytes": 14601,
+      "sha256": "2d8a7d40f2a16e76dfc86a0728072b4871510474f0c14909e30bd187d7f1ee9d"
+    },
+    {
+      "path": "verify.mjs",
+      "kind": "file",
+      "bytes": 2719,
+      "sha256": "214059ff7d3b34bfbe34f37c27da56a0f06f72ada18cc7debae27459c45d2302"
+    }
+  ],
+  "bindings": [
+    {
+      "commit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/FREEZE-MANIFEST.json",
+      "bytes": 123198,
+      "sha256": "458c5c9e5def60b32d963572364998c463f3e185692f6a25ed09d6069f822589",
+      "currentFile": true
+    },
+    {
+      "commit": "c0aec9fc240f153e0fa18d6e2d1e291871dbe1eb",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/frozen/INPUTS.json",
+      "bytes": 5320,
+      "sha256": "121d5dde6dd77148828feb775408288f98755c975d855e54a4a00040e25f8504",
+      "currentFile": true
+    },
+    {
+      "commit": "44eed610f6b656e8c6c78d60a48089569ed5b8d5",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/REPORT.md",
+      "bytes": 24181,
+      "sha256": "d5b7dd2af5d8db025406b65f810c1674ac41ef8958bfe9f70a467348d1ea9f27",
+      "currentFile": true
+    },
+    {
+      "commit": "44eed610f6b656e8c6c78d60a48089569ed5b8d5",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/normative/MANIFEST.json",
+      "bytes": 3680,
+      "sha256": "073024d99726af4286bc1e99e72b9cc3a3ec812c8d07ada49276ed25a0125ecb",
+      "currentFile": true
+    },
+    {
+      "commit": "a6ce736d0130bc26e78f4323f176fa0f7569c2e5",
+      "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/WITNESSES.data",
+      "bytes": 7727,
+      "sha256": "c86c457ba6a4a6d995ba757c23bf2024f7327411dd19dfb5d531a23d7e4c71a5",
+      "currentFile": true
+    },
+    {
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/bre-worker.ts",
+      "bytes": 17704,
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "currentFile": false
+    },
+    {
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "tests/commands/expr/regex-protocol.test.ts",
+      "bytes": 7238,
+      "sha256": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5",
+      "currentFile": false
+    },
+    {
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/regex-protocol.tap",
+      "bytes": 1163,
+      "sha256": "ccfdf672a479c008402b3084d2f33f5b5c3e29bd66be0c82202a5faeb13ead55",
+      "currentFile": false
+    },
+    {
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "tests/commands/expr/regex-lifecycle.test.ts",
+      "bytes": 13613,
+      "sha256": "b93f0556799a4ee48e86af05ca5d4b9c051967e2dfdd7dde6b71307b412c8ed3",
+      "currentFile": false
+    },
+    {
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/regex-lifecycle.tap",
+      "bytes": 2609,
+      "sha256": "6fb67ea1be674c35297e9acda80eb849c359181ee7985b10c2b986c057edb21d",
+      "currentFile": false
+    },
+    {
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "tests/commands/expr/regex-limits.test.ts",
+      "bytes": 3059,
+      "sha256": "4b938f201b7ffffcb317734f7784d7b88cf5a95aacbad53a5e4df957d3f9c2a8",
+      "currentFile": false
+    },
+    {
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/regex-limits.tap",
+      "bytes": 1565,
+      "sha256": "35445a15d919553a2c57176f33fe16c451c04bcf4137e54fc04d5a7fdae6a73c",
+      "currentFile": false
+    },
+    {
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "tests/commands/expr/abort-reason-regression.test.ts",
+      "bytes": 12841,
+      "sha256": "24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3",
+      "currentFile": false
+    },
+    {
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/abort-reason-regression.tap",
+      "bytes": 23513,
+      "sha256": "b9eeee3606e9719c6b90e6c7270a6cdd2b76158d0cf00f5ea3c2e714d395a6f0",
+      "currentFile": false
+    }
+  ]
+}

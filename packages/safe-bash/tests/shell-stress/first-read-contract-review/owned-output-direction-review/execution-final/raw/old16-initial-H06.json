@@ -1,0 +1,17 @@
+{
+  "label": "old16-initial-H06",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"H06\",\"verdict\":\"PASS\",\"records\":[{\"first\":\"first\\n\",\"remainder\":\"second\\nthird\\n\",\"position\":3,\"returnedBeforeOwnerTeardown\":0,\"returns\":0,\"stageAborted\":false}]}\n",
+    "bytes": 170,
+    "base64": "eyJpZCI6IkgwNiIsInZlcmRpY3QiOiJQQVNTIiwicmVjb3JkcyI6W3siZmlyc3QiOiJmaXJzdFxuIiwicmVtYWluZGVyIjoic2Vjb25kXG50aGlyZFxuIiwicG9zaXRpb24iOjMsInJldHVybmVkQmVmb3JlT3duZXJUZWFyZG93biI6MCwicmV0dXJucyI6MCwic3RhZ2VBYm9ydGVkIjpmYWxzZX1dfQo=",
+    "sha256": "c380e91da1e4f3aa219fd325f3a4fba196c3f6f2019fafc4a43532612d1dcf28"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

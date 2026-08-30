@@ -1,0 +1,66 @@
+[
+  {
+    "name": "posix-pax.html",
+    "url": "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/pax.html",
+    "retrievedUtc": "2026-08-27T03:35:06.608Z",
+    "status": 0,
+    "signal": null,
+    "stderr": "",
+    "bytes": 166776,
+    "sha256": "398b008eab3110cd482eee2e62797adaf915405e488b1f36bc73fc2a29591efb"
+  },
+  {
+    "name": "posix-file-creation.html",
+    "url": "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap01.html",
+    "retrievedUtc": "2026-08-27T03:35:06.830Z",
+    "status": 0,
+    "signal": null,
+    "stderr": "",
+    "bytes": 76184,
+    "sha256": "9c010fcd7ff607111752fa6539357ba07b3799b80f47fc1cca5f91eb0b84b5b5"
+  },
+  {
+    "name": "gnu-1.35-tar.texi",
+    "url": "https://cgit.git.savannah.gnu.org/cgit/tar.git/plain/doc/tar.texi?id=e545d446dfe6564265cdf4186641ee76f4acc7fa",
+    "retrievedUtc": "2026-08-27T03:35:08.444Z",
+    "status": 0,
+    "signal": null,
+    "stderr": "",
+    "bytes": 502495,
+    "sha256": "221e9ac4f5b9e0465b5766308cbd948c4cb370cfe85d58072476f47c18ce843b"
+  },
+  {
+    "name": "gnu-1.35-xheader.c",
+    "url": "https://cgit.git.savannah.gnu.org/cgit/tar.git/plain/src/xheader.c?id=e545d446dfe6564265cdf4186641ee76f4acc7fa",
+    "retrievedUtc": "2026-08-27T03:35:10.665Z",
+    "status": 0,
+    "signal": null,
+    "stderr": "",
+    "bytes": 43596,
+    "sha256": "2a0bc1a8b13da63cf723f1f4bb146416a1ec2b7a4860462f70d62307be99a45a"
+  },
+  {
+    "name": "gnu-1.35-list.c",
+    "url": "https://cgit.git.savannah.gnu.org/cgit/tar.git/plain/src/list.c?id=e545d446dfe6564265cdf4186641ee76f4acc7fa",
+    "retrievedUtc": "2026-08-27T03:35:11.447Z",
+    "status": 0,
+    "signal": null,
+    "stderr": "",
+    "bytes": 41633,
+    "sha256": "1504085e079ffe77c20df87f877e76d098fdfeb2c3c9df9ccdf5a59ce7226ed3"
+  },
+  {
+    "name": "gnu-1.35-configure.ac",
+    "url": "https://cgit.git.savannah.gnu.org/cgit/tar.git/plain/configure.ac?id=e545d446dfe6564265cdf4186641ee76f4acc7fa",
+    "retrievedUtc": "2026-08-27T03:35:12.074Z",
+    "status": 0,
+    "signal": null,
+    "stderr": "",
+    "bytes": 13439,
+    "sha256": "e2815ad57756f1c9352e8a6775912a201c54582e9cddf36a3b019b9f9f0f47ac"
+  },
+  {
+    "priorPosixSha256": "398b008eab3110cd482eee2e62797adaf915405e488b1f36bc73fc2a29591efb",
+    "priorGnuSha256": "2a0bc1a8b13da63cf723f1f4bb146416a1ec2b7a4860462f70d62307be99a45a"
+  }
+]

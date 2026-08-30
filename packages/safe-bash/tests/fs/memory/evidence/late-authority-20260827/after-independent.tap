@@ -1,0 +1,17 @@
+TAP version 13
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LWV4cGxpY2l0LWxhdGUtZXJyb3IiLCJkYXRhIjp7ImNvbXBhcmVFcnJvciI6IkVBQ0NFUyIsImNvbXBhcmVRdWVyaWVzIjoxLCJjb3B5RXJyb3IiOiJFQUNDRVMiLCJjb3B5UXVlcmllcyI6MSwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# Subtest: memory post-construction explicit comparison error is not hidden by cached authority
+ok 1 - memory post-construction explicit comparison error is not hidden by cached authority
+  ---
+  duration_ms: 4.987625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 136.335792

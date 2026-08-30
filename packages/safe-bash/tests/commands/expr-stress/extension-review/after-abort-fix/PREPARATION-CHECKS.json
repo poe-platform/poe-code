@@ -1,0 +1,164 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-08-27T18:01:19.915Z",
+  "boundedWait": {
+    "start": "2026-08-27T17:55:16Z",
+    "deadline": "2026-08-27T18:00:16Z",
+    "observedAtDeadline": "2026-08-27T18:00:16.001Z",
+    "receiptPresentAtDeadline": false,
+    "receiptPresentAtPreparationSeal": false
+  },
+  "checks": [
+    {
+      "name": "original-frozen-readonly-verify",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-",
+        "verify"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\n  \"verified\": true,\n  \"inputCases\": 95,\n  \"observations\": [\n    {\n      \"id\": \"gnu-9.7-darwin-C\",\n      \"count\": 95\n    },\n    {\n      \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n      \"count\": 9\n    },\n    {\n      \"id\": \"apple-darwin-C\",\n      \"count\": 95\n    },\n    {\n      \"id\": \"apple-darwin-en_US.UTF-8\",\n      \"count\": 9\n    }\n  ],\n  \"appendProof\": false,\n  \"scope\": \"Exact manifest-listed files only; unrelated/new files are neither included nor certified. No candidate execution.\"\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "extension-frozen-readonly-verify",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-",
+        "verify"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\n  \"verified\": true,\n  \"manifestSha256\": \"e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198\",\n  \"counts\": {\n    \"cases\": 20,\n    \"gnuObservations\": 23,\n    \"appleObservations\": 23,\n    \"controls\": 24,\n    \"mutationSpecifications\": 32,\n    \"candidateControlsExecuted\": 0\n  },\n  \"appendProof\": false,\n  \"candidateAccepted\": false\n}\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "original-freeze-git-byte-check",
+      "command": "git",
+      "args": [
+        "diff",
+        "--exit-code",
+        "35aa8054",
+        "--",
+        "tests/commands/expr-stress/frozen"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "extension-freeze-git-byte-check",
+      "command": "git",
+      "args": [
+        "diff",
+        "--exit-code",
+        "92fe8a63",
+        "--",
+        "tests/commands/expr-stress/extension-review/frozen"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "fixed-client-and-regression-clean",
+      "command": "git",
+      "args": [
+        "diff",
+        "27a77935",
+        "--",
+        "src/commands/regex-execution/client.ts",
+        "tests/commands/expr/abort-reason-regression.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "no-sealed-prior-harness-history-at-check",
+      "command": "git",
+      "args": [
+        "log",
+        "-1",
+        "--format=%H %s",
+        "--",
+        "tests/commands/expr-stress/extension-review/execution"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "f6e0533920d9583af80f044a327bfcaa381d7cac test(expr): preserve independent frozen extension acceptance failures\n",
+      "stderr": ""
+    }
+  ],
+  "nativeControls": [
+    {
+      "name": "undefined",
+      "rejected": true,
+      "exactSignalReasonIdentity": true,
+      "inputReasonIdentity": false,
+      "reasonKind": "AbortError"
+    },
+    {
+      "name": "zero",
+      "rejected": true,
+      "exactSignalReasonIdentity": true,
+      "inputReasonIdentity": true,
+      "reasonKind": "number"
+    },
+    {
+      "name": "null",
+      "rejected": true,
+      "exactSignalReasonIdentity": true,
+      "inputReasonIdentity": true,
+      "reasonKind": "object"
+    },
+    {
+      "name": "false",
+      "rejected": true,
+      "exactSignalReasonIdentity": true,
+      "inputReasonIdentity": true,
+      "reasonKind": "boolean"
+    },
+    {
+      "name": "empty-string",
+      "rejected": true,
+      "exactSignalReasonIdentity": true,
+      "inputReasonIdentity": true,
+      "reasonKind": "string"
+    },
+    {
+      "name": "Error",
+      "rejected": true,
+      "exactSignalReasonIdentity": true,
+      "inputReasonIdentity": true,
+      "reasonKind": "object"
+    }
+  ],
+  "nativeControlsScope": "Host-only preparation, not installed client proof",
+  "primarySources": [
+    "https://dom.spec.whatwg.org/",
+    "https://nodejs.org/api/globals.html"
+  ],
+  "primarySourcesMethod": "web.run search on 2026-08-27; local Node v22.22.2 behavior separately observed",
+  "cleanup": {
+    "productWorkersCreated": 0,
+    "productWorkersTerminated": 0,
+    "activeProductWorkersBeforeSafetyCleanup": 0,
+    "productWorkersObserved": false,
+    "ownedPollingProcessesExited": true,
+    "temporaryFixturesCreated": 0,
+    "workerDrainClaim": false
+  }
+}

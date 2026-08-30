@@ -1,0 +1,208 @@
+[
+  {
+    "id": "missing-pid",
+    "fields": {
+      "bugType": "309",
+      "captureTime": "2026-08-29T05:06:37.000Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": false,
+    "failed": "pidPresent"
+  },
+  {
+    "id": "wrong-pid",
+    "fields": {
+      "bugType": "309",
+      "pid": 17409,
+      "captureTime": "2026-08-29T05:06:37.000Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": false,
+    "failed": "pidMatches"
+  },
+  {
+    "id": "within-authorized-window-after-one-second",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:06:37.000Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": true,
+    "imageClass": "NODE"
+  },
+  {
+    "id": "outside-authorized-window",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:08:25.000Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": false,
+    "failed": "eventWithinAuthorizedWindow"
+  },
+  {
+    "id": "node-image-discovered-not-gated",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:06:37.000Z",
+      "procName": "node",
+      "procPath": "/arbitrary/node-image",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": true,
+    "imageClass": "NODE"
+  },
+  {
+    "id": "sandbox-image-discovered-not-gated",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:06:37.000Z",
+      "procName": "sandbox-exec",
+      "procPath": "/usr/bin/sandbox-exec",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": true,
+    "imageClass": "SANDBOX_EXEC"
+  },
+  {
+    "id": "other-image-not-predicted",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:06:37.000Z",
+      "procName": "unexpected-image",
+      "procPath": "/arbitrary/image",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": true,
+    "imageClass": "OTHER_IMAGE"
+  },
+  {
+    "id": "missing-event-timestamp",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": false,
+    "failed": "eventTimestampPresent"
+  },
+  {
+    "id": "timezone-ambiguous-no-fallback",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29 05:06:24.430",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z",
+      "metadataTimestamp": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": false,
+    "failed": "eventTimestampUnambiguous"
+  },
+  {
+    "id": "launch-parent-do-not-gate-event",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:06:37.000Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-28T00:00:00Z",
+      "parentPid": 99
+    },
+    "matched": true,
+    "imageClass": "NODE"
+  },
+  {
+    "id": "unrelated-values-not-returned",
+    "fields": {
+      "bugType": "309",
+      "pid": 123,
+      "captureTime": "2026-08-29T05:06:24.430Z",
+      "procName": "PRIVATE_SENTINEL",
+      "procPath": "/PRIVATE_SENTINEL",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": false,
+    "failed": "pidMatches",
+    "noValues": true
+  },
+  {
+    "id": "missing-image-explicit-not-presumed",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:06:37.000Z"
+    },
+    "matched": true,
+    "imageClass": "MISSING_IMAGE"
+  },
+  {
+    "id": "lower-window-boundary",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:04:24.416Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": true,
+    "imageClass": "NODE"
+  },
+  {
+    "id": "upper-window-boundary",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:08:24.461Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": true,
+    "imageClass": "NODE"
+  },
+  {
+    "id": "fraction-beyond-upper-boundary",
+    "fields": {
+      "bugType": "309",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:08:24.4611Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": false,
+    "failed": "eventWithinAuthorizedWindow"
+  },
+  {
+    "id": "wrong-schema-no-guess",
+    "fields": {
+      "bugType": "288",
+      "pid": 17408,
+      "captureTime": "2026-08-29T05:06:37.000Z",
+      "procName": "node",
+      "procPath": "/Users/USER/redacted/node",
+      "procLaunch": "2026-08-29T05:06:24.430Z"
+    },
+    "matched": false,
+    "failed": "crashSchema309"
+  }
+]

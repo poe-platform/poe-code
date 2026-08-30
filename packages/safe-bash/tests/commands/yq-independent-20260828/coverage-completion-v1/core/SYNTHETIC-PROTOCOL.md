@@ -1,0 +1,11 @@
+# Core Helper Synthetic Check Preseal
+
+No candidate code, old harness module, compiler, copied tool, product actor or target control is imported or run. The sole child imports only the new prepared helpers plus node:assert/strict,fs,path,vm,crypto. Its source fixture is eleven synthetic text bytes under a unique owned scratch directory. Real candidate files in prepared/data are hash-guarded DATA only, never fed into executable helper checks.
+
+Before launch, SYNTHETIC-PRESEAL.json and every prepared helper/fixture/test body MUST be committed. The caller supplies its independent raw SHA. Prepared-directory complete membership/modes/hash/size, five ABI inputs, source binding, and the existing host Node executable are checked before/after. New evidence is outside all source/recipe/candidate roots, unique /private/tmp/yq-coverage-core-stubs-<token>, never overwritten. No old candidate GO is used.
+
+Exactly one parent and one owned detached Node child; no nested tool or native guest. Global30000ms includes setup/capture/cleanup; child15000ms within global, cleanup2000ms inside child (TERM then KILL). No retry/resume/reset. Signal only the known child group. Unknown reap/integrity stops admission and aggregate FAIL; no further jobs are present. Unknown reap is reported, not a proof of escaped descendants or opaque host preemption.
+
+Each raw stream has65536-byte capture allowance; prefix bytes are written before receipt parsing or assertions. Overflow, any nonzero child/parent status, signal, timeout, malformed/missing/duplicate case receipt or nonempty stderr =>FAIL, even with PASS text. Process raw evidence is published first. Storage ceiling4194304 bytes includes scratch/raw/report; parent metadata65536 reserve remains inside it. No hardRSS/OS-quota claim. An outer tooling deadline35000ms is only a failure backstop, not additional execution authority.
+
+C01..C18 are the exact cases in SYNTHETIC-PRESEAL.json. Expected rejection is caught inside the zero-exit helper-check child, never a nonzero worker waiver. These checks exercise only synthetic inputs/stubs; they do not dynamically certify saturation, clock/reap faults, the real four arguments, peer actors/assertions or future candidate results.

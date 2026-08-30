@@ -1,0 +1,9 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/.runs/worktree-PWvw3N/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/.runs/worktree-PWvw3N/tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

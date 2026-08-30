@@ -1,0 +1,13 @@
+{
+  "name": "over1GiB-child-exit-checked",
+  "expectedBoundary": "STREAM_PROCESS",
+  "started": "2026-08-27T22:23:35.296Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:STREAM_PROCESS {\"status\":7,\"signal\":null,\"stderr\":\"{\\\"emitted\\\":1073872896,\\\"drains\\\":16102}\\n\",\"timedOut\":false,\"stderrOverflow\":false}",
+    "code": "STREAM_PROCESS",
+    "stack": "Error: BOUNDARY:STREAM_PROCESS {\"status\":7,\"signal\":null,\"stderr\":\"{\\\"emitted\\\":1073872896,\\\"drains\\\":16102}\\n\",\"timedOut\":false,\"stderrOverflow\":false}\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:199:3)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:87:1"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:23:35.851Z"
+}

@@ -1,0 +1,415 @@
+{
+  "schema": "unified76-stopped-setup-static-diagnosis-v12",
+  "recordedAt": "2026-08-28T09:36:13.231Z",
+  "criteriaCommit": "f094d05550bf776c756ae22e26fda62f1821a54d",
+  "verdict": "CONFIRMED_ENVIRONMENT_ROUTING_DEFECT; ABSOLUTE_FAILED_EXEC_TARGET_UNOBSERVED; HOLD_NO_RERUN",
+  "method": {
+    "mode": "Pinned Git blobs, pure JSON/gzip/SHA256 verification, read-only lstat/readdir of exact retained non-private roots. No executable driver/helper/product imports, test/native/process probes, private reads, scratch modifications or gate launch.",
+    "timing": "Questions committed before detailed stopped-run inspection; post-author/post-attempt with prior source-chain knowledge, not blind pre-code.",
+    "bounds": {
+      "gitBlobCaptureBytes": 6291456,
+      "rawGzipDecodeMaxBytes": 20971520,
+      "profileDecodeMaxBytes": 25165824
+    },
+    "executions": 0,
+    "newRuntimeControls": 0
+  },
+  "bindings": {
+    "evidence": "df89d474bb863b3815f6e81f81917dcef4227779",
+    "authorization": "8e6b40ecd2cec2b6dcaf2ce80c0cff477d39e6eb",
+    "packet": "d9dd698a33421b197ee15432a6606ad91dd06c63",
+    "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packageQualification": "Carried unchanged expected identity; no new package build or verification of a rebuilt package",
+    "rootReceiptSha256": "f29a198d05e113a2a0b913a57bd7a2b088a7f731d6121947527652c40d2b8e74",
+    "packetNormalizedSha256": "7e40e84c099d8eaa2e9bc4c1cc73274b4a174d699737f34b7015eb4eb706ec70",
+    "driverNormalizedSha256": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+    "profileNormalizedSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "projectionNormalizedSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+    "routesNormalizedSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+    "renderedOSProfileSha256": "2ef4644d137f912449a0ea958bfc86882d55831fb55176a32e6865bac1b91a56",
+    "priorReviews": [
+      "38a4e7b08f47139328f3a4ac5b4b50d83a6544b3",
+      "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+      "7fd7c7aee3902e8a8a0cc66460858e8ea6966e13"
+    ]
+  },
+  "metadataVerification": {
+    "authorizationRecords": 46,
+    "authorizationRecordsMatch": true,
+    "shippingFiles": 38,
+    "shippingFilesMatch": true,
+    "rawChecks": [
+      {
+        "name": "raw-v1/inner-ADMISSION.json.gz",
+        "compressed": true,
+        "decoded": true,
+        "sha256": "47c05617239ca54f56d2853e5f1dfaa4c73aee9cb03ace038ea8d1f0be435518"
+      },
+      {
+        "name": "raw-v1/inner-REPORT.json.gz",
+        "compressed": true,
+        "decoded": true,
+        "sha256": "8281a834078881914a9a5b9e363c18998e7b82ab472ab55edb110de0fd9fb0cd"
+      },
+      {
+        "name": "raw-v1/outer-OS-FENCE-RESULT.json.gz",
+        "compressed": true,
+        "decoded": true,
+        "sha256": "6869c13b4e78aab801e397faa5359733fc42735d2824e8c3bbf7bd429fed918d"
+      },
+      {
+        "name": "raw-v1/outer-OS-FENCE.json.gz",
+        "compressed": true,
+        "decoded": true,
+        "sha256": "e51b688345e52a3b679137610b18532ea1b7fb153673c636ac2a97a6ab3b82df"
+      },
+      {
+        "name": "raw-v1/outer-REPORT.json.gz",
+        "compressed": true,
+        "decoded": true,
+        "sha256": "e813510c930be6d90bced10c8f0f9d4309d67f1adac145c8077acca42dceef2c"
+      },
+      {
+        "name": "raw-v1/outer-stdout.gz",
+        "compressed": true,
+        "decoded": true,
+        "sha256": "ae70d821617e36dc65659f322e702853c6f5fb499b2c2c45a35cf6eb282022e8"
+      },
+      {
+        "name": "raw-v1/outer-stderr.gz",
+        "compressed": true,
+        "decoded": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "helper": {
+      "revision": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+      "bytes": 5589,
+      "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+      "profileSupportMatches": true,
+      "stagedHashQualification": "Matches committed terminal capture and fixed profile; retained helper body not reread here"
+    },
+    "sourceBindings": [
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs",
+        "bytes": 2811,
+        "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs",
+        "bytes": 537,
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+        "bytes": 20764,
+        "sha256": "fadf7b45c9fb628c0f91cf9c0af514733421942bee6c1a9f0e9fd1437f1de040"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+        "bytes": 7580,
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/os-instruction-fence.mjs",
+        "bytes": 6239,
+        "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs",
+        "bytes": 11917,
+        "sha256": "b3cbdfb52fdae6067d58a8c1f57d5890a2b0f2755f29c66c6744ec028582cdb6"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs",
+        "bytes": 6047,
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs",
+        "bytes": 6427,
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs",
+        "bytes": 9553,
+        "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external-admission.mjs",
+        "bytes": 4991,
+        "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+      },
+      {
+        "revision": "fe15f1e406fa1039accddec25c696ae7187f6135",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/projection.mjs",
+        "bytes": 5765,
+        "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+      }
+    ]
+  },
+  "error": {
+    "recorded": {
+      "message": "spawnSync git EPERM",
+      "stack": "Error: spawnSync git EPERM\n    at Object.spawnSync (node:internal/child_process:1120:20)\n    at spawnSync (node:child_process:911:24)\n    at execFileSync (node:child_process:954:15)\n    at file:///private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/support/tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs:22:22\n    at Array.map (<anonymous>)\n    at Module.prerequisites (file:///private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/support/tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs:21:39)\n    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs:73:44)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs:8:67"
+    },
+    "notRecorded": [
+      "code",
+      "errno",
+      "syscall",
+      "path",
+      "spawnargs",
+      "status",
+      "signal",
+      "resolved executable",
+      "worker inherited PATH and complete env",
+      "authority map index"
+    ],
+    "sourceDerivedCall": {
+      "api": "execFileSync",
+      "executable": "git",
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "possibleArgs": [
+        [
+          "--no-replace-objects",
+          "show",
+          "f5e9fc49b6abb38e180cc9de16c95fced102ff75:tests/commands/metadata-stress/canonical-env/runner.mjs"
+        ],
+        [
+          "--no-replace-objects",
+          "show",
+          "f5e9fc49b6abb38e180cc9de16c95fced102ff75:tests/plugins/qualified-current-release/prerequisites.mjs"
+        ]
+      ],
+      "options": {
+        "cwd": "/Users/kjopek/Workspace/safe-bash"
+      },
+      "qualification": "Source-derived argv, not dynamic spawnargs capture. Ordered map does not record which of the two members failed."
+    }
+  },
+  "diagnosis": {
+    "proven": [
+      "run.mjs:13 supplies process.env to fenced worker; fenced-supervisor.mjs:51-53 passes it to instructionFenceInvocation; os-instruction-fence.mjs:89 preserves it except owned HOME/TMP fields and IPC additions.",
+      "execute.mjs:50-54 creates and verifies a separate finite environment PATH=native:tool-bin plus bound GIT_EXEC_PATH. stageNative mutates seven declared oracle variables, not PATH; this object is not installed in process.env.",
+      "execute.mjs:73 passes environment into immutable prerequisites; helper:22 uses cwd only, so its bare git subprocess inherits worker process.env instead. The supplied environment is used later for version probes:48 and output variables:52,74.",
+      "Worker recorded argv contains no --permission. Nonempty NODE_OPTIONS was rejected by successful verifyExternal; Node permission/runtime probes:81-86 are later and unreached. Recorded error is spawnSync git EPERM, not ERR_ACCESS_DENIED. Missing --allow-child-process is not supported as this failure cause.",
+      "The actual recorded OS profile denies /usr/bin/git process-exec while permitting the authenticated direct Git; observer recorded successful earlier direct Git cat-file/pack-objects/index-pack routes."
+    ],
+    "inference": "Inherited bare Git resolution reached a denied selector (especially /usr/bin/git) is consistent and likely, but original PATH, selected executable and kernel audit are absent. EPERM alone cannot prove that target or exclude another OS exec restriction. PATH loss is proven; the precise kernel denial is not.",
+    "notAClaim": [
+      "No proven selector absolute-path observation for failed exec",
+      "No guaranteed PATH-only fix",
+      "No Node permission widening needed or authorized",
+      "No revised assessment of prior scoped A10 or whole-gate product quality"
+    ]
+  },
+  "actualAttempt": {
+    "launcherInvocations": 1,
+    "launcherExitFromTerminal": 1,
+    "workerExit": 1,
+    "status": "HOLD_OR_QUALIFIED_RED",
+    "phasesExecuted": 0,
+    "declaredPhases": 14,
+    "productionBuilds": 0,
+    "canonicalCounts": null,
+    "preflight": {
+      "status": "preflight-admitted-not-product-acceptance",
+      "issues": [],
+      "nativeAssetBindings": 51,
+      "qualification": "Identity admission, not native semantic test passes"
+    },
+    "setupReached": {
+      "logicalCandidateEntries": 37397,
+      "physicalCandidateEntries": 37392,
+      "opaqueHistoryBytes": 452090184,
+      "checkoutPerformed": false,
+      "dependencyProjectionCopies": 2,
+      "nativeStagingEntries": 36,
+      "privateMetadataFiles": 264,
+      "privateInstructionEntries": 0
+    },
+    "unreached": [
+      "Remaining prerequisites after authority map: imports/extra native authority and version validation, privateState, engine body copy",
+      "privateBefore and privateAfter, guarded runtime probe and explicit Node permission probes",
+      "Import/critical/cleanup harness setup following prerequisites; source/support/private execution guards; SETUP-COMPLETE sentinel",
+      "All 13 supervised phase processes plus final-sweep, all production builds/A10/canonical/pack/public phases",
+      "Complete product/package/source/private post-sweeps and gate binding"
+    ],
+    "innerFlags": {
+      "bindingComplete": false,
+      "guardsPassed": false,
+      "cleanupComplete": false,
+      "fullGateLaunched": false
+    },
+    "scopeQualification": "fullGateLaunched:false is an inner phase-cohort flag; the single authorized CLI attempt was consumed. No retry authorized."
+  },
+  "cleanup": {
+    "recordedWorker": {
+      "pid": 19721,
+      "parent": 19113,
+      "group": 19721,
+      "closed": true,
+      "clean": true,
+      "status": 1,
+      "signal": null,
+      "signals": [],
+      "survivors": [],
+      "timedOut": false,
+      "outputExceeded": false,
+      "elapsedMs": 60383,
+      "outputBytes": 22826
+    },
+    "observedProcessRecords": 126,
+    "observerGroups": [
+      {
+        "pid": 21117,
+        "parent": 19721,
+        "group": 21117,
+        "born": "Fri Aug 28 04:20:28 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 21612,
+        "parent": 19721,
+        "group": 21612,
+        "born": "Fri Aug 28 04:20:59 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects pack-objects --stdout --revs"
+      },
+      {
+        "pid": 21613,
+        "parent": 19721,
+        "group": 21613,
+        "born": "Fri Aug 28 04:20:59 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects --git-dir /private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/.git index-pack --stdin"
+      }
+    ],
+    "observerSurvivors": [],
+    "phaseCompleted": 0,
+    "phaseProtocolClean": false,
+    "aggregateFenceClean": false,
+    "qualification": "Recorded natural worker closure, no forced teardown or observed survivors. This is not completed gate cleanup, exhaustive process surveillance or a new live PID audit; no signals sent by this reviewer."
+  },
+  "retained": {
+    "checkedAt": "2026-08-28T09:34:12.057Z",
+    "checks": [
+      {
+        "path": "/private/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1",
+        "exists": true,
+        "kind": "directory",
+        "device": 16777232,
+        "inode": 181058321,
+        "mode": 448,
+        "uid": 501
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lAnYPa",
+        "exists": true,
+        "kind": "directory",
+        "device": 16777232,
+        "inode": 181058319,
+        "mode": 448,
+        "uid": 501
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am",
+        "exists": true,
+        "kind": "directory",
+        "device": 16777232,
+        "inode": 181058320,
+        "mode": 448,
+        "uid": 501
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB",
+        "exists": true,
+        "kind": "directory",
+        "device": 16777232,
+        "inode": 181058448,
+        "mode": 448,
+        "uid": 501
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/AGENTS.md",
+        "exists": false,
+        "error": "ENOENT"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "exists": false,
+        "error": "ENOENT"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "exists": false,
+        "error": "ENOENT"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "exists": false,
+        "error": "ENOENT"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "exists": false,
+        "error": "ENOENT"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/source/benchmarks/node_modules/just-bash/dist/AGENTS.md",
+        "exists": false,
+        "error": "ENOENT"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-c6k6am/tmp/unified76-execution-fPdjwB/safejs-engine",
+        "exists": false,
+        "error": "ENOENT"
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1/SETUP-COMPLETE.json",
+        "exists": false,
+        "error": "ENOENT"
+      }
+    ],
+    "outputNames": [
+      "ADMISSION.json",
+      "REPORT.json"
+    ],
+    "qualification": "Exact retained root metadata only, no recursive tree read/hash, private tree access or cleanup. Six named instruction omissions, engine-copy path and setup sentinel are ENOENT; absence now does not prove absence at all times/all aliases. Work/output root identities match captured envelope."
+  },
+  "privateQualification": {
+    "reached": "Recorded metadata-only would-copy guard (264 files), whose source only traverses names/stat, no engine bytes",
+    "unreached": "privateState at helper:54 and before/after hashes, copy and guest execution",
+    "finally": "execute.mjs:141 requires report.privateBefore; it is absent, so no private postguard ran",
+    "claim": "No private write is on the reached pinned code path; no private post-run integrity attestation is inferred."
+  },
+  "proposal": {
+    "owner": "Current shipping driver wrapper only, separately versioned; frozen helper/product bytes unchanged",
+    "repair": "Give every immutable prerequisites/privateState implicit subprocess a dedicated verified process environment before entry: finite authenticated PATH, bound GIT_EXEC_PATH, clean Git configuration/hooks/replace/alternates handling, owned HOME/TMP and declared native variables. A bounded helper context under the same shipping fence and outer observer can isolate this from parent ambient admission; preserve return state and declared environment updates. Cover final/finally privateState routes too, not just line22.",
+    "constraints": [
+      "Do not append ambient PATH, invoke denied selectors, add xcodebuild or DeveloperTools/library exceptions, weaken OS/Node/FD/projection guards, or edit historical helper",
+      "Do not blindly Object.assign all controlled variables into the existing worker: verifyExternal() at execute:91 rejects nonempty GIT_* via external-admission:27. Keep ambient-injection admission distinct from authenticated driver-owned child env; do not remove provenance checks.",
+      "Changing only the argument environment to prerequisites cannot repair omitted env; PATH alone does not ensure complete Git/core/config closure or prove the observed kernel cause.",
+      "No generic global async process.env swapping across helper await/import boundaries; use an isolated or otherwise explicitly serialized, verified context with unchanged guard semantics."
+    ],
+    "futureVerificationOnly": [
+      "Before any new gate, record bound executable/argv/env keys and exact helper metadata-authority calls under unchanged shipping fence; preserve errno/code/syscall/path/spawnargs/status and no payload bodies. Confirm both authority members, not merely a bare-git toy probe.",
+      "Exercise empty and shadowed inherited PATH/GIT selection without ambient fallback; exact direct Git/core aliases succeed, selector/tamper negatives refuse before dependent work. Include later privateState routing with synthetic owned Git state first; real private access needs separate scope approval.",
+      "Confirm parent ambient-admission checks still reject injection, no process-global env leak, all declared helper output environment mutations survive, private/source/instruction guards remain reached as intended, and bounded observer cleanup is natural.",
+      "If EPERM persists using the authenticated direct target, preserve it and obtain a separately approved bounded route/kernel investigation; never broaden permissions as a guess. Rebind driver/evidence/packet and obtain fresh root release only after review."
+    ]
+  },
+  "preservation": "Original attempt and all prior cohorts remain unchanged. No source patch or new release; retained original scratch intentionally untouched."
+}

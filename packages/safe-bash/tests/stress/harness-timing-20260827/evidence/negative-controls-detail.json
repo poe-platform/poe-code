@@ -1,0 +1,527 @@
+[
+  {
+    "mutation": "suppress-readiness",
+    "expectedFailure": "native readiness deadline",
+    "sentinelAlive": true,
+    "argv": [
+      "--no-config",
+      "--line-buffered",
+      "foo",
+      "-"
+    ],
+    "profile": "observed-prefix",
+    "pid": 72985,
+    "code": null,
+    "signal": "SIGKILL",
+    "stdout": "foo\n",
+    "stderr": "",
+    "events": [
+      {
+        "event": "launch",
+        "ms": 0.05912499999999454,
+        "detail": {
+          "argv": [
+            "--no-config",
+            "--line-buffered",
+            "foo",
+            "-"
+          ],
+          "profile": "observed-prefix",
+          "options": {
+            "lineBuffered": true,
+            "mutation": "suppress-readiness",
+            "readinessMs": 250,
+            "completionMs": 250,
+            "cleanupMs": 250
+          }
+        }
+      },
+      {
+        "event": "spawn",
+        "ms": 1.9530829999999924,
+        "detail": {
+          "pid": 72985
+        }
+      },
+      {
+        "event": "write",
+        "ms": 1.970708000000002,
+        "detail": {
+          "hex": "666f6f0a",
+          "end": false
+        }
+      },
+      {
+        "event": "stdout-data",
+        "ms": 13.925083,
+        "detail": {
+          "hex": "666f6f0a"
+        }
+      },
+      {
+        "event": "prefix-consumption-evidenced",
+        "ms": 13.938166999999993,
+        "detail": "stdout is evidence of prior read; not a read syscall timestamp"
+      },
+      {
+        "event": "failure",
+        "ms": 253.01133299999998,
+        "detail": "native readiness deadline"
+      },
+      {
+        "event": "kill",
+        "ms": 253.428333,
+        "detail": {
+          "pid": 72985
+        }
+      },
+      {
+        "event": "stdin-close",
+        "ms": 253.649
+      },
+      {
+        "event": "stderr-end",
+        "ms": 255.002167
+      },
+      {
+        "event": "stderr-close",
+        "ms": 256.094
+      },
+      {
+        "event": "stdout-end",
+        "ms": 256.144167
+      },
+      {
+        "event": "exit",
+        "ms": 256.260958,
+        "detail": {
+          "code": null,
+          "signal": "SIGKILL"
+        }
+      },
+      {
+        "event": "close",
+        "ms": 256.381208,
+        "detail": {
+          "code": null,
+          "signal": "SIGKILL"
+        }
+      },
+      {
+        "event": "stdout-close",
+        "ms": 256.771833
+      }
+    ],
+    "ready": false,
+    "actualClose": true,
+    "ownedListenersRemaining": 0,
+    "streamsDestroyed": [
+      true,
+      true,
+      true
+    ],
+    "activeTimers": 0
+  },
+  {
+    "mutation": "withhold-delivery",
+    "expectedFailure": "native readiness deadline",
+    "sentinelAlive": true,
+    "argv": [
+      "--no-config",
+      "--line-buffered",
+      "foo",
+      "-"
+    ],
+    "profile": "observed-prefix",
+    "pid": 73001,
+    "code": null,
+    "signal": "SIGKILL",
+    "stdout": "",
+    "stderr": "",
+    "events": [
+      {
+        "event": "launch",
+        "ms": 0.14641699999998536,
+        "detail": {
+          "argv": [
+            "--no-config",
+            "--line-buffered",
+            "foo",
+            "-"
+          ],
+          "profile": "observed-prefix",
+          "options": {
+            "lineBuffered": true,
+            "mutation": "withhold-delivery",
+            "readinessMs": 250,
+            "completionMs": 250,
+            "cleanupMs": 250
+          }
+        }
+      },
+      {
+        "event": "spawn",
+        "ms": 4.525292000000036,
+        "detail": {
+          "pid": 73001
+        }
+      },
+      {
+        "event": "failure",
+        "ms": 255.97125,
+        "detail": "native readiness deadline"
+      },
+      {
+        "event": "kill",
+        "ms": 256.477834,
+        "detail": {
+          "pid": 73001
+        }
+      },
+      {
+        "event": "stdin-close",
+        "ms": 256.74504199999996
+      },
+      {
+        "event": "stderr-end",
+        "ms": 257.461334
+      },
+      {
+        "event": "stderr-close",
+        "ms": 257.59324999999995
+      },
+      {
+        "event": "stdout-end",
+        "ms": 257.62995900000004
+      },
+      {
+        "event": "exit",
+        "ms": 257.707834,
+        "detail": {
+          "code": null,
+          "signal": "SIGKILL"
+        }
+      },
+      {
+        "event": "close",
+        "ms": 257.96600000000007,
+        "detail": {
+          "code": null,
+          "signal": "SIGKILL"
+        }
+      },
+      {
+        "event": "stdout-close",
+        "ms": 258.18825
+      }
+    ],
+    "ready": false,
+    "actualClose": true,
+    "ownedListenersRemaining": 0,
+    "streamsDestroyed": [
+      true,
+      true,
+      true
+    ],
+    "activeTimers": 0
+  },
+  {
+    "mutation": "stall-completion",
+    "expectedFailure": "native completion deadline",
+    "sentinelAlive": true,
+    "argv": [
+      "--no-config",
+      "--line-buffered",
+      "foo",
+      "-"
+    ],
+    "profile": "observed-prefix",
+    "pid": 73017,
+    "code": null,
+    "signal": "SIGKILL",
+    "stdout": "foo\n",
+    "stderr": "",
+    "events": [
+      {
+        "event": "launch",
+        "ms": 0.3182919999999285,
+        "detail": {
+          "argv": [
+            "--no-config",
+            "--line-buffered",
+            "foo",
+            "-"
+          ],
+          "profile": "observed-prefix",
+          "options": {
+            "lineBuffered": true,
+            "mutation": "stall-completion",
+            "readinessMs": 10000,
+            "completionMs": 250,
+            "cleanupMs": 250
+          }
+        }
+      },
+      {
+        "event": "spawn",
+        "ms": 5.225999999999999,
+        "detail": {
+          "pid": 73017
+        }
+      },
+      {
+        "event": "write",
+        "ms": 5.261332999999922,
+        "detail": {
+          "hex": "666f6f0a",
+          "end": false
+        }
+      },
+      {
+        "event": "stdout-data",
+        "ms": 19.358292000000006,
+        "detail": {
+          "hex": "666f6f0a"
+        }
+      },
+      {
+        "event": "prefix-consumption-evidenced",
+        "ms": 19.403249999999957,
+        "detail": "stdout is evidence of prior read; not a read syscall timestamp"
+      },
+      {
+        "event": "ready",
+        "ms": 19.40483299999994
+      },
+      {
+        "event": "failure",
+        "ms": 271.77829199999996,
+        "detail": "native completion deadline"
+      },
+      {
+        "event": "kill",
+        "ms": 272.05383299999994,
+        "detail": {
+          "pid": 73017
+        }
+      },
+      {
+        "event": "stdin-close",
+        "ms": 272.14362499999993
+      },
+      {
+        "event": "stderr-end",
+        "ms": 272.90675
+      },
+      {
+        "event": "stdout-end",
+        "ms": 272.9749999999999
+      },
+      {
+        "event": "stdout-close",
+        "ms": 273.06383299999993
+      },
+      {
+        "event": "stderr-close",
+        "ms": 273.06616699999995
+      },
+      {
+        "event": "exit",
+        "ms": 273.0922499999999,
+        "detail": {
+          "code": null,
+          "signal": "SIGKILL"
+        }
+      },
+      {
+        "event": "close",
+        "ms": 273.0961669999999,
+        "detail": {
+          "code": null,
+          "signal": "SIGKILL"
+        }
+      }
+    ],
+    "ready": true,
+    "actualClose": true,
+    "ownedListenersRemaining": 0,
+    "streamsDestroyed": [
+      true,
+      true,
+      true
+    ],
+    "activeTimers": 0
+  },
+  {
+    "mutation": "suppress-cleanup",
+    "expectedFailure": "native cleanup deadline",
+    "sentinelAlive": true,
+    "argv": [
+      "--no-config",
+      "--line-buffered",
+      "foo",
+      "-"
+    ],
+    "profile": "observed-prefix",
+    "pid": 73033,
+    "code": 0,
+    "signal": null,
+    "stdout": "foo\nbinary file matches (found \"\\0\" byte around offset 4)\n",
+    "stderr": "",
+    "events": [
+      {
+        "event": "launch",
+        "ms": 0.1568329999998923,
+        "detail": {
+          "argv": [
+            "--no-config",
+            "--line-buffered",
+            "foo",
+            "-"
+          ],
+          "profile": "observed-prefix",
+          "options": {
+            "lineBuffered": true,
+            "mutation": "suppress-cleanup",
+            "readinessMs": 10000,
+            "completionMs": 250,
+            "cleanupMs": 250
+          }
+        }
+      },
+      {
+        "event": "spawn",
+        "ms": 3.456124999999929,
+        "detail": {
+          "pid": 73033
+        }
+      },
+      {
+        "event": "write",
+        "ms": 3.609666999999945,
+        "detail": {
+          "hex": "666f6f0a",
+          "end": false
+        }
+      },
+      {
+        "event": "stdout-data",
+        "ms": 19.20637499999998,
+        "detail": {
+          "hex": "666f6f0a"
+        }
+      },
+      {
+        "event": "prefix-consumption-evidenced",
+        "ms": 19.247249999999894,
+        "detail": "stdout is evidence of prior read; not a read syscall timestamp"
+      },
+      {
+        "event": "ready",
+        "ms": 19.24812499999996
+      },
+      {
+        "event": "write",
+        "ms": 19.278749999999945,
+        "detail": {
+          "hex": "000a6e6f0a",
+          "end": true
+        }
+      },
+      {
+        "event": "stdin-close",
+        "ms": 19.509916999999973
+      },
+      {
+        "event": "stdout-data",
+        "ms": 19.529916999999955,
+        "detail": {
+          "hex": "62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"
+        }
+      },
+      {
+        "event": "stderr-end",
+        "ms": 19.99529199999995
+      },
+      {
+        "event": "stdout-end",
+        "ms": 20.0190419999999
+      },
+      {
+        "event": "stdout-close",
+        "ms": 20.167582999999922
+      },
+      {
+        "event": "stderr-close",
+        "ms": 20.1697079999999
+      },
+      {
+        "event": "exit",
+        "ms": 20.191791999999964,
+        "detail": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "event": "close",
+        "ms": 20.20495799999992,
+        "detail": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "event": "cleanup-acknowledgement-suppressed",
+        "ms": 20.212707999999907
+      },
+      {
+        "event": "cleanup-deadline",
+        "ms": 271.0927499999999,
+        "detail": {
+          "actualClose": true
+        }
+      }
+    ],
+    "ready": true,
+    "actualClose": true,
+    "ownedListenersRemaining": 0,
+    "streamsDestroyed": [
+      true,
+      true,
+      true
+    ],
+    "activeTimers": 0
+  },
+  {
+    "mutation": "jq-execution-stall",
+    "cancelled": true,
+    "abortListeners": 0
+  },
+  {
+    "mutation": "late-host-rejection",
+    "observedUnderStrictUnhandledRejections": true
+  },
+  {
+    "sentinelCleanup": {
+      "forced": false,
+      "events": [
+        {
+          "event": "exit",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "event": "close"
+        }
+      ],
+      "stderr": "",
+      "streamsDestroyed": [
+        true,
+        true,
+        true
+      ],
+      "ownedListenersRemaining": 0
+    }
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "candidate": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "wide"
+      ],
+      "limits": {
+        "maxEntries": 8
+      },
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [],
+      "stderr": [],
+      "startedAt": "2026-08-27T08:28:25.385Z",
+      "error": {
+        "name": "FsError",
+        "message": "EFBIG: tree entry limit exceeded (8)",
+        "code": "EFBIG",
+        "stack": "FsError: EFBIG: tree entry limit exceeded (8)\n    at WalkBudget.check (/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/src/commands/tree/io.ts:36:32)\n    at WalkBudget.entry (/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/src/commands/tree/io.ts:41:33)\n    at Walker.children (/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/src/commands/tree/tree.ts:77:17)\n    at async Walker.visit (/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/src/commands/tree/tree.ts:112:22)\n    at async Walker.run (/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/src/commands/tree/tree.ts:157:7)\n    at async Object.execute (/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/src/commands/tree/tree.ts:186:24)"
+      },
+      "rejected": true,
+      "sameAsSignalReason": false,
+      "finishedAt": "2026-08-27T08:28:25.388Z"
+    }
+  ],
+  "shells": []
+}

@@ -1,0 +1,4 @@
+{"at":"2026-08-29T11:16:06.367Z","event":"start","pid":5588,"commit":"f16d4a4eaa9a2d7acb93fc3d2d258feee675f40c","opened":1788002166367,"fullDeadline":1788004266367,"role":"independent-outer-admission"}
+{"at":"2026-08-29T11:16:06.415Z","event":"metadata-retired","pid":5589,"status":0,"signal":null}
+{"at":"2026-08-29T11:16:13.235Z","event":"coordinator-retired","pid":5592,"code":0,"signal":null,"forced":false,"elapsedMs":6868}
+{"at":"2026-08-29T11:16:13.239Z","event":"complete","sourceResult":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/RESULT.json","resultSha256":"016d3d567661c1a24505e48e08671d7eddfd2ab34261b5440c701e65248a422f","resultBytes":310015,"childCount":33,"knownExecutionStarts":36,"peakKnown":3,"totalCapture":118994,"workBytes":26188785,"coordinatorExit":0,"elapsedMs":6872}

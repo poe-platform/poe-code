@@ -1,0 +1,195 @@
+{
+  "version": 2,
+  "capturedAt": "2026-08-27",
+  "status": "design-only-product-writes-held",
+  "observedHeadAtInitialInspection": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+  "lastReverifiedHead": "5c34372be6aedd179123ceab2663c7d52f207ed1",
+  "boundSourceBlobsUnchangedAcrossObservedHeadMovement": true,
+  "reverifiedHeadHistory": [
+    "12e196af8d8b0866339747150b02ca00b9764a09",
+    "ebd77c05134bc77311609e02cf4a35c8aff0fcc2",
+    "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "5c34372be6aedd179123ceab2663c7d52f207ed1"
+  ],
+  "reverificationDifferences": [],
+  "draftQualification": {
+    "priorUncommittedDesignSha256": "61cd7b70e04c97829985b49fd80f79e9e7eb5184d3af82a5b2affb4ee56cf063",
+    "priorUncommittedIdentitySha256": "1c73b2a24e4d5dd8482f7c39a5fecc1916047ac3bdd6fca966c8c34fe1c6812f",
+    "priorCommittedDesignSha256": "48141bead582558fce6227d205a72cef418b39ceb254bea4bf7812123d19f97e",
+    "refinedDesignSha256": "2cbdaa8416922202cbd90035e672280e386c57cfffa63210666e0bc1eebcabdc",
+    "freezeClaimed": false,
+    "implementationAuthorized": false
+  },
+  "sealedStage2Freeze": {
+    "commit": "98f400c4a33eeb03f825213054f90adc1fd979c4",
+    "tree": "23a7573dc942964ffff99c7f3f3456ddedddc306",
+    "parent": "12e196af8d8b0866339747150b02ca00b9764a09",
+    "rawCommitSha256": "bb9401fe4b24a4dab6d101c7313f2d6106e1fefd75ac770c28906cf7232f6376",
+    "handoff": {
+      "path": "tests/shell/cancellation-stage2-independent-20260827/HANDOFF.md",
+      "blob": "ce80f24cd554460e81aaf5517f1b3d6df1458800",
+      "sha256": "0c79db62ff68785970c19fd9e133a4701df068d87a807d1bde5e58942e96aef5"
+    },
+    "families": {
+      "total": 32,
+      "runtime": 25,
+      "controlOrderSeam": 1,
+      "types": 6
+    },
+    "correctedBaseline": "14/26 with 12 missing-integration failures",
+    "historicalBaselineRetained": "13/26 with EOF fixture correction retained",
+    "frozenMutantClasses": 10,
+    "mutantsRun": false
+  },
+  "resolvedInputs": {
+    "publicAndInternalSignalType": "readonly signal?: AbortSignal | undefined",
+    "nativeLiveDelivery": "preserve the exact reason stored and dispatched by the native AbortSignal; no literal-undefined requirement for native abort(undefined)",
+    "customUndefinedScope": "native-branded own-reason preabort fixture plus actual getter and cleanup throws",
+    "executionRejection": "only an actual escaping rejection; preserve existing handler/middleware diagnostic and numeric-status mapping",
+    "nonzeroStatusIsRejection": false
+  },
+  "rootPolicy": {
+    "stage2R08": {
+      "innerOutcome": "inner local option abort makes the inner invoke reject with the exact reason",
+      "outerOutcome": "while the outer context remains live, a branch handler catch/rethrow is an ordinary handler throw mapped by executeCommand to exitCode 1 plus diagnostic; the outer invoke returns and does not reject",
+      "publicWrapperOutcome": "returns 0 with caller still live",
+      "poincareV3OuterAssertion": "returned exitCode 1 across all seven falsy reasons",
+      "outcomeTransport": "consume ownership and discard the authenticated report at handled/mapped numeric status; never transfer it across the mapping or into a borrowed parent",
+      "r09AndR10": "still reject because the outer/root boundary actually aborts",
+      "r08OriginalBaselineRetained": "14/26; seven outer rows passed because the future option was ignored",
+      "integratedExitCode1Observed": false,
+      "v3FreezeHashClaimed": false,
+      "arbitraryAsyncPrimitiveProvenanceSolved": false
+    }
+  },
+  "provenanceCommits": [
+    {
+      "role": "current-getopts-baseline",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a",
+      "tree": "8cadf30519a179418fb2f7a859d6cf64ef1c8049",
+      "parent": "8a674adf8e99f64a7baf965527dd9fc9c30bdbb2",
+      "rawCommitSha256": "7f765b54e62f0b24bf76ce775434432230c14e5a86b3ae38061173c9c732b38b"
+    },
+    {
+      "role": "owned-output-provenance-ancestor",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "tree": "62d75ef09e89d4d3b6afc032c518d2846dcd03b7",
+      "parent": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "rawCommitSha256": "15a84950d6da3a65ab1a11701a8a595df040c53759f2cc3c4aba575b773db560",
+      "currentRuntimeAndShellBlobsDiffer": true
+    },
+    {
+      "role": "accepted-private-helper",
+      "commit": "fbbe1ef793b7434871403125efbeb46624a8e081",
+      "tree": "840983102d0ba9d0aba5c2a1662518d0f7b649c6",
+      "rawCommitSha256": "f86d811c54b7910f8efa2d7d60c5936898b55129670460b5324428ab283596de"
+    },
+    {
+      "role": "durable-timeout-design-input",
+      "commit": "7b812873c884a432951e981bfa908d7ca7407494",
+      "tree": "1a12d247ec06999b162583fa1ca45b2273b3e9e3",
+      "rawCommitSha256": "36856513ebe455767fbc8bda5ae4cfe715d1bd83781bf1e095b6114851fcc659"
+    }
+  ],
+  "currentSourceBindings": {
+    "src/contracts/command.ts": {
+      "blob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "matches618": true
+    },
+    "src/contracts/command.md": {
+      "blob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "matches618": true
+    },
+    "src/shell/types.ts": {
+      "blob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "matches618": true
+    },
+    "src/shell/runtime.ts": {
+      "blob": "b826b1f3d8cb8a0f3703c949bda5003cce06f326",
+      "sha256": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+      "matches618": true,
+      "matchesEba": false
+    },
+    "src/shell/shell.ts": {
+      "blob": "013889cd158e77267341867f1e360d7b5eb22e94",
+      "sha256": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332",
+      "matches618": true,
+      "matchesEba": false
+    },
+    "src/shell/cleanup.ts": {
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "matches618": true
+    },
+    "src/shell/cancellation.ts": {
+      "blob": "a7742b7f7e81bcd8c1c2a6be35092d8b5f41102f",
+      "sha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac",
+      "matchesAcceptedHelper": true,
+      "absentAt618AndEba": true
+    }
+  },
+  "designInputs": {
+    "tests/commands/timeout-design-independent-20260827/README.md": {
+      "blob": "c8e6c549824e9f6451a5d0b743b9dc16959dc864",
+      "sha256": "42ed4a630af5d128f98f4099c437b04e0fa1b82b151597ebc987170a32be947d"
+    },
+    "tests/commands/timeout-design-independent-20260827/identity.json": {
+      "blob": "4744a60410f001a51142e78b9ad168f003c968b2",
+      "sha256": "511b5629ffbb9004705fe0ba16f942d9b38025b93e7c3896c12155d9fef894a3"
+    }
+  },
+  "minimumProductWriteSetAfterRelease": [
+    "src/contracts/command.ts",
+    "src/contracts/command.md",
+    "src/shell/types.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts"
+  ],
+  "conditionalSeparateHelperChange": "src/shell/cancellation.ts",
+  "proposedPrivateHelperExtension": {
+    "names": [
+      "prepareChildCancellation",
+      "activateChildCancellation",
+      "selectRuntimeCancellationOutcome"
+    ],
+    "purpose": "one-shot inert validation followed by registered control-bearing child activation, plus strict runtime selection from an authenticated observed origin or descendant report",
+    "stage1Gap": "no two-phase activation, no nested original stage-control input, and local reason equality remains available to the accepted Stage1 selector",
+    "separateApiAndHoldoutFreezeRequired": true
+  },
+  "proposedOutcomeTransport": {
+    "names": [
+      "BoundaryOutcomeRecord",
+      "InvokeOutcomeRecord"
+    ],
+    "recommendedChoice": "runtime-owned cancellation-branch origin capture plus boundary-owned exact raw-Promise transport of an already-authenticated report",
+    "reasonKeyedGlobalState": false,
+    "publicReasonWrappedOrMutated": false,
+    "arbitraryAsyncCausalGuarantee": false,
+    "unknownEscapingRejection": "recommended unrelated unless independently authenticated",
+    "rootDecisionRequired": "accept conservative narrow raw-Promise support or separately authorize an explicit report-aware internal capability"
+  },
+  "proposedLifecycleOwner": {
+    "name": "InvocationCancellationOwner",
+    "cleanupImplementationEditRequired": false,
+    "ownerRegisteredOnActualParentScopeBeforeChildAcquisition": true,
+    "rootCallbackWaitsItself": false,
+    "closeFailuresAppendedAsExactAccumulatorMembers": true,
+    "borrowedCancellationResourcesAdded": false,
+    "selectionAfterOwnedCleanupBarrier": true,
+    "closeBeforePublicSettlement": true,
+    "separateFreezeRequired": true
+  },
+  "excluded": [
+    "timeout command or defaults",
+    "Budget deadline/timeout API",
+    "src/shell/cleanup.ts",
+    "root/package/barrel/config changes"
+  ],
+  "testsRun": false,
+  "independentFilesExecuted": false,
+  "mutantsRun": false,
+  "productFilesChanged": false
+}

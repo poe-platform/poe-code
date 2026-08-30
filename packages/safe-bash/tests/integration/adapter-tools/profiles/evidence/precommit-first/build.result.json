@@ -1,0 +1,13 @@
+{
+  "name": "build",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "source",
+  "startedAt": "2026-08-27T10:02:45.106Z",
+  "durationMs": 1669.447084,
+  "status": 0,
+  "signal": null
+}

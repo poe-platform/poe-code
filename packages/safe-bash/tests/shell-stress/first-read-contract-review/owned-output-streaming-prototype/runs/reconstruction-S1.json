@@ -1,0 +1,32 @@
+{
+  "label": "reconstruction-S1",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/restore.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.codex/tmp/arg0/codex-arg0W4UmaG:/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/Users/kjopek/.bun/bin:/Users/kjopek/bin:/Users/kjopek/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T11:13:35.631Z",
+  "finishedAt": "2026-08-27T11:13:39.310Z",
+  "durationMs": 3679.595833,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 88425,
+  "initialIdentity": "88425 88415 88425 Thu Aug 27 06:13:35 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/restore.mjs",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\n  \"completedAt\": \"2026-08-27T11:13:39.267Z\",\n  \"temp\": \"/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM\",\n  \"candidate\": \"/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate\",\n  \"sourceManifestSha256\": \"6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea\",\n  \"testManifestSha256\": \"dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c\",\n  \"compiledManifestSha256\": \"2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f\",\n  \"compilerInputsMatched\": 358,\n  \"sourceAfterBuildAuthenticated\": true,\n  \"candidateReadonly\": true,\n  \"liveSourceFallback\": false,\n  \"children\": [\n    {\n      \"command\": \"/usr/bin/tar\",\n      \"args\": [\n        \"-tzf\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data\"\n      ],\n      \"pid\": 88433,\n      \"status\": 0,\n      \"signal\": null,\n      \"reaped\": true\n    },\n    {\n      \"command\": \"/usr/bin/tar\",\n      \"args\": [\n        \"-xzf\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/baseline.tar.gz.data\",\n        \"-C\",\n        \"/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate\"\n      ],\n      \"pid\": 88435,\n      \"status\": 0,\n      \"signal\": null,\n      \"reaped\": true\n    },\n    {\n      \"command\": \"/usr/bin/git\",\n      \"args\": [\n        \"apply\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data\"\n      ],\n      \"pid\": 88436,\n      \"status\": 0,\n      \"signal\": null,\n      \"reaped\": true\n    },\n    {\n      \"command\": \"/usr/bin/git\",\n      \"args\": [\n        \"apply\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/baseline-current-retention.patch-data\"\n      ],\n      \"pid\": 88488,\n      \"status\": 0,\n      \"signal\": null,\n      \"reaped\": true\n    },\n    {\n      \"command\": \"/usr/bin/git\",\n      \"args\": [\n        \"apply\",\n        \"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/source-S1-r0.patch-data\"\n      ],\n      \"pid\": 88489,\n      \"status\": 0,\n      \"signal\": null,\n      \"reaped\": true\n    },\n    {\n      \"command\": \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\n      \"args\": [\n        \"/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc\",\n        \"-p\",\n        \"tsconfig.build.json\"\n      ],\n      \"pid\": 88507,\n      \"status\": 0,\n      \"signal\": null,\n      \"reaped\": true\n    },\n    {\n      \"command\": \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\n      \"args\": [\n        \"/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc\",\n        \"--noEmit\",\n        \"--listFiles\",\n        \"-p\",\n        \"tsconfig.json\"\n      ],\n      \"pid\": 88509,\n      \"status\": 0,\n      \"signal\": null,\n      \"reaped\": true\n    }\n  ],\n  \"importPath\": \"/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate/dist/index.js\",\n  \"declarationPath\": \"/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate/dist/contracts/output.d.ts\",\n  \"replayAuthor\": \"cd /tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate && node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 tests/shell/owned-output-streaming-author.test.ts\",\n  \"restriction\": \"No postseal build/source mutation. Root must separately observe actual author CLOSED before independent execution.\"\n}\n",
+  "stderr": ""
+}

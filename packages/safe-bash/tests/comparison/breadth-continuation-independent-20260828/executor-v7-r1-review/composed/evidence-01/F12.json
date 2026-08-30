@@ -1,0 +1,12 @@
+{
+  "id": "F12",
+  "expected": "Failure after config preparation enrolls but never launches; unsafe tail remains.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.495Z",
+  "finished": "2026-08-28T15:01:02.500Z",
+  "detail": {
+    "enrolled": 1,
+    "launched": 0,
+    "preservedUnlaunchedTail": true
+  }
+}

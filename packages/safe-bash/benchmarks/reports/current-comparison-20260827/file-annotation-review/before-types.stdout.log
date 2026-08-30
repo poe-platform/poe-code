@@ -1,0 +1,3 @@
+tests/commands/file/text-bound.test.ts(67,72): error TS2749: 'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?
+tests/commands/file/text-bound.test.ts(79,72): error TS2749: 'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?
+tests/commands/file/text-bound.test.ts(136,72): error TS2749: 'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?

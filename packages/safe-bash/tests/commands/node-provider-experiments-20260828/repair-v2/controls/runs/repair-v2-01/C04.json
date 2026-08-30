@@ -1,0 +1,56 @@
+{
+  "id": "C04",
+  "expected": "negative SIGTERM is not natural pass",
+  "observation": {
+    "rejected": true,
+    "primary": {
+      "type": "object",
+      "name": "Error",
+      "message": "CHILD_DEADLINE"
+    },
+    "subjectRow": {
+      "number": 1,
+      "role": "workflow",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/stub.mjs",
+        "hold"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/C04",
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "containment": "OWNED_FAILURE",
+      "naturallyReaped": false,
+      "closeObserved": true,
+      "signalsRequested": [
+        "SIGTERM"
+      ],
+      "pid": 11163,
+      "status": null,
+      "signal": "SIGTERM",
+      "primaryFailure": {
+        "type": "object",
+        "name": "Error",
+        "message": "CHILD_DEADLINE"
+      },
+      "secondaryFailures": [
+        {
+          "type": "object",
+          "name": "Error",
+          "message": "CHILD_CONTAINMENT_OR_SPAWN"
+        }
+      ]
+    },
+    "independentOrdinal": 4,
+    "remainingCalls": 2,
+    "subjectOwnedRetirement": true,
+    "expectedObserved": true
+  },
+  "safeToContinue": true
+}

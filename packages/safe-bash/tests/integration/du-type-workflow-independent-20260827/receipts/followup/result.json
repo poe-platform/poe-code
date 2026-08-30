@@ -1,0 +1,123 @@
+{
+  "candidate": "491da31cc6ef07a3bc4584c15ae2efe9f0482c96",
+  "startedAt": "2026-08-27T22:53:07.137Z",
+  "correctionsOnly": true,
+  "initialExecutionUnchanged": {
+    "sha256": "0f5a8ee3ceca8c2173b8acc4434dd110c7a357ed11b43148a0ccc9436353813f",
+    "failures": [
+      "direct-nested-reporter-node24",
+      "moved-du-runtime-node24",
+      "source-read-denied",
+      "source refusal is an actual permission failure",
+      "selected Git inputs unchanged and no new selected-tree files"
+    ]
+  },
+  "checks": [
+    {
+      "name": "source denial is ERR_ACCESS_DENIED with stable Node24 flag",
+      "status": "pass"
+    },
+    {
+      "name": "explicit reporter placement verified on node22",
+      "status": "pass",
+      "detail": {
+        "node": "v22.22.2",
+        "unchangedDefaultIsTap": true,
+        "explicitTapFiltered": {
+          "tests": 5,
+          "pass": 5,
+          "status": 0
+        },
+        "explicitTapUnfiltered": {
+          "tests": 7,
+          "fail": 2,
+          "status": 1
+        },
+        "originalCanonicalFixtureModified": false
+      }
+    },
+    {
+      "name": "explicit reporter placement verified on node24",
+      "status": "pass",
+      "detail": {
+        "node": "v24.11.1",
+        "unchangedDefaultIsTap": false,
+        "explicitTapFiltered": {
+          "tests": 5,
+          "pass": 5,
+          "status": 0
+        },
+        "explicitTapUnfiltered": {
+          "tests": 7,
+          "fail": 2,
+          "status": 1
+        },
+        "originalCanonicalFixtureModified": false
+      }
+    },
+    {
+      "name": "all 282 selected Git inputs byte-identical with no new files",
+      "status": "pass",
+      "detail": {
+        "files": 282,
+        "detectsNewRegularFiles": true
+      }
+    },
+    {
+      "name": "all 830 package regular files unchanged with no new files",
+      "status": "pass",
+      "detail": {
+        "files": 830,
+        "detectsNewRegularFiles": true
+      }
+    },
+    {
+      "name": "consumer and configs unchanged by followup",
+      "status": "pass"
+    },
+    {
+      "name": "copied development tools unchanged after followup",
+      "status": "pass"
+    }
+  ],
+  "commands": [
+    {
+      "name": "moved-du-node24-stable-permission",
+      "status": 0,
+      "expected": 0,
+      "signal": null,
+      "bytes": 749,
+      "sha256": "afa8c655e0f3f733f3da3f132629e07287a07c4cec7976b5420c43b24f3977b8",
+      "file": "moved-du-node24-stable-permission.json.gz"
+    },
+    {
+      "name": "source-denial-node24-stable-permission",
+      "status": 1,
+      "expected": 1,
+      "signal": null,
+      "bytes": 1804,
+      "sha256": "daea7b3ee84d70a3ea5dfdddcc9a708e951df49936b98c3436b6323ed87975c7",
+      "file": "source-denial-node24-stable-permission.json.gz"
+    },
+    {
+      "name": "reporter-placement-node22",
+      "status": 0,
+      "expected": 0,
+      "signal": null,
+      "bytes": 1014,
+      "sha256": "997b714ebceff7ad22876ae1d164f4cb668e6edd5927e0aaca5c35520a455e8e",
+      "file": "reporter-placement-node22.json.gz"
+    },
+    {
+      "name": "reporter-placement-node24",
+      "status": 0,
+      "expected": 0,
+      "signal": null,
+      "bytes": 1015,
+      "sha256": "281fbd1a47568e60cb69a3f430ad28fd1995361f5eb2731d7f0ceef8cee74705",
+      "file": "reporter-placement-node24.json.gz"
+    }
+  ],
+  "failures": [],
+  "finishedAt": "2026-08-27T22:53:10.317Z"
+}

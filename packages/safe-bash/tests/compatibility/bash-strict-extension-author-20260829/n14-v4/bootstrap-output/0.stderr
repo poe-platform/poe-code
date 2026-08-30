@@ -1,0 +1,8 @@
+/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/syntax-negative.mjs:1
+const = ;
+      ^
+
+SyntaxError: Unexpected token '='
+    at checkSyntax (node:internal/main/check_syntax:74:5)
+
+Node.js v22.22.2

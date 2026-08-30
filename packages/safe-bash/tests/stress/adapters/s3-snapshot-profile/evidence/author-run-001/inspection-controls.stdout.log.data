@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: snapshot capability is frozen and does not enable atomic rename or conditional DELETE
+ok 1 - snapshot capability is frozen and does not enable atomic rename or conditional DELETE
+  ---
+  duration_ms: 2.370375
+  type: 'test'
+  ...
+# Subtest: removal requests at least two keys and paginates with configured pageSize=1
+ok 2 - removal requests at least two keys and paginates with configured pageSize=1
+  ---
+  duration_ms: 0.913625
+  type: 'test'
+  ...
+# Subtest: an empty intermediate page is not completion; deletion waits for the marker and final page
+ok 3 - an empty intermediate page is not completion; deletion waits for the marker and final page
+  ---
+  duration_ms: 0.324166
+  type: 'test'
+  ...
+# Subtest: missing completeness flag refuses before deletion
+ok 4 - missing completeness flag refuses before deletion
+  ---
+  duration_ms: 0.286459
+  type: 'test'
+  ...
+# Subtest: missing continuation token refuses before deletion
+ok 5 - missing continuation token refuses before deletion
+  ---
+  duration_ms: 0.241541
+  type: 'test'
+  ...
+# Subtest: disappeared marker refuses before deletion
+ok 6 - disappeared marker refuses before deletion
+  ---
+  duration_ms: 0.233583
+  type: 'test'
+  ...
+# Subtest: file-prefix ambiguity is unchanged and not deleted
+ok 7 - file-prefix ambiguity is unchanged and not deleted
+  ---
+  duration_ms: 0.290292
+  type: 'test'
+  ...
+# Subtest: an implicit directory losing its final child does not authorize marker deletion
+ok 8 - an implicit directory losing its final child does not authorize marker deletion
+  ---
+  duration_ms: 0.272458
+  type: 'test'
+  ...
+# Subtest: late byte child, nested marker and nested bytes survive; no rollback or ENOTEMPTY after delete
+ok 9 - late byte child, nested marker and nested bytes survive; no rollback or ENOTEMPTY after delete
+  ---
+  duration_ms: 0.968416
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 132.560458

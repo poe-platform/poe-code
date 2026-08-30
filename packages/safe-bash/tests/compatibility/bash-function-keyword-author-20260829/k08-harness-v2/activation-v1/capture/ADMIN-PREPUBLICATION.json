@@ -1,0 +1,185 @@
+{
+  "schema": "k08-binding-prep-v1",
+  "started": 1788017472734,
+  "deadline": 1788017952734,
+  "starts": [
+    {
+      "index": 1,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "show",
+        "--format=fuller",
+        "--name-only",
+        "--no-renames",
+        "29b6f0d5696e920cf42dbaac120b05e675e6b03f",
+        "--",
+        "tests/compatibility/bash-arithmetic-parameters-independent-20260829"
+      ],
+      "started": 1788017478541,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788017478593,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/01.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/01.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 2,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "show",
+        "--format=fuller",
+        "--name-only",
+        "--no-renames",
+        "29b6f0d5696e920cf42dbaac120b05e675e6b03f"
+      ],
+      "started": 1788017493740,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788017493812,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/02.stdout",
+        "bytes": 2275,
+        "sha256": "3dbe16392a20f380b384e87d95068e55189a9c62f2ddc1d7f134ce648a21a295"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/02.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 3,
+      "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "args": [],
+      "started": 1788017608194,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788017608220,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/03.stdout",
+        "bytes": 147,
+        "sha256": "610f0b31427409ecb53c5d6edaa0686d73348d17f827a961b18859ca1966dce3"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/03.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 4,
+      "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "args": [],
+      "started": 1788017608227,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788017608248,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/04.stdout",
+        "bytes": 140,
+        "sha256": "7b0a4edfd6ed744441aeadda376f4201cb9b80aad9b19e74d2d188bbd7f988c5"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/04.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 5,
+      "cmd": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2",
+        "--allow-fs-read=/private/tmp/safe-bash-k08-author-RAvH2m",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/RECEIPT.json",
+        "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/activation-v1/prepare-binding.mjs"
+      ],
+      "started": 1788017608251,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788017609128,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/05.stdout",
+        "bytes": 3682,
+        "sha256": "711a4e172be295ba2732222b5fdaa9d6b908da07a1c7b1bd0540f1cd4960eb5d"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/05.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 6,
+      "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "args": [],
+      "started": 1788017670407,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "finished": 1788017670434,
+      "stdout": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/06.stdout",
+        "bytes": 753,
+        "sha256": "1a34820f30978967399283721163115026d34c50fa537ece9732adc046bb8aae"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-k08-binding-v1-DNyg5t/capture/06.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "captureBytes": 6997,
+  "grantKnownOS": 22,
+  "peak": 3,
+  "captureMaximum": 33554432,
+  "workMaximum": 134217728,
+  "actualProductCalls": 0
+}

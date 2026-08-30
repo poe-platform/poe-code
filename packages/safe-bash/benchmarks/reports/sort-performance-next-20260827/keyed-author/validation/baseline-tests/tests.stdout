@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: single numeric key: exact integers beyond binary precision
+ok 1 - single numeric key: exact integers beyond binary precision
+  ---
+  duration_ms: 2.066709
+  type: 'test'
+  ...
+# Subtest: single numeric key: decimal precision and negative fractions
+ok 2 - single numeric key: decimal precision and negative fractions
+  ---
+  duration_ms: 0.671666
+  type: 'test'
+  ...
+# Subtest: single numeric key: grammar excludes plus exponent and hexadecimal
+ok 3 - single numeric key: grammar excludes plus exponent and hexadecimal
+  ---
+  duration_ms: 0.376583
+  type: 'test'
+  ...
+# Subtest: single numeric key: default byte tie fallback
+ok 4 - single numeric key: default byte tie fallback
+  ---
+  duration_ms: 0.204583
+  type: 'test'
+  ...
+# Subtest: single numeric key: stable equivalent records
+ok 5 - single numeric key: stable equivalent records
+  ---
+  duration_ms: 0.150458
+  type: 'test'
+  ...
+# Subtest: single numeric key: unique keeps first equivalent record
+ok 6 - single numeric key: unique keeps first equivalent record
+  ---
+  duration_ms: 0.195333
+  type: 'test'
+  ...
+# Subtest: single numeric key: local numeric replaces global reverse
+ok 7 - single numeric key: local numeric replaces global reverse
+  ---
+  duration_ms: 0.169666
+  type: 'test'
+  ...
+# Subtest: single numeric key: local reverse leaves global byte tie forward
+ok 8 - single numeric key: local reverse leaves global byte tie forward
+  ---
+  duration_ms: 0.105875
+  type: 'test'
+  ...
+# Subtest: single numeric key: inherited numeric reverse
+ok 9 - single numeric key: inherited numeric reverse
+  ---
+  duration_ms: 0.351208
+  type: 'test'
+  ...
+# Subtest: single numeric key: inclusive character offsets and separator
+ok 10 - single numeric key: inclusive character offsets and separator
+  ---
+  duration_ms: 0.296083
+  type: 'test'
+  ...
+# Subtest: single numeric key: missing empty reversed and open-ended fields
+ok 11 - single numeric key: missing empty reversed and open-ended fields
+  ---
+  duration_ms: 0.105875
+  type: 'test'
+  ...
+# Subtest: single numeric key: reversed key boundary yields empty numeric keys
+ok 12 - single numeric key: reversed key boundary yields empty numeric keys
+  ---
+  duration_ms: 0.0835
+  type: 'test'
+  ...
+# Subtest: single numeric key: effective blank and fold modes bypass
+ok 13 - single numeric key: effective blank and fold modes bypass
+  ---
+  duration_ms: 0.097667
+  type: 'test'
+  ...
+# Subtest: single numeric key: local flags replace global numeric
+ok 14 - single numeric key: local flags replace global numeric
+  ---
+  duration_ms: 0.147417
+  type: 'test'
+  ...
+# Subtest: single numeric key: multiple numeric keys preserve secondary comparison
+ok 15 - single numeric key: multiple numeric keys preserve secondary comparison
+  ---
+  duration_ms: 0.121625
+  type: 'test'
+  ...
+# Subtest: single numeric key empty-entry saturation preserves stable and unique results
+ok 16 - single numeric key empty-entry saturation preserves stable and unique results
+  ---
+  duration_ms: 30.323959
+  type: 'test'
+  ...
+# Subtest: single numeric key character saturation and huge suffix use valid fallback
+ok 17 - single numeric key character saturation and huge suffix use valid fallback
+  ---
+  duration_ms: 4.35475
+  type: 'test'
+  ...
+# Subtest: single numeric key does not confuse large record backing with selected numeric field
+ok 18 - single numeric key does not confuse large record backing with selected numeric field
+  ---
+  duration_ms: 3.771375
+  type: 'test'
+  ...
+# Subtest: single numeric key owns reused Buffer views, delimiter=10
+ok 19 - single numeric key owns reused Buffer views, delimiter=10
+  ---
+  duration_ms: 3.564833
+  type: 'test'
+  ...
+# Subtest: single numeric key owns reused Buffer views, delimiter=0
+ok 20 - single numeric key owns reused Buffer views, delimiter=0
+  ---
+  duration_ms: 0.584
+  type: 'test'
+  ...
+# Subtest: single numeric key check mode preserves duplicate diagnostic
+ok 21 - single numeric key check mode preserves duplicate diagnostic
+  ---
+  duration_ms: 0.210125
+  type: 'test'
+  ...
+# Subtest: single numeric key source errors preserve destination and status
+ok 22 - single numeric key source errors preserve destination and status
+  ---
+  duration_ms: 0.342792
+  type: 'test'
+  ...
+# Subtest: single numeric key respects cancellation during backpressured output
+ok 23 - single numeric key respects cancellation during backpressured output
+  ---
+  duration_ms: 0.317542
+  type: 'test'
+  ...
+# Subtest: single numeric key descriptors never cross invocations
+ok 24 - single numeric key descriptors never cross invocations
+  ---
+  duration_ms: 1.104209
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 282.994208

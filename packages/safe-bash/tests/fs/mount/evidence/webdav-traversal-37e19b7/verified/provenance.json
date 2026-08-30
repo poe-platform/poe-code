@@ -1,0 +1,14 @@
+{
+  "pin": "37e19b773327a9e8b08d500a1280f3c4f4687adc",
+  "phase": "verified",
+  "archiveSha256": "7a26d4d74660011c5bb8e6b00a31621609f3ff1908d08c970043d1b33a505bcb",
+  "worktreeHead": "37e19b773327a9e8b08d500a1280f3c4f4687adc",
+  "worktreeStatus": " M src/fs/mount/README.md\n M src/fs/mount/index.ts\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/.gitignore\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/ARTIFACT-CHECK.json\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/REPORT.md\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/RESULT.json\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/SUPPLEMENT.json\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/audit.mjs\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/delta-audit.json\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/delta-reviewed.diff\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/evidence-archive.json\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/native-preparation.json\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/native-product.json\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/original-identities.json\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/originals.mjs\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/probe.mjs\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/read-evidence.mjs\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/run-review.mjs\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/supplement.mjs\nA  tests/commands/diff-patch-stress/gnu-revised-full-review/verify-artifacts.mjs\n M tests/shell-stress/invocation-modes/FINDINGS.md\n M tests/shell-stress/invocation-modes/README.md\n?? src/commands/archive/\n?? tests/commands/archive/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/mount/identity-authority-review/\n?? tests/fs/mount/webdav-traversal.test.ts\n?? tests/shell-stress/invocation-modes/POST_READY.md\n?? tests/shell-stress/invocation-modes/compare-frozen.ts\n?? tests/shell-stress/invocation-modes/post-ready-handoff-audit.json\n?? tests/shell-stress/invocation-modes/post-ready-holdout-evidence.json\n?? tests/shell-stress/invocation-modes/post-ready-raw-comparison.json\n?? tests/shell-stress/invocation-modes/post-ready-regression-evidence.json\n?? tests/shell-stress/invocation-modes/post-ready-supplement-evidence.json\n?? tests/shell-stress/invocation-modes/post-ready-supplement.ts\n",
+  "node": "v22.22.2",
+  "testFixture": {
+    "path": "tests/fs/mount/identity-compatibility-review/compatibility.test.ts",
+    "sha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734"
+  },
+  "originalReviewCommit": "d799cbb",
+  "sourceAncestor": "4fa4ba9502dac843bd13aa5031d128a3171f597d"
+}

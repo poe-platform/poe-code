@@ -1,0 +1,277 @@
+{
+  "schema": "m1b-runner-static-snapshot-v1",
+  "date": "2026-08-28",
+  "reviewedCommit": "a3021720f22c44b66eab7f0bacbfe1d7955a10ae",
+  "runnerTree": "46a6df2a2ee68d0c84fe56da54c9eeb057e8cfe0",
+  "reviewScopeTree": "58b22fa9ff8911e39919c0aa43e48d80201845b4",
+  "storedCommitRawSha256": "ba41251b018efb025a51ecea11ff25d4cd9b77a3397f6a84bd7636dee54af18b",
+  "selection": "Explicit committed runner history plus de95161c ABI handoff, not mutable HEAD",
+  "gitInventory": {
+    "command": [
+      "git",
+      "ls-tree",
+      "-rz",
+      "a3021720f22c44b66eab7f0bacbfe1d7955a10ae",
+      "--",
+      "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner"
+    ],
+    "pathDomain": "Repository-relative valid UTF8, NUL-terminated raw Git records; not C-quoted display paths",
+    "bytes": 18627,
+    "sha256": "998feace1843d1f7646ba2f1ea408f2b44882e9ab081875cd9017c91dd40df64",
+    "entries": 125,
+    "regularEntries": 125
+  },
+  "modeRole": "declaredMode is the committed execution contract. Git100644 independently establishes regular/nonexecutable class, not full host POSIX permissions. Runtime actual mode guards are UNRUN.",
+  "liveRules": {
+    "path": "AGENTS.md",
+    "bytes": 14893,
+    "sha256": "f301f7352a28bdeb662f1f3238d8a1596b035628e4fe0f22f1d83f3802b16179",
+    "copied": false
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "gitMode": "100644",
+      "blob": "b0989d2f73559d07b54fa4a24b6d2486f81a3e51",
+      "bytes": 8180,
+      "sha256": "1ab3981b4d35dbc47b48c52f669e3043484433704ecf1e6527ebe22bf94f50fc",
+      "declaredMode": 420
+    },
+    {
+      "path": "RECIPE.json",
+      "gitMode": "100644",
+      "blob": "a34bee64cd65cb75e4db3b069f37c477a151fe05",
+      "bytes": 76561,
+      "sha256": "a26e64a7a79e17d4e366006a61ce46ee65fec8264bb41ca0212fee0eb45d0a96",
+      "declaredMode": 420
+    },
+    {
+      "path": "ROOT-ROUTE-SCHEMA.json",
+      "gitMode": "100644",
+      "blob": "b3131d185be6068241cd1fae23d0e238715d7e3e",
+      "bytes": 1627,
+      "sha256": "dbc2541c4a273592825e8cf38a7241f9f9299305470ad4eac90fbca6a3454ab8",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/COMPONENT-AUTH.json",
+      "gitMode": "100644",
+      "blob": "4ec35b89b48cb788f318e6b9933496600e281059",
+      "bytes": 15452,
+      "sha256": "d9022b0bdf44d01b65bf016316fb60c62b4be51969558e4b7dc5af6aa03519f7",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/EXECUTABLE-CLOSURE.json",
+      "gitMode": "100644",
+      "blob": "c452e8e7d91408d74d706827c58309970e4a9931",
+      "bytes": 49316,
+      "sha256": "2d3f21bd0ccf214c09f4e9d6827e2e0c69c0a6b13a8768eee92baa900a1a0270",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/INTEGRATION-CONVENTIONS.md",
+      "gitMode": "100644",
+      "blob": "26c7ceedbf220a9f7320a80fb77e9b5be0329997",
+      "bytes": 3688,
+      "sha256": "ee23215d238ebbf240191897d947d174f2e1648766622a6e8ece2dfcb724aad9",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/INTERFACE.json",
+      "gitMode": "100644",
+      "blob": "90ce1c944a9cadf8c4360cb3f2aaf5a8afda82f0",
+      "bytes": 1274,
+      "sha256": "98d6158260181ddadd37b110b1f5d06bce3c47d8febce33a99311b652f5045a9",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/INTERFACE.md",
+      "gitMode": "100644",
+      "blob": "50178ed6394fcfb805a2540f5068b43d427b6fde",
+      "bytes": 6961,
+      "sha256": "ec7348180748d18490ac873d1078e4585f09dde2f50f10ab2fbfd17acd827a5e",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/PACKAGE-MAP.json",
+      "gitMode": "100644",
+      "blob": "7c6d0eb00bbb568ae0d4b47bf3f088b9e5d40ddf",
+      "bytes": 170625,
+      "sha256": "800e13db20d0c9ea317078d706753804a3f2c5945e3402d735d2a4b2968bbb04",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/SOURCE-MAP.json",
+      "gitMode": "100644",
+      "blob": "2df33b92e20760f786300abc48eb43647b90791f",
+      "bytes": 102180,
+      "sha256": "72519e90e6a69aa0d595ca3a6ba456513b3942ce7258214f8972efb921b0f128",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/TOOLS.json",
+      "gitMode": "100644",
+      "blob": "bc687e7601df215d8d57c30109b9bcb21391f571",
+      "bytes": 653408,
+      "sha256": "3089de05f4d78c96997b1f7e18bc1ee8a853f8bf278411d5e268f546bc6d29da",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/admission-controls.mjs",
+      "gitMode": "100644",
+      "blob": "84e9b61614337980b8c20bee0b148c6395967f8f",
+      "bytes": 4751,
+      "sha256": "37fde6d7bfd3cf1ce5feaa79afda9d2cf1bc6985078116ff9219fb8572dbd019",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/archive.mjs",
+      "gitMode": "100644",
+      "blob": "22f28bd2f61fb2bbd779accbc779f788275e0720",
+      "bytes": 2967,
+      "sha256": "7d581b4326cb0f69f6285faf572084d44a9342f91a03dfcfde50314e89f11733",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/budget.mjs",
+      "gitMode": "100644",
+      "blob": "494dbec1888398f9a6d9a08519080d9dd0e46854",
+      "bytes": 5171,
+      "sha256": "3d656377a22b86dbe11095431a3219e5167698498e88377a11d9480f6b652355",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/cases.mjs",
+      "gitMode": "100644",
+      "blob": "3b174d18ff169c997710113d17208a86888d5d3d",
+      "bytes": 11961,
+      "sha256": "775ece5f0809ff796304259ed8a66454fa613d775c9809f0bec57317158d21e3",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/coordinator.mjs",
+      "gitMode": "100644",
+      "blob": "90a82dc76969e04f732e97be4845f487f1d519e6",
+      "bytes": 19540,
+      "sha256": "ead01aec61557f561b2271676aabfbde8cc4c8df132753a8cac9eb5d28f74f77",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/launch.mjs",
+      "gitMode": "100644",
+      "blob": "e64aa069d92880b1a5a6db21745a4d2cda041232",
+      "bytes": 5517,
+      "sha256": "783aab840056f6d5a252701f6a3662c010aec58d397d17307b84fdafcd6cd988",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/load-policy.mjs",
+      "gitMode": "100644",
+      "blob": "8c62477db56aa0a52c447b9c406e2e00f3d7130b",
+      "bytes": 738,
+      "sha256": "22c21928e4999fbf62fe8b4df9314b88f88d29630a8e0bcdacd47b313545f5e2",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/loader.mjs",
+      "gitMode": "100644",
+      "blob": "1d5b0403e12d66a2c325ca032701a996e1aa2d1a",
+      "bytes": 2010,
+      "sha256": "59ca84c6ca2cb16989eb701debd8bcad4592e96e0e7a978a32bc235340035791",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/materialize.mjs",
+      "gitMode": "100644",
+      "blob": "aa61f8f75b7f86c7e9fad1fffc73d9dbfad31ffd",
+      "bytes": 3703,
+      "sha256": "0c38922588f096652f6f7acf995a3218c4a93a2cf13e1dc2e578f727efd1191f",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/primitives.mjs",
+      "gitMode": "100644",
+      "blob": "c6ba2409bf9efeed86396b27b7ed656b4f0c21b9",
+      "bytes": 6187,
+      "sha256": "129b839da2d92ee55c617d40d4e59ad2cba2b3302d6578990f74c360809598e5",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/source-admission.mjs",
+      "gitMode": "100644",
+      "blob": "79433736864af712d65d66eecda622c3e383deac",
+      "bytes": 5696,
+      "sha256": "5c79d0696b8b0ea09e2bffcdbcd682476116df95fd36e6047270568c676a16fb",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/supervisor.mjs",
+      "gitMode": "100644",
+      "blob": "4730a3b714575c548d56004f66f15431fe68a6ee",
+      "bytes": 6080,
+      "sha256": "5283c8866313ac92a300771c16ecde4beb84b940461aa8b656784898dbfa390f",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/tool-fence.mjs",
+      "gitMode": "100644",
+      "blob": "53af563ea599c41708ef0b9d6cd81eabcab2598f",
+      "bytes": 1312,
+      "sha256": "d58c3b36f40e474a2da408c1754d56a8f9b5251d22dcdeb678ae1fe64f60536c",
+      "declaredMode": 420
+    },
+    {
+      "path": "runner/worker.mjs",
+      "gitMode": "100644",
+      "blob": "267ed2f1cf28f53f11ba1b3dc3e8e978b2ee7feb",
+      "bytes": 5877,
+      "sha256": "0d434522244b9dce7d9cbcff436f7f2338e628b9d1063a992446e16f9f44c6fc",
+      "declaredMode": 420
+    }
+  ],
+  "closureComparison": {
+    "parent": 14,
+    "workerProjection": 22,
+    "result": "COMMITTED_DATA_MATCH_ONLY",
+    "ownMechanicalAcceptance": false,
+    "ownTypeApiAcceptance": false
+  },
+  "artifact": {
+    "sourceCommit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+    "evidenceCommit": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+    "derivedOnlyTree": "23074ef0c443ca618c4f26204b5f3d2274b86895",
+    "encoded": {
+      "path": "tests/commands/git-pack-author-20260828/s01-v3/results-v3/PACKAGE.tgz.base64",
+      "bytes": 1075505,
+      "sha256": "51f498a8e7331f60021a6707cbbd0219e4a3cd1de36a585a29d267833e0487fb",
+      "mode": 420
+    },
+    "archiveSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+    "archiveBytes": 806626,
+    "packageMapFiles": 910,
+    "role": "AUTHOR_ARTIFACT_BOUND_DATA_NOT_INDEPENDENT_BUILD"
+  },
+  "knownPending": {
+    "typeApiSource": "10186980049dee95c062f88b2ae093962c8f328e",
+    "typeApiEvidence": "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+    "semanticIntegrationSource": "c3d8a8578b9e83af9b16fb85d553f05a66d5a534",
+    "semanticIntegrationEvidence": "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+    "semanticMode": "Separately assigned; no uncommitted source authenticated",
+    "ordinaryAssertions": "Known runner integration, not a new finding"
+  },
+  "execution": {
+    "runner": 0,
+    "candidate": 0,
+    "compiler": 0,
+    "loader": 0,
+    "controls": 0,
+    "newModules": 0
+  },
+  "findings": [
+    "RS-F01",
+    "RS-F02",
+    "RS-F03"
+  ],
+  "disposition": "REQUIRES_CORRECTION"
+}

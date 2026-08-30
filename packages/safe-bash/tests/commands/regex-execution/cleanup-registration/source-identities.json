@@ -1,0 +1,21 @@
+{
+  "created": "2026-08-27T07:47:43.661Z",
+  "contract": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "independentBaseline": "a6a1a44",
+  "authorExpectations": "293add9",
+  "headBeforeSourceCommit": "71c5829df0ec4d2d07a9d33cc5ef8282898ee112",
+  "sourceMatchesIsolatedOverlay": true,
+  "hashes": {
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/search/rg.ts": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+    "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "src/commands/regex-execution/README.md": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/continuation/REPORT.md": "924b077d7c692da84425531c72b3f57ccbd040ed393cdf9fa42fffd23141e184",
+    "tests/stress/regex-execution/production-continuation-review/REPORT.md": "d54af48b5e1e53fcf89904435b66555ef1c299da04e23a6fe15f912366831021"
+  }
+}

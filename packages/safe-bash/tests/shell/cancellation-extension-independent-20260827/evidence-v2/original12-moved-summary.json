@@ -1,0 +1,59 @@
+{
+  "exit": 0,
+  "tests": 12,
+  "pass": 12,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "records": [
+    {
+      "pass": true,
+      "name": "H01 three generations retain original provenance across rank upgrades"
+    },
+    {
+      "pass": true,
+      "name": "H02 closed child is stable while open ancestor upgrades"
+    },
+    {
+      "pass": true,
+      "name": "H03 sibling reports are targeted, exact and non-poisoning for seven reason classes"
+    },
+    {
+      "pass": true,
+      "name": "H04 fanout records multiple exact failures without skipping later subscribers"
+    },
+    {
+      "pass": true,
+      "name": "H04b detaching one later subscriber does not skip unrelated admitted subscribers"
+    },
+    {
+      "pass": true,
+      "name": "H05 borrowed variants allocate no cancellation resources and cannot close parent"
+    },
+    {
+      "pass": true,
+      "name": "H06 admission prioritizes original ancestors and stable closed failure over getter"
+    },
+    {
+      "pass": true,
+      "name": "H07 original control delivery survives invoke selection and root has final priority"
+    },
+    {
+      "pass": true,
+      "name": "H07b admission uses first delivered control rather than configured array order"
+    },
+    {
+      "pass": true,
+      "name": "H08 capacity and depth denial precede listeners; explicit release restores capacity"
+    },
+    {
+      "pass": true,
+      "name": "H09 failed initialization rolls back acquired root listeners and child subscription"
+    },
+    {
+      "pass": true,
+      "name": "H10 reentrant close records in-flight failure and detaches untriggered resources"
+    }
+  ]
+}

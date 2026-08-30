@@ -1,0 +1,1 @@
+{"scenario":"first-read-local","active":1,"reads":1,"returned":0,"abortedBeforeTeardown":false,"events":["source.next:pending-before-first-byte","command.settled:head:0"]}

@@ -1,0 +1,98 @@
+{
+  "at": "2026-08-29T12:22:26.309Z",
+  "scope": "Explicit selected durable evidence, not whole-workspace/process census",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 7733,
+      "sha256": "4ffa5e774b77e4b8c4daf7e943edb416736f9a88fa77034faac5dcc9e5a63d0d"
+    },
+    {
+      "path": "RECEIPT.json",
+      "bytes": 3275,
+      "sha256": "0f9a21805f06605b5dab4100dcdce1f74c70b3234d1a415ddad749c32927512e"
+    },
+    {
+      "path": "CONTROL-PRESEAL.json",
+      "bytes": 1211,
+      "sha256": "0134f66c76af8d8e9a28e61ec9abf09e2e87114968dd94dab428ae8773051e53"
+    },
+    {
+      "path": "CONTROL-POLICY.md",
+      "bytes": 2035,
+      "sha256": "793add2fa755d69f6002f30412301db81fa3818a57f9edc1b7cebe6a39fc11bb"
+    },
+    {
+      "path": "audit.mjs",
+      "bytes": 13820,
+      "sha256": "12219f6f2661663474ba90af82fb80e124ae79cfeba90e39fbcfc3ef3cb8a6ea"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 950489,
+      "sha256": "25de0acbc6cf2d7c4af72fdfe84ae023d812340f71c3b239ce18c44751f09c9f"
+    },
+    {
+      "path": "SOURCE-INPUTS.json",
+      "bytes": 1305540,
+      "sha256": "baaf079822d0fe0e8311d0908d91d3faa6730245d97990a1978c8adfc863ecb8"
+    },
+    {
+      "path": "AUTHENTICATED-LOAD-RECORDS.json",
+      "bytes": 206205,
+      "sha256": "0c89757693b70078e62e8bb247ebad2711b3e1ffc5a6886672e1978eec21d2d2"
+    },
+    {
+      "path": "BINDING-TO-PACKAGE-CHECK.json",
+      "bytes": 692,
+      "sha256": "5ab6ea9c2e4b6458d692803ce1f2a60f1781000fd9a8721af8a9d3254d2de34f"
+    },
+    {
+      "path": "PUBLICATION-BINDING-CHECK.json",
+      "bytes": 3623,
+      "sha256": "c51da0ab58305a11de6644c83e1f379a76f5a5f6d929ae5905429039b483fc71"
+    },
+    {
+      "path": "AUDIT-RESULT.json",
+      "bytes": 2133,
+      "sha256": "09972b946195a2622b55859bdbbb48781b30b0cf9c66ee016170deb15cb56677"
+    },
+    {
+      "path": "AUDIT-PROCESS-v1.json",
+      "bytes": 634,
+      "sha256": "bc16d7c002643c201b2db264cb5199066481abe2a069097603219b2d19b69e7c"
+    },
+    {
+      "path": "audit-v1.stdout",
+      "bytes": 70,
+      "sha256": "15b956868d1c0c01dd09e2028a7747bed99980eda5454f32c79622ebf71997b8"
+    },
+    {
+      "path": "audit-v1.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "METADATA-PROCESSES.json",
+      "bytes": 222,
+      "sha256": "13e0a74decc640da4724d66ddae1643690f3df797be044dc0fd7a465b51b0c02"
+    },
+    {
+      "path": "SOURCE-PROCESSES.json",
+      "bytes": 225,
+      "sha256": "0870cb39e00e6ac41da389b6faa7203c5a61c4422403df8954d45fc3206d13b3"
+    },
+    {
+      "path": "BLOB-PROCESS.json",
+      "bytes": 70,
+      "sha256": "2931c4f823716b14b689c5780f4c42ee32e271cc6beb082ed59980ab01e36ca5"
+    },
+    {
+      "path": "PRESEAL-PUBLICATION.json",
+      "bytes": 780,
+      "sha256": "5fea2edb8ced3dd7a2f3dc56d9912d4fbeefd8be21c37c078a8ae02782beb6d3"
+    }
+  ],
+  "reviewPublicationTranscript": "/private/tmp/safe-bash-b0-audit-r3-final-20260829T1223",
+  "reviewDeadline": "2026-08-29T12:25:08.829Z"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "negative-invalid-declaration",
+  "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+  "args": [
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/negative-invalid-declaration/consumer/tsconfig.json"
+  ],
+  "status": 2,
+  "signal": null,
+  "stdoutBytes": 90,
+  "stderrBytes": 0,
+  "stdoutSha256": "7ca32cb5b564942769e6e34ef46fc64a82a10432eb8ff2d57c28703c2ac7212d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

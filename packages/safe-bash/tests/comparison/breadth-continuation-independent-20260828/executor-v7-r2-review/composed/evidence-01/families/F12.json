@@ -1,0 +1,65 @@
+{
+  "identifier": "F12",
+  "status": "PASS",
+  "checks": 61,
+  "observation": {
+    "twins": [
+      {
+        "identifier": "child-boolean",
+        "qualified": false,
+        "primary": {
+          "phase": "body",
+          "value": {
+            "name": "Error",
+            "message": "COORDINATOR_NOT_QUALIFIED",
+            "code": "COORDINATOR_NOT_QUALIFIED"
+          },
+          "undefinedValue": false
+        },
+        "resultReference": {
+          "path": "RESULT.json",
+          "bytes": 5199,
+          "sha256": "21b2cbcf596f2bad6b7f42aed8c654fac3e060acd5f3784b921d1f4002b692c1",
+          "mode": 420
+        },
+        "wireSha256": "aef07e2b2c49c715187a6abc7b26ee29838e5167ac578bc0e7dcc7a9d96e6541",
+        "stdoutSha256": "165dc101754475cfac234b283055786f3a9ff93ea2b7102bd04b14a26c55f46b",
+        "outerReference": {
+          "path": "OUTER.json",
+          "bytes": 1075,
+          "sha256": "6d20f544ae772dee64c070ff7272a3edd7122678e2c64490b219f2b16bc36166",
+          "mode": 420
+        },
+        "seedPreserved": true
+      },
+      {
+        "identifier": "child-string",
+        "qualified": false,
+        "primary": {
+          "phase": "body",
+          "value": {
+            "name": "Error",
+            "message": "COORDINATOR_NOT_QUALIFIED",
+            "code": "COORDINATOR_NOT_QUALIFIED"
+          },
+          "undefinedValue": false
+        },
+        "resultReference": {
+          "path": "RESULT.json",
+          "bytes": 5195,
+          "sha256": "396729414dd4b9ac62570dd5a63c0812cbf7cd40830f5a5b6cca81b162ce70dd",
+          "mode": 420
+        },
+        "wireSha256": "910b80ae105c0d50406f9c51c3c1bc2e689bfa0c841269d4be0c608139394ce3",
+        "stdoutSha256": "0de180b299eba7e580bdc6874f9e464a6052d3c89f8554772d5e00ab1c86de54",
+        "outerReference": {
+          "path": "OUTER.json",
+          "bytes": 1075,
+          "sha256": "ac1edd57a438a17a312590f2769b0c734604292247e2b536ef5f1fb714fa44f9",
+          "mode": 420
+        },
+        "seedPreserved": true
+      }
+    ]
+  }
+}

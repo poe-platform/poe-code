@@ -1,0 +1,14 @@
+{
+  "schema": "AP753-manifest-preparation-v4",
+  "started": "2026-08-28T23:26:19.537Z",
+  "startedMs": 1787959579539,
+  "pid": 98074,
+  "bounds": {
+    "milliseconds": 1200000,
+    "allOwnedProcesses": 32,
+    "peak": 4,
+    "captureBytes": 67108864,
+    "workBytes": 268435456
+  },
+  "authorization": "ROOT versioned D02 and two admission repairs; conditional fresh full54 only after PASS and complete actual preseal"
+}

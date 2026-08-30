@@ -1,0 +1,703 @@
+{
+  "role": "DATA authentication/arithmetic only; zero engine/Worker executions",
+  "tool": {
+    "version": "v22.22.2",
+    "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "binaryHash": "not reread; not runtime qualification"
+  },
+  "inventories": [
+    {
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/CASES.json",
+      "bytes": 12820,
+      "blob": "f632103edd534e22757f27d732ad5db56f91cb7c",
+      "sha256": "cd1005348825c85ec2b6bff2feca061fc8fc4d0fae5eb9d2e13b81e440efd729"
+    },
+    {
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/PROPOSAL.md",
+      "bytes": 13009,
+      "blob": "4b752f9dccec33a05d48f76d5d69f06cb1eebb36",
+      "sha256": "b83e7d444713f876b3ab5850bde698940d010e97051735231a38ac630a23671e"
+    },
+    {
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/RPC.json",
+      "bytes": 11423,
+      "blob": "347a271be4b8e51036ec131f75ee25b44abe9bb2",
+      "sha256": "23a72deac68b1f9d78c9966b7fe6b37bd6955952434885d609a4e9b9e03cb66f"
+    },
+    {
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/SOURCES.json",
+      "bytes": 34447,
+      "blob": "f20d3eaaaf1ea3fa2af6a44e125aebbcd47caae4",
+      "sha256": "1c6ac683533c525b885f717edeeaee44d5f00bcb9fa9cb016bde3ab577ba8056"
+    },
+    {
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+      "bytes": 338073,
+      "blob": "1fc213b278b5b7c848b8a92230f76139e77b88c9",
+      "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec"
+    },
+    {
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-provider-experiments-20260828/SOURCES.json",
+      "bytes": 35893,
+      "blob": "79f60f34950eba448a17394d1146841b8c428aa1",
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1"
+    },
+    {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/BINDINGS.json",
+      "bytes": 10081,
+      "blob": "7683e4ccacd042ff62d0e090bc2693c0dd52c801",
+      "sha256": "2d07fe9cd60d1ca69bf68edfe98f89dc84a596b62d07024563f711ae75f5ac61"
+    },
+    {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/OPEN-OBLIGATIONS.json",
+      "bytes": 13915,
+      "blob": "cad82ad4e0100d98a8cf1873f11f8eac52eb0672",
+      "sha256": "ca54239f8009dfaba113071f9fa6a8f5d2c81b804821d3d72ebacfe51dbc4b64"
+    },
+    {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/ROOT-DECISION.md",
+      "bytes": 12331,
+      "blob": "6bd9a6e3ecaaae53a178a5d89e81a61aca4c8ae7",
+      "sha256": "964b1029a91661258c1845f13780107865537312ac6bff7bcb276d440bca4926"
+    }
+  ],
+  "archive": {
+    "path": "PUBLIC-SOURCE.json.gz.base64",
+    "bytes": 338073,
+    "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+    "gzipSha256": "fb14b7464e711eca9fdf5c334a853851db614715baf47f12a7c7a66be3f0e507",
+    "decodedBytes": 1073919,
+    "decodedSha256": "cc13e686b0adfaacb536c0488bb366cb9babe85ac756f0d6bd4eac8850ed5d5e"
+  },
+  "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "rootTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+  "treeShapes": [
+    {
+      "id": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "94e3f93d88c1428d4a9db9f70c7126524ecc131e",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "1d6076301241aa299043359fc1b9f9e0ce58a633",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "98d3632a8ec95c8113ca974bb813e13df6037e50",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "f8f905eebbd422bb10ff43de81a28606992582bc",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "b5c840af34627dd38ec469de74f9cec808de717a",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "794409a8e1804bf0d6abd3a4b602aef6e4538111",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "493c278eeff192497bb630e503e331f9cd35ef2c",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "624e1c849a117a18d12412b3c714f22e848b10e5",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "ea0a777a13303b459713e564e85f1a7809ab3d17",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "f2032a44f5942739146f7b051f217617afda156d",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "5ef9bd18f5c637fe462e36055a00c208afd9cfc4",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    },
+    {
+      "id": "d990481a4d292b7995b642472fb5ca9cefe453a7",
+      "rawField": "rawBase64",
+      "keys": [
+        "sha",
+        "rawBase64",
+        "entries"
+      ]
+    }
+  ],
+  "verifiedMembers": 66,
+  "bodies": [
+    {
+      "group": "S1",
+      "path": "src/run.ts",
+      "name": "run",
+      "signature": "export function run(source: string, options: RunOptions = {}): Promise<RunResult>",
+      "lines": [
+        162,
+        475
+      ],
+      "bodyOpeningLine": 162,
+      "bodySha256": "213f7c91dc56be59d6600e33eb473ebab0e9d1765ec96f7cd77f8b18a2834135"
+    },
+    {
+      "group": "S1",
+      "path": "src/run.ts",
+      "name": "throwIfReturnedPromiseRejected",
+      "signature": "async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promise<void>",
+      "lines": [
+        477,
+        501
+      ],
+      "bodyOpeningLine": 477,
+      "bodySha256": "21341c34ef4ecbdccba691da11616803f9ebec839dd3ba7acd2dd095888fef63"
+    },
+    {
+      "group": "S2",
+      "path": "src/interp/host-bridge.ts",
+      "name": "wrapCallerInjectedBindings",
+      "signature": "export function wrapCallerInjectedBindings( bindings: Record<string, CallerInjectedBinding>, options: HostBridgeOptions ): Record<string, SandboxValue>",
+      "lines": [
+        99,
+        114
+      ],
+      "bodyOpeningLine": 102,
+      "bodySha256": "4ad681a13f739c9f6a7a44780aa8aa90d6409fe2df2b59f4e8bbd872df90acc0"
+    },
+    {
+      "group": "S2",
+      "path": "src/interp/host-bridge.ts",
+      "name": "wrapCallerInjectedFunction",
+      "signature": "function wrapCallerInjectedFunction( name: string, value: CallerInjectedFunction, options: HostBridgeOptions, state: { seen: WeakMap<object, SandboxValue> } ): SandboxValue",
+      "lines": [
+        116,
+        245
+      ],
+      "bodyOpeningLine": 121,
+      "bodySha256": "3836aa90c6596c5f4eda1d4e19d3a369f997dc8f9425a8758526ef9d93c9b896"
+    },
+    {
+      "group": "S2",
+      "path": "src/interp/host-bridge.ts",
+      "name": "invokeHostCallback",
+      "signature": "function invokeHostCallback(invoke: () => unknown, options: HostBridgeOptions): unknown",
+      "lines": [
+        247,
+        267
+      ],
+      "bodyOpeningLine": 247,
+      "bodySha256": "a27b83403f282acb282b24a7d3c3bff6f074243d14f2fc30e68e23a94a427ba4"
+    },
+    {
+      "group": "S2",
+      "path": "src/interp/host-bridge.ts",
+      "name": "executeHostCall",
+      "signature": "function executeHostCall( record: HostCallRecord, restored: boolean, invoke: () => unknown, stackFrames: readonly string[], options: HostBridgeOptions, span?: ErrorSourceSpan, callbacks?: HostCallbacks, onReplay?: (outcome: HostCallOutcome) => void ): SandboxValue",
+      "lines": [
+        269,
+        400
+      ],
+      "bodyOpeningLine": 278,
+      "bodySha256": "d79e6790fe55f4b41c2e55ccf54a9e2af7a81a9705a37a94480ae0bbcabffcf5"
+    },
+    {
+      "group": "S2",
+      "path": "src/interp/host-bridge.ts",
+      "name": "createHostCallPromise",
+      "signature": "function createHostCallPromise( record: HostCallRecord, outcomePromise: Promise<HostCallOutcome>, hostCalls: HostCallJournal ): SandboxValue",
+      "lines": [
+        433,
+        448
+      ],
+      "bodyOpeningLine": 437,
+      "bodySha256": "8fe1de1f681f8e1bd36905d927374715a2da093f404f328021aa801d8f04ca95"
+    },
+    {
+      "group": "S2",
+      "path": "src/interp/host-bridge.ts",
+      "name": "copyHostResultToSandbox",
+      "signature": "function copyHostResultToSandbox( result: unknown, stackFrames: readonly string[], options: HostBridgeOptions ): SandboxValue",
+      "lines": [
+        459,
+        475
+      ],
+      "bodyOpeningLine": 463,
+      "bodySha256": "42d843252d06033e02bfae6b42b31be99eef857f5d509085fd89e1e460e914eb"
+    },
+    {
+      "group": "S2",
+      "path": "src/interp/host-bridge.ts",
+      "name": "createHostErrorValue",
+      "signature": "function createHostErrorValue( reason: unknown, stackFrames: readonly string[], budget: Budget, span?: ErrorSourceSpan ): SandboxObject",
+      "lines": [
+        477,
+        499
+      ],
+      "bodyOpeningLine": 482,
+      "bodySha256": "e3eebef27ebf623bd2656de472634d3ed860b221d4b3c416ce63fe16f48de976"
+    },
+    {
+      "group": "S2",
+      "path": "src/interp/host-bridge.ts",
+      "name": "copyHostValueToSandbox",
+      "signature": "function copyHostValueToSandbox( value: unknown, stackFrames: readonly string[], options: HostBridgeOptions, state: { seen: WeakMap<object, SandboxValue>; }, path: string ): SandboxValue",
+      "lines": [
+        719,
+        899
+      ],
+      "bodyOpeningLine": 727,
+      "bodySha256": "cfe0f1451e453ec55ed49bcd6e4256070908aacdb91461d21b2d3c4d88edf7a2"
+    },
+    {
+      "group": "S3",
+      "path": "src/interp/interpreter.ts",
+      "name": "evaluateResolvedCallExpression",
+      "signature": "async function evaluateResolvedCallExpression( node: CallExpression, callee: InterpreterValue, context: EvaluationContext, thisValue: SandboxValue = undefined ): Promise<EvaluationResult>",
+      "lines": [
+        3352,
+        3391
+      ],
+      "bodyOpeningLine": 3357,
+      "bodySha256": "5cd39f2a76d9fb3a298b4ee30d14735a662bad85edcc843f75f3ceaa4c91a4cf"
+    },
+    {
+      "group": "S3",
+      "path": "src/interp/interpreter.ts",
+      "name": "invokeSandboxClosure",
+      "signature": "async function invokeSandboxClosure( callee: Extract<InterpreterValue, { kind: \"fn\" }>, args: readonly SandboxValue[], context: EvaluationContext, stack: readonly string[], span?: SourceSpan, thisValue: SandboxValue = undefined ): Promise<SandboxValue>",
+      "lines": [
+        3451,
+        3487
+      ],
+      "bodyOpeningLine": 3458,
+      "bodySha256": "aaa6e2ff07f8ccad4cdf50d2aac7a88c952c1a3a4c8dc7d4b22f5e056d310b7e"
+    },
+    {
+      "group": "S3",
+      "path": "src/interp/interpreter.ts",
+      "name": "wrapHostResult",
+      "signature": "function wrapHostResult( result: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>, stack: readonly string[] ): InterpreterValue | Promise<InterpreterValue>",
+      "lines": [
+        3660,
+        3677
+      ],
+      "bodyOpeningLine": 3663,
+      "bodySha256": "4bf2724d4d55f2d2c47382d92097e50f810fe50bfb5d40677a7aa0074ee0becc"
+    },
+    {
+      "group": "S4",
+      "path": "src/interp/jobs.ts",
+      "name": "SandboxJobQueue.run",
+      "signature": "async run<T>(task: () => T | Promise<T>): Promise<T>",
+      "lines": [
+        37,
+        47
+      ],
+      "bodyOpeningLine": 37,
+      "bodySha256": "e4b8eea0792c307cba6816ffdb48af9ae346596dd7be0966cb4e1fe4df2516dd"
+    },
+    {
+      "group": "S4",
+      "path": "src/interp/jobs.ts",
+      "name": "SandboxJobQueue.drain",
+      "signature": "async drain(): Promise<void>",
+      "lines": [
+        49,
+        57
+      ],
+      "bodyOpeningLine": 49,
+      "bodySha256": "a7947fe59e4ed9c24a9db0b99bbb902a8433e221bef8bf8712d90840e2cacf50"
+    },
+    {
+      "group": "S4",
+      "path": "src/interp/jobs.ts",
+      "name": "runPromiseJob",
+      "signature": "export function runPromiseJob<T>(task: () => T | Promise<T>): Promise<T>",
+      "lines": [
+        70,
+        73
+      ],
+      "bodyOpeningLine": 70,
+      "bodySha256": "e4c139c191718a5156d5285ed52d146732a8286ddfdf3fff00d2c75d5ef1eac7"
+    },
+    {
+      "group": "S4",
+      "path": "src/interp/jobs.ts",
+      "name": "suspendJob",
+      "signature": "export async function suspendJob<T>(pending: Promise<T>): Promise<T>",
+      "lines": [
+        91,
+        100
+      ],
+      "bodyOpeningLine": 91,
+      "bodySha256": "4b5589182fa2a9bbc7407b81ce7e5eb098b5c05e04b033f4bb45cc04b85c7d52"
+    },
+    {
+      "group": "S4",
+      "path": "src/interp/async.ts",
+      "name": "evaluateAwaitExpression",
+      "signature": "export async function evaluateAwaitExpression( node: AwaitExpression, context: AsyncEvaluationContext, evaluateNode: EvaluateAsyncNode ): Promise<AsyncEvaluationResult>",
+      "lines": [
+        253,
+        287
+      ],
+      "bodyOpeningLine": 257,
+      "bodySha256": "d15963ea0c15fb3af343a8b0e93a4f49f6d7a02c2db3f566f158c2aa59a3375f"
+    },
+    {
+      "group": "S5",
+      "path": "src/interp/promise.ts",
+      "name": "createPromiseGlobals",
+      "signature": "export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobals",
+      "lines": [
+        20,
+        107
+      ],
+      "bodyOpeningLine": 20,
+      "bodySha256": "808ae7501c11c688fb63b5ec8e989fc814a678e76bf95890f07deb67835253b6"
+    },
+    {
+      "group": "S5",
+      "path": "src/interp/promise.ts",
+      "name": "getPromiseMember",
+      "signature": "export function getPromiseMember( target: SandboxPromise, property: string | number, budget: Budget ): SandboxValue",
+      "lines": [
+        109,
+        169
+      ],
+      "bodyOpeningLine": 113,
+      "bodySha256": "2e42da7d216dbbf3447d3a2962502acedba4422510be4fa57232a20e50a50adf"
+    },
+    {
+      "group": "S5",
+      "path": "src/interp/promise.ts",
+      "name": "callInPromiseJob",
+      "signature": "function callInPromiseJob( handler: SandboxClosure, args: readonly SandboxValue[], thisValue: SandboxValue = undefined ): Promise<{ value: SandboxValue | Promise<SandboxValue> }>",
+      "lines": [
+        425,
+        438
+      ],
+      "bodyOpeningLine": 429,
+      "bodySha256": "13d1e7d71c84406b8c7765f450470a9c6cbbd07ed2ce05ae03715b7533491650"
+    },
+    {
+      "group": "S5",
+      "path": "src/interp/values.ts",
+      "name": "createSandboxPromise",
+      "signature": "export function createSandboxPromise( promise: Promise<SandboxValue>, metadata: { trackReplay?: boolean; synchronousPrefix?: Promise<void>; hostCall?: import(\"./host-call.js\").HostCallRecord; hostCallJournal?: import(\"./host-call.js\").HostCallJournal; span?: SandboxCallContext[\"span\"]; } = {} ): SandboxPromise",
+      "lines": [
+        173,
+        222
+      ],
+      "bodyOpeningLine": 182,
+      "bodySha256": "6440e1c85ce936855dc118754c795223639e47bb20f55466413fb463f3b7a208"
+    },
+    {
+      "group": "S5",
+      "path": "src/interp/promise-tracker.ts",
+      "name": "SandboxPromiseRejectionTracker.track",
+      "signature": "track(promise: SandboxPromise): void",
+      "lines": [
+        24,
+        45
+      ],
+      "bodyOpeningLine": 24,
+      "bodySha256": "7f9c11f19110bfd4efdd24b3b889eada0b7a933228be014fbb50e04be60a0fe6"
+    },
+    {
+      "group": "S5",
+      "path": "src/interp/promise-tracker.ts",
+      "name": "SandboxPromiseRejectionTracker.findUnhandledRejection",
+      "signature": "async findUnhandledRejection(): Promise< | { reason: SandboxValue | undefined; span: ErrorSourceSpan | undefined; } | undefined >",
+      "lines": [
+        47,
+        66
+      ],
+      "bodyOpeningLine": 53,
+      "bodySha256": "51dd8e976502810ceac59107d627bd5f5431d17347b6b3b3bd108c902ade4e25"
+    },
+    {
+      "group": "S5",
+      "path": "src/interp/promise-tracker.ts",
+      "name": "flushPromiseJobs",
+      "signature": "async function flushPromiseJobs(): Promise<void>",
+      "lines": [
+        90,
+        94
+      ],
+      "bodyOpeningLine": 90,
+      "bodySha256": "e3e4529a1c3b997406c96ddc44a7802b4936409d9453fa10ee39e06acdbf8ba2"
+    },
+    {
+      "group": "S6",
+      "path": "src/interp/cancel.ts",
+      "name": "wrapCancelableBindings",
+      "signature": "export function wrapCancelableBindings( bindings: Record<string, SandboxValue>, signal?: AbortSignal ): Record<string, SandboxValue>",
+      "lines": [
+        17,
+        26
+      ],
+      "bodyOpeningLine": 20,
+      "bodySha256": "61c69353f6f70fbd547f06f7ecc16a044bc96a11b147b213f0c3dea718b08afe"
+    },
+    {
+      "group": "S6",
+      "path": "src/interp/cancel.ts",
+      "name": "wrapCancelableValue",
+      "signature": "function wrapCancelableValue( value: SandboxValue, signal: AbortSignal, seen: WeakMap<object, SandboxValue> ): SandboxValue",
+      "lines": [
+        28,
+        99
+      ],
+      "bodyOpeningLine": 32,
+      "bodySha256": "d57c55df33f0cad8aeeca9dc99994570ad6e48bcf21ad7f6248f80a518503924"
+    },
+    {
+      "group": "S6",
+      "path": "src/interp/cancel.ts",
+      "name": "wrapCancelableResult",
+      "signature": "function wrapCancelableResult( result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>, signal: AbortSignal, seen: WeakMap<object, SandboxValue> ): SandboxValue | Promise<SandboxValue>",
+      "lines": [
+        101,
+        111
+      ],
+      "bodyOpeningLine": 105,
+      "bodySha256": "c6b6bc4d5bb6775e85601aad387ccc8eb25b32b2814f5c3574a1aecbc7f87ab0"
+    },
+    {
+      "group": "S6",
+      "path": "src/interp/cancel.ts",
+      "name": "awaitSandboxValue",
+      "signature": "export function awaitSandboxValue( value: SandboxValue, signal?: AbortSignal ): Promise<SandboxValue>",
+      "lines": [
+        127,
+        136
+      ],
+      "bodyOpeningLine": 130,
+      "bodySha256": "e663b8d74fcc91b05e6a3fb382e857da2cdf00ca393273c2987bf4f5a30265a2"
+    },
+    {
+      "group": "S6",
+      "path": "src/interp/cancel.ts",
+      "name": "readAbortReason",
+      "signature": "function readAbortReason(signal: AbortSignal): unknown",
+      "lines": [
+        212,
+        214
+      ],
+      "bodyOpeningLine": 212,
+      "bodySha256": "7a4a1f1be3376fa5894d75834eaffac7278d356016585c81846458b7402fa66f"
+    },
+    {
+      "group": "S7",
+      "path": "src/interp/exceptions.ts",
+      "name": "evaluateTryStatement",
+      "signature": "export async function evaluateTryStatement<TContext extends ExceptionContext, TError>( node: TryStatement, context: TContext, evaluateNode: EvaluateExceptionNode<TContext, TError> ): Promise<EvaluationResult<TError>>",
+      "lines": [
+        121,
+        169
+      ],
+      "bodyOpeningLine": 125,
+      "bodySha256": "139d373d2f0239c48893d8cddb3bfff80e72247eb56cacae052cadb1b7c28d6d"
+    },
+    {
+      "group": "S7",
+      "path": "src/interp/exceptions.ts",
+      "name": "coerceThrownValue",
+      "signature": "export function coerceThrownValue( reason: unknown, budget: Budget, stackFrames: readonly string[], span?: ErrorSourceSpan ): SandboxValue",
+      "lines": [
+        186,
+        214
+      ],
+      "bodyOpeningLine": 191,
+      "bodySha256": "1a0d3230bbdcad0afa0b5b536e4e2d6ede327b323bb083f76c5b93cfffc8edc3"
+    },
+    {
+      "group": "S8",
+      "path": "src/modules/registry.ts",
+      "name": "bindImportDeclaration",
+      "signature": "function bindImportDeclaration( declaration: ImportDeclaration, registry: NormalizedModuleRegistry, wrappedModules: Map<string, Record<string, SandboxValue>>, bindings: Record<string, SandboxValue>, options: { budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal; allowMissing?: boolean; } ): void",
+      "lines": [
+        77,
+        131
+      ],
+      "bodyOpeningLine": 88,
+      "bodySha256": "3bbee8bb70451230b2d16bc301b302f3055a77d0c849f407f2cd917b7e908477"
+    },
+    {
+      "group": "S8",
+      "path": "src/modules/registry.ts",
+      "name": "resolveImportSpecifier",
+      "signature": "function resolveImportSpecifier( moduleName: string, specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier, wrappedExports: Record<string, SandboxValue> ): SandboxValue",
+      "lines": [
+        133,
+        154
+      ],
+      "bodyOpeningLine": 137,
+      "bodySha256": "cb3d7193220eebd4b69e7a88602bd1f2199ff07e57c6f9347094dc855e6cdb95"
+    },
+    {
+      "group": "S9",
+      "path": "src/interp/budget.ts",
+      "name": "Budget.allocateString",
+      "signature": "allocateString(value: string): string",
+      "lines": [
+        115,
+        129
+      ],
+      "bodyOpeningLine": 115,
+      "bodySha256": "f50ee3f9fdf387bde2722857850e66f597e12a66374251d8f6e36d78e4009bd2"
+    },
+    {
+      "group": "S9",
+      "path": "src/interp/budget.ts",
+      "name": "Budget.allocateArrayLength",
+      "signature": "allocateArrayLength(length: number): void",
+      "lines": [
+        131,
+        143
+      ],
+      "bodyOpeningLine": 131,
+      "bodySha256": "f031197ee10aa3214e851a542fb957574e39f3f8b941e5325c4ca0c36049d3b6"
+    },
+    {
+      "group": "S9",
+      "path": "src/interp/budget.ts",
+      "name": "Budget.reset",
+      "signature": "reset(): void",
+      "lines": [
+        203,
+        215
+      ],
+      "bodyOpeningLine": 203,
+      "bodySha256": "b1e02c6ac5d3579a9bb01a33eec6ee9164d2467eae2ffe9417ff0af1adb6d3f2"
+    }
+  ],
+  "obligations": [
+    {
+      "id": "L01",
+      "mapsTo": [
+        "WRQ01"
+      ]
+    },
+    {
+      "id": "L02",
+      "mapsTo": [
+        "WRQ02"
+      ]
+    },
+    {
+      "id": "L03",
+      "mapsTo": [
+        "WRQ03"
+      ]
+    },
+    {
+      "id": "L04",
+      "mapsTo": [
+        "WRQ04"
+      ]
+    },
+    {
+      "id": "L05",
+      "mapsTo": [
+        "WRQ05"
+      ]
+    },
+    {
+      "id": "L06",
+      "mapsTo": [
+        "WRQ06"
+      ]
+    },
+    {
+      "id": "L07",
+      "mapsTo": [
+        "WRQ07"
+      ]
+    },
+    {
+      "id": "L08",
+      "mapsTo": [
+        "WRQ08"
+      ]
+    }
+  ],
+  "sharedBytes": 197056,
+  "sequenceArithmeticNotProtocolProof": true,
+  "processedBytes": 5433088,
+  "elapsedMs": 14.068874999999998
+}

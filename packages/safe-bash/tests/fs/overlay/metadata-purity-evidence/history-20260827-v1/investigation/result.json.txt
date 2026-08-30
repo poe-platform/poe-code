@@ -1,0 +1,35 @@
+{
+  "blockers": [
+    {
+      "property": "strict actual no backend mutations",
+      "status": "FAIL",
+      "before": [
+        ".virtual-bash-overlay-496ad8a5-60c6-40a6-8c16-73760449c12c",
+        "tree"
+      ],
+      "after": [
+        "tree"
+      ],
+      "mutations": [
+        "/.virtual-bash-overlay-496ad8a5-60c6-40a6-8c16-73760449c12c"
+      ],
+      "commandCalls": [
+        "lstat",
+        "readdir"
+      ],
+      "result": {
+        "status": 0,
+        "stdout": "0\ttree\n",
+        "stderr": ""
+      },
+      "unchangedRedControl": true
+    }
+  ],
+  "selected": [
+    {
+      "name": "RED control detects actual Overlay internal backend mutation unchanged",
+      "detector": "reproduced original expected red"
+    }
+  ],
+  "unselectedCallbacksNotRun": 48
+}

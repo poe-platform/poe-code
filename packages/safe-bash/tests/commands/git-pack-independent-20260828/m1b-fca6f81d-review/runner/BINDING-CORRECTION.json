@@ -1,0 +1,22 @@
+{
+  "schema": "m1b-child-control-binding-correction-v1",
+  "priorSource": "10c62e8ed1614516fd042522c3f4fea3a62f83a0",
+  "discovery": "Static source review before any candidate execution",
+  "issue": "Parent bound job/load control bytes but child control files lacked independently expected identity checks before JSON parsing/use.",
+  "correction": "Pass exact byte sizes and SHA256 in owned child environment; check regular mode0600, bytes/hash before job parsing; additionally loader realpath-exact check before binding use.",
+  "changedExecutablePaths": [
+    "runner/cases.mjs",
+    "runner/loader.mjs",
+    "runner/worker.mjs"
+  ],
+  "abi": "runCase and parent-owned tool method ABI unchanged",
+  "budgetDelta": {
+    "children": 0,
+    "captureBytes": 0,
+    "caseWallMs": 0,
+    "globalWallMs": 0
+  },
+  "priorSyntaxQualification": "syntax-final covers10c source only. Separate binding check covers changed bytes; neither checks runtime behavior.",
+  "currentParentClosureSha256": "1ebb85870eb06e63325b222c3ed07e3774e8ee10b6399c264df5fd5bdeefb770",
+  "actualExecution": 0
+}

@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "start": "2026-08-27T03:06:58.858Z",
+  "end": "2026-08-27T03:07:00.362Z",
+  "status": 0,
+  "signal": null
+}

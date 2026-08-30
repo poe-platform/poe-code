@@ -1,0 +1,9 @@
+TABLE EXACT-INPUT COMPATIBILITY BLOCKER
+ROOT DECISION: current-helper replay is AUTHORIZED in /tmp/safe-bash-table-current-helper-replay.ready. Execute one separately labeled same311 run, preserve this blocked attempt, then close the bounded review. No live changes or new cases.
+Root phase release was observed before any table execution.
+Frozen independent104/104 passes; same71 public built cases run in both modes with known70/71 comm discrepancy unchanged; isolated build and noEmit pass.
+The strict existing311 replay preserves the prior table review's helper bytes. Table author files/corpus/source are unchanged, but its historical tests/fs/webdav/mock.ts imports forwardOwnedWebDavFetch, removed from current frozen src/fs/webdav/resource-id.ts. Three inherited integration files fail at module instantiation, before their20 intended tests; actual Node result291 pass plus3 file-load errors (294 records), NOT311/311 and not table semantic failures.
+Original helper SHA256 e4f8a6806c1dd6f0622cce9f3b487f530011c39b7ca95cc2543002ce4da95266.
+Current frozen helper SHA256 177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36.
+Current helper removes the old mock registration and returns a captured fetch closure instead of calling the removed private forwarding function. No production or live test change is proposed or authorized for reviewer.
+Please coordinate whether to run a separately labeled compatibility replay of the SAME311 tests using the already-frozen current helper (not new test inputs/expectations, not silent oracle revision), retaining this strict original-helper load-blocked result. Otherwise final report will retain311 blocked. Existing104 and built71 need no rerun or expansion.

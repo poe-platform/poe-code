@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "scope": "compact source-proof-only yq query gap diagnosis",
+  "commits": {
+    "fixedBaseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "initialDesign": "270fedbe4f1fee6405dace72e6e18b22f358b5ce",
+    "queryAdapterProposal": "0b8064d21fa82d516160ee8cd7ac3808144d09fc"
+  },
+  "execution": {
+    "illustrativeExamples": 3,
+    "executedExamples": 0,
+    "confirmedRuntimeFailures": 0,
+    "testsRun": 0,
+    "productOrImportedModuleRuns": 0,
+    "nativeOrReferenceRuns": 0,
+    "dependenciesChanged": 0
+  },
+  "classification": {
+    "compile": "source-supported illustrative query; not executed; no observed failure claim",
+    "allocation": "source-supported illustrative query and conceptual result; not executed; no observed failure claim",
+    "encoding": "source-supported illustrative query/input; not executed; no observed failure claim"
+  },
+  "examplesFile": {
+    "path": "tests/commands/yq-design-20260828/query-gap-v1/examples.data",
+    "sha256": "32fe0098a852ab636961a53b8314710ad819160c6329a005c859df59e64ca1f1"
+  },
+  "packetArtifacts": [
+    {
+      "path": "tests/commands/yq-design-20260828/query-gap-v1/README.md",
+      "sha256": "6ba0aa357978be5bf0453a533a5d7290f70d06bc2c4ec4d29ec084f8c94a611a"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/query-gap-v1/examples.data",
+      "sha256": "32fe0098a852ab636961a53b8314710ad819160c6329a005c859df59e64ca1f1"
+    }
+  ],
+  "protectedExistingArtifacts": [
+    {
+      "path": "tests/commands/yq-design-20260828/evidence.json",
+      "gitBlob": "8a3ef52c781a9942e0f39d8713a479f27e556452",
+      "sha256": "3c7a342af9d3068a650a3e4650ab68e8e3057387cbf62e6184a0820075a9c445"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/query-adapter-v1/README.md",
+      "gitBlob": "fe95974414eb8f9c90aa756d2120c3fffe803eb2",
+      "sha256": "b2253916c25e5b571f413cf9e89ce8785745326fe28a3c80bddbea62705c9b28"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/query-adapter-v1/identity.json",
+      "gitBlob": "8a5dc1c0355ded5abc408a4675775eaed69f6057",
+      "sha256": "a58f7d52eb915fa703c04064c5939407883a42d857a65def26fcd5ac96d041b8"
+    }
+  ],
+  "readBaselineFiles": [
+    {
+      "path": "src/commands/structured/limits.ts",
+      "gitBlob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "gitBlob": "f1bb01cd4c0203109727b70eb3598bd7822298c4",
+      "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "gitBlob": "f7e0dfcb1815aa90ae49d495e453b4d069139108",
+      "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "gitBlob": "6350b5c4f5b8cae9243cf6560c98d9e53cb3128e",
+      "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "gitBlob": "88556c37d99b451c0d9ef55443c5946c46d46d9b",
+      "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "gitBlob": "f27c7c7925ee22c8aa496b67f5ed6560d125cdfd",
+      "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "tests/commands/structured/resources.test.ts",
+      "gitBlob": "4a6877982b2934d820bcf6ace6992af2624af6d2",
+      "sha256": "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "tests/commands/structured/hazard-worker.ts",
+      "gitBlob": "d2b8057295325404d700815cb7884589d55114ad",
+      "sha256": "87dab10a7f430a1a72b3de1a873429ed0f001958824144302b6933696d832f73",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "tests/commands/structured/semantics.test.ts",
+      "gitBlob": "35197fd469e27baf4c08ea5baec9e5d7ca189c33",
+      "sha256": "a548ea576635f788b97d0165efee8ee7cd6641755a9d5c4156b779c78a71f831",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "tests/commands/structured/cli.test.ts",
+      "gitBlob": "abcd45db33350e8b5cdffbb3966302521aed0a99",
+      "sha256": "b755f4d240d7c95f001e3a4aac6aeb8270242d694fb5db96ddbc4f7568e4afe2",
+      "liveBytesMatch": true
+    },
+    {
+      "path": "tests/commands/structured/streaming.test.ts",
+      "gitBlob": "c965efba34da8f06a43d83ab54f503a0153eecd5",
+      "sha256": "e33c599f03bfbd4fd5293013d145b85a321bfa65921059bc272cd86a7b7bf3b1",
+      "liveBytesMatch": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "compile-work-checkpoint",
+      "primaryLines": "src/commands/structured/parser.ts:33-66,79-82,116-220",
+      "bound": "token and AST storage O(maxSourceBytes); AST depth bounded; uncharged work can be O(maxSourceBytes^2)",
+      "gap": "no general compile work charge or cooperative checkpoint; no independent AST-node quota"
+    },
+    {
+      "id": "string-length-transient-array",
+      "primaryLines": "src/commands/structured/interpreter.ts:210-217",
+      "bound": "at most maxValueBytes code-point entries for a fixed invocation",
+      "gap": "Array.from materializes a transient collection not bounded by maxCollectionSize or charged per code point"
+    },
+    {
+      "id": "json-encoding-retained-peak",
+      "primaryLines": "src/commands/structured/input.ts:290-316; src/commands/structured/jq.ts:169-180",
+      "bound": "encoded payload bounded by remaining maxOutputBytes; conservative language-level envelope M + max(2E, 3E+2s)",
+      "gap": "whole fragment list/string/buffer representations coexist; no retained-heap or RSS accounting"
+    }
+  ],
+  "qualification": "Static fixed-Git and matching live-byte inspection only. Illustrative examples were not executed; no runtime failure, native parity, product behavior, RSS, allocator, or service claim is made."
+}

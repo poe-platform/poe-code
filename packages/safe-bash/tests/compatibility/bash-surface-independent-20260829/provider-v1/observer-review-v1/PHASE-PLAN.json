@@ -1,0 +1,18 @@
+{
+  "schema": "observer-review-publication-preseal-v1",
+  "authority": "Fresh ROOT15min24ALLpeak2/32MiBcapture128MiBwork; SOURCE/DATA-only review and durable publication, proposal-only Bash",
+  "started": 1787983159309,
+  "deadline": 1787984059309,
+  "allowedChildren": [
+    "apply_patch",
+    "/usr/bin/git"
+  ],
+  "noSignalsOrGroupChecks": true,
+  "noExistingSourceExecution": true,
+  "oldReservationUnchanged": true,
+  "scope": "tests/compatibility/bash-surface-independent-20260829/provider-v1/observer-review-v1",
+  "knownExceptions": [
+    "New publication-admin.mjs executes only fresh administrative commands; not the historical runner/provider/helper"
+  ],
+  "oldStopRequired": "STOP_GROUP_RETIREMENT_UNKNOWN"
+}

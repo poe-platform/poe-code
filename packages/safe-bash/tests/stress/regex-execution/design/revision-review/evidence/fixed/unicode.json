@@ -1,0 +1,398 @@
+{
+  "name": "unicode",
+  "pid": 66222,
+  "readyAt": 43.604917,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 3162,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 95.674959
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 97.54725000000002
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 97.55650000000003
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "unicode"
+    },
+    {
+      "type": "done",
+      "name": "unicode",
+      "observations": [
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "(σ)",
+                "flags": "gui"
+              }
+            ],
+            "rows": [
+              {
+                "text": "Σς",
+                "all": true
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "Σ",
+                      "Σ"
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 2,
+                    "captures": [
+                      "ς",
+                      "ς"
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 113,
+              "execCalls": 3
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "Σ",
+                      "Σ"
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 2,
+                    "captures": [
+                      "ς",
+                      "ς"
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 113,
+              "execCalls": 3
+            }
+          }
+        },
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "",
+                "flags": "g"
+              }
+            ],
+            "rows": [
+              {
+                "text": "𝄞x",
+                "all": true
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 0,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 1,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 2,
+                    "end": 2,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 3,
+                    "end": 3,
+                    "captures": [
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 195,
+              "execCalls": 4
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 0,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 1,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 2,
+                    "end": 2,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 3,
+                    "end": 3,
+                    "captures": [
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 195,
+              "execCalls": 4
+            }
+          }
+        },
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "",
+                "flags": "gu"
+              }
+            ],
+            "rows": [
+              {
+                "text": "𝄞x",
+                "all": true
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 0,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 2,
+                    "end": 2,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 3,
+                    "end": 3,
+                    "captures": [
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 147,
+              "execCalls": 3
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 0,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 2,
+                    "end": 2,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 3,
+                    "end": 3,
+                    "captures": [
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 147,
+              "execCalls": 3
+            }
+          }
+        }
+      ],
+      "elapsedMs": 51.144999999999996,
+      "heartbeats": 9,
+      "maxGap": 6.618957999999999,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 3,
+            "inputBytes": 4,
+            "responseBytes": 113,
+            "startupMs": 21.933124999999997,
+            "workMs": 0.27379200000000026,
+            "terminationMs": 0.9224579999999989,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 4,
+            "inputBytes": 6,
+            "responseBytes": 195,
+            "startupMs": 12.556958000000002,
+            "workMs": 0.23679099999999664,
+            "terminationMs": 0.5904999999999987,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        },
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 3,
+            "inputBytes": 6,
+            "responseBytes": 147,
+            "startupMs": 12.279582999999995,
+            "workMs": 0.3492909999999938,
+            "terminationMs": 0.5644160000000085,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ],
+      "memory": {
+        "rss": 59768832,
+        "heapTotal": 8011776,
+        "heapUsed": 5904568,
+        "external": 2185788,
+        "arrayBuffers": 20330
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

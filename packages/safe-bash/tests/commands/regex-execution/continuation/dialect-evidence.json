@@ -1,0 +1,261 @@
+{
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "nativeVersion": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+  "profile": "native rg --no-config --sort path --no-ignore-parent --no-require-git in isolated repository-local fixture; virtual equivalent filters and byte-sorted traversal",
+  "cases": [
+    {
+      "name": "brace alternatives",
+      "glob": "alpha.{ts,js}",
+      "files": [
+        "alpha.ts",
+        "alpha.js",
+        "beta.ts"
+      ],
+      "before": {
+        "code": 0,
+        "stdout": "Li9hbHBoYS5qcwouL2FscGhhLnRzCg==",
+        "stderr": ""
+      },
+      "after": {
+        "code": 0,
+        "stdout": "Li9hbHBoYS5qcwouL2FscGhhLnRzCg==",
+        "stderr": ""
+      },
+      "native": {
+        "code": 0,
+        "stdout": "Li9hbHBoYS5qcwouL2FscGhhLnRzCg==",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "nativeExact": true
+    },
+    {
+      "name": "nested brace alternatives",
+      "glob": "{alpha,{beta,gamma}}",
+      "files": [
+        "alpha",
+        "beta",
+        "gamma"
+      ],
+      "before": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL2JldGEKLi9nYW1tYQo=",
+        "stderr": ""
+      },
+      "after": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL2JldGEKLi9nYW1tYQo=",
+        "stderr": ""
+      },
+      "native": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL2JldGEKLi9nYW1tYQo=",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "nativeExact": true
+    },
+    {
+      "name": "unclosed CLI class",
+      "glob": "alpha[",
+      "files": [
+        "alpha[",
+        "alpha"
+      ],
+      "before": {
+        "code": 2,
+        "stdout": "",
+        "stderr": "cmc6IGludmFsaWQgZ2xvYjogdW5jbG9zZWQgZ2xvYiBjaGFyYWN0ZXIgY2xhc3MK"
+      },
+      "after": {
+        "code": 2,
+        "stdout": "",
+        "stderr": "cmc6IGludmFsaWQgZ2xvYjogdW5jbG9zZWQgZ2xvYiBjaGFyYWN0ZXIgY2xhc3MK"
+      },
+      "native": {
+        "code": 2,
+        "stdout": "",
+        "stderr": "cmc6IGVycm9yIHBhcnNpbmcgZ2xvYiAnYWxwaGFbJzogdW5jbG9zZWQgY2hhcmFjdGVyIGNsYXNzOyBtaXNzaW5nICddJwo="
+      },
+      "unchanged": true,
+      "nativeExact": false
+    },
+    {
+      "name": "invalid class range",
+      "glob": "[z-a]",
+      "files": [
+        "alpha"
+      ],
+      "before": {
+        "code": 2,
+        "stdout": "",
+        "stderr": "cmc6IGludmFsaWQgZ2xvYjogSW52YWxpZCByZWd1bGFyIGV4cHJlc3Npb246IC8oPzpefC8pW3otYV0kL3U6IFJhbmdlIG91dCBvZiBvcmRlciBpbiBjaGFyYWN0ZXIgY2xhc3MK"
+      },
+      "after": {
+        "code": 2,
+        "stdout": "",
+        "stderr": "cmc6IGludmFsaWQgZ2xvYjogSW52YWxpZCByZWd1bGFyIGV4cHJlc3Npb246IC8oPzpefC8pW3otYV0kL3U6IFJhbmdlIG91dCBvZiBvcmRlciBpbiBjaGFyYWN0ZXIgY2xhc3MK"
+      },
+      "native": {
+        "code": 2,
+        "stdout": "",
+        "stderr": "cmc6IGVycm9yIHBhcnNpbmcgZ2xvYiAnW3otYV0nOiBpbnZhbGlkIHJhbmdlOyAneicgPiAnYScK"
+      },
+      "unchanged": true,
+      "nativeExact": false
+    },
+    {
+      "name": "escaped literal star",
+      "glob": "alpha\\*",
+      "files": [
+        "alpha*",
+        "alpha"
+      ],
+      "before": {
+        "code": 0,
+        "stdout": "Li9hbHBoYSoK",
+        "stderr": ""
+      },
+      "after": {
+        "code": 0,
+        "stdout": "Li9hbHBoYSoK",
+        "stderr": ""
+      },
+      "native": {
+        "code": 0,
+        "stdout": "Li9hbHBoYSoK",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "nativeExact": true
+    },
+    {
+      "name": "ASCII class",
+      "glob": "[a-c].ts",
+      "files": [
+        "a.ts",
+        "d.ts"
+      ],
+      "before": {
+        "code": 0,
+        "stdout": "Li9hLnRzCg==",
+        "stderr": ""
+      },
+      "after": {
+        "code": 0,
+        "stdout": "Li9hLnRzCg==",
+        "stderr": ""
+      },
+      "native": {
+        "code": 0,
+        "stdout": "Li9hLnRzCg==",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "nativeExact": true
+    },
+    {
+      "name": "POSIX class spelling",
+      "glob": "[[:digit:]]",
+      "files": [
+        "1",
+        "a"
+      ],
+      "before": {
+        "code": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "after": {
+        "code": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "native": {
+        "code": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "nativeExact": true
+    },
+    {
+      "name": "globstar crosses newline directory",
+      "glob": "**/alpha",
+      "files": [
+        "dir\n/alpha",
+        "sub/alpha",
+        "alpha"
+      ],
+      "before": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL3N1Yi9hbHBoYQo=",
+        "stderr": ""
+      },
+      "after": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL3N1Yi9hbHBoYQo=",
+        "stderr": ""
+      },
+      "native": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL2RpcgovYWxwaGEKLi9zdWIvYWxwaGEK",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "nativeExact": false
+    },
+    {
+      "name": "single star permits newline",
+      "glob": "*alpha",
+      "files": [
+        "line\nalpha",
+        "alpha"
+      ],
+      "before": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL2xpbmUKYWxwaGEK",
+        "stderr": ""
+      },
+      "after": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL2xpbmUKYWxwaGEK",
+        "stderr": ""
+      },
+      "native": {
+        "code": 0,
+        "stdout": "Li9hbHBoYQouL2xpbmUKYWxwaGEK",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "nativeExact": true
+    },
+    {
+      "name": "Unicode single character",
+      "glob": "?.ts",
+      "files": [
+        "🙂.ts",
+        "ab.ts"
+      ],
+      "before": {
+        "code": 0,
+        "stdout": "Li/wn5mCLnRzCg==",
+        "stderr": ""
+      },
+      "after": {
+        "code": 0,
+        "stdout": "Li/wn5mCLnRzCg==",
+        "stderr": ""
+      },
+      "native": {
+        "code": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "unchanged": true,
+      "nativeExact": false
+    }
+  ],
+  "baselineSha256": "27a19e8e4f5505e3aad5395d13e0a4c17e54d4096aac872261580220b28f2c1a"
+}

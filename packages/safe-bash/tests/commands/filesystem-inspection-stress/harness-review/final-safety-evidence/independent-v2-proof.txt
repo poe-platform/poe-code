@@ -1,0 +1,283 @@
+READY — GO FOR ROOT REVIEW, NOT EXECUTION AUTHORIZATION
+August 27, 2026. Proposed approval remains PENDING_ROOT.
+Independent peer review of the derived two-case harness, not its author review.
+This leaf performed zero product imports/executions and zero native-oracle calls.
+Current combined product count remains FOUR: four earlier passes, zero derived.
+No repository/source/test/harness edits, staging, commits, installs, rebuilds,
+new workers or product children. All leaf artifacts are under /tmp only.
+
+Decision
+  GO: both derived static proof premises and the narrowly changed harness are
+  substantiated for a separate explicit ROOT authorization. Neither derived row
+  has a runtime result. Original v1 T-DP-cumulative and T-sort-many remain
+  invalidated/HOLD/zero calls, even if a future derived run passes.
+  No unresolved source or harness defect was established in this bounded review.
+  This does not approve any full six-row v1 replay or a new/broader corpus.
+
+Deliverables
+  This report: /tmp/safe-bash-inspection-v2-proof-detail.txt
+  Pending proposal: /tmp/safe-bash-inspection-v2-authorization.proposed.json
+  Independent evidence directory: /tmp/safe-bash-inspection-v2-peer-E3UA3q
+  Final hashes/status: that directory's delivery.json
+  Current/captured hashes and minimal diff: peer-inventory.json
+  This report's SHA256 is bound by BOTH proposed proof records. Proposal SHA256
+  is recorded separately to avoid a self-referential report/auth digest cycle.
+
+1. Final preparation, original evidence and provenance
+
+The peer author's final handoff was available and states STOP, not an unfinished
+seal. No waiting or execution was needed. Read README, PREPARATION, SEAL,
+STATIC_PROOF, cases, exact derivations, oracle, VFS, authorization, loader,
+controller, unchanged child, selfchecks and offline validator. Captured63 regular
+files spanning v1/v2/prior-run evidence before checks. The49-file author-owned
+manifest is independently byte-verified; all original captured v1 files remain
+equal to the earlier independent frozen proof inventory. Final handoff and all
+captured files are hash-rechecked at delivery; any drift fails the handoff.
+
+Final author handoff SHA256:
+  e565fef2a8f4e092881e8052745ad34b2ea3dc7b811d3b230b7f2107e343e469
+Author-owned manifest SHA256:
+  846e7f419fb9f208270e5ab94c222b283fb296b255aa78d6ad4a1118f93a72e5
+v2 SEAL.json SHA256:
+  8111403a37f392dd8934c3e0f9d89bc6b8338bf5d14becb3471bc68a6ee682df
+v2 eight-helper runtime SHA256:
+  f29c603e3205e69716d6fafff4b256d128c981cd010fc8c0021d604ae2c06b77
+v2 derived-cases.json SHA256:
+  9a6311c6514fe95739459af32ca0b18a38fecfecb700407a94a72766a70c675c
+v2 derivation.json SHA256:
+  1cfafb797f63a4075fc0862ea17ff9553f4abc0a989ee35cff139d477cc8e39d
+v2 case-diff.json SHA256:
+  36feec0fd37f5096c6a298743125e342114de465c916855edc56ccf4f453e43f
+
+Original v1 PRESEAL remains:
+  b72b5e9f109e3da38732c931980d3730bbda14dc0eef16cdea7c3fa632e92ebb
+Original v1 runtime remains:
+  428424f50da19fcbe970f962f8149eb9674dccd475db7e720b52d83c1b1d4905
+Existing ROOT base authorization:
+  e4d048afb4784f802047de589212519465bb7589ccdb99e10ba677add39cee1c
+Existing raw original summary:
+  67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465
+Prior evidence MANIFEST.json:
+  22555f0ea0af50825bd4bd9ee51cbc84ff822186feaa3d9c765e8467a09b1b9c
+
+Existing base authorization differs from this leaf's old PENDING_ROOT proposal
+ONLY by its root-approved marker; deep comparison confirms both invalidations
+were preserved. Existing originalAuthorize() was used read-only to verify all
+920 permitted source/config/build hashes, real paths, four entrypoints and
+original six-case seal. It does not import or execute product code.
+
+Offline validation verifies26 raw proof/provenance/run copies against their
+manifest, re-evaluates saved reports using the original oracle, checks byte
+counts, module hashes, no stops, four normal closes/disposals, signals, capture,
+heap/RSS observations, native0 and retries0. It does not replay the product.
+The raw summary retains original statuses [pass,HOLD,HOLD,pass,pass,pass]; each
+HOLD has zero productInvocations and no pid/report. Raw controller exit1 and
+warnings remain evidence, not edited away. Earlier historical failure evidence
+is left untouched; no claim that it is repaired or newly qualified by this work.
+
+Reuse exactly these four original passes WITHOUT rerun:
+  T-empty-many       status0; stdout8262 / stderr0 bytes
+  F-JSON-cumulative  status1; stdout29   / stderr26 bytes
+  F-header-many     status0; stdout1192 / stderr0 bytes
+  F-metadata-many   status1; stdout0    / stderr28 bytes
+Proposal includes each raw row path/hash plus the bound summary. No prior row
+is inserted into the new cases array; it contains exactly T-DP-cumulative and
+T-sort-many, in that order.
+
+2. Independently computed minimal change
+
+Both rows preserve all66 entries (root and /root plus64 names), order, types,
+empty file payloads, command arguments, pattern and every unrelated limit/field.
+Only T-DP-cumulative limits.maxSteps changes4096 ->16384. Sort remains4096.
+For BOTH expected objects, exactly five keys change/add:
+  mode: tree-work-rejection -> tree-shell-work-limit
+  exitCode: new1
+  stderr: actual meaningful bounded Shell work-limit diagnostic expectation
+  listing: new precise iterator-phase telemetry expectation
+  qualification: transparent derivation/phase justification
+Existing empty stdout, internal EFBIG expectation, proof key and other semantic
+data remain. EFBIG is now a frozen-source causal fact, not a fabricated field on
+a rejected Shell promise. No other original oracle branches/common assertions
+change. Literal derivation replay verifies child byte identity and all otherwise
+unchanged controller/oracle/loader bytes.
+
+DP unchanged entries SHA256:
+  aaf99f20ac1bd1684528c5f4087bdbeedb77a65cd05795f412964ede21637672
+DP unchanged args SHA256:
+  fa1f525088186add6a9a1144f0ba8fe05b1c6779a8b2f6127bdc3f7d613859dd
+DP derived canonical case SHA256:
+  9bca8031edc1f3bcd1a429081dadaa0057d49c3a25e1efbf5d65093a3df01fe1
+Sort unchanged entries SHA256:
+  fe77a80cec91208f566d617d62c7641c8b29ffc7d0d86d94a9cfea1d8259dd26
+Sort unchanged args SHA256:
+  95c87232030cf7a7597a7cdb90903170a20cf2e02dee29a8bb9d7bb61a47e9a6
+Sort derived canonical case SHA256:
+  cb58f411a1d5396d96383b387c561d2a500d4b9738e4ec62457e937320d26aa1
+
+3. Frozen-source DP proof — approved premise, execution pending
+
+Source: 436bda3e21b2b6041409fac7408cf072b5d3fe5e, same snapshot:
+  /private/tmp/safe-bash-inspection-final-YZxhi8/snapshot
+No source changes or rebuild occurred. References below are snapshot-relative.
+src/commands/tree/pattern.ts:6-41 charges18+18+17=53 for the17-byte pattern's
+scan/encoding/parser work. Root lstat and readdir add2; startup55.
+src/commands/tree/tree.ts:101-112 adds1 per listing entry before matching.
+For each128-byte name, pattern.ts:46 charges1 alternative, :51 reserves129
+initial-row cells, :55 reserves258 before EACH of17 token rows/transitions.
+There are no bracket costs, suffix elimination, pattern shortcuts or resets.
+All64 names end q while the last literal token is z, so each full match is false.
+
+Per full listing/filter =1+1+129+17*258 =4517.
+Complete singleton including eventual child lstat =55+4517+1 =4573 <=16384.
+Three full filters =55+3*4517 =13606.
+Four full filters demand55+4*4517 =18123 >16384.
+Fourth listing/alternative/initial row =13606+1+1+129 =13737.
+After its tenth token reservation =13737+10*258 =16317.
+Its eleventh reservation attempts13737+11*258 =16575 and fails BEFORE that
+row allocation/transition. These are admitted/demanded units, not instructions
+or proof that the rejected258 units were performed. Complete all64 filters
+would require289143 before sorting; this hypothetical is not work executed.
+
+There are no concealed startup step charges: argument checking uses separate
+byte/count quotas, metadata sizing separate path/cumulative metadata quotas.
+At failure, admitted metadata528 bytes (16 root +4*128) and65 entry-count
+charges are below their sealed limits; stdout remains empty because visit()
+awaits children() before rendering. Only root lstat/readdir are reached.
+One WalkBudget is constructed per command, steps shared across all names.
+
+Phase telemetry is meaningful, not a product-internal counter. The fixture wraps
+only the returned Array's Symbol.iterator; original array length, entry objects,
+types, order, options, readonly effects and producer are preserved. next() returns
+the original iterator result unchanged while recording a bounded name prefix.
+It adds a no-resource return() observation. On the source throw during fourth
+filter, IteratorClose calls return once without replacing the original failure.
+The independent mock explicitly threw a sentinel through this exact wrapper and
+verified identical caught object and next4/yielded4/done=false/returned1.
+
+The oracle requires that exact trace AND first four original names, exact calls
+[lstat /root,readdir /root], no child stat/content/mutation, actual Shell status1,
+empty stdout and the precise work-limit diagnostic. Sorting starts only AFTER
+the listing loop at tree.ts:114. A per-name-reset implementation would traverse
+all64 entries; any subsequent sort failure has next65/done=true and cannot pass
+the DP phase predicate. Full-list/later-sort and first/third/fifth-entry traces
+are rejected by independent mock controls. The trace does not directly measure
+the failed token; that attribution is the separately checked source arithmetic.
+
+4. Frozen-source sort proof — approved premise, execution pending
+
+The unchanged512-byte names share at least510 leading bytes. Root FS2 plus64
+listing steps =66. tree.ts:114-117 reserves1+left.length+right.length =1025
+BEFORE Buffer.compare. Three actual compares are admitted at3141; the fourth
+requests4166 >4096 and throws before Buffer.compare, child stat or output.
+This is full-span reservation, not a claim that exactly1024 bytes are physically
+touched by a primitive. No exact engine total comparator count is invented.
+Any complete general comparison ordering of64 distinct keys requires at least63
+comparisons, so this fourth admission cannot be avoided by completing the sort.
+
+The trace requires all64 original names, next65/yielded64/done=true/returned0,
+only root lstat/readdir, empty stdout and the work-specific Shell status1. It
+distinguishes list exhaustion from break-on-the64th name, not just a count64.
+Independent mocks reject fourth-filter, partial63 and break-on-last64 traces.
+Metadata32784 and entries65 remain below their separate caps.
+The trace only places the failure between filtering and child inspection; the
+fourth-comparison attribution is static. No comparator monkeypatch was added.
+
+tree.ts:128-131 reserves1 BEFORE each --dirsfirst comparison, over constant-size
+observed directory classifications. It uses the SAME WalkBudget. Both passes
+are metered; ONLY the first is dynamically targeted by this low-cap case. The
+second pass is not reached or claimed dynamically covered by a future pass.
+
+5. Strict actual-Shell oracle and unchanged effects
+
+tree/io.ts:7-10 constructs FsError(EFBIG) with the exact tree work-limit message.
+shell/runtime.ts:494-512 catches ordinary command errors, writes the human
+diagnostic and returns status1; shell/shell.ts returns a resolved ShellResult.
+The derived oracle therefore requires rejected=false, exitCode1, no report.error,
+empty stdout, valid exact byte/base64 accounting, one command, disposed Shell,
+no unhandled rejection, no mutation, no streams and exact metadata calls.
+The actual child remains byte-identical, verifies literal argv, signals, byte
+sinks and heap before product import, and awaits Shell.dispose.
+
+Diagnostic predicate is bounded <=512 bytes, exactly one LF-terminated line,
+no embedded CR/LF. After only recognized optional Shell line/errno/tree-prefix
+normalization, body MUST equal `tree work limit exceeded (ACTUAL_CAP)`.
+Shell line prefixes require1..6 digits starting1..9. Wrong quota, wrong cap,
+unrelated text, EACCES, empty/status-only surrogate, extra lines or prefixes fail.
+Optional recognized prefix forms do not relax the meaningful work-limit body.
+The internal errno is not claimed serialized by Shell or synthesized in report.
+
+6. Exact-two execution gate, loader and inherited snapshot
+
+New authorization schema delegates snapshot verification to the exact existing
+base ROOT document/hash, checks both original proofs remain invalidated, the
+same sourceCommit, both derived IDs/hashes, new maximum2 and combined maximum6,
+the raw prior summary hash, four recorded starts/pass IDs and no unknown effects.
+Both new proof records must be approved with exact coefficients/phase fields,
+hashed source references and this independent review's path/SHA256.
+
+Controller authorizes BEFORE any output directory or product fork. It creates
+one fixed exclusive claim BEFORE its first fork:
+  /tmp/safe-bash-inspection-derived-two-436bda3-execution-claim.json
+The official claim is absent and was not written by this leaf. The local peer
+test exercised claimExecution ONLY with an isolated MOCK-ONLY path; a second
+mock write correctly fails EEXIST. The fixed official wx claim prevents a retry
+with a different output path while it is retained; a partial attempt consumes
+it, not a resumable/retry grant. It is a cooperative gate, not protection against
+a host deliberately deleting the file or bypassing the controller.
+
+Only two sealed entries can enter the loop; assert(++spawnedChildren<=2) precedes
+fork. The unchanged child asserts one exact command dispatch. Each owned child
+is awaited through close before the next. Four prior starts + at most two new
+starts = at most six product starts across phases; four original passes are
+referenced, never replayed. No original two invalidations are overwritten.
+
+Loader's ONLY changes from v1: read file manifest from the bound base document,
+and admit the common harness-review parent for sealed sibling-v1 helper reuse.
+The parent allow-prefix is broader than an exact per-file helper allowlist; this
+is disclosed, not described as a new sandbox. Actual static helper imports are
+fixed and bound through SEAL/runtime identity (including reused v1 helpers).
+Product forbidden host/process/network/worker imports and unlisted snapshot
+file/package rejection remain unchanged. Source module bytes are rehashed at
+load. The four inherited entrypoints and full920-file manifest are unchanged.
+
+Entry paths relative to the existing snapshot, with SHA256:
+  dist/shell/index.js (Shell)
+    e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb
+  dist/contracts/index.js (FsError)
+    7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27
+  dist/commands/tree/index.js (createTreeCommand)
+    702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a
+  dist/commands/file/index.js (createFileCommand, inherited, not newly run)
+    2f63be99b23805e68498f39b71382134d70ab2929f7413460337790d8d3e5ad5
+Previous verified28-module union closure remains the same bytes. Required product
+builtins are node:util, node:stream/web, node:path and node:timers/promises; no
+fs/worker exception is needed for these entrypoints. Mock resolve tests allowed
+these and inherited entrypoints without importing them, rejected forbidden host
+imports, package resolution and an unlisted file. No product load hook ran.
+
+7. Bounded checks, preserved preparation failure and handoff
+
+Pure existing checks: selfcheck.test.mjs7/7 pass, validate.mjs PASS,
+run.mjs --check PASS. Saved only under peer /tmp, no repository output writes.
+Independent extra controls:5/5 groups pass covering real wrapper throw/closure,
+reset/later-sort rejection, exact sort exhaustion, status/data effects, every
+required numeric/boolean phase premise, wrong caps/diagnostics, exclusive mock
+claim and loader resolver mocks. They are synthetic reports, not actual Shell.
+The first local peer-control attempt had an await inside a non-async assertion
+callback and failed at parse time before imports. Its raw peer-controls.tap is
+preserved. Only this /tmp helper was corrected; peer-controls-r2.tap records5/5.
+No product attempt, product retry or fixture change resulted from this tooling
+failure. The final helper source/hash is bound in the pending proposal.
+
+No compiler was needed or started; all owned test/check processes have settled.
+Original four product outcomes are evidence reuse; this leaf's product imports,
+executions and native-oracle calls are all0. Official new claim remains absent.
+Original inputs, invalidations, raw statuses, warnings and failures are preserved.
+
+maxSteps is cumulative admission accounting, not CPU preemption or a hard memory
+limit. Same5s/30s child/batch stops,128MiB heap,256MiB cooperative RSS stop,64KiB
+capture and zero-retry policies apply. Mock elapsed times and earlier run duration
+are bookkeeping, not hidden performance assertions. No full6-v1 green, fullgate,
+native parity, broad source review, provider coverage or superiority claim.
+Stop: READY. GO is peer-preparation acceptance only; root must independently
+authorize a separately hashed document before either additional product child.

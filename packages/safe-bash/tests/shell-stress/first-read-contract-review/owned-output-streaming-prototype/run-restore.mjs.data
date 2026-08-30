@@ -1,0 +1,3 @@
+import { capture, owned } from './supervisor.mjs';
+import { resolve } from 'node:path';
+await capture('reconstruction-S1',process.execPath,[resolve(owned,'restore.mjs')],{cwd:'/Users/kjopek/Workspace/safe-bash',timeoutMs:30000,maxBytes:1048576,env:{PATH:process.env.PATH,LC_ALL:'C',LANG:'C',TZ:'UTC',TSX_DISABLE_CACHE:'1'}});

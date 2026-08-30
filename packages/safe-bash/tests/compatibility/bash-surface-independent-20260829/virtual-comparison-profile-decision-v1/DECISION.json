@@ -1,0 +1,137 @@
+{
+  "schema": "functional-direct-child-proposal-v1",
+  "decision": "RECOMMEND_B_CONDITIONALLY_BOTH_CURRENTLY_HOLD",
+  "authorizedImplementation": false,
+  "authorizedExecution": false,
+  "authorityComparison": {
+    "A": {
+      "actualSourceAuthorityChangeJustified": "None demonstrated; v2 observer already parent. Better owner admission and records are evidence changes, not proven permission fixes.",
+      "status": "HOLD_NOT_ANOTHER_GROUP_LOOP"
+    },
+    "B": {
+      "actualSourceChangesRequired": [
+        "Child-only Node permission enforcement without child-process/Worker allowances",
+        "Synchronous registerHooks instead of async register, preserving actual-byte/edge binding",
+        "New direct ChildProcess lifecycle qualification and explicit cleanup-settled receipt",
+        "Separately bound trusted owner/build/admin and exact new role/grant profile"
+      ],
+      "status": "HOLD_UNIMPLEMENTED_UNQUALIFIED"
+    },
+    "referenceDiagnosis": "25d2635f87bf9560a3d98a962448501bf160a912/16710e379937dc0a5c053f11645834e97771ea2d"
+  },
+  "sourceAdmissionBlocker": {
+    "path": "src/commands/archive/create.ts",
+    "retainedGitHeader": "bf079ada185a79aec864b068f3738ddc5520822e:src/commands/archive/create.ts missing",
+    "meaning": "No canonical source bytes were obtained by this attempted Git locator; no product drift conclusion or replacement pin."
+  },
+  "futureWriteSet": [
+    "NEW_NAMESPACE/guard.mjs",
+    "NEW_NAMESPACE/loader.mjs",
+    "NEW_NAMESPACE/case-driver.mjs",
+    "NEW_NAMESPACE/mechanism.mjs",
+    "NEW_NAMESPACE/supervisor.mjs",
+    "NEW_NAMESPACE/outer.mjs",
+    "NEW_NAMESPACE/profile-bindings-and-controls"
+  ],
+  "frozenInputs": {
+    "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+    "matrixSha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e",
+    "literalPrograms": 37,
+    "fixtureRows": 4,
+    "physicalLayouts": 3,
+    "plannedCalls": 111,
+    "withheld": [
+      "B26",
+      "B27",
+      "B28"
+    ],
+    "nativeReference": "Immutable Bash3.2.57 observations only"
+  },
+  "futureControls": [
+    {
+      "id": "D01",
+      "kind": "DATA",
+      "purpose": "Wrong/missing source identity, size/hash/path refuse before decode/import. Resolve canonical source locator; old failed lookup remains historical."
+    },
+    {
+      "id": "D02",
+      "kind": "DATA",
+      "purpose": "Forbidden CLI grants, inherited NODE_OPTIONS, extra roles/read/write paths and profile mismatch refuse before acquisition."
+    },
+    {
+      "id": "D03",
+      "kind": "DATA",
+      "purpose": "No completion without matching awaited-cleanup receipt; wrong/duplicate receipt and nonzero loader/Worker admissions refuse."
+    },
+    {
+      "id": "D04",
+      "kind": "DATA",
+      "purpose": "false/0/undefined primary identity survives secondary close/cleanup/capture faults."
+    },
+    {
+      "id": "D05",
+      "kind": "DATA",
+      "purpose": "Capture fsync/close/hash faults or expired inclusive deadline prohibit credit; finalization tail is not an extension."
+    },
+    {
+      "id": "D06",
+      "kind": "DATA",
+      "purpose": "Unsettled owned jobs/spawn error/noPID/incomplete direct exit-close-EOF STOP; no synthetic group-absence inference. TERM/KILL state paths tested synthetically only here."
+    },
+    {
+      "id": "H01",
+      "kind": "FUTURE_HARMLESS_NODE",
+      "purpose": "Verify exact subprocess permission denial, including APIs obtained via global builtin access and ESM routes. Any attempted negative-test executable/shell/execPath must name an owned nonexistent sentinel; require permission denial rather than ENOENT. No additional successful OS child allowed."
+    },
+    {
+      "id": "H02",
+      "kind": "FUTURE_HARMLESS_NODE",
+      "purpose": "Qualify sync hooks against sealed harmless modules, wrong hash, unlisted edge and unauthorized load; refuse Worker/async-registration requests with zero acquired threads. No allow-worker fallback."
+    },
+    {
+      "id": "H03",
+      "kind": "FUTURE_HARMLESS_NODE",
+      "purpose": "Natural child exit-close-EOF, bounded capture and explicit settled-cleanup marker. Assert no signal0/group observer invocation."
+    },
+    {
+      "id": "H04",
+      "kind": "FUTURE_HARMLESS_NODE",
+      "purpose": "Cooperative cancellation settles one registered task before terminal. Actual forced-termination qualification is NOT included; if needed it requires separately presealed authority and cannot credit product cleanup."
+    }
+  ],
+  "proposedControlEnvelope": {
+    "inclusiveMs": 600000,
+    "knownOSStarts": 16,
+    "knownPeak": 2,
+    "harmlessNodeFixtureStarts": 4,
+    "ownerAndAdministrativeAllowance": 12,
+    "loaderThreads": 0,
+    "productWorkers": 0,
+    "productCalls": 0,
+    "captureBytes": 8388608,
+    "workingBytes": 67108864,
+    "perStreamBytes": 65536,
+    "fixtureDeadlineMs": 3000,
+    "necessaryCleanupTermGraceMs": 2000,
+    "necessaryCleanupKillGraceMs": 1000,
+    "finalizationTailMs": 60000,
+    "activation": false,
+    "qualification": "Future proposal only. No global OS quota/RSS/hard post-KILL bound. Actual direct unknown retirement/capture/integrity/deadline/cap STOP. Cleanup must not turn a failed fixture into a successful observation."
+  },
+  "stageOrder": [
+    "Resolve source-provenance locator and finish finite code/capability audit",
+    "ROOT approves new profile/source scope; author seals exact changes and control scripts",
+    "Different review of new denial/loader/receipt/lifecycle; fresh finite control grant",
+    "Harmless permission/load controls before natural/cooperative lifecycle",
+    "Separate full packet/fresh ROOT actual111 grant, not current or old grant"
+  ],
+  "excludedClaims": [
+    "Old M08 group absence or rescore",
+    "Complete descendant/thread census",
+    "OS/malicious-code sandbox",
+    "Uncooperative opaque cleanup guarantee",
+    "Native fallback",
+    "New GNU5.3 observations",
+    "Old budget reuse or release"
+  ]
+}

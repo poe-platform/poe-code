@@ -1,0 +1,54 @@
+{
+  "status": "READY_PENDING_ROOT_FINAL_GO",
+  "issuedAt": "2026-08-29T17:21:59.169Z",
+  "latestStart": "2026-08-29T17:26:59.169Z",
+  "expiresAt": "2026-08-29T17:41:59.169Z",
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v2/PENDING-GRANT.json",
+    "bytes": 667,
+    "sha256": "1bef3edb200f9a67c7c27260d33ff850e0d1f85fff0f80022cda2636c6ac3adf",
+    "prospectiveAuthorizedTrueNotIssued": true
+  },
+  "command": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v2/RESOLVED-COMMAND.txt",
+    "bytes": 995,
+    "sha256": "47a843889d997ee006b3f66c03015eb88bc477cee98ad1accb1d47e36851e721"
+  },
+  "monotonic": {
+    "source": "Number(process.hrtime.bigint() / 1000000n)",
+    "outerStarted": 267531292,
+    "sampledMonotonic": 267532390,
+    "sampledUtc": "2026-08-29T17:22:00.267Z",
+    "elapsedBindingMilliseconds": 1098,
+    "remainingMillisecondsAtSample": 1198902,
+    "publicationReservationMilliseconds": 180000,
+    "caseAndSetupMillisecondsAfterPublicationReserve": 1018902,
+    "noResetOrExtensionOnActualGo": true
+  },
+  "checkedFileBindings": 5378,
+  "unusedSlots": 76,
+  "currentCaptureOwnership": {
+    "helperPid": 94487,
+    "parentPid": 79787,
+    "declaredCommandShellPid": 94487,
+    "descriptors": [
+      {
+        "descriptor": 1,
+        "regular": true,
+        "device": 16777232,
+        "inode": 190078250,
+        "sizeAtSample": 0
+      },
+      {
+        "descriptor": 2,
+        "regular": true,
+        "device": 16777232,
+        "inode": 190078251,
+        "sizeAtSample": 0
+      }
+    ],
+    "qualification": "current finite DATA helper captures established before startup; reserved/postchecked, not future owner PID or universal prewrite proof"
+  },
+  "sourcePostguard": true,
+  "activationPathsCreated": false
+}

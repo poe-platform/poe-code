@@ -1,0 +1,15 @@
+{
+  "id": "fallback-old-new-capacity",
+  "families": [
+    "F09",
+    "F11"
+  ],
+  "observation": {
+    "returned": {
+      "code": "QUOTA",
+      "used": 4,
+      "peak": 4
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

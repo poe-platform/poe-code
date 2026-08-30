@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-28T05:46:38.241Z",
+  "allChildrenReaped": true,
+  "archiveVerified": true,
+  "removed": [
+    "runs/continuation-01/raw",
+    "node_modules/continuation-01"
+  ],
+  "rawFiles": 248,
+  "workFiles": 5159
+}

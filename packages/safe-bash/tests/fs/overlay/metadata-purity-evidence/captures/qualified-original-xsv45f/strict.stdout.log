@@ -1,0 +1,954 @@
+TAP version 13
+# Subtest: strict DU direct: original pending-garbage fixture has zero backend mutations
+not ok 1 - strict DU direct: original pending-garbage fixture has zero backend mutations
+  ---
+  duration_ms: 11.082292
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/commands/du/overlay-purity.test.ts:1:503'
+  failureType: 'testCodeFailure'
+  error: |-
+    strict actual no backend mutations, not a positive-effect detector
+    + actual - expected
+    
+    + [
+    +   '/.virtual-bash-overlay-8c100938-58a1-4067-af90-5f7bfa5ad13d'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: '/.virtual-bash-overlay-8c100938-58a1-4067-af90-5f7bfa5ad13d'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/commands/du/overlay-purity.test.ts:34:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: strict DU readonly: original pending-garbage fixture has zero backend mutations
+not ok 2 - strict DU readonly: original pending-garbage fixture has zero backend mutations
+  ---
+  duration_ms: 2.8365
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/commands/du/overlay-purity.test.ts:1:503'
+  failureType: 'testCodeFailure'
+  error: |-
+    strict actual no backend mutations, not a positive-effect detector
+    + actual - expected
+    
+    + [
+    +   '/.virtual-bash-overlay-857e2227-1952-41bb-8f69-00db33dbffa7'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: '/.virtual-bash-overlay-857e2227-1952-41bb-8f69-00db33dbffa7'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/commands/du/overlay-purity.test.ts:34:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: strict DU mount: original pending-garbage fixture has zero backend mutations
+not ok 3 - strict DU mount: original pending-garbage fixture has zero backend mutations
+  ---
+  duration_ms: 4.09925
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/commands/du/overlay-purity.test.ts:1:503'
+  failureType: 'testCodeFailure'
+  error: |-
+    strict actual no backend mutations, not a positive-effect detector
+    + actual - expected
+    
+    + [
+    +   '/.virtual-bash-overlay-a8cfc8f4-bbd3-4bd8-8c9d-86b0f99c048b'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: '/.virtual-bash-overlay-a8cfc8f4-bbd3-4bd8-8c9d-86b0f99c048b'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/commands/du/overlay-purity.test.ts:34:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: strict DU nested: original pending-garbage fixture has zero backend mutations
+not ok 4 - strict DU nested: original pending-garbage fixture has zero backend mutations
+  ---
+  duration_ms: 1.790542
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/commands/du/overlay-purity.test.ts:1:503'
+  failureType: 'testCodeFailure'
+  error: |-
+    strict actual no backend mutations, not a positive-effect detector
+    + actual - expected
+    
+    + [
+    +   '/.virtual-bash-overlay-624c7cc3-add7-4ef8-bed5-c931719a08bf'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: '/.virtual-bash-overlay-624c7cc3-add7-4ef8-bed5-c931719a08bf'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/commands/du/overlay-purity.test.ts:34:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: direct: metadata keeps pending garbage hidden without deleting it or changing identity
+not ok 5 - direct: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 9.040333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:2575'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-07d5539f-2b82-482b-94ad-950240c62d51',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-07d5539f-2b82-482b-94ad-950240c62d51'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:108:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: readonly: metadata keeps pending garbage hidden without deleting it or changing identity
+not ok 6 - readonly: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 3.062375
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:2575'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-3ea87259-6292-42bf-90ce-dd82344a090a',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-3ea87259-6292-42bf-90ce-dd82344a090a'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:108:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mount: metadata keeps pending garbage hidden without deleting it or changing identity
+not ok 7 - mount: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 7.103167
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:2575'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-2d0aae23-756d-482f-a309-871342b440fa',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-2d0aae23-756d-482f-a309-871342b440fa'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:108:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nested-upper: metadata keeps pending garbage hidden without deleting it or changing identity
+not ok 8 - nested-upper: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 5.363583
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:2575'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-001cc426-7e8e-4bc2-b8ac-d79c3653a301',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-001cc426-7e8e-4bc2-b8ac-d79c3653a301'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:108:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: nested-lower: metadata keeps pending garbage hidden without deleting it or changing identity
+not ok 9 - nested-lower: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 7.252333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:2575'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-7cca7719-821b-4a6f-b382-2f984e160883',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-7cca7719-821b-4a6f-b382-2f984e160883'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:108:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: composed: metadata keeps pending garbage hidden without deleting it or changing identity
+not ok 10 - composed: metadata keeps pending garbage hidden without deleting it or changing identity
+  ---
+  duration_ms: 9.735208
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:2575'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-7853791e-c007-4694-a94e-c35eae02df6a',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-7853791e-c007-4694-a94e-c35eae02df6a'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:108:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readdir missing preserves errors and does not drain pending garbage
+not ok 11 - readdir missing preserves errors and does not drain pending garbage
+  ---
+  duration_ms: 0.570667
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:4609'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-50bcf87c-dfd5-4a65-b32d-31ef9fbaaa51',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-50bcf87c-dfd5-4a65-b32d-31ef9fbaaa51'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:132:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readdir not-directory preserves errors and does not drain pending garbage
+not ok 12 - readdir not-directory preserves errors and does not drain pending garbage
+  ---
+  duration_ms: 0.504041
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:4609'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-4feda779-7820-4f98-869a-2f6a56a0c7a6',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-4feda779-7820-4f98-869a-2f6a56a0c7a6'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:132:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readdir permission preserves errors and does not drain pending garbage
+not ok 13 - readdir permission preserves errors and does not drain pending garbage
+  ---
+  duration_ms: 5.201125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:4609'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-f4ed385a-8583-44f6-950d-7b1eef5fbe7f',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-f4ed385a-8583-44f6-950d-7b1eef5fbe7f'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:132:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: readdir backend-error preserves errors and does not drain pending garbage
+not ok 14 - readdir backend-error preserves errors and does not drain pending garbage
+  ---
+  duration_ms: 1.264833
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:4609'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-05b1d32f-f070-4eab-a1ed-04a3d87231a4',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-05b1d32f-f070-4eab-a1ed-04a3d87231a4'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:132:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: stat: pre-aborted errno-shaped reasons cause no backend work
+ok 15 - stat: pre-aborted errno-shaped reasons cause no backend work
+  ---
+  duration_ms: 0.434667
+  type: 'test'
+  ...
+# Subtest: lstat: pre-aborted errno-shaped reasons cause no backend work
+ok 16 - lstat: pre-aborted errno-shaped reasons cause no backend work
+  ---
+  duration_ms: 0.219542
+  type: 'test'
+  ...
+# Subtest: readdir: pre-aborted errno-shaped reasons cause no backend work
+ok 17 - readdir: pre-aborted errno-shaped reasons cause no backend work
+  ---
+  duration_ms: 0.302792
+  type: 'test'
+  ...
+# Subtest: in-flight readdir abort preserves the reason and leaves pending garbage intact
+not ok 18 - in-flight readdir abort preserves the reason and leaves pending garbage intact
+  ---
+  duration_ms: 0.448458
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:6085'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-790735e4-5d42-47cf-b310-88f78e0219fe',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-790735e4-5d42-47cf-b310-88f78e0219fe'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:165:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: queued metadata cancellation cannot release an active mutation's turn
+ok 19 - queued metadata cancellation cannot release an active mutation's turn
+  ---
+  duration_ms: 4.890875
+  type: 'test'
+  ...
+# Subtest: active streams remain hidden while metadata preserves pending storage and explicit cleanup drains only garbage
+not ok 20 - active streams remain hidden while metadata preserves pending storage and explicit cleanup drains only garbage
+  ---
+  duration_ms: 3.262625
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:7795'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-a26c4268-5974-4186-8b9e-b74d7235cd20',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-a26c4268-5974-4186-8b9e-b74d7235cd20'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:214:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retained removed bytes remain hidden and metadata cannot undo committed whiteouts
+not ok 21 - retained removed bytes remain hidden and metadata cannot undo committed whiteouts
+  ---
+  duration_ms: 2.360208
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:9062'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-016d4400-0afd-43d8-9fc5-62733b1cbe08',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   },
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-5961932b-421c-4d2d-9e09-ccb6655b1c98',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   },
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-aeed7297-10db-4431-9b9a-42fa8bda225b',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   },
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-54b4e8df-ceff-4807-af91-b8f0f40c6832',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-016d4400-0afd-43d8-9fc5-62733b1cbe08'
+        1:
+          recursive: true
+          force: true
+    1:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-5961932b-421c-4d2d-9e09-ccb6655b1c98'
+        1:
+          recursive: true
+          force: true
+    2:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-aeed7297-10db-4431-9b9a-42fa8bda225b'
+        1:
+          recursive: true
+          force: true
+    3:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-54b4e8df-ceff-4807-af91-b8f0f40c6832'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:242:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: metadata preserves rename opacity and selected upper identity while garbage waits
+not ok 22 - metadata preserves rename opacity and selected upper identity while garbage waits
+  ---
+  duration_ms: 2.1335
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:10303'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-28156261-34f8-4c54-8b6b-5db7200bd2a3',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   },
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-eb67ab72-f87d-47a3-9936-3dedfd376f48',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   },
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-6fe63b1a-1688-4ee2-8315-c39a865cc9a2',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-28156261-34f8-4c54-8b6b-5db7200bd2a3'
+        1:
+          recursive: true
+          force: true
+    1:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-eb67ab72-f87d-47a3-9936-3dedfd376f48'
+        1:
+          recursive: true
+          force: true
+    2:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-6fe63b1a-1688-4ee2-8315-c39a865cc9a2'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:262:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit cleanup retains failed entries, reports failures, and retries without the caller signal
+not ok 23 - explicit cleanup retains failed entries, reports failures, and retries without the caller signal
+  ---
+  duration_ms: 0.429167
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:1:11194'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     args: [
+    +       '/.virtual-bash-overlay-eccf5ea0-c1e4-4d5a-aaa6-15286614ad28',
+    +       {
+    +         force: true,
+    +         recursive: true
+    +       }
+    +     ],
+    +     layer: 'upper',
+    +     method: 'rm'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      layer: 'upper'
+      method: 'rm'
+      args:
+        0: '/.virtual-bash-overlay-eccf5ea0-c1e4-4d5a-aaa6-15286614ad28'
+        1:
+          recursive: true
+          force: true
+  operator: 'deepStrictEqual'
+  stack: |-
+    noMutations (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:30:10)
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD/tests/fs/overlay/metadata-purity.test.ts:279:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: existing admitted explicit cleanup may finish after caller cancellation without rollback
+ok 24 - existing admitted explicit cleanup may finish after caller cancellation without rollback
+  ---
+  duration_ms: 0.3
+  type: 'test'
+  ...
+# Subtest: readFile retains its existing cleanup trigger and ordering
+ok 25 - readFile retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 0.301291
+  type: 'test'
+  ...
+# Subtest: readStream retains its existing cleanup trigger and ordering
+ok 26 - readStream retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 0.58225
+  type: 'test'
+  ...
+# Subtest: mkdir retains its existing cleanup trigger and ordering
+ok 27 - mkdir retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 0.388125
+  type: 'test'
+  ...
+# Subtest: writeFile retains its existing cleanup trigger and ordering
+ok 28 - writeFile retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 0.421084
+  type: 'test'
+  ...
+# Subtest: copyFile retains its existing cleanup trigger and ordering
+ok 29 - copyFile retains its existing cleanup trigger and ordering
+  ---
+  duration_ms: 1.601125
+  type: 'test'
+  ...
+# Subtest: copy identity rejection and rmdir keep their existing no-housekeeping ordering
+ok 30 - copy identity rejection and rmdir keep their existing no-housekeeping ordering
+  ---
+  duration_ms: 1.2595
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 11
+# fail 19
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 498.442333

@@ -1,0 +1,545 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "scope": "FC-F01_TOOL_BOUNDARY_ONLY_NO_YAML_POLICY_CASES",
+  "futureAuthorizationRequired": true,
+  "fixtureCodeCreated": false,
+  "controls": [
+    {
+      "id": "TRV3-01",
+      "name": "FC-F01 own enumerable getter",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "kindDescriptor": "accessor returning compiler and incrementing bounded counter; NOT constructed now",
+        "otherOwnData": {
+          "configPath": "FUTURE_ENROLLED_CONFIG_PATH",
+          "timeoutMs": 120000
+        }
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_OWN_DATA",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-02",
+      "name": "FC-F01 extra undefined own key",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "base": "valid BUILD own data",
+        "extra": {
+          "name": "unexpected",
+          "enumerable": true,
+          "valueKind": "undefined"
+        }
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_OWN_KEYS",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-03",
+      "name": "Extra nonenumerable undefined key",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "TYPES",
+        "base": "valid TYPES own data",
+        "extra": {
+          "name": "unexpected",
+          "enumerable": false,
+          "valueKind": "undefined"
+        }
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_OWN_KEYS",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-04",
+      "name": "Extra own symbol",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "AUTHENTICATION",
+        "base": "valid git-show",
+        "extra": {
+          "keyKind": "symbol",
+          "value": "not transported"
+        }
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_OWN_KEYS",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-05",
+      "name": "Required own accessor set-only or nonenumerable",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "TYPES",
+        "base": "valid TYPES own data",
+        "replace": "configPath descriptor with accessor; bounded get/set counters if present"
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_OWN_DATA",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-06",
+      "name": "Required key inherited rather than own",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "ownKeys": [
+          "kind",
+          "timeoutMs"
+        ],
+        "inheritedConfigPath": "FUTURE_ENROLLED_CONFIG_PATH"
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_OWN_KEYS",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-07",
+      "name": "Sparse request array",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "rootKind": "array",
+        "holes": [
+          0,
+          1
+        ],
+        "namedOwnData": "kind/configPath/timeoutMs"
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_OWN_RECORD",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-08",
+      "name": "Sparse nested value array",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "TYPES",
+        "base": "valid TYPES own data",
+        "timeoutMs": {
+          "kind": "array",
+          "holes": [
+            0
+          ],
+          "element1": 60000
+        }
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_TIMEOUT",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-09",
+      "name": "Coercible boxed config value",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "base": "valid BUILD own data",
+        "configPath": "boxed string/object with bounded coercion counters; NOT constructed now"
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_CONFIG_PATH",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-10",
+      "name": "Wrong timeout type or exact role value",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "variants": [
+          "primitive string120000",
+          "number60000",
+          "NaN",
+          "Infinity",
+          "boxed120000"
+        ]
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_TIMEOUT",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-11",
+      "name": "Wrong role or unknown kind",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "variants": [
+          {
+            "kind": "compiler",
+            "phase": "SOURCE_RUNTIME",
+            "expectedCode": "TOOL_REQUEST_COMPILER_ROLE"
+          },
+          {
+            "kind": "git-show",
+            "phase": "TYPES",
+            "expectedCode": "TOOL_REQUEST_GIT_ROLE"
+          },
+          {
+            "kind": "spawn",
+            "phase": "BUILD",
+            "expectedCode": "TOOL_REQUEST_KIND"
+          }
+        ]
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "PER_VARIANT_FIXED_CODE",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-12",
+      "name": "Git revision/path primitive requirements",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "AUTHENTICATION",
+        "variants": [
+          {
+            "kind": "git-tree",
+            "revision": "uppercase/non40hex/boxed",
+            "expectedCode": "TOOL_REQUEST_REVISION"
+          },
+          {
+            "kind": "git-show",
+            "path": "array/undefined/NUL/empty",
+            "expectedCode": "TOOL_REQUEST_GIT_PATH"
+          }
+        ]
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "PER_VARIANT_FIXED_CODE",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-13",
+      "name": "Unknown replacement key with exactly three keys",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "ownKeys": [
+          "kind",
+          "configPath",
+          "unexpected"
+        ]
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_COMPILER_KEYS",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-14",
+      "name": "Cross-realm BUILD and TYPES own data",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "realm": "future separately authorized realm; none created now",
+        "variants": [
+          {
+            "phase": "BUILD",
+            "kind": "compiler",
+            "timeoutMs": 120000
+          },
+          {
+            "phase": "TYPES",
+            "kind": "compiler",
+            "timeoutMs": 60000
+          }
+        ],
+        "configPath": "FUTURE_EXACT_CONFIG_PRIMITIVE_STRING"
+      },
+      "expected": {
+        "boundary": "real patched api.runTool with authorized synthetic request/rpc fixture",
+        "rpcCalls": 1,
+        "serializedSource": "fresh frozen null-prototype projection only",
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-15",
+      "name": "Cross-realm Git own data",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "realm": "future separately authorized realm",
+        "variants": [
+          "git-tree",
+          "git-show"
+        ],
+        "phase": "AUTHENTICATION",
+        "revision": "FUTURE_EXACT_SELECTED_40HEX",
+        "path": "FUTURE_EXACT_SELECTED_PATH"
+      },
+      "expected": {
+        "boundary": "real patched api.runTool with authorized synthetic request/rpc fixture",
+        "rpcCalls": 1,
+        "serializedSource": "fresh frozen null-prototype projection only",
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-16",
+      "name": "Null/custom prototype and nonenumerable required data",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "TYPES",
+        "ownData": "exact kind/configPath/timeoutMs",
+        "descriptorVariants": [
+          "nonenumerable required values",
+          "readonly/frozen data",
+          "null prototype",
+          "custom prototype without inspecting identity"
+        ]
+      },
+      "expected": {
+        "boundary": "real patched api.runTool with authorized synthetic request/rpc fixture",
+        "rpcCalls": 1,
+        "serializedSource": "fresh frozen null-prototype projection only",
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-17",
+      "name": "Permuted record insertion order",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "AUTHENTICATION",
+        "ownKeysInInsertionOrder": [
+          "path",
+          "kind",
+          "revision"
+        ],
+        "values": "exact valid git-tree fields"
+      },
+      "expected": {
+        "boundary": "real patched api.runTool with authorized synthetic request/rpc fixture",
+        "rpcCalls": 1,
+        "serializedSource": "fresh frozen null-prototype projection only",
+        "productOrNativeToolCalls": 0,
+        "projectedOwnKeyOrder": [
+          "kind",
+          "revision",
+          "path"
+        ],
+        "inputOrderIsNotRoleMeaning": true
+      }
+    },
+    {
+      "id": "TRV3-18",
+      "name": "Inherited toJSON not forwarded",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "ownData": "exact valid BUILD fields",
+        "prototype": "bounded toJSON getter/method with counter or sentinel; NOT constructed now"
+      },
+      "expected": {
+        "boundary": "real patched api.runTool with authorized synthetic request/rpc fixture",
+        "rpcCalls": 1,
+        "serializedSource": "fresh frozen null-prototype projection only",
+        "productOrNativeToolCalls": 0,
+        "inheritedToJSONLookups": 0,
+        "inheritedToJSONCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-19",
+      "name": "Own toJSON extra rejected",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "TYPES",
+        "ownData": "exact valid TYPES fields plus own toJSON"
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_OWN_KEYS",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-20",
+      "name": "Postvalidation caller mutation cannot alter payload",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "operation": "Capture projected argument in authorized synthetic rpc; mutate original call after api.runTool returns; never mutate frozen projection"
+      },
+      "expected": {
+        "boundary": "real patched api.runTool with authorized synthetic request/rpc fixture",
+        "rpcCalls": 1,
+        "serializedSource": "fresh frozen null-prototype projection only",
+        "productOrNativeToolCalls": 0,
+        "noOriginalAlias": true,
+        "projectedOriginalPrimitiveValuesPreserved": true
+      }
+    },
+    {
+      "id": "TRV3-21",
+      "name": "Async RPC rejection preserves actual reason",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "TYPES",
+        "request": "valid own data",
+        "rpc": "authorized stub rejects with captured sentinel object"
+      },
+      "expected": {
+        "boundary": "real patched api.runTool with authorized synthetic request/rpc fixture",
+        "rpcCalls": 1,
+        "serializedSource": "fresh frozen null-prototype projection only",
+        "productOrNativeToolCalls": 0,
+        "expect": "api.runTool rejection reason === same captured sentinel; no cloning/stringification/wrapping"
+      }
+    },
+    {
+      "id": "TRV3-22",
+      "name": "Inspection failure preserves actual reason",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "construction": "Future explicitly authorized benign descriptor/ownKeys trap throws captured sentinel; NO trap/Proxy instantiated or invoked now"
+      },
+      "expected": {
+        "promise": "reject",
+        "sameReasonIdentity": true,
+        "rpcCalls": 0,
+        "scope": "Transparent exception propagation, not hostile Proxy/preemption protection"
+      }
+    },
+    {
+      "id": "TRV3-23",
+      "name": "Tool call sequence and refusal do not reset counters",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "AUTHENTICATION",
+        "requests": [
+          "valid git-tree",
+          "invalid extraUndefined git-show",
+          "valid git-show"
+        ],
+        "rpc": "future authorized stub records synchronous boundary calls"
+      },
+      "expected": {
+        "receivedSequence": [
+          "git-tree",
+          "git-show"
+        ],
+        "rpcCalls": 2,
+        "refusedCallConsumesNoRpcSequence": true,
+        "retries": 0,
+        "phaseOrBudgetMutation": 0,
+        "productOrNativeToolCalls": 0
+      }
+    },
+    {
+      "id": "TRV3-24",
+      "name": "Existing IPC bound remains authoritative",
+      "state": "UNRUN_DEFERRED_DATA_ONLY",
+      "construction": {
+        "phase": "BUILD",
+        "configPath": "primitive lexical absolute string with length greater than262144; no giant fixture allocated now"
+      },
+      "expected": {
+        "promise": "reject",
+        "code": "TOOL_REQUEST_CONFIG_PATH",
+        "rpcCalls": 0,
+        "accessorReads": 0,
+        "coercions": 0,
+        "ipcSequenceConsumed": 0,
+        "productOrNativeToolCalls": 0
+      }
+    }
+  ],
+  "total": 24,
+  "executed": 0,
+  "passes": 0,
+  "source": "Exact malformed-shape witness plus bounded crossrealm/shape/sequence/identity obligations; records are not results",
+  "rootRecipeRecomposed": false,
+  "productCasesAdded": 0,
+  "rootGO": false
+}

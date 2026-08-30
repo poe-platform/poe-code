@@ -1,0 +1,36 @@
+{
+  "sequence": 4,
+  "id": "START-FS-REFUSAL",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--no-warnings",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+    "fs-refusal",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json"
+  ],
+  "env": {
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+  "registeredAtMs": 467.006667,
+  "pid": 58413,
+  "closeObserved": true,
+  "absent": true,
+  "code": 1,
+  "signal": null,
+  "fault": null,
+  "stdout": {
+    "file": "04-START-FS-REFUSAL.stdout.raw",
+    "bytes": 119,
+    "sha256": "fb37ec1f9aabf6b78655bcf530c7a8007268adabdc74ee44a6717b7b0d33f801"
+  },
+  "stderr": {
+    "file": "04-START-FS-REFUSAL.stderr.raw",
+    "bytes": 801,
+    "sha256": "087c8ce010f6258b0d2aeff0be73a5f11e029e6bb1ecb13efbf1b8fdaedca4e9"
+  },
+  "closedAtMs": 517.532542
+}

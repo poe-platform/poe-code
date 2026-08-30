@@ -1,0 +1,15 @@
+{
+  "algorithm": "sha256",
+  "selfExcluded": true,
+  "files": {
+    "CASES.md": { "mode": 420, "bytes": 2166, "sha256": "377eb292f641ef1064c9b3c267e18fb4422974f38148ec2dc6c3e523dedf366a" },
+    "public-types.ts": { "mode": 420, "bytes": 1154, "sha256": "c2dfa0ec85ad3293040c1f050c3d872ae42727f1e305a80c761b1c5d95a4790c" },
+    "runtime.test.ts": { "mode": 420, "bytes": 6502, "sha256": "da34f66bd248019c3a903c180c9b5377e743db192470f914acc6e9557ad904df" },
+    "tsconfig.strict.json": { "mode": 420, "bytes": 247, "sha256": "3f02127674486f73f798259c5d4614920702cc008bc2b6d83397a1e6e3afbd3f" },
+    "seal.mjs": { "mode": 420, "bytes": 1372, "sha256": "a96027e69a1d4edbda24c201369a46141d586a07ebf873f2c4b05bc8a53d060a" },
+    "RECONSTRUCTION-FILES.json": { "mode": 420, "bytes": 43152, "sha256": "c5988943bc248ca2bd2bf67c1be69dcb46d717398b9da9f354bb3962124f4c18" },
+    "candidate-source.tar.gz": { "mode": 420, "bytes": 682949, "sha256": "51b9013eb0ac70849059403cddf22d5f8f0fab360da7a41e308ae0ca88595e87" },
+    "RUNS.json": { "mode": 420, "bytes": 7216, "sha256": "70d3a9759faf94ecd86fe8eb94d38aa3df930494a361bda34bb20c4871565b66" },
+    "RESULTS.md": { "mode": 420, "bytes": 5374, "sha256": "330df47430e32fc5db4e1e57dd977ba5b8dcd3c42fde421185d429dbef7db39c" }
+  }
+}

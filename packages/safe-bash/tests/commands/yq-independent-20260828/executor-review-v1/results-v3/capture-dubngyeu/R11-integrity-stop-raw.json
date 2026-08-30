@@ -1,0 +1,74 @@
+{
+  "returned": {
+    "summary": {
+      "schemaVersion": 1,
+      "aggregate": "FAIL",
+      "requested": 2,
+      "admitted": 1,
+      "stop": "integrity",
+      "results": [
+        {
+          "jobId": "job0",
+          "admitted": true,
+          "outcome": "FAIL",
+          "failures": [
+            "integrity"
+          ],
+          "integrity": false,
+          "reapProof": true,
+          "metadata": {
+            "pid": 51238,
+            "group": 51238,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "spawnError": null,
+            "closed": true,
+            "reaped": true,
+            "kills": [],
+            "elapsedMs": 53
+          }
+        }
+      ],
+      "activeChildren": [],
+      "evidence": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/host-evidence/run-2026-08-28T09-51-03.859Z-5e70586e-6a01-4025-8a6f-9bc97ec97830"
+    },
+    "files": {
+      "job0/boundary.json": {
+        "base64": "ewogICJpbnRlZ3JpdHkiOiBmYWxzZSwKICAiaW50ZWdyaXR5RXJyb3IiOiAiQXNzZXJ0aW9uRXJyb3IgW0VSUl9BU1NFUlRJT05dOiBUcmVlIG1lbWJlcnNoaXAvaGFzaC9tb2RlczogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1QveXEtcnVudGltZS1pbmRlcGVuZGVudC12My0zZ3NfZjh6ZC9pbnRlZ3JpdHktZ3VhcmRlZFxuKyBhY3R1YWwgLSBleHBlY3RlZFxuXG4rICcwYTkwZjJjZWQxMzAxZmNhMGUxZjg1ZmE0ZDgwOGQzMjhlYTJlMDExOTliYTQyMWUyMzJiODQxNTFiZjQyOWE2J1xuLSAnZDc5ZWU2MzllYWJiZDZmZGU5MTJjNzdkOTMxOWZhMTIzNjg2ZjZlZjQ5NzJhZTNkYzYxODllODcxOTk5N2U0YydcbiIsCiAgInJlYXBQcm9vZiI6IHRydWUsCiAgInN5bnRoZXRpY1dpdGhoZWxkUmVhcFByb29mIjogZmFsc2UKfQo=",
+        "mode": 384
+      },
+      "job0/child.json": {
+        "base64": "ewogICJwaWQiOiA1MTIzOCwKICAiZ3JvdXAiOiA1MTIzOCwKICAiZXhpdENvZGUiOiAwLAogICJzaWduYWwiOiBudWxsLAogICJ0aW1lZE91dCI6IGZhbHNlLAogICJvdmVyZmxvdyI6IGZhbHNlLAogICJzcGF3bkVycm9yIjogbnVsbCwKICAiY2xvc2VkIjogdHJ1ZSwKICAicmVhcGVkIjogdHJ1ZSwKICAia2lsbHMiOiBbXSwKICAiZWxhcHNlZE1zIjogNTMKfQo=",
+        "mode": 384
+      },
+      "job0/receipt.json": {
+        "base64": "ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiam9iSWQiOiAiam9iMCIsCiAgIm91dGNvbWUiOiAiUEFTUyIKfQo=",
+        "mode": 384
+      },
+      "job0/stderr.bin": {
+        "base64": "",
+        "mode": 384
+      },
+      "job0/stdout.bin": {
+        "base64": "eyJzY2hlbWFWZXJzaW9uIjoxLCJqb2JJZCI6ImpvYjAiLCJvdXRjb21lIjoiUEFTUyJ9Cg==",
+        "mode": 384
+      },
+      "job0/verdict.json": {
+        "base64": "ewogICJqb2JJZCI6ICJqb2IwIiwKICAiYWRtaXR0ZWQiOiB0cnVlLAogICJvdXRjb21lIjogIkZBSUwiLAogICJmYWlsdXJlcyI6IFsKICAgICJpbnRlZ3JpdHkiCiAgXSwKICAiaW50ZWdyaXR5IjogZmFsc2UsCiAgInJlYXBQcm9vZiI6IHRydWUsCiAgIm1ldGFkYXRhIjogewogICAgInBpZCI6IDUxMjM4LAogICAgImdyb3VwIjogNTEyMzgsCiAgICAiZXhpdENvZGUiOiAwLAogICAgInNpZ25hbCI6IG51bGwsCiAgICAidGltZWRPdXQiOiBmYWxzZSwKICAgICJvdmVyZmxvdyI6IGZhbHNlLAogICAgInNwYXduRXJyb3IiOiBudWxsLAogICAgImNsb3NlZCI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJraWxscyI6IFtdLAogICAgImVsYXBzZWRNcyI6IDUzCiAgfQp9Cg==",
+        "mode": 384
+      },
+      "summary.json": {
+        "base64": "ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiYWdncmVnYXRlIjogIkZBSUwiLAogICJyZXF1ZXN0ZWQiOiAyLAogICJhZG1pdHRlZCI6IDEsCiAgInN0b3AiOiAiaW50ZWdyaXR5IiwKICAicmVzdWx0cyI6IFsKICAgIHsKICAgICAgImpvYklkIjogImpvYjAiLAogICAgICAiYWRtaXR0ZWQiOiB0cnVlLAogICAgICAib3V0Y29tZSI6ICJGQUlMIiwKICAgICAgImZhaWx1cmVzIjogWwogICAgICAgICJpbnRlZ3JpdHkiCiAgICAgIF0sCiAgICAgICJpbnRlZ3JpdHkiOiBmYWxzZSwKICAgICAgInJlYXBQcm9vZiI6IHRydWUsCiAgICAgICJtZXRhZGF0YSI6IHsKICAgICAgICAicGlkIjogNTEyMzgsCiAgICAgICAgImdyb3VwIjogNTEyMzgsCiAgICAgICAgImV4aXRDb2RlIjogMCwKICAgICAgICAic2lnbmFsIjogbnVsbCwKICAgICAgICAidGltZWRPdXQiOiBmYWxzZSwKICAgICAgICAib3ZlcmZsb3ciOiBmYWxzZSwKICAgICAgICAic3Bhd25FcnJvciI6IG51bGwsCiAgICAgICAgImNsb3NlZCI6IHRydWUsCiAgICAgICAgInJlYXBlZCI6IHRydWUsCiAgICAgICAgImtpbGxzIjogW10sCiAgICAgICAgImVsYXBzZWRNcyI6IDUzCiAgICAgIH0KICAgIH0KICBdLAogICJhY3RpdmVDaGlsZHJlbiI6IFtdLAogICJldmlkZW5jZSI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9ydy9zNGN5NzZobjZ2NTVxcnAwZGhjYnRwbGMwMDAwZ24vVC95cS1ydW50aW1lLWluZGVwZW5kZW50LXYzLTNnc19mOHpkL2hvc3QtZXZpZGVuY2UvcnVuLTIwMjYtMDgtMjhUMDktNTEtMDMuODU5Wi01ZTcwNTg2ZS02YTAxLTQwMjUtOGE2Zi05YmM5N2VjOTc4MzAiCn0K",
+        "mode": 384
+      }
+    },
+    "secondMarker": false,
+    "effects": {
+      "input": "synthetic mutation\n"
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

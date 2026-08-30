@@ -1,0 +1,101 @@
+{
+  "label": "policy-ordered",
+  "pid": 45023,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "mode": "ordered",
+        "nativeCalls": 0,
+        "factoryCalls": 1,
+        "revokedBeforeReturn": true,
+        "firstSlot": {
+          "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+          "opened": true,
+          "revoked": false,
+          "consumed": 1,
+          "nativeDelegations": 0,
+          "violations": [],
+          "callerAuthenticated": false,
+          "stockNodeCapabilities": false
+        },
+        "secondSlot": {
+          "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+          "opened": true,
+          "revoked": true,
+          "consumed": 2,
+          "nativeDelegations": 0,
+          "violations": [],
+          "callerAuthenticated": false,
+          "stockNodeCapabilities": false
+        },
+        "snapshot": {
+          "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+          "opened": true,
+          "revoked": true,
+          "consumed": 2,
+          "nativeDelegations": 0,
+          "violations": [
+            {
+              "code": "BOOTSTRAP_REVOKED",
+              "consumed": 2
+            }
+          ],
+          "callerAuthenticated": false,
+          "stockNodeCapabilities": false
+        },
+        "events": [
+          {
+            "kind": "nextLoad",
+            "path": "ordered.mjs",
+            "format": "module",
+            "bytes": 376,
+            "sha256": "2b3f2e499432ca8c87e31ef234e5bb8153d74813658955875f5a02d14baf5fec",
+            "evaluationProven": false,
+            "origin": "actual-nextLoad-source"
+          },
+          {
+            "kind": "bootstrap-unavailable",
+            "query": "module",
+            "slot": 1,
+            "nativeDelegation": false
+          },
+          {
+            "kind": "bootstrap-unavailable",
+            "query": "worker_threads",
+            "slot": 2,
+            "nativeDelegation": false
+          },
+          {
+            "kind": "bootstrap-denied",
+            "code": "BOOTSTRAP_REVOKED",
+            "consumed": 2
+          }
+        ],
+        "identityPreserved": true,
+        "loaderClosed": true
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 1281
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7Im1vZGUiOiJvcmRlcmVkIiwibmF0aXZlQ2FsbHMiOjAsImZhY3RvcnlDYWxscyI6MSwicmV2b2tlZEJlZm9yZVJldHVybiI6dHJ1ZSwiZmlyc3RTbG90Ijp7InByb2ZpbGUiOiJKVVNUX0JBU0hfM180XzJfVU5BVkFJTEFCTEVfQk9PVFNUUkFQX1YxIiwib3BlbmVkIjp0cnVlLCJyZXZva2VkIjpmYWxzZSwiY29uc3VtZWQiOjEsIm5hdGl2ZURlbGVnYXRpb25zIjowLCJ2aW9sYXRpb25zIjpbXSwiY2FsbGVyQXV0aGVudGljYXRlZCI6ZmFsc2UsInN0b2NrTm9kZUNhcGFiaWxpdGllcyI6ZmFsc2V9LCJzZWNvbmRTbG90Ijp7InByb2ZpbGUiOiJKVVNUX0JBU0hfM180XzJfVU5BVkFJTEFCTEVfQk9PVFNUUkFQX1YxIiwib3BlbmVkIjp0cnVlLCJyZXZva2VkIjp0cnVlLCJjb25zdW1lZCI6MiwibmF0aXZlRGVsZWdhdGlvbnMiOjAsInZpb2xhdGlvbnMiOltdLCJjYWxsZXJBdXRoZW50aWNhdGVkIjpmYWxzZSwic3RvY2tOb2RlQ2FwYWJpbGl0aWVzIjpmYWxzZX0sInNuYXBzaG90Ijp7InByb2ZpbGUiOiJKVVNUX0JBU0hfM180XzJfVU5BVkFJTEFCTEVfQk9PVFNUUkFQX1YxIiwib3BlbmVkIjp0cnVlLCJyZXZva2VkIjp0cnVlLCJjb25zdW1lZCI6MiwibmF0aXZlRGVsZWdhdGlvbnMiOjAsInZpb2xhdGlvbnMiOlt7ImNvZGUiOiJCT09UU1RSQVBfUkVWT0tFRCIsImNvbnN1bWVkIjoyfV0sImNhbGxlckF1dGhlbnRpY2F0ZWQiOmZhbHNlLCJzdG9ja05vZGVDYXBhYmlsaXRpZXMiOmZhbHNlfSwiZXZlbnRzIjpbeyJraW5kIjoibmV4dExvYWQiLCJwYXRoIjoib3JkZXJlZC5tanMiLCJmb3JtYXQiOiJtb2R1bGUiLCJieXRlcyI6Mzc2LCJzaGEyNTYiOiIyYjNmMmU0OTk0MzJjYThjODdlMzFlZjIzNGU1YmI4MTUzZDc0ODEzNjU4OTU1ODc1ZjVhMDJkMTRiYWY1ZmVjIiwiZXZhbHVhdGlvblByb3ZlbiI6ZmFsc2UsIm9yaWdpbiI6ImFjdHVhbC1uZXh0TG9hZC1zb3VyY2UifSx7ImtpbmQiOiJib290c3RyYXAtdW5hdmFpbGFibGUiLCJxdWVyeSI6Im1vZHVsZSIsInNsb3QiOjEsIm5hdGl2ZURlbGVnYXRpb24iOmZhbHNlfSx7ImtpbmQiOiJib290c3RyYXAtdW5hdmFpbGFibGUiLCJxdWVyeSI6Indvcmtlcl90aHJlYWRzIiwic2xvdCI6MiwibmF0aXZlRGVsZWdhdGlvbiI6ZmFsc2V9LHsia2luZCI6ImJvb3RzdHJhcC1kZW5pZWQiLCJjb2RlIjoiQk9PVFNUUkFQX1JFVk9LRUQiLCJjb25zdW1lZCI6Mn1dLCJpZGVudGl0eVByZXNlcnZlZCI6dHJ1ZSwibG9hZGVyQ2xvc2VkIjp0cnVlfX0K",
+  "natural": true
+}

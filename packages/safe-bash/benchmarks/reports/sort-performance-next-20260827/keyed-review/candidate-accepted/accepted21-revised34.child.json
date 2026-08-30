@@ -1,0 +1,18 @@
+{
+  "args": [
+    "accepted-worker.mjs",
+    "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/node_modules/virtual-bash",
+    "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/acceptance.json",
+    "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/independent.json",
+    "/private/tmp/sort-key-review-candidate-8vQChD/candidate-accepted/package-manifest.json"
+  ],
+  "pid": 31403,
+  "code": 0,
+  "signal": null,
+  "killed": null,
+  "exactChildClosed": true,
+  "outputBytes": 46812,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0
+}

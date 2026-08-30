@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-08-27T10:09:55.624Z",
+  "ownedProcessMatches": [],
+  "roots": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-WiEeFN",
+      "removed": true,
+      "source": "02704bd1291b83763d7360b97bc5c6d50403ad10"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-fFwHom",
+      "removed": true,
+      "source": "02704bd1291b83763d7360b97bc5c6d50403ad10"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-35fajW",
+      "removed": true,
+      "source": "847dfd766eddbc8f0438f5f999f27ba6a20b8ca7"
+    }
+  ],
+  "scope": "exact three qualified trees only; integration runners separately record their own finally cleanup; no private or foreign cleanup"
+}

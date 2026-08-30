@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "DATA_BOUND_ADMISSION_BLOCKED_AWAIT_ROOT",
+  "rootMode": 493,
+  "presealCommit": "7d235c03634d34c26a60be39dc970207fab18b30",
+  "presealSha256": "96c629f4b48513b3d5b23f647932aac1233ab9b8306c49a2fcc6173c5bfeebc5",
+  "files": {
+    "BOUND-AUTHOR-BUILD.json": {
+      "sha256": "ef268ccd6e0e9edd1851f3acdc406ac89e939f167beb3124e82c3af106d70a2d",
+      "bytes": 1052,
+      "mode": 420
+    },
+    "EXPECTED-HASHES.json": {
+      "sha256": "670ad750ea062699597070f217ad0860ac3faa3564a357c3e200b2c8b0978a66",
+      "bytes": 2079,
+      "mode": 420
+    },
+    "FULL-RECEIPT.json": {
+      "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56",
+      "bytes": 7441,
+      "mode": 420
+    },
+    "MAPS.json": {
+      "sha256": "4759a03c95d51330176a196ba6d10bc7724d1a8f964071de4efc1f4bd3993506",
+      "bytes": 504342,
+      "mode": 420
+    },
+    "MATERIALIZATION.json": {
+      "sha256": "044abc684e8d3755837dcf038e23f9ec79a54f2da59db1fb8f8ad87e41a9210a",
+      "bytes": 5585,
+      "mode": 420
+    },
+    "POSTPASS-AUDIT-FAILURE.md": {
+      "sha256": "a6f2f3f04beeaa4d7e56dc45da7e53d22e0a55c373b0b1713b2532b46e0fd1fc",
+      "bytes": 5635,
+      "mode": 420
+    },
+    "PRESEAL.json": {
+      "sha256": "96c629f4b48513b3d5b23f647932aac1233ab9b8306c49a2fcc6173c5bfeebc5",
+      "bytes": 612,
+      "mode": 420
+    },
+    "PRESEAL.md": {
+      "sha256": "87275436c926a1a42568fd66bae5bd5bd955645b9ccb5865a06e640c2f91243c",
+      "bytes": 8714,
+      "mode": 420
+    },
+    "README.md": {
+      "sha256": "7230b8c986fc333fc261e3ce317d3b8629223f2c65bfb7897c70e9babf1c1b97",
+      "bytes": 6609,
+      "mode": 420
+    },
+    "RESULT.json": {
+      "sha256": "d0bacd61dd564b6ecfec6530aaea28b9b732af2f2677c68739b25b1ff546c2b3",
+      "bytes": 21870,
+      "mode": 420
+    },
+    "RUNTIME-BINDINGS.PENDING.json": {
+      "sha256": "2ea30c9a50d563de97b8c1cbd0c8e45fe4f6c3a565e82727c76e14a291757d6f",
+      "bytes": 3995,
+      "mode": 420
+    },
+    "SOURCE-RECEIPT.json": {
+      "sha256": "cd0e2b94ea15e8199399d2cb589aee61a6c014785146dfec6b664ac0967130c9",
+      "bytes": 1408,
+      "mode": 420
+    },
+    "admit-data.mjs": {
+      "sha256": "61622adcb914d3536b2d1c4c0501e08ca865300ee54a1ecf9e82433c332af792",
+      "bytes": 34337,
+      "mode": 420
+    },
+    "verify-seal.mjs": {
+      "sha256": "9055514c7b29b472b2b65f1cb04aedb198c4685a1593b06e0ee2f8daa0661693",
+      "bytes": 1802,
+      "mode": 420
+    }
+  },
+  "selfExcluded": "FINAL-SEAL.json only; authenticate its raw hash independently from the worker commit/readiness route",
+  "productExecutionAuthorized": false,
+  "checks": {
+    "sealedDataPass": {
+      "exit": 0,
+      "syntheticChecks": 16,
+      "sourceAdmissionExpectedRefusals": 2
+    },
+    "scriptSyntaxChecks": "both passed",
+    "supplementalStaticAudit": {
+      "exit": 1,
+      "rerun": false,
+      "evidence": "POSTPASS-AUDIT-FAILURE.md"
+    },
+    "product": 0,
+    "compile": 0,
+    "build": 0,
+    "nativeYaml": 0
+  }
+}

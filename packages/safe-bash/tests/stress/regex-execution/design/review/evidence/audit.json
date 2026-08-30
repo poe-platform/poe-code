@@ -1,0 +1,2011 @@
+{
+  "utc": "2026-08-27T05:02:21.132Z",
+  "independent": {
+    "benignScenarios": 16,
+    "benignPassed": 14,
+    "benignFailed": 2,
+    "riskExecuted": 2,
+    "riskPassed": 2,
+    "historicalRisk": 7,
+    "authorRisk": 3,
+    "cumulativeRisk": 12,
+    "riskReservationRemaining": 0,
+    "childExecutions": 18,
+    "outerKills": 0,
+    "createdWorkers": 22,
+    "awaitedWorkerDisposals": 22,
+    "finalOwnedChildren": 0
+  },
+  "buildSha256": "7c75b9583b6b9495340deefd0cb495a7bd2f0e576ab2542fc3d8c8e819c0b0f6",
+  "authorReportSha256": "9522fa68c3eeac78c91eeb08b86b120e2d4f251d485659f82e9d39475e8dd984",
+  "authorSummarySha256": "4e5ccbc1fc6f531431b5a12e18bb4ef14273deb7cb87d52efb635bb4f0d67b5b",
+  "authorEvidenceVerified": 183,
+  "authorCountsNotReviewCounts": {
+    "children": 178,
+    "benign": 175,
+    "vectorProfiles": 30,
+    "vectorAccepted": 24,
+    "vectorRejected": 6,
+    "lifecycleChildren": 1,
+    "lifecycleCases": 12,
+    "benchmarkChildren": 144,
+    "pathological": 3,
+    "historicalPathological": 7,
+    "cumulativePathological": 10,
+    "reviewerReserved": 2,
+    "failedChildren": 0,
+    "watchdogKills": 0,
+    "workerCreated": 106,
+    "workerTerminated": 106
+  },
+  "authorBenchmarkObservationOnly": {
+    "repeatedByReviewer": 0,
+    "startup": {
+      "min": 20.929458,
+      "median": 21.616625,
+      "max": 24.202625
+    },
+    "selected": {
+      "short-10000/grep/current": {
+        "repetitions": 3,
+        "startupMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "setupMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "steadyMs": {
+          "min": 8.897707999999998,
+          "median": 9.107208999999997,
+          "max": 9.115499999999997
+        },
+        "endToEndMs": {
+          "min": 9.089375,
+          "median": 9.284374999999997,
+          "max": 9.292042000000002
+        },
+        "peakRss": {
+          "min": 65978368,
+          "median": 66060288,
+          "max": 66207744
+        },
+        "responseBytes": [
+          6,
+          6,
+          6
+        ],
+        "calls": [
+          10000,
+          10000,
+          10000
+        ],
+        "requests": [
+          null,
+          null,
+          null
+        ]
+      },
+      "short-10000/grep/worker16": {
+        "repetitions": 3,
+        "startupMs": {
+          "min": 21.445209000000002,
+          "median": 21.799082999999996,
+          "max": 23.602375
+        },
+        "setupMs": {
+          "min": 21.702416999999997,
+          "median": 22.107875,
+          "max": 23.875083999999998
+        },
+        "steadyMs": {
+          "min": 34.310625,
+          "median": 35.11441700000002,
+          "max": 35.454249999999995
+        },
+        "endToEndMs": {
+          "min": 57.486084000000005,
+          "median": 58.524958,
+          "max": 60.737708999999995
+        },
+        "peakRss": {
+          "min": 78479360,
+          "median": 78479360,
+          "max": 78561280
+        },
+        "responseBytes": [
+          530625,
+          530625,
+          530625
+        ],
+        "calls": [
+          20000,
+          20000,
+          20000
+        ],
+        "requests": [
+          626,
+          626,
+          626
+        ]
+      },
+      "short-10000/grep/worker128": {
+        "repetitions": 3,
+        "startupMs": {
+          "min": 21.296,
+          "median": 22.122415999999998,
+          "max": 23.350707999999997
+        },
+        "setupMs": {
+          "min": 21.543499999999998,
+          "median": 22.389666,
+          "max": 23.640292000000002
+        },
+        "steadyMs": {
+          "min": 22.641166,
+          "median": 22.863166000000014,
+          "max": 23.725707999999997
+        },
+        "endToEndMs": {
+          "min": 45.79083399999999,
+          "median": 46.404416000000005,
+          "max": 49.044124999999994
+        },
+        "peakRss": {
+          "min": 80740352,
+          "median": 80805888,
+          "max": 80822272
+        },
+        "responseBytes": [
+          530079,
+          530079,
+          530079
+        ],
+        "calls": [
+          20000,
+          20000,
+          20000
+        ],
+        "requests": [
+          80,
+          80,
+          80
+        ]
+      },
+      "short-10000/grep/bounded": {
+        "repetitions": 3,
+        "startupMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "setupMs": {
+          "min": 0.264958,
+          "median": 0.2702080000000002,
+          "max": 0.27237500000000026
+        },
+        "steadyMs": {
+          "min": 8.966874999999998,
+          "median": 9.165750000000003,
+          "max": 9.221582999999999
+        },
+        "endToEndMs": {
+          "min": 9.413875,
+          "median": 9.642917,
+          "max": 9.690415999999999
+        },
+        "peakRss": {
+          "min": 65388544,
+          "median": 65454080,
+          "max": 65519616
+        },
+        "responseBytes": [
+          360000,
+          360000,
+          360000
+        ],
+        "calls": [
+          10000,
+          10000,
+          10000
+        ],
+        "requests": [
+          null,
+          null,
+          null
+        ]
+      },
+      "short-10000/rg/current": {
+        "repetitions": 3,
+        "startupMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "setupMs": {
+          "min": 0.25020800000000065,
+          "median": 0.254208000000002,
+          "max": 0.31120899999999807
+        },
+        "steadyMs": {
+          "min": 6.735499999999998,
+          "median": 6.875624999999999,
+          "max": 7.397125000000003
+        },
+        "endToEndMs": {
+          "min": 7.189542000000003,
+          "median": 7.3260000000000005,
+          "max": 7.916333999999999
+        },
+        "peakRss": {
+          "min": 63078400,
+          "median": 63078400,
+          "max": 63373312
+        },
+        "responseBytes": [
+          210000,
+          210000,
+          210000
+        ],
+        "calls": [
+          10000,
+          10000,
+          10000
+        ],
+        "requests": [
+          null,
+          null,
+          null
+        ]
+      },
+      "short-10000/rg/worker16": {
+        "repetitions": 3,
+        "startupMs": {
+          "min": 21.1325,
+          "median": 21.398917,
+          "max": 22.582833
+        },
+        "setupMs": {
+          "min": 21.396874999999998,
+          "median": 21.648375,
+          "max": 22.844792
+        },
+        "steadyMs": {
+          "min": 34.780959,
+          "median": 35.20229200000001,
+          "max": 35.53166699999999
+        },
+        "endToEndMs": {
+          "min": 57.750291,
+          "median": 57.917500000000004,
+          "max": 59.839917
+        },
+        "peakRss": {
+          "min": 77824000,
+          "median": 77856768,
+          "max": 78004224
+        },
+        "responseBytes": [
+          530625,
+          530625,
+          530625
+        ],
+        "calls": [
+          20000,
+          20000,
+          20000
+        ],
+        "requests": [
+          626,
+          626,
+          626
+        ]
+      },
+      "short-10000/rg/worker128": {
+        "repetitions": 3,
+        "startupMs": {
+          "min": 21.0345,
+          "median": 21.138208000000002,
+          "max": 21.389499999999998
+        },
+        "setupMs": {
+          "min": 21.316208,
+          "median": 21.397582999999997,
+          "max": 21.653084000000003
+        },
+        "steadyMs": {
+          "min": 22.55166700000001,
+          "median": 23.080583000000004,
+          "max": 23.216124000000015
+        },
+        "endToEndMs": {
+          "min": 45.10424999999999,
+          "median": 45.663374999999995,
+          "max": 46.11725
+        },
+        "peakRss": {
+          "min": 80117760,
+          "median": 80297984,
+          "max": 80642048
+        },
+        "responseBytes": [
+          530079,
+          530079,
+          530079
+        ],
+        "calls": [
+          20000,
+          20000,
+          20000
+        ],
+        "requests": [
+          80,
+          80,
+          80
+        ]
+      },
+      "short-10000/rg/bounded": {
+        "repetitions": 3,
+        "startupMs": {
+          "min": 0,
+          "median": 0,
+          "max": 0
+        },
+        "setupMs": {
+          "min": 0.24387499999999918,
+          "median": 0.264208,
+          "max": 0.2742919999999991
+        },
+        "steadyMs": {
+          "min": 9.806750000000005,
+          "median": 9.854541000000005,
+          "max": 9.940417000000004
+        },
+        "endToEndMs": {
+          "min": 10.251125000000002,
+          "median": 10.314958,
+          "max": 10.401917000000001
+        },
+        "peakRss": {
+          "min": 65060864,
+          "median": 65323008,
+          "max": 65699840
+        },
+        "responseBytes": [
+          360000,
+          360000,
+          360000
+        ],
+        "calls": [
+          10000,
+          10000,
+          10000
+        ],
+        "requests": [
+          null,
+          null,
+          null
+        ]
+      }
+    }
+  },
+  "historical": {
+    "reportCommit": "df4d05b28436114e115b5c1cae9e6667ef98b810",
+    "reportSha256": "bd853f357f5c3bad9180b47c4888e9c1e9d03d7438c1fe83d7049abb17035aaf",
+    "sourceOverlap": 14,
+    "historicalDrift": []
+  },
+  "staticObservation": {
+    "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+    "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+    "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "package.json": "b183a9d2d451b5888b951a4e84656f6c18a94f09e7bd97e0a6af89ac48657e9b",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+  },
+  "evidence": {
+    "evidence/captures.json": "e6bb3a35e5a3ef57f88f7d80a936a15f96618ca58f0987af88b20c88dcd02488",
+    "evidence/captures.claim.json": "4c68bffab344f20ea70b07e21ede3e3f5901eadfc90ca0c0dfe73c01f0d003be",
+    "evidence/unicode.json": "8e933fadd231f0bfad56069a8b07bff82f6e1260870afc8081e206cc8efab76e",
+    "evidence/unicode.claim.json": "9133bf531443dc71ea2f12338944a675473bc4206745ababd28466a323a015b7",
+    "evidence/selection.json": "6617fe338ae96fba47291fedfd1dd1b533b7819c38c74477ede91bf72f3203e2",
+    "evidence/selection.claim.json": "dc6643cc08e8edaeff094d685facfe43dce496dc033da1bc8422c60364f48e07",
+    "evidence/dialects.json": "4fea04b6861878558e111f87396ce47120022c7cbfaa98a42a407aa160dd83be",
+    "evidence/dialects.claim.json": "03e92c9c51ae7a50fb9e6b8bef4969dc93e8b5fdc3f2563034da83c4b28062fa",
+    "evidence/preabort.json": "13147985bfd5ac58b201fa22c8585a7a471630571faf817abb50beba3074e089",
+    "evidence/preabort.claim.json": "571b60fc6bb213788a12881a5774cd33f842c1e1bdeccc02c1028aca8f3d0b53",
+    "evidence/startup-abort.json": "901cd8fc885d4a74a924b35f4de84da816e5739a094dbbeae122d22d9f93b6f8",
+    "evidence/startup-abort.claim.json": "ef71081b2362324119f98d311b1a7fbed3f4c2e4700e373099a45b6de17d4b26",
+    "evidence/idle-abort.json": "78e22db7cf20eb0102ef1b05e36a8c4c12ca921500eab74823990e9954e855a4",
+    "evidence/idle-abort.claim.json": "96e8f51c721b3fbd075cbe7dc90198840b23931fa1759339c4e0ddd42cc134c0",
+    "evidence/paused-abort.json": "b416b4b8750cc4ca1d4f3a2d5049a77e16068a8b9c66df9e7a2f8533a2c663e3",
+    "evidence/paused-abort.claim.json": "847b811b9cdc60bbafa21c82224eff4c87427dc98224e87212dcfa2514b62e4f",
+    "evidence/idle-exit.json": "c8e1d5aba6506257a71778baf7937aaf81ffbbe5dbf9dcdbce59551ab6148eeb",
+    "evidence/idle-exit.claim.json": "b1ad8f35a34fce7af1734c3700d7b3fffa791406a01a9e31b8ef1da6cdf9ba29",
+    "evidence/idle-error.json": "45dde735be8da4967f61a72e54ea164dc871a2e88fb35b60fd37f6f6a5c96bc5",
+    "evidence/idle-error.claim.json": "6fa02b22074cd0ba099902e7984896b40766408bb00b9ba14f3d9e72da06182d",
+    "evidence/malformed.json": "d0a384cfbc262227fa7d1c44adfdb2ab72060bb3386c7d81b70d7c7a978c0403",
+    "evidence/malformed.claim.json": "9b39affff902ebcd9915b4ee2a4a738546481e94b0079761bf2d259d24ff4482",
+    "evidence/caps.json": "8f62bbc305be1e61c90486b3b72237cceae0a19e02c9b72559b2008637297ec4",
+    "evidence/caps.claim.json": "00bffdc7e62478730d6f2b663353b96c69dece6cb965cb80070c40244217b501",
+    "evidence/live-source.json": "6f7e111c904a0e515c236faedee8d29ddc70fcdaeeee833a82b357b5e19b56c2",
+    "evidence/live-source.claim.json": "13bbb4ad84b105b2dc9a27a8443fa5c3a0f5256649c30c5c0c63a141f48f8c27",
+    "evidence/consumer-return.json": "e3febcb33d44c98b6c55518c68ffc08d59471e0023be067baa5efbf3665abd09",
+    "evidence/consumer-return.claim.json": "37c1aa92ee6370dbc83b8be787fdf4966d0ba035258768adc34412592e7a79ab",
+    "evidence/capacity.json": "46f4543b974e3aa932cbecab35a5a8b1a4297c835ee2c813fb0f97e90d8cd315",
+    "evidence/capacity.claim.json": "9a25d6f7ed38d4b5f1a1d14ba626011d8e26ad112e768ee2c26c6f0fbe6aada6",
+    "evidence/dispose-late.json": "f457e0eacb5f17449a7e0e9dfdf84939ec0ccfa5708000643ac23df110e713bb",
+    "evidence/dispose-late.claim.json": "ae75a1ee1c2b197b662fc55dfd22efbaf20f91b039c00c4c0ee45a464b9f09ff",
+    "evidence/risk-default.json": "1e01cf1da06ea5db5c483e45cf7b304716257ae357f4724997406d05e6602d4f",
+    "evidence/risk-default.claim.json": "1af4658143e834ac1a5d0fea132cf5fbc22640710a90c1055c4fc3a8814958e8",
+    "evidence/risk-abort.json": "2d1aa6f160f6f57155968085332ba0b0c20ad82b3bf2fb0a4bb192488c789248",
+    "evidence/risk-abort.claim.json": "5667578232ac57ff818dbaeb5d9d918631af6763e792ba305cbf93c4699060da"
+  },
+  "rows": [
+    {
+      "name": "captures",
+      "status": "passed",
+      "elapsedMs": 25.746834,
+      "heartbeats": 4,
+      "maxGap": 6.308250000000001,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "(q)?(b*)",
+                "flags": "g"
+              }
+            ],
+            "rows": [
+              {
+                "text": "b",
+                "all": true
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "b",
+                      null,
+                      "b"
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 1,
+                    "captures": [
+                      "",
+                      null,
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 117,
+              "execCalls": 2
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "b",
+                      null,
+                      "b"
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 1,
+                    "captures": [
+                      "",
+                      null,
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 117,
+              "execCalls": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "unicode",
+      "status": "passed",
+      "elapsedMs": 57.913583,
+      "heartbeats": 10,
+      "maxGap": 6.814791,
+      "created": 3,
+      "terminated": 3,
+      "observations": [
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "(σ)",
+                "flags": "gui"
+              }
+            ],
+            "rows": [
+              {
+                "text": "Σς",
+                "all": true
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "Σ",
+                      "Σ"
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 2,
+                    "captures": [
+                      "ς",
+                      "ς"
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 113,
+              "execCalls": 3
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "Σ",
+                      "Σ"
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 2,
+                    "captures": [
+                      "ς",
+                      "ς"
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 113,
+              "execCalls": 3
+            }
+          }
+        },
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "",
+                "flags": "g"
+              }
+            ],
+            "rows": [
+              {
+                "text": "𝄞x",
+                "all": true
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 0,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 1,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 2,
+                    "end": 2,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 3,
+                    "end": 3,
+                    "captures": [
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 195,
+              "execCalls": 4
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 0,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 1,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 2,
+                    "end": 2,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 3,
+                    "end": 3,
+                    "captures": [
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 195,
+              "execCalls": 4
+            }
+          }
+        },
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "",
+                "flags": "gu"
+              }
+            ],
+            "rows": [
+              {
+                "text": "𝄞x",
+                "all": true
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 0,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 2,
+                    "end": 2,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 3,
+                    "end": 3,
+                    "captures": [
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 147,
+              "execCalls": 3
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 0,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 2,
+                    "end": 2,
+                    "captures": [
+                      ""
+                    ]
+                  },
+                  {
+                    "pattern": 0,
+                    "start": 3,
+                    "end": 3,
+                    "captures": [
+                      ""
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 147,
+              "execCalls": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "selection",
+      "status": "passed",
+      "elapsedMs": 45.636709,
+      "heartbeats": 7,
+      "maxGap": 6.461375000000004,
+      "created": 2,
+      "terminated": 2,
+      "observations": [
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "(r|rs)",
+                "flags": "g"
+              }
+            ],
+            "rows": [
+              {
+                "text": "rs",
+                "all": false
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "r",
+                      "r"
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 56,
+              "execCalls": 1
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "r",
+                      "r"
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 56,
+              "execCalls": 1
+            }
+          }
+        },
+        {
+          "label": "bounded-byte-selection-not-native-equivalence",
+          "value": {
+            "start": 0,
+            "end": 2,
+            "groups": [
+              "rs",
+              "rs"
+            ]
+          }
+        },
+        {
+          "label": "native-and-worker",
+          "value": {
+            "patterns": [
+              {
+                "source": "z",
+                "flags": "g"
+              },
+              {
+                "source": "r",
+                "flags": "g"
+              }
+            ],
+            "rows": [
+              {
+                "text": "rz",
+                "all": false
+              },
+              {
+                "text": "rz",
+                "all": true
+              }
+            ],
+            "direct": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 2,
+                    "captures": [
+                      "z"
+                    ]
+                  }
+                ],
+                [
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 2,
+                    "captures": [
+                      "z"
+                    ]
+                  },
+                  {
+                    "pattern": 1,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "r"
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 152,
+              "execCalls": 5
+            },
+            "actual": {
+              "hits": [
+                [
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 2,
+                    "captures": [
+                      "z"
+                    ]
+                  }
+                ],
+                [
+                  {
+                    "pattern": 0,
+                    "start": 1,
+                    "end": 2,
+                    "captures": [
+                      "z"
+                    ]
+                  },
+                  {
+                    "pattern": 1,
+                    "start": 0,
+                    "end": 1,
+                    "captures": [
+                      "r"
+                    ]
+                  }
+                ]
+              ],
+              "bytes": 152,
+              "execCalls": 5
+            }
+          }
+        },
+        {
+          "label": "grep-ordered-print-selection",
+          "value": {
+            "exitCode": 0,
+            "stdout": "r\nz\n",
+            "stderr": ""
+          }
+        },
+        {
+          "label": "rg-combined-first",
+          "value": [
+            {
+              "start": 0,
+              "end": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dialects",
+      "status": "passed",
+      "elapsedMs": 2.7159999999999975,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "created": 0,
+      "terminated": 0,
+      "observations": [
+        {
+          "label": "grep-dialect",
+          "value": {
+            "args": [
+              "-o",
+              "\\(r\\)\\1"
+            ],
+            "result": {
+              "exitCode": 0,
+              "stdout": "rr\n",
+              "stderr": ""
+            }
+          }
+        },
+        {
+          "label": "grep-dialect",
+          "value": {
+            "args": [
+              "-E",
+              "-o",
+              "[[:upper:]]"
+            ],
+            "result": {
+              "exitCode": 0,
+              "stdout": "R\n",
+              "stderr": ""
+            }
+          }
+        },
+        {
+          "label": "grep-dialect",
+          "value": {
+            "args": [
+              "-E",
+              "(?:r)"
+            ],
+            "result": {
+              "exitCode": 2,
+              "stdout": "",
+              "stderr": "grep: lookaround and special groups are not supported\n"
+            }
+          }
+        },
+        {
+          "label": "grep-dialect",
+          "value": {
+            "args": [
+              "-E",
+              "-w",
+              "-o",
+              "r"
+            ],
+            "result": {
+              "exitCode": 0,
+              "stdout": "r\n",
+              "stderr": ""
+            }
+          }
+        },
+        {
+          "label": "rg-named-reference",
+          "value": [
+            {
+              "start": 0,
+              "end": 2
+            }
+          ]
+        },
+        {
+          "label": "rg-empty-unterminated-bytes",
+          "value": [
+            {
+              "start": 0,
+              "end": 0
+            },
+            {
+              "start": 1,
+              "end": 1
+            },
+            {
+              "start": 2,
+              "end": 2
+            },
+            {
+              "start": 3,
+              "end": 3
+            }
+          ]
+        },
+        {
+          "label": "rg-invalid-byte-anchors",
+          "value": []
+        }
+      ]
+    },
+    {
+      "name": "preabort",
+      "status": "passed",
+      "elapsedMs": 0.5509999999999984,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "created": 0,
+      "terminated": 0,
+      "observations": [
+        {
+          "label": "before-manual-cleanup",
+          "value": {
+            "metrics": {
+              "created": 0,
+              "terminated": 0,
+              "requests": 0,
+              "execCalls": 0,
+              "inputBytes": 0,
+              "responseBytes": 0,
+              "startupMs": 0,
+              "workMs": 0,
+              "terminationMs": 0,
+              "peakInflight": 0,
+              "listenersAfter": -1,
+              "exitCode": null
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": false,
+            "capacityActive": 0,
+            "workerThreadId": null,
+            "workerListeners": {},
+            "signalListeners": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "startup-abort",
+      "status": "passed",
+      "elapsedMs": 3.8525419999999997,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "settlement",
+          "value": {
+            "status": "rejected",
+            "error": "REVIEW_STARTUP_ABORT"
+          }
+        },
+        {
+          "label": "at-settlement-before-finally",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 1,
+              "requests": 0,
+              "execCalls": 0,
+              "inputBytes": 0,
+              "responseBytes": 0,
+              "startupMs": 0,
+              "workMs": 0,
+              "terminationMs": 2.5216250000000002,
+              "peakInflight": 1,
+              "listenersAfter": 0,
+              "exitCode": 0
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": false,
+            "capacityActive": 0,
+            "workerThreadId": -1,
+            "workerListeners": {
+              "message": 0,
+              "error": 0,
+              "exit": 0,
+              "messageerror": 0
+            },
+            "signalListeners": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "idle-abort",
+      "status": "passed",
+      "elapsedMs": 67.750125,
+      "heartbeats": 11,
+      "maxGap": 6.374791999999999,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "automatic-before-manual-cleanup",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 1,
+              "requests": 1,
+              "execCalls": 0,
+              "inputBytes": 0,
+              "responseBytes": 0,
+              "startupMs": 25.670416999999997,
+              "workMs": 0.13716699999999804,
+              "terminationMs": 1.213957999999998,
+              "peakInflight": 1,
+              "listenersAfter": 0,
+              "exitCode": 1
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": false,
+            "capacityActive": 0,
+            "workerThreadId": -1,
+            "workerListeners": {
+              "message": 0,
+              "error": 0,
+              "exit": 0,
+              "messageerror": 0
+            },
+            "signalListeners": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "paused-abort",
+      "status": "passed",
+      "elapsedMs": 66.39812500000001,
+      "heartbeats": 11,
+      "maxGap": 6.299250000000001,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "paused-before-return",
+          "value": {
+            "reads": 1,
+            "returned": 0,
+            "requests": 2,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 2,
+                "inputBytes": 2,
+                "responseBytes": 52,
+                "startupMs": 25.05,
+                "workMs": 0.2941670000000016,
+                "terminationMs": 1.0240420000000015,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        },
+        {
+          "label": "after-consumer-return",
+          "value": {
+            "reads": 1,
+            "returned": 1,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 2,
+                "inputBytes": 2,
+                "responseBytes": 52,
+                "startupMs": 25.05,
+                "workMs": 0.2941670000000016,
+                "terminationMs": 1.0240420000000015,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "idle-exit",
+      "status": "failed-frozen-expectation",
+      "failure": {
+        "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at clean (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/review/child.mjs:34:10)\n    at benign (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/review/child.mjs:116:66)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/review/child.mjs:220:10"
+      },
+      "elapsedMs": 67.860667,
+      "heartbeats": 11,
+      "maxGap": 6.364125000000001,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "actual-external-worker-termination",
+          "value": 1
+        },
+        {
+          "label": "automatic-before-manual-cleanup",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 0,
+              "requests": 1,
+              "execCalls": 0,
+              "inputBytes": 0,
+              "responseBytes": 0,
+              "startupMs": 24.772207999999996,
+              "workMs": 0.14025000000000176,
+              "terminationMs": 0,
+              "peakInflight": 1,
+              "listenersAfter": -1,
+              "exitCode": 1
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": true,
+            "capacityActive": 1,
+            "workerThreadId": -1,
+            "workerListeners": {
+              "message": 0,
+              "error": 0,
+              "exit": 0,
+              "messageerror": 0
+            },
+            "signalListeners": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "idle-error",
+      "status": "passed",
+      "elapsedMs": 65.9445,
+      "heartbeats": 11,
+      "maxGap": 6.354708000000002,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "automatic-before-manual-cleanup",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 1,
+              "requests": 1,
+              "execCalls": 0,
+              "inputBytes": 0,
+              "responseBytes": 0,
+              "startupMs": 24.767666000000002,
+              "workMs": 0.16412500000000563,
+              "terminationMs": 1.1618329999999943,
+              "peakInflight": 1,
+              "listenersAfter": 0,
+              "exitCode": 1
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": false,
+            "capacityActive": 0,
+            "workerThreadId": -1,
+            "workerListeners": {
+              "message": 0,
+              "error": 0,
+              "exit": 0,
+              "messageerror": 0
+            },
+            "signalListeners": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "malformed",
+      "status": "passed",
+      "elapsedMs": 41.142167,
+      "heartbeats": 7,
+      "maxGap": 6.349625,
+      "created": 2,
+      "terminated": 2,
+      "observations": [
+        {
+          "label": "malformed-reply",
+          "value": {
+            "status": "rejected",
+            "error": "RESPONSE_PROTOCOL"
+          }
+        },
+        {
+          "label": "compile-error",
+          "value": {
+            "status": "rejected",
+            "error": "Invalid regular expression: /[/g: Unterminated character class"
+          }
+        }
+      ]
+    },
+    {
+      "name": "caps",
+      "status": "passed",
+      "elapsedMs": 27.936833,
+      "heartbeats": 5,
+      "maxGap": 6.3437079999999995,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "cap-rejection",
+          "value": {
+            "expected": "INPUT_CAP_OR_PROTOCOL",
+            "outcome": {
+              "status": "rejected",
+              "error": "INPUT_CAP_OR_PROTOCOL"
+            },
+            "client": {
+              "metrics": {
+                "created": 0,
+                "terminated": 0,
+                "requests": 0,
+                "execCalls": 0,
+                "inputBytes": 0,
+                "responseBytes": 0,
+                "startupMs": 0,
+                "workMs": 0,
+                "terminationMs": 0.0007090000000005148,
+                "peakInflight": 0,
+                "listenersAfter": 0,
+                "exitCode": null
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": null,
+              "workerListeners": {},
+              "signalListeners": 0
+            }
+          }
+        },
+        {
+          "label": "cap-rejection",
+          "value": {
+            "expected": "PATTERN_CAP_OR_PROTOCOL",
+            "outcome": {
+              "status": "rejected",
+              "error": "PATTERN_CAP_OR_PROTOCOL"
+            },
+            "client": {
+              "metrics": {
+                "created": 0,
+                "terminated": 0,
+                "requests": 0,
+                "execCalls": 0,
+                "inputBytes": 2,
+                "responseBytes": 0,
+                "startupMs": 0,
+                "workMs": 0,
+                "terminationMs": 0.0003339999999987242,
+                "peakInflight": 0,
+                "listenersAfter": 0,
+                "exitCode": null
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": null,
+              "workerListeners": {},
+              "signalListeners": 0
+            }
+          }
+        },
+        {
+          "label": "cap-rejection",
+          "value": {
+            "expected": "RESULT_CAP",
+            "outcome": {
+              "status": "rejected",
+              "error": "RESULT_CAP"
+            },
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 0,
+                "inputBytes": 256,
+                "responseBytes": 0,
+                "startupMs": 24.571916,
+                "workMs": 1.4079589999999982,
+                "terminationMs": 1.3045419999999979,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "live-source",
+      "status": "failed-frozen-expectation",
+      "failure": {
+        "message": "First ordinary output must not wait for a full batch or EOF\n+ actual - expected\n\n+ 'observation-timeout'\n- 'fulfilled'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: First ordinary output must not wait for a full batch or EOF\n+ actual - expected\n\n+ 'observation-timeout'\n- 'fulfilled'\n\n    at benign (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/review/child.mjs:169:14)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at process.processTimers (node:internal/timers:518:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/review/child.mjs:220:10"
+      },
+      "elapsedMs": 68.103875,
+      "heartbeats": 11,
+      "maxGap": 6.827833999999996,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "before-unblock",
+          "value": {
+            "first": {
+              "status": "observation-timeout"
+            },
+            "reads": 2,
+            "returned": 0,
+            "client": {
+              "metrics": {
+                "created": 0,
+                "terminated": 0,
+                "requests": 0,
+                "execCalls": 0,
+                "inputBytes": 0,
+                "responseBytes": 0,
+                "startupMs": 0,
+                "workMs": 0,
+                "terminationMs": 0,
+                "peakInflight": 0,
+                "listenersAfter": -1,
+                "exitCode": null
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": null,
+              "workerListeners": {},
+              "signalListeners": 0
+            }
+          }
+        },
+        {
+          "label": "after-explicit-source-unblock",
+          "value": {
+            "status": "fulfilled",
+            "value": {
+              "value": {
+                "hits": [
+                  [
+                    {
+                      "pattern": 0,
+                      "start": 0,
+                      "end": 1,
+                      "captures": [
+                        "r"
+                      ]
+                    }
+                  ]
+                ],
+                "bytes": 52,
+                "execCalls": 2
+              },
+              "done": false
+            }
+          }
+        },
+        {
+          "label": "source-cleanup",
+          "value": {
+            "reads": 2,
+            "returned": 1,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 2,
+                "inputBytes": 2,
+                "responseBytes": 52,
+                "startupMs": 24.115042000000003,
+                "workMs": 0.2413749999999908,
+                "terminationMs": 1.1437499999999972,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "consumer-return",
+      "status": "passed",
+      "elapsedMs": 83.27404200000001,
+      "heartbeats": 15,
+      "maxGap": 6.316208000000003,
+      "created": 2,
+      "terminated": 2,
+      "observations": [
+        {
+          "label": "paused-before-return",
+          "value": {
+            "reads": 1,
+            "returned": 0,
+            "requests": 2,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 0,
+                "requests": 2,
+                "execCalls": 2,
+                "inputBytes": 2,
+                "responseBytes": 52,
+                "startupMs": 24.049708000000003,
+                "workMs": 0.3367500000000021,
+                "terminationMs": 0,
+                "peakInflight": 1,
+                "listenersAfter": -1,
+                "exitCode": null
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": true,
+              "capacityActive": 1,
+              "workerThreadId": 1,
+              "workerListeners": {
+                "message": 1,
+                "error": 1,
+                "exit": 1,
+                "messageerror": 1
+              },
+              "signalListeners": 1
+            }
+          }
+        },
+        {
+          "label": "after-consumer-return",
+          "value": {
+            "reads": 1,
+            "returned": 1,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 2,
+                "inputBytes": 2,
+                "responseBytes": 52,
+                "startupMs": 24.049708000000003,
+                "workMs": 0.3367500000000021,
+                "terminationMs": 1.1290830000000085,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        },
+        {
+          "label": "three-batches-one-worker",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 0,
+              "requests": 4,
+              "execCalls": 6,
+              "inputBytes": 6,
+              "responseBytes": 156,
+              "startupMs": 14.676667000000009,
+              "workMs": 0.43833399999999756,
+              "terminationMs": 0,
+              "peakInflight": 1,
+              "listenersAfter": -1,
+              "exitCode": null
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": true,
+            "capacityActive": 1,
+            "workerThreadId": 2,
+            "workerListeners": {
+              "message": 1,
+              "error": 1,
+              "exit": 1,
+              "messageerror": 1
+            },
+            "signalListeners": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "capacity",
+      "status": "passed",
+      "elapsedMs": 43.191834,
+      "heartbeats": 7,
+      "maxGap": 6.4452919999999985,
+      "created": 2,
+      "terminated": 2,
+      "observations": [
+        {
+          "label": "failfast-not-queue",
+          "value": {
+            "outcomes": [
+              {
+                "status": "rejected",
+                "error": "CAPACITY_BUSY"
+              },
+              {
+                "status": "rejected",
+                "error": "CAPACITY_BUSY"
+              }
+            ],
+            "clients": [
+              {
+                "metrics": {
+                  "created": 0,
+                  "terminated": 0,
+                  "requests": 0,
+                  "execCalls": 0,
+                  "inputBytes": 0,
+                  "responseBytes": 0,
+                  "startupMs": 0,
+                  "workMs": 0,
+                  "terminationMs": 0.0007499999999964757,
+                  "peakInflight": 0,
+                  "listenersAfter": 0,
+                  "exitCode": null
+                },
+                "pending": false,
+                "busy": false,
+                "releaseHeld": false,
+                "capacityActive": 1,
+                "workerThreadId": null,
+                "workerListeners": {},
+                "signalListeners": 0
+              },
+              {
+                "metrics": {
+                  "created": 0,
+                  "terminated": 0,
+                  "requests": 0,
+                  "execCalls": 0,
+                  "inputBytes": 0,
+                  "responseBytes": 0,
+                  "startupMs": 0,
+                  "workMs": 0,
+                  "terminationMs": 0.0008750000000006253,
+                  "peakInflight": 0,
+                  "listenersAfter": 0,
+                  "exitCode": null
+                },
+                "pending": false,
+                "busy": false,
+                "releaseHeld": false,
+                "capacityActive": 1,
+                "workerThreadId": null,
+                "workerListeners": {},
+                "signalListeners": 0
+              }
+            ],
+            "holder": {
+              "metrics": {
+                "created": 1,
+                "terminated": 0,
+                "requests": 1,
+                "execCalls": 0,
+                "inputBytes": 0,
+                "responseBytes": 0,
+                "startupMs": 23.808374999999998,
+                "workMs": 0.13512500000000216,
+                "terminationMs": 0,
+                "peakInflight": 1,
+                "listenersAfter": -1,
+                "exitCode": null
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": true,
+              "capacityActive": 1,
+              "workerThreadId": 1,
+              "workerListeners": {
+                "message": 1,
+                "error": 1,
+                "exit": 1,
+                "messageerror": 1
+              },
+              "signalListeners": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "dispose-late",
+      "status": "passed",
+      "elapsedMs": 46.750791,
+      "heartbeats": 8,
+      "maxGap": 6.310458000000004,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "idempotent-and-late",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 1,
+              "requests": 1,
+              "execCalls": 0,
+              "inputBytes": 0,
+              "responseBytes": 0,
+              "startupMs": 23.964624999999998,
+              "workMs": 0.13600000000000279,
+              "terminationMs": 1.056874999999998,
+              "peakInflight": 1,
+              "listenersAfter": 0,
+              "exitCode": 1
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": false,
+            "capacityActive": 0,
+            "workerThreadId": -1,
+            "workerListeners": {
+              "message": 0,
+              "error": 0,
+              "exit": 0,
+              "messageerror": 0
+            },
+            "signalListeners": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "risk-default",
+      "status": "passed",
+      "elapsedMs": 77.8085,
+      "heartbeats": 12,
+      "maxGap": 6.392750000000007,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "risk-allocation",
+          "value": {
+            "name": "risk-default",
+            "source": "^(a+)+$",
+            "bytes": 25,
+            "executions": 1
+          }
+        },
+        {
+          "label": "at-request-settlement-before-finally",
+          "value": {
+            "outcome": {
+              "status": "rejected",
+              "error": "WORK_DEADLINE"
+            },
+            "elapsedMs": 77.735708,
+            "heartbeats": 12,
+            "maxGap": 6.392750000000007,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 0,
+                "inputBytes": 50,
+                "responseBytes": 0,
+                "startupMs": 25.259083,
+                "workMs": 76.39379200000002,
+                "terminationMs": 1.3433339999999987,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "risk-abort",
+      "status": "passed",
+      "elapsedMs": 22.015084,
+      "heartbeats": 3,
+      "maxGap": 6.417917000000003,
+      "created": 1,
+      "terminated": 1,
+      "observations": [
+        {
+          "label": "risk-allocation",
+          "value": {
+            "name": "risk-abort",
+            "source": "^(a+)+$",
+            "bytes": 25,
+            "executions": 1
+          }
+        },
+        {
+          "label": "abort-at-ms",
+          "value": 20.502959000000004
+        },
+        {
+          "label": "at-request-settlement-before-finally",
+          "value": {
+            "outcome": {
+              "status": "rejected",
+              "error": "REVIEW_INFLIGHT_ABORT"
+            },
+            "elapsedMs": 21.948042,
+            "heartbeats": 3,
+            "maxGap": 6.417917000000003,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 0,
+                "inputBytes": 50,
+                "responseBytes": 0,
+                "startupMs": 23.648292,
+                "workMs": 20.742083,
+                "terminationMs": 1.2856670000000037,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

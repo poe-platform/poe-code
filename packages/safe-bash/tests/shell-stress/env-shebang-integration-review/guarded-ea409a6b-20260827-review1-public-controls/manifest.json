@@ -1,0 +1,10 @@
+{
+  "files": {
+    "build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "public-lifecycle.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "public-lifecycle.tap": "585ed2e43683b9eb9b4481694c5fa21cc76ecb8b91801a1be3ce8eec09136cda",
+    "report.json": "5a9c39bf1715818d80e3201c38afc5f8045fbddfee53770b8de61dab5fde3c6f"
+  },
+  "runnerSha256": "e0ea005b1a7f6e3e4bf4e074b0b726ca39148eff32a0a42a6db5feb91efa8206",
+  "probeSha256": "da640a2cf46d9eb45f3ee02fcdace6f1bdebc46a53acff80f0c61eefa13b49ff"
+}

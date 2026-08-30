@@ -1,0 +1,46 @@
+[
+  {
+    "file": "private-before-copy.json",
+    "recordedAt": "2026-08-26T22:40:30.350Z",
+    "revision": "3db0b0a0ed25278b2c1dee361d438891fa1e34fa",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "index": "85699b3d1bdd5d678d1e6adbfb614892ec03ef0b5b3b80413083eef51f8075e8",
+    "license": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineMatchesBefore": true,
+    "engineManifestSha256": "fc14462c1f957d3a716caff094cf48f1117c2c602fa14f805fa3ba9e00167248",
+    "engineHashesFile": "private-current-hashes.json"
+  },
+  {
+    "file": "private-after-copy.json",
+    "recordedAt": "2026-08-26T22:40:32.416Z",
+    "revision": "3db0b0a0ed25278b2c1dee361d438891fa1e34fa",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "index": "85699b3d1bdd5d678d1e6adbfb614892ec03ef0b5b3b80413083eef51f8075e8",
+    "license": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineMatchesBefore": true,
+    "engineManifestSha256": "fc14462c1f957d3a716caff094cf48f1117c2c602fa14f805fa3ba9e00167248",
+    "engineHashesFile": "private-current-hashes.json"
+  },
+  {
+    "file": "private-after-tooling-copy.json",
+    "recordedAt": "2026-08-26T22:41:02.756Z",
+    "revision": "3db0b0a0ed25278b2c1dee361d438891fa1e34fa",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "index": "85699b3d1bdd5d678d1e6adbfb614892ec03ef0b5b3b80413083eef51f8075e8",
+    "license": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineMatchesBefore": true,
+    "engineManifestSha256": "fc14462c1f957d3a716caff094cf48f1117c2c602fa14f805fa3ba9e00167248",
+    "engineHashesFile": "private-current-hashes.json"
+  },
+  {
+    "file": "private-final.json",
+    "recordedAt": "2026-08-26T22:41:31.611Z",
+    "revision": "3db0b0a0ed25278b2c1dee361d438891fa1e34fa",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "index": "85699b3d1bdd5d678d1e6adbfb614892ec03ef0b5b3b80413083eef51f8075e8",
+    "license": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineMatchesBefore": true,
+    "engineManifestSha256": "fc14462c1f957d3a716caff094cf48f1117c2c602fa14f805fa3ba9e00167248",
+    "engineHashesFile": "private-current-hashes.json"
+  }
+]

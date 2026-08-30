@@ -1,0 +1,462 @@
+{
+  "schema": "b2-original-blob-path-map-r2.1",
+  "entries": [
+    {
+      "stagedPath": "runtime/harness/redirections.mjs",
+      "origin": {
+        "name": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+        "blob": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103",
+        "bytes": 9613,
+        "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/redirection-cases.json",
+      "origin": {
+        "name": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+        "blob": "aa0becf7144cdfc4efa32b5cc030d530364bfb33",
+        "bytes": 2790,
+        "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/close-observer.mjs",
+      "origin": {
+        "name": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+        "blob": "59ae1e639274455401c0457fe67b88858330f2d5",
+        "bytes": 957,
+        "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/strict.mjs",
+      "origin": {
+        "name": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+        "blob": "f73b632fb607e8fe0c0067656cf5a1cf29026503",
+        "bytes": 11148,
+        "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/strict-design.json",
+      "origin": {
+        "name": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+        "blob": "4d0fe40653cf150cf790dacf0418da8b15072eba",
+        "bytes": 9222,
+        "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/conditional.mjs",
+      "origin": {
+        "name": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+        "blob": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+        "bytes": 14524,
+        "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/extension.mjs",
+      "origin": {
+        "name": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+        "blob": "196e4520d979918b145d0560cfa49892ad9c575a",
+        "bytes": 14101,
+        "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/extension-design.json",
+      "origin": {
+        "name": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+        "blob": "a811a09c755637dcee37abbbdecbd0a5db35c634",
+        "bytes": 14968,
+        "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/arrays.mjs",
+      "origin": {
+        "name": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+        "blob": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac",
+        "bytes": 2507,
+        "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/ARRAY-CASES.json",
+      "origin": {
+        "name": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+        "blob": "4928c2331f264a7b4b8389c791c4d1c0f6298fb2",
+        "bytes": 3019,
+        "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/n14.mjs",
+      "origin": {
+        "name": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+        "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+        "bytes": 5599,
+        "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/resources.mjs",
+      "origin": {
+        "name": "tests/integration/git-public-20260829/resources.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/integration/git-public-20260829/resources.mjs",
+        "blob": "f57ddbeecc878698bc03a5f265f3f76386107fbb",
+        "bytes": 1978,
+        "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/loader.mjs",
+      "origin": {
+        "name": "tests/integration/git-public-20260829/loader.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/integration/git-public-20260829/loader.mjs",
+        "blob": "9d2747828f958687f0ab5c2b93977c3988bf7ed6",
+        "bytes": 1180,
+        "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+      }
+    },
+    {
+      "stagedPath": "runtime/harness/names.mjs",
+      "origin": {
+        "name": "tests/integration/git-public-20260829/names.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/integration/git-public-20260829/names.mjs",
+        "blob": "c9723f7471f3e14309db432a55e9befa6aebd42b",
+        "bytes": 879,
+        "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"
+      }
+    },
+    {
+      "stagedPath": "runtime/stage-b0-r3/owner.mjs",
+      "origin": {
+        "name": "owner",
+        "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+        "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs",
+        "blob": "e8313d521a454cf9b2f540a119c168c13de061b1",
+        "bytes": 8991,
+        "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+      }
+    },
+    {
+      "stagedPath": "runtime/stage-a-r2/common.mjs",
+      "origin": {
+        "name": "owner-common",
+        "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+        "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs",
+        "blob": "75e3393531a74ddbe426b7bf8af855006a10fcd3",
+        "bytes": 7095,
+        "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "importer": "runtime/harness/redirections.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/redirections.mjs",
+      "specifier": "node:fs/promises",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/redirections.mjs",
+      "specifier": "node:path",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/redirections.mjs",
+      "specifier": "virtual-bash",
+      "kind": "FROZEN_PUBLIC_PACKAGE_ALIAS",
+      "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "importer": "runtime/harness/redirections.mjs",
+      "specifier": "./names.mjs",
+      "stagedTarget": "runtime/harness/names.mjs",
+      "originalTarget": {
+        "name": "tests/integration/git-public-20260829/names.mjs",
+        "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+        "originalPath": "tests/integration/git-public-20260829/names.mjs",
+        "blob": "c9723f7471f3e14309db432a55e9befa6aebd42b",
+        "bytes": 879,
+        "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"
+      }
+    },
+    {
+      "importer": "runtime/harness/close-observer.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/close-observer.mjs",
+      "specifier": "virtual-bash",
+      "kind": "FROZEN_PUBLIC_PACKAGE_ALIAS",
+      "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "importer": "runtime/harness/strict.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/strict.mjs",
+      "specifier": "node:fs/promises",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/strict.mjs",
+      "specifier": "virtual-bash",
+      "kind": "FROZEN_PUBLIC_PACKAGE_ALIAS",
+      "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "importer": "runtime/harness/conditional.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/conditional.mjs",
+      "specifier": "virtual-bash",
+      "kind": "FROZEN_PUBLIC_PACKAGE_ALIAS",
+      "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "importer": "runtime/harness/extension.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/extension.mjs",
+      "specifier": "node:fs",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/extension.mjs",
+      "specifier": "virtual-bash",
+      "kind": "FROZEN_PUBLIC_PACKAGE_ALIAS",
+      "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "importer": "runtime/harness/arrays.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/arrays.mjs",
+      "specifier": "node:fs",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/arrays.mjs",
+      "specifier": "virtual-bash",
+      "kind": "FROZEN_PUBLIC_PACKAGE_ALIAS",
+      "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "importer": "runtime/harness/n14.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/n14.mjs",
+      "specifier": "virtual-bash",
+      "kind": "FROZEN_PUBLIC_PACKAGE_ALIAS",
+      "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "importer": "runtime/harness/resources.mjs",
+      "specifier": "node:fs",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/resources.mjs",
+      "specifier": "node:path",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/resources.mjs",
+      "specifier": "node:worker_threads",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/resources.mjs",
+      "specifier": "node:module",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/resources.mjs",
+      "specifier": "node:url",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/resources.mjs",
+      "specifier": "node:crypto",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/resources.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/loader.mjs",
+      "specifier": "node:fs/promises",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/loader.mjs",
+      "specifier": "node:path",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/loader.mjs",
+      "specifier": "node:url",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/harness/loader.mjs",
+      "specifier": "node:crypto",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-b0-r3/owner.mjs",
+      "specifier": "node:fs",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-b0-r3/owner.mjs",
+      "specifier": "node:path",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-b0-r3/owner.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-b0-r3/owner.mjs",
+      "specifier": "node:child_process",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-b0-r3/owner.mjs",
+      "specifier": "../stage-a-r2/common.mjs",
+      "stagedTarget": "runtime/stage-a-r2/common.mjs",
+      "originalTarget": {
+        "name": "owner-common",
+        "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+        "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs",
+        "blob": "75e3393531a74ddbe426b7bf8af855006a10fcd3",
+        "bytes": 7095,
+        "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+      }
+    },
+    {
+      "importer": "runtime/stage-a-r2/common.mjs",
+      "specifier": "node:fs",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-a-r2/common.mjs",
+      "specifier": "node:path",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-a-r2/common.mjs",
+      "specifier": "node:crypto",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-a-r2/common.mjs",
+      "specifier": "node:assert/strict",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    },
+    {
+      "importer": "runtime/stage-a-r2/common.mjs",
+      "specifier": "node:child_process",
+      "kind": "PINNED_NODE_BUILTIN",
+      "packageSha256": null
+    }
+  ],
+  "typeDerivations": {
+    "base": {
+      "name": "consumer",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/integration/git-public-20260829/consumer.ts.fixture",
+      "blob": "2118e2786fb54e55c1749b239275dfb246f90e01",
+      "bytes": 1336,
+      "sha256": "46a717a1902c55d2c19f6bfd301de45395a81be5e7a76540c7113d08248e1be1"
+    },
+    "appendix": {
+      "name": "author-executor",
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v5.mjs",
+      "blob": "0a5ffcc9eab5a26f2c32d009d48ffb2ef8100bfc",
+      "bytes": 30737,
+      "sha256": "238d3bb3b3f3611b259b0804309489cc57f79cdb7ed1561568671195bcfc26b3"
+    }
+  },
+  "computedImports": "Retained loader/package alias resolution still requires B2 closure review; static edges are not complete runtime load proof."
+}

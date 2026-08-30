@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "scope": "SOURCE/DATA locator handoff only; no reconstruction or execution",
+  "ordering": "UTF-8 relative-path bytes ascending; MANIFEST.json excluded",
+  "files": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 7985,
+      "sha256": "8716253cf34a62f846b1d7c6dfbf5eef58e9f57650118d101b885f38753ff45e"
+    },
+    {
+      "path": "HASH-DOMAINS.json",
+      "bytes": 3417,
+      "sha256": "b68a42b5203b71280a36629db1cfe645de359d065862d19c1e205aa81c33c8a6"
+    },
+    {
+      "path": "LOCATORS-INITIAL.json",
+      "bytes": 2595,
+      "sha256": "ad4bcc005e0b5ea02c71dbf74d9fb51f3da43588f09b1eb4ed81efd6dad31cac"
+    },
+    {
+      "path": "LOCATORS.json",
+      "bytes": 8823,
+      "sha256": "f37c62ccab8b76ec5732b13d0b6545d25e4fb02bb34830f71ba2a53d996fe898"
+    },
+    {
+      "path": "capture/START.json",
+      "bytes": 67,
+      "sha256": "a36ef25a0797619f6bf0a2eecee619c0669f26d28b9995043cc80ee543954e49"
+    },
+    {
+      "path": "capture/blob-availability.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/blob-availability.stdout.raw",
+      "bytes": 15007,
+      "sha256": "f6b74af9440abe122a6afb432b63b954e7182cb1fb88d8f462bb8c2b2f99d5f6"
+    },
+    {
+      "path": "capture/diff.json",
+      "bytes": 50,
+      "sha256": "fc4707cc2ba27264e5b448035962d2e06929751ad04d258242ef55bc6ffdf0e9"
+    },
+    {
+      "path": "capture/domains.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/domains.stdout.raw",
+      "bytes": 4959,
+      "sha256": "9167309fbad0aa1f9bffe34ac9a6de6826bd7305f6cf30b58780168cea31c41c"
+    },
+    {
+      "path": "capture/fields.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/fields.stdout.raw",
+      "bytes": 242869,
+      "sha256": "3a557696cbc277d0ab3d3608df926c7cf3ad55a1081b607298e16d3a1f789820"
+    },
+    {
+      "path": "capture/final-inspection.stderr.raw",
+      "bytes": 753,
+      "sha256": "beeeec706c76226d12fe7cb6b86140fa4ceb1e75b2401c06587a67ff43a42fbb"
+    },
+    {
+      "path": "capture/final-inspection.stdout.raw",
+      "bytes": 2243,
+      "sha256": "f662a17ddae7702345ff0d350c36dd6c6cbf96a994fa15780aa5d94376229da0"
+    },
+    {
+      "path": "capture/inspect.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/inspect.stdout.raw",
+      "bytes": 31029,
+      "sha256": "dd9856d3ca2b53a3afd44d38133a08e4c953111775e05bad6ca703cdfa01e38d"
+    },
+    {
+      "path": "capture/locators-v2.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/locators-v2.stdout.raw",
+      "bytes": 2582,
+      "sha256": "dd0951cc7a21ad1b851aeafc415243f2f301c428a60f0490fbe2b224b0d96e1f"
+    },
+    {
+      "path": "capture/recipe.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/recipe.stdout.raw",
+      "bytes": 90142,
+      "sha256": "3f77c331892a6e682dac73975e47c2f3676d2f47ca96b2120eecb1f26c620499"
+    },
+    {
+      "path": "capture/status.json",
+      "bytes": 148,
+      "sha256": "23b44405166ebdd36e3c3fd1090a87508cf13f3999f7fb62156a0afe28d3b398"
+    }
+  ],
+  "totalBytes": 412669,
+  "publicationCapture": "/tmp/n14-source-locator-publication-GuRcEI",
+  "knownPublicationOwnerProcesses": 1,
+  "plannedPublicationGitChildren": 6,
+  "qualification": "Historical source/data receipts are not fresh executable admission. Guessed absent BINDING-PROOF locator failure is preserved."
+}

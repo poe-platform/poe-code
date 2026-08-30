@@ -1,0 +1,310 @@
+{
+  "status": "NOT_STARTED",
+  "freshProductCases": 0,
+  "reusedProductCasesAsFinalEvidence": 0,
+  "pendingProductCases": 40,
+  "contentAssertionsExecuted": 0,
+  "finalNativeComparisons": 0,
+  "nativeCalls": 0,
+  "historicalNativeObservationsRetained": 109,
+  "newRawFailureIds": [],
+  "rawFailureIdsQualification": "No product calls, not an all-pass result",
+  "initialHistoricalRaw": {
+    "pass": 35,
+    "fail": 3,
+    "backendLimitations": 2,
+    "failureIds": [
+      "F29",
+      "F33",
+      "F34"
+    ]
+  },
+  "initialHistoricalAdjudicated": {
+    "pass": 31,
+    "nativeProfileConflict": 4,
+    "harnessDefect": 3,
+    "backendLimitations": 2,
+    "profileConflictIds": [
+      "F07",
+      "F12",
+      "F16",
+      "F18"
+    ],
+    "backendLimitationIds": [
+      "F30",
+      "F31"
+    ]
+  },
+  "initialHistoricalContent": {
+    "semanticAccepted": 80,
+    "semanticTotal": 80,
+    "exactMachine": 50,
+    "machineTotal": 60
+  },
+  "oldCorrected3Historical": {
+    "rawPass": 3,
+    "ids": [
+      "F29",
+      "F33",
+      "F34"
+    ],
+    "peerF29": "HOLD-v1-post-settlement-liveness",
+    "peerF33F34": "scoped GO historical only",
+    "F33": {
+      "next": 1,
+      "return": 1,
+      "lateReadInjection": 1,
+      "observedWindow": 1
+    },
+    "F34": {
+      "next": 1,
+      "return": 1,
+      "lateReadInjection": 1,
+      "lateReturnInjection": 1,
+      "observedWindow": 1
+    },
+    "qualification": "Copied historical facts, not fresh or final-source evidence"
+  },
+  "cases": [
+    {
+      "id": "F01",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F02",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F03",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F04",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F05",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F06",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F07",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F08",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F09",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F10",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F11",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F12",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F13",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F14",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F15",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F16",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F17",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F18",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F19",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F20",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F21",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F22",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F23",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F24",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F25",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F26",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F27",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F28",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F29",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F30",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F31",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F32",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F33",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F34",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F35",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F36",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F37",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F38",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F39",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    },
+    {
+      "id": "F40",
+      "state": "NOT_RUN_PENDING_PEER_GO",
+      "attempts": 0,
+      "reusedAsFinalEvidence": false
+    }
+  ]
+}

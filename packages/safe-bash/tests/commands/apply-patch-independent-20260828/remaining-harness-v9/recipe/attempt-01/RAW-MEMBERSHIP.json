@@ -1,0 +1,144 @@
+{
+  "classification": "actual pipe files and in-process receipts; no transcription",
+  "files": {
+    "01-D00.receipt.json": {
+      "bytes": 1112,
+      "mode": 384,
+      "sha256": "f7a1ef60530eba63e0a1a6cd3388de0887d9d4faadf294e89bbe49292e7a80e8"
+    },
+    "01-D00.stderr.raw": {
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "01-D00.stdout.raw": {
+      "bytes": 118,
+      "mode": 384,
+      "sha256": "bf8bc4fe88435a5b53baeced8383b5e03dff4917f2d66d557c4deb331555cda7"
+    },
+    "02-START-POSITIVE.receipt.json": {
+      "bytes": 2803,
+      "mode": 384,
+      "sha256": "86968d55a024dc32cfc914639f830333cccdcfa3566f0fd228ec95ffc8d6df4f"
+    },
+    "02-START-POSITIVE.stderr.raw": {
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "02-START-POSITIVE.stdout.raw": {
+      "bytes": 4511,
+      "mode": 384,
+      "sha256": "b13dadf2644ae6bc8049fc98fcb2465c4793876aca2958fd1e8264134e5736ca"
+    },
+    "03-START-REFUSAL.receipt.json": {
+      "bytes": 1450,
+      "mode": 384,
+      "sha256": "ddfd0e7ddfc4b486678ae3645d04871d92a52e11bbba65ed94787cbd2cb0fd66"
+    },
+    "03-START-REFUSAL.stderr.raw": {
+      "bytes": 917,
+      "mode": 384,
+      "sha256": "781ed19dac86c8bbae27c6ab907083d7a666ce68931661fb245838aafe8819e9"
+    },
+    "03-START-REFUSAL.stdout.raw": {
+      "bytes": 116,
+      "mode": 384,
+      "sha256": "640b787921e958eaa0be76dd93cdf1bb443d6297ccb641b8ea97ca9a03c7bb91"
+    },
+    "04-START-FS-REFUSAL.receipt.json": {
+      "bytes": 1462,
+      "mode": 384,
+      "sha256": "6155ebb5053120dbeb3102a3392b7e7fbb7130b8a571d688e076374dd9afdf91"
+    },
+    "04-START-FS-REFUSAL.stderr.raw": {
+      "bytes": 801,
+      "mode": 384,
+      "sha256": "087c8ce010f6258b0d2aeff0be73a5f11e029e6bb1ecb13efbf1b8fdaedca4e9"
+    },
+    "04-START-FS-REFUSAL.stdout.raw": {
+      "bytes": 119,
+      "mode": 384,
+      "sha256": "fb37ec1f9aabf6b78655bcf530c7a8007268adabdc74ee44a6717b7b0d33f801"
+    },
+    "05-G01.receipt.json": {
+      "bytes": 2521,
+      "mode": 384,
+      "sha256": "7e15cb87b19cdf72021f19647742b31303330ce27fb097039b0c72f222000291"
+    },
+    "05-G01.stderr.raw": {
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "05-G01.stdout.raw": {
+      "bytes": 152,
+      "mode": 384,
+      "sha256": "53efaa170347fa9310fb09d738a67949b3d591e8e974bd1b6a981326c088f01b"
+    },
+    "06-P01.receipt.json": {
+      "bytes": 1614,
+      "mode": 384,
+      "sha256": "064123109b9d3f0ff3e5a220376b183936a6cfa78c43ecb2c21148297317a7c1"
+    },
+    "06-P01.stderr.raw": {
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "06-P01.stdout.raw": {
+      "bytes": 266,
+      "mode": 384,
+      "sha256": "49a4ec9ddcd860dfa282f4c6bf66968209a543513f26d4631b19fd85ccf55a4e"
+    },
+    "MAIN-PRESEAL.json": {
+      "bytes": 10125,
+      "mode": 384,
+      "sha256": "835cb9ace7885cc4014328988a072cbcc50b6affc2551a661aeada6e016bd3f0"
+    },
+    "OWNER-ENV-DISCOVERY.json": {
+      "bytes": 147,
+      "mode": 384,
+      "sha256": "3e55d7b94a9c71a0fc05ac5f31f45f2a427f413a7a3944f7b8669983e0c5b813"
+    },
+    "OWNER-EVENTS.jsonl": {
+      "bytes": 6975,
+      "mode": 384,
+      "sha256": "067670da9640118d2a53c19623e5e9c38eee0141be8bf705650833e39c28f882"
+    },
+    "WORK-INVENTORY.json": {
+      "bytes": 6340,
+      "mode": 384,
+      "sha256": "ba1ecb3ef9b3ae33418ee54fd15fb758a05e9b442178f5c09d5c844ffb59ab23"
+    }
+  },
+  "exactOutputNamesBeforeThisFile": [
+    "01-D00.receipt.json",
+    "01-D00.stderr.raw",
+    "01-D00.stdout.raw",
+    "02-START-POSITIVE.receipt.json",
+    "02-START-POSITIVE.stderr.raw",
+    "02-START-POSITIVE.stdout.raw",
+    "03-START-REFUSAL.receipt.json",
+    "03-START-REFUSAL.stderr.raw",
+    "03-START-REFUSAL.stdout.raw",
+    "04-START-FS-REFUSAL.receipt.json",
+    "04-START-FS-REFUSAL.stderr.raw",
+    "04-START-FS-REFUSAL.stdout.raw",
+    "05-G01.receipt.json",
+    "05-G01.stderr.raw",
+    "05-G01.stdout.raw",
+    "06-P01.receipt.json",
+    "06-P01.stderr.raw",
+    "06-P01.stdout.raw",
+    "MAIN-PRESEAL.json",
+    "OWNER-ENV-DISCOVERY.json",
+    "OWNER-EVENTS.jsonl",
+    "WORK-INVENTORY.json"
+  ],
+  "excludes": [
+    "RAW-MEMBERSHIP.json",
+    "OUTCOME.json"
+  ],
+  "scratchPreserved": false
+}

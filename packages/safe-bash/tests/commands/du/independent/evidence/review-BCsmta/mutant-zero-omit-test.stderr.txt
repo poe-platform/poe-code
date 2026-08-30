@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ ''
+- '0\ttree\n0\ttotal\n'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/du/independent/mutant-check.mjs:33:77 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '',
+  expected: '0\ttree\n0\ttotal\n',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

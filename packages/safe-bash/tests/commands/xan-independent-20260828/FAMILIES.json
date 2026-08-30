@@ -1,0 +1,203 @@
+{
+  "stage": "PROVISIONAL PREP / NOT FROZEN / NOT EXECUTED",
+  "classification": "non-executable independent family recipes; no finalized oracles",
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "scope": ["headers", "h", "count", "select", "slice"],
+  "classificationKey": {
+    "OBSERVED_LITERAL": "Existing author row only; reference is not acceptance or a new golden",
+    "CONTRACT_RELATION": "Declared shared-contract/root invariant; implementation not verified",
+    "PENDING_ROOT": "Do not choose bytes/status/diagnostic or execute before root policy and independent freeze"
+  },
+  "ordinarySeedCeilingBytes": 4096,
+  "virtualInvocationCeilingIncludingControls": 184,
+  "partitionRecipes": {
+    "P0": "one delivery, then EOF",
+    "P1": "cycling byte lengths 2,5,1,3; truncate final chunk",
+    "P2": "cycling byte lengths 7,1,4,2 with one empty delivery after every second nonempty chunk",
+    "P3": "cuts immediately before/inside/after the chosen BOM, UTF-8 sequence, doubled quote or CRLF; other spans unsplit",
+    "P4": "reverse P1 nonempty chunk-length list, preserving byte order and total length; no reversed content"
+  },
+  "seedCandidates": {
+    "plain": "item,qty,note\npear,2,ripe\nplum,5,firm\n",
+    "quoted": "id,note\nq,\"left\nright\"\nr,\"say \"\"yes\"\"\"\n",
+    "duplicateEmpty": "\"\",tag,tag,\"tag,part\"\nz,a,b,c\n",
+    "utf8Hex": "69642c6e6f74650a312cc3a9f09f8d900a",
+    "incompleteUtf8Hex": "69642c6e6f74650a312ce282",
+    "bomRecipe": "prefix plain with EF BB BF; separate candidates EF, EF BB at EOF, or EF BB BF inside the second cell",
+    "crRecipe": "replace plain line ends with CRLF; separate variants interior lone CR, trailing CR at EOF, CR at fresh record start",
+    "quoteRecipe": "quoted seed with EOF after opening quote / first byte of doubled quote / closing quote followed by x; no assigned malformed behavior"
+  },
+  "families": [
+    {
+      "id": "F01",
+      "name": "Useful initial-command workflows",
+      "maxInvocations": 12,
+      "recipes": [
+        "plain via borrowed stdin and a separate VFS input; headers versus h",
+        "select numeric 2,0 into a fresh file; slice a finite range of that file; count the emitted data through actual registry/Shell",
+        "same plain bytes through a pipeline and explicit VFS input, with independently approved ordinary-CSV cell matrix"
+      ],
+      "contractRelations": ["No implicit host input/native fallback; byte-preserving internal transport; parent budget remains shared"],
+      "pending": ["Q3 exact header/selection serialization", "Q5 published API and safe file workflow"],
+      "observationRefs": ["22-slice-range", "26-slice-last"]
+    },
+    {
+      "id": "F02",
+      "name": "Command-specific scanner partition invariance",
+      "maxInvocations": 40,
+      "recipes": [
+        "Choose at most eight seed/command pairs across the four commands; apply P0-P4 only, not an all-command Cartesian product",
+        "Include split BOM prefixes, CR|LF, doubled quote pair, quoted LF and incomplete multibyte EOF",
+        "Place a noninitial BOM in data and malformed quote after a complete record; freeze interpretation separately for each command"
+      ],
+      "contractRelations": ["Same approved byte input/dialect gives same outcome bytes/effects across schedules when all relevant limits have slack"],
+      "pending": ["Q1 every actual byte/error golden", "Q4 chunk/read-ahead charges; boundary cases are not unconditional partition-equality rows"],
+      "observationRefs": ["10-count-records", "12-count-bom-only", "21-select-unterminated"]
+    },
+    {
+      "id": "F03",
+      "name": "Borrowed and mutable producer ownership",
+      "maxInvocations": 12,
+      "recipes": [
+        "Fresh allocations control versus a reused Uint8Array overwritten only when next is requested",
+        "Reused Buffer with overlapping subarray views; overwrite prior delivery on next, and on final next returning done",
+        "Owned-source return/finalizer overwrites its buffer; exercise retained header, spanning quoted cell and tail-ring records",
+        "Borrowed source return/throw counters under headers/finite slice; command must not finalize a borrowed producer on early return"
+      ],
+      "contractRelations": ["Retained fragments copied before advance/finalization; Buffer.slice/subarray is not ownership", "Await transient sink writes before producer advance; no arbitrary concurrent-mutation/lease promise"],
+      "pending": ["Q1 approved parser outcome for selected seed", "Q2 finite stopping points"],
+      "observationRefs": []
+    },
+    {
+      "id": "F04",
+      "name": "Empty and duplicate headers",
+      "maxInvocations": 12,
+      "recipes": [
+        "Empty input versus quoted empty cell versus delimiter-only header versus header-only file",
+        "duplicateEmpty seed with headers display, h and --csv; two input files with reordered unequal duplicate multiplicities",
+        "Header spaces/TAB/embedded newline plus multibyte scalar; invalid or incomplete UTF-8 in header separately from unread body"
+      ],
+      "contractRelations": ["Do not infer stdinIsDefault from empty bytes/EOF", "Headers must not validate an unread body solely because another command would"],
+      "pending": ["Q1 zero-column/blank/UTF-8 distinction", "Q3 display sanitization, padding, transposition, duplicate summary and exact errors"],
+      "observationRefs": ["06-headers-display", "07-headers-multi-csv", "08-headers-multi-text", "09-headers-noheaders-invalid", "14-headers-invalid-utf8"]
+    },
+    {
+      "id": "F05",
+      "name": "Bounded selector positives and refusals",
+      "maxInvocations": 16,
+      "recipes": [
+        "Eight selected scenarios: numeric reorder/repeat; negative endpoint; duplicate-name occurrence; complement; empty/all selection; quoted punctuation name; prefix/suffix; missing/out-of-range name/index",
+        "Pair each chosen supported form with an independently enumerated column-vector control; no product parser as oracle",
+        "Use -- before a negative-leading operand; distinguish -n named selectors, quoted numeric text, trailing separator and malformed bracket without assuming acceptance"
+      ],
+      "contractRelations": ["No expression execution, regex extension or silent unsupported success"],
+      "pending": ["Q3 grammar/order/multiplicity and diagnostics; source-only quirks are not literal observations", "Q4 selector expansion accounting"],
+      "observationRefs": ["15-select-grammar", "16-select-complement", "28-select-missing"]
+    },
+    {
+      "id": "F06",
+      "name": "Zero length, finite range and option combinations",
+      "maxInvocations": 12,
+      "recipes": [
+        "New ordinary-CSV seed under slice -l 0 with/without -n; root requires all records, not invented empty output",
+        "Choose start+len0, skip+len0, equal start/end, last0, len0+indices, len0+last combinations for characterization only",
+        "Finite range and unordered duplicate indices as positive controls; numeric overflow as a bounded refusal candidate"
+      ],
+      "contractRelations": ["Root-approved standalone -l 0 is not an early no-input success"],
+      "pending": ["Q2 mixed modes, zero tail/equal end and precedence or rejection", "Q3 exact statuses/diagnostics outside pinned rows"],
+      "observationRefs": ["23-slice-zero", "24-slice-headless-zero", "25-slice-indices", "27-slice-overflow"]
+    },
+    {
+      "id": "F07",
+      "name": "Normal early return versus owned source cleanup",
+      "maxInvocations": 8,
+      "recipes": [
+        "headers first complete record followed by a poison next; finite slice final selected record followed by poison next",
+        "Same stop cursor with extra unneeded malformed body already in the delivered chunk; do not infer no read-ahead",
+        "Repeat with borrowed stdin versus explicitly cooperative owned VFS source; log next/return/acquire/release order",
+        "Missing-input and unsupported-argument controls must not acquire unrelated stdin; freeze exact admission points"
+      ],
+      "contractRelations": ["Normal readBytes early exit awaits available return; on aborted signal it observes return rejection without universally awaiting opaque return", "Command-owned cooperative cleanup must be registered before acquisition and also awaited by finally; borrowed iterator is not owned"],
+      "pending": ["Q1 which record is complete", "Q2 stopping rules", "Q4 delivered versus parsed input accounting"],
+      "observationRefs": []
+    },
+    {
+      "id": "F08",
+      "name": "Cancellation, disposal and settlement provenance",
+      "maxInvocations": 12,
+      "recipes": [
+        "Caller pre-abort and mid-read/mid-write abort with exact primitive and errno-shaped reasons",
+        "Local output close racing a caller abort and an actual escaping failure; never infer origin from equal reasons/status",
+        "Late admitted cooperative acquisition; overlapping finally, registered cleanup and repeated Shell.dispose share release completion",
+        "One cleanup fails while another remains gated; all start/drain before public settlement with primary failure preserved",
+        "Opaque losing next/write settles or rejects late; public settlement does not wait solely for it, rejection is observed",
+        "Direct host lacking registerCleanup is a separate limited finally-only control, not proof of Shell settlement"
+      ],
+      "contractRelations": ["Root caller cancellation wins; actual escaping errors are not reconstructed from mapped exit status", "No new acquisition after close; drain owned cooperative work, not opaque host execution; no rollback of completed effects"],
+      "pending": ["Q5 actual public binding and supported resource cooperation; no new hook assumed"],
+      "observationRefs": []
+    },
+    {
+      "id": "F09",
+      "name": "Destination ownership, backpressure and required output",
+      "maxInvocations": 8,
+      "recipes": [
+        "Gate each awaited stdout/file write; verify no unbounded pull or reuse before completed transient write",
+        "Close enrolled stdout while -o file and stderr remain independently rooted; file must not be cancelled merely by stdout closure",
+        "Close the required file destination itself during an admitted write; preserve partial bytes/failure rather than claim successful -o",
+        "Opaque unenrolled sink contrasted with ownedOutput; no empty-write probes or assumed child ownership from wrapping"
+      ],
+      "contractRelations": ["createOutputOperation registers before acquisition; close blocks admission and drains explicit children/cooperative resources", "stdout/file/stderr ownership is destination-specific; returned output alone cannot establish correct file effects"],
+      "pending": ["Q4 aggregate output reservation and limit diagnostics", "Q5 output error/status selection at public boundary"],
+      "observationRefs": ["07-headers-multi-csv", "17-select-delimiter-output", "20-select-ragged"]
+    },
+    {
+      "id": "F10",
+      "name": "Safe file workflows, identity and partial publication",
+      "maxInvocations": 16,
+      "recipes": [
+        "Positive: fresh output with actual wx; authoritative distinct existing file; borrowed stdin to a fresh output; assert exact file bytes and empty stdout",
+        "Negative: same normalized path, hardlink, followed symlink, unknown existing identity, borrowed stdin to existing output",
+        "Complete scoped tuple avoids compareEntry; missing tuple queries each distinct authority at most once; same/unknown/distinct/conflict/invalid/error controls",
+        "Known alias cannot be overwritten by a contrary comparison; propagate cancellation/auth/I/O errors before effects",
+        "Creator races missing-output preflight: exclusive create fails without truncating raced contents",
+        "Faithful wrapper preserves binding; changed backing/copy-up target needs its own authority; unequal clients/protocols/URLs are not distinctness",
+        "Output fails after a header or acknowledged chunk: retain exact partial file and source, no delete/rollback; missing parent/read-only/unsupported stream controls"
+      ],
+      "contractRelations": ["Use existing FileSystem capabilities, scoped identity and compareObservedEntries only; unknown is not safe", "Comparison is metadata-only before potentially eager content acquisition/destructive output", "Point-in-time authority is not a lease, ABA defense, transaction or authentication of hostile host JS"],
+      "pending": ["Q5 choose bounded cases/capable adapters and exact namespace/error bytes; no real-service acceptance from mocks"],
+      "observationRefs": ["07-headers-multi-csv", "17-select-delimiter-output"]
+    },
+    {
+      "id": "F11",
+      "name": "Logical caps at exact boundary and cumulative phases",
+      "maxInvocations": 24,
+      "recipes": [
+        "For each of seven counters generate counter target L-1,L,L+1 only after its unit is frozen: input/output 268435456, retained 33554432, record 8388608, cell 4194304, records 1000000, work 1000000000",
+        "Input: repeated small legal records plus independently calculated remainder; record: distribute raw syntax across cells below cell cap; cell: quoted/unquoted calibrated payload below record cap",
+        "Records: short distinct rows with explicit header/blank/skipped policy; output: duplicate selected cells/quoting overhead calibrated without exceeding other caps",
+        "Retained: owned header plus tail-ring cells plus declared metadata/staging occupancy; work: independently enumerated inspections/comparisons/copies, not input length as a proxy",
+        "Cumulative controls distribute consumption across header files, skipped records, selector resolution and output/diagnostics; no per-phase resets",
+        "Three parent-budget controls: parent smaller than family, concurrent destinations sharing parent, and interruption before local boundary"
+      ],
+      "contractRelations": ["Parent budget wins; cumulative counters cannot reset to evade cap; output is bounded rather than successful truncation", "Retained occupancy may fall on actual release; logical limits are not RSS/host-allocation claims"],
+      "pending": ["Q4 exact counter units, attainable isolation from other ceilings, hard defaults and diagnostics", "Default-scale expansion requires separate cost approval; unreachable isolated boundary must be reported, not relabeled a pass"],
+      "observationRefs": []
+    },
+    {
+      "id": "F12",
+      "name": "Native profiles, roundtrip and explicit unsupported features",
+      "maxInvocations": 12,
+      "recipes": [
+        "Cross comma-to-TAB and semicolon-to-comma using cells containing the destination delimiter, quote, LF and CR; compare independently declared logical cell vectors after approved reserialization",
+        "Same-comma redundant raw quotes versus normalized slice output: distinguish semantic preservation from byte equality; incomplete raw quotes remain pending",
+        "Invalid UTF-8 byte index selection separately from textual header display; no accidental replacement-character normalization",
+        "Representative unsupported count parallel/approx, select evaluate/evaluate-file and slice condition/byte/raw flags: explicit failure before expression/file effects; no help-stub acceptance"
+      ],
+      "contractRelations": ["Safe cross-delimiter reserialization is an explicit native byte deviation; roundtrip checks semantic cell equality, not unconditional native-byte equality", "Same-comma raw only if data-faithful under approved dialect; no common malformed/BOM/CR policy inferred"],
+      "pending": ["Q1 approved independent decoder/matrix and bytes", "Q3 unsupported grammar/status/error inventory"],
+      "observationRefs": ["17-select-delimiter-output", "18-select-raw-quotes", "19-select-invalid-utf8", "21-select-unterminated"]
+    }
+  ]
+}

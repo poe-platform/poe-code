@@ -1,0 +1,15 @@
+FINAL TREE COHORT — ROOT ROUTE, NO NEW FAILURE
+Candidate: 436bda3e21b2b6041409fac7408cf072b5d3fe5e.
+Run: /tmp/safe-bash-tree-final-436bda3-k1mKIO.
+Exactly 38 original selections once, 35 actual tree invocations, 7.840 seconds.
+Raw predicates: 31 pass, 1 fail (N16), 3 unsupported-not-pass (N09/N12/N19),
+3 characterized-not-pass (A24/A25/A26). No retries or native calls.
+N16 is the previously accepted explicit-rootlink nofollow profile difference;
+it remains a raw native failure, NOT parity. No source fix requested.
+N18 final v2 passes: status2, stdout0 bytes, stderr35 bytes, zero FS calls.
+Its status/text still differ from original native. Original regex failure,
+initial raw38, v1 run/HOLD and v2 offline-only history remain unchanged.
+No newly failing low-budget/FS/Shell/cancel assertion or source/import error.
+All original predicate logs: raw/<case>/stdout.txt and stderr.txt under run.
+No author changes authorized by this route. Full closure/native analysis and
+bounded standalone build-consumer evidence follow in final replay detail.

@@ -1,0 +1,141 @@
+{
+  "scope": "Explicit tool/child launch roles, not independent kernel descendant telemetry",
+  "calls": [
+    {
+      "id": 1,
+      "roles": [
+        "shell"
+      ],
+      "note": "Missing command lookups; no executable launched"
+    },
+    {
+      "id": 2,
+      "roles": [
+        "shell",
+        "git-log"
+      ]
+    },
+    {
+      "id": 3,
+      "roles": [
+        "shell",
+        "sed",
+        "git-root",
+        "git-status",
+        "sed",
+        "sed"
+      ]
+    },
+    {
+      "id": 4,
+      "roles": [
+        "shell"
+      ]
+    },
+    {
+      "id": 5,
+      "roles": [
+        "shell"
+      ]
+    },
+    {
+      "id": 6,
+      "roles": [
+        "shell",
+        "apply_patch",
+        "metadata-node"
+      ]
+    },
+    {
+      "id": 7,
+      "roles": [
+        "shell"
+      ]
+    },
+    {
+      "id": 8,
+      "roles": [
+        "shell",
+        "data-node"
+      ]
+    },
+    {
+      "id": 9,
+      "roles": [
+        "shell",
+        "apply_patch",
+        "patch-paths-node"
+      ]
+    },
+    {
+      "id": 10,
+      "roles": [
+        "shell",
+        "apply_patch"
+      ]
+    },
+    {
+      "id": 11,
+      "roles": [
+        "shell",
+        "apply_patch",
+        "seal-node",
+        "git-ls-tree",
+        "git-add",
+        "git-commit",
+        "git-log"
+      ]
+    },
+    {
+      "id": 12,
+      "roles": [
+        "shell",
+        "source-node",
+        "llvm-otool-metadata",
+        "llvm-otool-metadata",
+        "llvm-otool-metadata",
+        "llvm-otool-metadata",
+        "llvm-otool-metadata",
+        "llvm-otool-metadata",
+        "llvm-otool-metadata",
+        "llvm-otool-metadata",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch",
+        "patch"
+      ]
+    },
+    {
+      "id": 13,
+      "roles": [
+        "shell",
+        "apply_patch",
+        "inspect-build-node"
+      ]
+    },
+    {
+      "id": 14,
+      "roles": [
+        "shell",
+        "apply_patch",
+        "publish-node",
+        "git-add",
+        "git-commit",
+        "git-log"
+      ],
+      "disposition": "Publication sequence; Git retirement recorded by outer tool result"
+    }
+  ],
+  "totalRoles": 63
+}

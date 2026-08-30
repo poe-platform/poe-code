@@ -1,0 +1,46 @@
+{
+  "frozenAt": "2026-08-27T04:38:31.775Z",
+  "hashes": {
+    "cases.json": "956152bcc27f97af0111073f582e9ca0e74199c309ec406b71ca0c022190da75",
+    "native-controls.json": "6ea061845c931b1c69e5a9e1a434836ad6af9af37a3688cacad905ffc3fb2e26",
+    "intent.json": "dcda66b0affa72b2311291ab810b2ad8f0350a8683e92f3b95a9e0c8336683b5",
+    "freeze.mjs": "a93dce78b747074427a15de10d42485c606f380b520b0cbb5306c348e1b3d6f0"
+  },
+  "nativeArtifacts": {
+    "src/tac": "14f76420b6798d90c684ca9407ccde81881251ab9667fa16116f6b41567edea6",
+    "src/expand": "f19115d8c05e065d11cb0bfc7fb46470f00c815f8d44a6d2c3575bd8da4363b3",
+    "src/fold": "72ffc0170ff95860c249b1f721298d8ebf570fdf65125ad9943330cc68436113",
+    "src/tac.c": "dd86c9adf905d9dc81d828d90ecdf7425bf5faa660dd583bbd04ceaf7935226c",
+    "src/expand.c": "427af9d2d6266e29abc8860a908eaf21c9b19f2b9b4f8852ca79da0910403c3d",
+    "src/expand-common.c": "df7afcc5b870351dc11b2a96a839bd4253fcf7c06e3b8b791961c645734c5998",
+    "src/fold.c": "700f20df51dfbda8bb968ee2fe08151a212b4ac389aaf20fcb9d49da183b2038",
+    "doc/coreutils.texi": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+    "/usr/bin/expand": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78",
+    "/usr/bin/fold": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+    "/usr/bin/strings": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+    "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9"
+  },
+  "caseCounts": {
+    "tac": 18,
+    "expand": 24,
+    "fold": 23,
+    "strings": 20
+  },
+  "nativeExpected": 65,
+  "specExpected": 20,
+  "separateNativeControls": 48,
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "b4cde0bf2694c353222e21ebd8f49eeae329401e",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/tmp/safe-bash-stream-verifier-20260827-A/freeze.mjs"
+  ],
+  "notes": "Native fixtures are private generated input artifacts, not executable binaries; controls are not additional product passes."
+}

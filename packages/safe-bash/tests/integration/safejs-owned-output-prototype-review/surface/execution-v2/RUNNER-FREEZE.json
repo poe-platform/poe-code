@@ -1,0 +1,74 @@
+{
+  "at": "2026-08-27T16:19:10.228Z",
+  "version": 2,
+  "phase": "FROZEN_BEFORE_FIRST_GUEST",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7178,
+      "sha256": "357c8ecacfeadd00f4a18d6a22254c7064ea25bbe7cd028bbc4dc5b13a4da417"
+    },
+    {
+      "path": "RELEASE.json",
+      "bytes": 3926,
+      "sha256": "090e505c75e6fa67139f2ce51f089c9b4d6b95efc761bb354d357e03bc683224"
+    },
+    {
+      "path": "DELTA.json",
+      "bytes": 6993,
+      "sha256": "13662fa57f4afdb3c3947df78e124a1002ab8e733fbcf97b306028b922c92ea5"
+    },
+    {
+      "path": "child.mjs",
+      "bytes": 13365,
+      "sha256": "358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 23289,
+      "sha256": "ed685056bfb0895406cb6a366a238010e85c2623ce4786ed977d1bccac0ed60a"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 33087,
+      "sha256": "c0849f349888c4ab8c3c8be6741136f37bfa34bcd831eee004e757b4b57dd535"
+    },
+    {
+      "path": "PINS.json",
+      "bytes": 28218,
+      "sha256": "b8f437199991fd6afda5ba63da4cde9b29d9b3217164e3bbd90969b3c8da7992"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 3806,
+      "sha256": "97506ec3a663f784b0ce7f0f8d64479b68948a1ff9b39743b959d9e4d2957c75"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 4256,
+      "sha256": "b04f5074889e9a95a2a7a851be30313782d923e02f78a4902643b80f91ff32bc"
+    },
+    {
+      "path": "preflight.json",
+      "bytes": 7876,
+      "sha256": "1616a9c34d8efb246ea23154ba20b3b3c841bbf3b846e1523e360e396bcb955b"
+    }
+  ],
+  "inputCommit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+  "proposalCommit": "d8bb351619c2b14a8d633dfea5f670b8f8adabcf",
+  "signedReview": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+  "guestExecutionsAtFreeze": 0,
+  "productImportsAtFreeze": 0,
+  "privateEngineImportsAtFreeze": 0,
+  "unconditionalCases": 8,
+  "conditionalCases": 1,
+  "finiteHostControls": {
+    "executed": 9,
+    "pass": 9,
+    "notGuestOrEngineAcceptance": true
+  },
+  "unchangedGuestSources": true,
+  "onlyExpectedDataChange": "/cases/7/expected/engine",
+  "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "noPromotion": true
+}

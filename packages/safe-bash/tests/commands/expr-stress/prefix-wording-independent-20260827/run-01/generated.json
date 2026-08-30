@@ -1,0 +1,42 @@
+[
+  {
+    "path": "dist",
+    "directory": true
+  },
+  {
+    "path": "dist/commands",
+    "directory": true
+  },
+  {
+    "path": "dist/commands/expr",
+    "directory": true
+  },
+  {
+    "path": "dist/commands/expr/bre-worker.js",
+    "bytes": 19115,
+    "sha256": "97fbd2e05912c8a79deef4c716245a57b18570bbc4f42c8ad3d771369c6fd05a"
+  },
+  {
+    "path": "dist/commands/regex-execution",
+    "directory": true
+  },
+  {
+    "path": "dist/commands/regex-execution/matching.js",
+    "bytes": 13242,
+    "sha256": "86a0781e8894d186da409392fb6bed14c236f6e5956bbb8573f0adde484e8ab8"
+  },
+  {
+    "path": "dist/commands/regex-execution/protocol.js",
+    "bytes": 7833,
+    "sha256": "2b0328d3859c7a952659655b3395356e949a5b40427ab08ea3ac628fa0fee76f"
+  },
+  {
+    "path": "dist/commands/regex-execution/worker.js",
+    "bytes": 1947,
+    "sha256": "8ed5024cc4da3e39b68ee14d49e8954ac8d92687989b27e047df950072d99748"
+  },
+  {
+    "path": "node_modules",
+    "link": "/Users/kjopek/Workspace/safe-bash/node_modules"
+  }
+]

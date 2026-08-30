@@ -1,0 +1,35 @@
+{
+  "name": "approved-s3-permission-policy",
+  "sourceStability": {
+    "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+    "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "stable": true
+  },
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/stress/adapters/s3-permission-profile/revised-policy.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:50:44.219Z",
+  "finishedAt": "2026-08-27T01:50:44.388Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 7,
+    "pass": 7,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "58f087149ffbc5f36d2eb80adc61067898f11fab9c9aabd96322ca7f81fdcfb8",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "INSTALLED_MOVED-valid",
+  "families": [
+    "F01",
+    "F08",
+    "F12"
+  ],
+  "observation": {
+    "returned": {
+      "reaped": true,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "stdout": "VALID_CONTROL_FIRST\n{\"status\":\"RETURNED\",\"result\":{\"valid\":true}}\n"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

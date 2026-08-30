@@ -1,0 +1,156 @@
+{
+  "classification": "ARTIFACT_ONLY_RESULT_SEAL_NO_RUNTIME_ACCEPTANCE",
+  "date": "2026-08-28",
+  "presealCommit": "d0cef1b50793afa074eedc03ebf6fd2e5782a78d",
+  "presealSha256": "9371dfa6593a41cbf27fbfe2ccf0f5a7ce5d205ca7ea5506dd684d5c131a0ba9",
+  "entries": [
+    {
+      "path": "attempt-1/RAW-DECISIONS.json",
+      "bytes": 289455,
+      "sha256": "0d0d2f2e73f01c7d7477e32a6817cce620358a935d2539e2bf4577732ee2b6c3",
+      "blob": "7262df99a47e17de02ebf9333cb4c598b207335f"
+    },
+    {
+      "path": "attempt-1/RESULT.json",
+      "bytes": 144120,
+      "sha256": "02ecf9339891aaa333eb129348f3090b68721a5ea9ecfe453d00521accf49eb1",
+      "blob": "c1fc7841ba628ccf780065967ffd6a7c32f7f036"
+    },
+    {
+      "path": "attempt-1/START.json",
+      "bytes": 253,
+      "sha256": "e7f5a9096c3a2887064436a42564ca2b451fbcfe10bfa777e5da50683fac2dd5",
+      "blob": "6a807e736706f8dd7af9a6cc8f293d5ab243c5a1"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 251887,
+      "sha256": "1c035666d61135df12d50ab3be2bf942b0389861e04fbe301ce3927eb2669053",
+      "blob": "2db2818a2fb2e7f1cbaa03651c92899b5ea6ee03"
+    },
+    {
+      "path": "DATA.json",
+      "bytes": 402507,
+      "sha256": "33b37d8780964ca1cbe2b29eb87a0735e194eaa7c630c8d0b2adde4104be3dc1",
+      "blob": "4dc6bc448f725f323723d6cc3eefb87613b8a0ea"
+    },
+    {
+      "path": "F11-ASSESSMENT.json",
+      "bytes": 21972,
+      "sha256": "505fa58e6bf7b75510a0c2fad0a529f60e744fb7eb1960c5844af62b0da24c26",
+      "blob": "77f64f92eb8d6f0ae50a7b0d6123717a4efd3810"
+    },
+    {
+      "path": "F11.md",
+      "bytes": 3830,
+      "sha256": "7c75112186c1bb1a4c4581ff3d796fd17fa246ebaaa26f8d06813efc39d5a68c",
+      "blob": "ac56f65e4640544d4eaf5c3eb3d078d46787e1ea"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 4371,
+      "sha256": "a6fd93af29c6ac65eaf4f747d9271692472fabe1cac1ce55e7fbbe3e3727d239",
+      "blob": "be75a05d3fa598054a80f957de78d7ffd9642e33"
+    },
+    {
+      "path": "MATRIX.md",
+      "bytes": 4657,
+      "sha256": "523deefaea0b24df64f7cfc540034761116b887d8443170a7b5a948fa263ef57",
+      "blob": "44db9d7e81accec4603094bc71c5eb4a03ac0a16"
+    },
+    {
+      "path": "PRE-SEAL.json",
+      "bytes": 7668,
+      "sha256": "9371dfa6593a41cbf27fbfe2ccf0f5a7ce5d205ca7ea5506dd684d5c131a0ba9",
+      "blob": "0af7b3efc5f7cbbf5427b2c2112f438808abd589"
+    },
+    {
+      "path": "predicate.mjs",
+      "bytes": 6629,
+      "sha256": "e9fc333b1609db13fa88e5e107f44acd6de779f08ec13a336857cd5540e47e9e",
+      "blob": "483feef741571d3c2707acd0c502ea5f98da6fae"
+    },
+    {
+      "path": "prepare-data.mjs",
+      "bytes": 24718,
+      "sha256": "950a759b6f14631185226ab546051be78a1512962ac99cae95fec7ccba269029",
+      "blob": "c2e644d47ae50ccf3e686d41b32a2ab585d01948"
+    },
+    {
+      "path": "PROFILE.md",
+      "bytes": 4188,
+      "sha256": "16daa5ce69095f70d9787e06ac4ea6b5933ebc2aca75bc3fe27f736f3cff2b19",
+      "blob": "dbc7c5c654c730fe68d4ac9174cdafb2a0d6bf59"
+    },
+    {
+      "path": "qualify-data.mjs",
+      "bytes": 4500,
+      "sha256": "a9d35bf69ec2d08b579cf601f789233990d7df41a51e5810dfe7c22350dd43c8",
+      "blob": "96d2d21d300bd833d597b6b7ce4a032e98e60377"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4414,
+      "sha256": "636ce623e041b3fa6e5d49c79710ca4485f478bd00f4407f56b2fa02ad2d6af7",
+      "blob": "8cb7c6a670d737b74bd3ea88acf00977f1ee04f2"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6975,
+      "sha256": "064eb94685f4b10c5bc97f0e5c96f5185a9526d6dcffc83591e5e871527f86ed",
+      "blob": "0f87621eef972929ac291c6f730ca1cea6dd82d5"
+    },
+    {
+      "path": "SAFETY.md",
+      "bytes": 2997,
+      "sha256": "c92ff2159e4a0cdabe7a4c479dcdae6c45d2d7f6469c9f21d3b038b5c66cb8b9",
+      "blob": "94c01c62dad5e3c36ea784012382fa45d272b9e1"
+    },
+    {
+      "path": "SOURCE-FINDINGS.json",
+      "bytes": 7074,
+      "sha256": "84973a2a200ac11b4d199f55fd8df9f5981f80ef1f347afaf5eb1d90b7034a7c",
+      "blob": "aeb02781ca4af51a5d68694d2e0b133f6dce0c48"
+    },
+    {
+      "path": "SOURCE-FINDINGS.md",
+      "bytes": 4233,
+      "sha256": "3796b76d94b8973e3833d8b606ff59e8ed886eb847f245b2450ae47700bd54ee",
+      "blob": "aca4b45e3a983908b1dd9d12c8387c03438db03f"
+    },
+    {
+      "path": "STILL-UNQUALIFIED.json",
+      "bytes": 648157,
+      "sha256": "e7c1f06834ac941da9c8ab5ec1555bb728dac3ae94e976a9f6088594b7a1b748",
+      "blob": "7e7d8e0c748192a7bc90c01a15576b33a08b86f3"
+    }
+  ],
+  "excludesOnly": [
+    "RESULT-SEAL.json"
+  ],
+  "appendAware": true,
+  "externalInputCheck": "Listed authenticated artifact paths only, not append-proof external tree",
+  "counts": {
+    "existingDiagnosticChecks": 30,
+    "syntheticControls": 976,
+    "syntheticPositive": 50,
+    "syntheticNegative": 926,
+    "separatelyRetainedGuardReceipts": 14,
+    "f11ArtifactAssessments": 4,
+    "diagnosisRows": 195,
+    "obligations": 161,
+    "newProductCases": 0
+  },
+  "correctDecisions": 1006,
+  "failedAssertions": [],
+  "attempts": 1,
+  "retries": 0,
+  "newProductExecutions": 0,
+  "oldControlsRerun": 0,
+  "held": {
+    "directCases": 11,
+    "maximumInvocations": 22,
+    "sourceFindingObservations": 28
+  },
+  "selfBinding": "Git blob and explicit owned-path delivery commit, no circular hash"
+}

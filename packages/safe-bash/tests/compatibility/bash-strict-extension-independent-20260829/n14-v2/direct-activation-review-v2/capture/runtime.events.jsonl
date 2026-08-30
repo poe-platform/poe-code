@@ -1,0 +1,4 @@
+{"event":"outer-entered","pid":97810,"at":1788001837089}
+{"event":"child-spawn","pid":97812,"at":1788001837092}
+{"event":"outer-finalizing","record":{"owner":97810,"ownerEnteredAt":1788001837089,"exit":true,"close":true,"signals":[],"childAcquisitionAt":1788001837090,"child":97812,"childSpawnAt":1788001837092,"childExitAt":1788001837152,"status":0,"signal":null,"childCloseAt":1788001837152,"stdoutBytes":683,"stderrBytes":0,"finalizingAt":1788001837161},"at":1788001837161}
+{"event":"outer-exit","pid":97810,"code":0,"at":1788001837163}

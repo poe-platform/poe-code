@@ -1,0 +1,1715 @@
+{
+  "schema": "expr-r21-n04-readonly/1",
+  "authorizationDate": "2026-08-28",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "originalR21": {
+    "id": "R21",
+    "kind": "expression",
+    "args": [
+      "bad\u0000arg"
+    ],
+    "exitCode": 2,
+    "stdout": "",
+    "diagnostic": "expr-single-line",
+    "variants": [
+      {
+        "args": [
+          "\ud800"
+        ],
+        "exitCode": 2,
+        "stdout": "",
+        "diagnostic": "expr-single-line"
+      }
+    ]
+  },
+  "pathTrace": [
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+      "gitBlob": "b826b1f3d8cb8a0f3703c949bda5003cce06f326",
+      "excerpts": [
+        {
+          "start": 594,
+          "end": 611,
+          "lines": [
+            "      const diagnostic = error instanceof ExecutionFailure ? error.diagnostic : undefined;",
+            "      if (error instanceof ExecutionFailure) { io = error.io; error = error.original; }",
+            "      this.signal.throwIfAborted();",
+            "      if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;",
+            "      if (error instanceof HereDocumentSyntaxError) {",
+            "        await writeText(io.stderr, error.diagnostic);",
+            "        this.errexit(1, state, io);",
+            "        return 1;",
+            "      }",
+            "      if (errorCode(error) === \"EPIPE\") { this.errexit(141, state, io); return 141; }",
+            "      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;",
+            "      try { await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${diagnostic ?? message(error)}\\n`); }",
+            "      catch { this.signal.throwIfAborted(); }",
+            "      if (error instanceof ExpansionFailure) throw new Flow(\"exit\", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);",
+            "      if (error instanceof FatalCommandFailure) throw new Flow(\"exit\", error.status);",
+            "      const status = error instanceof CommandFailure ? error.status : 1;",
+            "      this.errexit(status, state, io);",
+            "      return status;"
+          ]
+        },
+        {
+          "start": 939,
+          "end": 956,
+          "lines": [
+            "          if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail(\"maxSubstitutionDepth\");",
+            "          const positional = state.positional;",
+            "          const positionalSetVersion = state.positionalSetVersion ?? 0;",
+            "          const getoptsEntry = cloneGetoptsBinding(state);",
+            "          state.positional = [...context.args];",
+            "          state.functionDepth++;",
+            "          state.depth++;",
+            "          const locals = new Map<string, SavedVariable>();",
+            "          state.locals.push(locals);",
+            "          try { return { exitCode: await this.command(body, state, { ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? \"shell\" }) }; }",
+            "          catch (error) {",
+            "            if (error instanceof Flow && error.kind === \"return\") return { exitCode: error.status };",
+            "            throw error;",
+            "          } finally {",
+            "            state.positional = positional;",
+            "            state.positionalSetVersion = positionalSetVersion;",
+            "            state.functionDepth--;",
+            "            state.depth--;"
+          ]
+        },
+        {
+          "start": 981,
+          "end": 995,
+          "lines": [
+            "        if (!definition) {",
+            "          if (context.command === \"bash\" || context.command === \"sh\") return { exitCode: await this.interpreter(context, state, io) };",
+            "          if (context.command.includes(\"/\") || state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };",
+            "          const target = await this.searchPath(context.command, state);",
+            "          if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };",
+            "          await this.diagnostic({ ...io, ...context }, `${context.command}: command not found`);",
+            "          return { exitCode: 127 };",
+            "        }",
+            "        return await definition.execute(forwarded);",
+            "      } finally {",
+            "        if (context.command !== \"cd\" && state.cwd === context.cwd) state.cwd = cwd;",
+            "        for (const [key, saved] of previous) {",
+            "          if (state.variables[key] !== saved.overlay) continue;",
+            "          restoreVariable(state, key, saved);",
+            "        }"
+          ]
+        },
+        {
+          "start": 1545,
+          "end": 1605,
+          "lines": [
+            "    if (args.length) state.positional = args;",
+            "    state.sourceDepth = (state.sourceDepth ?? 0) + 1;",
+            "    state.depth++;",
+            "    try {",
+            "      return await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1 }, special);",
+            "    } catch (error) {",
+            "      if (error instanceof Flow && error.kind === \"return\") return error.status;",
+            "      throw error;",
+            "    } finally {",
+            "      state.depth--;",
+            "      state.sourceDepth--;",
+            "      if (args.length && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {",
+            "        state.positional = positional;",
+            "        state.positionalSetVersion = version;",
+            "      }",
+            "    }",
+            "  }",
+            "",
+            "  async invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State, parent: InvocationScope): Promise<{ exitCode: number }> {",
+            "    const scope = parent.child();",
+            "    const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal);",
+            "    try { return await runtime.invokeScoped(name, args, options, context, state, scope); }",
+            "    finally { await scope.close(); }",
+            "  }",
+            "",
+            "  private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {",
+            "    this.signal.throwIfAborted();",
+            "    if (typeof name !== \"string\" || name.includes(\"\\0\") || !Array.isArray(args) || args.some((arg) => typeof arg !== \"string\" || arg.includes(\"\\0\"))) throw new TypeError(\"invoke requires a command and literal string arguments without NUL\");",
+            "    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail(\"maxSubstitutionDepth\");",
+            "    const child = cloneState(state);",
+            "    child.cwd = resolvePath(context.cwd, options.cwd ?? \".\");",
+            "    for (const key of child.exported) delete child.variables[key];",
+            "    const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };",
+            "    for (const [key, value] of Object.entries(env)) {",
+            "      if (key.includes(\"\\0\") || key.includes(\"=\") || typeof value !== \"string\" || value.includes(\"\\0\")) throw new TypeError(\"Invalid invoke environment entry\");",
+            "      child.variables[key] = value;",
+            "    }",
+            "    child.exported = new Set(Object.keys(env));",
+            "    this.reconcileGetopts(child, state.variables.OPTIND);",
+            "    child.depth++;",
+            "    child.loopDepth = 0;",
+            "    child.functionDepth = 0;",
+            "    child.sourceDepth = 0;",
+            "    child.locals = [];",
+            "    const input = options.stdin === undefined ? undefined : new ShellInput(options.stdin, this.budget, this.signal);",
+            "    const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);",
+            "    const io = {",
+            "      ...context,",
+            "      [invocationScope]: scope,",
+            "      stdin: input ?? context.stdin,",
+            "      ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),",
+            "      stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,",
+            "      stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,",
+            "    };",
+            "    const command: Command = {",
+            "      kind: \"simple\", redirects: [],",
+            "      words: [name, ...args].map((value) => ({ offset: 0, parts: [{ kind: \"text\", value, quoted: true }] })),",
+            "    };",
+            "    try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }",
+            "    finally { await input?.close(); }",
+            "  }"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/commands/expr/index.ts",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "gitBlob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "excerpts": [
+        {
+          "start": 12,
+          "end": 26,
+          "lines": [
+            "export function createExprCommand(options: ExprCommandsOptions = {}): CommandDefinition {",
+            "  const limits = settings(options);",
+            "  const executor = new RegexExecutor(options.regex);",
+            "  return { name: \"expr\", description: \"Evaluate bounded integer and string expressions\", async execute(context) {",
+            "    return withRegexSession(context, executor, async session => {",
+            "      context.signal.throwIfAborted();",
+            "      const budget = new Budget(context, limits);",
+            "      let output: Uint8Array;",
+            "      let exitCode = 0;",
+            "      try {",
+            "        budget.arguments();",
+            "        if (context.args.length === 1 && [\"--help\", \"--version\"].includes(context.args[0]!)) {",
+            "          const text = context.args[0] === \"--help\" ? help : \"expr (virtual-bash)\\n\";",
+            "          budget.check(Buffer.byteLength(text), limits.maxOutputBytes, \"output bytes\");",
+            "          output = budget.encode(text);"
+          ]
+        },
+        {
+          "start": 57,
+          "end": 79,
+          "lines": [
+            "        context.signal.throwIfAborted();",
+            "        const message = error instanceof ExprError || error instanceof ExprMatchError || error instanceof RegexExecutionError ? error.message : \"execution or output failure\";",
+            "        try {",
+            "          budget.check(message.length + 7, limits.maxOutputBytes, \"output bytes\");",
+            "          budget.check(Buffer.byteLength(message) + 7, limits.maxOutputBytes, \"output bytes\");",
+            "        } catch {",
+            "          await writeBytes(context.stderr, new TextEncoder().encode(\"expr: output bytes limit exceeded\\n\"), context.signal);",
+            "          return { exitCode: 3 };",
+            "        }",
+            "        await writeBytes(context.stderr, new TextEncoder().encode(`expr: ${message}\\n`), context.signal);",
+            "        return { exitCode: error instanceof ExprError ? error.exitCode : error instanceof ExprMatchError && error.category !== \"limit\" ? 2 : 3 };",
+            "      }",
+            "      await writeBytes(context.stdout, output, context.signal);",
+            "      return { exitCode };",
+            "    });",
+            "  } };",
+            "}",
+            "",
+            "export function createExprCommands(options: ExprCommandsOptions = {}): readonly CommandDefinition[] {",
+            "  return [createExprCommand(options)];",
+            "}",
+            "",
+            "export function exprCommands(options: ExprCommandsOptions = {}): VirtualShellPlugin {"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "gitBlob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "excerpts": [
+        {
+          "start": 1,
+          "end": 42,
+          "lines": [
+            "import type { CommandContext } from \"../../contracts/index.js\";",
+            "import type { RegexExecutionOptions } from \"../regex-execution/client.js\";",
+            "import { exprMatchCeilings } from \"../regex-execution/protocol.js\";",
+            "",
+            "export interface ExprLimits {",
+            "  readonly maxArgumentBytes: number;",
+            "  readonly maxNumericDigits: number;",
+            "  readonly maxNodes: number;",
+            "  readonly maxDepth: number;",
+            "  readonly maxSteps: number;",
+            "  readonly maxStringBytes: number;",
+            "  readonly maxOutputBytes: number;",
+            "  readonly maxRegexPatternBytes: number;",
+            "  readonly maxRegexNodes: number;",
+            "  readonly maxRegexDepth: number;",
+            "  readonly maxRegexStates: number;",
+            "  readonly maxRegexAllocatedUnits: number;",
+            "}",
+            "",
+            "export interface ExprCommandsOptions {",
+            "  readonly replace?: boolean;",
+            "  readonly limits?: Partial<ExprLimits>;",
+            "  readonly regex?: RegexExecutionOptions;",
+            "}",
+            "",
+            "export class ExprError extends Error {",
+            "  constructor(message: string, readonly exitCode: 2 | 3 = 2) { super(message); }",
+            "}",
+            "",
+            "export function settings(options: ExprCommandsOptions): ExprLimits {",
+            "  const limits = {",
+            "    maxArgumentBytes: 65_536, maxNumericDigits: 1024, maxNodes: 4096,",
+            "    maxDepth: 128, maxSteps: 8_000_000, maxStringBytes: 65_536,",
+            "    maxOutputBytes: 65_537, maxRegexPatternBytes: 8192, maxRegexNodes: 4096,",
+            "    maxRegexDepth: 64, maxRegexStates: 16_384, maxRegexAllocatedUnits: 1_000_000, ...options.limits,",
+            "  };",
+            "  for (const [name, value] of Object.entries(limits)) {",
+            "    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid expr limit: ${name}`);",
+            "  }",
+            "  if (limits.maxDepth > 256) throw new RangeError(\"expr maxDepth must not exceed 256\");",
+            "  for (const [key, maximum] of [",
+            "    [\"maxRegexPatternBytes\", exprMatchCeilings.maxPatternBytes], [\"maxRegexNodes\", exprMatchCeilings.maxNodes],"
+          ]
+        },
+        {
+          "start": 72,
+          "end": 93,
+          "lines": [
+            "    this.charge(size);",
+            "  }",
+            "  arguments(): void {",
+            "    this.check(this.context.args.length, this.limits.maxNodes * 4, \"argument count\");",
+            "    let total = 0;",
+            "    for (const argument of this.context.args) {",
+            "      this.charge();",
+            "      this.check(argument.length, this.limits.maxArgumentBytes - total, \"aggregate argument bytes\");",
+            "      total += Buffer.byteLength(argument);",
+            "      this.check(total, this.limits.maxArgumentBytes, \"aggregate argument bytes\");",
+            "      this.charge(argument.length);",
+            "      if (argument.includes(\"\\0\")) throw new ExprError(\"NUL is not supported in argv\");",
+            "      for (let offset = 0; offset < argument.length; offset++) {",
+            "        const unit = argument.charCodeAt(offset);",
+            "        if (unit >= 0xd800 && unit <= 0xdbff) {",
+            "          const next = argument.charCodeAt(++offset);",
+            "          if (!(next >= 0xdc00 && next <= 0xdfff)) throw new ExprError(\"argv must contain well-formed Unicode\");",
+            "        } else if (unit >= 0xdc00 && unit <= 0xdfff) throw new ExprError(\"argv must contain well-formed Unicode\");",
+            "      }",
+            "    }",
+            "  }",
+            "  encode(text: string): Uint8Array {"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "src/commands/expr/README.md",
+      "sha256": "b2f840d827573709df3cd6a8f900a07e2ce1d391a4c7185700e7a329c105f482",
+      "gitBlob": "6778b9e71ec49bc318568ad2fb32ba066456ba76",
+      "excerpts": [
+        {
+          "start": 109,
+          "end": 119,
+          "lines": [
+            "the pinned GNU 9.7 controls rather than generic Unix flag parsing.",
+            "",
+            "## Bytes and Unicode",
+            "",
+            "Argv is JavaScript string data. NUL and lone UTF-16 surrogates are rejected with",
+            "status 2 instead of silently replacing/truncating information. Valid argv is",
+            "encoded as UTF-8. Intermediate/result values are bytes: C-locale `substr é 1 1`",
+            "returns byte `c3` followed by LF, without replacement decoding.",
+            "",
+            "- The first nonempty `LC_ALL`, `LC_CTYPE`, then `LANG`, default virtual `C`,",
+            "  selects character behavior. Empty values fall through; whitespace does not."
+          ]
+        }
+      ]
+    }
+  ],
+  "N04": {
+    "verified": true,
+    "fullMessage": "Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+    "rows": [
+      {
+        "layout": "installed-node22",
+        "id": "N04",
+        "receipt": {
+          "name": "installed-node22-type-N04",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+            "-p",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node22-N04.json",
+            "--pretty",
+            "false"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer",
+          "environment": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+            "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "bindings": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/transport.mjs",
+              "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/common.mjs",
+              "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+              "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/lib/_tsc.js",
+              "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node22-N04.json",
+              "sha256": "52eed97eedaab37364bca1beb1daf0f7d7b7bcfb04488fea598ffca59edd1499"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node22-N04.ts",
+              "sha256": "b3a21e43dda91bb940a886db7931ca2bc24c36b21ea3fb823d9556153c6006ac"
+            }
+          ],
+          "pid": 41585,
+          "startedAt": "2026-08-28T02:27:09.864Z",
+          "durationMs": 576,
+          "status": 2,
+          "signal": null,
+          "closed": true,
+          "supervision": null,
+          "class": "ordinary",
+          "naturalSettlement": true,
+          "observedBytes": 202,
+          "capturedBytes": 202,
+          "previewBytes": 202,
+          "previewTruncated": false,
+          "artifactCompleteness": "full-observed-child-streams",
+          "producerCompletedNaturally": true,
+          "stdout": "installed-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\n",
+          "stderr": "",
+          "output": {
+            "stdout": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node22-type-N04.stdout.raw",
+              "bytes": 202,
+              "observedBytes": 202,
+              "sha256": "f29103ce4415cbb0ad6c3443026e4105406974fbfb3f50672a8cce5596d2d73c"
+            },
+            "stderr": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node22-type-N04.stderr.raw",
+              "bytes": 0,
+              "observedBytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "limits": {
+            "preview": 1048576,
+            "trace": 67108864,
+            "chunk": 65536,
+            "line": 131072,
+            "diagnostics": 256,
+            "diagnosticBytes": 262144,
+            "reapMs": 5000
+          },
+          "durableBeforeAssertions": true
+        },
+        "stdout": "installed-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\n",
+        "stderr": "",
+        "diagnostics": [
+          "installed-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+        ],
+        "inputSha256": "b3a21e43dda91bb940a886db7931ca2bc24c36b21ea3fb823d9556153c6006ac",
+        "resolutions": [
+          "======== Module name 'virtual-bash' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.d.ts' with Package ID 'virtual-bash/dist/index.d.ts@0.0.0'. ========",
+          "======== Module name 'virtual-bash/commands/expr' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts' with Package ID 'virtual-bash/dist/commands/expr/index.d.ts@0.0.0'. ========"
+        ],
+        "declarations": [
+          {
+            "path": "node_modules/virtual-bash/dist/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 1585,
+            "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249"
+          },
+          {
+            "path": "node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 542,
+            "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+          }
+        ],
+        "rawBindings": [
+          {
+            "path": "installed-node22-type-N04.json",
+            "mode": 420,
+            "bytes": 4628,
+            "sha256": "5e262ef855141b184e02b38308748028d58151ea8328460055bcb5993f5043e0"
+          },
+          {
+            "path": "installed-node22-type-N04.stdout.raw",
+            "mode": 420,
+            "bytes": 202,
+            "sha256": "f29103ce4415cbb0ad6c3443026e4105406974fbfb3f50672a8cce5596d2d73c"
+          },
+          {
+            "path": "installed-node22-type-N04.stderr.raw",
+            "mode": 420,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "installed-node22-type-N04-input-before.json",
+            "mode": 420,
+            "bytes": 192953,
+            "sha256": "5a40e3813da0d4f154a8bbe88c552db370dd072370bab95c8f4c18e155dc400b"
+          },
+          {
+            "path": "installed-node22-type-positive.json",
+            "mode": 420,
+            "bytes": 1060267,
+            "sha256": "bd36dbc07516cb842389ebcee5676d5e9d25b71556b4b31b7f3e3bbaa4df25bd"
+          },
+          {
+            "path": "installed-node22-type-positive.stdout.raw",
+            "mode": 420,
+            "bytes": 1361501,
+            "sha256": "112a0845e8e5797d95168aecbdaeef3f44ac4fe1df216c65de291c25bb7a44e8"
+          },
+          {
+            "path": "installed-node22-type-positive-input-before.json",
+            "mode": 420,
+            "bytes": 191282,
+            "sha256": "dd33a4fa1a716a912fd36e39c05a7b1324ba4afad31d675dc2239cbb72299dfe"
+          }
+        ]
+      },
+      {
+        "layout": "installed-node22",
+        "id": "combined",
+        "receipt": {
+          "name": "installed-node22-type-combined",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+            "-p",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node22-combined.json",
+            "--pretty",
+            "false"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer",
+          "environment": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+            "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "bindings": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/transport.mjs",
+              "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/common.mjs",
+              "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+              "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/lib/_tsc.js",
+              "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node22-combined.json",
+              "sha256": "89a144f32f17ccb5d805c346ea13505beeceb469eba68aa662551cf918efa1bd"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node22-combined.ts",
+              "sha256": "edf9aeed880eef01112e0e1289536ad09f5872f3bde976914749224ac71ef656"
+            }
+          ],
+          "pid": 41605,
+          "startedAt": "2026-08-28T02:27:12.198Z",
+          "durationMs": 582,
+          "status": 2,
+          "signal": null,
+          "closed": true,
+          "supervision": null,
+          "class": "ordinary",
+          "naturalSettlement": true,
+          "observedBytes": 894,
+          "capturedBytes": 894,
+          "previewBytes": 894,
+          "previewTruncated": false,
+          "artifactCompleteness": "full-observed-child-streams",
+          "producerCompletedNaturally": true,
+          "stdout": "installed-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\ninstalled-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\ninstalled-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.\ninstalled-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\ninstalled-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.\ninstalled-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.\n",
+          "stderr": "",
+          "output": {
+            "stdout": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node22-type-combined.stdout.raw",
+              "bytes": 894,
+              "observedBytes": 894,
+              "sha256": "2f7f442cc92c38c34d4304e5786af67a643584d9ddea999a9016ee2069a0f234"
+            },
+            "stderr": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node22-type-combined.stderr.raw",
+              "bytes": 0,
+              "observedBytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "limits": {
+            "preview": 1048576,
+            "trace": 67108864,
+            "chunk": 65536,
+            "line": 131072,
+            "diagnostics": 256,
+            "diagnosticBytes": 262144,
+            "reapMs": 5000
+          },
+          "durableBeforeAssertions": true
+        },
+        "stdout": "installed-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\ninstalled-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\ninstalled-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.\ninstalled-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\ninstalled-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.\ninstalled-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.\n",
+        "stderr": "",
+        "diagnostics": [
+          "installed-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+          "installed-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+          "installed-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+          "installed-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+          "installed-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+          "installed-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+        ],
+        "inputSha256": "edf9aeed880eef01112e0e1289536ad09f5872f3bde976914749224ac71ef656",
+        "resolutions": [
+          "======== Module name 'virtual-bash' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.d.ts' with Package ID 'virtual-bash/dist/index.d.ts@0.0.0'. ========",
+          "======== Module name 'virtual-bash/commands/expr' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts' with Package ID 'virtual-bash/dist/commands/expr/index.d.ts@0.0.0'. ========"
+        ],
+        "declarations": [
+          {
+            "path": "node_modules/virtual-bash/dist/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 1585,
+            "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249"
+          },
+          {
+            "path": "node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 542,
+            "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+          }
+        ],
+        "rawBindings": [
+          {
+            "path": "installed-node22-type-combined.json",
+            "mode": 420,
+            "bytes": 5363,
+            "sha256": "d657fe8a7eba341a5a3abdedad2abae40b644f5dc26e1ba87df8bb54a52e6d7b"
+          },
+          {
+            "path": "installed-node22-type-combined.stdout.raw",
+            "mode": 420,
+            "bytes": 894,
+            "sha256": "2f7f442cc92c38c34d4304e5786af67a643584d9ddea999a9016ee2069a0f234"
+          },
+          {
+            "path": "installed-node22-type-combined.stderr.raw",
+            "mode": 420,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "installed-node22-type-combined-input-before.json",
+            "mode": 420,
+            "bytes": 194073,
+            "sha256": "69f0bd965414e2a509ae741fdc33e717536bee2fa7f4a97e5af6ab5a0d865ccf"
+          },
+          {
+            "path": "installed-node22-type-positive.json",
+            "mode": 420,
+            "bytes": 1060267,
+            "sha256": "bd36dbc07516cb842389ebcee5676d5e9d25b71556b4b31b7f3e3bbaa4df25bd"
+          },
+          {
+            "path": "installed-node22-type-positive.stdout.raw",
+            "mode": 420,
+            "bytes": 1361501,
+            "sha256": "112a0845e8e5797d95168aecbdaeef3f44ac4fe1df216c65de291c25bb7a44e8"
+          },
+          {
+            "path": "installed-node22-type-positive-input-before.json",
+            "mode": 420,
+            "bytes": 191282,
+            "sha256": "dd33a4fa1a716a912fd36e39c05a7b1324ba4afad31d675dc2239cbb72299dfe"
+          }
+        ]
+      },
+      {
+        "layout": "installed-node24",
+        "id": "N04",
+        "receipt": {
+          "name": "installed-node24-type-N04",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "executableSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+            "-p",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node24-N04.json",
+            "--pretty",
+            "false"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer",
+          "environment": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/usr/bin:/bin",
+            "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "bindings": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/transport.mjs",
+              "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/common.mjs",
+              "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+              "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/lib/_tsc.js",
+              "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node24-N04.json",
+              "sha256": "27294a212596251bed8c9cf3be63d9e159ea51043619017048eeef768e83593b"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node24-N04.ts",
+              "sha256": "b3a21e43dda91bb940a886db7931ca2bc24c36b21ea3fb823d9556153c6006ac"
+            }
+          ],
+          "pid": 41887,
+          "startedAt": "2026-08-28T02:27:27.656Z",
+          "durationMs": 497,
+          "status": 2,
+          "signal": null,
+          "closed": true,
+          "supervision": null,
+          "class": "ordinary",
+          "naturalSettlement": true,
+          "observedBytes": 202,
+          "capturedBytes": 202,
+          "previewBytes": 202,
+          "previewTruncated": false,
+          "artifactCompleteness": "full-observed-child-streams",
+          "producerCompletedNaturally": true,
+          "stdout": "installed-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\n",
+          "stderr": "",
+          "output": {
+            "stdout": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node24-type-N04.stdout.raw",
+              "bytes": 202,
+              "observedBytes": 202,
+              "sha256": "6847d4033e7633b896fb37a6b210028f28608aa13c196b3bee477c1843de0b02"
+            },
+            "stderr": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node24-type-N04.stderr.raw",
+              "bytes": 0,
+              "observedBytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "limits": {
+            "preview": 1048576,
+            "trace": 67108864,
+            "chunk": 65536,
+            "line": 131072,
+            "diagnostics": 256,
+            "diagnosticBytes": 262144,
+            "reapMs": 5000
+          },
+          "durableBeforeAssertions": true
+        },
+        "stdout": "installed-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\n",
+        "stderr": "",
+        "diagnostics": [
+          "installed-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+        ],
+        "inputSha256": "b3a21e43dda91bb940a886db7931ca2bc24c36b21ea3fb823d9556153c6006ac",
+        "resolutions": [
+          "======== Module name 'virtual-bash' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.d.ts' with Package ID 'virtual-bash/dist/index.d.ts@0.0.0'. ========",
+          "======== Module name 'virtual-bash/commands/expr' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts' with Package ID 'virtual-bash/dist/commands/expr/index.d.ts@0.0.0'. ========"
+        ],
+        "declarations": [
+          {
+            "path": "node_modules/virtual-bash/dist/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 1585,
+            "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249"
+          },
+          {
+            "path": "node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 542,
+            "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+          }
+        ],
+        "rawBindings": [
+          {
+            "path": "installed-node24-type-N04.json",
+            "mode": 420,
+            "bytes": 4628,
+            "sha256": "b553630c6b377cf38078ffaece2fa760477e23d9b4d90dd2438d1bfec5611eed"
+          },
+          {
+            "path": "installed-node24-type-N04.stdout.raw",
+            "mode": 420,
+            "bytes": 202,
+            "sha256": "6847d4033e7633b896fb37a6b210028f28608aa13c196b3bee477c1843de0b02"
+          },
+          {
+            "path": "installed-node24-type-N04.stderr.raw",
+            "mode": 420,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "installed-node24-type-N04-input-before.json",
+            "mode": 420,
+            "bytes": 195935,
+            "sha256": "412174d62167243d7127780d54b954c169668c27c74da899dc324b296b2374c0"
+          },
+          {
+            "path": "installed-node24-type-positive.json",
+            "mode": 420,
+            "bytes": 1060267,
+            "sha256": "aa66f54a225e6f769376cd044f5dba0fa23d9eb3989833c212b1555a19fced21"
+          },
+          {
+            "path": "installed-node24-type-positive.stdout.raw",
+            "mode": 420,
+            "bytes": 1361501,
+            "sha256": "112a0845e8e5797d95168aecbdaeef3f44ac4fe1df216c65de291c25bb7a44e8"
+          },
+          {
+            "path": "installed-node24-type-positive-input-before.json",
+            "mode": 420,
+            "bytes": 194264,
+            "sha256": "8bf4084a11af35134ede54d9b3cfadbeb72549b8a61439424b25a9496de5c0f9"
+          }
+        ]
+      },
+      {
+        "layout": "installed-node24",
+        "id": "combined",
+        "receipt": {
+          "name": "installed-node24-type-combined",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "executableSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+            "-p",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node24-combined.json",
+            "--pretty",
+            "false"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer",
+          "environment": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/usr/bin:/bin",
+            "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "bindings": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/transport.mjs",
+              "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/common.mjs",
+              "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+              "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/lib/_tsc.js",
+              "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node24-combined.json",
+              "sha256": "6a1141542a50937ea606dbe695aff0261abb243ed8f21ea0fe2784edcf73b1f8"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/installed-node24-combined.ts",
+              "sha256": "edf9aeed880eef01112e0e1289536ad09f5872f3bde976914749224ac71ef656"
+            }
+          ],
+          "pid": 41901,
+          "startedAt": "2026-08-28T02:27:29.756Z",
+          "durationMs": 494,
+          "status": 2,
+          "signal": null,
+          "closed": true,
+          "supervision": null,
+          "class": "ordinary",
+          "naturalSettlement": true,
+          "observedBytes": 894,
+          "capturedBytes": 894,
+          "previewBytes": 894,
+          "previewTruncated": false,
+          "artifactCompleteness": "full-observed-child-streams",
+          "producerCompletedNaturally": true,
+          "stdout": "installed-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\ninstalled-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\ninstalled-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.\ninstalled-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\ninstalled-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.\ninstalled-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.\n",
+          "stderr": "",
+          "output": {
+            "stdout": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node24-type-combined.stdout.raw",
+              "bytes": 894,
+              "observedBytes": 894,
+              "sha256": "ca9faa5ba0bd76c210b0d21a6376fe6e4f98c3158bc4201cf71869c148a6cae6"
+            },
+            "stderr": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node24-type-combined.stderr.raw",
+              "bytes": 0,
+              "observedBytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "limits": {
+            "preview": 1048576,
+            "trace": 67108864,
+            "chunk": 65536,
+            "line": 131072,
+            "diagnostics": 256,
+            "diagnosticBytes": 262144,
+            "reapMs": 5000
+          },
+          "durableBeforeAssertions": true
+        },
+        "stdout": "installed-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\ninstalled-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\ninstalled-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.\ninstalled-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\ninstalled-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.\ninstalled-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.\n",
+        "stderr": "",
+        "diagnostics": [
+          "installed-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+          "installed-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+          "installed-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+          "installed-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+          "installed-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+          "installed-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+        ],
+        "inputSha256": "edf9aeed880eef01112e0e1289536ad09f5872f3bde976914749224ac71ef656",
+        "resolutions": [
+          "======== Module name 'virtual-bash' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.d.ts' with Package ID 'virtual-bash/dist/index.d.ts@0.0.0'. ========",
+          "======== Module name 'virtual-bash/commands/expr' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts' with Package ID 'virtual-bash/dist/commands/expr/index.d.ts@0.0.0'. ========"
+        ],
+        "declarations": [
+          {
+            "path": "node_modules/virtual-bash/dist/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 1585,
+            "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249"
+          },
+          {
+            "path": "node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 542,
+            "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+          }
+        ],
+        "rawBindings": [
+          {
+            "path": "installed-node24-type-combined.json",
+            "mode": 420,
+            "bytes": 5363,
+            "sha256": "36af37a90d2ac1636b7850d7c05f1934518389c470e9ec7ce8756f9656f8adc9"
+          },
+          {
+            "path": "installed-node24-type-combined.stdout.raw",
+            "mode": 420,
+            "bytes": 894,
+            "sha256": "ca9faa5ba0bd76c210b0d21a6376fe6e4f98c3158bc4201cf71869c148a6cae6"
+          },
+          {
+            "path": "installed-node24-type-combined.stderr.raw",
+            "mode": 420,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "installed-node24-type-combined-input-before.json",
+            "mode": 420,
+            "bytes": 197055,
+            "sha256": "544c824b1d47effb806e75f48833ef942037a9a3f83b68e1f412e747ea0e9189"
+          },
+          {
+            "path": "installed-node24-type-positive.json",
+            "mode": 420,
+            "bytes": 1060267,
+            "sha256": "aa66f54a225e6f769376cd044f5dba0fa23d9eb3989833c212b1555a19fced21"
+          },
+          {
+            "path": "installed-node24-type-positive.stdout.raw",
+            "mode": 420,
+            "bytes": 1361501,
+            "sha256": "112a0845e8e5797d95168aecbdaeef3f44ac4fe1df216c65de291c25bb7a44e8"
+          },
+          {
+            "path": "installed-node24-type-positive-input-before.json",
+            "mode": 420,
+            "bytes": 194264,
+            "sha256": "8bf4084a11af35134ede54d9b3cfadbeb72549b8a61439424b25a9496de5c0f9"
+          }
+        ]
+      },
+      {
+        "layout": "moved-node22",
+        "id": "N04",
+        "receipt": {
+          "name": "moved-node22-type-N04",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+            "-p",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node22-N04.json",
+            "--pretty",
+            "false"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer",
+          "environment": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+            "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "bindings": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/transport.mjs",
+              "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/common.mjs",
+              "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+              "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/lib/_tsc.js",
+              "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node22-N04.json",
+              "sha256": "a0cedf263364ef8cc500a491651b1678cb01f98c9623e6fca4fb3cecd4c017d5"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node22-N04.ts",
+              "sha256": "b3a21e43dda91bb940a886db7931ca2bc24c36b21ea3fb823d9556153c6006ac"
+            }
+          ],
+          "pid": 42386,
+          "startedAt": "2026-08-28T02:27:46.302Z",
+          "durationMs": 623,
+          "status": 2,
+          "signal": null,
+          "closed": true,
+          "supervision": null,
+          "class": "ordinary",
+          "naturalSettlement": true,
+          "observedBytes": 198,
+          "capturedBytes": 198,
+          "previewBytes": 198,
+          "previewTruncated": false,
+          "artifactCompleteness": "full-observed-child-streams",
+          "producerCompletedNaturally": true,
+          "stdout": "moved-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\n",
+          "stderr": "",
+          "output": {
+            "stdout": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node22-type-N04.stdout.raw",
+              "bytes": 198,
+              "observedBytes": 198,
+              "sha256": "fbf7fdb401d49a91045f6a78699a63026c6123308e6238747ed1cd7cdc4e3add"
+            },
+            "stderr": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node22-type-N04.stderr.raw",
+              "bytes": 0,
+              "observedBytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "limits": {
+            "preview": 1048576,
+            "trace": 67108864,
+            "chunk": 65536,
+            "line": 131072,
+            "diagnostics": 256,
+            "diagnosticBytes": 262144,
+            "reapMs": 5000
+          },
+          "durableBeforeAssertions": true
+        },
+        "stdout": "moved-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\n",
+        "stderr": "",
+        "diagnostics": [
+          "moved-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+        ],
+        "inputSha256": "b3a21e43dda91bb940a886db7931ca2bc24c36b21ea3fb823d9556153c6006ac",
+        "resolutions": [
+          "======== Module name 'virtual-bash' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/index.d.ts' with Package ID 'virtual-bash/dist/index.d.ts@0.0.0'. ========",
+          "======== Module name 'virtual-bash/commands/expr' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts' with Package ID 'virtual-bash/dist/commands/expr/index.d.ts@0.0.0'. ========"
+        ],
+        "declarations": [
+          {
+            "path": "node_modules/virtual-bash/dist/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 1585,
+            "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249"
+          },
+          {
+            "path": "node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 542,
+            "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+          }
+        ],
+        "rawBindings": [
+          {
+            "path": "moved-node22-type-N04.json",
+            "mode": 420,
+            "bytes": 4680,
+            "sha256": "1c20d1275f14ef720917cdbf2aba37fda3cb6b1930f2060fc0a21e235016e027"
+          },
+          {
+            "path": "moved-node22-type-N04.stdout.raw",
+            "mode": 420,
+            "bytes": 198,
+            "sha256": "fbf7fdb401d49a91045f6a78699a63026c6123308e6238747ed1cd7cdc4e3add"
+          },
+          {
+            "path": "moved-node22-type-N04.stderr.raw",
+            "mode": 420,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "moved-node22-type-N04-input-before.json",
+            "mode": 420,
+            "bytes": 198877,
+            "sha256": "483a48a250b8ff4994b0ef082eca3994fa426d844c35b5470df2d71a2e005c68"
+          },
+          {
+            "path": "moved-node22-type-positive.json",
+            "mode": 420,
+            "bytes": 1060178,
+            "sha256": "08af13bcde64684f088eb45d6f6c9333b7adfaad4cd6ab85fc9d481d49d2cee3"
+          },
+          {
+            "path": "moved-node22-type-positive.stdout.raw",
+            "mode": 420,
+            "bytes": 1391693,
+            "sha256": "8c829273ea1ba45050ecf124fab0fe61a3e344cab4c85184019f76c9ee1ff57a"
+          },
+          {
+            "path": "moved-node22-type-positive-input-before.json",
+            "mode": 420,
+            "bytes": 197242,
+            "sha256": "d33fe2babcabdb1e0432b8cf1f7b46f7cff270e992437b01c5066f66fbe0e448"
+          }
+        ]
+      },
+      {
+        "layout": "moved-node22",
+        "id": "combined",
+        "receipt": {
+          "name": "moved-node22-type-combined",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+            "-p",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node22-combined.json",
+            "--pretty",
+            "false"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer",
+          "environment": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+            "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "bindings": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/transport.mjs",
+              "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/common.mjs",
+              "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+              "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/lib/_tsc.js",
+              "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node22-combined.json",
+              "sha256": "46233445d436bfab5c545cbf9807cd0d379510223bd0ff18a832a6aa042f4860"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node22-combined.ts",
+              "sha256": "edf9aeed880eef01112e0e1289536ad09f5872f3bde976914749224ac71ef656"
+            }
+          ],
+          "pid": 42398,
+          "startedAt": "2026-08-28T02:27:48.777Z",
+          "durationMs": 595,
+          "status": 2,
+          "signal": null,
+          "closed": true,
+          "supervision": null,
+          "class": "ordinary",
+          "naturalSettlement": true,
+          "observedBytes": 870,
+          "capturedBytes": 870,
+          "previewBytes": 870,
+          "previewTruncated": false,
+          "artifactCompleteness": "full-observed-child-streams",
+          "producerCompletedNaturally": true,
+          "stdout": "moved-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\nmoved-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\nmoved-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.\nmoved-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\nmoved-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.\nmoved-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.\n",
+          "stderr": "",
+          "output": {
+            "stdout": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node22-type-combined.stdout.raw",
+              "bytes": 870,
+              "observedBytes": 870,
+              "sha256": "c60f4c5d4a12597281df7ece2681b24ecb8d88df53a51a553a8060bdaa80f19d"
+            },
+            "stderr": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node22-type-combined.stderr.raw",
+              "bytes": 0,
+              "observedBytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "limits": {
+            "preview": 1048576,
+            "trace": 67108864,
+            "chunk": 65536,
+            "line": 131072,
+            "diagnostics": 256,
+            "diagnosticBytes": 262144,
+            "reapMs": 5000
+          },
+          "durableBeforeAssertions": true
+        },
+        "stdout": "moved-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\nmoved-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\nmoved-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.\nmoved-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\nmoved-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.\nmoved-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.\n",
+        "stderr": "",
+        "diagnostics": [
+          "moved-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+          "moved-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+          "moved-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+          "moved-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+          "moved-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+          "moved-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+        ],
+        "inputSha256": "edf9aeed880eef01112e0e1289536ad09f5872f3bde976914749224ac71ef656",
+        "resolutions": [
+          "======== Module name 'virtual-bash' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/index.d.ts' with Package ID 'virtual-bash/dist/index.d.ts@0.0.0'. ========",
+          "======== Module name 'virtual-bash/commands/expr' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts' with Package ID 'virtual-bash/dist/commands/expr/index.d.ts@0.0.0'. ========"
+        ],
+        "declarations": [
+          {
+            "path": "node_modules/virtual-bash/dist/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 1585,
+            "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249"
+          },
+          {
+            "path": "node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 542,
+            "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+          }
+        ],
+        "rawBindings": [
+          {
+            "path": "moved-node22-type-combined.json",
+            "mode": 420,
+            "bytes": 5395,
+            "sha256": "75ac7c4ca07c4168a613b9c1470f6b08f7ae395cf9f4529f6a248da70cf08900"
+          },
+          {
+            "path": "moved-node22-type-combined.stdout.raw",
+            "mode": 420,
+            "bytes": 870,
+            "sha256": "c60f4c5d4a12597281df7ece2681b24ecb8d88df53a51a553a8060bdaa80f19d"
+          },
+          {
+            "path": "moved-node22-type-combined.stderr.raw",
+            "mode": 420,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "moved-node22-type-combined-input-before.json",
+            "mode": 420,
+            "bytes": 199973,
+            "sha256": "890bcc879ed241d2a422907f7439e8a385800c00ec18227b0480805f4b8daa51"
+          },
+          {
+            "path": "moved-node22-type-positive.json",
+            "mode": 420,
+            "bytes": 1060178,
+            "sha256": "08af13bcde64684f088eb45d6f6c9333b7adfaad4cd6ab85fc9d481d49d2cee3"
+          },
+          {
+            "path": "moved-node22-type-positive.stdout.raw",
+            "mode": 420,
+            "bytes": 1391693,
+            "sha256": "8c829273ea1ba45050ecf124fab0fe61a3e344cab4c85184019f76c9ee1ff57a"
+          },
+          {
+            "path": "moved-node22-type-positive-input-before.json",
+            "mode": 420,
+            "bytes": 197242,
+            "sha256": "d33fe2babcabdb1e0432b8cf1f7b46f7cff270e992437b01c5066f66fbe0e448"
+          }
+        ]
+      },
+      {
+        "layout": "moved-node24",
+        "id": "N04",
+        "receipt": {
+          "name": "moved-node24-type-N04",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "executableSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+            "-p",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node24-N04.json",
+            "--pretty",
+            "false"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer",
+          "environment": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/usr/bin:/bin",
+            "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "bindings": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/transport.mjs",
+              "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/common.mjs",
+              "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+              "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/lib/_tsc.js",
+              "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node24-N04.json",
+              "sha256": "1bfc879663f49f600d12065639b753502f9da35756e15706c74b5e4f6339b86d"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node24-N04.ts",
+              "sha256": "b3a21e43dda91bb940a886db7931ca2bc24c36b21ea3fb823d9556153c6006ac"
+            }
+          ],
+          "pid": 42665,
+          "startedAt": "2026-08-28T02:28:04.920Z",
+          "durationMs": 538,
+          "status": 2,
+          "signal": null,
+          "closed": true,
+          "supervision": null,
+          "class": "ordinary",
+          "naturalSettlement": true,
+          "observedBytes": 198,
+          "capturedBytes": 198,
+          "previewBytes": 198,
+          "previewTruncated": false,
+          "artifactCompleteness": "full-observed-child-streams",
+          "producerCompletedNaturally": true,
+          "stdout": "moved-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\n",
+          "stderr": "",
+          "output": {
+            "stdout": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node24-type-N04.stdout.raw",
+              "bytes": 198,
+              "observedBytes": 198,
+              "sha256": "223fcb804cf448388c82f76884206d7e53947b3611117585c7e52e06911f76c9"
+            },
+            "stderr": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node24-type-N04.stderr.raw",
+              "bytes": 0,
+              "observedBytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "limits": {
+            "preview": 1048576,
+            "trace": 67108864,
+            "chunk": 65536,
+            "line": 131072,
+            "diagnostics": 256,
+            "diagnosticBytes": 262144,
+            "reapMs": 5000
+          },
+          "durableBeforeAssertions": true
+        },
+        "stdout": "moved-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\n",
+        "stderr": "",
+        "diagnostics": [
+          "moved-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+        ],
+        "inputSha256": "b3a21e43dda91bb940a886db7931ca2bc24c36b21ea3fb823d9556153c6006ac",
+        "resolutions": [
+          "======== Module name 'virtual-bash' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/index.d.ts' with Package ID 'virtual-bash/dist/index.d.ts@0.0.0'. ========",
+          "======== Module name 'virtual-bash/commands/expr' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts' with Package ID 'virtual-bash/dist/commands/expr/index.d.ts@0.0.0'. ========"
+        ],
+        "declarations": [
+          {
+            "path": "node_modules/virtual-bash/dist/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 1585,
+            "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249"
+          },
+          {
+            "path": "node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 542,
+            "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+          }
+        ],
+        "rawBindings": [
+          {
+            "path": "moved-node24-type-N04.json",
+            "mode": 420,
+            "bytes": 4680,
+            "sha256": "61cfec9ba68c7ff03555f667c96169c89e96cbb4c6bf351b4b109c67b27811ee"
+          },
+          {
+            "path": "moved-node24-type-N04.stdout.raw",
+            "mode": 420,
+            "bytes": 198,
+            "sha256": "223fcb804cf448388c82f76884206d7e53947b3611117585c7e52e06911f76c9"
+          },
+          {
+            "path": "moved-node24-type-N04.stderr.raw",
+            "mode": 420,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "moved-node24-type-N04-input-before.json",
+            "mode": 420,
+            "bytes": 201795,
+            "sha256": "270958963904fe6d89d5831aa4453942f0eb851057a5fd3ede6f6fe015e93184"
+          },
+          {
+            "path": "moved-node24-type-positive.json",
+            "mode": 420,
+            "bytes": 1060178,
+            "sha256": "cf7856e037542b9f0da27b1fe4dc3d841b0a7837ec7dcbaf789a31f11a448ef2"
+          },
+          {
+            "path": "moved-node24-type-positive.stdout.raw",
+            "mode": 420,
+            "bytes": 1391693,
+            "sha256": "8c829273ea1ba45050ecf124fab0fe61a3e344cab4c85184019f76c9ee1ff57a"
+          },
+          {
+            "path": "moved-node24-type-positive-input-before.json",
+            "mode": 420,
+            "bytes": 200160,
+            "sha256": "f05b9c8801a953b78493aa7d55be4b332eccc5ad1ffef2888e427853aa57b27a"
+          }
+        ]
+      },
+      {
+        "layout": "moved-node24",
+        "id": "combined",
+        "receipt": {
+          "name": "moved-node24-type-combined",
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "executableSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+            "-p",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node24-combined.json",
+            "--pretty",
+            "false"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer",
+          "environment": {
+            "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/usr/bin:/bin",
+            "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "TZ": "UTC"
+          },
+          "bindings": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/transport.mjs",
+              "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/common.mjs",
+              "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/bin/tsc",
+              "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/tools/node_modules/typescript/lib/_tsc.js",
+              "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node24-combined.json",
+              "sha256": "fe1a7c9bcc482ec1df354b27bf3d7a59de2b752e0ecc71256acfbf8235955db3"
+            },
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/moved-node24-combined.ts",
+              "sha256": "edf9aeed880eef01112e0e1289536ad09f5872f3bde976914749224ac71ef656"
+            }
+          ],
+          "pid": 42676,
+          "startedAt": "2026-08-28T02:28:07.268Z",
+          "durationMs": 601,
+          "status": 2,
+          "signal": null,
+          "closed": true,
+          "supervision": null,
+          "class": "ordinary",
+          "naturalSettlement": true,
+          "observedBytes": 870,
+          "capturedBytes": 870,
+          "previewBytes": 870,
+          "previewTruncated": false,
+          "artifactCompleteness": "full-observed-child-streams",
+          "producerCompletedNaturally": true,
+          "stdout": "moved-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\nmoved-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\nmoved-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.\nmoved-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\nmoved-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.\nmoved-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.\n",
+          "stderr": "",
+          "output": {
+            "stdout": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node24-type-combined.stdout.raw",
+              "bytes": 870,
+              "observedBytes": 870,
+              "sha256": "e22b94a5ba4dd69533654e8b87222a96898c751c458b0c9d8860f6d6b6617a5c"
+            },
+            "stderr": {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node24-type-combined.stderr.raw",
+              "bytes": 0,
+              "observedBytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "limits": {
+            "preview": 1048576,
+            "trace": 67108864,
+            "chunk": 65536,
+            "line": 131072,
+            "diagnostics": 256,
+            "diagnosticBytes": 262144,
+            "reapMs": 5000
+          },
+          "durableBeforeAssertions": true
+        },
+        "stdout": "moved-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\nmoved-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.\nmoved-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.\nmoved-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?\nmoved-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.\nmoved-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.\n",
+        "stderr": "",
+        "diagnostics": [
+          "moved-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+          "moved-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+          "moved-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+          "moved-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+          "moved-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+          "moved-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+        ],
+        "inputSha256": "edf9aeed880eef01112e0e1289536ad09f5872f3bde976914749224ac71ef656",
+        "resolutions": [
+          "======== Module name 'virtual-bash' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/index.d.ts' with Package ID 'virtual-bash/dist/index.d.ts@0.0.0'. ========",
+          "======== Module name 'virtual-bash/commands/expr' was successfully resolved to '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts' with Package ID 'virtual-bash/dist/commands/expr/index.d.ts@0.0.0'. ========"
+        ],
+        "declarations": [
+          {
+            "path": "node_modules/virtual-bash/dist/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 1585,
+            "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249"
+          },
+          {
+            "path": "node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+            "kind": "file",
+            "mode": 420,
+            "bytes": 542,
+            "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+          }
+        ],
+        "rawBindings": [
+          {
+            "path": "moved-node24-type-combined.json",
+            "mode": 420,
+            "bytes": 5395,
+            "sha256": "a4bd96b561f6a5b61756ef120f0393c90c1d8cd908d4aadf25922e2633bb182e"
+          },
+          {
+            "path": "moved-node24-type-combined.stdout.raw",
+            "mode": 420,
+            "bytes": 870,
+            "sha256": "e22b94a5ba4dd69533654e8b87222a96898c751c458b0c9d8860f6d6b6617a5c"
+          },
+          {
+            "path": "moved-node24-type-combined.stderr.raw",
+            "mode": 420,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "moved-node24-type-combined-input-before.json",
+            "mode": 420,
+            "bytes": 202891,
+            "sha256": "aaa3b77d3df4cef7039773881881b7fb0710334f25cf4797353090e56f6b0390"
+          },
+          {
+            "path": "moved-node24-type-positive.json",
+            "mode": 420,
+            "bytes": 1060178,
+            "sha256": "cf7856e037542b9f0da27b1fe4dc3d841b0a7837ec7dcbaf789a31f11a448ef2"
+          },
+          {
+            "path": "moved-node24-type-positive.stdout.raw",
+            "mode": 420,
+            "bytes": 1391693,
+            "sha256": "8c829273ea1ba45050ecf124fab0fe61a3e344cab4c85184019f76c9ee1ff57a"
+          },
+          {
+            "path": "moved-node24-type-positive-input-before.json",
+            "mode": 420,
+            "bytes": 200160,
+            "sha256": "f05b9c8801a953b78493aa7d55be4b332eccc5ad1ffef2888e427853aa57b27a"
+          }
+        ]
+      }
+    ]
+  },
+  "P01": {
+    "status": "BOUND_ACCEPTED_PROOF",
+    "accepted": true,
+    "independentlyBuiltIn": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+    "recipe": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+    "buildExecuted": false,
+    "packExecuted": false,
+    "independentInputsBound": 357,
+    "actualPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packBytes": 727526,
+    "members": 834,
+    "manifestSha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+    "authorpackFallback": false
+  },
+  "reader": {
+    "status": "qualified-evidence-reused",
+    "controls": 16,
+    "newControls": 0,
+    "evidence": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+    "semanticsChanged": false
+  },
+  "repair": {
+    "status": "qualified-evidence-reused",
+    "pass": 28,
+    "planned": 28,
+    "newControls": 0,
+    "evidence": "1ec1912001db43f803af46bb5dea89a7e397b83b"
+  },
+  "reusedV5": {
+    "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+    "controls": 38,
+    "replayed": 0,
+    "manifestSha256": "b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1"
+  },
+  "newProductInvocations": 0
+}

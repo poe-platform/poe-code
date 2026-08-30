@@ -1,0 +1,241 @@
+{
+  "schema": 1,
+  "state": "PROPOSAL_UNBOUND_DENY",
+  "historicalToolProfile": {
+    "tools": {
+      "node": {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "version": "v22.22.2",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      "typescript": {
+        "path": "node_modules/typescript",
+        "version": "5.9.3",
+        "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+        "entries": 147
+      },
+      "nodeTypes": {
+        "path": "node_modules/@types/node",
+        "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+        "entries": 83
+      },
+      "undiciTypes": {
+        "path": "node_modules/undici-types",
+        "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+        "entries": 41
+      }
+    },
+    "priorBuildTools": {
+      "node": {
+        "original": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "copied": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+        "version": "v22.22.2",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "bytes": 112989184,
+        "mode": 493
+      },
+      "typescript": {
+        "path": "node_modules/typescript",
+        "version": "5.9.3",
+        "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+        "entries": 147
+      },
+      "nodeTypes": {
+        "path": "node_modules/@types/node",
+        "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+        "entries": 83
+      },
+      "undiciTypes": {
+        "path": "node_modules/undici-types",
+        "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+        "entries": 41
+      }
+    },
+    "role": "Compatibility data only. Exact fresh toolchain/copies/argv/versions/hashes must be rebound; no old candidate semantic inheritance."
+  },
+  "requiredTools": [
+    {
+      "name": "node",
+      "binding": null,
+      "regularExecutable": true,
+      "maxFileBytes": 134217728
+    },
+    {
+      "name": "typescript",
+      "binding": null,
+      "load": "Exact lib/tsc.js and complete library map"
+    },
+    {
+      "name": "nodeTypes",
+      "binding": null,
+      "load": "Exact declared type root tree"
+    },
+    {
+      "name": "undiciTypes",
+      "binding": null,
+      "load": "Exact declared tree, not ambient node_modules"
+    },
+    {
+      "name": "git",
+      "binding": null,
+      "load": "Explicit executable and read-only selected-object argv; no shell or mutable HEAD lookup"
+    }
+  ],
+  "environment": {
+    "inheritAmbient": false,
+    "allow": [
+      "LANG=C",
+      "LC_ALL=C",
+      "TZ=UTC",
+      "HOME=<owned-empty>",
+      "TMPDIR=<owned-scratch>"
+    ],
+    "deny": [
+      "NODE_PATH",
+      "NODE_OPTIONS",
+      "TS_NODE_*",
+      "ambient credentials",
+      "ambient PATH search",
+      "network"
+    ],
+    "allPaths": "Canonical regular owned/materialized roots; no symlinks/hardlinks or host fallback"
+  },
+  "loader": {
+    "binding": null,
+    "runtimeEntry": "Explicit authenticated compiled .js/.mjs entry in each source-built or installed-moved package; no source TS loader.",
+    "declarationEntry": "Actual declaration map and inspected exports; fixture token substitution only, no tsconfig paths.",
+    "resolution": "Allow only declared builtins and relative compiled modules inside the authorized root with authenticated parent URL and bytes. Unknown package, URL query/fragment, data/http/file escape, workspace or ambient node_modules resolution fails before load.",
+    "allowedBuiltins": null,
+    "priorCompatibleBuiltins": [
+      "node:path",
+      "node:util",
+      "node:buffer",
+      "node:stream",
+      "node:stream/web",
+      "node:timers/promises"
+    ],
+    "priorSetIsNotSuccessorAuthority": true,
+    "loadedProof": "Actual load records with canonical paths/hash/parent plus invoked namespace/command; guard denial is not a loaded-code control.",
+    "capability": "In-process non-forgeable admission/materialization binding; never deserialize old WeakSet/WeakMap capabilities.",
+    "javascriptLimit": "Trusted host JavaScript is not an OS sandbox. Import denial is not opaque host preemption or a proof against arbitrary escaped descendants."
+  },
+  "guards": {
+    "candidateRoots": [
+      "full-source-archive",
+      "consumer-source-projection",
+      "source-built-package",
+      "installed-package",
+      "every moved/control-package copy"
+    ],
+    "recipeRoots": [
+      "future runtime recipe",
+      "future consumer recipe and authenticated fixture root",
+      "future successor coordinator/worker/projection recipe"
+    ],
+    "beforeAfter": "Exact recursive membership including added files and empty directories; bytes/SHA256/modes and physical root identity; no hidden broad exclusions.",
+    "selectedOriginAuthority": "Exact fixed baseline + accepted interpreter + independently authorized new source blobs. Do not validate broad candidate HEAD or accept a fake composite commit.",
+    "package": "Full baseline package with byte/mode-exact baseline README and all expected compiler files/maps; not a yq-only projection.",
+    "moves": "Fresh regular copies followed by physical move; retain and recheck every prior moved tree, its dev/inode, staging absence and parent membership before next admission.",
+    "rootReceipt": "Expected raw hash supplied independently, bound exact path, no duplicate/unknown/missing fields. Bind every candidate/tool/recipe/build receipt before load.",
+    "evidence": "Unique no-clobber atomic publication outside candidate/recipe roots; raw stdout/stderr bytes, code/signal/rejection/effects/events and phase timestamps before assertions. Never overwrite old captures."
+  },
+  "resourceBounds": {
+    "treeEntries": 4096,
+    "treeBytes": 67108864,
+    "fileBytes": 16777216,
+    "workerRawCaptureBytes": 16777216,
+    "compilerCaptureBytes": 8388608,
+    "maximumRetainedPackageCopies": 179,
+    "maximumCohortStorageBytes": 25769803776,
+    "storageRationale": "179*64MiB package-copy allowance +335*16MiB raw worker captures +12*8MiB compiler captures + bounded base/source/tool trees fit24GiB. Admission checks reservations; ceilings, not observed usage.",
+    "outerWorkerSlots": 335
+  },
+  "failureRules": {
+    "mandatoryStop": [
+      "unsafe/missing provenance",
+      "any integrity or added-entry/mode mismatch",
+      "unknown/failed known-child reap",
+      "source admission failure",
+      "runtime/loader admission failure"
+    ],
+    "safeContinuation": "Only ordinary bound assertion failures or UNRUN obligations, including a semantic timeout after successful admission, may continue with integrity AND known reap positively proved and unchanged absolute deadlines. Timeout/nonzero remains sticky aggregate FAIL. Any source/runtime admission failure or admission timeout stops.",
+    "nonzero": "Every actual worker/parent nonzero/signal/timeout is aggregate FAIL even PASS receipts. Expected compiler diagnostic rejection is internal to a zero-exit type worker only.",
+    "coverage": "Phase absent/deadline/remaining-budget refusal => UNRUN with cause, never automatic product bug.",
+    "malformed": "Missing/duplicate/malformed job receipt or phase event cannot green a stage; uncertain admission/integrity stops."
+  },
+  "optimization": {
+    "enabled": false,
+    "default": "Fresh process per semantic/control invocation, repeated authority verification/copy and full cumulative moved-tree guards retained.",
+    "notSilentlyPermitted": [
+      "shared trusted authority cache",
+      "cross-process capability resurrection",
+      "skip old moved-tree verification",
+      "reuse mutable package copy",
+      "drop modes/added-entry checks"
+    ],
+    "futureOnly": "Any such optimization needs its own exact code delta/seal, security argument and cache/transplant/mutation/added-entry negative controls; no optimization is assumed by this schedule."
+  },
+  "toolInvocationTemplates": [
+    {
+      "tool": "git",
+      "purpose": "Selected immutable-object authentication only",
+      "argv": [
+        "--no-pager",
+        "--no-optional-locks",
+        "-C",
+        "<explicit repository>",
+        "show",
+        "<full bound revision>:<bound relative path>"
+      ],
+      "forbid": [
+        "HEAD",
+        "revision expressions from candidate",
+        "hooks",
+        "shell expansion",
+        "network",
+        "worktree mutation"
+      ],
+      "stdoutBoundBytes": 16777216
+    },
+    {
+      "tool": "git",
+      "purpose": "Exact object/mode/membership metadata only",
+      "argv": [
+        "--no-pager",
+        "--no-optional-locks",
+        "-C",
+        "<explicit repository>",
+        "ls-tree",
+        "-rz",
+        "<full bound revision>",
+        "--",
+        "<bound selected path>"
+      ],
+      "stdoutBoundBytes": 16777216
+    },
+    {
+      "tool": "node",
+      "purpose": "Owned sealed workers",
+      "argv": [
+        "<exact presealed flags>",
+        "<exact authenticated worker.mjs>",
+        "<owned per-job request.json>"
+      ],
+      "countCeiling": 335
+    },
+    {
+      "tool": "node",
+      "purpose": "Independent scoped compile and declaration fixtures only",
+      "argv": [
+        "<copied exact typescript/lib/tsc.js>",
+        "--project",
+        "<owned authenticated tsconfig.json>",
+        "--pretty",
+        "false"
+      ],
+      "countCeiling": 12,
+      "compilerDiagnosticsRawBeforeClassification": true
+    }
+  ],
+  "toolInvocationBinding": "Templates are not runnable authorization. Exact tool hashes, argv/flags, immutable selected objects, configuration bytes and owner/PID bridge must be sealed before fresh GO. Tool metadata cannot confer source authority or read unrelated host files."
+}

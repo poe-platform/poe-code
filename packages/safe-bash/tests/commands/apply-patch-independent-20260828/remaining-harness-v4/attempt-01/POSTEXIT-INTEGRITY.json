@@ -1,0 +1,16 @@
+{
+  "classification": "post-exit evidence inspection only; no control/helper/product import",
+  "outputAbsentBeforeEvidenceCreation": true,
+  "workAbsent": true,
+  "mismatches": [],
+  "sourceBindingsChecked": 29,
+  "ownedSealedFilesChecked": 8,
+  "checks": ["regular non-symlink file", "exact length", "mode", "SHA256"],
+  "sourceBindingsSha256": "6549f27a6d5da407a30cc54ae9f4aa140af8b724e5156c0947cef774c813d88f",
+  "ownedSourceManifestSha256": "fcfa00d957c95cac71b0f7dd564eed049759587fe5b89b0417e63e4193e6e23f",
+  "manifestHashMethod": "SHA256 of UTF-8 JSON.stringify of corresponding PRESEAL object, preserving stored insertion order",
+  "presealSha256": "14019b529fcd5483d2e40e0200165a601ce32d5b5762d88fb3d239c4224ec128",
+  "gitPrelaunchMatch": "git diff --exit-code b6cd295c05478a530937b6617723e419877b7635 -- owned-subtree returned0 before launch",
+  "diagnosisContextMatch": "git diff --exit-code 915aee082e5aaa53abba7578b5ccbe11e679e4e7 -- postrun-diagnosis-v1/FINDINGS.md returned0",
+  "scopeLimit": "original named binding checks, not append-proof coverage of entire repository; controller append check never ran"
+}

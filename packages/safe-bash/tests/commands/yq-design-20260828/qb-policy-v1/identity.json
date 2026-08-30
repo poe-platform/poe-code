@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "state": "AUTHOR_QB_POLICY_READY_FOR_DIFFERENT_FREEZE_PRECODE",
+  "implementationAuthorized": false,
+  "rootFinalGo": false,
+  "candidate": {
+    "fixedBaseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "acceptedLengthReview": "16c4502da78ac209e8979d7bd576f2be5492f104",
+    "acceptedLengthHoldouts": 60,
+    "acceptedLengthSelectedRegressions": 93,
+    "original845ProjectionSha256": "351e03ad72b0bd82bb16d97cc50ec80b136edeaf705ec1590b414cb4cdf8b82e",
+    "complete846Addendum": "6d5cf6c640d87a5e427049d329eabf5c39136259",
+    "complete846Sha256": "ff230f2e9079cc843198533e412f836abb62e4ade63f4fa210b7269f7deb4eff",
+    "qualification": "Root-relayed acceptance only. The addendum supplies only the exact baseline README omitted from the original 845-file projection; common 845 bytes/modes are unchanged. No 845 rescore, unpack, or test replay here."
+  },
+  "authority": [
+    {
+      "role": "initial-profile",
+      "commit": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md",
+      "gitBlob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68",
+      "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50"
+    },
+    {
+      "role": "final-contract",
+      "commit": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "gitBlob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81",
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8"
+    },
+    {
+      "role": "final-adoption",
+      "commit": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json",
+      "gitBlob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b",
+      "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6"
+    },
+    {
+      "role": "independent-reconciliation",
+      "commit": "544f8279138cb1335ded08f9db638410e91c1324",
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/README.md",
+      "gitBlob": "a729866d1cdf7b2bb0a0454ddfbff477a6cab423",
+      "sha256": "0788e1b5c1fb8e2aaa17eb5a4ba21e3b6dabc3136862d7b0c4ff55302a9c529e",
+      "records": 194,
+      "normativeOverlappingRecords": 80,
+      "queryBudgetOverlappingRecords": 62,
+      "staticChecksReported": 4,
+      "productExecution": 0
+    }
+  ],
+  "sourceBindings": [
+    {
+      "path": "src/commands/structured/limits.ts",
+      "gitBlob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "lines": "4-24,45-99,100-137",
+      "role": "Json/Budget/object-order/scalar semantics; step increments before limit failure; tick calls step and uses setImmediate",
+      "liveBytes": "SAME_AS_FIXED_BASELINE"
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "gitBlob": "6350b5c4f5b8cae9243cf6560c98d9e53cb3128e",
+      "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "lines": "218-236,290-316",
+      "role": "existing async input ticks and synchronous stringify call role superseded only at yq-owned boundary",
+      "liveBytes": "SAME_AS_FIXED_BASELINE"
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "gitBlob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630",
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "lines": "3-7,48-74,102-114",
+      "role": "Decimal and canonical numberText reuse; range literals are source facts, not independently approved numeric proof",
+      "liveBytes": "SAME_AS_FIXED_BASELINE"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "gitBlob": "f7e0dfcb1815aa90ae49d495e453b4d069139108",
+      "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "lines": "10-25,46-62",
+      "role": "fixed engine run/tick/value behavior and generator close role",
+      "liveBytes": "DIFFERS_FROM_FIXED_BASELINE_NOT_REBASED"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "gitBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "lines": "21-51",
+      "role": "borrowed signal and optional synchronous cleanup registration",
+      "liveBytes": "SAME_AS_FIXED_BASELINE"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "gitBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "lines": "4-13,27-43,51-68,75-119",
+      "role": "accepted async owned-output acquisition, backpressure, close, and drain behavior",
+      "liveBytes": "SAME_AS_FIXED_BASELINE"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "gitBlob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "lines": "5-64",
+      "role": "root cleanup admission, idempotent drain, and failure collection",
+      "liveBytes": "SAME_AS_FIXED_BASELINE"
+    }
+  ],
+  "mechanism": {
+    "checkpointWindow": 1023,
+    "sharedBudgetApiEditRequired": false,
+    "schedulerInjection": false,
+    "serializedQuerySession": true,
+    "reservationChargesActualBudgetExactlyOnce": true,
+    "refunds": false
+  },
+  "futureQbWriteSet": [
+    "src/commands/structured/query-core.ts",
+    "src/commands/yq/accounting.ts",
+    "src/commands/yq/encoder.ts"
+  ],
+  "execution": {
+    "finalSyntheticCohortRows": 23,
+    "finalSyntheticCohortResult": "AUTHOR_REPORTED_PASS",
+    "finalSyntheticCohortRunnerExecutions": 1,
+    "runnerExecutionScope": "FINAL_23_ROW_COHORT_ONLY_NOT_TOTAL_HISTORICAL_INVOCATIONS",
+    "preliminary20RowRun": "AUTHOR_REPORTED_PRELIMINARY_NOT_PRODUCT_PROOF",
+    "totalHistoricalRunnerInvocations": "NOT_DURABLY_RETAINED",
+    "sourceImplementation": 0,
+    "product": 0,
+    "nativeOrReference": 0,
+    "existingTestsOrCheckers": 0,
+    "packageReplay": 0
+  },
+  "scope": {
+    "newArtifactsOnly": [
+      "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+      "tests/commands/yq-design-20260828/qb-policy-v1/identity.json",
+      "tests/commands/yq-design-20260828/qb-policy-v1/controls.json",
+      "tests/commands/yq-design-20260828/qb-policy-v1/check-accounting.mjs"
+    ],
+    "oldArtifactsEdited": false,
+    "sourceEdited": false,
+    "testsAddedOrEdited": false,
+    "dependenciesChanged": false
+  }
+}

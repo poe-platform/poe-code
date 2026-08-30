@@ -1,0 +1,22 @@
+{
+  "state": "routed-candidate",
+  "candidateCommit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+  "candidateComposedTree": "b820fa91a3bcc904005c690d48038d9a3900cede",
+  "runtime": {
+    "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "path": "src/shell/runtime.ts",
+    "blob": "d32239c31e5b4cdf11fd7863a407283119a209ec",
+    "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+    "bytes": 137389
+  },
+  "evidence": {
+    "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+    "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/HANDOFF.md",
+    "blob": "0b19cd346aad640402e439fefe5dc1b10147536c",
+    "sha256": "cdf2ee8a56fd28acb355d2dd03d6ff05a63d524bb67aad351534abe4933111c2",
+    "bytes": 7132
+  },
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "provider": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+  "composition": "7c68831a81fc49c94ad9177e58ca9fd7d0aca352"
+}

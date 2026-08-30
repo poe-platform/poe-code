@@ -1,0 +1,266 @@
+{
+  "candidate": "dc262a99da8910d082ce7051e811952639588209",
+  "auditedAt": "2026-08-27T15:01:10.966Z",
+  "baselineAudit": {
+    "sealedCases": 30,
+    "observations": 30,
+    "rawPasses": 7,
+    "qualifiedPasses": 6,
+    "failures": 23,
+    "nonProving": 1,
+    "directControls": 4,
+    "strictNative": "3/23",
+    "linuxKernelExecuted": false,
+    "cleanup": true
+  },
+  "replayAudit": {
+    "verified": "candidate-dc262a99",
+    "planned": 30,
+    "actual": 30,
+    "passed": 27,
+    "failed": 3,
+    "structured": 30,
+    "shebangPassed": 19,
+    "directPassed": 4,
+    "hostPassed": 4,
+    "nativeAvailable": 23,
+    "strictNative": 16,
+    "timeouts": 0,
+    "overflows": 0
+  },
+  "originalImmutableFiles": {
+    "tests/shell-stress/env-shebang-integration-review/BASELINE.md": "673603622503866c9c418ee520e877ec016c9e032983b2076eef55aa1010ceb6",
+    "tests/shell-stress/env-shebang-integration-review/README.md": "2783ac9379b7572f575f7a77b3ddb2513d7b25e58cc01dbcc7ac14a0a2a635b8",
+    "tests/shell-stress/env-shebang-integration-review/V2_SETUP.md": "8f66b34d39badc377a977079ba07049d9991148e6c719f2978dc1e7051d524f0",
+    "tests/shell-stress/env-shebang-integration-review/audit.mjs": "ca131ca9fb50bf4d1a84b1f278fd0b1a678dfb40a2076adf360ebbd082d07b67",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/manifest.json": "22ebba99c7682d38a28e3bbdac7386ad345b993d0a8c46c96cdf0e07179dba7b",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/native.json": "7a244514cfcd4fcf82c8b574b9e5d555168b0dd2e1a6fafd0576a10326e7b06c",
+    "tests/shell-stress/env-shebang-integration-review/baseline-6fce94f8/report.json": "f8847ae3cac0985f318c9eb68709fb7cd4f848640fb1e06ecd75e8a83f0d4d22",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/manifest.json": "ad5788dc1663344e9b883f85ef6fe410e55a3d3d7497fb4e31c8fc95f03fc6d1",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/native.json": "6aef802ffe71206a736f7a53818fc42d0063b26277a0c6e75b45ba44056d4795",
+    "tests/shell-stress/env-shebang-integration-review/baseline-v2-6fce94f8/report.json": "9d9a972666aa972c35af60898abd7422acb0caeae792eb3895e762802a1ba36d",
+    "tests/shell-stress/env-shebang-integration-review/corpus.mjs": "9b7afcf1565f3262101d7c65886b9ede259c3260f60e87d1ea4eed6aa4a1dfe4",
+    "tests/shell-stress/env-shebang-integration-review/product-v2.mjs": "c697bdf9bb6f8b889f50b9cbf77edb75863c9d6f1f424d9b2943f0baaa1e4b40",
+    "tests/shell-stress/env-shebang-integration-review/product.mjs": "b4ade78b2ea4c0e727aaca96bde74669a15d74ca6c14aa290b23ec29950fcbbc",
+    "tests/shell-stress/env-shebang-integration-review/run-v2.mjs": "a3c48c74360cea894c688d40afb774871d03ef0525dc6f937c1d8939d26369fc",
+    "tests/shell-stress/env-shebang-integration-review/run.mjs": "74a9b20dd9b1e121595ae64221a77500d4c92077328fb23e4e2be489bc4bfa5e",
+    "tests/shell-stress/env-shebang-integration-review/seal-v2.json": "57ca1c7b58421b37d21238c073ab92a445d2b9b03b47fe1538ab98d00db26e91",
+    "tests/shell-stress/env-shebang-integration-review/seal.json": "b0325b1b6789bdf344b4cea608ec5bacd6b53d4449f8120f2012c28463381a55"
+  },
+  "changedPaths": [
+    "src/shell/runtime.ts",
+    "tests/shell/env-shebang-host.test.ts",
+    "tests/shell/env-shebang.test.ts"
+  ],
+  "parent": "334b7220c8e3dfe5249e5c5a580ac6821d153727",
+  "baselineSourceDelta": [
+    "src/commands/grep-aliases/index.ts",
+    "src/shell/runtime.ts"
+  ],
+  "acceptedCore": {
+    "src/commands/execution.ts": {
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "blob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+      "unchangedFromBaseline": true
+    },
+    "src/commands/env-split.ts": {
+      "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+      "blob": "437c36d72c12e985d39c5dc9e09b6bb644753500",
+      "unchangedFromBaseline": true
+    }
+  },
+  "runtime": {
+    "sha256": "10c962649d4486f564aee7362a2913af86ad4dfdb3a5b3ecc0cb49f482d40243",
+    "blob": "eceb6cb34e321cb20a748bb3ad7e50c4796b8f14"
+  },
+  "unchangedOriginalFailures": {
+    "tests/shell-stress/env-split-author/resume-host.ts": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+    "tests/shell/errexit-host.test.ts": "5ba8085495c5740d4f15d413eb55502d270746f3e7275ef7aa6393500593cf7f",
+    "tests/shell/expanded-gaps-env-host.test.ts": "2fd1eb106e75ace5d17d7d5145045dab0f88aa254d4110862b2964fec61b5b95"
+  },
+  "qualified": {
+    "raw": {
+      "planned": 30,
+      "actual": 30,
+      "passed": 27,
+      "failed": 3,
+      "structured": 30,
+      "shebangPassed": 19,
+      "directPassed": 4,
+      "hostPassed": 4,
+      "nativeAvailable": 23,
+      "strictNative": 16,
+      "timeouts": 0,
+      "overflows": 0
+    },
+    "nestedOutputWitness": [
+      {
+        "command": "./script",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-16Z2uR/cases/h06",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-16Z2uR/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-16Z2uR/cases/h06"
+        },
+        "stdinIsDefault": true
+      },
+      {
+        "command": "./inner",
+        "args": [],
+        "cwd": "/tmp/env-shebang-review-16Z2uR/cases/h06",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-16Z2uR/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-16Z2uR/cases/h06"
+        },
+        "stdinIsDefault": true
+      },
+      {
+        "command": "printf",
+        "args": [
+          "abc"
+        ],
+        "cwd": "/tmp/env-shebang-review-16Z2uR/cases/h06",
+        "env": {
+          "PATH": "/tmp/env-shebang-review-16Z2uR/bin:/usr/bin:/bin",
+          "LC_ALL": "C",
+          "TOKEN": "two words",
+          "DROP": "parent",
+          "PWD": "/tmp/env-shebang-review-16Z2uR/cases/h06"
+        },
+        "stdinIsDefault": true
+      }
+    ],
+    "qualifiedPasses": 27,
+    "failedIds": [
+      "s20",
+      "h04",
+      "h05"
+    ],
+    "strictLosses": [
+      {
+        "id": "s03",
+        "fields": {
+          "status": true,
+          "stdout": true,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "s12",
+        "fields": {
+          "status": true,
+          "stdout": false,
+          "stderr": true,
+          "effects": true
+        }
+      },
+      {
+        "id": "s17",
+        "fields": {
+          "status": true,
+          "stdout": true,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "s18",
+        "fields": {
+          "status": true,
+          "stdout": true,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "s20",
+        "fields": {
+          "status": false,
+          "stdout": false,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "d02",
+        "fields": {
+          "status": true,
+          "stdout": true,
+          "stderr": false,
+          "effects": true
+        }
+      },
+      {
+        "id": "d04",
+        "fields": {
+          "status": true,
+          "stdout": false,
+          "stderr": true,
+          "effects": true
+        }
+      }
+    ],
+    "productModuleLoads": 5220,
+    "deniedHostAttempts": 0
+  },
+  "controlCounts": {
+    "author": {
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "core": {
+      "tests": 126,
+      "pass": 125,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "scripts": {
+      "tests": 210,
+      "pass": 203,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "cleanup": {
+    "frozenGroups": 75,
+    "scopedGroups": 13,
+    "allAbsentAtSettlement": true,
+    "scratchRootsRemoved": [
+      "/tmp/env-shebang-review-16Z2uR",
+      "/tmp/env-shebang-review-controls-qt4qET"
+    ],
+    "additionalNativeRecursiveTimeout": [
+      "expanded-4"
+    ]
+  },
+  "markers": {
+    "/tmp/safe-bash-env-shebang-author-candidate.txt": {
+      "sha256": "5ecc4e34ca5806a6a358693d7294be3a88ec6c2fbe9f2b4f9caec36fbe69a2e0",
+      "content": "Candidate: dc262a99da8910d082ce7051e811952639588209\nFrozen independent review: 5339b1e75ecda072adffed689da21943235b9192\nOwned candidate paths:\n- src/shell/runtime.ts\n- tests/shell/env-shebang.test.ts\n- tests/shell/env-shebang-host.test.ts\nAuthor regressions: 29/29 passing, including bounded host and pinned Darwin-native profiles.\nExisting core: 125/126, one stale non-S refusal in env-split-author/resume-host.ts:94 (127 now versus 126 expected).\nExisting scripts: 203/210, seven stale env-header refusals in errexit-host and expanded-gaps-env-host; unchanged.\nBuild and scoped strict source/test typecheck pass. Repository typecheck blocked by three unrelated unclassified grep .mts inputs.\nQualification: live dirty checkout with concurrent foreign product edits; this is not an archived full-suite gate or independent replay.\nEvidence capture/report is being committed separately under tests/shell-stress/env-shebang-author/.\n"
+    },
+    "/tmp/safe-bash-env-shebang-author-write-approved.txt": {
+      "sha256": "a8b2d17dc672f2b44206e061cef67760c579f84a96d19a34a9a9ac0a995f99e9",
+      "content": "ROOT AUTHORIZATION: source/test writes may now begin within the previously assigned exact scope.\nIndependent pre-implementation fixture freeze: 5339b1e75ecda072adffed689da21943235b9192.\nIndependent baseline source is archived committed 6fce94f8716f1b7a8e26af78ef8cb33594ec83cc; baseline execution does not overlay live source.\nThis author must not inspect the independent corpus, expected values, native reference records, or reviewer implementation.\nNo public contract, root file, normal executor, direct env implementation, or ownedOutput scope expansion is authorized.\nKeep original historical native-profile losses and old canonical refusal fixtures unchanged pending separate reviewed correction.\n"
+    },
+    "/tmp/safe-bash-env-shebang-inspection-result.txt": {
+      "sha256": "654890c64ff6d06f188ea1baed94303463d37ad8dc3f93ac3ea6618947278e5a",
+      "content": "## Scope Recommendation\n\nTransfer production ownership of **`src/shell/runtime.ts` only**, restricted to imports, `Runtime.scriptFile`, `Runtime.interpreter`, and new private shebang-dispatch helpers. If separation is preferred, additionally authorize a new **`src/shell/env-shebang.ts`**; it is currently absent. No public API change is necessary.\n\nKeep these read-only:\n- `src/commands/execution.ts:48` — existing direct env implementation.\n- `src/commands/env-split.ts:127` — accepted parser already has a usable internal API.\n- Normal executor/discovery/invoke implementations, contracts, root exports, package/configuration files, and AGENTS files.\n\nI read applicable instructions and all three requested reports. No modifications, builds, tests, native probes, commits, private-repository access, or new hidden-fixture inspection occurred.\n\n## Actual Dispatch And Reuse Points\n\n| Location | Relevant behavior |\n|---|---|\n| `src/shell/runtime.ts:874` | Normal dispatch selects registered commands, virtual bash/sh, explicit VFS paths, or virtual PATH search. Do **not** route unrestricted shebang interpreter names through this path. |\n| `src/shell/runtime.ts:1137` | `scriptFile` checks depth, VFS file type/read/execute permission, source budget, and UTF-8/binary validity. |\n| `src/shell/runtime.ts:1154` | Current shebang guard accepts only plain `/usr/bin/env bash\\|sh`, or `/bin/bash`/`/usr/bin/bash` with an optional packed `[-+]e+` argument. All env-S forms fail here. |\n| `src/shell/runtime.ts:1028` | `interpreter` implements `-c`, `-s`, `-e`, `+e`, supported short combinations, and `--`/`-`. Unsupported flags return 2. |\n| `src/shell/runtime.ts:1017` | `processState` resets functions/options, establishes `$0`/positionals, exports incoming environment entries, increments depth, and injects `PWD` from **state.cwd**. |\n| `src/commands/env-split.ts:127` | `parseEnvOptions(args, incomingEnvironment, signal)` performs bounded splitting and option reinsertion without shell evaluation. |\n| `src/commands/execution.ts:50` | Existing env handler owns parsing, environment materialization, assignments, cwd changes, diagnostics, listing, and literal invocation. |\n| `src/shell/runtime.ts:1328` | Existing literal invocation shares budget and cleanup scopes, but its cloned state retains functions; it is **not automatically a reserved-interpreter dispatch mechanism**. |\n\nCurrent `runtime.ts`, `env-split.ts`, and `execution.ts` are clean and byte-identical to their versions at `84ab66ca`. Inspection HEAD was `b99c959e2473669d5a72470a5326547c213d578b`.\n\n## Proposed Internal API\n\n**Preferred reuse:** call the existing env definition internally, not the registered `env` command, with a substituted, guarded `invoke` callback. Obtain that definition from `executionCommands` once, by name, with a fail-closed fallback. This reuses the *actual* environment implementation without modifying it or duplicating assignment/cwd/error semantics.\n\nA private helper could have this shape:\n\n```ts\nexecuteEnvShebang(\n  context: CommandContext,\n  optionalArgument: string | undefined,\n  scriptArgument: string,\n  userArguments: readonly string[],\n  invokeInterpreter: CommandInvoker,\n): Promise<CommandResult>\n```\n\nIt supplies the existing handler with `command: \"env\"` and literal arguments:\n\n```ts\n[...(optionalArgument === undefined ? [] : [optionalArgument]),\n scriptArgument,\n ...userArguments]\n```\n\nThe supplied callback is a **runtime-owned reserved-interpreter bridge**, not unrestricted `context.invoke`. It receives the existing handler’s exact `env`, `replaceEnv: true`, cwd, streams, and provenance. No registration, replacement policy, public contract, or package export changes are required.\n\nImportant implementation constraints:\n\n- **One optional argument:** tokenize only the interpreter pathname and its remaining header suffix. Preserve `bash -e` as one argument. Do not split whitespace or remove quotes outside the accepted env-S parser.\n- **Environment timing:** splitting reads incoming exported `context.env` before `-i`, `-u`, or assignments. Existing implementation supports `i/u/0/C/S`, their declared long forms, repeated options, assignments, `--`, and lone `-`. Do not add GNU flags or abbreviations the core currently rejects.\n- **Environment effects:** reuse null-prototype maps, unset-before-assignment behavior, repeated-assignment handling, name/value validation, and the existing `-0`/command rejection before cwd lookup. `-C` uses VFS `stat`/`realpath`.\n- **Interpreter selection:** retain a closed virtual bash/sh selection and explicit registry-override refusal. Do not resolve arbitrary interpreter names through functions, registry commands, virtual PATH, host PATH, host files, or subprocesses.\n- **Non-S failure:** the retained single-optional reference expects `bash -e` to fail as one missing command, **127**, not execute bash with `-e`. Its virtual diagnostic policy must be explicit; neither Darwin’s native success nor the old guard’s 126 establishes this new behavior.\n- **Full interpreter argv:** pass all env-produced arguments before the appended script/user arguments. Do not assume the original script remains the selected source: extra operands, `-C`, `-c`, and `-s` can change selection.\n- **No header recursion:** explicit interpreter file reading currently still enters the shebang guard. The new env dispatch must apply only at direct executable entry; an interpreter reading that file must not re-execute its env header. Avoid broadly relaxing unrelated unsupported-interpreter validation.\n- **Source accounting:** do not blindly reopen/recharge the original file or always execute its already-read body. Reuse charged source only where the eventual selected VFS source matches; otherwise read and charge the actually selected file.\n- **Cwd/state isolation:** changing only `context.cwd` is insufficient because `processState` reads `state.cwd`. Use isolated state with the selected cwd; preserve parent locals, exports, functions, positionals, options, and cwd.\n- **Limits/lifecycle:** the bridge must preserve shared command/source/output/loop/depth limits and literal-argv expansion bounds. Calling `interpreter` directly without equivalent dispatch accounting can bypass growth/command checks. Preserve existing scope cleanup, awaited sinks, unread input, and `stdinIsDefault`; never create a fresh Shell/Budget.\n- **Status/error placement:** env split errors remain 125; ordinary env usage errors remain 2; existing env VFS errors retain their handler behavior. Interpreter selection failures must return their intended status explicitly—throwing an ordinary error inside the env callback would be caught by `define` and converted to 1 (`src/commands/internal.ts:106`). Abort reason identity must take precedence.\n\nThe factory reuse introduces an internal shell→execution-module dependency, but inspection found no reverse runtime import in that module. If root rejects that dependency, parser-only reuse is available; however, environment preparation would then require deliberate duplication because `execution.ts` cannot be extracted/refactored under this assignment.\n\n## Author Test Scope\n\nAuthorize new author-owned shebang tests, for example `tests/shell/env-shebang.test.ts` and `tests/shell/env-shebang-host.test.ts`, with any evidence under a new isolated author directory.\n\nCover:\n- Single-optional non-S failure; short/attached/long S forms; whitespace, quoting, empty arguments, comments, escapes, nested S, and malformed input.\n- `-i`, repeated `-u`, assignments, original-export expansion timing, supported flags, invalid flags, `-0`, and `-C` success/failure/order.\n- Bash/sh profiles, `-e`/`+e`, supported combinations, `--`, `-c`, `-s`, alternate selected files, `$0`, `$#`, `$@`, exports, PWD/cwd, and same-exec parent preservation.\n- Exact status/stdout/stderr/effects/modes; denied/non-file/binary sources; missing interpreter and registry/function hijack controls.\n- Nested scripts, parser caps, shell budget boundaries, preabort/mid-parser/VFS/input/sink cancellation, cleanup, late rejection, binary stdin, cursor preservation, and input provenance.\n- Public Shell/registry and moved-package execution—not only helper stubs.\n\n**Existing expectation conflicts need separate root routing:**\n- `tests/shell/errexit-host.test.ts:129` explicitly expects env-S and packed non-S headers to refuse 126.\n- `tests/shell/expanded-gaps-env-host.test.ts:4` does likewise.\n- Preserve their historical evidence; do not silently exclude tests or broadly relax diagnostics. Their changes are **not** included in the production transfer above.\n\nSuggested commands for the author, not executed here:\n\n```sh\nnpm run build\n\nnode --import tsx --test \\\n  tests/shell/env-shebang.test.ts \\\n  tests/shell/env-shebang-host.test.ts\n\nnode --import tsx --test \\\n  tests/shell/env-split-native.test.ts \\\n  tests/shell/env-split-host.test.ts \\\n  tests/shell/env-split-limits.test.ts \\\n  tests/shell/env-replacement.test.ts \\\n  tests/shell/invoke.test.ts\n\nnode --import tsx --test \\\n  tests/shell/script-entrypoint.test.ts \\\n  tests/shell/invocation-modes.test.ts \\\n  tests/shell/errexit-host.test.ts \\\n  tests/shell/expanded-gaps-env-host.test.ts\n```\n\nThe final command intentionally exposes the legacy refusal conflicts until separately authorized reconciliation. Do not treat them as unexpected parser regressions or waive them.\n\n## Existing Pins And Evidence Boundaries\n\nRecorded native locations—not newly checked for existence:\n- GNU env **9.7**, Darwin: `/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env`.\n- GNU Bash **5.3.0(1)-release**: `/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash`.\n- Apple env: `/usr/bin/env`; its recorded version probe is unsupported, not a GNU version.\n- Apple Bash **3.2.57(1)-release**: `/bin/bash`.\n\nPaths, full binary hashes, and captured version bytes are in `tests/shell-stress/env-split-author/native-frozen.json:14`. These are Darwin tools, **not evidence of a Linux deployment**.\n\nRecorded build/runtime pins: Node **22.22.2** at `/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node`, TypeScript **5.9.3**, npm **10.9.7**; locations/hashes appear in `tests/shell-stress/env-split-consumer/packed-core-84ab66c.json:19779`.\n\nPreserve the partitions in `tests/shell-stress/env-split-gate-routing/BINDING_ADDENDUM.md:122`: accepted supported core **7/7**, revised hidden hosts **7/7**, GNU commands **39/42 strict plus three separate diagnostic checks**. The **five GNU single-optional protocol losses** and **three Darwin packed protocol losses** remain distinct. Original invalid-fixture reports remain historical failures. **Whole8670 stays immutable and is not requalified by this work.**\n\nFinal dirty-state inspection still shows no proposed production-path changes and an empty index. Foreign changes include the existing Whole8670 prerequisite edit, its untracked regression file, native scratch directories, and newly appearing benchmark/column/grep verification outputs. None was read substantively or modified."
+    }
+  },
+  "diffSha256": "7d876e8a51aeb778b9dadd6aae0a0da4596248665c17b25b22a3b28155ab57ca"
+}

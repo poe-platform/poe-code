@@ -1,0 +1,25 @@
+{
+  "role": "DEVGIT_METADATA_NOT_PRODUCT_OR_SUPERVISOR_CHILD",
+  "command": [
+    "/usr/bin/git",
+    "--no-optional-locks",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "maintenance.auto=false",
+    "cat-file",
+    "--batch"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "start": 1787949417442,
+  "end": 1787949417613,
+  "pid": 97647,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutBytes": 9988326,
+  "stderrBytes": 0,
+  "requests": 348
+}

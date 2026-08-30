@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "qualification": "AUTHOR_PUBLIC_MOCK_TRANSPORT_ONLY",
+  "candidateCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "cases": 4,
+  "originalSelectedBodiesAuthenticated": true,
+  "assertionChanges": [],
+  "publicBindingCommit": "7204b9e01752c700dd791afd332e7f1b5fd8ba73",
+  "files": [
+    {
+      "path": "helpers.ts.data",
+      "bytes": 1339,
+      "sha256": "fb33b4d31c2d71f91208c43eb87f779317ea29b1ec4b1f105d78f17050b91bf6"
+    },
+    {
+      "path": "network.test.ts.data",
+      "bytes": 4214,
+      "sha256": "56bc0d0a21187931b881c1931822246c0f3c584fe5a12f3da193b1f1e491296c"
+    },
+    {
+      "path": "PROVENANCE.json",
+      "bytes": 2662,
+      "sha256": "17ebccf11f13ba0ebf9fce6ca1cc0085a6b010b4d5174cf1d595e13c4a661181"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1563,
+      "sha256": "ddc7956595c54dc29970360ed944343bbaeb39a5a19cbae7ddb0e7c9aa6b6d2e"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 4770,
+      "sha256": "5d5af3e9a9e70640fcc2408b84ba10aba9cf7be58e2f8cfe7e9ba002015d6d0e"
+    }
+  ]
+}

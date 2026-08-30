@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "role": "actual compiled private owner/root with synchronous importer-bound fakeWorker; NOT OS Worker proof",
+  "groups": [
+    {
+      "id": "D01-normal",
+      "pass": true
+    },
+    {
+      "id": "D02-single-false",
+      "pass": true
+    },
+    {
+      "id": "D03-persistent-Promise-reject-false",
+      "pass": true
+    },
+    {
+      "id": "D04-primary-false-cleanup-undefined",
+      "pass": true
+    },
+    {
+      "id": "D05-cleanup-only-undefined",
+      "pass": true
+    },
+    {
+      "id": "D06-constructor-false",
+      "pass": true
+    },
+    {
+      "id": "D07-both-stream-attempts",
+      "pass": true
+    },
+    {
+      "id": "D08-idempotent-close",
+      "pass": true
+    },
+    {
+      "id": "D09-sync-termination-throw-distinct",
+      "pass": true
+    },
+    {
+      "id": "D10-late-exit-no-upgrade",
+      "pass": true
+    },
+    {
+      "id": "D11-root-unknown-close",
+      "pass": true
+    },
+    {
+      "id": "D12-root-retains-charge",
+      "pass": true
+    },
+    {
+      "id": "D13-root-no-new-work",
+      "pass": true
+    },
+    {
+      "id": "D14-caller-false-priority",
+      "pass": true
+    },
+    {
+      "id": "D15-known-retired-root-primary",
+      "pass": true
+    },
+    {
+      "id": "D16-primary-raw-object",
+      "pass": true
+    }
+  ],
+  "passed": 16,
+  "workers": 0,
+  "matchingCalls": 0,
+  "loaded": [
+    "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/errors.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/limits.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/accounting.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/protocol.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.js",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/validation.js",
+    "node:timers/promises",
+    "node:util"
+  ]
+}

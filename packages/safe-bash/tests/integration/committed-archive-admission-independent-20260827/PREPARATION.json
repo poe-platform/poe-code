@@ -1,0 +1,131 @@
+{
+  "preparedAt": "2026-08-27T13:44:16.463Z",
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "tree": "2b5790d522f433778a3ba2364f24b7ae7b24216f",
+  "admissionCommit": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+  "refusalCommit": "86c63b39f38bb203f39feec58786b85c27debbff",
+  "inputs": [
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/policy.json",
+      "bytes": 623087,
+      "sha256": "0c3985974d77922f72f3fec12c6d70b8f6c97eb6c61f683bfca6fd627b2339b2"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/cleanup-expected.json",
+      "bytes": 23409,
+      "sha256": "5750fae88a42f9dd72b2362216f0bd21d86f173f35d935db17f481c8541783a4"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/CANDIDATE.json",
+      "bytes": 8062,
+      "sha256": "95d0244d6a7cac3740c796a5e937394b5fa05969677df5c86eb12d8c8e6022b9"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/preparation-controls.json",
+      "bytes": 29488,
+      "sha256": "aa07613e73132bf1becf89ca57310ecf6c055a7da5d32842a22d604ba40fbcc1"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+      "bytes": 25006,
+      "sha256": "f8cdb91505c8eb148ffdd561b9fe66027cdae2c5815856507f36d092fd05ad81"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/controls.mjs",
+      "bytes": 6208,
+      "sha256": "8bea5dbff95b57002d3873c555915551d7223bb95dfeff3866d50067e406de8e"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs",
+      "bytes": 2647,
+      "sha256": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/README.md",
+      "bytes": 4291,
+      "sha256": "e3209766bc74a781afa24440723ca1b98ad0246de901f91a43bf84a23f85639b"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs",
+      "bytes": 7134,
+      "sha256": "4e328502a8713fe6bba64f231cab846ceb1d2dc5454a8276205de3009d17944e"
+    },
+    {
+      "revision": "98843c59f9be0b05230f1a006f2d41b6f6b34025",
+      "path": "tests/integration/full-gate-20260827/preflight-repair/policy.json",
+      "bytes": 171734,
+      "sha256": "eb2575674ba51a5c8a8f5c82609281e56f5cbff77889e4e86e22dc7974cdc11e"
+    },
+    {
+      "revision": "86c63b39f38bb203f39feec58786b85c27debbff",
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/refused-launch-01.json",
+      "bytes": 22271,
+      "sha256": "7c931c565959c27997d57b815adf3fe84d8f58edc348cb153b68f5dc2e48a73f"
+    }
+  ],
+  "candidateInputs": {
+    "scope": 3246,
+    "canonical": 560,
+    "cleanup": 220,
+    "cleanupCompactSha256": "d9309d27efd2e1e418f075f4f514efeeefa833e8b3dc5e061662289f8ecd67b6"
+  },
+  "originalControls": {
+    "count": 11,
+    "names": [
+      "exact candidate and native49 admitted",
+      "missing tree refuses admission",
+      "other candidate refuses admission",
+      "cleanup envelope independently regenerated",
+      "cleanup rejects old revision",
+      "cleanup rejects changed file",
+      "cleanup rejects missing file",
+      "load guard legitimate",
+      "load guard old-source",
+      "load guard missing-parser",
+      "load guard compiled-fallback"
+    ],
+    "qualification": "authenticated historical preparation, not a new execution"
+  },
+  "originalRefusal": {
+    "status": 78,
+    "issues": [
+      {
+        "kind": "dirty-tracked-inputs",
+        "records": [
+          " M src/commands/search/rg.ts"
+        ]
+      }
+    ],
+    "rawSha256": "f3c9640843638e3898ef48352cc5c0db7c7085efacacd6a6f77b0dac4a394326",
+    "archiveBuildSuiteExecuted": false
+  },
+  "newArchiveModeReviewed": false,
+  "suiteLaunched": false,
+  "compilerRuns": 0,
+  "nativeProgramsExecuted": 0,
+  "sourceArchiveExtracted": false,
+  "existingStrictGuard": {
+    "status": "preflight-rejected-before-suite",
+    "issues": [
+      {
+        "kind": "dirty-tracked-inputs",
+        "records": [
+          " M tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs"
+        ]
+      }
+    ],
+    "authenticatedNativeAssets": 49,
+    "qualification": "existing strict guard; live status metadata read only, no live source copied or modified"
+  },
+  "readiness": "pending explicit archive-mode source/evidence/flag handoff",
+  "cleaned": true
+}

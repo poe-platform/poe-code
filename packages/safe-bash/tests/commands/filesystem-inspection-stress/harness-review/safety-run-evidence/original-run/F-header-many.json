@@ -1,0 +1,725 @@
+{
+  "id": "F-header-many",
+  "pid": 71965,
+  "childCode": 0,
+  "signal": null,
+  "observedRss": 81477632,
+  "observedCommandStarts": 1,
+  "report": {
+    "id": "F-header-many",
+    "actualShell": true,
+    "shellDisposed": true,
+    "rejected": false,
+    "exitCode": 0,
+    "heapSizeLimit": 134217728,
+    "calls": [
+      {
+        "method": "lstat",
+        "path": "/header-0000",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0000",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0001",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0001",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0002",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0002",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0003",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0003",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0004",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0004",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0005",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0005",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0006",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0006",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0007",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0007",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0008",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0008",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0009",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0009",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0010",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0010",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0011",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0011",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0012",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0012",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0013",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0013",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0014",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0014",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0015",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0015",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0016",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0016",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0017",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0017",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0018",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0018",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0019",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0019",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0020",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0020",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0021",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0021",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0022",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0022",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0023",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0023",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0024",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0024",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0025",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0025",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0026",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0026",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0027",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0027",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0028",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0028",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0029",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0029",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0030",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0030",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "lstat",
+        "path": "/header-0031",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readStream",
+        "path": "/header-0031",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      }
+    ],
+    "streams": [
+      {
+        "path": "/header-0000",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0001",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0002",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0003",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0004",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0005",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0006",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0007",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0008",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0009",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0010",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0011",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0012",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0013",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0014",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0015",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0016",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0017",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0018",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0019",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0020",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0021",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0022",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0023",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0024",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0025",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0026",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0027",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0028",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0029",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0030",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      },
+      {
+        "path": "/header-0031",
+        "start": 0,
+        "endExclusive": 1024,
+        "chunkSize": 1024,
+        "next": 5,
+        "returned": 0,
+        "bytes": 512
+      }
+    ],
+    "mutations": 0,
+    "commandInvocations": 1,
+    "unhandled": [],
+    "stdout": "text/plain; charset=us-ascii\napplication/octet-stream; charset=binary\napplication/x-dosexec; charset=binary\napplication/octet-stream; charset=binary\ntext/plain; charset=us-ascii\napplication/octet-stream; charset=binary\napplication/x-dosexec; charset=binary\napplication/octet-stream; charset=binary\ntext/plain; charset=us-ascii\napplication/octet-stream; charset=binary\napplication/x-dosexec; charset=binary\napplication/octet-stream; charset=binary\ntext/plain; charset=us-ascii\napplication/octet-stream; charset=binary\napplication/x-dosexec; charset=binary\napplication/octet-stream; charset=binary\ntext/plain; charset=us-ascii\napplication/octet-stream; charset=binary\napplication/x-dosexec; charset=binary\napplication/octet-stream; charset=binary\ntext/plain; charset=us-ascii\napplication/octet-stream; charset=binary\napplication/x-dosexec; charset=binary\napplication/octet-stream; charset=binary\ntext/plain; charset=us-ascii\napplication/octet-stream; charset=binary\napplication/x-dosexec; charset=binary\napplication/octet-stream; charset=binary\ntext/plain; charset=us-ascii\napplication/octet-stream; charset=binary\napplication/x-dosexec; charset=binary\napplication/octet-stream; charset=binary\n",
+    "stderr": "",
+    "stdoutBase64": "dGV4dC9wbGFpbjsgY2hhcnNldD11cy1hc2NpaQphcHBsaWNhdGlvbi9vY3RldC1zdHJlYW07IGNoYXJzZXQ9YmluYXJ5CmFwcGxpY2F0aW9uL3gtZG9zZXhlYzsgY2hhcnNldD1iaW5hcnkKYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtOyBjaGFyc2V0PWJpbmFyeQp0ZXh0L3BsYWluOyBjaGFyc2V0PXVzLWFzY2lpCmFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbTsgY2hhcnNldD1iaW5hcnkKYXBwbGljYXRpb24veC1kb3NleGVjOyBjaGFyc2V0PWJpbmFyeQphcHBsaWNhdGlvbi9vY3RldC1zdHJlYW07IGNoYXJzZXQ9YmluYXJ5CnRleHQvcGxhaW47IGNoYXJzZXQ9dXMtYXNjaWkKYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtOyBjaGFyc2V0PWJpbmFyeQphcHBsaWNhdGlvbi94LWRvc2V4ZWM7IGNoYXJzZXQ9YmluYXJ5CmFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbTsgY2hhcnNldD1iaW5hcnkKdGV4dC9wbGFpbjsgY2hhcnNldD11cy1hc2NpaQphcHBsaWNhdGlvbi9vY3RldC1zdHJlYW07IGNoYXJzZXQ9YmluYXJ5CmFwcGxpY2F0aW9uL3gtZG9zZXhlYzsgY2hhcnNldD1iaW5hcnkKYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtOyBjaGFyc2V0PWJpbmFyeQp0ZXh0L3BsYWluOyBjaGFyc2V0PXVzLWFzY2lpCmFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbTsgY2hhcnNldD1iaW5hcnkKYXBwbGljYXRpb24veC1kb3NleGVjOyBjaGFyc2V0PWJpbmFyeQphcHBsaWNhdGlvbi9vY3RldC1zdHJlYW07IGNoYXJzZXQ9YmluYXJ5CnRleHQvcGxhaW47IGNoYXJzZXQ9dXMtYXNjaWkKYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtOyBjaGFyc2V0PWJpbmFyeQphcHBsaWNhdGlvbi94LWRvc2V4ZWM7IGNoYXJzZXQ9YmluYXJ5CmFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbTsgY2hhcnNldD1iaW5hcnkKdGV4dC9wbGFpbjsgY2hhcnNldD11cy1hc2NpaQphcHBsaWNhdGlvbi9vY3RldC1zdHJlYW07IGNoYXJzZXQ9YmluYXJ5CmFwcGxpY2F0aW9uL3gtZG9zZXhlYzsgY2hhcnNldD1iaW5hcnkKYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtOyBjaGFyc2V0PWJpbmFyeQp0ZXh0L3BsYWluOyBjaGFyc2V0PXVzLWFzY2lpCmFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbTsgY2hhcnNldD1iaW5hcnkKYXBwbGljYXRpb24veC1kb3NleGVjOyBjaGFyc2V0PWJpbmFyeQphcHBsaWNhdGlvbi9vY3RldC1zdHJlYW07IGNoYXJzZXQ9YmluYXJ5Cg==",
+    "stderrBase64": "",
+    "stdoutBytes": 1192,
+    "stderrBytes": 0
+  },
+  "status": "pass",
+  "qualification": "Require one bounded complete stream/classification per operand, correct MIME/charset record shape and no excessive offset reads. Record classifications without promoting them to valid-file/security/native-format certification.",
+  "staticProof": {
+    "status": "approved",
+    "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+    "files": [
+      "src/commands/file/shared.ts",
+      "src/commands/file/index.ts",
+      "src/commands/file/classify.ts"
+    ],
+    "basis": "classify.ts:21-66 guards every DataView/fixed signature read by sample lengths. PDF regex input<=16; tar checksum<=8 then fixed512 loop; MZ requires64 before offset read and offset>=64&&offset<=sample.length-24 before PE check; no offset initiates VFS I/O. SQLite guarded100-byte profile. Sample charge precedes decode/control/ASCII/JSON passes. Startup392; entries546/558/555/558 by near-miss group; total18128<32768, input16384, output1192. Expected labels are static characterizations only. No dynamic execution or valid-file certification.",
+    "offsetsBoundedBySample": true,
+    "startupWork": 392,
+    "perEntryWorkByGroup": [
+      546,
+      558,
+      555,
+      558
+    ],
+    "singleEntryMaximumWork": 950,
+    "invocationTotalWork": 18128,
+    "inputBytes": 16384,
+    "outputBytes": 1192
+  }
+}

@@ -1,0 +1,214 @@
+TAP version 13
+# Subtest: faithful Memory bound preserves scope and s3 copy as source
+ok 1 - faithful Memory bound preserves scope and s3 copy as source
+  ---
+  duration_ms: 4.751416
+  type: 'test'
+  ...
+# {"style":"bound","kind":"s3","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory bound preserves scope and s3 copy as target
+ok 2 - faithful Memory bound preserves scope and s3 copy as target
+  ---
+  duration_ms: 2.449583
+  type: 'test'
+  ...
+# {"style":"bound","kind":"s3","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory bound preserves scope and webdav copy as source
+ok 3 - faithful Memory bound preserves scope and webdav copy as source
+  ---
+  duration_ms: 19.212917
+  type: 'test'
+  ...
+# {"style":"bound","kind":"webdav","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory bound preserves scope and webdav copy as target
+ok 4 - faithful Memory bound preserves scope and webdav copy as target
+  ---
+  duration_ms: 3.421375
+  type: 'test'
+  ...
+# {"style":"bound","kind":"webdav","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory decorator preserves scope and s3 copy as source
+ok 5 - faithful Memory decorator preserves scope and s3 copy as source
+  ---
+  duration_ms: 2.546042
+  type: 'test'
+  ...
+# {"style":"decorator","kind":"s3","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory decorator preserves scope and s3 copy as target
+ok 6 - faithful Memory decorator preserves scope and s3 copy as target
+  ---
+  duration_ms: 0.89975
+  type: 'test'
+  ...
+# {"style":"decorator","kind":"s3","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory decorator preserves scope and webdav copy as source
+ok 7 - faithful Memory decorator preserves scope and webdav copy as source
+  ---
+  duration_ms: 2.611833
+  type: 'test'
+  ...
+# {"style":"decorator","kind":"webdav","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory decorator preserves scope and webdav copy as target
+ok 8 - faithful Memory decorator preserves scope and webdav copy as target
+  ---
+  duration_ms: 2.36525
+  type: 'test'
+  ...
+# {"style":"decorator","kind":"webdav","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory subclass preserves scope and s3 copy as source
+ok 9 - faithful Memory subclass preserves scope and s3 copy as source
+  ---
+  duration_ms: 1.08475
+  type: 'test'
+  ...
+# {"style":"subclass","kind":"s3","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory subclass preserves scope and s3 copy as target
+ok 10 - faithful Memory subclass preserves scope and s3 copy as target
+  ---
+  duration_ms: 0.889167
+  type: 'test'
+  ...
+# {"style":"subclass","kind":"s3","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory subclass preserves scope and webdav copy as source
+ok 11 - faithful Memory subclass preserves scope and webdav copy as source
+  ---
+  duration_ms: 1.668167
+  type: 'test'
+  ...
+# {"style":"subclass","kind":"webdav","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory subclass preserves scope and webdav copy as target
+ok 12 - faithful Memory subclass preserves scope and webdav copy as target
+  ---
+  duration_ms: 1.523
+  type: 'test'
+  ...
+# {"style":"subclass","kind":"webdav","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful bound Memory preserves known hardlink/symlink aliases and readonly denial
+ok 13 - faithful bound Memory preserves known hardlink/symlink aliases and readonly denial
+  ---
+  duration_ms: 0.7155
+  type: 'test'
+  ...
+# Subtest: truthful unknown Memory-backed alias stays unknown before content effects
+ok 14 - truthful unknown Memory-backed alias stays unknown before content effects
+  ---
+  duration_ms: 0.185791
+  type: 'test'
+  ...
+# Subtest: faithful Memory still requires original FS/path/stat observations
+ok 15 - faithful Memory still requires original FS/path/stat observations
+  ---
+  duration_ms: 0.384792
+  type: 'test'
+  ...
+# Subtest: late Memory source authority same precedes content effects
+ok 16 - late Memory source authority same precedes content effects
+  ---
+  duration_ms: 5.995125
+  type: 'test'
+  ...
+# Subtest: late Memory source authority distinct precedes content effects
+ok 17 - late Memory source authority distinct precedes content effects
+  ---
+  duration_ms: 2.8365
+  type: 'test'
+  ...
+# Subtest: late Memory source authority unknown precedes content effects
+ok 18 - late Memory source authority unknown precedes content effects
+  ---
+  duration_ms: 2.666291
+  type: 'test'
+  ...
+# Subtest: late Memory source authority error precedes content effects
+ok 19 - late Memory source authority error precedes content effects
+  ---
+  duration_ms: 1.864416
+  type: 'test'
+  ...
+# Subtest: late Memory source authority invalid precedes content effects
+ok 20 - late Memory source authority invalid precedes content effects
+  ---
+  duration_ms: 1.554875
+  type: 'test'
+  ...
+# Subtest: late Memory source authority cancel precedes content effects
+ok 21 - late Memory source authority cancel precedes content effects
+  ---
+  duration_ms: 1.67525
+  type: 'test'
+  ...
+# Subtest: late Memory target authority same precedes content effects
+ok 22 - late Memory target authority same precedes content effects
+  ---
+  duration_ms: 1.201208
+  type: 'test'
+  ...
+# Subtest: late Memory target authority distinct precedes content effects
+ok 23 - late Memory target authority distinct precedes content effects
+  ---
+  duration_ms: 1.220708
+  type: 'test'
+  ...
+# Subtest: late Memory target authority unknown precedes content effects
+ok 24 - late Memory target authority unknown precedes content effects
+  ---
+  duration_ms: 1.451709
+  type: 'test'
+  ...
+# Subtest: late Memory target authority error precedes content effects
+ok 25 - late Memory target authority error precedes content effects
+  ---
+  duration_ms: 1.08675
+  type: 'test'
+  ...
+# Subtest: late Memory target authority invalid precedes content effects
+ok 26 - late Memory target authority invalid precedes content effects
+  ---
+  duration_ms: 1.508084
+  type: 'test'
+  ...
+# Subtest: late Memory target authority cancel precedes content effects
+ok 27 - late Memory target authority cancel precedes content effects
+  ---
+  duration_ms: 0.807417
+  type: 'test'
+  ...
+# Subtest: complete Memory tuples still win over late explicit callbacks
+ok 28 - complete Memory tuples still win over late explicit callbacks
+  ---
+  duration_ms: 0.303875
+  type: 'test'
+  ...
+# Subtest: shared Memory authority conflict queries each operand at most once
+ok 29 - shared Memory authority conflict queries each operand at most once
+  ---
+  duration_ms: 0.218916
+  type: 'test'
+  ...
+# Subtest: shared Memory authority cancel queries each operand at most once
+ok 30 - shared Memory authority cancel queries each operand at most once
+  ---
+  duration_ms: 0.106083
+  type: 'test'
+  ...
+# Subtest: shared Memory authority preconstruction-peer queries each operand at most once
+ok 31 - shared Memory authority preconstruction-peer queries each operand at most once
+  ---
+  duration_ms: 0.120375
+  type: 'test'
+  ...
+# Subtest: late forwarding of the base comparator remains bounded and unknown
+ok 32 - late forwarding of the base comparator remains bounded and unknown
+  ---
+  duration_ms: 0.388333
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 186.982292

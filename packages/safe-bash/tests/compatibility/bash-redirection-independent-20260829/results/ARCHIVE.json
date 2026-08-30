@@ -1,0 +1,71 @@
+{
+  "schema": "bash-redirection-independent-captures-v1",
+  "records": 268,
+  "recordBytes": 16729866,
+  "uniqueBlobs": 219,
+  "serializedBytes": 20007061,
+  "gzipBytes": 5958063,
+  "gzipSha256": "e873532f50be217b45542287787174ad0b7cf9510795f4c0e3ac00cf0b2a9c99",
+  "serializedSha256": "779f8a428725eef0b9dc20dbcdcc859051797df17fa875cc2de19cc5feb563bb",
+  "parts": [
+    {
+      "path": "results/CAPTURES.part-01.gz.base64",
+      "decodedBytes": 1048576,
+      "decodedSha256": "edf14c45d3f9dc9d19ab056c8f2f21b93de4fd143c76c5b2f17305a9b046e24e"
+    },
+    {
+      "path": "results/CAPTURES.part-02.gz.base64",
+      "decodedBytes": 1048576,
+      "decodedSha256": "6840d32b664f6f53e698b5f04bcfb377c9bc83569804ec7918bab4cde5502885"
+    },
+    {
+      "path": "results/CAPTURES.part-03.gz.base64",
+      "decodedBytes": 1048576,
+      "decodedSha256": "e31e250fdbb31cbddf58582ec918251277595a164e6ae13c75a508cfd4df8a4e"
+    },
+    {
+      "path": "results/CAPTURES.part-04.gz.base64",
+      "decodedBytes": 1048576,
+      "decodedSha256": "15a9db57c114ec52332a07e14fd8c441dccbc39cc1d73585b3b559c8d0494aa4"
+    },
+    {
+      "path": "results/CAPTURES.part-05.gz.base64",
+      "decodedBytes": 1048576,
+      "decodedSha256": "36fb818da5f7b8e383b732dc636612d5f3b38b35450fc4052d5a39fa6b95b6c2"
+    },
+    {
+      "path": "results/CAPTURES.part-06.gz.base64",
+      "decodedBytes": 715183,
+      "decodedSha256": "3807d3ce50105a8c36296c0589be6b3667eda0141792e315c48dad3bbc571179"
+    }
+  ],
+  "all268RecordsRoundtripVerified": true,
+  "selection": "Every regular file immediately under each actual root and scratch root, plus all three supervisor records/captures. Includes all child stdout/stderr/bindings/load and resource logs, results, all three exact-package aliases; deduplicated by content hash. Tools/source/staged apps remain raw, not claimed fully archived.",
+  "staging": {
+    "files": 15509,
+    "bytes": 183134786,
+    "censusGzipSha256": "a1416f4fba31bbe7c8351af12a5676bdfc3c32cee44a965e1d663794881731ea",
+    "censusSerializedSha256": "5af37c3442651778d5786a51562ebad73d96fc1556f3b23b7f866ad055fafd97",
+    "roots": [
+      {
+        "root": "ACTUAL-01",
+        "files": 4136,
+        "bytes": 55952596,
+        "rowsSha256": "1a74384cbb2c806aab76213e36f5fc32c47c833205832f90e8fa380a6d7c5491"
+      },
+      {
+        "root": "continuation-v2/ACTUAL-01",
+        "files": 6268,
+        "bytes": 70314137,
+        "rowsSha256": "21636185b9717a1c43ee4249e314c625172605fd8d5e6c29d5acd3786db72510"
+      },
+      {
+        "root": "n11-v3/ACTUAL-01",
+        "files": 5105,
+        "bytes": 56868053,
+        "rowsSha256": "347b5ff15dfb46c3d7e4bdbac9edf030ccdfbac1e3ce3aa72eddfef2554c12f0"
+      }
+    ],
+    "removedFiles": 0
+  }
+}

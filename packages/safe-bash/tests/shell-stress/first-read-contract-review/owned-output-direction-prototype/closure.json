@@ -1,0 +1,453 @@
+{
+  "capturedAt": "2026-08-27T10:15:39.733Z",
+  "runs": [
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-adapted-five.json",
+      "sha256": "393126cf325b5395fd223f4dc1db28fb53958cabcfd1b8900257bbbc9e338a42",
+      "status": 0,
+      "pid": 17375,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-author.json",
+      "sha256": "9526d6ff3af68ea9b89b08cb3c8177f177863e2bbd363750209019724ec3770d",
+      "status": 0,
+      "pid": 18498,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C1.json",
+      "sha256": "d2444d77a0f615d9a9c84593e30440a3e78ffdd0cf03ed9674d524fc182ace34",
+      "status": 0,
+      "pid": 18452,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C2.json",
+      "sha256": "a4a19554c5e527d64ad3e352afdfa97ac578c6153aa0a857b5163f577d5c5bc2",
+      "status": 0,
+      "pid": 18455,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C3.json",
+      "sha256": "386af6f704fca03b90950368dbbbdf9e1f5aa0493ab22f619a67407dbb97b057",
+      "status": 0,
+      "pid": 18458,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C4.json",
+      "sha256": "eeb57f337d7160481270d761d9eb176a845ca306e822d38b14fee28a4a3b48c8",
+      "status": 0,
+      "pid": 18461,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C5.json",
+      "sha256": "dd7ab57edfa36baa951655d80c793af3f5b470f5b527a6554ac17614e66931a4",
+      "status": 0,
+      "pid": 18464,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C6.json",
+      "sha256": "15bacb03fcddd9bf5691fc0910ce73e4533f482bed51665ad0a8f8431d95ca55",
+      "status": 0,
+      "pid": 18467,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C7.json",
+      "sha256": "c2b5180c3da470954f15c4c4571d2ce1a97c79ad82c5e20baf9aaf19282257cd",
+      "status": 0,
+      "pid": 18471,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C8.json",
+      "sha256": "21be4d84ea0ac180f194cf7e43568c562d034e62bac61405e375664ae08affbd",
+      "status": 0,
+      "pid": 18492,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-control-C9.json",
+      "sha256": "41684cac415f3f58def7dbe3ffb88d02e456aa1d5131cb6fde37325846381956",
+      "status": 0,
+      "pid": 18495,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-direction-author.json",
+      "sha256": "f85b08a42e24a34a4cafcda14a9561b17759112fe7abfe71a0af69c6b631b4bc",
+      "status": 0,
+      "pid": 17339,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-existing-byte-io.json",
+      "sha256": "374e0c19af5449341771b6aded6afcab26d07f4617ab76a93de1bc3cc889fd03",
+      "status": 0,
+      "pid": 18424,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-existing-remote.json",
+      "sha256": "5d16f7df0e41d6ca57c922d0dcb8d6d792a5345111f7116302dfcd072e5b31e3",
+      "status": 0,
+      "pid": 18338,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-existing-shared.json",
+      "sha256": "eae08696b4c1fa2815a902e3fe7177854a02c8de127556df4f23e12e1ab8316f",
+      "status": 0,
+      "pid": 18431,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-existing-streaming.json",
+      "sha256": "257164e89e78df4502ad3d399ac3875ce5a59de22aea52cff1cfd4bd630b8916",
+      "status": 0,
+      "pid": 18447,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-original-five-and-head-zero.json",
+      "sha256": "36c960ec8643d4a50b56f51b730a22a9a474aa36144fc0698503dcb73cf65caf",
+      "status": 1,
+      "pid": 17403,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-scoped-typecheck.json",
+      "sha256": "4ab06e263528456ac6973b533be5c774ad4ce27a6e18fec763c1be5297e35254",
+      "status": 0,
+      "pid": 17357,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r0-source-build.json",
+      "sha256": "0b9c34d44a542a248088249d27adb48057c2706848980ef842c5b1034733e551",
+      "status": 0,
+      "pid": 17344,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-adapted-five.json",
+      "sha256": "b2f8a4440223e0cc4004dc707be5ad9d4bcb787280a93cc650f898c56050808f",
+      "status": 0,
+      "pid": 24242,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-author.json",
+      "sha256": "e2919e8db6fa49105b0a37926ccacb8f3fe7bf8b1c48cafb7e53e05ad25f23e9",
+      "status": 0,
+      "pid": 24424,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C1.json",
+      "sha256": "74189bb198506427d4b4e618383eeac7f3919b37fda8c6301e627d50147c9c1c",
+      "status": 0,
+      "pid": 24390,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C2.json",
+      "sha256": "7852d1e304d49393da626092bc99ace919f8a02d84aa3c9dcd9ce130924abc80",
+      "status": 0,
+      "pid": 24393,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C3.json",
+      "sha256": "e57cf95c69761dac8393aebdc1d9870190bbdb2d317b64be5b60f584d52fb743",
+      "status": 0,
+      "pid": 24396,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C4.json",
+      "sha256": "3ac30d18ae6b769fd37514d828650b5d5371a673bf22f6f4fbaaf172b9295603",
+      "status": 0,
+      "pid": 24401,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C5.json",
+      "sha256": "7e934ad03e55670329aa17082cebabfbd0642aed25d22537bccdc7e888acf82f",
+      "status": 0,
+      "pid": 24409,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C6.json",
+      "sha256": "86233bb4b5be295b079faafc1fefd8c9a9a72d87bd748e0ad92d0932b2c4a45b",
+      "status": 0,
+      "pid": 24412,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C7.json",
+      "sha256": "afde37179f5adf307b2d07d1df21d5adb5bf43bc20ef3268da0729f9dda44840",
+      "status": 0,
+      "pid": 24415,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C8.json",
+      "sha256": "bdb997fa649ba45dc825cf410c4d02eba035da3c19ecb2dab7657190f6ba4dbc",
+      "status": 0,
+      "pid": 24418,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-control-C9.json",
+      "sha256": "409162f37f556c87d1ad8dc9c2359cbc0a8444febe1f20efb63de2ecb425a903",
+      "status": 0,
+      "pid": 24421,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-direction-author.json",
+      "sha256": "5cd615911863a974c39868bba203a3061314b316a262982eac9b469c404e2d17",
+      "status": 0,
+      "pid": 24195,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-existing-byte-io.json",
+      "sha256": "0b54bd2781b66ca53d6844d092a44ec2ca80ed5d759e5466a711cfb761464621",
+      "status": 0,
+      "pid": 24361,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-existing-remote.json",
+      "sha256": "b76c00a90104bf8e2934c32a10b18b450b588cdd183c780f1a45a06590e57f04",
+      "status": 0,
+      "pid": 24309,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-existing-shared.json",
+      "sha256": "522a1824aa7b11fb6fdd232cf1e20ce90b17aa12ffa278103db2af08d740137a",
+      "status": 0,
+      "pid": 24368,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-existing-streaming.json",
+      "sha256": "8e99f9f52ae62611cf297da9e7b3b1d90f43f812ee922a9d481700a94a677824",
+      "status": 0,
+      "pid": 24385,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-original-five-and-head-zero.json",
+      "sha256": "9cc68eba01954ba9363297c920d716aad1ddf58ff249cbdb95e880185780ec86",
+      "status": 1,
+      "pid": 24284,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-scoped-typecheck.json",
+      "sha256": "f9da4fc3d65a988f5243d5f1fc1373913c73b2153e58ec5091cb91310e42f20d",
+      "status": 0,
+      "pid": 24218,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v2",
+      "path": "runs/v2-r1-source-build.json",
+      "sha256": "cb5539bbf4ca1ff66b4c17ca11da1db500d381da01d709433b91d3c2290f8d7e",
+      "status": 0,
+      "pid": 24200,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v1-diagnosis",
+      "path": "runs/v1-diagnosis-adapted-five.json",
+      "sha256": "e40c4bce68c85e3a520f8d7381a02053d6057ecf373b2bbe1a1cbf0fd1f766da",
+      "status": 0,
+      "pid": 21054,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v1-diagnosis",
+      "path": "runs/v1-diagnosis-first-read-curl-body.json",
+      "sha256": "be89c3b830f309b90290ea062267bd0ee2069b091e94263a3d54bb6232f59577",
+      "status": 1,
+      "pid": 21039,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v1-diagnosis",
+      "path": "runs/v1-diagnosis-first-read-curl-headers.json",
+      "sha256": "7327449a941456acfce0ebf233bdafa63ee595bdb9c66cab6bfef2148c80d49a",
+      "status": 1,
+      "pid": 21050,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v1-diagnosis",
+      "path": "runs/v1-diagnosis-first-read-local.json",
+      "sha256": "891ff909a8451f108b11cd611e731b8126a6984c0183dedc95e8a802fbc90257",
+      "status": 1,
+      "pid": 21008,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v1-diagnosis",
+      "path": "runs/v1-diagnosis-first-read-s3.json",
+      "sha256": "93c61dee6134136d90af76bb30aeb14d37d37a2b76efe02a51ed1e2d0223fbf6",
+      "status": 0,
+      "pid": 21029,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    },
+    {
+      "label": "v1-diagnosis",
+      "path": "runs/v1-diagnosis-first-read-webdav.json",
+      "sha256": "f4e0a6c2aecfa5c6a3e50fde1e2fefe847b2c4daf03c0b8aaa34f303398fdd7c",
+      "status": 1,
+      "pid": 21033,
+      "closeEventObserved": true,
+      "groupExistsAfterClose": false,
+      "currentIdentity": "absent"
+    }
+  ],
+  "supervisedRunCount": 44,
+  "allCloseEventsObserved": true,
+  "noOwnRunIdentityRemains": true,
+  "loopbacks": "All D1-D3 runs report serverClosed=true,sockets=0; v1 fixture processes exit normally after their own cleanup. No production/remote loopbacks remain.",
+  "noWatchers": true,
+  "noStopSignals": true,
+  "leafActualClosed": "ROOT MUST OBSERVE AFTER THIS HANDOFF; not self-certified",
+  "opaquePending": "All authored opaque gates explicitly resolved/rejected; no claim about arbitrary opaque host work"
+}

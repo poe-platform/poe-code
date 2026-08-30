@@ -1,0 +1,51 @@
+{
+  "createdAt": "2026-08-28T04:37:03.431Z",
+  "entries": [
+    {
+      "label": "CONTROLS-V2.json",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-instruction-controls-17weJ0/REPORT.json",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/CONTROLS-V2.json.gz.base64",
+      "bytes": 32163,
+      "sha256": "d386874e3d080423ad9c4e2b28169b5ca67c627663f6c42efb117541da565813",
+      "gzipBytes": 5842,
+      "encodedSha256": "486cad61e7894726b82e817503b13e99fdec5ee3c1b4738fa87b8740a014eb8c"
+    },
+    {
+      "label": "CONTROLS-V3.json",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-instruction-controls-DGv96j/REPORT.json",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/CONTROLS-V3.json.gz.base64",
+      "bytes": 31322,
+      "sha256": "af76389e85b812c8425d9ed2df526cadeb447bef20f181c0cf3f52028b16f103",
+      "gzipBytes": 5615,
+      "encodedSha256": "248a9ed8c5a387d276bd0e3815009eb746756a77b832c79120dd9b7c9beebfc7"
+    },
+    {
+      "label": "BUILD-TYPES.json",
+      "origin": "/tmp/unified76-build-types-review-projection-fb376b3a-01/REPORT.json",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/BUILD-TYPES.json.gz.base64",
+      "bytes": 31300316,
+      "sha256": "9c81e294c1de49b955f9eb5afe0018a672c46cac244352558eb2c7072c891b21",
+      "gzipBytes": 5105608,
+      "encodedSha256": "40159c1ed938b0ea1793d194062db0d079019e97d46a2a38bc5306dadc72c2c4"
+    },
+    {
+      "label": "TYPECHECK.json",
+      "origin": "/tmp/unified76-build-types-review-projection-fb376b3a-01/typecheck-all/report.json",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/TYPECHECK.json.gz.base64",
+      "bytes": 30868204,
+      "sha256": "7bde930bc4f2828a05fb2c0800af1c42327d0ae0916e5d176f0d05eb51ce5c90",
+      "gzipBytes": 656460,
+      "encodedSha256": "bcd16aa2af0feb14feff0ced511fc21c7e9064960f4b27bbb03b0487d527ef2a"
+    },
+    {
+      "label": "OUTER.json",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-build-types-outer-xZjGcB/REPORT.json",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/OUTER.json.gz.base64",
+      "bytes": 107846,
+      "sha256": "23833c36973bd06ab1528aa0e449694916f90e1878fa5aba8525904613b2c2f6",
+      "gzipBytes": 4132,
+      "encodedSha256": "4973367171c40a31785495e88c0b708d3b33a8de5f11b2a0cf4bcb4645d601a7"
+    }
+  ],
+  "format": "gzip-base64 metadata reports; no source archives or instruction bodies"
+}

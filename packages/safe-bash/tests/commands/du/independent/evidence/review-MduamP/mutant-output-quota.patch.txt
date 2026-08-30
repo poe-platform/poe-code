@@ -1,0 +1,10 @@
+*** Begin Patch
+*** Update File: src/commands/du/budget.ts
+@@
+-    this.check(text.length, this.limits.maxOutputBytes - this.output, "output");
+-    const size = Buffer.byteLength(text);
+-    this.check(size, this.limits.maxOutputBytes - this.output, "output");
++    this.check(text.length, Number.MAX_SAFE_INTEGER, "output");
++    const size = Buffer.byteLength(text);
++    this.check(size, Number.MAX_SAFE_INTEGER, "output");
+*** End Patch

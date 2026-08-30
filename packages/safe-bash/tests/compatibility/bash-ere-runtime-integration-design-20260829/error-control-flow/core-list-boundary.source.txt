@@ -1,0 +1,149 @@
+1300:      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
+1301:      await this.prepareArrayObservers(state, operation);
+1302:      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+1303:      const prepared = await store.prepareName(name, operation, this.signal);
+1304:      const preserve = assignment.kind === "element" || assignment.append;
+1305:      staged = preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner);
+1306:      if (preserve && !current && state.variables[name] !== undefined) {
+1307:        const token = await textToken(staged.owner, state.variables[name]!, this.signal);
+1308:        try { staged.insert(0, token); } catch (error) { token.release(); throw error; }
+1309:      }
+1310:      let writes = 0;
+1311:      let cursor = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
+1312:      const insert = async (index: number, value: string) => {
+1313:        if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
+1314:        const token = await textToken(staged!.owner, value, this.signal);
+1315:        try { staged!.insert(index, token); } catch (error) { token.release(); throw error; }
+1316:        writes++;
+1317:      };
+1318:      if (assignment.kind === "element") {
+1319:        const index = numericIndex(assignment.index)!;
+1320:        const fields = await this.word(assignment.value, state, io, false);
+1321:        let value = await this.arrayJoin(operation, fields, "");
+1322:        if (assignment.append) value = await this.arrayJoin(operation, [staged.get(index) ?? "", value], "");
+1323:        await insert(index, value);
+1324:      } else for (const entry of assignment.entries) {
+1325:        const fields = await this.word(entry.value, state, io, entry.index === undefined);
+1326:        if (entry.index) {
+1327:          const index = numericIndex(entry.index)!;
+1328:          await insert(index, await this.arrayJoin(operation, fields, ""));
+1329:          cursor = index + 1;
+1330:        } else for (const value of fields) { await insert(cursor, value); cursor++; }
+1331:      }
+1332:      this.signal.throwIfAborted();
+1333:      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+1334:      if (!watch.valid()) throw new ArrayFailure("stale binding");
+1335:      if (!(assignment.kind === "compound" && assignment.append && writes === 0)) {
+1336:        let released: Promise<void> | undefined;
+1337:        stateMonitor(state)!.publish(tickets, name, () => {
+1338:          supersede();
+1339:          delete state.variables[name];
+1340:          released = store.publish(name, staged!, tickets, prepared);
+1341:        });
+1342:        staged = undefined;
+1343:        await released;
+1344:      }
+1345:      watch.close();
+1346:    } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
+1347:  }
+1348:
+1349:  async run(script: Script, state: State, io: IO): Promise<number> {
+1350:    return (await this.runUnit(script, state, io)).exitCode;
+1351:  }
+1352:
+1353:  async runUnit(script: Script, state: State, io: IO): Promise<{ exitCode: number; terminated: boolean }> {
+1354:    state = trackState(state, this.budget, io[invocationScope]);
+1355:    try { return { exitCode: await this.script(script, state, io), terminated: false }; }
+1356:    catch (error) {
+1357:      if (error instanceof NounsetDiagnosticFailure) {
+1358:        if (state.isolated) throw error;
+1359:        throw error.reason;
+1360:      }
+1361:      if (error instanceof Flow && error.kind === "exit") return { exitCode: error.status, terminated: true };
+1362:      throw error;
+1363:    }
+1364:  }
+1365:
+1366:  async script(script: Script, state: State, io: IO): Promise<number> {
+1367:    for (const list of script.lists) {
+1368:      for (let index = 0; index < list.pipelines.length; index++) {
+1369:        const operator = list.operators[index - 1];
+1370:        if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
+1371:        const pipeline = list.pipelines[index]!;
+1372:        const ignored = io.execution?.ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
+1373:        const completion = stateMonitor(state)?.restoration();
+1374:        try {
+1375:          const status = await this.pipeline(pipeline, state, ignored ? { ...io, execution: { ignoreErrexit: true } } : io);
+1376:          if (completion) completion.apply(() => { state.status = status; });
+1377:          else state.status = status;
+1378:        } finally { completion?.close(); }
+1379:      }
+1380:    }
+1381:    return script.lists.length ? state.status : 0;
+1382:  }
+1383:
+1470:        catch (reason) {
+1471:          captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
+1472:            ? { kind: "throw", reason, report: frame.report }
+1473:            : { kind: "throw", reason };
+1474:        }
+1475:        const selection = await owner.finish(Promise.resolve(), captured);
+1476:        if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+1477:        return selection.outcome.value.exitCode;
+1478:      });
+1479:      try {
+1480:        const statuses = await interruptible(Promise.all(tasks), this.signal);
+1481:        status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;
+1482:      } finally {
+1483:        for (const close of closing) clearImmediate(close);
+1484:        for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
+1485:        await Promise.all(pipes.map((pipe) => pipe.abort()));
+1486:      }
+1487:    }
+1488:    if (pipeline.commands.length > 1) this.errexit(status, state, io);
+1489:    return pipeline.negate ? Number(status === 0) : status;
+1490:  }
+1491:
+1492:  async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
+1493:    try { return await this.command(command, state, io, fileShortcut); }
+1494:    catch (error) {
+1495:      if (error instanceof NounsetDiagnosticFailure) throw error;
+1496:      if (error instanceof Flow && (error.kind === "exit" || error.kind === "return")) return error.status;
+1497:      throw error;
+1498:    }
+1499:  }
+1500:
+1501:  errexit(status: number, state: State, io: IO): void {
+1502:    this.signal.throwIfAborted();
+1503:    if (status !== 0 && state.errexit && !io.execution?.ignoreErrexit) throw new Flow("exit", status);
+1504:  }
+1505:
+1506:  async command(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
+1507:    io[invocationScope].assertOpen();
+1508:    const status = await this.executeCommand(command, state, io, fileShortcut);
+1509:    if (command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional") this.errexit(status, state, io);
+1510:    return status;
+1511:  }
+1512:
+1513:  async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
+1514:    state = trackState(state, this.budget, originalIO[invocationScope]);
+1515:    originalIO = activeIO(originalIO);
+1516:    originalIO.descriptors ??= new Map<number, Descriptor>([
+1517:      [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
+1518:      [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],
+1519:    ]);
+1520:    const diagnosticLine = (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);
+1521:    originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };
+1522:    if (command.kind === "subshell") originalIO = isolateIO(originalIO);
+1523:    this.budget.tick();
+1524:    if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+1525:    this.signal.throwIfAborted();
+1526:    const inputs = new Set<ShellInput>();
+1527:    const outputs = new Set<() => void>();
+1528:    let io = originalIO;
+1529:    let diagnosticFailure: NounsetDiagnosticFailure | undefined;
+1530:    try {
+1531:      if (command.kind === "function") {
+1532:        if (state.profile === "sh" && specialBuiltinNames.has(command.name)) {
+1533:          await this.diagnostic(io, `\`${command.name}': is a special builtin`);
+1534:          throw new Flow("exit", 2);

@@ -1,0 +1,3 @@
+{"pid":32226,"at":"2026-08-29T11:34:47.314Z","role":"SOURCE-DATA-only"}
+{"path":"tests/compatibility/bash-ere-runtime-integration-design-20260829/DOCS-BINDINGS.json","size":4340,"mode":384,"sha256":"8fc7ab2863e214d5a03f6264484dd885b57ca0d25f1abf8745dc23e6129207d2"}
+{"path":"src/shell/runtime.ts","size":210245,"mode":420,"sha256":"ae4e6e4aaf81ee27101ff46d0a3c7ed8e5fa5f78b0516b412f322d6d37c3cce9"}

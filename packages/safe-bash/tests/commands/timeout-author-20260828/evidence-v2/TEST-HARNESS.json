@@ -1,0 +1,77 @@
+{
+  "schema": "timeout-author-harness/1",
+  "entries": [
+    {
+      "path": "tests/commands/timeout-author-20260828/fixtures.ts",
+      "mode": "100644",
+      "bytes": 3448,
+      "sha256": "93bbf4a05cb301e8f6fe12bd57dbcfbd94ffcb8afb24c2b373735d0ea3f7cfe2",
+      "blob": "291af7e9943d03a1f4a1325a7e33f30e103c5462",
+      "commit": "c332a17f09dfe17fd8fa29252a48db729c83c67d"
+    },
+    {
+      "path": "tests/commands/timeout-author-20260828/timeout.test.ts",
+      "mode": "100644",
+      "bytes": 13511,
+      "sha256": "2d68bd499071fccc16bd43f38e03c25fae97946253c3c4d57746169ab926fe1a",
+      "blob": "ba62e0bd39e03eceb6be3a0bf7776872a046e972",
+      "commit": "c332a17f09dfe17fd8fa29252a48db729c83c67d"
+    },
+    {
+      "path": "tests/commands/time-env/helpers.ts",
+      "mode": "100644",
+      "bytes": 1993,
+      "sha256": "335c3d447edb33a08276f2c81b4f16ec39f4b258b26aad8fa5f0e7fb2347f43b",
+      "blob": "6cd71101210add76fdb999575ea4ed51db3da4a9",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    },
+    {
+      "path": "tests/commands/time-env/sleep.test.ts",
+      "mode": "100644",
+      "bytes": 4508,
+      "sha256": "a45294e5b23fc8f7d541fcc3abbef6fff7379a853071ad68836a6c255f8c7e35",
+      "blob": "61bd3280694b71df8c2a9b85f0431b7bdf0f6d47",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    },
+    {
+      "path": "tests/shell/helpers.ts",
+      "mode": "100644",
+      "bytes": 1670,
+      "sha256": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+      "blob": "b7a6e998a356dbe58056990de1bf71f149c3136e",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    },
+    {
+      "path": "tests/shell/invocation-cleanup-lifecycle.test.ts",
+      "mode": "100644",
+      "bytes": 15642,
+      "sha256": "e61b1d76d32ba85c97de6ed73510adea26a9a6ef40b21d1ebce4ea5eb1be2dca",
+      "blob": "3343bd92f6ba778f9e03d378632b2b2929b81f26",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    },
+    {
+      "path": "tests/shell/invocation-cleanup-pipeline.test.ts",
+      "mode": "100644",
+      "bytes": 7431,
+      "sha256": "80e943b54723fe2e72894ee3cce6920039b1e99131faa0399efecd033e166987",
+      "blob": "86eb6b57388d4d2eb31b9cb7d3eddd635535d8bc",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/helpers.ts",
+      "mode": "100644",
+      "bytes": 1356,
+      "sha256": "505f77722129e4e89e12d9f2ad81ebba907d40cd1a98cf8569305631fe020cab",
+      "blob": "142032782ff0a746bfddf6ab93f093e451089ac0",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/operation.test.ts",
+      "mode": "100644",
+      "bytes": 9963,
+      "sha256": "832fc8770bcfd06b5d9d8b953796f9f47e83842aff6f099405595a9f76c94231",
+      "blob": "421892b39b02d51a8ad6342c1b72e25fda36e70c",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    }
+  ]
+}

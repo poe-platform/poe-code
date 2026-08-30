@@ -1,0 +1,25 @@
+  async R12() {
+    const vectors=frozenCases.find(row=>row.id==='R12').vectors;
+    for(const [vectorIndex,vector] of vectors.entries()){
+      const timing=clock(),counts={child:0,fallback:0,rawInvoke:0},instance=makeShell({timeout:{scheduler:timing.scheduler,invoke:()=>{counts.fallback++;assert.fail('fallback');}}});
+      await admitPublicPlugin(instance);
+      instance.register({name:'child',execute:()=>{counts.child++;assert.fail('invalid child');}});
+      const rawProbe=rawInputProbe(),originalDefinition=aggregate({scheduler:timing.scheduler});
+      const definition=config.boundaryControl?.id==='B01'?{...originalDefinition,execute(context){context.stdin[Symbol.asyncIterator]();return originalDefinition.execute(context);}}:originalDefinition;
+      const raw=await direct(definition,vector.argv,{stdin:rawProbe.source,invoke:()=>{counts.rawInvoke++;assert.fail('invalid invoke');}});
+      preserveDiagnostic('R12-raw-before-assertion',{vectorIndex,argv:vector.argv,counts:structuredClone(rawProbe.counts),outcome:diagnosticOutcome(raw.outcome),stdoutBase64:raw.stdout().toString('base64'),stderrBase64:raw.stderr().toString('base64')});
+      assertRawInput(rawProbe.counts);exact(raw,records[vector.record]);
+      const gate=latch(),entered=latch(),probe=shellInputProbe({gate,entered,mutation:config.boundaryControl?.id});
+      if(config.boundaryControl?.id==='B02'){const original=instance.commands.get('timeout');instance.register({...original,async execute(context){await context.stdin[Symbol.asyncIterator]().next();return original.execute(context);}},{replace:true});}
+      const pending=watch(instance.exec(['timeout',...vector.argv].join(' '),{stdin:probe.source}));
+      try{await waitFor(entered.promise,pending,'STDIN_RETURN_NOT_ENTERED');}catch(error){preserveDiagnostic('R12-return-admission-failure',{vectorIndex,counts:structuredClone(probe.counts),outcome:diagnosticOutcome(pending.snapshot()),error:encodeReason(error)});throw error;}await tick();
+      preserveDiagnostic('R12-shell-before-release',{vectorIndex,argv:vector.argv,counts:structuredClone(probe.counts),outcome:diagnosticOutcome(pending.snapshot()),dispatchCounts:{...counts},timerEvents:timing.records.length});
+      assertShellInput(probe.counts);assertPendingReturn(pending.snapshot().status);assert.deepEqual(counts,{child:0,fallback:0,rawInvoke:0});assert.equal(timing.records.length,0);
+      gate.resolve();const completed=await pending.settled;
+      preserveDiagnostic('R12-shell-before-assertion',{vectorIndex,argv:vector.argv,counts:structuredClone(probe.counts),outcome:diagnosticOutcome(completed),dispatchCounts:{...counts},timerEvents:timing.records.length});
+      assert.equal(completed.status,'fulfilled');shellExact(completed.value,records[vector.record]);assertShellInput(probe.counts,{closed:true});assert.deepEqual(counts,{child:0,fallback:0,rawInvoke:0});assert.equal(timing.records.length,0);
+      const failure={},stderrProbe=rawInputProbe(),stderrRun=await direct(aggregate({}),vector.argv,{stdin:stderrProbe.source,stderr:{async write(){throw failure;}}});
+      preserveDiagnostic('R12-stderr-before-assertion',{vectorIndex,counts:structuredClone(stderrProbe.counts),outcome:diagnosticOutcome(stderrRun.outcome,failure)});assertRawInput(stderrProbe.counts);rejected(stderrRun,failure);
+      preserveDiagnostic('R12-vector-complete',{vectorIndex,argv:vector.argv,rawCounts:structuredClone(rawProbe.counts),stderrRawCounts:structuredClone(stderrProbe.counts),shellCounts:structuredClone(probe.counts),dispatchCounts:{...counts},timerEvents:timing.records.length});
+    }
+  },

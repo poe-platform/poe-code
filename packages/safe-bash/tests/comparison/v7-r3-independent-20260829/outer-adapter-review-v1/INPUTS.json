@@ -1,0 +1,259 @@
+{
+  "schema": "INDEPENDENT_OUTER_REVIEW_INPUTS_V1",
+  "sourceCommit": "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+  "evidenceCommit": "88036591c32067ffe86a5950198f9f73fbb5cb63",
+  "adapterSealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "earlierReview": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+  "earlierInertPreparation": "27fd896575280fa96100924cf4f2ecc110710b82",
+  "prior416Replayed": false,
+  "files": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "role": "existing-tool-or-launcher-binding"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs",
+      "bytes": 2584,
+      "mode": 420,
+      "sha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed",
+      "role": "existing-tool-or-launcher-binding"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-MANIFEST.json",
+      "bytes": 3481,
+      "mode": 420,
+      "sha256": "1831864bb9cda95709384bab71d80e03f7f135fe853bf1ee938927388b9faf2d",
+      "gitBlob": "b3c1337cfe60aa15a326ba4a9be4a877ec5b6427",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-PREPARATION-REPORT.json",
+      "bytes": 17605,
+      "mode": 420,
+      "sha256": "20265bd0c439e6f4adbdc680edfee89e043d799d53f517cb6ac9ae53011be3bd",
+      "gitBlob": "b051686937d11f383d5c33e621a935a5ad20333b",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/INACTIVE-AUTH.TEMPLATE.json",
+      "bytes": 1579,
+      "mode": 420,
+      "sha256": "30939cfa835a783343cd734b99c3bbd0719f56fabb569c4fc7f7197e9ca55fa2",
+      "gitBlob": "9d9b4741919e0bb4bfbcc3978a0581193870f664",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/INACTIVE-ROOT-GRANT.TEMPLATE.json",
+      "bytes": 1477,
+      "mode": 420,
+      "sha256": "567e1de4ed417ca21b21afa75d109f32e8a48405b5263fc4f0a60847ca5346c7",
+      "gitBlob": "b728a5dcc77dddc1b0079ca7bda26ce87f32d80e",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/PROCESS-CENSUS.json",
+      "bytes": 10364,
+      "mode": 420,
+      "sha256": "6bdeae074348b70a43650a7e0c2ab5b0ea469fe472b2fde2564e14ba22fd8f37",
+      "gitBlob": "878cd5a8149ceb7a3bce28351e3d5cf2743bf5e8",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/SOURCE-AUTH.json",
+      "bytes": 194476,
+      "mode": 420,
+      "sha256": "fb0748ae771446d0f8bdb922ddda1b5b81fabd1fdf5aa368692cd2dfdad41ed0",
+      "gitBlob": "509a796d09507e88623fd075ab2659e6edf20e54",
+      "role": "hash-only; old416 proof referenced, not rerun"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/CONTROL-PLAN.json",
+      "bytes": 3884,
+      "mode": 420,
+      "sha256": "22f86692a28d24329284928edde7112c87416caf1ba732c6fac6511d84f0aac5",
+      "gitBlob": "75585e14bad6abfa0e03b1401d909b78dc81d853",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/HANDOFF.md",
+      "bytes": 3610,
+      "mode": 420,
+      "sha256": "e3f97db43df50847b99e16207f0b66370901efed3cd824fa4ad6309710682728",
+      "gitBlob": "01a44419e17f0d15c6ff459f4bd14923e9e63f04",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/INACTIVE-GRANT-METADATA.json",
+      "bytes": 3063,
+      "mode": 420,
+      "sha256": "819cac67cfd66e0afd7b929f7e7df70aa880b466e4ad61748a3f4d0e00c55240",
+      "gitBlob": "f98ff917c83b16566e135f7d5d03fe80d05cf256",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/README.md",
+      "bytes": 5590,
+      "mode": 420,
+      "sha256": "65c27abee29933e372b6e6c06f1634a5e442b039d0e0ef27f33a9ac1d2a79fc3",
+      "gitBlob": "5b879de26c7532e7a3685ef43bf1d48d97abc09e",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/SEAL.json",
+      "bytes": 2103,
+      "mode": 420,
+      "sha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+      "gitBlob": "0d1135f25e8c44ebf5213c3e2e4d25aa1a162dcf",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/capture.mjs",
+      "bytes": 14387,
+      "mode": 420,
+      "sha256": "c0b7cac1404f15726d03c4494236be4aa9518fb6a8c645241eeec65cd243f46d",
+      "gitBlob": "c50a7770696e0bd2a33b0cc3832b48a354c07598",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/controls.mjs",
+      "bytes": 14553,
+      "mode": 420,
+      "sha256": "229ad1766aa23a59af739e9f0c788b6600e9fe458aa7daaa5fda325f5e2debe3",
+      "gitBlob": "bbaa9de5b93bbc2fc973a246fec9b2fbb11d459e",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/owner.mjs",
+      "bytes": 7180,
+      "mode": 420,
+      "sha256": "6a1bee486d2a2f20ed9b6622660184c38cfb275c94146b131c777e9bf6757372",
+      "gitBlob": "bf2d73f2538022cad7c1d3d4fb9d36dcba6556fe",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/stub.mjs",
+      "bytes": 664,
+      "mode": 420,
+      "sha256": "43ab9aef2c76a1dccefa327e7209f7fdd867b11c52dc9c905bed16759e4e9a31",
+      "gitBlob": "32eb0696b2d5a7147499a10beb79b644bc2a7590",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/PRESEAL.md",
+      "bytes": 5669,
+      "mode": 420,
+      "sha256": "09def6ebc653cb23d4927be6bada50d4f50a180496803ac5573d5b295325a709",
+      "role": "independent-presealed-source"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/child.mjs",
+      "bytes": 714,
+      "mode": 420,
+      "sha256": "1138ba2c33c301aef7f38d69ab17b0781fe64db8097315692cb81c6ede558db4",
+      "role": "independent-presealed-source"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/CONTROL-PLAN.json",
+      "bytes": 3884,
+      "mode": 420,
+      "sha256": "22f86692a28d24329284928edde7112c87416caf1ba732c6fac6511d84f0aac5",
+      "role": "byte-identical-author-fixture"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/INACTIVE-GRANT-METADATA.json",
+      "bytes": 3063,
+      "mode": 420,
+      "sha256": "819cac67cfd66e0afd7b929f7e7df70aa880b466e4ad61748a3f4d0e00c55240",
+      "role": "byte-identical-author-fixture"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/README.md",
+      "bytes": 5590,
+      "mode": 420,
+      "sha256": "65c27abee29933e372b6e6c06f1634a5e442b039d0e0ef27f33a9ac1d2a79fc3",
+      "role": "byte-identical-author-fixture"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/SEAL.json",
+      "bytes": 2103,
+      "mode": 420,
+      "sha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+      "role": "byte-identical-author-fixture"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/capture.mjs",
+      "bytes": 14387,
+      "mode": 420,
+      "sha256": "c0b7cac1404f15726d03c4494236be4aa9518fb6a8c645241eeec65cd243f46d",
+      "role": "byte-identical-author-fixture"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/controls.mjs",
+      "bytes": 14553,
+      "mode": 420,
+      "sha256": "229ad1766aa23a59af739e9f0c788b6600e9fe458aa7daaa5fda325f5e2debe3",
+      "role": "byte-identical-author-fixture"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/owner.mjs",
+      "bytes": 7180,
+      "mode": 420,
+      "sha256": "6a1bee486d2a2f20ed9b6622660184c38cfb275c94146b131c777e9bf6757372",
+      "role": "byte-identical-author-fixture"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/stub.mjs",
+      "bytes": 664,
+      "mode": 420,
+      "sha256": "43ab9aef2c76a1dccefa327e7209f7fdd867b11c52dc9c905bed16759e4e9a31",
+      "role": "byte-identical-author-fixture"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/novel.mjs",
+      "bytes": 9866,
+      "mode": 420,
+      "sha256": "9819b40ef44a6adff644ab3b1f10284941e3864c1071232db9f4b863bdf97de3",
+      "role": "independent-presealed-source"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/review-capture.mjs",
+      "bytes": 4429,
+      "mode": 420,
+      "sha256": "2b40b638bc0cf02831bbe40acef50fdea7a4096ee89f38b49ac99c308a52b3ab",
+      "role": "independent-presealed-source"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/FUTURE-INTERFACE.json",
+      "bytes": 5293,
+      "mode": 420,
+      "sha256": "ecd72bf2a49ef839f573cd5947657c4c684303c6f69255d219fa468b7b415e85",
+      "gitBlob": "ce871e6807a83358dde36c5192daee42a1a5ce7d",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/RESULT.json",
+      "bytes": 28768,
+      "mode": 420,
+      "sha256": "5d2f06f7a757f20e6d6ed3889572dbeb112fe1f5fcf6c3b451dbb4c0e0b9fa2f",
+      "gitBlob": "8ff0fb758d733def4109a15d7642070f41a35826",
+      "role": "frozen-source-or-referenced-receipt"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+      "bytes": 159,
+      "mode": 420,
+      "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "gitBlob": "e66badb36e339aaa5e59b8416a107071dd76a982",
+      "role": "frozen-source-or-referenced-receipt"
+    }
+  ]
+}

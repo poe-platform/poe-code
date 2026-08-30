@@ -1,0 +1,45 @@
+{
+  "source": "96e051e81312c7d33d8f4f5078efa09a4dd87947",
+  "requested": "96e051e81312c7d33d8f4f5078efa09a4dd87947",
+  "profile": "red",
+  "helperCommit": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "started": "2026-08-27T09:35:23.915Z",
+  "finished": "2026-08-27T09:35:28.919Z",
+  "results": [
+    {
+      "name": "original-consumer13",
+      "status": 1,
+      "counts": {
+        "tests": 13,
+        "pass": 12,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "author-regressions19",
+      "status": 1,
+      "counts": {
+        "tests": 19,
+        "pass": 3,
+        "fail": 16,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "mutantKills": [],
+  "loadedModuleCounts": {
+    "original-consumer13": 157,
+    "author-regressions19": 157
+  },
+  "protectedFiles": 1900,
+  "historicalRawFiles": 31,
+  "cleanup": {
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp-independent/.work-1zib7B",
+    "removed": true
+  }
+}

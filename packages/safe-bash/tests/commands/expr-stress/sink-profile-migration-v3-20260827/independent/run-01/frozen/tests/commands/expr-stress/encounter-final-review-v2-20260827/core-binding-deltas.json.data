@@ -1,0 +1,47 @@
+{
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "originalPath": "tests/commands/expr-stress/diagnostics-candidate-review/replay/accept-controls.mjs",
+  "originalSha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b",
+  "boundSha256": "ea789c6fde5f09a85a84504e772451e44ca04e3acf88c4f90024f1c3bcd388d1",
+  "deltas": [
+    [
+      "from './watchdog.mjs'",
+      "from './core-drivers/watchdog.mjs'"
+    ],
+    [
+      "from './review.mjs'",
+      "from './core-bindings.mjs'"
+    ],
+    [
+      "const stage = JSON.parse(readFileSync(`${owned}/candidate-diagnostics/stage.json`));",
+      "const stage = { installed: process.env.REVIEW_INSTALLED, commit: process.env.REVIEW_COMMIT, installedArtifactSha256: process.env.REVIEW_TAR_SHA256 };"
+    ],
+    [
+      "join(tmpdir(), 'expr-final-real-vfs-')",
+      "join(process.env.REVIEW_TMP, 'expr-final-real-vfs-')"
+    ]
+  ],
+  "drivers": [
+    {
+      "filename": "runtime-driver.mjs",
+      "source": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84:tests/commands/expr-stress/diagnostics-candidate-review/replay/runtime-driver.mjs",
+      "sha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686"
+    },
+    {
+      "filename": "protocol-driver.mjs",
+      "source": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84:tests/commands/expr-stress/diagnostics-candidate-review/replay/protocol-driver.mjs",
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc"
+    },
+    {
+      "filename": "lifecycle-driver.mjs",
+      "source": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84:tests/commands/expr-stress/diagnostics-candidate-review/replay/lifecycle-driver.mjs",
+      "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37"
+    },
+    {
+      "filename": "watchdog.mjs",
+      "source": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84:tests/commands/expr-stress/diagnostics-candidate-review/replay/watchdog.mjs",
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee"
+    }
+  ],
+  "assertionsAndInputChanges": false
+}

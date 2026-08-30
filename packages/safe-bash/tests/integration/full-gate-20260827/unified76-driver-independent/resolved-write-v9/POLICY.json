@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-08-28T02:05:02-0500",
+  "authority": "Current explicit user/root prospective policy revision, not retrospective satisfaction of v8 assertions",
+  "chronology": "POST prior counterexample and source inspection; PRE new execution. Author source already exists and is unchanged. No blind/pre-code claim.",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "additionalControls": "65bb898d17af8e674842e060ddd7ea61f91ff5bc",
+  "evidence": "62593a89afb0ee9db82341cf073229c555d3e2bc",
+  "driverSha256": "a99c9f24b9edee16ef959139b48905e943ee108080c0aa39511965103f32f26a",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "workspaceHead": "06bfa5c918bf66ad36b106d4586d3dafa59f6f82",
+  "preservedSeal": "f1f1daaa9eb72c82ef65b0c56fed07901122e396",
+  "policy": {
+    "inertSymlink": "Creation/rename of ordinary inert references to outside directories/files is ALLOWED, not physical directory import. Do not inspect link payload strings as a substitute for resolved write effects.",
+    "resolvedWrites": "Outside write/append/truncate/create-under-link DENIED through direct/relative/chained/renamed/tmp aliases, from Node and native cleared-env descendants. Outside bytes/inode/entries unchanged.",
+    "instructionTargets": "All instruction filename creation/write effects through aliases and case variants DENIED. Fresh roots contain no existing instruction file. Benign attempted data only, no real instruction payload setup.",
+    "physicalImports": "Outside hardlink/inode import and physical outside-directory rename/import remain DENIED. Ordinary read/copy-byte workflows not banned.",
+    "descriptorBoundary": "Known preopened writable FD mechanism escape is explicit. Shipping fixed stdio must pass no writable instruction/foreign canary FD; no claim against hostile external FD providers.",
+    "transport": "Initial unbound symlink member rejection and exact-six metadata-only projection remain unchanged; runtime inert links do not relax original archive origin/membership.",
+    "other": "Read-only/private/network/process qualifications unchanged. OS metadata only original11 plus2 approved pairs on macOS26.4.1/25E253; no new dependency exception. Root HTML/DU/Expr accepted; fresh release absent."
+  },
+  "controls": [
+    {"id":"R01","oracle":"Outside inert file/directory symlink creation positive; actual resolved write/append/truncate/new-child failures with exact outside namespace/hash/inode equality."},
+    {"id":"R02","oracle":"Relative chains, renamed links and /tmp alias preserve outside write denial; inside contained links/renames/output ordinary writes succeed."},
+    {"id":"R03","oracle":"Fresh inside AGENTS case targets reached through differently named dangling aliases/chains/renamed aliases deny create and append; direct instruction alias-name publication denies. Stop on actual target effect."},
+    {"id":"R04","oracle":"Outside hardlink and physical directory rename imports deny, with unfenced benign same-filesystem capability witnesses; no EXDEV/load error accepted as protection."},
+    {"id":"R05","oracle":"Cleared-env Node child/grandchild and native /bin/sh descendants enforce actual resolved outside/instruction write denials; native inside/contained writes succeed. Shipping canary FD not inherited; foreign sentinel survives."},
+    {"id":"R06","oracle":"After R01-R05 safety: real pinned historical Git archive stream to native tar under shipping fence; instruction member presence/mode/size/digest authenticated without retaining payload. Target denial must be reached; ordinary partial extraction is not rollback."},
+    {"id":"R07","oracle":"After safety: actual frozen shared full-projection A10 under shipping fence, cold78, exactly1 real production build,23maintained+3source+3expected-negative/832 emits independently verified; real second production build audited/rejected."}
+  ],
+  "protocol": "Freeze exact executable recipes before runs. Fresh owned /tmp copies; immutable Git blobs only, no worktree/live source overlay/AGENTS copies/private installs. Stop unsafe tar/A10 if actual write effect or physical-import success occurs; preserve setup mistakes with additive followup freeze, no hidden retry.",
+  "bounds": {"canaryPhaseMs":20000,"canaryWorkerMs":180000,"canaryOutputBytes":1048576,"archiveTransportBytes":3221225472,"opaqueHistoryBytes":8589934592,"setupMs":600000,"typePhaseMs":360000,"reviewWatchdogMs":2400000,"scratchBytes":8589934592,"captureBytes":268435456},
+  "scope": "New scoped overlay, not old22 rerun or old v8 rescore. Prior2PASS/1FAIL, safe2 phases,9denied attempts and all setup/seal failures immutable. Complete binding/new author wording packet and fresh root release still required after proof. No fullgate."
+}

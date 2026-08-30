@@ -1,0 +1,293 @@
+{
+  "version": 1,
+  "kind": "independent-precode-static-only",
+  "authorFinal": "053505fcb5b63d8872991eb09655bc927dd7080d",
+  "grammarPreseal": "23fca35fc5d7c749a7273015b802aef6376096a2",
+  "firstRecordedClock": "2026-08-28T07:12:50Z",
+  "bindingPreparedAt": "2026-08-28T07:23:51.973Z",
+  "acceptedCD": {
+    "candidate": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "evidence": "2585f78dcd5cfd2ea454977462c57b23f7044a12",
+    "final": "192ab78b4202be5afc92ffc12a72816da98ddfe0",
+    "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "provider": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+    "composedTree": "b820fa91a3bcc904005c690d48038d9a3900cede",
+    "packageSha256": "06ea635b201a1296268adaa452a2419682f92ec93906cb9083e327dc69f85914",
+    "qualification": "85 fully bound + L24 scripted-only per layout; 82+4 original rows; 12 source-proof invariants NOT measured private counters; 7 controls,12 import negatives,2 mutants; historical L07 Memory setup stopped after61 passes and L24 blocked. Reused, not rerun."
+  },
+  "history": {
+    "nativeOriginal": 34,
+    "virtualOriginal": 34,
+    "virtualMatches": 0,
+    "topologyNativeOnly": 4,
+    "grammarNativeOnly": 8,
+    "grammarVirtualRuns": 0,
+    "originalCompressedSha256": "fe150ca75f031031acc8e3591ed6add03ea24d669e7bcc63d97d2990d7452211",
+    "topologyCompressedSha256": "4400c5f78510f39a8882480f2789caaff0e697b6b1569408f1f8f0f0d95b8d66",
+    "grammarCompressedSha256": "e5016aa6e95b38cc8787b0ad7bc1186bc58e36afdfe9a975215addd33473a6cd"
+  },
+  "policy": {
+    "ratification": "R1-R4 explicitly supplied by ROOT in this task; durable author record unprovided",
+    "freshExecTail": true,
+    "publicationStamp": "private fresh Symbol immediately after actual stack cwd assignment before checked PWD",
+    "separateWorkCounters": true,
+    "diagnosticScope": "owned-payload-not-whole-line",
+    "productDelta": [
+      "src/shell/runtime.ts",
+      "src/shell/shell.ts"
+    ],
+    "limits": {
+      "tailEntries": 4096,
+      "rememberedBytes": 4194304,
+      "pathBytes": 65536,
+      "argumentBytes": 65536,
+      "usedHomeBytes": 65536,
+      "stackWork": 8388608,
+      "cdLookupWork": 8388608,
+      "displayBytes": 8388608,
+      "yieldSteps": 128,
+      "chunkBytes": 16384,
+      "diagnosticPayloadBytes": 65792,
+      "truncationPrefixBytes": 65780,
+      "truncationSuffixBytes": 12
+    }
+  },
+  "gates": {
+    "durableAuthorRatification": null,
+    "exactNewBase": null,
+    "exactCandidate": null,
+    "rootGo": false,
+    "runtimeWindowReleased": false,
+    "runnableDriverPreseal": null,
+    "typeFixturePreseal": null
+  },
+  "proofRoles": {
+    "publicCases": "future-runtime-obligations-not-executed",
+    "privateInvariants": "pinned-source-proof-not-runtime-measurement",
+    "types": "future-exact-declaration-fixture-and-compile-gated",
+    "staticControls": "in-memory-fixture-guard-controls-not-product-mutants"
+  },
+  "counts": {
+    "publicCases": 138,
+    "areas": {
+      "transition": 20,
+      "grammar": 42,
+      "display": 10,
+      "state": 14,
+      "middleware": 8,
+      "failure": 12,
+      "limits": 16,
+      "cancellation-output": 12,
+      "discovery": 4
+    },
+    "sourceInvariants": 24,
+    "positiveTypes": 8,
+    "negativeTypes": 8,
+    "staticControls": 16,
+    "productMutantFamilies": 16,
+    "futureImportNegativeFamilies": 6,
+    "references": 25
+  },
+  "references": [
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/PACKET.md",
+      "role": "normative-ratified-by-routed-ROOT-policy",
+      "blob": "53de7c3431add78bca800e3a0c96334b7a6845b3",
+      "sha256": "af77d8b26ddcbc26ec933d3678f07ac4a0777ed9e5f871ace2dcd067eb1006b9",
+      "bytes": 22316
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/BINDING.json",
+      "role": "author-evidence-binding",
+      "blob": "20f6231b6ac49029e41c15d3e13efcf3995a4ce2",
+      "sha256": "f95018c2963df8b5bfd3f60560ef8ec14effeea6c151e117caafc050568d3d2c",
+      "bytes": 3835
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "tests/shell/directory-stack-design-20260828/PROPOSAL.md",
+      "role": "historical-proposal-superseded-layout",
+      "blob": "c5ad032e6a91c29a23ed5454e9625fa85b3c75c0",
+      "sha256": "d3f3aa73c02064b78bff9779b72082db5baca74387ef08a8781ecc3b560ff190",
+      "bytes": 13331
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/GRAMMAR-FREEZE.json",
+      "role": "grammar-preseal",
+      "blob": "9ccb23d7ff69dffd23caaba1ec84e4c828ff6955",
+      "sha256": "929f0504d8d05fde877af5265607d405dbb02cf7d6b0a79ef269086473181fcb",
+      "bytes": 1459
+    },
+    {
+      "commit": "23fca35fc5d7c749a7273015b802aef6376096a2",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/grammar-cases.json",
+      "role": "grammar-preseal-inputs",
+      "blob": "42f5ea767e2994ad0480df5876cf1bb140e1d01f",
+      "sha256": "3fc1561c03e8f52c23236818618d398ecf55401e598576cfa811b85a2cd58cb2",
+      "bytes": 2416
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/grammar-cases.json",
+      "role": "unchanged-grammar-inputs",
+      "blob": "42f5ea767e2994ad0480df5876cf1bb140e1d01f",
+      "sha256": "3fc1561c03e8f52c23236818618d398ecf55401e598576cfa811b85a2cd58cb2",
+      "bytes": 2416
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "tests/shell/directory-stack-design-20260828/observations-01.json.gz.base64",
+      "role": "immutable-original34",
+      "blob": "0e326d740ef9a87409099120f3daa0413a7c4770",
+      "sha256": "179d48ba3dbfe8cc81e6280df7dcbc5d49c84c5a2297b9ed8ca05f04e90cbaf2",
+      "bytes": 584233
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "tests/shell/directory-stack-design-20260828/supplemental-observations-01.json.gz.base64",
+      "role": "immutable-native-topology4",
+      "blob": "a0ca28a6d42bda80a5dc5100196d7b00fbe4a1c1",
+      "sha256": "ecb8bd5f8653a4dad2aaa8eb22a496466a45a3e9e5229441c926b422cac680c8",
+      "bytes": 2873
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/grammar-observations-01.json.gz.base64",
+      "role": "distinct-native-grammar8",
+      "blob": "2e6f20892ecab4d7f4090213130eef7394fe434e",
+      "sha256": "211e3c926df5651e5342e03b8a3fe530bbdab00b1b4db4b00e09158b4db79e19",
+      "bytes": 5129
+    },
+    {
+      "commit": "192ab78b4202be5afc92ffc12a72816da98ddfe0",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/review-4641075d/BINDING.json",
+      "role": "accepted-CD-binding",
+      "blob": "5edc08378f40a67a78a1d021dad703d88864a594",
+      "sha256": "2e9a2d91397b5379513ce03d4b867657dc31ee46d2b09c0e15a6ad2bf1c45ec2",
+      "bytes": 928
+    },
+    {
+      "commit": "192ab78b4202be5afc92ffc12a72816da98ddfe0",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/review-4641075d/REPORT.md",
+      "role": "accepted-CD-qualified-report",
+      "blob": "a6f33280b45dea37299ab9acc7e10b7b0d071b23",
+      "sha256": "272bf823713a6d393857d3cfa3439ec3501e4c77db3565257bcafb4f72db228e",
+      "bytes": 11207
+    },
+    {
+      "commit": "192ab78b4202be5afc92ffc12a72816da98ddfe0",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/ratification-v3/HANDOFF.md",
+      "role": "accepted-CD-ratification-binding",
+      "blob": "17549905ca3b962fa8e7b44e2529347b6850dacc",
+      "sha256": "a811026d782f7b117a8fc9716e3e9f76e7b61efd28956f54ca8766afd938b41e",
+      "bytes": 3895
+    },
+    {
+      "commit": "ef833fd2cbf006993b1f94d7f3a0d3254e0ad3de",
+      "path": "tests/shell/cd-prerequisite-20260828/ROOT-RATIFICATION-v3.md",
+      "role": "accepted-CD-normative-contract",
+      "blob": "37ecdd0c187896ab7583c3631c4d6fea262f4c29",
+      "sha256": "1a88dd6c82a82803bd0c5b1aa2939f394ecb1486626bd074c7a1f6455a8fe60e",
+      "bytes": 4812
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "src/contracts/command.md",
+      "role": "normative-command-contract",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "bytes": 9253
+    },
+    {
+      "commit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+      "path": "src/contracts/filesystem.md",
+      "role": "normative-filesystem-contract",
+      "blob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "bytes": 20876
+    },
+    {
+      "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+      "path": "src/shell/runtime.ts",
+      "role": "identity-only-no-runtime-body-inspection",
+      "blob": "d32239c31e5b4cdf11fd7863a407283119a209ec",
+      "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+      "bytes": 137389
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/shell.ts",
+      "role": "identity-only-no-shell-body-inspection",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "bytes": 15002
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/types.ts",
+      "role": "inspected-existing-public-declarations",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "bytes": 2223
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/index.ts",
+      "role": "inspected-public-export-declarations",
+      "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "bytes": 275
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.ts",
+      "role": "inspected-existing-command-declarations",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "bytes": 2968
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/io.ts",
+      "role": "inspected-ByteSink-declaration",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "bytes": 7663
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/index.ts",
+      "role": "inspected-root-export-declarations",
+      "blob": "ff7ab9b4e4a2f2a25eb0fae8db1d3149c514ad16",
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b",
+      "bytes": 1593
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "package.json",
+      "role": "inspected-existing-manifest-exports",
+      "blob": "161191ea9e8e56bbea0e74b48af54ee57b646015",
+      "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+      "bytes": 4840
+    },
+    {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "path": "src/fs/webdav/webdav.ts",
+      "role": "accepted-provider-identity-only",
+      "blob": "cb5454597ff3ee2d87f55b18c467d947020ed677",
+      "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "bytes": 54400
+    },
+    {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "path": "src/fs/webdav/README.md",
+      "role": "accepted-provider-doc-identity-only",
+      "blob": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78",
+      "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd",
+      "bytes": 43172
+    }
+  ]
+}

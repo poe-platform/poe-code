@@ -1,0 +1,28 @@
+async function dispatchNodeAuthorV4(expectedSeal) {
+  const fs = await import('node:fs');const crypto = await import('node:crypto');const cp = await import('node:child_process');const util = await import('node:util');
+  const anchor='/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2';
+  const descriptors=[];const record={role:'node-v4-captured-dispatch',spawned:false,pid:null,closed:false,code:null,signal:null,bytes:0,primary:null,cleanup:[]};let child;let timer;let killer;let primary;
+  const observe=value=>{const result={present:true,isUndefined:value===undefined,message:null,code:null};if(value!==null&&typeof value==='object'&&!util.types.isProxy(value))for(const key of ['message','code']){const item=Object.getOwnPropertyDescriptor(value,key);if(item&&Object.hasOwn(item,'value')&&typeof item.value==='string')result[key]=item.value.slice(0,2048);}return result;};
+  const write=(index,bytes)=>{record.bytes+=bytes.length;if(record.bytes>1048576)throw Error('outer capture ceiling');let offset=0;while(offset<bytes.length){const size=fs.writeSync(descriptors[index],bytes,offset,bytes.length-offset);if(size<=0)throw Error('outer capture short write');offset+=size;}};
+  const stop=()=>{if(record.closed)return;try{child?.kill('SIGTERM');}catch(value){primary??={present:true,value};}killer??=setTimeout(()=>{if(!record.closed)try{child?.kill('SIGKILL');}catch(value){primary??={present:true,value};}},2000);};
+  try{
+    descriptors.push(fs.openSync(anchor+'/v4-author.stdout','wx',0o600));
+    descriptors.push(fs.openSync(anchor+'/v4-author.stderr','wx',0o600));
+    const home=anchor+'/author-v4';
+    const read=(file,maximum)=>{const stat=fs.lstatSync(file);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>maximum)throw Error('dispatch input admission');return fs.readFileSync(file);};
+    const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');const sealBody=read(home+'/PRESEAL-v4.json',2097152);if(hash(sealBody)!==expectedSeal)throw Error('dispatch seal');const seal=JSON.parse(sealBody.toString('utf8'));
+    if(hash(Buffer.from(dispatchNodeAuthorV4.toString()+'\n'))!==seal.files.find(row=>row.path==='DISPATCH-AUTHOR-v4.mjs.data').sha256)throw Error('dispatch executable identity');
+    for(const row of seal.files){const bytes=read(home+'/'+row.path,4194304);if(bytes.length!==row.bytes||hash(bytes)!==row.sha256)throw Error('dispatch input identity');}
+    const parents=JSON.parse(read(home+'/PARENTS.json',65536));for(const parent of parents.created){const stat=fs.lstatSync(parent.path);if(!stat.isDirectory()||stat.isSymbolicLink()||stat.dev!==parent.device||stat.ino!==parent.inode||fs.realpathSync(parent.path)!==parent.path)throw Error('dispatch parent identity');}
+    const config=JSON.parse(read(home+'/CONTROL-v4.json',65536));const node='/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';const stat=fs.lstatSync(node);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==112989184)throw Error('dispatch Node size');let size=0;const digest=crypto.createHash('sha256');for await(const bytes of fs.createReadStream(node,{highWaterMark:65536})){size+=bytes.length;if(size>112989184)throw Error('dispatch Node growth');digest.update(bytes);}if(size!==112989184||digest.digest('hex')!=='5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011')throw Error('dispatch Node identity');
+    await new Promise((resolve,reject)=>{
+      timer=setTimeout(()=>{primary??={present:true,value:Error('outer deadline')};stop();},Math.max(1,Math.min(config.outerWallMs,config.absoluteDeadline-Date.now())));
+      try{child=cp.spawn(node,['--experimental-permission','--allow-child-process',...config.readRoots.map(value=>'--allow-fs-read='+value),'--allow-fs-write='+anchor,home+'/startup-owner-v4.mjs'],{cwd:home,env:config.environment,stdio:['ignore','pipe','pipe']});}catch(value){reject(value);return;}
+      child.once('error',value=>{primary??={present:true,value};});
+      child.once('close',(code,signal)=>{record.closed=true;record.code=code;record.signal=signal;clearTimeout(timer);clearTimeout(killer);resolve();});
+      try{record.pid=child.pid??null;record.spawned=child.pid!==undefined;for(const [index,stream]of [child.stdout,child.stderr].entries()){stream.on('error',value=>{primary??={present:true,value};stop();});stream.on('data',bytes=>{try{write(index,bytes);}catch(value){primary??={present:true,value};stop();}});}}catch(value){primary??={present:true,value};stop();}
+    });
+  }catch(value){primary??={present:true,value};if(descriptors.length)try{write(0,Buffer.from('DISPATCH_FAILURE '+JSON.stringify(observe(primary.value))+'\n'));}catch(fault){record.cleanup.push(observe(fault));}}
+  finally{clearTimeout(timer);clearTimeout(killer);for(const descriptor of descriptors)try{fs.closeSync(descriptor);}catch(value){record.cleanup.push(observe(value));}record.primary=primary?observe(primary.value):null;try{fs.writeFileSync(anchor+'/v4-author.RECEIPT.json',JSON.stringify(record)+'\n',{flag:'wx',mode:0o600});}catch(value){record.cleanup.push(observe(value));}}
+  return record;
+}

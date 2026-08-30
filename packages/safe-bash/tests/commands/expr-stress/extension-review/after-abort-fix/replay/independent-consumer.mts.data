@@ -1,0 +1,135 @@
+import assert from 'node:assert/strict';
+import { getEventListeners } from 'node:events';
+import { syncBuiltinESMExports } from 'node:module';
+import threads, { type Transferable, type WorkerOptions } from 'node:worker_threads';
+import type { CommandContext, InvocationCleanup } from './node_modules/virtual-bash/dist/contracts/command.js';
+import type { ExprMatchDescriptor, GrepDescriptor } from './node_modules/virtual-bash/dist/commands/regex-execution/protocol.js';
+
+class ExplicitSignal extends EventTarget implements AbortSignal {
+  aborted = false;
+  reason: unknown = undefined;
+  onabort: ((this: AbortSignal, event: Event) => unknown) | null = null;
+  throwIfAborted(): void { if (this.aborted) throw this.reason; }
+  cancel(reason: unknown): void {
+    if (this.aborted) return;
+    this.aborted = true;
+    this.reason = reason;
+    const event = new Event('abort');
+    this.dispatchEvent(event);
+    this.onabort?.call(this, event);
+  }
+}
+interface Payload { mode: 'synthetic' | 'native-expr' | 'native-legacy' | 'index'; reason?: string; phase?: 'pre' | 'active'; maxSteps?: number; cancel?: boolean; positive?: boolean }
+type Outcome = { state: 'fulfilled'; value: unknown } | { state: 'rejected'; reason: unknown };
+const settle = async (invoke: () => unknown): Promise<Outcome> => {
+  try { return { state: 'fulfilled', value: await invoke() }; }
+  catch (reason: unknown) { return { state: 'rejected', reason }; }
+};
+export async function run(payload: Payload): Promise<unknown> {
+  const NativeWorker = threads.Worker;
+  const workers: TrackedWorker[] = [];
+  const events: { type: string; threadId?: number }[] = [];
+  let posted: (() => void) | undefined;
+  class TrackedWorker extends NativeWorker {
+    closed = false;
+    constructor(filename: string | URL, options?: WorkerOptions) {
+      super(filename, options);
+      workers.push(this);
+      events.push({ type: 'start', threadId: this.threadId });
+      this.once('exit', () => { this.closed = true; events.push({ type: 'exit' }); });
+    }
+    override postMessage(message: unknown, transferList?: readonly Transferable[]): void {
+      super.postMessage(message, transferList);
+      events.push({ type: 'forwarded-request' });
+      const callback = posted;
+      posted = undefined;
+      if (callback) queueMicrotask(callback);
+    }
+  }
+  threads.Worker = TrackedWorker;
+  syncBuiltinESMExports();
+  const { RegexExecutor } = await import('./node_modules/virtual-bash/dist/commands/regex-execution/client.js');
+  const { exprMatchCeilings } = await import('./node_modules/virtual-bash/dist/commands/regex-execution/protocol.js');
+  const owner = new RegexExecutor({ maxWorkers: 1, startupTimeoutMs: 500, requestTimeoutMs: 500 });
+  const descriptor: ExprMatchDescriptor = { kind: 'expr-match', pattern: new TextEncoder().encode('a'), profile: 'byte', limits: exprMatchCeilings };
+  const legacy: GrepDescriptor = { kind: 'grep', patterns: ['a'], fixed: true, extended: false, insensitive: false, whole: false, word: false };
+  const rows = [{ bytes: new TextEncoder().encode('a'), all: false, terminated: false }];
+  try {
+    if (payload.mode === 'index') {
+      const { createExprCommand } = await import('./node_modules/virtual-bash/dist/commands/expr/index.js');
+      const { MemoryFileSystem } = await import('./node_modules/virtual-bash/dist/fs/memory/index.js');
+      const controller = new AbortController();
+      const reason = new Error('independent index cancellation');
+      const cleanups: InvocationCleanup[] = [];
+      const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+      let turns = 0, finished = false;
+      let scheduled: NodeJS.Immediate | undefined;
+      const cancel = (): void => {
+        if (finished) return;
+        turns++;
+        if (turns === 8) controller.abort(reason);
+        else scheduled = setImmediate(cancel);
+      };
+      const args = ['index', payload.positive ? `${'a'.repeat(2047)}z` : 'a'.repeat(2048), payload.positive ? `${'b'.repeat(63)}z` : 'b'.repeat(64)];
+      const context: CommandContext = {
+        command: 'expr', args, cwd: '/', env: { LC_ALL: 'C' }, fs: new MemoryFileSystem(), signal: controller.signal,
+        get stdin(): never { throw new Error('index touched stdin'); }, stdinIsDefault: false,
+        stdout: { async write(bytes: Uint8Array): Promise<void> { stdout.push(new Uint8Array(bytes)); } },
+        stderr: { async write(bytes: Uint8Array): Promise<void> { stderr.push(new Uint8Array(bytes)); } },
+        registerCleanup(cleanup: InvocationCleanup): void { cleanups.push(cleanup); },
+      };
+      if (payload.cancel) scheduled = setImmediate(cancel);
+      const outcome = await settle(() => createExprCommand({ limits: { maxSteps: payload.maxSteps ?? 1_000_000 } }).execute(context));
+      finished = true;
+      if (scheduled) clearImmediate(scheduled);
+      for (const cleanup of cleanups) await cleanup();
+      assert.equal(workers.length, 0);
+      const output = Buffer.concat(stdout).toString(), diagnostic = Buffer.concat(stderr).toString();
+      if (payload.cancel) {
+        assert.equal(outcome.state, 'rejected');
+        assert(outcome.state === 'rejected' && outcome.reason === reason);
+        assert.equal(turns, 8); assert.equal(output, ''); assert.equal(diagnostic, '');
+      } else {
+        assert.equal(outcome.state, 'fulfilled');
+        const expected = payload.positive ? '2048\n' : payload.maxSteps === 399505 ? '' : '0\n';
+        assert.equal(output, expected);
+        assert.equal(diagnostic, payload.maxSteps === 399505 ? 'expr: evaluation work limit exceeded\n' : '');
+        assert.deepEqual(outcome.state === 'fulfilled' && outcome.value, { exitCode: payload.positive ? 0 : payload.maxSteps === 399505 ? 3 : 1 });
+      }
+      return { passed: true, mode: payload.mode, outcome: outcome.state, result: outcome.state === 'fulfilled' ? outcome.value : null, exactCancellation: payload.cancel ? outcome.state === 'rejected' && outcome.reason === reason : null, turns, output, diagnostic, argumentBytes: args.reduce((sum, arg) => sum + Buffer.byteLength(arg), 0), subjectCharacters: 2048, acceptCharacters: 64, maxSteps: payload.maxSteps ?? 1_000_000, boundaryDerivation: '18 + 3*N + 2*M + 3*N*M = 399506 for no-match ASCII index, including output/LF/final yield', activeBeforeSafetyCleanup: workers.filter(worker => !worker.closed).length };
+    }
+    const native = new AbortController();
+    const synthetic = new ExplicitSignal();
+    const requested: unknown = payload.reason === 'undefined' ? undefined : payload.reason === 'zero' ? 0 : payload.reason === 'null' ? null : payload.reason === 'false' ? false : payload.reason === 'empty' ? '' : new Error('independent native reason');
+    const combined = AbortSignal.any([native.signal, new AbortController().signal]);
+    const signal: AbortSignal = payload.mode === 'synthetic' ? synthetic : combined;
+    const session = payload.mode === 'synthetic' ? undefined : owner.open(combined);
+    const cancel = (): void => { if (payload.mode === 'synthetic') synthetic.cancel(requested); else native.abort(requested); };
+    if (payload.phase === 'pre') cancel(); else posted = cancel;
+    const outcome = await settle(() => payload.mode === 'synthetic' ? owner.request(descriptor, rows, signal) : payload.mode === 'native-expr' ? session!.matchExpr(descriptor, rows[0]!.bytes) : session!.run(legacy, rows));
+    assert.equal(outcome.state, 'rejected');
+    assert(outcome.state === 'rejected' && Object.is(outcome.reason, signal.reason));
+    if (payload.mode !== 'synthetic') {
+      assert.equal(combined.reason, native.signal.reason);
+      if (requested === undefined) { assert(native.signal.reason instanceof DOMException); assert.equal(native.signal.reason.name, 'AbortError'); }
+      else assert(Object.is(native.signal.reason, requested));
+    }
+    const activeAtRejection = workers.filter(worker => !worker.closed).length;
+    assert.equal(activeAtRejection, 0);
+    if (session) await session.close();
+    assert.equal(getEventListeners(signal, 'abort').length, 0);
+    const retiredCount = workers.length;
+    const replacement = owner.open(new AbortController().signal);
+    try { const positive = await replacement.matchExpr(descriptor, rows[0]!.bytes); assert.equal(positive.matched, true); }
+    finally { await replacement.close(); }
+    assert.equal(workers.length, retiredCount + 1);
+    assert.equal(workers.filter(worker => !worker.closed).length, 0);
+    return { passed: true, mode: payload.mode, phase: payload.phase, requestedType: typeof requested, rejectionType: typeof signal.reason, rejectionName: signal.reason instanceof Error ? signal.reason.name : null, exactIdentity: true, syntheticNeverPassedToNativeAny: true, forwardedBeforeAbort: payload.phase !== 'pre', activeAtRejection, replacementPositive: true, events, activeBeforeSafetyCleanup: 0, phaseScope: 'Real worker received postMessage and cancellation retired it; compiler-versus-matcher execution phase is not observed.' };
+  } finally {
+    await owner.dispose();
+    const leftovers = workers.filter(worker => !worker.closed);
+    for (const worker of leftovers) await worker.terminate();
+    threads.Worker = NativeWorker;
+    syncBuiltinESMExports();
+  }
+}

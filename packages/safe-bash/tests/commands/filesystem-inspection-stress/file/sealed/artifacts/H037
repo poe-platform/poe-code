@@ -1,0 +1,812 @@
+[
+  {
+    "id": "F01",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "empty\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "inode/x-empty; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "inode/x-empty\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "inode/x-empty",
+        "application/x-empty"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "empty"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F02",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "ASCII text\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "text/plain; charset=us-ascii\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "text/plain\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "us-ascii\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "text/plain"
+      ],
+      "encoding": [
+        "us-ascii"
+      ],
+      "human": "ASCII|text"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F03",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "Unicode text, UTF-8 text\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "text/plain; charset=utf-8\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "text/plain\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "utf-8\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "text/plain"
+      ],
+      "encoding": [
+        "utf-8"
+      ],
+      "human": "UTF-8|Unicode|text"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F04",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "Unicode text, UTF-8 (with BOM) text\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "text/plain; charset=utf-8\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "text/plain\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "utf-8\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "text/plain"
+      ],
+      "encoding": [
+        "utf-8"
+      ],
+      "human": "UTF-8|Unicode|text"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F05",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "Unicode text, UTF-16, little-endian text, with CRLF line terminators\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "text/plain; charset=utf-16le\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "text/plain\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "utf-16le\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "text/plain"
+      ],
+      "encoding": [
+        "utf-16le"
+      ],
+      "human": "UTF-16|Unicode|text|character"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F06",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "data\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "application/octet-stream; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "application/octet-stream\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/octet-stream"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "data|binary"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F07",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "Non-ISO extended-ASCII text, with no line terminators\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "text/plain; charset=unknown-8bit\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "text/plain\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "unknown-8bit\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "text/plain",
+        "application/octet-stream"
+      ],
+      "encoding": [
+        "binary",
+        "unknown-8bit",
+        "iso-8859-1"
+      ],
+      "human": "text|data"
+    },
+    "qualification": "native-profile-sensitive-incomplete-unicode-at-EOF",
+    "status": "not-run"
+  },
+  {
+    "id": "F08",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "ASCII text, with CRLF, LF line terminators\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "text/plain; charset=us-ascii\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "text/plain\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "us-ascii\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "text/plain"
+      ],
+      "encoding": [
+        "us-ascii"
+      ],
+      "human": "ASCII|text"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F09",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "PNG image data, 1 x 1, 8-bit/color RGBA, non-interlaced\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "image/png; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "image/png\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "image/png"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "PNG"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F10",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 1x1, components 3\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "image/jpeg; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "image/jpeg\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "image/jpeg"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "JPEG"
+    },
+    "qualification": "recognizable-structure-not-decoder-validity",
+    "status": "not-run"
+  },
+  {
+    "id": "F11",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "GIF image data, version 89a, 1 x 1\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "image/gif; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "image/gif\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "image/gif"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "GIF"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F12",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "PDF document, version 1.7\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "application/pdf; charset=us-ascii\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "application/pdf\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "us-ascii\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/pdf"
+      ],
+      "encoding": [
+        "us-ascii",
+        "binary"
+      ],
+      "human": "PDF"
+    },
+    "qualification": "recognizable-structure-not-document-validation",
+    "status": "not-run"
+  },
+  {
+    "id": "F13",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "Zip archive data, at least v2.0 to extract, compression method=store\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "application/zip; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "application/zip\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/zip"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "Zip|ZIP"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F14",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "gzip compressed data, original size modulo 2^32 4105\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "application/gzip; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "application/gzip\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/gzip",
+        "application/x-gzip"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "gzip"
+    },
+    "qualification": "container-only-no-decompression",
+    "status": "not-run"
+  },
+  {
+    "id": "F15",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "ELF 64-bit LSB executable, x86-64, version 1 (SYSV)\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "application/x-executable; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "application/x-executable\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/x-executable",
+        "application/x-elf"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "ELF"
+    },
+    "qualification": "header-classification-not-loader-validity",
+    "status": "not-run"
+  },
+  {
+    "id": "F16",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "SQLite 3.x database, last written using SQLite version 3041000, page size 512, file counter 1, database pages 1, cookie 0, schema 4, UTF-8, version-valid-for 1\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "application/vnd.sqlite3; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "application/vnd.sqlite3\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/vnd.sqlite3",
+        "application/x-sqlite3"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "SQLite"
+    },
+    "qualification": "native-exact-and-semantic",
+    "status": "not-run"
+  },
+  {
+    "id": "F17",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "JSON data\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "application/json; charset=us-ascii\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "application/json\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "us-ascii\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/json"
+      ],
+      "encoding": [
+        "us-ascii",
+        "utf-8"
+      ],
+      "human": "JSON"
+    },
+    "qualification": "common-subset-support-measured-not-assumed",
+    "status": "not-run"
+  },
+  {
+    "id": "F18",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "Non-ISO extended-ASCII text, with CRLF line terminators\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "text/plain; charset=unknown-8bit\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "text/plain\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "unknown-8bit\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/octet-stream"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "data|binary"
+    },
+    "qualification": "incomplete-signature-no-full-magic",
+    "status": "not-run"
+  },
+  {
+    "id": "F19",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length -1\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "image/jpeg; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "image/jpeg\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "image/jpeg",
+        "application/octet-stream"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "JPEG|data"
+    },
+    "qualification": "malformed-declared-length-classifier-not-validator",
+    "status": "not-run"
+  },
+  {
+    "id": "F20",
+    "nativeExact": {
+      "brief-human": {
+        "stdout": "data\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime": {
+        "stdout": "application/octet-stream; charset=binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-type": {
+        "stdout": "application/octet-stream\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      },
+      "brief-mime-encoding": {
+        "stdout": "binary\n",
+        "stderr": "",
+        "status": 0,
+        "available": true
+      }
+    },
+    "semantic": {
+      "mime": [
+        "application/octet-stream"
+      ],
+      "encoding": [
+        "binary"
+      ],
+      "human": "data|binary"
+    },
+    "qualification": "offset-zero-magic-must-not-match-at-arbitrary-offset",
+    "status": "not-run"
+  }
+]

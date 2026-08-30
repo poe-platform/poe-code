@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-28T03:44:02.767Z",
+  "node": "v24.11.1",
+  "buildRequested": true,
+  "consumersOnly": false,
+  "builds": 0,
+  "phases": [],
+  "runtimeExecutions": 0,
+  "status": "typecheck-failed",
+  "error": "Command failed: git ls-files -z\ngit: error: couldn't spawn '/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild' (errno=No such file or directory)\ngit: error: unable to locate xcodebuild, please make sure the path to the Xcode folder is set correctly!\ngit: error: You can set the path to the Xcode folder using /usr/bin/xcode-select -switch\n",
+  "cleaned": true,
+  "finishedAt": "2026-08-28T03:44:02.786Z"
+}

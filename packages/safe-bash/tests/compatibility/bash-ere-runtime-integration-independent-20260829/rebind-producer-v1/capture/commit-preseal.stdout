@@ -1,0 +1,59 @@
+[main e3f6a04887b532f1cbf6f9e76b2a493775f3d90f] test: preseal ERE producer-only independent audit
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 45 files changed, 8731 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/AUTHOR-LOCATORS.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/DETAILS.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/HANDOFF.raw
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/INPUTS.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/SEAL.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/START.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/TOOL.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/admission-completion-patch.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/admission-completion-patch.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/audit-patch.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/audit-patch.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/audit.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/bind.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/bind.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/bind.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/committed-handoff.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/committed-handoff.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/committed-inputs.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/committed-inputs.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/committed-seal.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/committed-seal.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/details.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/inspect.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/seal.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/stage-preseal.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/stage-preseal.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/syntax-audit.mjs.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/syntax-audit.mjs.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/syntax-supervise.mjs.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/syntax-supervise.mjs.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/capture/syntax.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/details-patch.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/details-patch.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/details.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/details.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/inspect.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/inspect.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/seal.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/seal.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/supervise.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/syntax-owner.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/syntax-owner.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/syntax.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/syntax.outer.stdout

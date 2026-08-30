@@ -1,0 +1,29 @@
+{
+  "consumer": "atomic-webdav-profile-external-consumer",
+  "resolved": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-CQNrbI/consumer/node_modules/virtual-bash/dist/index.js",
+  "requiredCommands": [
+    "cat",
+    "cp",
+    "find",
+    "mkdir",
+    "mv",
+    "printf",
+    "pwd",
+    "rm",
+    "rmdir",
+    "sort",
+    "tee",
+    "test",
+    "touch",
+    "xargs",
+    "sed",
+    "awk",
+    "jq",
+    "rg",
+    "sha256sum",
+    "gzip",
+    "diff",
+    "patch"
+  ],
+  "actualAggregate": true
+}

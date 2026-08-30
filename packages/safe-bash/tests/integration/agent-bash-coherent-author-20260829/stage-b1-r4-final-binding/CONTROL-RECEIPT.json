@@ -1,0 +1,8 @@
+{
+  "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/CONTROL-PRESEAL.json",
+  "bytes": 1890,
+  "sha256": "cf06c28d1de83daf25bd8f866adc30c08cb2bb1e555f1b6e1acfd32b62266884",
+  "qualification": "Generated preseal output identity recorded without parsing it; no product imports",
+  "utc": "2026-08-29T15:00:54.178Z",
+  "pid": 45713
+}

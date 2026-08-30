@@ -1,0 +1,250 @@
+{
+  "schema": "node-abi-independent-synthetic-recipe-v1",
+  "date": "2026-08-28",
+  "classification": "ROOT_PERMITTED_FINITE_DATA_STUB_ONLY",
+  "runId": "synthetic-v1-01",
+  "attempts": 1,
+  "realBridgeAuthorized": false,
+  "engineEvaluations": 0,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "limits": {
+    "stubChildren": 4,
+    "concurrency": 1,
+    "totalProcesses": 5,
+    "overallMs": 30000,
+    "recordBytes": 65536,
+    "evidenceBytes": 262144,
+    "streamBytes": 65536,
+    "childOldSpaceMiB": 64
+  },
+  "f01SourceSha256": "536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84",
+  "controls": [
+    {
+      "id": "D01",
+      "expected": "CANONICAL_ACCEPT"
+    },
+    {
+      "id": "D02",
+      "expected": "COUNTEREXAMPLE_INVALID_RECEIPT_ACCEPTED"
+    },
+    {
+      "id": "D03",
+      "expected": "EXPECTED_REJECT_DIRTY"
+    },
+    {
+      "id": "D04",
+      "expected": "EXPECTED_REJECT_NONZERO"
+    },
+    {
+      "id": "D05",
+      "expected": "EXPECTED_REJECT_HASH"
+    },
+    {
+      "id": "L01",
+      "expected": "NATURAL_CHILD_CLOSED"
+    },
+    {
+      "id": "L02",
+      "expected": "COUNTEREXAMPLE_POSTSPAWN_DEADLINE_RETAINS_CHILD"
+    },
+    {
+      "id": "L03",
+      "expected": "PUBLICATION_FAILURE_AFTER_KNOWN_CLOSE"
+    },
+    {
+      "id": "L04",
+      "expected": "CAPTURE_LIMIT_CONTAINED_AND_CLOSED"
+    }
+  ],
+  "files": [
+    {
+      "path": "INPUTS.json",
+      "bytes": 45078,
+      "mode": 420,
+      "sha256": "81ff3402efee0966e50084fca98a3ede7d744f33973ba2cb9111ee83d7dfaed4"
+    },
+    {
+      "path": "PREEXECUTION.md",
+      "bytes": 4571,
+      "mode": 420,
+      "sha256": "77f2d9d353d2e96aa3ec3d4f8d1b015e83fb8f0c1b115bf326054ac142235e87"
+    },
+    {
+      "path": "subject.mjs",
+      "bytes": 3788,
+      "mode": 420,
+      "sha256": "4de263bf50cdf879a35d3e58f9f67db6ccdba87a5f579ba66892c1ebcc1dfb7b"
+    },
+    {
+      "path": "synthetic.mjs",
+      "bytes": 13650,
+      "mode": 420,
+      "sha256": "cd2c2b9d6fb276175019dd1e0ee22e8e54b8281132a65256011d77cc2bea676c"
+    },
+    {
+      "path": "stub.mjs",
+      "bytes": 295,
+      "mode": 420,
+      "sha256": "1fb08ed6d892d29a2de5a69ca544e9407dd3b50862a5919ae51be823552ebb08"
+    }
+  ],
+  "protectedInputs": [
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/CONTROL.json",
+      "bytes": 2353,
+      "mode": 420,
+      "sha256": "3ec52fb9c6fd658c7a10c478a647dcd357d8e906c5427c3b697144f747e8d366"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/FROZEN-EXPERIMENTS.json",
+      "bytes": 11607,
+      "mode": 420,
+      "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/GRANT.template.json",
+      "bytes": 1213,
+      "mode": 420,
+      "sha256": "9edd6342e08b7d8660fdbf0d1e7f5f455fe67be753d71c926d504737f5dab7bd"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/INHERITED.json",
+      "bytes": 3330,
+      "mode": 420,
+      "sha256": "f2a484cad8a1338962e420904e8cf7fce46711f801f4b6e6f8bf4cbd460a6346"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/MECHANISM.json",
+      "bytes": 2620,
+      "mode": 420,
+      "sha256": "d073965757070b9b9642aaf36fc812819470be2725b96cfb42c3268ae549809f"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+      "bytes": 338073,
+      "mode": 420,
+      "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/README.md",
+      "bytes": 8580,
+      "mode": 420,
+      "sha256": "3bcef9b0c59be13fb00a765d9f034af7755739e3ae94d3f723d32a410e14577f"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/REUSE.json",
+      "bytes": 1892,
+      "mode": 420,
+      "sha256": "306f20cb34d27bc5a85b1fdcf04e057a33b8486bb149ad680befba477585ce44"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/REVIEW.template.json",
+      "bytes": 247,
+      "mode": 420,
+      "sha256": "441204146ae7e796a17ad03581cf9ceddb43dcd34fd21cc535c238e101c2a4e2"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/SOURCES.json",
+      "bytes": 35893,
+      "mode": 420,
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/TOOLS.json",
+      "bytes": 2312,
+      "mode": 420,
+      "sha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/child.mjs.data",
+      "bytes": 17273,
+      "mode": 420,
+      "sha256": "8ee806cbcc01f4a520fad781d081affc92188000b4b0b9f36d7526c639353f72"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/loader.mjs.data",
+      "bytes": 7297,
+      "mode": 420,
+      "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/reference-entry.mjs.data",
+      "bytes": 2018,
+      "mode": 420,
+      "sha256": "72d173cbe626079b5cf1e7fcd719f4f62a9b2fb9d7260c4776253c4f56299168"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/supervisor.mjs.data",
+      "bytes": 26682,
+      "mode": 420,
+      "sha256": "986d9c3f06e9341a6dc577d03984092a7c046617386c56bc9569d21d1255891f"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-design-20260828/np1-cjs-v1/CONTRACT.md",
+      "bytes": 16806,
+      "mode": 420,
+      "sha256": "ba1b0cb0c0f6b08d29ad6d33a138343140159ef8a73675fdbd2873816605ed9b"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-design-20260828/np1-cjs-v1/BINDINGS.json",
+      "bytes": 39030,
+      "mode": 420,
+      "sha256": "35502753a94b84e970323f205d21dcfc34d5a9320c7be26814fc0b143f38295a"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-design-20260828/np1-cjs-v1/CASE-MAPPING.json",
+      "bytes": 38328,
+      "mode": 420,
+      "sha256": "b20b63cf8415366d063d2f34682f69398b02405cedb529cbd7f209003e5eab20"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-design-20260828/np1-cjs-v1/REVIEW-RESPONSE.md",
+      "bytes": 7824,
+      "mode": 420,
+      "sha256": "d30e98cdff88b743162c245bcc2c59fd95652eacad811a3efaa1263112b4d8a7"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/RAMAN_HANDOFF.md",
+      "bytes": 7561,
+      "mode": 420,
+      "sha256": "5b8196c989e6b78387dca0756616ecdfed1918ee7daf13f4cb6e2ae3efaad472"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/VALIDATION.json",
+      "bytes": 3751,
+      "mode": 420,
+      "sha256": "649a2d7dccc42e83392f411d5fcaad8f473cf7e8ee5aafc433bfcc6977737e94"
+    },
+    {
+      "absolutePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/MANIFEST.json",
+      "bytes": 6006,
+      "mode": 420,
+      "sha256": "c163bcd7cc0686dc7d4ab67ba24429fe4900c68c244cdf46799bff5b12b4e213"
+    }
+  ],
+  "sections": [
+    {
+      "file": "supervisor.mjs.data",
+      "lines": [
+        47,
+        77
+      ],
+      "sha256": "f5798a73ba4f0fe7b0d74cdf1e6fb88e9aa2122a66d805ed8dbd5331be615b87"
+    },
+    {
+      "file": "supervisor.mjs.data",
+      "lines": [
+        275,
+        282
+      ],
+      "sha256": "98883693968a829fdb7f01dea02a9807617eb4cd8e8442e776ed18d38dc6f85f"
+    }
+  ],
+  "closureRule": "Every real stub enrolled before fallible persistence; exact subject failures preserved; reviewer cleanup separate; no continued control after unsafe guard/reap failure.",
+  "selfExcluded": true
+}

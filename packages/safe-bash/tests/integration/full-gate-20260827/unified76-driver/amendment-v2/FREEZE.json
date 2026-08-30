@@ -1,0 +1,34 @@
+{
+  "schema": 2,
+  "createdAt": "2026-08-28T00:48:23.185Z",
+  "preImplementationHead": "add4e9db6d8c9b946cf1c854562c4d6b56241890",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "previousCandidate": "07047e8f7bd577f60350246b1380732712305f58",
+  "previousDriver": "86f75025b423f9d25a9dbcb35d07e73e95d33f9d",
+  "scope": "Root-authorized single numeric assertion amendment; no fifth path, title, unique count or suffix changes",
+  "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+  "from": "assert.equal(definitions.length, 73);",
+  "to": "assert.equal(definitions.length, 76);",
+  "beforeSha256": "4bd52b777b4f371c4ce930fd829d8ed934de6c3543ee5011a88c7d8799741917",
+  "afterSha256": "be43f926bbfd9d48e3100435b9d36ffa419c80aac189e2c17c9a253fcbea3908",
+  "unchangedAssertions": [
+    "assert.equal(new Set(definitions).size, 73);",
+    "assert.deepEqual(definitions.slice(56, 60), names);",
+    "assert.equal(target.commands.list().length, 77);"
+  ],
+  "controls": [
+    "exact one-hunk mutation",
+    "other assertion bytes identical",
+    "same four-path base diff",
+    "product/build inputs identical",
+    "old candidate/driver retained",
+    "fresh object-database reconstruction",
+    "stale candidate/profile/cleanup refusal",
+    "candidate-provider actual blob authority and historical hash preservation",
+    "targeted full-case failure retained rather than waived",
+    "package rebuild byte identity"
+  ],
+  "expectedRemainingFailure": "unique-count assertion at line32 expects73; literal suffix also omits three defaults, not reached until earlier assertions pass",
+  "productExecutions": 0,
+  "wholeGateLaunched": false
+}

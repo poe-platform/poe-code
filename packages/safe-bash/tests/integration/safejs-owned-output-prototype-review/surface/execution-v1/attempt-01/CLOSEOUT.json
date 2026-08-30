@@ -1,0 +1,120 @@
+{
+  "at": "2026-08-27T15:29:07.887Z",
+  "status": "CLOSED_WITH_RAW_CASE08_FAILURE_RETAINED",
+  "ownedScratch": "/private/tmp/safe-bash-owned-output-surface-execution-v1-SRcJjf",
+  "scratchRemoved": true,
+  "rawFilesVerifiedBeforeRemoval": 57,
+  "rawBytesVerified": 3836995,
+  "ownedInputFullWalkMatchesBeforeRemoval": true,
+  "newInputEntriesWouldBeDetected": true,
+  "privateBeforeRemoval": {
+    "at": "2026-08-27T15:29:06.984Z",
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "tree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+    "engineFiles": 264,
+    "comparableStateSha256": "4e6f61b33131644621cfb796a488cc9b062a38694f3c88a53e92bfca06302532",
+    "matchesExecutionAfter": true,
+    "gitOptionalLocks": "0"
+  },
+  "privateAfterRemoval": {
+    "at": "2026-08-27T15:29:07.688Z",
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "tree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+    "engineFiles": 264,
+    "comparableStateSha256": "4e6f61b33131644621cfb796a488cc9b062a38694f3c88a53e92bfca06302532",
+    "matchesExecutionAfter": true,
+    "gitOptionalLocks": "0"
+  },
+  "children": [
+    {
+      "id": "01-supported-facades",
+      "pid": 99958,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": 1787844027677,
+      "parentAlive": true
+    },
+    {
+      "id": "02-direct-surface",
+      "pid": 99961,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": 1787844028308,
+      "parentAlive": true
+    },
+    {
+      "id": "03-namespace-spread",
+      "pid": 99972,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": 1787844028916,
+      "parentAlive": true
+    },
+    {
+      "id": "04-shell-module",
+      "pid": 99983,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": 1787844029503,
+      "parentAlive": true
+    },
+    {
+      "id": "05-missing-register-cleanup",
+      "pid": 99985,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": 1787844030083,
+      "parentAlive": true
+    },
+    {
+      "id": "06-missing-acquire",
+      "pid": 99986,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": 1787844030645,
+      "parentAlive": true
+    },
+    {
+      "id": "07-reflection-profile",
+      "pid": 99987,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": 1787844031217,
+      "parentAlive": true
+    },
+    {
+      "id": "08-function-spread-profile",
+      "pid": 106,
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": 1787844031784,
+      "parentAlive": true
+    }
+  ],
+  "knownOwnedChildrenRemaining": 0,
+  "workersOrEsbuildServicesKnown": 0,
+  "killsUsed": 0,
+  "sourceOrPrivateWrites": false,
+  "sharedScratchRemoved": false,
+  "guestReruns": 0,
+  "conditionalExecuted": 0,
+  "qualification": "Native child close events identify the owned processes; no PID-wide search/kill or foreign process cleanup. Private excluded subtrees remain outside append-proof scope. All original data and failures preserved."
+}

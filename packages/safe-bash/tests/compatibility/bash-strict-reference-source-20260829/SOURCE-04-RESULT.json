@@ -1,0 +1,1352 @@
+{
+  "identities": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "bytes": 37239,
+      "sha256": "014aabf3c591c496bfcb39851d38f3691eb56d14c1e99b69e2b7cd3134f6e05b",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1695
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "bytes": 37239,
+      "sha256": "014aabf3c591c496bfcb39851d38f3691eb56d14c1e99b69e2b7cd3134f6e05b",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1695
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "authority": "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts",
+      "lines": 3899
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "authority": "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts",
+      "lines": 3899
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "authority": "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts",
+      "lines": 3899
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "config-top.h",
+      "bytes": 8247,
+      "sha256": "16142a6ae0e1732ba2090f2b4f522e4b9632d3d645724501336379c074b80e60",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 212
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "execute_cmd.c",
+      "bytes": 184046,
+      "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 6410
+    }
+  ],
+  "sourceBytesRead": 1626528,
+  "cumulativeSourceBytes": 3560108,
+  "distinctSources": 9,
+  "requests": [
+    {
+      "file": "subst.c",
+      "start": 8216,
+      "end": 8240
+    },
+    {
+      "file": "subst.c",
+      "start": 9938,
+      "end": 9975
+    },
+    {
+      "file": "expr.c",
+      "start": 1238,
+      "end": 1255
+    },
+    {
+      "file": "expr.c",
+      "start": 1364,
+      "end": 1404
+    },
+    {
+      "file": "runtime",
+      "product": true,
+      "start": 1025,
+      "end": 1072
+    },
+    {
+      "file": "runtime",
+      "product": true,
+      "start": 3524,
+      "end": 3596
+    },
+    {
+      "file": "runtime",
+      "product": true,
+      "start": 1590,
+      "end": 1625
+    },
+    {
+      "file": "config-top.h",
+      "pattern": "ONESHOT|gnu_error_format"
+    },
+    {
+      "file": "execute_cmd.c",
+      "pattern": "executing_line_number|setjmp.*top_level|sh_longjmp.*top_level",
+      "limit": 20
+    }
+  ],
+  "results": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 8216,
+          "text": "parameter_brace_expand_error (char *name, char *value, int check_null)"
+        },
+        {
+          "line": 8217,
+          "text": "{"
+        },
+        {
+          "line": 8218,
+          "text": "  WORD_LIST *l;"
+        },
+        {
+          "line": 8219,
+          "text": "  char *temp;"
+        },
+        {
+          "line": 8220,
+          "text": ""
+        },
+        {
+          "line": 8221,
+          "text": "  set_exit_status (EXECUTION_FAILURE);\t/* ensure it's non-zero */"
+        },
+        {
+          "line": 8222,
+          "text": "  if (value && *value)"
+        },
+        {
+          "line": 8223,
+          "text": "    {"
+        },
+        {
+          "line": 8224,
+          "text": "      l = expand_string (value, 0);"
+        },
+        {
+          "line": 8225,
+          "text": "      temp =  string_list (l);"
+        },
+        {
+          "line": 8226,
+          "text": "      report_error (\"%s: %s\", name, temp ? temp : \"\");\t/* XXX was value not \"\" */"
+        },
+        {
+          "line": 8227,
+          "text": "      FREE (temp);"
+        },
+        {
+          "line": 8228,
+          "text": "      dispose_words (l);"
+        },
+        {
+          "line": 8229,
+          "text": "    }"
+        },
+        {
+          "line": 8230,
+          "text": "  else if (check_null == 0)"
+        },
+        {
+          "line": 8231,
+          "text": "    report_error (_(\"%s: parameter not set\"), name);"
+        },
+        {
+          "line": 8232,
+          "text": "  else"
+        },
+        {
+          "line": 8233,
+          "text": "    report_error (_(\"%s: parameter null or not set\"), name);"
+        },
+        {
+          "line": 8234,
+          "text": ""
+        },
+        {
+          "line": 8235,
+          "text": "  /* Free the data we have allocated during this expansion, since we"
+        },
+        {
+          "line": 8236,
+          "text": "     are about to longjmp out. */"
+        },
+        {
+          "line": 8237,
+          "text": "  free (name);"
+        },
+        {
+          "line": 8238,
+          "text": "  FREE (value);"
+        },
+        {
+          "line": 8239,
+          "text": "}"
+        },
+        {
+          "line": 8240,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 9938,
+          "text": "      if (string[sindex - 1] != RBRACE || (valid_length_expression (name) == 0))"
+        },
+        {
+          "line": 9939,
+          "text": "\t{"
+        },
+        {
+          "line": 9940,
+          "text": "\t  temp = (char *)NULL;"
+        },
+        {
+          "line": 9941,
+          "text": "\t  goto bad_substitution;\t/* substitution error */"
+        },
+        {
+          "line": 9942,
+          "text": "\t}"
+        },
+        {
+          "line": 9943,
+          "text": ""
+        },
+        {
+          "line": 9944,
+          "text": "      number = parameter_brace_expand_length (name);"
+        },
+        {
+          "line": 9945,
+          "text": "      if (number == INTMAX_MIN && unbound_vars_is_error)"
+        },
+        {
+          "line": 9946,
+          "text": "\t{"
+        },
+        {
+          "line": 9947,
+          "text": "\t  set_exit_status (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 9948,
+          "text": "\t  err_unboundvar (name+1);"
+        },
+        {
+          "line": 9949,
+          "text": "\t  free (name);"
+        },
+        {
+          "line": 9950,
+          "text": "\t  return (interactive_shell ? &expand_wdesc_error : &expand_wdesc_fatal);"
+        },
+        {
+          "line": 9951,
+          "text": "\t}"
+        },
+        {
+          "line": 9952,
+          "text": "      free (name);"
+        },
+        {
+          "line": 9953,
+          "text": ""
+        },
+        {
+          "line": 9954,
+          "text": "      *indexp = sindex;"
+        },
+        {
+          "line": 9955,
+          "text": "      if (number < 0)"
+        },
+        {
+          "line": 9956,
+          "text": "        return (&expand_wdesc_error);"
+        },
+        {
+          "line": 9957,
+          "text": "      else"
+        },
+        {
+          "line": 9958,
+          "text": "\t{"
+        },
+        {
+          "line": 9959,
+          "text": "\t  ret = alloc_word_desc ();"
+        },
+        {
+          "line": 9960,
+          "text": "\t  ret->word = itos (number);"
+        },
+        {
+          "line": 9961,
+          "text": "\t  return ret;"
+        },
+        {
+          "line": 9962,
+          "text": "\t}"
+        },
+        {
+          "line": 9963,
+          "text": "    }"
+        },
+        {
+          "line": 9964,
+          "text": ""
+        },
+        {
+          "line": 9965,
+          "text": "  /* ${@} is identical to $@. */"
+        },
+        {
+          "line": 9966,
+          "text": "  if (name[0] == '@' && name[1] == '\\0')"
+        },
+        {
+          "line": 9967,
+          "text": "    {"
+        },
+        {
+          "line": 9968,
+          "text": "      if ((quoted & (Q_HERE_DOCUMENT|Q_DOUBLE_QUOTES)) && quoted_dollar_atp)"
+        },
+        {
+          "line": 9969,
+          "text": "\t*quoted_dollar_atp = 1;"
+        },
+        {
+          "line": 9970,
+          "text": ""
+        },
+        {
+          "line": 9971,
+          "text": "      if (contains_dollar_at)"
+        },
+        {
+          "line": 9972,
+          "text": "\t*contains_dollar_at = 1;"
+        },
+        {
+          "line": 9973,
+          "text": ""
+        },
+        {
+          "line": 9974,
+          "text": "      tflag |= W_DOLLARAT;"
+        },
+        {
+          "line": 9975,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "selected": [
+        {
+          "line": 1238,
+          "text": "      return (0);"
+        },
+        {
+          "line": 1239,
+          "text": "    }"
+        },
+        {
+          "line": 1240,
+          "text": ""
+        },
+        {
+          "line": 1241,
+          "text": "  tval = (value && *value) ? subexpr (value) : 0;"
+        },
+        {
+          "line": 1242,
+          "text": ""
+        },
+        {
+          "line": 1243,
+          "text": "  if (lvalue)"
+        },
+        {
+          "line": 1244,
+          "text": "    {"
+        },
+        {
+          "line": 1245,
+          "text": "      lvalue->tokstr = tok;\t/* XXX */"
+        },
+        {
+          "line": 1246,
+          "text": "      lvalue->tokval = tval;"
+        },
+        {
+          "line": 1247,
+          "text": "      lvalue->tokvar = v;\t/* XXX */"
+        },
+        {
+          "line": 1248,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 1249,
+          "text": "      lvalue->ind = ind;"
+        },
+        {
+          "line": 1250,
+          "text": "#else"
+        },
+        {
+          "line": 1251,
+          "text": "      lvalue->ind = -1;"
+        },
+        {
+          "line": 1252,
+          "text": "#endif"
+        },
+        {
+          "line": 1253,
+          "text": "    }"
+        },
+        {
+          "line": 1254,
+          "text": "\t  "
+        },
+        {
+          "line": 1255,
+          "text": "  return (tval);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "selected": [
+        {
+          "line": 1364,
+          "text": "\t      e = ']';"
+        },
+        {
+          "line": 1365,
+          "text": "\t    }"
+        },
+        {
+          "line": 1366,
+          "text": "\t  else"
+        },
+        {
+          "line": 1367,
+          "text": "\t    evalerror (_(bash_badsub_errmsg));"
+        },
+        {
+          "line": 1368,
+          "text": "\t}"
+        },
+        {
+          "line": 1369,
+          "text": "#endif /* ARRAY_VARS */"
+        },
+        {
+          "line": 1370,
+          "text": ""
+        },
+        {
+          "line": 1371,
+          "text": "      *cp = '\\0';"
+        },
+        {
+          "line": 1372,
+          "text": "      /* XXX - watch out for pointer aliasing issues here */"
+        },
+        {
+          "line": 1373,
+          "text": "      if (curlval.tokstr && curlval.tokstr == tokstr)"
+        },
+        {
+          "line": 1374,
+          "text": "\tinit_lvalue (&curlval);"
+        },
+        {
+          "line": 1375,
+          "text": ""
+        },
+        {
+          "line": 1376,
+          "text": "      FREE (tokstr);"
+        },
+        {
+          "line": 1377,
+          "text": "      tokstr = savestring (tp);"
+        },
+        {
+          "line": 1378,
+          "text": "      *cp = c;"
+        },
+        {
+          "line": 1379,
+          "text": ""
+        },
+        {
+          "line": 1380,
+          "text": "      /* XXX - make peektok part of saved token state? */"
+        },
+        {
+          "line": 1381,
+          "text": "      SAVETOK (&ec);"
+        },
+        {
+          "line": 1382,
+          "text": "      tokstr = (char *)NULL;\t/* keep it from being freed */"
+        },
+        {
+          "line": 1383,
+          "text": "      tp = savecp = cp;"
+        },
+        {
+          "line": 1384,
+          "text": "      noeval = 1;"
+        },
+        {
+          "line": 1385,
+          "text": "      curtok = STR;"
+        },
+        {
+          "line": 1386,
+          "text": "      readtok ();"
+        },
+        {
+          "line": 1387,
+          "text": "      peektok = curtok;"
+        },
+        {
+          "line": 1388,
+          "text": "      if (peektok == STR)\t/* free new tokstr before old one is restored */"
+        },
+        {
+          "line": 1389,
+          "text": "\tFREE (tokstr);"
+        },
+        {
+          "line": 1390,
+          "text": "      RESTORETOK (&ec);"
+        },
+        {
+          "line": 1391,
+          "text": "      cp = savecp;"
+        },
+        {
+          "line": 1392,
+          "text": ""
+        },
+        {
+          "line": 1393,
+          "text": "      /* The tests for PREINC and PREDEC aren't strictly correct, but they"
+        },
+        {
+          "line": 1394,
+          "text": "\t preserve old behavior if a construct like --x=9 is given. */"
+        },
+        {
+          "line": 1395,
+          "text": "      if (lasttok == PREINC || lasttok == PREDEC || peektok != EQ)"
+        },
+        {
+          "line": 1396,
+          "text": "        {"
+        },
+        {
+          "line": 1397,
+          "text": "          lastlval = curlval;"
+        },
+        {
+          "line": 1398,
+          "text": "\t  tokval = expr_streval (tokstr, e, &curlval);"
+        },
+        {
+          "line": 1399,
+          "text": "        }"
+        },
+        {
+          "line": 1400,
+          "text": "      else"
+        },
+        {
+          "line": 1401,
+          "text": "\ttokval = 0;"
+        },
+        {
+          "line": 1402,
+          "text": ""
+        },
+        {
+          "line": 1403,
+          "text": "      lasttok = curtok;"
+        },
+        {
+          "line": 1404,
+          "text": "      curtok = STR;"
+        }
+      ]
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "selected": [
+        {
+          "line": 1025,
+          "text": "    const value = state.variables.OPTIND;"
+        },
+        {
+          "line": 1026,
+          "text": "    if (value === undefined) {"
+        },
+        {
+          "line": 1027,
+          "text": "      state.getopts.integer = false;"
+        },
+        {
+          "line": 1028,
+          "text": "      state.getopts.cursor = createGetoptsState();"
+        },
+        {
+          "line": 1029,
+          "text": "    } else state.getopts.cursor = withGetoptsIndex(state.getopts.cursor, decimalIndex(value));"
+        },
+        {
+          "line": 1030,
+          "text": "  }"
+        },
+        {
+          "line": 1031,
+          "text": ""
+        },
+        {
+          "line": 1032,
+          "text": "  private reconcileGetopts(state: State, previous: string | undefined): void {"
+        },
+        {
+          "line": 1033,
+          "text": "    if (state.variables.OPTIND !== previous) this.syncGetopts(state);"
+        },
+        {
+          "line": 1034,
+          "text": "  }"
+        },
+        {
+          "line": 1035,
+          "text": ""
+        },
+        {
+          "line": 1036,
+          "text": "  private unsetVariable(state: State, name: string, internal = false): void {"
+        },
+        {
+          "line": 1037,
+          "text": "    if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);"
+        },
+        {
+          "line": 1038,
+          "text": "    delete state.variables[name];"
+        },
+        {
+          "line": 1039,
+          "text": "    state.exported.delete(name);"
+        },
+        {
+          "line": 1040,
+          "text": "    if (name === \"OPTIND\" && !internal) this.syncGetopts(state);"
+        },
+        {
+          "line": 1041,
+          "text": "  }"
+        },
+        {
+          "line": 1042,
+          "text": ""
+        },
+        {
+          "line": 1043,
+          "text": "  arithmeticVariables(state: State): Record<string, string> {"
+        },
+        {
+          "line": 1044,
+          "text": "    return new Proxy(state.variables, {"
+        },
+        {
+          "line": 1045,
+          "text": "      get: (target, key) => {"
+        },
+        {
+          "line": 1046,
+          "text": "        if (arrayStore(state)?.get(String(key))) throw new ArrayFailure(\"indexed arithmetic is unsupported\");"
+        },
+        {
+          "line": 1047,
+          "text": "        return Reflect.get(target, key);"
+        },
+        {
+          "line": 1048,
+          "text": "      },"
+        },
+        {
+          "line": 1049,
+          "text": "      set: (_target, key, value: string) => { this.writeVariable(state, String(key), value, \"arithmetic\"); return true; },"
+        },
+        {
+          "line": 1050,
+          "text": "    });"
+        },
+        {
+          "line": 1051,
+          "text": "  }"
+        },
+        {
+          "line": 1052,
+          "text": ""
+        },
+        {
+          "line": 1053,
+          "text": "  variable(state: State, name: string): string | undefined {"
+        },
+        {
+          "line": 1054,
+          "text": "    const binding = arrayStore(state)?.get(name);"
+        },
+        {
+          "line": 1055,
+          "text": "    return binding ? binding.get(0) : state.variables[name];"
+        },
+        {
+          "line": 1056,
+          "text": "  }"
+        },
+        {
+          "line": 1057,
+          "text": ""
+        },
+        {
+          "line": 1058,
+          "text": "  private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {"
+        },
+        {
+          "line": 1059,
+          "text": "    if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);"
+        },
+        {
+          "line": 1060,
+          "text": "  }"
+        },
+        {
+          "line": 1061,
+          "text": ""
+        },
+        {
+          "line": 1062,
+          "text": "  async assignVariable(state: State, name: string, value: string, origin: \"assignment\" | \"getopts\" = \"assignment\"): Promise<void> {"
+        },
+        {
+          "line": 1063,
+          "text": "    if (!arrayStore(state)?.get(name)) { this.writeVariable(state, name, value, origin); return; }"
+        },
+        {
+          "line": 1064,
+          "text": "    await this.arrayZero(state, name, async () => value);"
+        },
+        {
+          "line": 1065,
+          "text": "  }"
+        },
+        {
+          "line": 1066,
+          "text": ""
+        },
+        {
+          "line": 1067,
+          "text": "  async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {"
+        },
+        {
+          "line": 1068,
+          "text": "    const store = requireArrays(state);"
+        },
+        {
+          "line": 1069,
+          "text": "    const owner = ArrayOwner.create(store.owner.ledger, store.owner);"
+        },
+        {
+          "line": 1070,
+          "text": "    const holding = store.owner.hold();"
+        },
+        {
+          "line": 1071,
+          "text": "    let binding: IndexedBinding | undefined;"
+        },
+        {
+          "line": 1072,
+          "text": "    try {"
+        }
+      ]
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "selected": [
+        {
+          "line": 3524,
+          "text": "        this.requireParameter(value, `${part.name}[${selector.index}]`, state, io, part.line);"
+        },
+        {
+          "line": 3525,
+          "text": "        return part.length ? String(Array.from(value ?? \"\").length) : value ?? \"\";"
+        },
+        {
+          "line": 3526,
+          "text": "      }"
+        },
+        {
+          "line": 3527,
+          "text": "      if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));"
+        },
+        {
+          "line": 3528,
+          "text": "      const values = await this.arrayMembers(part.name, state);"
+        },
+        {
+          "line": 3529,
+          "text": "      return this.arrayJoin(store.owner, values, Array.from(state.variables.IFS ?? \" \")[0] ?? \"\");"
+        },
+        {
+          "line": 3530,
+          "text": "    }"
+        },
+        {
+          "line": 3531,
+          "text": "    let value = part.name === \"?\" ? String(state.status)"
+        },
+        {
+          "line": 3532,
+          "text": "      : part.name === \"-\" ? `${state.errexit ? \"e\" : \"\"}${state.nounset ? \"u\" : \"\"}`"
+        },
+        {
+          "line": 3533,
+          "text": "      : part.name === \"#\" ? String(state.positional.length)"
+        },
+        {
+          "line": 3534,
+          "text": "      : part.name === \"@\" || part.name === \"*\" ? state.positional.join(hereString && (part.name === \"@\" || !part.quoted) ? \" \" : Array.from(state.variables.IFS ?? \" \")[0] ?? \"\")"
+        },
+        {
+          "line": 3535,
+          "text": "      : /^0+$/u.test(part.name) ? state.arg0 ?? \"virtual-bash\""
+        },
+        {
+          "line": 3536,
+          "text": "      : /^\\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]"
+        },
+        {
+          "line": 3537,
+          "text": "      : this.variable(state, part.name);"
+        },
+        {
+          "line": 3538,
+          "text": "    if (part.substring) {"
+        },
+        {
+          "line": 3539,
+          "text": "      this.requireParameter(value, part.name, state, io, part.line);"
+        },
+        {
+          "line": 3540,
+          "text": "      return this.substring(part, value, state, io);"
+        },
+        {
+          "line": 3541,
+          "text": "    }"
+        },
+        {
+          "line": 3542,
+          "text": "    if (part.operator) {"
+        },
+        {
+          "line": 3543,
+          "text": "      if ([\"#\", \"##\", \"%\", \"%%\"].includes(part.operator) || part.operator.startsWith(\"/\")) {"
+        },
+        {
+          "line": 3544,
+          "text": "        this.requireParameter(value, part.name, state, io, part.line);"
+        },
+        {
+          "line": 3545,
+          "text": "        return this.parameterPattern(part, value ?? \"\", state, io, hereString);"
+        },
+        {
+          "line": 3546,
+          "text": "      }"
+        },
+        {
+          "line": 3547,
+          "text": "      const missing = value === undefined || (part.operator.startsWith(\":\") && value === \"\");"
+        },
+        {
+          "line": 3548,
+          "text": "      const operator = part.operator.at(-1)!;"
+        },
+        {
+          "line": 3549,
+          "text": "      if ((operator === \"+\" && !missing) || (operator !== \"+\" && missing)) {"
+        },
+        {
+          "line": 3550,
+          "text": "        let alternate: string;"
+        },
+        {
+          "line": 3551,
+          "text": "        if (operator === \"=\" && arrayStore(state)?.get(part.name)) {"
+        },
+        {
+          "line": 3552,
+          "text": "          alternate = \"\";"
+        },
+        {
+          "line": 3553,
+          "text": "          await this.arrayZero(state, part.name, async () => {"
+        },
+        {
+          "line": 3554,
+          "text": "            alternate = await this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, io, false, false, hereString), \"\");"
+        },
+        {
+          "line": 3555,
+          "text": "            return alternate;"
+        },
+        {
+          "line": 3556,
+          "text": "          });"
+        },
+        {
+          "line": 3557,
+          "text": "          value = alternate;"
+        },
+        {
+          "line": 3558,
+          "text": "          return part.length ? String(Array.from(value).length) : value;"
+        },
+        {
+          "line": 3559,
+          "text": "        }"
+        },
+        {
+          "line": 3560,
+          "text": "        alternate = (await this.word(part.alternate!, state, io, false, false, hereString)).join(\"\");"
+        },
+        {
+          "line": 3561,
+          "text": "        if (operator === \"?\") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(\":\") ? \"parameter null or not set\" : \"parameter not set\")}`, io.diagnosticLine ?? part.line);"
+        },
+        {
+          "line": 3562,
+          "text": "        if (operator === \"=\") {"
+        },
+        {
+          "line": 3563,
+          "text": "          if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) throw new Error(\"Cannot assign special parameter\");"
+        },
+        {
+          "line": 3564,
+          "text": "          this.writeVariable(state, part.name, alternate);"
+        },
+        {
+          "line": 3565,
+          "text": "        }"
+        },
+        {
+          "line": 3566,
+          "text": "        value = alternate;"
+        },
+        {
+          "line": 3567,
+          "text": "      } else if (operator === \"+\") value = \"\";"
+        },
+        {
+          "line": 3568,
+          "text": "    } else this.requireParameter(value, part.name, state, io, part.line);"
+        },
+        {
+          "line": 3569,
+          "text": "    return part.length ? String(Array.from(value ?? \"\").length) : value ?? \"\";"
+        },
+        {
+          "line": 3570,
+          "text": "  }"
+        },
+        {
+          "line": 3571,
+          "text": ""
+        },
+        {
+          "line": 3572,
+          "text": "  async substring(part: Extract<WordPart, { kind: \"variable\" }>, value: string | undefined, state: State, io: IO): Promise<string> {"
+        },
+        {
+          "line": 3573,
+          "text": "    const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;"
+        },
+        {
+          "line": 3574,
+          "text": "    const expression = part.substring!;"
+        },
+        {
+          "line": 3575,
+          "text": "    const line = io.diagnosticLine ?? part.line;"
+        },
+        {
+          "line": 3576,
+          "text": "    if (!expression.offset.parts.length && !expression.length) throw new ExpansionFailure(`${expression.source}: bad substitution`, line);"
+        },
+        {
+          "line": 3577,
+          "text": "    if (value === undefined) return \"\";"
+        },
+        {
+          "line": 3578,
+          "text": "    const limit = this.budget.limits.maxExpansionBytes;"
+        },
+        {
+          "line": 3579,
+          "text": "    if (Buffer.byteLength(value) > limit) this.budget.fail(\"maxExpansionBytes\");"
+        },
+        {
+          "line": 3580,
+          "text": "    const variables = new Proxy(this.arithmeticVariables(state), { get: (target, key) => {"
+        },
+        {
+          "line": 3581,
+          "text": "      this.signal.throwIfAborted();"
+        },
+        {
+          "line": 3582,
+          "text": "      const value: unknown = Reflect.get(target, key);"
+        },
+        {
+          "line": 3583,
+          "text": "      if (typeof value === \"string\" && Buffer.byteLength(value) > limit) this.budget.fail(\"maxExpansionBytes\");"
+        },
+        {
+          "line": 3584,
+          "text": "      return value;"
+        },
+        {
+          "line": 3585,
+          "text": "    } });"
+        },
+        {
+          "line": 3586,
+          "text": "    const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {"
+        },
+        {
+          "line": 3587,
+          "text": "      let source = \"\";"
+        },
+        {
+          "line": 3588,
+          "text": "      let bytes = 0;"
+        },
+        {
+          "line": 3589,
+          "text": "      for (const entry of word.parts) {"
+        },
+        {
+          "line": 3590,
+          "text": "        this.signal.throwIfAborted();"
+        },
+        {
+          "line": 3591,
+          "text": "        const text = entry.kind === \"text\" ? entry.value : await this.part(entry, state, io);"
+        },
+        {
+          "line": 3592,
+          "text": "        bytes += Buffer.byteLength(text);"
+        },
+        {
+          "line": 3593,
+          "text": "        if (bytes > limit) this.budget.fail(\"maxExpansionBytes\");"
+        },
+        {
+          "line": 3594,
+          "text": "        owner?.reserve({ metadata: 32, payload: bytes, work: text.length + 4 });"
+        },
+        {
+          "line": 3595,
+          "text": "        source += text;"
+        },
+        {
+          "line": 3596,
+          "text": "      }"
+        }
+      ]
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "selected": [
+        {
+          "line": 1590,
+          "text": "        this.errexit(1, state, io);"
+        },
+        {
+          "line": 1591,
+          "text": "        return 1;"
+        },
+        {
+          "line": 1592,
+          "text": "      }"
+        },
+        {
+          "line": 1593,
+          "text": "      if (errorCode(error) === \"EPIPE\") { this.errexit(141, state, io); return 141; }"
+        },
+        {
+          "line": 1594,
+          "text": "      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;"
+        },
+        {
+          "line": 1595,
+          "text": "      if (error instanceof NounsetFailure) {"
+        },
+        {
+          "line": 1596,
+          "text": "        try { await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${message(error)}\\n`); }"
+        },
+        {
+          "line": 1597,
+          "text": "        catch (reason) {"
+        },
+        {
+          "line": 1598,
+          "text": "          this.signal.throwIfAborted();"
+        },
+        {
+          "line": 1599,
+          "text": "          if (reason instanceof ShellLimitError) throw reason;"
+        },
+        {
+          "line": 1600,
+          "text": "          diagnosticFailure = new NounsetDiagnosticFailure(reason);"
+        },
+        {
+          "line": 1601,
+          "text": "          throw diagnosticFailure;"
+        },
+        {
+          "line": 1602,
+          "text": "        }"
+        },
+        {
+          "line": 1603,
+          "text": "        throw new Flow(\"exit\", 1);"
+        },
+        {
+          "line": 1604,
+          "text": "      }"
+        },
+        {
+          "line": 1605,
+          "text": "      if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${diagnostic ?? message(error)}\\n`);"
+        },
+        {
+          "line": 1606,
+          "text": "      else {"
+        },
+        {
+          "line": 1607,
+          "text": "        try { await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${diagnostic ?? message(error)}\\n`); }"
+        },
+        {
+          "line": 1608,
+          "text": "        catch { this.signal.throwIfAborted(); }"
+        },
+        {
+          "line": 1609,
+          "text": "      }"
+        },
+        {
+          "line": 1610,
+          "text": "      if (error instanceof ExpansionFailure) throw new Flow(\"exit\", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);"
+        },
+        {
+          "line": 1611,
+          "text": "      if (error instanceof FatalCommandFailure) throw new Flow(\"exit\", error.status);"
+        },
+        {
+          "line": 1612,
+          "text": "      const status = error instanceof CommandFailure ? error.status : 1;"
+        },
+        {
+          "line": 1613,
+          "text": "      this.errexit(status, state, io);"
+        },
+        {
+          "line": 1614,
+          "text": "      return status;"
+        },
+        {
+          "line": 1615,
+          "text": "    } finally {"
+        },
+        {
+          "line": 1616,
+          "text": "      try {"
+        },
+        {
+          "line": 1617,
+          "text": "        for (const close of outputs) close();"
+        },
+        {
+          "line": 1618,
+          "text": "        await Promise.all([...inputs].map((input) => input.close()));"
+        },
+        {
+          "line": 1619,
+          "text": "      } catch (error) {"
+        },
+        {
+          "line": 1620,
+          "text": "        if (diagnosticFailure) io[invocationScope].failures.push(error);"
+        },
+        {
+          "line": 1621,
+          "text": "        else throw error;"
+        },
+        {
+          "line": 1622,
+          "text": "      }"
+        },
+        {
+          "line": 1623,
+          "text": "    }"
+        },
+        {
+          "line": 1624,
+          "text": "  }"
+        },
+        {
+          "line": 1625,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "config-top.h",
+      "selected": [
+        {
+          "line": 34,
+          "text": "/* Define ONESHOT if you want sh -c 'command' to avoid forking to execute"
+        },
+        {
+          "line": 36,
+          "text": "#define ONESHOT"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "execute_cmd.c",
+      "selected": [
+        {
+          "line": 283,
+          "text": "   number containing the function name.  Used by executing_line_number to"
+        },
+        {
+          "line": 302,
+          "text": "/* This can't be in executing_line_number() because that's used for LINENO"
+        },
+        {
+          "line": 308,
+          "text": "    : executing_line_number ()"
+        },
+        {
+          "line": 412,
+          "text": "executing_line_number (void)"
+        },
+        {
+          "line": 1488,
+          "text": "  code = setjmp_nosigs (top_level);"
+        },
+        {
+          "line": 1500,
+          "text": "    sh_longjmp (top_level, code);"
+        },
+        {
+          "line": 1566,
+          "text": "    sh_longjmp (top_level, code);"
+        },
+        {
+          "line": 1811,
+          "text": "  result = setjmp_nosigs (top_level);"
+        },
+        {
+          "line": 4240,
+          "text": "\t  code = setjmp_nosigs (top_level);"
+        },
+        {
+          "line": 5529,
+          "text": "      result = setjmp_nosigs (top_level);"
+        },
+        {
+          "line": 6284,
+          "text": "  sh_longjmp (subshell_top_level, 1);"
+        }
+      ]
+    }
+  ]
+}

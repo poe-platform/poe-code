@@ -1,0 +1,1061 @@
+[
+  {
+    "name": "empty native success /allowed/empty",
+    "kind": "positive",
+    "result": "pass",
+    "before": {
+      "/allowed/empty": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172003998"
+      }
+    },
+    "after": {
+      "/allowed/empty": {
+        "error": "ENOENT"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 1,
+        "path": "/allowed/empty",
+        "nativeOutcome": "removed",
+        "status": 200,
+        "result": {
+          "operation": "atomic-empty-rmdir/v1",
+          "namespaceUrl": "http://127.0.0.1:51365/dav/",
+          "path": "/allowed/empty",
+          "outcome": "removed"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "empty native success /allowed/UTF8-雪 % space",
+    "kind": "positive",
+    "result": "pass",
+    "before": {
+      "/allowed/UTF8-雪 % space": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004000"
+      }
+    },
+    "after": {
+      "/allowed/UTF8-雪 % space": {
+        "error": "ENOENT"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 1,
+        "path": "/allowed/UTF8-雪 % space",
+        "nativeOutcome": "removed",
+        "status": 200,
+        "result": {
+          "operation": "atomic-empty-rmdir/v1",
+          "namespaceUrl": "http://127.0.0.1:51365/dav/",
+          "path": "/allowed/UTF8-雪 % space",
+          "outcome": "removed"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "preexisting binary child survives native ENOTEMPTY",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/existing": {
+        "type": "directory",
+        "entries": [
+          "child"
+        ],
+        "inode": "172004001"
+      },
+      "/allowed/existing/child": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "after": {
+      "/allowed/existing": {
+        "type": "directory",
+        "entries": [
+          "child"
+        ],
+        "inode": "172004001"
+      },
+      "/allowed/existing/child": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 1,
+        "path": "/allowed/existing",
+        "status": 409,
+        "result": {
+          "code": "ENOTEMPTY"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "native child inserted after checks survives final rmdir",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/late": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004003"
+      },
+      "/allowed/late/child": {
+        "error": "ENOENT"
+      }
+    },
+    "after": {
+      "/allowed/late": {
+        "type": "directory",
+        "entries": [
+          "child"
+        ],
+        "inode": "172004003"
+      },
+      "/allowed/late/child": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 1,
+        "path": "/allowed/late",
+        "status": 409,
+        "result": {
+          "code": "ENOTEMPTY"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "file is not removed",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/file": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "after": {
+      "/allowed/file": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/file",
+        "status": 409,
+        "result": {
+          "code": "ENOTDIR"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "final symlink and target preserved",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/link": {
+        "type": "symlink",
+        "target": "target"
+      },
+      "/allowed/target": {
+        "type": "directory",
+        "entries": [
+          "child"
+        ],
+        "inode": "172004006"
+      },
+      "/allowed/target/child/bytes": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "after": {
+      "/allowed/link": {
+        "type": "symlink",
+        "target": "target"
+      },
+      "/allowed/target": {
+        "type": "directory",
+        "entries": [
+          "child"
+        ],
+        "inode": "172004006"
+      },
+      "/allowed/target/child/bytes": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/link",
+        "status": 409,
+        "result": {
+          "code": "ENOTDIR"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "stable ancestor symlink refused",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/link": {
+        "type": "symlink",
+        "target": "target"
+      },
+      "/allowed/target/child/bytes": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "after": {
+      "/allowed/link": {
+        "type": "symlink",
+        "target": "target"
+      },
+      "/allowed/target/child/bytes": {
+        "type": "file",
+        "hex": "00ff80410d0a",
+        "sha256": "1148e711421df4cb092b5e2df5a54881fb8c41a6ea0cf5a77934a31bf0c6aa0b",
+        "bytes": 6
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/link/child",
+        "status": 409,
+        "result": {
+          "code": "ENOTDIR"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "namespace root protected",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/": {
+        "type": "directory",
+        "entries": [
+          "allowed",
+          "denied"
+        ],
+        "inode": "172003995"
+      }
+    },
+    "after": {
+      "/": {
+        "type": "directory",
+        "entries": [
+          "allowed",
+          "denied"
+        ],
+        "inode": "172003995"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/",
+        "status": 409,
+        "result": {
+          "code": "EBUSY"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "missing entry stays missing",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/missing": {
+        "error": "ENOENT"
+      }
+    },
+    "after": {
+      "/allowed/missing": {
+        "error": "ENOENT"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/missing",
+        "status": 404,
+        "result": {
+          "code": "ENOENT"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "synthetic auth missing and invalid",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 401,
+        "result": {
+          "code": "EAUTH"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 401,
+        "result": {
+          "code": "EAUTH"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "authenticated principal lacks path grant",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/denied/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004011"
+      }
+    },
+    "after": {
+      "/denied/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004011"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/denied/control",
+        "status": 403,
+        "result": {
+          "code": "EACCES"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "wrong namespace and undeclared alias binding",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 409,
+        "result": {
+          "code": "EBINDING"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 409,
+        "result": {
+          "code": "EBINDING"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "wrong Host binding",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 409,
+        "result": {
+          "code": "EBINDING"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "noncanonical paths rejected without normalization",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "operation and root override rejected",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 400,
+        "result": {
+          "code": "EINVAL"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "DELETE method not silently upgraded",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": [
+      {
+        "method": "DELETE",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "status": 405,
+        "result": {
+          "code": "EMETHOD"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "unsupported DAV and entity conditions explicitly refused",
+    "kind": "refusal",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/control",
+        "status": 501,
+        "result": {
+          "code": "ENOTSUP"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/control",
+        "status": 501,
+        "result": {
+          "code": "ENOTSUP"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "fixture parent lock requires matching authorization",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/locked/empty": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004013"
+      }
+    },
+    "after": {
+      "/allowed/locked/empty": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004013"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/locked/empty",
+        "status": 423,
+        "result": {
+          "code": "ELOCKED"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/locked/empty",
+        "status": 423,
+        "result": {
+          "code": "ELOCKED"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "token cannot authorize unrelated target",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/control",
+        "status": 412,
+        "result": {
+          "code": "EPRECONDITION"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "fixture lock-authorized empty deletion",
+    "kind": "positive",
+    "result": "pass",
+    "before": {
+      "/allowed/locked/empty": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004013"
+      }
+    },
+    "after": {
+      "/allowed/locked/empty": {
+        "error": "ENOENT"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 1,
+        "path": "/allowed/locked/empty",
+        "nativeOutcome": "removed",
+        "status": 200,
+        "result": {
+          "operation": "atomic-empty-rmdir/v1",
+          "namespaceUrl": "http://127.0.0.1:51365/dav/",
+          "path": "/allowed/locked/empty",
+          "outcome": "removed"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "expired submitted policy token rejected",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/expired": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004014"
+      }
+    },
+    "after": {
+      "/allowed/expired": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004014"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/expired",
+        "status": 412,
+        "result": {
+          "code": "EPRECONDITION"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "preabort sends no request",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "after": {
+      "/allowed/control": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004010"
+      }
+    },
+    "requests": []
+  },
+  {
+    "name": "disconnect before syscall preserves directory",
+    "kind": "guard",
+    "result": "pass",
+    "before": {
+      "/allowed/cancel": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004015"
+      }
+    },
+    "after": {
+      "/allowed/cancel": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004015"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/cancel",
+        "status": 499,
+        "result": {
+          "code": "ECANCELED"
+        },
+        "disconnected": true,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "abort after native success cannot roll back",
+    "kind": "limitation",
+    "result": "pass",
+    "before": {
+      "/allowed/late-abort": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004016"
+      }
+    },
+    "after": {
+      "/allowed/late-abort": {
+        "error": "ENOENT"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 1,
+        "path": "/allowed/late-abort",
+        "nativeOutcome": "removed",
+        "status": 200,
+        "result": {
+          "operation": "atomic-empty-rmdir/v1",
+          "namespaceUrl": "http://127.0.0.1:51365/dav/",
+          "path": "/allowed/late-abort",
+          "outcome": "removed"
+        },
+        "disconnected": true,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "pathname rmdir is not target-inode compare-and-delete",
+    "kind": "limitation",
+    "result": "pass",
+    "before": {
+      "/allowed/replaced": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004017"
+      },
+      "/allowed/original": {
+        "error": "ENOENT"
+      }
+    },
+    "after": {
+      "/allowed/replaced": {
+        "error": "ENOENT"
+      },
+      "/allowed/original": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004017"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 1,
+        "path": "/allowed/replaced",
+        "nativeOutcome": "removed",
+        "status": 200,
+        "result": {
+          "operation": "atomic-empty-rmdir/v1",
+          "namespaceUrl": "http://127.0.0.1:51365/dav/",
+          "path": "/allowed/replaced",
+          "outcome": "removed"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  },
+  {
+    "name": "two concurrent removals have one native success",
+    "kind": "positive",
+    "result": "pass",
+    "before": {
+      "/allowed/concurrent": {
+        "type": "directory",
+        "entries": [],
+        "inode": "172004019"
+      }
+    },
+    "after": {
+      "/allowed/concurrent": {
+        "error": "ENOENT"
+      }
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 1,
+        "path": "/allowed/concurrent",
+        "nativeOutcome": "removed",
+        "status": 200,
+        "result": {
+          "operation": "atomic-empty-rmdir/v1",
+          "namespaceUrl": "http://127.0.0.1:51365/dav/",
+          "path": "/allowed/concurrent",
+          "outcome": "removed"
+        },
+        "disconnected": false,
+        "finished": true
+      },
+      {
+        "method": "POST",
+        "url": "/_test/atomic-rmdir",
+        "nativeCalls": 0,
+        "path": "/allowed/concurrent",
+        "status": 404,
+        "result": {
+          "code": "ENOENT"
+        },
+        "disconnected": false,
+        "finished": true
+      }
+    ]
+  }
+]

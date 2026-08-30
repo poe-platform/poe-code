@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "old14": 14,
+  "novel": [
+    {
+      "id": "N01-async-capture-first-open",
+      "pass": true
+    },
+    {
+      "id": "N02-async-capture-second-open",
+      "pass": true
+    },
+    {
+      "id": "N03-async-both-closes-primary",
+      "pass": true
+    },
+    {
+      "id": "N04-partial-write",
+      "pass": true
+    },
+    {
+      "id": "N05-zero-write",
+      "pass": true
+    },
+    {
+      "id": "N06-composed-receipt",
+      "pass": true
+    },
+    {
+      "id": "N07-false-pass-exit",
+      "pass": true
+    },
+    {
+      "id": "N08-unknown-retirement",
+      "pass": true
+    },
+    {
+      "id": "N09-spawn-counter",
+      "pass": true
+    },
+    {
+      "id": "N10-trace-contradiction",
+      "pass": true
+    },
+    {
+      "id": "N11-cleanup-contradiction",
+      "pass": true
+    },
+    {
+      "id": "N12-capture-fault",
+      "pass": true
+    },
+    {
+      "id": "N13-extra-key",
+      "pass": true
+    },
+    {
+      "id": "N14-getter",
+      "pass": true
+    },
+    {
+      "id": "N15-hole",
+      "pass": true
+    },
+    {
+      "id": "N16-ordinary-failure",
+      "pass": true
+    }
+  ],
+  "passed": 16,
+  "total": 16,
+  "syntax": [
+    {
+      "name": "bridge-state.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "case-runner.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "child-bootstrap.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "control-suite.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "data-controls-r2.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "data-support.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "materializer.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "owned-process.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "owner-controls.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "stub.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "stub.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "supervisor.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "syntax-diagnosis.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "validation-observer.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "worker-bridge.mjs.data",
+      "diagnostics": []
+    }
+  ],
+  "Workers": 0,
+  "productImports": 0
+}

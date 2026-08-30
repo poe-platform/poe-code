@@ -1,0 +1,15 @@
+{
+  "url": "https://www.gnu.org/software/bash/",
+  "name": "bash-license-authority.html",
+  "maxBytes": 131072,
+  "role": "BASH_LICENSE_AUTHORITY",
+  "startedAt": "2026-08-29T04:42:53.476Z",
+  "bytes": 0,
+  "error": {
+    "name": "TypeError",
+    "message": "fetch failed",
+    "causeCode": "UND_ERR_CONNECT_TIMEOUT"
+  },
+  "disposition": "REQUEST_FAILED",
+  "endedAt": "2026-08-29T04:43:03.982Z"
+}

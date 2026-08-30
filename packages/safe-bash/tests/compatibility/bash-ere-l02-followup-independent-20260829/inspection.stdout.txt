@@ -1,0 +1,360 @@
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/CASE-INVENTORY.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/CASES-PRODUCER.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/CASES.json.gz.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/COMMAND-v2.txt
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/COMMAND.txt
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/CONTROL-RESULT.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/EXECUTION-PRESEAL-v2.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/EXECUTION-PRESEAL.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/FULL-COVERAGE-PLAN.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/HANDOFF.md
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/PREPARATION-PRESEAL.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/PROPOSED-GRANT-v2.json.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/PROPOSED-GRANT.json.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/RESULTS.json
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/J09-natural-owned.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/J09-natural-owned.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/J10-nonzero-owned.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/J10-nonzero-owned.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/controls-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/controls-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/controls.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/controls.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/executor-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/executor-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/final-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/final-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/harness-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/harness-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/materialize.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/materialize.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/preparation.jsonl
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/preseal-add.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/preseal-add.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/preseal-commit.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/preseal-commit.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/status.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/status.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/strict-data-patch.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/strict-data-patch.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/syntax.stderr
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/capture/syntax.stdout
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/case-runner.mjs.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/controls.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/deferred-private.mjs.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/deferred-public.mjs.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/journal.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/materialize.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/messageerror-delivery.mjs.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/positive.mts.data
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/receipt-gate.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/state.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/stub.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/supervisor-v2.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/supervisor.mjs
+tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/worker-bridge.mjs.data
+{"requests":1,"totalBytes":9710}
+{
+  "*": [
+    "schema",
+    "runId",
+    "preparationReady",
+    "runtimeAuthorized",
+    "reviewStatus",
+    "node",
+    "source",
+    "packageSha256",
+    "inventorySha256",
+    "inputs",
+    "cases",
+    "Workers",
+    "layoutCells",
+    "limits",
+    "roleGraph",
+    "formula",
+    "unknown",
+    "startup",
+    "loader",
+    "authority",
+    "version",
+    "sourceOnlyDelta",
+    "supervisorValidation"
+  ]
+}
+{"requests":2,"totalBytes":19784}
+1: import {readFileSync,lstatSync,writeFileSync,createReadStream,existsSync} from 'node:fs';import {join,dirname} from 'node:path';import {fileURLToPath} from 'node:url';import {createHash} from 'node:crypto';import {captureScope,ownChild} from '../preparation-r3/owned-process.mjs';import {read,sha,census} from '../preparation-r3/data-support.mjs';import {exact,fullWrite} from './journal.mjs';import {judge} from './receipt-gate.mjs';
+2: const own=fileURLToPath(new URL('.',import.meta.url));const run=join(own,'FUTURE-ACTUAL-01');const retained=[];const rows=[];const started=performance.now(),deadline=started+600000;let captures=0;const result=await captureScope([join(run,'owner.stdout'),join(run,'owner.stderr')],async descriptors=>{const emit=row=>{const bytes=Buffer.from(JSON.stringify(row)+'\n');if(bytes.length>4096||captures+bytes.length>67108864)throw Error('capture cap');fullWrite(descriptors[0],bytes);captures+=bytes.length;};emit({kind:'owner-entry',pid:process.pid});const bytes=read(join(own,'EXECUTION-PRESEAL-v2.json'));if(sha(bytes)!==process.argv[2])throw Error('profile');const profile=JSON.parse(bytes);const grant=JSON.parse(read(join(own,'ROOT-GRANT.json'),4096));exact(grant,['schema','authorized','profileSha256','runId','cases','Workers','wallMilliseconds','knownOS','captureBytes','workingBytes']);if(grant.schema!==1||grant.authorized!==true||grant.profileSha256!==sha(bytes)||grant.runId!=='ERE-L02-FOLLOWUP-v1'||grant.cases!==13||grant.Workers!==10||grant.wallMilliseconds!==600000||grant.knownOS!==22||grant.captureBytes!==67108864||grant.workingBytes!==268435456)throw Error('fresh ROOT grant');if(profile.cases!==13||profile.Workers!==10||profile.runtimeAuthorized!==false)throw Error('profile counts');for(const row of profile.inputs){const stat=lstatSync(row.path);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==row.size)throw Error('input');const digest=createHash('sha256');for await(const chunk of createReadStream(row.path,{highWaterMark:65536}))digest.update(chunk);if(digest.digest('hex')!==row.sha256)throw Error('hash');}const inventoryBytes=read(join(own,'CASE-INVENTORY.json'),1048576);if(sha(inventoryBytes)!==profile.inventorySha256)throw Error('inventory hash');const inventory=JSON.parse(inventoryBytes);if(inventory.cases.length!==13||inventory.cases.reduce((n,row)=>n+row.Workers,0)!==10)throw Error('matrix');for(const [index,cell]of inventory.cases.entries()){if(performance.now()>=deadline-193000)throw Error('publication reserve');if(cell.purpose==='persistent'&&index!==12)throw Error('unknown must be last');const home=join(own,'CASES',cell.folder);if(JSON.stringify(census(home,100,2097152).files)!==JSON.stringify(cell.files))throw Error('pre-case integrity');const configBytes=read(join(home,'CASE.json'));if(sha(configBytes)!==cell.caseSha256)throw Error('case');const config={...JSON.parse(configBytes),caseSha256:cell.caseSha256};const acquired=await ownChild({node:profile.node,args:[join(home,'case-runner.mjs'),cell.caseSha256],cwd:home,env:{PATH:dirname(profile.node),LANG:'C',LC_ALL:'C',HOME:home,TMPDIR:home},stdout:join(run,cell.folder+'.stdout'),stderr:join(run,cell.folder+'.stderr'),deadline,reserveMilliseconds:180000,timeoutMilliseconds:10000,channelBytes:65536});const observed=acquired.record;captures+=observed.stdoutBytes+observed.stderrBytes;if(captures>67108864)throw Error('aggregate capture');emit({kind:'process-observation',cell:index+1,pid:observed.pid,state:observed.state,closed:observed.closed,code:observed.code});if(observed.state==='STOP_UNKNOWN'){retained.push(acquired.ownership);writeFileSync(join(run,'EMERGENCY.json'),JSON.stringify({cell:index+1,...acquired.emergency,rootRetirement:'UNKNOWN_NOT_INFERRED_FROM_PROCESS'})+'\n',{flag:'wx'});process.exitCode=2;return;}const receiptBytes=read(join(home,'RESULT.json'),65536);const receipt=JSON.parse(receiptBytes);let disposition;try{disposition=judge(receipt,observed,config);}catch(reason){throw reason;}const after=census(home,104,2162688);for(const expected of cell.files){const actual=after.files.find(row=>row.path===expected.path);if(!actual||actual.sha256!==expected.sha256||actual.size!==expected.size||actual.mode!==expected.mode)throw Error('post-case integrity');}for(const row of after.files)if(!cell.files.some(file=>file.path===row.path)&&!['RESULT.json','JOURNAL.jsonl','EMERGENCY.json'].includes(row.path))throw Error('unexpected output');rows.push({cell:index+1,purpose:cell.purpose,layout:cell.layout,disposition,processClosed:observed.closed,WorkerExitEvents:receipt.exits,rootRetirement:receipt.retirementState,receiptSha256:sha(receiptBytes)});if(disposition==='STOP_UNCONFIRMED'){writeFileSync(join(run,'STOP.json'),JSON.stringify({schema:1,disposition,rows,processClosed:observed.closed,WorkerExitEvents:receipt.exits,ownerRetired:false,recovery:'NONE_AUTHORIZED',archive:false,cleanup:false})+'\n',{flag:'wx'});process.exitCode=2;return;}}writeFileSync(join(run,'RESULT.json'),JSON.stringify({schema:1,rows,pass:rows.every(row=>row.disposition==='PASS')})+'\n',{flag:'wx'});if(rows.some(row=>row.disposition!=='PASS'))process.exitCode=1;});if(result.primary.present||result.secondary.length){console.error(JSON.stringify({primaryPresent:result.primary.present,primaryType:typeof result.primary.value,secondary:result.secondary.length,detail:'NOT_INSPECTED'}));process.exitCode=2;}
+3: 
+{"requests":3,"totalBytes":25143}
+1: import {openSync,closeSync,writeSync} from 'node:fs';import {types} from 'node:util';
+2: export function exact(value,keys){if(value===null||typeof value!=='object'||types.isProxy(value)||Array.isArray(value))throw Error('record');const own=Reflect.ownKeys(value);if(own.length!==keys.length)throw Error('keys');for(const key of keys){const item=Object.getOwnPropertyDescriptor(value,key);if(!item||!Object.hasOwn(item,'value'))throw Error('own data');}return value;}
+3: export function fullWrite(fd,bytes,write=writeSync){let offset=0;while(offset<bytes.length){const n=write(fd,bytes,offset,bytes.length-offset);if(!Number.isSafeInteger(n)||n<=0||n>bytes.length-offset)throw Error('capture write');offset+=n;}}
+4: export function reason(value){return {present:true,kind:value===null?'null':typeof value,value:typeof value==='boolean'?value:null};}
+5: export function journal(path,io={open:openSync,close:closeSync,write:writeSync}){const fd=io.open(path,'wx',0o600);let count=0,bytes=0,closed=false;let fault={present:false};const records=[];return {records,get fault(){return fault;},emit(kind,detail=''){try{if(closed||typeof kind!=='string'||kind.length>48||typeof detail!=='string'||detail.length>128||count>=128)throw Error('journal admission');const row={seq:++count,at:Math.floor(performance.now()*1000),kind,detail};const data=Buffer.from(JSON.stringify(row)+'\n');if(data.length>512||bytes+data.length>32768)throw Error('journal cap');fullWrite(fd,data,io.write);bytes+=data.length;records.push(row);}catch(value){if(!fault.present)fault={present:true,value};}return !fault.present;},close(){if(closed)return;closed=true;try{io.close(fd);}catch(value){if(!fault.present)fault={present:true,value};}}};}
+6: 
+{"requests":4,"totalBytes":26844}
+1: import {types} from 'node:util';import {exact} from './journal.mjs';
+2: function integer(value,max){if(!Number.isSafeInteger(value)||Object.is(value,-0)||value<0||value>max)throw Error('integer');}function flag(value){if(typeof value!=='boolean')throw Error('boolean');}function presence(value){if(value===null||typeof value!=='object'||types.isProxy(value))throw Error('reason record');const descriptor=Object.getOwnPropertyDescriptor(value,'present');if(!descriptor||!Object.hasOwn(descriptor,'value'))throw Error('reason presence');return descriptor.value;}function snapshot(value,max){if(!Array.isArray(value)||types.isProxy(value))throw Error('array');const length=Object.getOwnPropertyDescriptor(value,'length').value;integer(length,max);const keys=Reflect.ownKeys(value);if(keys.length!==length+1)throw Error('array extras');const result=[];for(let index=0;index<length;index++){const item=Object.getOwnPropertyDescriptor(value,String(index));if(!item||!Object.hasOwn(item,'value'))throw Error('array hole/accessor');result.push(item.value);}return result;}function reason(value){if(presence(value)===false){exact(value,['present']);return;}exact(value,['present','kind','value']);if(value.present!==true||!['undefined','boolean','object','string','number','null','function','symbol','bigint'].includes(value.kind)||!(value.value===null||typeof value.value==='boolean'))throw Error('reason');}export function judge(receipt,processRow,config){exact(receipt,['schema','id','purpose','layout','caseSha256','packageSha256','assertions','passed','retirementState','primary','cleanup','termination','attempts','Workers','exits','stdout','stderr','rootRetained','handlesRetained','retainedCharges','captureFault','loads','trace','assertionFailure','nestedObservation']);if(receipt.schema!==1||receipt.id!==config.id||receipt.purpose!==config.purpose||receipt.layout!==config.layout||receipt.caseSha256!==config.caseSha256||receipt.packageSha256!==config.packageSha256||receipt.nestedObservation!=='NOT_OBSERVED')throw Error('identity');for(const key of ['assertions','passed','rootRetained','retainedCharges','captureFault'])flag(receipt[key]);for(const key of ['attempts','Workers','exits','stdout','stderr','handlesRetained'])integer(receipt[key],1);for(const key of ['primary','cleanup','assertionFailure'])reason(receipt[key]);if(presence(receipt.termination)===true){exact(receipt.termination,['present','kind','value','route']);if(receipt.termination.present!==true||receipt.termination.kind!=='boolean'||receipt.termination.value!==false||receipt.termination.route!=='promise-rejection')throw Error('termination');}else exact(receipt.termination,['present']);for(const key of ['admitted','created','spawned','exited','closed','stdoutClosed','stderrClosed','captureComplete','captureTruncated','termRequested','killRequested'])flag(processRow[key]);integer(processRow.pid,Number.MAX_SAFE_INTEGER);if(processRow.pid===0)throw Error('pid');if(!processRow.admitted||!processRow.created||!processRow.spawned||!processRow.exited||!processRow.closed||!processRow.stdoutClosed||!processRow.stderrClosed||!processRow.captureComplete||processRow.captureTruncated||processRow.primary.present||processRow.secondary.length||processRow.termRequested||processRow.killRequested)throw Error('process ownership');const loaded=snapshot(receipt.loads,32),trace=snapshot(receipt.trace,128);if(!Array.isArray(receipt.loads)||receipt.loads.length<7||receipt.loads.length>32||!Array.isArray(receipt.trace)||receipt.trace.length>128)throw Error('arrays');const names=new Set();for(const row of loaded){exact(row,['path','sha256']);const expected=config.modules.find(item=>item.path===row.path);if(!expected||expected.sha256!==row.sha256||names.has(row.path))throw Error('load binding');names.add(row.path);}for(const suffix of ['ere/errors.js','ere/limits.js','ere/transport/accounting.js','ere/transport/protocol.js','ere/transport/validation.js','ere/transport/owner.js','ere/transport/root.js'])if(!names.has(config.packageRelative+'/'+suffix))throw Error('missing actual module');if(!names.has('worker-bridge.mjs'))throw Error('missing bridge');let at=0,seq=0;const kinds=[];for(const row of trace){exact(row,['seq','at','kind','detail']);integer(row.seq,128);integer(row.at,Number.MAX_SAFE_INTEGER);if(row.seq!==++seq||row.at<at||typeof row.kind!=='string'||typeof row.detail!=='string'||row.detail.length>128)throw Error('chronology');at=row.at;kinds.push(row.kind);}if(kinds[0]!=='case-entry'||kinds.indexOf('attempt')<0||receipt.attempts!==1||receipt.Workers!==config.Workers)throw Error('admission');if(receipt.Workers&&!(kinds.indexOf('constructed')>kinds.indexOf('attempt')))throw Error('construction order');const expectedPosts=['normal','post'].includes(config.purpose)?1:0;if(kinds.filter(kind=>kind==='post').length!==expectedPosts||kinds.filter(kind=>kind==='posted').length!==(config.purpose==='normal'?1:0)||kinds.filter(kind=>kind==='worker-exit').length!==receipt.exits||kinds.filter(kind=>kind==='stdout-end').length!==receipt.stdout||kinds.filter(kind=>kind==='stderr-end').length!==receipt.stderr)throw Error('trace counters');const setupFaults=kinds.filter(kind=>kind==='setup-fault').length;if(setupFaults!==(config.purpose==='single'?1:config.purpose==='persistent'?2:0))throw Error('fault schedule');if(receipt.Workers&&kinds.indexOf('termination-requested')<kinds.indexOf('constructed'))throw Error('termination order');if(receipt.exits&&kinds.indexOf('worker-exit')<kinds.indexOf('termination-requested'))throw Error('exit order');if(!receipt.assertions||receipt.captureFault||receipt.cleanup.present||receipt.assertionFailure.present)throw Error('case assertions');if(config.purpose==='normal'){if(receipt.primary.present)throw Error('unexpected primary');}else if(!receipt.primary.present||receipt.primary.kind!=='boolean'||receipt.primary.value!==false)throw Error('raw false');if(config.purpose==='persistent'){if(receipt.passed||receipt.retirementState!=='UNCONFIRMED'||!receipt.rootRetained||receipt.handlesRetained!==1||!receipt.retainedCharges||!receipt.termination.present||processRow.code!==2||kinds.includes('owner-retired'))throw Error('unknown ownership');return 'STOP_UNCONFIRMED';}if(!receipt.passed||receipt.retirementState!=='RETIRED'||receipt.exits!==config.Workers||receipt.stdout!==config.Workers||receipt.stderr!==config.Workers||processRow.code!==0)throw Error('retirement');const retirement=kinds.indexOf('owner-retired');if(retirement<0||receipt.Workers&&['worker-exit','stdout-end','stderr-end'].some(kind=>kinds.indexOf(kind)<0||kinds.indexOf(kind)>retirement))throw Error('retire chronology');return 'PASS';}
+3: 
+{"requests":5,"totalBytes":33488}
+1: import {strict as assert} from 'node:assert';import {readFileSync,writeFileSync,lstatSync} from 'node:fs';import {join} from 'node:path';import {fileURLToPath} from 'node:url';import {journal,fullWrite,exact} from './journal.mjs';import {judge} from './receipt-gate.mjs';import {ownChild,captureScope} from '../preparation-r3/owned-process.mjs';
+2: const own=fileURLToPath(new URL('.',import.meta.url));const inventory=JSON.parse(readFileSync(join(own,'CASE-INVENTORY.json'),'utf8'));const rows=[];const children=[];async function test(id,body){try{await body();rows.push({id,pass:true});}catch(error){rows.push({id,pass:false,message:error instanceof Error?error.message:'nonError'});}}
+3: function fixture(purpose='normal'){const cell=inventory.cases.find(row=>row.purpose===purpose);const config={...JSON.parse(readFileSync(join(own,'CASES',cell.folder,'CASE.json'),'utf8')),caseSha256:cell.caseSha256};const names=['ere/errors.js','ere/limits.js','ere/transport/accounting.js','ere/transport/protocol.js','ere/transport/validation.js','ere/transport/owner.js','ere/transport/root.js'].map(suffix=>config.packageRelative+'/'+suffix).concat('worker-bridge.mjs');const kinds=purpose==='persistent'?['case-entry','attempt','constructed','setup-fault','termination-requested','setup-fault','termination-rejected','execute-settled','close-settled','close-settled','unconfirmed','retained-root-and-handles']:['case-entry','attempt','constructed','post','posted','execute-settled','termination-requested','worker-exit','stdout-end','stderr-end','close-settled','close-settled','owner-retired'];const trace=kinds.map((kind,index)=>({seq:index+1,at:index+1,kind,detail:''}));const receipt={schema:1,id:config.id,purpose,layout:config.layout,caseSha256:cell.caseSha256,packageSha256:config.packageSha256,assertions:true,passed:purpose==='normal',retirementState:purpose==='normal'?'RETIRED':'UNCONFIRMED',primary:purpose==='normal'?{present:false}:{present:true,kind:'boolean',value:false},cleanup:{present:false},termination:purpose==='normal'?{present:false}:{present:true,kind:'boolean',value:false,route:'promise-rejection'},attempts:1,Workers:1,exits:purpose==='normal'?1:0,stdout:purpose==='normal'?1:0,stderr:purpose==='normal'?1:0,rootRetained:true,handlesRetained:1,retainedCharges:purpose!=='normal',captureFault:false,loads:names.map(path=>({path,sha256:config.modules.find(row=>row.path===path).sha256})),trace,assertionFailure:{present:false},nestedObservation:'NOT_OBSERVED'};const processRow={pid:100,admitted:true,created:true,spawned:true,exited:true,closed:true,stdoutClosed:true,stderrClosed:true,captureComplete:true,captureTruncated:false,primary:{present:false},secondary:[],termRequested:false,killRequested:false,code:purpose==='normal'?0:2};return {receipt,processRow,config};}
+4: await test('J01-own-data-accessor',()=>{let calls=0;const input={};Object.defineProperty(input,'value',{get(){calls++;throw false}});assert.throws(()=>exact(input,['value']));assert.equal(calls,0);});
+5: await test('J02-journal-reserve-cap',()=>{const entry=journal('virtual',{open:()=>1,close:()=>{},write:(_fd,_bytes,_offset,length)=>length});for(let index=0;index<128;index++)assert(entry.emit('event'));assert.equal(entry.emit('extra'),false);assert(entry.fault.present);assert.equal(entry.records.length,128);entry.close();});
+6: await test('J03-short-zero-undefined',()=>{let writes=0;fullWrite(1,Buffer.from('abc'),(_fd,_bytes,_offset,length)=>{writes++;return Math.min(length,1)});assert.equal(writes,3);assert.throws(()=>fullWrite(1,Buffer.from('a'),()=>0));const entry=journal('virtual',{open:()=>1,write:()=>{throw undefined},close:()=>{throw false}});assert.equal(entry.emit('fault'),false);entry.close();assert(entry.fault.present);assert.equal(entry.fault.value,undefined);});
+7: await test('J04-normal-strict-receipt',()=>{const f=fixture();assert.equal(judge(f.receipt,f.processRow,f.config),'PASS');f.processRow.admitted='true';assert.throws(()=>judge(f.receipt,f.processRow,f.config));});
+8: await test('J05-false-retirement-refused',()=>{const f=fixture('persistent');f.receipt.retirementState='RETIRED';f.receipt.passed=true;assert.throws(()=>judge(f.receipt,f.processRow,f.config));});
+9: await test('J06-unknown-distinct-from-process-close',()=>{const f=fixture('persistent');assert(f.processRow.closed);assert.equal(judge(f.receipt,f.processRow,f.config),'STOP_UNCONFIRMED');f.receipt.termination.route='sync-throw';assert.throws(()=>judge(f.receipt,f.processRow,f.config));});
+10: await test('J07-hash-request-binding',()=>{const f=fixture();f.receipt.loads[0].sha256='0'.repeat(64);assert.throws(()=>judge(f.receipt,f.processRow,f.config));const other=fixture();other.receipt.trace=other.receipt.trace.filter(row=>row.kind!=='posted').map((row,index)=>({...row,seq:index+1}));assert.throws(()=>judge(other.receipt,other.processRow,other.config));});
+11: await test('J08-chronology',()=>{const f=fixture();const exit=f.receipt.trace.find(row=>row.kind==='worker-exit');exit.at=0;assert.throws(()=>judge(f.receipt,f.processRow,f.config));});
+12: for(const [id,mode,code,out,err]of [['J09-natural-owned','normal',0,'owned\n',''],['J10-nonzero-owned','failure',7,'','owned-failure\n']])await test(id,async()=>{const child=await ownChild({node:process.execPath,args:[join(own,'stub.mjs'),mode],cwd:own,env:{PATH:process.execPath.slice(0,process.execPath.lastIndexOf('/')),LANG:'C',LC_ALL:'C',HOME:own,TMPDIR:own},role:id,stdout:join(own,'capture',id+'.stdout'),stderr:join(own,'capture',id+'.stderr'),deadline:performance.now()+20000,reserveMilliseconds:5000,timeoutMilliseconds:3000,channelBytes:65536});children.push(child.record);assert.equal(child.record.state,'RETIRED');assert.equal(child.record.code,code);assert(child.record.captureComplete);assert.equal(child.record.primary.present,false);assert.equal(child.record.secondary.length,0);assert.equal(readFileSync(join(own,'capture',id+'.stdout'),'utf8'),out);assert.equal(readFileSync(join(own,'capture',id+'.stderr'),'utf8'),err);if(code!==0){const f=fixture();assert.throws(()=>judge(f.receipt,child.record,f.config));}});
+13: const result={schema:1,rows,passed:rows.filter(row=>row.pass).length,children,actualWorkers:0,productImports:0};writeFileSync(join(own,'CONTROL-RESULT.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({groups:10,passed:result.passed,children:children.length,closed:children.filter(row=>row.closed).length,Workers:0}));if(result.passed!==10)process.exitCode=1;
+14: 
+{"requests":6,"totalBytes":39946}
+2: function integer(value,max){if(!Number.isSafeInteger(value)||Object.is(value,-0)||value<0||value>max)throw Error('integer');}function flag(value){if(typeof value!=='boolean')throw Error('boolean');}function presence(value){if(value===null||typeof value!=='object'||types.isProxy(value))throw Error('reason record');const descriptor=Object.getOwnPropertyDescriptor(value,'present');if(!descriptor||!Object.hasOwn(descriptor,'value'))throw Error('reason presence');return descriptor.value;}function snapshot(value,max){if(!Array.isArray(value)||types.isProxy(value))throw Error('array');const length=Object.getOwnPropertyDescriptor(value,'length').value;integer(length,max);const keys=Reflect.ownKeys(value);if(keys.length!==length+1)throw Error('array extras');const result=[];for(let index=0;index<length;index++){const item=Object.getOwnPropertyDescriptor(value,String(index));if(!item||!Object.hasOwn(item,'value'))throw Error('array hole/accessor');result.push(item.value);}return result;}function reason(value){if(presence(value)===false){exact(value,['present']);return;}exact(value,['present','kind','value']);if(value.present!==true||!['undefined','boolean','object','string','number','null','function','symbol','bigint'].includes(value.kind)||!(value.value===null||typeof value.value==='boolean'))throw Error('reason');}export function judge(receipt,processRow,config){exact(receipt,['schema','id','purpose','layout','caseSha256','packageSha256','assertions','passed','retirementState','primary','cleanup','termination','attempts','Workers','exits','stdout','stderr','rootRetained','handlesRetained','retainedCharges','captureFault','loads','trace','assertionFailure','nestedObservation']);if(receipt.schema!==1||receipt.id!==config.id||receipt.purpose!==config.purpose||receipt.layout!==config.layout||receipt.caseSha256!==config.caseSha256||receipt.packageSha256!==config.packageSha256||receipt.nestedObservation!=='NOT_OBSERVED')throw Error('identity');for(const key of ['assertions','passed','rootRetained','retainedCharges','captureFault'])flag(receipt[key]);for(const key of ['attempts','Workers','exits','stdout','stderr','handlesRetained'])integer(receipt[key],1);for(const key of ['primary','cleanup','assertionFailure'])reason(receipt[key]);if(presence(receipt.termination)===true){exact(receipt.termination,['present','kind','value','route']);if(receipt.termination.present!==true||receipt.termination.kind!=='boolean'||receipt.termination.value!==false||receipt.termination.route!=='promise-rejection')throw Error('termination');}else exact(receipt.termination,['present']);for(const key of ['admitted','created','spawned','exited','closed','stdoutClosed','stderrClosed','captureComplete','captureTruncated','termRequested','killRequested'])flag(processRow[key]);integer(processRow.pid,Number.MAX_SAFE_INTEGER);if(processRow.pid===0)throw Error('pid');if(!processRow.admitted||!processRow.created||!processRow.spawned||!processRow.exited||!processRow.closed||!processRow.stdoutClosed||!processRow.stderrClosed||!processRow.captureComplete||processRow.captureTruncated||processRow.primary.present||processRow.secondary.length||processRow.termRequested||processRow.killRequested)throw Error('process ownership');const loaded=snapshot(receipt.loads,32),trace=snapshot(receipt.trace,128);if(!Array.isArray(receipt.loads)||receipt.loads.length<7||receipt.loads.length>32||!Array.isArray(receipt.trace)||receipt.trace.length>128)throw Error('arrays');const names=new Set();for(const row of loaded){exact(row,['path','sha256']);const expected=config.modules.find(item=>item.path===row.path);if(!expected||expected.sha256!==row.sha256||names.has(row.path))throw Error('load binding');names.add(row.path);}for(const suffix of ['ere/errors.js','ere/limits.js','ere/transport/accounting.js','ere/transport/protocol.js','ere/transport/validation.js','ere/transport/owner.js','ere/transport/root.js'])if(!names.has(config.packageRelative+'/'+suffix))throw Error('missing actual module');if(!names.has('worker-bridge.mjs'))throw Error('missing bridge');let at=0,seq=0;const kinds=[];for(const row of trace){exact(row,['seq','at','kind','detail']);integer(row.seq,128);integer(row.at,Number.MAX_SAFE_INTEGER);if(row.seq!==++seq||row.at<at||typeof row.kind!=='string'||typeof row.detail!=='string'||row.detail.length>128)throw Error('chronology');at=row.at;kinds.push(row.kind);}if(kinds[0]!=='case-entry'||kinds.indexOf('attempt')<0||receipt.attempts!==1||receipt.Workers!==config.Workers)throw Error('admission');if(receipt.Workers&&!(kinds.indexOf('constructed')>kinds.indexOf('attempt')))throw Error('construction order');const expectedPosts=['normal','post'].includes(config.purpose)?1:0;if(kinds.filter(kind=>kind==='post').length!==expectedPosts||kinds.filter(kind=>kind==='posted').length!==(config.purpose==='normal'?1:0)||kinds.filter(kind=>kind==='worker-exit').length!==receipt.exits||kinds.filter(kind=>kind==='stdout-end').length!==receipt.stdout||kinds.filter(kind=>kind==='stderr-end').length!==receipt.stderr)throw Error('trace counters');const setupFaults=kinds.filter(kind=>kind==='setup-fault').length;if(setupFaults!==(config.purpose==='single'?1:config.purpose==='persistent'?2:0))throw Error('fault schedule');if(receipt.Workers&&kinds.indexOf('termination-requested')<kinds.indexOf('constructed'))throw Error('termination order');if(receipt.exits&&kinds.indexOf('worker-exit')<kinds.indexOf('termination-requested'))throw Error('exit order');if(!receipt.assertions||receipt.captureFault||receipt.cleanup.present||receipt.assertionFailure.present)throw Error('case assertions');if(config.purpose==='normal'){if(receipt.primary.present)throw Error('unexpected primary');}else if(!receipt.primary.present||receipt.primary.kind!=='boolean'||receipt.primary.value!==false)throw Error('raw false');if(config.purpose==='persistent'){if(receipt.passed||receipt.retirementState!=='UNCONFIRMED'||!receipt.rootRetained||receipt.handlesRetained!==1||!receipt.retainedCharges||!receipt.termination.present||processRow.code!==2||kinds.includes('owner-retired'))throw Error('unknown ownership');return 'STOP_UNCONFIRMED';}if(!receipt.passed||receipt.retirementState!=='RETIRED'||receipt.exits!==config.Workers||receipt.stdout!==config.Workers||receipt.stderr!==config.Workers||processRow.code!==0)throw Error('retirement');const retirement=kinds.indexOf('owner-retired');if(retirement<0||receipt.Workers&&['worker-exit','stdout-end','stderr-end'].some(kind=>kinds.indexOf(kind)<0||kinds.indexOf(kind)>retirement))throw Error('retire chronology');return 'PASS';}
+{"requests":7,"totalBytes":46590}
+1: import {strict as assert} from 'node:assert';import {registerHooks} from 'node:module';import {readFileSync,lstatSync,writeFileSync} from 'node:fs';import {createHash} from 'node:crypto';import {fileURLToPath,pathToFileURL} from 'node:url';import {join,relative} from 'node:path';import {journal,reason} from './journal.mjs';import {state,event} from './state.mjs';
+2: const home=fileURLToPath(new URL('.',import.meta.url));const hash=bytes=>createHash('sha256').update(bytes).digest('hex');function read(path,max=65536){const stat=lstatSync(path);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>max)throw Error('input');return readFileSync(path);}const settle=promise=>Promise.resolve(promise).then(value=>({present:false,value}),value=>({present:true,value}));const waitTurn=()=>new Promise(resolve=>setImmediate(resolve));let root,session,hooks,config,caseHash;let primary={present:false},cleanup={present:false},assertions=false;const loads=[];const output={};state.journal=journal(join(home,'JOURNAL.jsonl'));event('case-entry');
+3: try{const configBytes=read(join(home,'CASE.json'));caseHash=hash(configBytes);if(caseHash!==process.argv[2])throw Error('case hash');config=JSON.parse(configBytes);state.config={...config,workerURL:pathToFileURL(join(home,config.packageRelative,'ere/transport/worker-entry.js')).href};for(const row of config.modules){const bytes=read(join(home,row.path));if(bytes.length!==row.size||hash(bytes)!==row.sha256)throw Error('module binding');}const ownerURL=pathToFileURL(join(home,config.packageRelative,'ere/transport/owner.js')).href;hooks=registerHooks({resolve(specifier,context,next){if(specifier==='node:worker_threads'&&context.parentURL===ownerURL)return {url:new URL('./worker-bridge.mjs',import.meta.url).href,shortCircuit:true};if(specifier.startsWith('node:')){const parent=relative(home,fileURLToPath(context.parentURL));if(!config.builtins[parent]?.includes(specifier))throw Error('builtin edge');}return next(specifier,context);},load(url,context,next){if(url.startsWith('node:'))return next(url,context);const name=relative(home,fileURLToPath(url));const bound=config.modules.find(row=>row.path===name);if(!bound)throw Error('unbound module');const bytes=read(fileURLToPath(url));if(bytes.length!==bound.size||hash(bytes)!==bound.sha256)throw Error('module drift');if(loads.length>=32)throw Error('loads cap');loads.push({path:name,sha256:bound.sha256});return {format:'module',source:bytes,shortCircuit:true};}});const {EreTransportRoot}=await import(pathToFileURL(join(home,config.packageRelative,'ere/transport/root.js')).href);root=new EreTransportRoot({maxExpansionBytes:4096,maxExpansionFields:64},()=>{});state.roots.push(root);session=root.openSession(()=>{});const result=await settle(session.execute({pattern:[{text:'a',literal:false}],subject:'a'}));event('execute-settled',result.present?'rejected':'fulfilled');if(config.purpose==='normal'){assert.equal(result.present,false);assert.equal(result.value.matched,true);}else{assert.equal(result.present,true);assert.equal(result.value,false);primary={present:true,value:result.value};}const before=root.usage.transport;for(const scope of [session,root]){const closed=await settle(scope.close());event('close-settled',closed.present?'rejected':'fulfilled');if(config.purpose==='normal')assert.equal(closed.present,false);else{assert.equal(closed.present,true);assert.equal(closed.value,false);}}if(config.purpose==='persistent'){assert.equal(root.retirementState,'UNCONFIRMED');const after=root.usage.transport;assert.equal(after.live,before.live);assert.equal(after.reserved,before.reserved);assert(after.live>0);assert.equal(state.termination.present,true);assert.equal(state.termination.route,'promise-rejection');assert.equal(state.termination.value,false);output.retainedCharges=true;event('unconfirmed');}else{assert.equal(root.retirementState,'RETIRED');const until=performance.now()+1000;while(!state.handles.every(row=>row.exit&&row.stdout&&row.stderr)&&performance.now()<until)await waitTurn();assert(state.handles.every(row=>row.exit&&row.stdout&&row.stderr));event('owner-retired');}assert.equal(state.created,config.Workers);assert.equal(state.attempts,1);assertions=true;}catch(value){output.assertionFailure=reason(value);if(!primary.present)primary={present:true,value};}finally{if(root&&root.retirementState!=='UNCONFIRMED'){for(const scope of [session,root])if(scope){const outcome=await settle(scope.close());if(outcome.present&&!(primary.present&&outcome.value===primary.value)&&!cleanup.present)cleanup={present:true,value:outcome.value};}}hooks?.deregister();const retirementState=root?.retirementState??'NOT_ACQUIRED';const uncertain=retirementState==='UNCONFIRMED';let publicationFault={present:false};try{if(uncertain){event('retained-root-and-handles');writeFileSync(join(home,'EMERGENCY.json'),JSON.stringify({schema:1,kind:'UNCONFIRMED',rootRetained:state.roots.includes(root),handlesRetained:state.handles.length,ownerRetired:false,primary:primary.present?reason(primary.value):{present:false},cleanup:state.termination.present?reason(state.termination.value):{present:false},recovery:'NONE_AUTHORIZED',workerExitsObserved:state.handles.filter(row=>row.exit).length})+'\n',{flag:'wx'});}const receipt={schema:1,id:config?.id??'UNADMITTED',purpose:config?.purpose??'UNADMITTED',layout:config?.layout??'UNADMITTED',caseSha256:caseHash??'',packageSha256:config?.packageSha256??'',assertions,passed:assertions&&!uncertain&&!cleanup.present&&!state.fault.present,retirementState,primary:primary.present?reason(primary.value):{present:false},cleanup:cleanup.present?reason(cleanup.value):{present:false},termination:state.termination.present?{...reason(state.termination.value),route:state.termination.route}:{present:false},attempts:state.attempts,Workers:state.created,exits:state.handles.filter(row=>row.exit).length,stdout:state.handles.filter(row=>row.stdout).length,stderr:state.handles.filter(row=>row.stderr).length,rootRetained:state.roots.includes(root),handlesRetained:state.handles.length,retainedCharges:output.retainedCharges===true,captureFault:state.fault.present,loads,trace:state.journal.records,assertionFailure:output.assertionFailure??{present:false},nestedObservation:'NOT_OBSERVED'};event('receipt-publication');writeFileSync(join(home,'RESULT.json'),JSON.stringify(receipt)+'\n',{flag:'wx'});}catch(value){publicationFault={present:true,value};}finally{state.journal.close();}if(publicationFault.present||state.journal.fault.present)process.exitCode=2;else process.exitCode=uncertain?2:assertions&&!cleanup.present&&!state.fault.present?0:1;console.log(JSON.stringify({id:config?.id??'UNADMITTED',assertions,retirementState,publicationFault:publicationFault.present}));}
+4: 
+{"requests":8,"totalBytes":53317}
+1: import {Worker as NativeWorker} from 'node:worker_threads';import {state,event} from './state.mjs';
+2: export class Worker extends NativeWorker{constructor(url,options){const config=state.config;if(url.href!==config.workerURL||JSON.stringify(options.workerData)!=='{"operation":"shell-ere","version":1}'||JSON.stringify(options.env)!=='{}'||JSON.stringify(options.execArgv)!=='[]'||options.stdout!==true||options.stderr!==true||options.resourceLimits.maxOldGenerationSizeMb!==128||options.resourceLimits.stackSizeMb!==4||state.attempts!==0)throw Error('Worker admission');state.attempts++;event('attempt');if(config.purpose==='constructor')throw false;super(url,options);const row={worker:this,exit:false,stdout:false,stderr:false,online:false};state.handles.push(row);state.created++;event('constructed');NativeWorker.prototype.once.call(this,'exit',code=>{row.exit=true;event('worker-exit',String(code));});NativeWorker.prototype.once.call(this,'online',()=>{row.online=true;event('online');});NativeWorker.prototype.on.call(this,'error',()=>event('worker-error'));for(const [name,stream]of [['stdout',this.stdout],['stderr',this.stderr]]){stream.once('end',()=>{row[name]=true;event(name+'-end');});stream.once('close',()=>{event(name+'-close');if(!row[name]&&!state.fault.present)state.fault={present:true,value:Error('EOF unobserved')};});}let delivered=false;this.once=(kind,callback)=>{if(kind==='exit'&&(config.purpose==='persistent'||config.purpose==='single'&&!delivered)){delivered=true;event('setup-fault','false');throw false;}return NativeWorker.prototype.once.call(this,kind,callback);};this.postMessage=(message,...rest)=>{state.posts++;event('post',String(message.id));if(config.purpose==='post')throw false;const value=NativeWorker.prototype.postMessage.call(this,message,...rest);state.posted++;event('posted',String(message.id));return value;};this.terminate=()=>{event('termination-requested');let result;try{result=NativeWorker.prototype.terminate.call(this);}catch(value){state.termination={present:true,value,route:'sync-throw'};event('termination-sync-throw',typeof value);throw value;}return Promise.resolve(result).then(value=>{event('termination-fulfilled');return value;},value=>{state.termination={present:true,value,route:'promise-rejection'};event('termination-rejected',typeof value);throw value;});};}}
+3: 
+{"requests":9,"totalBytes":55651}
+1: export const state={config:null,journal:null,handles:[],roots:[],attempts:0,created:0,posts:0,posted:0,termination:{present:false},fault:{present:false},events:[]};export function event(kind,detail=''){if(state.events.length>=128){if(!state.fault.present)state.fault={present:true,value:Error('event cap')};return;}state.events.push({kind,detail});if(!state.journal.emit(kind,detail)&&!state.fault.present)state.fault=state.journal.fault;}
+2: 
+{"requests":10,"totalBytes":56091}
+{
+  "limits": {
+    "wallMilliseconds": 600000,
+    "knownOS": 22,
+    "peakOS": 3,
+    "Workers": 10,
+    "peakWorkers": 1,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "caseMilliseconds": 10000,
+    "termMilliseconds": 2000,
+    "observationMilliseconds": 1000,
+    "publicationReserveMilliseconds": 180000
+  },
+  "roleGraph": {
+    "supervisor": 1,
+    "caseNodeProcesses": 13,
+    "administrationReserve": 8,
+    "totalKnownOS": 22,
+    "toolOwner": "must be charged within8 administration reserve, not hidden zero"
+  },
+  "unknown": {
+    "lastCell": 13,
+    "normalSuccess": false,
+    "noNextCase": true,
+    "noAutomaticRestoration": true,
+    "noExtraTerminate": true,
+    "noArchiveOrCleanup": true,
+    "retained": "case module state retains actual Worker and root references; supervisor retains child ownership on STOP_UNKNOWN",
+    "processClose": "known child close is not an observed Worker exit or product root retirement",
+    "journal": "persistent case intentionally publishes partial journal at UNCONFIRMED cutoff; later native events may be unobserved durably and MUST NOT be inferred",
+    "recovery": "none authorized; fresh exact method/order/authority approval before any recovery"
+  },
+  "startup": {
+    "futureCaptureParent": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/FUTURE-ACTUAL-01",
+    "provisionedEmpty": true,
+    "ROOTGrantAbsent": true,
+    "requiredFreshAdmission": "reauth inputs, all thirteen file manifests, no RESULT/JOURNAL/EMERGENCY or owner captures, full remaining clock and all quotas"
+  },
+  "loader": {
+    "parent": "exact SHA bytes served by synchronous source-bound hook; seven private JS modules + wrapper; harness bootstrap source-bound separately",
+    "nested": "NOT_OBSERVED; fixed static nine-module Worker graph only",
+    "requestedWorker": "original URL, workerData{operation:shell-ere,version:1},env{},execArgv[],stdout/stderrtrue,oldGeneration128MiB/stack4MiB",
+    "effectiveWorker": "not separately observed; no stock/full environment identity claim"
+  },
+  "authority": [
+    {
+      "importer": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/journal.mjs",
+      "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95",
+      "imports": [
+        "node:fs",
+        "node:util"
+      ]
+    },
+    {
+      "importer": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/state.mjs",
+      "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a",
+      "imports": []
+    },
+    {
+      "importer": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/worker-bridge.mjs.data",
+      "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea",
+      "imports": [
+        "node:worker_threads",
+        "./state.mjs"
+      ]
+    },
+    {
+      "importer": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/case-runner.mjs.data",
+      "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804",
+      "imports": [
+        "node:assert",
+        "node:module",
+        "node:fs",
+        "node:crypto",
+        "node:url",
+        "node:path",
+        "./journal.mjs",
+        "./state.mjs"
+      ]
+    },
+    {
+      "importer": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/receipt-gate.mjs",
+      "sha256": "8069f9b97d3f02d7d2777d8d75753bba03d3787e33bb10a45a80bc0d070a4440",
+      "imports": [
+        "node:util",
+        "./journal.mjs"
+      ]
+    },
+    {
+      "importer": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/supervisor-v2.mjs",
+      "sha256": "ca275457182416239de776924a9981ee3fbbd23a4260df3d863790d1dc0e6fac",
+      "imports": [
+        "node:fs",
+        "node:path",
+        "node:url",
+        "node:crypto",
+        "../preparation-r3/owned-process.mjs",
+        "../preparation-r3/data-support.mjs",
+        "./journal.mjs",
+        "./receipt-gate.mjs"
+      ]
+    },
+    {
+      "importer": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs",
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce",
+      "imports": [
+        "node:fs",
+        "node:crypto",
+        "node:path",
+        "node:zlib"
+      ]
+    },
+    {
+      "importer": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs",
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44",
+      "imports": [
+        "node:child_process",
+        "node:fs",
+        "./data-support.mjs"
+      ]
+    }
+  ],
+  "sourceOnlyDelta": "receipt-gate rejection always STOP; no swallowing malformed/load/capture failures as ordinary assertions",
+  "supervisorValidation": "SOURCE only; ten gate/journal controls and two child ownership fixtures do not execute this supervisor"
+}
+{"requests":11,"totalBytes":66165}
+1: import {strict as assert} from 'node:assert';import {readFileSync,writeFileSync,lstatSync} from 'node:fs';import {join} from 'node:path';import {fileURLToPath} from 'node:url';import {journal,fullWrite,exact} from './journal.mjs';import {judge} from './receipt-gate.mjs';import {ownChild,captureScope} from '../preparation-r3/owned-process.mjs';
+2: const own=fileURLToPath(new URL('.',import.meta.url));const inventory=JSON.parse(readFileSync(join(own,'CASE-INVENTORY.json'),'utf8'));const rows=[];const children=[];async function test(id,body){try{await body();rows.push({id,pass:true});}catch(error){rows.push({id,pass:false,message:error instanceof Error?error.message:'nonError'});}}
+3: function fixture(purpose='normal'){const cell=inventory.cases.find(row=>row.purpose===purpose);const config={...JSON.parse(readFileSync(join(own,'CASES',cell.folder,'CASE.json'),'utf8')),caseSha256:cell.caseSha256};const names=['ere/errors.js','ere/limits.js','ere/transport/accounting.js','ere/transport/protocol.js','ere/transport/validation.js','ere/transport/owner.js','ere/transport/root.js'].map(suffix=>config.packageRelative+'/'+suffix).concat('worker-bridge.mjs');const kinds=purpose==='persistent'?['case-entry','attempt','constructed','setup-fault','termination-requested','setup-fault','termination-rejected','execute-settled','close-settled','close-settled','unconfirmed','retained-root-and-handles']:['case-entry','attempt','constructed','post','posted','execute-settled','termination-requested','worker-exit','stdout-end','stderr-end','close-settled','close-settled','owner-retired'];const trace=kinds.map((kind,index)=>({seq:index+1,at:index+1,kind,detail:''}));const receipt={schema:1,id:config.id,purpose,layout:config.layout,caseSha256:cell.caseSha256,packageSha256:config.packageSha256,assertions:true,passed:purpose==='normal',retirementState:purpose==='normal'?'RETIRED':'UNCONFIRMED',primary:purpose==='normal'?{present:false}:{present:true,kind:'boolean',value:false},cleanup:{present:false},termination:purpose==='normal'?{present:false}:{present:true,kind:'boolean',value:false,route:'promise-rejection'},attempts:1,Workers:1,exits:purpose==='normal'?1:0,stdout:purpose==='normal'?1:0,stderr:purpose==='normal'?1:0,rootRetained:true,handlesRetained:1,retainedCharges:purpose!=='normal',captureFault:false,loads:names.map(path=>({path,sha256:config.modules.find(row=>row.path===path).sha256})),trace,assertionFailure:{present:false},nestedObservation:'NOT_OBSERVED'};const processRow={pid:100,admitted:true,created:true,spawned:true,exited:true,closed:true,stdoutClosed:true,stderrClosed:true,captureComplete:true,captureTruncated:false,primary:{present:false},secondary:[],termRequested:false,killRequested:false,code:purpose==='normal'?0:2};return {receipt,processRow,config};}
+{"requests":12,"totalBytes":72623}
+1: import {spawn as nativeSpawn} from 'node:child_process';import {openSync,closeSync,writeSync} from 'node:fs';import {fullWrite} from './data-support.mjs';
+2: export const TERM_GRACE=2000;export const OBSERVATION_GRACE=1000;
+3: export async function captureScope(paths,body,io={open:openSync,close:closeSync}){const descriptors=[];let primary={present:false};const secondary=[];let value;try{for(const path of paths)descriptors.push(io.open(path,'wx',0o600));value=await body(descriptors);}catch(reason){primary={present:true,value:reason};}finally{for(const fd of descriptors){try{io.close(fd);}catch(reason){secondary.push({present:true,value:reason});}}}return{primary,secondary,value};}
+4: export function abbreviated(reason){return{present:true,kind:reason===null?'null':typeof reason,value:typeof reason==='boolean'||typeof reason==='string'&&reason.length<=128||typeof reason==='number'&&Number.isFinite(reason)?reason:null,objectDetail:'NOT_INSPECTED',identity:'RAW_REFERENCE_RETAINED_NOT_SERIALIZED'};}
+5: export async function ownChild(config,hooks={}){
+6:  const clock=hooks.clock??(()=>performance.now());const now=clock();if(!Number.isFinite(now)||now>=config.deadline-config.reserveMilliseconds-config.timeoutMilliseconds-TERM_GRACE-OBSERVATION_GRACE)throw Error('child preadmission');
+7:  const row={schema:3,role:config.role??'case',ownerPid:process.pid,clockDomain:'owner:'+process.pid,pid:null,admitted:true,created:false,spawned:false,exited:false,closed:false,code:null,signal:null,exitCode:null,exitSignal:null,stdoutBytes:0,stderrBytes:0,stdoutClosed:false,stderrClosed:false,stdoutEnded:false,stderrEnded:false,state:'ADMITTED',captureComplete:false,captureTruncated:false,termRequested:false,killRequested:false,primary:{present:false},secondary:[],trace:[]};
+8:  const descriptors=[];let child,timeout,killTimer,graceTimer,writing=true,reported=false,resolveObservation,resolveRetirement;const observation=new Promise(resolve=>{resolveObservation=resolve});const retirement=new Promise(resolve=>{resolveRetirement=resolve});let retirementObserved=false;
+9:  const event=(kind,fields={})=>{if(row.trace.length>=64){fail(Error('process trace cap'));return;}row.trace.push({seq:row.trace.length+1,at:Math.floor(performance.now()*1000),kind,...fields});};
+10:  const fail=reason=>{if(!row.primary.present)row.primary={present:true,value:reason};};
+11:  const secondary=reason=>{if(row.secondary.length<16)row.secondary.push({present:true,value:reason});else fail(Error('secondary cap'));};
+12:  const finish=state=>{if(reported)return;reported=true;row.state=state;clearTimeout(timeout);clearTimeout(killTimer);clearTimeout(graceTimer);resolveObservation();};
+13:  const check=()=>{if(row.closed&&row.exited&&row.stdoutClosed&&row.stderrClosed){if(!retirementObserved){retirementObserved=true;resolveRetirement();}if(!reported){row.captureComplete=row.stdoutEnded&&row.stderrEnded&&!row.captureTruncated;event('retired');finish('RETIRED');}}};
+14:  const unknown=()=>{if(reported)return;writing=false;row.captureTruncated=true;row.captureComplete=false;for(const name of ['stdout','stderr'])try{child?.[name]?.pause();}catch(reason){secondary(reason);}if(!row.primary.present)fail(Error('retirement observation unknown'));event('unknown');finish('STOP_UNKNOWN');};
+15:  const stop=()=>{if(!child||row.closed||row.termRequested)return;row.termRequested=true;event('term');try{child.kill('SIGTERM');}catch(reason){secondary(reason);}killTimer=setTimeout(()=>{if(reported)return;if(!row.closed){row.killRequested=true;event('kill');try{child.kill('SIGKILL');}catch(reason){secondary(reason);}}graceTimer=setTimeout(()=>{check();if(!reported)unknown();},OBSERVATION_GRACE);},TERM_GRACE);};
+16:  event('admit');
+17:  try{
+18:   descriptors.push((hooks.open??openSync)(config.stdout,'wx',0o600));descriptors.push((hooks.open??openSync)(config.stderr,'wx',0o600));
+19:   timeout=setTimeout(()=>{fail(Error('child deadline'));if(child&&!row.closed)stop();else if(!reported){graceTimer=setTimeout(unknown,OBSERVATION_GRACE);}},config.timeoutMilliseconds);
+20:   child=(hooks.spawn??nativeSpawn)(config.node,config.args,{cwd:config.cwd,env:config.env,stdio:['ignore','pipe','pipe']});
+21:   child.once('error',reason=>{fail(reason);stop();});child.once('spawn',()=>{row.spawned=true;event('spawn',{pid:child.pid??null});});child.once('exit',(code,signal)=>{row.exited=true;row.exitCode=code;row.exitSignal=signal;event('exit',{code,signal});check();});child.once('close',(code,signal)=>{row.closed=true;row.code=code;row.signal=signal;event('close',{code,signal});check();});
+22:   row.created=true;row.pid=child.pid??null;event('created',{pid:row.pid});
+23:   for(const [index,name]of [[0,'stdout'],[1,'stderr']]){const stream=child[name];stream.once('end',()=>{row[name+'Ended']=true;event(name+'End');check();});stream.once('close',()=>{row[name+'Closed']=true;event(name+'Close');check();});stream.on('error',reason=>{fail(reason);stop();});stream.on('data',chunk=>{if(!writing)return;try{if(chunk.length>config.channelBytes-row[name+'Bytes']){row.captureTruncated=true;throw Error('capture cap');}fullWrite(descriptors[index],chunk,hooks.write??writeSync);row[name+'Bytes']+=chunk.length;}catch(reason){fail(reason);row.captureTruncated=true;writing=false;stop();}});}
+24:   try{hooks.afterSpawn?.(row);const after=clock();if(!Number.isFinite(after)||after>=config.deadline-config.reserveMilliseconds)throw Error('postspawn clock/deadline');const value=hooks.publish?.(row);if(value!==undefined)throw Error('publication hook is synchronous');}catch(reason){fail(reason);stop();}
+25:   await observation;
+26:  }catch(reason){fail(reason);if(child&&!reported){stop();await observation;}else if(!child){clearTimeout(timeout);row.state='NO_HANDLE';}}
+27:  finally{writing=false;for(const fd of descriptors)try{(hooks.close??closeSync)(fd);}catch(reason){secondary(reason);}if(row.state!=='STOP_UNKNOWN'){clearTimeout(timeout);clearTimeout(killTimer);clearTimeout(graceTimer);}}
+28:  const emergency={state:row.state,ownerPid:row.ownerPid,pid:row.pid,knownExit:row.exited,knownClose:row.closed,captureComplete:row.captureComplete,captureTruncated:row.captureTruncated,primary:row.primary.present?abbreviated(row.primary.value):{present:false},secondaryCount:row.secondary.length,ownedHandleRetained:row.state==='STOP_UNKNOWN'&&Boolean(child)};
+29:  return{record:row,ownership:{child,retirement,retirementObserved:()=>retirementObserved,retained:row.state==='STOP_UNKNOWN'},emergency};
+30: }
+31: 
+{"requests":13,"totalBytes":79017}
+1: set -C; exec /usr/bin/env -i PATH=/Users/kjopek/.nvm/versions/node/v22.22.2/bin LANG=C LC_ALL=C HOME=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1 TMPDIR=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1 /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/supervisor-v2.mjs 347c4d415ce3e1db5f11aafc3727b0c6c9b30a6044e7df1664327882bf32506a > /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/FUTURE-ACTUAL-01/outer.stdout 2> /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/FUTURE-ACTUAL-01/outer.stderr
+2: 
+{"requests":14,"totalBytes":79994}
+1: {"schema":1,"authorized":true,"profileSha256":"347c4d415ce3e1db5f11aafc3727b0c6c9b30a6044e7df1664327882bf32506a","runId":"ERE-L02-FOLLOWUP-v1","cases":13,"Workers":10,"wallMilliseconds":600000,"knownOS":22,"captureBytes":67108864,"workingBytes":268435456}
+2: 
+{"requests":15,"totalBytes":80250}
+{
+  "*": [
+    "schema",
+    "packageSha256",
+    "entries",
+    "emissions",
+    "cases",
+    "cells",
+    "Workers",
+    "layouts",
+    "actualWorkers",
+    "actualMatching"
+  ]
+}
+{"requests":16,"totalBytes":172935}
+1: {
+2:   "schema": 1,
+3:   "packageSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+4:   "entries": 25,
+5:   "emissions": 24,
+6:   "cases": [
+7:     {
+8:       "purpose": "constructor",
+9:       "layout": "built",
+10:       "folder": "01-constructor-built",
+11:       "Workers": 0,
+12:       "caseSha256": "9ff1998cd820a6736d60de03a4d2bf144690cfc899af21e27c80fd141e5a3762",
+13:       "files": [
+14:         {
+15:           "path": "CASE.json",
+16:           "size": 3741,
+17:           "mode": 420,
+18:           "sha256": "9ff1998cd820a6736d60de03a4d2bf144690cfc899af21e27c80fd141e5a3762"
+19:         },
+20:         {
+21:           "path": "case-runner.mjs",
+22:           "size": 6727,
+23:           "mode": 420,
+24:           "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+25:         },
+26:         {
+27:           "path": "journal.mjs",
+28:           "size": 1701,
+29:           "mode": 420,
+30:           "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+31:         },
+32:         {
+33:           "path": "package/ere/errors.d.ts",
+34:           "size": 691,
+35:           "mode": 420,
+{"requests":17,"totalBytes":265620}
+7:  const row={schema:3,role:config.role??'case',ownerPid:process.pid,clockDomain:'owner:'+process.pid,pid:null,admitted:true,created:false,spawned:false,exited:false,closed:false,code:null,signal:null,exitCode:null,exitSignal:null,stdoutBytes:0,stderrBytes:0,stdoutClosed:false,stderrClosed:false,stdoutEnded:false,stderrEnded:false,state:'ADMITTED',captureComplete:false,captureTruncated:false,termRequested:false,killRequested:false,primary:{present:false},secondary:[],trace:[]};
+8:  const descriptors=[];let child,timeout,killTimer,graceTimer,writing=true,reported=false,resolveObservation,resolveRetirement;const observation=new Promise(resolve=>{resolveObservation=resolve});const retirement=new Promise(resolve=>{resolveRetirement=resolve});let retirementObserved=false;
+9:  const event=(kind,fields={})=>{if(row.trace.length>=64){fail(Error('process trace cap'));return;}row.trace.push({seq:row.trace.length+1,at:Math.floor(performance.now()*1000),kind,...fields});};
+10:  const fail=reason=>{if(!row.primary.present)row.primary={present:true,value:reason};};
+11:  const secondary=reason=>{if(row.secondary.length<16)row.secondary.push({present:true,value:reason});else fail(Error('secondary cap'));};
+12:  const finish=state=>{if(reported)return;reported=true;row.state=state;clearTimeout(timeout);clearTimeout(killTimer);clearTimeout(graceTimer);resolveObservation();};
+13:  const check=()=>{if(row.closed&&row.exited&&row.stdoutClosed&&row.stderrClosed){if(!retirementObserved){retirementObserved=true;resolveRetirement();}if(!reported){row.captureComplete=row.stdoutEnded&&row.stderrEnded&&!row.captureTruncated;event('retired');finish('RETIRED');}}};
+14:  const unknown=()=>{if(reported)return;writing=false;row.captureTruncated=true;row.captureComplete=false;for(const name of ['stdout','stderr'])try{child?.[name]?.pause();}catch(reason){secondary(reason);}if(!row.primary.present)fail(Error('retirement observation unknown'));event('unknown');finish('STOP_UNKNOWN');};
+{"requests":18,"totalBytes":272014}
+1: if(process.argv[2]==='normal')process.stdout.write('owned\n');else if(process.argv[2]==='failure'){process.stderr.write('owned-failure\n');process.exitCode=7;}else throw Error('fixture mode');
+2: 
+{"requests":19,"totalBytes":272207}

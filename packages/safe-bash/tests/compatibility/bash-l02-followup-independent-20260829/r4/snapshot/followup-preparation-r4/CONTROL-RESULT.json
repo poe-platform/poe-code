@@ -1,0 +1,51 @@
+{
+  "schema": 4,
+  "groups": 10,
+  "passed": 10,
+  "rows": [
+    {
+      "id": "F01-v2-normal",
+      "pass": true
+    },
+    {
+      "id": "F01-v2-stdout",
+      "pass": true
+    },
+    {
+      "id": "F01-v2-stderr",
+      "pass": true
+    },
+    {
+      "id": "F01-v2-both",
+      "pass": true
+    },
+    {
+      "id": "F02-v2-unknown-before-invalid-judgment",
+      "pass": true
+    },
+    {
+      "id": "F02-v2-census-undefined",
+      "pass": true
+    },
+    {
+      "id": "F02-v2-unread-receipt-false",
+      "pass": true
+    },
+    {
+      "id": "F02-v2-primary-before-cleanup",
+      "pass": true
+    },
+    {
+      "id": "F02-v2-only-validated-retirement-clears-pending",
+      "pass": true
+    },
+    {
+      "id": "F01-v2-strict-regressions",
+      "pass": true
+    }
+  ],
+  "Workers": 0,
+  "children": 0,
+  "productImports": 0,
+  "lifecycleProof": "PURE latch plus source ordering; not Worker/OS"
+}

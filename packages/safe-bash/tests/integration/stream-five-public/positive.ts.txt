@@ -1,0 +1,41 @@
+import {
+  Shell, MemoryFileSystem, CommandRegistry, createBytePipe, collectBytes, toByteSource,
+  agentCommands, createAgentCommands, createStreamFormatCommands, streamFormatCommands,
+  createSplitCommands, splitCommands,
+} from 'virtual-bash';
+import type {
+  StreamFormatCommandsOptions, StreamFormatLimits, SplitCommandsOptions, SplitLimits,
+  AgentCommandsOptions, RegexExecutionOptions, ByteSource, ByteSink, CommandDefinition, FileSystem,
+} from 'virtual-bash';
+import {
+  createStreamFormatCommands as subFormatFactory, streamFormatCommands as subFormatPlugin,
+} from 'virtual-bash/commands/stream-format';
+import type {
+  StreamFormatCommandsOptions as SubFormatOptions, StreamFormatLimits as SubFormatLimits,
+} from 'virtual-bash/commands/stream-format';
+import { createSplitCommands as subSplitFactory, splitCommands as subSplitPlugin } from 'virtual-bash/commands/split';
+import type { SplitCommandsOptions as SubSplitOptions, SplitLimits as SubSplitLimits } from 'virtual-bash/commands/split';
+
+const formatLimits: StreamFormatLimits = { maxInputBytes: 1024, maxOutputBytes: 2048, maxRecordBytes: 1024, maxChunkBytes: 512, maxFiles: 4, maxSteps: 8192, maxArgumentBytes: 1024, maxNumericDigits: 32 };
+const splitLimits: SplitLimits = { maxInputBytes: 1024, maxOutputBytes: 2048, maxFiles: 4, maxBufferBytes: 1024, maxChunkBytes: 512, maxArgumentBytes: 1024, maxSuffixLength: 4, maxSteps: 8192 };
+const subFormatLimits: SubFormatLimits = formatLimits;
+const subSplitLimits: SubSplitLimits = splitLimits;
+const formatOptions: StreamFormatCommandsOptions = { replace: false, limits: formatLimits };
+const splitOptions: SplitCommandsOptions = { replace: false, limits: splitLimits };
+const subFormatOptions: SubFormatOptions = { replace: false, limits: subFormatLimits };
+const subSplitOptions: SubSplitOptions = { replace: false, limits: subSplitLimits };
+const aggregate: AgentCommandsOptions = { replace: true, streamFormat: { limits: formatLimits }, split: { limits: splitLimits } };
+const regex: RegexExecutionOptions = {};
+const fs: FileSystem = new MemoryFileSystem();
+const source: ByteSource = toByteSource(new Uint8Array([0, 255, 10]));
+const pipe = createBytePipe({ highWaterMark: 1 });
+const sink: ByteSink = pipe.writable;
+const wrapper: CommandDefinition = { name: 'wrapper', async execute(context) {
+  if (!context.invoke) throw new Error('invoke required');
+  return context.invoke('seq', ['-s', '|', '0.1', '0.2', '0.5'], { replaceEnv: true, env: { LC_ALL: 'C' }, stdin: source, stdout: sink });
+} };
+const shell = new Shell({ fs, commands: new CommandRegistry(createAgentCommands(aggregate)) });
+shell.register(wrapper);
+const plugins = [agentCommands(aggregate), streamFormatCommands(formatOptions), splitCommands(splitOptions), subFormatPlugin(subFormatOptions), subSplitPlugin(subSplitOptions)];
+const definitions = [createStreamFormatCommands(formatOptions), createSplitCommands(splitOptions), subFormatFactory(subFormatOptions), subSplitFactory(subSplitOptions)];
+void [shell, plugins, definitions, regex, collectBytes, source];

@@ -1,0 +1,286 @@
+{
+  "schema": "baseline-capabilities-source-only-v1",
+  "comparator": "just-bash@3.4.2",
+  "sourceCommit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+  "scope": "DOCS + authenticated SOURCE only; no published-tarball verification or runtime evidence",
+  "tools": [
+    {
+      "name": "sed",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/sed/sed.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "rg",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/rg/rg.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "git",
+      "classification": "NO_BUNDLED_REGISTRATION_FOUND",
+      "docsClaim": "Not advertised as a bundled command in the inspected package README",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "No registration or dedicated command directory in the inspected immutable release. Host customCommands remain possible but are an explicitly different baseline, not bundled support."
+    },
+    {
+      "name": "printf",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/printf/printf.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "nl",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/nl/nl.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "cat",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/cat/cat.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "node",
+      "classification": "OPT_IN_REFUSAL_STUB_SOURCE",
+      "docsClaim": "JavaScript documentation describes js-exec, not full Node",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec.ts#L805"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "When JavaScript is enabled, node always returns exit1, empty stdout and direction to js-exec plus help; not a Node implementation"
+    },
+    {
+      "name": "head",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/head/head.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "apply_patch",
+      "classification": "NO_BUNDLED_REGISTRATION_FOUND",
+      "docsClaim": "Not advertised as a bundled command in the inspected package README",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "No registration or dedicated command directory in the inspected immutable release. Host customCommands remain possible but are an explicitly different baseline, not bundled support."
+    },
+    {
+      "name": "echo",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/echo/echo.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "find",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/find/find.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "tail",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/tail/tail.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "ls",
+      "classification": "BUNDLED_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Listed among supported commands",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/ls/ls.ts"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    },
+    {
+      "name": "curl",
+      "classification": "OPT_IN_IMPLEMENTATION_SOURCE",
+      "docsClaim": "Optional network command",
+      "source": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts#L489",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/curl/curl.ts#L252"
+      ],
+      "runtimeEvidence": "NONE",
+      "qualification": "Presence and source branches do not prove the frozen workflow expectations."
+    }
+  ],
+  "profiles": [
+    {
+      "id": "FS",
+      "docs": "Four documented adapters: InMemoryFs, OverlayFs, ReadWriteFs, MountableFs.",
+      "sourceFinding": "Root source exports all four; IFileSystem is asynchronous, with readFileBuffer/writeFile/stat/chmod etc. Overlay supports readOnly configuration; read/write adapter is explicit host-root access. MountableFs composes adapters. No S3/WebDAV adapter files in the inspected src/fs tree; a custom IFileSystem is not an out-of-box provider qualification.",
+      "sources": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/index.ts#L54",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/interface.ts#L122",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/overlay-fs/overlay-fs.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/read-write-fs/read-write-fs.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/mountable-fs/mountable-fs.ts"
+      ],
+      "runtimeEvidence": "NONE"
+    },
+    {
+      "id": "NETWORK",
+      "docs": "Library network is off by default; README separately says interactive shell enables network by default.",
+      "sourceFinding": "Bash registers curl when network OR a supplied SecureFetch exists. Supplied fetch replaces createSecureFetch: a fake SecureFetch cannot establish the built-in redirect/authorization policy. Built-in fetch checks URL/method policy and manages redirects/body bytes; curl consumes a completed Uint8Array body, not the target response-iterator API.",
+      "sources": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts#L374",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts#L489",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/network/fetch.ts#L142",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/network/types.ts#L150",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/curl/curl.ts#L301",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/README.md#L641"
+      ],
+      "runtimeEvidence": "NONE"
+    },
+    {
+      "id": "JAVASCRIPT",
+      "docs": "Opt-in js-exec advertises JS/TS, require/import, VFS fs/path/process and other Node-like shims.",
+      "sourceFinding": "js-exec.ts dispatches to js-exec-worker.js via Node worker_threads; worker imports quickjs-emscripten and creates guest context/shims. This is QuickJS WASM, not SafeJS and not Node. Node-named command is the refusal stub. Memory/deadline statements are source/docs claims only, not measured containment.",
+      "sources": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec.ts#L291",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec-worker.ts#L19",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/module-shims.ts",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec.ts#L805"
+      ],
+      "runtimeEvidence": "NONE"
+    },
+    {
+      "id": "DEPENDENCIES",
+      "docs": "No zero-runtime-dependency claim established by inspected README.",
+      "sourceFinding": "Published metadata and source package.json declare 16 dependencies and 2 optional dependencies; Node >=20.18.1. Optional feature activation is distinct from package dependencies. No dependency count establishes safety or performance.",
+      "dependencies": {
+        "ini": "^6.0.0",
+        "diff": "^8.0.4",
+        "yaml": "^2.9.0",
+        "re2js": "^1.3.3",
+        "sql.js": "^1.14.1",
+        "undici": "^7.29.0",
+        "turndown": "^7.2.4",
+        "file-type": "^21.3.4",
+        "minimatch": "^10.2.6",
+        "papaparse": "^5.6.0",
+        "seek-bzip": "^2.0.0",
+        "smol-toml": "^1.8.0",
+        "modern-tar": "^0.7.7",
+        "sprintf-js": "^1.1.3",
+        "fast-xml-parser": "^5.10.1",
+        "quickjs-emscripten": "^0.32.0"
+      },
+      "optionalDependencies": {
+        "node-liblzma": "^2.2.0",
+        "@mongodb-js/zstd": "^7.0.0"
+      },
+      "engines": {
+        "node": ">=20.18.1"
+      },
+      "sources": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/package.json",
+        "https://registry.npmjs.org/just-bash/3.4.2"
+      ],
+      "runtimeEvidence": "NONE"
+    },
+    {
+      "id": "BYTE_API",
+      "sourceFinding": "ExecResult has string stdout/stderr, stdoutKind/text-or-bytes and legacy stdoutEncoding. Public Bash logResult decodes valid UTF8 byte-shaped strings, while VFS readFileBuffer is byte-native. ExecOptions stdin is string with stdinKind; no AsyncIterable stdin API equivalent to target counters. Freeze a per-row terminal representation adapter, never generically UTF8-roundtrip unknown bytes or pretend host prebuffering is product consumption.",
+      "sources": [
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/types.ts#L15",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts#L284",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts#L586",
+        "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/interface.ts#L159"
+      ],
+      "runtimeEvidence": "NONE"
+    }
+  ],
+  "specificSourceFindings": [
+    {
+      "rows": [
+        "P06"
+      ],
+      "finding": "sed stores -e scripts immediately and appends all -f scripts afterward; interleaving order deserves actual testing, no predicted result counted.",
+      "source": "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/sed/sed.ts#L360"
+    },
+    {
+      "rows": [
+        "P07"
+      ],
+      "finding": "-i.bak sets only inPlace=true; in-place branch writes the original path without creating the named backup. Expected backup is a concrete source-level gap, not an observed failure.",
+      "source": "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/sed/sed.ts#L374"
+    },
+    {
+      "rows": [
+        "P08"
+      ],
+      "finding": "-s is not in accepted short-option characters and routes to unknownOption.",
+      "source": "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/sed/sed.ts#L391"
+    },
+    {
+      "rows": [
+        "P19"
+      ],
+      "finding": "rg chooses stdin only when decoded stdin length>0; explicit-empty provenance is not equivalent to target stream API. Exact decoy fixture is valuable, but no runtime result inferred.",
+      "source": "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/rg/rg-search.ts#L265"
+    },
+    {
+      "rows": [
+        "P23",
+        "P24",
+        "C06"
+      ],
+      "finding": "curl parser has no -D/--dump-header branch; -D goes to unknownOption. Keep frozen output/header oracle; do not remove -D to make a synthetic pass.",
+      "source": "https://github.com/vercel-labs/just-bash/blob/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/curl/parse.ts#L299"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { assertHostEnvironment } from './host-environment.mjs';
+const hostEnvironmentQualified = assertHostEnvironment();
+const root = process.argv[2];
+const descriptor = fs.openSync(path.join(root, 'requested-0644.data'), fs.constants.O_CREAT | fs.constants.O_WRONLY | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW, 0o644);
+fs.writeSync(descriptor, 'mode-proof\n');
+fs.fsyncSync(descriptor);
+const actual = fs.fstatSync(descriptor);
+fs.closeSync(descriptor);
+const receipt = { schema: 'HARMLESS_MODE_STUB_V3', hostEnvironmentQualified, pid: process.pid, parentPid: process.ppid, cwd: process.cwd(), environment: Object.keys(process.env).sort(), umask: process.umask(), requestedMode: 0o644, actualMode: actual.mode & 511, privateStdoutMode: fs.fstatSync(1).mode & 511, privateStderrMode: fs.fstatSync(2).mode & 511, outputDescriptorClosed: true };
+fs.writeSync(1, JSON.stringify(receipt) + '\n');
+fs.writeSync(2, 'mode-stderr\n');
+process.exitCode = receipt.actualMode === 0o644 ? 0 : 72;

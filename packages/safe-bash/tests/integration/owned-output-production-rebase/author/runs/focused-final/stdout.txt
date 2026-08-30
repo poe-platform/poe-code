@@ -1,0 +1,250 @@
+TAP version 13
+# Subtest: an explicitly enrolled direct curl sink does not return its borrowed stdin cursor
+ok 1 - an explicitly enrolled direct curl sink does not return its borrowed stdin cursor
+  ---
+  duration_ms: 4.256083
+  type: 'test'
+  ...
+# Subtest: real Shell curl streams stdin without prebuffer and preserves the next borrowed chunk
+ok 2 - real Shell curl streams stdin without prebuffer and preserves the next borrowed chunk
+  ---
+  duration_ms: 5.806792
+  type: 'test'
+  ...
+# Subtest: zero CLI caps cannot replay: status=200, upload=stdin, stdout closes
+ok 3 - zero CLI caps cannot replay: status=200, upload=stdin, stdout closes
+  ---
+  duration_ms: 11.165375
+  type: 'test'
+  ...
+# Subtest: zero CLI caps cannot replay: status=200, upload=file, stdout closes
+ok 4 - zero CLI caps cannot replay: status=200, upload=file, stdout closes
+  ---
+  duration_ms: 3.194958
+  type: 'test'
+  ...
+# Subtest: zero CLI caps cannot replay: status=302, upload=stdin, stdout closes
+ok 5 - zero CLI caps cannot replay: status=302, upload=stdin, stdout closes
+  ---
+  duration_ms: 3.308125
+  type: 'test'
+  ...
+# Subtest: zero CLI caps cannot replay: status=302, upload=file, stdout closes
+ok 6 - zero CLI caps cannot replay: status=302, upload=file, stdout closes
+  ---
+  duration_ms: 3.562416
+  type: 'test'
+  ...
+# Subtest: zero CLI caps cannot replay: status=429, upload=stdin, stdout closes
+ok 7 - zero CLI caps cannot replay: status=429, upload=stdin, stdout closes
+  ---
+  duration_ms: 4.526625
+  type: 'test'
+  ...
+# Subtest: zero CLI caps cannot replay: status=429, upload=file, stdout closes
+ok 8 - zero CLI caps cannot replay: status=429, upload=file, stdout closes
+  ---
+  duration_ms: 1.970541
+  type: 'test'
+  ...
+# Subtest: zero CLI caps cannot replay: status=503, upload=stdin, stdout closes
+ok 9 - zero CLI caps cannot replay: status=503, upload=stdin, stdout closes
+  ---
+  duration_ms: 4.714416
+  type: 'test'
+  ...
+# Subtest: zero CLI caps cannot replay: status=503, upload=file, stdout closes
+ok 10 - zero CLI caps cannot replay: status=503, upload=file, stdout closes
+  ---
+  duration_ms: 3.387584
+  type: 'test'
+  ...
+# Subtest: stdout-only closure preserves required body-file and stderr
+ok 11 - stdout-only closure preserves required body-file and stderr
+  ---
+  duration_ms: 2.76725
+  type: 'test'
+  ...
+# Subtest: stdout-only closure preserves required header-file and stderr
+ok 12 - stdout-only closure preserves required header-file and stderr
+  ---
+  duration_ms: 1.305583
+  type: 'test'
+  ...
+# Subtest: stdout cancellation drains pending cooperative transport acquisition: rejects=false
+ok 13 - stdout cancellation drains pending cooperative transport acquisition: rejects=false
+  ---
+  duration_ms: 1.435083
+  type: 'test'
+  ...
+# Subtest: stdout cancellation drains pending cooperative transport acquisition: rejects=true
+ok 14 - stdout cancellation drains pending cooperative transport acquisition: rejects=true
+  ---
+  duration_ms: 0.883584
+  type: 'test'
+  ...
+# Subtest: curl byte streaming owns reused download chunks across pipe and file output
+ok 15 - curl byte streaming owns reused download chunks across pipe and file output
+  ---
+  duration_ms: 2.861791
+  type: 'test'
+  ...
+# Subtest: real Node transport registers before acquisition and drains request close on early body closure
+ok 16 - real Node transport registers before acquisition and drains request close on early body closure
+  ---
+  duration_ms: 14.94475
+  type: 'test'
+  ...
+# Subtest: registration precedes acquisition, close is shared, late admission has no effects
+ok 17 - registration precedes acquisition, close is shared, late admission has no effects
+  ---
+  duration_ms: 1.272125
+  type: 'test'
+  ...
+# Subtest: failed registration prevents acquisition and preclosed signals prevent all effects
+ok 18 - failed registration prevents acquisition and preclosed signals prevent all effects
+  ---
+  duration_ms: 0.406292
+  type: 'test'
+  ...
+# Subtest: close drains an acquisition already pending, including its delayed release
+ok 19 - close drains an acquisition already pending, including its delayed release
+  ---
+  duration_ms: 3.326041
+  type: 'test'
+  ...
+# Subtest: close drains rejected pending acquisition without reclassifying it as cleanup failure
+ok 20 - close drains rejected pending acquisition without reclassifying it as cleanup failure
+  ---
+  duration_ms: 0.567417
+  type: 'test'
+  ...
+# Subtest: reentrant close during start still drains its admitted resource
+ok 21 - reentrant close during start still drains its admitted resource
+  ---
+  duration_ms: 0.164917
+  type: 'test'
+  ...
+# Subtest: synchronous acquisition rejection retains identity and releases nothing
+ok 22 - synchronous acquisition rejection retains identity and releases nothing
+  ---
+  duration_ms: 0.132583
+  type: 'test'
+  ...
+# Subtest: child consumer closure isolates siblings; parent synchronously seals and drains children
+ok 23 - child consumer closure isolates siblings; parent synchronously seals and drains children
+  ---
+  duration_ms: 1.186125
+  type: 'test'
+  ...
+# Subtest: all cleanup drains and errors retain registration order, including child failures
+ok 24 - all cleanup drains and errors retain registration order, including child failures
+  ---
+  duration_ms: 1.285
+  type: 'test'
+  ...
+# Subtest: caller abort wins over consumer closure at admission and cleanup still drains
+ok 25 - caller abort wins over consumer closure at admission and cleanup still drains
+  ---
+  duration_ms: 0.664958
+  type: 'test'
+  ...
+# Subtest: owned output is explicit, legacy fallback unchanged, and pipe copies retained bytes
+ok 26 - owned output is explicit, legacy fallback unchanged, and pipe copies retained bytes
+  ---
+  duration_ms: 4.514375
+  type: 'test'
+  ...
+# Subtest: public precedence uses actual execution outcomes: caller
+ok 27 - public precedence uses actual execution outcomes: caller
+  ---
+  duration_ms: 6.7095
+  type: 'test'
+  ...
+# Subtest: public precedence uses actual execution outcomes: rejection
+ok 28 - public precedence uses actual execution outcomes: rejection
+  ---
+  duration_ms: 1.651666
+  type: 'test'
+  ...
+# Subtest: public precedence uses actual execution outcomes: nonzero
+ok 29 - public precedence uses actual execution outcomes: nonzero
+  ---
+  duration_ms: 1.5565
+  type: 'test'
+  ...
+# Subtest: public precedence uses actual execution outcomes: ordinary-throw
+ok 30 - public precedence uses actual execution outcomes: ordinary-throw
+  ---
+  duration_ms: 1.677334
+  type: 'test'
+  ...
+# Subtest: public result waits for a pending admitted acquisition after command return
+ok 31 - public result waits for a pending admitted acquisition after command return
+  ---
+  duration_ms: 2.293459
+  type: 'test'
+  ...
+# Subtest: opaque legacy command is not awaited, but registered cooperative output cleanup is
+ok 32 - opaque legacy command is not awaited, but registered cooperative output cleanup is
+  ---
+  duration_ms: 1.108958
+  type: 'test'
+  ...
+# Subtest: external stdout closes only its child, preserving parent file and stderr effects
+ok 33 - external stdout closes only its child, preserving parent file and stderr effects
+  ---
+  duration_ms: 2.203916
+  type: 'test'
+  ...
+# Subtest: invoke/signal/budget/capture forwards accounted capability once: enrolled=false
+ok 34 - invoke/signal/budget/capture forwards accounted capability once: enrolled=false
+  ---
+  duration_ms: 4.394792
+  type: 'test'
+  ...
+# Subtest: invoke/signal/budget/capture forwards accounted capability once: enrolled=true
+ok 35 - invoke/signal/budget/capture forwards accounted capability once: enrolled=true
+  ---
+  duration_ms: 1.650166
+  type: 'test'
+  ...
+# Subtest: distinct pipeline stages and repeated writes still count separately
+ok 36 - distinct pipeline stages and repeated writes still count separately
+  ---
+  duration_ms: 8.106208
+  type: 'test'
+  ...
+# Subtest: completed pipeline rejection survives finalization: prior owned write=false
+ok 37 - completed pipeline rejection survives finalization: prior owned write=false
+  ---
+  duration_ms: 1.586375
+  type: 'test'
+  ...
+# Subtest: completed pipeline rejection survives finalization: prior owned write=true
+ok 38 - completed pipeline rejection survives finalization: prior owned write=true
+  ---
+  duration_ms: 1.494625
+  type: 'test'
+  ...
+# Subtest: cat cancels file first-read and drains explicitly registered provider cleanup without whole-stage abort
+ok 39 - cat cancels file first-read and drains explicitly registered provider cleanup without whole-stage abort
+  ---
+  duration_ms: 3.42
+  type: 'test'
+  ...
+# Subtest: cat preserves reused producer bytes and borrowed stdin sequential cursors
+ok 40 - cat preserves reused producer bytes and borrowed stdin sequential cursors
+  ---
+  duration_ms: 3.008875
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 386.125791

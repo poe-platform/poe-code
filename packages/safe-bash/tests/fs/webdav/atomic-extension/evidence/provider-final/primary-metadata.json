@@ -1,0 +1,31 @@
+[
+  {
+    "url": "https://pypi.org/pypi/WsgiDAV/4.3.5/json",
+    "sha256": "c39a4129b27f05cffacfb887aebc361a7081b58fbf92cf58cdb2eba11f673363",
+    "version": "4.3.5",
+    "requires": [
+      "defusedxml",
+      "Jinja2",
+      "json5",
+      "PyYAML",
+      "passlib",
+      "bcrypt<5,>=4.0",
+      "python-pam; extra == \"pam\""
+    ]
+  },
+  {
+    "url": "https://pypi.org/pypi/cheroot/11.1.2/json",
+    "sha256": "a215b60011a56a43ba1f032732eec5b6d2503d22e64741d4a29848037d2c7258",
+    "version": "11.1.2",
+    "requires": [
+      "more-itertools>=2.6",
+      "jaraco.functools",
+      "sphinx>=1.8.2; extra == \"docs\"",
+      "jaraco.packaging>=3.2; extra == \"docs\"",
+      "sphinx-tabs>=1.1.0; extra == \"docs\"",
+      "furo; extra == \"docs\"",
+      "python-dateutil; extra == \"docs\"",
+      "sphinxcontrib-apidoc>=0.3.0; extra == \"docs\""
+    ]
+  }
+]

@@ -1,0 +1,1481 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-28T03:38:19.428Z",
+  "status": "PREPARED_NOT_RELEASED",
+  "executionAuthorized": false,
+  "fullGateLaunched": false,
+  "newArchiveMaterialized": false,
+  "newBuildOrPack": false,
+  "product": {
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+    "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "fixtureSourceCommit": "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+    "fixturePaths": [
+      {
+        "path": "tests/commands/split/integration.test.ts",
+        "beforeBlob": "b7444047a32c83eadf4fd4a5d5c2e91d98be6d7c",
+        "afterBlob": "88fff30270f01d7eab63279e5777cb88db1cbb8e",
+        "beforeSha256": "925551e6befe9ccb1d907948a74e002f490a49f51640943069d7599ef794c705",
+        "afterSha256": "2710d4467c42c63713cf406e3c12683c791d8d2e0e020ec54556b494732ac01e",
+        "replacements": [
+          [
+            "contains 73 including",
+            "contains 76 including"
+          ],
+          [
+            "createAgentCommands().length, 73",
+            "createAgentCommands().length, 76"
+          ],
+          [
+            "shell.commands.list().length, 73",
+            "shell.commands.list().length, 76"
+          ]
+        ]
+      },
+      {
+        "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+        "beforeBlob": "873ab37faf8b155e562eda8bb196d02f74ca2040",
+        "afterBlob": "23a999dfd948993e45976276225645f861af3db1",
+        "beforeSha256": "f75b17b6530611215aedb8459bc8bb00b82ac1d31eb96126e0e2a8962ed9a0b1",
+        "afterSha256": "7ae8987438c07e17bba5ff71a13c949c51937cd955e2e5eaade355672849ad08",
+        "replacements": [
+          [
+            "contains73 and standalone",
+            "contains76 and standalone"
+          ],
+          [
+            "createAgentCommands().length, 73",
+            "createAgentCommands().length, 76"
+          ],
+          [
+            "instance.commands.list().length, 73",
+            "instance.commands.list().length, 76"
+          ]
+        ]
+      },
+      {
+        "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+        "beforeBlob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c",
+        "afterBlob": "72a99c3d8dd8190592927d1dedfef315ee7429eb",
+        "beforeSha256": "4919909cde0944c851bb9aea39bf2aae5971683d39d48d3924bb5cd668e1c2c0",
+        "afterSha256": "c56c449a03b99ce393db85aa480af3ffe8f65b1a71cf0946c012606e49f74864",
+        "replacements": [
+          [
+            "target.commands.list().length, 74",
+            "target.commands.list().length, 77",
+            2
+          ],
+          [
+            "assert.equal(definitions.length, 73);",
+            "assert.equal(definitions.length, 76);"
+          ],
+          [
+            "root family exports preserve four inspection definitions in the 73-command aggregate",
+            "root family exports preserve four inspection definitions in the 76-command aggregate"
+          ],
+          [
+            "assert.equal(new Set(definitions).size, 73);",
+            "assert.equal(new Set(definitions).size, 76);"
+          ],
+          [
+            "\"tree\", \"file\", \"egrep\", \"fgrep\", \"column\"]",
+            "\"tree\", \"file\", \"egrep\", \"fgrep\", \"column\", \"html-to-markdown\", \"du\", \"expr\"]"
+          ]
+        ]
+      },
+      {
+        "path": "tests/plugins/stream-five-public/consumer.mjs",
+        "beforeBlob": "96375d606df3f9f480d13d20d00f3a779ee330fe",
+        "afterBlob": "4434cfa99fec9c9d8559718d45edf8c71f9c13bc",
+        "beforeSha256": "79c962dd5d8686af1e9e03b60e5d3f3b1bdb5f4fa7acedbaff6c5009891276b6",
+        "afterSha256": "cdfdb6acf03a48d315fe70ae99f0d2563ab83dc558171ea561c303d59236bb35",
+        "replacements": [
+          [
+            "names.length, 70",
+            "names.length, 76"
+          ],
+          [
+            "new Set(names).size, 70",
+            "new Set(names).size, 76"
+          ],
+          [
+            "commands.list().length, 70",
+            "commands.list().length, 76"
+          ]
+        ]
+      }
+    ],
+    "rawCommitSha256": "c97a53f90fa4abac622e5a854138b12cbb5bee09027a8597a1a56a38abd6e30e",
+    "rawCommitLocation": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+      "bytes": 4663
+    },
+    "reconstructionQualification": "Existing CANDIDATE contains exact raw commit body and reachable base/four fixture blobs; no new Git object, ref, archive or materialization created by this packet.",
+    "defaultCount": 76,
+    "expectedNames": [
+      "true",
+      "false",
+      "echo",
+      "pwd",
+      "basename",
+      "dirname",
+      "printf",
+      "mkdir",
+      "touch",
+      "cp",
+      "mv",
+      "rm",
+      "rmdir",
+      "ln",
+      "readlink",
+      "realpath",
+      "ls",
+      "cat",
+      "head",
+      "tail",
+      "wc",
+      "tee",
+      "tr",
+      "sort",
+      "uniq",
+      "cut",
+      "grep",
+      "test",
+      "[",
+      "env",
+      "xargs",
+      "find",
+      "sed",
+      "awk",
+      "jq",
+      "rg",
+      "base64",
+      "base32",
+      "xxd",
+      "od",
+      "sha256sum",
+      "sha1sum",
+      "md5sum",
+      "cksum",
+      "gzip",
+      "gunzip",
+      "zcat",
+      "diff",
+      "patch",
+      "chmod",
+      "stat",
+      "mktemp",
+      "tar",
+      "paste",
+      "comm",
+      "join",
+      "tac",
+      "expand",
+      "fold",
+      "strings",
+      "seq",
+      "nl",
+      "rev",
+      "unexpand",
+      "split",
+      "date",
+      "sleep",
+      "printenv",
+      "tree",
+      "file",
+      "egrep",
+      "fgrep",
+      "column",
+      "html-to-markdown",
+      "du",
+      "expr"
+    ],
+    "expectedNamesAuthority": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/public.mjs",
+      "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+      "bytes": 2892
+    },
+    "optionalPlugins": [
+      "curl",
+      "safejs"
+    ],
+    "getopts": "builtin; not counted among76 registered default commands",
+    "runtimeDependencies": {},
+    "packageManifestSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "expectedTarballSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packageProof": {
+      "commit": "37b3c9c3c9c3e911286d0d8542c494f762e17015",
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/HANDOFF.md",
+      "sha256": "737d93dd356ae1510e3ff217f26bffbda7379f33f677beb24614a1de3a0d95d3",
+      "bytes": 10414
+    },
+    "packageProofScope": "Existing independent A11 actual production build/offline pack:727526 bytes,834 members,c109. Reused as evidence only; not repeated here or inside e062 type slice."
+  },
+  "driver": {
+    "sourceCommit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+    "authorEvidenceCommit": "69a77055fb180f34d47c7e3e4306a666c0d96f68",
+    "authorHandoff": {
+      "commit": "69a77055fb180f34d47c7e3e4306a666c0d96f68",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-v5/HANDOFF.md",
+      "sha256": "8c328a2be4f1b1f98f9bf825db6bd261b19b24dae77ff2a2f6526f51716aac5c",
+      "bytes": 5161
+    },
+    "authorResult": {
+      "commit": "69a77055fb180f34d47c7e3e4306a666c0d96f68",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-v5/evidence/REPORT.json",
+      "sha256": "77e0eb6b43a4556257876b1de1651cb227fac7247d500931d9d1045257836bf1",
+      "bytes": 9440
+    },
+    "driverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+    "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "files": {
+      "CANDIDATE.json": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+      "PROFILE.json.gz.base64": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+      "PROFILE-RECEIPT.json": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+      "CLEANUP.json": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+      "EXTERNAL.json.gz.base64": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "EXTERNAL-RECEIPT.json": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "common.mjs": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb",
+      "profile.mjs": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f",
+      "admission.mjs": "3a41490a765978c216d0609375cdd68eb1e9e1e7c6f19d6a7ef347389b5237a3",
+      "inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+      "run.mjs": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
+      "worker.mjs": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401",
+      "supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+      "execute.mjs": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
+      "policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+      "transport.mjs": "c115efe4a62c850868ddee551f5dca535c971fd0636074b21b359565f6bb6e5d",
+      "external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+      "external-admission.mjs": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
+      "built-consumers.mjs": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+      "consumer-admission.mjs": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+      "tap.mjs": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+      "public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+      "consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+      "negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+      "build-audit.mjs": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "build-types.mjs": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+      "phase-runner.mjs": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3",
+      "process-observer.mjs": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+      "review-build-types.mjs": "4cde75180c22e2655b1dc4232dcc4400925d7207afbcab9c50c11ed57ad5be2f",
+      "review-build-types-worker.mjs": "1575931a035d8dbfdfc9ac334613f2bd262b53bd3bbdeaa07fadeac1961b4497"
+    },
+    "manifestBindings": {
+      "CANDIDATE.json": {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+        "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+        "bytes": 4663
+      },
+      "DRIVER.json": {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+        "sha256": "e8ac0521c44d6c76c5a1b670f89296caa65640291a24703f36bdbd8abfc8ce10",
+        "bytes": 3386
+      },
+      "PROFILE.json.gz.base64": {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+        "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+        "bytes": 1409701
+      },
+      "PROFILE-RECEIPT.json": {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json",
+        "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+        "bytes": 976
+      },
+      "CLEANUP.json": {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+        "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+        "bytes": 27233
+      },
+      "EXTERNAL.json.gz.base64": {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+        "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+        "bytes": 476241
+      },
+      "EXTERNAL-RECEIPT.json": {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+        "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+        "bytes": 592
+      }
+    },
+    "independentReview": {
+      "status": "PENDING",
+      "priorEvidenceCommit": "37b3c9c3c9c3e911286d0d8542c494f762e17015",
+      "priorScope": "21 bounded PASS/1 A10 HOLD and optional transport failure retained. New author5/5 plus one actual build/type pass do not rescore old22 or constitute independent acceptance."
+    }
+  },
+  "sourceIsolation": {
+    "ancestry": [
+      {
+        "revision": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+        "ancestor": true
+      },
+      {
+        "revision": "618d8967009117547ab476256bc6eb0a9463309a",
+        "ancestor": true
+      },
+      {
+        "revision": "fbbe1ef793b7434871403125efbeb46624a8e081",
+        "ancestor": true
+      },
+      {
+        "revision": "073d39c6c49d5ee24172706e02179dd6da484483",
+        "ancestor": true
+      },
+      {
+        "revision": "e422ad06b3470477b7f9323c89289d2963a00407",
+        "ancestor": true
+      },
+      {
+        "revision": "373437cf84424939e1792470805cdd9e60bd3898",
+        "ancestor": false
+      },
+      {
+        "revision": "57855a0293edb83bff98113123806497b4427416",
+        "ancestor": false
+      },
+      {
+        "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "ancestor": false
+      },
+      {
+        "revision": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+        "ancestor": false
+      }
+    ],
+    "snapshotPathBindings": [
+      {
+        "path": "src/shell/cancellation.ts",
+        "blob": "a7742b7f7e81bcd8c1c2a6be35092d8b5f41102f",
+        "sha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "blob": "b826b1f3d8cb8a0f3703c949bda5003cce06f326",
+        "sha256": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "blob": "013889cd158e77267341867f1e360d7b5eb22e94",
+        "sha256": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332"
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "blob": "671327d43c48c5964658ad8c630578fe889421e2",
+        "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "blob": "b5685005ac287561413d59f9bc7bd00f92405761",
+        "sha256": "6a7eed948ef4ad66d4292060119e216a08c2e09d79f75170e79202fd5bd2821b"
+      },
+      {
+        "path": "src/index.ts",
+        "blob": "32d3f6a2de96369954005c0689da00a4c2e1e7e1",
+        "sha256": "3b1f71706c8d43507d83c2fa069dd6e60c9fef565d277f8f680474d33ca357ca"
+      },
+      {
+        "path": "package.json",
+        "blob": "1e6bfc1e602dd0f22b8e0a3f064067d411c57e52",
+        "sha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a"
+      },
+      {
+        "path": "package-lock.json",
+        "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+        "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+      }
+    ],
+    "sourceCount": 249,
+    "fullSourceBindingsAuthority": "PROFILE.json.gz.base64:sourceBindings and scopeInputs, hash-bound above",
+    "excludedProduction": [
+      "WHICH77 product284857d7",
+      "helper373437cf",
+      "helper57855a02",
+      "Stage2fd1daa12",
+      "later combined5137",
+      "timeout",
+      "later live shell/command changes",
+      "unpromoted TEMP overlays"
+    ],
+    "qualifiedExclusion": "Ancestry exclusion plus frozen path hashes, not a claim that historical research/evidence files are absent from the full committed tree. No mutable HEAD or live product overlay is used.",
+    "presentPrivateHelper": "src/shell/cancellation.ts at ee048f6c... belongs to fbbe/44 and remains included; no373/578 replacement.",
+    "unchangedEnvSource": {
+      "src/commands/execution.ts": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "src/commands/env-split.ts": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+    }
+  },
+  "profile": {
+    "closure": {
+      "kind": "complete committed-tree conservative runtime-input superset, not compact typing selection",
+      "entries": 37397,
+      "bytes": 2382440321,
+      "storedArchive": false,
+      "streamedAtExecution": true,
+      "qualification": "Historical canonical audits read captured data and Git history. No claim that a smaller static-import selection is complete; all committed tree blobs and ancestor Git objects are retained in isolated temporary storage."
+    },
+    "canonicalPaths": 632,
+    "canonicalPathsSha256": "e59ae0b3032458e717bc34d2f26a96b661c118295eb78657f4fa523bcaa779af",
+    "canonicalSelection": "Exact sealed array, not a new live glob. Runtime .mts routes remain in fixed maintained consumer inventory.",
+    "classifiedMts": 192,
+    "classifiedMtsSha256": "1ab4054aa971eaffd68cf2465f7c9248d10e529108a18dd34a33c38c962f2cf9",
+    "classificationCounts": {
+      "frozen-evidence": 147,
+      "current": 34,
+      "declaration": 7,
+      "frozen-oracle": 1,
+      "negative-types": 3
+    },
+    "currentInventorySha256": "725b0c12e7965bc3e400f25cae1a31a1d2f3e456b232f1bcc3a8bb561cc0a6f7",
+    "providerAuthority": "Candidate provider.mts bytes remain authoritative; original informational inventory hash preserved with explicit WebDAV route per add4e9db. No fifth fixture edit.",
+    "testConcurrency": 2,
+    "reporter": "tap",
+    "cleanup": {
+      "binding": {
+        "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+        "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+        "bytes": 27233
+      },
+      "format": "public-cleanup-committed-v1",
+      "revision": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+      "files": 256,
+      "environment": {
+        "VIRTUAL_BASH_PUBLIC_CLEANUP_EXPECTED": "<unique owned harness>/cleanup.json",
+        "VIRTUAL_BASH_PUBLIC_CLEANUP_COMMIT": "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+      }
+    },
+    "support": {
+      "tests/integration/full-gate-20260827/account.mjs": "279f552950ee9f90a884c448f31d19903add6672da042d4a195b89fd84de742c",
+      "tests/integration/full-gate-20260827/supervise.mjs": "e68ef77eb0ad1610177521a1aeab9f6f189e47de47476dafcab7ad05097ebfb9",
+      "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs": "4e328502a8713fe6bba64f231cab846ceb1d2dc5454a8276205de3009d17944e",
+      "tests/integration/full-gate-20260827/preflight-repair/policy.json": "eb2575674ba51a5c8a8f5c82609281e56f5cbff77889e4e86e22dc7974cdc11e",
+      "tests/integration/full-gate-20260827/runtime-profile-20260827/profile.mjs": "900cc0f387ff1c0845b6dd6c87402e535224234ecc2511920883f93c7b2a7266",
+      "tests/integration/full-gate-20260827/integrity-73/tree.mjs": "5af624e28e38c4001f6b77dbc1c153292e667da28d1a07aa851f31a6150f06a9",
+      "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+      "tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114",
+      "tests/integration/full-gate-20260827/combined-8670ebe8/committed-archive.mjs": "d5a2de6679bda3830d7f376e1f374bee286d0e9ca17e460f78b02988a7c7aee3",
+      "tests/integration/full-gate-20260827/combined-b494675c/inspect.mjs": "1669457da2280de3c769ec5e516f65c7bbb0d635b2249afc13a06e8f68a14d1e"
+    }
+  },
+  "external": {
+    "receipt": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+      "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "bytes": 592
+    },
+    "manifest": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+      "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "bytes": 476241
+    },
+    "decodedSha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+    "tools": [
+      {
+        "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+        "bytes": 117591472,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "bytes": 112989184,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/git",
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+        "bytes": 118928,
+        "mode": 493
+      },
+      {
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+        "bytes": 3704880,
+        "mode": 493
+      },
+      {
+        "origin": "/bin/sh",
+        "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59",
+        "bytes": 101232,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/tar",
+        "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+        "bytes": 275344,
+        "mode": 493
+      },
+      {
+        "origin": "/bin/ps",
+        "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c",
+        "bytes": 170816,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/sbin/lsof",
+        "sha256": "1c7ea75ae284bfb569f693ce50ad25c04a780dfe5ae80ae93a5d2ed285c6b456",
+        "bytes": 307600,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/otool",
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+        "bytes": 118928,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/sw_vers",
+        "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd",
+        "bytes": 135536,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+        "bytes": 6158960,
+        "mode": 420
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+        "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+        "bytes": 18743,
+        "mode": 420
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+        "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+        "bytes": 57957,
+        "mode": 420
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+        "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+        "bytes": 10194,
+        "mode": 420
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+        "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+        "bytes": 13085,
+        "mode": 420
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+        "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+        "bytes": 14595,
+        "mode": 420
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+        "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "bytes": 667701,
+        "mode": 420
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+        "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+        "bytes": 122392,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+        "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+        "bytes": 186328,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+        "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+        "bytes": 95160,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "bytes": 92680,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "bytes": 98072,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "bytes": 118824,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+        "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+        "bytes": 142760,
+        "mode": 493
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+        "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "bytes": 187016,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+        "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+        "bytes": 456096,
+        "mode": 365
+      },
+      {
+        "origin": "/usr/bin/bsdtar",
+        "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+        "bytes": 275344,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/gzip",
+        "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+        "bytes": 171712,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/gunzip",
+        "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+        "bytes": 197504,
+        "mode": 493
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+        "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+        "bytes": 93752,
+        "mode": 493
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+        "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+        "bytes": 93816,
+        "mode": 493
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+        "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+        "bytes": 114328,
+        "mode": 493
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+        "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+        "bytes": 113864,
+        "mode": 493
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+        "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+        "bytes": 113832,
+        "mode": 493
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+        "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+        "bytes": 189576,
+        "mode": 493
+      },
+      {
+        "origin": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "bytes": 1293840,
+        "mode": 365
+      },
+      {
+        "origin": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "bytes": 1395864,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/sed",
+        "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+        "bytes": 170336,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/awk",
+        "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+        "bytes": 302368,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/jq",
+        "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+        "bytes": 1492208,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/curl",
+        "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+        "bytes": 552624,
+        "mode": 493
+      },
+      {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg",
+        "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+        "bytes": 4030432,
+        "mode": 365
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+        "sha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f",
+        "bytes": 131504,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+        "sha256": "f53799fe27723aa0e61075b4d698b5dca44e5e96b4e38544b3ae047c7bed0d2e",
+        "bytes": 178336,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/rev",
+        "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247",
+        "bytes": 101328,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+        "sha256": "ea0e663158cd8d84c4e7869139b4180bd6d9a8dc6b9f09dda1c615484a4145fa",
+        "bytes": 95400,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+        "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "bytes": 127592,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+        "bytes": 137288,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+        "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+        "bytes": 92600,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+        "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+        "bytes": 89896,
+        "mode": 493
+      },
+      {
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tac",
+        "sha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+        "bytes": 180816,
+        "mode": 493
+      },
+      {
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+        "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+        "bytes": 95656,
+        "mode": 493
+      },
+      {
+        "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+        "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+        "bytes": 92984,
+        "mode": 493
+      },
+      {
+        "origin": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+        "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+        "bytes": 554568,
+        "mode": 365
+      },
+      {
+        "origin": "/usr/bin/expand",
+        "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78",
+        "bytes": 101616,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/fold",
+        "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+        "bytes": 101808,
+        "mode": 493
+      },
+      {
+        "origin": "/usr/bin/strings",
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+        "bytes": 118928,
+        "mode": 493
+      },
+      {
+        "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings",
+        "sha256": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9",
+        "bytes": 178224,
+        "mode": 493
+      },
+      {
+        "origin": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+        "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+        "bytes": 114488,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+        "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+        "bytes": 257240,
+        "mode": 493
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+        "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+        "bytes": 274496,
+        "mode": 493
+      }
+    ],
+    "dependencyTrees": {
+      "main": {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+        "root": "/Users/kjopek/Workspace/safe-bash/node_modules",
+        "entries": 367,
+        "bytes": 48179371,
+        "sha256": "2f7cc0954648d94c2413f933da309bcee4274ef5a30333551080f62f51d4bf2c"
+      },
+      "benchmarks": {
+        "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "root": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "entries": 3889,
+        "bytes": 75292558,
+        "sha256": "126a50714ee3f825d860ba922eb503be32fda20462e82ded91ae1c1d36618013"
+      },
+      "npm": {
+        "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+        "root": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+        "entries": 2557,
+        "bytes": 12446245,
+        "sha256": "52031d4ab5f0c6e400c0e7d73e996641811c752c978c3322c9cb8dec4554590f"
+      },
+      "gitCore": {
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+        "root": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+        "entries": 197,
+        "bytes": 16319360,
+        "sha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b"
+      }
+    },
+    "native": {
+      "baseAssets": 49,
+      "extensions": 2,
+      "total": 51,
+      "assets": [
+        {
+          "name": "coreutils-9.7.tar.xz",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+          "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+          "executable": false,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "chmod.c",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+          "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+          "executable": false,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "stat.c",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+          "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+          "executable": false,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "mktemp.c",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+          "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+          "executable": false,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "modechange.c",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+          "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+          "executable": false,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "comm.c",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+          "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+          "executable": false,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "coreutils.texi",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+          "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+          "executable": false,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "chmod",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+          "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+          "executable": true,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "stat",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+          "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+          "executable": true,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "mktemp",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+          "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+          "executable": true,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "paste",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+          "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+          "executable": true,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "comm",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "executable": true,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "join",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "executable": true,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "touch",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+          "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+          "executable": true,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "stat",
+          "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+          "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+          "executable": true,
+          "authority": "prior metadata/table native preflight capture"
+        },
+        {
+          "name": "gtar",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+          "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+          "target": "snapshot:tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+          "executable": true,
+          "authority": "prior tar profile capture"
+        },
+        {
+          "name": "bsdtar",
+          "origin": "/usr/bin/bsdtar",
+          "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+          "executable": true,
+          "authority": "prior tar profile capture"
+        },
+        {
+          "name": "gzip",
+          "origin": "/usr/bin/gzip",
+          "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+          "executable": true,
+          "authority": "prior tar profile capture"
+        },
+        {
+          "name": "gunzip",
+          "origin": "/usr/bin/gunzip",
+          "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+          "executable": true,
+          "authority": "prior tar profile capture"
+        },
+        {
+          "name": "base64",
+          "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+          "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+          "target": "native:bytes/base64",
+          "executable": true,
+          "authority": "prior pinned GNU byte profile"
+        },
+        {
+          "name": "base32",
+          "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+          "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+          "target": "native:bytes/base32",
+          "executable": true,
+          "authority": "prior pinned GNU byte profile"
+        },
+        {
+          "name": "sha256sum",
+          "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+          "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+          "target": "native:bytes/sha256sum",
+          "executable": true,
+          "authority": "prior pinned GNU byte profile"
+        },
+        {
+          "name": "sha1sum",
+          "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+          "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+          "target": "native:bytes/sha1sum",
+          "executable": true,
+          "authority": "prior pinned GNU byte profile"
+        },
+        {
+          "name": "md5sum",
+          "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+          "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+          "target": "native:bytes/md5sum",
+          "executable": true,
+          "authority": "prior pinned GNU byte profile"
+        },
+        {
+          "name": "gzip",
+          "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+          "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+          "target": "native:bytes/gzip",
+          "executable": true,
+          "authority": "prior pinned GNU byte profile"
+        },
+        {
+          "name": "bash3.2",
+          "origin": "/bin/bash",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+          "executable": true,
+          "authority": "prior actual native identity"
+        },
+        {
+          "name": "bash5.3",
+          "origin": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+          "executable": true,
+          "authority": "prior actual native identity"
+        },
+        {
+          "name": "sed",
+          "origin": "/usr/bin/sed",
+          "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+          "executable": true,
+          "authority": "prior actual native identity"
+        },
+        {
+          "name": "awk",
+          "origin": "/usr/bin/awk",
+          "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+          "executable": true,
+          "authority": "prior actual native identity"
+        },
+        {
+          "name": "jq",
+          "origin": "/usr/bin/jq",
+          "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+          "executable": true,
+          "authority": "prior actual native identity"
+        },
+        {
+          "name": "curl",
+          "origin": "/usr/bin/curl",
+          "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+          "executable": true,
+          "authority": "prior actual native identity"
+        },
+        {
+          "name": "rg",
+          "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg",
+          "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+          "target": "native:rg",
+          "executable": true,
+          "authority": "prior actual native identity"
+        },
+        {
+          "name": "seq",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+          "sha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+          "executable": true,
+          "authority": "stream-format/evidence/freeze-native.json"
+        },
+        {
+          "name": "nl",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+          "sha256": "f53799fe27723aa0e61075b4d698b5dca44e5e96b4e38544b3ae047c7bed0d2e",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+          "executable": true,
+          "authority": "stream-format/evidence/freeze-native.json"
+        },
+        {
+          "name": "rev",
+          "origin": "/usr/bin/rev",
+          "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247",
+          "executable": true,
+          "authority": "stream-format/evidence/freeze-native.json"
+        },
+        {
+          "name": "unexpand",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+          "sha256": "ea0e663158cd8d84c4e7869139b4180bd6d9a8dc6b9f09dda1c615484a4145fa",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+          "executable": true,
+          "authority": "stream-format/evidence/freeze-native.json"
+        },
+        {
+          "name": "split",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+          "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+          "executable": true,
+          "authority": "split/native.test.ts exact pin"
+        },
+        {
+          "name": "date",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+          "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+          "executable": true,
+          "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion"
+        },
+        {
+          "name": "sleep",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+          "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+          "executable": true,
+          "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion"
+        },
+        {
+          "name": "printenv",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+          "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+          "executable": true,
+          "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion"
+        },
+        {
+          "name": "tac",
+          "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tac",
+          "sha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+          "target": "native:stream/tac",
+          "executable": true,
+          "authority": "stream-inspection/oracle.ts"
+        },
+        {
+          "name": "expand",
+          "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+          "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+          "target": "native:stream/expand",
+          "executable": true,
+          "authority": "stream-inspection/oracle.ts"
+        },
+        {
+          "name": "fold",
+          "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+          "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+          "target": "native:stream/fold",
+          "executable": true,
+          "authority": "stream-inspection/oracle.ts"
+        },
+        {
+          "name": "strings",
+          "origin": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+          "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+          "target": "native:stream/strings",
+          "executable": true,
+          "authority": "stream-inspection/gnu-strings-oracle.ts"
+        },
+        {
+          "name": "expand",
+          "origin": "/usr/bin/expand",
+          "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78",
+          "executable": true,
+          "authority": "stream-inspection/evidence/native-corrected.json"
+        },
+        {
+          "name": "fold",
+          "origin": "/usr/bin/fold",
+          "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+          "executable": true,
+          "authority": "stream-inspection/evidence/native-corrected.json"
+        },
+        {
+          "name": "strings",
+          "origin": "/usr/bin/strings",
+          "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+          "executable": true,
+          "authority": "stream-inspection/evidence/native-corrected.json"
+        },
+        {
+          "name": "strings",
+          "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings",
+          "sha256": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9",
+          "executable": true,
+          "authority": "stream-inspection/evidence/native-corrected.json"
+        },
+        {
+          "name": "tree",
+          "origin": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+          "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+          "target": "native:tree",
+          "executable": true,
+          "authority": "tree/native-fixtures.json; caller must explicitly supply exact pinned binary"
+        },
+        {
+          "name": "expr",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "executable": true,
+          "authority": "GNU9.7 author oracle; independent source/profile acceptance remains external"
+        },
+        {
+          "name": "du",
+          "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+          "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+          "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+          "executable": true,
+          "authority": "GNU9.7 author oracle; live presence and profile acceptance remain explicit"
+        }
+      ],
+      "environment": {
+        "STREAM_NATIVE_LIVE": "1",
+        "STREAM_GNU_BIN": "$NATIVE/stream",
+        "STREAM_GNU_STRINGS": "$NATIVE/stream/strings",
+        "GNU_TABLE_BIN": "$SNAPSHOT/tests/commands/metadata-stress/.oracle/coreutils-9.7/src",
+        "TREE_NATIVE_BIN": "$NATIVE/tree",
+        "BYTE_GNU_COREUTILS_DIR": "$NATIVE/bytes",
+        "BYTE_GNU_GZIP": "$NATIVE/bytes/gzip"
+      },
+      "qualification": "Existing recorded identity/profile proof only in this packet; actual launcher must reassess all51 identities/modes. Hash matching is not native semantic parity."
+    },
+    "runtime": {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "version": "v24.11.1",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "npmCli": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "qualification": "npm scripts execute under pinned Node24/PATH; Node22 binary is an authenticated external dependency, not permission to silently fall back. Product engines>=22 is unchanged."
+    },
+    "systemLibraryBoundary": {
+      "host": {
+        "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+        "stderr": "",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "references": [
+        {
+          "tool": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "path": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "path": "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "path": "/usr/lib/libc++.1.dylib",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "path": "/usr/lib/libSystem.B.dylib",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "path": "/usr/lib/libz.1.dylib",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "path": "/usr/lib/libiconv.2.dylib",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "path": "/usr/lib/libSystem.B.dylib",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "path": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/usr/bin/tar",
+          "path": "/usr/lib/libarchive.2.dylib",
+          "error": "ENOENT",
+          "identity": null
+        },
+        {
+          "tool": "/usr/bin/tar",
+          "path": "/usr/lib/libSystem.B.dylib",
+          "error": "ENOENT",
+          "identity": null
+        }
+      ],
+      "qualification": "Exactly11 sampled unreadable references: trusted macOS26.4.1/build25E253 boundary, no file-hash/full-OS/dynamic-image attestation; no exception for readable or unknown npm/user/Homebrew/other libraries."
+    }
+  },
+  "limits": {
+    "archiveEntries": 37397,
+    "archiveBytes": 2382440321,
+    "archiveTransferBytes": 3221225472,
+    "historyTransferBytes": 8589934592,
+    "dependencyBytes": 1073741824,
+    "setupStderrBytes": 1048576,
+    "phaseOutputBytes": 268435456,
+    "allPhaseOutputBytes": 4294967296,
+    "setupTimeoutMs": 600000,
+    "phaseTimeoutMs": 1800000,
+    "cleanupTimeoutMs": 5000,
+    "chunkBytes": 65536,
+    "maximumLineBytes": 1048576,
+    "tapMaximumCases": 100000,
+    "secondaryEvidenceTextBytes": 8388608,
+    "outerTimeoutMs": 25805000,
+    "qualification": "No new bound or buffer increase. Stream full conservative input and large outputs; retained output directories are evidence, not permission to leave owned children."
+  },
+  "guards": {
+    "readonly": "Committed product/src/tests/scripts/docs/benchmarks/dependencies and support are authenticated; staged native/setup outputs are established before immutable baseline; only new dist across the single production build is permitted.",
+    "inventory": "Before/after inventories detect persistent added/removed/changed/mode/type/link entries, not all transient same-byte write attempts.",
+    "loader": "Pinned runtime feature probe plus exact env-source hashes, main-thread load observations and separately declared nested fences; not universal worker-thread import tracing.",
+    "permissions": "Actual --permission positive read and ERR_ACCESS_DENIED source-read denial; moved public runtime confined to moved package; missing root/contracts must fail rather than source fallback.",
+    "processes": "Shared supervised phase and outer deadlines; actual compiler audit; owned-child PID/group observation and natural cleanup. Forced signals, survivors, observation failure, missing reports or cleanup failure produce nonzero/HOLD.",
+    "privateSafejs": "No private inspection or copy in this packet. At authorized launch copy actual engine regular files only, record HEAD/status/index/copied-source modes/hashes before/after and run only copies; no private writes/install/build/patch, no mocked availability.",
+    "strictLive": "Committed-archive admission remains independent of unrelated live edits; strict-live dirty-input policy is not relaxed.",
+    "historicalWriters": "Canonical capture rules are frozen with candidate; any actual new mutation fails the guards. Existing fixed-writer evidence is not a claim that all future writes are impossible."
+  },
+  "phasesFile": "PHASES.json",
+  "release": {
+    "independentDriverAccepted": false,
+    "rootReleaseAuthorized": false,
+    "fullGateExecuted": false,
+    "publicPrerequisites": {
+      "public74": {
+        "rootAccepted": true,
+        "productCandidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+        "evidenceCommit": "9d84903356a4c33402814bdc367e3bbe9894d1c2",
+        "scope": "Same34 installed/moved runtime cases on Node22,10 type and10 package classes; existing build/archive proofs bound, not rerun. Prior close-disposition/stderr/title/HTML5/non-sanitizer qualifications remain.",
+        "packageSha256": "d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7"
+      },
+      "public75": {
+        "rootAccepted": true,
+        "evidenceCommits": [
+          "4343b6466c5ba8d0f5d4654ad2bb47839fc5c0c1",
+          "83645ad032238edb6d0887ae445c3b8c9d7c7f2a"
+        ],
+        "scope": "Composed29 root acceptance; original19 runtime cases source/moved and supplemental exact typing/guards retain their separate evidence. Bound here, not rerun."
+      },
+      "public76": {
+        "rootAccepted": true,
+        "recipeCommit": "a316d868fd6b330653f893276b8f5970dfe8800f",
+        "evidenceCommit": "dc5ca91d8405961784ca40a8b439aa8936ecbba3",
+        "matrix": {
+          "commit": "dc5ca91d8405961784ca40a8b439aa8936ecbba3",
+          "path": "tests/integration/expr-public-independent-20260827/r21-composed-public-v1/MATRIX.json",
+          "sha256": "c4be9baa4b72bccd0311e70fbbcf74332dd4b7d3476f40b9eefaf3bce29ab595",
+          "bytes": 50115
+        },
+        "counts": {
+          "runtimeCaseGroups": {
+            "retained": 100,
+            "amended": 4,
+            "covered": 104,
+            "amendedBoundaryOutcomes": 16
+          },
+          "typeOutcomes": {
+            "retained": 32,
+            "separatelyAcceptedTargeted": 8,
+            "covered": 40
+          },
+          "packageControlsRetained": 36
+        },
+        "newR21BoundaryOutcomes": 16,
+        "qualifiedRetainedObligations": [
+          "package36",
+          "P01",
+          "R25",
+          "R26",
+          "DU29"
+        ],
+        "scope": "Composed qualification, not a rerun of original104 runtime/40 type cases, not a new independent full archive proof. Same44/c109 product; nullable capture-reference restriction and original evidence retained."
+      }
+    },
+    "remaining": [
+      "Root must receive Dirac acceptance explicitly bound to e062/3d8d driver and this unchanged f5/profile/c109.",
+      "Root must then issue a matching explicit release receipt. This packet/template grants no execution.",
+      "At actual launch all bound runtime/native/dependency/support/OS/permission/loader and current SafeJS prerequisites must freshly pass; stale evidence is not a substitute."
+    ]
+  },
+  "legacy": {
+    "preserve": [
+      "8670 raw unqualified gates and separate package cohorts",
+      "old71/7 unexecuted bindings",
+      "070/2ff fixture failures",
+      "19/3 and21/1 driver cohorts",
+      "dfcb zero-build backslash refusal"
+    ],
+    "noRescore": true
+  },
+  "packetScope": "Read-only binding assembly and pure admission-template verification only; no product execution, native semantic rerun, private access, source materialization or release."
+}

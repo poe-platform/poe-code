@@ -1,0 +1,33 @@
+[main 435cdbe6ce5a0dd55c5427d228b2de7d9fe98e4b] test: preseal independent direct-profile mechanism controls
+ 31 files changed, 1825 insertions(+)
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/API-ROWS.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/AUTHENTICATED.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/AUTHOR-REPEAT-SEAL.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/OLD-CAPTURE.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/START.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/TOOL-ADMISSION.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/api-audit.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/api-audit.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/author-inventory.nul
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/author-inventory.nul.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/bootstrap.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/bootstrap.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/handoff.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/handoff.raw.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/metadata.events.jsonl
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/owned-status.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/owned-status.raw.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/preseal-add.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/preseal-add.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/preseal.events.jsonl
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/seal.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/seal.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/shell-source.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/shell-source.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/source-inspection.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/source-inspection.stderr
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/syntax.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/syntax.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/review.mjs

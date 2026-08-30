@@ -1,0 +1,152 @@
+[
+  {
+    "id": "S01-public-option",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/Bash.d.ts",
+    "needle": "defenseInDepth?: DefenseInDepthConfig | boolean;",
+    "utf16Offset": 6869,
+    "utf8ByteOffset": 6879,
+    "line": 170,
+    "column": 5,
+    "matched": true
+  },
+  {
+    "id": "S02-default-true",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+    "needle": "this.defenseInDepthConfig=t.defenseInDepth??!0",
+    "utf16Offset": 448062,
+    "utf8ByteOffset": 448062,
+    "line": 795,
+    "column": 321,
+    "matched": true
+  },
+  {
+    "id": "S03-empty-before-activation",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+    "needle": "!t.trim())return{stdout:\"\",stderr:\"\",exitCode:0",
+    "utf16Offset": 451278,
+    "utf8ByteOffset": 451278,
+    "line": 798,
+    "column": 247,
+    "matched": true
+  },
+  {
+    "id": "S04-activation-before-parser",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+    "needle": "let b=this.defenseInDepthConfig?Ce.getInstance(this.defenseInDepthConfig):null,g=b?.activate();",
+    "utf16Offset": 452125,
+    "utf8ByteOffset": 452125,
+    "line": 798,
+    "column": 1094,
+    "matched": true
+  },
+  {
+    "id": "S05-static-module-import",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+    "needle": "import*as $ from\"node:module\"",
+    "utf16Offset": 121,
+    "utf8ByteOffset": 121,
+    "line": 2,
+    "column": 36,
+    "matched": true
+  },
+  {
+    "id": "S06-callable-capability-test",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+    "needle": "function I(){return!f&&typeof m?.registerHooks==\"function\"}",
+    "utf16Offset": 10251,
+    "utf8ByteOffset": 10251,
+    "line": 6,
+    "column": 788,
+    "matched": true
+  },
+  {
+    "id": "S07-disabled-no-patches",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+    "needle": "if(f||!this.config.enabled)",
+    "utf16Offset": 14749,
+    "utf8ByteOffset": 14749,
+    "line": 6,
+    "column": 5286,
+    "matched": true
+  },
+  {
+    "id": "S08-global-list-getters",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+    "needle": "let e=a.filter(t=>{try{return t.target[t.prop]!==void 0}catch{return!1}})",
+    "utf16Offset": 8774,
+    "utf8ByteOffset": 8774,
+    "line": 2,
+    "column": 8689,
+    "matched": true
+  },
+  {
+    "id": "S09-w-before-exclusions",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+    "needle": "let e=w(),t=new Set(this.config.excludeViolationTypes??[])",
+    "utf16Offset": 20684,
+    "utf8ByteOffset": 20684,
+    "line": 6,
+    "column": 11221,
+    "matched": true
+  },
+  {
+    "id": "S10-hook-register",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+    "needle": "e.registerHooks({resolve(o,n,s)",
+    "utf16Offset": 32189,
+    "utf8ByteOffset": 32189,
+    "line": 6,
+    "column": 22726,
+    "matched": true
+  },
+  {
+    "id": "S11-hook-flag-no-handle",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+    "needle": "a.importHooksRegistered=!0;return",
+    "utf16Offset": 32882,
+    "utf8ByteOffset": 32882,
+    "line": 6,
+    "column": 23419,
+    "matched": true
+  },
+  {
+    "id": "S12-generic-denial-shape",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+    "needle": "argument: typeof args[0] === 'string' ? args[0].slice(0, 512) : typeof args[0]",
+    "utf16Offset": 1523,
+    "utf8ByteOffset": 1523,
+    "line": 35,
+    "column": 32,
+    "matched": true
+  },
+  {
+    "id": "S13-adapter-call",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/adapter.mjs",
+    "needle": "const result = await shell.exec(",
+    "utf16Offset": 6595,
+    "utf8ByteOffset": 6595,
+    "line": 102,
+    "column": 7,
+    "matched": true
+  },
+  {
+    "id": "S14-completed-increment",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/body.mjs",
+    "needle": "output.productCohortCalls++;",
+    "utf16Offset": 9503,
+    "utf8ByteOffset": 9503,
+    "line": 119,
+    "column": 9,
+    "matched": true
+  },
+  {
+    "id": "S15-report-completed-counts",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/report.mjs",
+    "needle": "export function countExec(output)",
+    "utf16Offset": 4930,
+    "utf8ByteOffset": 4930,
+    "line": 62,
+    "column": 1,
+    "matched": true
+  }
+]

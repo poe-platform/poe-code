@@ -1,0 +1,36 @@
+{
+  "schema": "k08-target-runtime-grant-v3",
+  "decision": "GO",
+  "preseal": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9",
+  "work": "/private/tmp/safe-bash-k08-author-RAvH2m",
+  "calls": 71,
+  "issuedAtEpochMs": 1788019710357,
+  "latestStartEpochMs": 1788020910357,
+  "expiresEpochMs": 1788022410357,
+  "limits": {
+    "durationMs": 1500000,
+    "finalizationTailMs": 60000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "streamBytes": 65536,
+    "ownerCaptureReservation": 196608,
+    "caseMs": 30000,
+    "buildMs": 0
+  },
+  "roles": {
+    "collector": 1,
+    "owner": 1,
+    "primaryCases": 69,
+    "helperBatches": 3,
+    "mutants": 3,
+    "bindingRefusals": 2,
+    "totalRuntimeKnownStarts": 79,
+    "extraSyntaxMetadataPublication": 7,
+    "maximumAllKnownStarts": 86,
+    "peakMaximum": 3,
+    "sourceDerivedInternalChildForks": 0,
+    "caseChildProcessPermission": 0,
+    "caseWorkerPermission": 0,
+    "asyncLoaders": 0
+  }
+}

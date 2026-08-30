@@ -1,0 +1,13 @@
+{
+  "schema": "WRQ-design-input-bindings-v3",
+  "inputManifest": "tests/commands/node-worker-experiments-20260828/preparation-v1/INPUTS.json",
+  "publicManifest": "tests/commands/node-worker-experiments-20260828/preparation-v1/SOURCES.json",
+  "reviewCommit": "7b7a54ef5f1710d78297402a531a1fed63266cca",
+  "priorCommit": "82aae2f5bff404423e81ddb6ddfacb6e0abd35a9",
+  "priorHandoffSha256": "6041fe928927ffc672075a5fbbdfb38b0360b8af750e6ce184d57d0884208682",
+  "priorSealSha256": "afeeb6c6aa42577b9e7e0e7ebd682cf0ace17e09c54368a1c2d1101cc097b7a4",
+  "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "authority": "ROOT source-only correction; no new public/private source acquisition or runtime execution",
+  "newExecutedWorkers": 0,
+  "newGuestEvaluations": 0
+}

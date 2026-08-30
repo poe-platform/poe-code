@@ -1,0 +1,11 @@
+virtual-bash restricted YAML profile
+usage: yq [eval|e] [OPTION ...] [--] [FILTER [FILE ...]]
+       yq [eval|e] --help
+       yq [eval|e] --version
+options:
+  -o, --output-format FORMAT  FORMAT is yaml or json
+      --output-format=FORMAT  same as above
+  -c, --compact-output       compact JSON; requires -o json
+  -r, --unwrapScalar         raw strings; requires -o json
+  -h, --help                 show this help (sole argument)
+      --version              show profile identity (sole argument)

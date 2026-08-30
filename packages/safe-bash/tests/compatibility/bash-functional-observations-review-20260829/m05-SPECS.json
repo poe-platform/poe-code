@@ -1,0 +1,19 @@
+[
+  "73065e68469e2e514c0ee87ff34ac1db04ba51cb:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/CONTROLS-RESULTS.json",
+  "73065e68469e2e514c0ee87ff34ac1db04ba51cb:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/DATA-CONTROLS.jsonl",
+  "73065e68469e2e514c0ee87ff34ac1db04ba51cb:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/REPORT.md",
+  "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/SEAL.json",
+  "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/OBSERVATIONS.json",
+  "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/REPORT.md",
+  "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/TOOL-OUTCOME.json",
+  "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/EXACT-REQUEST.json",
+  "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/ACTUAL-PREFLIGHT.jsonl",
+  "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/RESULTS.original.json",
+  "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/RAW-NATIVE-RUN.json.gz.base64",
+  "918cd1d414508364b676f8bd2e1a78c34ee9e060:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/GO.json",
+  "918cd1d414508364b676f8bd2e1a78c34ee9e060:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/REVIEW-ACCEPTANCE.json",
+  "918cd1d414508364b676f8bd2e1a78c34ee9e060:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/COMMAND.txt",
+  "918cd1d414508364b676f8bd2e1a78c34ee9e060:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/APPROVAL-REQUEST.resolved.json",
+  "918cd1d414508364b676f8bd2e1a78c34ee9e060:tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/MANIFEST.json",
+  "9b3d1c1d408a62c612132f335f6b6a6c8a239b2f:tests/compatibility/bash-functional-reference-review-20260829/v3/SCOPED-RECEIPT.json"
+]

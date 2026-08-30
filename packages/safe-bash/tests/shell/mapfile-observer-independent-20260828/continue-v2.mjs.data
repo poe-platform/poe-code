@@ -1,0 +1,46 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import childProcess from 'node:child_process';
+import { createHash } from 'node:crypto';
+
+void process.stdout; void process.stderr;
+const root = '/Users/kjopek/Workspace/safe-bash';
+const owned = 'tests/shell/mapfile-observer-independent-20260828';
+const correctionFreeze = process.env.CORRECTION_FREEZE;
+assert.match(correctionFreeze ?? '', /^[a-f0-9]{40}$/u);
+assert.equal(process.env.REVIEW_FREEZE, '1c6d0983760d81c6dad2303b8cba96ccd74ac709');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const tree = childProcess.execFileSync('/usr/bin/git', ['ls-tree', '-r', correctionFreeze, '--', owned], { cwd: root, timeout: 10000, maxBuffer: 65536 }).toString().trim().split('\n');
+const carried = tree.map(line => {
+  const match = /^100644 blob ([a-f0-9]{40})\t(.+)$/u.exec(line); assert.ok(match);
+  assert.equal(path.dirname(match[2]), owned);
+  const bytes = fs.readFileSync(path.join(root, match[2]));
+  assert.equal(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'), match[1]);
+  assert.equal(fs.lstatSync(path.join(root, match[2])).mode & 0o7777, 0o644);
+  return { name: path.basename(match[2]), sha256: hash(bytes), blob: match[1] };
+});
+assert.equal(carried.length, 12);
+assert.deepEqual(fs.readdirSync(path.join(root, owned)).sort(), carried.map(item => item.name).sort());
+const firstBytes = fs.readFileSync(path.join(root, owned, 'CAPTURE-01.json'));
+assert.equal(hash(firstBytes), '2b0948fe9874356d9947f22e6938f6733c34771b008931fea3fd0c872901a527');
+const first = JSON.parse(firstBytes), originalCases = JSON.parse(fs.readFileSync(path.join(root, owned, 'CASES.json')));
+assert.equal(first.total, 31); assert.equal(first.passed, 30); assert.equal(first.forbiddenHostEffects.length, 0);
+assert.equal(first.safetyFailure.message, 'net.Socket is not a constructor');
+assert.deepEqual(first.results.map(item => item.scenario), originalCases.observer.slice(0, 31).map(item => item[0]));
+assert.ok(first.results.every(item => item.model.pending === 0 && item.model.descriptors === 0));
+let source = fs.readFileSync(path.join(root, owned, 'review.mjs.data'), 'utf8');
+function replace(before, after, expected = 1) {
+  assert.equal(source.split(before).length - 1, expected, before); source = source.split(before).join(after);
+}
+replace("const cases = JSON.parse(bytesByName.get('CASES.json'));", "const allCases = JSON.parse(bytesByName.get('CASES.json')); const cases = { ...allCases, originalSix: [], observer: allCases.observer.slice(31) };");
+replace("[...frozenFiles, 'CAPTURE-01.json', 'RECEIPT-01.json']", "[...initialNames, 'CAPTURE-01.json', 'RECEIPT-01.json']");
+replace('CAPTURE-01.json', 'CAPTURE-02.json', 2);
+replace('RECEIPT-01.json', 'RECEIPT-02.json', 3);
+replace("const frozenFiles =", `const correctionFreeze = ${JSON.stringify(correctionFreeze)}; const carried = ${JSON.stringify(carried)}; const initialNames = carried.map(item => item.name).sort();\nconst frozenFiles =`);
+replace('assert.deepEqual(listHost(owned).sort(), frozenFiles);', 'assert.deepEqual(listHost(owned).sort(), initialNames);', 2);
+replace('function integrity() {', 'function integrity() { for (const item of carried) { assert.equal(digest(readHost(path.join(owned, item.name))), item.sha256); assert.equal(statHost(path.join(owned, item.name)).mode & 0o7777, 0o644); }');
+replace("const capture = { schema:", "const capture = { correctionFreeze, effectiveHarnessSha256: process.env.EFFECTIVE_REVIEW_HASH, carried, schema:");
+replace('const receipt = { freeze,', 'const receipt = { correctionFreeze, freeze,');
+process.env.EFFECTIVE_REVIEW_HASH = hash(source);
+await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));

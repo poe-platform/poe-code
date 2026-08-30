@@ -1,0 +1,4615 @@
+{
+  "schema": 1,
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "sourceAuthority": "selected-origin-projection271",
+  "baseCompilerOptions": {
+    "target": "ES2023",
+    "lib": [
+      "ES2023"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ]
+  },
+  "buildCompilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "strictConsumerSkipLibCheck": false,
+  "sourceFiles": [
+    "src/commands/archive/create.ts",
+    "src/commands/archive/extract.ts",
+    "src/commands/archive/format.ts",
+    "src/commands/archive/index.ts",
+    "src/commands/archive/internal.ts",
+    "src/commands/archive/options.ts",
+    "src/commands/archive/stream.ts",
+    "src/commands/basic.ts",
+    "src/commands/bytes/checksums/index.ts",
+    "src/commands/bytes/compression/files.ts",
+    "src/commands/bytes/compression/gunzip.ts",
+    "src/commands/bytes/compression/index.ts",
+    "src/commands/bytes/compression/options.ts",
+    "src/commands/bytes/compression/stream.ts",
+    "src/commands/bytes/encoding/base.ts",
+    "src/commands/bytes/encoding/index.ts",
+    "src/commands/bytes/encoding/od.ts",
+    "src/commands/bytes/encoding/shared.ts",
+    "src/commands/bytes/encoding/xxd.ts",
+    "src/commands/bytes/index.ts",
+    "src/commands/column/column.ts",
+    "src/commands/column/display.ts",
+    "src/commands/column/index.ts",
+    "src/commands/column/internal.ts",
+    "src/commands/column/options.ts",
+    "src/commands/column/table.ts",
+    "src/commands/copy-identity.ts",
+    "src/commands/diff-patch/diff-format.ts",
+    "src/commands/diff-patch/diff.ts",
+    "src/commands/diff-patch/index.ts",
+    "src/commands/diff-patch/patch-envelope.ts",
+    "src/commands/diff-patch/patch-formats.ts",
+    "src/commands/diff-patch/patch-gnu-paths.ts",
+    "src/commands/diff-patch/patch-gnu-reject.ts",
+    "src/commands/diff-patch/patch-path.ts",
+    "src/commands/diff-patch/patch.ts",
+    "src/commands/diff-patch/shared.ts",
+    "src/commands/diff-patch/unified.ts",
+    "src/commands/du/arguments.ts",
+    "src/commands/du/budget.ts",
+    "src/commands/du/du.ts",
+    "src/commands/du/format.ts",
+    "src/commands/du/index.ts",
+    "src/commands/du/options.ts",
+    "src/commands/env-split.ts",
+    "src/commands/execution.ts",
+    "src/commands/expr/bre-worker.ts",
+    "src/commands/expr/evaluate.ts",
+    "src/commands/expr/index.ts",
+    "src/commands/expr/internal.ts",
+    "src/commands/expr/syntax.ts",
+    "src/commands/file/classify.ts",
+    "src/commands/file/index.ts",
+    "src/commands/file/shared.ts",
+    "src/commands/filesystem.ts",
+    "src/commands/find.ts",
+    "src/commands/grep-aliases/index.ts",
+    "src/commands/grep.ts",
+    "src/commands/html-to-markdown/budget.ts",
+    "src/commands/html-to-markdown/entities.ts",
+    "src/commands/html-to-markdown/index.ts",
+    "src/commands/html-to-markdown/input.ts",
+    "src/commands/html-to-markdown/options.ts",
+    "src/commands/html-to-markdown/parser.ts",
+    "src/commands/html-to-markdown/render.ts",
+    "src/commands/html-to-markdown/text.ts",
+    "src/commands/index.ts",
+    "src/commands/internal.ts",
+    "src/commands/metadata/chmod.ts",
+    "src/commands/metadata/index.ts",
+    "src/commands/metadata/internal.ts",
+    "src/commands/metadata/mktemp.ts",
+    "src/commands/metadata/stat.ts",
+    "src/commands/move.ts",
+    "src/commands/network/args.ts",
+    "src/commands/network/body.ts",
+    "src/commands/network/curl.ts",
+    "src/commands/network/index.ts",
+    "src/commands/network/output.ts",
+    "src/commands/network/shared.ts",
+    "src/commands/network/transport.ts",
+    "src/commands/network/types.ts",
+    "src/commands/predicates.ts",
+    "src/commands/regex-execution/client.ts",
+    "src/commands/regex-execution/matching.ts",
+    "src/commands/regex-execution/protocol.ts",
+    "src/commands/regex-execution/worker.ts",
+    "src/commands/safejs/index.ts",
+    "src/commands/safejs/io.ts",
+    "src/commands/safejs/options.ts",
+    "src/commands/safejs/render.ts",
+    "src/commands/safejs/types.ts",
+    "src/commands/search/glob.ts",
+    "src/commands/search/index.ts",
+    "src/commands/search/matcher.ts",
+    "src/commands/search/options.ts",
+    "src/commands/search/output.ts",
+    "src/commands/search/rg.ts",
+    "src/commands/search/shared.ts",
+    "src/commands/search/walk.ts",
+    "src/commands/split/index.ts",
+    "src/commands/split/io.ts",
+    "src/commands/split/names.ts",
+    "src/commands/split/options.ts",
+    "src/commands/split/outputs.ts",
+    "src/commands/split/split.ts",
+    "src/commands/stream-format/index.ts",
+    "src/commands/stream-format/nl.ts",
+    "src/commands/stream-format/rev.ts",
+    "src/commands/stream-format/seq.ts",
+    "src/commands/stream-format/shared.ts",
+    "src/commands/stream-format/unexpand.ts",
+    "src/commands/stream-inspection/expand.ts",
+    "src/commands/stream-inspection/fold.ts",
+    "src/commands/stream-inspection/index.ts",
+    "src/commands/stream-inspection/numeric-options.ts",
+    "src/commands/stream-inspection/shared.ts",
+    "src/commands/stream-inspection/strings.ts",
+    "src/commands/stream-inspection/tac.ts",
+    "src/commands/streams.ts",
+    "src/commands/structured/index.ts",
+    "src/commands/structured/input.ts",
+    "src/commands/structured/interpreter.ts",
+    "src/commands/structured/jq.ts",
+    "src/commands/structured/limits.ts",
+    "src/commands/structured/numbers.ts",
+    "src/commands/structured/parser.ts",
+    "src/commands/structured/query-core.ts",
+    "src/commands/structured/split.ts",
+    "src/commands/structured/values.ts",
+    "src/commands/table-text/comm.ts",
+    "src/commands/table-text/index.ts",
+    "src/commands/table-text/internal.ts",
+    "src/commands/table-text/join.ts",
+    "src/commands/table-text/paste.ts",
+    "src/commands/text-programs/awk-runtime.ts",
+    "src/commands/text-programs/awk-syntax.ts",
+    "src/commands/text-programs/awk-values.ts",
+    "src/commands/text-programs/awk.ts",
+    "src/commands/text-programs/index.ts",
+    "src/commands/text-programs/regex.ts",
+    "src/commands/text-programs/sed.ts",
+    "src/commands/text-programs/shared.ts",
+    "src/commands/text.ts",
+    "src/commands/time-env/calendar.ts",
+    "src/commands/time-env/date.ts",
+    "src/commands/time-env/format.ts",
+    "src/commands/time-env/index.ts",
+    "src/commands/time-env/printenv.ts",
+    "src/commands/time-env/shared.ts",
+    "src/commands/time-env/sleep.ts",
+    "src/commands/tree/arguments.ts",
+    "src/commands/tree/charset.ts",
+    "src/commands/tree/index.ts",
+    "src/commands/tree/io.ts",
+    "src/commands/tree/options.ts",
+    "src/commands/tree/pattern.ts",
+    "src/commands/tree/tree.ts",
+    "src/commands/which/index.ts",
+    "src/commands/which/options.ts",
+    "src/commands/which/which.ts",
+    "src/commands/yq/accounting.ts",
+    "src/commands/yq/encoder.ts",
+    "src/commands/yq/errors.ts",
+    "src/commands/yq/index.ts",
+    "src/commands/yq/parser.ts",
+    "src/contracts/command.ts",
+    "src/contracts/errors.ts",
+    "src/contracts/filesystem.ts",
+    "src/contracts/index.ts",
+    "src/contracts/io.ts",
+    "src/contracts/output.ts",
+    "src/contracts/path.ts",
+    "src/contracts/plugin.ts",
+    "src/fs/memory/index.ts",
+    "src/fs/mount/comparison.ts",
+    "src/fs/mount/identity.ts",
+    "src/fs/mount/index.ts",
+    "src/fs/overlay/index.ts",
+    "src/fs/readonly/index.ts",
+    "src/fs/real/allocation.ts",
+    "src/fs/real/index.ts",
+    "src/fs/s3/authority.ts",
+    "src/fs/s3/filesystem.ts",
+    "src/fs/s3/http/index.ts",
+    "src/fs/s3/http/request.ts",
+    "src/fs/s3/http/signature.ts",
+    "src/fs/s3/http/transport.ts",
+    "src/fs/s3/http/types.ts",
+    "src/fs/s3/http/xml.ts",
+    "src/fs/s3/index.ts",
+    "src/fs/s3/mock.ts",
+    "src/fs/s3/transport.ts",
+    "src/fs/webdav/index.ts",
+    "src/fs/webdav/resource-id.ts",
+    "src/fs/webdav/webdav.ts",
+    "src/fs/webdav/xml.ts",
+    "src/index.ts",
+    "src/integrations/safejs/filesystem.ts",
+    "src/integrations/safejs/index.ts",
+    "src/integrations/safejs/shell.ts",
+    "src/integrations/safejs/stats.ts",
+    "src/integrations/safejs/values.ts",
+    "src/plugins/index.ts",
+    "src/shell/arithmetic.ts",
+    "src/shell/cancellation.ts",
+    "src/shell/cleanup.ts",
+    "src/shell/display.ts",
+    "src/shell/getopts.ts",
+    "src/shell/index.ts",
+    "src/shell/input.ts",
+    "src/shell/locale.ts",
+    "src/shell/parser.ts",
+    "src/shell/pattern.ts",
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts",
+    "src/shell/types.ts"
+  ],
+  "expectedOutputPaths": [
+    "dist/commands/archive/create.d.ts",
+    "dist/commands/archive/create.d.ts.map",
+    "dist/commands/archive/create.js",
+    "dist/commands/archive/create.js.map",
+    "dist/commands/archive/extract.d.ts",
+    "dist/commands/archive/extract.d.ts.map",
+    "dist/commands/archive/extract.js",
+    "dist/commands/archive/extract.js.map",
+    "dist/commands/archive/format.d.ts",
+    "dist/commands/archive/format.d.ts.map",
+    "dist/commands/archive/format.js",
+    "dist/commands/archive/format.js.map",
+    "dist/commands/archive/index.d.ts",
+    "dist/commands/archive/index.d.ts.map",
+    "dist/commands/archive/index.js",
+    "dist/commands/archive/index.js.map",
+    "dist/commands/archive/internal.d.ts",
+    "dist/commands/archive/internal.d.ts.map",
+    "dist/commands/archive/internal.js",
+    "dist/commands/archive/internal.js.map",
+    "dist/commands/archive/options.d.ts",
+    "dist/commands/archive/options.d.ts.map",
+    "dist/commands/archive/options.js",
+    "dist/commands/archive/options.js.map",
+    "dist/commands/archive/stream.d.ts",
+    "dist/commands/archive/stream.d.ts.map",
+    "dist/commands/archive/stream.js",
+    "dist/commands/archive/stream.js.map",
+    "dist/commands/basic.d.ts",
+    "dist/commands/basic.d.ts.map",
+    "dist/commands/basic.js",
+    "dist/commands/basic.js.map",
+    "dist/commands/bytes/checksums/index.d.ts",
+    "dist/commands/bytes/checksums/index.d.ts.map",
+    "dist/commands/bytes/checksums/index.js",
+    "dist/commands/bytes/checksums/index.js.map",
+    "dist/commands/bytes/compression/files.d.ts",
+    "dist/commands/bytes/compression/files.d.ts.map",
+    "dist/commands/bytes/compression/files.js",
+    "dist/commands/bytes/compression/files.js.map",
+    "dist/commands/bytes/compression/gunzip.d.ts",
+    "dist/commands/bytes/compression/gunzip.d.ts.map",
+    "dist/commands/bytes/compression/gunzip.js",
+    "dist/commands/bytes/compression/gunzip.js.map",
+    "dist/commands/bytes/compression/index.d.ts",
+    "dist/commands/bytes/compression/index.d.ts.map",
+    "dist/commands/bytes/compression/index.js",
+    "dist/commands/bytes/compression/index.js.map",
+    "dist/commands/bytes/compression/options.d.ts",
+    "dist/commands/bytes/compression/options.d.ts.map",
+    "dist/commands/bytes/compression/options.js",
+    "dist/commands/bytes/compression/options.js.map",
+    "dist/commands/bytes/compression/stream.d.ts",
+    "dist/commands/bytes/compression/stream.d.ts.map",
+    "dist/commands/bytes/compression/stream.js",
+    "dist/commands/bytes/compression/stream.js.map",
+    "dist/commands/bytes/encoding/base.d.ts",
+    "dist/commands/bytes/encoding/base.d.ts.map",
+    "dist/commands/bytes/encoding/base.js",
+    "dist/commands/bytes/encoding/base.js.map",
+    "dist/commands/bytes/encoding/index.d.ts",
+    "dist/commands/bytes/encoding/index.d.ts.map",
+    "dist/commands/bytes/encoding/index.js",
+    "dist/commands/bytes/encoding/index.js.map",
+    "dist/commands/bytes/encoding/od.d.ts",
+    "dist/commands/bytes/encoding/od.d.ts.map",
+    "dist/commands/bytes/encoding/od.js",
+    "dist/commands/bytes/encoding/od.js.map",
+    "dist/commands/bytes/encoding/shared.d.ts",
+    "dist/commands/bytes/encoding/shared.d.ts.map",
+    "dist/commands/bytes/encoding/shared.js",
+    "dist/commands/bytes/encoding/shared.js.map",
+    "dist/commands/bytes/encoding/xxd.d.ts",
+    "dist/commands/bytes/encoding/xxd.d.ts.map",
+    "dist/commands/bytes/encoding/xxd.js",
+    "dist/commands/bytes/encoding/xxd.js.map",
+    "dist/commands/bytes/index.d.ts",
+    "dist/commands/bytes/index.d.ts.map",
+    "dist/commands/bytes/index.js",
+    "dist/commands/bytes/index.js.map",
+    "dist/commands/column/column.d.ts",
+    "dist/commands/column/column.d.ts.map",
+    "dist/commands/column/column.js",
+    "dist/commands/column/column.js.map",
+    "dist/commands/column/display.d.ts",
+    "dist/commands/column/display.d.ts.map",
+    "dist/commands/column/display.js",
+    "dist/commands/column/display.js.map",
+    "dist/commands/column/index.d.ts",
+    "dist/commands/column/index.d.ts.map",
+    "dist/commands/column/index.js",
+    "dist/commands/column/index.js.map",
+    "dist/commands/column/internal.d.ts",
+    "dist/commands/column/internal.d.ts.map",
+    "dist/commands/column/internal.js",
+    "dist/commands/column/internal.js.map",
+    "dist/commands/column/options.d.ts",
+    "dist/commands/column/options.d.ts.map",
+    "dist/commands/column/options.js",
+    "dist/commands/column/options.js.map",
+    "dist/commands/column/table.d.ts",
+    "dist/commands/column/table.d.ts.map",
+    "dist/commands/column/table.js",
+    "dist/commands/column/table.js.map",
+    "dist/commands/copy-identity.d.ts",
+    "dist/commands/copy-identity.d.ts.map",
+    "dist/commands/copy-identity.js",
+    "dist/commands/copy-identity.js.map",
+    "dist/commands/diff-patch/diff-format.d.ts",
+    "dist/commands/diff-patch/diff-format.d.ts.map",
+    "dist/commands/diff-patch/diff-format.js",
+    "dist/commands/diff-patch/diff-format.js.map",
+    "dist/commands/diff-patch/diff.d.ts",
+    "dist/commands/diff-patch/diff.d.ts.map",
+    "dist/commands/diff-patch/diff.js",
+    "dist/commands/diff-patch/diff.js.map",
+    "dist/commands/diff-patch/index.d.ts",
+    "dist/commands/diff-patch/index.d.ts.map",
+    "dist/commands/diff-patch/index.js",
+    "dist/commands/diff-patch/index.js.map",
+    "dist/commands/diff-patch/patch-envelope.d.ts",
+    "dist/commands/diff-patch/patch-envelope.d.ts.map",
+    "dist/commands/diff-patch/patch-envelope.js",
+    "dist/commands/diff-patch/patch-envelope.js.map",
+    "dist/commands/diff-patch/patch-formats.d.ts",
+    "dist/commands/diff-patch/patch-formats.d.ts.map",
+    "dist/commands/diff-patch/patch-formats.js",
+    "dist/commands/diff-patch/patch-formats.js.map",
+    "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+    "dist/commands/diff-patch/patch-gnu-paths.d.ts.map",
+    "dist/commands/diff-patch/patch-gnu-paths.js",
+    "dist/commands/diff-patch/patch-gnu-paths.js.map",
+    "dist/commands/diff-patch/patch-gnu-reject.d.ts",
+    "dist/commands/diff-patch/patch-gnu-reject.d.ts.map",
+    "dist/commands/diff-patch/patch-gnu-reject.js",
+    "dist/commands/diff-patch/patch-gnu-reject.js.map",
+    "dist/commands/diff-patch/patch-path.d.ts",
+    "dist/commands/diff-patch/patch-path.d.ts.map",
+    "dist/commands/diff-patch/patch-path.js",
+    "dist/commands/diff-patch/patch-path.js.map",
+    "dist/commands/diff-patch/patch.d.ts",
+    "dist/commands/diff-patch/patch.d.ts.map",
+    "dist/commands/diff-patch/patch.js",
+    "dist/commands/diff-patch/patch.js.map",
+    "dist/commands/diff-patch/shared.d.ts",
+    "dist/commands/diff-patch/shared.d.ts.map",
+    "dist/commands/diff-patch/shared.js",
+    "dist/commands/diff-patch/shared.js.map",
+    "dist/commands/diff-patch/unified.d.ts",
+    "dist/commands/diff-patch/unified.d.ts.map",
+    "dist/commands/diff-patch/unified.js",
+    "dist/commands/diff-patch/unified.js.map",
+    "dist/commands/du/arguments.d.ts",
+    "dist/commands/du/arguments.d.ts.map",
+    "dist/commands/du/arguments.js",
+    "dist/commands/du/arguments.js.map",
+    "dist/commands/du/budget.d.ts",
+    "dist/commands/du/budget.d.ts.map",
+    "dist/commands/du/budget.js",
+    "dist/commands/du/budget.js.map",
+    "dist/commands/du/du.d.ts",
+    "dist/commands/du/du.d.ts.map",
+    "dist/commands/du/du.js",
+    "dist/commands/du/du.js.map",
+    "dist/commands/du/format.d.ts",
+    "dist/commands/du/format.d.ts.map",
+    "dist/commands/du/format.js",
+    "dist/commands/du/format.js.map",
+    "dist/commands/du/index.d.ts",
+    "dist/commands/du/index.d.ts.map",
+    "dist/commands/du/index.js",
+    "dist/commands/du/index.js.map",
+    "dist/commands/du/options.d.ts",
+    "dist/commands/du/options.d.ts.map",
+    "dist/commands/du/options.js",
+    "dist/commands/du/options.js.map",
+    "dist/commands/env-split.d.ts",
+    "dist/commands/env-split.d.ts.map",
+    "dist/commands/env-split.js",
+    "dist/commands/env-split.js.map",
+    "dist/commands/execution.d.ts",
+    "dist/commands/execution.d.ts.map",
+    "dist/commands/execution.js",
+    "dist/commands/execution.js.map",
+    "dist/commands/expr/bre-worker.d.ts",
+    "dist/commands/expr/bre-worker.d.ts.map",
+    "dist/commands/expr/bre-worker.js",
+    "dist/commands/expr/bre-worker.js.map",
+    "dist/commands/expr/evaluate.d.ts",
+    "dist/commands/expr/evaluate.d.ts.map",
+    "dist/commands/expr/evaluate.js",
+    "dist/commands/expr/evaluate.js.map",
+    "dist/commands/expr/index.d.ts",
+    "dist/commands/expr/index.d.ts.map",
+    "dist/commands/expr/index.js",
+    "dist/commands/expr/index.js.map",
+    "dist/commands/expr/internal.d.ts",
+    "dist/commands/expr/internal.d.ts.map",
+    "dist/commands/expr/internal.js",
+    "dist/commands/expr/internal.js.map",
+    "dist/commands/expr/syntax.d.ts",
+    "dist/commands/expr/syntax.d.ts.map",
+    "dist/commands/expr/syntax.js",
+    "dist/commands/expr/syntax.js.map",
+    "dist/commands/file/classify.d.ts",
+    "dist/commands/file/classify.d.ts.map",
+    "dist/commands/file/classify.js",
+    "dist/commands/file/classify.js.map",
+    "dist/commands/file/index.d.ts",
+    "dist/commands/file/index.d.ts.map",
+    "dist/commands/file/index.js",
+    "dist/commands/file/index.js.map",
+    "dist/commands/file/shared.d.ts",
+    "dist/commands/file/shared.d.ts.map",
+    "dist/commands/file/shared.js",
+    "dist/commands/file/shared.js.map",
+    "dist/commands/filesystem.d.ts",
+    "dist/commands/filesystem.d.ts.map",
+    "dist/commands/filesystem.js",
+    "dist/commands/filesystem.js.map",
+    "dist/commands/find.d.ts",
+    "dist/commands/find.d.ts.map",
+    "dist/commands/find.js",
+    "dist/commands/find.js.map",
+    "dist/commands/grep-aliases/index.d.ts",
+    "dist/commands/grep-aliases/index.d.ts.map",
+    "dist/commands/grep-aliases/index.js",
+    "dist/commands/grep-aliases/index.js.map",
+    "dist/commands/grep.d.ts",
+    "dist/commands/grep.d.ts.map",
+    "dist/commands/grep.js",
+    "dist/commands/grep.js.map",
+    "dist/commands/html-to-markdown/budget.d.ts",
+    "dist/commands/html-to-markdown/budget.d.ts.map",
+    "dist/commands/html-to-markdown/budget.js",
+    "dist/commands/html-to-markdown/budget.js.map",
+    "dist/commands/html-to-markdown/entities.d.ts",
+    "dist/commands/html-to-markdown/entities.d.ts.map",
+    "dist/commands/html-to-markdown/entities.js",
+    "dist/commands/html-to-markdown/entities.js.map",
+    "dist/commands/html-to-markdown/index.d.ts",
+    "dist/commands/html-to-markdown/index.d.ts.map",
+    "dist/commands/html-to-markdown/index.js",
+    "dist/commands/html-to-markdown/index.js.map",
+    "dist/commands/html-to-markdown/input.d.ts",
+    "dist/commands/html-to-markdown/input.d.ts.map",
+    "dist/commands/html-to-markdown/input.js",
+    "dist/commands/html-to-markdown/input.js.map",
+    "dist/commands/html-to-markdown/options.d.ts",
+    "dist/commands/html-to-markdown/options.d.ts.map",
+    "dist/commands/html-to-markdown/options.js",
+    "dist/commands/html-to-markdown/options.js.map",
+    "dist/commands/html-to-markdown/parser.d.ts",
+    "dist/commands/html-to-markdown/parser.d.ts.map",
+    "dist/commands/html-to-markdown/parser.js",
+    "dist/commands/html-to-markdown/parser.js.map",
+    "dist/commands/html-to-markdown/render.d.ts",
+    "dist/commands/html-to-markdown/render.d.ts.map",
+    "dist/commands/html-to-markdown/render.js",
+    "dist/commands/html-to-markdown/render.js.map",
+    "dist/commands/html-to-markdown/text.d.ts",
+    "dist/commands/html-to-markdown/text.d.ts.map",
+    "dist/commands/html-to-markdown/text.js",
+    "dist/commands/html-to-markdown/text.js.map",
+    "dist/commands/index.d.ts",
+    "dist/commands/index.d.ts.map",
+    "dist/commands/index.js",
+    "dist/commands/index.js.map",
+    "dist/commands/internal.d.ts",
+    "dist/commands/internal.d.ts.map",
+    "dist/commands/internal.js",
+    "dist/commands/internal.js.map",
+    "dist/commands/metadata/chmod.d.ts",
+    "dist/commands/metadata/chmod.d.ts.map",
+    "dist/commands/metadata/chmod.js",
+    "dist/commands/metadata/chmod.js.map",
+    "dist/commands/metadata/index.d.ts",
+    "dist/commands/metadata/index.d.ts.map",
+    "dist/commands/metadata/index.js",
+    "dist/commands/metadata/index.js.map",
+    "dist/commands/metadata/internal.d.ts",
+    "dist/commands/metadata/internal.d.ts.map",
+    "dist/commands/metadata/internal.js",
+    "dist/commands/metadata/internal.js.map",
+    "dist/commands/metadata/mktemp.d.ts",
+    "dist/commands/metadata/mktemp.d.ts.map",
+    "dist/commands/metadata/mktemp.js",
+    "dist/commands/metadata/mktemp.js.map",
+    "dist/commands/metadata/stat.d.ts",
+    "dist/commands/metadata/stat.d.ts.map",
+    "dist/commands/metadata/stat.js",
+    "dist/commands/metadata/stat.js.map",
+    "dist/commands/move.d.ts",
+    "dist/commands/move.d.ts.map",
+    "dist/commands/move.js",
+    "dist/commands/move.js.map",
+    "dist/commands/network/args.d.ts",
+    "dist/commands/network/args.d.ts.map",
+    "dist/commands/network/args.js",
+    "dist/commands/network/args.js.map",
+    "dist/commands/network/body.d.ts",
+    "dist/commands/network/body.d.ts.map",
+    "dist/commands/network/body.js",
+    "dist/commands/network/body.js.map",
+    "dist/commands/network/curl.d.ts",
+    "dist/commands/network/curl.d.ts.map",
+    "dist/commands/network/curl.js",
+    "dist/commands/network/curl.js.map",
+    "dist/commands/network/index.d.ts",
+    "dist/commands/network/index.d.ts.map",
+    "dist/commands/network/index.js",
+    "dist/commands/network/index.js.map",
+    "dist/commands/network/output.d.ts",
+    "dist/commands/network/output.d.ts.map",
+    "dist/commands/network/output.js",
+    "dist/commands/network/output.js.map",
+    "dist/commands/network/shared.d.ts",
+    "dist/commands/network/shared.d.ts.map",
+    "dist/commands/network/shared.js",
+    "dist/commands/network/shared.js.map",
+    "dist/commands/network/transport.d.ts",
+    "dist/commands/network/transport.d.ts.map",
+    "dist/commands/network/transport.js",
+    "dist/commands/network/transport.js.map",
+    "dist/commands/network/types.d.ts",
+    "dist/commands/network/types.d.ts.map",
+    "dist/commands/network/types.js",
+    "dist/commands/network/types.js.map",
+    "dist/commands/predicates.d.ts",
+    "dist/commands/predicates.d.ts.map",
+    "dist/commands/predicates.js",
+    "dist/commands/predicates.js.map",
+    "dist/commands/regex-execution/client.d.ts",
+    "dist/commands/regex-execution/client.d.ts.map",
+    "dist/commands/regex-execution/client.js",
+    "dist/commands/regex-execution/client.js.map",
+    "dist/commands/regex-execution/matching.d.ts",
+    "dist/commands/regex-execution/matching.d.ts.map",
+    "dist/commands/regex-execution/matching.js",
+    "dist/commands/regex-execution/matching.js.map",
+    "dist/commands/regex-execution/protocol.d.ts",
+    "dist/commands/regex-execution/protocol.d.ts.map",
+    "dist/commands/regex-execution/protocol.js",
+    "dist/commands/regex-execution/protocol.js.map",
+    "dist/commands/regex-execution/worker.d.ts",
+    "dist/commands/regex-execution/worker.d.ts.map",
+    "dist/commands/regex-execution/worker.js",
+    "dist/commands/regex-execution/worker.js.map",
+    "dist/commands/safejs/index.d.ts",
+    "dist/commands/safejs/index.d.ts.map",
+    "dist/commands/safejs/index.js",
+    "dist/commands/safejs/index.js.map",
+    "dist/commands/safejs/io.d.ts",
+    "dist/commands/safejs/io.d.ts.map",
+    "dist/commands/safejs/io.js",
+    "dist/commands/safejs/io.js.map",
+    "dist/commands/safejs/options.d.ts",
+    "dist/commands/safejs/options.d.ts.map",
+    "dist/commands/safejs/options.js",
+    "dist/commands/safejs/options.js.map",
+    "dist/commands/safejs/render.d.ts",
+    "dist/commands/safejs/render.d.ts.map",
+    "dist/commands/safejs/render.js",
+    "dist/commands/safejs/render.js.map",
+    "dist/commands/safejs/types.d.ts",
+    "dist/commands/safejs/types.d.ts.map",
+    "dist/commands/safejs/types.js",
+    "dist/commands/safejs/types.js.map",
+    "dist/commands/search/glob.d.ts",
+    "dist/commands/search/glob.d.ts.map",
+    "dist/commands/search/glob.js",
+    "dist/commands/search/glob.js.map",
+    "dist/commands/search/index.d.ts",
+    "dist/commands/search/index.d.ts.map",
+    "dist/commands/search/index.js",
+    "dist/commands/search/index.js.map",
+    "dist/commands/search/matcher.d.ts",
+    "dist/commands/search/matcher.d.ts.map",
+    "dist/commands/search/matcher.js",
+    "dist/commands/search/matcher.js.map",
+    "dist/commands/search/options.d.ts",
+    "dist/commands/search/options.d.ts.map",
+    "dist/commands/search/options.js",
+    "dist/commands/search/options.js.map",
+    "dist/commands/search/output.d.ts",
+    "dist/commands/search/output.d.ts.map",
+    "dist/commands/search/output.js",
+    "dist/commands/search/output.js.map",
+    "dist/commands/search/rg.d.ts",
+    "dist/commands/search/rg.d.ts.map",
+    "dist/commands/search/rg.js",
+    "dist/commands/search/rg.js.map",
+    "dist/commands/search/shared.d.ts",
+    "dist/commands/search/shared.d.ts.map",
+    "dist/commands/search/shared.js",
+    "dist/commands/search/shared.js.map",
+    "dist/commands/search/walk.d.ts",
+    "dist/commands/search/walk.d.ts.map",
+    "dist/commands/search/walk.js",
+    "dist/commands/search/walk.js.map",
+    "dist/commands/split/index.d.ts",
+    "dist/commands/split/index.d.ts.map",
+    "dist/commands/split/index.js",
+    "dist/commands/split/index.js.map",
+    "dist/commands/split/io.d.ts",
+    "dist/commands/split/io.d.ts.map",
+    "dist/commands/split/io.js",
+    "dist/commands/split/io.js.map",
+    "dist/commands/split/names.d.ts",
+    "dist/commands/split/names.d.ts.map",
+    "dist/commands/split/names.js",
+    "dist/commands/split/names.js.map",
+    "dist/commands/split/options.d.ts",
+    "dist/commands/split/options.d.ts.map",
+    "dist/commands/split/options.js",
+    "dist/commands/split/options.js.map",
+    "dist/commands/split/outputs.d.ts",
+    "dist/commands/split/outputs.d.ts.map",
+    "dist/commands/split/outputs.js",
+    "dist/commands/split/outputs.js.map",
+    "dist/commands/split/split.d.ts",
+    "dist/commands/split/split.d.ts.map",
+    "dist/commands/split/split.js",
+    "dist/commands/split/split.js.map",
+    "dist/commands/stream-format/index.d.ts",
+    "dist/commands/stream-format/index.d.ts.map",
+    "dist/commands/stream-format/index.js",
+    "dist/commands/stream-format/index.js.map",
+    "dist/commands/stream-format/nl.d.ts",
+    "dist/commands/stream-format/nl.d.ts.map",
+    "dist/commands/stream-format/nl.js",
+    "dist/commands/stream-format/nl.js.map",
+    "dist/commands/stream-format/rev.d.ts",
+    "dist/commands/stream-format/rev.d.ts.map",
+    "dist/commands/stream-format/rev.js",
+    "dist/commands/stream-format/rev.js.map",
+    "dist/commands/stream-format/seq.d.ts",
+    "dist/commands/stream-format/seq.d.ts.map",
+    "dist/commands/stream-format/seq.js",
+    "dist/commands/stream-format/seq.js.map",
+    "dist/commands/stream-format/shared.d.ts",
+    "dist/commands/stream-format/shared.d.ts.map",
+    "dist/commands/stream-format/shared.js",
+    "dist/commands/stream-format/shared.js.map",
+    "dist/commands/stream-format/unexpand.d.ts",
+    "dist/commands/stream-format/unexpand.d.ts.map",
+    "dist/commands/stream-format/unexpand.js",
+    "dist/commands/stream-format/unexpand.js.map",
+    "dist/commands/stream-inspection/expand.d.ts",
+    "dist/commands/stream-inspection/expand.d.ts.map",
+    "dist/commands/stream-inspection/expand.js",
+    "dist/commands/stream-inspection/expand.js.map",
+    "dist/commands/stream-inspection/fold.d.ts",
+    "dist/commands/stream-inspection/fold.d.ts.map",
+    "dist/commands/stream-inspection/fold.js",
+    "dist/commands/stream-inspection/fold.js.map",
+    "dist/commands/stream-inspection/index.d.ts",
+    "dist/commands/stream-inspection/index.d.ts.map",
+    "dist/commands/stream-inspection/index.js",
+    "dist/commands/stream-inspection/index.js.map",
+    "dist/commands/stream-inspection/numeric-options.d.ts",
+    "dist/commands/stream-inspection/numeric-options.d.ts.map",
+    "dist/commands/stream-inspection/numeric-options.js",
+    "dist/commands/stream-inspection/numeric-options.js.map",
+    "dist/commands/stream-inspection/shared.d.ts",
+    "dist/commands/stream-inspection/shared.d.ts.map",
+    "dist/commands/stream-inspection/shared.js",
+    "dist/commands/stream-inspection/shared.js.map",
+    "dist/commands/stream-inspection/strings.d.ts",
+    "dist/commands/stream-inspection/strings.d.ts.map",
+    "dist/commands/stream-inspection/strings.js",
+    "dist/commands/stream-inspection/strings.js.map",
+    "dist/commands/stream-inspection/tac.d.ts",
+    "dist/commands/stream-inspection/tac.d.ts.map",
+    "dist/commands/stream-inspection/tac.js",
+    "dist/commands/stream-inspection/tac.js.map",
+    "dist/commands/streams.d.ts",
+    "dist/commands/streams.d.ts.map",
+    "dist/commands/streams.js",
+    "dist/commands/streams.js.map",
+    "dist/commands/structured/index.d.ts",
+    "dist/commands/structured/index.d.ts.map",
+    "dist/commands/structured/index.js",
+    "dist/commands/structured/index.js.map",
+    "dist/commands/structured/input.d.ts",
+    "dist/commands/structured/input.d.ts.map",
+    "dist/commands/structured/input.js",
+    "dist/commands/structured/input.js.map",
+    "dist/commands/structured/interpreter.d.ts",
+    "dist/commands/structured/interpreter.d.ts.map",
+    "dist/commands/structured/interpreter.js",
+    "dist/commands/structured/interpreter.js.map",
+    "dist/commands/structured/jq.d.ts",
+    "dist/commands/structured/jq.d.ts.map",
+    "dist/commands/structured/jq.js",
+    "dist/commands/structured/jq.js.map",
+    "dist/commands/structured/limits.d.ts",
+    "dist/commands/structured/limits.d.ts.map",
+    "dist/commands/structured/limits.js",
+    "dist/commands/structured/limits.js.map",
+    "dist/commands/structured/numbers.d.ts",
+    "dist/commands/structured/numbers.d.ts.map",
+    "dist/commands/structured/numbers.js",
+    "dist/commands/structured/numbers.js.map",
+    "dist/commands/structured/parser.d.ts",
+    "dist/commands/structured/parser.d.ts.map",
+    "dist/commands/structured/parser.js",
+    "dist/commands/structured/parser.js.map",
+    "dist/commands/structured/query-core.d.ts",
+    "dist/commands/structured/query-core.d.ts.map",
+    "dist/commands/structured/query-core.js",
+    "dist/commands/structured/query-core.js.map",
+    "dist/commands/structured/split.d.ts",
+    "dist/commands/structured/split.d.ts.map",
+    "dist/commands/structured/split.js",
+    "dist/commands/structured/split.js.map",
+    "dist/commands/structured/values.d.ts",
+    "dist/commands/structured/values.d.ts.map",
+    "dist/commands/structured/values.js",
+    "dist/commands/structured/values.js.map",
+    "dist/commands/table-text/comm.d.ts",
+    "dist/commands/table-text/comm.d.ts.map",
+    "dist/commands/table-text/comm.js",
+    "dist/commands/table-text/comm.js.map",
+    "dist/commands/table-text/index.d.ts",
+    "dist/commands/table-text/index.d.ts.map",
+    "dist/commands/table-text/index.js",
+    "dist/commands/table-text/index.js.map",
+    "dist/commands/table-text/internal.d.ts",
+    "dist/commands/table-text/internal.d.ts.map",
+    "dist/commands/table-text/internal.js",
+    "dist/commands/table-text/internal.js.map",
+    "dist/commands/table-text/join.d.ts",
+    "dist/commands/table-text/join.d.ts.map",
+    "dist/commands/table-text/join.js",
+    "dist/commands/table-text/join.js.map",
+    "dist/commands/table-text/paste.d.ts",
+    "dist/commands/table-text/paste.d.ts.map",
+    "dist/commands/table-text/paste.js",
+    "dist/commands/table-text/paste.js.map",
+    "dist/commands/text-programs/awk-runtime.d.ts",
+    "dist/commands/text-programs/awk-runtime.d.ts.map",
+    "dist/commands/text-programs/awk-runtime.js",
+    "dist/commands/text-programs/awk-runtime.js.map",
+    "dist/commands/text-programs/awk-syntax.d.ts",
+    "dist/commands/text-programs/awk-syntax.d.ts.map",
+    "dist/commands/text-programs/awk-syntax.js",
+    "dist/commands/text-programs/awk-syntax.js.map",
+    "dist/commands/text-programs/awk-values.d.ts",
+    "dist/commands/text-programs/awk-values.d.ts.map",
+    "dist/commands/text-programs/awk-values.js",
+    "dist/commands/text-programs/awk-values.js.map",
+    "dist/commands/text-programs/awk.d.ts",
+    "dist/commands/text-programs/awk.d.ts.map",
+    "dist/commands/text-programs/awk.js",
+    "dist/commands/text-programs/awk.js.map",
+    "dist/commands/text-programs/index.d.ts",
+    "dist/commands/text-programs/index.d.ts.map",
+    "dist/commands/text-programs/index.js",
+    "dist/commands/text-programs/index.js.map",
+    "dist/commands/text-programs/regex.d.ts",
+    "dist/commands/text-programs/regex.d.ts.map",
+    "dist/commands/text-programs/regex.js",
+    "dist/commands/text-programs/regex.js.map",
+    "dist/commands/text-programs/sed.d.ts",
+    "dist/commands/text-programs/sed.d.ts.map",
+    "dist/commands/text-programs/sed.js",
+    "dist/commands/text-programs/sed.js.map",
+    "dist/commands/text-programs/shared.d.ts",
+    "dist/commands/text-programs/shared.d.ts.map",
+    "dist/commands/text-programs/shared.js",
+    "dist/commands/text-programs/shared.js.map",
+    "dist/commands/text.d.ts",
+    "dist/commands/text.d.ts.map",
+    "dist/commands/text.js",
+    "dist/commands/text.js.map",
+    "dist/commands/time-env/calendar.d.ts",
+    "dist/commands/time-env/calendar.d.ts.map",
+    "dist/commands/time-env/calendar.js",
+    "dist/commands/time-env/calendar.js.map",
+    "dist/commands/time-env/date.d.ts",
+    "dist/commands/time-env/date.d.ts.map",
+    "dist/commands/time-env/date.js",
+    "dist/commands/time-env/date.js.map",
+    "dist/commands/time-env/format.d.ts",
+    "dist/commands/time-env/format.d.ts.map",
+    "dist/commands/time-env/format.js",
+    "dist/commands/time-env/format.js.map",
+    "dist/commands/time-env/index.d.ts",
+    "dist/commands/time-env/index.d.ts.map",
+    "dist/commands/time-env/index.js",
+    "dist/commands/time-env/index.js.map",
+    "dist/commands/time-env/printenv.d.ts",
+    "dist/commands/time-env/printenv.d.ts.map",
+    "dist/commands/time-env/printenv.js",
+    "dist/commands/time-env/printenv.js.map",
+    "dist/commands/time-env/shared.d.ts",
+    "dist/commands/time-env/shared.d.ts.map",
+    "dist/commands/time-env/shared.js",
+    "dist/commands/time-env/shared.js.map",
+    "dist/commands/time-env/sleep.d.ts",
+    "dist/commands/time-env/sleep.d.ts.map",
+    "dist/commands/time-env/sleep.js",
+    "dist/commands/time-env/sleep.js.map",
+    "dist/commands/tree/arguments.d.ts",
+    "dist/commands/tree/arguments.d.ts.map",
+    "dist/commands/tree/arguments.js",
+    "dist/commands/tree/arguments.js.map",
+    "dist/commands/tree/charset.d.ts",
+    "dist/commands/tree/charset.d.ts.map",
+    "dist/commands/tree/charset.js",
+    "dist/commands/tree/charset.js.map",
+    "dist/commands/tree/index.d.ts",
+    "dist/commands/tree/index.d.ts.map",
+    "dist/commands/tree/index.js",
+    "dist/commands/tree/index.js.map",
+    "dist/commands/tree/io.d.ts",
+    "dist/commands/tree/io.d.ts.map",
+    "dist/commands/tree/io.js",
+    "dist/commands/tree/io.js.map",
+    "dist/commands/tree/options.d.ts",
+    "dist/commands/tree/options.d.ts.map",
+    "dist/commands/tree/options.js",
+    "dist/commands/tree/options.js.map",
+    "dist/commands/tree/pattern.d.ts",
+    "dist/commands/tree/pattern.d.ts.map",
+    "dist/commands/tree/pattern.js",
+    "dist/commands/tree/pattern.js.map",
+    "dist/commands/tree/tree.d.ts",
+    "dist/commands/tree/tree.d.ts.map",
+    "dist/commands/tree/tree.js",
+    "dist/commands/tree/tree.js.map",
+    "dist/commands/which/index.d.ts",
+    "dist/commands/which/index.d.ts.map",
+    "dist/commands/which/index.js",
+    "dist/commands/which/index.js.map",
+    "dist/commands/which/options.d.ts",
+    "dist/commands/which/options.d.ts.map",
+    "dist/commands/which/options.js",
+    "dist/commands/which/options.js.map",
+    "dist/commands/which/which.d.ts",
+    "dist/commands/which/which.d.ts.map",
+    "dist/commands/which/which.js",
+    "dist/commands/which/which.js.map",
+    "dist/commands/yq/accounting.d.ts",
+    "dist/commands/yq/accounting.d.ts.map",
+    "dist/commands/yq/accounting.js",
+    "dist/commands/yq/accounting.js.map",
+    "dist/commands/yq/encoder.d.ts",
+    "dist/commands/yq/encoder.d.ts.map",
+    "dist/commands/yq/encoder.js",
+    "dist/commands/yq/encoder.js.map",
+    "dist/commands/yq/errors.d.ts",
+    "dist/commands/yq/errors.d.ts.map",
+    "dist/commands/yq/errors.js",
+    "dist/commands/yq/errors.js.map",
+    "dist/commands/yq/index.d.ts",
+    "dist/commands/yq/index.d.ts.map",
+    "dist/commands/yq/index.js",
+    "dist/commands/yq/index.js.map",
+    "dist/commands/yq/parser.d.ts",
+    "dist/commands/yq/parser.d.ts.map",
+    "dist/commands/yq/parser.js",
+    "dist/commands/yq/parser.js.map",
+    "dist/contracts/command.d.ts",
+    "dist/contracts/command.d.ts.map",
+    "dist/contracts/command.js",
+    "dist/contracts/command.js.map",
+    "dist/contracts/errors.d.ts",
+    "dist/contracts/errors.d.ts.map",
+    "dist/contracts/errors.js",
+    "dist/contracts/errors.js.map",
+    "dist/contracts/filesystem.d.ts",
+    "dist/contracts/filesystem.d.ts.map",
+    "dist/contracts/filesystem.js",
+    "dist/contracts/filesystem.js.map",
+    "dist/contracts/index.d.ts",
+    "dist/contracts/index.d.ts.map",
+    "dist/contracts/index.js",
+    "dist/contracts/index.js.map",
+    "dist/contracts/io.d.ts",
+    "dist/contracts/io.d.ts.map",
+    "dist/contracts/io.js",
+    "dist/contracts/io.js.map",
+    "dist/contracts/output.d.ts",
+    "dist/contracts/output.d.ts.map",
+    "dist/contracts/output.js",
+    "dist/contracts/output.js.map",
+    "dist/contracts/path.d.ts",
+    "dist/contracts/path.d.ts.map",
+    "dist/contracts/path.js",
+    "dist/contracts/path.js.map",
+    "dist/contracts/plugin.d.ts",
+    "dist/contracts/plugin.d.ts.map",
+    "dist/contracts/plugin.js",
+    "dist/contracts/plugin.js.map",
+    "dist/fs/memory/index.d.ts",
+    "dist/fs/memory/index.d.ts.map",
+    "dist/fs/memory/index.js",
+    "dist/fs/memory/index.js.map",
+    "dist/fs/mount/comparison.d.ts",
+    "dist/fs/mount/comparison.d.ts.map",
+    "dist/fs/mount/comparison.js",
+    "dist/fs/mount/comparison.js.map",
+    "dist/fs/mount/identity.d.ts",
+    "dist/fs/mount/identity.d.ts.map",
+    "dist/fs/mount/identity.js",
+    "dist/fs/mount/identity.js.map",
+    "dist/fs/mount/index.d.ts",
+    "dist/fs/mount/index.d.ts.map",
+    "dist/fs/mount/index.js",
+    "dist/fs/mount/index.js.map",
+    "dist/fs/overlay/index.d.ts",
+    "dist/fs/overlay/index.d.ts.map",
+    "dist/fs/overlay/index.js",
+    "dist/fs/overlay/index.js.map",
+    "dist/fs/readonly/index.d.ts",
+    "dist/fs/readonly/index.d.ts.map",
+    "dist/fs/readonly/index.js",
+    "dist/fs/readonly/index.js.map",
+    "dist/fs/real/allocation.d.ts",
+    "dist/fs/real/allocation.d.ts.map",
+    "dist/fs/real/allocation.js",
+    "dist/fs/real/allocation.js.map",
+    "dist/fs/real/index.d.ts",
+    "dist/fs/real/index.d.ts.map",
+    "dist/fs/real/index.js",
+    "dist/fs/real/index.js.map",
+    "dist/fs/s3/authority.d.ts",
+    "dist/fs/s3/authority.d.ts.map",
+    "dist/fs/s3/authority.js",
+    "dist/fs/s3/authority.js.map",
+    "dist/fs/s3/filesystem.d.ts",
+    "dist/fs/s3/filesystem.d.ts.map",
+    "dist/fs/s3/filesystem.js",
+    "dist/fs/s3/filesystem.js.map",
+    "dist/fs/s3/http/index.d.ts",
+    "dist/fs/s3/http/index.d.ts.map",
+    "dist/fs/s3/http/index.js",
+    "dist/fs/s3/http/index.js.map",
+    "dist/fs/s3/http/request.d.ts",
+    "dist/fs/s3/http/request.d.ts.map",
+    "dist/fs/s3/http/request.js",
+    "dist/fs/s3/http/request.js.map",
+    "dist/fs/s3/http/signature.d.ts",
+    "dist/fs/s3/http/signature.d.ts.map",
+    "dist/fs/s3/http/signature.js",
+    "dist/fs/s3/http/signature.js.map",
+    "dist/fs/s3/http/transport.d.ts",
+    "dist/fs/s3/http/transport.d.ts.map",
+    "dist/fs/s3/http/transport.js",
+    "dist/fs/s3/http/transport.js.map",
+    "dist/fs/s3/http/types.d.ts",
+    "dist/fs/s3/http/types.d.ts.map",
+    "dist/fs/s3/http/types.js",
+    "dist/fs/s3/http/types.js.map",
+    "dist/fs/s3/http/xml.d.ts",
+    "dist/fs/s3/http/xml.d.ts.map",
+    "dist/fs/s3/http/xml.js",
+    "dist/fs/s3/http/xml.js.map",
+    "dist/fs/s3/index.d.ts",
+    "dist/fs/s3/index.d.ts.map",
+    "dist/fs/s3/index.js",
+    "dist/fs/s3/index.js.map",
+    "dist/fs/s3/mock.d.ts",
+    "dist/fs/s3/mock.d.ts.map",
+    "dist/fs/s3/mock.js",
+    "dist/fs/s3/mock.js.map",
+    "dist/fs/s3/transport.d.ts",
+    "dist/fs/s3/transport.d.ts.map",
+    "dist/fs/s3/transport.js",
+    "dist/fs/s3/transport.js.map",
+    "dist/fs/webdav/index.d.ts",
+    "dist/fs/webdav/index.d.ts.map",
+    "dist/fs/webdav/index.js",
+    "dist/fs/webdav/index.js.map",
+    "dist/fs/webdav/resource-id.d.ts",
+    "dist/fs/webdav/resource-id.d.ts.map",
+    "dist/fs/webdav/resource-id.js",
+    "dist/fs/webdav/resource-id.js.map",
+    "dist/fs/webdav/webdav.d.ts",
+    "dist/fs/webdav/webdav.d.ts.map",
+    "dist/fs/webdav/webdav.js",
+    "dist/fs/webdav/webdav.js.map",
+    "dist/fs/webdav/xml.d.ts",
+    "dist/fs/webdav/xml.d.ts.map",
+    "dist/fs/webdav/xml.js",
+    "dist/fs/webdav/xml.js.map",
+    "dist/index.d.ts",
+    "dist/index.d.ts.map",
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/integrations/safejs/filesystem.d.ts",
+    "dist/integrations/safejs/filesystem.d.ts.map",
+    "dist/integrations/safejs/filesystem.js",
+    "dist/integrations/safejs/filesystem.js.map",
+    "dist/integrations/safejs/index.d.ts",
+    "dist/integrations/safejs/index.d.ts.map",
+    "dist/integrations/safejs/index.js",
+    "dist/integrations/safejs/index.js.map",
+    "dist/integrations/safejs/shell.d.ts",
+    "dist/integrations/safejs/shell.d.ts.map",
+    "dist/integrations/safejs/shell.js",
+    "dist/integrations/safejs/shell.js.map",
+    "dist/integrations/safejs/stats.d.ts",
+    "dist/integrations/safejs/stats.d.ts.map",
+    "dist/integrations/safejs/stats.js",
+    "dist/integrations/safejs/stats.js.map",
+    "dist/integrations/safejs/values.d.ts",
+    "dist/integrations/safejs/values.d.ts.map",
+    "dist/integrations/safejs/values.js",
+    "dist/integrations/safejs/values.js.map",
+    "dist/plugins/index.d.ts",
+    "dist/plugins/index.d.ts.map",
+    "dist/plugins/index.js",
+    "dist/plugins/index.js.map",
+    "dist/shell/arithmetic.d.ts",
+    "dist/shell/arithmetic.d.ts.map",
+    "dist/shell/arithmetic.js",
+    "dist/shell/arithmetic.js.map",
+    "dist/shell/cancellation.d.ts",
+    "dist/shell/cancellation.d.ts.map",
+    "dist/shell/cancellation.js",
+    "dist/shell/cancellation.js.map",
+    "dist/shell/cleanup.d.ts",
+    "dist/shell/cleanup.d.ts.map",
+    "dist/shell/cleanup.js",
+    "dist/shell/cleanup.js.map",
+    "dist/shell/display.d.ts",
+    "dist/shell/display.d.ts.map",
+    "dist/shell/display.js",
+    "dist/shell/display.js.map",
+    "dist/shell/getopts.d.ts",
+    "dist/shell/getopts.d.ts.map",
+    "dist/shell/getopts.js",
+    "dist/shell/getopts.js.map",
+    "dist/shell/index.d.ts",
+    "dist/shell/index.d.ts.map",
+    "dist/shell/index.js",
+    "dist/shell/index.js.map",
+    "dist/shell/input.d.ts",
+    "dist/shell/input.d.ts.map",
+    "dist/shell/input.js",
+    "dist/shell/input.js.map",
+    "dist/shell/locale.d.ts",
+    "dist/shell/locale.d.ts.map",
+    "dist/shell/locale.js",
+    "dist/shell/locale.js.map",
+    "dist/shell/parser.d.ts",
+    "dist/shell/parser.d.ts.map",
+    "dist/shell/parser.js",
+    "dist/shell/parser.js.map",
+    "dist/shell/pattern.d.ts",
+    "dist/shell/pattern.d.ts.map",
+    "dist/shell/pattern.js",
+    "dist/shell/pattern.js.map",
+    "dist/shell/runtime.d.ts",
+    "dist/shell/runtime.d.ts.map",
+    "dist/shell/runtime.js",
+    "dist/shell/runtime.js.map",
+    "dist/shell/shell.d.ts",
+    "dist/shell/shell.d.ts.map",
+    "dist/shell/shell.js",
+    "dist/shell/shell.js.map",
+    "dist/shell/types.d.ts",
+    "dist/shell/types.d.ts.map",
+    "dist/shell/types.js",
+    "dist/shell/types.js.map"
+  ],
+  "packageEntries": [
+    {
+      "name": "package/dist/commands/yq/accounting.js",
+      "path": "dist/commands/yq/accounting.js"
+    },
+    {
+      "name": "package/dist/fs/real/allocation.js",
+      "path": "dist/fs/real/allocation.js"
+    },
+    {
+      "name": "package/dist/commands/network/args.js",
+      "path": "dist/commands/network/args.js"
+    },
+    {
+      "name": "package/dist/commands/du/arguments.js",
+      "path": "dist/commands/du/arguments.js"
+    },
+    {
+      "name": "package/dist/commands/tree/arguments.js",
+      "path": "dist/commands/tree/arguments.js"
+    },
+    {
+      "name": "package/dist/shell/arithmetic.js",
+      "path": "dist/shell/arithmetic.js"
+    },
+    {
+      "name": "package/dist/fs/s3/authority.js",
+      "path": "dist/fs/s3/authority.js"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-runtime.js",
+      "path": "dist/commands/text-programs/awk-runtime.js"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-syntax.js",
+      "path": "dist/commands/text-programs/awk-syntax.js"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-values.js",
+      "path": "dist/commands/text-programs/awk-values.js"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk.js",
+      "path": "dist/commands/text-programs/awk.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/base.js",
+      "path": "dist/commands/bytes/encoding/base.js"
+    },
+    {
+      "name": "package/dist/commands/basic.js",
+      "path": "dist/commands/basic.js"
+    },
+    {
+      "name": "package/dist/commands/network/body.js",
+      "path": "dist/commands/network/body.js"
+    },
+    {
+      "name": "package/dist/commands/expr/bre-worker.js",
+      "path": "dist/commands/expr/bre-worker.js"
+    },
+    {
+      "name": "package/dist/commands/du/budget.js",
+      "path": "dist/commands/du/budget.js"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/budget.js",
+      "path": "dist/commands/html-to-markdown/budget.js"
+    },
+    {
+      "name": "package/dist/commands/time-env/calendar.js",
+      "path": "dist/commands/time-env/calendar.js"
+    },
+    {
+      "name": "package/dist/shell/cancellation.js",
+      "path": "dist/shell/cancellation.js"
+    },
+    {
+      "name": "package/dist/commands/tree/charset.js",
+      "path": "dist/commands/tree/charset.js"
+    },
+    {
+      "name": "package/dist/commands/metadata/chmod.js",
+      "path": "dist/commands/metadata/chmod.js"
+    },
+    {
+      "name": "package/dist/commands/file/classify.js",
+      "path": "dist/commands/file/classify.js"
+    },
+    {
+      "name": "package/dist/shell/cleanup.js",
+      "path": "dist/shell/cleanup.js"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/client.js",
+      "path": "dist/commands/regex-execution/client.js"
+    },
+    {
+      "name": "package/dist/commands/column/column.js",
+      "path": "dist/commands/column/column.js"
+    },
+    {
+      "name": "package/dist/commands/table-text/comm.js",
+      "path": "dist/commands/table-text/comm.js"
+    },
+    {
+      "name": "package/dist/contracts/command.js",
+      "path": "dist/contracts/command.js"
+    },
+    {
+      "name": "package/dist/fs/mount/comparison.js",
+      "path": "dist/fs/mount/comparison.js"
+    },
+    {
+      "name": "package/dist/commands/copy-identity.js",
+      "path": "dist/commands/copy-identity.js"
+    },
+    {
+      "name": "package/dist/commands/archive/create.js",
+      "path": "dist/commands/archive/create.js"
+    },
+    {
+      "name": "package/dist/commands/network/curl.js",
+      "path": "dist/commands/network/curl.js"
+    },
+    {
+      "name": "package/dist/commands/time-env/date.js",
+      "path": "dist/commands/time-env/date.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/diff-format.js",
+      "path": "dist/commands/diff-patch/diff-format.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/diff.js",
+      "path": "dist/commands/diff-patch/diff.js"
+    },
+    {
+      "name": "package/dist/commands/column/display.js",
+      "path": "dist/commands/column/display.js"
+    },
+    {
+      "name": "package/dist/shell/display.js",
+      "path": "dist/shell/display.js"
+    },
+    {
+      "name": "package/dist/commands/du/du.js",
+      "path": "dist/commands/du/du.js"
+    },
+    {
+      "name": "package/dist/commands/yq/encoder.js",
+      "path": "dist/commands/yq/encoder.js"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/entities.js",
+      "path": "dist/commands/html-to-markdown/entities.js"
+    },
+    {
+      "name": "package/dist/commands/env-split.js",
+      "path": "dist/commands/env-split.js"
+    },
+    {
+      "name": "package/dist/commands/yq/errors.js",
+      "path": "dist/commands/yq/errors.js"
+    },
+    {
+      "name": "package/dist/contracts/errors.js",
+      "path": "dist/contracts/errors.js"
+    },
+    {
+      "name": "package/dist/commands/expr/evaluate.js",
+      "path": "dist/commands/expr/evaluate.js"
+    },
+    {
+      "name": "package/dist/commands/execution.js",
+      "path": "dist/commands/execution.js"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/expand.js",
+      "path": "dist/commands/stream-inspection/expand.js"
+    },
+    {
+      "name": "package/dist/commands/archive/extract.js",
+      "path": "dist/commands/archive/extract.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/files.js",
+      "path": "dist/commands/bytes/compression/files.js"
+    },
+    {
+      "name": "package/dist/commands/filesystem.js",
+      "path": "dist/commands/filesystem.js"
+    },
+    {
+      "name": "package/dist/contracts/filesystem.js",
+      "path": "dist/contracts/filesystem.js"
+    },
+    {
+      "name": "package/dist/fs/s3/filesystem.js",
+      "path": "dist/fs/s3/filesystem.js"
+    },
+    {
+      "name": "package/dist/integrations/safejs/filesystem.js",
+      "path": "dist/integrations/safejs/filesystem.js"
+    },
+    {
+      "name": "package/dist/commands/find.js",
+      "path": "dist/commands/find.js"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/fold.js",
+      "path": "dist/commands/stream-inspection/fold.js"
+    },
+    {
+      "name": "package/dist/commands/archive/format.js",
+      "path": "dist/commands/archive/format.js"
+    },
+    {
+      "name": "package/dist/commands/du/format.js",
+      "path": "dist/commands/du/format.js"
+    },
+    {
+      "name": "package/dist/commands/time-env/format.js",
+      "path": "dist/commands/time-env/format.js"
+    },
+    {
+      "name": "package/dist/shell/getopts.js",
+      "path": "dist/shell/getopts.js"
+    },
+    {
+      "name": "package/dist/commands/search/glob.js",
+      "path": "dist/commands/search/glob.js"
+    },
+    {
+      "name": "package/dist/commands/grep.js",
+      "path": "dist/commands/grep.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/gunzip.js",
+      "path": "dist/commands/bytes/compression/gunzip.js"
+    },
+    {
+      "name": "package/dist/fs/mount/identity.js",
+      "path": "dist/fs/mount/identity.js"
+    },
+    {
+      "name": "package/dist/commands/archive/index.js",
+      "path": "dist/commands/archive/index.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/checksums/index.js",
+      "path": "dist/commands/bytes/checksums/index.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/index.js",
+      "path": "dist/commands/bytes/compression/index.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/index.js",
+      "path": "dist/commands/bytes/encoding/index.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/index.js",
+      "path": "dist/commands/bytes/index.js"
+    },
+    {
+      "name": "package/dist/commands/column/index.js",
+      "path": "dist/commands/column/index.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/index.js",
+      "path": "dist/commands/diff-patch/index.js"
+    },
+    {
+      "name": "package/dist/commands/du/index.js",
+      "path": "dist/commands/du/index.js"
+    },
+    {
+      "name": "package/dist/commands/expr/index.js",
+      "path": "dist/commands/expr/index.js"
+    },
+    {
+      "name": "package/dist/commands/file/index.js",
+      "path": "dist/commands/file/index.js"
+    },
+    {
+      "name": "package/dist/commands/grep-aliases/index.js",
+      "path": "dist/commands/grep-aliases/index.js"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/index.js",
+      "path": "dist/commands/html-to-markdown/index.js"
+    },
+    {
+      "name": "package/dist/commands/index.js",
+      "path": "dist/commands/index.js"
+    },
+    {
+      "name": "package/dist/commands/metadata/index.js",
+      "path": "dist/commands/metadata/index.js"
+    },
+    {
+      "name": "package/dist/commands/network/index.js",
+      "path": "dist/commands/network/index.js"
+    },
+    {
+      "name": "package/dist/commands/safejs/index.js",
+      "path": "dist/commands/safejs/index.js"
+    },
+    {
+      "name": "package/dist/commands/search/index.js",
+      "path": "dist/commands/search/index.js"
+    },
+    {
+      "name": "package/dist/commands/split/index.js",
+      "path": "dist/commands/split/index.js"
+    },
+    {
+      "name": "package/dist/commands/stream-format/index.js",
+      "path": "dist/commands/stream-format/index.js"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/index.js",
+      "path": "dist/commands/stream-inspection/index.js"
+    },
+    {
+      "name": "package/dist/commands/structured/index.js",
+      "path": "dist/commands/structured/index.js"
+    },
+    {
+      "name": "package/dist/commands/table-text/index.js",
+      "path": "dist/commands/table-text/index.js"
+    },
+    {
+      "name": "package/dist/commands/text-programs/index.js",
+      "path": "dist/commands/text-programs/index.js"
+    },
+    {
+      "name": "package/dist/commands/time-env/index.js",
+      "path": "dist/commands/time-env/index.js"
+    },
+    {
+      "name": "package/dist/commands/tree/index.js",
+      "path": "dist/commands/tree/index.js"
+    },
+    {
+      "name": "package/dist/commands/which/index.js",
+      "path": "dist/commands/which/index.js"
+    },
+    {
+      "name": "package/dist/commands/yq/index.js",
+      "path": "dist/commands/yq/index.js"
+    },
+    {
+      "name": "package/dist/contracts/index.js",
+      "path": "dist/contracts/index.js"
+    },
+    {
+      "name": "package/dist/fs/memory/index.js",
+      "path": "dist/fs/memory/index.js"
+    },
+    {
+      "name": "package/dist/fs/mount/index.js",
+      "path": "dist/fs/mount/index.js"
+    },
+    {
+      "name": "package/dist/fs/overlay/index.js",
+      "path": "dist/fs/overlay/index.js"
+    },
+    {
+      "name": "package/dist/fs/readonly/index.js",
+      "path": "dist/fs/readonly/index.js"
+    },
+    {
+      "name": "package/dist/fs/real/index.js",
+      "path": "dist/fs/real/index.js"
+    },
+    {
+      "name": "package/dist/fs/s3/http/index.js",
+      "path": "dist/fs/s3/http/index.js"
+    },
+    {
+      "name": "package/dist/fs/s3/index.js",
+      "path": "dist/fs/s3/index.js"
+    },
+    {
+      "name": "package/dist/fs/webdav/index.js",
+      "path": "dist/fs/webdav/index.js"
+    },
+    {
+      "name": "package/dist/index.js",
+      "path": "dist/index.js"
+    },
+    {
+      "name": "package/dist/integrations/safejs/index.js",
+      "path": "dist/integrations/safejs/index.js"
+    },
+    {
+      "name": "package/dist/plugins/index.js",
+      "path": "dist/plugins/index.js"
+    },
+    {
+      "name": "package/dist/shell/index.js",
+      "path": "dist/shell/index.js"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/input.js",
+      "path": "dist/commands/html-to-markdown/input.js"
+    },
+    {
+      "name": "package/dist/commands/structured/input.js",
+      "path": "dist/commands/structured/input.js"
+    },
+    {
+      "name": "package/dist/shell/input.js",
+      "path": "dist/shell/input.js"
+    },
+    {
+      "name": "package/dist/commands/archive/internal.js",
+      "path": "dist/commands/archive/internal.js"
+    },
+    {
+      "name": "package/dist/commands/column/internal.js",
+      "path": "dist/commands/column/internal.js"
+    },
+    {
+      "name": "package/dist/commands/expr/internal.js",
+      "path": "dist/commands/expr/internal.js"
+    },
+    {
+      "name": "package/dist/commands/internal.js",
+      "path": "dist/commands/internal.js"
+    },
+    {
+      "name": "package/dist/commands/metadata/internal.js",
+      "path": "dist/commands/metadata/internal.js"
+    },
+    {
+      "name": "package/dist/commands/table-text/internal.js",
+      "path": "dist/commands/table-text/internal.js"
+    },
+    {
+      "name": "package/dist/commands/structured/interpreter.js",
+      "path": "dist/commands/structured/interpreter.js"
+    },
+    {
+      "name": "package/dist/commands/safejs/io.js",
+      "path": "dist/commands/safejs/io.js"
+    },
+    {
+      "name": "package/dist/commands/split/io.js",
+      "path": "dist/commands/split/io.js"
+    },
+    {
+      "name": "package/dist/commands/tree/io.js",
+      "path": "dist/commands/tree/io.js"
+    },
+    {
+      "name": "package/dist/contracts/io.js",
+      "path": "dist/contracts/io.js"
+    },
+    {
+      "name": "package/dist/commands/table-text/join.js",
+      "path": "dist/commands/table-text/join.js"
+    },
+    {
+      "name": "package/dist/commands/structured/jq.js",
+      "path": "dist/commands/structured/jq.js"
+    },
+    {
+      "name": "package/dist/commands/structured/limits.js",
+      "path": "dist/commands/structured/limits.js"
+    },
+    {
+      "name": "package/dist/shell/locale.js",
+      "path": "dist/shell/locale.js"
+    },
+    {
+      "name": "package/dist/commands/search/matcher.js",
+      "path": "dist/commands/search/matcher.js"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/matching.js",
+      "path": "dist/commands/regex-execution/matching.js"
+    },
+    {
+      "name": "package/dist/commands/metadata/mktemp.js",
+      "path": "dist/commands/metadata/mktemp.js"
+    },
+    {
+      "name": "package/dist/fs/s3/mock.js",
+      "path": "dist/fs/s3/mock.js"
+    },
+    {
+      "name": "package/dist/commands/move.js",
+      "path": "dist/commands/move.js"
+    },
+    {
+      "name": "package/dist/commands/split/names.js",
+      "path": "dist/commands/split/names.js"
+    },
+    {
+      "name": "package/dist/commands/stream-format/nl.js",
+      "path": "dist/commands/stream-format/nl.js"
+    },
+    {
+      "name": "package/dist/commands/structured/numbers.js",
+      "path": "dist/commands/structured/numbers.js"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/numeric-options.js",
+      "path": "dist/commands/stream-inspection/numeric-options.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/od.js",
+      "path": "dist/commands/bytes/encoding/od.js"
+    },
+    {
+      "name": "package/dist/commands/archive/options.js",
+      "path": "dist/commands/archive/options.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/options.js",
+      "path": "dist/commands/bytes/compression/options.js"
+    },
+    {
+      "name": "package/dist/commands/column/options.js",
+      "path": "dist/commands/column/options.js"
+    },
+    {
+      "name": "package/dist/commands/du/options.js",
+      "path": "dist/commands/du/options.js"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/options.js",
+      "path": "dist/commands/html-to-markdown/options.js"
+    },
+    {
+      "name": "package/dist/commands/safejs/options.js",
+      "path": "dist/commands/safejs/options.js"
+    },
+    {
+      "name": "package/dist/commands/search/options.js",
+      "path": "dist/commands/search/options.js"
+    },
+    {
+      "name": "package/dist/commands/split/options.js",
+      "path": "dist/commands/split/options.js"
+    },
+    {
+      "name": "package/dist/commands/tree/options.js",
+      "path": "dist/commands/tree/options.js"
+    },
+    {
+      "name": "package/dist/commands/which/options.js",
+      "path": "dist/commands/which/options.js"
+    },
+    {
+      "name": "package/dist/commands/network/output.js",
+      "path": "dist/commands/network/output.js"
+    },
+    {
+      "name": "package/dist/commands/search/output.js",
+      "path": "dist/commands/search/output.js"
+    },
+    {
+      "name": "package/dist/contracts/output.js",
+      "path": "dist/contracts/output.js"
+    },
+    {
+      "name": "package/dist/commands/split/outputs.js",
+      "path": "dist/commands/split/outputs.js"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/parser.js",
+      "path": "dist/commands/html-to-markdown/parser.js"
+    },
+    {
+      "name": "package/dist/commands/structured/parser.js",
+      "path": "dist/commands/structured/parser.js"
+    },
+    {
+      "name": "package/dist/commands/yq/parser.js",
+      "path": "dist/commands/yq/parser.js"
+    },
+    {
+      "name": "package/dist/shell/parser.js",
+      "path": "dist/shell/parser.js"
+    },
+    {
+      "name": "package/dist/commands/table-text/paste.js",
+      "path": "dist/commands/table-text/paste.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-envelope.js",
+      "path": "dist/commands/diff-patch/patch-envelope.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-formats.js",
+      "path": "dist/commands/diff-patch/patch-formats.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-gnu-paths.js",
+      "path": "dist/commands/diff-patch/patch-gnu-paths.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-gnu-reject.js",
+      "path": "dist/commands/diff-patch/patch-gnu-reject.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-path.js",
+      "path": "dist/commands/diff-patch/patch-path.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch.js",
+      "path": "dist/commands/diff-patch/patch.js"
+    },
+    {
+      "name": "package/dist/contracts/path.js",
+      "path": "dist/contracts/path.js"
+    },
+    {
+      "name": "package/dist/commands/tree/pattern.js",
+      "path": "dist/commands/tree/pattern.js"
+    },
+    {
+      "name": "package/dist/shell/pattern.js",
+      "path": "dist/shell/pattern.js"
+    },
+    {
+      "name": "package/dist/contracts/plugin.js",
+      "path": "dist/contracts/plugin.js"
+    },
+    {
+      "name": "package/dist/commands/predicates.js",
+      "path": "dist/commands/predicates.js"
+    },
+    {
+      "name": "package/dist/commands/time-env/printenv.js",
+      "path": "dist/commands/time-env/printenv.js"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/protocol.js",
+      "path": "dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "name": "package/dist/commands/structured/query-core.js",
+      "path": "dist/commands/structured/query-core.js"
+    },
+    {
+      "name": "package/dist/commands/text-programs/regex.js",
+      "path": "dist/commands/text-programs/regex.js"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/render.js",
+      "path": "dist/commands/html-to-markdown/render.js"
+    },
+    {
+      "name": "package/dist/commands/safejs/render.js",
+      "path": "dist/commands/safejs/render.js"
+    },
+    {
+      "name": "package/dist/fs/s3/http/request.js",
+      "path": "dist/fs/s3/http/request.js"
+    },
+    {
+      "name": "package/dist/fs/webdav/resource-id.js",
+      "path": "dist/fs/webdav/resource-id.js"
+    },
+    {
+      "name": "package/dist/commands/stream-format/rev.js",
+      "path": "dist/commands/stream-format/rev.js"
+    },
+    {
+      "name": "package/dist/commands/search/rg.js",
+      "path": "dist/commands/search/rg.js"
+    },
+    {
+      "name": "package/dist/shell/runtime.js",
+      "path": "dist/shell/runtime.js"
+    },
+    {
+      "name": "package/dist/commands/text-programs/sed.js",
+      "path": "dist/commands/text-programs/sed.js"
+    },
+    {
+      "name": "package/dist/commands/stream-format/seq.js",
+      "path": "dist/commands/stream-format/seq.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/shared.js",
+      "path": "dist/commands/bytes/encoding/shared.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/shared.js",
+      "path": "dist/commands/diff-patch/shared.js"
+    },
+    {
+      "name": "package/dist/commands/file/shared.js",
+      "path": "dist/commands/file/shared.js"
+    },
+    {
+      "name": "package/dist/commands/network/shared.js",
+      "path": "dist/commands/network/shared.js"
+    },
+    {
+      "name": "package/dist/commands/search/shared.js",
+      "path": "dist/commands/search/shared.js"
+    },
+    {
+      "name": "package/dist/commands/stream-format/shared.js",
+      "path": "dist/commands/stream-format/shared.js"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/shared.js",
+      "path": "dist/commands/stream-inspection/shared.js"
+    },
+    {
+      "name": "package/dist/commands/text-programs/shared.js",
+      "path": "dist/commands/text-programs/shared.js"
+    },
+    {
+      "name": "package/dist/commands/time-env/shared.js",
+      "path": "dist/commands/time-env/shared.js"
+    },
+    {
+      "name": "package/dist/integrations/safejs/shell.js",
+      "path": "dist/integrations/safejs/shell.js"
+    },
+    {
+      "name": "package/dist/shell/shell.js",
+      "path": "dist/shell/shell.js"
+    },
+    {
+      "name": "package/dist/fs/s3/http/signature.js",
+      "path": "dist/fs/s3/http/signature.js"
+    },
+    {
+      "name": "package/dist/commands/time-env/sleep.js",
+      "path": "dist/commands/time-env/sleep.js"
+    },
+    {
+      "name": "package/dist/commands/split/split.js",
+      "path": "dist/commands/split/split.js"
+    },
+    {
+      "name": "package/dist/commands/structured/split.js",
+      "path": "dist/commands/structured/split.js"
+    },
+    {
+      "name": "package/dist/commands/metadata/stat.js",
+      "path": "dist/commands/metadata/stat.js"
+    },
+    {
+      "name": "package/dist/integrations/safejs/stats.js",
+      "path": "dist/integrations/safejs/stats.js"
+    },
+    {
+      "name": "package/dist/commands/archive/stream.js",
+      "path": "dist/commands/archive/stream.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/stream.js",
+      "path": "dist/commands/bytes/compression/stream.js"
+    },
+    {
+      "name": "package/dist/commands/streams.js",
+      "path": "dist/commands/streams.js"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/strings.js",
+      "path": "dist/commands/stream-inspection/strings.js"
+    },
+    {
+      "name": "package/dist/commands/expr/syntax.js",
+      "path": "dist/commands/expr/syntax.js"
+    },
+    {
+      "name": "package/dist/commands/column/table.js",
+      "path": "dist/commands/column/table.js"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/tac.js",
+      "path": "dist/commands/stream-inspection/tac.js"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/text.js",
+      "path": "dist/commands/html-to-markdown/text.js"
+    },
+    {
+      "name": "package/dist/commands/text.js",
+      "path": "dist/commands/text.js"
+    },
+    {
+      "name": "package/dist/commands/network/transport.js",
+      "path": "dist/commands/network/transport.js"
+    },
+    {
+      "name": "package/dist/fs/s3/http/transport.js",
+      "path": "dist/fs/s3/http/transport.js"
+    },
+    {
+      "name": "package/dist/fs/s3/transport.js",
+      "path": "dist/fs/s3/transport.js"
+    },
+    {
+      "name": "package/dist/commands/tree/tree.js",
+      "path": "dist/commands/tree/tree.js"
+    },
+    {
+      "name": "package/dist/commands/network/types.js",
+      "path": "dist/commands/network/types.js"
+    },
+    {
+      "name": "package/dist/commands/safejs/types.js",
+      "path": "dist/commands/safejs/types.js"
+    },
+    {
+      "name": "package/dist/fs/s3/http/types.js",
+      "path": "dist/fs/s3/http/types.js"
+    },
+    {
+      "name": "package/dist/shell/types.js",
+      "path": "dist/shell/types.js"
+    },
+    {
+      "name": "package/dist/commands/stream-format/unexpand.js",
+      "path": "dist/commands/stream-format/unexpand.js"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/unified.js",
+      "path": "dist/commands/diff-patch/unified.js"
+    },
+    {
+      "name": "package/dist/commands/structured/values.js",
+      "path": "dist/commands/structured/values.js"
+    },
+    {
+      "name": "package/dist/integrations/safejs/values.js",
+      "path": "dist/integrations/safejs/values.js"
+    },
+    {
+      "name": "package/dist/commands/search/walk.js",
+      "path": "dist/commands/search/walk.js"
+    },
+    {
+      "name": "package/dist/fs/webdav/webdav.js",
+      "path": "dist/fs/webdav/webdav.js"
+    },
+    {
+      "name": "package/dist/commands/which/which.js",
+      "path": "dist/commands/which/which.js"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/worker.js",
+      "path": "dist/commands/regex-execution/worker.js"
+    },
+    {
+      "name": "package/dist/fs/s3/http/xml.js",
+      "path": "dist/fs/s3/http/xml.js"
+    },
+    {
+      "name": "package/dist/fs/webdav/xml.js",
+      "path": "dist/fs/webdav/xml.js"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/xxd.js",
+      "path": "dist/commands/bytes/encoding/xxd.js"
+    },
+    {
+      "name": "package/package.json",
+      "path": "package.json"
+    },
+    {
+      "name": "package/dist/commands/yq/accounting.d.ts.map",
+      "path": "dist/commands/yq/accounting.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/yq/accounting.js.map",
+      "path": "dist/commands/yq/accounting.js.map"
+    },
+    {
+      "name": "package/dist/fs/real/allocation.d.ts.map",
+      "path": "dist/fs/real/allocation.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/real/allocation.js.map",
+      "path": "dist/fs/real/allocation.js.map"
+    },
+    {
+      "name": "package/dist/commands/network/args.d.ts.map",
+      "path": "dist/commands/network/args.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/network/args.js.map",
+      "path": "dist/commands/network/args.js.map"
+    },
+    {
+      "name": "package/dist/commands/du/arguments.d.ts.map",
+      "path": "dist/commands/du/arguments.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/tree/arguments.d.ts.map",
+      "path": "dist/commands/tree/arguments.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/du/arguments.js.map",
+      "path": "dist/commands/du/arguments.js.map"
+    },
+    {
+      "name": "package/dist/commands/tree/arguments.js.map",
+      "path": "dist/commands/tree/arguments.js.map"
+    },
+    {
+      "name": "package/dist/shell/arithmetic.d.ts.map",
+      "path": "dist/shell/arithmetic.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/arithmetic.js.map",
+      "path": "dist/shell/arithmetic.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/authority.d.ts.map",
+      "path": "dist/fs/s3/authority.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/authority.js.map",
+      "path": "dist/fs/s3/authority.js.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-runtime.d.ts.map",
+      "path": "dist/commands/text-programs/awk-runtime.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-runtime.js.map",
+      "path": "dist/commands/text-programs/awk-runtime.js.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-syntax.d.ts.map",
+      "path": "dist/commands/text-programs/awk-syntax.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-syntax.js.map",
+      "path": "dist/commands/text-programs/awk-syntax.js.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-values.d.ts.map",
+      "path": "dist/commands/text-programs/awk-values.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-values.js.map",
+      "path": "dist/commands/text-programs/awk-values.js.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk.d.ts.map",
+      "path": "dist/commands/text-programs/awk.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk.js.map",
+      "path": "dist/commands/text-programs/awk.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/base.d.ts.map",
+      "path": "dist/commands/bytes/encoding/base.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/base.js.map",
+      "path": "dist/commands/bytes/encoding/base.js.map"
+    },
+    {
+      "name": "package/dist/commands/basic.d.ts.map",
+      "path": "dist/commands/basic.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/basic.js.map",
+      "path": "dist/commands/basic.js.map"
+    },
+    {
+      "name": "package/dist/commands/network/body.d.ts.map",
+      "path": "dist/commands/network/body.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/network/body.js.map",
+      "path": "dist/commands/network/body.js.map"
+    },
+    {
+      "name": "package/dist/commands/expr/bre-worker.d.ts.map",
+      "path": "dist/commands/expr/bre-worker.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/expr/bre-worker.js.map",
+      "path": "dist/commands/expr/bre-worker.js.map"
+    },
+    {
+      "name": "package/dist/commands/du/budget.d.ts.map",
+      "path": "dist/commands/du/budget.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/budget.d.ts.map",
+      "path": "dist/commands/html-to-markdown/budget.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/du/budget.js.map",
+      "path": "dist/commands/du/budget.js.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/budget.js.map",
+      "path": "dist/commands/html-to-markdown/budget.js.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/calendar.d.ts.map",
+      "path": "dist/commands/time-env/calendar.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/calendar.js.map",
+      "path": "dist/commands/time-env/calendar.js.map"
+    },
+    {
+      "name": "package/dist/shell/cancellation.d.ts.map",
+      "path": "dist/shell/cancellation.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/cancellation.js.map",
+      "path": "dist/shell/cancellation.js.map"
+    },
+    {
+      "name": "package/dist/commands/tree/charset.d.ts.map",
+      "path": "dist/commands/tree/charset.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/tree/charset.js.map",
+      "path": "dist/commands/tree/charset.js.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/chmod.d.ts.map",
+      "path": "dist/commands/metadata/chmod.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/chmod.js.map",
+      "path": "dist/commands/metadata/chmod.js.map"
+    },
+    {
+      "name": "package/dist/commands/file/classify.d.ts.map",
+      "path": "dist/commands/file/classify.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/file/classify.js.map",
+      "path": "dist/commands/file/classify.js.map"
+    },
+    {
+      "name": "package/dist/shell/cleanup.d.ts.map",
+      "path": "dist/shell/cleanup.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/cleanup.js.map",
+      "path": "dist/shell/cleanup.js.map"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/client.d.ts.map",
+      "path": "dist/commands/regex-execution/client.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/client.js.map",
+      "path": "dist/commands/regex-execution/client.js.map"
+    },
+    {
+      "name": "package/dist/commands/column/column.d.ts.map",
+      "path": "dist/commands/column/column.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/column/column.js.map",
+      "path": "dist/commands/column/column.js.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/comm.d.ts.map",
+      "path": "dist/commands/table-text/comm.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/comm.js.map",
+      "path": "dist/commands/table-text/comm.js.map"
+    },
+    {
+      "name": "package/dist/contracts/command.d.ts.map",
+      "path": "dist/contracts/command.d.ts.map"
+    },
+    {
+      "name": "package/dist/contracts/command.js.map",
+      "path": "dist/contracts/command.js.map"
+    },
+    {
+      "name": "package/dist/fs/mount/comparison.d.ts.map",
+      "path": "dist/fs/mount/comparison.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/mount/comparison.js.map",
+      "path": "dist/fs/mount/comparison.js.map"
+    },
+    {
+      "name": "package/dist/commands/copy-identity.d.ts.map",
+      "path": "dist/commands/copy-identity.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/copy-identity.js.map",
+      "path": "dist/commands/copy-identity.js.map"
+    },
+    {
+      "name": "package/dist/commands/archive/create.d.ts.map",
+      "path": "dist/commands/archive/create.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/archive/create.js.map",
+      "path": "dist/commands/archive/create.js.map"
+    },
+    {
+      "name": "package/dist/commands/network/curl.d.ts.map",
+      "path": "dist/commands/network/curl.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/network/curl.js.map",
+      "path": "dist/commands/network/curl.js.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/date.d.ts.map",
+      "path": "dist/commands/time-env/date.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/date.js.map",
+      "path": "dist/commands/time-env/date.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/diff-format.d.ts.map",
+      "path": "dist/commands/diff-patch/diff-format.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/diff-format.js.map",
+      "path": "dist/commands/diff-patch/diff-format.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/diff.d.ts.map",
+      "path": "dist/commands/diff-patch/diff.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/diff.js.map",
+      "path": "dist/commands/diff-patch/diff.js.map"
+    },
+    {
+      "name": "package/dist/commands/column/display.d.ts.map",
+      "path": "dist/commands/column/display.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/display.d.ts.map",
+      "path": "dist/shell/display.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/column/display.js.map",
+      "path": "dist/commands/column/display.js.map"
+    },
+    {
+      "name": "package/dist/shell/display.js.map",
+      "path": "dist/shell/display.js.map"
+    },
+    {
+      "name": "package/dist/commands/du/du.d.ts.map",
+      "path": "dist/commands/du/du.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/du/du.js.map",
+      "path": "dist/commands/du/du.js.map"
+    },
+    {
+      "name": "package/dist/commands/yq/encoder.d.ts.map",
+      "path": "dist/commands/yq/encoder.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/yq/encoder.js.map",
+      "path": "dist/commands/yq/encoder.js.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/entities.d.ts.map",
+      "path": "dist/commands/html-to-markdown/entities.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/entities.js.map",
+      "path": "dist/commands/html-to-markdown/entities.js.map"
+    },
+    {
+      "name": "package/dist/commands/env-split.d.ts.map",
+      "path": "dist/commands/env-split.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/env-split.js.map",
+      "path": "dist/commands/env-split.js.map"
+    },
+    {
+      "name": "package/dist/commands/yq/errors.d.ts.map",
+      "path": "dist/commands/yq/errors.d.ts.map"
+    },
+    {
+      "name": "package/dist/contracts/errors.d.ts.map",
+      "path": "dist/contracts/errors.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/yq/errors.js.map",
+      "path": "dist/commands/yq/errors.js.map"
+    },
+    {
+      "name": "package/dist/contracts/errors.js.map",
+      "path": "dist/contracts/errors.js.map"
+    },
+    {
+      "name": "package/dist/commands/expr/evaluate.d.ts.map",
+      "path": "dist/commands/expr/evaluate.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/expr/evaluate.js.map",
+      "path": "dist/commands/expr/evaluate.js.map"
+    },
+    {
+      "name": "package/dist/commands/execution.d.ts.map",
+      "path": "dist/commands/execution.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/execution.js.map",
+      "path": "dist/commands/execution.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/expand.d.ts.map",
+      "path": "dist/commands/stream-inspection/expand.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/expand.js.map",
+      "path": "dist/commands/stream-inspection/expand.js.map"
+    },
+    {
+      "name": "package/dist/commands/archive/extract.d.ts.map",
+      "path": "dist/commands/archive/extract.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/archive/extract.js.map",
+      "path": "dist/commands/archive/extract.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/files.d.ts.map",
+      "path": "dist/commands/bytes/compression/files.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/files.js.map",
+      "path": "dist/commands/bytes/compression/files.js.map"
+    },
+    {
+      "name": "package/dist/commands/filesystem.d.ts.map",
+      "path": "dist/commands/filesystem.d.ts.map"
+    },
+    {
+      "name": "package/dist/contracts/filesystem.d.ts.map",
+      "path": "dist/contracts/filesystem.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/filesystem.d.ts.map",
+      "path": "dist/fs/s3/filesystem.d.ts.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/filesystem.d.ts.map",
+      "path": "dist/integrations/safejs/filesystem.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/filesystem.js.map",
+      "path": "dist/commands/filesystem.js.map"
+    },
+    {
+      "name": "package/dist/contracts/filesystem.js.map",
+      "path": "dist/contracts/filesystem.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/filesystem.js.map",
+      "path": "dist/fs/s3/filesystem.js.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/filesystem.js.map",
+      "path": "dist/integrations/safejs/filesystem.js.map"
+    },
+    {
+      "name": "package/dist/commands/find.d.ts.map",
+      "path": "dist/commands/find.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/find.js.map",
+      "path": "dist/commands/find.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/fold.d.ts.map",
+      "path": "dist/commands/stream-inspection/fold.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/fold.js.map",
+      "path": "dist/commands/stream-inspection/fold.js.map"
+    },
+    {
+      "name": "package/dist/commands/archive/format.d.ts.map",
+      "path": "dist/commands/archive/format.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/du/format.d.ts.map",
+      "path": "dist/commands/du/format.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/format.d.ts.map",
+      "path": "dist/commands/time-env/format.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/archive/format.js.map",
+      "path": "dist/commands/archive/format.js.map"
+    },
+    {
+      "name": "package/dist/commands/du/format.js.map",
+      "path": "dist/commands/du/format.js.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/format.js.map",
+      "path": "dist/commands/time-env/format.js.map"
+    },
+    {
+      "name": "package/dist/shell/getopts.d.ts.map",
+      "path": "dist/shell/getopts.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/getopts.js.map",
+      "path": "dist/shell/getopts.js.map"
+    },
+    {
+      "name": "package/dist/commands/search/glob.d.ts.map",
+      "path": "dist/commands/search/glob.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/search/glob.js.map",
+      "path": "dist/commands/search/glob.js.map"
+    },
+    {
+      "name": "package/dist/commands/grep.d.ts.map",
+      "path": "dist/commands/grep.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/grep.js.map",
+      "path": "dist/commands/grep.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/gunzip.d.ts.map",
+      "path": "dist/commands/bytes/compression/gunzip.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/gunzip.js.map",
+      "path": "dist/commands/bytes/compression/gunzip.js.map"
+    },
+    {
+      "name": "package/dist/fs/mount/identity.d.ts.map",
+      "path": "dist/fs/mount/identity.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/mount/identity.js.map",
+      "path": "dist/fs/mount/identity.js.map"
+    },
+    {
+      "name": "package/dist/commands/archive/index.d.ts.map",
+      "path": "dist/commands/archive/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/checksums/index.d.ts.map",
+      "path": "dist/commands/bytes/checksums/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/index.d.ts.map",
+      "path": "dist/commands/bytes/compression/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/index.d.ts.map",
+      "path": "dist/commands/bytes/encoding/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/index.d.ts.map",
+      "path": "dist/commands/bytes/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/column/index.d.ts.map",
+      "path": "dist/commands/column/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/index.d.ts.map",
+      "path": "dist/commands/diff-patch/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/du/index.d.ts.map",
+      "path": "dist/commands/du/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/expr/index.d.ts.map",
+      "path": "dist/commands/expr/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/file/index.d.ts.map",
+      "path": "dist/commands/file/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/grep-aliases/index.d.ts.map",
+      "path": "dist/commands/grep-aliases/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/index.d.ts.map",
+      "path": "dist/commands/html-to-markdown/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/index.d.ts.map",
+      "path": "dist/commands/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/index.d.ts.map",
+      "path": "dist/commands/metadata/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/network/index.d.ts.map",
+      "path": "dist/commands/network/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/index.d.ts.map",
+      "path": "dist/commands/safejs/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/search/index.d.ts.map",
+      "path": "dist/commands/search/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/split/index.d.ts.map",
+      "path": "dist/commands/split/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/index.d.ts.map",
+      "path": "dist/commands/stream-format/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/index.d.ts.map",
+      "path": "dist/commands/stream-inspection/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/index.d.ts.map",
+      "path": "dist/commands/structured/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/index.d.ts.map",
+      "path": "dist/commands/table-text/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/index.d.ts.map",
+      "path": "dist/commands/text-programs/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/index.d.ts.map",
+      "path": "dist/commands/time-env/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/tree/index.d.ts.map",
+      "path": "dist/commands/tree/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/which/index.d.ts.map",
+      "path": "dist/commands/which/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/yq/index.d.ts.map",
+      "path": "dist/commands/yq/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/contracts/index.d.ts.map",
+      "path": "dist/contracts/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/memory/index.d.ts.map",
+      "path": "dist/fs/memory/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/mount/index.d.ts.map",
+      "path": "dist/fs/mount/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/overlay/index.d.ts.map",
+      "path": "dist/fs/overlay/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/readonly/index.d.ts.map",
+      "path": "dist/fs/readonly/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/real/index.d.ts.map",
+      "path": "dist/fs/real/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/index.d.ts.map",
+      "path": "dist/fs/s3/http/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/index.d.ts.map",
+      "path": "dist/fs/s3/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/webdav/index.d.ts.map",
+      "path": "dist/fs/webdav/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/index.d.ts.map",
+      "path": "dist/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/index.d.ts.map",
+      "path": "dist/integrations/safejs/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/plugins/index.d.ts.map",
+      "path": "dist/plugins/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/index.d.ts.map",
+      "path": "dist/shell/index.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/archive/index.js.map",
+      "path": "dist/commands/archive/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/checksums/index.js.map",
+      "path": "dist/commands/bytes/checksums/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/index.js.map",
+      "path": "dist/commands/bytes/compression/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/index.js.map",
+      "path": "dist/commands/bytes/encoding/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/index.js.map",
+      "path": "dist/commands/bytes/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/column/index.js.map",
+      "path": "dist/commands/column/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/index.js.map",
+      "path": "dist/commands/diff-patch/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/du/index.js.map",
+      "path": "dist/commands/du/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/expr/index.js.map",
+      "path": "dist/commands/expr/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/file/index.js.map",
+      "path": "dist/commands/file/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/grep-aliases/index.js.map",
+      "path": "dist/commands/grep-aliases/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/index.js.map",
+      "path": "dist/commands/html-to-markdown/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/index.js.map",
+      "path": "dist/commands/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/index.js.map",
+      "path": "dist/commands/metadata/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/network/index.js.map",
+      "path": "dist/commands/network/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/index.js.map",
+      "path": "dist/commands/safejs/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/search/index.js.map",
+      "path": "dist/commands/search/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/split/index.js.map",
+      "path": "dist/commands/split/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/index.js.map",
+      "path": "dist/commands/stream-format/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/index.js.map",
+      "path": "dist/commands/stream-inspection/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/index.js.map",
+      "path": "dist/commands/structured/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/index.js.map",
+      "path": "dist/commands/table-text/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/index.js.map",
+      "path": "dist/commands/text-programs/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/index.js.map",
+      "path": "dist/commands/time-env/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/tree/index.js.map",
+      "path": "dist/commands/tree/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/which/index.js.map",
+      "path": "dist/commands/which/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/yq/index.js.map",
+      "path": "dist/commands/yq/index.js.map"
+    },
+    {
+      "name": "package/dist/contracts/index.js.map",
+      "path": "dist/contracts/index.js.map"
+    },
+    {
+      "name": "package/dist/fs/memory/index.js.map",
+      "path": "dist/fs/memory/index.js.map"
+    },
+    {
+      "name": "package/dist/fs/mount/index.js.map",
+      "path": "dist/fs/mount/index.js.map"
+    },
+    {
+      "name": "package/dist/fs/overlay/index.js.map",
+      "path": "dist/fs/overlay/index.js.map"
+    },
+    {
+      "name": "package/dist/fs/readonly/index.js.map",
+      "path": "dist/fs/readonly/index.js.map"
+    },
+    {
+      "name": "package/dist/fs/real/index.js.map",
+      "path": "dist/fs/real/index.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/index.js.map",
+      "path": "dist/fs/s3/http/index.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/index.js.map",
+      "path": "dist/fs/s3/index.js.map"
+    },
+    {
+      "name": "package/dist/fs/webdav/index.js.map",
+      "path": "dist/fs/webdav/index.js.map"
+    },
+    {
+      "name": "package/dist/index.js.map",
+      "path": "dist/index.js.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/index.js.map",
+      "path": "dist/integrations/safejs/index.js.map"
+    },
+    {
+      "name": "package/dist/plugins/index.js.map",
+      "path": "dist/plugins/index.js.map"
+    },
+    {
+      "name": "package/dist/shell/index.js.map",
+      "path": "dist/shell/index.js.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/input.d.ts.map",
+      "path": "dist/commands/html-to-markdown/input.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/input.d.ts.map",
+      "path": "dist/commands/structured/input.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/input.d.ts.map",
+      "path": "dist/shell/input.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/input.js.map",
+      "path": "dist/commands/html-to-markdown/input.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/input.js.map",
+      "path": "dist/commands/structured/input.js.map"
+    },
+    {
+      "name": "package/dist/shell/input.js.map",
+      "path": "dist/shell/input.js.map"
+    },
+    {
+      "name": "package/dist/commands/archive/internal.d.ts.map",
+      "path": "dist/commands/archive/internal.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/column/internal.d.ts.map",
+      "path": "dist/commands/column/internal.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/expr/internal.d.ts.map",
+      "path": "dist/commands/expr/internal.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/internal.d.ts.map",
+      "path": "dist/commands/internal.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/internal.d.ts.map",
+      "path": "dist/commands/metadata/internal.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/internal.d.ts.map",
+      "path": "dist/commands/table-text/internal.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/archive/internal.js.map",
+      "path": "dist/commands/archive/internal.js.map"
+    },
+    {
+      "name": "package/dist/commands/column/internal.js.map",
+      "path": "dist/commands/column/internal.js.map"
+    },
+    {
+      "name": "package/dist/commands/expr/internal.js.map",
+      "path": "dist/commands/expr/internal.js.map"
+    },
+    {
+      "name": "package/dist/commands/internal.js.map",
+      "path": "dist/commands/internal.js.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/internal.js.map",
+      "path": "dist/commands/metadata/internal.js.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/internal.js.map",
+      "path": "dist/commands/table-text/internal.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/interpreter.d.ts.map",
+      "path": "dist/commands/structured/interpreter.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/interpreter.js.map",
+      "path": "dist/commands/structured/interpreter.js.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/io.d.ts.map",
+      "path": "dist/commands/safejs/io.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/split/io.d.ts.map",
+      "path": "dist/commands/split/io.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/tree/io.d.ts.map",
+      "path": "dist/commands/tree/io.d.ts.map"
+    },
+    {
+      "name": "package/dist/contracts/io.d.ts.map",
+      "path": "dist/contracts/io.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/io.js.map",
+      "path": "dist/commands/safejs/io.js.map"
+    },
+    {
+      "name": "package/dist/commands/split/io.js.map",
+      "path": "dist/commands/split/io.js.map"
+    },
+    {
+      "name": "package/dist/commands/tree/io.js.map",
+      "path": "dist/commands/tree/io.js.map"
+    },
+    {
+      "name": "package/dist/contracts/io.js.map",
+      "path": "dist/contracts/io.js.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/join.d.ts.map",
+      "path": "dist/commands/table-text/join.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/join.js.map",
+      "path": "dist/commands/table-text/join.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/jq.d.ts.map",
+      "path": "dist/commands/structured/jq.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/jq.js.map",
+      "path": "dist/commands/structured/jq.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/limits.d.ts.map",
+      "path": "dist/commands/structured/limits.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/limits.js.map",
+      "path": "dist/commands/structured/limits.js.map"
+    },
+    {
+      "name": "package/dist/shell/locale.d.ts.map",
+      "path": "dist/shell/locale.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/locale.js.map",
+      "path": "dist/shell/locale.js.map"
+    },
+    {
+      "name": "package/dist/commands/search/matcher.d.ts.map",
+      "path": "dist/commands/search/matcher.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/search/matcher.js.map",
+      "path": "dist/commands/search/matcher.js.map"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/matching.d.ts.map",
+      "path": "dist/commands/regex-execution/matching.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/matching.js.map",
+      "path": "dist/commands/regex-execution/matching.js.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/mktemp.d.ts.map",
+      "path": "dist/commands/metadata/mktemp.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/mktemp.js.map",
+      "path": "dist/commands/metadata/mktemp.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/mock.d.ts.map",
+      "path": "dist/fs/s3/mock.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/mock.js.map",
+      "path": "dist/fs/s3/mock.js.map"
+    },
+    {
+      "name": "package/dist/commands/move.d.ts.map",
+      "path": "dist/commands/move.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/move.js.map",
+      "path": "dist/commands/move.js.map"
+    },
+    {
+      "name": "package/dist/commands/split/names.d.ts.map",
+      "path": "dist/commands/split/names.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/split/names.js.map",
+      "path": "dist/commands/split/names.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/nl.d.ts.map",
+      "path": "dist/commands/stream-format/nl.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/nl.js.map",
+      "path": "dist/commands/stream-format/nl.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/numbers.d.ts.map",
+      "path": "dist/commands/structured/numbers.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/numbers.js.map",
+      "path": "dist/commands/structured/numbers.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/numeric-options.d.ts.map",
+      "path": "dist/commands/stream-inspection/numeric-options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/numeric-options.js.map",
+      "path": "dist/commands/stream-inspection/numeric-options.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/od.d.ts.map",
+      "path": "dist/commands/bytes/encoding/od.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/od.js.map",
+      "path": "dist/commands/bytes/encoding/od.js.map"
+    },
+    {
+      "name": "package/dist/commands/archive/options.d.ts.map",
+      "path": "dist/commands/archive/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/options.d.ts.map",
+      "path": "dist/commands/bytes/compression/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/column/options.d.ts.map",
+      "path": "dist/commands/column/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/du/options.d.ts.map",
+      "path": "dist/commands/du/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/options.d.ts.map",
+      "path": "dist/commands/html-to-markdown/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/options.d.ts.map",
+      "path": "dist/commands/safejs/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/search/options.d.ts.map",
+      "path": "dist/commands/search/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/split/options.d.ts.map",
+      "path": "dist/commands/split/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/tree/options.d.ts.map",
+      "path": "dist/commands/tree/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/which/options.d.ts.map",
+      "path": "dist/commands/which/options.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/archive/options.js.map",
+      "path": "dist/commands/archive/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/options.js.map",
+      "path": "dist/commands/bytes/compression/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/column/options.js.map",
+      "path": "dist/commands/column/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/du/options.js.map",
+      "path": "dist/commands/du/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/options.js.map",
+      "path": "dist/commands/html-to-markdown/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/options.js.map",
+      "path": "dist/commands/safejs/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/search/options.js.map",
+      "path": "dist/commands/search/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/split/options.js.map",
+      "path": "dist/commands/split/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/tree/options.js.map",
+      "path": "dist/commands/tree/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/which/options.js.map",
+      "path": "dist/commands/which/options.js.map"
+    },
+    {
+      "name": "package/dist/commands/network/output.d.ts.map",
+      "path": "dist/commands/network/output.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/search/output.d.ts.map",
+      "path": "dist/commands/search/output.d.ts.map"
+    },
+    {
+      "name": "package/dist/contracts/output.d.ts.map",
+      "path": "dist/contracts/output.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/network/output.js.map",
+      "path": "dist/commands/network/output.js.map"
+    },
+    {
+      "name": "package/dist/commands/search/output.js.map",
+      "path": "dist/commands/search/output.js.map"
+    },
+    {
+      "name": "package/dist/contracts/output.js.map",
+      "path": "dist/contracts/output.js.map"
+    },
+    {
+      "name": "package/dist/commands/split/outputs.d.ts.map",
+      "path": "dist/commands/split/outputs.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/split/outputs.js.map",
+      "path": "dist/commands/split/outputs.js.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/parser.d.ts.map",
+      "path": "dist/commands/html-to-markdown/parser.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/parser.d.ts.map",
+      "path": "dist/commands/structured/parser.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/yq/parser.d.ts.map",
+      "path": "dist/commands/yq/parser.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/parser.d.ts.map",
+      "path": "dist/shell/parser.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/parser.js.map",
+      "path": "dist/commands/html-to-markdown/parser.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/parser.js.map",
+      "path": "dist/commands/structured/parser.js.map"
+    },
+    {
+      "name": "package/dist/commands/yq/parser.js.map",
+      "path": "dist/commands/yq/parser.js.map"
+    },
+    {
+      "name": "package/dist/shell/parser.js.map",
+      "path": "dist/shell/parser.js.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/paste.d.ts.map",
+      "path": "dist/commands/table-text/paste.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/table-text/paste.js.map",
+      "path": "dist/commands/table-text/paste.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-envelope.d.ts.map",
+      "path": "dist/commands/diff-patch/patch-envelope.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-envelope.js.map",
+      "path": "dist/commands/diff-patch/patch-envelope.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-formats.d.ts.map",
+      "path": "dist/commands/diff-patch/patch-formats.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-formats.js.map",
+      "path": "dist/commands/diff-patch/patch-formats.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-gnu-paths.d.ts.map",
+      "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-gnu-paths.js.map",
+      "path": "dist/commands/diff-patch/patch-gnu-paths.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-gnu-reject.d.ts.map",
+      "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-gnu-reject.js.map",
+      "path": "dist/commands/diff-patch/patch-gnu-reject.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-path.d.ts.map",
+      "path": "dist/commands/diff-patch/patch-path.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-path.js.map",
+      "path": "dist/commands/diff-patch/patch-path.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch.d.ts.map",
+      "path": "dist/commands/diff-patch/patch.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch.js.map",
+      "path": "dist/commands/diff-patch/patch.js.map"
+    },
+    {
+      "name": "package/dist/contracts/path.d.ts.map",
+      "path": "dist/contracts/path.d.ts.map"
+    },
+    {
+      "name": "package/dist/contracts/path.js.map",
+      "path": "dist/contracts/path.js.map"
+    },
+    {
+      "name": "package/dist/commands/tree/pattern.d.ts.map",
+      "path": "dist/commands/tree/pattern.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/pattern.d.ts.map",
+      "path": "dist/shell/pattern.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/tree/pattern.js.map",
+      "path": "dist/commands/tree/pattern.js.map"
+    },
+    {
+      "name": "package/dist/shell/pattern.js.map",
+      "path": "dist/shell/pattern.js.map"
+    },
+    {
+      "name": "package/dist/contracts/plugin.d.ts.map",
+      "path": "dist/contracts/plugin.d.ts.map"
+    },
+    {
+      "name": "package/dist/contracts/plugin.js.map",
+      "path": "dist/contracts/plugin.js.map"
+    },
+    {
+      "name": "package/dist/commands/predicates.d.ts.map",
+      "path": "dist/commands/predicates.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/predicates.js.map",
+      "path": "dist/commands/predicates.js.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/printenv.d.ts.map",
+      "path": "dist/commands/time-env/printenv.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/printenv.js.map",
+      "path": "dist/commands/time-env/printenv.js.map"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/protocol.d.ts.map",
+      "path": "dist/commands/regex-execution/protocol.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/protocol.js.map",
+      "path": "dist/commands/regex-execution/protocol.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/query-core.d.ts.map",
+      "path": "dist/commands/structured/query-core.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/query-core.js.map",
+      "path": "dist/commands/structured/query-core.js.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/regex.d.ts.map",
+      "path": "dist/commands/text-programs/regex.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/regex.js.map",
+      "path": "dist/commands/text-programs/regex.js.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/render.d.ts.map",
+      "path": "dist/commands/html-to-markdown/render.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/render.d.ts.map",
+      "path": "dist/commands/safejs/render.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/render.js.map",
+      "path": "dist/commands/html-to-markdown/render.js.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/render.js.map",
+      "path": "dist/commands/safejs/render.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/request.d.ts.map",
+      "path": "dist/fs/s3/http/request.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/request.js.map",
+      "path": "dist/fs/s3/http/request.js.map"
+    },
+    {
+      "name": "package/dist/fs/webdav/resource-id.d.ts.map",
+      "path": "dist/fs/webdav/resource-id.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/webdav/resource-id.js.map",
+      "path": "dist/fs/webdav/resource-id.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/rev.d.ts.map",
+      "path": "dist/commands/stream-format/rev.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/rev.js.map",
+      "path": "dist/commands/stream-format/rev.js.map"
+    },
+    {
+      "name": "package/dist/commands/search/rg.d.ts.map",
+      "path": "dist/commands/search/rg.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/search/rg.js.map",
+      "path": "dist/commands/search/rg.js.map"
+    },
+    {
+      "name": "package/dist/shell/runtime.d.ts.map",
+      "path": "dist/shell/runtime.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/runtime.js.map",
+      "path": "dist/shell/runtime.js.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/sed.d.ts.map",
+      "path": "dist/commands/text-programs/sed.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/sed.js.map",
+      "path": "dist/commands/text-programs/sed.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/seq.d.ts.map",
+      "path": "dist/commands/stream-format/seq.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/seq.js.map",
+      "path": "dist/commands/stream-format/seq.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/shared.d.ts.map",
+      "path": "dist/commands/bytes/encoding/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/shared.d.ts.map",
+      "path": "dist/commands/diff-patch/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/file/shared.d.ts.map",
+      "path": "dist/commands/file/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/network/shared.d.ts.map",
+      "path": "dist/commands/network/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/search/shared.d.ts.map",
+      "path": "dist/commands/search/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/shared.d.ts.map",
+      "path": "dist/commands/stream-format/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/shared.d.ts.map",
+      "path": "dist/commands/stream-inspection/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/shared.d.ts.map",
+      "path": "dist/commands/text-programs/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/shared.d.ts.map",
+      "path": "dist/commands/time-env/shared.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/shared.js.map",
+      "path": "dist/commands/bytes/encoding/shared.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/shared.js.map",
+      "path": "dist/commands/diff-patch/shared.js.map"
+    },
+    {
+      "name": "package/dist/commands/file/shared.js.map",
+      "path": "dist/commands/file/shared.js.map"
+    },
+    {
+      "name": "package/dist/commands/network/shared.js.map",
+      "path": "dist/commands/network/shared.js.map"
+    },
+    {
+      "name": "package/dist/commands/search/shared.js.map",
+      "path": "dist/commands/search/shared.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/shared.js.map",
+      "path": "dist/commands/stream-format/shared.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/shared.js.map",
+      "path": "dist/commands/stream-inspection/shared.js.map"
+    },
+    {
+      "name": "package/dist/commands/text-programs/shared.js.map",
+      "path": "dist/commands/text-programs/shared.js.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/shared.js.map",
+      "path": "dist/commands/time-env/shared.js.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/shell.d.ts.map",
+      "path": "dist/integrations/safejs/shell.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/shell.d.ts.map",
+      "path": "dist/shell/shell.d.ts.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/shell.js.map",
+      "path": "dist/integrations/safejs/shell.js.map"
+    },
+    {
+      "name": "package/dist/shell/shell.js.map",
+      "path": "dist/shell/shell.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/signature.d.ts.map",
+      "path": "dist/fs/s3/http/signature.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/signature.js.map",
+      "path": "dist/fs/s3/http/signature.js.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/sleep.d.ts.map",
+      "path": "dist/commands/time-env/sleep.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/time-env/sleep.js.map",
+      "path": "dist/commands/time-env/sleep.js.map"
+    },
+    {
+      "name": "package/dist/commands/split/split.d.ts.map",
+      "path": "dist/commands/split/split.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/split.d.ts.map",
+      "path": "dist/commands/structured/split.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/split/split.js.map",
+      "path": "dist/commands/split/split.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/split.js.map",
+      "path": "dist/commands/structured/split.js.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/stat.d.ts.map",
+      "path": "dist/commands/metadata/stat.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/metadata/stat.js.map",
+      "path": "dist/commands/metadata/stat.js.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/stats.d.ts.map",
+      "path": "dist/integrations/safejs/stats.d.ts.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/stats.js.map",
+      "path": "dist/integrations/safejs/stats.js.map"
+    },
+    {
+      "name": "package/dist/commands/archive/stream.d.ts.map",
+      "path": "dist/commands/archive/stream.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/stream.d.ts.map",
+      "path": "dist/commands/bytes/compression/stream.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/archive/stream.js.map",
+      "path": "dist/commands/archive/stream.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/stream.js.map",
+      "path": "dist/commands/bytes/compression/stream.js.map"
+    },
+    {
+      "name": "package/dist/commands/streams.d.ts.map",
+      "path": "dist/commands/streams.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/streams.js.map",
+      "path": "dist/commands/streams.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/strings.d.ts.map",
+      "path": "dist/commands/stream-inspection/strings.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/strings.js.map",
+      "path": "dist/commands/stream-inspection/strings.js.map"
+    },
+    {
+      "name": "package/dist/commands/expr/syntax.d.ts.map",
+      "path": "dist/commands/expr/syntax.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/expr/syntax.js.map",
+      "path": "dist/commands/expr/syntax.js.map"
+    },
+    {
+      "name": "package/dist/commands/column/table.d.ts.map",
+      "path": "dist/commands/column/table.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/column/table.js.map",
+      "path": "dist/commands/column/table.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/tac.d.ts.map",
+      "path": "dist/commands/stream-inspection/tac.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/tac.js.map",
+      "path": "dist/commands/stream-inspection/tac.js.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/text.d.ts.map",
+      "path": "dist/commands/html-to-markdown/text.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/text.d.ts.map",
+      "path": "dist/commands/text.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/text.js.map",
+      "path": "dist/commands/html-to-markdown/text.js.map"
+    },
+    {
+      "name": "package/dist/commands/text.js.map",
+      "path": "dist/commands/text.js.map"
+    },
+    {
+      "name": "package/dist/commands/network/transport.d.ts.map",
+      "path": "dist/commands/network/transport.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/transport.d.ts.map",
+      "path": "dist/fs/s3/http/transport.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/transport.d.ts.map",
+      "path": "dist/fs/s3/transport.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/network/transport.js.map",
+      "path": "dist/commands/network/transport.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/transport.js.map",
+      "path": "dist/fs/s3/http/transport.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/transport.js.map",
+      "path": "dist/fs/s3/transport.js.map"
+    },
+    {
+      "name": "package/dist/commands/tree/tree.d.ts.map",
+      "path": "dist/commands/tree/tree.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/tree/tree.js.map",
+      "path": "dist/commands/tree/tree.js.map"
+    },
+    {
+      "name": "package/dist/commands/network/types.d.ts.map",
+      "path": "dist/commands/network/types.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/types.d.ts.map",
+      "path": "dist/commands/safejs/types.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/types.d.ts.map",
+      "path": "dist/fs/s3/http/types.d.ts.map"
+    },
+    {
+      "name": "package/dist/shell/types.d.ts.map",
+      "path": "dist/shell/types.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/network/types.js.map",
+      "path": "dist/commands/network/types.js.map"
+    },
+    {
+      "name": "package/dist/commands/safejs/types.js.map",
+      "path": "dist/commands/safejs/types.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/types.js.map",
+      "path": "dist/fs/s3/http/types.js.map"
+    },
+    {
+      "name": "package/dist/shell/types.js.map",
+      "path": "dist/shell/types.js.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/unexpand.d.ts.map",
+      "path": "dist/commands/stream-format/unexpand.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/stream-format/unexpand.js.map",
+      "path": "dist/commands/stream-format/unexpand.js.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/unified.d.ts.map",
+      "path": "dist/commands/diff-patch/unified.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/unified.js.map",
+      "path": "dist/commands/diff-patch/unified.js.map"
+    },
+    {
+      "name": "package/dist/commands/structured/values.d.ts.map",
+      "path": "dist/commands/structured/values.d.ts.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/values.d.ts.map",
+      "path": "dist/integrations/safejs/values.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/structured/values.js.map",
+      "path": "dist/commands/structured/values.js.map"
+    },
+    {
+      "name": "package/dist/integrations/safejs/values.js.map",
+      "path": "dist/integrations/safejs/values.js.map"
+    },
+    {
+      "name": "package/dist/commands/search/walk.d.ts.map",
+      "path": "dist/commands/search/walk.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/search/walk.js.map",
+      "path": "dist/commands/search/walk.js.map"
+    },
+    {
+      "name": "package/dist/fs/webdav/webdav.d.ts.map",
+      "path": "dist/fs/webdav/webdav.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/webdav/webdav.js.map",
+      "path": "dist/fs/webdav/webdav.js.map"
+    },
+    {
+      "name": "package/dist/commands/which/which.d.ts.map",
+      "path": "dist/commands/which/which.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/which/which.js.map",
+      "path": "dist/commands/which/which.js.map"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/worker.d.ts.map",
+      "path": "dist/commands/regex-execution/worker.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/worker.js.map",
+      "path": "dist/commands/regex-execution/worker.js.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/xml.d.ts.map",
+      "path": "dist/fs/s3/http/xml.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/webdav/xml.d.ts.map",
+      "path": "dist/fs/webdav/xml.d.ts.map"
+    },
+    {
+      "name": "package/dist/fs/s3/http/xml.js.map",
+      "path": "dist/fs/s3/http/xml.js.map"
+    },
+    {
+      "name": "package/dist/fs/webdav/xml.js.map",
+      "path": "dist/fs/webdav/xml.js.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/xxd.d.ts.map",
+      "path": "dist/commands/bytes/encoding/xxd.d.ts.map"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/xxd.js.map",
+      "path": "dist/commands/bytes/encoding/xxd.js.map"
+    },
+    {
+      "name": "package/README.md",
+      "path": "README.md"
+    },
+    {
+      "name": "package/dist/commands/yq/accounting.d.ts",
+      "path": "dist/commands/yq/accounting.d.ts"
+    },
+    {
+      "name": "package/dist/fs/real/allocation.d.ts",
+      "path": "dist/fs/real/allocation.d.ts"
+    },
+    {
+      "name": "package/dist/commands/network/args.d.ts",
+      "path": "dist/commands/network/args.d.ts"
+    },
+    {
+      "name": "package/dist/commands/du/arguments.d.ts",
+      "path": "dist/commands/du/arguments.d.ts"
+    },
+    {
+      "name": "package/dist/commands/tree/arguments.d.ts",
+      "path": "dist/commands/tree/arguments.d.ts"
+    },
+    {
+      "name": "package/dist/shell/arithmetic.d.ts",
+      "path": "dist/shell/arithmetic.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/authority.d.ts",
+      "path": "dist/fs/s3/authority.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-runtime.d.ts",
+      "path": "dist/commands/text-programs/awk-runtime.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-syntax.d.ts",
+      "path": "dist/commands/text-programs/awk-syntax.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk-values.d.ts",
+      "path": "dist/commands/text-programs/awk-values.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text-programs/awk.d.ts",
+      "path": "dist/commands/text-programs/awk.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/base.d.ts",
+      "path": "dist/commands/bytes/encoding/base.d.ts"
+    },
+    {
+      "name": "package/dist/commands/basic.d.ts",
+      "path": "dist/commands/basic.d.ts"
+    },
+    {
+      "name": "package/dist/commands/network/body.d.ts",
+      "path": "dist/commands/network/body.d.ts"
+    },
+    {
+      "name": "package/dist/commands/expr/bre-worker.d.ts",
+      "path": "dist/commands/expr/bre-worker.d.ts"
+    },
+    {
+      "name": "package/dist/commands/du/budget.d.ts",
+      "path": "dist/commands/du/budget.d.ts"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/budget.d.ts",
+      "path": "dist/commands/html-to-markdown/budget.d.ts"
+    },
+    {
+      "name": "package/dist/commands/time-env/calendar.d.ts",
+      "path": "dist/commands/time-env/calendar.d.ts"
+    },
+    {
+      "name": "package/dist/shell/cancellation.d.ts",
+      "path": "dist/shell/cancellation.d.ts"
+    },
+    {
+      "name": "package/dist/commands/tree/charset.d.ts",
+      "path": "dist/commands/tree/charset.d.ts"
+    },
+    {
+      "name": "package/dist/commands/metadata/chmod.d.ts",
+      "path": "dist/commands/metadata/chmod.d.ts"
+    },
+    {
+      "name": "package/dist/commands/file/classify.d.ts",
+      "path": "dist/commands/file/classify.d.ts"
+    },
+    {
+      "name": "package/dist/shell/cleanup.d.ts",
+      "path": "dist/shell/cleanup.d.ts"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/client.d.ts",
+      "path": "dist/commands/regex-execution/client.d.ts"
+    },
+    {
+      "name": "package/dist/commands/column/column.d.ts",
+      "path": "dist/commands/column/column.d.ts"
+    },
+    {
+      "name": "package/dist/commands/table-text/comm.d.ts",
+      "path": "dist/commands/table-text/comm.d.ts"
+    },
+    {
+      "name": "package/dist/contracts/command.d.ts",
+      "path": "dist/contracts/command.d.ts"
+    },
+    {
+      "name": "package/dist/fs/mount/comparison.d.ts",
+      "path": "dist/fs/mount/comparison.d.ts"
+    },
+    {
+      "name": "package/dist/commands/copy-identity.d.ts",
+      "path": "dist/commands/copy-identity.d.ts"
+    },
+    {
+      "name": "package/dist/commands/archive/create.d.ts",
+      "path": "dist/commands/archive/create.d.ts"
+    },
+    {
+      "name": "package/dist/commands/network/curl.d.ts",
+      "path": "dist/commands/network/curl.d.ts"
+    },
+    {
+      "name": "package/dist/commands/time-env/date.d.ts",
+      "path": "dist/commands/time-env/date.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/diff-format.d.ts",
+      "path": "dist/commands/diff-patch/diff-format.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/diff.d.ts",
+      "path": "dist/commands/diff-patch/diff.d.ts"
+    },
+    {
+      "name": "package/dist/commands/column/display.d.ts",
+      "path": "dist/commands/column/display.d.ts"
+    },
+    {
+      "name": "package/dist/shell/display.d.ts",
+      "path": "dist/shell/display.d.ts"
+    },
+    {
+      "name": "package/dist/commands/du/du.d.ts",
+      "path": "dist/commands/du/du.d.ts"
+    },
+    {
+      "name": "package/dist/commands/yq/encoder.d.ts",
+      "path": "dist/commands/yq/encoder.d.ts"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/entities.d.ts",
+      "path": "dist/commands/html-to-markdown/entities.d.ts"
+    },
+    {
+      "name": "package/dist/commands/env-split.d.ts",
+      "path": "dist/commands/env-split.d.ts"
+    },
+    {
+      "name": "package/dist/commands/yq/errors.d.ts",
+      "path": "dist/commands/yq/errors.d.ts"
+    },
+    {
+      "name": "package/dist/contracts/errors.d.ts",
+      "path": "dist/contracts/errors.d.ts"
+    },
+    {
+      "name": "package/dist/commands/expr/evaluate.d.ts",
+      "path": "dist/commands/expr/evaluate.d.ts"
+    },
+    {
+      "name": "package/dist/commands/execution.d.ts",
+      "path": "dist/commands/execution.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/expand.d.ts",
+      "path": "dist/commands/stream-inspection/expand.d.ts"
+    },
+    {
+      "name": "package/dist/commands/archive/extract.d.ts",
+      "path": "dist/commands/archive/extract.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/files.d.ts",
+      "path": "dist/commands/bytes/compression/files.d.ts"
+    },
+    {
+      "name": "package/dist/commands/filesystem.d.ts",
+      "path": "dist/commands/filesystem.d.ts"
+    },
+    {
+      "name": "package/dist/contracts/filesystem.d.ts",
+      "path": "dist/contracts/filesystem.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/filesystem.d.ts",
+      "path": "dist/fs/s3/filesystem.d.ts"
+    },
+    {
+      "name": "package/dist/integrations/safejs/filesystem.d.ts",
+      "path": "dist/integrations/safejs/filesystem.d.ts"
+    },
+    {
+      "name": "package/dist/commands/find.d.ts",
+      "path": "dist/commands/find.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/fold.d.ts",
+      "path": "dist/commands/stream-inspection/fold.d.ts"
+    },
+    {
+      "name": "package/dist/commands/archive/format.d.ts",
+      "path": "dist/commands/archive/format.d.ts"
+    },
+    {
+      "name": "package/dist/commands/du/format.d.ts",
+      "path": "dist/commands/du/format.d.ts"
+    },
+    {
+      "name": "package/dist/commands/time-env/format.d.ts",
+      "path": "dist/commands/time-env/format.d.ts"
+    },
+    {
+      "name": "package/dist/shell/getopts.d.ts",
+      "path": "dist/shell/getopts.d.ts"
+    },
+    {
+      "name": "package/dist/commands/search/glob.d.ts",
+      "path": "dist/commands/search/glob.d.ts"
+    },
+    {
+      "name": "package/dist/commands/grep.d.ts",
+      "path": "dist/commands/grep.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/gunzip.d.ts",
+      "path": "dist/commands/bytes/compression/gunzip.d.ts"
+    },
+    {
+      "name": "package/dist/fs/mount/identity.d.ts",
+      "path": "dist/fs/mount/identity.d.ts"
+    },
+    {
+      "name": "package/dist/commands/archive/index.d.ts",
+      "path": "dist/commands/archive/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/checksums/index.d.ts",
+      "path": "dist/commands/bytes/checksums/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/index.d.ts",
+      "path": "dist/commands/bytes/compression/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/index.d.ts",
+      "path": "dist/commands/bytes/encoding/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/index.d.ts",
+      "path": "dist/commands/bytes/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/column/index.d.ts",
+      "path": "dist/commands/column/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/index.d.ts",
+      "path": "dist/commands/diff-patch/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/du/index.d.ts",
+      "path": "dist/commands/du/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/expr/index.d.ts",
+      "path": "dist/commands/expr/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/file/index.d.ts",
+      "path": "dist/commands/file/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/grep-aliases/index.d.ts",
+      "path": "dist/commands/grep-aliases/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/index.d.ts",
+      "path": "dist/commands/html-to-markdown/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/index.d.ts",
+      "path": "dist/commands/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/metadata/index.d.ts",
+      "path": "dist/commands/metadata/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/network/index.d.ts",
+      "path": "dist/commands/network/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/safejs/index.d.ts",
+      "path": "dist/commands/safejs/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/search/index.d.ts",
+      "path": "dist/commands/search/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/split/index.d.ts",
+      "path": "dist/commands/split/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-format/index.d.ts",
+      "path": "dist/commands/stream-format/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/index.d.ts",
+      "path": "dist/commands/stream-inspection/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/index.d.ts",
+      "path": "dist/commands/structured/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/table-text/index.d.ts",
+      "path": "dist/commands/table-text/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text-programs/index.d.ts",
+      "path": "dist/commands/text-programs/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/time-env/index.d.ts",
+      "path": "dist/commands/time-env/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/tree/index.d.ts",
+      "path": "dist/commands/tree/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/which/index.d.ts",
+      "path": "dist/commands/which/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/yq/index.d.ts",
+      "path": "dist/commands/yq/index.d.ts"
+    },
+    {
+      "name": "package/dist/contracts/index.d.ts",
+      "path": "dist/contracts/index.d.ts"
+    },
+    {
+      "name": "package/dist/fs/memory/index.d.ts",
+      "path": "dist/fs/memory/index.d.ts"
+    },
+    {
+      "name": "package/dist/fs/mount/index.d.ts",
+      "path": "dist/fs/mount/index.d.ts"
+    },
+    {
+      "name": "package/dist/fs/overlay/index.d.ts",
+      "path": "dist/fs/overlay/index.d.ts"
+    },
+    {
+      "name": "package/dist/fs/readonly/index.d.ts",
+      "path": "dist/fs/readonly/index.d.ts"
+    },
+    {
+      "name": "package/dist/fs/real/index.d.ts",
+      "path": "dist/fs/real/index.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/http/index.d.ts",
+      "path": "dist/fs/s3/http/index.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/index.d.ts",
+      "path": "dist/fs/s3/index.d.ts"
+    },
+    {
+      "name": "package/dist/fs/webdav/index.d.ts",
+      "path": "dist/fs/webdav/index.d.ts"
+    },
+    {
+      "name": "package/dist/index.d.ts",
+      "path": "dist/index.d.ts"
+    },
+    {
+      "name": "package/dist/integrations/safejs/index.d.ts",
+      "path": "dist/integrations/safejs/index.d.ts"
+    },
+    {
+      "name": "package/dist/plugins/index.d.ts",
+      "path": "dist/plugins/index.d.ts"
+    },
+    {
+      "name": "package/dist/shell/index.d.ts",
+      "path": "dist/shell/index.d.ts"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/input.d.ts",
+      "path": "dist/commands/html-to-markdown/input.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/input.d.ts",
+      "path": "dist/commands/structured/input.d.ts"
+    },
+    {
+      "name": "package/dist/shell/input.d.ts",
+      "path": "dist/shell/input.d.ts"
+    },
+    {
+      "name": "package/dist/commands/archive/internal.d.ts",
+      "path": "dist/commands/archive/internal.d.ts"
+    },
+    {
+      "name": "package/dist/commands/column/internal.d.ts",
+      "path": "dist/commands/column/internal.d.ts"
+    },
+    {
+      "name": "package/dist/commands/expr/internal.d.ts",
+      "path": "dist/commands/expr/internal.d.ts"
+    },
+    {
+      "name": "package/dist/commands/internal.d.ts",
+      "path": "dist/commands/internal.d.ts"
+    },
+    {
+      "name": "package/dist/commands/metadata/internal.d.ts",
+      "path": "dist/commands/metadata/internal.d.ts"
+    },
+    {
+      "name": "package/dist/commands/table-text/internal.d.ts",
+      "path": "dist/commands/table-text/internal.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/interpreter.d.ts",
+      "path": "dist/commands/structured/interpreter.d.ts"
+    },
+    {
+      "name": "package/dist/commands/safejs/io.d.ts",
+      "path": "dist/commands/safejs/io.d.ts"
+    },
+    {
+      "name": "package/dist/commands/split/io.d.ts",
+      "path": "dist/commands/split/io.d.ts"
+    },
+    {
+      "name": "package/dist/commands/tree/io.d.ts",
+      "path": "dist/commands/tree/io.d.ts"
+    },
+    {
+      "name": "package/dist/contracts/io.d.ts",
+      "path": "dist/contracts/io.d.ts"
+    },
+    {
+      "name": "package/dist/commands/table-text/join.d.ts",
+      "path": "dist/commands/table-text/join.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/jq.d.ts",
+      "path": "dist/commands/structured/jq.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/limits.d.ts",
+      "path": "dist/commands/structured/limits.d.ts"
+    },
+    {
+      "name": "package/dist/shell/locale.d.ts",
+      "path": "dist/shell/locale.d.ts"
+    },
+    {
+      "name": "package/dist/commands/search/matcher.d.ts",
+      "path": "dist/commands/search/matcher.d.ts"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/matching.d.ts",
+      "path": "dist/commands/regex-execution/matching.d.ts"
+    },
+    {
+      "name": "package/dist/commands/metadata/mktemp.d.ts",
+      "path": "dist/commands/metadata/mktemp.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/mock.d.ts",
+      "path": "dist/fs/s3/mock.d.ts"
+    },
+    {
+      "name": "package/dist/commands/move.d.ts",
+      "path": "dist/commands/move.d.ts"
+    },
+    {
+      "name": "package/dist/commands/split/names.d.ts",
+      "path": "dist/commands/split/names.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-format/nl.d.ts",
+      "path": "dist/commands/stream-format/nl.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/numbers.d.ts",
+      "path": "dist/commands/structured/numbers.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/numeric-options.d.ts",
+      "path": "dist/commands/stream-inspection/numeric-options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/od.d.ts",
+      "path": "dist/commands/bytes/encoding/od.d.ts"
+    },
+    {
+      "name": "package/dist/commands/archive/options.d.ts",
+      "path": "dist/commands/archive/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/options.d.ts",
+      "path": "dist/commands/bytes/compression/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/column/options.d.ts",
+      "path": "dist/commands/column/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/du/options.d.ts",
+      "path": "dist/commands/du/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/options.d.ts",
+      "path": "dist/commands/html-to-markdown/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/safejs/options.d.ts",
+      "path": "dist/commands/safejs/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/search/options.d.ts",
+      "path": "dist/commands/search/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/split/options.d.ts",
+      "path": "dist/commands/split/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/tree/options.d.ts",
+      "path": "dist/commands/tree/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/which/options.d.ts",
+      "path": "dist/commands/which/options.d.ts"
+    },
+    {
+      "name": "package/dist/commands/network/output.d.ts",
+      "path": "dist/commands/network/output.d.ts"
+    },
+    {
+      "name": "package/dist/commands/search/output.d.ts",
+      "path": "dist/commands/search/output.d.ts"
+    },
+    {
+      "name": "package/dist/contracts/output.d.ts",
+      "path": "dist/contracts/output.d.ts"
+    },
+    {
+      "name": "package/dist/commands/split/outputs.d.ts",
+      "path": "dist/commands/split/outputs.d.ts"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/parser.d.ts",
+      "path": "dist/commands/html-to-markdown/parser.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/parser.d.ts",
+      "path": "dist/commands/structured/parser.d.ts"
+    },
+    {
+      "name": "package/dist/commands/yq/parser.d.ts",
+      "path": "dist/commands/yq/parser.d.ts"
+    },
+    {
+      "name": "package/dist/shell/parser.d.ts",
+      "path": "dist/shell/parser.d.ts"
+    },
+    {
+      "name": "package/dist/commands/table-text/paste.d.ts",
+      "path": "dist/commands/table-text/paste.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-envelope.d.ts",
+      "path": "dist/commands/diff-patch/patch-envelope.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-formats.d.ts",
+      "path": "dist/commands/diff-patch/patch-formats.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-gnu-paths.d.ts",
+      "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-gnu-reject.d.ts",
+      "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch-path.d.ts",
+      "path": "dist/commands/diff-patch/patch-path.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/patch.d.ts",
+      "path": "dist/commands/diff-patch/patch.d.ts"
+    },
+    {
+      "name": "package/dist/contracts/path.d.ts",
+      "path": "dist/contracts/path.d.ts"
+    },
+    {
+      "name": "package/dist/commands/tree/pattern.d.ts",
+      "path": "dist/commands/tree/pattern.d.ts"
+    },
+    {
+      "name": "package/dist/shell/pattern.d.ts",
+      "path": "dist/shell/pattern.d.ts"
+    },
+    {
+      "name": "package/dist/contracts/plugin.d.ts",
+      "path": "dist/contracts/plugin.d.ts"
+    },
+    {
+      "name": "package/dist/commands/predicates.d.ts",
+      "path": "dist/commands/predicates.d.ts"
+    },
+    {
+      "name": "package/dist/commands/time-env/printenv.d.ts",
+      "path": "dist/commands/time-env/printenv.d.ts"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/protocol.d.ts",
+      "path": "dist/commands/regex-execution/protocol.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/query-core.d.ts",
+      "path": "dist/commands/structured/query-core.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text-programs/regex.d.ts",
+      "path": "dist/commands/text-programs/regex.d.ts"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/render.d.ts",
+      "path": "dist/commands/html-to-markdown/render.d.ts"
+    },
+    {
+      "name": "package/dist/commands/safejs/render.d.ts",
+      "path": "dist/commands/safejs/render.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/http/request.d.ts",
+      "path": "dist/fs/s3/http/request.d.ts"
+    },
+    {
+      "name": "package/dist/fs/webdav/resource-id.d.ts",
+      "path": "dist/fs/webdav/resource-id.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-format/rev.d.ts",
+      "path": "dist/commands/stream-format/rev.d.ts"
+    },
+    {
+      "name": "package/dist/commands/search/rg.d.ts",
+      "path": "dist/commands/search/rg.d.ts"
+    },
+    {
+      "name": "package/dist/shell/runtime.d.ts",
+      "path": "dist/shell/runtime.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text-programs/sed.d.ts",
+      "path": "dist/commands/text-programs/sed.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-format/seq.d.ts",
+      "path": "dist/commands/stream-format/seq.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/shared.d.ts",
+      "path": "dist/commands/bytes/encoding/shared.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/shared.d.ts",
+      "path": "dist/commands/diff-patch/shared.d.ts"
+    },
+    {
+      "name": "package/dist/commands/file/shared.d.ts",
+      "path": "dist/commands/file/shared.d.ts"
+    },
+    {
+      "name": "package/dist/commands/network/shared.d.ts",
+      "path": "dist/commands/network/shared.d.ts"
+    },
+    {
+      "name": "package/dist/commands/search/shared.d.ts",
+      "path": "dist/commands/search/shared.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-format/shared.d.ts",
+      "path": "dist/commands/stream-format/shared.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/shared.d.ts",
+      "path": "dist/commands/stream-inspection/shared.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text-programs/shared.d.ts",
+      "path": "dist/commands/text-programs/shared.d.ts"
+    },
+    {
+      "name": "package/dist/commands/time-env/shared.d.ts",
+      "path": "dist/commands/time-env/shared.d.ts"
+    },
+    {
+      "name": "package/dist/integrations/safejs/shell.d.ts",
+      "path": "dist/integrations/safejs/shell.d.ts"
+    },
+    {
+      "name": "package/dist/shell/shell.d.ts",
+      "path": "dist/shell/shell.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/http/signature.d.ts",
+      "path": "dist/fs/s3/http/signature.d.ts"
+    },
+    {
+      "name": "package/dist/commands/time-env/sleep.d.ts",
+      "path": "dist/commands/time-env/sleep.d.ts"
+    },
+    {
+      "name": "package/dist/commands/split/split.d.ts",
+      "path": "dist/commands/split/split.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/split.d.ts",
+      "path": "dist/commands/structured/split.d.ts"
+    },
+    {
+      "name": "package/dist/commands/metadata/stat.d.ts",
+      "path": "dist/commands/metadata/stat.d.ts"
+    },
+    {
+      "name": "package/dist/integrations/safejs/stats.d.ts",
+      "path": "dist/integrations/safejs/stats.d.ts"
+    },
+    {
+      "name": "package/dist/commands/archive/stream.d.ts",
+      "path": "dist/commands/archive/stream.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/compression/stream.d.ts",
+      "path": "dist/commands/bytes/compression/stream.d.ts"
+    },
+    {
+      "name": "package/dist/commands/streams.d.ts",
+      "path": "dist/commands/streams.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/strings.d.ts",
+      "path": "dist/commands/stream-inspection/strings.d.ts"
+    },
+    {
+      "name": "package/dist/commands/expr/syntax.d.ts",
+      "path": "dist/commands/expr/syntax.d.ts"
+    },
+    {
+      "name": "package/dist/commands/column/table.d.ts",
+      "path": "dist/commands/column/table.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-inspection/tac.d.ts",
+      "path": "dist/commands/stream-inspection/tac.d.ts"
+    },
+    {
+      "name": "package/dist/commands/html-to-markdown/text.d.ts",
+      "path": "dist/commands/html-to-markdown/text.d.ts"
+    },
+    {
+      "name": "package/dist/commands/text.d.ts",
+      "path": "dist/commands/text.d.ts"
+    },
+    {
+      "name": "package/dist/commands/network/transport.d.ts",
+      "path": "dist/commands/network/transport.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/http/transport.d.ts",
+      "path": "dist/fs/s3/http/transport.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/transport.d.ts",
+      "path": "dist/fs/s3/transport.d.ts"
+    },
+    {
+      "name": "package/dist/commands/tree/tree.d.ts",
+      "path": "dist/commands/tree/tree.d.ts"
+    },
+    {
+      "name": "package/dist/commands/network/types.d.ts",
+      "path": "dist/commands/network/types.d.ts"
+    },
+    {
+      "name": "package/dist/commands/safejs/types.d.ts",
+      "path": "dist/commands/safejs/types.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/http/types.d.ts",
+      "path": "dist/fs/s3/http/types.d.ts"
+    },
+    {
+      "name": "package/dist/shell/types.d.ts",
+      "path": "dist/shell/types.d.ts"
+    },
+    {
+      "name": "package/dist/commands/stream-format/unexpand.d.ts",
+      "path": "dist/commands/stream-format/unexpand.d.ts"
+    },
+    {
+      "name": "package/dist/commands/diff-patch/unified.d.ts",
+      "path": "dist/commands/diff-patch/unified.d.ts"
+    },
+    {
+      "name": "package/dist/commands/structured/values.d.ts",
+      "path": "dist/commands/structured/values.d.ts"
+    },
+    {
+      "name": "package/dist/integrations/safejs/values.d.ts",
+      "path": "dist/integrations/safejs/values.d.ts"
+    },
+    {
+      "name": "package/dist/commands/search/walk.d.ts",
+      "path": "dist/commands/search/walk.d.ts"
+    },
+    {
+      "name": "package/dist/fs/webdav/webdav.d.ts",
+      "path": "dist/fs/webdav/webdav.d.ts"
+    },
+    {
+      "name": "package/dist/commands/which/which.d.ts",
+      "path": "dist/commands/which/which.d.ts"
+    },
+    {
+      "name": "package/dist/commands/regex-execution/worker.d.ts",
+      "path": "dist/commands/regex-execution/worker.d.ts"
+    },
+    {
+      "name": "package/dist/fs/s3/http/xml.d.ts",
+      "path": "dist/fs/s3/http/xml.d.ts"
+    },
+    {
+      "name": "package/dist/fs/webdav/xml.d.ts",
+      "path": "dist/fs/webdav/xml.d.ts"
+    },
+    {
+      "name": "package/dist/commands/bytes/encoding/xxd.d.ts",
+      "path": "dist/commands/bytes/encoding/xxd.d.ts"
+    }
+  ],
+  "serialization": {
+    "kind": "independent-USTAR-plus-one-gzip",
+    "headerMode": 420,
+    "mtime": 499162500,
+    "gzip": {
+      "level": 9,
+      "strategy": 0,
+      "memLevel": 8,
+      "windowBits": 15,
+      "os": 255
+    },
+    "expectedRawArchiveSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca"
+  },
+  "noOldCompilerSuccessInherited": true
+}

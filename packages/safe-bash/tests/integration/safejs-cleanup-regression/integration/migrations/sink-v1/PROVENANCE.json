@@ -1,0 +1,86 @@
+{
+  "at": "2026-08-27T10:15:31.915Z",
+  "disposition": "blocked; candidate uncommitted; no 19/19 claim",
+  "originalReview": "5009ba8146c73bd5628147707e733384e5cd4aee",
+  "publicPin": "f44958bf48778737a58535e2bc9b37c292ac28c4",
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "sourceBeforeEdit": [
+    {
+      "file": "src/commands/grep.ts",
+      "lines": "77-88",
+      "meaning": "Abort is rethrown; ordinary errors diagnosed; failed status is 2"
+    },
+    {
+      "file": "src/commands/internal.ts",
+      "lines": "96-103",
+      "meaning": "Output is awaited, including empty prefix; diagnostic is command: Error.message plus LF"
+    },
+    {
+      "file": "src/contracts/command.md",
+      "lines": "99-109",
+      "meaning": "Selected outcome retained after cleanup; caught errors do not become new rejection contracts"
+    },
+    {
+      "file": "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+      "lines": "171-199",
+      "meaning": "Different rejection control throws from stderr too; not the current stdout-only sink case"
+    }
+  ],
+  "sourceProofHashes": {
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf"
+  },
+  "exactReplacementOnly": true,
+  "originalChildSha256": "70708a7d07fd61595933b08f5ec852f6b8cc5d60f15724239023775318b71ee7",
+  "candidateChildSha256": "528234e9127066607a87ffde499e462189fd092513c9e08f6770f29536ecb7b9",
+  "caseDefinitionsSha256": "ef80036361a2c77da536250226f159670cfe522d2a3ca4d43b703b42db828526",
+  "otherOriginalFilesUnchanged": 572,
+  "unchangedByExactDiff": [
+    "guest source",
+    "shell command and literal argv",
+    "VFS input bytes",
+    "Error construction and message",
+    "stdout throw point",
+    "injected actual runtime",
+    "all budgets",
+    "cleanup/native worker assertions and registration",
+    "all 18 other cases including separate sink status control",
+    "runner and all source/import/private guards"
+  ],
+  "attemptedCapture": "evidence/sink-migration-v1/report.json",
+  "attemptedAt": "2026-08-27T10:10:54.041Z",
+  "finishedAt": "2026-08-27T10:11:04.055Z",
+  "liveHeadBeforeCapture": "a07b1218f113df1117a88ff6fe95f708bd488445",
+  "liveHeadAfterCapture": "a07b1218f113df1117a88ff6fe95f708bd488445",
+  "liveHeadAtSeal": "630bf76f2a90a72ad447694e3b188e7437858820",
+  "sourceGuardFailure": "Live source/config differs at capture; refuse hidden overlay",
+  "liveDifferences": [
+    {
+      "filename": "src/commands/internal.ts",
+      "pinnedSha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "liveSha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+    },
+    {
+      "filename": "src/commands/streams.ts",
+      "pinnedSha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+      "liveSha256": "06bff98731e9244f502589de6f81c5dec9737c70a3eb285ebf90bf2a3dd93a9d"
+    }
+  ],
+  "guestCasesExecuted": 0,
+  "privateEngineCopied": false,
+  "productBuilt": false,
+  "esbuildServicesStarted": 0,
+  "nativeRegexWorkersStarted": 0,
+  "watchdogRescue": false,
+  "temporaryRemoved": true,
+  "privateAtSeal": {
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/",
+    "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2"
+  },
+  "privateAll264RegularFilesStillMatch": true,
+  "stagingAtSeal": "",
+  "commit": "not attempted: passing cohort required; unchanged live-source guard blocks it"
+}

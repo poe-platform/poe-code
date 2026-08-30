@@ -1,0 +1,5 @@
+tests/fs/webdav/consumer/types.mts(5,3): error TS1128: Declaration or statement expected.
+tests/fs/webdav/consumer/types.mts(5,31): error TS1005: ')' expected.
+tests/fs/webdav/consumer/types.mts(5,52): error TS1005: ';' expected.
+tests/fs/webdav/consumer/types.mts(5,54): error TS1128: Declaration or statement expected.
+tests/fs/webdav/consumer/types.mts(5,61): error TS1005: ';' expected.

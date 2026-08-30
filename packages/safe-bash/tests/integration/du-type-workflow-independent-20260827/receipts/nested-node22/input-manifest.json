@@ -1,0 +1,50 @@
+{
+  "qualification": "Independent synthetic reconstruction of the unchanged candidate test's five-test/two-data discovery fixture; not a modified canonical fixture or rescoring",
+  "inputs": [
+    {
+      "path": "package.json",
+      "bytes": 3566,
+      "sha256": "d695504a2e9dc97a02a25c03fc2d3d7ba6aa8a01cb380243ea853b53617ef860"
+    },
+    {
+      "path": "tests/canonical/control.test.ts",
+      "bytes": 189,
+      "sha256": "c2e122b271b1f5abe507386b17a79dbd22bbcfd73ccd1fda05f8fd156c787848"
+    },
+    {
+      "path": "tests/canonical/helper.ts",
+      "bytes": 39,
+      "sha256": "bc52f6830f3a2964aca08c6457cdd86f5d10469288f1c4d82f2e4aa9d812b3cf"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/control.test.ts",
+      "bytes": 60,
+      "sha256": "23db59a89458152dd9ff866bd347e3d198ab0b4326568da5a66cf2d974f20d53"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/arbitrary.test.ts",
+      "bytes": 49,
+      "sha256": "f38c559948fc5f7248e65dc2bf995e2c4e4691935f913688dc6c20bd3035032c"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/nested/space 🙂.test.ts",
+      "bytes": 49,
+      "sha256": "f38c559948fc5f7248e65dc2bf995e2c4e4691935f913688dc6c20bd3035032c"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native-neighbor/control.test.ts",
+      "bytes": 60,
+      "sha256": "7ad00f54c9a0613bf665613002ae9f4d3795f896820dfed78f379245013d6cc9"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/control.test.ts",
+      "bytes": 60,
+      "sha256": "57af58a151da046cc3a57bce0637221b36b4d800f11dc2c91060bd53ceb0cb85"
+    },
+    {
+      "path": "tests/other/artifacts/native/space 🙂.test.ts",
+      "bytes": 60,
+      "sha256": "54ecc57b8affc25191a9a39840ada92cb42d3d0091b9e74adae919a937cafc32"
+    }
+  ]
+}

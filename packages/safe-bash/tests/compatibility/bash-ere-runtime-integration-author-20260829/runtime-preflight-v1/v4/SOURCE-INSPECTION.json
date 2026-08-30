@@ -1,0 +1,81 @@
+{
+  "phase": {
+    "startMs": 1788011523000,
+    "deadlineMs": 1788013023000,
+    "pid": 78651,
+    "stdout": "/private/tmp/safe-bash-core70-v4-start-20260829.stdout",
+    "stderr": "/private/tmp/safe-bash-core70-v4-start-20260829.stderr"
+  },
+  "selectedTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+  "records": [
+    {
+      "path": "src/shell/arrays/ledger.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay",
+      "group": "core"
+    },
+    {
+      "path": "src/shell/arrays/bindings.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "bytes": 9989,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay",
+      "group": "core"
+    },
+    {
+      "mode": "100644",
+      "blob": "e6022d2ac2f169cc87e242ca1ef25f53ac9938f6",
+      "path": "src/commands/regex-execution/ere/transport/worker-entry.ts",
+      "revision": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "group": "transport",
+      "bytes": 1460,
+      "sha256": "ecbbaa11b7df31549a0b9f9fa916f97bdd4a9712a7575363b30c51080c168a37"
+    },
+    {
+      "mode": "100644",
+      "blob": "547a529f9522d8b22788947e2114694497e3b241",
+      "path": "src/commands/regex-execution/ere/transport/owner.ts",
+      "revision": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "group": "transport",
+      "bytes": 6765,
+      "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf"
+    },
+    {
+      "mode": "100644",
+      "blob": "ea8d1f765b85e4a33eddc8a8f684df944e565981",
+      "path": "src/commands/regex-execution/ere/transport/validation.ts",
+      "revision": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "group": "transport",
+      "bytes": 13090,
+      "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae"
+    },
+    {
+      "mode": "100644",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "path": "src/commands/regex-execution/ere/limits.ts",
+      "revision": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "group": "engine",
+      "bytes": 3471,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "mode": "100644",
+      "blob": "774190ace771a0fd13555f72699430649d00e1cd",
+      "path": "src/commands/regex-execution/ere/syntax.ts",
+      "revision": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "group": "engine",
+      "bytes": 13070,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+    }
+  ],
+  "pid": 86371,
+  "productImports": 0
+}

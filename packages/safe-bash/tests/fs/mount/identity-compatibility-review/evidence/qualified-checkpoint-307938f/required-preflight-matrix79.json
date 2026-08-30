@@ -1,0 +1,29 @@
+{
+  "name": "required-preflight-matrix79",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools/matrix.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:40:04.443Z",
+  "finishedAt": "2026-08-27T01:40:06.112Z",
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 79,
+    "pass": 77,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "efd4d3d297ccd5e1a3bf89f9437b75d48d3d6437754f3cea33a13627ad58753d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

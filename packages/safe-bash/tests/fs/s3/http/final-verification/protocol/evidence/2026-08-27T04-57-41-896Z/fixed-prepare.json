@@ -1,0 +1,14 @@
+{
+  "label": "fixed-prepare",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/fs/s3/http-independent/prepare.mjs",
+    "f65038e0d3e62b7fe4c05b47c1ab9d3ee364abbb"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 180000,
+  "status": 0,
+  "signal": null,
+  "stdout": "{\n  \"directory\": \"/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-ZTYC8l/safe-s3-http-independent-xONJHg\",\n  \"source\": \"/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-ZTYC8l/safe-s3-http-independent-xONJHg/source\",\n  \"consumer\": \"/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-ZTYC8l/safe-s3-http-independent-xONJHg/consumer\",\n  \"phases\": [\n    {\n      \"label\": \"unchanged-author-unit\",\n      \"status\": 0\n    },\n    {\n      \"label\": \"isolated-production-build\",\n      \"status\": 0\n    },\n    {\n      \"label\": \"pack-actual-manifest\",\n      \"status\": 0\n    },\n    {\n      \"label\": \"unchanged-public-consumer-types\",\n      \"status\": 0\n    },\n    {\n      \"label\": \"packed-root-and-subpath-smoke\",\n      \"status\": 0\n    }\n  ]\n}\n",
+  "stderr": ""
+}

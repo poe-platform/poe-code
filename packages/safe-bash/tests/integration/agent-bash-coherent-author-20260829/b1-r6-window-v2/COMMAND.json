@@ -1,0 +1,21 @@
+{
+  "executable": "/bin/zsh",
+  "argv": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+    "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+    "25661",
+    "ROOT_B1_R6_LIVE_ADMIN_20260829_ONE_ACTUAL_AFTER_FINAL_ACCEPTANCE"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "env": {
+    "B1_ADMIN_ROOT_GO": "ROOT_B1_R5_LIVE_ADMIN_EXPLICIT_AUTHORIZATION"
+  },
+  "launch": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh",
+    "bytes": 295,
+    "sha256": "b9d9955c621c7aa71ebd1d31b11de114df7019040ca309736bbf0ea393b0c852"
+  },
+  "actualGo": false
+}

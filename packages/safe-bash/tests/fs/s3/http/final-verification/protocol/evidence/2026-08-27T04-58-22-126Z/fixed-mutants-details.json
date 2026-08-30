@@ -1,0 +1,122 @@
+[
+  {
+    "name": "restore endpoint backslash normalization",
+    "file": "transport.ts",
+    "before": "[^\\\\/?#]",
+    "after": "[^/?#]",
+    "test": "endpoint origin validation",
+    "failed": 2,
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "endpoint origin validation",
+      "tests/fs/s3/http-independent/protocol.test.ts",
+      "tests/fs/s3/http-independent/lifecycle.test.ts"
+    ],
+    "originalSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "mutatedSha256": "452cf4192a887ecf3ec03d10471e57ebf0432dae6e58bf1150cfa54d884686ad",
+    "status": 1,
+    "signal": null,
+    "stdout": "TAP version 13\n1..0\n# Subtest: tests/fs/s3/http-independent/lifecycle.test.ts\nok 1 - tests/fs/s3/http-independent/lifecycle.test.ts\n  ---\n  duration_ms: 115.342333\n  type: 'test'\n  ...\n# Subtest: endpoint origin validation rejects normalized path: http://127.0.0.1\\\\unexpected\nnot ok 2 - endpoint origin validation rejects normalized path: http://127.0.0.1\\\\unexpected\n  ---\n  duration_ms: 1.643625\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:1:3303'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'InvalidArgument'\n  operator: 'throws'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:58:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.start (node:internal/test_runner/test:944:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n# Subtest: endpoint origin validation rejects normalized path: https://example.invalid\\\\@path\nnot ok 3 - endpoint origin validation rejects normalized path: https://example.invalid\\\\@path\n  ---\n  duration_ms: 0.912625\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:1:3303'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'InvalidArgument'\n  operator: 'throws'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:58:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 1\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 121.994083\n",
+    "stderr": ""
+  },
+  {
+    "name": "accept trailing hyphen XML comments",
+    "file": "xml.ts",
+    "before": " || comment.endsWith(\"-\")",
+    "after": "",
+    "test": "invalid XML comment is rejected",
+    "failed": 2,
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "invalid XML comment is rejected",
+      "tests/fs/s3/http-independent/protocol.test.ts",
+      "tests/fs/s3/http-independent/lifecycle.test.ts"
+    ],
+    "originalSha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+    "mutatedSha256": "9cc8d31b67f17b988748df046920539116528e21cb038b1427400de51bad22aa",
+    "status": 1,
+    "signal": null,
+    "stdout": "TAP version 13\n1..0\n# Subtest: tests/fs/s3/http-independent/lifecycle.test.ts\nok 1 - tests/fs/s3/http-independent/lifecycle.test.ts\n  ---\n  duration_ms: 111.686458\n  type: 'test'\n  ...\n# Subtest: invalid XML comment is rejected: before\nnot ok 2 - invalid XML comment is rejected: before\n  ---\n  duration_ms: 10.996167\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:1:4809'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected rejection.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'InvalidResponse'\n  operator: 'rejects'\n  stack: |-\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:81:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: invalid XML comment is rejected: after\nnot ok 3 - invalid XML comment is rejected: after\n  ---\n  duration_ms: 1.767834\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:1:4809'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected rejection.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'InvalidResponse'\n  operator: 'rejects'\n  stack: |-\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:81:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 1\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 136.455042\n",
+    "stderr": ""
+  },
+  {
+    "name": "claim unverified conditional PUT",
+    "file": "transport.ts",
+    "before": "boolean(verified?.put, false, \"verifiedConditionalOperations.put\")",
+    "after": "boolean(verified?.put, true, \"verifiedConditionalOperations.put\")",
+    "test": "conditional capability",
+    "failed": 1,
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "conditional capability",
+      "tests/fs/s3/http-independent/protocol.test.ts",
+      "tests/fs/s3/http-independent/lifecycle.test.ts"
+    ],
+    "originalSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "mutatedSha256": "361c1c3a68de597acef10629758e2381aed85ec82879a1364127ca76004bd706",
+    "status": 1,
+    "signal": null,
+    "stdout": "TAP version 13\n1..0\n# Subtest: tests/fs/s3/http-independent/lifecycle.test.ts\nok 1 - tests/fs/s3/http-independent/lifecycle.test.ts\n  ---\n  duration_ms: 115.044416\n  type: 'test'\n  ...\n# Subtest: conditional capability configuration is not inferred from successful headers\nnot ok 2 - conditional capability configuration is not inferred from successful headers\n  ---\n  duration_ms: 11.00825\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:1:7177'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    true !== false\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: false\n  actual: true\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:112:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 1\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 132.037416\n",
+    "stderr": ""
+  },
+  {
+    "name": "reuse caller-owned upload buffer",
+    "file": "transport.ts",
+    "before": "const body = new Uint8Array(input.Body);",
+    "after": "const body = input.Body;",
+    "test": "PUT snapshots",
+    "failed": 1,
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "PUT snapshots",
+      "tests/fs/s3/http-independent/protocol.test.ts",
+      "tests/fs/s3/http-independent/lifecycle.test.ts"
+    ],
+    "originalSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "mutatedSha256": "1dea460417f742f324fd12d296a5e774977754ca7f057d8e346913ebdcf42927",
+    "status": 1,
+    "signal": null,
+    "stdout": "TAP version 13\n1..0\n# Subtest: tests/fs/s3/http-independent/lifecycle.test.ts\nok 1 - tests/fs/s3/http-independent/lifecycle.test.ts\n  ---\n  duration_ms: 107.599791\n  type: 'test'\n  ...\n# Subtest: independent PUT snapshots reused bytes before awaiting credentials\nnot ok 2 - independent PUT snapshots reused bytes before awaiting credentials\n  ---\n  duration_ms: 11.13225\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/protocol.test.ts:1:2647'\n  failureType: 'testCodeFailure'\n  error: 'socket hang up'\n  code: 'ECONNRESET'\n  stack: |-\n    Socket.socketOnEnd (node:_http_client:599:25)\n    Socket.emit (node:events:531:35)\n    endReadableNT (node:internal/streams/readable:1698:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:89:21)\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 1\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 127.216458\n",
+    "stderr": ""
+  },
+  {
+    "name": "remove bounded GET quota",
+    "file": "transport.ts",
+    "before": "Body: limitedBody(response, maxGet, expected)",
+    "after": "Body: limitedBody(response, Number.MAX_SAFE_INTEGER, expected)",
+    "test": "GET quota",
+    "failed": 2,
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "GET quota",
+      "tests/fs/s3/http-independent/protocol.test.ts",
+      "tests/fs/s3/http-independent/lifecycle.test.ts"
+    ],
+    "originalSha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+    "mutatedSha256": "2359ea2d2d5ea52e2a318c953091475fd2b007c1da718ef3e112afe5793c59b6",
+    "status": 1,
+    "signal": null,
+    "stdout": "TAP version 13\n# Subtest: GET quota applies with content-length=true\nnot ok 1 - GET quota applies with content-length=true\n  ---\n  duration_ms: 10.996875\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/lifecycle.test.ts:1:3238'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected rejection.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'EntityTooLarge'\n  operator: 'rejects'\n  stack: |-\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/lifecycle.test.ts:60:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: GET quota applies with content-length=false\nnot ok 2 - GET quota applies with content-length=false\n  ---\n  duration_ms: 1.990375\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/lifecycle.test.ts:1:3238'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected rejection.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    code: 'EntityTooLarge'\n  operator: 'rejects'\n  stack: |-\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/mutation-source-qyLf41/tests/fs/s3/http-independent/lifecycle.test.ts:60:3)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..0\n# Subtest: tests/fs/s3/http-independent/protocol.test.ts\nok 2 - tests/fs/s3/http-independent/protocol.test.ts\n  ---\n  duration_ms: 111.799792\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 1\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 120.1765\n",
+    "stderr": ""
+  }
+]

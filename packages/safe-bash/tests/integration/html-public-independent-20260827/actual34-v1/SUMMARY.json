@@ -1,0 +1,1723 @@
+{
+  "schema": "html-actual34-summary/1",
+  "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+  "freeze": "54f1e4d819e0d3cde422c1f305a84474932e3bac",
+  "recipeCommit": "7885ce6a043653eeacbf4dd885f1c59ee570b5a7",
+  "recipeManifestSha256": "ea975baf71e9586aa45f567ce848863ef45cf1a52df4949069ef47d2d459ec3a",
+  "status": "FROZEN_ASSERTIONS_PASSED_WITH_ORIGINAL_UNSCORED_LIMITS",
+  "started": "2026-08-28T01:12:51.968Z",
+  "finished": "2026-08-28T01:13:31.699Z",
+  "invocation": 1,
+  "retries": 0,
+  "counts": {
+    "runtimeExecuted": 68,
+    "runtimePassed": 68,
+    "runtimeFailed": 0,
+    "runtimeUnexecuted": 0,
+    "typesExecuted": 10,
+    "typesExpected": 10,
+    "controlClassesExecuted": 10,
+    "controlClassesExpected": 10
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "runtime": [
+    {
+      "layout": "installed",
+      "id": "S01",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "002-installed-case-S01/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "S02",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "003-installed-case-S02/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "S03",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "004-installed-case-S03/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "S04",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "005-installed-case-S04/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "S05",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "006-installed-case-S05/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "S06",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "007-installed-case-S06/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "S07",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "008-installed-case-S07/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "S08",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "009-installed-case-S08/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "S09",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "010-installed-case-S09/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P01",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "011-installed-case-P01/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P02",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "012-installed-case-P02/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P03",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "013-installed-case-P03/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P04",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "014-installed-case-P04/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P05",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "015-installed-case-P05/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P06",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "016-installed-case-P06/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P07",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "017-installed-case-P07/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P08",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "018-installed-case-P08/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P09",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "019-installed-case-P09/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P10",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "020-installed-case-P10/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P11",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "021-installed-case-P11/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P12",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "022-installed-case-P12/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P13",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "023-installed-case-P13/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "P14",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "024-installed-case-P14/RAW.json"
+    },
+    {
+      "layout": "installed",
+      "id": "L01",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "025-installed-case-L01/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "next",
+          "owned-write"
+        ],
+        "counts": {
+          "reads": 2,
+          "returns": 0,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "x\n",
+        "stderr": "",
+        "disposition": {
+          "exitCode": 0
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L02",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "026-installed-case-L02/RAW.json",
+      "details": {
+        "events": [
+          "register"
+        ],
+        "counts": {
+          "reads": 0,
+          "returns": 0,
+          "acquisitions": 0,
+          "iteratorCreated": 0
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "rejected": true,
+          "code": "EPIPE",
+          "message": "EPIPE: broken pipe"
+        },
+        "boundary": "resource invariants only; direct output-close disposition remains unscored"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L03",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "027-installed-case-L03/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "rejected": true,
+          "code": "EPIPE",
+          "message": "EPIPE: broken pipe"
+        },
+        "boundary": "resource invariants only; direct output-close disposition remains unscored"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L04",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "028-installed-case-L04/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "rejected": true,
+          "code": "EFBIG"
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L05",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "029-installed-case-L05/RAW.json",
+      "details": {
+        "events": [],
+        "counts": {
+          "reads": 0,
+          "returns": 0,
+          "acquisitions": 0,
+          "iteratorCreated": 0
+        },
+        "stdout": "",
+        "stderr": "html-to-markdown: unknown option: --bad\n",
+        "disposition": {
+          "exitCode": 2
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L06",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "030-installed-case-L06/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown input limit exceeded\n",
+        "disposition": {
+          "exitCode": 1
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L07",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "031-installed-case-L07/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "exitCode": 0
+        },
+        "boundary": "resource invariants only; direct output-close disposition remains unscored"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L08",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "032-installed-case-L08/RAW.json",
+      "details": {
+        "events": [
+          "transport",
+          "transport-next",
+          "dispose-start",
+          "transport-return",
+          "dispose-end"
+        ],
+        "requests": 1,
+        "reads": 1,
+        "returns": 1,
+        "disposals": 1,
+        "stderrObservation": "",
+        "boundary": "controlled ordering only; early-close diagnostic policy not inferred"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L09",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "033-installed-case-L09/RAW.json",
+      "details": {
+        "events": [
+          "html-to-markdown-admitted-after-close",
+          "curl-admitted-after-close"
+        ],
+        "requests": 0,
+        "reads": 0,
+        "returns": 0,
+        "disposals": 0,
+        "stderrObservation": "",
+        "boundary": "controlled ordering only; early-close diagnostic policy not inferred"
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L10",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "034-installed-case-L10/RAW.json",
+      "details": {
+        "events": [
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "exactReason": true
+      }
+    },
+    {
+      "layout": "installed",
+      "id": "L11",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "035-installed-case-L11/RAW.json",
+      "details": {
+        "events": [
+          "acquire",
+          "next"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 0,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "exitCode": 0
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S01",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "041-physically-moved-consumer-case-S01/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S02",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "042-physically-moved-consumer-case-S02/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S03",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "043-physically-moved-consumer-case-S03/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S04",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "044-physically-moved-consumer-case-S04/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S05",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "045-physically-moved-consumer-case-S05/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S06",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "046-physically-moved-consumer-case-S06/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S07",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "047-physically-moved-consumer-case-S07/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S08",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "048-physically-moved-consumer-case-S08/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "S09",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "049-physically-moved-consumer-case-S09/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P01",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "050-physically-moved-consumer-case-P01/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P02",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "051-physically-moved-consumer-case-P02/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P03",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "052-physically-moved-consumer-case-P03/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P04",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "053-physically-moved-consumer-case-P04/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P05",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "054-physically-moved-consumer-case-P05/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P06",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "055-physically-moved-consumer-case-P06/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P07",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "056-physically-moved-consumer-case-P07/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P08",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "057-physically-moved-consumer-case-P08/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P09",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "058-physically-moved-consumer-case-P09/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P10",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "059-physically-moved-consumer-case-P10/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P11",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "060-physically-moved-consumer-case-P11/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P12",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "061-physically-moved-consumer-case-P12/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P13",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "062-physically-moved-consumer-case-P13/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "P14",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "063-physically-moved-consumer-case-P14/RAW.json"
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L01",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "064-physically-moved-consumer-case-L01/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "next",
+          "owned-write"
+        ],
+        "counts": {
+          "reads": 2,
+          "returns": 0,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "x\n",
+        "stderr": "",
+        "disposition": {
+          "exitCode": 0
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L02",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "065-physically-moved-consumer-case-L02/RAW.json",
+      "details": {
+        "events": [
+          "register"
+        ],
+        "counts": {
+          "reads": 0,
+          "returns": 0,
+          "acquisitions": 0,
+          "iteratorCreated": 0
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "rejected": true,
+          "code": "EPIPE",
+          "message": "EPIPE: broken pipe"
+        },
+        "boundary": "resource invariants only; direct output-close disposition remains unscored"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L03",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "066-physically-moved-consumer-case-L03/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "rejected": true,
+          "code": "EPIPE",
+          "message": "EPIPE: broken pipe"
+        },
+        "boundary": "resource invariants only; direct output-close disposition remains unscored"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L04",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "067-physically-moved-consumer-case-L04/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "rejected": true,
+          "code": "EFBIG"
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L05",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "068-physically-moved-consumer-case-L05/RAW.json",
+      "details": {
+        "events": [],
+        "counts": {
+          "reads": 0,
+          "returns": 0,
+          "acquisitions": 0,
+          "iteratorCreated": 0
+        },
+        "stdout": "",
+        "stderr": "html-to-markdown: unknown option: --bad\n",
+        "disposition": {
+          "exitCode": 2
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L06",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "069-physically-moved-consumer-case-L06/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "html-to-markdown: EFBIG: html-to-markdown input limit exceeded\n",
+        "disposition": {
+          "exitCode": 1
+        },
+        "boundary": "frozen assertions"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L07",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "070-physically-moved-consumer-case-L07/RAW.json",
+      "details": {
+        "events": [
+          "register",
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "exitCode": 0
+        },
+        "boundary": "resource invariants only; direct output-close disposition remains unscored"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L08",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "071-physically-moved-consumer-case-L08/RAW.json",
+      "details": {
+        "events": [
+          "transport",
+          "transport-next",
+          "dispose-start",
+          "transport-return",
+          "dispose-end"
+        ],
+        "requests": 1,
+        "reads": 1,
+        "returns": 1,
+        "disposals": 1,
+        "stderrObservation": "",
+        "boundary": "controlled ordering only; early-close diagnostic policy not inferred"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L09",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "072-physically-moved-consumer-case-L09/RAW.json",
+      "details": {
+        "events": [
+          "html-to-markdown-admitted-after-close",
+          "curl-admitted-after-close"
+        ],
+        "requests": 0,
+        "reads": 0,
+        "returns": 0,
+        "disposals": 0,
+        "stderrObservation": "",
+        "boundary": "controlled ordering only; early-close diagnostic policy not inferred"
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L10",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "073-physically-moved-consumer-case-L10/RAW.json",
+      "details": {
+        "events": [
+          "acquire",
+          "next",
+          "return-start",
+          "return-end"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 1,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "exactReason": true
+      }
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "id": "L11",
+      "status": "pass-frozen-assertions",
+      "code": 0,
+      "raw": "074-physically-moved-consumer-case-L11/RAW.json",
+      "details": {
+        "events": [
+          "acquire",
+          "next"
+        ],
+        "counts": {
+          "reads": 1,
+          "returns": 0,
+          "acquisitions": 1,
+          "iteratorCreated": 1
+        },
+        "stdout": "",
+        "stderr": "",
+        "disposition": {
+          "exitCode": 0
+        },
+        "boundary": "frozen assertions"
+      }
+    }
+  ],
+  "types": [
+    {
+      "layout": "installed",
+      "filename": "positive.ts.data",
+      "status": "expected",
+      "code": 0,
+      "raw": "036-installed-types-positive.ts/RAW.json",
+      "resolvedDeclarations": 114
+    },
+    {
+      "layout": "installed",
+      "filename": "negative-limit.ts.data",
+      "status": "expected",
+      "code": 2,
+      "raw": "037-installed-types-negative-limit.ts/RAW.json",
+      "resolvedDeclarations": 48
+    },
+    {
+      "layout": "installed",
+      "filename": "negative-option.ts.data",
+      "status": "expected",
+      "code": 2,
+      "raw": "038-installed-types-negative-option.ts/RAW.json",
+      "resolvedDeclarations": 114
+    },
+    {
+      "layout": "installed",
+      "filename": "negative-replace.ts.data",
+      "status": "expected",
+      "code": 2,
+      "raw": "039-installed-types-negative-replace.ts/RAW.json",
+      "resolvedDeclarations": 114
+    },
+    {
+      "layout": "installed",
+      "filename": "negative-private.ts.data",
+      "status": "expected",
+      "code": 2,
+      "raw": "040-installed-types-negative-private.ts/RAW.json",
+      "resolvedDeclarations": 38
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "filename": "positive.ts.data",
+      "status": "expected",
+      "code": 0,
+      "raw": "075-physically-moved-consumer-types-positive.ts/RAW.json",
+      "resolvedDeclarations": 114
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "filename": "negative-limit.ts.data",
+      "status": "expected",
+      "code": 2,
+      "raw": "076-physically-moved-consumer-types-negative-limit.ts/RAW.json",
+      "resolvedDeclarations": 48
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "filename": "negative-option.ts.data",
+      "status": "expected",
+      "code": 2,
+      "raw": "077-physically-moved-consumer-types-negative-option.ts/RAW.json",
+      "resolvedDeclarations": 114
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "filename": "negative-replace.ts.data",
+      "status": "expected",
+      "code": 2,
+      "raw": "078-physically-moved-consumer-types-negative-replace.ts/RAW.json",
+      "resolvedDeclarations": 114
+    },
+    {
+      "layout": "physically-moved-consumer",
+      "filename": "negative-private.ts.data",
+      "status": "expected",
+      "code": 2,
+      "raw": "079-physically-moved-consumer-types-negative-private.ts/RAW.json",
+      "resolvedDeclarations": 38
+    }
+  ],
+  "controls": [
+    {
+      "id": "C01-missing-export",
+      "status": "expected",
+      "details": [
+        {
+          "key": "./commands/html-to-markdown",
+          "code": 0
+        },
+        {
+          "key": ".",
+          "code": 0
+        }
+      ]
+    },
+    {
+      "id": "C02-wrong-source",
+      "status": "expected",
+      "details": {
+        "boundary": "SOURCE_ARCHIVE",
+        "kind": "frozen exact guard negative; no archive replay"
+      }
+    },
+    {
+      "id": "C03-wrong-pack",
+      "status": "expected",
+      "details": {
+        "boundary": "FULL_PACK",
+        "kind": "frozen exact guard negative; no archive replay"
+      }
+    },
+    {
+      "id": "C04-missing-dependency",
+      "status": "expected"
+    },
+    {
+      "id": "C05-missing-worker",
+      "status": "expected"
+    },
+    {
+      "id": "C06-poison-sentinel",
+      "status": "expected",
+      "details": {
+        "target": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/actual34-v1/node_modules/actual34-work/control-poison/node_modules/virtual-bash/dist/index.js",
+        "unguarded": 1,
+        "installedSentinel": 1
+      }
+    },
+    {
+      "id": "C07-source-fallback",
+      "status": "expected"
+    },
+    {
+      "id": "C08-permission-denial",
+      "status": "expected"
+    },
+    {
+      "id": "C09-types-negative",
+      "status": "expected",
+      "details": {
+        "positives": 2,
+        "individualNegatives": 8
+      }
+    },
+    {
+      "id": "C10-append-tree",
+      "status": "expected"
+    }
+  ],
+  "package": {
+    "sha256": "d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7",
+    "bytes": 717103,
+    "members": 830,
+    "distMembers": 828,
+    "physicallyMoved": true,
+    "originalInstalledPathAbsent": true
+  },
+  "productLoads": 13124,
+  "uniqueProductModules": 193,
+  "commands": [
+    {
+      "name": "install-full-pack",
+      "pid": 56408,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S01",
+      "pid": 56427,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S02",
+      "pid": 56430,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S03",
+      "pid": 56434,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S04",
+      "pid": 56438,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S05",
+      "pid": 56440,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S06",
+      "pid": 56454,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S07",
+      "pid": 56456,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S08",
+      "pid": 56469,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-S09",
+      "pid": 56471,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P01",
+      "pid": 56474,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P02",
+      "pid": 56477,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P03",
+      "pid": 56479,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P04",
+      "pid": 56481,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P05",
+      "pid": 56483,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P06",
+      "pid": 56492,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P07",
+      "pid": 56494,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P08",
+      "pid": 56497,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P09",
+      "pid": 56500,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P10",
+      "pid": 56502,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P11",
+      "pid": 56504,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P12",
+      "pid": 56506,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P13",
+      "pid": 56520,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-P14",
+      "pid": 56522,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L01",
+      "pid": 56525,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L02",
+      "pid": 56538,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L03",
+      "pid": 56540,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L04",
+      "pid": 56544,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L05",
+      "pid": 56546,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L06",
+      "pid": 56549,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L07",
+      "pid": 56553,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L08",
+      "pid": 56567,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L09",
+      "pid": 56579,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L10",
+      "pid": 56582,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-case-L11",
+      "pid": 56591,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-types-positive.ts",
+      "pid": 56593,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-types-negative-limit.ts",
+      "pid": 56596,
+      "code": 2,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-types-negative-option.ts",
+      "pid": 56600,
+      "code": 2,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-types-negative-replace.ts",
+      "pid": 56615,
+      "code": 2,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "installed-types-negative-private.ts",
+      "pid": 56617,
+      "code": 2,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S01",
+      "pid": 56620,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S02",
+      "pid": 56623,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S03",
+      "pid": 56631,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S04",
+      "pid": 56646,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S05",
+      "pid": 56649,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S06",
+      "pid": 56651,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S07",
+      "pid": 56653,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S08",
+      "pid": 56655,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-S09",
+      "pid": 56657,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P01",
+      "pid": 56660,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P02",
+      "pid": 56662,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P03",
+      "pid": 56671,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P04",
+      "pid": 56673,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P05",
+      "pid": 56675,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P06",
+      "pid": 56677,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P07",
+      "pid": 56680,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P08",
+      "pid": 56682,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P09",
+      "pid": 56684,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P10",
+      "pid": 56686,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P11",
+      "pid": 56688,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P12",
+      "pid": 56698,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P13",
+      "pid": 56700,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-P14",
+      "pid": 56702,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L01",
+      "pid": 56704,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L02",
+      "pid": 56706,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L03",
+      "pid": 56708,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L04",
+      "pid": 56711,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L05",
+      "pid": 56713,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L06",
+      "pid": 56715,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L07",
+      "pid": 56724,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L08",
+      "pid": 56726,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L09",
+      "pid": 56729,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L10",
+      "pid": 56731,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-case-L11",
+      "pid": 56733,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-types-positive.ts",
+      "pid": 56735,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-types-negative-limit.ts",
+      "pid": 56738,
+      "code": 2,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-types-negative-option.ts",
+      "pid": 56747,
+      "code": 2,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-types-negative-replace.ts",
+      "pid": 56760,
+      "code": 2,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "physically-moved-consumer-types-negative-private.ts",
+      "pid": 56767,
+      "code": 2,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "control-missing-export-missing-export-unused",
+      "pid": 56777,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "control-missing-root-missing-export-unused",
+      "pid": 56789,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "control-missing-dependency-missing-dependency-unused",
+      "pid": 56792,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "control-missing-worker-missing-worker-unused",
+      "pid": 56806,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "poison-present-unguarded",
+      "pid": 56823,
+      "code": 1,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "control-poison-poison-unused",
+      "pid": 56826,
+      "code": 1,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "control-source-fallback-source-fallback-unused",
+      "pid": 56834,
+      "code": 1,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "permission-positive",
+      "pid": 56836,
+      "code": 0,
+      "closed": true,
+      "signals": []
+    },
+    {
+      "name": "permission-negative",
+      "pid": 56838,
+      "code": 17,
+      "closed": true,
+      "signals": []
+    }
+  ],
+  "unexecuted": [],
+  "sourceBugsEstablished": [],
+  "qualificationOnly": [
+    {
+      "name": "positive",
+      "expected": 0,
+      "actual": 0,
+      "closed": true
+    },
+    {
+      "name": "natural-exit7",
+      "expected": 7,
+      "actual": 7,
+      "closed": true
+    },
+    {
+      "name": "deadline",
+      "status": "expected supervisor rejection; intentional harness kill, not product settlement",
+      "signals": [
+        {
+          "signal": "SIGTERM",
+          "at": "2026-08-28T01:12:38.520Z"
+        }
+      ]
+    },
+    {
+      "name": "wrong-load-hash",
+      "status": "expected denial before fixture execution"
+    }
+  ],
+  "limits": [
+    "Frozen direct-close identity/disposition observations remain unscored, not new assertions.",
+    "Node22 only; no Node24 denominator.",
+    "Composed admission does not rescore old v2/v3/v3.1 cohorts.",
+    "No fullgate, whole76 acceptance, DU29 release or execution, expr104, title support or superiority claim."
+  ]
+}

@@ -1,0 +1,1 @@
+{"role":"SOURCE_DATA_ONLY_NOT_PRODUCT","rows":[{"id":"authentic-derived-source","pass":true},{"id":"path","pass":true},{"id":"mode","pass":true},{"id":"blob","pass":true},{"id":"missing","pass":true},{"id":"extra","pass":true},{"id":"duplicate","pass":true},{"id":"derived-root","pass":true}],"pass":8,"fail":0}

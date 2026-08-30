@@ -1,0 +1,12 @@
+{"id":"A01-valid-source-body","pass":true}
+{"id":"A02-wrong-entry-before-acquire","pass":true}
+{"id":"A03-changed-bytes-before-acquire","pass":true}
+{"id":"A04-admit-record-failure","pass":true}
+{"id":"A05-create-record-failure-cleanup","pass":true}
+{"id":"A06-live-not-clean","pass":true}
+{"id":"S-run.mjs","pass":true}
+{"id":"S-loader.mjs","pass":true}
+{"id":"S-novel.mjs","pass":true}
+{"id":"S-prepare.mjs","pass":true}
+{"id":"S-resources.mjs","pass":true}
+{"cases":11,"pass":11,"fail":0,"actualWorkers":0,"productImports":0,"sourceCompiledNotLinked":true}

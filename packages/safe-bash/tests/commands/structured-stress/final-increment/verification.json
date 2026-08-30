@@ -1,0 +1,1319 @@
+{
+  "schema": 1,
+  "independent": true,
+  "createdAt": "2026-08-26T21:33:04.399Z",
+  "headBefore": "dda178205fa7fd59680f7747b9dd8b0880f2ab6d",
+  "headAfter": "a59dbe56ada690ab08530af566f5b7a505506f9b",
+  "node": "v22.22.2",
+  "marker": "Committed **`4f9ce1ee77fdb8ebffe5b4a359656b814f07b1da`** using explicit-path `git commit --only`.\n\n- Implemented lazy, bounded literal `split/1`; Unicode code points, empty input, NUL, invalid types, generator ordering and cancellation covered. Plugin API unchanged; no grammar expansion or runtime dependencies.\n- **Passed:** native replay **69/69**, helper **67/67**, command **81/81**, six-backend interop **6/6**, existing author suite **684/684**, numeric/quantifier regressions **202/202**.\n- Structured and matrix scoped TypeScript checks pass. Product split comparison: **44 exact / 25 diagnostic-only / zero stdout-status differences**.\n- **Original matrix: 71/79.** Remaining failures: six `cat < missing.txt` diagnostics lack `ENOENT`; readonly `printf 'changed' > target.txt` and `>> target.txt` diagnostics lack `EROFS`.\n- **Revised live matrix: 79/79**, using the exact README command. Another worker changed diagnostic expectations; this is **not** unchanged-original acceptance. No matrix, adapter or shell files entered my commit.\n- Broader native gates remain **196/238**, with the existing 42 Unicode/recovery/diagnostic/malformed-fixture failures.\n- Split native/baseline and all original numeric evidence hashes remain unchanged. Matrix hash transitions and ownership are documented.\n\nExact reproductions, hashes and checkpoint HEADs: `tests/commands/structured-stress/split-increment/README.md:187`.\n\n**Root/Poincare:** resolve the original diagnostic-contract acceptance separately. Ready for a different final verifier.",
+  "sourceHashes": {
+    "index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "input.ts": "6469818c00b516a1e041f797b1ea788064db48bc091e323958de7bebaa3b0161",
+    "interpreter.ts": "e1fcea692d0775700408e42bbf5f27b527db3d5435e604bf329ebf9d71047b6a",
+    "jq.ts": "05605084518711302c70721a9c7e8a9f3ce45bb0f157809cdc8024add6dfbd38",
+    "limits.ts": "d0d8dabc84e9397edda5e93b93ab213b68d457b34f440be906833ca4986d6039",
+    "numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+    "parser.ts": "4eae60e37c295ef2ef81bddd3778c57153acd5cccccf3d378be854ec6788426a",
+    "split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "values.ts": "c2dfbab20d72c3f05c80c0efb12f5c3b2739dfffb0ea851bbe3c603010c7a164"
+  },
+  "commits": [
+    {
+      "revision": "62315bc7703330088b0b0466619b3a5a00028bdf",
+      "approvedPathsOnly": true,
+      "changedPathCount": 9
+    },
+    {
+      "revision": "e9b30e18e6d03a8fe1ee27b131f8669ab62c0485",
+      "approvedPathsOnly": true,
+      "changedPathCount": 9
+    },
+    {
+      "revision": "79cecde3dfcaeae2e6413ce0fd6bfdb31acf5246",
+      "approvedPathsOnly": true,
+      "changedPathCount": 15
+    },
+    {
+      "revision": "53568913b866847697dcb41b2388081d1aa15313",
+      "approvedPathsOnly": true,
+      "changedPathCount": 5
+    },
+    {
+      "revision": "73ed8538b758a2501e4f5558ea2f63b531ae5a7d",
+      "approvedPathsOnly": true,
+      "changedPathCount": 25
+    },
+    {
+      "revision": "4f9ce1ee77fdb8ebffe5b4a359656b814f07b1da",
+      "approvedPathsOnly": true,
+      "changedPathCount": 18
+    }
+  ],
+  "integrity": {
+    "native-vectors.json": "924634ea7933a6b14be1295f65cd0f68485133975961572acab41fc307595a66",
+    "supplement-vectors.json": "3989c0678c2e87a6efff2bee562438fc0d03dfdbf167c2329cfebf296e3f4ba2",
+    "phase1-observation.json": "b1553f455aedaf709384b5c76d7571bca18f6bcc7ecdb0b4d752d5d1be12a238",
+    "supplement-observation.json": "8b1f9ea12ae069704dc54e9c6fc42c962e62883631c3056c2e3fae1be7ee449f"
+  },
+  "matrix": {
+    "README.md": {
+      "pinned": "4d35075e85c2e20bcd419e8c93cf3f7c248dbcffcee1d06cea54fa4d9476ba5d",
+      "actual": "90c6d7a3a16d3b63caa870b3c12281a40674caf387d061b3aad946c174cffd8b"
+    },
+    "fixtures.ts": {
+      "pinned": "955fc83173aea8297653a1015e40c41cf0bc471a9268fa159293167f6b0c9059",
+      "actual": "59ac2d1835ff329d0bbd08e3ae28bc8c656145e5bb568e6dbca0e851367cb3ab"
+    },
+    "matrix.test.ts": {
+      "pinned": "e959e6c77016674f438a2daa4fc76cac2a73b1daa8a91ae43052563bc53d99df",
+      "actual": "a4f79a93aae64a91fe764da7b9a2c096c8dd93a76fcdcc522828aea670a241f2"
+    }
+  },
+  "reports": [
+    {
+      "name": "fresh",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/final-increment/fresh.test.ts"
+      ],
+      "status": 0,
+      "counts": {
+        "tests": 59,
+        "pass": 59,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 247.218709
+      },
+      "stderr": "",
+      "failureCount": 0
+    },
+    {
+      "name": "original",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured/*.test.ts",
+        "tests/commands/structured-stress/*.test.ts"
+      ],
+      "status": 0,
+      "counts": {
+        "tests": 684,
+        "pass": 684,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4286.140458
+      },
+      "stderr": "",
+      "failureCount": 0
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/independent-increment/numeric-fixes.test.ts",
+        "tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts",
+        "tests/commands/structured-stress/independent-increment/numeric-safety.test.ts",
+        "tests/commands/structured-stress/independent-increment/safety.test.ts"
+      ],
+      "status": 0,
+      "counts": {
+        "tests": 202,
+        "pass": 202,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1334.630542
+      },
+      "stderr": "",
+      "failureCount": 0
+    },
+    {
+      "name": "split",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/split-increment/helper.test.ts",
+        "tests/commands/structured-stress/split-increment/command.test.ts",
+        "tests/commands/structured-stress/split-increment/interop.test.ts"
+      ],
+      "status": 0,
+      "counts": {
+        "tests": 154,
+        "pass": 154,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 576.765791
+      },
+      "stderr": "",
+      "failureCount": 0
+    },
+    {
+      "name": "fresh-six-backend",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/final-increment/fresh-interop.test.ts"
+      ],
+      "status": 0,
+      "counts": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 530.821916
+      },
+      "stderr": "",
+      "failureCount": 0
+    },
+    {
+      "name": "original-raw",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/independent-increment/native-regressions.test.ts"
+      ],
+      "status": 1,
+      "counts": {
+        "tests": 156,
+        "pass": 118,
+        "fail": 38,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 308.023417
+      },
+      "stderr": "",
+      "failureCount": 38
+    },
+    {
+      "name": "additive-raw",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/commands/structured-stress/independent-increment/additive-regressions.test.ts"
+      ],
+      "status": 1,
+      "counts": {
+        "tests": 82,
+        "pass": 78,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 237.506875
+      },
+      "stderr": "",
+      "failureCount": 4
+    },
+    {
+      "name": "matrix-working-tree",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ],
+      "status": 0,
+      "counts": {
+        "tests": 79,
+        "pass": 79,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2052.891833
+      },
+      "stderr": "",
+      "failureCount": 0,
+      "failures": []
+    },
+    {
+      "name": "matrix-6a259ff",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ],
+      "status": 1,
+      "counts": {
+        "tests": 79,
+        "pass": 71,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2714.637083
+      },
+      "stderr": "",
+      "failureCount": 8,
+      "failures": [
+        "not ok 9 - memory: missing paths, stderr redirection and command errors",
+        "not ok 20 - real: missing paths, stderr redirection and command errors",
+        "not ok 31 - s3: missing paths, stderr redirection and command errors",
+        "not ok 42 - webdav: missing paths, stderr redirection and command errors",
+        "not ok 53 - mount: missing paths, stderr redirection and command errors",
+        "not ok 64 - overlay: missing paths, stderr redirection and command errors",
+        "not ok 71 - readonly: rejects mutation: printf 'changed' > target.txt",
+        "not ok 72 - readonly: rejects mutation: printf 'changed' >> target.txt"
+      ]
+    },
+    {
+      "name": "scoped-types",
+      "argv": [
+        "node_modules/.bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--forceConsistentCasingInFileNames",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "src/commands/structured/index.ts",
+        "src/commands/structured/input.ts",
+        "src/commands/structured/interpreter.ts",
+        "src/commands/structured/jq.ts",
+        "src/commands/structured/limits.ts",
+        "src/commands/structured/numbers.ts",
+        "src/commands/structured/parser.ts",
+        "src/commands/structured/split.ts",
+        "src/commands/structured/values.ts",
+        "tests/commands/structured/cli.test.ts",
+        "tests/commands/structured/hazard-worker.ts",
+        "tests/commands/structured/helpers.ts",
+        "tests/commands/structured/oracle.test.ts",
+        "tests/commands/structured/resources.test.ts",
+        "tests/commands/structured/semantics.test.ts",
+        "tests/commands/structured/streaming.test.ts",
+        "tests/commands/structured-stress/cases.ts",
+        "tests/commands/structured-stress/corpus.test.ts",
+        "tests/commands/structured-stress/corpus.ts",
+        "tests/commands/structured-stress/harness.ts",
+        "tests/commands/structured-stress/join-safety.test.ts",
+        "tests/commands/structured-stress/join.test.ts",
+        "tests/commands/structured-stress/pipelines.test.ts",
+        "tests/commands/structured-stress/raw-input-safety.test.ts",
+        "tests/commands/structured-stress/raw-input.test.ts",
+        "tests/commands/structured-stress/regressions.test.ts",
+        "tests/commands/structured-stress/regressions.ts",
+        "tests/commands/structured-stress/safety.test.ts",
+        "tests/commands/structured-stress/verify-native.ts",
+        "tests/commands/structured-stress/independent-increment/additive-regressions.test.ts",
+        "tests/commands/structured-stress/independent-increment/diagnose.ts",
+        "tests/commands/structured-stress/independent-increment/harness.ts",
+        "tests/commands/structured-stress/independent-increment/native-regressions.test.ts",
+        "tests/commands/structured-stress/independent-increment/numeric-fixes.test.ts",
+        "tests/commands/structured-stress/independent-increment/numeric-safety.test.ts",
+        "tests/commands/structured-stress/independent-increment/numeric-worker.ts",
+        "tests/commands/structured-stress/independent-increment/phase2-harness.ts",
+        "tests/commands/structured-stress/independent-increment/phase2-report.ts",
+        "tests/commands/structured-stress/independent-increment/quantifier-fixes.test.ts",
+        "tests/commands/structured-stress/independent-increment/safety.test.ts",
+        "tests/commands/structured-stress/split-increment/capture-native.ts",
+        "tests/commands/structured-stress/split-increment/command.test.ts",
+        "tests/commands/structured-stress/split-increment/evidence.ts",
+        "tests/commands/structured-stress/split-increment/helper.test.ts",
+        "tests/commands/structured-stress/split-increment/interop.test.ts",
+        "tests/commands/structured-stress/split-increment/replay-original-matrix.ts",
+        "tests/commands/structured-stress/split-increment/verify.ts",
+        "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+        "tests/commands/structured-stress/final-increment/fresh.test.ts",
+        "tests/commands/structured-stress/final-increment/split-report.ts"
+      ],
+      "status": 0,
+      "counts": {},
+      "stderr": "",
+      "failureCount": 0
+    }
+  ],
+  "runtimeTreeSha256": "add339346cb78f4c484f2659c7df5319d9c68b94ced9435906474e76d9ac3f8a",
+  "workingTreeSourceStatus": [
+    "M src/commands/diff-patch/patch-formats.ts",
+    " M src/commands/diff-patch/patch.ts",
+    " M src/commands/diff-patch/unified.ts",
+    "?? src/commands/diff-patch/patch-gnu-paths.ts",
+    "?? src/commands/diff-patch/patch-gnu-reject.ts"
+  ],
+  "safetyRepetitions": [
+    {
+      "round": 1,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 2,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 3,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 4,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 5,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 6,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 7,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 8,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 9,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    },
+    {
+      "round": 10,
+      "status": 0,
+      "tests": 43,
+      "pass": 43
+    }
+  ],
+  "nativeReplay": {
+    "metadataInvocations": 2,
+    "version": {
+      "status": 0,
+      "stdoutHex": "6a712d312e372e312d6170706c650a",
+      "stderrHex": ""
+    },
+    "build": {
+      "status": 0,
+      "stdoutHex": "2d2d776974682d6f6e69677572756d613d6275696c74696e0a",
+      "stderrHex": ""
+    },
+    "reports": [
+      {
+        "name": "native-vectors.json",
+        "sha256": "924634ea7933a6b14be1295f65cd0f68485133975961572acab41fc307595a66",
+        "cases": 140,
+        "invocations": 145
+      },
+      {
+        "name": "supplement-vectors.json",
+        "sha256": "3989c0678c2e87a6efff2bee562438fc0d03dfdbf167c2329cfebf296e3f4ba2",
+        "cases": 15,
+        "invocations": 15
+      },
+      {
+        "name": "phase2-vectors.json",
+        "sha256": "afcfae94201a04a4455e7410371bfbdcfbe35823939569cc13786779dfaca101",
+        "cases": 62,
+        "invocations": 62
+      },
+      {
+        "name": "phase2-extra-vectors.json",
+        "sha256": "230ac4fa5531e104b541b1e65f177c27c5efc9267125977a112df54dc7e743ac",
+        "cases": 6,
+        "invocations": 6
+      },
+      {
+        "name": "exponent-vectors.json",
+        "sha256": "e90ececb9f163080873975c46063245df6200b7316edd682a401e33c07f9039d",
+        "cases": 9,
+        "invocations": 9
+      },
+      {
+        "name": "overflow-comparison-vectors.json",
+        "sha256": "86808210a4d14d5c5e5ad86db2a0803875e6143047a3f8dbf256378635891789",
+        "cases": 4,
+        "invocations": 4
+      },
+      {
+        "name": "split-increment/native.json",
+        "sha256": "cdee2e3a38d929e66d8fdf3917bed62ea46ccff86091de0816128c38176bd8d3",
+        "cases": 69,
+        "invocations": 69
+      },
+      {
+        "name": "raw-input-native.json",
+        "sha256": "3f582f83c3015317bd53c27ef42290e60c1808ce968e588d8e25edaf3069ff96",
+        "cases": 74,
+        "invocations": 74
+      },
+      {
+        "name": "join-native.json",
+        "sha256": "b994b2c3ff60c873aa5649939e5e5804f09568e87511a1ed518c03fd69dcb68b",
+        "cases": 129,
+        "invocations": 129
+      }
+    ]
+  },
+  "freshReplay": {
+    "cases": 29,
+    "fixtureInvocations": 29,
+    "metadataInvocations": 2
+  },
+  "olderNativeReplay": "jq-1.7.1-apple: 240 independent exact stdout/status fixtures verified",
+  "original": {
+    "counts": {
+      "cases": 155,
+      "exact": 117,
+      "semantic": 30,
+      "diagnostic-only": 8
+    },
+    "categories": {
+      "object-iteration": {
+        "cases": 21,
+        "exact": 21,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "numeric-identity": {
+        "cases": 12,
+        "exact": 12,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "numeric-conversion": {
+        "cases": 13,
+        "exact": 13,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "numeric-length": {
+        "cases": 14,
+        "exact": 14,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "numeric-transform": {
+        "cases": 15,
+        "exact": 14,
+        "semantic": 0,
+        "diagnostic-only": 1
+      },
+      "raw-join": {
+        "cases": 29,
+        "exact": 27,
+        "semantic": 2,
+        "diagnostic-only": 0
+      },
+      "error-ordering": {
+        "cases": 21,
+        "exact": 6,
+        "semantic": 10,
+        "diagnostic-only": 5
+      },
+      "utf8": {
+        "cases": 18,
+        "exact": 0,
+        "semantic": 16,
+        "diagnostic-only": 2
+      },
+      "file-boundary": {
+        "cases": 3,
+        "exact": 2,
+        "semantic": 1,
+        "diagnostic-only": 0
+      },
+      "pipeline": {
+        "cases": 3,
+        "exact": 2,
+        "semantic": 1,
+        "diagnostic-only": 0
+      },
+      "safety-reference": {
+        "cases": 6,
+        "exact": 6,
+        "semantic": 0,
+        "diagnostic-only": 0
+      }
+    },
+    "stdoutStatusParity": 125,
+    "mismatchFields": {
+      "status": 27,
+      "stdoutHex": 27,
+      "stderrHex": 38
+    },
+    "mismatches": [
+      {
+        "id": "fromjson",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "join-mixed",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "join-mixed:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "separator-error-after-prefix",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-following-json",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-following-json:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-following-json-exit",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-following-json-exit:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-following-raw",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-following-raw:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-final-error",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-final-error:bytewise",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-internal-generator",
+        "classification": "semantic",
+        "differingFields": [
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "recover-internal-generator:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "parse-error-after-prefix",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "parse-error-after-prefix:bytewise",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-lone-continuation",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-lone-continuation:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-truncated",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-truncated:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-surrogate",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-surrogate:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-overlong-slurp",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-overlong-slurp:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-bad-continuation",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-bad-continuation:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "json-bad-string",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "json-bad-string:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "json-truncated-string",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "json-truncated-string:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "json-low-surrogate-escape",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "json-low-surrogate-escape:bytewise",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "json-high-surrogate-escape",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "json-high-surrogate-escape:bytewise",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "raw-file-utf8-boundary",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "pipe-error-recovery",
+        "classification": "semantic",
+        "differingFields": [
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "runtime-error-last-false",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stdoutHex",
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "runtime-error-last-empty",
+        "classification": "semantic",
+        "differingFields": [
+          "status",
+          "stderrHex"
+        ]
+      }
+    ]
+  },
+  "additive": {
+    "counts": {
+      "cases": 81,
+      "exact": 77,
+      "semantic": 0,
+      "diagnostic-only": 4
+    },
+    "categories": {
+      "decimal-format": {
+        "cases": 24,
+        "exact": 24,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "computed-format": {
+        "cases": 16,
+        "exact": 16,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "decimal-compare": {
+        "cases": 10,
+        "exact": 9,
+        "semantic": 0,
+        "diagnostic-only": 1
+      },
+      "numeric-integration": {
+        "cases": 12,
+        "exact": 9,
+        "semantic": 0,
+        "diagnostic-only": 3
+      },
+      "quantifier-generator": {
+        "cases": 6,
+        "exact": 6,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "exponent-bound": {
+        "cases": 7,
+        "exact": 7,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "large-conversion": {
+        "cases": 2,
+        "exact": 2,
+        "semantic": 0,
+        "diagnostic-only": 0
+      },
+      "decimal-overflow-comparison": {
+        "cases": 4,
+        "exact": 4,
+        "semantic": 0,
+        "diagnostic-only": 0
+      }
+    },
+    "stdoutStatusParity": 81,
+    "mismatchFields": {
+      "status": 0,
+      "stdoutHex": 0,
+      "stderrHex": 4
+    },
+    "mismatches": [
+      {
+        "id": "compare-mixed-double",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "scalar-types",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "preserve-through-copy",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "conversion-large-token",
+        "classification": "diagnostic-only",
+        "differingFields": [
+          "stderrHex"
+        ]
+      }
+    ]
+  },
+  "splitComparison": {
+    "cases": 69,
+    "exact": 44,
+    "stdoutStatus": 69,
+    "diagnosticsOnly": 25,
+    "stdoutOrStatus": 0,
+    "rows": [
+      {
+        "id": "invalid-input-0",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-0",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-input-1",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-1",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-input-2",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-2",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-input-3",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-3",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-input-4",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-4",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-input-5",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-5",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-input-6",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-6",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-input-7",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-7",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-input-8",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "invalid-separator-8",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "both-invalid",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "generator-valid-then-invalid",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "generator-invalid-first",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "generator-error-after-output",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "generator-error-before-typecheck",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "input-generator-error-order",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      },
+      {
+        "id": "collection-discards-partial-on-error",
+        "classification": "diagnostic-only",
+        "differences": [
+          "stderrHex"
+        ]
+      }
+    ]
+  },
+  "mismatchCategories": {
+    "malformed-original-probes": {
+      "baselineDifferences": 3,
+      "after": {
+        "cases": 3,
+        "exact": 0,
+        "semantic": 2,
+        "diagnostic-only": 1
+      },
+      "ids": [
+        "fromjson",
+        "join-mixed",
+        "join-mixed:bytewise"
+      ]
+    },
+    "diagnostic-formatting": {
+      "baselineDifferences": 7,
+      "after": {
+        "cases": 7,
+        "exact": 0,
+        "semantic": 0,
+        "diagnostic-only": 7
+      },
+      "ids": [
+        "separator-error-after-prefix",
+        "recover-final-error",
+        "recover-final-error:bytewise",
+        "parse-error-after-prefix",
+        "parse-error-after-prefix:bytewise",
+        "json-high-surrogate-escape",
+        "json-high-surrogate-escape:bytewise"
+      ]
+    },
+    "per-input-error-recovery": {
+      "baselineDifferences": 10,
+      "after": {
+        "cases": 10,
+        "exact": 0,
+        "semantic": 10,
+        "diagnostic-only": 0
+      },
+      "ids": [
+        "recover-following-json",
+        "recover-following-json:bytewise",
+        "recover-following-json-exit",
+        "recover-following-json-exit:bytewise",
+        "recover-following-raw",
+        "recover-following-raw:bytewise",
+        "recover-internal-generator",
+        "recover-internal-generator:bytewise",
+        "runtime-error-last-false",
+        "runtime-error-last-empty"
+      ]
+    },
+    "unicode-repair": {
+      "baselineDifferences": 17,
+      "after": {
+        "cases": 17,
+        "exact": 0,
+        "semantic": 17,
+        "diagnostic-only": 0
+      },
+      "ids": [
+        "raw-lone-continuation",
+        "raw-lone-continuation:bytewise",
+        "raw-truncated",
+        "raw-truncated:bytewise",
+        "raw-surrogate",
+        "raw-surrogate:bytewise",
+        "raw-overlong-slurp",
+        "raw-overlong-slurp:bytewise",
+        "raw-bad-continuation",
+        "raw-bad-continuation:bytewise",
+        "json-bad-string",
+        "json-bad-string:bytewise",
+        "json-truncated-string",
+        "json-truncated-string:bytewise",
+        "json-low-surrogate-escape",
+        "json-low-surrogate-escape:bytewise",
+        "raw-file-utf8-boundary"
+      ]
+    },
+    "pipeline-propagation": {
+      "baselineDifferences": 2,
+      "after": {
+        "cases": 2,
+        "exact": 1,
+        "semantic": 1,
+        "diagnostic-only": 0
+      },
+      "ids": [
+        "pipe-numeric-roundtrip",
+        "pipe-error-recovery"
+      ]
+    }
+  },
+  "malformedOriginal": [
+    "fromjson",
+    "join-mixed",
+    "join-mixed:bytewise"
+  ],
+  "limitations": [
+    "Working tree includes other owners uncommitted FS/shell work; not a clean release gate.",
+    "Native oracle is jq-1.7.1-apple only; no broad jq/Bash parity or superiority claim.",
+    "Strict UTF-8, stop-first-error and diagnostic differences remain, without excluding any raw matrix cases.",
+    "Matrix README/test differ from 6a259ff; separate pinned replay uses exact git blobs via test-only loader, not modified expectations.",
+    "Local six-backend matrix does not establish real remote-provider interoperability."
+  ]
+}

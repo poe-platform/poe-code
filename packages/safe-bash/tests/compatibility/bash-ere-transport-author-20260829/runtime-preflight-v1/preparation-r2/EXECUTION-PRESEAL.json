@@ -1,0 +1,322 @@
+{
+  "schema": 2,
+  "preparationReady": true,
+  "actualAuthorization": false,
+  "runId": "ERE-PRIVATE-RUNTIME-v1",
+  "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "transport": "46611a5b67ad7af276154421ac7f50dd536ec570",
+  "sourceModules": [
+    {
+      "name": "errors.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+      "size": 1003,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+    },
+    {
+      "name": "limits.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "size": 3471,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "name": "matcher.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "c2b1e086b61c92a740dbb7f0bdf43b5be0bf27cf",
+      "size": 9759,
+      "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a"
+    },
+    {
+      "name": "syntax.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "774190ace771a0fd13555f72699430649d00e1cd",
+      "size": 13070,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+    },
+    {
+      "name": "transport/accounting.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "e4534f7aa145f7b1ba6a476b175b522e0acbceaa",
+      "size": 7115,
+      "sha256": "66bab552db94e11764dad9e91d2dfb61c7e9655e2f1f0babdd75bd41431ca3a0"
+    },
+    {
+      "name": "transport/owner.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "547a529f9522d8b22788947e2114694497e3b241",
+      "size": 6765,
+      "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf"
+    },
+    {
+      "name": "transport/protocol.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "77c9bbddcec5da13e4440b63228f3f1101948d4b",
+      "size": 2815,
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973"
+    },
+    {
+      "name": "transport/root.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "0e7c7ab6fc007813baf1afccd4251416462b9fde",
+      "size": 12329,
+      "sha256": "1a0ac9feddf151a3ab2e2d6432dca259a7c0c93136adbc86bbac7627621e733b"
+    },
+    {
+      "name": "transport/validation.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "ea8d1f765b85e4a33eddc8a8f684df944e565981",
+      "size": 13090,
+      "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae"
+    },
+    {
+      "name": "transport/wire-engine.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "9cade833764cd15289a5f609de24e29612735b46",
+      "size": 2481,
+      "sha256": "9b2f15733c71d0cc0080ee033c8867a6160f9aabd3a784a9a9868cf01c4fbb24"
+    },
+    {
+      "name": "transport/worker-entry.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "e6022d2ac2f169cc87e242ca1ef25f53ac9938f6",
+      "size": 1460,
+      "sha256": "ecbbaa11b7df31549a0b9f9fa916f97bdd4a9712a7575363b30c51080c168a37"
+    },
+    {
+      "name": "types.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+      "size": 1554,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    }
+  ],
+  "artifactSha256": "fcf17fcb9682a8d3970f0ec3577807359ac03d437ad0d0f7e4fac36d1260f674",
+  "emissions": 24,
+  "entries": 25,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "read": "stream65536",
+    "actual": "2026-08-29T12:39:23.366Z"
+  },
+  "launchTools": [
+    {
+      "path": "/usr/bin/env",
+      "size": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "role": "future sanitized exec transition, not a child census expansion"
+    },
+    {
+      "path": "/bin/zsh",
+      "size": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "role": "outer tool shell exec transition, no login/startup"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "supervisor.mjs",
+      "size": 6889,
+      "sha256": "57f374ff53492a142feb86230af140523585d1804cb54a830054b387908b7f4f"
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 3219,
+      "sha256": "e0558f92c09e8e9f582ad19bcb14efba9a913237d0832e5fbfe4c18c4ac651fe"
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "size": 5691,
+      "sha256": "d34a21c2d962616ae002460b0559535a60310c728ee54d17a2ad8847e94a399d"
+    },
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017"
+    },
+    {
+      "name": "case-runner.mjs.data",
+      "size": 13252,
+      "sha256": "99528907e852afdfd82490dfe4f0482571179000cce6e71b6d1e74e2153aabf6"
+    },
+    {
+      "name": "worker-bridge.mjs.data",
+      "size": 2505,
+      "sha256": "1b68ad6fe9e77924496ced8bb28ead252a8d562c57049d96d37eeec27be0c742"
+    },
+    {
+      "name": "bridge-state.mjs.data",
+      "size": 990,
+      "sha256": "a056de25d26cf735939a17b38ff7a06bb313e3d2bffb2df068bcda24640264b7"
+    },
+    {
+      "name": "child-bootstrap.mjs.data",
+      "size": 2033,
+      "sha256": "133080e5c3872651169848cbd269af7adb531884a63ce15359a7bf3a1b628971"
+    },
+    {
+      "name": "validation-observer.mjs.data",
+      "size": 287,
+      "sha256": "6d17eb806c3adccec39841e36a912692810ecfd09c3b010d3a586f4325cb6280"
+    },
+    {
+      "name": "materializer.mjs",
+      "size": 5385,
+      "sha256": "08a8f7d2a0f0e5d54ba8cd441918d4ff2aebc8e8d4873422a3a0c16a4161f9e9"
+    },
+    {
+      "name": "CASE-INVENTORY.json",
+      "size": 1002071,
+      "sha256": "88d2cd3b6b6e75e7290c43c2b0e2b8ab39f1d8a8a951ec51044471e66ac3d815"
+    },
+    {
+      "name": "CASES.json.gz.base64.data",
+      "size": 7327713,
+      "sha256": "c35bdd8bef49de6442be9bc9ebd075df9fec3c2f2f67498228febf9f3238e5da"
+    },
+    {
+      "name": "CASE-INVENTORY.json.gz.base64.data",
+      "size": 31877,
+      "sha256": "a7322dae93b6227977c54edeb5e1e8e5f822d741a27ac4c47bb3c05cd3170991"
+    },
+    {
+      "name": "../SOURCES.json",
+      "size": 103555,
+      "sha256": "84d53de2f9f0905caba16fcf728c324e3a325d72328bb733510371479d78119b"
+    },
+    {
+      "name": "../PRODUCER.json",
+      "size": 5127,
+      "sha256": "471ac9f789315b23b67642cc0340acd00fe60460d4cd095fd64b8851b31c8e02"
+    },
+    {
+      "name": "../PACKAGE.tgz.base64.data",
+      "size": 23101,
+      "sha256": "20307c3f345a174ccb6194abff7eebc0f8dc700e7f64d99e8cc4e5bddd81ae6a"
+    },
+    {
+      "name": "../CASE-MAPPING.json",
+      "size": 51200,
+      "sha256": "c00fe8f106afb134b0c99ce416b5105b9a4b8dfa9c336d96e86da5f80ffec7bd"
+    },
+    {
+      "name": "../FAULT-ASSETS.json",
+      "size": 19335,
+      "sha256": "cf197e48813f738ff8e7f5474c5c795bb1b1c274305241054603b0dcac88324e"
+    },
+    {
+      "name": "AUTHORITY.json",
+      "size": 259350,
+      "sha256": "3f200a4f93160caa9ba5c6cad93dfb185fc3cefd994157ef92f71aebd90529b5"
+    }
+  ],
+  "cases": 135,
+  "Workers": 111,
+  "noWorkerCells": 24,
+  "caseInventorySha256": "88d2cd3b6b6e75e7290c43c2b0e2b8ab39f1d8a8a951ec51044471e66ac3d815",
+  "limits": {
+    "knownOS": 146,
+    "knownRoleGraph": {
+      "externalOwner": 1,
+      "caseNodeChildren": 135,
+      "reservedAdministration": 10
+    },
+    "peakOS": 3,
+    "peakWorkerThreads": 1,
+    "cumulativeWorkerThreads": 111,
+    "totalNativeThreads": "NOT_CENSUSED_OR_BOUNDED",
+    "wallMilliseconds": 1800000,
+    "ownerEntryThroughPublication": true,
+    "perCaseMilliseconds": 10000,
+    "termGraceMilliseconds": 2000,
+    "publicationReserveMilliseconds": 180000,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "perChannelBytes": 65536,
+    "perReceiptBytes": 131072,
+    "perChildLoadBytes": 65536,
+    "caseInputBytes": 15033091,
+    "WorkerStartupMilliseconds": 3000,
+    "WorkerRequestMilliseconds": 1000
+  },
+  "mapping": {
+    "identities": 60,
+    "eligible": 47,
+    "deferred": [
+      {
+        "id": "L07/messageerror",
+        "reason": "No source-bound genuine native deserialization-failure trigger; emit(messageerror) would be synthetic, not the frozen real route."
+      },
+      {
+        "id": "B01/root-descendants",
+        "reason": "Needs accepted Shell descendant integration; private root stand-in cannot satisfy original role."
+      },
+      {
+        "id": "B02/fresh-independent-exec",
+        "reason": "Needs public Shell.exec independent-root mapping."
+      },
+      {
+        "id": "B07/capture-byte-overflow",
+        "reason": "Needs actual shell capture publication/Budget integration."
+      },
+      {
+        "id": "B07/capture-slot-overflow",
+        "reason": "Needs actual shell capture publication/Budget integration."
+      },
+      {
+        "id": "C01/readonly-capture-target",
+        "reason": "Needs readonly shell capture publication."
+      },
+      {
+        "id": "C02/public-expansion-limit",
+        "reason": "Needs shared public Budget/sink boundary."
+      },
+      {
+        "id": "C02/public-output-limit",
+        "reason": "Needs shared public Budget/sink boundary."
+      },
+      {
+        "id": "C02/sink-raw-false",
+        "reason": "Needs shared public Budget/sink boundary."
+      },
+      {
+        "id": "C03/short-circuited-regex",
+        "reason": "Needs conditional runtime short-circuit."
+      },
+      {
+        "id": "A01/expr-contract-pins",
+        "reason": "Needs accepted legacy Expr contract inputs/authorization; do not substitute private types."
+      },
+      {
+        "id": "A04/positive-new-method",
+        "reason": "Type-consumer obligations need a separate exact consumer/legacy declaration preseal; strict12 build is not their replay."
+      },
+      {
+        "id": "A04/negative-old-union",
+        "reason": "Type-consumer obligations need a separate exact consumer/legacy declaration preseal; strict12 build is not their replay."
+      }
+    ],
+    "formula": "47*3-6 A02 cross-layout duplicates=135; 135-8*3 no-Worker=111",
+    "allRuntime": "UNRUN",
+    "noTransportAcceptance": true
+  },
+  "proofQualification": {
+    "unmodifiedNestedLoads": "static closure ONLY",
+    "instrumentedA03": "future explicitly scoped child loader; no inherited authority",
+    "legacyExpr": "not rerun",
+    "integration": "not part of private12",
+    "core1002": "excluded"
+  },
+  "requires": [
+    "different pre-execution review",
+    "fresh exact ROOT-GRANT.json and SHA",
+    "unchanged currently materialized CASES byte inventory",
+    "new outer capture names and ACTUAL-01 owner files absent",
+    "exact AUTHORITY importer edges accepted"
+  ]
+}

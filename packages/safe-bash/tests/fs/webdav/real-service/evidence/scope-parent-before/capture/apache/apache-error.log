@@ -1,0 +1,36 @@
+[Thu Aug 27 01:39:21.515970 2026] [ssl:warn] [pid 74277] AH01906: 127.0.0.1:443:0 server certificate is a CA certificate (BasicConstraints: CA == TRUE !?)
+[Thu Aug 27 01:39:21.516011 2026] [ssl:warn] [pid 74277] AH01909: 127.0.0.1:443:0 server certificate does NOT include an ID which matches the server name
+[Thu Aug 27 01:39:21.523030 2026] [ssl:warn] [pid 74277] AH01873: Init: Session Cache is not configured [hint: SSLSessionCache]
+[Thu Aug 27 01:39:21.523208 2026] [ssl:warn] [pid 74277] AH01906: 127.0.0.1:443:0 server certificate is a CA certificate (BasicConstraints: CA == TRUE !?)
+[Thu Aug 27 01:39:21.523225 2026] [ssl:warn] [pid 74277] AH01909: 127.0.0.1:443:0 server certificate does NOT include an ID which matches the server name
+[Thu Aug 27 01:39:23.723154 2026] [dav:error] [pid 74277] [client 127.0.0.1:65333] Could not COPY /dav/COPY-stale-source due to a failed precondition on the source (e.g. locks).  [412, #0]
+[Thu Aug 27 01:39:28.041309 2026] [dav:error] [pid 74277] [client 127.0.0.1:65364] Could not MOVE/COPY /dav/COPY-guard-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 01:39:28.041344 2026] [dav:error] [pid 74277] [client 127.0.0.1:65364] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: an entity-tag was specified, but the resource's actual ETag does not match.  [412, #0]
+[Thu Aug 27 01:39:28.082188 2026] [dav:error] [pid 74277] [client 127.0.0.1:65374] Could not MOVE/COPY /dav/COPY-wrong-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 01:39:28.082218 2026] [dav:error] [pid 74277] [client 127.0.0.1:65374] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: a State-token was supplied, but it was not found in the locks on this resource.  [412, #0]
+[Thu Aug 27 01:39:28.127193 2026] [dav:error] [pid 74277] [client 127.0.0.1:65385] This resource is locked and an "If:" header was not supplied to allow access to the resource.  [423, #0]
+[Thu Aug 27 01:39:28.174846 2026] [dav:error] [pid 74277] [client 127.0.0.1:65397] Could not MOVE /dav/MOVE-stale-source due to a failed precondition on the source (e.g. locks).  [412, #0]
+[Thu Aug 27 01:39:32.526999 2026] [dav:error] [pid 74277] [client 127.0.0.1:65462] Could not MOVE/COPY /dav/MOVE-guard-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 01:39:32.527028 2026] [dav:error] [pid 74277] [client 127.0.0.1:65462] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: an entity-tag was specified, but the resource's actual ETag does not match.  [412, #0]
+[Thu Aug 27 01:39:32.568000 2026] [dav:error] [pid 74277] [client 127.0.0.1:65472] Could not MOVE/COPY /dav/MOVE-wrong-source due to a failed precondition on the destination (e.g. locks).  [412, #0]
+[Thu Aug 27 01:39:32.568025 2026] [dav:error] [pid 74277] [client 127.0.0.1:65472] The precondition(s) specified by the "If:" header did not match this resource. At least one failure is because: a State-token was supplied, but it was not found in the locks on this resource.  [412, #0]
+[Thu Aug 27 01:39:32.609361 2026] [dav:error] [pid 74277] [client 127.0.0.1:65483] This resource is locked and an "If:" header was not supplied to allow access to the resource.  [423, #0]
+[Thu Aug 27 01:39:54.713968 2026] [auth_basic:error] [pid 74277] [client 127.0.0.1:49590] AH01617: user fixture: authentication failure for "/dav/names/binary": Password Mismatch
+[Thu Aug 27 01:39:54.719124 2026] [authz_core:error] [pid 74277] [client 127.0.0.1:49592] AH01630: client denied by server configuration: /private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-u0ZTiq/root/forbidden
+[Thu Aug 27 01:39:56.212835 2026] [dav:error] [pid 74277] (70008)Partial results are valid but processing is incomplete: [client 127.0.0.1:49890] An error occurred while reading the request body (URI: /dav/cancel-upload)  [400, #0]
+[Thu Aug 27 01:39:56.686992 2026] [dav:error] [pid 74277] [client 127.0.0.1:49983] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.706177 2026] [dav:error] [pid 74277] [client 127.0.0.1:49991] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.726005 2026] [dav:error] [pid 74277] [client 127.0.0.1:49998] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.745258 2026] [dav:error] [pid 74277] [client 127.0.0.1:50005] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.764457 2026] [dav:error] [pid 74277] [client 127.0.0.1:50012] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.780810 2026] [dav:error] [pid 74277] [client 127.0.0.1:50018] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.796103 2026] [dav:error] [pid 74277] [client 127.0.0.1:50024] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.811424 2026] [dav:error] [pid 74277] [client 127.0.0.1:50030] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.826355 2026] [dav:error] [pid 74277] [client 127.0.0.1:50036] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.841916 2026] [dav:error] [pid 74277] [client 127.0.0.1:50042] The locktoken specified in the "Lock-Token:" header is invalid because this resource has no outstanding locks.  [400, #0]
+[Thu Aug 27 01:39:56.848453 2026] [dav:error] [pid 74277] [client 127.0.0.1:50044] Could not COPY /dav/ind-21-source due to a failed precondition on the source (e.g. locks).  [412, #0]
+[Thu Aug 27 01:39:56.854463 2026] [dav:error] [pid 74277] [client 127.0.0.1:50046] Could not MOVE /dav/ind-22-source due to a failed precondition on the source (e.g. locks).  [412, #0]
+[Thu Aug 27 01:39:56.858202 2026] [auth_basic:error] [pid 74277] [client 127.0.0.1:50047] AH01617: user fixture: authentication failure for "/dav/ind-23-target": Password Mismatch
+[Thu Aug 27 01:39:57.544183 2026] [dav:error] [pid 74277] [client 127.0.0.1:50205] This resource is locked and an "If:" header was not supplied to allow access to the resource.  [423, #0]
+[Thu Aug 27 01:39:57.583449 2026] [dav:error] [pid 74277] [client 127.0.0.1:50219] Could not LOCK /dav/phase2-locked-conflict-target due to a failed precondition (e.g. other locks).  [423, #0]
+[Thu Aug 27 01:39:57.583463 2026] [dav:error] [pid 74277] [client 127.0.0.1:50219] Existing lock(s) on the requested resource prevent an exclusive lock.  [423, #0]

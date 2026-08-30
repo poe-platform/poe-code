@@ -1,0 +1,47 @@
+2026-08-26 initial isolated implementation checkpoint (before snapshots)
+Private root READ ONLY: /Users/kjopek/Workspace/poe-code
+Revision: cb9f256b85e5bef78350c425db7d7be8b39a11cc
+GIT_OPTIONAL_LOCKS=0 git status --porcelain=v1:
+A  docs/plans/bugfix-launch-follow-duplicate-history.md
+ M package-lock.json
+ M package.json
+ M packages/poe-agent/package.json
+M  src/cli/commands/launch-command.test.ts
+M  src/cli/commands/launch.ts
+?? docs/plans/bugfix-shell-quote-parser-security.md
+?? packages/terminal-pilot/assets/
+Actual SHA256 (packages/safejs relative):
+92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512 src/run.ts
+7652feb38be7c034e7f98f8e98370835307571fec46647d930908a3c1a23d6e4 src/interp/cancel.ts
+8f508e320e61f0074b3dbd97a46b6bcf72117302a89270bbd829e3375d2f2e70 src/interp/host-bridge.ts
+53861da4e9c9dda042432213d5b73f31ac98d5f358dea384d0347359f77d8cf8 src/interp/values.ts
+9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d src/interp/interpreter.ts
+Repository LICENSE: MIT, Copyright (c) 2026 Poe Platform.
+LICENSE SHA256 0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13
+Package @poe-code/safejs 0.0.1 is private:true; package manifest has no license field. Root license is observed provenance, not an invented separate authorization.
+Read current UPSTREAM_PATCH_PROPOSAL.md and independent-final-review.txt.
+Discovered scripts (must adapt cwd/config to isolated snapshots, NOT execute in private):
+test/test:unit: cd ../.. && vitest run packages/safejs/src packages/safejs/test
+test:adversarial: cd ../.. && vitest run packages/safejs/test/adversarial
+test:adversarial:slow: cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safejs/test/adversarial packages/safejs/src/parse/fuzz.test.ts
+Installed vitest and tsx present; no installs planned. Root config aliases workspace packages to source and loads tests/setup.ts (network-denying mocks plus snapshot machinery); isolate equivalents/dependencies before executing suite. Exact discovery inventory and resulting deviations pending.
+Acceptance command planned twice, same unchanged nine expectations plus durable tenth child crash-survival test:
+SAFEJS_LOCAL_ROOT=<snapshot>/packages/safejs node --unhandled-rejections=strict --import <safe-bash installed tsx loader> --test <safe-bash>/tests/commands/safejs-stress/upstream-desired.probe.ts <durable lifecycle probe>
+Isolation plan: create fresh baseline/patched regular-file trees in /tmp, reject source/target symlinks, record all copied engine source hashes and private revision/status before/after copying and final validation. Patch copied files only via apply_patch; artifact script requires exact baseline hashes, generates its own fresh target and never patches input. Installed tooling may be read only; all cwd/TMPDIR/cache/build outputs remain temporary. Resolve engine imports to copied paths and log run/interpreter proof; no private workspace aliases. No git worktrees, installs, private writes, runtime dependencies, source changes in safe-bash, commits, or delegation. Security reviewer checkpoint not yet present. No patch success/security claim yet.
+
+Implementation progress (22:12Z):
+Owned artifacts now available: docs/upstream-patches/safejs/{snapshot.mjs,verify.mjs,lifecycle.patch,patch-manifest.json,baseline-hashes.json,LICENSE.upstream}.
+Initial prototype snapshots: /tmp/safe-bash-safejs-isolated-qzrIgz/{baseline,patched}.
+Snapshot revision 031436f3d89ea1df8a33371e30076cb5e44ec262, externally advanced from initial cb9f256...; engine source hashes unchanged versus initial checkpoint. Full manifests/status timings in that temporary directory. Earlier failed /tmp/safe-bash-safejs-isolated-23nm8H preserved: hash comparison initially included dist/.turbo in private manifest but copy excluded them; source-only inventory filter corrected before successful snapshots (not engine drift).
+Original nine unchanged plus durable action-abort = baseline 0/10 pass, 10 failures, no skips; patched 10/10 pass, no skips. Baseline child exits 1 on original host rejection, parent survives and reports failure. Patched child catches outward abort then exits 0 after observation interval. Instrumented actual module load hook proves copied run/interpreter paths and source hashes; private engine imports rejected.
+Seven-file candidate patch restores factory-built closure construct/static/cycle/frozen metadata, live original retained captures, internal constructor identity, known branded-value identity, own __proto__ data descriptors, run-entry rejection, promise observation in both wrappers, exact null/false reasons. construct.call(value,...) preserves original receiver. No Proxy or broad budget deduplication introduced.
+Full AVAILABLE unchanged suite with SAFEJS_PARSE_FUZZ=1 SAFEJS_ADVERSARIAL_SLOW=1: baseline 125 files; 3225 passed + 38 skipped = 3263, exit 0. Patched first full run 124 files pass/1 fail; 3224 passed + 1 failed + 38 skipped = 3263. Failure: pre-aborted raw run now returns the exact caller reason as required, but unchanged error/shape-audit expects normalized stack and source span. Native default AbortError's stack includes host paths and lacks source span. Do not silently rewrite this test or mutate/replace caller cancellation objects merely to turn it green. Candidate remains incomplete pending explicit resolution of this compatibility tradeoff.
+Independent reviewer feedback consumed: retained static property clone plus live original capture can conservatively double-charge a shared graph. Keep diagnostic failing; do not canonicalize mutable aliases and weaken quota accounting. Constructor this receiver issue fixed. Extra bounded promise lifecycle variants and durable invariant probe added; counts pending reproducible rerun.
+Reproduction executing default verify.mjs against read-only private root; output /tmp/safe-bash-safejs-artifact-reproduction.log. Script baseline guards, fresh snapshots, apply_patch-only application, posthash checks, baseline then patched same acceptance plus unchanged full upstream suites, supplemental invariants, private before/after manifests. Intentional nonzero final validation if any patched test remains failing; application-only mode makes no validation claim.
+No tool denial occurred for this isolated defensive task; prior denied task not bypassed. No commits. Do not approve candidate or claim full conformance/security on current evidence.
+
+FINAL COHERENT HANDOFF (2026-08-26):
+Candidate remains FAIL / NOT APPROVED. Patch SHA256 5a47508be5571601ccce1158c40e309ac406fd16db6f4f3b34747a9f7fe0ea09, seven changed copied-engine files only. README/EVIDENCE and durable logs/manifests are under docs/upstream-patches/safejs; no private source nor shipped plugin changes.
+Final hardened verifier rerun: /tmp/safe-bash-safejs-isolated-gnP0gu; log /tmp/safe-bash-safejs-artifact-final-reproduction.log, exit 1. Same9+action baseline 0 passed/10 failed/0 skipped; patched 10 passed/0 failed/0 skipped. Additional invariants baseline 0/9, patched 8/9 with shared-capture quota inflation still failing. Full slow/fuzz unchanged suite baseline 3225 pass/0 fail/38 skip; patched 3224 pass/1 fail/38 skip, both 3263 tests/125 files. Error-shape regression remains blocker; upstream assertions and caller errors untouched. Two durable artifact guard tests pass. Typecheck baseline/patched both report same eight unresolved workspace-declaration diagnostics; no passing typecheck claimed.
+Final interval 22:12:13.103Z–22:13:56.827Z: engine hashes, revision b9113a172089e716b5eda7bbd117e630df211597, dirty status and root license unchanged. Earlier external revision/status/index drift means no whole-assignment globally unchanged-private claim. Full exact observations and pinned 259 non-build/cache package hashes (238 src) preserved; post-test baseline and patched temporary source manifests rechecked exactly. Actual import hooks loaded patched gnP0gu run.ts SHA437516219bd7e6150b35b76d4f4db3a5027496d75d1534142032a4fe466ff4f2 and interpreter.ts SHA9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d, never private aliases.
+Independent reviewer final report consumed and copied to durable evidence: /tmp/safe-bash-safejs-isolated-security-result.txt. Separate copies reproduce the same counts/blocker; independent gate FAIL / NOT APPROVED. Final verifier adds exact baseline TAP checks and fails aggregate status for any private drift; these hardenings were author-reproduced after independent review, not independently approved. No staged files, commits, installs, builds, private writes or delegation. Root must reconcile exact preabort reason/error-shape requirements before approving upstream application. No superiority/full-security/full-shell claim.

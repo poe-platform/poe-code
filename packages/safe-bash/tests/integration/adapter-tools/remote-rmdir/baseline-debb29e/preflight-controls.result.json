@@ -1,0 +1,180 @@
+{
+  "name": "preflight-controls",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools/preflight-review/preflight.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/.archive-O57aGR",
+  "startedAt": "2026-08-27T06:49:37.571Z",
+  "elapsedMs": 235.3224170000003,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "counts": {
+    "tests": 30,
+    "pass": 30,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    {
+      "number": 1,
+      "name": "preflight rejects missing required standard command: cat",
+      "passed": true
+    },
+    {
+      "number": 2,
+      "name": "preflight rejects missing required standard command: cp",
+      "passed": true
+    },
+    {
+      "number": 3,
+      "name": "preflight rejects missing required standard command: find",
+      "passed": true
+    },
+    {
+      "number": 4,
+      "name": "preflight rejects missing required standard command: mkdir",
+      "passed": true
+    },
+    {
+      "number": 5,
+      "name": "preflight rejects missing required standard command: mv",
+      "passed": true
+    },
+    {
+      "number": 6,
+      "name": "preflight rejects missing required standard command: printf",
+      "passed": true
+    },
+    {
+      "number": 7,
+      "name": "preflight rejects missing required standard command: pwd",
+      "passed": true
+    },
+    {
+      "number": 8,
+      "name": "preflight rejects missing required standard command: rm",
+      "passed": true
+    },
+    {
+      "number": 9,
+      "name": "preflight rejects missing required standard command: rmdir",
+      "passed": true
+    },
+    {
+      "number": 10,
+      "name": "preflight rejects missing required standard command: sort",
+      "passed": true
+    },
+    {
+      "number": 11,
+      "name": "preflight rejects missing required standard command: tee",
+      "passed": true
+    },
+    {
+      "number": 12,
+      "name": "preflight rejects missing required standard command: test",
+      "passed": true
+    },
+    {
+      "number": 13,
+      "name": "preflight rejects missing required standard command: touch",
+      "passed": true
+    },
+    {
+      "number": 14,
+      "name": "preflight rejects missing required standard command: xargs",
+      "passed": true
+    },
+    {
+      "number": 15,
+      "name": "preflight rejects missing standard plugin commands",
+      "passed": true
+    },
+    {
+      "number": 16,
+      "name": "preflight rejects missing required text command: sed",
+      "passed": true
+    },
+    {
+      "number": 17,
+      "name": "preflight rejects missing required text command: awk",
+      "passed": true
+    },
+    {
+      "number": 18,
+      "name": "preflight rejects missing text plugin commands",
+      "passed": true
+    },
+    {
+      "number": 19,
+      "name": "preflight rejects missing required structured command: jq",
+      "passed": true
+    },
+    {
+      "number": 20,
+      "name": "preflight rejects missing structured plugin commands",
+      "passed": true
+    },
+    {
+      "number": 21,
+      "name": "preflight rejects missing required search command: rg",
+      "passed": true
+    },
+    {
+      "number": 22,
+      "name": "preflight rejects missing search plugin commands",
+      "passed": true
+    },
+    {
+      "number": 23,
+      "name": "preflight rejects missing required bytes command: sha256sum",
+      "passed": true
+    },
+    {
+      "number": 24,
+      "name": "preflight rejects missing required bytes command: gzip",
+      "passed": true
+    },
+    {
+      "number": 25,
+      "name": "preflight rejects missing bytes plugin commands",
+      "passed": true
+    },
+    {
+      "number": 26,
+      "name": "preflight rejects missing required diffPatch command: diff",
+      "passed": true
+    },
+    {
+      "number": 27,
+      "name": "preflight rejects missing required diffPatch command: patch",
+      "passed": true
+    },
+    {
+      "number": 28,
+      "name": "preflight rejects missing diffPatch plugin commands",
+      "passed": true
+    },
+    {
+      "number": 29,
+      "name": "preflight rejects an absent aggregate plugin",
+      "passed": true
+    },
+    {
+      "number": 30,
+      "name": "preflight permits an unrelated executable command alongside all workflow commands",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "unchangedInputsAfter": true
+}

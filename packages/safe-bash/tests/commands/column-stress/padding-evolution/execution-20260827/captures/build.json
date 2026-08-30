@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "startedAt": "2026-08-27T15:54:05.242Z",
+  "endedAt": "2026-08-27T15:54:07.471Z",
+  "pid": 72870,
+  "deadlineMs": 120000,
+  "outputCap": 8388608,
+  "status": 0,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 0,
+    "stderr": 0
+  },
+  "stdoutHex": "",
+  "stderrHex": "",
+  "groupAliveAtClose": false,
+  "cleanup": "close-observed-group-checked-and-retired",
+  "forcedCleanupIsPass": false
+}

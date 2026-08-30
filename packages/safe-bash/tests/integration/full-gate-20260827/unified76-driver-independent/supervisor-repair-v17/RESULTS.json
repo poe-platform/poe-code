@@ -1,0 +1,409 @@
+{
+  "schema": 1,
+  "verdict": "HOLD_ACTUAL_CHILD_PROOF_UNEXECUTED_AFTER_HARNESS_FAILURE",
+  "source": "f03c260269dfd8ee10666f7fd2560655f8e14a38",
+  "authorHarness": "63aae753af1ce5d8fa26160b596d6203e264e970",
+  "authorEvidence": "89c735fcdfe6e09bc88bb41535bad421e7e0cbd9",
+  "requirementsCommit": "caaa4012f10ee7d119f38b3b826abff1d7424332",
+  "recipeCommit": "e2bd8e410fd0cfa2b40ff782609513f0cd31ce61",
+  "driverSha256": "aca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424",
+  "effectiveProfileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+  "supervisorSha256": "3e624d9dd62d30a134540078a0ee3df4b8fdbd16d3f817c75f9583ba60dbcd08",
+  "superviseFunctionLines": [
+    13,
+    176
+  ],
+  "superviseFunctionSha256": "cb58e6f1e9d32144fb65cf6272e0af8545b46cdd23358db6ab7c261f189bcc35",
+  "shippingCount": 41,
+  "unchangedShipping": 39,
+  "allowedChangedFiles": [
+    "supervise.mjs",
+    "DRIVER.json"
+  ],
+  "cases": [
+    {
+      "id": "S01",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S01.json",
+      "sha256": "d387399b3644112d85cd794cc1aa29bb6c8a666c4619c4af01f4c022f489c3bf",
+      "faultCount": 0,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [],
+      "signals": []
+    },
+    {
+      "id": "S02",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S02.json",
+      "sha256": "f2716051894d45322a94a9135aa48835f6f22e52f298b586fc0975cf49289c33",
+      "faultCount": 10,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "primary",
+        "secondary",
+        "later",
+        "later",
+        "later",
+        "later",
+        "later",
+        "later",
+        "later",
+        "later"
+      ],
+      "signals": [
+        {
+          "pid": 9001,
+          "born": null,
+          "signal": "SIGTERM",
+          "target": "owned-child-handle",
+          "delivered": true
+        },
+        {
+          "pid": 9001,
+          "born": null,
+          "signal": "SIGKILL",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S03.json",
+      "sha256": "39bbf12c4a22aae9b5329e79aeea75cf739da973ea8362a23a50ffa52bcfe475",
+      "faultCount": 4,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "null",
+        "secondary",
+        "later",
+        "later"
+      ],
+      "signals": [
+        {
+          "pid": 9001,
+          "born": null,
+          "signal": "SIGTERM",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S04.json",
+      "sha256": "518bc7f2a082282a77b6cf36f3467f9597edc8c65b855fbf6c5e04a6694c4b88",
+      "faultCount": 4,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "undefined",
+        "secondary",
+        "later",
+        "later"
+      ],
+      "signals": [
+        {
+          "pid": 9001,
+          "born": null,
+          "signal": "SIGTERM",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S05.json",
+      "sha256": "c0182a9c87877ea295e86c4f55aad8da1a25d60e25fbee11b5851820a3a3bc5d",
+      "faultCount": 4,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "primary",
+        "secondary",
+        "later",
+        "later"
+      ],
+      "signals": [
+        {
+          "pid": 9001,
+          "born": null,
+          "signal": "SIGTERM",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S06.json",
+      "sha256": "a04a35254ab36d7d61e41a379a863b873fb8b7c322d8caa362a18847482db5c0",
+      "faultCount": 2,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "primary",
+        "primary"
+      ],
+      "signals": []
+    },
+    {
+      "id": "S07",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S07.json",
+      "sha256": "194b5affadd413e591666f358b2e07fcd60008ce015e3aca0b0b56d3ead53a52",
+      "faultCount": 3,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "primary",
+        "secondary",
+        "secondary"
+      ],
+      "signals": [
+        {
+          "pid": 9001,
+          "born": "Fri Aug 28 00:00:00 2026",
+          "signal": "SIGKILL",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S08.json",
+      "sha256": "53b4de3d160a2e38271eff6d99f02326945af0aa72f349d144497da0c1432ef4",
+      "faultCount": 4,
+      "closed": false,
+      "captureClosed": true,
+      "faultIdentities": [
+        "other",
+        "other",
+        "other",
+        "other"
+      ],
+      "signals": [
+        {
+          "pid": 9001,
+          "born": "Fri Aug 28 00:00:00 2026",
+          "signal": "SIGKILL",
+          "target": "owned-child-handle",
+          "delivered": true
+        },
+        {
+          "pid": 9001,
+          "born": "Fri Aug 28 00:00:00 2026",
+          "signal": "SIGTERM",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S09.json",
+      "sha256": "32304d7b11212e293f70e45aced9174ced2449c8c9004c34e8adda283049552f",
+      "faultCount": 1,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "primary"
+      ],
+      "signals": [
+        {
+          "pid": 9001,
+          "born": "Fri Aug 28 00:00:00 2026",
+          "signal": "SIGTERM",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S10.json",
+      "sha256": "6b975c90f46d671357291a59095905be33b5d50c5f0f97613fe1a2815dadc461",
+      "faultCount": 1,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "primary"
+      ],
+      "signals": []
+    },
+    {
+      "id": "S11",
+      "verdict": "PASS",
+      "method": "SYNTHETIC",
+      "rawArtifact": "S11.json",
+      "sha256": "165a660c71307267275c523998e2cb816d1a4672e13002a3abe98b397257cbe2",
+      "faultCount": 5,
+      "closed": true,
+      "captureClosed": true,
+      "faultIdentities": [
+        "primary",
+        "secondary",
+        "other",
+        "other",
+        "other"
+      ],
+      "signals": [
+        {
+          "pid": 9001,
+          "born": "Fri Aug 28 00:00:00 2026",
+          "signal": "SIGTERM",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ]
+    },
+    {
+      "id": "B01",
+      "verdict": "PASS",
+      "method": "SYNTHETIC_OLD_SENSITIVITY",
+      "rawArtifact": "B01.json",
+      "sha256": "b896ba6c5c2e43640aea309cc405c5aa054f1acc8b437ee99fab2f0ebd6130a2",
+      "faultCount": null,
+      "closed": null,
+      "captureClosed": null,
+      "faultIdentities": [],
+      "signals": []
+    },
+    {
+      "id": "A01",
+      "verdict": "FAIL",
+      "method": "HARNESS_PRESPAWN_FAILURE",
+      "rawArtifact": "A01.json",
+      "sha256": "ff4255f89698aa90be003d09d06cd227f8e9b57f25913583506af8848b66c1e2",
+      "faultCount": 1,
+      "closed": false,
+      "captureClosed": true,
+      "faultIdentities": null,
+      "signals": []
+    },
+    {
+      "id": "A02",
+      "verdict": "UNEXECUTED",
+      "method": "ACTUAL_CHILD_REQUIRED",
+      "reason": "Stopped after A01 harness prespawn assertion; no retry."
+    },
+    {
+      "id": "A03",
+      "verdict": "UNEXECUTED",
+      "method": "ACTUAL_CHILD_REQUIRED",
+      "reason": "Stopped after A01 harness prespawn assertion; no retry."
+    },
+    {
+      "id": "M01",
+      "verdict": "PASS",
+      "method": "STATIC_DATA",
+      "evidence": "BINDINGS.json: all41 records,39 unchanged, only supervise/DRIVER differ; normalized parsed JSON independently checked."
+    },
+    {
+      "id": "M02",
+      "verdict": "PASS",
+      "method": "DATA_ROLE_AND_FILE_HASH",
+      "evidence": "Six independent role sensitivity checks necessarily completed before first persisted S01 marker; individual role array was in memory and final RESULTS.json was not reached. Three file identities checked before use; no actual child-role execution."
+    },
+    {
+      "id": "M03",
+      "verdict": "PASS",
+      "method": "STATIC",
+      "evidence": "39 byte-identical inherited members; separate OS/profile/routes/projection binding. H06 disposition and release qualifications unchanged."
+    }
+  ],
+  "counts": {
+    "total": 18,
+    "pass": 15,
+    "fail": 1,
+    "unexecuted": 2,
+    "repairedSyntheticPass": 11,
+    "oldSyntheticSensitivityPass": 1,
+    "staticDataRolePass": 3,
+    "embeddedRoleChecks": 6,
+    "actualHarmlessChildrenLaunched": 0,
+    "coordinatorProcesses": 1
+  },
+  "failure": {
+    "classification": "INDEPENDENT_HARNESS_CROSS_REALM_STDIO_COMPARATOR",
+    "path": "review.mjs",
+    "line": 222,
+    "operation": "assert.deepEqual(options.stdio,['ignore','pipe','pipe'])",
+    "boundary": "before children.spawn at223; supplied primitive string values/order match but realm prototypes differ",
+    "candidateBugProven": false,
+    "followOn": "review.mjs255 generic closure-breach message is not evidence of a surviving child: no target child was spawned/registered.",
+    "rawPlannedLabels": "A01 raw actualExecutable/argv describe intended invocation only; sandbox-exec was never dispatched."
+  },
+  "coordinator": {
+    "pid": 93585,
+    "exit": 1,
+    "signal": null,
+    "elapsedSeconds": 1.0694988330069464,
+    "natural": true,
+    "stdout": {
+      "bytes": 655,
+      "sha256": "dbdde11d13ea9add0342016b7ef31c3cbceb178e94df9401edd400b0c3ebaa89"
+    },
+    "stderr": {
+      "bytes": 688,
+      "sha256": "1a1f27ef5996a8f78cd536f4bea8157c9a59bb6ed57eed31964defb524634623"
+    },
+    "rescueUsed": false,
+    "registeredChildren": 0,
+    "survivors": []
+  },
+  "limitations": [
+    "No actual new OS fence/owned Node child/supervisor lifecycle proof; only controller/coordinator observation ran using admitted ps.",
+    "No retry, no runtime repair, no original40/A10/private/native-oracle/fullgate execution.",
+    "Synthetic 20x clocks show control-flow ordering/finite attempts, not real kernel timing or universal background closure.",
+    "H06.3 SOURCEQUALIFIED; actual dual-private-error UNEXECUTED; conditional on successful terminal persistence.",
+    "Author13synthetic/3actual/5role controls and original admission failure remain separate, not independent counts.",
+    "Old38/40, both consumed0/14 and old77f80 source findings remain historical."
+  ],
+  "priorOwnedUnchanged": 495,
+  "temporaryRootsRemoved": true,
+  "cohortSha256": "1838a290ef5178fd1ea36eb2c114fb21138859ea2f61ad805fa96b5a1f14aaf8",
+  "release": {
+    "ready": false,
+    "requires": "Complete independently authorized actual-child proof or explicit root disposition, then fresh immutable packet and root authorization. No GO issued.",
+    "action": "ROOT_RELEASE_UNIFIED76",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "driverSha256": "aca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424",
+    "profileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+    "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "eligibilityProfile": "unified76-historical-file-authority-20260828-v1",
+    "historicalEligibilitySha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6",
+    "acceptsUnqualifiedHistoricalNative": true,
+    "rootOnlyFields": [
+      "public74",
+      "public75",
+      "public76",
+      "independentDriverAccepted",
+      "authorization",
+      "independentEvidence"
+    ],
+    "aggregate": "Historical unsupported observations require qualified NONZERO; no all-qualified green."
+  }
+}

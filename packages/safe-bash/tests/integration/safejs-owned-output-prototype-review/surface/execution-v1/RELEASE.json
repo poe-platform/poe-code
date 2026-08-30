@@ -1,0 +1,36 @@
+{
+  "at": "2026-08-27T15:19:36.107Z",
+  "reviewerThread": "01a04292-5421-7363-8bcb-a70b97fae4e9",
+  "authority": "ROOT explicit release in this thread after different receipt verification",
+  "inputCommit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+  "commitCheck": "c0d3cb8b21987ca5ac3d63e110825ecea7748f8a",
+  "receipts": [
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/REPORT.md",
+      "commit": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+      "bytes": 10814,
+      "sha256": "81a8b977284f033824815f601ab6d0f09705779f02515478ae408bf79ec3eee0"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/proof.json",
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "bytes": 1130772,
+      "sha256": "fe19612e093ca3ef78152bcca666606966905f5736b2d0e4f090e7854a5ece99"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json",
+      "commit": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+      "bytes": 2713,
+      "sha256": "28f079b2cc6a7acba9aa11acf1e8b4562f935dd4bf879e81d2621a628c88ba10"
+    }
+  ],
+  "unconditionalCases": 8,
+  "conditionalCase": "09 only after exact frozen host and guest registration-authority premise, immediate ROOT finding before effect",
+  "initialLookupFailure": {
+    "path": "tests/integration/safejs-owned-output-prototype-review/receipt-review/attempts/r2/verification.json",
+    "error": "ENOENT",
+    "guestExecutions": 0,
+    "correctPath": "tests/integration/safejs-owned-output-prototype-review/receipt-review/verification.json"
+  },
+  "qualification": "TEMP actual prototype only; not source promotion or private installed-package acceptance"
+}

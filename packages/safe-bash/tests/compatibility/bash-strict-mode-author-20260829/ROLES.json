@@ -1,0 +1,308 @@
+{
+  "originalDesignSha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+  "roles": [
+    {
+      "id": "U01",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U02",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U03",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U04",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U05",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U06",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U07",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U08",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U09",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U10",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U11",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U12",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U13",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U14",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U15",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U16",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U17",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U18",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U19",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U20",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U21",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U22",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U23",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U24",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U25",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U26",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U27",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U28",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U29",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U30",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U31",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U32",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U33",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U34",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U35",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U36",
+      "role": "UNEXECUTED_OPEN_OR_OUTSIDE_NOT_A_PASS",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U37",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U38",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U39",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U40",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U41",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U42",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U43",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U44",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U45",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U46",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U47",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U48",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U49",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    },
+    {
+      "id": "U50",
+      "role": "RESOLVED_PRODUCT_SELECTION_NOT_NATIVE_GOLDEN",
+      "nativeExpected": null,
+      "authorExecutedAtSeal": false
+    }
+  ],
+  "additional": "E01-E11:11 separately named author controls",
+  "implementation": "resolved subset only"
+}
+

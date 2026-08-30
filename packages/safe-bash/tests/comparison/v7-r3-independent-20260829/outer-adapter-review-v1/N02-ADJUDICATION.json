@@ -1,0 +1,49 @@
+{
+  "id": "N02",
+  "status": "FAILED_FROZEN_EXPECTATION_NOT_REPLAYED",
+  "expected": {
+    "observed": 65537,
+    "retained": 65536,
+    "lost": 1
+  },
+  "actual": {
+    "observed": 66254,
+    "retained": 65536,
+    "lost": 718,
+    "extraObservedBeyondPlan": 717,
+    "prefixEqualsDeclaredDBytes": true,
+    "prefixSha256": "dcb3cceeb89595b15abac3233c5871a9dc8d5e4af56443c0c5085386c9b50439",
+    "qualified": false,
+    "primary": {
+      "phase": "stderr",
+      "reason": {
+        "type": "object",
+        "code": "OUTER_CAPTURE_CAP",
+        "message": "OUTER_CAPTURE_CAP"
+      }
+    },
+    "child": {
+      "attempted": true,
+      "pid": 86997,
+      "group": 86997,
+      "enrolled": true,
+      "error": null,
+      "exit": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "close": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "pidPresence": "absent",
+      "groupPresence": "absent",
+      "reaped": true,
+      "natural": false
+    }
+  },
+  "tailAvailable": false,
+  "reconstruction": false,
+  "diagnosis": "No capture-body defect established. Child synchronous write loop has no handler; a runtime diagnostic is a source-level possibility, not observed proof.",
+  "rootDispositionRequired": true
+}

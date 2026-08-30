@@ -1,0 +1,403 @@
+TAP version 13
+# Subtest: grep ordered alternatives
+ok 1 - grep ordered alternatives
+  ---
+  duration_ms: 15.988916
+  type: 'test'
+  ...
+# Subtest: grep numeric backreference capture
+ok 2 - grep numeric backreference capture
+  ---
+  duration_ms: 14.274833
+  type: 'test'
+  ...
+# Subtest: grep pattern ordering longest same-start
+ok 3 - grep pattern ordering longest same-start
+  ---
+  duration_ms: 14.333
+  type: 'test'
+  ...
+# Subtest: grep byte dot
+ok 4 - grep byte dot
+  ---
+  duration_ms: 13.845
+  type: 'test'
+  ...
+# Subtest: grep word filter before early return
+ok 5 - grep word filter before early return
+  ---
+  duration_ms: 13.519708
+  type: 'test'
+  ...
+# Subtest: grep empty match selection no output
+ok 6 - grep empty match selection no output
+  ---
+  duration_ms: 13.507208
+  type: 'test'
+  ...
+# Subtest: grep NUL byte records
+ok 7 - grep NUL byte records
+  ---
+  duration_ms: 13.417708
+  type: 'test'
+  ...
+# Subtest: rg Unicode folding
+ok 8 - rg Unicode folding
+  ---
+  duration_ms: 14.1475
+  type: 'test'
+  ...
+# Subtest: rg Unicode words
+ok 9 - rg Unicode words
+  ---
+  duration_ms: 15.269
+  type: 'test'
+  ...
+# Subtest: rg Unicode capture
+ok 10 - rg Unicode capture
+  ---
+  duration_ms: 13.5435
+  type: 'test'
+  ...
+# Subtest: rg current named backreference
+ok 11 - rg current named backreference
+  ---
+  duration_ms: 13.229708
+  type: 'test'
+  ...
+# Subtest: rg fragments do not invent starts
+ok 12 - rg fragments do not invent starts
+  ---
+  duration_ms: 13.688208
+  type: 'test'
+  ...
+# Subtest: rg fragments do not invent ends
+ok 13 - rg fragments do not invent ends
+  ---
+  duration_ms: 13.08625
+  type: 'test'
+  ...
+# Subtest: rg fragments preserve byte offsets
+ok 14 - rg fragments preserve byte offsets
+  ---
+  duration_ms: 13.528125
+  type: 'test'
+  ...
+# Subtest: rg JS digit selection
+ok 15 - rg JS digit selection
+  ---
+  duration_ms: 13.12475
+  type: 'test'
+  ...
+# Subtest: rg empty byte count
+ok 16 - rg empty byte count
+  ---
+  duration_ms: 13.165792
+  type: 'test'
+  ...
+# Subtest: rg empty unterminated byte count
+ok 17 - rg empty unterminated byte count
+  ---
+  duration_ms: 13.6845
+  type: 'test'
+  ...
+# Subtest: rg previous-end zero-width suppression
+ok 18 - rg previous-end zero-width suppression
+  ---
+  duration_ms: 12.595959
+  type: 'test'
+  ...
+# Subtest: rg CRLF whole record
+ok 19 - rg CRLF whole record
+  ---
+  duration_ms: 13.075292
+  type: 'test'
+  ...
+# Subtest: grep validation and fragment matching never construct host RegExp
+ok 20 - grep validation and fragment matching never construct host RegExp
+  ---
+  duration_ms: 24.001833
+  type: 'test'
+  ...
+# Subtest: grep preabort avoids source and worker dispatch
+ok 21 - grep preabort avoids source and worker dispatch
+  ---
+  duration_ms: 0.272458
+  type: 'test'
+  ...
+# Subtest: grep batches available rows without reading a feedback-dependent chunk
+ok 22 - grep batches available rows without reading a feedback-dependent chunk
+  ---
+  duration_ms: 28.569333
+  type: 'test'
+  ...
+# Subtest: grep releases request capacity before paused sink
+ok 23 - grep releases request capacity before paused sink
+  ---
+  duration_ms: 12.714208
+  type: 'test'
+  ...
+# Subtest: grep releases request capacity before an actual paused VFS read
+ok 24 - grep releases request capacity before an actual paused VFS read
+  ---
+  duration_ms: 12.791875
+  type: 'test'
+  ...
+# Subtest: grep cancels after entering uncooperative stdin, not merely startup
+ok 25 - grep cancels after entering uncooperative stdin, not merely startup
+  ---
+  duration_ms: 13.617834
+  type: 'test'
+  ...
+# Subtest: grep cancels after entering uncooperative stdout, not merely startup
+ok 26 - grep cancels after entering uncooperative stdout, not merely startup
+  ---
+  duration_ms: 13.197625
+  type: 'test'
+  ...
+# Subtest: grep quiet closes source without reading another chunk
+ok 27 - grep quiet closes source without reading another chunk
+  ---
+  duration_ms: 11.857041
+  type: 'test'
+  ...
+# Subtest: grep -q does not match later available records speculatively
+ok 28 - grep -q does not match later available records speculatively
+  ---
+  duration_ms: 11.8625
+  type: 'test'
+  ...
+# Subtest: grep -m1 does not match later available records speculatively
+ok 29 - grep -m1 does not match later available records speculatively
+  ---
+  duration_ms: 12.053333
+  type: 'test'
+  ...
+# Subtest: rg validation and fragment matching never construct host RegExp
+ok 30 - rg validation and fragment matching never construct host RegExp
+  ---
+  duration_ms: 23.491041
+  type: 'test'
+  ...
+# Subtest: rg preabort avoids source and worker dispatch
+ok 31 - rg preabort avoids source and worker dispatch
+  ---
+  duration_ms: 0.100625
+  type: 'test'
+  ...
+# Subtest: rg batches available rows without reading a feedback-dependent chunk
+ok 32 - rg batches available rows without reading a feedback-dependent chunk
+  ---
+  duration_ms: 16.267375
+  type: 'test'
+  ...
+# Subtest: rg releases request capacity before paused sink
+ok 33 - rg releases request capacity before paused sink
+  ---
+  duration_ms: 11.569625
+  type: 'test'
+  ...
+# Subtest: rg releases request capacity before an actual paused VFS read
+ok 34 - rg releases request capacity before an actual paused VFS read
+  ---
+  duration_ms: 12.15425
+  type: 'test'
+  ...
+# Subtest: rg cancels after entering uncooperative stdin, not merely startup
+ok 35 - rg cancels after entering uncooperative stdin, not merely startup
+  ---
+  duration_ms: 13.219917
+  type: 'test'
+  ...
+# Subtest: rg cancels after entering uncooperative stdout, not merely startup
+ok 36 - rg cancels after entering uncooperative stdout, not merely startup
+  ---
+  duration_ms: 12.964334
+  type: 'test'
+  ...
+# Subtest: rg quiet closes source without reading another chunk
+ok 37 - rg quiet closes source without reading another chunk
+  ---
+  duration_ms: 11.897834
+  type: 'test'
+  ...
+# Subtest: rg -q does not match later available records speculatively
+ok 38 - rg -q does not match later available records speculatively
+  ---
+  duration_ms: 12.201208
+  type: 'test'
+  ...
+# Subtest: rg -m1 does not match later available records speculatively
+ok 39 - rg -m1 does not match later available records speculatively
+  ---
+  duration_ms: 11.814709
+  type: 'test'
+  ...
+# Subtest: actual Shell pipeline composes public grep/rg options
+ok 40 - actual Shell pipeline composes public grep/rg options
+  ---
+  duration_ms: 18.029375
+  type: 'test'
+  ...
+# Subtest: available batching preserves output preceding the existing rg match limit
+ok 41 - available batching preserves output preceding the existing rg match limit
+  ---
+  duration_ms: 22.3795
+  type: 'test'
+  ...
+# Subtest: defaults are active-request policy, not prototype cumulative caps
+ok 42 - defaults are active-request policy, not prototype cumulative caps
+  ---
+  duration_ms: 0.723667
+  type: 'test'
+  ...
+# Subtest: preabort creates no worker or listener
+ok 43 - preabort creates no worker or listener
+  ---
+  duration_ms: 0.147667
+  type: 'test'
+  ...
+# Subtest: one worker handles validation, batches and more than 1024 calls
+ok 44 - one worker handles validation, batches and more than 1024 calls
+  ---
+  duration_ms: 52.826875
+  type: 'test'
+  ...
+# Subtest: pattern, hit, transport and invocation sizes do not inherit prototype caps
+ok 45 - pattern, hit, transport and invocation sizes do not inherit prototype caps
+  ---
+  duration_ms: 30.024125
+  type: 'test'
+  ...
+# Subtest: rg retains its 100000-hit limit and grep accepts over 8MiB input
+ok 46 - rg retains its 100000-hit limit and grep accepts over 8MiB input
+  ---
+  duration_ms: 28.143958
+  type: 'test'
+  ...
+# Subtest: FIFO queue removes aborted waiter and rejects count overflow
+ok 47 - FIFO queue removes aborted waiter and rejects count overflow
+  ---
+  duration_ms: 18.9075
+  type: 'test'
+  ...
+# Subtest: queue input accounting includes descriptors and bytes; executors are independent
+ok 48 - queue input accounting includes descriptors and bytes; executors are independent
+  ---
+  duration_ms: 31.675625
+  type: 'test'
+  ...
+# Subtest: active abort awaits exact cleanup without cross-caller cancellation
+ok 49 - active abort awaits exact cleanup without cross-caller cancellation
+  ---
+  duration_ms: 25.026792
+  type: 'test'
+  ...
+# Subtest: startup abort does not dispatch matching and awaits cleanup
+ok 50 - startup abort does not dispatch matching and awaits cleanup
+  ---
+  duration_ms: 2.534167
+  type: 'test'
+  ...
+# Subtest: benign stalled reply hits short explicit request deadline and cleans worker
+ok 51 - benign stalled reply hits short explicit request deadline and cleans worker
+  ---
+  duration_ms: 38.795667
+  type: 'test'
+  ...
+# Subtest: benign withheld ready has a distinct startup deadline and no regex dispatch
+ok 52 - benign withheld ready has a distinct startup deadline and no regex dispatch
+  ---
+  duration_ms: 27.94625
+  type: 'test'
+  ...
+# Subtest: malformed replies and natural exact-worker exit settle after cleanup
+ok 53 - malformed replies and natural exact-worker exit settle after cleanup
+  ---
+  duration_ms: 25.419792
+  type: 'test'
+  ...
+# Subtest: idle retirement is automatic with an open invocation and removes listeners
+ok 54 - idle retirement is automatic with an open invocation and removes listeners
+  ---
+  duration_ms: 41.411459
+  type: 'test'
+  ...
+# {"executorWorkers":17,"activeBeforeSafetyCleanup":0,"activeAfter":0,"remainingOwnedListeners":0}
+# Subtest: dispose rejects queued and active work, observes late handlers and is idempotent
+ok 55 - dispose rejects queued and active work, observes late handlers and is idempotent
+  ---
+  duration_ms: 2.341125
+  type: 'test'
+  ...
+# Subtest: reply validation rejects bounds, ordering and first-result amplification
+ok 56 - reply validation rejects bounds, ordering and first-result amplification
+  ---
+  duration_ms: 0.159417
+  type: 'test'
+  ...
+# {"phase":"startup","code":"PROTOCOL","promptTerminationCalls":1,"settledBeforeRelease":false,"terminatedBeforeRelease":false}
+# Subtest: startup messageerror is promptly PROTOCOL and awaits exact retirement
+ok 57 - startup messageerror is promptly PROTOCOL and awaits exact retirement
+  ---
+  duration_ms: 2.301375
+  type: 'test'
+  ...
+# {"phase":"active","code":"PROTOCOL","promptTerminationCalls":1,"settledBeforeRelease":false,"terminatedBeforeRelease":false}
+# Subtest: active messageerror is promptly PROTOCOL and awaits exact retirement
+ok 58 - active messageerror is promptly PROTOCOL and awaits exact retirement
+  ---
+  duration_ms: 0.842041
+  type: 'test'
+  ...
+# Subtest: idle messageerror retires promptly, holds capacity and close awaits cleanup
+ok 59 - idle messageerror retires promptly, holds capacity and close awaits cleanup
+  ---
+  duration_ms: 0.743792
+  type: 'test'
+  ...
+# Subtest: protocol precedence survives messageerror and awaited termination
+ok 60 - protocol precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 0.761417
+  type: 'test'
+  ...
+# Subtest: abort precedence survives messageerror and awaited termination
+ok 61 - abort precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 0.4295
+  type: 'test'
+  ...
+# Subtest: timeout precedence survives messageerror and awaited termination
+ok 62 - timeout precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 21.907208
+  type: 'test'
+  ...
+# Subtest: worker-error precedence survives messageerror and awaited termination
+ok 63 - worker-error precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 0.5475
+  type: 'test'
+  ...
+# Subtest: dispose precedence survives messageerror and awaited termination
+ok 64 - dispose precedence survives messageerror and awaited termination
+  ---
+  duration_ms: 0.57125
+  type: 'test'
+  ...
+# Subtest: native worker receiver messageerror uses the same awaited cleanup
+ok 65 - native worker receiver messageerror uses the same awaited cleanup
+  ---
+  duration_ms: 14.596791
+  type: 'test'
+  ...
+1..65
+# tests 65
+# suites 0
+# pass 65
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 768.275041

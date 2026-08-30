@@ -1,0 +1,19 @@
+{
+  "role": "New literal author expectations frozen before candidate execution; no native parity claim",
+  "files": {"/w/from-source": "a[3]=sourced\n", "/w/.hidden": "h", "/w/visible": "v"},
+  "cases": [
+    {"id":"A01","name":"sparse order, quoted values and empty member","script":"a=([2]=two [0]='zero value' [7]=''); printf '<%s>\\n' \"${a[@]}\"; printf '%s\\n' \"${#a[@]}\"","stdout":"<zero value>\n<two>\n<>\n3\n","status":0},
+    {"id":"A02","name":"scalar view and zero-element replacement","script":"a=(zero one); printf '%s\\n' \"$a\"; a=changed; printf '<%s>\\n' \"${a[@]}\"","stdout":"zero\n<changed>\n<one>\n","status":0},
+    {"id":"A03","name":"function local array restores parent","script":"a=(outer tail); f(){ local a; a=(inner); printf '%s\\n' \"${a[@]}\"; }; f; printf '%s\\n' \"${a[@]}\"","stdout":"inner\nouter\ntail\n","status":0},
+    {"id":"A04","name":"source updates indexed member","script":"a=(zero one); . /w/from-source; printf '<%s>\\n' \"${a[@]}\"","stdout":"<zero>\n<one>\n<sourced>\n","status":0},
+    {"id":"A05","name":"subshell and command substitution isolate array stores","script":"a=(parent); (a[0]=child; printf '%s\\n' \"${a[0]}\"); value=$(a[0]=sub; printf '%s' \"${a[0]}\"); printf '%s|%s\\n' \"$value\" \"${a[0]}\"","stdout":"child\nsub|parent\n","status":0},
+    {"id":"A06","name":"readonly indexed mutation preserves values","script":"a=(safe); readonly a; a[0]=bad; printf '%s|%s\\n' \"$?\" \"${a[0]}\"","stdout":"1|safe\n","status":0,"stderrContains":"readonly"},
+    {"id":"A07","name":"dotglob, LET and stack share function state without loss","script":"a=(keep); shopt -s dotglob; pushd -n /other >/sink; let total=2+3; printf '%s|%s\\n' \"${a[0]}\" \"$total\"; printf '<%s>\\n' *; dirs -l -p","stdout":"keep|5\n<.hidden>\n<from-source>\n<visible>\n/w\n/other\n","status":0},
+    {"id":"A08","name":"array arguments and getopts cursor","script":"args=(-a -b); set -- \"${args[@]}\"; getopts ab first; getopts ab second; printf '%s|%s|%s\\n' \"$first\" \"$second\" \"${#args[@]}\"","stdout":"a|b|2\n","status":0},
+    {"id":"A09","name":"array expansion feeds unchanged jq length","script":"a=('😀' 'abc'); printf '%s\\n' \"${a[@]}\" | jq -R length","stdout":"1\n3\n","status":0},
+    {"id":"A10","name":"prefix scalar environment does not promote array members","script":"a=(base other); A=one printenv A; printf '%s|%s\\n' \"${a[0]}\" \"${A-unset}\"","stdout":"one\nbase|unset\n","status":0},
+    {"id":"A11","name":"nested literal invoke preserves caller array","script":"a=(parent second); relay; printf '%s\\n' \"${a[@]}\"","stdout":"child\nparent\nsecond\n","status":0,"host":"relay invokes registered f, whose local array is isolated, then verifies parent command signal remains live"},
+    {"id":"A12","name":"array substitution nested invoke shares command budget","script":"a=(kept); timeout 0 printf '%s' \"${a[0]}\"","host":"Shell maxCommands1 must reject ShellLimitError.limit=maxCommands rather than new nested budget or successful output"}
+  ]
+}
+

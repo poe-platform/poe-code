@@ -1,0 +1,45 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index e56511037..88d8ca422 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -219,6 +219,9 @@
+ ## Validation and commits
+ 
+ - npm test runs node:test through tsx; npm run test:contracts targets contracts.
++- The default build excludes the exact experimental source paths listed in
++  tsconfig.build.json. Preserve those files; admitting them requires separate
++  source review and build authorization, not a broad command-family exclusion.
+   npm run typecheck:all builds once, then checks source/tests and maintained strict
+   consumers; npm run typecheck requires existing built declarations. Rebuild after
+   source changes. Typechecking is not runtime or service acceptance. Captured-data
+diff --git a/tsconfig.build.json b/tsconfig.build.json
+index 89e6b5617..f4e6a2d37 100644
+--- a/tsconfig.build.json
++++ b/tsconfig.build.json
+@@ -8,5 +8,25 @@
+     "sourceMap": true
+   },
+   "include": ["src/**/*.ts"],
+-  "exclude": ["tests", "dist", "node_modules"]
++  "exclude": [
++    "tests",
++    "dist",
++    "node_modules",
++    "src/commands/structured/query-core.ts",
++    "src/commands/xan/argv.ts",
++    "src/commands/xan/budget.ts",
++    "src/commands/xan/commands.ts",
++    "src/commands/xan/csv.ts",
++    "src/commands/xan/index.ts",
++    "src/commands/xan/io.ts",
++    "src/commands/xan/options.ts",
++    "src/commands/xan/selector.ts",
++    "src/commands/xan/sort.ts",
++    "src/commands/xan/writer.ts",
++    "src/commands/yq/accounting.ts",
++    "src/commands/yq/encoder.ts",
++    "src/commands/yq/errors.ts",
++    "src/commands/yq/index.ts",
++    "src/commands/yq/parser.ts"
++  ]
+ }

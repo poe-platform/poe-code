@@ -1,0 +1,15 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v1/prepare.mjs:25
+let reviewEntries=0;const reviewMatches=[];async function findReview(directory,depth){clock();if(depth>4)throw Error('review depth');for(const name of readdirSync(directory).sort()){if(++reviewEntries>512)throw Error('review metadata bound');const file=join(directory,name),stat=lstatSync(file);if(stat.isSymbolicLink())throw Error('review link');if(stat.isDirectory())await findReview(file,depth+1);else if(stat.isFile()&&stat.size===1250&&name.endsWith('.json')){const bytes=read(file,1250);if(digest(bytes)===reviewHash)reviewMatches.push({path:file,size:1250,sha256:reviewHash});}}}
+                                                                                                               ^
+
+Error: review depth
+    at findReview (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v1/prepare.mjs:25:112)
+    at findReview (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v1/prepare.mjs:25:376)
+    at findReview (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v1/prepare.mjs:25:376)
+    at findReview (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v1/prepare.mjs:25:376)
+    at findReview (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v1/prepare.mjs:25:376)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async findReview (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v1/prepare.mjs:25:370)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/binding-v1/prepare.mjs:26:1
+
+Node.js v22.22.2

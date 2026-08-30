@@ -1,0 +1,99 @@
+{
+  "sourceHarnessCommit": "5f7fe5d72f031db6cbacc76d9bfefcba2f58d03e",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "profile": "Fresh selected-path committed Git archive with existing dependency symlink. Exact candidate tests precede explicit success capture; corruption capture mutates only the disposable archive after success.",
+  "archiveSha256": "98f24243e209a5bea40f2a6bdc1952d9e95087ff974b902b80f6f0adc7e67de1",
+  "tests": {
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "TAP version 13\n# Subtest: direct-registered-curl-buffer-307-replay\nok 1 - direct-registered-curl-buffer-307-replay\n  ---\n  duration_ms: 3.5785\n  type: 'test'\n  ...\n# Subtest: direct-registered-curl-native-uint8array-307-replay\nok 2 - direct-registered-curl-native-uint8array-307-replay\n  ---\n  duration_ms: 1.364416\n  type: 'test'\n  ...\n# Subtest: default parallel canonical runs preserve sealed artifacts without capture\nok 3 - default parallel canonical runs preserve sealed artifacts without capture\n  ---\n  duration_ms: 466.185834\n  type: 'test'\n  ...\n# Subtest: explicit capture preserves success separately\nok 4 - explicit capture preserves success separately\n  ---\n  duration_ms: 520.019042\n  type: 'test'\n  ...\n# Subtest: explicit capture preserves byte assertion failure separately\nok 5 - explicit capture preserves byte assertion failure separately\n  ---\n  duration_ms: 484.181542\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1605.521084\n",
+    "stderr": ""
+  },
+  "captures": [
+    {
+      "profile": "Exact source/harness commit",
+      "args": [
+        "--unhandled-rejections=strict",
+        "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"directory\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-direct-curl-capture-1ZA4GP\",\"exitCode\":0}\n",
+      "stderr": "",
+      "directory": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-direct-curl-capture-1ZA4GP",
+      "outputHashes": {
+        "manifest.json": "126e444673e887602c9aa90dd10c8b1106abded2fcd8c9afc2523bc30be7361c",
+        "observations.json": "ce8d824be57222bd8a07ad48f7ab762e3aca6447fbc41a66f5add7e7d500f246",
+        "raw.tap": "b8838bb52d55710eb53892137cf88530f9c448474289259fd43d9c9ef9a86144",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "profile": "Deliberate archive-only cache.push(chunk.slice()) mutation; NOT committed production candidate",
+      "args": [
+        "--unhandled-rejections=strict",
+        "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"directory\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-direct-curl-capture-9XQcbT\",\"exitCode\":1}\n",
+      "stderr": "",
+      "directory": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-direct-curl-capture-9XQcbT",
+      "outputHashes": {
+        "manifest.json": "5e7ede62bdcc37c437194195b27bab341a3e75d673e8c53c5b05fdb8c4bb3bb0",
+        "observations.json": "c329a3ca3140b7f00e0a554259180f220394d1d7e1ece676944c14d04077c263",
+        "raw.tap": "6f5ef18ed2d81f00c0daccdb67e4e35ab659480c9ccf65efa030ffe28cbd22f1",
+        "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "immutableBefore": {
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/README.md": "fccbce604eb6895429ae4f3a2e4f9bcc42560c214d6fef5dd609c34dc1d03afb",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/REPORT.md": "b31d2c9c2f493305546b6d054a2cfc82daaf8d8d992a163d55449508042c3303",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/after.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/before.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-native-uint8array-307-replay.json": "dc2022fdd8b4df2a68e10212aab2746081ac0f467a551d364faca5022a55b1a6",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/raw.tap": "48349b310c128d03280d4aea9a7e3af4e6df0eb71c83eb88c4af48371ac34c43",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/run.json": "b05de45bc0e165a2f126b5500b5beabd54475f017e93ff6303caff79db6e2a79",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/expectations.json": "3a4777de116cb58cb17a029402d7a5d6eae1691dda6244350b75b0d160091704",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/run.mjs": "b23d484351e1475592827b6e907fb2d9b8db8ced54defd0bcec9a19fe70e533a",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/source-pin.json": "1c9767fc4d8e96044413ceb6b546efafe1f4f6570f2c6d0aee3d71a073ccf500"
+  },
+  "immutableAfter": {
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/README.md": "fccbce604eb6895429ae4f3a2e4f9bcc42560c214d6fef5dd609c34dc1d03afb",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/REPORT.md": "b31d2c9c2f493305546b6d054a2cfc82daaf8d8d992a163d55449508042c3303",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/after.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/before.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-native-uint8array-307-replay.json": "dc2022fdd8b4df2a68e10212aab2746081ac0f467a551d364faca5022a55b1a6",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/raw.tap": "48349b310c128d03280d4aea9a7e3af4e6df0eb71c83eb88c4af48371ac34c43",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/run.json": "b05de45bc0e165a2f126b5500b5beabd54475f017e93ff6303caff79db6e2a79",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/expectations.json": "3a4777de116cb58cb17a029402d7a5d6eae1691dda6244350b75b0d160091704",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/run.mjs": "b23d484351e1475592827b6e907fb2d9b8db8ced54defd0bcec9a19fe70e533a",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/source-pin.json": "1c9767fc4d8e96044413ceb6b546efafe1f4f6570f2c6d0aee3d71a073ccf500"
+  },
+  "sharedBaselineFilesUnchanged": 1051,
+  "ownedTemporaryDirectories": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-direct-curl-capture-9XQcbT",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-direct-curl-capture-1ZA4GP",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-frozen-qNqshu"
+  ],
+  "exactOwnedTempsRemoved": true
+}

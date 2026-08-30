@@ -1,0 +1,150 @@
+{
+  "control": "consumer-failure",
+  "pid": 34638,
+  "ppid": 34501,
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "execArgv": [
+    "--max-old-space-size=96"
+  ],
+  "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+  "assertionState": "not evaluated; persisted before coordinator assertions",
+  "proposedExitCode": 17,
+  "failure": {
+    "name": "Error",
+    "code": "V3_CONSUMER_FAILURE",
+    "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+    "stack": "Error: CONTROL_BOUNDARY:V3_CONSUMER_FAILURE\n    at boundary (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/worker.mjs:21:48)\n    at consume (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/worker.mjs:53:92)\n    at hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/core.mjs:169:13)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/core.mjs:193:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/worker.mjs:34:12",
+    "process": {
+      "status": 1,
+      "signal": null,
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nError: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19) {\n  errno: -32,\n  code: 'EPIPE',\n  syscall: 'write'\n}\n\nNode.js v22.22.2\n",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "result": null,
+  "memory": {
+    "baseline": {
+      "rss": 46219264,
+      "heapTotal": 5914624,
+      "heapUsed": 5235912,
+      "external": 2109762,
+      "arrayBuffers": 22168
+    },
+    "fieldwisePeaks": {
+      "rss": 55017472,
+      "heapTotal": 7225344,
+      "heapUsed": 5465784,
+      "external": 3214742,
+      "arrayBuffers": 1065661
+    },
+    "latest": {
+      "rss": 55017472,
+      "heapTotal": 7225344,
+      "heapUsed": 5465784,
+      "external": 3214742,
+      "arrayBuffers": 1065661
+    },
+    "samples": 3,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "flow": {
+    "chunks": 16,
+    "bytes": 1048576,
+    "maxChunkBytes": 65536,
+    "pending": 0,
+    "maxPending": 1,
+    "pendingBytes": 0,
+    "maxPendingBytes": 65536
+  },
+  "consumerObservation": {
+    "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+    "consumerPid": 34638,
+    "producerPid": 34639,
+    "events": [
+      {
+        "sequence": 1,
+        "monotonicNs": "118501252803833",
+        "type": "producer-spawn"
+      },
+      {
+        "sequence": 2,
+        "monotonicNs": "118501318175166",
+        "type": "caller-failure",
+        "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+        "control": "consumer-failure",
+        "consumerPid": 34638,
+        "producerPid": 34639,
+        "chunks": 16,
+        "code": "V3_CONSUMER_FAILURE",
+        "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+      },
+      {
+        "sequence": 3,
+        "monotonicNs": "118501326140166",
+        "type": "consumer-pipe-close",
+        "destroyed": true
+      },
+      {
+        "sequence": 4,
+        "monotonicNs": "118501338695083",
+        "type": "producer-exit",
+        "status": 1,
+        "signal": null
+      },
+      {
+        "sequence": 5,
+        "monotonicNs": "118501338705333",
+        "type": "producer-close",
+        "status": 1,
+        "signal": null
+      },
+      {
+        "sequence": 6,
+        "monotonicNs": "118501338806708",
+        "type": "core-settled",
+        "stdoutDestroyed": true
+      }
+    ],
+    "caller": {
+      "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+      "control": "consumer-failure",
+      "consumerPid": 34638,
+      "producerPid": 34639,
+      "chunks": 16,
+      "code": "V3_CONSUMER_FAILURE",
+      "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+    },
+    "sameFailureObject": true,
+    "spawn": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/producer-observer.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/stream-fixture.mjs",
+        "1073872896",
+        "0"
+      ],
+      "stdio": [
+        "ignore",
+        "pipe",
+        "pipe"
+      ],
+      "pid": 34639,
+      "consumerPid": 34638
+    },
+    "producerAtSettlement": "absent"
+  },
+  "observedSha256": "9bc1b2a288b26af7257a36277ae3816a7d4f16e89c1e7e77d0a5c48bad62b360",
+  "mutation": {
+    "steps": 0,
+    "retainedBytes": 0,
+    "touchedByte": null
+  },
+  "retainedAllocations": 0,
+  "thresholdBytes": 268435456,
+  "operator": "<",
+  "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+}

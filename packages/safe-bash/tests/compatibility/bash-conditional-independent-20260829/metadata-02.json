@@ -1,0 +1,13 @@
+{
+  "args": [
+    "status",
+    "--porcelain=v1",
+    "-z",
+    "--untracked-files=no"
+  ],
+  "closed": true,
+  "captureBytes": 75,
+  "pid": 97969,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,90 @@
+TAP version 13
+1..0
+# Subtest: tests/commands/table-text-stress/corpus.test.ts
+ok 1 - tests/commands/table-text-stress/corpus.test.ts
+  ---
+  duration_ms: 120.182
+  type: 'test'
+  ...
+# Subtest: paste: records retain Buffer fragments after producer reuse
+not ok 2 - paste: records retain Buffer fragments after producer reuse
+  ---
+  duration_ms: 3.227042
+  type: 'test'
+  location: '/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text/contracts.test.ts:1:4698'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '787876616c75650a'
+    - '612076616c75650a'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '612076616c75650a'
+  actual: '787876616c75650a'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text/contracts.test.ts:104:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: comm: records retain Buffer fragments after producer reuse
+not ok 3 - comm: records retain Buffer fragments after producer reuse
+  ---
+  duration_ms: 1.109458
+  type: 'test'
+  location: '/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text/contracts.test.ts:1:4698'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '09612076616c75650a787876616c75650a'
+    - '0909612076616c75650a'
+         ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '0909612076616c75650a'
+  actual: '09612076616c75650a787876616c75650a'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text/contracts.test.ts:104:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: join: records retain Buffer fragments after producer reuse
+not ok 4 - join: records retain Buffer fragments after producer reuse
+  ---
+  duration_ms: 0.608791
+  type: 'test'
+  location: '/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text/contracts.test.ts:1:4698'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + ''
+    - '612076616c7565206f746865720a'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '612076616c7565206f746865720a'
+  actual: ''
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-table-review-owned/audit/tests/commands/table-text/contracts.test.ts:104:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 1
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 123.882

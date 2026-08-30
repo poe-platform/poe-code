@@ -1,0 +1,1 @@
+{"role":"static commit preparation failure, not product execution","command":"git ls-files --stage -z through execFileSync default buffer","error":"ENOBUFS at 1114112 captured bytes; git child terminated SIGTERM; no staging or commit reached","correction":"explicit 64MiB buffer for index snapshot; no index mutation from failed attempt"}

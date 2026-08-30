@@ -1,0 +1,8 @@
+{"atMs":2.318,"kind":"group-admitted","pid":71209,"pgid":71209,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-6mhwQ8","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-6mhwQ8","TMPDIR":"/private/tmp/safe-bash-execution-author-6mhwQ8","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":74.202,"id":"synthetic/coordinator-stall","nonce":"420191e7-ce8e-496b-8d6c-ef0e434bc71f","kind":"engine-spawn","pid":71210,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":2001.111,"kind":"sticky-failure","reason":"startup deadline"}
+{"atMs":2001.486,"kind":"signal","signal":"SIGTERM","pgid":71209}
+{"atMs":2121.331,"kind":"signal","signal":"SIGKILL","pgid":71209}
+{"atMs":2122.888,"kind":"coordinator-exit","code":null,"signal":"SIGKILL"}
+{"atMs":2122.89,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":2122.892,"kind":"coordinator-close","code":null,"signal":"SIGKILL"}

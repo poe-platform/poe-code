@@ -1,0 +1,153 @@
+import { spawn } from "node:child_process";
+
+export const binaryInput = Buffer.from("foo\n\0\nno\n");
+export const binaryWarning = 'binary file matches (found "\\0" byte around offset 4)\n';
+export interface TimingEvent { event: string; ms: number; detail?: unknown }
+export interface NativeOptions {
+  profile?: "original-25ms" | "observed-prefix";
+  lineBuffered?: boolean;
+  readinessMs?: number;
+  completionMs?: number;
+  cleanupMs?: number;
+  mutation?: "suppress-readiness" | "withhold-delivery" | "stall-completion" | "suppress-cleanup" | "suppress-close-observation";
+}
+export interface NativeEvidence {
+  argv: string[];
+  profile: string;
+  pid: number | undefined;
+  code: number | null;
+  signal: NodeJS.Signals | null;
+  stdout: string;
+  stderr: string;
+  events: TimingEvent[];
+  ready: boolean;
+  actualClose: boolean;
+  closeObserved: boolean;
+  ownedListenersRemaining: number;
+  streamsDestroyed: boolean[];
+  activeTimers: number;
+}
+export class NativeHarnessError extends Error {
+  constructor(message: string, readonly evidence: NativeEvidence) { super(message); }
+}
+
+export async function nativeDelivery(options: NativeOptions = {}): Promise<NativeEvidence> {
+  const profile = options.profile ?? "observed-prefix";
+  const argv = ["--no-config", ...(options.lineBuffered ? ["--line-buffered"] : []), "foo", "-"];
+  const events: TimingEvent[] = [];
+  const started = performance.now();
+  const mark = (event: string, detail?: unknown) => events.push({ event, ms: performance.now() - started, ...(detail === undefined ? {} : { detail }) });
+  const env = { ...process.env, LC_ALL: "C", LANG: "C", RIPGREP_CONFIG_PATH: "", NO_COLOR: "1" };
+  mark("launch", { argv, profile, options });
+  const child = spawn("rg", argv, { env, stdio: ["pipe", "pipe", "pipe"] });
+  const output: Buffer[] = []; const errors: Buffer[] = [];
+  let captured = 0; let ready = false; let actualClose = false; let closeObserved = false; let settled = false;
+  let failure: string | undefined; let code: number | null = null; let signal: NodeJS.Signals | null = null;
+  const timers = new Set<ReturnType<typeof setTimeout>>();
+  const timerIds = new Map<ReturnType<typeof setTimeout>, number>();
+  let timerSequence = 0;
+  const registrations: Array<() => void> = [];
+  const clear = (timer: ReturnType<typeof setTimeout> | undefined) => {
+    if (timer && timers.has(timer)) {
+      clearTimeout(timer); mark("timer-cleared", { timerId: timerIds.get(timer) }); timers.delete(timer); timerIds.delete(timer);
+    }
+  };
+  const later = (action: () => void, milliseconds: number, label: string) => {
+    const timerId = ++timerSequence;
+    const armedMs = performance.now() - started; const dueMs = armedMs + milliseconds;
+    mark("timer-armed", { timerId, label, milliseconds, armedMs, dueMs });
+    const timer = setTimeout(() => {
+      timers.delete(timer); timerIds.delete(timer);
+      const firedMs = performance.now() - started;
+      mark("timer-fired", { timerId, label, armedMs, dueMs, firedMs, latenessMs: firedMs - dueMs }); action();
+    }, milliseconds);
+    timers.add(timer); timerIds.set(timer, timerId); return timer;
+  };
+  let phaseTimer: ReturnType<typeof setTimeout> | undefined;
+  let cleanupTimer: ReturnType<typeof setTimeout> | undefined;
+  let producerTimer: ReturnType<typeof setTimeout> | undefined;
+  return new Promise((resolve, reject) => {
+    const finish = () => {
+      for (const timer of timers) clear(timer);
+      if (actualClose) for (const remove of registrations) remove();
+      if (settled) return;
+      settled = true;
+      const evidence: NativeEvidence = { argv, profile, pid: child.pid, code, signal, stdout: Buffer.concat(output).toString(), stderr: Buffer.concat(errors).toString(), events, ready, actualClose, closeObserved,
+        ownedListenersRemaining: ownListeners.filter(({ target, event, handler }) => target.listeners(event).includes(handler)).length,
+        streamsDestroyed: [child.stdin, child.stdout, child.stderr].map(stream => stream.destroyed), activeTimers: timers.size };
+      if (failure) reject(new NativeHarnessError(failure, evidence)); else resolve(evidence);
+    };
+    const ownListeners: Array<{ target: NodeJS.EventEmitter; event: string; handler: (...args: any[]) => void }> = [];
+    const listen = (target: NodeJS.EventEmitter, event: string, handler: (...args: any[]) => void) => {
+      target.on(event, handler); ownListeners.push({ target, event, handler });
+      registrations.push(() => target.removeListener(event, handler));
+    };
+    const cleanupDeadline = () => {
+      failure ??= "native cleanup deadline"; mark("cleanup-deadline", { actualClose, closeObserved });
+      if (!actualClose) { child.kill("SIGKILL"); mark("cleanup-kill", { pid: child.pid }); }
+      finish();
+    };
+    const armCleanup = () => { cleanupTimer ??= later(cleanupDeadline, options.cleanupMs ?? 5000, "cleanup"); };
+    const stop = (message: string) => {
+      if (failure) return;
+      failure = message; mark("failure", message);
+      clear(phaseTimer); clear(producerTimer);
+      child.stdin.destroy(); child.kill("SIGKILL"); mark("kill", { pid: child.pid }); armCleanup();
+    };
+    const armPhase = (phase: string, milliseconds: number) => {
+      clear(phaseTimer);
+      phaseTimer = later(() => stop(`native ${phase} deadline`), milliseconds, phase);
+    };
+    const write = (bytes: Buffer, end = false) => {
+      mark("write", { hex: bytes.toString("hex"), end });
+      if (end) child.stdin.end(bytes);
+      else child.stdin.write(bytes);
+    };
+    armPhase("readiness", options.readinessMs ?? 10000);
+    listen(child, "spawn", () => {
+      mark("spawn", { pid: child.pid });
+      if (profile === "original-25ms") {
+        let offset = 0;
+        const produce = () => {
+          write(binaryInput.subarray(offset, ++offset), offset === binaryInput.length);
+          if (offset < binaryInput.length) producerTimer = later(produce, 25, "original-producer");
+        };
+        producerTimer = later(produce, 25, "original-producer");
+      } else if (options.mutation !== "withhold-delivery") write(binaryInput.subarray(0, 4));
+    });
+    for (const [label, stream, chunks] of [["stdout", child.stdout, output], ["stderr", child.stderr, errors]] as const) {
+      listen(stream, "data", (chunk: Buffer) => {
+        mark(`${label}-data`, { hex: chunk.toString("hex") });
+        captured += chunk.length;
+        if (captured > 1024 * 1024) { stop("native capture limit"); return; }
+        chunks.push(Buffer.from(chunk));
+        if (label === "stdout" && !ready && Buffer.concat(output).subarray(0, 4).equals(binaryInput.subarray(0, 4))) {
+          mark("prefix-consumption-evidenced", "stdout is evidence of prior read; not a read syscall timestamp");
+          if (options.mutation === "suppress-readiness") return;
+          ready = true; mark("ready"); armPhase("completion", options.completionMs ?? 10000);
+          if (profile === "observed-prefix" && options.mutation !== "stall-completion") write(binaryInput.subarray(4), true);
+        }
+      });
+      listen(stream, "end", () => mark(`${label}-end`));
+      listen(stream, "close", () => mark(`${label}-close`));
+      listen(stream, "error", (error: Error) => stop(`${label}: ${error.message}`));
+    }
+    listen(child.stdin, "error", (error: NodeJS.ErrnoException) => stop(`stdin: ${error.message}`));
+    listen(child.stdin, "close", () => mark("stdin-close"));
+    listen(child, "error", (error: Error) => stop(`spawn: ${error.message}`));
+    listen(child, "exit", (exitCode: number | null, exitSignal: NodeJS.Signals | null) => {
+      code = exitCode; signal = exitSignal; mark("exit", { code, signal }); clear(phaseTimer); clear(producerTimer); armCleanup();
+    });
+    listen(child, "close", (exitCode: number | null, exitSignal: NodeJS.Signals | null) => {
+      code = exitCode; signal = exitSignal; actualClose = true; mark("close", { code, signal });
+      if (settled) { finish(); return; }
+      if (options.mutation === "suppress-close-observation") { mark("close-observation-suppressed"); armCleanup(); return; }
+      closeObserved = true;
+      clear(phaseTimer); clear(producerTimer);
+      if (!failure && profile === "observed-prefix" && !ready) failure = "native closed without readiness";
+      if (!failure && (code !== 0 || signal)) failure = `native exit ${code}/${signal}`;
+      if (options.mutation === "suppress-cleanup") { mark("cleanup-acknowledgement-suppressed"); armCleanup(); }
+      else { clear(cleanupTimer); finish(); }
+    });
+  });
+}

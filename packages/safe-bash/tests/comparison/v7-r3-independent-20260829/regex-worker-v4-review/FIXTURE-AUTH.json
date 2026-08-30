@@ -1,0 +1,9 @@
+{
+  "role": "independent-review-fixture",
+  "scope": "TWO_RETIRED_CHILD_PUBLICATION_FIXTURES",
+  "attempts": 1,
+  "sealSha256": "c6d0f6bcb341161ea1f48907a4165328fabd57c9eb8acadf5130be737a3ab22d",
+  "sourceSealSha256": "95d3707e7117e6101fd96549e823e7299ba0c058ea179eaf7336160d53a903ec",
+  "actualRootGrant": false,
+  "Workers": 0
+}

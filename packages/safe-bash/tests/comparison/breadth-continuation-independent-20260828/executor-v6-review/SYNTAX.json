@@ -1,0 +1,116 @@
+{
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "count": 11,
+  "rows": [
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/audit.mjs",
+      "sha256": "2cee3c2792bda9365f0e7aae76d529d4ac86545955c2a15dd73045d1b1c52c04",
+      "pid": 67117,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/body-audit.mjs",
+      "sha256": "d7e0a06b8a30fc0b3fd1485821db561a423b7977e21febe9ec554ab76c032fa3",
+      "pid": 67121,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/run.mjs",
+      "sha256": "09104f13f5fdd45cff8d5ff343f029dc1da3a61afcd1b6131ef36eee67ad2e49",
+      "pid": 67122,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/worker.mjs",
+      "sha256": "752a93380e2ac87344c5cc2b2b583674d6ce72e0e188ecf45b4121699142a838",
+      "pid": 67123,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs",
+      "sha256": "36a89dfed90b30d2e7d44bc16e12422e82b0e9a318cfd6779e286af864f8b163",
+      "pid": 67124,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/loader.mjs",
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97",
+      "pid": 67125,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+      "sha256": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f",
+      "pid": 67126,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/authorization.mjs",
+      "sha256": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca",
+      "pid": 67127,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/projection.mjs",
+      "sha256": "bae12ed78c57f801ae5f036a0a56ef0bae516192edc7a817e20d75922e42d031",
+      "pid": 67128,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/entry-worker.mjs",
+      "sha256": "a4c105e2d03065fc5042534a5471e490a3c985dd7bdc2cedea13f76688c53fce",
+      "pid": 67129,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/entry-controls.mjs",
+      "sha256": "16abc691c871e34c4df8ac6434c9d56f6418763f1872e3962a61a953b84b089c",
+      "pid": 67130,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "syntaxOnly": true
+    }
+  ]
+}

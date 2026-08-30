@@ -1,0 +1,192 @@
+{
+  "schema": "native26-independent-sole-slot-v1",
+  "decision": "ACCEPT_DATA_BINDING_ONLY",
+  "nativeAuthority": false,
+  "source": "f74aabbe4dbc5f294e0347afb00d9e3f7e2b04a5",
+  "inspectedAt": "2026-08-29T13:16:47.855Z",
+  "issued": "2026-08-29T13:10:57.530Z",
+  "latestFull600sStart": "2026-08-29T13:45:57.530Z",
+  "expires": "2026-08-29T13:55:57.530Z",
+  "remainingMsAtCheck": 2349675,
+  "pins": [
+    {
+      "name": "review",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/REVIEW-ACCEPTANCE.json",
+      "bytes": 472,
+      "sha256": "2c35949395a504bb0b9a1cfe02f47526363052deb6d721b98e834c8f86ce0ae5",
+      "mode": 384,
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189896"
+    },
+    {
+      "name": "preprovision",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/PREPROVISION.json",
+      "bytes": 731,
+      "sha256": "38aea97a822e1fcc3e8be02876b1bfec2b6d16d295dc922e3579f86089716740",
+      "mode": 384,
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189897"
+    },
+    {
+      "name": "root",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/activation-v1/ROOT-RECEIPT.json",
+      "bytes": 1347,
+      "sha256": "9ce43c9c1dc184ce370cc6b4b90396e2aaf1aeb1677aa26d77b877fd294e8a08",
+      "mode": 384,
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189898"
+    },
+    {
+      "name": "go",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/GO.json",
+      "bytes": 1945,
+      "sha256": "d7fd91283815bf0cf6e153cd2d728afb76f43a04db2d3575cfcaf16d43e09bc7",
+      "mode": 384,
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189899"
+    },
+    {
+      "name": "approval",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/activation-v1/RESOLVED-APPROVAL.json",
+      "bytes": 1392,
+      "sha256": "b319f2f7904229328d7081be99de460bc9be951286662403503263816fb781a6",
+      "mode": 384,
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189900"
+    },
+    {
+      "name": "command",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/activation-v1/resolved-command.txt",
+      "bytes": 871,
+      "sha256": "4e7905d3ea72325eb8922f80735a98d29192fb309fffac871a5f2c9817a3e72f",
+      "mode": 384,
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189901"
+    }
+  ],
+  "executableMembers": 39,
+  "readyMembers": 115,
+  "toolPins": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "phase": "metadata-read-only-not-executed"
+    },
+    {
+      "schema": "functional-wrapper-tool-metadata-v2",
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "regular": true,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "version": "NOT_PROBED",
+      "execution": "NONE_THIS_PHASE",
+      "scope": "platform tool wrapper only; not Bash reference",
+      "preexecutionRequired": true
+    }
+  ],
+  "physicalParents": [
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2",
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189891",
+      "mode": 448,
+      "entries": [
+        "JOURNAL.jsonl",
+        "captures",
+        "cases",
+        "outer"
+      ],
+      "birthtime": "2026-08-29T13:10:57.513Z"
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/outer",
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189892",
+      "mode": 448,
+      "entries": [],
+      "birthtime": "2026-08-29T13:10:57.513Z"
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases",
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189893",
+      "mode": 448,
+      "entries": [],
+      "birthtime": "2026-08-29T13:10:57.513Z"
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/captures",
+      "uid": 501,
+      "device": "16777232",
+      "inode": "188189894",
+      "mode": 448,
+      "entries": [],
+      "birthtime": "2026-08-29T13:10:57.514Z"
+    }
+  ],
+  "bootstrapCaptures": "INTENTIONALLY_ABSENT; FD/inode/one-byte validation deferred to actual owner",
+  "soleSlot": true,
+  "projection": "ROOT-ratified runtime schema projection of accepted independent receipt",
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 27,
+    "knownPeakCeiling": 2,
+    "allKnownProcessProposalCeiling": 64,
+    "allKnownPeakProposalCeiling": 6,
+    "ownerStarts": 1,
+    "nativeStarts": 26,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 19,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  },
+  "knownRolesThroughVerification": 6,
+  "remainingPublicationRoles": 4,
+  "plannedFinalKnownRoles": 10,
+  "peak": 2,
+  "controls": 0,
+  "Bash": 0,
+  "Workers": 0,
+  "qualifications": [
+    "Fresh ROOT actual activation and exact require_escalated tool approval still required",
+    "no native/version/tool runtime execution; tool identity DATA not dyld closure",
+    "old >=52/48 cohort remains noncompliant, unrescored",
+    "no old PID/group probes; physical empty provision not future FD proof"
+  ],
+  "capture": "/tmp/native26-slot-verify-mOAWwl"
+}

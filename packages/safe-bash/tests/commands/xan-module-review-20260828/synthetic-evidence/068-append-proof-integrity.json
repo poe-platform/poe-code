@@ -1,0 +1,14 @@
+{
+  "id": "append-proof-integrity",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "UNDECLARED_INPUT",
+      "name": "Error",
+      "message": "UNDECLARED_INPUT"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

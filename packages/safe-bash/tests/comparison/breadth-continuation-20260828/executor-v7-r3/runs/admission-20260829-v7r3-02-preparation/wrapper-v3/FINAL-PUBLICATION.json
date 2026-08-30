@@ -1,0 +1,45 @@
+{
+  "schema": "NARROW_REPAIR_FINAL_PUBLICATION",
+  "status": "PREPARATION_QUALIFIED_ACTUAL_GO_HELD",
+  "probePreseal": "ce47629f43f9e466dccd4cc1e9fcc0cf72aa0918",
+  "repairPreseal": "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+  "evidenceCommit": "e16ab245ff3f1edf6700cba59f3ac7ac546df1a9",
+  "repairSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/REPAIR-SEAL.json",
+    "bytes": 26027,
+    "mode": 420,
+    "sha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46"
+  },
+  "ownerSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/SEAL.json",
+    "bytes": 2103,
+    "mode": 420,
+    "sha256": "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2"
+  },
+  "evidenceManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/EVIDENCE-MANIFEST.json",
+    "bytes": 24680,
+    "mode": 420,
+    "sha256": "c23838fed123f3f0329f5a9923765209fff6f59a445303bc00a841836b9afdd9"
+  },
+  "publicationTail": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/PUBLICATION-TAIL.ndjson",
+    "bytes": 33999,
+    "mode": 384,
+    "sha256": "bb97ddda4b9b75283bfc66e2579dd0532d6ad0a756937a55354fade8e2250dcc"
+  },
+  "observedMetadataProcesses": 19,
+  "observedControlProcesses": 15,
+  "totalThroughTail": 34,
+  "finalReservedPublicationProcesses": 4,
+  "expectedTotal": 38,
+  "limit": 48,
+  "peak": 3,
+  "elapsedMilliseconds": 710391,
+  "allRecordedMetadataChildrenClosed": true,
+  "ownedStatusAtCutoff": "CLEAN",
+  "actual02Unused": true,
+  "activeGrantOrAuthExists": false,
+  "finalTransportQualification": "Final receipt creation/add/commit/status remain bounded execution-tool receipts, not recursively claimed as this self-hashed file.",
+  "next": "Different review then explicit fresh root actual admission GO; no automatic activation"
+}

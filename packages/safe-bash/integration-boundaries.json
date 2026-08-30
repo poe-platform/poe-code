@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "heldSourceFiles": [
+    "src/commands/xan/argv.ts",
+    "src/commands/xan/budget.ts",
+    "src/commands/xan/commands.ts",
+    "src/commands/xan/csv.ts",
+    "src/commands/xan/index.ts",
+    "src/commands/xan/io.ts",
+    "src/commands/xan/options.ts",
+    "src/commands/xan/selector.ts",
+    "src/commands/xan/sort.ts",
+    "src/commands/xan/writer.ts",
+    "src/commands/xan/DESIGN.md",
+    "src/commands/xan/README.md"
+  ],
+  "heldEvidenceDirectories": [
+    "src/commands/xan/design-evidence",
+    "tests/commands/xan-author-20260828",
+    "tests/commands/xan-independent-20260828",
+    "tests/commands/xan-module-review-20260828",
+    "tests/commands/xan-oracle-prep-20260828"
+  ],
+  "fixtureDirectories": [
+    {
+      "path": "tests/commands/regex-execution/cleanup-registration/artifacts/phase-a",
+      "owner": "tests/commands/regex-execution/cleanup-registration/isolate.mjs",
+      "sha256": "c5a08a9acafe9db797443a0a39ae704d33248d3690a0c95e2039b109cbca6ad9"
+    },
+    {
+      "path": "tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/source/__canonical",
+      "owner": "tests/compatibility/bash-redirection-independent-20260829/continuation-v2/run.mjs",
+      "sha256": "d797658b9c157c14d275c328f75e7384b2fc2f7498574decfecfaf1221265a3b"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/fixtures",
+      "owner": "tests/integration/apply-patch-public-independent-20260829/prepare.mjs",
+      "sha256": "237eee74b1f1153dd03897f70bca61430a109deafe9ca74858beacd30afb2fa9"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical",
+      "owner": "tests/integration/apply-patch-public-independent-20260829/run.mjs",
+      "sha256": "bf5df220810a002d34b36d2351abb67671947436418c46d89c592ec7f50745b1"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build",
+      "owner": "tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs",
+      "sha256": "a23592d7ed2f9d7b7aef6324964523b6fd7900e79c8ed05d2429a7ffafc59ee9"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/build",
+      "owner": "tests/integration/expr-public-independent-20260827/component-execution-v4/run.mjs",
+      "sha256": "728ddb1297dfda45fd1ef6ccf4e8f51f0ca9f9f4163a124827dce32b9e94a776"
+    }
+  ]
+}

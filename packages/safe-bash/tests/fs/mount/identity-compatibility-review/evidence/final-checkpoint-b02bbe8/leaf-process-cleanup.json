@@ -1,0 +1,133 @@
+{
+  "runnerPid": 1845,
+  "processes": [
+    {
+      "name": "original43",
+      "pid": 4336,
+      "startedAt": "2026-08-27T01:50:32.367Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "original4",
+      "pid": 4339,
+      "startedAt": "2026-08-27T01:50:32.751Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "required49",
+      "pid": 4342,
+      "startedAt": "2026-08-27T01:50:32.955Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "backend-memory",
+      "pid": 4416,
+      "startedAt": "2026-08-27T01:50:34.135Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "backend-real",
+      "pid": 4448,
+      "startedAt": "2026-08-27T01:50:34.924Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "backend-mount",
+      "pid": 5320,
+      "startedAt": "2026-08-27T01:50:37.129Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "backend-readonly",
+      "pid": 5761,
+      "startedAt": "2026-08-27T01:50:37.933Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "backend-overlay",
+      "pid": 5967,
+      "startedAt": "2026-08-27T01:50:38.293Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "backend-s3",
+      "pid": 6262,
+      "startedAt": "2026-08-27T01:50:38.937Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "backend-webdav",
+      "pid": 6328,
+      "startedAt": "2026-08-27T01:50:39.606Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "shared-conformance",
+      "pid": 6505,
+      "startedAt": "2026-08-27T01:50:40.668Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "s3-policy86",
+      "pid": 6533,
+      "startedAt": "2026-08-27T01:50:41.434Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "remote-cancellation24",
+      "pid": 6538,
+      "startedAt": "2026-08-27T01:50:41.650Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "diagnostics8",
+      "pid": 6542,
+      "startedAt": "2026-08-27T01:50:42.001Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "required-preflight-matrix79",
+      "pid": 6545,
+      "startedAt": "2026-08-27T01:50:42.527Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "live-adapter-stress",
+      "pid": 6559,
+      "startedAt": "2026-08-27T01:50:43.762Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "approved-s3-permission-policy",
+      "pid": 6588,
+      "startedAt": "2026-08-27T01:50:44.219Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "scoped-fs-types",
+      "pid": 6591,
+      "startedAt": "2026-08-27T01:50:44.410Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "diagnostic-qualified43",
+      "pid": 6624,
+      "startedAt": "2026-08-27T01:50:47.144Z",
+      "ownership": "spawned by this checkpoint only"
+    },
+    {
+      "name": "diagnostic-qualified-types",
+      "pid": 6627,
+      "startedAt": "2026-08-27T01:50:47.504Z",
+      "ownership": "spawned by this checkpoint only"
+    }
+  ],
+  "allRecordedCommandsClosed": true,
+  "residualGroups": [],
+  "scratchRemoved": true,
+  "ownedNativeRoot": "/tmp/sb-final-Z7bZjQ",
+  "ownedNativeRootRemoved": true,
+  "noOtherWorkersInspectedOrSignaled": true,
+  "ownedStatusAtCloseout": "?? tests/fs/mount/identity-compatibility-review/checkpoint-b02bbe8.mjs\n?? tests/fs/mount/identity-compatibility-review/evidence/final-checkpoint-b02bbe8/\n",
+  "remainingOwnedScratchEntries": []
+}

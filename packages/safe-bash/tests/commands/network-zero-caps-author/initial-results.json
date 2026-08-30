@@ -1,0 +1,18 @@
+{
+  "date": "2026-08-27",
+  "command": "node --import tsx --test tests/commands/network/zero-caps.test.ts",
+  "initialTestSha256": "d1fce22fb8cfe0fcbbded6d1d353d16eae23795a8376ed074d3d13fd4e74e904",
+  "counts": { "tests": 128, "pass": 125, "fail": 3, "cancelled": 0, "skipped": 0, "todo": 0 },
+  "failures": [
+    "shell: denied stdin performs no transport or upload reads",
+    "shell: authorization-aborted stdin performs no transport or upload reads",
+    "shell: transport need not consume an initial upload at zero"
+  ],
+  "originalAssertion": "assert.equal(setup.state.stdinOpens, 0)",
+  "actualStdinOpens": 1,
+  "actualStdinReads": 0,
+  "correction": "Author expectation defect: Shell establishes ownership by obtaining the input iterator without next(). Expect exactly one iterator open for non-pre-aborted Shell stdin; retain zero producer reads, zero transport for denied/aborted controls and all VFS-open assertions. No product/sharedinput edit.",
+  "strictCommand": "node_modules/.bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node tests/commands/network/zero-caps.test.ts",
+  "strictExitCode": 0,
+  "evidenceClass": "author observation, not an independent holdout or native oracle"
+}

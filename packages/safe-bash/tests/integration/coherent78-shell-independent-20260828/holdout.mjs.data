@@ -1,0 +1,166 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const root = fs.realpathSync(process.env.PRODUCT_ROOT);
+assert.equal(import.meta.resolve('virtual-bash'), pathToFileURL(path.join(root, 'dist/index.js')).href);
+const api = await import('virtual-bash');
+await import('virtual-bash/commands/timeout');
+const cases = JSON.parse(fs.readFileSync(new URL('./HOLDOUTS.json', import.meta.url), 'utf8'));
+const row = cases.cases.find(item => item.id === process.env.CASE_IDS);
+assert.ok(row);
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+const shells = [];
+const detail = { events: [] };
+const observation = { id: row.id, role: 'independent-holdout', pass: false, detail, created: 0, disposed: 0 };
+const raw = (name, value) => { detail[name] = value; console.log(JSON.stringify({ raw: name, value })); };
+const defer = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
+const scheduler = {
+  time: 0, calls: [], handles: new Map(), sequence: 0,
+  now() { assert.equal(this, scheduler); this.calls.push('now'); return this.time; },
+  setTimeout(callback, milliseconds) { assert.equal(this, scheduler); const handle = ++this.sequence; this.calls.push(['arm', milliseconds]); this.handles.set(handle, callback); return handle; },
+  clearTimeout(handle) { assert.equal(this, scheduler); this.calls.push(['clear', handle]); this.handles.delete(handle); },
+  fire() { this.time = 1; const callbacks = [...this.handles.values()]; this.handles.clear(); for (const callback of callbacks) callback(); },
+};
+let pending = 0, listeners = 0, acquisitions = 0, cleanups = 0;
+const memory = new api.MemoryFileSystem();
+for (const directory of cases.fixture.directories) await memory.mkdir(directory, { recursive: true });
+for (const [name, value] of Object.entries(cases.fixture.files)) await memory.writeFile(name, encoder.encode(value));
+const filesystem = row.id === 'H09' ? new api.ReadOnlyFileSystem(memory) : memory;
+const caller = new AbortController();
+const shell = new api.Shell({ fs: filesystem, cwd: '/w', env: { PATH: '', HOME: '/home' }, ...(row.id === 'H06' ? { limits: { maxCommands: 2 } } : {}) }).use(api.agentCommands({ timeout: { scheduler } }));
+shells.push(shell);
+const match = result => {
+  raw('result', { status: result.exitCode, stdout: result.stdout, stderr: result.stderr, bytes: [...result.stdoutBytes] });
+  assert.equal(result.exitCode, row.status);
+  if (row.stdout !== undefined) assert.equal(result.stdout, row.stdout);
+  if (row.stdoutBytes) assert.deepEqual([...result.stdoutBytes], row.stdoutBytes);
+  if (row.stderrContains) assert.ok(result.stderr.includes(row.stderrContains));
+  else assert.equal(result.stderr, '');
+};
+async function setupGate() {
+  const started = defer();
+  shell.commands.register({ name: 'gate', async execute(context) {
+    let drained;
+    const cleanup = () => drained ??= Promise.resolve().then(() => { cleanups++; detail.events.push('cleanup'); });
+    context.registerCleanup(cleanup);
+    acquisitions++; detail.events.push('acquired');
+    try {
+      await new Promise((resolve, reject) => {
+        context.signal.throwIfAborted(); pending++; listeners++;
+        const abort = () => { context.signal.removeEventListener('abort', abort); pending--; listeners--; detail.events.push('child-aborted'); reject(context.signal.reason); };
+        context.signal.addEventListener('abort', abort, { once: true }); started.resolve();
+      });
+      return { exitCode: 0 };
+    } finally { await cleanup(); }
+  } });
+  return started;
+}
+async function execute() {
+  if (row.id === 'H02') {
+    let calls = 0;
+    shell.commands.register({ name: 'inspect', async execute(context) {
+      const bytes = await api.collectBytes(context.stdin, { maxBytes: 16, signal: context.signal });
+      const state = { args: [...context.args], env: { ...context.env }, cwd: context.cwd, default: context.stdinIsDefault, bytes: [...bytes] };
+      raw(`child${++calls}`, state);
+      if (calls === 1) {
+        assert.deepEqual(state, { args: ['a b', '$KEEP', ';'], env: { ONLY: 'child' }, cwd: '/lookup/p', default: false, bytes: [0, 255] });
+      } else {
+        assert.deepEqual(state.env, {}); assert.equal(state.default, true); assert.deepEqual(state.bytes, []);
+      }
+      context.env.KEEP = 'changed'; context.cwd = '/lookup/p'; return { exitCode: 0 };
+    } });
+    shell.commands.register({ name: 'relay', async execute(context) {
+      const supplied = { async *[Symbol.asyncIterator]() { yield Uint8Array.from([0, 255]); } };
+      const first = await context.invoke('inspect', ['a b', '$KEEP', ';'], { cwd: '/lookup/p', env: { ONLY: 'child' }, replaceEnv: true, signal: undefined, stdin: supplied, stdinIsDefault: false });
+      const second = await context.invoke('inspect', [], { replaceEnv: true, stdin: context.stdin, stdinIsDefault: context.stdinIsDefault });
+      assert.equal(first.exitCode, 0); assert.equal(second.exitCode, 0); return { exitCode: 0 };
+    } });
+    match(await shell.exec(row.script)); assert.equal(calls, 2); return;
+  }
+  if (row.id === 'H04') {
+    let finalized = 0;
+    const stdin = { async *[Symbol.asyncIterator]() { const buffer = Buffer.from([0, 255]); try { yield buffer; buffer.set([65, 10]); yield buffer; } finally { buffer.fill(99); finalized++; } } };
+    shell.commands.register({ name: 'relay-bytes', execute(context) { return context.invoke('timeout', ['0', 'cat'], { stdin: context.stdin, stdinIsDefault: context.stdinIsDefault }); } });
+    match(await shell.exec(row.script, { stdin }));
+    raw('copy', [...await filesystem.readFile('/copy')]); assert.deepEqual(detail.copy, row.stdoutBytes); assert.equal(finalized, 1); return;
+  }
+  if (row.id === 'H05') {
+    const started = await setupGate(), local = new AbortController(), reason = new api.FsError('ENOENT');
+    shell.commands.register({ name: 'owner', async execute(context) {
+      const child = context.invoke('gate', [], { signal: local.signal });
+      const result = child.then(() => ({ fulfilled: true }), error => ({ error }));
+      await started.promise; local.abort(reason); const actual = await result;
+      raw('localCancel', { exactIdentity: actual.error === reason, cleanedBeforeReject: cleanups, parentAborted: context.signal.aborted });
+      assert.equal(actual.error, reason); assert.equal(cleanups, 1); assert.equal(context.signal.aborted, false);
+      assert.equal((await context.invoke('dirs', ['-c'])).exitCode, 0); return { exitCode: 0 };
+    } });
+    match(await shell.exec(row.script, { signal: caller.signal })); assert.equal(acquisitions, 1); return;
+  }
+  if (row.id === 'H06') {
+    shell.commands.register({ name: 'relay-budget', execute(context) { return context.invoke('dirs', []); } });
+    let caught; try { await shell.exec(row.script, { signal: caller.signal }); } catch (error) { caught = error; }
+    raw('limit', { name: caught?.name, limit: caught?.limit }); assert.ok(caught instanceof api.ShellLimitError); assert.equal(caught.limit, 'maxCommands'); return;
+  }
+  if (row.id === 'H07') {
+    const authorized = [], requests = [], disposed = [], signals = [];
+    let finalized = 0;
+    const data = encoder.encode(JSON.stringify({ s: '😀é' }));
+    shell.use(api.networkCommands({
+      authorize(request) { authorized.push(request.url); assert.ok(['https://first.invalid', 'https://second.invalid'].includes(new URL(request.url).origin)); return true; },
+      async transport(request) {
+        requests.push({ url: request.url, headers: request.headers }); signals.push(request.signal);
+        if (requests.length === 1) return { status: 302, statusText: 'Found', headers: [['Location', 'https://second.invalid/final']], body: { async *[Symbol.asyncIterator]() {} }, async dispose() { disposed.push('redirect'); } };
+        return { status: 200, statusText: 'OK', headers: [['X-Holdout', 'yes']], body: { async *[Symbol.asyncIterator]() { try { yield data.subarray(0, 8); yield data.subarray(8); } finally { finalized++; } } }, async dispose() { disposed.push('final'); } };
+      },
+    }));
+    const result = await shell.exec(row.script, { signal: caller.signal });
+    raw('network', { authorized, requests, disposed, finalized, requestAborted: signals.map(signal => signal.aborted) });
+    match(result); assert.deepEqual(authorized, ['https://first.invalid/start', 'https://second.invalid/final']);
+    assert.equal(requests.length, 2); assert.ok(requests[0].headers.some(([name]) => name.toLowerCase() === 'authorization'));
+    assert.ok(!requests[1].headers.some(([name]) => name.toLowerCase() === 'authorization'));
+    assert.deepEqual(disposed, ['redirect', 'final']); assert.equal(finalized, 1);
+    assert.deepEqual(await filesystem.readFile('/json'), data); assert.ok(decoder.decode(await filesystem.readFile('/headers')).includes('X-Holdout: yes')); return;
+  }
+  if (row.id === 'H08') {
+    const started = await setupGate();
+    shell.commands.register({ name: 'relay-gate', execute(context) { return context.invoke('gate', []); } });
+    const outcome = shell.exec(row.script, { signal: caller.signal });
+    const admitted = await Promise.race([started.promise.then(() => true), outcome.then(() => false, () => false)]);
+    assert.equal(admitted, true); scheduler.fire(); const result = await outcome;
+    detail.events.push('settled'); raw('cleanupAtSettlement', { acquisitions, cleanups, pending, listeners, events: detail.events });
+    match(result); assert.equal(acquisitions, 1); assert.equal(cleanups, 1); assert.ok(detail.events.indexOf('cleanup') < detail.events.indexOf('settled'));
+    assert.equal((await shell.exec('true')).exitCode, 0); return;
+  }
+  if (row.id === 'H09') {
+    const snapshot = async () => { const result = {}; for (const directory of cases.fixture.directories) result[directory] = await memory.readdir(directory); for (const name of Object.keys(cases.fixture.files)) result[name] = [...await memory.readFile(name)]; return result; };
+    const before = await snapshot(); match(await shell.exec(row.script)); const after = await snapshot(); raw('namespace', { before, after }); assert.deepEqual(after, before);
+    await assert.rejects(filesystem.writeFile('/lookup/p/new', encoder.encode('x')), error => error instanceof api.FsError && error.code === 'EROFS'); assert.deepEqual(await snapshot(), before); return;
+  }
+  if (row.id === 'H10') {
+    await filesystem.writeFile('/values', encoder.encode(JSON.stringify(['𝄞', 'á', '👨‍🚀', '�'])));
+    const result = await shell.exec(`shopt -s dotglob; let value=8; pushd -n /lookup/p >/quiet; set -- -a; getopts a flag; ${row.script} | timeout 0 tee /lengths`);
+    raw('lengths', [...await filesystem.readFile('/lengths')]);
+    match(result); assert.equal(decoder.decode(Uint8Array.from(detail.lengths)), row.stdout);
+    const reset = await shell.exec(`shopt -q dotglob; printf '%s:%s:%s\\n' "$?" "${'${value-unset}'}" "$OPTIND"; dirs -l -p`);
+    raw('reset', { status: reset.exitCode, stdout: reset.stdout, stderr: reset.stderr }); assert.equal(reset.stdout, '1:unset:1\n/w\n'); assert.equal(reset.exitCode, 0); assert.equal(reset.stderr, '');
+    assert.equal(decoder.decode(await filesystem.readFile('/lengths')), row.stdout); return;
+  }
+  match(await shell.exec(row.script, { signal: caller.signal }));
+}
+try {
+  await execute(); raw('resources', { pending, listeners, acquisitions, cleanups, timers: scheduler.handles.size, callerAborted: caller.signal.aborted, scheduler: scheduler.calls });
+  assert.equal(pending, 0); assert.equal(listeners, 0); assert.equal(scheduler.handles.size, 0); assert.equal(caller.signal.aborted, false);
+  if (row.id !== 'H08') assert.deepEqual(scheduler.calls, []);
+  observation.pass = true;
+} catch (error) { observation.error = { name: error?.name, code: error?.code, message: error?.message, stack: error?.stack }; }
+finally {
+  observation.created = shells.length;
+  for (const owned of shells) { try { await owned.dispose(); observation.disposed++; } catch (error) { observation.cleanupError = String(error); observation.pass = false; } }
+  observation.resources = { pending, listeners, acquisitions, cleanups, timers: scheduler.handles.size };
+  observation.clean = pending === 0 && listeners === 0 && scheduler.handles.size === 0 && observation.created === observation.disposed;
+}
+console.log(JSON.stringify(observation));
+if (!observation.pass || !observation.clean) process.exitCode = 1;

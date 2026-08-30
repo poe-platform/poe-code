@@ -1,0 +1,6 @@
+/Library/Developer/CommandLineTools/usr/bin/llvm-otool (architecture x86_64):
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2100.39.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)
+/Library/Developer/CommandLineTools/usr/bin/llvm-otool (architecture arm64):
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2100.39.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)

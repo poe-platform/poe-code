@@ -1,0 +1,49 @@
+{
+  "id": "source-originals",
+  "role": "product",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer/fixtures-source-originals",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source-consumer/job-source-originals.json"
+  ],
+  "started": "2026-08-28T20:01:40.018Z",
+  "finished": "2026-08-28T20:01:40.273Z",
+  "startedElapsedMs": 141826.665959,
+  "finishedElapsedMs": 142080.977875,
+  "pid": 71111,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 141668,
+  "fragments": [
+    {
+      "name": "009-source-originals-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "af42f1923c176ab6ce647bc62b6e6e3cd49a632f176bf7189f88b69c8c1e4e7b"
+    },
+    {
+      "name": "009-source-originals-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "dad341a801adc4da1dde17a8cc933665ce61f291a44d00c7e9420bf63d6a9369"
+    },
+    {
+      "name": "009-source-originals-stdout-131072.json",
+      "bytes": 10596,
+      "sha256": "05eeff6d607ab45a5a0ebd9c34a09fc56c1ff5050e68e38c31d4363ec0ee7929"
+    }
+  ],
+  "stdoutSha256": "e907738670a1bfefc0dfcd94f014f3d80918ed8be8279b3c5cdb3927442047d7",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

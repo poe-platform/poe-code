@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "scope": "Exactly two superseded status-zero entity assertions; original inputs and limits unchanged",
+  "authorization": "User/root-approved entity-overlimit REFUSAL policy; no budget increase or unrelated waiver",
+  "source": "3ef5811f98d61800b6d4c6f16be046d4f539eeef",
+  "verification": "2c5178caaa90f687cfedd127879bf88e9f2b8f87",
+  "authorEvidence": "cbed49318f91db0be47a9e6638092452b448a0c1",
+  "original": "6177f88d08e42e111822abefe105ad39de6f647b:tests/commands/html-to-markdown-independent-20260827/followup-semantic.json",
+  "originalSHA256": "8c4226fdbe4e3158f513047537ed0aa7c84262101f6390b2c4c8b0cf63852ba0",
+  "diagnosticProvenance": "Documented status1/EFBIG in source README and handoff README; exact bytes published in cbed4931 ORIGINAL_FOLLOWUP.json R04/R05. Reviewed before independent execution, not inferred by adjusting to this run.",
+  "cases": [
+    {"id":"R04-numeric-entity-token-boundary","input":"<p>&#1114112;</p>","limits":{"maxTokenBytes":8},"originalStatus":0,"originalStdout":"�\n","status":1,"stdout":"","stderr":"html-to-markdown: EFBIG: html-to-markdown token bytes limit exceeded\n"},
+    {"id":"R05-entity-token-boundary","input":"&amp;","limits":{"maxTokenBytes":4},"originalStatus":0,"originalStdout":"\\&\n","status":1,"stdout":"","stderr":"html-to-markdown: EFBIG: html-to-markdown token bytes limit exceeded\n"}
+  ]
+}

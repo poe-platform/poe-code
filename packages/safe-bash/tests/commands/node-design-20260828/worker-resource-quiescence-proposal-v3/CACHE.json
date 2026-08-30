@@ -1,0 +1,100 @@
+{
+  "schema": "WRQ-cache-v3",
+  "status": "Concrete frozen-fixture interpreted scaffold supplied; full provider qualification HOLD",
+  "sourceFacts": [
+    {
+      "binding": "S2/src/interp/host-bridge.ts:116",
+      "fact": "deepCopyFromSandbox arguments precedes Reflect.apply; callback cannot inspect original guest descriptors."
+    },
+    {
+      "binding": "S2/src/interp/host-bridge.ts:459",
+      "fact": "copyHostResultToSandbox starts a fresh WeakMap per return; host object reuse is not guest identity."
+    },
+    {
+      "binding": "S8/src/modules/registry.ts:77",
+      "fact": "Import wrapped-export cache does not provide invocation CJS/JSON require identity."
+    }
+  ],
+  "candidateRoute": [
+    {
+      "step": 1,
+      "action": "Provider preflights entire user source against the selected closed grammar, all allowed intrinsic/member access and reserved scaffold identifiers, then supplies one bounded combined trusted-interpreted scaffold+user input to one public run with one budget. No native eval/Function, second run, private engine import, fabricated interpreter brands or new exports."
+    },
+    {
+      "step": 2,
+      "action": "Construct fs/path/process module records once inside that interpreted invocation; retain in private lexical roots. Their interpreted functions close over ordinary non-async injected primitive callbacks, never expose those callbacks on returned records. Return cached guest record directly from interpreted require, not via host require. Freeze module methods/record structure while explicitly retaining modeled process argv/env mutation locally."
+    },
+    {
+      "step": 3,
+      "action": "No user identifier can name raw transport/root/cache variables; no global object, reflection escape, eval, Function, prototype/constructor access, unlisted syntax or closure introspection. A parser-approved closure is only a candidate: prove raw names cannot be reached through aliases, computed members, return values or error paths. If not proved, refuse provider qualification, not merely trust a naming convention."
+    },
+    {
+      "step": 4,
+      "action": "Primitive facade checks exact arity/type and UTF8 bounds in guest before invoking ordinary callback. The callback independently checks copied primitives and parent validates finite transport. Synchronous callback blocks on parent-owned response/cleanup and returns genuine text/undefined or a reconstructed local error, never Promise. Async callback is not a shortcut."
+    },
+    {
+      "step": 5,
+      "action": "Every require consumes parent OPEN authorization admission. authorizeModule returns void; authorizeJson returns void plus authoritative cacheKey metadata. On miss, readText-json reauthorizes and returns full text plus the key bound to that read. Worker hidden ordinary callback may return a fresh finite {namespace,path,text} record of bounded owned primitives for this JSON-internal route; it is not a cached guest object or a Promise. Interpreted facade rechecks key, parses guest-side and installs only successful values. Public sync textfs still returns string/undefined. A copied transient envelope never establishes cache identity."
+    }
+  ],
+  "signatures": {
+    "immediatelySpecifyablePrimitiveOnly": [
+      "readFileSync(pathStringOrZero,'utf8') -> string",
+      "writeFileSync(pathString,textString) -> undefined",
+      "writeFileSync(pathString,textString,'utf8') -> undefined",
+      "require(specifierString) -> guest-cached module/JSON value"
+    ],
+    "qualificationRequiredNotDeleted": [
+      "readFileSync(pathStringOrZero,{encoding:'utf8'})",
+      "readFileSync(pathString,{encoding:'utf8',flag:'r'})",
+      "writeFileSync(pathString,textString,options), exact subset encoding:'utf8',flag:'w'|'wx', including {}"
+    ],
+    "options": "No null/present undefined/accessors/extras/symbols/coercion or arbitrary proxy assumption. Validate original guest own-data descriptors before copying; ordinary bridge alone cannot do this. Qualify legitimate interpreted descriptor/ownership hooks or exact whole-source/value construction restrictions proving original forms. No invented positional wx overload or CLI flag. Required wx workflow remains blocked without this proof.",
+    "syncWrite": "w actual create/truncate; wx actual exclusive VFS creation or typed ENOTSUP before mutation, never check-then-write. A returned undefined is the specified successful guest value, not a permitted JSON wire value.",
+    "jsonIntrinsic": "JSON.parse/stringify own-data and mutable graph semantics, including inert __proto__/constructor keys and rejection of callable toJSON/getters/cycles per retained NP1 subset, need guest-intrinsic qualification. Passing a graph to a regular host callback cannot silently supply pre-copy validation."
+  },
+  "cache": {
+    "moduleKeys": [
+      "fs",
+      "path",
+      "process"
+    ],
+    "aliases": [
+      [
+        "fs",
+        "node:fs"
+      ],
+      [
+        "path",
+        "node:path"
+      ],
+      [
+        "process",
+        "node:process"
+      ]
+    ],
+    "maxFixedRecords": 4,
+    "selectedRecords": 3,
+    "process": "Synthetic argv/env/cwd/execPath/fd records only, sourced from explicit invocation data, never native process. No process.exit; exitCode is not a selected lifetime/status mechanism. No ambient env/native stdout.",
+    "jsonKey": "Invocation-owned actual VFS namespace binding plus canonical virtual JSON filename rooted at fixed entry directory (inline/stdin cwd). Parent resolution must preserve actual mount/alias precedence and granted namespace authority. Do not manufacture storage identity from a client/session token; lexical normalization alone is not symlink confinement. The private response carries {namespace,path}; namespace handle is an invocation cache-routing label truthfully tied to the actual namespace, NOT identityScope/device/inode or a guarantee of disjoint storage. Alias conflicts must be preserved; reject unknown binding rather than invent it.",
+    "authorizationAtHit": "Reauthorize every require, including builtin aliases and JSON hit, through OPEN parent gate. JSON hit requires jsonModules AND dataRead and original namespace binding still valid; unknown/changed authority refuses. No reread on hit, no new graph, no bypass using cached path.",
+    "identity": "Repeated canonical JSON requires return same guest object/array reference; mutate through any alias and all observe change. Primitive JSON values stay primitives. Failed parse/read/auth does not install; successful file overwrite does not invalidate existing cached object. Unproven symlink/resource equivalence is not declared an alias.",
+    "ledger": "32 JSON roots/input1MiB cumulative,4 fixed module roots; keys, retained source strings and command-owned copies precharged per CAPS. Mutation uses same invocation engine accounting with no budget reset or eviction credit. Input byte cap does not bound mutated guest graph.",
+    "retirement": "No guest value travels over port/SAB/host-return as cache transport. Do not release roots against ACK or a declared return; actual Worker exit retires guest roots, parent records/resources close independently."
+  },
+  "blockers": [
+    {
+      "id": "K1",
+      "required": "Frozen provider-owned interpreted scaffold and legitimate guest value/descriptor validation route for required options-record, JSON and raw-callback hiding; actual source/arity/intrinsic proof and later behavior witnesses.",
+      "current": "NOT established by pinned ordinary bridge. Primitive-only specification does not complete required useful wx/JSON workflow or whole NP1."
+    },
+    {
+      "id": "K2",
+      "required": "Exact bridge result/error handoff evidence before cutoff and guest module/JSON identity/mutation/auth-hit witnesses.",
+      "current": "Host reuse and final ACK are insufficient; no public hook availability or engine modification is claimed."
+    }
+  ],
+  "qualificationNotSandbox": "Own-data checks apply to trusted sender/receiver finite records across realms, not prototype identity. Ordinary guest grammar exclusions need actual enforcement; host proxies/providers remain trusted authority, not a hostile-JavaScript sandbox.",
+  "v3Namespace": "RPC.json namespaceSchema: own-data namespace positive integer1..128 plus canonical path. Fixture handle1 binds sole development Map; no storage-disjointness claim.",
+  "v3Source": "preparation-v1/scaffold.guest.js.data has sibling guest lexical scope with raw global explicitly shadowed; provider IIFE roots cannot be named there. Exact source only, no arbitrary guest concatenation. Public descriptor APIs missing, so universal options data validation remains K1-blocked."
+}

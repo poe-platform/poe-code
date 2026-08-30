@@ -1,0 +1,179 @@
+{
+  "producerCommit": "ab46a006a0f324a42c563542e4545ce80de49731",
+  "producerReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/PRODUCER-RECEIPT.json",
+    "bytes": 146948,
+    "sha256": "c5e2b614f775688d72e793fd88fad3044e8217c32a4aac8495d13d00d02f22ce"
+  },
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz",
+    "bytes": 974493,
+    "sha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a"
+  },
+  "childrenInProducer": 11,
+  "samples": [
+    {
+      "label": "input-blobs admission",
+      "at": "2026-08-29T17:31:34.094Z",
+      "logicalBytes": 155073336,
+      "captureBytes": 656835,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "input-blobs retired",
+      "at": "2026-08-29T17:31:34.148Z",
+      "logicalBytes": 158031712,
+      "captureBytes": 3615211,
+      "startupReserve": 0
+    },
+    {
+      "label": "Freeze coherent source and ROOT author-build contract-index-before admission",
+      "at": "2026-08-29T17:31:34.218Z",
+      "logicalBytes": 161782723,
+      "captureBytes": 3615211,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "Freeze coherent source and ROOT author-build contract-index-before retired",
+      "at": "2026-08-29T17:31:34.281Z",
+      "logicalBytes": 161782723,
+      "captureBytes": 3615211,
+      "startupReserve": 0
+    },
+    {
+      "label": "Freeze coherent source and ROOT author-build contract-add admission",
+      "at": "2026-08-29T17:31:34.286Z",
+      "logicalBytes": 161782723,
+      "captureBytes": 3615211,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "Freeze coherent source and ROOT author-build contract-add retired",
+      "at": "2026-08-29T17:31:34.374Z",
+      "logicalBytes": 161782723,
+      "captureBytes": 3615211,
+      "startupReserve": 0
+    },
+    {
+      "label": "Freeze coherent source and ROOT author-build contract-commit admission",
+      "at": "2026-08-29T17:31:34.379Z",
+      "logicalBytes": 161782723,
+      "captureBytes": 3615211,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "Freeze coherent source and ROOT author-build contract-commit retired",
+      "at": "2026-08-29T17:31:34.778Z",
+      "logicalBytes": 161783659,
+      "captureBytes": 3616147,
+      "startupReserve": 0
+    },
+    {
+      "label": "Freeze coherent source and ROOT author-build contract-index-after admission",
+      "at": "2026-08-29T17:31:34.784Z",
+      "logicalBytes": 161783659,
+      "captureBytes": 3616147,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "Freeze coherent source and ROOT author-build contract-index-after retired",
+      "at": "2026-08-29T17:31:34.829Z",
+      "logicalBytes": 161783659,
+      "captureBytes": 3616147,
+      "startupReserve": 0
+    },
+    {
+      "label": "before compiler",
+      "at": "2026-08-29T17:31:34.836Z",
+      "logicalBytes": 161783773,
+      "captureBytes": 3616261,
+      "startupReserve": 268435456
+    },
+    {
+      "label": "strict-build admission",
+      "at": "2026-08-29T17:31:34.843Z",
+      "logicalBytes": 161783773,
+      "captureBytes": 3616261,
+      "startupReserve": 268435456
+    },
+    {
+      "label": "strict-build retired",
+      "at": "2026-08-29T17:31:38.908Z",
+      "logicalBytes": 168426132,
+      "captureBytes": 3616261,
+      "startupReserve": 0
+    },
+    {
+      "label": "offline-pack admission",
+      "at": "2026-08-29T17:31:39.026Z",
+      "logicalBytes": 168620542,
+      "captureBytes": 3616261,
+      "startupReserve": 268435456
+    },
+    {
+      "label": "offline-pack retired",
+      "at": "2026-08-29T17:31:40.339Z",
+      "logicalBytes": 172019111,
+      "captureBytes": 3737629,
+      "startupReserve": 0
+    },
+    {
+      "label": "Freeze final coherent producer archive before decode-index-before admission",
+      "at": "2026-08-29T17:31:40.402Z",
+      "logicalBytes": 173140552,
+      "captureBytes": 3737629,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "Freeze final coherent producer archive before decode-index-before retired",
+      "at": "2026-08-29T17:31:40.451Z",
+      "logicalBytes": 173140552,
+      "captureBytes": 3737629,
+      "startupReserve": 0
+    },
+    {
+      "label": "Freeze final coherent producer archive before decode-add admission",
+      "at": "2026-08-29T17:31:40.468Z",
+      "logicalBytes": 173140552,
+      "captureBytes": 3737629,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "Freeze final coherent producer archive before decode-add retired",
+      "at": "2026-08-29T17:31:40.621Z",
+      "logicalBytes": 173140552,
+      "captureBytes": 3737629,
+      "startupReserve": 0
+    },
+    {
+      "label": "Freeze final coherent producer archive before decode-commit admission",
+      "at": "2026-08-29T17:31:40.637Z",
+      "logicalBytes": 173140552,
+      "captureBytes": 3737629,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "Freeze final coherent producer archive before decode-commit retired",
+      "at": "2026-08-29T17:31:40.890Z",
+      "logicalBytes": 173141971,
+      "captureBytes": 3739048,
+      "startupReserve": 0
+    },
+    {
+      "label": "Freeze final coherent producer archive before decode-index-after admission",
+      "at": "2026-08-29T17:31:40.910Z",
+      "logicalBytes": 173141971,
+      "captureBytes": 3739048,
+      "startupReserve": 16777216
+    },
+    {
+      "label": "Freeze final coherent producer archive before decode-index-after retired",
+      "at": "2026-08-29T17:31:40.966Z",
+      "logicalBytes": 173141971,
+      "captureBytes": 3739048,
+      "startupReserve": 0
+    }
+  ],
+  "foreignStagingUnchanged": true,
+  "noDecodeYet": true
+}

@@ -1,0 +1,77 @@
+{
+  "observedAt": "2026-08-27T10:43:43.385Z",
+  "captures": 63,
+  "everyChildCloseObserved": true,
+  "everyChildPidAbsent": true,
+  "everyChildGroupAbsent": true,
+  "deadlineKills": 0,
+  "outputKills": 0,
+  "signals": [],
+  "ownNetworkCases": [
+    {
+      "id": "D01",
+      "observations": [
+        {
+          "event": "network.before-teardown",
+          "requests": [],
+          "sockets": 0,
+          "borrowed": {
+            "next": 7,
+            "returns": 0,
+            "cancel": 0,
+            "close": 0,
+            "active": 0,
+            "maxActive": 1,
+            "delivered": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        {
+          "event": "server.cleanup",
+          "sockets": 0
+        }
+      ]
+    },
+    {
+      "id": "D06",
+      "observations": [
+        {
+          "event": "network.before-teardown",
+          "requests": [
+            {
+              "url": "/mixed",
+              "body": "mixed-prefix\nmixed-late\n"
+            }
+          ],
+          "sockets": 0,
+          "borrowed": {
+            "next": 3,
+            "returns": 0,
+            "cancel": 0,
+            "close": 0,
+            "active": 0,
+            "maxActive": 1,
+            "delivered": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "event": "server.cleanup",
+          "sockets": 0
+        }
+      ]
+    }
+  ],
+  "opaqueGates": "resolved/rejected under harness control; not universal opaque host drain",
+  "instrumentationRounds": 2,
+  "prototypeFixRounds": 0,
+  "expectationChanges": 0,
+  "opaqueNonhangClaim": false,
+  "rootMustObserveExecutorClosed": true
+}

@@ -1,0 +1,20 @@
+{
+  "scope": "this independent DATA audit, not the author's runtime",
+  "start": "2026-08-29T15:11:13Z",
+  "publicationDeadline": "2026-08-29T15:26:13Z",
+  "knownRoleCeiling": 36,
+  "publicationInclusiveKnownRoleAccounting": 29,
+  "roles": {"shell": 9, "git": 11, "date": 2, "patch": 4, "nodeHelper": 2, "receiptHash": 1},
+  "approvedPeak": 3,
+  "conservativeOverlapBound": 4,
+  "peakQualification": "HOLD: live interactive-helper shell plus Node overlapped a metadata/patch shell plus its child. No process sample establishes peak <=3; do not claim budget-compliant peak. Four is conservative known-role overlap, not an observed OS census.",
+  "captureLimitBytes": 67108864,
+  "logicalWorkLimitBytes": 268435456,
+  "ownedLogicalBytesBeforeReceiptAndPublication": 496116,
+  "publicationReserveBytes": 1048576,
+  "helpers": 2,
+  "framingTamperGroups": 6,
+  "actualProduct": false,
+  "archiveInflatedOrRepacked": false,
+  "qualificationDoesNotChangeAuthenticatedFiniteObservations": true
+}

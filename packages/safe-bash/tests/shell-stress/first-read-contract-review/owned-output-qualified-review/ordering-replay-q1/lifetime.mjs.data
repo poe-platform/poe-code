@@ -1,0 +1,132 @@
+import assert from 'node:assert/strict';
+import { assertRejectedIdentity, assertReasonPriority, assertNativeDefaultUndefined, Unbound } from './qualified-criteria.mjs';
+import { correctedLifetime } from './ordering-lifetime.mjs';
+export async function lifetime(api, config, entry, scope, result, harness) {
+  const { gate, tracked, observe, immediate, makeShell, sourceWithOwner, destination, createOperation, bytes, text } = harness;
+  const parameter=entry.parameter;
+  if(['error-first-caller-error-cleanup-error','error-first-caller-zero-cleanup-error','normal-close-synthetic-caller-undefined'].includes(parameter)) return correctedLifetime(api,config,entry,scope,result,harness);
+  const started=gate(), delivered=gate(), cleanupEntered=gate(), releaseCleanup=gate(), releaseIo=gate(), normalClosed=gate(), selected=gate();
+  scope.releases.push(()=>releaseCleanup.resolve(),()=>releaseIo.reject(new Error('fixture teardown late error')));
+  const {shell,fs,stages}=makeShell(api,scope);
+  const owner=sourceWithOwner(scope,'once');
+  const executionReason=parameter.includes('execution-zero')?0:parameter.includes('execution-undefined')?undefined:new Error('independent exact execution');
+  const cleanupReason=parameter.includes('cleanup-zero')?0:parameter.includes('cleanup-undefined')?undefined:new Error('independent exact cleanup');
+  const hasExecution=parameter.startsWith('error-first')||parameter.startsWith('execution-')||parameter.startsWith('caller-first')||entry.id==='S10';
+  const hasCleanup=parameter!=='normal-close-then-caller-zero'&&entry.id!=='S09';
+  const callerPresent=parameter.includes('caller')||entry.id==='S09';
+  const callerReason=parameter.includes('caller-zero')?0:new Error('independent exact caller');
+  let operation, holder, child, sibling, cleanupCalls=0, local, closeOutcome, lateStarts=0, registered;
+  let handlerOutcome, selectedSeen=false, closedChildCount=0;
+  const heldCleanup=async()=>{cleanupCalls++;scope.event('cleanup.enter');cleanupEntered.resolve();await releaseCleanup.promise;scope.event('cleanup.release');if(hasCleanup)throw cleanupReason;};
+  shell.register({name:'qualified-lifetime',async execute(context){
+    let failed=false, failure;
+    try {
+      if(entry.id==='S09'||entry.id==='S10') {
+        operation=createOperation(api,scope,context,destination(scope).sink);
+        child=operation.child(destination(scope).sink);
+        sibling=entry.id==='S10'?operation.child(destination(scope).sink):child;
+        sibling.registerCleanup(heldCleanup);
+        await sibling.acquire(()=>{scope.event('child.admitted');return {};},()=>scope.event('child.resource.release'));
+        if(entry.id==='S10') {
+          child.registerCleanup(()=>{closedChildCount++;});await child.close();normalClosed.resolve();
+          await context.stdin[Symbol.asyncIterator]().next();
+          await sibling.output.write(bytes('sibling-useful\n'));
+          await context.fs.writeFile('/sibling',bytes('sibling-file\n'),{signal:context.signal});
+          await context.stderr.write(bytes('sibling-stderr\n'));
+          assert.equal(owner.returns,0);assert.equal(owner.alive,true);assert.equal(sibling.signal.aborted,false);
+          result.ownerAliveAtObservation=true;result.siblingEffects={file:text(await fs.readFile('/sibling')),stderr:'sibling-stderr\n',borrowedReturns:owner.returns};
+        }
+      } else {
+        holder=createOperation(api,scope,context,destination(scope).sink);
+        holder.registerCleanup(heldCleanup);
+        operation=createOperation(api,scope,context,{async write(){throw executionReason;}});
+      }
+      registered=true;started.resolve();
+      if(parameter.startsWith('caller-first')) await releaseIo.promise;
+      if(entry.id==='S09') {await releaseIo.promise;return {exitCode:0};}
+      if(hasExecution) {
+        if(entry.id==='S10')throw executionReason;
+        await operation.output.write(bytes('x'));
+      }
+    } catch(error){failed=true;failure=error;local={kind:'error',error};scope.event('local.failure',{identity:Object.is(error,executionReason)});delivered.resolve();}
+    let closeFailed=false, closeFailure;
+    closeOutcome=await observe(operation.close());
+    if(closeOutcome.kind==='error'){closeFailed=true;closeFailure=closeOutcome.error;}
+    scope.event('local.close');normalClosed.resolve();
+    handlerOutcome=failed?{kind:'error',error:failure}:closeFailed?{kind:'error',error:closeFailure}:{kind:'value',value:{exitCode:0}};
+    if(failed)throw failure;
+    if(closeFailed)throw closeFailure;
+    return {exitCode:0};
+  }});
+  const syntax=hasExecution?'qualified-lifetime\n)':'qualified-lifetime';
+  const pending=tracked(shell.exec(syntax,{signal:scope.controller.signal,stdin:owner.source,stderr:{async write(chunk){
+    const diagnostic=text(chunk);scope.event('host.diagnostic',diagnostic);
+    if(diagnostic.startsWith('shell: Expected command at offset ')){selectedSeen=true;selected.resolve();throw executionReason;}
+  }}}));
+  await scope.bound(started.promise,'lifetime command started');
+  if(entry.id==='S09') {
+    scope.controller.abort(callerReason);
+    await scope.bound(cleanupEntered.promise,'admitted child cleanup entered');
+    const admission=await observe(sibling.acquire(()=>{lateStarts++;return {};},()=>{}));
+    assert.equal(admission.kind,'error');assert.equal(lateStarts,0);
+    registered=operation.close();assert.strictEqual(operation.close(),registered);
+    await immediate();assert.equal(pending.state,'pending');
+    result.borrowedReturnsBeforePublic=owner.returns;
+    releaseCleanup.resolve();
+    result.publicResult=await scope.bound(pending.promise,'caller waits for child drain');
+    assertRejectedIdentity(result.publicResult,scope.controller.signal.reason,'child-drain caller');
+    assert.equal(cleanupCalls,1);
+    releaseIo.reject(executionReason);await immediate();
+    await scope.bound(registered,'shared child close');
+    result.cooperativeCleanup={cleanupCalls,lateStarts,pendingBeforeRelease:true,sharedCompletion:true,opaqueHandlerWaited:false};
+  } else {
+    if(parameter.startsWith('caller-first')) {
+      scope.controller.abort(callerReason);
+      await scope.bound(cleanupEntered.promise,'caller starts cooperative cleanup');
+      releaseIo.reject(executionReason);await scope.bound(delivered.promise,'late literal zero delivery');
+    } else if(entry.id==='S10') {
+      await scope.bound(delivered.promise,'parent local execution rejection');
+      await scope.bound(cleanupEntered.promise,'sibling cleanup entered');
+    } else {
+      if(hasExecution)await scope.bound(delivered.promise,'local execution rejection before cleanup');
+      else await scope.bound(normalClosed.promise,'completed local normal close');
+      await scope.bound(cleanupEntered.promise,'separate invocation cleanup holds public settlement');
+      if(callerPresent) {
+        if(parameter.includes('default-undefined'))scope.controller.abort(undefined);
+        else scope.controller.abort(callerReason);
+      }
+    }
+    await immediate();assert.equal(pending.state,'pending','registered cooperative cleanup holds public result');
+    const shared=(holder??operation).close();assert.strictEqual((holder??operation).close(),shared);
+    const sharedObserved=observe(shared);
+    releaseCleanup.resolve();
+    result.publicResult=await scope.bound(pending.promise,'qualified public precedence');
+    const cleanupObserved=await scope.bound(sharedObserved,'registered secondary close');
+    if(hasCleanup)assertRejectedIdentity(cleanupObserved,cleanupReason,'secondary cleanup retained');
+    assertReasonPriority(result.publicResult,{caller:{present:callerPresent,reason:scope.controller.signal.reason},execution:{present:hasExecution,reason:executionReason},cleanup:{present:hasCleanup,reason:cleanupReason}});
+    if(hasExecution)assertRejectedIdentity(local,executionReason,'local exact IO');
+    if(parameter.includes('default-undefined'))assertNativeDefaultUndefined(scope.controller.signal,result.publicResult);
+    if(!parameter.startsWith('caller-first'))assert.equal(operation.signal.aborted,false,'already closed local operation stays normal');
+    if(hasExecution&&!callerPresent)assert.equal(selectedSeen,true,'execution rejection actually reaches public selector');
+    assert.equal(cleanupCalls,1);
+    if(entry.id==='S10'){assert.equal(closedChildCount,1);assert.equal(child.signal.aborted,false);}
+    result.cooperativeCleanup={cleanupCalls,registeredBeforeAcquisition:registered===true,sharedCompletion:true,pendingBeforeRelease:true,secondary:cleanupObserved};
+    result.localThrown=local;result.localClose=closeOutcome;result.handlerOutcome=handlerOutcome;
+    result.selectedExecution={reached:selectedSeen,boundary:'outer Shell syntax-diagnostic host ByteSink rejection; ordinary registry command throws normalize first'};
+  }
+  result.operationClosed=true;result.stageAborted=stages.map(stage=>({command:stage.command,aborted:stage.signal.aborted}));
+  result.callerAborted={aborted:scope.controller.signal.aborted,reason:scope.controller.signal.reason,reasonPresent:true};
+  if(hasExecution&&(parameter.startsWith('execution-')||parameter.startsWith('caller-first'))) {
+    const control=new api.Shell({fs:new api.MemoryFileSystem()});
+    scope.cleanups.push(()=>control.dispose());
+    control.register({name:'ordinary-throw',async execute(){throw executionReason;}});
+    const converted=await scope.bound(observe(control.exec('ordinary-throw')),'ordinary command conversion control');
+    assert.equal(converted.kind,'value');assert.equal(converted.value.exitCode,1);
+    let actualSelector=false;
+    const selectedControl=await scope.bound(observe(control.exec('ordinary-throw\n)',{stderr:{async write(chunk){if(text(chunk).startsWith('shell: Expected command at offset ')){actualSelector=true;throw executionReason;}}}})),'explicit selected value control');
+    assert.equal(actualSelector,true);assertRejectedIdentity(selectedControl,executionReason,'actual selected 0/undefined/Error control');
+    result.commandConversionControl={ordinaryExitCode:1,selectedBoundaryReached:actualSelector,selected:selectedControl};
+  }
+  result.ownerReturnsAfterPublic=owner.returns;
+  owner.finalize();await immediate();assert.deepEqual(scope.unhandled,[]);
+}

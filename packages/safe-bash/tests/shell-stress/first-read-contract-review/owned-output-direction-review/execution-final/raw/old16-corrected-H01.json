@@ -1,0 +1,17 @@
+{
+  "label": "old16-corrected-H01",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"H01\",\"verdict\":\"PASS\",\"records\":[{\"kind\":\"separation\",\"firstWrites\":0,\"started\":1,\"returned\":1,\"active\":0,\"events\":[{\"sequence\":0,\"name\":\"operation.enrolled\",\"monotonicMs\":60.022834},{\"sequence\":1,\"name\":\"source.started\",\"monotonicMs\":60.212667},{\"sequence\":2,\"name\":\"downstream.completed\",\"monotonicMs\":60.41},{\"sequence\":3,\"name\":\"operation.aborted\",\"monotonicMs\":60.590667},{\"sequence\":4,\"name\":\"source.returned\",\"monotonicMs\":60.960667},{\"sequence\":5,\"name\":\"independent.effect\",\"monotonicMs\":61.771667},{\"sequence\":6,\"name\":\"cleanup.completed\",\"monotonicMs\":61.775167},{\"sequence\":7,\"name\":\"exec.settled\",\"monotonicMs\":62.244125}],\"operationAborted\":true,\"stageAbortedAtClose\":false,\"callerAbortedAtClose\":false}]}\n",
+    "bytes": 727,
+    "base64": "eyJpZCI6IkgwMSIsInZlcmRpY3QiOiJQQVNTIiwicmVjb3JkcyI6W3sia2luZCI6InNlcGFyYXRpb24iLCJmaXJzdFdyaXRlcyI6MCwic3RhcnRlZCI6MSwicmV0dXJuZWQiOjEsImFjdGl2ZSI6MCwiZXZlbnRzIjpbeyJzZXF1ZW5jZSI6MCwibmFtZSI6Im9wZXJhdGlvbi5lbnJvbGxlZCIsIm1vbm90b25pY01zIjo2MC4wMjI4MzR9LHsic2VxdWVuY2UiOjEsIm5hbWUiOiJzb3VyY2Uuc3RhcnRlZCIsIm1vbm90b25pY01zIjo2MC4yMTI2Njd9LHsic2VxdWVuY2UiOjIsIm5hbWUiOiJkb3duc3RyZWFtLmNvbXBsZXRlZCIsIm1vbm90b25pY01zIjo2MC40MX0seyJzZXF1ZW5jZSI6MywibmFtZSI6Im9wZXJhdGlvbi5hYm9ydGVkIiwibW9ub3RvbmljTXMiOjYwLjU5MDY2N30seyJzZXF1ZW5jZSI6NCwibmFtZSI6InNvdXJjZS5yZXR1cm5lZCIsIm1vbm90b25pY01zIjo2MC45NjA2Njd9LHsic2VxdWVuY2UiOjUsIm5hbWUiOiJpbmRlcGVuZGVudC5lZmZlY3QiLCJtb25vdG9uaWNNcyI6NjEuNzcxNjY3fSx7InNlcXVlbmNlIjo2LCJuYW1lIjoiY2xlYW51cC5jb21wbGV0ZWQiLCJtb25vdG9uaWNNcyI6NjEuNzc1MTY3fSx7InNlcXVlbmNlIjo3LCJuYW1lIjoiZXhlYy5zZXR0bGVkIiwibW9ub3RvbmljTXMiOjYyLjI0NDEyNX1dLCJvcGVyYXRpb25BYm9ydGVkIjp0cnVlLCJzdGFnZUFib3J0ZWRBdENsb3NlIjpmYWxzZSwiY2FsbGVyQWJvcnRlZEF0Q2xvc2UiOmZhbHNlfV19Cg==",
+    "sha256": "d22e8a3e41bb554488abfbd066fcb30c07d7cfebc48fe94569fe189c67dc3184"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

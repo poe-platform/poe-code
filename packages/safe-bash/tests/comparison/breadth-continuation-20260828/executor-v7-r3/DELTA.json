@@ -1,0 +1,17 @@
+{
+  "parentCandidate": "5110550da057398fffd1fb77bf538121c67c731f",
+  "consumedAttempt": "25cbb03f1fa1ced0238749235d37eafb001e009e",
+  "exactCopies": [
+    "authorization.mjs",
+    "body.mjs",
+    "coordinator.mjs",
+    "production.mjs",
+    "synthetic-worker.mjs",
+    "launch.mjs"
+  ],
+  "productionChange": "worker bootstrap binding authentication before loader/offline installation plus ordered observation events; all consumer evaluation still after both guards",
+  "rootIndependentHelpers": "explicit immutable r2 forwards",
+  "noPolicyRelaxation": true,
+  "controls": "8 whole-worker stubs; exact function bodies except old-worker reversion and bootstrap profile DATA substitution",
+  "permission": "DATA_STUB_ONLY_NO_REAL_ADMISSION"
+}

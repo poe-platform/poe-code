@@ -1,0 +1,202 @@
+TAP version 13
+# (node:5063) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("file%3A///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/load-audit.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: hidden descendant .hidden: paginate and preserve every byte
+ok 1 - hidden descendant .hidden: paginate and preserve every byte
+  ---
+  duration_ms: 1.937292
+  type: 'test'
+  ...
+# Subtest: hidden descendant nested/: paginate and preserve every byte
+ok 2 - hidden descendant nested/: paginate and preserve every byte
+  ---
+  duration_ms: 0.436209
+  type: 'test'
+  ...
+# Subtest: hidden descendant nested/.hidden: paginate and preserve every byte
+ok 3 - hidden descendant nested/.hidden: paginate and preserve every byte
+  ---
+  duration_ms: 0.319042
+  type: 'test'
+  ...
+# Subtest: fail closed: missing completeness
+ok 4 - fail closed: missing completeness
+  ---
+  duration_ms: 0.240667
+  type: 'test'
+  ...
+# Subtest: fail closed: string completeness
+ok 5 - fail closed: string completeness
+  ---
+  duration_ms: 0.284
+  type: 'test'
+  ...
+# Subtest: fail closed: missing token
+ok 6 - fail closed: missing token
+  ---
+  duration_ms: 0.725167
+  type: 'test'
+  ...
+# Subtest: fail closed: empty token
+ok 7 - fail closed: empty token
+  ---
+  duration_ms: 0.298959
+  type: 'test'
+  ...
+# Subtest: fail closed: cyclic token
+ok 8 - fail closed: cyclic token
+  ---
+  duration_ms: 0.171542
+  type: 'test'
+  ...
+# Subtest: fail closed: second page lacks completeness
+ok 9 - fail closed: second page lacks completeness
+  ---
+  duration_ms: 0.402709
+  type: 'test'
+  ...
+# Subtest: fail closed: foreign key
+ok 10 - fail closed: foreign key
+  ---
+  duration_ms: 0.355792
+  type: 'test'
+  ...
+# Subtest: fail closed: missing size
+ok 11 - fail closed: missing size
+  ---
+  duration_ms: 0.159167
+  type: 'test'
+  ...
+# Subtest: fail closed: noncanonical hidden key
+ok 12 - fail closed: noncanonical hidden key
+  ---
+  duration_ms: 0.150583
+  type: 'test'
+  ...
+# Subtest: fail closed: nonempty slash object
+ok 13 - fail closed: nonempty slash object
+  ---
+  duration_ms: 0.120583
+  type: 'test'
+  ...
+# Subtest: fail closed: self common prefix
+ok 14 - fail closed: self common prefix
+  ---
+  duration_ms: 0.126417
+  type: 'test'
+  ...
+# Subtest: fail closed: marker absent from completed list
+ok 15 - fail closed: marker absent from completed list
+  ---
+  duration_ms: 0.121125
+  type: 'test'
+  ...
+# Subtest: incomplete valid pages exhaust budget without mutation
+ok 16 - incomplete valid pages exhaust budget without mutation
+  ---
+  duration_ms: 0.183167
+  type: 'test'
+  ...
+# Subtest: cancel after complete LIST, errno-shaped reason: no DELETE
+not ok 17 - cancel after complete LIST, errno-shaped reason: no DELETE
+  ---
+  duration_ms: 0.901125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/independent.test.mjs:90:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'EIO'
+    -   code: 'ECANCELED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ECANCELED'
+  actual:
+  error: "EIO: input/output error, rmdir '/target'"
+  stack: |-
+    S3FileSystem.rmdir (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/node_modules/virtual-bash/dist/fs/s3/filesystem.js:562:23)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/independent.test.mjs:97:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/independent.test.mjs:97:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late child survives successful marker-only DELETE and directory remains
+ok 18 - late child survives successful marker-only DELETE and directory remains
+  ---
+  duration_ms: 0.609667
+  type: 'test'
+  ...
+# Subtest: same-content marker replacement is deleted: explicit ABA non-guarantee
+ok 19 - same-content marker replacement is deleted: explicit ABA non-guarantee
+  ---
+  duration_ms: 0.204917
+  type: 'test'
+  ...
+# Subtest: dynamic routed capability becomes snapshot; overlay refuses without whiteout
+ok 20 - dynamic routed capability becomes snapshot; overlay refuses without whiteout
+  ---
+  duration_ms: 2.337292
+  type: 'test'
+  ...
+# Subtest: capability changes during final readdir: overlay must recheck before DELETE
+not ok 21 - capability changes during final readdir: overlay must recheck before DELETE
+  ---
+  duration_ms: 0.290875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/independent.test.mjs:160:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/.isolated-xEnZGF/consumer/independent.test.mjs:175:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay lower-only refusal does not copy up or hide lower directory
+ok 22 - overlay lower-only refusal does not copy up or hide lower directory
+  ---
+  duration_ms: 0.4465
+  type: 'test'
+  ...
+# Subtest: readonly adapter refuses before transport mutation
+ok 23 - readonly adapter refuses before transport mutation
+  ---
+  duration_ms: 0.078417
+  type: 'test'
+  ...
+# Subtest: readonly wrapper refuses before transport mutation
+ok 24 - readonly wrapper refuses before transport mutation
+  ---
+  duration_ms: 0.081792
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 22
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 120.245042

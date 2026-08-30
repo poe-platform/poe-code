@@ -1,0 +1,189 @@
+{
+  "schema": 2,
+  "date": "2026-08-28",
+  "role": "SOURCE_COMPOSITION_CORRECTION_AUTHOR_DATA_EVIDENCE_REVIEW_PENDING",
+  "observations": [
+    {
+      "id": "selected-composition",
+      "expected": "ADMISSION",
+      "actual": "ADMISSION",
+      "matched": true,
+      "message": null,
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-baseline",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-length",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-new-source-bytes",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-new-source-mode",
+      "expected": "DESCRIPTOR",
+      "actual": "DESCRIPTOR",
+      "matched": true,
+      "message": "DESCRIPTOR: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "unapproved-yq-addition",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "unapproved-root-edit",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: src/index.ts",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "missing-authorized-new-path",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "mutable-head-origin",
+      "expected": "RECEIPT_SCHEMA",
+      "actual": "RECEIPT_SCHEMA",
+      "matched": true,
+      "message": "RECEIPT_SCHEMA: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-fixed-origin",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: selected origin",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "invented-source-overrides",
+      "expected": "RECEIPT_SCHEMA",
+      "actual": "RECEIPT_SCHEMA",
+      "matched": true,
+      "message": "RECEIPT_SCHEMA: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "receipt-hash-mismatch",
+      "expected": "RECEIPT_HASH",
+      "actual": "RECEIPT_HASH",
+      "matched": true,
+      "message": "RECEIPT_HASH: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "composed-baseline-edit",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "composed-source-extra",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "composed-readme-missing",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "full870-baseline-readme",
+      "expected": "PACKAGE_DATA_ADMISSION",
+      "actual": "PACKAGE_DATA_ADMISSION",
+      "matched": true,
+      "message": null,
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "public-export-gap",
+      "expected": "PUBLIC_EXPORT_GAP",
+      "actual": "PUBLIC_EXPORT_GAP",
+      "matched": true,
+      "message": "PUBLIC_EXPORT_GAP: v1 authorizes no root/package export changes; direct module proof cannot admit MOV-02 or public TYPE jobs",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    }
+  ],
+  "declared": 17,
+  "matched": 17,
+  "diff": {
+    "scope": "Only authorizeSources behavior plus explicit frozen-input/root/provenance plumbing",
+    "allOtherGuardCodeIdentical": true,
+    "typeWorkerBehaviorIdentical": true,
+    "all36SyntheticControlsIdentical": true,
+    "verifierBytesIdentical": true,
+    "v1GuardSha256": "47715566b179d65b5bd9501d667634c8957ba7a5e29b43246fa77824f5d4cd91",
+    "v2GuardSha256": "7185edea6beeb17282feb773a49476b76da216b228cc8b2f0f710346e18bda4a"
+  },
+  "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+  "artifacts": {
+    "role": "IMMUTABLE_ARTIFACT_DATA_AUTHENTICATION_NOT_PRODUCT_OR_MATERIALIZATION_EXECUTION",
+    "sourceArchiveSha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc",
+    "sourceArchiveMembers": 273,
+    "sourceGuardMembers": 271,
+    "separateSourceMaterializationGap": [
+      "package-lock.json",
+      "scripts/typecheck.mjs"
+    ],
+    "packageSha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+    "packageMembers": 870,
+    "baselineMembers": 846,
+    "authorizedPackageAdditions": 24,
+    "readme": {
+      "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+      "bytes": 36273,
+      "mode": 420
+    },
+    "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088"
+  },
+  "helperHashes": {
+    "guards.mjs": "7185edea6beeb17282feb773a49476b76da216b228cc8b2f0f710346e18bda4a",
+    "frozen-v1.mjs": "b62e446129ed8936edf381548465bc8cd89660658e5a720cd52a5bd7cc7d2576",
+    "type-worker.mjs": "5570bd8a754880a7aef0da8f2c48b6524869b46d08f28478f89be296aa53152f",
+    "validate.mjs": "058622619690642f842281b04eeafa64d305ab659fc4ce653923ea27b5c09096"
+  },
+  "failure": null,
+  "productExecutions": 0,
+  "productImports": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "packageReplays": 0,
+  "semanticResults": [],
+  "independentReview": "PENDING_ROOT_ROUTING"
+}

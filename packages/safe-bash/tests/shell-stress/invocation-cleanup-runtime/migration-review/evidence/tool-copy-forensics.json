@@ -1,0 +1,21 @@
+{
+  "allowed": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.tool-forensic-copy",
+  "findings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.tool-forensic-copy/.bin/esbuild",
+      "actual": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.tool-forensic-copy/.bin/tsc",
+      "actual": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.tool-forensic-copy/.bin/tsserver",
+      "actual": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsserver"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.tool-forensic-copy/.bin/tsx",
+      "actual": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs"
+    }
+  ]
+}

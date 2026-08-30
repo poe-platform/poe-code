@@ -1,0 +1,1560 @@
+{
+  "at": "2026-08-29T11:55:38.068Z",
+  "schema": "virtual37-independent-data-readjudication-v2",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "packageSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "rawFrames": 678,
+  "rawBytes": 35655081,
+  "observations": 111,
+  "equal": 57,
+  "different": 54,
+  "checks": 2348,
+  "passed": 2348,
+  "failed": [],
+  "controls": [
+    {
+      "name": "wrong bytes",
+      "pass": true
+    },
+    {
+      "name": "wrong hash",
+      "pass": true
+    },
+    {
+      "name": "noncanonical framing",
+      "pass": true
+    },
+    {
+      "name": "missing presence",
+      "pass": true
+    },
+    {
+      "name": "valid NUL byte",
+      "pass": true
+    },
+    {
+      "name": "false status is not zero",
+      "pass": true
+    },
+    {
+      "name": "file mode difference retained",
+      "pass": true
+    },
+    {
+      "name": "stderr difference retained",
+      "pass": true
+    }
+  ],
+  "rows": [
+    {
+      "id": "source-built-B01",
+      "caseId": "B01",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B02",
+      "caseId": "B02",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B03",
+      "caseId": "B03",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B04",
+      "caseId": "B04",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B05",
+      "caseId": "B05",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B06",
+      "caseId": "B06",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B07",
+      "caseId": "B07",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B08",
+      "caseId": "B08",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B09",
+      "caseId": "B09",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B10",
+      "caseId": "B10",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B11",
+      "caseId": "B11",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B12",
+      "caseId": "B12",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B13",
+      "caseId": "B13",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B14",
+      "caseId": "B14",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B15",
+      "caseId": "B15",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B16",
+      "caseId": "B16",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B17",
+      "caseId": "B17",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B18",
+      "caseId": "B18",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B19",
+      "caseId": "B19",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B20",
+      "caseId": "B20",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B21",
+      "caseId": "B21",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B22",
+      "caseId": "B22",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B23",
+      "caseId": "B23",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": false
+      }
+    },
+    {
+      "id": "source-built-B24",
+      "caseId": "B24",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B25",
+      "caseId": "B25",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": false
+      }
+    },
+    {
+      "id": "source-built-B29",
+      "caseId": "B29",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B30",
+      "caseId": "B30",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B31",
+      "caseId": "B31",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B32",
+      "caseId": "B32",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B33",
+      "caseId": "B33",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B34",
+      "caseId": "B34",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B35",
+      "caseId": "B35",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B36",
+      "caseId": "B36",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B37",
+      "caseId": "B37",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B38",
+      "caseId": "B38",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B39",
+      "caseId": "B39",
+      "layout": "source-built",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "source-built-B40",
+      "caseId": "B40",
+      "layout": "source-built",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B01",
+      "caseId": "B01",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B02",
+      "caseId": "B02",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B03",
+      "caseId": "B03",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B04",
+      "caseId": "B04",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B05",
+      "caseId": "B05",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B06",
+      "caseId": "B06",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B07",
+      "caseId": "B07",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B08",
+      "caseId": "B08",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B09",
+      "caseId": "B09",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B10",
+      "caseId": "B10",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B11",
+      "caseId": "B11",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B12",
+      "caseId": "B12",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B13",
+      "caseId": "B13",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B14",
+      "caseId": "B14",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B15",
+      "caseId": "B15",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B16",
+      "caseId": "B16",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B17",
+      "caseId": "B17",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B18",
+      "caseId": "B18",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B19",
+      "caseId": "B19",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B20",
+      "caseId": "B20",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B21",
+      "caseId": "B21",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B22",
+      "caseId": "B22",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B23",
+      "caseId": "B23",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": false
+      }
+    },
+    {
+      "id": "installed-B24",
+      "caseId": "B24",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B25",
+      "caseId": "B25",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": false
+      }
+    },
+    {
+      "id": "installed-B29",
+      "caseId": "B29",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B30",
+      "caseId": "B30",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B31",
+      "caseId": "B31",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B32",
+      "caseId": "B32",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B33",
+      "caseId": "B33",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B34",
+      "caseId": "B34",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B35",
+      "caseId": "B35",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B36",
+      "caseId": "B36",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B37",
+      "caseId": "B37",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B38",
+      "caseId": "B38",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B39",
+      "caseId": "B39",
+      "layout": "installed",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "installed-B40",
+      "caseId": "B40",
+      "layout": "installed",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B01",
+      "caseId": "B01",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B02",
+      "caseId": "B02",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B03",
+      "caseId": "B03",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B04",
+      "caseId": "B04",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B05",
+      "caseId": "B05",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B06",
+      "caseId": "B06",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B07",
+      "caseId": "B07",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B08",
+      "caseId": "B08",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B09",
+      "caseId": "B09",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B10",
+      "caseId": "B10",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B11",
+      "caseId": "B11",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B12",
+      "caseId": "B12",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B13",
+      "caseId": "B13",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B14",
+      "caseId": "B14",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B15",
+      "caseId": "B15",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B16",
+      "caseId": "B16",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B17",
+      "caseId": "B17",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B18",
+      "caseId": "B18",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B19",
+      "caseId": "B19",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B20",
+      "caseId": "B20",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B21",
+      "caseId": "B21",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B22",
+      "caseId": "B22",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B23",
+      "caseId": "B23",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": false
+      }
+    },
+    {
+      "id": "physically-moved-B24",
+      "caseId": "B24",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B25",
+      "caseId": "B25",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": false
+      }
+    },
+    {
+      "id": "physically-moved-B29",
+      "caseId": "B29",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B30",
+      "caseId": "B30",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B31",
+      "caseId": "B31",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B32",
+      "caseId": "B32",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B33",
+      "caseId": "B33",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B34",
+      "caseId": "B34",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B35",
+      "caseId": "B35",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B36",
+      "caseId": "B36",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": false,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B37",
+      "caseId": "B37",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B38",
+      "caseId": "B38",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": false,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B39",
+      "caseId": "B39",
+      "layout": "physically-moved",
+      "equal": false,
+      "comparison": {
+        "stdout": true,
+        "stderr": false,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    },
+    {
+      "id": "physically-moved-B40",
+      "caseId": "B40",
+      "layout": "physically-moved",
+      "equal": true,
+      "comparison": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true
+      }
+    }
+  ],
+  "differingIds": [
+    "B12",
+    "B13",
+    "B17",
+    "B18",
+    "B19",
+    "B20",
+    "B21",
+    "B22",
+    "B23",
+    "B24",
+    "B25",
+    "B30",
+    "B32",
+    "B34",
+    "B35",
+    "B36",
+    "B38",
+    "B39"
+  ],
+  "shippingFiles": 34,
+  "knownManagedChildren": 115,
+  "publicSettlements": 111,
+  "postflightEvidence": {
+    "sourceShippingChecks": 954,
+    "movedShippingChecks": 954,
+    "sourceInputChecks": 293,
+    "archiveAnd34SealedFilesUnchanged": true,
+    "installedParentAbsent": true,
+    "scope": "known pinned members only; no append-proof/full-VFS census claim"
+  },
+  "archiveAdmissionEvidence": {
+    "receipt": {
+      "result": {
+        "members": 954,
+        "payloadBytes": 4821648,
+        "decodedBytes": 5545984,
+        "extractionCalls": 0
+      },
+      "compressedBytes": 872281,
+      "decodedBytes": 5545984,
+      "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49"
+    },
+    "ledger": {
+      "current": 0,
+      "peak": 70078298,
+      "maximum": 100663296
+    },
+    "events": [
+      "lstat-type-size",
+      "bounded-read",
+      "postread-identity",
+      "exact-hash",
+      "descriptor-closed",
+      "concurrent-buffers-reserved",
+      "decoded",
+      "parsed"
+    ]
+  },
+  "oldFailure": {
+    "commit": "05707e3b0011864154707266f2375d88cf80c6a1",
+    "assertions": 222,
+    "exit": 1,
+    "preserved": true
+  },
+  "qualification": "Fresh DATA mapping proof, not product rerun; historical final-accounting HOLD remains. Known direct retirement, no group/hidden-job/global census.",
+  "noInflation": true
+}

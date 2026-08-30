@@ -1,0 +1,59 @@
+{
+  "checked": "2026-08-27T08:16:31.554Z",
+  "boundedWaitMs": 60047,
+  "ready": false,
+  "note": null,
+  "availableEvidence": [
+    "before.json",
+    "build.json",
+    "fixture.json",
+    "historical-types.json",
+    "original-messageerror.test.ts.txt",
+    "replay-freeze.json"
+  ],
+  "inspected": [
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/before.json",
+      "sha256": "26df48e924d620e10d24643af8258590fdf9d40a179d992eeb0e7e096658bb81"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/fixture.json",
+      "sha256": "d68550d748f57971711f5a6f170f84865a546feb4f0346bd9513eaacb8ba5b23"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/original-messageerror.test.ts.txt",
+      "sha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214"
+    }
+  ],
+  "fixture": {
+    "fixtureCommit": "10273352f8d65d929cbf5a23e69119414dacee60",
+    "exactApprovedDelta": true,
+    "originalSha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+    "updatedSha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+    "fixtureCommitPaths": [
+      "tests/commands/regex-execution/followup/messageerror.test.ts"
+    ],
+    "initialValidatorIssues": [
+      "Default spawnSync maxBuffer truncated the 1.8-MB index output; corrected to 16 MiB with checked git status. Exact-delta assertion already passed; semicolon-separated shell proceeded to explicit fixture-only commit.",
+      "Corrected full-index equality assertion then detected concurrent WebDAV commits. No index restoration attempted. Fixture commit changes only the canonical file; changed index paths and concurrent commits retained here. Neither issue is a product/test failure."
+    ]
+  },
+  "before": {
+    "registration": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+    "proposalCommit": "6dbd7d06f9c1901602b415773bb33ba1522a1c6e",
+    "reviewCommit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+    "canonical": {
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214"
+    },
+    "client": {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca"
+    },
+    "publicFixturesRerun": false,
+    "riskyProbes": 0
+  },
+  "broadCohortReviewed": false,
+  "elevenControlReplayReviewed": false,
+  "limitation": "Readiness note and final author results unavailable after bounded wait; partial evidence is not completed-cohort evidence."
+}

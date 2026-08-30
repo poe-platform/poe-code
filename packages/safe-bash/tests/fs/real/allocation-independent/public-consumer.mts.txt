@@ -1,0 +1,382 @@
+import assert from "node:assert/strict";
+import { randomBytes, createHash } from "node:crypto";
+import native from "node:fs/promises";
+import { syncBuiltinESMExports } from "node:module";
+import { release } from "node:os";
+import { join, resolve } from "node:path";
+import test from "node:test";
+import type { TestContext } from "node:test";
+import * as rootApi from "virtual-bash";
+import { FsError } from "virtual-bash/contracts";
+import type { FileStat, FileSystem, FsOptions } from "virtual-bash/contracts/filesystem";
+import type { FileStat as RootStat } from "virtual-bash";
+import { createReadOnlyFileSystem } from "virtual-bash/fs/readonly";
+import { createMountFileSystem } from "virtual-bash/fs/mount";
+import { OverlayFileSystem } from "virtual-bash/fs/overlay";
+import { S3FileSystem, MockS3Client } from "virtual-bash/fs/s3";
+import { WebDavFileSystem } from "virtual-bash/fs/webdav";
+
+type Equal<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends
+  (<Value>() => Value extends Right ? 1 : 2) ? true : false;
+type Require<Condition extends true> = Condition;
+type ReadonlyWitness = Require<Equal<Pick<FileStat, "allocatedBytes">, { readonly allocatedBytes?: number }>>;
+type RootWitness = Require<Equal<RootStat, FileStat>>;
+const typeWitness: [ReadonlyWitness, RootWitness] = [true, true];
+const legacy: FileStat = { type: "file", size: 5, mode: 0o100644, atimeMs: 0, mtimeMs: 0, ctimeMs: 0 };
+const modern: FileStat = { ...legacy, allocatedBytes: 0 };
+
+const bytes = new TextEncoder().encode("allocation-independent\0payload");
+const hash = (data: Uint8Array) => createHash("sha256").update(data).digest("hex");
+const owned = resolve(process.env.ALLOCATION_TASK_ROOT!);
+const hasAllocation = (stat: FileStat, expected: number | undefined) => {
+  assert.equal(stat.allocatedBytes, expected);
+  assert.equal(Object.hasOwn(stat, "allocatedBytes"), expected !== undefined);
+};
+
+async function fixture(context: TestContext) {
+  const directory = await native.mkdtemp(join(owned, "native-"));
+  context.after(async () => {
+    await native.rm(directory, { recursive: true, force: true });
+    await assert.rejects(native.lstat(directory), { code: "ENOENT" });
+  });
+  return { directory, filesystem: await rootApi.createRealFileSystem({ root: directory }) };
+}
+
+class Reported extends rootApi.MemoryFileSystem {
+  report: number | undefined = 512;
+  reads = 0;
+  constructor(readonly representation: "own-hidden" | "prototype" = "prototype") { super(); }
+  override async stat(path: string, options?: FsOptions): Promise<FileStat> {
+    return this.decorate(await super.stat(path, options));
+  }
+  override async lstat(path: string, options?: FsOptions): Promise<FileStat> {
+    return this.decorate(await super.lstat(path, options));
+  }
+  private decorate(stat: FileStat): FileStat {
+    const holder = this.representation === "prototype" ? {} : stat;
+    const backend = this;
+    Object.defineProperty(holder, "allocatedBytes", { get() {
+      assert.equal(this, stat);
+      backend.reads++;
+      return backend.report;
+    } });
+    if (holder !== stat) Object.setPrototypeOf(stat, holder);
+    Object.defineProperty(stat, "irrelevantProviderGetter", { enumerable: true, get() { throw new Error("broad spread"); } });
+    return stat;
+  }
+}
+
+test("packed root and declared subpath exports preserve optional readonly structural types", () => {
+  assert.deepEqual(typeWitness, [true, true]);
+  hasAllocation(legacy, undefined);
+  hasAllocation(modern, 0);
+  assert.equal(rootApi.createReadOnlyFileSystem, createReadOnlyFileSystem);
+  assert.equal(rootApi.createMountFileSystem, createMountFileSystem);
+  assert.equal(rootApi.OverlayFileSystem, OverlayFileSystem);
+  assert.equal(rootApi.S3FileSystem, S3FileSystem);
+  assert.equal(rootApi.WebDavFileSystem, WebDavFileSystem);
+  assert.equal(rootApi.FsError, FsError);
+});
+
+test("packed OWN native entries match bigint stat/lstat allocation without changing data", async context => {
+  const { directory, filesystem } = await fixture(context);
+  const content = randomBytes(65537);
+  await native.writeFile(join(directory, "empty"), new Uint8Array(), { flag: "wx" });
+  await native.writeFile(join(directory, "dense"), content, { flag: "wx" });
+  const sparse = await native.open(join(directory, "sparse"), "wx");
+  try { await sparse.truncate(8388608); } finally { await sparse.close(); }
+  await native.link(join(directory, "dense"), join(directory, "hardlink"));
+  await native.mkdir(join(directory, "directory"));
+  await native.symlink("dense", join(directory, "symlink"));
+  const beforeNames = await native.readdir(directory);
+  const observations = [];
+  for (const name of ["empty", "dense", "sparse", "hardlink", "directory", "symlink"]) {
+    for (const method of ["stat", "lstat"] as const) {
+      const before = await native[method](join(directory, name), { bigint: true });
+      const actual = await filesystem[method](`/${name}`);
+      const after = await native[method](join(directory, name), { bigint: true });
+      const allocation = before.blocks * 512n;
+      assert.deepEqual(after, before);
+      assert.equal(actual.size, Number(before.size));
+      assert.equal(actual.dev, Number(before.dev));
+      assert.equal(actual.ino, Number(before.ino));
+      hasAllocation(actual, Number(allocation));
+      observations.push({ name, method, blocks: String(before.blocks), size: actual.size,
+        allocatedBytes: actual.allocatedBytes, dev: actual.dev, ino: actual.ino, nlink: actual.nlink, type: actual.type });
+    }
+  }
+  hasAllocation(await filesystem.stat("/empty"), 0);
+  assert.notEqual((await filesystem.stat("/sparse")).size, (await filesystem.stat("/sparse")).allocatedBytes);
+  assert.notEqual((await filesystem.stat("/dense")).size, (await filesystem.stat("/dense")).allocatedBytes);
+  assert.equal(await createMountFileSystem({ root: filesystem }).compareEntry("/dense", filesystem, "/hardlink"), "same");
+  assert.equal((await filesystem.stat("/dense")).allocatedBytes, (await filesystem.stat("/hardlink")).allocatedBytes);
+  assert.equal((await filesystem.stat("/symlink")).type, "file");
+  assert.equal((await filesystem.lstat("/symlink")).type, "symlink");
+  assert.equal(hash(await native.readFile(join(directory, "dense"))), hash(content));
+  assert.deepEqual(await native.readdir(directory), beforeNames);
+  context.diagnostic(JSON.stringify({ profile: { node: process.version, uv: process.versions.uv,
+    platform: process.platform, release: release(), arch: process.arch, statfsType: (await native.statfs(directory)).type },
+    observations, meaning: "per-entry allocation; hardlink observations are not unique physical storage" }));
+});
+
+test("packed Real rejects invalid native blocks with no size or blksize fallback", async context => {
+  const { directory, filesystem } = await fixture(context);
+  const target = join(directory, "file");
+  await native.writeFile(target, bytes, { flag: "wx" });
+  const originals = { stat: native.stat, lstat: native.lstat };
+  let blocks: unknown;
+  for (const method of ["stat", "lstat"] as const) {
+    const original = originals[method];
+    native[method] = (async (...args: Parameters<typeof original>) => {
+      const result = await Reflect.apply(original, native, args);
+      if (String(args[0]) === target) {
+        Object.defineProperty(result, "blocks", { value: blocks, configurable: true });
+        Object.defineProperty(result, "blksize", { value: 32768, configurable: true });
+      }
+      return result;
+    }) as typeof original;
+  }
+  syncBuiltinESMExports();
+  try {
+    const last = Number(BigInt(Number.MAX_SAFE_INTEGER) / 512n);
+    const cases: readonly [unknown, number | undefined][] = [[0, 0], [1, 512], [7, 3584],
+      [last, Number(BigInt(last) * 512n)], [undefined, undefined], [null, undefined], ["8", undefined],
+      [-1, undefined], [0.5, undefined], [Number.NaN, undefined], [Infinity, undefined], [-Infinity, undefined],
+      [last + 1, undefined], [Number.MAX_SAFE_INTEGER, undefined], [Number.MAX_SAFE_INTEGER + 1, undefined]];
+    for (const [value, expected] of cases) {
+      blocks = value;
+      for (const method of ["stat", "lstat"] as const) {
+        const result = await filesystem[method]("/file");
+        hasAllocation(result, expected);
+        assert.equal(result.size, bytes.length);
+      }
+    }
+    context.diagnostic(JSON.stringify({ injectedNativeReports: cases.length * 2,
+      note: "synthetic host responses exercise public Real mapping, not actual native allocation" }));
+  } finally {
+    native.stat = originals.stat;
+    native.lstat = originals.lstat;
+    syncBuiltinESMExports();
+  }
+  assert.deepEqual(await native.readFile(target), Buffer.from(bytes));
+});
+
+test("packed errors and errno-shaped abort reasons preserve identity and content", async context => {
+  const { directory, filesystem } = await fixture(context);
+  await native.writeFile(join(directory, "file"), bytes, { flag: "wx" });
+  const views = [filesystem, createReadOnlyFileSystem(filesystem), createMountFileSystem({ root: filesystem }),
+    new OverlayFileSystem({ upper: new rootApi.MemoryFileSystem(), lower: filesystem })];
+  for (const view of views) {
+    for (const method of ["stat", "lstat"] as const) {
+      await assert.rejects(view[method]("/missing"), (error: unknown) => {
+        assert.ok(error instanceof FsError);
+        assert.equal(error.code, "ENOENT");
+        assert.equal(error.path, "/missing");
+        return true;
+      });
+      await assert.rejects(view[method]("/file/child"), { code: "ENOTDIR" });
+      for (const reason of [new Error("cancel"), Object.assign(new Error("cancel errno"), { code: "ENOENT" })]) {
+        await assert.rejects(view[method]("/file", { signal: AbortSignal.abort(reason) }), error => error === reason);
+      }
+    }
+  }
+  assert.deepEqual(await native.readFile(join(directory, "file")), Buffer.from(bytes));
+  assert.deepEqual(await native.readdir(directory), ["file"]);
+});
+
+for (const representation of ["own-hidden", "prototype"] as const) {
+  for (const route of ["readonly", "mount", "overlay-upper", "overlay-lower", "nested"] as const) {
+    test(`packed ${route} snapshots named ${representation} metadata and dynamic reports`, async () => {
+      const backend = new Reported(representation);
+      await backend.writeFile("/file", bytes);
+      const blank = () => new rootApi.MemoryFileSystem();
+      const overlay = new OverlayFileSystem(route === "overlay-upper" ? { upper: backend, lower: blank() }
+        : { upper: blank(), lower: createReadOnlyFileSystem(backend) });
+      const filesystem: FileSystem = route === "readonly" ? createReadOnlyFileSystem(backend)
+        : route === "mount" ? createMountFileSystem({ root: backend })
+        : route === "nested" ? createReadOnlyFileSystem(createMountFileSystem({ root: blank(),
+          mounts: { "/mounted": createReadOnlyFileSystem(overlay) } })) : overlay;
+      const path = route === "nested" ? "/mounted/file" : "/file";
+      for (const report of [0, 1536, Number.MAX_SAFE_INTEGER, undefined]) {
+        backend.report = report;
+        for (const method of ["stat", "lstat"] as const) {
+          const result = await filesystem[method](path);
+          hasAllocation(result, report);
+          assert.equal(Object.hasOwn(result, "irrelevantProviderGetter"), false);
+          assert.equal(Object.getOwnPropertyDescriptor(result, "allocatedBytes")?.get, undefined);
+          const identity = await rootApi.MemoryFileSystem.prototype.lstat.call(backend, "/file");
+          assert.equal(result.identityScope, identity.identityScope);
+          assert.equal(result.ino, identity.ino);
+          assert.equal(result.dev, identity.dev);
+          backend.report = 8192;
+          hasAllocation(result, report);
+          backend.report = report;
+        }
+      }
+      assert.ok(backend.reads > 0);
+      assert.equal(await filesystem.compareEntry!(path, backend, "/file"), "same");
+      await overlay.cleanup();
+    });
+  }
+}
+
+test("packed synthetic mount ancestors stay unknown while backing metadata and capability change", async () => {
+  const backend = new Reported();
+  const root = new Reported();
+  root.report = 4096;
+  let snapshot = false;
+  let removalCalls = 0;
+  const provider = new Proxy(backend, { get(target, property) {
+    if (property === "capabilities") return { ...target.capabilities, snapshotRmdir: snapshot };
+    if (property === "rmdir") return async () => { removalCalls++; throw new Error("must not delegate readonly removal"); };
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const mounted = createMountFileSystem({ root, mounts: { "/synthetic/deep": provider } });
+  const view = createReadOnlyFileSystem(mounted);
+  for (const expected of [0, 2048, undefined]) {
+    backend.report = expected;
+    for (const method of ["stat", "lstat"] as const) {
+      hasAllocation(await view[method]("/synthetic"), undefined);
+      hasAllocation(await view[method]("/synthetic/deep"), expected);
+    }
+  }
+  await root.mkdir("/synthetic");
+  hasAllocation(await view.stat("/synthetic"), 4096);
+  root.report = 8192;
+  hasAllocation(await view.lstat("/synthetic"), 8192);
+  await root.rmdir("/synthetic");
+  hasAllocation(await view.stat("/synthetic"), undefined);
+  assert.equal(mounted.capabilities.snapshotRmdir, false);
+  snapshot = true;
+  assert.equal(mounted.capabilities.snapshotRmdir, true);
+  assert.notEqual(view.capabilities.snapshotRmdir, true);
+  await assert.rejects(view.rmdir("/synthetic/deep/empty"), { code: "EROFS" });
+  assert.equal(removalCalls, 0);
+  await assert.rejects(view.writeFile("/synthetic/deep/file", bytes), { code: "EROFS" });
+});
+
+test("packed OWN native nested wrappers select the new upper entry after copy-up", async context => {
+  const { directory } = await fixture(context);
+  const lowerRoot = join(directory, "lower");
+  const upperRoot = join(directory, "upper");
+  await native.mkdir(lowerRoot);
+  await native.mkdir(upperRoot);
+  const sparse = await native.open(join(lowerRoot, "file"), "wx");
+  try { await sparse.truncate(1048576); } finally { await sparse.close(); }
+  await native.symlink("file", join(lowerRoot, "link"));
+  const lower = await rootApi.createRealFileSystem({ root: lowerRoot });
+  const upper = await rootApi.createRealFileSystem({ root: upperRoot });
+  const overlay = new OverlayFileSystem({ upper, lower: createReadOnlyFileSystem(lower) });
+  context.after(() => overlay.cleanup());
+  const view = createReadOnlyFileSystem(createMountFileSystem({ root: new rootApi.MemoryFileSystem(), mounts: { "/data": overlay } }));
+  const lowerBefore = await native.stat(join(lowerRoot, "file"), { bigint: true });
+  for (const name of ["file", "link"]) {
+    for (const method of ["stat", "lstat"] as const) {
+      const expected = await native[method](join(lowerRoot, name), { bigint: true });
+      const actual = await view[method](`/data/${name}`);
+      hasAllocation(actual, Number(expected.blocks * 512n));
+      assert.equal(actual.ino, Number(expected.ino));
+    }
+  }
+  assert.deepEqual(await native.readdir(upperRoot), []);
+  await overlay.chmod("/file", 0o600);
+  const upperAfter = await native.stat(join(upperRoot, "file"), { bigint: true });
+  for (const method of ["stat", "lstat"] as const) {
+    const actual = await view[method]("/data/file");
+    hasAllocation(actual, Number(upperAfter.blocks * 512n));
+    assert.equal(actual.ino, Number(upperAfter.ino));
+    assert.notEqual(actual.ino, Number(lowerBefore.ino));
+  }
+  const lowerAfter = await native.stat(join(lowerRoot, "file"), { bigint: true });
+  for (const field of ["ino", "size", "blocks", "mode", "mtimeNs", "ctimeNs"] as const) {
+    assert.equal(lowerAfter[field], lowerBefore[field]);
+  }
+  assert.ok((await native.readFile(join(upperRoot, "file"))).every(byte => byte === 0));
+  context.diagnostic(JSON.stringify({ nativeCopyUp: { lowerBlocks: String(lowerBefore.blocks), upperBlocks: String(upperAfter.blocks),
+    lowerIno: String(lowerBefore.ino), upperIno: String(upperAfter.ino), size: String(upperAfter.size) } }));
+});
+
+for (const upperReport of [0, undefined, 8192]) {
+  test(`packed copy-up switches allocation to upper ${upperReport} without metadata-read copy-up`, async () => {
+    const lower = new Reported();
+    const upper = new Reported();
+    lower.report = 4096;
+    upper.report = upperReport;
+    await lower.writeFile("/file", bytes);
+    const before = await rootApi.MemoryFileSystem.prototype.lstat.call(lower, "/file");
+    const overlay = new OverlayFileSystem({ upper, lower: createReadOnlyFileSystem(lower) });
+    const view = createReadOnlyFileSystem(createMountFileSystem({ root: new rootApi.MemoryFileSystem(), mounts: { "/data": overlay } }));
+    for (const method of ["stat", "lstat"] as const) hasAllocation(await view[method]("/data/file"), 4096);
+    assert.deepEqual(await upper.readdir("/"), []);
+    assert.deepEqual(await rootApi.MemoryFileSystem.prototype.lstat.call(lower, "/file"), before);
+    await overlay.chmod("/file", 0o600);
+    for (const method of ["stat", "lstat"] as const) hasAllocation(await view[method]("/data/file"), upperReport);
+    const after = await rootApi.MemoryFileSystem.prototype.lstat.call(lower, "/file");
+    for (const field of ["type", "size", "mode", "mtimeMs", "ctimeMs", "birthtimeMs", "identityScope", "ino", "dev", "nlink"] as const) {
+      assert.equal(after[field], before[field]);
+    }
+    assert.ok(after.atimeMs >= before.atimeMs);
+    assert.deepEqual(await lower.readFile("/file"), bytes);
+    await overlay.cleanup();
+    assert.deepEqual((await upper.readdir("/")).map(entry => entry.name), ["file"]);
+  });
+}
+
+test("packed stat/lstat do not clean pending staging; existing readFile housekeeping does", async context => {
+  const lower = new Reported();
+  const storage = new rootApi.MemoryFileSystem();
+  await lower.writeFile("/file", bytes);
+  let denyCleanup = true;
+  const removals: string[] = [];
+  const upper = new Proxy(storage, { get(target, property) {
+    if (property === "rm") return async (path: string, options: Parameters<typeof storage.rm>[1]) => {
+      removals.push(path);
+      if (denyCleanup) throw new FsError("EACCES");
+      return target.rm(path, options);
+    };
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const overlay = new OverlayFileSystem({ upper, lower: createReadOnlyFileSystem(lower) });
+  context.after(async () => { denyCleanup = false; await overlay.cleanup(); });
+  await overlay.mkdir("/created");
+  const before = await storage.readdir("/");
+  assert.ok(before.some(entry => entry.name.startsWith(".virtual-bash-overlay-")));
+  removals.length = 0;
+  await overlay.stat("/file");
+  await overlay.lstat("/file");
+  assert.deepEqual(removals, []);
+  assert.deepEqual(await storage.readdir("/"), before);
+  denyCleanup = false;
+  assert.deepEqual(await overlay.readFile("/file"), bytes);
+  assert.ok(removals.length > 0);
+  assert.deepEqual((await storage.readdir("/")).map(entry => entry.name), ["created"]);
+  context.diagnostic(JSON.stringify({ housekeeping: "readFile removed preexisting pending staging", removals }));
+});
+
+test("packed Memory, mock S3 and injected WebDAV metadata remain unknown", async () => {
+  const memory = new rootApi.MemoryFileSystem();
+  await memory.writeFile("/file", bytes);
+  const transport = new MockS3Client({ buckets: ["allocation-independent"] });
+  const s3 = new S3FileSystem({ bucket: "allocation-independent", transport });
+  await s3.writeFile("/file", bytes);
+  const requests: string[] = [];
+  const dav = new WebDavFileSystem({ baseUrl: "https://allocation.invalid/dav/", fetch: async (url, init) => {
+    requests.push(`${init.method} ${url}`);
+    assert.equal(init.method, "PROPFIND");
+    const pathname = new URL(url).pathname;
+    return new Response(`<d:multistatus xmlns:d="DAV:"><d:response><d:href>${pathname}</d:href><d:propstat><d:prop>`
+      + `<d:resourcetype>${pathname.endsWith("/") ? "<d:collection/>" : ""}</d:resourcetype>`
+      + `<d:getcontentlength>${bytes.length}</d:getcontentlength></d:prop><d:status>HTTP/1.1 200 OK</d:status>`
+      + `</d:propstat></d:response></d:multistatus>`, { status: 207, headers: { "Content-Type": "application/xml" } });
+  } });
+  for (const filesystem of [memory, s3, dav]) {
+    for (const method of ["stat", "lstat"] as const) {
+      const stat = await filesystem[method]("/file");
+      assert.equal(stat.size, bytes.length);
+      hasAllocation(stat, undefined);
+    }
+  }
+  assert.ok(requests.length > 0);
+});

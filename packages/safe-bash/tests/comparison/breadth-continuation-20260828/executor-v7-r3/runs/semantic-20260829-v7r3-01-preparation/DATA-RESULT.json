@@ -1,0 +1,94 @@
+{
+  "schema": "SEMANTIC_PREPARATION_DATA_RESULTS_V1",
+  "attempt": 1,
+  "presealSha256": "40d8b596e48231ba36d09968a3feb58797be6428c36f661c73ca37bdcd4cf490",
+  "cases": 12,
+  "passed": 12,
+  "failed": 0,
+  "rows": [
+    {
+      "id": "D01",
+      "pass": true,
+      "details": {
+        "selected": 29,
+        "retained": 10,
+        "whole416Rerun": false
+      }
+    },
+    {
+      "id": "D02",
+      "pass": true,
+      "details": null
+    },
+    {
+      "id": "D03",
+      "pass": true,
+      "details": null
+    },
+    {
+      "id": "D04",
+      "pass": true,
+      "details": null
+    },
+    {
+      "id": "D05",
+      "pass": true,
+      "details": null
+    },
+    {
+      "id": "D06",
+      "pass": true,
+      "details": {
+        "sourceOnly": true,
+        "actualLauncherExecutions": 0,
+        "cohortRouteBlocked": true
+      }
+    },
+    {
+      "id": "D07",
+      "pass": true,
+      "details": {
+        "sourceOnly": true,
+        "actualCollectorExecutions": 0,
+        "cohortAssessmentBlocked": true
+      }
+    },
+    {
+      "id": "D08",
+      "pass": true,
+      "details": {
+        "independentDataSchemaOnly": true,
+        "runtimeAuthorizationNotExecuted": true
+      }
+    },
+    {
+      "id": "D09",
+      "pass": true,
+      "details": null
+    },
+    {
+      "id": "D10",
+      "pass": true,
+      "details": null
+    },
+    {
+      "id": "D11",
+      "pass": true,
+      "details": {
+        "retainedMetadataOnly": true,
+        "freshStageLoads": 0
+      }
+    },
+    {
+      "id": "D12",
+      "pass": true,
+      "details": null
+    }
+  ],
+  "engineCalls": 0,
+  "workers": 0,
+  "C11": 0,
+  "semantics": 0,
+  "children": 0,
+  "runtimeReadiness": "HOLD_SOURCE_GATES_AND_ROOT_DECISIONS"
+}

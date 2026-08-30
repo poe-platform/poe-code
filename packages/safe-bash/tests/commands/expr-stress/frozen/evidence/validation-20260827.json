@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "verifiedAt": "2026-08-27T16:53:46.366Z",
+  "sourceBaselineCommit": "b67eabd289997b2daf8b9cf04dd48aea9cb48282",
+  "originalManifestSha256": "74966f1d10cdc574100d2f2936ef759f711f8f658a6a82fda2fe1edcb53a1543",
+  "originalOracleSha256": "66b3b03c30b63d97e6cbe4ba77e185d03caa57780a6be3b681a15784dee9efd3",
+  "checks": {
+    "runnerSyntax": "PASS: node --check --input-type=module",
+    "jsonParsing": "PASS: inputs, controls, primary-sources, manifest, oracle",
+    "manifestBeforeAndAfter": "PASS: every listed hash unchanged; not append-proof",
+    "nativeReplay": [
+      {
+        "id": "gnu-9.7-darwin-C",
+        "denominator": 95,
+        "semanticMatches": 95,
+        "diagnosticMatches": 95,
+        "strictMatches": 95
+      },
+      {
+        "id": "gnu-9.7-darwin-en_US.UTF-8",
+        "denominator": 9,
+        "semanticMatches": 9,
+        "diagnosticMatches": 9,
+        "strictMatches": 9
+      },
+      {
+        "id": "apple-darwin-C",
+        "denominator": 95,
+        "semanticMatches": 95,
+        "diagnosticMatches": 95,
+        "strictMatches": 95
+      },
+      {
+        "id": "apple-darwin-en_US.UTF-8",
+        "denominator": 9,
+        "semanticMatches": 9,
+        "diagnosticMatches": 9,
+        "strictMatches": 9
+      }
+    ],
+    "syntheticComparatorControls": {
+      "count": 10,
+      "passed": 10,
+      "notCandidateEvidence": true,
+      "cases": [
+        "stdout mismatch stays semantic",
+        "nonempty stderr mismatch stays diagnostic",
+        "status mismatch stays semantic",
+        "infrastructure failure cannot pass",
+        "missing row rejected",
+        "duplicate row rejected",
+        "changed case hash rejected",
+        "missing profile rejected",
+        "invalid base64 rejected",
+        "overwrite of original capture refused"
+      ]
+    },
+    "ownedNativeFixturesRemaining": 0,
+    "knownChildrenRemaining": 0
+  },
+  "dialectObservations": {
+    "C": {
+      "appleVsGnuSemanticDifferences": 34,
+      "appleVsGnuDiagnosticDifferences": 49,
+      "denominator": 95
+    },
+    "gnuCUnicodeSubstrStdoutHex": "a90a",
+    "gnuUtf8UnicodeSubstrStdoutHex": "f09f98800a"
+  },
+  "notExecuted": {
+    "productCandidate": true,
+    "safetyControls": 16,
+    "shellWorkflows": 7,
+    "redosControls": 4,
+    "reason": "Freeze leaf only; future independent reviewer must bind actual candidate APIs and required regex-worker protocol."
+  },
+  "limits": [
+    "No GNU/Linux profile",
+    "No arbitrary invalid UTF-8 native argv or faithful native NUL/lone-surrogate argv",
+    "No current full gate, product acceptance or superiority claim",
+    "No author expr source/tests/expected answers inspected",
+    "Native kernel/binary pins are prerequisites; missing pin is BLOCKED, not a pass"
+  ]
+}

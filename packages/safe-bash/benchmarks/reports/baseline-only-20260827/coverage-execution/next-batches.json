@@ -1,0 +1,121 @@
+{
+  "basis": "Engineering judgment from this bounded audit and coupling analysis, not telemetry, measured demand, broad superiority evidence or authorization to add tools.",
+  "condition": "Current independent verification and remote interoperability remain higher priority than new breadth.",
+  "batches": [
+    {
+      "rank": 1,
+      "name": "Text compatibility and log inspection",
+      "targets": [
+        "egrep",
+        "fgrep",
+        "nl",
+        "rev",
+        "tac",
+        "strings",
+        "fold",
+        "expand",
+        "unexpand",
+        "column"
+      ],
+      "workflow": "Search compiler/log output, identify numbered locations, inspect binary string spans, and shape text for review.",
+      "evidence": "All listed spellings returned missing-handler on ours; baseline bounded text recipes passed.",
+      "coupling": "Command/VFS byte interfaces; no new shell grammar. Start only after current-feature verification priority is satisfied."
+    },
+    {
+      "rank": 2,
+      "name": "Virtual repository and artifact inspection",
+      "targets": [
+        "split",
+        "tree",
+        "du",
+        "file"
+      ],
+      "workflow": "Split bounded artifacts, inspect a repository subtree, measure logical sizes, and identify content before processing.",
+      "evidence": "Baseline split/du/file matched intent; tree traversed the complete hierarchy but used a different display profile. Ours lacks these names.",
+      "coupling": "VFS traversal, symlink policy, byte bounds and honest metadata; remote-adapter workflows must be tested, not only memory fixtures."
+    },
+    {
+      "rank": 3,
+      "name": "Reusable shell-script state",
+      "targets": [
+        "getopts",
+        "declare",
+        "typeset",
+        "mapfile",
+        "readarray",
+        "alias",
+        "unalias",
+        "shopt",
+        "pushd",
+        "popd",
+        "dirs",
+        "hash",
+        "let",
+        "printenv",
+        "which"
+      ],
+      "workflow": "Run existing agent helper scripts with option parsing, arrays, directory stacks and predictable environment/name lookup.",
+      "evidence": "Several ours primary scripts were prerequisite/parser-blocked; separate direct diagnostics confirmed all affected target names absent. Hash evidence proves map state only.",
+      "coupling": "Parser/runtime state, scopes and builtin/registry precedence; do not implement phantom type labels or command-only shims for grammar requirements."
+    },
+    {
+      "rank": 4,
+      "name": "Bounded execution and lifecycle",
+      "targets": [
+        "builtin",
+        "exec",
+        "time",
+        "timeout",
+        "sleep",
+        "wait"
+      ],
+      "workflow": "Bound an agent task, invoke real child commands, measure coarse elapsed time, and handle completion predictably.",
+      "evidence": "Baseline exec still ran the tail; wait is no-op proof-limited. The separate js-exec child retained resources despite successful guest output.",
+      "coupling": "Actual kernel dispatch, cancellation, budgets, child state and disposal; normal child success is not enough for exec/job semantics. Do not copy baseline no-op behavior as completion."
+    },
+    {
+      "rank": 5,
+      "name": "Structured data and explicit guest runtimes",
+      "targets": [
+        "yq",
+        "xan",
+        "sqlite3",
+        "js-exec",
+        "python",
+        "python3",
+        "node"
+      ],
+      "workflow": "Query configuration/CSV/databases and run small reproducible transformations inside a virtual filesystem.",
+      "evidence": "Baseline yq/xan/sqlite/Python recipes passed; js-exec produced42 but failed cleanup; node is a diagnostic stub. Ours optional SafeJS API is neither installed runtime proof nor a compatible name substitution.",
+      "coupling": "Format semantics, local runtime assets, legitimate injection, confinement and disposal; zero-runtime-dependency preference needs explicit design rather than private installs or native fallbacks."
+    }
+  ],
+  "lowestCouplingAuthorSlice": {
+    "targets": [
+      "egrep",
+      "fgrep"
+    ],
+    "rationale": "Two compatibility names can potentially reuse the existing public grep definition rather than require parser/runtime or a new data engine.",
+    "prerequisites": [
+      "Verify existing grep extended/fixed semantics and invocation option ordering against independent frozen reference cases",
+      "Define reuse without bypassing CommandContext I/O/cancellation/budgets or adding host subprocesses",
+      "Coordinate aggregate exports/inventory and collision preflight with root owner",
+      "Require a different verifier for binary/stdin/pipeline/errors and actual memory/remote VFS workflows"
+    ],
+    "implementationPerformed": false
+  },
+  "deferredNames": [
+    "clear",
+    "history",
+    "hostname",
+    "whoami",
+    "help",
+    "compgen",
+    "complete",
+    "compopt",
+    "seq",
+    "expr",
+    "date"
+  ],
+  "deferralMeaning": "Still retained and measured in the matrix; not erased or claimed unnecessary. Ranking chooses a next sequence, not a narrowed product scope."
+}

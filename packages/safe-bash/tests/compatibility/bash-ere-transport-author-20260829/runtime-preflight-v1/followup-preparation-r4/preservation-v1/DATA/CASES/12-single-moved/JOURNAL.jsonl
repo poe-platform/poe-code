@@ -1,0 +1,16 @@
+{"seq":1,"at":20667,"kind":"case-entry","detail":"","attemptId":0}
+{"seq":2,"at":29556,"kind":"attempt","detail":"","attemptId":1}
+{"seq":3,"at":30263,"kind":"constructed","detail":"","attemptId":1}
+{"seq":4,"at":30378,"kind":"setup-fault","detail":"false","attemptId":1}
+{"seq":5,"at":30782,"kind":"termination-requested","detail":"","attemptId":1}
+{"seq":6,"at":33857,"kind":"worker-exit","detail":"0","attemptId":1}
+{"seq":7,"at":33971,"kind":"stdout-end","detail":"","attemptId":1}
+{"seq":8,"at":34068,"kind":"stderr-end","detail":"","attemptId":1}
+{"seq":9,"at":34179,"kind":"stdout-close","detail":"","attemptId":1}
+{"seq":10,"at":34323,"kind":"stderr-close","detail":"","attemptId":1}
+{"seq":11,"at":34356,"kind":"termination-fulfilled","detail":"","attemptId":1}
+{"seq":12,"at":34472,"kind":"execute-settled","detail":"rejected","attemptId":1}
+{"seq":13,"at":34596,"kind":"close-settled","detail":"session:rejected","attemptId":1}
+{"seq":14,"at":34649,"kind":"close-settled","detail":"root:rejected","attemptId":1}
+{"seq":15,"at":34719,"kind":"owner-retired","detail":"","attemptId":1}
+{"seq":16,"at":34780,"kind":"receipt-publication","detail":"","attemptId":1}

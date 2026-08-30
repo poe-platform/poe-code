@@ -1,0 +1,68 @@
+{
+  "schema": "webdav-directory-access-static-validation/v1",
+  "checkedAt": "2026-08-28T03:36:21.127Z",
+  "command": "node tests/fs/webdav/directory-access-independent-20260828/validate.mjs",
+  "manifestSha256": "13aef9a1d4e5222015562108b14b4cad9bb26b04841468d6091408598e4db904",
+  "status": "STATIC_ONLY_NO_IMPLEMENTATION_PASSES",
+  "summary": {
+    "schema": "webdav-directory-access-independent/v1",
+    "scenarios": 102,
+    "groups": {
+      "navigation-freshness": 5,
+      "metadata-namespace": 15,
+      "file-type": 4,
+      "ordering": 36,
+      "mode5-races": 5,
+      "input-bounds": 17,
+      "response-limits": 4,
+      "lookup-races": 4,
+      "cancellation-cleanup": 9,
+      "compatibility": 3
+    },
+    "invariants": 8,
+    "positiveTypeAssertions": 8,
+    "negativeTypeAssertions": 10,
+    "uncalledPublicCallExpressions": 5,
+    "expandedDataSha256": "7509db24bfa45f6e806d97cd5578db72cdd0eaaa2748f2f8f77a39fac2469cfb",
+    "maximumRequestTrace": 512,
+    "declarationCount": 85,
+    "declarationInventorySha256": "a6b782b0ae81f09e08c076a3d758ff0ac9f49b82cfab745453c9345c72451a3e",
+    "archiveEntriesAuthenticated": 846,
+    "implementationExecutions": 0,
+    "authorProfileExecutions": 0,
+    "serviceExecutions": 0
+  },
+  "tooling": {
+    "node": "v22.22.2",
+    "nodeBinarySha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "typescript": "5.9.3",
+    "typescriptCompilerSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "checks": [
+    "Git commit content-addresses",
+    "protected baseline/index/author bytes before-and-after",
+    "author/provider exact scope membership including additions",
+    "all accepted tar entries and checksums",
+    "own module syntax and fixture schema",
+    "strict accepted public declaration bindings no live-source fallback",
+    "stable expanded input inventory",
+    "owned payload membership; complete seal checked after record creation"
+  ],
+  "actualService": "unavailable/not-run",
+  "sourceApproval": false,
+  "cdRuntimeReview": "separate-held",
+  "preliminaryStaticFinding": {
+    "status": "membership-check-rejected-omitted-acceptance-document",
+    "path": "tests/fs/webdav/directory-access-review-20260828/ROOT-ACCEPTANCE.md",
+    "resolution": "authenticated existing initial-HEAD acceptance commit separately; original proposal bytes unchanged",
+    "implementationExecuted": false
+  },
+  "presealAuthoringCorrections": [
+    "schema check rejected punctuation in numeric/token case IDs; normalized IDs without changing inputs or outcomes",
+    "uncommitted document audit added explicit proposed/not-implemented metadata and validation matrix before final freeze commit"
+  ],
+  "additionalStaticCheck": {
+    "command": "python3 /Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py tests/fs/webdav/directory-access-independent-20260828/DECLARED-CONTRACT.md",
+    "result": "OK; zero warnings; document structure only"
+  }
+}

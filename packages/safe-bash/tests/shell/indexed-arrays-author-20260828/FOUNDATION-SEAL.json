@@ -1,0 +1,216 @@
+{
+  "profile": "indexed-array foundation author evidence; not independent acceptance",
+  "sourceCandidate": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+  "productSourceCommit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+  "baseTree": "37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e",
+  "candidateSourceTree": "d6c17f62d2d3062b5ab074044a86b8a455820373",
+  "selectedBuildInputCount": 269,
+  "packageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+  "packageFiles": 862,
+  "toolchain": {
+    "node": "v22.22.2",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "compilerSha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+    "loaderSha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2",
+    "versions": {
+      "typescript": "5.9.3",
+      "tsx": "4.23.12",
+      "@types/node": "22.20.1"
+    }
+  },
+  "driverSha256": "fe4cd63cd1ac882d2c02cc3d7b39d11576ad169c1a27297869612f4c8e7ce717",
+  "captures": [
+    {
+      "filename": "foundation-capture-01.json.gz.base64",
+      "originalDirectory": "foundation-attempt-T3F5Ng",
+      "capsuleSha256": "78dab3d2c5b44a28d95bc4a40d88b92cd938abb4c4cdfed6c4becb26e99aac52",
+      "decodedSha256": "3a6e70760a47a476fe5b7580cdc69bdc7b71818e6b5e0765396006c19c7d21b9",
+      "originalReportSha256": "377d8a496789b7b052dc8e2eaa561e001a2ba004229b14fe10cb5cf14200dc04",
+      "revision": "39f5613eec80c2c975eec694c5b826b7b4a28cea",
+      "success": false,
+      "counts": {
+        "tests": 0,
+        "passes": 0,
+        "failures": 0,
+        "publicExecs": null
+      },
+      "processes": 1,
+      "driverAuthenticated": false
+    },
+    {
+      "filename": "foundation-capture-02.json.gz.base64",
+      "originalDirectory": "foundation-attempt-vttC5D",
+      "capsuleSha256": "39ef5da95c7d90d91c94cb77ec3d99468c257f11c4e07999c0ddc1b4a2eb5fdb",
+      "decodedSha256": "bfe996a3266307bee0c9f2cc637225e0ea2d47dd008756229ac8f3318b6c7b41",
+      "originalReportSha256": "22fc2565d037e9eed5c132ebcd446600091e2c7addd837e5b52f6f3a142b2c29",
+      "revision": "4b350c74b405f7f368bbebdac51941aa3a8df413",
+      "success": false,
+      "counts": {
+        "tests": 14,
+        "passes": 11,
+        "failures": 3,
+        "publicExecs": null
+      },
+      "processes": 3,
+      "driverAuthenticated": false
+    },
+    {
+      "filename": "foundation-capture-03.json.gz.base64",
+      "originalDirectory": "foundation-attempt-BhrZQz",
+      "capsuleSha256": "16d166af714a92cfccbb028d4e37398d05285fa912ee61448d7bf1ed3438b99c",
+      "decodedSha256": "3dfd785c0821f4f66b79c24cad1917f6115217b9d53fcd3a18c479dd0f5e9992",
+      "originalReportSha256": "ce182d817c9e67368529e5679fa474b343254fe2e170ca609f3e240d531c3015",
+      "revision": "a7f3b3856860b8706d383c05abf12ea7360f5897",
+      "success": true,
+      "counts": {
+        "tests": 18,
+        "passes": 18,
+        "failures": 0,
+        "publicExecs": null
+      },
+      "processes": 3,
+      "driverAuthenticated": false
+    },
+    {
+      "filename": "foundation-capture-04.json.gz.base64",
+      "originalDirectory": "foundation-attempt-8KdKuf",
+      "capsuleSha256": "40c7940a13dba0db6344d0f55ea7157ab3d4108bd9cd899d301e7e06cadf4039",
+      "decodedSha256": "a25bb11704980ac331b11165cf45cd2e217d495a9f6b1c0fa39b9c1106f6c0fe",
+      "originalReportSha256": "547caa05324aaa244aa7cf202777f95985e6865df5e5ebc0af8eb7d6721bb526",
+      "revision": "04fdb8cccc5665794f43ca13aa75376c5193516d",
+      "success": false,
+      "counts": {
+        "tests": 23,
+        "passes": 22,
+        "failures": 1,
+        "publicExecs": null
+      },
+      "processes": 3,
+      "driverAuthenticated": false
+    },
+    {
+      "filename": "foundation-capture-05.json.gz.base64",
+      "originalDirectory": "foundation-attempt-hwmqBj",
+      "capsuleSha256": "dbe033e489966d0499772cc2801014b03d110d46d184c73e9669044a615ee72f",
+      "decodedSha256": "4192f918806e7801a0e38f0592d15c098fe19f5749662838f922943d9130d519",
+      "originalReportSha256": "3d6fb3ca7673672fb53e838c51a946355020d185820d2e40fa9413b72a252efa",
+      "revision": "d1f792580b5f4636de0f2f9d7f6c955bc898d5f1",
+      "success": true,
+      "counts": {
+        "tests": 23,
+        "passes": 23,
+        "failures": 0,
+        "publicExecs": null
+      },
+      "processes": 9,
+      "driverAuthenticated": false
+    },
+    {
+      "filename": "foundation-capture-06.json.gz.base64",
+      "originalDirectory": "foundation-attempt-sAIOg1",
+      "capsuleSha256": "30ca840089693cbb3895c63afb770ee1970ab8ae0a7bd05da602a8a599ba812c",
+      "decodedSha256": "7a484a6d1e5fabe7435e0311d4d923d5e12504e13294b1faffb488dcc3327db8",
+      "originalReportSha256": "a3684b40834649f7e15ddb02d847bcb90b5da1f3d89919a0b1bab4a24fcc4af3",
+      "revision": "f2bea0ee51dae74ba3c82b6ad728cc4ac582f6f0",
+      "success": true,
+      "counts": {
+        "tests": 27,
+        "passes": 27,
+        "failures": 0,
+        "publicExecs": 48
+      },
+      "processes": 19,
+      "driverAuthenticated": false
+    },
+    {
+      "filename": "foundation-capture-07.json.gz.base64",
+      "originalDirectory": "foundation-attempt-MB5NJY",
+      "capsuleSha256": "2c823f79b6560516febb12e3291bb94e225eee667efb2897989e848f9d984a2b",
+      "decodedSha256": "81bd4a0d4005c347023a8279b6cfcbc6d481d013d5e65e8f32b686b752cc4cb5",
+      "originalReportSha256": "a460ec446baf340dfcfb69ba0a1488f5d5a697c6d60e62678a8e211fe3a046ae",
+      "revision": "8635b0b8a1a0676713e9151e90a0dd8e96c62a05",
+      "success": false,
+      "counts": {
+        "tests": 0,
+        "passes": 0,
+        "failures": 0,
+        "publicExecs": null
+      },
+      "processes": 1,
+      "driverAuthenticated": true
+    },
+    {
+      "filename": "foundation-capture-08.json.gz.base64",
+      "originalDirectory": "foundation-attempt-l9Y6zk",
+      "capsuleSha256": "20520475b781b332f142e9884158d7b2bd4fc21ebbaa2ef3d6272ef4a5f5ebaa",
+      "decodedSha256": "162bfcac78857094fbd5e8763e188c57436757be61687bf5ec418e027f489e64",
+      "originalReportSha256": "1b8c1f2f1a5654a3686037f37a03e29173e02db3e7a41dfd0a8d47d757ec616a",
+      "revision": "e9acdb17b8e4491a9809340e6114d654ef7a678a",
+      "success": false,
+      "counts": {
+        "tests": 28,
+        "passes": 27,
+        "failures": 1,
+        "publicExecs": 49
+      },
+      "processes": 3,
+      "driverAuthenticated": true
+    },
+    {
+      "filename": "foundation-capture-09.json.gz.base64",
+      "originalDirectory": "foundation-attempt-Uw3rbK",
+      "capsuleSha256": "83d0677bf7a10274b1d8498798d4fb5cd8a508b2a9818f351ccd187dd4e439b2",
+      "decodedSha256": "4ffe90cd813746fba22838a20a5cacf705bf78de557b79fe7787c976444e015a",
+      "originalReportSha256": "f5262263d9eaca601ff2ae4e01b9152e674c6ab7930245c985b7485deb90031e",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "success": true,
+      "counts": {
+        "tests": 28,
+        "passes": 28,
+        "failures": 0,
+        "publicExecs": 50
+      },
+      "processes": 19,
+      "driverAuthenticated": true
+    },
+    {
+      "filename": "foundation-capture-10.json.gz.base64",
+      "originalDirectory": "foundation-attempt-jcgWOz",
+      "capsuleSha256": "123f1c3c6569a3f6c79f740099116a73ecebbd74a185c70c32c22f29108e5d74",
+      "decodedSha256": "7c8fbd885a67382915dde5478fc11b28c70b9599e2c1cedd1b2674fcf8fc5d71",
+      "originalReportSha256": "a75fedd5ec7ac0e65bc6ee417add78e051c35725b08fedadf04465763c7483dc",
+      "revision": "9813f2316d9a845c01cf488f50e47285cc4bcf78",
+      "success": false,
+      "counts": {
+        "tests": 32,
+        "passes": 31,
+        "failures": 1,
+        "publicExecs": 56
+      },
+      "processes": 3,
+      "driverAuthenticated": true
+    },
+    {
+      "filename": "foundation-capture-11.json.gz.base64",
+      "originalDirectory": "foundation-attempt-jTyCWG",
+      "capsuleSha256": "6263e6e2b7841eaf1ee8d7ddaa32634010b5f8eec9aa59d1712c94675f894f28",
+      "decodedSha256": "11ee4e4cd8d9a21507f52965223e3dd19adce3b4eb8b876950e4f819b4786573",
+      "originalReportSha256": "5f154b3cfb6bd6b72af26d7fd206523bf49a0cfdc037259baf9601fa54fdd093",
+      "revision": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+      "success": true,
+      "counts": {
+        "tests": 32,
+        "passes": 32,
+        "failures": 0,
+        "publicExecs": 69
+      },
+      "processes": 19,
+      "driverAuthenticated": true
+    }
+  ],
+  "actualInterval": {
+    "startedAt": "2026-08-28T12:22:34.181Z",
+    "finishedAt": "2026-08-28T13:16:47.210Z"
+  },
+  "proofLimit": "Author groups are not the independent 33 semantic vectors or 22 mechanical obligations. Prior syntax-only acceptance remains separate. No duration, whole-product or RSS claim."
+}

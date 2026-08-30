@@ -1,0 +1,1911 @@
+{
+  "rows": [
+    {
+      "id": "H01",
+      "pass": true,
+      "detail": {
+        "sha256": "a94d66ccb738bab886e15dcd0db402adb56a0e3c2a81c0017a5e812b9a307cac",
+        "bytesRead": 3041,
+        "largestRead": 3041,
+        "readCalls": 2
+      }
+    },
+    {
+      "id": "H02",
+      "pass": true,
+      "detail": {
+        "directoryRefused": true
+      }
+    },
+    {
+      "id": "H03",
+      "pass": true,
+      "detail": {
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "bytesRead": 112989184,
+        "largestRead": 65536,
+        "readCalls": 1726
+      }
+    },
+    {
+      "id": "N01",
+      "pass": true,
+      "detail": {
+        "positive": 1,
+        "refusals": 8,
+        "getterCalls": 0
+      }
+    },
+    {
+      "id": "N06",
+      "pass": true,
+      "detail": {
+        "crossRealmPositive": true,
+        "refusals": 8,
+        "getterCalls": 0,
+        "terminalNegatives": 2
+      }
+    },
+    {
+      "id": "N07",
+      "pass": true,
+      "detail": {
+        "exactReason": true,
+        "descriptorCloses": 1
+      }
+    },
+    {
+      "id": "R01",
+      "pass": true,
+      "detail": {
+        "code": 0,
+        "applicationBirths": 0,
+        "applicationExitEvents": 0,
+        "internalStarts": 1,
+        "hostProcessClosed": true,
+        "internalExitCensus": null
+      }
+    },
+    {
+      "id": "R02",
+      "pass": true,
+      "detail": {
+        "code": 7,
+        "applicationBirths": 1,
+        "applicationExitEvents": 1,
+        "internalStarts": 1,
+        "hostProcessClosed": true,
+        "internalExitCensus": null
+      }
+    },
+    {
+      "id": "R03",
+      "pass": true,
+      "detail": {
+        "code": 0,
+        "applicationBirths": 1,
+        "applicationExitEvents": 1,
+        "internalStarts": 0,
+        "hostProcessClosed": true,
+        "internalExitCensus": null
+      }
+    },
+    {
+      "id": "N02",
+      "pass": true,
+      "detail": {
+        "code": 0,
+        "applicationBirths": 0,
+        "applicationExitEvents": 0,
+        "internalStarts": 1,
+        "hostProcessClosed": true,
+        "internalExitCensus": null
+      }
+    },
+    {
+      "id": "N03",
+      "pass": true,
+      "detail": {
+        "code": 0,
+        "applicationBirths": 0,
+        "applicationExitEvents": 0,
+        "internalStarts": 1,
+        "hostProcessClosed": true,
+        "internalExitCensus": null
+      }
+    },
+    {
+      "id": "N04",
+      "pass": true,
+      "detail": {
+        "code": 1,
+        "applicationBirths": 0,
+        "applicationExitEvents": 0,
+        "internalStarts": 1,
+        "hostProcessClosed": true,
+        "internalExitCensus": null
+      }
+    },
+    {
+      "id": "N05",
+      "pass": true,
+      "detail": {
+        "code": 0,
+        "applicationBirths": 1,
+        "applicationExitEvents": 1,
+        "internalStarts": 1,
+        "hostProcessClosed": true,
+        "internalExitCensus": null
+      }
+    },
+    {
+      "id": "N08",
+      "pass": true,
+      "detail": {
+        "code": 0,
+        "applicationBirths": 0,
+        "applicationExitEvents": 0,
+        "internalStarts": 1,
+        "hostProcessClosed": true,
+        "internalExitCensus": null
+      }
+    }
+  ],
+  "children": [
+    {
+      "id": "R01",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01/source/bootstrap.mjs",
+        "--test-reporter=tap",
+        "--loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01/source/loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01/source/consumer.mjs"
+      ],
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01/data",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01/data",
+        "LC_ALL": "C",
+        "NO_COLOR": "1",
+        "CASE_ID": "P03",
+        "FIXTURE_MANIFEST": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01/data/manifest.json",
+        "FIXTURE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R01/data/events.jsonl"
+      },
+      "sourceBefore": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2726,
+          "mode": 420,
+          "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "dataBefore": [
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "9df8c8702c5186a4855828b6bcd6f8bcedd27339b80fa0ba6534e0a586c472a9"
+        }
+      ],
+      "closed": true,
+      "signals": [],
+      "internalAdmission": true,
+      "pid": 2715,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "code": 0,
+      "signal": null,
+      "captureBytes": 849,
+      "events": [
+        {
+          "kind": "loader-start",
+          "isMainThread": false,
+          "threadId": 1
+        },
+        {
+          "kind": "bootstrap",
+          "isMainThread": true,
+          "permitted": false
+        },
+        {
+          "kind": "consumer-start",
+          "caseId": "P03"
+        },
+        {
+          "kind": "before-exit",
+          "created": 0,
+          "live": 0
+        }
+      ],
+      "dataAfter": [
+        {
+          "path": "events.jsonl",
+          "bytes": 202,
+          "mode": 420,
+          "sha256": "1fd2c4671088bc7ab9b8a50c1169c382acaf22e1dca63d6ffe503833e01f1257"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "9df8c8702c5186a4855828b6bcd6f8bcedd27339b80fa0ba6534e0a586c472a9"
+        }
+      ],
+      "sourceAfter": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2726,
+          "mode": 420,
+          "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "stdout": "54389e188c3ef9a8c3cb7f033b27106b306df6f8bb0a2c5d01a22e644ac74a63",
+      "stderr": "3c3eb2292e493834f840cc851251a2426d8dbdf9cfd1973159a88555e8283e80"
+    },
+    {
+      "id": "R02",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02/source/bootstrap.mjs",
+        "--test-reporter=tap",
+        "--loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02/source/loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02/source/consumer.mjs"
+      ],
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02/data",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02/data",
+        "LC_ALL": "C",
+        "NO_COLOR": "1",
+        "CASE_ID": "P08",
+        "FIXTURE_MANIFEST": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02/data/manifest.json",
+        "FIXTURE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02/data/events.jsonl"
+      },
+      "sourceBefore": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2726,
+          "mode": 420,
+          "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "dataBefore": [
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "839962753892017c815cdb439357e1c72c80e9c010776bc8117df1a888f7dc14"
+        }
+      ],
+      "closed": true,
+      "signals": [],
+      "internalAdmission": true,
+      "pid": 2718,
+      "exitEvent": {
+        "code": 7,
+        "signal": null
+      },
+      "code": 7,
+      "signal": null,
+      "captureBytes": 849,
+      "events": [
+        {
+          "kind": "loader-start",
+          "isMainThread": false,
+          "threadId": 1
+        },
+        {
+          "kind": "bootstrap",
+          "isMainThread": true,
+          "permitted": true
+        },
+        {
+          "kind": "consumer-start",
+          "caseId": "P08"
+        },
+        {
+          "kind": "six-option-refusals",
+          "count": 6
+        },
+        {
+          "kind": "application-create",
+          "id": 1,
+          "threadId": 2,
+          "entry": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R02/source/application.mjs"
+        },
+        {
+          "kind": "application-exit",
+          "id": 1,
+          "code": 0,
+          "live": 0
+        },
+        {
+          "kind": "before-exit",
+          "created": 1,
+          "live": 0
+        }
+      ],
+      "dataAfter": [
+        {
+          "path": "events.jsonl",
+          "bytes": 475,
+          "mode": 420,
+          "sha256": "30f7947c40f10df6023e14a25217c16f18062f2468eaf545c27f6aae02426deb"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "839962753892017c815cdb439357e1c72c80e9c010776bc8117df1a888f7dc14"
+        }
+      ],
+      "sourceAfter": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2726,
+          "mode": 420,
+          "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "stdout": "1e3f72a2e9c6d2e71c49bee1a742c5a090911e0dd177d41639c71c50524cb994",
+      "stderr": "877069aec1d50e680f7b8a8acb6520e46f0b6c0555b93d92512a83f1967d5c60"
+    },
+    {
+      "id": "R03",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03/source/bootstrap.mjs",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03/source/consumer.mjs"
+      ],
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03/data",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03/data",
+        "LC_ALL": "C",
+        "NO_COLOR": "1",
+        "CASE_ID": "P09",
+        "FIXTURE_MANIFEST": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03/data/manifest.json",
+        "FIXTURE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03/data/events.jsonl"
+      },
+      "sourceBefore": [
+        {
+          "path": "application.mjs",
+          "bytes": 38,
+          "mode": 420,
+          "sha256": "85a589494dba83523c5573e54ae2f783e2d64bf12a6d7dbd582ee7be98699e0a"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2726,
+          "mode": 420,
+          "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "dataBefore": [
+        {
+          "path": "manifest.json",
+          "bytes": 1242,
+          "mode": 420,
+          "sha256": "3316852b1cfa14a1eb4dec57bdba8c787a39c39c326fcbe7ffd8ea2e7f5eedcb"
+        }
+      ],
+      "closed": true,
+      "signals": [],
+      "internalAdmission": false,
+      "pid": 2723,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "code": 0,
+      "signal": null,
+      "captureBytes": 271,
+      "events": [
+        {
+          "kind": "bootstrap",
+          "isMainThread": true,
+          "permitted": true
+        },
+        {
+          "kind": "consumer-start",
+          "caseId": "P09"
+        },
+        {
+          "kind": "application-create",
+          "id": 1,
+          "threadId": 1,
+          "entry": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/R03/source/application.mjs"
+        },
+        {
+          "kind": "application-exit",
+          "id": 1,
+          "code": 1,
+          "live": 0
+        },
+        {
+          "kind": "before-exit",
+          "created": 1,
+          "live": 0
+        }
+      ],
+      "dataAfter": [
+        {
+          "path": "events.jsonl",
+          "bytes": 376,
+          "mode": 420,
+          "sha256": "2debff6508c4dcad9142e48df33bf37a5718910e7025d0aff381f82543bd31c0"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1242,
+          "mode": 420,
+          "sha256": "3316852b1cfa14a1eb4dec57bdba8c787a39c39c326fcbe7ffd8ea2e7f5eedcb"
+        }
+      ],
+      "sourceAfter": [
+        {
+          "path": "application.mjs",
+          "bytes": 38,
+          "mode": 420,
+          "sha256": "85a589494dba83523c5573e54ae2f783e2d64bf12a6d7dbd582ee7be98699e0a"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2726,
+          "mode": 420,
+          "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "stdout": "85a6ab233381aa5ac59f58fb9f673fb5d5c84a9e6a73e4b8cd848e8a63dc4a3d",
+      "stderr": "70d501ea12b3980de93505c5a5ff8bb61562b6b2a52c1b44cf514605c78aee30"
+    },
+    {
+      "id": "N02",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/source/bootstrap.mjs",
+        "--test-reporter=tap",
+        "--loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/source/loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/source/consumer.mjs"
+      ],
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/data",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/data",
+        "LC_ALL": "C",
+        "NO_COLOR": "1",
+        "CASE_ID": "P03",
+        "FIXTURE_MANIFEST": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/data/manifest.json",
+        "FIXTURE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/data/events.jsonl",
+        "NOVEL_ROLE": "N02",
+        "RESOURCE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/data/events.jsonl",
+        "RESOURCE_ALLOWANCE": "0",
+        "PUBLIC_BINDING": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N02/data/binding.json"
+      },
+      "sourceBefore": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 4271,
+          "mode": 420,
+          "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "dataBefore": [
+        {
+          "path": "binding.json",
+          "bytes": 126,
+          "mode": 420,
+          "sha256": "68e684931ee1bc78976c4d5921b2a12c7a67b0d862944573b857b6e01f287015"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "97acf4b39ed947ec38976a7b83305cf853c8ced03876ac5d51bfe6759742226a"
+        }
+      ],
+      "closed": true,
+      "signals": [],
+      "internalAdmission": true,
+      "pid": 2732,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "code": 0,
+      "signal": null,
+      "captureBytes": 813,
+      "events": [
+        {
+          "kind": "loader-start",
+          "isMainThread": false,
+          "threadId": 1
+        },
+        {
+          "kind": "bootstrap",
+          "pid": 2732,
+          "allowance": 0
+        },
+        {
+          "kind": "consumer-start"
+        },
+        {
+          "kind": "refusal-observed",
+          "role": "N02"
+        },
+        {
+          "kind": "before-exit",
+          "created": 0,
+          "live": 0
+        }
+      ],
+      "dataAfter": [
+        {
+          "path": "binding.json",
+          "bytes": 126,
+          "mode": 420,
+          "sha256": "68e684931ee1bc78976c4d5921b2a12c7a67b0d862944573b857b6e01f287015"
+        },
+        {
+          "path": "events.jsonl",
+          "bytes": 215,
+          "mode": 420,
+          "sha256": "c07fb203dd119d68cf1bdaf2049ea035191ffd2f2a089e70b1eb90b55a6ee78b"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "97acf4b39ed947ec38976a7b83305cf853c8ced03876ac5d51bfe6759742226a"
+        }
+      ],
+      "sourceAfter": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 4271,
+          "mode": 420,
+          "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "stdout": "b72ae340e17944681cc0d4e884eab79d80a4727d2673f89ca77badf1b8fb7a8a",
+      "stderr": "2cbff1d685916f3b2f560ecdae777b42249ba46cd77b8d0d3e76d39df719d4a8"
+    },
+    {
+      "id": "N03",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03/source/bootstrap.mjs",
+        "--test-reporter=tap",
+        "--loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03/source/loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03/source/consumer.mjs"
+      ],
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03/data",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03/data",
+        "LC_ALL": "C",
+        "NO_COLOR": "1",
+        "CASE_ID": "P04",
+        "FIXTURE_MANIFEST": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03/data/manifest.json",
+        "FIXTURE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N03/data/events.jsonl",
+        "NOVEL_ROLE": "N03"
+      },
+      "sourceBefore": [
+        {
+          "path": "application.mjs",
+          "bytes": 107,
+          "mode": 420,
+          "sha256": "e04169509b28220e6a241f88ff976ec02301792475f2549114e7ea12c24710fc"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "dataBefore": [
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "0f549852838e908d1b0dfb1b34e767fd9559ed5dbb45e923e2dbd1ad7f052567"
+        }
+      ],
+      "closed": true,
+      "signals": [],
+      "internalAdmission": true,
+      "pid": 2737,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "code": 0,
+      "signal": null,
+      "captureBytes": 813,
+      "events": [
+        {
+          "kind": "loader-start",
+          "isMainThread": false,
+          "threadId": 1
+        },
+        {
+          "kind": "bootstrap",
+          "isMainThread": true,
+          "permitted": true
+        },
+        {
+          "kind": "consumer-start"
+        },
+        {
+          "kind": "refusal-observed",
+          "role": "N03"
+        },
+        {
+          "kind": "before-exit",
+          "created": 0,
+          "live": 0
+        }
+      ],
+      "dataAfter": [
+        {
+          "path": "events.jsonl",
+          "bytes": 227,
+          "mode": 420,
+          "sha256": "d9554ede5b5280f9ac88cd671f9ee7d9181bc3e53c0aa6d06ace603991d13cbc"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "0f549852838e908d1b0dfb1b34e767fd9559ed5dbb45e923e2dbd1ad7f052567"
+        }
+      ],
+      "sourceAfter": [
+        {
+          "path": "application.mjs",
+          "bytes": 107,
+          "mode": 420,
+          "sha256": "e04169509b28220e6a241f88ff976ec02301792475f2549114e7ea12c24710fc"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "stdout": "177f3b5900bd5da82f66c90006e119ed5ed682ac8f9b3f8e1a51388fb0a403ec",
+      "stderr": "0096e14881043bb29d81d80289139d55d79c9922af3db03aa26a4daf7ff3c067"
+    },
+    {
+      "id": "N04",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/source/bootstrap.mjs",
+        "--test-reporter=tap",
+        "--loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/source/loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/source/consumer.mjs"
+      ],
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/data",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/data",
+        "LC_ALL": "C",
+        "NO_COLOR": "1",
+        "CASE_ID": "P03",
+        "FIXTURE_MANIFEST": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/data/manifest.json",
+        "FIXTURE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/data/events.jsonl",
+        "NOVEL_ROLE": "N04"
+      },
+      "sourceBefore": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 270,
+          "mode": 420,
+          "sha256": "514d4b727cc82755a05d3bfb12c6b74a1abacaeec5417f1d4b224aed7f75a850"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "dataBefore": [
+        {
+          "path": "manifest.json",
+          "bytes": 1242,
+          "mode": 420,
+          "sha256": "9f2b019fc736d0b8ebebfade5f14080190f015bbfa61361b8736b495d81efc9d"
+        }
+      ],
+      "closed": true,
+      "signals": [],
+      "internalAdmission": true,
+      "pid": 2739,
+      "exitEvent": {
+        "code": 1,
+        "signal": null
+      },
+      "code": 1,
+      "signal": null,
+      "captureBytes": 1385,
+      "events": [
+        {
+          "kind": "loader-start",
+          "isMainThread": false,
+          "threadId": 1
+        }
+      ],
+      "dataAfter": [
+        {
+          "path": "events.jsonl",
+          "bytes": 58,
+          "mode": 420,
+          "sha256": "3e6462d1db545ad66b632aafec99491289091a81251ac6706735ca28904d53b5"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1242,
+          "mode": 420,
+          "sha256": "9f2b019fc736d0b8ebebfade5f14080190f015bbfa61361b8736b495d81efc9d"
+        }
+      ],
+      "sourceAfter": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 270,
+          "mode": 420,
+          "sha256": "514d4b727cc82755a05d3bfb12c6b74a1abacaeec5417f1d4b224aed7f75a850"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "d564f91769405d1a5f3eb0c853eab0b066d188995b943a248db31e8e77b1bd33"
+    },
+    {
+      "id": "N05",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/source/bootstrap.mjs",
+        "--test-reporter=tap",
+        "--loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/source/loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/source/consumer.mjs"
+      ],
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/data",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/data",
+        "LC_ALL": "C",
+        "NO_COLOR": "1",
+        "CASE_ID": "P04",
+        "FIXTURE_MANIFEST": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/data/manifest.json",
+        "FIXTURE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/data/events.jsonl",
+        "NOVEL_ROLE": "N05"
+      },
+      "sourceBefore": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "dataBefore": [
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "6f5b1d286856860f23bcb185c43c87bb151babdfb45f41fb280de1b54ab11d5b"
+        }
+      ],
+      "closed": true,
+      "signals": [],
+      "internalAdmission": true,
+      "pid": 2744,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "code": 0,
+      "signal": null,
+      "captureBytes": 813,
+      "events": [
+        {
+          "kind": "loader-start",
+          "isMainThread": false,
+          "threadId": 1
+        },
+        {
+          "kind": "bootstrap",
+          "isMainThread": true,
+          "permitted": true
+        },
+        {
+          "kind": "consumer-start"
+        },
+        {
+          "kind": "application-create",
+          "id": 1,
+          "threadId": 2,
+          "entry": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N05/source/application.mjs"
+        },
+        {
+          "kind": "application-exit",
+          "id": 1,
+          "code": 0,
+          "live": 0
+        },
+        {
+          "kind": "refusal-observed",
+          "role": "N05"
+        },
+        {
+          "kind": "before-exit",
+          "created": 1,
+          "live": 0
+        }
+      ],
+      "dataAfter": [
+        {
+          "path": "events.jsonl",
+          "bytes": 460,
+          "mode": 420,
+          "sha256": "46021b0fe40e0927462fe345da4954ef2645b0b1b96d6044c9090e380c638b1e"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "6f5b1d286856860f23bcb185c43c87bb151babdfb45f41fb280de1b54ab11d5b"
+        }
+      ],
+      "sourceAfter": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 2200,
+          "mode": 420,
+          "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "stdout": "11d240140659e09af61ca649ade78b75c95427459affcd289d990f76c00f442a",
+      "stderr": "f52971cb70209d789e21b21674078a04ca18ad493d404b42786e82adcb3b23a6"
+    },
+    {
+      "id": "N08",
+      "args": [
+        "--experimental-permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08",
+        "--allow-worker",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/source/bootstrap.mjs",
+        "--test-reporter=tap",
+        "--loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/source/loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/source/consumer.mjs"
+      ],
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/data",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/data",
+        "LC_ALL": "C",
+        "NO_COLOR": "1",
+        "CASE_ID": "P04",
+        "FIXTURE_MANIFEST": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/data/manifest.json",
+        "FIXTURE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/data/events.jsonl",
+        "NOVEL_ROLE": "N08",
+        "RESOURCE_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/data/events.jsonl",
+        "RESOURCE_ALLOWANCE": "1",
+        "PUBLIC_BINDING": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N08/data/binding.json"
+      },
+      "sourceBefore": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 4271,
+          "mode": 420,
+          "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "dataBefore": [
+        {
+          "path": "binding.json",
+          "bytes": 126,
+          "mode": 420,
+          "sha256": "44f26510f7814a3d6b8d93a4876f9a6c973d58cff002d25701d9a924c1385b0a"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "9945289b899cb76d90bb3ca06ab6b93814e5e16174cc08737859d4437eeff371"
+        }
+      ],
+      "closed": true,
+      "signals": [],
+      "internalAdmission": true,
+      "pid": 2749,
+      "exitEvent": {
+        "code": 0,
+        "signal": null
+      },
+      "code": 0,
+      "signal": null,
+      "captureBytes": 813,
+      "events": [
+        {
+          "kind": "loader-start",
+          "isMainThread": false,
+          "threadId": 1
+        },
+        {
+          "kind": "bootstrap",
+          "pid": 2749,
+          "allowance": 1
+        },
+        {
+          "kind": "consumer-start"
+        },
+        {
+          "kind": "refusal-observed",
+          "role": "N08"
+        },
+        {
+          "kind": "before-exit",
+          "created": 0,
+          "live": 0
+        }
+      ],
+      "dataAfter": [
+        {
+          "path": "binding.json",
+          "bytes": 126,
+          "mode": 420,
+          "sha256": "44f26510f7814a3d6b8d93a4876f9a6c973d58cff002d25701d9a924c1385b0a"
+        },
+        {
+          "path": "events.jsonl",
+          "bytes": 215,
+          "mode": 420,
+          "sha256": "a925a9bb7d620455cc94759ac219bca622302b7c628a2286e6ee1a580afe86c4"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1243,
+          "mode": 420,
+          "sha256": "9945289b899cb76d90bb3ca06ab6b93814e5e16174cc08737859d4437eeff371"
+        }
+      ],
+      "sourceAfter": [
+        {
+          "path": "application.mjs",
+          "bytes": 106,
+          "mode": 420,
+          "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+        },
+        {
+          "path": "bootstrap.mjs",
+          "bytes": 4271,
+          "mode": 420,
+          "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+        },
+        {
+          "path": "consumer.mjs",
+          "bytes": 2098,
+          "mode": 420,
+          "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+        },
+        {
+          "path": "loader.mjs",
+          "bytes": 1278,
+          "mode": 420,
+          "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+        },
+        {
+          "path": "worker-policy.mjs",
+          "bytes": 1445,
+          "mode": 420,
+          "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+        }
+      ],
+      "stdout": "f00d02e71a2edf3143496c6f60f5f7b30a586580a3a7cfc414df40b6331ff412",
+      "stderr": "2216d60cbfb327cfb374100f4e2b01995238495c51142c759e46cf8616440aba"
+    }
+  ],
+  "status": "QUALIFIED_HARMLESS_ONLY",
+  "internalAttempts": 7,
+  "applicationBirths": 3,
+  "applicationExits": 3,
+  "captured": 6606,
+  "productImports": 0,
+  "regexWorkers": 0,
+  "finalCensus": [
+    {
+      "path": "N02/data/binding.json",
+      "bytes": 126,
+      "mode": 420,
+      "sha256": "68e684931ee1bc78976c4d5921b2a12c7a67b0d862944573b857b6e01f287015"
+    },
+    {
+      "path": "N02/data/events.jsonl",
+      "bytes": 215,
+      "mode": 420,
+      "sha256": "c07fb203dd119d68cf1bdaf2049ea035191ffd2f2a089e70b1eb90b55a6ee78b"
+    },
+    {
+      "path": "N02/data/manifest.json",
+      "bytes": 1243,
+      "mode": 420,
+      "sha256": "97acf4b39ed947ec38976a7b83305cf853c8ced03876ac5d51bfe6759742226a"
+    },
+    {
+      "path": "N02/source/application.mjs",
+      "bytes": 106,
+      "mode": 420,
+      "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+    },
+    {
+      "path": "N02/source/bootstrap.mjs",
+      "bytes": 4271,
+      "mode": 420,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "N02/source/consumer.mjs",
+      "bytes": 2098,
+      "mode": 420,
+      "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+    },
+    {
+      "path": "N02/source/loader.mjs",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+    },
+    {
+      "path": "N02/source/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "N02/stderr.raw",
+      "bytes": 780,
+      "mode": 420,
+      "sha256": "2cbff1d685916f3b2f560ecdae777b42249ba46cd77b8d0d3e76d39df719d4a8"
+    },
+    {
+      "path": "N02/stdout.raw",
+      "bytes": 33,
+      "mode": 420,
+      "sha256": "b72ae340e17944681cc0d4e884eab79d80a4727d2673f89ca77badf1b8fb7a8a"
+    },
+    {
+      "path": "N03/data/events.jsonl",
+      "bytes": 227,
+      "mode": 420,
+      "sha256": "d9554ede5b5280f9ac88cd671f9ee7d9181bc3e53c0aa6d06ace603991d13cbc"
+    },
+    {
+      "path": "N03/data/manifest.json",
+      "bytes": 1243,
+      "mode": 420,
+      "sha256": "0f549852838e908d1b0dfb1b34e767fd9559ed5dbb45e923e2dbd1ad7f052567"
+    },
+    {
+      "path": "N03/source/application.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "e04169509b28220e6a241f88ff976ec02301792475f2549114e7ea12c24710fc"
+    },
+    {
+      "path": "N03/source/bootstrap.mjs",
+      "bytes": 2200,
+      "mode": 420,
+      "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+    },
+    {
+      "path": "N03/source/consumer.mjs",
+      "bytes": 2098,
+      "mode": 420,
+      "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+    },
+    {
+      "path": "N03/source/loader.mjs",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+    },
+    {
+      "path": "N03/source/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "N03/stderr.raw",
+      "bytes": 780,
+      "mode": 420,
+      "sha256": "0096e14881043bb29d81d80289139d55d79c9922af3db03aa26a4daf7ff3c067"
+    },
+    {
+      "path": "N03/stdout.raw",
+      "bytes": 33,
+      "mode": 420,
+      "sha256": "177f3b5900bd5da82f66c90006e119ed5ed682ac8f9b3f8e1a51388fb0a403ec"
+    },
+    {
+      "path": "N04/data/events.jsonl",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "3e6462d1db545ad66b632aafec99491289091a81251ac6706735ca28904d53b5"
+    },
+    {
+      "path": "N04/data/manifest.json",
+      "bytes": 1242,
+      "mode": 420,
+      "sha256": "9f2b019fc736d0b8ebebfade5f14080190f015bbfa61361b8736b495d81efc9d"
+    },
+    {
+      "path": "N04/source/application.mjs",
+      "bytes": 106,
+      "mode": 420,
+      "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+    },
+    {
+      "path": "N04/source/bootstrap.mjs",
+      "bytes": 2200,
+      "mode": 420,
+      "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+    },
+    {
+      "path": "N04/source/consumer.mjs",
+      "bytes": 2098,
+      "mode": 420,
+      "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+    },
+    {
+      "path": "N04/source/loader.mjs",
+      "bytes": 270,
+      "mode": 420,
+      "sha256": "514d4b727cc82755a05d3bfb12c6b74a1abacaeec5417f1d4b224aed7f75a850"
+    },
+    {
+      "path": "N04/source/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "N04/stderr.raw",
+      "bytes": 1385,
+      "mode": 420,
+      "sha256": "d564f91769405d1a5f3eb0c853eab0b066d188995b943a248db31e8e77b1bd33"
+    },
+    {
+      "path": "N04/stdout.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "N05/data/events.jsonl",
+      "bytes": 460,
+      "mode": 420,
+      "sha256": "46021b0fe40e0927462fe345da4954ef2645b0b1b96d6044c9090e380c638b1e"
+    },
+    {
+      "path": "N05/data/manifest.json",
+      "bytes": 1243,
+      "mode": 420,
+      "sha256": "6f5b1d286856860f23bcb185c43c87bb151babdfb45f41fb280de1b54ab11d5b"
+    },
+    {
+      "path": "N05/source/application.mjs",
+      "bytes": 106,
+      "mode": 420,
+      "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+    },
+    {
+      "path": "N05/source/bootstrap.mjs",
+      "bytes": 2200,
+      "mode": 420,
+      "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+    },
+    {
+      "path": "N05/source/consumer.mjs",
+      "bytes": 2098,
+      "mode": 420,
+      "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+    },
+    {
+      "path": "N05/source/loader.mjs",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+    },
+    {
+      "path": "N05/source/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "N05/stderr.raw",
+      "bytes": 780,
+      "mode": 420,
+      "sha256": "f52971cb70209d789e21b21674078a04ca18ad493d404b42786e82adcb3b23a6"
+    },
+    {
+      "path": "N05/stdout.raw",
+      "bytes": 33,
+      "mode": 420,
+      "sha256": "11d240140659e09af61ca649ade78b75c95427459affcd289d990f76c00f442a"
+    },
+    {
+      "path": "N08/data/binding.json",
+      "bytes": 126,
+      "mode": 420,
+      "sha256": "44f26510f7814a3d6b8d93a4876f9a6c973d58cff002d25701d9a924c1385b0a"
+    },
+    {
+      "path": "N08/data/events.jsonl",
+      "bytes": 215,
+      "mode": 420,
+      "sha256": "a925a9bb7d620455cc94759ac219bca622302b7c628a2286e6ee1a580afe86c4"
+    },
+    {
+      "path": "N08/data/manifest.json",
+      "bytes": 1243,
+      "mode": 420,
+      "sha256": "9945289b899cb76d90bb3ca06ab6b93814e5e16174cc08737859d4437eeff371"
+    },
+    {
+      "path": "N08/source/application.mjs",
+      "bytes": 106,
+      "mode": 420,
+      "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+    },
+    {
+      "path": "N08/source/bootstrap.mjs",
+      "bytes": 4271,
+      "mode": 420,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "N08/source/consumer.mjs",
+      "bytes": 2098,
+      "mode": 420,
+      "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+    },
+    {
+      "path": "N08/source/loader.mjs",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+    },
+    {
+      "path": "N08/source/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "N08/stderr.raw",
+      "bytes": 780,
+      "mode": 420,
+      "sha256": "2216d60cbfb327cfb374100f4e2b01995238495c51142c759e46cf8616440aba"
+    },
+    {
+      "path": "N08/stdout.raw",
+      "bytes": 33,
+      "mode": 420,
+      "sha256": "f00d02e71a2edf3143496c6f60f5f7b30a586580a3a7cfc414df40b6331ff412"
+    },
+    {
+      "path": "R01/data/events.jsonl",
+      "bytes": 202,
+      "mode": 420,
+      "sha256": "1fd2c4671088bc7ab9b8a50c1169c382acaf22e1dca63d6ffe503833e01f1257"
+    },
+    {
+      "path": "R01/data/manifest.json",
+      "bytes": 1243,
+      "mode": 420,
+      "sha256": "9df8c8702c5186a4855828b6bcd6f8bcedd27339b80fa0ba6534e0a586c472a9"
+    },
+    {
+      "path": "R01/source/application.mjs",
+      "bytes": 106,
+      "mode": 420,
+      "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+    },
+    {
+      "path": "R01/source/bootstrap.mjs",
+      "bytes": 2200,
+      "mode": 420,
+      "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+    },
+    {
+      "path": "R01/source/consumer.mjs",
+      "bytes": 2726,
+      "mode": 420,
+      "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+    },
+    {
+      "path": "R01/source/loader.mjs",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+    },
+    {
+      "path": "R01/source/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "R01/stderr.raw",
+      "bytes": 780,
+      "mode": 420,
+      "sha256": "3c3eb2292e493834f840cc851251a2426d8dbdf9cfd1973159a88555e8283e80"
+    },
+    {
+      "path": "R01/stdout.raw",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "54389e188c3ef9a8c3cb7f033b27106b306df6f8bb0a2c5d01a22e644ac74a63"
+    },
+    {
+      "path": "R02/data/events.jsonl",
+      "bytes": 475,
+      "mode": 420,
+      "sha256": "30f7947c40f10df6023e14a25217c16f18062f2468eaf545c27f6aae02426deb"
+    },
+    {
+      "path": "R02/data/manifest.json",
+      "bytes": 1243,
+      "mode": 420,
+      "sha256": "839962753892017c815cdb439357e1c72c80e9c010776bc8117df1a888f7dc14"
+    },
+    {
+      "path": "R02/source/application.mjs",
+      "bytes": 106,
+      "mode": 420,
+      "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+    },
+    {
+      "path": "R02/source/bootstrap.mjs",
+      "bytes": 2200,
+      "mode": 420,
+      "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+    },
+    {
+      "path": "R02/source/consumer.mjs",
+      "bytes": 2726,
+      "mode": 420,
+      "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+    },
+    {
+      "path": "R02/source/loader.mjs",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+    },
+    {
+      "path": "R02/source/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "R02/stderr.raw",
+      "bytes": 780,
+      "mode": 420,
+      "sha256": "877069aec1d50e680f7b8a8acb6520e46f0b6c0555b93d92512a83f1967d5c60"
+    },
+    {
+      "path": "R02/stdout.raw",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "1e3f72a2e9c6d2e71c49bee1a742c5a090911e0dd177d41639c71c50524cb994"
+    },
+    {
+      "path": "R03/data/events.jsonl",
+      "bytes": 376,
+      "mode": 420,
+      "sha256": "2debff6508c4dcad9142e48df33bf37a5718910e7025d0aff381f82543bd31c0"
+    },
+    {
+      "path": "R03/data/manifest.json",
+      "bytes": 1242,
+      "mode": 420,
+      "sha256": "3316852b1cfa14a1eb4dec57bdba8c787a39c39c326fcbe7ffd8ea2e7f5eedcb"
+    },
+    {
+      "path": "R03/source/application.mjs",
+      "bytes": 38,
+      "mode": 420,
+      "sha256": "85a589494dba83523c5573e54ae2f783e2d64bf12a6d7dbd582ee7be98699e0a"
+    },
+    {
+      "path": "R03/source/bootstrap.mjs",
+      "bytes": 2200,
+      "mode": 420,
+      "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+    },
+    {
+      "path": "R03/source/consumer.mjs",
+      "bytes": 2726,
+      "mode": 420,
+      "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+    },
+    {
+      "path": "R03/source/loader.mjs",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+    },
+    {
+      "path": "R03/source/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "R03/stderr.raw",
+      "bytes": 202,
+      "mode": 420,
+      "sha256": "70d501ea12b3980de93505c5a5ff8bb61562b6b2a52c1b44cf514605c78aee30"
+    },
+    {
+      "path": "R03/stdout.raw",
+      "bytes": 69,
+      "mode": 420,
+      "sha256": "85a6ab233381aa5ac59f58fb9f673fb5d5c84a9e6a73e4b8cd848e8a63dc4a3d"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 45450,
+      "mode": 420,
+      "sha256": "512d57f2198ed4bb46371f261e313184ab24d29758dd9fd8dfab22b961b0ed32"
+    },
+    {
+      "path": "fixtures/admission.mjs",
+      "bytes": 1822,
+      "mode": 420,
+      "sha256": "4db8aafc983b238d79c3fe1dd5c7d056f1142d55e0e1745999ac04121b1277af"
+    },
+    {
+      "path": "fixtures/application-error.mjs",
+      "bytes": 38,
+      "mode": 420,
+      "sha256": "85a589494dba83523c5573e54ae2f783e2d64bf12a6d7dbd582ee7be98699e0a"
+    },
+    {
+      "path": "fixtures/application.mjs",
+      "bytes": 106,
+      "mode": 420,
+      "sha256": "32d26d7154583bd4b147f7850e69a1089db0a36556a1d72742932a70a1eb1646"
+    },
+    {
+      "path": "fixtures/bootstrap.mjs",
+      "bytes": 2200,
+      "mode": 420,
+      "sha256": "5ded1470645e6844af53c3a420ca84ae71d0dc02eaf8d8186760fc1e53c15047"
+    },
+    {
+      "path": "fixtures/consumer-v2.mjs",
+      "bytes": 2726,
+      "mode": 420,
+      "sha256": "53febdf9c29b4c16bd35547ee56e705659940435b2bca89a8ea1bc613dc94226"
+    },
+    {
+      "path": "fixtures/hash-regular-file.mjs",
+      "bytes": 1255,
+      "mode": 420,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7"
+    },
+    {
+      "path": "fixtures/internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "mode": 420,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+    },
+    {
+      "path": "fixtures/resources.mjs",
+      "bytes": 4271,
+      "mode": 420,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "fixtures/tiny-loader.mjs",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "f30999268546b4801ef57a1369674e33d5cfaff2d74dec500cb659bb4bfe4e01"
+    },
+    {
+      "path": "fixtures/worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "startup.raw",
+      "bytes": 126,
+      "mode": 420,
+      "sha256": "58d1b3c59663d8eca098f51106b36b94a48b4fee0ed5b797bd82edbbba65e5a2"
+    }
+  ],
+  "workingBytes": 143103,
+  "elapsedMs": 2180.19275,
+  "allChildrenClosed": true,
+  "independentInternalWorkerExitCensus": null
+}

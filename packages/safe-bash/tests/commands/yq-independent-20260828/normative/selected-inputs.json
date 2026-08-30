@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "scope": "eight selected authority/numeric files only; no whole-tree archive or candidate gate",
+  "initialHead": "c62662548c74832376ca4a84d19272ada356c053",
+  "inspectedHead": "16c4502da78ac209e8979d7bd576f2be5492f104",
+  "inspectedDate": "2026-08-28",
+  "fixedSource": { "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5", "parent": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909", "ancestorOfInspectedHead": false, "binding": "explicit authority/fixedSourceBaseline and authenticated selected numeric blob, not inferred ancestry" },
+  "ancestry": {
+    "historicalChain": ["270fedbe4f1fee6405dace72e6e18b22f358b5ce", "0b8064d21fa82d516160ee8cd7ac3808144d09fc", "e9db21578f51408df9b79fa4b32dbc21687a94a9", "b311c2364ceca13daab4086dfb21157b9b8ae856"],
+    "finalContract": "5783b8e03912f7774d2a86ba1dae9de778121273",
+    "rootAdoption": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+    "allAreAncestorsOfInspectedHead": true,
+    "historicalDoesNotOverrideAdditiveRootAdoption": true
+  },
+  "primary": { "url": "https://yaml.org/spec/1.2.2/", "revision": "1.2.2", "published": "2021-10-01", "accessed": "2026-08-28", "method": "web.run", "retainedSnapshot": false },
+  "files": [
+    { "commit": "5783b8e03912f7774d2a86ba1dae9de778121273", "path": "src/commands/yq/DESIGN.md", "gitBlob": "412950cddd31e11f0bf5ee30a8b0c1492f360929", "sha256": "2b0dab044c165a85e2b2ec23d542be3abe65a72f8cb667cb0eac6b7f704c3e4c", "bytes": 16363, "headIdenticalAtInspection": true, "worktreeIdenticalAtInspection": true },
+    { "commit": "b311c2364ceca13daab4086dfb21157b9b8ae856", "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md", "gitBlob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68", "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50", "bytes": 29498, "headIdenticalAtInspection": true, "worktreeIdenticalAtInspection": true },
+    { "commit": "b311c2364ceca13daab4086dfb21157b9b8ae856", "path": "tests/commands/yq-design-20260828/initial-profile-v1/decisions.json", "gitBlob": "cc7d8c342eda556a743196deb1a519e4b9be79e6", "sha256": "2d7e03e6e8e38020e62b96245ea95826208a400df19c106f0c3f857d4fa3d3fc", "bytes": 5381, "headIdenticalAtInspection": true, "worktreeIdenticalAtInspection": true },
+    { "commit": "5783b8e03912f7774d2a86ba1dae9de778121273", "path": "tests/commands/yq-design-20260828/final-contract-v1/README.md", "gitBlob": "a6550e0698ff588b5e2d4ca4289282793a6f4f32", "sha256": "14cee48cac1803f92432b4f7df8f3311514b12277357805945bd11156e8646ff", "bytes": 8158, "headIdenticalAtInspection": true, "worktreeIdenticalAtInspection": true },
+    { "commit": "5783b8e03912f7774d2a86ba1dae9de778121273", "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json", "gitBlob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81", "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8", "bytes": 37274, "headIdenticalAtInspection": true, "worktreeIdenticalAtInspection": true },
+    { "commit": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707", "path": "tests/commands/yq-design-20260828/final-adoption-v1/README.md", "gitBlob": "289cd87cbd208578f16b5411dd44501fb0d03f48", "sha256": "7e2f1a691409a09130f4cf2d539914eb76feab81d13c7cdc9f2c72d3a268c081", "bytes": 5128, "headIdenticalAtInspection": true, "worktreeIdenticalAtInspection": true },
+    { "commit": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707", "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json", "gitBlob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b", "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6", "bytes": 8461, "headIdenticalAtInspection": true, "worktreeIdenticalAtInspection": true },
+    { "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "path": "src/commands/structured/numbers.ts", "gitBlob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630", "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2", "bytes": 6091, "headIdenticalAtInspection": true, "worktreeIdenticalAtInspection": true }
+  ]
+}

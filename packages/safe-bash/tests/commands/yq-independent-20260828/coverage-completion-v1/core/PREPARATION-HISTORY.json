@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "entries": [
+    {
+      "id": "ROOT-PREP-01",
+      "reportedBy": "root user",
+      "status": "PREPARATION_ERROR_NOT_PRODUCT_FAILURE",
+      "commandEnvironment": "zsh variable path overwritten PATH in one coordination shell",
+      "observed": "sed/cat/git lookup failed exit127 before target activity",
+      "targetExecutions": 0,
+      "preserved": true
+    }
+  ],
+  "currentAuthorFailures": []
+}

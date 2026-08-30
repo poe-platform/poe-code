@@ -1,0 +1,23 @@
+{
+  "profile": "fresh independent coherent78-array cross-feature holdouts, frozen after author publication; no native claim",
+  "literal": [
+    {"id":"F01","script":"a=([2]=tail [0]=head); a=new; printf '<%s>\\n' \"${a[@]}\"","stdout":"<new>\n<tail>\n","exitCode":0},
+    {"id":"F02","script":"a=([7]=tail); printf '%s|%s|%s\\n' \"${a:=filled}\" \"${#a[@]}\" \"${a[7]}\"","stdout":"filled|2|tail\n","exitCode":0},
+    {"id":"F03","script":"a=([0]=first [2147483647]=last); unset 'a[2147483647]'; a+=(next); printf '%s\\n' \"${a[@]}\"","stdout":"first\nnext\n","exitCode":0},
+    {"id":"F04","script":"a=([0]=outer [8]=keep); f(){ local a; a=([3]=inner); printf '%s\\n' \"${a[@]}\"; }; f; printf '%s\\n' \"${a[@]}\"","stdout":"inner\nouter\nkeep\n","exitCode":0},
+    {"id":"F05","script":"a=(before); . /scripts/change; printf '%s|%s\\n' \"$a\" \"${a[4]}\"","stdout":"sourced|tail\n","exitCode":0},
+    {"id":"F06","script":"a=(parent); ( a[0]=sub; printf '%s\\n' \"$a\" ); value=$(a[0]=cmd; printf '%s' \"$a\"); printf '%s|%s\\n' \"$a\" \"$value\"","stdout":"sub\nparent|cmd\n","exitCode":0},
+    {"id":"F07","script":"a=([0]=kept [9]=tail); readonly a; a[0]=changed; printf '%s|%s|%s\\n' \"$?\" \"$a\" \"${a[9]}\"","stdout":"1|kept|tail\n","exitCode":0,"stderrContains":"readonly"},
+    {"id":"F08","script":"export KEEP=outer; a=(secret); env -i KEEP=child printenv KEEP; printf '%s|%s\\n' \"$KEEP\" \"$a\"","stdout":"child\nouter|secret\n","exitCode":0},
+    {"id":"F09","script":"let 'n=2'; a[2]=value; getopts 'ab:' flag -b beta; printf '%s|%s|%s|%s\\n' \"$n\" \"$flag\" \"$OPTARG\" \"${a[2]}\"","stdout":"2|b|beta|value\n","exitCode":0},
+    {"id":"F10","script":"shopt -s dotglob; a=(*); shopt -u dotglob; printf '%s\\n' \"${a[@]}\"; printf '%s\\n' *","stdout":".dot\na.txt\na.txt\n","exitCode":0},
+    {"id":"F11","script":"a=(stable); CDPATH=/search; cd project >/dev/null; pushd /w >/dev/null; popd >/dev/null; printf '%s|%s\\n' \"$PWD\" \"$a\"","stdout":"/search/project|stable\n","exitCode":0},
+    {"id":"F12","script":"a=('\"雪😀é\"'); printf '%s\\n' \"${a[@]}\" | jq 'length'","stdout":"4\n","exitCode":0},
+    {"id":"F13","script":"a=(left right); b=(x y); printf '<%s>\\n' \"${a[@]}:${b[@]}\"","stdout":"<left>\n<right:x>\n<y>\n","exitCode":0},
+    {"id":"F14","script":"a=([1]=x [9]=y); test \"${#a[@]}\" -eq 2 && printf yes || printf no; printf '\\n'","stdout":"yes\n","exitCode":0},
+    {"id":"F15","script":"a=(root); f(){ local a; a=(\"$@\"); printf '%s|%s|%s\\n' \"${#a[@]}\" \"${a[0]}\" \"${a[1]}\"; }; f x 'y z'; printf '%s\\n' \"$a\"","stdout":"2|x|y z\nroot\n","exitCode":0},
+    {"id":"F16","script":"a=(); b=(); printf '[%s]\\n' \"${a[@]}${b[@]}\"; printf '[%s]\\n' \"\"\"${a[@]}${b[@]}\"","stdout":"[]\n[]\n","exitCode":0,"qualification":"printf emits its format once even with zero arguments; separate argument-count capture is D07"}
+  ],
+  "dynamic": ["D00-registry","D01-invoke","D02-shared-limit","D03-preabort","D04-curl-jq","D05-timeout-curl","D06-backpressure","D07-empty-argv"],
+  "files": {"/w/.dot":"hidden","/w/a.txt":"visible","/scripts/change":"a=([0]=sourced [4]=tail)\n"}
+}

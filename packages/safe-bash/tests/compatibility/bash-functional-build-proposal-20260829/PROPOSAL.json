@@ -1,0 +1,158 @@
+{
+  "id": "FUNCTIONAL-GNU-BASH-5.3.15-TRUSTED-HOST-PROPOSAL-v1",
+  "status": "SOURCE_DATA_ONLY_ALL_FUTURE_EXECUTION_UNRUN",
+  "date": "2026-08-29",
+  "separateFrom": "P2 ff2ebe449eacdfa40763fa0041db7fc0d59d678f PAUSED; no containment or old failure rescore",
+  "paths": {
+    "proposedFreshRoot": "/private/tmp/safe-bash-functional-reference-20260829-01",
+    "possibleAlias": "/tmp/safe-bash-functional-reference-20260829-01",
+    "canonicalAdmission": "UNRUN; lstat/realpath exact parents, refuse any existing root or unapproved alias",
+    "source": "/private/tmp/safe-bash-functional-reference-20260829-01/source",
+    "build": "/private/tmp/safe-bash-functional-reference-20260829-01/build",
+    "home": "/private/tmp/safe-bash-functional-reference-20260829-01/home",
+    "tmp": "/private/tmp/safe-bash-functional-reference-20260829-01/tmp",
+    "cache": "/private/tmp/safe-bash-functional-reference-20260829-01/cache",
+    "bin": "/private/tmp/safe-bash-functional-reference-20260829-01/bin",
+    "out": "/private/tmp/safe-bash-functional-reference-20260829-01/out",
+    "capture": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-functional-build-proposal-20260829/runs/functional-01",
+    "retainedSourceReadOnly": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3"
+  },
+  "environment": {
+    "construction": "empty map plus exactly these literal keys; no inheritance",
+    "values": {
+      "HOME": "/private/tmp/safe-bash-functional-reference-20260829-01/home",
+      "TMPDIR": "/private/tmp/safe-bash-functional-reference-20260829-01/tmp",
+      "PATH": "/private/tmp/safe-bash-functional-reference-20260829-01/bin",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "TERM": "dumb",
+      "CONFIG_SITE": "/dev/null",
+      "CONFIG_SHELL": "/bin/sh",
+      "SHELL": "/bin/sh",
+      "CC": "/Library/Developer/CommandLineTools/usr/bin/clang -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/21 --ld-path=/Library/Developer/CommandLineTools/usr/bin/ld -mmacosx-version-min=26.4",
+      "CC_FOR_BUILD": "/Library/Developer/CommandLineTools/usr/bin/clang -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/21 --ld-path=/Library/Developer/CommandLineTools/usr/bin/ld -mmacosx-version-min=26.4",
+      "CFLAGS": "-O2",
+      "CFLAGS_FOR_BUILD": "-O2",
+      "AR": "/Library/Developer/CommandLineTools/usr/bin/ar",
+      "RANLIB": "/Library/Developer/CommandLineTools/usr/bin/ranlib",
+      "MAKE": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "SDKROOT": "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk",
+      "DEVELOPER_DIR": "/Library/Developer/CommandLineTools",
+      "MACOSX_DEPLOYMENT_TARGET": "26.4",
+      "TMP": "/private/tmp/safe-bash-functional-reference-20260829-01/tmp",
+      "TEMP": "/private/tmp/safe-bash-functional-reference-20260829-01/tmp",
+      "PWD": "/private/tmp/safe-bash-functional-reference-20260829-01/build",
+      "XDG_CACHE_HOME": "/private/tmp/safe-bash-functional-reference-20260829-01/cache",
+      "CLANG_MODULE_CACHE_PATH": "/private/tmp/safe-bash-functional-reference-20260829-01/cache/clang-modules",
+      "HISTFILE": "/dev/null"
+    },
+    "notProof": "cache variables express intended locations, not prevention of implicit trusted tool/OS access"
+  },
+  "io": {
+    "stdin": "/dev/null",
+    "stdout": "parent-owned finite raw collector",
+    "stderr": "separate parent-owned finite raw collector",
+    "tty": false
+  },
+  "source": {
+    "acquisitionCommit": "822e82a70dfebc071d3b6e27bc78967afa40a993",
+    "signatureCommit": "fe5d87a215310cbe847bee99bbe3c7650aa3f6e3",
+    "sourceCommit": "efcd8b49a63ceb4276ae9d075da59bfb027b3510",
+    "closureCommit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+    "archiveSha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+    "archiveBytes": 11355854,
+    "signingPrimaryFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+    "finalInventorySha256": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+    "finalMembers": 1602,
+    "patchlevel": 15,
+    "buildNowAuthorized": false
+  },
+  "commands": [
+    {
+      "id": "CONFIGURE",
+      "executable": "/bin/sh",
+      "argv": [
+        "/private/tmp/safe-bash-functional-reference-20260829-01/source/configure",
+        "--prefix=/private/tmp/safe-bash-functional-reference-20260829-01/out",
+        "--cache-file=/dev/null"
+      ],
+      "cwd": "/private/tmp/safe-bash-functional-reference-20260829-01/build",
+      "status": "UNRUN"
+    },
+    {
+      "id": "MAKE",
+      "executable": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "argv": [
+        "-j1",
+        "bash"
+      ],
+      "cwd": "/private/tmp/safe-bash-functional-reference-20260829-01/build",
+      "status": "UNRUN"
+    },
+    {
+      "id": "VERSION",
+      "executable": "/private/tmp/safe-bash-functional-reference-20260829-01/out/bash-5.3.15",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "--version"
+      ],
+      "cwd": "/private/tmp/safe-bash-functional-reference-20260829-01/build",
+      "deadlineMs": 3000,
+      "perStreamBytes": 65536,
+      "status": "UNRUN_SEPARATE_OUTPUT_AUTHENTICATION_REQUIRED"
+    }
+  ],
+  "startupWrapperProposal": {
+    "executable": "/bin/sh",
+    "argvPrefix": [
+      "-c",
+      "umask 077; ulimit -c 0 || exit 125; exec \"$@\"",
+      "functional-build-phase"
+    ],
+    "remainingArgv": "literal phase executable then argv, not interpolated user text",
+    "groupCreation": "future reviewed external owner creates a dedicated session/PGID; wrapper remains in it",
+    "status": "UNIMPLEMENTED_UNRUN; must be separately sealed with owner before approval"
+  },
+  "futureResourceRequest": {
+    "approved": false,
+    "ownerEntryToRetirementWallSeconds": 2700,
+    "phasesSeconds": {
+      "sourceAndToolAdmission": 300,
+      "ownerQualification": 240,
+      "configure": 900,
+      "make": 900,
+      "outputMetadataVersion": 60,
+      "cleanupPublication": 300
+    },
+    "directOwnedStartsMax": 48,
+    "directOwnerAndPhasePeakMax": 3,
+    "transitiveStarts": "UNMEASURED_NOT_HARD_CAPPED; old 16384 is not an enforced reservation here",
+    "transitivePeak": "UNMEASURED_NOT_HARD_CAPPED; make -j1 is job scheduling only",
+    "combinedCollectedCaptureBytes": 134217728,
+    "generalPerStreamBytes": 8388608,
+    "logicalWorkStopThresholdBytes": 2147483648,
+    "workThresholdEnforcement": "parent census/stop with possible overshoot, not a filesystem quota",
+    "termGraceMs": 2000,
+    "afterKillObservationMs": 5000,
+    "unknownRetirement": "HOLD; retain ownership/evidence and request intervention, never clean or auto-retry",
+    "retries": 0
+  },
+  "blockedBeforeLaunch": [
+    "fresh ROOT functional-profile approval and explicit require_escalated tool approval",
+    "self-contained reviewed owner/watchdog/capture/cleanup code, hashes and literal launch still absent",
+    "full source/authority and selected host tools reauthenticated before copy or any inflation",
+    "finite additional direct absolute utility selection and source mtime policy sealed",
+    "trusted SDK/resource/system-image read boundary accepted explicitly, not whole-image authentication",
+    "generated configure/make execution approved as authenticated-source recipe trust, not per-generation prehash enforcement",
+    "exact environment, aliases, stdin/capture and fresh physical paths admitted; no unexpected platform injection silently accepted"
+  ],
+  "prohibited": [
+    "configure/make/compiler/version/Worker/native execution under current grant",
+    "network/install/docs/tests/product fallback/source vendoring",
+    "private/user startup reads or requested private access",
+    "resuming P2 or claiming repair of old fenced SIGABRT",
+    "new SDK census/host tool probes in this proposal"
+  ]
+}

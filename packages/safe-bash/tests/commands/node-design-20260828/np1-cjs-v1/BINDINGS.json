@@ -1,0 +1,794 @@
+{
+  "schema": "np1-cjs-contract-bindings-v1",
+  "date": "2026-08-28",
+  "classification": "normative candidate contract data; no code, implementation, execution or review approval",
+  "profile": "virtual-node-np1-cjs-v1",
+  "status": "CANDIDATE_FOR_DIFFERENT_REVIEW",
+  "authority": {
+    "rootTranscript": "Current user message after coherent checkpoint5aeb915c: explicit NP1-CJS slice, genuine sync+promise text VFS, deny-default grants, optional qualifying provider, owned append-only contract scope. Transcript is authority, not a fabricated commit.",
+    "settledChoicesNotReopened": [
+      "CJS-first",
+      "optional injected qualifying provider",
+      "host-supplied version-bound private ABI permitted",
+      "zero core/command runtime dependencies",
+      "no fallback/autoload/private modifications",
+      "deny writes absent grant",
+      "bridge freeze; no bridge review/run in this task"
+    ]
+  },
+  "sourceBindings": [
+    {
+      "id": "A1",
+      "classification": "frozen historical design; unexecuted",
+      "commit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+      "path": "tests/commands/node-design-20260828/DESIGN.md",
+      "blob": "008fa0b65b5a6fc2d402d6f3dffaced42fa2322e",
+      "bytes": 27683,
+      "sha256": "9bbf453d02d9c880a6a4208192953773398e1fabde00e8c71046663eda111439",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "A2",
+      "classification": "frozen historical design; unexecuted",
+      "commit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+      "path": "tests/commands/node-design-20260828/CASES.json",
+      "blob": "e4f75064c6089314e4ba03d47fd29ccf7c838da1",
+      "bytes": 22046,
+      "sha256": "c4bc4898f4c3935dde7cd31ec1559d76a5fcba82073a87823889de7d3744c583",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "A3",
+      "classification": "frozen historical design; unexecuted",
+      "commit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+      "path": "tests/commands/node-design-20260828/SOURCES.json",
+      "blob": "766e96d5105dd1f3b99cbc8dbaa14df68b1fd039",
+      "bytes": 22419,
+      "sha256": "5157ebbf789cc9af2af8c67abb81f60d3d226d9e8560bf97a90fdcb0d2702366",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "A4",
+      "classification": "frozen source correction; no engine rereview",
+      "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+      "path": "tests/commands/node-design-20260828/source-feasibility-v1/REPORT.md",
+      "blob": "0e9957767c8b759934880ca92969918a5d0d4022",
+      "bytes": 7689,
+      "sha256": "15ae1a5bdee2431f987d52359d5d353b9a1cbab6a8ed5808ea692ab0af8e7837",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "A5",
+      "classification": "frozen source correction; no engine rereview",
+      "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+      "path": "tests/commands/node-design-20260828/source-feasibility-v1/SOURCES.json",
+      "blob": "48bd958dcaefb94f497faef79384cfe29bff31b9",
+      "bytes": 14535,
+      "sha256": "f7e75197fb97ff055612f3ecced0a6f2d441a5b9b0ffd1c438b2ef7841edd2ec",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "R1",
+      "classification": "independent HOLD; read only",
+      "commit": "4362f91f98f2a8b56683a3a33e9fb582153af416",
+      "path": "tests/commands/node-independent-20260828/REVIEW.md",
+      "blob": "b44cc79274d69af2f7869bc396c5ebccdc09719e",
+      "bytes": 15603,
+      "sha256": "5b30be4312f90c327e572d32a9b7809ec66530be8a346058b3b3b647661e3a92",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "R2",
+      "classification": "independent HOLD; read only",
+      "commit": "4362f91f98f2a8b56683a3a33e9fb582153af416",
+      "path": "tests/commands/node-independent-20260828/HOLDOUTS.json",
+      "blob": "1a61d4e00bdc5875d5210e98830b7536e16db460",
+      "bytes": 20295,
+      "sha256": "6a4a9c5925b8565cd4e56107b5127ec14fd5a28e913f0b533dff629c94cd79d8",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "R3",
+      "classification": "independent HOLD; read only",
+      "commit": "4362f91f98f2a8b56683a3a33e9fb582153af416",
+      "path": "tests/commands/node-independent-20260828/SOURCES.json",
+      "blob": "9cc7ce4e0eba14d50fe9d540b3e3ab541326381b",
+      "bytes": 11859,
+      "sha256": "b73e0257174305ff9fe229c87e3414b7d48ea7ba4b71ea9fdbface34248cca78",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "R4",
+      "classification": "independent HOLD; read only",
+      "commit": "4362f91f98f2a8b56683a3a33e9fb582153af416",
+      "path": "tests/commands/node-independent-20260828/SEAL.json",
+      "blob": "e5a17956a2954c8b9a94576cecf47c450cc1662a",
+      "bytes": 1248,
+      "sha256": "48857cc538e401da3976e32da86ce18a21243d57ad41c39601a54c4ad71746a3",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "R5",
+      "classification": "committed independent root-selection record; not signoff",
+      "commit": "85aff4ff877c2b25e4cd7e4c2a21a240dcc3247a",
+      "path": "tests/commands/node-independent-20260828/ROOT-SELECTION-NP1-CJS-V1.md",
+      "blob": "2ba3fb2c2529ec358ba6fe75845fdda5495f1c34",
+      "bytes": 6960,
+      "sha256": "e61ca7a3646fc152292ee3defe0ca0a981b6ced7ab62a29e65f5a52825274ad1",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "R6",
+      "classification": "committed independent root-selection record; not signoff",
+      "commit": "85aff4ff877c2b25e4cd7e4c2a21a240dcc3247a",
+      "path": "tests/commands/node-independent-20260828/ROOT-SELECTION-NP1-CJS-V1.json",
+      "blob": "b58657e3c3b7f55d74083cba5e0a5198e8b32afe",
+      "bytes": 2121,
+      "sha256": "a1e029592bee83196a4e0c6c701abcda55fd9a4028e93f262238b94a7042b275",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L1",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "src/contracts/command.ts",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L2",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "src/contracts/filesystem.ts",
+      "blob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "bytes": 3897,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L3",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "src/contracts/output.ts",
+      "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L4",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "src/contracts/errors.ts",
+      "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L5",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "src/shell/runtime.ts",
+      "blob": "7660086a09c9dedbdd86bd15ae10ea729886654e",
+      "bytes": 195094,
+      "sha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L6",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "src/shell/types.ts",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L7",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "src/contracts/io.ts",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L8",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "AGENTS.md",
+      "blob": "35e03362f6313c2cfc13342d2675100be12a573c",
+      "bytes": 14250,
+      "sha256": "e6a7bca2ab72cc8e4448a67cc315dda84a1823d3b32214360697157a274626e6",
+      "liveMatchesInspectedCommit": true
+    },
+    {
+      "id": "L9",
+      "classification": "live-inspected source bound to matching blob; NOT accepted product baseline",
+      "commit": "4dadc2a0a33bee1ce1d2daea99678e2a8a6ffa1a",
+      "path": "docs/COMMAND_PRIORITIES.md",
+      "blob": "ac013c74a47e9a374ff162708f602c7ff97a942e",
+      "bytes": 16839,
+      "sha256": "713d89f0f03223dcc5c0d5a4f9151754c3b79fc065770f019035cf6774e4e048",
+      "liveMatchesInspectedCommit": true
+    }
+  ],
+  "officialBaseline": [
+    {
+      "id": "D1",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/cli.html",
+      "version": "v22.15.0",
+      "retrievedDate": "2026-08-28",
+      "sections": "eval/print/stdin, input-type and entry selection",
+      "rawPageSha256": null,
+      "qualification": "official primary web inspection; no byte capture or native oracle"
+    },
+    {
+      "id": "D2",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/fs.html",
+      "version": "v22.15.0",
+      "retrievedDate": "2026-08-28",
+      "sections": "text overloads; w/wx; promise ordering",
+      "rawPageSha256": null,
+      "qualification": "official primary web inspection; no byte capture or native oracle"
+    },
+    {
+      "id": "D3",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/path.html",
+      "version": "v22.15.0",
+      "retrievedDate": "2026-08-28",
+      "sections": "POSIX normalization and resolution",
+      "rawPageSha256": null,
+      "qualification": "official primary web inspection; no byte capture or native oracle"
+    },
+    {
+      "id": "D4",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/modules.html",
+      "version": "v22.15.0",
+      "retrievedDate": "2026-08-28",
+      "sections": "CommonJS JSON and cache",
+      "rawPageSha256": null,
+      "qualification": "official primary web inspection; no byte capture or native oracle"
+    },
+    {
+      "id": "D5",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/process.html",
+      "version": "v22.15.0",
+      "retrievedDate": "2026-08-28",
+      "sections": "argv/env/exitCode and process I/O",
+      "rawPageSha256": null,
+      "qualification": "official primary web inspection; no byte capture or native oracle"
+    },
+    {
+      "id": "D6",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/stream.html",
+      "version": "v22.15.0",
+      "retrievedDate": "2026-08-28",
+      "sections": "write return/backpressure",
+      "rawPageSha256": null,
+      "qualification": "official primary web inspection; no byte capture or native oracle"
+    },
+    {
+      "id": "D7",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/buffer.html",
+      "version": "v22.15.0",
+      "retrievedDate": "2026-08-28",
+      "sections": "UTF8 replacement; no Buffer offered",
+      "rawPageSha256": null,
+      "qualification": "official primary web inspection; no byte capture or native oracle"
+    },
+    {
+      "id": "D8",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.15.0/lib/internal/modules/cjs/loader.js",
+      "retrievedDate": "2026-08-28",
+      "lines": "1783-1791",
+      "function": "Module._extensions['.json'] / JSONParse(stripBOM(content))",
+      "rawPageSha256": null,
+      "qualification": "official primary source inspection only"
+    }
+  ],
+  "bridgeHistoryOnly": {
+    "codeFreezeCommit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+    "handoffCommit": "5aeb915c39612a0e04021818af1251e8f3d78973",
+    "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "scopeReadOrChangedInThisTask": false,
+    "claim": "Independent source/ABI preparation only; no NP1-CJS/CLI/liveness/allocation acceptance. No new source/static review of bridge."
+  },
+  "schemas": {
+    "notation": "All listed fields required, only explicitly optional fields may be absent. Unions exact by kind/op. Strings own primitive data; uN is safe integer in stated range. Ref is an opaque registry-issued object, additionally session/provenance checked, not a forgeable label. Records have no symbol/extra/inherited enumerable fields; own accessors and array holes/extras reject without getter invocation. Cross-realm prototype identity is not checked. No undefined except named alternatives; unknown reason is host-only and presence is mandatory.",
+    "Grants": {
+      "optionalBooleanKeys": [
+        "sourceRead",
+        "dataRead",
+        "dataWrite",
+        "jsonModules",
+        "stdinRead",
+        "stdoutWrite",
+        "stderrWrite"
+      ],
+      "omitted": "all false",
+      "presentUndefined": "invalid configuration before source",
+      "extraOrInheritedKeys": "TypeError NP1-CJS protocol: Grants"
+    },
+    "Limits": "Exact numeric own keys in caps; omitted argument uses entire table; present record contains every key with finite nonnegative safe integer <= default (positive structural capacities). No unknown/undefined values, no per-call mutation; separately named reduced-limit cases are explicit.",
+    "Entry": {
+      "kind": "eval|print|cjs|stdin",
+      "label": "<eval>|<print>|-|canonical absolute .cjs path; must correspond to kind",
+      "source": "normalized UTF16 guest source; UTF8 <=sourceBytes",
+      "sourceSha256": "64 lowercase hex of UTF8 normalized source",
+      "rawSha256": "64 lowercase hex of selected original UTF8 bytes",
+      "base": "fixed canonical virtual entry directory or invocation cwd",
+      "session": "issued session Ref"
+    },
+    "InvocationState": {
+      "cwd": "absolute normalized virtual path",
+      "argv": "dense string array <=argvEntries; exact CLI layout",
+      "env": "own string data record <=envEntries; keys nonempty, no NUL or =",
+      "exitCode": "undefined|integer0..255"
+    },
+    "HostRequest": [
+      {
+        "op": "readText",
+        "path": "nonempty string <=pathBytes; no NUL/scheme",
+        "encoding": "utf8"
+      },
+      {
+        "op": "writeText",
+        "path": "nonempty bounded string",
+        "text": "string",
+        "encoding": "utf8",
+        "flag": "w|wx"
+      },
+      {
+        "op": "readStdin",
+        "encoding": "utf8"
+      },
+      {
+        "op": "resolveJson",
+        "specifier": "explicit ./ or ../ or absolute .json bounded string"
+      },
+      {
+        "op": "readJson",
+        "target": "session-issued TargetRef, never a path guessed by provider"
+      },
+      {
+        "op": "writeOutput",
+        "fd": "1|2",
+        "text": "string"
+      }
+    ],
+    "TargetRef": "Host opaque canonical target bound to actual namespace, session, invocation base, json purpose and authority; does not grant a stale lease or permit path/symlink races. readJson reauthorizes actual resource or refuses. Never exposed to guest.",
+    "sourceAcquisition": "Command-owned sourceFile(path) or sourceStdin(), not provider channel requests; Entry receives already admitted source. Both share input/operation ledgers and cleanup. Provider cannot request sourceRead as a data bypass.",
+    "HostReply": [
+      {
+        "kind": "text",
+        "text": "bounded string; no raw host buffer/Promise exposed"
+      },
+      {
+        "kind": "target",
+        "target": "issued TargetRef",
+        "canonicalPath": "bounded absolute virtual path"
+      },
+      {
+        "kind": "void"
+      },
+      {
+        "kind": "guest-error",
+        "error": "GuestDiagnostic"
+      },
+      {
+        "kind": "control",
+        "origin": "caller|execution|local|destination",
+        "reason": "unknown; own field required including undefined"
+      }
+    ],
+    "GuestDiagnostic": {
+      "name": "Error|TypeError|RangeError|SyntaxError|ReferenceError",
+      "code": "one of diagnosticCodes or fsCodes",
+      "detail": "bounded string <=diagnosticTextUnits, rendered only by templates",
+      "path": "absent or bounded virtual path; explicit undefined invalid",
+      "syscall": "absent or readFile|writeFile|resolveJson; explicit undefined invalid"
+    },
+    "Outcome": [
+      {
+        "kind": "complete",
+        "exitCode": "integer0..255",
+        "completion": "session-issued GuestValueRef"
+      },
+      {
+        "kind": "guest-error",
+        "error": "GuestDiagnostic"
+      },
+      {
+        "kind": "control",
+        "origin": "caller|execution|local|destination",
+        "reason": "unknown; required, may be undefined"
+      }
+    ],
+    "Quiescence": {
+      "kind": "quiescent",
+      "activeFrames": 0,
+      "runnableJobs": 0,
+      "pendingPromises": 0,
+      "pendingHostOperations": 0,
+      "unhandledRejections": 0,
+      "accounting": "session-issued witnessed LedgerRef; not self-certification by zero fields",
+      "finalOutcome": "complete Outcome with final exitCode after all jobs; completion Ref is the same top-level value, not a second print request"
+    },
+    "PrimarySelection": [
+      {
+        "present": false
+      },
+      {
+        "present": true,
+        "origin": "caller|execution|local|destination|guest",
+        "reason": "unknown including undefined"
+      }
+    ],
+    "identityAcceptance": "Exact engine/build/adapter/entry/source/tool closure hashes plus actual same-engine factory/evaluator/cache/job/retirement witnesses; labels alone insufficient; prior-session/foreign-entry/ref/channel rejected before acquisition.",
+    "GuestArguments": "Dense own-data array, length0..16, no extra/symbol/accessor/inherited index; values are validated same-session guest values, and undefined only where the chosen exact overload allows it. A hole is not an explicit undefined handler/replacer.",
+    "protocolSchemaNames": [
+      "Grants",
+      "Limits",
+      "Entry",
+      "InvocationState",
+      "HostRequest",
+      "HostReply",
+      "GuestDiagnostic",
+      "Outcome",
+      "Quiescence",
+      "GuestArguments",
+      "ProviderIdentity",
+      "PreparedEntryRef",
+      "GuestValueRef",
+      "TargetRef",
+      "Session",
+      "InvocationScope",
+      "HostChannel",
+      "ReservationRef"
+    ],
+    "validationOrder": "Validate enclosing schema first, then issued-reference/session provenance; use that first failing exact schema name in protocol diagnostic. HostRequest path descriptor before value; never invoke getters or coercion."
+  },
+  "caps": {
+    "argvEntries": 256,
+    "envEntries": 128,
+    "envKeyUtf8Bytes": 128,
+    "contextBytes": 65536,
+    "contextMemberUtf16Units": 16384,
+    "pathBytes": 4096,
+    "pathComponents": 128,
+    "symlinkHops": 16,
+    "sourceBytes": 262144,
+    "parserTokens": 65536,
+    "parserNesting": 128,
+    "steps": 100000,
+    "callDepth": 128,
+    "builtinWorkUnits": 8388608,
+    "retainedGuestBytes": 8388608,
+    "cumulativeGuestAllocationBytes": 33554432,
+    "guestStringUtf16Units": 1048576,
+    "containerEntries": 65536,
+    "guestNodes": 65536,
+    "cacheEntries": 32,
+    "cacheTextBytes": 1048576,
+    "pendingJobs": 32,
+    "pendingHostOperations": 16,
+    "scheduledJobs": 4096,
+    "requestAttempts": 1024,
+    "hostCalls": 1024,
+    "stdinBytes": 1048576,
+    "perReadBytes": 1048576,
+    "aggregateReadBytes": 4194304,
+    "perWriteBytes": 1048576,
+    "aggregateWriteBytes": 4194304,
+    "combinedOutputBytes": 1048576,
+    "chunkBytes": 65536,
+    "diagnosticBytes": 1024,
+    "diagnosticTextUnits": 256,
+    "deadlineMs": 5000
+  },
+  "accounting": [
+    {
+      "resource": "context",
+      "units": "UTF8 bytes of tail argv strings, env keys/values and cwd; arrays/records additionally counted",
+      "reserve": "descriptor/count/UTF16 upper bound before owned copying; scan bounded strings for UTF8 length before encoding",
+      "debit": "contextBytes once, guest graph on materialization; command selector source separately sourceBytes",
+      "release": "host scratch only after owned-copy retirement; no cumulative refund"
+    },
+    {
+      "resource": "source/parse",
+      "units": "source UTF8 bytes including initial BOM; tokens emitted; parser nesting; AST 64 logical bytes/node",
+      "reserve": "before read/decode/token/AST allocation; each next token/node charged",
+      "debit": "sourceBytes AND aggregateReadBytes, whether inline/file/stdin; tokens independent of guest steps; UTF16 source scratch <=2*sourceBytes",
+      "release": "parser scratch after prepare; retained PreparedEntry source/AST stays charged until close"
+    },
+    {
+      "resource": "input",
+      "units": "raw bytes including BOM and malformed bytes, <=chunkBytes per producer chunk",
+      "reserve": "perReadBytes or stdinBytes and remaining aggregate before acquisition; source further sourceBytes; bounded read attestation mandatory",
+      "debit": "actual received bytes; reserve decoded worst-case2 UTF16 units per raw byte before guest copies; reuse owned chunks only",
+      "release": "unused reservation after observed settlement; failed partial reads remain counted"
+    },
+    {
+      "resource": "paths/resolution",
+      "units": "UTF8 bytes/components/hops; requests and actual underlying metadata/content calls",
+      "reserve": "before normalization/allocation; pathComponents<=128, symlinkHops<=16; authority before actual target metadata",
+      "debit": "all valid attempts incl deny/failure/cache-hit; every actual adapter subcall hostCalls; builtinWork per scanned unit",
+      "release": "no reset; zero package-search calls, not a free metadata channel"
+    },
+    {
+      "resource": "guest graph",
+      "units": "seed builtins65536 bytes/128 nodes; each object/array/error64 bytes; each property32+keyUTF16*2+value cell8; each string payload UTF16*2; array length64+8 per slot (no duplicate named-index charge); closure64+8 per captured reference; Promise96+32 per reaction",
+      "reserve": "before creation/copy/property insertion/mutation/closure/reaction/error; graph aliases count referenced object once but each reference cell counts; primitive/string slots conservatively counted by value",
+      "debit": "Current live+reserved retainedGuestBytes bounded; highwater separately observed, cumulativeGuestAllocationBytes monotonic; guestNodes unique objects; cache graph participates, no intrinsic bypass exemption",
+      "release": "only when proven no owned guest/root/cache/job references remain; uncertainty retains charge; overwrite releases proven old slot, not old aliased object; no claimed RSS bound"
+    },
+    {
+      "resource": "JSON/cache",
+      "units": "cache entries, unique first-load raw text bytes, graph units, traversal work and recursion",
+      "reserve": "free cache slot before cache-miss content read; total cacheTextBytes before read; scan/validate incrementally before output allocation; each edge/code unit work debit; cycles tracked",
+      "debit": "first successful cache identity retained; failed loads input/work remain charged, unused cache slot released; mutations use graph ledger; JSON.parse/stringify depth<=callDepth",
+      "release": "cache texts may retire, but cumulative cacheTextBytes never refunds; aliases consume no extra cache entry"
+    },
+    {
+      "resource": "execution/jobs",
+      "units": "one step before each AST evaluation and guest callback entry; builtin unit per examined code unit/graph edge; call depth before push; one scheduledJob per reaction/async continuation enqueue",
+      "reserve": "before enqueue and each dispatch; all unresolved guest Promises count pendingJobs, incl discarded ones; each provider host acquisition counts pendingHostOperations",
+      "debit": "same instance ledger across ordinary calls/await/callbacks/modules/failed attempts; synchronous native-Promise bridge holds guest turn",
+      "release": "live pending counters only after actual settlement or witnessed terminal retirement; cumulative steps/jobs/work never reset"
+    },
+    {
+      "resource": "write/output",
+      "units": "UTF8 bytes pre-counted without allocated encoding; lone surrogate3 bytes",
+      "reserve": "whole operation against perWrite/aggregateWrite or combinedOutput, and encoding scratch, before mutator/sink",
+      "debit": "admitted write bytes remain charged on partial failure; diagnostics count; shared Shell sink charges actual publication once",
+      "release": "unused reservations only if no operation admitted; no rollback of completed effects"
+    },
+    {
+      "resource": "control/cleanup",
+      "units": "deadline elapsed monotonic milliseconds from before provider create; finite already-admitted operations",
+      "reserve": "root cleanup registration before create/prepare/output/source allocation; failure-selection scratch1024 bytes reserved once within retained budget",
+      "debit": "deadline checked per admission/dispatch; never extended by await; deterministic controls may advance supplied test clock in future separately authorized qualification",
+      "release": "close admission immediately; same idempotent barrier awaits all owned cooperative work; no wall-time cap claim for uncooperative cleanup"
+    }
+  ],
+  "diagnosticCodes": [
+    "ERR_VNODE_USAGE",
+    "ERR_VNODE_UNSUPPORTED",
+    "ERR_VNODE_DENIED",
+    "ERR_VNODE_PROVIDER",
+    "ERR_VNODE_LIMIT",
+    "ERR_VNODE_SYNTAX",
+    "ERR_VNODE_GUEST"
+  ],
+  "fsCodes": [
+    "EACCES",
+    "EAGAIN",
+    "EBADF",
+    "EBUSY",
+    "ECANCELED",
+    "EEXIST",
+    "EFBIG",
+    "EINTR",
+    "EINVAL",
+    "EIO",
+    "EISDIR",
+    "ELOOP",
+    "EMFILE",
+    "ENAMETOOLONG",
+    "ENFILE",
+    "ENOENT",
+    "ENOMEM",
+    "ENOSPC",
+    "ENOSYS",
+    "ENOTDIR",
+    "ENOTEMPTY",
+    "ENOTSUP",
+    "EOPNOTSUPP",
+    "EPERM",
+    "EPIPE",
+    "EROFS",
+    "ETIMEDOUT",
+    "EXDEV"
+  ],
+  "diagnostics": {
+    "encoding": "UTF8; LF exactly; no stack; variable detail capped256 UTF16 units before bounded rendering; dynamic unsafe detail uses JSON-string escaping; longest admissible whole line<=1024 bytes, otherwise emit fixed node: ERR_VNODE_GUEST: diagnostic too large\\n if budget/grant permits",
+    "usage": {
+      "status": 2,
+      "template": "node: ERR_VNODE_USAGE: {detail}\n",
+      "details": [
+        "missing operand -e",
+        "missing operand -p",
+        "conflicting source selectors",
+        "duplicate input-type",
+        "input-type with file",
+        "unsupported option {bounded literal option}",
+        "input-type requires commonjs"
+      ]
+    },
+    "unsupported": {
+      "status": 2,
+      "template": "node: ERR_VNODE_UNSUPPORTED: {detail}\n",
+      "details": [
+        "print requires one expression",
+        "print requires primitive result",
+        "entry suffix {JSON-quoted suffix; empty string for extensionless}",
+        "module {bounded specifier}",
+        "local executable module",
+        "dynamic import",
+        "syntax {bounded construct}",
+        "binary readFileSync result",
+        "overload {intrinsicName}",
+        "member {intrinsicName}"
+      ]
+    },
+    "denied": {
+      "status": 2,
+      "template": "node: ERR_VNODE_DENIED: {grantName}\n",
+      "guestName": "Error",
+      "guestCode": "ERR_VNODE_DENIED",
+      "detail": "first missing grant in order sourceRead,dataRead,dataWrite,jsonModules,stdinRead,stdoutWrite,stderrWrite; catchable at guest calls"
+    },
+    "provider": {
+      "status": 127,
+      "bytesUtf8": "node: ERR_VNODE_PROVIDER: qualified NP1-CJS provider required\n",
+      "sourceReads": 0,
+      "guestEvaluations": 0
+    },
+    "limit": {
+      "status": 124,
+      "template": "node: ERR_VNODE_LIMIT: {exact cap key}\n",
+      "catchable": false
+    },
+    "syntax": {
+      "status": 1,
+      "bytesUtf8": "node: ERR_VNODE_SYNTAX: invalid source\n"
+    },
+    "fs": {
+      "status": 1,
+      "template": "node: {code}: {syscall} {virtual path}\n",
+      "guestName": "Error",
+      "guestMessage": "{code}: {syscall} {virtual path}",
+      "unsafePath": "JSON quote only when path contains control characters; controlled case paths plain",
+      "meaning": "Known typed FsError only; faithful code/actual authorized path/operation, no errno number fabricated; source admission uses readFile syscall"
+    },
+    "guest": {
+      "status": 1,
+      "template": "node: ERR_VNODE_GUEST: {name}: {JSON-quoted message}\n",
+      "nonError": "node: ERR_VNODE_GUEST: thrown non-error\n",
+      "jsonSyntaxMessage": "invalid JSON",
+      "cyclicJsonMessage": "cyclic JSON",
+      "unhandled": "same exact guest diagnostic as uncaught rejection; no late-success workaround"
+    },
+    "protocol": {
+      "raw": "throw TypeError(\"NP1-CJS protocol: <schema>\")",
+      "status": "not a raw numeric status; actual single-command Shell maps ordinary TypeError to1 and shell: line 1: NP1-CJS protocol: <schema> LF",
+      "undefined": "raw reason remains undefined with presence=true; Shell ordinary rejection maps1 and shell: line 1: undefined LF"
+    },
+    "outputClosed": {
+      "guest": "noncatchable termination; no following guest callback",
+      "raw": "reject exact destination reason after siblings and cleanup",
+      "controlledEpipeShell": {
+        "exitCode": 141,
+        "stdoutUtf8": "",
+        "stderrUtf8": ""
+      },
+      "qualification": "single command, no redirection, healthy stderr and no higher-priority caller/control; not arbitrary pipeline status"
+    },
+    "stdinFs": {
+      "template": "node: {code}: readFile 0\n",
+      "pathField": "absent, fd0 is not a host path",
+      "busyCode": "EBUSY"
+    },
+    "messageSafety": "Template variable specifiers/options/member labels are raw only if printable ASCII excluding backslash/quotes; otherwise JSON quote; truncate bounded diagnostic details with a literal ... without invoking toString. Guest-supplied Error.message is always JSON quoted; invalid JSON message is fixed invalid JSON. No native stack bytes."
+  },
+  "unsettledAcceptanceGaps": [
+    {
+      "id": "G1",
+      "gap": "Different independent review must ratify this exact inventory/caps/schemas/outcomes; author response does not close Raman HOLD."
+    },
+    {
+      "id": "G2",
+      "gap": "No provider is qualified for full grammar, primitive formatting, same-session intrinsic/cache identity, allocation debit, job quiescence and teardown. Existing source/ABI preparation is insufficient."
+    },
+    {
+      "id": "G3",
+      "gap": "Actual VFS hard bounded reads/chunks, confinement plus target binding, wx and cancellation/cleanup capabilities require provider-specific qualification; generic FileSystem signatures alone are not evidence."
+    },
+    {
+      "id": "G4",
+      "gap": "Future command integration must bind accepted actual Shell revision and raw/mapped lifecycle observations. Live-inspected Shell branches are not current product acceptance or universal pipeline behavior."
+    }
+  ],
+  "validationScope": "JSON/data/reference consistency only; no engine/native/build/install/product/private execution, no bridge reads/review/validation. Companion hashes and actual completed checks are sealed in this file before atomic commit.",
+  "providerContract": {
+    "classification": "Proposed markdown/data signatures only; no public API existence claim. Host method records are trusted callable capabilities, unlike guest protocol own-data records.",
+    "provider": "{profile:\"virtual-node-np1-cjs-v1\", identity:ProviderIdentity, create(scope:InvocationScope):Session}",
+    "ProviderIdentity": "Exact own-data {profile,engineCommit,engineClosureSha256,adapterSha256,entrySha256,toolClosureSha256,abiId}; hashes lowercase64 except commit40; abiId string1..128 ASCII. Qualification also needs actual same-instance witnesses, not just these labels.",
+    "sessionMethods": {
+      "prepare": "(entry:Entry,limits:Limits):Promise<PreparedEntryRef>; once, no execution; source-hash/session-bound",
+      "execute": "(prepared:PreparedEntryRef,state:InvocationState,channel:HostChannel):Promise<Outcome>; once, provisional top-level result",
+      "drainToQuiescence": "():Promise<Quiescence|GuestErrorOutcome|ControlOutcome>; actual evaluator/job ownership, not poll-until-idle; once after provisional complete",
+      "stop": "(control:{origin:caller|execution|local|destination,reason:unknown}):void; closes guest scheduling/admission, idempotent; provider distinguishes destination retirement from caller cancellation of owned work",
+      "close": "():Promise<void>; same idempotent completion, closes admission, drains registered cooperative resources and invalidates issued refs/channels"
+    },
+    "scopeMethods": {
+      "registerCleanup": "(cleanup:()=>void|Promise<void>):void; synchronous before acquisition, late registration refuses",
+      "track": "<T>(acquire:()=>T|Promise<T>,release:(value:T)=>void|Promise<void>):Promise<T>; registers before invoking acquire; retains/reaps admitted failures and late completions",
+      "signal": "borrowed actual invocation AbortSignal, not guest-accessible",
+      "reserve": "(resource:exactCapKey,units:nonnegativeSafeInteger):ReservationRef; before allocation/admission; commit/release witnessed, never reset cumulative ledger"
+    },
+    "channel": "Single invocation-bound request(req:HostRequest):Promise<HostReply>, never exposed to guest. Same-instance intrinsic adapts sync versus guest-Promise behavior. Caller cannot choose session/from/namespace through request fields.",
+    "hostOwner": "Command owns explicit grants, namespace/source admission, scope signal/control provenance, stdin, per-destination output owners, host-operation quotas and finally barrier; context.registerCleanup is used if present, but raw/custom context omission never removes owned finally cleanup.",
+    "providerOwner": "Provider owns evaluator/factory/guest cache/values/closures/errors/jobs, preallocation instrumentation and nonreentrancy. It must supply retirement evidence for close/create failures as well as normal completion.",
+    "nonreentrancy": "One executing guest turn per session. Control/host completion may update host records without reentering guest. Later reactions queue; no guest callbacks run while sync intrinsic is suspended. Cross-invocation execution allowed only with disjoint state.",
+    "stopFailure": "Raw escaping stop/close exceptions recorded with explicit presence. Earlier selected execution failure including undefined is retained; later cleanup cannot mask it. Continue registered retirement despite ordinary cleanup failure."
+  },
+  "limitDefinitions": {
+    "configuration": "Only explicit case reductions from full defaults permitted by this candidate; all keys immutable after invocation starts. Default Limits hash is the canonical sorted-key JSON encoding of caps; future runner must bind it, no live limit changes.",
+    "containerEntries": "Applies to each guest-created data record/array, argv/env/JSON records; fixed intrinsic seed and internal lexical environments are separately accounted, not reduced-limit user containers.",
+    "parserNesting": "Maximum simultaneous source delimiter nesting AND parser/AST structural recursion depth128; enforce incrementally before descent, not after unbounded parse. EOF/comments/whitespace are not parserTokens; semicolon is one token.",
+    "readAggregate": "Inline source bytes, source file/stdin, ordinary text and JSON content all count once per acquisition. Source stdin is not counted again as data. Cache hits do not reread content, but resolution requests and metadata work still count.",
+    "hostCalls": "Actual content/metadata/stream-acquisition and sink operations, including adapter subcalls, not source-only estimates; stream chunks separately byte/work-accounted, never converted into Shell commands.",
+    "boundaries": "All per-byte caps use bytes, all guestString/contextMember units UTF16 code units; KiB=1024, MiB=1048576. Failed-limit increments refuse before exceeding admitted capacity.",
+    "lowerLimits": "Reserved seed65536 bytes/128 nodes and source/context requirements still apply. A reduction smaller than mandatory seed refuses as a retainedGuestBytes/guestNodes limit before guest effects, not an automatic pass."
+  },
+  "rootDecisionList": [
+    "Selected NP1-CJS contract is supplied for different review; no repeat of settled root choices.",
+    "Candidate inventory/caps and chosen quiescence/closed-output rules need independent ratification, not runtime-selected semantics.",
+    "After review, separately qualify provider and VFS hooks, then separately authorize command implementation/testing. No bridge or engine GO follows here."
+  ],
+  "companionSeal": {
+    "algorithm": "SHA256 exact UTF8 file bytes; BINDINGS itself excluded to avoid recursive hash, bound by final Git commit",
+    "files": [
+      {
+        "path": "CONTRACT.md",
+        "bytes": 16806,
+        "sha256": "ba1b0cb0c0f6b08d29ad6d33a138343140159ef8a73675fdbd2873816605ed9b"
+      },
+      {
+        "path": "CASE-MAPPING.json",
+        "bytes": 38328,
+        "sha256": "b20b63cf8415366d063d2f34682f69398b02405cedb529cbd7f209003e5eab20"
+      },
+      {
+        "path": "REVIEW-RESPONSE.md",
+        "bytes": 7824,
+        "sha256": "d30e98cdff88b743162c245bcc2c59fd95652eacad811a3efaa1263112b4d8a7"
+      }
+    ]
+  },
+  "preparationChecks": {
+    "date": "2026-08-28",
+    "classification": "data/reference checks only, before contract commit; not runtime or review acceptance",
+    "jsonParsed": true,
+    "mappingOriginals": 36,
+    "counts": {
+      "included-as-is": 24,
+      "adapted": 9,
+      "deferred": 3
+    },
+    "closureIdentities": 10,
+    "closureFiniteVariants": 24,
+    "sourceCommitBlobByteBindingsChecked": 20,
+    "priorDesignArtifactsByteIdentical": 7,
+    "n21LiteralLfPreservedAndAdaptationDisclosed": true,
+    "contractWordCount": 2066,
+    "companionHashBindings": 3,
+    "engineExecutions": 0,
+    "syntaxChecks": 0,
+    "providerOrBridgeExecutions": 0,
+    "bridgeReadsOrReviews": 0,
+    "nativeOracleRuns": 0,
+    "builds": 0,
+    "installs": 0,
+    "privateReadsOrWrites": 0,
+    "delegatedChildren": 0,
+    "noExecutionAuthorization": true
+  }
+}

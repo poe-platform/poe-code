@@ -1,0 +1,12 @@
+{
+  "id": "C04-packet-full-data",
+  "expected": "ACCEPT",
+  "value": {
+    "receiptHash": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56",
+    "sourceFiles": 271,
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "packageFiles": 870
+  },
+  "error": null,
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

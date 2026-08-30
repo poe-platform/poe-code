@@ -1,0 +1,6 @@
+tree 1cc5151b81836d42a49fb1ed640f98291647a02c
+parent 8137ea578ad19c4b452d7223b4c527537feda8ef
+author Kamil Jopek <kjopek@quora.com> 1787944836 -0500
+committer Kamil Jopek <kjopek@quora.com> 1787944836 -0500
+
+docs(node): record ROOT L selection and finite drain obligations

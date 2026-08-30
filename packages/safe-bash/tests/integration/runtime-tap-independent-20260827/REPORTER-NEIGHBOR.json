@@ -1,0 +1,58 @@
+{
+  "runnerSha256": "58fb7654b09e4edb363214b436aba6e28feeadd7cd41eab5a2756a6e9a109cb6",
+  "cases": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-reporter-neighbor-ZVZsTH/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/permission-reporter-neighbor-ZVZsTH/consumer/body.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body plus retained read/write fences\nok 1 - body plus retained read/write fences\n  ---\n  duration_ms: 0.582\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.476042\n",
+      "stderr": "(node:12137) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "counts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/private/tmp/permission-reporter-neighbor-ZVZsTH/consumer",
+        "--allow-worker",
+        "--unhandled-rejections=strict",
+        "--test-reporter=tap",
+        "/private/tmp/permission-reporter-neighbor-ZVZsTH/consumer/body.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "TAP version 13\n# Subtest: body plus retained read/write fences\nok 1 - body plus retained read/write fences\n  ---\n  duration_ms: 0.944667\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3.8645\n",
+      "stderr": "(node:12141) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "counts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "sourceChanged": false,
+  "fullConsumerGroupsExecuted": false,
+  "cleaned": true
+}

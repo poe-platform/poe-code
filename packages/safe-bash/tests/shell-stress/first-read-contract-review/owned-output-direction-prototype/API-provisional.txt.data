@@ -1,0 +1,47 @@
+PROVISIONAL V2 — TEMP ONLY — 2026-08-27 — published before source edits
+Ownership: this leaf owns only new owned-output-direction-prototype evidence
+and /tmp/safe-bash-owned-output-direction-prototype-* paths. No delegation.
+
+Retain v1 createOutputOperation(context, destination), signal/output,
+registerCleanup/acquire/close. Add explicit parent.child(destination) returning
+an OutputOperation registered with its parent before child admission. Child
+close never closes parent/siblings. Parent normal close closes descendants and
+admission without fabricating EPIPE; parent abort propagates the identical first
+reason transitively, then drains registered cooperative descendant cleanup.
+No inference from opaque destination wrappers; callers explicitly choose child.
+Reuse existing invocation registerCleanup hook; no parallel invocation lifecycle.
+Late child creation/cleanup/acquisition is refused. Already admitted opaque
+acquisition is not awaited: eventual resources are released, rejection observed.
+Only cooperative registered releases can be claimed drained. Normal close does
+not cancel opaque work. close is idempotent and shares completion.
+
+Curl borrowed stdin preparation: sequence upload/data/writeout reads BEFORE
+stdout-owned transfer enrollment, using caller/transfer-timeout signal and a borrowed iterator
+view whose return does not return/cancel the owner's iterator. Do not race an
+opaque pending borrowed next against output closure. No read lease exists in v1;
+therefore completion may be delayed indefinitely until the owner resolves it.
+Consumed bytes belong to this curl operation; remaining bytes stay with owner
+and siblings, with no rollback or universal nonhanging guarantee. Caller abort
+retains existing caller precedence, not a promise to stop opaque host work.
+Implementation tradeoff (source-inspected before edits): body parts with stdin
+are prepared into an owned byte buffer bounded by existing maxUploadBytes before
+transfer enrollment; writeout @- keeps existing maxBufferBytes. This delays the
+request and replaces streaming stdin uploads with bounded prebuffering in this
+temporary profile. File-only bodies remain streaming. No new core shared-input
+lease or rollback is invented. Output closure alone cannot end preparation;
+the caller/timeout may still terminate its own view under existing semantics.
+File-backed preparation and independent curl -o/-D tasks keep their existing
+transfer/invocation lifetime; stdout closure cannot terminate necessary files,
+headers or independent stderr. No stage autowrap/autocancel/demand-before-start.
+
+First operation abort reason wins, already-aborted caller wins enrollment;
+public caller abort still wins existing exec outcome. Genuine command errors
+are not relabeled EPIPE; existing pipefail/rightmost status remains. Cleanup
+errors surface under existing invocation rules; close is not an arbitrary
+try/finally exception-precedence combinator. Parent normal close vs output
+abort is explicitly distinct. API details may narrow after source inspection;
+any change is recorded before author cohort execution.
+
+At most eight new logical author cases; freeze inputs before first execution.
+Old original5/adapted5/57+9/author12 remain byte-identical. Separate original
+baseline0/5 and r1unchanged1/5 from adapted5/5. No independent bodies inspected.

@@ -1,0 +1,8 @@
+{
+  "nativeExecutions": 0,
+  "stage": "node --check before any Bash invocation",
+  "failure": "SyntaxError: missing ) after argument list at native.mjs:109; histogram reduce missing initial accumulator and closing parenthesis",
+  "invalidPreExecutionManifest": "MANIFEST.json",
+  "manifestSHA256": "e9242cabe090833e1192a35dc7c613080cdd7f20e9ae2cfd8a8b6040f78efb24",
+  "correction": "Only supervisor syntax, bounded capture retention and versioned manifest location; all 28 scripts unchanged"
+}

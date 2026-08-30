@@ -1,0 +1,12 @@
+{
+  "candidate": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+  "role": "Post-source source-proof closure and explicit remaining dynamic gap; not originalprecode or runtime instrumentation",
+  "sourceProofs": 24,
+  "anchors": "SOURCE-PROOFS-v1.json pinned function/line/byte spans; SOURCE-AUDIT-v2.json56 unchanged Runtime members and3 unchanged CD helpers",
+  "I18": "Existing invoke/cancellation methods byte-identical; public local-false child/sibling/parent observation plus selected invocation-cleanup and owned-output regressions pass. Existing private cancellation unit tests are explicitly a private regression role. C06 same-valued simultaneous root/escaping/local stack-specific host schedule remains unmeasured, not silently promoted to public proof.",
+  "I21": "Byte-identical invokeScoped environment/stdin/borrowed-signal handling plus real source invoke/getopts/owned-output regressions; actual stack clone additions inspected separately at pinned anchors.",
+  "I24": "L01/L02 actual4096 count boundary; L13 truthful scripted oversized cwd; L14 real4194304 remembered-byte boundary; L15 actual insertedcwd overflows4194303+2. Display8388608 equality/overflow masked by earlier nonzero StackBudget work plus perdisplay scalar work. U08/U10/U11/U15 actual built/loaded source controls, no public mutantkill or scalarwork runtime-counter claim. Exact private128/finalflush/diagnostic scalar boundaries remain source-derived.",
+  "S13": "Original /bin/sh shebang remains unsupported on candidate and acceptedLET by pinned source inspection. Versioned /bin/bash supplement passes all3 layouts, not an original S13 pass.",
+  "directoryModes": "File membership/bytes/modes, symlink refusal and added-directory names guarded perexecution. Directory-mode values independently recorded only at final archival/cleanup census; no retroactive before/after directorymode claim.",
+  "cleanup": "Direct natural child close plus registered cooperative public cleanup assertions observed. No independent census of all tool descendants, opaque work preemption, native/service or global acceptance."
+}

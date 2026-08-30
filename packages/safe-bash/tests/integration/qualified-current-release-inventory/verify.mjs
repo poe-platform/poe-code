@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { currentConsumerPaths, negativeGroups } from '../../plugins/qualified-current-release/consumers.mjs';
+import { verifyInventory } from '../../plugins/qualified-current-release/inventory-check.mjs';
+
+const repo = resolve(dirname(import.meta.filename), '../../..');
+const commit = process.argv[2] ?? 'HEAD';
+const git = args => execFileSync('git', args, { cwd: repo, maxBuffer: 32000000 });
+const tracked = git(['ls-tree', '-r', '--name-only', commit]).toString().trim().split('\n').filter(path => !path.startsWith('tests/integration/stream-five-public/'));
+const inventory = JSON.parse(readFileSync(resolve(repo, 'tests/plugins/qualified-current-release/inventory.json')));
+const read = path => git(['show', `${commit}:${path}`]);
+const current = currentConsumerPaths(), negative = negativeGroups.map(group => group.path);
+const check = (value = inventory, paths = tracked, maintained = current, negatives = negative, reader = read) => verifyInventory(value, paths, maintained, negatives, reader);
+const counts = check();
+const controls = [];
+function reject(name, action) { assert.throws(action); controls.push(name); }
+reject('new unclassified executable outside tests cannot disappear', () => check(inventory, [...tracked, 'examples/new.test.mts']));
+reject('current route omission cannot become inventory-only', () => check(inventory, tracked, current.slice(1)));
+reject('negative route omission is rejected', () => check(inventory, tracked, current, negative.slice(1)));
+reject('negative fixture bytes cannot change silently', () => check(inventory, tracked, current, negative, path => negative.includes(path) ? Buffer.from('void 0;') : read(path)));
+const frozen = inventory.entries.find(entry => entry.freeze);
+assert.ok(frozen);
+reject('historical input cannot silently change', () => check(inventory, tracked, current, negative, path => path === frozen.path ? Buffer.from('void 0;') : read(path)));
+const proof = frozen.freeze.evidence[0];
+reject('historical proof cannot silently change', () => check(inventory, tracked, current, negative, path => path === proof.path ? Buffer.from('{}') : read(path)));
+const misclassified = structuredClone(inventory); misclassified.entries.find(entry => entry.classification === 'current').classification = 'frozen-evidence';
+reject('maintained file cannot be relabeled historical without route change', () => check(misclassified));
+const badCounts = structuredClone(inventory); badCounts.counts.current++;
+reject('invented inventory totals are rejected', () => check(badCounts));
+console.log(JSON.stringify({ commit: git(['rev-parse', commit]).toString().trim(), counts, controls, controlCount: controls.length, scope: 'inventory guards only, not consumer execution' }, null, 2));

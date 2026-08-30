@@ -1,0 +1,27 @@
+{
+  "id": "N18",
+  "productExitCode": 2,
+  "productStdoutBase64": "",
+  "productStderrBase64": "dHJlZTogLUwgbXVzdCBiZSBiZXR3ZWVuIDEgYW5kIDI1Ngo=",
+  "originalNative": {
+    "id": "N18",
+    "argv": [
+      "-n",
+      "--charset=ASCII",
+      "-L",
+      "0",
+      "basic"
+    ],
+    "exitCode": 1,
+    "stdoutBase64": "",
+    "stderrBase64": "dHJlZTogSW52YWxpZCBsZXZlbCwgbXVzdCBiZSBncmVhdGVyIHRoYW4gMC4K",
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "c888ee50a977fed80d0777b28b5a315de9f1decd196ecbff1765672e3f34b3d8"
+  },
+  "sameProductBytesAndStatusAsInitial": true,
+  "rawNativeStatusEqual": false,
+  "rawNativeStdoutEqual": true,
+  "rawNativeStderrEqual": false,
+  "rawNativeClassification": "mismatch-not-parity-pass",
+  "correctedSemantic": "pass"
+}

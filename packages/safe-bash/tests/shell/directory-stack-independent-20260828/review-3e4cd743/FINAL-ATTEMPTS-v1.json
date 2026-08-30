@@ -1,0 +1,11 @@
+{
+  "role": "Additive inspection/static history; product failures remain complete in raw archives",
+  "inspectionFailures": [
+    {"operation": "write_stdin session93278 after resumed context", "outcome": "Unknown process id;16 result records plus RESULTS.json confirmed all natural completions; not a product timeout"},
+    {"operation": "read harness-v2/cancellation.mjs", "outcome": "sed ENOENT; implementation adapter is gaps.mjs; no edits or product execution"}
+  ],
+  "recordedElsewhere": ["ATTEMPTS-v1.json", "ATTEMPTS-v2.json", "IMPORT-CORRECTION-v2.json", "IMPORT-SEAL-ATTEMPT-v1.json", "REGRESSION-CORRECTION-v2.json", "REGRESSION-CORRECTION-v3.json", "REGRESSION-CORRECTION-v4.json"],
+  "archiveEncodingCorrection": "Uncommitted50,000,951-byte repeated-JSON encoding replaced losslessly by1,631,435-byte structural deduplication; all1124 raw/config byte hashes round-tripped; v1 manifest and generator retained, no observations removed",
+  "regressionQualification": "11 file-level node:test admission failures v1;1 missing dynamic corpus v2;1 missing shared-source fixture v3. Versioned narrow corrections preserve all failures and176 distinct final shell/getopts/invoke/owned assertions; CD17+LET3 separate.",
+  "noProductRepair": true
+}

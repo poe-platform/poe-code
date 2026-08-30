@@ -1,0 +1,15 @@
+[main 745c3e6db] test: seal L02 r4 EOF and early uncertainty latch repairs
+ 13 files changed, 2893 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASE-INVENTORY.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/EXECUTION-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/GRANT-TEMPLATE.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/PREPARATION-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/activation.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/admin-publication.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/budget.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/controls.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/provision.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/receipt-gate.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/retirement-latch.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/startup-receipt.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/supervisor.mjs

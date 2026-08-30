@@ -1,0 +1,11 @@
+{
+  "classification": "INDEPENDENT_REVIEW_POSTPROCESSOR_FAILURE_NOT_CONSUMER_FAILURE",
+  "preseal": "1dc3b2bc7fa200ee674504cecf86db152aac5085",
+  "command": "python3 tests/commands/yq-independent-20260828/executor-review-v1/results-v2/audit.py 1dc3b2bc7fa200ee674504cecf86db152aac5085",
+  "exitStatus": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/audit.py\", line 350, in <module>\n    assert [replay_summary['count'], replay_summary['matched'], replay_summary['failure']] == [36, 36, None]\n                                                                ~~~~~~~~~~~~~~^^^^^^^^^^^\nKeyError: 'failure'\n",
+  "cause": "JSON.stringify omits the undefined failure field on successful replay; the Python postprocessor incorrectly required that key.",
+  "workerOutcomes": "Admission and replay worker exits were both zero, with 25/25 and 36/36 matched observations; raw process records and all cases are preserved.",
+  "resolution": "Do not rewrite or rerun this sealed driver. Separately preseal a read-only completion audit of each saved case, worker status, frozen expectation and before/after integrity. No consumer expectation changes or foreign fixes."
+}

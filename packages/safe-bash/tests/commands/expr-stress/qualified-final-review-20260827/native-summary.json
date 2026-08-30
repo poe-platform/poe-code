@@ -1,0 +1,47 @@
+{
+  "profiles": [
+    {
+      "name": "GNU9.7-Darwin",
+      "locale": "C",
+      "total": 10,
+      "frozenNamedReferenceMatches": 2,
+      "actualCandidateNamedStrict": null,
+      "classification": "C observation of same argv; different explicit environment, not named-locale parity"
+    },
+    {
+      "name": "GNU9.7-Darwin",
+      "locale": "en_US.UTF-8",
+      "total": 10,
+      "frozenNamedReferenceMatches": 10,
+      "actualCandidateNamedStrict": 9,
+      "classification": "Native named-locale actual observations; Apple separate from authenticated GNU on Darwin"
+    },
+    {
+      "name": "Apple",
+      "locale": "C",
+      "total": 10,
+      "frozenNamedReferenceMatches": 2,
+      "actualCandidateNamedStrict": null,
+      "classification": "C observation of same argv; different explicit environment, not named-locale parity"
+    },
+    {
+      "name": "Apple",
+      "locale": "en_US.UTF-8",
+      "total": 10,
+      "frozenNamedReferenceMatches": 4,
+      "actualCandidateNamedStrict": 3,
+      "classification": "Native named-locale actual observations; Apple separate from authenticated GNU on Darwin"
+    }
+  ],
+  "sequencing": {
+    "total": 44,
+    "passed": 44
+  },
+  "diagnostics": {
+    "total": 9,
+    "passed": 9
+  },
+  "captureSha256": "199f7953af63767280312dc05f1ae8e5c7a20f6ee9eb0a009bd9a67cffdddeb4",
+  "capturePolicy": "Native raw observations are ephemeral in OWN .work and deleted during cleanup, not committed as captures. This summary is a fresh execution count, not Linux semantics.",
+  "nativeStillAuthenticated": true
+}

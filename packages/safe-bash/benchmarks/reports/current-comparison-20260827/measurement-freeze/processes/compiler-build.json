@@ -1,0 +1,48 @@
+{
+  "label": "compiler-build",
+  "executable": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/node",
+  "args": [
+    "--max-old-space-size=512",
+    "/private/tmp/safe-bash-measurement-freeze-XAFOrN/build/source/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/build/source",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/home",
+    "TMPDIR": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "timeoutMs": 180000,
+  "combinedOutputCap": 4194304,
+  "productImportsAuthorized": false,
+  "startedAt": "2026-08-27T12:37:41.589Z",
+  "cleanupSignals": [],
+  "pid": 59584,
+  "exitCode": 0,
+  "signal": null,
+  "closed": true,
+  "groupGone": true,
+  "finishedAt": "2026-08-27T12:37:44.538Z",
+  "outputBytes": 0,
+  "stdoutBase64": "",
+  "stderrBase64": "",
+  "displayTextLogsNormalizeFinalNewline": true,
+  "stdout": {
+    "root": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze",
+    "path": "processes/compiler-build.stdout.txt",
+    "bytes": 1,
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  "stderr": {
+    "root": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze",
+    "path": "processes/compiler-build.stderr.txt",
+    "bytes": 1,
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  "stdoutRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrRawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

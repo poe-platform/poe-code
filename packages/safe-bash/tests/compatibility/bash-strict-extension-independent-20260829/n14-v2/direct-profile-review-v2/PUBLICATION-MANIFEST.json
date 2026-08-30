@@ -1,0 +1,236 @@
+{
+  "schema": 1,
+  "status": "RESOURCE_POLICY_HOLD",
+  "verdict": "18 literal passing controls; four concurrent known OS roles violate peak-three grant; not compliant acceptance",
+  "files": [
+    {
+      "path": "API-ROWS.json",
+      "bytes": 605,
+      "sha256": "8d512b5b936d1e274acedd6b525a1376ad5a28f1d280debcfcf69e229a95636b"
+    },
+    {
+      "path": "AUTHENTICATED.json",
+      "bytes": 7581,
+      "sha256": "983e2462b2b7b2b9bdbad825a81868942d2a6d696755c7721f479eb93cca774b"
+    },
+    {
+      "path": "AUTHOR-REPEAT-SEAL.json",
+      "bytes": 5558,
+      "sha256": "7fcff853f88a2e2bb5108fc63d0cbdfe7251fabedace3514e83a557b0c089ee7"
+    },
+    {
+      "path": "OLD-CAPTURE.json",
+      "bytes": 366,
+      "sha256": "6c5494c2cd89db678e7fe26af44a0258b133ce0f45577dcf64fd244b8188067f"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 9531,
+      "sha256": "59a4ca807879fdaaa956cf7d969129bb9f5b0c98d24709e6e6e618fc22d4d92a"
+    },
+    {
+      "path": "PRESEAL.md",
+      "bytes": 2702,
+      "sha256": "413bd878c124d965ce72b4b229d814a71b7f1c72eb218cff6aa77c015c92beeb"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6776,
+      "sha256": "de0380527d4dd7955ac05383599ceb51728d8c7c256add32b7584e663a63db28"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 30272,
+      "sha256": "335cf5dfdaca4400b5d2d42d75ddb614915631099b6a1f736f935c23f4f294d7"
+    },
+    {
+      "path": "RUNTIME-OWNER.json",
+      "bytes": 164,
+      "sha256": "b5ca99506f35b0441609ae9be22a43f26f2ac724fe82b5b5385faecce0cfe562"
+    },
+    {
+      "path": "START.json",
+      "bytes": 455,
+      "sha256": "16a811125444e5eefa39ab682df81c4e0d00566fe123a34d0ecc2bcde248a256"
+    },
+    {
+      "path": "TOOL-ADMISSION.json",
+      "bytes": 478,
+      "sha256": "8fa4740559fdea6b1872f8539bd98cf719dc3b79634a1cab5ec726f0d11c8941"
+    },
+    {
+      "path": "capture/api-audit.raw",
+      "bytes": 7564,
+      "sha256": "478f46b3e82ded82ad05af5a57ee9c985c3c21b6d7041e089ea701d900c93cd8"
+    },
+    {
+      "path": "capture/api-audit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/author-inventory.nul",
+      "bytes": 4031,
+      "sha256": "6599926706dba1fc2c61fcb5e6df242da88419fc323b7d159766777aa82bb48d"
+    },
+    {
+      "path": "capture/author-inventory.nul.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/author-repeat.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/author-repeat.stdout.raw",
+      "bytes": 56,
+      "sha256": "52390d1942c10038cb930c7d5a6b0a4e68cf93fd56e05c0423fc432953ba52d4"
+    },
+    {
+      "path": "capture/bootstrap.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/bootstrap.stdout.raw",
+      "bytes": 397,
+      "sha256": "ebddaf7d6858360e44ea123b9f3978e91b7a10df2cb86d33bbba490db76a8d26"
+    },
+    {
+      "path": "capture/handoff.raw",
+      "bytes": 2247,
+      "sha256": "72b56e9a6d97a31f9e2fcd6946fb5b3a8814c96a3a24d6c3b2840759a399ae9f"
+    },
+    {
+      "path": "capture/handoff.raw.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/mechanism-summary.raw",
+      "bytes": 17008,
+      "sha256": "0613bcf655bcde59f4d5b3c8e04f639b4f2bc0630303a1d8a01901cb80cca7dd"
+    },
+    {
+      "path": "capture/metadata.events.jsonl",
+      "bytes": 610,
+      "sha256": "ad3489d58659f5eee0719353f1958eaaa74c643e5d45cf68a9c6410905af706b"
+    },
+    {
+      "path": "capture/owned-status.raw",
+      "bytes": 744,
+      "sha256": "29d0869b283127a7644a99a209d4525bf7db948ff835225b86993b0b6e47ca11"
+    },
+    {
+      "path": "capture/owned-status.raw.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/preseal-add.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/preseal-add.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/preseal-commit.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/preseal-commit.stdout.raw",
+      "bytes": 4462,
+      "sha256": "d80f7a1fd0e2f98f825200c9bc64d45b99c7df6fabe5774921679d2c922d3b8b"
+    },
+    {
+      "path": "capture/preseal.events.jsonl",
+      "bytes": 962,
+      "sha256": "c6eaea8e1ad7a5ecc200cb9e3c4e03d4919f6bae71a5e18fcdbdae8a56633081"
+    },
+    {
+      "path": "capture/review.events.jsonl",
+      "bytes": 560,
+      "sha256": "1201b5bdee9c59f2969fc57eedfa35d39d6597cfb448bba981dd1ff5a33f8a6a"
+    },
+    {
+      "path": "capture/runtime.events.jsonl",
+      "bytes": 157,
+      "sha256": "cae42c43f5aad74eb9f2fbd0ae97f763a64925448e6ebbb13cb30b812a8c4567"
+    },
+    {
+      "path": "capture/runtime.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/runtime.stdout.raw",
+      "bytes": 265,
+      "sha256": "054df00c3df6b61bb3b6e996c74c3f21702104e93f62a1691f30ce31ff01e785"
+    },
+    {
+      "path": "capture/seal.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/seal.stdout.raw",
+      "bytes": 5568,
+      "sha256": "99586c8ec062b54f41430facf9a388bd68c450db44c08d65cc98b07036dc5198"
+    },
+    {
+      "path": "capture/shell-source.raw",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "capture/shell-source.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/source-inspection.raw",
+      "bytes": 25408,
+      "sha256": "df8bca0e50f34b01bfed487e83e0dc08bb2752ffa32df3d92cd5b0488f5b14bd"
+    },
+    {
+      "path": "capture/source-inspection.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/syntax.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/syntax.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 10720,
+      "sha256": "728c87a0beb06e4e801472a608cbee18ff90de089f23449595002b661e18aa4e"
+    }
+  ],
+  "totalBytes": 160328,
+  "hashDomain": "raw file bytes; UTF-8 relative pathname byte ordering; publication manifest excluded",
+  "knownProcessAccounting": {
+    "beforePublicationRoleSlots": 31,
+    "publicationOwner": 1,
+    "publicationGitChildren": 4,
+    "totalKnownRoleSlots": 36,
+    "runtimeRoles": 7,
+    "runtimePeakObservedByAwaitedParentChain": 4,
+    "authorizedPeak": 3,
+    "qualification": "Known explicitly started roles, not full transitive process census; direct exec shell replaces process, patch shell/tool roles counted separately."
+  },
+  "publicationCapture": "/tmp/direct-profile-review-v2-publication-w6464W",
+  "foreignStagingPolicy": "Only owned paths added/committed with --only; no global index enumeration"
+}

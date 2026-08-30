@@ -1,0 +1,82 @@
+{
+  "schema": "timeout-public-b01-capture-overlay/1",
+  "postSourceInspection": true,
+  "priorRecipeCommit": "1540a21d7104277d4b4eb52423a845b1ff96ae30",
+  "priorManifestSha256": "9d13a936dab063f7a9c2acb8a658e1e448326a8558be85ac4c3e744a6d585b8d",
+  "overlays": [
+    {
+      "name": "common.mjs",
+      "originalSha256": "317e7796a803443614b63e0191bfd8512f0a6b8cd8bf2b74162eae09d24fbb6e",
+      "resultSha256": "317e7796a803443614b63e0191bfd8512f0a6b8cd8bf2b74162eae09d24fbb6e",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "admission.mjs",
+      "originalSha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6",
+      "resultSha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "preload.mjs",
+      "originalSha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18",
+      "resultSha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "supervisor.mjs",
+      "originalSha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155",
+      "resultSha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "archive.mjs",
+      "originalSha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772",
+      "resultSha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "legacy-adapter.mjs",
+      "originalSha256": "3ef48e5a018a90ae34fe837eb678c37e85d914d543d2379638b13a843dc64a85",
+      "resultSha256": "3ef48e5a018a90ae34fe837eb678c37e85d914d543d2379638b13a843dc64a85",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "boundaries.mjs",
+      "originalSha256": "ce78b6e53d2a82894856f6d558d35f8ca24aec2c858145410620f4b899c1fb4a",
+      "resultSha256": "ce78b6e53d2a82894856f6d558d35f8ca24aec2c858145410620f4b899c1fb4a",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "runtime.mjs",
+      "originalSha256": "f58097a631a3272e3cb6bb30df79497e94fdda74c7a7cfa3da22ce69a1749027",
+      "resultSha256": "de2f89b0587e30ec90c4c5ff46e125e1137b3638cbbcae2271fe0938fc205f55",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "import assert from 'node:assert/strict';",
+          "after": "import assert from 'node:assert/strict';\nimport { captureBeforeRethrow } from './capture.mjs';"
+        },
+        {
+          "before": "      const rawProbe=rawInputProbe(),originalDefinition=aggregate({scheduler:timing.scheduler});\n      const definition=config.boundaryControl?.id==='B01'?{...originalDefinition,execute(context){context.stdin[Symbol.asyncIterator]();return originalDefinition.execute(context);}}:originalDefinition;\n      const raw=await direct(definition,vector.argv,{stdin:rawProbe.source,invoke:()=>{counts.rawInvoke++;assert.fail('invalid invoke');}});\n",
+          "after": "      const rawProbe=rawInputProbe(),originalDefinition=aggregate({scheduler:timing.scheduler});\n      let capturedAcquisitionReason;const captureOrder=[];\n      const definition=config.boundaryControl?.id==='B01'?{...originalDefinition,execute(context){return captureBeforeRethrow(()=>{captureOrder.push('invoke');context.stdin[Symbol.asyncIterator]();return originalDefinition.execute(context);},reason=>{capturedAcquisitionReason=reason;captureOrder.push('capture');preserveDiagnostic('R12-raw-before-assertion',{vectorIndex,argv:vector.argv,counts:structuredClone(rawProbe.counts),outcome:diagnosticOutcome({status:'rejected',reason},reason),capturePhase:'before-rethrow',captureOrder:[...captureOrder]});});}}:originalDefinition;\n      let raw;\n      try{raw=await direct(definition,vector.argv,{stdin:rawProbe.source,invoke:()=>{counts.rawInvoke++;assert.fail('invalid invoke');}});}catch(reason){captureOrder.push('rethrow-observed');preserveDiagnostic('B01-rethrow-identity',{vectorIndex,counts:structuredClone(rawProbe.counts),sameReason:Object.is(reason,capturedAcquisitionReason),outcome:diagnosticOutcome({status:'rejected',reason},capturedAcquisitionReason),captureOrder:[...captureOrder]});throw reason;}\n"
+        },
+        {
+          "before": "assert.ok(Object.hasOwn(cases,config.caseId));",
+          "after": "assert.ok(Object.hasOwn(cases,config.caseId));assert.equal(config.caseId,'R12','B01_ONLY');assert.equal(config.boundaryControl?.id,'B01','B01_ONLY');"
+        }
+      ]
+    }
+  ],
+  "supervisionQualificationFunction": {
+    "byteIdentical": true,
+    "sha256": "18d27cecb2e2ebd1074120f70bc250ff67763f4148e198d211781f24d1251b36",
+    "unchangedGuard": "ACTUAL_BOUNDARY_OBSERVATION"
+  }
+}

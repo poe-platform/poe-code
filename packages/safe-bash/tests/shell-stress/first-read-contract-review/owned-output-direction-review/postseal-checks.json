@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "classification": "PREPARATION_POSTSEAL_WHITESPACE_WARNINGS_NOT_PRODUCT_RESULTS",
+  "checks": [
+    {
+      "command": [
+        "git",
+        "show",
+        "--format=",
+        "--check",
+        "eb78897cb276e29637ebae30c10aa0e448e31bc6",
+        "--",
+        "tests/shell-stress/first-read-contract-review/owned-output-direction-review"
+      ],
+      "startedAt": "2026-08-27T10:09:25.633Z",
+      "finishedAt": "2026-08-27T10:09:25.658Z",
+      "pid": 16822,
+      "exitCode": 2,
+      "signal": null,
+      "stdout": "tests/shell-stress/first-read-contract-review/owned-output-direction-review/INTENT.md:114: new blank line at EOF.\n",
+      "stderr": "",
+      "stdoutSha256": "9e14671d2a76d302f4eb3fd22b87162c09cdfd7475a17c84581bb175b9e9aa03",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "--format=",
+        "--check",
+        "de81ae8574f9b3df63460ba28f8c8926fdd14301",
+        "--",
+        "tests/shell-stress/first-read-contract-review/owned-output-direction-review"
+      ],
+      "startedAt": "2026-08-27T10:09:25.658Z",
+      "finishedAt": "2026-08-27T10:09:25.680Z",
+      "pid": 16828,
+      "exitCode": 2,
+      "signal": null,
+      "stdout": "tests/shell-stress/first-read-contract-review/owned-output-direction-review/BINDING.md:85: new blank line at EOF.\ntests/shell-stress/first-read-contract-review/owned-output-direction-review/REPORT.md:103: new blank line at EOF.\ntests/shell-stress/first-read-contract-review/owned-output-direction-review/probes.mjs:100: new blank line at EOF.\n",
+      "stderr": "",
+      "stdoutSha256": "68a78f0ce78270e99d9403778ec1ec56421e412829514498bde871207c8fefe5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "whitespacePassed": false,
+  "warningCount": 4,
+  "cause": "Initial working-tree diff --check did not include untracked new files; staged/commit-level checks reveal trailing blank lines at EOF in INTENT.md, BINDING.md, REPORT.md and probes.mjs.",
+  "disposition": "Preserve sealed intentions/input and preparation byte identities. Cosmetic EOF warnings recorded rather than silently altering seals. No runtime or JSON integrity failure.",
+  "productExecutions": 0,
+  "logicalCaseCount": 7
+}

@@ -1,0 +1,399 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "base": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "candidateNotRead": true,
+  "normativeAuthority": "Curie 8897ece3 / freeze 3cbcdc1a; root relay /tmp/expr-repeat-root-normative-20260827.txt. No primary normative research duplicated.",
+  "policy": "Only narrow established expectations are asserted; ambiguous histories are observations, not normative passes. GNU empty for original/aaa remains a strict divergence.",
+  "cases": [
+    {
+      "id": "original/empty",
+      "subject": "",
+      "pattern": "\\(a*\\)*\\1",
+      "classification": "established-narrow",
+      "historicalGNU": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "expected": {
+        "matched": true,
+        "wholeEnd": 0,
+        "captureText": ""
+      }
+    },
+    {
+      "id": "original/a",
+      "subject": "a",
+      "pattern": "\\(a*\\)*\\1",
+      "classification": "established-narrow",
+      "historicalGNU": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "expected": {
+        "matched": true,
+        "wholeEnd": 0,
+        "captureText": ""
+      }
+    },
+    {
+      "id": "original/aa",
+      "subject": "aa",
+      "pattern": "\\(a*\\)*\\1",
+      "classification": "established-narrow",
+      "historicalGNU": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "expected": {
+        "matched": true,
+        "wholeEnd": 2,
+        "captureText": "a"
+      }
+    },
+    {
+      "id": "original/aaa",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)*\\1",
+      "classification": "established-narrow",
+      "historicalGNU": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "expected": {
+        "matched": true,
+        "wholeEnd": 3,
+        "captureText": "a"
+      }
+    },
+    {
+      "id": "original/no-reference",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)*",
+      "classification": "compatibility-control",
+      "historicalGNU": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YWFhCg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "original/not-repeated",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\1",
+      "classification": "established-narrow",
+      "historicalGNU": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "expected": {
+        "matched": true,
+        "wholeEnd": 2,
+        "captureText": "a"
+      }
+    },
+    {
+      "id": "original/nonnullable",
+      "subject": "aaa",
+      "pattern": "\\(a\\)*\\1",
+      "classification": "established-narrow",
+      "historicalGNU": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "expected": {
+        "matched": true,
+        "wholeEnd": 3,
+        "captureText": "a"
+      }
+    },
+    {
+      "id": "original/mandatory-empty",
+      "subject": "",
+      "pattern": "\\(a*\\)\\{2\\}\\1",
+      "classification": "established-narrow",
+      "historicalGNU": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "expected": {
+        "matched": true,
+        "wholeEnd": 0,
+        "captureText": ""
+      }
+    },
+    {
+      "id": "history-four",
+      "subject": "aaaa",
+      "pattern": "\\(a*\\)*\\1",
+      "classification": "observation-only"
+    },
+    {
+      "id": "history-six",
+      "subject": "aaaaaa",
+      "pattern": "\\(a*\\)*\\1",
+      "classification": "observation-only"
+    },
+    {
+      "id": "mandatory-nonempty",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{2\\}\\1",
+      "classification": "observation-only"
+    },
+    {
+      "id": "mandatory-no-reference",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{2\\}",
+      "classification": "observation-only"
+    },
+    {
+      "id": "bounded-history",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{1,3\\}\\1",
+      "classification": "observation-only"
+    },
+    {
+      "id": "alternation-longest",
+      "subject": "aaa",
+      "pattern": "\\(a\\|aa\\)*",
+      "classification": "observation-only"
+    },
+    {
+      "id": "nested-nullable",
+      "subject": "aaaa",
+      "pattern": "\\(\\(a*\\)*\\)*\\2",
+      "classification": "observation-only"
+    },
+    {
+      "id": "nested-reference",
+      "subject": "aaaa",
+      "pattern": "\\(\\(a*\\)\\2\\)*\\1",
+      "classification": "observation-only"
+    },
+    {
+      "id": "descendant-retention",
+      "subject": "abaab",
+      "pattern": "\\(a\\(b\\)*\\)*\\2",
+      "classification": "observation-only"
+    },
+    {
+      "id": "nested-mandatory-empty",
+      "subject": "",
+      "pattern": "\\(\\(a*\\)\\{2\\}\\)\\{2\\}\\2",
+      "classification": "observation-only"
+    },
+    {
+      "id": "optional-child-empty",
+      "subject": "aaa",
+      "pattern": "\\(a\\(b*\\)\\)*\\2",
+      "classification": "observation-only"
+    },
+    {
+      "id": "branch-isolation-forward",
+      "subject": "aa",
+      "pattern": "\\(a\\|ab\\)\\1",
+      "classification": "structural-extension-control",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 2,
+        "captureText": "a"
+      }
+    },
+    {
+      "id": "branch-isolation-reversed",
+      "subject": "aa",
+      "pattern": "\\(ab\\|a\\)\\1",
+      "classification": "structural-extension-control",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 2,
+        "captureText": "a"
+      }
+    },
+    {
+      "id": "branch-absent-reference",
+      "subject": "bb",
+      "pattern": "\\(a\\)\\|b\\1",
+      "classification": "structural-control",
+      "expected": {
+        "matched": false,
+        "wholeEnd": null,
+        "captureText": null
+      }
+    },
+    {
+      "id": "nonparticipation",
+      "subject": "",
+      "pattern": "\\(a\\)\\{0\\}\\1",
+      "classification": "structural-control",
+      "expected": {
+        "matched": false,
+        "wholeEnd": null,
+        "captureText": null
+      }
+    },
+    {
+      "id": "required-three-empty",
+      "subject": "",
+      "pattern": "\\(a*\\)\\{3\\}\\1",
+      "classification": "established-mandatory-extension-of-derivation",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 0,
+        "captureText": ""
+      }
+    },
+    {
+      "id": "target-end-anchor",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)*\\1$",
+      "classification": "observation-only"
+    },
+    {
+      "id": "target-suffix",
+      "subject": "aaab",
+      "pattern": "\\(a*\\)*\\1b",
+      "classification": "observation-only"
+    },
+    {
+      "id": "byte-span",
+      "subject": "éé",
+      "pattern": "\\(.\\).*\\1",
+      "classification": "observation-only"
+    },
+    {
+      "id": "scalar-span",
+      "subject": "éé",
+      "pattern": "\\(.\\)\\1",
+      "classification": "byte-protocol-control",
+      "profile": "utf8-scalar",
+      "native": false,
+      "expected": {
+        "matched": true,
+        "wholeEnd": 4,
+        "captureText": "é"
+      }
+    }
+  ],
+  "controls": {
+    "limits": [
+      "maxPatternBytes",
+      "maxSubjectBytes",
+      "maxNodes",
+      "maxDepth",
+      "maxSteps",
+      "maxStates",
+      "maxAllocatedUnits"
+    ],
+    "limitPattern": "\\(\\(a*\\)*\\)*\\2",
+    "limitSubject": "aaaaaaaaaaaa",
+    "budgetErrors": "ExprMatchError category limit; no partial result",
+    "protocol": [
+      "capture [0,-1]",
+      "capture outside subject",
+      "capture beyond whole",
+      "unmatched with capture",
+      "extra reply key",
+      "invalid request limits"
+    ],
+    "lifecycle": [
+      "pre-aborted reason identity",
+      "in-flight cancellation and retirement",
+      "request timeout and retirement",
+      "startup timeout and retirement",
+      "invalid reply retires worker",
+      "post-error fresh work",
+      "source cap error identity",
+      "shared protocol/client/worker/matching byte identity"
+    ],
+    "invariants": [
+      "whole starts at zero",
+      "all spans ordered safe integers within subject bytes",
+      "capture ends within whole",
+      "participation distinct from no match",
+      "completed capture only",
+      "repeat finite minimum/count progress",
+      "branch-local restoration",
+      "input-scaled admission before allocation/work"
+    ],
+    "scope": "Worker-only untrusted regex. No opaque host-promise preemption claim. Existing bounded lifecycle/protocol controls may be run from immutable base without alteration."
+  },
+  "native": {
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "LANGUAGE": "C",
+      "TZ": "UTC"
+    },
+    "timeoutMs": 2000,
+    "maxOutputBytes": 65536,
+    "gnu": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "profile": "GNU 9.7 Darwin, not GNU/Linux"
+    },
+    "apple": {
+      "path": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f",
+      "profile": "Apple expr Darwin C, separate comparator"
+    }
+  },
+  "anchors": [
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/capture-final/original-eight.json",
+      "sha256": "bde325d00025d2df3a31b5fcb43f049359c5779def8d3a3a5226d68a3fa77477"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/REPORT.md",
+      "sha256": "4e43292153b3200fdfdc604c51490bdd105d58e6021792bfad5dcf30d5848dae"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/capture-final/summary.json",
+      "sha256": "f48b1206f0dc634d767c5eaeb36b575023d7a31e94207793d0a419f7fb981a73"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-capture-review/manifest.json",
+      "sha256": "adb8a9dfc589846c194eae73f0c6580f76d5944ff7237b1b75125b54e3e48423"
+    },
+    {
+      "path": "tests/commands/expr-stress/c-profile-gap-review/frozen/CASE_MATRIX.json",
+      "sha256": "ae334dcecc459d59e89d0183067b828ae4848ef48db300391dbe0971ec6046d2"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/REPORT.md",
+      "sha256": "307a8a377a28c9c611ff73e8ad4b5d84c6eb253a12782cdf733e39cfc7fe33cf"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/CASES.json",
+      "sha256": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/capture.json",
+      "sha256": "8cb70c60aedad21a5d5ec5350429afc0889e9fdf407d9e54de2edae92185837d"
+    }
+  ]
+}

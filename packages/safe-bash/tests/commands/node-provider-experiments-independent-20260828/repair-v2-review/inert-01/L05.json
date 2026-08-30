@@ -1,0 +1,59 @@
+{
+  "id": "L05",
+  "subjectRow": {
+    "number": 1,
+    "role": "workflow",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review",
+      "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/L05",
+      "--disallow-code-generation-from-strings",
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=64",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/overflow.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/L05",
+    "stdoutBytes": 65537,
+    "stderrBytes": 0,
+    "containment": "OWNED_FAILURE",
+    "naturallyReaped": false,
+    "closeObserved": true,
+    "signalsRequested": [
+      "SIGTERM"
+    ],
+    "pid": 54339,
+    "status": null,
+    "signal": "SIGTERM",
+    "primaryFailure": {
+      "type": "object",
+      "name": "Error",
+      "code": null,
+      "message": "STDOUTBYTES_BOUND",
+      "stack": "Error: STDOUTBYTES_BOUND\n    at Socket.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:50:37)\n    at Socket.emit (node:events:531:35)\n    at addChunk (node:internal/streams/readable:561:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\n    at Readable.push (node:internal/streams/readable:392:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+    },
+    "secondaryFailures": [
+      {
+        "type": "object",
+        "name": "Error",
+        "code": null,
+        "message": "CHILD_CONTAINMENT_OR_SPAWN",
+        "stack": "Error: CHILD_CONTAINMENT_OR_SPAWN\n    at Object.child (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:64:37)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:151:26"
+      }
+    ]
+  },
+  "enrollment": [
+    "publication-after-enrollment-and-listeners",
+    "clock-after-enrollment-and-listeners"
+  ],
+  "remainingCalls": 2,
+  "fulfilled": false,
+  "reason": {
+    "type": "object",
+    "name": "Error",
+    "code": null,
+    "message": "STDOUTBYTES_BOUND",
+    "stack": "Error: STDOUTBYTES_BOUND\n    at Socket.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:50:37)\n    at Socket.emit (node:events:531:35)\n    at addChunk (node:internal/streams/readable:561:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)\n    at Readable.push (node:internal/streams/readable:392:5)\n    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)"
+  },
+  "status": "PASS"
+}

@@ -1,0 +1,3985 @@
+{
+  "schema": "priority-actual-dispatch-v2-reconciliation",
+  "recordedAt": "2026-08-28T20:45:21.340Z",
+  "status": "STOP",
+  "grantCommit": "8f0a9fdaa84d7bae59040617577e2b0ee028d29b",
+  "grant": {
+    "bytes": 3534,
+    "sha256": "5d37bb0ff2f321624783c0b6e3abc027031d98a15aaa3ec2aab31c96169273d9"
+  },
+  "supervisor": {
+    "pid": 964,
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+      "--grant",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/GO.json",
+      "--budget",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PARENT-BUDGET.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "dispatches": 1,
+    "shellWait": {
+      "pid": 964,
+      "shellWaitStatus": 1,
+      "waitCompleted": true,
+      "endEpochSeconds": 1787949727
+    },
+    "startedEpochMs": 1787949649022,
+    "finishedEpochMs": 1787949726628,
+    "elapsedMs": 77606,
+    "effectiveDeadlineEpochMs": 1787950849022,
+    "stdout": {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/supervisor.stdout",
+      "bytes": 62,
+      "sha256": "b8417e46ac90c96bbc35c6f22e9548ae378092d28363ef3f42bfcef39c3984a0"
+    },
+    "stderr": {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/supervisor.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "terminal": {
+    "path": "tests/integration/priority-command-workflows-20260828/future-run-01/RESULTS.json",
+    "bytes": 16777216,
+    "sha256": "4851193778874cd65ffbfc99b3ab70beed37c4060f3acf86cec6b28440c0d420"
+  },
+  "classification": "Frozen safety STOP, not repaired, retried or re-scored; ordinary assertion failures and stopped subjects remain separate.",
+  "subjects": [
+    {
+      "layout": "source-build",
+      "id": "P01",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P01.observed.json",
+      "rawObservedSha256": "ee477bb5751b335199c76ef2db83cf1a2cf3de73dfc4c36073ddef5ff1f37d9b",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MToxOlRPRE8gYWxwaGEKMjozOlRPRE8gYmV0YQo=",
+        "stderrBase64": "",
+        "stdoutBytes": 29,
+        "stderrBytes": 0,
+        "stdoutSha256": "139850c3d5763481d1d9b45e741f05670a792d28adba7b65b270a8060499725d",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "7f11ef6a58a995a9aa50152917af47b92b5d4ca82a6dd69e2703812cc52ec3af",
+        "afterSha256": "7f11ef6a58a995a9aa50152917af47b92b5d4ca82a6dd69e2703812cc52ec3af",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "2,4p",
+              "notes"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "nl",
+              "-ba",
+              "-w",
+              "1",
+              "-s",
+              ":"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P02",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P02.observed.json",
+      "rawObservedSha256": "3b9150e2c6dc67423025ca6e9e3d3941a29fc1e11901fb082bbd2563580e4219",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MjpFUlJPUiBtaXNzaW5nCg==",
+        "stderrBase64": "",
+        "stdoutBytes": 16,
+        "stderrBytes": 0,
+        "stdoutSha256": "14b1cc094406a6c34c1ba9afb9c5bcda2c47de97eb63b1f82eff040f7af5cb49",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "3a694957a0876d2b95d56c929f7df5cd234e06b296f5c261d9a57b0ad1b777b8",
+        "afterSha256": "3a694957a0876d2b95d56c929f7df5cd234e06b296f5c261d9a57b0ad1b777b8",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "/^BEGIN$/,/^END$/p",
+              "log"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "ERROR"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P03",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P03.observed.json",
+      "rawObservedSha256": "7281ee72bfe0a97c6e45022245739e19f7e2637446ad19bd9bc3d0396eb0a567",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "YWxwaGEgW293bmVyXQo=",
+        "stderrBase64": "",
+        "stdoutBytes": 14,
+        "stderrBytes": 0,
+        "stdoutSha256": "50a4c34b3d78461dbfa2d5149ee93e9b9f8dc80bb6d0f02cdad66154628f47e2",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "00d1a514aa00b2ec55dd724f7f36cd8ef931d3ee6fbef80140577c91f263624a",
+        "afterSha256": "00d1a514aa00b2ec55dd724f7f36cd8ef931d3ee6fbef80140577c91f263624a",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-F",
+              "[owner]"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "-E",
+              "s/^([a-z]+)=(.*)$/\\2 [\\1]/",
+              "config"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P04",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P04.observed.json",
+      "rawObservedSha256": "6fb1d90903af0618c8b651011f4479e82e75a07fbec150500cbc34645932f871",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "eCBZIFkK",
+        "stderrBase64": "",
+        "stdoutBytes": 6,
+        "stderrBytes": 0,
+        "stdoutSha256": "e1e95384c412f46db9b400d5f88e33f00a85d766eb931e72f5e8b30804681989",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "108d5b7428cd5485dfd5ea0541e3237f2814c418a5b43cacd0a03ba79f956701",
+        "afterSha256": "108d5b7428cd5485dfd5ea0541e3237f2814c418a5b43cacd0a03ba79f956701",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "s/x/Y/2g",
+              "tokens"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-x",
+              "-F",
+              "x Y Y"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P05",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P05.observed.json",
+      "rawObservedSha256": "51e21f545da35e053a41278e1525cb9c16e0991338c63404db2205b529088a57",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUQVNLIGFscGhhCjI6VEFTSyBiZXRhCg==",
+        "stderrBase64": "",
+        "stdoutBytes": 25,
+        "stderrBytes": 0,
+        "stdoutSha256": "878710dd5b10fc71b4d1bb654b4fedb89a1a450a474d138e1a5e7abbe32087fa",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "e7c5cdb75a9bf5e90b8dd8b4315ab92ae4932a863b8c8ce086114bad03797c67",
+        "afterSha256": "e7c5cdb75a9bf5e90b8dd8b4315ab92ae4932a863b8c8ce086114bad03797c67",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "s/^todo/TASK/Ip",
+              "items"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TASK"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P06",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P06.observed.json",
+      "rawObservedSha256": "22ca992961aed5d49dfd094178f42499ec10c53b232b8a15344c6d271166845f",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "cHJvZCBsaXN0ZW49ODAK",
+        "stderrBase64": "",
+        "stdoutBytes": 15,
+        "stderrBytes": 0,
+        "stdoutSha256": "48635a17c4c5f8076f7e0ac8d1219d02c3bb5c1f1623cdc2bfb34ef18d62c516",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 4,
+        "afterKeys": 4,
+        "beforeSha256": "2b60119d83442261aac349f012d9575b6913a8012773ef40c24e025fd73f5b01",
+        "afterSha256": "2b60119d83442261aac349f012d9575b6913a8012773ef40c24e025fd73f5b01",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-F",
+              "prod listen="
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "-e",
+              "s/dev/prod/",
+              "-f",
+              "rules",
+              "-e",
+              "2d",
+              "config"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 2,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P07",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P07.observed.json",
+      "rawObservedSha256": "d44f944266019a3daf1714c9eec2db8d03f14c93f5c664f7a135ac7f944191b2",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpob3N0PXByb2QKMjptb2RlPXByb2QKaG9zdD1kZXYKbW9kZT1kZXYK",
+        "stderrBase64": "",
+        "stdoutBytes": 42,
+        "stderrBytes": 0,
+        "stdoutSha256": "a0bc601dd9b642fa4fb5bf47383b595736c06186e31295b81d6d732a52735933",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 4,
+        "beforeSha256": "250d6997e261e17b856c2f41697503a2e53a8097626d4a5fe48457b0330f1399",
+        "afterSha256": "7679b393fdbbfc59597773983220401501cd302e8c90767d8e371b5aa14362da",
+        "wholeNamespaceUnchanged": false,
+        "changedPaths": [
+          "/work/config file",
+          "/work/config file.bak"
+        ],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-i.bak",
+              "s/dev/prod/g",
+              "config file"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "prod",
+              "config file"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "cat",
+              "config file.bak"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 7,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P08",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P08.observed.json",
+      "rawObservedSha256": "94403fd4a0e97209d42e9d540dfc26f7192083d42b7130d1136f5d9080b7f854",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUT0RPIGFscGhhCjI6VE9ETyBiZXRhCg==",
+        "stderrBase64": "",
+        "stdoutBytes": 25,
+        "stderrBytes": 0,
+        "stdoutSha256": "25c0fd2c4cf9ec106ff24077a4dbb130194d0c61b14b552bbc6dccc92fa024b4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 4,
+        "afterKeys": 4,
+        "beforeSha256": "b38ccdedb897b1c38ecc60f172310160c9c6f5f657591e4078a8b9cd5c2ac74a",
+        "afterSha256": "b38ccdedb897b1c38ecc60f172310160c9c6f5f657591e4078a8b9cd5c2ac74a",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "-s",
+              "-n",
+              "1p",
+              "a",
+              "b"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 2,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P09",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P09.observed.json",
+      "rawObservedSha256": "f87813411d132f5e42bd807b7f40632152b12207cd4263f48ae35cbe7521e610",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTphbHBoYTpUT0RPCg==",
+        "stderrBase64": "",
+        "stdoutBytes": 13,
+        "stderrBytes": 0,
+        "stdoutSha256": "62142e45ddebf0592d66fa19f3e72e36f4634a885964975a563a73d8ce9d0332",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "68d03edc559e7c6e7e0fce3a2d0233e3723abda7832e4c4f568c251912e738e0",
+        "afterSha256": "68d03edc559e7c6e7e0fce3a2d0233e3723abda7832e4c4f568c251912e738e0",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "N;s/\\n/:/p",
+              "pairs"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              ":TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P10",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P10.observed.json",
+      "rawObservedSha256": "57d7ac6570a630d8c136d1783d92380a1bc39462e7875ba1f0fce0f24c1c7e06",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MS1iZWZvcmUKMjpXQVJOIHJldHJ5CjMtYWZ0ZXIK",
+        "stderrBase64": "",
+        "stdoutBytes": 30,
+        "stderrBytes": 0,
+        "stdoutSha256": "9eda336d45e25c62e48d67b874ae55fa937d06d47bd711b5e8166e1702415a1d",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "71d9be93557a604d4b5d0827244dc35a5538c680713f07954865bf01eb43de31",
+        "afterSha256": "71d9be93557a604d4b5d0827244dc35a5538c680713f07954865bf01eb43de31",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "/^DEBUG/d",
+              "log"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-C",
+              "1",
+              "-F",
+              "WARN"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P11",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P11.observed.json",
+      "rawObservedSha256": "4c84f4ce4a826c3ebd50b95e37c562687d2205a272494991ce8192820b19aa5a",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTo0Om9rIGNhZsOpCg==",
+        "stderrBase64": "",
+        "stdoutBytes": 13,
+        "stderrBytes": 0,
+        "stdoutSha256": "48dacf0cc46638b4b51c25da9adc02c05816db9987bd3d26af72b2cb52578d30",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "ca44925923b2cffc843242dea51e82d3f98800c4c9dee57f0554d570d3ebfeec",
+        "afterSha256": "ca44925923b2cffc843242dea51e82d3f98800c4c9dee57f0554d570d3ebfeec",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "s/TODO/ok/",
+              "unicode"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "--column",
+              "-F",
+              "café"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P12",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P12.observed.json",
+      "rawObservedSha256": "9b65d5f034b5bafab3d7b854973dcb3b66bf888d4e821530dd1fd453f2a71794",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTpUT0RPIGVuZAo=",
+        "stderrBase64": "",
+        "stdoutBytes": 11,
+        "stderrBytes": 0,
+        "stdoutSha256": "0cbef6479f41dd7744e02ec1208767e35f4c3e90a62db990ddf9bc81376c65b8",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 3,
+        "afterKeys": 3,
+        "beforeSha256": "71c2903b906929e12e7292f31c4cf80ce99a29b5c2db4193297fe9dbf05859e6",
+        "afterSha256": "71c2903b906929e12e7292f31c4cf80ce99a29b5c2db4193297fe9dbf05859e6",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "-n",
+              "$p",
+              "note"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              "TODO"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 1,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P13",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P13.observed.json",
+      "rawObservedSha256": "ed3608f1c6236bc7ff1fd8ce5209149da8e3ca396bfabaaa681f7b983d70861f",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "bmFtZTpjb3VudAoxOmFscGhhOjAwNwoyOmJldGE6MDEyCg==",
+        "stderrBase64": "",
+        "stdoutBytes": 34,
+        "stderrBytes": 0,
+        "stdoutSha256": "4c821209f53c20479f5243479b9e48999b52d6579aec6f0bb78c799f28d419b8",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 2,
+        "afterKeys": 3,
+        "beforeSha256": "03102369821f65dd9d647e6379d76a020350b883a5717cf4f442a133058fdda5",
+        "afterSha256": "734bbff57b70fb1c07e2398a748b10f5fe43fa95912dd11775fac09626381f98",
+        "wholeNamespaceUnchanged": false,
+        "changedPaths": [
+          "/work/report"
+        ],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "echo",
+              "name:count"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s/\\t/:/"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "printf",
+              "%s\\t%03d\\n",
+              "alpha",
+              "7",
+              "beta",
+              "12"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-n",
+              "-F",
+              ":0"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "cat",
+              "report"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 7,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P14",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P14.observed.json",
+      "rawObservedSha256": "f62fa760e5053b895437a0f6276003dde7d2e76f0011ce8c31a80e231cba6cfa",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "LmhpZGRlbi50czoxOlRPRE8gaGlkZGVuCm1haW4udHM6MTpUT0RPIHZpc2libGUK",
+        "stderrBase64": "",
+        "stdoutBytes": 48,
+        "stderrBytes": 0,
+        "stdoutSha256": "5fbda8df8e995a1db382c75c93abfbed374d52766608f8275c77cbdf61503560",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 6,
+        "afterKeys": 6,
+        "beforeSha256": "269d6aa1f2bc1fd603b4af0fc73d21a3b15dc8260dafc2bd89b8f7ba0dd40ad9",
+        "afterSha256": "269d6aa1f2bc1fd603b4af0fc73d21a3b15dc8260dafc2bd89b8f7ba0dd40ad9",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "s#^\\./##"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "--hidden",
+              "-g",
+              "*.ts",
+              "-g",
+              "!skip.ts",
+              "-n",
+              "-F",
+              "TODO",
+              "."
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 11,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P15",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "PASS",
+      "childStatus": 0,
+      "frozenPass": true,
+      "failureRecords": [],
+      "safetyStops": [],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P15.observed.json",
+      "rawObservedSha256": "2d9793ba4a1d9e9192ee9907c8cf6f9ce853464f3b01864aad7142470d25eaca",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "MTouYS50eHQKMjphLnR4dAozOnoudHh0Cg==",
+        "stderrBase64": "",
+        "stdoutBytes": 25,
+        "stderrBytes": 0,
+        "stdoutSha256": "5af9530dc4f7f5ffdce74ecf30f984273b3aac42a100e447a21a701936fabded",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 7,
+        "afterKeys": 8,
+        "beforeSha256": "f126b8b5a0dd14033b3f35158390f69324665506b4678e983aaed8f0dc7730fb",
+        "afterSha256": "6ec918617bac03d7fe131874211c8ce33a40870f81b66b70af893dffcf2859d4",
+        "wholeNamespaceUnchanged": false,
+        "changedPaths": [
+          "/work/listing"
+        ],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "ls",
+              "-A1",
+              "docs"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "sed",
+              "s#^docs/##"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "--files",
+              "--hidden",
+              "-g",
+              "*.txt",
+              "docs"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "nl",
+              "-ba",
+              "-w",
+              "1",
+              "-s",
+              ":"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 12,
+        "workerEventRows": 6,
+        "filesystemCallCount": 24,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P16",
+      "kind": "workflow",
+      "attempted": true,
+      "observed": true,
+      "execAndDisposeCompleted": true,
+      "status": "STOP",
+      "childStatus": 1,
+      "frozenPass": false,
+      "failureRecords": [
+        {
+          "kind": "assertion",
+          "message": "AssertionError [ERR_ASSERTION]: UNDECLARED_STAGE\n\n2 !== 0\n",
+          "stack": "AssertionError [ERR_ASSERTION]: UNDECLARED_STAGE\n\n2 !== 0\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/future-adapter.mjs:375:12)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/runtime-entry.mjs:33:17"
+        }
+      ],
+      "safetyStops": [
+        {
+          "code": "MANDATORY_TRACE_STOP",
+          "message": "AssertionError [ERR_ASSERTION]: UNDECLARED_STAGE\n\n2 !== 0\n"
+        }
+      ],
+      "rawObservedReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P16.observed.json",
+      "rawObservedSha256": "c6ba115f588cc8cc82f031d32eb15025dbd9a7276819e3d29deb93e3b19a13dd",
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutBase64": "bm90ZXMvYSBiLnR4dDoxOlRBU0sgYWxwaGEKbm90ZXMvei50eHQ6MjpUQVNLIGJldGEK",
+        "stderrBase64": "",
+        "stdoutBytes": 51,
+        "stderrBytes": 0,
+        "stdoutSha256": "e240c048bfb02f33992c73af9717848c739a07158a6a98e951eb7bd66855f1be",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "literalStdoutEqualFrozen": true,
+        "literalStderrEqualFrozen": true,
+        "literalExitCodeEqualFrozen": true
+      },
+      "vfs": {
+        "beforeKeys": 6,
+        "afterKeys": 6,
+        "beforeSha256": "0dcfdd193d168f0cecb52280a1f61132daf7fad8ad3c495a22088179f5bd58a2",
+        "afterSha256": "0dcfdd193d168f0cecb52280a1f61132daf7fad8ad3c495a22088179f5bd58a2",
+        "wholeNamespaceUnchanged": true,
+        "changedPaths": [],
+        "pending": 0,
+        "backingPending": 0
+      },
+      "trace": {
+        "stages": [
+          {
+            "argv": [
+              "sed",
+              "s/TODO/TASK/"
+            ],
+            "stdinIsDefault": false,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "find",
+              "notes",
+              "-type",
+              "f",
+              "-name",
+              "*.txt",
+              "-exec",
+              "rg",
+              "-H",
+              "-n",
+              "-F",
+              "TODO",
+              "{}",
+              ";"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-H",
+              "-n",
+              "-F",
+              "TODO",
+              "notes/a b.txt"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          },
+          {
+            "argv": [
+              "rg",
+              "-H",
+              "-n",
+              "-F",
+              "TODO",
+              "notes/z.txt"
+            ],
+            "stdinIsDefault": true,
+            "kind": "result",
+            "exitCode": 0
+          }
+        ],
+        "parentLoadRows": 215,
+        "childLoadRows": 24,
+        "workerEventRows": 12,
+        "filesystemCallCount": 10,
+        "requestCount": 0,
+        "authorizationCount": 0
+      },
+      "cleanup": {
+        "created": 1,
+        "disposed": 1,
+        "events": [
+          "exec:settle",
+          "shell.dispose.complete"
+        ],
+        "listenersAtEnd": 0,
+        "lifecycle": {
+          "unhandledRejections": 0,
+          "pendingOwnedAtEnd": 0,
+          "pendingFixtureAtEnd": 0,
+          "postCloseAdmission": 0,
+          "callerAborted": false
+        }
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P17",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "P18",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "P19",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "P20",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "P21",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "P22",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "P23",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "P24",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "C01",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "C02",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "C03",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "C04",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "C05",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "C06",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "source-build",
+      "id": "C07",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P01",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P02",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P03",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P04",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P05",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P06",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P07",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P08",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P09",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P10",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P11",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P12",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P13",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P14",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P15",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P16",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P17",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P18",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P19",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P20",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P21",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P22",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P23",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P24",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C01",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C02",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C03",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C04",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C05",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C06",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C07",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P01",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P02",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P03",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P04",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P05",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P06",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P07",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P08",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P09",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P10",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P11",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P12",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P13",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P14",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P15",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P16",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P17",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P18",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P19",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P20",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P21",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P22",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P23",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P24",
+      "kind": "workflow",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C01",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C02",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C03",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C04",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C05",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C06",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C07",
+      "kind": "control",
+      "attempted": false,
+      "observed": false,
+      "execAndDisposeCompleted": false,
+      "status": "UNRUN_AFTER_SAFETY_STOP"
+    }
+  ],
+  "commands": [
+    {
+      "number": 1,
+      "label": "fresh-build",
+      "role": "setup",
+      "pid": 1007,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949651637,
+      "end": 1787949656052,
+      "capturedBytes": 0,
+      "stdout": {
+        "path": "child-raw/001.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "child-raw/001.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/001.json",
+      "rawReceiptSha256": "4cc97f994c084cef9daeb2e05096c0b7dc27b09cef0178cf8750f01e0a9c4ca1",
+      "loaderThreadsRequested": 0,
+      "loaderThreadDisposition": "not-requested"
+    },
+    {
+      "number": 2,
+      "label": "full-npm-pack",
+      "role": "setup",
+      "pid": 1084,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949657772,
+      "end": 1787949659175,
+      "capturedBytes": 96639,
+      "stdout": {
+        "path": "child-raw/002.stdout",
+        "bytes": 96639,
+        "sha256": "ed461880e31d7a9e465f88088cd22ab6764a8a47e9919e83209b5df4a7d2f4b1"
+      },
+      "stderr": {
+        "path": "child-raw/002.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/002.json",
+      "rawReceiptSha256": "f37ed6dec2de6a6c69ea936e2485a7e933e688935c5d0d0f458e67a05efe9c99",
+      "loaderThreadsRequested": 0,
+      "loaderThreadDisposition": "not-requested"
+    },
+    {
+      "number": 3,
+      "label": "genuine-offline-install",
+      "role": "setup",
+      "pid": 1132,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949661000,
+      "end": 1787949662869,
+      "capturedBytes": 23,
+      "stdout": {
+        "path": "child-raw/003.stdout",
+        "bytes": 23,
+        "sha256": "a941066d38162d18c88ea4b096d8cf11d19b0d46b973f6d916e2f9b8794e1f36"
+      },
+      "stderr": {
+        "path": "child-raw/003.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/003.json",
+      "rawReceiptSha256": "48955e6c7285ea696ac5f8a898a4113a7256a7a8d0b5275fab464c26d6b17058",
+      "loaderThreadsRequested": 0,
+      "loaderThreadDisposition": "not-requested"
+    },
+    {
+      "number": 4,
+      "label": "missing-entry",
+      "role": "admission",
+      "pid": 1193,
+      "status": 1,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949664857,
+      "end": 1787949664924,
+      "capturedBytes": 1592,
+      "stdout": {
+        "path": "child-raw/004.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "child-raw/004.stderr",
+        "bytes": 1342,
+        "sha256": "a7e5d6f00b953b545517febb56fb94a6dcd6ed19c84f553aa0a6e08b4cb21a35"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/004.json",
+      "rawReceiptSha256": "94e0efc7b442eb768730fb8e07e2d9d54bbc2ad5c17e1b5af4840bbd9b0dd826",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 5,
+      "label": "wrong-digest",
+      "role": "admission",
+      "pid": 1232,
+      "status": 1,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949667117,
+      "end": 1787949667193,
+      "capturedBytes": 1744,
+      "stdout": {
+        "path": "child-raw/005.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "child-raw/005.stderr",
+        "bytes": 1494,
+        "sha256": "2f3bcd8319d04efab33935bc8338a8f5f46205290842c70f8f2571787dc5e8c6"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/005.json",
+      "rawReceiptSha256": "9c1418836d0c5af1a0fe5a07c9a59daad5a979029e1cb5184081746d97e1afef",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 6,
+      "label": "sourcefallback",
+      "role": "admission",
+      "pid": 1241,
+      "status": 1,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949669289,
+      "end": 1787949669366,
+      "capturedBytes": 1476,
+      "stdout": {
+        "path": "child-raw/006.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "child-raw/006.stderr",
+        "bytes": 1226,
+        "sha256": "04ef07f009424284409e8f16de39d4f7f769e223409e7bb6711cb9fef2148a96"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/006.json",
+      "rawReceiptSha256": "c6e0f400dce3dd5795505ddae156e598f02a57a4da037a5bfcf9f8ab74f4c071",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 7,
+      "label": "outside-file",
+      "role": "admission",
+      "pid": 1249,
+      "status": 1,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949671602,
+      "end": 1787949671686,
+      "capturedBytes": 1587,
+      "stdout": {
+        "path": "child-raw/007.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "child-raw/007.stderr",
+        "bytes": 1337,
+        "sha256": "85bccbebeb64da4f3dc7af5a1098e3641e1713a830b30f70965066eddb8eb187"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/007.json",
+      "rawReceiptSha256": "6ae10d03ee8381447f118bfdcf26fbfdfdf2c9cce07b6f0e29602a4026289909",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 8,
+      "label": "source-build-P01",
+      "role": "runtime",
+      "pid": 1269,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949673824,
+      "end": 1787949674687,
+      "capturedBytes": 71270,
+      "stdout": {
+        "path": "child-raw/008.stdout",
+        "bytes": 2480,
+        "sha256": "3439ecc14fe8e93206f76346de7ee14f423ed1a25d3275ae4f75579d5b86c9f8"
+      },
+      "stderr": {
+        "path": "child-raw/008.stderr",
+        "bytes": 453,
+        "sha256": "792fa1a124df70753ec8de16a8787d911720f7bcaace0163721c33ff73ee168f"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/008.json",
+      "rawReceiptSha256": "caca3df08f3117b67e0bced8c95fa817ab2666f3023c4e8e1ec32b0215481c31",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 9,
+      "label": "source-build-P02",
+      "role": "runtime",
+      "pid": 1284,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949677426,
+      "end": 1787949678207,
+      "capturedBytes": 71185,
+      "stdout": {
+        "path": "child-raw/009.stdout",
+        "bytes": 2395,
+        "sha256": "2127228bfa01a32aa8c2d37b78f70972269bf1e6f0498bbbd32a2930c7f27bdd"
+      },
+      "stderr": {
+        "path": "child-raw/009.stderr",
+        "bytes": 453,
+        "sha256": "61945e967a4d42a3abe3d446416ac003b4fef5dcbb76d8dcf16a5bc763fe4136"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/009.json",
+      "rawReceiptSha256": "17afca27b2ae3fa1fca20656fb4ad5be5aa2282b8ece4ec46d9e58256abb6bb1",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 10,
+      "label": "source-build-P03",
+      "role": "runtime",
+      "pid": 1297,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949680747,
+      "end": 1787949681598,
+      "capturedBytes": 71136,
+      "stdout": {
+        "path": "child-raw/010.stdout",
+        "bytes": 2346,
+        "sha256": "8f0ba1e3dff57e24a71c63dae03432efab461eb3d2c028f589c93566edd0940d"
+      },
+      "stderr": {
+        "path": "child-raw/010.stderr",
+        "bytes": 453,
+        "sha256": "bebc261e505deee95b05a7d5d5c29cbd045460aad380344979d8124d21bd5992"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/010.json",
+      "rawReceiptSha256": "d703299689b57fc69c6bf21026cd50a0f38e63dea531869120d08e053275b655",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 11,
+      "label": "source-build-P04",
+      "role": "runtime",
+      "pid": 1321,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949684181,
+      "end": 1787949684951,
+      "capturedBytes": 71062,
+      "stdout": {
+        "path": "child-raw/011.stdout",
+        "bytes": 2272,
+        "sha256": "730fbadf49c793bfdb1ddebeed9819d69f14b9bedeab8f0cafa00e7158b80a5e"
+      },
+      "stderr": {
+        "path": "child-raw/011.stderr",
+        "bytes": 453,
+        "sha256": "d1a4bf405ecc084bff7c07eb86323e388a047b8fd6e05bcbce5910ceaadd58a4"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/011.json",
+      "rawReceiptSha256": "c013dcaf294c85e8885486ef6a135a2adb20970023e9866939c4a4744957c975",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 12,
+      "label": "source-build-P05",
+      "role": "runtime",
+      "pid": 1334,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949687435,
+      "end": 1787949688255,
+      "capturedBytes": 71145,
+      "stdout": {
+        "path": "child-raw/012.stdout",
+        "bytes": 2355,
+        "sha256": "658ffe841d05bd899a78d492225e3c8d1c5da2e008f07fe606b8a25e6b813c79"
+      },
+      "stderr": {
+        "path": "child-raw/012.stderr",
+        "bytes": 453,
+        "sha256": "f8abc08e9caa758f01a4f2b983a3d9c7d101deb6afb4fcd50953da593053433d"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/012.json",
+      "rawReceiptSha256": "7778f035e6291f9f34d72ba4c8e8e9b102b034694afab7fd78a3d9b6998ac45e",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 13,
+      "label": "source-build-P06",
+      "role": "runtime",
+      "pid": 1344,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949690660,
+      "end": 1787949691414,
+      "capturedBytes": 71362,
+      "stdout": {
+        "path": "child-raw/013.stdout",
+        "bytes": 2572,
+        "sha256": "155e6efff5509a70a7021ee2cc12465bb21f155cd0a40bf7ac8a1cdb7a77aa17"
+      },
+      "stderr": {
+        "path": "child-raw/013.stderr",
+        "bytes": 453,
+        "sha256": "784d1d3af8fd080136509000210c82245a51fcf36d986c07c5f6f49807089584"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/013.json",
+      "rawReceiptSha256": "89d98f4ccfabaacc236d1684802a378af20fbedfcdfa02ec39005f8d1c4f2829",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 14,
+      "label": "source-build-P07",
+      "role": "runtime",
+      "pid": 1364,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949693959,
+      "end": 1787949694826,
+      "capturedBytes": 71898,
+      "stdout": {
+        "path": "child-raw/014.stdout",
+        "bytes": 3108,
+        "sha256": "c11f6a59f7cf46916da1bda6e2c5a2ffc7d2bb8d9f4b99b67d2f1b823eb7a18c"
+      },
+      "stderr": {
+        "path": "child-raw/014.stderr",
+        "bytes": 453,
+        "sha256": "1ebabd8bfcc02365e43dceee9ba16dab26cf96cb407462cb0d3eed4aab066919"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/014.json",
+      "rawReceiptSha256": "cf015b1ac5bbe455e9243c78c9d764a04ba048b923e070e51bdddad2f19de900",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 15,
+      "label": "source-build-P08",
+      "role": "runtime",
+      "pid": 1487,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949697349,
+      "end": 1787949698119,
+      "capturedBytes": 71363,
+      "stdout": {
+        "path": "child-raw/015.stdout",
+        "bytes": 2573,
+        "sha256": "2e749d389005353be6cb35a8d36e93ca09476c02cd5437297e683628723fddb4"
+      },
+      "stderr": {
+        "path": "child-raw/015.stderr",
+        "bytes": 453,
+        "sha256": "75075c848fbc344a16e3fd17b23fe0cee760a28b4a85d6a16ac8fea4aa9e4cef"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/015.json",
+      "rawReceiptSha256": "4bf90994d838c475019623d8e78358de27e755f744852787cda5f01c6ec4c5f1",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 16,
+      "label": "source-build-P09",
+      "role": "runtime",
+      "pid": 1499,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949700542,
+      "end": 1787949701284,
+      "capturedBytes": 71110,
+      "stdout": {
+        "path": "child-raw/016.stdout",
+        "bytes": 2320,
+        "sha256": "1c18160a01a05981defbaddeb23df552d0bbf66220dc277178ec9bea1c40a1cd"
+      },
+      "stderr": {
+        "path": "child-raw/016.stderr",
+        "bytes": 453,
+        "sha256": "1bb66a4bdbfe76d2c0013be15491ce752b1f7dfb483f99a73e95269e206aee93"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/016.json",
+      "rawReceiptSha256": "c4d1704d3674415fb3fb3b0d23dbff352d0df286210eaad776964b032d7d57dc",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 17,
+      "label": "source-build-P10",
+      "role": "runtime",
+      "pid": 1515,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949703767,
+      "end": 1787949704536,
+      "capturedBytes": 71179,
+      "stdout": {
+        "path": "child-raw/017.stdout",
+        "bytes": 2389,
+        "sha256": "1422e7249bc1e5d3bcdcdd0508881dfe66462af145284c240f7ae57a8c769c53"
+      },
+      "stderr": {
+        "path": "child-raw/017.stderr",
+        "bytes": 453,
+        "sha256": "16ba004dd0cb679feb2a1fdc1c5f7e13d85343ab06ceb0d7b5827ad28d96e935"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/017.json",
+      "rawReceiptSha256": "a830598f95f08040f963cb45eade68eb0b422a81c89e8df026c40d1c61dab310",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 18,
+      "label": "source-build-P11",
+      "role": "runtime",
+      "pid": 1529,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949707121,
+      "end": 1787949707871,
+      "capturedBytes": 71131,
+      "stdout": {
+        "path": "child-raw/018.stdout",
+        "bytes": 2341,
+        "sha256": "521efb8a6706d7bf2a53175bbe204c4d1246fe0219cabdbf496f825e1011e680"
+      },
+      "stderr": {
+        "path": "child-raw/018.stderr",
+        "bytes": 453,
+        "sha256": "3d14e22db124055c101ac0720a9a593a05bfa184bdfe3e0afffd3dbca67e82d2"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/018.json",
+      "rawReceiptSha256": "3287ebe2818cf5bb0a04b648381f0394ad8f062d97c057494caf8f3ff42e1f9c",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 19,
+      "label": "source-build-P12",
+      "role": "runtime",
+      "pid": 1549,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949710330,
+      "end": 1787949711060,
+      "capturedBytes": 71076,
+      "stdout": {
+        "path": "child-raw/019.stdout",
+        "bytes": 2286,
+        "sha256": "1e3936da2c3c0e5d0ff9c0d0385ea5f9beddb634a58a58a29a389b650365956e"
+      },
+      "stderr": {
+        "path": "child-raw/019.stderr",
+        "bytes": 453,
+        "sha256": "79dc15ab6584207cbf77647213d7571b67c67fadcbe532c44ccdbd656996a68c"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/019.json",
+      "rawReceiptSha256": "d5c62de6cc9d3bfb833616e2a8448aeadc444242cd6b4305cc6a9827ca1d8baf",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 20,
+      "label": "source-build-P13",
+      "role": "runtime",
+      "pid": 1570,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949713498,
+      "end": 1787949714223,
+      "capturedBytes": 71710,
+      "stdout": {
+        "path": "child-raw/020.stdout",
+        "bytes": 2920,
+        "sha256": "e3f0ac30c3169247955aaf115b99b8e617b35fca8079ade731f0f09e515bb7f4"
+      },
+      "stderr": {
+        "path": "child-raw/020.stderr",
+        "bytes": 453,
+        "sha256": "db7ea90236328c53a62d1b199d78f401276bab60c115ca10d8f568754970d7ab"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/020.json",
+      "rawReceiptSha256": "e7c72b4ad14cdebcc41620f4342df4248ef91070493e16e34cdb3ab75988b6fa",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 21,
+      "label": "source-build-P14",
+      "role": "runtime",
+      "pid": 1643,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949716847,
+      "end": 1787949717703,
+      "capturedBytes": 72908,
+      "stdout": {
+        "path": "child-raw/021.stdout",
+        "bytes": 4118,
+        "sha256": "13161e807ed0310d9e1642ef53dd9a39a00ab268b487a054636461265ca053fa"
+      },
+      "stderr": {
+        "path": "child-raw/021.stderr",
+        "bytes": 453,
+        "sha256": "ea3c3670df30a47c0175e32537212d1ad7c4794288fba2298a37ea4e6eadb38d"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/021.json",
+      "rawReceiptSha256": "53e9b688f680880644d23afae3216d106b37ecc15fc8fff936d6e0aa1ba48709",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 22,
+      "label": "source-build-P15",
+      "role": "runtime",
+      "pid": 1655,
+      "status": 0,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949720154,
+      "end": 1787949720889,
+      "capturedBytes": 74189,
+      "stdout": {
+        "path": "child-raw/022.stdout",
+        "bytes": 5399,
+        "sha256": "c7023bc6f90a1283908410d64aa35b8288a373c338cde9e5a5f3f20bee3f2e13"
+      },
+      "stderr": {
+        "path": "child-raw/022.stderr",
+        "bytes": 453,
+        "sha256": "16855a946e09f125d2e9fdc1e8c5c12930cb762027e9299ea373036fddcc9653"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/022.json",
+      "rawReceiptSha256": "86771a704f32b8bb11cbcb3351decef8458f26ae02b47cfc898a14842ce76f94",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    },
+    {
+      "number": 23,
+      "label": "source-build-P16",
+      "role": "runtime",
+      "pid": 1675,
+      "status": 1,
+      "signal": null,
+      "emergency": false,
+      "errors": [],
+      "exitObserved": true,
+      "closeObserved": true,
+      "reaped": true,
+      "start": 1787949723371,
+      "end": 1787949724122,
+      "capturedBytes": 79408,
+      "stdout": {
+        "path": "child-raw/023.stdout",
+        "bytes": 5083,
+        "sha256": "1fb4590d22cf44c6340864e71b1be7f4ec815e2d48bccccf135664776d668e0a"
+      },
+      "stderr": {
+        "path": "child-raw/023.stderr",
+        "bytes": 453,
+        "sha256": "669bb951a8816433c0650e6a38ee6f481a5d63c01533a08aeed5f1d9b5341d95"
+      },
+      "rawReceipt": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/023.json",
+      "rawReceiptSha256": "787b00b5aafc8b8a369edd1df86c09a775f84c6e85bb69000d9accc5a01f9fe7",
+      "loaderThreadsRequested": 1,
+      "loaderThreadDisposition": "Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation"
+    }
+  ],
+  "workerObservations": [
+    {
+      "layout": "source-build",
+      "id": "P01",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P01:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P01",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P02",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P02:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P02",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P03",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P03:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P03",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P04",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P04:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P04",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P05",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P05:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P05",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P06",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P06:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P06",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P07",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P07:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P07",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P08",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P08:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P08",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P09",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P09:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P09",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P10",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P10:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P10",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P11",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P11:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P11",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P12",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P12:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P12",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P13",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P13:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P13",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P14",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P14:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P14",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P15",
+      "rawConstructorAttempts": 1,
+      "rawStarts": 1,
+      "rawExits": 1,
+      "rawPreloads": 1,
+      "rawEntryLoads": 1,
+      "rawProductTerminateCalls": 1,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P15:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P15",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      }
+    },
+    {
+      "layout": "source-build",
+      "id": "P16",
+      "rawConstructorAttempts": 2,
+      "rawStarts": 2,
+      "rawExits": 2,
+      "rawPreloads": 2,
+      "rawEntryLoads": 2,
+      "rawProductTerminateCalls": 2,
+      "rawDriverTerminateCalls": 0,
+      "rawEmergencyWorkers": 0,
+      "workerRecords": [
+        {
+          "token": "source-build:P16:1",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 2,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        },
+        {
+          "token": "source-build:P16:2",
+          "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/dist/commands/regex-execution/worker.js",
+          "requested": {
+            "execArgv": [],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "effective": {
+            "execArgv": [
+              "--import",
+              "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/worker-preload.mjs"
+            ],
+            "resourceLimits": {
+              "maxOldGenerationSizeMb": 128,
+              "stackSizeMb": 4
+            }
+          },
+          "exited": true,
+          "exitCode": 1,
+          "terminatePending": 0,
+          "terminateErrors": [],
+          "emergency": false,
+          "productTerminateCalls": 1,
+          "errors": [],
+          "threadId": 3,
+          "resourceLimits": {
+            "maxYoungGenerationSizeMb": -1,
+            "maxOldGenerationSizeMb": 128,
+            "codeRangeSizeMb": -1,
+            "stackSizeMb": 4
+          },
+          "online": true,
+          "childAdmissionRefused": false
+        }
+      ],
+      "frozenReservation": {
+        "tag": "source-build-P16",
+        "reserved": 4,
+        "charged": 4,
+        "accounting": "unknown",
+        "attempts": null,
+        "starts": null
+      }
+    }
+  ],
+  "safetyStops": [
+    {
+      "message": "AssertionError [ERR_ASSERTION]: ADAPTER_SAFETY_STOP\n+ actual - expected\n\n+ [\n+   {\n+     code: 'MANDATORY_TRACE_STOP',\n+     message: 'AssertionError [ERR_ASSERTION]: UNDECLARED_STAGE\\n\\n2 !== 0\\n'\n+   }\n+ ]\n- []\n",
+      "stack": "AssertionError [ERR_ASSERTION]: ADAPTER_SAFETY_STOP\n+ actual - expected\n\n+ [\n+   {\n+     code: 'MANDATORY_TRACE_STOP',\n+     message: 'AssertionError [ERR_ASSERTION]: UNDECLARED_STAGE\\n\\n2 !== 0\\n'\n+   }\n+ ]\n- []\n\n    at exact (file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs:20:10)\n    at requireCleanSafety (file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs:99:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs:211:7"
+    }
+  ],
+  "ordinaryFailures": [],
+  "reconciliationErrors": [
+    {
+      "message": "ReferenceError: runInventory is not defined",
+      "stack": "ReferenceError: runInventory is not defined\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_13.mjs:47:8040\n    at SourceTextModule.evaluate (node:internal/vm/module:233:26)\n    at /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/.tmpYNaow6/kernel.js:1751:24\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/.tmpYNaow6/kernel.js:1692:7\n    at async handleExec (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/.tmpYNaow6/kernel.js:1691:5)"
+    }
+  ],
+  "counts": {
+    "planned": 93,
+    "attempted": 16,
+    "observed": 16,
+    "execAndDisposeCompleted": 16,
+    "pass": 15,
+    "ordinaryFail": 0,
+    "STOP": 1,
+    "unrun": 77
+  },
+  "byLayout": [
+    {
+      "layout": "source-build",
+      "planned": 31,
+      "attempted": 16,
+      "completed": 16,
+      "pass": 15,
+      "ordinaryFail": 0,
+      "STOP": 1,
+      "unrun": 15
+    },
+    {
+      "layout": "offline-installed",
+      "planned": 31,
+      "attempted": 0,
+      "completed": 0,
+      "pass": 0,
+      "ordinaryFail": 0,
+      "STOP": 0,
+      "unrun": 31
+    },
+    {
+      "layout": "physically-moved",
+      "planned": 31,
+      "attempted": 0,
+      "completed": 0,
+      "pass": 0,
+      "ordinaryFail": 0,
+      "STOP": 0,
+      "unrun": 31
+    }
+  ]
+}

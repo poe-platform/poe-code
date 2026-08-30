@@ -1,0 +1,354 @@
+{
+  "family": "GNU",
+  "label": "crossread",
+  "temporary": "/tmp/safe-bash-pax-deletion-independent-SXbduM/safe-bash-pax-native-d4T94W",
+  "removed": true,
+  "observations": [
+    {
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "b112e5578260c103cafae7150e33b8fe1b5d0720a158d88be5ea8f6d9d26f478",
+      "stdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "family": "GNU",
+      "executable": "/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "version": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    {
+      "args": [
+        "-cf",
+        "native.tar",
+        "-C",
+        "input",
+        "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd",
+        "empty",
+        "symbol",
+        "hard"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-tf",
+        "native.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e219fe7cd1d1c5fe4e2f19d4d791e46a9cbd55543e1c5094efd2feb9e27d4b02",
+      "stdout": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xf",
+        "native.tar",
+        "-C",
+        "self-default-plain"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-tf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e219fe7cd1d1c5fe4e2f19d4d791e46a9cbd55543e1c5094efd2feb9e27d4b02",
+      "stdout": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xf",
+        "virtual.tar",
+        "-C",
+        "virtual-default-plain"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-czf",
+        "native.tar",
+        "-C",
+        "input",
+        "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd",
+        "empty",
+        "symbol",
+        "hard"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-tzf",
+        "native.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e219fe7cd1d1c5fe4e2f19d4d791e46a9cbd55543e1c5094efd2feb9e27d4b02",
+      "stdout": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xzf",
+        "native.tar",
+        "-C",
+        "self-default-gzip"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-tzf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e219fe7cd1d1c5fe4e2f19d4d791e46a9cbd55543e1c5094efd2feb9e27d4b02",
+      "stdout": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xzf",
+        "virtual.tar",
+        "-C",
+        "virtual-default-gzip"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "--format=pax",
+        "-cf",
+        "native.tar",
+        "-C",
+        "input",
+        "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd",
+        "empty",
+        "symbol",
+        "hard"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-tf",
+        "native.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e219fe7cd1d1c5fe4e2f19d4d791e46a9cbd55543e1c5094efd2feb9e27d4b02",
+      "stdout": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xf",
+        "native.tar",
+        "-C",
+        "self-pax-plain"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-tf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e219fe7cd1d1c5fe4e2f19d4d791e46a9cbd55543e1c5094efd2feb9e27d4b02",
+      "stdout": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xf",
+        "virtual.tar",
+        "-C",
+        "virtual-pax-plain"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "--format=pax",
+        "-czf",
+        "native.tar",
+        "-C",
+        "input",
+        "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd",
+        "empty",
+        "symbol",
+        "hard"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-tzf",
+        "native.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e219fe7cd1d1c5fe4e2f19d4d791e46a9cbd55543e1c5094efd2feb9e27d4b02",
+      "stdout": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xzf",
+        "native.tar",
+        "-C",
+        "self-pax-gzip"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-tzf",
+        "virtual.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e219fe7cd1d1c5fe4e2f19d4d791e46a9cbd55543e1c5094efd2feb9e27d4b02",
+      "stdout": "long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nempty\nsymbol\nhard\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xzf",
+        "virtual.tar",
+        "-C",
+        "virtual-pax-gzip"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    }
+  ]
+}

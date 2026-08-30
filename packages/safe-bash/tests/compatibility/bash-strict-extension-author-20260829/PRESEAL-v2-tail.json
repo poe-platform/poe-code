@@ -1,0 +1,100 @@
+{
+  "role": "FIXTURE_ONLY_FRESH_V2",
+  "date": "2026-08-29",
+  "base": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "baseSourceSha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32",
+  "baseEvidence": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+  "moduleCommit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "moduleAcceptance": "db8b818db983f32c9522ebe4c9589ca8766a5454:208stock/32mechanical/10types/24loaded=274; S02/H09/private-writer SOURCE gaps; native6 UNRUN",
+  "integrationCommit": "68a5a55bbf227c7d4895a4588510a319d4f2c4d8",
+  "fixtureCommit": "75527b5949326d4c82cc027881e772345c4d6a51",
+  "rootOverrides": [
+    "src/index.ts",
+    "src/plugins/index.ts",
+    "package.json",
+    "README.md"
+  ],
+  "metadataOverrides": [
+    "docs/COMMAND_PRIORITIES.md"
+  ],
+  "defaultCount": 80,
+  "expectedInputs": 293,
+  "expectedPackageMembers": 954,
+  "aggregate": "git?: Omit<GitCommandsOptions,\"replace\">; module setup replace:false, top-level host registration replacement authoritative; all unknown module options still rejected; discoveryBoundary only",
+  "subpath": "virtual-bash/commands/git",
+  "bounds": {
+    "totalSeconds": 2700,
+    "children": 96,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 188743680,
+    "scratchBytes": 1006632960,
+    "childCaptureBytes": 8388608,
+    "loaderAdmissions": 40,
+    "regexWorkers": 8,
+    "directProcessCeiling": 48,
+    "knownOSGrant": 112
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "developmentGit": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+    "role": "development exact blob/tree reads, no native oracle"
+  },
+  "stop": "No retry on safety/capture/integrity/unknown retirement; ordinary assertions aggregate after closure; no native/private/network/product fallback/rawHEAD build/YQ/XAN/node/declare/mapfile",
+  "limitations": "Public composition only, not full Git/native/resource parity. All24 Git caps unchanged; baseline79 bounded acceptance; four regex-denied regressions unqualified. Historical module fixtures preserved; two standalone-after-aggregate registration sites versioned to explicit replace:true only.",
+  "executionsAtPreseal": 0,
+  "plannedChildren": {
+    "direct": 39,
+    "loaders": 29,
+    "regexWorkersMax": 8,
+    "administrativeStarts": "Recorded separately, not reservation-derived measurement"
+  },
+  "cohorts": {
+    "extension": 35,
+    "conditional": 67,
+    "strict": 50,
+    "redirections": 48,
+    "arrays": 12
+  },
+  "baseAcceptance": "bd772916c26dc87c54bafdaa784d18f058efa275 bounded public79; reviewer four RegexWorker-denied rows unqualified, no product failure/pass inference",
+  "resources": "Serial fixed consumers and loaders; <=8 qualified RegexWorkers only for retained regressions. Loader reservations are not claimed OS births; complete grant128 includes supervisor/development/publication census.",
+  "sourceCommit": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+  "exclusions": "No native/oracle/private/network/engine/Node-command/XAN/P2/fullgate; selected default80 unchanged. Five design identities remain OPEN and unexecuted. No aggregate DISCARD implementation; every native tuple UNRUN. Conditional base7a5c6200 remains provisional, not liveHEAD.",
+  "masterGrantStarted": "2026-08-29T06:56:00.153Z",
+  "harnessVersion": 5,
+  "priorAttempt": "/tmp/bash-conditional-launch-28iNV1",
+  "version": "fresh-author-v2",
+  "expectedPackageSha256": "aaabea71bc3a7f1982a2ded488cbf5a905de304f0bc6f39302d15e293da8495f",
+  "originalStop": "c5a8068dd339c18953beb6c6846ff85557fad3c8",
+  "dataControls": "55c7272d3ee4c6091c1f4e11a945ae97b42fe650af385f5504eede4697319d62",
+  "continuation": "UNRUN_TAIL_ONLY",
+  "previous": {
+    "root": "/tmp/strict-extension-v2-author-aHDK4G",
+    "resultSha256": "58fb8c652d60049bb6a443ea8ffc9e561db206595c503ac942e9c10ca9ab965d",
+    "outerSha256": "8a82de27e278f600eb20faa63626164608f5c3e8b664faee846e5d573057af6b",
+    "movedExtensionSha256": "469ee9ee007cfd8d705ad3f0e4822bd4f66bee3313732d036f98e82a8677433e",
+    "directChildren": 22,
+    "loaderReservations": 14,
+    "workerCount": 0,
+    "captureBytes": 3065380,
+    "scratchWriteBytes": 47977777
+  },
+  "remainingPlanned": {
+    "directChildren": 17,
+    "loaderAdmissions": 15,
+    "semanticCases": 12,
+    "typeGroups": 2,
+    "expectedNegativeDiagnostics": 8,
+    "mutants": 6,
+    "restored": 6,
+    "bindingRefusals": 2
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "launcher": {
+    "bytes": 1878,
+    "sha256": "7f665b0ad62b71ff0f92d5d1561f2f5f4a1334f0f5f829c442d241ddc2156c57"
+  },
+  "args": [
+    "--experimental-permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/LOCATOR-IDENTITIES.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/package.json",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/CONTROL-RESULT.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/controls.mjs"
+  ],
+  "seconds": 30,
+  "captureBytes": 1048576,
+  "realControllerProcesses": 1,
+  "fakeChildrenOnly": true
+}

@@ -1,0 +1,1 @@
+tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(74,7): error TS2322: Type 'string' is not assignable to type 'number'.

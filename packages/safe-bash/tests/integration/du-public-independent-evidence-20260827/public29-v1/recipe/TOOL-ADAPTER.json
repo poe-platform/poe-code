@@ -1,0 +1,11 @@
+{
+  "source": "tests/integration/du-public-independent-evidence-20260827/admission-v2/tool-observer.cjs",
+  "originalSha256": "e54414c43a22733b31c21bf7f9c7b5fbbf34da629bb34df338e91211c7ee78ac",
+  "adaptedSha256": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967",
+  "changes": [
+    "read expected tool map from explicit environment input",
+    "stage TypeScript under work/tools/typescript rather than candidate/node_modules",
+    "assert actual compile/read bytes against preregistered dependency hashes"
+  ],
+  "writeAndNetworkGuardsUnchanged": true
+}

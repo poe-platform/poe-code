@@ -1,0 +1,42 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "tests/commands/time-env/fraction-expansion/tsconfig.json",
+    "--noEmit"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive",
+  "pid": 79863,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 819,
+  "timeoutMs": 120000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 79863,
+      "parent": 78599,
+      "group": 79863,
+      "born": "Thu Aug 27 04:05:23 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node node_modules/typescript/bin/tsc -p tests/commands/time-env/fraction-expansion/tsconfig.json --noEmit"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {}
+}

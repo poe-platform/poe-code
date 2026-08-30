@@ -1,0 +1,222 @@
+[
+  {
+    "id": "entry-below",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 185490,
+        "sha256": "79005d544095090d8a0ef2966fcaf213c206de42397b0a1ae279e8687b90e04e"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 185490,
+      "sha256": "b726207b2c5aab94402a008c14b1eb202328e93c0025ab2ee5f884d9e76bbb6c"
+    },
+    "stdout": {
+      "bytes": 185490,
+      "sha256": "79005d544095090d8a0ef2966fcaf213c206de42397b0a1ae279e8687b90e04e"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "entry-at",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 185502,
+        "sha256": "40792b8f75d94fd9c01e0045f3a6dc168876b83d34a81b9cf55db015d4935592"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 185502,
+      "sha256": "a6260625be260b8e6e04203888cbec53b2a419b308a7dd5aa05efde8db05f077"
+    },
+    "stdout": {
+      "bytes": 185502,
+      "sha256": "40792b8f75d94fd9c01e0045f3a6dc168876b83d34a81b9cf55db015d4935592"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "entry-above",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 185514,
+        "sha256": "7b1ad4e308fa0ccca1e1110c55740dc913895270761f43ce399ebd51f62b08d6"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 185514,
+      "sha256": "fb962e03adbc5050a32100566fd5cdc6e23665179b87a7cb07c3796620f18cd3"
+    },
+    "stdout": {
+      "bytes": 185514,
+      "sha256": "7b1ad4e308fa0ccca1e1110c55740dc913895270761f43ce399ebd51f62b08d6"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "retained-below",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 174767,
+        "sha256": "69eb4f8b0094dbc788191452ea4dd0b8c41fbb5136f9d245fa5179ea741ce42e"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 174767,
+      "sha256": "69eb4f8b0094dbc788191452ea4dd0b8c41fbb5136f9d245fa5179ea741ce42e"
+    },
+    "stdout": {
+      "bytes": 174767,
+      "sha256": "69eb4f8b0094dbc788191452ea4dd0b8c41fbb5136f9d245fa5179ea741ce42e"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "retained-at",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 174768,
+        "sha256": "b23376505655baabd9dbf110d38070fb45d28528e04837acb9f884d6655b1d7a"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 174768,
+      "sha256": "b23376505655baabd9dbf110d38070fb45d28528e04837acb9f884d6655b1d7a"
+    },
+    "stdout": {
+      "bytes": 174768,
+      "sha256": "b23376505655baabd9dbf110d38070fb45d28528e04837acb9f884d6655b1d7a"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "retained-above",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 174769,
+        "sha256": "240e5e00bc138a51a617d89ebd8e4d9eb6945674334b9e030d051a66d32879eb"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 174769,
+      "sha256": "240e5e00bc138a51a617d89ebd8e4d9eb6945674334b9e030d051a66d32879eb"
+    },
+    "stdout": {
+      "bytes": 174769,
+      "sha256": "240e5e00bc138a51a617d89ebd8e4d9eb6945674334b9e030d051a66d32879eb"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "oversized-extracted-small-prefix",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 174806,
+        "sha256": "d9eb19e470f777bcddf85da647b524098a0805f7f1ccbba9ac541eadb713251d"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 174806,
+      "sha256": "a1bbe20c43aeab7adee5de829a34c6365e662fd564684042c323d4c282c78ce1"
+    },
+    "stdout": {
+      "bytes": 174806,
+      "sha256": "d9eb19e470f777bcddf85da647b524098a0805f7f1ccbba9ac541eadb713251d"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "oversized-record-small-key",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 174807,
+        "sha256": "dbe2e8096fd04fbc935e3bf64692dc49399daa49d1b5ff6fb6b8759f3c512e45"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 174807,
+      "sha256": "cfc38aa7823087d61a827f501fa984444ddda3621865294cecdfd07c9bdf7583"
+    },
+    "stdout": {
+      "bytes": 174807,
+      "sha256": "dbe2e8096fd04fbc935e3bf64692dc49399daa49d1b5ff6fb6b8759f3c512e45"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "fallback-mid-sort-stable-ties",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 275662,
+        "sha256": "796e9f698b01d63e06202a3cabebaab8516895635030513142e77f9b5a975d16"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 275662,
+      "sha256": "796e9f698b01d63e06202a3cabebaab8516895635030513142e77f9b5a975d16"
+    },
+    "stdout": {
+      "bytes": 275662,
+      "sha256": "796e9f698b01d63e06202a3cabebaab8516895635030513142e77f9b5a975d16"
+    },
+    "finalized": false,
+    "counters": null
+  },
+  {
+    "id": "empty-keys-entry-cap",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 185510,
+        "sha256": "28e5787888e6d5b7bf0d84f5a81e96a5c2dc34655c0e00bdd29384bc29cd6db1"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 185510,
+      "sha256": "28e5787888e6d5b7bf0d84f5a81e96a5c2dc34655c0e00bdd29384bc29cd6db1"
+    },
+    "stdout": {
+      "bytes": 185510,
+      "sha256": "28e5787888e6d5b7bf0d84f5a81e96a5c2dc34655c0e00bdd29384bc29cd6db1"
+    },
+    "finalized": false,
+    "counters": null
+  }
+]

@@ -1,0 +1,11 @@
+# Scoped disposition
+
+**Finite DATA retention qualified; full requested authority-binding verification HOLD.**
+
+RESULT.json SHA256 `f84345e414546d884003fe732961ac3ed2a31e1b41809c506a3a4c138c2dfe80` records the narrow DATA verdict, not a complete runtime/preexec-authority acceptance. Four exact extracted author controls and three novel tamper groups passed. The helper exited0 after verifying62files/60526bytes, current local permission modes, copied/original hashes and exact DATA subtree membership. Git blob identity authenticates bytes; Git does not preserve all0600/0644 permission distinctions. Rehydration must enforce the manifest modes, not infer them from Git checkout.
+
+The preserved ACTIVATION record contains exact b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78 grant and dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa profile hashes. **This reviewer did not separately reauthenticate the actual ROOT grant bytes or full PREEXEC2e6d5978/review39244351 receipt bytes.** The limited direct-file authority scan finds the inactive GRANT-TEMPLATE and historical handoff, not matching actual grant/profile payloads. This is an incomplete lookup/proof scope, not evidence that those artifacts are absent from the repository. No guessed locator or ancestor-tree substitution closes it. ROOT can use the verified retention facts separately or supply the exact authority locators for a future bounded binding-only check.
+
+12 author-observed PASS/1STOP_UNCONFIRMED/0UNRUN;9 recorded earlier Worker exits/final0; stickyUNKNOWN stays. OwnerPID84282/toolsession98687 return2 remain ROOT/prior-tool reported, not independently observed tool-service/OS evidence. Outer0/0B is reserved/postchecked, not EOF proof. No cleanup/retirement credit, rerun, signals or broader135 acceptance follows this separate post-UNKNOWN retention audit.
+
+One DATA helper, one synchronous Git metadata child, separate syntax-only process; both helper/metadata child exited0. No new Workers/product/runtime/native/compiler/npm or active owned child. Known-role plan remains below20 including fixed readers/editor/scoped Git publication, peak<=3; no universal descendant census. Main stdout/stderr captured before Node startup. All originals and author files are unchanged. No compressed artifact decoded.

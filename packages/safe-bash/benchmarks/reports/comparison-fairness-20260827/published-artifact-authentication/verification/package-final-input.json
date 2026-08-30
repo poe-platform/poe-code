@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "status": "ROOT_AUTHORIZED_OFFLINE_REVIEW",
+  "rootAuthorization": "FINAL OFFLINE DIFFERENT-LEAF REVIEW now authorized, NO product calls. Rehash official retained tar vs full raw metadata SRI SHA512/SHA1 and 955 files/actual bundle vs original frozen package. Builtins-only offline verification permitted; no downloads, imports of product, or helper executions.",
+  "qualification": "Completed author handoff and once-only runtime evidence now available; package identity independently rechecked without execution.",
+  "authorHandoff": {
+    "path": "/tmp/safe-bash-baseline-auth-replay-detail.txt",
+    "sha256": "ae2717ddb52f00a1394077f55689e6b1aab515728346b8fa1101567299dd5d3f"
+  },
+  "httpEvidence": {
+    "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/verification/http-mapping-preflight.json",
+    "sha256": "87e4a34ffcf1f6f6968ff81528663b6ba7ad3fa594107b3365d2e394b50aba06"
+  },
+  "metadata": {
+    "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/registry-metadata.raw.json",
+    "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1",
+    "url": "https://registry.npmjs.org/just-bash/3.4.2"
+  },
+  "tarball": {
+    "path": "/private/tmp/safe-bash-published-auth-JydnQ4/just-bash-3.4.2.tgz",
+    "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+    "url": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz"
+  },
+  "extractedPackageRoot": "/private/tmp/safe-bash-published-auth-JydnQ4/authenticated-package",
+  "frozenProductRoot": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product",
+  "sourceManifest": {
+    "path": "benchmarks/reports/current-integration/comparison-replay-20260827/source-manifest.json",
+    "sha256": "9ae15b38d567d8e45fee927c275600783e35c1181c890f5e06dbfe7f6fbbc2f2"
+  },
+  "frozenManifest": {
+    "path": "benchmarks/reports/current-integration/comparison-replay-20260827/frozen-files.json",
+    "sha256": "819b9bc2141962f6cf8246b6e7893d318632916fe3b7743ea8b0f6c6c2dc8300"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "at": "2026-08-27T13:32:22.716Z",
+  "path": "tests/commands/search-stress/direct-stdin-close.test.ts",
+  "sha256": "d9cb40c6c1dc53365486ffab1492d4fa0e865d48b5ea8fa0deeac600c7c58c5b",
+  "topLevelLogicalTests": 14,
+  "patchedRunsBeforeFreeze": 0,
+  "previous": "test-freeze-corrected.json",
+  "finalCorrection": "Uint8Array expected constructor; identical bytes"
+}

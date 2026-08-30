@@ -1,0 +1,35 @@
+{
+  "schema": "FINAL_WRAPPER_V2_PUBLICATION_HANDOFF",
+  "status": "HOLD",
+  "manifestPublicationCommit": "bb2effc6b72c1149ac89df84de75c1324125ec56",
+  "presealCommit": "cc17e9188ce66fda714d4b558def0dfb4686a757",
+  "evidenceCommit": "6e40e32a455309c2c6648d52f74ea254e23d9c8f",
+  "sealSha256": "f3a56c999e133d1727b474efc4bba589f7e88006356bdbb04a88f8ea4fe19bec",
+  "evidenceManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v2/EVIDENCE-MANIFEST.json",
+    "bytes": 26928,
+    "mode": 420,
+    "sha256": "f1a0d74700d17b59ec6d926da4c1cd513f774c84ddbd443acef0dd35abd7125c"
+  },
+  "publicationTail": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v2/PUBLICATION-TAIL.ndjson",
+    "bytes": 43742,
+    "mode": 384,
+    "sha256": "92bb3c2272bfd1cb1625e306785287b5f19aae5dc23fa31b165ebc0421e49128"
+  },
+  "observedAdminProcessesThroughTail": 15,
+  "controlProcesses": 20,
+  "totalThroughTail": 35,
+  "finalPublicationReservedProcesses": 4,
+  "prospectiveFinalTotal": 39,
+  "cap": 48,
+  "peak": 3,
+  "elapsedThroughTailMilliseconds": 682132,
+  "captureRetainedAdminBytesThroughTail": 19903,
+  "allRecordedMetadataChildrenClosed": true,
+  "ownedStatusAtCutoff": "CLEAN",
+  "finalPublicationTransport": "This receipt creation, final explicit git add/commit/status are bounded reserved operations; their terminal receipts remain in tool transport, not recursively claimed as this file content.",
+  "actualAdmission02": "INACTIVE_UNUSED",
+  "controlResult": "5/8 qualified;3 finite-environment assertion failures;0 unrun;no retries",
+  "remaining": "Attempt02 owner instance binding plus finite environment key/value contract; no actual owner/inner/product changes"
+}

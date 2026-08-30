@@ -1,0 +1,3072 @@
+TAP version 13
+# Subtest: independent zero-cap contract through direct and Shell/plugin public execution
+ok 1 - independent zero-cap contract through direct and Shell/plugin public execution
+  ---
+  duration_ms: 93.727375
+  type: 'test'
+  ...
+# Subtest: independent holdout detects zero acceptance, enforcement and cleanup mutations
+ok 2 - independent holdout detects zero acceptance, enforcement and cleanup mutations
+  ---
+  duration_ms: 4009.711042
+  type: 'test'
+  ...
+# Subtest: curl retries exact ragged offset Buffer bytes after reuse and finalization
+ok 3 - curl retries exact ragged offset Buffer bytes after reuse and finalization
+  ---
+  duration_ms: 5.715834
+  type: 'test'
+  ...
+# Subtest: curl -T replays a final Buffer offset view after finalizer mutation
+ok 4 - curl -T replays a final Buffer offset view after finalizer mutation
+  ---
+  duration_ms: 2.166542
+  type: 'test'
+  ...
+# Subtest: curl retries exact ragged offset Uint8Array bytes after reuse and finalization
+ok 5 - curl retries exact ragged offset Uint8Array bytes after reuse and finalization
+  ---
+  duration_ms: 3.072375
+  type: 'test'
+  ...
+# Subtest: curl -T replays a final Uint8Array offset view after finalizer mutation
+ok 6 - curl -T replays a final Uint8Array offset view after finalizer mutation
+  ---
+  duration_ms: 2.65775
+  type: 'test'
+  ...
+# Subtest: curl replay leaves stable Buffer input and surrounding sentinels unchanged
+ok 7 - curl replay leaves stable Buffer input and surrounding sentinels unchanged
+  ---
+  duration_ms: 2.626583
+  type: 'test'
+  ...
+# Subtest: curl replay budget accepts its exact boundary and refuses overflow without a partial replay
+ok 8 - curl replay budget accepts its exact boundary and refuses overflow without a partial replay
+  ---
+  duration_ms: 4.791292
+  type: 'test'
+  ...
+# Subtest: curl upload limit stops before publishing an overflowing retained fragment
+not ok 9 - curl upload limit stops before publishing an overflowing retained fragment
+  ---
+  duration_ms: 1.630916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/network/byte-ownership.test.ts:1:3871'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/network/byte-ownership.test.ts:103:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: curl cancellation preserves the caller reason and closes retained source storage
+not ok 10 - curl cancellation preserves the caller reason and closes retained source storage
+  ---
+  duration_ms: 0.975833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/network/byte-ownership.test.ts:1:4443'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/network/byte-ownership.test.ts:129:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: curl first upload remains transient and pull-driven while its replay is owned
+ok 11 - curl first upload remains transient and pull-driven while its replay is owned
+  ---
+  duration_ms: 1.667875
+  type: 'test'
+  ...
+# Subtest: root exposes the explicit usable network capability without altering aggregate
+ok 12 - root exposes the explicit usable network capability without altering aggregate
+  ---
+  duration_ms: 13.20575
+  type: 'test'
+  ...
+# Subtest: VFS binary upload and output match native curl bytes
+ok 13 - VFS binary upload and output match native curl bytes
+  ---
+  duration_ms: 45.844042
+  type: 'test'
+  ...
+# Subtest: -O and -D write VFS-only files with exact native header bytes
+ok 14 - -O and -D write VFS-only files with exact native header bytes
+  ---
+  duration_ms: 20.234625
+  type: 'test'
+  ...
+# Subtest: HEAD/include and dumped headers preserve every redirect block
+ok 15 - HEAD/include and dumped headers preserve every redirect block
+  ---
+  duration_ms: 39.629292
+  type: 'test'
+  ...
+# Subtest: writeout format comes from VFS, not the host home/config
+ok 16 - writeout format comes from VFS, not the host home/config
+  ---
+  duration_ms: 2.692083
+  type: 'test'
+  ...
+# Subtest: fail flags do not report success or fabricate successful output
+ok 17 - fail flags do not report success or fabricate successful output
+  ---
+  duration_ms: 3.10975
+  type: 'test'
+  ...
+# Subtest: multipart literal/file fields match native structural bytes
+ok 18 - multipart literal/file fields match native structural bytes
+  ---
+  duration_ms: 20.136458
+  type: 'test'
+  ...
+# Subtest: real filesystem download is streamed and confined to its supplied root
+ok 19 - real filesystem download is streamed and confined to its supplied root
+  ---
+  duration_ms: 7.204042
+  type: 'test'
+  ...
+# Subtest: actual Shell can pipe binary curl output through virtual commands
+ok 20 - actual Shell can pipe binary curl output through virtual commands
+  ---
+  duration_ms: 13.033
+  type: 'test'
+  ...
+# Subtest: native curl: GET binary
+ok 21 - native curl: GET binary
+  ---
+  duration_ms: 21.310208
+  type: 'test'
+  ...
+# Subtest: native curl: GET echo
+ok 22 - native curl: GET echo
+  ---
+  duration_ms: 14.530042
+  type: 'test'
+  ...
+# Subtest: native curl: DELETE custom method
+ok 23 - native curl: DELETE custom method
+  ---
+  duration_ms: 19.902333
+  type: 'test'
+  ...
+# Subtest: native curl: custom header
+ok 24 - native curl: custom header
+  ---
+  duration_ms: 14.624083
+  type: 'test'
+  ...
+# Subtest: native curl: repeated headers
+ok 25 - native curl: repeated headers
+  ---
+  duration_ms: 15.158084
+  type: 'test'
+  ...
+# Subtest: native curl: basic authentication
+ok 26 - native curl: basic authentication
+  ---
+  duration_ms: 12.84625
+  type: 'test'
+  ...
+# Subtest: native curl: bearer authentication
+ok 27 - native curl: bearer authentication
+  ---
+  duration_ms: 11.869041
+  type: 'test'
+  ...
+# Subtest: native curl: literal POST data
+ok 28 - native curl: literal POST data
+  ---
+  duration_ms: 14.465666
+  type: 'test'
+  ...
+# Subtest: native curl: raw at is literal
+ok 29 - native curl: raw at is literal
+  ---
+  duration_ms: 15.539542
+  type: 'test'
+  ...
+# Subtest: native curl: JSON
+ok 30 - native curl: JSON
+  ---
+  duration_ms: 13.52425
+  type: 'test'
+  ...
+# Subtest: native curl: JSON concatenation
+ok 31 - native curl: JSON concatenation
+  ---
+  duration_ms: 13.458667
+  type: 'test'
+  ...
+# Subtest: native curl: stdin binary
+ok 32 - native curl: stdin binary
+  ---
+  duration_ms: 12.664125
+  type: 'test'
+  ...
+# Subtest: native curl: stdin data strips CR LF NUL
+ok 33 - native curl: stdin data strips CR LF NUL
+  ---
+  duration_ms: 11.997625
+  type: 'test'
+  ...
+# Subtest: native curl: PUT stdin
+ok 34 - native curl: PUT stdin
+  ---
+  duration_ms: 12.791167
+  type: 'test'
+  ...
+# Subtest: native curl: encoded query
+ok 35 - native curl: encoded query
+  ---
+  duration_ms: 13.805917
+  type: 'test'
+  ...
+# Subtest: native curl: encoded stdin query
+ok 36 - native curl: encoded stdin query
+  ---
+  duration_ms: 12.096458
+  type: 'test'
+  ...
+# Subtest: native curl: encoded POST
+ok 37 - native curl: encoded POST
+  ---
+  duration_ms: 13.299834
+  type: 'test'
+  ...
+# Subtest: native curl: GET rejects literal whitespace
+ok 38 - native curl: GET rejects literal whitespace
+  ---
+  duration_ms: 11.737416
+  type: 'test'
+  ...
+# Subtest: native curl: content type suppression
+ok 39 - native curl: content type suppression
+  ---
+  duration_ms: 13.798833
+  type: 'test'
+  ...
+# Subtest: native curl: HEAD
+ok 40 - native curl: HEAD
+  ---
+  duration_ms: 13.838541
+  type: 'test'
+  ...
+# Subtest: native curl: include headers
+ok 41 - native curl: include headers
+  ---
+  duration_ms: 12.992459
+  type: 'test'
+  ...
+# Subtest: native curl: HTTP failure default is zero
+ok 42 - native curl: HTTP failure default is zero
+  ---
+  duration_ms: 11.323458
+  type: 'test'
+  ...
+# Subtest: native curl: HTTP fail discards body
+ok 43 - native curl: HTTP fail discards body
+  ---
+  duration_ms: 12.892458
+  type: 'test'
+  ...
+# Subtest: native curl: HTTP fail retains body
+ok 44 - native curl: HTTP fail retains body
+  ---
+  duration_ms: 12.6255
+  type: 'test'
+  ...
+# Subtest: native curl: silent HTTP failure
+ok 45 - native curl: silent HTTP failure
+  ---
+  duration_ms: 11.431208
+  type: 'test'
+  ...
+# Subtest: native curl: silent show error
+ok 46 - native curl: silent show error
+  ---
+  duration_ms: 11.903709
+  type: 'test'
+  ...
+# Subtest: native curl: writeout
+ok 47 - native curl: writeout
+  ---
+  duration_ms: 13.135041
+  type: 'test'
+  ...
+# Subtest: native curl: explicit POST method after redirect
+ok 48 - native curl: explicit POST method after redirect
+  ---
+  duration_ms: 13.627667
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 301
+ok 49 - native curl: POST redirect 301
+  ---
+  duration_ms: 13.562417
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 302
+ok 50 - native curl: POST redirect 302
+  ---
+  duration_ms: 11.336
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 303
+ok 51 - native curl: POST redirect 303
+  ---
+  duration_ms: 15.349667
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 307
+ok 52 - native curl: POST redirect 307
+  ---
+  duration_ms: 14.807542
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 308
+ok 53 - native curl: POST redirect 308
+  ---
+  duration_ms: 13.828833
+  type: 'test'
+  ...
+# Subtest: native curl: stdin redirect replay
+ok 54 - native curl: stdin redirect replay
+  ---
+  duration_ms: 14.864375
+  type: 'test'
+  ...
+# Subtest: per-hop authorization and cross-origin custom credentials are removed
+ok 55 - per-hop authorization and cross-origin custom credentials are removed
+  ---
+  duration_ms: 3.615375
+  type: 'test'
+  ...
+# Subtest: retry status and bounded fractional delay
+ok 56 - retry status and bounded fractional delay
+  ---
+  duration_ms: 5.191333
+  type: 'test'
+  ...
+# Subtest: redirect quota reports curl 47 without infinite requests
+ok 57 - redirect quota reports curl 47 without infinite requests
+  ---
+  duration_ms: 3.957125
+  type: 'test'
+  ...
+# Subtest: verbose diagnostics never expose credential header values
+ok 58 - verbose diagnostics never expose credential header values
+  ---
+  duration_ms: 1.063792
+  type: 'test'
+  ...
+# Subtest: registration requires an explicit authorizer
+ok 59 - registration requires an explicit authorizer
+  ---
+  duration_ms: 0.605375
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--connect-timeout","1"]
+ok 60 - unsupported/malformed arguments fail before networking: ["--connect-timeout","1"]
+  ---
+  duration_ms: 0.770291
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--proxy","http://proxy.invalid"]
+ok 61 - unsupported/malformed arguments fail before networking: ["--proxy","http://proxy.invalid"]
+  ---
+  duration_ms: 0.153792
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--netrc"]
+ok 62 - unsupported/malformed arguments fail before networking: ["--netrc"]
+  ---
+  duration_ms: 0.179666
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-k"]
+ok 63 - unsupported/malformed arguments fail before networking: ["-k"]
+  ---
+  duration_ms: 0.123166
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--compressed"]
+ok 64 - unsupported/malformed arguments fail before networking: ["--compressed"]
+  ---
+  duration_ms: 0.33625
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-X","GET\\r\\nInjected: bad"]
+ok 65 - unsupported/malformed arguments fail before networking: ["-X","GET\\r\\nInjected: bad"]
+  ---
+  duration_ms: 0.194792
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-X","CONNECT"]
+ok 66 - unsupported/malformed arguments fail before networking: ["-X","CONNECT"]
+  ---
+  duration_ms: 0.141417
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Authorization: secret\\r\\nX: injection"]
+ok 67 - unsupported/malformed arguments fail before networking: ["-H","Authorization: secret\\r\\nX: injection"]
+  ---
+  duration_ms: 0.476834
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Content-Length: 9"]
+ok 68 - unsupported/malformed arguments fail before networking: ["-H","Content-Length: 9"]
+  ---
+  duration_ms: 0.458625
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Host: elsewhere"]
+ok 69 - unsupported/malformed arguments fail before networking: ["-H","Host: elsewhere"]
+  ---
+  duration_ms: 0.1025
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--max-time","NaN"]
+ok 70 - unsupported/malformed arguments fail before networking: ["--max-time","NaN"]
+  ---
+  duration_ms: 0.121041
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--retry","-1"]
+ok 71 - unsupported/malformed arguments fail before networking: ["--retry","-1"]
+  ---
+  duration_ms: 0.092125
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--data","x","-T","file"]
+ok 72 - unsupported/malformed arguments fail before networking: ["--data","x","-T","file"]
+  ---
+  duration_ms: 0.066791
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--json","{}","-F","x=y"]
+ok 73 - unsupported/malformed arguments fail before networking: ["--json","{}","-F","x=y"]
+  ---
+  duration_ms: 0.101792
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-u","user-without-password"]
+ok 74 - unsupported/malformed arguments fail before networking: ["-u","user-without-password"]
+  ---
+  duration_ms: 0.053
+  type: 'test'
+  ...
+# Subtest: denied URLs neither invoke transport nor consume uploads
+ok 75 - denied URLs neither invoke transport nor consume uploads
+  ---
+  duration_ms: 0.877292
+  type: 'test'
+  ...
+# Subtest: timeout covers authorization and observes late rejection
+ok 76 - timeout covers authorization and observes late rejection
+  ---
+  duration_ms: 52.562833
+  type: 'test'
+  ...
+# Subtest: late transport responses are disposed after timeout
+ok 77 - late transport responses are disposed after timeout
+  ---
+  duration_ms: 73.15425
+  type: 'test'
+  ...
+# Subtest: pre-aborted commands perform no work
+ok 78 - pre-aborted commands perform no work
+  ---
+  duration_ms: 0.263958
+  type: 'test'
+  ...
+# Subtest: external abort closes a streaming HTTP response
+ok 79 - external abort closes a streaming HTTP response
+  ---
+  duration_ms: 58.338333
+  type: 'test'
+  ...
+# Subtest: downstream EPIPE closes request/body without a shell workaround
+ok 80 - downstream EPIPE closes request/body without a shell workaround
+  ---
+  duration_ms: 49.588875
+  type: 'test'
+  ...
+# Subtest: total timeout closes a server that never sends headers
+ok 81 - total timeout closes a server that never sends headers
+  ---
+  duration_ms: 63.420625
+  type: 'test'
+  ...
+# Subtest: download quota stops stream and returns curl 63
+ok 82 - download quota stops stream and returns curl 63
+  ---
+  duration_ms: 39.875084
+  type: 'test'
+  ...
+# Subtest: upload quota stops bytes rather than truncating successfully
+ok 83 - upload quota stops bytes rather than truncating successfully
+  ---
+  duration_ms: 1.351792
+  type: 'test'
+  ...
+# Subtest: stdin replay overflow fails honestly instead of sending a prefix
+ok 84 - stdin replay overflow fails honestly instead of sending a prefix
+  ---
+  duration_ms: 4.136458
+  type: 'test'
+  ...
+# Subtest: output awaits sink pressure before pulling subsequent chunks
+ok 85 - output awaits sink pressure before pulling subsequent chunks
+  ---
+  duration_ms: 15.986208
+  type: 'test'
+  ...
+# Subtest: producer throws and partial output cannot become success
+ok 86 - producer throws and partial output cannot become success
+  ---
+  duration_ms: 1.107959
+  type: 'test'
+  ...
+# Subtest: empty-chunk producers do not starve timeout cancellation
+ok 87 - empty-chunk producers do not starve timeout cancellation
+  ---
+  duration_ms: 24.230708
+  type: 'test'
+  ...
+# Subtest: VFS output errors remain failure and dispose the response
+ok 88 - VFS output errors remain failure and dispose the response
+  ---
+  duration_ms: 1.465292
+  type: 'test'
+  ...
+# Subtest: sensitive URL userinfo is absent from policy, transport and diagnostics
+ok 89 - sensitive URL userinfo is absent from policy, transport and diagnostics
+  ---
+  duration_ms: 0.742041
+  type: 'test'
+  ...
+# Subtest: HTTPS verifies injected CA without mutating global TLS state
+ok 90 - HTTPS verifies injected CA without mutating global TLS state
+  ---
+  duration_ms: 32.336667
+  type: 'test'
+  ...
+# Subtest: untrusted HTTPS certificates fail with curl 60
+ok 91 - untrusted HTTPS certificates fail with curl 60
+  ---
+  duration_ms: 2.611208
+  type: 'test'
+  ...
+# Subtest: HTTPS-to-HTTP redirect is rejected before opening the downgrade destination
+ok 92 - HTTPS-to-HTTP redirect is rejected before opening the downgrade destination
+  ---
+  duration_ms: 3.531083
+  type: 'test'
+  ...
+# Subtest: count constructors accept zero, negative zero, one, defaults and exact safe maximum
+ok 93 - count constructors accept zero, negative zero, one, defaults and exact safe maximum
+  ---
+  duration_ms: 1.486333
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects -1 (number) through direct and plugin APIs
+ok 94 - maxRedirects rejects -1 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.299458
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects 0.5 (number) through direct and plugin APIs
+ok 95 - maxRedirects rejects 0.5 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.044958
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects NaN (number) through direct and plugin APIs
+ok 96 - maxRedirects rejects NaN (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.05325
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects Infinity (number) through direct and plugin APIs
+ok 97 - maxRedirects rejects Infinity (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.075625
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects -Infinity (number) through direct and plugin APIs
+ok 98 - maxRedirects rejects -Infinity (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.065334
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects 9007199254740992 (number) through direct and plugin APIs
+ok 99 - maxRedirects rejects 9007199254740992 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.088834
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects 0 (string) through direct and plugin APIs
+ok 100 - maxRedirects rejects 0 (string) through direct and plugin APIs
+  ---
+  duration_ms: 0.038125
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects null (object) through direct and plugin APIs
+ok 101 - maxRedirects rejects null (object) through direct and plugin APIs
+  ---
+  duration_ms: 0.114042
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects undefined (undefined) through direct and plugin APIs
+ok 102 - maxRedirects rejects undefined (undefined) through direct and plugin APIs
+  ---
+  duration_ms: 0.241875
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects true (boolean) through direct and plugin APIs
+ok 103 - maxRedirects rejects true (boolean) through direct and plugin APIs
+  ---
+  duration_ms: 0.046
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects false (boolean) through direct and plugin APIs
+ok 104 - maxRedirects rejects false (boolean) through direct and plugin APIs
+  ---
+  duration_ms: 0.035208
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects -1 (number) through direct and plugin APIs
+ok 105 - maxRetries rejects -1 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.033042
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects 0.5 (number) through direct and plugin APIs
+ok 106 - maxRetries rejects 0.5 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.033209
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects NaN (number) through direct and plugin APIs
+ok 107 - maxRetries rejects NaN (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.030125
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects Infinity (number) through direct and plugin APIs
+ok 108 - maxRetries rejects Infinity (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.0295
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects -Infinity (number) through direct and plugin APIs
+ok 109 - maxRetries rejects -Infinity (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.027375
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects 9007199254740992 (number) through direct and plugin APIs
+ok 110 - maxRetries rejects 9007199254740992 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.027875
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects 0 (string) through direct and plugin APIs
+ok 111 - maxRetries rejects 0 (string) through direct and plugin APIs
+  ---
+  duration_ms: 0.028333
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects null (object) through direct and plugin APIs
+ok 112 - maxRetries rejects null (object) through direct and plugin APIs
+  ---
+  duration_ms: 0.0285
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects undefined (undefined) through direct and plugin APIs
+ok 113 - maxRetries rejects undefined (undefined) through direct and plugin APIs
+  ---
+  duration_ms: 0.029541
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects true (boolean) through direct and plugin APIs
+ok 114 - maxRetries rejects true (boolean) through direct and plugin APIs
+  ---
+  duration_ms: 0.029167
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects false (boolean) through direct and plugin APIs
+ok 115 - maxRetries rejects false (boolean) through direct and plugin APIs
+  ---
+  duration_ms: 0.027959
+  type: 'test'
+  ...
+# Subtest: maxUploadBytes retains positive safe boundaries
+ok 116 - maxUploadBytes retains positive safe boundaries
+  ---
+  duration_ms: 0.170167
+  type: 'test'
+  ...
+# Subtest: maxDownloadBytes retains positive safe boundaries
+ok 117 - maxDownloadBytes retains positive safe boundaries
+  ---
+  duration_ms: 0.139125
+  type: 'test'
+  ...
+# Subtest: maxBufferBytes retains positive safe boundaries
+ok 118 - maxBufferBytes retains positive safe boundaries
+  ---
+  duration_ms: 0.141
+  type: 'test'
+  ...
+# Subtest: maxHeaderBytes retains positive safe boundaries
+ok 119 - maxHeaderBytes retains positive safe boundaries
+  ---
+  duration_ms: 0.12525
+  type: 'test'
+  ...
+# Subtest: maxUrls retains positive safe boundaries
+ok 120 - maxUrls retains positive safe boundaries
+  ---
+  duration_ms: 0.126042
+  type: 'test'
+  ...
+# Subtest: maxTimeMs retains positive safe boundaries
+ok 121 - maxTimeMs retains positive safe boundaries
+  ---
+  duration_ms: 0.131625
+  type: 'test'
+  ...
+# Subtest: only the two exact count keys gain a zero minimum
+ok 122 - only the two exact count keys gain a zero minimum
+  ---
+  duration_ms: 0.038125
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 200, stdin, CLI increases cannot add requests
+ok 123 - direct: both zero, 200, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 2.270583
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 200, file, CLI increases cannot add requests
+ok 124 - direct: both zero, 200, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.869375
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 301, stdin, CLI increases cannot add requests
+ok 125 - direct: both zero, 301, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.7065
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 301, file, CLI increases cannot add requests
+ok 126 - direct: both zero, 301, file, CLI increases cannot add requests
+  ---
+  duration_ms: 1.107791
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 302, stdin, CLI increases cannot add requests
+ok 127 - direct: both zero, 302, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.541875
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 302, file, CLI increases cannot add requests
+ok 128 - direct: both zero, 302, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.501542
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 303, stdin, CLI increases cannot add requests
+ok 129 - direct: both zero, 303, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.458791
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 303, file, CLI increases cannot add requests
+ok 130 - direct: both zero, 303, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.39775
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 307, stdin, CLI increases cannot add requests
+ok 131 - direct: both zero, 307, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.92025
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 307, file, CLI increases cannot add requests
+ok 132 - direct: both zero, 307, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.535417
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 308, stdin, CLI increases cannot add requests
+ok 133 - direct: both zero, 308, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.576042
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 308, file, CLI increases cannot add requests
+ok 134 - direct: both zero, 308, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.351333
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 408, stdin, CLI increases cannot add requests
+ok 135 - direct: both zero, 408, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.341959
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 408, file, CLI increases cannot add requests
+ok 136 - direct: both zero, 408, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.559458
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 429, stdin, CLI increases cannot add requests
+ok 137 - direct: both zero, 429, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.630833
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 429, file, CLI increases cannot add requests
+ok 138 - direct: both zero, 429, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.588542
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 500, stdin, CLI increases cannot add requests
+ok 139 - direct: both zero, 500, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.460166
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 500, file, CLI increases cannot add requests
+ok 140 - direct: both zero, 500, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.383208
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 502, stdin, CLI increases cannot add requests
+ok 141 - direct: both zero, 502, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.50425
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 502, file, CLI increases cannot add requests
+ok 142 - direct: both zero, 502, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.301583
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 503, stdin, CLI increases cannot add requests
+ok 143 - direct: both zero, 503, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.419083
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 503, file, CLI increases cannot add requests
+ok 144 - direct: both zero, 503, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.297167
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 504, stdin, CLI increases cannot add requests
+ok 145 - direct: both zero, 504, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 1.602459
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 504, file, CLI increases cannot add requests
+ok 146 - direct: both zero, 504, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.324
+  type: 'test'
+  ...
+# Subtest: direct: zero 307 without -L publishes initial response
+ok 147 - direct: zero 307 without -L publishes initial response
+  ---
+  duration_ms: 0.329334
+  type: 'test'
+  ...
+# Subtest: direct: zero 307 missing Location with -L publishes initial response
+ok 148 - direct: zero 307 missing Location with -L publishes initial response
+  ---
+  duration_ms: 0.422166
+  type: 'test'
+  ...
+# Subtest: direct: zero 308 without -L publishes initial response
+ok 149 - direct: zero 308 without -L publishes initial response
+  ---
+  duration_ms: 0.245208
+  type: 'test'
+  ...
+# Subtest: direct: zero 308 missing Location with -L publishes initial response
+ok 150 - direct: zero 308 missing Location with -L publishes initial response
+  ---
+  duration_ms: 0.148625
+  type: 'test'
+  ...
+# Subtest: direct: zero retry 429 preserves --fail, headers, file and writeout
+ok 151 - direct: zero retry 429 preserves --fail, headers, file and writeout
+  ---
+  duration_ms: 0.260458
+  type: 'test'
+  ...
+# Subtest: direct: zero retry 429 preserves --fail-with-body, headers, file and writeout
+ok 152 - direct: zero retry 429 preserves --fail-with-body, headers, file and writeout
+  ---
+  duration_ms: 0.171583
+  type: 'test'
+  ...
+# Subtest: direct: zero retry 503 preserves --fail, headers, file and writeout
+ok 153 - direct: zero retry 503 preserves --fail, headers, file and writeout
+  ---
+  duration_ms: 0.141917
+  type: 'test'
+  ...
+# Subtest: direct: zero retry 503 preserves --fail-with-body, headers, file and writeout
+ok 154 - direct: zero retry 503 preserves --fail-with-body, headers, file and writeout
+  ---
+  duration_ms: 0.145417
+  type: 'test'
+  ...
+# Subtest: direct: transport ENOTFOUND remains 6 without retries or leaked details
+ok 155 - direct: transport ENOTFOUND remains 6 without retries or leaked details
+  ---
+  duration_ms: 0.242958
+  type: 'test'
+  ...
+# Subtest: direct: transport ECONNREFUSED remains 7 without retries or leaked details
+ok 156 - direct: transport ECONNREFUSED remains 7 without retries or leaked details
+  ---
+  duration_ms: 0.186709
+  type: 'test'
+  ...
+# Subtest: direct: transport ECONNRESET remains 56 without retries or leaked details
+ok 157 - direct: transport ECONNRESET remains 56 without retries or leaked details
+  ---
+  duration_ms: 0.153042
+  type: 'test'
+  ...
+# Subtest: direct: denied stdin performs no transport or upload reads
+ok 158 - direct: denied stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.12725
+  type: 'test'
+  ...
+# Subtest: direct: pre-aborted stdin performs no transport or upload reads
+ok 159 - direct: pre-aborted stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.080208
+  type: 'test'
+  ...
+# Subtest: direct: authorization-aborted stdin performs no transport or upload reads
+ok 160 - direct: authorization-aborted stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.138833
+  type: 'test'
+  ...
+# Subtest: direct: denied file performs no transport or upload reads
+ok 161 - direct: denied file performs no transport or upload reads
+  ---
+  duration_ms: 0.08525
+  type: 'test'
+  ...
+# Subtest: direct: pre-aborted file performs no transport or upload reads
+ok 162 - direct: pre-aborted file performs no transport or upload reads
+  ---
+  duration_ms: 0.036209
+  type: 'test'
+  ...
+# Subtest: direct: authorization-aborted file performs no transport or upload reads
+ok 163 - direct: authorization-aborted file performs no transport or upload reads
+  ---
+  duration_ms: 0.098458
+  type: 'test'
+  ...
+# Subtest: direct: transport need not consume an initial upload at zero
+ok 164 - direct: transport need not consume an initial upload at zero
+  ---
+  duration_ms: 0.130791
+  type: 'test'
+  ...
+# Subtest: direct: zero prevents cached replay as well as fresh producer reads
+ok 165 - direct: zero prevents cached replay as well as fresh producer reads
+  ---
+  duration_ms: 0.176792
+  type: 'test'
+  ...
+# Subtest: direct: constructor snapshots overrides without mutating caller limits
+ok 166 - direct: constructor snapshots overrides without mutating caller limits
+  ---
+  duration_ms: 0.125875
+  type: 'test'
+  ...
+# Subtest: direct: redirect cap one refuses a third request despite CLI increases
+ok 167 - direct: redirect cap one refuses a third request despite CLI increases
+  ---
+  duration_ms: 0.172
+  type: 'test'
+  ...
+# Subtest: direct: independent redirect cap one permits exactly one followup
+ok 168 - direct: independent redirect cap one permits exactly one followup
+  ---
+  duration_ms: 0.208458
+  type: 'test'
+  ...
+# Subtest: direct: retry cap one refuses a third request despite CLI increases
+ok 169 - direct: retry cap one refuses a third request despite CLI increases
+  ---
+  duration_ms: 11.479417
+  type: 'test'
+  ...
+# Subtest: direct: independent retry cap one permits exactly one followup
+ok 170 - direct: independent retry cap one permits exactly one followup
+  ---
+  duration_ms: 3.7075
+  type: 'test'
+  ...
+# Subtest: direct: redirect cap one authorizes next hop and strips cross-origin credentials
+ok 171 - direct: redirect cap one authorizes next hop and strips cross-origin credentials
+  ---
+  duration_ms: 0.808
+  type: 'test'
+  ...
+# Subtest: direct: zero applies independently to every input URL
+ok 172 - direct: zero applies independently to every input URL
+  ---
+  duration_ms: 0.2855
+  type: 'test'
+  ...
+# Subtest: direct: redirect cap one restarts within each retry of each URL
+ok 173 - direct: redirect cap one restarts within each retry of each URL
+  ---
+  duration_ms: 0.580375
+  type: 'test'
+  ...
+# Subtest: direct: negative zero executes as zero
+ok 174 - direct: negative zero executes as zero
+  ---
+  duration_ms: 0.229333
+  type: 'test'
+  ...
+# Subtest: direct: omitted host caps retain ten redirects and five retries
+ok 175 - direct: omitted host caps retain ten redirects and five retries
+  ---
+  duration_ms: 7.725541
+  type: 'test'
+  ...
+# Subtest: direct: zero host caps match CLI zero under positive host caps
+ok 176 - direct: zero host caps match CLI zero under positive host caps
+  ---
+  duration_ms: 1.255458
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 200, stdin, CLI increases cannot add requests
+ok 177 - shell: both zero, 200, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 4.716084
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 200, file, CLI increases cannot add requests
+ok 178 - shell: both zero, 200, file, CLI increases cannot add requests
+  ---
+  duration_ms: 1.467791
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 301, stdin, CLI increases cannot add requests
+ok 179 - shell: both zero, 301, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.632584
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 301, file, CLI increases cannot add requests
+ok 180 - shell: both zero, 301, file, CLI increases cannot add requests
+  ---
+  duration_ms: 1.0615
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 302, stdin, CLI increases cannot add requests
+ok 181 - shell: both zero, 302, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.835834
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 302, file, CLI increases cannot add requests
+ok 182 - shell: both zero, 302, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.544708
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 303, stdin, CLI increases cannot add requests
+ok 183 - shell: both zero, 303, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.52725
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 303, file, CLI increases cannot add requests
+ok 184 - shell: both zero, 303, file, CLI increases cannot add requests
+  ---
+  duration_ms: 1.109209
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 307, stdin, CLI increases cannot add requests
+ok 185 - shell: both zero, 307, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 1.630375
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 307, file, CLI increases cannot add requests
+ok 186 - shell: both zero, 307, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.545209
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 308, stdin, CLI increases cannot add requests
+ok 187 - shell: both zero, 308, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.444291
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 308, file, CLI increases cannot add requests
+ok 188 - shell: both zero, 308, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.547458
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 408, stdin, CLI increases cannot add requests
+ok 189 - shell: both zero, 408, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.401666
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 408, file, CLI increases cannot add requests
+ok 190 - shell: both zero, 408, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.584
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 429, stdin, CLI increases cannot add requests
+ok 191 - shell: both zero, 429, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.617833
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 429, file, CLI increases cannot add requests
+ok 192 - shell: both zero, 429, file, CLI increases cannot add requests
+  ---
+  duration_ms: 2.6795
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 500, stdin, CLI increases cannot add requests
+ok 193 - shell: both zero, 500, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.441208
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 500, file, CLI increases cannot add requests
+ok 194 - shell: both zero, 500, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.360166
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 502, stdin, CLI increases cannot add requests
+ok 195 - shell: both zero, 502, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.5215
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 502, file, CLI increases cannot add requests
+ok 196 - shell: both zero, 502, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.442459
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 503, stdin, CLI increases cannot add requests
+ok 197 - shell: both zero, 503, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.542542
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 503, file, CLI increases cannot add requests
+ok 198 - shell: both zero, 503, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.418125
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 504, stdin, CLI increases cannot add requests
+ok 199 - shell: both zero, 504, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.461625
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 504, file, CLI increases cannot add requests
+ok 200 - shell: both zero, 504, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.3365
+  type: 'test'
+  ...
+# Subtest: shell: zero 307 without -L publishes initial response
+ok 201 - shell: zero 307 without -L publishes initial response
+  ---
+  duration_ms: 0.292916
+  type: 'test'
+  ...
+# Subtest: shell: zero 307 missing Location with -L publishes initial response
+ok 202 - shell: zero 307 missing Location with -L publishes initial response
+  ---
+  duration_ms: 0.259625
+  type: 'test'
+  ...
+# Subtest: shell: zero 308 without -L publishes initial response
+ok 203 - shell: zero 308 without -L publishes initial response
+  ---
+  duration_ms: 0.253875
+  type: 'test'
+  ...
+# Subtest: shell: zero 308 missing Location with -L publishes initial response
+ok 204 - shell: zero 308 missing Location with -L publishes initial response
+  ---
+  duration_ms: 0.370416
+  type: 'test'
+  ...
+# Subtest: shell: zero retry 429 preserves --fail, headers, file and writeout
+ok 205 - shell: zero retry 429 preserves --fail, headers, file and writeout
+  ---
+  duration_ms: 0.358708
+  type: 'test'
+  ...
+# Subtest: shell: zero retry 429 preserves --fail-with-body, headers, file and writeout
+ok 206 - shell: zero retry 429 preserves --fail-with-body, headers, file and writeout
+  ---
+  duration_ms: 0.643791
+  type: 'test'
+  ...
+# Subtest: shell: zero retry 503 preserves --fail, headers, file and writeout
+ok 207 - shell: zero retry 503 preserves --fail, headers, file and writeout
+  ---
+  duration_ms: 0.916542
+  type: 'test'
+  ...
+# Subtest: shell: zero retry 503 preserves --fail-with-body, headers, file and writeout
+ok 208 - shell: zero retry 503 preserves --fail-with-body, headers, file and writeout
+  ---
+  duration_ms: 0.628375
+  type: 'test'
+  ...
+# Subtest: shell: transport ENOTFOUND remains 6 without retries or leaked details
+ok 209 - shell: transport ENOTFOUND remains 6 without retries or leaked details
+  ---
+  duration_ms: 0.487083
+  type: 'test'
+  ...
+# Subtest: shell: transport ECONNREFUSED remains 7 without retries or leaked details
+ok 210 - shell: transport ECONNREFUSED remains 7 without retries or leaked details
+  ---
+  duration_ms: 0.391708
+  type: 'test'
+  ...
+# Subtest: shell: transport ECONNRESET remains 56 without retries or leaked details
+ok 211 - shell: transport ECONNRESET remains 56 without retries or leaked details
+  ---
+  duration_ms: 0.433959
+  type: 'test'
+  ...
+# Subtest: shell: denied stdin performs no transport or upload reads
+ok 212 - shell: denied stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.263459
+  type: 'test'
+  ...
+# Subtest: shell: pre-aborted stdin performs no transport or upload reads
+ok 213 - shell: pre-aborted stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.089667
+  type: 'test'
+  ...
+# Subtest: shell: authorization-aborted stdin performs no transport or upload reads
+ok 214 - shell: authorization-aborted stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.637292
+  type: 'test'
+  ...
+# Subtest: shell: denied file performs no transport or upload reads
+ok 215 - shell: denied file performs no transport or upload reads
+  ---
+  duration_ms: 0.364584
+  type: 'test'
+  ...
+# Subtest: shell: pre-aborted file performs no transport or upload reads
+ok 216 - shell: pre-aborted file performs no transport or upload reads
+  ---
+  duration_ms: 0.088458
+  type: 'test'
+  ...
+# Subtest: shell: authorization-aborted file performs no transport or upload reads
+ok 217 - shell: authorization-aborted file performs no transport or upload reads
+  ---
+  duration_ms: 0.345167
+  type: 'test'
+  ...
+# Subtest: shell: transport need not consume an initial upload at zero
+ok 218 - shell: transport need not consume an initial upload at zero
+  ---
+  duration_ms: 0.278708
+  type: 'test'
+  ...
+# Subtest: shell: zero prevents cached replay as well as fresh producer reads
+ok 219 - shell: zero prevents cached replay as well as fresh producer reads
+  ---
+  duration_ms: 0.577334
+  type: 'test'
+  ...
+# Subtest: shell: constructor snapshots overrides without mutating caller limits
+ok 220 - shell: constructor snapshots overrides without mutating caller limits
+  ---
+  duration_ms: 0.588417
+  type: 'test'
+  ...
+# Subtest: shell: redirect cap one refuses a third request despite CLI increases
+ok 221 - shell: redirect cap one refuses a third request despite CLI increases
+  ---
+  duration_ms: 0.365417
+  type: 'test'
+  ...
+# Subtest: shell: independent redirect cap one permits exactly one followup
+ok 222 - shell: independent redirect cap one permits exactly one followup
+  ---
+  duration_ms: 0.685083
+  type: 'test'
+  ...
+# Subtest: shell: retry cap one refuses a third request despite CLI increases
+ok 223 - shell: retry cap one refuses a third request despite CLI increases
+  ---
+  duration_ms: 5.034833
+  type: 'test'
+  ...
+# Subtest: shell: independent retry cap one permits exactly one followup
+ok 224 - shell: independent retry cap one permits exactly one followup
+  ---
+  duration_ms: 1.026709
+  type: 'test'
+  ...
+# Subtest: shell: redirect cap one authorizes next hop and strips cross-origin credentials
+ok 225 - shell: redirect cap one authorizes next hop and strips cross-origin credentials
+  ---
+  duration_ms: 0.789125
+  type: 'test'
+  ...
+# Subtest: shell: zero applies independently to every input URL
+ok 226 - shell: zero applies independently to every input URL
+  ---
+  duration_ms: 0.8565
+  type: 'test'
+  ...
+# Subtest: shell: redirect cap one restarts within each retry of each URL
+ok 227 - shell: redirect cap one restarts within each retry of each URL
+  ---
+  duration_ms: 2.126459
+  type: 'test'
+  ...
+# Subtest: shell: negative zero executes as zero
+ok 228 - shell: negative zero executes as zero
+  ---
+  duration_ms: 0.412667
+  type: 'test'
+  ...
+# Subtest: shell: omitted host caps retain ten redirects and five retries
+ok 229 - shell: omitted host caps retain ten redirects and five retries
+  ---
+  duration_ms: 10.874
+  type: 'test'
+  ...
+# Subtest: shell: zero host caps match CLI zero under positive host caps
+ok 230 - shell: zero host caps match CLI zero under positive host caps
+  ---
+  duration_ms: 3.0595
+  type: 'test'
+  ...
+# Subtest: standard tools compose in a filtering, transforming, sorting and tee pipeline
+ok 231 - standard tools compose in a filtering, transforming, sorting and tee pipeline
+  ---
+  duration_ms: 37.090458
+  type: 'test'
+  ...
+# Subtest: filesystem tools combine with find -print0 and xargs without reparsing filenames
+ok 232 - filesystem tools combine with find -print0 and xargs without reparsing filenames
+  ---
+  duration_ms: 6.233208
+  type: 'test'
+  ...
+# Subtest: xargs and env invoke shell functions while retaining literal argv and isolated environment
+ok 233 - xargs and env invoke shell functions while retaining literal argv and isolated environment
+  ---
+  duration_ms: 2.557875
+  type: 'test'
+  ...
+# Subtest: find -exec passes command option-looking arguments literally through the shell hook
+ok 234 - find -exec passes command option-looking arguments literally through the shell hook
+  ---
+  duration_ms: 0.655417
+  type: 'test'
+  ...
+# Subtest: pipeline bytes stay binary and sequential commands do not replay stdin
+ok 235 - pipeline bytes stay binary and sequential commands do not replay stdin
+  ---
+  duration_ms: 2.8805
+  type: 'test'
+  ...
+# Subtest: recursive tool invocation shares shell command limits
+ok 236 - recursive tool invocation shares shell command limits
+  ---
+  duration_ms: 1.42625
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for immutable Buffer
+ok 237 - head byte trimming has linear copies for immutable Buffer
+  ---
+  duration_ms: 1645.602667
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for reused Buffer
+ok 238 - head byte trimming has linear copies for reused Buffer
+  ---
+  duration_ms: 1656.599625
+  type: 'test'
+  ...
+# Subtest: head byte queue releases oversized and consumed Buffer backing with zero/empty controls
+ok 239 - head byte queue releases oversized and consumed Buffer backing with zero/empty controls
+  ---
+  duration_ms: 35.681042
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for immutable Uint8Array
+ok 240 - head byte trimming has linear copies for immutable Uint8Array
+  ---
+  duration_ms: 1486.632875
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for reused Uint8Array
+ok 241 - head byte trimming has linear copies for reused Uint8Array
+  ---
+  duration_ms: 1557.618208
+  type: 'test'
+  ...
+# Subtest: head byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+ok 242 - head byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+  ---
+  duration_ms: 52.780792
+  type: 'test'
+  ...
+# Subtest: tail byte trimming has linear copies for immutable Buffer
+ok 243 - tail byte trimming has linear copies for immutable Buffer
+  ---
+  duration_ms: 1481.717584
+  type: 'test'
+  ...
+# Subtest: tail byte trimming has linear copies for reused Buffer
+ok 244 - tail byte trimming has linear copies for reused Buffer
+  ---
+  duration_ms: 1407.460625
+  type: 'test'
+  ...
+# Subtest: tail byte queue releases oversized and consumed Buffer backing with zero/empty controls
+ok 245 - tail byte queue releases oversized and consumed Buffer backing with zero/empty controls
+  ---
+  duration_ms: 41.153375
+  type: 'test'
+  ...
+# Subtest: tail byte trimming has linear copies for immutable Uint8Array
+ok 246 - tail byte trimming has linear copies for immutable Uint8Array
+  ---
+  duration_ms: 1481.284167
+  type: 'test'
+  ...
+# Subtest: tail byte trimming has linear copies for reused Uint8Array
+ok 247 - tail byte trimming has linear copies for reused Uint8Array
+  ---
+  duration_ms: 1464.071792
+  type: 'test'
+  ...
+# Subtest: tail byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+ok 248 - tail byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+  ---
+  duration_ms: 39.288042
+  type: 'test'
+  ...
+# Subtest: tail -c 4 owns borrowed Buffer readStream windows
+ok 249 - tail -c 4 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 1.68675
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Buffer readStream windows
+ok 250 - tail -n 1 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.236875
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Buffer readStream windows
+ok 251 - head -c -2 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.194917
+  type: 'test'
+  ...
+# Subtest: tail -c 4 owns borrowed Uint8Array readStream windows
+ok 252 - tail -c 4 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.101375
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Uint8Array readStream windows
+ok 253 - tail -n 1 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.187458
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Uint8Array readStream windows
+ok 254 - head -c -2 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.096708
+  type: 'test'
+  ...
+# Subtest: tail preserves its retained byte limit and finalizes the source
+ok 255 - tail preserves its retained byte limit and finalizes the source
+  ---
+  duration_ms: 134.440417
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink accept before another borrowed read
+ok 256 - head byte omission awaits sink accept before another borrowed read
+  ---
+  duration_ms: 7.236542
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink cancel before another borrowed read
+ok 257 - head byte omission awaits sink cancel before another borrowed read
+  ---
+  duration_ms: 1.147459
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink reject before another borrowed read
+ok 258 - head byte omission awaits sink reject before another borrowed read
+  ---
+  duration_ms: 0.711417
+  type: 'test'
+  ...
+# Subtest: cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+ok 259 - cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+  ---
+  duration_ms: 0.893875
+  type: 'test'
+  ...
+# Subtest: cat numbering, blank squeezing and visible bytes survive chunk boundaries
+ok 260 - cat numbering, blank squeezing and visible bytes survive chunk boundaries
+  ---
+  duration_ms: 0.614416
+  type: 'test'
+  ...
+# Subtest: head and tail support byte/line counts, origin counts, omission and unterminated lines
+ok 261 - head and tail support byte/line counts, origin counts, omission and unterminated lines
+  ---
+  duration_ms: 0.7295
+  type: 'test'
+  ...
+# Subtest: head stops reading when satisfied and multiple input headers are controllable
+ok 262 - head stops reading when satisfied and multiple input headers are controllable
+  ---
+  duration_ms: 0.264
+  type: 'test'
+  ...
+# Subtest: wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+ok 263 - wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+  ---
+  duration_ms: 0.53525
+  type: 'test'
+  ...
+# Subtest: tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+ok 264 - tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+  ---
+  duration_ms: 0.281416
+  type: 'test'
+  ...
+# Subtest: tr translates, deletes, squeezes and complements byte sets across chunks
+ok 265 - tr translates, deletes, squeezes and complements byte sets across chunks
+  ---
+  duration_ms: 1.240792
+  type: 'test'
+  ...
+# Subtest: registry supports explicit registration, lookup, replacement, and removal
+ok 266 - registry supports explicit registration, lookup, replacement, and removal
+  ---
+  duration_ms: 0.981583
+  type: 'test'
+  ...
+# Subtest: registry snapshots definitions and does not expose its backing collection
+ok 267 - registry snapshots definitions and does not expose its backing collection
+  ---
+  duration_ms: 0.097875
+  type: 'test'
+  ...
+# Subtest: registry rejects empty, NUL, whitespace, and path-based names
+ok 268 - registry rejects empty, NUL, whitespace, and path-based names
+  ---
+  duration_ms: 0.062208
+  type: 'test'
+  ...
+# Subtest: exit statuses follow the 0 through 255 shell range
+ok 269 - exit statuses follow the 0 through 255 shell range
+  ---
+  duration_ms: 0.094459
+  type: 'test'
+  ...
+# Subtest: middleware nests in registration order and shares command state
+ok 270 - middleware nests in registration order and shares command state
+  ---
+  duration_ms: 0.174917
+  type: 'test'
+  ...
+# Subtest: middleware can short-circuit without invoking a command
+ok 271 - middleware can short-circuit without invoking a command
+  ---
+  duration_ms: 0.051875
+  type: 'test'
+  ...
+# Subtest: middleware rejects repeated next calls
+ok 272 - middleware rejects repeated next calls
+  ---
+  duration_ms: 0.14675
+  type: 'test'
+  ...
+# Subtest: middleware errors propagate and cancellation prevents dispatch
+ok 273 - middleware errors propagate and cancellation prevents dispatch
+  ---
+  duration_ms: 0.151834
+  type: 'test'
+  ...
+# Subtest: middleware dispatch state is independent for concurrent invocations
+ok 274 - middleware dispatch state is independent for concurrent invocations
+  ---
+  duration_ms: 0.216291
+  type: 'test'
+  ...
+# Subtest: plugin contract supports async setup, middleware, and filesystem factories
+ok 275 - plugin contract supports async setup, middleware, and filesystem factories
+  ---
+  duration_ms: 0.252334
+  type: 'test'
+  ...
+# Subtest: cleanup registration is an additive optional readonly callback with no public drain handle
+ok 276 - cleanup registration is an additive optional readonly callback with no public drain handle
+  ---
+  duration_ms: 0.330541
+  type: 'test'
+  ...
+# Subtest: cleanup callback type accepts synchronous void and asynchronous Promise<void>
+ok 277 - cleanup callback type accepts synchronous void and asynchronous Promise<void>
+  ---
+  duration_ms: 0.344459
+  type: 'test'
+  ...
+# Subtest: cleanup negative type controls exclude values, required arguments and nonvoid results
+ok 278 - cleanup negative type controls exclude values, required arguments and nonvoid results
+  ---
+  duration_ms: 0.052416
+  type: 'test'
+  ...
+# Subtest: registration does not change nested invoke options or invocation result types
+ok 279 - registration does not change nested invoke options or invocation result types
+  ---
+  duration_ms: 0.035958
+  type: 'test'
+  ...
+# Subtest: shared invocation types structurally match the existing shell hook
+ok 280 - shared invocation types structurally match the existing shell hook
+  ---
+  duration_ms: 0.353292
+  type: 'test'
+  ...
+# Subtest: replacement options are additive and preserve omitted, false and empty forms
+ok 281 - replacement options are additive and preserve omitted, false and empty forms
+  ---
+  duration_ms: 0.295584
+  type: 'test'
+  ...
+# Subtest: legacy actual-shell invoke merge remains compatible: false
+ok 282 - legacy actual-shell invoke merge remains compatible: false
+  ---
+  duration_ms: 2.972292
+  type: 'test'
+  ...
+# Subtest: legacy actual-shell invoke merge remains compatible: undefined
+ok 283 - legacy actual-shell invoke merge remains compatible: undefined
+  ---
+  duration_ms: 0.690583
+  type: 'test'
+  ...
+# Subtest: registered commands use optional invoke directly without shell-specific casts
+ok 284 - registered commands use optional invoke directly without shell-specific casts
+  ---
+  duration_ms: 0.482834
+  type: 'test'
+  ...
+# Subtest: abort remains observable after producer close while bytes are unread
+ok 285 - abort remains observable after producer close while bytes are unread
+  ---
+  duration_ms: 5.25575
+  type: 'test'
+  ...
+# Subtest: aborting a fully drained pipe does not undo successful closure
+ok 286 - aborting a fully drained pipe does not undo successful closure
+  ---
+  duration_ms: 0.216042
+  type: 'test'
+  ...
+# Subtest: abort preserves the first failure and releases blocked writes and close
+ok 287 - abort preserves the first failure and releases blocked writes and close
+  ---
+  duration_ms: 0.478584
+  type: 'test'
+  ...
+# Subtest: a thrown producer can fail the pipe without dangling internal rejections
+ok 288 - a thrown producer can fail the pipe without dangling internal rejections
+  ---
+  duration_ms: 0.899792
+  type: 'test'
+  ...
+# Subtest: concurrent pipe writes preserve invocation order and snapshot mutable chunks
+ok 289 - concurrent pipe writes preserve invocation order and snapshot mutable chunks
+  ---
+  duration_ms: 2.872333
+  type: 'test'
+  ...
+# Subtest: an oversized individual chunk still flows through a small watermark
+ok 290 - an oversized individual chunk still flows through a small watermark
+  ---
+  duration_ms: 0.290709
+  type: 'test'
+  ...
+# Subtest: return and throw cancel consumers even before the first read
+ok 291 - return and throw cancel consumers even before the first read
+  ---
+  duration_ms: 1.505083
+  type: 'test'
+  ...
+# Subtest: collectBytes cancels a stalled next and does not await uncooperative cleanup
+ok 292 - collectBytes cancels a stalled next and does not await uncooperative cleanup
+  ---
+  duration_ms: 1.104125
+  type: 'test'
+  ...
+# Subtest: pipeBytes aborts a stalled sink and observes late write and cleanup failures
+ok 293 - pipeBytes aborts a stalled sink and observes late write and cleanup failures
+  ---
+  duration_ms: 0.745667
+  type: 'test'
+  ...
+# Subtest: invalid runtime byte inputs are rejected instead of coerced
+ok 294 - invalid runtime byte inputs are rejected instead of coerced
+  ---
+  duration_ms: 0.301416
+  type: 'test'
+  ...
+# Subtest: hundreds of empty, closed, and abandoned pipes settle without background errors
+ok 295 - hundreds of empty, closed, and abandoned pipes settle without background errors
+  ---
+  duration_ms: 10.580584
+  type: 'test'
+  ...
+# Subtest: successful and canceled stream helpers release their AbortSignal listeners
+ok 296 - successful and canceled stream helpers release their AbortSignal listeners
+  ---
+  duration_ms: 0.535292
+  type: 'test'
+  ...
+# Subtest: an aborted pending input can reject later without an unhandled rejection
+ok 297 - an aborted pending input can reject later without an unhandled rejection
+  ---
+  duration_ms: 0.418417
+  type: 'test'
+  ...
+# Subtest: byte limits preserve the primary error when iterator cleanup also fails
+ok 298 - byte limits preserve the primary error when iterator cleanup also fails
+  ---
+  duration_ms: 0.092459
+  type: 'test'
+  ...
+# Subtest: byte sources preserve binary bytes and UTF-8 text
+ok 299 - byte sources preserve binary bytes and UTF-8 text
+  ---
+  duration_ms: 0.979834
+  type: 'test'
+  ...
+# Subtest: byte sources snapshot Uint8Array and Buffer inputs at creation
+ok 300 - byte sources snapshot Uint8Array and Buffer inputs at creation
+  ---
+  duration_ms: 0.159458
+  type: 'test'
+  ...
+# Subtest: collectors enforce explicit byte limits and close overflowing sources
+ok 301 - collectors enforce explicit byte limits and close overflowing sources
+  ---
+  duration_ms: 0.355541
+  type: 'test'
+  ...
+# Subtest: collectors copy reused buffers and decode UTF-8 split across chunks
+ok 302 - collectors copy reused buffers and decode UTF-8 split across chunks
+  ---
+  duration_ms: 0.166333
+  type: 'test'
+  ...
+# Subtest: collectors reject pre-aborted operations
+ok 303 - collectors reject pre-aborted operations
+  ---
+  duration_ms: 0.087
+  type: 'test'
+  ...
+# Subtest: pipes stream while the producer runs and apply byte-based backpressure
+ok 304 - pipes stream while the producer runs and apply byte-based backpressure
+  ---
+  duration_ms: 4.724084
+  type: 'test'
+  ...
+# Subtest: pipe writes take ownership through byte copies, including Buffer inputs
+ok 305 - pipe writes take ownership through byte copies, including Buffer inputs
+  ---
+  duration_ms: 0.233917
+  type: 'test'
+  ...
+# Subtest: pipe cancellation rejects blocked producers and readers
+ok 306 - pipe cancellation rejects blocked producers and readers
+  ---
+  duration_ms: 0.593
+  type: 'test'
+  ...
+# Subtest: breaking consumption produces EPIPE for pending writers
+ok 307 - breaking consumption produces EPIPE for pending writers
+  ---
+  duration_ms: 0.284291
+  type: 'test'
+  ...
+# Subtest: returning an unread pipe releases blocked producers
+ok 308 - returning an unread pipe releases blocked producers
+  ---
+  duration_ms: 0.369167
+  type: 'test'
+  ...
+# Subtest: closed and pre-aborted pipes reject further writes
+ok 309 - closed and pre-aborted pipes reject further writes
+  ---
+  duration_ms: 0.214792
+  type: 'test'
+  ...
+# Subtest: pipe watermarks must be positive finite safe integers
+ok 310 - pipe watermarks must be positive finite safe integers
+  ---
+  duration_ms: 0.072084
+  type: 'test'
+  ...
+# Subtest: pipeBytes awaits sink acceptance before requesting the next chunk
+ok 311 - pipeBytes awaits sink acceptance before requesting the next chunk
+  ---
+  duration_ms: 0.12475
+  type: 'test'
+  ...
+# Subtest: writeText encodes UTF-8 and propagates sink failures
+ok 312 - writeText encodes UTF-8 and propagates sink failures
+  ---
+  duration_ms: 0.109209
+  type: 'test'
+  ...
+# Subtest: transparent delegation preserves stdin provenance true without reading
+ok 313 - transparent delegation preserves stdin provenance true without reading
+  ---
+  duration_ms: 1.349291
+  type: 'test'
+  ...
+# Subtest: xargs replaces argument stream with implicit child default from true
+ok 314 - xargs replaces argument stream with implicit child default from true
+  ---
+  duration_ms: 0.599166
+  type: 'test'
+  ...
+# Subtest: transparent delegation preserves stdin provenance false without reading
+ok 315 - transparent delegation preserves stdin provenance false without reading
+  ---
+  duration_ms: 0.1475
+  type: 'test'
+  ...
+# Subtest: xargs replaces argument stream with implicit child default from false
+ok 316 - xargs replaces argument stream with implicit child default from false
+  ---
+  duration_ms: 0.231958
+  type: 'test'
+  ...
+# Subtest: transparent delegation preserves stdin provenance undefined without reading
+ok 317 - transparent delegation preserves stdin provenance undefined without reading
+  ---
+  duration_ms: 0.223
+  type: 'test'
+  ...
+# Subtest: xargs replaces argument stream with implicit child default from undefined
+ok 318 - xargs replaces argument stream with implicit child default from undefined
+  ---
+  duration_ms: 0.194625
+  type: 'test'
+  ...
+# Subtest: supplied empty and exhausted streams retain nondefault provenance
+ok 319 - supplied empty and exhausted streams retain nondefault provenance
+  ---
+  duration_ms: 0.177292
+  type: 'test'
+  ...
+# Subtest: unread external return throw preserves Error identity
+ok 320 - unread external return throw preserves Error identity
+  ---
+  duration_ms: 3.206125
+  type: 'test'
+  ...
+# Subtest: unread external return throw preserves undefined identity
+ok 321 - unread external return throw preserves undefined identity
+  ---
+  duration_ms: 0.526125
+  type: 'test'
+  ...
+# Subtest: unread external return throw preserves null identity
+ok 322 - unread external return throw preserves null identity
+  ---
+  duration_ms: 0.377708
+  type: 'test'
+  ...
+# Subtest: grep early stop preserves external return throw
+ok 323 - grep early stop preserves external return throw
+  ---
+  duration_ms: 19.28025
+  type: 'test'
+  ...
+# Subtest: egrep early stop preserves external return throw
+ok 324 - egrep early stop preserves external return throw
+  ---
+  duration_ms: 16.818333
+  type: 'test'
+  ...
+# Subtest: fgrep early stop preserves external return throw
+ok 325 - fgrep early stop preserves external return throw
+  ---
+  duration_ms: 16.989917
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves Error identity
+ok 326 - unread external return reject preserves Error identity
+  ---
+  duration_ms: 0.400125
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves undefined identity
+ok 327 - unread external return reject preserves undefined identity
+  ---
+  duration_ms: 0.612959
+  type: 'test'
+  ...
+# Subtest: unread external return reject preserves null identity
+ok 328 - unread external return reject preserves null identity
+  ---
+  duration_ms: 1.375208
+  type: 'test'
+  ...
+# Subtest: grep early stop preserves external return reject
+ok 329 - grep early stop preserves external return reject
+  ---
+  duration_ms: 18.591292
+  type: 'test'
+  ...
+# Subtest: egrep early stop preserves external return reject
+ok 330 - egrep early stop preserves external return reject
+  ---
+  duration_ms: 18.09
+  type: 'test'
+  ...
+# Subtest: fgrep early stop preserves external return reject
+ok 331 - fgrep early stop preserves external return reject
+  ---
+  duration_ms: 18.527291
+  type: 'test'
+  ...
+# Subtest: nonzero command result does not erase an awaited external return failure
+ok 332 - nonzero command result does not erase an awaited external return failure
+  ---
+  duration_ms: 0.571958
+  type: 'test'
+  ...
+# Subtest: owning close shares a rejected completion and returns once
+ok 333 - owning close shares a rejected completion and returns once
+  ---
+  duration_ms: 0.117667
+  type: 'test'
+  ...
+# Subtest: EOF does not call an unnecessary rejecting return
+ok 334 - EOF does not call an unnecessary rejecting return
+  ---
+  duration_ms: 0.4855
+  type: 'test'
+  ...
+# Subtest: selected execution rejection outranks an external close rejection
+ok 335 - selected execution rejection outranks an external close rejection
+  ---
+  duration_ms: 0.557292
+  type: 'test'
+  ...
+# Subtest: a reported primary read failure is not replaced by a secondary return failure
+ok 336 - a reported primary read failure is not replaced by a secondary return failure
+  ---
+  duration_ms: 0.470458
+  type: 'test'
+  ...
+# Subtest: caller abort during an awaited return wins and observes its late rejection
+ok 337 - caller abort during an awaited return wins and observes its late rejection
+  ---
+  duration_ms: 0.76525
+  type: 'test'
+  ...
+# Subtest: disposal still interrupts an unregistered external return wait
+ok 338 - disposal still interrupts an unregistered external return wait
+  ---
+  duration_ms: 0.2735
+  type: 'test'
+  ...
+# Subtest: pending opaque next does not force awaiting a rejected return
+ok 339 - pending opaque next does not force awaiting a rejected return
+  ---
+  duration_ms: 0.496875
+  type: 'test'
+  ...
+# Subtest: opaque generator queued return remains outside the public abort barrier
+ok 340 - opaque generator queued return remains outside the public abort barrier
+  ---
+  duration_ms: 0.351375
+  type: 'test'
+  ...
+# Subtest: sequential borrowers retain the cursor until one final rejecting owner close
+ok 341 - sequential borrowers retain the cursor until one final rejecting owner close
+  ---
+  duration_ms: 0.748542
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves undefined identity
+ok 342 - sole cleanup rejection preserves undefined identity
+  ---
+  duration_ms: 3.243125
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves null identity
+ok 343 - sole cleanup rejection preserves null identity
+  ---
+  duration_ms: 0.5695
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves Error: cleanup only identity
+ok 344 - sole cleanup rejection preserves Error: cleanup only identity
+  ---
+  duration_ms: 0.31925
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: null
+ok 345 - caller abort during drain wins over execution and cleanup: null
+  ---
+  duration_ms: 0.665375
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: 0
+ok 346 - caller abort during drain wins over execution and cleanup: 0
+  ---
+  duration_ms: 0.927042
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: cancel
+ok 347 - caller abort during drain wins over execution and cleanup: cancel
+  ---
+  duration_ms: 0.387625
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: [object Object]
+ok 348 - caller abort during drain wins over execution and cleanup: [object Object]
+  ---
+  duration_ms: 0.290416
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: Error: caller
+ok 349 - caller abort during drain wins over execution and cleanup: Error: caller
+  ---
+  duration_ms: 0.755708
+  type: 'test'
+  ...
+# Subtest: execution rejection wins while every delayed cleanup failure is observed
+ok 350 - execution rejection wins while every delayed cleanup failure is observed
+  ---
+  duration_ms: 19.582417
+  type: 'test'
+  ...
+# Subtest: ordinary command throw keeps its diagnostic and status after cleanup
+ok 351 - ordinary command throw keeps its diagnostic and status after cleanup
+  ---
+  duration_ms: 17.122708
+  type: 'test'
+  ...
+# Subtest: noncallable registration and cleanup-time registration fail synchronously
+ok 352 - noncallable registration and cleanup-time registration fail synchronously
+  ---
+  duration_ms: 0.390458
+  type: 'test'
+  ...
+# Subtest: all hooks start while an earlier hook is pending; finally shares the owned close
+ok 353 - all hooks start while an earlier hook is pending; finally shares the owned close
+  ---
+  duration_ms: 1.116833
+  type: 'test'
+  ...
+# Subtest: normal parent closure seals detached descendants before iterator or FS acquisition
+ok 354 - normal parent closure seals detached descendants before iterator or FS acquisition
+  ---
+  duration_ms: 0.892042
+  type: 'test'
+  ...
+# Subtest: caller-aborted saved capabilities preserve exact admission reason
+ok 355 - caller-aborted saved capabilities preserve exact admission reason
+  ---
+  duration_ms: 0.362125
+  type: 'test'
+  ...
+# Subtest: late opaque rejection is observed after owned cleanup and public settlement
+ok 356 - late opaque rejection is observed after owned cleanup and public settlement
+  ---
+  duration_ms: 16.8795
+  type: 'test'
+  ...
+# Subtest: nested middleware overlays keep their cleanup closure and exact replacement environment
+ok 357 - nested middleware overlays keep their cleanup closure and exact replacement environment
+  ---
+  duration_ms: 0.866834
+  type: 'test'
+  ...
+# Subtest: dispose and cancellation isolate concurrent execs and another shell sharing an owner
+ok 358 - dispose and cancellation isolate concurrent execs and another shell sharing an owner
+  ---
+  duration_ms: 49.39475
+  type: 'test'
+  ...
+# Subtest: reentrant dispose returns the identical barrier and starts plugin disposal once
+ok 359 - reentrant dispose returns the identical barrier and starts plugin disposal once
+  ---
+  duration_ms: 16.085333
+  type: 'test'
+  ...
+# Subtest: dispose drains every owned failure before reverse plugin disposal
+ok 360 - dispose drains every owned failure before reverse plugin disposal
+  ---
+  duration_ms: 16.921208
+  type: 'test'
+  ...
+# Subtest: closed detached middleware cannot call later middleware through a saved next
+ok 361 - closed detached middleware cannot call later middleware through a saved next
+  ---
+  duration_ms: 0.509083
+  type: 'test'
+  ...
+# Subtest: each duplicate registration runs once without exposing closure authority
+ok 362 - each duplicate registration runs once without exposing closure authority
+  ---
+  duration_ms: 0.189708
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=false
+ok 363 - early downstream closure drains both owners; pipefail=false, failure=false
+  ---
+  duration_ms: 39.192667
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=true
+ok 364 - early downstream closure drains both owners; pipefail=false, failure=true
+  ---
+  duration_ms: 33.02925
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=false
+ok 365 - early downstream closure drains both owners; pipefail=true, failure=false
+  ---
+  duration_ms: 33.424375
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=true
+ok 366 - early downstream closure drains both owners; pipefail=true, failure=true
+  ---
+  duration_ms: 32.684875
+  type: 'test'
+  ...
+# Subtest: pipeline abort drains nested owners even when every handler remains opaque
+ok 367 - pipeline abort drains nested owners even when every handler remains opaque
+  ---
+  duration_ms: 16.749125
+  type: 'test'
+  ...
+# Subtest: opaque pending input and iterator return do not delay owned cleanup on cancel
+ok 368 - opaque pending input and iterator return do not delay owned cleanup on cancel
+  ---
+  duration_ms: 17.095917
+  type: 'test'
+  ...
+# Subtest: opaque sink rejection is observed without skipping cleanup or altering captured bytes
+ok 369 - opaque sink rejection is observed without skipping cleanup or altering captured bytes
+  ---
+  duration_ms: 33.572916
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows owned | pass
+ok 370 - registered cleanup follows owned | pass
+  ---
+  duration_ms: 17.9665
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows (owned)
+ok 371 - registered cleanup follows (owned)
+  ---
+  duration_ms: 16.677459
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows f() { owned; }; f
+ok 372 - registered cleanup follows f() { owned; }; f
+  ---
+  duration_ms: 16.401125
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows eval owned
+ok 373 - registered cleanup follows eval owned
+  ---
+  duration_ms: 15.842459
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows . /owned.sh
+ok 374 - registered cleanup follows . /owned.sh
+  ---
+  duration_ms: 17.714167
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows source /owned.sh
+ok 375 - registered cleanup follows source /owned.sh
+  ---
+  duration_ms: 16.888125
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows say $(owned)
+ok 376 - registered cleanup follows say $(owned)
+  ---
+  duration_ms: 17.389417
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows bash -c owned
+ok 377 - registered cleanup follows bash -c owned
+  ---
+  duration_ms: 15.679042
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows command owned
+ok 378 - registered cleanup follows command owned
+  ---
+  duration_ms: 16.417792
+  type: 'test'
+  ...
+# Subtest: pipeline output and shared output accounting preserve exact bytes after delayed drain
+ok 379 - pipeline output and shared output accounting preserve exact bytes after delayed drain
+  ---
+  duration_ms: 33.890666
+  type: 'test'
+  ...
+# Subtest: R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+ok 380 - R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+  ---
+  duration_ms: 0.934584
+  type: 'test'
+  ...
+# Subtest: R1 async admitted setup can register after acquisition without reopening external admission
+ok 381 - R1 async admitted setup can register after acquisition without reopening external admission
+  ---
+  duration_ms: 4.615375
+  type: 'test'
+  ...
+# Subtest: R1 multiple queued asynchronous setups finish before reverse plugin disposal
+ok 382 - R1 multiple queued asynchronous setups finish before reverse plugin disposal
+  ---
+  duration_ms: 0.654583
+  type: 'test'
+  ...
+# Subtest: R1 saved completed setup hosts do not borrow another setup's disposal admission
+ok 383 - R1 saved completed setup hosts do not borrow another setup's disposal admission
+  ---
+  duration_ms: 4.30275
+  type: 'test'
+  ...
+# Subtest: R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+ok 384 - R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+  ---
+  duration_ms: 0.529958
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+ok 385 - R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+  ---
+  duration_ms: 0.387458
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection undefined and successful prior disposal
+ok 386 - R1 preserves explicit setup rejection undefined and successful prior disposal
+  ---
+  duration_ms: 0.322584
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection null and successful prior disposal
+ok 387 - R1 preserves explicit setup rejection null and successful prior disposal
+  ---
+  duration_ms: 0.346708
+  type: 'test'
+  ...
+# Subtest: R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+ok 388 - R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+  ---
+  duration_ms: 0.274458
+  type: 'test'
+  ...
+# Subtest: R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+ok 389 - R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+  ---
+  duration_ms: 0.511042
+  type: 'test'
+  ...
+# Subtest: cleanup is registered before acquisition and delays normal public settlement
+ok 390 - cleanup is registered before acquisition and delays normal public settlement
+  ---
+  duration_ms: 5.219667
+  type: 'test'
+  ...
+# Subtest: caller cancellation drains middleware hooks without waiting opaque next
+ok 391 - caller cancellation drains middleware hooks without waiting opaque next
+  ---
+  duration_ms: 1.256875
+  type: 'test'
+  ...
+# Subtest: normal completion seals saved registration and invoke before input acquisition
+ok 392 - normal completion seals saved registration and invoke before input acquisition
+  ---
+  duration_ms: 0.698625
+  type: 'test'
+  ...
+# Subtest: all cleanup failures survive undefined and null without hiding nonzero results
+ok 393 - all cleanup failures survive undefined and null without hiding nonzero results
+  ---
+  duration_ms: 0.894209
+  type: 'test'
+  ...
+# Subtest: dispose closes admissions and shares the active cleanup barrier before plugins
+ok 394 - dispose closes admissions and shares the active cleanup barrier before plugins
+  ---
+  duration_ms: 1.246375
+  type: 'test'
+  ...
+# Subtest: invoke preserves literal argv and uses fresh middleware resolution
+ok 395 - invoke preserves literal argv and uses fresh middleware resolution
+  ---
+  duration_ms: 5.297875
+  type: 'test'
+  ...
+# Subtest: invoke inherits stdin and supports byte sink overrides
+ok 396 - invoke inherits stdin and supports byte sink overrides
+  ---
+  duration_ms: 1.681708
+  type: 'test'
+  ...
+# Subtest: invoke isolates child cwd, environment, functions and exit flow
+ok 397 - invoke isolates child cwd, environment, functions and exit flow
+  ---
+  duration_ms: 5.058334
+  type: 'test'
+  ...
+# Subtest: invoke shares command and output budgets
+ok 398 - invoke shares command and output budgets
+  ---
+  duration_ms: 2.055916
+  type: 'test'
+  ...
+# Subtest: invoke propagates cancellation through nested commands
+ok 399 - invoke propagates cancellation through nested commands
+  ---
+  duration_ms: 0.76075
+  type: 'test'
+  ...
+# Subtest: invoke unknown commands and recursive hooks use normal statuses and limits
+ok 400 - invoke unknown commands and recursive hooks use normal statuses and limits
+  ---
+  duration_ms: 2.127292
+  type: 'test'
+  ...
+# Subtest: hard-bounded cancellation, ownership and precharge precedence
+ok 401 - hard-bounded cancellation, ownership and precharge precedence
+  ---
+  duration_ms: 376.716083
+  type: 'test'
+  ...
+# Subtest: actual command printf 1234 limit 4
+ok 402 - actual command printf 1234 limit 4
+  ---
+  duration_ms: 8.740875
+  type: 'test'
+  ...
+# Subtest: actual command printf 1234 limit 3
+ok 403 - actual command printf 1234 limit 3
+  ---
+  duration_ms: 1.22825
+  type: 'test'
+  ...
+# Subtest: actual command env -i printf 1234 limit 4
+ok 404 - actual command env -i printf 1234 limit 4
+  ---
+  duration_ms: 1.775167
+  type: 'test'
+  ...
+# Subtest: actual command env -i printf 1234 limit 3
+ok 405 - actual command env -i printf 1234 limit 3
+  ---
+  duration_ms: 1.337375
+  type: 'test'
+  ...
+# Subtest: actual command bridge limit 4
+ok 406 - actual command bridge limit 4
+  ---
+  duration_ms: 1.869709
+  type: 'test'
+  ...
+# Subtest: actual command bridge limit 3
+ok 407 - actual command bridge limit 3
+  ---
+  duration_ms: 2.189375
+  type: 'test'
+  ...
+# Subtest: actual command outer limit 4
+ok 408 - actual command outer limit 4
+  ---
+  duration_ms: 1.908333
+  type: 'test'
+  ...
+# Subtest: actual command outer limit 3
+ok 409 - actual command outer limit 3
+  ---
+  duration_ms: 1.655834
+  type: 'test'
+  ...
+# Subtest: actual command env -i printf 1234 | cat limit 8
+ok 410 - actual command env -i printf 1234 | cat limit 8
+  ---
+  duration_ms: 6.150458
+  type: 'test'
+  ...
+# Subtest: actual command env -i printf 1234 | cat limit 7
+ok 411 - actual command env -i printf 1234 | cat limit 7
+  ---
+  duration_ms: 2.593458
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=undefined explicit=false
+ok 412 - nested forwarding flag=undefined explicit=false
+  ---
+  duration_ms: 1.286792
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=undefined explicit=true
+ok 413 - nested forwarding flag=undefined explicit=true
+  ---
+  duration_ms: 2.130416
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=false explicit=false
+ok 414 - nested forwarding flag=false explicit=false
+  ---
+  duration_ms: 0.460292
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=false explicit=true
+ok 415 - nested forwarding flag=false explicit=true
+  ---
+  duration_ms: 0.367875
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=true explicit=false
+ok 416 - nested forwarding flag=true explicit=false
+  ---
+  duration_ms: 0.449041
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=true explicit=true
+ok 417 - nested forwarding flag=true explicit=true
+  ---
+  duration_ms: 0.514917
+  type: 'test'
+  ...
+# Subtest: same buffer remains distinct writes stdout,stdout
+ok 418 - same buffer remains distinct writes stdout,stdout
+  ---
+  duration_ms: 1.3155
+  type: 'test'
+  ...
+# Subtest: same buffer remains distinct writes stderr,stderr
+ok 419 - same buffer remains distinct writes stderr,stderr
+  ---
+  duration_ms: 1.166084
+  type: 'test'
+  ...
+# Subtest: same buffer remains distinct writes stdout,stderr
+ok 420 - same buffer remains distinct writes stdout,stderr
+  ---
+  duration_ms: 0.946583
+  type: 'test'
+  ...
+# Subtest: known contextual alias stdout-to-stderr
+ok 421 - known contextual alias stdout-to-stderr
+  ---
+  duration_ms: 0.598
+  type: 'test'
+  ...
+# Subtest: known contextual alias stderr-to-stdout
+ok 422 - known contextual alias stderr-to-stdout
+  ---
+  duration_ms: 0.541833
+  type: 'test'
+  ...
+# Subtest: known contextual alias both-to-stdout
+ok 423 - known contextual alias both-to-stdout
+  ---
+  duration_ms: 0.325625
+  type: 'test'
+  ...
+# Subtest: new external sink limit 3
+ok 424 - new external sink limit 3
+  ---
+  duration_ms: 0.725041
+  type: 'test'
+  ...
+# Subtest: new external sink limit 4
+ok 425 - new external sink limit 4
+  ---
+  duration_ms: 0.383458
+  type: 'test'
+  ...
+# Subtest: middleware replacement of contextual sink cannot bypass accounting
+ok 426 - middleware replacement of contextual sink cannot bypass accounting
+  ---
+  duration_ms: 0.69075
+  type: 'test'
+  ...
+# Subtest: unknown host proxy is not blindly unwrapped
+ok 427 - unknown host proxy is not blindly unwrapped
+  ---
+  duration_ms: 0.683833
+  type: 'test'
+  ...
+# Subtest: mutating an owned sink write cannot retain its accounting exemption
+ok 428 - mutating an owned sink write cannot retain its accounting exemption
+  ---
+  duration_ms: 0.590666
+  type: 'test'
+  ...
+# Subtest: concurrent same-buffer writes reserve budget before effects
+ok 429 - concurrent same-buffer writes reserve budget before effects
+  ---
+  duration_ms: 6.802667
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: { :; : >after; } | :
+ok 430 - pipeline completion preserves independent producer effects: { :; : >after; } | :
+  ---
+  duration_ms: 21.048125
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: { :; : >after; } | : | :
+ok 431 - pipeline completion preserves independent producer effects: { :; : >after; } | : | :
+  ---
+  duration_ms: 12.225417
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: printf abc >out | true
+ok 432 - pipeline completion preserves independent producer effects: printf abc >out | true
+  ---
+  duration_ms: 12.216084
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: set -o pipefail; { true; false; } | true
+ok 433 - pipeline completion preserves independent producer effects: set -o pipefail; { true; false; } | true
+  ---
+  duration_ms: 10.344292
+  type: 'test'
+  ...
+# Subtest: downstream exit does not interrupt an upstream asynchronous effect
+ok 434 - downstream exit does not interrupt an upstream asynchronous effect
+  ---
+  duration_ms: 2.624334
+  type: 'test'
+  ...
+# Subtest: a producer that writes a broken pipe cannot continue later effects
+ok 435 - a producer that writes a broken pipe cannot continue later effects
+  ---
+  duration_ms: 1.077083
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec omitted
+ok 436 - stdin origin: exec omitted
+  ---
+  duration_ms: 4.158667
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty string
+ok 437 - stdin origin: exec empty string
+  ---
+  duration_ms: 0.928125
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty bytes
+ok 438 - stdin origin: exec empty bytes
+  ---
+  duration_ms: 0.371333
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty stream
+ok 439 - stdin origin: exec empty stream
+  ---
+  duration_ms: 0.59225
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin | pass
+ok 440 - stdin origin: origin | pass
+  ---
+  duration_ms: 4.390625
+  type: 'test'
+  ...
+# Subtest: stdin origin: : | origin
+ok 441 - stdin origin: : | origin
+  ---
+  duration_ms: 1.577667
+  type: 'test'
+  ...
+# Subtest: stdin origin: : | pass | origin
+ok 442 - stdin origin: : | pass | origin
+  ---
+  duration_ms: 2.070334
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <empty
+ok 443 - stdin origin: origin <empty
+  ---
+  duration_ms: 0.693542
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<END\\nEND
+ok 444 - stdin origin: origin <<END\\nEND
+  ---
+  duration_ms: 0.657
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<'END'\\nEND
+ok 445 - stdin origin: origin <<'END'\\nEND
+  ---
+  duration_ms: 0.583042
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<< ''
+ok 446 - stdin origin: origin <<< ''
+  ---
+  duration_ms: 0.992125
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<empty 0<&3
+ok 447 - stdin origin: origin 3<empty 0<&3
+  ---
+  duration_ms: 0.339667
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<&0 <empty 0<&3
+ok 448 - stdin origin: origin 3<&0 <empty 0<&3
+  ---
+  duration_ms: 0.335042
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <empty 3<&0 0<&3
+ok 449 - stdin origin: origin <empty 3<&0 0<&3
+  ---
+  duration_ms: 0.263625
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<&0 0<&- 0<&3
+ok 450 - stdin origin: origin 3<&0 0<&- 0<&3
+  ---
+  duration_ms: 0.196792
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<empty 0<&3 3<&-
+ok 451 - stdin origin: origin 3<empty 0<&3 3<&-
+  ---
+  duration_ms: 0.196042
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 0<&-
+ok 452 - stdin origin: origin 0<&-
+  ---
+  duration_ms: 0.151833
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 0>out
+ok 453 - stdin origin: origin 0>out
+  ---
+  duration_ms: 0.219417
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 2>out 3>other
+ok 454 - stdin origin: origin 2>out 3>other
+  ---
+  duration_ms: 0.178292
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; }; (origin)
+ok 455 - stdin origin: { origin; }; (origin)
+  ---
+  duration_ms: 0.283375
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; } <empty; origin
+ok 456 - stdin origin: { origin; } <empty; origin
+  ---
+  duration_ms: 0.280292
+  type: 'test'
+  ...
+# Subtest: stdin origin: (origin) <empty
+ok 457 - stdin origin: (origin) <empty
+  ---
+  duration_ms: 0.267708
+  type: 'test'
+  ...
+# Subtest: stdin origin: func() { origin; }; func; func <empty; origin
+ok 458 - stdin origin: func() { origin; }; func; func <empty; origin
+  ---
+  duration_ms: 0.588958
+  type: 'test'
+  ...
+# Subtest: stdin origin: func() { origin; }; : | func
+ok 459 - stdin origin: func() { origin; }; : | func
+  ---
+  duration_ms: 1.344875
+  type: 'test'
+  ...
+# Subtest: stdin origin: say "$(origin)"
+ok 460 - stdin origin: say "$(origin)"
+  ---
+  duration_ms: 0.62675
+  type: 'test'
+  ...
+# Subtest: stdin origin: { say "$(origin)"; } <empty
+ok 461 - stdin origin: { say "$(origin)"; } <empty
+  ---
+  duration_ms: 0.303625
+  type: 'test'
+  ...
+# Subtest: stdin origin: say "$(origin <empty)"; origin
+ok 462 - stdin origin: say "$(origin <empty)"; origin
+  ---
+  duration_ms: 0.330209
+  type: 'test'
+  ...
+# Subtest: stdin origin: { : | origin 0<&3; } 3<&0
+ok 463 - stdin origin: { : | origin 0<&3; } 3<&0
+  ---
+  duration_ms: 0.513958
+  type: 'test'
+  ...
+# Subtest: stdin origin: { : | origin 0<&3; } 3<empty
+ok 464 - stdin origin: { : | origin 0<&3; } 3<empty
+  ---
+  duration_ms: 0.562209
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin <&3; } 3<<END\\nEND
+ok 465 - stdin origin: { origin <&3; } 3<<END\\nEND
+  ---
+  duration_ms: 0.263583
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin <&3; } 3<<< ''
+ok 466 - stdin origin: { origin <&3; } 3<<< ''
+  ---
+  duration_ms: 0.39
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin 0<&3; } 3<&0 <empty
+ok 467 - stdin origin: { origin 0<&3; } 3<&0 <empty
+  ---
+  duration_ms: 0.227083
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin 0<&3; } <empty 3<&0
+ok 468 - stdin origin: { origin 0<&3; } <empty 3<&0
+  ---
+  duration_ms: 0.168
+  type: 'test'
+  ...
+# Subtest: stdin origin: { drain <&3; origin <&3; origin; } 3<empty
+ok 469 - stdin origin: { drain <&3; origin <&3; origin; } 3<empty
+  ---
+  duration_ms: 0.341959
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; } 0<&-
+ok 470 - stdin origin: { origin; } 0<&-
+  ---
+  duration_ms: 0.123917
+  type: 'test'
+  ...
+# Subtest: stdin origin: detection never reads supplied input
+ok 471 - stdin origin: detection never reads supplied input
+  ---
+  duration_ms: 0.508625
+  type: 'test'
+  ...
+# Subtest: stdin origin: zero chunks and EOF never change explicit origin
+ok 472 - stdin origin: zero chunks and EOF never change explicit origin
+  ---
+  duration_ms: 0.4745
+  type: 'test'
+  ...
+# Subtest: stdin origin: externally exhausted stream remains explicit
+ok 473 - stdin origin: externally exhausted stream remains explicit
+  ---
+  duration_ms: 1.011209
+  type: 'test'
+  ...
+# Subtest: stdin origin: duplicated descriptors share cursor without changing origin
+ok 474 - stdin origin: duplicated descriptors share cursor without changing origin
+  ---
+  duration_ms: 0.779083
+  type: 'test'
+  ...
+# Subtest: stdin origin: closed input retains bad-descriptor failures
+ok 475 - stdin origin: closed input retains bad-descriptor failures
+  ---
+  duration_ms: 0.493583
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested invocation from default=true
+ok 476 - stdin origin: nested invocation from default=true
+  ---
+  duration_ms: 1.012917
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested invocation from default=false
+ok 477 - stdin origin: nested invocation from default=false
+  ---
+  duration_ms: 0.541459
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested functions preserve saved descriptors and replacement origin
+ok 478 - stdin origin: nested functions preserve saved descriptors and replacement origin
+  ---
+  duration_ms: 0.281375
+  type: 'test'
+  ...
+# Subtest: stdin origin: middleware and transparent clones retain provenance
+ok 479 - stdin origin: middleware and transparent clones retain provenance
+  ---
+  duration_ms: 1.036375
+  type: 'test'
+  ...
+# Subtest: stdin origin: forwarding changed clones requires explicit invocation options
+ok 480 - stdin origin: forwarding changed clones requires explicit invocation options
+  ---
+  duration_ms: 0.270041
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=false
+ok 481 - stdin origin: rg integration rg match supplied=false
+  ---
+  duration_ms: 23.19975
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 482 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 17.488625
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 483 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 23.511708
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 484 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 20.495292
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match supplied=false
+ok 485 - stdin origin: rg integration printf '' | rg match supplied=false
+  ---
+  duration_ms: 21.339166
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg -e match supplied=false
+ok 486 - stdin origin: rg integration printf '' | rg -e match supplied=false
+  ---
+  duration_ms: 23.074125
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false
+ok 487 - stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false
+  ---
+  duration_ms: 18.904625
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match - supplied=false
+ok 488 - stdin origin: rg integration printf '' | rg match - supplied=false
+  ---
+  duration_ms: 18.460833
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <empty supplied=false
+ok 489 - stdin origin: rg integration rg match <empty supplied=false
+  ---
+  duration_ms: 16.890667
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <<END\\nEND supplied=false
+ok 490 - stdin origin: rg integration rg match <<END\\nEND supplied=false
+  ---
+  duration_ms: 16.167167
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <<< '' supplied=false
+ok 491 - stdin origin: rg integration rg match <<< '' supplied=false
+  ---
+  duration_ms: 16.782541
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match 3<empty 0<&3 supplied=false
+ok 492 - stdin origin: rg integration rg match 3<empty 0<&3 supplied=false
+  ---
+  duration_ms: 17.319542
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false
+ok 493 - stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false
+  ---
+  duration_ms: 17.870958
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false
+ok 494 - stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false
+  ---
+  duration_ms: 16.495
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration env rg match supplied=false
+ok 495 - stdin origin: rg integration env rg match supplied=false
+  ---
+  duration_ms: 17.905333
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | env rg match supplied=false
+ok 496 - stdin origin: rg integration printf '' | env rg match supplied=false
+  ---
+  duration_ms: 18.798791
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match matched supplied=false
+ok 497 - stdin origin: rg integration printf '' | rg match matched supplied=false
+  ---
+  duration_ms: 19.796375
+  type: 'test'
+  ...
+# Subtest: pipes preserve bytes and launch downstream before upstream completes
+ok 498 - pipes preserve bytes and launch downstream before upstream completes
+  ---
+  duration_ms: 9.374417
+  type: 'test'
+  ...
+# Subtest: early downstream exit and unused pipeline input do not deadlock
+ok 499 - early downstream exit and unused pipeline input do not deadlock
+  ---
+  duration_ms: 5.642375
+  type: 'test'
+  ...
+# Subtest: pipeline redirects replace endpoints without leaving blocked writers
+ok 500 - pipeline redirects replace endpoints without leaving blocked writers
+  ---
+  duration_ms: 3.67975
+  type: 'test'
+  ...
+# Subtest: streaming external sinks receive exact bytes and results retain captures
+ok 501 - streaming external sinks receive exact bytes and results retain captures
+  ---
+  duration_ms: 1.8205
+  type: 'test'
+  ...
+# Subtest: AbortSignal reaches commands and releases blocked pipelines
+ok 502 - AbortSignal reaches commands and releases blocked pipelines
+  ---
+  duration_ms: 2.531792
+  type: 'test'
+  ...
+# Subtest: output, command, loop, source and expansion budgets reject deterministically
+ok 503 - output, command, loop, source and expansion budgets reject deterministically
+  ---
+  duration_ms: 5.624084
+  type: 'test'
+  ...
+# Subtest: middleware, asynchronous plugins and filesystem factories compose
+ok 504 - middleware, asynchronous plugins and filesystem factories compose
+  ---
+  duration_ms: 1.537375
+  type: 'test'
+  ...
+# Subtest: parallel exec calls cannot leak environment, cwd or status
+ok 505 - parallel exec calls cannot leak environment, cwd or status
+  ---
+  duration_ms: 9.143166
+  type: 'test'
+  ...
+1..505
+# tests 505
+# suites 0
+# pass 503
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13730.695625

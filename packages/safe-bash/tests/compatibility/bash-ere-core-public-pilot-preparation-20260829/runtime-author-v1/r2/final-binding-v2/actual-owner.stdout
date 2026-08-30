@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "startedUtc": "2026-08-29T17:29:36.066Z",
+  "startedMonotonic": 267988181,
+  "outerStarted": 267531292,
+  "ownerPid": 98349,
+  "parentPid": 98347,
+  "attemptConsumed": true,
+  "status": "REFUSED",
+  "coordinatorLaunched": false,
+  "coordinator": {
+    "pid": null,
+    "exit": false,
+    "close": false,
+    "stdoutEOF": false,
+    "stderrEOF": false,
+    "retired": false,
+    "code": null,
+    "signal": null
+  },
+  "captured": {
+    "stdout": 0,
+    "stderr": 0
+  },
+  "signals": [],
+  "failure": {
+    "present": true,
+    "primary": {
+      "phase": "admission-refusal",
+      "reason": {
+        "type": "object",
+        "message": "ROOT wall start window closed",
+        "stack": null
+      }
+    },
+    "secondary": [],
+    "omitted": 0
+  },
+  "commandSha256": "47a843889d997ee006b3f66c03015eb88bc477cee98ad1accb1d47e36851e721",
+  "grantSha256": "1bef3edb200f9a67c7c27260d33ff850e0d1f85fff0f80022cda2636c6ac3adf",
+  "sourcePostguard": false,
+  "noRetry": true,
+  "finishedUtc": "2026-08-29T17:29:36.068Z",
+  "finishedMonotonic": 267988182,
+  "remainingIncludingPublication": 743110,
+  "actualCoordinatorRetirementOnly": true,
+  "unknownReferencesRetained": false
+}
+

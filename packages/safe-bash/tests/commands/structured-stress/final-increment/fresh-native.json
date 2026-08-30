@@ -1,0 +1,458 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-26T21:20:03.799Z",
+  "executable": "/usr/bin/jq",
+  "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+  "version": {
+    "status": 0,
+    "stdoutHex": "6a712d312e372e312d6170706c650a",
+    "stderrHex": ""
+  },
+  "build": {
+    "status": 0,
+    "stdoutHex": "2d2d776974682d6f6e69677572756d613d6275696c74696e0a",
+    "stderrHex": ""
+  },
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "NO_COLOR": "1"
+  },
+  "fixtureInvocations": 29,
+  "metadataInvocations": 2,
+  "note": "Independently selected literal-argv native bytes frozen before any product comparisons. Native whole input; product replays whole and bytewise.",
+  "cases": [
+    {
+      "id": "integers-roundtrip",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(tojson | fromjson) | join(\"|\")"
+      ],
+      "inputHex": "393030373139393235343734303939337c393030373139393235343734303939327c39303037313939323534373430393933",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22393030373139393235343734303939337c393030373139393235343734303939327c39303037313939323534373430393933220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "integers-ordered",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | sort | group_by(.) | map({value: .[0], count: length})"
+      ],
+      "inputHex": "393030373139393235343734303939337c393030373139393235343734303939327c39303037313939323534373430393933",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b7b2276616c7565223a393030373139393235343734303939322c22636f756e74223a317d2c7b2276616c7565223a393030373139393235343734303939332c22636f756e74223a327d5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "integers-computed",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(. + 0) | join(\"|\")"
+      ],
+      "inputHex": "393030373139393235343734303939337c393030373139393235343734303939327c39303037313939323534373430393933",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22393030373139393235343734303939327c393030373139393235343734303939327c39303037313939323534373430393932220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "integers-quantified",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | {yes: any(. > 0), all: all(. >= 0), generated: any(.[]; . > 0)}"
+      ],
+      "inputHex": "393030373139393235343734303939337c393030373139393235343734303939327c39303037313939323534373430393933",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b22796573223a747275652c22616c6c223a747275652c2267656e657261746564223a747275657d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "scaled-roundtrip",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(tojson | fromjson) | join(\"|\")"
+      ],
+      "inputHex": "31322e333430307c312e32333465317c302e30303030303130307c2d302e303030",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2231322e333430307c31322e33347c302e30303030303130307c2d302e303030220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "scaled-ordered",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | sort | group_by(.) | map({value: .[0], count: length})"
+      ],
+      "inputHex": "31322e333430307c312e32333465317c302e30303030303130307c2d302e303030",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b7b2276616c7565223a2d302e3030302c22636f756e74223a317d2c7b2276616c7565223a302e30303030303130302c22636f756e74223a317d2c7b2276616c7565223a31322e333430302c22636f756e74223a327d5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "scaled-computed",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(. + 0) | join(\"|\")"
+      ],
+      "inputHex": "31322e333430307c312e32333465317c302e30303030303130307c2d302e303030",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2231322e33347c31322e33347c31652d30367c30220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "scaled-quantified",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | {yes: any(. > 0), all: all(. >= 0), generated: any(.[]; . > 0)}"
+      ],
+      "inputHex": "31322e333430307c312e32333465317c302e30303030303130307c2d302e303030",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b22796573223a747275652c22616c6c223a747275652c2267656e657261746564223a747275657d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "signed-roundtrip",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(tojson | fromjson) | join(\"|\")"
+      ],
+      "inputHex": "2d327c2d307c307c32",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "222d327c2d307c307c32220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "signed-ordered",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | sort | group_by(.) | map({value: .[0], count: length})"
+      ],
+      "inputHex": "2d327c2d307c307c32",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b7b2276616c7565223a2d322c22636f756e74223a317d2c7b2276616c7565223a2d302c22636f756e74223a327d2c7b2276616c7565223a322c22636f756e74223a317d5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "signed-computed",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(. + 0) | join(\"|\")"
+      ],
+      "inputHex": "2d327c2d307c307c32",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "222d327c307c307c32220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "signed-quantified",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | {yes: any(. > 0), all: all(. >= 0), generated: any(.[]; . > 0)}"
+      ],
+      "inputHex": "2d327c2d307c307c32",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b22796573223a747275652c22616c6c223a66616c73652c2267656e657261746564223a747275657d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "computed-roundtrip",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(tojson | fromjson) | join(\"|\")"
+      ],
+      "inputHex": "302e317c302e327c31652d377c313030303030303030303030303030303030303030",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22302e317c302e327c31452d377c313030303030303030303030303030303030303030220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "computed-ordered",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | sort | group_by(.) | map({value: .[0], count: length})"
+      ],
+      "inputHex": "302e317c302e327c31652d377c313030303030303030303030303030303030303030",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b7b2276616c7565223a31452d372c22636f756e74223a317d2c7b2276616c7565223a302e312c22636f756e74223a317d2c7b2276616c7565223a302e322c22636f756e74223a317d2c7b2276616c7565223a3130303030303030303030303030303030303030302c22636f756e74223a317d5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "computed-computed",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(. + 0) | join(\"|\")"
+      ],
+      "inputHex": "302e317c302e327c31652d377c313030303030303030303030303030303030303030",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22302e317c302e327c31652d30377c31652b3230220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "computed-quantified",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | {yes: any(. > 0), all: all(. >= 0), generated: any(.[]; . > 0)}"
+      ],
+      "inputHex": "302e317c302e327c31652d377c313030303030303030303030303030303030303030",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b22796573223a747275652c22616c6c223a747275652c2267656e657261746564223a747275657d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "precision-roundtrip",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(tojson | fromjson) | join(\"|\")"
+      ],
+      "inputHex": "312e30303030303030303030303030303030317c312e30303030303030303030303030303030327c312e30",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22312e30303030303030303030303030303030317c312e30303030303030303030303030303030327c312e30220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "precision-ordered",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | sort | group_by(.) | map({value: .[0], count: length})"
+      ],
+      "inputHex": "312e30303030303030303030303030303030317c312e30303030303030303030303030303030327c312e30",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b7b2276616c7565223a312e302c22636f756e74223a317d2c7b2276616c7565223a312e30303030303030303030303030303030312c22636f756e74223a317d2c7b2276616c7565223a312e30303030303030303030303030303030322c22636f756e74223a317d5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "precision-computed",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | map(. + 0) | join(\"|\")"
+      ],
+      "inputHex": "312e30303030303030303030303030303030317c312e30303030303030303030303030303030327c312e30",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22317c317c31220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "precision-quantified",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | map(tonumber) | {yes: any(. > 0), all: all(. >= 0), generated: any(.[]; . > 0)}"
+      ],
+      "inputHex": "312e30303030303030303030303030303030317c312e30303030303030303030303030303030327c312e30",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b22796573223a747275652c22616c6c223a747275652c2267656e657261746564223a747275657d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "unicode-codepoints",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"\") | join(\"|\")"
+      ],
+      "inputHex": "41f09f988065cc81005a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22417cf09f98807c657ccc817c5c75303030307c5a220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "unicode-delimiter",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"😀\") | map(select(length > 0) | tonumber) | add"
+      ],
+      "inputHex": "f09f988031f09f988032f09f9880",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "330a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "empty-quantifiers",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"|\") | {values: ., any: any, all: all}"
+      ],
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b2276616c756573223a5b5d2c22616e79223a66616c73652c22616c6c223a747275657d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "overlap",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"aba\") | join(\"|\")"
+      ],
+      "inputHex": "6162616261",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "227c6261220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "separator-order",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "[split((\",\", \";\"))]"
+      ],
+      "inputHex": "312c323b33",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b5b2231222c22323b33225d2c5b22312c32222c2233225d5d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-lines",
+      "argv": [
+        "-R",
+        "-s",
+        "-c",
+        "split(\"\\n\") | map(select(length > 0) | tonumber) | join(\"|\")"
+      ],
+      "inputHex": "393030373139393235343734303939330a31322e333430300a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22393030373139393235343734303939337c31322e33343030220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "object-quantifiers",
+      "argv": [
+        "-c",
+        "[any,all,any(. == 0),all(. != null),any(.[]; . == 1)]"
+      ],
+      "inputHex": "7b2261223a302c2262223a6e756c6c2c2263223a66616c73652c2264223a317d",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b747275652c66616c73652c747275652c66616c73652c747275655d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-output",
+      "argv": [
+        "-j",
+        "join(\"|\")"
+      ],
+      "inputHex": "5b393030373139393235343734303939332c31322e333430302c6e756c6c2c747275655d",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939337c31322e333430307c7c74727565",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "line-raw-output",
+      "argv": [
+        "-R",
+        "-j",
+        "split(\"|\") | map(tonumber) | join(\":\")"
+      ],
+      "inputHex": "393030373139393235343734303939337c31322e333430300a317c320a",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393030373139393235343734303939333a31322e33343030313a32",
+        "stderrHex": ""
+      }
+    }
+  ]
+}

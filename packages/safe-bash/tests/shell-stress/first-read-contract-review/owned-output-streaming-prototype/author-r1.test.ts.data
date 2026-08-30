@@ -1,0 +1,323 @@
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import type { Socket } from "node:net";
+import { setImmediate as turn } from "node:timers/promises";
+import { test } from "node:test";
+import { agentCommands, collectBytes, createOutputOperation, FsError, MemoryFileSystem, networkCommands, readBytes, Shell, toByteSource, writeBytes, type ByteSink, type ByteSource, type CommandContext, type InvocationCleanup } from "../../src/index.js";
+import { createCurlCommand } from "../../src/commands/network/curl.js";
+import { createNodeHttpTransport, type HttpResponse, type HttpTransport } from "../../src/commands/network/index.js";
+import { bounded, gate } from "../stress/remote-cancellation/helpers.js";
+
+const encode = (value: string): Uint8Array => new TextEncoder().encode(value);
+const isPipe = (error: unknown): boolean => error instanceof Error && "code" in error && error.code === "EPIPE";
+const aborted = (signal: AbortSignal): Promise<never> => new Promise((_resolve, reject) => {
+  if (signal.aborted) reject(signal.reason);
+  else signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+});
+function sink() {
+  const controller = new AbortController();
+  const bytes: Uint8Array[] = [];
+  const write = async (chunk: Uint8Array): Promise<void> => { controller.signal.throwIfAborted(); bytes.push(new Uint8Array(chunk)); };
+  const output: ByteSink = { write, ownedOutput: { consumerClosed: controller.signal, write } };
+  return { controller, bytes, output };
+}
+const response = (status = 200, body: ByteSource = toByteSource("")): HttpResponse => ({ status, statusText: "fixture", headers: [], body, async dispose() {} });
+
+test("S1 streaming/backpressure and retained reused binary replay", { timeout: 6000 }, async testContext => {
+  for (const profile of ["bounded-stream", "replay"] as const) {
+    const firstWrite = gate();
+    const resume = gate();
+    const events: string[] = [];
+    const backing = Buffer.alloc(17020, 0x7e);
+    const fragments = [Buffer.alloc(17001, 0xa5), Buffer.alloc(0), Buffer.from([0, 255, 128]), Buffer.from("last\r\n")];
+    let produced = 0;
+    let eof = false;
+    const stdin: ByteSource = (async function* () {
+      try {
+        for (const fragment of fragments) {
+          backing.fill(0x7e); backing.set(fragment, 7); produced++;
+          yield backing.subarray(7, 7 + fragment.length);
+        }
+      } finally { backing.fill(0x78); eof = true; events.push("eof"); }
+    })();
+    const uploads: Buffer[] = [];
+    const transport: HttpTransport = async request => {
+      assert.ok(request.body); assert.equal(request.signal.aborted, false);
+      events.push("request");
+      const chunks: Buffer[] = [];
+      for await (const chunk of request.body) {
+        chunks.push(Buffer.from(chunk));
+        if (uploads.length === 0 && chunks.length === 1) {
+          events.push("first-body-write"); firstWrite.resolve(); await resume.promise;
+        }
+      }
+      uploads.push(Buffer.concat(chunks));
+      return response(profile === "replay" && uploads.length === 1 ? 503 : 200);
+    };
+    const cleanup: InvocationCleanup[] = [];
+    const stdout = sink();
+    const context: CommandContext = { command: "curl", args: ["-T", "-", ...(profile === "replay" ? ["--retry", "1", "--retry-delay", "0.001"] : []), "http://127.0.0.1/fixture"], stdin, stdout: stdout.output, stderr: { async write() {} }, cwd: "/", env: {}, fs: new MemoryFileSystem(), signal: new AbortController().signal, registerCleanup: callback => { cleanup.push(callback); } };
+    const pending = Promise.resolve(createCurlCommand({ authorize: () => true, transport, limits: { maxBufferBytes: profile === "replay" ? 64000 : 256, maxUploadBytes: 64000 } }).execute(context));
+    try {
+      await bounded(firstWrite.promise, "S1 first write before EOF");
+      await turn(); await turn();
+      assert.equal(eof, false); assert.equal(produced, 1);
+      assert.ok(cleanup.length > 0);
+      resume.resolve();
+      const result = await bounded(pending, "S1 streaming completion");
+      assert.equal(result.exitCode, 0); assert.equal(eof, true);
+      assert.equal(uploads.length, profile === "replay" ? 2 : 1);
+      for (const upload of uploads) assert.deepEqual(upload, Buffer.concat(fragments));
+      assert.ok(events.indexOf("first-body-write") < events.indexOf("eof"));
+      testContext.diagnostic(JSON.stringify({ profile, status: result.exitCode, beforeEof: true, producedAtBackpressure: 1, uploadBytes: uploads.map(bytes => bytes.length), events }));
+    } finally { resume.resolve(); await pending; await Promise.all(cleanup.map(callback => callback())); }
+  }
+});
+
+test("S2 loopback streaming upload cancels only owned transfer", { timeout: 6000 }, async testContext => {
+  const received = gate();
+  const pendingRead = gate<IteratorResult<Uint8Array>>();
+  const sockets = new Set<Socket>();
+  const socketClosed = gate();
+  let receivedBytes = 0;
+  let reads = 0;
+  let returned = 0;
+  let transportClosed = 0;
+  let stageLiveAfterCommand = false;
+  let operationSignal: AbortSignal | undefined;
+  const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
+    async next() { reads++; return reads === 1 ? { done: false, value: Buffer.alloc(32768, 0xa5) } : pendingRead.promise; },
+    async return() { returned++; return { done: true, value: undefined }; },
+  }; } };
+  const server = createServer(request => { request.on("data", chunk => { receivedBytes += chunk.length; received.resolve(); }); });
+  server.on("connection", socket => { sockets.add(socket); socket.once("close", () => { sockets.delete(socket); socketClosed.resolve(); }); });
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const url = `http://127.0.0.1:${address.port}/upload`;
+  const nodeTransport = createNodeHttpTransport();
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(networkCommands({
+    authorize: request => request.url === url,
+    transport: request => {
+      operationSignal = request.signal;
+      assert.ok(request.registerCleanup);
+      const register = request.registerCleanup;
+      return nodeTransport({ ...request, registerCleanup: cleanup => register(async () => { await cleanup(); transportClosed++; }) });
+    },
+  }));
+  shell.use(async (context, next) => {
+    if (context.command === "head") await received.promise;
+    const result = await next();
+    if (context.command === "curl") stageLiveAfterCommand = !context.signal.aborted;
+    return result;
+  });
+  try {
+    const result = await bounded(shell.exec(`set -o pipefail; curl -T - ${url} | head -n 0`, { stdin }), "S2 owned HTTP cancellation");
+    await bounded(socketClosed.promise, "S2 loopback socket closure");
+    assert.equal(result.exitCode, 141); assert.equal(result.stdout, "");
+    assert.ok(receivedBytes > 0); assert.ok(reads >= 2);
+    assert.equal(operationSignal?.aborted, true); assert.equal(stageLiveAfterCommand, true);
+    assert.equal(transportClosed, 1);
+    testContext.diagnostic(JSON.stringify({ publicStatus: result.exitCode, operationAborted: operationSignal?.aborted, cooperativeTransportClosed: transportClosed, stageAbortedBeforeReturn: !stageLiveAfterCommand, receivedBeforeEof: receivedBytes, reads, topLevelOwnerReturns: returned }));
+  } finally {
+    pendingRead.resolve({ done: true, value: undefined });
+    await shell.dispose();
+    for (const socket of sockets) socket.destroy();
+    await new Promise<void>(resolve => server.close(() => resolve()));
+    assert.equal(sockets.size, 0);
+  }
+});
+
+test("S3 actual invoke borrows live owner while opaque next settles late", { timeout: 6000 }, async testContext => {
+  for (const late of ["fulfill", "reject"] as const) for (const binding of ["custom", "curl"] as const) {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(agentCommands());
+    const output = sink();
+    const started = gate();
+    const pending = gate<IteratorResult<Uint8Array>>();
+    let returns = 0;
+    let reads = 0;
+    let closed = false;
+    let ownerLive = false;
+    let stageAborted = true;
+    let childStatus = -1;
+    shell.use(networkCommands({ authorize: () => true, transport: async request => {
+      assert.ok(request.body); assert.ok(request.registerCleanup);
+      request.registerCleanup(() => { closed = true; });
+      for await (const chunk of readBytes(request.body, request.signal)) assert.ok(chunk instanceof Uint8Array);
+      return response();
+    } }));
+    shell.use(async (context, next) => {
+      const result = await next();
+      if (context.command === "curl") stageAborted = context.signal.aborted;
+      return result;
+    });
+    const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
+      next() { reads++; started.resolve(); return pending.promise; },
+      async return() { returns++; return { done: true, value: undefined }; },
+    }; } };
+    shell.commands.register({ name: "borrower", async execute(context) {
+      const operation = createOutputOperation(context, context.stdout);
+      operation.registerCleanup(() => { closed = true; });
+      try { for await (const chunk of readBytes(context.stdin, operation.signal)) await writeBytes(operation.output, chunk, operation.signal); }
+      catch (error) { assert.ok(isPipe(error)); }
+      finally { await operation.close(); }
+      stageAborted = context.signal.aborted;
+      return { exitCode: 141 };
+    } });
+    shell.commands.register({ name: "owner", async execute(context) {
+      assert.ok(context.invoke);
+      const child = binding === "custom"
+        ? context.invoke("borrower", [], { stdout: output.output })
+        : context.invoke("curl", ["-T", "-", "http://127.0.0.1/borrowed"], { stdout: output.output });
+      await started.promise;
+      output.controller.abort(new FsError("EPIPE"));
+      childStatus = (await child).exitCode;
+      assert.equal(childStatus, 141); assert.equal(returns, 0); assert.equal(closed, true);
+      ownerLive = !context.signal.aborted;
+      assert.equal(ownerLive, true); assert.equal(stageAborted, false);
+      if (late === "fulfill") pending.resolve({ done: false, value: Buffer.from([0, 255, 10]) });
+      else pending.reject(new Error("late opaque read rejection"));
+      await turn(); await turn();
+      assert.equal(returns, 0);
+      const sibling = await context.invoke("printf", ["sibling"], { stdout: { write: chunk => fs.appendFile("/sibling", chunk) } });
+      assert.equal(sibling.exitCode, 0);
+      await writeBytes(context.stderr, encode("owner-live\n"), context.signal);
+      return { exitCode: 0 };
+    } });
+    try {
+      const result = await bounded(shell.exec("owner", { stdin }), "S3 live shared owner");
+      assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, "owner-live\n");
+      assert.equal(Buffer.from(await fs.readFile("/sibling")).toString(), "sibling");
+      assert.equal(reads, 1);
+      testContext.diagnostic(JSON.stringify({ late, binding, publicStatus: result.exitCode, childStatus, operationClosed: closed, stageAborted, ownerLiveDuringCheck: ownerLive, borrowedReturnsWhileOwnerLive: 0, topLevelOwnerReturns: returns, noHandbackAssertion: true }));
+    } finally { pending.resolve({ done: true, value: undefined }); await shell.dispose(); }
+  }
+});
+
+test("S4 mixed required files headers writeout stderr and sibling lifetimes", { timeout: 6000 }, async testContext => {
+  for (const profile of ["body-file", "header-file", "healthy-writeout"] as const) {
+    const fs = new MemoryFileSystem();
+    const started = gate();
+    let requestAbortedBeforeResponse = true;
+    let stageAborted = true;
+    let childStatus = -1;
+    let uploaded = 0;
+    const transport: HttpTransport = async request => {
+      started.resolve(); await turn(); await turn();
+      requestAbortedBeforeResponse = request.signal.aborted;
+      request.signal.throwIfAborted();
+      assert.ok(request.body);
+      for await (const chunk of readBytes(request.body, request.signal)) uploaded += chunk.length;
+      return { ...response(200, toByteSource(Buffer.from([0, 255, 10]))), headers: [["X-Fixture", "kept"]] };
+    };
+    const shell = new Shell({ fs }).use(agentCommands()).use(networkCommands({ authorize: () => true, transport }));
+    shell.use(async (context, next) => { if (context.command === "head") await started.promise; return next(); });
+    shell.commands.register({ name: "owner", async execute(context) {
+      assert.ok(context.invoke);
+      const args = ["-T", "-", "-w", "%{http_code}", ...(profile === "body-file" ? ["-o", "/body", "-D", "-"] : profile === "header-file" ? ["-D", "/headers"] : ["-o", "/body", "-D", "/headers"]), "http://127.0.0.1/mixed"];
+      childStatus = (await context.invoke("curl", args)).exitCode;
+      stageAborted = context.signal.aborted;
+      await context.invoke("printf", ["sibling"], { stdout: { write: chunk => fs.appendFile("/sibling", chunk) } });
+      await writeBytes(context.stderr, encode("diagnostic-kept\n"), context.signal);
+      return { exitCode: childStatus };
+    } });
+    try {
+      const result = await bounded(shell.exec(profile === "healthy-writeout" ? "owner" : "set -o pipefail; owner | head -n 0", { stdin: toByteSource("upload-kept") }), "S4 independent work");
+      assert.equal(result.exitCode, profile === "healthy-writeout" ? 0 : 141, result.stderr);
+      assert.equal(requestAbortedBeforeResponse, false); assert.equal(stageAborted, false); assert.equal(uploaded, 11);
+      if (profile !== "header-file") assert.deepEqual(await fs.readFile("/body"), Uint8Array.from([0, 255, 10]));
+      if (profile !== "body-file") assert.match(Buffer.from(await fs.readFile("/headers")).toString(), /X-Fixture: kept/);
+      assert.equal(Buffer.from(await fs.readFile("/sibling")).toString(), "sibling");
+      assert.equal(result.stderr, "diagnostic-kept\n");
+      assert.equal(result.stdout, profile === "healthy-writeout" ? "200" : "");
+      testContext.diagnostic(JSON.stringify({ profile, publicStatus: result.exitCode, childStatus, stageAborted, requestAbortedBeforeResponse, uploaded, stdout: result.stdout, stderr: result.stderr }));
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("S5 explicit children synchronous admission and cooperative cleanup", { timeout: 6000 }, async testContext => {
+  const callbacks: InvocationCleanup[] = [];
+  const caller = new AbortController();
+  const parentSink = sink();
+  const parent = createOutputOperation({ signal: caller.signal, registerCleanup: callback => { callbacks.push(callback); } }, parentSink.output);
+  assert.equal(callbacks.length, 1);
+  const child = parent.child(sink().output);
+  const sibling = parent.child(sink().output);
+  const independent = createOutputOperation({ signal: caller.signal }, sink().output);
+  let releases = 0;
+  let acquired = 0;
+  await child.acquire(() => { acquired++; assert.equal(callbacks.length, 1); return "owned"; }, () => { releases++; });
+  const childClose = child.close(); assert.equal(child.close(), childClose); await childClose;
+  await writeBytes(sibling.output, encode("sibling"), sibling.signal);
+  assert.equal(parent.signal.aborted, false); assert.equal(releases, 1);
+  const entered = gate(); const finish = gate();
+  sibling.registerCleanup(async () => { entered.resolve(); await finish.promise; });
+  let completed = false;
+  const close = parent.close(); void close.then(() => { completed = true; });
+  assert.equal(parent.close(), close);
+  assert.throws(() => parent.child(sink().output), /closed/);
+  await assert.rejects(parent.acquire(() => { acquired++; return "late"; }, () => {}), /closed/);
+  await entered.promise; assert.equal(completed, false); finish.resolve(); await close;
+  assert.equal(parent.signal.aborted, false); assert.equal(sibling.signal.aborted, false); assert.equal(acquired, 1);
+  await writeBytes(independent.output, encode("independent"), independent.signal); await independent.close();
+  const abortSink = sink();
+  const abortParent = createOutputOperation({ signal: caller.signal }, abortSink.output);
+  const abortChild = abortParent.child(sink().output);
+  const grandchild = abortChild.child(sink().output);
+  let cleanupCompleted = 0;
+  grandchild.registerCleanup(async () => { await turn(); cleanupCompleted++; });
+  const opaque = gate<{ id: string }>(); const lateReleased = gate();
+  const acquisition = abortChild.acquire(() => opaque.promise, resource => { assert.equal(resource.id, "late"); lateReleased.resolve(); });
+  const acquisitionOutcome = acquisition.then(() => "unexpected", error => error);
+  const reason = new FsError("EPIPE"); abortSink.controller.abort(reason); caller.abort(new Error("later caller"));
+  await abortParent.close();
+  assert.equal(await acquisitionOutcome, reason); assert.equal(grandchild.signal.reason, reason); assert.equal(cleanupCompleted, 1);
+  opaque.resolve({ id: "late" }); await lateReleased.promise; await turn();
+  assert.throws(() => abortParent.registerCleanup(() => {}), error => error === reason);
+  testContext.diagnostic(JSON.stringify({ normalCloseNoAbort: true, childRelease: releases, refusedLateAdmission: true, cooperativeGrandchildCleanup: cleanupCompleted, firstReasonPreserved: true, opaqueReleasedAfterClose: true }));
+});
+
+test("S6 caller public precedence cleanup errors genuine status pipefail", { timeout: 6000 }, async testContext => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  const caller = new AbortController(); const reason = new Error("S6 caller"); const secondary = new Error("S6 cleanup");
+  const started = gate(); const cleanupEntered = gate(); const finish = gate();
+  let operationReason: unknown; let cleanupCompleted = false;
+  shell.use(async (context, next) => { if (context.command === "head") await started.promise; return next(); });
+  shell.commands.register({ name: "owned", async execute(context) {
+    const operation = createOutputOperation(context, context.stdout);
+    operation.registerCleanup(async () => { cleanupEntered.resolve(); await finish.promise; cleanupCompleted = true; throw secondary; });
+    try { started.resolve(); await aborted(operation.signal); }
+    catch (error) { operationReason = error; }
+    finally { await operation.close(); }
+    return { exitCode: 0 };
+  } });
+  const outcome = shell.exec("owned | head -n 0", { signal: caller.signal }).then(value => ({ value }), error => ({ error }));
+  try {
+    await bounded(cleanupEntered.promise, "S6 cleanup barrier"); assert.ok(isPipe(operationReason));
+    caller.abort(reason); finish.resolve();
+    const result = await bounded(outcome, "S6 public caller outcome");
+    assert.ok("error" in result); assert.equal(result.error, reason); assert.equal(cleanupCompleted, true); assert.ok(isPipe(operationReason));
+  } finally { finish.resolve(); caller.abort(reason); await outcome; await shell.dispose(); }
+  const errors = [new Error("one"), new Error("two")];
+  const operation = createOutputOperation({ signal: new AbortController().signal }, sink().output);
+  for (const error of errors) operation.registerCleanup(() => { throw error; });
+  await assert.rejects(operation.close(), error => error instanceof AggregateError && error.errors[0] === errors[0] && error.errors[1] === errors[1]);
+  const solo = createOutputOperation({ signal: new AbortController().signal }, sink().output);
+  solo.registerCleanup(() => { throw secondary; }); await assert.rejects(solo.close(), error => error === secondary);
+  const preAborted = new AbortController(); preAborted.abort(reason);
+  const preClosed = sink(); preClosed.controller.abort(new FsError("EPIPE"));
+  const enrolled = createOutputOperation({ signal: preAborted.signal }, preClosed.output);
+  assert.equal(enrolled.signal.reason, reason); await enrolled.close();
+  for (const pipefail of [false, true]) {
+    const ready = gate(); const instance = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+    instance.use(async (context, next) => { if (context.command === "head") await ready.promise; return next(); });
+    instance.commands.register({ name: "status-seven", async execute(context) {
+      const owned = createOutputOperation(context, context.stdout);
+      try { ready.resolve(); await aborted(owned.signal); } catch (error) { assert.ok(isPipe(error)); } finally { await owned.close(); }
+      assert.equal(context.signal.aborted, false); return { exitCode: 7 };
+    } });
+    try { assert.equal((await bounded(instance.exec(`${pipefail ? "set -o pipefail; " : ""}status-seven | head -n 0`), "S6 command status")).exitCode, pipefail ? 7 : 0); }
+    finally { await instance.dispose(); }
+  }
+  testContext.diagnostic(JSON.stringify({ callerIdentity: true, operationFirstReasonEPIPE: true, cleanupCompleted, singleCleanupIdentity: true, aggregateOrder: true, alreadyAbortedCallerWins: true, genuineStatusDefault: 0, genuineStatusPipefail: 7 }));
+});

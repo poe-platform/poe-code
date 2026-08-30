@@ -1,0 +1,103 @@
+{
+  "status": "STATIC_PRECONDITIONS_ONLY_NO_AUTHOR_OVERLAY_INSPECTED",
+  "acceptedCommit": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+  "acceptedIndependentReview": "32debb6a0e43e3ff4e27e43a09a3278b082da86a",
+  "acceptedParent": "219790c55c0214e6d46524bbdced63c18c360f62",
+  "onlyProductionSourcePath": "src/commands/network/shared.ts",
+  "before": {
+    "path": "src/commands/network/shared.ts",
+    "bytes": 2606,
+    "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+  },
+  "after": {
+    "path": "src/commands/network/shared.ts",
+    "bytes": 2690,
+    "sha256": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760"
+  },
+  "exactReplacement": {
+    "before": "    if (!Number.isSafeInteger(value) || value < 1 || (name === \"maxTimeMs\" && value > 2_147_483_647)) {",
+    "after": "    const minimum = name === \"maxRedirects\" || name === \"maxRetries\" ? 0 : 1;\n    if (!Number.isSafeInteger(value) || value < minimum || (name === \"maxTimeMs\" && value > 2_147_483_647)) {"
+  },
+  "allowedPatchSha256": "2223c4fe1f9aaa31642cbc7e0b0d03f81592a2a825637d3bd0eee81787ccda53",
+  "s1BytesEqualAcceptedParent": true,
+  "expectedDerivedSource213Sha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "validationContract": {
+    "maxRedirectsAndMaxRetries": {
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "safeIntegersOnly": true,
+      "negativeZeroAccepted": true,
+      "defaults": {
+        "maxRedirects": 10,
+        "maxRetries": 5
+      }
+    },
+    "otherPositiveSafeIntegerLimits": [
+      "maxUploadBytes",
+      "maxDownloadBytes",
+      "maxBufferBytes",
+      "maxHeaderBytes",
+      "maxUrls"
+    ],
+    "otherPositiveMinimum": 1,
+    "maxTimeMs": {
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "invalidExplicitValuesRejectedNotDefaulted": true,
+    "unknownZeroKeysStillRejected": true,
+    "errorTextUnchanged": "Invalid network limit: ${name}",
+    "mergeAndFreezeUnchanged": true
+  },
+  "unchangedCli": {
+    "source": "src/commands/network/args.ts",
+    "retriesDefault": 0,
+    "maxRedirectsExpression": "Math.min(number(value!, true), limits.maxRedirects)",
+    "retriesExpression": "Math.min(number(value!, true), limits.maxRetries)",
+    "unsupportedFlagNotToUse": "--retry-all-errors"
+  },
+  "parentKnownCounts": {
+    "fullCandidate": 940,
+    "source": 213,
+    "compiled": 708,
+    "package": 709
+  },
+  "newAuthorCounts": {
+    "fullCandidate": null,
+    "compiled": null,
+    "package": null
+  },
+  "futureCompiledDerivation": {
+    "buildRequiredAfterRelease": true,
+    "pinnedBuildCommand": [
+      "PINNED_NODE22",
+      "PINNED_TYPESCRIPT/bin/tsc",
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "possibleChangedEmissionPaths": [
+      "dist/commands/network/shared.d.ts",
+      "dist/commands/network/shared.d.ts.map",
+      "dist/commands/network/shared.js",
+      "dist/commands/network/shared.js.map"
+    ],
+    "actualChangedOutputCount": null,
+    "newCompiledSha256": null,
+    "requireExactIndependentReproduction": true,
+    "requireEveryOtherOutputUnchanged": true,
+    "unexpectedEmissionsRequireStopAndProposal": true,
+    "noClaimAllFourEmissionsWillChange": true
+  },
+  "allOtherParentEntriesUnchanged": true,
+  "candidatePathSetMustBeEnumeratedAndCompared": true,
+  "noAssumed941Count": true,
+  "auditMetadataMustRemainOutsideCandidateInventory": true,
+  "notAllowed": [
+    "Accepted live README/test overlay: these are evidence only, not S1 source inputs.",
+    "Live root source, env/rg, other network changes or current build outputs.",
+    "Any other source edit, public API/default/error/CLI clamp change, config/dependency/export/lockfile change.",
+    "Hand-edited compiled output or private engine source/build/install."
+  ],
+  "stopRule": "Anything beyond exact count-validation production edit or reproducible allowed derived emissions: STOP and propose; do not repair or silently expand the overlay.",
+  "noPromotion": true
+}

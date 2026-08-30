@@ -1,0 +1,48 @@
+{
+  "auditedAt": "2026-08-27T16:32:29.623Z",
+  "temporary": "/private/tmp/safe-bash-column-final-5XKcCe",
+  "revision": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "finalInventorySha256": "acab0a47b52efd9b554176aa4fc89a2dd98691189f36511e4e6c1caa00f61daa",
+  "completeMembershipCheckedIncludingNewEntries": true,
+  "missingEntries": [],
+  "addedEntries": [],
+  "changedEntries": [],
+  "archiveSha256": "64fac38e43ce89009e03d24b8b3dffb8425dd98a313bea4d4133d6db8030cccf",
+  "packSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+  "archiveAndPackRechecked": true,
+  "movedPackageAndFixturesUnchanged": true,
+  "reusedDependenciesUnchanged": true,
+  "original80PayloadFilesAndManifestUnchanged": true,
+  "columnSourceHashes": {
+    "src/commands/column/README.md": "85f10830d3bc2e826ed68576044f469976950d5b515ab593a27b799c1827d5be",
+    "src/commands/column/column.ts": "5422966f69620cf0a60cdbded9c662ad16da09c609e3ce949e52da21be030f7d",
+    "src/commands/column/display.ts": "c79c3570b5e84e0304851ba782e4946f3f340ad3e70414f4aa123b600cbd4117",
+    "src/commands/column/index.ts": "0585011a2c4f2f5c38359fcfa7bc801f7c390074fc0f1d031a458cb7a609fd3d",
+    "src/commands/column/internal.ts": "2389e73fc1a79e4734a032f5d60d2ad1a6538500f559254fc9b7784c1e8cc5e4",
+    "src/commands/column/options.ts": "e26bdac0703fc65bc481e4ef42b9e7f5d3bccd43fda296463615eef389b613ec",
+    "src/commands/column/table.ts": "7aa3fa6d82d43fe89b3f704c4614838a0db4750421a50367dd6e187e5ce4cf55"
+  },
+  "columnSourceMapSha256": "8c7c44d175c1935699eaa216ce5ffe6ec6103b7d97dbbb95ffacc48c8786d543",
+  "boundedCommands": 19,
+  "expectedRunnerTerminations": [
+    {
+      "label": "runner-negative-deadline",
+      "termination": "deadline",
+      "wrapperStatus": 1
+    },
+    {
+      "label": "runner-negative-output",
+      "termination": "stdout-cap",
+      "wrapperStatus": 1
+    },
+    {
+      "label": "runner-negative-leak",
+      "termination": "surviving-process-group",
+      "wrapperStatus": 1
+    }
+  ],
+  "allProcessGroupsAbsentAfterCommandRetirement": true,
+  "noUnexpectedForcedCleanup": true,
+  "allOwnedSnapshotsRemoved": true,
+  "removedAt": "2026-08-27T16:32:32.503Z"
+}

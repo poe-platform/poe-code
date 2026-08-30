@@ -1,0 +1,236 @@
+[
+  {
+    "mode": "100644",
+    "oid": "6bae25caadaa6eed9de8a6c80a3ff5aa00f6987e",
+    "bytes": 7800,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/HANDOFF.md"
+  },
+  {
+    "mode": "100644",
+    "oid": "8e382551ee3943ed415bf434ed84f9c2bf8ad911",
+    "bytes": 1388,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/INDEPENDENT-REVIEW-RESULT.json.data"
+  },
+  {
+    "mode": "100644",
+    "oid": "969b66bbf4d494e63f414c5083dd7ebfdfee83a3",
+    "bytes": 938,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/ISSUANCE.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "4cf06602bec72f62b8a515b2257c3f2f3f04c8d6",
+    "bytes": 4717,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/PREFLIGHT.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "35656bae96501acb3ca30d5f11ec9ee772eecaae",
+    "bytes": 2305,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/PROCESS-ACCOUNTING.md"
+  },
+  {
+    "mode": "100644",
+    "oid": "da41341cec4feca6465b3d6125c347cd914d3313",
+    "bytes": 8400,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/PUBLICATION.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "214d453e8ce14611e899db355438a5b787732842",
+    "bytes": 1295,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/RESOLVED-COMMAND.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "ec256392b63410bfb4add8372b16376aeb215700",
+    "bytes": 1892,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/REVIEW-HANDOFF.md.data"
+  },
+  {
+    "mode": "100644",
+    "oid": "1d6a5b47af24c8728dbd842ba6b5eb127e265aa2",
+    "bytes": 1316,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/REVIEW-RETRIEVAL.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "afaef3c75b79293873cac2676d8fabca5fd678cd",
+    "bytes": 1542,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/ROOT-REVIEW-MAPPING.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "9bfcb25265724d9134877405e0cadfd0968236cc",
+    "bytes": 11553,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/prepare-authority.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "b548436e2782202646991ee1b69624462b272b4d",
+    "bytes": 5595,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/publish.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/authority-syntax.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/authority-syntax.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "3375b4107796398964e9d8362fd7c2e15f02f0b5",
+    "bytes": 173,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/authority.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "72b43141e1c927e583d1ecd865d98db6d10bb038",
+    "bytes": 2604,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/authority.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/handoff-blob.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "ec256392b63410bfb4add8372b16376aeb215700",
+    "bytes": 1892,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/handoff-blob.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/handoff-size.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "61d4d688fbff5c6a5c604b9b2a93ce63b8a5a80f",
+    "bytes": 5,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/handoff-size.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/publish-syntax.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/publish-syntax.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/publish.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "1cd0e5e33eaed55d94f8a48264148a3e2ef7fed9",
+    "bytes": 1247,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/publish.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-r1-syntax.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-r1-syntax.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-r1.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "a1173dc6971f61dee40e2659344182064f4e60d6",
+    "bytes": 2196,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-r1.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-result-blob.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-result-size.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "2069e313c5891200fbee758dbd2c921095239e2d",
+    "bytes": 5,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-result-size.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-syntax.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-syntax.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-type.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "01f9a2aac3e315c5caa00db4019f1d934171dba0",
+    "bytes": 7,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review-type.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "817bf53d3269e260bc1c28eba57c2aaf2623d84e",
+    "bytes": 760,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/raw/review.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "5c6affb28db2a54b2d9423dee9cdfab2d0751401",
+    "bytes": 2425,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/read-review-r0.mjs.data"
+  },
+  {
+    "mode": "100644",
+    "oid": "e0ad293fc4d75bc7f787f58c33c3375454dc00c4",
+    "bytes": 2884,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/read-review.mjs"
+  }
+]

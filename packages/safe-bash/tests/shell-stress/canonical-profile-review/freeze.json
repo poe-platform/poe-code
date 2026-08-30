@@ -1,0 +1,33 @@
+{
+  "frozenAt": "2026-08-27T06:41:51.698Z",
+  "authorCandidateInspected": false,
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "routedInstances": 27,
+  "historicalProfileInstances": 25,
+  "classificationInstances": 2,
+  "wholeNativeRowsPerProfile": 169,
+  "authoritativeNativeObservations": 338,
+  "retainedInitialNativeObservations": 338,
+  "actualProductExecutions": 257,
+  "files": {
+    "README.md": "2869a41f1e407283b0560b721e1f6d9fbadf92ddbfc4e87d9190cc50e5051ea7",
+    "REVIEW_PLAN.md": "3011abe4305b081b9d4ecedfff6295f05652b7fbec3724e290d9db76e6654658",
+    "baseline-6e3e316.json": "5addc1467accf1ff7e9d2156b1e26efcd6506f663e9d042093116abe1b07449f",
+    "baseline-cleanup.json": "5639da9fc721cc3b2782d337686ac072902af741f7d1afa1c99089c9f8ed5719",
+    "baseline.mjs": "57a545662a5ebd12e785b7573975526ef2983a40d4f3f91990ee9ac9e2809b86",
+    "inputs.json": "d314df83b9475ab039dfa772ae09b7cf4f2306351f719e68570e9cbffcd685b2",
+    "integrity.test.mjs": "3910b0b0cfacc1964f79b9facae3b10924be8d91d3a60de2723dac541c25f221",
+    "native-frozen.json": "70505e59a8a0d043cf87cca7c7ba4d3f6fbb98348816e68db8721b740afe9c08",
+    "native-role-corrected.json": "f0cf9e77a7d1feb909529ae023dc859a7ba5fa7e19895ef09dd24b98b748083e",
+    "native.mjs": "62e2f55b69674c46f53a9f1d95b2e166efb49c225cf37d40f71505de3d1e0b19",
+    "negative-controls.json": "ea32129eb7c4bfbac4f6c678b6ab43031c6bd01b5da3e693d5c4ede8ecd5557a",
+    "negative-controls.mjs": "d6931edef1d374d95f097950bcbca913c6cbfa3161d9dc96c82cd271a960b6c1",
+    "original-oracles.json": "dae64803bee4ebd6616933d49d442c73a397fd8ab9d162ac9cd9a4055cc3ba6d",
+    "prepare-inputs.mjs": "b86151a440a5bb890cb7cecc212dd11474819e2fb765955ab6dadb46ddddac45",
+    "product.mjs": "3ec46f2814877b5ff44b6c79da04da598f607fb4c21623b23538fb60f8a630e1",
+    "review-checks.mjs": "c40d6a42435bac2b3ee73ed9c3787ca4b41a52030b2efee35e502aff293f9a2a",
+    "review-summary.json": "65d5b67a2e090ebe3c844e2bdf5995604815ddaad03c663effe2b9ecfaa42c4b",
+    "summarize.mjs": "4f95d56ae5264d036bac5b91e5315f222da313e6941a163f6f38e715aba7b2f1",
+    "support.mjs": "8b7039e1ce9322ae7096b85d427cb22a47ba824b1b3ecb0b94a9d87a143903b5"
+  }
+}

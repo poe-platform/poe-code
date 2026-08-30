@@ -1,0 +1,89 @@
+{
+  "schema": "v8-source-preparation-audit",
+  "predecessorCommit": "90311c10a0a95f8de7c889b2bd8395d4e95a1d37",
+  "predecessorFailureEvidence": "071f8fdb",
+  "referenceEvidence": [
+    "4934900a",
+    "9c4dad3091845987d538f4cbb67cd7060268444e"
+  ],
+  "links": {
+    "directory": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/positive/refusals",
+    "bodyBase64": "SU5FUlQgQ09OVFJPTCBURVhUIE9OTFk6IHBvc2l0aXZlCg==",
+    "bodySha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b",
+    "mode": 420,
+    "regularNames": [
+      "link-target",
+      "alias-source"
+    ],
+    "symlink": {
+      "name": "symlink",
+      "target": "link-target"
+    },
+    "hardlink": {
+      "name": "alias",
+      "source": "alias-source"
+    }
+  },
+  "noChildLinkCreation": true,
+  "unchangedAssertionTailFrom": "const refusalBefore =",
+  "unchangedControls": [
+    "R01",
+    "R02",
+    "R03",
+    "B01",
+    "G01",
+    "P01"
+  ],
+  "unchangedData": [
+    "D01",
+    "D02",
+    "D03",
+    "D04"
+  ],
+  "permissionChange": "only exact owned versioned root/entry path substitution; no additional child capabilities",
+  "files": {
+    "owner.mjs": {
+      "bytes": 23853,
+      "mode": 420,
+      "sha256": "2286e394f873e96518199c1a3f4b5309856aa63dd4f4bf667eb16ce6ed47e9f9"
+    },
+    "child.mjs": {
+      "bytes": 2269,
+      "mode": 420,
+      "sha256": "2d433819913e3d9559b03da65480a89c498b9203b885469ed4d0433d42a14f25"
+    },
+    "data-controls.mjs": {
+      "bytes": 9376,
+      "mode": 420,
+      "sha256": "15e4117972a0d9b4e7de79b77994ebd284d26755bd6102ca6fa5bbe2e46972b5"
+    },
+    "primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    },
+    "fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd"
+    },
+    "INPUTS-v6.json": {
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf"
+    },
+    "FIXTURES-v6.json": {
+      "bytes": 30950,
+      "mode": 420,
+      "sha256": "ec2f4f1a29c85b65630ffaf4773634d202b62c438111933b18ec259ce80d0837"
+    }
+  },
+  "presealSha256": "89dda7ee6a84e37953c5736db6dedfce55df9f423db672c456743d4327c665ad",
+  "allReachableFixturePreparation": {
+    "owner": "exact-root mkdir/write/open; exclusively creates two owned regular fixtures, one relative symlink, one hardlink; direct serialized Git objects; cleanup after exact child close",
+    "child": "startup intentional open denial; deliberate spawnSync permission negative control; no symlink/hardlink creation",
+    "data": "bounded mkdir/write/rename under provided root; R01/R02 previously reached; link authentication/read-only refusal tests; no remaining link creation",
+    "primitives": "read-only lstat/open/read/readdir/readlink/hash",
+    "fixtureData": "pure in-memory fixture deltas/counters/fake provider"
+  }
+}

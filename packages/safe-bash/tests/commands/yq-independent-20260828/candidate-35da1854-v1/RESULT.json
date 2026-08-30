@@ -1,0 +1,450 @@
+{
+  "date": "2026-08-28",
+  "status": "DATA_BOUND_ADMISSION_BLOCKED_AWAIT_ROOT",
+  "revisions": {
+    "source": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "evidence": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+    "handoff": "bcec1ead34aee37c8fe574b248a8242ad4f60cfa",
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "length": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "consumers": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+    "runtime": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+    "carry": "bd471ef682d768692a682d40009a874f51e3ad68",
+    "review": "de89e478d8ddce62eac955708f1b87d7be1bd137",
+    "tests": "1d802e7af02add9e334ab934668d41d6e5ffbbe2",
+    "driver": "54e6d094ec9ef6e9f58988b82057a0ed67bec64b"
+  },
+  "ownPresealSha256": "96c629f4b48513b3d5b23f647932aac1233ab9b8306c49a2fcc6173c5bfeebc5",
+  "frameworkCheck": {
+    "entries": 39,
+    "sealSha256": "24e28a529cec877b82835d81ba3f274702a28d43ab5285754b7bd1ef0b82f98d",
+    "productExecution": 0
+  },
+  "writeSets": {
+    "source": [
+      "M\tsrc/commands/yq/parser.ts"
+    ],
+    "evidence": [
+      "A\ttests/commands/yq-author-20260828/evidence-v1/REPORT.json",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/SOURCE-MANIFEST.json",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/SOURCE.tar",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/package/virtual-bash-0.0.0.tgz",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/author-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/author-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/build.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/build.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/installed-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/installed-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/moved-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/moved-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/npm-pack.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/npm-pack.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/offline-install.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/offline-install.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/package-list.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/package-list.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/parent-jq-regressions.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/parent-jq-regressions.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/scoped-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/scoped-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/source-archive-list.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/source-archive-list.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/source-archive.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v1/raw/source-archive.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/REPORT.json",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/SOURCE-MANIFEST.json",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/SOURCE.tar",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/package/virtual-bash-0.0.0.tgz",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/author-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/author-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/build.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/build.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/installed-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/installed-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/installed-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/installed-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/moved-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/moved-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/moved-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/moved-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/npm-pack.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/npm-pack.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/offline-install.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/offline-install.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/package-list.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/package-list.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/parent-jq-regressions.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/parent-jq-regressions.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/scoped-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/scoped-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/source-archive-list.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/source-archive-list.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/source-archive.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/source-archive.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/wrong-module-hash-negative.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/wrong-module-hash-negative.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/wrong-source-negative.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v2/raw/wrong-source-negative.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/REPORT.json",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/SOURCE-MANIFEST.json",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/SOURCE.tar",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/package/virtual-bash-0.0.0.tgz",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/author-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/author-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/build.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/build.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/installed-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/installed-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/installed-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/installed-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/moved-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/moved-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/moved-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/moved-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/npm-pack.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/npm-pack.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/offline-install.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/offline-install.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/package-list.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/package-list.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/parent-jq-regressions.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/parent-jq-regressions.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/scoped-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/scoped-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/source-archive-list.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/source-archive-list.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/source-archive.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/source-archive.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/wrong-module-hash-negative.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/wrong-module-hash-negative.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/wrong-source-negative.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v3/raw/wrong-source-negative.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/REPORT.json",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/SOURCE-MANIFEST.json",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/SOURCE.tar",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/package/virtual-bash-0.0.0.tgz",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/author-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/author-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/build.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/build.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/installed-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/installed-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/installed-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/installed-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/moved-runtime.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/moved-runtime.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/moved-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/moved-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/npm-pack.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/npm-pack.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/offline-install.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/offline-install.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/package-list.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/package-list.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/parent-jq-regressions.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/parent-jq-regressions.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/scoped-types.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/scoped-types.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/source-archive-list.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/source-archive-list.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/source-archive.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/source-archive.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/wrong-module-hash-negative.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/wrong-module-hash-negative.stdout.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/wrong-source-negative.stderr.txt",
+      "A\ttests/commands/yq-author-20260828/evidence-v4/raw/wrong-source-negative.stdout.txt"
+    ],
+    "handoff": [
+      "A\ttests/commands/yq-author-20260828/FIRST-FAILURE.txt",
+      "A\ttests/commands/yq-author-20260828/HANDOFF.md"
+    ]
+  },
+  "handoff": {
+    "path": "tests/commands/yq-author-20260828/HANDOFF.md",
+    "revision": "bcec1ead34aee37c8fe574b248a8242ad4f60cfa",
+    "sha256": "1d9e9d40ac4f9feffa647ba6a337cee54f2f3d1bf2b965166bbb0741d335ab72",
+    "bytes": 3973,
+    "mode": 420,
+    "absentAt": [
+      "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "ef6032b210feb5cf19e6f6f94c40413740bef335"
+    ]
+  },
+  "counts": {
+    "authorSelections": 279,
+    "archivedSource": 273,
+    "guardSourceBase": 264,
+    "sourceAdditions": 7,
+    "guardedSource": 271,
+    "fullBaselinePackage": 846,
+    "emittedAdditions": 24,
+    "fullPackage": 870,
+    "originalFrozenRecords": 194,
+    "overlays": 8
+  },
+  "exactArtifacts": {
+    "SOURCE.tar": {
+      "bytes": 2713600,
+      "sha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc",
+      "mode": 420
+    },
+    "package/virtual-bash-0.0.0.tgz": {
+      "bytes": 782141,
+      "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+      "mode": 420
+    }
+  },
+  "reconstruction": {
+    "source": {
+      "sha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc",
+      "bytes": 2713600,
+      "mode": 420,
+      "byteExact": true,
+      "role": "INDEPENDENT_GIT_BLOB_DATA_SERIALIZATION"
+    },
+    "packageTar": {
+      "sha256": "a0e8e4bde1cd9981d5e47d5018dc67cb25b0d3ba7fe5363396a942192d1c9c8b",
+      "bytes": 4999168,
+      "mode": 420,
+      "byteExact": true,
+      "role": "INDEPENDENT_SERIALIZATION_OF_BOUND_AUTHOR_OUTPUTS"
+    },
+    "packageGzip": {
+      "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+      "bytes": 782141,
+      "mode": 420,
+      "byteExact": true,
+      "attempts": 1,
+      "zlib": "1.3.1-e00f703",
+      "role": "NOT_INDEPENDENT_SOURCE_TO_JAVASCRIPT"
+    }
+  },
+  "receipts": {
+    "source": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/SOURCE-RECEIPT.json",
+      "sha256": "cd0e2b94ea15e8199399d2cb589aee61a6c014785146dfec6b664ac0967130c9",
+      "bytes": 1408,
+      "mode": 420
+    },
+    "full": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+      "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56",
+      "bytes": 7441,
+      "mode": 420
+    },
+    "authorBuild": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/BOUND-AUTHOR-BUILD.json",
+      "sha256": "ef268ccd6e0e9edd1851f3acdc406ac89e939f167beb3124e82c3af106d70a2d",
+      "bytes": 1052,
+      "mode": 420
+    },
+    "runtimeBindings": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/RUNTIME-BINDINGS.PENDING.json",
+      "sha256": "2ea30c9a50d563de97b8c1cbd0c8e45fe4f6c3a565e82727c76e14a291757d6f",
+      "bytes": 3995,
+      "mode": 420
+    },
+    "maps": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/MAPS.json",
+      "sha256": "4759a03c95d51330176a196ba6d10bc7724d1a8f964071de4efc1f4bd3993506",
+      "bytes": 504342,
+      "mode": 420
+    },
+    "movements": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/MATERIALIZATION.json",
+      "sha256": "044abc684e8d3755837dcf038e23f9ec79a54f2da59db1fb8f8ad87e41a9210a",
+      "bytes": 5585,
+      "mode": 420
+    }
+  },
+  "sourceAdmission": {
+    "classification": "SHAPE_VALID_MAP_BOUND_BUT_NOT_ADMITTED",
+    "attempts": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/SOURCE-RECEIPT.json",
+        "sha256": "cd0e2b94ea15e8199399d2cb589aee61a6c014785146dfec6b664ac0967130c9",
+        "result": "REJECTED",
+        "code": "SOURCE_BINDING",
+        "message": "SOURCE_BINDING: "
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+        "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56",
+        "result": "REJECTED",
+        "code": "SOURCE_BINDING",
+        "message": "SOURCE_BINDING: "
+      }
+    ],
+    "actualWholeCommitFileCount": 301,
+    "selectedFileCount": 271,
+    "candidateDelta": {
+      "extra": [
+        "src/commands/timeout/README.md",
+        "src/commands/timeout/duration.ts",
+        "src/commands/timeout/index.ts",
+        "src/commands/timeout/scheduler.ts",
+        "src/commands/xan/DESIGN.md",
+        "src/commands/xan/README.md",
+        "src/commands/xan/argv.ts",
+        "src/commands/xan/budget.ts",
+        "src/commands/xan/commands.ts",
+        "src/commands/xan/csv.ts",
+        "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+        "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+        "src/commands/xan/design-evidence/FINAL-BINDING-V3.json",
+        "src/commands/xan/design-evidence/HANDOFF-V2.md",
+        "src/commands/xan/design-evidence/HANDOFF-V3.md",
+        "src/commands/xan/design-evidence/LOCAL-BINDING.json",
+        "src/commands/xan/design-evidence/PROFILE-V2.md",
+        "src/commands/xan/design-evidence/PROFILE-V3.md",
+        "src/commands/xan/design-evidence/RECEIPT.md",
+        "src/commands/xan/design-evidence/REVIEW-BINDING-V2.json",
+        "src/commands/xan/design-evidence/SELECTOR-BINDING-V4.json",
+        "src/commands/xan/design-evidence/SELECTOR-POLICY-V4.md",
+        "src/commands/xan/design-evidence/SOURCE-MAP.md",
+        "src/commands/xan/index.ts",
+        "src/commands/xan/io.ts",
+        "src/commands/xan/options.ts",
+        "src/commands/xan/selector.ts",
+        "src/commands/xan/sort.ts",
+        "src/commands/xan/writer.ts",
+        "src/commands/yq/DESIGN.md"
+      ],
+      "missing": [],
+      "changed": [
+        "README.md",
+        "package.json",
+        "src/fs/webdav/README.md",
+        "src/fs/webdav/webdav.ts",
+        "src/index.ts",
+        "src/plugins/index.ts",
+        "src/shell/runtime.ts",
+        "src/shell/shell.ts"
+      ]
+    }
+  },
+  "runtimeAdmission": {
+    "accepted": false,
+    "requiredBuiltins": [
+      "node:path",
+      "node:stream/web",
+      "node:timers/promises",
+      "node:util"
+    ],
+    "frozenBuiltinAllowlist": [
+      "node:path",
+      "node:util",
+      "node:buffer",
+      "node:stream",
+      "node:stream/web"
+    ],
+    "missingBuiltins": [
+      "node:timers/promises"
+    ]
+  },
+  "blockers": [
+    "Consumer source guard requires the entire candidate commit tree, not the authorized selected composition; no synthetic commit or guard change authorized",
+    "Frozen runtime fence omits required node:timers/promises",
+    "Root acceptance and independent source-to-output compilation remain pending"
+  ],
+  "synthetic": [
+    {
+      "id": "path:../escape",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "path:/absolute",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "path:a//b",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "path:a/./b",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "path:a\\b",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "path:AGENTS.md",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "path:a/AGENTS.md",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "path:__proto__/file",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "path:node_modules/a",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "regular-tar",
+      "result": "EXPECTED_ACCEPTANCE"
+    },
+    {
+      "id": "checksum",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "symlink",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "unexpected-type",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "truncated",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "nonzero-padding",
+      "result": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "duplicate",
+      "result": "EXPECTED_REJECTION"
+    }
+  ],
+  "syntheticCount": 16,
+  "temporary": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU",
+  "execution": {
+    "productImports": 0,
+    "productRuns": 0,
+    "build": 0,
+    "compile": 0,
+    "npm": 0,
+    "nativeYaml": 0,
+    "authorCodeExecution": 0,
+    "privatePackageImports": 0,
+    "syntheticDataChecks": 16,
+    "frameworkReadOnlySourceAdmissionAttempts": 2
+  },
+  "authorEvidenceNotOurPasses": {
+    "runtime": "26 authored tests",
+    "parentJq": "19 selected tests",
+    "controls": "15 author build/archive/package/consumer controls",
+    "globalTypes": "blocked before build by unclassified foreign .mts",
+    "firstFailure": {
+      "revision": "bcec1ead34aee37c8fe574b248a8242ad4f60cfa",
+      "path": "tests/commands/yq-author-20260828/FIRST-FAILURE.txt",
+      "sha256": "128b4502999aa704a55b1342478891037e3e9c9ce6b5e291fa500b06db2b9988",
+      "bytes": 736,
+      "mode": 420
+    }
+  },
+  "remaining": [
+    "Root-routed guard/composition and runtime builtin resolution",
+    "Independently pinned scoped TypeScript build and full output equality",
+    "Root-trusted full build admission and enrolled materialization",
+    "Loaded-code controls, declarations, CARRY/source instrumentation, actual bounded different-agent YAML review",
+    "Public root/package integration intentionally absent"
+  ]
+}

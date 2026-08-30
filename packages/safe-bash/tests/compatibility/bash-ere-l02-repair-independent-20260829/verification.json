@@ -1,0 +1,332 @@
+{
+  "schema": "l02-independent-final-data-v1",
+  "at": "2026-08-29T15:29:49.722Z",
+  "source": "ACCEPT_PRIVATE_POLICY",
+  "pure": "26_OF_26_FIXED_CONTROLS",
+  "preexec": "HOLD",
+  "actualGO": false,
+  "productionEvaluationsInThisHelper": 0,
+  "readBytes": 579840,
+  "checks": [
+    {
+      "id": "V01",
+      "name": "Only owner/root production changes",
+      "passed": true,
+      "result": [
+        "src/commands/regex-execution/ere/transport/owner.ts",
+        "src/commands/regex-execution/ere/transport/root.ts"
+      ]
+    },
+    {
+      "id": "V02",
+      "name": "Ten unchanged accepted source modules",
+      "passed": true,
+      "result": {
+        "unchanged": 10
+      }
+    },
+    {
+      "id": "V03",
+      "name": "Admitted emissions and private package",
+      "passed": true,
+      "result": {
+        "entries": 25,
+        "emissions": 24,
+        "compressedBytes": 18000,
+        "archiveInflations": 0
+      }
+    },
+    {
+      "id": "V04",
+      "name": "16 replay plus ten novel identities",
+      "passed": true,
+      "result": {
+        "replay": [
+          "D01-normal",
+          "D02-single-false",
+          "D03-persistent-Promise-reject-false",
+          "D04-primary-false-cleanup-undefined",
+          "D05-cleanup-only-undefined",
+          "D06-constructor-false",
+          "D07-both-stream-attempts",
+          "D08-idempotent-close",
+          "D09-sync-termination-throw-distinct",
+          "D10-late-exit-no-upgrade",
+          "D11-root-unknown-close",
+          "D12-root-retains-charge",
+          "D13-root-no-new-work",
+          "D14-caller-false-priority",
+          "D15-known-retired-root-primary",
+          "D16-primary-raw-object"
+        ],
+        "novel": [
+          "N01-setup-undefined-cleanup-zero",
+          "N02-setup-null-cleanup-false",
+          "N03-setup-zero-cleanup-null",
+          "N04-caller-zero-over-setup-false",
+          "N05-caller-undefined-over-setup-null",
+          "N06-cross-realm-own-data-cleanup-null",
+          "N07-pending-terminate-is-not-rejected",
+          "N08-pending-streams-remain-pending",
+          "N09-rejection-after-observed-retirement",
+          "N10-independent-streams-first-failure-order"
+        ],
+        "actualWorkers": 0,
+        "matching": 0,
+        "publicShell": 0
+      }
+    },
+    {
+      "id": "V05",
+      "name": "Exact private loaded byte closure",
+      "passed": true,
+      "result": {
+        "loadedPrivateModules": 14,
+        "logicalDependenciesPerNamespace": 7,
+        "workerReplacements": 2,
+        "nativeWorkerLoads": 0
+      }
+    },
+    {
+      "id": "V06",
+      "name": "Actual seven-counter no-refund data",
+      "passed": true,
+      "result": {
+        "cases": [
+          {
+            "id": "N01-setup-undefined-cleanup-zero",
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "retainedLive": 757,
+            "retainedReserved": 53
+          },
+          {
+            "id": "N02-setup-null-cleanup-false",
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "retainedLive": 757,
+            "retainedReserved": 53
+          },
+          {
+            "id": "N03-setup-zero-cleanup-null",
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "retainedLive": 757,
+            "retainedReserved": 53
+          },
+          {
+            "id": "N04-caller-zero-over-setup-false",
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "retainedLive": 757,
+            "retainedReserved": 53
+          },
+          {
+            "id": "N05-caller-undefined-over-setup-null",
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "retainedLive": 757,
+            "retainedReserved": 53
+          }
+        ],
+        "qualification": "Checks captured finite own-data values; no additional production evaluations; absent engine.unknown assertion is not proof."
+      }
+    },
+    {
+      "id": "V07",
+      "name": "13-cell proposal and separate six/seven gates",
+      "passed": true,
+      "result": {
+        "cells": 13,
+        "WorkersCeiling": 10,
+        "nonpublic": 6,
+        "public": 7,
+        "authorization": false,
+        "caps": {
+          "inclusiveSeconds": 600,
+          "knownOS": 22,
+          "peakOS": 3,
+          "caseSeconds": 10,
+          "TERMSeconds": 2,
+          "observeSeconds": 1,
+          "publicationReserveSeconds": 180,
+          "captureBytes": 67108864,
+          "workBytes": 268435456
+        }
+      }
+    },
+    {
+      "id": "V08",
+      "name": "Prospective fixture hash and historical status",
+      "passed": true,
+      "result": {
+        "singleFaultFixture": {
+          "filename": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/worker-bridge-single-fault-v2.mjs.data",
+          "bytes": 2866,
+          "sha256": "c41984bb63435c9e59597692e42f8fd380b78a0e8af70bc3089aa08d047f91a7"
+        },
+        "firstHelper": "0/16 SyntaxError retained",
+        "correctedAuthorHelper": "16/16",
+        "dataArchive": "STOP row cap; exact row NOT_RECORDED; no archive retry",
+        "T1": "75PASS/1nonpass/59UNRUN unchanged"
+      }
+    },
+    {
+      "id": "V09",
+      "name": "Fresh owned census and publication reserve",
+      "passed": true,
+      "result": {
+        "at": "2026-08-29T15:29:49.720Z",
+        "bytes": 246093,
+        "captureBytes": 99833,
+        "reserveBytes": 4194304,
+        "helperInvocations": 3,
+        "plannedKnownStartsIncludingPublication": 34,
+        "peakKnownRoles": 3,
+        "rows": [
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/REVIEW.md",
+            "bytes": 18805,
+            "sha256": "336cd4881bdecd94607aff42624b83089ddcf130fe48c0bb7677e7aa0d2213a6"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/accepted-tree.txt",
+            "bytes": 1240,
+            "sha256": "a5d02d67f25fb1ac458fa73dd7d1f6b71fc9ab0f512b895e025f53b8ca492d2e"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/admissions.json",
+            "bytes": 4037,
+            "sha256": "c6c1c876e77bca97b52ea7e94c605d4214d4c13684de4320aed1a7101e5fd336"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/evidence-tree.txt",
+            "bytes": 11445,
+            "sha256": "cb68476e1cecc3a807d7093af411a8d43dd492c4efbfa11366ec4aa269de08c6"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/fixed-host.mjs",
+            "bytes": 2343,
+            "sha256": "e7030de0e5bf88988084526ce14ed1d1186e52939a9d67f9960337c374bf9eb1"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/inspect.mjs",
+            "bytes": 2245,
+            "sha256": "42620bf0e1a358d320a98cdec189349da0fbcd6a45664223f729d32a897211ed"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/inspection.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/inspection.stdout.txt",
+            "bytes": 99581,
+            "sha256": "c1c22b266b2d5778bfdcfb10feb80713d2f1a33e16f83335e38d03fb07701eec"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/load-admission.json",
+            "bytes": 29637,
+            "sha256": "cfcf4a5cf881d2a58662b7d9487911273d93a9f1e97b237ae7f19652202f4332"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/pinned-owner.txt",
+            "bytes": 8747,
+            "sha256": "3be71f829880b141a07add2a22322787ad56a3e52c305c46fd46698cacc14098"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/pinned-root.txt",
+            "bytes": 13958,
+            "sha256": "32ee1931ed070ba9b169a97d4ebbd705e77562884da5d6ecde5b529544d0f4cb"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/production-changed.txt",
+            "bytes": 103,
+            "sha256": "7d27da847834c613466990d621aa4c108d913f501d3400d4d98d514a310ea6c0"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/pure-result.json",
+            "bytes": 13568,
+            "sha256": "65629945ccb927e689b3fa71ed5f7b8992a510ed089ef0e7f1a2436fa10c0f3c"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/pure-review.mjs",
+            "bytes": 16468,
+            "sha256": "c871754112fde481756749eaab303189a6c003550468dff973b2429ef117a2aa"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/pure.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/pure.stdout.txt",
+            "bytes": 252,
+            "sha256": "a8b99cf64b9ceba82e5dbf4911d023fab56f8eac54ada1e862f67c3faa409854"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/replay-result.json",
+            "bytes": 1374,
+            "sha256": "9a496c966dfe756f7db795c31e64083ff6c88561ca3ee76127cff9c74c668bd8"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/source.diff",
+            "bytes": 11898,
+            "sha256": "6ef0806d9a395e8d5fcc48867f54572027d81af77f080ed89822180f4e898641"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/verification.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/verification.stdout.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "tests/compatibility/bash-ere-l02-repair-independent-20260829/verify.mjs",
+            "bytes": 10392,
+            "sha256": "3eb373006acd3040f3bfa0c0838d4baa847799abb5c8940bfa6e820afc76dabb"
+          }
+        ],
+        "qualification": "Before this receipt/commit; later publication reserved, not a physical quota/RSS/OS-containment or continuous-peak claim."
+      }
+    }
+  ]
+}

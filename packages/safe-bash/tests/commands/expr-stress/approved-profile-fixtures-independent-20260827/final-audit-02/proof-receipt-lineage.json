@@ -1,0 +1,9 @@
+{
+  "originalBytes": 1330,
+  "originalSha256": "01edc95ca8fa6936512c34a212be6ddde06334746db4c1754de7ed429a5f0c70",
+  "currentBytes": 2074,
+  "currentSha256": "f2274eb4342d33726e32d79f0b4e93c150db20a023788ecaa7709b711bbb9e97",
+  "originalPrefixByteIdentical": true,
+  "appendedText": "\nRuntime confirmation: independently frozen 47 controls ran twice against the immutable candidate above. Both runs are 36/47, eleven literal failures. Division at caps1/22 is status2 with 23 bytes; modulo, noninteger, NUL, malformed Unicode, argument/work limit, worker syntax error and stdout-sink-failure diagnostics also bypass the normal cap. Actual Shell reproduces division failure. Selected syntax cap1 passes exact status3/empty stdout/one 34-byte emergency. Both source/declaration builds pass; zero residual owned workers, safety terminations or unhandled rejections. Evidence: tests/commands/expr-stress/output-emergency-review-20260827/REPORT.md and run01/run02/results.json. Product changes remain unauthorized; no failure waived.\n",
+  "classification": "The separate proof leaf appended runtime confirmation to its temporary receipt. Committed original remains unchanged; committed run02 is the authenticated proof authority."
+}

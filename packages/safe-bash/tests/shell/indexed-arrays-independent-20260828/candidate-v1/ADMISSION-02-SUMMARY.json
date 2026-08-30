@@ -1,0 +1,46 @@
+{
+  "kind": "preserved-admission-02-with-exact-owned-cleanup",
+  "selectedTree": "d6c17f62d2d3062b5ab074044a86b8a455820373",
+  "sourceFiles": 269,
+  "reportSha256": "dbfd2b0bbc628635fb78d87c754c0798f2662f546dc844cc05ed5d7ba1c0cd54",
+  "packageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+  "packageMembers": 862,
+  "capsuleEncodedSha256": "26f232de331bd326e018b2c152405777795c1ea982cd671bda8237c3ea2c8e5a",
+  "capsuleDecodedSha256": "adfc29d7b8df6b8fd350e4cc39eeb00fde0301bb13eda2be87a1e41000972288",
+  "bytes": {
+    "rawReport": 3331780,
+    "rawCapsule": 6023795,
+    "encodedCapsule": 1581449
+  },
+  "toolControls": {
+    "total": 24,
+    "passed": 24
+  },
+  "build": {
+    "code": 0
+  },
+  "pack": {
+    "code": 0
+  },
+  "types": {
+    "total": 9,
+    "accepted": 0,
+    "rejected": 9,
+    "allExitCode": 2,
+    "underlying": "TS2307 resolution skipped real node_modules outside read roots"
+  },
+  "children": {
+    "total": 11,
+    "closeObserved": 11,
+    "groupsAbsent": 11,
+    "active": 0
+  },
+  "productRuntimeImports": 0,
+  "nativeCalls": 0,
+  "originalRegularGuardsUnchanged": true,
+  "cleanup": {
+    "exactOwnedRoot": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/candidate-v1/admission-hVrBBX",
+    "removedAfterCapsuleAndInventoryVerification": true
+  },
+  "accepted": false
+}

@@ -1,0 +1,128 @@
+{
+  "capturedAt": "2026-08-27T06:42:31.006Z",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "results": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/metadata-stress/canonical-env/setup.test.mjs",
+        "tests/commands/metadata-stress/canonical-env/provenance-controls.test.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "TAP version 13\n# Subtest: immutable snapshot and all seven Git commit/path blobs match original evidence\nok 1 - immutable snapshot and all seven Git commit/path blobs match original evidence\n  ---\n  duration_ms: 303.911\n  type: 'test'\n  ...\n# Subtest: changed captured bytes fail authentication, not silently rebaselined\nok 2 - changed captured bytes fail authentication, not silently rebaselined\n  ---\n  duration_ms: 1.129917\n  type: 'test'\n  ...\n# Subtest: incorrect recorded Git blob fails even when source SHA256 is intact\nok 3 - incorrect recorded Git blob fails even when source SHA256 is intact\n  ---\n  duration_ms: 0.985416\n  type: 'test'\n  ...\n# Subtest: changed oracle record cannot authenticate unchanged captured source\nok 4 - changed oracle record cannot authenticate unchanged captured source\n  ---\n  duration_ms: 0.188042\n  type: 'test'\n  ...\n# Subtest: different commit or removed author file cannot rebind the captured set\nok 5 - different commit or removed author file cannot rebind the captured set\n  ---\n  duration_ms: 0.509459\n  type: 'test'\n  ...\n# Subtest: current author files are observed separately from authenticated history\nok 6 - current author files are observed separately from authenticated history\n  ---\n  duration_ms: 2.549084\n  type: 'test'\n  ...\n# Subtest: existing pinned GNU9.7 Darwin setup verifies every source, archive and executable\nok 7 - existing pinned GNU9.7 Darwin setup verifies every source, archive and executable\n  ---\n  duration_ms: 53.577666\n  type: 'test'\n  ...\n# Subtest: missing primary cache is unavailable, never native/product pass or skip\nok 8 - missing primary cache is unavailable, never native/product pass or skip\n  ---\n  duration_ms: 0.7615\n  type: 'test'\n  ...\n# Subtest: wrong host profile refuses execution despite intact bytes\nok 9 - wrong host profile refuses execution despite intact bytes\n  ---\n  duration_ms: 4.485959\n  type: 'test'\n  ...\n# Subtest: Apple system stat is not a replacement for the second pinned GNU build\nok 10 - Apple system stat is not a replacement for the second pinned GNU build\n  ---\n  duration_ms: 4.995583\n  type: 'test'\n  ...\n# Subtest: native qualification does not inherit hostile locale or timezone variables\nok 11 - native qualification does not inherit hostile locale or timezone variables\n  ---\n  duration_ms: 46.500167\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 420.071375\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tests/commands/metadata-stress/canonical-env/tsconfig.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/metadata-stress/canonical-env/runner.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "files": [
+    {
+      "path": "tests/commands/metadata-stress/chmod-controls.test.ts",
+      "originalSha256": "fe19c55a0f0a7ff380a8181db5cd3743bd517b089c3e6a2fc8e1ef86bfda189e",
+      "currentSha256": "fe19c55a0f0a7ff380a8181db5cd3743bd517b089c3e6a2fc8e1ef86bfda189e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/metadata-stress/epoch-regression.test.ts",
+      "originalSha256": "a234fc1336d0f2bf943526d7fdd3857f55a3581c3393dd1a1418cc6c16df3f74",
+      "currentSha256": "a234fc1336d0f2bf943526d7fdd3857f55a3581c3393dd1a1418cc6c16df3f74",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/metadata-stress/mktemp-controls.test.ts",
+      "originalSha256": "e9dff10267546288ebc453ebbccd4ae96984a3bdeefaac4b3c4f8525ae88ec2d",
+      "currentSha256": "e9dff10267546288ebc453ebbccd4ae96984a3bdeefaac4b3c4f8525ae88ec2d",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/metadata-stress/native-differential.test.ts",
+      "originalSha256": "cd462aa78d9030caeafd2312c97fc0c4f2fe370a994c0898b8129dbb73d013b2",
+      "currentSha256": "cd462aa78d9030caeafd2312c97fc0c4f2fe370a994c0898b8129dbb73d013b2",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/metadata-stress/provenance.test.ts",
+      "originalSha256": "154f459bc15e800be21668f29e149522b415ccf7fe731f0a9c5ac422574f8cce",
+      "currentSha256": "cb8a96acaa4feb67fe5203556e9dd993f8cd3be5bdb39430ac2e9067df69301b",
+      "unchanged": false
+    },
+    {
+      "path": "tests/commands/metadata-stress/stat-effects.test.ts",
+      "originalSha256": "6938eb48265763d5de8ccaf1ce2982fe4bef957a69f205f9df827920991d264e",
+      "currentSha256": "6938eb48265763d5de8ccaf1ce2982fe4bef957a69f205f9df827920991d264e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/metadata-stress/stat-flags.test.ts",
+      "originalSha256": "b48327643a16807fb74d5781a2ed71110094cca7a2051b90405e46be3145b448",
+      "currentSha256": "b48327643a16807fb74d5781a2ed71110094cca7a2051b90405e46be3145b448",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/metadata-stress/stat-human-native.test.ts",
+      "originalSha256": "0e9a4d4b4f30c24d2c119e50b45ba89359e85129018fd8e915de7c0e27aecf0d",
+      "currentSha256": "0e9a4d4b4f30c24d2c119e50b45ba89359e85129018fd8e915de7c0e27aecf0d",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/metadata-stress/stat-precision.test.ts",
+      "originalSha256": "3021c4496f9c142f041d98e181c8b21ed325631bb074a7a62fb72303d05ffb4f",
+      "currentSha256": "3021c4496f9c142f041d98e181c8b21ed325631bb074a7a62fb72303d05ffb4f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/table-text-stress/corpus.test.ts",
+      "originalSha256": "1d5c823f6e3c9a0cad43f3a58295700e82ce5392d2250a90a67663a20f4a9e93",
+      "currentSha256": "1d5c823f6e3c9a0cad43f3a58295700e82ce5392d2250a90a67663a20f4a9e93",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+      "originalSha256": "44925af57f01d7c7f269807f6325223a4dead02875be6f29a474f65128c1332d",
+      "currentSha256": "44925af57f01d7c7f269807f6325223a4dead02875be6f29a474f65128c1332d",
+      "unchanged": true
+    }
+  ],
+  "soleExistingTestChange": "tests/commands/metadata-stress/provenance.test.ts",
+  "retainedAuthorHistory": "commit bdaaf50b3eccdd261349c1f32c19407fa348a64f\nAuthor:     Kamil Jopek <kjopek@quora.com>\nAuthorDate: Wed Aug 26 21:47:35 2026 -0500\nCommit:     Kamil Jopek <kjopek@quora.com>\nCommitDate: Wed Aug 26 21:47:35 2026 -0500\n\n    test(metadata): align legacy stat timestamp expectation with GNU\n\ndiff --git a/tests/commands/metadata/stat.test.ts b/tests/commands/metadata/stat.test.ts\nindex b578a59..85ac593 100644\n--- a/tests/commands/metadata/stat.test.ts\n+++ b/tests/commands/metadata/stat.test.ts\n@@ -21,7 +21,7 @@ test(\"stat prints common mode, type, size, name and UTC millisecond timestamps\",\n   const fs = await fixture();\n   const result = await runMetadata(\"stat\", [\"-c\", \"%n:%s:%a:%A:%F:%x:%y:%Y:%.3Y:%.3X:%%\", \"file\"], fs);\n   assert.equal(result.exitCode, 0, result.stderr);\n-  assert.equal(result.stdout, \"file:4:751:-rwxr-x--x:regular file:1969-12-31 23:59:59.999 +0000:2000-01-01 00:00:00.123 +0000:946684800:946684800.123:-0.001:%\\n\");\n+  assert.equal(result.stdout, \"file:4:751:-rwxr-x--x:regular file:1969-12-31 23:59:59.999000000 +0000:2000-01-01 00:00:00.123000000 +0000:946684800:946684800.123:-0.001:%\\n\");\n });\n \n test(\"stat lstat/default and -L distinguish links, including dangling links\", async () => {\n",
+  "historyStatus": 0,
+  "controlSources": {
+    "runner.mjs": "696509306241865d645965277df7b485b160f252f12039e5f25e3ca467d7e40c",
+    "setup.test.mjs": "59b17e363a2368796c16d9ee759220ca98cb5c4d2bfeb589b2f4e523a942555f",
+    "provenance-controls.test.mjs": "ae2f5b291a7023bf5933fbd844defe1acf659b54e97627da8e457e7532e43e5d",
+    "author-provenance.ts": "18f7465ad8efe3ab6916df156b6d4676fb4c38a4eb4488984d56f213af290d73",
+    "author-snapshot.json": "1cb5fdacdb9ef0afa9ad211a92e42bb05f57eb043992b46e6b32f6a633307f8a",
+    "tsconfig.json": "7de6d43bffe33460ddb9dbf1aa3728374aa4647a4bb9271b29b9b732a81616fa"
+  }
+}

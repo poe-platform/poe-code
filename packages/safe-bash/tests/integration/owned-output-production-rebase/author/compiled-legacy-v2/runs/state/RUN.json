@@ -1,0 +1,76 @@
+{
+  "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "profile": "compiled-legacy-v2",
+  "name": "state",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=4",
+    "tests/shell/env-replacement.test.ts",
+    "tests/shell/env-shebang.test.ts",
+    "tests/shell/source-dot-eval-source.test.ts",
+    "tests/shell/source-dot-eval-eval.test.ts",
+    "tests/shell/source-dot-eval-diagnostics.test.ts",
+    "tests/shell/errexit-extra.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "HOME": "/tmp/safe-bash-owned-output-built-legacy-v2-9cbbjquh/state-scratch/home",
+    "TMPDIR": "/tmp/safe-bash-owned-output-built-legacy-v2-9cbbjquh/state-scratch/tmp",
+    "TMP": "/tmp/safe-bash-owned-output-built-legacy-v2-9cbbjquh/state-scratch/tmp",
+    "TEMP": "/tmp/safe-bash-owned-output-built-legacy-v2-9cbbjquh/state-scratch/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "stdin": null,
+  "stdinSha256": null,
+  "started": "2026-08-27T20:20:27.471827+00:00",
+  "finished": "2026-08-27T20:20:28.503620+00:00",
+  "elapsedSeconds": 0.60473562500556,
+  "pid": 73134,
+  "exitCode": 0,
+  "outerTimeout": false,
+  "outerKill": false,
+  "remainingOwnProcessGroupObserved": false,
+  "counts": {
+    "tests": 203,
+    "pass": 203,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "expectedTests": 203,
+  "countMatch": true,
+  "stdoutMatch": true,
+  "passed": true,
+  "stdoutBytes": 29618,
+  "stdoutSha256": "41ac29985e95a3b484918ff09530284cb658cfecfd06e40b02af201c149f1703",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "snapshotBeforeSha256": "50727697894edc0a1e6ccc8fbf276de5ba2e0e23ebd5f35a76ebc4e80196be52",
+  "snapshotAfterSha256": "50727697894edc0a1e6ccc8fbf276de5ba2e0e23ebd5f35a76ebc4e80196be52",
+  "installedToolsAfterSha256": "8a64487cc654516786ed4e9fbc933836099c590e2149dc84c29c21744e70cbd9",
+  "externalToolsAfterSha256": "2eb4b7ae8a2af0c3b508edf67bb726c396a25a8035a1cacb867981d6b472c198",
+  "allInputAndArtifactEntriesUnchanged": true,
+  "orchestrationUnchanged": true,
+  "scratchAfter": [
+    {
+      "path": "home",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "tmp",
+      "kind": "directory",
+      "mode": 493
+    }
+  ],
+  "privateQueries": 0
+}

@@ -1,0 +1,16 @@
+import { grepAliasCommands, createGrepAliasCommands, egrepCommand, fgrepCommand } from "__ALIASES__";
+import { columnCommands, createColumnCommands, createColumnCommand } from "__COLUMN__";
+import { agentCommands, createAgentCommands } from "virtual-bash";
+grepAliasCommands({ replace: "yes" });
+createGrepAliasCommands({ regex: { requestTimeoutMs: "fast" } });
+egrepCommand({ regex: { maxWorkers: false } });
+fgrepCommand({ unexpected: true });
+columnCommands({ replace: 1 });
+createColumnCommands({ limits: { maxRows: "many" } });
+createColumnCommand({ limits: { unknownLimit: 1 } });
+createGrepAliasCommands().push(egrepCommand());
+createColumnCommands().push(createColumnCommand());
+agentCommands(__INVALID_AGENT_REGEX__);
+createAgentCommands(__INVALID_AGENT_REGEX__);
+agentCommands(__INVALID_AGENT_COLUMN__);
+createAgentCommands(__INVALID_AGENT_COLUMN__);

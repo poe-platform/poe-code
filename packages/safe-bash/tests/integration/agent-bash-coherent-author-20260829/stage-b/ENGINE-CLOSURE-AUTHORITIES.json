@@ -1,0 +1,65 @@
+[
+  {
+    "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64",
+    "blob": "f88a09f5a792e0bc16a8309e266931d248921f50",
+    "bytes": 1939657,
+    "sha256": "18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4"
+  },
+  {
+    "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa",
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64",
+    "blob": "124d54245059f2ef5828a4841a4a0452efb0f291",
+    "bytes": 461669,
+    "sha256": "8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637"
+  },
+  {
+    "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+    "path": "tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs",
+    "blob": "18cf64b44ccdcc9ccfcfc015293d6feb13146181",
+    "bytes": 1484,
+    "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"
+  },
+  {
+    "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+    "path": "tests/integration/node-public-author-20260829/runner-node.mjs.data",
+    "blob": "ce862ad3746f5dc24091503186f71facf02b9f10",
+    "bytes": 8276,
+    "sha256": "ae47df981d47ed6ec2e93e8ab0ca671b2dd8bfee152c9408c92968562b4f3957"
+  },
+  {
+    "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+    "path": "tests/compatibility/bash-strict-mode-independent-20260829/internal-loader-arguments.mjs",
+    "blob": "f833c2d2924e523fc2a841cc750c6e9dc5162b05",
+    "bytes": 1391,
+    "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+  },
+  {
+    "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+    "path": "tests/integration/node-public-author-20260829/node-policy.mjs",
+    "blob": "c5521498401f809bb2ba90ec51fd691ac25b00e6",
+    "bytes": 3534,
+    "sha256": "c617030cd82a379e0285eb4e4ab53beac7fe0caea34ae0d68995a6d64abee123"
+  },
+  {
+    "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+    "path": "tests/integration/node-public-author-20260829/node-load-guard.mjs",
+    "blob": "e51cdc7002b40411cce299098a28e35047c1d2d2",
+    "bytes": 2613,
+    "sha256": "7d525601f62fccdd61e5393fb1a770c8c9b0ffffc86777e568a2c72b0b277ed1"
+  },
+  {
+    "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa",
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/EMISSION-RECIPE.json",
+    "blob": "978d61ceb223fe2654a2428afb7173d3e01199b8",
+    "bytes": 23827,
+    "sha256": "edafdfa33c252ed1e34a661bc65c4fe691b370f48afcd678759d4c115ac66e5c"
+  },
+  {
+    "commit": "463a945125b900cbb98436b9e9292d78ca6c98aa",
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/EMITTED.json",
+    "blob": "8c327d622ed51760105ac2155006198bb10d4040",
+    "bytes": 107069,
+    "sha256": "850d0d6eaa3d196b1a11eb60a1234c3ae4517b105665abfa0c3f012dcdc776b7"
+  }
+]

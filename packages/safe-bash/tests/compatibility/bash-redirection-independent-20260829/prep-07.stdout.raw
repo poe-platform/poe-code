@@ -1,0 +1,64 @@
+[main 3fb5c684] test: preseal independent Bash redirection composition review
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 49 files changed, 131420 insertions(+)
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/CASES.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/EXECUTION-SEAL.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/EXECUTOR.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/FIXTURE-BINDINGS.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/HELPER-SYNTAX.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/PREP-HISTORY.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/PREPARATION.md
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/RECIPE.md
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/SOURCE-DIFF.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/SOURCE-PROOF.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/SOURCE.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/TOOL-CENSUS.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/check-launch.mjs.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/check-launch.mjs.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/check-novel.mjs.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/check-novel.mjs.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/check-run.mjs.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/check-run.mjs.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/check-tool-closure.mjs.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/check-tool-closure.mjs.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/close-observer.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/hash-regular-file.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/internal-loader-arguments.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/launch.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/loader.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/novel.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/patch-1787977314291.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-01.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-01.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-01.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-02.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-02.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-02.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-03.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-03.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-03.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-04.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-04.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-04.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-05.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-05.stderr.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prep-05.stdout.raw
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/prepare.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/redirections-v2.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/resources.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/run.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/tool-closure.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/worker-policy.mjs

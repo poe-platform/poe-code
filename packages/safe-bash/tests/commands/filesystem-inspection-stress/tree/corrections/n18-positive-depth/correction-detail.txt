@@ -1,0 +1,79 @@
+TREE N18 ADDITIVE HARNESS CORRECTION — ONE FRESH INVOCATION; STOPPED
+
+Candidate: e2d1b9230f4304650651572395523ca9d1644e74
+Existing frozen snapshot: /private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate
+Source manifest SHA256: 81eddab7060fcc67dfcf5adc325218b886a4fb50d7e40a1056ad9fe379e83a9a
+Full input manifest SHA256: ef040b94780aa38b5483d5d1c2f9d263e4396cc8a0d881255665080992cce1e8
+Original preseal payload: b9863722f41cbdd56119ab95c3446ca3b65a5b752ccafc28dc6f9044854d2937
+Original runner SHA256: 3068e51fece206bdcab38a53f5fb47b61cdfc5a71f35900f7241bf9f291fc03d
+Derived runner SHA256: 1fd45d8397f19122139c86c2d3321436346c90997448f997073029ef42ac11dd
+New predicate SHA256: f4671ade2c36b0c4aaa6fddf04f37d9ebe593f2d28aaadd8061f284ad12b0691
+Exact derived diff SHA256: ae06e77c89c0d0e8bf5b31d2e1c8ffd4ed5510aa6803729bd55853fe1fb1542e
+Original corpus SHA256: 1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4
+Original native fixture SHA256: 5b89a6577600326878987f4d985270087d26fa7d3abd00f5c98fab973619c897
+
+AUTHORITY / EXACT CHANGE
+Root adjudicated N18 as an overnarrow harness predicate, not a source bug.
+Derived run.mjs adds one helper import and replaces only the N18 assertion.
+No other predicates, corpus inputs, native bytes/status, bridge or supported
+profile changed. Exact inverse replacement reproduces the original runner bytes.
+Original shared nonzero/nonempty checks stay intact. New N18 helper also enforces
+empty normal stdout and a bounded nonempty error diagnostic in stderr.
+The diagnostic must identify -L (case-sensitive), level or depth and impose
+a positive bound/range. It accepts several forms rather than the candidate's
+complete string: positive integer, exclusive nonnegative lower bound, inclusive
+positive minimum, ordered positive inclusive bounds or explicit positive range.
+Recognized zero-inclusive/reversed/fractional/unsafe/contradictory bounds fail.
+No blanket any-nonempty diagnostic relaxation. Full predicate/grammar and exact
+predeclared-profile justification are in derivation.json and n18-predicate.mjs.
+Ancestor-only handling remains our chosen profile, NOT literal user instruction.
+
+COUNTERCHECKS / SINGLE PRODUCT CALL
+31 nonproduct checks pass:8 positive examples,22 rejection counterchecks,
+1 exact derivation/corpus/native hash check. Counterchecks reject success,
+empty/whitespace/unrelated diagnostics, wrong flag, nonempty stdout, diagnostic
+only on stdout, zero bounds, negative/reversed/fractional/unsafe bounds and
+explicitly contradictory zero allowance. These checks invoke no product/native.
+Exactly ONE corrected N18 invocation: 2026-08-27T08:47:09.444Z to 2026-08-27T08:47:09.673Z,
+229ms; Node v22.22.2. Existing frozen copied tsx/devdeps only.
+Fresh predicate result:PASS. Product exitCode2; stdout0bytes; stderr35bytes;
+filesystem calls0. Exact stderr: "tree: -L must be between 1 and 256\n"
+Product stdout/stderr/status equal the original initial N18 observation exactly.
+Native original remains status1 with original diagnostic; raw exact mismatch
+remains. There is no source change and no native parity promotion.
+Other37 selections rerun:ZERO. Native oracle calls/captures:ZERO. Source fixes:ZERO.
+Actual new tree invocations:1 (initial35 + correction1 =36 historical calls).
+120-second process watchdog and original2-second settlement guard unchanged;
+neither fired. Single-invocation lock is retained; no retry occurred.
+
+SEPARATE ADJUDICATION, NOT A FULL38 RERUN
+Initial raw38 results unchanged:30pass,2fail,3unsupported,3characterizations.
+Mapping reuses37 initial selections and substitutes one fresh correctedN18.
+Semantic view:31passes =30reused +1fresh; accepted N16 profile difference1;
+unsupported3 and characterizations3 remain NOT passes. N16 is root-accepted
+rootlink nofollow, still native-not-parity, with no source fix. Original N18
+regex failure and native status1/product status2 difference remain byte-exact.
+semantic-adjudication.json provides a row-by-row reused-versus-fresh mapping.
+
+PRESERVATION / PROCESS STATE
+Before and after:97 original private artifacts,316 original published artifacts,
+186 original raw files,76 original coverage files and all14205 frozen source/
+dependency files verify unchanged. Original preseal, original public evidence
+manifest, initial38 results and original regex-failure bytes are preserved.
+Fresh coverage observes 53 candidate/tool modules inside the same frozen
+snapshot; unexpected moving file-backed imports0. Full source-load hashes retained.
+Only additive tree-stress correction files and owned /tmp written. Existing
+production/root/default/FS/core/contracts/private/unowned files not modified.
+One owned child emitted close; active owned children0; no service/watcher started.
+No timeout/cancellation, unowned process cleanup or temp deletion. Raw logs,
+coverage, copied corpus, original failure and single-invocation lock retained.
+
+DURABLE HANDOFF / LIMITS
+Published: tests/commands/filesystem-inspection-stress/tree/corrections/n18-positive-depth/
+Private: /private/tmp/safe-bash-tree-n18-correction-tWzxcm
+Correction manifest is additive; original manifests are not regenerated.
+Remaining limits:bounded English diagnostic forms, not universal text semantics;
+no other37-case validation, native replay, broad/full suite, public/default
+integration or new source correctness claim. Prior coverage gaps stay unchanged.
+No staging or commit. Root's narrow different-peer review is pending before
+final stress commits/integration handoff. STOP after this bounded correction.

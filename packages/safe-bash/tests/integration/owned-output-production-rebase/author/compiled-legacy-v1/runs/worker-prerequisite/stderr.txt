@@ -1,0 +1,7 @@
+ReferenceError: require is not defined in ES module scope, you can use import instead
+    at file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/[eval1]:1:24
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)
+    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)

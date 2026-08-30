@@ -1,0 +1,16 @@
+{
+  "sourceUnchanged": true,
+  "sourceTreeSha256": "f08b5fdb469741e44b1878b2fc561da2fb0c49b2de96c166ca632e504a8949e3",
+  "productOverlayCount": 0,
+  "fixtureOverlayCount": 1,
+  "exactExpectedArchiveTree": true,
+  "detectsNewEntriesOutsideDeclaredGeneratedRoots": true,
+  "generatedRoots": [
+    "node_modules (existing toolchain symlink)",
+    "dist (isolated worker build; full tree compared before/after execution)"
+  ],
+  "baselineArchiveCheckedBeforeOverlay": true,
+  "workerArtifactsUnchanged": true,
+  "contractsTestUnchanged": true,
+  "liveTreeNotUsedAsCandidate": true
+}

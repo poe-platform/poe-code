@@ -1,0 +1,24 @@
+{
+  "at": "2026-08-27T09:26:23.114Z",
+  "decision": "GO_N18_V2_AND_ORIGINAL_38_ONCE",
+  "completedPeerReportSha256": "28e62db59def77bb4c62c7ae37c83cb063ddb52e4a32d1735b66ac8b1a77f456",
+  "candidate": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "rootAuthorization": "FinalTREEsourceHANDOFF 436bda3; original38 exactly once; no new native calls; v2 N18 only",
+  "helperSha256": "c38705fdc2afbecfd3dda00b4867bd6eae82074206001eadbc927e516f22171c",
+  "runnerSha256": "1fd45d8397f19122139c86c2d3321436346c90997448f997073029ef42ac11dd",
+  "corpusSha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+  "nativeSha256": "5b89a6577600326878987f4d985270087d26fa7d3abd00f5c98fab973619c897",
+  "bridgeSha256": "ce1285c9cbdbe59ad59b5df4c7f87d30b6865a63be4fe2debd4bbb448d937dbf",
+  "driverSha256": "ef12b00364ee51d3b5c2063690f431b0b2da57d26ac265a339c19354e66003d5",
+  "profileSha256": "c330714a3110149897cdc302a59956c31290bd8e0d056d037fcea5df104a1f28",
+  "profileMechanicalChanges": [
+    "candidateSourceHash",
+    "candidateCommit",
+    "authorFinishedEvidence"
+  ],
+  "profileNote": "Historical N18 conflict wording remains unchanged in copied profile; final v2 is authorized here, not a silent native/profile rewrite.",
+  "fullInputFilesVerified": 15617,
+  "nativeFixtureEntriesVerified": 71,
+  "productCallsBeforeGate": 0,
+  "nativeCalls": 0
+}

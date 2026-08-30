@@ -1,0 +1,10 @@
+{
+  "stdout": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/evidence-01/wire/status-role.stdout.data",
+    "sha256": "351e7da11c85a85c2c5390b4eefc56dcba5c1bb49d7d019aae080e79d8879f33"
+  },
+  "records": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/evidence-01/wire/status-role.fd3.data",
+    "sha256": "113c3612ddf943b1ad76fe138a0bbe67c2283e7d98213461d2ca7a27c3d8fb3b"
+  }
+}

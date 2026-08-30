@@ -1,0 +1,89 @@
+{
+  "at": "2026-08-29T17:02:50.133Z",
+  "priorProfileSha256": "446f44cea9091ce59a12c5591bc1d6e91049003848bef33bd75f520c98728aa6",
+  "profileSha256": "bacc21fb126bb6e0b5441bee560cb0bad1f7ffda01d129b996c1cdd3e6312e05",
+  "assets": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/core.mjs",
+      "size": 8366,
+      "mode": 420,
+      "sha256": "51fc9f6f617f0220a6a02eef1d773346d5761435c61f3880aec9e6637fb154b2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/coordinator.mjs",
+      "size": 10759,
+      "mode": 420,
+      "sha256": "f3ec799428c5ee525fd782ff7883221d29b9cbb0b933a695444d2765271629d3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/finalization.mjs",
+      "size": 1139,
+      "mode": 420,
+      "sha256": "84a241c0349361d1015a26c4aaff0869c59c353745843b0fd2002277f6c5c102"
+    }
+  ],
+  "removedAsset": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/coordinator.mjs",
+    "size": 10531,
+    "mode": 420,
+    "sha256": "26987efc84b6ebb2ffb2e05c33e75a5c2970c585059c879bc935afc1d398bf12"
+  },
+  "controls": [
+    {
+      "id": "R01-N05-primary0-closefalse-bookkeeping",
+      "status": "PASS"
+    },
+    {
+      "id": "R02-raw-falsy-primary-presence",
+      "status": "PASS"
+    },
+    {
+      "id": "R03-all-closes-and-bookkeeping-independent",
+      "status": "PASS"
+    },
+    {
+      "id": "R04-UNKNOWN-retains-actual-root-reference",
+      "status": "PASS"
+    },
+    {
+      "id": "R05-acquisition-failure-protected",
+      "status": "PASS"
+    },
+    {
+      "id": "R06-emergency-and-report-cannot-replace-primary",
+      "status": "PASS"
+    },
+    {
+      "id": "R07-bounded-ordered-secondary",
+      "status": "PASS"
+    },
+    {
+      "id": "R08-schedule-publication-shares-primary-ledger",
+      "status": "PASS"
+    }
+  ],
+  "passed": 8,
+  "total": 8,
+  "sourceProbes": [
+    "journal acquisition within finalization run",
+    "shared schedule/finalization ledger",
+    "old masking finally removed"
+  ],
+  "unchanged": [
+    "24 cells/definitions/oracles/limits/config hashes",
+    "constructor observer",
+    "cell assets and public entrypoint",
+    "source/archive/tool admissions",
+    "root path",
+    "254938146 logical bound and 13497310 headroom"
+  ],
+  "sourceOnly": [
+    "coordinator whole entrypoint",
+    "bootstrap fallback reporting"
+  ],
+  "actualWorkers": 0,
+  "actualChildren": 0,
+  "productImports": 0,
+  "archiveInflations": 0,
+  "activation": false
+}

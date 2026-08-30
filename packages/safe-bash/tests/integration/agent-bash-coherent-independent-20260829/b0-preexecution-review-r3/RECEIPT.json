@@ -1,0 +1,241 @@
+{
+  "created": "2026-08-29T11:42:04.825Z",
+  "deadline": "2026-08-29T11:48:21.624Z",
+  "verdict": "HOLD_REVIEWER_OUTER_OBSERVATION_NOT_R3_SOURCE_DEFECT",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "evidence": "66b399e0a2643ee4ebd9e57b1a37ad764e7ae9c8",
+  "candidatePreseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "controlPresealCommit": "5757351ba",
+  "controlPresealSha256": "2fe0f7a78cfb6e40452f8bef944c389b1622b4d363aa85bdb11d17b29fd6c8e4",
+  "groups": {
+    "authorPassed": 16,
+    "authorTotal": 16,
+    "independentPassed": 8,
+    "independentTotal": 8,
+    "role": "PURE_SYNTHETIC_NOT_NATIVE_OWNER_FAULT_PROOF"
+  },
+  "knownNodeProcesses": {
+    "started": 3,
+    "exitCloseObserved": 3,
+    "controllerGroupsAbsent": 2,
+    "parentGroupAbsent": false,
+    "parentGroupCheckCauseRetained": false
+  },
+  "actual39": 0,
+  "productImports": 0,
+  "workers": 0,
+  "realFixtureChildren": 0,
+  "totalSnapshotBytes": 4101820,
+  "files": [
+    {
+      "path": "CONTROL-POLICY.md",
+      "bytes": 1425,
+      "sha256": "dbb8ff282594dbc084481ce15fd552922e4e98580cddf8ac41bc886ffb9551b1"
+    },
+    {
+      "path": "CONTROL-PRESEAL.json",
+      "bytes": 1895,
+      "sha256": "2fe0f7a78cfb6e40452f8bef944c389b1622b4d363aa85bdb11d17b29fd6c8e4"
+    },
+    {
+      "path": "EXECUTION.json",
+      "bytes": 671,
+      "sha256": "a28f99cd531925a42fbccfad42b39be2fc8e55f5063bcf10ddfc7a6f0a7fb609"
+    },
+    {
+      "path": "EXTERNAL-INPUTS.json",
+      "bytes": 2166558,
+      "sha256": "d6ef28d46c982fd0cb8bb482ae25b21d8f2e4b799cb863fef7b3b8058fbd6714"
+    },
+    {
+      "path": "EXTERNAL-PROCESSES.json",
+      "bytes": 229,
+      "sha256": "51ebf29db4b8ccff06318b38d68f001d8cec178f35460149d7111048126766a8"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 142065,
+      "sha256": "5ef8e10c9777c3a813d4cf7fc06ddd066cb53b3669cfa98fffe04c33f2fc298f"
+    },
+    {
+      "path": "METADATA-HELPER-ERROR.json",
+      "bytes": 459,
+      "sha256": "c8fe22f670ef42f1c9e412ef0dc25d45da913f5822842085acd090d4ce86f905"
+    },
+    {
+      "path": "METADATA-PROCESSES.json",
+      "bytes": 389,
+      "sha256": "aaeb7be1a1f5fee9570de16a1e32eb12b2c7b80b363b1e7a6dd35e06d0565bf6"
+    },
+    {
+      "path": "NOVEL-RESULT.json",
+      "bytes": 1142,
+      "sha256": "205f0a21305f8afa3be0a5904c13fee2296cb10d377f3a2160aa07266c2fe178"
+    },
+    {
+      "path": "OUTER-RECEIPT.json",
+      "bytes": 216,
+      "sha256": "990bcd4eb7fafd23209175b63951f1031359abb19ef1d578c394c4e643d5af2c"
+    },
+    {
+      "path": "PREP.md",
+      "bytes": 1274,
+      "sha256": "38e06ff2e48dd4b0b3ce1b2602a03ea62a4b282e1d3f88ba2d9a10ae4ed47b9a"
+    },
+    {
+      "path": "PRESEAL-PROCESSES.json",
+      "bytes": 226,
+      "sha256": "689286fd82915b26bc84c77b9530bfbda140e722204df86561983dea5d561d91"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 11401,
+      "sha256": "c17d88d35396a462cb20eeb322cb1c5b3fa66bae3242506f206c0c527ac14507"
+    },
+    {
+      "path": "REVIEWER-OUTER-HOLD.json",
+      "bytes": 3701,
+      "sha256": "7961d0be2ba4b490b872f352dee83b0d24430f47f31b65a93a86bac566fc5704"
+    },
+    {
+      "path": "author16.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "author16.stdout",
+      "bytes": 74,
+      "sha256": "c12f509b84c8af9758a537d4e0cedb2e65a2a85b8edec9fd3bafec1a9507ba63"
+    },
+    {
+      "path": "blobs.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "blobs.stdout",
+      "bytes": 101662,
+      "sha256": "471aa4443e64f811bb2066996e1f03cd82dc6a64374417b018955d275cf6cd7e"
+    },
+    {
+      "path": "capsule/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "capsule/stage-b0-r2/LOCATOR-IDENTITIES.json",
+      "bytes": 796,
+      "sha256": "29290a473b51532a9fda226924f0f52e5996dbb479a07cffd99f854114c66a60"
+    },
+    {
+      "path": "capsule/stage-b0-r3/CONTROL-RESULT.json",
+      "bytes": 1636,
+      "sha256": "9b072a65431bde7645b34a00e025316d59f32a24e28f0016bf109a8f1f7a2ab0"
+    },
+    {
+      "path": "capsule/stage-b0-r3/controls.mjs",
+      "bytes": 8279,
+      "sha256": "e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9"
+    },
+    {
+      "path": "capsule/stage-b0-r3/owner.mjs",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "path": "capsule-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capsule-patch.stdout",
+      "bytes": 659,
+      "sha256": "d2a80f32fc9d86d7ff4feaf718d3ea2af9f38f890e0f4bd000efbbf4526d4c1c"
+    },
+    {
+      "path": "dispatch.mjs",
+      "bytes": 4151,
+      "sha256": "008c8135953859b7d0e569c447143a5d7c97ff10b1661b8db409fdaf81ad33ad"
+    },
+    {
+      "path": "external-blobs.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "external-blobs.stdout",
+      "bytes": 1621015,
+      "sha256": "58f65a7903616ac79be3983b870b5b25a92778eee08c7b07c396d3a411a42038"
+    },
+    {
+      "path": "external-check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "external-check.stdout",
+      "bytes": 1081,
+      "sha256": "6fc83db87798f83cbf28538b60444a7ddc8f8554ef221dec678bd8ced4297e5c"
+    },
+    {
+      "path": "independent8.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "independent8.stdout",
+      "bytes": 44,
+      "sha256": "6cf1ad76fcba6d5f270f9dfbaa551b83e6de83dde4e831d4434fab1aa3630368"
+    },
+    {
+      "path": "inventory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "inventory.stdout",
+      "bytes": 3709,
+      "sha256": "0387214f6f1777083a4f1391cb996a5e50298d8510b081c0fde37bc486606fd2"
+    },
+    {
+      "path": "novel-controls.mjs",
+      "bytes": 7531,
+      "sha256": "e7cfe72e4a8ac7c4e2132d440cd3c0db6b5c31ea11b47542980ee8aa05c799b4"
+    },
+    {
+      "path": "outer.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outer.stdout",
+      "bytes": 59,
+      "sha256": "bbce8ac0668033a0584cccf705885a1e5c8b3563b3728985dff7c988bc98f121"
+    },
+    {
+      "path": "preseal-add.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preseal-add.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preseal-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preseal-commit.stdout",
+      "bytes": 3387,
+      "sha256": "509eae2d28ea89967b03e79fa2cb9a055406c07d44d3fbbca59c638ab28393eb"
+    }
+  ],
+  "remaining": "Fresh bounded ROOT decision for reviewer outer group-observation repair; no automatic rerun or actual39 activation",
+  "scope": "pre-final-publication snapshot; excludes this receipt and terminal Git tool transcript"
+}

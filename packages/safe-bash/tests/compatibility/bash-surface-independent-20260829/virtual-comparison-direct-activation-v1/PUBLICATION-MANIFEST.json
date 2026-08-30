@@ -1,0 +1,45 @@
+{
+  "schema": "direct-activation-preparation-publication-v1",
+  "sourceCommit": "faebb8dc019a6920f56c47b7d48c2c8036b8f5f6",
+  "executableSealSha256": "254e4d2bf3f12583c625b627b9230829f839745fb490abb8421b47d0fdc73781",
+  "commandTemplateSha256": "887291d84d5bfe3d218b20e08f30bc38659e4fef078ca727352ee31b32d27e73",
+  "grantTemplateSha256": "33b0893bc66e2756b9e6ba14ab368cd1d38ac3afce7d319286e4acc9f0d2481f",
+  "helperCommit": "464666830d16016ca7a7bf9ef466aa6dc764e2d3",
+  "helperBytesUnchanged": true,
+  "dataChecks": 6,
+  "dataChecksQualification": "SOURCE/DATA predicates only, no source-helper/compiler/loader/product execution",
+  "rawCapture": {
+    "file": "RAW-CAPTURE.json.gz.base64",
+    "compressedBytes": 2956704,
+    "compressedSha256": "3c771b7277943a2e4526fab1c86d18afaa7ae5af2b9061a6f0365ad8b0ceac72",
+    "decodedBytes": 7813979,
+    "decodedSha256": "7fc2f4c0140e58551ac83b6015a83394e092fba4894c66a8a711a4c924e0c04b",
+    "cutAfterKnownChild": 19
+  },
+  "resourcesAtCut": {
+    "knownStarts": 19,
+    "knownDirectRetired": 19,
+    "knownNewChildPeak": 1,
+    "captureBytes": 3228798,
+    "actualProductBuilds": 0,
+    "actualProductCalls": 0,
+    "actualWorkerStarts": 0,
+    "actualNativeCalls": 0
+  },
+  "preprovision": {
+    "path": "/private/tmp/safe-bash-surface-direct-activation-v1-actual-01",
+    "receiptSha256": "425f98c0bf9640af274c33a7a1ff5eadc1443f44e31873379d7f90e26133b738",
+    "actualOwnerNeverLaunched": true
+  },
+  "rootQualifications": {
+    "candidateAcceptance": "76648c572b26486c02e45c65ad42dd74bc938e15",
+    "nativeOraclePublication": "ffe2d23277fb02c20175f66530154acf79a8c1ca",
+    "nativeArtifactAudit": "3afa86d9d43d47a6dbc755feb86f3916d91c935a",
+    "historicalMatrixPendingLabels": "Preserved bytes; these ROOT acceptance records are additive provenance, not golden changes",
+    "BMechanismReview": "PENDING_DIRAC_IMMUTABLE464",
+    "finalActivationBindingReview": "PENDING",
+    "actual111": "WITHHELD"
+  },
+  "qualifications": "No execution/syntax/build qualification of new supervisor. Known metadata/patch roles only, no universal census/RSS. Old M08 UNKNOWN unchanged. Source archive encoded only, package stream-hashed only; no inflate/extraction. Capture archive excludes its own publication tail, retained separately.",
+  "captureDirectory": "/tmp/bash-surface-activation-prep-CfBHCa"
+}

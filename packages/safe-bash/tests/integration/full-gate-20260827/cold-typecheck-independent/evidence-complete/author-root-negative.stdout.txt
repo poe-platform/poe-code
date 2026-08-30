@@ -1,0 +1,7 @@
+
+> virtual-bash@0.0.0 typecheck
+> tsc --noEmit
+
+tests/commands/stream-next-stress/independent.test.ts(91,95): error TS7053: Element implicitly has an 'any' type because expression of type 'keyof Actual' can't be used to index type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'.
+  Property 'thrown' does not exist on type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'.
+tests/independent-cold-probe.test.ts(1,7): error TS2322: Type 'string' is not assignable to type 'number'.

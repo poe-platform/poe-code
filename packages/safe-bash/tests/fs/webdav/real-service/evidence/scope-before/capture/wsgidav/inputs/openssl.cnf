@@ -1,0 +1,11 @@
+[req]
+distinguished_name = subject
+prompt = no
+x509_extensions = extensions
+[subject]
+CN = virtual-bash loopback fixture
+[extensions]
+basicConstraints = critical,CA:TRUE
+keyUsage = critical,digitalSignature,keyEncipherment,keyCertSign
+extendedKeyUsage = serverAuth
+subjectAltName = IP:127.0.0.1

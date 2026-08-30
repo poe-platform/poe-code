@@ -1,0 +1,311 @@
+{
+  "schema": "unified76-independent-bounded-completion-seal/v5",
+  "sealedAt": "2026-08-28T02:40:17.590Z",
+  "timezone": "America/Chicago",
+  "bindings": {
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "driver": "2713defc1f53a00dd975931946de4782a980836d",
+    "evidence": "b283eb0dad7a895168ad6b5df47db4066a95b7e3",
+    "expectedPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "nodeSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+  },
+  "planCommit": "1beecd3736e50d5deabadb8fcf336cffcecd96bc",
+  "recipeCommit": "5fcf47cf2e6626f4efed413de32fc2849c084954",
+  "priorSeal": "4b13eeda0588200b849f2c7fd6863c137ef75c70",
+  "priorFiles": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/AUTHORITY-v2.json",
+      "sha256": "3c17c2d58f257b0b33e721670d42485da2ec6d8ba022be6f44b50fb3e7028c20"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/HANDOFF-v3.md",
+      "sha256": "4ef79cf29c670463a5082e0b69954b8693c84bfd584968e17cae2da0496b1a66"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/PHASE-A.json",
+      "sha256": "c8df466748a048e91a7a28a0b83c58dca2f8fdba2773e359d7b647d51d41a37c"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/PHASE-B.json",
+      "sha256": "f7919534015ef0ab3e253a3f4721197d93c7747314bcbce24c30e33b27484802"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/RECEIPT.md",
+      "sha256": "4b1375ff8b6e5bac026655e83993d0b22345686c23f019a5996f4fa552abc0f7"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/REVIEW-v2.md",
+      "sha256": "940dd1c16e04dd4205d4c4f48fa8f6abebf7e771532666243f3fae598af455bf"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/STATIC-POLICY-v3.json",
+      "sha256": "a7fa8f8c7c9d64950c69eda9a0a3198cf8cf4b79841a316bb76fa592ae222ad5"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/COMPLETION-EXECUTION.txt",
+      "sha256": "ab3f7d8c6c49001f6da70a90286f55f6fdab22ed523656bfcdef57c60c1fee4a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/COMPLETION-PLAN.json",
+      "sha256": "5f986b35a4731371d47e874cf408853b4f94d04e7535fae5f9bc6977dc3c94db"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/COMPLETION-RESULTS.json",
+      "sha256": "354aa2f54bc8500b6c94b1488aba33bf86b5fd4be8b8f0de9617d1589c24b256"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/EXECUTION.txt",
+      "sha256": "b25095e1d34e8d5fee047de86cb1486406aa0274056b7823abeb36d6b545bd8e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/FOLLOWUP-EXECUTION.txt",
+      "sha256": "760c44752a70585f29c2f5d61bd4f18d66fdd557f774be43a5ea455bef418ed2"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/FOLLOWUP-PLAN.json",
+      "sha256": "1cff3ee755d52674920bf7740e40c367f9308195fa020c78ea07326a510c9a3b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/FOLLOWUP-RAW.ndjson",
+      "sha256": "0a898b2ae1f78b7150b0524be24481cbac397a1653073a29b163e0c8b55a2fbd"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/FOLLOWUP-RESULTS.json",
+      "sha256": "373f587ab9c1a8afec44c2656307683146ac439ad521e2f20725659a09af44ce"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/HANDOFF.md",
+      "sha256": "e8db8b16fddb0ea4280069470303f1122eb0c87a465ac641c4d99c97eee41b30"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/PLAN.json",
+      "sha256": "6828a41e7dfa70aa86651fcc03424fa2604ff964b2cfad515bf1ba864cd3d3a4"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/RAW-COMMANDS.ndjson",
+      "sha256": "800dc7bd16b192c5fc6cf14a04846c03a072289f1acc6eb769dd29310f374595"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/RESULTS.json",
+      "sha256": "706f365dfa2748275fb0a90a05870edcd422ee423e3e6a306c252c62b167e9b0"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/SEAL.json",
+      "sha256": "5b08335c3ed5e7af80afb4306bf37595c59619295a43a091beb670e158eed504"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs",
+      "sha256": "be8a498859eb80f400e74c38f073f805c16ca9d35129254dbff0309be537b567"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/followup.mjs",
+      "sha256": "a2b20c7ea49491db18727126becf3fc0e99af4acc7f84e8d505af4f63fc2380e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/review.mjs",
+      "sha256": "7e4822ee798961c5e830ae171b2aff6b984d6d6ccbb318e51065f5f5f9ee1301"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/integrityvalidation.mjs",
+      "sha256": "a22c657444e0730f9837706712ad95d060fd0b895321bbc08238ffcd80242944"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/static-predicate-v2.mjs",
+      "sha256": "c640116ec007c4ba096a3165f15f49ba71762005c43077ec609e2d602c3204f2"
+    }
+  ],
+  "priorHashesMatchAcceptedCommit": true,
+  "execution": {
+    "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/run-completion.mjs",
+    "started": "2026-08-28T02:35:01.586Z",
+    "finished": "2026-08-28T02:35:24.729Z",
+    "mainExit": 1,
+    "controls": {
+      "pass": 9,
+      "fail": 1
+    },
+    "nestedCleanup": {
+      "pass": 6,
+      "fail": 0
+    },
+    "noRetries": true,
+    "metadataCaveat": "controls[].elapsedMs was evaluated before awaiting, invalid for duration; commands[].elapsedMs is measured after child close"
+  },
+  "package": {
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "builds": 1,
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "bytes": 727526,
+    "members": 834,
+    "independentBuildAndPack": true
+  },
+  "processReceipt": {
+    "command": [
+      "/bin/ps",
+      "-p",
+      "53288,53291,53293,53298,53301,53310,53333,53982,54057,54098",
+      "-o",
+      "pid=,ppid=,pgid=,lstart=,command="
+    ],
+    "status": 1,
+    "stdout": "",
+    "stderr": "",
+    "checkedPids": [
+      53288,
+      53291,
+      53293,
+      53298,
+      53301,
+      53310,
+      53333,
+      53982,
+      54057,
+      54098
+    ],
+    "knownChildRootsAbsent": true,
+    "allRecordedChildGroupsClosed": true,
+    "mainToolSessionClosed": true
+  },
+  "cleanup": {
+    "workRemoved": true,
+    "workBytesBeforeRemoval": 50092453,
+    "limitBytes": 268435456,
+    "stagedAuthorFilesRemoved": 25,
+    "noAGENTSCopies": true,
+    "noPrivateWritesOrInstall": true
+  },
+  "workspace": {
+    "head": "7ebe10a05af210e40fa807a0a1565a6854a3d1dd",
+    "status": "?? src/commands/xan/design-evidence/PROFILE-V2.md\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/EXECUTION.txt\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/HANDOFF.md\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/LEDGER.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/RESULTS.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/cleanup-components.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/cleanup-components.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/cleanup-probe.mjs\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/component-probe.mjs\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/contained-link.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/contained-link.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/containment.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/containment.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/independent-pack.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/independent-pack.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/literal-HEAD.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/literal-HEAD.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/literal-pinned.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/literal-pinned.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/load-guard.mjs\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/production-build.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/production-build.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/run-completion.mjs\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-absent.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-absent.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-present.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-present.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-restored.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-restored.stdout\n?? tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md\n",
+    "index": "",
+    "foreign": "Observed only; no reset/broad staging/foreign cleanup"
+  },
+  "files": {
+    "COMPONENT-RECIPE.json": {
+      "bytes": 855819,
+      "sha256": "354a2a2dfeac1a5572f388b0e22fc8c6d24d6e730a53c8a9350b19ec8cdaf8a6"
+    },
+    "EXECUTION.txt": {
+      "bytes": 543,
+      "sha256": "f09d6ee8f3721288f820be36815f2341eeee183857776c9614306360d626d166"
+    },
+    "HANDOFF.md": {
+      "bytes": 10414,
+      "sha256": "737d93dd356ae1510e3ff217f26bffbda7379f33f677beb24614a1de3a0d95d3"
+    },
+    "LEDGER.json": {
+      "bytes": 13117,
+      "sha256": "969447de5de9fcabe2364a6a960dd83e13e2f41c554baf39b238a6fde0e5ffea"
+    },
+    "PLAN.json": {
+      "bytes": 4376,
+      "sha256": "45cdac8bc9ff8aefa0c3d90e67132c67cb9bec89158acbcc0128f052d0539f3f"
+    },
+    "RESULTS.json": {
+      "bytes": 3298769,
+      "sha256": "11f8eb030c9d771c73ce0c0505bdec02bff6444e79c6d14e355eae4c4addbc70"
+    },
+    "cleanup-components.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cleanup-components.stdout": {
+      "bytes": 1146,
+      "sha256": "3732734d1e0cacae6e158d3cdab54af6b4ae2114ce3091c67958b0eaaf5e100a"
+    },
+    "cleanup-probe.mjs": {
+      "bytes": 6519,
+      "sha256": "1bc52fb5ca5d36e856afda4cf44346d3af60086e30c65e4b7ac87281dbea5e20"
+    },
+    "component-probe.mjs": {
+      "bytes": 1996,
+      "sha256": "68f522b4ffa590a08aa69b89f4217f7ef938cc0f6f3a3e237dd3ae60d3b5fc11"
+    },
+    "contained-link.stderr": {
+      "bytes": 1340,
+      "sha256": "6b0fb5ac0098ef7a95c0c15a79d5750719615d83b75e2c12106b3f73f6b07b26"
+    },
+    "contained-link.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "containment.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "containment.stdout": {
+      "bytes": 40,
+      "sha256": "2472869b6725f43197108c0121e2f1874942a9bcae29c2c8282da91ed9598fd4"
+    },
+    "independent-pack.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "independent-pack.stdout": {
+      "bytes": 93950,
+      "sha256": "4565108f1c4d79d7d34bd7eb88ee5e08e6f94a14268870427623a92c5cc6abfe"
+    },
+    "literal-HEAD.stderr": {
+      "bytes": 721,
+      "sha256": "1985a29d9bd00d2e470a451785cacaff852fc92e1d49bade6f7267a88fc249fd"
+    },
+    "literal-HEAD.stdout": {
+      "bytes": 89,
+      "sha256": "df592036e59b9824b0682519e02a1892ffb60bc8125501248e5138e0bb7dbe8a"
+    },
+    "literal-pinned.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "literal-pinned.stdout": {
+      "bytes": 198,
+      "sha256": "517e73f508b2f13651a2a2db97baa7e65375a2f37c41b837ab627f8ed1a1b6fc"
+    },
+    "load-guard.mjs": {
+      "bytes": 1091,
+      "sha256": "699ae6829bc6952e911d24a5921fc694aca522ac3f6bbf3bd294b38822391f9f"
+    },
+    "production-build.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "production-build.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run-completion.mjs": {
+      "bytes": 18811,
+      "sha256": "e222d37ca4881a96063fb6106a04a5a6bdbfc55bdd526bf9ed43b07140cc6700"
+    },
+    "seal-absent.stderr": {
+      "bytes": 815,
+      "sha256": "190b285293bed7b0b535dc50b3b1e455d1856b91dcbdfb104f95816b8369bcee"
+    },
+    "seal-absent.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "seal-present.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "seal-present.stdout": {
+      "bytes": 68,
+      "sha256": "ca0c941b42812ed2fe0232ea79ea17327853f83c2080c3409f72ea44b2b07a61"
+    },
+    "seal-restored.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "seal-restored.stdout": {
+      "bytes": 68,
+      "sha256": "ca0c941b42812ed2fe0232ea79ea17327853f83c2080c3409f72ea44b2b07a61"
+    }
+  },
+  "ledger": "LEDGER.json",
+  "qualifications": "HANDOFF.md",
+  "wholeGateLaunched": false,
+  "rootRelease": "HOLD"
+}

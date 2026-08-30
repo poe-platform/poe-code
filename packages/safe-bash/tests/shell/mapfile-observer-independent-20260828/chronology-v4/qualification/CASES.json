@@ -1,0 +1,18 @@
+{
+  "schema": "harmless-observer-qualification-cases-v1",
+  "classification": "planned data only; no script executed",
+  "preflight": [
+    {"id":"D01","fault":"wrong-route-kind","starts":0,"success":false,"ownedCaseDirectories":0},
+    {"id":"D02","fault":"owned-guard-mode-0600-expected-0644","starts":0,"success":false,"ownedCaseDirectories":0},
+    {"id":"D03","fault":"stat-after-real-mkdir","starts":0,"success":false,"ownedCaseDirectories":1,"acquired":true,"innerIdentity":null,"reasonReference":"exact injected host object"}
+  ],
+  "children": [
+    {"id":"H01","script":"IFS= read -r line; printf 'ok:%s\\n' \"$line\"; printf 'note\\n' >&2; exit 0","stdinHex":"616c7068610a","stdout":"ok:alpha\n","stderr":"note\n","success":true,"statuses":[{"code":0,"signal":null}],"fault":null},
+    {"id":"H02","script":"printf 'nonzero\\n'; exit 7","stdinHex":"","stdout":"nonzero\n","stderr":"","success":true,"statuses":[{"code":7,"signal":null}],"fault":null},
+    {"id":"H03","script":"trap '' TERM; while :; do :; done","stdinHex":"","stdout":"","stderr":"","success":false,"statuses":[{"code":null,"signal":"SIGKILL"}],"fault":"row deadline","requiredSignals":["SIGTERM","SIGKILL"]},
+    {"id":"H04","script":"printf '%65537s' ''","stdinHex":"","stdoutRepeat":{"byte":32,"count":65536},"stderr":"","success":false,"statuses":[{"code":0,"signal":null},{"code":null,"signal":"SIGTERM"},{"code":null,"signal":"SIGKILL"}],"fault":"output ceiling","observedBytes":65537},
+    {"id":"H05","script":"while :; do :; done","stdinHex":"","stdout":"","stderr":"","success":false,"statuses":[{"code":null,"signal":"SIGTERM"},{"code":null,"signal":"SIGKILL"}],"fault":"persistence after spawn","injection":"throw exact host object before spawn-N01.json write, only after actual spawn callback","requiredSignals":["SIGTERM"]}
+  ],
+  "allChildRequirements":{"actualSpawn":true,"actualExit":true,"actualClose":true,"groupAbsent":true,"terminal":"closed-and-group-absent","cleanupUncertain":false,"noRetry":true},
+  "statusQualification":"H04/H05 permit the finite natural-exit-versus-explicit-signal races stated here, not arbitrary status. Any other observation fails without widening this set. Timing and signal delivery are qualification predicates, not claimed guarantees."
+}

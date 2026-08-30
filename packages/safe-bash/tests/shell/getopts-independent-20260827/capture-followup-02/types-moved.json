@@ -1,0 +1,2575 @@
+{
+  "mode": "moved",
+  "target": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/moved-virtual-bash/dist/shell",
+  "compiler": {
+    "version": "5.9.3",
+    "resolved": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "counts": {
+    "total": 28,
+    "pass": 28,
+    "fail": 0
+  },
+  "results": [
+    {
+      "id": "T01",
+      "negative": false,
+      "status": "pass",
+      "reason": "valid private API consumer",
+      "diagnostics": [],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T02",
+      "negative": false,
+      "status": "pass",
+      "reason": "valid private API consumer",
+      "diagnostics": [],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T03",
+      "negative": true,
+      "status": "pass",
+      "reason": "options are required",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T03.mts",
+          "code": 2554,
+          "category": "Error",
+          "line": 5,
+          "message": "Expected 4 arguments, but got 3."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T04",
+      "negative": true,
+      "status": "pass",
+      "reason": "undefined options",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T04.mts",
+          "code": 2345,
+          "category": "Error",
+          "line": 5,
+          "message": "Argument of type 'undefined' is not assignable to parameter of type 'GetoptsScanOptions'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T05",
+      "negative": true,
+      "status": "pass",
+      "reason": "null options",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T05.mts",
+          "code": 2345,
+          "category": "Error",
+          "line": 5,
+          "message": "Argument of type 'null' is not assignable to parameter of type 'GetoptsScanOptions'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T06",
+      "negative": true,
+      "status": "pass",
+      "reason": "missing reportErrors",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T06.mts",
+          "code": 2345,
+          "category": "Error",
+          "line": 5,
+          "message": "Argument of type '{ work: { maxArguments: number; maxBytes: number; maxSteps: number; yieldEvery: number; checkpoint: (steps: number) => Promise<void>; }; }' is not assignable to parameter of type 'GetoptsScanOptions'.\n  Property 'reportErrors' is missing in type '{ work: { maxArguments: number; maxBytes: number; maxSteps: number; yieldEvery: number; checkpoint: (steps: number) => Promise<void>; }; }' but required in type 'GetoptsScanOptions'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T07",
+      "negative": true,
+      "status": "pass",
+      "reason": "reportErrors is not an OPTERR string coercion seam",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T07.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'string' is not assignable to type 'boolean'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T08",
+      "negative": true,
+      "status": "pass",
+      "reason": "reportErrors requires boolean",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T08.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'number' is not assignable to type 'boolean'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T09",
+      "negative": true,
+      "status": "pass",
+      "reason": "missing work",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T09.mts",
+          "code": 2345,
+          "category": "Error",
+          "line": 5,
+          "message": "Argument of type '{ reportErrors: true; }' is not assignable to parameter of type 'GetoptsScanOptions'.\n  Property 'work' is missing in type '{ reportErrors: true; }' but required in type 'GetoptsScanOptions'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T10",
+      "negative": true,
+      "status": "pass",
+      "reason": "null work",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T10.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'null' is not assignable to type 'GetoptsWork'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T11",
+      "negative": true,
+      "status": "pass",
+      "reason": "empty malformed work",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T11.mts",
+          "code": 2739,
+          "category": "Error",
+          "line": 5,
+          "message": "Type '{}' is missing the following properties from type 'GetoptsWork': maxArguments, maxBytes, maxSteps, yieldEvery, checkpoint"
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T12",
+      "negative": true,
+      "status": "pass",
+      "reason": "string argument cap",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T12.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'string' is not assignable to type 'number'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T13",
+      "negative": true,
+      "status": "pass",
+      "reason": "bigint byte cap",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T13.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'bigint' is not assignable to type 'number'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T14",
+      "negative": true,
+      "status": "pass",
+      "reason": "null step cap",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T14.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'null' is not assignable to type 'number'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T15",
+      "negative": true,
+      "status": "pass",
+      "reason": "string yield interval",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T15.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'string' is not assignable to type 'number'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T16",
+      "negative": true,
+      "status": "pass",
+      "reason": "missing checkpoint",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T16.mts",
+          "code": 2741,
+          "category": "Error",
+          "line": 5,
+          "message": "Property 'checkpoint' is missing in type '{ maxArguments: number; maxBytes: number; maxSteps: number; yieldEvery: number; }' but required in type 'GetoptsWork'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T17",
+      "negative": true,
+      "status": "pass",
+      "reason": "noncallable checkpoint",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T17.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'number' is not assignable to type '(steps: number) => void | Promise<void>'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T18",
+      "negative": true,
+      "status": "pass",
+      "reason": "wrong callback argument type",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T18.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type '(steps: string) => void' is not assignable to type '(steps: number) => void | Promise<void>'.\n  Types of parameters 'steps' and 'steps' are incompatible.\n    Type 'number' is not assignable to type 'string'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T19",
+      "negative": true,
+      "status": "pass",
+      "reason": "wrong callback promise result type",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T19.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'Promise<number>' is not assignable to type 'void | Promise<void>'.\n  Type 'Promise<number>' is not assignable to type 'Promise<void>'.\n    Type 'number' is not assignable to type 'void'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T20",
+      "negative": true,
+      "status": "pass",
+      "reason": "malformed signal object",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T20.mts",
+          "code": 2740,
+          "category": "Error",
+          "line": 5,
+          "message": "Type '{ aborted: false; }' is missing the following properties from type 'AbortSignal': onabort, reason, throwIfAborted, addEventListener, and 2 more."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T21",
+      "negative": true,
+      "status": "pass",
+      "reason": "undefined mandatory cap",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T21.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'undefined' is not assignable to type 'number'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T22",
+      "negative": true,
+      "status": "pass",
+      "reason": "nonstring argv entry",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T22.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'number' is not assignable to type 'string'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T23",
+      "negative": true,
+      "status": "pass",
+      "reason": "nonstring optstring",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T23.mts",
+          "code": 2345,
+          "category": "Error",
+          "line": 5,
+          "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T24",
+      "negative": true,
+      "status": "pass",
+      "reason": "no arithmetic/string coercion in primitive",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T24.mts",
+          "code": 2345,
+          "category": "Error",
+          "line": 5,
+          "message": "Argument of type 'string' is not assignable to parameter of type 'number'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T25",
+      "negative": true,
+      "status": "pass",
+      "reason": "malformed state index",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T25.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'string' is not assignable to type 'number'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T26",
+      "negative": true,
+      "status": "pass",
+      "reason": "scanner is asynchronous",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T26.mts",
+          "code": 2741,
+          "category": "Error",
+          "line": 5,
+          "message": "Property 'optind' is missing in type 'Promise<GetoptsScanResult>' but required in type '{ optind: number; }'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T27",
+      "negative": true,
+      "status": "pass",
+      "reason": "undefined checkpoint",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T27.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'undefined' is not assignable to type '(steps: number) => void | Promise<void>'."
+        }
+      ],
+      "externalDiagnostics": []
+    },
+    {
+      "id": "T28",
+      "negative": true,
+      "status": "pass",
+      "reason": "undefined mandatory report policy",
+      "diagnostics": [
+        {
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T28.mts",
+          "code": 2322,
+          "category": "Error",
+          "line": 5,
+          "message": "Type 'undefined' is not assignable to type 'boolean'."
+        }
+      ],
+      "externalDiagnostics": []
+    }
+  ],
+  "positive": {
+    "inputFiles": [
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es5.d.ts",
+        "bytes": 218439,
+        "sha256": "c430d44666289dae81f30fa7b2edebf186ecc91a2d4c71266ea6ae76388792e1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.d.ts",
+        "bytes": 1241,
+        "sha256": "45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.d.ts",
+        "bytes": 965,
+        "sha256": "3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.d.ts",
+        "bytes": 1162,
+        "sha256": "e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.d.ts",
+        "bytes": 1088,
+        "sha256": "5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.d.ts",
+        "bytes": 1071,
+        "sha256": "68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.d.ts",
+        "bytes": 1201,
+        "sha256": "5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.d.ts",
+        "bytes": 1036,
+        "sha256": "feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.d.ts",
+        "bytes": 1108,
+        "sha256": "ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.d.ts",
+        "bytes": 999,
+        "sha256": "27bdc30a0e32783366a5abeda841bc22757c1797de8681bbe81fbc735eeb1c10"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.d.ts",
+        "bytes": 1874901,
+        "sha256": "080941d9f9ff9307f7e27a83bcd888b7c8270716c39af943532438932ec1d0b9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.iterable.d.ts",
+        "bytes": 29802,
+        "sha256": "2e80ee7a49e8ac312cc11b77f1475804bee36b3b2bc896bead8b6e1266befb43"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.asynciterable.d.ts",
+        "bytes": 1887,
+        "sha256": "d7a3c8b952931daebdfc7a2897c53c0a1c73624593fa070e46bd537e64dcd20a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.webworker.importscripts.d.ts",
+        "bytes": 1041,
+        "sha256": "80e18897e5884b6723488d4f5652167e7bb5024f946743134ecc4aa4ee731f89"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.scripthost.d.ts",
+        "bytes": 9451,
+        "sha256": "cd034f499c6cdca722b60c04b5b1b78e058487a7085a8e0d6fb50809947ee573"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.core.d.ts",
+        "bytes": 22866,
+        "sha256": "c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.collection.d.ts",
+        "bytes": 5229,
+        "sha256": "dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.generator.d.ts",
+        "bytes": 2557,
+        "sha256": "515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+        "bytes": 18200,
+        "sha256": "0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.promise.d.ts",
+        "bytes": 3200,
+        "sha256": "0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+        "bytes": 5251,
+        "sha256": "ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+        "bytes": 6493,
+        "sha256": "8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+        "bytes": 1649,
+        "sha256": "4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+        "bytes": 11010,
+        "sha256": "fb0f136d372979348d59b3f5020b4cdb81b5504192b1cacff5d1fbba29378aa1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+        "bytes": 5204,
+        "sha256": "d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.intl.d.ts",
+        "bytes": 1484,
+        "sha256": "68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts",
+        "bytes": 915,
+        "sha256": "eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.date.d.ts",
+        "bytes": 1916,
+        "sha256": "38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.object.d.ts",
+        "bytes": 2473,
+        "sha256": "69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+        "bytes": 7209,
+        "sha256": "a680117f487a4d2f30ea46f1b4b7f58bef1480456e18ba53ee85c2746eeca012"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.string.d.ts",
+        "bytes": 2378,
+        "sha256": "2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.intl.d.ts",
+        "bytes": 1449,
+        "sha256": "4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+        "bytes": 1542,
+        "sha256": "954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts",
+        "bytes": 2692,
+        "sha256": "ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+        "bytes": 2257,
+        "sha256": "0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.intl.d.ts",
+        "bytes": 3021,
+        "sha256": "9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.promise.d.ts",
+        "bytes": 1353,
+        "sha256": "811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+        "bytes": 1232,
+        "sha256": "717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.array.d.ts",
+        "bytes": 3163,
+        "sha256": "d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.object.d.ts",
+        "bytes": 1473,
+        "sha256": "71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.string.d.ts",
+        "bytes": 1528,
+        "sha256": "576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+        "bytes": 1006,
+        "sha256": "89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.intl.d.ts",
+        "bytes": 958,
+        "sha256": "74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.bigint.d.ts",
+        "bytes": 38185,
+        "sha256": "d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.date.d.ts",
+        "bytes": 2956,
+        "sha256": "063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.promise.d.ts",
+        "bytes": 1803,
+        "sha256": "934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts",
+        "bytes": 5128,
+        "sha256": "52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.string.d.ts",
+        "bytes": 2556,
+        "sha256": "3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts",
+        "bytes": 1606,
+        "sha256": "59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.intl.d.ts",
+        "bytes": 22438,
+        "sha256": "639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.number.d.ts",
+        "bytes": 1587,
+        "sha256": "368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.promise.d.ts",
+        "bytes": 2262,
+        "sha256": "af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.string.d.ts",
+        "bytes": 1592,
+        "sha256": "995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.weakref.d.ts",
+        "bytes": 3171,
+        "sha256": "959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.intl.d.ts",
+        "bytes": 8245,
+        "sha256": "965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.array.d.ts",
+        "bytes": 4676,
+        "sha256": "3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.error.d.ts",
+        "bytes": 2379,
+        "sha256": "0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.intl.d.ts",
+        "bytes": 7692,
+        "sha256": "8cdf8847677ac7d20486e54dd3fcf09eda95812ac8ace44b4418da1bbbab6eb8"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.object.d.ts",
+        "bytes": 1085,
+        "sha256": "8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.string.d.ts",
+        "bytes": 1155,
+        "sha256": "3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.regexp.d.ts",
+        "bytes": 1331,
+        "sha256": "b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.array.d.ts",
+        "bytes": 40236,
+        "sha256": "df83c2a6c73228b625b0beb6669c7ee2a09c914637e2d35170723ad49c0f5cd4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.collection.d.ts",
+        "bytes": 900,
+        "sha256": "436aaf437562f276ec2ddbee2f2cdedac7664c1e4c1d2c36839ddd582eeb3d0a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.intl.d.ts",
+        "bytes": 2645,
+        "sha256": "8e3c06ea092138bf9fa5e874a1fdbc9d54805d074bee1de31b99a11e2fec239d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.d.ts",
+        "bytes": 13192,
+        "sha256": "8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.legacy.d.ts",
+        "bytes": 1326,
+        "sha256": "782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.full.d.ts",
+        "bytes": 1074,
+        "sha256": "785921608325fa246b450f05b238f4b3ed659f1099af278ce9ebbc9416a13f1d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/candidate/getopts.d.ts",
+        "bytes": 1754,
+        "sha256": "25f6cef9448d16e85ba1df757fde407da5aa22df5785d4ccf4f0ae56ac58546a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T01.mts",
+        "bytes": 978,
+        "sha256": "2532c0778b156f33e76243f2be58a82871f6ad84bde74abf4d829c7c4069ad91"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T02.mts",
+        "bytes": 515,
+        "sha256": "6cfd47df51968f7f7cb5482f7fd9189bed48dc891fe099d02d61fcda8479ebb5"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/disposable.d.ts",
+        "bytes": 328,
+        "sha256": "6c7176368037af28cb72f2392010fa1cef295d6d6744bca8cfb54985f3a18c3e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/indexable.d.ts",
+        "bytes": 990,
+        "sha256": "ab41ef1f2cdafb8df48be20cd969d875602483859dc194e9c97c8a576892c052"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/iterators.d.ts",
+        "bytes": 1173,
+        "sha256": "437e20f2ba32abaeb7985e0afe0002de1917bc74e949ba585e49feba65da6ca1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/index.d.ts",
+        "bytes": 533,
+        "sha256": "21d819c173c0cf7cc3ce57c3276e77fd9a8a01d35a06ad87158781515c9a438a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.typedarray.d.ts",
+        "bytes": 1825,
+        "sha256": "98cffbf06d6bab333473c70a893770dbe990783904002c4f1a960447b4b53dca"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.buffer.d.ts",
+        "bytes": 22839,
+        "sha256": "3af97acf03cc97de58a3a4bc91f8f616408099bc4233f6d0852e72a8ffb91ac9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.d.ts",
+        "bytes": 6114,
+        "sha256": "808069bba06b6768b62fd22429b53362e7af342da4a236ed2d2e1c89fcca3b4a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/abortcontroller.d.ts",
+        "bytes": 1145,
+        "sha256": "1db0b7dca579049ca4193d034d835f6bfe73096c73663e5ef9a0b5779939f3d0"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/domexception.d.ts",
+        "bytes": 2565,
+        "sha256": "9798340ffb0d067d69b1ae5b32faa17ab31b82466a3fc00d8f2f2df0c8554aaa"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/events.d.ts",
+        "bytes": 2871,
+        "sha256": "f26b11d8d8e4b8028f1c7d618b22274c892e4b0ef5b3678a8ccbad85419aef43"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/header.d.ts",
+        "bytes": 133,
+        "sha256": "5929864ce17fba74232584d90cb721a89b7ad277220627cc97054ba15a98ea8f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/readable.d.ts",
+        "bytes": 1738,
+        "sha256": "763fe0f42b3d79b440a9b6e51e9ba3f3f91352469c1e4b3b67bfa4ff6352f3f4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/file.d.ts",
+        "bytes": 1707,
+        "sha256": "25c8056edf4314820382a5fdb4bb7816999acdcb929c8f75e3f39473b87e85bc"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/fetch.d.ts",
+        "bytes": 5575,
+        "sha256": "c464d66b20788266e5353b48dc4aa6bc0dc4a707276df1e7152ab0c9ae21fad8"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/formdata.d.ts",
+        "bytes": 4998,
+        "sha256": "78d0d27c130d35c60b5e5566c9f1e5be77caf39804636bc1a40133919a949f21"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/connector.d.ts",
+        "bytes": 1029,
+        "sha256": "c6fd2c5a395f2432786c9cb8deb870b9b0e8ff7e22c029954fabdd692bff6195"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/client.d.ts",
+        "bytes": 4964,
+        "sha256": "1d6e127068ea8e104a912e42fc0a110e2aa5a66a356a917a163e8cf9a65e4a75"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/errors.d.ts",
+        "bytes": 4280,
+        "sha256": "5ded6427296cdf3b9542de4471d2aa8d3983671d4cac0f4bf9c637208d1ced43"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/dispatcher.d.ts",
+        "bytes": 14222,
+        "sha256": "7f182617db458e98fc18dfb272d40aa2fff3a353c44a89b2c0ccb3937709bfb5"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/global-dispatcher.d.ts",
+        "bytes": 276,
+        "sha256": "cadc8aced301244057c4e7e73fbcae534b0f5b12a37b150d80e5a45aa4bebcbd"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/global-origin.d.ts",
+        "bytes": 175,
+        "sha256": "385aab901643aa54e1c36f5ef3107913b10d1b5bb8cbcd933d4263b80a0d7f20"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/pool-stats.d.ts",
+        "bytes": 669,
+        "sha256": "9670d44354bab9d9982eca21945686b5c24a3f893db73c0dae0fd74217a4c219"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/pool.d.ts",
+        "bytes": 1336,
+        "sha256": "0b8a9268adaf4da35e7fa830c8981cfa22adbbe5b3f6f5ab91f6658899e657a7"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/handlers.d.ts",
+        "bytes": 447,
+        "sha256": "11396ed8a44c02ab9798b7dca436009f866e8dae3c9c25e8c1fbc396880bf1bb"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/balanced-pool.d.ts",
+        "bytes": 961,
+        "sha256": "ba7bc87d01492633cb5a0e5da8a4a42a1c86270e7b3d2dea5d156828a84e4882"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/agent.d.ts",
+        "bytes": 1065,
+        "sha256": "4893a895ea92c85345017a04ed427cbd6a1710453338df26881a6019432febdd"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-interceptor.d.ts",
+        "bytes": 3902,
+        "sha256": "c21dc52e277bcfc75fac0436ccb75c204f9e1b3fa5e12729670910639f27343e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-agent.d.ts",
+        "bytes": 2535,
+        "sha256": "13f6f39e12b1518c6650bbb220c8985999020fe0f21d818e28f512b7771d00f9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-client.d.ts",
+        "bytes": 1002,
+        "sha256": "9b5369969f6e7175740bf51223112ff209f94ba43ecd3bb09eefff9fd675624a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-pool.d.ts",
+        "bytes": 974,
+        "sha256": "4fe9e626e7164748e8769bbf74b538e09607f07ed17c2f20af8d680ee49fc1da"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-errors.d.ts",
+        "bytes": 338,
+        "sha256": "24515859bc0b836719105bb6cc3d68255042a9f02a6022b3187948b204946bd2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/proxy-agent.d.ts",
+        "bytes": 780,
+        "sha256": "ea0148f897b45a76544ae179784c95af1bd6721b8610af9ffa467a518a086a43"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/env-http-proxy-agent.d.ts",
+        "bytes": 675,
+        "sha256": "24c6a117721e606c9984335f71711877293a9651e44f59f3d21c1ea0856f9cc9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/retry-handler.d.ts",
+        "bytes": 2983,
+        "sha256": "dd3273ead9fbde62a72949c97dbec2247ea08e0c6952e701a483d74ef92d6a17"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/retry-agent.d.ts",
+        "bytes": 232,
+        "sha256": "405822be75ad3e4d162e07439bac80c6bcc6dbae1929e179cf467ec0b9ee4e2e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/api.d.ts",
+        "bytes": 1455,
+        "sha256": "0db18c6e78ea846316c012478888f33c11ffadab9efd1cc8bcc12daded7a60b6"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/interceptors.d.ts",
+        "bytes": 922,
+        "sha256": "e61be3f894b41b7baa1fbd6a66893f2579bfad01d208b4ff61daef21493ef0a8"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/util.d.ts",
+        "bytes": 623,
+        "sha256": "bd0532fd6556073727d28da0edfd1736417a3f9f394877b6d5ef6ad88fba1d1a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/cookies.d.ts",
+        "bytes": 635,
+        "sha256": "89167d696a849fce5ca508032aabfe901c0868f833a8625d5a9c6e861ef935d2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/patch.d.ts",
+        "bytes": 691,
+        "sha256": "615ba88d0128ed16bf83ef8ccbb6aff05c3ee2db1cc0f89ab50a4939bfc1943f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/websocket.d.ts",
+        "bytes": 3840,
+        "sha256": "a4d551dbf8746780194d550c88f26cf937caf8d56f102969a110cfaed4b06656"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/eventsource.d.ts",
+        "bytes": 1648,
+        "sha256": "8bd86b8e8f6a6aa6c49b71e14c4ffe1211a0e97c80f08d2c8cc98838006e4b88"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/filereader.d.ts",
+        "bytes": 1433,
+        "sha256": "317e63deeb21ac07f3992f5b50cdca8338f10acd4fbb7257ebf56735bf52ab00"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/diagnostics-channel.d.ts",
+        "bytes": 1579,
+        "sha256": "4732aec92b20fb28c5fe9ad99521fb59974289ed1e45aecb282616202184064f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/content-type.d.ts",
+        "bytes": 561,
+        "sha256": "2e85db9e6fd73cfa3d7f28e0ab6b55417ea18931423bd47b409a96e4a169e8e6"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/cache.d.ts",
+        "bytes": 1251,
+        "sha256": "c46e079fe54c76f95c67fb89081b3e399da2c7d109e7dca8e4b58d83e332e605"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/index.d.ts",
+        "bytes": 3387,
+        "sha256": "bf67d53d168abc1298888693338cb82854bdb2e69ef83f8a0092093c2d562107"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/fetch.d.ts",
+        "bytes": 2700,
+        "sha256": "b52476feb4a0cbcb25e5931b930fc73cb6643fb1a5060bf8a3dda0eeae5b4b68"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/navigator.d.ts",
+        "bytes": 811,
+        "sha256": "f9501cc13ce624c72b61f12b3963e84fad210fbdf0ffbc4590e08460a3f04eba"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/storage.d.ts",
+        "bytes": 724,
+        "sha256": "e7721c4f69f93c91360c26a0a84ee885997d748237ef78ef665b153e622b36c1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/streams.d.ts",
+        "bytes": 774,
+        "sha256": "d97fb21da858fb18b8ae72c314e9743fd52f73ebe2764e12af1db32fc03f853f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert.d.ts",
+        "bytes": 45270,
+        "sha256": "0fa06ada475b910e2106c98c68b10483dc8811d0c14a8a8dd36efb2672485b29"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert/strict.d.ts",
+        "bytes": 3003,
+        "sha256": "33e5e9aba62c3193d10d1d33ae1fa75c46a1171cf76fef750777377d53b0303f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/async_hooks.d.ts",
+        "bytes": 25553,
+        "sha256": "2b06b93fd01bcd49d1a6bd1f9b65ddcae6480b9a86e9061634d6f8e354c1468f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.d.ts",
+        "bytes": 88244,
+        "sha256": "6a0cd27e5dc2cfbe039e731cf879d12b0e2dded06d1b1dedad07f7712de0d7f4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/child_process.d.ts",
+        "bytes": 66722,
+        "sha256": "13f5c844119c43e51ce777c509267f14d6aaf31eafb2c2b002ca35584cd13b29"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/cluster.d.ts",
+        "bytes": 27926,
+        "sha256": "e60477649d6ad21542bd2dc7e3d9ff6853d0797ba9f689ba2f6653818999c264"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/console.d.ts",
+        "bytes": 21249,
+        "sha256": "c2510f124c0293ab80b1777c44d80f812b75612f297b9857406468c0f4dafe29"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/constants.d.ts",
+        "bytes": 816,
+        "sha256": "5524481e56c48ff486f42926778c0a3cce1cc85dc46683b92b1271865bcf015a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/crypto.d.ts",
+        "bytes": 192007,
+        "sha256": "4c829ab315f57c5442c6667b53769975acbf92003a66aef19bce151987675bd1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dgram.d.ts",
+        "bytes": 28114,
+        "sha256": "b2ade7657e2db96d18315694789eff2ddd3d8aea7215b181f8a0b303277cc579"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/diagnostics_channel.d.ts",
+        "bytes": 25048,
+        "sha256": "78dbea00e90d2df8ea3dbef0cc379d95b8be9b71cd6bde4c28728f306811803b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns.d.ts",
+        "bytes": 37027,
+        "sha256": "4d631b81fa2f07a0e63a9a143d6a82c25c5f051298651a9b69176ba28930756d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns/promises.d.ts",
+        "bytes": 21098,
+        "sha256": "836a356aae992ff3c28a0212e3eabcb76dd4b0cc06bcb9607aeef560661b860d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/domain.d.ts",
+        "bytes": 7812,
+        "sha256": "1e0d1f8b0adfa0b0330e028c7941b5a98c08b600efe7f14d2d2a00854fb2f393"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/events.d.ts",
+        "bytes": 44252,
+        "sha256": "41670ee38943d9cbb4924e436f56fc19ee94232bc96108562de1a734af20dc2c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs.d.ts",
+        "bytes": 190525,
+        "sha256": "8e1e46d0a9837ee058c100501080c920fa98081ea3956af0374308ba6f22a33e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs/promises.d.ts",
+        "bytes": 56169,
+        "sha256": "272ca407e0c9068bdc5152552d876e68037ceae3de62e529306403e973dec8e1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http.d.ts",
+        "bytes": 93421,
+        "sha256": "fa7834c715d5357e4540cee40ce96c3250ddb67a7b879a6b7fa0e86d6696f121"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http2.d.ts",
+        "bytes": 134592,
+        "sha256": "22dfb07a7ab15b66ac043829056fe70124844636ae719551812ac631ba04985b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/https.d.ts",
+        "bytes": 25856,
+        "sha256": "a10f0e1854f3316d7ee437b79649e5a6ae3ae14ffe6322b02d4987071a95362e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.d.ts",
+        "bytes": 11019,
+        "sha256": "e208f73ef6a980104304b0d2ca5f6bf1b85de6009d2c7e404028b875020fa8f2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.generated.d.ts",
+        "bytes": 205045,
+        "sha256": "d163b6bc2372b4f07260747cbc6c0a6405ab3fbcea3852305e98ac43ca59f5bc"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/module.d.ts",
+        "bytes": 40283,
+        "sha256": "e6fa9ad47c5f71ff733744a029d1dc472c618de53804eae08ffc243b936f87ff"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/net.d.ts",
+        "bytes": 49205,
+        "sha256": "a6f137d651076822d4fe884287e68fd61785a0d3d1fdb250a5059b691fa897db"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/os.d.ts",
+        "bytes": 19431,
+        "sha256": "24826ed94a78d5c64bd857570fdbd96229ad41b5cb654c08d75a9845e3ab7dde"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/path.d.ts",
+        "bytes": 8333,
+        "sha256": "8b479a130ccb62e98f11f136d3ac80f2984fdc07616516d29881f3061f2dd472"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/perf_hooks.d.ts",
+        "bytes": 38425,
+        "sha256": "928af3d90454bf656a52a48679f199f64c1435247d6189d1caf4c68f2eaf921f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/process.d.ts",
+        "bytes": 107574,
+        "sha256": "bceb58df66ab8fb00170df20cd813978c5ab84be1d285710c4eb005d8e9d8efb"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/punycode.d.ts",
+        "bytes": 5479,
+        "sha256": "3f16a7e4deafa527ed9995a772bb380eb7d3c2c0fd4ae178c5263ed18394db2c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/querystring.d.ts",
+        "bytes": 7125,
+        "sha256": "933921f0bb0ec12ef45d1062a1fc0f27635318f4d294e4d99de9a5493e618ca2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline.d.ts",
+        "bytes": 25878,
+        "sha256": "71a0f3ad612c123b57239a7749770017ecfe6b66411488000aba83e4546fde25"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline/promises.d.ts",
+        "bytes": 6439,
+        "sha256": "77fbe5eecb6fac4b6242bbf6eebfc43e98ce5ccba8fa44e0ef6a95c945ff4d98"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/repl.d.ts",
+        "bytes": 19459,
+        "sha256": "4f9d8ca0c417b67b69eeb54c7ca1bedd7b56034bb9bfd27c5d4f3bc4692daca7"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sea.d.ts",
+        "bytes": 6639,
+        "sha256": "0cb167c371eaa8c869f8a7656a7296f2e4fae43b4d8b803a680236b24794e5f9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sqlite.d.ts",
+        "bytes": 36253,
+        "sha256": "0a839dba0287cc0481ad4beedd48a1c64acf1e212ae865d1315f7007ca215161"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream.d.ts",
+        "bytes": 87169,
+        "sha256": "38dc4655376cd1a4bd6bb3763d92949233e33d38d3dd3cbea7bbf218175a38ef"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/promises.d.ts",
+        "bytes": 2971,
+        "sha256": "37ba7b45141a45ce6e80e66f2a96c8a5ab1bcef0fc2d0f56bb58df96ec67e972"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/consumers.d.ts",
+        "bytes": 1619,
+        "sha256": "45650f47bfb376c8a8ed39d4bcda5902ab899a3150029684ee4c10676d9fbaee"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/web.d.ts",
+        "bytes": 27400,
+        "sha256": "d61e0a64cd175208ac0b83670151a9a6b5916f0d1ffcdc5c29c90b1cebfc5045"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/string_decoder.d.ts",
+        "bytes": 2809,
+        "sha256": "18fd40412d102c5564136f29735e5d1c3b455b8a37f920da79561f1fde068208"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/test.d.ts",
+        "bytes": 106675,
+        "sha256": "48a679952eefe4cb776d5a0e1ccba2d3eb53b57448bbb7abc1fcebcbd5440188"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers.d.ts",
+        "bytes": 14636,
+        "sha256": "f0be1b8078cd549d91f37c30c222c2a187ac1cf981d994fb476a1adc61387b14"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers/promises.d.ts",
+        "bytes": 3780,
+        "sha256": "0aaed1d72199b01234152f7a60046bc947f1f37d78d182e9ae09c4289e06a592"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tls.d.ts",
+        "bytes": 62617,
+        "sha256": "2d14da6ecb49bf828d83948765ec2d3a579d476bbb9645e749610baa6ec880ca"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/trace_events.d.ts",
+        "bytes": 8926,
+        "sha256": "66ba1b2c3e3a3644a1011cd530fb444a96b1b2dfe2f5e837a002d41a1a799e60"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tty.d.ts",
+        "bytes": 10053,
+        "sha256": "7e514f5b852fdbc166b539fdd1f4e9114f29911592a5eb10a94bb3a13ccac3c4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/url.d.ts",
+        "bytes": 43390,
+        "sha256": "5b7aa3c4c1a5d81b411e8cb302b45507fea9358d3569196b27eb1a27ae3a90ef"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/util.d.ts",
+        "bytes": 99419,
+        "sha256": "5987a903da92c7462e0b35704ce7da94d7fdc4b89a984871c0e2b87a8aae9e69"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/v8.d.ts",
+        "bytes": 38762,
+        "sha256": "ea08a0345023ade2b47fbff5a76d0d0ed8bff10bc9d22b83f40858a8e941501c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/vm.d.ts",
+        "bytes": 47668,
+        "sha256": "0aef708fb4c7a6b915e8305cbfac40cd207b032dbaabe9a01889a5fff3254681"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/wasi.d.ts",
+        "bytes": 7944,
+        "sha256": "ae062ce7d9510060c5d7e7952ae379224fb3f8f2dd74e88959878af2057c143b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/worker_threads.d.ts",
+        "bytes": 39180,
+        "sha256": "ad9bdafb4e7abf14cc53ce7970486a84c87831e62891e5dfe798ddcd55e84701"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/zlib.d.ts",
+        "bytes": 27954,
+        "sha256": "358765d5ea8afd285d4fd1532e78b88273f18cb3f87403a9b16fef61ac9fdcfe"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/index.d.ts",
+        "bytes": 4196,
+        "sha256": "71d3ae6a5e73ca4130762560425e00984ebaff64d5353a3333d1bb7eb86ef336"
+      }
+    ],
+    "diagnostics": [],
+    "options": {
+      "noEmit": true,
+      "target": 10,
+      "module": 199,
+      "moduleResolution": 99,
+      "strict": true,
+      "noUncheckedIndexedAccess": true,
+      "exactOptionalPropertyTypes": true,
+      "verbatimModuleSyntax": true,
+      "types": [
+        "node"
+      ],
+      "typeRoots": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+      ]
+    },
+    "roots": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T01.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T02.mts"
+    ]
+  },
+  "negative": {
+    "inputFiles": [
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es5.d.ts",
+        "bytes": 218439,
+        "sha256": "c430d44666289dae81f30fa7b2edebf186ecc91a2d4c71266ea6ae76388792e1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.d.ts",
+        "bytes": 1241,
+        "sha256": "45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.d.ts",
+        "bytes": 965,
+        "sha256": "3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.d.ts",
+        "bytes": 1162,
+        "sha256": "e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.d.ts",
+        "bytes": 1088,
+        "sha256": "5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.d.ts",
+        "bytes": 1071,
+        "sha256": "68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.d.ts",
+        "bytes": 1201,
+        "sha256": "5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.d.ts",
+        "bytes": 1036,
+        "sha256": "feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.d.ts",
+        "bytes": 1108,
+        "sha256": "ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.d.ts",
+        "bytes": 999,
+        "sha256": "27bdc30a0e32783366a5abeda841bc22757c1797de8681bbe81fbc735eeb1c10"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.d.ts",
+        "bytes": 1874901,
+        "sha256": "080941d9f9ff9307f7e27a83bcd888b7c8270716c39af943532438932ec1d0b9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.iterable.d.ts",
+        "bytes": 29802,
+        "sha256": "2e80ee7a49e8ac312cc11b77f1475804bee36b3b2bc896bead8b6e1266befb43"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.dom.asynciterable.d.ts",
+        "bytes": 1887,
+        "sha256": "d7a3c8b952931daebdfc7a2897c53c0a1c73624593fa070e46bd537e64dcd20a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.webworker.importscripts.d.ts",
+        "bytes": 1041,
+        "sha256": "80e18897e5884b6723488d4f5652167e7bb5024f946743134ecc4aa4ee731f89"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.scripthost.d.ts",
+        "bytes": 9451,
+        "sha256": "cd034f499c6cdca722b60c04b5b1b78e058487a7085a8e0d6fb50809947ee573"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.core.d.ts",
+        "bytes": 22866,
+        "sha256": "c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.collection.d.ts",
+        "bytes": 5229,
+        "sha256": "dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.generator.d.ts",
+        "bytes": 2557,
+        "sha256": "515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.iterable.d.ts",
+        "bytes": 18200,
+        "sha256": "0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.promise.d.ts",
+        "bytes": 3200,
+        "sha256": "0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.proxy.d.ts",
+        "bytes": 5251,
+        "sha256": "ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.reflect.d.ts",
+        "bytes": 6493,
+        "sha256": "8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.d.ts",
+        "bytes": 1649,
+        "sha256": "4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts",
+        "bytes": 11010,
+        "sha256": "fb0f136d372979348d59b3f5020b4cdb81b5504192b1cacff5d1fbba29378aa1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.array.include.d.ts",
+        "bytes": 5204,
+        "sha256": "d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.intl.d.ts",
+        "bytes": 1484,
+        "sha256": "68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts",
+        "bytes": 915,
+        "sha256": "eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.date.d.ts",
+        "bytes": 1916,
+        "sha256": "38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.object.d.ts",
+        "bytes": 2473,
+        "sha256": "69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts",
+        "bytes": 7209,
+        "sha256": "a680117f487a4d2f30ea46f1b4b7f58bef1480456e18ba53ee85c2746eeca012"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.string.d.ts",
+        "bytes": 2378,
+        "sha256": "2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.intl.d.ts",
+        "bytes": 1449,
+        "sha256": "4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts",
+        "bytes": 1542,
+        "sha256": "954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts",
+        "bytes": 2692,
+        "sha256": "ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts",
+        "bytes": 2257,
+        "sha256": "0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.intl.d.ts",
+        "bytes": 3021,
+        "sha256": "9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.promise.d.ts",
+        "bytes": 1353,
+        "sha256": "811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.regexp.d.ts",
+        "bytes": 1232,
+        "sha256": "717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.array.d.ts",
+        "bytes": 3163,
+        "sha256": "d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.object.d.ts",
+        "bytes": 1473,
+        "sha256": "71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.string.d.ts",
+        "bytes": 1528,
+        "sha256": "576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.symbol.d.ts",
+        "bytes": 1006,
+        "sha256": "89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.intl.d.ts",
+        "bytes": 958,
+        "sha256": "74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.bigint.d.ts",
+        "bytes": 38185,
+        "sha256": "d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.date.d.ts",
+        "bytes": 2956,
+        "sha256": "063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.promise.d.ts",
+        "bytes": 1803,
+        "sha256": "934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts",
+        "bytes": 5128,
+        "sha256": "52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.string.d.ts",
+        "bytes": 2556,
+        "sha256": "3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts",
+        "bytes": 1606,
+        "sha256": "59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.intl.d.ts",
+        "bytes": 22438,
+        "sha256": "639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.number.d.ts",
+        "bytes": 1587,
+        "sha256": "368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.promise.d.ts",
+        "bytes": 2262,
+        "sha256": "af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.string.d.ts",
+        "bytes": 1592,
+        "sha256": "995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.weakref.d.ts",
+        "bytes": 3171,
+        "sha256": "959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.intl.d.ts",
+        "bytes": 8245,
+        "sha256": "965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.array.d.ts",
+        "bytes": 4676,
+        "sha256": "3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.error.d.ts",
+        "bytes": 2379,
+        "sha256": "0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.intl.d.ts",
+        "bytes": 7692,
+        "sha256": "8cdf8847677ac7d20486e54dd3fcf09eda95812ac8ace44b4418da1bbbab6eb8"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.object.d.ts",
+        "bytes": 1085,
+        "sha256": "8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.string.d.ts",
+        "bytes": 1155,
+        "sha256": "3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.regexp.d.ts",
+        "bytes": 1331,
+        "sha256": "b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.array.d.ts",
+        "bytes": 40236,
+        "sha256": "df83c2a6c73228b625b0beb6669c7ee2a09c914637e2d35170723ad49c0f5cd4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.collection.d.ts",
+        "bytes": 900,
+        "sha256": "436aaf437562f276ec2ddbee2f2cdedac7664c1e4c1d2c36839ddd582eeb3d0a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.intl.d.ts",
+        "bytes": 2645,
+        "sha256": "8e3c06ea092138bf9fa5e874a1fdbc9d54805d074bee1de31b99a11e2fec239d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.d.ts",
+        "bytes": 13192,
+        "sha256": "8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.legacy.d.ts",
+        "bytes": 1326,
+        "sha256": "782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.full.d.ts",
+        "bytes": 1074,
+        "sha256": "785921608325fa246b450f05b238f4b3ed659f1099af278ce9ebbc9416a13f1d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/candidate/getopts.d.ts",
+        "bytes": 1754,
+        "sha256": "25f6cef9448d16e85ba1df757fde407da5aa22df5785d4ccf4f0ae56ac58546a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T03.mts",
+        "bytes": 377,
+        "sha256": "e5e04fd90b0e9bf7275477e8441b5f54d2c146e7200486955c33a95774d0b291"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T04.mts",
+        "bytes": 388,
+        "sha256": "3a5408d98ccb91bf07045c70090b282900a8ac8d8fc16372822e57536fdc1a54"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T05.mts",
+        "bytes": 383,
+        "sha256": "327aaf8c78267511d6f52453ce6e6cd42f3fadf4d42e8b768b231f4defe2b353"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T06.mts",
+        "bytes": 387,
+        "sha256": "6fc8fa8a1eb3ae50520b1ddeb3f90064c34000e6c3ba48520110267a03c23cf3"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T07.mts",
+        "bytes": 406,
+        "sha256": "dbe0db6d4bf71dd9eac9d8fe1eca351653e6b221fc9ca8b1962776d9ff24094b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T08.mts",
+        "bytes": 404,
+        "sha256": "e980c95b664e0ce44d691498bf4e48efa10cc06cb9221b7cb0a8dd7499c76b9c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T09.mts",
+        "bytes": 401,
+        "sha256": "721fb677009309c595293846f61bce315ecca83c398d815c93f4a65dc286561c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T10.mts",
+        "bytes": 413,
+        "sha256": "04998594f5b75c60f831d686240a73bd8a8d288c4208215293a8745bd3ecad6b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T11.mts",
+        "bytes": 411,
+        "sha256": "21e9b926e013f175087d4aae548a0688ca9d40872cfd6ae94109fc2a0f7bb646"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T12.mts",
+        "bytes": 432,
+        "sha256": "a4f4fb5bbe4f566ef53497b089c15a8c3e263c1bbc0a3bd346cec846f8a60105"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T13.mts",
+        "bytes": 429,
+        "sha256": "79e52987a4a0dbe86b6cca774de9346a484ace9e302c98f3fbcb34311863706e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T14.mts",
+        "bytes": 428,
+        "sha256": "a55f56b73e5aa7b87fa9e3db707caff836ccfdae59ce2865a83513f375a74b68"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T15.mts",
+        "bytes": 429,
+        "sha256": "7a3a9a95d9166d4d29ba5d37621a6ed3d725c32c0db29e54792e30c9b29866d0"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T16.mts",
+        "bytes": 461,
+        "sha256": "a4c9521b15d94e35f0458dd6b8a4b3a82b2daf2db89e3e356bfa4ca5763fb3cc"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T17.mts",
+        "bytes": 427,
+        "sha256": "7362f88d38a92193e4421a44c0eff5e8eba76daf22ec4d72f12448e0466e357a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T18.mts",
+        "bytes": 466,
+        "sha256": "2035c334a5d193a810d6d8dc1bd510a1953b98768b03761465232cf8d9ef764f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T19.mts",
+        "bytes": 439,
+        "sha256": "0e9fe7ec7ba829a1f8bdacd835cd7bda97fc3be1b26564afbd88c25a1adcd832"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T20.mts",
+        "bytes": 440,
+        "sha256": "b9edd3223921f6ac0992c64835b27a33bfcee6b00151131fbdb4dd78e2b63639"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T21.mts",
+        "bytes": 433,
+        "sha256": "56cd68bbca36b9a61870413a81aaf0086b1493bb0849730096de8230224c7408"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T22.mts",
+        "bytes": 383,
+        "sha256": "978d19487ff42937569636118127aa6da5803484d1c93bb0e98d19da9677156d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T23.mts",
+        "bytes": 384,
+        "sha256": "5f4e1e4cbb2283fbde611bde66db8a30540d784b593738c22037ba14f77069cc"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T24.mts",
+        "bytes": 374,
+        "sha256": "49b83597323a6f900995e75dd859d12b680ab5009d09e4289c99b64e6121c44a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T25.mts",
+        "bytes": 379,
+        "sha256": "34c495b50563c796378bba3c4400c32cd3d5558372f919395a6ebd7644c1175b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T26.mts",
+        "bytes": 456,
+        "sha256": "0801a7400e2d07da62ab163a0c92796b734323f93c49518de0b23a7441d90fac"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T27.mts",
+        "bytes": 435,
+        "sha256": "625e612541a9f2b26cd473376b3da9adacf23f63b74e486704e1cb11fac3fc68"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T28.mts",
+        "bytes": 412,
+        "sha256": "d4b5dc16b558ae74c2892172d65a89b8a85c53c02b3118d9e06497a0a8fd8652"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/disposable.d.ts",
+        "bytes": 328,
+        "sha256": "6c7176368037af28cb72f2392010fa1cef295d6d6744bca8cfb54985f3a18c3e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/indexable.d.ts",
+        "bytes": 990,
+        "sha256": "ab41ef1f2cdafb8df48be20cd969d875602483859dc194e9c97c8a576892c052"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/iterators.d.ts",
+        "bytes": 1173,
+        "sha256": "437e20f2ba32abaeb7985e0afe0002de1917bc74e949ba585e49feba65da6ca1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/compatibility/index.d.ts",
+        "bytes": 533,
+        "sha256": "21d819c173c0cf7cc3ce57c3276e77fd9a8a01d35a06ad87158781515c9a438a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.typedarray.d.ts",
+        "bytes": 1825,
+        "sha256": "98cffbf06d6bab333473c70a893770dbe990783904002c4f1a960447b4b53dca"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.buffer.d.ts",
+        "bytes": 22839,
+        "sha256": "3af97acf03cc97de58a3a4bc91f8f616408099bc4233f6d0852e72a8ffb91ac9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/globals.d.ts",
+        "bytes": 6114,
+        "sha256": "808069bba06b6768b62fd22429b53362e7af342da4a236ed2d2e1c89fcca3b4a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/abortcontroller.d.ts",
+        "bytes": 1145,
+        "sha256": "1db0b7dca579049ca4193d034d835f6bfe73096c73663e5ef9a0b5779939f3d0"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/domexception.d.ts",
+        "bytes": 2565,
+        "sha256": "9798340ffb0d067d69b1ae5b32faa17ab31b82466a3fc00d8f2f2df0c8554aaa"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/events.d.ts",
+        "bytes": 2871,
+        "sha256": "f26b11d8d8e4b8028f1c7d618b22274c892e4b0ef5b3678a8ccbad85419aef43"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/header.d.ts",
+        "bytes": 133,
+        "sha256": "5929864ce17fba74232584d90cb721a89b7ad277220627cc97054ba15a98ea8f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/readable.d.ts",
+        "bytes": 1738,
+        "sha256": "763fe0f42b3d79b440a9b6e51e9ba3f3f91352469c1e4b3b67bfa4ff6352f3f4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/file.d.ts",
+        "bytes": 1707,
+        "sha256": "25c8056edf4314820382a5fdb4bb7816999acdcb929c8f75e3f39473b87e85bc"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/fetch.d.ts",
+        "bytes": 5575,
+        "sha256": "c464d66b20788266e5353b48dc4aa6bc0dc4a707276df1e7152ab0c9ae21fad8"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/formdata.d.ts",
+        "bytes": 4998,
+        "sha256": "78d0d27c130d35c60b5e5566c9f1e5be77caf39804636bc1a40133919a949f21"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/connector.d.ts",
+        "bytes": 1029,
+        "sha256": "c6fd2c5a395f2432786c9cb8deb870b9b0e8ff7e22c029954fabdd692bff6195"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/client.d.ts",
+        "bytes": 4964,
+        "sha256": "1d6e127068ea8e104a912e42fc0a110e2aa5a66a356a917a163e8cf9a65e4a75"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/errors.d.ts",
+        "bytes": 4280,
+        "sha256": "5ded6427296cdf3b9542de4471d2aa8d3983671d4cac0f4bf9c637208d1ced43"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/dispatcher.d.ts",
+        "bytes": 14222,
+        "sha256": "7f182617db458e98fc18dfb272d40aa2fff3a353c44a89b2c0ccb3937709bfb5"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/global-dispatcher.d.ts",
+        "bytes": 276,
+        "sha256": "cadc8aced301244057c4e7e73fbcae534b0f5b12a37b150d80e5a45aa4bebcbd"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/global-origin.d.ts",
+        "bytes": 175,
+        "sha256": "385aab901643aa54e1c36f5ef3107913b10d1b5bb8cbcd933d4263b80a0d7f20"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/pool-stats.d.ts",
+        "bytes": 669,
+        "sha256": "9670d44354bab9d9982eca21945686b5c24a3f893db73c0dae0fd74217a4c219"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/pool.d.ts",
+        "bytes": 1336,
+        "sha256": "0b8a9268adaf4da35e7fa830c8981cfa22adbbe5b3f6f5ab91f6658899e657a7"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/handlers.d.ts",
+        "bytes": 447,
+        "sha256": "11396ed8a44c02ab9798b7dca436009f866e8dae3c9c25e8c1fbc396880bf1bb"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/balanced-pool.d.ts",
+        "bytes": 961,
+        "sha256": "ba7bc87d01492633cb5a0e5da8a4a42a1c86270e7b3d2dea5d156828a84e4882"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/agent.d.ts",
+        "bytes": 1065,
+        "sha256": "4893a895ea92c85345017a04ed427cbd6a1710453338df26881a6019432febdd"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-interceptor.d.ts",
+        "bytes": 3902,
+        "sha256": "c21dc52e277bcfc75fac0436ccb75c204f9e1b3fa5e12729670910639f27343e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-agent.d.ts",
+        "bytes": 2535,
+        "sha256": "13f6f39e12b1518c6650bbb220c8985999020fe0f21d818e28f512b7771d00f9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-client.d.ts",
+        "bytes": 1002,
+        "sha256": "9b5369969f6e7175740bf51223112ff209f94ba43ecd3bb09eefff9fd675624a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-pool.d.ts",
+        "bytes": 974,
+        "sha256": "4fe9e626e7164748e8769bbf74b538e09607f07ed17c2f20af8d680ee49fc1da"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/mock-errors.d.ts",
+        "bytes": 338,
+        "sha256": "24515859bc0b836719105bb6cc3d68255042a9f02a6022b3187948b204946bd2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/proxy-agent.d.ts",
+        "bytes": 780,
+        "sha256": "ea0148f897b45a76544ae179784c95af1bd6721b8610af9ffa467a518a086a43"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/env-http-proxy-agent.d.ts",
+        "bytes": 675,
+        "sha256": "24c6a117721e606c9984335f71711877293a9651e44f59f3d21c1ea0856f9cc9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/retry-handler.d.ts",
+        "bytes": 2983,
+        "sha256": "dd3273ead9fbde62a72949c97dbec2247ea08e0c6952e701a483d74ef92d6a17"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/retry-agent.d.ts",
+        "bytes": 232,
+        "sha256": "405822be75ad3e4d162e07439bac80c6bcc6dbae1929e179cf467ec0b9ee4e2e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/api.d.ts",
+        "bytes": 1455,
+        "sha256": "0db18c6e78ea846316c012478888f33c11ffadab9efd1cc8bcc12daded7a60b6"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/interceptors.d.ts",
+        "bytes": 922,
+        "sha256": "e61be3f894b41b7baa1fbd6a66893f2579bfad01d208b4ff61daef21493ef0a8"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/util.d.ts",
+        "bytes": 623,
+        "sha256": "bd0532fd6556073727d28da0edfd1736417a3f9f394877b6d5ef6ad88fba1d1a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/cookies.d.ts",
+        "bytes": 635,
+        "sha256": "89167d696a849fce5ca508032aabfe901c0868f833a8625d5a9c6e861ef935d2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/patch.d.ts",
+        "bytes": 691,
+        "sha256": "615ba88d0128ed16bf83ef8ccbb6aff05c3ee2db1cc0f89ab50a4939bfc1943f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/websocket.d.ts",
+        "bytes": 3840,
+        "sha256": "a4d551dbf8746780194d550c88f26cf937caf8d56f102969a110cfaed4b06656"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/eventsource.d.ts",
+        "bytes": 1648,
+        "sha256": "8bd86b8e8f6a6aa6c49b71e14c4ffe1211a0e97c80f08d2c8cc98838006e4b88"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/filereader.d.ts",
+        "bytes": 1433,
+        "sha256": "317e63deeb21ac07f3992f5b50cdca8338f10acd4fbb7257ebf56735bf52ab00"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/diagnostics-channel.d.ts",
+        "bytes": 1579,
+        "sha256": "4732aec92b20fb28c5fe9ad99521fb59974289ed1e45aecb282616202184064f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/content-type.d.ts",
+        "bytes": 561,
+        "sha256": "2e85db9e6fd73cfa3d7f28e0ab6b55417ea18931423bd47b409a96e4a169e8e6"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/cache.d.ts",
+        "bytes": 1251,
+        "sha256": "c46e079fe54c76f95c67fb89081b3e399da2c7d109e7dca8e4b58d83e332e605"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types/index.d.ts",
+        "bytes": 3387,
+        "sha256": "bf67d53d168abc1298888693338cb82854bdb2e69ef83f8a0092093c2d562107"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/fetch.d.ts",
+        "bytes": 2700,
+        "sha256": "b52476feb4a0cbcb25e5931b930fc73cb6643fb1a5060bf8a3dda0eeae5b4b68"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/navigator.d.ts",
+        "bytes": 811,
+        "sha256": "f9501cc13ce624c72b61f12b3963e84fad210fbdf0ffbc4590e08460a3f04eba"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/storage.d.ts",
+        "bytes": 724,
+        "sha256": "e7721c4f69f93c91360c26a0a84ee885997d748237ef78ef665b153e622b36c1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/web-globals/streams.d.ts",
+        "bytes": 774,
+        "sha256": "d97fb21da858fb18b8ae72c314e9743fd52f73ebe2764e12af1db32fc03f853f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert.d.ts",
+        "bytes": 45270,
+        "sha256": "0fa06ada475b910e2106c98c68b10483dc8811d0c14a8a8dd36efb2672485b29"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/assert/strict.d.ts",
+        "bytes": 3003,
+        "sha256": "33e5e9aba62c3193d10d1d33ae1fa75c46a1171cf76fef750777377d53b0303f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/async_hooks.d.ts",
+        "bytes": 25553,
+        "sha256": "2b06b93fd01bcd49d1a6bd1f9b65ddcae6480b9a86e9061634d6f8e354c1468f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/buffer.d.ts",
+        "bytes": 88244,
+        "sha256": "6a0cd27e5dc2cfbe039e731cf879d12b0e2dded06d1b1dedad07f7712de0d7f4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/child_process.d.ts",
+        "bytes": 66722,
+        "sha256": "13f5c844119c43e51ce777c509267f14d6aaf31eafb2c2b002ca35584cd13b29"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/cluster.d.ts",
+        "bytes": 27926,
+        "sha256": "e60477649d6ad21542bd2dc7e3d9ff6853d0797ba9f689ba2f6653818999c264"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/console.d.ts",
+        "bytes": 21249,
+        "sha256": "c2510f124c0293ab80b1777c44d80f812b75612f297b9857406468c0f4dafe29"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/constants.d.ts",
+        "bytes": 816,
+        "sha256": "5524481e56c48ff486f42926778c0a3cce1cc85dc46683b92b1271865bcf015a"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/crypto.d.ts",
+        "bytes": 192007,
+        "sha256": "4c829ab315f57c5442c6667b53769975acbf92003a66aef19bce151987675bd1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dgram.d.ts",
+        "bytes": 28114,
+        "sha256": "b2ade7657e2db96d18315694789eff2ddd3d8aea7215b181f8a0b303277cc579"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/diagnostics_channel.d.ts",
+        "bytes": 25048,
+        "sha256": "78dbea00e90d2df8ea3dbef0cc379d95b8be9b71cd6bde4c28728f306811803b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns.d.ts",
+        "bytes": 37027,
+        "sha256": "4d631b81fa2f07a0e63a9a143d6a82c25c5f051298651a9b69176ba28930756d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/dns/promises.d.ts",
+        "bytes": 21098,
+        "sha256": "836a356aae992ff3c28a0212e3eabcb76dd4b0cc06bcb9607aeef560661b860d"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/domain.d.ts",
+        "bytes": 7812,
+        "sha256": "1e0d1f8b0adfa0b0330e028c7941b5a98c08b600efe7f14d2d2a00854fb2f393"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/events.d.ts",
+        "bytes": 44252,
+        "sha256": "41670ee38943d9cbb4924e436f56fc19ee94232bc96108562de1a734af20dc2c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs.d.ts",
+        "bytes": 190525,
+        "sha256": "8e1e46d0a9837ee058c100501080c920fa98081ea3956af0374308ba6f22a33e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/fs/promises.d.ts",
+        "bytes": 56169,
+        "sha256": "272ca407e0c9068bdc5152552d876e68037ceae3de62e529306403e973dec8e1"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http.d.ts",
+        "bytes": 93421,
+        "sha256": "fa7834c715d5357e4540cee40ce96c3250ddb67a7b879a6b7fa0e86d6696f121"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/http2.d.ts",
+        "bytes": 134592,
+        "sha256": "22dfb07a7ab15b66ac043829056fe70124844636ae719551812ac631ba04985b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/https.d.ts",
+        "bytes": 25856,
+        "sha256": "a10f0e1854f3316d7ee437b79649e5a6ae3ae14ffe6322b02d4987071a95362e"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.d.ts",
+        "bytes": 11019,
+        "sha256": "e208f73ef6a980104304b0d2ca5f6bf1b85de6009d2c7e404028b875020fa8f2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/inspector.generated.d.ts",
+        "bytes": 205045,
+        "sha256": "d163b6bc2372b4f07260747cbc6c0a6405ab3fbcea3852305e98ac43ca59f5bc"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/module.d.ts",
+        "bytes": 40283,
+        "sha256": "e6fa9ad47c5f71ff733744a029d1dc472c618de53804eae08ffc243b936f87ff"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/net.d.ts",
+        "bytes": 49205,
+        "sha256": "a6f137d651076822d4fe884287e68fd61785a0d3d1fdb250a5059b691fa897db"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/os.d.ts",
+        "bytes": 19431,
+        "sha256": "24826ed94a78d5c64bd857570fdbd96229ad41b5cb654c08d75a9845e3ab7dde"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/path.d.ts",
+        "bytes": 8333,
+        "sha256": "8b479a130ccb62e98f11f136d3ac80f2984fdc07616516d29881f3061f2dd472"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/perf_hooks.d.ts",
+        "bytes": 38425,
+        "sha256": "928af3d90454bf656a52a48679f199f64c1435247d6189d1caf4c68f2eaf921f"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/process.d.ts",
+        "bytes": 107574,
+        "sha256": "bceb58df66ab8fb00170df20cd813978c5ab84be1d285710c4eb005d8e9d8efb"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/punycode.d.ts",
+        "bytes": 5479,
+        "sha256": "3f16a7e4deafa527ed9995a772bb380eb7d3c2c0fd4ae178c5263ed18394db2c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/querystring.d.ts",
+        "bytes": 7125,
+        "sha256": "933921f0bb0ec12ef45d1062a1fc0f27635318f4d294e4d99de9a5493e618ca2"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline.d.ts",
+        "bytes": 25878,
+        "sha256": "71a0f3ad612c123b57239a7749770017ecfe6b66411488000aba83e4546fde25"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/readline/promises.d.ts",
+        "bytes": 6439,
+        "sha256": "77fbe5eecb6fac4b6242bbf6eebfc43e98ce5ccba8fa44e0ef6a95c945ff4d98"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/repl.d.ts",
+        "bytes": 19459,
+        "sha256": "4f9d8ca0c417b67b69eeb54c7ca1bedd7b56034bb9bfd27c5d4f3bc4692daca7"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sea.d.ts",
+        "bytes": 6639,
+        "sha256": "0cb167c371eaa8c869f8a7656a7296f2e4fae43b4d8b803a680236b24794e5f9"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/sqlite.d.ts",
+        "bytes": 36253,
+        "sha256": "0a839dba0287cc0481ad4beedd48a1c64acf1e212ae865d1315f7007ca215161"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream.d.ts",
+        "bytes": 87169,
+        "sha256": "38dc4655376cd1a4bd6bb3763d92949233e33d38d3dd3cbea7bbf218175a38ef"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/promises.d.ts",
+        "bytes": 2971,
+        "sha256": "37ba7b45141a45ce6e80e66f2a96c8a5ab1bcef0fc2d0f56bb58df96ec67e972"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/consumers.d.ts",
+        "bytes": 1619,
+        "sha256": "45650f47bfb376c8a8ed39d4bcda5902ab899a3150029684ee4c10676d9fbaee"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/stream/web.d.ts",
+        "bytes": 27400,
+        "sha256": "d61e0a64cd175208ac0b83670151a9a6b5916f0d1ffcdc5c29c90b1cebfc5045"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/string_decoder.d.ts",
+        "bytes": 2809,
+        "sha256": "18fd40412d102c5564136f29735e5d1c3b455b8a37f920da79561f1fde068208"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/test.d.ts",
+        "bytes": 106675,
+        "sha256": "48a679952eefe4cb776d5a0e1ccba2d3eb53b57448bbb7abc1fcebcbd5440188"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers.d.ts",
+        "bytes": 14636,
+        "sha256": "f0be1b8078cd549d91f37c30c222c2a187ac1cf981d994fb476a1adc61387b14"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/timers/promises.d.ts",
+        "bytes": 3780,
+        "sha256": "0aaed1d72199b01234152f7a60046bc947f1f37d78d182e9ae09c4289e06a592"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tls.d.ts",
+        "bytes": 62617,
+        "sha256": "2d14da6ecb49bf828d83948765ec2d3a579d476bbb9645e749610baa6ec880ca"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/trace_events.d.ts",
+        "bytes": 8926,
+        "sha256": "66ba1b2c3e3a3644a1011cd530fb444a96b1b2dfe2f5e837a002d41a1a799e60"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/tty.d.ts",
+        "bytes": 10053,
+        "sha256": "7e514f5b852fdbc166b539fdd1f4e9114f29911592a5eb10a94bb3a13ccac3c4"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/url.d.ts",
+        "bytes": 43390,
+        "sha256": "5b7aa3c4c1a5d81b411e8cb302b45507fea9358d3569196b27eb1a27ae3a90ef"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/util.d.ts",
+        "bytes": 99419,
+        "sha256": "5987a903da92c7462e0b35704ce7da94d7fdc4b89a984871c0e2b87a8aae9e69"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/v8.d.ts",
+        "bytes": 38762,
+        "sha256": "ea08a0345023ade2b47fbff5a76d0d0ed8bff10bc9d22b83f40858a8e941501c"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/vm.d.ts",
+        "bytes": 47668,
+        "sha256": "0aef708fb4c7a6b915e8305cbfac40cd207b032dbaabe9a01889a5fff3254681"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/wasi.d.ts",
+        "bytes": 7944,
+        "sha256": "ae062ce7d9510060c5d7e7952ae379224fb3f8f2dd74e88959878af2057c143b"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/worker_threads.d.ts",
+        "bytes": 39180,
+        "sha256": "ad9bdafb4e7abf14cc53ce7970486a84c87831e62891e5dfe798ddcd55e84701"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/zlib.d.ts",
+        "bytes": 27954,
+        "sha256": "358765d5ea8afd285d4fd1532e78b88273f18cb3f87403a9b16fef61ac9fdcfe"
+      },
+      {
+        "filename": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node/index.d.ts",
+        "bytes": 4196,
+        "sha256": "71d3ae6a5e73ca4130762560425e00984ebaff64d5353a3333d1bb7eb86ef336"
+      }
+    ],
+    "diagnostics": [
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T03.mts",
+        "code": 2554,
+        "category": "Error",
+        "line": 5,
+        "message": "Expected 4 arguments, but got 3."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T04.mts",
+        "code": 2345,
+        "category": "Error",
+        "line": 5,
+        "message": "Argument of type 'undefined' is not assignable to parameter of type 'GetoptsScanOptions'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T05.mts",
+        "code": 2345,
+        "category": "Error",
+        "line": 5,
+        "message": "Argument of type 'null' is not assignable to parameter of type 'GetoptsScanOptions'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T06.mts",
+        "code": 2345,
+        "category": "Error",
+        "line": 5,
+        "message": "Argument of type '{ work: { maxArguments: number; maxBytes: number; maxSteps: number; yieldEvery: number; checkpoint: (steps: number) => Promise<void>; }; }' is not assignable to parameter of type 'GetoptsScanOptions'.\n  Property 'reportErrors' is missing in type '{ work: { maxArguments: number; maxBytes: number; maxSteps: number; yieldEvery: number; checkpoint: (steps: number) => Promise<void>; }; }' but required in type 'GetoptsScanOptions'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T07.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'string' is not assignable to type 'boolean'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T08.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'number' is not assignable to type 'boolean'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T09.mts",
+        "code": 2345,
+        "category": "Error",
+        "line": 5,
+        "message": "Argument of type '{ reportErrors: true; }' is not assignable to parameter of type 'GetoptsScanOptions'.\n  Property 'work' is missing in type '{ reportErrors: true; }' but required in type 'GetoptsScanOptions'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T10.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'null' is not assignable to type 'GetoptsWork'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T11.mts",
+        "code": 2739,
+        "category": "Error",
+        "line": 5,
+        "message": "Type '{}' is missing the following properties from type 'GetoptsWork': maxArguments, maxBytes, maxSteps, yieldEvery, checkpoint"
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T12.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'string' is not assignable to type 'number'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T13.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'bigint' is not assignable to type 'number'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T14.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'null' is not assignable to type 'number'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T15.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'string' is not assignable to type 'number'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T16.mts",
+        "code": 2741,
+        "category": "Error",
+        "line": 5,
+        "message": "Property 'checkpoint' is missing in type '{ maxArguments: number; maxBytes: number; maxSteps: number; yieldEvery: number; }' but required in type 'GetoptsWork'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T17.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'number' is not assignable to type '(steps: number) => void | Promise<void>'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T18.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type '(steps: string) => void' is not assignable to type '(steps: number) => void | Promise<void>'.\n  Types of parameters 'steps' and 'steps' are incompatible.\n    Type 'number' is not assignable to type 'string'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T19.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'Promise<number>' is not assignable to type 'void | Promise<void>'.\n  Type 'Promise<number>' is not assignable to type 'Promise<void>'.\n    Type 'number' is not assignable to type 'void'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T20.mts",
+        "code": 2740,
+        "category": "Error",
+        "line": 5,
+        "message": "Type '{ aborted: false; }' is missing the following properties from type 'AbortSignal': onabort, reason, throwIfAborted, addEventListener, and 2 more."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T21.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'undefined' is not assignable to type 'number'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T22.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'number' is not assignable to type 'string'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T23.mts",
+        "code": 2345,
+        "category": "Error",
+        "line": 5,
+        "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T24.mts",
+        "code": 2345,
+        "category": "Error",
+        "line": 5,
+        "message": "Argument of type 'string' is not assignable to parameter of type 'number'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T25.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'string' is not assignable to type 'number'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T26.mts",
+        "code": 2741,
+        "category": "Error",
+        "line": 5,
+        "message": "Property 'optind' is missing in type 'Promise<GetoptsScanResult>' but required in type '{ optind: number; }'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T27.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'undefined' is not assignable to type '(steps: number) => void | Promise<void>'."
+      },
+      {
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T28.mts",
+        "code": 2322,
+        "category": "Error",
+        "line": 5,
+        "message": "Type 'undefined' is not assignable to type 'boolean'."
+      }
+    ],
+    "options": {
+      "noEmit": true,
+      "target": 10,
+      "module": 199,
+      "moduleResolution": 99,
+      "strict": true,
+      "noUncheckedIndexedAccess": true,
+      "exactOptionalPropertyTypes": true,
+      "verbatimModuleSyntax": true,
+      "types": [
+        "node"
+      ],
+      "typeRoots": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+      ]
+    },
+    "roots": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T03.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T04.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T05.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T06.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T07.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T08.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T09.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T10.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T11.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T12.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T13.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T14.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T15.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T16.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T17.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T18.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T19.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T20.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T21.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T22.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T23.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T24.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T25.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T26.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T27.mts",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/types-moved/T28.mts"
+    ]
+  }
+}

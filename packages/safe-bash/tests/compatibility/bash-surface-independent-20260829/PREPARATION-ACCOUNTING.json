@@ -1,0 +1,63 @@
+{
+  "schema": "bash-surface-preparation-accounting-v1",
+  "packetCommit": "7401412ea2e79cefb5e407ac95b48f550200d2b0",
+  "presealSha256": "2f90668d232565ee5280f7dad9e0da8aea3d90c4db72d6ed2d90e73962597ac0",
+  "capturedThroughDirectChild": 30,
+  "publicationBoundary": "Includes packet commit and metadata binding. Excludes subsequent evidence publication and final scoped status; full ongoing raw capture retained at captureRoot.",
+  "captureRoot": "/tmp/bash-surface-independent-prep-wBudtM",
+  "startedEpochMs": 1787975380785,
+  "deadlineEpochMs": 1787977180785,
+  "observedAtEpochMs": 1787976961455,
+  "elapsedMs": 1580670,
+  "limits": {
+    "children": 64,
+    "peakChildren": 3,
+    "captureBytes": 134217728,
+    "workBytes": 536870912
+  },
+  "directChildren": 30,
+  "directChildrenExitedAndClosed": 30,
+  "knownDirectPeak": 1,
+  "activeDirectChildren": 0,
+  "allDescendantCensus": "NOT_INSTRUMENTED for Git/apply_patch tool-internal descendants; do not infer kernel-wide ALL-child/peak compliance from direct receipts.",
+  "capturedStdoutStderrBytes": 71938,
+  "rawCaptureDiskBytes": 622607,
+  "ownedPacketDiskBytes": 469662,
+  "workAccounting": "Point-in-time regular-file bytes for task capture and publication only; logical, not RSS, OS cache or all transient primitive allocations.",
+  "actual": {
+    "bash": 0,
+    "nativeOracle": 0,
+    "product": 0,
+    "worker": 0,
+    "compiler": 0,
+    "build": 0,
+    "install": 0,
+    "helperNodeProcesses": 2,
+    "helperControlFamily": 22,
+    "v1Pass": 22,
+    "v2Pass": 22,
+    "independentTotal": 22
+  },
+  "ordinaryFailure": [
+    {
+      "number": 11,
+      "label": "nul-check-source-correction",
+      "status": 1,
+      "signal": null,
+      "exitObserved": true,
+      "closeObserved": true
+    }
+  ],
+  "safetyStop": false,
+  "oldClosedReservations": "UNUSED and unchanged",
+  "futureGrants": "NONE; both templates remain NOT_GO and provider null",
+  "rawArchive": {
+    "path": "PREPARATION-CAPTURE.json.gz.base64",
+    "encodedBytes": 362777,
+    "encodedSha256": "8ee2fc0704a3f21855a31042a1adc17773dbc015418d93aa6b35ad6a74274135",
+    "gzipBytes": 272081,
+    "gzipSha256": "b049796c97182558453e5949872ee656bdb0a11007791a6a00de201d5b664e53",
+    "decodedBytes": 842908,
+    "decodedSha256": "083b7b792f41620f2be41793bc69bb0c433b932165384f8c9f132b784eca0896"
+  }
+}

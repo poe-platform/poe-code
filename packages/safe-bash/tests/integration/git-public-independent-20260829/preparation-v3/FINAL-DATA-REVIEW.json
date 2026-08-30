@@ -1,0 +1,36 @@
+{
+  "role": "SOURCE_DATA_ONLY_FINAL_BINDING_CHECK",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "package": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "executionSealSha256": "869671472a272d3b7b1f620815a5afe969d69992aa795a428e0e58ad47d7aec5",
+  "executorFileCount": 40,
+  "runtimeFileCount": 11,
+  "fixtureV2": "2764c0541ebe1a517965bdc73f33b1651cb15935",
+  "controlInputsMatch": true,
+  "retainedPolicy22": true,
+  "retainedFinal12": true,
+  "newControlExecutions": 0,
+  "defaultInventory": {
+    "base": 79,
+    "added": [
+      "git"
+    ],
+    "candidate": 80,
+    "removed": [],
+    "source": "PUBLIC-INVENTORY.json"
+  },
+  "caps": {
+    "rootCaptureBytes": 268435456,
+    "childRawBytes": 234881024,
+    "outerRawBytes": 16777216,
+    "sidecarReserveBytes": 16777216,
+    "rootWorkingBytes": 1073741824,
+    "innerWorkingBytes": 1006632960,
+    "outerWorkingReserveBytes": 67108864
+  },
+  "instructionBodiesCopied": false,
+  "rootActualGoSuspended": true,
+  "noRunDirectory": true,
+  "runtimeSyntaxQualification": "Preserved final12 source parsing; this finish grant changes metadata/docs only, not the bound runtime files.",
+  "launchQualification": "No new OS observer/real Worker/native-lifetime proof; trusted local Python/tool runtime not full-image attestation."
+}

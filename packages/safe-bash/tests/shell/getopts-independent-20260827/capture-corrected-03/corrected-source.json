@@ -1,0 +1,142 @@
+{
+  "scope": "supplemental corrected controls; frozen P03 remains failed",
+  "mode": "source",
+  "module": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-corrected-03/source/src/shell/getopts.ts",
+  "counts": {
+    "total": 3,
+    "pass": 3,
+    "fail": 0
+  },
+  "results": [
+    {
+      "id": "R01/in-range-clone-isolation",
+      "status": "pass",
+      "detail": {
+        "parent": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "reset": {
+          "state": {
+            "index": 1,
+            "active": {
+              "argument": 0,
+              "offset": 2
+            }
+          },
+          "kind": "option",
+          "status": 0,
+          "option": "p",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "untouched": {
+          "state": {
+            "index": 1,
+            "active": {
+              "argument": 0,
+              "offset": 3
+            }
+          },
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 1,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        },
+        "jumped": {
+          "state": {
+            "index": 2,
+            "active": {
+              "argument": 0,
+              "offset": 3
+            }
+          },
+          "kind": "option",
+          "status": 0,
+          "option": "q",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        }
+      }
+    },
+    {
+      "id": "R02/out-of-range-retained-cursor",
+      "status": "pass",
+      "detail": {
+        "parent": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "jumped": {
+          "index": 2,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "result": {
+          "state": {
+            "index": 2
+          },
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        }
+      }
+    },
+    {
+      "id": "R03/shortened-vector",
+      "status": "pass",
+      "detail": {
+        "parent": {
+          "index": 1,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "jumped": {
+          "index": 2,
+          "active": {
+            "argument": 0,
+            "offset": 2
+          }
+        },
+        "result": {
+          "state": {
+            "index": 2
+          },
+          "kind": "end",
+          "status": 1,
+          "option": "?",
+          "optind": 2,
+          "argument": {
+            "kind": "unset"
+          },
+          "diagnostic": null
+        }
+      }
+    }
+  ]
+}

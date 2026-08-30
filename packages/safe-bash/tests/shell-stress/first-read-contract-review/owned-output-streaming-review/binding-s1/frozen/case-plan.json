@@ -1,0 +1,108 @@
+{
+  "classification": "preparation-only; not executable product acceptance",
+  "freezeCommit": "722c62f8a8e0795dc2c72509cc012a6017217c0d",
+  "freezeSha256": "4095cb141a9e7d7e715daa99fc713f8734e00255969e76bdf49e4f82401040ca",
+  "logicalCaseCount": 12,
+  "productExecutions": 0,
+  "candidateIdentity": null,
+  "declarationIdentity": null,
+  "authorActualClosedAuthenticated": false,
+  "immutableReadyMarkerAuthenticated": false,
+  "originalInputs": {
+    "commit": "3eba797a2f286c80149dff22afbcd177e3ffea08",
+    "manifestGitBlob": "a53538bc9a39349f7acaba9d4daf37932b634b91",
+    "probeSha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6",
+    "wrapperSha256": "0ca0886333c793dbddb5e14e2fdbb2a3bb457919dbf4e70d419f87fab6505474",
+    "deadlineHelperSha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678",
+    "commandBinding": "exact corresponding archived command; not yet extracted",
+    "innerDeadlineMs": 1200,
+    "outerDeadlineMs": 3000,
+    "outerOutputLimitBytes": 1048576,
+    "barrier": "unchanged one-start; not zero-demand"
+  },
+  "cases": [
+    {
+      "id": "S01",
+      "family": "explicit-api-optin-positive",
+      "original": "first-read-local",
+      "parameters": ["original-local-pending-source"],
+      "binding": null
+    },
+    {
+      "id": "S02",
+      "family": "explicit-api-optin-positive",
+      "original": "first-read-s3",
+      "parameters": ["original-mock-s3-pending-source"],
+      "binding": null
+    },
+    {
+      "id": "S03",
+      "family": "explicit-api-optin-positive",
+      "original": "first-read-webdav",
+      "parameters": ["original-loopback-body-withheld"],
+      "binding": null
+    },
+    {
+      "id": "S04",
+      "family": "explicit-api-optin-positive",
+      "original": "first-read-curl-body",
+      "parameters": ["original-loopback-body-withheld"],
+      "binding": null
+    },
+    {
+      "id": "S05",
+      "family": "explicit-api-optin-positive",
+      "original": "first-read-curl-headers",
+      "parameters": ["original-loopback-headers-withheld"],
+      "binding": null
+    },
+    {
+      "id": "S06",
+      "family": "independent-control",
+      "parameters": ["upload-before-eof", "retained-reused-buffer", "awaited-write-backpressure"],
+      "binding": null
+    },
+    {
+      "id": "S07",
+      "family": "independent-control",
+      "parameters": ["stdout-only-request", "stdout-only-streaming-upload"],
+      "binding": null
+    },
+    {
+      "id": "S08",
+      "family": "independent-control",
+      "parameters": ["required-body-file-and-stdout-writeout", "stdout-body-and-required-header-file", "required-files-writeout-and-independent-stderr"],
+      "binding": null
+    },
+    {
+      "id": "S09",
+      "family": "independent-control",
+      "parameters": ["three-level-overlapping-cleanup-and-late-admission"],
+      "binding": null
+    },
+    {
+      "id": "S10",
+      "family": "independent-control",
+      "parameters": ["close-child-then-parent-with-live-sibling-effects"],
+      "binding": null
+    },
+    {
+      "id": "S11",
+      "family": "independent-control",
+      "parameters": ["caller-reason-zero", "io-error-before-caller-abort", "caller-abort-before-late-io-rejection"],
+      "binding": null
+    },
+    {
+      "id": "S12",
+      "family": "independent-control",
+      "parameters": ["opaque-read-late-resolve", "opaque-read-late-reject"],
+      "binding": null
+    }
+  ],
+  "optionalNegativeControl": {
+    "classification": "separate non-acceptance; planned only",
+    "candidate": "9b65787d4d6805aa182ff138996bf4ab7bacd764",
+    "purpose": "S06 EOF-gate discrimination against rejected prebuffering",
+    "executions": 0
+  }
+}

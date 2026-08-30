@@ -1,0 +1,33 @@
+{
+  "at": "2026-08-27T15:58:52.174Z",
+  "splitTreeUnchangedIncludingNewEntries": true,
+  "liveTrackedChanges": [],
+  "native": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+      "pin": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+      "mode": 493,
+      "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+      "size": 127592,
+      "final": {
+        "mode": 493,
+        "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+        "size": 127592
+      }
+    },
+    {
+      "path": "/usr/bin/split",
+      "pin": "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91",
+      "mode": 493,
+      "sha256": "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91",
+      "size": 134768,
+      "final": {
+        "mode": 493,
+        "sha256": "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91",
+        "size": 134768
+      }
+    }
+  ],
+  "cleanupRoots": 3,
+  "packedFiles": 10
+}

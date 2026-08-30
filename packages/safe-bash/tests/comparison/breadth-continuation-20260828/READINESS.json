@@ -1,0 +1,248 @@
+{
+  "schema": "future-readiness-not-current-coverage-v1",
+  "gates": [
+    {
+      "id": "F-STACK",
+      "status": "HELD-FUTURE-CANDIDATE",
+      "oldCaseIds": [
+        "dirs-positive",
+        "pushd-positive",
+        "popd-positive"
+      ],
+      "originalRecipes": [
+        {
+          "id": "dirs-positive",
+          "recipeHash": "2040177ad85741e5aa18a7661108181a94ed6f075623f6d8a675b00783ac34d7",
+          "recipe": {
+            "id": "dirs-positive",
+            "name": "dirs",
+            "cohort": "historical-unmeasured",
+            "configuration": "default",
+            "cwd": "/fixture",
+            "env": {},
+            "stdinBase64": "",
+            "files": {},
+            "directories": [
+              "sub"
+            ],
+            "symlinks": {},
+            "script": "pushd /fixture/sub > /fixture/push-output && dirs -p",
+            "targetArgv": null,
+            "expected": {
+              "exitCode": 0,
+              "stdoutBase64": "L2ZpeHR1cmUvc3ViCi9maXh0dXJlCg==",
+              "stderrBase64": "",
+              "files": {},
+              "absent": [],
+              "preserveInputs": true
+            },
+            "intent": "Observe a nonempty directory stack after navigation; preserve pushd output separately.",
+            "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+            "prerequisites": [
+              "pushd"
+            ],
+            "effectiveScript": "pushd /fixture/sub > /fixture/push-output && dirs -p",
+            "budgetMs": 30000,
+            "inputSha256": "360942aedf12996dad5dd47651cd8384f6d812fd29484f0cc7f32acfdef1918e"
+          }
+        },
+        {
+          "id": "pushd-positive",
+          "recipeHash": "e625936de53a39d5570c73cae20d005c754e9b24e5ed6d181c3ad9dcca057950",
+          "recipe": {
+            "id": "pushd-positive",
+            "name": "pushd",
+            "cohort": "historical-unmeasured",
+            "configuration": "default",
+            "cwd": "/fixture",
+            "env": {},
+            "stdinBase64": "",
+            "files": {},
+            "directories": [
+              "sub"
+            ],
+            "symlinks": {},
+            "script": "pushd /fixture/sub > /fixture/push-output && pwd",
+            "targetArgv": null,
+            "expected": {
+              "exitCode": 0,
+              "stdoutBase64": "L2ZpeHR1cmUvc3ViCg==",
+              "stderrBase64": "",
+              "files": {},
+              "absent": [],
+              "preserveInputs": true
+            },
+            "intent": "Change the current directory through stack navigation.",
+            "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+            "effectiveScript": "pushd /fixture/sub > /fixture/push-output && pwd",
+            "budgetMs": 30000,
+            "inputSha256": "5f3a2c6179cf7eeac476ce19d559070f4a3d0383b0072c6c6645ed3a66bda1ff"
+          }
+        },
+        {
+          "id": "popd-positive",
+          "recipeHash": "04bb1c518a7b2c5018cec574a989b0b5a7faca78a45b1b3c8714a7d48524f2a1",
+          "recipe": {
+            "id": "popd-positive",
+            "name": "popd",
+            "cohort": "historical-unmeasured",
+            "configuration": "default",
+            "cwd": "/fixture",
+            "env": {},
+            "stdinBase64": "",
+            "files": {},
+            "directories": [
+              "sub"
+            ],
+            "symlinks": {},
+            "script": "pushd /fixture/sub > /fixture/push-output && popd > /fixture/pop-output && pwd",
+            "targetArgv": null,
+            "expected": {
+              "exitCode": 0,
+              "stdoutBase64": "L2ZpeHR1cmUK",
+              "stderrBase64": "",
+              "files": {},
+              "absent": [],
+              "preserveInputs": true
+            },
+            "intent": "Return from a previously pushed directory; redirected target output remains captured in VFS.",
+            "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+            "prerequisites": [
+              "pushd"
+            ],
+            "effectiveScript": "pushd /fixture/sub > /fixture/push-output && popd > /fixture/pop-output && pwd",
+            "budgetMs": 30000,
+            "inputSha256": "daed285149b8a9c9ef9fe092c06894ec59be2317c4146a5e67ea3d3d0cf770ac"
+          }
+        }
+      ],
+      "releaseRequirements": [
+        "Root accepts coherent stack runtime composition, including accepted CD464 behavior; do not assume67eab contains it.",
+        "Actual builtin dispatch for pushd/popd/dirs and dirs -p, cwd/stack state, declared stdout and redirected files; exact scripts unchanged.",
+        "Separate implementation/reviewer freeze, package/export/source bindings and actual lifecycle proof; builtin names do not increment plugin default count."
+      ],
+      "limitsOfClaim": "Three existing recipes only; no full stack rotation/options/parity claim. Current root status: Poincare owns stack work, not this packet.",
+      "executions": 0
+    },
+    {
+      "id": "F-DOTGLOB",
+      "status": "HELD-FUTURE-CANDIDATE",
+      "oldCaseIds": [
+        "shopt-positive"
+      ],
+      "originalRecipes": [
+        {
+          "id": "shopt-positive",
+          "recipeHash": "a9424953c329c72ee5b863cad6ef1638f392ad91225258d603a334d2dbb6862a",
+          "recipe": {
+            "id": "shopt-positive",
+            "name": "shopt",
+            "cohort": "historical-unmeasured",
+            "configuration": "default",
+            "cwd": "/fixture",
+            "env": {},
+            "stdinBase64": "",
+            "files": {
+              ".hidden": {
+                "base64": "aGlkZGVuCg==",
+                "mode": 420
+              },
+              "visible": {
+                "base64": "dmlzaWJsZQo=",
+                "mode": 420
+              }
+            },
+            "directories": [],
+            "symlinks": {},
+            "script": "shopt -s dotglob && printf '%s\\n' *",
+            "targetArgv": null,
+            "expected": {
+              "exitCode": 0,
+              "stdoutBase64": "LmhpZGRlbgp2aXNpYmxlCg==",
+              "stderrBase64": "",
+              "files": {},
+              "absent": [],
+              "preserveInputs": true
+            },
+            "intent": "Enable dotglob and verify that glob expansion changes.",
+            "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+            "effectiveScript": "shopt -s dotglob && printf '%s\\n' *",
+            "budgetMs": 30000,
+            "inputSha256": "ed0f81425febf07feea4deada76dbf76becc6e228eac99c2b8061ebeea9fcbca"
+          }
+        }
+      ],
+      "releaseRequirements": [
+        "Root accepts the narrow shopt -s dotglob syntax and persistent shell option state in an exact candidate.",
+        "Original hidden/visible fixture and order remain; dot entries . and .. must not be synthesized.",
+        "Freeze any broader reset/subshell/error semantics separately after approved API; no invented unsupported options in this plan."
+      ],
+      "limitsOfClaim": "One original shopt recipe, not a full Bash shopt implementation. W10 is only the already-present default glob.",
+      "executions": 0
+    },
+    {
+      "id": "F-YQ",
+      "status": "HELD-FUTURE-CANDIDATE",
+      "oldCaseIds": [
+        "yq-positive"
+      ],
+      "originalRecipes": [
+        {
+          "id": "yq-positive",
+          "recipeHash": "38e763389b4f72936c51f3bbd634c4d6cf2a786ad1dd3362e0504b3c3f19a77c",
+          "recipe": {
+            "id": "yq-positive",
+            "name": "yq",
+            "cohort": "historical-unmeasured",
+            "configuration": "default",
+            "cwd": "/fixture",
+            "env": {},
+            "stdinBase64": "",
+            "files": {
+              "data.yaml": {
+                "base64": "aXRlbXM6CiAgLSBuYW1lOiBhbHBoYQogIC0gbmFtZTogYmV0YQo=",
+                "mode": 420
+              }
+            },
+            "directories": [],
+            "symlinks": {},
+            "script": "yq -o json '.items[1].name' data.yaml",
+            "targetArgv": [
+              "yq",
+              "-o",
+              "json",
+              ".items[1].name",
+              "data.yaml"
+            ],
+            "expected": {
+              "exitCode": 0,
+              "stdoutBase64": "ImJldGEiCg==",
+              "stderrBase64": "",
+              "files": {},
+              "absent": [],
+              "preserveInputs": true
+            },
+            "intent": "Parse YAML and extract a nested scalar as JSON.",
+            "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+            "effectiveScript": "yq -o json '.items[1].name' data.yaml",
+            "budgetMs": 30000,
+            "inputSha256": "45482363c7caa89817b1d5e4a7bb3d3e751f2ab3324e986986d535933b86b82c"
+          }
+        }
+      ],
+      "releaseRequirements": [
+        "Root accepts public YQ integration, exact root/subpath exports and module limits/CLI.",
+        "Exact old -o json, .items[1].name, YAML block-sequence input and quoted JSON scalar + LF must be supported; docs/name alone insufficient.",
+        "If accepted CLI differs, preserve this row held and seek a separate additive recipe; never silently rewrite it.",
+        "Bind dependency policy, safe parsing and no host evaluation before future execution."
+      ],
+      "limitsOfClaim": "One YAML-to-JSON query workflow only; no full YAML standard or multi-document/update equivalence.",
+      "executions": 0
+    }
+  ],
+  "correctionsToOldStatusInterpretation": [
+    "CD464 root-accepted via192ab78b per user; old inventory wording is immutable.",
+    "No inference of current stack/dotglob/YQ release from documentation or concurrent files.",
+    "LET is not part of67eab; author/reviewer status does not alter selected candidate."
+  ]
+}

@@ -1,0 +1,553 @@
+{
+  "utc": "2026-08-27T05:34:54.080Z",
+  "evidenceCommit": "60df83b62c3ca12623b40db7f3af105e9cce3dee",
+  "markerSha256": "ec3b630a4719223f2f7a8d62bed772a5b49af48e3ba510d24685f7d0c23c28fc",
+  "pinned": {
+    "tests/stress/regex-execution/design/validation/.gitignore": "2cde675c2abb2e955afbec9f20acda92dc89025e8d2dd23369120ffc6d6fc05e",
+    "tests/stress/regex-execution/design/validation/DIALECTS.md": "bb72b0d7f69e4852af4f54769e84370fc18deba9c2ac2cd8297a65d85a1660f5",
+    "tests/stress/regex-execution/design/validation/POLICY.md": "c179ddc2753c38879aef5b9bb3dcf66300743e9eddc05aafd5be74b3d927e2a7",
+    "tests/stress/regex-execution/design/validation/README.md": "d1dd2cd6460132473deb9f30891272e25a629a2f4160d0d199d57079174e4d84",
+    "tests/stress/regex-execution/design/validation/REPORT.md": "3f94c7fee2f1de5c7c32a8cea1adc64ca6326b6fec3e012088c84f38a43b5238",
+    "tests/stress/regex-execution/design/validation/adapter.ts": "26156e98ad8109f4eadcdc1cc1d5f9df4fd4885a9930f1c9eed92d25e32aa6e2",
+    "tests/stress/regex-execution/design/validation/audit.mjs": "ba9c4e9825ac8d2bf6355f1fde4b7de0a6667c2bd36f9ee10c57488077a7cfc8",
+    "tests/stress/regex-execution/design/validation/build.mjs": "9b7321ec1920dadb016ccc2ad2a19b7d574d4277089c45dbead41d347fd600f7",
+    "tests/stress/regex-execution/design/validation/child.mjs": "73d222b552f88aa20a7513e89374bcd3f5f5f20d7f9442ff96a10c670e62f31c",
+    "tests/stress/regex-execution/design/validation/cleanup.mjs": "5f95c369db21d30cf38c535efbe011dd4003b8b3b0b66eb65c4c97612723241f",
+    "tests/stress/regex-execution/design/validation/consumer.mjs": "ea1efb5c26e63a64a5fcf4963454dee7e1c583e9c0da872d9a3b36cea1f27bc6",
+    "tests/stress/regex-execution/design/validation/evidence/audit.json": "bfd7c2821b9cfd18b938842d01a6e57cd8162a480e5d9ea72fe2c625fb4aa12b",
+    "tests/stress/regex-execution/design/validation/evidence/build-initial.json": "779101ed02abd1182a6baf3a3b31db81d06503da097e50561a4680cbada10b86",
+    "tests/stress/regex-execution/design/validation/evidence/build.json": "93cc89312fd7dab59a3ff60c6a6b900c781d19c61dd2be64c442a27a856c054c",
+    "tests/stress/regex-execution/design/validation/evidence/cleanup.json": "bf8c59f6de2038eae9f27ba09f6637c8fed9bba4d6e6d4ce4bbcd525e65222eb",
+    "tests/stress/regex-execution/design/validation/evidence/frozen.json": "55e16b071014d7bfed3266c846c4b585a8e07baa6c5f2d36f70f52461458b293",
+    "tests/stress/regex-execution/design/validation/evidence/native.json": "f467f0faa516fbee005119fca75603472d23832a17bbc1719606f779dccd49d9",
+    "tests/stress/regex-execution/design/validation/evidence/package-build.json": "bfb390812d766239ea841fc0f84bf0e28891a62a810cb7725dda50ce0b6a9bd3",
+    "tests/stress/regex-execution/design/validation/evidence/repair.json": "4053496d2f0e58fb3917cd9313d240069a2c000ee3e29a848a688b1f1349c1ac",
+    "tests/stress/regex-execution/design/validation/evidence/run-00.json": "6f17f4da66604e864dc20c19a48325de7824575a9baaf7a5c993434ad6f46f4c",
+    "tests/stress/regex-execution/design/validation/evidence/run-01.json": "fa18e0b6d7343a64b2791dbe6d758d1ca080e8ef2a637456151c2679b43a5c71",
+    "tests/stress/regex-execution/design/validation/evidence/run-02.json": "884dbb9b4de7e650a86bbc0523c36c1277356a3f0951185ecb8ee7d04c314b52",
+    "tests/stress/regex-execution/design/validation/evidence/run-03.json": "fea76778b8957519569338e51a78189bfc8bd52b1197a729a953b1ddc3f03bc7",
+    "tests/stress/regex-execution/design/validation/evidence/run-04.json": "fb2418ffb636446c4f519a4d7320d9216a6a3e01e0aba70f44fb7f8e916bdfc3",
+    "tests/stress/regex-execution/design/validation/evidence/run-05.json": "883bf6ea6b4a5cda225d0d0384e2cb176fddf4a1f3b34305ce06a81326573b82",
+    "tests/stress/regex-execution/design/validation/evidence/run-06.json": "0556ef1da93b247ffac02929b4f0bf9eca3bd7bb0ccdcb7a0853191028f26cbb",
+    "tests/stress/regex-execution/design/validation/evidence/run-07.json": "c7d3084a20ae7c5f322b77a289c403950371384ddad9f56e3353fd84cb983612",
+    "tests/stress/regex-execution/design/validation/evidence/run-08.json": "80a2471c4155266d06894d912065e2f6ee4df1379ddc2e9c0af53b63ba9fc160",
+    "tests/stress/regex-execution/design/validation/evidence/run-09.json": "5a259072b155b403c6cc307b141076c3caa0d331d3af97125c698302de9d9432",
+    "tests/stress/regex-execution/design/validation/evidence/run-10.json": "a6819bb0e72c846972a69d9a29c58309ec37c1973b3298a1635613f4ea43a358",
+    "tests/stress/regex-execution/design/validation/evidence/run-11.json": "e308ba5e48fc5050367f17e1071827721fc14437911b17e85bc0d195f3615eb7",
+    "tests/stress/regex-execution/design/validation/evidence/run-12.json": "28da595a5e68f94ee2ca03a8c8413fb544dbbe392de32bad8f6fb5bc429ed298",
+    "tests/stress/regex-execution/design/validation/evidence/run-13.json": "ddec22c0b88f0b2d254ff23ded20d36c1715540af6233c6354f41ca769affd32",
+    "tests/stress/regex-execution/design/validation/evidence/run-14.json": "bbd06f2bea8f3fac30d2a64a90b81b01c1fab198595acd24871e6dafb1512bff",
+    "tests/stress/regex-execution/design/validation/evidence/run-15.json": "05e77fc6638fa4e5e72e6011a1640e4f035d8d883ee2862242c530377ae383b6",
+    "tests/stress/regex-execution/design/validation/evidence/run-16.json": "20b3707c429eae1fe790fbc8cfe7d4334218a005f6d3b65872309590b9b20af6",
+    "tests/stress/regex-execution/design/validation/evidence/run-17.json": "c12fce9c2a887a424a9cba7f66b07086bba22fd522cdb592c2f67adb51a3a5a3",
+    "tests/stress/regex-execution/design/validation/evidence/run-18.json": "5497847c30af829190b9dd881517c72acee0df456f880eba46e0a0d655040fc7",
+    "tests/stress/regex-execution/design/validation/evidence/run-19.json": "df4d8bbbd9ce3d5663d24cfde9079ba2e5eb26abc1c9bd02f9a00570aea04ec5",
+    "tests/stress/regex-execution/design/validation/evidence/run-20.json": "afde0d86a13d34235df806a925676d8e8250cf16c65107a2c0fddf5003acb7b5",
+    "tests/stress/regex-execution/design/validation/evidence/run-21.json": "bc2da35ae646dcddcbe8ab50cb5c8d394f307b8996c35b8127c3e858828b1f52",
+    "tests/stress/regex-execution/design/validation/evidence/run-22.json": "fd965adcd282de66d47d5370f52b46a00d773e3ffb9af6f1727e510bc43d59c0",
+    "tests/stress/regex-execution/design/validation/evidence/run-23.json": "febde0de7c687a1a7acf499e6827cb5e19b8f9b94c0e91e81c29769493c7bc3e",
+    "tests/stress/regex-execution/design/validation/evidence/run-24.json": "e2138ab634f00ff04f5b90ed1b0646d81fa01e410b7c6e91c6e8a0511f44e295",
+    "tests/stress/regex-execution/design/validation/evidence/run-25.json": "70f181117829c71cbb7cfe51f89e24427b952c86e01fd362407c05152437d1c1",
+    "tests/stress/regex-execution/design/validation/evidence/run-26.json": "aa493298acac75a721f27325c95770e0da63236b682f970a557c73759fe6483c",
+    "tests/stress/regex-execution/design/validation/evidence/run-27.json": "9c079249b3f79da8ddbabdea605d4664ef12fee7273e45f1b1c881c4f58764bd",
+    "tests/stress/regex-execution/design/validation/evidence/run-28.json": "73ae94b4000f0364040072f17c84edee62554cb5ba63f749d1a1eb0acabbb267",
+    "tests/stress/regex-execution/design/validation/evidence/run-29.json": "26b5fb3926a7173f983441573df4e0a459189619da8956178a44177fb1da7232",
+    "tests/stress/regex-execution/design/validation/evidence/run-30.json": "bfab3d328df11ba25595520130e6289d4e0576db671d482d6e2a7a48bd190040",
+    "tests/stress/regex-execution/design/validation/evidence/run-31.json": "160022e68cafda57f528f51a3a8b9d2a6447aeda94cca5c4b667e603851ed743",
+    "tests/stress/regex-execution/design/validation/evidence/run-32.json": "5643035c66d161bb9b111a301726e844ab117c83990edba8c111a2cc5e9d70df",
+    "tests/stress/regex-execution/design/validation/evidence/run-33.json": "763aac9e98880b4d00b0eea9f6d2ed057a83e0abb9896801f15f024e3f1ba166",
+    "tests/stress/regex-execution/design/validation/evidence/run-34.json": "effcb42001ec3cd998bc07b50a1cee14d15a1cf7ff1c5d3b878b2c69050d0fc6",
+    "tests/stress/regex-execution/design/validation/evidence/run-35.json": "2fd4cab50306e87f448720f18a726748969df761428daf9dddea04321ff15535",
+    "tests/stress/regex-execution/design/validation/evidence/run-36.json": "03395c25e733ddffcb0191f4a5c301e17fd28cf7c1e0a38ba4cc5d21e56af474",
+    "tests/stress/regex-execution/design/validation/evidence/run-37.json": "9ac03209c2273710fd9209ac1b0dc31bf51199a5068d7e506c48c56ca7f03e4a",
+    "tests/stress/regex-execution/design/validation/evidence/run-38.json": "0151479d91b59786e94e5c5c5c558d5fea810f349d8e20b71e78f71a8f33de4a",
+    "tests/stress/regex-execution/design/validation/evidence/run-39.json": "22172652a740a79876ccf81a5132eea62071750967b0440e9ae4a63d02eef6b9",
+    "tests/stress/regex-execution/design/validation/evidence/run-40.json": "acfd0770460585dfac86f6d96befd09a0437e7adf23c055d457a525d7a0414b3",
+    "tests/stress/regex-execution/design/validation/evidence/run-41.json": "9fb8068b4f399d8f5368b52ece6fcefb253575b51e2970d45a1f4370756e0da9",
+    "tests/stress/regex-execution/design/validation/evidence/run-42.json": "26db4eb67d18ffb8fd998e571127f62a1fa43e33a7147b98b9edddaa286b7f8d",
+    "tests/stress/regex-execution/design/validation/evidence/run-43.json": "450ac1b46a4244fd633b008624aa103bd313910d8dc4e8b804bab6abe6b57e8c",
+    "tests/stress/regex-execution/design/validation/evidence/run-44.json": "93e3292567034647e07a98dfa0b4412dc6204115a94b742b839b55ece49dea81",
+    "tests/stress/regex-execution/design/validation/evidence/run-45.json": "2d0142b73e555aae6e977e48025927cb4eaf8ea11308d9632f8141bd636827cd",
+    "tests/stress/regex-execution/design/validation/evidence/run-46.json": "9c4507bfd578b4ab9f3a269a721dd74793964a740efe5df664ca0840e1a261bc",
+    "tests/stress/regex-execution/design/validation/evidence/run-47.json": "211855e63eae4db4359042b796d5aa40b68791a5f8a04f24a1bdc0c83cae7c5f",
+    "tests/stress/regex-execution/design/validation/evidence/run-48.json": "aafda400a96b4478a9a3bb5f58415906ea948fa84b35ad37339d3f95039bdee8",
+    "tests/stress/regex-execution/design/validation/evidence/run-49.json": "9302e4a91c11ea23f15a7b9bb516d0ce7881ceb77d533a72785bd58cfa544055",
+    "tests/stress/regex-execution/design/validation/evidence/run-50.json": "bad4edd6095a094f2f7e55d24b008e92079d9067399f8a4a6142e21b5807e20a",
+    "tests/stress/regex-execution/design/validation/evidence/run-51.json": "6476b7ad8697fa3782b84167b9e3d5672ce31eccd27df91c47c33df7410608b6",
+    "tests/stress/regex-execution/design/validation/evidence/run-recheck-17.json": "aab550eeb396825dc0e85ad2b7e32c47f5902fc473180c082f03179e24771940",
+    "tests/stress/regex-execution/design/validation/evidence/schedule.json": "030083808f1dfee559b58171e2477716ec7103cbc428411569e20f800f50f7a3",
+    "tests/stress/regex-execution/design/validation/evidence/summary.json": "4027048f1b92327f1d18fb3560250f7a56cc85fbf2de65a5a305e5a3231e0858",
+    "tests/stress/regex-execution/design/validation/fixtures.mjs": "977e32d3cfa2c8dc110c3a706d43cca7144368d350f6f0a33a8e4669534b24b6",
+    "tests/stress/regex-execution/design/validation/model.mjs": "6a6641dc9ad7044d751c2b4483badf251fc14e44c1b2838b532c30bbb5c65a42",
+    "tests/stress/regex-execution/design/validation/native.mjs": "753c52efc0cc398220cd95e1aacf7b03335c5a6f3c00d840e7ae211ef844b5a7",
+    "tests/stress/regex-execution/design/validation/package.mjs": "a1065c2bb93be0260e17a784e8d79d55a3d03baa6f4258b2127c221e427bbe7f",
+    "tests/stress/regex-execution/design/validation/repair.mjs": "4285911d6056554f0788a66e68ad37599107532a49f2d03412eb05ca7e5fda0e",
+    "tests/stress/regex-execution/design/validation/run.mjs": "59d675038997cdb6adabe2ba27e3c56a4e203ca0aae36653b9197c7defa437c3"
+  },
+  "pinnedDocs": {
+    "src/commands/README.md": "9097c69fa577369b5afda3589a496639c7a594cbd1766d331f17ebc4e642daac",
+    "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+    "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+    "src/shell/runtime.ts": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+    "package.json": "1f9579a9be0c1e1f23f03f38babad319fc1f8af941c7755aa7ca8759584cc2f1",
+    "src/index.ts": "2257a1ce3acc146ca7a3c1867e8a23153a5a968c96899a533b45cea69a446237"
+  },
+  "sourceHashes": {
+    "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "tests/stress/regex-execution/design/client.ts": "f2c5512b2785f146e68f3a335afd646ab74a3fdfa2370743151a05a7827044d5",
+    "tests/stress/regex-execution/design/worker.ts": "39f40d5e17a64d375d7fdc9fa0cd76b74de3d701b046ae37020dd8a9f79c66a3",
+    "tests/stress/regex-execution/design/matching.ts": "9af709988caef046f2b929ae2eaf005951cf311f2de8a24c32448b054691bef8",
+    "tests/stress/regex-execution/design/protocol.ts": "baa928980f6623478ebae17c768cbb5319881e840686db943d0a0267d2ff098a"
+  },
+  "independentlyRecomputed": {
+    "actualChildren": 53,
+    "retainedFailingChildren": 1,
+    "passingObservations": 52,
+    "effectiveCommandVectors": 22,
+    "rawCaptureVectors": 6,
+    "policyVectors": 5,
+    "negativePolicyObservations": 1,
+    "timingObservations": 18,
+    "packageConsumers": 1,
+    "nativeCalls": 22,
+    "nativeStatusStdoutAgreements": 19,
+    "GNUgrepCalls": 0,
+    "nativeOriginalExpectationFailures": 1
+  },
+  "differences": [
+    {
+      "id": "grep-ere-order",
+      "profile": "bsd-grep-auxiliary",
+      "command": [
+        "/usr/bin/grep",
+        "-Eo",
+        "a|ab",
+        "-"
+      ],
+      "inputHex": "61620a",
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "61620a",
+        "stderrHex": "",
+        "error": null
+      }
+    },
+    {
+      "id": "rg-undocumented-named-backref",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        "(?<letter>a)\\k<letter>",
+        "-"
+      ],
+      "inputHex": "61610a",
+      "actual": {
+        "status": 2,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "72673a207265676578207061727365206572726f723a0a20202020283f3a283f3c6c65747465723e61295c6b3c6c65747465723e290a202020202020202020202020202020202020205e5e0a6572726f723a20756e7265636f676e697a6564206573636170652073657175656e63650a",
+        "error": null
+      }
+    },
+    {
+      "id": "rg-declared-js-digit",
+      "profile": "rg-primary",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+        "--no-config",
+        "--color=never",
+        "--no-heading",
+        "--no-line-number",
+        "--no-filename",
+        "--engine=default",
+        "-o",
+        "\\d",
+        "-"
+      ],
+      "inputHex": "d9a1310a",
+      "actual": {
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "d9a10a310a",
+        "stderrHex": "",
+        "error": null
+      }
+    }
+  ],
+  "work": {
+    "long-linear": [
+      {
+        "name": "run-33.json",
+        "engine": "current",
+        "workMs": 0.019249999999999545,
+        "startupMs": 0.001916000000001361,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 628,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-34.json",
+        "engine": "worker",
+        "workMs": 0.44641700000001094,
+        "startupMs": 12.550916999999998,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 628,
+        "requests": 5,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-35.json",
+        "engine": "worker-stream",
+        "workMs": 1.197499999999991,
+        "startupMs": 12.225959000000003,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 632,
+        "requests": 9,
+        "retirementOverlapsWork": true
+      },
+      {
+        "name": "run-36.json",
+        "engine": "worker",
+        "workMs": 0.5634590000000088,
+        "startupMs": 13.864250000000006,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 628,
+        "requests": 5,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-37.json",
+        "engine": "worker-stream",
+        "workMs": 0.9885000000000019,
+        "startupMs": 14.591166000000001,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 632,
+        "requests": 9,
+        "retirementOverlapsWork": true
+      },
+      {
+        "name": "run-38.json",
+        "engine": "current",
+        "workMs": 0.017665999999998405,
+        "startupMs": 0.001459000000004096,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 628,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-39.json",
+        "engine": "worker-stream",
+        "workMs": 1.0664170000000013,
+        "startupMs": 12.591415999999995,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 632,
+        "requests": 9,
+        "retirementOverlapsWork": true
+      },
+      {
+        "name": "run-40.json",
+        "engine": "current",
+        "workMs": 0.01891599999999727,
+        "startupMs": 0.0028329999999954225,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 628,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-41.json",
+        "engine": "worker",
+        "workMs": 0.49141600000000096,
+        "startupMs": 12.448875000000001,
+        "logicalSha256": "5748d54efbe0ecfeeaa5ddb74fbfc549e7fb2c530616b93d04ab473ac635b060",
+        "selectedSha256": "4e6666657d99ddb9d3220ca2ec2729f0426ae29a6b7da6c8f3133bca4c1018fd",
+        "protocolHitBytes": 628,
+        "requests": 5,
+        "retirementOverlapsWork": false
+      }
+    ],
+    "small-many-line": [
+      {
+        "name": "run-42.json",
+        "engine": "current",
+        "workMs": 0.11691600000000335,
+        "startupMs": 0.0021249999999994884,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10152,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-43.json",
+        "engine": "worker",
+        "workMs": 0.7090840000000043,
+        "startupMs": 12.826333999999996,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10152,
+        "requests": 5,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-44.json",
+        "engine": "worker-stream",
+        "workMs": 3.01016700000001,
+        "startupMs": 12.545958999999996,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10276,
+        "requests": 129,
+        "retirementOverlapsWork": true
+      },
+      {
+        "name": "run-45.json",
+        "engine": "worker",
+        "workMs": 0.726208000000014,
+        "startupMs": 12.821875000000006,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10152,
+        "requests": 5,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-46.json",
+        "engine": "worker-stream",
+        "workMs": 3.331374999999994,
+        "startupMs": 14.303291999999999,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10276,
+        "requests": 129,
+        "retirementOverlapsWork": true
+      },
+      {
+        "name": "run-47.json",
+        "engine": "current",
+        "workMs": 0.10179099999999863,
+        "startupMs": 0.0018330000000048585,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10152,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-48.json",
+        "engine": "worker-stream",
+        "workMs": 3.115290999999999,
+        "startupMs": 12.466000000000008,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10276,
+        "requests": 129,
+        "retirementOverlapsWork": true
+      },
+      {
+        "name": "run-49.json",
+        "engine": "current",
+        "workMs": 0.10887499999999761,
+        "startupMs": 0.0012499999999988631,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10152,
+        "retirementOverlapsWork": false
+      },
+      {
+        "name": "run-50.json",
+        "engine": "worker",
+        "workMs": 0.7561249999999973,
+        "startupMs": 12.635583999999994,
+        "logicalSha256": "8ae7b6b5ba17b753dbb88df057a866f8889c6ab6f7304b373c9786db56c216ea",
+        "selectedSha256": "3e582f1edcc7f5e13007e86d16eb0b31ce6ad725d76dc98d6c6651699bf2029b",
+        "protocolHitBytes": 10152,
+        "requests": 5,
+        "retirementOverlapsWork": false
+      }
+    ]
+  },
+  "package": {
+    "archiveSha256": "3d9fca52b87913301d86e3bea326fdbce2df8ea808db6c0092b818615955bd94",
+    "matchingIndependentCompiledAssets": 4,
+    "manifest": {
+      "name": "regex-validation-prototype",
+      "version": "0.0.0",
+      "type": "module",
+      "engines": {
+        "node": ">=22"
+      },
+      "exports": {
+        ".": {
+          "types": "./client.d.ts",
+          "import": "./client.js"
+        }
+      },
+      "files": [
+        "*.js",
+        "*.d.ts"
+      ],
+      "dependencies": {}
+    },
+    "consumer": {
+      "pass": true,
+      "node": "v22.22.2",
+      "imported": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/validation/.scratch/moved/node_modules/regex-validation-prototype/client.js",
+      "result": {
+        "hits": [
+          [
+            {
+              "pattern": 0,
+              "start": 0,
+              "end": 1,
+              "captures": [
+                "a",
+                "a"
+              ]
+            }
+          ]
+        ],
+        "bytes": 56,
+        "execCalls": 2
+      },
+      "metrics": {
+        "created": 1,
+        "terminated": 1,
+        "requests": 2,
+        "execCalls": 2,
+        "inputBytes": 2,
+        "responseBytes": 56,
+        "startupMs": 21.826750000000004,
+        "workMs": 0.2957919999999987,
+        "terminationMs": 0.9742499999999978,
+        "peakInflight": 1,
+        "listenersAfter": 0,
+        "exitCode": 1
+      },
+      "runtimeDependencies": 0
+    }
+  },
+  "preserved": {
+    "initialCompilerFailure": "779101ed02abd1182a6baf3a3b31db81d06503da097e50561a4680cbada10b86",
+    "originalAdapterFailure": {
+      "id": "rg-unicode-i-kelvin",
+      "expected": {
+        "stdoutHex": "e284aa0a4b0a6b0a",
+        "status": 0
+      },
+      "outputs": {
+        "current": {
+          "stdoutHex": "e284aa0a4b0a6b0a",
+          "stderrHex": "",
+          "status": 0
+        },
+        "worker": {
+          "stdoutHex": "",
+          "stderrHex": "72673a205041545445524e5f4341505f4f525f50524f544f434f4c0a",
+          "status": 2
+        }
+      },
+      "matchesExpected": true,
+      "equivalent": false,
+      "pass": false,
+      "adapter": {
+        "active": 0,
+        "peak": 1,
+        "completed": 1,
+        "created": 0,
+        "terminated": 0,
+        "peakWaiting": 1,
+        "idleWorkers": 0
+      }
+    },
+    "targetedRecheck": {
+      "id": "rg-unicode-i-kelvin",
+      "expected": {
+        "stdoutHex": "e284aa0a4b0a6b0a",
+        "status": 0
+      },
+      "outputs": {
+        "current": {
+          "stdoutHex": "e284aa0a4b0a6b0a",
+          "stderrHex": "",
+          "status": 0
+        },
+        "worker": {
+          "stdoutHex": "e284aa0a4b0a6b0a",
+          "stderrHex": "",
+          "status": 0
+        }
+      },
+      "matchesExpected": true,
+      "equivalent": true,
+      "pass": true,
+      "adapter": {
+        "active": 0,
+        "peak": 1,
+        "completed": 1,
+        "created": 1,
+        "terminated": 1,
+        "peakWaiting": 1,
+        "idleWorkers": 0
+      }
+    },
+    "repair": {
+      "at": "2026-08-27T05:26:31.361Z",
+      "harnessCommit": "da8ae9b1991d727652b7a42da6f2288c191f6e91",
+      "originalFrozenSha256": "55e16b071014d7bfed3266c846c4b585a8e07baa6c5f2d36f70f52461458b293",
+      "originalChildrenCompleted": 38,
+      "originalVectorFailure": "run-17.json: JS canonical flags giu were not the protocol gui spelling",
+      "unrelatedLiveDrift": [
+        {
+          "path": "src/commands/stream-inspection/README.md",
+          "previousSha256": "1490e733ae1691da397d9f5efdefe90a904cf89ac585481960343b9bdff49abd",
+          "currentSha256": "2e89966e09cfc4c2d2050ab1186d89819e8c30a2751294b083b112575eda97a3"
+        }
+      ],
+      "reason": "Preserve original build/sources/results; normalize equivalent flag spelling only in owned test adapter; continue remaining fixed schedule plus one Kelvin recheck. Verify copied source and unchanged live command/prototype source, not another owner README.",
+      "prior": {
+        "source": "58789344328501ce856955a1044cb4860ade9bde66b28f3c7b55891a1fb4e7e5",
+        "built": "37b10446f1c4b7721cb7d814fad3130eef020f096f1bebb90dcc60f0d2818151"
+      },
+      "overrides": {
+        "tests/stress/regex-execution/design/validation/adapter.ts": "26156e98ad8109f4eadcdc1cc1d5f9df4fd4885a9930f1c9eed92d25e32aa6e2",
+        "tests/stress/regex-execution/design/validation/run.mjs": "59d675038997cdb6adabe2ba27e3c56a4e203ca0aae36653b9197c7defa437c3",
+        "tests/stress/regex-execution/design/validation/repair.mjs": "4285911d6056554f0788a66e68ad37599107532a49f2d03412eb05ca7e5fda0e",
+        "tests/stress/regex-execution/design/validation/.scratch/built/tests/stress/regex-execution/design/validation/adapter.js": "5ed5e6ac46a06028f8f3d44f43f3cc14da3943333098969baeea409c516afa95"
+      },
+      "compileStatus": 0,
+      "compileStdout": "",
+      "compileStderr": "",
+      "unchangedOtherBuiltFiles": 302,
+      "benchmarkCodeUnchanged": true,
+      "riskyExecutions": 0
+    }
+  },
+  "limitations": [
+    "Evidence inspection/recount only; no broad rerun and no additional worker/regex execution.",
+    "Copied command adapters retain host-side RegExp construction, omit caller signal from workerHits, and reuse cumulative Client budgets per descriptor session; not production-isolated command execution.",
+    "Eight-waiter/four-session test bounds still fail at saturation and do not implement cancellation-aware admission; finite pipeline demonstrations are not starvation or arbitrary-input guarantees.",
+    "Prototype invocation Capacity still pins idle slot/rejects competitors; policy correctly rejects adopting that as a global default.",
+    "No approved default timeout or shared aggregate budget; experimental prototype limits are narrower than documented product limits.",
+    "Microbenchmark output work matches; framing, JIT warmness, interruption/cohost load, startup, overlapping stream retirement and non-peak RSS preclude strong speed/memory claims.",
+    "GNU grep unavailable; documented JS choices differ from native targets and named backreference acceptance remains an existing advertised-contract mismatch.",
+    "Packed moved prototype proof is not the virtual-bash root published package/API integration."
+  ],
+  "reviewerNewRiskConsumed": 0
+}

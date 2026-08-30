@@ -1,0 +1,101 @@
+{
+  "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "profile": "compiled-legacy-v2",
+  "orchestrationCommit": "492d2cd6b4eacc492fbca704ab3e5d4d290ca988",
+  "finished": "2026-08-27T20:20:33.025508+00:00",
+  "failed": false,
+  "results": [
+    {
+      "name": "bootstrap-static-parse",
+      "exitCode": 0,
+      "elapsedSeconds": 0.030048333006561734,
+      "counts": {},
+      "passed": true,
+      "allInputAndArtifactEntriesUnchanged": true,
+      "remainingOwnProcessGroupObserved": false
+    },
+    {
+      "name": "probe-static-parse",
+      "exitCode": 0,
+      "elapsedSeconds": 0.02987724999547936,
+      "counts": {},
+      "passed": true,
+      "allInputAndArtifactEntriesUnchanged": true,
+      "remainingOwnProcessGroupObserved": false
+    },
+    {
+      "name": "worker-prerequisite",
+      "exitCode": 0,
+      "elapsedSeconds": 0.05760183300299104,
+      "counts": {},
+      "passed": true,
+      "allInputAndArtifactEntriesUnchanged": true,
+      "remainingOwnProcessGroupObserved": false
+    },
+    {
+      "name": "core",
+      "exitCode": 0,
+      "elapsedSeconds": 14.13413775000663,
+      "counts": {
+        "tests": 505,
+        "pass": 505,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "passed": true,
+      "allInputAndArtifactEntriesUnchanged": true,
+      "remainingOwnProcessGroupObserved": false
+    },
+    {
+      "name": "state",
+      "exitCode": 0,
+      "elapsedSeconds": 0.60473562500556,
+      "counts": {
+        "tests": 203,
+        "pass": 203,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "passed": true,
+      "allInputAndArtifactEntriesUnchanged": true,
+      "remainingOwnProcessGroupObserved": false
+    },
+    {
+      "name": "focused-types",
+      "exitCode": 0,
+      "elapsedSeconds": 0.7708543750050012,
+      "counts": {},
+      "passed": true,
+      "allInputAndArtifactEntriesUnchanged": true,
+      "remainingOwnProcessGroupObserved": false
+    },
+    {
+      "name": "source-types",
+      "exitCode": 0,
+      "elapsedSeconds": 1.5655174999992596,
+      "counts": {},
+      "passed": true,
+      "allInputAndArtifactEntriesUnchanged": true,
+      "remainingOwnProcessGroupObserved": false
+    }
+  ],
+  "notRun": [],
+  "snapshotFinalSha256": "50727697894edc0a1e6ccc8fbf276de5ba2e0e23ebd5f35a76ebc4e80196be52",
+  "allSnapshotEntriesUnchanged": true,
+  "compiledArtifactsFinalSha256": "3189d7dd493248d41de38f01055e1ecf844bf10e7226d9b453ad3a1f0d03dfd9",
+  "installedToolsFinalSha256": "8a64487cc654516786ed4e9fbc933836099c590e2149dc84c29c21744e70cbd9",
+  "installedToolsUnchangedIncludingEntries": true,
+  "externalToolsFinalSha256": "2eb4b7ae8a2af0c3b508edf67bb726c396a25a8035a1cacb867981d6b472c198",
+  "externalToolsUnchanged": true,
+  "orchestrationUnchanged": true,
+  "builds": 0,
+  "packs": 0,
+  "installs": 0,
+  "privateQueries": 0,
+  "snapshotRetention": "Own prior authenticated compiled regular snapshot retained; fresh v2 scratch path in PREFLIGHT",
+  "handlesLimit": "Readiness records messages, completed import and natural worker exit, not separate port-close proof; own process-group presence probed after each command; no detached-process/FD/syscall proof"
+}

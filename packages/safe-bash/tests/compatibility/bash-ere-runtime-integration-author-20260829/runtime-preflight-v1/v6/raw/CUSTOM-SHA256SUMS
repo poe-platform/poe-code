@@ -1,0 +1,10 @@
+32f780a3262c59a9ec9e3c43ef5c7f39191f9231d60dbec7071777e02418e40f  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/pure-controls.mjs
+6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/guards.mjs
+039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/array-observer.mjs
+d9a2fecb17a403eeb26f9bc060472ca5cd6f88075dfc41f87cdb1386e1305aa3  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/root-binding.mjs
+55ea955129e9eec1d44ff8003badca65779ed19705bfd52bc72f3f469e8c0f8b  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/prepare.mjs
+77482258ee64194dca27a9398c5fd026a14ce2f513ce4522241f96e75d9ee6cd  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/PRESEAL.md
+95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950  /private/tmp/safe-bash-core70-v6-20260829/controls/pure-controls.mjs
+6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b  /private/tmp/safe-bash-core70-v6-20260829/controls/guards.mjs
+039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4  /private/tmp/safe-bash-core70-v6-20260829/controls/array-observer.mjs
+d9a2fecb17a403eeb26f9bc060472ca5cd6f88075dfc41f87cdb1386e1305aa3  /private/tmp/safe-bash-core70-v6-20260829/controls/root-binding.mjs

@@ -1,0 +1,263 @@
+{
+  "schema": 1,
+  "source": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
+  "authorPreseal": "6b959e54",
+  "independentFreeze": "17b9249a06c5d768409fea932ea7f44e36b63720",
+  "product": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "driverSha256": "f192ca9330a440d33e49544e135a04305a48e84ce85858f902860aafa2ccd4f9",
+  "profileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+  "strictProfileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "historicalEligibilitySha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6",
+  "eligibilityPolicySha256": "fa9b7ba481a5a12cee8d9e44d2bbe94bad2fcd8d6732996f59aaac0ed74454bd",
+  "files": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+      "blob": "70d776fafe01afacdc29299e2f33867aabdcb691",
+      "bytes": 4663,
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+      "blob": "3a662ce727c931a5cdd3065a8d95d3ff4e1e02d6",
+      "bytes": 1409701,
+      "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json",
+      "blob": "cc0049a0568f3924b47fd705651fb705dfeecd81",
+      "bytes": 976,
+      "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+      "blob": "161431a7a7ac90755bb895f3ff9c1fc3f5124626",
+      "bytes": 27233,
+      "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+      "blob": "cb03f3cab771028df57fe70aade72574d2b3921b",
+      "bytes": 476241,
+      "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+      "blob": "4cbafbae57d48d1fd4b1aae515005f6b2eeb46bf",
+      "bytes": 592,
+      "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs",
+      "blob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+      "bytes": 6427,
+      "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/profile.mjs",
+      "blob": "1b8749866a859282733b497159df8b7a10684c33",
+      "bytes": 8577,
+      "sha256": "0dadec885fe6eaec820d19952ae865930505ef80232dae9a62a4870d056c8b62"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs",
+      "blob": "2759c7de26ed86d91765fb3bd952342701c463d3",
+      "bytes": 4740,
+      "sha256": "a14646b1cfe9570daa925569b91621f6febd1e44b8f1b9f37e29d1171fa52197"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs",
+      "blob": "429b8c73aba142c18d510e93d91ff6a765978b45",
+      "bytes": 5911,
+      "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs",
+      "blob": "8664e8129e4ed31baaf6b2cce267d93039d5075f",
+      "bytes": 2938,
+      "sha256": "27e60e8c126a31e097ea2fedbc2c7b58c74d25f7e71f95f7a6c5692156aa72d6"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs",
+      "blob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+      "bytes": 537,
+      "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs",
+      "blob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+      "bytes": 6047,
+      "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "blob": "c3f6aad5fd5990f777822012807d606bad919c7e",
+      "bytes": 21765,
+      "sha256": "025968a81758ca3b8da8d9c17930ab085c2b55740fe2a600eb9fddd8f12d2189"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs",
+      "blob": "a1106fabb123a73041b79a03082e93fd33c0467c",
+      "bytes": 5203,
+      "sha256": "0e2946536633ac767414a1ba5b2ddfc813ba4abbd0fdb0cf732546033a16b3b0"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs",
+      "blob": "f00563f5583154e494b8f97605141f0a28ab0bfb",
+      "bytes": 9553,
+      "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs",
+      "blob": "684372da6826145d119fe4cbc2c0ef94b60d7374",
+      "bytes": 6032,
+      "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external-admission.mjs",
+      "blob": "ee15d4353eb3b54fad59d92382d5dbb975051ed1",
+      "bytes": 4991,
+      "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/built-consumers.mjs",
+      "blob": "4a712e0a36261c6c1a73aa1df65354841d4e4e1a",
+      "bytes": 2958,
+      "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer-admission.mjs",
+      "blob": "95e05dd5d3c689c68d6c4c108b18e41aebdb8d76",
+      "bytes": 1940,
+      "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tap.mjs",
+      "blob": "4913ccc42598b861b6bf0f9e34238901d5e8ebcd",
+      "bytes": 3405,
+      "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/public.mjs",
+      "blob": "13aaed92eec7fd29db226c194202f862b0a96942",
+      "bytes": 2892,
+      "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer.mts.fixture",
+      "blob": "212a6cb22f7c70b72a9106431a642a250e3fddef",
+      "bytes": 840,
+      "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/negative.mts.fixture",
+      "blob": "ea76b2f6ead1689fe8f751ffdda0b25a0ec6a491",
+      "bytes": 250,
+      "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+      "blob": "1f7389579d9cb04812b81a05b238387c7736ed66",
+      "bytes": 1239,
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-types.mjs",
+      "blob": "f9cf36f20696032c607910df66922a0674ec300d",
+      "bytes": 4115,
+      "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/phase-runner.mjs",
+      "blob": "2a5bdddcd55867219f0b405edea6e84b4217ead9",
+      "bytes": 2528,
+      "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/process-observer.mjs",
+      "blob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+      "bytes": 3667,
+      "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types.mjs",
+      "blob": "c657767026174b0a3da0084759fbbf7df49462ea",
+      "bytes": 9630,
+      "sha256": "ef79cc344dc0259bfef3d2351fa61ea5a2f716ac8c427dfab346294498d0a507"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/review-build-types-worker.mjs",
+      "blob": "17fc149caf58eaa4a8e12399720bb8cbe9c60320",
+      "bytes": 351,
+      "sha256": "e69573ee434436bb9ab9bda807155cfaaa5a687a2eb32a09a4b6b0d54214f295"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/projection.mjs",
+      "blob": "e1ecc3bda2e4313fa40281e1a6b97cbe38b05a82",
+      "bytes": 5765,
+      "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/INSTRUCTION-PROJECTION.json",
+      "blob": "b3954b6ade7d6eaedde0a4284e95694cf9abbd4c",
+      "bytes": 2542,
+      "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/os-instruction-fence.mjs",
+      "blob": "71baaf76ac8097454dc27b147793b198eb5ea121",
+      "bytes": 6239,
+      "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+      "blob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+      "bytes": 7580,
+      "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/OS-INSTRUCTION-FENCE.json",
+      "blob": "28ef6498c599fa37f1293532453470b842eea15e",
+      "bytes": 1845,
+      "sha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs",
+      "blob": "7c5ab250fcc41b71cad174599963242caf278e83",
+      "bytes": 16268,
+      "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+      "blob": "5836669cb9ef9929977ad2b05c6fb5091c92e293",
+      "bytes": 2520,
+      "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/historical-eligibility.mjs",
+      "blob": "cad94592a8c3055dea19849be756196f8d47f809",
+      "bytes": 5849,
+      "sha256": "6bc19d6a295e10015f704f93c7db41ecb7e353fb225e1687b10810518657abfd"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/ELIGIBILITY.json",
+      "blob": "001658dfa99fb10f6b5155d9123a9319b1ab1a86",
+      "bytes": 2578,
+      "sha256": "5de77275a43cde764bdae2e8735c26acec052a88bf37ab1173e1203657dbf513"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/maintained-prerequisites.mjs",
+      "blob": "a1aae6104a285b999678d2949488c33e9ef0b873",
+      "bytes": 10438,
+      "sha256": "80f0f911d831de243836e5d42c747a25c0d2b6b3cd2babf22eab36a22a87fdd4"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "blob": "0abb7adb6acf9d9fc0271895d8e8e6e2ffdfe054",
+      "bytes": 4603,
+      "sha256": "602a866e3c251ff23d6922e5ed776651cd5cb0dbacd554b9c9c65583af6dafc9"
+    }
+  ],
+  "sourceStatus": "AUTHOR_SYNTHETIC_CONTROLS_PASS_PENDING_DIFFERENT_REVIEW",
+  "fullGateLaunched": false
+}

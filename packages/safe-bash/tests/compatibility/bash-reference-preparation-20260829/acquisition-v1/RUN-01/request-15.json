@@ -1,0 +1,21 @@
+{
+  "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-007",
+  "name": "bash53-007",
+  "maxBytes": 65536,
+  "role": "OPAQUE_SOURCE",
+  "startedAt": "2026-08-29T04:42:41.014Z",
+  "bytes": 1437,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+    "last-modified": "Wed, 26 Nov 2025 17:38:08 GMT",
+    "etag": "\"59d-64482dc10d5c0\"",
+    "content-length": "1437",
+    "content-type": null,
+    "location": null
+  },
+  "sha256": "c0976bbfffa1453c7cfdd62058f206a318568ff2d690f5d4fa048793fa3eb299",
+  "path": "downloads/bash53-007.data",
+  "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+  "endedAt": "2026-08-29T04:42:41.061Z"
+}

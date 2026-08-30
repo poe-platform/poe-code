@@ -1,0 +1,157 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const owned = dirname(fileURLToPath(import.meta.url));
+const root = resolve(owned, "../../..");
+const candidate = process.argv[2];
+const label = process.argv[3];
+assert.match(candidate ?? "", /^[a-f0-9]{40}$/u, "explicit full committed candidate required");
+assert.match(label ?? "", /^[a-zA-Z0-9-]+$/u, "unique capture label required");
+const accepted = "ea409a6b49d5c1523e3238f0384048218b559c4c";
+const tests = ["tests/shell-stress/env-split-author/resume-host.ts", "tests/shell/errexit-host.test.ts", "tests/shell/expanded-gaps-env-host.test.ts"];
+const product = ["src", "package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"];
+const output = join(owned, label);
+assert.equal(existsSync(output), false, "capture must never replace evidence");
+mkdirSync(output);
+const scratch = join(owned, ".scratch", label);
+assert.equal(existsSync(scratch), false);
+mkdirSync(scratch, { recursive: true });
+const source = join(scratch, "source");
+mkdirSync(source);
+mkdirSync(join(scratch, "tmp"));
+const digest = bytes => createHash("sha256").update(bytes).digest("hex");
+const git = (...args) => {
+  const result = spawnSync("git", args, { cwd: root, maxBuffer: 64 * 1024 * 1024, timeout: 30000 });
+  assert.equal(result.status, 0, String(result.stderr));
+  return result.stdout;
+};
+assert.equal(git("rev-parse", `${candidate}^{commit}`).toString().trim(), candidate);
+const markerPath = "/tmp/env-eight-migration-author-candidate.txt";
+const marker = readFileSync(markerPath);
+assert.ok(marker.toString().includes(candidate), "candidate must be published in author marker");
+const report = { candidate, accepted, startedAt: new Date().toISOString(), node: process.version, platform: process.platform, arch: process.arch, source, markerSha256: digest(marker), commands: [], inputs: {}, comparisons: {}, cleanup: {} };
+report.environment = { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TMPDIR: join(scratch, "tmp"), TSX_DISABLE_CACHE: "1", NO_COLOR: "1" };
+report.harnessHashes = Object.fromEntries(["run.mjs", "controls.mjs.data", "audit.mjs"].map(name => [name, digest(readFileSync(join(owned, name)))]));
+writeFileSync(join(output, "candidate-marker.txt"), marker);
+writeFileSync(join(output, "candidate.diff"), git("diff", `${candidate}^`, candidate));
+writeFileSync(join(output, "original-to-revised.diff"), git("diff", accepted, candidate, "--", ...tests));
+writeFileSync(join(output, "product-drift.diff"), git("diff", accepted, candidate, "--", ...product));
+const archive = git("archive", "--format=tar", candidate, ...product, ...tests);
+report.archiveSha256 = digest(archive);
+const extraction = spawnSync("tar", ["-xf", "-", "-C", source], { input: archive, timeout: 30000 });
+assert.equal(extraction.status, 0, String(extraction.stderr));
+symlinkSync(join(root, "node_modules"), join(source, "node_modules"), "dir");
+writeFileSync(join(source, "controls.mjs"), readFileSync(join(owned, "controls.mjs.data")));
+
+function census(directory, prefix = "") {
+  const result = {};
+  for (const name of readdirSync(directory).sort()) {
+    const key = prefix ? `${prefix}/${name}` : name;
+    if (key === "node_modules" || key === "dist") continue;
+    const path = join(directory, name);
+    const stat = lstatSync(path);
+    assert.equal(stat.isSymbolicLink(), false, `unexpected symlink ${key}`);
+    if (stat.isDirectory()) { result[`${key}/`] = "directory"; Object.assign(result, census(path, key)); }
+    else { assert.ok(stat.isFile()); result[key] = digest(readFileSync(path)); }
+  }
+  return result;
+}
+function absent(pid) {
+  try { process.kill(-pid, 0); return false; }
+  catch (error) { if (error.code === "ESRCH") return true; throw error; }
+}
+async function command(name, args, expected = 0, timeout = 60000) {
+  const receipt = { name, executable: process.execPath, args, cwd: source, expected, startedAt: new Date().toISOString(), timeoutMs: timeout, timeout: false, overflow: false };
+  const child = spawn(process.execPath, args, { cwd: source, env: report.environment, detached: true, stdio: ["ignore", "pipe", "pipe"] });
+  receipt.pid = child.pid;
+  const stdout = [];
+  const stderr = [];
+  let size = 0;
+  const kill = () => { try { process.kill(-child.pid, "SIGKILL"); } catch (error) { if (error.code !== "ESRCH") throw error; } };
+  const timer = setTimeout(() => { receipt.timeout = true; kill(); }, timeout);
+  for (const [stream, chunks] of [[child.stdout, stdout], [child.stderr, stderr]]) stream.on("data", bytes => {
+    size += bytes.length;
+    if (size > 4 * 1024 * 1024) { receipt.overflow = true; kill(); }
+    else chunks.push(bytes);
+  });
+  await new Promise((resolveDone, reject) => {
+    child.on("error", reject);
+    child.on("close", (status, signal) => { receipt.status = status; receipt.signal = signal; resolveDone(); });
+  }).finally(() => clearTimeout(timer));
+  receipt.finishedAt = new Date().toISOString();
+  receipt.groupAbsent = absent(child.pid);
+  if (!receipt.groupAbsent) { kill(); await new Promise(resolveDone => setTimeout(resolveDone, 100)); receipt.groupAbsent = absent(child.pid); }
+  const out = Buffer.concat(stdout);
+  const err = Buffer.concat(stderr);
+  writeFileSync(join(output, `${name}.stdout`), out);
+  writeFileSync(join(output, `${name}.stderr`), err);
+  receipt.stdoutSha256 = digest(out);
+  receipt.stderrSha256 = digest(err);
+  receipt.counts = Object.fromEntries([...out.toString().matchAll(/^# (tests|pass|fail|cancelled|skipped|todo) (\d+)$/gmu)].map(match => [match[1], Number(match[2])]));
+  receipt.failures = [...out.toString().matchAll(/^not ok \d+ - (.+)$/gmu)].map(match => match[1]);
+  report.commands.push(receipt);
+  writeFileSync(join(output, "report.json"), JSON.stringify(report, null, 2) + "\n");
+  assert.equal(receipt.timeout, false, `${name} timed out`);
+  assert.equal(receipt.overflow, false, `${name} output exceeded cap`);
+  assert.equal(receipt.groupAbsent, true, `${name} leaked process group`);
+  assert.equal(receipt.status, expected, `${name}: unexpected status; inspect retained output`);
+  return receipt;
+}
+
+try {
+  const committedPaths = git("ls-tree", "-r", "--name-only", candidate, "--", ...product, ...tests).toString().trim().split("\n");
+  for (const path of committedPaths) {
+    const expected = digest(git("show", `${candidate}:${path}`));
+    assert.equal(digest(readFileSync(join(source, path))), expected);
+    report.inputs[path] = expected;
+  }
+  report.toolVersions = Object.fromEntries(["typescript", "tsx", "@types/node"].map(name => [name, JSON.parse(readFileSync(join(root, "node_modules", name, "package.json"))).version]));
+  report.toolHashes = Object.fromEntries(["typescript/lib/tsc.js", "typescript/lib/_tsc.js", "typescript/lib/typescript.js", "tsx/dist/loader.mjs", "esbuild/lib/main.js", "@esbuild/darwin-arm64/bin/esbuild"].map(name => [name, digest(readFileSync(join(root, "node_modules", name)))]));
+  const revisedBefore = census(source);
+  await command("build", ["node_modules/typescript/bin/tsc", "-p", "tsconfig.build.json"]);
+  const builtBefore = census(join(source, "dist"));
+  await command("revised-errexit", ["--unhandled-rejections=strict", "--import", "tsx", "--test", tests[1]]);
+  await command("revised-expanded", ["--unhandled-rejections=strict", "--import", "tsx", "--test", tests[2]]);
+  await command("revised-core", ["--unhandled-rejections=strict", "--import", "tsx", tests[0], "literal-single-optional-argument"]);
+  await command("scoped-types", ["node_modules/typescript/bin/tsc", "--noEmit", "--target", "ES2023", "--lib", "ES2023", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--verbatimModuleSyntax", "--forceConsistentCasingInFileNames", "--skipLibCheck", "--types", "node", ...tests]);
+  assert.deepEqual(census(source), revisedBefore);
+  report.comparisons.revisedFullTreeStable = true;
+  for (const path of tests) writeFileSync(join(source, path), git("show", `${accepted}:${path}`));
+  const originalBefore = census(source);
+  report.originalInputs = Object.fromEntries(tests.map(path => [path, digest(readFileSync(join(source, path)))]));
+  await command("original-errexit", ["--unhandled-rejections=strict", "--import", "tsx", "--test", tests[1]], 1);
+  await command("original-expanded", ["--unhandled-rejections=strict", "--import", "tsx", "--test", tests[2]], 1);
+  await command("original-core", ["--unhandled-rejections=strict", "--import", "tsx", tests[0], "literal-single-optional-argument"], 1);
+  assert.deepEqual(census(source), originalBefore);
+  report.comparisons.originalFullTreeStable = true;
+  for (const path of tests) writeFileSync(join(source, path), git("show", `${candidate}:${path}`));
+  assert.deepEqual(census(source), revisedBefore);
+  await command("independent-controls", ["--unhandled-rejections=strict", "controls.mjs"]);
+  assert.deepEqual(census(source), revisedBefore);
+  report.comparisons.finalFullTreeStable = true;
+  report.census = revisedBefore;
+  report.comparisons.onlyOriginalTestReplacements = Object.keys(revisedBefore).filter(path => revisedBefore[path] !== originalBefore[path]);
+  assert.deepEqual(report.comparisons.onlyOriginalTestReplacements.sort(), [...tests].sort());
+  assert.deepEqual(census(join(source, "dist")), builtBefore);
+  report.builtCensus = builtBefore;
+  report.comparisons.builtTreeStable = true;
+  const finalMarker = readFileSync(markerPath);
+  assert.ok(finalMarker.toString().includes(candidate), "published candidate binding changed");
+  report.finalMarkerSha256 = digest(finalMarker);
+  writeFileSync(join(output, "candidate-marker-after.txt"), finalMarker);
+  report.success = true;
+} catch (error) {
+  report.success = false;
+  report.error = { name: error.name, message: error.message, stack: error.stack };
+  process.exitCode = 1;
+} finally {
+  rmSync(scratch, { recursive: true, force: true });
+  report.cleanup = { scratchRemoved: !existsSync(scratch), allOwnedGroupsAbsent: report.commands.every(receipt => absent(receipt.pid)) };
+  report.finishedAt = new Date().toISOString();
+  writeFileSync(join(output, "report.json"), JSON.stringify(report, null, 2) + "\n");
+  console.log(JSON.stringify({ candidate, success: report.success, output: relative(root, output), commands: report.commands.map(({ name, status, counts }) => ({ name, status, counts })), cleanup: report.cleanup }, null, 2));
+}

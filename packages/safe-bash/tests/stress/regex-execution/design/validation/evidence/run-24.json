@@ -1,0 +1,91 @@
+{
+  "args": [
+    "raw",
+    "empty-advance"
+  ],
+  "pid": 69630,
+  "readyAt": 42.37812499999973,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 66.12654100000009
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 67.9079999999999
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 67.91270799999984
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "empty-advance",
+        "pass": true,
+        "direct": {
+          "hits": [
+            [
+              {
+                "pattern": 0,
+                "start": 0,
+                "end": 0,
+                "captures": [
+                  ""
+                ]
+              },
+              {
+                "pattern": 0,
+                "start": 2,
+                "end": 2,
+                "captures": [
+                  ""
+                ]
+              }
+            ]
+          ],
+          "bytes": 99,
+          "execCalls": 2
+        },
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 4,
+          "responseBytes": 99,
+          "startupMs": 20.972332999999995,
+          "workMs": 0.24791599999999647,
+          "terminationMs": 0.8653339999999972,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 462,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

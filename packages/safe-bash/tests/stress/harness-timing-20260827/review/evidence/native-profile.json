@@ -1,0 +1,90 @@
+{
+  "name": "native-profile",
+  "command": "rg",
+  "args": [
+    "--version"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/harness-timing-20260827/review/",
+  "startedAtOffset": 282.431083,
+  "durationMs": 23.90462500000001,
+  "pid": 90495,
+  "code": 0,
+  "signal": null,
+  "failures": [],
+  "exitSeen": true,
+  "closeSeen": true,
+  "streamDestroyed": {
+    "stdin": true,
+    "stdout": true,
+    "stderr": true
+  },
+  "ownedListenersRemaining": 0,
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.07866699999999582,
+      "command": "rg",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/harness-timing-20260827/review/",
+      "timeoutMs": 5000,
+      "dueMs": 5000,
+      "loadavg": [
+        4.41259765625,
+        6.22998046875,
+        6.8876953125
+      ]
+    },
+    {
+      "event": "spawn",
+      "ms": 2.210916999999995,
+      "pid": 90495,
+      "notApplicationReadiness": true
+    },
+    {
+      "event": "stdin-close",
+      "ms": 2.4178329999999733
+    },
+    {
+      "event": "first-byte",
+      "ms": 23.167250000000024,
+      "stream": "stdout"
+    },
+    {
+      "event": "stdout-data",
+      "ms": 23.172708,
+      "bytes": 134
+    },
+    {
+      "event": "stdout-end",
+      "ms": 23.446874999999977
+    },
+    {
+      "event": "stderr-end",
+      "ms": 23.608749999999986
+    },
+    {
+      "event": "exit",
+      "ms": 23.662041999999985,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "stderr-close",
+      "ms": 23.795166999999992
+    },
+    {
+      "event": "close",
+      "ms": 23.81383299999999,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "stdout-close",
+      "ms": 23.818667000000005
+    }
+  ],
+  "stdout": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+  "stderr": ""
+}

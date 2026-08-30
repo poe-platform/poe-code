@@ -1,0 +1,24 @@
+{
+  "seal": {
+    "commit": "5687fe0afe36749a9ec6527357acbb2eec518e4f",
+    "manifestSha256": "420da89268b544b466dda8aa3cc214dab668338233e557b3efe45dee84b6ccd7"
+  },
+  "files": [
+    {
+      "path": "events.jsonl",
+      "mode": 420,
+      "type": "file",
+      "bytes": 7374,
+      "sha256": "f359f77a479908d09ec840fb0ef1176d5522e1af450fef0dff92ff764a76c333"
+    },
+    {
+      "path": "RESULT.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 4317,
+      "sha256": "6c7eb1fa420cab84fd23aa48b51d1231c01dfccc45a030ed72269db0de041b3b"
+    }
+  ],
+  "manifestExcludesOnlySelf": true,
+  "postDetectsNewEntries": true
+}

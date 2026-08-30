@@ -1,0 +1,26 @@
+{
+  "at": "2026-08-29T13:57:41.742Z",
+  "files": [
+    {
+      "path": "owner.mjs",
+      "bytes": 6570,
+      "sha256": "77fdf146c686cd3dd2b72c5c02e076bb94dc92f2d2670e9d47cfc48249d7c932"
+    },
+    {
+      "path": "audit.mjs",
+      "bytes": 15225,
+      "sha256": "aaac13b31f9757aa8be246344eafaaeae9aa8426cc68c5d734d37ea911385c86"
+    },
+    {
+      "path": "ROLE-PLAN.json",
+      "bytes": 853,
+      "sha256": "f22eae36b6299996710a63fcb89a867ac004a715af1086b17565bc781c83627c"
+    }
+  ],
+  "packet": {
+    "bytes": 23330,
+    "sha256": "01402a8cba3669130b9f441a04bca017bad67f8c33b2791e669da3e62db97a6e"
+  },
+  "boundary": "prospective source/DATA identity and sole slot only; author peak3/2 HOLD remains; no actual authority",
+  "controls": 4
+}

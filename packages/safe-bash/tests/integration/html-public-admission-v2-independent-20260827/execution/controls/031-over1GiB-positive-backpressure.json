@@ -1,0 +1,13 @@
+{
+  "name": "over1GiB-positive-backpressure",
+  "expectedBoundary": "positive",
+  "started": "2026-08-27T22:49:13.946Z",
+  "error": {
+    "name": "AssertionError",
+    "message": "The expression evaluated to a falsy value:\n\n  assert.ok(result.maxRssBytes < 256 * 1024 ** 2)\n",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(result.maxRssBytes < 256 * 1024 ** 2)\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:81:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:73:1"
+  },
+  "status": "fail",
+  "finished": "2026-08-27T22:49:14.529Z"
+}

@@ -1,0 +1,354 @@
+{
+  "request": {
+    "id": "synthetic/breadth-wrong-vfs",
+    "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+    "profile": "breadth",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "wrong-vfs",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "specimen": {
+      "id": "synthetic/breadth-wrong-vfs",
+      "name": "synthetic-only",
+      "cohort": "shared-control",
+      "files": {},
+      "symlinks": {},
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "AH+A/w==",
+        "stderrBase64": "",
+        "files": {
+          "binary": {
+            "base64": "AH+A/w=="
+          }
+        },
+        "absent": [],
+        "preserveInputs": true
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/breadth-wrong-vfs",
+    "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+    "synthetic": true,
+    "profile": "breadth",
+    "engine": "synthetic-not-product",
+    "failures": [],
+    "events": [
+      {
+        "atMs": 0.373,
+        "kind": "group-admitted",
+        "pid": 71252,
+        "pgid": 71252,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 42.642,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "engine-spawn",
+        "pid": 71253,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 93.67,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1493.667958
+      },
+      {
+        "atMs": 93.673,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "ready"
+      },
+      {
+        "atMs": 94.33,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 94.38,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 94.548,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 94.632,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 94.938,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 95.207,
+        "kind": "result-received",
+        "sha256": "a1797983d5e7bceccca6e0060a09eb53a2f836ac55c4436449de597fc6599198",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 97.104,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "engine-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 97.132,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "engine-close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 97.187,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 97.205,
+        "id": "synthetic/breadth-wrong-vfs",
+        "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 99.287,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 99.29,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": {
+      "id": "synthetic/breadth-wrong-vfs",
+      "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+      "kind": "result",
+      "report": {
+        "engine": "ours",
+        "captureErrors": [],
+        "before": {
+          "complete": true,
+          "entries": []
+        },
+        "after": {
+          "complete": true,
+          "entries": []
+        },
+        "result": {
+          "exitCode": 0,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "",
+          "stdout": "\u0000��",
+          "stderr": ""
+        },
+        "cleanup": {
+          "completion": "returned"
+        }
+      }
+    },
+    "engineExit": {
+      "code": 0,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": true,
+    "groupGone": true,
+    "coordinatorPid": 71252,
+    "enginePid": 71253,
+    "network": {
+      "id": "synthetic/breadth-wrong-vfs",
+      "nonce": "bcf074b8-2bbd-482b-ae6f-1d01143050c4",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 104.694,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1493.668,
+      "natural": 275.185
+    },
+    "hostBytes": 0,
+    "reportBytes": 2032,
+    "wireCapture": {
+      "receivedBytes": 2032,
+      "receivedSha256": "6cd5b4546fd1a9d17c4f73ea4d8ed0d8d92392e5a07fdf84d693070cabd2024b",
+      "prefixBase64": "AAABj3siaWQiOiJzeW50aGV0aWMvYnJlYWR0aC13cm9uZy12ZnMiLCJub25jZSI6ImJjZjA3NGI4LTJiYmQtNDgyYi1hZTZmLTFkMDExNDMwNTBjNCIsImtpbmQiOiJlbmdpbmUtc3Bhd24iLCJwaWQiOjcxMjUzLCJhcmd2IjpbIi9Vc2Vycy9ram9wZWsvLm52bS92ZXJzaW9ucy9ub2RlL3YyMi4yMi4yL2Jpbi9ub2RlIiwiLS11bmhhbmRsZWQtcmVqZWN0aW9ucz1zdHJpY3QiLCItLWV4cGVyaW1lbnRhbC1pbXBvcnQtbWV0YS1yZXNvbHZlIiwiLS1tYXgtb2xkLXNwYWNlLXNpemU9MTI4IiwiL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL2JlbmNobWFya3MvcmVwb3J0cy9jdXJyZW50LWNvbXBhcmlzb24tMjAyNjA4MjcvZXhlY3V0aW9uL2VuZ2luZS1jaGlsZC5tanMiLCItLXN5bnRoZXRpYyJdfQAAAGJ7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJiY2YwNzRiOC0yYmJkLTQ4MmItYWU2Zi0xZDAxMTQzMDUwYzQiLCJraW5kIjoicmVhZHkifQAAAHd7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJiY2YwNzRiOC0yYmJkLTQ4MmItYWU2Zi0xZDAxMTQzMDUwYzQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAHl7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJiY2YwNzRiOC0yYmJkLTQ4MmItYWU2Zi0xZDAxMTQzMDUwYzQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc2V0dGxlZCJ9AAAAfnsiaWQiOiJzeW50aGV0aWMvYnJlYWR0aC13cm9uZy12ZnMiLCJub25jZSI6ImJjZjA3NGI4LTJiYmQtNDgyYi1hZTZmLTFkMDExNDMwNTBjNCIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoic25hcHNob3QtY29tcGxldGUifQAAAHp7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJiY2YwNzRiOC0yYmJkLTQ4MmItYWU2Zi0xZDAxMTQzMDUwYzQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAHx7ImlkIjoic3ludGhldGljL2JyZWFkdGgtd3JvbmctdmZzIiwibm9uY2UiOiJiY2YwNzRiOC0yYmJkLTQ4MmItYWU2Zi0xZDAxMTQzMDUwYzQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc2V0dGxlZCJ9AAABbXsiaWQiOiJzeW50aGV0aWMvYnJlYWR0aC13cm9uZy12ZnMiLCJub25jZSI6ImJjZjA3NGI4LTJiYmQtNDgyYi1hZTZmLTFkMDExNDMwNTBjNCIsImtpbmQiOiJyZXN1bHQiLCJyZXBvcnQiOnsiZW5naW5lIjoib3VycyIsImNhcHR1cmVFcnJvcnMiOltdLCJiZWZvcmUiOnsiY29tcGxldGUiOnRydWUsImVudHJpZXMiOltdfSwiYWZ0ZXIiOnsiY29tcGxldGUiOnRydWUsImVudHJpZXMiOltdfSwicmVzdWx0Ijp7ImV4aXRDb2RlIjowLCJzdGRvdXRCYXNlNjQiOiJBSCtBL3c9PSIsInN0ZGVyckJhc2U2NCI6IiIsInN0ZG91dCI6Ilx1MDAwMH/vv73vv70iLCJzdGRlcnIiOiIifSwiY2xlYW51cCI6eyJjb21wbGV0aW9uIjoicmV0dXJuZWQifX19AAAAf3siaWQiOiJzeW50aGV0aWMvYnJlYWR0aC13cm9uZy12ZnMiLCJub25jZSI6ImJjZjA3NGI4LTJiYmQtNDgyYi1hZTZmLTFkMDExNDMwNTBjNCIsImtpbmQiOiJlbmdpbmUtZXhpdCIsImNvZGUiOjAsInNpZ25hbCI6bnVsbH0AAACAeyJpZCI6InN5bnRoZXRpYy9icmVhZHRoLXdyb25nLXZmcyIsIm5vbmNlIjoiYmNmMDc0YjgtMmJiZC00ODJiLWFlNmYtMWQwMTE0MzA1MGM0Iiwia2luZCI6ImVuZ2luZS1jbG9zZSIsImNvZGUiOjAsInNpZ25hbCI6bnVsbH0AAACSeyJpZCI6InN5bnRoZXRpYy9icmVhZHRoLXdyb25nLXZmcyIsIm5vbmNlIjoiYmNmMDc0YjgtMmJiZC00ODJiLWFlNmYtMWQwMTE0MzA1MGM0Iiwia2luZCI6ImZpeHR1cmUtY2xvc2UiLCJjbG9zZWQiOnRydWUsInNvY2tldHMiOjAsInJlcXVlc3RzIjpbXX0AAABteyJpZCI6InN5bnRoZXRpYy9icmVhZHRoLXdyb25nLXZmcyIsIm5vbmNlIjoiYmNmMDc0YjgtMmJiZC00ODJiLWFlNmYtMWQwMTE0MzA1MGM0Iiwia2luZCI6InNlc3Npb24tY29tcGxldGUifQ==",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "breadth-wrong-vfs",
+    "passed": true,
+    "assessment": {
+      "historical": {
+        "classification": "partial-functionality",
+        "operationalCredit": false,
+        "expectationSatisfied": false,
+        "failures": [
+          "file exists: binary",
+          "file bytes: binary"
+        ],
+        "checks": [
+          {
+            "label": "complete before/after VFS census",
+            "passes": true,
+            "detail": null
+          },
+          {
+            "label": "exit status",
+            "passes": true,
+            "detail": {
+              "expected": 0,
+              "actual": 0
+            }
+          },
+          {
+            "label": "stdoutBase64",
+            "passes": true,
+            "detail": {
+              "expected": "AH+A/w==",
+              "actual": "AH+A/w=="
+            }
+          },
+          {
+            "label": "stderrBase64",
+            "passes": true,
+            "detail": {
+              "expected": "",
+              "actual": ""
+            }
+          },
+          {
+            "label": "file exists: binary",
+            "passes": false,
+            "detail": null
+          },
+          {
+            "label": "file bytes: binary",
+            "passes": false,
+            "detail": null
+          }
+        ],
+        "effects": [],
+        "fixtureState": [],
+        "rawStatus": 0,
+        "rawStdoutBase64": "AH+A/w==",
+        "rawStderrBase64": ""
+      },
+      "lifecycle": true,
+      "cleanupError": false,
+      "operationalCredit": false,
+      "status": "partial-functionality"
+    },
+    "elapsedMs": 104.694,
+    "groupGone": true,
+    "signals": [],
+    "raw": "attempt-026-breadth-wrong-vfs.json"
+  }
+}

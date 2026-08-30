@@ -1,0 +1,57 @@
+{
+  "verdict": "FINITE DATA HOLD — incomplete independent trace/lifecycle and mutant binding interpretation",
+  "rawReviewReceipt": "REVIEW-RECEIPT.json",
+  "rawReviewReceiptSha256": "fcb769117c9d06335d0da8e49fb4a401e4910145eca510e2f1b015c6b4edffe4",
+  "rawReviewReceiptBytes": 46426,
+  "completed": {
+    "payloadsReauthenticated": 196,
+    "payloadBytes": 10155453,
+    "semanticCheckGroupsPassed": 6,
+    "semanticCheckGroupsNotDischarged": 2,
+    "tamperControlsRejected": 4,
+    "retainedPassRecords": 672,
+    "typeProcesses": 6,
+    "diagnosticsComparedToRecordedClassification": 24,
+    "mutantFailureRuns": 7,
+    "restorePassRuns": 7,
+    "bindingNegativeRuns": 2,
+    "childExitCloseClassificationPairs": 41,
+    "childStdoutBytes": 304439,
+    "childStderrBytes": 39891,
+    "childCombinedBytes": 344330,
+    "layoutInventoriesCompared": 3,
+    "membersPerInventory": 1014,
+    "identityReceiptLinks": 196
+  },
+  "blockingReviewerInterpretation": [
+    "The loader selector counted every .jsonl payload (35), rather than selecting only the 34 loader traces from explicit manifest paths. This does not establish an extra loader.",
+    "The lifecycle selector assumed .json files directly under children and did not locate the raw lifecycle ledger. This does not establish missing exit/close events.",
+    "Exact mutant defect expectations and changed/restored path-hash pairing remain incomplete, despite observed failed-mutant/passed-restore outcomes.",
+    "Packet content, installer/umask derivation, and exact unused-binding refusal expectations were not fully independently reinterpreted."
+  ],
+  "syntaxHistory": {
+    "originalDuplicateIdentifierHOLD": "1d5f5cc8d97137fbf34aa653b91d7d30346b3577 unchanged",
+    "duplicateBindingRenamed": true,
+    "additionalPreexistingMissingBraceFoundAndRepaired": true,
+    "semanticExpectationsChanged": false,
+    "syntaxChecks": 2,
+    "syntaxCheckQualification": "Two checks were used, one beyond the requested optional one; both are counted in the 14 known starts. First failure retained."
+  },
+  "currentInvocationResources": {
+    "knownOSStartsIncludingPublication": 14,
+    "maximumKnownOSStarts": 14,
+    "conservativePeak": 3,
+    "semanticHelperInvocations": 1,
+    "syntaxChecks": 2,
+    "captureCapBytes": 16777216,
+    "logicalWorkCapBytes": 100663296,
+    "publicationReserveBytes": 16777216,
+    "qualification": "Raw helper receipt retains inherited previous-grant resource labels; this companion gives current invocation accounting. No payload/archive copies other than bounded DATA memory and metadata captures. Not an OS/RSS/Git physical quota proof."
+  },
+  "scope": "Historical309-input/1014-member B2r9 only; no final1070/new-local-a transfer",
+  "productDefectInferred": false,
+  "noProductReplayOrCompilerOrWorkerOrLoaderOrNpmOrInstall": true,
+  "authorEvidenceAndAllPriorFailuresUnchanged": true,
+  "retirementQualification": "Recorded parent exit/close pairs checked; raw ledger and 34 loader/8025 record proof incomplete; individual loader exits remain UNOBSERVED",
+  "runtimeAccountingQualification": "49 author conservative known roles is not a full census; cache remains best-effort non-atomic and not peak quota"
+}

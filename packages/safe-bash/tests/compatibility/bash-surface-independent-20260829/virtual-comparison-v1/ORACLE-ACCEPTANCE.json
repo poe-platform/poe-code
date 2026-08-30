@@ -1,0 +1,12 @@
+{
+  "schema": "root-routed-qualified-oracle-acceptance-v1",
+  "reviewCommit": "3afa86d9d43d47a6dbc755feb86f3916d91c935a",
+  "reportPath": "tests/compatibility/bash-functional-observations-review-20260829/REPORT.md",
+  "reportBytes": 9626,
+  "reportSha256": "54e1bb9730a1a55b6ccbdcfcf59d60e6d23a383fcccbfeeea7094bddc4c84756",
+  "authority": "User ROOT coordination message; qualified Bash3.2.57 oracle only",
+  "supersedesOnly": "Pending native artifact audit disposition, not original snapshot bytes, source acceptance or runtime grant",
+  "rawMatrixUnchanged": true,
+  "sourceCandidateDisposition": "Pending ROOT; no product/build GO",
+  "newRuntimeCalls": 0
+}

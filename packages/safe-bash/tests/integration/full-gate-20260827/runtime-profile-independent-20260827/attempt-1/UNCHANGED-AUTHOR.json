@@ -1,0 +1,241 @@
+{
+  "controls": [
+    "installed Node24 version/path/hash identity matches explicit profile",
+    "unchanged guard plus tsx and TypeScript CJS succeeds",
+    "direct-exec and PATH child versions/paths match selected Node24 despite legacy-first input PATH",
+    "historical Node22.22.2 interop refuses78 with original null-source diagnosis",
+    "actual legacy gate CLI refuses78 before output/archive/suite creation",
+    "changed critical source assertion still rejects",
+    "missing critical source rejects",
+    "byte-authenticated local importer cannot load an outside overlay",
+    "disabled authentication guard refuses before feature probe",
+    "unchanged guard refuses compiled-source fallback",
+    "unqualified CJS tool bytes refuse before probe"
+  ],
+  "probes": {
+    "positive": {
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "status": 0,
+      "productExecutions": 0,
+      "suiteLaunched": false,
+      "probe": {
+        "status": 0,
+        "signal": null,
+        "stdout": "{\"self\":{\"version\":\"v24.11.1\",\"execPath\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"platform\":\"darwin\",\"arch\":\"arm64\"},\"direct\":{\"version\":\"v24.11.1\",\"execPath\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"platform\":\"darwin\",\"arch\":\"arm64\"},\"byPath\":{\"version\":\"v24.11.1\",\"execPath\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"platform\":\"darwin\",\"arch\":\"arm64\"},\"typescript\":\"5.9.3\"}\n",
+        "stderr": ""
+      },
+      "guard": {
+        "path": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-positive/import-guard.mjs",
+        "sha256": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114"
+      },
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/opt/homebrew/bin:/usr/bin:/bin",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TSX_DISABLE_CACHE": "1",
+        "FULL_GATE_ROOT": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned",
+        "FULL_GATE_SOURCE": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source",
+        "FULL_GATE_EXPECTED": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-positive/runtime-probe-expected.json",
+        "FULL_GATE_TOOL_ROOTS": "[]",
+        "FULL_GATE_IMPORTS": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-positive/runtime-probe-imports",
+        "NODE_OPTIONS": "--import=file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-positive/import-guard.mjs"
+      },
+      "childIdentities": {
+        "self": {
+          "version": "v24.11.1",
+          "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "platform": "darwin",
+          "arch": "arm64"
+        },
+        "direct": {
+          "version": "v24.11.1",
+          "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "platform": "darwin",
+          "arch": "arm64"
+        },
+        "byPath": {
+          "version": "v24.11.1",
+          "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "platform": "darwin",
+          "arch": "arm64"
+        },
+        "typescript": "5.9.3"
+      },
+      "runtime": {
+        "profile": "guarded-gate-node24.11.1-darwin-arm64",
+        "requested": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "supported": true,
+        "refusalStatus": 78,
+        "identity": {
+          "version": "v24.11.1",
+          "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "platform": "darwin",
+          "arch": "arm64",
+          "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+        }
+      },
+      "scope": "Guarded loader interoperability plus default PATH/direct-exec child identities, not affected test-body acceptance or all nested absolute-executable tracing"
+    },
+    "legacy22": {
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "status": 78,
+      "productExecutions": 0,
+      "suiteLaunched": false,
+      "probe": {
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:internal/modules/customization_hooks:280\n    throw new ERR_INVALID_RETURN_PROPERTY_VALUE(\n          ^\n\nTypeError [ERR_INVALID_RETURN_PROPERTY_VALUE]: Expected a string, an ArrayBuffer, or a TypedArray to be returned for the \"source\" from the \"load\" hook but got null.\n    at validateLoad (node:internal/modules/customization_hooks:280:11)\n    at nextStep (node:internal/modules/customization_hooks:194:14)\n    at load (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-legacy22/import-guard.mjs:40:20)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at loadWithHooks (node:internal/modules/customization_hooks:352:18)\n    at #loadSync (node:internal/modules/esm/loader:849:14)\n    at ModuleLoader.load (node:internal/modules/esm/loader:808:28)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34) {\n  code: 'ERR_INVALID_RETURN_PROPERTY_VALUE'\n}\n\nNode.js v22.22.2\n"
+      },
+      "guard": {
+        "path": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-legacy22/import-guard.mjs",
+        "sha256": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114"
+      },
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TSX_DISABLE_CACHE": "1",
+        "FULL_GATE_ROOT": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned",
+        "FULL_GATE_SOURCE": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source",
+        "FULL_GATE_EXPECTED": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-legacy22/runtime-probe-expected.json",
+        "FULL_GATE_TOOL_ROOTS": "[]",
+        "FULL_GATE_IMPORTS": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-legacy22/runtime-probe-imports",
+        "NODE_OPTIONS": "--import=file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-legacy22/import-guard.mjs"
+      },
+      "reason": "Guarded TypeScript/CommonJS feature probe failed\n\n1 !== 0\n"
+    },
+    "wrong-source-hash": {
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "status": 78,
+      "productExecutions": 0,
+      "suiteLaunched": false,
+      "probe": {
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Frozen env source bytes: src/commands/execution.ts\n+ actual - expected\n\n+ '97c445fdf8e20eb784e8ada74e8aa26aef8b73dfbecdccbf19c572c6fb68f57e'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n\n    at check (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-wrong-source-hash/import-guard.mjs:26:24)\n    at resolve (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-wrong-source-hash/import-guard.mjs:31:54)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveBaseSync (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)\n    at resolveDirectorySync (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)\n    at resolveTsPathsSync (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)\n    at resolve (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:417:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:793:14) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '97c445fdf8e20eb784e8ada74e8aa26aef8b73dfbecdccbf19c572c6fb68f57e',\n  expected: '0000000000000000000000000000000000000000000000000000000000000000',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+      },
+      "guard": {
+        "path": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-wrong-source-hash/import-guard.mjs",
+        "sha256": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114"
+      },
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/opt/homebrew/bin:/usr/bin:/bin",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TSX_DISABLE_CACHE": "1",
+        "FULL_GATE_ROOT": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned",
+        "FULL_GATE_SOURCE": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source",
+        "FULL_GATE_EXPECTED": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-wrong-source-hash/runtime-probe-expected.json",
+        "FULL_GATE_TOOL_ROOTS": "[]",
+        "FULL_GATE_IMPORTS": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-wrong-source-hash/runtime-probe-imports",
+        "NODE_OPTIONS": "--import=file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-wrong-source-hash/import-guard.mjs"
+      },
+      "reason": "Guarded TypeScript/CommonJS feature probe failed\n\n1 !== 0\n"
+    },
+    "missing-source": {
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "status": 78,
+      "productExecutions": 0,
+      "suiteLaunched": false,
+      "probe": {
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:internal/modules/esm/resolve:274\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/src/commands/execution.ts' imported from /private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/[eval1]\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\n    at moduleResolve (node:internal/modules/esm/resolve:864:10)\n    at defaultResolve (node:internal/modules/esm/resolve:990:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:737:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:773:38)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolve (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-missing-source/import-guard.mjs:31:20)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveBaseSync (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)\n    at resolveDirectorySync (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/src/commands/execution.ts'\n}\n\nNode.js v24.11.1\n"
+      },
+      "guard": {
+        "path": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-missing-source/import-guard.mjs",
+        "sha256": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114"
+      },
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/opt/homebrew/bin:/usr/bin:/bin",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TSX_DISABLE_CACHE": "1",
+        "FULL_GATE_ROOT": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned",
+        "FULL_GATE_SOURCE": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source",
+        "FULL_GATE_EXPECTED": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-missing-source/runtime-probe-expected.json",
+        "FULL_GATE_TOOL_ROOTS": "[]",
+        "FULL_GATE_IMPORTS": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-missing-source/runtime-probe-imports",
+        "NODE_OPTIONS": "--import=file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-missing-source/import-guard.mjs"
+      },
+      "reason": "Guarded TypeScript/CommonJS feature probe failed\n\n1 !== 0\n"
+    },
+    "outside-overlay": {
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "status": 78,
+      "productExecutions": 0,
+      "suiteLaunched": false,
+      "probe": {
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: FROZEN_IMPORT_OUTSIDE: /private/tmp/safe-bash-runtime-policy-controls-XsQwxn/outside.mjs\n    at check (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-outside-overlay/import-guard.mjs:21:10)\n    at resolve (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-outside-overlay/import-guard.mjs:31:54)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveBaseSync (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)\n    at resolveDirectorySync (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)\n    at resolveTsPathsSync (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)\n    at resolve (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:417:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:793:14) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+      },
+      "guard": {
+        "path": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-outside-overlay/import-guard.mjs",
+        "sha256": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114"
+      },
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/opt/homebrew/bin:/usr/bin:/bin",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "TSX_DISABLE_CACHE": "1",
+        "FULL_GATE_ROOT": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned",
+        "FULL_GATE_SOURCE": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source",
+        "FULL_GATE_EXPECTED": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-outside-overlay/runtime-probe-expected.json",
+        "FULL_GATE_TOOL_ROOTS": "[]",
+        "FULL_GATE_IMPORTS": "/private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-outside-overlay/runtime-probe-imports",
+        "NODE_OPTIONS": "--import=file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-outside-overlay/import-guard.mjs"
+      },
+      "reason": "Guarded TypeScript/CommonJS feature probe failed\n\n1 !== 0\n"
+    },
+    "disabled-guard": {
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "status": 78,
+      "productExecutions": 0,
+      "suiteLaunched": false,
+      "reason": "Authentication guard must remain unchanged\n+ actual - expected\n\n+ '8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881'\n- 'af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114'\n"
+    },
+    "changed-typescript": {
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "status": 78,
+      "productExecutions": 0,
+      "suiteLaunched": false,
+      "reason": "Unqualified TypeScript CJS dependency\n+ actual - expected\n\n+ 'd67e2e944994496c8d8ec76eed0cf9f09679448d584b532bebf941852a37f5ed'\n- '3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675'\n"
+    }
+  },
+  "productExecutions": 0,
+  "privateAccess": false,
+  "wholeGateLaunched": false,
+  "selected": {
+    "profile": "guarded-gate-node24.11.1-darwin-arm64",
+    "requested": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "supported": true,
+    "refusalStatus": 78,
+    "identity": {
+      "version": "v24.11.1",
+      "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "platform": "darwin",
+      "arch": "arm64",
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    }
+  },
+  "legacyCli": {
+    "status": 78,
+    "signal": null,
+    "stdout": "{\"runtime\":{\"profile\":\"guarded-gate-node24.11.1-darwin-arm64\",\"requested\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"supported\":false,\"refusalStatus\":78,\"identity\":{\"version\":\"v22.22.2\",\"execPath\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"platform\":\"darwin\",\"arch\":\"arm64\",\"path\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"sha256\":\"5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011\"},\"reason\":\"Unqualified external gate runtime: version\\n+ actual - expected\\n\\n+ 'v22.22.2'\\n- 'v24.11.1'\\n     ^\\n\"},\"suiteLaunched\":false}\n",
+    "stderr": ""
+  },
+  "compiledFallback": {
+    "status": 1,
+    "stdout": "",
+    "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Frozen env compiled-source fallback: /private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/source/src/commands/execution.js\n    at check (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-positive/import-guard.mjs:23:10)\n    at resolve (file:///private/tmp/safe-bash-runtime-policy-controls-XsQwxn/owned/harness-positive/import-guard.mjs:31:54)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:417:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:793:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:709:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:293:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:664:21) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n"
+  },
+  "status": "author-controls-pass-not-actual-body-acceptance",
+  "temporaryRemoved": true
+}

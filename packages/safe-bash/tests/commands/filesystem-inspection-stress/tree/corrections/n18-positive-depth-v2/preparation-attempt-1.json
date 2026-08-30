@@ -1,0 +1,8 @@
+{
+  "stage": "before-v2-edit",
+  "failure": "Copied v1 helper inherited mode0444. apply_patch could not write the new v2 copy; make-diff.mjs was therefore not created.",
+  "consequence": "The subsequent node test command ran only the existing 31 copied v1 tests. Those passing checks are NOT v2 verification; their TAP is retained separately.",
+  "recovery": "Made only /tmp/safe-bash-tree-n18-v2-f4qnnc/n18-predicate.mjs writable, then reapplied the patch. Original/v1 files and permissions were not changed.",
+  "productExecutions": 0,
+  "nativeOracleExecutions": 0
+}

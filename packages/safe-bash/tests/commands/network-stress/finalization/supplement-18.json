@@ -1,0 +1,2111 @@
+{
+  "schema": 1,
+  "name": "supplement-18",
+  "attempt": 1,
+  "actualExecution": true,
+  "started": "2026-08-26T23:33:14.225Z",
+  "finished": "2026-08-26T23:33:15.086Z",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/commands/network-stress/supplement-v2.ts",
+    "product"
+  ],
+  "environment": {
+    "CURL_VERIFY_AFTER_HANDOFF": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+    "CURL_VERIFY_SOURCE_REVISION": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+    "NODE_OPTIONS": "--unhandled-rejections=strict"
+  },
+  "node": "v22.22.2",
+  "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+  "expectedDigest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4",
+  "before": {
+    "at": "2026-08-26T23:33:14.166Z",
+    "head": "09555d0a993989bbc50cc1a26c93027624f13dca",
+    "status": "M package.json\n M src/index.ts\n M src/plugins/index.ts\n M tests/plugins/agent-commands.test.ts\n M tests/stress/adapters/core.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata/integration.test.ts\n?? tests/commands/network-stress/finalization/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/stress/adapters/s3-truncate-profile.test.ts",
+    "hashes": {
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "package.json": "cd70038d1cb78ff164aa1c6819371d22afbc0c72c5d36c30345d2254602db2c3",
+      "src/commands/README.md": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221",
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/metadata/README.md": "dde25ddd350a0311b4573b8893dc3b8aee8eb4b6f93356fec253e3681d822496",
+      "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "src/commands/metadata/stat.ts": "40a8439bc973eb0984871e43284f150ef6237b3893e0a6fabfa95c2c21be23b7",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+      "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "6469818c00b516a1e041f797b1ea788064db48bc091e323958de7bebaa3b0161",
+      "src/commands/structured/interpreter.ts": "e1fcea692d0775700408e42bbf5f27b527db3d5435e604bf329ebf9d71047b6a",
+      "src/commands/structured/jq.ts": "05605084518711302c70721a9c7e8a9f3ce45bb0f157809cdc8024add6dfbd38",
+      "src/commands/structured/limits.ts": "d0d8dabc84e9397edda5e93b93ab213b68d457b34f440be906833ca4986d6039",
+      "src/commands/structured/numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "src/commands/structured/parser.ts": "4eae60e37c295ef2ef81bddd3778c57153acd5cccccf3d378be854ec6788426a",
+      "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "src/commands/structured/values.ts": "c2dfbab20d72c3f05c80c0efb12f5c3b2739dfffb0ea851bbe3c603010c7a164",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "13d82a1a15d9b86370cd54c904608e8eed37da63e5ce05e754dc6e53f0ff821e",
+      "src/contracts/filesystem.ts": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "src/fs/mount/README.md": "02b79874b82b5de4859ef593b1beeac7481503962997f6a6254b43cb6c7bbfe9",
+      "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+      "src/fs/overlay/README.md": "1797d6e8e510eb5fa8d383f33485cda45f0259fa52831ac72e0cc983709f68da",
+      "src/fs/overlay/index.ts": "e77e44db220023f55b70ad936f19f9bd150d2872f3e3758837929994b2762f28",
+      "src/fs/readonly/README.md": "380f87681b9a504e35a2737e0ecc1f52fce46353465021eb12f3bc80fbcd9ca2",
+      "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+      "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+      "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+      "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "aa50a4a7c25e43e1a7a33005dda53bb4f40b5fcdebc91067c0ccb5977c585004",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "0f715a884709bf4400f9868626b9e7ead32266fee7d3733ee2a5df235574174e",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "dabbb60ffc499a7e64fae8071f12b465b5845e7246510e19da15b406f8481d10",
+      "src/shell/shell.ts": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-policy-stress/README.md": "fd40bde004643e87cfde84e5d2b8f7a3c5b10c02a8432edae1c55235b94ddee8",
+      "tests/commands/network-policy-stress/admission.probe.ts": "5e3552bea65b93a35bbbdc9086b1eeba556140a07fe99e93709058171b327c25",
+      "tests/commands/network-policy-stress/authorization.test.ts": "4df75a1133abd79710cb60cfd8cebf593e0534c718140876c724614456968719",
+      "tests/commands/network-policy-stress/helpers.ts": "0055eb46a8e3dd44740988b4b13e1915a6d7f68f843c012d8f7867bf859a3733",
+      "tests/commands/network-policy-stress/late-policy-child.ts": "75e2a0b00bb1eec35766af363917c1aeb6946efc4bdafaf38835e5f4d7aac355",
+      "tests/commands/network-policy-stress/late-policy.test.ts": "f8707f1c5fe732130bbf43484a0b099bfce886171ab5bf743730bffffb86a707",
+      "tests/commands/network-policy-stress/tsconfig.json": "d1c8e0a84d1aa413aa4169ae6a4be56686b8d273f316f1959e0fa203e0adbb42",
+      "tests/commands/network-policy-stress/url-policy.test.ts": "c44b6e195d647558f4f677eb1ce712afe9058ed6f2fb4130fe8613898e90caee",
+      "tests/commands/network/exports.test.ts": "c57beba90797dc9d216419313ec5ac52efb13f65fe8ec6b3074e5841524aa110",
+      "tests/commands/network/files.test.ts": "25eca877ccb2058a9986765d95cb288bcbd61cb24f0ea40fb5eb47e24d179188",
+      "tests/commands/network/helpers.ts": "226fb52ab7846ca9df99a237ae6240675f2dafbd1a19d0a386c5bb6b5148236d",
+      "tests/commands/network/http.test.ts": "c1a63e5b11da3d4270b446d6e69670d02bc1ab7a3500e16f478074042e759ba6",
+      "tests/commands/network/safety.test.ts": "aca7481eec0f93f4fbaa56e09352ed9cba0240ebe29ce2acafffce6a294dd171",
+      "tests/commands/network/tls.test.ts": "a77ad1f53e8f217c9eecd96bfbcb2a5dee4206efe7a235dc2c6b97d968879d77",
+      "tests/commands/network/tls/cert.pem": "073a4fb398e08fee1a757651f8de94b0e222b45073eb2bf5e0441679f020244d",
+      "tests/commands/network/tls/key.pem": "246b515a17d5940e973f46ffbb94f27e693e6411bc61c14b5467ade21ff9cc08",
+      "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd"
+    },
+    "network": {
+      "at": "2026-08-26T23:33:14.225Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    }
+  },
+  "after": {
+    "at": "2026-08-26T23:33:15.013Z",
+    "head": "435476ddfe6557232ce53888ffa40854481b8fee",
+    "status": "M package.json\n M src/index.ts\n M src/plugins/index.ts\n M tests/plugins/agent-commands.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata/integration.test.ts\n?? tests/commands/network-stress/finalization/\n?? tests/commands/search-stress/.native-1m4O1e/",
+    "hashes": {
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "package.json": "cd70038d1cb78ff164aa1c6819371d22afbc0c72c5d36c30345d2254602db2c3",
+      "src/commands/README.md": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221",
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/metadata/README.md": "dde25ddd350a0311b4573b8893dc3b8aee8eb4b6f93356fec253e3681d822496",
+      "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "src/commands/metadata/stat.ts": "40a8439bc973eb0984871e43284f150ef6237b3893e0a6fabfa95c2c21be23b7",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+      "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "6469818c00b516a1e041f797b1ea788064db48bc091e323958de7bebaa3b0161",
+      "src/commands/structured/interpreter.ts": "e1fcea692d0775700408e42bbf5f27b527db3d5435e604bf329ebf9d71047b6a",
+      "src/commands/structured/jq.ts": "05605084518711302c70721a9c7e8a9f3ce45bb0f157809cdc8024add6dfbd38",
+      "src/commands/structured/limits.ts": "d0d8dabc84e9397edda5e93b93ab213b68d457b34f440be906833ca4986d6039",
+      "src/commands/structured/numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "src/commands/structured/parser.ts": "4eae60e37c295ef2ef81bddd3778c57153acd5cccccf3d378be854ec6788426a",
+      "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "src/commands/structured/values.ts": "c2dfbab20d72c3f05c80c0efb12f5c3b2739dfffb0ea851bbe3c603010c7a164",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "13d82a1a15d9b86370cd54c904608e8eed37da63e5ce05e754dc6e53f0ff821e",
+      "src/contracts/filesystem.ts": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "src/fs/mount/README.md": "02b79874b82b5de4859ef593b1beeac7481503962997f6a6254b43cb6c7bbfe9",
+      "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+      "src/fs/overlay/README.md": "1797d6e8e510eb5fa8d383f33485cda45f0259fa52831ac72e0cc983709f68da",
+      "src/fs/overlay/index.ts": "e77e44db220023f55b70ad936f19f9bd150d2872f3e3758837929994b2762f28",
+      "src/fs/readonly/README.md": "380f87681b9a504e35a2737e0ecc1f52fce46353465021eb12f3bc80fbcd9ca2",
+      "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+      "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+      "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+      "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "aa50a4a7c25e43e1a7a33005dda53bb4f40b5fcdebc91067c0ccb5977c585004",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "0f715a884709bf4400f9868626b9e7ead32266fee7d3733ee2a5df235574174e",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "dabbb60ffc499a7e64fae8071f12b465b5845e7246510e19da15b406f8481d10",
+      "src/shell/shell.ts": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-policy-stress/README.md": "fd40bde004643e87cfde84e5d2b8f7a3c5b10c02a8432edae1c55235b94ddee8",
+      "tests/commands/network-policy-stress/admission.probe.ts": "5e3552bea65b93a35bbbdc9086b1eeba556140a07fe99e93709058171b327c25",
+      "tests/commands/network-policy-stress/authorization.test.ts": "4df75a1133abd79710cb60cfd8cebf593e0534c718140876c724614456968719",
+      "tests/commands/network-policy-stress/helpers.ts": "0055eb46a8e3dd44740988b4b13e1915a6d7f68f843c012d8f7867bf859a3733",
+      "tests/commands/network-policy-stress/late-policy-child.ts": "75e2a0b00bb1eec35766af363917c1aeb6946efc4bdafaf38835e5f4d7aac355",
+      "tests/commands/network-policy-stress/late-policy.test.ts": "f8707f1c5fe732130bbf43484a0b099bfce886171ab5bf743730bffffb86a707",
+      "tests/commands/network-policy-stress/tsconfig.json": "d1c8e0a84d1aa413aa4169ae6a4be56686b8d273f316f1959e0fa203e0adbb42",
+      "tests/commands/network-policy-stress/url-policy.test.ts": "c44b6e195d647558f4f677eb1ce712afe9058ed6f2fb4130fe8613898e90caee",
+      "tests/commands/network/exports.test.ts": "c57beba90797dc9d216419313ec5ac52efb13f65fe8ec6b3074e5841524aa110",
+      "tests/commands/network/files.test.ts": "25eca877ccb2058a9986765d95cb288bcbd61cb24f0ea40fb5eb47e24d179188",
+      "tests/commands/network/helpers.ts": "226fb52ab7846ca9df99a237ae6240675f2dafbd1a19d0a386c5bb6b5148236d",
+      "tests/commands/network/http.test.ts": "c1a63e5b11da3d4270b446d6e69670d02bc1ab7a3500e16f478074042e759ba6",
+      "tests/commands/network/safety.test.ts": "aca7481eec0f93f4fbaa56e09352ed9cba0240ebe29ce2acafffce6a294dd171",
+      "tests/commands/network/tls.test.ts": "a77ad1f53e8f217c9eecd96bfbcb2a5dee4206efe7a235dc2c6b97d968879d77",
+      "tests/commands/network/tls/cert.pem": "073a4fb398e08fee1a757651f8de94b0e222b45073eb2bf5e0441679f020244d",
+      "tests/commands/network/tls/key.pem": "246b515a17d5940e973f46ffbb94f27e693e6411bc61c14b5467ade21ff9cc08",
+      "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd"
+    },
+    "network": {
+      "at": "2026-08-26T23:33:15.077Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    }
+  },
+  "samples": [
+    {
+      "at": "2026-08-26T23:33:14.225Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    },
+    {
+      "at": "2026-08-26T23:33:14.328Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    },
+    {
+      "at": "2026-08-26T23:33:14.430Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    },
+    {
+      "at": "2026-08-26T23:33:14.532Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    },
+    {
+      "at": "2026-08-26T23:33:14.633Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    },
+    {
+      "at": "2026-08-26T23:33:14.735Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    },
+    {
+      "at": "2026-08-26T23:33:14.837Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    },
+    {
+      "at": "2026-08-26T23:33:14.937Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    },
+    {
+      "at": "2026-08-26T23:33:15.077Z",
+      "hashes": [
+        [
+          "src/commands/network/README.md",
+          "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f"
+        ],
+        [
+          "src/commands/network/args.ts",
+          "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+        ],
+        [
+          "src/commands/network/body.ts",
+          "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+        ],
+        [
+          "src/commands/network/curl.ts",
+          "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+        ],
+        [
+          "src/commands/network/index.ts",
+          "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+        ],
+        [
+          "src/commands/network/output.ts",
+          "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+        ],
+        [
+          "src/commands/network/shared.ts",
+          "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+        ],
+        [
+          "src/commands/network/transport.ts",
+          "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+        ],
+        [
+          "src/commands/network/types.ts",
+          "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+        ]
+      ],
+      "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+    }
+  ],
+  "samplingErrors": [],
+  "networkStable": true,
+  "changes": [],
+  "immutableChanges": [],
+  "policyChanges": [],
+  "childPid": 19974,
+  "processGroup": 19974,
+  "watchdogMs": 430000,
+  "outputBoundBytes": 8388608,
+  "observedOutputBytes": 19170,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "forced": false,
+  "signals": [],
+  "cleanup": {
+    "remainingBeforeCleanup": [],
+    "remainingAfterCleanup": []
+  },
+  "stdout": "{\"id\":\"multipart-binary-file\",\"kind\":\"native-parity\",\"source\":\"curl --silent --show-error '-F' 'blob=@binary.bin;type=application/octet-stream;filename=sent.bin' '-F' 'tag=after' '{A}/echo'\",\"transport\":\"default optional transport omitted\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJzZW50LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idGFnIg0KDQphZnRlcg0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"content-type\",\"multipart/form-data; boundary=virtual-bash-cb5b9dc61eb7637848e566724c4c3d67d7ff\"],[\"Host\",\"127.0.0.1:55585\"],[\"Connection\",\"close\"],[\"Transfer-Encoding\",\"chunked\"]],\"body\":\"LS12aXJ0dWFsLWJhc2gtY2I1YjlkYzYxZWI3NjM3ODQ4ZTU2NjcyNGM0YzNkNjdkN2ZmDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0ic2VudC5iaW4iDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tdmlydHVhbC1iYXNoLWNiNWI5ZGM2MWViNzYzNzg0OGU1NjY3MjRjNGMzZDY3ZDdmZg0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJ0YWciDQoNCmFmdGVyDQotLXZpcnR1YWwtYmFzaC1jYjViOWRjNjFlYjc2Mzc4NDhlNTY2NzI0YzRjM2Q2N2Q3ZmYtLQ0K\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"b2sK\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":14,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-binary-field\",\"kind\":\"native-parity\",\"source\":\"curl --silent --show-error '-F' 'blob=<binary.bin;type=application/octet-stream' '{A}/echo'\",\"transport\":\"default optional transport omitted\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"content-type\",\"multipart/form-data; boundary=virtual-bash-b7cde20603bf55658447de3b059a2b8f4396\"],[\"Host\",\"127.0.0.1:55589\"],[\"Connection\",\"close\"],[\"Transfer-Encoding\",\"chunked\"]],\"body\":\"LS12aXJ0dWFsLWJhc2gtYjdjZGUyMDYwM2JmNTU2NTg0NDdkZTNiMDU5YTJiOGY0Mzk2DQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tdmlydHVhbC1iYXNoLWI3Y2RlMjA2MDNiZjU1NjU4NDQ3ZGUzYjA1OWEyYjhmNDM5Ni0tDQo=\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"b2sK\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":2,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-binary-stdin\",\"kind\":\"native-parity\",\"source\":\"curl --silent --show-error '-F' 'blob=@-;filename=stdin.bin;type=application/octet-stream' '{A}/echo'\",\"transport\":\"default optional transport omitted\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJzdGRpbi5iaW4iDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tRlJPWkVOX0JPVU5EQVJZLS0NCg==\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"content-type\",\"multipart/form-data; boundary=virtual-bash-e7db36a7903c1461d371b33cf42aebb42589\"],[\"Host\",\"127.0.0.1:55593\"],[\"Connection\",\"close\"],[\"Transfer-Encoding\",\"chunked\"]],\"body\":\"LS12aXJ0dWFsLWJhc2gtZTdkYjM2YTc5MDNjMTQ2MWQzNzFiMzNjZjQyYWViYjQyNTg5DQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0ic3RkaW4uYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLXZpcnR1YWwtYmFzaC1lN2RiMzZhNzkwM2MxNDYxZDM3MWIzM2NmNDJhZWJiNDI1ODktLQ0K\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"b2sK\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":2,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-form-string-literal\",\"kind\":\"native-parity\",\"source\":\"curl --silent --show-error '--form-string' 'text=@$(touch PWN);type=text/evil\\r\\nX-Injected: yes' '{A}/echo'\",\"transport\":\"default optional transport omitted\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idGV4dCINCg0KQCQodG91Y2ggUFdOKTt0eXBlPXRleHQvZXZpbA0KWC1JbmplY3RlZDogeWVzDQotLUZST1pFTl9CT1VOREFSWS0tDQo=\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"content-type\",\"multipart/form-data; boundary=virtual-bash-22d4eb876dcb5274a4ef19b54f20d396e830\"],[\"Host\",\"127.0.0.1:55597\"],[\"Connection\",\"close\"],[\"Transfer-Encoding\",\"chunked\"]],\"body\":\"LS12aXJ0dWFsLWJhc2gtMjJkNGViODc2ZGNiNTI3NGE0ZWYxOWI1NGYyMGQzOTZlODMwDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9InRleHQiDQoNCkAkKHRvdWNoIFBXTik7dHlwZT10ZXh0L2V2aWwNClgtSW5qZWN0ZWQ6IHllcw0KLS12aXJ0dWFsLWJhc2gtMjJkNGViODc2ZGNiNTI3NGE0ZWYxOWI1NGYyMGQzOTZlODMwLS0NCg==\"}],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"b2sK\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":2,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-307-replay\",\"kind\":\"native-parity\",\"source\":\"curl --silent --show-error '-L' '-F' 'blob=@binary.bin;type=application/octet-stream' '{A}/redirect307'\",\"transport\":\"default optional transport omitted\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect307\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiaW5hcnkuYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLUZST1pFTl9CT1VOREFSWS0tDQo=\"},{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"content-type\",\"multipart/form-data; boundary=FROZEN_BOUNDARY\"]],\"body\":\"LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiaW5hcnkuYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLUZST1pFTl9CT1VOREFSWS0tDQo=\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/redirect307\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"content-type\",\"multipart/form-data; boundary=virtual-bash-fd410560a5069784054e98522e82755b946d\"],[\"Host\",\"127.0.0.1:55601\"],[\"Connection\",\"close\"],[\"Transfer-Encoding\",\"chunked\"]],\"body\":\"LS12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmluYXJ5LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkLS0NCg==\"},{\"origin\":\"A\",\"method\":\"POST\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"content-type\",\"multipart/form-data; boundary=virtual-bash-fd410560a5069784054e98522e82755b946d\"],[\"Host\",\"127.0.0.1:55601\"],[\"Connection\",\"close\"],[\"Transfer-Encoding\",\"chunked\"]],\"body\":\"LS12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmluYXJ5LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkLS0NCg==\"}],\"authorized\":[{\"url\":\"{A}/redirect307\",\"method\":\"POST\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true},{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0,\"redirectFrom\":\"{A}/redirect307\",\"allowed\":true}],\"emitted\":\"b2sK\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":2,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"literal-output-path\",\"kind\":\"native-parity\",\"source\":\"curl --silent --show-error '-o' '$(touch PWN);out.bin' '{A}/bytes'\",\"transport\":\"default optional transport omitted\",\"code\":0,\"stdout\":\"\",\"stderr\":\"\",\"files\":{\"$(touch PWN);out.bin\":\"AP/+DQoiO0GA\",\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/bytes\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"Host\",\"127.0.0.1:55606\"],[\"Connection\",\"close\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/bytes\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":1,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"url-control-rejection\",\"kind\":\"security\",\"source\":\"curl --silent --show-error '{A}/bad\\r\\nX-Injected:yes'\",\"transport\":\"default optional transport omitted\",\"code\":3,\"stdout\":\"\",\"stderr\":\"curl: (3) Malformed URL\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"authorized\":[],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":1,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"multipart-filename-control\",\"kind\":\"security\",\"source\":\"curl --silent --show-error '-F' 'blob=@binary.bin;filename=bad\\r\\nX-Injected:yes' '{A}/echo'\",\"transport\":\"default optional transport omitted\",\"code\":2,\"stdout\":\"\",\"stderr\":\"curl: (2) Invalid multipart field metadata\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"authorized\":[],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":1,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"redirect-authorization-denial\",\"kind\":\"security\",\"source\":\"curl --silent --show-error '-L' '{A}/cross'\",\"transport\":\"default optional transport omitted\",\"code\":7,\"stdout\":\"\",\"stderr\":\"curl: (7) Network access denied by host policy\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"Host\",\"127.0.0.1:55616\"],[\"Connection\",\"close\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/cross\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true},{\"url\":\"{B}/echo\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":\"{A}/cross\",\"allowed\":false}],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":2,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"origin-header-permanent-strip\",\"kind\":\"security\",\"source\":\"curl --silent --show-error '-L' '-H' 'X-Private: fixture-secret' '{A}/cross-return'\",\"transport\":\"default optional transport omitted\",\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross-return\",\"headers\":[[\"accept\",\"*/*\"],[\"x-private\",\"fixture-secret\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/return\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/cross-return\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"x-private\",\"fixture-secret\"],[\"Host\",\"127.0.0.1:55620\"],[\"Connection\",\"close\"]],\"body\":\"\"},{\"origin\":\"B\",\"method\":\"GET\",\"path\":\"/return\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"Host\",\"127.0.0.1:55621\"],[\"Connection\",\"close\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/echo\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"Host\",\"127.0.0.1:55620\"],[\"Connection\",\"close\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/cross-return\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true},{\"url\":\"{B}/return\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":\"{A}/cross-return\",\"allowed\":true},{\"url\":\"{A}/echo\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":\"{B}/return\",\"allowed\":true}],\"emitted\":\"b2sK\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":2,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"https-downgrade-rejection\",\"kind\":\"security\",\"source\":\"curl --silent --show-error '-L' '{T}/downgrade'\",\"transport\":\"public Node transport with fixture CA\",\"code\":1,\"stdout\":\"\",\"stderr\":\"curl: (1) HTTPS-to-HTTP redirects are disabled\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"T\",\"method\":\"GET\",\"path\":\"/downgrade\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"T\",\"method\":\"GET\",\"path\":\"/downgrade\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"Host\",\"127.0.0.1:55628\"],[\"Connection\",\"close\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{T}/downgrade\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":19,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"default-tls-untrusted\",\"kind\":\"native-parity\",\"source\":\"curl --silent --show-error '{T}/bytes'\",\"transport\":\"default optional transport omitted\",\"code\":60,\"stdout\":\"\",\"stderr\":\"curl: (60) TLS certificate verification failed\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"authorized\":[{\"url\":\"{T}/bytes\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":12,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"default-missing-upload\",\"kind\":\"native-parity\",\"source\":\"curl --silent --show-error '--data-binary' '@absent.bin' '{A}/echo'\",\"transport\":\"default optional transport omitted\",\"code\":26,\"stdout\":\"\",\"stderr\":\"curl: (26) Failed to read virtual upload file\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"authorized\":[{\"url\":\"{A}/echo\",\"method\":\"POST\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":1,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"response-backpressure\",\"kind\":\"lifecycle\",\"source\":\"curl --silent --show-error '{A}/synthetic'\",\"transport\":\"instrumented host transport\",\"pullsWhileBlocked\":1,\"code\":0,\"stdout\":\"AP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GA\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"authorized\":[{\"url\":\"{A}/synthetic\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"AP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GA\",\"lifecycle\":{\"sourcePulls\":4,\"returned\":true,\"disposed\":1,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[true]},\"elapsedMs\":42,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"upload-backpressure\",\"kind\":\"lifecycle\",\"source\":\"curl --silent --show-error '-T' '-' '{A}/synthetic'\",\"transport\":\"instrumented host transport\",\"pullsWhileBlocked\":1,\"code\":0,\"stdout\":\"b2sK\",\"stderr\":\"\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"authorized\":[{\"url\":\"{A}/synthetic\",\"method\":\"PUT\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"b2sK\",\"lifecycle\":{\"sourcePulls\":4,\"returned\":true,\"disposed\":1,\"acceptedBody\":\"AP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GA\",\"settledLate\":false,\"callbackAborted\":[true]},\"elapsedMs\":43,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"default-upload-cancellation\",\"kind\":\"lifecycle\",\"source\":\"curl --silent --show-error '-T' '-' '{A}/uploadstall'\",\"transport\":\"default optional transport omitted\",\"callerAbort\":\"rejected with supplied reason\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"PUT\",\"path\":\"/uploadstall\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"AP/+DQoiO0GA\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"PUT\",\"path\":\"/uploadstall\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"Host\",\"127.0.0.1:55644\"],[\"Connection\",\"close\"],[\"Transfer-Encoding\",\"chunked\"]],\"body\":\"AP/+DQoiO0GA\"}],\"authorized\":[{\"url\":\"{A}/uploadstall\",\"method\":\"PUT\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":1,\"returned\":true,\"disposed\":0,\"acceptedBody\":\"AP/+DQoiO0GA\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":14,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"default-response-cancellation\",\"kind\":\"lifecycle\",\"source\":\"curl --silent --show-error '{A}/stall'\",\"transport\":\"default optional transport omitted\",\"callerAbort\":\"rejected with supplied reason\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/stall\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/stall\",\"headers\":[[\"accept\",\"*/*\"],[\"user-agent\",\"virtual-bash-curl/0.0\"],[\"Host\",\"127.0.0.1:55648\"],[\"Connection\",\"close\"]],\"body\":\"\"}],\"authorized\":[{\"url\":\"{A}/stall\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"AP/+DQoiO0GA\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":false,\"callbackAborted\":[]},\"elapsedMs\":14,\"errors\":[],\"status\":\"passed\"}\n{\"id\":\"late-transport-rejection\",\"kind\":\"lifecycle\",\"source\":\"curl --silent --show-error '--max-time' '0.03' '{A}/synthetic'\",\"transport\":\"instrumented host transport\",\"code\":28,\"stdout\":\"\",\"stderr\":\"curl: (28) Operation timed out\\n\",\"files\":{\"binary.bin\":\"AP/+DQoiO0GA\"},\"traces\":[],\"wireTraces\":[],\"authorized\":[{\"url\":\"{A}/synthetic\",\"method\":\"GET\",\"attempt\":0,\"redirectFrom\":null,\"allowed\":true}],\"emitted\":\"\",\"lifecycle\":{\"sourcePulls\":0,\"returned\":false,\"disposed\":0,\"acceptedBody\":\"\",\"settledLate\":true,\"callbackAborted\":[true]},\"elapsedMs\":135,\"errors\":[],\"status\":\"passed\"}\n{\"mode\":\"product\",\"total\":18,\"passed\":18,\"failed\":0,\"pending\":0,\"productExecutions\":18}\n",
+  "stderr": "",
+  "stdoutBase64": "eyJpZCI6Im11bHRpcGFydC1iaW5hcnktZmlsZSIsImtpbmQiOiJuYXRpdmUtcGFyaXR5Iiwic291cmNlIjoiY3VybCAtLXNpbGVudCAtLXNob3ctZXJyb3IgJy1GJyAnYmxvYj1AYmluYXJ5LmJpbjt0eXBlPWFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbTtmaWxlbmFtZT1zZW50LmJpbicgJy1GJyAndGFnPWFmdGVyJyAne0F9L2VjaG8nIiwidHJhbnNwb3J0IjoiZGVmYXVsdCBvcHRpb25hbCB0cmFuc3BvcnQgb21pdHRlZCIsImNvZGUiOjAsInN0ZG91dCI6ImIyc0siLCJzdGRlcnIiOiIiLCJmaWxlcyI6eyJiaW5hcnkuYmluIjoiQVAvK0RRb2lPMEdBIn0sInRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBPU1QiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbImNvbnRlbnQtdHlwZSIsIm11bHRpcGFydC9mb3JtLWRhdGE7IGJvdW5kYXJ5PUZST1pFTl9CT1VOREFSWSJdXSwiYm9keSI6IkxTMUdVazlhUlU1ZlFrOVZUa1JCVWxrTkNrTnZiblJsYm5RdFJHbHpjRzl6YVhScGIyNDZJR1p2Y20wdFpHRjBZVHNnYm1GdFpUMGlZbXh2WWlJN0lHWnBiR1Z1WVcxbFBTSnpaVzUwTG1KcGJpSU5Da052Ym5SbGJuUXRWSGx3WlRvZ1lYQndiR2xqWVhScGIyNHZiMk4wWlhRdGMzUnlaV0Z0RFFvTkNnRC8vZzBLSWp0QmdBMEtMUzFHVWs5YVJVNWZRazlWVGtSQlVsa05Da052Ym5SbGJuUXRSR2x6Y0c5emFYUnBiMjQ2SUdadmNtMHRaR0YwWVRzZ2JtRnRaVDBpZEdGbklnMEtEUXBoWm5SbGNnMEtMUzFHVWs5YVJVNWZRazlWVGtSQlVsa3RMUTBLIn1dLCJ3aXJlVHJhY2VzIjpbeyJvcmlnaW4iOiJBIiwibWV0aG9kIjoiUE9TVCIsInBhdGgiOiIvZWNobyIsImhlYWRlcnMiOltbImFjY2VwdCIsIiovKiJdLFsidXNlci1hZ2VudCIsInZpcnR1YWwtYmFzaC1jdXJsLzAuMCJdLFsiY29udGVudC10eXBlIiwibXVsdGlwYXJ0L2Zvcm0tZGF0YTsgYm91bmRhcnk9dmlydHVhbC1iYXNoLWNiNWI5ZGM2MWViNzYzNzg0OGU1NjY3MjRjNGMzZDY3ZDdmZiJdLFsiSG9zdCIsIjEyNy4wLjAuMTo1NTU4NSJdLFsiQ29ubmVjdGlvbiIsImNsb3NlIl0sWyJUcmFuc2Zlci1FbmNvZGluZyIsImNodW5rZWQiXV0sImJvZHkiOiJMUzEyYVhKMGRXRnNMV0poYzJndFkySTFZamxrWXpZeFpXSTNOak0zT0RRNFpUVTJOamN5TkdNMFl6TmtOamRrTjJabURRcERiMjUwWlc1MExVUnBjM0J2YzJsMGFXOXVPaUJtYjNKdExXUmhkR0U3SUc1aGJXVTlJbUpzYjJJaU95Qm1hV3hsYm1GdFpUMGljMlZ1ZEM1aWFXNGlEUXBEYjI1MFpXNTBMVlI1Y0dVNklHRndjR3hwWTJGMGFXOXVMMjlqZEdWMExYTjBjbVZoYlEwS0RRb0EvLzROQ2lJN1FZQU5DaTB0ZG1seWRIVmhiQzFpWVhOb0xXTmlOV0k1WkdNMk1XVmlOell6TnpnME9HVTFOalkzTWpSak5HTXpaRFkzWkRkbVpnMEtRMjl1ZEdWdWRDMUVhWE53YjNOcGRHbHZiam9nWm05eWJTMWtZWFJoT3lCdVlXMWxQU0owWVdjaURRb05DbUZtZEdWeURRb3RMWFpwY25SMVlXd3RZbUZ6YUMxallqVmlPV1JqTmpGbFlqYzJNemM0TkRobE5UWTJOekkwWXpSak0yUTJOMlEzWm1ZdExRMEsifV0sImF1dGhvcml6ZWQiOlt7InVybCI6IntBfS9lY2hvIiwibWV0aG9kIjoiUE9TVCIsImF0dGVtcHQiOjAsInJlZGlyZWN0RnJvbSI6bnVsbCwiYWxsb3dlZCI6dHJ1ZX1dLCJlbWl0dGVkIjoiYjJzSyIsImxpZmVjeWNsZSI6eyJzb3VyY2VQdWxscyI6MCwicmV0dXJuZWQiOmZhbHNlLCJkaXNwb3NlZCI6MCwiYWNjZXB0ZWRCb2R5IjoiIiwic2V0dGxlZExhdGUiOmZhbHNlLCJjYWxsYmFja0Fib3J0ZWQiOltdfSwiZWxhcHNlZE1zIjoxNCwiZXJyb3JzIjpbXSwic3RhdHVzIjoicGFzc2VkIn0KeyJpZCI6Im11bHRpcGFydC1iaW5hcnktZmllbGQiLCJraW5kIjoibmF0aXZlLXBhcml0eSIsInNvdXJjZSI6ImN1cmwgLS1zaWxlbnQgLS1zaG93LWVycm9yICctRicgJ2Jsb2I9PGJpbmFyeS5iaW47dHlwZT1hcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0nICd7QX0vZWNobyciLCJ0cmFuc3BvcnQiOiJkZWZhdWx0IG9wdGlvbmFsIHRyYW5zcG9ydCBvbWl0dGVkIiwiY29kZSI6MCwic3Rkb3V0IjoiYjJzSyIsInN0ZGVyciI6IiIsImZpbGVzIjp7ImJpbmFyeS5iaW4iOiJBUC8rRFFvaU8wR0EifSwidHJhY2VzIjpbeyJvcmlnaW4iOiJBIiwibWV0aG9kIjoiUE9TVCIsInBhdGgiOiIvZWNobyIsImhlYWRlcnMiOltbImFjY2VwdCIsIiovKiJdLFsiY29udGVudC10eXBlIiwibXVsdGlwYXJ0L2Zvcm0tZGF0YTsgYm91bmRhcnk9RlJPWkVOX0JPVU5EQVJZIl1dLCJib2R5IjoiTFMxR1VrOWFSVTVmUWs5VlRrUkJVbGtOQ2tOdmJuUmxiblF0UkdsemNHOXphWFJwYjI0NklHWnZjbTB0WkdGMFlUc2dibUZ0WlQwaVlteHZZaUlOQ2tOdmJuUmxiblF0Vkhsd1pUb2dZWEJ3YkdsallYUnBiMjR2YjJOMFpYUXRjM1J5WldGdERRb05DZ0QvL2cwS0lqdEJnQTBLTFMxR1VrOWFSVTVmUWs5VlRrUkJVbGt0TFEwSyJ9XSwid2lyZVRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBPU1QiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbInVzZXItYWdlbnQiLCJ2aXJ0dWFsLWJhc2gtY3VybC8wLjAiXSxbImNvbnRlbnQtdHlwZSIsIm11bHRpcGFydC9mb3JtLWRhdGE7IGJvdW5kYXJ5PXZpcnR1YWwtYmFzaC1iN2NkZTIwNjAzYmY1NTY1ODQ0N2RlM2IwNTlhMmI4ZjQzOTYiXSxbIkhvc3QiLCIxMjcuMC4wLjE6NTU1ODkiXSxbIkNvbm5lY3Rpb24iLCJjbG9zZSJdLFsiVHJhbnNmZXItRW5jb2RpbmciLCJjaHVua2VkIl1dLCJib2R5IjoiTFMxMmFYSjBkV0ZzTFdKaGMyZ3RZamRqWkdVeU1EWXdNMkptTlRVMk5UZzBORGRrWlROaU1EVTVZVEppT0dZME16azJEUXBEYjI1MFpXNTBMVVJwYzNCdmMybDBhVzl1T2lCbWIzSnRMV1JoZEdFN0lHNWhiV1U5SW1Kc2IySWlEUXBEYjI1MFpXNTBMVlI1Y0dVNklHRndjR3hwWTJGMGFXOXVMMjlqZEdWMExYTjBjbVZoYlEwS0RRb0EvLzROQ2lJN1FZQU5DaTB0ZG1seWRIVmhiQzFpWVhOb0xXSTNZMlJsTWpBMk1ETmlaalUxTmpVNE5EUTNaR1V6WWpBMU9XRXlZamhtTkRNNU5pMHREUW89In1dLCJhdXRob3JpemVkIjpbeyJ1cmwiOiJ7QX0vZWNobyIsIm1ldGhvZCI6IlBPU1QiLCJhdHRlbXB0IjowLCJyZWRpcmVjdEZyb20iOm51bGwsImFsbG93ZWQiOnRydWV9XSwiZW1pdHRlZCI6ImIyc0siLCJsaWZlY3ljbGUiOnsic291cmNlUHVsbHMiOjAsInJldHVybmVkIjpmYWxzZSwiZGlzcG9zZWQiOjAsImFjY2VwdGVkQm9keSI6IiIsInNldHRsZWRMYXRlIjpmYWxzZSwiY2FsbGJhY2tBYm9ydGVkIjpbXX0sImVsYXBzZWRNcyI6MiwiZXJyb3JzIjpbXSwic3RhdHVzIjoicGFzc2VkIn0KeyJpZCI6Im11bHRpcGFydC1iaW5hcnktc3RkaW4iLCJraW5kIjoibmF0aXZlLXBhcml0eSIsInNvdXJjZSI6ImN1cmwgLS1zaWxlbnQgLS1zaG93LWVycm9yICctRicgJ2Jsb2I9QC07ZmlsZW5hbWU9c3RkaW4uYmluO3R5cGU9YXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtJyAne0F9L2VjaG8nIiwidHJhbnNwb3J0IjoiZGVmYXVsdCBvcHRpb25hbCB0cmFuc3BvcnQgb21pdHRlZCIsImNvZGUiOjAsInN0ZG91dCI6ImIyc0siLCJzdGRlcnIiOiIiLCJmaWxlcyI6eyJiaW5hcnkuYmluIjoiQVAvK0RRb2lPMEdBIn0sInRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBPU1QiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbImNvbnRlbnQtdHlwZSIsIm11bHRpcGFydC9mb3JtLWRhdGE7IGJvdW5kYXJ5PUZST1pFTl9CT1VOREFSWSJdXSwiYm9keSI6IkxTMUdVazlhUlU1ZlFrOVZUa1JCVWxrTkNrTnZiblJsYm5RdFJHbHpjRzl6YVhScGIyNDZJR1p2Y20wdFpHRjBZVHNnYm1GdFpUMGlZbXh2WWlJN0lHWnBiR1Z1WVcxbFBTSnpkR1JwYmk1aWFXNGlEUXBEYjI1MFpXNTBMVlI1Y0dVNklHRndjR3hwWTJGMGFXOXVMMjlqZEdWMExYTjBjbVZoYlEwS0RRb0EvLzROQ2lJN1FZQU5DaTB0UmxKUFdrVk9YMEpQVlU1RVFWSlpMUzBOQ2c9PSJ9XSwid2lyZVRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBPU1QiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbInVzZXItYWdlbnQiLCJ2aXJ0dWFsLWJhc2gtY3VybC8wLjAiXSxbImNvbnRlbnQtdHlwZSIsIm11bHRpcGFydC9mb3JtLWRhdGE7IGJvdW5kYXJ5PXZpcnR1YWwtYmFzaC1lN2RiMzZhNzkwM2MxNDYxZDM3MWIzM2NmNDJhZWJiNDI1ODkiXSxbIkhvc3QiLCIxMjcuMC4wLjE6NTU1OTMiXSxbIkNvbm5lY3Rpb24iLCJjbG9zZSJdLFsiVHJhbnNmZXItRW5jb2RpbmciLCJjaHVua2VkIl1dLCJib2R5IjoiTFMxMmFYSjBkV0ZzTFdKaGMyZ3RaVGRrWWpNMllUYzVNRE5qTVRRMk1XUXpOekZpTXpOalpqUXlZV1ZpWWpReU5UZzVEUXBEYjI1MFpXNTBMVVJwYzNCdmMybDBhVzl1T2lCbWIzSnRMV1JoZEdFN0lHNWhiV1U5SW1Kc2IySWlPeUJtYVd4bGJtRnRaVDBpYzNSa2FXNHVZbWx1SWcwS1EyOXVkR1Z1ZEMxVWVYQmxPaUJoY0hCc2FXTmhkR2x2Ymk5dlkzUmxkQzF6ZEhKbFlXME5DZzBLQVAvK0RRb2lPMEdBRFFvdExYWnBjblIxWVd3dFltRnphQzFsTjJSaU16WmhOemt3TTJNeE5EWXhaRE0zTVdJek0yTm1OREpoWldKaU5ESTFPRGt0TFEwSyJ9XSwiYXV0aG9yaXplZCI6W3sidXJsIjoie0F9L2VjaG8iLCJtZXRob2QiOiJQT1NUIiwiYXR0ZW1wdCI6MCwicmVkaXJlY3RGcm9tIjpudWxsLCJhbGxvd2VkIjp0cnVlfV0sImVtaXR0ZWQiOiJiMnNLIiwibGlmZWN5Y2xlIjp7InNvdXJjZVB1bGxzIjowLCJyZXR1cm5lZCI6ZmFsc2UsImRpc3Bvc2VkIjowLCJhY2NlcHRlZEJvZHkiOiIiLCJzZXR0bGVkTGF0ZSI6ZmFsc2UsImNhbGxiYWNrQWJvcnRlZCI6W119LCJlbGFwc2VkTXMiOjIsImVycm9ycyI6W10sInN0YXR1cyI6InBhc3NlZCJ9CnsiaWQiOiJtdWx0aXBhcnQtZm9ybS1zdHJpbmctbGl0ZXJhbCIsImtpbmQiOiJuYXRpdmUtcGFyaXR5Iiwic291cmNlIjoiY3VybCAtLXNpbGVudCAtLXNob3ctZXJyb3IgJy0tZm9ybS1zdHJpbmcnICd0ZXh0PUAkKHRvdWNoIFBXTik7dHlwZT10ZXh0L2V2aWxcclxuWC1JbmplY3RlZDogeWVzJyAne0F9L2VjaG8nIiwidHJhbnNwb3J0IjoiZGVmYXVsdCBvcHRpb25hbCB0cmFuc3BvcnQgb21pdHRlZCIsImNvZGUiOjAsInN0ZG91dCI6ImIyc0siLCJzdGRlcnIiOiIiLCJmaWxlcyI6eyJiaW5hcnkuYmluIjoiQVAvK0RRb2lPMEdBIn0sInRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBPU1QiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbImNvbnRlbnQtdHlwZSIsIm11bHRpcGFydC9mb3JtLWRhdGE7IGJvdW5kYXJ5PUZST1pFTl9CT1VOREFSWSJdXSwiYm9keSI6IkxTMUdVazlhUlU1ZlFrOVZUa1JCVWxrTkNrTnZiblJsYm5RdFJHbHpjRzl6YVhScGIyNDZJR1p2Y20wdFpHRjBZVHNnYm1GdFpUMGlkR1Y0ZENJTkNnMEtRQ1FvZEc5MVkyZ2dVRmRPS1R0MGVYQmxQWFJsZUhRdlpYWnBiQTBLV0MxSmJtcGxZM1JsWkRvZ2VXVnpEUW90TFVaU1QxcEZUbDlDVDFWT1JFRlNXUzB0RFFvPSJ9XSwid2lyZVRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBPU1QiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbInVzZXItYWdlbnQiLCJ2aXJ0dWFsLWJhc2gtY3VybC8wLjAiXSxbImNvbnRlbnQtdHlwZSIsIm11bHRpcGFydC9mb3JtLWRhdGE7IGJvdW5kYXJ5PXZpcnR1YWwtYmFzaC0yMmQ0ZWI4NzZkY2I1Mjc0YTRlZjE5YjU0ZjIwZDM5NmU4MzAiXSxbIkhvc3QiLCIxMjcuMC4wLjE6NTU1OTciXSxbIkNvbm5lY3Rpb24iLCJjbG9zZSJdLFsiVHJhbnNmZXItRW5jb2RpbmciLCJjaHVua2VkIl1dLCJib2R5IjoiTFMxMmFYSjBkV0ZzTFdKaGMyZ3RNakprTkdWaU9EYzJaR05pTlRJM05HRTBaV1l4T1dJMU5HWXlNR1F6T1RabE9ETXdEUXBEYjI1MFpXNTBMVVJwYzNCdmMybDBhVzl1T2lCbWIzSnRMV1JoZEdFN0lHNWhiV1U5SW5SbGVIUWlEUW9OQ2tBa0tIUnZkV05vSUZCWFRpazdkSGx3WlQxMFpYaDBMMlYyYVd3TkNsZ3RTVzVxWldOMFpXUTZJSGxsY3cwS0xTMTJhWEowZFdGc0xXSmhjMmd0TWpKa05HVmlPRGMyWkdOaU5USTNOR0UwWldZeE9XSTFOR1l5TUdRek9UWmxPRE13TFMwTkNnPT0ifV0sImF1dGhvcml6ZWQiOlt7InVybCI6IntBfS9lY2hvIiwibWV0aG9kIjoiUE9TVCIsImF0dGVtcHQiOjAsInJlZGlyZWN0RnJvbSI6bnVsbCwiYWxsb3dlZCI6dHJ1ZX1dLCJlbWl0dGVkIjoiYjJzSyIsImxpZmVjeWNsZSI6eyJzb3VyY2VQdWxscyI6MCwicmV0dXJuZWQiOmZhbHNlLCJkaXNwb3NlZCI6MCwiYWNjZXB0ZWRCb2R5IjoiIiwic2V0dGxlZExhdGUiOmZhbHNlLCJjYWxsYmFja0Fib3J0ZWQiOltdfSwiZWxhcHNlZE1zIjoyLCJlcnJvcnMiOltdLCJzdGF0dXMiOiJwYXNzZWQifQp7ImlkIjoibXVsdGlwYXJ0LTMwNy1yZXBsYXkiLCJraW5kIjoibmF0aXZlLXBhcml0eSIsInNvdXJjZSI6ImN1cmwgLS1zaWxlbnQgLS1zaG93LWVycm9yICctTCcgJy1GJyAnYmxvYj1AYmluYXJ5LmJpbjt0eXBlPWFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbScgJ3tBfS9yZWRpcmVjdDMwNyciLCJ0cmFuc3BvcnQiOiJkZWZhdWx0IG9wdGlvbmFsIHRyYW5zcG9ydCBvbWl0dGVkIiwiY29kZSI6MCwic3Rkb3V0IjoiYjJzSyIsInN0ZGVyciI6IiIsImZpbGVzIjp7ImJpbmFyeS5iaW4iOiJBUC8rRFFvaU8wR0EifSwidHJhY2VzIjpbeyJvcmlnaW4iOiJBIiwibWV0aG9kIjoiUE9TVCIsInBhdGgiOiIvcmVkaXJlY3QzMDciLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbImNvbnRlbnQtdHlwZSIsIm11bHRpcGFydC9mb3JtLWRhdGE7IGJvdW5kYXJ5PUZST1pFTl9CT1VOREFSWSJdXSwiYm9keSI6IkxTMUdVazlhUlU1ZlFrOVZUa1JCVWxrTkNrTnZiblJsYm5RdFJHbHpjRzl6YVhScGIyNDZJR1p2Y20wdFpHRjBZVHNnYm1GdFpUMGlZbXh2WWlJN0lHWnBiR1Z1WVcxbFBTSmlhVzVoY25rdVltbHVJZzBLUTI5dWRHVnVkQzFVZVhCbE9pQmhjSEJzYVdOaGRHbHZiaTl2WTNSbGRDMXpkSEpsWVcwTkNnMEtBUC8rRFFvaU8wR0FEUW90TFVaU1QxcEZUbDlDVDFWT1JFRlNXUzB0RFFvPSJ9LHsib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBPU1QiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbImNvbnRlbnQtdHlwZSIsIm11bHRpcGFydC9mb3JtLWRhdGE7IGJvdW5kYXJ5PUZST1pFTl9CT1VOREFSWSJdXSwiYm9keSI6IkxTMUdVazlhUlU1ZlFrOVZUa1JCVWxrTkNrTnZiblJsYm5RdFJHbHpjRzl6YVhScGIyNDZJR1p2Y20wdFpHRjBZVHNnYm1GdFpUMGlZbXh2WWlJN0lHWnBiR1Z1WVcxbFBTSmlhVzVoY25rdVltbHVJZzBLUTI5dWRHVnVkQzFVZVhCbE9pQmhjSEJzYVdOaGRHbHZiaTl2WTNSbGRDMXpkSEpsWVcwTkNnMEtBUC8rRFFvaU8wR0FEUW90TFVaU1QxcEZUbDlDVDFWT1JFRlNXUzB0RFFvPSJ9XSwid2lyZVRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBPU1QiLCJwYXRoIjoiL3JlZGlyZWN0MzA3IiwiaGVhZGVycyI6W1siYWNjZXB0IiwiKi8qIl0sWyJ1c2VyLWFnZW50IiwidmlydHVhbC1iYXNoLWN1cmwvMC4wIl0sWyJjb250ZW50LXR5cGUiLCJtdWx0aXBhcnQvZm9ybS1kYXRhOyBib3VuZGFyeT12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkIl0sWyJIb3N0IiwiMTI3LjAuMC4xOjU1NjAxIl0sWyJDb25uZWN0aW9uIiwiY2xvc2UiXSxbIlRyYW5zZmVyLUVuY29kaW5nIiwiY2h1bmtlZCJdXSwiYm9keSI6IkxTMTJhWEowZFdGc0xXSmhjMmd0Wm1RME1UQTFOakJoTlRBMk9UYzROREExTkdVNU9EVXlNbVU0TWpjMU5XSTVORFprRFFwRGIyNTBaVzUwTFVScGMzQnZjMmwwYVc5dU9pQm1iM0p0TFdSaGRHRTdJRzVoYldVOUltSnNiMklpT3lCbWFXeGxibUZ0WlQwaVltbHVZWEo1TG1KcGJpSU5Da052Ym5SbGJuUXRWSGx3WlRvZ1lYQndiR2xqWVhScGIyNHZiMk4wWlhRdGMzUnlaV0Z0RFFvTkNnRC8vZzBLSWp0QmdBMEtMUzEyYVhKMGRXRnNMV0poYzJndFptUTBNVEExTmpCaE5UQTJPVGM0TkRBMU5HVTVPRFV5TW1VNE1qYzFOV0k1TkRaa0xTME5DZz09In0seyJvcmlnaW4iOiJBIiwibWV0aG9kIjoiUE9TVCIsInBhdGgiOiIvZWNobyIsImhlYWRlcnMiOltbImFjY2VwdCIsIiovKiJdLFsidXNlci1hZ2VudCIsInZpcnR1YWwtYmFzaC1jdXJsLzAuMCJdLFsiY29udGVudC10eXBlIiwibXVsdGlwYXJ0L2Zvcm0tZGF0YTsgYm91bmRhcnk9dmlydHVhbC1iYXNoLWZkNDEwNTYwYTUwNjk3ODQwNTRlOTg1MjJlODI3NTViOTQ2ZCJdLFsiSG9zdCIsIjEyNy4wLjAuMTo1NTYwMSJdLFsiQ29ubmVjdGlvbiIsImNsb3NlIl0sWyJUcmFuc2Zlci1FbmNvZGluZyIsImNodW5rZWQiXV0sImJvZHkiOiJMUzEyYVhKMGRXRnNMV0poYzJndFptUTBNVEExTmpCaE5UQTJPVGM0TkRBMU5HVTVPRFV5TW1VNE1qYzFOV0k1TkRaa0RRcERiMjUwWlc1MExVUnBjM0J2YzJsMGFXOXVPaUJtYjNKdExXUmhkR0U3SUc1aGJXVTlJbUpzYjJJaU95Qm1hV3hsYm1GdFpUMGlZbWx1WVhKNUxtSnBiaUlOQ2tOdmJuUmxiblF0Vkhsd1pUb2dZWEJ3YkdsallYUnBiMjR2YjJOMFpYUXRjM1J5WldGdERRb05DZ0QvL2cwS0lqdEJnQTBLTFMxMmFYSjBkV0ZzTFdKaGMyZ3RabVEwTVRBMU5qQmhOVEEyT1RjNE5EQTFOR1U1T0RVeU1tVTRNamMxTldJNU5EWmtMUzBOQ2c9PSJ9XSwiYXV0aG9yaXplZCI6W3sidXJsIjoie0F9L3JlZGlyZWN0MzA3IiwibWV0aG9kIjoiUE9TVCIsImF0dGVtcHQiOjAsInJlZGlyZWN0RnJvbSI6bnVsbCwiYWxsb3dlZCI6dHJ1ZX0seyJ1cmwiOiJ7QX0vZWNobyIsIm1ldGhvZCI6IlBPU1QiLCJhdHRlbXB0IjowLCJyZWRpcmVjdEZyb20iOiJ7QX0vcmVkaXJlY3QzMDciLCJhbGxvd2VkIjp0cnVlfV0sImVtaXR0ZWQiOiJiMnNLIiwibGlmZWN5Y2xlIjp7InNvdXJjZVB1bGxzIjowLCJyZXR1cm5lZCI6ZmFsc2UsImRpc3Bvc2VkIjowLCJhY2NlcHRlZEJvZHkiOiIiLCJzZXR0bGVkTGF0ZSI6ZmFsc2UsImNhbGxiYWNrQWJvcnRlZCI6W119LCJlbGFwc2VkTXMiOjIsImVycm9ycyI6W10sInN0YXR1cyI6InBhc3NlZCJ9CnsiaWQiOiJsaXRlcmFsLW91dHB1dC1wYXRoIiwia2luZCI6Im5hdGl2ZS1wYXJpdHkiLCJzb3VyY2UiOiJjdXJsIC0tc2lsZW50IC0tc2hvdy1lcnJvciAnLW8nICckKHRvdWNoIFBXTik7b3V0LmJpbicgJ3tBfS9ieXRlcyciLCJ0cmFuc3BvcnQiOiJkZWZhdWx0IG9wdGlvbmFsIHRyYW5zcG9ydCBvbWl0dGVkIiwiY29kZSI6MCwic3Rkb3V0IjoiIiwic3RkZXJyIjoiIiwiZmlsZXMiOnsiJCh0b3VjaCBQV04pO291dC5iaW4iOiJBUC8rRFFvaU8wR0EiLCJiaW5hcnkuYmluIjoiQVAvK0RRb2lPMEdBIn0sInRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IkdFVCIsInBhdGgiOiIvYnl0ZXMiLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXV0sImJvZHkiOiIifV0sIndpcmVUcmFjZXMiOlt7Im9yaWdpbiI6IkEiLCJtZXRob2QiOiJHRVQiLCJwYXRoIjoiL2J5dGVzIiwiaGVhZGVycyI6W1siYWNjZXB0IiwiKi8qIl0sWyJ1c2VyLWFnZW50IiwidmlydHVhbC1iYXNoLWN1cmwvMC4wIl0sWyJIb3N0IiwiMTI3LjAuMC4xOjU1NjA2Il0sWyJDb25uZWN0aW9uIiwiY2xvc2UiXV0sImJvZHkiOiIifV0sImF1dGhvcml6ZWQiOlt7InVybCI6IntBfS9ieXRlcyIsIm1ldGhvZCI6IkdFVCIsImF0dGVtcHQiOjAsInJlZGlyZWN0RnJvbSI6bnVsbCwiYWxsb3dlZCI6dHJ1ZX1dLCJlbWl0dGVkIjoiIiwibGlmZWN5Y2xlIjp7InNvdXJjZVB1bGxzIjowLCJyZXR1cm5lZCI6ZmFsc2UsImRpc3Bvc2VkIjowLCJhY2NlcHRlZEJvZHkiOiIiLCJzZXR0bGVkTGF0ZSI6ZmFsc2UsImNhbGxiYWNrQWJvcnRlZCI6W119LCJlbGFwc2VkTXMiOjEsImVycm9ycyI6W10sInN0YXR1cyI6InBhc3NlZCJ9CnsiaWQiOiJ1cmwtY29udHJvbC1yZWplY3Rpb24iLCJraW5kIjoic2VjdXJpdHkiLCJzb3VyY2UiOiJjdXJsIC0tc2lsZW50IC0tc2hvdy1lcnJvciAne0F9L2JhZFxyXG5YLUluamVjdGVkOnllcyciLCJ0cmFuc3BvcnQiOiJkZWZhdWx0IG9wdGlvbmFsIHRyYW5zcG9ydCBvbWl0dGVkIiwiY29kZSI6Mywic3Rkb3V0IjoiIiwic3RkZXJyIjoiY3VybDogKDMpIE1hbGZvcm1lZCBVUkxcbiIsImZpbGVzIjp7ImJpbmFyeS5iaW4iOiJBUC8rRFFvaU8wR0EifSwidHJhY2VzIjpbXSwid2lyZVRyYWNlcyI6W10sImF1dGhvcml6ZWQiOltdLCJlbWl0dGVkIjoiIiwibGlmZWN5Y2xlIjp7InNvdXJjZVB1bGxzIjowLCJyZXR1cm5lZCI6ZmFsc2UsImRpc3Bvc2VkIjowLCJhY2NlcHRlZEJvZHkiOiIiLCJzZXR0bGVkTGF0ZSI6ZmFsc2UsImNhbGxiYWNrQWJvcnRlZCI6W119LCJlbGFwc2VkTXMiOjEsImVycm9ycyI6W10sInN0YXR1cyI6InBhc3NlZCJ9CnsiaWQiOiJtdWx0aXBhcnQtZmlsZW5hbWUtY29udHJvbCIsImtpbmQiOiJzZWN1cml0eSIsInNvdXJjZSI6ImN1cmwgLS1zaWxlbnQgLS1zaG93LWVycm9yICctRicgJ2Jsb2I9QGJpbmFyeS5iaW47ZmlsZW5hbWU9YmFkXHJcblgtSW5qZWN0ZWQ6eWVzJyAne0F9L2VjaG8nIiwidHJhbnNwb3J0IjoiZGVmYXVsdCBvcHRpb25hbCB0cmFuc3BvcnQgb21pdHRlZCIsImNvZGUiOjIsInN0ZG91dCI6IiIsInN0ZGVyciI6ImN1cmw6ICgyKSBJbnZhbGlkIG11bHRpcGFydCBmaWVsZCBtZXRhZGF0YVxuIiwiZmlsZXMiOnsiYmluYXJ5LmJpbiI6IkFQLytEUW9pTzBHQSJ9LCJ0cmFjZXMiOltdLCJ3aXJlVHJhY2VzIjpbXSwiYXV0aG9yaXplZCI6W10sImVtaXR0ZWQiOiIiLCJsaWZlY3ljbGUiOnsic291cmNlUHVsbHMiOjAsInJldHVybmVkIjpmYWxzZSwiZGlzcG9zZWQiOjAsImFjY2VwdGVkQm9keSI6IiIsInNldHRsZWRMYXRlIjpmYWxzZSwiY2FsbGJhY2tBYm9ydGVkIjpbXX0sImVsYXBzZWRNcyI6MSwiZXJyb3JzIjpbXSwic3RhdHVzIjoicGFzc2VkIn0KeyJpZCI6InJlZGlyZWN0LWF1dGhvcml6YXRpb24tZGVuaWFsIiwia2luZCI6InNlY3VyaXR5Iiwic291cmNlIjoiY3VybCAtLXNpbGVudCAtLXNob3ctZXJyb3IgJy1MJyAne0F9L2Nyb3NzJyIsInRyYW5zcG9ydCI6ImRlZmF1bHQgb3B0aW9uYWwgdHJhbnNwb3J0IG9taXR0ZWQiLCJjb2RlIjo3LCJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjdXJsOiAoNykgTmV0d29yayBhY2Nlc3MgZGVuaWVkIGJ5IGhvc3QgcG9saWN5XG4iLCJmaWxlcyI6eyJiaW5hcnkuYmluIjoiQVAvK0RRb2lPMEdBIn0sInRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IkdFVCIsInBhdGgiOiIvY3Jvc3MiLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXV0sImJvZHkiOiIifV0sIndpcmVUcmFjZXMiOlt7Im9yaWdpbiI6IkEiLCJtZXRob2QiOiJHRVQiLCJwYXRoIjoiL2Nyb3NzIiwiaGVhZGVycyI6W1siYWNjZXB0IiwiKi8qIl0sWyJ1c2VyLWFnZW50IiwidmlydHVhbC1iYXNoLWN1cmwvMC4wIl0sWyJIb3N0IiwiMTI3LjAuMC4xOjU1NjE2Il0sWyJDb25uZWN0aW9uIiwiY2xvc2UiXV0sImJvZHkiOiIifV0sImF1dGhvcml6ZWQiOlt7InVybCI6IntBfS9jcm9zcyIsIm1ldGhvZCI6IkdFVCIsImF0dGVtcHQiOjAsInJlZGlyZWN0RnJvbSI6bnVsbCwiYWxsb3dlZCI6dHJ1ZX0seyJ1cmwiOiJ7Qn0vZWNobyIsIm1ldGhvZCI6IkdFVCIsImF0dGVtcHQiOjAsInJlZGlyZWN0RnJvbSI6IntBfS9jcm9zcyIsImFsbG93ZWQiOmZhbHNlfV0sImVtaXR0ZWQiOiIiLCJsaWZlY3ljbGUiOnsic291cmNlUHVsbHMiOjAsInJldHVybmVkIjpmYWxzZSwiZGlzcG9zZWQiOjAsImFjY2VwdGVkQm9keSI6IiIsInNldHRsZWRMYXRlIjpmYWxzZSwiY2FsbGJhY2tBYm9ydGVkIjpbXX0sImVsYXBzZWRNcyI6MiwiZXJyb3JzIjpbXSwic3RhdHVzIjoicGFzc2VkIn0KeyJpZCI6Im9yaWdpbi1oZWFkZXItcGVybWFuZW50LXN0cmlwIiwia2luZCI6InNlY3VyaXR5Iiwic291cmNlIjoiY3VybCAtLXNpbGVudCAtLXNob3ctZXJyb3IgJy1MJyAnLUgnICdYLVByaXZhdGU6IGZpeHR1cmUtc2VjcmV0JyAne0F9L2Nyb3NzLXJldHVybiciLCJ0cmFuc3BvcnQiOiJkZWZhdWx0IG9wdGlvbmFsIHRyYW5zcG9ydCBvbWl0dGVkIiwiY29kZSI6MCwic3Rkb3V0IjoiYjJzSyIsInN0ZGVyciI6IiIsImZpbGVzIjp7ImJpbmFyeS5iaW4iOiJBUC8rRFFvaU8wR0EifSwidHJhY2VzIjpbeyJvcmlnaW4iOiJBIiwibWV0aG9kIjoiR0VUIiwicGF0aCI6Ii9jcm9zcy1yZXR1cm4iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbIngtcHJpdmF0ZSIsImZpeHR1cmUtc2VjcmV0Il1dLCJib2R5IjoiIn0seyJvcmlnaW4iOiJCIiwibWV0aG9kIjoiR0VUIiwicGF0aCI6Ii9yZXR1cm4iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXV0sImJvZHkiOiIifSx7Im9yaWdpbiI6IkEiLCJtZXRob2QiOiJHRVQiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXV0sImJvZHkiOiIifV0sIndpcmVUcmFjZXMiOlt7Im9yaWdpbiI6IkEiLCJtZXRob2QiOiJHRVQiLCJwYXRoIjoiL2Nyb3NzLXJldHVybiIsImhlYWRlcnMiOltbImFjY2VwdCIsIiovKiJdLFsidXNlci1hZ2VudCIsInZpcnR1YWwtYmFzaC1jdXJsLzAuMCJdLFsieC1wcml2YXRlIiwiZml4dHVyZS1zZWNyZXQiXSxbIkhvc3QiLCIxMjcuMC4wLjE6NTU2MjAiXSxbIkNvbm5lY3Rpb24iLCJjbG9zZSJdXSwiYm9keSI6IiJ9LHsib3JpZ2luIjoiQiIsIm1ldGhvZCI6IkdFVCIsInBhdGgiOiIvcmV0dXJuIiwiaGVhZGVycyI6W1siYWNjZXB0IiwiKi8qIl0sWyJ1c2VyLWFnZW50IiwidmlydHVhbC1iYXNoLWN1cmwvMC4wIl0sWyJIb3N0IiwiMTI3LjAuMC4xOjU1NjIxIl0sWyJDb25uZWN0aW9uIiwiY2xvc2UiXV0sImJvZHkiOiIifSx7Im9yaWdpbiI6IkEiLCJtZXRob2QiOiJHRVQiLCJwYXRoIjoiL2VjaG8iLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbInVzZXItYWdlbnQiLCJ2aXJ0dWFsLWJhc2gtY3VybC8wLjAiXSxbIkhvc3QiLCIxMjcuMC4wLjE6NTU2MjAiXSxbIkNvbm5lY3Rpb24iLCJjbG9zZSJdXSwiYm9keSI6IiJ9XSwiYXV0aG9yaXplZCI6W3sidXJsIjoie0F9L2Nyb3NzLXJldHVybiIsIm1ldGhvZCI6IkdFVCIsImF0dGVtcHQiOjAsInJlZGlyZWN0RnJvbSI6bnVsbCwiYWxsb3dlZCI6dHJ1ZX0seyJ1cmwiOiJ7Qn0vcmV0dXJuIiwibWV0aG9kIjoiR0VUIiwiYXR0ZW1wdCI6MCwicmVkaXJlY3RGcm9tIjoie0F9L2Nyb3NzLXJldHVybiIsImFsbG93ZWQiOnRydWV9LHsidXJsIjoie0F9L2VjaG8iLCJtZXRob2QiOiJHRVQiLCJhdHRlbXB0IjowLCJyZWRpcmVjdEZyb20iOiJ7Qn0vcmV0dXJuIiwiYWxsb3dlZCI6dHJ1ZX1dLCJlbWl0dGVkIjoiYjJzSyIsImxpZmVjeWNsZSI6eyJzb3VyY2VQdWxscyI6MCwicmV0dXJuZWQiOmZhbHNlLCJkaXNwb3NlZCI6MCwiYWNjZXB0ZWRCb2R5IjoiIiwic2V0dGxlZExhdGUiOmZhbHNlLCJjYWxsYmFja0Fib3J0ZWQiOltdfSwiZWxhcHNlZE1zIjoyLCJlcnJvcnMiOltdLCJzdGF0dXMiOiJwYXNzZWQifQp7ImlkIjoiaHR0cHMtZG93bmdyYWRlLXJlamVjdGlvbiIsImtpbmQiOiJzZWN1cml0eSIsInNvdXJjZSI6ImN1cmwgLS1zaWxlbnQgLS1zaG93LWVycm9yICctTCcgJ3tUfS9kb3duZ3JhZGUnIiwidHJhbnNwb3J0IjoicHVibGljIE5vZGUgdHJhbnNwb3J0IHdpdGggZml4dHVyZSBDQSIsImNvZGUiOjEsInN0ZG91dCI6IiIsInN0ZGVyciI6ImN1cmw6ICgxKSBIVFRQUy10by1IVFRQIHJlZGlyZWN0cyBhcmUgZGlzYWJsZWRcbiIsImZpbGVzIjp7ImJpbmFyeS5iaW4iOiJBUC8rRFFvaU8wR0EifSwidHJhY2VzIjpbeyJvcmlnaW4iOiJUIiwibWV0aG9kIjoiR0VUIiwicGF0aCI6Ii9kb3duZ3JhZGUiLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXV0sImJvZHkiOiIifV0sIndpcmVUcmFjZXMiOlt7Im9yaWdpbiI6IlQiLCJtZXRob2QiOiJHRVQiLCJwYXRoIjoiL2Rvd25ncmFkZSIsImhlYWRlcnMiOltbImFjY2VwdCIsIiovKiJdLFsidXNlci1hZ2VudCIsInZpcnR1YWwtYmFzaC1jdXJsLzAuMCJdLFsiSG9zdCIsIjEyNy4wLjAuMTo1NTYyOCJdLFsiQ29ubmVjdGlvbiIsImNsb3NlIl1dLCJib2R5IjoiIn1dLCJhdXRob3JpemVkIjpbeyJ1cmwiOiJ7VH0vZG93bmdyYWRlIiwibWV0aG9kIjoiR0VUIiwiYXR0ZW1wdCI6MCwicmVkaXJlY3RGcm9tIjpudWxsLCJhbGxvd2VkIjp0cnVlfV0sImVtaXR0ZWQiOiIiLCJsaWZlY3ljbGUiOnsic291cmNlUHVsbHMiOjAsInJldHVybmVkIjpmYWxzZSwiZGlzcG9zZWQiOjAsImFjY2VwdGVkQm9keSI6IiIsInNldHRsZWRMYXRlIjpmYWxzZSwiY2FsbGJhY2tBYm9ydGVkIjpbXX0sImVsYXBzZWRNcyI6MTksImVycm9ycyI6W10sInN0YXR1cyI6InBhc3NlZCJ9CnsiaWQiOiJkZWZhdWx0LXRscy11bnRydXN0ZWQiLCJraW5kIjoibmF0aXZlLXBhcml0eSIsInNvdXJjZSI6ImN1cmwgLS1zaWxlbnQgLS1zaG93LWVycm9yICd7VH0vYnl0ZXMnIiwidHJhbnNwb3J0IjoiZGVmYXVsdCBvcHRpb25hbCB0cmFuc3BvcnQgb21pdHRlZCIsImNvZGUiOjYwLCJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjdXJsOiAoNjApIFRMUyBjZXJ0aWZpY2F0ZSB2ZXJpZmljYXRpb24gZmFpbGVkXG4iLCJmaWxlcyI6eyJiaW5hcnkuYmluIjoiQVAvK0RRb2lPMEdBIn0sInRyYWNlcyI6W10sIndpcmVUcmFjZXMiOltdLCJhdXRob3JpemVkIjpbeyJ1cmwiOiJ7VH0vYnl0ZXMiLCJtZXRob2QiOiJHRVQiLCJhdHRlbXB0IjowLCJyZWRpcmVjdEZyb20iOm51bGwsImFsbG93ZWQiOnRydWV9XSwiZW1pdHRlZCI6IiIsImxpZmVjeWNsZSI6eyJzb3VyY2VQdWxscyI6MCwicmV0dXJuZWQiOmZhbHNlLCJkaXNwb3NlZCI6MCwiYWNjZXB0ZWRCb2R5IjoiIiwic2V0dGxlZExhdGUiOmZhbHNlLCJjYWxsYmFja0Fib3J0ZWQiOltdfSwiZWxhcHNlZE1zIjoxMiwiZXJyb3JzIjpbXSwic3RhdHVzIjoicGFzc2VkIn0KeyJpZCI6ImRlZmF1bHQtbWlzc2luZy11cGxvYWQiLCJraW5kIjoibmF0aXZlLXBhcml0eSIsInNvdXJjZSI6ImN1cmwgLS1zaWxlbnQgLS1zaG93LWVycm9yICctLWRhdGEtYmluYXJ5JyAnQGFic2VudC5iaW4nICd7QX0vZWNobyciLCJ0cmFuc3BvcnQiOiJkZWZhdWx0IG9wdGlvbmFsIHRyYW5zcG9ydCBvbWl0dGVkIiwiY29kZSI6MjYsInN0ZG91dCI6IiIsInN0ZGVyciI6ImN1cmw6ICgyNikgRmFpbGVkIHRvIHJlYWQgdmlydHVhbCB1cGxvYWQgZmlsZVxuIiwiZmlsZXMiOnsiYmluYXJ5LmJpbiI6IkFQLytEUW9pTzBHQSJ9LCJ0cmFjZXMiOltdLCJ3aXJlVHJhY2VzIjpbXSwiYXV0aG9yaXplZCI6W3sidXJsIjoie0F9L2VjaG8iLCJtZXRob2QiOiJQT1NUIiwiYXR0ZW1wdCI6MCwicmVkaXJlY3RGcm9tIjpudWxsLCJhbGxvd2VkIjp0cnVlfV0sImVtaXR0ZWQiOiIiLCJsaWZlY3ljbGUiOnsic291cmNlUHVsbHMiOjAsInJldHVybmVkIjpmYWxzZSwiZGlzcG9zZWQiOjAsImFjY2VwdGVkQm9keSI6IiIsInNldHRsZWRMYXRlIjpmYWxzZSwiY2FsbGJhY2tBYm9ydGVkIjpbXX0sImVsYXBzZWRNcyI6MSwiZXJyb3JzIjpbXSwic3RhdHVzIjoicGFzc2VkIn0KeyJpZCI6InJlc3BvbnNlLWJhY2twcmVzc3VyZSIsImtpbmQiOiJsaWZlY3ljbGUiLCJzb3VyY2UiOiJjdXJsIC0tc2lsZW50IC0tc2hvdy1lcnJvciAne0F9L3N5bnRoZXRpYyciLCJ0cmFuc3BvcnQiOiJpbnN0cnVtZW50ZWQgaG9zdCB0cmFuc3BvcnQiLCJwdWxsc1doaWxlQmxvY2tlZCI6MSwiY29kZSI6MCwic3Rkb3V0IjoiQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBIiwic3RkZXJyIjoiIiwiZmlsZXMiOnsiYmluYXJ5LmJpbiI6IkFQLytEUW9pTzBHQSJ9LCJ0cmFjZXMiOltdLCJ3aXJlVHJhY2VzIjpbXSwiYXV0aG9yaXplZCI6W3sidXJsIjoie0F9L3N5bnRoZXRpYyIsIm1ldGhvZCI6IkdFVCIsImF0dGVtcHQiOjAsInJlZGlyZWN0RnJvbSI6bnVsbCwiYWxsb3dlZCI6dHJ1ZX1dLCJlbWl0dGVkIjoiQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBIiwibGlmZWN5Y2xlIjp7InNvdXJjZVB1bGxzIjo0LCJyZXR1cm5lZCI6dHJ1ZSwiZGlzcG9zZWQiOjEsImFjY2VwdGVkQm9keSI6IiIsInNldHRsZWRMYXRlIjpmYWxzZSwiY2FsbGJhY2tBYm9ydGVkIjpbdHJ1ZV19LCJlbGFwc2VkTXMiOjQyLCJlcnJvcnMiOltdLCJzdGF0dXMiOiJwYXNzZWQifQp7ImlkIjoidXBsb2FkLWJhY2twcmVzc3VyZSIsImtpbmQiOiJsaWZlY3ljbGUiLCJzb3VyY2UiOiJjdXJsIC0tc2lsZW50IC0tc2hvdy1lcnJvciAnLVQnICctJyAne0F9L3N5bnRoZXRpYyciLCJ0cmFuc3BvcnQiOiJpbnN0cnVtZW50ZWQgaG9zdCB0cmFuc3BvcnQiLCJwdWxsc1doaWxlQmxvY2tlZCI6MSwiY29kZSI6MCwic3Rkb3V0IjoiYjJzSyIsInN0ZGVyciI6IiIsImZpbGVzIjp7ImJpbmFyeS5iaW4iOiJBUC8rRFFvaU8wR0EifSwidHJhY2VzIjpbXSwid2lyZVRyYWNlcyI6W10sImF1dGhvcml6ZWQiOlt7InVybCI6IntBfS9zeW50aGV0aWMiLCJtZXRob2QiOiJQVVQiLCJhdHRlbXB0IjowLCJyZWRpcmVjdEZyb20iOm51bGwsImFsbG93ZWQiOnRydWV9XSwiZW1pdHRlZCI6ImIyc0siLCJsaWZlY3ljbGUiOnsic291cmNlUHVsbHMiOjQsInJldHVybmVkIjp0cnVlLCJkaXNwb3NlZCI6MSwiYWNjZXB0ZWRCb2R5IjoiQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBQVAvK0RRb2lPMEdBIiwic2V0dGxlZExhdGUiOmZhbHNlLCJjYWxsYmFja0Fib3J0ZWQiOlt0cnVlXX0sImVsYXBzZWRNcyI6NDMsImVycm9ycyI6W10sInN0YXR1cyI6InBhc3NlZCJ9CnsiaWQiOiJkZWZhdWx0LXVwbG9hZC1jYW5jZWxsYXRpb24iLCJraW5kIjoibGlmZWN5Y2xlIiwic291cmNlIjoiY3VybCAtLXNpbGVudCAtLXNob3ctZXJyb3IgJy1UJyAnLScgJ3tBfS91cGxvYWRzdGFsbCciLCJ0cmFuc3BvcnQiOiJkZWZhdWx0IG9wdGlvbmFsIHRyYW5zcG9ydCBvbWl0dGVkIiwiY2FsbGVyQWJvcnQiOiJyZWplY3RlZCB3aXRoIHN1cHBsaWVkIHJlYXNvbiIsImZpbGVzIjp7ImJpbmFyeS5iaW4iOiJBUC8rRFFvaU8wR0EifSwidHJhY2VzIjpbeyJvcmlnaW4iOiJBIiwibWV0aG9kIjoiUFVUIiwicGF0aCI6Ii91cGxvYWRzdGFsbCIsImhlYWRlcnMiOltbImFjY2VwdCIsIiovKiJdXSwiYm9keSI6IkFQLytEUW9pTzBHQSJ9XSwid2lyZVRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IlBVVCIsInBhdGgiOiIvdXBsb2Fkc3RhbGwiLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbInVzZXItYWdlbnQiLCJ2aXJ0dWFsLWJhc2gtY3VybC8wLjAiXSxbIkhvc3QiLCIxMjcuMC4wLjE6NTU2NDQiXSxbIkNvbm5lY3Rpb24iLCJjbG9zZSJdLFsiVHJhbnNmZXItRW5jb2RpbmciLCJjaHVua2VkIl1dLCJib2R5IjoiQVAvK0RRb2lPMEdBIn1dLCJhdXRob3JpemVkIjpbeyJ1cmwiOiJ7QX0vdXBsb2Fkc3RhbGwiLCJtZXRob2QiOiJQVVQiLCJhdHRlbXB0IjowLCJyZWRpcmVjdEZyb20iOm51bGwsImFsbG93ZWQiOnRydWV9XSwiZW1pdHRlZCI6IiIsImxpZmVjeWNsZSI6eyJzb3VyY2VQdWxscyI6MSwicmV0dXJuZWQiOnRydWUsImRpc3Bvc2VkIjowLCJhY2NlcHRlZEJvZHkiOiJBUC8rRFFvaU8wR0EiLCJzZXR0bGVkTGF0ZSI6ZmFsc2UsImNhbGxiYWNrQWJvcnRlZCI6W119LCJlbGFwc2VkTXMiOjE0LCJlcnJvcnMiOltdLCJzdGF0dXMiOiJwYXNzZWQifQp7ImlkIjoiZGVmYXVsdC1yZXNwb25zZS1jYW5jZWxsYXRpb24iLCJraW5kIjoibGlmZWN5Y2xlIiwic291cmNlIjoiY3VybCAtLXNpbGVudCAtLXNob3ctZXJyb3IgJ3tBfS9zdGFsbCciLCJ0cmFuc3BvcnQiOiJkZWZhdWx0IG9wdGlvbmFsIHRyYW5zcG9ydCBvbWl0dGVkIiwiY2FsbGVyQWJvcnQiOiJyZWplY3RlZCB3aXRoIHN1cHBsaWVkIHJlYXNvbiIsImZpbGVzIjp7ImJpbmFyeS5iaW4iOiJBUC8rRFFvaU8wR0EifSwidHJhY2VzIjpbeyJvcmlnaW4iOiJBIiwibWV0aG9kIjoiR0VUIiwicGF0aCI6Ii9zdGFsbCIsImhlYWRlcnMiOltbImFjY2VwdCIsIiovKiJdXSwiYm9keSI6IiJ9XSwid2lyZVRyYWNlcyI6W3sib3JpZ2luIjoiQSIsIm1ldGhvZCI6IkdFVCIsInBhdGgiOiIvc3RhbGwiLCJoZWFkZXJzIjpbWyJhY2NlcHQiLCIqLyoiXSxbInVzZXItYWdlbnQiLCJ2aXJ0dWFsLWJhc2gtY3VybC8wLjAiXSxbIkhvc3QiLCIxMjcuMC4wLjE6NTU2NDgiXSxbIkNvbm5lY3Rpb24iLCJjbG9zZSJdXSwiYm9keSI6IiJ9XSwiYXV0aG9yaXplZCI6W3sidXJsIjoie0F9L3N0YWxsIiwibWV0aG9kIjoiR0VUIiwiYXR0ZW1wdCI6MCwicmVkaXJlY3RGcm9tIjpudWxsLCJhbGxvd2VkIjp0cnVlfV0sImVtaXR0ZWQiOiJBUC8rRFFvaU8wR0EiLCJsaWZlY3ljbGUiOnsic291cmNlUHVsbHMiOjAsInJldHVybmVkIjpmYWxzZSwiZGlzcG9zZWQiOjAsImFjY2VwdGVkQm9keSI6IiIsInNldHRsZWRMYXRlIjpmYWxzZSwiY2FsbGJhY2tBYm9ydGVkIjpbXX0sImVsYXBzZWRNcyI6MTQsImVycm9ycyI6W10sInN0YXR1cyI6InBhc3NlZCJ9CnsiaWQiOiJsYXRlLXRyYW5zcG9ydC1yZWplY3Rpb24iLCJraW5kIjoibGlmZWN5Y2xlIiwic291cmNlIjoiY3VybCAtLXNpbGVudCAtLXNob3ctZXJyb3IgJy0tbWF4LXRpbWUnICcwLjAzJyAne0F9L3N5bnRoZXRpYyciLCJ0cmFuc3BvcnQiOiJpbnN0cnVtZW50ZWQgaG9zdCB0cmFuc3BvcnQiLCJjb2RlIjoyOCwic3Rkb3V0IjoiIiwic3RkZXJyIjoiY3VybDogKDI4KSBPcGVyYXRpb24gdGltZWQgb3V0XG4iLCJmaWxlcyI6eyJiaW5hcnkuYmluIjoiQVAvK0RRb2lPMEdBIn0sInRyYWNlcyI6W10sIndpcmVUcmFjZXMiOltdLCJhdXRob3JpemVkIjpbeyJ1cmwiOiJ7QX0vc3ludGhldGljIiwibWV0aG9kIjoiR0VUIiwiYXR0ZW1wdCI6MCwicmVkaXJlY3RGcm9tIjpudWxsLCJhbGxvd2VkIjp0cnVlfV0sImVtaXR0ZWQiOiIiLCJsaWZlY3ljbGUiOnsic291cmNlUHVsbHMiOjAsInJldHVybmVkIjpmYWxzZSwiZGlzcG9zZWQiOjAsImFjY2VwdGVkQm9keSI6IiIsInNldHRsZWRMYXRlIjp0cnVlLCJjYWxsYmFja0Fib3J0ZWQiOlt0cnVlXX0sImVsYXBzZWRNcyI6MTM1LCJlcnJvcnMiOltdLCJzdGF0dXMiOiJwYXNzZWQifQp7Im1vZGUiOiJwcm9kdWN0IiwidG90YWwiOjE4LCJwYXNzZWQiOjE4LCJmYWlsZWQiOjAsInBlbmRpbmciOjAsInByb2R1Y3RFeGVjdXRpb25zIjoxOH0K",
+  "stderrBase64": "",
+  "stdoutSha256": "6f225de0955e12f6e6a12b7b2c0e7c8bf3e4a14959ed49ce747cb1ee822eca2d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "records": [
+    {
+      "id": "multipart-binary-file",
+      "kind": "native-parity",
+      "source": "curl --silent --show-error '-F' 'blob=@binary.bin;type=application/octet-stream;filename=sent.bin' '-F' 'tag=after' '{A}/echo'",
+      "transport": "default optional transport omitted",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJzZW50LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idGFnIg0KDQphZnRlcg0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=virtual-bash-cb5b9dc61eb7637848e566724c4c3d67d7ff"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55585"
+            ],
+            [
+              "Connection",
+              "close"
+            ],
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ]
+          ],
+          "body": "LS12aXJ0dWFsLWJhc2gtY2I1YjlkYzYxZWI3NjM3ODQ4ZTU2NjcyNGM0YzNkNjdkN2ZmDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0ic2VudC5iaW4iDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tdmlydHVhbC1iYXNoLWNiNWI5ZGM2MWViNzYzNzg0OGU1NjY3MjRjNGMzZDY3ZDdmZg0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJ0YWciDQoNCmFmdGVyDQotLXZpcnR1YWwtYmFzaC1jYjViOWRjNjFlYjc2Mzc4NDhlNTY2NzI0YzRjM2Q2N2Q3ZmYtLQ0K"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "b2sK",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 14,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-binary-field",
+      "kind": "native-parity",
+      "source": "curl --silent --show-error '-F' 'blob=<binary.bin;type=application/octet-stream' '{A}/echo'",
+      "transport": "default optional transport omitted",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS1GUk9aRU5fQk9VTkRBUlktLQ0K"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=virtual-bash-b7cde20603bf55658447de3b059a2b8f4396"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55589"
+            ],
+            [
+              "Connection",
+              "close"
+            ],
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ]
+          ],
+          "body": "LS12aXJ0dWFsLWJhc2gtYjdjZGUyMDYwM2JmNTU2NTg0NDdkZTNiMDU5YTJiOGY0Mzk2DQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tdmlydHVhbC1iYXNoLWI3Y2RlMjA2MDNiZjU1NjU4NDQ3ZGUzYjA1OWEyYjhmNDM5Ni0tDQo="
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "b2sK",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 2,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-binary-stdin",
+      "kind": "native-parity",
+      "source": "curl --silent --show-error '-F' 'blob=@-;filename=stdin.bin;type=application/octet-stream' '{A}/echo'",
+      "transport": "default optional transport omitted",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJzdGRpbi5iaW4iDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KDQoA//4NCiI7QYANCi0tRlJPWkVOX0JPVU5EQVJZLS0NCg=="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=virtual-bash-e7db36a7903c1461d371b33cf42aebb42589"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55593"
+            ],
+            [
+              "Connection",
+              "close"
+            ],
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ]
+          ],
+          "body": "LS12aXJ0dWFsLWJhc2gtZTdkYjM2YTc5MDNjMTQ2MWQzNzFiMzNjZjQyYWViYjQyNTg5DQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0ic3RkaW4uYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLXZpcnR1YWwtYmFzaC1lN2RiMzZhNzkwM2MxNDYxZDM3MWIzM2NmNDJhZWJiNDI1ODktLQ0K"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "b2sK",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 2,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-form-string-literal",
+      "kind": "native-parity",
+      "source": "curl --silent --show-error '--form-string' 'text=@$(touch PWN);type=text/evil\r\nX-Injected: yes' '{A}/echo'",
+      "transport": "default optional transport omitted",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0idGV4dCINCg0KQCQodG91Y2ggUFdOKTt0eXBlPXRleHQvZXZpbA0KWC1JbmplY3RlZDogeWVzDQotLUZST1pFTl9CT1VOREFSWS0tDQo="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=virtual-bash-22d4eb876dcb5274a4ef19b54f20d396e830"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55597"
+            ],
+            [
+              "Connection",
+              "close"
+            ],
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ]
+          ],
+          "body": "LS12aXJ0dWFsLWJhc2gtMjJkNGViODc2ZGNiNTI3NGE0ZWYxOWI1NGYyMGQzOTZlODMwDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9InRleHQiDQoNCkAkKHRvdWNoIFBXTik7dHlwZT10ZXh0L2V2aWwNClgtSW5qZWN0ZWQ6IHllcw0KLS12aXJ0dWFsLWJhc2gtMjJkNGViODc2ZGNiNTI3NGE0ZWYxOWI1NGYyMGQzOTZlODMwLS0NCg=="
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "b2sK",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 2,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-307-replay",
+      "kind": "native-parity",
+      "source": "curl --silent --show-error '-L' '-F' 'blob=@binary.bin;type=application/octet-stream' '{A}/redirect307'",
+      "transport": "default optional transport omitted",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect307",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiaW5hcnkuYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLUZST1pFTl9CT1VOREFSWS0tDQo="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=FROZEN_BOUNDARY"
+            ]
+          ],
+          "body": "LS1GUk9aRU5fQk9VTkRBUlkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iYmxvYiI7IGZpbGVuYW1lPSJiaW5hcnkuYmluIg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0NCg0KAP/+DQoiO0GADQotLUZST1pFTl9CT1VOREFSWS0tDQo="
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/redirect307",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=virtual-bash-fd410560a5069784054e98522e82755b946d"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55601"
+            ],
+            [
+              "Connection",
+              "close"
+            ],
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ]
+          ],
+          "body": "LS12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmluYXJ5LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkLS0NCg=="
+        },
+        {
+          "origin": "A",
+          "method": "POST",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "content-type",
+              "multipart/form-data; boundary=virtual-bash-fd410560a5069784054e98522e82755b946d"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55601"
+            ],
+            [
+              "Connection",
+              "close"
+            ],
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ]
+          ],
+          "body": "LS12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkDQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9ImJsb2IiOyBmaWxlbmFtZT0iYmluYXJ5LmJpbiINCkNvbnRlbnQtVHlwZTogYXBwbGljYXRpb24vb2N0ZXQtc3RyZWFtDQoNCgD//g0KIjtBgA0KLS12aXJ0dWFsLWJhc2gtZmQ0MTA1NjBhNTA2OTc4NDA1NGU5ODUyMmU4Mjc1NWI5NDZkLS0NCg=="
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/redirect307",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "{A}/redirect307",
+          "allowed": true
+        }
+      ],
+      "emitted": "b2sK",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 2,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "literal-output-path",
+      "kind": "native-parity",
+      "source": "curl --silent --show-error '-o' '$(touch PWN);out.bin' '{A}/bytes'",
+      "transport": "default optional transport omitted",
+      "code": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "$(touch PWN);out.bin": "AP/+DQoiO0GA",
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/bytes",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55606"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/bytes",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 1,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "url-control-rejection",
+      "kind": "security",
+      "source": "curl --silent --show-error '{A}/bad\r\nX-Injected:yes'",
+      "transport": "default optional transport omitted",
+      "code": 3,
+      "stdout": "",
+      "stderr": "curl: (3) Malformed URL\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "authorized": [],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 1,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "multipart-filename-control",
+      "kind": "security",
+      "source": "curl --silent --show-error '-F' 'blob=@binary.bin;filename=bad\r\nX-Injected:yes' '{A}/echo'",
+      "transport": "default optional transport omitted",
+      "code": 2,
+      "stdout": "",
+      "stderr": "curl: (2) Invalid multipart field metadata\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "authorized": [],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 1,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "redirect-authorization-denial",
+      "kind": "security",
+      "source": "curl --silent --show-error '-L' '{A}/cross'",
+      "transport": "default optional transport omitted",
+      "code": 7,
+      "stdout": "",
+      "stderr": "curl: (7) Network access denied by host policy\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55616"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/cross",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        },
+        {
+          "url": "{B}/echo",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": "{A}/cross",
+          "allowed": false
+        }
+      ],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 2,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "origin-header-permanent-strip",
+      "kind": "security",
+      "source": "curl --silent --show-error '-L' '-H' 'X-Private: fixture-secret' '{A}/cross-return'",
+      "transport": "default optional transport omitted",
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-return",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "x-private",
+              "fixture-secret"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/return",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/cross-return",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "x-private",
+              "fixture-secret"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55620"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "B",
+          "method": "GET",
+          "path": "/return",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55621"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/echo",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55620"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/cross-return",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        },
+        {
+          "url": "{B}/return",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": "{A}/cross-return",
+          "allowed": true
+        },
+        {
+          "url": "{A}/echo",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": "{B}/return",
+          "allowed": true
+        }
+      ],
+      "emitted": "b2sK",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 2,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "https-downgrade-rejection",
+      "kind": "security",
+      "source": "curl --silent --show-error '-L' '{T}/downgrade'",
+      "transport": "public Node transport with fixture CA",
+      "code": 1,
+      "stdout": "",
+      "stderr": "curl: (1) HTTPS-to-HTTP redirects are disabled\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "T",
+          "method": "GET",
+          "path": "/downgrade",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "T",
+          "method": "GET",
+          "path": "/downgrade",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55628"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{T}/downgrade",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 19,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "default-tls-untrusted",
+      "kind": "native-parity",
+      "source": "curl --silent --show-error '{T}/bytes'",
+      "transport": "default optional transport omitted",
+      "code": 60,
+      "stdout": "",
+      "stderr": "curl: (60) TLS certificate verification failed\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "authorized": [
+        {
+          "url": "{T}/bytes",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 12,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "default-missing-upload",
+      "kind": "native-parity",
+      "source": "curl --silent --show-error '--data-binary' '@absent.bin' '{A}/echo'",
+      "transport": "default optional transport omitted",
+      "code": 26,
+      "stdout": "",
+      "stderr": "curl: (26) Failed to read virtual upload file\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "authorized": [
+        {
+          "url": "{A}/echo",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 1,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "response-backpressure",
+      "kind": "lifecycle",
+      "source": "curl --silent --show-error '{A}/synthetic'",
+      "transport": "instrumented host transport",
+      "pullsWhileBlocked": 1,
+      "code": 0,
+      "stdout": "AP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GA",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "authorized": [
+        {
+          "url": "{A}/synthetic",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "AP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GA",
+      "lifecycle": {
+        "sourcePulls": 4,
+        "returned": true,
+        "disposed": 1,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": [
+          true
+        ]
+      },
+      "elapsedMs": 42,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "upload-backpressure",
+      "kind": "lifecycle",
+      "source": "curl --silent --show-error '-T' '-' '{A}/synthetic'",
+      "transport": "instrumented host transport",
+      "pullsWhileBlocked": 1,
+      "code": 0,
+      "stdout": "b2sK",
+      "stderr": "",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "authorized": [
+        {
+          "url": "{A}/synthetic",
+          "method": "PUT",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "b2sK",
+      "lifecycle": {
+        "sourcePulls": 4,
+        "returned": true,
+        "disposed": 1,
+        "acceptedBody": "AP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GAAP/+DQoiO0GA",
+        "settledLate": false,
+        "callbackAborted": [
+          true
+        ]
+      },
+      "elapsedMs": 43,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "default-upload-cancellation",
+      "kind": "lifecycle",
+      "source": "curl --silent --show-error '-T' '-' '{A}/uploadstall'",
+      "transport": "default optional transport omitted",
+      "callerAbort": "rejected with supplied reason",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/uploadstall",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": "AP/+DQoiO0GA"
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "PUT",
+          "path": "/uploadstall",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55644"
+            ],
+            [
+              "Connection",
+              "close"
+            ],
+            [
+              "Transfer-Encoding",
+              "chunked"
+            ]
+          ],
+          "body": "AP/+DQoiO0GA"
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/uploadstall",
+          "method": "PUT",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 1,
+        "returned": true,
+        "disposed": 0,
+        "acceptedBody": "AP/+DQoiO0GA",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 14,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "default-response-cancellation",
+      "kind": "lifecycle",
+      "source": "curl --silent --show-error '{A}/stall'",
+      "transport": "default optional transport omitted",
+      "callerAbort": "rejected with supplied reason",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stall",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/stall",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ],
+            [
+              "user-agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Host",
+              "127.0.0.1:55648"
+            ],
+            [
+              "Connection",
+              "close"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "authorized": [
+        {
+          "url": "{A}/stall",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "AP/+DQoiO0GA",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": false,
+        "callbackAborted": []
+      },
+      "elapsedMs": 14,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "id": "late-transport-rejection",
+      "kind": "lifecycle",
+      "source": "curl --silent --show-error '--max-time' '0.03' '{A}/synthetic'",
+      "transport": "instrumented host transport",
+      "code": 28,
+      "stdout": "",
+      "stderr": "curl: (28) Operation timed out\n",
+      "files": {
+        "binary.bin": "AP/+DQoiO0GA"
+      },
+      "traces": [],
+      "wireTraces": [],
+      "authorized": [
+        {
+          "url": "{A}/synthetic",
+          "method": "GET",
+          "attempt": 0,
+          "redirectFrom": null,
+          "allowed": true
+        }
+      ],
+      "emitted": "",
+      "lifecycle": {
+        "sourcePulls": 0,
+        "returned": false,
+        "disposed": 0,
+        "acceptedBody": "",
+        "settledLate": true,
+        "callbackAborted": [
+          true
+        ]
+      },
+      "elapsedMs": 135,
+      "errors": [],
+      "status": "passed"
+    },
+    {
+      "mode": "product",
+      "total": 18,
+      "passed": 18,
+      "failed": 0,
+      "pending": 0,
+      "productExecutions": 18
+    }
+  ],
+  "summary": {
+    "mode": "product",
+    "total": 18,
+    "passed": 18,
+    "failed": 0,
+    "pending": 0,
+    "productExecutions": 18
+  },
+  "expected": 18,
+  "passed": true
+}

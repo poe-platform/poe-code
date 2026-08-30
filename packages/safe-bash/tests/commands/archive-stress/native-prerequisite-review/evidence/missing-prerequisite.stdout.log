@@ -1,0 +1,141 @@
+TAP version 13
+# Subtest: I01 opaque optional bytes cannot change effective size, path, type or literal dot-underscore members
+ok 1 - I01 opaque optional bytes cannot change effective size, path, type or literal dot-underscore members
+  ---
+  duration_ms: 24.238792
+  type: 'test'
+  ...
+# Subtest: I02 malformed opaque-value framing and checksum mutations fail before publication
+ok 2 - I02 malformed opaque-value framing and checksum mutations fail before publication
+  ---
+  duration_ms: 24.893709
+  type: 'test'
+  ...
+# Subtest: I03 essential layout and effective-path controls remain fail-closed beside ignored metadata
+ok 3 - I03 essential layout and effective-path controls remain fail-closed beside ignored metadata
+  ---
+  duration_ms: 38.85425
+  type: 'test'
+  ...
+# Subtest: I04 discarded values still consume PAX, member, archive and effective-size budgets
+ok 4 - I04 discarded values still consume PAX, member, archive and effective-size budgets
+  ---
+  duration_ms: 8.563
+  type: 'test'
+  ...
+# Subtest: I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions
+not ok 5 - I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions
+  ---
+  duration_ms: 3.475375
+  type: 'test'
+  location: '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive-stress/pax-independent/controls.test.ts:1:7633'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:639:25)
+    async readFile (node:internal/fs/promises:1249:14)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive-stress/pax-independent/controls.test.ts:161:46)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: I06 opaque PAX hardlinks share writes and unsupported publication never copies
+ok 6 - I06 opaque PAX hardlinks share writes and unsupported publication never copies
+  ---
+  duration_ms: 6.342833
+  type: 'test'
+  ...
+# Subtest: pinned GNU cross-readability BOTH directions plain
+not ok 7 - pinned GNU cross-readability BOTH directions plain
+  ---
+  duration_ms: 1.386834
+  type: 'test'
+  location: '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:1:289'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:639:25)
+    async readFile (node:internal/fs/promises:1249:14)
+    async withNative (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/helpers.ts:40:44)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:8:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: pinned GNU cross-readability BOTH directions gzip
+not ok 8 - pinned GNU cross-readability BOTH directions gzip
+  ---
+  duration_ms: 1.404834
+  type: 'test'
+  location: '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:1:289'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:639:25)
+    async readFile (node:internal/fs/promises:1249:14)
+    async withNative (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/helpers.ts:40:44)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:8:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: pinned GNU legacy long-name and long-link records are read without data conversion
+not ok 9 - pinned GNU legacy long-name and long-link records are read without data conversion
+  ---
+  duration_ms: 0.291292
+  type: 'test'
+  location: '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:1:2669'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:639:25)
+    async readFile (node:internal/fs/promises:1249:14)
+    async withNative (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/helpers.ts:40:44)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:47:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: native -C, files-from, excludes, selected strips agree on safe common fixtures
+not ok 10 - native -C, files-from, excludes, selected strips agree on safe common fixtures
+  ---
+  duration_ms: 0.268292
+  type: 'test'
+  location: '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:1:3394'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:639:25)
+    async readFile (node:internal/fs/promises:1249:14)
+    async withNative (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/helpers.ts:40:44)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:65:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast
+not ok 11 - pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast
+  ---
+  duration_ms: 0.264625
+  type: 'test'
+  location: '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:1:4902'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:639:25)
+    async readFile (node:internal/fs/promises:1249:14)
+    async withNative (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/helpers.ts:40:44)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/native.test.ts:92:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 5
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 817.869917

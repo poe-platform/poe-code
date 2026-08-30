@@ -1,0 +1,40 @@
+{
+  "schema": "independent-raw-frame-admission-v1",
+  "at": "2026-08-29T11:42:09.327Z",
+  "envelope": {
+    "encodedBytes": 11875437,
+    "encodedSha256": "fefdc27656e2f48832d355a32dcea93051b478004d5fa6253329dc87cc010763",
+    "gzipBytes": 8906576,
+    "gzipSha256": "ff9b0c96251653f3ab2c2839e3ce54c8aca8766d28e41f3b1c7fdeaddf553b9b",
+    "decodedBytes": 47634417,
+    "decodedSha256": "7409a7c80b1fa78b19db9937fc490d441d25bba6f4b27ec38f8c63d46f9a68cb",
+    "rawFileBytes": 35655081,
+    "files": 678,
+    "decoderRule": "regular/type/encoded-size/hash before base64 conversion; compressed size/hash before gzip decode; same admitted Buffer"
+  },
+  "keys": {
+    "schema": "string",
+    "root": "string",
+    "files": {
+      "type": "array",
+      "length": 678,
+      "firstKeys": [
+        "path",
+        "bytes",
+        "sha256",
+        "base64"
+      ],
+      "first": {
+        "path": "ARCHIVE-ADMISSION.json",
+        "bytes": 575,
+        "sha256": "3829734555341f1436af24bc803fb166b7350aeef156c787aeb95dc3b80216a7",
+        "base64": {
+          "length": 768,
+          "prefix": "ewogICJyZWNlaXB0IjogewogICAgInJlc3VsdCI6IHsKICAgICAgIm1lbWJlcnMiOiA5NTQsCiAgICAg"
+        }
+      }
+    }
+  },
+  "noExtraction": true,
+  "noProductEvaluation": true
+}

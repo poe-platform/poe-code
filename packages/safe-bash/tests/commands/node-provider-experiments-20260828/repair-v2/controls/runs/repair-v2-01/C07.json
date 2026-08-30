@@ -1,0 +1,17 @@
+{
+  "id": "C07",
+  "expected": "hole rejected",
+  "observation": {
+    "rejected": true,
+    "reason": {
+      "type": "object",
+      "name": "AssertionError",
+      "message": "ARRAY_EXTRA_OR_HOLE\n\n20 !== 21\n"
+    },
+    "accessorCalls": 0,
+    "actualChildren": 0,
+    "scope": "exact reconciler structural control, not composed engine proof",
+    "expectedObserved": true
+  },
+  "safeToContinue": true
+}

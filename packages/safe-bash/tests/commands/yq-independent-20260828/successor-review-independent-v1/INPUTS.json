@@ -1,0 +1,32 @@
+{
+  "date": "2026-08-28",
+  "classification": "STATIC_PRESEAL_REVIEW_ONLY",
+  "adapterCommit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+  "adapterRoot": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22",
+  "adapterPresealSha256": "f6d4c3fb6d307d9b51d605d4fdae38eb7691b958e2c3a2ad2b604de82115de88",
+  "adapterDeltaSha256": "0994215bbb73e93d6102dd04b61efc1c6a222a742140c313d3073f8044924e6c",
+  "artifactCommit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+  "artifactRoot": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1",
+  "artifactSealSha256": "06869ce7eb6f673795004443b098fdcbeba20d03c67f4f9f210bd639bf3fa23f",
+  "candidateCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "candidateEvidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "candidateHandoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "candidateArchiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+  "candidatePackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "candidatePacketHandoffInitiallyPresent": false,
+  "successorPlanHandoffInitiallyPresent": false,
+  "consumedCandidate": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "originalActualReview": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+  "freshGO": false,
+  "executionCounts": {
+    "authoredAdapters": 0,
+    "authoredPredicates": 0,
+    "controls": 0,
+    "harnessCohorts": 0,
+    "materializers": 0,
+    "loaders": 0,
+    "products": 0,
+    "builds": 0,
+    "types": 0
+  }
+}

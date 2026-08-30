@@ -1,0 +1,82 @@
+{
+  "schema": "OUTER_ADAPTER_FUTURE_ROUTE_NOT_AUTHORITY",
+  "status": "ROOT_DISPOSITION_REQUIRED_FOR_N02_NO_ACTIVATION",
+  "sourceCommit": "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+  "adapterSealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "actualOwnerExecuted": false,
+  "actualGrantIssued": false,
+  "positiveAdapterAcceptanceReceiptIssued": false,
+  "requiredRootDecisions": [
+    "Disposition of preserved7/8 N02 exact-count/lost-tail proof gap; no source defect established",
+    "Bind this scoped adapter evidence separately while retaining fixed d27fd914 inner AUTH.review reference",
+    "Select exec-replaced/direct dedicated owner route without a newly owned waiting parent",
+    "Approve actual total process/deadline/capture/admin budget and raw startup-outcome retention",
+    "Reauthenticate production payloads and stage/load only under a fresh actual grant"
+  ],
+  "futureCommand": {
+    "file": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/owner.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/AUTH.json",
+      "EXACT_FRESH_AUTH_RAW_SHA256",
+      "EXACT_ADAPTER_SEAL_SHA256"
+    ]
+  },
+  "topology": {
+    "owner": "This dedicated Node owner replaces the abstract existing capture-owner slot; no persistent shell or CLI process added",
+    "chain": [
+      "outer owner",
+      "frozen launcher",
+      "coordinator",
+      "one worker",
+      "one Git metadata child"
+    ],
+    "runtimeProcesses": 47,
+    "administrationProcesses": 8,
+    "totalPlanned": 55,
+    "allProcessCap": 128,
+    "peak": 5,
+    "workerCount": 14,
+    "workerCap": 27,
+    "C11EmptySetups": 2,
+    "semanticCalls": 0,
+    "metadataChildrenPerWorker": 2,
+    "coordinatorMetadataChildren": 2,
+    "additionalOwnerChildren": 0,
+    "additionalOwnerSubprocessesBeyondLauncher": 0
+  },
+  "capture": {
+    "overall": 269484032,
+    "inner": 268435456,
+    "body": 260046848,
+    "innerCollector": 8388608,
+    "outer": 524288,
+    "publicationAdministration": 524288,
+    "outerPartitions": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "fd3": 262144,
+      "intent": 16384,
+      "events": 49152,
+      "receipt": 65536
+    }
+  },
+  "unchangedSealedInactiveFields": [
+    "freshRootGrantCommit",
+    "rawAuthSha256",
+    "adapterDifferentReviewReceipt",
+    "actualAuthorized"
+  ],
+  "activationNote": "Do not mutate sealed INACTIVE metadata or SEAL.json. Materialize only separate activation/ROOT-GRANT.json and AUTH.json after new root GO. Older template prose naming launch.mjs is superseded by the selected owner.mjs route.",
+  "startup": "Dedicated owner cannot self-capture its own pre-import/syntax/Node startup. Caller retains the small outcome within admin512KiB without adding an owned waiting process.",
+  "receipt": "Durable receipt requires terminal confirmation; capture qualification is not inner admission qualification.",
+  "historical": {
+    "V6LostBytes": 294045,
+    "oldHoldsUnchanged": true,
+    "W07": "UNQUALIFIED_UNCREDITED"
+  },
+  "newAcquisitionRequiredByThisReview": false,
+  "actualOfflinePayloadStagingProved": false
+}

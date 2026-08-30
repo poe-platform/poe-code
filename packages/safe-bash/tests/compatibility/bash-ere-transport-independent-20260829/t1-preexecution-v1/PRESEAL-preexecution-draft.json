@@ -1,0 +1,29 @@
+{
+  "created": "2026-08-29T13:07:33.720Z",
+  "deadline": "2026-08-29T13:22:07.880Z",
+  "files": [
+    {
+      "path": "review.mjs",
+      "bytes": 9412,
+      "sha256": "2989ac110d4ddc0b4e9608cef3381b1bf59548fd2b13dfd209be1e96195891c3"
+    },
+    {
+      "path": "CONTROL-PROFILE.md",
+      "bytes": 2150,
+      "sha256": "624c03ce47dfb8e4c77b7239044eff7da4f60fc581e0775f4e5a0cd342a3fa91"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 10923466,
+      "sha256": "76021d1a0d2253c22639f5a6d4d06ccf1a0948654a37decda8b061324cd75f9f"
+    }
+  ],
+  "entry": "review.mjs",
+  "seconds": 120,
+  "captureBytes": 4194304,
+  "authorData": 33,
+  "independentGroups": 8,
+  "Workers": 0,
+  "realChildFixtures": 0,
+  "productImports": 0
+}

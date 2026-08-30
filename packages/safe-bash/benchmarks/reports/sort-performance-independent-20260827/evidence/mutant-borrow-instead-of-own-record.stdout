@@ -1,0 +1,210 @@
+TAP version 13
+# Subtest: fresh GNU heldout: C all byte values except LF
+ok 1 - fresh GNU heldout: C all byte values except LF
+  ---
+  duration_ms: 22.500708
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: invalid UTF8 and non-BMP codepoint order
+ok 2 - fresh GNU heldout: invalid UTF8 and non-BMP codepoint order
+  ---
+  duration_ms: 12.252334
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: NUL records with embedded LF
+ok 3 - fresh GNU heldout: NUL records with embedded LF
+  ---
+  duration_ms: 10.83925
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: reverse NUL unique
+ok 4 - fresh GNU heldout: reverse NUL unique
+  ---
+  duration_ms: 8.748458
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: large precise numeric stable
+ok 5 - fresh GNU heldout: large precise numeric stable
+  ---
+  duration_ms: 8.881125
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: stable reverse keys
+ok 6 - fresh GNU heldout: stable reverse keys
+  ---
+  duration_ms: 8.187292
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: fold unique
+ok 7 - fresh GNU heldout: fold unique
+  ---
+  duration_ms: 7.516417
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: blank key character ranges
+ok 8 - fresh GNU heldout: blank key character ranges
+  ---
+  duration_ms: 5.378208
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: long equal prefix
+ok 9 - fresh GNU heldout: long equal prefix
+  ---
+  duration_ms: 2287.493
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: unterminated final empty-adjacent records
+ok 10 - fresh GNU heldout: unterminated final empty-adjacent records
+  ---
+  duration_ms: 10.145709
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: only delimiters
+ok 11 - fresh GNU heldout: only delimiters
+  ---
+  duration_ms: 16.255375
+  type: 'test'
+  ...
+# Subtest: fresh GNU heldout: empty input
+ok 12 - fresh GNU heldout: empty input
+  ---
+  duration_ms: 7.296208
+  type: 'test'
+  ...
+# Subtest: owned input chunks: Buffer=false, spanning=false
+not ok 13 - owned input chunks: Buffer=false, spanning=false
+  ---
+  duration_ms: 0.783459
+  type: 'test'
+  location: '/private/tmp/safe-bash-sort-performance-dXHa3m/harness/holdouts.mjs:47:72'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'x\nx\n' !== 'a\nb\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    a
+    b
+    
+  actual: |-
+    x
+    x
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/safe-bash-sort-performance-dXHa3m/harness/holdouts.mjs:54:44)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: owned input chunks: Buffer=false, spanning=true
+ok 14 - owned input chunks: Buffer=false, spanning=true
+  ---
+  duration_ms: 0.071667
+  type: 'test'
+  ...
+# Subtest: owned input chunks: Buffer=true, spanning=false
+not ok 15 - owned input chunks: Buffer=true, spanning=false
+  ---
+  duration_ms: 0.186208
+  type: 'test'
+  location: '/private/tmp/safe-bash-sort-performance-dXHa3m/harness/holdouts.mjs:47:72'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'x\nx\n' !== 'a\nb\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    a
+    b
+    
+  actual: |-
+    x
+    x
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/safe-bash-sort-performance-dXHa3m/harness/holdouts.mjs:54:44)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: owned input chunks: Buffer=true, spanning=true
+ok 16 - owned input chunks: Buffer=true, spanning=true
+  ---
+  duration_ms: 0.058875
+  type: 'test'
+  ...
+# Subtest: failed input preserves publication: input,missing
+ok 17 - failed input preserves publication: input,missing
+  ---
+  duration_ms: 0.471875
+  type: 'test'
+  ...
+# Subtest: failed input preserves publication: -o,input,input,missing
+ok 18 - failed input preserves publication: -o,input,input,missing
+  ---
+  duration_ms: 0.148208
+  type: 'test'
+  ...
+# Subtest: buffer cap retains original output before publication
+ok 19 - buffer cap retains original output before publication
+  ---
+  duration_ms: 74.825958
+  type: 'test'
+  ...
+# Subtest: late read failure closes input and cannot delete/overwrite destination
+ok 20 - late read failure closes input and cannot delete/overwrite destination
+  ---
+  duration_ms: 0.218875
+  type: 'test'
+  ...
+# Subtest: check mode still stops at first disorder without a later pull
+ok 21 - check mode still stops at first disorder without a later pull
+  ---
+  duration_ms: 0.143917
+  type: 'test'
+  ...
+# Subtest: exact cancellation reason before/during input: false
+ok 22 - exact cancellation reason before/during input: false
+  ---
+  duration_ms: 1.690583
+  type: 'test'
+  ...
+# Subtest: exact cancellation reason before/during input: true
+ok 23 - exact cancellation reason before/during input: true
+  ---
+  duration_ms: 0.087791
+  type: 'test'
+  ...
+# Subtest: owned output, awaited backpressure, and unchanged 64KiB partial-output boundary
+ok 24 - owned output, awaited backpressure, and unchanged 64KiB partial-output boundary
+  ---
+  duration_ms: 85.362458
+  type: 'test'
+  ...
+# Subtest: abort blocked output retains reason and observes late rejection
+ok 25 - abort blocked output retains reason and observes late rejection
+  ---
+  duration_ms: 2.745958
+  type: 'test'
+  ...
+# Subtest: actual Shell pipeline, in-place sort, and shared output quota
+ok 26 - actual Shell pipeline, in-place sort, and shared output quota
+  ---
+  duration_ms: 8.505875
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 24
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2670.927083

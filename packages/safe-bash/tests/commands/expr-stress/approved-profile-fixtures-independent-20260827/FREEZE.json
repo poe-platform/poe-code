@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "role": "Delegated independent leaf verifier; no delegation, product or prior-fixture writes",
+  "approvedMigration": "35db31aab5be6a6d98c8ba7f006f714fa1c5da13",
+  "runtimeReference": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+  "fixture": "tests/commands/expr/contracts.test.ts",
+  "beforeAssertion": "    assert.equal(actual.exitCode, 2); assert.match(actual.stderr, /locale|collation/u);",
+  "afterAssertion": "    if (args[0] === \"length\") {\n      assert.equal(actual.exitCode, 0); assert.equal(actual.stdout, \"3\\n\"); assert.equal(actual.stderr, \"\");\n    } else {\n      assert.equal(actual.exitCode, 2); assert.match(actual.stderr, /locale|collation/u);\n    }",
+  "negativeMutations": ["changed environment", "changed argv", "weakened named collation", "removed unrepresentable control", "second runtime-row change", "runtime argv change", "runtime limit change", "new archived file", "changed archived file", "new archived directory"],
+  "cases": [
+    {"id":"approved-ascii-length","argv":["length","abc"],"env":{"LC_ALL":"en_US.UTF-8"},"status":0,"stdout":"3\n","stderr":"","workers":0},
+    {"id":"named-unicode-scalars","argv":["length","a😀z"],"env":{"LC_ALL":"en_US.UTF-8"},"status":0,"stdout":"3\n","stderr":"","workers":0},
+    {"id":"unknown-name","argv":["length","abc"],"env":{"LC_ALL":"fr_FR.UTF-8"},"status":2,"stdout":"","stderr":"expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n","workers":0},
+    {"id":"unknown-alias","argv":["length","abc"],"env":{"LC_ALL":"en_US.utf8"},"status":2,"stdout":"","stderr":"expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n","workers":0},
+    {"id":"named-collation","argv":["a","<","b"],"env":{"LC_ALL":"en_US.UTF-8"},"status":2,"stdout":"","stderr":"expr: string comparison requires C/POSIX or C.UTF-8/C.utf8 byte collation\n","workers":0},
+    {"id":"named-bracket","argv":["a",":","[a]"],"env":{"LC_ALL":"en_US.UTF-8"},"status":2,"stdout":"","stderr":"expr: unsupported BRE: bracket expressions require C/POSIX or C.UTF-8/C.utf8 LC_CTYPE and LC_COLLATE\n","workers":0},
+    {"id":"nul","argv":["a\u0000b"],"env":{"LC_ALL":"C"},"status":2,"stdout":"","stderrNonempty":true,"workers":0},
+    {"id":"lone-high-surrogate","argv":["\ud800"],"env":{"LC_ALL":"C"},"status":2,"stdout":"","stderrNonempty":true,"workers":0},
+    {"id":"lone-low-surrogate","argv":["\udfff"],"env":{"LC_ALL":"C"},"status":2,"stdout":"","stderrNonempty":true,"workers":0},
+    {"id":"named-worker-only-match","argv":["a😀z",":","..."],"env":{"LC_ALL":"en_US.UTF-8"},"status":0,"stdout":"3\n","stderr":"","workers":1},
+    {"id":"syntax-fixed-emergency","argv":["1","x"],"env":{"LC_ALL":"C"},"limits":{"maxOutputBytes":1},"status":3,"stdout":"","stderr":"expr: output bytes limit exceeded\n","workers":0}
+  ],
+  "policy": "Normal writes must obey normal quota; only one fixed, awaited, separate emergency diagnostic may exceed it. The separate output-emergency-review leaf owns ordinary-division failure investigation. Revised 12/12 is not complete policy acceptance.",
+  "replay": "Freeze this file in Git before execution. Authenticate actual committed composition, archive old/new separately; unchanged eight-file 241-test cohort may execute its existing hash-pinned GNU9.7 Darwin oracle without creating native captures. Retain historical 240/241 and 11/12 bytes. Check full archive entry inventories before/after, including additions. No broad other-owner suites."
+}

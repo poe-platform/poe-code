@@ -1,0 +1,1228 @@
+TAP version 13
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A
+ok 1 - real agent pipeline: env -i A=1 B=2 env -u A
+  ---
+  duration_ms: 7.115708
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A | cat
+ok 2 - real agent pipeline: env -i A=1 B=2 env -u A | cat
+  ---
+  duration_ms: 4.815792
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A env
+ok 3 - real agent pipeline: env -i A=1 B=2 env -u A env
+  ---
+  duration_ms: 1.920667
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: TEMP=prefix env -i env
+ok 4 - real agent pipeline: TEMP=prefix env -i env
+  ---
+  duration_ms: 1.214083
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i
+ok 5 - real agent pipeline: env -i
+  ---
+  duration_ms: 0.683792
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i EMPTY= VALUE=a=b env
+ok 6 - real agent pipeline: env -i EMPTY= VALUE=a=b env
+  ---
+  duration_ms: 0.678292
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -u PUBLIC report
+ok 7 - exact exported map: env -u PUBLIC report
+  ---
+  duration_ms: 1.41375
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i report
+ok 8 - exact exported map: env -i report
+  ---
+  duration_ms: 1.152333
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i -C /other PWD=caller report
+ok 9 - exact exported map: env -i -C /other PWD=caller report
+  ---
+  duration_ms: 1.240583
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i -C /other report
+ok 10 - exact exported map: env -i -C /other report
+  ---
+  duration_ms: 1.013708
+  type: 'test'
+  ...
+# Subtest: private/exported separation at bash startup
+ok 11 - private/exported separation at bash startup
+  ---
+  duration_ms: 3.552875
+  type: 'test'
+  ...
+# Subtest: private/exported separation at sh startup
+ok 12 - private/exported separation at sh startup
+  ---
+  duration_ms: 2.930833
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=undefined supplied=false
+ok 13 - literal invoke replace=undefined supplied=false
+  ---
+  duration_ms: 0.51075
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=undefined supplied=true
+ok 14 - literal invoke replace=undefined supplied=true
+  ---
+  duration_ms: 0.373292
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=false supplied=false
+ok 15 - literal invoke replace=false supplied=false
+  ---
+  duration_ms: 0.309209
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=false supplied=true
+ok 16 - literal invoke replace=false supplied=true
+  ---
+  duration_ms: 0.426875
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=true supplied=false
+ok 17 - literal invoke replace=true supplied=false
+  ---
+  duration_ms: 0.745667
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=true supplied=true
+ok 18 - literal invoke replace=true supplied=true
+  ---
+  duration_ms: 0.641375
+  type: 'test'
+  ...
+# Subtest: shell-local type mirrors the approved contract without casts
+ok 19 - shell-local type mirrors the approved contract without casts
+  ---
+  duration_ms: 0.047
+  type: 'test'
+  ...
+# Subtest: replacement does not impose a lineage policy on later default invocation
+ok 20 - replacement does not impose a lineage policy on later default invocation
+  ---
+  duration_ms: 0.700333
+  type: 'test'
+  ...
+# Subtest: validation before entry {"bad=name":"value"}
+ok 21 - validation before entry {"bad=name":"value"}
+  ---
+  duration_ms: 0.547666
+  type: 'test'
+  ...
+# Subtest: validation before entry {"bad\\u0000name":"value"}
+ok 22 - validation before entry {"bad\\u0000name":"value"}
+  ---
+  duration_ms: 0.35125
+  type: 'test'
+  ...
+# Subtest: validation before entry {"GOOD":"bad\\u0000value"}
+ok 23 - validation before entry {"GOOD":"bad\\u0000value"}
+  ---
+  duration_ms: 0.42
+  type: 'test'
+  ...
+# Subtest: parent function locals, exports, cwd survive replacement and child status
+ok 24 - parent function locals, exports, cwd survive replacement and child status
+  ---
+  duration_ms: 2.421125
+  type: 'test'
+  ...
+# Subtest: private clone remains private until explicit export; no global lineage reset
+ok 25 - private clone remains private until explicit export; no global lineage reset
+  ---
+  duration_ms: 0.788875
+  type: 'test'
+  ...
+# Subtest: middleware sees exact child map; caller map is copied
+ok 26 - middleware sees exact child map; caller map is copied
+  ---
+  duration_ms: 0.560583
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor undefined
+ok 27 - origin and binary cursor undefined
+  ---
+  duration_ms: 0.65625
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor 
+ok 28 - origin and binary cursor 
+  ---
+  duration_ms: 1.849834
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor 0,255,195,169,10
+ok 29 - origin and binary cursor 0,255,195,169,10
+  ---
+  duration_ms: 0.6195
+  type: 'test'
+  ...
+# Subtest: read consumes only its prefix before nested replacement
+ok 30 - read consumes only its prefix before nested replacement
+  ---
+  duration_ms: 0.916875
+  type: 'test'
+  ...
+# Subtest: env shebang uses the public Shell without registering env
+ok 31 - env shebang uses the public Shell without registering env
+  ---
+  duration_ms: 7.222792
+  type: 'test'
+  ...
+# Subtest: single optional argument is not shell-tokenized without S
+ok 32 - single optional argument is not shell-tokenized without S
+  ---
+  duration_ms: 1.332917
+  type: 'test'
+  ...
+# Subtest: short, attached, long and nested S preserve quoting and literal arguments
+ok 33 - short, attached, long and nested S preserve quoting and literal arguments
+  ---
+  duration_ms: 5.970083
+  type: 'test'
+  ...
+# Subtest: split expansion reads incoming exports before clear, unset and assignments
+ok 34 - split expansion reads incoming exports before clear, unset and assignments
+  ---
+  duration_ms: 2.334542
+  type: 'test'
+  ...
+# Subtest: C resolves actual selected source and keeps parent cwd and state
+ok 35 - C resolves actual selected source and keeps parent cwd and state
+  ---
+  duration_ms: 2.333375
+  type: 'test'
+  ...
+# Subtest: absolute original source survives C and is charged and read only once
+ok 36 - absolute original source survives C and is charged and read only once
+  ---
+  duration_ms: 0.917541
+  type: 'test'
+  ...
+# Subtest: alternate operand, c and s select source rather than original body
+ok 37 - alternate operand, c and s select source rather than original body
+  ---
+  duration_ms: 1.868791
+  type: 'test'
+  ...
+# Subtest: explicit interpreters ignore env headers without relaxing other interpreter guards
+ok 38 - explicit interpreters ignore env headers without relaxing other interpreter guards
+  ---
+  duration_ms: 1.374667
+  type: 'test'
+  ...
+# Subtest: bash/sh flags retain e, +e, --, combinations and invalid flag status
+ok 39 - bash/sh flags retain e, +e, --, combinations and invalid flag status
+  ---
+  duration_ms: 3.65725
+  type: 'test'
+  ...
+# Subtest: env errors retain parser, usage and VFS status and ordering
+ok 40 - env errors retain parser, usage and VFS status and ordering
+  ---
+  duration_ms: 3.205208
+  type: 'test'
+  ...
+# Subtest: reserved interpreter resists hijacks while exact registered targets execute
+ok 41 - reserved interpreter resists hijacks while exact registered targets execute
+  ---
+  duration_ms: 1.5415
+  type: 'test'
+  ...
+# Subtest: binary stdin, pipelines, unread cursor and inherited descriptors survive
+ok 42 - binary stdin, pipelines, unread cursor and inherited descriptors survive
+  ---
+  duration_ms: 6.190667
+  type: 'test'
+  ...
+# Subtest: stdin provenance is forwarded without probing or local promotion
+ok 43 - stdin provenance is forwarded without probing or local promotion
+  ---
+  duration_ms: 3.130666
+  type: 'test'
+  ...
+# Subtest: initial and alternate file permission, binary and syntax refusals retain effects
+ok 44 - initial and alternate file permission, binary and syntax refusals retain effects
+  ---
+  duration_ms: 3.417792
+  type: 'test'
+  ...
+# Subtest: shared source, command, output, depth, loop and generated argv limits
+ok 45 - shared source, command, output, depth, loop and generated argv limits
+  ---
+  duration_ms: 2.223791
+  type: 'test'
+  ...
+# Subtest: aggregate plugin direct env behavior remains literal and separate
+ok 46 - aggregate plugin direct env behavior remains literal and separate
+  ---
+  duration_ms: 4.376542
+  type: 'test'
+  ...
+# Subtest: selected file, c string and s input each charge their actual source
+ok 47 - selected file, c string and s input each charge their actual source
+  ---
+  duration_ms: 2.342417
+  type: 'test'
+  ...
+# Subtest: env parser caps and carriage-return command bytes survive the bridge
+ok 48 - env parser caps and carriage-return command bytes survive the bridge
+  ---
+  duration_ms: 14.041791
+  type: 'test'
+  ...
+# Subtest: guarded completion: executable VFS delegates retain literal argv and normal body resolution
+ok 49 - guarded completion: executable VFS delegates retain literal argv and normal body resolution
+  ---
+  duration_ms: 1.145875
+  type: 'test'
+  ...
+# Subtest: guarded completion: slash targets never normalize basenames or bypass VFS checks
+ok 50 - guarded completion: slash targets never normalize basenames or bypass VFS checks
+  ---
+  duration_ms: 2.9705
+  type: 'test'
+  ...
+# Subtest: guarded completion: exact registered definitions beat functions and builtins and stay pinned
+ok 51 - guarded completion: exact registered definitions beat functions and builtins and stay pinned
+  ---
+  duration_ms: 0.638583
+  type: 'test'
+  ...
+# Subtest: guarded completion: missing bare names refuse PATH, files, functions and builtins
+ok 52 - guarded completion: missing bare names refuse PATH, files, functions and builtins
+  ---
+  duration_ms: 0.845459
+  type: 'test'
+  ...
+# Subtest: guarded completion: env and target middleware observe exact exports, cwd, argv and provenance
+ok 53 - guarded completion: env and target middleware observe exact exports, cwd, argv and provenance
+  ---
+  duration_ms: 1.121041
+  type: 'test'
+  ...
+# Subtest: guarded completion: env pipeline middleware is transparent and adds no command or depth charge
+ok 54 - guarded completion: env pipeline middleware is transparent and adds no command or depth charge
+  ---
+  duration_ms: 1.04825
+  type: 'test'
+  ...
+# Subtest: guarded completion: env middleware short circuits, wraps and observes original target errors
+ok 55 - guarded completion: env middleware short circuits, wraps and observes original target errors
+  ---
+  duration_ms: 2.205417
+  type: 'test'
+  ...
+# Subtest: guarded completion: registered nested invoke stays ordinary and replacement streams share budgets
+ok 56 - guarded completion: registered nested invoke stays ordinary and replacement streams share budgets
+  ---
+  duration_ms: 1.260667
+  type: 'test'
+  ...
+# Subtest: guarded completion: direct delegate cycles and registered cycles use shared limits
+ok 57 - guarded completion: direct delegate cycles and registered cycles use shared limits
+  ---
+  duration_ms: 4.238291
+  type: 'test'
+  ...
+# Subtest: guarded completion: env scoped invoker owns replacement streams without inherited exports
+ok 58 - guarded completion: env scoped invoker owns replacement streams without inherited exports
+  ---
+  duration_ms: 1.371792
+  type: 'test'
+  ...
+# Subtest: guarded completion: target middleware can change scoped state or short circuit without fallback
+ok 59 - guarded completion: target middleware can change scoped state or short circuit without fallback
+  ---
+  duration_ms: 0.569917
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/set-dash-positionals
+ok 60 - errexit adjacent bash/set-dash-positionals
+  ---
+  duration_ms: 10.652334
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/set-dash-no-positionals
+ok 61 - errexit adjacent bash/set-dash-no-positionals
+  ---
+  duration_ms: 3.531292
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/group-redirection-failure
+ok 62 - errexit adjacent bash/group-redirection-failure
+  ---
+  duration_ms: 2.599417
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/tested-while-function
+ok 63 - errexit adjacent bash/tested-while-function
+  ---
+  duration_ms: 2.686
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/read-eof
+ok 64 - errexit adjacent bash/read-eof
+  ---
+  duration_ms: 2.511667
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/empty-c
+ok 65 - errexit adjacent bash/empty-c
+  ---
+  duration_ms: 0.715917
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/set-dash-positionals
+ok 66 - errexit adjacent sh/set-dash-positionals
+  ---
+  duration_ms: 2.873459
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/set-dash-no-positionals
+ok 67 - errexit adjacent sh/set-dash-no-positionals
+  ---
+  duration_ms: 3.3645
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/group-redirection-failure
+ok 68 - errexit adjacent sh/group-redirection-failure
+  ---
+  duration_ms: 2.204709
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/tested-while-function
+ok 69 - errexit adjacent sh/tested-while-function
+  ---
+  duration_ms: 2.7785
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/read-eof
+ok 70 - errexit adjacent sh/read-eof
+  ---
+  duration_ms: 1.465375
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/empty-c
+ok 71 - errexit adjacent sh/empty-c
+  ---
+  duration_ms: 1.308
+  type: 'test'
+  ...
+# Subtest: diagnostic root/root-missing
+ok 72 - diagnostic root/root-missing
+  ---
+  duration_ms: 5.893709
+  type: 'test'
+  ...
+# Subtest: diagnostic root/multiline-missing
+ok 73 - diagnostic root/multiline-missing
+  ---
+  duration_ms: 2.633375
+  type: 'test'
+  ...
+# Subtest: diagnostic root/command-missing
+ok 74 - diagnostic root/command-missing
+  ---
+  duration_ms: 1.491083
+  type: 'test'
+  ...
+# Subtest: diagnostic root/child-function-isolation
+ok 75 - diagnostic root/child-function-isolation
+  ---
+  duration_ms: 3.49625
+  type: 'test'
+  ...
+# Subtest: diagnostic root/bash-default-name
+ok 76 - diagnostic root/bash-default-name
+  ---
+  duration_ms: 1.652875
+  type: 'test'
+  ...
+# Subtest: diagnostic root/bash-explicit-name
+ok 77 - diagnostic root/bash-explicit-name
+  ---
+  duration_ms: 1.609833
+  type: 'test'
+  ...
+# Subtest: diagnostic root/sh-default-name
+ok 78 - diagnostic root/sh-default-name
+  ---
+  duration_ms: 1.287459
+  type: 'test'
+  ...
+# Subtest: diagnostic root/sh-explicit-name
+ok 79 - diagnostic root/sh-explicit-name
+  ---
+  duration_ms: 1.895041
+  type: 'test'
+  ...
+# Subtest: diagnostic root/eval-frame
+ok 80 - diagnostic root/eval-frame
+  ---
+  duration_ms: 1.476125
+  type: 'test'
+  ...
+# Subtest: diagnostic root/source-frame
+ok 81 - diagnostic root/source-frame
+  ---
+  duration_ms: 1.798125
+  type: 'test'
+  ...
+# Subtest: diagnostic root/bash-file-frame
+ok 82 - diagnostic root/bash-file-frame
+  ---
+  duration_ms: 1.246292
+  type: 'test'
+  ...
+# Subtest: diagnostic root/sh-file-frame
+ok 83 - diagnostic root/sh-file-frame
+  ---
+  duration_ms: 3.889041
+  type: 'test'
+  ...
+# Subtest: diagnostic root/dot-directory
+ok 84 - diagnostic root/dot-directory
+  ---
+  duration_ms: 2.972291
+  type: 'test'
+  ...
+# Subtest: diagnostic root/source-directory
+ok 85 - diagnostic root/source-directory
+  ---
+  duration_ms: 2.350209
+  type: 'test'
+  ...
+# Subtest: diagnostic root/directory-symlink
+ok 86 - diagnostic root/directory-symlink
+  ---
+  duration_ms: 1.510417
+  type: 'test'
+  ...
+# Subtest: diagnostic root/file-source-directory
+ok 87 - diagnostic root/file-source-directory
+  ---
+  duration_ms: 1.448583
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/root-missing
+ok 88 - diagnostic bash/root-missing
+  ---
+  duration_ms: 3.263666
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/multiline-missing
+ok 89 - diagnostic bash/multiline-missing
+  ---
+  duration_ms: 3.488
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/command-missing
+ok 90 - diagnostic bash/command-missing
+  ---
+  duration_ms: 2.5575
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/child-function-isolation
+ok 91 - diagnostic bash/child-function-isolation
+  ---
+  duration_ms: 1.562375
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/bash-default-name
+ok 92 - diagnostic bash/bash-default-name
+  ---
+  duration_ms: 1.468833
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/bash-explicit-name
+ok 93 - diagnostic bash/bash-explicit-name
+  ---
+  duration_ms: 1.292084
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/sh-default-name
+ok 94 - diagnostic bash/sh-default-name
+  ---
+  duration_ms: 2.624791
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/sh-explicit-name
+ok 95 - diagnostic bash/sh-explicit-name
+  ---
+  duration_ms: 2.008416
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/eval-frame
+ok 96 - diagnostic bash/eval-frame
+  ---
+  duration_ms: 1.6405
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/source-frame
+ok 97 - diagnostic bash/source-frame
+  ---
+  duration_ms: 1.421333
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/bash-file-frame
+ok 98 - diagnostic bash/bash-file-frame
+  ---
+  duration_ms: 2.548583
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/sh-file-frame
+ok 99 - diagnostic bash/sh-file-frame
+  ---
+  duration_ms: 1.127042
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/dot-directory
+ok 100 - diagnostic bash/dot-directory
+  ---
+  duration_ms: 1.087
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/source-directory
+ok 101 - diagnostic bash/source-directory
+  ---
+  duration_ms: 1.150666
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/directory-symlink
+ok 102 - diagnostic bash/directory-symlink
+  ---
+  duration_ms: 1.047209
+  type: 'test'
+  ...
+# Subtest: diagnostic bash/file-source-directory
+ok 103 - diagnostic bash/file-source-directory
+  ---
+  duration_ms: 1.225417
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/root-missing
+ok 104 - diagnostic sh/root-missing
+  ---
+  duration_ms: 0.767542
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/multiline-missing
+ok 105 - diagnostic sh/multiline-missing
+  ---
+  duration_ms: 0.537417
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/command-missing
+ok 106 - diagnostic sh/command-missing
+  ---
+  duration_ms: 1.073333
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/child-function-isolation
+ok 107 - diagnostic sh/child-function-isolation
+  ---
+  duration_ms: 1.499875
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/bash-default-name
+ok 108 - diagnostic sh/bash-default-name
+  ---
+  duration_ms: 0.84525
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/bash-explicit-name
+ok 109 - diagnostic sh/bash-explicit-name
+  ---
+  duration_ms: 1.78525
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/sh-default-name
+ok 110 - diagnostic sh/sh-default-name
+  ---
+  duration_ms: 1.031042
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/sh-explicit-name
+ok 111 - diagnostic sh/sh-explicit-name
+  ---
+  duration_ms: 0.7825
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/eval-frame
+ok 112 - diagnostic sh/eval-frame
+  ---
+  duration_ms: 1.10475
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/source-frame
+ok 113 - diagnostic sh/source-frame
+  ---
+  duration_ms: 1.0735
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/bash-file-frame
+ok 114 - diagnostic sh/bash-file-frame
+  ---
+  duration_ms: 1.139667
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/sh-file-frame
+ok 115 - diagnostic sh/sh-file-frame
+  ---
+  duration_ms: 1.121584
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/dot-directory
+ok 116 - diagnostic sh/dot-directory
+  ---
+  duration_ms: 1.241083
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/source-directory
+ok 117 - diagnostic sh/source-directory
+  ---
+  duration_ms: 1.010834
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/directory-symlink
+ok 118 - diagnostic sh/directory-symlink
+  ---
+  duration_ms: 1.147458
+  type: 'test'
+  ...
+# Subtest: diagnostic sh/file-source-directory
+ok 119 - diagnostic sh/file-source-directory
+  ---
+  duration_ms: 2.203917
+  type: 'test'
+  ...
+# Subtest: eval bash/state
+ok 120 - eval bash/state
+  ---
+  duration_ms: 8.075
+  type: 'test'
+  ...
+# Subtest: eval bash/join-expansion
+ok 121 - eval bash/join-expansion
+  ---
+  duration_ms: 1.799417
+  type: 'test'
+  ...
+# Subtest: eval bash/empty
+ok 122 - eval bash/empty
+  ---
+  duration_ms: 1.492125
+  type: 'test'
+  ...
+# Subtest: eval bash/set-positional
+ok 123 - eval bash/set-positional
+  ---
+  duration_ms: 1.751375
+  type: 'test'
+  ...
+# Subtest: eval bash/function-return
+ok 124 - eval bash/function-return
+  ---
+  duration_ms: 1.859125
+  type: 'test'
+  ...
+# Subtest: eval bash/source-return
+ok 125 - eval bash/source-return
+  ---
+  duration_ms: 1.987625
+  type: 'test'
+  ...
+# Subtest: eval bash/exit
+ok 126 - eval bash/exit
+  ---
+  duration_ms: 0.968666
+  type: 'test'
+  ...
+# Subtest: eval bash/loops
+ok 127 - eval bash/loops
+  ---
+  duration_ms: 1.137958
+  type: 'test'
+  ...
+# Subtest: eval bash/nested-source
+ok 128 - eval bash/nested-source
+  ---
+  duration_ms: 1.431083
+  type: 'test'
+  ...
+# Subtest: eval bash/prefix-assignment
+ok 129 - eval bash/prefix-assignment
+  ---
+  duration_ms: 1.035791
+  type: 'test'
+  ...
+# Subtest: eval bash/command-eval
+ok 130 - eval bash/command-eval
+  ---
+  duration_ms: 0.70825
+  type: 'test'
+  ...
+# Subtest: eval bash/subshell
+ok 131 - eval bash/subshell
+  ---
+  duration_ms: 1.813708
+  type: 'test'
+  ...
+# Subtest: eval bash/stdin
+ok 132 - eval bash/stdin
+  ---
+  duration_ms: 1.994792
+  type: 'test'
+  ...
+# Subtest: eval bash/redirection
+ok 133 - eval bash/redirection
+  ---
+  duration_ms: 1.122625
+  type: 'test'
+  ...
+# Subtest: eval bash/late-syntax
+ok 134 - eval bash/late-syntax
+  ---
+  duration_ms: 0.865875
+  type: 'test'
+  ...
+# Subtest: eval bash/same-unit-syntax
+ok 135 - eval bash/same-unit-syntax
+  ---
+  duration_ms: 0.9525
+  type: 'test'
+  ...
+# Subtest: eval bash/terminator
+ok 136 - eval bash/terminator
+  ---
+  duration_ms: 0.567
+  type: 'test'
+  ...
+# Subtest: eval bash/invalid-option
+ok 137 - eval bash/invalid-option
+  ---
+  duration_ms: 0.636084
+  type: 'test'
+  ...
+# Subtest: eval sh/state
+ok 138 - eval sh/state
+  ---
+  duration_ms: 1.086084
+  type: 'test'
+  ...
+# Subtest: eval sh/join-expansion
+ok 139 - eval sh/join-expansion
+  ---
+  duration_ms: 0.663083
+  type: 'test'
+  ...
+# Subtest: eval sh/empty
+ok 140 - eval sh/empty
+  ---
+  duration_ms: 1.209041
+  type: 'test'
+  ...
+# Subtest: eval sh/set-positional
+ok 141 - eval sh/set-positional
+  ---
+  duration_ms: 0.95625
+  type: 'test'
+  ...
+# Subtest: eval sh/function-return
+ok 142 - eval sh/function-return
+  ---
+  duration_ms: 0.700458
+  type: 'test'
+  ...
+# Subtest: eval sh/source-return
+ok 143 - eval sh/source-return
+  ---
+  duration_ms: 0.812042
+  type: 'test'
+  ...
+# Subtest: eval sh/exit
+ok 144 - eval sh/exit
+  ---
+  duration_ms: 0.714166
+  type: 'test'
+  ...
+# Subtest: eval sh/loops
+ok 145 - eval sh/loops
+  ---
+  duration_ms: 0.61425
+  type: 'test'
+  ...
+# Subtest: eval sh/nested-source
+ok 146 - eval sh/nested-source
+  ---
+  duration_ms: 0.505417
+  type: 'test'
+  ...
+# Subtest: eval sh/prefix-assignment
+ok 147 - eval sh/prefix-assignment
+  ---
+  duration_ms: 0.452584
+  type: 'test'
+  ...
+# Subtest: eval sh/command-eval
+ok 148 - eval sh/command-eval
+  ---
+  duration_ms: 1.565541
+  type: 'test'
+  ...
+# Subtest: eval sh/subshell
+ok 149 - eval sh/subshell
+  ---
+  duration_ms: 0.800291
+  type: 'test'
+  ...
+# Subtest: eval sh/stdin
+ok 150 - eval sh/stdin
+  ---
+  duration_ms: 0.79825
+  type: 'test'
+  ...
+# Subtest: eval sh/redirection
+ok 151 - eval sh/redirection
+  ---
+  duration_ms: 0.956042
+  type: 'test'
+  ...
+# Subtest: eval sh/late-syntax
+ok 152 - eval sh/late-syntax
+  ---
+  duration_ms: 0.610625
+  type: 'test'
+  ...
+# Subtest: eval sh/same-unit-syntax
+ok 153 - eval sh/same-unit-syntax
+  ---
+  duration_ms: 0.472209
+  type: 'test'
+  ...
+# Subtest: eval sh/terminator
+ok 154 - eval sh/terminator
+  ---
+  duration_ms: 0.385292
+  type: 'test'
+  ...
+# Subtest: eval sh/invalid-option
+ok 155 - eval sh/invalid-option
+  ---
+  duration_ms: 0.436375
+  type: 'test'
+  ...
+# Subtest: source bash/state-cwd-functions
+ok 156 - source bash/state-cwd-functions
+  ---
+  duration_ms: 8.081
+  type: 'test'
+  ...
+# Subtest: source bash/source-alias
+ok 157 - source bash/source-alias
+  ---
+  duration_ms: 1.344416
+  type: 'test'
+  ...
+# Subtest: source bash/arguments-shift
+ok 158 - source bash/arguments-shift
+  ---
+  duration_ms: 1.820334
+  type: 'test'
+  ...
+# Subtest: source bash/arguments-set
+ok 159 - source bash/arguments-set
+  ---
+  duration_ms: 1.312041
+  type: 'test'
+  ...
+# Subtest: source bash/arguments-no-supplied
+ok 160 - source bash/arguments-no-supplied
+  ---
+  duration_ms: 0.945041
+  type: 'test'
+  ...
+# Subtest: source bash/function-arguments
+ok 161 - source bash/function-arguments
+  ---
+  duration_ms: 1.122875
+  type: 'test'
+  ...
+# Subtest: source bash/return
+ok 162 - source bash/return
+  ---
+  duration_ms: 1.450917
+  type: 'test'
+  ...
+# Subtest: source bash/exit
+ok 163 - source bash/exit
+  ---
+  duration_ms: 1.112584
+  type: 'test'
+  ...
+# Subtest: source bash/nested-return
+ok 164 - source bash/nested-return
+  ---
+  duration_ms: 2.672708
+  type: 'test'
+  ...
+# Subtest: source bash/function-locals
+ok 165 - source bash/function-locals
+  ---
+  duration_ms: 1.346208
+  type: 'test'
+  ...
+# Subtest: source bash/path-search
+ok 166 - source bash/path-search
+  ---
+  duration_ms: 0.581166
+  type: 'test'
+  ...
+# Subtest: source bash/path-cwd-fallback
+ok 167 - source bash/path-cwd-fallback
+  ---
+  duration_ms: 0.558333
+  type: 'test'
+  ...
+# Subtest: source bash/path-empty
+ok 168 - source bash/path-empty
+  ---
+  duration_ms: 0.454
+  type: 'test'
+  ...
+# Subtest: source bash/path-unset
+ok 169 - source bash/path-unset
+  ---
+  duration_ms: 0.395959
+  type: 'test'
+  ...
+# Subtest: source bash/prefix-assignment
+ok 170 - source bash/prefix-assignment
+  ---
+  duration_ms: 0.527792
+  type: 'test'
+  ...
+# Subtest: source bash/command-dot
+ok 171 - source bash/command-dot
+  ---
+  duration_ms: 0.569375
+  type: 'test'
+  ...
+# Subtest: source bash/subshell-pipeline
+ok 172 - source bash/subshell-pipeline
+  ---
+  duration_ms: 4.484334
+  type: 'test'
+  ...
+# Subtest: source bash/stdin-redirection
+ok 173 - source bash/stdin-redirection
+  ---
+  duration_ms: 1.118958
+  type: 'test'
+  ...
+# Subtest: source bash/pipefail-option
+ok 174 - source bash/pipefail-option
+  ---
+  duration_ms: 0.895709
+  type: 'test'
+  ...
+# Subtest: source bash/empty-file
+ok 175 - source bash/empty-file
+  ---
+  duration_ms: 0.467334
+  type: 'test'
+  ...
+# Subtest: source bash/loops
+ok 176 - source bash/loops
+  ---
+  duration_ms: 0.636042
+  type: 'test'
+  ...
+# Subtest: source bash/late-syntax
+ok 177 - source bash/late-syntax
+  ---
+  duration_ms: 0.545625
+  type: 'test'
+  ...
+# Subtest: source bash/same-unit-syntax
+ok 178 - source bash/same-unit-syntax
+  ---
+  duration_ms: 0.848375
+  type: 'test'
+  ...
+# Subtest: source bash/missing
+ok 179 - source bash/missing
+  ---
+  duration_ms: 0.452875
+  type: 'test'
+  ...
+# Subtest: source sh/state-cwd-functions
+ok 180 - source sh/state-cwd-functions
+  ---
+  duration_ms: 0.6575
+  type: 'test'
+  ...
+# Subtest: source sh/source-alias
+ok 181 - source sh/source-alias
+  ---
+  duration_ms: 0.430375
+  type: 'test'
+  ...
+# Subtest: source sh/arguments-shift
+ok 182 - source sh/arguments-shift
+  ---
+  duration_ms: 0.731416
+  type: 'test'
+  ...
+# Subtest: source sh/arguments-set
+ok 183 - source sh/arguments-set
+  ---
+  duration_ms: 0.689042
+  type: 'test'
+  ...
+# Subtest: source sh/arguments-no-supplied
+ok 184 - source sh/arguments-no-supplied
+  ---
+  duration_ms: 2.820125
+  type: 'test'
+  ...
+# Subtest: source sh/function-arguments
+ok 185 - source sh/function-arguments
+  ---
+  duration_ms: 0.503083
+  type: 'test'
+  ...
+# Subtest: source sh/return
+ok 186 - source sh/return
+  ---
+  duration_ms: 0.52575
+  type: 'test'
+  ...
+# Subtest: source sh/exit
+ok 187 - source sh/exit
+  ---
+  duration_ms: 0.519833
+  type: 'test'
+  ...
+# Subtest: source sh/nested-return
+ok 188 - source sh/nested-return
+  ---
+  duration_ms: 0.809917
+  type: 'test'
+  ...
+# Subtest: source sh/function-locals
+ok 189 - source sh/function-locals
+  ---
+  duration_ms: 0.55375
+  type: 'test'
+  ...
+# Subtest: source sh/path-search
+ok 190 - source sh/path-search
+  ---
+  duration_ms: 0.393458
+  type: 'test'
+  ...
+# Subtest: source sh/path-cwd-fallback
+ok 191 - source sh/path-cwd-fallback
+  ---
+  duration_ms: 0.397792
+  type: 'test'
+  ...
+# Subtest: source sh/path-empty
+ok 192 - source sh/path-empty
+  ---
+  duration_ms: 0.396667
+  type: 'test'
+  ...
+# Subtest: source sh/path-unset
+ok 193 - source sh/path-unset
+  ---
+  duration_ms: 0.423542
+  type: 'test'
+  ...
+# Subtest: source sh/prefix-assignment
+ok 194 - source sh/prefix-assignment
+  ---
+  duration_ms: 0.468416
+  type: 'test'
+  ...
+# Subtest: source sh/command-dot
+ok 195 - source sh/command-dot
+  ---
+  duration_ms: 0.506917
+  type: 'test'
+  ...
+# Subtest: source sh/subshell-pipeline
+ok 196 - source sh/subshell-pipeline
+  ---
+  duration_ms: 1.014334
+  type: 'test'
+  ...
+# Subtest: source sh/stdin-redirection
+ok 197 - source sh/stdin-redirection
+  ---
+  duration_ms: 1.753958
+  type: 'test'
+  ...
+# Subtest: source sh/pipefail-option
+ok 198 - source sh/pipefail-option
+  ---
+  duration_ms: 3.236459
+  type: 'test'
+  ...
+# Subtest: source sh/empty-file
+ok 199 - source sh/empty-file
+  ---
+  duration_ms: 0.7405
+  type: 'test'
+  ...
+# Subtest: source sh/loops
+ok 200 - source sh/loops
+  ---
+  duration_ms: 0.671
+  type: 'test'
+  ...
+# Subtest: source sh/late-syntax
+ok 201 - source sh/late-syntax
+  ---
+  duration_ms: 0.5075
+  type: 'test'
+  ...
+# Subtest: source sh/same-unit-syntax
+ok 202 - source sh/same-unit-syntax
+  ---
+  duration_ms: 0.406416
+  type: 'test'
+  ...
+# Subtest: source sh/missing
+ok 203 - source sh/missing
+  ---
+  duration_ms: 0.368459
+  type: 'test'
+  ...
+1..203
+# tests 203
+# suites 0
+# pass 203
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 572.122584

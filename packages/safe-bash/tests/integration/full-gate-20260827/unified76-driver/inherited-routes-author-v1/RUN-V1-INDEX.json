@@ -1,0 +1,67 @@
+{
+  "root": "/private/tmp/unified76-inherited-author-9algcW",
+  "bodySha256": "49f64f7b22df33a1574ebd55ff8ce03779ad9abbdb32bf4a78f5999b50ffb5dd",
+  "encoding": "gzip-base64",
+  "entries": [
+    {
+      "name": "G01.json",
+      "bytes": 475,
+      "sha256": "e99ad513d24fb2709c2b00516e95832b726d7e3690bbc92aab7326fd5b907cbc"
+    },
+    {
+      "name": "G02.json",
+      "bytes": 753,
+      "sha256": "871830ab0a47d1217e6c1d9f1202c765db74d9f03e3e4b508d4a788199438ea3"
+    },
+    {
+      "name": "G03.json",
+      "bytes": 526,
+      "sha256": "dbe8bc82f0208897b77a988a5f1bd827dc3d6955de06183c762f6d6d8e8983eb"
+    },
+    {
+      "name": "G04.json",
+      "bytes": 432,
+      "sha256": "d7efae411edc10a5c893ed981a0fdfe0a03026c6ca5c97286a43962cc21b71e2"
+    },
+    {
+      "name": "G05.json",
+      "bytes": 534,
+      "sha256": "b4b9f63d1baf095a964e309396a2a5842895a18c49892086d7431132b81450b1"
+    },
+    {
+      "name": "G06.json",
+      "bytes": 535,
+      "sha256": "a0179fa0e9a011f620d47935fdedfae078bace3ce39a2dc0667000815d3a0f6c"
+    },
+    {
+      "name": "G07.json",
+      "bytes": 1155,
+      "sha256": "677b3114ff2f13e6e6393bdf8e77d3b27c198ec63dedb61bf4a0e99392c25534"
+    },
+    {
+      "name": "G08.json",
+      "bytes": 612,
+      "sha256": "e914ab4ec01a4cf349dea51c35691a3d53698a70052c5ee88cc147949f0844de"
+    },
+    {
+      "name": "G09.json",
+      "bytes": 1317,
+      "sha256": "6a78c6f6a239c24e94436ea1695bb63ab972cb6a9cc320829ffb82ff9d1de215"
+    },
+    {
+      "name": "G10.json",
+      "bytes": 499,
+      "sha256": "ceb2e4bfe42a7981e158987f8f4942918780c5a704cfb28b1525967fb86e360e"
+    },
+    {
+      "name": "REPORT.json",
+      "bytes": 20151,
+      "sha256": "253d60b5cedb33cc00c2095fdd2de88fea99118378a85657371df2f3eac17eba"
+    },
+    {
+      "name": "START.json",
+      "bytes": 5709,
+      "sha256": "be73a9e3d9386ce21da59156a056ba618907fdec00b9943a3f00172fa5e0bc83"
+    }
+  ]
+}

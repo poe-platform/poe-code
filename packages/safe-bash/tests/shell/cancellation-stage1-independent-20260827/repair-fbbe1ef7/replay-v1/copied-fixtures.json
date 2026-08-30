@@ -1,0 +1,31 @@
+{
+  "before": [
+    {
+      "path": "cohort-v1.mjs",
+      "kind": "file",
+      "size": 15971,
+      "sha256": "b195fe6ac3d547235835311bc95b259f60bbe767592a13056ea85cbcf5cd59e1"
+    },
+    {
+      "path": "nearby-v1.mjs",
+      "kind": "file",
+      "size": 9258,
+      "sha256": "f71d8ff006545946f8c4aea9c5775ffec2b70ab19381e9d802ba81b36d773f2d"
+    }
+  ],
+  "after": [
+    {
+      "path": "cohort-v1.mjs",
+      "kind": "file",
+      "size": 15971,
+      "sha256": "b195fe6ac3d547235835311bc95b259f60bbe767592a13056ea85cbcf5cd59e1"
+    },
+    {
+      "path": "nearby-v1.mjs",
+      "kind": "file",
+      "size": 9258,
+      "sha256": "f71d8ff006545946f8c4aea9c5775ffec2b70ab19381e9d802ba81b36d773f2d"
+    }
+  ],
+  "exactOriginalControls": true
+}

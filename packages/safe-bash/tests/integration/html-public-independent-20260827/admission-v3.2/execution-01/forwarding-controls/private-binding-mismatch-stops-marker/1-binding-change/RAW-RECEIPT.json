@@ -1,0 +1,45 @@
+{
+  "mode": "binding-change",
+  "pid": 87495,
+  "receipt": {
+    "pid": 87495,
+    "ppid": 86238,
+    "mode": "binding-change",
+    "reason": "EXACT_FORWARDING_REASON",
+    "memory": {
+      "baseline": {
+        "rss": 45940736,
+        "heapTotal": 5914624,
+        "heapUsed": 5036344,
+        "external": 2082455,
+        "arrayBuffers": 16831
+      },
+      "fieldwisePeaks": {
+        "rss": 45957120,
+        "heapTotal": 5914624,
+        "heapUsed": 5045936,
+        "external": 2082495,
+        "arrayBuffers": 16831
+      }
+    }
+  },
+  "signals": [],
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "error": null,
+  "startedAt": "2026-08-28T00:16:23.719Z",
+  "assertionState": "not evaluated",
+  "elapsedMs": 44.411583000000974,
+  "closeObserved": true,
+  "pidState": "absent",
+  "groupMembers": [],
+  "bindingHash": "7f8b1dfc466b6249f06cbe55c9174df2578e7754da793fded244ef5cba2a38f1",
+  "originalBindingHash": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+  "markerPresent": false
+}

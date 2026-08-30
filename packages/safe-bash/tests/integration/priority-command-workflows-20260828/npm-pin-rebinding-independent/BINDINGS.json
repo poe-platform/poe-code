@@ -1,0 +1,74 @@
+{
+  "packet": "7ef6e6b816ccc6b2449605c7950ab825d148a529",
+  "sourceAuthorization": "a52819daa6ff2c867187b01a7a5bbbb189f0da02",
+  "sealEvidence": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+  "predecessor": {
+    "packet": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+    "diagnosisCommit": "ea7e18739c8bcd3d99c803b94a2c5c730d71a156",
+    "sealSha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+    "templateSha256": "9f84baf5a92e31e9824abc6a8bba23e1254d45fdf4400f6fa80d7705f67acef9"
+  },
+  "declaredCandidate": {
+    "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+    "kind": "derived selected Git composition, not necessarily stored object or root HEAD",
+    "acceptedEvidenceCommit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+    "base": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "inputs": 268,
+    "productionTsFiles": 214,
+    "selectedInputTableSha256": "c6efddf8b14d2b15231b95e3a5be975c9c93c7c10f309acf77c80883f9cc074c",
+    "tablePointer": "RAW-v2.source.inputs",
+    "recipe": "PRESEAL reconstruction + MANIFEST selected revision/path/blob rows; raw.source.commits/reachableTrees/reconstructedTrees witnesses. Future full reconstruction still mandatory; current inspection authenticates only the listed selected sections.",
+    "forbiddenOverlays": [
+      "c0ada arrays",
+      "live runtime",
+      "XAN",
+      "YQ",
+      "any unlisted live product input"
+    ]
+  },
+  "declaredPackage": {
+    "name": "virtual-bash",
+    "version": "0.0.0",
+    "bytes": 759089,
+    "sha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+    "regularFiles": 858,
+    "declarations": 214,
+    "installedManifestSha256": "484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d",
+    "installedManifestPointer": "fullInstalledBefore",
+    "tarInflateBound": 16777216
+  },
+  "requestedSealSha256": "ab4fb40a7c4f73ddc9a34dba1ebc8a081b214f7fbec549a8b34539b241b39812",
+  "requestedTemplateSha256": "6f155760db46aef36e511e15a40a29690ce929c9a78c59366ef6d2cd2d9d47fb",
+  "requestedSupervisorSha256": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e",
+  "declarationQualification": "Values transcribed from already read frozen records/root request; complete independent comparison did not finish.",
+  "domains": {
+    "encoding": "UTF8 JSON.stringify ordered tuples, noBOM/noLF; depth-first sorted-directory traversal, not global sort",
+    "bytes": 249034,
+    "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+    "rows": 2039,
+    "source": "tests/integration/priority-command-workflows-20260828/npm-pin-diagnosis-v1/originalRows.canonical.utf8.base64"
+  },
+  "projection": {
+    "bytes": 248103,
+    "sha256": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d",
+    "rows": 2027,
+    "source": "tests/integration/priority-command-workflows-20260828/npm-pin-diagnosis-v1/copiedRows.canonical.utf8.base64"
+  },
+  "reservation": {
+    "path": "tests/integration/priority-command-workflows-20260828/PARENT-BUDGET.json",
+    "sha256": "86e8f86c74aad9f721b266ce49c6799285daeb8e56577da180017844a81f3dd0",
+    "value": {
+      "schema": "exclusive-parent-reservation-v1",
+      "id": "priority-command-workflows-20260828/future-run-01",
+      "deadlineEpochMs": 1788026556000,
+      "remaining": {
+        "children": 100,
+        "workerStarts": 372,
+        "loaderThreads": 97,
+        "captureBytes": 419430400,
+        "scratchBytes": 536870912
+      }
+    },
+    "status": "Original logical reservation unchanged, unspent/unreleased/not reused"
+  }
+}

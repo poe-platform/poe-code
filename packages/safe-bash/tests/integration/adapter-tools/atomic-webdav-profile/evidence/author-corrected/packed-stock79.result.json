@@ -1,0 +1,28 @@
+{
+  "name": "packed-stock79",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-CQNrbI/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "out-stock/tests/integration/adapter-tools/matrix.test.js"
+  ],
+  "cwd": "consumer",
+  "startedAt": "2026-08-27T09:02:32.176Z",
+  "durationMs": 1669.7690840000014,
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": 79,
+    "pass": 78,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedRows": [
+    "webdav: create, copy, append, inspect and remove files"
+  ]
+}

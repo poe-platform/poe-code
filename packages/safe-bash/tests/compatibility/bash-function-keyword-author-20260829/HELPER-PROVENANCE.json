@@ -1,0 +1,47 @@
+{
+  "oldPacket": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2",
+  "oldSeal": "6324119804436e77ee90c35676fe6d46d5c6a14b3a63c7528034faef3c062252",
+  "unchanged": [
+    {
+      "name": "auth.mjs",
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    {
+      "name": "direct-child.mjs",
+      "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+    },
+    {
+      "name": "guard.mjs",
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    {
+      "name": "profile.mjs",
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    {
+      "name": "case-adapter.mjs",
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    }
+  ],
+  "derivatives": [
+    {
+      "name": "package-admission.mjs",
+      "baseSha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6",
+      "delta": "COMPRESSED_MAX872281→2097152 for new author package"
+    },
+    {
+      "name": "parse-manifest.mjs",
+      "baseSha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61",
+      "delta": "exact member count954→1002 for new author package"
+    }
+  ],
+  "sourceInspectionRefusal": {
+    "kind": "SOURCE_VIEW_BOUND_REFUSAL",
+    "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/COMMAND-PLAN.json",
+    "size": 276365,
+    "viewBound": 131072,
+    "decoded": false,
+    "executed": false,
+    "disposition": "not retried; inspect separate smaller source helpers"
+  }
+}

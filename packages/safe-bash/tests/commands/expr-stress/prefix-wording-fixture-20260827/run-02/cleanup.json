@@ -1,0 +1,14 @@
+{
+  "completed": true,
+  "temporaryDirectoryRemoved": true,
+  "ownedRunningProcesses": 0,
+  "processModel": "Synchronous bounded child processes, none detached; Node worker threads exit with their test process. No separate worker-lifecycle instrumentation in this fixture-only cohort.",
+  "nativeOracleProcessesStarted": false,
+  "hostToolsUsed": [
+    "git",
+    "tar",
+    "node"
+  ],
+  "captureDriverSha256": "aa1e4feb4ff88634893ada2e1ce998d7983db6cac8615f0d99162faa0bd09633",
+  "timestamp": "2026-08-27T19:45:50.296Z"
+}

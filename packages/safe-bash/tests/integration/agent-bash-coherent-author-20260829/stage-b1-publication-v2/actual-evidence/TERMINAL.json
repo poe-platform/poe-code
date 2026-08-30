@@ -1,0 +1,49 @@
+{
+  "schema": "b1-publication-terminal-v2",
+  "outcome": "FAILURE_OR_UNKNOWN_INCOMPLETE_RESULT",
+  "result": {
+    "kind": "MISSING",
+    "complete": false,
+    "reportedRows": null,
+    "knownRetirement": "UNKNOWN"
+  },
+  "children": [],
+  "knownRetirement": "UNKNOWN",
+  "coherentAcceptance": false,
+  "accountingRoots": {
+    "work": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2",
+    "evidence": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-publication-v2/actual-evidence",
+    "publication": "/private/tmp/coherent-b1-publication-v2-20260829-results",
+    "launchCaptures": [
+      "/private/tmp/coherent-b1-public15-20260829-r2.launch.stdout",
+      "/private/tmp/coherent-b1-public15-20260829-r2.launch.stderr"
+    ],
+    "startupCaptures": [
+      "/private/tmp/coherent-b1-publication-v2-20260829.startup.stdout",
+      "/private/tmp/coherent-b1-publication-v2-20260829.startup.stderr"
+    ],
+    "authority": "exact future root-bound absolute file, identity and bytes required",
+    "git": "shared existing database excluded; newly generated logical object allowance charged; actual physical object growth unobserved"
+  },
+  "faults": {
+    "primaryPresent": false,
+    "secondary": []
+  },
+  "accountingBeforeTail": {
+    "used": {
+      "capture": 1928009,
+      "work": 16264471
+    },
+    "reserved": {
+      "capture": 0,
+      "work": 0
+    },
+    "tail": true,
+    "units": "logical file/write bytes, not RSS or filesystem blocks"
+  },
+  "afterCensusReservation": {
+    "capture": 2097152,
+    "work": 8388608,
+    "purpose": "terminal, three Git captures, final receipt and bounded metadata tail; not zero post-census writes"
+  }
+}

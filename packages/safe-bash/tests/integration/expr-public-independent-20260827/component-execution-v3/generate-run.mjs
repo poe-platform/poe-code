@@ -1,0 +1,42 @@
+import assert from "node:assert/strict";
+import { join } from "node:path";
+import { owner, legacyDirectory, directory, digest, objectHash, read, json } from "./common.mjs";
+
+const pins = json(join(directory, "PINS.json"));
+let source = read(join(legacyDirectory, "run.mjs")).toString();
+assert.equal(objectHash(Buffer.from(source)), pins.catalog.find(row => row.path === `${owner}/component-execution-v1/run.mjs`).objectId);
+const changes = [];
+function replace(before, after) {
+  assert.equal(source.split(before).length, 2, before);
+  source = source.replace(before, after); changes.push({ before, after });
+}
+replace('directory, repository, owner, candidate, digest, git, blob, read, json, put, putJson, inventory, copyInventory', 'directory, repository, owner, candidate, legacyDirectory, digest, read, json, put, putJson, inventory, copyInventory');
+const start = source.indexOf('const inputs = json('), end = source.indexOf('const runDirectory =', start);
+assert.ok(start > 0 && end > start);
+replace(source.slice(start, end), 'import { admitted } from "./admission.mjs";\n\nassert.ok(admitted, "qualified v3 admission required");\nconst { inputs, layouts, selected, load, commit: freezeCommit } = admitted;\n');
+replace('schema: "expr-independent-component-v1"', 'schema: "expr-independent-component-v3"');
+replace('digest(read(join(directory, "INPUTS.json")))', 'digest(read(join(legacyDirectory, "INPUTS.json")))');
+replace('scope: "EXPR COMPONENT ONLY; no accepted DU/HTML/whole76"', 'scope: "EXPRPUBLICCOMPONENT only; no accepted-DU or whole76 claim"');
+replace('"HTML34 HELD"', '"HTML accepted by root separately; not rerun or certified here"');
+replace('sourceScope: inputs.sourceScope', 'sourceScope: "Nine expr/shared-regex sources retain accepted c3 bytes. Candidate shell/cancellation.ts is separate lifecycle scope, not TEMP acceptance; actual public loads are reported below."');
+replace('let bytes = 0, supervision = null;', 'let bytes = 0, supervision = null, spawnError;');
+replace('child.once("error", error => { clearTimeout(timer); resolve({ status: null, error: error.message, signal: null }); });', 'child.once("error", error => { spawnError = error.message; });');
+replace('resolve({ status, signal });', 'resolve({ status, signal, closed: true, error: spawnError });');
+replace('report.commands.push({ name, status: result.status, durationMs: receipt.durationMs, supervision, naturalSettlement: receipt.naturalSettlement });', 'report.commands.push({ name, status: result.status, durationMs: receipt.durationMs, supervision, naturalSettlement: receipt.naturalSettlement, closed: result.closed });');
+replace('read(join(directory, name))', 'read(join(legacyDirectory, name))');
+replace('read(join(directory, `${name}.ts.fixture`))', 'read(join(legacyDirectory, `${name}.ts.fixture`))');
+replace('read(join(directory, "negative.ts.fixture"))', 'read(join(legacyDirectory, "negative.ts.fixture"))');
+replace('async function context(phase, runtime, consumer) {', 'async function context(phase, runtime, consumer) {\n  assert.equal(report.integrityHeld, undefined, "earlier integrity/lifecycle failure holds dependents");');
+replace('const result = await execute(row.id); row.executed = true; row.naturalSettlement = result.naturalSettlement;', 'const result = await execute(row.id); row.executed = true; row.naturalSettlement = result.naturalSettlement;\n      const observed = childReceipt(result);\n      if (!result.closed || !result.naturalSettlement || !observed?.observer?.workers?.every(worker => worker.closed) || /EXPR_UNBOUND_LOAD|EXPR_HASH_MISMATCH|EXPR_DENY/u.test(result.stderr)) report.integrityHeld = `${label}-${row.id}: closure/binding not established`;\n      assert.equal(report.integrityHeld, undefined);');
+replace('if (!ordinaryQualified || state.controls.some', 'if (report.integrityHeld || !ordinaryQualified || state.controls.some');
+replace('check(`${label}-package-post-newentry-mode-hash-guard`, () => assert.deepEqual(inventory(join(consumer, "node_modules/virtual-bash")), packageBefore));', 'assert.ok(check(`${label}-package-post-newentry-mode-hash-guard`, () => assert.deepEqual(inventory(join(consumer, "node_modules/virtual-bash")), packageBefore)), "package integrity failure holds dependents");');
+const selectionStart = source.indexOf('  const admission = json('), selectionEnd = source.indexOf('  const sourceBefore =', selectionStart);
+assert.ok(selectionStart > 0 && selectionEnd > selectionStart);
+replace(source.slice(selectionStart, selectionEnd), '  assert.equal(selected.length, 357);\n  assert.deepEqual(selected, inputs.selected);\n  for (const entry of selected) {\n    assert.equal(entry.mode, "100644"); assert.equal(entry.type, "blob"); assert.ok(!entry.path.split("/").includes("AGENTS.md"));\n    const bytes = await load(candidate, entry.path); assert.equal(digest(bytes), entry.sha256); put(join(buildDirectory, entry.path), bytes);\n  }\n');
+replace('const packMembers = members(packBytes);', 'assert.equal(packBytes.length, 727526);\n  const packMembers = members(packBytes);');
+replace('report.finishedAt = new Date().toISOString();', 'report.finishedAt = new Date().toISOString();\n  report.allProcessChildrenClosed = report.commands.every(command => command.closed);\n  report.readerQualification = { status: "qualified", controls: 16, receipt: "ADMISSION.json" };');
+replace('schema: "expr-independent-evidence-v1"', 'schema: "expr-independent-evidence-v3"');
+const outputs = { "run.mjs": source, "OVERLAY.json": JSON.stringify({ schema: "expr-v3-runner-overlay/1", predecessor: pins.priorRecipe, originalSha256: digest(read(join(legacyDirectory, "run.mjs"))), overlaySha256: digest(source), changes, unchanged: ["consumer-component.mjs", "child.mjs", "cases.json", "positive.ts.fixture", "negative.ts.fixture", "observer.mjs", "silent-worker.mjs", "guard.mjs", "worker-guard.mjs"] }, null, 2) + "\n" };
+process.stdout.write("*** Begin Patch\n");
+for (const [name, content] of Object.entries(outputs)) process.stdout.write(`*** Add File: ${owner}/component-execution-v3/${name}\n${content.trimEnd().split("\n").map(line => `+${line}`).join("\n")}\n`);
+process.stdout.write("*** End Patch\n");

@@ -1,0 +1,126 @@
+{
+  "approvedSurfaceCommit": "09ba85cef42898fbc2185d03acc4191f9a4689cd",
+  "approvedLifecycleCommit": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+  "files": [
+    {
+      "path": "surface/child.mjs",
+      "approvedV2Sha256": "358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4",
+      "newSha256": "358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4",
+      "unchanged": true
+    },
+    {
+      "path": "surface/CASES.json",
+      "approvedV2Sha256": "c0849f349888c4ab8c3c8be6741136f37bfa34bcd831eee004e757b4b57dd535",
+      "newSha256": "c0849f349888c4ab8c3c8be6741136f37bfa34bcd831eee004e757b4b57dd535",
+      "unchanged": true
+    },
+    {
+      "path": "surface/PINS.json",
+      "approvedV2Sha256": "b8f437199991fd6afda5ba63da4cde9b29d9b3217164e3bbd90969b3c8da7992",
+      "newSha256": "b8f437199991fd6afda5ba63da4cde9b29d9b3217164e3bbd90969b3c8da7992",
+      "unchanged": true
+    },
+    {
+      "path": "surface/RELEASE.json",
+      "approvedV2Sha256": "090e505c75e6fa67139f2ce51f089c9b4d6b95efc761bb354d357e03bc683224",
+      "newSha256": "090e505c75e6fa67139f2ce51f089c9b4d6b95efc761bb354d357e03bc683224",
+      "unchanged": true
+    },
+    {
+      "path": "surface/controls.mjs",
+      "approvedV2Sha256": "97506ec3a663f784b0ce7f0f8d64479b68948a1ff9b39743b959d9e4d2957c75",
+      "newSha256": "97506ec3a663f784b0ce7f0f8d64479b68948a1ff9b39743b959d9e4d2957c75",
+      "unchanged": true
+    },
+    {
+      "path": "lifecycle/child.mjs",
+      "approvedV2Sha256": "4977d53279d39c9e53b1583a93558264b140efcc784ee9811db9250c61cb7a2e",
+      "newSha256": "4977d53279d39c9e53b1583a93558264b140efcc784ee9811db9250c61cb7a2e",
+      "unchanged": true
+    },
+    {
+      "path": "lifecycle/common.mjs",
+      "approvedV2Sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553",
+      "newSha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553",
+      "unchanged": true
+    },
+    {
+      "path": "lifecycle/guard.mjs",
+      "approvedV2Sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8",
+      "newSha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8",
+      "unchanged": true
+    },
+    {
+      "path": "lifecycle/CASES.json",
+      "approvedV2Sha256": "01d2172b48cfc2f340f085755549e4288da99f76ceddd8770e19c2da096de6b5",
+      "newSha256": "acdc370de3e67573a1f3033740688a39cce6b35f9e4c511484598f56408809b3",
+      "unchanged": false
+    },
+    {
+      "path": "lifecycle/REVISION.json",
+      "approvedV2Sha256": "ffce4c0170d9ea49d471a231cb7cb67216ed6f007122f5cda02366e3da6f8313",
+      "newSha256": "a2c41681a8fd06f03611ae45d72b80838f69a7691b29dcba5645cc9e31a0dafd",
+      "unchanged": false
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "approvedV2Sha256": "1ac6054ad2fd676f40ab01834e80645beb847f5ca3cc537242a5bdf8611a916e",
+      "newSha256": "61841d0c20c49449bd7f5ac7e07ac5d3f103c330e729a1ac41f57be58709047a",
+      "unchanged": false
+    },
+    {
+      "path": "controls/CASES.json",
+      "approvedV2Sha256": "01d2172b48cfc2f340f085755549e4288da99f76ceddd8770e19c2da096de6b5",
+      "newSha256": "697cc8d61de33506f85b11fcd550535c5b94a2c7f3ceffc88854efe512cef364",
+      "unchanged": false
+    },
+    {
+      "path": "controls/REVISION.json",
+      "approvedV2Sha256": "ffce4c0170d9ea49d471a231cb7cb67216ed6f007122f5cda02366e3da6f8313",
+      "newSha256": "b7cc235ae2e1ce6e58e159c99954c2e3d573a1fbaca61939e60aacef74d1dc7b",
+      "unchanged": false
+    },
+    {
+      "path": "controls/common.mjs",
+      "approvedV2Sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553",
+      "newSha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553",
+      "unchanged": true
+    },
+    {
+      "path": "controls/guard.mjs",
+      "approvedV2Sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8",
+      "newSha256": "567acf8c3dd250be35e5c51d90d30a7f7e0d6874b8a3204fd6d6a1f799486e69",
+      "unchanged": false
+    },
+    {
+      "path": "controls/child.mjs",
+      "approvedV2Sha256": "4977d53279d39c9e53b1583a93558264b140efcc784ee9811db9250c61cb7a2e",
+      "newSha256": "0f0c5ef984557b152c56e2bdc3bf05eec4c4392e603aae93ece697e61a83a972",
+      "unchanged": false
+    },
+    {
+      "path": "controls/run.mjs",
+      "approvedV2Sha256": "1ac6054ad2fd676f40ab01834e80645beb847f5ca3cc537242a5bdf8611a916e",
+      "newSha256": "58ab98f8fde42d962894185654cce0ca7cc337bbddacb687f7f8077689e57d35",
+      "unchanged": false
+    },
+    {
+      "path": "surface/run.mjs",
+      "approvedV2Sha256": "ed685056bfb0895406cb6a366a238010e85c2623ce4786ed977d1bccac0ed60a",
+      "newSha256": "ca303265266cf7533e9f912b436eb0b21965f6386c508375ad430a53d51d14a0",
+      "unchanged": false
+    },
+    {
+      "path": "lifecycle/profile.mjs",
+      "approvedV2Sha256": "2a44c6496aace219bec0dbcbbc15d2956ba4c3f6a89b02b892a9e245d7d32e71",
+      "newSha256": "d0a5c072fbd2facf292cd6ef70c013ba0bda00af145124dfc673b9a1203fbfed",
+      "unchanged": false
+    }
+  ],
+  "baseSurfaceProfiles": 8,
+  "dormantConditionalSurfaceData": 1,
+  "baseLifecycleProfiles": 11,
+  "additionalZeroPolicyControls": 6,
+  "executed": 0,
+  "noPromotion": true
+}

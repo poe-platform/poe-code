@@ -1,0 +1,44 @@
+{
+  "kind": "versioned-reviewer-overlays-not-old-result-rescore",
+  "candidate": "c0adae539c736db0e4023d401562ce958d9ebb00",
+  "packageSha256": "e12ed19882b6722503a8fb962ca88e0d6c40300a7e76acc3f81aef5961e0a3a3",
+  "aliases": {
+    "P04-v2": "same M22-v2 three-phase mechanism, not an additional row"
+  },
+  "rows": {
+    "M22": {
+      "version": 2,
+      "phases": [
+        "readonly",
+        "caller",
+        "escaping"
+      ],
+      "callerState": "snapshot before abort; post-abort snapshot descriptive; terminal empty/live-zero mandatory"
+    },
+    "P09": {
+      "version": 2,
+      "phases": [
+        "cap4",
+        "cap3",
+        "backpressure",
+        "sink-error",
+        "abort",
+        "cleanup-error"
+      ]
+    },
+    "P10": {
+      "version": 2,
+      "plainCdMarker": "unchanged",
+      "stackMarkers": "pushd and popd change"
+    },
+    "P11-U11": {
+      "version": 2,
+      "phases": [
+        "mixed-B",
+        "mixed-C"
+      ]
+    }
+  },
+  "oldResults": "14179c5e unchanged;10 loaded9 activated8 predicates, no rescoring",
+  "noNewTypeClaim": true
+}

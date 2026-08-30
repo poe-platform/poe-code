@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "status": "STATIC_CHECK_FAILURE",
+  "commands": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/capture-budget-v3.mjs"
+      ],
+      "sourceSha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "kind": "SYNTAX_ONLY_NO_MODULE_LOAD"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs"
+      ],
+      "sourceSha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "kind": "SYNTAX_ONLY_NO_MODULE_LOAD"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/phase-capture.mjs"
+      ],
+      "sourceSha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "kind": "SYNTAX_ONLY_NO_MODULE_LOAD"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs"
+      ],
+      "sourceSha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "kind": "SYNTAX_ONLY_NO_MODULE_LOAD"
+    },
+    {
+      "executable": "python3",
+      "argv": [
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/SPECIFICATION.md"
+      ],
+      "checkerSha256": "e866d8f5806a40483cbe25f3250fc583f9a1e45d29a4255af41f6839693430bd",
+      "sourceSha256": "c9f8af697afd936244fde0f67a9e9b01e0b72d2ac08bbaa2c6b8ccd4f3643b4e",
+      "environmentOverride": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "status": 1,
+      "signal": null,
+      "stdout": "ERROR: first line must be an H1 ending in or containing 'Specification'\nERROR: missing required section: Problem Statement\nERROR: missing required section: Test and Validation Matrix\nERROR: missing required section: Conformance Criteria\nFAILED: 4 error(s), 0 warning(s)\n",
+      "stderr": "",
+      "kind": "NORMATIVE_DOCUMENT_LINT_ONLY"
+    }
+  ],
+  "proposedModuleImports": 0,
+  "dynamicControls": 0,
+  "compilerRuns": 0,
+  "rootGo": false
+}

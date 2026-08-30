@@ -1,0 +1,10 @@
+{"event":"START","at":"2026-08-29T08:21:06.934Z","expiry":"2026-08-29T09:03:39.808Z"}
+{"event":"ENROLLED","starts":1,"args":["ls-tree","-r","-z","918cd1d414508364b676f8bd2e1a78c34ee9e060","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/GO.json","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/REVIEW-ACCEPTANCE.json","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/APPROVAL-REQUEST.json"]}
+{"event":"RETIRED","starts":1,"status":0,"signal":null,"stdoutBytes":1434}
+{"event":"ENROLLED","starts":2,"args":["cat-file","--batch"]}
+{"event":"RETIRED","starts":2,"status":0,"signal":null,"stdoutBytes":31873}
+{"event":"ENROLLED","starts":3,"args":["ls-tree","-r","-z","d808acf7f67551807654e4089b366789190be07d","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/GO.json","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/REVIEW-ACCEPTANCE.json","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/APPROVAL-REQUEST.json"]}
+{"event":"RETIRED","starts":3,"status":0,"signal":null,"stdoutBytes":1774}
+{"event":"ENROLLED","starts":4,"args":["cat-file","--batch"]}
+{"event":"RETIRED","starts":4,"status":0,"signal":null,"stdoutBytes":66468}
+{"event":"COMPLETE","at":"2026-08-29T08:21:07.525Z","starts":4}

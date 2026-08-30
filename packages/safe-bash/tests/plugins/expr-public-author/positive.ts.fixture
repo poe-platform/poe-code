@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import { createAgentCommands, createExprCommand, createExprCommands, exprCommands, type AgentCommandsOptions, type CommandDefinition, type ExprCommandsOptions, type ExprLimits, type VirtualShellPlugin } from "virtual-bash";
+import { createExprCommand as fromSubpath, type ExprCommandsOptions as LeafOptions, type ExprLimits as LeafLimits } from "virtual-bash/commands/expr";
+const limits: Partial<ExprLimits> = { maxNumericDigits: 32, maxSteps: 80000, maxOutputBytes: 4096, maxRegexNodes: 1000 };
+const leafLimits: Partial<LeafLimits> = limits;
+const options: ExprCommandsOptions = { limits: leafLimits, regex: { workerOldGenerationMb: 48, workerStackMb: 3 } };
+const leaf: LeafOptions = options;
+const single: CommandDefinition = fromSubpath(leaf), definitions: readonly CommandDefinition[] = createExprCommands(options);
+const plugin: VirtualShellPlugin = exprCommands(options);
+const aggregate: AgentCommandsOptions = { replace: true, regex: options.regex!, expr: { limits } };
+const omitted: Extract<"regex" | "replace", keyof NonNullable<AgentCommandsOptions["expr"]>> extends never ? true : false = true;
+assert.equal(omitted, true); assert.equal(single.name, "expr"); assert.equal(definitions.length, 1); assert.equal(plugin.name, "expr-commands");
+assert.equal(createExprCommand, fromSubpath); assert.equal(createAgentCommands(aggregate).length, 76);
+console.log(JSON.stringify({ typed: true, count: 76, root: import.meta.resolve("virtual-bash"), subpath: import.meta.resolve("virtual-bash/commands/expr") }));

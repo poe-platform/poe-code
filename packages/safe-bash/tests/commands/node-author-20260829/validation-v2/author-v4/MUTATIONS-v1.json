@@ -1,0 +1,80 @@
+[
+  {
+    "id": "M01",
+    "file": "commands/node/host.js",
+    "case": "W07",
+    "changes": [
+      {
+        "from": "if (!this.grants.dataWrite)",
+        "to": "if (false)",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "M02",
+    "file": "commands/node/host.js",
+    "case": "W06",
+    "changes": [
+      {
+        "from": "await this.#fs(() => this.owner.context.fs.realpath(filename, { signal: this.owner.signal }))",
+        "to": "filename",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "M03",
+    "file": "commands/node/rules.js",
+    "case": "W12",
+    "changes": [
+      {
+        "from": "} else if (record.kind === 'env') { if (typeof value !== 'string' || key.indexOf('\\u0000') !== -1 || key.indexOf('=') !== -1 || value.indexOf('\\u0000') !== -1) unsupported(); }",
+        "to": "} else if (record.kind === 'env') { }",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "M04",
+    "file": "commands/node/program.js",
+    "case": "W17",
+    "changes": [
+      {
+        "from": "__vnodeRaw('printRefusal', null, null, null, null, null);",
+        "to": "void 0;",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "M05",
+    "file": "commands/node/lifecycle.js",
+    "case": "focused",
+    "changes": [
+      {
+        "from": "this.#controller.abort(reason);",
+        "to": "void reason;",
+        "count": 3
+      },
+      {
+        "from": "this.#controller.abort(this.#primary.value);",
+        "to": "void this.#primary.value;",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "M06",
+    "file": "commands/node/host.js",
+    "case": "W09",
+    "changes": [
+      {
+        "from": "if (!isFsError(error))",
+        "to": "if (false)",
+        "count": 1
+      }
+    ]
+  }
+]
+

@@ -1,0 +1,2769 @@
+TAP version 13
+# Subtest: primary-5.3: pinned identity and original native lifecycle control
+not ok 1 - primary-5.3: pinned identity and original native lifecycle control
+  ---
+  duration_ms: 0.396791
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:474'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe
+not ok 2 - primary-5.3: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe
+  ---
+  duration_ms: 0.019542
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: descriptor-move-closes-original-after-copy
+not ok 3 - primary-5.3: original-differential: descriptor-move-closes-original-after-copy
+  ---
+  duration_ms: 0.014416
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: closing-stdout-then-reopening-is-left-to-right
+not ok 4 - primary-5.3: original-differential: closing-stdout-then-reopening-is-left-to-right
+  ---
+  duration_ms: 0.015167
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: closing-stderr-does-not-close-duplicated-stdout
+not ok 5 - primary-5.3: original-differential: closing-stderr-does-not-close-duplicated-stdout
+  ---
+  duration_ms: 0.01775
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: group-redirection-is-restored-after-return
+not ok 6 - primary-5.3: original-differential: group-redirection-is-restored-after-return
+  ---
+  duration_ms: 0.011584
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: pipe-established-before-stderr-copy-and-output-redirect
+not ok 7 - primary-5.3: original-differential: pipe-established-before-stderr-copy-and-output-redirect
+  ---
+  duration_ms: 0.051708
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: nested-truncate-does-not-reset-outer-file-offset
+not ok 8 - primary-5.3: original-differential: nested-truncate-does-not-reset-outer-file-offset
+  ---
+  duration_ms: 0.01325
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: independent-output-descriptors-have-separate-offsets
+not ok 9 - primary-5.3: original-differential: independent-output-descriptors-have-separate-offsets
+  ---
+  duration_ms: 0.147667
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: duplicated-output-descriptors-share-offset
+not ok 10 - primary-5.3: original-differential: duplicated-output-descriptors-share-offset
+  ---
+  duration_ms: 0.101458
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: append-descriptor-observes-intervening-truncation
+not ok 11 - primary-5.3: original-differential: append-descriptor-observes-intervening-truncation
+  ---
+  duration_ms: 0.015083
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: redirect-expansion-side-effect-precedes-truncate
+not ok 12 - primary-5.3: original-differential: redirect-expansion-side-effect-precedes-truncate
+  ---
+  duration_ms: 0.012083
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-and-substitution-consume-one-inherited-offset
+not ok 13 - primary-5.3: original-differential: read-and-substitution-consume-one-inherited-offset
+  ---
+  duration_ms: 0.013166
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-in-subshell-consumes-input-but-not-parent-variable
+not ok 14 - primary-5.3: original-differential: read-in-subshell-consumes-input-but-not-parent-variable
+  ---
+  duration_ms: 0.011917
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: multiple-input-redirections-only-last-is-consumed
+not ok 15 - primary-5.3: original-differential: multiple-input-redirections-only-last-is-consumed
+  ---
+  duration_ms: 0.011083
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-n-consumes-exactly-two-characters
+not ok 16 - primary-5.3: original-differential: read-n-consumes-exactly-two-characters
+  ---
+  duration_ms: 0.037125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-d-consumes-through-delimiter-only
+not ok 17 - primary-5.3: original-differential: read-d-consumes-through-delimiter-only
+  ---
+  duration_ms: 0.015125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-backslash-newline-joins-before-splitting
+not ok 18 - primary-5.3: original-differential: read-backslash-newline-joins-before-splitting
+  ---
+  duration_ms: 0.012834
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-last-variable-preserves-inner-separators
+not ok 19 - primary-5.3: original-differential: read-last-variable-preserves-inner-separators
+  ---
+  duration_ms: 0.0135
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: redirected-pipeline-input-leaves-inherited-input-intact
+not ok 20 - primary-5.3: original-differential: redirected-pipeline-input-leaves-inherited-input-intact
+  ---
+  duration_ms: 0.011708
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: pipefail-picks-rightmost-nonzero-not-first
+not ok 21 - primary-5.3: original-differential: pipefail-picks-rightmost-nonzero-not-first
+  ---
+  duration_ms: 0.012917
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: pipeline-negation-with-pipefail-controls-conditional
+not ok 22 - primary-5.3: original-differential: pipeline-negation-with-pipefail-controls-conditional
+  ---
+  duration_ms: 0.012333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: function-in-middle-of-pipeline-preserves-bytes
+not ok 23 - primary-5.3: original-differential: function-in-middle-of-pipeline-preserves-bytes
+  ---
+  duration_ms: 0.011833
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: early-pipeline-reader-closes-bounded-producer
+not ok 24 - primary-5.3: original-differential: early-pipeline-reader-closes-bounded-producer
+  ---
+  duration_ms: 0.0105
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-positional-at-concatenates-only-edge-fields
+not ok 25 - primary-5.3: original-differential: quoted-positional-at-concatenates-only-edge-fields
+  ---
+  duration_ms: 0.015167
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-star-uses-first-ifs-character
+not ok 26 - primary-5.3: original-differential: quoted-star-uses-first-ifs-character
+  ---
+  duration_ms: 0.010417
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields
+not ok 27 - primary-5.3: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields
+  ---
+  duration_ms: 0.011333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field
+not ok 28 - primary-5.3: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field
+  ---
+  duration_ms: 0.010333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: default-operator-does-not-evaluate-unused-substitution
+not ok 29 - primary-5.3: original-differential: default-operator-does-not-evaluate-unused-substitution
+  ---
+  duration_ms: 0.010333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: assignment-default-side-effect-persists-outside-expansion
+not ok 30 - primary-5.3: original-differential: assignment-default-side-effect-persists-outside-expansion
+  ---
+  duration_ms: 0.012
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: prefix-assignment-value-expansion-sees-prior-assignment
+not ok 31 - primary-5.3: original-differential: prefix-assignment-value-expansion-sees-prior-assignment
+  ---
+  duration_ms: 0.010625
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: command-substitution-file-shortcut-reads-and-trims
+not ok 32 - primary-5.3: original-differential: command-substitution-file-shortcut-reads-and-trims
+  ---
+  duration_ms: 0.011458
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: substitution-retains-interior-newlines-and-isolates-variable
+not ok 33 - primary-5.3: original-differential: substitution-retains-interior-newlines-and-isolates-variable
+  ---
+  duration_ms: 0.01175
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: last-assignment-substitution-status-wins
+not ok 34 - primary-5.3: original-differential: last-assignment-substitution-status-wins
+  ---
+  duration_ms: 0.010333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: substitution-does-not-reparse-metacharacters
+not ok 35 - primary-5.3: original-differential: substitution-does-not-reparse-metacharacters
+  ---
+  duration_ms: 0.010459
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing
+not ok 36 - primary-5.3: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing
+  ---
+  duration_ms: 0.010583
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: backquote-substitution-preserves-double-quoted-result
+not ok 37 - primary-5.3: original-differential: backquote-substitution-preserves-double-quoted-result
+  ---
+  duration_ms: 0.012125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-glob-fragment-remains-literal-inside-pattern
+not ok 38 - primary-5.3: original-differential: quoted-glob-fragment-remains-literal-inside-pattern
+  ---
+  duration_ms: 0.010583
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: glob-question-mark-matches-one-character-including-brackets
+not ok 39 - primary-5.3: original-differential: glob-question-mark-matches-one-character-including-brackets
+  ---
+  duration_ms: 0.011458
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: glob-hidden-directory-requires-explicit-dot
+not ok 40 - primary-5.3: original-differential: glob-hidden-directory-requires-explicit-dot
+  ---
+  duration_ms: 0.011459
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: redirect-glob-resolves-single-match-with-space
+not ok 41 - primary-5.3: original-differential: redirect-glob-resolves-single-match-with-space
+  ---
+  duration_ms: 0.011834
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: tilde-prefix-in-assignment-not-in-quoted-word
+not ok 42 - primary-5.3: original-differential: tilde-prefix-in-assignment-not-in-quoted-word
+  ---
+  duration_ms: 0.011666
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: heredoc-tab-stripping-keeps-other-whitespace
+not ok 43 - primary-5.3: original-differential: heredoc-tab-stripping-keeps-other-whitespace
+  ---
+  duration_ms: 0.01225
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: multiple-heredocs-last-input-wins
+not ok 44 - primary-5.3: original-differential: multiple-heredocs-last-input-wins
+  ---
+  duration_ms: 0.013125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: here-string-expands-without-splitting-or-globbing
+not ok 45 - primary-5.3: original-differential: here-string-expands-without-splitting-or-globbing
+  ---
+  duration_ms: 0.010458
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side
+not ok 46 - primary-5.3: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side
+  ---
+  duration_ms: 0.01175
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: compound-loop-return-restores-outer-function-positionals
+not ok 47 - primary-5.3: original-differential: compound-loop-return-restores-outer-function-positionals
+  ---
+  duration_ms: 0.011709
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+not ok 48 - primary-5.3: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+  ---
+  duration_ms: 0.011666
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects
+not ok 49 - primary-5.3: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects
+  ---
+  duration_ms: 0.011084
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-cancel-redirected-producer-output
+not ok 50 - primary-5.3: original-differential: early-reader-must-not-cancel-redirected-producer-output
+  ---
+  duration_ms: 0.011166
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe
+not ok 51 - primary-5.3: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe
+  ---
+  duration_ms: 0.011666
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: fatal-parameter-expansion-prevents-following-file-effect
+not ok 52 - primary-5.3: original-differential: fatal-parameter-expansion-prevents-following-file-effect
+  ---
+  duration_ms: 0.01125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect
+not ok 53 - primary-5.3: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect
+  ---
+  duration_ms: 0.013083
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: fatal-expansion-in-substitution-stops-substitution-only
+not ok 54 - primary-5.3: original-differential: fatal-expansion-in-substitution-stops-substitution-only
+  ---
+  duration_ms: 0.011458
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: group-inherits-descriptor-three-for-inner-redirection
+not ok 55 - primary-5.3: original-differential: group-inherits-descriptor-three-for-inner-redirection
+  ---
+  duration_ms: 0.011792
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: group-inherits-input-descriptor-and-shared-read-offset
+not ok 56 - primary-5.3: original-differential: group-inherits-input-descriptor-and-shared-read-offset
+  ---
+  duration_ms: 0.031875
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect
+not ok 57 - primary-5.3: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect
+  ---
+  duration_ms: 0.012583
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-escaped-ifs-character-is-not-a-field-separator
+not ok 58 - primary-5.3: original-differential: read-escaped-ifs-character-is-not-a-field-separator
+  ---
+  duration_ms: 0.011791
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields
+not ok 59 - primary-5.3: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields
+  ---
+  duration_ms: 0.011709
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter
+not ok 60 - primary-5.3: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter
+  ---
+  duration_ms: 0.010542
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-pattern-removal-star-is-literal
+not ok 61 - primary-5.3: original-differential: quoted-pattern-removal-star-is-literal
+  ---
+  duration_ms: 0.010792
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: glob-posix-bracket-digit-class
+not ok 62 - primary-5.3: original-differential: glob-posix-bracket-digit-class
+  ---
+  duration_ms: 0.0105
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: command-substitution-removes-nul-bytes
+not ok 63 - primary-5.3: original-differential: command-substitution-removes-nul-bytes
+  ---
+  duration_ms: 0.011584
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: export-prefix-assignment-persists-in-shell
+not ok 64 - primary-5.3: original-differential: export-prefix-assignment-persists-in-shell
+  ---
+  duration_ms: 0.011875
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: local-without-assignment-starts-unset
+not ok 65 - primary-5.3: original-differential: local-without-assignment-starts-unset
+  ---
+  duration_ms: 0.0105
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: glob-matches-newline-bytes-and-the-exact-filename
+not ok 66 - primary-5.3: original-differential: glob-matches-newline-bytes-and-the-exact-filename
+  ---
+  duration_ms: 0.010417
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: parameter-patterns-match-newlines-with-exact-boundaries
+not ok 67 - primary-5.3: original-differential: parameter-patterns-match-newlines-with-exact-boundaries
+  ---
+  duration_ms: 0.010833
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-0
+not ok 68 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-0
+  ---
+  duration_ms: 0.015875
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-1
+not ok 69 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-1
+  ---
+  duration_ms: 0.011416
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-2
+not ok 70 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-2
+  ---
+  duration_ms: 0.010333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-3
+not ok 71 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-3
+  ---
+  duration_ms: 0.010083
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-4
+not ok 72 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-4
+  ---
+  duration_ms: 0.010167
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-5
+not ok 73 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-5
+  ---
+  duration_ms: 0.010625
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-syntax: unterminated-quote-after-write
+not ok 74 - primary-5.3: original-syntax: unterminated-quote-after-write
+  ---
+  duration_ms: 0.010125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-syntax: missing-pipeline-command-after-write
+not ok 75 - primary-5.3: original-syntax: missing-pipeline-command-after-write
+  ---
+  duration_ms: 0.010208
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-syntax: missing-conditional-operand-after-write
+not ok 76 - primary-5.3: original-syntax: missing-conditional-operand-after-write
+  ---
+  duration_ms: 0.010458
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-syntax: missing-group-terminator-after-write
+not ok 77 - primary-5.3: original-syntax: missing-group-terminator-after-write
+  ---
+  duration_ms: 0.012042
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: original-syntax: missing-if-fi-after-write
+not ok 78 - primary-5.3: original-syntax: missing-if-fi-after-write
+  ---
+  duration_ms: 0.011458
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: move-output-really-closes-source
+not ok 79 - primary-5.3: current-gaps: move-output-really-closes-source
+  ---
+  duration_ms: 0.011083
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: move-input-really-closes-source
+not ok 80 - primary-5.3: current-gaps: move-input-really-closes-source
+  ---
+  duration_ms: 0.011042
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: read-n-stops-at-newline-before-count
+not ok 81 - primary-5.3: current-gaps: read-n-stops-at-newline-before-count
+  ---
+  duration_ms: 0.012333
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: read-d-empty-selects-nul
+not ok 82 - primary-5.3: current-gaps: read-d-empty-selects-nul
+  ---
+  duration_ms: 0.011125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: read-d-missing-delimiter-retains-data-with-failure
+not ok 83 - primary-5.3: current-gaps: read-d-missing-delimiter-retains-data-with-failure
+  ---
+  duration_ms: 0.012541
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: file-shortcut-does-not-consume-inherited-stdin
+not ok 84 - primary-5.3: current-gaps: file-shortcut-does-not-consume-inherited-stdin
+  ---
+  duration_ms: 0.011167
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed
+not ok 85 - primary-5.3: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed
+  ---
+  duration_ms: 0.012375
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: pathname-classes-c-locale-alpha-negation
+not ok 86 - primary-5.3: current-gaps: pathname-classes-c-locale-alpha-negation
+  ---
+  duration_ms: 0.013208
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: prevalidation-prior-output-and-file
+not ok 87 - primary-5.3: current-gaps: prevalidation-prior-output-and-file
+  ---
+  duration_ms: 0.011375
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: fatal-parameter-preserves-only-earlier-effects
+not ok 88 - primary-5.3: current-gaps: fatal-parameter-preserves-only-earlier-effects
+  ---
+  duration_ms: 0.011791
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+# Subtest: primary-5.3: current-gaps: unmatched-case-bracket-literal-control
+not ok 89 - primary-5.3: current-gaps: unmatched-case-bracket-literal-control
+  ---
+  duration_ms: 0.010792
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'hookFailed'
+  error: |-
+    Current fixture/helper binding changed: tests/shell-stress/current-gaps/compatibility.test.ts
+    + actual - expected
+    
+    + '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+    - 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca'
+  actual: '6ccc25845c5edf0a0f5fbdd21f9a11c5ecb0efc241de2f5bb993de925235201a'
+  operator: 'strictEqual'
+  stack: |-
+    validateSourceBindings (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/pin-migration/current-binding.ts:31:12)
+    validateProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:106:3)
+    TestContext.validateCurrentProfile (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:3)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-jusBF1/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+  ...
+1..89
+# tests 89
+# suites 0
+# pass 0
+# fail 89
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 188.030292

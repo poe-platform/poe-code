@@ -1,0 +1,34 @@
+{
+  "thresholdBytes": 268435456,
+  "operator": ">=",
+  "row": {
+    "type": "memory",
+    "role": "fresh-consumer",
+    "pid": 89725,
+    "ppid": 86238,
+    "phase": "allocation-retained",
+    "sample": 28,
+    "memory": {
+      "rss": 273416192,
+      "heapTotal": 8011776,
+      "heapUsed": 5049832,
+      "external": 220603575,
+      "arrayBuffers": 218456542
+    },
+    "flow": {
+      "chunks": 26,
+      "bytes": 1703936,
+      "maxChunkBytes": 65536,
+      "pending": 1,
+      "maxPending": 1,
+      "pendingBytes": 65536,
+      "maxPendingBytes": 65536
+    },
+    "mutation": {
+      "steps": 26,
+      "retainedBytes": 218103808,
+      "touchedByte": 180
+    }
+  },
+  "action": "pause further allocation, abort core consumption, await producer close and receipt, then SIGTERM consumer"
+}

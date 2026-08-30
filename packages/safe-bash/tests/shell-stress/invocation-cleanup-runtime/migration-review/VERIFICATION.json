@@ -1,0 +1,136 @@
+{
+  "time": "2026-08-27T13:02:53.002Z",
+  "candidate": "4bb4ad85d4554889cd6f59097af776f4172e34d1",
+  "sourceAndEmittedBeforeAfterEqual": true,
+  "sourceInputs": 220,
+  "emittedFiles": 708,
+  "canonicalReports": 10,
+  "genuineRetirementMutantReports": 10,
+  "canonicalManifestCompactSha256": "be08a7ac693e275394df011e811df0399f3140e74049125431436586c4d34cd0",
+  "historicalAndAuthorEvidenceUnchanged": true,
+  "toolBytesUnchanged": true,
+  "processChecks": [
+    {
+      "pid": 92484,
+      "absent": true
+    },
+    {
+      "pid": 96229,
+      "absent": true
+    },
+    {
+      "pid": 96314,
+      "absent": true
+    },
+    {
+      "pid": 96317,
+      "absent": true
+    },
+    {
+      "pid": 96320,
+      "absent": true
+    },
+    {
+      "pid": 96323,
+      "absent": true
+    },
+    {
+      "pid": 96326,
+      "absent": true
+    },
+    {
+      "pid": 96349,
+      "absent": true
+    },
+    {
+      "pid": 96352,
+      "absent": true
+    },
+    {
+      "pid": 96370,
+      "absent": true
+    },
+    {
+      "pid": 96260,
+      "absent": true
+    },
+    {
+      "pid": 96261,
+      "absent": true
+    },
+    {
+      "pid": 96267,
+      "absent": true
+    },
+    {
+      "pid": 96268,
+      "absent": true
+    },
+    {
+      "pid": 96269,
+      "absent": true
+    },
+    {
+      "pid": 96271,
+      "absent": true
+    },
+    {
+      "pid": 96272,
+      "absent": true
+    },
+    {
+      "pid": 96273,
+      "absent": true
+    },
+    {
+      "pid": 96285,
+      "absent": true
+    },
+    {
+      "pid": 96305,
+      "absent": true
+    },
+    {
+      "pid": 96387,
+      "absent": true
+    },
+    {
+      "pid": 96388,
+      "absent": true
+    },
+    {
+      "pid": 96389,
+      "absent": true
+    },
+    {
+      "pid": 96391,
+      "absent": true
+    },
+    {
+      "pid": 96393,
+      "absent": true
+    },
+    {
+      "pid": 96394,
+      "absent": true
+    },
+    {
+      "pid": 96403,
+      "absent": true
+    },
+    {
+      "pid": 96404,
+      "absent": true
+    },
+    {
+      "pid": 96405,
+      "absent": true
+    },
+    {
+      "pid": 96407,
+      "absent": true
+    }
+  ],
+  "checksUseSignalZeroOnly": true,
+  "noScratchRemains": true
+}

@@ -1,0 +1,471 @@
+{
+  "status": "PREPARED_NOT_RELEASED_NOT_EXECUTED",
+  "reviewerThread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "noPromotion": true,
+  "admissionOrder": [
+    "Receive exact frozen author patch/candidate/compiled/package/fixture/scorer hashes and explicit ROOT inspection/build release; never inspect unsealed author work.",
+    "Authenticate Git blobs/seals; compare sole source edit to ALLOWLIST and both SOURCE-INVENTORIES arrays; verify every unchanged source/config/test entry.",
+    "Inspect exact versioned fixture/scorer/write destinations against these independent criteria; decide extra exact cases before execution.",
+    "On fresh owned regular S1 copies, reconstruct only allowed edit and independently build using pinned tools after release; compare complete output and package inventories to author outputs.",
+    "Freeze independent runner, bindings, emitted inventories, raw predicates and data-negative checks in an owned commit BEFORE first guest.",
+    "After explicit ROOT actual replay release, take fresh private and copy/tool/import guards, replay finite cohorts once, close every owned child and capture private-after even on failures.",
+    "Independently assess raw bytes/counts/order/identity and seal all attempts; report actual scope and post-audit promotion blockers plus exact production-rebase write-set proposal only then."
+  ],
+  "pendingAuthorFieldsCannotBeInferred": true,
+  "baseCohorts": {
+    "surface": {
+      "rows": [
+        "01-supported-facades",
+        "02-direct-surface",
+        "03-namespace-spread",
+        "04-shell-module",
+        "05-missing-register-cleanup",
+        "06-missing-acquire",
+        "07-reflection-profile",
+        "08-function-spread-profile"
+      ],
+      "count": 8,
+      "exactChildSha256": "358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4",
+      "guestAndExpectedBytesUnchanged": true,
+      "onlyParentBindingDeltas": "Overlay source/compiled/package identity and owned paths, explicitly hashed; no source/guest/scoring drift.",
+      "case07": "DIALECT ONLY; no new Reflect/prototype capability credit.",
+      "case08": {
+        "exactOutcome": {
+          "kind": "await-rejected",
+          "reasonType": "object",
+          "reasonIsNull": false
+        },
+        "engineEntries": 1,
+        "awaitRejections": 1,
+        "callThrows": 0,
+        "fulfilledEvents": 0,
+        "ownEngineResultField": false,
+        "rejectionBeforeOperationAndPublicSettlement": true,
+        "publicKind": "fulfilled",
+        "publicStatus": 1,
+        "stdout": "",
+        "stderr": "safejs: Cannot spread function into object literal.\n",
+        "rawReasonMessageCaptured": false
+      },
+      "conditional09Allowed": false,
+      "finiteObserverHostControls": {
+        "count": 9,
+        "exactOriginalControlsRetained": true,
+        "notEnginePasses": true
+      }
+    },
+    "lifecycle": {
+      "rows": [
+        "L01-aliases",
+        "L02-budget-positive",
+        "L02-budget-exhausted",
+        "L03-callback-live",
+        "L03-callback-after-lifetime",
+        "L04-explicit-children",
+        "L05-caller-error",
+        "L05-execution-error",
+        "L05-cleanup-error",
+        "L06-curl-open",
+        "L06-curl-consumer-closed"
+      ],
+      "count": 11,
+      "baselineChildSha256": "4977d53279d39c9e53b1583a93558264b140efcc784ee9811db9250c61cb7a2e",
+      "baselineCommonGuardAndGuestBytesUnchanged": true,
+      "onlyBaseSemanticChangeFrom9f44": "L06 host maxRedirects/maxRetries1->0, separately named zero-cap binding; no other limits/argv/expected-output or cancellation/accounting changes.",
+      "L05_S1": {
+        "source": "owned-guest\n)",
+        "sourceBytes": 13,
+        "selector": "shell: Expected command at offset 12\n",
+        "selectorBytes": 37,
+        "selectorCallsAndThrows": 1,
+        "requiredOrder": [
+          "nested SafeJS fulfilled status1",
+          "resource release done",
+          "cleanupError observed by identity",
+          "exact additional syntax sink entry",
+          "same executionError thrown",
+          "public executionError rejection after drain"
+        ],
+        "publicResultAbsent": true,
+        "callerAborted": false,
+        "stdoutHex": "61646d69747465640a",
+        "acceptedStderrHex": "",
+        "threeEarlierDiagnosticAttemptsSeparatelyRetained": true,
+        "oldDiagnosticBooleanNotSufficient": true
+      },
+      "L06_Zero": {
+        "caps": {
+          "maxRedirects": 0,
+          "maxRetries": 0
+        },
+        "otherLimits": {
+          "maxUploadBytes": 1024,
+          "maxDownloadBytes": 1024,
+          "maxBufferBytes": 4096,
+          "maxHeaderBytes": 4096,
+          "maxUrls": 1,
+          "maxTimeMs": 2500
+        },
+        "args": [
+          "-sS",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}\n",
+          "https://owned.invalid/upload"
+        ],
+        "initialTransportRequired": true,
+        "allAuthCallsCountedBeforeDecision": true,
+        "allTransportCallsCountedBeforeBody": true,
+        "exactlyOneAllowedAuthAndOneTransport": true,
+        "denyUnexpectedAndAdditionalAdmission": true,
+        "denialDoesNotHideAdditionalCallFromNonpass": true,
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "reusedProducerBufferWithOwnedRetainedCopies": true,
+        "firstUploadBeforeEofGate": true,
+        "requiredFiles": {
+          "/work/body.bin": "body0\nbody1\n",
+          "/work/headers.txt": "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\n\r\n"
+        },
+        "stderr": "independent-stderr\n",
+        "cleanupRegisteredBeforeBodyAcquisition": true,
+        "responseAndTransportCleanupBeforeNestedAndPublicSettlement": true,
+        "mutualCleanupCallbackOrderNotRequired": true,
+        "open": {
+          "publicKind": "result",
+          "status": 0,
+          "stdout": "200\ncurl:0\n",
+          "curlWriteoutCalls": 1
+        },
+        "closed": {
+          "publicKind": "result",
+          "status": 141,
+          "stdout": "curl:141\n",
+          "curlWriteoutCalls": 0,
+          "transportSignalAbortedByConsumer": false
+        },
+        "positiveOpenMustPassBeforeClosedLaunch": true,
+        "zeroCallsIsNotValidPositive": true
+      }
+    }
+  },
+  "extraPolicyControls": {
+    "finalExactCount": null,
+    "finalAuthorCaseIdsAndHashes": null,
+    "proposedCount": 2,
+    "proposedProfiles": [
+      {
+        "proposedId": "Z-redirect-307-override",
+        "status": "PROPOSED_PREAUTHOR_CRITERION_NOT_FROZEN_AUTHOR_SCENARIO",
+        "route": "Actual unchanged curl guest -> public SafeJS source hooks -> Shell owned-curl -> public curl literal argv -> explicit injected transport",
+        "guestBinding": "c8df5cf2819d7ad9d54c2a70800258c7c200665a:lifecycle/guests/curl.ajs.data; no guest source edit",
+        "publicSource": "owned-guest",
+        "guestArgs": [],
+        "args": [
+          "-sS",
+          "-L",
+          "--max-redirs",
+          "9",
+          "--retry",
+          "9",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}|%{num_redirects}|%{num_retries}|%{size_upload}|%{size_download}|%{exitcode}\n",
+          "https://owned.invalid/upload"
+        ],
+        "hostCaps": {
+          "maxRedirects": 0,
+          "maxRetries": 0
+        },
+        "allOtherLimits": "Same as lifecycle v2 curlInputs.limits",
+        "consumerClosed": false,
+        "initialFiles": {
+          "/work/body.bin": "sentinel-before-response\n",
+          "/work/headers.txt": "sentinel-before-headers\n"
+        },
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "response": {
+          "status": 307,
+          "statusText": "Fixture",
+          "httpVersion": "1.1",
+          "headers": [
+            [
+              "Location",
+              "/next"
+            ]
+          ],
+          "bodyChunksHex": [
+            "626f6479300a",
+            "626f6479310a"
+          ]
+        },
+        "expected": {
+          "guestRuns": 1,
+          "authorizationsIncludingDenied": 1,
+          "transportsIncludingRejected": 1,
+          "authorizationAttempt": 0,
+          "hasRedirectFrom": false,
+          "allowedAuthorization": true,
+          "allowedTransport": true,
+          "requestUrl": "https://owned.invalid/upload",
+          "method": "PUT",
+          "liveSignalAtAdmission": true,
+          "uploadBytesHex": "41300a42310a",
+          "uploadProducerOpens": 1,
+          "uploadProducerEofCount": 1,
+          "uploadFragments": 2,
+          "firstUploadBeforeEof": true,
+          "replayedUploadBytes": 0,
+          "responseBodyReads": 0,
+          "responseDisposeCalls": 1,
+          "transportCleanupCalls": 1,
+          "responseBodyFile": "sentinel-before-response\n",
+          "headerFile": "HTTP/1.1 307 Fixture\r\nLocation: /next\r\n\r\n",
+          "nestedCurlStatus": 47,
+          "publicKind": "result",
+          "publicExitCode": 47,
+          "stdout": "307|0|0|6|0|47\ncurl:47\n",
+          "stderr": "curl: (47) Maximum redirects exceeded\nindependent-stderr\n",
+          "curlAccountedWriteoutCalls": 1,
+          "retryAuthorizationCount": 0,
+          "redirectAuthorizationCount": 0,
+          "transportEntriesBeyondFirst": 0,
+          "bothResponseDisposeAndTransportCleanupBeforeNestedAndPublicSettlement": true
+        },
+        "whyBodySentinel": "Redirect cap rejection occurs before response body publication.",
+        "noTimeoutPass": true,
+        "retryAfterDoesNotAuthorizeSleepOrRetry": true,
+        "sourceProof": [
+          "S1 args.ts clamps both CLI values by Math.min with host caps.",
+          "S1 curl.ts dumps initial headers before cap/fail-body decisions; operation.close runs before writeout and final diagnostic.",
+          "Accepted bb7 zero-caps tests cover -L cap47, Retry-After3600, --fail cap22 and preserved body sentinel."
+        ],
+        "pendingAuthorFixtureHash": null
+      },
+      {
+        "proposedId": "Z-retry-503-retry-after-fail",
+        "status": "PROPOSED_PREAUTHOR_CRITERION_NOT_FROZEN_AUTHOR_SCENARIO",
+        "route": "Actual unchanged curl guest -> public SafeJS source hooks -> Shell owned-curl -> public curl literal argv -> explicit injected transport",
+        "guestBinding": "c8df5cf2819d7ad9d54c2a70800258c7c200665a:lifecycle/guests/curl.ajs.data; no guest source edit",
+        "publicSource": "owned-guest",
+        "guestArgs": [],
+        "args": [
+          "-sS",
+          "-L",
+          "--max-redirs",
+          "9",
+          "--retry",
+          "9",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}|%{num_redirects}|%{num_retries}|%{size_upload}|%{size_download}|%{exitcode}\n",
+          "--fail",
+          "https://owned.invalid/upload"
+        ],
+        "hostCaps": {
+          "maxRedirects": 0,
+          "maxRetries": 0
+        },
+        "allOtherLimits": "Same as lifecycle v2 curlInputs.limits",
+        "consumerClosed": false,
+        "initialFiles": {
+          "/work/body.bin": "sentinel-before-response\n",
+          "/work/headers.txt": "sentinel-before-headers\n"
+        },
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "response": {
+          "status": 503,
+          "statusText": "Fixture",
+          "httpVersion": "1.1",
+          "headers": [
+            [
+              "Retry-After",
+              "3600"
+            ]
+          ],
+          "bodyChunksHex": [
+            "626f6479300a",
+            "626f6479310a"
+          ]
+        },
+        "expected": {
+          "guestRuns": 1,
+          "authorizationsIncludingDenied": 1,
+          "transportsIncludingRejected": 1,
+          "authorizationAttempt": 0,
+          "hasRedirectFrom": false,
+          "allowedAuthorization": true,
+          "allowedTransport": true,
+          "requestUrl": "https://owned.invalid/upload",
+          "method": "PUT",
+          "liveSignalAtAdmission": true,
+          "uploadBytesHex": "41300a42310a",
+          "uploadProducerOpens": 1,
+          "uploadProducerEofCount": 1,
+          "uploadFragments": 2,
+          "firstUploadBeforeEof": true,
+          "replayedUploadBytes": 0,
+          "responseBodyReads": 0,
+          "responseDisposeCalls": 1,
+          "transportCleanupCalls": 1,
+          "responseBodyFile": "sentinel-before-response\n",
+          "headerFile": "HTTP/1.1 503 Fixture\r\nRetry-After: 3600\r\n\r\n",
+          "nestedCurlStatus": 22,
+          "publicKind": "result",
+          "publicExitCode": 22,
+          "stdout": "503|0|0|6|0|22\ncurl:22\n",
+          "stderr": "curl: (22) HTTP response status 503\nindependent-stderr\n",
+          "curlAccountedWriteoutCalls": 1,
+          "retryAuthorizationCount": 0,
+          "redirectAuthorizationCount": 0,
+          "transportEntriesBeyondFirst": 0,
+          "bothResponseDisposeAndTransportCleanupBeforeNestedAndPublicSettlement": true
+        },
+        "whyBodySentinel": "--fail sets exit22 and suppresses body publication; no demand for positive body-file contents on this error row.",
+        "noTimeoutPass": true,
+        "retryAfterDoesNotAuthorizeSleepOrRetry": true,
+        "sourceProof": [
+          "S1 args.ts clamps both CLI values by Math.min with host caps.",
+          "S1 curl.ts dumps initial headers before cap/fail-body decisions; operation.close runs before writeout and final diagnostic.",
+          "Accepted bb7 zero-caps tests cover -L cap47, Retry-After3600, --fail cap22 and preserved body sentinel."
+        ],
+        "pendingAuthorFixtureHash": null
+      }
+    ],
+    "finalDenominator": "8 surface +11 base lifecycle +pending separately frozen exact policy cases; do not label21 executed or passed now.",
+    "reviewRule": "Bind exact response/argv/sentinel/selector/counter code and expected bytes before first guest. Equivalent alternatives or extra cases require explicit reviewed frozen binding; no opportunistic expansion.",
+    "strictErrorAssertionsMustBeScoped": "Never relax original L06 200/body/header assertions to make error controls fit. New exact errors need separate versioned rows/predicates.",
+    "unchangedGuestCapabilities": true,
+    "authorizationDenialOrZeroTransportCannotMasqueradeAsPositive": true,
+    "noUnsupportedRetryAllErrors": true
+  },
+  "containment": {
+    "surface": {
+      "knownChildrenAtOnce": 1,
+      "childDeadlineMs": 10000,
+      "wholeCohortDeadlineMs": 100000,
+      "logBytes": 131072
+    },
+    "lifecycle": {
+      "caseChildrenAtOnce": 1,
+      "childDeadlineMs": 7000,
+      "supervisorDeadlineMs": 9000,
+      "wholeCohortDeadlineMs": 120000,
+      "heapMb": 256,
+      "childOutputMaxBytes": 1048576,
+      "eventMaxCount": 4096,
+      "unexpectedWorkersAllowed": 0,
+      "unexpectedSubprocessesAllowed": 0,
+      "socketsAllowed": 0,
+      "acceptanceAfterContainment": false,
+      "automaticRetries": 0
+    },
+    "extraPolicyChildAndEventLimits": "Same lifecycle limits; final cohort allocation must be frozen and bounded, no silent budget extension.",
+    "defaultLifecycleSafeJsLimits": {
+      "maxSourceBytes": 16384,
+      "maxInputBytes": 65536,
+      "maxOutputBytes": 65536,
+      "timeoutMs": 3500,
+      "maxSteps": 200000,
+      "maxCallDepth": 64,
+      "stringLength": 65536,
+      "arrayLength": 8192,
+      "dataSize": 1048576
+    },
+    "noFixtureDelayPrebufferOrCallerRescue": true,
+    "oneActualRunPerRow": true,
+    "automaticRetries": 0,
+    "noPrivateInstalledPackageOrExternalNetwork": true,
+    "noOpaquePreemptionOrGlobalFirstReadClaim": true,
+    "stopOnValidFailureNoAssertionRelaxation": true
+  },
+  "futureGuards": {
+    "privateBeforeAfterEachCohortIncludingFailures": true,
+    "gitOptionalLocks": "0",
+    "privateState": [
+      "HEAD",
+      "tree",
+      "index bytes/mode/mtime/ctime",
+      "status",
+      "staging",
+      "six metadata files",
+      "all264 eligible engine files with bytes/mode/mtime/ctime"
+    ],
+    "metadataFiles": [
+      "AGENTS.md",
+      ".gitignore",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "packages/poe-agent/package.json"
+    ],
+    "engineExclusions": [
+      ".git",
+      "node_modules",
+      "dist",
+      ".cache",
+      ".turbo"
+    ],
+    "freshIdentityNotAssumedFromPreparation": true,
+    "afterInFinally": true,
+    "knownChildrenFinalizedOnFailure": true,
+    "regularCopiesOnlySymlinksRefused": true,
+    "completeFileAndDirectoryNameReenumeration": true,
+    "actualImportNodeBinaryLoaderAndToolsHashChecks": true,
+    "noPrivateWritesInstallBuildWorktreeCliBarrelOrUpstreamChanges": true
+  },
+  "plannedDataOnlyNegativeChecks": [
+    {
+      "id": "inventory-nonallowlisted-change",
+      "effect": "Reject in-memory altered args.ts inventory or wrong shared.ts hash before build/import; no product file mutation."
+    },
+    {
+      "id": "extra-admission-record",
+      "effect": "Extra authorization/transport entry in copied raw data remains nonpass even if denied before a second request."
+    },
+    {
+      "id": "missing-response-cleanup",
+      "effect": "Zero response-dispose count or disposal after settlement in copied raw data remains nonpass."
+    }
+  ],
+  "originalEvidenceNeverRescored": {
+    "S1SurfaceRaw": "7/8",
+    "S1LifecycleRaw": "8 PASS/1 FAIL/1 INVALID_FIXTURE/1 BLOCKED",
+    "S1V2Independent": "9f44add1:8 revised surface +11 revised lifecycle; unchanged",
+    "oldConstructorFailure": "Preserve preadmission failure; no new invalid-fixture label and no implication that old S1 accepted zero."
+  },
+  "promotionFollowup": "After completed audit only: enumerate remaining promotion blockers and propose exact production rebase write set. No live implementation or broad production diff in this preparation.",
+  "preparationExecutions": {
+    "build": 0,
+    "guest": 0,
+    "product": 0,
+    "engine": 0,
+    "transport": 0,
+    "native": 0,
+    "privateQuery": 0,
+    "newPass": 0
+  }
+}

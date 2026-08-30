@@ -1,0 +1,20 @@
+{
+  "executable": "npm",
+  "args": [
+    "install",
+    "--offline",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--cache",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/core-01/install-cache",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/core-01/virtual-bash-0.0.0.tgz"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/core-01/consumer",
+  "started": "2026-08-27T21:01:01.064Z",
+  "finished": "2026-08-27T21:01:02.185Z",
+  "status": 0,
+  "signal": null,
+  "stdout": "\nadded 1 package in 1s\n",
+  "stderr": "npm notice\nnpm notice New major version of npm available! 10.9.7 -> 12.0.2\nnpm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2\nnpm notice To update run: npm install -g npm@12.0.2\nnpm notice\n"
+}

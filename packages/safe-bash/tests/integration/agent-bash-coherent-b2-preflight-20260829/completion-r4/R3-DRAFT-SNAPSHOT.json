@@ -1,0 +1,83 @@
+{
+  "schema": "B2_R3_UNCOMMITTED_IDENTITY_SNAPSHOT",
+  "files": [
+    {
+      "path": "PARTIAL-PUBLICATION.md",
+      "bytes": 1716,
+      "sha256": "ec5436902e41a392a3556fb65492137b35296b78fcf9d5dad1151d307458372b"
+    },
+    {
+      "path": "admit-and-publish.mjs",
+      "bytes": 12311,
+      "sha256": "9e0cfd7772a6516271fe15706de4cd51fbd08232f68f78d0f527ff78e4e3677f"
+    },
+    {
+      "path": "controller.mjs",
+      "bytes": 8442,
+      "sha256": "b0a8f6f8818b2271699942eafc30d4d265bf0a33bedd0f30b49cb62f62f4e37e"
+    },
+    {
+      "path": "review-data.mjs",
+      "bytes": 4929,
+      "sha256": "6bd9b603dd2f61badda19e5c531f747b62afe4c4b11118681dac4e8d21d63b41"
+    },
+    {
+      "path": "runtime/classify.mjs",
+      "bytes": 2916,
+      "sha256": "0c8d958e50291c293733915ae4204894b8931b016a9bffbc66bdf42957929e7b"
+    },
+    {
+      "path": "runtime/controls.mjs",
+      "bytes": 3712,
+      "sha256": "5d5a5fb1acc7125ab4f31b1a6778b65351ddae29830e8f5b7dbf656d6b59d2da"
+    },
+    {
+      "path": "runtime/coordinator.mjs",
+      "bytes": 12797,
+      "sha256": "79c5ac8d2f3829cd69842e69b19e00bec81c98536f9981fc786f13542e3fa119"
+    },
+    {
+      "path": "runtime/fixture.mjs",
+      "bytes": 861,
+      "sha256": "9bc2c8d6b7d25eebbcc74a5d8560efa097ba8b88c101c2d89ba998227b1a565e"
+    },
+    {
+      "path": "runtime/launch.sh",
+      "bytes": 306,
+      "sha256": "fcc646081e747aa947440e06c4cb95bf03d134e207361454ecf2ea09ebaeabd3"
+    },
+    {
+      "path": "runtime/loader.mjs",
+      "bytes": 2087,
+      "sha256": "cadc6aae843e30d013c45cc620287e231b905b37eb7f217066d2e25f5df21c31"
+    },
+    {
+      "path": "runtime/outer.mjs",
+      "bytes": 1219,
+      "sha256": "189344951dc4be9b0f0f90a190f2f145620c059da108aae8d481a9a50fd0731f"
+    },
+    {
+      "path": "runtime/publish.mjs",
+      "bytes": 21803,
+      "sha256": "4b7a11ec7515a1f83f0bc9d73b8d9dcbe9c507a339cdf0cb0d2fe25772284dde"
+    },
+    {
+      "path": "runtime/support.mjs",
+      "bytes": 5901,
+      "sha256": "497220e2b5bab3313b897855581de38dd07d5fc6b9c6620f8de96db001819450"
+    }
+  ],
+  "status": "?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/controller.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/review-data.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/classify.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/controls.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/coordinator.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/fixture.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/launch.sh\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/loader.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/outer.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/publish.mjs\n?? tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r3/runtime/support.mjs\n",
+  "unchangedPartialCommit": "881ed8989062e4aaff749d35400f1e72adf5f0db",
+  "priorStop": "active deadline consumed at 1455.943289 seconds; controls never ran",
+  "initialization": "reported exit127; tool transcript only; raw artifact UNAVAILABLE",
+  "parser78": "AUTHORING_DEFECT_NOT_SOURCE_INTEGRITY_MISMATCH",
+  "captureQualification": "Current administration raw contains instruction plaintext accidentally read during bootstrap; retained locally, not published as evidence. No old capture qualification.",
+  "census": {
+    "elapsedSeconds": 337.597658129875,
+    "osStarts": 15,
+    "peak": 2,
+    "captureBytes": 27265,
+    "chargedBytes": 40190
+  }
+}

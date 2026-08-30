@@ -1,0 +1,199 @@
+{
+  "sealedAt": "2026-08-27T20:55:20.444Z",
+  "freezeCommit": "30dda5b930c6e5ea29a54348926fc02b81f9d8e6",
+  "entries": {
+    "CANONICAL-AUDIT.md": {
+      "kind": "file",
+      "bytes": 4408,
+      "sha256": "61adbf0baf11b6dabef01402baf5c065e40f5144bfbecd3aa50f25f319433a43"
+    },
+    "FREEZE.md": {
+      "kind": "file",
+      "bytes": 3207,
+      "sha256": "482cbbc7c598f5073992e30760cc3833bda4125620c14ee12e818e42c80d9ad2"
+    },
+    "REPORT.md": {
+      "kind": "file",
+      "bytes": 8215,
+      "sha256": "ca910566448ffde1380426956042b5841c51a12c8bfdf48e7d623a5c055a7a5b"
+    },
+    "audit-canonical.mjs": {
+      "kind": "file",
+      "bytes": 2719,
+      "sha256": "cefcb985dfed268e3b28a5bae083eb09012922cd85c778de58d9998e4ff93832"
+    },
+    "baseline-01": {
+      "kind": "directory"
+    },
+    "baseline-01/build.json": {
+      "kind": "file",
+      "bytes": 531,
+      "sha256": "4197ae0fdc7683ce578f998f1c44afb23a9b12e322eb447a9c9245a609e120ac"
+    },
+    "baseline-01/cleanup.json": {
+      "kind": "file",
+      "bytes": 478,
+      "sha256": "ba15f32bd418d8101577b55d8ad68fde5389c2d01acfa4edcbf9ce3a65eef820"
+    },
+    "baseline-01/compiled-after.json": {
+      "kind": "file",
+      "bytes": 23018,
+      "sha256": "37461a153a114726064d097fb02b6ab7c5e423a547de54718718ef159427e03a"
+    },
+    "baseline-01/compiled-before.json": {
+      "kind": "file",
+      "bytes": 23018,
+      "sha256": "37461a153a114726064d097fb02b6ab7c5e423a547de54718718ef159427e03a"
+    },
+    "baseline-01/freeze-after.json": {
+      "kind": "file",
+      "bytes": 1576,
+      "sha256": "18df59200bef74901252f53bd218221072ebdf356377f821b12b44644654615a"
+    },
+    "baseline-01/freeze-before.json": {
+      "kind": "file",
+      "bytes": 1576,
+      "sha256": "18df59200bef74901252f53bd218221072ebdf356377f821b12b44644654615a"
+    },
+    "baseline-01/nearby-execution.json": {
+      "kind": "file",
+      "bytes": 17109,
+      "sha256": "20a24aae4fc32e469a72134f56846a5cee2f0eb679393eca50b93baacb65f971"
+    },
+    "baseline-01/nearby-results.json": {
+      "kind": "file",
+      "bytes": 25366,
+      "sha256": "e5d31477f8486e3bb438750a487748d9e05c72aee676ff9ed4eeff502d872507"
+    },
+    "baseline-01/original-execution.json": {
+      "kind": "file",
+      "bytes": 43804,
+      "sha256": "74eebbe427a7282593a3f7a26184d724bced9ca66ec3f7713e59f8675d94ed37"
+    },
+    "baseline-01/original-results.json": {
+      "kind": "file",
+      "bytes": 63763,
+      "sha256": "6883d8fce1041be55a08edc73342f8e6d3c11c1f7186a3434b3da2ba61442d6f"
+    },
+    "baseline-01/source-after.json": {
+      "kind": "file",
+      "bytes": 6825,
+      "sha256": "587078dcc89bd1235d525e313d492e4d52ee590142062810bff9b0e307c006e2"
+    },
+    "baseline-01/source-before.json": {
+      "kind": "file",
+      "bytes": 6825,
+      "sha256": "587078dcc89bd1235d525e313d492e4d52ee590142062810bff9b0e307c006e2"
+    },
+    "baseline-01/summary.json": {
+      "kind": "file",
+      "bytes": 7391,
+      "sha256": "e56725c766a95f11ed301d3fd21b15e80526d1b85a9c49f51bd3fdbef69ddcce"
+    },
+    "canonical-audit-01": {
+      "kind": "directory"
+    },
+    "canonical-audit-01/inventory-and-excerpts.json": {
+      "kind": "file",
+      "bytes": 37671,
+      "sha256": "441b42e3086a67174aac1e86e0a02466a750d24615a41c4e0e5f400fd26cee72"
+    },
+    "capture.mjs": {
+      "kind": "file",
+      "bytes": 8480,
+      "sha256": "f0308ab72447915278004a886c8004101b21b77e978e83af64f5fc867784ab0c"
+    },
+    "controls.mjs": {
+      "kind": "file",
+      "bytes": 3253,
+      "sha256": "ce3fb051f688d67350ae4f0e3472e5aeb48fb1e161477cd9b744aba352f54c22"
+    },
+    "freeze": {
+      "kind": "directory"
+    },
+    "freeze/controls.json": {
+      "kind": "file",
+      "bytes": 7306,
+      "sha256": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764"
+    },
+    "freeze/manifest.json": {
+      "kind": "file",
+      "bytes": 31031,
+      "sha256": "8797248cfb900f270f8744ee89aa6c6196dcf71a21b3e33f13aac727de62c1f3"
+    },
+    "freeze/original-cases.json": {
+      "kind": "file",
+      "bytes": 19117,
+      "sha256": "d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314"
+    },
+    "freeze/original-driver.mjs": {
+      "kind": "file",
+      "bytes": 8613,
+      "sha256": "3871b6fa2bf72b482910217ff0f16919e20f752b3b1862e9683c5c5247fa3613"
+    },
+    "freeze/original-receipt.json": {
+      "kind": "file",
+      "bytes": 1354,
+      "sha256": "79f10c8d6e143798537868270d40dacad65a95f65de5824c98acc8bef1bcda5f"
+    },
+    "freeze/source-archive.b64.data": {
+      "kind": "file",
+      "bytes": 117161,
+      "sha256": "ee0919604daa1f957cda05ea9e3a9178b3c23fe54212b01f3ae507a44f38f852"
+    },
+    "freeze/source-manifest.json": {
+      "kind": "file",
+      "bytes": 9883,
+      "sha256": "20dc364ece8a567894a323924b2f3beebaca9bb529c53139987d7fcf448071f4"
+    },
+    "freeze.mjs": {
+      "kind": "file",
+      "bytes": 7321,
+      "sha256": "a6b8304a06378dde5ee9eb961ebe038eaccbe466b6b100d897078eea878e81a0"
+    },
+    "historical": {
+      "kind": "directory"
+    },
+    "historical/accepted-product.json": {
+      "kind": "file",
+      "bytes": 63820,
+      "sha256": "b72d2ab3e990f112984330f018f1e211ba7d47ede1a9ac16ad6e172595121dce"
+    },
+    "historical/native-controls.json": {
+      "kind": "file",
+      "bytes": 2081,
+      "sha256": "ee13883ba3562bdf9caa9a4c75dac9aa29721505f18f8238c003b7da5da7baf3"
+    },
+    "historical/native-semantics.json": {
+      "kind": "file",
+      "bytes": 20274,
+      "sha256": "f731ff89519429d2ab111c49ccf97deb9a7ddb258d259fcd8e48eb4cecd9593c"
+    },
+    "historical/qualified-sequencing.json": {
+      "kind": "file",
+      "bytes": 44432,
+      "sha256": "6fd12fc992ae68bb13b76f4ede2bdd03f0757eb866c0c3caa0febf1cf2600e5c"
+    },
+    "historical/qualified-summary.json": {
+      "kind": "file",
+      "bytes": 21381,
+      "sha256": "e7642d9cb5f2f0eebcc2db0fe9e11cac185f83f4bc2e9f69d082d34b9c20676b"
+    },
+    "nearby-driver.mjs": {
+      "kind": "file",
+      "bytes": 8196,
+      "sha256": "a0c00b680f4d4c35ee11edc16313feb6a4f7428684bb78eaab1f774e7c88ccbe"
+    },
+    "seal.mjs": {
+      "kind": "file",
+      "bytes": 2631,
+      "sha256": "e0ee26685866ac5757cdbaf9fada350f8f8c80a395cb15810935a2bfd2958b2b"
+    },
+    "validation.json": {
+      "kind": "file",
+      "bytes": 1569,
+      "sha256": "d65869b616ced2ec17f1b0eb0b87d7ccf90ca31c7a7789afd93635c7046e0588"
+    }
+  },
+  "scope": "All owned evidence files and directories, including added-entry detection. SEAL.json authenticates through the subsequent Git evidence commit; not a transaction or defense against transient mutation."
+}

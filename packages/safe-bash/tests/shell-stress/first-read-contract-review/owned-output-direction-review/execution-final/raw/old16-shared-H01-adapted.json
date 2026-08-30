@@ -1,0 +1,17 @@
+{
+  "label": "old16-shared-H01-adapted",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "first-read-local: passed\n{\"scenario\":\"first-read-local\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"source.finally\",\"command.settled:pending-stream:141\",\"command.settled:true:0\"]}\n",
+    "bytes": 332,
+    "base64": "Zmlyc3QtcmVhZC1sb2NhbDogcGFzc2VkCnsic2NlbmFyaW8iOiJmaXJzdC1yZWFkLWxvY2FsIiwiYWN0aXZlIjowLCJyZWFkcyI6MSwicmV0dXJuZWQiOjEsIndyaXRlcyI6MCwic3RhZ2VBYm9ydGVkIjpmYWxzZSwib3BlcmF0aW9uQWJvcnRlZCI6dHJ1ZSwiYWJvcnRlZEJlZm9yZVRlYXJkb3duIjpmYWxzZSwiZXZlbnRzIjpbInNvdXJjZS5uZXh0OnBlbmRpbmctYmVmb3JlLWZpcnN0LWJ5dGUiLCJjb21tYW5kLnNldHRsZWQ6aGVhZDowIiwic291cmNlLmZpbmFsbHkiLCJjb21tYW5kLnNldHRsZWQ6cGVuZGluZy1zdHJlYW06MTQxIiwiY29tbWFuZC5zZXR0bGVkOnRydWU6MCJdfQo=",
+    "sha256": "fba0e41d5db42f682ef92fc275311c1330f9ea7206284ec6eb85038291cf5ed5"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

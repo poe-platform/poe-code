@@ -1,0 +1,8 @@
+{"at":"2026-08-29T14:10:49.705Z","event":"owner-start","pid":36384,"mode":"seal","capture":"/tmp/pipestatus-typed-review-seal-fDrmmf"}
+{"at":"2026-08-29T14:10:49.720Z","event":"enrolled","label":"stage-preseal","pid":36385,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","add","--","tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829"]}
+{"at":"2026-08-29T14:10:49.835Z","event":"exit","label":"stage-preseal","pid":36385,"code":0,"signal":null}
+{"at":"2026-08-29T14:10:49.850Z","event":"close","label":"stage-preseal","pid":36385,"code":0,"signal":null,"exit":true,"error":false,"expired":false}
+{"at":"2026-08-29T14:10:49.856Z","event":"enrolled","label":"commit-preseal","pid":36391,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","commit","--only","-m","test: preseal typed PIPESTATUS six-native DATA review","--","tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829"]}
+{"at":"2026-08-29T14:10:50.155Z","event":"exit","label":"commit-preseal","pid":36391,"code":0,"signal":null}
+{"at":"2026-08-29T14:10:50.163Z","event":"close","label":"commit-preseal","pid":36391,"code":0,"signal":null,"exit":true,"error":false,"expired":false}
+{"at":"2026-08-29T14:10:50.168Z","event":"owner-complete","pid":36384,"mode":"seal","code":0}

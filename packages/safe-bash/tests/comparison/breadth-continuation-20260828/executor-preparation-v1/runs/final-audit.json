@@ -1,0 +1,58 @@
+{
+  "kind": "standalone-post-settlement-audit-no-rerun",
+  "at": "2026-08-28T09:21:24.137Z",
+  "originalFilesUnchanged": 11,
+  "recipeFilesUnchanged": 16,
+  "observations": [
+    {
+      "pid": 6644,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "originalNatural": true,
+      "originalReaped": true
+    },
+    {
+      "pid": 6741,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "originalNatural": true,
+      "originalReaped": true
+    },
+    {
+      "pid": 6827,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "originalNatural": true,
+      "originalReaped": true
+    },
+    {
+      "pid": 6924,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "originalNatural": true,
+      "originalReaped": true
+    },
+    {
+      "pid": 7023,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "originalNatural": true,
+      "originalReaped": true
+    },
+    {
+      "pid": 7096,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "originalNatural": false,
+      "originalReaped": true
+    },
+    {
+      "pid": 8369,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "originalNatural": true,
+      "originalReaped": true
+    }
+  ],
+  "newSemanticExecutions": 0
+}

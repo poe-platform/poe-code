@@ -1,0 +1,920 @@
+TAP version 13
+# Subtest: frozen fixture: tac-unterminated-crlf
+ok 1 - frozen fixture: tac-unterminated-crlf
+  ---
+  duration_ms: 4.520375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-empty-records
+ok 2 - frozen fixture: tac-empty-records
+  ---
+  duration_ms: 0.962583
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-nul-separator
+ok 3 - frozen fixture: tac-nul-separator
+  ---
+  duration_ms: 0.987417
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-nul-before
+ok 4 - frozen fixture: tac-nul-before
+  ---
+  duration_ms: 0.687459
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-literal-metacharacters
+ok 5 - frozen fixture: tac-literal-metacharacters
+  ---
+  duration_ms: 0.741875
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-before-leading-trailing
+ok 6 - frozen fixture: tac-before-leading-trailing
+  ---
+  duration_ms: 0.665458
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-overlap-rightmost
+ok 7 - frozen fixture: tac-overlap-rightmost
+  ---
+  duration_ms: 1.094166
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-overlap-before
+ok 8 - frozen fixture: tac-overlap-before
+  ---
+  duration_ms: 1.35925
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-multibyte-separator
+ok 9 - frozen fixture: tac-multibyte-separator
+  ---
+  duration_ms: 1.414791
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-invalid-binary
+ok 10 - frozen fixture: tac-invalid-binary
+  ---
+  duration_ms: 0.666625
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-operand-boundaries
+ok 11 - frozen fixture: tac-operand-boundaries
+  ---
+  duration_ms: 0.72975
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-shared-dash
+ok 12 - frozen fixture: tac-shared-dash
+  ---
+  duration_ms: 0.512083
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-dash-name
+ok 13 - frozen fixture: tac-dash-name
+  ---
+  duration_ms: 0.336375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-long-cross-buffer
+ok 14 - frozen fixture: tac-long-cross-buffer
+  ---
+  duration_ms: 47.408917
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-no-separator
+ok 15 - frozen fixture: tac-no-separator
+  ---
+  duration_ms: 0.548084
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-initial-blanks
+ok 16 - frozen fixture: expand-initial-blanks
+  ---
+  duration_ms: 0.738792
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-cr-not-newline
+ok 17 - frozen fixture: expand-cr-not-newline
+  ---
+  duration_ms: 0.4185
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-backspace-revisit-stop
+ok 18 - frozen fixture: expand-backspace-revisit-stop
+  ---
+  duration_ms: 0.3955
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-finite-stops
+ok 19 - frozen fixture: expand-finite-stops
+  ---
+  duration_ms: 0.322542
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-blank-list
+ok 20 - frozen fixture: expand-blank-list
+  ---
+  duration_ms: 0.374875
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-absolute-repeat
+ok 21 - frozen fixture: expand-absolute-repeat
+  ---
+  duration_ms: 0.329083
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-relative-repeat
+ok 22 - frozen fixture: expand-relative-repeat
+  ---
+  duration_ms: 0.3675
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-repeat-only
+ok 23 - frozen fixture: expand-repeat-only
+  ---
+  duration_ms: 0.377917
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-legacy-stops
+not ok 24 - frozen fixture: expand-legacy-stops
+  ---
+  duration_ms: 1.79825
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    expand: invalid option -- '2'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:80:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: expand-repeat-option-stops
+ok 25 - frozen fixture: expand-repeat-option-stops
+  ---
+  duration_ms: 0.416667
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-cross-operand-column
+ok 26 - frozen fixture: expand-cross-operand-column
+  ---
+  duration_ms: 3.136417
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-cross-operand-initial
+ok 27 - frozen fixture: expand-cross-operand-initial
+  ---
+  duration_ms: 0.483416
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-shared-dash
+ok 28 - frozen fixture: expand-shared-dash
+  ---
+  duration_ms: 0.375083
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-nul-invalid-utf8
+ok 29 - frozen fixture: expand-nul-invalid-utf8
+  ---
+  duration_ms: 0.296667
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-utf8-byte-columns
+ok 30 - frozen fixture: expand-utf8-byte-columns
+  ---
+  duration_ms: 0.316334
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-initial-backspace
+ok 31 - frozen fixture: expand-initial-backspace
+  ---
+  duration_ms: 0.29075
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-long-chunk-edge
+ok 32 - frozen fixture: expand-long-chunk-edge
+  ---
+  duration_ms: 64.888709
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-unterminated-long
+ok 33 - frozen fixture: fold-unterminated-long
+  ---
+  duration_ms: 0.75375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-word-boundaries
+ok 34 - frozen fixture: fold-word-boundaries
+  ---
+  duration_ms: 0.364459
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-tab-larger-than-width
+ok 35 - frozen fixture: fold-tab-larger-than-width
+  ---
+  duration_ms: 0.32825
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-tab-spaces
+ok 36 - frozen fixture: fold-tab-spaces
+  ---
+  duration_ms: 0.343417
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-backspace
+ok 37 - frozen fixture: fold-backspace
+  ---
+  duration_ms: 0.3925
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-cr-column-reset
+ok 38 - frozen fixture: fold-cr-column-reset
+  ---
+  duration_ms: 0.317208
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-byte-controls
+ok 39 - frozen fixture: fold-byte-controls
+  ---
+  duration_ms: 0.372875
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-byte-space-combination
+ok 40 - frozen fixture: fold-byte-space-combination
+  ---
+  duration_ms: 0.350792
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-all-blank
+ok 41 - frozen fixture: fold-all-blank
+  ---
+  duration_ms: 0.34
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-operand-reset
+ok 42 - frozen fixture: fold-operand-reset
+  ---
+  duration_ms: 0.350375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-shared-dash
+ok 43 - frozen fixture: fold-shared-dash
+  ---
+  duration_ms: 0.378917
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-nul
+ok 44 - frozen fixture: fold-invalid-nul
+  ---
+  duration_ms: 0.285417
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-utf8-column
+ok 45 - frozen fixture: fold-utf8-column
+  ---
+  duration_ms: 0.304709
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-utf8-byte
+ok 46 - frozen fixture: fold-utf8-byte
+  ---
+  duration_ms: 0.319083
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-long-record-chunk-edge
+ok 47 - frozen fixture: fold-long-record-chunk-edge
+  ---
+  duration_ms: 35.583666
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-vertical-whitespace-not-blank
+ok 48 - frozen fixture: fold-vertical-whitespace-not-blank
+  ---
+  duration_ms: 0.506625
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-legacy-width
+not ok 49 - frozen fixture: fold-legacy-width
+  ---
+  duration_ms: 0.484542
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    fold: invalid option -- '3'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:80:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: tac-invalid-49
+ok 50 - frozen fixture: tac-invalid-49
+  ---
+  duration_ms: 0.430792
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-invalid-50
+ok 51 - frozen fixture: tac-invalid-50
+  ---
+  duration_ms: 0.311959
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-invalid-51
+ok 52 - frozen fixture: expand-invalid-51
+  ---
+  duration_ms: 0.315166
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-invalid-52
+ok 53 - frozen fixture: expand-invalid-52
+  ---
+  duration_ms: 0.292125
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-invalid-53
+ok 54 - frozen fixture: expand-invalid-53
+  ---
+  duration_ms: 0.287041
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-invalid-54
+not ok 55 - frozen fixture: expand-invalid-54
+  ---
+  duration_ms: 0.303209
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    expand: invalid number '0'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:80:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: expand-invalid-55
+ok 56 - frozen fixture: expand-invalid-55
+  ---
+  duration_ms: 0.255333
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-56
+ok 57 - frozen fixture: fold-invalid-56
+  ---
+  duration_ms: 0.256375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-57
+ok 58 - frozen fixture: fold-invalid-57
+  ---
+  duration_ms: 0.312375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-58
+ok 59 - frozen fixture: fold-invalid-58
+  ---
+  duration_ms: 0.264
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-59
+ok 60 - frozen fixture: fold-invalid-59
+  ---
+  duration_ms: 0.297125
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-missing-then-valid
+ok 61 - frozen fixture: tac-missing-then-valid
+  ---
+  duration_ms: 0.536458
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-missing-then-valid
+ok 62 - frozen fixture: expand-missing-then-valid
+  ---
+  duration_ms: 0.365583
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-missing-then-valid
+ok 63 - frozen fixture: fold-missing-then-valid
+  ---
+  duration_ms: 0.370458
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-utf8-locale-control
+ok 64 - frozen fixture: expand-utf8-locale-control
+  ---
+  duration_ms: 0.303625
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-utf8-locale-control
+ok 65 - frozen fixture: fold-utf8-locale-control
+  ---
+  duration_ms: 0.294166
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-ascii-boundaries
+ok 66 - frozen fixture: strings-ascii-boundaries
+  ---
+  duration_ms: 0.403917
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-tab-is-printable
+ok 67 - frozen fixture: strings-tab-is-printable
+  ---
+  duration_ms: 0.3135
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-minimum-one
+ok 68 - frozen fixture: strings-minimum-one
+  ---
+  duration_ms: 0.320209
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-utf8-separates-ascii
+ok 69 - frozen fixture: strings-utf8-separates-ascii
+  ---
+  duration_ms: 0.343334
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-utf8
+ok 70 - frozen fixture: strings-invalid-utf8
+  ---
+  duration_ms: 0.301458
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-offset-decimal
+ok 71 - frozen fixture: strings-offset-decimal
+  ---
+  duration_ms: 0.367
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-offset-hex
+ok 72 - frozen fixture: strings-offset-hex
+  ---
+  duration_ms: 0.389291
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-offset-octal
+ok 73 - frozen fixture: strings-offset-octal
+  ---
+  duration_ms: 0.370875
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-minimum-legacy
+not ok 74 - frozen fixture: strings-minimum-legacy
+  ---
+  duration_ms: 0.358584
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    strings: invalid option -- '5'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:80:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: strings-minimum-long
+ok 75 - frozen fixture: strings-minimum-long
+  ---
+  duration_ms: 0.306958
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-all-byte-classifications
+ok 76 - frozen fixture: strings-all-byte-classifications
+  ---
+  duration_ms: 0.534709
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-long-run-reused-buffer
+ok 77 - frozen fixture: strings-long-run-reused-buffer
+  ---
+  duration_ms: 38.04575
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-file-label-offsets
+ok 78 - frozen fixture: strings-file-label-offsets
+  ---
+  duration_ms: 0.580375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-operand-runs-do-not-join
+ok 79 - frozen fixture: strings-operand-runs-do-not-join
+  ---
+  duration_ms: 0.336375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-dash-stdin-extension
+not ok 80 - frozen fixture: strings-dash-stdin-extension
+  ---
+  duration_ms: 0.4905
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '46494c450a'
+    - '535444494e0a46494c450a'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '535444494e0a46494c450a'
+  actual: '46494c450a'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:81:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: strings-invalid-80
+ok 81 - frozen fixture: strings-invalid-80
+  ---
+  duration_ms: 0.327334
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-81
+ok 82 - frozen fixture: strings-invalid-81
+  ---
+  duration_ms: 0.308625
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-82
+ok 83 - frozen fixture: strings-invalid-82
+  ---
+  duration_ms: 0.258291
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-83
+ok 84 - frozen fixture: strings-invalid-83
+  ---
+  duration_ms: 0.261125
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-84
+ok 85 - frozen fixture: strings-invalid-84
+  ---
+  duration_ms: 0.282208
+  type: 'test'
+  ...
+# Subtest: chunk ownership: tac-overlap-before
+ok 86 - chunk ownership: tac-overlap-before
+  ---
+  duration_ms: 0.400333
+  type: 'test'
+  ...
+# Subtest: chunk ownership: tac-nul-before
+ok 87 - chunk ownership: tac-nul-before
+  ---
+  duration_ms: 0.396875
+  type: 'test'
+  ...
+# Subtest: chunk ownership: expand-backspace-revisit-stop
+ok 88 - chunk ownership: expand-backspace-revisit-stop
+  ---
+  duration_ms: 0.305958
+  type: 'test'
+  ...
+# Subtest: chunk ownership: expand-utf8-byte-columns
+ok 89 - chunk ownership: expand-utf8-byte-columns
+  ---
+  duration_ms: 0.288209
+  type: 'test'
+  ...
+# Subtest: chunk ownership: fold-byte-controls
+ok 90 - chunk ownership: fold-byte-controls
+  ---
+  duration_ms: 0.247291
+  type: 'test'
+  ...
+# Subtest: chunk ownership: fold-tab-spaces
+ok 91 - chunk ownership: fold-tab-spaces
+  ---
+  duration_ms: 0.317125
+  type: 'test'
+  ...
+# Subtest: chunk ownership: strings-tab-is-printable
+ok 92 - chunk ownership: strings-tab-is-printable
+  ---
+  duration_ms: 0.277667
+  type: 'test'
+  ...
+# Subtest: chunk ownership: strings-long-run-reused-buffer
+ok 93 - chunk ownership: strings-long-run-reused-buffer
+  ---
+  duration_ms: 61.854875
+  type: 'test'
+  ...
+# Subtest: VFS error fidelity and continuation: tac
+not ok 94 - VFS error fidelity and continuation: tac
+  ---
+  duration_ms: 0.728125
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:4619'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /directory.*is a directory|is a directory.*directory/i. Input:
+    
+    "tac: ENOENT: no such file or directory, stat '/work/missing'\n" +
+      "tac: EISDIR: illegal operation on a directory '/work/directory'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    tac: ENOENT: no such file or directory, stat '/work/missing'
+    tac: EISDIR: illegal operation on a directory '/work/directory'
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:118:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invocation-local limits across operands: tac
+ok 95 - invocation-local limits across operands: tac
+  ---
+  duration_ms: 0.95875
+  type: 'test'
+  ...
+# Subtest: preabort does not touch source: tac
+ok 96 - preabort does not touch source: tac
+  ---
+  duration_ms: 0.215417
+  type: 'test'
+  ...
+# Subtest: blocked source cancellation observes late rejection: tac
+ok 97 - blocked source cancellation observes late rejection: tac
+  ---
+  duration_ms: 5.267958
+  type: 'test'
+  ...
+# Subtest: blocked sink cancellation and ownership: tac
+ok 98 - blocked sink cancellation and ownership: tac
+  ---
+  duration_ms: 0.830375
+  type: 'test'
+  ...
+# Subtest: VFS error fidelity and continuation: expand
+not ok 99 - VFS error fidelity and continuation: expand
+  ---
+  duration_ms: 0.3885
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:4619'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /directory.*is a directory|is a directory.*directory/i. Input:
+    
+    "expand: ENOENT: no such file or directory, stat '/work/missing'\n" +
+      "expand: EISDIR: illegal operation on a directory '/work/directory'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    expand: ENOENT: no such file or directory, stat '/work/missing'
+    expand: EISDIR: illegal operation on a directory '/work/directory'
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:118:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invocation-local limits across operands: expand
+ok 100 - invocation-local limits across operands: expand
+  ---
+  duration_ms: 0.809334
+  type: 'test'
+  ...
+# Subtest: preabort does not touch source: expand
+ok 101 - preabort does not touch source: expand
+  ---
+  duration_ms: 0.048958
+  type: 'test'
+  ...
+# Subtest: blocked source cancellation observes late rejection: expand
+ok 102 - blocked source cancellation observes late rejection: expand
+  ---
+  duration_ms: 0.515333
+  type: 'test'
+  ...
+# Subtest: blocked sink cancellation and ownership: expand
+ok 103 - blocked sink cancellation and ownership: expand
+  ---
+  duration_ms: 0.344084
+  type: 'test'
+  ...
+# Subtest: VFS error fidelity and continuation: fold
+not ok 104 - VFS error fidelity and continuation: fold
+  ---
+  duration_ms: 0.345041
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:4619'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /directory.*is a directory|is a directory.*directory/i. Input:
+    
+    "fold: ENOENT: no such file or directory, stat '/work/missing'\n" +
+      "fold: EISDIR: illegal operation on a directory '/work/directory'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    fold: ENOENT: no such file or directory, stat '/work/missing'
+    fold: EISDIR: illegal operation on a directory '/work/directory'
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:118:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invocation-local limits across operands: fold
+ok 105 - invocation-local limits across operands: fold
+  ---
+  duration_ms: 0.690458
+  type: 'test'
+  ...
+# Subtest: preabort does not touch source: fold
+ok 106 - preabort does not touch source: fold
+  ---
+  duration_ms: 0.041542
+  type: 'test'
+  ...
+# Subtest: blocked source cancellation observes late rejection: fold
+ok 107 - blocked source cancellation observes late rejection: fold
+  ---
+  duration_ms: 0.446167
+  type: 'test'
+  ...
+# Subtest: blocked sink cancellation and ownership: fold
+ok 108 - blocked sink cancellation and ownership: fold
+  ---
+  duration_ms: 0.521875
+  type: 'test'
+  ...
+# Subtest: VFS error fidelity and continuation: strings
+not ok 109 - VFS error fidelity and continuation: strings
+  ---
+  duration_ms: 0.41425
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:4619'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /directory.*is a directory|is a directory.*directory/i. Input:
+    
+    "strings: ENOENT: no such file or directory, stat '/work/missing'\n" +
+      "strings: EISDIR: illegal operation on a directory '/work/directory'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    strings: ENOENT: no such file or directory, stat '/work/missing'
+    strings: EISDIR: illegal operation on a directory '/work/directory'
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:118:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: invocation-local limits across operands: strings
+ok 110 - invocation-local limits across operands: strings
+  ---
+  duration_ms: 0.728709
+  type: 'test'
+  ...
+# Subtest: preabort does not touch source: strings
+ok 111 - preabort does not touch source: strings
+  ---
+  duration_ms: 0.07875
+  type: 'test'
+  ...
+# Subtest: blocked source cancellation observes late rejection: strings
+ok 112 - blocked source cancellation observes late rejection: strings
+  ---
+  duration_ms: 0.53625
+  type: 'test'
+  ...
+# Subtest: blocked sink cancellation and ownership: strings
+ok 113 - blocked sink cancellation and ownership: strings
+  ---
+  duration_ms: 0.328292
+  type: 'test'
+  ...
+# Subtest: actual backpressure suspends upstream pull and retains sink bytes
+ok 114 - actual backpressure suspends upstream pull and retains sink bytes
+  ---
+  duration_ms: 0.380667
+  type: 'test'
+  ...
+# Subtest: literal invoke traverses middleware and retains virtual filesystem
+ok 115 - literal invoke traverses middleware and retains virtual filesystem
+  ---
+  duration_ms: 0.363375
+  type: 'test'
+  ...
+# Subtest: complex byte pipeline and VFS output effect
+ok 116 - complex byte pipeline and VFS output effect
+  ---
+  duration_ms: 5.308375
+  type: 'test'
+  ...
+# Subtest: shared shell output limit and invocation limits do not reset globally
+ok 117 - shared shell output limit and invocation limits do not reset globally
+  ---
+  duration_ms: 1.805416
+  type: 'test'
+  ...
+# Subtest: tac and strings bound retained records
+ok 118 - tac and strings bound retained records
+  ---
+  duration_ms: 0.414125
+  type: 'test'
+  ...
+# Subtest: factory rejects invalid finite positive integer budgets
+ok 119 - factory rejects invalid finite positive integer budgets
+  ---
+  duration_ms: 0.31325
+  type: 'test'
+  ...
+# Subtest: factory collision preflight and explicit replacement
+ok 120 - factory collision preflight and explicit replacement
+  ---
+  duration_ms: 0.279666
+  type: 'test'
+  ...
+# Subtest: VFS streamed read abort propagates supplied signal
+ok 121 - VFS streamed read abort propagates supplied signal
+  ---
+  duration_ms: 0.882875
+  type: 'test'
+  ...
+# Subtest: VFS permission diagnostic preserves path and continuation
+ok 122 - VFS permission diagnostic preserves path and continuation
+  ---
+  duration_ms: 0.863417
+  type: 'test'
+  ...
+# Subtest: raw object marker and unsupported encoding/data options stay honest
+ok 123 - raw object marker and unsupported encoding/data options stay honest
+  ---
+  duration_ms: 0.409417
+  type: 'test'
+  ...
+# Subtest: internal pipe binary bytes remain exact with chunk ownership
+ok 124 - internal pipe binary bytes remain exact with chunk ownership
+  ---
+  duration_ms: 0.659334
+  type: 'test'
+  ...
+1..124
+# tests 124
+# suites 0
+# pass 115
+# fail 9
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 464.24375

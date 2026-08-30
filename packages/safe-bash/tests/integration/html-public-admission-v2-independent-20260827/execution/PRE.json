@@ -1,0 +1,72 @@
+{
+  "started": "2026-08-27T22:49:12.827Z",
+  "helperHashes": {
+    "supervise.mjs": "f61f1d9ab315e984cfd6da3d9b398e02c56741b881d936441dd93240a30061a6",
+    "authenticate.mjs": "c45f371e7bc0b206505c31c895e55e83c8c501df13c08a5f35bb04e042d9c5e2",
+    "settle.mjs": "349fbb61627c2f8bb01ca37b4b38946608804d52daa83e8fade99f8a6d97672d",
+    "STATIC-REVIEW.md": "0cf414ca2afd7dbe55effd28b67e70da52bf7d838cd7e1da2a258dfae84c4130"
+  },
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "gitSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+  "tar": {
+    "path": "/usr/bin/tar",
+    "realpath": "/usr/bin/bsdtar",
+    "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+  },
+  "psSha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/scratch",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/scratch",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "GIT_TERMINAL_PROMPT": "0"
+  },
+  "phases": [
+    {
+      "name": "controls",
+      "entry": "controls.mjs",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/binding-04/BINDINGS.json",
+        "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/execution/controls"
+      ],
+      "heap": true
+    },
+    {
+      "name": "extra-controls",
+      "entry": "controls-extra.mjs",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/execution/extra-controls"
+      ]
+    },
+    {
+      "name": "admission",
+      "entry": "run.mjs",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/binding-04/BINDINGS.json",
+        "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/execution/admission",
+        "--admission-build"
+      ]
+    },
+    {
+      "name": "reconstruction",
+      "entry": "reconstruct-only.mjs",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/binding-04/BINDINGS.json",
+        "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/execution/reconstruction"
+      ]
+    }
+  ],
+  "phaseTimeoutMs": 900000,
+  "killGraceMs": 5000,
+  "adaptation": "None. Original authenticated entrypoints with explicit output paths and owned TMPDIR/HOME only.",
+  "actual34": 0
+}

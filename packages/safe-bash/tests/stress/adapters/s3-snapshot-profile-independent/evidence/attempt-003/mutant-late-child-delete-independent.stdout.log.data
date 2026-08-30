@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: independent late descendants survive successful marker removal and retain visibility
+not ok 1 - independent late descendants survive successful marker removal and retain visibility
+  ---
+  duration_ms: 10.197875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/s3-snapshot-profile-independent/independent.test.ts:1:4251'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      [
+        {
+          input: {
+            Bucket: 'safe-workflows',
+            Key: 'work/scratch/nested/'
+    ...
+        },
+    +   {
+    +     input: {
+    +       Bucket: 'safe-workflows',
+    +       Key: 'work/scratch/nested/late'
+    +     },
+    +     operation: 'deleteObject'
+    +   }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      operation: 'deleteObject'
+      input:
+        Bucket: 'safe-workflows'
+        Key: 'work/scratch/nested/'
+  actual:
+    0:
+      operation: 'deleteObject'
+      input:
+        Bucket: 'safe-workflows'
+        Key: 'work/scratch/nested/'
+    1:
+      operation: 'deleteObject'
+      input:
+        Bucket: 'safe-workflows'
+        Key: 'work/scratch/nested/late'
+  operator: 'deepStrictEqual'
+  stack: |-
+    exactDelete (/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/s3-snapshot-profile-independent/independent.test.ts:74:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/adapters/s3-snapshot-profile-independent/.work-Kq3dhV/tests/stress/adapters/s3-snapshot-profile-independent/independent.test.ts:126:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.667542

@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "classification": "OWN_STATIC_INSPECTOR_GIT_MODE_ASSUMPTION_FAILURE_NOT_PRODUCT_FINDING",
+  "capture": "STATIC-CAPTURE.json",
+  "failedCondition": "actual POSIX mode384 equals parseInt(Git mode100644,8)&4095 =420",
+  "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/COMPOUND-RESULT.json",
+  "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+  "gitBlob": "b2f438c6dac6d04ed1c2b71947cbb8ffc04256d8",
+  "gitMode": "100644",
+  "actualMode": 384,
+  "bytes": 64460,
+  "sha256": "f70f554c513e6a52c45496cf515c20cd796591c37e5eea2aa155e32fbac9f8a8",
+  "singleEntryByteEqualCommitted": true,
+  "originalSeal": {
+    "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+    "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/FINAL-SEAL.json",
+    "sha256": "c1d91e34da93ba6ee547e5d6fc9647ca7116bfbbcc731afda51a13790ac07321",
+    "matchingEntry": {
+      "path": "raw-compound/COMPOUND-RESULT.json",
+      "kind": "file",
+      "sha256": "f70f554c513e6a52c45496cf515c20cd796591c37e5eea2aa155e32fbac9f8a8",
+      "bytes": 64460,
+      "mode": 384
+    }
+  },
+  "diagnosticScope": "Single failure entry only; no restarted inspector, archive scan or full historical before/after result",
+  "correction": "Future new preseal: compare Git blob/type/executable bit, POSIX modes against original exact seals and complete before/after snapshot. No chmod, omission or weakened candidate archive modes.",
+  "correctedInspector": null,
+  "retryCount": 0
+}

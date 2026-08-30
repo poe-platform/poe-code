@@ -1,0 +1,125 @@
+{
+  "profile": "bash53",
+  "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+  "sourceInformedSupplementNotFrozenHoldouts": true,
+  "results": [
+    {
+      "id": "F01",
+      "expectedStdoutBase64": "MABwADEAAAAwAHEAMgAAAA==",
+      "actualFields": [
+        "0",
+        "p",
+        "1",
+        "",
+        "",
+        "1",
+        "?",
+        "2",
+        "",
+        ""
+      ],
+      "pass": false,
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\nobserve() {\n  getopts pqr option_name \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\ncase \"$1\" in\n  F01) observe '-pqr'; OPTIND=2; observe '-pqr' ;;\n  F02) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' 'operand' ;;\n  F03) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent-followup",
+          "F01"
+        ],
+        "started": "2026-08-27T19:47:53.911Z",
+        "milliseconds": 18.508834000000206,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 11393,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAxAD8AMgAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "F02",
+      "expectedStdoutBase64": "MABwADEAAAAwAHEAMgAAAA==",
+      "actualFields": [
+        "0",
+        "p",
+        "1",
+        "",
+        "",
+        "0",
+        "q",
+        "2",
+        "",
+        ""
+      ],
+      "pass": true,
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\nobserve() {\n  getopts pqr option_name \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\ncase \"$1\" in\n  F01) observe '-pqr'; OPTIND=2; observe '-pqr' ;;\n  F02) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' 'operand' ;;\n  F03) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent-followup",
+          "F02"
+        ],
+        "started": "2026-08-27T19:47:53.930Z",
+        "milliseconds": 14.17358299999978,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 11394,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000q\u00002\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAwAHEAMgAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "F03",
+      "expectedStdoutBase64": "MABwADEAAAAwAHEAMgAAAA==",
+      "actualFields": [
+        "0",
+        "p",
+        "1",
+        "",
+        "",
+        "1",
+        "?",
+        "2",
+        "",
+        ""
+      ],
+      "pass": false,
+      "execution": {
+        "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\nobserve() {\n  getopts pqr option_name \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\ncase \"$1\" in\n  F01) observe '-pqr'; OPTIND=2; observe '-pqr' ;;\n  F02) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' 'operand' ;;\n  F03) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent-followup",
+          "F03"
+        ],
+        "started": "2026-08-27T19:47:53.944Z",
+        "milliseconds": 9.558624999999665,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 11395,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAxAD8AMgAAAA==",
+        "stderrBase64": ""
+      }
+    }
+  ]
+}

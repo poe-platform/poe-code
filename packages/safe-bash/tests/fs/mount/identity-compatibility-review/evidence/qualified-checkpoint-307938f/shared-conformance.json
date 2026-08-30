@@ -1,0 +1,29 @@
+{
+  "name": "shared-conformance",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/conformance/shared.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:40:02.481Z",
+  "finishedAt": "2026-08-27T01:40:03.344Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 202,
+    "pass": 202,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "7c7823bfd6921e7040879fc72e7e9707acfddbcc3708c73080c68fb36353d8d5",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,332 @@
+{
+  "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "diagnosis": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+  "historical": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+  "originalRecipe": "549f2055eb964c33cdbf26109645a422b2b5194a",
+  "compilerCorrection": "d5f4e91062c703b7eecaba856c7533068e1fc520",
+  "bindings": [
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/RESULT-SEAL.json",
+      "bytes": 3981,
+      "sha256": "1155f77cce223c78f8ca08b6f102e5a2348d7645fbb442da64f4018b4e7a0593"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/F11.md",
+      "bytes": 8448,
+      "sha256": "ee163e085e383074fc0e1bdcf9ea34ca13327e6ff26d67ac95a6b9e180777d4b"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/CONTINUATION.md",
+      "bytes": 7103,
+      "sha256": "8a4551770beb25127af38320e13771b413db908345b226b22a3b7698f53a5138"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/CASES.json",
+      "bytes": 806662,
+      "sha256": "a06d2279cebad1cd5806909918197cb73e2f94a3f5f10e7a6447b31791d0137b"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/CORRECTIONS.json",
+      "bytes": 6444,
+      "sha256": "508024fe8eb823a3c7655d737ebe33daa3b0125ab48c7b24dfaa31ce378bc3f4"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/corrections.mjs",
+      "bytes": 4721,
+      "sha256": "b4ae26fec49ea590acf8d7495b41b2e1bce3cbb7a9c073ddb8eebdadae68f000"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/SYNTHETIC-V2-RESULT.json",
+      "bytes": 3130,
+      "sha256": "6fe2b3c8d62d181d48a437180827b307f4887ef6030e777640d662910b12a7ef"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/argv.ts",
+      "bytes": 9587,
+      "sha256": "11d030855f5a694bf59e6c602c5e352c155271863a2084f9e81b5020e3ae75fe"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/budget.ts",
+      "bytes": 4361,
+      "sha256": "cd2e2269cdbbd23acc38d7ecfcb0573f84d12d3a91158f231051be28977cefcc"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/commands.ts",
+      "bytes": 12915,
+      "sha256": "2fce3aa23a4bcf3265bf0e124bb42c29ed0ab7bfe7fb243929e168090002d702"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/csv.ts",
+      "bytes": 6361,
+      "sha256": "2dda24db47c5e31950f3a1f03fe6f4026c7c94711c921782ea8071eac488d43d"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/index.ts",
+      "bytes": 5498,
+      "sha256": "fb664e5a432222c0d79765507da65712a3412a719390a01741b1aa730d4260e9"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/io.ts",
+      "bytes": 9935,
+      "sha256": "162afedc011dd2949203be57f4fe2f656ef7b8a657e0b1cdef90a72805222590"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/options.ts",
+      "bytes": 2454,
+      "sha256": "b8048c66111f47c6b56c1cf420eee20512c0ef17d5055b70fca2785976f1f074"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/selector.ts",
+      "bytes": 9063,
+      "sha256": "27d93b7f759b512b1710eaa9f532aeccf5a43fbd62e32d6010d6009d3e0c56af"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/sort.ts",
+      "bytes": 1377,
+      "sha256": "443a57afffc1fdd00652a6d388de5dc3d4b44d88125641293771b610eedca274"
+    },
+    {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/writer.ts",
+      "bytes": 3918,
+      "sha256": "610a3dd7fbc97fda2d429221774b56da92d7937db75567e4327b7a93d5303c03"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.ts",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/io.ts",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/output.ts",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/errors.ts",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/types.ts",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/index.ts",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/runtime.ts",
+      "bytes": 132362,
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+    },
+    {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/index.ts",
+      "bytes": 1593,
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/runner.mjs",
+      "bytes": 11605,
+      "sha256": "010c43341866b251789df27fc0d5f93035eb7015cc0889323c9d423636dbd38a"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs",
+      "bytes": 21531,
+      "sha256": "2431b7ce8e6b7328445f6636a1c1210ccae417525bfe5a1750fda6eeb5319ff2"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v1/a01.mjs",
+      "bytes": 3595,
+      "sha256": "9c59d364484a71c881bf0465f0534628fefabc51b93741cc83ebc0b911efb28c"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/supervisor.mjs",
+      "bytes": 4583,
+      "sha256": "2599d8d7f9df252584d46ad24f8d19d59e931049a804e18a054dfc789942ebec"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/core.mjs",
+      "bytes": 6085,
+      "sha256": "3895185f7962d316bfde115614ab7d33e683a7b8c4a05886917df5b374abefdc"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/common.mjs",
+      "bytes": 2291,
+      "sha256": "cb3652a407ca269cff51d3c8cfe805b9fe2b2a3d65a2182ec5543b64a63f7e32"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs",
+      "bytes": 2219,
+      "sha256": "cd5c2bf65325b0f75b6e4e0504c12d11d28aed461b79dad530a1cb249f17ffe7"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/continuation.mjs",
+      "bytes": 12678,
+      "sha256": "b916b4203f67c42d13ee4c672b5b667aa07544d6636a08194efca36f4608792f"
+    }
+  ],
+  "overlays": {
+    "parent": {
+      "beforeSha256": "010c43341866b251789df27fc0d5f93035eb7015cc0889323c9d423636dbd38a",
+      "afterSha256": "94117c7e2bc8ca578c8eb9b36e92a09ea495a15ce1d42867026943a84f87c7bb"
+    },
+    "adapter": {
+      "beforeSha256": "2431b7ce8e6b7328445f6636a1c1210ccae417525bfe5a1750fda6eeb5319ff2",
+      "mechanicalSha256": "cf0cc367278937fad747b673d78eab12c1fec2a30143d424ba3640b8850dac81",
+      "afterSha256": "028c2d26f495b5b96b4d87e5a1a8541cfcb9b9a88005f65840866472bdca8d12"
+    },
+    "parentSectionSha256": "21891101554cdf1e06519df148e25a4698bf2a9ca29040cf07d7510b1a3c22c2"
+  },
+  "inheritedMechanical": {
+    "receipt": "tests/commands/xan-module-review-20260828/diagnosis-v1/SYNTHETIC-V2-RESULT.json",
+    "count": 13,
+    "rerun": false,
+    "changes": {
+      "tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs": {
+        "changes": [
+          {
+            "family": "filephase",
+            "before": "[...row.argv, 'input.csv', '-o', 'out.csv']",
+            "after": "[...row.argv.slice(0, row.argv.indexOf('--')), '-o', 'out.csv', ...row.argv.slice(row.argv.indexOf('--')), 'input.csv']"
+          },
+          {
+            "family": "middleware",
+            "before": "shell.use(async (context, next) => { origins.push(context.stdinIsDefault); await next(); });",
+            "after": "shell.use((context, next) => { origins.push(context.stdinIsDefault); return next(); });"
+          },
+          {
+            "family": "middleware",
+            "before": "shell.use(async (context, next) => { seen.push(context.args[0]); await next(); });",
+            "after": "shell.use((context, next) => { seen.push(context.args[0]); return next(); });"
+          },
+          {
+            "family": "middleware",
+            "before": "shell.use(async (context, next) => { if (context.command === 'xan') contexts.push({ env: { ...context.env }, stdinIsDefault: context.stdinIsDefault }); await next(); });",
+            "after": "shell.use((context, next) => { if (context.command === 'xan') contexts.push({ env: { ...context.env }, stdinIsDefault: context.stdinIsDefault }); return next(); });"
+          }
+        ],
+        "beforeSha256": "2431b7ce8e6b7328445f6636a1c1210ccae417525bfe5a1750fda6eeb5319ff2",
+        "afterSha256": "cf0cc367278937fad747b673d78eab12c1fec2a30143d424ba3640b8850dac81"
+      },
+      "tests/commands/xan-module-review-20260828/actual-review-v1/extra.mjs": {
+        "changes": [
+          {
+            "family": "middleware",
+            "before": "await next(); middleware.push(`${context.args[0]}:after`);",
+            "after": "const result = await next(); middleware.push(`${context.args[0]}:after`); return result;"
+          }
+        ],
+        "beforeSha256": "ffedea32823b92647bebf0fde3c244797dd7ca40d0abe103a2f0e75a400f2627",
+        "afterSha256": "190759365d914e78dde34eb7dd5c0d8874afabe2abe4c2e742b7b77cf46b6162"
+      },
+      "tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs": {
+        "changes": [
+          {
+            "family": "provenance",
+            "before": "shell.use(async (context, next) => {",
+            "after": "shell.use((context, next) => {"
+          },
+          {
+            "family": "middleware/provenance",
+            "before": "    await next();",
+            "after": "    return next();"
+          },
+          {
+            "family": "provenance",
+            "before": "name: 'review-bridge', async execute(context)",
+            "after": "name: 'review-bridge', execute(context)"
+          }
+        ],
+        "beforeSha256": "ba907b8fd588116f7fddd0e4fe038c25eb99a64b332a3a88525edfd52a2bc2cc",
+        "afterSha256": "fe5073685ba15f3bfab0ee3b144215613ae00af48a440a2ad121cc816536ccbb"
+      },
+      "tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs": {
+        "changes": [
+          {
+            "family": "diagmatcher-equivalent-only",
+            "before": "  'X4-R04': [/prefix|z\\*/i, /missing|not found|no .*match/i],",
+            "after": "  'X4-R04': [/prefix|z\\*/i, /missing|not found|no .*match|selected nothing/i],"
+          },
+          {
+            "family": "diagmatcher-equivalent-only",
+            "before": "  'X4-R05': [/suffix|\\*z/i, /missing|not found|no .*match/i],",
+            "after": "  'X4-R05': [/suffix|\\*z/i, /missing|not found|no .*match|selected nothing/i],"
+          },
+          {
+            "family": "diagmatcher-equivalent-only",
+            "before": "  'X4-R06': [/name|named/i, /-n\\b|no.headers|without.*header/i, /forbid|unsupported|cannot|not allowed|invalid/i],",
+            "after": "  'X4-R06': [/name|named/i, /-n\\b|no.headers|without.*header/i, /forbid|unsupported|cannot|not allowed|invalid|requires headers/i],"
+          },
+          {
+            "family": "diagmatcher-equivalent-only",
+            "before": "  'X4-R07': [/\\*/, /missing|unknown|not found|no .*match/i, /name|header|endpoint/i],",
+            "after": "  'X4-R07': [/\\*/, /missing|unknown|not found|no .*match|does not exist/i, /name|header|endpoint/i],"
+          },
+          {
+            "family": "diagmatcher-equivalent-only",
+            "before": "  'X4-R08': [/9223372036854775808/, /name|header/i, /missing|unknown|not found|no .*match/i],",
+            "after": "  'X4-R08': [/9223372036854775808/, /name|header/i, /missing|unknown|not found|no .*match|does not exist/i],"
+          },
+          {
+            "family": "diagmatcher-equivalent-only",
+            "before": "  'B01-R1-repeat': [/repeat|duplicate|multiple/i, /(?:^|[\\s'\"`(:])-n(?=$|[\\s'\"`):,;.])/],",
+            "after": "  'B01-R1-repeat': [/repeat|duplicate|multiple/i, /(?:^|[\\s'\"`(:])(?:-n|--no-headers)(?=$|[\\s'\"`):,;.])/],"
+          },
+          {
+            "family": "diagmatcher-equivalent-only",
+            "before": "  'B01-R3-space': [/length|number|integer|numeric|-l\\b/i, /invalid|digit|empty|space|positive|unsigned/i],",
+            "after": "  'B01-R3-space': [/(?:length|number|integer|numeric|-l\\b)|^Could not deserialize ' ' to u64 for '--len'\\.$/i, /(?:invalid|digit|empty|space|positive|unsigned)|^Could not deserialize ' ' to u64 for '--len'\\.$/i],"
+          },
+          {
+            "family": "diagmatcher-equivalent-only",
+            "before": "  'B01-R7-invalid-plural': [/invalid|number|integer|index|indices/i, /(?:^|[\\s'\"`(:])-I(?=$|[\\s'\"`):,;.])/],",
+            "after": "  'B01-R7-invalid-plural': [/invalid|number|integer|index|indices|Could not deserialize/i, /(?:^|[\\s'\"`(:])(?:-I|-I\\/--indices)(?=$|[\\s'\"`):,;.])/],"
+          }
+        ],
+        "beforeSha256": "2fe49b9294e8c0a14f6eb04b54883142fe8898e4f22d8ac53c47514762a5d215",
+        "afterSha256": "e5154552864b7db34e19ae0e382d2bb044f042e385c3b23e10b2df0732224ee7"
+      }
+    }
+  },
+  "scope": "read-only bytes; no product import, compilation, native oracle or candidate execution"
+}

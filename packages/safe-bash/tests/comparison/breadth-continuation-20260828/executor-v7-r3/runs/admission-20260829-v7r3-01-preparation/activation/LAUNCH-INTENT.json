@@ -1,0 +1,34 @@
+{
+  "schema": "ONE_FRESH_V7_R3_ACTUAL_LAUNCH",
+  "runId": "admission-20260829-v7r3-01",
+  "attempt": 1,
+  "grantCommit": "9c380f67a708508a359798b85ae5839bcb5e7f0c",
+  "grantSha256": "e44e3eb38c338bbc2ff64aca9755f4d9876b6f844ef0fb8d7897cf9710f0be0e",
+  "authCommit": "79531d7aec9580d3a3f40fd19dad3dcb99aa7e88",
+  "authPath": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/AUTH.json",
+  "authRawSha256": "4b6e5ee0ff3369df59d8abab09f2cbf72e9af9a72e58ba09dc0ca93c0ba70d38",
+  "adapterSealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "shell": {
+    "path": "/bin/sh",
+    "bytes": 101232,
+    "mode": 493,
+    "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+  },
+  "route": "non-login /bin/sh, noclobber raw files, builtin PID receipt, exec -c in-place replacement with exact Node owner; no retained waiting shell",
+  "file": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/owner.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/AUTH.json",
+    "4b6e5ee0ff3369df59d8abab09f2cbf72e9af9a72e58ba09dc0ca93c0ba70d38",
+    "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4"
+  ],
+  "startedAt": "2026-08-29T03:29:08.496Z",
+  "administrationUsedMs": 438489,
+  "overallDeadlineAt": "2026-08-29T04:51:50.007Z",
+  "ownerBudgetUnchangedMs": 4500000,
+  "semanticCallsAuthorized": 0,
+  "C11EmptySetupsAuthorized": 2,
+  "captureEqualityRequired": true
+}

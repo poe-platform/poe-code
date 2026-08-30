@@ -1,0 +1,3322 @@
+{
+  "protocol": {
+    "warmupPerWorkload": 15,
+    "warmSamples": 18,
+    "coldSamples": 6,
+    "variants": [
+      "base",
+      "candidate",
+      "baseline"
+    ],
+    "caseCount": 10,
+    "timer": "performance.now around actual public shell.exec, fixture reset and byte comparison outside timer",
+    "cold": "fresh process/import/registry per sample; first exec timed separately and parent fork-to-result recorded",
+    "memory": "before/after snapshots plus lifetime process maxRSS, not per-operation peak or guaranteed bound"
+  },
+  "host": {
+    "node": "v22.22.2",
+    "cpu": {
+      "model": "Apple M5 Pro",
+      "speed": 2400,
+      "times": {
+        "user": 12406400,
+        "nice": 0,
+        "sys": 6965150,
+        "idle": 43378960,
+        "irq": 0
+      }
+    },
+    "cpuCount": 15,
+    "release": "25.4.0"
+  },
+  "workloads": [
+    {
+      "workload": "historical-sort-uniq-5000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 4.842457999999965,
+                "p25": 4.941802249999938,
+                "median": 5.0830214999999725,
+                "p75": 5.331249499999956,
+                "p90": 6.670016899999996,
+                "max": 10.181291999999985,
+                "medianAbsoluteDeviation": 0.16225049999997054
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -7058704,
+                "p25": 7706640,
+                "median": 8158100,
+                "p75": 8632008,
+                "p90": 8715480,
+                "max": 8906592,
+                "medianAbsoluteDeviation": 461584
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 137494528,
+                "p25": 137842688,
+                "median": 137936896,
+                "p75": 138002432,
+                "p90": 138002432,
+                "max": 138002432,
+                "medianAbsoluteDeviation": 65536
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 134272,
+                "p25": 134612,
+                "median": 134704,
+                "p75": 134768,
+                "p90": 134768,
+                "max": 134768,
+                "medianAbsoluteDeviation": 64
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 4.309875000000034,
+                "p25": 4.5141977499999655,
+                "median": 4.596478999999988,
+                "p75": 4.81134325000005,
+                "p90": 6.793554600000023,
+                "max": 9.77299999999991,
+                "medianAbsoluteDeviation": 0.12745749999999134
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 3060216,
+                "p25": 4088696,
+                "median": 4357232,
+                "p75": 4387336,
+                "p90": 4523628.8,
+                "max": 4613712,
+                "medianAbsoluteDeviation": 50688
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 139149312,
+                "p25": 139448320,
+                "median": 139542528,
+                "p75": 139542528,
+                "p90": 139706368,
+                "max": 139821056,
+                "medianAbsoluteDeviation": 73728
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 135888,
+                "p25": 136180,
+                "median": 136272,
+                "p75": 136272,
+                "p90": 136432,
+                "max": 136544,
+                "medianAbsoluteDeviation": 72
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 2.9904579999999896,
+                "p25": 3.1262294999999654,
+                "median": 3.1446459999999945,
+                "p75": 3.2501769999999937,
+                "p90": 3.476533700000022,
+                "max": 5.155291000000034,
+                "medianAbsoluteDeviation": 0.0698755000000233
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 2787768,
+                "p25": 2806770,
+                "median": 2837020,
+                "p75": 2853588,
+                "p90": 2869792,
+                "max": 4943456,
+                "medianAbsoluteDeviation": 23152
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 100941824,
+                "p25": 107630592,
+                "median": 107905024,
+                "p75": 107954176,
+                "p90": 108062310.4,
+                "max": 108314624,
+                "medianAbsoluteDeviation": 180224
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 98592,
+                "p25": 105108,
+                "median": 105376,
+                "p75": 105424,
+                "p90": 105552,
+                "max": 105776,
+                "medianAbsoluteDeviation": 176
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 0.684040212831273,
+            "p25": 1.0665406316426003,
+            "median": 1.0916823930968922,
+            "p75": 1.1061136265473428,
+            "p90": 1.1784475181285585,
+            "max": 1.2201809090128974,
+            "medianAbsoluteDeviation": 0.02201917933475317
+          },
+          "candidateFasterPairs": 17,
+          "medianReductionPercent": 9.571915050919754,
+          "baselineSpeedComparisonEligible": true
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 17.235000000000014,
+                "p25": 17.375083250000003,
+                "median": 17.607937,
+                "p75": 17.992228500000003,
+                "p90": 18.1039995,
+                "max": 18.154207999999997,
+                "medianAbsoluteDeviation": 0.30843699999999075
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 110.714833,
+                "p25": 113.4913542499994,
+                "median": 114.02237500000047,
+                "p75": 114.76877025000022,
+                "p90": 122.88177050000013,
+                "max": 130.7888750000002,
+                "medianAbsoluteDeviation": 0.8087080000004789
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 4983264,
+                "p25": 12156032,
+                "median": 12462488,
+                "p75": 13102922,
+                "p90": 13246440,
+                "max": 13274872,
+                "medianAbsoluteDeviation": 532868
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 100040704,
+                "p25": 101765120,
+                "median": 102916096,
+                "p75": 103501824,
+                "p90": 105357312,
+                "max": 107053056,
+                "medianAbsoluteDeviation": 1122304
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 97872,
+                "p25": 99552,
+                "median": 100664,
+                "p75": 101248,
+                "p90": 103048,
+                "max": 104688,
+                "medianAbsoluteDeviation": 1096
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 15.906374999999997,
+                "p25": 15.963802250000004,
+                "median": 16.020582999999995,
+                "p75": 16.26980175,
+                "p90": 16.521,
+                "max": 16.701667,
+                "medianAbsoluteDeviation": 0.08868699999999308
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 110.05091599999832,
+                "p25": 111.30442700000049,
+                "median": 112.29166650000025,
+                "p75": 114.00337525000077,
+                "p90": 125.655667,
+                "max": 137.05016699999942,
+                "medianAbsoluteDeviation": 1.4865209999998115
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 7078456,
+                "p25": 7341804,
+                "median": 8054916,
+                "p75": 8200722,
+                "p90": 11367700,
+                "max": 14494880,
+                "medianAbsoluteDeviation": 563808
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 96550912,
+                "p25": 96849920,
+                "median": 98091008,
+                "p75": 98729984,
+                "p90": 101392384,
+                "max": 104005632,
+                "medianAbsoluteDeviation": 1089536
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 94416,
+                "p25": 94708,
+                "median": 95920,
+                "p75": 96532,
+                "p90": 99160,
+                "max": 101744,
+                "medianAbsoluteDeviation": 1056
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 14.556332999999995,
+                "p25": 14.716197749999994,
+                "median": 14.838208000000002,
+                "p75": 15.098219000000006,
+                "p90": 15.79450000000001,
+                "max": 16.443208000000013,
+                "medianAbsoluteDeviation": 0.2027290000000086
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 90.16404200000034,
+                "p25": 93.8769270000007,
+                "median": 95.01310400000057,
+                "p75": 95.74784350000118,
+                "p90": 99.18816650000008,
+                "max": 102.60624999999891,
+                "medianAbsoluteDeviation": 1.0246040000001813
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 3010664,
+                "p25": 3042062,
+                "median": 3060440,
+                "p75": 3097412,
+                "p90": 3214288,
+                "max": 3318848,
+                "medianAbsoluteDeviation": 36892
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 88145920,
+                "p25": 88150016,
+                "median": 88178688,
+                "p75": 88256512,
+                "p90": 88334336,
+                "max": 88391680,
+                "medianAbsoluteDeviation": 32768
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 86560,
+                "p25": 86596,
+                "median": 86616,
+                "p75": 86660,
+                "p90": 86744,
+                "max": 86816,
+                "medianAbsoluteDeviation": 40
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 1.0319329202288618,
+            "p25": 1.069348851779211,
+            "median": 1.1004192193913478,
+            "p75": 1.1270543658716816,
+            "p90": 1.133615445991739,
+            "max": 1.1376658264930966,
+            "medianAbsoluteDeviation": 0.03210266018690189
+          },
+          "candidateFasterPairs": 6,
+          "medianReductionPercent": 9.014991364405745,
+          "baselineSpeedComparisonEligible": true
+        }
+      }
+    },
+    {
+      "workload": "plain-5000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 2.2746669999999085,
+                "p25": 2.5800105000000144,
+                "median": 2.792083000000048,
+                "p75": 3.026364749999914,
+                "p90": 3.4756288999999017,
+                "max": 3.5632089999999152,
+                "medianAbsoluteDeviation": 0.23518749999993815
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -5344656,
+                "p25": -5149690,
+                "median": 7233732,
+                "p75": 7258344,
+                "p90": 7275122.4,
+                "max": 7291016,
+                "medianAbsoluteDeviation": 42016
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 145833984,
+                "p25": 145833984,
+                "median": 145833984,
+                "p75": 145965056,
+                "p90": 145965056,
+                "max": 145965056,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 142784,
+                "p25": 142784,
+                "median": 142784,
+                "p75": 142784,
+                "p90": 142784,
+                "max": 142784,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 1.6507500000000164,
+                "p25": 1.7504059999999697,
+                "median": 1.830020500000046,
+                "p75": 1.9171454999999753,
+                "p90": 2.705487500000004,
+                "max": 3.595416,
+                "medianAbsoluteDeviation": 0.08637500000008913
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 2794376,
+                "p25": 2794446,
+                "median": 2823324,
+                "p75": 2824284,
+                "p90": 2885430.4,
+                "max": 2939232,
+                "medianAbsoluteDeviation": 28812
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 151404544,
+                "p25": 151404544,
+                "median": 151404544,
+                "p75": 151535616,
+                "p90": 151535616,
+                "max": 151535616,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 148480,
+                "p25": 148480,
+                "median": 148480,
+                "p75": 148480,
+                "p90": 148480,
+                "max": 148480,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 3.7162089999999353,
+                "p25": 3.8658957499999644,
+                "median": 3.940520499999991,
+                "p75": 4.025780750000024,
+                "p90": 4.136450100000014,
+                "max": 5.0548330000000306,
+                "medianAbsoluteDeviation": 0.07862500000004502
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 667960,
+                "p25": 706976,
+                "median": 710096,
+                "p75": 717024,
+                "p90": 717177.6,
+                "max": 3133408,
+                "medianAbsoluteDeviation": 5248
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 111837184,
+                "p25": 111837184,
+                "median": 111837184,
+                "p75": 111837184,
+                "p90": 111853568,
+                "max": 111853568,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 109216,
+                "p25": 109216,
+                "median": 109216,
+                "p75": 109216,
+                "p90": 109232,
+                "max": 109232,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 0.9910422048519323,
+            "p25": 1.4074681924641794,
+            "median": 1.490023468094805,
+            "p75": 1.6142214013124871,
+            "p90": 1.751965069453884,
+            "max": 1.8865010346438333,
+            "medianAbsoluteDeviation": 0.11655533331856682
+          },
+          "candidateFasterPairs": 17,
+          "medianReductionPercent": 34.45680160654197,
+          "baselineSpeedComparisonEligible": true
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 7.564125000000004,
+                "p25": 7.733156000000001,
+                "median": 7.777187499999997,
+                "p75": 7.814219250000004,
+                "p90": 9.029584000000007,
+                "max": 10.244459000000006,
+                "medianAbsoluteDeviation": 0.042188000000003
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 103.60933400000067,
+                "p25": 105.36244824999812,
+                "median": 105.84602099999847,
+                "p75": 113.18399975000057,
+                "p90": 116.41358350000064,
+                "max": 117.29195900000013,
+                "medianAbsoluteDeviation": 1.3933329999990747
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 707672,
+                "p25": 858002,
+                "median": 1569760,
+                "p75": 1905834,
+                "p90": 5031804,
+                "max": 8157016,
+                "medianAbsoluteDeviation": 587288
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 89620480,
+                "p25": 92372992,
+                "median": 92684288,
+                "p75": 93130752,
+                "p90": 93274112,
+                "max": 93306880,
+                "medianAbsoluteDeviation": 466944
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 87888,
+                "p25": 90888,
+                "median": 91080,
+                "p75": 91344,
+                "p90": 91448,
+                "max": 91472,
+                "medianAbsoluteDeviation": 296
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 6.0275840000000045,
+                "p25": 6.1106875000000045,
+                "median": 6.222562499999995,
+                "p75": 6.312469249999996,
+                "p90": 6.4808340000000015,
+                "max": 6.623084000000006,
+                "medianAbsoluteDeviation": 0.13066699999999543
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 102.13587499999994,
+                "p25": 103.92216674999963,
+                "median": 105.03470850000122,
+                "p75": 107.51168775000042,
+                "p90": 109.5345210000005,
+                "max": 110.87237500000083,
+                "medianAbsoluteDeviation": 2.120771000001696
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 3134488,
+                "p25": 3136976,
+                "median": 3136976,
+                "p75": 3137282,
+                "p90": 3137384,
+                "max": 3137384,
+                "medianAbsoluteDeviation": 204
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 88227840,
+                "p25": 88428544,
+                "median": 88473600,
+                "p75": 88678400,
+                "p90": 88801280,
+                "max": 88866816,
+                "medianAbsoluteDeviation": 147456
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 86864,
+                "p25": 87036,
+                "median": 87096,
+                "p75": 87300,
+                "p90": 87416,
+                "max": 87472,
+                "medianAbsoluteDeviation": 152
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 12.712457999999998,
+                "p25": 12.960385500000003,
+                "median": 13.111437500000001,
+                "p75": 13.356333250000008,
+                "p90": 13.550354000000006,
+                "max": 13.665333000000004,
+                "medianAbsoluteDeviation": 0.261375000000001
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 91.8402500000011,
+                "p25": 93.2466455000008,
+                "median": 94.29354150000017,
+                "p75": 94.60143775000051,
+                "p90": 94.9586249999993,
+                "max": 95.28283299999748,
+                "medianAbsoluteDeviation": 0.6650834999991275
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 325880,
+                "p25": 396710,
+                "median": 454688,
+                "p75": 514478,
+                "p90": 579272,
+                "max": 642648,
+                "medianAbsoluteDeviation": 60000
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 86392832,
+                "p25": 86396928,
+                "median": 86409216,
+                "p75": 86495232,
+                "p90": 86556672,
+                "max": 86589440,
+                "medianAbsoluteDeviation": 16384
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 85664,
+                "p25": 85696,
+                "median": 85768,
+                "p75": 85804,
+                "p90": 85904,
+                "max": 86000,
+                "medianAbsoluteDeviation": 64
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 1.1671802743253739,
+            "p25": 1.2182262411036948,
+            "median": 1.2586227365675011,
+            "p75": 1.2852714768354665,
+            "p90": 1.467489488121787,
+            "max": 1.6494057317662225,
+            "medianAbsoluteDeviation": 0.03611567804041116
+          },
+          "candidateFasterPairs": 6,
+          "medianReductionPercent": 19.989552778559116,
+          "baselineSpeedComparisonEligible": true
+        }
+      }
+    },
+    {
+      "workload": "unique-paths-20000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 13.783915999999863,
+                "p25": 15.619635249999874,
+                "median": 16.833687500000224,
+                "p75": 19.40096850000009,
+                "p90": 25.72948770000003,
+                "max": 26.91037499999993,
+                "medianAbsoluteDeviation": 1.721458499999926
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 2584184,
+                "p25": 4470732,
+                "median": 4512644,
+                "p75": 16258900,
+                "p90": 16400036.8,
+                "max": 16441432,
+                "medianAbsoluteDeviation": 1884880
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 167755776,
+                "p25": 169644032,
+                "median": 171851776,
+                "p75": 171868160,
+                "p90": 172605440,
+                "max": 172605440,
+                "medianAbsoluteDeviation": 753664
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 167968,
+                "p25": 167968,
+                "median": 170312,
+                "p75": 170672,
+                "p90": 170672,
+                "max": 170672,
+                "medianAbsoluteDeviation": 360
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 10.989250000000084,
+                "p25": 11.72751049999988,
+                "median": 12.669291499999872,
+                "p75": 13.590313000000037,
+                "p90": 15.971721499999921,
+                "max": 18.953625000000102,
+                "medianAbsoluteDeviation": 0.9737920000000031
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -605312,
+                "p25": -398952,
+                "median": 2233676,
+                "p75": 11586608,
+                "p90": 11764751.2,
+                "max": 11805744,
+                "medianAbsoluteDeviation": 2714840
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 171474944,
+                "p25": 171925504,
+                "median": 172564480,
+                "p75": 173735936,
+                "p90": 173932544,
+                "max": 173932544,
+                "medianAbsoluteDeviation": 974848
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 170688,
+                "p25": 170688,
+                "median": 170696,
+                "p75": 171968,
+                "p90": 171968,
+                "max": 171968,
+                "medianAbsoluteDeviation": 8
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 34.588374999999814,
+                "p25": 35.457926749999956,
+                "median": 35.91018699999995,
+                "p75": 36.78366649999998,
+                "p90": 37.9529412000003,
+                "max": 40.69587499999989,
+                "medianAbsoluteDeviation": 0.6335415000000921
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -14129816,
+                "p25": 7043904,
+                "median": 7088728,
+                "p75": 9441960,
+                "p90": 9657090.4,
+                "max": 9910296,
+                "medianAbsoluteDeviation": 1262916
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 155680768,
+                "p25": 157143040,
+                "median": 159113216,
+                "p75": 161738752,
+                "p90": 162748825.6,
+                "max": 163135488,
+                "medianAbsoluteDeviation": 2220032
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 158976,
+                "p25": 158976,
+                "median": 159312,
+                "p75": 159312,
+                "p90": 159312,
+                "max": 159312,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 0.9270158904787013,
+            "p25": 1.2452742862190567,
+            "median": 1.3360902712446023,
+            "p75": 1.4557006051795196,
+            "p90": 1.9300936248413434,
+            "max": 2.1869539895165855,
+            "medianAbsoluteDeviation": 0.11370886292442062
+          },
+          "candidateFasterPairs": 17,
+          "medianReductionPercent": 24.73846565109573,
+          "baselineSpeedComparisonEligible": true
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 22.692875,
+                "p25": 23.06109350000001,
+                "median": 23.2275415,
+                "p75": 23.5895205,
+                "p90": 24.589645500000003,
+                "max": 25.512583000000006,
+                "medianAbsoluteDeviation": 0.3088124999999948
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 116.70595799999865,
+                "p25": 121.13207325000076,
+                "median": 123.0876255000021,
+                "p75": 123.82686524999917,
+                "p90": 124.08229199999914,
+                "max": 124.2510000000002,
+                "medianAbsoluteDeviation": 0.994666499997038
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 4382984,
+                "p25": 4680140,
+                "median": 5063780,
+                "p75": 5381948,
+                "p90": 5494720,
+                "max": 5516768,
+                "medianAbsoluteDeviation": 430940
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 111509504,
+                "p25": 114069504,
+                "median": 114319360,
+                "p75": 114667520,
+                "p90": 114925568,
+                "max": 115130368,
+                "medianAbsoluteDeviation": 335872
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 113120,
+                "p25": 115764,
+                "median": 116024,
+                "p75": 116356,
+                "p90": 116552,
+                "max": 116704,
+                "medianAbsoluteDeviation": 328
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 17.306332999999995,
+                "p25": 17.40615625,
+                "median": 17.659583000000005,
+                "p75": 18.01182225000001,
+                "p90": 18.2670205,
+                "max": 18.412499999999994,
+                "medianAbsoluteDeviation": 0.34172900000000794
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 116.64766700000109,
+                "p25": 117.85093750000033,
+                "median": 118.45962500000132,
+                "p75": 118.55565675000071,
+                "p90": 121.3318130000007,
+                "max": 124.10791700000118,
+                "medianAbsoluteDeviation": 0.4378544999999576
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 4386000,
+                "p25": 4577304,
+                "median": 4769024,
+                "p75": 4965184,
+                "p90": 6570736,
+                "max": 8115720,
+                "medianAbsoluteDeviation": 253768
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 105168896,
+                "p25": 105566208,
+                "median": 107003904,
+                "p75": 108048384,
+                "p90": 108298240,
+                "max": 108511232,
+                "medianAbsoluteDeviation": 1294336
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 106960,
+                "p25": 107496,
+                "median": 108704,
+                "p75": 109744,
+                "p90": 110000,
+                "max": 110208,
+                "medianAbsoluteDeviation": 1200
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 45.42983400000001,
+                "p25": 45.7636775,
+                "median": 46.751791999999995,
+                "p75": 46.83665675,
+                "p90": 46.9694585,
+                "max": 47.093083,
+                "medianAbsoluteDeviation": 0.2176665000000071
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 139.10649999999805,
+                "p25": 139.84792724999988,
+                "median": 142.26041649999934,
+                "p75": 145.35128149999946,
+                "p90": 146.23222949999945,
+                "max": 146.39341699999932,
+                "medianAbsoluteDeviation": 3.030020500000319
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 7288712,
+                "p25": 7313264,
+                "median": 7313264,
+                "p75": 7313276,
+                "p90": 7429860,
+                "max": 7546440,
+                "medianAbsoluteDeviation": 8
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 93700096,
+                "p25": 93728768,
+                "median": 93765632,
+                "p75": 93765632,
+                "p90": 93814784,
+                "max": 93863936,
+                "medianAbsoluteDeviation": 24576
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 106240,
+                "p25": 108128,
+                "median": 113448,
+                "p75": 113512,
+                "p90": 113576,
+                "max": 113632,
+                "medianAbsoluteDeviation": 128
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 1.2889609112161038,
+            "p25": 1.3063752970190114,
+            "median": 1.3082000176672237,
+            "p75": 1.3530137410290588,
+            "p90": 1.3765646543273569,
+            "max": 1.3856121113374074,
+            "medianAbsoluteDeviation": 0.010618807908186034
+          },
+          "candidateFasterPairs": 6,
+          "medianReductionPercent": 23.97136390865988,
+          "baselineSpeedComparisonEligible": true
+        }
+      }
+    },
+    {
+      "workload": "reverse-logs-12000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 7.007583999999952,
+                "p25": 7.243281500000194,
+                "median": 7.539188000000195,
+                "p75": 8.839510749999818,
+                "p90": 9.519258999999785,
+                "max": 12.721833999999944,
+                "medianAbsoluteDeviation": 0.4001459999999497
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 3720608,
+                "p25": 3793908,
+                "median": 4174260,
+                "p75": 4392562,
+                "p90": 4453377.6,
+                "max": 4468072,
+                "medianAbsoluteDeviation": 257840
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 185876480,
+                "p25": 186011648,
+                "median": 186023936,
+                "p75": 186023936,
+                "p90": 186841497.6,
+                "max": 186875904,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 184000,
+                "p25": 184000,
+                "median": 184000,
+                "p75": 184000,
+                "p90": 184000,
+                "max": 184000,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 4.925084000000425,
+                "p25": 5.399646000000303,
+                "median": 6.348375000000033,
+                "p75": 7.763749749999533,
+                "p90": 8.08723750000072,
+                "max": 8.291667000000416,
+                "medianAbsoluteDeviation": 1.3512704999998277
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -6101536,
+                "p25": 1114964,
+                "median": 7066744,
+                "p75": 7220660,
+                "p90": 7251867.2,
+                "max": 7282136,
+                "medianAbsoluteDeviation": 162032
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 173637632,
+                "p25": 173654016,
+                "median": 173654016,
+                "p75": 175243264,
+                "p90": 175493939.2,
+                "max": 176357376,
+                "medianAbsoluteDeviation": 16384
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 174624,
+                "p25": 174624,
+                "median": 174624,
+                "p75": 174624,
+                "p90": 174624,
+                "max": 174624,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 20.556083999999828,
+                "p25": 20.794718750000357,
+                "median": 21.12529149999955,
+                "p75": 21.32622900000024,
+                "p90": 21.880666299999668,
+                "max": 21.941125000000284,
+                "medianAbsoluteDeviation": 0.2968539999992572
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 2166864,
+                "p25": 2191572,
+                "median": 2222764,
+                "p75": 2260582,
+                "p90": 2271224,
+                "max": 4567768,
+                "medianAbsoluteDeviation": 37676
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 156467200,
+                "p25": 160022528,
+                "median": 161636352,
+                "p75": 163282944,
+                "p90": 164628070.4,
+                "max": 165920768,
+                "medianAbsoluteDeviation": 1794048
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 165760,
+                "p25": 165760,
+                "median": 165760,
+                "p75": 165760,
+                "p90": 165760,
+                "max": 165760,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 0.8542708765085438,
+            "p25": 1.1656459984308545,
+            "median": 1.2243593746902492,
+            "p75": 1.4352485331879066,
+            "p90": 1.5073054888520343,
+            "max": 1.9653311190497769,
+            "medianAbsoluteDeviation": 0.1714907657970275
+          },
+          "candidateFasterPairs": 16,
+          "medianReductionPercent": 15.794976859578657,
+          "baselineSpeedComparisonEligible": true
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 14.936417000000006,
+                "p25": 15.270989250000003,
+                "median": 15.586458,
+                "p75": 15.863927249999993,
+                "p90": 15.9943125,
+                "max": 16.046208000000007,
+                "medianAbsoluteDeviation": 0.38129199999999486
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 112.96099999999933,
+                "p25": 114.63740625000173,
+                "median": 115.7473955000005,
+                "p75": 117.1195104999997,
+                "p90": 120.14864599999964,
+                "max": 122.91924999999901,
+                "medianAbsoluteDeviation": 1.455895999999484
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 6433872,
+                "p25": 7975458,
+                "median": 12694696,
+                "p75": 12804656,
+                "p90": 12804656,
+                "max": 12804656,
+                "medianAbsoluteDeviation": 109960
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 101810176,
+                "p25": 102674432,
+                "median": 104931328,
+                "p75": 105271296,
+                "p90": 105422848,
+                "max": 105545728,
+                "medianAbsoluteDeviation": 491520
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 102256,
+                "p25": 103104,
+                "median": 105312,
+                "p75": 105612,
+                "p90": 105784,
+                "max": 105936,
+                "medianAbsoluteDeviation": 472
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 10.477999999999994,
+                "p25": 10.694843750000008,
+                "median": 10.824874999999999,
+                "p75": 10.942999999999994,
+                "p90": 11.084499999999991,
+                "max": 11.20112499999999,
+                "medianAbsoluteDeviation": 0.15093749999999062
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 107.81008400000064,
+                "p25": 108.6580004999987,
+                "median": 109.73804149999887,
+                "p75": 110.23239624999678,
+                "p90": 110.5814169999976,
+                "max": 110.92949999999837,
+                "medianAbsoluteDeviation": 0.8433754999987286
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 1665576,
+                "p25": 7480944,
+                "median": 7482188,
+                "p75": 7483540,
+                "p90": 7483576,
+                "max": 7483576,
+                "medianAbsoluteDeviation": 1316
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 93405184,
+                "p25": 95035392,
+                "median": 95870976,
+                "p75": 95907840,
+                "p90": 95993856,
+                "max": 96075776,
+                "medianAbsoluteDeviation": 122880
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 94096,
+                "p25": 94988,
+                "median": 95352,
+                "p75": 96184,
+                "p90": 96488,
+                "max": 96544,
+                "medianAbsoluteDeviation": 768
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 30.39904200000001,
+                "p25": 31.353604000000004,
+                "median": 31.762125500000007,
+                "p75": 31.898052,
+                "p90": 32.288582999999996,
+                "max": 32.644332999999996,
+                "medianAbsoluteDeviation": 0.3524374999999971
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 118.8483750000014,
+                "p25": 119.38259324999945,
+                "median": 120.15495799999917,
+                "p75": 122.45391625000047,
+                "p90": 129.10793700000067,
+                "max": 135.1585410000007,
+                "medianAbsoluteDeviation": 1.086749999998574
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 2231968,
+                "p25": 2236372,
+                "median": 2271220,
+                "p75": 2377468,
+                "p90": 2405684,
+                "max": 2405696,
+                "medianAbsoluteDeviation": 39252
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 88489984,
+                "p25": 88555520,
+                "median": 88621056,
+                "p75": 88637440,
+                "p90": 88694784,
+                "max": 88752128,
+                "medianAbsoluteDeviation": 49152
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 107104,
+                "p25": 107120,
+                "median": 107152,
+                "p75": 107184,
+                "p90": 107216,
+                "max": 107248,
+                "medianAbsoluteDeviation": 32
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 1.3840268055571396,
+            "p25": 1.4238410119492946,
+            "median": 1.4278747101423046,
+            "p75": 1.4447461602282259,
+            "p90": 1.4770026621289976,
+            "max": 1.5044260266266634,
+            "medianAbsoluteDeviation": 0.013146086227086351
+          },
+          "candidateFasterPairs": 6,
+          "medianReductionPercent": 30.54948725361465,
+          "baselineSpeedComparisonEligible": true
+        }
+      }
+    },
+    {
+      "workload": "unicode-8000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 4.015250000000378,
+                "p25": 4.286802250000392,
+                "median": 4.744666999999936,
+                "p75": 5.363667000000532,
+                "p90": 6.214720500000022,
+                "max": 6.526417000000038,
+                "medianAbsoluteDeviation": 0.598354499999914
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -2688456,
+                "p25": -959648,
+                "median": -586580,
+                "p75": 11527668,
+                "p90": 11564905.6,
+                "max": 11622360,
+                "medianAbsoluteDeviation": 2101792
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 185663488,
+                "p25": 185663488,
+                "median": 185663488,
+                "p75": 185663488,
+                "p90": 185663488,
+                "max": 185663488,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 184000,
+                "p25": 184000,
+                "median": 184000,
+                "p75": 184000,
+                "p90": 184000,
+                "max": 184000,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 2.9898749999993015,
+                "p25": 3.082719250000082,
+                "median": 3.2358125000000655,
+                "p75": 3.993874499999947,
+                "p90": 4.348925000000054,
+                "max": 6.022540999999364,
+                "medianAbsoluteDeviation": 0.16912500000034925
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -4340040,
+                "p25": 4378764,
+                "median": 4412084,
+                "p75": 4412240,
+                "p90": 4495367.2,
+                "max": 4600664,
+                "medianAbsoluteDeviation": 33260
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 176799744,
+                "p25": 176799744,
+                "median": 176799744,
+                "p75": 176799744,
+                "p90": 176799744,
+                "max": 176799744,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 174624,
+                "p25": 174624,
+                "median": 174624,
+                "p75": 174624,
+                "p90": 174624,
+                "max": 174624,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 8.745459000000665,
+                "p25": 8.837729000000309,
+                "median": 8.939729499999885,
+                "p75": 9.09663549999982,
+                "p90": 9.366533000000436,
+                "max": 9.961542000000009,
+                "medianAbsoluteDeviation": 0.1392084999997678
+              },
+              "exactNativeMatches": 0,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 1128856,
+                "p25": 1128920,
+                "median": 1143688,
+                "p75": 1182848,
+                "p90": 1183144,
+                "max": 3192584,
+                "medianAbsoluteDeviation": 14828
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 156991488,
+                "p25": 156991488,
+                "median": 156991488,
+                "p75": 156991488,
+                "p90": 156991488,
+                "max": 156991488,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 165760,
+                "p25": 165760,
+                "median": 165760,
+                "p75": 165760,
+                "p90": 165760,
+                "max": 165760,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 1.0836650178057279,
+            "p25": 1.3395437236777168,
+            "median": 1.3677309071670916,
+            "p75": 1.4269151347706377,
+            "p90": 1.6935877315667793,
+            "max": 1.9334645911330344,
+            "medianAbsoluteDeviation": 0.052351038298516506
+          },
+          "candidateFasterPairs": 18,
+          "medianReductionPercent": 31.80106211879339,
+          "baselineSpeedComparisonEligible": false
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 10.304792000000006,
+                "p25": 10.34546825000001,
+                "median": 10.496812500000004,
+                "p75": 10.654531749999997,
+                "p90": 10.717916999999993,
+                "max": 10.740749999999991,
+                "medianAbsoluteDeviation": 0.19089599999999507
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 106.36158299999806,
+                "p25": 106.94311450000077,
+                "median": 107.92500049999944,
+                "p75": 108.98954175000199,
+                "p90": 109.30804150000222,
+                "max": 109.47333300000173,
+                "medianAbsoluteDeviation": 1.1626460000006773
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 5005480,
+                "p25": 5020300,
+                "median": 5160252,
+                "p75": 5265044,
+                "p90": 5420324,
+                "max": 5574992,
+                "medianAbsoluteDeviation": 128844
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 94978048,
+                "p25": 95150080,
+                "median": 95338496,
+                "p75": 95465472,
+                "p90": 95690752,
+                "max": 95911936,
+                "medianAbsoluteDeviation": 172032
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 93360,
+                "p25": 93568,
+                "median": 93744,
+                "p75": 93884,
+                "p90": 94080,
+                "max": 94272,
+                "medianAbsoluteDeviation": 168
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 8.094709000000009,
+                "p25": 8.106198250000002,
+                "median": 8.284124500000004,
+                "p75": 8.461270750000004,
+                "p90": 8.505771000000003,
+                "max": 8.546667,
+                "medianAbsoluteDeviation": 0.18127050000000366
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 104.22258399999919,
+                "p25": 104.93802049999886,
+                "median": 106.37662499999897,
+                "p75": 108.37185399999908,
+                "p90": 109.11733299999833,
+                "max": 109.34908299999734,
+                "medianAbsoluteDeviation": 1.9604165000000648
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 4793128,
+                "p25": 4795616,
+                "median": 4795800,
+                "p75": 4796086,
+                "p90": 4796120,
+                "max": 4796120,
+                "medianAbsoluteDeviation": 252
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 90275840,
+                "p25": 90398720,
+                "median": 90595328,
+                "p75": 90644480,
+                "p90": 90726400,
+                "max": 90800128,
+                "medianAbsoluteDeviation": 131072
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 88784,
+                "p25": 88916,
+                "median": 89120,
+                "p75": 89168,
+                "p90": 89240,
+                "max": 89296,
+                "medianAbsoluteDeviation": 120
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 18.357084000000008,
+                "p25": 18.462874749999997,
+                "median": 18.6077915,
+                "p75": 18.779364750000003,
+                "p90": 19.766125000000002,
+                "max": 20.718958,
+                "medianAbsoluteDeviation": 0.1877295000000032
+              },
+              "exactNativeMatches": 0,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 96.86333300000115,
+                "p25": 100.55980225000076,
+                "median": 101.528625500001,
+                "p75": 102.12891674999992,
+                "p90": 104.89822950000053,
+                "max": 107.53895900000134,
+                "medianAbsoluteDeviation": 0.9745624999995925
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 957760,
+                "p25": 1083432,
+                "median": 1083432,
+                "p75": 1083432,
+                "p90": 1083432,
+                "max": 1083432,
+                "medianAbsoluteDeviation": 0
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 86605824,
+                "p25": 86650880,
+                "median": 86687744,
+                "p75": 86712320,
+                "p90": 86810624,
+                "max": 86900736,
+                "medianAbsoluteDeviation": 40960
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 86960,
+                "p25": 87076,
+                "median": 87136,
+                "p75": 87148,
+                "p90": 87384,
+                "max": 87616,
+                "medianAbsoluteDeviation": 48
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 1.205708845331169,
+            "p25": 1.2237223329830853,
+            "median": 1.2678817570581624,
+            "p75": 1.313110327559881,
+            "p90": 1.3221861196852285,
+            "max": 1.3268852530708615,
+            "medianAbsoluteDeviation": 0.04889246495700539
+          },
+          "candidateFasterPairs": 6,
+          "medianReductionPercent": 21.079618217435048,
+          "baselineSpeedComparisonEligible": false
+        }
+      }
+    },
+    {
+      "workload": "numeric-stable-8000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 28.316666999999143,
+                "p25": 28.7267710000001,
+                "median": 29.823041999999987,
+                "p75": 30.617749999999887,
+                "p90": 32.14304209999973,
+                "max": 44.953708000000006,
+                "medianAbsoluteDeviation": 1.0684169999994992
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 2441840,
+                "p25": 2498886,
+                "median": 2547884,
+                "p75": 3353444,
+                "p90": 3539628,
+                "max": 3558680,
+                "medianAbsoluteDeviation": 68532
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 186482688,
+                "p25": 186662912,
+                "median": 186810368,
+                "p75": 186957824,
+                "p90": 187051212.8,
+                "max": 187301888,
+                "medianAbsoluteDeviation": 147456
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 184000,
+                "p25": 184000,
+                "median": 184000,
+                "p75": 184000,
+                "p90": 184000,
+                "max": 184000,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 26.979624999999942,
+                "p25": 27.376937250000083,
+                "median": 28.43968750000022,
+                "p75": 30.229958500000293,
+                "p90": 31.026979500000106,
+                "max": 34.9214579999998,
+                "medianAbsoluteDeviation": 1.1093965000000026
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -4559520,
+                "p25": -4434136,
+                "median": 11826352,
+                "p75": 12778684,
+                "p90": 12896425.6,
+                "max": 12974544,
+                "medianAbsoluteDeviation": 1033200
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 177602560,
+                "p25": 177618944,
+                "median": 177766400,
+                "p75": 177897472,
+                "p90": 177913856,
+                "max": 177913856,
+                "medianAbsoluteDeviation": 147456
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 174880,
+                "p25": 174880,
+                "median": 174880,
+                "p75": 174880,
+                "p90": 174880,
+                "max": 174880,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 11.733250000000226,
+                "p25": 11.903323,
+                "median": 12.101687000000311,
+                "p75": 12.38763525000013,
+                "p90": 12.666562500000055,
+                "max": 12.933540999999423,
+                "medianAbsoluteDeviation": 0.2558540000004541
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 5190560,
+                "p25": 5191680,
+                "median": 5206236,
+                "p75": 5236900,
+                "p90": 5254568,
+                "max": 6738168,
+                "medianAbsoluteDeviation": 15340
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 157450240,
+                "p25": 158789632,
+                "median": 159842304,
+                "p75": 160444416,
+                "p90": 161203814.4,
+                "max": 161628160,
+                "medianAbsoluteDeviation": 901120
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 165760,
+                "p25": 165760,
+                "median": 165760,
+                "p75": 165760,
+                "p90": 165760,
+                "max": 165760,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 0.9133472319511947,
+            "p25": 0.9958970712410473,
+            "median": 1.0311695703112067,
+            "p75": 1.0751072013661132,
+            "p90": 1.0983940209214544,
+            "max": 1.6047039542212982,
+            "medianAbsoluteDeviation": 0.03696536074293266
+          },
+          "candidateFasterPairs": 12,
+          "medianReductionPercent": 4.638542573892257,
+          "baselineSpeedComparisonEligible": true
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 39.852125,
+                "p25": 40.1793335,
+                "median": 40.564125499999996,
+                "p75": 40.907385500000004,
+                "p90": 41.0742915,
+                "max": 41.188458,
+                "medianAbsoluteDeviation": 0.4236874999999998
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 134.35354200000074,
+                "p25": 136.10705199999757,
+                "median": 136.95687499999985,
+                "p75": 139.41001050000068,
+                "p90": 143.30412500000057,
+                "max": 146.57875000000058,
+                "medianAbsoluteDeviation": 1.7691040000008798
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 7242136,
+                "p25": 7407578,
+                "median": 7845016,
+                "p75": 14192178,
+                "p90": 16312660,
+                "max": 16323928,
+                "medianAbsoluteDeviation": 589812
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 116998144,
+                "p25": 117219328,
+                "median": 117694464,
+                "p75": 118071296,
+                "p90": 118185984,
+                "max": 118210560,
+                "medianAbsoluteDeviation": 491520
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 115488,
+                "p25": 115728,
+                "median": 116168,
+                "p75": 116548,
+                "p90": 116664,
+                "max": 116688,
+                "medianAbsoluteDeviation": 496
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 38.068083,
+                "p25": 38.355615,
+                "median": 38.430625,
+                "p75": 39.1280105,
+                "p90": 39.899708499999996,
+                "max": 40.44004199999999,
+                "medianAbsoluteDeviation": 0.23072899999999663
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 128.35891700000138,
+                "p25": 135.90591674999905,
+                "median": 136.66200000000026,
+                "p75": 138.3870202500002,
+                "p90": 139.55985399999918,
+                "max": 140.19954199999847,
+                "medianAbsoluteDeviation": 1.6122080000004644
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 15783952,
+                "p25": 15908082,
+                "median": 16379864,
+                "p75": 16803010,
+                "p90": 17143900,
+                "max": 17382688,
+                "medianAbsoluteDeviation": 557672
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 117178368,
+                "p25": 117559296,
+                "median": 117989376,
+                "p75": 118358016,
+                "p90": 118726656,
+                "max": 119029760,
+                "medianAbsoluteDeviation": 475136
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 115632,
+                "p25": 116052,
+                "median": 116464,
+                "p75": 116816,
+                "p90": 117200,
+                "max": 117520,
+                "medianAbsoluteDeviation": 456
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 22.147166,
+                "p25": 22.291666999999997,
+                "median": 22.421916999999997,
+                "p75": 22.850260499999997,
+                "p90": 23.098582999999994,
+                "max": 23.230665999999992,
+                "medianAbsoluteDeviation": 0.21093799999999874
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 104.43475000000035,
+                "p25": 104.91072925000117,
+                "median": 105.61291650000021,
+                "p75": 105.89207300000089,
+                "p90": 106.06825000000208,
+                "max": 106.21750000000247,
+                "medianAbsoluteDeviation": 0.45533350000187056
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 5268104,
+                "p25": 5344120,
+                "median": 5344120,
+                "p75": 5344132,
+                "p90": 5353496,
+                "max": 5362856,
+                "medianAbsoluteDeviation": 8
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 90505216,
+                "p25": 90583040,
+                "median": 90644480,
+                "p75": 90681344,
+                "p90": 90710016,
+                "max": 90734592,
+                "medianAbsoluteDeviation": 57344
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 93424,
+                "p25": 93464,
+                "median": 93552,
+                "p75": 93592,
+                "p90": 93648,
+                "max": 93696,
+                "medianAbsoluteDeviation": 80
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 1.007644032615001,
+            "p25": 1.023625088364359,
+            "median": 1.0438441275540395,
+            "p75": 1.0640803817457811,
+            "p90": 1.0752692759902756,
+            "max": 1.0819682724764468,
+            "medianAbsoluteDeviation": 0.024714675282024423
+          },
+          "candidateFasterPairs": 6,
+          "medianReductionPercent": 5.259574744191142,
+          "baselineSpeedComparisonEligible": true
+        }
+      }
+    },
+    {
+      "workload": "numeric-key-8000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 32.23166599999968,
+                "p25": 34.027802000000975,
+                "median": 34.6981665000003,
+                "p75": 36.310458500000095,
+                "p90": 37.28821229999958,
+                "max": 59.53587499999958,
+                "medianAbsoluteDeviation": 0.9657920000008744
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -13843456,
+                "p25": -6408206,
+                "median": 9877508,
+                "p75": 10619486,
+                "p90": 10973732,
+                "max": 11226288,
+                "medianAbsoluteDeviation": 1113016
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 185204736,
+                "p25": 185384960,
+                "median": 185565184,
+                "p75": 185995264,
+                "p90": 186220544,
+                "max": 186400768,
+                "medianAbsoluteDeviation": 294912
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 184400,
+                "p25": 184400,
+                "median": 184400,
+                "p75": 184400,
+                "p90": 184400,
+                "max": 184400,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 30.94012499999917,
+                "p25": 32.56107324999948,
+                "median": 34.15274999999929,
+                "p75": 35.906094000000394,
+                "p90": 38.032945800000014,
+                "max": 40.483917000001384,
+                "medianAbsoluteDeviation": 1.7097710000007282
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 2667680,
+                "p25": 2764574,
+                "median": 2823772,
+                "p75": 3907368,
+                "p90": 4054231.2,
+                "max": 4173160,
+                "medianAbsoluteDeviation": 87576
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 177094656,
+                "p25": 177094656,
+                "median": 177274880,
+                "p75": 177455104,
+                "p90": 177455104,
+                "max": 177455104,
+                "medianAbsoluteDeviation": 180224
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 175392,
+                "p25": 175392,
+                "median": 175392,
+                "p75": 175392,
+                "p90": 175392,
+                "max": 175392,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 27.551374999999098,
+                "p25": 28.483343500000046,
+                "median": 28.95270849999997,
+                "p75": 29.226854250000542,
+                "p90": 29.63293369999992,
+                "max": 30.037500000000364,
+                "medianAbsoluteDeviation": 0.39091649999954825
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -9832120,
+                "p25": 6649540,
+                "median": 6785684,
+                "p75": 6816412,
+                "p90": 7821796.8,
+                "max": 7883640,
+                "medianAbsoluteDeviation": 70864
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 154828800,
+                "p25": 155262976,
+                "median": 156041216,
+                "p75": 156844032,
+                "p90": 157301145.6,
+                "max": 157646848,
+                "medianAbsoluteDeviation": 868352
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 165760,
+                "p25": 165760,
+                "median": 165760,
+                "p75": 165760,
+                "p90": 165760,
+                "max": 165760,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 0.8973635629180597,
+            "p25": 0.9745757651019565,
+            "median": 1.0468027557259432,
+            "p75": 1.0743428620640332,
+            "p90": 1.1052480855293405,
+            "max": 1.5272771904382145,
+            "medianAbsoluteDeviation": 0.05363253875558466
+          },
+          "candidateFasterPairs": 11,
+          "medianReductionPercent": 1.5718885319228826,
+          "baselineSpeedComparisonEligible": true
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 44.185083000000006,
+                "p25": 44.485583500000004,
+                "median": 44.79164599999999,
+                "p75": 46.087864499999995,
+                "p90": 46.96452049999999,
+                "max": 47.47470799999999,
+                "medianAbsoluteDeviation": 0.47452099999998865
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 141.30204199999935,
+                "p25": 143.4949167499999,
+                "median": 144.19664600000033,
+                "p75": 144.9448752499993,
+                "p90": 145.31420849999813,
+                "max": 145.53687499999796,
+                "medianAbsoluteDeviation": 0.8638959999989311
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 6839208,
+                "p25": 15184680,
+                "median": 15296508,
+                "p75": 15510732,
+                "p90": 15616160,
+                "max": 15668168,
+                "medianAbsoluteDeviation": 199380
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 114819072,
+                "p25": 115527680,
+                "median": 117334016,
+                "p75": 117800960,
+                "p90": 117882880,
+                "max": 117948416,
+                "medianAbsoluteDeviation": 548864
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 113568,
+                "p25": 114224,
+                "median": 116008,
+                "p75": 116460,
+                "p90": 116568,
+                "max": 116672,
+                "medianAbsoluteDeviation": 560
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 42.524584000000004,
+                "p25": 42.930635249999995,
+                "median": 43.0796665,
+                "p75": 43.6525415,
+                "p90": 44.131895500000006,
+                "max": 44.44116600000001,
+                "medianAbsoluteDeviation": 0.3664580000000015
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 138.78579199999876,
+                "p25": 140.93606250000084,
+                "median": 142.71768750000047,
+                "p75": 144.19618724999964,
+                "p90": 144.67654149999908,
+                "max": 145.14274999999907,
+                "medianAbsoluteDeviation": 1.6947289999989152
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 6465616,
+                "p25": 6520292,
+                "median": 6651652,
+                "p75": 6844236,
+                "p90": 6991656,
+                "max": 7108216,
+                "medianAbsoluteDeviation": 163924
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 116932608,
+                "p25": 117026816,
+                "median": 117342208,
+                "p75": 117645312,
+                "p90": 117981184,
+                "max": 118292480,
+                "medianAbsoluteDeviation": 335872
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 115680,
+                "p25": 115708,
+                "median": 116016,
+                "p75": 116312,
+                "p90": 116624,
+                "max": 116912,
+                "medianAbsoluteDeviation": 328
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 46.31875,
+                "p25": 46.4208955,
+                "median": 46.7092915,
+                "p75": 47.261281000000004,
+                "p90": 47.496354,
+                "max": 47.63025,
+                "medianAbsoluteDeviation": 0.34612499999999713
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 127.38458299999911,
+                "p25": 128.99951025000246,
+                "median": 130.61141599999974,
+                "p75": 131.30638525000086,
+                "p90": 131.6407915000018,
+                "max": 131.85208300000158,
+                "medianAbsoluteDeviation": 1.029375500002061
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 2631120,
+                "p25": 2666450,
+                "median": 2686528,
+                "p75": 2709918,
+                "p90": 2754876,
+                "max": 2797144,
+                "medianAbsoluteDeviation": 23872
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 98648064,
+                "p25": 98656256,
+                "median": 98729984,
+                "p75": 98828288,
+                "p90": 98877440,
+                "max": 98910208,
+                "medianAbsoluteDeviation": 81920
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 96624,
+                "p25": 96968,
+                "median": 97576,
+                "p75": 97992,
+                "p90": 98064,
+                "max": 98096,
+                "medianAbsoluteDeviation": 488
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 0.9942377074444896,
+            "p25": 1.0215389225309184,
+            "median": 1.038042286563739,
+            "p75": 1.0728021235864535,
+            "p90": 1.0996057454192212,
+            "max": 1.1164061710750655,
+            "medianAbsoluteDeviation": 0.032112824166181164
+          },
+          "candidateFasterPairs": 5,
+          "medianReductionPercent": 3.8220955309389404,
+          "baselineSpeedComparisonEligible": true
+        }
+      }
+    },
+    {
+      "workload": "in-place-5000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 2.312667000000147,
+                "p25": 2.585843499999555,
+                "median": 2.864812499999971,
+                "p75": 2.9742917500002477,
+                "p90": 3.2702962000003026,
+                "max": 3.6666669999995065,
+                "medianAbsoluteDeviation": 0.16679199999998673
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -5749544,
+                "p25": -5510794,
+                "median": 7293308,
+                "p75": 7316438,
+                "p90": 7355179.2,
+                "max": 7369224,
+                "medianAbsoluteDeviation": 63660
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 185253888,
+                "p25": 185303040,
+                "median": 185303040,
+                "p75": 185597952,
+                "p90": 185597952,
+                "max": 185597952,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 184400,
+                "p25": 184400,
+                "median": 184400,
+                "p75": 184400,
+                "p90": 184400,
+                "max": 184400,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 1.7658329999994749,
+                "p25": 1.8184267500000715,
+                "median": 1.8477289999991626,
+                "p75": 1.9468332500009637,
+                "p90": 2.9200875000004096,
+                "max": 3.7689580000005662,
+                "medianAbsoluteDeviation": 0.0491039999997156
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 2855488,
+                "p25": 2868904,
+                "median": 2881720,
+                "p75": 2893542,
+                "p90": 2965784,
+                "max": 3023632,
+                "medianAbsoluteDeviation": 14052
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 176914432,
+                "p25": 177016832,
+                "median": 177389568,
+                "p75": 177758208,
+                "p90": 177920409.6,
+                "max": 178126848,
+                "medianAbsoluteDeviation": 442368
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 175392,
+                "p25": 175392,
+                "median": 175392,
+                "p75": 175392,
+                "p90": 175392,
+                "max": 175392,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 3.2329160000008414,
+                "p25": 3.3097812500004693,
+                "median": 3.3918750000002547,
+                "p75": 3.43952125000078,
+                "p90": 3.4910251999994215,
+                "max": 5.192542000000685,
+                "medianAbsoluteDeviation": 0.06810399999994843
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 965072,
+                "p25": 966920,
+                "median": 970056,
+                "p75": 988070,
+                "p90": 1008934.4,
+                "max": 5581272,
+                "medianAbsoluteDeviation": 3940
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 154697728,
+                "p25": 154992640,
+                "median": 155295744,
+                "p75": 155594752,
+                "p90": 155710259.2,
+                "max": 155926528,
+                "medianAbsoluteDeviation": 303104
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 165760,
+                "p25": 165760,
+                "median": 165760,
+                "p75": 165760,
+                "p90": 165760,
+                "max": 165760,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 0.8096777936907477,
+            "p25": 1.2705841250977314,
+            "median": 1.4242303627176573,
+            "p75": 1.58809274106373,
+            "p90": 1.618618845778882,
+            "max": 1.9188559481495937,
+            "medianAbsoluteDeviation": 0.16419459178139972
+          },
+          "candidateFasterPairs": 16,
+          "medianReductionPercent": 35.50262015405261,
+          "baselineSpeedComparisonEligible": true
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 8.286541999999997,
+                "p25": 8.454094000000001,
+                "median": 8.573479499999998,
+                "p75": 8.853052249999994,
+                "p90": 8.973332999999997,
+                "max": 9.001041,
+                "medianAbsoluteDeviation": 0.22274999999999778
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 102.97533399999884,
+                "p25": 103.05945799999972,
+                "median": 103.83287500000006,
+                "p75": 104.58479175000139,
+                "p90": 105.6389790000012,
+                "max": 106.63683300000048,
+                "medianAbsoluteDeviation": 0.8225835000012012
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 783312,
+                "p25": 938168,
+                "median": 1323600,
+                "p75": 1813024,
+                "p90": 2005392,
+                "max": 2067352,
+                "medianAbsoluteDeviation": 510732
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 91996160,
+                "p25": 92516352,
+                "median": 92880896,
+                "p75": 93233152,
+                "p90": 93421568,
+                "max": 93519872,
+                "medianAbsoluteDeviation": 450560
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 90736,
+                "p25": 91316,
+                "median": 91656,
+                "p75": 92008,
+                "p90": 92160,
+                "max": 92224,
+                "medianAbsoluteDeviation": 432
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 6.504374999999996,
+                "p25": 6.591114999999995,
+                "median": 6.614562499999991,
+                "p75": 6.681760499999989,
+                "p90": 6.918479499999997,
+                "max": 7.134167000000005,
+                "medianAbsoluteDeviation": 0.05906249999999602
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 104.07125000000087,
+                "p25": 104.58840624999993,
+                "median": 104.79743750000125,
+                "p75": 105.29368725000131,
+                "p90": 105.93168750000041,
+                "max": 106.43216699999903,
+                "medianAbsoluteDeviation": 0.4422915000013745
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 3272312,
+                "p25": 3274464,
+                "median": 3274464,
+                "p75": 3274464,
+                "p90": 3274628,
+                "max": 3274792,
+                "medianAbsoluteDeviation": 0
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 85262336,
+                "p25": 85778432,
+                "median": 87056384,
+                "p75": 88739840,
+                "p90": 89325568,
+                "max": 89391104,
+                "medianAbsoluteDeviation": 1728512
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 84272,
+                "p25": 84812,
+                "median": 86064,
+                "p75": 87388,
+                "p90": 87976,
+                "max": 88160,
+                "medianAbsoluteDeviation": 1680
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 15.218959000000005,
+                "p25": 15.719510749999998,
+                "median": 15.745124999999994,
+                "p75": 16.178770749999998,
+                "p90": 16.3959795,
+                "max": 16.475333999999997,
+                "medianAbsoluteDeviation": 0.2768119999999925
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 95.63158400000248,
+                "p25": 95.71740624999711,
+                "median": 96.64216649999798,
+                "p75": 97.45067674999973,
+                "p90": 98.30481249999866,
+                "max": 99.11404199999743,
+                "medianAbsoluteDeviation": 0.9309165000013309
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 1670696,
+                "p25": 1715790,
+                "median": 1753428,
+                "p75": 1858692,
+                "p90": 1887524,
+                "max": 1888896,
+                "medianAbsoluteDeviation": 62644
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 86786048,
+                "p25": 86884352,
+                "median": 86949888,
+                "p75": 87003136,
+                "p90": 87015424,
+                "max": 87015424,
+                "medianAbsoluteDeviation": 65536
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 87472,
+                "p25": 87520,
+                "median": 87600,
+                "p75": 87656,
+                "p90": 87680,
+                "max": 87696,
+                "medianAbsoluteDeviation": 80
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 1.2519957949230267,
+            "p25": 1.2599238640574257,
+            "median": 1.2873162854620621,
+            "p75": 1.312965134993537,
+            "p90": 1.3306370640491738,
+            "max": 1.342879355349236,
+            "medianAbsoluteDeviation": 0.03224086853582386
+          },
+          "candidateFasterPairs": 6,
+          "medianReductionPercent": 22.84856457637774,
+          "baselineSpeedComparisonEligible": true
+        }
+      }
+    },
+    {
+      "workload": "tiny-32",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 0.09254200000032142,
+                "p25": 0.10247900000058507,
+                "median": 0.11247950000051787,
+                "p75": 0.14142725000010614,
+                "p90": 0.15918729999903009,
+                "max": 0.36195799999950395,
+                "medianAbsoluteDeviation": 0.018562500000371074
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 152288,
+                "p25": 152352,
+                "median": 152356,
+                "p75": 152390,
+                "p90": 152452,
+                "max": 190840,
+                "medianAbsoluteDeviation": 28
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 185303040,
+                "p25": 185303040,
+                "median": 185303040,
+                "p75": 185303040,
+                "p90": 185303040,
+                "max": 185303040,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 184400,
+                "p25": 184400,
+                "median": 184400,
+                "p75": 184400,
+                "p90": 184400,
+                "max": 184400,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 0.0922500000015134,
+                "p25": 0.10492699999986144,
+                "median": 0.11608400000022812,
+                "p75": 0.1346462500009693,
+                "p90": 0.15805449999952545,
+                "max": 0.32745799999975134,
+                "medianAbsoluteDeviation": 0.014521500000228116
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 124064,
+                "p25": 124128,
+                "median": 124444,
+                "p75": 124662,
+                "p90": 124683.2,
+                "max": 164416,
+                "medianAbsoluteDeviation": 284
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 176963584,
+                "p25": 176963584,
+                "median": 176963584,
+                "p75": 176963584,
+                "p90": 176963584,
+                "max": 176963584,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 175392,
+                "p25": 175392,
+                "median": 175392,
+                "p75": 175392,
+                "p90": 175392,
+                "max": 175392,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 0.17287500000020373,
+                "p25": 0.18466675000036048,
+                "median": 0.20143749999988358,
+                "p75": 0.23002074999976685,
+                "p90": 0.24139109999960057,
+                "max": 0.4067080000004353,
+                "medianAbsoluteDeviation": 0.02304150000145455
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 211200,
+                "p25": 211218,
+                "median": 211288,
+                "p75": 211412,
+                "p90": 213796,
+                "max": 258848,
+                "medianAbsoluteDeviation": 88
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 154746880,
+                "p25": 154746880,
+                "median": 154746880,
+                "p75": 154746880,
+                "p90": 154746880,
+                "max": 154746880,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 165760,
+                "p25": 165760,
+                "median": 165760,
+                "p75": 165760,
+                "p90": 165760,
+                "max": 165760,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 0.6789980336308011,
+            "p25": 0.9422698708839076,
+            "median": 1.0115289889905066,
+            "p75": 1.0684939279778165,
+            "p90": 1.1922461734829635,
+            "max": 1.3378947368392191,
+            "medianAbsoluteDeviation": 0.06847237297563069
+          },
+          "candidateFasterPairs": 9,
+          "medianReductionPercent": -3.204583946135653,
+          "baselineSpeedComparisonEligible": true
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 2.162000000000006,
+                "p25": 2.234728500000003,
+                "median": 2.2533954999999963,
+                "p75": 2.267062999999993,
+                "p90": 2.3237709999999936,
+                "max": 2.378457999999995,
+                "medianAbsoluteDeviation": 0.019021499999993807
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 90.15970899999957,
+                "p25": 92.6610932499998,
+                "median": 98.27891649999947,
+                "p75": 100.64927050000006,
+                "p90": 101.29031250000116,
+                "max": 101.43154200000208,
+                "medianAbsoluteDeviation": 3.011396000001696
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 407504,
+                "p25": 407504,
+                "median": 407504,
+                "p75": 407504,
+                "p90": 407504,
+                "max": 407504,
+                "medianAbsoluteDeviation": 0
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 81772544,
+                "p25": 83140608,
+                "median": 85721088,
+                "p75": 85782528,
+                "p90": 85975040,
+                "max": 86163456,
+                "medianAbsoluteDeviation": 253952
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 80176,
+                "p25": 81616,
+                "median": 83824,
+                "p75": 83884,
+                "p90": 84072,
+                "max": 84256,
+                "medianAbsoluteDeviation": 248
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 2.181541999999993,
+                "p25": 2.191093750000004,
+                "median": 2.212437500000007,
+                "p75": 2.311812750000005,
+                "p90": 2.3888545000000008,
+                "max": 2.436791999999997,
+                "medianAbsoluteDeviation": 0.027666500000009364
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 94.90008300000045,
+                "p25": 95.91282349999983,
+                "median": 98.21810399999958,
+                "p75": 101.00476000000072,
+                "p90": 104.05747900000097,
+                "max": 106.70137500000055,
+                "medianAbsoluteDeviation": 2.8745620000008785
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 356696,
+                "p25": 359184,
+                "median": 359184,
+                "p75": 359184,
+                "p90": 359184,
+                "max": 359184,
+                "medianAbsoluteDeviation": 0
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 83853312,
+                "p25": 85745664,
+                "median": 85852160,
+                "p75": 85995520,
+                "p90": 86040576,
+                "max": 86065152,
+                "medianAbsoluteDeviation": 139264
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 82672,
+                "p25": 83848,
+                "median": 83952,
+                "p75": 84092,
+                "p90": 84136,
+                "max": 84160,
+                "medianAbsoluteDeviation": 136
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 6.343416999999995,
+                "p25": 6.405020750000004,
+                "median": 6.478249999999999,
+                "p75": 6.577041500000002,
+                "p90": 6.732396000000001,
+                "max": 6.865209,
+                "medianAbsoluteDeviation": 0.10429149999999865
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 80.58516699999745,
+                "p25": 83.91009399999803,
+                "median": 84.63737500000025,
+                "p75": 85.46596825000051,
+                "p90": 86.22102050000103,
+                "max": 86.8650000000016,
+                "medianAbsoluteDeviation": 0.8721245000015188
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 1220192,
+                "p25": 1220192,
+                "median": 1220200,
+                "p75": 1220214,
+                "p90": 1220228,
+                "max": 1220240,
+                "medianAbsoluteDeviation": 8
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 83427328,
+                "p25": 83464192,
+                "median": 83550208,
+                "p75": 83623936,
+                "p90": 83648512,
+                "max": 83656704,
+                "medianAbsoluteDeviation": 98304
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 81632,
+                "p25": 81652,
+                "median": 81752,
+                "p75": 81828,
+                "p90": 81848,
+                "max": 81856,
+                "medianAbsoluteDeviation": 96
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 0.9216178483842691,
+            "p25": 0.9726255691828154,
+            "median": 0.9927501134988848,
+            "p75": 1.0280522544085833,
+            "p90": 1.0617347392214986,
+            "max": 1.0870466179159013,
+            "medianAbsoluteDeviation": 0.03355434929912521
+          },
+          "candidateFasterPairs": 3,
+          "medianReductionPercent": 1.8176125762206063,
+          "baselineSpeedComparisonEligible": true
+        }
+      }
+    },
+    {
+      "workload": "invalid-bytes-8000",
+      "phases": {
+        "warm": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 18,
+                "min": 3.245915999999852,
+                "p25": 3.5517184999994242,
+                "median": 4.177874999999403,
+                "p75": 4.394176499999503,
+                "p90": 4.959545600000274,
+                "max": 5.006375000000844,
+                "medianAbsoluteDeviation": 0.5477289999989807
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -2754848,
+                "p25": -1161614,
+                "median": -696244,
+                "p75": 11441022,
+                "p90": 11514524.8,
+                "max": 11551864,
+                "medianAbsoluteDeviation": 1855928
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 186826752,
+                "p25": 186843136,
+                "median": 186843136,
+                "p75": 186843136,
+                "p90": 186843136,
+                "max": 186843136,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 184400,
+                "p25": 184400,
+                "median": 184400,
+                "p75": 184400,
+                "p90": 184400,
+                "max": 184400,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 18,
+                "min": 2.1481669999993755,
+                "p25": 2.2149997499986966,
+                "median": 2.3864790000006906,
+                "p75": 3.1769897500007573,
+                "p90": 3.2738545000001977,
+                "max": 4.3885840000002645,
+                "medianAbsoluteDeviation": 0.22270800000023883
+              },
+              "exactNativeMatches": 18,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": -4308200,
+                "p25": 4352824,
+                "median": 4396016,
+                "p75": 4412162,
+                "p90": 4474093.6,
+                "max": 4559120,
+                "medianAbsoluteDeviation": 39116
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 176996352,
+                "p25": 176996352,
+                "median": 176996352,
+                "p75": 176996352,
+                "p90": 177127424,
+                "max": 177127424,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 175392,
+                "p25": 175392,
+                "median": 175392,
+                "p75": 175392,
+                "p90": 175392,
+                "max": 175392,
+                "medianAbsoluteDeviation": 0
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 18,
+                "min": 6.7641660000008414,
+                "p25": 6.7938545000001795,
+                "median": 6.843125000000327,
+                "p75": 6.920219000000543,
+                "p90": 7.042862599999717,
+                "max": 8.029375000000073,
+                "medianAbsoluteDeviation": 0.06268700000055105
+              },
+              "exactNativeMatches": 0,
+              "heapDeltaBytes": {
+                "count": 18,
+                "min": 795632,
+                "p25": 815702,
+                "median": 815908,
+                "p75": 866928,
+                "p90": 867288,
+                "max": 3031040,
+                "medianAbsoluteDeviation": 9568
+              },
+              "rssAfterBytes": {
+                "count": 18,
+                "min": 156139520,
+                "p25": 156139520,
+                "median": 156139520,
+                "p75": 156139520,
+                "p90": 156139520,
+                "max": 156139520,
+                "medianAbsoluteDeviation": 0
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 18,
+                "min": 165760,
+                "p25": 165760,
+                "median": 165760,
+                "p75": 165760,
+                "p90": 165760,
+                "max": 165760,
+                "medianAbsoluteDeviation": 0
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 18,
+            "min": 1.1341357485697965,
+            "p25": 1.3515964185053617,
+            "median": 1.5230269908473237,
+            "p75": 1.7480326951359852,
+            "p90": 1.9870388800627166,
+            "max": 2.2481192608421643,
+            "medianAbsoluteDeviation": 0.19437537089657975
+          },
+          "candidateFasterPairs": 18,
+          "medianReductionPercent": 42.87816174488152,
+          "baselineSpeedComparisonEligible": false
+        },
+        "cold": {
+          "variants": {
+            "base": {
+              "milliseconds": {
+                "count": 6,
+                "min": 9.25862500000001,
+                "p25": 9.319760500000005,
+                "median": 9.522250000000007,
+                "p75": 9.792270250000009,
+                "p90": 9.865166500000008,
+                "max": 9.866042000000007,
+                "medianAbsoluteDeviation": 0.2578125
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 103.39791700000205,
+                "p25": 105.29471900000499,
+                "median": 106.63810400000511,
+                "p75": 107.4974585,
+                "p90": 108.65785449999748,
+                "max": 109.60966699999699,
+                "medianAbsoluteDeviation": 1.390624999996362
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 4995712,
+                "p25": 5518564,
+                "median": 5520016,
+                "p75": 5994496,
+                "p90": 6281520,
+                "max": 6410384,
+                "medianAbsoluteDeviation": 263120
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 95059968,
+                "p25": 95064064,
+                "median": 95158272,
+                "p75": 95399936,
+                "p90": 95584256,
+                "max": 95715328,
+                "medianAbsoluteDeviation": 98304
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 93280,
+                "p25": 93296,
+                "median": 93360,
+                "p75": 93616,
+                "p90": 93784,
+                "max": 93888,
+                "medianAbsoluteDeviation": 72
+              }
+            },
+            "candidate": {
+              "milliseconds": {
+                "count": 6,
+                "min": 7.109791999999999,
+                "p25": 7.126010749999992,
+                "median": 7.197770999999996,
+                "p75": 7.2590312499999925,
+                "p90": 7.445437499999997,
+                "max": 7.620750000000001,
+                "medianAbsoluteDeviation": 0.07935400000000215
+              },
+              "exactNativeMatches": 6,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 98.78970799999661,
+                "p25": 101.50229099999888,
+                "median": 104.11568699999953,
+                "p75": 105.29598975000135,
+                "p90": 105.71533350000027,
+                "max": 105.99737499999901,
+                "medianAbsoluteDeviation": 1.5996465000007447
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 4759584,
+                "p25": 4760728,
+                "median": 4761928,
+                "p75": 4761928,
+                "p90": 4762084,
+                "max": 4762240,
+                "medianAbsoluteDeviation": 156
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 86851584,
+                "p25": 90370048,
+                "median": 90415104,
+                "p75": 90558464,
+                "p90": 90603520,
+                "max": 90603520,
+                "medianAbsoluteDeviation": 122880
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 85232,
+                "p25": 88696,
+                "median": 88744,
+                "p75": 88888,
+                "p90": 88936,
+                "max": 88944,
+                "medianAbsoluteDeviation": 120
+              }
+            },
+            "baseline": {
+              "milliseconds": {
+                "count": 6,
+                "min": 15.773709000000004,
+                "p25": 16.00770825,
+                "median": 16.096020999999997,
+                "p75": 16.247707999999996,
+                "p90": 16.598020499999997,
+                "max": 16.905249999999995,
+                "medianAbsoluteDeviation": 0.15252049999999784
+              },
+              "exactNativeMatches": 0,
+              "coldWallToResultMs": {
+                "count": 6,
+                "min": 97.32320900000195,
+                "p25": 97.56586450000304,
+                "median": 98.27006299999812,
+                "p75": 98.9618227500032,
+                "p90": 100.01862450000408,
+                "max": 100.8481660000034,
+                "medianAbsoluteDeviation": 0.9273124999999709
+              },
+              "heapDeltaBytes": {
+                "count": 6,
+                "min": 3137464,
+                "p25": 3137484,
+                "median": 3151772,
+                "p75": 3166060,
+                "p90": 3166080,
+                "max": 3166096,
+                "medianAbsoluteDeviation": 14292
+              },
+              "rssAfterBytes": {
+                "count": 6,
+                "min": 85508096,
+                "p25": 85688320,
+                "median": 85712896,
+                "p75": 85749760,
+                "p90": 85762048,
+                "max": 85770240,
+                "medianAbsoluteDeviation": 32768
+              },
+              "lifetimeMaxRssKiB": {
+                "count": 6,
+                "min": 86048,
+                "p25": 86224,
+                "median": 86264,
+                "p75": 86364,
+                "p90": 86392,
+                "max": 86400,
+                "medianAbsoluteDeviation": 80
+              }
+            }
+          },
+          "pairedBaseOverCandidate": {
+            "count": 6,
+            "min": 1.2565965292130048,
+            "p25": 1.2952040881640654,
+            "median": 1.3168318672703436,
+            "p75": 1.3507311621271916,
+            "p90": 1.3611122153897743,
+            "max": 1.3651580804760781,
+            "medianAbsoluteDeviation": 0.03205347253274682
+          },
+          "candidateFasterPairs": 6,
+          "medianReductionPercent": 24.411026805639523,
+          "baselineSpeedComparisonEligible": false
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "children": 183,
+    "allExited": true,
+    "forced": 0
+  },
+  "memoryQualification": "RSS/heap before-after samples and process lifetime maxRSS; not per-command peaks, an allocation cap, or a VM isolation guarantee.",
+  "historicalRecipe": {
+    "unchangedScriptAndInputAndOutput": true,
+    "oldRecipeSha256": "dd5a5a6f2fc5de0ca13a1254e3e78e9fe9a44ec83696404a3994942221975874",
+    "inputSha256": "87ccf504895f0358498b6b8b943da6f0253e57fcc6a01ad905f3aa9447545786",
+    "outputSha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a",
+    "oldMedians": {
+      "original": 40.672,
+      "optimized": 10.811,
+      "baseline": 6.32
+    },
+    "caveat": "Historical TS-source protocol with one warmup is not numerically interchangeable with this compiled current-source, resident-worker protocol with15 warmups."
+  }
+}

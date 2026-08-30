@@ -1,0 +1,275 @@
+{"label":"author","command":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--import","/tmp/safe-bash-metadata-review-native-count.mjs","--unhandled-rejections=strict","--import","tsx","--test","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata/chmod.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata/integration.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata/mktemp.test.ts","/Users/kjopek/Workspace/safe-bash/tests/commands/metadata/stat.test.ts"],"started":"2026-08-27T00:46:38.579Z","finished":"2026-08-27T00:46:39.016Z","exitCode":0,"signal":null,"stdoutHash":"6e800393a42df6d5c08ef5a97d96c02afcd839311aefc1e4956b2398c4a5cee7","stderrHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+STDOUT
+TAP version 13
+# Subtest: chmod GNU mode 644 755; shared BSD observation
+ok 1 - chmod GNU mode 644 755; shared BSD observation
+  ---
+  duration_ms: 22.959375
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 777 a-rwx,u+rw; shared BSD observation
+ok 2 - chmod GNU mode 777 a-rwx,u+rw; shared BSD observation
+  ---
+  duration_ms: 18.079584
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 600 ug+x; shared BSD observation
+ok 3 - chmod GNU mode 600 ug+x; shared BSD observation
+  ---
+  duration_ms: 16.414917
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 741 o+g; shared BSD observation
+ok 4 - chmod GNU mode 741 o+g; shared BSD observation
+  ---
+  duration_ms: 16.521125
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 740 g=u,o=g; shared BSD observation
+ok 5 - chmod GNU mode 740 g=u,o=g; shared BSD observation
+  ---
+  duration_ms: 16.612625
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 644 a+X; shared BSD observation
+ok 6 - chmod GNU mode 644 a+X; shared BSD observation
+  ---
+  duration_ms: 16.488
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 744 a+X; shared BSD observation
+ok 7 - chmod GNU mode 744 a+X; shared BSD observation
+  ---
+  duration_ms: 15.182625
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 777 a-x,a+X; distinct BSD observation
+ok 8 - chmod GNU mode 777 a-x,a+X; distinct BSD observation
+  ---
+  duration_ms: 13.904458
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 644 u+x,g+X; distinct BSD observation
+ok 9 - chmod GNU mode 644 u+x,g+X; distinct BSD observation
+  ---
+  duration_ms: 17.21075
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 666 =r; shared BSD observation
+ok 10 - chmod GNU mode 666 =r; shared BSD observation
+  ---
+  duration_ms: 17.350125
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 644 u+t; shared BSD observation
+ok 11 - chmod GNU mode 644 u+t; shared BSD observation
+  ---
+  duration_ms: 13.97475
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 644 o+s; shared BSD observation
+ok 12 - chmod GNU mode 644 o+s; shared BSD observation
+  ---
+  duration_ms: 10.658667
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 644 +x; shared BSD observation
+ok 13 - chmod GNU mode 644 +x; shared BSD observation
+  ---
+  duration_ms: 12.252
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 666 -w; shared BSD observation
+ok 14 - chmod GNU mode 666 -w; shared BSD observation
+  ---
+  duration_ms: 14.340916
+  type: 'test'
+  ...
+# Subtest: chmod GNU mode 644 u=rw+x; shared BSD observation
+ok 15 - chmod GNU mode 644 u=rw+x; shared BSD observation
+  ---
+  duration_ms: 14.590541
+  type: 'test'
+  ...
+# Subtest: chmod GNU directory setid preservation and explicit clearing
+ok 16 - chmod GNU directory setid preservation and explicit clearing
+  ---
+  duration_ms: 0.827583
+  type: 'test'
+  ...
+# Subtest: chmod recursive changes skip descendant symlinks and follow command-line links
+ok 17 - chmod recursive changes skip descendant symlinks and follow command-line links
+  ---
+  duration_ms: 0.315292
+  type: 'test'
+  ...
+# Subtest: chmod reference, quiet errors, literal paths and invalid modes
+ok 18 - chmod reference, quiet errors, literal paths and invalid modes
+  ---
+  duration_ms: 0.59525
+  type: 'test'
+  ...
+# Subtest: chmod capabilities, cancellation and traversal quotas remain explicit
+ok 19 - chmod capabilities, cancellation and traversal quotas remain explicit
+  ---
+  duration_ms: 0.565583
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"Apple:chmod:behavior":15}
+# Subtest: metadata root API preflights collisions and excludes optional network/runtime plugins
+ok 20 - metadata root API preflights collisions and excludes optional network/runtime plugins
+  ---
+  duration_ms: 3.167292
+  type: 'test'
+  ...
+# Subtest: aggregate shell uses mktemp, chmod, stat, command substitution and a real pipeline
+ok 21 - aggregate shell uses mktemp, chmod, stat, command substitution and a real pipeline
+  ---
+  duration_ms: 12.411625
+  type: 'test'
+  ...
+# Subtest: metadata options are forwarded through the aggregate without enabling host state
+ok 22 - metadata options are forwarded through the aggregate without enabling host state
+  ---
+  duration_ms: 1.955792
+  type: 'test'
+  ...
+# Subtest: readonly VFS mutation failures do not prevent metadata reads
+ok 23 - readonly VFS mutation failures do not prevent metadata reads
+  ---
+  duration_ms: 0.991583
+  type: 'test'
+  ...
+# Subtest: actual S3 metadata is readable but private-mode creation is not fabricated
+ok 24 - actual S3 metadata is readable but private-mode creation is not fabricated
+  ---
+  duration_ms: 3.658834
+  type: 'test'
+  ...
+# Subtest: stat awaits output backpressure and remains cancellable
+ok 25 - stat awaits output backpressure and remains cancellable
+  ---
+  duration_ms: 0.409583
+  type: 'test'
+  ...
+# Subtest: mktemp defaults create private VFS files, not host temporary files
+ok 26 - mktemp defaults create private VFS files, not host temporary files
+  ---
+  duration_ms: 4.165917
+  type: 'test'
+  ...
+# Subtest: mktemp directory, tmpdir priority, inferred and explicit suffixes
+ok 27 - mktemp directory, tmpdir priority, inferred and explicit suffixes
+  ---
+  duration_ms: 0.493083
+  type: 'test'
+  ...
+# Subtest: mktemp dry-run reserves nothing and does not require permissions support
+ok 28 - mktemp dry-run reserves nothing and does not require permissions support
+  ---
+  duration_ms: 1.082833
+  type: 'test'
+  ...
+# Subtest: mktemp collision retries use exclusive creation and preserve the competing file
+ok 29 - mktemp collision retries use exclusive creation and preserve the competing file
+  ---
+  duration_ms: 0.296209
+  type: 'test'
+  ...
+# Subtest: mktemp bounds collisions, reports quiet failure, and preserves cancellation
+ok 30 - mktemp bounds collisions, reports quiet failure, and preserves cancellation
+  ---
+  duration_ms: 0.4635
+  type: 'test'
+  ...
+# Subtest: mktemp refuses malformed templates and preflights output quota before creation
+ok 31 - mktemp refuses malformed templates and preflights output quota before creation
+  ---
+  duration_ms: 0.776834
+  type: 'test'
+  ...
+# Subtest: mktemp missing virtual tmp directory never falls back to the host
+ok 32 - mktemp missing virtual tmp directory never falls back to the host
+  ---
+  duration_ms: 0.270833
+  type: 'test'
+  ...
+# Subtest: mktemp output failure is not retried as a creation collision
+ok 33 - mktemp output failure is not retried as a creation collision
+  ---
+  duration_ms: 0.273541
+  type: 'test'
+  ...
+# Subtest: mktemp cancellation inside exclusive creation preserves the abort reason
+ok 34 - mktemp cancellation inside exclusive creation preserves the abort reason
+  ---
+  duration_ms: 0.257833
+  type: 'test'
+  ...
+# Subtest: mktemp directory collisions never remove a competing nonempty directory
+ok 35 - mktemp directory collisions never remove a competing nonempty directory
+  ---
+  duration_ms: 0.748958
+  type: 'test'
+  ...
+# Subtest: mktemp private file modes match native in an isolated real root
+ok 36 - mktemp private file modes match native in an isolated real root
+  ---
+  duration_ms: 15.322916
+  type: 'test'
+  ...
+# Subtest: mktemp private directory modes match native in an isolated real root
+ok 37 - mktemp private directory modes match native in an isolated real root
+  ---
+  duration_ms: 8.838666
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"Apple:mktemp:behavior":2}
+# Subtest: stat prints common mode, type, size, name and UTC millisecond timestamps
+ok 38 - stat prints common mode, type, size, name and UTC millisecond timestamps
+  ---
+  duration_ms: 3.734834
+  type: 'test'
+  ...
+# Subtest: stat lstat/default and -L distinguish links, including dangling links
+ok 39 - stat lstat/default and -L distinguish links, including dangling links
+  ---
+  duration_ms: 1.312125
+  type: 'test'
+  ...
+# Subtest: stat printf escapes, padding, option precedence and literal paths
+ok 40 - stat printf escapes, padding, option precedence and literal paths
+  ---
+  duration_ms: 1.400875
+  type: 'test'
+  ...
+# Subtest: stat missing fields fail rather than becoming zero; mutation capability does not erase provided modes
+ok 41 - stat missing fields fail rather than becoming zero; mutation capability does not erase provided modes
+  ---
+  duration_ms: 0.903834
+  type: 'test'
+  ...
+# Subtest: stat limits, invalid options and cancellation have nonzero/abort outcomes
+ok 42 - stat limits, invalid options and cancellation have nonzero/abort outcomes
+  ---
+  duration_ms: 0.81825
+  type: 'test'
+  ...
+# Subtest: stat common numeric metadata agrees with native stat and fs on real VFS
+ok 43 - stat common numeric metadata agrees with native stat and fs on real VFS
+  ---
+  duration_ms: 14.687125
+  type: 'test'
+  ...
+# LEAF_NATIVE_COUNTS {"Apple:stat:behavior":1}
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 401.858292
+
+STDERR

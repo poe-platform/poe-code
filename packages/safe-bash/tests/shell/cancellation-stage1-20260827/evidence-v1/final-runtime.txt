@@ -1,0 +1,30 @@
+✔ freeze metadata contains unique literal cases (0.472875ms)
+✔ omitted and undefined signal paths borrow without closing the parent (0.655125ms)
+✔ invalid containers and non-native signal values fail before child resources (0.255209ms)
+✔ ordinary inherited, array, function, and read-once lookup semantics are retained (0.474167ms)
+✔ getter failures preserve exact identity including undefined (0.443625ms)
+✔ pre-aborted ancestor skips lookup and ancestor abort during lookup beats the staged failure (0.187208ms)
+✔ parent closed admission is stable but an aborted ancestor has priority (0.060208ms)
+✔ a getter that closes its parent loses to the stable closed-admission error (0.060125ms)
+✔ pre-aborted local signals preserve falsy and NaN reason identity (0.29375ms)
+✔ bounded snapshots reject before local listeners (0.324125ms)
+✔ failed owned initialization rolls back its parent subscription (0.17525ms)
+✔ inner then outer then root keeps first delivery and selects root (0.261709ms)
+✔ root-first and outer-first event orders preserve first-delivered reason (0.483792ms)
+✔ a closed inner boundary does not retroactively change after ancestor abort (0.138ms)
+✔ numeric results are replaced by invoke cancellation but unrelated errors are exact (0.341875ms)
+✔ reported descendant cancellation can improve to outer while control failure cannot (0.151ms)
+✔ root caller beats an unrelated execution failure (0.0615ms)
+✔ explicit reports preserve NaN and thrown undefined without truthiness (1.05625ms)
+✔ handled child and sibling primitive reports do not poison parent selection (0.64625ms)
+✔ callback failures are exact, detached, and separate from outcome selection (0.18275ms)
+✔ owned listeners detach and repeated close returns the same report (0.076292ms)
+✔ parent capacity fails before prospective child listener admission and is released on close (0.094667ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 207.218166

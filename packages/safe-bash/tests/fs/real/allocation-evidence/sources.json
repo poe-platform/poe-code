@@ -1,0 +1,31 @@
+{
+  "inspectedDate": "2026-08-27",
+  "qualification": "Primary documentation/source facts; Linux runtime remains unverified. Source tag pins are not claims of current latest versions.",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/fs.md",
+      "section": "stats.blocks and stats.blksize",
+      "facts": "Stats.blocks is the allocated block count. Stats.blksize is the I/O block size. The blocks section does not specify a portable byte unit."
+    },
+    {
+      "url": "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/stat.2.html",
+      "section": "st_blocks",
+      "facts": "Darwin documentation gives 512-byte allocation units; a short symlink can report zero blocks."
+    },
+    {
+      "url": "https://man7.org/linux/man-pages/man7/inode.7.html",
+      "section": "Number of blocks allocated to the file (st_blocks)",
+      "facts": "Linux counts 512-byte blocks; st_blksize is not that unit. POSIX does not universally specify the st_blocks unit."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/deps/uv/src/unix/fs.c",
+      "section": "uv__to_stat; uv__fs_stat; uv__fs_lstat",
+      "facts": "Unix mapping assigns the native st_blocks field to the libuv stat result unchanged; stat/lstat use this mapping or the Linux statx path."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/deps/uv/src/unix/linux.c",
+      "section": "uv__statx_to_stat",
+      "facts": "The Linux mapping assigns stx_blocks to st_blocks unchanged."
+    }
+  ]
+}

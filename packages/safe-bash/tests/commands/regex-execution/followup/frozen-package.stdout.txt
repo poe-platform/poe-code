@@ -1,0 +1,1 @@
+{"packageChecksPass":true,"publicCleanupAccepted":false,"consumerStatus":1,"cases":3,"f1Failures":2,"workers":4,"archive":{"path":"/Users/kjopek/Workspace/safe-bash/tests/commands/regex-execution/followup/artifacts/product/virtual-bash-0.0.0.tgz","sha256":"fbae0541c9bee1e58a78aa1e1a7329b60392f834feb124efad155a89d26c993f"}}

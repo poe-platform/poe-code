@@ -1,0 +1,14 @@
+{
+  "status": "HOLD_NO_RETRY",
+  "elapsedSecondsBeforePublication": 368.040654,
+  "knownProcessSlotsThroughFailure": 12,
+  "plannedIncludingPublication": 25,
+  "freshCeiling": 48,
+  "planned32Reserve16": true,
+  "peakKnownChildAndOwner": 2,
+  "candidateExecutions": 0,
+  "authenticationGitSpawned": false,
+  "ownedEvidenceBytesBeforeReceipt": 74893,
+  "outerPublicationCapture": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-prep-v2-publication-fhp91ed0",
+  "oldRecordsUnchanged": true
+}

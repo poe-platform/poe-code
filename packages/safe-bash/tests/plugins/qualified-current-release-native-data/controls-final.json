@@ -1,0 +1,60 @@
+{
+  "label": "controls-final",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "9f7fed68077a68ef3decb114ace83ad47b75ae14",
+  "profile": "Author scoped tests and production build configuration noEmit only; no rootdist output or full product suite",
+  "before": {
+    "package.json": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7",
+    "tsconfig.json": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "tests/plugins/qualified-current-release-native-data/controls.test.ts": "8d140468ca8aecd972f47c649fff23f32ab77e76d7e9f939ee0e617f1c35bb20",
+    "tests/plugins/qualified-current-release-native-data/helpers.ts": "87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af",
+    "tests/plugins/qualified-current-release-native-data/capture.mjs": "005efa92f1ea2e462fafa62cd5c52140d54d56710485dd2b5e185cd4257e3edc",
+    "tests/plugins/qualified-current-release-native-data/verify.mjs": "11d3918980407576734e05539dc6a0b1c92da5091e6e5da4baaa8388e43a46b1"
+  },
+  "results": [
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/plugins/qualified-current-release-native-data/controls.test.ts"
+      ],
+      "started": "2026-08-27T08:41:26.565Z",
+      "ended": "2026-08-27T08:41:28.140Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "TAP version 13\n# Subtest: native-data manifest records complete classification and six exact raw payload hashes\nok 1 - native-data manifest records complete classification and six exact raw payload hashes\n  ---\n  duration_ms: 1.060042\n  type: 'test'\n  ...\n# Subtest: root compiler configuration differs only by the exact data exclusion\nok 2 - root compiler configuration differs only by the exact data exclusion\n  ---\n  duration_ms: 6.382917\n  type: 'test'\n  ...\n# Subtest: copied root config includes canonical source, test, helper and artifact neighbors\nok 3 - copied root config includes canonical source, test, helper and artifact neighbors\n  ---\n  duration_ms: 408.374792\n  type: 'test'\n  ...\n# Subtest: identical undefined symbols outside the exact subtree remain real TS2304 errors\nok 4 - identical undefined symbols outside the exact subtree remain real TS2304 errors\n  ---\n  duration_ms: 223.194542\n  type: 'test'\n  ...\n# Subtest: actual npm script excludes future native test data without excluding neighboring tests/helpers\nok 5 - actual npm script excludes future native test data without excluding neighboring tests/helpers\n  ---\n  duration_ms: 741.167625\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1537.95575\n",
+      "stderr": ""
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ],
+      "started": "2026-08-27T08:41:28.140Z",
+      "ended": "2026-08-27T08:41:29.359Z",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "after": {
+    "package.json": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7",
+    "tsconfig.json": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "tests/plugins/qualified-current-release-native-data/controls.test.ts": "8d140468ca8aecd972f47c649fff23f32ab77e76d7e9f939ee0e617f1c35bb20",
+    "tests/plugins/qualified-current-release-native-data/helpers.ts": "87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af",
+    "tests/plugins/qualified-current-release-native-data/capture.mjs": "005efa92f1ea2e462fafa62cd5c52140d54d56710485dd2b5e185cd4257e3edc",
+    "tests/plugins/qualified-current-release-native-data/verify.mjs": "11d3918980407576734e05539dc6a0b1c92da5091e6e5da4baaa8388e43a46b1"
+  }
+}

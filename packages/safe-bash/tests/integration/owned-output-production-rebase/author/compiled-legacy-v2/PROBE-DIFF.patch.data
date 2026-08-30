@@ -1,0 +1,32 @@
+--- cf59762539aff3f5454ad9b048598fdff4268b2c:tests/integration/owned-output-production-rebase/author/compiled-legacy-v1/replay.py.data#worker_probe
++++ tests/integration/owned-output-production-rebase/author/compiled-legacy-v2/probe.mjs.data
+@@ -1,13 +1,19 @@
+ import { Worker } from "node:worker_threads";
+-import { resolve } from "node:path";
+-import { pathToFileURL } from "node:url";
+-const moduleUrl = pathToFileURL(resolve("dist/commands/regex-execution/worker.js")).href;
+-const bootstrap = `const { parentPort } = require("node:worker_threads"); import(${JSON.stringify(moduleUrl)}).then(() => parentPort.close());`;
++const workerUrl = "file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js";
++const bootstrap = "import { parentPort } from \"node:worker_threads\";\nawait import(\"file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js\");\nparentPort.postMessage({ authorPrerequisite: \"import-complete\", workerUrl: \"file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js\" });\nparentPort.close();\n";
+ const worker = new Worker(bootstrap, { eval: true });
+-let ready = false;
+-worker.on("message", message => { if (message?.ready === true) ready = true; });
+-worker.on("error", error => { console.error(error); process.exitCode = 1; });
+-worker.on("exit", code => {
+-  if (code !== 0 || !ready) process.exitCode = 1;
+-  console.log(JSON.stringify({ ready, exitCode: code, naturalPortClosure: true }));
++const messages = [];
++let workerError = null;
++worker.on("message", message => { messages.push(message); });
++worker.on("error", error => {
++  workerError = { name: error.name, message: error.message };
++  console.error(error);
+ });
++worker.on("exit", workerExitCode => {
++  const readyObserved = messages.length === 2 && messages[0]?.ready === true;
++  const importCompleted = messages[1]?.authorPrerequisite === "import-complete" && messages[1]?.workerUrl === workerUrl;
++  const observedNaturalWorkerExit = workerExitCode === 0 && workerError === null;
++  const passed = readyObserved && importCompleted && observedNaturalWorkerExit;
++  console.log(JSON.stringify({ workerUrl, messages, workerError, workerExitCode, observedNaturalWorkerExit, readyObserved, importCompleted, passed }));
++  if (!passed) process.exitCode = 1;
++});

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "FAIL",
+  "requested": 2,
+  "admitted": 2,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "signal-0",
+      "admitted": true,
+      "outcome": "FAIL",
+      "failures": [
+        "child-process",
+        "assertion: AssertionError [ERR_ASSERTION]: Receipt must end with LF"
+      ],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 13899,
+        "group": 13899,
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 47
+      }
+    },
+    {
+      "jobId": "signal-1",
+      "admitted": true,
+      "outcome": "PASS",
+      "failures": [],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 13942,
+        "group": 13942,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 44
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-20.932Z-449d44d5-69bb-4d57-945c-3ce5ad74f61c"
+}

@@ -1,0 +1,26 @@
+{
+  "mode": "acceptance",
+  "startedAt": "2026-08-27T11:56:53.345Z",
+  "finishedAt": "2026-08-27T11:57:00.462Z",
+  "pid": 95429,
+  "args": [
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/driver-r1.mjs",
+    "--execute",
+    "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/execution-inputs.json"
+  ],
+  "timeout": 75000,
+  "exitCode": 1,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "reapedDirectChild": true,
+  "groupPresentAfterClose": false,
+  "environment": {
+    "TMPDIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+    "TMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+    "TEMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_CACHE_DIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp/tsx"
+  }
+}

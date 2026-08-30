@@ -1,0 +1,40 @@
+[
+  {
+    "id": "caller-0",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/grep-aliases/index.js",
+    "sha256": "7ea22cf33cc164d19018bcce4c78e4e519bfc593336a7f5d22459e936e5e94ee"
+  },
+  {
+    "id": "caller-1",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/grep.js",
+    "sha256": "66b0887afb752a686484da1c7d6d20e80894fe15e9a515dcbd36c8d6640ffafd"
+  },
+  {
+    "id": "caller-2",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/search/glob.js",
+    "sha256": "9680d693cddf011ed06623582954b640d18ce26deebcd9b7d3c53a5564eb46f9"
+  },
+  {
+    "id": "caller-3",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/commands/text-programs/index.js",
+    "sha256": "75573f07a76470cca425afcb38d60c717b8554ea6ac6373f2d46c8a7cc97ac70"
+  },
+  {
+    "id": "run02-candidate",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/CANDIDATE.json",
+    "sha256": "9606b9f0235dd5b9adb1ef61e976d68730191fa16959410efb18ad876b7cfcb3",
+    "data": true
+  },
+  {
+    "id": "run02-source-auth",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/SOURCE-AUTH.json",
+    "sha256": "e12b192070a3df71b2df89da25e16fb507c04f4077a14836ec0d0d4ad065964f",
+    "data": true
+  }
+]

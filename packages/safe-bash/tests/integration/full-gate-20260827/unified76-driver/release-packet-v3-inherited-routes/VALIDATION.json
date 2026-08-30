@@ -1,0 +1,19 @@
+{
+  "at": "2026-08-28T10:44:31.076Z",
+  "normalizedPacketSha256": "6cc921ca044fed1b84546bb824f1ab7fc545119c7a5f8ecefd272b23dcd61195",
+  "shippingFiles": 38,
+  "unchangedShippingFiles": 35,
+  "changedShippingFiles": 3,
+  "proofFiles": 17,
+  "helperSha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+  "templateRejected": true,
+  "oldDriverReceiptRejected": true,
+  "launchArgumentsParsedOnly": true,
+  "futurePathsAbsent": true,
+  "productUnchanged": true,
+  "fullGateLaunched": false,
+  "metadataOnly": true,
+  "gitMetadataCommands": 121,
+  "toolsRehashed": false,
+  "qualification": "Static preparation only; no new release authorization or actual admission run. DRIVER/profile hashes are parsed-object hashes, raw hashes are separately bound."
+}

@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "timing": "post-candidate-source-inspection before any independent execution; NOT original precode",
+  "candidate": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+  "executionPrerequisites": [
+    "passing actual unmodified candidate witness receipt",
+    "unique exactsource replacements + resulting SHA256 + strictbuild success",
+    "actual variant runtime module load with differing SHA256",
+    "natural settlement and unchanged surrounding inputs; no parser/loader failure as kill"
+  ],
+  "variants": [
+    {
+      "id": "U01",
+      "witness": "S12",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "      directoryStack: { entries: [], bytes: 0 },",
+      "to": "      directoryStack: state.directoryStack,",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "4d4aa332329191a7c7bb0806d7aee13ed127831adfbf83d305f2456e60ca6ebd"
+    },
+    {
+      "id": "U02",
+      "witness": "S07",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "    directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },",
+      "to": "    directoryStack: state.directoryStack,",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "5e4b597f8635c7ecde5e861b9740e57a5ec33501db2ef2bb299628912cbf6245",
+      "second": {
+        "from": "      state.directoryStack = next;",
+        "to": "      (state.directoryStack!.entries as string[]).splice(0, state.directoryStack!.entries.length, ...next.entries);\n      state.directoryStack = next;"
+      }
+    },
+    {
+      "id": "U03",
+      "witness": "S04",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "          const positional = state.positional;",
+      "to": "          const savedDirectoryStack = state.directoryStack;\n          const positional = state.positional;",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "5804bd72725ce02b0b2e958234c57f30fe3b7ba07a263a78df5c9d93e37fafed",
+      "second": {
+        "from": "            state.positional = positional;",
+        "to": "            state.directoryStack = savedDirectoryStack;\n            state.positional = positional;"
+      }
+    },
+    {
+      "id": "U04",
+      "witness": "M03",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": " && state.directoryStackCwdPublication === directoryStackCwdPublication",
+      "to": "",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "2c7453e7efb6cde0da14027d7868b461700baa3d5040ca985d7fa45a9386014d"
+    },
+    {
+      "id": "U05",
+      "witness": "M01",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "    const tail = state.directoryStack ?? { entries: [], bytes: 0 };",
+      "to": "    state.directoryStackCwdPublication = Symbol();\n    const tail = state.directoryStack ?? { entries: [], bytes: 0 };",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "6f389a89997a6ca890cb92020e5145298bb2780fbf94a00b59bbbbbdaf34512a"
+    },
+    {
+      "id": "U06",
+      "witness": "F02",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "            await publish(next);\n            if (!noCd) {\n              const status = await cd(at(index));\n              if (status !== 0) return status;\n              await display();\n            }",
+      "to": "            if (!noCd) {\n              const status = await cd(at(index));\n              if (status !== 0) return status;\n              await publish(next);\n              await display();\n            } else await publish(next);",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "3ac0db98c84b0a1488574f9f658f41741d5cdc52ab3175c4571589d0b6284190"
+    },
+    {
+      "id": "U07",
+      "witness": "F08",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "          if (!noCd) {\n            const status = await cd(target);",
+      "to": "          await publish(next);\n          if (!noCd) {\n            const status = await cd(target);",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "529a90e4bd5e43e1093a4279c71bd999939815ad0e5459a4e6cea5a4adb9ad1a"
+    },
+    {
+      "id": "U08",
+      "witness": null,
+      "role": "source-control-masked-no-public-kill",
+      "path": "src/shell/runtime.ts",
+      "from": "    await this.scan(cwd, \"path\");",
+      "to": "    this.outputBytes = 0;\n    await this.scan(cwd, \"path\");",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "0a03ae2b40e1dbcdf78218dffe6c5e5e53adb0ceea41f8aef2da7810722383bf"
+    },
+    {
+      "id": "U09",
+      "witness": "L01",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "      if (length > 4096)",
+      "to": "      if (length > 4097)",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "235287dff972ecbd94ce68a4f2f60c793e253515d4fb5ea3c2cd48af082cdf8c"
+    },
+    {
+      "id": "U10",
+      "witness": null,
+      "role": "source-control-private-work-no-public-kill",
+      "path": "src/shell/runtime.ts",
+      "from": "    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 8_388_608 - this.spent)",
+      "to": "    this.spent = 0;\n    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 8_388_608 - this.spent)",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "3b8298e5286ce73c5e7bc2363bf289a009845a91eee960878903f3ae052164d9"
+    },
+    {
+      "id": "U11",
+      "witness": null,
+      "role": "source-control-final-flush-no-public-kill",
+      "path": "src/shell/runtime.ts",
+      "from": "    const publish = async (next: NonNullable<State[\"directoryStack\"]>): Promise<void> => {\n      await work.flushWork();",
+      "to": "    const publish = async (next: NonNullable<State[\"directoryStack\"]>): Promise<void> => {",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "a5df2a6b7466df16d6901b363a1217c6fcd69d64aa4e8582ab0c745cede3ef13"
+    },
+    {
+      "id": "U12",
+      "witness": "L09",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "    const work = new DirectoryStackWork(command, this.signal, context.stdout);",
+      "to": "    const work = new DirectoryStackWork(command, this.signal, context.stdout);\n    await work.scan(state.variables.HOME ?? \"\", \"HOME\");",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "67bf66a068ad48fd52cb5144c00025d63843eb097cccd973661351780217cc3a"
+    },
+    {
+      "id": "U13",
+      "witness": "G23",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "        const token = args[offset]!;\n        const bytes = await field(token);",
+      "to": "        if (command === \"dirs\" && clear) break;\n        const token = args[offset]!;\n        const bytes = await field(token);",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "3415e47021731f3c9aa70f02b2b2eec68c7a2bebadb0d4eebfe26574978ad186"
+    },
+    {
+      "id": "U14",
+      "witness": "C07",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "    await writeText(this.stdout, text);",
+      "to": "    void writeText(this.stdout, text);",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "80031e5f6fb37b6d602d9ec412ef959fba6ea2ac084c318286769cde3eb5f1b6"
+    },
+    {
+      "id": "U15",
+      "witness": null,
+      "role": "source-control-owned-diagnostic-no-public-kill",
+      "path": "src/shell/runtime.ts",
+      "from": "      if (bytes + width > 65_792)",
+      "to": "      if (bytes + width > 65_780)",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "0e584903f76560f3755d883df9a2689894c0be7896b24b3fb15df4332be0def4"
+    },
+    {
+      "id": "U16",
+      "witness": "A01",
+      "role": "semantic-public-witness",
+      "path": "src/shell/runtime.ts",
+      "from": "\"getopts\", \"let\", \"pushd\", \"dirs\", \"popd\",",
+      "to": "\"getopts\", \"let\", \"dirs\", \"popd\",",
+      "beforeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "variantSha256": "7e78b69f9f1aa26baa5010481444a5aa6851b407480730390f0b1101a95c21f6"
+    }
+  ],
+  "sourceOnlyFamilies": [
+    "U08",
+    "U10",
+    "U11",
+    "U15"
+  ],
+  "importRoles": {
+    "Q01": "actual public import with unexpected runtime bytes",
+    "Q02": "actual public import with unexpected shell bytes",
+    "Q03": "actual installed/moved bare public import with missing package entry; source fallback forbidden",
+    "Q04": "actual import then reject added file/symlink/empty-directory census",
+    "Q05": "preimport exactcandidate/base refusal",
+    "Q06": "actual positive compile missing package is harness refusal, never negative fixture pass"
+  }
+}

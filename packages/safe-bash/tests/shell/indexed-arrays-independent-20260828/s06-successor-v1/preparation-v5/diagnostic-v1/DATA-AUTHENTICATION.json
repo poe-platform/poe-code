@@ -1,0 +1,654 @@
+{
+  "classification": "SOURCE/DATA authentication only; zero candidate/native/product execution and zero cleanup deletion",
+  "evidenceCommit": "14179c5eae195757ed5e83fe31a51971597700b6",
+  "archiveSha256": "3dbb6dc3708156e0c895b04aacf78f508322b6b08336acff78a6aa53cd707a0c",
+  "archiveRecords": 437,
+  "archiveRawBytes": 116980358,
+  "decodedContainerBytes": 156035527,
+  "sealedRoles": 108,
+  "selectedInputs": 269,
+  "rawRoot": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02",
+  "rawRootMode": 493,
+  "totalRawBytes": 192290373,
+  "storage": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/source",
+      "directoryMode": 493,
+      "files": 269,
+      "directories": 44,
+      "bytes": 2506887,
+      "censusSha256": "321165a259e99308848cf40cf55ebc55368f08daf08e8610c98d00175fb4e553",
+      "unknownOrChangedMembers": 0
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/build",
+      "directoryMode": 493,
+      "files": 1244,
+      "directories": 100,
+      "bytes": 9362019,
+      "censusSha256": "9b1da81dacfa7ad5813c1b4b870abfadcacac14bccc549b629af93355628dbb3",
+      "unknownOrChangedMembers": 0
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/tools",
+      "directoryMode": 493,
+      "files": 247,
+      "directories": 29,
+      "bytes": 26147198,
+      "censusSha256": "9f4bc8592b06b55bb3151dda1013b13cf8e7a3afdab711bbd3d64727cb8541d6",
+      "unknownOrChangedMembers": 0
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps",
+      "directoryMode": 493,
+      "files": 3893,
+      "directories": 223,
+      "bytes": 25700664,
+      "censusSha256": "e90bf6d341b92a83ee31865408fe7a6c7d8f9661842d5b0bc03f8706821e07b3",
+      "unknownOrChangedMembers": 0
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/artifacts",
+      "directoryMode": 493,
+      "files": 12,
+      "directories": 0,
+      "bytes": 9454924,
+      "censusSha256": "f1ecea364624dbc2c99c14a7d46d8da672bc8bce2961e54780a26897c773a98d",
+      "unknownOrChangedMembers": 0
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/scratch",
+      "directoryMode": 493,
+      "files": 565,
+      "directories": 19,
+      "bytes": 2138323,
+      "censusSha256": "04fe6e0fe7dca62b072b755001acd43808e335e988c76bf30cea31b33d25be22",
+      "unknownOrChangedMembers": 0
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/records",
+      "directoryMode": 493,
+      "files": 437,
+      "directories": 0,
+      "bytes": 116980358,
+      "censusBinding": "437 archive entries; exact name/bytes/mode/hash equality",
+      "unknownOrChangedMembers": 0
+    }
+  ],
+  "inspected": [
+    {
+      "path": "src/shell/runtime.ts",
+      "commit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "mode": "100644",
+      "blob": "7660086a09c9dedbdd86bd15ae10ea729886654e",
+      "bytes": 195094,
+      "sha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "commit": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "mode": "100644",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+    },
+    {
+      "path": "src/shell/arrays/state.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "bytes": 13072,
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50"
+    },
+    {
+      "path": "src/shell/arrays/ledger.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45"
+    },
+    {
+      "path": "src/shell/arrays/bindings.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "bytes": 9989,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    }
+  ],
+  "layouts": [
+    {
+      "layout": "source-build",
+      "rows": [
+        {
+          "id": "M22",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   [\n-     0,\n-     'newer'\n-   ],\n-   [\n-     2147483647,\n-     'last'\n-   ]\n- ]\n\n    at actualRuntime.aborted (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/complete-adapter.mjs:135:12)\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/complete-adapter.mjs:39:31)"
+          },
+          "rawRecord": "body-6.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P04",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   [\n-     0,\n-     'newer'\n-   ],\n-   [\n-     2147483647,\n-     'last'\n-   ]\n- ]\n\n    at actualRuntime.aborted (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/complete-adapter.mjs:135:12)\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/complete-adapter.mjs:39:31)"
+          },
+          "rawRecord": "body-7.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P09",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- {\n-   mode: 'sink-error'\n- }\n\n    at outputBoundaries (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/complete-adapter.mjs:207:21)\n    at async Module.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/complete-adapter.mjs:265:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/worker.mjs:58:18"
+          },
+          "rawRecord": "body-7.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P10",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be strictly unequal to:\n\nSymbol()\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/complete-adapter.mjs:225:52\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/complete-adapter.mjs:39:31)\n    at async interruptible (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/node_modules/virtual-bash/dist/shell/runtime.js:118:16)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/node_modules/virtual-bash/dist/shell/runtime.js:2340:44\n    at async interruptible (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/node_modules/virtual-bash/dist/shell/runtime.js:118:16)\n    at async Runtime.dispatchScoped (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/node_modules/virtual-bash/dist/shell/runtime.js:2374:38)\n    at async Runtime.dispatch (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/node_modules/virtual-bash/dist/shell/runtime.js:2093:20)\n    at async Runtime.simple (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/node_modules/virtual-bash/dist/shell/runtime.js:2059:35)\n    at async Runtime.executeCommand (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/node_modules/virtual-bash/dist/shell/runtime.js:1551:24)\n    at async Runtime.command (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/source-app/node_modules/virtual-bash/dist/shell/runtime.js:1518:24)"
+          },
+          "rawRecord": "body-7.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        }
+      ]
+    },
+    {
+      "layout": "installed",
+      "rows": [
+        {
+          "id": "M22",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   [\n-     0,\n-     'newer'\n-   ],\n-   [\n-     2147483647,\n-     'last'\n-   ]\n- ]\n\n    at actualRuntime.aborted (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/complete-adapter.mjs:135:12)\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/complete-adapter.mjs:39:31)"
+          },
+          "rawRecord": "body-13.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P04",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   [\n-     0,\n-     'newer'\n-   ],\n-   [\n-     2147483647,\n-     'last'\n-   ]\n- ]\n\n    at actualRuntime.aborted (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/complete-adapter.mjs:135:12)\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/complete-adapter.mjs:39:31)"
+          },
+          "rawRecord": "body-14.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P09",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- {\n-   mode: 'sink-error'\n- }\n\n    at outputBoundaries (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/complete-adapter.mjs:207:21)\n    at async Module.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/complete-adapter.mjs:265:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/worker.mjs:58:18"
+          },
+          "rawRecord": "body-14.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P10",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be strictly unequal to:\n\nSymbol()\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/complete-adapter.mjs:225:52\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/complete-adapter.mjs:39:31)\n    at async interruptible (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/node_modules/virtual-bash/dist/shell/runtime.js:118:16)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/node_modules/virtual-bash/dist/shell/runtime.js:2340:44\n    at async interruptible (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/node_modules/virtual-bash/dist/shell/runtime.js:118:16)\n    at async Runtime.dispatchScoped (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/node_modules/virtual-bash/dist/shell/runtime.js:2374:38)\n    at async Runtime.dispatch (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/node_modules/virtual-bash/dist/shell/runtime.js:2093:20)\n    at async Runtime.simple (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/node_modules/virtual-bash/dist/shell/runtime.js:2059:35)\n    at async Runtime.executeCommand (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/node_modules/virtual-bash/dist/shell/runtime.js:1551:24)\n    at async Runtime.command (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/installed-app/node_modules/virtual-bash/dist/shell/runtime.js:1518:24)"
+          },
+          "rawRecord": "body-14.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        }
+      ]
+    },
+    {
+      "layout": "moved",
+      "rows": [
+        {
+          "id": "M22",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   [\n-     0,\n-     'newer'\n-   ],\n-   [\n-     2147483647,\n-     'last'\n-   ]\n- ]\n\n    at actualRuntime.aborted (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/complete-adapter.mjs:135:12)\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/complete-adapter.mjs:39:31)"
+          },
+          "rawRecord": "body-20.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P04",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ []\n- [\n-   [\n-     0,\n-     'newer'\n-   ],\n-   [\n-     2147483647,\n-     'last'\n-   ]\n- ]\n\n    at actualRuntime.aborted (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/complete-adapter.mjs:135:12)\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/complete-adapter.mjs:39:31)"
+          },
+          "rawRecord": "body-21.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P09",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- {\n-   mode: 'sink-error'\n- }\n\n    at outputBoundaries (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/complete-adapter.mjs:207:21)\n    at async Module.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/complete-adapter.mjs:265:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/worker.mjs:58:18"
+          },
+          "rawRecord": "body-21.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        },
+        {
+          "id": "P10",
+          "category": "actual-public-body",
+          "pass": false,
+          "settled": true,
+          "disposed": true,
+          "detail": {
+            "error": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be strictly unequal to:\n\nSymbol()\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/complete-adapter.mjs:225:52\n    at async Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/complete-adapter.mjs:39:31)\n    at async interruptible (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/node_modules/virtual-bash/dist/shell/runtime.js:118:16)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/node_modules/virtual-bash/dist/shell/runtime.js:2340:44\n    at async interruptible (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/node_modules/virtual-bash/dist/shell/runtime.js:118:16)\n    at async Runtime.dispatchScoped (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/node_modules/virtual-bash/dist/shell/runtime.js:2374:38)\n    at async Runtime.dispatch (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/node_modules/virtual-bash/dist/shell/runtime.js:2093:20)\n    at async Runtime.simple (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/node_modules/virtual-bash/dist/shell/runtime.js:2059:35)\n    at async Runtime.executeCommand (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/node_modules/virtual-bash/dist/shell/runtime.js:1551:24)\n    at async Runtime.command (file:///Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/moved-app/node_modules/virtual-bash/dist/shell/runtime.js:1518:24)"
+          },
+          "rawRecord": "body-21.json",
+          "note": "settled/disposed are generic worker booleans; no unrecorded numeric cleanup count or primary reason inferred"
+        }
+      ]
+    }
+  ],
+  "mutants": [
+    {
+      "id": "U01",
+      "member": "dist/shell/arrays/ledger.js",
+      "originalSha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d",
+      "changedSha256": "9777960bf1a7a2b9135152762faa9009b4c434dbc423b49d817933a2f748c718",
+      "requiredFailed": [
+        "M01"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U01",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U01/node_modules/virtual-bash/dist/shell/arrays/ledger.js",
+          "sha256": "9777960bf1a7a2b9135152762faa9009b4c434dbc423b49d817933a2f748c718",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "M01"
+      ],
+      "observations": [
+        {
+          "id": "M01",
+          "pass": false
+        }
+      ],
+      "qualifiedPredicate": true,
+      "disposition": []
+    },
+    {
+      "id": "U02",
+      "member": "dist/shell/arrays/bindings.js",
+      "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+      "changedSha256": "7bba61c09889ece63ae9a76b2430ee2ca7aa8f879f307723f4d6e417409dd999",
+      "requiredFailed": [
+        "M04"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U02",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U02/node_modules/virtual-bash/dist/shell/arrays/bindings.js",
+          "sha256": "7bba61c09889ece63ae9a76b2430ee2ca7aa8f879f307723f4d6e417409dd999",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "M04"
+      ],
+      "observations": [
+        {
+          "id": "M04",
+          "pass": false
+        }
+      ],
+      "qualifiedPredicate": true,
+      "disposition": []
+    },
+    {
+      "id": "U03",
+      "member": "dist/shell/arrays/bindings.js",
+      "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+      "changedSha256": "69ea0429da32755f3c3f9dfb231096a9339b9a07b3aa3dcca7ce72cf7174eb21",
+      "requiredFailed": [
+        "M05"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U03",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U03/node_modules/virtual-bash/dist/shell/arrays/bindings.js",
+          "sha256": "69ea0429da32755f3c3f9dfb231096a9339b9a07b3aa3dcca7ce72cf7174eb21",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "M05"
+      ],
+      "observations": [
+        {
+          "id": "M05",
+          "pass": false
+        }
+      ],
+      "qualifiedPredicate": true,
+      "disposition": []
+    },
+    {
+      "id": "U04",
+      "member": "dist/shell/arrays/bindings.js",
+      "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+      "changedSha256": "d17b282a35bfacb736c00aa8a382466841b65f26eb3be1ddadcfd6a574a84762",
+      "requiredFailed": [
+        "M06"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U04",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U04/node_modules/virtual-bash/dist/shell/arrays/bindings.js",
+          "sha256": "d17b282a35bfacb736c00aa8a382466841b65f26eb3be1ddadcfd6a574a84762",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "M06"
+      ],
+      "observations": [
+        {
+          "id": "M06",
+          "pass": false
+        }
+      ],
+      "qualifiedPredicate": true,
+      "disposition": []
+    },
+    {
+      "id": "U05",
+      "member": "dist/shell/arrays/state.js",
+      "originalSha256": "a0e3a403cb892f1fe54aaab9ef5d61abdd43d2ae434d6e228e19b85a16a0ce72",
+      "changedSha256": "06d30a08a5779711fa70b012a83335f0eb01e0bfe5685e5cdd29b358df111c8b",
+      "requiredFailed": [
+        "M17"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U05",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U05/node_modules/virtual-bash/dist/shell/arrays/state.js",
+          "sha256": "06d30a08a5779711fa70b012a83335f0eb01e0bfe5685e5cdd29b358df111c8b",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "M17"
+      ],
+      "observations": [
+        {
+          "id": "M17",
+          "pass": false
+        }
+      ],
+      "qualifiedPredicate": true,
+      "disposition": []
+    },
+    {
+      "id": "U06",
+      "member": "dist/shell/arrays/state.js",
+      "originalSha256": "a0e3a403cb892f1fe54aaab9ef5d61abdd43d2ae434d6e228e19b85a16a0ce72",
+      "changedSha256": "7c0452853fa7a468a81474c9345ea35e7a502dc0cb8f4236d09fd93d99d3d817",
+      "requiredFailed": [
+        "M18"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U06",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U06/node_modules/virtual-bash/dist/shell/arrays/state.js",
+          "sha256": "7c0452853fa7a468a81474c9345ea35e7a502dc0cb8f4236d09fd93d99d3d817",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "M18"
+      ],
+      "observations": [
+        {
+          "id": "M18",
+          "pass": false
+        }
+      ],
+      "qualifiedPredicate": true,
+      "disposition": []
+    },
+    {
+      "id": "U07",
+      "member": "dist/shell/runtime.js",
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "changedSha256": "b2885f2bfadad0b0f76a651d0119e36de0cc939de9dd41172693b8f88b573a4b",
+      "requiredFailed": [
+        "M16"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U07",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U07/node_modules/virtual-bash/dist/shell/runtime.js",
+          "sha256": "b2885f2bfadad0b0f76a651d0119e36de0cc939de9dd41172693b8f88b573a4b",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "M16"
+      ],
+      "observations": [
+        {
+          "id": "M16",
+          "pass": false
+        }
+      ],
+      "qualifiedPredicate": true,
+      "disposition": []
+    },
+    {
+      "id": "U08",
+      "member": "dist/shell/runtime.js",
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "changedSha256": "8cc9ec1edaacd0aa06643936b955b0a9551bbbf8349118877273adeee6569279",
+      "requiredFailed": [
+        "M22"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": false,
+      "activations": [],
+      "failed": [],
+      "observations": [],
+      "qualifiedPredicate": false,
+      "disposition": "same candidate positive predicate failed; no mutant kill inference"
+    },
+    {
+      "id": "U09",
+      "member": "dist/shell/runtime.js",
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "changedSha256": "04f5b3b4c49fa6cf4255bb24f93b40f533549d12586b86be9bc75564e79abe87",
+      "requiredFailed": [
+        "S01",
+        "O15"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U09",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U09/node_modules/virtual-bash/dist/shell/runtime.js",
+          "sha256": "04f5b3b4c49fa6cf4255bb24f93b40f533549d12586b86be9bc75564e79abe87",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "S01"
+      ],
+      "observations": [
+        {
+          "id": "S01",
+          "pass": false
+        },
+        {
+          "id": "O15",
+          "pass": true
+        }
+      ],
+      "qualifiedPredicate": false,
+      "disposition": []
+    },
+    {
+      "id": "U10",
+      "member": "dist/shell/runtime.js",
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "changedSha256": "43d86c4b0724c76e54b70689392d02b053d137f9e39a6592a77367a523cfb860",
+      "requiredFailed": [
+        "H01"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [
+        {
+          "id": "U10",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/apps/mutant-U10/node_modules/virtual-bash/dist/shell/runtime.js",
+          "sha256": "43d86c4b0724c76e54b70689392d02b053d137f9e39a6592a77367a523cfb860",
+          "hits": 1
+        }
+      ],
+      "failed": [
+        "H01"
+      ],
+      "observations": [
+        {
+          "id": "H01",
+          "pass": false
+        }
+      ],
+      "qualifiedPredicate": true,
+      "disposition": []
+    },
+    {
+      "id": "U11",
+      "member": "dist/shell/runtime.js",
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "changedSha256": "636da6d2400ac6ad4f9b82f13a0e30c8be5e2c8612ec47562ad7354300e52485",
+      "requiredFailed": [
+        "P06"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": true,
+      "activations": [],
+      "failed": [],
+      "observations": [
+        {
+          "id": "P06",
+          "pass": true
+        }
+      ],
+      "qualifiedPredicate": false,
+      "disposition": [
+        "mutant not actually loaded and activated"
+      ]
+    },
+    {
+      "id": "U12",
+      "member": "dist/shell/arrays/ledger.js",
+      "originalSha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d",
+      "changedSha256": "73172f943eeb549fdf9f2a65e56923227fb8e3e091a025c6b4ed28fca533cf5f",
+      "requiredFailed": [
+        "M07"
+      ],
+      "requiredPassed": [],
+      "actualLoaded": false,
+      "activations": [],
+      "failed": [],
+      "observations": [],
+      "qualifiedPredicate": false,
+      "disposition": "not dispatched after guard stop"
+    },
+    {
+      "id": "U13-S06",
+      "member": "dist/shell/runtime.js",
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "changedSha256": "ddc15913410eba296ca3094a5cb7d35e68f893adecd939521ba1380b61fb3f02",
+      "requiredFailed": [
+        "S06"
+      ],
+      "requiredPassed": [
+        "S08"
+      ],
+      "actualLoaded": false,
+      "activations": [],
+      "failed": [],
+      "observations": [],
+      "qualifiedPredicate": false,
+      "disposition": "not dispatched after guard stop"
+    }
+  ],
+  "terminal": {
+    "children": 349,
+    "retired": 349,
+    "active": 0,
+    "faults": []
+  },
+  "baselineMutationCountNotRescored": true
+}

@@ -1,0 +1,62 @@
+{
+  "status": "READY: bounded validation evidence committed; root policy decision required",
+  "at": "2026-08-27T05:32:16.609Z",
+  "owner": "test-only adapter/policy/package validation leaf",
+  "scope": "tests/stress/regex-execution/design/validation/**",
+  "harnessFreeze": "026f72a6686da1c40c35540725a51a2ce23c8ec5",
+  "compilerCorrection": "fb9c922884cd9d20f9848b980c1f78cea3a5c39b",
+  "adapterContinuationCorrection": "da8ae9b1991d727652b7a42da6f2288c191f6e91",
+  "auditHarness": "b4b196ca46abadb060e31e821eb36c6f865a37fe",
+  "evidenceCommit": "60df83b62c3ca12623b40db7f3af105e9cce3dee",
+  "report": "tests/stress/regex-execution/design/validation/REPORT.md",
+  "reportSha256": "3f94c7fee2f1de5c7c32a8cea1adc64ca6326b6fec3e012088c84f38a43b5238",
+  "policy": "tests/stress/regex-execution/design/validation/POLICY.md",
+  "policySha256": "c179ddc2753c38879aef5b9bb3dcf66300743e9eddc05aafd5be74b3d927e2a7",
+  "audit": "tests/stress/regex-execution/design/validation/evidence/audit.json",
+  "auditSha256": "bfd7c2821b9cfd18b938842d01a6e57cd8162a480e5d9ea72fe2c625fb4aa12b",
+  "cleanupSha256": "bf8c59f6de2038eae9f27ba09f6637c8fed9bba4d6e6d4ce4bbcd525e65222eb",
+  "sourceHashes": {
+    "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "tests/stress/regex-execution/design/client.ts": "f2c5512b2785f146e68f3a335afd646ab74a3fdfa2370743151a05a7827044d5",
+    "tests/stress/regex-execution/design/worker.ts": "39f40d5e17a64d375d7fdc9fa0cd76b74de3d701b046ae37020dd8a9f79c66a3",
+    "tests/stress/regex-execution/design/matching.ts": "9af709988caef046f2b929ae2eaf005951cf311f2de8a24c32448b054691bef8",
+    "tests/stress/regex-execution/design/protocol.ts": "baa928980f6623478ebae17c768cbb5319881e840686db943d0a0267d2ff098a"
+  },
+  "counts": {
+    "uniqueVectors": 33,
+    "commandVectors": 22,
+    "captureVectors": 6,
+    "policyVectors": 5,
+    "negativePolicyControls": 1,
+    "timingObservations": 18,
+    "packageConsumers": 1,
+    "plannedChildren": 52,
+    "actualChildren": 53,
+    "originalFailureRetained": "run-17.json",
+    "targetedCorrectionRecheck": "run-recheck-17.json",
+    "effectivePassingJobs": 52,
+    "exactClosedChildren": 53,
+    "outerKills": 0,
+    "riskyExecutions": 0,
+    "nativeCalls": 22,
+    "GNUgrepCalls": 0
+  },
+  "findings": [
+    "Effective command stdout/stderr byte/status equality 22/22; accidental JS giu versus protocol gui adapter spelling corrected and original failure preserved.",
+    "Revised one-record stream and real live-producer three-stage Shell pipeline work; three concurrent three-stage pipelines use two reused workers, 18 requests, max five waiters, no scheduling lease held at tested source/sink awaits.",
+    "Original Capacity retains idle CAPACITY_BUSY; negative prototype policy control, not recommended product behavior.",
+    "Primary rg 15.2.0 and auxiliary BSD grep captured; GNU grep unavailable, no install. Named-backref loophole differs from documented unsupported behavior and default rg; deliberate grep ordering/JS digit differences preserved.",
+    "Equivalent logical byte/capture microbenchmarks: three rotated reps per engine/workload; startup separate; stream extra framing/IPC and retirement disclosed. Not complete-command throughput or symmetric JIT warmness.",
+    "Offline packed static worker sibling starts through bare ESM import from moved temporary package on Node22; prototype packaging only, zero runtime deps.",
+    "Root must approve no-signal timeout/overload/shared-budget policy and integration owners; 75ms/3s remain experimental. No product exports/API changes."
+  ],
+  "deviationsRetained": [
+    "Initial compiler DOM/lib profile failure; corrected isolated config only.",
+    "Original native empty-rg expectation defect retained then corrected before main freeze.",
+    "Unrelated stream-inspection README drift stopped after child37; unchanged snapshot/prototype/benchmark continuation completed only remaining14 jobs plus Kelvin recheck."
+  ],
+  "cleanup": "Both owned scratch roots removed, 998 files/162 directories; no broad process kill.",
+  "ownedWorktreeAndIndexClean": true,
+  "noProductionIntegrationParitySuperiorityOr72HourCompletionClaim": true
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "name": "missing-read-zero",
+    "mutatedLoaded": {
+      "file": "/private/tmp/strict-extension-v2-tail-AYN6CH/operator-mutants/node_modules/virtual-bash/dist/shell/runtime.js",
+      "sha256": "4834bfd2f4cfaaf8ec5f0a4cb25a0945a7004467ec12fdbf21a6ec90597b015e"
+    },
+    "originalSha256": "6e4ce527e907cdb9dc0c415806ed734ea7181f69624fce558a89796fe6debd49",
+    "restoredLoaded": true
+  },
+  {
+    "name": "read-assignment-lhs",
+    "mutatedLoaded": {
+      "file": "/private/tmp/strict-extension-v2-tail-AYN6CH/operator-mutants/node_modules/virtual-bash/dist/shell/arithmetic.js",
+      "sha256": "1a8a7768f07e8fff005356c995584d38d09eacd3abaa786b3b7538b8b75d746a"
+    },
+    "originalSha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138",
+    "restoredLoaded": true
+  },
+  {
+    "name": "let-recast",
+    "mutatedLoaded": {
+      "file": "/private/tmp/strict-extension-v2-tail-AYN6CH/operator-mutants/node_modules/virtual-bash/dist/shell/runtime.js",
+      "sha256": "14c0aab706cc2681a5d0d09876ec82b17df1ae3ada6982255f383e77e652eb0e"
+    },
+    "originalSha256": "6e4ce527e907cdb9dc0c415806ed734ea7181f69624fce558a89796fe6debd49",
+    "restoredLoaded": true
+  },
+  {
+    "name": "rollback-prefix",
+    "mutatedLoaded": {
+      "file": "/private/tmp/strict-extension-v2-tail-AYN6CH/operator-mutants/node_modules/virtual-bash/dist/shell/runtime.js",
+      "sha256": "e698e4ad5cfa48d78cf61ee1302c265da3a0350a08d100535d17d2192eeab9c9"
+    },
+    "originalSha256": "6e4ce527e907cdb9dc0c415806ed734ea7181f69624fce558a89796fe6debd49",
+    "restoredLoaded": true
+  },
+  {
+    "name": "swallow-parameter-sink",
+    "mutatedLoaded": {
+      "file": "/private/tmp/strict-extension-v2-tail-AYN6CH/operator-mutants/node_modules/virtual-bash/dist/shell/runtime.js",
+      "sha256": "6d4787d13afa92189b39520cc81efd25d501478e419551c581e715b7bcd42d67"
+    },
+    "originalSha256": "6e4ce527e907cdb9dc0c415806ed734ea7181f69624fce558a89796fe6debd49",
+    "restoredLoaded": true
+  },
+  {
+    "name": "false-option-state",
+    "mutatedLoaded": {
+      "file": "/private/tmp/strict-extension-v2-tail-AYN6CH/operator-mutants/node_modules/virtual-bash/dist/shell/runtime.js",
+      "sha256": "14aa6de0ff98b7157da16c36cd8060ee10afd5a99cc3e7d3c819372cfce38440"
+    },
+    "originalSha256": "6e4ce527e907cdb9dc0c415806ed734ea7181f69624fce558a89796fe6debd49",
+    "restoredLoaded": true
+  }
+]

@@ -1,0 +1,100 @@
+ROOT FAILURE/RECOMMENDATION ROUTE — INITIAL FROZEN RUN ONLY
+
+Candidate: d168d18b118592e04a6eec9b00eb50cc2b1e5058.
+Seal: 8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297.
+Run: /tmp/safe-bash-file-run.WeB7Vfsc.
+No fixes, predicate changes, case reruns, or new native captures were performed.
+Root must authorize any author fix or follow-up execution separately.
+
+SQLITE-MIME-001 — AVOIDABLE MIME INTEROPERABILITY BUG / RECOMMENDED FIX
+Case F16. Frozen semantic alias set accepts legacy and registered names, so its
+semantic assertions passed; native-exact MIME type/combined views did NOT pass.
+Do not call this blanket libmagic parity or waive it solely because it was known.
+
+Minimal preserved reproduction:
+  VFS /input = F16 fixture (512 bytes), original native-fixtures/F16-catalog.bin.
+  Exact bytes/base64/hash: holdout/fixture-manifest.json, id F16.
+  Actual real createFileCommand with limits maxSniffBytes=65536,
+    maxReadFileBytes=65536; all other family limits default.
+  Literal argv: file -b --mime-type /input.
+  Actual stdout:   "application/x-sqlite3\n"
+  Actual stderr:   ""
+  Actual status:   0
+  Native expected stdout: "application/vnd.sqlite3\n"
+  Native expected stderr: ""
+  Native expected status: 0
+  Combined actual: "application/x-sqlite3; charset=binary\n"
+  Combined native: "application/vnd.sqlite3; charset=binary\n"
+  Encoding-only binary and semantic SQLite human category agree.
+  Raw results: results/F16.json; raw events: results/F16.events.jsonl.
+
+Independent primary grounding: IANA application/vnd.sqlite3 registration,
+registered/updated February 12, 2018. It identifies application/x-sqlite3 as a
+deprecated alias and says not to use it except for backwards compatibility.
+Captured complete primary document: primary/vnd.sqlite3.txt; URL/hash/timestamp
+in primary/manifest.json. No backwards-compatibility need for the deprecated
+name was supplied for this new optional candidate. Prefer the registered name.
+Frozen source: candidate/src/commands/file/classify.ts, SQLite magic branch.
+Suggested root routing: targeted MIME constant/test/docs correction if approved;
+retain this original failing native-exact observation and frozen cohort unchanged.
+This is not a request for full format validation, added formats, or default exports.
+
+HARN-SIGNAL-001 — THREE FROZEN HARNESS PREDICATE DEFECTS, NOT PRODUCT FAILURES
+Cases F29, F33, F34 have raw semanticStatus=fail, preserved verbatim. Their failed
+assertions demand signal object reference identity. The contract requires signal
+propagation and exact CALLER ABORT REASON identity, not identical signal objects.
+Candidate intentionally uses AbortSignal.any for family timeout/per-file cleanup.
+Do not change product to remove valid composition merely to satisfy these tests.
+
+F29:
+  Input: F09 PNG through readFile-only conforming FS, known valid size.
+  Args: -b --mime /input.
+  Actual: image/png; charset=binary\n; stderr empty; status0.
+  FS received composed signal id2; original context signal id1.
+  Raw assertion: expected actual signal to be reference-equal to context.signal.
+  Original runner line143; selected child adds two instrumentation lines (145).
+  Classification: harness-defect; do NOT count entire row as pass.
+
+F33/F34:
+  Conforming pending readStream; cancel with exact FsError ENOENT sentinel.
+  Both reached and PASSED the assertion that cancellation rejects promptly with
+  the exact original caller reason. Both then failed signal-object reference
+  equality before later iterator-count and late-rejection assertions ran.
+  Raw events show signal id1 (caller), id2 (family) and id3 (FS) all aborted with
+  the same sentinel; command rejection follows immediately at logged ms scale.
+  No timing benchmark claim; children exited normally under the 60s watchdog.
+  Original runner line203; selected child instrumentation line205.
+  F33 pending-read late rejection and F34 late-return rejection were NOT injected
+  because the earlier assertion failed; finally resolved the gates. Zero logged
+  unhandled rejections is therefore NOT evidence those late-error probes passed.
+  Required next decision: root may authorize additive correction/resume of the
+  remaining obligations. No such predicate correction or repeat was made here.
+
+OTHER RETAINED NATIVE PROFILE CONFLICTS — NOT BUGS ESTABLISHED BY THIS RUN
+F07 incomplete UTF-8 at EOF:
+  Native text/plain + unknown-8bit; candidate application/octet-stream + binary.
+  Frozen strict-UTF8 semantic profile accepts binary; native conflict remains.
+F12 ASCII PDF header:
+  Native application/pdf + us-ascii; candidate application/pdf + binary.
+  This cohort's PDF is ASCII. Author's separate PDF fixture used iso-8859-1;
+  do not substitute that author's fixture/charset into this independent record.
+F18 six-byte incomplete PNG:
+  Native text/plain + unknown-8bit; candidate application/octet-stream + binary.
+  Frozen semantics accept conservative unknown binary, never assert full PNG.
+
+PE AND WASM — PREDECLARED SOURCE/PRIMARY CHARACTERIZATION ONLY
+No PE or Wasm specimen was added to the sealed 40-case initial corpus, and none
+was executed as an extra test. Their author-reported native differences are not
+new independent passes. IANA registers application/vnd.microsoft.portable-executable
+and application/wasm; using those names is defensible against older native labels.
+Captured primary registration bytes/hashes are in primary/**. No new native cohort.
+
+COUNTS / ROUTING BOUNDARY
+40 children completed once, zero process errors/timeouts, zero native recaptures.
+80/80 content semantic views accepted; 50/60 MIME/encoding views native exact.
+Raw scenario semantics: 35 pass, 3 fail, 2 backend-limitation.
+Adjudication: 31 pass, 4 native-profile-conflict, 3 harness-defect,
+2 backend-limitation/characterization (F30/F31); unsupported0.
+No confirmed contract-safety defect was established by completed assertions.
+SQLITE-MIME-001 remains a legitimate avoidable interoperability issue, and the
+late-error coverage gaps remain open. No all-pass or integration/release approval.

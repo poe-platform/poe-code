@@ -1,0 +1,875 @@
+{
+  "schema": 1,
+  "scope": "post-inspection validation-chain supplement",
+  "candidate": {
+    "commit": "f1a90436c45208ca248e058a039893233c608daa",
+    "tree": "c5cdfff66e64bb4d68926c4f93a7620eb89e7dcd",
+    "mutableHeadUsed": false
+  },
+  "pass": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "runtime-positive: \nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\nError: VALIDATION_GUARD_OUTSIDE_PACKAGE: specifier=file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerB-moved/runtime-probe.mjs url=file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerB-moved/runtime-probe.mjs\n    at reject (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/guard-loader.mjs:21:9)\n    at resolveHook (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/guard-loader.mjs:65:3)\n    at async nextResolve (node:internal/modules/esm/hooks:748:22)\n    at async Hooks.resolve (node:internal/modules/esm/hooks:240:24)\n    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18)\n\nNode.js v22.22.2\n\n\n1 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: runtime-positive: \nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\nError: VALIDATION_GUARD_OUTSIDE_PACKAGE: specifier=file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerB-moved/runtime-probe.mjs url=file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerB-moved/runtime-probe.mjs\n    at reject (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/guard-loader.mjs:21:9)\n    at resolveHook (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/guard-loader.mjs:65:3)\n    at async nextResolve (node:internal/modules/esm/hooks:748:22)\n    at async Hooks.resolve (node:internal/modules/esm/hooks:240:24)\n    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18)\n\nNode.js v22.22.2\n\n\n1 !== 0\n\n    at assertNormal (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/run.mjs:206:10)\n    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/run.mjs:574:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/run.mjs:834:12"
+  },
+  "commands": [
+    {
+      "label": "candidate-commit",
+      "executable": "/usr/bin/git",
+      "executableSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "f1a90436c45208ca248e058a039893233c608daa^{commit}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11521,
+      "startedAt": "2026-08-27T17:46:58.134Z",
+      "deadlineAt": "2026-08-27T17:48:58.134Z",
+      "endedAt": "2026-08-27T17:46:58.259Z",
+      "durationMs": 125,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 41,
+        "storedBytes": 41,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "9be78e7238e4f38dbf11550952e1b8379537c00a005a74626edfa8dc7bcf2084",
+        "evidence": "raw/candidate-commit.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/candidate-commit.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.258Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.259Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "candidate-tree",
+      "executable": "/usr/bin/git",
+      "executableSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "f1a90436c45208ca248e058a039893233c608daa^{tree}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11523,
+      "startedAt": "2026-08-27T17:46:58.261Z",
+      "deadlineAt": "2026-08-27T17:48:58.261Z",
+      "endedAt": "2026-08-27T17:46:58.279Z",
+      "durationMs": 18,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 41,
+        "storedBytes": 41,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "11adbd0480dedec60350fdcf706c1923a6536d59f44388452e7dfa04efd24c57",
+        "evidence": "raw/candidate-tree.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/candidate-tree.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.279Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.279Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "evidence-commit",
+      "executable": "/usr/bin/git",
+      "executableSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "92d1dacd041d90f58fee81922815bbd606cceb8e^{commit}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11524,
+      "startedAt": "2026-08-27T17:46:58.280Z",
+      "deadlineAt": "2026-08-27T17:48:58.280Z",
+      "endedAt": "2026-08-27T17:46:58.298Z",
+      "durationMs": 18,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 41,
+        "storedBytes": 41,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "6227191773b45792caa0165f6e2ad233e5f492357e92e58251edda79747b0ca8",
+        "evidence": "raw/evidence-commit.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/evidence-commit.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.298Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.298Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "evidence-tree",
+      "executable": "/usr/bin/git",
+      "executableSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "92d1dacd041d90f58fee81922815bbd606cceb8e^{tree}"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11525,
+      "startedAt": "2026-08-27T17:46:58.299Z",
+      "deadlineAt": "2026-08-27T17:48:58.299Z",
+      "endedAt": "2026-08-27T17:46:58.320Z",
+      "durationMs": 21,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 41,
+        "storedBytes": 41,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "053b55427401c451ddb85da9fd8c2b581405e27b3d0ea7bb4d0c5b802bf2d8a6",
+        "evidence": "raw/evidence-tree.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/evidence-tree.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.320Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.320Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "tool-manifest-blob",
+      "executable": "/usr/bin/git",
+      "executableSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "92d1dacd041d90f58fee81922815bbd606cceb8e:tests/commands/tree-charset-independent-20260827/execution/author-regression-001.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11526,
+      "startedAt": "2026-08-27T17:46:58.321Z",
+      "deadlineAt": "2026-08-27T17:48:58.321Z",
+      "endedAt": "2026-08-27T17:46:58.340Z",
+      "durationMs": 19,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 41,
+        "storedBytes": 41,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e8f5afaa7e59311ffbb8f59df941e4e84398c01e371d9e4b83e195a028f9584e",
+        "evidence": "raw/tool-manifest-blob.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/tool-manifest-blob.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.340Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.340Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "tool-manifest-content",
+      "executable": "/usr/bin/git",
+      "executableSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "argv": [
+        "/usr/bin/git",
+        "cat-file",
+        "blob",
+        "6bb87c1a42eb39b466071c62a3b0669ea9daa82e"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11527,
+      "startedAt": "2026-08-27T17:46:58.341Z",
+      "deadlineAt": "2026-08-27T17:48:58.341Z",
+      "endedAt": "2026-08-27T17:46:58.360Z",
+      "durationMs": 19,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 4194304,
+        "totalBytes": 455607,
+        "storedBytes": 455607,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "71b1e9e7828e8c0cf0deed7e2cfdfb4d2741aa3eea2540d754b520ad24bfe3e9",
+        "evidence": "raw/tool-manifest-content.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/tool-manifest-content.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.360Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.360Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "git-archive",
+      "executable": "/usr/bin/git",
+      "executableSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "argv": [
+        "/usr/bin/git",
+        "archive",
+        "--format=tar",
+        "--output=/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/f1a90436c45208ca248e058a039893233c608daa.tar",
+        "f1a90436c45208ca248e058a039893233c608daa",
+        "src",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11528,
+      "startedAt": "2026-08-27T17:46:58.362Z",
+      "deadlineAt": "2026-08-27T17:48:58.362Z",
+      "endedAt": "2026-08-27T17:46:58.429Z",
+      "durationMs": 67,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/git-archive.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/git-archive.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.429Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.429Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "selected-input-ls-tree",
+      "executable": "/usr/bin/git",
+      "executableSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "argv": [
+        "/usr/bin/git",
+        "ls-tree",
+        "-r",
+        "f1a90436c45208ca248e058a039893233c608daa",
+        "--",
+        "src",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11529,
+      "startedAt": "2026-08-27T17:46:58.430Z",
+      "deadlineAt": "2026-08-27T17:48:58.430Z",
+      "endedAt": "2026-08-27T17:46:58.451Z",
+      "durationMs": 21,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 19387,
+        "storedBytes": 19387,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "ac9c5467e413a6a49cdaba02530771a6fc57e11f3e27b0fc87e081043607a037",
+        "evidence": "raw/selected-input-ls-tree.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/selected-input-ls-tree.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.451Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.451Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "extract-source-archive",
+      "executable": "/usr/bin/tar",
+      "executableSha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "argv": [
+        "/usr/bin/tar",
+        "-xf",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/f1a90436c45208ca248e058a039893233c608daa.tar",
+        "-C",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/source"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11530,
+      "startedAt": "2026-08-27T17:46:58.452Z",
+      "deadlineAt": "2026-08-27T17:48:58.452Z",
+      "endedAt": "2026-08-27T17:46:58.517Z",
+      "durationMs": 65,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/extract-source-archive.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/extract-source-archive.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.517Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:46:58.517Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "candidate-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/node_modules/typescript/bin/tsc",
+        "--project",
+        "tsconfig.build.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/source",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11531,
+      "startedAt": "2026-08-27T17:46:58.809Z",
+      "deadlineAt": "2026-08-27T17:48:58.809Z",
+      "endedAt": "2026-08-27T17:47:00.598Z",
+      "durationMs": 1789,
+      "timeoutMs": 120000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/candidate-build.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/candidate-build.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:47:00.598Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:47:00.598Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "npm-pack",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "pack",
+        "--json",
+        "--ignore-scripts",
+        "--pack-destination=/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/pack"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/source",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11539,
+      "startedAt": "2026-08-27T17:47:00.756Z",
+      "deadlineAt": "2026-08-27T17:48:00.756Z",
+      "endedAt": "2026-08-27T17:47:01.639Z",
+      "durationMs": 883,
+      "timeoutMs": 60000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 85667,
+        "storedBytes": 85667,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e29f1393feb76836d55e23717dcbfe2523fd171f8a18960ddae561d2910cdcb7",
+        "evidence": "raw/npm-pack.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 208,
+        "storedBytes": 208,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240",
+        "evidence": "raw/npm-pack.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:47:01.638Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:47:01.639Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "npm-install-local-tarball",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--package-lock=false",
+        "--offline",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/pack/virtual-bash-0.0.0.tgz"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerA",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true"
+      },
+      "pid": 11549,
+      "startedAt": "2026-08-27T17:47:01.706Z",
+      "deadlineAt": "2026-08-27T17:48:01.706Z",
+      "endedAt": "2026-08-27T17:47:02.529Z",
+      "durationMs": 823,
+      "timeoutMs": 60000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 26,
+        "storedBytes": 26,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "dc1110dfae7ef941d8a845c2b12d3429da1bfe3981e7cd2f1fca5ef2eeb98aff",
+        "evidence": "raw/npm-install-local-tarball.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/npm-install-local-tarball.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:47:02.529Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:47:02.529Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    },
+    {
+      "label": "runtime-positive",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--no-warnings",
+        "--unhandled-rejections=strict",
+        "--experimental-loader",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/validation-chain/harness/guard-loader.mjs",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerB-moved/runtime-probe.mjs",
+        "positive"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/consumerB-moved",
+      "env": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/home",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "npm_config_cache": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/npm-cache",
+        "npm_config_userconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-user.npmrc",
+        "npm_config_globalconfig": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/empty-global.npmrc",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_ignore_scripts": "true",
+        "VALIDATION_GUARD_CONFIG": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-gew04J/runtime-positive-guard.json"
+      },
+      "pid": 11551,
+      "startedAt": "2026-08-27T17:47:02.716Z",
+      "deadlineAt": "2026-08-27T17:47:32.716Z",
+      "endedAt": "2026-08-27T17:47:02.760Z",
+      "durationMs": 44,
+      "timeoutMs": 30000,
+      "stdout": {
+        "capBytes": 1048576,
+        "totalBytes": 0,
+        "storedBytes": 0,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "evidence": "raw/runtime-positive.stdout"
+      },
+      "stderr": {
+        "capBytes": 1048576,
+        "totalBytes": 935,
+        "storedBytes": 935,
+        "capExceeded": false,
+        "truncated": false,
+        "sha256OfStoredBytes": "1464c0e1e3d5c6d0d4ad7be84a10a82ce33c556d7927da42f6f08939bd027021",
+        "evidence": "raw/runtime-positive.stderr"
+      },
+      "timedOut": false,
+      "killRequested": null,
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-27T17:47:02.760Z"
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-27T17:47:02.760Z"
+      },
+      "spawnError": null,
+      "absentAfterClose": true
+    }
+  ],
+  "cleanup": {
+    "attempted": true,
+    "runtimeAbsent": true,
+    "liveChildrenAfterClose": []
+  }
+}

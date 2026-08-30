@@ -1,0 +1,148 @@
+{
+  "commit": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+  "parent": "9e6c5e2394d5d36df42529d74d1dd21301ddeab6",
+  "initialHead": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+  "finalHead": "8ab677479e0094ec0c6cdf90d1f0e87883b2f8dc",
+  "scratch": "/tmp/safe-bash-file-annotation-review-6fBRw5",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.bun/bin:/opt/homebrew/bin:/Users/kjopek/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Users/kjopek/.codex/tmp/arg0/codex-arg0CUOdzl:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/Users/kjopek/.bun/bin:/Users/kjopek/bin:/Users/kjopek/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities",
+    "HOME": "/tmp/safe-bash-file-annotation-review-6fBRw5",
+    "TMPDIR": "/tmp/safe-bash-file-annotation-review-6fBRw5/tmp",
+    "TSX_DISABLE_CACHE": "1",
+    "NO_COLOR": "1"
+  },
+  "results": {
+    "before": {
+      "revision": "9e6c5e2394d5d36df42529d74d1dd21301ddeab6",
+      "archiveSha256": "909e3d90dba17eb9ad4d4148d9aa952103e31db921a569a90eebdb44a6ff15b4",
+      "fixtureSha256": "d77be12ea936a817699d6f596c9525cdee5fdf8e53289d98767975a09724ae83",
+      "fixtureBytes": 10527,
+      "versions": {
+        "typescript": "5.9.3",
+        "tsx": "4.23.12",
+        "@types/node": "22.20.1"
+      },
+      "typeStatus": 2,
+      "diagnostics": [
+        {
+          "path": "tests/commands/file/text-bound.test.ts",
+          "line": 67,
+          "column": 72,
+          "code": "TS2749",
+          "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+        },
+        {
+          "path": "tests/commands/file/text-bound.test.ts",
+          "line": 79,
+          "column": 72,
+          "code": "TS2749",
+          "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+        },
+        {
+          "path": "tests/commands/file/text-bound.test.ts",
+          "line": 136,
+          "column": 72,
+          "code": "TS2749",
+          "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+        }
+      ],
+      "tests": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "emittedBytes": 12453,
+      "emittedSha256": "bfcd49d6bcfc3a7d57dc76dcba07a6b224f9d9001b6c8adca71ca8c8500b5ff2",
+      "compilerOptions": {
+        "target": 10,
+        "lib": [
+          "lib.es2023.d.ts"
+        ],
+        "module": 199,
+        "moduleResolution": 99,
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "verbatimModuleSyntax": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "types": [
+          "node"
+        ]
+      }
+    },
+    "after": {
+      "revision": "1a18cb1858f9453f41a20caff0988c578aa9c7e2",
+      "archiveSha256": "dde1edd4bc3b3d251d201111fac607a1a30307d15815472ecf41983a94f41ab7",
+      "fixtureSha256": "40577fca7e56498a285f39ddfc0c14f649ffc27b6e41a509023746d2c475e558",
+      "fixtureBytes": 10604,
+      "versions": {
+        "typescript": "5.9.3",
+        "tsx": "4.23.12",
+        "@types/node": "22.20.1"
+      },
+      "typeStatus": 0,
+      "diagnostics": [],
+      "tests": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "emittedBytes": 12453,
+      "emittedSha256": "bfcd49d6bcfc3a7d57dc76dcba07a6b224f9d9001b6c8adca71ca8c8500b5ff2",
+      "compilerOptions": {
+        "target": 10,
+        "lib": [
+          "lib.es2023.d.ts"
+        ],
+        "module": 199,
+        "moduleResolution": 99,
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "verbatimModuleSyntax": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "types": [
+          "node"
+        ]
+      }
+    }
+  },
+  "onlyTypeChanges": true,
+  "exactDelta": "One new aliased type-only import; three existing callback this annotations changed; all remaining source bytes untouched.",
+  "runtimeJavaScriptByteIdentical": true,
+  "negative": {
+    "status": 2,
+    "diagnostics": [
+      {
+        "path": "tests/commands/file/text-bound.test.ts",
+        "line": 187,
+        "column": 26,
+        "code": "TS2345",
+        "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+      }
+    ],
+    "fixtureSha256": "8c7c7ffdfebb7d552072d8f7c237b20428c87776e6c33f0561ea182589ac5930",
+    "regularCopy": true
+  },
+  "workingFixtureSha256": "40577fca7e56498a285f39ddfc0c14f649ffc27b6e41a509023746d2c475e558",
+  "workingFixtureEqualsCommit": true,
+  "workingFixtureUnchanged": true,
+  "authorReceipt": {
+    "revision": "21049bedb7d086c68952153a82a0add91aadd570",
+    "sha256": "314d5776dd14f031aa58fe719e7f20367d29d40be58b428e70415d80354bb053",
+    "beforeFixtureMatchesExactParent": true,
+    "afterFixtureMatchesExactCommit": true
+  },
+  "importBinding": "Both variants have exact git-archived src/** plus tests/commands/file/helpers.ts, original relative imports and package.json/tsconfig.json/lock. No import rewrites; shared parent node_modules is a regular dereferenced copy of existing locked tools. Negative is a separate regular copy of after. No repository source, config, tests or dependencies are written."
+}

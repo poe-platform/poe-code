@@ -1,0 +1,223 @@
+{
+  "role": "EIGHT_DATA_ONLY",
+  "preexecutionBindings": [
+    {
+      "path": "observer-state.mjs",
+      "bytes": 1240,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "group-observer.mjs",
+      "bytes": 759,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "DATA-PRESEAL.json",
+      "bytes": 968,
+      "sha256": "0775765ffb8c79ec759688c6bfe5db37731b1ece9c968a844d0f091219c5b69a"
+    }
+  ],
+  "results": [
+    {
+      "id": "success-present",
+      "pass": true,
+      "actual": {
+        "state": "present",
+        "error": null
+      },
+      "accessorCalls": 0
+    },
+    {
+      "id": "ESRCH-absent",
+      "pass": true,
+      "actual": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -1
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "accessorCalls": 0
+    },
+    {
+      "id": "EPERM-unknown",
+      "pass": true,
+      "actual": {
+        "state": "unknown",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "EPERM"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -1
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "accessorCalls": 0
+    },
+    {
+      "id": "EINVAL-unknown",
+      "pass": true,
+      "actual": {
+        "state": "unknown",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "EINVAL"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -1
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "accessorCalls": 0
+    },
+    {
+      "id": "TypeError-missing-code",
+      "pass": true,
+      "actual": {
+        "state": "unknown",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "TypeError"
+            },
+            "code": {
+              "presence": "absent"
+            },
+            "errno": {
+              "presence": "absent"
+            },
+            "syscall": {
+              "presence": "absent"
+            }
+          }
+        }
+      },
+      "accessorCalls": 0
+    },
+    {
+      "id": "undefined-thrown",
+      "pass": true,
+      "actual": {
+        "state": "unknown",
+        "error": {
+          "thrownType": "undefined",
+          "fields": {
+            "name": {
+              "presence": "absent"
+            },
+            "code": {
+              "presence": "absent"
+            },
+            "errno": {
+              "presence": "absent"
+            },
+            "syscall": {
+              "presence": "absent"
+            }
+          }
+        }
+      },
+      "accessorCalls": 0
+    },
+    {
+      "id": "accessor-not-invoked",
+      "pass": true,
+      "actual": {
+        "state": "unknown",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "absent"
+            },
+            "code": {
+              "presence": "accessor-not-invoked"
+            },
+            "errno": {
+              "presence": "absent"
+            },
+            "syscall": {
+              "presence": "absent"
+            }
+          }
+        }
+      },
+      "accessorCalls": 0
+    },
+    {
+      "id": "oversized-code",
+      "pass": true,
+      "actual": {
+        "state": "unknown",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "absent"
+            },
+            "code": {
+              "presence": "over-limit",
+              "length": 129
+            },
+            "errno": {
+              "presence": "absent"
+            },
+            "syscall": {
+              "presence": "absent"
+            }
+          }
+        }
+      },
+      "accessorCalls": 0
+    }
+  ],
+  "signals": 0,
+  "probes": 0,
+  "actualProcesses": 0
+}

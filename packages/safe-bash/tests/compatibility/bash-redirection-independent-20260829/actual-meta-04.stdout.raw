@@ -1,0 +1,36 @@
+[main fdd8eedb] test: seal narrow N11 current-stderr routing correction
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 21 files changed, 21502 insertions(+)
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/CASES.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/EXECUTION-SEAL.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/EXECUTOR.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/RECIPE.md
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/REUSE.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/SOURCE.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/TOOL-CENSUS.json
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/close-observer.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/consumer.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/hash-regular-file.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/internal-loader-arguments.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/launch.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/loader.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/novel.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/prepare.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/redirections-v2.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/resources.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/run.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/tool-closure.mjs
+ create mode 100644 tests/compatibility/bash-redirection-independent-20260829/n11-v3/worker-policy.mjs

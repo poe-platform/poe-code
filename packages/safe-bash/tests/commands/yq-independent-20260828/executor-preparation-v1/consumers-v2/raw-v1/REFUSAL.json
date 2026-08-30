@@ -1,0 +1,12 @@
+{
+  "schema": 2,
+  "role": "RAW_ORIGINAL_V1_REFUSAL_BEFORE_FIX",
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "stdout": "{\"role\":\"ORIGINAL_V1_SOURCE_ADMISSION_REPRODUCTION\",\"guardCommit\":\"409449136ae1adc252ff6e205a6bb5785d113d0f\",\"guardSha256\":\"47715566b179d65b5bd9501d667634c8957ba7a5e29b43246fa77824f5d4cd91\",\"sourceLines\":[189,200,208],\"candidateCommit\":\"35da18547ca82a67be9ca22b4adc21e3b8060780\",\"receiptHash\":\"0b2a4bb3f6e7ff878f6c17f2237363811376edc1fbcdd5aa7499759705ecd170\",\"productExecution\":0}\n",
+  "stderr": "Error: SOURCE_BINDING: \n    at requireFact (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/guards.mjs:17:39)\n    at assertSourceMap (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/guards.mjs:186:3)\n    at Module.authorizeSources (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/guards.mjs:208:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/reproduce-v1.mjs:20:27\n",
+  "presealCommit": "61cec1d71bf1121234de8ee727da990ff29c54e8",
+  "scriptSha256": "eb364fb853e8b980862b1eb5cb5171653ab39fedd6f58d4df4755944accd6750",
+  "productExecution": 0
+}

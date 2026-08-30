@@ -1,0 +1,138 @@
+{
+  "kind": "POST_STOP_READONLY_BINDING_AUDIT_NOT_REPLAY",
+  "at": "2026-08-28T11:34:47.413Z",
+  "recipeSha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+  "tools": [
+    {
+      "role": "node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "unchanged": true
+    },
+    {
+      "role": "git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "unchanged": true
+    }
+  ],
+  "archives": [
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "bytes": 749907,
+      "unchanged": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+      "bytes": 9879070,
+      "unchanged": true
+    }
+  ],
+  "views": [
+    {
+      "name": "target-installed",
+      "census": {
+        "files": 859,
+        "omittedMetadataOnly": 0,
+        "entries": 904,
+        "complete": true
+      },
+      "oldOriginAbsent": null,
+      "contentsSha256": "93a3c1168dffbc47d59a15626feb36f3f083f79002a37fdf2501a3fb1a10b2d1",
+      "runtimeQualified": false
+    },
+    {
+      "name": "target-moved",
+      "census": {
+        "files": 859,
+        "omittedMetadataOnly": 0,
+        "entries": 904,
+        "complete": true
+      },
+      "oldOriginAbsent": true,
+      "contentsSha256": "93a3c1168dffbc47d59a15626feb36f3f083f79002a37fdf2501a3fb1a10b2d1",
+      "runtimeQualified": false
+    },
+    {
+      "name": "baseline-installed",
+      "census": {
+        "files": 3844,
+        "omittedMetadataOnly": 0,
+        "entries": 4275,
+        "complete": true
+      },
+      "oldOriginAbsent": null,
+      "contentsSha256": "0f7133d243c06bee333d7d59135da595442b52dba60cfbe3be92ad0611f869db",
+      "runtimeQualified": false
+    }
+  ],
+  "baseline": {
+    "files": 3843,
+    "omittedMetadataOnly": 1,
+    "entries": 4275,
+    "complete": true
+  },
+  "processes": [
+    {
+      "pid": 4809,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 4869,
+      "pidAbsent": true,
+      "groupAbsent": true
+    }
+  ],
+  "loads": {
+    "attemptedBareProductImport": 1,
+    "returnedSourceWitnesses": [
+      {
+        "sequence": 1,
+        "kind": "nextLoad",
+        "path": "consumer.mjs",
+        "format": "module",
+        "bytes": 61,
+        "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+        "evaluationProven": false,
+        "origin": "actual-nextLoad-source"
+      }
+    ],
+    "denied": [
+      {
+        "sequence": 2,
+        "kind": "load-denied",
+        "code": "UNBOUND_MODULE",
+        "specifier": "virtual-bash"
+      }
+    ],
+    "productModuleSourceWitnesses": 0,
+    "comparatorModuleSourceWitnesses": 0,
+    "exportEvaluation": false
+  },
+  "preparationFailureRetained": true,
+  "rerun": false,
+  "resolutionDiagnosis": {
+    "observation": {
+      "name": "Error",
+      "code": "UNBOUND_MODULE",
+      "message": "UNBOUND_MODULE: {\"specifier\":\"virtual-bash\",\"parent\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/target-installed/consumer.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/dist/index.js\"}",
+      "stack": "Error: UNBOUND_MODULE: {\"specifier\":\"virtual-bash\",\"parent\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/target-installed/consumer.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/dist/index.js\"}\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:11:39)\n    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/loader.mjs:31:9)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:182:49)",
+      "original": null
+    },
+    "classification": "Harness consumer package-scope/self-reference contamination; loader denied ambient source before load",
+    "rootPackageMetadata": {
+      "path": "/Users/kjopek/Workspace/safe-bash/package.json",
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+      "name": "virtual-bash",
+      "exportsRoot": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    },
+    "targetConsumerPackageBoundaryMissing": true,
+    "staticInference": "Consumer beneath the repository has no own package.json boundary; the containing virtual-bash package self-reference wins before its staged node_modules package. Observed URL is repository dist/index.js.",
+    "recommendation": "Root route minimal versioned projection repair adding exact hash-bound non-virtual-bash consumer package scope(s), with bare-export/moved/no-fallback negatives and different freeze before any fresh grant. Do not alias imports or weaken loader allowlist.",
+    "notProductFailure": true
+  }
+}

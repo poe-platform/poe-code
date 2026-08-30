@@ -1,0 +1,20 @@
+import { createExprCommand, exprCommands, type ExprCommandsOptions } from './node_modules/virtual-bash/dist/commands/expr/index.js';
+import { Shell, MemoryFileSystem, standardCommands, type CommandContext, type CommandDefinition } from 'virtual-bash';
+
+if (import.meta.resolve('virtual-bash') !== new URL('./node_modules/virtual-bash/dist/index.js', import.meta.url).href) throw new Error('unexpected root resolution');
+let blockedSubpath = false;
+try { import.meta.resolve('virtual-bash/commands/expr'); }
+catch (error) { blockedSubpath = (error as { code?: string }).code === 'ERR_PACKAGE_PATH_NOT_EXPORTED'; }
+if (!blockedSubpath) throw new Error('unexpected public expr subpath');
+const options: ExprCommandsOptions = { limits: { maxArgumentBytes: 8192, maxNumericDigits: 256, maxNodes: 256, maxDepth: 64, maxSteps: 1000000, maxStringBytes: 8192, maxOutputBytes: 8193 } };
+const definition: CommandDefinition = createExprCommand(options);
+const chunks: Uint8Array[] = [];
+const context: CommandContext = { command: 'expr', args: ['41', '+', '1'], cwd: '/', env: { LC_ALL: 'C' }, signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} }, fs: new MemoryFileSystem(), stdout: { async write(chunk) { chunks.push(new Uint8Array(chunk)); } }, stderr: { async write() {} } };
+if ((await definition.execute(context)).exitCode !== 0) throw new Error('direct execution failed');
+if (Buffer.concat(chunks).toString() !== '42\n') throw new Error('direct output mismatch');
+const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(exprCommands());
+try {
+  const result = await shell.exec('expr 41 + 1 > /build-number; cat /build-number');
+  if (result.stdout !== '42\n' || result.stderr !== '' || result.exitCode !== 0) throw new Error('installed consumer workflow mismatch');
+} finally { await shell.dispose(); }
+console.log('moved offline installed-package internal-module consumer PASS');

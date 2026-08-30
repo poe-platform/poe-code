@@ -1,0 +1,28 @@
+import { appendFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+
+const actual = await import(pathToFileURL(process.env.REVIEW_INSTALLED + '/dist/commands/expr/index.js').href);
+export function createExprCommand(options) {
+  const definition = actual.createExprCommand(options);
+  return { ...definition, async execute(context) {
+    try { return await definition.execute(context); }
+    catch (reason) {
+      appendFileSync(process.env.REVIEW_MUTATION_LOG, JSON.stringify({ mutation: process.env.REVIEW_MUTATION, args: context.args, options, caughtReasonType: typeof reason, caughtMessage: reason?.message }) + '\n');
+      const diagnostic = async () => {
+        try { await context.stderr.write(new TextEncoder().encode('expr: execution or output failure\n')); }
+        catch {}
+      };
+      switch (process.env.REVIEW_MUTATION) {
+        case 'none': throw reason;
+        case 'swallow': return { exitCode: 0 };
+        case 'recast': await diagnostic(); return { exitCode: 3 };
+        case 'wrong-error-copy': throw new Error(reason?.message);
+        case 'wrong-sentinel': throw { sentinel: 'independent wrong reason' };
+        case 'duplicate-diagnostic': await diagnostic(); await diagnostic(); throw reason;
+        default: throw new Error('Unknown independent mutation');
+      }
+    }
+  } };
+}
+export const createExprCommands = actual.createExprCommands;
+export const exprCommands = actual.exprCommands;

@@ -1,0 +1,161 @@
+{
+  "role": "FRESH_EXTERNAL_OUTER_SEAL",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": [
+    {
+      "path": "SOURCE.json",
+      "bytes": 227922,
+      "sha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32",
+      "mode": 420
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 598,
+      "sha256": "262b26b868d58b4fb75be9561205802de01e1e91436dbba09c72491d742b9a63",
+      "mode": 420
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342",
+      "mode": 420
+    },
+    {
+      "path": "resources.mjs",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f",
+      "mode": 420
+    },
+    {
+      "path": "worker-policy.mjs",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782",
+      "mode": 420
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1",
+      "mode": 420
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7",
+      "mode": 420
+    },
+    {
+      "path": "tool-closure.mjs",
+      "bytes": 1367,
+      "sha256": "9b66741f1191a28f06e175f42d1e2437a36204a96ab213a94f06ace7dd04500d",
+      "mode": 420
+    },
+    {
+      "path": "TOOL-CENSUS.json",
+      "bytes": 558347,
+      "sha256": "6cbe2ac733f6975057db6caa4349a7222b0a3e7ac6fe6a4de0190f5f7e0d3791",
+      "mode": 420
+    },
+    {
+      "path": "derived-tree.mjs",
+      "bytes": 2460,
+      "sha256": "035cc96d2379fc7065581cc6a051cd16d1a6f22b7486d707c23fc76568dfe244",
+      "mode": 420
+    },
+    {
+      "path": "tool-observer.mjs",
+      "bytes": 1246,
+      "sha256": "96e0965c85070efb81e58be21a6a581d9bfec9bd85a86940b5c845261a6d71ef",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+      "mode": 420
+    },
+    {
+      "path": "NOVEL-CASES.json",
+      "bytes": 6004,
+      "sha256": "03add0fafc84de43e3af155413671c2bf4e88a019f4bbc8f7f1b05d474e00805",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/novel-v4.mjs",
+      "bytes": 3079,
+      "sha256": "70ed7cd33417d8356ee4cca9ce638418f0af9b853d60a1bcfd2329b918c0880f",
+      "mode": 420
+    },
+    {
+      "path": "STAGE-INPUTS.json",
+      "bytes": 2928,
+      "sha256": "65e8f657efedbb7b42e4b9cf04817c3d860529b443338058f8019a66efdc1dfa",
+      "mode": 420
+    },
+    {
+      "path": "stage-inputs.mjs",
+      "bytes": 1125,
+      "sha256": "dd8df916d553fc45b4f4fa33767c0c18ef2c865fd6849903d60ef70f5ca0110a",
+      "mode": 420
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 2032,
+      "sha256": "5814d0d53d82966d1250c600883341f308e7b386df6b8d581280bc70087357a1",
+      "mode": 420
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 26948,
+      "sha256": "4242fd612aa15e527e5834505aa5071785072c472525365e3fcde9ac01116140",
+      "mode": 420
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 5038,
+      "sha256": "c3d3131ec8b0baf2363e1f0634aacb851d7cff8808f1de91823e9f7d15073011",
+      "mode": 420
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 11410,
+      "sha256": "dfdad31c61aaca090fe21ec501c55a7c98913e154eb9c35c5821f3fc84f7d02c",
+      "mode": 420
+    },
+    {
+      "path": "admit.mjs",
+      "bytes": 3286,
+      "sha256": "8124f6d358bca356d358774079b241508a22cfa8b2136b1324a1efafc3247236",
+      "mode": 420
+    },
+    {
+      "path": "RECIPE.md",
+      "bytes": 3231,
+      "sha256": "dcb495f776f0420bef53f1bba0e02a51aaf0aa55c64d08451431e6638b7a6f25",
+      "mode": 420
+    },
+    {
+      "path": "../successor-v6/ACTUAL-02/scratch/RESULT.json",
+      "bytes": 3975711,
+      "sha256": "5aaa6245af4d173c5699c0a71ccb729bd7fb9ea75239bb1fccc4165d06d4120e",
+      "mode": 420
+    },
+    {
+      "path": "../successor-v6/ACTUAL-02/OUTER.json",
+      "bytes": 197,
+      "sha256": "8cc78afeeb5d678ac861ea89ae9adf22898744598e6db1e891b3862d3bff3eb6",
+      "mode": 420
+    },
+    {
+      "path": "EXECUTOR.json",
+      "mode": 420,
+      "bytes": 5619,
+      "sha256": "9e70d2bb5a0fae50f2947d2b045c7f5c389aaebe03c13c70f3f245b287c53a46"
+    }
+  ]
+}
+

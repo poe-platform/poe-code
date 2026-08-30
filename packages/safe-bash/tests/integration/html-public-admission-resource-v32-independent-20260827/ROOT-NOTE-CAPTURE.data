@@ -1,0 +1,18 @@
+# Scope clarification before independent execution
+
+The user's latest authorization is to independently freeze/execute the current
+v3.2 resource profile **unchanged**. Preserve its existing focused prerequisite
+controls as well as the five real resource cases: the 28 consumer predicates,
+six forwarding cohorts, eight ordered predicates and read-only verification
+belong to this bounded current profile, not to the excluded historical v2/v3/v3.1
+rescoring. Prefer running that exact current profile once with write-path
+relocation only. Do not silently remove required current-profile prerequisite
+checks to isolate five cases. The parent delegation's phrase "five-case only"
+was intended to exclude old resource/archive/public cohorts, not to weaken the
+current profile's prerequisites. Freeze the explicit scope and mapping before
+execution, retain the distinction between synthetic predicates and actual
+process cases, and acknowledge this clarification in the handoff. If already
+executed, do not retry: report exact actual scope and any omitted prerequisite.
+
+The separate core/build execution is complete and evidence is sealed at
+7f272e4bdee84d3a40b0e3b9c2577b74b12bc6ef. Do not rerun or alter it.

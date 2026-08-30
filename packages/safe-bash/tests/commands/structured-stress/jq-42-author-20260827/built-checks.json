@@ -1,0 +1,66 @@
+{
+  "at": "2026-08-27T00:50:18.133Z",
+  "sourceHashes": {
+    "README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+    "index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "input.ts": "1ac8e520cf80237a45a275d6fa55ad035b6ec0b83dae91765a7d77818ab2d935",
+    "interpreter.ts": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+    "jq.ts": "59239e32576e8f88d5ef49980c713ddb070468518800f16b5e2aa16a0520fb02",
+    "limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "numbers.ts": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+    "parser.ts": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+    "split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "values.ts": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222"
+  },
+  "cases": [
+    {
+      "id": "recover-following-json",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "6f6b6166746572",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20737472696e67202822222920616e64206f626a65637420287b7d292063616e6e6f742062652061646465640a"
+      }
+    },
+    {
+      "id": "raw-surrogate",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "raw-file-utf8-boundary",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2241efbfbdefbfbdefbfbd220a2242220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "json-low-surrogate-escape",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "conversion-large-token",
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a206e756d626572202831452b3939393929206f6e6c7920737472696e67732063616e206265207061727365640a"
+      }
+    },
+    {
+      "id": "preserve-through-copy",
+      "actual": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a30293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226b6579220a"
+      }
+    }
+  ],
+  "pass": 6
+}

@@ -1,0 +1,32 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "public.mjs"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-1tkDXu/consumer",
+  "pid": 29365,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 264,
+  "timeoutMs": 180000,
+  "outputBytes": 11938,
+  "observed": [
+    {
+      "pid": 29365,
+      "parent": 94682,
+      "group": 29365,
+      "born": "Thu Aug 27 00:43:14 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node public.mjs"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "public",
+  "sourceChanges": []
+}

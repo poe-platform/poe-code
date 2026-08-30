@@ -1,0 +1,430 @@
+{
+  "at": "2026-08-27T11:43:14.062Z",
+  "acceptanceDirectChildren": [
+    {
+      "pid": 61328,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61330,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61351,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61352,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61354,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61355,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61357,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61360,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61368,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61370,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61389,
+      "status": 2,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61390,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61391,
+      "status": 2,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61393,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61401,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61414,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61416,
+      "status": 2,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61417,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61418,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 61419,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    }
+  ],
+  "historicalDirectChildren": [
+    {
+      "pid": 70696,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C1"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70703,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C2"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70706,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C3"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70710,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C4"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70713,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C5"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70716,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C6"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70719,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C7"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70722,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C8"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70725,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/controls.mjs",
+        "C9"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70657,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "tests/contracts/io.test.ts",
+        "tests/contracts/io.stress.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70686,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=pipeline close: first-read-head-zero",
+        "tests/shell/remote-close.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70306,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=pipeline close: (?!first-read-)",
+        "tests/shell/remote-close.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70664,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=hard-timeout lifecycle regression: shared-",
+        "tests/shell/lifecycle.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70681,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches",
+        "tests/shell/streaming.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70297,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-curl-body"
+      ],
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70302,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-curl-headers"
+      ],
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70276,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-local"
+      ],
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70289,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-s3"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    },
+    {
+      "pid": 70293,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/shell/first-read-probe.ts",
+        "first-read-webdav"
+      ],
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "residual": false
+    }
+  ],
+  "allAcceptanceFixtureResourcesZero": true,
+  "noHardTimeoutsOrOutputOverflow": true,
+  "noUnhandledFixtureRejections": true,
+  "ownOpaqueGatesReleased": true,
+  "noPollerOrStoppedWorker": true,
+  "rootMustObserveExecutorActualExit": true
+}

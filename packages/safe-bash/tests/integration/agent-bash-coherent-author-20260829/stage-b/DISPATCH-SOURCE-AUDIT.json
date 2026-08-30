@@ -1,0 +1,97 @@
+{
+  "largeMembersForExistingGuard": [],
+  "worker": {
+    "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+    "path": "dist/commands/node/worker-main.js",
+    "bytes": 8744,
+    "sha256": "2ef280342b55c028c8e35e0f6cc98c9bf45c580134c9f0ada078815da1b3820d",
+    "mode": 420
+  },
+  "engineLines": [
+    {
+      "line": 6,
+      "text": "export const engineIds = Object.freeze(['C10','C11','C15','C16','C18']);"
+    },
+    {
+      "line": 27,
+      "text": "  const realProvider = () => {"
+    },
+    {
+      "line": 56,
+      "text": "      const optional = make(); addNode(optional); curl(optional); await expect(optional, 'true', ''); assert.equal(optional.commands.list().length, 82); assert.equal(prepares, 0);"
+    },
+    {
+      "line": 69,
+      "text": "      const shell = make(); addNode(shell); const result = await shell.exec('set -u; printf \\'%s\\' \"$missing\"; node -p \\'1\\'');"
+    },
+    {
+      "line": 72,
+      "text": "    } else if (id === 'C10') {"
+    },
+    {
+      "line": 74,
+      "text": "      const shell = make(); addNode(shell, { sourceRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());"
+    },
+    {
+      "line": 76,
+      "text": "    } else if (id === 'C11') {"
+    },
+    {
+      "line": 78,
+      "text": "      addNode(shell, { dataRead: true, dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());"
+    },
+    {
+      "line": 79,
+      "text": "      await expect(shell, `curl -sS -o /payload.json https://one.invalid/start; node -e ${quote('const fs=require(\"fs\");const data=JSON.parse(fs.readFileSync(\"/payload.json\",\"utf8\"));fs.writeFileSync(\"/repo/README.md\",data.text);')}`, '');"
+    },
+    {
+      "line": 100,
+      "text": "    } else if (id === 'C15') {"
+    },
+    {
+      "line": 102,
+      "text": "      addNode(shell, { dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());"
+    },
+    {
+      "line": 103,
+      "text": "      const result = await shell.exec(`node -e ${quote('require(\"fs\").writeFileSync(\"/keep\",\"changed\");')}`);"
+    },
+    {
+      "line": 105,
+      "text": "    } else if (id === 'C16') {"
+    },
+    {
+      "line": 109,
+      "text": "      const shell = make(); addNode(shell, { dataRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());"
+    },
+    {
+      "line": 116,
+      "text": "    } else if (id === 'C17') {"
+    },
+    {
+      "line": 117,
+      "text": "      const entered = deferred(), gate = deferred(), shell = make(); addNode(shell); let writes = 0, settled = false;"
+    },
+    {
+      "line": 123,
+      "text": "      const pending = outcome(shell.exec('f(){ printf \"%s\" \"${absent:?required}\"; }; guard; node -p \\'1\\'', { stderr: { async write() { writes++; events.push('diagnostic'); throw 0; } } })).then(result => { settled = true; events.push('settled'); return result; });"
+    },
+    {
+      "line": 127,
+      "text": "    } else if (id === 'C18') {"
+    },
+    {
+      "line": 128,
+      "text": "      const collided = make(); const original = { name: 'node', execute() { return { exitCode: 99 }; } }; collided.commands.register(original); addNode(collided);"
+    },
+    {
+      "line": 131,
+      "text": "      const shell = make(), options = { provider: realProvider(), grants: { stdoutWrite: true, stderrWrite: true }, replace: true };"
+    },
+    {
+      "line": 133,
+      "text": "      shell.use(plugin); await expect(shell, \"node -p '8'\", '8\\n');"
+    }
+  ],
+  "semanticRuns": 0
+}

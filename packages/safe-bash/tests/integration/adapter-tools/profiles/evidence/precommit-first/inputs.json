@@ -1,0 +1,116 @@
+[
+  {
+    "path": "tests/integration/adapter-tools/matrix.test.ts",
+    "sha256": "616f099aabda4353b53fd1cc2a9137e71bdc611b831e9120ad93f5432d0dbe22",
+    "bytes": 17328,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/fixtures.ts",
+    "sha256": "d1fcd360170a9ea5467697fa5a1bc64e53f5589ad376ddd3c01aa65cf119729f",
+    "bytes": 9911,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/rmdir-fixtures.ts",
+    "sha256": "91dab02c45ad25919e7113c950eceb534bff98c05076d5116e7fd5b9fbcb7196",
+    "bytes": 657,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/stock-webdav-capability.test.ts",
+    "sha256": "89d1760df642ad8a026d65068805372ec78c13043e268b4225765bfc2ecab21e",
+    "bytes": 2070,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/history/before.json",
+    "sha256": "9a50591b789dff0eb5d15d671d6241c2bac62bcd274a8a281cc7fce68e394f07",
+    "bytes": 1903,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/history/README.md",
+    "sha256": "0ca2df25c4f7a26f02c825f79245dc63d7db4c852588eb8709570fdec6909544",
+    "bytes": 593,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/history/matrix.test.ts.txt",
+    "sha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+    "bytes": 17200,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/history/fixtures.ts.txt",
+    "sha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+    "bytes": 9519,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/history/rmdir-row.ts.txt",
+    "sha256": "1b6bec20f3a9cae1f04ed30f8e21f758e5ba72d48715dc5c18e4770c310fe0ba",
+    "bytes": 656,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/history/rmdir-body.ts.txt",
+    "sha256": "81ca50e611045a348db5954c53b26762da66ff4ba2c4af530349601f8d910b5e",
+    "bytes": 493,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/README.md",
+    "sha256": "58c8adaea6518c4745654eef6881d55fcd38d1a4fd0d0e5938673b91345c26ee",
+    "bytes": 3525,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/verify.mjs",
+    "sha256": "cec502bc6a031ea4d32b63c908cfcb0aecf73bf0dd2a69587b34840fa0ee173b",
+    "bytes": 20755,
+    "origin": "uncommitted owned test input"
+  },
+  {
+    "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+    "sha256": "0cca6e8941bde1ebd89e3eaaf856d77047b1bd91219446ba8e732bd7c4c5b2cf",
+    "bytes": 889,
+    "origin": "committed",
+    "gitBlob": "b221c9a0aa2f587a8b26254a32ee9a5a8f9a31f1"
+  },
+  {
+    "path": "tests/fs/webdav/mock.ts",
+    "sha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "bytes": 11188,
+    "origin": "committed",
+    "gitBlob": "1336483dea51168dbbe378225622b2399c5f6e0b"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+    "sha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+    "bytes": 2166,
+    "origin": "committed",
+    "gitBlob": "f5d6fb2a295bdcf124c67c3da0b71456e6916c49"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+    "sha256": "24a03650e519cca07962b563e886c31900da3a1905de01d7b28074ca78a43196",
+    "bytes": 10779,
+    "origin": "committed",
+    "gitBlob": "1d99dd4b28068bc4ee03e4c247db48a06c2adefe"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+    "sha256": "3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58",
+    "bytes": 14518,
+    "origin": "committed",
+    "gitBlob": "dcdb56d0ffb6d0d3d821a71ea92f10f78a2fc357"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+    "sha256": "d7d3f592f49592153022a563e0a1786fd7691cc887ba699e83176b61f8136bea",
+    "bytes": 809,
+    "origin": "committed",
+    "gitBlob": "e38b8b4fba6f6849b4dbae632ab16c760ec142e8"
+  }
+]

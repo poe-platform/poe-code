@@ -1,0 +1,32 @@
+{
+  "at": "2026-08-27T22:49:12.795Z",
+  "helpers": {
+    "supervise.mjs": "f61f1d9ab315e984cfd6da3d9b398e02c56741b881d936441dd93240a30061a6",
+    "authenticate.mjs": "c45f371e7bc0b206505c31c895e55e83c8c501df13c08a5f35bb04e042d9c5e2",
+    "settle.mjs": "349fbb61627c2f8bb01ca37b4b38946608804d52daa83e8fade99f8a6d97672d",
+    "STATIC-REVIEW.md": "0cf414ca2afd7dbe55effd28b67e70da52bf7d838cd7e1da2a258dfae84c4130"
+  },
+  "tools": {
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node": {
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "/usr/bin/git": {
+      "resolved": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    "/usr/bin/tar": {
+      "resolved": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    "/bin/ps": {
+      "resolved": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    }
+  },
+  "authenticatedInputsReceiptSha256": "a3cf052be7926189879e9d385b20f2d2107e0349fa8959029a0a24ca195e282a",
+  "authorSealSha256": "82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7",
+  "authenticatedBeforeExecution": true,
+  "noAdapter": true,
+  "actual34": 0
+}

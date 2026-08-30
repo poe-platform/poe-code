@@ -1,0 +1,302 @@
+{
+  "checkedAt": "2026-08-27T05:55:16.120Z",
+  "initialNativeSha256": "55c1d647f08699a6020d1f8a7afbedf397f534d0a8f0386a7ea0eda0bd1bbe30",
+  "repeatSha256": "01773c27a0a76955811fc433a33b18e237914ea27cab9433d38daed90770f6d7",
+  "repeatPath": "tests/commands/stream-next-stress/.private/native-PveKNZ/native.json",
+  "controls": 153,
+  "repeatMismatches": [],
+  "workflowRepeatMismatches": [],
+  "profileDifferences": [
+    {
+      "id": "seq-decimal-precision",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-decimal-endpoint",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-descending-negative",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-zero-step",
+      "fields": [
+        "stderr"
+      ]
+    },
+    {
+      "id": "seq-empty",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-reversed",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-descending-empty",
+      "fields": [
+        "status",
+        "stderr"
+      ]
+    },
+    {
+      "id": "seq-separator",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-empty-separator",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-format-general",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-format-rounding",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "seq-invalid-format",
+      "fields": [
+        "stderr"
+      ]
+    },
+    {
+      "id": "seq-format-width-conflict",
+      "fields": [
+        "status",
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "id": "seq-invalid-number",
+      "fields": [
+        "status",
+        "stderr"
+      ]
+    },
+    {
+      "id": "seq-missing-operand",
+      "fields": [
+        "stderr"
+      ]
+    },
+    {
+      "id": "nl-default-blank",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "nl-logical-pages",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "nl-section-styles",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "nl-no-reset",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "nl-blank-joining",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "nl-custom-delimiter",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "nl-pattern-basic",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "nl-multiple-files",
+      "fields": [
+        "status",
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "id": "nl-missing-then-file",
+      "fields": [
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "id": "nl-invalid-style",
+      "fields": [
+        "stderr"
+      ]
+    },
+    {
+      "id": "nl-invalid-blank-count",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "unexpand-first-only-override",
+      "fields": [
+        "status",
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "id": "unexpand-mixed-tabs-backspace",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "unexpand-binary",
+      "fields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "unexpand-invalid-zero-stop",
+      "fields": [
+        "stderr"
+      ]
+    },
+    {
+      "id": "unexpand-decreasing-stops",
+      "fields": [
+        "stderr"
+      ]
+    },
+    {
+      "id": "split-line-bytes",
+      "fields": [
+        "status",
+        "stderr",
+        "after"
+      ]
+    },
+    {
+      "id": "split-numeric-start-additional",
+      "fields": [
+        "status",
+        "stderr",
+        "after"
+      ]
+    },
+    {
+      "id": "split-suffix-exhaustion",
+      "fields": [
+        "status",
+        "stderr"
+      ]
+    },
+    {
+      "id": "split-output-is-input",
+      "fields": [
+        "status",
+        "stderr",
+        "after"
+      ]
+    },
+    {
+      "id": "split-hardlink-output-alias",
+      "fields": [
+        "status",
+        "stderr",
+        "after"
+      ]
+    },
+    {
+      "id": "split-symlink-output-alias",
+      "fields": [
+        "status",
+        "stderr",
+        "after"
+      ]
+    },
+    {
+      "id": "split-second-output-directory",
+      "fields": [
+        "status"
+      ]
+    },
+    {
+      "id": "split-missing-parent",
+      "fields": [
+        "status"
+      ]
+    },
+    {
+      "id": "split-missing-input",
+      "fields": [
+        "status",
+        "stderr"
+      ]
+    },
+    {
+      "id": "split-input-directory",
+      "fields": [
+        "status",
+        "stderr"
+      ]
+    },
+    {
+      "id": "split-zero-size",
+      "fields": [
+        "status",
+        "stderr",
+        "after"
+      ]
+    },
+    {
+      "id": "split-conflicting-modes",
+      "fields": [
+        "status",
+        "stderr"
+      ]
+    },
+    {
+      "id": "split-extra-operand",
+      "fields": [
+        "status",
+        "stderr"
+      ]
+    }
+  ],
+  "interpretation": "Repeated native reference executions only; no additional independent input count and no product execution. Original expected outcomes unchanged."
+}

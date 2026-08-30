@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "recipeCommit": "adcb1467caad7165361f035f110b40dd1bbdf07d",
+  "files": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/inspect.mjs",
+      "bytes": 8924,
+      "sha256": "19f75326b0a51f9977def75cf01f07bf1429a606e19d0d299afb0d5e6b164d00"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/README.md",
+      "bytes": 2334,
+      "sha256": "b1d3fa1b362cff9cb4ce4a67daa07219d605970d502920d2f9c5ae311c48575a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/CALLS.json",
+      "bytes": 4276,
+      "sha256": "8efa968397a1cc0f7f44e2f0a54c8f1388752517ebdd2004f3645a82bfc533b1"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/FUTURE-CONTROLS.md",
+      "bytes": 3092,
+      "sha256": "14a0a61c03273965b5199ee9d894bcee1ea9450f7e257718aa84ddd9eb450ff1"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/INSPECTION.json",
+      "bytes": 60545,
+      "sha256": "02803cbedd0e067624923a6b5cf3986a9f354a5ee806d1f70a13746133193c2d"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/SUCCESSOR-PROFILE.json",
+      "bytes": 13356,
+      "sha256": "71ba31dea9594c3eee23c054a40b0fa09de4a78eb129a44018103c21a5dfb36c"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/CHANGESET.json",
+      "bytes": 6344,
+      "sha256": "4184b31197b7e1ea47523f8a30505c5c45c59dd783356b1db8e31013d7f80772"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/HANDOFF.md",
+      "bytes": 5581,
+      "sha256": "f73f049dcc12e50f357bd34916085e41aa1e72c4b60b9fe0745fa0a76d9a3ded"
+    }
+  ],
+  "metadataPreparation": {
+    "tools": 5,
+    "readableLoaderFiles": 1,
+    "reads": 18,
+    "bytes": 3803877,
+    "targetExecutions": 0,
+    "admissionControlsExecuted": 0,
+    "futureDataControls": 20,
+    "futureNativeScripts": 5
+  },
+  "preservation": {
+    "previousRepairSelectedHashesMatched": 15,
+    "parentMetadataBindingsMatched": 7,
+    "shippingEditsThisTask": 0,
+    "oldCaptureEdits": 0,
+    "oldFailedRootWrites": 0,
+    "privateAccess": 0,
+    "canonicalOrProductChanges": 0
+  },
+  "status": "INDEPENDENT_REVIEW_REQUESTED_PREPARATION_ONLY",
+  "pendingDecision": "Exact five new libSystem ENOENT tool/library pairs; no inherited OS exception or runtime-image eligibility.",
+  "qualifications": [
+    "This final seal checks declared current metadata/source bindings; it does not repeat the prior928 artifact/286 retained entry census.",
+    "Inspection and manifest comparison are not native version, successful dispatch, OS runtime closure, test, build or new gate proof.",
+    "R3 raw19425P132F7skip6of14 and source437 synthetic45 remain separate unchanged cohorts."
+  ]
+}

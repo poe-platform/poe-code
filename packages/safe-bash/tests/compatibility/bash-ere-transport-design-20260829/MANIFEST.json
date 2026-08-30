@@ -1,0 +1,49 @@
+{
+  "schema": "ere-transport-design-v1-content-manifest",
+  "status": "SOURCE_ONLY_ALL_VALIDATION_UNRUN",
+  "pathDomain": "owned-directory-relative UTF8 names sorted by byte comparison",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 40,
+      "sha256": "626a4a2e2d44eb3a9c86d060af5e2513ff9627ea8da92cd5e70f039dc88c5783"
+    },
+    {
+      "path": "AUDIT.md",
+      "bytes": 2877,
+      "sha256": "e03fa243e0acd13b352961af6734ab8b9039a165cd54f17ba3d18c01ead6ada7"
+    },
+    {
+      "path": "INTERFACE.md",
+      "bytes": 14516,
+      "sha256": "faf0681156c44df34d8bde6f2b91a39c37a9a9693cb7ec6893ad89f3d478d431"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7487,
+      "sha256": "808ad039898d5521a99cc75665f86678d0dd3b4f787b45283493efa02235445a"
+    },
+    {
+      "path": "SOURCE-AUDIT.json.gz.base64",
+      "bytes": 229661,
+      "sha256": "cce3646acb54df3b410f67a0a850e36a75a6853e85db977ad931f3421ad53d7d"
+    },
+    {
+      "path": "SOURCE-BINDINGS.json",
+      "bytes": 13277,
+      "sha256": "bf9d45e9cc4268b6b4f56ea387cdbaf949a2f52b91e249421063eeaa29e8c669"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 10692,
+      "sha256": "a60fd1d971bc984c59e1e5b5d501c05b8e2a72857383a43fa385a512081608c5"
+    },
+    {
+      "path": "WRITE-SET.md",
+      "bytes": 5873,
+      "sha256": "86d401a60b77775cc9ce6ce0e34d0d3e0a95ea66d556d72c6b5a5e7f49fe2433"
+    }
+  ],
+  "notExecutionPreseal": true,
+  "rootGoRequired": true
+}

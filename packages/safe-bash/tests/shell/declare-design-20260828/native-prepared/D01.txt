@@ -1,0 +1,11 @@
+declare -xx -rr decl_flags=one
+printf 'create=%s\n' "$?"
+declare -p decl_flags
+declare +x decl_flags
+printf 'clear_x=%s\n' "$?"
+declare -p decl_flags
+declare +r decl_flags
+printf 'clear_r=%s\n' "$?"
+declare -x +x decl_plain=value
+declare -p decl_plain
+printf 'END D01\n'

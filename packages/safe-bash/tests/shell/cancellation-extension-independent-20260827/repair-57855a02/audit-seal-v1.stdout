@@ -1,0 +1,27 @@
+{
+  "verifiedAt": "2026-08-28T00:49:19.368Z",
+  "candidate": "57855a0293edb83bff98113123806497b4427416",
+  "helperSha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+  "rawObjects": 90,
+  "completeCandidateDelta": [
+    "src/shell/cancellation.ts"
+  ],
+  "independentFreezeOwnedPaths": 3,
+  "extension12": "12/12 isolated and moved",
+  "original12": "12/12 isolated and moved",
+  "nearby4": "4/4 isolated and moved",
+  "new2": "2/2 isolated and moved",
+  "originalTypes": "positive pass; six targeted malformed rows in both modes",
+  "extensionTypes": "positive pass; eight targeted malformed rows in both modes",
+  "counterfactual": "exact revert compiles/loads; candidate-passing E07 fails",
+  "authenticatedRuntimeLoads": 9,
+  "naturalLaunches": 23,
+  "naturalTestChildren": 9,
+  "oldLayerMembers": 218,
+  "onlyAuthorizedAppendExcluded": true,
+  "oldHistoriesRescored": false,
+  "sourceRemovedBeforeMoved": true,
+  "scratchRemoved": true,
+  "verdict": "PASS bounded B01 helper repair",
+  "stage2Authorized": false
+}

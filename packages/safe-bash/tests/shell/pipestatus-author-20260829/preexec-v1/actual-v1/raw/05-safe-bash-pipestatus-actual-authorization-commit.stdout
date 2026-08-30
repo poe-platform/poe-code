@@ -1,0 +1,4 @@
+[main 200993b448ae5a788481784d16be1504b4a6b1ac] test(shell): record ROOT one-attempt PIPESTATUS authorization
+ 2 files changed, 12 insertions(+)
+ create mode 100644 tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/RESULT.json
+ create mode 100644 tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/ROOT-AUTHORIZATION.md

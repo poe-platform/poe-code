@@ -1,0 +1,53 @@
+{
+  "schema": "SOURCE_ANALYSIS_STOP_V1",
+  "time": "2026-08-29T07:36:40.774Z",
+  "status": "UNSAFE_STOP",
+  "reason": "CAPTURE_CAP",
+  "child": {
+    "id": "public80-policy",
+    "kind": "git",
+    "args": [
+      "show",
+      "6b4d6c6f:tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs",
+      "6b4d6c6f:tests/integration/git-public-independent-20260829/successor-bindings-v2/resources.mjs",
+      "6b4d6c6f:tests/integration/git-public-independent-20260829/successor-bindings-v2/SOURCE.json"
+    ],
+    "pid": 79675,
+    "closed": true,
+    "exit": null,
+    "signal": "SIGTERM",
+    "stdoutBytes": 136788,
+    "stderrBytes": 0,
+    "failure": "CAPTURE_CAP",
+    "stdoutSha256": "9f988a5fae61aa3cbbc93c3f139ad20281273466dc46a9031837bab42932dadd",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "capturesClosed": true
+  },
+  "channels": [
+    {
+      "channel": "stdout",
+      "observed": 136788,
+      "retained": 5716,
+      "unretained": 131072,
+      "sha256": "9f988a5fae61aa3cbbc93c3f139ad20281273466dc46a9031837bab42932dadd",
+      "mode": 384
+    },
+    {
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "unretained": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    }
+  ],
+  "gitChildren": 13,
+  "allGitChildrenClosed": true,
+  "knownProcessesThroughReceipt": 29,
+  "remainingBatchActions": [
+    "run02-observers",
+    "adapter",
+    "projection"
+  ],
+  "furtherAnalysisAllowed": false
+}

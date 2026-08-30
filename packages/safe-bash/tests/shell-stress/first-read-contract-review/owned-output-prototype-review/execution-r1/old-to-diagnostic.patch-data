@@ -1,0 +1,120 @@
+diff --git a/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate/tests/shell/first-read-probe.ts b/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/diagnostic-first-read-probe.ts
+index be784f34..507e5edb 100644
+--- a/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate/tests/shell/first-read-probe.ts
++++ b/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/diagnostic-first-read-probe.ts
+@@ -1,6 +1,6 @@
+ import assert from "node:assert/strict";
+-import { agentCommands, MemoryFileSystem, networkCommands, pipeBytes, Shell } from "../../src/index.js";
+-import type { ByteSource, FileSystem } from "../../src/contracts/index.js";
++import { agentCommands, MemoryFileSystem, networkCommands, pipeBytes, Shell } from "../../../candidate/dist/index.js";
++import type { ByteSource, FileSystem } from "../../../candidate/dist/contracts/index.js";
+ import { bounded, gate, httpFixture, s3Fixture, Trace } from "../stress/remote-cancellation/helpers.js";
+ 
+ const scenario = process.argv[2]!;
+@@ -16,11 +16,17 @@ let active = 0;
+ let reads = 0;
+ let returned = 0;
+ let observed: AbortSignal | undefined;
++let ioSignal: AbortSignal | undefined;
++let stageSignal: AbortSignal | undefined;
++let firstWrites = 0;
++let stageAbortedAtIoClose: boolean | undefined;
++let callerAbortedAtIoClose: boolean | undefined;
++const observeIo = (signal?: AbortSignal) => { ioSignal = signal; signal?.addEventListener("abort", () => { stageAbortedAtIoClose = stageSignal?.aborted; callerAbortedAtIoClose = trace.controller.signal.aborted; trace.event("diagnostic.io.abort"); }, { once: true }); };
+ let url: string | undefined;
+ let instance: Shell | undefined;
+ 
+ function pendingSource(signal: AbortSignal): ByteSource {
+-  observed = signal;
++  observed = signal; observeIo(signal);
+   return (async function* () {
+     reads++;
+     active++;
+@@ -43,6 +49,7 @@ function pendingSource(signal: AbortSignal): ByteSource {
+ try {
+   if (scenario === "first-read-s3") {
+     ({ fs } = await s3Fixture(trace, { async getObjectStream(_input, options) {
++    trace.event("assertion.before:assert.ok(options?.abortSignal);");
+       assert.ok(options?.abortSignal);
+       return { Body: pendingSource(options.abortSignal), ContentLength: 13 };
+     } }));
+@@ -62,20 +69,27 @@ try {
+     });
+     fs = fixture.fs;
+     const address = fixture.server.address();
++    trace.event("assertion.before:assert.ok(address && typeof address !== \"string\");");
+     assert.ok(address && typeof address !== "string");
+     url = `http://127.0.0.1:${address.port}/dav/input`;
+   }
++  if (fs.readStream) { const stream = fs.readStream.bind(fs); fs.readStream = (path, options) => { observeIo(options?.signal); return stream(path, options); }; }
+   const shell = new Shell({ fs });
+   instance = shell;
+   shell.use(agentCommands());
+   if (url && scenario.startsWith("first-read-curl-")) {
+-    shell.use(networkCommands({ authorize: request => request.url === url && request.method === "GET" }));
++    shell.use(networkCommands({ authorize: request => { observeIo(request.signal); return request.url === url && request.method === "GET"; } }));
+   }
+   shell.commands.register({ name: "pending-stream", async execute({ stdout, signal }) {
+     await pipeBytes(pendingSource(signal), stdout, signal);
+     return { exitCode: 0 };
+   } });
+   shell.use(async (context, next) => {
++    if (["pending-stream", "cat", "curl"].includes(context.command)) {
++      stageSignal = context.signal;
++      const plain = context.stdout.write.bind(context.stdout); context.stdout.write = async chunk => { firstWrites++; await plain(chunk); };
++      const owned = context.stdout.ownedOutput; if (owned) { const write = owned.write.bind(owned); owned.write = async chunk => { firstWrites++; await write(chunk); }; }
++    }
+     if (context.command === "head" && scenario !== "first-read-head-zero") await started.promise;
+     if (context.command === "cat" || context.command === "curl") observed = context.signal;
+     const result = await next();
+@@ -88,33 +102,49 @@ try {
+       async return() { returned++; return { done: true, value: undefined }; },
+     }; } };
+     const result = await bounded(shell.exec("head -n 0", { stdin }), scenario);
++    trace.event("assertion.before:assert.equal(result.exitCode, 0);");
+     assert.equal(result.exitCode, 0);
++    trace.event("assertion.before:assert.equal(result.stdout, \"\");");
+     assert.equal(result.stdout, "");
++    trace.event("assertion.before:assert.equal(result.stderr, \"\");");
+     assert.equal(result.stderr, "");
++    trace.event("assertion.before:assert.equal(reads, 0);");
+     assert.equal(reads, 0);
++    trace.event("assertion.before:assert.equal(returned, 1);");
+     assert.equal(returned, 1);
+   } else {
+     const producer = scenario === "first-read-local" ? "pending-stream" : scenario.startsWith("first-read-curl-") ? `curl ${url}` : "cat /input";
+     const result = await bounded(shell.exec(`${producer} | head -n 0; true`, { signal: trace.controller.signal }), scenario);
++    trace.event("assertion.before:assert.equal(result.exitCode, 0);");
+     assert.equal(result.exitCode, 0);
++    trace.event("assertion.before:assert.equal(result.stdout, \"\");");
+     assert.equal(result.stdout, "");
++    trace.event("assertion.before:assert.equal(result.stderr, \"\");");
+     assert.equal(result.stderr, "");
++    trace.event("assertion.before:assert.equal(trace.controller.signal.aborted, false);");
+     assert.equal(trace.controller.signal.aborted, false);
++    trace.event("assertion.before:assert.equal(observed?.aborted, true);");
+     assert.equal(observed?.aborted, true);
++    trace.event("assertion.before:assert.equal((observed?.reason as { code: string }).code, \"EPIPE\");");
+     assert.equal((observed?.reason as { code: string }).code, "EPIPE");
+     await bounded(closed.promise, "first-read closes before fixture teardown");
++    trace.event("assertion.before:assert.equal(reads, 1);");
+     assert.equal(reads, 1);
++    trace.event("assertion.before:assert.equal(returned, 1);");
+     assert.equal(returned, 1);
++    trace.event("assertion.before:assert.equal(active, 0);");
+     assert.equal(active, 0);
+   }
+   await new Promise<void>(resolve => setImmediate(resolve));
++    trace.event("assertion.before:assert.deepEqual(unhandled, []);");
+   assert.deepEqual(unhandled, []);
+   console.log(`${scenario}: passed`);
+ } finally {
+-  console.log(JSON.stringify({ scenario, active, reads, returned, abortedBeforeTeardown: trace.controller.signal.aborted, events: trace.events }));
++  console.log(JSON.stringify({ diagnostic: true, originalObservedAborted: observed?.aborted, ioAborted: ioSignal?.aborted, ioReasonCode: (ioSignal?.reason as {code?: string} | undefined)?.code, stageAborted: stageSignal?.aborted, stageAbortedAtIoClose, callerAbortedAtIoClose, firstWrites, scenario, active, reads, returned, abortedBeforeTeardown: trace.controller.signal.aborted, events: trace.events }));
+   trace.controller.abort(new Error("failed-test teardown, never acceptance rescue"));
+   await instance?.dispose();
+   for (const cleanup of trace.cleanups.reverse()) await cleanup();
++  console.log(JSON.stringify({ diagnosticAfterTeardown: true, scenario, reads, returned, active, unhandled: unhandled.length, callerAborted: trace.controller.signal.aborted }));
+   process.removeListener("unhandledRejection", onUnhandled);
+   clearInterval(keepAlive);
+ }

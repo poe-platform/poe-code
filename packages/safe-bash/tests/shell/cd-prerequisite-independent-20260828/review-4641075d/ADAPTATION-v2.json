@@ -1,0 +1,21 @@
+{
+  "stage": "post-original-source-nonpass; before corrected executor run",
+  "originalAttempt": "attempt-01",
+  "originalCaseAndExpectationBytes": "unchanged",
+  "change": "Do not materialize unsupported long Memory path components during setup. The existing ordinal public FileSystem guard returns its frozen scripted directory/access outcomes for oversized-component limit paths. Actual adapter cases remain actual Memory/ReadOnly/Mount/WebDAV.",
+  "affected": "L07 initial oversized cwd setup; L08/L10-L13/L19-L24 long path setup/probes as applicable",
+  "qualification": "L24 original input adapter label Memory cannot literally satisfy its 65535-byte component: accepted Memory enforces255 bytes/component at src/fs/memory/index.ts:179. Its unchanged UTF16/path/cwd/publication assertions run via scripted public FileSystem, not claimed actual Memory long-name support. This frozen-fixture qualification is reported, not a product defect.",
+  "rootCause": "executor incorrectly treated scripted protocol boundary paths as valid Memory backing paths",
+  "noProductChange": true,
+  "noExpectationWeakening": true,
+  "files": [
+    {
+      "name": "fixtures-v2.mjs",
+      "sha256": "1de40d8b8c44631bc4277866f0525eb067975d0a8ab344fb5d1a685f8e9efba2"
+    },
+    {
+      "name": "run-v2.mjs",
+      "sha256": "f8040fa90cceb9250519db1edaa92f15b3b6fabc6674672647d2d98e36632a46"
+    }
+  ]
+}

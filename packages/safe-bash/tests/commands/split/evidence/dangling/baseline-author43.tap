@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: bounded settings reject invalid options without registry work
+ok 1 - bounded settings reject invalid options without registry work
+  ---
+  duration_ms: 0.85025
+  type: 'test'
+  ...
+# Subtest: GNU size unit grammar distinguishes accepted and rejected spellings
+ok 2 - GNU size unit grammar distinguishes accepted and rejected spellings
+  ---
+  duration_ms: 10.770167
+  type: 'test'
+  ...
+# Subtest: binary input survives every chunk boundary and buffer reuse
+ok 3 - binary input survives every chunk boundary and buffer reuse
+  ---
+  duration_ms: 96.859791
+  type: 'test'
+  ...
+# Subtest: empty input creates no files and does not truncate existing files
+ok 4 - empty input creates no files and does not truncate existing files
+  ---
+  duration_ms: 0.319583
+  type: 'test'
+  ...
+# Subtest: empty input ignores output directories without weakening input alias guards
+ok 5 - empty input ignores output directories without weakening input alias guards
+  ---
+  duration_ms: 1.037417
+  type: 'test'
+  ...
+# Subtest: suffix exhaustion retains successful outputs and leaves next name alone
+ok 6 - suffix exhaustion retains successful outputs and leaves next name alone
+  ---
+  duration_ms: 1.081667
+  type: 'test'
+  ...
+# Subtest: suffix width and file limits preserve earlier files
+ok 7 - suffix width and file limits preserve earlier files
+  ---
+  duration_ms: 5.944958
+  type: 'test'
+  ...
+# Subtest: output limit leaves completed files and the actual partial current file
+ok 8 - output limit leaves completed files and the actual partial current file
+  ---
+  duration_ms: 0.493041
+  type: 'test'
+  ...
+# Subtest: input and work limits preserve partial output without reading indefinitely
+ok 9 - input and work limits preserve partial output without reading indefinitely
+  ---
+  duration_ms: 0.586
+  type: 'test'
+  ...
+# Subtest: argument, line-bytes window and numeric limits fail before effects
+ok 10 - argument, line-bytes window and numeric limits fail before effects
+  ---
+  duration_ms: 0.582375
+  type: 'test'
+  ...
+# Subtest: typed disk-full failure retains earlier files and partial overwritten file
+ok 11 - typed disk-full failure retains earlier files and partial overwritten file
+  ---
+  duration_ms: 0.652459
+  type: 'test'
+  ...
+# Subtest: read failure preserves current streaming bytes
+ok 12 - read failure preserves current streaming bytes
+  ---
+  duration_ms: 0.216042
+  type: 'test'
+  ...
+# Subtest: same input via spelling, symlink and hardlink is rejected before acquisition
+ok 13 - same input via spelling, symlink and hardlink is rejected before acquisition
+  ---
+  duration_ms: 0.315
+  type: 'test'
+  ...
+# Subtest: later output alias to input retains earlier completed output
+ok 14 - later output alias to input retains earlier completed output
+  ---
+  duration_ms: 0.20325
+  type: 'test'
+  ...
+# Subtest: output aliases earlier output cannot silently erase successful segment
+ok 15 - output aliases earlier output cannot silently erase successful segment
+  ---
+  duration_ms: 0.419667
+  type: 'test'
+  ...
+# Subtest: ordinary existing symlink output overwrites its distinct target
+ok 16 - ordinary existing symlink output overwrites its distinct target
+  ---
+  duration_ms: 0.312333
+  type: 'test'
+  ...
+# Subtest: dangling output symlink conservatively preserves link and absent target
+ok 17 - dangling output symlink conservatively preserves link and absent target
+  ---
+  duration_ms: 0.276708
+  type: 'test'
+  ...
+# Subtest: exclusive missing-output race never truncates raced file
+ok 18 - exclusive missing-output race never truncates raced file
+  ---
+  duration_ms: 0.1845
+  type: 'test'
+  ...
+# Subtest: unknown identity fails closed but truthful comparison enables overwrite
+ok 19 - unknown identity fails closed but truthful comparison enables overwrite
+  ---
+  duration_ms: 1.237333
+  type: 'test'
+  ...
+# Subtest: readonly, missing parent, directory, invalid path and denial preserve effects
+ok 20 - readonly, missing parent, directory, invalid path and denial preserve effects
+  ---
+  duration_ms: 0.9165
+  type: 'test'
+  ...
+# Subtest: writeFile-only fallback has bounded per-segment publication
+ok 21 - writeFile-only fallback has bounded per-segment publication
+  ---
+  duration_ms: 0.592334
+  type: 'test'
+  ...
+# Subtest: readFile fallback receives and enforces byte cap
+ok 22 - readFile fallback receives and enforces byte cap
+  ---
+  duration_ms: 0.259584
+  type: 'test'
+  ...
+# Subtest: streaming writer applies backpressure and owns yielded buffers
+ok 23 - streaming writer applies backpressure and owns yielded buffers
+  ---
+  duration_ms: 9.677917
+  type: 'test'
+  ...
+# Subtest: large incoming chunk is sliced without a producer-chunk refusal
+ok 24 - large incoming chunk is sliced without a producer-chunk refusal
+  ---
+  duration_ms: 7.88175
+  type: 'test'
+  ...
+# Subtest: cancellation preserves exact errno-shaped reason and partial output
+ok 25 - cancellation preserves exact errno-shaped reason and partial output
+  ---
+  duration_ms: 0.4865
+  type: 'test'
+  ...
+# Subtest: aborted invocation never acquires input
+ok 26 - aborted invocation never acquires input
+  ---
+  duration_ms: 0.155375
+  type: 'test'
+  ...
+# Subtest: blocked host write aborts promptly and late rejection is observed
+ok 27 - blocked host write aborts promptly and late rejection is observed
+  ---
+  duration_ms: 6.567375
+  type: 'test'
+  ...
+# Subtest: cancelled write source refuses even its prefetched first chunk
+ok 28 - cancelled write source refuses even its prefetched first chunk
+  ---
+  duration_ms: 0.569541
+  type: 'test'
+  ...
+# Subtest: blocked iterator abort closes asynchronously without waiting forever
+ok 29 - blocked iterator abort closes asynchronously without waiting forever
+  ---
+  duration_ms: 0.687875
+  type: 'test'
+  ...
+# Subtest: CPU scanning yields for timer cancellation on a large line
+ok 30 - CPU scanning yields for timer cancellation on a large line
+  ---
+  duration_ms: 4.587708
+  type: 'test'
+  ...
+# Subtest: GNU size spellings and empty-input output-directory controls
+ok 31 - GNU size spellings and empty-input output-directory controls
+  ---
+  duration_ms: 158.365125
+  type: 'test'
+  ...
+# Subtest: memory: opt-in Shell byte pipeline and existing-file workflow
+ok 32 - memory: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 17.246875
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+ok 33 - explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 29.695875
+  type: 'test'
+  ...
+# Subtest: actual default registry stays 60 and split requires explicit plugin
+ok 34 - actual default registry stays 60 and split requires explicit plugin
+  ---
+  duration_ms: 3.67175
+  type: 'test'
+  ...
+# Subtest: plugin collision preflight and replacement use actual registry
+ok 35 - plugin collision preflight and replacement use actual registry
+  ---
+  duration_ms: 0.927458
+  type: 'test'
+  ...
+# Subtest: shared shell pipe/output budget remains active beside VFS payload budget
+ok 36 - shared shell pipe/output budget remains active beside VFS payload budget
+  ---
+  duration_ms: 1.236667
+  type: 'test'
+  ...
+# Subtest: explicit-root RealFS streaming large file reassembles bytes
+ok 37 - explicit-root RealFS streaming large file reassembles bytes
+  ---
+  duration_ms: 38.029
+  type: 'test'
+  ...
+# Subtest: configured S3 mock supports streamed split and known-distinct overwrite
+ok 38 - configured S3 mock supports streamed split and known-distinct overwrite
+  ---
+  duration_ms: 13.589708
+  type: 'test'
+  ...
+# Subtest: GNU errors: exact status/effects, separately asserted diagnostic profiles
+ok 39 - GNU errors: exact status/effects, separately asserted diagnostic profiles
+  ---
+  duration_ms: 101.713542
+  type: 'test'
+  ...
+# Subtest: explicit GNU versus Apple naming/profile differences remain visible
+ok 40 - explicit GNU versus Apple naming/profile differences remain visible
+  ---
+  duration_ms: 249.89675
+  type: 'test'
+  ...
+# Subtest: native gnu9.7-darwin: exact status/stdout/stderr/file bytes
+ok 41 - native gnu9.7-darwin: exact status/stdout/stderr/file bytes
+  ---
+  duration_ms: 759.597875
+  type: 'test'
+  ...
+# Subtest: native apple-bsd: exact status/stdout/stderr/file bytes
+ok 42 - native apple-bsd: exact status/stdout/stderr/file bytes
+  ---
+  duration_ms: 303.522417
+  type: 'test'
+  ...
+# Subtest: GNU boundary stress: complete effects under large chunks and reused windows
+ok 43 - GNU boundary stress: complete effects under large chunks and reused windows
+  ---
+  duration_ms: 164.431333
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1238.076875

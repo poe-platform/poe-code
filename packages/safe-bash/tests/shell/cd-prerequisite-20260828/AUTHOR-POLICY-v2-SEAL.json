@@ -1,0 +1,62 @@
+{
+  "sealedAt": "2026-08-28T04:43:47.029Z",
+  "kind": "author policy refinement; no execution",
+  "providerReview": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+  "providerBindingSha256": "d42b77343af58bc8e7e071fe2081e93b2358bf0e6ca9bee9f2d49e46534a0c22",
+  "compositionTree": "7c68831a81fc49c94ad9177e58ca9fd7d0aca352",
+  "sources": {
+    "src/shell/runtime.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+    },
+    "src/shell/shell.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    "src/contracts/filesystem.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+    },
+    "src/contracts/filesystem.md": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a"
+    },
+    "src/fs/memory/index.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4"
+    },
+    "src/fs/real/index.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a"
+    },
+    "src/fs/readonly/index.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2"
+    },
+    "src/fs/s3/filesystem.ts": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833"
+    },
+    "src/fs/webdav/webdav.ts": {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5"
+    },
+    "src/fs/webdav/README.md": {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd"
+    }
+  },
+  "document": {
+    "path": "tests/shell/cd-prerequisite-20260828/AUTHOR-POLICY-v2.md",
+    "sha256": "bbc2024017c6476b2f8c43af4a1088367303c86a4d894cd3ce6e57fda6bbc9ff"
+  },
+  "nativeHistory": {
+    "freeze": "317128ddbce8ac9d321870f46957c33bca257612",
+    "observations": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+    "newRuns": 0
+  },
+  "providerRuns": 0,
+  "runtimeEdits": 0,
+  "remainingDecision": "cd-owned diagnostic text vs full shell-prefixed line",
+  "implementation": "HELD pending independent freeze and root go"
+}

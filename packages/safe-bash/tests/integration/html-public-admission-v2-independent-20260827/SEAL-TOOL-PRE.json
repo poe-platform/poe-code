@@ -1,0 +1,18 @@
+{
+  "at": "2026-08-27T22:56:53.457Z",
+  "helper": "tests/integration/html-public-admission-v2-independent-20260827/seal-review.mjs",
+  "sha256": "526b707a2a3c3226072c92a8431b3d7f73e7fa661eb78ce1f5ff656749af62a4",
+  "commands": [
+    [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "tests/integration/html-public-admission-v2-independent-20260827/seal-review.mjs",
+      "write"
+    ],
+    [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "tests/integration/html-public-admission-v2-independent-20260827/seal-review.mjs",
+      "check"
+    ]
+  ],
+  "scope": "Evidence sealing/integrity only; asserts the failed disposition, never converts it to admission acceptance"
+}

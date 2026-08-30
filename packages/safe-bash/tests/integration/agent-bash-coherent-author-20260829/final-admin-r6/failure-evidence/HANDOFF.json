@@ -1,0 +1,78 @@
+{
+  "status": "PURE_FIXTURE_FAILURE_NO_RUNTIME_NO_RETRY",
+  "sourceCommit": "de5d778146578b793ac26c57bb506c7a783cf67e",
+  "final": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/FINAL.json",
+    "bytes": 24620,
+    "sha256": "8bd385557c356994062d62fb10d9aef485e3c440dd509e68220425ae770e03a9"
+  },
+  "preseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PRESEAL.json",
+    "bytes": 7367,
+    "sha256": "c22dc1ac1e821c97018987d858c5ca35a3b514c2152bf9a8eb5dcf00f71fc9d4"
+  },
+  "failure": {
+    "path": "/private/tmp/b1-final-admin-r6-preparation/STOP.json",
+    "bytes": 10505,
+    "sha256": "64e3f57988dad6b8dbf28adb837dd50ecba54d2a4e491adad3445b433b7e98f0"
+  },
+  "knownOwnerIntervalStarts": 7,
+  "sourceFinding": "S06 constructs Ledger with capture=67108864-8192 outside assert.throws. The inherited constructor rejects its active-capacity admission before the intended shared.charge assertion. No actual output cap overflow.",
+  "policyIdentity": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/policy.mjs",
+    "bytes": 4556,
+    "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+  },
+  "relevantPolicyLines": [
+    {
+      "line": 1,
+      "text": "export const limits = Object.freeze({ capture: 67108864, work: 805306368, tailCapture: 2097152, tailWork: 8388608 });"
+    },
+    {
+      "line": 3,
+      "text": "  constructor(initial = { capture: 0, work: 0 }) {"
+    },
+    {
+      "line": 5,
+      "text": "    this.reserved = { capture: limits.tailCapture, work: limits.tailWork };"
+    },
+    {
+      "line": 6,
+      "text": "    this.tail = false;"
+    },
+    {
+      "line": 10,
+      "text": "    for (const key of ['capture', 'work']) if (!Number.isSafeInteger(this.used[key]) || this.used[key] < 0 || this.used[key] + this.reserved[key] > limits[key]) throw Error(`Aggregate ${key} admission`);"
+    },
+    {
+      "line": 12,
+      "text": "  charge(bytes, capture = true) {"
+    },
+    {
+      "line": 14,
+      "text": "    const next = { capture: this.used.capture + (capture ? bytes : 0), work: this.used.work + bytes };"
+    },
+    {
+      "line": 15,
+      "text": "    for (const key of ['capture', 'work']) if (next[key] + this.reserved[key] > limits[key]) throw Error(`Prewrite ${key} refusal`);"
+    },
+    {
+      "line": 18,
+      "text": "  beginTail() { this.tail = true; this.reserved = { capture: 0, work: 0 }; }"
+    },
+    {
+      "line": 19,
+      "text": "  snapshot() { return { used: { ...this.used }, reserved: { ...this.reserved }, tail: this.tail, units: 'logical file/write bytes, not RSS or filesystem blocks' }; }"
+    }
+  ],
+  "controls": "INCOMPLETE: no completed six-group result returned; do not promote transient local groups to a sealed pass cohort.",
+  "next": "Version S06 using the exact inherited active/tail constructor domain, then separately authorized PURE replay; no source publisher or cap change inferred.",
+  "window": {
+    "issuedUTC": "2026-08-29T15:57:10.730Z",
+    "latestStartUTC": "2026-08-29T16:17:10.730Z",
+    "expiresUTC": "2026-08-29T16:47:10.730Z",
+    "disposition": "UNUSED_NOT_REVIEW_READY; no activation or extension"
+  },
+  "historicalN08": "Original source finding/7of8 remains unchanged",
+  "ownerOutcome": "Original preparation tool exit78; six recorded children exit/close, owner exit is externally reported, not self-certified full census."
+}

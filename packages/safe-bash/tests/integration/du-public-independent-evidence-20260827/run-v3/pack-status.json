@@ -1,0 +1,10 @@
+{
+  "label": "pack",
+  "pid": 41837,
+  "status": 0,
+  "signal": null,
+  "outputBytes": 93950,
+  "watchdogFailure": null,
+  "spawnError": null,
+  "closed": true
+}

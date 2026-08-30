@@ -1,0 +1,1909 @@
+{
+  "schema": "independent-owned-output-validity-phase1-observations-v1",
+  "reviewerThread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "newExecutions": 0,
+  "qualification": "Derived projections of original frozen JSON, not new execution evidence; error stacks omitted, identities remain captured booleans, absence explicitly tagged",
+  "surface": [
+    {
+      "id": "01-supported-facades",
+      "rawOutcome": "PASS",
+      "engineFieldPresent": true,
+      "runtimeCalls": 1,
+      "shell": {
+        "rejected": false,
+        "exitCode": 7,
+        "stdout": "stdio:surface-input|vfs\n",
+        "stderr": "",
+        "stdoutBase64": "c3RkaW86c3VyZmFjZS1pbnB1dHx2ZnMK",
+        "stderrBase64": ""
+      },
+      "hostFindings": [],
+      "allRecordedDescriptorIdentityMatches": [],
+      "cleanupFailures": []
+    },
+    {
+      "id": "02-direct-surface",
+      "rawOutcome": "PASS",
+      "engineFieldPresent": true,
+      "runtimeCalls": 1,
+      "shell": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "hostFindings": [],
+      "allRecordedDescriptorIdentityMatches": [],
+      "cleanupFailures": []
+    },
+    {
+      "id": "03-namespace-spread",
+      "rawOutcome": "PASS",
+      "engineFieldPresent": true,
+      "runtimeCalls": 1,
+      "shell": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "namespace-ok\n",
+        "stderr": "",
+        "stdoutBase64": "bmFtZXNwYWNlLW9rCg==",
+        "stderrBase64": ""
+      },
+      "hostFindings": [],
+      "allRecordedDescriptorIdentityMatches": [],
+      "cleanupFailures": []
+    },
+    {
+      "id": "04-shell-module",
+      "rawOutcome": "PASS",
+      "engineFieldPresent": true,
+      "runtimeCalls": 1,
+      "shell": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "shell-positive",
+        "stderr": "",
+        "stdoutBase64": "c2hlbGwtcG9zaXRpdmU=",
+        "stderrBase64": ""
+      },
+      "hostFindings": [],
+      "allRecordedDescriptorIdentityMatches": [],
+      "cleanupFailures": []
+    },
+    {
+      "id": "05-missing-register-cleanup",
+      "rawOutcome": "PASS",
+      "engineFieldPresent": true,
+      "runtimeCalls": 1,
+      "shell": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "hostFindings": [],
+      "allRecordedDescriptorIdentityMatches": [],
+      "cleanupFailures": [],
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "engine": {
+        "ok": true,
+        "returnValue": {
+          "memberType": "undefined",
+          "callbackCalls": 0,
+          "errorMessage": "Attempted to call a non-function value."
+        },
+        "resultKeys": [
+          "ok",
+          "returnValue",
+          "snapshot",
+          "stats"
+        ]
+      },
+      "engineFieldValueQualification": "The engine key in this derived record is null if absent in original; engineFieldPresent distinguishes absence",
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      },
+      "assessment": {
+        "id": "05-missing-register-cleanup",
+        "outcome": "PASS",
+        "category": "SUPPORTED_SURFACE",
+        "checks": [
+          {
+            "name": "runtimeCalls",
+            "pass": true
+          },
+          {
+            "name": "real metadata premise",
+            "pass": true
+          },
+          {
+            "name": "real public pipe signal identity",
+            "pass": true
+          },
+          {
+            "name": "host callback counters",
+            "pass": true
+          },
+          {
+            "name": "host failure absent",
+            "pass": true
+          },
+          {
+            "name": "cleanup failures",
+            "pass": true
+          },
+          {
+            "name": "unconditional no host capability identities",
+            "pass": true
+          },
+          {
+            "name": "shell rejection",
+            "pass": true
+          },
+          {
+            "name": "exit code",
+            "pass": true
+          },
+          {
+            "name": "stdout",
+            "pass": true
+          },
+          {
+            "name": "stderr",
+            "pass": true
+          },
+          {
+            "name": "collected accounted output",
+            "pass": true
+          },
+          {
+            "name": "engine ok",
+            "pass": true
+          },
+          {
+            "name": "exact return",
+            "pass": true
+          },
+          {
+            "name": "VFS bytes and complete namespace",
+            "pass": true
+          }
+        ],
+        "failures": 0,
+        "imports": {
+          "entries": 223,
+          "engineSourceFiles": 63,
+          "productFiles": 158,
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "06-missing-acquire",
+      "rawOutcome": "PASS",
+      "engineFieldPresent": true,
+      "runtimeCalls": 1,
+      "shell": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "hostFindings": [],
+      "allRecordedDescriptorIdentityMatches": [],
+      "cleanupFailures": [],
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "engine": {
+        "ok": true,
+        "returnValue": {
+          "memberType": "undefined",
+          "startCalls": 0,
+          "releaseCalls": 0,
+          "errorMessage": "Attempted to call a non-function value."
+        },
+        "resultKeys": [
+          "ok",
+          "returnValue",
+          "snapshot",
+          "stats"
+        ]
+      },
+      "engineFieldValueQualification": "The engine key in this derived record is null if absent in original; engineFieldPresent distinguishes absence",
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      },
+      "assessment": {
+        "id": "06-missing-acquire",
+        "outcome": "PASS",
+        "category": "SUPPORTED_SURFACE",
+        "checks": [
+          {
+            "name": "runtimeCalls",
+            "pass": true
+          },
+          {
+            "name": "real metadata premise",
+            "pass": true
+          },
+          {
+            "name": "real public pipe signal identity",
+            "pass": true
+          },
+          {
+            "name": "host callback counters",
+            "pass": true
+          },
+          {
+            "name": "host failure absent",
+            "pass": true
+          },
+          {
+            "name": "cleanup failures",
+            "pass": true
+          },
+          {
+            "name": "unconditional no host capability identities",
+            "pass": true
+          },
+          {
+            "name": "shell rejection",
+            "pass": true
+          },
+          {
+            "name": "exit code",
+            "pass": true
+          },
+          {
+            "name": "stdout",
+            "pass": true
+          },
+          {
+            "name": "stderr",
+            "pass": true
+          },
+          {
+            "name": "collected accounted output",
+            "pass": true
+          },
+          {
+            "name": "engine ok",
+            "pass": true
+          },
+          {
+            "name": "exact return",
+            "pass": true
+          },
+          {
+            "name": "VFS bytes and complete namespace",
+            "pass": true
+          }
+        ],
+        "failures": 0,
+        "imports": {
+          "entries": 223,
+          "engineSourceFiles": 63,
+          "productFiles": 158,
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "07-reflection-profile",
+      "rawOutcome": "PASS",
+      "engineFieldPresent": true,
+      "runtimeCalls": 1,
+      "shell": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "hostFindings": [],
+      "allRecordedDescriptorIdentityMatches": [],
+      "cleanupFailures": [],
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "engine": {
+        "ok": true,
+        "returnValue": {
+          "reflect": "undefined",
+          "getOwnPropertyDescriptor": "undefined",
+          "getOwnPropertyDescriptors": "undefined",
+          "getOwnPropertyNames": "undefined",
+          "getOwnPropertySymbols": "undefined",
+          "getPrototypeOf": "undefined",
+          "keys": [
+            "error",
+            "errorBytes",
+            "readBytes",
+            "readText",
+            "write",
+            "writeBytes"
+          ],
+          "entries": [
+            [
+              "error",
+              "function"
+            ],
+            [
+              "errorBytes",
+              "function"
+            ],
+            [
+              "readBytes",
+              "function"
+            ],
+            [
+              "readText",
+              "function"
+            ],
+            [
+              "write",
+              "function"
+            ],
+            [
+              "writeBytes",
+              "function"
+            ]
+          ],
+          "ownsWrite": true,
+          "copiedWrite": "function",
+          "sameWrite": true
+        },
+        "resultKeys": [
+          "ok",
+          "returnValue",
+          "snapshot",
+          "stats"
+        ]
+      },
+      "engineFieldValueQualification": "The engine key in this derived record is null if absent in original; engineFieldPresent distinguishes absence",
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      },
+      "assessment": {
+        "id": "07-reflection-profile",
+        "outcome": "PASS",
+        "category": "DIALECT_PROFILE_NOT_MEMBRANE_ACCEPTANCE",
+        "checks": [
+          {
+            "name": "runtimeCalls",
+            "pass": true
+          },
+          {
+            "name": "real metadata premise",
+            "pass": true
+          },
+          {
+            "name": "real public pipe signal identity",
+            "pass": true
+          },
+          {
+            "name": "host callback counters",
+            "pass": true
+          },
+          {
+            "name": "host failure absent",
+            "pass": true
+          },
+          {
+            "name": "cleanup failures",
+            "pass": true
+          },
+          {
+            "name": "unconditional no host capability identities",
+            "pass": true
+          },
+          {
+            "name": "shell rejection",
+            "pass": true
+          },
+          {
+            "name": "exit code",
+            "pass": true
+          },
+          {
+            "name": "stdout",
+            "pass": true
+          },
+          {
+            "name": "stderr",
+            "pass": true
+          },
+          {
+            "name": "collected accounted output",
+            "pass": true
+          },
+          {
+            "name": "engine ok",
+            "pass": true
+          },
+          {
+            "name": "exact return",
+            "pass": true
+          },
+          {
+            "name": "VFS bytes and complete namespace",
+            "pass": true
+          }
+        ],
+        "failures": 0,
+        "imports": {
+          "entries": 223,
+          "engineSourceFiles": 63,
+          "productFiles": 158,
+          "failures": []
+        }
+      }
+    },
+    {
+      "id": "08-function-spread-profile",
+      "rawOutcome": "FAIL",
+      "engineFieldPresent": false,
+      "runtimeCalls": 1,
+      "shell": {
+        "rejected": false,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "safejs: Cannot spread function into object literal.\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2FmZWpzOiBDYW5ub3Qgc3ByZWFkIGZ1bmN0aW9uIGludG8gb2JqZWN0IGxpdGVyYWwuCg=="
+      },
+      "hostFindings": [],
+      "allRecordedDescriptorIdentityMatches": [],
+      "cleanupFailures": [],
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "engine": null,
+      "engineFieldValueQualification": "The engine key in this derived record is null if absent in original; engineFieldPresent distinguishes absence",
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      },
+      "assessment": {
+        "id": "08-function-spread-profile",
+        "outcome": "FAIL",
+        "category": "DIALECT_PROFILE_NOT_MEMBRANE_ACCEPTANCE",
+        "checks": [
+          {
+            "name": "runtimeCalls",
+            "pass": true
+          },
+          {
+            "name": "real metadata premise",
+            "pass": true
+          },
+          {
+            "name": "real public pipe signal identity",
+            "pass": true
+          },
+          {
+            "name": "host callback counters",
+            "pass": true
+          },
+          {
+            "name": "host failure absent",
+            "pass": true
+          },
+          {
+            "name": "cleanup failures",
+            "pass": true
+          },
+          {
+            "name": "unconditional no host capability identities",
+            "pass": true
+          },
+          {
+            "name": "shell rejection",
+            "pass": true
+          },
+          {
+            "name": "exit code",
+            "pass": true
+          },
+          {
+            "name": "stdout",
+            "pass": true
+          },
+          {
+            "name": "stderr",
+            "pass": true
+          },
+          {
+            "name": "collected accounted output",
+            "pass": true
+          },
+          {
+            "name": "engine ok",
+            "pass": false,
+            "expected": false
+          },
+          {
+            "name": "exact error",
+            "pass": false,
+            "expected": "Cannot spread function into object literal."
+          },
+          {
+            "name": "VFS bytes and complete namespace",
+            "pass": true
+          }
+        ],
+        "failures": 2,
+        "imports": {
+          "entries": 223,
+          "engineSourceFiles": 63,
+          "productFiles": 158,
+          "failures": []
+        }
+      }
+    }
+  ],
+  "privilegedShapeRows": [
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.command",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.stdio",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.fs",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.args",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.env",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.constants",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.setExitCode",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.readText",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.write",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.writeBytes",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.readFile",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "02-direct-surface",
+      "row": "returnValue.writeFile",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.nestedCommand",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.nestedStdio",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.nestedFs",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.commandCopy",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.stdioCopy",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.fsCopy",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.writeAlias",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.commandCall",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "03-namespace-spread",
+      "row": "returnValue.commandApply",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "04-shell-module",
+      "row": "returnValue.shell",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "04-shell-module",
+      "row": "returnValue.shellCopy",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "04-shell-module",
+      "row": "returnValue.exec",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    },
+    {
+      "case": "04-shell-module",
+      "row": "returnValue.result",
+      "fields": {
+        "ownedOutput": {
+          "type": "undefined",
+          "own": false
+        },
+        "registerCleanup": {
+          "type": "undefined",
+          "own": false
+        }
+      }
+    }
+  ],
+  "lifecycle": [
+    {
+      "id": "L05-caller-error",
+      "classification": "PASS",
+      "selected": {
+        "id": "L05-caller-error",
+        "workflow": "L05",
+        "guest": "guests/precedence.ajs.data",
+        "guestArgs": [],
+        "route": "literal-invoke",
+        "schedule": "caller-before-late-write-rejection",
+        "expect": {
+          "publicKind": "rejection",
+          "identity": "callerError",
+          "stdout": "admitted\n",
+          "cleanupFailureObserved": "cleanupError",
+          "lateWriteFailureObserved": "executionError",
+          "cleanupDoneBeforePublicSettlement": true
+        },
+        "qualification": "A late local write rejection is not automatically a selected public execution rejection. No opaque losing-handler join is required."
+      },
+      "publicOutcome": {
+        "kind": "rejection",
+        "error": {
+          "type": "object",
+          "name": "Error",
+          "message": "caller:L05-caller-error"
+        },
+        "stdoutHex": "61646d69747465640a",
+        "stderrHex": ""
+      },
+      "atSettlement": {
+        "acquisitions": 1,
+        "releases": 1,
+        "cleanupDone": true,
+        "bridgePending": 0,
+        "cleanupErrorObserved": true,
+        "lateWriteErrorObserved": true,
+        "innerDisposed": false,
+        "callerIdentity": true,
+        "executionIdentity": false,
+        "cleanupIdentity": false,
+        "callerAborted": true,
+        "ordinaryDestinationWriteCalls": 0,
+        "accountedWriteCalls": 2,
+        "holdEntries": 0,
+        "lateEntries": 0,
+        "holdReleased": false,
+        "leftReleases": 0,
+        "rightReleases": 0,
+        "lateAcquisitionStarts": 0,
+        "lateChildCreations": 0,
+        "rightEffect": "",
+        "curlWriteoutCalls": 0,
+        "transportAbortedByConsumer": false,
+        "transportClosed": false,
+        "responseDisposed": false,
+        "uploadBeforeEof": false,
+        "uploadEof": false,
+        "authorizeCalls": 0,
+        "transportCleanupRegistered": false
+      },
+      "events": [
+        {
+          "order": 1,
+          "event": "public-exec-enter",
+          "publicSettled": false,
+          "command": "owned-guest"
+        },
+        {
+          "order": 2,
+          "event": "owned-guest-enter",
+          "publicSettled": false
+        },
+        {
+          "order": 3,
+          "event": "cleanup-registered",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 4,
+          "event": "operation-created",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 5,
+          "event": "acquire-start",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 6,
+          "event": "engine-enter",
+          "publicSettled": false,
+          "modules": [
+            "fs",
+            "stdio",
+            "command"
+          ],
+          "filename": "<safejs -e>"
+        },
+        {
+          "order": 7,
+          "event": "accounted-write-enter",
+          "publicSettled": false,
+          "bytes": "61646d69747465640a"
+        },
+        {
+          "order": 8,
+          "event": "public-stdout-accepted",
+          "publicSettled": false,
+          "hex": "61646d69747465640a"
+        },
+        {
+          "order": 9,
+          "event": "accounted-write-settled",
+          "publicSettled": false,
+          "bytes": "61646d69747465640a"
+        },
+        {
+          "order": 10,
+          "event": "accounted-write-enter",
+          "publicSettled": false,
+          "bytes": "73656c65637465640a"
+        },
+        {
+          "order": 11,
+          "event": "public-write-rejection-point",
+          "publicSettled": false
+        },
+        {
+          "order": 12,
+          "event": "caller-abort-request",
+          "publicSettled": false
+        },
+        {
+          "order": 13,
+          "event": "facade-signal-aborted",
+          "publicSettled": false,
+          "reason": {
+            "type": "object",
+            "name": "Error",
+            "message": "caller:L05-caller-error"
+          },
+          "callerIdentity": true
+        },
+        {
+          "order": 14,
+          "event": "resource-release-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 15,
+          "event": "late-write-rejection-observed",
+          "publicSettled": false,
+          "executionIdentity": true
+        },
+        {
+          "order": 16,
+          "event": "resource-release-done",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 17,
+          "event": "resource-release-rejected",
+          "publicSettled": false,
+          "cleanupIdentity": true
+        },
+        {
+          "order": 18,
+          "event": "safejs-invoke-rejected",
+          "publicSettled": false,
+          "error": {
+            "type": "object",
+            "name": "Error",
+            "message": "caller:L05-caller-error"
+          },
+          "executionIdentity": false
+        },
+        {
+          "order": 19,
+          "event": "close-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 20,
+          "event": "public-exec-settled",
+          "publicSettled": true
+        },
+        {
+          "order": 21,
+          "event": "close-rejected",
+          "publicSettled": true,
+          "label": "guest-output",
+          "cleanupIdentity": true,
+          "error": {
+            "type": "object",
+            "name": "Error",
+            "message": "cleanup:L05-caller-error"
+          }
+        }
+      ],
+      "engine": {},
+      "engineRuns": 1,
+      "files": {
+        "/work/late.txt": {
+          "code": "ENOENT"
+        },
+        "/work/body.bin": {
+          "code": "ENOENT"
+        },
+        "/work/headers.txt": {
+          "code": "ENOENT"
+        }
+      },
+      "assertions": [
+        {
+          "name": "actual engine and supported helper admission",
+          "pass": true
+        },
+        {
+          "name": "frozen public result and exact accepted bytes",
+          "pass": true
+        },
+        {
+          "name": "before-settlement ownership",
+          "pass": true
+        },
+        {
+          "name": "exact primary and observed secondary failures",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "L05-execution-error",
+      "classification": "FAIL",
+      "selected": {
+        "id": "L05-execution-error",
+        "workflow": "L05",
+        "guest": "guests/precedence.ajs.data",
+        "guestArgs": [],
+        "route": "literal-invoke",
+        "schedule": "real-write-and-diagnostic-rejection",
+        "expect": {
+          "publicKind": "rejection",
+          "identity": "executionError",
+          "stdout": "admitted\n",
+          "cleanupFailureObserved": "cleanupError",
+          "diagnosticSinkRejectedWithExecutionIdentity": true,
+          "cleanupDoneBeforePublicSettlement": true
+        },
+        "qualification": "Do not promote the guest/utility throw into a raw rejection. A real failing public diagnostic sink and source-selected rejection are required; a status-only observation leaves this precedence assertion UNPROVED."
+      },
+      "publicOutcome": {
+        "kind": "rejection",
+        "error": {
+          "type": "object",
+          "name": "Error",
+          "message": "cleanup:L05-execution-error"
+        },
+        "stdoutHex": "61646d69747465640a",
+        "stderrHex": ""
+      },
+      "atSettlement": {
+        "acquisitions": 1,
+        "releases": 1,
+        "cleanupDone": true,
+        "bridgePending": 0,
+        "cleanupErrorObserved": true,
+        "lateWriteErrorObserved": false,
+        "innerDisposed": false,
+        "callerIdentity": false,
+        "executionIdentity": false,
+        "cleanupIdentity": true,
+        "callerAborted": false,
+        "ordinaryDestinationWriteCalls": 0,
+        "accountedWriteCalls": 2,
+        "holdEntries": 0,
+        "lateEntries": 0,
+        "holdReleased": false,
+        "leftReleases": 0,
+        "rightReleases": 0,
+        "lateAcquisitionStarts": 0,
+        "lateChildCreations": 0,
+        "rightEffect": "",
+        "curlWriteoutCalls": 0,
+        "transportAbortedByConsumer": false,
+        "transportClosed": false,
+        "responseDisposed": false,
+        "uploadBeforeEof": false,
+        "uploadEof": false,
+        "authorizeCalls": 0,
+        "transportCleanupRegistered": false
+      },
+      "events": [
+        {
+          "order": 1,
+          "event": "public-exec-enter",
+          "publicSettled": false,
+          "command": "owned-guest"
+        },
+        {
+          "order": 2,
+          "event": "owned-guest-enter",
+          "publicSettled": false
+        },
+        {
+          "order": 3,
+          "event": "cleanup-registered",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 4,
+          "event": "operation-created",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 5,
+          "event": "acquire-start",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 6,
+          "event": "engine-enter",
+          "publicSettled": false,
+          "modules": [
+            "fs",
+            "stdio",
+            "command"
+          ],
+          "filename": "<safejs -e>"
+        },
+        {
+          "order": 7,
+          "event": "accounted-write-enter",
+          "publicSettled": false,
+          "bytes": "61646d69747465640a"
+        },
+        {
+          "order": 8,
+          "event": "public-stdout-accepted",
+          "publicSettled": false,
+          "hex": "61646d69747465640a"
+        },
+        {
+          "order": 9,
+          "event": "accounted-write-settled",
+          "publicSettled": false,
+          "bytes": "61646d69747465640a"
+        },
+        {
+          "order": 10,
+          "event": "accounted-write-enter",
+          "publicSettled": false,
+          "bytes": "73656c65637465640a"
+        },
+        {
+          "order": 11,
+          "event": "public-write-rejection-point",
+          "publicSettled": false
+        },
+        {
+          "order": 12,
+          "event": "facade-signal-aborted",
+          "publicSettled": false,
+          "reason": {
+            "type": "object",
+            "name": "Error",
+            "message": "execution:L05-execution-error"
+          },
+          "callerIdentity": false
+        },
+        {
+          "order": 13,
+          "event": "public-diagnostic-rejected",
+          "publicSettled": false,
+          "executionIdentity": true,
+          "attemptedHex": "736166656a733a20657865637574696f6e3a4c30352d657865637574696f6e2d6572726f720a"
+        },
+        {
+          "order": 14,
+          "event": "public-diagnostic-rejected",
+          "publicSettled": false,
+          "executionIdentity": true,
+          "attemptedHex": "7368656c6c3a206c696e6520313a20657865637574696f6e3a4c30352d657865637574696f6e2d6572726f720a"
+        },
+        {
+          "order": 15,
+          "event": "engine-rejected",
+          "publicSettled": false,
+          "error": {
+            "type": "object",
+            "name": "Error",
+            "message": "execution:L05-execution-error"
+          }
+        },
+        {
+          "order": 16,
+          "event": "safejs-invoke-settled",
+          "publicSettled": false,
+          "status": 1
+        },
+        {
+          "order": 17,
+          "event": "close-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 18,
+          "event": "resource-release-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 19,
+          "event": "resource-release-done",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 20,
+          "event": "resource-release-rejected",
+          "publicSettled": false,
+          "cleanupIdentity": true
+        },
+        {
+          "order": 21,
+          "event": "close-rejected",
+          "publicSettled": false,
+          "label": "guest-output",
+          "cleanupIdentity": true,
+          "error": {
+            "type": "object",
+            "name": "Error",
+            "message": "cleanup:L05-execution-error"
+          }
+        },
+        {
+          "order": 22,
+          "event": "public-diagnostic-rejected",
+          "publicSettled": false,
+          "executionIdentity": true,
+          "attemptedHex": "7368656c6c3a206c696e6520313a20636c65616e75703a4c30352d657865637574696f6e2d6572726f720a"
+        },
+        {
+          "order": 23,
+          "event": "public-exec-settled",
+          "publicSettled": true
+        }
+      ],
+      "engine": {
+        "error": {
+          "type": "object",
+          "name": "Error",
+          "message": "execution:L05-execution-error"
+        }
+      },
+      "engineRuns": 1,
+      "files": {
+        "/work/late.txt": {
+          "code": "ENOENT"
+        },
+        "/work/body.bin": {
+          "code": "ENOENT"
+        },
+        "/work/headers.txt": {
+          "code": "ENOENT"
+        }
+      },
+      "assertions": [
+        {
+          "name": "actual engine and supported helper admission",
+          "pass": true
+        },
+        {
+          "name": "frozen public result and exact accepted bytes",
+          "pass": false,
+          "error": {
+            "type": "object",
+            "name": "AssertionError",
+            "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n+ [Error: cleanup:L05-execution-error]\n- [Error: execution:L05-execution-error]\n",
+            "code": "ERR_ASSERTION"
+          }
+        },
+        {
+          "name": "before-settlement ownership",
+          "pass": true
+        },
+        {
+          "name": "exact primary and observed secondary failures",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "L05-cleanup-error",
+      "classification": "PASS",
+      "selected": {
+        "id": "L05-cleanup-error",
+        "workflow": "L05",
+        "guest": "guests/precedence.ajs.data",
+        "guestArgs": [],
+        "route": "literal-invoke",
+        "schedule": "cleanup-only-after-successful-guest",
+        "expect": {
+          "publicKind": "rejection",
+          "identity": "cleanupError",
+          "stdout": "admitted\nselected\n",
+          "selectedGuestStatus": 0,
+          "selectedExecutionRejection": false,
+          "cleanupDoneBeforePublicSettlement": true
+        }
+      },
+      "publicOutcome": {
+        "kind": "rejection",
+        "error": {
+          "type": "object",
+          "name": "Error",
+          "message": "cleanup:L05-cleanup-error"
+        },
+        "stdoutHex": "61646d69747465640a73656c65637465640a",
+        "stderrHex": "7368656c6c3a206c696e6520313a20636c65616e75703a4c30352d636c65616e75702d6572726f720a"
+      },
+      "atSettlement": {
+        "acquisitions": 1,
+        "releases": 1,
+        "cleanupDone": true,
+        "bridgePending": 0,
+        "cleanupErrorObserved": true,
+        "lateWriteErrorObserved": false,
+        "innerDisposed": false,
+        "callerIdentity": false,
+        "executionIdentity": false,
+        "cleanupIdentity": true,
+        "callerAborted": false,
+        "ordinaryDestinationWriteCalls": 0,
+        "accountedWriteCalls": 2,
+        "holdEntries": 0,
+        "lateEntries": 0,
+        "holdReleased": false,
+        "leftReleases": 0,
+        "rightReleases": 0,
+        "lateAcquisitionStarts": 0,
+        "lateChildCreations": 0,
+        "rightEffect": "",
+        "curlWriteoutCalls": 0,
+        "transportAbortedByConsumer": false,
+        "transportClosed": false,
+        "responseDisposed": false,
+        "uploadBeforeEof": false,
+        "uploadEof": false,
+        "authorizeCalls": 0,
+        "transportCleanupRegistered": false
+      },
+      "events": [
+        {
+          "order": 1,
+          "event": "public-exec-enter",
+          "publicSettled": false,
+          "command": "owned-guest"
+        },
+        {
+          "order": 2,
+          "event": "owned-guest-enter",
+          "publicSettled": false
+        },
+        {
+          "order": 3,
+          "event": "cleanup-registered",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 4,
+          "event": "operation-created",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 5,
+          "event": "acquire-start",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 6,
+          "event": "engine-enter",
+          "publicSettled": false,
+          "modules": [
+            "fs",
+            "stdio",
+            "command"
+          ],
+          "filename": "<safejs -e>"
+        },
+        {
+          "order": 7,
+          "event": "accounted-write-enter",
+          "publicSettled": false,
+          "bytes": "61646d69747465640a"
+        },
+        {
+          "order": 8,
+          "event": "public-stdout-accepted",
+          "publicSettled": false,
+          "hex": "61646d69747465640a"
+        },
+        {
+          "order": 9,
+          "event": "accounted-write-settled",
+          "publicSettled": false,
+          "bytes": "61646d69747465640a"
+        },
+        {
+          "order": 10,
+          "event": "accounted-write-enter",
+          "publicSettled": false,
+          "bytes": "73656c65637465640a"
+        },
+        {
+          "order": 11,
+          "event": "public-stdout-accepted",
+          "publicSettled": false,
+          "hex": "73656c65637465640a"
+        },
+        {
+          "order": 12,
+          "event": "accounted-write-settled",
+          "publicSettled": false,
+          "bytes": "73656c65637465640a"
+        },
+        {
+          "order": 13,
+          "event": "engine-return",
+          "publicSettled": false,
+          "ok": true,
+          "returnValue": "precedence-complete"
+        },
+        {
+          "order": 14,
+          "event": "facade-signal-aborted",
+          "publicSettled": false,
+          "reason": {
+            "type": "object",
+            "name": "AbortError",
+            "message": "This operation was aborted",
+            "code": 20
+          },
+          "callerIdentity": false
+        },
+        {
+          "order": 15,
+          "event": "safejs-invoke-settled",
+          "publicSettled": false,
+          "status": 0
+        },
+        {
+          "order": 16,
+          "event": "close-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 17,
+          "event": "resource-release-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 18,
+          "event": "resource-release-done",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 19,
+          "event": "resource-release-rejected",
+          "publicSettled": false,
+          "cleanupIdentity": true
+        },
+        {
+          "order": 20,
+          "event": "close-rejected",
+          "publicSettled": false,
+          "label": "guest-output",
+          "cleanupIdentity": true,
+          "error": {
+            "type": "object",
+            "name": "Error",
+            "message": "cleanup:L05-cleanup-error"
+          }
+        },
+        {
+          "order": 21,
+          "event": "public-stderr-accepted",
+          "publicSettled": false,
+          "hex": "7368656c6c3a206c696e6520313a20636c65616e75703a4c30352d636c65616e75702d6572726f720a"
+        },
+        {
+          "order": 22,
+          "event": "public-exec-settled",
+          "publicSettled": true
+        }
+      ],
+      "engine": {
+        "ok": true,
+        "returnValue": "precedence-complete"
+      },
+      "engineRuns": 1,
+      "files": {
+        "/work/late.txt": {
+          "code": "ENOENT"
+        },
+        "/work/body.bin": {
+          "code": "ENOENT"
+        },
+        "/work/headers.txt": {
+          "code": "ENOENT"
+        }
+      },
+      "assertions": [
+        {
+          "name": "actual engine and supported helper admission",
+          "pass": true
+        },
+        {
+          "name": "frozen public result and exact accepted bytes",
+          "pass": true
+        },
+        {
+          "name": "before-settlement ownership",
+          "pass": true
+        },
+        {
+          "name": "exact primary and observed secondary failures",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "L06-curl-open",
+      "classification": "INVALID_FIXTURE",
+      "selected": {
+        "id": "L06-curl-open",
+        "workflow": "L06",
+        "guest": "guests/curl.ajs.data",
+        "guestArgs": [],
+        "route": "shell-module",
+        "schedule": "curl-streaming-independent-effects",
+        "closeCurlConsumer": false,
+        "expect": {
+          "publicKind": "result",
+          "exitCode": 0,
+          "stdout": "200\ncurl:0\n",
+          "stderr": "independent-stderr\n",
+          "curlStatus": 0,
+          "writeoutAccountedCalls": 1,
+          "transportSignalAbortedByConsumer": false
+        }
+      },
+      "publicOutcome": {
+        "kind": "result",
+        "result": {
+          "exitCode": 1,
+          "stdout": "",
+          "stderr": "shell: line 1: Invalid network limit: maxRedirects\n"
+        },
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20496e76616c6964206e6574776f726b206c696d69743a206d61785265646972656374730a"
+      },
+      "atSettlement": {
+        "acquisitions": 1,
+        "releases": 1,
+        "cleanupDone": true,
+        "bridgePending": 0,
+        "cleanupErrorObserved": false,
+        "lateWriteErrorObserved": false,
+        "innerDisposed": true,
+        "callerIdentity": false,
+        "executionIdentity": false,
+        "cleanupIdentity": false,
+        "callerAborted": false,
+        "ordinaryDestinationWriteCalls": 0,
+        "accountedWriteCalls": 0,
+        "holdEntries": 0,
+        "lateEntries": 0,
+        "holdReleased": false,
+        "leftReleases": 0,
+        "rightReleases": 0,
+        "lateAcquisitionStarts": 0,
+        "lateChildCreations": 0,
+        "rightEffect": "",
+        "curlWriteoutCalls": 0,
+        "transportAbortedByConsumer": false,
+        "transportClosed": false,
+        "responseDisposed": false,
+        "uploadBeforeEof": false,
+        "uploadEof": false,
+        "authorizeCalls": 0,
+        "transportCleanupRegistered": false
+      },
+      "events": [
+        {
+          "order": 1,
+          "event": "public-exec-enter",
+          "publicSettled": false,
+          "command": "owned-guest"
+        },
+        {
+          "order": 2,
+          "event": "owned-guest-enter",
+          "publicSettled": false
+        },
+        {
+          "order": 3,
+          "event": "cleanup-registered",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 4,
+          "event": "operation-created",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 5,
+          "event": "acquire-start",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 6,
+          "event": "cleanup-registered",
+          "publicSettled": false,
+          "label": "inner-shell"
+        },
+        {
+          "order": 7,
+          "event": "inner-shell-acquire",
+          "publicSettled": false
+        },
+        {
+          "order": 8,
+          "event": "resource-release-enter",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 9,
+          "event": "resource-release-done",
+          "publicSettled": false,
+          "label": "guest-output"
+        },
+        {
+          "order": 10,
+          "event": "inner-dispose-enter",
+          "publicSettled": false
+        },
+        {
+          "order": 11,
+          "event": "inner-dispose-settled",
+          "publicSettled": false
+        },
+        {
+          "order": 12,
+          "event": "public-stderr-accepted",
+          "publicSettled": false,
+          "hex": "7368656c6c3a206c696e6520313a20496e76616c6964206e6574776f726b206c696d69743a206d61785265646972656374730a"
+        },
+        {
+          "order": 13,
+          "event": "public-exec-settled",
+          "publicSettled": true
+        }
+      ],
+      "engine": {},
+      "engineRuns": 0,
+      "files": {
+        "/work/late.txt": {
+          "code": "ENOENT"
+        },
+        "/work/body.bin": {
+          "code": "ENOENT"
+        },
+        "/work/headers.txt": {
+          "code": "ENOENT"
+        }
+      },
+      "assertions": [
+        {
+          "name": "actual engine and supported helper admission",
+          "pass": false,
+          "error": {
+            "type": "object",
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n0 !== 1\n",
+            "code": "ERR_ASSERTION"
+          }
+        },
+        {
+          "name": "frozen public result and exact accepted bytes",
+          "pass": false,
+          "error": {
+            "type": "object",
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+            "code": "ERR_ASSERTION"
+          }
+        },
+        {
+          "name": "before-settlement ownership",
+          "pass": true
+        },
+        {
+          "name": "streaming transport and independent required effects",
+          "pass": false,
+          "error": {
+            "type": "object",
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n0 !== 1\n",
+            "code": "ERR_ASSERTION"
+          }
+        }
+      ]
+    }
+  ],
+  "lifecycleOriginalCounts": {
+    "total": 11,
+    "logicalWorkflows": 6,
+    "executed": 9,
+    "valid": 9,
+    "pass": 8,
+    "failed": 1,
+    "invalid": 1,
+    "unproved": 0,
+    "blocked": 1
+  },
+  "blocked": [
+    {
+      "id": "L06-curl-consumer-closed",
+      "classification": "BLOCKED",
+      "engineRuns": 0,
+      "reason": "Missing frozen positive L06-curl-open"
+    }
+  ]
+}

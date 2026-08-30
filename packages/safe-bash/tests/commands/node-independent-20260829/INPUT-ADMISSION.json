@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "date": "2026-08-29",
+  "state": "STOP_MISSING_IMMUTABLE_BASE",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "requestedBase": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "rootReportedPackage": {
+    "members": 898,
+    "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+    "authenticatedHere": false
+  },
+  "attempts": [
+    {
+      "role": "immutable metadata inventory",
+      "command": "git ls-tree -rz --name-only 7fde32264d757ef856acf3ae92c8581b4a294341 src/contracts src/shell/types.ts src/shell/runtime.ts src/shell/shell.ts tests/commands/node-design-20260828 tests/commands/node-worker-independent-20260828/v12-production-readiness package.json",
+      "result": "fatal: not a tree object\n",
+      "inventoryAdmitted": false
+    },
+    {
+      "role": "bounded missing-object confirmation, not a substitute input",
+      "command": "git cat-file --batch-check=%(objectname) %(objecttype) %(objectsize)",
+      "stdin": "7fde32264d757ef856acf3ae92c8581b4a294341\n1bd9948bd7ed6ece209b38f694adfce0547220f3\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "7fde32264d757ef856acf3ae92c8581b4a294341 missing\n1bd9948bd7ed6ece209b38f694adfce0547220f3 commit 292\n",
+      "stderr": ""
+    }
+  ],
+  "substitutedInput": null,
+  "candidateSourceRead": false,
+  "frozenSemanticCases": 0,
+  "actualWorkerExecutions": 0,
+  "actualGuestExecutions": 0,
+  "productExecutions": 0,
+  "compilerBuildInstallExecutions": 0,
+  "nativeOracleExecutions": 0,
+  "networkPrivateAccess": false,
+  "requiredResolution": "Root supplies an available immutable accepted-base object or an authenticated complete source artifact and exact reconstruction binding. Do not substitute a similarly named commit, mutable HEAD, or implementation worktree."
+}

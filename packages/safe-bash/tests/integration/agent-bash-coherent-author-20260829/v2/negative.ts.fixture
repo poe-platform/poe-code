@@ -1,0 +1,17 @@
+import { agentCommands, nodeCommands, createNodeCommand, type NodeCommandsOptions } from 'virtual-bash';
+declare const valid: NodeCommandsOptions;
+// @ts-expect-error explicit provider required
+nodeCommands({});
+// @ts-expect-error no provider default
+createNodeCommand({});
+// @ts-expect-error Node is opt-in, not aggregate
+agentCommands({ node: valid });
+// @ts-expect-error replacement is boolean
+nodeCommands({ ...valid, replace: 'yes' });
+// @ts-expect-error no numeric public override
+nodeCommands({ ...valid, limits: { steps: 1 } });
+// @ts-expect-error grants are boolean
+nodeCommands({ ...valid, grants: { sourceRead: 1 } });
+// @ts-expect-error private module export must remain inaccessible
+import type { NodeOwner } from 'virtual-bash/commands/node/host';
+void (null as unknown as NodeOwner);

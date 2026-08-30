@@ -1,0 +1,37 @@
+{
+  "stage": "Preparation freeze; no product writes",
+  "base": "e7f4f2e3753184415f8098445c2009cb4cd9a6e9",
+  "observedHead": "d5d2fcc70d7fd7f82895773dd23a6c71c804bb28",
+  "files": {
+    "tests/shell-stress/env-split-author/RESUME.md": "1c29eabae3c630684288b18d414c83af5a7f38b2fb4045a57dec63480bcbb354",
+    "tests/shell-stress/env-split-author/resume-baseline.json": "4bc6a29235d0bb326b003f1c941e652245f0392ea36c119d38543e1654240fd2",
+    "tests/shell-stress/env-split-author/resume-baseline.mjs": "cbb0ce40d757408c753442e5d0875a387440d9b0c785d7e3793e70fee677bd11",
+    "tests/shell-stress/env-split-author/resume-cases.json": "d6e0ea65b61eb91d873103455824a4fbb57ddf1564909f71819d7ae05c755ea2",
+    "tests/shell-stress/env-split-author/resume-fixtures.ts": "80b3ee0109c6cd60245594b5f84325ae92b601c7f9b45dcee9d34d3adc173f8c",
+    "tests/shell-stress/env-split-author/resume-host.ts": "c22482b06a27a6883bf1d6f6dac98e8a83795495c452772869e3b5a03b3135ce",
+    "tests/shell-stress/env-split-author/resume-native.json": "f0d9a0c1f6c984f0b2d172fd8d938ec5af3910e624468ab67eedead0f4204416",
+    "tests/shell-stress/env-split-author/resume-native.mjs": "7534009219c5b03b0e03884e6da3e7d15817a98978baa3da92e65a49aff27f5f",
+    "tests/shell-stress/env-split-author/resume-red.txt": "85773a0272b5dafc96c680bc45203de9a7c6e1c091747740254d8c92a64ac785",
+    "tests/shell-stress/env-split-author/resume-source-inventory.json": "4dc57e8fed7994dcb75314af1f2c768d6f09aecd9f9d133643b1af3c0ce35dcf",
+    "tests/shell-stress/env-split-author/resume-validation.json": "07c9aec1b96518fdf04dfec31e17e5f88ff1065ae891a2ec2f684c8d4f20133f",
+    "tests/shell-stress/env-split-author/resume-verify.mjs": "291e06a4159b49c6aff148bef8a4e87ccb42f91cbf232cef570a76cfc5279f63",
+    "tests/shell/env-split-host.test.ts": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a",
+    "tests/shell/env-split-native.test.ts": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433"
+  },
+  "retainedPreparationCommit": "71c5829df0ec4d2d07a9d33cc5ef8282898ee112",
+  "currentRelevantSources": {
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  "foreignSourceChangesSinceBase": [
+    "src/commands/internal.ts",
+    "src/commands/streams.ts"
+  ],
+  "currentSourceDirty": "",
+  "productWritesByAuthor": false,
+  "hiddenFixturesRead": false,
+  "childrenStopped": true,
+  "scratchRemoved": true,
+  "noRuntimeLease": true
+}

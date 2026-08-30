@@ -1,0 +1,37 @@
+{
+  "executable": "npm",
+  "args": [
+    "pack",
+    "--offline",
+    "--ignore-scripts",
+    "--json",
+    "--pack-destination",
+    "/private/tmp/full-gate-execution-1tkDXu"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-1tkDXu/source",
+  "pid": 29287,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1070,
+  "timeoutMs": 180000,
+  "outputBytes": 64600,
+  "observed": [
+    {
+      "pid": 29287,
+      "parent": 94682,
+      "group": 29287,
+      "born": "Thu Aug 27 00:43:11 2026",
+      "command": "npm"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "pack",
+  "sourceChanges": []
+}

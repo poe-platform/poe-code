@@ -1,0 +1,106 @@
+{
+  "scope": "Shared optional rmdir contract and core rmdir/rm -d consumers; not backend certification",
+  "date": "2026-08-26",
+  "node": "22.22.2",
+  "contractCommit": "1dc065262ebd0b92389c69f73c3720406a414b07",
+  "testFile": "tests/commands/empty-directory.test.ts",
+  "preFix": {
+    "kind": "moving-worktree run with the unchanged core source from contractCommit",
+    "coreSourceGitBlob": "e58b1ef244ff1957e8525d59a66a761dfef47dff",
+    "coreSourceSha256": "0d737f4527d8c4d584021c8cf1d4bf6ebdb893cdc92d9d764424938c2bb1fbdc",
+    "initial44TestSourceSha256": "fa86cd8598c1101e5cef91eccbd094e439201466a662657babe2097856b32f2f",
+    "tests": 44,
+    "pass": 8,
+    "fail": 36,
+    "skipped": 0,
+    "todo": 0,
+    "raceTests": [
+      "rmdir preserves a child inserted after an empty observation",
+      "rm preserves a child inserted after an empty observation"
+    ],
+    "raceFailure": "Both commands returned exitCode 0 instead of 1 after child insertion at the prior listing boundary",
+    "localTap": "/tmp/safe-bash-rmdir-before.tap",
+    "localTapSha256": "e3ace6a168bfdbfab4f00ad113d962511ea5c2367fd474060f5ae8a0b03c88d0"
+  },
+  "initialConsumerFix": {
+    "tests": 44,
+    "pass": 44,
+    "fail": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "expandedRegressionBeforeCancellationFix": {
+    "tests": 53,
+    "pass": 52,
+    "fail": 1,
+    "failure": "rm -df does not suppress an ENOENT-shaped cancellation reason",
+    "skipped": 0,
+    "todo": 0
+  },
+  "final": {
+    "kind": "moving-worktree owned-source verification; memory/real backend implementations were concurrently uncommitted",
+    "coreSourceSha256": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+    "testSourceSha256": "4fdbc3fc18900cc949284192b0cda986d61b5fa36b2aea784f8cd6097f5393bb",
+    "adversarialTests": 53,
+    "adversarialPass": 53,
+    "adversarialFail": 0,
+    "strictRejectionProcesses": 5,
+    "strictRejectionPassPerProcess": 53,
+    "scopedTests": 226,
+    "scopedPass": 226,
+    "scopedFail": 0,
+    "skipped": 0,
+    "todo": 0,
+    "buildExitCode": 0,
+    "scopedTypecheckExitCode": 0
+  },
+  "firstGlobalTypecheck": {
+    "exitCode": 2,
+    "owner": "Poincare; no changes to these tests by Curie",
+    "errorCount": 8,
+    "errors": [
+      "tests/fs/readonly/conformance.test.ts:70 TS2353 recursive is not in FsOptions",
+      "tests/fs/readonly/readonly.test.ts:43 TS2353 recursive is not in FsOptions",
+      "tests/fs/readonly/rmdir.test.ts:16 TS2322 void is not assignable to AbortSignal",
+      "tests/fs/readonly/rmdir.test.ts:16 TS2378 getter must return a value",
+      "tests/fs/real/rmdir.test.ts:37 TS7006 path parameter",
+      "tests/fs/real/rmdir.test.ts:37 TS7006 options parameter",
+      "tests/fs/real/rmdir.test.ts:57 TS7006 path parameter",
+      "tests/fs/real/rmdir.test.ts:57 TS7006 options parameter"
+    ]
+  },
+  "commands": {
+    "adversarial": "node --import tsx --test tests/commands/empty-directory.test.ts",
+    "strictRepeat": "node --unhandled-rejections=strict --import tsx --test tests/commands/empty-directory.test.ts",
+    "scoped": "node --import tsx --test \"tests/contracts/**/*.test.ts\" \"tests/commands/*.test.ts\"",
+    "scopedTypecheck": "node_modules/.bin/tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --skipLibCheck --types node tests/contracts/filesystem.test.ts tests/commands/empty-directory.test.ts",
+    "build": "npm run build",
+    "globalTypecheck": "npm run typecheck"
+  },
+  "laterGlobalTypecheck": {
+    "exitCode": 2,
+    "errorCount": 9,
+    "retainedErrors": "All eight firstGlobalTypecheck errors",
+    "additionalError": "src/commands/network/curl.ts:246 TS2345 never[] is not an async ByteSource",
+    "additionalErrorOwner": "Archimedes; network source not modified here",
+    "qualification": "The earlier successful build does not certify this later concurrently edited source state"
+  },
+  "limits": [
+    "The test-only native primitive verifies consumer behavior, not all FileSystem.rmdir implementations",
+    "No broad full-suite run or independent author-verifier parity claim",
+    "Faraday's historical 34 diff/patch pruning failures remain a separate cohort",
+    "No remote-provider credentials, protocol certification or transaction guarantee"
+  ],
+  "postCommitGlobalTypecheck": {
+    "observedHead": "4a021a9",
+    "exitCode": 2,
+    "errorCount": 3,
+    "owner": "Faraday; pruning-consumer tests not modified by Curie",
+    "errors": [
+      "tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts:210 TS2322 union-returning wrapper incompatible with intersected methods",
+      "tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts:265 TS2550 Promise.withResolvers absent from configured ES2023 library",
+      "tests/commands/diff-patch/pruning-consumer/consumer.acceptance.ts:266 TS2550 Promise.withResolvers absent from configured ES2023 library"
+    ],
+    "qualification": "Earlier eight backend-test and one network-source errors are absent in this later moving-worktree check; not a clean whole-repository claim"
+  }
+}

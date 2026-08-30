@@ -1,0 +1,32 @@
+[
+  {
+    "id": "initial",
+    "evidence": "P02 first command <>\\n; no prologue",
+    "justified": "No visible initial [0] in this pinned local invocation",
+    "unproved": "unset versus empty, array shape/type, GNU5.3 startup"
+  },
+  {
+    "id": "readonly",
+    "evidence": "P16 readonly PIPESTATUS; false; prints <>\\n",
+    "justified": "Exact visible output under this initial binding state",
+    "unproved": "readonly pre-existing indexed-array internal-update permission; no prior indexed binding established"
+  },
+  {
+    "id": "absent",
+    "evidence": "P17 unset PIPESTATUS; next printf prints <0>\\n",
+    "justified": "Visible0 after unset command completes",
+    "unproved": "exact internal type/recreation mechanism beyond this observation"
+  },
+  {
+    "id": "present-nonarray",
+    "evidence": "No dedicated cohort case",
+    "justified": "none from native26",
+    "unproved": "preservation policy remains source/proposal only"
+  },
+  {
+    "id": "current-local",
+    "evidence": "P18 inner:<>\\nouter:<0>\\n",
+    "justified": "Exact inner/outer visible values",
+    "unproved": "local binding scalar/array type and general current-visible-selection semantics"
+  }
+]

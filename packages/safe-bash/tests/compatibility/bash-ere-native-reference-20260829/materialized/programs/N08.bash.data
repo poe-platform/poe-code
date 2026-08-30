@@ -1,0 +1,18 @@
+pattern='(a(b)?)+'
+subject='ab'
+[[ "$subject" =~ $pattern ]]
+match_status=$?
+rematch_count=${#BASH_REMATCH[@]}
+builtin printf 'EREOBS1\000N08\000%s\000%s\000' "$match_status" "$rematch_count"
+if (( rematch_count > 4 )); then
+  builtin printf 'CARDINALITY_OVERFLOW\000'
+  exit 125
+fi
+for slot in 0 1 2 3; do
+  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then
+    builtin printf '%s\0001\000%s\000' "$slot" "${BASH_REMATCH[$slot]}"
+  else
+    builtin printf '%s\0000\000\000' "$slot"
+  fi
+done
+exit "$match_status"

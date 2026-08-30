@@ -1,0 +1,75 @@
+{
+  "runtime": {
+    "executable": "/bin/zsh",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/launch.sh",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/PRESEAL.json",
+      "a7c5e284c4dedbb1726e2231a5e67b44ef960f55203706c73b79ce2e63fa8b70",
+      "20804"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false,
+    "env": {
+      "B1_ROOT_GO": "ROOT_B1_PUBLIC15_EXPLICIT_FRESH_AUTHORIZATION"
+    }
+  },
+  "preimport": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/preimport.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/FINAL-BINDING.json",
+      "3da56afc93588c0bdfa016d02341ed4d0e8e22cd3441d0ecea3f97651b97ccc1",
+      "29531",
+      {
+        "slot": "rootGrantSha256",
+        "source": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/ACTUAL-ROOT-GRANT.json"
+      },
+      {
+        "slot": "rootGrantBytes",
+        "source": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/ACTUAL-ROOT-GRANT.json"
+      },
+      {
+        "slot": "observedLedgerSha256",
+        "source": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/PREPUBLICATION-LEDGER-r4.json"
+      },
+      {
+        "slot": "observedLedgerBytes",
+        "source": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/PREPUBLICATION-LEDGER-r4.json"
+      }
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false,
+    "capture": [
+      "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/publication-preimport-r4.stdout",
+      "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/publication-preimport-r4.stderr"
+    ],
+    "rule": "Authenticate this packet, BOTH exact helpers and Node before Node entry; fd1/fd2 outer capture opens first. No automatic publisher dispatch."
+  },
+  "publication": {
+    "executable": "/bin/zsh",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/publication.sh",
+      "--publish",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/PUBLICATION-BINDING.json",
+      "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea",
+      "3872",
+      "/private/tmp/safe-bash-coherent-b1-public15-20260829-r4/PUBLICATION-AUTHORITY-r4.json",
+      {
+        "slot": "authoritySha256",
+        "type": "sha256",
+        "producedBy": "preimport from SAME exclusively written authority Buffer"
+      },
+      {
+        "slot": "authorityBytes",
+        "type": "positive integer decimal",
+        "producedBy": "same authority Buffer"
+      }
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false,
+    "env": {
+      "PATH": "/usr/bin:/bin"
+    }
+  },
+  "qualification": "Dynamic ROOT grant/observed-ledger/authority identities intentionally unpopulated; review only."
+}

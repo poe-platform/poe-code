@@ -1,0 +1,362 @@
+{
+  "parent": [
+    {
+      "mode": "zero-pass",
+      "expected": "PASS"
+    },
+    {
+      "mode": "nonzero-pass",
+      "expected": "FAIL"
+    },
+    {
+      "mode": "nonzero-fail",
+      "expected": "FAIL"
+    },
+    {
+      "mode": "zero-fail",
+      "expected": "FAIL"
+    },
+    {
+      "mode": "missing-required",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "duplicate",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "stale",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "wrong-job",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "wrong-manifest",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "wrong-phase",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "wrong-count",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "incomplete",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "cleanup-false",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "intact-false",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "final-position",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "timeout",
+      "expected": "HOLD"
+    },
+    {
+      "mode": "replay",
+      "expected": "HOLD"
+    }
+  ],
+  "predicates": [
+    {
+      "id": "positive-F11-W14",
+      "case": "F11-W14",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-R63",
+      "case": "F11-R63",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-AMPLE-RECORDS",
+      "case": "F11-AMPLE-RECORDS",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-AMPLE-INPUT",
+      "case": "F11-AMPLE-INPUT",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-LOW-OUTPUT",
+      "case": "F11-LOW-OUTPUT",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-CALLER",
+      "case": "F11-CALLER",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-parentBudget",
+      "case": "F11-parentBudget",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-parentControl",
+      "case": "F11-parentControl",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-sink",
+      "case": "F11-sink",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-cleanup",
+      "case": "F11-cleanup",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "positive-F11-DEFAULT-SUCCESS",
+      "case": "F11-DEFAULT-SUCCESS",
+      "mutation": null,
+      "accept": true
+    },
+    {
+      "id": "reject-candidate",
+      "case": "F11-W14",
+      "mutation": "candidate",
+      "accept": false
+    },
+    {
+      "id": "reject-input",
+      "case": "F11-W14",
+      "mutation": "input",
+      "accept": false
+    },
+    {
+      "id": "reject-args",
+      "case": "F11-W14",
+      "mutation": "args",
+      "accept": false
+    },
+    {
+      "id": "reject-caps",
+      "case": "F11-W14",
+      "mutation": "caps",
+      "accept": false
+    },
+    {
+      "id": "reject-factory",
+      "case": "F11-W14",
+      "mutation": "factory",
+      "accept": false
+    },
+    {
+      "id": "reject-primary",
+      "case": "F11-W14",
+      "mutation": "primary",
+      "accept": false
+    },
+    {
+      "id": "reject-diagnosticPath",
+      "case": "F11-W14",
+      "mutation": "diagnosticPath",
+      "accept": false
+    },
+    {
+      "id": "reject-status",
+      "case": "F11-W14",
+      "mutation": "status",
+      "accept": false
+    },
+    {
+      "id": "reject-reason",
+      "case": "F11-W14",
+      "mutation": "reason",
+      "accept": false
+    },
+    {
+      "id": "reject-caller",
+      "case": "F11-W14",
+      "mutation": "caller",
+      "accept": false
+    },
+    {
+      "id": "reject-cleanup",
+      "case": "F11-W14",
+      "mutation": "cleanup",
+      "accept": false
+    },
+    {
+      "id": "reject-partial",
+      "case": "F11-W14",
+      "mutation": "partial",
+      "accept": false
+    },
+    {
+      "id": "reject-overbudget",
+      "case": "F11-W14",
+      "mutation": "overbudget",
+      "accept": false
+    },
+    {
+      "id": "reject-reservation",
+      "case": "F11-W14",
+      "mutation": "reservation",
+      "accept": false
+    },
+    {
+      "id": "reject-uncharged",
+      "case": "F11-W14",
+      "mutation": "uncharged",
+      "accept": false
+    },
+    {
+      "id": "reject-missingStdout",
+      "case": "F11-W14",
+      "mutation": "missingStdout",
+      "accept": false
+    },
+    {
+      "id": "reject-missingStderr",
+      "case": "F11-W14",
+      "mutation": "missingStderr",
+      "accept": false
+    },
+    {
+      "id": "reject-invocations",
+      "case": "F11-W14",
+      "mutation": "invocations",
+      "accept": false
+    },
+    {
+      "id": "reject-admission",
+      "case": "F11-W14",
+      "mutation": "admission",
+      "accept": false
+    },
+    {
+      "id": "reject-intact",
+      "case": "F11-W14",
+      "mutation": "intact",
+      "accept": false
+    },
+    {
+      "id": "reject-closed",
+      "case": "F11-W14",
+      "mutation": "closed",
+      "accept": false
+    },
+    {
+      "id": "reject-omission-F11-AMPLE-RECORDS",
+      "case": "F11-AMPLE-RECORDS",
+      "mutation": "omitDiagnostic",
+      "accept": false
+    },
+    {
+      "id": "reject-omission-F11-AMPLE-INPUT",
+      "case": "F11-AMPLE-INPUT",
+      "mutation": "omitDiagnostic",
+      "accept": false
+    },
+    {
+      "id": "reject-reason-parentBudget",
+      "case": "F11-parentBudget",
+      "mutation": "wrongReasonIdentity",
+      "accept": false
+    },
+    {
+      "id": "reject-reason-parentControl",
+      "case": "F11-parentControl",
+      "mutation": "wrongReasonIdentity",
+      "accept": false
+    },
+    {
+      "id": "reject-reason-sink",
+      "case": "F11-sink",
+      "mutation": "wrongReasonIdentity",
+      "accept": false
+    },
+    {
+      "id": "reject-reason-cleanup",
+      "case": "F11-cleanup",
+      "mutation": "wrongReasonIdentity",
+      "accept": false
+    },
+    {
+      "id": "reject-reason-CALLER",
+      "case": "F11-CALLER",
+      "mutation": "wrongReasonIdentity",
+      "accept": false
+    },
+    {
+      "id": "reject-mask-parentBudget",
+      "case": "F11-parentBudget",
+      "mutation": "maskReason",
+      "accept": false
+    },
+    {
+      "id": "reject-mask-parentControl",
+      "case": "F11-parentControl",
+      "mutation": "maskReason",
+      "accept": false
+    },
+    {
+      "id": "reject-mask-sink",
+      "case": "F11-sink",
+      "mutation": "maskReason",
+      "accept": false
+    },
+    {
+      "id": "reject-mask-cleanup",
+      "case": "F11-cleanup",
+      "mutation": "maskReason",
+      "accept": false
+    },
+    {
+      "id": "reject-mask-CALLER",
+      "case": "F11-CALLER",
+      "mutation": "maskReason",
+      "accept": false
+    }
+  ],
+  "other": [
+    "failed-required-phase",
+    "missing-required-phase",
+    "ordinary-failure-continues",
+    "unsafe-receipt-stops",
+    "append-aware-source",
+    "append-aware-package",
+    "actual-promise-identity",
+    "middleware-readiness-results",
+    "overlay-mechanical-byte-proof",
+    "full-when-fit-maxWork",
+    "omission-when-fit-maxWork",
+    "full-when-fit-maxRetainedBytes",
+    "omission-when-fit-maxRetainedBytes"
+  ],
+  "maxChildren": 17,
+  "deadlines": {
+    "ordinaryMs": 2000,
+    "intentionalTimeoutMs": 100
+  },
+  "rawBytes": 65536,
+  "singleAttempt": true,
+  "productInvocations": 0,
+  "sourceExecution": 0
+}

@@ -1,0 +1,7 @@
+Success. Updated the following files:
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/AUTHORITY-CLOSURE.json
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/SLOT.json
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/closure-check.mjs
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/PRESEAL.json
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/README.md
+A tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/.gitignore

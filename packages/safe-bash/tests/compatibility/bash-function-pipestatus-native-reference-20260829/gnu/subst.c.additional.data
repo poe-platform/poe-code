@@ -1,0 +1,425 @@
+6920: }
+6921: 	
+6922: static SHELL_VAR lambdafunc = { ".bash.lambda", 0, 0, 0, 0, 0, 0 };
+6923: 
+6924: WORD_DESC *
+6925: function_substitute (char *string, int quoted, int flags)
+6926: {
+6927:   volatile int function_code;
+6928:   int valsub, stdout_valid, saveout, old_frozen;
+6929:   int result, pflags, tflag, was_trap;
+6930:   char *istring, *s;
+6931:   WORD_DESC *ret;
+6932:   SHELL_VAR *v;
+6933:   STRING_INT_ALIST anonf;
+6934:   int afd;
+6935:   char *afn;
+6936:   sigset_t set, oset;
+6937:   sh_getopt_state_t *gs;
+6938:   sh_parser_state_t ps;
+6939:   SHELL_VAR *gv;
+6940: #if defined (ARRAY_VARS)
+6941:   ARRAY *psa;
+6942: #endif
+6943: 
+6944:   if (valsub = (string && *string == '|'))
+6945:     string++;
+6946: 
+6947:   /* In the case of no command to run, just return NULL. */
+6948:   for (s = string; s && *s && (shellblank (*s) || *s == '\n'); s++)
+6949:     ;
+6950:   if (s == 0 || *s == 0)
+6951:     return ((WORD_DESC *)NULL);
+6952: 
+6953:   istring = (char *)NULL;
+6954:   /* Flags to pass to parse_and_execute() */
+6955:   pflags = (interactive && sourcelevel == 0) ? SEVAL_RESETLINE : 0;
+6956:   pflags |= SEVAL_NONINT|SEVAL_NOHIST|SEVAL_NOFREE|SEVAL_NOOPTIMIZE;	/* XXX */
+6957: 
+6958:   /* Let's get an anonymous file before we really try anything else. */
+6959:   if (valsub == 0)
+6960:     {
+6961:       afd = anonopen ("sh-nfc", 0, &afn);	/* don't use filename yet */
+6962:       if (afd < 0)
+6963: 	{
+6964: 	  sys_error ("%s", _("function_substitute: cannot open anonymous file for output"));
+6965: 	  exp_jump_to_top_level (DISCARD);		/* XXX */
+6966: 	}
+6967:     }
+6968: 
+6969:   gs = sh_getopt_save_istate ();
+6970: 
+6971:   begin_unwind_frame ("nofork comsub");
+6972: 
+6973:   /* Save command and expansion state we need. */
+6974:   if (valsub == 0)
+6975:     {
+6976:       anonf.word = afn;
+6977:       anonf.token = afd;
+6978:       add_unwind_protect (uw_anonclose, (void *)&anonf);
+6979:     }
+6980:   unwind_protect_int (executing_funsub);
+6981:   unwind_protect_int (expand_aliases);
+6982:   unwind_protect_pointer (subst_assign_varlist);
+6983:   unwind_protect_pointer (temporary_env);
+6984:   unwind_protect_pointer (this_shell_function);
+6985:   unwind_protect_pointer (this_shell_builtin);
+6986:   unwind_protect_pointer (current_builtin);
+6987:   unwind_protect_pointer (currently_executing_command);
+6988:   unwind_protect_int (eof_encountered);
+6989:   add_unwind_protect (uw_pop_var_context, 0);
+6990:   add_unwind_protect (uw_maybe_restore_getopt_state, gs);
+6991: 
+6992:   if (parsing_command)
+6993:     {
+6994:       save_parser_state (&ps);
+6995:       add_unwind_protect (uw_restore_parser_state, &ps);
+6996:     }
+6997:       
+6998: #if defined (ARRAY_VARS)
+6999:   if (parsing_command == 0)
+7000:     {
+7001:       psa = save_pipestatus_array ();
+7002:       add_unwind_protect (uw_restore_pipestatus_array, psa);
+7003:     }
+7004: #endif
+7138: }
+7139: 
+7140: /* Perform command substitution on STRING.  This returns a WORD_DESC * with the
+7141:    contained string possibly quoted. */
+7142: WORD_DESC *
+7143: command_substitute (char *string, int quoted, int flags)
+7144: {
+7145:   pid_t pid, old_pid, old_pipeline_pgrp, old_async_pid;
+7146:   char *istring, *s;
+7147:   int result, fildes[2], function_value, pflags, rc, tflag, fork_flags;
+7148:   WORD_DESC *ret;
+7149:   sigset_t set, oset;
+7150: 
+7151:   istring = (char *)NULL;
+7152: 
+7153:   /* Don't fork () if there is no need to.  In the case of no command to
+7154:      run, just return NULL. */
+7155:   for (s = string; s && *s && (shellblank (*s) || *s == '\n'); s++)
+7156:     ;
+7157:   if (s == 0 || *s == 0)
+7158:     return ((WORD_DESC *)NULL);
+7159: 
+7160:   if (*s == '<' && (s[1] != '<' && s[1] != '>' && s[1] != '&'))
+7161:     {
+7162:       COMMAND *cmd;
+7163: 
+7164:       cmd = parse_string_to_command (string, 0);	/* XXX - flags */
+7165:       if (cmd && can_optimize_cat_file (cmd))
+7166: 	{
+7167: 	  tflag = 0;
+7168: 	  istring = optimize_cat_file (cmd->value.Simple->redirects, quoted, flags, &tflag);
+7169: 	  if (istring == &expand_param_error)
+7170: 	    {
+7171: 	      last_command_subst_status = EXECUTION_FAILURE;
+7172: 	      istring = 0;
+7173: 	    }
+7174: 	  else
+7175: 	    last_command_subst_status = EXECUTION_SUCCESS;	/* compat */
+7176: 	  last_command_subst_pid = dollar_dollar_pid;
+7177: 
+7178: 	  if (posixly_correct == 0)	/* POSIX interp 1150 */
+7179: 	    last_command_exit_value = last_command_subst_status;	/* XXX */
+7180: 
+7181: 	  dispose_command (cmd);	  
+7182: 	  ret = alloc_word_desc ();
+7183: 	  ret->word = istring;
+7184: 	  ret->flags = tflag;
+7185: 
+7186: 	  return ret;
+7187: 	}
+7188:       dispose_command (cmd);
+7189:     }
+7190: 
+7191:   if (wordexp_only && read_but_dont_execute)
+7192:     {
+7193:       last_command_exit_value = EX_WEXPCOMSUB;
+7194:       jump_to_top_level (EXITPROG);
+7195:     }
+7196: 
+7197:   /* We're making the assumption here that the command substitution will
+7198:      eventually run a command from the file system.  Since we'll run
+7199:      maybe_make_export_env in this subshell before executing that command,
+7200:      the parent shell and any other shells it starts will have to remake
+7201:      the environment.  If we make it before we fork, other shells won't
+7202:      have to.  Don't bother if we have any temporary variable assignments,
+7203:      though, because the export environment will be remade after this
+7204:      command completes anyway, but do it if all the words to be expanded
+7205:      are variable assignments. */
+7206:   if (subst_assign_varlist == 0 || garglist == 0)
+7207:     maybe_make_export_env ();	/* XXX */
+7208: 
+7209:   /* Flags to pass to parse_and_execute() */
+7210:   pflags = (interactive && sourcelevel == 0) ? SEVAL_RESETLINE : 0;
+7211: 
+7212:   old_pid = last_made_pid;
+7213: 
+7214:   /* Pipe the output of executing STRING into the current shell. */
+7215:   if (pipe (fildes) < 0)
+7216:     {
+7217:       sys_error ("%s", _("cannot make pipe for command substitution"));
+7218:       goto error_exit;
+7219:     }
+7220: 
+7221: #ifdef __CYGWIN__
+7222:  /* Passing a pipe through std fds can cause hangs when talking to a
+10785: 	  if (pflags & PF_NOCOMSUB)
+10786: 	  /* we need zindex+1 because string[zindex] == RPAREN */
+10787: 	    temp1 = substring (string, *sindex, zindex+1);
+10788: 	  else
+10789: 	    {
+10790: 	      tdesc = function_substitute (temp, quoted, pflags&PF_ASSIGNRHS);
+10791: 	      temp1 = tdesc ? tdesc->word : (char *)NULL;
+10792: 	      if (tdesc)
+10793: 		dispose_word_desc (tdesc);
+10794: 	    }
+10795: 	  FREE (temp);
+10796: 	  temp = temp1;
+10797: 	  break;
+10798: 	}
+10799: 
+10800:       tdesc = parameter_brace_expand (string, &zindex, quoted, pflags,
+10801: 				      quoted_dollar_at_p,
+10802: 				      contains_dollar_at);
+10803: 
+10804:       if (tdesc == &expand_wdesc_error || tdesc == &expand_wdesc_fatal)
+10805: 	return (tdesc);
+10806:       temp = tdesc ? tdesc->word : (char *)0;
+10807: 
+10808:       /* XXX */
+10809:       /* Quoted nulls should be removed if there is anything else
+10810: 	 in the string. */
+10811:       /* Note that we saw the quoted null so we can add one back at
+10812: 	 the end of this function if there are no other characters
+10813: 	 in the string, discard TEMP, and go on.  The exception to
+10814: 	 this is when we have "${@}" and $1 is '', since $@ needs
+10815: 	 special handling. */
+10816:       if (tdesc && tdesc->word && (tdesc->flags & W_HASQUOTEDNULL) && QUOTED_NULL (temp))
+10817: 	{
+10818: 	  if (had_quoted_null_p)
+10819: 	    *had_quoted_null_p = 1;
+10820: 	  if (*quoted_dollar_at_p == 0)
+10821: 	    {
+10822: 	      free (temp);
+10823: 	      tdesc->word = temp = (char *)NULL;
+10824: 	    }
+10825: 	    
+10826: 	}
+10827: 
+10828:       ret = tdesc;
+10829:       goto return0;
+10830: 
+10831:     /* Do command or arithmetic substitution. */
+10832:     case LPAREN:
+10833:       /* We have to extract the contents of this paren substitution. */
+10834:       t_index = zindex + 1;
+10835:       /* XXX - might want to check for string[t_index+2] == LPAREN and parse
+10836: 	 as arithmetic substitution immediately. */
+10837:       temp = extract_command_subst (string, &t_index, (pflags&PF_COMPLETE) ? SX_COMPLETE : 0);
+10838:       zindex = t_index;
+10839: 
+10840:       /* For Posix.2-style `$(( ))' arithmetic substitution,
+10841: 	 extract the expression and pass it to the evaluator. */
+10842:       if (temp && *temp == LPAREN)
+10843: 	{
+10844: 	  char *temp2;
+10845: 	  temp1 = temp + 1;
+10846: 	  temp2 = savestring (temp1);
+10847: 	  t_index = strlen (temp2) - 1;
+10848: 
+10849: 	  if (temp2[t_index] != RPAREN)
+10850: 	    {
+10851: 	      free (temp2);
+10852: 	      goto comsub;
+10853: 	    }
+10854: 
+10855: 	  /* Cut off ending `)' */
+10856: 	  temp2[t_index] = '\0';
+10857: 
+10858: 	  if (chk_arithsub (temp2, t_index) == 0)
+10859: 	    {
+10860: 	      free (temp2);
+10861: #if 0
+10862: 	      internal_warning (_("future versions of the shell will force evaluation as an arithmetic substitution"));
+10863: #endif
+10864: 	      goto comsub;
+10865: 	    }
+10866: 
+10867: 	  /* Expand variables found inside the expression. */
+10868: 	  temp1 = expand_arith_string (temp2, Q_DOUBLE_QUOTES|Q_ARITH);
+10869: 	  free (temp2);
+10896:       if (pflags & PF_NOCOMSUB)
+10897: 	/* we need zindex+1 because string[zindex] == RPAREN */
+10898: 	temp1 = substring (string, *sindex, zindex+1);
+10899:       else
+10900: 	{
+10901: 	  tdesc = command_substitute (temp, quoted, pflags&PF_ASSIGNRHS);
+10902: 	  temp1 = tdesc ? tdesc->word : (char *)NULL;
+10903: 	  if (tdesc)
+10904: 	    dispose_word_desc (tdesc);
+10905: 	}
+10906:       FREE (temp);
+10907:       temp = temp1;
+10908:       break;
+10909: 
+10910:     /* Do POSIX.2d9-style arithmetic substitution.  This will probably go
+10911:        away in a future bash release. */
+10912:     case '[':		/*]*/
+10913:       /* Extract the contents of this arithmetic substitution. */
+10914:       t_index = zindex + 1;
+10915:       temp = extract_arithmetic_subst (string, &t_index);
+10916:       zindex = t_index;
+10917:       if (temp == 0)
+10918: 	{
+10919: 	  temp = savestring (string);
+10920: 	  if (expanded_something)
+10921: 	    *expanded_something = 0;
+10922: 	  goto return0;
+10923: 	}	  
+10924: 
+10925:        /* Do initial variable expansion. */
+10926:       temp1 = expand_arith_string (temp, Q_DOUBLE_QUOTES|Q_ARITH);
+10927: 
+10928:       goto arithsub;
+10929: 
+10930:     default:
+10931:       /* Find the variable in VARIABLE_LIST. */
+10932:       temp = (char *)NULL;
+10933: 
+10934:       for (t_index = zindex; (c = string[zindex]) && legal_variable_char (c); zindex++)
+10935: 	;
+10936:       temp1 = (zindex > t_index) ? substring (string, t_index, zindex) : (char *)NULL;
+10937: 
+10938:       /* If this isn't a variable name, then just output the `$'. */
+10939:       if (temp1 == 0 || *temp1 == '\0')
+10940: 	{
+10941: 	  FREE (temp1);
+10942: 	  temp = (char *)xmalloc (2);
+10943: 	  temp[0] = '$';
+10944: 	  temp[1] = '\0';
+10945: 	  if (expanded_something)
+10946: 	    *expanded_something = 0;
+10947: 	  goto return0;
+10948: 	}
+10949: 
+10950:       /* If the variable exists, return its value cell. */
+10951:       var = find_variable (temp1);
+10952: 
+10953:       if (var && invisible_p (var) == 0 && var_isset (var))
+10954: 	{
+10955: #if defined (ARRAY_VARS)
+10956: 	  if (assoc_p (var) || array_p (var))
+10957: 	    temp = array_p (var) ? array_reference (array_cell (var), 0)
+10958: 				 : assoc_reference (assoc_cell (var), "0");
+10959: 	  else
+10960: #endif
+10961: 	    /* $X */
+10962: 	    temp = value_cell (var);
+10963: 
+10964: 	  /* Quote the value appropriately */
+10965: 	  if (temp == 0 && unbound_vars_is_error)
+10966: 	    goto unbound_variable;	/* can happen if array[0] is not set */
+10967: 	  else
+10968: 	    temp = quote_var_value (temp, quoted, pflags);
+10969: 
+10970: 	  free (temp1);
+10971: 
+10972: 	  goto return0;
+10973: 	}
+10974:       else if (var && (invisible_p (var) || var_isset (var) == 0))
+10975: 	temp = (char *)NULL;
+10976:       else if ((var = find_variable_last_nameref (temp1, 0)) && var_isset (var) && invisible_p (var) == 0)
+10977: 	{
+10978: 	  temp = nameref_cell (var);
+10979: #if defined (ARRAY_VARS)
+10980: 	  if (temp && *temp && valid_array_reference (temp, 0))
+11599: 	      /* sindex + 1 because string[sindex] == '`' */
+11600: 	      temp1 = substring (string, t_index, sindex + 1);
+11601: 	    else
+11602: 	      {
+11603: 		de_backslash (temp, quoted);
+11604: 		tword = command_substitute (temp, quoted, PF_BACKQUOTE);
+11605: 		temp1 = tword ? tword->word : (char *)NULL;
+11606: 		if (tword)
+11607: 		  dispose_word_desc (tword);
+11608: 	      }
+11609: 	    FREE (temp);
+11610: 	    temp = temp1;
+11611: 	    goto dollar_add_string;
+11612: 	  }
+11613: 
+11614: 	case '\\':
+11615: 	  if (string[sindex + 1] == '\n')
+11616: 	    {
+11617: 	      sindex += 2;
+11618: 	      continue;
+11619: 	    }
+11620: 
+11621: 	  c = string[++sindex];
+11622: 
+11623: 	  /* "However, the double-quote character ( '"' ) shall not be treated
+11624: 	     specially within a here-document, except when the double-quote
+11625: 	     appears within "$()", "``", or "${}"." */
+11626: 	  if ((quoted & Q_HERE_DOCUMENT) && (quoted & Q_DOLBRACE) && c == '"')
+11627: 	    tflag = CBSDQUOTE;		/* special case */
+11628: 	  else if (quoted & Q_HERE_DOCUMENT)
+11629: 	    tflag = CBSHDOC;
+11630: 	  else if (quoted & Q_DOUBLE_QUOTES)
+11631: 	    tflag = CBSDQUOTE;
+11632: 	  else
+11633: 	    tflag = 0;
+11634: 
+11635: 	  /* From Posix discussion on austin-group list:  Backslash escaping
+11636: 	     a } in ${...} is removed.  Issue 0000221 */
+11637: 	  if ((quoted & Q_DOLBRACE) && c == RBRACE)
+11638: 	    {
+11639: 	      SCOPY_CHAR_I (twochars, CTLESC, c, string, sindex, string_size);
+11640: 	    }
+11641: 	  /* This is the fix for " $@\ " */
+11642: 	  else if ((quoted & (Q_HERE_DOCUMENT|Q_DOUBLE_QUOTES)) && ((sh_syntaxtab[c] & tflag) == 0) && isexp == 0 && isifs (c))
+11643: 	    {
+11644: 	      RESIZE_MALLOCED_BUFFER (istring, istring_index, 2, istring_size,
+11645: 				      DEFAULT_ARRAY_SIZE);
+11646: 	      istring[istring_index++] = CTLESC;
+11647: 	      istring[istring_index++] = '\\';
+11648: 	      istring[istring_index] = '\0';
+11649: 
+11650: 	      SCOPY_CHAR_I (twochars, CTLESC, c, string, sindex, string_size);
+11651: 	    }
+11652: 	  else if ((quoted & (Q_HERE_DOCUMENT|Q_DOUBLE_QUOTES)) && c == 0)
+11653: 	    {
+11654: 	      RESIZE_MALLOCED_BUFFER (istring, istring_index, 2, istring_size,
+11655: 				      DEFAULT_ARRAY_SIZE);
+11656: 	      istring[istring_index++] = CTLESC;
+11657: 	      istring[istring_index++] = '\\';
+11658: 	      istring[istring_index] = '\0';
+11659: 	      break;	      
+11660: 	    }
+11661: 	  else if ((quoted & (Q_HERE_DOCUMENT|Q_DOUBLE_QUOTES)) && ((sh_syntaxtab[c] & tflag) == 0))
+11662: 	    {
+11663: 	      SCOPY_CHAR_I (twochars, '\\', c, string, sindex, string_size);
+11664: 	    }
+11665: 	  else if (c == 0)
+11666: 	    {
+11667: 	      c = CTLNUL;
+11668: 	      sindex--;		/* add_character: label increments sindex */
+11669: 	      goto add_character;
+11670: 	    }
+11671: 	  else
+11672: 	    {
+11673: 	      SCOPY_CHAR_I (twochars, CTLESC, c, string, sindex, string_size);
+11674: 	    }
+11675: 
+11676: 	  sindex++;
+11677: add_twochars:
+11678: 	  /* BEFORE jumping here, we need to increment sindex if appropriate */
+11679: 	  RESIZE_MALLOCED_BUFFER (istring, istring_index, 2, istring_size,
+11680: 				  DEFAULT_ARRAY_SIZE);
+11681: 	  istring[istring_index++] = twochars[0];
+11682: 	  istring[istring_index++] = twochars[1];
+11683: 	  istring[istring_index] = '\0';

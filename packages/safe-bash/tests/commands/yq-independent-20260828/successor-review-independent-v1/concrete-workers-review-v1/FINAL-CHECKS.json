@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "classification": "OWNED_STATIC_REPORT_VALIDATION_NOT_TARGET_CONTROL_RESULTS",
+  "date": "2026-08-28",
+  "criteriaCommit": "b60d41a860a637510eba053f6c9c39229afa84d1",
+  "findings": [
+    {
+      "id": "CW-F01",
+      "commit": "9189eb71d6cc16e028793318543fd2c0437c3a4d"
+    },
+    {
+      "id": "CW-F02",
+      "commit": "7d265b20892bb1da712d9585e013938ab6aaed35"
+    }
+  ],
+  "files": [
+    {
+      "path": "AUTHENTICATION.json",
+      "sha256": "cc140cbec97cf1848d8e7a03495f0b5aeec41383845e04a3074b342d3c7e55ee",
+      "bytes": 14991,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "CRITERIA.md",
+      "sha256": "5ae01bf6450bf41e99ca2b1506c74549ad963c413c9ad25d7ba91e74aa0bfb7f",
+      "bytes": 4477,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "CW-F01-STATIC-WITNESS.json",
+      "sha256": "a99d9d943663981b5f7d5fe75239b6465e85d268bc7f08ce4bf4a7c40df6338f",
+      "bytes": 2794,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "CW-F02-STATIC-WITNESS.json",
+      "sha256": "5b06e84bddf76f424950d891e22085274ba46e1dc8186423eb693ea53eaf11d3",
+      "bytes": 5208,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "INPUTS.json",
+      "sha256": "0ac5501937632cd62dbce906e2946a4552bffeb791932f104c2b21857f85043b",
+      "bytes": 1085,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "REVIEW.md",
+      "sha256": "b20ad633331155a7da24048003602d9d38356e61c5387becfffe140a9968d139",
+      "bytes": 13497,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "STATIC-DATA-SOURCE-AUDIT.json",
+      "sha256": "f7b9729ff2f013b3639024747ea9c72f7a634752a5a4349533e28c591b0b65a5",
+      "bytes": 28120,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "SYNTAX-CHECKS.json",
+      "sha256": "0dcde70ae8ea099e1a9b6471d896925cb155c7e1d3759e8e9038b8465d52f9a6",
+      "bytes": 2469,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "VERDICT.json",
+      "sha256": "6c875c57d0d68e19529e93d06a5fb45dbdc735aabdfa599cb59f0c6f189be4d9",
+      "bytes": 3331,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    }
+  ],
+  "fileCountBeforeSelf": 9,
+  "jsonCountBeforeSelf": 7,
+  "JSONUniqueKeySyntax": "valid",
+  "writeSpecCriteria": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "criteriaInputsUnchanged": true,
+  "frozenFindingsUnchanged": true,
+  "prior49afReviewChangedPaths": [],
+  "precommitIndexPaths": [],
+  "reviewerPreparationDiagnostic": "AUTHENTICATION.json preserves the initial metadata-reader KeyError/status1. No authored worker/control ran; subsequent raw authentication succeeds.",
+  "chronology": "e747 is input preseal; c035 first commits SOURCE-PRESEAL and worker bodies. Criteria routing labels remain preserved; AUTHENTICATION and VERDICT distinguish actual chronology.",
+  "sourceFixes": 0,
+  "unsealedCoreBuildBodiesRead": false,
+  "javascriptSyntaxOnlyParses": 3,
+  "candidateExecutions": 0,
+  "compilerExecutions": 0,
+  "authoredWorkerPredicateImportsOrCalls": 0,
+  "controlExecutions": 0,
+  "runtimePasses": 0,
+  "controlPasses": 0,
+  "RootGO": false,
+  "selfExcludedExactPath": "FINAL-CHECKS.json",
+  "sealQualification": "This manifest is itself bound by exact-path review commit and requested /tmp handoff; no historical POSIX self-mode inference."
+}

@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: independent memory: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+ok 1 - independent memory: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 1.97075
+  type: 'test'
+  ...
+# Subtest: independent memory: honest opaque remapping refuses both directions before content acquisition
+ok 2 - independent memory: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 0.880958
+  type: 'test'
+  ...
+# Subtest: independent memory: explicit error cannot become qualified publication
+ok 3 - independent memory: explicit error cannot become qualified publication
+  ---
+  duration_ms: 2.198583
+  type: 'test'
+  ...
+# Subtest: independent memory: explicit cancel cannot become qualified publication
+ok 4 - independent memory: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 1.021542
+  type: 'test'
+  ...
+# Subtest: independent s3: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+ok 5 - independent s3: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 2.557792
+  type: 'test'
+  ...
+# Subtest: independent s3: honest opaque remapping refuses both directions before content acquisition
+ok 6 - independent s3: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 1.741208
+  type: 'test'
+  ...
+# Subtest: independent s3: explicit error cannot become qualified publication
+ok 7 - independent s3: explicit error cannot become qualified publication
+  ---
+  duration_ms: 0.570458
+  type: 'test'
+  ...
+# Subtest: independent s3: explicit cancel cannot become qualified publication
+ok 8 - independent s3: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 1.123917
+  type: 'test'
+  ...
+# Subtest: independent webdav: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+ok 9 - independent webdav: faithful late writers copy bytes but cannot overwrite a readonly-view alias
+  ---
+  duration_ms: 20.21
+  type: 'test'
+  ...
+# Subtest: independent webdav: honest opaque remapping refuses both directions before content acquisition
+ok 10 - independent webdav: honest opaque remapping refuses both directions before content acquisition
+  ---
+  duration_ms: 4.265292
+  type: 'test'
+  ...
+# Subtest: independent webdav: explicit error cannot become qualified publication
+ok 11 - independent webdav: explicit error cannot become qualified publication
+  ---
+  duration_ms: 1.087375
+  type: 'test'
+  ...
+# Subtest: independent webdav: explicit cancel cannot become qualified publication
+ok 12 - independent webdav: explicit cancel cannot become qualified publication
+  ---
+  duration_ms: 0.81
+  type: 'test'
+  ...
+# Subtest: independent truthful remapping retains actual native identity rather than making all remappers unusable
+ok 13 - independent truthful remapping retains actual native identity rather than making all remappers unusable
+  ---
+  duration_ms: 0.211917
+  type: 'test'
+  ...
+# Subtest: independent S3 faithful HEAD binds only a fresh corresponding query
+ok 14 - independent S3 faithful HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.329833
+  type: 'test'
+  ...
+# Subtest: independent S3 serialized HEAD binds only a fresh corresponding query
+ok 15 - independent S3 serialized HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.227417
+  type: 'test'
+  ...
+# Subtest: independent S3 replayed HEAD binds only a fresh corresponding query
+ok 16 - independent S3 replayed HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.17725
+  type: 'test'
+  ...
+# Subtest: independent S3 wrong-path HEAD binds only a fresh corresponding query
+not ok 17 - independent S3 wrong-path HEAD binds only a fresh corresponding query
+  ---
+  duration_ms: 0.581667
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:1:6735'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-reconciliation-CYffZ2/tests/integration/full-gate-20260827/authority-reconciliation-independent/controls.test.ts:137:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 16
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 175.075083

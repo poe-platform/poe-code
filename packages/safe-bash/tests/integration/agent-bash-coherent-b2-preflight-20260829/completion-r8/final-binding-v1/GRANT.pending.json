@@ -1,0 +1,32 @@
+{
+  "schema": "B2_RUNTIME_GO_R8",
+  "authority": "ROOT_B2_672_EXPLICIT_FRESH_GO",
+  "reviewAuthority": "INDEPENDENT_PREEXEC_REVIEW_ACCEPTED",
+  "reviewCommit": "a54f318dedf6e80edd3ac12887f9e50ae4bff758",
+  "packetSha256": "6df866e7990386218848061128777008bfbd6cdd93a7c0f658559fc0d0aa23f9",
+  "caps": {
+    "seconds": 1800,
+    "reserveSeconds": 180,
+    "knownOsStarts": 64,
+    "peakOs": 3,
+    "rawBytes": 100663296,
+    "childRawBytes": 67108864,
+    "workBytes": 536870912,
+    "terminalReserveBytes": 4194304,
+    "traceBytesPerRole": 524288,
+    "loaderAdmissions": 34,
+    "regexWorkers": 0,
+    "regexLoaderAdmissions": 0,
+    "guestEngines": 0,
+    "loaderThreads": 34,
+    "peakLoaderThreads": 1,
+    "decoderBytes": 67108864,
+    "maximumInventoryEntries": 16384
+  },
+  "workRoot": "/private/tmp/safe-bash-b2-runtime-r8",
+  "issuedAt": "2026-08-29T16:44:04.544Z",
+  "notBefore": "2026-08-29T17:10:00.000Z",
+  "activeDeadline": "2026-08-29T17:37:00.000Z",
+  "deadline": "2026-08-29T17:40:00.000Z",
+  "mutableCacheAuthority": "ROOT_ACCEPTS_BEST_EFFORT_MUTABLE_CACHE_R8"
+}

@@ -1,0 +1,52 @@
+{
+  "schema": "SEMANTIC_PREPARATION_FINAL_PUBLICATION_V1",
+  "status": "PREPARATION_COMPLETE_RUNTIME_HOLD",
+  "presealCommit": "cc8139986c0914649cc4a2c4792dbcc8212db338",
+  "evidenceCommit": "1aa92b85e72e2c1fe4810587f2300c11314e7d6e",
+  "presealSha256": "40d8b596e48231ba36d09968a3feb58797be6428c36f661c73ca37bdcd4cf490",
+  "evidenceManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01-preparation/EVIDENCE-MANIFEST.json",
+    "bytes": 4790,
+    "mode": 420,
+    "sha256": "39f060ab513891ae19c1aab6b379a94fd4185cd0c84e04b3544cc25f3acae7bf"
+  },
+  "publicationCapture": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01-preparation/PUBLICATION-CAPTURE.ndjson",
+    "bytes": 11879,
+    "mode": 384,
+    "sha256": "e563b9d73ff2cb4a7372cb78491f999b12af77de22327dd161a01b08fccfed33"
+  },
+  "completedDataChecks": 12,
+  "passed": 12,
+  "failed": 0,
+  "preparationChildrenThroughPublication": 15,
+  "allKnownExitCloseZero": true,
+  "allKnownClosed": true,
+  "actualEngineImports": 0,
+  "actualWorkers": 0,
+  "actualC11": 0,
+  "actualSemantics": 0,
+  "runIdConsumed": false,
+  "reservedFinalMetadataProcesses": 4,
+  "expectedFinalPreparationChildren": 19,
+  "preparationProcessCap": 64,
+  "observedSequentialChildPeak": 1,
+  "launchTopologyIncludingExistingControlOwnerPeak": 2,
+  "rootPeakCap": 3,
+  "elapsedMillisecondsAtPublication": 978800,
+  "rootTimeCapMilliseconds": 1800000,
+  "subprocessRawBytesThroughPublication": 9135,
+  "rootCaptureCapBytes": 134217728,
+  "rootWorkingCapBytes": 536870912,
+  "captureQualification": "Each launched child has complete exit/close and retained stdout/stderr; no capture truncation. Metadata/process scope only, not host-global census.",
+  "finalTransport": "Last four bounded patch/stage/commit/status process receipts remain tool transport; no recursive self-hash or claim that their future raw output is already in this file.",
+  "commitsExplicitOwnedPathsVerified": true,
+  "foreignStagingUntouched": true,
+  "rootNextDecisions": [
+    "Versioned launcher/collector semantic-mode repair and separate review",
+    "Prospective322process ceiling and concrete administration dispatch schedule",
+    "Retain257MiB fail-closed capture cap with no guarantee all99maximal outputs fit",
+    "Fresh semantic actualGO only after review"
+  ],
+  "oldFailuresAndLossesUnchanged": true
+}

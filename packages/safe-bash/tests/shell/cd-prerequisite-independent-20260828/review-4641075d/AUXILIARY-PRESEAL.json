@@ -1,0 +1,40 @@
+{
+  "stage": "postcandidate binding, before minimal mutants/existing regression",
+  "candidate": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+  "mutations": [
+    {
+      "name": "M01-no-CDPATH-print",
+      "case": "B01",
+      "before": "if (selected.print || args[0] === \"-\") await writeText(stdout, `${path}\\n`);",
+      "after": "if (args[0] === \"-\") await writeText(stdout, `${path}\\n`);",
+      "sha256": "82e77fa5eb72f9ab24057feeb6884eb16047cd4286872fec6b620f69b228e834"
+    },
+    {
+      "name": "M02-unchecked-OLDPWD",
+      "case": "S01",
+      "before": "this.writeVariable(state, \"OLDPWD\", state.cwd);",
+      "after": "state.variables.OLDPWD = state.cwd;",
+      "sha256": "7741486761e1aabe6aa822f83779052e19d0286e67d1e334ab685777ef3c95ec"
+    }
+  ],
+  "mutantQualification": "Only source loader variant; real public Shell invokes one unchanged previously passing frozen case. Must fail semantically with clean closure and authenticated actual mutated runtime load, not loader errors.",
+  "regression": {
+    "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "path": "tests/shell/fs-error-diagnostics.test.ts",
+    "blob": "283143fe2eb2b231dc32168edefabf27d0cb3f49",
+    "sha256": "5ac1508bc8416b6de0824577dab5ae518fad28bbf05f7c2e9fd5bc01c05befea",
+    "bytes": 6791
+  },
+  "F07": "Exact existing20 tests, no native/provider/service guest subprocesses, explicit source imports mapped only to exact composed candidate source. Not author239/42 replay.",
+  "privateObligations": "Precise source/AST/arithmetic proof coupled to measured public boundaries; no invented private helper invocation fixture or public state getter.",
+  "scripts": [
+    {
+      "name": "aux-entry.mjs",
+      "sha256": "267e862c3c1fbc96cc4c89688c2ed2ab2964b86b2b6bb4d29da2c5d92dae5227"
+    },
+    {
+      "name": "auxiliary.mjs",
+      "sha256": "bfb605951ef0e1797cb7a69f332119ea5c01ba86addb06363e1ca03e13d5dfe7"
+    }
+  ]
+}

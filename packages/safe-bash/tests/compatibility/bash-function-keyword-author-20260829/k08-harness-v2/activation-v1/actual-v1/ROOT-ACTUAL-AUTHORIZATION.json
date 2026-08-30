@@ -1,0 +1,17 @@
+{
+  "schema": "k08-root-actual-record-v1",
+  "source": "User ROOT ACTUAL K08 GO message",
+  "oneAttempt": true,
+  "preexec": "29b6f0d5696e920cf42dbaac120b05e675e6b03f",
+  "finalSlot": "21e36404a7480d72f8877e8d2d10fcef9b2e09e0",
+  "receiptSha256": "8ad9f9f6547caabfb9f73a2c1a055fa91224244fe04e9237fddc055445966a14",
+  "knownOS": 86,
+  "peak": 3,
+  "durationMs": 1500000,
+  "captureBytes": 100663296,
+  "logicalWorkBytes": 536870912,
+  "primaryCalls": 69,
+  "mutantShellCalls": 2,
+  "noRetry": true,
+  "actualDisposition": "CONSUMED_STOP"
+}

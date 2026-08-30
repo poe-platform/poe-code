@@ -1,0 +1,65 @@
+{
+  "schema": "pipestatus-typed-control-preseal-v1",
+  "files": [
+    {
+      "path": "prepare.mjs",
+      "bytes": 26523,
+      "sha256": "0eac1cd66ddf4806857bc469714e01bf02e539d7698726a8607128ff7a34bc32",
+      "mode": 420
+    },
+    {
+      "path": "PREPARE.md",
+      "bytes": 2585,
+      "sha256": "d75c5ae903a4577f7f2dd2d9854c2e78b84b40f81f59f13cc5f4490ab43a62b8",
+      "mode": 420
+    },
+    {
+      "path": "PROGRAMS.json",
+      "bytes": 829,
+      "sha256": "2961585eaaf0c2a28c010ff80b754c78f923ebaa8e97de9dc65ea5972b262133",
+      "mode": 420
+    },
+    {
+      "path": "cohort.fragment.data",
+      "bytes": 1244,
+      "sha256": "309adee644c6f385a330a7a4d706158bb18e3ed654571daad9cf3053bd5197f3",
+      "mode": 420
+    },
+    {
+      "path": "materialized/PRESEAL.json",
+      "bytes": 3283,
+      "sha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e",
+      "mode": 384
+    },
+    {
+      "path": "APPROVAL-PROPOSAL.template.json",
+      "bytes": 2861,
+      "sha256": "8f14ef69db395a8dffd4bcd573e6944bc03bddf324ac204846c6b1c6412e6f4e",
+      "mode": 384
+    },
+    {
+      "path": "GO.template.json",
+      "bytes": 1760,
+      "sha256": "75422a2a18e06a86c1e0985072f45222e7af545b566768cfb43a8a3c67c92844",
+      "mode": 384
+    },
+    {
+      "path": "REVIEW-ACCEPTANCE.template.json",
+      "bytes": 361,
+      "sha256": "8946073cbadad02a168b8c3fd34daa9215091e3c585e1918d8bc41899c3cd35b",
+      "mode": 384
+    },
+    {
+      "path": "SOURCE-DELTA.json",
+      "bytes": 2142,
+      "sha256": "4fed7e03b88cc0215724d24705d8e7bfa1f1964100631a762fd901544363522c",
+      "mode": 384
+    },
+    {
+      "path": "SOURCE-AUTH.json",
+      "bytes": 4110,
+      "sha256": "d3c6533102bf38921b56f481813a0cefebd49880ea53b3b007c3c0c3f784237a",
+      "mode": 384
+    }
+  ]
+}

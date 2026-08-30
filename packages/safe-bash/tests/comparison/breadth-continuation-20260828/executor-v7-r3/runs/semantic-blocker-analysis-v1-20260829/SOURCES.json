@@ -1,0 +1,187 @@
+{
+  "schema": "BLOCKER_PRIMARY_SOURCE_REGISTER_V1",
+  "retrievedAt": "2026-08-29T06:16:07.567Z",
+  "localInputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 35477,
+      "mode": 292,
+      "sha256": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 510637,
+      "mode": 292,
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/package.json",
+      "bytes": 7757,
+      "mode": 292,
+      "sha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/index.d.ts",
+      "bytes": 2988,
+      "mode": 292,
+      "sha256": "17ba66ec426ad377704de977ee664937626b49a1a7ffc1658ce01274e0d0e7a5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/Bash.d.ts",
+      "bytes": 10289,
+      "mode": 292,
+      "sha256": "e3a69cccbb3838ea6923f9fe0e0f8da738394292a1d47c7995e24eb1ee988188"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/security/types.d.ts",
+      "bytes": 6115,
+      "mode": 292,
+      "sha256": "ecc4881f744a053e1c541d4218a806b787cdebe78657ab1b7a42374b9f563a30"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/security/defense-in-depth-box.d.ts",
+      "bytes": 13844,
+      "mode": 292,
+      "sha256": "cf840c1ab1d760b93c84c71ff3d8b448bf3b76f8911b3d4a59d467ec6aa8ae89"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/README.md",
+      "bytes": 28914,
+      "mode": 292,
+      "sha256": "3232b230a378c2d853029df513fc8740ce32819d531acc6faed41c2d780b44e2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/adapter.mjs",
+      "bytes": 8602,
+      "mode": 420,
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/body.mjs",
+      "bytes": 12660,
+      "mode": 420,
+      "sha256": "13e8d76d892aa0a85db2dec66db64659467cf98bee4055f12e3c17c9f4911029"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs",
+      "bytes": 11657,
+      "mode": 420,
+      "sha256": "6cce4182827c3c07099f298a71e52e94d8e8b7d8c2dbe72c36afb1c232a69d3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/report.mjs",
+      "bytes": 5564,
+      "mode": 420,
+      "sha256": "af15856b67b3894a7d0f64b75e0414dc981d0f0883b6b78cf95cf71dc1b36a92"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/semantic-assessor.mjs",
+      "bytes": 17210,
+      "mode": 420,
+      "sha256": "0dfbba53e65b6d9aa35239bf48b6d0a39e81421bfe58a03b724b38d3d00a209f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/supervisor.mjs",
+      "bytes": 4012,
+      "mode": 420,
+      "sha256": "42d220fd43f165c0d100a61ef55d29bddd87577f7cafe929c832f33cd80dc069"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/RESULT.json",
+      "bytes": 21015,
+      "mode": 420,
+      "sha256": "f85b3917616561ad235ff3be5597728f7a890c02e70b75ace57958544a406ee8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-002.receipt.json",
+      "bytes": 170958,
+      "mode": 420,
+      "sha256": "41a6f6316c77dad4327c204f05310ce7c03e6e242d0e1accc82757709ae3f52f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/BINDINGS.json",
+      "bytes": 11366,
+      "mode": 420,
+      "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "path": "/bin/sh",
+      "bytes": 101232,
+      "mode": 493,
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+    }
+  ],
+  "editingTool": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex",
+    "bytes": 228986048,
+    "mode": 493,
+    "sha256": "a14f9a907c12c8812878b70e6b7d65f81c39ed795513e46a55817d7428c0ca6b"
+  },
+  "officialReferences": [
+    {
+      "id": "N01",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/lib/internal/bootstrap/switches/is_main_thread.js",
+      "lines": "22-32,46-84,142-180",
+      "finding": "Lazy stdout/stderr accessors; pipe/TCP writable stdio constructs net.Socket around inherited fd. Supports a possible non-network Socket origin, not identification of old denied object."
+    },
+    {
+      "id": "N02",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/module.md",
+      "lines": "Synchronous hooks accepted by module.registerHooks; chaining",
+      "finding": "Synchronous main-thread/same-realm hooks compose; callback can change resolution. No broad capability inference."
+    },
+    {
+      "id": "N03",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/lib/internal/modules/customization_hooks.js",
+      "lines": "63-114,160-191",
+      "finding": "ModuleHooks owner handle exposes deregister; registered callbacks retained in chains, last registered is outermost."
+    },
+    {
+      "id": "N04",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/process.md",
+      "lines": "A note on process I/O",
+      "finding": "stdout/stderr writes depend on descriptor kind; pipe/socket I/O is not evidence of remote network activity."
+    }
+  ],
+  "officialReferenceQualification": "Version-tagged primary web source inspected; not runtime execution or a raw-byte binding of Node executable internals. Local tools separately hash-bound. No official source copied as executable.",
+  "packageQualification": "Already admitted immutable just-bash3.4.2 package sources/types/README authenticated from retained stage; no install/download/evaluation/latest-version claim.",
+  "seals": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/SEAL.json",
+      "bytes": 105131,
+      "mode": 420,
+      "sha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/SEAL.json",
+      "bytes": 15131,
+      "mode": 420,
+      "sha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d"
+    }
+  ],
+  "postReadGuards": {
+    "files": 18,
+    "unchanged": true,
+    "scope": "Inspected inputs only; no whole-stage or historical closure replay"
+  }
+}

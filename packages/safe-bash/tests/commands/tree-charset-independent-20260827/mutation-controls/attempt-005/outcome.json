@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "attempt": "attempt-005",
+  "pass": true,
+  "summary": {
+    "baselineAssertionsPassed": 11,
+    "baselineAssertionsFailed": 0,
+    "mutants": 8,
+    "mutantsKilled": 8,
+    "targetChecksKilled": 8,
+    "targetKills": {
+      "environment-always-ascii": [
+        "environment-selection"
+      ],
+      "explicit-precedence-ignored": [
+        "explicit-precedence",
+        "filename-escaping",
+        "utf8-output-byte-cap"
+      ],
+      "ambient-host-environment": [
+        "environment-selection",
+        "ambient-host-isolation",
+        "environment-work-cap"
+      ],
+      "inherited-key-lookup": [
+        "inherited-key-isolation"
+      ],
+      "filename-unescaped": [
+        "filename-escaping"
+      ],
+      "output-code-units-not-utf8-bytes": [
+        "utf8-output-byte-cap"
+      ],
+      "environment-work-undercharged": [
+        "environment-work-cap"
+      ],
+      "sink-write-not-awaited": [
+        "awaited-backpressure"
+      ]
+    },
+    "workerChildren": 9,
+    "workerChildrenClosed": 9,
+    "workerProcessGroupsClosed": 9,
+    "workerTimeouts": 0,
+    "workerOutputOverflows": 0,
+    "loadControlChildren": 3,
+    "loadControlExpectedResults": 3
+  }
+}

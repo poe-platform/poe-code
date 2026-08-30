@@ -1,0 +1,30 @@
+{
+  "role": "PREEXECUTION_NOVEL_V2_SOURCE_CORRECTION",
+  "oldExecutionCount": 0,
+  "oldSha256": "3c9038ce387dc6f8d0c6473837816f5edff7ddcbd52fa32ab5d7266f8176aee8",
+  "newSha256": "2019f537a7af54530c3ae23cfa6c395fc5426f5eda9f3d097eebcafd66e4a6d1",
+  "sourceAuthority": {
+    "path": "src/shell/shell.ts",
+    "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+    "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+  },
+  "reason": "Shell.exec constructs fresh State each call. Original N02/N03 followup exec could not prove publication effects; use readonly-vs-nounset precedence in the same invocation. N12 positionals must be asserted in original invocation; only replay intentionally uses a fresh shell.",
+  "replacements": [
+    {
+      "id": "N02-rhs-before-publication",
+      "before": "await record('N02-rhs-before-publication',async row=>{const owner=create();const actual=await owner.exec('set -u; (( target = absent + 1 )); printf forbidden');result(row,actual,1,'');fatal(actual,'absent');const after=await owner.exec('printf \"%s\" \"${target-unset}\"');row.after=after;assert.equal(after.stdout,'unset');assert.equal(after.exitCode,0);});",
+      "after": "await record('N02-rhs-before-publication',async row=>{const actual=await create().exec('readonly target=9; set -u; (( target = absent + 1 )); printf forbidden');result(row,actual,1,'');fatal(actual,'absent');assert.doesNotMatch(actual.stderr,/readonly variable/);});"
+    },
+    {
+      "id": "N03-compound-lhs-first",
+      "before": "await record('N03-compound-lhs-first',async row=>{const owner=create();const actual=await owner.exec('set -u; (( absent += (side = 7) )); printf forbidden');result(row,actual,1,'');fatal(actual,'absent');const after=await owner.exec('printf \"%s\" \"${side-unset}\"');row.after=after;assert.equal(after.stdout,'unset');assert.equal(after.exitCode,0);});",
+      "after": "await record('N03-compound-lhs-first',async row=>{const actual=await create().exec('readonly side=3; set -u; (( absent += (side = 7) )); printf forbidden');result(row,actual,1,'');fatal(actual,'absent');assert.doesNotMatch(actual.stderr,/readonly variable/);});"
+    },
+    {
+      "id": "N12-listing-replay",
+      "before": "await record('N12-listing-replay',async row=>{const owner=create();const first=await owner.exec('set -- \"first value\" second; set -uo pipefail; set -e; set +o');row.replay=first;assert.equal(first.exitCode,0);assert.equal(first.stdout,'set -o errexit\\nset -o nounset\\nset -o pipefail\\n');assert.equal(first.stderr,'');const receiver=create();const replayed=await receiver.exec(first.stdout+'set -o');result(row,replayed,0,'errexit\\ton\\nnounset\\ton\\npipefail\\ton\\n');assert.equal(replayed.stderr,'');const args=await owner.exec('printf \"%s:%s\" \"$#\" \"$1\"');row.args=args;assert.equal(args.stdout,'2:first value');assert.equal(args.exitCode,0);});",
+      "after": "await record('N12-listing-replay',async row=>{const owner=create();const listing='set -o errexit\\nset -o nounset\\nset -o pipefail\\n';const first=await owner.exec('set -- \"first value\" second; set -uo pipefail; set -e; set +o; printf \"args:%s:%s\" \"$#\" \"$1\"');row.replay=first;assert.equal(first.exitCode,0);assert.equal(first.stdout,listing+'args:2:first value');assert.equal(first.stderr,'');const receiver=create();const replayed=await receiver.exec(first.stdout.slice(0,listing.length)+'set -o');result(row,replayed,0,'errexit\\ton\\nnounset\\ton\\npipefail\\ton\\n');assert.equal(replayed.stderr,'');});"
+    }
+  ],
+  "nativeClaims": 0
+}

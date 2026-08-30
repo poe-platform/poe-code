@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/fs/mount/webdav-traversal.test.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-webdav-traversal-g9KWA8/final/archive",
+  "start": "2026-08-27T00:15:30.840Z",
+  "end": "2026-08-27T00:15:31.132Z",
+  "status": 1,
+  "signal": null
+}

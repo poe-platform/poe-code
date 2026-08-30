@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "phase": "FINAL_SLOT_REVIEW_ONLY_FRESH_ACTUAL_GO_REQUIRED",
+  "activationId": "ERE-T1-r3-20260829-activation-01",
+  "actualGo": false,
+  "issuedAt": "2026-08-29T14:18:55.007Z",
+  "latestStart": "2026-08-29T14:38:55.007Z",
+  "expiresAt": "2026-08-29T15:13:55.007Z",
+  "window": {
+    "kind": "EXTERNAL_ROOT_COORDINATION_AND_AGENT_LAUNCH_CONDITION",
+    "latestStartOffsetMilliseconds": 1200000,
+    "expiryOffsetMilliseconds": 3300000,
+    "fullRuntimeMilliseconds": 2100000,
+    "runtimeTimestampGate": false,
+    "checks": "At final review and immediately before dispatch: unused activation/output paths, issuedAt<=now<=latestStart AND now+2100000<=expiresAt. Actual ROOT GO repeats these exact absolutes. No automatic refresh or extension. If expired/HOLD, do not dispatch."
+  },
+  "runtimeEnforcement": "Unchanged wallMilliseconds=2100000 (2100 SECONDS, not2100ms), supervisor monotonic admission/observation/publication window. Absolute timestamps are NOT read/enforced by frozen validator.",
+  "review": {
+    "commit": "6f9632cc2e51987f3fdfdb9eae2718e1977dc2d6",
+    "receiptSha256": "04ef22c058ba46eca71c93ceab787fdebf474cbd55296d5573035bf3eee41743"
+  },
+  "authority": {
+    "commit": "776797f2de751d511230860a9afe0909aeab0ace",
+    "path": "AUTHORITY.json",
+    "size": 4182,
+    "sha256": "ceb6f3571dfd5fe93e5928083c74b6714cc11f84beba589995a956ec54569101"
+  },
+  "grant": {
+    "path": "ROOT-GRANT.json.data",
+    "size": 304,
+    "sha256": "72ef43c2659d4fc33f4d12721e34e523c2704075b1d72035a1d809a2351b0bef",
+    "destination": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/ROOT-GRANT.json",
+    "keys": [
+      "schema",
+      "authorized",
+      "profileSha256",
+      "runId",
+      "cases",
+      "Workers",
+      "wallMilliseconds",
+      "knownOS",
+      "captureBytes",
+      "workingBytes"
+    ],
+    "installed": false,
+    "semanticAuthorizedField": true,
+    "fieldDoesNotReplaceActualRootGo": true
+  },
+  "command": {
+    "path": "COMMAND.json",
+    "size": 2507,
+    "sha256": "faa59fc03cf8811cdecfc30e1eba2fc23d2ce6cbcea7d6d7d8300f7e50cf7ec3",
+    "commandUtf8Sha256": "88fefef19a8fcf87f6b3a4e19922675a3e93aa6216c3b435566359ea0f0f5987"
+  },
+  "profile": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/EXECUTION-PRESEAL.json",
+    "size": 6119,
+    "sha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+    "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+    "transport": "46611a5b67ad7af276154421ac7f50dd536ec570",
+    "privatePackageSha256": "fcf17fcb9682a8d3970f0ec3577807359ac03d437ad0d0f7e4fac36d1260f674",
+    "caseInventorySha256": "60479454833b1c6431414b3cf8685d1ef5ce288e9f9100c014914feeda351c48"
+  },
+  "limits": {
+    "knownOS": 146,
+    "peakKnownOS": 3,
+    "Workers": 111,
+    "peakWorkers": 1,
+    "captureBytes": 67108864,
+    "workBytes": 268435456,
+    "wallMilliseconds": 2100000,
+    "caseMilliseconds": 10000,
+    "termMilliseconds": 2000,
+    "postKillObservationMilliseconds": 1000,
+    "publicationReserveMilliseconds": 180000
+  },
+  "knownRoleGraph": {
+    "supervisor": 1,
+    "cases": 135,
+    "administration": 10,
+    "measuredPublicationSlot": {
+      "count": 1,
+      "within": "administration10",
+      "status": "RESERVED_NOT_SPENT"
+    }
+  },
+  "freshness": {
+    "snapshot": "2026-08-29T14:17:34.010Z",
+    "actualRunParentEmpty": true,
+    "grantDestinationAbsent": true,
+    "outerCapturePathsAbsent": true,
+    "recheckRequired": true,
+    "noRuntimeInvoked": true
+  },
+  "onUnknown": "STOP_UNKNOWN, no next case/success/release; retain ownership/tool session, bounded partial capture; fresh ROOT recovery required. OS quiescence not guaranteed.",
+  "preserved": "C2/F01/old1800/earlier failures unchanged; all60 runtime variants UNRUN; six nonpublic/seven public deferred obligations remain gates."
+}

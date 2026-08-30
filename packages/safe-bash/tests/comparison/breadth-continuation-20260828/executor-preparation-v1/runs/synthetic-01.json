@@ -1,0 +1,922 @@
+{
+  "action": "--synthetic",
+  "recipeSha256": "663352445702f9280976e195374296be4404cc99c6c813d03fec6bba7f09e337",
+  "startedAt": "2026-08-28T09:18:33.449Z",
+  "preGuard": "passed",
+  "productImports": 0,
+  "comparatorImports": 0,
+  "nativeOracleCalls": 0,
+  "result": {
+    "kind": "synthetic-executor-mechanisms-not-product-cohort",
+    "results": [
+      {
+        "id": "C01",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": [
+          {
+            "name": "Error",
+            "code": "CANDIDATE_BINDING",
+            "message": "CANDIDATE_BINDING: {\"candidate\":\"0000000000000000000000000000000000000000\",\"pack\":\"6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06\"}",
+            "stack": "Error: CANDIDATE_BINDING: {\"candidate\":\"0000000000000000000000000000000000000000\",\"pack\":\"6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06\"}\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:10:39)\n    at checkIdentity (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:54:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:52:30\n    at caughtCode (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:9:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:52:13\n    at control (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:47:87)\n    at syntheticControls (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:50:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs:35:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)"
+          },
+          {
+            "name": "Error",
+            "code": "CANDIDATE_BINDING",
+            "message": "CANDIDATE_BINDING: {\"candidate\":\"67eab12e315054907ef4ef435c6bbca2f59e0c36\",\"pack\":\"0000000000000000000000000000000000000000000000000000000000000000\"}",
+            "stack": "Error: CANDIDATE_BINDING: {\"candidate\":\"67eab12e315054907ef4ef435c6bbca2f59e0c36\",\"pack\":\"0000000000000000000000000000000000000000000000000000000000000000\"}\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:10:39)\n    at checkIdentity (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:54:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:52:121\n    at caughtCode (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:9:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:52:104\n    at control (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:47:87)\n    at syntheticControls (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:50:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs:35:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)"
+          }
+        ]
+      },
+      {
+        "id": "C02",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": {
+          "name": "Error",
+          "code": "RECIPE_HASH",
+          "message": "RECIPE_HASH: 840212f023d47cc932261000b637052edf8908cc7a0c23ff8ffc09ec08d67e7a",
+          "stack": "Error: RECIPE_HASH: 840212f023d47cc932261000b637052edf8908cc7a0c23ff8ffc09ec08d67e7a\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:10:39)\n    at checkRecipe (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:57:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:58:29\n    at caughtCode (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:9:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:58:12\n    at control (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:47:87)\n    at syntheticControls (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:54:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs:35:7"
+        }
+      },
+      {
+        "id": "C03",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": {
+          "children": [
+            6644,
+            6741
+          ],
+          "expectedReject": "SOURCE_FALLBACK",
+          "forbiddenEvaluations": 0
+        }
+      },
+      {
+        "id": "C04",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": {
+          "children": [
+            6827,
+            6924
+          ],
+          "wrongLoadedBytesRejected": true,
+          "expectedFileUnchanged": true
+        }
+      },
+      {
+        "id": "C05",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": [
+          {
+            "name": "Error",
+            "code": "UNLISTED_ENTRY",
+            "message": "UNLISTED_ENTRY: extra",
+            "stack": "Error: UNLISTED_ENTRY: extra\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:10:39)\n    at checkInventory (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:67:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:87:24\n    at caughtCode (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:9:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:87:7\n    at control (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:47:87)\n    at syntheticControls (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:83:9)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs:35:7"
+          },
+          {
+            "name": "Error",
+            "code": "ENTRY_MODE",
+            "message": "ENTRY_MODE: input",
+            "stack": "Error: ENTRY_MODE: input\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:10:39)\n    at checkInventory (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:68:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:88:24\n    at caughtCode (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:9:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:88:7\n    at control (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:47:87)\n    at syntheticControls (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:83:9)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs:35:7"
+          },
+          {
+            "name": "Error",
+            "code": "ENTRY_TYPE",
+            "message": "ENTRY_TYPE: input",
+            "stack": "Error: ENTRY_TYPE: input\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:10:39)\n    at checkInventory (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs:65:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:89:24\n    at caughtCode (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:9:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:89:7\n    at control (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:47:87)\n    at syntheticControls (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs:83:9)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs:35:7"
+          }
+        ]
+      },
+      {
+        "id": "C06",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": {
+          "checks": [
+            {
+              "id": "NO_CAPTURE_ERROR",
+              "pass": true
+            },
+            {
+              "id": "COMPLETE_CENSUS",
+              "pass": true
+            },
+            {
+              "id": "STATUS",
+              "pass": true,
+              "detail": 0
+            },
+            {
+              "id": "STDOUT_BYTES",
+              "pass": false
+            },
+            {
+              "id": "STDERR_BYTES",
+              "pass": true
+            },
+            {
+              "id": "OBSERVATION:timeout child cat dispatched exactly once",
+              "pass": true
+            },
+            {
+              "id": "OBSERVATION:timeout arms zero deadline timers",
+              "pass": true
+            },
+            {
+              "id": "OBSERVATION:stdin exhausts exactly supplied seven bytes",
+              "pass": true
+            },
+            {
+              "id": "OBSERVATION:all acquired iterators settle before case closure",
+              "pass": true
+            },
+            {
+              "id": "ADDED:copied",
+              "pass": false
+            },
+            {
+              "id": "EXACT_NAMESPACE",
+              "pass": true
+            }
+          ],
+          "pass": false
+        }
+      },
+      {
+        "id": "C07",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": [
+          {
+            "checks": [
+              {
+                "id": "NO_CAPTURE_ERROR",
+                "pass": true
+              },
+              {
+                "id": "COMPLETE_CENSUS",
+                "pass": true
+              },
+              {
+                "id": "STATUS",
+                "pass": false,
+                "detail": 7
+              },
+              {
+                "id": "STDOUT_BYTES",
+                "pass": true
+              },
+              {
+                "id": "STDERR_BYTES",
+                "pass": true
+              },
+              {
+                "id": "INITIAL:inventory",
+                "pass": true
+              },
+              {
+                "id": "PRESERVE:inventory",
+                "pass": true
+              },
+              {
+                "id": "ADDED:selected",
+                "pass": true
+              },
+              {
+                "id": "EXACT_NAMESPACE",
+                "pass": true
+              }
+            ],
+            "pass": false
+          },
+          {
+            "checks": [
+              {
+                "id": "NO_CAPTURE_ERROR",
+                "pass": true
+              },
+              {
+                "id": "COMPLETE_CENSUS",
+                "pass": true
+              },
+              {
+                "id": "STATUS",
+                "pass": true,
+                "detail": 0
+              },
+              {
+                "id": "STDOUT_BYTES",
+                "pass": true
+              },
+              {
+                "id": "STDERR_BYTES",
+                "pass": false
+              },
+              {
+                "id": "INITIAL:inventory",
+                "pass": true
+              },
+              {
+                "id": "PRESERVE:inventory",
+                "pass": true
+              },
+              {
+                "id": "ADDED:selected",
+                "pass": true
+              },
+              {
+                "id": "EXACT_NAMESPACE",
+                "pass": true
+              }
+            ],
+            "pass": false
+          }
+        ]
+      },
+      {
+        "id": "C08",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": [
+          {
+            "checks": [
+              {
+                "id": "NO_CAPTURE_ERROR",
+                "pass": true
+              },
+              {
+                "id": "COMPLETE_CENSUS",
+                "pass": true
+              },
+              {
+                "id": "STATUS",
+                "pass": true,
+                "detail": 0
+              },
+              {
+                "id": "STDOUT_BYTES",
+                "pass": true
+              },
+              {
+                "id": "STDERR_BYTES",
+                "pass": true
+              },
+              {
+                "id": "INITIAL:input",
+                "pass": true
+              },
+              {
+                "id": "PRESERVE:input",
+                "pass": false
+              },
+              {
+                "id": "ADDED:snapshot",
+                "pass": true
+              },
+              {
+                "id": "ABSENT:stage",
+                "pass": true
+              },
+              {
+                "id": "ABSENT:stage/copy",
+                "pass": true
+              },
+              {
+                "id": "ABSENT:stage/final",
+                "pass": true
+              },
+              {
+                "id": "EXACT_NAMESPACE",
+                "pass": true
+              }
+            ],
+            "pass": false
+          },
+          {
+            "checks": [
+              {
+                "id": "NO_CAPTURE_ERROR",
+                "pass": true
+              },
+              {
+                "id": "COMPLETE_CENSUS",
+                "pass": true
+              },
+              {
+                "id": "STATUS",
+                "pass": true,
+                "detail": 0
+              },
+              {
+                "id": "STDOUT_BYTES",
+                "pass": true
+              },
+              {
+                "id": "STDERR_BYTES",
+                "pass": true
+              },
+              {
+                "id": "INITIAL:input",
+                "pass": true
+              },
+              {
+                "id": "PRESERVE:input",
+                "pass": true
+              },
+              {
+                "id": "ADDED:snapshot",
+                "pass": true
+              },
+              {
+                "id": "ABSENT:stage",
+                "pass": true
+              },
+              {
+                "id": "ABSENT:stage/copy",
+                "pass": true
+              },
+              {
+                "id": "ABSENT:stage/final",
+                "pass": true
+              },
+              {
+                "id": "EXACT_NAMESPACE",
+                "pass": false
+              }
+            ],
+            "pass": false
+          },
+          {
+            "checks": [
+              {
+                "id": "NO_CAPTURE_ERROR",
+                "pass": true
+              },
+              {
+                "id": "COMPLETE_CENSUS",
+                "pass": true
+              },
+              {
+                "id": "STATUS",
+                "pass": true,
+                "detail": 0
+              },
+              {
+                "id": "STDOUT_BYTES",
+                "pass": true
+              },
+              {
+                "id": "STDERR_BYTES",
+                "pass": true
+              },
+              {
+                "id": "INITIAL:input",
+                "pass": true
+              },
+              {
+                "id": "PRESERVE:input",
+                "pass": true
+              },
+              {
+                "id": "ADDED:snapshot",
+                "pass": true
+              },
+              {
+                "id": "ABSENT:stage",
+                "pass": false
+              },
+              {
+                "id": "ABSENT:stage/copy",
+                "pass": true
+              },
+              {
+                "id": "ABSENT:stage/final",
+                "pass": true
+              },
+              {
+                "id": "EXACT_NAMESPACE",
+                "pass": false
+              }
+            ],
+            "pass": false
+          }
+        ]
+      },
+      {
+        "id": "C09",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": {
+          "children": [
+            7023,
+            7096
+          ],
+          "naturalDeadlineMilliseconds": 30000,
+          "expectedLifecycleRejection": true,
+          "timerRetired": true,
+          "allReaped": true
+        }
+      },
+      {
+        "id": "C10",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": {
+          "ordinaryFailureContinues": true,
+          "unsafeHalts": true,
+          "reapedIntentionalNegativeContinues": true
+        }
+      },
+      {
+        "id": "C11",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": {
+          "modelOnly": true,
+          "pendingBeforeRelease": true,
+          "priorSetupReasonIdentity": true,
+          "productC11Executed": false,
+          "qualification": "Model exposes ready; actual public Shell does not. Real early rejection observation remains a blocker."
+        }
+      },
+      {
+        "id": "C12",
+        "status": "SYNTHETIC_MECHANISM_QUALIFIED",
+        "evidence": {
+          "child": 8369,
+          "assessment": {
+            "checks": [
+              {
+                "id": "NO_CAPTURE_ERROR",
+                "pass": true
+              },
+              {
+                "id": "COMPLETE_CENSUS",
+                "pass": true
+              },
+              {
+                "id": "STATUS",
+                "pass": true,
+                "detail": 0
+              },
+              {
+                "id": "STDOUT_BYTES",
+                "pass": true
+              },
+              {
+                "id": "STDERR_BYTES",
+                "pass": true
+              },
+              {
+                "id": "INITIAL:rows",
+                "pass": true
+              },
+              {
+                "id": "PRESERVE:rows",
+                "pass": true
+              },
+              {
+                "id": "ADDED:part-aa",
+                "pass": false
+              },
+              {
+                "id": "ADDED:part-ab",
+                "pass": false
+              },
+              {
+                "id": "ADDED:joined",
+                "pass": false
+              },
+              {
+                "id": "EXACT_NAMESPACE",
+                "pass": false
+              }
+            ],
+            "pass": false
+          },
+          "evaluatedStub": {
+            "kind": "evaluated-export-call",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "observation": {
+              "evaluated": "expected",
+              "exitCode": 0,
+              "files": {}
+            }
+          }
+        }
+      }
+    ],
+    "children": [
+      {
+        "mode": "positive",
+        "args": [
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+          "positive"
+        ],
+        "pid": 6644,
+        "events": [
+          "exit",
+          "stdio-close"
+        ],
+        "stdout": "",
+        "stderr": "",
+        "records": [
+          {
+            "kind": "resolved",
+            "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs"
+          },
+          {
+            "kind": "load-attempt",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs"
+          },
+          {
+            "kind": "nextLoad",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "format": "module",
+            "sha256": "8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9",
+            "evaluationProven": false
+          },
+          {
+            "kind": "evaluated-export-call",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "observation": {
+              "evaluated": "expected",
+              "exitCode": 0,
+              "files": {}
+            }
+          },
+          {
+            "kind": "flushed"
+          },
+          {
+            "kind": "cleanup",
+            "resources": 0
+          }
+        ],
+        "failures": [],
+        "signals": [],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "natural": true,
+        "captureBytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "records": 1195
+        },
+        "rawRecords": "{\"kind\":\"resolved\",\"specifier\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"parentURL\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\"}\n{\"kind\":\"load-attempt\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\"}\n{\"kind\":\"nextLoad\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"format\":\"module\",\"sha256\":\"8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9\",\"evaluationProven\":false}\n{\"kind\":\"evaluated-export-call\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"observation\":{\"evaluated\":\"expected\",\"exitCode\":0,\"files\":{}}}\n{\"kind\":\"flushed\"}\n{\"kind\":\"cleanup\",\"resources\":0}\n"
+      },
+      {
+        "mode": "fallback",
+        "args": [
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+          "fallback"
+        ],
+        "pid": 6741,
+        "events": [
+          "exit",
+          "stdio-close"
+        ],
+        "stdout": "",
+        "stderr": "",
+        "records": [
+          {
+            "kind": "caught",
+            "code": "SOURCE_FALLBACK",
+            "name": "Error",
+            "message": "SOURCE_FALLBACK: file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/forbidden-source.mjs"
+          },
+          {
+            "kind": "flushed"
+          },
+          {
+            "kind": "cleanup",
+            "resources": 0
+          }
+        ],
+        "failures": [],
+        "signals": [],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "natural": true,
+        "captureBytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "records": 281
+        },
+        "rawRecords": "{\"kind\":\"caught\",\"code\":\"SOURCE_FALLBACK\",\"name\":\"Error\",\"message\":\"SOURCE_FALLBACK: file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/forbidden-source.mjs\"}\n{\"kind\":\"flushed\"}\n{\"kind\":\"cleanup\",\"resources\":0}\n"
+      },
+      {
+        "mode": "positive",
+        "args": [
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+          "positive"
+        ],
+        "pid": 6827,
+        "events": [
+          "exit",
+          "stdio-close"
+        ],
+        "stdout": "",
+        "stderr": "",
+        "records": [
+          {
+            "kind": "resolved",
+            "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs"
+          },
+          {
+            "kind": "load-attempt",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs"
+          },
+          {
+            "kind": "nextLoad",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "format": "module",
+            "sha256": "8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9",
+            "evaluationProven": false
+          },
+          {
+            "kind": "evaluated-export-call",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "observation": {
+              "evaluated": "expected",
+              "exitCode": 0,
+              "files": {}
+            }
+          },
+          {
+            "kind": "flushed"
+          },
+          {
+            "kind": "cleanup",
+            "resources": 0
+          }
+        ],
+        "failures": [],
+        "signals": [],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "natural": true,
+        "captureBytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "records": 1195
+        },
+        "rawRecords": "{\"kind\":\"resolved\",\"specifier\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"parentURL\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\"}\n{\"kind\":\"load-attempt\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\"}\n{\"kind\":\"nextLoad\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"format\":\"module\",\"sha256\":\"8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9\",\"evaluationProven\":false}\n{\"kind\":\"evaluated-export-call\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"observation\":{\"evaluated\":\"expected\",\"exitCode\":0,\"files\":{}}}\n{\"kind\":\"flushed\"}\n{\"kind\":\"cleanup\",\"resources\":0}\n"
+      },
+      {
+        "mode": "wrong-load",
+        "args": [
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+          "wrong-load"
+        ],
+        "pid": 6924,
+        "events": [
+          "exit",
+          "stdio-close"
+        ],
+        "stdout": "",
+        "stderr": "",
+        "records": [
+          {
+            "kind": "resolved",
+            "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs",
+            "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs"
+          },
+          {
+            "kind": "load-attempt",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs"
+          },
+          {
+            "kind": "caught",
+            "code": "FILE_HASH",
+            "name": "Error",
+            "message": "FILE_HASH: {\"filename\":\"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs\",\"expected\":\"8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9\",\"actual\":\"973cc261295f009ecd5d64a45913ccf5275006e1a7191591cb48fc6b1bd2d1ca\"}"
+          },
+          {
+            "kind": "flushed"
+          },
+          {
+            "kind": "cleanup",
+            "resources": 0
+          }
+        ],
+        "failures": [],
+        "signals": [],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "natural": true,
+        "captureBytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "records": 1045
+        },
+        "rawRecords": "{\"kind\":\"resolved\",\"specifier\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs\",\"parentURL\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs\"}\n{\"kind\":\"load-attempt\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs\"}\n{\"kind\":\"caught\",\"code\":\"FILE_HASH\",\"name\":\"Error\",\"message\":\"FILE_HASH: {\\\"filename\\\":\\\"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs\\\",\\\"expected\\\":\\\"8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9\\\",\\\"actual\\\":\\\"973cc261295f009ecd5d64a45913ccf5275006e1a7191591cb48fc6b1bd2d1ca\\\"}\"}\n{\"kind\":\"flushed\"}\n{\"kind\":\"cleanup\",\"resources\":0}\n"
+      },
+      {
+        "mode": "clean",
+        "args": [
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+          "clean"
+        ],
+        "pid": 7023,
+        "events": [
+          "exit",
+          "stdio-close"
+        ],
+        "stdout": "",
+        "stderr": "",
+        "records": [
+          {
+            "kind": "result",
+            "exitCode": 0,
+            "outputMatches": true
+          },
+          {
+            "kind": "cleanup",
+            "resources": 0
+          }
+        ],
+        "failures": [],
+        "signals": [],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "natural": true,
+        "captureBytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "records": 85
+        },
+        "rawRecords": "{\"kind\":\"result\",\"exitCode\":0,\"outputMatches\":true}\n{\"kind\":\"cleanup\",\"resources\":0}\n"
+      },
+      {
+        "mode": "leak",
+        "args": [
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+          "leak"
+        ],
+        "pid": 7096,
+        "events": [
+          "exit",
+          "stdio-close"
+        ],
+        "stdout": "",
+        "stderr": "",
+        "records": [
+          {
+            "kind": "result",
+            "exitCode": 0,
+            "outputMatches": true
+          },
+          {
+            "kind": "cleanup",
+            "timerRetired": true
+          }
+        ],
+        "failures": [
+          {
+            "code": "NATURAL_DEADLINE"
+          }
+        ],
+        "signals": [
+          "SIGTERM"
+        ],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "natural": false,
+        "captureBytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "records": 91
+        },
+        "rawRecords": "{\"kind\":\"result\",\"exitCode\":0,\"outputMatches\":true}\n{\"kind\":\"cleanup\",\"timerRetired\":true}\n"
+      },
+      {
+        "mode": "noop",
+        "args": [
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+          "noop"
+        ],
+        "pid": 8369,
+        "events": [
+          "exit",
+          "stdio-close"
+        ],
+        "stdout": "",
+        "stderr": "",
+        "records": [
+          {
+            "kind": "resolved",
+            "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs"
+          },
+          {
+            "kind": "load-attempt",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs"
+          },
+          {
+            "kind": "nextLoad",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "format": "module",
+            "sha256": "8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9",
+            "evaluationProven": false
+          },
+          {
+            "kind": "evaluated-export-call",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+            "observation": {
+              "evaluated": "expected",
+              "exitCode": 0,
+              "files": {}
+            }
+          },
+          {
+            "kind": "flushed"
+          },
+          {
+            "kind": "cleanup",
+            "resources": 0
+          }
+        ],
+        "failures": [],
+        "signals": [],
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "natural": true,
+        "captureBytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "records": 1195
+        },
+        "rawRecords": "{\"kind\":\"resolved\",\"specifier\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"parentURL\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\"}\n{\"kind\":\"load-attempt\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\"}\n{\"kind\":\"nextLoad\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"format\":\"module\",\"sha256\":\"8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9\",\"evaluationProven\":false}\n{\"kind\":\"evaluated-export-call\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs\",\"observation\":{\"evaluated\":\"expected\",\"exitCode\":0,\"files\":{}}}\n{\"kind\":\"flushed\"}\n{\"kind\":\"cleanup\",\"resources\":0}\n"
+      }
+    ],
+    "counts": {
+      "qualified": 12,
+      "failed": 0,
+      "unrun": 0,
+      "children": 7,
+      "childrenReaped": 7
+    },
+    "originalSemanticControlsQualified": 0,
+    "actualProductImports": 0,
+    "actualComparatorImports": 0,
+    "unsafe": false
+  },
+  "outcome": "PREPARATION_COMPLETED",
+  "postGuard": "passed",
+  "finishedAt": "2026-08-28T09:19:05.083Z"
+}

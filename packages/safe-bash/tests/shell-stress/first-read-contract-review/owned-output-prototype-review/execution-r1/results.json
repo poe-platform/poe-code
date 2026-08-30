@@ -1,0 +1,399 @@
+{
+  "finishedAt": "2026-08-27T10:17:35.413Z",
+  "earliestOwnedArtifactAt": "2026-08-27T10:04:53.363Z",
+  "cases": [
+    {
+      "id": "H01",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H01-adapted-compiled.json"
+    },
+    {
+      "id": "H02",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H02-adapted-compiled.json"
+    },
+    {
+      "id": "H03",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H03-adapted-compiled.json"
+    },
+    {
+      "id": "H04",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H04-adapted-compiled.json"
+    },
+    {
+      "id": "H05",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H05-adapted-compiled.json"
+    },
+    {
+      "id": "H06",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H06-frozen.json"
+    },
+    {
+      "id": "H07",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H07-frozen.json"
+    },
+    {
+      "id": "H08",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H08-frozen.json"
+    },
+    {
+      "id": "H09",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H09-frozen.json"
+    },
+    {
+      "id": "H10",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H10-frozen.json"
+    },
+    {
+      "id": "H11",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H11-frozen.json"
+    },
+    {
+      "id": "H12",
+      "initial": "FAIL",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H12-frozen.json"
+    },
+    {
+      "id": "H13",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H13-frozen.json"
+    },
+    {
+      "id": "H14",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H14-frozen.json"
+    },
+    {
+      "id": "H15",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H15-frozen.json"
+    },
+    {
+      "id": "H16",
+      "initial": "PASS",
+      "corrected": "PASS",
+      "evidence": "evidence/runs/r1-H16-frozen.json"
+    }
+  ],
+  "denominators": {
+    "initialFrozen": {
+      "passed": 15,
+      "total": 16
+    },
+    "correctedFrozen": {
+      "passed": 16,
+      "total": 16
+    },
+    "unchangedFive": {
+      "passed": 1,
+      "total": 5
+    },
+    "adaptedFive": {
+      "passed": 5,
+      "total": 5
+    },
+    "existing": {
+      "passed": 57,
+      "total": 57
+    },
+    "reviewControls": {
+      "passed": 9,
+      "total": 9,
+      "syntheticNonProduct": [
+        "C9"
+      ]
+    },
+    "knownNative": {
+      "passed": 5,
+      "total": 5
+    },
+    "priorPreparationProductExecuted": 0,
+    "priorScaffoldAssertions": 6
+  },
+  "diagnostics": [
+    {
+      "scenario": "first-read-local",
+      "unchangedChildStatus": 1,
+      "observations": [
+        {
+          "diagnostic": true,
+          "originalObservedAborted": false,
+          "ioAborted": false,
+          "stageAborted": false,
+          "firstWrites": 0,
+          "scenario": "first-read-local",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "source.next:pending-before-first-byte",
+            "command.settled:head:0"
+          ]
+        },
+        {
+          "diagnosticAfterTeardown": true,
+          "scenario": "first-read-local",
+          "reads": 1,
+          "returned": 1,
+          "active": 0,
+          "unhandled": 0,
+          "callerAborted": true
+        }
+      ]
+    },
+    {
+      "scenario": "first-read-s3",
+      "unchangedChildStatus": 0,
+      "observations": [
+        {
+          "diagnostic": true,
+          "originalObservedAborted": true,
+          "ioAborted": true,
+          "ioReasonCode": "EPIPE",
+          "stageAborted": false,
+          "stageAbortedAtIoClose": false,
+          "callerAbortedAtIoClose": false,
+          "firstWrites": 0,
+          "scenario": "first-read-s3",
+          "active": 0,
+          "reads": 1,
+          "returned": 1,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+            "op:S3.headObject:input:callerAborted=false:signal=live",
+            "op:S3.headObject:input/:callerAborted=false:signal=live",
+            "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+            "op:S3.getObjectStream:input:callerAborted=false:signal=live",
+            "assertion.before:assert.ok(options?.abortSignal);",
+            "source.next:pending-before-first-byte",
+            "command.settled:head:0",
+            "diagnostic.io.abort",
+            "transport.signal.abort:S3.listObjectsV2:list",
+            "transport.signal.abort:S3.getObjectStream:input",
+            "diagnostic.io.abort",
+            "source.finally",
+            "command.settled:cat:141",
+            "command.settled:true:0",
+            "assertion.before:assert.equal(result.exitCode, 0);",
+            "assertion.before:assert.equal(result.stdout, \"\");",
+            "assertion.before:assert.equal(result.stderr, \"\");",
+            "assertion.before:assert.equal(trace.controller.signal.aborted, false);",
+            "assertion.before:assert.equal(observed?.aborted, true);",
+            "assertion.before:assert.equal((observed?.reason as { code: string }).code, \"EPIPE\");",
+            "assertion.before:assert.equal(reads, 1);",
+            "assertion.before:assert.equal(returned, 1);",
+            "assertion.before:assert.equal(active, 0);",
+            "assertion.before:assert.deepEqual(unhandled, []);"
+          ]
+        },
+        {
+          "diagnosticAfterTeardown": true,
+          "scenario": "first-read-s3",
+          "reads": 1,
+          "returned": 1,
+          "active": 0,
+          "unhandled": 0,
+          "callerAborted": true
+        }
+      ]
+    },
+    {
+      "scenario": "first-read-webdav",
+      "unchangedChildStatus": 1,
+      "observations": [
+        {
+          "diagnostic": true,
+          "originalObservedAborted": false,
+          "ioAborted": true,
+          "ioReasonCode": "EPIPE",
+          "stageAborted": false,
+          "stageAbortedAtIoClose": false,
+          "callerAbortedAtIoClose": false,
+          "firstWrites": 0,
+          "scenario": "first-read-webdav",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "assertion.before:assert.ok(address && typeof address !== \"string\");",
+            "op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live",
+            "http.socket.open",
+            "http.request:PROPFIND:/dav/input",
+            "http.response.close:PROPFIND:finished=true",
+            "op:DAV.GET:/dav/input:callerAborted=false:signal=live",
+            "http.socket.open",
+            "http.request:GET:/dav/input",
+            "http.GET:pending-before-first-byte",
+            "command.settled:head:0",
+            "diagnostic.io.abort",
+            "transport.signal.abort:DAV.PROPFIND:/dav/input",
+            "transport.signal.abort:DAV.GET:/dav/input",
+            "command.settled:cat:141",
+            "command.settled:true:0",
+            "assertion.before:assert.equal(result.exitCode, 0);",
+            "assertion.before:assert.equal(result.stdout, \"\");",
+            "assertion.before:assert.equal(result.stderr, \"\");",
+            "assertion.before:assert.equal(trace.controller.signal.aborted, false);",
+            "assertion.before:assert.equal(observed?.aborted, true);"
+          ]
+        },
+        {
+          "diagnosticAfterTeardown": true,
+          "scenario": "first-read-webdav",
+          "reads": 1,
+          "returned": 1,
+          "active": 0,
+          "unhandled": 0,
+          "callerAborted": true
+        }
+      ]
+    },
+    {
+      "scenario": "first-read-curl-body",
+      "unchangedChildStatus": 1,
+      "observations": [
+        {
+          "diagnostic": true,
+          "originalObservedAborted": false,
+          "ioAborted": true,
+          "ioReasonCode": "EPIPE",
+          "stageAborted": false,
+          "stageAbortedAtIoClose": false,
+          "callerAbortedAtIoClose": false,
+          "firstWrites": 0,
+          "scenario": "first-read-curl-body",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "assertion.before:assert.ok(address && typeof address !== \"string\");",
+            "http.socket.open",
+            "http.request:GET:/dav/input",
+            "http.GET:pending-before-first-byte",
+            "command.settled:head:0",
+            "diagnostic.io.abort",
+            "command.settled:curl:141",
+            "command.settled:true:0",
+            "assertion.before:assert.equal(result.exitCode, 0);",
+            "assertion.before:assert.equal(result.stdout, \"\");",
+            "assertion.before:assert.equal(result.stderr, \"\");",
+            "assertion.before:assert.equal(trace.controller.signal.aborted, false);",
+            "assertion.before:assert.equal(observed?.aborted, true);"
+          ]
+        },
+        {
+          "diagnosticAfterTeardown": true,
+          "scenario": "first-read-curl-body",
+          "reads": 1,
+          "returned": 1,
+          "active": 0,
+          "unhandled": 0,
+          "callerAborted": true
+        }
+      ]
+    },
+    {
+      "scenario": "first-read-curl-headers",
+      "unchangedChildStatus": 1,
+      "observations": [
+        {
+          "diagnostic": true,
+          "originalObservedAborted": false,
+          "ioAborted": true,
+          "ioReasonCode": "EPIPE",
+          "stageAborted": false,
+          "stageAbortedAtIoClose": false,
+          "callerAbortedAtIoClose": false,
+          "firstWrites": 0,
+          "scenario": "first-read-curl-headers",
+          "active": 1,
+          "reads": 1,
+          "returned": 0,
+          "abortedBeforeTeardown": false,
+          "events": [
+            "assertion.before:assert.ok(address && typeof address !== \"string\");",
+            "http.socket.open",
+            "http.request:GET:/dav/input",
+            "http.GET:pending-before-first-byte",
+            "command.settled:head:0",
+            "diagnostic.io.abort",
+            "command.settled:curl:141",
+            "command.settled:true:0",
+            "assertion.before:assert.equal(result.exitCode, 0);",
+            "assertion.before:assert.equal(result.stdout, \"\");",
+            "assertion.before:assert.equal(result.stderr, \"\");",
+            "assertion.before:assert.equal(trace.controller.signal.aborted, false);",
+            "assertion.before:assert.equal(observed?.aborted, true);"
+          ]
+        },
+        {
+          "diagnosticAfterTeardown": true,
+          "scenario": "first-read-curl-headers",
+          "reads": 1,
+          "returned": 1,
+          "active": 0,
+          "unhandled": 0,
+          "callerAborted": true
+        }
+      ]
+    }
+  ],
+  "copiedCompilerInventoryCount": 357,
+  "sourceFiles": 213,
+  "testFiles": 14,
+  "compiledFiles": 708,
+  "sourceManifestSha256": "c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44",
+  "testManifestSha256": "bdae375b37ea07dcbbd505a23873d472cfd379eae70f0b037d82b9830046de44",
+  "compiledManifestSha256": "c4df1c6910557948441eb47b3b7a9a9d069267e14e3745541f5d1e8c6d766bb0",
+  "processClosure": {
+    "capturedRuns": 68,
+    "allClosed": true,
+    "allGroupsAbsent": true,
+    "allPidsAbsent": true,
+    "outerDeadlineKills": 0,
+    "outputLimitKills": 0,
+    "sigstopUsed": false
+  },
+  "noAuthorCandidateEdits": true,
+  "noLiveSourceFallback": true,
+  "noNewAuthorOrReviewerHoldoutsRead": true,
+  "mutationsExecuted": 0,
+  "focusedExecutableHarnessFixRounds": 1,
+  "limits": [
+    "Bounded immutable v1 only",
+    "Unchanged original failures remain failures",
+    "No active-borrowed/transitive v2 cohort",
+    "No production/full-suite/global-typing/release or deployed-provider qualification",
+    "Actual recorded bounded work, not 72 hours"
+  ],
+  "checkoutHeadMetadataOnly": "630bf76f2a90a72ad447694e3b188e7437858820",
+  "stagedNamesBeforeEvidence": "tests/stress/byte-ownership-20260827/fix/REPORT.md\ntests/stress/byte-ownership-20260827/fix/authorization.json\ntests/stress/byte-ownership-20260827/fix/binding.mjs\ntests/stress/byte-ownership-20260827/fix/candidate-source.json\ntests/stress/byte-ownership-20260827/fix/evidence/canonical-before.json\ntests/stress/byte-ownership-20260827/fix/evidence/canonical-before.txt\ntests/stress/byte-ownership-20260827/fix/evidence/canonical-initial.json\ntests/stress/byte-ownership-20260827/fix/evidence/canonical-initial.txt\ntests/stress/byte-ownership-20260827/fix/evidence/canonical.json\ntests/stress/byte-ownership-20260827/fix/evidence/canonical.txt\ntests/stress/byte-ownership-20260827/fix/evidence/existing.json\ntests/stress/byte-ownership-20260827/fix/evidence/existing.txt\ntests/stress/byte-ownership-20260827/fix/evidence/observations.json\ntests/stress/byte-ownership-20260827/fix/evidence/observations.txt\ntests/stress/byte-ownership-20260827/fix/evidence/original-manifest-rejects.json\ntests/stress/byte-ownership-20260827/fix/evidence/original-manifest-rejects.txt\ntests/stress/byte-ownership-20260827/fix/evidence/original20.json\ntests/stress/byte-ownership-20260827/fix/evidence/original20.txt\ntests/stress/byte-ownership-20260827/fix/evidence/typecheck-candidate.json\ntests/stress/byte-ownership-20260827/fix/evidence/typecheck-candidate.txt\ntests/stress/byte-ownership-20260827/fix/evidence/typecheck.json\ntests/stress/byte-ownership-20260827/fix/evidence/typecheck.txt\ntests/stress/byte-ownership-20260827/fix/final-verification.json\ntests/stress/byte-ownership-20260827/fix/fixture-correction.md\ntests/stress/byte-ownership-20260827/fix/observations.mjs\ntests/stress/byte-ownership-20260827/fix/record.mjs\ntests/stress/byte-ownership-20260827/fix/source-before.json\ntests/stress/byte-ownership-20260827/fix/tsconfig.json\n"
+}

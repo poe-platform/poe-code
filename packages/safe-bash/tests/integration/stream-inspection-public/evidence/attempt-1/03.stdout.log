@@ -1,0 +1,36 @@
+ M src/shell/parser.ts
+ M src/shell/runtime.ts
+ M tests/fs/webdav/real-service/raw.mjs
+ M tests/fs/webdav/real-service/run.mjs
+ M tests/fs/webdav/real-service/server.py
+?? benchmarks/reports/comparison-fairness-20260827/
+?? benchmarks/reports/current-integration/comparison-replay-20260827/
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/
+?? tests/commands/search-stress/.native-1m4O1e/
+?? tests/fs/webdav/real-service/apache.mjs
+?? tests/fs/webdav/real-service/consumer.mts
+?? tests/fs/webdav/real-service/evidence/apache-matrix-corrected/
+?? tests/fs/webdav/real-service/evidence/apache-matrix-first/
+?? tests/fs/webdav/real-service/evidence/apache-public-first/
+?? tests/fs/webdav/real-service/evidence/apache-public-second/
+?? tests/fs/webdav/real-service/evidence/apache-public-third/
+?? tests/fs/webdav/real-service/evidence/apache-raw-initial/
+?? tests/fs/webdav/real-service/evidence/timestamp-before-fix/
+?? tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/
+?? tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/
+?? tests/fs/webdav/real-service/example.mts
+?? tests/fs/webdav/real-service/https.mts
+?? tests/fs/webdav/real-service/timestamp-postcondition.test.ts
+?? tests/integration/full-gate-20260827/
+?? tests/shell/errexit-cases.ts
+?? tests/shell/errexit-design-native.json
+?? tests/shell/errexit-design-probes.mjs
+?? tests/shell/errexit-host.test.ts
+?? tests/shell/errexit-initial.json
+?? tests/shell/errexit-initial.tap
+?? tests/shell/errexit-native.json
+?? tests/shell/errexit-native.ts
+?? tests/shell/errexit.test.ts
+?? tests/stress/regex-execution/design/revision-review/REPORT.md
+?? tests/stress/regex-execution/design/validation/REPORT.md
+?? tests/stress/regex-execution/design/validation/evidence/

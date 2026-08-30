@@ -1,0 +1,50 @@
+{
+  "gateRevision": "25a892f0908c12c1d00846690167fb520fa0fe42",
+  "observations": [
+    {
+      "label": "mutation-original-matcher",
+      "historicalRevision": "72f780d0dbe73f71702c89c33d29aa614170c403",
+      "path": "src/commands/diff-patch/unified.ts",
+      "acceptedSha256": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5",
+      "mutantSha256": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "fixtureChanges": 0,
+      "productOnlyIsolatedMutation": true,
+      "detected": true,
+      "failures": [
+        {
+          "name": "repeated hunk later matching line control: complete virtual outcome",
+          "passed": false,
+          "message": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        }
+      ],
+      "evaluation": {
+        "status": 1,
+        "stdout": "[\n  {\n    name: 'repeated hunk later matching line control: complete virtual outcome',\n    passed: false,\n    message: 'Expected values to be strictly equal:\\n\\n0 !== 1\\n'\n  }\n]\n",
+        "stderr": ""
+      }
+    },
+    {
+      "label": "mutation-overrestrictive-matcher",
+      "historicalRevision": "d841ece8fcc6a3333ad4de49fd94e9059f9b35fa",
+      "path": "src/commands/diff-patch/unified.ts",
+      "acceptedSha256": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5",
+      "mutantSha256": "9c115580c2c896e0cc517d6adcd6329c7466f34264c736892ff90918b2ee3c38",
+      "fixtureChanges": 0,
+      "productOnlyIsolatedMutation": true,
+      "detected": true,
+      "failures": [
+        {
+          "name": "repeated hunk second matching line control: complete virtual outcome",
+          "passed": false,
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    after: {\n      '/': {\n        mode: 16877,\n        nlink: 3,\n...\n      '/work/first': {\n+       hex: '6b6565700a',\n-       hex: '6368616e6765640a',\n        mode: 33206,\n        nlink: 1,\n        type: 'file'\n      },\n      '/work/target': {\n-       hex: '6e65770a6f746865720a7461696c0a',\n-       mode: 33206,\n-       nlink: 1,\n-       type: 'file'\n-     },\n-     '/work/target.orig': {\n        hex: '6f6c640a6f6c640a7461696c0a',\n        mode: 33206,\n        nlink: 1,\n        type: 'file'\n      }\n...\n    },\n+   status: 1,\n+   stderr: 'patch: hunk 2 does not match target\\n',\n+   stderrHex: '70617463683a2068756e6b203220646f6573206e6f74206d61746368207461726765740a',\n+   stdout: '',\n+   stdoutHex: ''\n-   status: 0,\n-   stderr: '',\n-   stderrHex: '',\n-   stdout: 'patching file first\\n' +\n-     'patching file target\\n' +\n-     'Hunk #2 succeeded at 2 (offset 1 line).\\n',\n-   stdoutHex: '7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a48756e6b20233220737563636565646564206174203220286f66667365742031206c696e65292e0a'\n  }\n"
+        }
+      ],
+      "evaluation": {
+        "status": 1,
+        "stdout": "[\n  {\n    name: 'repeated hunk second matching line control: complete virtual outcome',\n    passed: false,\n    message: 'Expected values to be strictly deep-equal:\\n' +\n      '+ actual - expected\\n' +\n      '... Skipped lines\\n' +\n      '\\n' +\n      '  {\\n' +\n      '    after: {\\n' +\n      \"      '/': {\\n\" +\n      '        mode: 16877,\\n' +\n      '        nlink: 3,\\n' +\n      '...\\n' +\n      \"      '/work/first': {\\n\" +\n      \"+       hex: '6b6565700a',\\n\" +\n      \"-       hex: '6368616e6765640a',\\n\" +\n      '        mode: 33206,\\n' +\n      '        nlink: 1,\\n' +\n      \"        type: 'file'\\n\" +\n      '      },\\n' +\n      \"      '/work/target': {\\n\" +\n      \"-       hex: '6e65770a6f746865720a7461696c0a',\\n\" +\n      '-       mode: 33206,\\n' +\n      '-       nlink: 1,\\n' +\n      \"-       type: 'file'\\n\" +\n      '-     },\\n' +\n      \"-     '/work/target.orig': {\\n\" +\n      \"        hex: '6f6c640a6f6c640a7461696c0a',\\n\" +\n      '        mode: 33206,\\n' +\n      '        nlink: 1,\\n' +\n      \"        type: 'file'\\n\" +\n      '      }\\n' +\n      '...\\n' +\n      '    },\\n' +\n      '+   status: 1,\\n' +\n      \"+   stderr: 'patch: hunk 2 does not match target\\\\n',\\n\" +\n      \"+   stderrHex: '70617463683a2068756e6b203220646f6573206e6f74206d61746368207461726765740a',\\n\" +\n      \"+   stdout: '',\\n\" +\n      \"+   stdoutHex: ''\\n\" +\n      '-   status: 0,\\n' +\n      \"-   stderr: '',\\n\" +\n      \"-   stderrHex: '',\\n\" +\n      \"-   stdout: 'patching file first\\\\n' +\\n\" +\n      \"-     'patching file target\\\\n' +\\n\" +\n      \"-     'Hunk #2 succeeded at 2 (offset 1 line).\\\\n',\\n\" +\n      \"-   stdoutHex: '7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a48756e6b20233220737563636565646564206174203220286f66667365742031206c696e65292e0a'\\n\" +\n      '  }\\n'\n  }\n]\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "coverage": "Two isolated source mutations; not additional semantic coverage"
+}

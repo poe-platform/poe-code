@@ -1,0 +1,9 @@
+{
+  "family": "ER-14",
+  "name": "TYP-04",
+  "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-14-TYP-04-input.json",
+  "raw": "ER-14-TYP-04-raw.json"
+}

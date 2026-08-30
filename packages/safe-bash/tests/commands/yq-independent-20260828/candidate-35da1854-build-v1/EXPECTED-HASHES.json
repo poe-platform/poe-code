@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "result": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RESULT.json",
+    "sha256": "51a866934331d0f45d336d87f15b17464bcec75dadee795dbfa6c6b390a324ea",
+    "bytes": 3266,
+    "mode": 420
+  },
+  "buildReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-BUILD-RECEIPT.json",
+    "sha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+    "bytes": 4718,
+    "mode": 420
+  },
+  "fullReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/FULL-RECEIPT.json",
+    "sha256": "edf7a483436475c87a3fb8293517788905d4669fb8515790be1e098a6fdbb14d",
+    "bytes": 7454,
+    "mode": 420
+  },
+  "routing": "Authenticate the final owned commit/seal independently before trusting these raw hashes; no self-announced authority"
+}

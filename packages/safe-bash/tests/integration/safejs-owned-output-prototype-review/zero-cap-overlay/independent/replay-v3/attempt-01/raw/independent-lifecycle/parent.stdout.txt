@@ -1,0 +1,12 @@
+{"id":"L01-aliases","variantId":"L01-aliases","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L02-budget-positive","variantId":"L02-budget-positive","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L02-budget-exhausted","variantId":"L02-budget-exhausted","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L03-callback-live","variantId":"L03-callback-live","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L03-callback-after-lifetime","variantId":"L03-callback-after-lifetime","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L04-explicit-children","variantId":"L04-explicit-children","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L05-caller-error","variantId":"L05-caller-error","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L05-execution-error","variantId":"L05-S1-selected-after-command","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L05-cleanup-error","variantId":"L05-cleanup-error","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L06-curl-open","variantId":"L06-Z0-curl-open","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"id":"L06-curl-consumer-closed","variantId":"L06-Z0-curl-consumer-closed","classification":"PASS","engineRuns":1,"childExit":0,"signal":null,"containment":false,"reportPresent":true}
+{"status":"PASS","counts":{"total":11,"logicalWorkflows":6,"executed":11,"valid":11,"pass":11,"failed":0,"invalid":0,"unproved":0,"blocked":0},"privateUnchanged":true,"sharedUnchanged":true,"cleanup":{"knownCaseChildrenClosed":true,"temporary":"/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-cJT1cR","removed":true,"sharedCopiesRemoved":false,"appendGuard":"Full immutable regular-file set, bytes and mode/mtime/ctime re-enumerated; new regular files and symlinks detected. Directory-shape re-enumeration additionally detects empty-directory additions/removals; no atomic intervening-state or atime claim."}}

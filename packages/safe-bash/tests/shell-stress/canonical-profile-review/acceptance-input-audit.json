@@ -1,0 +1,2163 @@
+{
+  "capturedAt": "2026-08-27T07:06:04.867Z",
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "candidateCommits": [
+    "da81b8f73a6cf98fe8b44b2deee00ed80f1599d4",
+    "4fa20ac6cadb9d37fa9da4d205dc37a5a1bcb9f9",
+    "7e0a578e277d123ba0fa86e48b46f4fd0431b839"
+  ],
+  "proof": {
+    "tests/shell-stress/canonical-profile-review/ALIGNED_PREPARATION.md": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "6ac569fa632471ec61049fc440711d4167a35efa",
+      "sha256": "c831eeeb1a8db2e0b3635fed864864a6973d5c5d24a7b9ec65350a4f79d5ea0b"
+    },
+    "tests/shell-stress/canonical-profile-review/README.md": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "8433b68ee2a3aec1433d8de52897b601c185d1da",
+      "sha256": "2869a41f1e407283b0560b721e1f6d9fbadf92ddbfc4e87d9190cc50e5051ea7"
+    },
+    "tests/shell-stress/canonical-profile-review/REVIEW_PLAN.md": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "e489999838d38f130a7b118ab195698f4be2a153",
+      "sha256": "3011abe4305b081b9d4ecedfff6295f05652b7fbec3724e290d9db76e6654658"
+    },
+    "tests/shell-stress/canonical-profile-review/aligned-compare.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "a0e6f653e736b285c9f62718b75527188a500685",
+      "sha256": "dc0caac8bdc8eb3152b57dfdb8ab1c6baf7889e9b30ff79773278ead59e32af8"
+    },
+    "tests/shell-stress/canonical-profile-review/aligned-comparison-20260827.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "def8ed383a6fd0576c93b17b4122fc2ae104d9a6",
+      "sha256": "fe054a6ad2bef561a5fd6f0f5f53f067eb634142d27a26454e1ae6482fde7273"
+    },
+    "tests/shell-stress/canonical-profile-review/aligned-freeze.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "7c04891fe329518fd7c6ebbc7c7bc2d544305477",
+      "sha256": "2243039f7d921f1d251707b38fd85b167f4f479549d7315e4128b135df94c928"
+    },
+    "tests/shell-stress/canonical-profile-review/aligned-integrity.test.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "66b6d373b72b40dffb2ddbed1e101676ae2e1c3a",
+      "sha256": "e843f094e51ca27e0beb1a51f083ef5e4acabac66864924aa88742ae6a68e777"
+    },
+    "tests/shell-stress/canonical-profile-review/aligned-native-20260827.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "0145d219fef400a4533333a27a5049d70347e6a8",
+      "sha256": "37dc5ed4beaca1fbee0055325658d5025b6bd74a0b13779901b992486472dc2a"
+    },
+    "tests/shell-stress/canonical-profile-review/aligned-native.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "5f70464dcb215a178269aec839cf2b9a4baad9b3",
+      "sha256": "4ff283dbfc1707234f9bb41fb601a7b5cb2e84eb189a2a68a77fcd54d6e2751c"
+    },
+    "tests/shell-stress/canonical-profile-review/baseline-6e3e316.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "c43762aec497d35ff660f7bfdaa52c1b74efa113",
+      "sha256": "5addc1467accf1ff7e9d2156b1e26efcd6506f663e9d042093116abe1b07449f"
+    },
+    "tests/shell-stress/canonical-profile-review/baseline-cleanup.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "29a2416c23d91415eb0eaf4b681c1ca0e574166f",
+      "sha256": "5639da9fc721cc3b2782d337686ac072902af741f7d1afa1c99089c9f8ed5719"
+    },
+    "tests/shell-stress/canonical-profile-review/baseline.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "5b7d687d04019bbb9ebf76cd56743aceab5a515d",
+      "sha256": "57a545662a5ebd12e785b7573975526ef2983a40d4f3f91990ee9ac9e2809b86"
+    },
+    "tests/shell-stress/canonical-profile-review/freeze.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "1babbf0d877fd0d618f2dc471946def1d9b9c51f",
+      "sha256": "efbb6ee9434fed710822eb084d02e147bc538eac779cd9054d404b7b1937d9e2"
+    },
+    "tests/shell-stress/canonical-profile-review/inputs.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "b002a2c2bc57549d28c7e0e000e9b01fa9a21aeb",
+      "sha256": "d314df83b9475ab039dfa772ae09b7cf4f2306351f719e68570e9cbffcd685b2"
+    },
+    "tests/shell-stress/canonical-profile-review/integrity.test.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "a86310e3d3aa9bbb768c7731067e6bf3cef3e9e7",
+      "sha256": "3910b0b0cfacc1964f79b9facae3b10924be8d91d3a60de2723dac541c25f221"
+    },
+    "tests/shell-stress/canonical-profile-review/native-frozen.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "b93d9b7f2f6856348aa3860a95b009f6d22a610d",
+      "sha256": "70505e59a8a0d043cf87cca7c7ba4d3f6fbb98348816e68db8721b740afe9c08"
+    },
+    "tests/shell-stress/canonical-profile-review/native-role-corrected.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "1e418b19bed9e71838ca2d1f78c418ed7d78e60f",
+      "sha256": "f0cf9e77a7d1feb909529ae023dc859a7ba5fa7e19895ef09dd24b98b748083e"
+    },
+    "tests/shell-stress/canonical-profile-review/native.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "ea40a5c65903cf363d428ae06281c5ad5dedae5d",
+      "sha256": "62e2f55b69674c46f53a9f1d95b2e166efb49c225cf37d40f71505de3d1e0b19"
+    },
+    "tests/shell-stress/canonical-profile-review/negative-controls.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "ef5069f41e59b7f8456a39e0a5d464a59b9d6261",
+      "sha256": "ea32129eb7c4bfbac4f6c678b6ab43031c6bd01b5da3e693d5c4ede8ecd5557a"
+    },
+    "tests/shell-stress/canonical-profile-review/negative-controls.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "d945848321903b6908922e10f16ba46cedbe42c6",
+      "sha256": "d6931edef1d374d95f097950bcbca913c6cbfa3161d9dc96c82cd271a960b6c1"
+    },
+    "tests/shell-stress/canonical-profile-review/original-oracles.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "1a7e88e8e290a8fb1743c0fb0ed8657affb67230",
+      "sha256": "dae64803bee4ebd6616933d49d442c73a397fd8ab9d162ac9cd9a4055cc3ba6d"
+    },
+    "tests/shell-stress/canonical-profile-review/prepare-inputs.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "0a471c21756692597c445410a89b79ef5efeb3a1",
+      "sha256": "b86151a440a5bb890cb7cecc212dd11474819e2fb765955ab6dadb46ddddac45"
+    },
+    "tests/shell-stress/canonical-profile-review/product.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "ac2caeb3e0095a3e10aa04c57202357eaa3e7c66",
+      "sha256": "3ec46f2814877b5ff44b6c79da04da598f607fb4c21623b23538fb60f8a630e1"
+    },
+    "tests/shell-stress/canonical-profile-review/review-checks.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "8fd9eb8ef554f913ed4109661c8ad6663937ab68",
+      "sha256": "c40d6a42435bac2b3ee73ed9c3787ca4b41a52030b2efee35e502aff293f9a2a"
+    },
+    "tests/shell-stress/canonical-profile-review/review-summary.json": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "6bd90069460df13443c8bcc732ebbb269c61206c",
+      "sha256": "65d5b67a2e090ebe3c844e2bdf5995604815ddaad03c663effe2b9ecfaa42c4b"
+    },
+    "tests/shell-stress/canonical-profile-review/summarize.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "cd872b16755f0c9c5284bfb5883e7fb9b757b854",
+      "sha256": "4f95d56ae5264d036bac5b91e5315f222da313e6941a163f6f38e715aba7b2f1"
+    },
+    "tests/shell-stress/canonical-profile-review/support.mjs": {
+      "commit": "1dc0aed8103355eb5dd7bae5ea87bd7ce3ceeaf2",
+      "blob": "449d44492f0273e11cda59c809c25da2aeb16fe0",
+      "sha256": "8b7039e1ce9322ae7096b85d427cb22a47ba824b1b3ecb0b94a9d87a143903b5"
+    },
+    "tests/shell-stress/canonical-profile-migration/README.md": {
+      "commit": "ab02ed8",
+      "blob": "afaac950bbc4770a6435ef78d619697e6575c765",
+      "sha256": "6ae1785b7196b9c7276ee1c998d84d117c245ca14a45d4d42d4a7efa6c674911"
+    },
+    "tests/shell-stress/canonical-profile-migration/analyze.mjs": {
+      "commit": "ab02ed8",
+      "blob": "f22f4234b46fc807805604e41abce1ebecfdbe39",
+      "sha256": "90aaf9e04b07bc082dfc052d8a3a0fdcb8150dc9aee216d176f49d9ea2ac4c9e"
+    },
+    "tests/shell-stress/canonical-profile-migration/comparison.json": {
+      "commit": "ab02ed8",
+      "blob": "537c44c086946ce67617e5aa0f27a8ce64f4746a",
+      "sha256": "c37ae65f9a95add2a1d6683a1e83b7029b57f29d7853058737268fd77dd1cd27"
+    },
+    "tests/shell-stress/canonical-profile-migration/historical-fullgate-native.json": {
+      "commit": "ab02ed8",
+      "blob": "a276017b762e9198baca6929c164f4dafbf5f055",
+      "sha256": "d82d1ad31aa71cf0126c1a9a20c055fa666adb18bb522a66c3911f4803b9e333"
+    },
+    "tests/shell-stress/canonical-profile-migration/inputs.json": {
+      "commit": "ab02ed8",
+      "blob": "484217069b8e4528650def57e36e6de39f06228d",
+      "sha256": "d8f36aa191a5b30d04c2c7730282f790670dff08ca697902850fe63a582785bc"
+    },
+    "tests/shell-stress/canonical-profile-migration/native.json": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "e316a05ff2ef1260c2ebc191a83482c93180be88",
+      "sha256": "de379916112faa3cec68f3180b5ba55758eda415f2016456d448f635c9871bf5"
+    },
+    "tests/shell-stress/canonical-profile-migration/prepare.mjs": {
+      "commit": "ab02ed8",
+      "blob": "b1e44e265bc9ac7da118b4ced91b10a833eebbe4",
+      "sha256": "d2087e1e2e93061ff8539951d0f2aec6d678b8da2e756f974055481b486a6329"
+    },
+    "tests/shell-stress/canonical-profile-migration/product-cohort.mjs": {
+      "commit": "ab02ed8",
+      "blob": "a7d1f51d79378e532bfd5e602a63b43f5a00b8d9",
+      "sha256": "bb5992bb7d7f991de323d233656fb3a628e5a7dd485a26ee50603a42ee403a2b"
+    },
+    "tests/shell-stress/canonical-profile-migration/product.json": {
+      "commit": "ab02ed8",
+      "blob": "97d0dec4960cf9610cdf2529d55dcaa3f0b9a126",
+      "sha256": "30abd39adb716dfdad2892ce924aaeb1e9f36481fafe52cd2b65d72d5ebe644a"
+    },
+    "tests/shell-stress/canonical-profile-migration/proposal.json": {
+      "commit": "ab02ed8",
+      "blob": "acfe6ceda6b50d67a4d7ab7ee3bf9a78b848a0e7",
+      "sha256": "a2d0061c5cfd2dd6fd225acd5c2dea614c0a2150edb553f347b46e238a6f0882"
+    },
+    "tests/shell-stress/canonical-profile-migration/seal.json": {
+      "commit": "ab02ed8",
+      "blob": "1833b7833c71431bdd4ca4b7f4e381b4a25468f7",
+      "sha256": "4baa2c726a8434f535731509cf9d5449b426f3a8a63b9723dc35cf8cfcc35026"
+    },
+    "tests/shell/invocation-discovery-fixes.test.ts": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "d0cd5617a7b960fe7ce328c09d0de6b372c40316",
+      "sha256": "602cc5a95845bd22ed547a3305f58732adde5ff27817ba7918467bf5e411a0aa"
+    },
+    "tests/shell/invocation-discovery-fixes-cases.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "4acec75002df21178249ea1d5340bfcd4c367871",
+      "sha256": "03b7f682529233a7a3678dcf9d78aacc62a19b74882f562482ca689dfd6651fe"
+    },
+    "tests/shell-stress/differential.test.ts": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "05d6995613544dbd4d2c43ae4390523db16aef6e",
+      "sha256": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32"
+    },
+    "tests/shell-stress/cases.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "89d6aa5a395929b4bec70c17be3068ebee8cd9b3",
+      "sha256": "650a40d9ae11c771d4924a8b0dba96cc3e2cb0aea5f0cc9f599cd60b9610676a"
+    },
+    "tests/shell-stress/model.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "f1bc811bac722a857a1fd71cdbcd0e5b0bf7d97a",
+      "sha256": "9e863c4238200abb67e089669b3cea30dcd8a98073f163ee9147c5db56c626c9"
+    },
+    "tests/shell-stress/helpers.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "7f66aeb82fe897acf1704d1e8af785b4682eae1c",
+      "sha256": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6"
+    },
+    "tests/shell-stress/process.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "eddca4e2c769e6502443d133e5dc89cb00acb1c8",
+      "sha256": "00ca4d13b077a2c21bd8af2d0f9770ff8f97ea85217a141b9fca9e3bfe4ef700"
+    },
+    "tests/shell-stress/current-gaps/compatibility.test.ts": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "4c8d05d60f529f2bd0460a78cf49d356b946c51c",
+      "sha256": "ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca"
+    },
+    "tests/shell-stress/current-gaps/cases.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "7d545bc6047859d522e131cc3d56fc1de16d2a33",
+      "sha256": "57c7f254d216fdad18ef2f37ac60657ce65aeec9abff6423c9f72cc85888024d"
+    },
+    "tests/shell-stress/current-gaps/reference.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "bd08240f68b07feef5fb78578c3029554fe0596f",
+      "sha256": "4dd6ad46229a0eb3d4bd3424edcd556ed91ff1acb094518c09550ace079cdd63"
+    },
+    "tests/shell-stress/invocation-closure/holdout.test.ts": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "c85831c692494438b5a0340624b544e4f928e6a6",
+      "sha256": "c546a3014d7849e325119263560c0a73abc0450784c3a982f6696132d64e69e9"
+    },
+    "tests/shell-stress/invocation-closure/cases.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "a085761b445190478ad7c5a565dfe28d3f2724d9",
+      "sha256": "1f5ac63adbfa9e13d70ab79e2cf991efa6cb7d70d6f2463d2bef0ed4d14c6aef"
+    },
+    "tests/shell-stress/invocation-modes/cases.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "c460be85a47e26bfc5b86e0250505287a2528494",
+      "sha256": "fdc22c27541f4f29334274e35238c22fa4645730dbe5239134a585ee8e03f83c"
+    },
+    "tests/shell-stress/invocation-closure/support.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "f9f20f5d80b122490ae0a56c55c9787a225808ad",
+      "sha256": "e3107cc5be93b3bac67f6a00e11d5def70db437860a12c77f4292e7b147efcd2"
+    },
+    "tests/shell-stress/invocation-modes/harness.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "727ecf49865ff41af04505c686f06b44b7aadd90",
+      "sha256": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679"
+    },
+    "tests/shell-stress/virtual-child.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "a6640ff688e44ff942dc653f208f43e330e88ab3",
+      "sha256": "4f3942a8c55445abaef5f3d71a478bcb6d34b5a434914988716c59155d1a852e"
+    },
+    "tests/shell-stress/probes.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "3712fffa89ebeb22c29cf7b16cc42b68d259edd7",
+      "sha256": "f6cb394028c1e013cf1d86672debff64b651a1dda9cf07267cc58d06e7b66bbd"
+    },
+    "tests/shell-stress/invocation-closure/probe.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "813f34f228856d677442d7392afc72b5acbd8fde",
+      "sha256": "d9d956718c93d15243d6e026ee6dbefbc05ec4ef2a2a6b818a3915fbad139464"
+    },
+    "tests/shell-stress/invocation-modes/trace.mjs": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "3507b20e0c3dffbc33fc28f3454ec0618397d17a",
+      "sha256": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed"
+    },
+    "tests/shell/invocation-discovery-fixes-imports.mjs": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "3b7887754a503ac0e8a89a83098a9459ab7dc0dd",
+      "sha256": "6ce9523f5601583f023115f0337fba6414288f80cd8d9933b5e0c74f1f50de91"
+    },
+    "tests/shell/invocation-discovery-fixes-native.json": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "697861ecedf22a28e0e7fdb187152c4a8558f0f2",
+      "sha256": "2ce958e4ac0b73a306bc61efbf0eb40f85902c1c2ea4ffbcd08f7928ec62e2bc"
+    },
+    "tests/shell-stress/invocation-closure/native-preparation.json": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "9a85cf1414f120634f191937f1f5499b39b80e5c",
+      "sha256": "c5c698cf91b3cbf32c63f338af5e5a241be941c092821dc3a900d58ccaeceabe"
+    },
+    "tests/fixtures/shell-cases.json": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "03932b04f695004ee48e240e513969a1cc155963",
+      "sha256": "cc1df2a29865b60a830afddca63869a84ea9782b1f5871e664f842654d7f4d3c"
+    },
+    "tests/shell-stress/canonical-profile-migration/discovery-profile.ts": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "1a906104f4326beadd184dfef0c89cf68a1da622",
+      "sha256": "f2fa4a56517ad9c460310614687b939aa4423efd499a18d4fdbe512e432e7774"
+    },
+    "tests/shell-stress/canonical-profile-migration/historical-discovery.ts": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "632e3aaca75637ff9a4019ee18a5fbb394808c2d",
+      "sha256": "0a97a06a38c53e8c7026013ff769ef4fba7a3c6cb0cedc1bca85bab7c5e2b4fe"
+    },
+    "tests/shell-stress/canonical-profile-migration/primary-reference.ts": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "ff51dc149e73b8469a4297770d70f6e7312894e1",
+      "sha256": "e0a7d47697ff58651a98658667353a46db0db5f5e1f49ffe9311212990f218fc"
+    },
+    "tests/shell-stress/canonical-profile-migration/primary-fixtures.json": {
+      "commit": "7e0a578e277d123ba0fa86e48b46f4fd0431b839",
+      "blob": "d74a528915ab33a096a372a4a9f5aa90d8c5c03a",
+      "sha256": "76204fc288836d2cde65156ee2d2f610d9ac31466414cc4ef2ec520284d72ec8"
+    },
+    "src/shell/runtime.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "601e33d653261161fa9b76009df0824a8871af27",
+      "sha256": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb"
+    },
+    "src/shell/parser.ts": {
+      "commit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+      "blob": "f570235d1f65ade0f7279ccacf805ec1333155f7",
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+    }
+  },
+  "comparisons": [
+    {
+      "id": "differential/descriptor-save-and-restore-routes-stderr-through-pipe",
+      "profile": "gnu53",
+      "sourceSha256": "a901c24545e863626a305122143a442e345aef71dc1280abee3635d47b295e7a",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/descriptor-save-and-restore-routes-stderr-through-pipe",
+      "profile": "apple32",
+      "sourceSha256": "a901c24545e863626a305122143a442e345aef71dc1280abee3635d47b295e7a",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/descriptor-move-closes-original-after-copy",
+      "profile": "gnu53",
+      "sourceSha256": "98777d6d37c5d5cdc46bda74f2fbdd293daef2545e60422cb7fc1cb2527f6585",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/descriptor-move-closes-original-after-copy",
+      "profile": "apple32",
+      "sourceSha256": "98777d6d37c5d5cdc46bda74f2fbdd293daef2545e60422cb7fc1cb2527f6585",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/closing-stdout-then-reopening-is-left-to-right",
+      "profile": "gnu53",
+      "sourceSha256": "122812e906eff371dd1aa274bda19db513c947d011491630307a5526555b8656",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/closing-stdout-then-reopening-is-left-to-right",
+      "profile": "apple32",
+      "sourceSha256": "122812e906eff371dd1aa274bda19db513c947d011491630307a5526555b8656",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/closing-stderr-does-not-close-duplicated-stdout",
+      "profile": "gnu53",
+      "sourceSha256": "56574288cc0e2b48646a9ae82bfd7b45ad04c1a54905cad0e75993c08424cfa7",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/closing-stderr-does-not-close-duplicated-stdout",
+      "profile": "apple32",
+      "sourceSha256": "56574288cc0e2b48646a9ae82bfd7b45ad04c1a54905cad0e75993c08424cfa7",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/group-redirection-is-restored-after-return",
+      "profile": "gnu53",
+      "sourceSha256": "23b540eccc80ad9277d2621a8292e5f4575953de9c3f58bd26d7ae3696da6b34",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/group-redirection-is-restored-after-return",
+      "profile": "apple32",
+      "sourceSha256": "23b540eccc80ad9277d2621a8292e5f4575953de9c3f58bd26d7ae3696da6b34",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/pipe-established-before-stderr-copy-and-output-redirect",
+      "profile": "gnu53",
+      "sourceSha256": "c4aa2b6f6928ab834d27da43741534a57f5f3318b640c0df8f09f6188b868f87",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/pipe-established-before-stderr-copy-and-output-redirect",
+      "profile": "apple32",
+      "sourceSha256": "c4aa2b6f6928ab834d27da43741534a57f5f3318b640c0df8f09f6188b868f87",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/nested-truncate-does-not-reset-outer-file-offset",
+      "profile": "gnu53",
+      "sourceSha256": "08b3eeb0c49b8509ecc838849316d939f601f9e3ad9d59dd689fa49a35f85203",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/nested-truncate-does-not-reset-outer-file-offset",
+      "profile": "apple32",
+      "sourceSha256": "08b3eeb0c49b8509ecc838849316d939f601f9e3ad9d59dd689fa49a35f85203",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/independent-output-descriptors-have-separate-offsets",
+      "profile": "gnu53",
+      "sourceSha256": "6a2b3304890c8ad2d2f7d126ac2fb61493968ab97f0195a114ad7021b325ddba",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/independent-output-descriptors-have-separate-offsets",
+      "profile": "apple32",
+      "sourceSha256": "6a2b3304890c8ad2d2f7d126ac2fb61493968ab97f0195a114ad7021b325ddba",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/duplicated-output-descriptors-share-offset",
+      "profile": "gnu53",
+      "sourceSha256": "a82db108d986d04fcda5a2f034ea40418263f157db37991e0eb5a1bbdc0ba11a",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/duplicated-output-descriptors-share-offset",
+      "profile": "apple32",
+      "sourceSha256": "a82db108d986d04fcda5a2f034ea40418263f157db37991e0eb5a1bbdc0ba11a",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/append-descriptor-observes-intervening-truncation",
+      "profile": "gnu53",
+      "sourceSha256": "7a60cbe9d2aca4f2bf6a598eccb17cdaf65f9f3ffc8f2e98ed277435bfc42892",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/append-descriptor-observes-intervening-truncation",
+      "profile": "apple32",
+      "sourceSha256": "7a60cbe9d2aca4f2bf6a598eccb17cdaf65f9f3ffc8f2e98ed277435bfc42892",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/redirect-expansion-side-effect-precedes-truncate",
+      "profile": "gnu53",
+      "sourceSha256": "9ea7a34c5901b8c9c7cf2c15f7c46efa3d3cfb741c819cb3ca54fd53e9348089",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/redirect-expansion-side-effect-precedes-truncate",
+      "profile": "apple32",
+      "sourceSha256": "9ea7a34c5901b8c9c7cf2c15f7c46efa3d3cfb741c819cb3ca54fd53e9348089",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-and-substitution-consume-one-inherited-offset",
+      "profile": "gnu53",
+      "sourceSha256": "807e9214cea1e2de8cbcecdf361b5b79411d82cccef26ad56787816861e29967",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-and-substitution-consume-one-inherited-offset",
+      "profile": "apple32",
+      "sourceSha256": "807e9214cea1e2de8cbcecdf361b5b79411d82cccef26ad56787816861e29967",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-in-subshell-consumes-input-but-not-parent-variable",
+      "profile": "gnu53",
+      "sourceSha256": "2ee63eae9a0ed2c43a514a0669c65061368e644aced6380708a21957d3a5b319",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-in-subshell-consumes-input-but-not-parent-variable",
+      "profile": "apple32",
+      "sourceSha256": "2ee63eae9a0ed2c43a514a0669c65061368e644aced6380708a21957d3a5b319",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/multiple-input-redirections-only-last-is-consumed",
+      "profile": "gnu53",
+      "sourceSha256": "6f1ead594be610465b8ff85e13cd0b8a70ce20dd542f171aa1f8f499c68ca433",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/multiple-input-redirections-only-last-is-consumed",
+      "profile": "apple32",
+      "sourceSha256": "6f1ead594be610465b8ff85e13cd0b8a70ce20dd542f171aa1f8f499c68ca433",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-n-consumes-exactly-two-characters",
+      "profile": "gnu53",
+      "sourceSha256": "228907d2f5f8c7100c2d0e483f04fff4390cbc304c84cb8554818ef40824f822",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-n-consumes-exactly-two-characters",
+      "profile": "apple32",
+      "sourceSha256": "228907d2f5f8c7100c2d0e483f04fff4390cbc304c84cb8554818ef40824f822",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-d-consumes-through-delimiter-only",
+      "profile": "gnu53",
+      "sourceSha256": "e7c2e2bc03aa23b30bf96171dea71cc20e753b75076d4838ae6bd98a8e70a640",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-d-consumes-through-delimiter-only",
+      "profile": "apple32",
+      "sourceSha256": "e7c2e2bc03aa23b30bf96171dea71cc20e753b75076d4838ae6bd98a8e70a640",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-backslash-newline-joins-before-splitting",
+      "profile": "gnu53",
+      "sourceSha256": "c78dfeb2fb1cb9180be837b215fd3ddf4d98e9e2a8d9798cf3f0c73a8037620d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-backslash-newline-joins-before-splitting",
+      "profile": "apple32",
+      "sourceSha256": "c78dfeb2fb1cb9180be837b215fd3ddf4d98e9e2a8d9798cf3f0c73a8037620d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-last-variable-preserves-inner-separators",
+      "profile": "gnu53",
+      "sourceSha256": "98e0c2068daeca8cba0e1b9668adc86f04e58cd61a9a32cca6fbb754c7b36bb4",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-last-variable-preserves-inner-separators",
+      "profile": "apple32",
+      "sourceSha256": "98e0c2068daeca8cba0e1b9668adc86f04e58cd61a9a32cca6fbb754c7b36bb4",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/redirected-pipeline-input-leaves-inherited-input-intact",
+      "profile": "gnu53",
+      "sourceSha256": "f4a47a864642819d739f1461050da2fcc1643b6ca408171d97a046cd52820f91",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/redirected-pipeline-input-leaves-inherited-input-intact",
+      "profile": "apple32",
+      "sourceSha256": "f4a47a864642819d739f1461050da2fcc1643b6ca408171d97a046cd52820f91",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/pipefail-picks-rightmost-nonzero-not-first",
+      "profile": "gnu53",
+      "sourceSha256": "0b73d94d2fc5b4f086c6db1007181b521044c15d20f740c33654dc459a758245",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/pipefail-picks-rightmost-nonzero-not-first",
+      "profile": "apple32",
+      "sourceSha256": "0b73d94d2fc5b4f086c6db1007181b521044c15d20f740c33654dc459a758245",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/pipeline-negation-with-pipefail-controls-conditional",
+      "profile": "gnu53",
+      "sourceSha256": "ed6a712d561aab1d501ac44e0327f5f8b53d7088dd4331e0800ac178a20ce4cb",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/pipeline-negation-with-pipefail-controls-conditional",
+      "profile": "apple32",
+      "sourceSha256": "ed6a712d561aab1d501ac44e0327f5f8b53d7088dd4331e0800ac178a20ce4cb",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/function-in-middle-of-pipeline-preserves-bytes",
+      "profile": "gnu53",
+      "sourceSha256": "78faab145b405da4f939fd39abcccd4d24d0af5d7497d6a889d652557a2e9a03",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/function-in-middle-of-pipeline-preserves-bytes",
+      "profile": "apple32",
+      "sourceSha256": "78faab145b405da4f939fd39abcccd4d24d0af5d7497d6a889d652557a2e9a03",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/early-pipeline-reader-closes-bounded-producer",
+      "profile": "gnu53",
+      "sourceSha256": "878c2299b03ee4f44d89fede85a3292284325398f1440b88eb466249d530042f",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/early-pipeline-reader-closes-bounded-producer",
+      "profile": "apple32",
+      "sourceSha256": "878c2299b03ee4f44d89fede85a3292284325398f1440b88eb466249d530042f",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-positional-at-concatenates-only-edge-fields",
+      "profile": "gnu53",
+      "sourceSha256": "359fe811586d67a9e30244cbeb509a312df75b7212bd53c854968a038767dd8d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-positional-at-concatenates-only-edge-fields",
+      "profile": "apple32",
+      "sourceSha256": "359fe811586d67a9e30244cbeb509a312df75b7212bd53c854968a038767dd8d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-star-uses-first-ifs-character",
+      "profile": "gnu53",
+      "sourceSha256": "6171eb890f0b5e0559f17460fdb379acaebc2e77341fcb6bcfdacc1b608590e2",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-star-uses-first-ifs-character",
+      "profile": "apple32",
+      "sourceSha256": "6171eb890f0b5e0559f17460fdb379acaebc2e77341fcb6bcfdacc1b608590e2",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/ifs-nonwhitespace-delimiters-retain-empty-fields",
+      "profile": "gnu53",
+      "sourceSha256": "c8307689ae0a5c7385550500694c75f8527a9d1be5e0bb501d422b9065870bb2",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/ifs-nonwhitespace-delimiters-retain-empty-fields",
+      "profile": "apple32",
+      "sourceSha256": "c8307689ae0a5c7385550500694c75f8527a9d1be5e0bb501d422b9065870bb2",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-empty-prefix-preserves-otherwise-empty-field",
+      "profile": "gnu53",
+      "sourceSha256": "aca7cadbe284b4aa9c9d5acebad6bf4595793aec227bd54135ecdc661a687cdb",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-empty-prefix-preserves-otherwise-empty-field",
+      "profile": "apple32",
+      "sourceSha256": "aca7cadbe284b4aa9c9d5acebad6bf4595793aec227bd54135ecdc661a687cdb",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/default-operator-does-not-evaluate-unused-substitution",
+      "profile": "gnu53",
+      "sourceSha256": "1a0f73da575ae83a620eb4910a64bcd476e8509301bb086d6a493948680da3c1",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/default-operator-does-not-evaluate-unused-substitution",
+      "profile": "apple32",
+      "sourceSha256": "1a0f73da575ae83a620eb4910a64bcd476e8509301bb086d6a493948680da3c1",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/assignment-default-side-effect-persists-outside-expansion",
+      "profile": "gnu53",
+      "sourceSha256": "33adfa369ca4c7215d0db093befeb21cb59cb3ee6ef103c8b5dd9248763c40c1",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/assignment-default-side-effect-persists-outside-expansion",
+      "profile": "apple32",
+      "sourceSha256": "33adfa369ca4c7215d0db093befeb21cb59cb3ee6ef103c8b5dd9248763c40c1",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/prefix-assignment-value-expansion-sees-prior-assignment",
+      "profile": "gnu53",
+      "sourceSha256": "6e921ca3e660f5997764d706bb1ee483bf41c47c4e3d7809a0f752c08a4518e9",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/prefix-assignment-value-expansion-sees-prior-assignment",
+      "profile": "apple32",
+      "sourceSha256": "6e921ca3e660f5997764d706bb1ee483bf41c47c4e3d7809a0f752c08a4518e9",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/command-substitution-file-shortcut-reads-and-trims",
+      "profile": "gnu53",
+      "sourceSha256": "5e71ff16dbab1c69264459c596b35ce09494f5519a2e6bf82b24a072973c1c9d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/command-substitution-file-shortcut-reads-and-trims",
+      "profile": "apple32",
+      "sourceSha256": "5e71ff16dbab1c69264459c596b35ce09494f5519a2e6bf82b24a072973c1c9d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/substitution-retains-interior-newlines-and-isolates-variable",
+      "profile": "gnu53",
+      "sourceSha256": "092e460d8b75347e658a97aec809b5f5749380ae5ed4c1c2d60473a9cb1962ef",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/substitution-retains-interior-newlines-and-isolates-variable",
+      "profile": "apple32",
+      "sourceSha256": "092e460d8b75347e658a97aec809b5f5749380ae5ed4c1c2d60473a9cb1962ef",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/last-assignment-substitution-status-wins",
+      "profile": "gnu53",
+      "sourceSha256": "77fc944bdf8e37e10183b962d4474d2c06f83e8780a1932c1de33279970c55f4",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/last-assignment-substitution-status-wins",
+      "profile": "apple32",
+      "sourceSha256": "77fc944bdf8e37e10183b962d4474d2c06f83e8780a1932c1de33279970c55f4",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/substitution-does-not-reparse-metacharacters",
+      "profile": "gnu53",
+      "sourceSha256": "581d5159ad0c77fb6806fc2dc5e96256805fe1c0d7bdf9a8306dd15d53459c06",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/substitution-does-not-reparse-metacharacters",
+      "profile": "apple32",
+      "sourceSha256": "581d5159ad0c77fb6806fc2dc5e96256805fe1c0d7bdf9a8306dd15d53459c06",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/ansi-c-quoted-word-decodes-escape-before-argument-passing",
+      "profile": "gnu53",
+      "sourceSha256": "d940db1fa31667e805f2e96c877c419fa6b1450b47e0b9b5fa7fed57da1b176c",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/ansi-c-quoted-word-decodes-escape-before-argument-passing",
+      "profile": "apple32",
+      "sourceSha256": "d940db1fa31667e805f2e96c877c419fa6b1450b47e0b9b5fa7fed57da1b176c",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/backquote-substitution-preserves-double-quoted-result",
+      "profile": "gnu53",
+      "sourceSha256": "164910b90b233c69bb27ea335b1be5f76a2fdd9df451a6af79047e56117a3038",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/backquote-substitution-preserves-double-quoted-result",
+      "profile": "apple32",
+      "sourceSha256": "164910b90b233c69bb27ea335b1be5f76a2fdd9df451a6af79047e56117a3038",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-glob-fragment-remains-literal-inside-pattern",
+      "profile": "gnu53",
+      "sourceSha256": "81491a85bcda9bba1567b474988ca4c7ce4c31e73416842257256fffa58e1703",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-glob-fragment-remains-literal-inside-pattern",
+      "profile": "apple32",
+      "sourceSha256": "81491a85bcda9bba1567b474988ca4c7ce4c31e73416842257256fffa58e1703",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/glob-question-mark-matches-one-character-including-brackets",
+      "profile": "gnu53",
+      "sourceSha256": "a5ecd3d04ac2824542031806b39a99c92e4da4b0de32caf2649003bcdffd4e60",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/glob-question-mark-matches-one-character-including-brackets",
+      "profile": "apple32",
+      "sourceSha256": "a5ecd3d04ac2824542031806b39a99c92e4da4b0de32caf2649003bcdffd4e60",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/glob-hidden-directory-requires-explicit-dot",
+      "profile": "gnu53",
+      "sourceSha256": "7e30007db22e96964029a3f3891e3be3b5c73c760e399ccb836aa451481908ff",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/glob-hidden-directory-requires-explicit-dot",
+      "profile": "apple32",
+      "sourceSha256": "7e30007db22e96964029a3f3891e3be3b5c73c760e399ccb836aa451481908ff",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/redirect-glob-resolves-single-match-with-space",
+      "profile": "gnu53",
+      "sourceSha256": "22eba8c62768c8033aa7f7a2b4be76da83d649004a26db2873bd4f44dee4e4ea",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/redirect-glob-resolves-single-match-with-space",
+      "profile": "apple32",
+      "sourceSha256": "22eba8c62768c8033aa7f7a2b4be76da83d649004a26db2873bd4f44dee4e4ea",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/tilde-prefix-in-assignment-not-in-quoted-word",
+      "profile": "gnu53",
+      "sourceSha256": "71452f9e08f97492b5c1431d7e18ce284ed193081ff6bdd57e373ab50a1c1f09",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/tilde-prefix-in-assignment-not-in-quoted-word",
+      "profile": "apple32",
+      "sourceSha256": "71452f9e08f97492b5c1431d7e18ce284ed193081ff6bdd57e373ab50a1c1f09",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/heredoc-tab-stripping-keeps-other-whitespace",
+      "profile": "gnu53",
+      "sourceSha256": "631fbabb9ea6d281831855b55bf9599f99e2660a3a0be85ee1b1ea9ae811f235",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/heredoc-tab-stripping-keeps-other-whitespace",
+      "profile": "apple32",
+      "sourceSha256": "631fbabb9ea6d281831855b55bf9599f99e2660a3a0be85ee1b1ea9ae811f235",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/multiple-heredocs-last-input-wins",
+      "profile": "gnu53",
+      "sourceSha256": "6a86cf56afcf939d7c1024d3512006d2d615f0bb141c2af98d0ef83eb1c1a54f",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/multiple-heredocs-last-input-wins",
+      "profile": "apple32",
+      "sourceSha256": "6a86cf56afcf939d7c1024d3512006d2d615f0bb141c2af98d0ef83eb1c1a54f",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/here-string-expands-without-splitting-or-globbing",
+      "profile": "gnu53",
+      "sourceSha256": "95a0c96c3341192a0040795168f9e1b308fb48ea0ccb7beba98f785e824d8c32",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/here-string-expands-without-splitting-or-globbing",
+      "profile": "apple32",
+      "sourceSha256": "95a0c96c3341192a0040795168f9e1b308fb48ea0ccb7beba98f785e824d8c32",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/arithmetic-logical-branch-does-not-mutate-unused-side",
+      "profile": "gnu53",
+      "sourceSha256": "2ea71a29a9927cec82e9de770d66bace9e18a7608c3b7a28eb8f154fabfaf4a3",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/arithmetic-logical-branch-does-not-mutate-unused-side",
+      "profile": "apple32",
+      "sourceSha256": "2ea71a29a9927cec82e9de770d66bace9e18a7608c3b7a28eb8f154fabfaf4a3",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/compound-loop-return-restores-outer-function-positionals",
+      "profile": "gnu53",
+      "sourceSha256": "ca4f3c4e1ded96923aef2e04fdce997ea33cb4e0a7e3dc083936fd6c9c5bfb93",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/compound-loop-return-restores-outer-function-positionals",
+      "profile": "apple32",
+      "sourceSha256": "ca4f3c4e1ded96923aef2e04fdce997ea33cb4e0a7e3dc083936fd6c9c5bfb93",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "profile": "gnu53",
+      "sourceSha256": "7e06621b33e9dc8e60a753d8378fa411e0cbbf4b952619f154268f46fff6da26",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "profile": "apple32",
+      "sourceSha256": "7e06621b33e9dc8e60a753d8378fa411e0cbbf4b952619f154268f46fff6da26",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/early-reader-must-not-cancel-upstream-non-pipe-effects",
+      "profile": "gnu53",
+      "sourceSha256": "2167bb47a4de6b53a2212df70613e7e357d8b6b66af78a6285f1c65782e4bca3",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/early-reader-must-not-cancel-upstream-non-pipe-effects",
+      "profile": "apple32",
+      "sourceSha256": "2167bb47a4de6b53a2212df70613e7e357d8b6b66af78a6285f1c65782e4bca3",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/early-reader-must-not-cancel-redirected-producer-output",
+      "profile": "gnu53",
+      "sourceSha256": "aeb2207e59586f85ebb2d9e9774407d62f261a3e4a47abee30b2938e2914ff48",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/early-reader-must-not-cancel-redirected-producer-output",
+      "profile": "apple32",
+      "sourceSha256": "aeb2207e59586f85ebb2d9e9774407d62f261a3e4a47abee30b2938e2914ff48",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/early-reader-must-not-replace-upstream-failure-with-sigpipe",
+      "profile": "gnu53",
+      "sourceSha256": "3b72f20d6e21100c4543b2611571bb7764d468c6ad14fece765aec1cc313662a",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/early-reader-must-not-replace-upstream-failure-with-sigpipe",
+      "profile": "apple32",
+      "sourceSha256": "3b72f20d6e21100c4543b2611571bb7764d468c6ad14fece765aec1cc313662a",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/fatal-parameter-expansion-prevents-following-file-effect",
+      "profile": "gnu53",
+      "sourceSha256": "e5cd15e33d5fed72fbdd7ae51a2ad9dde9024d0c814f587771a9e9db7f89af1c",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/fatal-parameter-expansion-prevents-following-file-effect",
+      "profile": "apple32",
+      "sourceSha256": "e5cd15e33d5fed72fbdd7ae51a2ad9dde9024d0c814f587771a9e9db7f89af1c",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/fatal-arithmetic-expansion-prevents-following-file-effect",
+      "profile": "gnu53",
+      "sourceSha256": "566818c42dd821dd5ec560ae6198cabe69763d20ee2c4f7e4744cf8d7dbaf49e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/fatal-arithmetic-expansion-prevents-following-file-effect",
+      "profile": "apple32",
+      "sourceSha256": "566818c42dd821dd5ec560ae6198cabe69763d20ee2c4f7e4744cf8d7dbaf49e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/fatal-expansion-in-substitution-stops-substitution-only",
+      "profile": "gnu53",
+      "sourceSha256": "62903c66e4b1b440551bcd6c3c59a7169369d123b1749f80bfc83c92a39e9421",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/fatal-expansion-in-substitution-stops-substitution-only",
+      "profile": "apple32",
+      "sourceSha256": "62903c66e4b1b440551bcd6c3c59a7169369d123b1749f80bfc83c92a39e9421",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/group-inherits-descriptor-three-for-inner-redirection",
+      "profile": "gnu53",
+      "sourceSha256": "25f89f62f11dc0250f2b86d0538c08891f21ccf807755620fca4ee97566fa75e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/group-inherits-descriptor-three-for-inner-redirection",
+      "profile": "apple32",
+      "sourceSha256": "25f89f62f11dc0250f2b86d0538c08891f21ccf807755620fca4ee97566fa75e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/group-inherits-input-descriptor-and-shared-read-offset",
+      "profile": "gnu53",
+      "sourceSha256": "d7a3c8377c291b237824993e4095f6c38a94a253bad3310b2e60234ae8475f86",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/group-inherits-input-descriptor-and-shared-read-offset",
+      "profile": "apple32",
+      "sourceSha256": "d7a3c8377c291b237824993e4095f6c38a94a253bad3310b2e60234ae8475f86",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/redirect-target-substitution-inherits-earlier-stderr-redirect",
+      "profile": "gnu53",
+      "sourceSha256": "8842d6a964b76e23061542a153ef939d157f3aeb4e226f0a3f42b6f86aaea667",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/redirect-target-substitution-inherits-earlier-stderr-redirect",
+      "profile": "apple32",
+      "sourceSha256": "8842d6a964b76e23061542a153ef939d157f3aeb4e226f0a3f42b6f86aaea667",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-escaped-ifs-character-is-not-a-field-separator",
+      "profile": "gnu53",
+      "sourceSha256": "ce038b81901f7b9632c033dc4768abfe5fe70d6fd969d33b02fe74b4aad20e85",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-escaped-ifs-character-is-not-a-field-separator",
+      "profile": "apple32",
+      "sourceSha256": "ce038b81901f7b9632c033dc4768abfe5fe70d6fd969d33b02fe74b4aad20e85",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-mixed-ifs-whitespace-does-not-create-spurious-fields",
+      "profile": "gnu53",
+      "sourceSha256": "ebabf1a3bc645e24d8cd132b4dcdc5050d793390c9adf9c50b930dfa82c99644",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-mixed-ifs-whitespace-does-not-create-spurious-fields",
+      "profile": "apple32",
+      "sourceSha256": "ebabf1a3bc645e24d8cd132b4dcdc5050d793390c9adf9c50b930dfa82c99644",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-discards-single-trailing-nonwhitespace-ifs-delimiter",
+      "profile": "gnu53",
+      "sourceSha256": "edb0891ed53096c00e651998df2613ffdf3f9512fd767cc73ee805736c1ab0ab",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/read-discards-single-trailing-nonwhitespace-ifs-delimiter",
+      "profile": "apple32",
+      "sourceSha256": "edb0891ed53096c00e651998df2613ffdf3f9512fd767cc73ee805736c1ab0ab",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-pattern-removal-star-is-literal",
+      "profile": "gnu53",
+      "sourceSha256": "db99e598e6d8b92bd2d2677e1356e01d57d974cde82251e862bbcc079e5295ad",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/quoted-pattern-removal-star-is-literal",
+      "profile": "apple32",
+      "sourceSha256": "db99e598e6d8b92bd2d2677e1356e01d57d974cde82251e862bbcc079e5295ad",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/glob-posix-bracket-digit-class",
+      "profile": "gnu53",
+      "sourceSha256": "44302ab8c4212f0e43dbf46035a3af49e59e50b6f8b58959c487fb01b42a2ce1",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/glob-posix-bracket-digit-class",
+      "profile": "apple32",
+      "sourceSha256": "44302ab8c4212f0e43dbf46035a3af49e59e50b6f8b58959c487fb01b42a2ce1",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/command-substitution-removes-nul-bytes",
+      "profile": "gnu53",
+      "sourceSha256": "3c80bb015276c39998b24226f4d8e392adc690a62ccaf9b4b80dc58b156ef2d4",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/command-substitution-removes-nul-bytes",
+      "profile": "apple32",
+      "sourceSha256": "3c80bb015276c39998b24226f4d8e392adc690a62ccaf9b4b80dc58b156ef2d4",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/export-prefix-assignment-persists-in-shell",
+      "profile": "gnu53",
+      "sourceSha256": "fef0be2257a811f87f631ca213aff029dee17de093716b268a0cd2a9a91e596e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/export-prefix-assignment-persists-in-shell",
+      "profile": "apple32",
+      "sourceSha256": "fef0be2257a811f87f631ca213aff029dee17de093716b268a0cd2a9a91e596e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/local-without-assignment-starts-unset",
+      "profile": "gnu53",
+      "sourceSha256": "cd9db260d98c6617aa62fffc2bb1f48029e9385f645c52cd346f1b9f6ae85db7",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/local-without-assignment-starts-unset",
+      "profile": "apple32",
+      "sourceSha256": "cd9db260d98c6617aa62fffc2bb1f48029e9385f645c52cd346f1b9f6ae85db7",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/glob-matches-newline-bytes-and-the-exact-filename",
+      "profile": "gnu53",
+      "sourceSha256": "1a34dfe098451efd6892e0926d928b2eb2809e182fa67d4e314c0167a6a8fef0",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/glob-matches-newline-bytes-and-the-exact-filename",
+      "profile": "apple32",
+      "sourceSha256": "1a34dfe098451efd6892e0926d928b2eb2809e182fa67d4e314c0167a6a8fef0",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/parameter-patterns-match-newlines-with-exact-boundaries",
+      "profile": "gnu53",
+      "sourceSha256": "ee5dcbf5beb5545cdc8401478e9fced09b4c56c5d19c98f37ef0fbc2c380e7d4",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/parameter-patterns-match-newlines-with-exact-boundaries",
+      "profile": "apple32",
+      "sourceSha256": "ee5dcbf5beb5545cdc8401478e9fced09b4c56c5d19c98f37ef0fbc2c380e7d4",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-0",
+      "profile": "gnu53",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-0",
+      "profile": "apple32",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-1",
+      "profile": "gnu53",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-1",
+      "profile": "apple32",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-2",
+      "profile": "gnu53",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-2",
+      "profile": "apple32",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-3",
+      "profile": "gnu53",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-3",
+      "profile": "apple32",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-4",
+      "profile": "gnu53",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-4",
+      "profile": "apple32",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-5",
+      "profile": "gnu53",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "differential/seed-5eed1234-glob-pipeline-5",
+      "profile": "apple32",
+      "sourceSha256": "c8b16e18b9823a9cd28f6f4f6cadd3bb37e52c7f166a49043eef03d62efa6e1d",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/unterminated-quote-after-write",
+      "profile": "gnu53",
+      "sourceSha256": "3c2a57d0549bdd7dd928b4f2734b4aff5d664ab7aaa10f654f307a0856e62baf",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/unterminated-quote-after-write",
+      "profile": "apple32",
+      "sourceSha256": "3c2a57d0549bdd7dd928b4f2734b4aff5d664ab7aaa10f654f307a0856e62baf",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/missing-pipeline-command-after-write",
+      "profile": "gnu53",
+      "sourceSha256": "ac2383669401a553a743fc1f410c3cbe3664266ccf0272ea283f2a4bc7b3bba6",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/missing-pipeline-command-after-write",
+      "profile": "apple32",
+      "sourceSha256": "ac2383669401a553a743fc1f410c3cbe3664266ccf0272ea283f2a4bc7b3bba6",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/missing-conditional-operand-after-write",
+      "profile": "gnu53",
+      "sourceSha256": "fa6a6d018ad1b1be79855270b587208402baffe83a59a9419944d98374b445fd",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/missing-conditional-operand-after-write",
+      "profile": "apple32",
+      "sourceSha256": "fa6a6d018ad1b1be79855270b587208402baffe83a59a9419944d98374b445fd",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/missing-group-terminator-after-write",
+      "profile": "gnu53",
+      "sourceSha256": "b0287a03d738cbc53e7169181e13323fd9eeb9f2c7416817e6ae5c4a2be30be6",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/missing-group-terminator-after-write",
+      "profile": "apple32",
+      "sourceSha256": "b0287a03d738cbc53e7169181e13323fd9eeb9f2c7416817e6ae5c4a2be30be6",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/missing-if-fi-after-write",
+      "profile": "gnu53",
+      "sourceSha256": "0b0bb40324eac463724b5d490c4de348ea062e7123dd6159b40f8eaca38ef9e0",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "syntax/missing-if-fi-after-write",
+      "profile": "apple32",
+      "sourceSha256": "0b0bb40324eac463724b5d490c4de348ea062e7123dd6159b40f8eaca38ef9e0",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/move-output-really-closes-source",
+      "profile": "gnu53",
+      "sourceSha256": "b441053e86988f84008d56b20ac54c64f51fb55a82d2f80161d0121b781e65ad",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/move-output-really-closes-source",
+      "profile": "apple32",
+      "sourceSha256": "b441053e86988f84008d56b20ac54c64f51fb55a82d2f80161d0121b781e65ad",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/move-input-really-closes-source",
+      "profile": "gnu53",
+      "sourceSha256": "317691e439758cfbcaec9d4e20f0a89645f15a5f2fc32fbbfa14abd3944efa82",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/move-input-really-closes-source",
+      "profile": "apple32",
+      "sourceSha256": "317691e439758cfbcaec9d4e20f0a89645f15a5f2fc32fbbfa14abd3944efa82",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/read-n-stops-at-newline-before-count",
+      "profile": "gnu53",
+      "sourceSha256": "8361a39303a68318a525420ac9b78a552f541e1151a8e8efa80c164ebed27b50",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/read-n-stops-at-newline-before-count",
+      "profile": "apple32",
+      "sourceSha256": "8361a39303a68318a525420ac9b78a552f541e1151a8e8efa80c164ebed27b50",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/read-d-empty-selects-nul",
+      "profile": "gnu53",
+      "sourceSha256": "46e6f4fe39e1c0228e40781552f2a2596896666f7cbf2744ef2f2ba5f8c4e43b",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/read-d-empty-selects-nul",
+      "profile": "apple32",
+      "sourceSha256": "46e6f4fe39e1c0228e40781552f2a2596896666f7cbf2744ef2f2ba5f8c4e43b",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/read-d-missing-delimiter-retains-data-with-failure",
+      "profile": "gnu53",
+      "sourceSha256": "44753d1de6f0f8fca6bf3d13fee7d5177c716128b787ae5a2023c61372c84aa0",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/read-d-missing-delimiter-retains-data-with-failure",
+      "profile": "apple32",
+      "sourceSha256": "44753d1de6f0f8fca6bf3d13fee7d5177c716128b787ae5a2023c61372c84aa0",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/file-shortcut-does-not-consume-inherited-stdin",
+      "profile": "gnu53",
+      "sourceSha256": "3dd4fa53ad301e3c011c32e7244e62691dbb78522c7fd5f4f5f91bc37d3be48e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/file-shortcut-does-not-consume-inherited-stdin",
+      "profile": "apple32",
+      "sourceSha256": "3dd4fa53ad301e3c011c32e7244e62691dbb78522c7fd5f4f5f91bc37d3be48e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/ansi-c-word-is-quoted-not-split-or-globbed",
+      "profile": "gnu53",
+      "sourceSha256": "af11d92b255c88c513c33a4d35b9adb6eaf6f2b4dd61b601c06e8a40d3ecd717",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/ansi-c-word-is-quoted-not-split-or-globbed",
+      "profile": "apple32",
+      "sourceSha256": "af11d92b255c88c513c33a4d35b9adb6eaf6f2b4dd61b601c06e8a40d3ecd717",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/pathname-classes-c-locale-alpha-negation",
+      "profile": "gnu53",
+      "sourceSha256": "c2bd9380646b67e5e8b165682b73c639ad6f5f823c62ee80ecba80349c3267f6",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/pathname-classes-c-locale-alpha-negation",
+      "profile": "apple32",
+      "sourceSha256": "c2bd9380646b67e5e8b165682b73c639ad6f5f823c62ee80ecba80349c3267f6",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/prevalidation-prior-output-and-file",
+      "profile": "gnu53",
+      "sourceSha256": "91b0dca9f0bf65206e4bb1366b305e15e098ab07311ae7d1138da41336d6597e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/prevalidation-prior-output-and-file",
+      "profile": "apple32",
+      "sourceSha256": "91b0dca9f0bf65206e4bb1366b305e15e098ab07311ae7d1138da41336d6597e",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/fatal-parameter-preserves-only-earlier-effects",
+      "profile": "gnu53",
+      "sourceSha256": "c992b72c0cd35311e32841cd09c4d0154d3151b2f444d62a6a0199ff45d36116",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/fatal-parameter-preserves-only-earlier-effects",
+      "profile": "apple32",
+      "sourceSha256": "c992b72c0cd35311e32841cd09c4d0154d3151b2f444d62a6a0199ff45d36116",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/unmatched-case-bracket-literal-control",
+      "profile": "gnu53",
+      "sourceSha256": "cbef885c7e04232147fe0324fe3e2ac50728d21694a47f0976afbfe324712ed5",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    },
+    {
+      "id": "gaps/unmatched-case-bracket-literal-control",
+      "profile": "apple32",
+      "sourceSha256": "cbef885c7e04232147fe0324fe3e2ac50728d21694a47f0976afbfe324712ed5",
+      "rawTupleEqual": true,
+      "nativeModeRepresentation": "author stat mode includes file-type bits; compare identical permission bits and separately asserted entry type"
+    }
+  ],
+  "comparisonCount": 176,
+  "primaryCount": 88,
+  "fixtures": 88,
+  "original27": [
+    {
+      "name": "remaining-gap independent Bash: move-output-really-closes-source",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "originalSourceLine": 11,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-92198",
+        "line": 92198,
+        "indent": 0,
+        "ordinal": 13471,
+        "name": "remaining-gap independent Bash: move-output-really-closes-source",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 791.444291\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    move-output-really-closes-source\n    script: { printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-\n    Bash: {\"stdout\":\"status=1\",\"stderr\":\"shell-stress: 3: Bad file descriptor\\n\",\"stdoutBase64\":\"c3RhdHVzPTE=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==\",\"exitCode\":0,\"files\":{\"saved\":{\"type\":\"file\",\"base64\":\"bW92ZWQ=\"}}}\n    virtual: {\"stdout\":\"status=1\",\"stderr\":\"shell: line 1: 3: Bad file descriptor\\n\",\"exitCode\":0,\"files\":{\"saved\":{\"type\":\"file\",\"base64\":\"bW92ZWQ=\"}},\"stdoutBase64\":\"c3RhdHVzPTE=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          saved: {\n            base64: 'bW92ZWQ=',\n    ...\n        },\n    +   stderr: 'shell: line 1: 3: Bad file descriptor\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=',\n    -   stderr: 'shell-stress: 3: Bad file descriptor\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==',\n        stdout: 'status=1',\n        stdoutBase64: 'c3RhdHVzPTE='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'status=1'\n    stderr: |-\n      shell-stress: 3: Bad file descriptor\n      \n    stdoutBase64: 'c3RhdHVzPTE='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg=='\n    exitCode: 0\n    files:\n      saved:\n        type: 'file'\n        base64: 'bW92ZWQ='\n  actual:\n    stdout: 'status=1'\n    stderr: |-\n      shell: line 1: 3: Bad file descriptor\n      \n    exitCode: 0\n    files:\n      saved:\n        type: 'file'\n        base64: 'bW92ZWQ='\n    stdoutBase64: 'c3RhdHVzPTE='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ..."
+      }
+    },
+    {
+      "name": "remaining-gap independent Bash: move-input-really-closes-source",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "originalSourceLine": 11,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-92260",
+        "line": 92260,
+        "indent": 0,
+        "ordinal": 13472,
+        "name": "remaining-gap independent Bash: move-input-really-closes-source",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 720.918875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    move-input-really-closes-source\n    script: { IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-\n    Bash: {\"stdout\":\"<first>status=1\",\"stderr\":\"shell-stress: 3: Bad file descriptor\\n\",\"stdoutBase64\":\"PGZpcnN0PnN0YXR1cz0x\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==\",\"exitCode\":0,\"files\":{\"input\":{\"type\":\"file\",\"base64\":\"Zmlyc3QKc2Vjb25kCg==\"}}}\n    virtual: {\"stdout\":\"<first>status=1\",\"stderr\":\"shell: line 1: 3: Bad file descriptor\\n\",\"exitCode\":0,\"files\":{\"input\":{\"type\":\"file\",\"base64\":\"Zmlyc3QKc2Vjb25kCg==\"}},\"stdoutBase64\":\"PGZpcnN0PnN0YXR1cz0x\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 0,\n        files: {\n          input: {\n            base64: 'Zmlyc3QKc2Vjb25kCg==',\n    ...\n        },\n    +   stderr: 'shell: line 1: 3: Bad file descriptor\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=',\n    -   stderr: 'shell-stress: 3: Bad file descriptor\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==',\n        stdout: '<first>status=1',\n        stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: '<first>status=1'\n    stderr: |-\n      shell-stress: 3: Bad file descriptor\n      \n    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg=='\n    exitCode: 0\n    files:\n      input:\n        type: 'file'\n        base64: 'Zmlyc3QKc2Vjb25kCg=='\n  actual:\n    stdout: '<first>status=1'\n    stderr: |-\n      shell: line 1: 3: Bad file descriptor\n      \n    exitCode: 0\n    files:\n      input:\n        type: 'file'\n        base64: 'Zmlyc3QKc2Vjb25kCg=='\n    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "originalSourceLine": 11,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-92358",
+        "line": 92358,
+        "indent": 0,
+        "ordinal": 13479,
+        "name": "remaining-gap independent Bash: prevalidation-prior-output-and-file",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 667.530166\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    prevalidation-prior-output-and-file\n    script: printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after\n    Bash: {\"stdout\":\"beforeafter\",\"stderr\":\"shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n\",\"stdoutBase64\":\"YmVmb3JlYWZ0ZXI=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK\",\"exitCode\":0,\"files\":{\"marker\":{\"type\":\"file\",\"base64\":\"bWFya2Vy\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: -c: line 1: syntax error near unexpected token `)'\\nshell: -c: line 1: `printf before; printf marker >marker; printf \\\"%s\\\" \\\"$(true |)\\\"; printf after'\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 127,\n    +   files: {},\n    +   stderr: \"shell: -c: line 1: syntax error near unexpected token `)'\\n\" +\n    +     'shell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after\\'\\n',\n    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=',\n    +   stdout: '',\n    +   stdoutBase64: ''\n    -   exitCode: 0,\n    -   files: {\n    -     marker: {\n    -       base64: 'bWFya2Vy',\n    -       type: 'file'\n    -     }\n    -   },\n    -   stderr: 'shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK',\n    -   stdout: 'beforeafter',\n    -   stdoutBase64: 'YmVmb3JlYWZ0ZXI='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'beforeafter'\n    stderr: |-\n      shell-stress: command substitution: line 1: syntax error: unexpected end of file\n      \n    stdoutBase64: 'YmVmb3JlYWZ0ZXI='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK'\n    exitCode: 0\n    files:\n      marker:\n        type: 'file'\n        base64: 'bWFya2Vy'\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: -c: line 1: syntax error near unexpected token `)'\n      shell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "originalSourceLine": 11,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-92424",
+        "line": 92424,
+        "indent": 0,
+        "ordinal": 13480,
+        "name": "remaining-gap independent Bash: fatal-parameter-preserves-only-earlier-effects",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 616.861792\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:1:234'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-parameter-preserves-only-earlier-effects\n    script: printf before >before; : \"${missing:?stop}\"; printf after >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":127,\"files\":{\"before\":{\"type\":\"file\",\"base64\":\"YmVmb3Jl\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":127,\"files\":{\"before\":{\"type\":\"file\",\"base64\":\"YmVmb3Jl\"}},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    ... Skipped lines\n    \n      {\n        exitCode: 127,\n        files: {\n          before: {\n            base64: 'YmVmb3Jl',\n    ...\n        },\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 127\n    files:\n      before:\n        type: 'file'\n        base64: 'YmVmb3Jl'\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 127\n    files:\n      before:\n        type: 'file'\n        base64: 'YmVmb3Jl'\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/current-gaps/compatibility.test.ts:11:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-93808",
+        "line": 93808,
+        "indent": 0,
+        "ordinal": 13650,
+        "name": "Bash differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 672.460125\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    nested-substitution-syntax-error-does-not-prevent-earlier-effects\n    script: printf touched >marker; printf '%s' \"$(true |)\"\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK\",\"exitCode\":0,\"files\":{\"marker\":{\"type\":\"file\",\"base64\":\"dG91Y2hlZA==\"}}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: -c: line 1: syntax error near unexpected token `)'\\nshell: -c: line 1: `printf touched >marker; printf '%s' \\\"$(true |)\\\"'\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==\"}\n    + actual - expected\n    \n      {\n    +   exitCode: 127,\n    +   files: {},\n    +   stderr: \"shell: -c: line 1: syntax error near unexpected token `)'\\n\" +\n    +     'shell: -c: line 1: `printf touched >marker; printf \\'%s\\' \"$(true |)\"\\'\\n',\n    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==',\n    -   exitCode: 0,\n    -   files: {\n    -     marker: {\n    -       base64: 'dG91Y2hlZA==',\n    -       type: 'file'\n    -     }\n    -   },\n    -   stderr: 'shell-stress: command substitution: line 1: syntax error: unexpected end of file\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: command substitution: line 1: syntax error: unexpected end of file\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK'\n    exitCode: 0\n    files:\n      marker:\n        type: 'file'\n        base64: 'dG91Y2hlZA=='\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: -c: line 1: syntax error near unexpected token `)'\n      shell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-93890",
+        "line": 93890,
+        "indent": 0,
+        "ordinal": 13654,
+        "name": "Bash differential: fatal-parameter-expansion-prevents-following-file-effect",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 518.635625\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-parameter-expansion-prevents-following-file-effect\n    script: : \"${missing:?stop}\"; : >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":127,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":127,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    \n      {\n        exitCode: 127,\n        files: {},\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 127\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 127\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-93942",
+        "line": 93942,
+        "indent": 0,
+        "ordinal": 13655,
+        "name": "Bash differential: fatal-arithmetic-expansion-prevents-following-file-effect",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 517.217292\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-arithmetic-expansion-prevents-following-file-effect\n    script: : \"$((1/0))\"; : >after\n    Bash: {\"stdout\":\"\",\"stderr\":\"shell-stress: 1/0: division by 0 (error token is \\\"0\\\")\\n\",\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK\",\"exitCode\":1,\"files\":{}}\n    virtual: {\"stdout\":\"\",\"stderr\":\"shell: line 1: 1/0: division by 0 (error token is \\\"0\\\")\\n\",\"exitCode\":1,\"files\":{},\"stdoutBase64\":\"\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==\"}\n    + actual - expected\n    \n      {\n        exitCode: 1,\n        files: {},\n    +   stderr: 'shell: line 1: 1/0: division by 0 (error token is \"0\")\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==',\n    -   stderr: 'shell-stress: 1/0: division by 0 (error token is \"0\")\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK',\n        stdout: '',\n        stdoutBase64: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: |-\n      shell-stress: 1/0: division by 0 (error token is \"0\")\n      \n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK'\n    exitCode: 1\n    files:\n  actual:\n    stdout: ''\n    stderr: |-\n      shell: line 1: 1/0: division by 0 (error token is \"0\")\n      \n    exitCode: 1\n    files:\n    stdoutBase64: ''\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-93994",
+        "line": 93994,
+        "indent": 0,
+        "ordinal": 13656,
+        "name": "Bash differential: fatal-expansion-in-substitution-stops-substitution-only",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 446.745\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    fatal-expansion-in-substitution-stops-substitution-only\n    script: value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\"\n    Bash: {\"stdout\":\"<>:1\\n\",\"stderr\":\"shell-stress: missing: stop\\n\",\"stdoutBase64\":\"PD46MQo=\",\"stderrBase64\":\"c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==\",\"exitCode\":0,\"files\":{}}\n    virtual: {\"stdout\":\"<>:1\\n\",\"stderr\":\"shell: line 1: missing: stop\\n\",\"exitCode\":0,\"files\":{},\"stdoutBase64\":\"PD46MQo=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=\"}\n    + actual - expected\n    \n      {\n        exitCode: 0,\n        files: {},\n    +   stderr: 'shell: line 1: missing: stop\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',\n    -   stderr: 'shell-stress: missing: stop\\n',\n    -   stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==',\n        stdout: '<>:1\\n',\n        stdoutBase64: 'PD46MQo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <>:1\n      \n    stderr: |-\n      shell-stress: missing: stop\n      \n    stdoutBase64: 'PD46MQo='\n    stderrBase64: 'c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg=='\n    exitCode: 0\n    files:\n  actual:\n    stdout: |-\n      <>:1\n      \n    stderr: |-\n      shell: line 1: missing: stop\n      \n    exitCode: 0\n    files:\n    stdoutBase64: 'PD46MQo='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "Bash differential: command-substitution-removes-nul-bytes",
+      "path": "tests/shell-stress/differential.test.ts",
+      "originalSourceLine": 16,
+      "classification": "bash-native-profile",
+      "originalObserved": {
+        "id": "tap-line-94097",
+        "line": 94097,
+        "indent": 0,
+        "ordinal": 13665,
+        "name": "Bash differential: command-substitution-removes-nul-bytes",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 408.915416\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:1:485'\n  failureType: 'testCodeFailure'\n  error: |-\n    command-substitution-removes-nul-bytes\n    script: value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\"\n    Bash: {\"stdout\":\"<ab>\\n\",\"stderr\":\"\",\"stdoutBase64\":\"PGFiPgo=\",\"stderrBase64\":\"\",\"exitCode\":0,\"files\":{}}\n    virtual: {\"stdout\":\"<ab>\\n\",\"stderr\":\"shell: line 1: warning: command substitution: ignored null byte in input\\n\",\"exitCode\":0,\"files\":{},\"stdoutBase64\":\"PGFiPgo=\",\"stderrBase64\":\"c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==\"}\n    + actual - expected\n    \n      {\n        exitCode: 0,\n        files: {},\n    +   stderr: 'shell: line 1: warning: command substitution: ignored null byte in input\\n',\n    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==',\n    -   stderr: '',\n    -   stderrBase64: '',\n        stdout: '<ab>\\n',\n        stdoutBase64: 'PGFiPgo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: |-\n      <ab>\n      \n    stderr: ''\n    stdoutBase64: 'PGFiPgo='\n    stderrBase64: ''\n    exitCode: 0\n    files:\n  actual:\n    stdout: |-\n      <ab>\n      \n    stderr: |-\n      shell: line 1: warning: command substitution: ignored null byte in input\n      \n    exitCode: 0\n    files:\n    stdoutBase64: 'PGFiPgo='\n    stderrBase64: 'c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=='\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/differential.test.ts:16:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "closure primary: query-V-verbose",
+      "path": "tests/shell-stress/invocation-closure/holdout.test.ts",
+      "originalSourceLine": 37,
+      "classification": "registered-command-label",
+      "originalObserved": {
+        "id": "tap-line-94355",
+        "line": 94355,
+        "indent": 0,
+        "ordinal": 13697,
+        "name": "closure primary: query-V-verbose",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 274.187958\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62'\n  failureType: 'testCodeFailure'\n  error: |-\n    Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared\n    + actual - expected\n    \n    + '7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n    - '7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n  actual: '7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f776f726b2f746f6f6c732f636c6f73757265746f6f6c0a'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:37:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "closure primary: type-multiple-status",
+      "path": "tests/shell-stress/invocation-closure/holdout.test.ts",
+      "originalSourceLine": 37,
+      "classification": "registered-command-label",
+      "originalObserved": {
+        "id": "tap-line-94381",
+        "line": 94381,
+        "indent": 0,
+        "ordinal": 13698,
+        "name": "closure primary: type-multiple-status",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 217.666084\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:2:62'\n  failureType: 'testCodeFailure'\n  error: |-\n    Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared\n    + actual - expected\n    \n    + '636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n    - '6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n  actual: '636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell-stress/invocation-closure/holdout.test.ts:37:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/empty-path",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101541",
+        "line": 101541,
+        "indent": 0,
+        "ordinal": 14861,
+        "name": "historical-3.2/bash/empty-path",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 1.846209\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n        stderrHex: '',\n    +   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202e2f6c6f63616c746f6f6c0a'\n    -   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  actual:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d656d7074792d706174682f6c6f63616c746f6f6c0a2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202e2f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/terminator",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101665",
+        "line": 101665,
+        "indent": 0,
+        "ordinal": 14877,
+        "name": "historical-3.2/bash/terminator",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.901\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 1,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n        stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  actual:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f626173682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-z",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101705",
+        "line": 101705,
+        "indent": 0,
+        "ordinal": 14879,
+        "name": "historical-3.2/bash/unknown-z",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 2.688\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-x",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101739",
+        "line": 101739,
+        "indent": 0,
+        "ordinal": 14880,
+        "name": "historical-3.2/bash/unknown-x",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.772667\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-combined",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101773",
+        "line": 101773,
+        "indent": 0,
+        "ordinal": 14881,
+        "name": "historical-3.2/bash/unknown-combined",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.476\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-first",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101807",
+        "line": 101807,
+        "indent": 0,
+        "ordinal": 14882,
+        "name": "historical-3.2/bash/unknown-first",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.41225\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-long",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101841",
+        "line": 101841,
+        "indent": 0,
+        "ordinal": 14883,
+        "name": "historical-3.2/bash/unknown-long",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.370875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/bash/unknown-line",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101875",
+        "line": 101875,
+        "indent": 0,
+        "ordinal": 14884,
+        "name": "historical-3.2/bash/unknown-line",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.416792\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/empty-path",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-101921",
+        "line": 101921,
+        "indent": 0,
+        "ordinal": 14887,
+        "name": "historical-3.2/sh/empty-path",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.659042\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n        stderrHex: '',\n    +   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a'\n    -   stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  actual:\n    stdoutHex: '6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f6c6f63616c746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a6c6f63616c746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d656d7074792d706174682f2e2f6c6f63616c746f6f6c0a'\n    stderrHex: ''\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/terminator",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102045",
+        "line": 102045,
+        "indent": 0,
+        "ordinal": 14903,
+        "name": "historical-3.2/sh/terminator",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 2.303084\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 1,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a',\n        stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  actual:\n    stdoutHex: '636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a2f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2f2e696e766f636174696f6e2d646973636f766572792d66697865732d6e61746976652d44586c66704b2f73682d7465726d696e61746f722f746f6f6c732f636c6f73757265746f6f6c0a'\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a206e6f7420666f756e640a'\n    status: 1\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-z",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102085",
+        "line": 102085,
+        "indent": 0,
+        "ordinal": 14905,
+        "name": "historical-3.2/sh/unknown-z",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.521875\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-x",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102119",
+        "line": 102119,
+        "indent": 0,
+        "ordinal": 14906,
+        "name": "historical-3.2/sh/unknown-x",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.367167\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d783a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-combined",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102153",
+        "line": 102153,
+        "indent": 0,
+        "ordinal": 14907,
+        "name": "historical-3.2/sh/unknown-combined",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.340834\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-first",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102187",
+        "line": 102187,
+        "indent": 0,
+        "ordinal": 14908,
+        "name": "historical-3.2/sh/unknown-first",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.336958\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-long",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102221",
+        "line": 102221,
+        "indent": 0,
+        "ordinal": 14909,
+        "name": "historical-3.2/sh/unknown-long",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.330666\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520303a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d2d3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    },
+    {
+      "name": "historical-3.2/sh/unknown-line",
+      "path": "tests/shell/invocation-discovery-fixes.test.ts",
+      "originalSourceLine": 35,
+      "classification": "historical-bash32-profile",
+      "originalObserved": {
+        "id": "tap-line-102255",
+        "line": 102255,
+        "indent": 0,
+        "ordinal": 14910,
+        "name": "historical-3.2/sh/unknown-line",
+        "status": "fail",
+        "type": "test",
+        "failureType": "testCodeFailure",
+        "location": "/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793",
+        "code": "ERR_ASSERTION",
+        "error": "|-",
+        "detail": "  ---\n  duration_ms: 0.37825\n  type: 'test'\n  location: '/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:1:793'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 2,\n    +   stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n    -   stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a',\n        stdoutHex: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  actual:\n    stdoutHex: ''\n    stderrHex: '7368656c6c3a206c696e6520323a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a'\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/full-gate-execution-1tkDXu/source/tests/shell/invocation-discovery-fixes.test.ts:35:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ..."
+      }
+    }
+  ],
+  "diffs": {
+    "tests/shell/invocation-discovery-fixes.test.ts": "diff --git a/tests/shell/invocation-discovery-fixes.test.ts b/tests/shell/invocation-discovery-fixes.test.ts\nindex 5935e7d..d0cd561 100644\n--- a/tests/shell/invocation-discovery-fixes.test.ts\n+++ b/tests/shell/invocation-discovery-fixes.test.ts\n@@ -1,21 +1,14 @@\n import assert from \"node:assert/strict\";\n-import { readFile } from \"node:fs/promises\";\n import { test } from \"node:test\";\n import { CommandRegistry, FsError, pipeBytes } from \"../../src/contracts/index.js\";\n import { MemoryFileSystem } from \"../../src/fs/memory/index.js\";\n import { Shell, ShellLimitError } from \"../../src/shell/index.js\";\n import { discoveryFixCases, discoveryFixFiles, discoveryFixFileText } from \"./invocation-discovery-fixes-cases.js\";\n+import { discoveryProfile } from \"../shell-stress/canonical-profile-migration/discovery-profile.js\";\n \n const quote = (value: string): string => `'${value.replaceAll(\"'\", \"'\\\\''\")}'`;\n-interface NativeRow {\n-  name: string;\n-  mode: \"bash\" | \"sh\";\n-  cwd: string;\n-  source: string;\n-  result: { stdoutHex: string; stderrHex: string; status: number };\n-}\n-const reference = JSON.parse(await readFile(new URL(\"./invocation-discovery-fixes-native.json\", import.meta.url), \"utf8\")) as { profiles: { name: string; observations: NativeRow[] }[] };\n-for (const profile of reference.profiles) for (const row of profile.observations) test(`${profile.name}/${row.mode}/${row.name}`, async () => {\n+const profile = discoveryProfile(\"GNU-5.3\");\n+for (const row of profile.observations) test(`${profile.name}/${row.mode}/${row.name}`, async () => {\n   assert.equal(row.source, discoveryFixCases.find(fixture => fixture.name === row.name)?.source);\n   const fs = new MemoryFileSystem();\n   for (const file of discoveryFixFiles) {\n",
+    "tests/shell-stress/differential.test.ts": "diff --git a/tests/shell-stress/differential.test.ts b/tests/shell-stress/differential.test.ts\nindex b87954f..05d6995 100644\n--- a/tests/shell-stress/differential.test.ts\n+++ b/tests/shell-stress/differential.test.ts\n@@ -1,7 +1,8 @@\n import assert from \"node:assert/strict\";\n import { test } from \"node:test\";\n import { differentialCases, syntaxCases } from \"./cases.js\";\n-import { bashVersion, runBash, runVirtualScript, sourceEvidence } from \"./helpers.js\";\n+import { runVirtualScript, sourceEvidence } from \"./helpers.js\";\n+import { primaryObservation as runBash, primaryVersion as bashVersion } from \"./canonical-profile-migration/primary-reference.js\";\n \n test(\"shell stress reference identity and source provenance\", context => {\n   context.diagnostic(bashVersion());\n@@ -10,7 +11,7 @@ test(\"shell stress reference identity and source provenance\", context => {\n });\n \n for (const fixture of differentialCases) {\n-  test(`Bash differential: ${fixture.name}`, async () => {\n+  test(`GNU5.3 declared-profile differential: ${fixture.name}`, async () => {\n     const expected = await runBash(fixture);\n     const actual = await runVirtualScript(fixture);\n     assert.deepEqual(actual, expected, `${fixture.name}\\nscript: ${fixture.script}\\nBash: ${JSON.stringify(expected)}\\nvirtual: ${JSON.stringify(actual)}`);\n@@ -18,7 +19,7 @@ for (const fixture of differentialCases) {\n }\n \n for (const fixture of syntaxCases) {\n-  test(`Bash parse-before-effects: ${fixture.name}`, async context => {\n+  test(`GNU5.3 declared-profile parse-before-effects: ${fixture.name}`, async context => {\n     const expected = await runBash(fixture);\n     const actual = await runVirtualScript(fixture);\n     context.diagnostic(JSON.stringify({ script: fixture.script, expected, actual }));\n",
+    "tests/shell-stress/current-gaps/compatibility.test.ts": "diff --git a/tests/shell-stress/current-gaps/compatibility.test.ts b/tests/shell-stress/current-gaps/compatibility.test.ts\nindex 4255873..4c8d05d 100644\n--- a/tests/shell-stress/current-gaps/compatibility.test.ts\n+++ b/tests/shell-stress/current-gaps/compatibility.test.ts\n@@ -1,11 +1,11 @@\n import assert from \"node:assert/strict\";\n import { test } from \"node:test\";\n import { additionalCases } from \"./cases.js\";\n-import { independentBash } from \"./reference.js\";\n+import { primaryObservation as independentBash } from \"../canonical-profile-migration/primary-reference.js\";\n import { runVirtualScript } from \"../helpers.js\";\n \n for (const fixture of additionalCases) {\n-  test(`remaining-gap independent Bash: ${fixture.name}`, { timeout: 8000 }, async () => {\n+  test(`remaining-gap GNU5.3 declared profile: ${fixture.name}`, { timeout: 8000 }, async () => {\n     const expected = await independentBash(fixture);\n     const actual = await runVirtualScript(fixture);\n     assert.deepEqual(actual, expected, `${fixture.name}\\nscript: ${fixture.script}\\nBash: ${JSON.stringify(expected)}\\nvirtual: ${JSON.stringify(actual)}`);\n",
+    "tests/shell-stress/invocation-closure/holdout.test.ts": "diff --git a/tests/shell-stress/invocation-closure/holdout.test.ts b/tests/shell-stress/invocation-closure/holdout.test.ts\nindex 4749d96..c85831c 100644\n--- a/tests/shell-stress/invocation-closure/holdout.test.ts\n+++ b/tests/shell-stress/invocation-closure/holdout.test.ts\n@@ -11,6 +11,11 @@ const native: Reference = JSON.parse(await readFile(`${owned}/native-preparation\n assert.equal(native.cohortHash, sha256(await readFile(`${owned}/cases.ts`)));\n assert.deepEqual(native.profiles.map(profile => profile.rows.map(row => row.id)), [cases.map(row => row.id), cases.map(row => row.id)]);\n \n+const safePluginTuples = new Map<string, { exitCode: number; stdoutHex: string; stderrHex: string }>([\n+  [\"query-V-verbose\", { exitCode: 0, stdoutHex: Buffer.from(\"printf is a registered command\\nclosurefn is a function\\nclosurefn () \\n{ \\n    :\\n}\\nclosuretool is /work/tools/closuretool\\n\").toString(\"hex\"), stderrHex: \"\" }],\n+  [\"type-multiple-status\", { exitCode: 0, stdoutHex: Buffer.from(\"command\\nfunction\\nfile\\nmixed:1\\nprintf is a registered command\\nclosuretool is tools/closuretool\\n\").toString(\"hex\"), stderrHex: \"\" }],\n+]);\n+\n async function probe(id: string) {\n   const env: Record<string, string> = { PATH: \"unused\", HOME: \"/nonexistent\", LC_ALL: \"C\", LANG: \"C\", TZ: \"UTC\" };\n   if (process.env.INVOCATION_TRACE) env.INVOCATION_TRACE = process.env.INVOCATION_TRACE;\n@@ -22,7 +27,7 @@ async function probe(id: string) {\n   return child;\n }\n \n-for (const row of cases) test(`closure primary: ${row.id}`, async context => {\n+for (const row of cases) test(`closure ${safePluginTuples.has(row.id) ? \"safeplugin\" : \"primary\"}: ${row.id}`, async context => {\n   const child = await probe(row.id);\n   context.diagnostic(`id=${row.id}; pid=${child.pid}; stdoutHex=${child.stdoutHex}`);\n   assert.equal(child.timedOut, false, \"Process deadline is failure, never caller-rescued success\");\n@@ -34,7 +39,9 @@ for (const row of cases) test(`closure primary: ${row.id}`, async context => {\n   assert.equal(expected.result.timedOut, false);\n   assert.equal(actual.exitCode, expected.result.code);\n   const coordinateMapped = Buffer.from(expected.result.stdoutHex, \"hex\").toString().replaceAll(expected.result.cwd, \"/work\");\n-  assert.equal(actual.stdoutHex, Buffer.from(coordinateMapped).toString(\"hex\"), \"Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared\");\n+  const policy = safePluginTuples.get(row.id);\n+  if (policy) assert.deepEqual({ exitCode: actual.exitCode, stdoutHex: actual.stdoutHex, stderrHex: actual.stderrHex }, policy, \"Declared safeplugin registry classification, not native builtin parity\");\n+  else assert.equal(actual.stdoutHex, Buffer.from(coordinateMapped).toString(\"hex\"), \"Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared\");\n   if (row.diagnostic) for (const fragment of row.diagnostic) assert.ok(actual.stderr.includes(fragment), `Diagnostic lacks ${fragment}: ${actual.stderr}`);\n   else assert.equal(actual.stderrHex, expected.result.stderrHex);\n });\n"
+  },
+  "unchangedHelperFixtureOraclePaths": [
+    "tests/shell/invocation-discovery-fixes-cases.ts",
+    "tests/shell-stress/cases.ts",
+    "tests/shell-stress/model.ts",
+    "tests/shell-stress/helpers.ts",
+    "tests/shell-stress/process.ts",
+    "tests/shell-stress/current-gaps/cases.ts",
+    "tests/shell-stress/current-gaps/reference.ts",
+    "tests/shell-stress/invocation-closure/cases.ts",
+    "tests/shell-stress/invocation-modes/cases.ts",
+    "tests/shell-stress/invocation-closure/support.ts",
+    "tests/shell-stress/invocation-modes/harness.ts",
+    "tests/shell-stress/virtual-child.ts",
+    "tests/shell-stress/probes.ts",
+    "tests/shell-stress/invocation-closure/probe.ts",
+    "tests/shell-stress/invocation-modes/trace.mjs",
+    "tests/shell/invocation-discovery-fixes-imports.mjs",
+    "tests/shell/invocation-discovery-fixes-native.json",
+    "tests/shell-stress/invocation-closure/native-preparation.json",
+    "tests/fixtures/shell-cases.json"
+  ],
+  "discoveryAssertionBodyIdentical": true,
+  "policy": {
+    "canonical": 183,
+    "discovery": 60,
+    "differential": 78,
+    "gaps": 11,
+    "closure": 34,
+    "strictHistoricalSeparate": 52,
+    "nativeClassificationIsNotSafePlugin": true,
+    "modesNotCandidateAssertion": 40
+  }
+}

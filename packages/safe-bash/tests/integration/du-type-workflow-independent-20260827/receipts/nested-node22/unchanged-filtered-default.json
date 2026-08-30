@@ -1,0 +1,12 @@
+{
+  "executable": "npm",
+  "args": [
+    "test"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/.work-SGGK2P/reporter-probe-4AwQjw",
+  "node": "v22.22.2",
+  "status": 0,
+  "signal": null,
+  "stdout": "\n> virtual-bash@0.0.0 test\n> node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(1), ...files], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --\n\nTAP version 13\n# Subtest: canonical-test-and-helper\nok 1 - canonical-test-and-helper\n  ---\n  duration_ms: 0.283875\n  type: 'test'\n  ...\n# Subtest: neighbor-1\nok 2 - neighbor-1\n  ---\n  duration_ms: 0.251209\n  type: 'test'\n  ...\n# Subtest: neighbor-0\nok 3 - neighbor-0\n  ---\n  duration_ms: 0.262916\n  type: 'test'\n  ...\n# Subtest: neighbor-2\nok 4 - neighbor-2\n  ---\n  duration_ms: 0.249375\n  type: 'test'\n  ...\n# Subtest: neighbor-3\nok 5 - neighbor-3\n  ---\n  duration_ms: 0.292542\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 128.228375\n",
+  "stderr": ""
+}

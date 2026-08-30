@@ -1,0 +1,132 @@
+{
+  "phase": "PHASE1_READY_WAIT_ROOT",
+  "time": "2026-08-27T09:16:30.853Z",
+  "pass": true,
+  "prepared": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/prepared.json",
+    "sha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3"
+  },
+  "controls": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/controls.json",
+    "sha256": "1229baac8c348b8232d12ed0e5187fad3873bd43ca091881a8eba41530ce9931"
+  },
+  "benign": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-containment-final-review/evidence/benign.json",
+    "sha256": "d27d834f2a1b3773ccc8918a95a1b29b838efa48d833c9f3507ad740c233cb99"
+  },
+  "authorCompiled": {
+    "result": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/oracle-migration/corrected-compiled-r1-result.json",
+      "sha256": "7009c39ab51a2cff3dce60b7dde3167accee306dd644de0204dd8b0fe027d479"
+    },
+    "groups": 9,
+    "passed": 9,
+    "boundariesIncludingDispose": 51
+  },
+  "independentPacked": {
+    "groups": 9,
+    "passed": 9,
+    "execBoundariesBeforeDispose": 25,
+    "workers": 2,
+    "finalLiveWorkers": 0,
+    "finalWorkerListeners": 0,
+    "lateErrors": 0
+  },
+  "unrelatedOriginalFixtureBytesUnchanged": true,
+  "childChecks": [
+    {
+      "job": "success",
+      "pid": 13037,
+      "exactPidAbsent": true,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "already-aborted",
+      "pid": 13038,
+      "exactPidAbsent": true,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "owned-timeout",
+      "pid": 13039,
+      "exactPidAbsent": true,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "late-rejection",
+      "pid": 13040,
+      "exactPidAbsent": true,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    },
+    {
+      "job": "benign",
+      "pid": 14912,
+      "exactPidAbsent": true,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true
+    }
+  ],
+  "matrix": [
+    {
+      "slot": 1,
+      "job": "grep-default",
+      "state": "UNUSED",
+      "pathologicalRequests": 1,
+      "watchdogMs": 6000
+    },
+    {
+      "slot": 2,
+      "job": "rg-default",
+      "state": "UNUSED",
+      "pathologicalRequests": 1,
+      "watchdogMs": 6000
+    },
+    {
+      "slot": 3,
+      "job": "grep-abort",
+      "state": "UNUSED",
+      "pathologicalRequests": 1,
+      "watchdogMs": 6000
+    },
+    {
+      "slot": 4,
+      "job": "rg-abort",
+      "state": "UNUSED",
+      "pathologicalRequests": 1,
+      "watchdogMs": 6000
+    },
+    {
+      "slot": 5,
+      "job": "grep-queued-abort",
+      "state": "UNUSED",
+      "pathologicalRequests": 0,
+      "watchdogMs": 8000
+    },
+    {
+      "slot": 6,
+      "job": "rg-queued-abort",
+      "state": "UNUSED",
+      "pathologicalRequests": 0,
+      "watchdogMs": 8000
+    }
+  ],
+  "totalTargetBudget": 6,
+  "targetSlotsConsumed": 0,
+  "remainingTargetSlots": 6,
+  "pathologicalRequestsExecuted": 0,
+  "defaultAcceptance": false,
+  "limits": [
+    "original runtime remains 7/8",
+    "historical 16 positive variants are separate",
+    "old five compiled/packed not rerun",
+    "five custom first-read controls separate",
+    "benchmark not rerun",
+    "queue target design reviewed statically, not executed",
+    "no native-call entry instrumentation or RSS claim",
+    "phase1 is not authorization"
+  ]
+}

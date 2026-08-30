@@ -1,0 +1,159 @@
+{
+  "baselineCommit": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+  "candidateCommit": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "transcriptResults": [
+    {
+      "id": "grep-ordered-alternative",
+      "script": "printf 'ab\\n' | grep -Eo 'a|ab'",
+      "baseline": {
+        "status": 0,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "candidate": {
+        "status": 0,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "same": true
+    },
+    {
+      "id": "grep-fixed",
+      "script": "printf 'a.b\\naxb\\n' | grep -F 'a.b'",
+      "baseline": {
+        "status": 0,
+        "stdoutBase64": "YS5iCg==",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "candidate": {
+        "status": 0,
+        "stdoutBase64": "YS5iCg==",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "same": true
+    },
+    {
+      "id": "grep-no-match",
+      "script": "printf 'ab\\n' | grep z",
+      "baseline": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "candidate": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "same": true
+    },
+    {
+      "id": "rg-unicode-byte-offset",
+      "script": "printf 'éa\\n' | rg -bo a -",
+      "baseline": {
+        "status": 0,
+        "stdoutBase64": "MjphCg==",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "candidate": {
+        "status": 0,
+        "stdoutBase64": "MjphCg==",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "same": true
+    },
+    {
+      "id": "rg-fixed",
+      "script": "printf 'a.b\\naxb\\n' | rg -F 'a.b' -",
+      "baseline": {
+        "status": 0,
+        "stdoutBase64": "YS5iCg==",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "candidate": {
+        "status": 0,
+        "stdoutBase64": "YS5iCg==",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "same": true
+    },
+    {
+      "id": "rg-no-match",
+      "script": "printf 'ab\\n' | rg z -",
+      "baseline": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "candidate": {
+        "status": 1,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "same": true
+    },
+    {
+      "id": "rg-glob",
+      "script": "rg --files -g '*.ts' /",
+      "files": {
+        "/a.ts": "a\n",
+        "/b.js": "b\n"
+      },
+      "baseline": {
+        "status": 0,
+        "stdoutBase64": "L2EudHMK",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "candidate": {
+        "status": 0,
+        "stdoutBase64": "L2EudHMK",
+        "stderrBase64": "",
+        "signal": null,
+        "failure": null,
+        "files": {}
+      },
+      "same": true
+    }
+  ],
+  "mismatches": [],
+  "classification": "Actual moved-installed Shell commands, same literal scripts and files, baseline/candidate bytes status diagnostics compared without new semantics."
+}

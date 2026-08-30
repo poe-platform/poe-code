@@ -1,0 +1,60 @@
+2026-08-27 — FREEZE/DOCS ONLY; delegated leaf; no redelegation.
+Atomic explicit owned-path commit: f561bd9fa33afdf8285154237f856ebfd8495ce4
+Owned freeze: tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/
+MANIFEST.json SHA256: d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632
+Early checkpoint: /tmp/expr-hierarchy-v5-freeze-checkpoint.txt; exact committed CHECKPOINT.txt copy.
+
+Sealed before new prototype code by this leaf: 12 control groups; 36 unique finite supplied histories;
+38 group memberships (two deliberate overlaps); 13 positive ASTs + 3 negative-only ASTs.
+FINITE-PERMISSIVE:36 supplied eligible; LOCAL-TAIL-HYPOTHESIS:33 supplied eligible.
+These are INPUT/PREDICTION counts, not executed tests, successful regex matches or a complete parse forest.
+
+Precise policy blocker:
+P/aaaa A=[aa]+aa versus B=[a][a][a]+a: equal whole [0,4); outer repeat A=[0,2), B=[0,3).
+Literal 44eed610 HNODE/HTREE aggregate-first definitions both prefer B; e38a review C1 requires A.
+Capture wrapper, static repeat aggregate and chronological body list are distinct.
+This corrects the claimed derivation, NOT immutable v4 expectations or observations.
+HNODE-AGG-v5/HTREE-AGG-v5 fully specified in POLICY.md; both preserve three uncaptured prefix
+priorities and participating-empty > initial Absent, with END preferred only after participation.
+They intentionally retain the C1 conflict. HNODE selects W4 A; HTREE selects W4 B, supplied pair only.
+No general selected policy or green resolution of all six discrepancies. Root must resolve aggregate
+versus first-body precedence, W4 descent, and general optional-empty eligibility before acceptance.
+
+P/aaa fixed root completed a remains. [aaa][] changes capture env and is NOT an equivalent cycle.
+Both variants prefer that tail if admitted; LOCAL-TAIL-HYPOTHESIS is separate and not generally approved.
+TEMP descendant retention through skip/ancestor entry stays; actual child reentry opens/invalidate then closes.
+Issue8 D/abab failure versus TEMP retained-b history remains a deliberate experimental departure.
+Two bounded primary checks recorded in SOURCES.json; zero quotes, no broad repeated survey/native rerun.
+
+Historical seals authenticated: normative44eed610; independent32 c0aec9fc; guarded0939a64a;
+witnessa6ce736d; model938fdbc6; independent8groupsa5c2aed5; reviewe38a68af.
+All full commit/blob/SHA256 bindings are in BINDINGS.json (40 v4 files +17 milestones +3 product files).
+Preserved v4 author2 failed predictions; independent46/52 six policy failures; original adapter44/50.
+Same v4 caps in LIMITS.json; mandatory pre-admission work/allocation/state/depth/comparison,
+refusal-after-incumbent and no early pc/pos/env merge. Historical137 only binds future worker obligations.
+
+Actual execution counts by this leaf: prototype0; supplied-history replay0; comparator checks0;
+native0; worker0; product tests0; old quota/core/native cohorts0; historical137 reruns0.
+Actual validation: JSON/data integrity, 135 declared-span bound checks, 19 declared reference-byte
+equalities, 23 capture-alias mappings, 60 historical blob/SHA256 checks; scoped staged whitespace passed.
+Postcommit full owned entry inventory/types and committed bytes verified; additions detected in freeze scope.
+This is not append-proof auditing of the whole concurrent repository or proof of replay/ranking correctness.
+
+Source clean at postcommit check: git status --porcelain -- src was empty; current src tree 63191510092bbdbe6f895d09b30739316a1c19a9.
+Initial c3e40f8b bre-worker guard SHA256 remains f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0.
+No live src/protocol/root/public/config or older fixture edits by this leaf. Concurrent DU75/source-tree
+commits elsewhere are recorded, not imported, vetoed, or represented as this leaf work.
+Only owned freeze files committed with git commit --only; foreign staging/work and native scratch preserved.
+All synchronous fetch/metadata/commit children settled normally; no owned background worker/server/scratch;
+no SIGSTOP. Only the two requested /tmp handoffs remain. No promotion/full parity/superiority claim.
+
+SHA256 FILE MANIFEST:
+8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/BINDINGS.json
+3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/CHECKPOINT.txt
+ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/INPUTS.json
+a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/LIMITS.json
+d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/MANIFEST.json
+30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/POLICY.md
+122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/PREDICTIONS.json
+036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/README.md
+9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/SOURCES.json

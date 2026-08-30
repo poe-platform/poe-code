@@ -1,0 +1,19 @@
+{
+  "physicalSafety": true,
+  "proof": {
+    "safe": false,
+    "missing": [
+      "bindingsIntact"
+    ],
+    "proof": {
+      "bindingsIntact": false,
+      "receiptPresent": true,
+      "numericReceiptPresent": true,
+      "closeObserved": true,
+      "reaped": true,
+      "groupEmpty": true,
+      "cleanupComplete": true
+    }
+  },
+  "injectedReapOmission": false
+}

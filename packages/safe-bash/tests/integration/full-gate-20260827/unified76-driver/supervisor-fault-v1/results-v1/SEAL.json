@@ -1,0 +1,15 @@
+{
+  "source": "f03c2602",
+  "rawBytes": 115218,
+  "rawSha256": "7cc5e7058a29f9c7424ec032b7a38c6ecb8ee24ecdeffac83cdd82162ebc3e99",
+  "encodedSha256": "e74b2f5333878a30ba246f8f393f4bd61fdc154098acaddf1e625aeba4689ad1",
+  "sourcePath": "/tmp/supervisor-fault-author-20260828-f03c2602-v1/REPORT.json",
+  "synthetic": {
+    "pass": 13,
+    "fail": 0
+  },
+  "realExecuted": 0,
+  "coordinatorExit": 1,
+  "remainingOwnedChildren": [],
+  "failure": "Harness recursively counted Node origin in tools AND linkage; expected1 actual2 before any real child. No supervisor/product failure demonstrated."
+}

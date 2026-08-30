@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {gunzipSync} from 'node:zlib';
+const home=path.dirname(fileURLToPath(import.meta.url));
+const rows=JSON.parse(gunzipSync(Buffer.from(fs.readFileSync(home+'/m02-INPUTS.json.gz.base64','utf8').trim(),'base64'),{maxOutputLength:4194304}));
+const inv=JSON.parse(fs.readFileSync(home+'/m01-INVENTORY.json'));
+const prefix='tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/';
+const read=name=>JSON.parse(Buffer.from(rows.find(row=>row.oid===inv.find(item=>item.path===prefix+name).oid).body,'base64'));
+const specs=[...read('PRESEAL.json').files.filter(row=>row.role!=='source-commit').map(row=>'73065e68469e2e514c0ee87ff34ac1db04ba51cb:'+prefix+row.path),...['SEAL.json',...read('actual-v1/SEAL.json').artifacts.map(row=>row.path)].map(name=>'eaa9889d98eaa6d15acc31f4e39a33d000b67d2c:'+prefix+'actual-v1/'+name),...['GO.json','REVIEW-ACCEPTANCE.json','activation-v1/COMMAND.txt','activation-v1/APPROVAL-REQUEST.resolved.json','activation-v1/MANIFEST.json'].map(name=>'918cd1d414508364b676f8bd2e1a78c34ee9e060:'+prefix+name),'9b3d1c1d408a62c612132f335f6b6a6c8a239b2f:tests/compatibility/bash-functional-reference-review-20260829/v3/SCOPED-RECEIPT.json'];
+fs.writeFileSync(home+'/m05-SPECS.json',JSON.stringify(specs,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({specs:specs.length}));

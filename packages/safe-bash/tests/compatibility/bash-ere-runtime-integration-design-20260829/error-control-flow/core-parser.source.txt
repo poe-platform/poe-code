@@ -1,0 +1,336 @@
+1:import { ShellSyntaxError } from "./types.js";
+2:import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
+3:import type { ArithmeticProgram } from "./arithmetic.js";
+4:import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector, setQuoteMarker } from "./arrays/syntax.js";
+5:import type { ArrayEntry, ArraySelector } from "./arrays/syntax.js";
+6:import { conditionalBinary, conditionalUnary } from "./conditional.js";
+7:import type { ConditionalExpression } from "./conditional.js";
+8:
+9:export type WordPart =
+10:  | { kind: "text"; value: string; quoted: boolean }
+11:  | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
+12:  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+13:  | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
+14:  | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
+15:
+16:export interface Word {
+17:  readonly parts: WordPart[];
+18:  readonly offset: number;
+19:  readonly plain?: string;
+20:  readonly spelling?: string;
+21:  readonly printedNewlines?: number;
+22:}
+23:
+24:interface Token {
+25:  kind: "word" | "operator" | "end";
+26:  value: string;
+27:  offset: number;
+28:  end: number;
+29:  word?: Word;
+30:  document?: HereDocument;
+31:}
+66:  | { kind: "group"; body: Script }
+67:  | { kind: "if"; branches: { condition: Script; body: Script }[]; otherwise?: Script }
+68:  | { kind: "case"; subject: Word; clauses: CaseClause[] }
+69:  | { kind: "while"; condition: Script; body: Script }
+70:  | { kind: "until"; condition: Script; body: Script }
+71:  | { kind: "for"; name: string; words?: Word[]; body: Script }
+72:  | { kind: "function"; name: string; body: Command }
+73:  | { kind: "arithmetic"; expression: ArithmeticProgram; source: string }
+74:  | { kind: "conditional"; expression: ConditionalExpression; source: string }
+75:) & { redirects: Redirect[]; line?: number; sourceName?: string };
+76:
+77:export interface Pipeline {
+78:  readonly commands: Command[];
+79:  readonly negate: boolean;
+80:}
+81:
+82:export interface AndOr {
+83:  readonly pipelines: Pipeline[];
+84:  readonly operators: ("&&" | "||")[];
+85:}
+86:
+87:export interface Script {
+88:  readonly lists: AndOr[];
+89:  readonly warnings?: readonly string[];
+90:  readonly line?: number;
+91:  readonly printedLines?: ReadonlyMap<Command, number>;
+92:  readonly printedNewlines?: number;
+93:}
+94:
+95:function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolean[]): Pick<Script, "printedLines" | "printedNewlines"> {
+96:  const printedLines = new Map<Command, number>();
+97:  let line = 1;
+98:  for (let index = 0; index < lists.length; index++) {
+110:
+111:class IncompleteShellInput extends Error {}
+112:
+113:class Lexer {
+114:  position = 0;
+115:  printedNewlineReduction = 0;
+116:  unprintedWords = 0;
+117:  delimiterOperator: string | undefined;
+118:  conditional = false;
+119:  conditionalPattern: "pattern" | "regex" | undefined;
+120:  readonly documents: HereDocument[] = [];
+121:
+122:  constructor(readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false) {
+123:    if (depth > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
+124:  }
+125:
+126:  lineAt(position: number): number { return this.lineOffset + this.source.slice(0, position).split("\n").length; }
+127:
+128:  error(message: string, unclosedQuote?: { quote: string; line: number }): never {
+129:    throw new ShellSyntaxError(message, this.position, 2, undefined, unclosedQuote);
+130:  }
+131:
+132:  next(): Token {
+133:    while (this.position < this.source.length) {
+134:      const current = this.source[this.position]!;
+135:      if (current === " " || current === "\t" || this.conditional && current === "\n") {
+136:        this.position++;
+137:      } else if (current === "\\" && this.source[this.position + 1] === "\n") {
+138:        this.position += 2;
+139:      } else if (current === "#") {
+140:        while (this.position < this.source.length && this.source[this.position] !== "\n") this.position++;
+141:      } else break;
+142:    }
+143:    const offset = this.position;
+144:    if (offset === this.source.length) {
+145:      if (this.partial) throw new IncompleteShellInput();
+146:      this.readDocuments();
+147:      return { kind: "end", value: "", offset, end: offset };
+148:    }
+149:    let logical = "";
+150:    let cursor = offset;
+151:    const ends: number[] = [];
+152:    while (cursor < this.source.length && logical.length < 3) {
+153:      if (this.source.startsWith("\\\n", cursor)) { cursor += 2; continue; }
+154:      logical += this.source[cursor++]!;
+155:      ends.push(cursor);
+156:    }
+157:    const operator = this.conditionalPattern ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
+158:    if (operator) {
+159:      if (["&", "&>>"].includes(operator)) this.error(`Unsupported operator ${operator}`);
+160:      this.position = ends[operator.length - 1]!;
+161:      if (operator === "<<" || operator === "<<-") this.delimiterOperator = operator;
+162:      if (operator === "\n") this.readDocuments();
+163:      return { kind: "operator", value: operator, offset, end: this.position };
+164:    }
+165:    const delimiterOperator = this.delimiterOperator;
+166:    this.delimiterOperator = undefined;
+167:    const word = this.word(undefined, false, delimiterOperator !== undefined);
+168:    if (this.position <= offset) this.error("Tokenizer made no progress");
+169:    let document: HereDocument | undefined;
+170:    if (delimiterOperator) {
+171:      document = {
+172:        delimiter: word.parts.map((part) => part.kind === "text" ? part.value : "").join(""),
+173:        quoted: word.parts.some((part) => part.quoted), stripTabs: delimiterOperator === "<<-", offset,
+174:        body: "", endLine: this.lineAt(offset), depth: this.depth,
+175:      };
+176:      this.documents.push(document);
+177:    }
+178:    return { kind: "word", value: word.plain ?? "", offset, end: this.position, word: { ...word, spelling: this.source.slice(offset, this.position) }, ...(document ? { document } : {}) };
+179:  }
+180:
+181:  readDocuments(): void {
+280:  }
+281:
+282:  word(terminator?: string, enclosingQuoted = false, literal = false, arithmetic = false): Word {
+283:    const offset = this.position;
+284:    const reduction = this.printedNewlineReduction;
+285:    const unprinted = this.unprintedWords;
+286:    const parts: WordPart[] = [];
+287:    let parentheses = 0;
+288:    let conditionals = 0;
+289:    let patternParentheses = 0;
+290:    const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;
+291:    let plain = true;
+292:    const text = (value: string, quoted: boolean, synthetic = false) => {
+293:      const previous = parts.at(-1);
+294:      if (previous?.kind === "text" && previous.quoted === quoted) {
+295:        previous.value += value;
+296:        if (!synthetic) setQuoteMarker(previous, false);
+297:      } else {
+298:        const part: WordPart = { kind: "text", value, quoted };
+299:        setQuoteMarker(part, synthetic);
+300:        parts.push(part);
+301:      }
+302:    };
+303:    while (this.position < this.source.length) {
+304:      const current = this.source[this.position]!;
+305:      if (conditionalPattern) {
+306:        if (/[ \t\n;]/u.test(current)) break;
+307:        if (current === "(" && (conditionalPattern === "regex" || patternParentheses > 0 || "?*+@!".includes(this.source[this.position - 1] ?? " "))) {
+308:          if (++patternParentheses > 64) this.error("Conditional syntax nesting exceeds 64");
+309:        } else if (current === ")" && patternParentheses > 0) patternParentheses--;
+310:        else if (/[()<>]/u.test(current) || patternParentheses === 0 && (this.source.startsWith("&&", this.position) || this.source.startsWith("||", this.position))) break;
+311:      } else if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : /[ \t\n;|&()<>]/u.test(current)) break;
+312:      if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
+313:        plain = false;
+314:        this.unprintedWords++;
+315:        text(this.ansiWord(), true);
+316:      } else if (current === "'" && !enclosingQuoted) {
+317:        plain = false;
+318:        const end = this.source.indexOf("'", this.position + 1);
+319:        if (end === -1) this.error("Unterminated single quote", { quote: "'", line: this.lineAt(this.position) });
+320:        text(this.source.slice(this.position + 1, end), true);
+321:        this.position = end + 1;
+322:      } else if (current === '"') {
+323:        plain = false;
+324:        const quoteLine = this.lineAt(this.position);
+325:        this.position++;
+326:        text("", true, true);
+327:        const quoteParts = parts.length;
+328:        while (this.position < this.source.length && this.source[this.position] !== '"') {
+329:          const inner = this.source[this.position]!;
+330:          if (!literal && (inner === "$" || inner === "`")) this.expansion(parts, true);
+331:          else if (inner === "\\" && /[$`"\\\n]/u.test(this.source[this.position + 1] ?? "")) {
+332:            const escaped = this.source[this.position + 1]!;
+333:            if (escaped !== "\n") text(escaped, true);
+334:            else this.printedNewlineReduction++;
+335:            this.position += 2;
+354:          if (current === "$" && ["'", '"'].includes(this.source[this.position + 1] ?? "")) this.error("Unsupported shell quoting in here-document delimiter");
+355:          text(this.literalExpansion(), current === "`");
+356:        }
+357:        else this.expansion(parts, enclosingQuoted);
+358:      } else {
+359:        if (arithmetic) {
+360:          if (current === "(") parentheses++;
+361:          else if (current === ")") parentheses--;
+362:          else if (current === "?") conditionals++;
+363:          else if (current === ":" && conditionals > 0) conditionals--;
+364:        }
+365:        text(current, false);
+366:        this.position++;
+367:      }
+368:    }
+369:    const printedNewlines = this.source.slice(offset, this.position).split("\n").length - 1 - (this.printedNewlineReduction - reduction);
+370:    return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === "text" ? part.value : "").join("") } : {}) };
+371:  }
+372:
+373:  ansiWord(): string {
+374:    const quoteLine = this.lineAt(this.position);
+375:    this.position += 2;
+376:    const bytes: number[] = [];
+377:    const encoder = new TextEncoder();
+378:    const escapes: Readonly<Record<string, number>> = { a: 7, b: 8, e: 27, E: 27, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92, "'": 39, '"': 34, "?": 63 };
+379:    while (this.position < this.source.length) {
+380:      const character = String.fromCodePoint(this.source.codePointAt(this.position)!);
+381:      this.position += character.length;
+382:      if (character === "'") {
+383:        const nul = bytes.indexOf(0);
+384:        return new TextDecoder().decode(Uint8Array.from(nul < 0 ? bytes : bytes.slice(0, nul)));
+385:      }
+386:      if (character !== "\\") { bytes.push(...encoder.encode(character)); continue; }
+387:      const escape = this.source[this.position++];
+607:    try {
+608:      const command = this.commandInner();
+609:      return { ...command, line: command.line ?? line };
+610:    } finally { this.nesting--; this.openCommands.pop(); }
+611:  }
+612:
+613:  commandInner(): Command {
+614:    let command: Command;
+615:    if (this.is("[[")) {
+616:      const start = this.current.end;
+617:      this.lexer.conditional = true;
+618:      this.advance();
+619:      let nodes = 0;
+620:      const admit = (): void => { if (nodes >= 4096) this.error("Conditional syntax exceeds 4096 nodes"); nodes++; };
+621:      const operand = (): Word => {
+622:        if (this.current.kind !== "word" || this.is("]]")) this.error("Expected conditional operand");
+623:        return this.advance().word!;
+624:      };
+625:      const primary = (depth: number): ConditionalExpression => {
+626:        if (depth > 64) this.error("Conditional syntax nesting exceeds 64");
+627:        if (this.is("!")) { admit(); this.advance(); return { kind: "not", operand: primary(depth + 1) }; }
+628:        if (this.is("(")) { this.advance(); const expression = disjunction(depth + 1); this.expect(")"); return expression; }
+629:        admit();
+630:        const first = operand();
+631:        if (conditionalBinary.has(this.current.value)) {
+632:          const operator = this.current.value;
+633:          this.lexer.conditionalPattern = operator === "=~" ? "regex" : ["=", "==", "!="].includes(operator) ? "pattern" : undefined;
+634:          this.advance();
+635:          this.lexer.conditionalPattern = undefined;
+636:          return { kind: "binary", operator, left: first, right: operand() };
+637:        }
+638:        if (first.plain !== undefined && conditionalUnary.has(first.plain) && this.current.kind === "word" && !this.is("]]")) return { kind: "unary", operator: first.plain, operand: operand() };
+639:        return { kind: "nonempty", operand: first };
+640:      };
+641:      const conjunction = (depth: number): ConditionalExpression => {
+642:        let expression = primary(depth);
+643:        while (this.is("&&")) { admit(); this.advance(); expression = { kind: "and", left: expression, right: primary(depth) }; }
+644:        return expression;
+645:      };
+646:      const disjunction = (depth: number): ConditionalExpression => {
+647:        let expression = conjunction(depth);
+648:        while (this.is("||")) { admit(); this.advance(); expression = { kind: "or", left: expression, right: conjunction(depth) }; }
+649:        return expression;
+650:      };
+651:      const expression = disjunction(1);
+652:      if (!this.is("]]")) this.error("Expected ]]");
+653:      const source = this.lexer.source.slice(start, this.current.offset);
+654:      this.lexer.conditional = false;
+655:      this.advance();
+656:      command = { kind: "conditional", expression, source, redirects: [] };
+657:    } else if (this.is("(") && this.lexer.source.startsWith("((", this.current.offset)) {
+658:      const start = this.current.offset + 2;
+659:      const end = arithmeticEnd(this.lexer.source, start);
+660:      const source = this.lexer.source.slice(start, end);
+661:      command = { kind: "arithmetic", expression: prepareArithmetic(source), source, redirects: [] };
+662:      this.lexer.position = end + 2;
+663:      this.lookahead = undefined;
+664:      this.current = this.lexer.next();
+665:    } else if (this.is("(") || this.is("{")) {
+666:      const subshell = this.is("(");
+667:      this.advance();
+668:      const body = this.script(new Set([subshell ? ")" : "}"]));
+669:      if (!body.lists.length) this.error("Empty compound command");
+670:      this.expect(subshell ? ")" : "}");
+671:      command = { kind: subshell ? "subshell" : "group", body, redirects: [] };
+672:    } else if (this.is("if")) {
+673:      this.advance();
+674:      const branches: { condition: Script; body: Script }[] = [];
+675:      while (true) {
+676:        const condition = this.nonemptyScript(new Set(["then"]));
+677:        this.expect("then");
+678:        const body = this.nonemptyScript(new Set(["elif", "else", "fi"]));
+679:        branches.push({ condition, body });
+680:        if (!this.is("elif")) break;
+741:      this.expect("done");
+742:      command = { kind: "for", name, ...(words ? { words } : {}), body, redirects: [] };
+743:    } else if (this.current.kind === "word" && !compoundHead(this.current.word!) && this.peek().value === "(") {
+744:      const name = this.advance().value;
+745:      if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Invalid function name");
+746:      this.expect("(");
+747:      this.expect(")");
+748:      this.newlines();
+749:      if (!["{", "(", "if", "case", "while", "until", "for", "[["].includes(this.current.value)) this.error("Expected function body");
+750:      command = { kind: "function", name, body: this.command(), redirects: [] };
+751:    } else {
+752:      if (["!", "then", "else", "elif", "fi", "do", "done", "}", "case", "esac", "select", "function", "[[", "]]"].includes(this.current.value)) this.error(`Unexpected or unsupported keyword ${this.current.value}`);
+753:      const words: Word[] = [];
+754:      const redirects: Redirect[] = [];
+755:      let line: number | undefined;
+756:      while (true) {
+757:        const wordLine = this.lexer.lineAt(Math.max(this.current.offset, this.current.end - 1));
+758:        const redirect = this.redirect();
+759:        if (redirect) { line ??= redirect.line; redirects.push(redirect); }
+760:        else if (this.current.kind === "word") {
+761:          line ??= wordLine;
+762:          let word = this.advance().word!;
+763:          const head = compoundHead(word);
+764:          if (head && this.is("(")) {
+765:            this.advance();
+766:            const entries: ArrayEntry[] = [];
+767:            this.newlines();
+768:            while (this.current.kind === "word") {
+769:              entries.push(compoundEntry(this.advance().word!));
+770:              this.newlines();
+771:            }
+772:            if (!this.is(")")) this.error("Unsupported indexed-array compound assignment");
+773:            const end = this.advance().end;
+774:            word = { offset: word.offset, parts: word.parts, spelling: this.lexer.source.slice(word.offset, end) };
+775:            setArrayAssignment(word, { kind: "compound", ...head, entries });
+776:          } else {

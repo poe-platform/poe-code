@@ -1,0 +1,33 @@
+{
+  "inspectedHead": "61fe8ff8952d8b9575a991db13007a5cdc528158",
+  "initialUserHead": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+  "profile": "Public root source import via existing tsx; actual registered curl definition; not Shell or packed",
+  "node": "v22.22.2",
+  "files": {
+    "AGENTS.md": "18422ba16cb7519008f493c770145a204ed4fe07179e253530d56ec2cfb43d05",
+    "package.json": "792ba8de3f1927e58564350621834ad8470345fec9eaf126485d0ed5fe03577e",
+    "tsconfig.json": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027",
+    "src/index.ts": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/contracts/filesystem.ts": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+    "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+    "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+    "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+    "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+    "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+    "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+    "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+    "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+    "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+  },
+  "sourceInventory": {
+    "count": 212,
+    "sha256": "a5cbbfc87ae6fd3dc9627824837372d1df26203b561d6461a761ae4c867c3e21"
+  }
+}

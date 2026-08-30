@@ -1,0 +1,283 @@
+{
+  "subject": "f9bf774409eca40b0518b322db6fcb652cd6cd7f",
+  "authorDataEvidence": "10f49933f430dccfd828dce1c5339ab8b2851458",
+  "status": "DATA_ONLY_AUTHENTICATED_NOT_SEMANTIC",
+  "sourceInventory": [
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/CACHE.json",
+      "blob": "a1920936ddc6bd0d2d9151189390b9dbb4ebe9f2",
+      "bytes": 8702,
+      "sha256": "2e8486f739e0e88b54ffda678c2439374387672825f4e8c6d1ef42482c655319"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/CAPS.json",
+      "blob": "1b38c86b124990ff4a6fc6872f0164a9b18f4d8c",
+      "bytes": 11462,
+      "sha256": "5f814c8e712a1f390e86473eed747fe659575831d4aaa82871a5ebe7c4b7278b"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/CONTRACT.md",
+      "blob": "8dd40e8dd5d052ee846ea85fa2d6027e682b3dae",
+      "bytes": 11184,
+      "sha256": "ba2b35086cc17aadc7ecbcbd82cd7ce56096861b849b1c1bebe43e0992fcfc5c"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/DISPOSITIONS.json",
+      "blob": "dbc4892a41f29d709f5593cb35cf7e021b4620a7",
+      "bytes": 2911,
+      "sha256": "6bdd999383a411b309103c98b815182c9640e5587ca0e83117e914d9939a2cca"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/ERRORS.json",
+      "blob": "f484cdd572a23557d44b933f90f39444999c3bb8",
+      "bytes": 8008,
+      "sha256": "a0ff77f9b363a0d2cdb467904f29508e65129b3ffe0eeedaff41d1990643d93f"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/HANDOFF.md",
+      "blob": "853f74b1ba6304e1646daa87de06b31a6c2c214d",
+      "bytes": 1785,
+      "sha256": "dcbf27191aa2b1754eafa718010667d743cd11781343fdd49f85b186db597d41"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/OBLIGATIONS.json",
+      "blob": "66f6ff53cd75315fcb5be2e8c843e84be7c1766e",
+      "bytes": 14322,
+      "sha256": "1af248e189b1aaa57ac751593580064a53485c82eada58740c19d232ad56c7db"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/RPC.json",
+      "blob": "cc072832990a95486f249d94d61f8349785640d6",
+      "bytes": 21076,
+      "sha256": "30eac265ee046518347ff5bba6c6404aaa629521989c1c1c6e1728b2e997c098"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/SEAL.json",
+      "blob": "f0caa6afb357b59096359032314cd644e0876fa2",
+      "bytes": 2330,
+      "sha256": "7a89d5911ddadcd7154c84553ce35442e744f2ded14d484af2b4e1bc92fcdacd"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/SOURCES.json",
+      "blob": "a09d8ada4c77cdedb5ee52b3c7b2831e4a78dab7",
+      "bytes": 773,
+      "sha256": "9aad90949af4669fba981dc7415ba79f0d368779bd09ca656537309990191148"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/CASES.json",
+      "blob": "8760c49f2cf138cf89e992bd09f49bf3658d34a5",
+      "bytes": 7310,
+      "sha256": "6be8405ac53c40fa1e267a5bd0bc50c8a4f60163145ab580da1fa3135ac0adee"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/CONTROL.json",
+      "blob": "8a883c052e34da2f10f02175a334781011be744a",
+      "bytes": 4302,
+      "sha256": "86e8b9bd26803bfb22a4c00bdf5c1863e118a471be974c38ac08d851af0930d8"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/DATA-CHECKER.mjs.data",
+      "blob": "0623094b55f61a8f2a5b6de27bd6247e87c3d027",
+      "bytes": 10013,
+      "sha256": "041dee5a81f5593faa86317a8b697339c836cc3a703728d9419caa320c474b2a"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/EMISSIONS.json",
+      "blob": "64e1e89964b6a934c8c35517fddc3b5a44d48497",
+      "bytes": 21589,
+      "sha256": "02928458d31cdee4378f621eb9a9175c91e48edfd59daecbe53fcfec73d67dc1"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/EXECUTABLE-PRESEAL.md",
+      "blob": "2d3a2a123c419d974e77ef0517c70d4d2dd639c6",
+      "bytes": 11348,
+      "sha256": "b6aeb4dce304b17f119fef055a3d122cdf0dddb9084d7818f2a258ad6d3b08cb"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/GRANT.template.json",
+      "blob": "6482a07bb7a4a5f271d84a7e610a82bf6f3db206",
+      "bytes": 752,
+      "sha256": "f905bc5992ed93007240c4204d8d575510971cb50d3d5097e62bb5029e2c313e"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/HANDOFF.md",
+      "blob": "377d9173fb92d31e2a56fe92aeb8e2be82785f1a",
+      "bytes": 3181,
+      "sha256": "10f9e42ed108a95981cd6e97f3219ff7973eb43059bf402d8570998d829e3e80"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/INPUTS.json",
+      "blob": "5a1a2ca2e44cfed6d1f12a1fd765523e747886bb",
+      "bytes": 16914,
+      "sha256": "bbc066972a1248e7036d72a4221613278685c087846eb9c54ee43fba9a39af46"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/MODULES.json",
+      "blob": "2d39d0924ca76602dea87273cc678a78cc114f7c",
+      "bytes": 3974,
+      "sha256": "006ffa83945faf34a8c22685142a817bd2451d29d71a134630572e19c9cbbaa3"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/PREPARATION-PRESEAL.md",
+      "blob": "475995f26cb165d6eeb19ca022e136459570c539",
+      "bytes": 1595,
+      "sha256": "3b44d90b2cdd6688efaaf9d20b95d801de29ec40faf6332460c4059e921d0a3a"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/PROFILE.json",
+      "blob": "68b5b73c892041448d5b305e7ae1343f9e8f8578",
+      "bytes": 2672,
+      "sha256": "f0d0951cf31aa738747d737e9a3f34460cac41839de56c3cac6e8d86a13e321f"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/SEAL.json",
+      "blob": "bcb7502c72daa551a61e58ab25ba94f46fce0ed4",
+      "bytes": 5175,
+      "sha256": "12f754bcb5cbd68bc4fbd7e187a2d529a20769d61b355fd74c3693f50c7d38a9"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/SOURCES.json",
+      "blob": "21f5a120e21d7eec5f915cc4b47c7b6fc1c0726f",
+      "bytes": 18567,
+      "sha256": "a00bf38fff98b78de3ba88bda5630748f2d35dc630bd8938a02f6de71775d6d5"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/TOOLS.json",
+      "blob": "cbf3e5e6614f55311b94c6241b03516279cef940",
+      "bytes": 2727,
+      "sha256": "691ce21dc37b71aa12ba12dba894360f1ffbd6c05f1b7c566c78a25874d3ce4a"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/compile-entry.mjs",
+      "blob": "0e0b11284fd524af21b15f7cc481ea18066c740a",
+      "bytes": 229,
+      "sha256": "5bff85d92d457e03ec5143fccbe9a26f752ccb2749be87161f215e8dfec25e3f"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/errors.mjs",
+      "blob": "1335d6691ad4eba9944c860c7e234cbf4d6d5478",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/fixtures.mjs",
+      "blob": "4aa076db26b45dc423706b0d6417faa529c0bd96",
+      "bytes": 3094,
+      "sha256": "bfe1021a9fad5b381f05c7c677c32c78abee2d960842486daf3fe49d1c2b1e91"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/load-guard.mjs",
+      "blob": "c172e4cf86eb05f381a4ada1725c3c54934ac431",
+      "bytes": 3180,
+      "sha256": "adc975345d17a31ca07e583c62009906ffc588c9709c6a82cd2afdd8908b2180"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/owner.mjs",
+      "blob": "e9e8d421979eba656164f27cb3c3c6a1aaffe3ba",
+      "bytes": 4019,
+      "sha256": "38273375aa011fa2410f59f4a00835540e1de146f63afc449ab0276b3ff76975"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/parent-entry.mjs",
+      "blob": "e898b33bdd541bf980ba8527cddc1488e5081d0c",
+      "bytes": 3148,
+      "sha256": "fa5c6e5ed0403180a7ef385b9b7ca74bca593cf6d94bce0c95e69257a2cb5a84"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/parent-rpc.mjs",
+      "blob": "96d5b74d0fdcfe546c08f7f75826c64d8977c7eb",
+      "bytes": 8038,
+      "sha256": "57614f640e90c2d70fee7c3f141e04f9adc6ecbe98258d27d90329d1f82c56ae"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/reservations.mjs",
+      "blob": "6d099918da8b9d441fa8d427c89efa535fd8021d",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/scaffold.guest.js.data",
+      "blob": "dfb82595c0cc63d4f7768a360fc6d17b1177d078",
+      "bytes": 6447,
+      "sha256": "5dc35b46d5ed6da3119abc54e01f9efe8eb6f997a55a8673236075a385cced7d"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/supervisor.mjs",
+      "blob": "0b0eba21ad672c4f20b6d467a10948b6230ad748",
+      "bytes": 5197,
+      "sha256": "48c0b9ee1cac9c184fc3cc0ef57530d80e07b082c8d6186b5e8427a717c50a6f"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/sync-bridge.mjs",
+      "blob": "a00306b7a1c8722d7c8bdba51688526b3a33b5fb",
+      "bytes": 4417,
+      "sha256": "1f7355adbebe699b235162719868e4c005346dc30e90ae0affca822144abfc3a"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/wire.mjs",
+      "blob": "4ef7ddbbdfcaaed81a65b5bc39b5b2deb49acf66",
+      "bytes": 8975,
+      "sha256": "7af017fb8b2e5c9581e5e0087e51eb3aa96e5dba263c59d27882dc5d0a566248"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/worker-body.mjs",
+      "blob": "2898763a373133b27bc976be1fdd0039af154141",
+      "bytes": 1756,
+      "sha256": "a84a595bd156024bc721767e9a131d9db298153d28bc2373fa4b21a8f59aba79"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v1/worker-entry.mjs",
+      "blob": "05a3625d57adede137c96cc4015fda5b9af32756",
+      "bytes": 151,
+      "sha256": "f53d1bc9d746243e4eb9c229d0c61ebf637f29892ed346e735920fcfcf36bf0b"
+    }
+  ],
+  "processes": [
+    {
+      "args": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "f9bf774409eca40b0518b322db6fcb652cd6cd7f",
+        "--",
+        "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3",
+        "tests/commands/node-worker-experiments-20260828/preparation-v1"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 5072,
+      "stdoutSha256": "dab76e2897599916af79841fd64235cf503d4557abd12340bc733f7bec70d0b7",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 246479,
+      "stdoutSha256": "36cc50fda07ca9143ef072fbbba5037940a1ce96065536f266ec4e331f797cc8",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 997955,
+      "stdoutSha256": "b75f24b6af8bd84639c7a7c3e1760fb58c955ec954a9a0019d3ab90d613b960e",
+      "stderr": ""
+    }
+  ],
+  "capturedBytes": 1249506,
+  "logicalWorkBytes": 1494005,
+  "elapsedMs": 127,
+  "subjectImports": 0,
+  "engineEvaluations": 0,
+  "workerAdmissions": 0,
+  "compilerInvocations": 0,
+  "temporaryRoots": 0
+}

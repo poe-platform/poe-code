@@ -1,0 +1,13 @@
+{
+  "name": "wrong-link-blob",
+  "expectedBoundary": "LINK_IDENTITY",
+  "started": "2026-08-27T22:49:13.650Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:LINK_IDENTITY tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/cycle/inner/back",
+    "code": "LINK_IDENTITY",
+    "stack": "Error: BOUNDARY:LINK_IDENTITY tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/cycle/inner/back\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:76:7)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:48:55\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:48:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:49:13.679Z"
+}

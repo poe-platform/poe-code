@@ -1,0 +1,68 @@
+[
+  {
+    "id": "exact-integers-above-double",
+    "actual": {
+      "status": 0,
+      "stdout": "YzotOTAwNzE5OTI1NDc0MDk5MgpkOi05MDA3MTk5MjU0NzQwOTkzCmE6OTAwNzE5OTI1NDc0MDk5MwpiOjkwMDcxOTkyNTQ3NDA5OTIK",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 78,
+      "sha256": "c00df75ba5035c55102e78b78b7c45550b9dce40630d19eb99c86050654270ba"
+    },
+    "stdout": {
+      "bytes": 78,
+      "sha256": "d7df08248b2f8253e5f2d641a90ad917c350e98c1f75eb8bbcc5135b9abe6f5d"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 6,
+      "keyedRequests": 12,
+      "extractions": 4,
+      "fieldObjects": 8,
+      "parses": 4,
+      "keyedAdmissions": 4,
+      "charged": 404,
+      "independentBackingCharge": 404,
+      "existingRecordBytes": 74,
+      "entriesPeak": 4,
+      "retainedPeak": 404,
+      "keyedHits": 8
+    }
+  },
+  {
+    "id": "exact-fractions-and-prefix-grammar",
+    "actual": {
+      "status": 0,
+      "stdout": "ZTotLjEKZDorOQpmOndvcmQKYjouMDAwMDAwMDAwMDAwMDAwMDAwMDEKYTouMDAwMDAwMDAwMDAwMDAwMDAwMDIKYzoxZTMKZzowMDAxLjAwMHRhaWwK",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 87,
+      "sha256": "148ea5ddb5138320358a09afb9478049f11ac09bbf6ccbaff19f172cb5fda59f"
+    },
+    "stdout": {
+      "bytes": 87,
+      "sha256": "92d7e8ddea9bd715250139491a1718197f5b0edcc870fe399407ae18548d6242"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 12,
+      "keyedRequests": 24,
+      "extractions": 7,
+      "fieldObjects": 14,
+      "parses": 7,
+      "keyedAdmissions": 7,
+      "charged": 410,
+      "independentBackingCharge": 410,
+      "existingRecordBytes": 80,
+      "entriesPeak": 7,
+      "retainedPeak": 410,
+      "keyedHits": 17
+    }
+  }
+]

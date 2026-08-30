@@ -1,0 +1,149 @@
+TREE-WORK-002 / TEXT-BOUND-001 (tree) — COMMITTED AUTHOR CANDIDATE
+
+Commit 436bda3e21b2b6041409fac7408cf072b5d3fe5e
+Subject: fix(tree): account sort byte work and admit text before scans
+Atomic git commit --only used9 explicitowned FILE argv. Three implementationTS
+files plus README, new regression and evidence only. Post-commit owned diff empty;
+index empty; unrelated concurrent/native artifacts preserved. Final source/test/
+manifest hashes below rechecked aftercommit and match the frozen validation.
+STOPPED for a DIFFERENT VERIFIER's full independent frozen replay. No acceptance,
+root/default/public integration, hidden-corpus access or further feature work.
+
+Scope: only src/commands/tree/** and tests/commands/tree/**. Read the concrete
+static findings supplied in the user message, not any new hidden six-case safety
+corpus/proposals or independent reviewer holdouts. Root/package/defaults,
+core/shared regex/lifecycle, FS and contracts remain unchanged by this author.
+No integration, fullgate, large stress demonstration or unbounded-engine claim.
+
+Original bounded regressions FIRST:
+Original tree source is dff53c461f7d84d826583bd5e19e95398ea77969 content:
+tree.ts 449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a
+io.ts ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153
+arguments.ts 572db370cad20fff449ed6ce43c0a358390a8f9cfb15ea447d4ac7aaec4b8c9a
+All4 new regression tests failed before source edits. Full raw TAP preserved in
+tests/commands/tree/sort-text-original.tap, byte-for-byte matching
+/tmp/safe-bash-tree-sort-text-original.tap (cmp passed).
+
+Actual original vs fixed bounded observations:
+1. 32files,64-byte names,62-byte common prefix,work quota256:
+   old actualShell status0/stdout2082bytes/stderr empty; fixed status1,empty stdout,
+   tree-work-limit diagnostic. Only2048filename bytes; no costly demonstration.
+2. 32two-byte names alternating files/dirs,-L1: old plain walk97units; --dirsfirst
+   also succeeds at exactly97. Fixed plain walk221units; --dirsfirst fails at221.
+   Dynamic plain baseline is measured rather than assuming engine sort counts.
+3. Backend Error.message96ASCIIunits,fieldcap32: old measured1prefix-regex scan
+   +1byte-size scan before rejection; fixed0regex/0byte-size/0encode raw-message
+   calls. The message is small; no gigantic Error/string allocation exercised.
+4. Raw104-unit error=96uppercaseletters+': denied',fieldcap32: old prefix strip
+   shrinks to'denied', producing'.  [denied]\n' +ordinarytree diagnostic; fixed
+   rejectsrawinput with field-limit diagnostic and no stdout.
+These are work/call counters and outputs, NOT CPU/RSS/heap/physical-memcmp-byte
+measurements. Original finite input bounds existed; no RegExp blowup alleged.
+
+Root-cause fix and exact policy:
+- Before every Buffer.compare, reserve1+leftUTF8byteLength+rightUTF8byteLength.
+  This is conservative even when first bytes differ. --dirsfirst preserves its
+  stable second sort and reserves1unit before each bounded classification compare.
+  Both passes consume the existing invocation budget and check signal via step.
+- Before proportional text sizing, use constant-time UTF16length lower bounds
+  against per-field and remaining cumulative quotas; then exact bounded UTF8size.
+  Raw backend Error.message admission precedes the anchored errno-prefix regex.
+  Rendered messages still charge when visited; repeated/raw/rendered strings are
+  conservatively charged again. No truncation or per-entry-reset escape hatch.
+- Arguments and sink text receive the same pre-byte-size length guard. Cwd and
+  raw operands are admitted before virtual path normalization. Directory names,
+  target text and display paths pass metadata admission before subsequent scans.
+- Raw text escape input must fit remaining output before encoding. Each expanded
+  escape piece is checked before append. JSON fields are preflight-sized including
+  punctuation, UTF8, quotes/backslashes, controls, lone surrogates and Cf escapes
+  before stringify and bounded control replacement. Final formatted writes check
+  aggregate size again. Individual fragments are bounded; a bounded number can
+  exist simultaneously, so this is NOT an exact peak-memory/zero-allocation claim.
+- Error/string exceptions retain message/path meaning within bounds. Number,
+  boolean,null,undefined conversions are bounded. Opaque object/symbol/bigint or
+  non-string Error.message values use fixed'non-string filesystem error' text
+  rather than invoke custom/unbounded toString. Host getter execution/backend
+  creation of a string remains opaque host work, not retroactively sandboxed.
+- Defaults/API unchanged. Tighter admission can reject work formerly undercharged.
+  Ordinary utility diagnostics stay human readable. Resource errors propagate at
+  command boundary; currentShell renders non-abort EFBIG asstatus1. Prior output
+  survives later failure; incompleteJSON remains possible on exceptional abort/
+  budget/sink failure. No provider-array allocation, host-time or security promise.
+
+Other constant regex/text paths inspected:
+No user-generated RegExp or new regex executor. Argument surrogate/digit checks
+follow bounded argument admission. Existing trailing-slash processing sees admitted
+paths. Error-prefix stripping now followsraw admission. JSON's fixed single-char
+control-class runs only on preflight-bounded fields/stringify output. Finite
+patternDP/compiler unchanged fromdff53c4; all its original regression bytes stay.
+No workers or invocation-owned resource acquisition introduced, so no new cleanup
+registration/executor/lifecycle machinery is required or altered.
+
+New tests12/12pass (sort-text-bound.test.ts):
+Original4; compare rejection before any observed Buffer.compare atcap100; dirsfirst
+abort afterfirstcomparison allows exactly1completed comparison; remainingmetadata
+pre-scan checks;20Unicodeunits/60UTF8bytes demonstrates1bounded size scan needed
+when lengthlowerbound fits; oversized argument/output pre-scan admission; opaque
+exception coercion trap untouched; text/compactJSON/prettyJSON exacttotaloutput
+caps pass and one-byte-less fails; control-field JSON failsbefore observedstringify;
+control-heavy diagnostics fail without oversized sinkwrite; priorTREE-WORK-001
+gets an actualShell quota ABOVE new sorting baseline so matcher accumulation
+remains exercised. Old256unitmany-name tests may now failduringearlier sorting;
+their directmatcher counters are unchanged; newbaselinecheck prevents overclaim.
+
+Retained validation:
+Original65tests and native fixture/helpers unchanged vsdff53c4 (git diff exit0).
+Full owned65+12=77/77pass,0fail/skips/cancelled/TODO. RepeatedunderV8coverage77/77.
+Nodev22.22.2; pinned native replay enabled. Original24exact+4JSON-semantic cases
+retained; all34nativecapture rows replayed, including6documenteddivergences that
+are NOT parity passes. Oracle tree2.2.1 Darwinarm64/C/ASCII profile unchanged.
+Nativefixture SHA256 a7c312188244ff48760b4a6b247983d2ffa66bcffd6072d67e63acd1f074a3ab
+Oraclebinary SHA256 34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a
+
+Scoped strict types PASS:
+node_modules/.bin/tsc --noEmit -p tests/commands/tree/tsconfig.json
+Successful compiler input list covers all15canonicalownedTS source/test/helper
+files; zero missing. Raw.tap and captured.json evidence explicitly classified as
+data, not canonicalTypeScript/test discovery. No new exclusions or testwaivers.
+The checked inventory is supplemented by the successful actualcompiler invocation,
+not asserted as proof by inventory alone. Not a wholeprojecttypecheck.
+
+Isolated build/consumer PASS:
+node_modules/.bin/tsc -p tests/commands/tree/tsconfig.build.json --outDir
+/tmp/safe-bash-tree-sort-text-build-aZmzhJ
+EmittedESM/declarations; typedNodeNext consumer imports all3standalone factories
+and option/limit types, compiles then runs plainNode actualShell sortquota and
+rawbackend-message probes. No live dist writes; no public root/subpath claim.
+
+Final freeze evidence:
+tests/commands/tree/sort-text-source-manifest.json and
+/tmp/safe-bash-tree-sort-text-source-manifest.json:
+51actualcovered/loadedsourcefiles(6ownedtree) and loadedownedtests all SHA256stable
+before/after finaltest+types window. 15canonicalownedTSinputsallchecked. This is
+a bounded stable-source window in a concurrently dirty repository, not fullgate.
+Logs /tmp/safe-bash-tree-sort-text-final-tests.tap and -all-tests.tap; green12-case
+report preserved as tests/commands/tree/sort-text-fixed.tap.
+
+Exact final owned source SHA256:
+arguments.ts 848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762
+index.ts cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc
+io.ts 163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1
+options.ts 8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483
+pattern.ts 114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215
+tree.ts 2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1
+New regression SHA256 ea6d19908e0b79009831c1d27ee48f745300f00fd38e39c30da2a22bc74d1276
+Freeze manifest SHA256 3b5aa67eed07a8f6bfd53007070d6cc2de304598db24fff6caf80c3d864822c4
+
+Whitespace/data qualification: full staged diff --check flags9 whitespace-only
+assertion-formatting lines in raw sort-text-original.tap only. Preserved exactly
+as captured data (cmp passed), not silently normalized. All source, canonical
+regression, docs, manifest and green TAP pass separately scoped whitespace check.
+This does not exclude any TSsource/helper or weaken test assertions/discovery.
+
+Cleanup/process state:
+All test-only prototype hooks restored in finally; all Shell instances disposed;
+existing finally cleanup removes per-run native/real fixtures. No active workers,
+servers, timers, process sessions or newly acquired resource remains. Tempbuild,
+coverage and logs retained as evidence. Root should route exactcommittedcandidate
+to DIFFERENT VERIFIER for fullindependentfrozenreplay; author stopsafteratomic
+explicitownedFILEScommit. No integration/newscope/fullcompletion/duration claim.

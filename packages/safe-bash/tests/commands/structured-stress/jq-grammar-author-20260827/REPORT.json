@@ -1,0 +1,90 @@
+{
+  "role": "STRUCTURED JQ SOURCE AUTHOR LEAF; independent review required",
+  "recordedAt": "2026-08-27T02:11:34.804Z",
+  "sourceCommit": "b9187c0f601c278b334f5a391d552c38c433444c",
+  "evidencePayloadCommit": "97bf80100140bf746efb8c0dec9f77dddcfef207",
+  "structuredSha256": "120a10c34d96b26f584c6e4349ef9098c0537d76952078e70e9ce6ab5c3f0176",
+  "acceptedSourceCommit": "0278a3032d7851de4c2f5141bbc863cdf310c39d",
+  "acceptedStructuredSha256": "30c573976d4dddb5e8e545f8e3914aeb166e0232f92ed0dfe20514205056db8f",
+  "acceptedEvidenceCommit": "bb1ceabef3a3a4c3791af64d9efb7384f6ca773f",
+  "nativeProfile": {
+    "executable": "/usr/bin/jq",
+    "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+    "version": "jq-1.7.1-apple",
+    "build": "--with-oniguruma=builtin"
+  },
+  "finalCommands": "committed-r3-checkpoint.json",
+  "summaryArtifact": "final-validation-summary.json",
+  "sourceStable": true,
+  "productStableDuringCommittedR3": true,
+  "canonicalSuite": {
+    "tests": 1580,
+    "pass": 1550,
+    "fail": 30,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "authorSuite": {
+    "tests": 2157,
+    "pass": 2157,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "independent790": {
+    "vectors": 256,
+    "vectorsPassingAll": 256,
+    "executions": 790,
+    "pass": 790,
+    "fail": 0
+  },
+  "legacy94": {
+    "exact": 94,
+    "diagnosticOnly": 0,
+    "statusOrStdout": 0,
+    "routeTransportAgreement": true
+  },
+  "allBoundaryNative": {
+    "smallVectors": 2039,
+    "smallExecutions": 36306,
+    "legacyVectors": 94,
+    "legacyExecutions": 3106,
+    "scanVectors": 15,
+    "scanExecutions": 330
+  },
+  "casefoldSupplement": {
+    "vectors": 70,
+    "vectorsPassingAll": 70,
+    "executions": 280,
+    "pass": 280,
+    "fail": 0
+  },
+  "canonicalProposals": {
+    "original22": "planned-test-only-changes-v2.json",
+    "supplemental4": "planned-test-only-changes-v2.json",
+    "additional3NativeAnd1Contract": "additional-test-only-proposal.json",
+    "applied": false,
+    "independentlyApproved": false
+  },
+  "immutability": {
+    "acceptedCommit": "bb1ceabef3a3a4c3791af64d9efb7384f6ca773f",
+    "files": 547
+  },
+  "sourcePaths": [
+    "src/commands/structured/input.ts",
+    "src/commands/structured/interpreter.ts",
+    "src/commands/structured/jq.ts",
+    "src/commands/structured/numbers.ts",
+    "src/commands/structured/parser.ts",
+    "src/commands/structured/values.ts"
+  ],
+  "runtimeDependencies": 0,
+  "newPublicExports": false,
+  "ownedCleanBeforeReport": true,
+  "delegation": "None; no subagents spawned",
+  "activeOwnedChildren": 0,
+  "remaining": "No measured differences in original49 or frozen authored positive/negative cohorts. Full jq remains incomplete; split(regex;flags) remains unsupported. Thirty old test expectations remain red, including a separately identified host-sink contract decision. One native exploratory timeout has no semantic oracle result.",
+  "limits": "Author result only; no source acceptance, superiority, full-shell/product closure or 72-hour-work claim. Root schedules different-leaf verification and a separate approved TEST-ONLY followup.",
+  "initialFreezeAt": "2026-08-27T01:37:14.060Z",
+  "artifactManifestSha256": "dccb4d1f5769e006003b6d11e9cc69341ceeee7db55e7db8fd7948a907b93ba5"
+}

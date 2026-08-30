@@ -1,0 +1,318 @@
+{
+  "schema": "timeout-f22-repair-runs/1",
+  "runs": [
+    {
+      "name": "source-tar-list",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-tf",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-author-20260828/repair-f22-v1/evidence-v1/SOURCE.tar"
+      ],
+      "cwdRole": "repository",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 8264,
+      "stderrBytes": 0,
+      "stdoutSha256": "3c6435eb2c43f435ab7d602217961fe510109ffce5daf9ad9423631c231762e4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+      ],
+      "cwdRole": "reconstruction",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "repair-runtime",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "--test",
+        "tests/commands/timeout-author-20260828/repair-f22-v1/timeout-f22.test.ts"
+      ],
+      "cwdRole": "reconstruction",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 631,
+      "stderrBytes": 0,
+      "stdoutSha256": "33b366f6c8a88c6625dd19d5e012f1a443db316c55854a6c52b7977e81fa4bf6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "original-author-runtime",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "--test",
+        "tests/commands/timeout-author-20260828/timeout.test.ts"
+      ],
+      "cwdRole": "reconstruction",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 3105,
+      "stderrBytes": 0,
+      "stdoutSha256": "5777a6d646a2f7219bf55c1381a14af5422e248f97db8e33069a59b4796903cb",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "sleep-neighbor",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "--test",
+        "tests/commands/time-env/sleep.test.ts"
+      ],
+      "cwdRole": "reconstruction",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 4980,
+      "stderrBytes": 0,
+      "stdoutSha256": "8ab9d4a9b66df8cebce4b13bf049b43831300a92252da5a8dbd5427ce9095041",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cleanup-neighbors",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "--test",
+        "tests/shell/invocation-cleanup-lifecycle.test.ts",
+        "tests/shell/invocation-cleanup-pipeline.test.ts"
+      ],
+      "cwdRole": "reconstruction",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 7738,
+      "stderrBytes": 0,
+      "stdoutSha256": "44b093c42284e0b0fd1ebf44714c176d0c2756457450ff6e286a679927809e5d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-and-selected-harness-types",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+      ],
+      "cwdRole": "reconstruction",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "repair-positive-types",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+        "tests/commands/timeout-author-20260828/repair-f22-v1/types-positive.mts"
+      ],
+      "cwdRole": "reconstruction",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "npm-pack",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm",
+      "args": [
+        "pack",
+        "--json",
+        "--pack-destination",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-author-20260828/repair-f22-v1/evidence-v1/package"
+      ],
+      "cwdRole": "reconstruction",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 96550,
+      "stderrBytes": 0,
+      "stdoutSha256": "ba53ef549c62c552cc66cba1a3bff3f3420a8f9e4f2c5192bd30af205e201ece",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "package-list",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-author-20260828/repair-f22-v1/evidence-v1/package/virtual-bash-0.0.0.tgz"
+      ],
+      "cwdRole": "repository",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 36377,
+      "stderrBytes": 0,
+      "stdoutSha256": "b17cfd02882bf56045105a94b16178c5f3363967870e56989f88197a3518c78b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "consumer-install",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm",
+      "args": [
+        "install",
+        "--ignore-scripts",
+        "--offline",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "cwdRole": "installed-consumer",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 26,
+      "stderrBytes": 0,
+      "stdoutSha256": "20b322655df0f7b66673ec2e7f7e93a86f15f44960ce766f88ab4eebe5af5c7c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "consumer-runtime-installed",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "runtime.mjs"
+      ],
+      "cwdRole": "installed-consumer",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 560,
+      "stderrBytes": 0,
+      "stdoutSha256": "7348cf215bf50e70af889ba04e35b6d9ef8a83f7c1635d7a8b8a1d8376e5febe",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "consumer-types-installed",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+        "positive.mts"
+      ],
+      "cwdRole": "installed-consumer",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "consumer-runtime-moved",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "runtime.mjs"
+      ],
+      "cwdRole": "moved-consumer",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 552,
+      "stderrBytes": 0,
+      "stdoutSha256": "703b5d7a2c307197265e6db823fcc71d610feb8d93f72df6214f7b35e04d4d1b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "consumer-types-moved",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+        "positive.mts"
+      ],
+      "cwdRole": "moved-consumer",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

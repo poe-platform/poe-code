@@ -1,0 +1,576 @@
+{
+  "recordedAt": "2026-08-27T06:07:45.176Z",
+  "status": "Five native-backed logical-row revisions applied; corrected archive tests passed. Raw orchestration guard failed only its extra root-index-load requirement; retained without rerun.",
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "counts": {
+    "correctedArchive": {
+      "invocation": {
+        "tests": 133,
+        "pass": 133
+      },
+      "set": {
+        "tests": 3,
+        "pass": 3
+      },
+      "entrypoint": {
+        "tests": 41,
+        "pass": 41
+      },
+      "total": 177,
+      "pass": 177,
+      "fail": 0,
+      "skip": 0,
+      "cancel": 0,
+      "todo": 0
+    },
+    "historicalLiveSeparate": {
+      "total": 175,
+      "pass": 172,
+      "fail": 3,
+      "actorRows": 22
+    },
+    "testGroupDelta": 2,
+    "logicalRowsChanged": 5
+  },
+  "native": {
+    "commit": "76d1dd721f8b6efc9417b847e14d674cf9cbae0f",
+    "sha256": "064500b8dc1083be32e07f2fc4a67124600899fd37fd8e1abe42cc411d9f5ee8",
+    "totalReusedObservations": 16,
+    "changedRowObservations": [
+      {
+        "id": "invocation-bash-e",
+        "profile": "GNU5.3-primary",
+        "role": "affected invocation row",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-LzwD09/roles/bash",
+        "resolvedProfile": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-e"
+        ],
+        "argv0Mode": "bash",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-LzwD09/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-LzwD09/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-LzwD09/work",
+        "stdinHex": "73617920626164",
+        "inputSha256": "a506eebcc0917886971b48c3b3258f1fd226ec70463bc179e8b4e0e36bc2dd10",
+        "before": {},
+        "after": {},
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "pid": 98270,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "invocation-sh-e",
+        "profile": "GNU5.3-primary",
+        "role": "affected invocation row",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-ys776T/roles/sh",
+        "resolvedProfile": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-e"
+        ],
+        "argv0Mode": "sh",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-ys776T/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-ys776T/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-ys776T/work",
+        "stdinHex": "73617920626164",
+        "inputSha256": "a506eebcc0917886971b48c3b3258f1fd226ec70463bc179e8b4e0e36bc2dd10",
+        "before": {},
+        "after": {},
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "pid": 98335,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "set-e",
+        "profile": "GNU5.3-primary",
+        "role": "affected set row",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-7mqjvO/roles/bash",
+        "resolvedProfile": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "set -e; false; say bad >after",
+          "shell"
+        ],
+        "argv0Mode": "bash",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-7mqjvO/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-7mqjvO/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-7mqjvO/work",
+        "stdinHex": "",
+        "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before": {},
+        "after": {},
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "pid": 98373,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "set-o-errexit",
+        "profile": "GNU5.3-primary",
+        "role": "affected set row",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-kmKFA1/roles/bash",
+        "resolvedProfile": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "set -o errexit; false; say bad >after",
+          "shell"
+        ],
+        "argv0Mode": "bash",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-kmKFA1/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-kmKFA1/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-kmKFA1/work",
+        "stdinHex": "",
+        "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before": {},
+        "after": {},
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "pid": 98379,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "literal-bin-bash-e-shebang",
+        "profile": "GNU5.3-primary",
+        "role": "affected direct path row; exact /bin/bash kernel interpreter is historical3.2 even under GNU parent",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-b7q9Qr/roles/bash",
+        "resolvedProfile": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "./options",
+          "shell"
+        ],
+        "argv0Mode": "bash",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-b7q9Qr/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-b7q9Qr/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-b7q9Qr/work",
+        "stdinHex": "",
+        "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before": {
+          "options": {
+            "hex": "23212f62696e2f62617368202d650a73617920626164",
+            "mode": 493
+          }
+        },
+        "after": {
+          "options": {
+            "hex": "23212f62696e2f62617368202d650a73617920626164",
+            "mode": 493
+          }
+        },
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "pid": 98399,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "invocation-bash-e",
+        "profile": "Bash3.2-historical",
+        "role": "affected invocation row",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-uCBvkr/roles/bash",
+        "resolvedProfile": "/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-e"
+        ],
+        "argv0Mode": "bash",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-uCBvkr/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-uCBvkr/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-uCBvkr/work",
+        "stdinHex": "73617920626164",
+        "inputSha256": "a506eebcc0917886971b48c3b3258f1fd226ec70463bc179e8b4e0e36bc2dd10",
+        "before": {},
+        "after": {},
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "pid": 98511,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "invocation-sh-e",
+        "profile": "Bash3.2-historical",
+        "role": "affected invocation row",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-3H0jmf/roles/sh",
+        "resolvedProfile": "/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-e"
+        ],
+        "argv0Mode": "sh",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-3H0jmf/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-3H0jmf/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-3H0jmf/work",
+        "stdinHex": "73617920626164",
+        "inputSha256": "a506eebcc0917886971b48c3b3258f1fd226ec70463bc179e8b4e0e36bc2dd10",
+        "before": {},
+        "after": {},
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "pid": 98541,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "set-e",
+        "profile": "Bash3.2-historical",
+        "role": "affected set row",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-Ea6UCM/roles/bash",
+        "resolvedProfile": "/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "set -e; false; say bad >after",
+          "shell"
+        ],
+        "argv0Mode": "bash",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-Ea6UCM/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-Ea6UCM/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-Ea6UCM/work",
+        "stdinHex": "",
+        "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before": {},
+        "after": {},
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "pid": 98581,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "set-o-errexit",
+        "profile": "Bash3.2-historical",
+        "role": "affected set row",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-3qg09D/roles/bash",
+        "resolvedProfile": "/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "set -o errexit; false; say bad >after",
+          "shell"
+        ],
+        "argv0Mode": "bash",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-3qg09D/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-3qg09D/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-3qg09D/work",
+        "stdinHex": "",
+        "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before": {},
+        "after": {},
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "pid": 98583,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      },
+      {
+        "id": "literal-bin-bash-e-shebang",
+        "profile": "Bash3.2-historical",
+        "role": "affected direct path row; exact /bin/bash kernel interpreter is historical3.2 even under GNU parent",
+        "launcher": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-HQ9a5W/roles/bash",
+        "resolvedProfile": "/bin/bash",
+        "argv": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "./options",
+          "shell"
+        ],
+        "argv0Mode": "bash",
+        "environment": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-HQ9a5W/roles",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-HQ9a5W/work",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.native-HQ9a5W/work",
+        "stdinHex": "",
+        "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before": {
+          "options": {
+            "hex": "23212f62696e2f62617368202d650a73617920626164",
+            "mode": 493
+          }
+        },
+        "after": {
+          "options": {
+            "hex": "23212f62696e2f62617368202d650a73617920626164",
+            "mode": 493
+          }
+        },
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "pid": 98606,
+        "helperSha256": "c1ddddeba55d53332603591ca1f8e1dea1983d0bbc36503ea0df64466281549f",
+        "extraLauncherFlags": "--noprofile/--norc prevent startup files; they are harness guards, not a product feature expectation",
+        "afterFileAbsent": true
+      }
+    ],
+    "profiles": [
+      {
+        "name": "GNU5.3-primary",
+        "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+        "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n"
+      },
+      {
+        "name": "Bash3.2-historical",
+        "executable": "/bin/bash",
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n"
+      }
+    ],
+    "qualification": {
+      "path": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    "helperMapping": "Virtual registry say(args) emits args joined by a space plus newline. Native say is an isolated /bin/bash script implementing printf '%s\\n' \"$*\" for the exact single-argument inputs here. This is a declared harness mapping, not an identical command implementation. No registry args helper is used.",
+    "freshNativeCohort": false
+  },
+  "rowDeltas": [
+    {
+      "ids": [
+        "invocation-bash-e",
+        "invocation-sh-e"
+      ],
+      "old": {
+        "status": 2,
+        "stderrPattern": "unsupported option",
+        "zeroSourceReads": true
+      },
+      "new": {
+        "status": 0,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "files": {},
+        "sourceAcquisitionsPerRow": 1
+      },
+      "retainedInvocationNegatives": 16
+    },
+    {
+      "ids": [
+        "set-e",
+        "set-o-errexit"
+      ],
+      "old": {
+        "status": 2,
+        "stderrPattern": "unsupported shell option"
+      },
+      "new": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "",
+        "files": {},
+        "afterAbsent": true
+      },
+      "retainedCombinedInput": "set -eu || say unsafe >after",
+      "retainedCombinedStatus": 2
+    },
+    {
+      "ids": [
+        "literal-bin-bash-e-shebang"
+      ],
+      "old": {
+        "status": 126,
+        "stdout": "",
+        "stderrIncludes": "unsupported interpreter"
+      },
+      "new": {
+        "status": 0,
+        "stdoutHex": "6261640a",
+        "stderrHex": "",
+        "sourceHex": "23212f62696e2f62617368202d650a73617920626164",
+        "permissions": 493,
+        "fullModeUnchanged": true,
+        "namespace": [
+          "options"
+        ]
+      }
+    }
+  ],
+  "archive": {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko",
+    "sourceFiles": 173,
+    "totalCommittedInputs": 177,
+    "tarSha256": "a8397a9a7fa3d9a3b4480e1469a6b894cc89cd93b58f668e761505812bf3ab33",
+    "sourceSha256": {
+      "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+      "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/index.ts": "2257a1ce3acc146ca7a3c1867e8a23153a5a968c96899a533b45cea69a446237",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+    },
+    "devtoolLink": "/Users/kjopek/Workspace/safe-bash/node_modules",
+    "noLiveSourceOverlay": true
+  },
+  "provenance": {
+    "actualLoads": 567,
+    "productLoads": 518,
+    "archiveInputChanges": [],
+    "importMismatches": [],
+    "nonCommittedProductLoads": [],
+    "devtoolsUnchanged": true,
+    "commandsIndexLoadCount": 1,
+    "rootIndexLoadCount": 0,
+    "rawGuardValid": false,
+    "rawOrchestratorExit": 1,
+    "guardAssessment": "All actually traversed product imports match committed archive blobs; no input drift. The unmodified original dependency graph loads broad src/commands/index.ts, not root src/index.ts. The runner mistakenly required the latter to be executed. Both complete indexes were archived unmodified; no wrapper/import redirection was introduced. Raw false guard is immutable and not relabeled green.",
+    "typecheck": {
+      "status": 0,
+      "diagnostics": [],
+      "readCount": 213,
+      "readHashMismatches": [],
+      "roots": [
+        "tests/shell/invocation-modes.test.ts",
+        "tests/shell/unsupported-options.test.ts",
+        "tests/shell/script-entrypoint.test.ts"
+      ],
+      "typescript": "5.9.3"
+    }
+  },
+  "artifacts": {
+    "correction-archive.mjs": "d20e3401a25361d0e88e284a0a922cf871e0a1b3dd9c0459ae44902fce02d210",
+    "correction-typecheck.mjs": "00cf23e056e4578b011e31fbf92dd6244b2c53d90af633686994ae617455d4d3",
+    "correction-preparation.json": "a8e9bf98ae6a36b082ae180f990a246a81ac1655b90fa221187fff020ab35e99",
+    "correction-results.json": "20c1db3aa0c50f93dcd5a0beb6f727ddac23955fdd0841fbbb39ab783c57f4ed",
+    "README.md": "eae15886dc2659e2241bfd069303bbbcfdced8d701a1e4afb9d397e8e0e82316",
+    "capture.mjs": "7fce3725595b8496805dda433745897c338c1250ec9a8f9ca2e1db89c6ba6aa3",
+    "evidence.json": "064500b8dc1083be32e07f2fc4a67124600899fd37fd8e1abe42cc411d9f5ee8",
+    "proposal.json": "89e613081c59642bcd803dc7d797655b2632ce226565a14a674e9a917be99ebb",
+    "acceptance-README.md": "9eb1937db536ca40ef4058c38a45258f4872aab56165ec284e9d4eea5e1c81b3",
+    "acceptance-actor.mjs": "740ef45391bc7ef122f5ab3f44be3273b3838250da48f87ad0ff3d6b97bb86f7",
+    "acceptance-run.mjs": "4a68b25e34a3511fd072a84d2454b52786f157c6fde728a4a2b54c734b5e6cbd",
+    "acceptance-baseline.json": "4f67c132ab407bf07d5f05efccba932b85ab4afd87b4a73320e82a61ae532f3d",
+    "acceptance-stop.json": "90d070d05c96246683ef61edca1650bf827cfb6d72351d4cd3b9c1d822ee442e"
+  },
+  "testHashes": {
+    "tests/shell/invocation-modes.test.ts": {
+      "before": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+      "after": "cc78026cb6c000faedfe1d8edbd93436effb072b5c5e9462dd0af89c74348ac1",
+      "current": "cc78026cb6c000faedfe1d8edbd93436effb072b5c5e9462dd0af89c74348ac1"
+    },
+    "tests/shell/unsupported-options.test.ts": {
+      "before": "c070aaed32d0474da7e4b739b438f6c2c556a1de9dae6dc5be3194ae921d1a6d",
+      "after": "9541fa2e990a74f9cd26c0c78b9b3eebcc316c671e4b756ba89581fef0308cda",
+      "current": "9541fa2e990a74f9cd26c0c78b9b3eebcc316c671e4b756ba89581fef0308cda"
+    },
+    "tests/shell/script-entrypoint.test.ts": {
+      "before": "ecb96a1a78c5faf70acfdc8680ad20bf705ff09fe97af2da69709f9cc23f0029",
+      "after": "0cff83ce0c7403a3e8c97debdb6d2d7de4a0cf38a4a40c8c740f3c2bfdfbf2df",
+      "current": "0cff83ce0c7403a3e8c97debdb6d2d7de4a0cf38a4a40c8c740f3c2bfdfbf2df"
+    }
+  },
+  "executionNotes": [
+    "One initial runner syntax error occurred before any archive/product execution; missing brace fixed before preparation. No test retry.",
+    "All three corrected files ran once, with bounded process-group parents and inherited tracing for child probes.",
+    "The unchanged existing printf native reference remains in its test; no fresh 16-row native capture or broad oracle run.",
+    "One scoped typecheck against these three roots and their natural imports; not global or public-consumer acceptance.",
+    "No hidden/consumer fixtures read; historical live baseline and actor are not archive denominator entries.",
+    "No source/API/dependency changes; foreign source ignored by explicit archive authorization. No parity/full gate claim.",
+    "Raw failed root-index-load assertion preserved; no extra import run, assertion relaxation, or green loop."
+  ]
+}

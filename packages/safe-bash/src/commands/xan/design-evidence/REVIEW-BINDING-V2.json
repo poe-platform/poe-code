@@ -1,0 +1,104 @@
+{
+  "classification": "read-only-source-guards-and-doc-validation-not-product-tests",
+  "recordedAt": "2026-08-28T02:43:37.854Z",
+  "hostZone": "America/Chicago",
+  "headAtReview": "494b05d6ce23a5cc6448e6e54285fa054d1178de",
+  "protocolCommit": "3346e3dd320c63ba0429431a1658b92d145c9efb",
+  "observationCommit": "baf954592dd34c83cdc61c598f50e5c8856af7f0",
+  "validation": {
+    "originalPathsUnchanged": 7,
+    "cachedIdentitiesUnchanged": 44,
+    "initialLocalSourcesUnchanged": 13,
+    "escapedTableFamilies": 11,
+    "exactNativeTableMatches": 9,
+    "additionalCalls": 16,
+    "allChildrenClosedGroupAbsent": true,
+    "scope": "listed paths only; not append-proof tree; no implementation/build/runtime acceptance"
+  },
+  "paths": [
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a"
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe"
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4"
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "sha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606"
+    },
+    {
+      "path": "src/fs/mount/index.ts",
+      "sha256": "5b7c81d0bf6e7bcd491c401fd3d0fc185f4767f15c81faaa4fddded14e53aaf6"
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "sha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "sha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94"
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4"
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "sha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a"
+    },
+    {
+      "path": "src/commands/split/outputs.ts",
+      "sha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3"
+    },
+    {
+      "path": "src/commands/split/split.ts",
+      "sha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0"
+    },
+    {
+      "path": "src/commands/split/io.ts",
+      "sha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879"
+    },
+    {
+      "path": "src/commands/xan/DESIGN.md",
+      "sha256": "eab4712dd4a62081995626c642f833bce75d5cfce5e101cdfbb2b881a970228f"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/PROFILE-V2.md",
+      "sha256": "e9084f0074cd4e13ac3f9406bb6ea3d9f1764903004716a1e94840d626a8595d"
+    },
+    {
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+      "sha256": "bb098e841cd62791066432ae74f6b8368f99fbb1d9083d63583bc201cbeb2172"
+    }
+  ]
+}

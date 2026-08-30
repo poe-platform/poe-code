@@ -1,0 +1,152 @@
+{
+  "at": "2026-08-28T06:59:34.029Z",
+  "productExecutions": 0,
+  "inputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/static-repros-v1/common.mjs",
+      "bytes": 6861,
+      "sha256": "48a388ac295ecff2e2acafb09da316ed5ba78164218ec180c7a27e8e4e895ab3",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/static-repros-v1/recipe.mjs",
+      "bytes": 5023,
+      "sha256": "7e1ad9e12cafe0cbbfa655336330ac1d6e943ca2e0bed68f82f889b85f8c9bc5",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/static-repros-v1/worker.mjs",
+      "bytes": 5845,
+      "sha256": "85a9a1aff5d628f06742454d9af3bcbf3788e0c14a1327777e6d66e154808146",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/static-repros-v1/prepare.mjs",
+      "bytes": 3187,
+      "sha256": "ad96623c54914b925043744f5abed77a26233222289009f2a47be4c9b97e730b",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/static-repros-v1/run.mjs",
+      "bytes": 6785,
+      "sha256": "b6aa5d0206610dd9b8d2f43cb588b04ce616aab3864f3e2cf69d78bd0a3c8440",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/static-repros-v1/finish.mjs",
+      "bytes": 1722,
+      "sha256": "185ea12d81ceec5e9e733812e49a9bbe7fbe787c1dac734ac9cba2e649261f94",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/static-repros-v1/PROTOCOL.md",
+      "bytes": 5016,
+      "sha256": "ab358cba0c4c4cab9a4982ed5731e7288473736d27196c574097b6c202e77bc0",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/common.mjs",
+      "bytes": 2291,
+      "sha256": "cb3652a407ca269cff51d3c8cfe805b9fe2b2a3d65a2182ec5543b64a63f7e32",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/a01.mjs",
+      "bytes": 3595,
+      "sha256": "9c59d364484a71c881bf0465f0534628fefabc51b93741cc83ebc0b911efb28c",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/loader.mjs",
+      "bytes": 2512,
+      "sha256": "777021f914407f1873ec20a62472d282c959813724bb1997284dc7b434f70dd4",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/supervisor.mjs",
+      "bytes": 4583,
+      "sha256": "2599d8d7f9df252584d46ad24f8d19d59e931049a804e18a054dfc789942ebec",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/core.mjs",
+      "bytes": 6085,
+      "sha256": "3895185f7962d316bfde115614ab7d33e683a7b8c4a05886917df5b374abefdc",
+      "mode": "644"
+    }
+  ],
+  "externalInputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/source-audit-v1/SEAL.json",
+      "bytes": 1452,
+      "sha256": "9eba7bee0cc59ae4daa894f645f3f5bf341e6b5daf23bbfd719ed825f08bccd7",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/source-audit-v1/AUDIT.json",
+      "bytes": 34163,
+      "sha256": "ef28591b7ccef180b50f75bc834d4fec76ff82519a5d38875acb715fd84217ba",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/source-audit-v1/PINNED-INPUTS.json",
+      "bytes": 15018,
+      "sha256": "8aaac1c8562575ce03b217003b164c25a34554b3ccc223de4325f623a595c6c6",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/source-audit-v1/REPORT.md",
+      "bytes": 9393,
+      "sha256": "a6deb1a8de405468bcb8ec563cd653890015813093abcca408bb3e0dae231744",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/source-audit-v1/verify.mjs",
+      "bytes": 7715,
+      "sha256": "08d42e84624af9ddcbcd4ac2f87dfb8467d73aff231461d8b4365f295ddfcbca",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/ADMISSION-EVIDENCE-SEAL.json",
+      "bytes": 1801,
+      "sha256": "a7a2814fb74306da8f78fb4f8e4498ee520615e8ab011c60e7cec465cf302fd4",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/evidence/ADMISSION.json",
+      "bytes": 282277,
+      "sha256": "3214e66e04aff10eeb35a0dd44b6eed8fc662716a40b6f4c322d7248d035dc0d",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE-SEAL.json",
+      "bytes": 251240,
+      "sha256": "eea014240354ae976117e87f4f35fc19eaf27e7c27f0052174a1f2224b9a5ec7",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/evidence-continuation/EMISSION.json",
+      "bytes": 287826,
+      "sha256": "b50a7212f45c193e732388d5a8d5117f1d830db8f719a901a7f135bce9d5a1d8",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/evidence/virtual-bash-0.0.0.tgz",
+      "bytes": 760439,
+      "sha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+      "mode": "644"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": "755"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+      "bytes": 280067,
+      "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1",
+      "mode": "644"
+    }
+  ]
+}

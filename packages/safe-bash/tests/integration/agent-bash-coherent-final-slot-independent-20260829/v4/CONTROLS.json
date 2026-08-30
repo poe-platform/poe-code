@@ -1,0 +1,18 @@
+[
+  {
+    "id": "I01-valid-two-records",
+    "status": "PASS"
+  },
+  {
+    "id": "I02-nested-array",
+    "status": "PASS"
+  },
+  {
+    "id": "I03-missing-path",
+    "status": "PASS"
+  },
+  {
+    "id": "I04-duplicate-path",
+    "status": "PASS"
+  }
+]

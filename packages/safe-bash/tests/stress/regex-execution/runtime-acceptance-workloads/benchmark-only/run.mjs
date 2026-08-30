@@ -1,0 +1,229 @@
+import assert from 'node:assert/strict';
+import { execFileSync, fork, spawnSync } from 'node:child_process';
+import { open, readFile, realpath, unlink, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { checkedJSON, checkedPath, hash, owned as preparationRoot, prepared } from '../binding.mjs';
+
+assert.equal(process.argv.length, 2, 'static benign benchmark only; no job dispatcher');
+const owned = fileURLToPath(new URL('.', import.meta.url));
+const review = resolve(preparationRoot, '../cleanup-boundary-review');
+const historical = resolve(preparationRoot, '../production-continuation-review');
+const compiled = resolve(owned, '.temporary/compiled');
+const packageRoot = resolve(review, '.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash');
+const snapshotRoot = resolve(review, '.temporary/runtime-r1-verified');
+const baselineRoot = resolve(historical, 'snapshots/baseline');
+const setupFailureBytes = await readFile(resolve(owned, 'result.json'));
+assert.equal(hash(setupFailureBytes), 'db3a8c49ea2c44460638a9e45453b0b62de44c9fb6a87046dd70258d8599eded');
+assert.equal(hash(await readFile(resolve(owned, 'setup-failure-run.mjs.txt'))), '1bc61f3853f8f93e0429fa7266808dfde58b6f5762b29e48c6658202afb8fedf');
+const setupFailure = JSON.parse(setupFailureBytes);
+assert.equal(setupFailure.run.ipcBytes, 0);
+assert.equal(setupFailure.run.result, null);
+assert.equal(setupFailure.run.readyMs, undefined);
+assert.equal(setupFailure.run.closeAwaited, true);
+assert.equal(setupFailure.activeChildren, 0);
+assert.ok(setupFailure.run.stderr.includes('/.temporary/compiled/benchmark.mjs:7:8'));
+const artifact = name => resolve(owned, `setup-recovery-${name}.json`);
+const claim = {
+  authority: 'BENIGN_BENCHMARK_ONLY_NOT_DEFAULT_ACCEPTANCE',
+  time: new Date().toISOString(),
+  authorization: 'Current explicit root-relayed user assignment authorizes only the prepared ordinary six-command benchmark and the archived 329eb272 baseline. It does not assert original benign green or authorize the risky dispatcher.',
+  originalPrepared: '7/8 preserved, unrebaselined',
+  riskyJobs: 'four LOCKED; six additional UNUSED',
+  commandsMaximum: 6, alternatingPairsMaximum: 3, commandRetries: 0, setupOnlyRecovery: 1, watchdogMs: 30000,
+  preservedSetupFailure: { path: 'result.json', sha256: hash(setupFailureBytes), commandsStarted: 0, rootReported: '/tmp/regex-runtime-benchmark-ready.txt', correction: 'Own private package boundary prevents repository package self-reference; no benchmark/observer byte changes.' },
+  outputCapBytes: 16384, ipcCapBytes: 65536, defaultAcceptance: false,
+};
+await writeFile(artifact('claim'), JSON.stringify(claim, null, 2) + '\n', { flag: 'wx' });
+const evidence = { claim, pass: false, riskConsumed: 0, activeChildren: 0 };
+let lock;
+let activeChild;
+let interrupted;
+const interrupt = signal => { interrupted = signal; activeChild?.kill('SIGKILL'); };
+const onInt = () => interrupt('SIGINT');
+const onTerm = () => interrupt('SIGTERM');
+process.on('SIGINT', onInt);
+process.on('SIGTERM', onTerm);
+const gitBytes = (commit, path) => execFileSync('git', ['show', `${commit}:${path}`], { maxBuffer: 16 * 1024 * 1024 });
+async function checkedManifest(root, name, sha256) {
+  return checkedJSON({ path: resolve(root, name), sha256 });
+}
+async function verifyFiles(root, entries) {
+  for (const entry of entries) assert.equal(hash(await readFile(await checkedPath(resolve(root, entry.path)))), entry.sha256, entry.path);
+}
+function clean(records) {
+  return records.every(record => record.exited && record.terminationCalls <= 1 && (!record.terminationCalls || record.terminationAwaited) && Object.values(record.listeners).every(count => count === 0));
+}
+async function run() {
+  const started = performance.now();
+  return new Promise(resolveResult => {
+    const child = fork(resolve(compiled, 'benchmark.mjs'), [packageRoot, baselineRoot], {
+      execArgv: ['--unhandled-rejections=strict', '--max-old-space-size=128', '--stack-size=1024', '--import', pathToFileURL(resolve(owned, 'intervals.mjs')).href],
+      stdio: ['ignore', 'pipe', 'pipe', 'ipc'], env: { PATH: '/usr/bin:/bin', LC_ALL: 'C', LANG: 'C' },
+    });
+    activeChild = child;
+    const state = { pid: child.pid, events: [], stdout: '', stderr: '', result: null, killed: false, outputBytes: 0, ipcBytes: 0 };
+    const kill = reason => {
+      if (!state.killed) { state.killed = true; state.killReason = reason; state.killSent = child.kill('SIGKILL'); }
+    };
+    const watchdog = setTimeout(() => kill('absolute parent watchdog'), claim.watchdogMs);
+    child.on('message', message => {
+      state.ipcBytes += Buffer.byteLength(JSON.stringify(message));
+      if (state.ipcBytes > claim.ipcCapBytes) return kill('cumulative IPC cap');
+      if (message?.kind === 'ready' && state.readyMs === undefined) {
+        state.readyMs = performance.now() - started;
+        state.events.push('ready');
+        if (interrupted) return kill(interrupted);
+        child.send({ kind: 'run' }, error => { if (error) { state.sendError = String(error); kill('send error'); } });
+      } else if (message?.kind === 'result' && state.readyMs !== undefined && !state.result) state.result = message;
+      else kill('unexpected IPC');
+    });
+    for (const [stream, name] of [[child.stdout, 'stdout'], [child.stderr, 'stderr']]) {
+      stream.on('data', chunk => { state.outputBytes += chunk.length; if (state.outputBytes > claim.outputCapBytes) kill('combined output cap'); else state[name] += chunk; });
+      stream.on('close', () => state.events.push(`${name}-close`));
+      stream.on('error', error => { state.streamError = String(error); kill('stream error'); });
+    }
+    child.on('error', error => { state.childError = String(error); kill('child error'); });
+    child.on('disconnect', () => state.events.push('disconnect'));
+    child.on('exit', (code, signal) => state.events.push({ exit: code, signal }));
+    child.on('close', (code, signal) => {
+      clearTimeout(watchdog);
+      activeChild = undefined;
+      resolveResult({ ...state, code, signal, closeAwaited: true, elapsedMs: performance.now() - started });
+    });
+  });
+}
+try {
+  lock = await open(resolve(owned, 'active.lock'), 'wx');
+  assert.equal(await realpath(packageRoot), packageRoot);
+  const preparation = await prepared();
+  const preparedSha256 = hash(await readFile(resolve(preparationRoot, 'evidence/prepared.json')));
+  assert.equal(preparedSha256, '75e2c89496a1d7f9f19c8bb1bbbcefc3ca8898fb0fd5f263bc95f3c4a4987b87');
+  assert.equal(hash(gitBytes('d9e277b', 'tests/stress/regex-execution/runtime-acceptance-workloads/evidence/prepared.json')), preparedSha256);
+  const freezeSha256 = 'ef7d7c018ca19cc699a3ddcd009b8d1197de416f154651885738ce7537369b2e';
+  const buildSha256 = '9194095150789c25ff250aa746b567aac584d433a6330180f37d4924195a30d9';
+  const freeze = await checkedManifest(review, 'evidence/runtime-r1-verified-freeze.json', freezeSha256);
+  const build = await checkedManifest(review, 'evidence/runtime-r1-verified-build.json', buildSha256);
+  const original = await checkedManifest(review, 'evidence/runtime-r1-freeze.json', '11393027a812e9e25cc4af47309c38b9f444f8f8099e4772a04e6dfc145dd70a');
+  const originalBuild = await checkedManifest(review, 'evidence/runtime-r1-build.json', '88d09d6ab1429211c31bb1bfb60d494b9cf1b68ca81b54a3d6923e55478ba2af');
+  assert.deepEqual(freeze.identities, original.identities);
+  assert.deepEqual(build.emitted, originalBuild.emitted);
+  assert.equal(freeze.commit, preparation.commits.runtime);
+  assert.equal(build.status, 0);
+  assert.equal(freeze.identities.length, 216);
+  assert.equal(build.emitted.length, 704);
+  for (const entry of preparation.pinned) {
+    assert.equal(hash(gitBytes(entry.commit, entry.path)), entry.sha256);
+    if (entry.role !== 'fixture') assert.equal(freeze.identities.find(identity => identity.path === entry.path)?.sha256, entry.sha256);
+  }
+  await verifyFiles(snapshotRoot, [...freeze.identities, ...build.emitted]);
+  await verifyFiles(packageRoot, build.emitted);
+  const archivePath = resolve(packageRoot, '../../virtual-bash-0.0.0.tgz');
+  const archiveSha256 = hash(await readFile(await checkedPath(archivePath)));
+  assert.equal(archiveSha256, '86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b');
+  await verifyFiles(packageRoot, freeze.identities.filter(entry => entry.path === 'package.json'));
+  const manifest = JSON.parse(await readFile(resolve(packageRoot, 'package.json')));
+  assert.equal(manifest.name, 'virtual-bash');
+  assert.deepEqual(manifest.dependencies ?? {}, {});
+  const baselineFreezeSha256 = 'ded2ab6a8e44b860463b8015a405d93e570da6edbd13118099926ca97076beb8';
+  const baselineBuildSha256 = '52641ec74771095f07f16c9c8fd30057a89a358461b42e9f74bac055b4ef48ee';
+  const baselineFreeze = await checkedManifest(historical, 'evidence/baseline-freeze.json', baselineFreezeSha256);
+  const baselineBuild = await checkedManifest(historical, 'evidence/baseline/build.json', baselineBuildSha256);
+  for (const [path, sha256] of [['evidence/baseline-freeze.json', baselineFreezeSha256], ['evidence/baseline/build.json', baselineBuildSha256]]) {
+    assert.equal(hash(gitBytes('839f2d4', `tests/stress/regex-execution/production-continuation-review/${path}`)), sha256);
+  }
+  assert.equal(baselineFreeze.head, '329eb2722052e8ace0ec18a751f12c30ed87a25b');
+  assert.equal(baselineBuild.status, 0);
+  await verifyFiles(baselineRoot, [...baselineFreeze.identities, ...baselineBuild.emitted]);
+  const audit = await checkedManifest(review, 'evidence/runtime-r1-settlement-audit.json', '257bcf5e9d55a649a2ade7603f597d2f6237703835762056d9775182c34ec2f1');
+  assert.equal(audit.allExactChildPids.length, 29);
+  const previousChildren = spawnSync('/bin/ps', ['-p', audit.allExactChildPids.join(','), '-o', 'pid=,ppid=,command='], { encoding: 'utf8' });
+  evidence.previousChildren = { pids: audit.allExactChildPids, status: previousChildren.status, stdout: previousChildren.stdout, stderr: previousChildren.stderr };
+  assert.equal(previousChildren.status, 1);
+  assert.equal(previousChildren.stdout, '');
+  assert.equal(previousChildren.stderr, '');
+  evidence.identities = {
+    preparedSha256, commits: preparation.commits,
+    candidate: { snapshotRoot, packageRoot, freezeSha256, buildSha256, archivePath, archiveSha256, sourceFiles: freeze.identities.length, emittedFiles: build.emitted.length },
+    baseline: { snapshotRoot: baselineRoot, head: baselineFreeze.head, frozenAt: '839f2d4', freezeSha256: baselineFreezeSha256, buildSha256: baselineBuildSha256, sourceFiles: baselineFreeze.identities.length, emittedFiles: baselineBuild.emitted.length, captureStatus: baselineFreeze.status, dirtyCapturedIdentities: baselineFreeze.identities.filter(entry => entry.dirty) },
+    preparationSource: preparation.source, preparationEmitted: preparation.emitted,
+    runner: await Promise.all(['run.mjs', 'intervals.mjs', 'package.json'].map(async path => ({ path, sha256: hash(await readFile(resolve(owned, path))) }))),
+  };
+  evidence.host = { node: process.version, platform: process.platform, arch: process.arch, cohostLoad: 'foreign load uncontrolled; no simultaneous owned benchmark/probes', head: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() };
+  for (const name of ['benchmark.mjs', 'observe.mjs']) {
+    assert.equal(hash(await readFile(resolve(compiled, name))), preparation.emitted.find(entry => entry.path === `.temporary/compiled/${name}`).sha256);
+  }
+  assert.equal(await realpath(resolve(compiled, 'node_modules/virtual-bash')), packageRoot);
+  await writeFile(artifact('identities'), JSON.stringify(evidence.identities, null, 2) + '\n', { flag: 'wx' });
+  assert.equal(interrupted, undefined);
+  evidence.run = await run();
+  const runResult = evidence.run;
+  assert.equal(interrupted, undefined);
+  assert.equal(runResult.code, 0);
+  assert.equal(runResult.killed, false);
+  assert.equal(runResult.stderr, '');
+  assert.equal(runResult.stdout, '');
+  assert.equal(runResult.closeAwaited, true);
+  for (const event of ['ready', 'stdout-close', 'stderr-close', 'disconnect']) assert.ok(runResult.events.includes(event));
+  const result = runResult.result;
+  assert.equal(result.pass, true);
+  assert.equal(result.commands, 6);
+  assert.equal(result.filesPerCommand, 32);
+  assert.equal(result.pairs.length, 3);
+  assert.equal(result.riskConsumed, 0);
+  assert.deepEqual(result.lateErrors, []);
+  assert.equal(result.modules.candidate.physicalEntry, resolve(packageRoot, 'dist/index.js'));
+  let intervalIndex = 0;
+  evidence.summary = result.pairs.map((pair, repeat) => {
+    assert.deepEqual(pair.order, repeat % 2 ? ['candidate', 'baseline'] : ['baseline', 'candidate']);
+    assert.deepEqual(pair.baseline.output, pair.candidate.output);
+    const summary = { repeat, order: pair.order };
+    for (const variant of pair.order) {
+      const record = pair[variant];
+      const interval = result.intervals[intervalIndex++];
+      assert.equal(interval.variant, variant);
+      assert.ok(Number.isFinite(interval.pluginSetupEnd - interval.pluginSetupStart));
+      assert.ok(clean(record.afterDispose));
+      assert.ok(record.startupMs.length > 0 && record.startupMs.every(value => Number.isFinite(value) && value >= 0));
+      if (variant === 'candidate') { assert.ok(clean(record.publicSettlement)); assert.ok(clean(interval.publicSettlement)); }
+      for (const worker of record.afterDispose) assert.equal(fileURLToPath(worker.url), resolve(variant === 'candidate' ? packageRoot : baselineRoot, 'dist/commands/regex-execution/worker.js'));
+      const stdout = Buffer.from(record.output.stdout, 'base64');
+      assert.equal(record.output.exitCode, 0);
+      assert.equal(record.output.stderr, '');
+      assert.equal(stdout.length, result.expectedOutputBytes);
+      assert.equal(stdout.toString().split('\n').length - 1, 13);
+      summary[variant] = {
+        elapsedMs: record.elapsedMs, startupMs: record.startupMs,
+        setupUpperBoundMs: record.elapsedMs - (interval.disposeEnd - interval.execStart),
+        pluginUseMs: interval.useEnd - interval.useStart,
+        pluginSetupMs: interval.pluginSetupEnd - interval.pluginSetupStart,
+        execMs: interval.execEnd - interval.execStart,
+        settlementToDisposeMs: interval.disposeStart - interval.execEnd,
+        disposeMs: interval.disposeEnd - interval.disposeStart,
+        stdoutBytes: stdout.length, stdoutSha256: hash(stdout), stderrBytes: 0, exitCode: 0,
+        workers: record.afterDispose.length, publicSettlementClean: clean(record.publicSettlement),
+        immediatePublicSettlementClean: clean(interval.publicSettlement), afterDisposeClean: clean(record.afterDispose),
+      };
+    }
+    return summary;
+  });
+  await verifyFiles(snapshotRoot, [...freeze.identities, ...build.emitted]);
+  await verifyFiles(packageRoot, build.emitted);
+  await verifyFiles(baselineRoot, [...baselineFreeze.identities, ...baselineBuild.emitted]);
+  await prepared();
+  evidence.postRunIdentityRecheck = true;
+  evidence.pass = true;
+} catch (error) {
+  evidence.failure = { message: String(error), stack: error.stack, childStarted: Boolean(evidence.run) };
+  process.exitCode = 1;
+} finally {
+  assert.equal(activeChild, undefined, 'exact child close awaited before report');
+  evidence.activeChildren = activeChild ? 1 : 0;
+  evidence.interrupted = interrupted ?? null;
+  evidence.finishedAt = new Date().toISOString();
+  process.off('SIGINT', onInt);
+  process.off('SIGTERM', onTerm);
+  if (lock) { await lock.close(); await unlink(resolve(owned, 'active.lock')); }
+  await writeFile(artifact('result'), JSON.stringify(evidence, null, 2) + '\n', { flag: 'wx' });
+  console.log(JSON.stringify({ pass: evidence.pass, commands: evidence.run?.result?.commands ?? 0, activeChildren: evidence.activeChildren, riskConsumed: 0, failure: evidence.failure?.message }));
+}

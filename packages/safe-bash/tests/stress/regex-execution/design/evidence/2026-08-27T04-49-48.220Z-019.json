@@ -1,0 +1,151 @@
+{
+  "args": [
+    "vector",
+    "unicode-empty",
+    "rg"
+  ],
+  "pid": 68421,
+  "readyAt": 40.83229099999994,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 65.36562499999991
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 67.2227499999999
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 67.22787500000004
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "vector",
+      "name": "unicode-empty"
+    },
+    {
+      "type": "done",
+      "result": {
+        "name": "unicode-empty",
+        "profile": "rg",
+        "status": "exact-native-worker",
+        "current": [
+          {
+            "start": 0,
+            "end": 0
+          },
+          {
+            "start": 4,
+            "end": 4
+          }
+        ],
+        "descriptor": {
+          "source": "(?:a*)",
+          "flags": "gu"
+        },
+        "direct": {
+          "hits": [
+            [
+              {
+                "pattern": 0,
+                "start": 0,
+                "end": 0,
+                "captures": [
+                  ""
+                ]
+              },
+              {
+                "pattern": 0,
+                "start": 2,
+                "end": 2,
+                "captures": [
+                  ""
+                ]
+              }
+            ]
+          ],
+          "bytes": 99,
+          "execCalls": 2
+        },
+        "bounded": {
+          "status": "completed-byte-profile",
+          "first": {
+            "start": 0,
+            "end": 0,
+            "groups": [
+              ""
+            ]
+          }
+        },
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 4,
+          "responseBytes": 99,
+          "startupMs": 20.955792,
+          "workMs": 0.2917500000000004,
+          "terminationMs": 0.8780420000000007,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      },
+      "wallMs": 23.701749999999997,
+      "heartbeats": 4,
+      "maxGap": 6.293417000000002,
+      "peakRss": 66469888,
+      "memory": {
+        "rss": 59359232,
+        "heapTotal": 7749632,
+        "heapUsed": 5594472,
+        "external": 2184719,
+        "arrayBuffers": 19221
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": [
+        {
+          "created": 1,
+          "terminated": 1,
+          "requests": 2,
+          "execCalls": 2,
+          "inputBytes": 4,
+          "responseBytes": 99,
+          "startupMs": 20.955792,
+          "workMs": 0.2917500000000004,
+          "terminationMs": 0.8780420000000007,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      ]
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 1233,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

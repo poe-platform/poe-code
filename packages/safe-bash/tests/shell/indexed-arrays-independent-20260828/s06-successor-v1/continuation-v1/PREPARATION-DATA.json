@@ -1,0 +1,71 @@
+{
+  "kind": "preparation-DATA-only",
+  "candidateExecutions": 0,
+  "archiveRecordsAuthenticated": 437,
+  "sourceInputsAuthenticated": 269,
+  "packageMembers": 862,
+  "priorTypeRecords": [
+    {
+      "name": "types-source-build.json",
+      "bytes": 15366490,
+      "sha256": "26625efda3db5566a83c86c19e63dbadbc5afb3ffc36b9973034b6e83bfe07f2"
+    },
+    {
+      "name": "types-installed.json",
+      "bytes": 15473780,
+      "sha256": "edd301d41378b87bce6e64659f67c9ec32f601f7eb1051c968ee780549c81dd7"
+    },
+    {
+      "name": "types-moved.json",
+      "bytes": 15330933,
+      "sha256": "b4683a60842be098e5b9a1c7eddf58b5586c9079f54ff8be57b578249d23cd40"
+    }
+  ],
+  "newTypePasses": 0,
+  "roles": 124,
+  "appRoles": 21,
+  "appTemplateEntries": {
+    "source": 1068,
+    "installed": 1069
+  },
+  "mutationData": [
+    {
+      "id": "U08",
+      "bytes": 222791,
+      "sha256": "8cc9ec1edaacd0aa06643936b955b0a9551bbbf8349118877273adeee6569279",
+      "qualification": "exact bytes constructed in DATA memory; no module loaded/activated"
+    },
+    {
+      "id": "U09",
+      "bytes": 222780,
+      "sha256": "04f5b3b4c49fa6cf4255bb24f93b40f533549d12586b86be9bc75564e79abe87",
+      "qualification": "exact bytes constructed in DATA memory; no module loaded/activated"
+    },
+    {
+      "id": "U11",
+      "bytes": 222698,
+      "sha256": "636da6d2400ac6ad4f9b82f13a0e30c8be5e2c8612ec47562ad7354300e52485",
+      "qualification": "exact bytes constructed in DATA memory; no module loaded/activated"
+    },
+    {
+      "id": "U12",
+      "bytes": 9662,
+      "sha256": "73172f943eeb549fdf9f2a65e56923227fb8e3e091a025c6b4ed28fca533cf5f",
+      "qualification": "exact bytes constructed in DATA memory; no module loaded/activated"
+    },
+    {
+      "id": "U13-S06",
+      "bytes": 222727,
+      "sha256": "ddc15913410eba296ca3094a5cb7d35e68f893adecd939521ba1380b61fb3f02",
+      "qualification": "exact bytes constructed in DATA memory; no module loaded/activated"
+    }
+  ],
+  "jobChildren": 17,
+  "mutantChildren": 5,
+  "maximumChildren": 22,
+  "maximumIncludingCoordinator": 23,
+  "expectedTopLevelObservations": 52,
+  "sealSha256": "5c3507366650157cfc2662f10d2f729b4fcbc8a17d74419450ab6dcd6f0daeb9",
+  "dispatcherSha256": "5f9ce71869b9a3ffa8d7dc880e25af53a970c41736ff67dd2ba82441d063d41b",
+  "cleanupPostSha256": "1a87b1f4c3e90ba035c4697db66e399c7ed75e12cc948f002309dd6643b3d990"
+}

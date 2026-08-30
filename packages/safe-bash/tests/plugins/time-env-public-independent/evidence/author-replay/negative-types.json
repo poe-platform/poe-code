@@ -1,0 +1,14 @@
+{
+  "name": "negative-types",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "negative.json"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-0EbEWb/moved/consumer",
+  "status": 2,
+  "signal": null,
+  "stdout": "negative.mts(3,28): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeEnvCommandsOptions, \"replace\">'.\nnegative.mts(4,19): error TS2322: Type '() => string' is not assignable to type '() => number'.\n  Type 'string' is not assignable to type 'number'.\nnegative.mts(5,25): error TS2322: Type 'number' is not assignable to type 'string'.\nnegative.mts(6,35): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(7,7): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.\nnegative.mts(8,7): error TS2739: Type '{ maxFormatWidth: number; }' is missing the following properties from type 'TimeEnvLimits': maxArguments, maxArgumentBytes, maxOutputBytes, maxEnvironmentEntries\n",
+  "stderr": ""
+}

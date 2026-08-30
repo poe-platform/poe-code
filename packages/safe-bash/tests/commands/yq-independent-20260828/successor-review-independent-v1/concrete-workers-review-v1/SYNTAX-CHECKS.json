@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "classification": "JAVASCRIPT_PARSE_ONLY_NO_MODULE_EVALUATION",
+  "workerCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "nodePath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "syntaxChecks": [
+    {
+      "path": "worker-support.mjs",
+      "sourceSha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "input": "authenticated committed source via stdin",
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "NODE_OPTIONS": "absent",
+      "NODE_PATH": "absent",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "ownedSyntaxProcessWaitCompleted": true,
+      "authoredCodeExecuted": false
+    },
+    {
+      "path": "type-worker.mjs",
+      "sourceSha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "input": "authenticated committed source via stdin",
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "NODE_OPTIONS": "absent",
+      "NODE_PATH": "absent",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "ownedSyntaxProcessWaitCompleted": true,
+      "authoredCodeExecuted": false
+    },
+    {
+      "path": "loaded-worker.mjs",
+      "sourceSha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "input": "authenticated committed source via stdin",
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "NODE_OPTIONS": "absent",
+      "NODE_PATH": "absent",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "ownedSyntaxProcessWaitCompleted": true,
+      "authoredCodeExecuted": false
+    }
+  ],
+  "allSyntaxStatusesZero": true,
+  "rawCapturedBeforeAssessment": true,
+  "typeCompilerInvocations": 0,
+  "productImports": 0,
+  "authoredModuleInvocations": 0,
+  "controlExecutions": 0,
+  "runtimePasses": 0,
+  "controlPasses": 0
+}

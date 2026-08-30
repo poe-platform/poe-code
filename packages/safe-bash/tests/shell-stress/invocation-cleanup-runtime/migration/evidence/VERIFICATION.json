@@ -1,0 +1,117 @@
+{
+  "candidate": "026e20cf38ddbb695d82de3f30cf7a1a7c88f088",
+  "sourceFiles": {
+    "tests/shell/invocation-cleanup-public.test.ts": "04d89950adb9eae86407154f913be7b9c257df16ff55fc377a1006c456642568",
+    "tests/shell-stress/invocation-cleanup-runtime/migration/README.md": "c56ab2538d6485231655704fa254d3cdd6961ec442f10f140ad4064807e647af",
+    "tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts": "825ebf23e40c3f6293c13cb286ccf6267acb7ed71f3ce6df545c356e76cfc563",
+    "tests/shell-stress/invocation-cleanup-runtime/migration/controls.mjs": "b82821a4a9f47122942eb1d759653f8f4c28a8a9101e806163fb5ff874e8b59d",
+    "tests/shell-stress/invocation-cleanup-runtime/migration/preserve-history.mjs": "703b6679d18d50797fe0b5013d22bf7c9b45176a6bb8e4b96d91c7556011530b",
+    "tests/shell-stress/invocation-cleanup-runtime/migration/replay.mjs": "5bddec036e4961f22f7aab96381d7687e90c86e417a25efdaf050706c6293a30"
+  },
+  "cohorts": {
+    "development-first": {
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "workerInstances": 14,
+      "boundaryRecords": 30,
+      "profile": "captured-working-tree-not-committed-qualification",
+      "sourceFiles": 213,
+      "emittedFiles": 708
+    },
+    "committed-026e20cf": {
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "workerInstances": 14,
+      "boundaryRecords": 30,
+      "profile": "explicit-committed-source",
+      "sourceFiles": 213,
+      "emittedFiles": 708
+    },
+    "historical-first": {
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "workerInstances": 14,
+      "boundaryRecords": 30,
+      "profile": "original-historical-runtime",
+      "sourceFiles": 201,
+      "emittedFiles": 668
+    },
+    "historical-final": {
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "workerInstances": 14,
+      "boundaryRecords": 30,
+      "profile": "original-historical-runtime",
+      "sourceFiles": 201,
+      "emittedFiles": 668
+    },
+    "controls-first-controls": {
+      "counts": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "controls-final-controls": {
+      "counts": {
+        "tests": 15,
+        "pass": 14,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "controls-final-v2-controls": {
+      "counts": {
+        "tests": 15,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "committed-026e20cf-controls": {
+      "counts": {
+        "tests": 15,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  },
+  "originalFailedHookRowsPreserved": 10,
+  "scopedTypes": 0,
+  "noProductChanges": true,
+  "verifiedAt": "2026-08-27T12:23:35.234Z"
+}

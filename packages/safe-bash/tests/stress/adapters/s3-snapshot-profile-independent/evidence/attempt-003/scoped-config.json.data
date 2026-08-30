@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "typeRoots": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+    ]
+  },
+  "files": [
+    "tests/stress/adapters/remote-safe-workflows.test.ts",
+    "tests/stress/adapters/s3-snapshot-profile/assertions.ts",
+    "tests/stress/adapters/s3-snapshot-profile/profile-guards.test.ts",
+    "tests/stress/adapters/s3-snapshot-profile/preservation.test.ts",
+    "tests/stress/adapters/s3-snapshot-profile-independent/independent.test.ts",
+    "tests/fs/s3/rmdir.test.ts",
+    "tests/fs/s3/rmdir-real-service/snapshot-profile/rmdir-profile.test.ts",
+    "tests/fs/s3/constructor-comparison.test.ts",
+    "tests/fs/webdav/rmdir.test.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": []
+}

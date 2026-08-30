@@ -1,0 +1,51 @@
+{
+  "schema": "k08-root-binding-authorization-record-v1",
+  "authority": "ROOT binding-only user instruction; not actual runtime GO",
+  "reviewAcceptanceCommit": "29b6f0d5696e920cf42dbaac120b05e675e6b03f",
+  "richReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/RECEIPT.json",
+    "bytes": 5096,
+    "sha256": "bd5c3e5bddc871a929d510c734d95c1f5ac6d62ec5eb84e84be5e40ad23b5690",
+    "notCommandSlot": true
+  },
+  "productSource": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "package": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+    "decodedBytes": 5803008,
+    "shippingMembers": 1006
+  },
+  "seal": {
+    "bytes": 199449,
+    "sha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49"
+  },
+  "prospective": {
+    "knownOS": 86,
+    "peak": 3,
+    "durationMs": 1500000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "primaryCalls": 69,
+    "mutantShellCalls": 2,
+    "allAdministrationWithinActualDeadline": true
+  },
+  "window": {
+    "issuedAt": "2026-08-29T15:33:29.112Z",
+    "latestStart": "2026-08-29T15:53:29.112Z",
+    "expiresAt": "2026-08-29T16:18:29.112Z"
+  },
+  "authorityConditions": [
+    "Different final-slot review required",
+    "Fresh ROOT actual GO required",
+    "Fresh preflight and remaining full25min window before eventual launch",
+    "No activation/build/native/product/Worker in this binding phase"
+  ],
+  "qualifications": [
+    "Four-field REVIEW.json binds independentCommit29b6, not richer receipt schema/hash.",
+    "The helper validates the exact existing schema before grant/review publication.",
+    "Initial tool-shell startup remains trusted-host outside qualified child cohort.",
+    "Old51/54 and2MiB publicationSTOP unchanged. Final helperliteral/source-correction qualifications preserved.",
+    "Prepared GO decision is a conditional runtime artifact, not permission to execute now."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-08-28T00:10:28.064Z",
+  "driverSha256": "99a64880f8eaf61dc4f0f12f610a2fa97fbe9da9efcd312b5930588297902266",
+  "processes": [
+    {
+      "name": "bug-E07-isolated",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "args": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/register-guard-v1.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/diagnostics/bug-repro-v1.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "NODE_NO_WARNINGS": "1",
+        "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/build/cancellation.js",
+        "CANCELLATION_MODULE_SHA256": "83a312b43649bd68929a57d113cb1c7cd09dfb2397461b465677dae9c5679d98",
+        "REVIEW_ALLOWED_FILES": "[\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/build/cancellation.js\",\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/diagnostics/bug-repro-v1.mjs\"]",
+        "REVIEW_LOAD_LOG": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/evidence-v2/bug-E07-isolated-loads.jsonl"
+      },
+      "started": "2026-08-28T00:10:27.768Z",
+      "ended": "2026-08-28T00:10:28.061Z",
+      "pid": 54596,
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "751ac40b99f50bb9fd47c4336588a6d798203481962152d5dcf3a6a904aca566",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

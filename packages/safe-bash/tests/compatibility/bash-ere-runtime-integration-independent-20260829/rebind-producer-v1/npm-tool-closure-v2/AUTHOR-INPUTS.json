@@ -1,0 +1,20 @@
+{
+  "commit": "439138a0e13595a41e84841f83e4f2f51b36ff68",
+  "pins": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/RESULT.json",
+      "bytes": 3918,
+      "sha256": "28f00b32905246d286350d4c5e1f31e6993e577f13fc4492a1ba30fd90be2c29"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/runner.mjs",
+      "bytes": 17671,
+      "sha256": "9a8544306c48c76851b92da7600fc6674625af3789438df8d5eeff9ca1d4d84c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/produce.outer.jsonl",
+      "bytes": 7509,
+      "sha256": "27b59d82a1346c3f33bba8b372c2e3a82fa6662ea7c7d27cfb3c0fc5b9332235"
+    }
+  ]
+}

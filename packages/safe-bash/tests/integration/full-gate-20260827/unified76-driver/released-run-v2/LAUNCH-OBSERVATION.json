@@ -1,0 +1,28 @@
+{
+  "observedAt": "2026-08-28T11:02:31.815Z",
+  "authorizationCommit": "c222e17c4cbcc6bcb9da8a77414b90af3c465d88",
+  "packetCommit": "52e83606dc41297a20cbeb3e0fc4ecf703bb242d",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
+  "toolSession": 80997,
+  "launcherInvocations": 1,
+  "commandSource": "release-packet-v3-inherited-routes/LAUNCH.md:80",
+  "output": "/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+  "physicalOutput": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+  "identity": {
+    "device": 16777232,
+    "inode": 181438674,
+    "mode": 448,
+    "uid": 501
+  },
+  "receipt": "/tmp/unified76-release-f5-scopedenv-20260828-r2.json",
+  "receiptSha256": "6c04ed4badd458d74f8d1c8c4dd945e55cdd087b90b7d49f097aa2338fae524d",
+  "expectedReceiptSha256": "6c04ed4badd458d74f8d1c8c4dd945e55cdd087b90b7d49f097aa2338fae524d",
+  "observedFiles": [
+    "ADMISSION.json"
+  ],
+  "phaseExecution": "Not inferred from output-directory creation; later actual phase receipts are authoritative",
+  "state": "ACTUAL_SINGLE_LAUNCH_IN_PROGRESS",
+  "retryAuthorized": false,
+  "qualification": "Metadata observation only; no new launch, forced cleanup or old-attempt mutation."
+}

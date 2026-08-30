@@ -1,0 +1,159 @@
+{
+  "candidate": "c27249c8f6085d6d8366ae348b2b93aa0e377369",
+  "freezeCommit": "4d524fd8d8c7f0bfbafba625778e8fa4550acf5f",
+  "scope": "Only the exact unchanged prepared-v2 independent cohort",
+  "historicalFilesAuthenticated": 198,
+  "historicalEvidenceUnchanged": true,
+  "retainedPresealBytesUnchanged": true,
+  "sourceBuildInputs": 181,
+  "packedFiles": 709,
+  "cases": {
+    "beforePass": 13,
+    "afterPass": 18,
+    "total": 18
+  },
+  "checks": {
+    "beforePass": 825,
+    "afterPass": 834,
+    "total": 834,
+    "failToPass": 9,
+    "regressions": 0
+  },
+  "all18ChildrenNaturalExit": true,
+  "realWorkersRetired": 16,
+  "zeroWorkerControls": 2,
+  "liveWorkers": 0,
+  "processStates": [
+    {
+      "pid": 97045,
+      "absent": true
+    },
+    {
+      "pid": 97057,
+      "absent": true
+    },
+    {
+      "pid": 97069,
+      "absent": true
+    },
+    {
+      "pid": 97081,
+      "absent": true
+    },
+    {
+      "pid": 97093,
+      "absent": true
+    },
+    {
+      "pid": 97105,
+      "absent": true
+    },
+    {
+      "pid": 99653,
+      "absent": true
+    },
+    {
+      "pid": 99665,
+      "absent": true
+    },
+    {
+      "pid": 4481,
+      "absent": true
+    },
+    {
+      "pid": 4502,
+      "absent": true
+    },
+    {
+      "pid": 4504,
+      "absent": true
+    },
+    {
+      "pid": 4516,
+      "absent": true
+    },
+    {
+      "pid": 4635,
+      "absent": true
+    },
+    {
+      "pid": 4660,
+      "absent": true
+    },
+    {
+      "pid": 4661,
+      "absent": true
+    },
+    {
+      "pid": 4662,
+      "absent": true
+    },
+    {
+      "pid": 4663,
+      "absent": true
+    },
+    {
+      "pid": 4664,
+      "absent": true
+    },
+    {
+      "pid": 4665,
+      "absent": true
+    },
+    {
+      "pid": 4667,
+      "absent": true
+    },
+    {
+      "pid": 4668,
+      "absent": true
+    },
+    {
+      "pid": 4669,
+      "absent": true
+    },
+    {
+      "pid": 4670,
+      "absent": true
+    },
+    {
+      "pid": 4671,
+      "absent": true
+    },
+    {
+      "pid": 4672,
+      "absent": true
+    },
+    {
+      "pid": 4673,
+      "absent": true
+    },
+    {
+      "pid": 4674,
+      "absent": true
+    },
+    {
+      "pid": 4675,
+      "absent": true
+    },
+    {
+      "pid": 4676,
+      "absent": true
+    },
+    {
+      "pid": 4678,
+      "absent": true
+    },
+    {
+      "pid": 4679,
+      "absent": true
+    }
+  ],
+  "scratchAbsent": true,
+  "parentToolSessions": {
+    "prepare18250": "exit 0",
+    "replay29530": "exit 1 after all 18 cases passed; preserved postprocessing alias defect",
+    "recovery": "exit 0; no replay"
+  },
+  "auditedAt": "2026-08-27T14:08:14.543Z"
+}

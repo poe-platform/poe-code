@@ -1,0 +1,353 @@
+{
+  "status": "DATA-only exact variants, no mutant module executed",
+  "packageSha256": "e12ed19882b6722503a8fb962ca88e0d6c40300a7e76acc3f81aef5961e0a3a3",
+  "declarations": [
+    {
+      "id": "U01",
+      "member": "dist/shell/arrays/ledger.js",
+      "replacements": [
+        {
+          "before": "count > Number.MAX_SAFE_INTEGER - cursor",
+          "after": "count > Number.MAX_SAFE_INTEGER"
+        },
+        {
+          "before": "            const count = requested === true ? 1 : requested;",
+          "after": "            __arrayMutantHit();\n            const count = requested === true ? 1 : requested;"
+        }
+      ],
+      "originalSha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d",
+      "originalBytes": 9152,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U01\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "9777960bf1a7a2b9135152762faa9009b4c434dbc423b49d817933a2f748c718",
+      "changedBytes": 9635,
+      "cohort": "mechanical",
+      "ids": [
+        "M01"
+      ],
+      "requiredFailed": [
+        "M01"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U02",
+      "member": "dist/shell/arrays/bindings.js",
+      "replacements": [
+        {
+          "before": "        if (--watch.observers !== 0)",
+          "after": "        __arrayMutantHit();\n        if (--watch.observers !== -1)"
+        }
+      ],
+      "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+      "originalBytes": 10249,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U02\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "7bba61c09889ece63ae9a76b2430ee2ca7aa8f879f307723f4d6e417409dd999",
+      "changedBytes": 10738,
+      "cohort": "mechanical",
+      "ids": [
+        "M04"
+      ],
+      "requiredFailed": [
+        "M04"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U03",
+      "member": "dist/shell/arrays/bindings.js",
+      "replacements": [
+        {
+          "before": "watch.generation = tickets.generation;\n                watch.version = tickets.version;",
+          "after": "__arrayMutantHit();\n                watch.generation = watch.generation;\n                watch.version = watch.version;"
+        }
+      ],
+      "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+      "originalBytes": 10249,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U03\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "69ea0429da32755f3c3f9dfb231096a9339b9a07b3aa3dcca7ce72cf7174eb21",
+      "changedBytes": 10741,
+      "cohort": "mechanical",
+      "ids": [
+        "M05"
+      ],
+      "requiredFailed": [
+        "M05"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U04",
+      "member": "dist/shell/arrays/bindings.js",
+      "replacements": [
+        {
+          "before": "        if (--this.references === 0)\n            this.admission.release();",
+          "after": "        __arrayMutantHit();\n        if (--this.references >= 0)\n            this.admission.release();"
+        }
+      ],
+      "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+      "originalBytes": 10249,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U04\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "d17b282a35bfacb736c00aa8a382466841b65f26eb3be1ddadcfd6a574a84762",
+      "changedBytes": 10736,
+      "cohort": "mechanical",
+      "ids": [
+        "M06"
+      ],
+      "requiredFailed": [
+        "M06"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U05",
+      "member": "dist/shell/arrays/state.js",
+      "replacements": [
+        {
+          "before": "const tickets = monitor.mutation(name);\n                    const result = Reflect.set(target, key, entry);",
+          "after": "if (key === \"dotglob\") __arrayMutantHit();\n                    const tickets = key === \"dotglob\" ? undefined : monitor.mutation(name);\n                    const result = Reflect.set(target, key, entry);"
+        }
+      ],
+      "originalSha256": "a0e3a403cb892f1fe54aaab9ef5d61abdd43d2ae434d6e228e19b85a16a0ce72",
+      "originalBytes": 14264,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U05\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "06d30a08a5779711fa70b012a83335f0eb01e0bfe5685e5cdd29b358df111c8b",
+      "changedBytes": 14819,
+      "cohort": "mechanical",
+      "ids": [
+        "M17"
+      ],
+      "requiredFailed": [
+        "M17"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U06",
+      "member": "dist/shell/arrays/state.js",
+      "replacements": [
+        {
+          "before": "export async function snapshotState(state, clone, signal, prepare) {\n    const monitor = stateMonitor(state);\n    if (!monitor)\n        return clone();\n    if (!monitor.session.ledger.active)\n        return new StateMonitor(clone(), monitor.session).proxy;\n    const store = monitor.activate();\n    const epoch = monitor.epoch;\n    const owner = ArrayOwner.create(store.owner.ledger, store.owner);\n    const holding = store.owner.hold();\n    const check = () => {\n        signal.throwIfAborted();\n        if (monitor.epoch !== epoch)\n            throw new ArrayFailure(\"stale state snapshot\");\n    };\n    let result;\n    try {\n        owner.reserve({ metadata: 512, work: 32, epoch: true });\n        for (const key in state.variables) {\n            if (!Object.hasOwn(state.variables, key))\n                continue;\n            check();\n            owner.reserve({ slots: 1, metadata: 32, work: 4 });\n            await textToken(owner, key, signal);\n            check();\n            await textToken(owner, state.variables[key], signal);\n            check();\n        }\n        for (const value of state.positional) {\n            await textToken(owner, value, signal);\n            check();\n        }\n        for (const key of state.exported) {\n            owner.reserve({ slots: 1, metadata: 32, work: 4 });\n            await textToken(owner, key, signal);\n            check();\n        }\n        for (const key of state.readonlyVariables ?? []) {\n            owner.reserve({ slots: 1, metadata: 32, work: 4 });\n            await textToken(owner, key, signal);\n            check();\n        }\n        for (const key of state.functions.keys()) {\n            owner.reserve({ slots: 1, metadata: 32, work: 4 });\n            await textToken(owner, key, signal);\n            check();\n        }\n        for (const value of state.directoryStack?.entries ?? []) {\n            await textToken(owner, value, signal);\n            check();\n        }\n        for (const frame of state.locals) {\n            owner.reserve({ metadata: 64, work: 4 });\n            for (const [key, saved] of frame) {\n                owner.reserve({ slots: 1, metadata: 64, work: 8 });\n                await textToken(owner, key, signal);\n                check();\n                if (saved.value !== undefined) {\n                    await textToken(owner, saved.value, signal);\n                    check();\n                }\n            }\n        }\n        check();\n        result = new StateMonitor(clone(), monitor.session);\n        const destination = result.activate();\n        for (const [name, entry] of store.bindings) {\n            check();\n            const prepared = await destination.prepareName(name, owner, signal);\n            check();\n            const tickets = owner.reserve({ generation: true, version: true, epoch: true, work: 5 });\n            entry.binding.retain();\n            destination.publish(name, entry.binding, tickets, prepared);\n            await owner.ledger.checkpoint(signal, 5);\n        }\n        check();\n        if (prepare) {\n            await prepare(result.proxy, owner);\n            check();\n        }\n        return result.proxy;\n    }\n    catch (error) {\n        if (result?.store)\n            for (const [name] of result.store.bindings)\n                await result.store.remove(name, { generation: 0, version: 0, epoch: 0 });\n        await owner.close();\n        throw error;\n    }\n    finally {\n        holding.release();\n    }\n}\n//# sourceMappingURL=state.js.map",
+          "after": "export async function snapshotState(state, clone, signal, prepare) {\n    const monitor = stateMonitor(state);\n    if (!monitor)\n        return clone();\n    if (!monitor.session.ledger.active)\n        return new StateMonitor(clone(), monitor.session).proxy;\n    const store = monitor.activate();\n    const epoch = monitor.epoch;\n    __arrayMutantHit();\n    const isolated = { ...monitor.session, ledger: new ArrayLedger(monitor.session.ledger.bytes, monitor.session.ledger.fields), owner: undefined };\n    isolated.scope.register(() => isolated.owner?.close());\n    isolated.owner = ArrayOwner.create(isolated.ledger);\n    const owner = ArrayOwner.create(isolated.ledger, isolated.owner);\n    const holding = store.owner.hold();\n    const check = () => {\n        signal.throwIfAborted();\n        if (monitor.epoch !== epoch)\n            throw new ArrayFailure(\"stale state snapshot\");\n    };\n    let result;\n    try {\n        owner.reserve({ metadata: 512, work: 32, epoch: true });\n        for (const key in state.variables) {\n            if (!Object.hasOwn(state.variables, key))\n                continue;\n            check();\n            owner.reserve({ slots: 1, metadata: 32, work: 4 });\n            await textToken(owner, key, signal);\n            check();\n            await textToken(owner, state.variables[key], signal);\n            check();\n        }\n        for (const value of state.positional) {\n            await textToken(owner, value, signal);\n            check();\n        }\n        for (const key of state.exported) {\n            owner.reserve({ slots: 1, metadata: 32, work: 4 });\n            await textToken(owner, key, signal);\n            check();\n        }\n        for (const key of state.readonlyVariables ?? []) {\n            owner.reserve({ slots: 1, metadata: 32, work: 4 });\n            await textToken(owner, key, signal);\n            check();\n        }\n        for (const key of state.functions.keys()) {\n            owner.reserve({ slots: 1, metadata: 32, work: 4 });\n            await textToken(owner, key, signal);\n            check();\n        }\n        for (const value of state.directoryStack?.entries ?? []) {\n            await textToken(owner, value, signal);\n            check();\n        }\n        for (const frame of state.locals) {\n            owner.reserve({ metadata: 64, work: 4 });\n            for (const [key, saved] of frame) {\n                owner.reserve({ slots: 1, metadata: 64, work: 8 });\n                await textToken(owner, key, signal);\n                check();\n                if (saved.value !== undefined) {\n                    await textToken(owner, saved.value, signal);\n                    check();\n                }\n            }\n        }\n        check();\n        result = new StateMonitor(clone(), isolated);\n        const destination = result.activate();\n        for (const [name, entry] of store.bindings) {\n            check();\n            const prepared = await destination.prepareName(name, owner, signal);\n            check();\n            const tickets = owner.reserve({ generation: true, version: true, epoch: true, work: 5 });\n            entry.binding.retain();\n            destination.publish(name, entry.binding, tickets, prepared);\n            await owner.ledger.checkpoint(signal, 5);\n        }\n        check();\n        if (prepare) {\n            await prepare(result.proxy, owner);\n            check();\n        }\n        return result.proxy;\n    }\n    catch (error) {\n        if (result?.store)\n            for (const [name] of result.store.bindings)\n                await result.store.remove(name, { generation: 0, version: 0, epoch: 0 });\n        await owner.close();\n        throw error;\n    }\n    finally {\n        holding.release();\n    }\n}\n//# sourceMappingURL=state.js.map"
+        }
+      ],
+      "originalSha256": "a0e3a403cb892f1fe54aaab9ef5d61abdd43d2ae434d6e228e19b85a16a0ce72",
+      "originalBytes": 14264,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U06\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "7c0452853fa7a468a81474c9345ea35e7a502dc0cb8f4236d09fd93d99d3d817",
+      "changedBytes": 15007,
+      "cohort": "mechanical",
+      "ids": [
+        "M18"
+      ],
+      "requiredFailed": [
+        "M18"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U07",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "    async unsetIndexed(state, name, index) {\n        const store = requireArrays(state);\n        const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n        const holding = store.owner.hold();\n        let staged;\n        try {\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            const watch = await store.watch(name, operation, this.signal);\n            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n            const current = store.get(name);\n            if (index !== undefined && current) {\n                staged = index === \"members\" ? IndexedBinding.create(store.owner) : await current.copy(this.signal);\n                let maximum = -1;\n                for (const key of staged.values.keys()) {\n                    operation.reserve({ work: 2 }).release();\n                    if (key !== index && key > maximum)\n                        maximum = key;\n                    await operation.ledger.checkpoint(this.signal, 2);\n                }\n                if (typeof index === \"number\")\n                    staged.values.get(index)?.slot.release();\n                staged.maximum = maximum;\n            }\n            this.signal.throwIfAborted();\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            let released;\n            stateMonitor(state).publish(tickets, name, () => {\n                if (staged)\n                    released = store.publish(name, staged, tickets);\n                else if (index === undefined) {\n                    released = store.remove(name, tickets);\n                    delete state.variables[name];\n                    state.exported.delete(name);\n                }\n                else if (index === 0 || index === \"members\")\n                    delete state.variables[name];\n            });\n            staged = undefined;\n            watch.close();\n            await released;\n        }\n        finally {\n            try {\n                await staged?.release();\n                await operation.close();\n            }\n            finally {\n                holding.release();\n            }\n        }\n    }\n",
+          "after": "    async unsetIndexed(state, name, index) {\n        const store = requireArrays(state);\n        const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n        const holding = store.owner.hold();\n        let staged;\n        try {\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            const watch = await store.watch(name, operation, this.signal);\n            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n            const current = store.get(name);\n            if (index !== undefined && current) {\n                staged = index === \"members\" ? IndexedBinding.create(store.owner) : await current.copy(this.signal);\n                __arrayMutantHit();\n                if (typeof index === \"number\") staged.values.get(index)?.slot.release();\n                let maximum = -1;\n                for (const key of staged.values.keys()) {\n                    operation.reserve({ work: 2 }).release();\n                    if (key !== index && key > maximum)\n                        maximum = key;\n                    await operation.ledger.checkpoint(this.signal, 2);\n                }\n                \n                staged.maximum = maximum;\n            }\n            this.signal.throwIfAborted();\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            let released;\n            stateMonitor(state).publish(tickets, name, () => {\n                if (staged)\n                    released = store.publish(name, staged, tickets);\n                else if (index === undefined) {\n                    released = store.remove(name, tickets);\n                    delete state.variables[name];\n                    state.exported.delete(name);\n                }\n                else if (index === 0 || index === \"members\")\n                    delete state.variables[name];\n            });\n            staged = undefined;\n            watch.close();\n            await released;\n        }\n        finally {\n            try {\n                await staged?.release();\n                await operation.close();\n            }\n            finally {\n                holding.release();\n            }\n        }\n    }\n"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U07\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "b2885f2bfadad0b0f76a651d0119e36de0cc939de9dd41172693b8f88b573a4b",
+      "changedBytes": 222760,
+      "cohort": "mechanical",
+      "ids": [
+        "M16"
+      ],
+      "requiredFailed": [
+        "M16"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U08",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "    async arrayZero(state, name, expand, append = false, freeze = false) {\n        const store = requireArrays(state);\n        const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n        const holding = store.owner.hold();\n        let staged;\n        try {\n            const watch = await store.watch(name, operation, this.signal);\n            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n            let frozenAttributes;\n            if (freeze) {\n                store.owner.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });\n                if (!state.readonlyVariables)\n                    frozenAttributes = stateMonitor(state).prepareCollection(new Set(), \"readonlyVariables\");\n            }\n            const expanded = await expand();\n            this.signal.throwIfAborted();\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            const current = store.get(name);\n            if (!current)\n                throw new ArrayFailure(\"stale binding\");\n            staged = await current.copy(this.signal);\n            const value = append ? await this.arrayJoin(operation, [current.get(0) ?? \"\", expanded], \"\") : expanded;\n            const token = await textToken(staged.owner, value, this.signal);\n            try {\n                staged.insert(0, token);\n            }\n            catch (error) {\n                token.release();\n                throw error;\n            }\n            const supersede = await stateMonitor(state).prepareTypedPublication(name, operation, this.signal);\n            this.signal.throwIfAborted();\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            let released;\n            stateMonitor(state).publish(tickets, name, () => {\n                supersede();\n                released = store.publish(name, staged, tickets);\n                if (freeze) {\n                    state.readonlyVariables ??= frozenAttributes;\n                    state.readonlyVariables.add(name);\n                }\n            });\n            staged = undefined;\n            watch.close();\n            await released;\n        }\n        finally {\n            try {\n                await staged?.release();\n                await operation.close();\n            }\n            finally {\n                holding.release();\n            }\n        }\n    }\n",
+          "after": "    async arrayZero(state, name, expand, append = false, freeze = false) {\n        const store = requireArrays(state);\n        const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n        const holding = store.owner.hold();\n        let staged;\n        try {\n            const watch = await store.watch(name, operation, this.signal);\n            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n            let frozenAttributes;\n            if (freeze) {\n                store.owner.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });\n                if (!state.readonlyVariables)\n                    frozenAttributes = stateMonitor(state).prepareCollection(new Set(), \"readonlyVariables\");\n            }\n            const expanded = await expand();\n            this.signal.throwIfAborted();\n            __arrayMutantHit();\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            const current = store.get(name);\n            if (!current)\n                throw new ArrayFailure(\"stale binding\");\n            staged = await current.copy(this.signal);\n            const value = append ? await this.arrayJoin(operation, [current.get(0) ?? \"\", expanded], \"\") : expanded;\n            const token = await textToken(staged.owner, value, this.signal);\n            try {\n                staged.insert(0, token);\n            }\n            catch (error) {\n                token.release();\n                throw error;\n            }\n            const supersede = await stateMonitor(state).prepareTypedPublication(name, operation, this.signal);\n            this.signal.throwIfAborted();\n            __arrayMutantHit();\n            if (!watch.valid())\n                throw new ArrayFailure(\"stale binding\");\n            if (state.readonlyVariables?.has(name))\n                throw new ArrayFailure(\"readonly binding\");\n            let released;\n            stateMonitor(state).publish(tickets, name, () => {\n                supersede();\n                released = store.publish(name, staged, tickets);\n                if (freeze) {\n                    state.readonlyVariables ??= frozenAttributes;\n                    state.readonlyVariables.add(name);\n                }\n            });\n            staged = undefined;\n            watch.close();\n            await released;\n        }\n        finally {\n            try {\n                await staged?.release();\n                await operation.close();\n            }\n            finally {\n                holding.release();\n            }\n        }\n    }\n"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U08\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "8cc9ec1edaacd0aa06643936b955b0a9551bbbf8349118877273adeee6569279",
+      "changedBytes": 222791,
+      "cohort": "mechanical",
+      "ids": [
+        "M22"
+      ],
+      "requiredFailed": [
+        "M22"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U09",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "const members = await this.arrayMembers(part.name, state);",
+          "after": "__arrayMutantHit();\n                    const members = [(await this.arrayMembers(part.name, state)).join(\"\")];"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U09\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "04f5b3b4c49fa6cf4255bb24f93b40f533549d12586b86be9bc75564e79abe87",
+      "changedBytes": 222780,
+      "cohort": "semantic",
+      "ids": [
+        "S01",
+        "O15"
+      ],
+      "requiredFailed": [
+        "S01",
+        "O15"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U10",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "if (demanded && planned !== null && planned > 2147483647)\n                            throw new ArrayFailure(\"index outside 0..2147483647\");",
+          "after": "if (demanded && planned !== null && planned > 2147483647) __arrayMutantHit();"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U10\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "43d86c4b0724c76e54b70689392d02b053d137f9e39a6592a77367a523cfb860",
+      "changedBytes": 222664,
+      "cohort": "holdouts",
+      "ids": [
+        "H01"
+      ],
+      "requiredFailed": [
+        "H01"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U11",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "state.variables[key] === saved.overlay && typed.watch.watch.typedVersion === typed.watch.typedVersion",
+          "after": "(__arrayMutantHit(), typed.watch.watch.version === typed.overlayVersion)"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U11\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "636da6d2400ac6ad4f9b82f13a0e30c8be5e2c8612ec47562ad7354300e52485",
+      "changedBytes": 222698,
+      "cohort": "operations",
+      "ids": [
+        "P06"
+      ],
+      "requiredFailed": [
+        "P06"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U12",
+      "member": "dist/shell/arrays/ledger.js",
+      "replacements": [
+        {
+          "before": "        return this.completion;",
+          "after": "        __arrayMutantHit();\n        return this.completion.then(() => undefined);"
+        }
+      ],
+      "originalSha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d",
+      "originalBytes": 9152,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U12\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "73172f943eeb549fdf9f2a65e56923227fb8e3e091a025c6b4ed28fca533cf5f",
+      "changedBytes": 9662,
+      "cohort": "mechanical",
+      "ids": [
+        "M07"
+      ],
+      "requiredFailed": [
+        "M07"
+      ],
+      "requiredPassed": [],
+      "originalCandidateExecution": false
+    },
+    {
+      "id": "U13-S06",
+      "member": "dist/shell/runtime.js",
+      "replacements": [
+        {
+          "before": "const quotedPresence = part.quoted && !(arrayOwned && isQuoteMarker(part));",
+          "after": "__arrayMutantHit();\n                const quotedPresence = part.quoted;"
+        }
+      ],
+      "originalSha256": "ecac8e40fa3a650008cf852f955813c4c78928586b6b9265c64f1d0de8e12a80",
+      "originalBytes": 222267,
+      "mode": 420,
+      "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U13-S06\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+      "finalLF": true,
+      "changedSha256": "ddc15913410eba296ca3094a5cb7d35e68f893adecd939521ba1380b61fb3f02",
+      "changedBytes": 222727,
+      "cohort": "semantic",
+      "ids": [
+        "S06",
+        "S08"
+      ],
+      "requiredFailed": [
+        "S06"
+      ],
+      "requiredPassed": [
+        "S08"
+      ],
+      "originalCandidateExecution": false
+    }
+  ]
+}

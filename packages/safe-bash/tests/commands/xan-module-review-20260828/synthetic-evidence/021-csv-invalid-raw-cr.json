@@ -1,0 +1,14 @@
+{
+  "id": "csv-invalid-raw-cr",
+  "families": [
+    "F12"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "CSV_GRAMMAR",
+      "name": "Error",
+      "message": "CSV_GRAMMAR"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

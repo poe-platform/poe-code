@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-08-27T08:46:44.441Z",
+  "originalPreseal": "8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297",
+  "originalSealedArtifactsUnchanged": 54,
+  "copiedOriginalArtifactsUnchanged": 54,
+  "historicalPublicationFilesUnchanged": 285,
+  "historicalPublicationRoot": "645a3bc0c768987ac35cc28b3e96aee753d46397ccfad5762a494a3ce45dbc36",
+  "oldCandidateFilesUnchanged": 590,
+  "sourceSha256": "606adf1a2f78b0668ec1f4cf0c3253115faf089f69c7617abd88b03fb83b5f2f",
+  "dependencySha256": "cda0820b8443488b19d0747cb97de37f8aec7492747bff286705a33f6026402e",
+  "newLiveAuthorInspectedOrTested": false
+}

@@ -1,0 +1,17 @@
+{
+  "at": "2026-08-27T06:46:16.873Z",
+  "purpose": "Post-run offline integrity/event/observation check only",
+  "script": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/execution-post-run-check.mjs",
+  "scriptSha256": "c5e7d33de3caf41b01719dc241cbe99011620cd78f83178182357f75768d7acb",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutBytes": 973965,
+  "stdoutSha256": "47c3fed832381c527ef1281a13e2c9731820438e18a2685ec6efe3f43ebecee6",
+  "stderr": "",
+  "boundedTimeoutMs": 30000,
+  "productCalls": 0,
+  "networkOrProcessControlCalls": 0
+}

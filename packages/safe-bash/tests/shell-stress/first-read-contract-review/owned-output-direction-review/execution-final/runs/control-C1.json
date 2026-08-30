@@ -1,0 +1,34 @@
+{
+  "label": "control-C1",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/controls.mjs",
+    "C1"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:13.978Z",
+  "finishedAt": "2026-08-27T10:38:14.058Z",
+  "durationMs": 80.38812499999949,
+  "timeoutMs": 3000,
+  "maxBytes": 65536,
+  "pid": 7741,
+  "initialIdentity": "7741  4804  7741 Thu Aug 27 05:38:13 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/controls.mjs C1",
+  "status": 0,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"scenario\":\"C1\",\"verdict\":\"PASS\",\"result\":{\"stdout\":\"first\\n\",\"stderr\":\"\",\"exitCode\":141},\"cleanup\":1,\"reads\":1,\"events\":[{\"order\":1,\"value\":\"middleware.enter:set\"},{\"order\":2,\"value\":\"middleware.finally:set\"},{\"order\":3,\"value\":\"middleware.enter:produce\"},{\"order\":4,\"value\":\"producer.invoked\"},{\"order\":5,\"value\":\"stdout.attempt:first\"},{\"order\":6,\"value\":\"middleware.enter:consume\"},{\"order\":7,\"value\":\"middleware.waitForStarted\"},{\"order\":8,\"value\":\"stdout.accepted:first\"},{\"order\":9,\"value\":\"source.pending:after-first-write\"},{\"order\":10,\"value\":\"middleware.started:next\"},{\"order\":11,\"value\":\"consumer.invoked\"},{\"order\":12,\"value\":\"consumer.attaches-reader\"},{\"order\":13,\"value\":\"consumer.read:delivered\"},{\"order\":14,\"value\":\"response.stdout.write\"},{\"order\":15,\"value\":\"consumer.return:no-more-reads\"},{\"order\":16,\"value\":\"middleware.finally:consume\"},{\"order\":17,\"value\":\"producer.finally:EPIPE\"},{\"order\":18,\"value\":\"middleware.finally:produce\"},{\"order\":19,\"value\":\"public.exec.settled\"}]}\n{\"scenario\":\"C1\",\"teardown\":\"disposed\",\"cleanup\":1}\n",
+  "stderr": ""
+}

@@ -1,0 +1,48 @@
+{
+  "id": "strict-build",
+  "role": "build",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/attempt-01/work/build.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/attempt-01/work/source",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/mock.ts",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/attempt-01/work/mock.mjs.data"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/attempt-01/work",
+  "env": {
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/attempt-01/work/home",
+    "NO_COLOR": "1",
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/attempt-01/work/tmp",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "timeoutMs": 120000,
+  "maxCombinedBytes": 2097152,
+  "pid": 80567,
+  "closeObserved": true,
+  "absent": true,
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": {
+    "path": "05-strict-build.stdout.raw",
+    "bytes": 37612,
+    "sha256": "febb31c1323685a9607f9213df02d8753983ef59dd73bcd1652084d804180921",
+    "mode": 384,
+    "observedBytes": 37612,
+    "lostBytes": 0
+  },
+  "stderr": {
+    "path": "05-strict-build.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 384,
+    "observedBytes": 0,
+    "lostBytes": 0
+  }
+}

@@ -1,0 +1,263 @@
+TAP version 13
+# Subtest: static lower hidden descendants, merged=false: removal and recreation preserve every lower entry
+not ok 1 - static lower hidden descendants, merged=false: removal and recreation preserve every lower entry
+  ---
+  duration_ms: 2.949167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:1:539'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, rmdir '/tree'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:26:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: static lower hidden descendants, merged=true: removal and recreation preserve every lower entry
+not ok 2 - static lower hidden descendants, merged=true: removal and recreation preserve every lower entry
+  ---
+  duration_ms: 0.513583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:1:539'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, rmdir '/tree'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:26:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: lower-only whiteout removal needs no upper deletion primitive or parent copy-up
+not ok 3 - lower-only whiteout removal needs no upper deletion primitive or parent copy-up
+  ---
+  duration_ms: 0.327333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:1:1904'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, rmdir '/parent/empty/'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:57:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a hidden physical upper child is not removed through a recursive fallback
+not ok 4 - a hidden physical upper child is not removed through a recursive fallback
+  ---
+  duration_ms: 1.294292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:1:2978'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ENOTSUP',
+    -   code: 'ENOTEMPTY',
+        path: '/empty',
+        syscall: 'rmdir'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'ENOTEMPTY'
+    syscall: 'rmdir'
+    path: '/empty'
+  actual:
+  error: "ENOTSUP: operation not supported, rmdir '/empty'"
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:79:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:79:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: same-instance child queued before removal, merged=false, survives with ENOTEMPTY
+ok 5 - same-instance child queued before removal, merged=false, survives with ENOTEMPTY
+  ---
+  duration_ms: 1.314625
+  type: 'test'
+  ...
+# Subtest: same-instance child queued before removal, merged=true, survives with ENOTEMPTY
+ok 6 - same-instance child queued before removal, merged=true, survives with ENOTEMPTY
+  ---
+  duration_ms: 0.299917
+  type: 'test'
+  ...
+# Subtest: same-instance child queued after lower removal, recreate=false, follows namespace order
+not ok 7 - same-instance child queued after lower removal, recreate=false, follows namespace order
+  ---
+  duration_ms: 0.307875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:1:4669'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, rmdir '/empty'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async Promise.all (index 0)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:127:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: same-instance child queued after lower removal, recreate=true, follows namespace order
+not ok 8 - same-instance child queued after lower removal, recreate=true, follows namespace order
+  ---
+  duration_ms: 0.377042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:1:4669'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, rmdir '/empty'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async Promise.all (index 0)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir-static-lower.test.ts:127:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay rmdir uses only backing rmdir and preserves whiteouted lower descendants
+ok 9 - overlay rmdir uses only backing rmdir and preserves whiteouted lower descendants
+  ---
+  duration_ms: 3.370333
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /missing reports ENOENT without hiding descendants
+ok 10 - overlay rmdir /missing reports ENOENT without hiding descendants
+  ---
+  duration_ms: 0.999167
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /file reports ENOTDIR without hiding descendants
+ok 11 - overlay rmdir /file reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 0.649333
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /link reports ENOTDIR without hiding descendants
+ok 12 - overlay rmdir /link reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 0.999791
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /link/ reports ENOTDIR without hiding descendants
+ok 13 - overlay rmdir /link/ reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 0.591375
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /tree reports ENOTEMPTY without hiding descendants
+ok 14 - overlay rmdir /tree reports ENOTEMPTY without hiding descendants
+  ---
+  duration_ms: 0.571083
+  type: 'test'
+  ...
+# Subtest: overlay rmdir / reports EBUSY without hiding descendants
+ok 15 - overlay rmdir / reports EBUSY without hiding descendants
+  ---
+  duration_ms: 1.263875
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /empty/. reports EINVAL without hiding descendants
+ok 16 - overlay rmdir /empty/. reports EINVAL without hiding descendants
+  ---
+  duration_ms: 0.95925
+  type: 'test'
+  ...
+# Subtest: overlay rmdir retains a raced upper child and does not publish a whiteout
+ok 17 - overlay rmdir retains a raced upper child and does not publish a whiteout
+  ---
+  duration_ms: 0.784125
+  type: 'test'
+  ...
+# Subtest: overlay static lower directory, merged=false: removes only the visible empty directory
+not ok 18 - overlay static lower directory, merged=false: removes only the visible empty directory
+  ---
+  duration_ms: 0.489417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir.test.ts:1:3380'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, rmdir '/empty'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir.test.ts:100:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay static lower directory, merged=true: removes only the visible empty directory
+not ok 19 - overlay static lower directory, merged=true: removes only the visible empty directory
+  ---
+  duration_ms: 0.187541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir.test.ts:1:3380'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, rmdir '/empty'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir.test.ts:100:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay preexisting upper-only empty directory is removable above unchanged lower storage
+not ok 20 - overlay preexisting upper-only empty directory is removable above unchanged lower storage
+  ---
+  duration_ms: 0.145166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir.test.ts:1:4495'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, rmdir '/empty'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    OverlayFileSystem.rmdir (/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts:579:13)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/overlay/rmdir.test.ts:117:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: overlay missing backing rmdir refuses without staging or changing namespace
+ok 21 - overlay missing backing rmdir refuses without staging or changing namespace
+  ---
+  duration_ms: 0.3395
+  type: 'test'
+  ...
+# Subtest: overlay rmdir propagates provider errors, cancellation and readonly denial
+ok 22 - overlay rmdir propagates provider errors, cancellation and readonly denial
+  ---
+  duration_ms: 0.223584
+  type: 'test'
+  ...
+# Subtest: overlay rmdir never retries recursive garbage cleanup
+ok 23 - overlay rmdir never retries recursive garbage cleanup
+  ---
+  duration_ms: 0.167833
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 14
+# fail 9
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 146.304917

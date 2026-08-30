@@ -1,0 +1,136 @@
+
+ RUN  v3.2.6 /private/tmp/safe-bash-safejs-isolated-ZicyG4/baseline
+
+ ✓ packages/safejs/src/modules/fs.test.ts (553 tests) 137ms
+ ✓ packages/safejs/src/interp/interpreter.test.ts (477 tests) 339ms
+ ✓ packages/safejs/src/parse/parser.test.ts (92 tests) 76ms
+ ✓ packages/safejs/src/run.test.ts (66 tests) 174ms
+ ✓ packages/safejs/src/modules/agent.test.ts (45 tests) 27ms
+ ✓ packages/safejs/src/snapshot/restore.test.ts (62 tests) 389ms
+   ✓ snapshot restore > restores thousands of parent scopes without using the host call stack  348ms
+ ✓ packages/safejs/src/run.snapshot.test.ts (31 tests) 82ms
+ ✓ packages/safejs/src/run.replay.stress.test.ts (56 tests) 208ms
+ ✓ packages/safejs/src/modules/git.test.ts (24 tests) 17ms
+ ✓ packages/safejs/src/interp/methods/array.test.ts (20 tests) 17ms
+ ✓ packages/safejs/src/runner/run-harness.test.ts (31 tests) 79ms
+ ✓ packages/safejs/src/interp/host-bridge.test.ts (33 tests) 29ms
+ ✓ packages/safejs/src/index.test.ts (15 tests) 36ms
+ ✓ packages/safejs/src/parse/tokenizer.test.ts (25 tests) 10ms
+ ✓ packages/safejs/src/interp/promise.test.ts (41 tests) 7ms
+ ✓ packages/safejs/src/interp/conformance.test.ts (72 tests) 36ms
+ ✓ packages/safejs/src/modules/mcp.test.ts (16 tests) 8ms
+ ✓ packages/safejs/src/cli.test.ts (27 tests) 63ms
+ ✓ packages/safejs/src/snapshot/serialize.test.ts (15 tests) 34ms
+ ✓ packages/safejs/src/interp/globals/object-array.test.ts (15 tests) 17ms
+ ✓ packages/safejs/src/lint/index.test.ts (38 tests) 40ms
+ ✓ packages/safejs/src/sandbox-integrity.test.ts (36 tests) 45ms
+ ✓ packages/safejs/src/runner/signal-dump.test.ts (12 tests) 85ms
+ ✓ packages/safejs/test/integration/crash-resume.test.ts (11 tests) 73ms
+ ✓ packages/safejs/src/interp/methods/string.test.ts (22 tests) 20ms
+ ✓ packages/safejs/src/snapshot/scheduler.test.ts (14 tests) 9ms
+ ✓ packages/safejs/src/interp/cancel.test.ts (12 tests) 16ms
+ ✓ packages/safejs/src/interp/values.test.ts (25 tests) 10ms
+ ✓ packages/safejs/test/integration/snapshot-roundtrip.test.ts (2 tests) 31ms
+ ✓ packages/safejs/src/parse/fuzz.test.ts (1 test) 261ms
+ ✓ packages/safejs/src/modules/fs.conformance.test.ts (201 tests | 33 skipped) 33ms
+ ✓ packages/safejs/src/interp/scope.test.ts (28 tests) 24ms
+ ✓ packages/safejs/src/modules/fs.host-module.test.ts (9 tests) 33ms
+ ✓ packages/safejs/src/parse/assign-ids.test.ts (13 tests) 149ms
+ ✓ packages/safejs/src/interp/globals/collections.test.ts (11 tests) 29ms
+ ✓ packages/safejs/src/snapshot/policy.test.ts (17 tests) 3ms
+ ✓ packages/safejs/src/snapshot/backend.test.ts (11 tests) 7ms
+ ✓ packages/safejs/src/interp/globals/console-json.test.ts (21 tests) 5ms
+ ✓ packages/safejs/src/interp/host-call.test.ts (17 tests) 6ms
+ ✓ packages/safejs/src/interp/running-state.test.ts (13 tests) 13ms
+ ✓ packages/safejs/src/interp/generator.test.ts (16 tests) 14ms
+ ✓ packages/safejs/src/lint/rules/AS003.test.ts (21 tests) 9ms
+ ✓ packages/safejs/src/interp/patterns.test.ts (10 tests) 8ms
+ ✓ packages/safejs/src/interp/globals/math.test.ts (36 tests) 85ms
+ ✓ packages/safejs/test/integration/budgets.test.ts (12 tests) 33ms
+ ✓ packages/safejs/src/interp/interactions.test.ts (10 tests) 35ms
+ ✓ packages/safejs/src/lint/rules/AS014.test.ts (11 tests) 5ms
+ ✓ packages/safejs/src/error/shape-audit.test.ts (12 tests) 17ms
+ ✓ packages/safejs/src/lint/rules/AS001.test.ts (12 tests) 3ms
+ ✓ packages/safejs/src/interp/budget.test.ts (24 tests) 5ms
+ ✓ packages/safejs/src/loader/extract-block.test.ts (24 tests) 3ms
+ ✓ packages/safejs/src/modules/harness.test.ts (12 tests) 3ms
+ ✓ packages/safejs/src/lint/rules/AS013.test.ts (11 tests) 5ms
+ ✓ packages/safejs/src/interp/async.test.ts (13 tests) 12ms
+ ✓ packages/safejs/src/interp/data-budget.test.ts (15 tests) 33ms
+ ✓ packages/safejs/src/interp/methods/number.test.ts (9 tests) 3ms
+ ✓ packages/safejs/src/loader/frontmatter.test.ts (21 tests) 19ms
+ ✓ packages/safejs/src/interp/globals/misc.test.ts (9 tests) 22ms
+ ✓ packages/safejs/src/modules/fs.option-surface.test.ts (29 tests) 2ms
+ ✓ packages/safejs/src/lint/rules/AS011.test.ts (11 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS005.test.ts (13 tests) 4ms
+ ✓ packages/safejs/src/modules/time.test.ts (17 tests) 92ms
+ ✓ packages/safejs/src/parse/format-error.test.ts (13 tests) 6ms
+ ✓ packages/safejs/src/parse/parse-export.test.ts (9 tests) 5ms
+ ✓ packages/safejs/src/modules/log.test.ts (9 tests) 7ms
+ ✓ packages/safejs/src/lint/rules/AS-jsdoc-type.test.ts (14 tests) 6ms
+ ✓ packages/safejs/src/interp/globals/error.test.ts (22 tests) 11ms
+ ✓ packages/safejs/src/run.random.test.ts (28 tests) 79ms
+ ✓ packages/safejs/src/snapshot/replay-data.test.ts (16 tests) 5ms
+ ✓ packages/safejs/src/lint/rules/AS006-007.test.ts (11 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-unused-import.test.ts (14 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS010.test.ts (13 tests) 7ms
+ ✓ packages/safejs/src/lint/function-syntax.test.ts (41 tests) 66ms
+ ✓ packages/safejs/src/interp/promise-replay.test.ts (16 tests) 3ms
+ ✓ packages/safejs/src/lint/rules/AS009.test.ts (12 tests) 6ms
+ ✓ packages/safejs/src/dump.test.ts (11 tests) 6ms
+ ✓ packages/safejs/src/loader/find-exported.test.ts (14 tests) 5ms
+ ✓ packages/safejs/src/interp/methods/function.test.ts (8 tests) 8ms
+ ✓ packages/safejs/src/lint/rules/AS008.test.ts (12 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-import-cycle.test.ts (6 tests) 4ms
+ ✓ packages/safejs/src/error/format.test.ts (10 tests) 4ms
+ ✓ packages/safejs/src/lint/rules/AS004.test.ts (10 tests) 5ms
+ ✓ packages/safejs/src/lint/rules/AS015.test.ts (12 tests) 6ms
+ ✓ packages/safejs/src/interp/exceptions.test.ts (13 tests) 11ms
+ ✓ packages/safejs/src/lint/rules/AS-floating-promise.test.ts (14 tests) 6ms
+ ✓ packages/safejs/src/parse/hash.test.ts (19 tests) 7ms
+ ✓ packages/safejs/src/restore.test.ts (17 tests) 4ms
+ ✓ packages/safejs/src/lint/mutable-closures.stress.test.ts (25 tests) 232ms
+ ✓ packages/safejs/src/lint.test.ts (9 tests) 25ms
+ ✓ packages/safejs/src/parse/generator.test.ts (6 tests) 5ms
+ ✓ packages/safejs/src/interp/regex/engine.test.ts (33 tests) 7ms
+ ✓ packages/safejs/src/lint/rules/AS-missing-async.test.ts (11 tests) 5ms
+ ✓ packages/safejs/src/lint/rules/AS-unreachable.test.ts (13 tests) 5ms
+ ✓ packages/safejs/src/parse/parse-import-meta.test.ts (14 tests) 14ms
+ ✓ packages/safejs/src/lint/rules/AS-mutating-frozen.test.ts (11 tests) 6ms
+ ✓ packages/safejs/src/interp/arguments.test.ts (14 tests) 46ms
+ ✓ packages/safejs/src/lint/function-syntax.stress.test.ts (14 tests) 166ms
+ ✓ packages/safejs/src/lint/rules/AS-needless-template.test.ts (11 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-await-non-promise.test.ts (14 tests) 6ms
+ ✓ packages/safejs/src/lint/rules/AS-destructure-null-default.test.ts (14 tests) 5ms
+ ✓ packages/safejs/src/lint/rules/AS-shadow-global.test.ts (7 tests) 3ms
+ ✓ packages/safejs/src/lint/rules/AS-large-literal.test.ts (7 tests) 23ms
+ ✓ packages/safejs/src/lint/rules/AS-frontmatter-field-unused.test.ts (6 tests) 22ms
+ ✓ packages/safejs/src/modules/env.test.ts (9 tests) 2ms
+ ✓ packages/safejs/src/example-runner.test.ts (3 tests) 13ms
+ ✓ packages/safejs/src/error/shape.test.ts (3 tests) 1ms
+ ✓ packages/safejs/src/lint/rules/AS-export-import-meta.test.ts (6 tests) 4ms
+ ✓ packages/safejs/src/lint/rules/AS-unbounded-loop.test.ts (13 tests) 5ms
+ ✓ packages/safejs/src/interp/methods/regex.test.ts (4 tests) 2ms
+ ✓ packages/safejs/src/lint/rules/AS-async-not-needed.test.ts (5 tests) 4ms
+ ✓ packages/safejs/src/interp/regex/parse.test.ts (18 tests) 3ms
+ ✓ packages/safejs/src/snapshot/replay-inputs.test.ts (7 tests) 3ms
+ ✓ packages/safejs/src/modules/registry.test.ts (4 tests) 3ms
+ ✓ packages/safejs/src/lint/mutable-closures.test.ts (6 tests) 34ms
+ ✓ packages/safejs/src/modules/metric.test.ts (10 tests) 3ms
+ ✓ packages/safejs/src/lint/rules/module-registry.test.ts (2 tests) 1ms
+ ✓ packages/safejs/src/lint/runtime-modules.test.ts (2 tests) 9ms
+ ✓ packages/safejs/test/adversarial/test262-semantics.test.ts (8 tests | 5 skipped) 9ms
+ ✓ packages/safejs/src/parse/parse-switch.test.ts (3 tests) 4ms
+ ✓ packages/safejs/src/modules/fail.test.ts (3 tests) 2ms
+ ✓ packages/safejs/test/adversarial/report.test.ts (2 tests) 1ms
+ ✓ packages/safejs/src/core.test.ts (1 test) 1ms
+ ✓ packages/safejs/test/adversarial/snapshot-mutation.test.ts (1 test) 109ms
+ ✓ packages/safejs/test/adversarial/corpus.test.ts (1 test) 26ms
+ ✓ packages/safejs/test/adversarial/parser-smoke.test.ts (1 test) 215ms
+
+ Test Files  125 passed (125)
+      Tests  3225 passed | 38 skipped (3263)
+   Start at  17:41:05
+   Duration  10.63s (transform 1.08s, setup 765ms, collect 4.12s, tests 4.41s, environment 9ms, prepare 3.22s)
+
+JSON report written to /tmp/safe-bash-safejs-isolated-ZicyG4/baseline-fullsuite-slow.json

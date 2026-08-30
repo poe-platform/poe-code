@@ -1,0 +1,13 @@
+{
+  "at": "2026-08-28T00:56:20.632Z",
+  "archive": "captures.jsonl.gz",
+  "schema": "one JSON record per original raw file, base64 bytes; directories in RAW-INVENTORY.json",
+  "sha256": "25cfb9f77855faf7e94edc5ef1d0b8704caf920fa758adc4bda539edc2813570",
+  "bytes": 242575,
+  "verifiedFiles": 100,
+  "verifiedDirectories": 17,
+  "originalBytes": 1480230,
+  "allOriginalFilesEqualBeforeRemoval": true,
+  "caseExecutions": 0,
+  "retries": 0
+}

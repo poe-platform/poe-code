@@ -1,0 +1,56 @@
+{
+  "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "executableHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+  "argv0": "shell",
+  "repetitions": 2,
+  "before": {
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+    "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+    "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "src/shell/runtime.ts": "a5c71a123e3e2d1a3735e09fa2bfca9ce5c6a3def09ca300356bcd95fa273d96",
+    "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+    "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "after": {
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+    "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+    "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "src/shell/runtime.ts": "a5c71a123e3e2d1a3735e09fa2bfca9ce5c6a3def09ca300356bcd95fa273d96",
+    "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+    "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "records": [
+    {
+      "source": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "native": {
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+        "exitCode": 0
+      },
+      "virtual": {
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+        "exitCode": 0
+      }
+    },
+    {
+      "source": "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`",
+      "native": {
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+        "exitCode": 0
+      },
+      "virtual": {
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+        "exitCode": 0
+      }
+    }
+  ]
+}

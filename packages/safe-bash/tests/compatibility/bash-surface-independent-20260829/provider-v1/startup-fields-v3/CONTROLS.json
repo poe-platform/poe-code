@@ -1,0 +1,37 @@
+{
+  "role": "EIGHT_SOURCE_DATA_ONLY",
+  "controls": [
+    {
+      "id": "termination-flags-indicator-retained",
+      "kind": "termination"
+    },
+    {
+      "id": "only-faulting-thread-selected",
+      "kind": "thread"
+    },
+    {
+      "id": "top-eight-frame-ceiling",
+      "kind": "ceiling"
+    },
+    {
+      "id": "no-registers-or-environment",
+      "kind": "privacy"
+    },
+    {
+      "id": "startup-reason-path-redaction",
+      "kind": "reason"
+    },
+    {
+      "id": "non-diagnostic-message-omitted",
+      "kind": "omit"
+    },
+    {
+      "id": "missing-thread-index-qualified",
+      "kind": "missing"
+    },
+    {
+      "id": "invalid-image-index-refused",
+      "kind": "invalid"
+    }
+  ]
+}

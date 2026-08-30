@@ -1,0 +1,35 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ [
++   '/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/esbuild',
++   '/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsc',
++   '/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsserver',
++   '/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsx'
++ ]
+- []
+
+    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:34:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)
+    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    '/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/esbuild',
+    '/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsc',
+    '/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsserver',
+    '/tmp/safe-bash-comm-final-review-owned/snapshot/node_modules/.bin/tsx'
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

@@ -1,0 +1,11 @@
+R01 fresh source/preseal phase; P01 shell pid=81826; context-only instruction reads; no product execution
+P01 finished instructions; no instruction bytes copied into evidence
+P02 shell pid=82460; apply_patch creates DATA/source inspection helper; exec Node afterwards
+P03 shell pid=82705; source/data reads only; replacing shell with Node
+P04 shell pid=83230; replacing with bounded DATA/source read Node
+P05 shell pid=83738; replacing with bounded policy/fixture DATA read Node
+P06 shell pid=84484; apply_patch engine matcher-only and read helper; exec Node DATA read
+P07 shell pid=85321; replacing with final bounded fixture-schema DATA read
+P08 shell pid=88487; exec apply_patch for R01 fixture and sealed executor files
+P09 shell pid=89314; exact observation-schema DATA check and seal Node via exec
+P10 shell pid=90290; apply_patch native-slot projection before first seal, then exec seal-only Node

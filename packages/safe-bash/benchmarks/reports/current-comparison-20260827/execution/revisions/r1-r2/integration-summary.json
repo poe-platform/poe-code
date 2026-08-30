@@ -1,0 +1,1608 @@
+{
+  "schema": "safe-bash.execution-synthetic-checks.v1",
+  "directory": "/private/tmp/safe-bash-execution-author-MD6Yd4",
+  "syntheticOnly": true,
+  "productImports": 0,
+  "nativeCalls": 0,
+  "mainCohortObservations": 0,
+  "sourcePinsSha256": "a27d38cf49d700443b4a20860de5eb65526aed5f5e26214a4129c2929daa2904",
+  "sourceStable": true,
+  "counts": {
+    "old224Planned": 896,
+    "breadthPlanned": 136
+  },
+  "checks": [
+    {
+      "mode": "clean",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "pass"
+      },
+      "elapsedMs": 93.969,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-001-clean.json"
+    },
+    {
+      "mode": "wrong-output",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": false
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 102.815,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-002-wrong-output.json"
+    },
+    {
+      "mode": "wrong-vfs",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": false
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 103.314,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-003-wrong-vfs.json"
+    },
+    {
+      "mode": "wrong-status",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": false
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "fail"
+      },
+      "elapsedMs": 116.32,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-004-wrong-status.json"
+    },
+    {
+      "mode": "leak",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 286.225,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-005-leak.json"
+    },
+    {
+      "mode": "result-crash",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 164.277,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-006-result-crash.json"
+    },
+    {
+      "mode": "crash",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 116.128,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-007-crash.json"
+    },
+    {
+      "mode": "late-error",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 145.498,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-008-late-error.json"
+    },
+    {
+      "mode": "late-reject",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 329.417,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-009-late-reject.json"
+    },
+    {
+      "mode": "oversize",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 130.13,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-010-oversize.json"
+    },
+    {
+      "mode": "diagnostic-flood",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 107.866,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-011-diagnostic-flood.json"
+    },
+    {
+      "mode": "partial-frame",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 105.31,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-012-partial-frame.json"
+    },
+    {
+      "mode": "duplicate",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 107.299,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-013-duplicate.json"
+    },
+    {
+      "mode": "wrong-id",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 105.765,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-014-wrong-id.json"
+    },
+    {
+      "mode": "ignore-term",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 557.935,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "raw": "attempt-015-ignore-term.json"
+    },
+    {
+      "mode": "coordinator-stall",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 2123.682,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "raw": "attempt-016-coordinator-stall.json"
+    },
+    {
+      "mode": "binding-mutated",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 97.375,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-017-binding-mutated.json"
+    },
+    {
+      "mode": "path-escape",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 95.791,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-018-path-escape.json"
+    },
+    {
+      "mode": "binding-clean",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "pass"
+      },
+      "elapsedMs": 105.255,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-019-binding-clean.json"
+    },
+    {
+      "mode": "module-clean",
+      "passed": true,
+      "assessment": {
+        "comparison": {
+          "pass": true,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        },
+        "lifecycle": true,
+        "status": "pass"
+      },
+      "elapsedMs": 128.14,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-020-module-clean.json"
+    },
+    {
+      "mode": "module-wrong-entry",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 128.978,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-021-module-wrong-entry.json"
+    },
+    {
+      "mode": "module-mutation",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 127.146,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-022-module-mutation.json"
+    },
+    {
+      "mode": "module-escape",
+      "passed": true,
+      "assessment": {
+        "comparison": null,
+        "lifecycle": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 128.932,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-023-module-escape.json"
+    },
+    {
+      "mode": "breadth-clean",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "functional-positive",
+          "operationalCredit": true,
+          "expectationSatisfied": true,
+          "failures": [],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": true,
+              "detail": {
+                "expected": 0,
+                "actual": 0
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": true,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "AH+A/w=="
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": true,
+              "detail": null
+            }
+          ],
+          "effects": [
+            {
+              "path": "/fixture/binary",
+              "before": null,
+              "after": {
+                "path": "/fixture/binary",
+                "type": "file",
+                "base64": "AH+A/w=="
+              }
+            }
+          ],
+          "fixtureState": [
+            {
+              "path": "/fixture/binary",
+              "type": "file",
+              "base64": "AH+A/w=="
+            }
+          ],
+          "rawStatus": 0,
+          "rawStdoutBase64": "AH+A/w==",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": true,
+        "cleanupError": false,
+        "operationalCredit": true,
+        "status": "functional-positive"
+      },
+      "elapsedMs": 106.823,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-024-breadth-clean.json"
+    },
+    {
+      "mode": "breadth-wrong-output",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "partial-functionality",
+          "operationalCredit": false,
+          "expectationSatisfied": false,
+          "failures": [
+            "stdoutBase64"
+          ],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": true,
+              "detail": {
+                "expected": 0,
+                "actual": 0
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": false,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "d3JvbmcK"
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": true,
+              "detail": null
+            }
+          ],
+          "effects": [
+            {
+              "path": "/fixture/binary",
+              "before": null,
+              "after": {
+                "path": "/fixture/binary",
+                "type": "file",
+                "base64": "AH+A/w=="
+              }
+            }
+          ],
+          "fixtureState": [
+            {
+              "path": "/fixture/binary",
+              "type": "file",
+              "base64": "AH+A/w=="
+            }
+          ],
+          "rawStatus": 0,
+          "rawStdoutBase64": "d3JvbmcK",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": true,
+        "cleanupError": false,
+        "operationalCredit": false,
+        "status": "partial-functionality"
+      },
+      "elapsedMs": 102.957,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-025-breadth-wrong-output.json"
+    },
+    {
+      "mode": "breadth-wrong-vfs",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "partial-functionality",
+          "operationalCredit": false,
+          "expectationSatisfied": false,
+          "failures": [
+            "file exists: binary",
+            "file bytes: binary"
+          ],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": true,
+              "detail": {
+                "expected": 0,
+                "actual": 0
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": true,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "AH+A/w=="
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": false,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": false,
+              "detail": null
+            }
+          ],
+          "effects": [],
+          "fixtureState": [],
+          "rawStatus": 0,
+          "rawStdoutBase64": "AH+A/w==",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": true,
+        "cleanupError": false,
+        "operationalCredit": false,
+        "status": "partial-functionality"
+      },
+      "elapsedMs": 102.364,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-026-breadth-wrong-vfs.json"
+    },
+    {
+      "mode": "breadth-wrong-status",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "partial-functionality",
+          "operationalCredit": false,
+          "expectationSatisfied": false,
+          "failures": [
+            "exit status"
+          ],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": false,
+              "detail": {
+                "expected": 0,
+                "actual": 17
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": true,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "AH+A/w=="
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": true,
+              "detail": null
+            }
+          ],
+          "effects": [
+            {
+              "path": "/fixture/binary",
+              "before": null,
+              "after": {
+                "path": "/fixture/binary",
+                "type": "file",
+                "base64": "AH+A/w=="
+              }
+            }
+          ],
+          "fixtureState": [
+            {
+              "path": "/fixture/binary",
+              "type": "file",
+              "base64": "AH+A/w=="
+            }
+          ],
+          "rawStatus": 17,
+          "rawStdoutBase64": "AH+A/w==",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": true,
+        "cleanupError": false,
+        "operationalCredit": false,
+        "status": "partial-functionality"
+      },
+      "elapsedMs": 102.855,
+      "groupGone": true,
+      "signals": [],
+      "raw": "attempt-027-breadth-wrong-status.json"
+    },
+    {
+      "mode": "breadth-cleanup-error",
+      "passed": true,
+      "assessment": {
+        "historical": {
+          "classification": "functional-positive",
+          "operationalCredit": true,
+          "expectationSatisfied": true,
+          "failures": [],
+          "checks": [
+            {
+              "label": "complete before/after VFS census",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "exit status",
+              "passes": true,
+              "detail": {
+                "expected": 0,
+                "actual": 0
+              }
+            },
+            {
+              "label": "stdoutBase64",
+              "passes": true,
+              "detail": {
+                "expected": "AH+A/w==",
+                "actual": "AH+A/w=="
+              }
+            },
+            {
+              "label": "stderrBase64",
+              "passes": true,
+              "detail": {
+                "expected": "",
+                "actual": ""
+              }
+            },
+            {
+              "label": "file exists: binary",
+              "passes": true,
+              "detail": null
+            },
+            {
+              "label": "file bytes: binary",
+              "passes": true,
+              "detail": null
+            }
+          ],
+          "effects": [
+            {
+              "path": "/fixture/binary",
+              "before": null,
+              "after": {
+                "path": "/fixture/binary",
+                "type": "file",
+                "base64": "AH+A/w=="
+              }
+            }
+          ],
+          "fixtureState": [
+            {
+              "path": "/fixture/binary",
+              "type": "file",
+              "base64": "AH+A/w=="
+            }
+          ],
+          "rawStatus": 0,
+          "rawStdoutBase64": "AH+A/w==",
+          "rawStderrBase64": ""
+        },
+        "lifecycle": false,
+        "cleanupError": true,
+        "operationalCredit": false,
+        "status": "lifecycle-or-capture-failure"
+      },
+      "elapsedMs": 99.304,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "raw": "attempt-028-breadth-cleanup-error.json"
+    }
+  ],
+  "cleanup": [
+    {
+      "mode": "clean",
+      "coordinator": 10134,
+      "engine": 10135,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "wrong-output",
+      "coordinator": 10136,
+      "engine": 10137,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "wrong-vfs",
+      "coordinator": 10138,
+      "engine": 10139,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "wrong-status",
+      "coordinator": 10140,
+      "engine": 10141,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "leak",
+      "coordinator": 10144,
+      "engine": 10145,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "result-crash",
+      "coordinator": 10147,
+      "engine": 10148,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "crash",
+      "coordinator": 10149,
+      "engine": 10150,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "late-error",
+      "coordinator": 10151,
+      "engine": 10152,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "late-reject",
+      "coordinator": 10153,
+      "engine": 10154,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "oversize",
+      "coordinator": 10155,
+      "engine": 10156,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "diagnostic-flood",
+      "coordinator": 10157,
+      "engine": 10158,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "partial-frame",
+      "coordinator": 10159,
+      "engine": 10160,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "duplicate",
+      "coordinator": 10161,
+      "engine": 10162,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "wrong-id",
+      "coordinator": 10163,
+      "engine": 10164,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "ignore-term",
+      "coordinator": 10165,
+      "engine": 10166,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "coordinator-stall",
+      "coordinator": 10175,
+      "engine": 10176,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "binding-mutated",
+      "coordinator": 10228,
+      "engine": 10253,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "path-escape",
+      "coordinator": 10290,
+      "engine": 10315,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "binding-clean",
+      "coordinator": 10352,
+      "engine": 10365,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "module-clean",
+      "coordinator": 10414,
+      "engine": 10439,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "module-wrong-entry",
+      "coordinator": 10488,
+      "engine": 10513,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "module-mutation",
+      "coordinator": 10564,
+      "engine": 10591,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "module-escape",
+      "coordinator": 10656,
+      "engine": 10669,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "breadth-clean",
+      "coordinator": 10730,
+      "engine": 10755,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "breadth-wrong-output",
+      "coordinator": 10792,
+      "engine": 10817,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "breadth-wrong-vfs",
+      "coordinator": 10854,
+      "engine": 10879,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "breadth-wrong-status",
+      "coordinator": 10928,
+      "engine": 10941,
+      "groupGone": true,
+      "signals": [],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    },
+    {
+      "mode": "breadth-cleanup-error",
+      "coordinator": 10991,
+      "engine": 11007,
+      "groupGone": true,
+      "signals": [
+        "SIGTERM"
+      ],
+      "groupExistsAtEnd": false,
+      "groupExistsAtRevision": false
+    }
+  ],
+  "success": true,
+  "rawArtifacts": [
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-001-clean.json",
+      "bytes": 9639,
+      "sha256": "d3f9a117d4452bbd882ae17be2ea621ee8a39177b3cdf2f582c9cf5e29929c88"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-001-clean.jsonl",
+      "bytes": 2524,
+      "sha256": "de09141c466640d6fedd7d9260b485f00236e4aad444a36ac5f8c87c41ddc3db"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-002-wrong-output.json",
+      "bytes": 9881,
+      "sha256": "3eaf407cd7518136f28c798019572a671d8e0630e76d899caa415d46dfc91800"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-002-wrong-output.jsonl",
+      "bytes": 2601,
+      "sha256": "ee5a52e127f4696382367d59daf6c2ec5292c21c71bd3cb69fda8bddd7dcf37e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-003-wrong-vfs.json",
+      "bytes": 9919,
+      "sha256": "0ef06ae1f0c414a560493054a624da13d5638c936cacae9c3d1839711b48d216"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-003-wrong-vfs.jsonl",
+      "bytes": 2566,
+      "sha256": "46f65874ae4c149da829fed790b674c97cc5c353016f0783c62d9fed61968ea8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-004-wrong-status.json",
+      "bytes": 9892,
+      "sha256": "039ca356ff22e804f8bd8e475428d8d8f6fb92b50cad32dd15b0dc33460f3dc8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-004-wrong-status.jsonl",
+      "bytes": 2613,
+      "sha256": "e983b789c302e8b913733553fdd140c89b8ccb7080448447ddcc2821618ef255"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-005-leak.json",
+      "bytes": 8564,
+      "sha256": "c31be13c512594194d8b7c5b9df987fc37454f19f2f23ce1e5c38351c13fb5a2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-005-leak.jsonl",
+      "bytes": 2238,
+      "sha256": "4400e24f8dd9fcbf03d3eb01b15a3d7c8a421c88ea6e56250efd97a6d3be5f68"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-006-result-crash.json",
+      "bytes": 10153,
+      "sha256": "467417441c2f1cfb1b470f90897060bd532c554de585f015eb4ce2274be437bb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-006-result-crash.jsonl",
+      "bytes": 2698,
+      "sha256": "48531114c8bb4a3c6863cc1a9d132c23e2e8a534b33689863738bcd414b861c7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-007-crash.json",
+      "bytes": 7380,
+      "sha256": "a6b23739277dabe7ddebf2cd097cffaaa75781dc75125ca1f8e69fcbf7180d25"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-007-crash.jsonl",
+      "bytes": 1964,
+      "sha256": "b5a2a75ada32e278ede6694335383fbf05e208ef53e2ab5c1152cddc7013d7c8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-008-late-error.json",
+      "bytes": 14063,
+      "sha256": "9aa53750b3eac47b4ec6c808fa4b466f4b49f45fd72dadb3152c68dc05a613a6"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-008-late-error.jsonl",
+      "bytes": 3802,
+      "sha256": "b8d6db629af210397bdb64f7859cbe5dd4a53d3020e031394a52d8635725c831"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-009-late-reject.json",
+      "bytes": 7259,
+      "sha256": "8de98bd420cb91269b308049720b58f74f92d83573b582d8aacc524daf4db303"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-009-late-reject.jsonl",
+      "bytes": 2048,
+      "sha256": "e23c978538ddda6cdcb7344b9b7d10df0dc5eb893c14fe2065fcd9c319c7f418"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-010-oversize.json",
+      "bytes": 7028,
+      "sha256": "3bc14edce37876bf5fe1c23fe975d70cce6f76f224cdb38d127d422589f272ea"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-010-oversize.jsonl",
+      "bytes": 1967,
+      "sha256": "630c7b53976cd0bd7c70ba8e3117536f500ff53eb3c2d4e4398d316a796e76f3"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-011-diagnostic-flood.json",
+      "bytes": 22414,
+      "sha256": "b2559d815d43e869b381e4b192d729e9eb3cdd9a2fae010a8ce6b16ac2a54742"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-011-diagnostic-flood.jsonl",
+      "bytes": 7382,
+      "sha256": "a8ea5f7d499dbed615050776e035dc28f29d057fbf0bc486a10128a9832d43f6"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-012-partial-frame.json",
+      "bytes": 8533,
+      "sha256": "0f9c21882fcaa52edca4d3baff08116d60bf9ce4965e8f562dfa9e19de3af7f5"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-012-partial-frame.jsonl",
+      "bytes": 2417,
+      "sha256": "133ad8568d20add7da9956a45c2d019c44194a1033b168f880efe772c60b054b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-013-duplicate.json",
+      "bytes": 9518,
+      "sha256": "23c0b8e55751f35489dc9c663896075e1046106aefc9b05e7c0577a10b4433dc"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-013-duplicate.jsonl",
+      "bytes": 2329,
+      "sha256": "ff981d8686e98f60e4f138141c63ada353c8d0f68644f6e7e8e806405213673b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-014-wrong-id.json",
+      "bytes": 9812,
+      "sha256": "ee626e5053f1e23f4e427c1b754d2de337de64f52ead302422273348f942f32c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-014-wrong-id.jsonl",
+      "bytes": 2936,
+      "sha256": "228b3d11f916436cdc53cdf9fa7e82a111513d6421031cb068d7280101d3c422"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-015-ignore-term.json",
+      "bytes": 6636,
+      "sha256": "2369a767975dbfea427a7a4cd229936ec6473b0fb63b55f7f08a501883e6afcb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-015-ignore-term.jsonl",
+      "bytes": 1802,
+      "sha256": "396e583d2d36180650e313033672fa993f9648b4e18ca228b4574284412fcd72"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-016-coordinator-stall.json",
+      "bytes": 5545,
+      "sha256": "a9768392054375bc36bd401c5aa21a04bd445c8f6cad8aea2f60b6db757f86da"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-016-coordinator-stall.jsonl",
+      "bytes": 1370,
+      "sha256": "bf41afe506a9b36963baa9377c812d6a274e562c783035d7f3663ea775cc5d50"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-017-binding-mutated.json",
+      "bytes": 7352,
+      "sha256": "95d18890c8ead0599b9cf179e7f1fa0a3065a4d2a8d23e776fdaca8571f86b2a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-017-binding-mutated.jsonl",
+      "bytes": 2046,
+      "sha256": "3d55f5c2ef8251206b8f0528b8356163543d45ae2a8321cf850e1b5c237b24ef"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-018-path-escape.json",
+      "bytes": 8233,
+      "sha256": "731efd77b4bdff2263022a7e82750be7b3159c0fd579f0bcb19661ff29f8ec3e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-018-path-escape.jsonl",
+      "bytes": 2199,
+      "sha256": "1c859c61459bccd705efe5a10a0c65827b3159c47c6664afd136cec8e6d3371b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-019-binding-clean.json",
+      "bytes": 10167,
+      "sha256": "85f8211cae6c6fdfbfbcb3205069c8b2481f3c696bb23c998db01a8e2223346b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-019-binding-clean.jsonl",
+      "bytes": 2630,
+      "sha256": "e621db0813111c06e9de11bac4c28b441ee05fb1c241b70f93ec89725d9996d3"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-020-module-clean.json",
+      "bytes": 14987,
+      "sha256": "1a4793795a43aafd7e72a3541341e1d5f44908d92ea1a5b270ddb35a464df43a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-020-module-clean.jsonl",
+      "bytes": 4315,
+      "sha256": "d38e7fd8005e94cbfbfdb5149b7ff0ade65163edb843fb35773ac58a4539789b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-021-module-wrong-entry.json",
+      "bytes": 10387,
+      "sha256": "a4d58d3e0a96e3dd2ed756af32ea0fa226a62edf2d82f908bef696377a679d2b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-021-module-wrong-entry.jsonl",
+      "bytes": 2901,
+      "sha256": "4752b526a995204ef2d3c82e9e37f8119e36e4b63c75461784e6326c092a2c61"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-022-module-mutation.json",
+      "bytes": 12060,
+      "sha256": "37ff7161b8c5e79669a116cd7c684fcb3d3ad4eed68dda963d1ead113af29371"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-022-module-mutation.jsonl",
+      "bytes": 3547,
+      "sha256": "b92c5fd82bda5852468e7de0f2d22c9a6f59b5d67591cae25c0d06845b9e647f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-023-module-escape.json",
+      "bytes": 12422,
+      "sha256": "c1f8a0f340e04f4f57b68d4264d3f562a7948d746b3a875fabc05d65853b136c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-023-module-escape.jsonl",
+      "bytes": 3646,
+      "sha256": "b2abc245a1d1e2061a34eb0a7beff3aa5842dc830ff4eb12c4f8c1170b4fcdb0"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-024-breadth-clean.json",
+      "bytes": 12378,
+      "sha256": "142970971bcfef5f7cb2267a8cb5832655f8efb81303edb294aa73aedf63281f"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-024-breadth-clean.jsonl",
+      "bytes": 2619,
+      "sha256": "5dfebd97933dce572de654ae8227dcba7fd9412cc9326346ec727cc7e4462d75"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-025-breadth-wrong-output.json",
+      "bytes": 12643,
+      "sha256": "6acd2caa109e5afb24d2b569e3cc0f58402df09baceb497dcbbb70382373e4ca"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-025-breadth-wrong-output.jsonl",
+      "bytes": 2688,
+      "sha256": "51fc514158f52c29aa84bb5975e6efa834d3628c47020710a67a1158a7afc8b7"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-026-breadth-wrong-vfs.json",
+      "bytes": 12000,
+      "sha256": "fd7e35c62a73367308068dbff2cc877064d22ee878fdde60a579ca29e26e21e2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-026-breadth-wrong-vfs.jsonl",
+      "bytes": 2663,
+      "sha256": "6b5f574f8882bc971c0d5806daa192291eb35a999778f47408e1a3928de230c9"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-027-breadth-wrong-status.json",
+      "bytes": 12681,
+      "sha256": "09b760ef0ad44523fbfad4b0c433030bf2d2224b83f8cf0892b98f995589fb2a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-027-breadth-wrong-status.jsonl",
+      "bytes": 2710,
+      "sha256": "88c631d8e8df7b7afbf1776027a880bf202b2f498bf9ea275ecb6611bd0a687a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-028-breadth-cleanup-error.json",
+      "bytes": 13055,
+      "sha256": "2e97395d346a7c5135b170f17dfead645e3cb65eebda08d06eea9710547f09f6"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/attempt-028-breadth-cleanup-error.jsonl",
+      "bytes": 2824,
+      "sha256": "e8d97bea1ce9bb2449e85853c1d354e6c5d94b98964fa297856353b47187e337"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/source-before.json",
+      "bytes": 3790,
+      "sha256": "46a6cc024a8740207237db9ccf445794da25c16605574f11e9f7a42ceeea0ecc"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/summary.json",
+      "bytes": 27974,
+      "sha256": "c2729c72b42e494c74c02766ac856b10440680964c061d101d1e38bbe56c98eb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/00-assessment.mjs.data",
+      "bytes": 1193,
+      "sha256": "1ac0d0ba91dd685af45759beff9b3733bb5a4f136c61be6a21dfa22aa4d3b472"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/01-binding.mjs.data",
+      "bytes": 6589,
+      "sha256": "08d07b268738f24a0b9b744f77555f1ff1dc901a1d20e76c6ba47e03659d02ae"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/02-breadth.mjs.data",
+      "bytes": 8736,
+      "sha256": "e798b84be8f49e4966a1f9df3e4e6438c3b2ec6618821339705e140e572ba2d8"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/03-cohorts.mjs.data",
+      "bytes": 3638,
+      "sha256": "1124a0984dddcba03c7060155680c1f51bae48f1b02338ca772b7032d07d6b38"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/04-engine-child.mjs.data",
+      "bytes": 7367,
+      "sha256": "448d618814613466abbc3719fb9d8acd748280de25b5ecd00a93d257559d2fa6"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/05-expanded.mjs.data",
+      "bytes": 5051,
+      "sha256": "761bf2422d03f5dcc6162df7d42e1d2fd2bb974ec2e42b9fe0d51e3e406fe3e2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/06-io.mjs.data",
+      "bytes": 5443,
+      "sha256": "3d9d5578cc1d7c889dc5dabc463eeff90d4a990f861d80ceed8935fcf5bfc811"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/07-limits.mjs.data",
+      "bytes": 1009,
+      "sha256": "32dd62f87607971bf4be523b66e35fa4c7190f2116e797d838d69ce341005a36"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/08-network.mjs.data",
+      "bytes": 3333,
+      "sha256": "a8f9607276a3da850006c708b5636f099c619fab654837d7e7fa6754bdbe3fc4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/09-observe-load.mjs.data",
+      "bytes": 1603,
+      "sha256": "57873f1dac8fd4dc2e028b119004091bce59d9dbbd84077f88cb4f7a0189dc2b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/10-run.mjs.data",
+      "bytes": 5829,
+      "sha256": "a43284fd0161013f1ee9d64b3bf06f4aa84022dd65e9a37cb39e8ddfdd3225bb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/11-selfcheck.mjs.data",
+      "bytes": 8057,
+      "sha256": "74157d08f70f9721dd02cee00300334ac8788aa4083fa516d91366b28fcc81fb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/12-session.mjs.data",
+      "bytes": 4311,
+      "sha256": "82f410944057884aad4c5eed9a1be5aca10700f8a24011cff54ee301dcce0c3b"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/13-supervise.mjs.data",
+      "bytes": 14537,
+      "sha256": "5930f48aba28df735e3862f1b283b5d774fd0f4d55c81990c0f48f69a8f2df8a"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/14-breadth-assess.mjs.data",
+      "bytes": 6915,
+      "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/15-expanded-common.mjs.data",
+      "bytes": 3439,
+      "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/16-changed.mjs.data.data",
+      "bytes": 31,
+      "sha256": "c2e3d190e04c901b9477325752a76ee2a43021c38efa511db063e2ef66b15fd3"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/17-escape.mjs.data.data",
+      "bytes": 56,
+      "sha256": "147a65ac9b598e0358139a7c099051ab675649507af11a2f593afdc8022d4c42"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/18-index.mjs.data.data",
+      "bytes": 31,
+      "sha256": "aeace2d67ef267dee27907fa06fe7c06e846937823aad339de7def4e65bfe631"
+    },
+    {
+      "path": "/private/tmp/safe-bash-execution-author-MD6Yd4/harness/19-package.json.data.data",
+      "bytes": 85,
+      "sha256": "3ef42929790fb5892e16d64ef45ae620801a90d7b44ac1056b4a92eae5128a62"
+    }
+  ],
+  "qualification": "Existing synthetic integration checks only; actual observeExpanded regression is separate and passed."
+}

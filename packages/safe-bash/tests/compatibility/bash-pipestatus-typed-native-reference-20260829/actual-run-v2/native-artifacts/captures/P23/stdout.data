@@ -1,0 +1,2 @@
+declare -a PIPESTATUS='([0]="1" [1]="0")'
+declare -a PIPESTATUS='([0]="0")'

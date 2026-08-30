@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "STATIC_INVENTORY_INPUTS",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "whole870packSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "checklist": [
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/COMPLETION-ROUTING.json",
+      "bytes": 14238,
+      "sha256": "e43e2a32247ed5f95ecc7951b26326be36de4fd168caae7180d40a567736783d"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/COVERAGE-194.json",
+      "bytes": 254120,
+      "sha256": "76399ff39ec9200720055cfa4212c0a3771f958d74dd2d3b30ec4f9d734e92b7"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/GAPS-135.json",
+      "bytes": 148841,
+      "sha256": "16d048aba51e7beeb4019604a3b7a03e2d8a985cffe1a725365e4cf233d41deb"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/CRITICAL-REPAIRS.json",
+      "bytes": 18665,
+      "sha256": "fe28ef30e95a8bebfbfb86f83e41758023f9cf4494dd46669ebed95ebd16d77e"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/LOADED-SLOTS-10.json",
+      "bytes": 19793,
+      "sha256": "60fac283a45909c6abb7232c93ddb281bbf6356d6a7923730327ae924820f04c"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/OVERLAYS-8-AND-GUARDS.json",
+      "bytes": 18124,
+      "sha256": "855e6dadd23eb30ce15ef4d1f4097d9e1476fc8580abfb889d01bfbd43eea5b4"
+    }
+  ],
+  "sourceReads": [
+    {
+      "commit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/yq/index.ts",
+      "bytes": 24198,
+      "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+      "role": "POST_CANDIDATE_STATIC_READ_NOT_PRECODE_HOLDOUT"
+    },
+    {
+      "commit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/structured/query-core.ts",
+      "bytes": 22399,
+      "sha256": "d0582961172c95ce39a4bd999e1c8ee7446761786ecfc374b7d54cfd22f49241",
+      "role": "POST_CANDIDATE_STATIC_READ_NOT_PRECODE_HOLDOUT"
+    }
+  ],
+  "privateInterpretation": "Internal selected candidate source is not private external package; no external private source imports or execution.",
+  "newPolicy": false,
+  "rootTargetGO": false
+}

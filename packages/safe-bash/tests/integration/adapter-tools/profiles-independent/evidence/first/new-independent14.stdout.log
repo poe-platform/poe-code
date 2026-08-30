@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: new verifier: configured selector does not contaminate subsequent stock defaults
+ok 1 - new verifier: configured selector does not contaminate subsequent stock defaults
+  ---
+  duration_ms: 130.077708
+  type: 'test'
+  ...
+# Subtest: new verifier: loopback fixture rmdir refuses binding-time late descendant
+ok 2 - new verifier: loopback fixture rmdir refuses binding-time late descendant
+  ---
+  duration_ms: 15.542125
+  type: 'test'
+  ...
+# Subtest: new verifier: loopback fixture rm -d refuses binding-time late descendant
+ok 3 - new verifier: loopback fixture rm -d refuses binding-time late descendant
+  ---
+  duration_ms: 17.063166
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture active lock /work preserves namespace
+ok 4 - new verifier: fixture active lock /work preserves namespace
+  ---
+  duration_ms: 25.528833
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture active lock /work/target preserves namespace
+ok 5 - new verifier: fixture active lock /work/target preserves namespace
+  ---
+  duration_ms: 23.697375
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture active lock /work/target/descendant preserves namespace
+ok 6 - new verifier: fixture active lock /work/target/descendant preserves namespace
+  ---
+  duration_ms: 24.083417
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture mismatched receipt reports completed effect without recursive retry
+ok 7 - new verifier: fixture mismatched receipt reports completed effect without recursive retry
+  ---
+  duration_ms: 16.510792
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture factory rejects mismatched namespace before workload
+ok 8 - new verifier: fixture factory rejects mismatched namespace before workload
+  ---
+  duration_ms: 0.349125
+  type: 'test'
+  ...
+# Subtest: new verifier: configured fixture readonly-mount never hides nonempty descendants
+ok 9 - new verifier: configured fixture readonly-mount never hides nonempty descendants
+  ---
+  duration_ms: 44.551208
+  type: 'test'
+  ...
+# Subtest: new verifier: configured fixture webdav-upper never hides nonempty descendants
+ok 10 - new verifier: configured fixture webdav-upper never hides nonempty descendants
+  ---
+  duration_ms: 38.579584
+  type: 'test'
+  ...
+# Subtest: new verifier: configured fixture webdav-lower never hides nonempty descendants
+ok 11 - new verifier: configured fixture webdav-lower never hides nonempty descendants
+  ---
+  duration_ms: 45.701208
+  type: 'test'
+  ...
+# Subtest: new verifier: S3 snapshot marker late-child disclosure mounted=false
+ok 12 - new verifier: S3 snapshot marker late-child disclosure mounted=false
+  ---
+  duration_ms: 4.213291
+  type: 'test'
+  ...
+# Subtest: new verifier: S3 snapshot marker late-child disclosure mounted=true
+ok 13 - new verifier: S3 snapshot marker late-child disclosure mounted=true
+  ---
+  duration_ms: 3.412875
+  type: 'test'
+  ...
+# Subtest: new verifier: readonly S3 mount refuses deletion without erasing or elevating snapshot authority
+ok 14 - new verifier: readonly S3 mount refuses deletion without erasing or elevating snapshot authority
+  ---
+  duration_ms: 5.621625
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 533.442083

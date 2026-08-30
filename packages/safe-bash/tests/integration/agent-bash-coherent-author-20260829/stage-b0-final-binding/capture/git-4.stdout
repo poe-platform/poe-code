@@ -1,0 +1,593 @@
+5a873717b6ac20439e93d59404526d74a7a43abe blob 11952
+{
+  "schema": "coherent-b0-executable-preseal-v1",
+  "created": "2026-08-29T11:28:14.279Z",
+  "rootRuntimeAuthorization": false,
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceInputs": 309,
+  "productSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+  "package": {
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "node": {
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "stageAProducerPreseal": {
+    "role": "stageAProducerPreseal",
+    "commit": "ab976f5ee31d0a793d6016f13cc46e6960ace2aa",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json",
+    "bytes": 47291,
+    "sha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db",
+    "blob": "07885258c60b0d2b8b72df21001e3ae79da0ba48"
+  },
+  "workflowFixtureV4Preseal": {
+    "role": "workflowFixtureV4Preseal",
+    "commit": "955e7eb7d7f49feb4cf288fcb58a6ba6125073f0",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json",
+    "bytes": 8922,
+    "sha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c",
+    "blob": "c2fd250aa87370d508156631b3c2305e3e7260ca"
+  },
+  "producerRecords": [
+    {
+      "path": "package/virtual-bash-0.0.0.tgz",
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+    },
+    {
+      "path": "ROOT-IDENTITY.json",
+      "bytes": 178,
+      "sha256": "a84a19be9f6a98987c961998493fd9d94dfa778c5ba52d05f20d9c6eba6ddae2"
+    },
+    {
+      "path": "SOURCE-BEFORE.json",
+      "bytes": 53085,
+      "sha256": "f0a798c5f5e7bf0e3e13554cc3110174a54a54ae080c94c4488600095e4f4e51"
+    },
+    {
+      "path": "TOOLS-BEFORE.json",
+      "bytes": 424701,
+      "sha256": "4f0e9511dc5a22438b2ca98bb29c2ea96273e81a69127dc3aff8a3234c82b153"
+    },
+    {
+      "path": "EMITTED.json",
+      "bytes": 172028,
+      "sha256": "806c315fffff9c892514cf55013f91a64130257795f4846eaaa16f28f368a4e2"
+    },
+    {
+      "path": "PACKAGE-OUTPUT-RECEIPT.json",
+      "bytes": 507,
+      "sha256": "1333c9c3261298d49a0d2c0a1dd09bdb96c93bb347b6eb9a9121f37c23eab83d"
+    },
+    {
+      "path": "PACKAGE-MEMBERS.json",
+      "bytes": 177394,
+      "sha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 1219,
+      "sha256": "baac642d0c6e29b4f47a8a6ec98635b5ff865e17d2f621785c80f1ee94d76c82"
+    },
+    {
+      "path": "capture/00-git-metadata.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/00-git-metadata.stdout",
+      "bytes": 15828,
+      "sha256": "4cd8fae7d79898fd633c673d692b35b7790ab3a2f65af33b20b87414a6507ec2"
+    },
+    {
+      "path": "capture/01-git-metadata.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/01-git-metadata.stdout",
+      "bytes": 2851826,
+      "sha256": "d28c5ecf3668f03a79033396bb1792008534b2f363c8256e162b6e839f06b379"
+    },
+    {
+      "path": "capture/02-strict-build.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/02-strict-build.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/03-offline-pack.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/03-offline-pack.stdout",
+      "bytes": 113933,
+      "sha256": "a82ea3b38348050edda371664fd32221617973339af4763046ff330f83e6a936"
+    },
+    {
+      "path": "capture/events.jsonl",
+      "bytes": 5240,
+      "sha256": "5a640dfdfed4d063a400d0b184e6e18ab53a9b39236a86bec9aa51fe1c9fead9"
+    },
+    {
+      "path": "SELECTED-SOURCE.json",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    }
+  ],
+  "files": [
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/outer.sh",
+      "bytes": 466,
+      "sha256": "c107d6e6fde336542f595ff84381ef1d7330c72b325a42181f6f569782a8a1f0"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/runner.mjs",
+      "bytes": 1507,
+      "sha256": "91364ceea4c6b7534c77eae922a8d1632883c6a995b8f2dd77233fd37826503a"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/denials.mjs",
+      "bytes": 627,
+      "sha256": "b2bfd8baaed8db8e7868510554d98d889ffe1d700d3395045fb601e23d75e52e"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/controls.mjs",
+      "bytes": 1509,
+      "sha256": "795f8f376a83452f1c6301e776706e43f71a850f2c3432a950368e58f665a8d6"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/PROFILE.md",
+      "bytes": 4641,
+      "sha256": "863bb866d9ce95aaa72bdc6b49a12be9cd43cf686ba2e808b60059ed15c304c1"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json",
+      "bytes": 47291,
+      "sha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json",
+      "bytes": 8922,
+      "sha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/stageAProducerPreseal.json",
+      "bytes": 47291,
+      "sha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json",
+      "bytes": 558790,
+      "sha256": "ba8c249f94d3ce894754ceff84aaba11d2fcb0f517624f5c2427c8b21da825b2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/TOOLS-BEFORE.json",
+      "bytes": 424701,
+      "sha256": "4f0e9511dc5a22438b2ca98bb29c2ea96273e81a69127dc3aff8a3234c82b153"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/EMITTED.json",
+      "bytes": 172028,
+      "sha256": "806c315fffff9c892514cf55013f91a64130257795f4846eaaa16f28f368a4e2"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/PACKAGE-MEMBERS.json",
+      "bytes": 177394,
+      "sha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/run.mjs",
+      "bytes": 11225,
+      "sha256": "318ea0b32769928a79608966ae33e9769a43c46156b7420ce964e0da5d2d352f"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/bootstrap.mjs",
+      "bytes": 1094,
+      "sha256": "10d7d7356f54c449b76584c62781d24584031eaf42cc56fefbb4f42bb519995c"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/launch.sh",
+      "bytes": 383,
+      "sha256": "79517b807510970efe95e35a140ed4ff700ba41e4f2ffca7f4c8c614caf87c34"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/controls.mjs",
+      "bytes": 8279,
+      "sha256": "e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PROFILE.md",
+      "bytes": 3364,
+      "sha256": "07607e2231b1f5d58bcf327a53a34780513fe8133b467fff0d3a593ac1661c03"
+    }
+  ],
+  "stageFiles": [
+    {
+      "source": "tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+      "target": "workflows.mjs",
+      "bytes": 15763,
+      "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"
+    },
+    {
+      "source": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+      "target": "fixture.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "source": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/runner.mjs",
+      "target": "runner.mjs",
+      "bytes": 1507,
+      "sha256": "91364ceea4c6b7534c77eae922a8d1632883c6a995b8f2dd77233fd37826503a"
+    },
+    {
+      "source": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/resources.mjs",
+      "target": "resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+    },
+    {
+      "source": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/loader.mjs",
+      "target": "loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "source": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/denials.mjs",
+      "target": "denials.mjs",
+      "bytes": 627,
+      "sha256": "b2bfd8baaed8db8e7868510554d98d889ffe1d700d3395045fb601e23d75e52e"
+    }
+  ],
+  "ids": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C12",
+    "C13",
+    "C14",
+    "C17"
+  ],
+  "layouts": [
+    "source-built",
+    "installed",
+    "physically-moved"
+  ],
+  "semanticCalls": 39,
+  "workRoot": "/private/tmp/safe-bash-coherent-b0-20260829-r3",
+  "bounds": {
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationSeconds": 180,
+    "knownOSStarts": 32,
+    "supervisedChildren": 4,
+    "peakOS": 3,
+    "caseSeconds": 30,
+    "layoutSeconds": 420,
+    "installSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368,
+    "regexWorkersPerLayout": 2,
+    "regexWorkersTotal": 6,
+    "regexLivePerConsumer": 2,
+    "internalLoaderAdmissions": 3,
+    "nodeGuestWorkers": 0,
+    "absoluteStart": "bootstrap monotonic start passed unchanged"
+  },
+  "remainingStageB": "UNRUN_MANDATORY_LATER",
+  "productImports": 0,
+  "ownerPolicy": "whole-module-r3-presence-write-ownership-inclusive",
+  "priorPresealSha256": "9455bdd54775df368c1464ac6c922f753b69bbe4b464bd9bdcfb9a143699b30d",
+  "independentReviewPending": true
+}
+
+93835851eba50524b0071310f2e0665145225ae1 blob 383
+set -euC
+cd /Users/kjopek/Workspace/safe-bash
+exec > /private/tmp/coherent-b0-39-20260829-r3.launch.stdout 2> /private/tmp/coherent-b0-39-20260829-r3.launch.stderr
+: "${B0_ROOT_GO:?fresh explicit ROOT authorization required}"
+exec /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/bootstrap.mjs --run "$1" "$2" "$3"
+
+a062844be40f3c6f9b3fb09b2ec7568e228653a6 blob 1094
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';
+const started=performance.now(),args=process.argv.slice(2);assert.equal(args.length,4);assert.equal(args[0],'--run');
+function read(filename,identity,max){const stat=fs.lstatSync(filename);assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=max);assert.equal(stat.size,identity.bytes);const body=fs.readFileSync(filename);assert.equal(crypto.createHash('sha256').update(body).digest('hex'),identity.sha256);return body;}
+const seal=JSON.parse(read(args[1],{bytes:Number(args[3]),sha256:args[2]},1048576));assert.equal(seal.schema,'coherent-b0-executable-preseal-v1');
+for(const row of seal.files)read(path.join('/Users/kjopek/Workspace/safe-bash',row.path),row,4194304);
+assert.equal(process.env.B0_ROOT_GO,'ROOT_B0_39_EXPLICIT_FRESH_AUTHORIZATION');assert.ok(performance.now()-started<60000,'bootstrap time bound');
+await(await import(pathToFileURL(path.join(import.meta.dirname,'run.mjs')).href)).main(args,started);
+
+a530b96d6410f96ed730498290db1da006027efe blob 11225
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';import {gunzipSync} from 'node:zlib';
+import {read,sha,streamed,inventory,json,supervisor,safe,reasonRecord} from './owner.mjs';
+const here=import.meta.dirname,base=path.dirname(here),repo='/Users/kjopek/Workspace/safe-bash';
+const node='/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';
+function closure(root,members){const expected=new Map(members.map(row=>[row.path,row]));const dirs=new Set(['']);for(const row of members){let name=path.posix.dirname(row.path);while(name!=='.'){dirs.add(name);name=path.posix.dirname(name);}}const observed=inventory(root);assert.deepEqual(observed,members.slice().sort((left,right)=>Buffer.compare(Buffer.from(left.path),Buffer.from(right.path))));function directories(relative=''){for(const item of fs.readdirSync(path.join(root,relative),{withFileTypes:true})){const name=relative?relative+'/'+item.name:item.name;if(item.isDirectory()){assert.ok(dirs.has(name),'added directory '+name);directories(name);}else assert.ok(expected.has(name));}}directories();}
+function unpackVerified(raw,members){const result=gunzipSync(raw,{maxOutputLength:67108864,info:true});assert.equal(result.engine.bytesWritten,raw.length);const tar=result.buffer;assert.ok(raw.length+tar.length+16777216<=100663296);const expected=new Map(members.map(row=>[row.path,row])),seen=new Set();let cursor=0,pax={},ended=false;const text=body=>body.subarray(0,body.indexOf(0)<0?body.length:body.indexOf(0)).toString();const oct=body=>{const value=text(body).trim();assert.match(value,/^[0-7]*$/);return parseInt(value||'0',8);};while(cursor+512<=tar.length){const header=tar.subarray(cursor,cursor+512);if(header.every(value=>value===0)){assert.ok(tar.subarray(cursor).every(value=>value===0));ended=true;break;}let sum=0;for(let index=0;index<512;index++)sum+=index>=148&&index<156?32:header[index];assert.equal(oct(header.subarray(148,156)),sum);const size=oct(header.subarray(124,136));assert.ok(size<=16777216);const start=cursor+512,end=start+size;assert.ok(end<=tar.length);const body=tar.subarray(start,end);cursor=start+Math.ceil(size/512)*512;if(header[156]===120){let offset=0;pax={};while(offset<body.length){const space=body.indexOf(32,offset);assert.ok(space>offset);const length=Number(body.subarray(offset,space).toString());assert.ok(Number.isSafeInteger(length)&&length>0&&offset+length<=body.length);const entry=body.subarray(space+1,offset+length-1).toString();assert.equal(body[offset+length-1],10);const equal=entry.indexOf('=');assert.ok(equal>0);pax[entry.slice(0,equal)]=entry.slice(equal+1);offset+=length;}continue;}assert.ok(header[156]===0||header[156]===48);assert.equal(text(header.subarray(157,257)),'');assert.ok(Object.keys(pax).every(key=>['path','mtime','atime','ctime','size','uid','gid','uname','gname'].includes(key)));const prefix=text(header.subarray(345,500));let name=pax.path??((prefix?prefix+'/':'')+text(header.subarray(0,100)));if(pax.size)assert.equal(Number(pax.size),size);pax={};assert.ok(name.startsWith('package/'));name=safe(name.slice(8));assert.ok(!seen.has(name));seen.add(name);const row=expected.get(name);assert.ok(row);assert.equal(size,row.bytes);assert.equal(sha(body),row.sha256);assert.equal(oct(header.subarray(100,108))&511,row.mode);}assert.ok(ended);assert.deepEqual([...seen].sort(),[...expected.keys()].sort());}
+export async function main(args,started=performance.now()){assert.equal(args.length,4);assert.equal(args[0],'--run');const seal=JSON.parse(read(args[1],1048576,{sha256:args[2],bytes:Number(args[3])}));assert.equal(seal.schema,'coherent-b0-executable-preseal-v1');assert.equal(process.env.B0_ROOT_GO,'ROOT_B0_39_EXPLICIT_FRESH_AUTHORIZATION');assert.equal(seal.productSha256,'2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca');
+ for(const row of seal.files)read(path.join(repo,row.path),4194304,row);await streamed(node,seal.node);const producer='/private/tmp/safe-bash-coherent-stage-a-20260829-r2',work=seal.workRoot;assert.equal(fs.existsSync(work),false);fs.mkdirSync(work);assert.equal(fs.realpathSync(work),work);for(const name of ['capture','home','cache','input','source-built'])fs.mkdirSync(path.join(work,name));fs.writeFileSync(path.join(work,'home/user.npmrc'),'');fs.writeFileSync(path.join(work,'home/global.npmrc'),'');
+ const manager=supervisor(path.join(work,'capture'),1620,67108864,{started});let failure;try{
+ const stage=JSON.parse(read(path.join(here,'../stage-b0-r2/stageAProducerPreseal.json'),65536,seal.stageAProducerPreseal));const records=seal.producerRecords;const get=name=>{const row=records.find(item=>item.path===name);assert.ok(row);return JSON.parse(read(path.join(base,'stage-a-r2/evidence',name),2097152,row));};const members=get('PACKAGE-MEMBERS.json'),emits=get('EMITTED.json'),source=JSON.parse(read(stage.source.path,262144,stage.source));assert.equal(source.inputs.length,309);assert.equal(emits.length,1012);assert.equal(members.length,1014);const toolExpected=get('TOOLS-BEFORE.json'),toolLinks=Object.fromEntries(stage.links.map(row=>[row.package+'/'+row.path,row.target]));assert.deepEqual(inventory(path.join(producer,'tools'),toolLinks),toolExpected);
+ const verifyRetained=()=>{for(const row of source.inputs)read(path.join(producer,'source',safe(row.path)),33554432,row);for(const row of emits)read(path.join(producer,'source/dist',safe(row.path)),33554432,row);};verifyRetained();
+ const raw=read(path.join(base,'stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz'),1048576,seal.package);unpackVerified(raw,members);const archive=path.join(work,'input/product.tgz');fs.writeFileSync(archive,raw,{flag:'wx'});
+ const sourcePackage=path.join(work,'source-built/node_modules/virtual-bash');fs.mkdirSync(sourcePackage,{recursive:true});for(const row of members){const origin=path.join(producer,'source',row.path);const body=read(origin,16777216,row);const target=path.join(sourcePackage,safe(row.path));fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,body,{mode:row.mode,flag:'wx'});}closure(sourcePackage,members);
+ const metadata=JSON.parse(read(path.join(sourcePackage,'package.json'),1048576,members.find(row=>row.path==='package.json')));assert.deepEqual(metadata.dependencies??{},{});for(const key of ['preinstall','install','postinstall','prepare'])assert.equal(metadata.scripts?.[key],undefined);
+ const commonEnv={PATH:path.dirname(node),HOME:path.join(work,'home'),TMPDIR:work,TMP:work,TEMP:work,LANG:'C',LC_ALL:'C',TZ:'UTC',NODE_OPTIONS:'',NPM_CONFIG_USERCONFIG:path.join(work,'home/user.npmrc'),NPM_CONFIG_GLOBALCONFIG:path.join(work,'home/global.npmrc'),NPM_CONFIG_OFFLINE:'true',NPM_CONFIG_AUDIT:'false',NPM_CONFIG_FUND:'false',NPM_CONFIG_UPDATE_NOTIFIER:'false'};
+ const install=path.join(work,'installed');fs.mkdirSync(install);fs.writeFileSync(path.join(install,'package.json'),'{"private":true,"type":"module"}\n');const npm=path.join(producer,'tools/npm/bin/npm-cli.js');await manager.run('offline-install',node,['--experimental-permission','--allow-fs-read='+work,'--allow-fs-read='+path.join(producer,'tools'),'--allow-fs-read='+node,'--allow-fs-write='+install,'--allow-fs-write='+path.join(work,'cache'),'--allow-fs-write='+path.join(work,'home'),npm,'install','--offline','--ignore-scripts','--no-audit','--no-fund','--package-lock=false','--cache',path.join(work,'cache'),'--prefix',install,archive],{cwd:install,env:commonEnv,seconds:120});closure(path.join(install,'node_modules/virtual-bash'),members);
+ const aggregate=[];for(const layout of ['source-built','installed','physically-moved']){manager.remaining();let consumer=path.join(work,layout);if(layout==='physically-moved')fs.renameSync(install,consumer);const packageRoot=path.join(consumer,'node_modules/virtual-bash');closure(packageRoot,members);const scripts=path.join(consumer,'b0');if(!fs.existsSync(scripts))fs.mkdirSync(scripts);for(const row of seal.stageFiles){const body=read(path.join(repo,row.source),4194304,row);fs.writeFileSync(path.join(scripts,row.target),body);}const resourceLog=path.join(consumer,'resources-'+layout+'.jsonl'),trace=path.join(consumer,'loads-'+layout+'.jsonl');const harness=seal.stageFiles.map(row=>({path:path.join(scripts,row.target),bytes:row.bytes,sha256:row.sha256}));const binding={root:packageRoot,inputs:members.filter(row=>row.path.startsWith('dist/')).map(row=>({...row,path:row.path.slice(5)})),harness,trace};json(path.join(consumer,'binding-'+layout+'.json'),binding);json(path.join(consumer,'request-'+layout+'.json'),{action:'B0_ENGINE_FREE_13',sourceTree:seal.sourceTree,layout,ids:seal.ids});
+ const env={...commonEnv,RESOURCE_LOG:resourceLog,RESOURCE_ALLOWANCE:'2',PUBLIC_BINDING:path.join(consumer,'binding-'+layout+'.json'),B0_REQUEST:path.join(consumer,'request-'+layout+'.json')};const result=await manager.run('workflow-'+layout,node,['--experimental-permission','--allow-fs-read='+consumer,'--allow-fs-read='+node,'--allow-fs-write='+consumer,'--allow-worker','--import',path.join(scripts,'denials.mjs'),'--import',path.join(scripts,'resources.mjs'),'--loader',pathToFileURL(path.join(scripts,'loader.mjs')).href,path.join(scripts,'runner.mjs')],{cwd:consumer,env,seconds:420});
+ const report=JSON.parse(read(result.stdout,8388608));assert.equal(report.schema,'coherent-b0-result-v1');assert.deepEqual(report.rows.map(row=>row.id),seal.ids);assert.equal(report.layout,layout);assert.equal(report.rows.length,13);const events=read(resourceLog,1048576).toString().trim().split('\n').map(line=>JSON.parse(line));const created=events.filter(row=>row.kind==='worker-create'),exited=events.filter(row=>row.kind==='worker-exit');assert.ok(created.length<=2);assert.deepEqual(created.map(row=>row.id).sort(),exited.map(row=>row.id).sort());assert.ok(events.some(row=>row.kind==='before-exit'&&row.live===0));closure(packageRoot,members);for(const row of harness)read(row.path,4194304,row);aggregate.push({layout,report,regexWorkers:created.length,internalLoaderAdmissions:1,pid:result.pid});}
+ verifyRetained();assert.deepEqual(inventory(path.join(producer,'tools'),toolLinks),toolExpected);read(archive,1048576,seal.package);for(const row of seal.files)read(path.join(repo,row.path),4194304,row);const workBytes=inventory(work).reduce((sum,row)=>sum+row.bytes,0);assert.ok(workBytes<=805306368);const retirement=manager.finish();manager.publish(path.join(work,'RESULT.json'),{status:aggregate.some(row=>row.report.failed)?'ASSERTION_FAILURE':'PASS',sourceTree:seal.sourceTree,package:seal.package,aggregate,retirement,workBytes,stageBRemaining:'UNRUN',coherentAcceptance:false});process.exitCode=aggregate.some(row=>row.report.failed)?1:0;
+ }catch(error){failure=error;const retirement=manager.abort(error);try{manager.publish(path.join(work,'STOP.json'),{primaryPresent:true,primary:reasonRecord(error),retirement,automaticRetry:false,productSourceChanged:false});}catch(publicationError){console.error(JSON.stringify({terminalPersistence:false,primary:reasonRecord(error),publication:reasonRecord(publicationError)}));}process.exitCode=78;throw failure;}}
+if(process.argv[1]&&path.resolve(process.argv[1])===import.meta.filename)await main(process.argv.slice(2));
+
+398e79c64737b7e51a713a8727f1f80f021d69e8 blob 3460
+{
+  "publishedAt": "2026-08-29T11:50:06.474Z",
+  "publicationDeadline": "2026-08-29T11:53:14.829Z",
+  "authority": "Explicit ROOT user decision; finite qualified preexecution acceptance",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "candidatePreseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "selectedSource": {
+    "tree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+    "inputs": 309,
+    "manifestSha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+  },
+  "package": {
+    "members": 1014,
+    "actualDistFiles": 1012,
+    "compressedBytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "acceptedEvidence": {
+    "review": "eff15eba6788731fc89a6c12f71983fa99630f66",
+    "reviewReceiptSha256": "290dd9eefbc9543a840689447b49fe8102777f4ed9adc79b4d561dcbc31a7877",
+    "adjudication": "5c45aced892ede0ddecfaa196dff71c6556adf75",
+    "adjudicationReceiptSha256": "9d76960c00522272ffb9d4dd4822377678473191b7444832181051ce63685aeb",
+    "sourcePlusPureGroups": 24,
+    "knownRolesExitClose0": 3,
+    "controllerGroupsAbsent": 2,
+    "parentGroup": "UNKNOWN",
+    "discardedCause": "IRRETRIEVABLE",
+    "originalHoldUnchanged": true,
+    "objectJsonDiagnosticsAbbreviated": true
+  },
+  "prospectiveReviewerProfile": "KNOWN_ROLE_ONLY_FUNCTIONAL; unresolved known work STOP; no exit-implies-group-absence",
+  "plannedActual": {
+    "ids": [
+      "C01",
+      "C02",
+      "C03",
+      "C04",
+      "C05",
+      "C06",
+      "C07",
+      "C08",
+      "C09",
+      "C12",
+      "C13",
+      "C14",
+      "C17"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 39,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "knownOSStarts": 32,
+    "peakOS": 3,
+    "supervisedChildren": 4,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 420,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368,
+    "regexWorkersPerLayout": 2,
+    "regexWorkersTotal": 6,
+    "regexLivePerConsumer": 2,
+    "internalLoaderAdmissions": 3,
+    "nodeGuestWorkers": 0
+  },
+  "remainingAuthority": [
+    "fresh ROOT actual39 GO",
+    "final exact bootstrap/source/preseal/package/tool/fixture binding review",
+    "fresh absent work-root and exclusive outer-capture admission",
+    "inclusive clock, permissions, finite known-role/Worker/loader accounting and publication binding",
+    "separate authority for larger726/retained/types/mutants/all50Unit2/layout and five PUBLIC95 workflows"
+  ],
+  "actual39AuthorizedByThisDocument": false,
+  "publicationExecutions": {
+    "runtime": 0,
+    "retests": 0,
+    "product": 0,
+    "workers": 0,
+    "native": 0
+  },
+  "document": {
+    "path": "ROOT-B0-PREEXECUTION-ACCEPTANCE.md",
+    "bytes": 6820,
+    "sha256": "9d8b223859e76c55abde2ff9f1e3c74a987dec1de5b9a0dc8df58eee86d71fe4"
+  },
+  "publicationAccounting": {
+    "knownRoles": "patch shell+utility and final shell+four Git metadata/publication operations",
+    "plannedKnownOSStarts": 7,
+    "peak": 2,
+    "grantKnownOSStarts": 12,
+    "grantCaptureBytes": 16777216,
+    "grantWorkBytes": 67108864,
+    "notUniversalCensus": true
+  }
+}
+
+37137b3618e81f728fd4860aa321adb6d05313e9 blob 6820
+# ROOT B0-r3 qualified preexecution acceptance
+
+ROOT decision,2026-08-29. Accepted scope is finite **SOURCE +24 PURE control
+groups** for the candidate below, based on the preserved eff15eba review and
+5c45aced adjudication. This is not actual39 execution or coherent acceptance.
+
+## Exact accepted bindings
+
+- Candidate `8ab0b2875c695c7cf6fbe90080cd083f69ef7146`;
+  author evidence `66b399e0a2643ee4ebd9e57b1a37ad764e7ae9c8`.
+- `tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json`:
+  **11952B**, SHA256
+  `78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7`.
+- Selected composition `3adc676a0ab638c9788ef007e465931d65d2c6fe`,309 inputs;
+  source manifest SHA256
+  `ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae`.
+- Accepted Stage-A producer d8524695, full1014-member package,930368 compressed
+  bytes, SHA256 `2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca`.
+  Source-built uses actual retained Stage-A dist1012 files plus package metadata,
+  not a tar relabel. Installed is offline/scripts-disabled; moved is a physical
+  rename. These remain future runtime bindings, not new execution in this document.
+- Producer preseal `ab976f5ee31d0a793d6016f13cc46e6960ace2aa`:47291B/
+  `8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db`.
+  Separate fixture preseal `955e7eb7d7f49feb4cf288fcb58a6ba6125073f0`:8922B/
+  `4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c`.
+
+Exact13 IDs: **C01,C02,C03,C04,C05,C06,C07,C08,C09,C12,C13,C14,C17**.
+Each is proposed once in `source-built`, `installed`, `physically-moved`:39 calls.
+C17 remains the exact nonasync invoke-Promise return; no wrapper transformation.
+
+## Accepted evidence and preserved limitations
+
+- Original execution produced16 author and8 independent PURE group outcomes.
+  No controls were rerun for adjudication or this publication. They are not native
+  FD-fault, signal delivery, kernel containment or product workflow proof.
+- All three KNOWN Node roles have authenticated status0, exit and close: reviewer
+  parent36162, author controller36163, independent controller36164. Both controller
+  groups were observed absent at their original checks. No known role lacks
+  retirement evidence.
+- Original review campaign HOLD `eff15eba6788731fc89a6c12f71983fa99630f66` and
+  receipt `290dd9eefbc9543a840689447b49fe8102777f4ed9adc79b4d561dcbc31a7877`
+  remain unchanged. Parent-group observation remains **UNKNOWN**, with discarded
+  cause irretrievable. No exit-to-group-absence inference or retrospective successful
+  outer-harness claim. Old r2 three-of-nine and other STOP histories stay unchanged.
+- Adjudication `5c45aced892ede0ddecfaa196dff71c6556adf75` separates known direct
+  retirement from that administrative observation gap. Receipt:
+  `9d76960c00522272ffb9d4dd4822377678473191b7444832181051ce63685aeb`.
+- Actual r3 owner retains non-ESRCH/raw primary errors; no equivalent swallowing
+  defect was shown. Arbitrary object JSON diagnostics remain abbreviated; they
+  cannot reconstruct object error code/errno/syscall or raw reference identity.
+- No universal census, hostile-host containment, nested-worker load trace or
+  unobserved-descendant proof. Inherited trusted host/immutable-input assumptions
+  remain explicit.
+
+ROOT prospectively selects the **known-role-only FUNCTIONAL reviewer profile**:
+require retirement of each known owned role and its admitted work. Any known
+unresolved work remains STOP. Group absence is not inferred from exit and is not
+an unrequested prerequisite for that functional profile. This does not weaken
+the actual r3 owner’s existing group checks. The source-only future helper remains
+UNEXECUTED; this decision is not a new helper/cohort execution grant.
+
+## Proposed actual role and budget packet — not measured outcomes
+
+Exactly four supervised roles: `offline-install`, `workflow-source-built`,
+`workflow-installed`, `workflow-physically-moved`. The packet permits **32 known
+OS starts, peak3**, including its preparation/publication accounting; this is a
+ceiling, not a measured32-start census. One install plus three sequential layouts.
+
+-1800s inclusive, from bootstrap monotonic start passed unchanged;1620s active,
+  with180s cleanup/publication reserve inside the same ceiling.
+-Install120s; each layout420s; each case30s; failure cleanup5s (TERM then KILL after2s,
+  unknown at5s). Effective child timer is min(role ceiling, active time remaining).
+-Capture67108864B; work805306368B. Publication checks before and after persistence
+  use the same absolute deadline; synchronous work is not forcibly preempted.
+-Regex at most2/layout,6total, live2/consumer. Three fixed internal-loader admissions
+  separately; zero Node guest Workers/PUBLIC95. These are caps, not observations.
+  Inherited Regex parent/static closure/main-loader authority only; no new nested
+  load proof or comparator mechanism. No product/default changes.
+
+## Every remaining actual activation slot
+
+1. **Fresh ROOT actual39 GO** and final binding review are still required. The
+   immutable candidate records rootRuntimeAuthorization=false; this acceptance
+   does not edit that historical field or activate anything.
+2. Bind only the r3 bootstrap launch route to the exact preseal path/hash/11952B,
+   fixed source/package/fixtures and explicit environment. The proposed
+   B0_ROOT_GO value is `ROOT_B0_39_EXPLICIT_FRESH_AUTHORIZATION`; the string alone
+   is not proof of ROOT intent. No alternate direct-main or retry permission.
+3. Re-admit pinned Node22.22.2 at its packet path,112989184B/
+   `5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011`,
+   retained tools and actual Stage-A source/dist. Authenticate compressed package
+   size/hash before bounded same-buffer inflation and full member/new-entry guards.
+4. Freshly admit absent owned work root
+   `/private/tmp/safe-bash-coherent-b0-20260829-r3` and exclusive launch captures
+   `/private/tmp/coherent-b0-39-20260829-r3.launch.stdout` and `.launch.stderr`.
+   Establish outer raw capture before fallible admission; preserve startup failures.
+5. Bind the inclusive clock, exact known-role graph, permission/launch requirements,
+   counters and publication reserve for that future activation. Report actual
+   create/exit/cleanup outcomes, Regex counts and loader admissions without turning
+   caps into measured counts. Known unresolved work or integrity/capture failure
+   stops dependents; no automatic rerun or authority widening.
+
+Even a later39 success does not discharge the larger726, retained/types/mutants,
+ALL50 Unit2 identities/layout or five PUBLIC95 workflows. Those remain later and
+UNRUN, requiring their own authority. Actual39, build/install and product/Worker/
+engine/native activity are all zero in this docs-only publication.
+

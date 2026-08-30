@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/safejs-owned-output-prototype-review/surface/execution-v2/verify.mjs"
+  ],
+  "timeoutMs": 30000,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "{\n  \"status\": \"EXACT_SIGNED_CHILD_AND_MINIMAL_SCORER_DELTA_VERIFIED\",\n  \"childSha256\": \"358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4\",\n  \"runnerSha256\": \"ed685056bfb0895406cb6a366a238010e85c2623ce4786ed977d1bccac0ed60a\",\n  \"expectedDataSha256\": \"c0849f349888c4ab8c3c8be6741136f37bfa34bcd831eee004e757b4b57dd535\",\n  \"runnerReplacements\": [\n    \"New isolated scratch identity; no v1 scratch write\",\n    \"Use versioned pinned inputs; only case08 expected.engine differs\",\n    \"Copy revised expected data and unchanged pins; all guest sources remain original frozen bytes\",\n    \"Only case08 two fulfilled-result assertions replaced with signed observed outcome/order predicates; all other checks unchanged\"\n  ],\n  \"onlyExpectedDataPointer\": \"/cases/7/expected/engine\",\n  \"originalGuestSourcesUnchanged\": 9,\n  \"unconditionalCases\": 8,\n  \"originalRunnerUnchanged\": true,\n  \"originalCasesUnchanged\": true,\n  \"freezePresent\": true,\n  \"guestExecutions\": 0,\n  \"runtimeImports\": 0\n}\n",
+  "stderr": "",
+  "qualification": "Static post-run freeze check only; no guest/runtime execution"
+}

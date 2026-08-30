@@ -1,0 +1,17 @@
+{
+  "frozenFiles": 249,
+  "frozenChanged": [],
+  "liveChanged": [],
+  "oracleBefore": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+  "oracleAfter": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+  "initialStatus": "?? benchmarks/reports/current-comparison-20260827/measurement-freeze/\n?? benchmarks/reports/current-comparison-20260827/measurement-review/\n?? benchmarks/reports/current-comparison-20260827/measurement/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata-stress/permission-profile-independent/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/native-preflight-independent-20260827/\n?? tests/integration/typecheck-workflow-independent-20260827-closure/\n?? tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/\n?? tests/stress/adapters/s3-snapshot-profile-independent/\n",
+  "initialIndex": "",
+  "finalStatus": "?? benchmarks/reports/current-comparison-20260827/measurement-freeze/\n?? benchmarks/reports/current-comparison-20260827/measurement-review/\n?? benchmarks/reports/current-comparison-20260827/measurement/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/metadata-stress/permission-profile-independent/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/native-preflight-independent-20260827/\n?? tests/integration/typecheck-workflow-independent-20260827-closure/\n?? tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/\n?? tests/stress/adapters/s3-snapshot-profile-independent/\n",
+  "finalIndex": "",
+  "headAtEnd": "ac816c677d4c76f4be674b8b11ad4a10618638a9",
+  "reviewSourceHashes": {
+    "capture.mjs": "478b2a1806b7c61645f754712b4cc4b792ddba5b2bc3d0d22c077d5bd3aca142",
+    "observe.mjs": "9f1594c8745a48806739bdf31de6a2db8dbaff8100d5598461f8df53015c5902",
+    "review.test.ts": "bddc91e7ac1d3f489227768d77c7faf0747bb90e59d2ee7b41aa332ad5c1d388"
+  }
+}

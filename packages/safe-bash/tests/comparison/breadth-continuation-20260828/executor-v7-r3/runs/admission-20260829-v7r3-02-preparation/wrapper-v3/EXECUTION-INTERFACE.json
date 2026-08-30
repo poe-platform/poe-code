@@ -1,0 +1,49 @@
+{
+  "schema": "INACTIVE_ATTEMPT02_EXECUTION_INTERFACE_V1",
+  "status": "INACTIVE_NO_ACTUAL_GO",
+  "runId": "admission-20260829-v7r3-02",
+  "wrapper": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/FUTURE-LAUNCH.sh.data",
+  "command": {
+    "shell": "/bin/sh",
+    "entry": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/FUTURE-LAUNCH.sh.data",
+    "arguments": [
+      "EXACT_FRESH_AUTH_RAW_SHA256"
+    ],
+    "environment": "exec -c before wrapper; wrapper itself replaces final owner; empty inherited values plus exact observed Darwin host-tool metadata only",
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "umask": "022",
+    "owner": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/owner.mjs",
+    "ownerArgs": [
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json",
+      "EXACT_FRESH_AUTH_RAW_SHA256",
+      "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2"
+    ]
+  },
+  "adapterSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/SEAL.json",
+    "bytes": 2103,
+    "mode": 420,
+    "sha256": "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2"
+  },
+  "authAbsolutePath": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json",
+  "grantPath": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+  "review": {
+    "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+    "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+    "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+  },
+  "rootAdjudication": {
+    "commit": "ef181a3dbf72a4a9ec5e4260f448e87fd1a88dae",
+    "path": "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/ROOT-ADJUDICATION.json",
+    "sha256": "5cc6ceb4251ac87a7cfdc462489d73feb489cb5187db7ac0d9cdf9a12401d60f",
+    "qualification": "Original outer25/25+7/8N02FAIL remain; no rescore/universal losslessness"
+  },
+  "beforeActual": [
+    "Fresh root GO and committed13-field grant/AUTH from inactive templates",
+    "Full actual pinned preflight including retained416 projection/archives/tools; no harmless substitutes",
+    "Create ONLY unused activation/admin-capture directory0700 after fresh authorization; wrapper exclusively creates stdout/stderr0600 before owner startup",
+    "Bind wrapper/tools/rawAUTH/ownerSeal; no new process or inherited environment beyond declared topology"
+  ],
+  "resourceProfile": "FUTURE-PROFILE.json",
+  "actualAuthorized": false
+}

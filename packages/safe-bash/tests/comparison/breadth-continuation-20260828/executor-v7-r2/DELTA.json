@@ -1,0 +1,23 @@
+{
+  "schema": "EXPLICIT_R2_DELTA",
+  "original": "230ed3c6e15617b312760367adf9ede4e5c7ff6a",
+  "oldInputsByteUnchanged": true,
+  "changed": [
+    "authorization.mjs: closed reference/context/signed-document types; two actual metadata observations",
+    "contracts.mjs: explicit finite own-data role schemas",
+    "report.mjs: V3 exact final/authority/child reconciliation",
+    "body.mjs: bound authority references and shared inclusive config writer",
+    "records.mjs: closed multipart schema and strict shared config helpers",
+    "worker.mjs/synthetic-worker.mjs: readConfig and authority-observer integration",
+    "coordinator.mjs/production.mjs: single ordered authority-to-final transport",
+    "outer.mjs: same source bytes, imports now resolve affected V3 assessor"
+  ],
+  "unchanged": [
+    "bootstrap ordering/revocation implementation",
+    "loader/offline/CJS/asset/source/package guards",
+    "OPERATION-PLAN raw bytes and phase projection",
+    "248+8MiB/64KiB/262144 budgets",
+    "all historical raw failures and source closure qualifications"
+  ],
+  "scope": "SOURCE repair plus planned affected DATA/STUB controls, not admission bypass proof"
+}

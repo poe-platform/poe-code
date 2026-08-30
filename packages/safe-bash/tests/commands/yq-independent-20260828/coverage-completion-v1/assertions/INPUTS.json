@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "inputs": [
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/COMPLETION-ROUTING.json",
+      "sha256": "e43e2a32247ed5f95ecc7951b26326be36de4fd168caae7180d40a567736783d",
+      "bytes": 14238,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/FRAGMENTS-371.json",
+      "sha256": "7eb0650ef49a0c7693daaba50fd0a182e8911dfab9c478ee8a89d7cf9abdd6d6",
+      "bytes": 137108,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/PROJECTIONS-149.json",
+      "sha256": "8ced392aeb05bbd88d400f74b1b7515cbc76eb74c83985627400a4be7dc6221d",
+      "bytes": 96692,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/COVERAGE-194.json",
+      "sha256": "76399ff39ec9200720055cfa4212c0a3771f958d74dd2d3b30ec4f9d734e92b7",
+      "bytes": 254120,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/GAPS-135.json",
+      "sha256": "16d048aba51e7beeb4019604a3b7a03e2d8a985cffe1a725365e4cf233d41deb",
+      "bytes": 148841,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/OVERLAYS-8-AND-GUARDS.json",
+      "sha256": "855e6dadd23eb30ce15ef4d1f4097d9e1476fc8580abfb889d01bfbd43eea5b4",
+      "bytes": 18124,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.json",
+      "sha256": "4d5e2ca14a50965daaf08218ea1ecc26838f9376868d8ab5b929bfef2e7178f1",
+      "bytes": 7621,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ALLOCATION.json",
+      "sha256": "2cd020b25855987f9d7af02d9e6e215f867f99d10c402c34d5e80513f92b0545",
+      "bytes": 628572,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/data/runtimeJobs.json",
+      "sha256": "c0fbd4490a171734352795a33729c5b2b6f28ec980f11752ca097f19e9b8c368",
+      "bytes": 1047583,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/data/diagnosticCatalogue.json",
+      "sha256": "23e2ad8497108797a64e21f5431c0c39dc669b164bf079885f58a2da13049424",
+      "bytes": 9262,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/MANIFEST.json",
+      "sha256": "98871d5f7f98e9a9b666310d7189c176bab895d84dd313b3da2cc017ed2fd26d",
+      "bytes": 22271,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/SOURCES.json",
+      "sha256": "11eba6977e60c33340374ecb51b002f330d2ca97a3c59384991eeff24134b5c6",
+      "bytes": 14928,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8",
+      "bytes": 37274,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json",
+      "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6",
+      "bytes": 8461,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "914d2c9b61f68adc2adf5e4297f702248c2bd5ef",
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/cases.json",
+      "sha256": "cb1c52cc7c5d50b2e6e31cc0229f1a16cc526ab242c01bc04df16e581bf50279",
+      "bytes": 10246,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+      "sha256": "173a594a4b61c17e14ecd09ee850027e1c9cfafac95530e04cfcb65d7c1de18f",
+      "bytes": 10728,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+      "sha256": "b83f0f56eeddbc9637947356078d972999533af791d40f200d493008e17ee443",
+      "bytes": 12730,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+      "sha256": "bd42933b99802391de2d41d8af9c00a32963f96ac5fb243b4913da3f358f150c",
+      "bytes": 4211,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+      "sha256": "f81e089520ccaffcd3cd73589f46737dd658cb9be295f43089156f64382381cf",
+      "bytes": 10897,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+      "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30",
+      "bytes": 12184,
+      "historicalMode": "ORIGINAL_MODE_UNATTESTED",
+      "role": "READ_ONLY_DATA_PROJECTED_FRESH_NOT_EXECUTABLE"
+    }
+  ]
+}

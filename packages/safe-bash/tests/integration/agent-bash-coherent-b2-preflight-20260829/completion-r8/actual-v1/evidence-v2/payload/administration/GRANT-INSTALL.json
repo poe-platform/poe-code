@@ -1,0 +1,15 @@
+{
+  "at": "2026-08-29T16:58:03.144Z",
+  "grantInstalled": true,
+  "bytes": 1081,
+  "mode": "0600",
+  "sha256": "779253fa14627330e812e9522603f8e61895a91155d5e4f9fe943f0823573e80",
+  "packetFilesVerified": 32,
+  "packageVerified": true,
+  "priorUnusedSlots": [
+    "/private/tmp/safe-bash-b2-runtime-r8",
+    "/private/tmp/safe-bash-b2-runtime-r8.outer.raw",
+    "/private/tmp/B2-R8-ROOT-GO.json"
+  ],
+  "runtimeAttempts": 0
+}

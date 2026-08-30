@@ -1,0 +1,13 @@
+{
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/extension-review/after-abort-fix/replay/watchdog.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 120000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\n  \"harnessOnly\": true,\n  \"candidateExecuted\": false,\n  \"good\": {\n    \"state\": \"returned\",\n    \"value\": {\n      \"state\": \"fulfilled\",\n      \"value\": {\n        \"marker\": 7\n      }\n    },\n    \"terminationAwaited\": true,\n    \"terminationCode\": 0,\n    \"output\": [],\n    \"outputBytes\": 0,\n    \"heartbeats\": 2,\n    \"deadlineMs\": 2000,\n    \"resourceLimits\": {\n      \"maxOldGenerationSizeMb\": 64,\n      \"stackSizeMb\": 4\n    }\n  },\n  \"undefinedRejection\": {\n    \"state\": \"returned\",\n    \"value\": {\n      \"state\": \"rejected\",\n      \"reasonType\": \"undefined\"\n    },\n    \"terminationAwaited\": true,\n    \"terminationCode\": 0,\n    \"output\": [],\n    \"outputBytes\": 0,\n    \"heartbeats\": 1,\n    \"deadlineMs\": 2000,\n    \"resourceLimits\": {\n      \"maxOldGenerationSizeMb\": 64,\n      \"stackSizeMb\": 4\n    }\n  },\n  \"spin\": {\n    \"state\": \"outer-timeout\",\n    \"passed\": false,\n    \"terminationAwaited\": true,\n    \"terminationCode\": 1,\n    \"output\": [],\n    \"outputBytes\": 0,\n    \"heartbeats\": 9,\n    \"deadlineMs\": 100,\n    \"resourceLimits\": {\n      \"maxOldGenerationSizeMb\": 64,\n      \"stackSizeMb\": 4\n    }\n  }\n}\n",
+  "stderr": ""
+}

@@ -1,0 +1,139 @@
+FILE=bindings.ts
+176 export class BindingStore {
+177   readonly bindings = new Map<string, NamedBinding>();
+178   readonly watches = new Map<string, Watch>();
+179   epoch = 0;
+180 
+181   private constructor(readonly owner: ArrayOwner) {}
+182 
+183   static create(parent: ArrayOwner): BindingStore {
+184     parent.reserve({ metadata: 192, work: 10 });
+185     return new BindingStore(parent);
+186   }
+187 
+188   get(name: string): IndexedBinding | undefined { return this.bindings.get(name)?.binding; }
+189 
+190   async watch(name: string, operation: ArrayOwner, signal: AbortSignal): Promise<BindingWatch> {
+191     let watch = this.watches.get(name);
+192     const observer = operation.reserve({ metadata: 64, work: 5 });
+193     if (!watch) {
+194       signal.throwIfAborted();
+195       this.owner.reserve({ work: name.length }).release();
+196       const bytes = Buffer.byteLength(name);
+197       const token = new OwnedText(name, bytes, this.owner.reserve({ metadata: 32, payload: bytes, work: 4 }));
+198       try {
+199         const admission = this.owner.reserve({ slots: 1, metadata: 96, generation: true, version: true, work: 9 });
+200         watch = { generation: admission.generation, version: admission.version, typedVersion: 0, observers: 0, admission, name: token };
+201         this.watches.set(name, watch);
+243   publish(name: string, binding: IndexedBinding, tickets: Tickets, prepared?: { readonly name: OwnedText; readonly admission: Admission }, restoring = false): Promise<void> | undefined {
+244     const previous = this.bindings.get(name);
+245     const displaced = previous?.binding;
+246     if (previous) previous.binding = binding;
+247     else {
+248       if (!prepared) throw new Error("Missing indexed-array name admission");
+249       this.owner.adopt(prepared.name.admission, restoring);
+250       this.owner.adopt(prepared.admission, restoring);
+251       const entry = { binding, name: prepared.name, admission: prepared.admission };
+252       prepared.admission.cleanup = () => {
+253         if (this.bindings.get(name) !== entry) return;
+254         this.bindings.delete(name);
+255         entry.name.release();
+256         void entry.binding.release();
+FILE=state.ts
+110   async prepareTypedPublication(name: string, owner: ArrayOwner, signal: AbortSignal): Promise<() => void> {
+111     owner.reserve({ metadata: 128, work: 7 });
+112     const saved: { superseded?: boolean }[] = [];
+113     for (let frame = this.#overlays; frame; frame = frame[overlayNext]) {
+114       owner.reserve({ work: 2 }).release();
+115       const entry = frame.get(name);
+116       if (entry) {
+117         owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+118         saved.push(entry);
+119       }
+120       await owner.ledger.checkpoint(signal, 2);
+121     }
+122     return () => { for (const entry of saved) entry.superseded = true; };
+123   }
+131   restore(permit: Restoration, action: () => void): void {
+132     this.#publication = true;
+133     try { action(); }
+134     finally { this.#publication = false; }
+135     if (permit.epoch) {
+136       this.epoch = permit.epoch;
+137       if (this.store) this.store.epoch = permit.epoch;
+138     }
+139   }
+140 
+141   mutation(name?: string): Admission | undefined {
+142     if (this.#publication || !this.session.ledger.active) return undefined;
+143     return this.store ? this.store.tickets(name) : this.session.owner!.reserve({ epoch: true, work: 5 });
+144   }
+153   publish(tickets: Tickets, name: string | undefined, action: () => void): void {
+154     if (this.#publication) throw new Error("Nested indexed-array publication");
+155     this.#publication = true;
+156     try { action(); }
+157     finally { this.#publication = false; }
+158     this.epoch = tickets.epoch;
+159     this.store?.changed(tickets, name);
+160   }
+161 
+162   private wrap(value: object, field: string): object {
+163     const previous = this.#wrapped.get(value);
+164     if (previous) return previous;
+165     if (this.#enrollment) {
+166       this.session.owner!.reserve({ slots: 2, metadata: 128, work: 8 });
+170     const named = field === "variables" || field === "exported" || field === "readonlyVariables";
+171     let proxy: object;
+172     if (value instanceof Map || value instanceof Set) {
+173       proxy = new Proxy(value, { get(target, key) {
+174         if (key === "set" && target instanceof Map) return (name: unknown, entry: unknown) => {
+175           const tickets = monitor.mutation(named ? String(name) : undefined);
+176           target.set(name, entry);
+177           monitor.finish(tickets, named ? String(name) : undefined);
+178           return proxy;
+179         };
+180         if (key === "add" && target instanceof Set) return (name: unknown) => {
+181           const tickets = monitor.mutation(named ? String(name) : undefined);
+182           target.add(name);
+183           monitor.finish(tickets, named ? String(name) : undefined);
+243     try { this.monitor.restore(this, action); }
+244     finally { if (close) this.close(); }
+245   }
+246 
+247   close(): void {
+248     if (this.#closed) return;
+249     this.#closed = true;
+250     this.monitor.retire(this);
+251     if (this.admission && --this.admission.restorationReferences === 0) this.admission.release();
+252     this.holding?.release();
+253   }
+254 }
+255 
+256 export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>): Promise<State> {
+282     for (const key of state.readonlyVariables ?? []) { owner.reserve({ slots: 1, metadata: 32, work: 4 }); await textToken(owner, key, signal); check(); }
+283     for (const key of state.functions.keys()) { owner.reserve({ slots: 1, metadata: 32, work: 4 }); await textToken(owner, key, signal); check(); }
+284     for (const value of state.directoryStack?.entries ?? []) { await textToken(owner, value, signal); check(); }
+285     for (const frame of state.locals) {
+286       owner.reserve({ metadata: 64, work: 4 });
+287       for (const [key, saved] of frame) {
+288         owner.reserve({ slots: 1, metadata: 64, work: 8 });
+289         await textToken(owner, key, signal); check();
+290         if (saved.value !== undefined) { await textToken(owner, saved.value, signal); check(); }
+291       }
+292     }
+293     check();
+294     result = new StateMonitor(clone(), monitor.session);
+295     const destination = result.activate();
+302       destination.publish(name, entry.binding, tickets, prepared);
+303       await owner.ledger.checkpoint(signal, 5);
+304     }
+305     check();
+306     if (prepare) { await prepare(result.proxy, owner); check(); }
+307     return result.proxy;
+308   } catch (error) {
+309     if (result?.store) for (const [name] of result.store.bindings) await result.store.remove(name, { generation: 0, version: 0, epoch: 0 });
+310     await owner.close();
+311     throw error;
+312   } finally { holding.release(); }
+313 }
+FROZEN_ARRAY_HASHES_MATCH_ACCEPTED_SOURCE; NO_PRODUCT_EXECUTION

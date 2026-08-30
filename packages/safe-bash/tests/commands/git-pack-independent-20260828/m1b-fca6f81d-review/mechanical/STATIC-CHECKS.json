@@ -1,0 +1,85 @@
+{
+  "schema": "m1b-mechanical-static-checks-v1",
+  "sourceCommit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+  "results": [
+    {
+      "id": "STATIC-01",
+      "path": "static-captures/STATIC-01.json",
+      "exit": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedNs": "55714875"
+    },
+    {
+      "id": "STATIC-02",
+      "path": "static-captures/STATIC-02.json",
+      "exit": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedNs": "45927333"
+    },
+    {
+      "id": "STATIC-03",
+      "path": "static-captures/STATIC-03.json",
+      "exit": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedNs": "44715334"
+    },
+    {
+      "id": "STATIC-04",
+      "path": "static-captures/STATIC-04.json",
+      "exit": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedNs": "42872125"
+    },
+    {
+      "id": "STATIC-05",
+      "path": "static-captures/STATIC-05.json",
+      "exit": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedNs": "43404917"
+    },
+    {
+      "id": "STATIC-06",
+      "path": "static-captures/STATIC-06.json",
+      "exit": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedNs": "48610291"
+    },
+    {
+      "id": "STATIC-07",
+      "path": "static-captures/STATIC-07.json",
+      "exit": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedNs": "642708250"
+    },
+    {
+      "id": "STATIC-08",
+      "path": "static-captures/STATIC-08.json",
+      "exit": 0,
+      "signal": null,
+      "errorCode": null,
+      "elapsedNs": "78922834"
+    }
+  ],
+  "status": "STATIC_SYNTAX_AND_TEXT_ONLY_PASS",
+  "sourceEntriesBeforeAfterUnchanged": 29,
+  "modesChecked": true,
+  "counts": {
+    "nodeSyntaxOnly": 6,
+    "specTextLint": 1,
+    "gitWhitespace": 1,
+    "candidate": 0,
+    "compiler": 0,
+    "helperModuleImports": 0,
+    "controls": 0,
+    "adapter": 0,
+    "loader": 0
+  },
+  "notProof": "Syntax and spec text lint do not execute runCase or qualify actor correctness. All actual component/target observations remain UNRUN."
+}

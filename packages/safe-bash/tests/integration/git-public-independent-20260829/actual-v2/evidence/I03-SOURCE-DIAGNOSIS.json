@@ -1,0 +1,73 @@
+{
+  "status": "THREE_FAILURES_RETAINED_SOURCE_SUPPORTED_FIXTURE_BOUNDARY_MISMATCH",
+  "actualFailures": [
+    {
+      "label": "source-novel",
+      "cases": [
+        {
+          "id": "I03-standalone",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/__consumer/novel.mjs:22:252\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/__consumer/novel.mjs:15:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/__consumer/novel.mjs:22:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    {
+      "label": "installed-novel",
+      "cases": [
+        {
+          "id": "I03-standalone",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/installed/novel.mjs:22:252\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/installed/novel.mjs:15:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/installed/novel.mjs:22:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    {
+      "label": "moved-novel",
+      "cases": [
+        {
+          "id": "I03-standalone",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:22:252\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:15:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:22:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    }
+  ],
+  "sourceBindings": [
+    {
+      "path": "src/shell/shell.ts",
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "lines": {
+        "use": 109,
+        "install": 115,
+        "queuedSetup": 119,
+        "setupAwait": 130,
+        "readinessAwait": 236,
+        "publicThrow": 189
+      }
+    },
+    {
+      "path": "src/commands/git/index.ts",
+      "sha256": "3c3c3621e5b95fc7b9d53aa7f80d4c4d81bb93372c7a14f9e1000f38b10672bd",
+      "line": 48
+    },
+    {
+      "path": "successor-bindings-v2/novel.mjs",
+      "sha256": "2fbca07c7bdd385a78a7fe7b030d58f3fc22e162d3c17fd852ff25c7f964c7e2",
+      "line": 22
+    }
+  ],
+  "analysis": "I03 asserts a synchronous throw from Shell.use(gitCommands()). Frozen Shell.use returns this after queuing plugin setup on #ready.then; setup registers Git asynchronously. I03 never observes a later exec readiness rejection. Existing source supports asynchronous rejection, not the asserted synchronous boundary.",
+  "actualStandaloneRead": "Earlier exact git show HEAD:src/app.txt two+LF assertion completed before the missing-exception assertion in each layout.",
+  "suggestedVersionedOnly": "Keep initial read and disposal; call instance.use(api.gitCommands()), then await assert.rejects(instance.exec(\"git show HEAD:src/app.txt\"), /already registered/). This follow-up is proposed, not executed or authorized here.",
+  "productFinding": "No Git defect established by this failure. No source/fixture edits or rerun.",
+  "diagnosticCaveat": "Asynchronous duplicate rejection is source-supported but not measured by these three failed I03 rows."
+}

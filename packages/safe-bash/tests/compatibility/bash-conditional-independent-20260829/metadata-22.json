@@ -1,0 +1,11 @@
+{
+  "args": [
+    "rev-parse",
+    "11599f52^{commit}"
+  ],
+  "closed": true,
+  "captureBytes": 41,
+  "pid": 22551,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,47 @@
+{
+  "routes": [
+    "fixtures.mjs:start readText missing",
+    "parent-rpc.mjs:finishEffect fsOperation/failureStage",
+    "errors.mjs:typedErrorDTO",
+    "parent-rpc.mjs:reconcile and terminal",
+    "supervisor.mjs:finally close/reconcile and receipt.raw"
+  ],
+  "bindings": [
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/supervisor.mjs",
+      "bytes": 6942,
+      "sha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/compiled/support/errors.js",
+      "bytes": 3191,
+      "sha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/CASES.json",
+      "bytes": 6556,
+      "sha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c"
+    }
+  ],
+  "known": "Original raw provenance/presence only; no original reject detail. New runtime probe is separate."
+}

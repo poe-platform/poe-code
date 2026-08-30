@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "rationale": "exact candidate virtual locale table and authenticated moved-package execution",
+  "predecessorFreezeOverrides": [
+    { "id": "empty-tree-is-present-value", "replace": { "expect": "ascii" }, "remove": ["expectError"] },
+    { "id": "unknown-tree-does-not-fall-through", "replace": { "expect": "ascii" }, "remove": ["expectError"] }
+  ],
+  "supplementalFreezeOverrides": [
+    { "id": "P05", "replace": { "expect": "ascii" } },
+    { "id": "N04", "removeCase": true },
+    { "id": "N04a", "add": { "mutation": "accept-or-fall-through-after-invalid-explicit-charset", "mustFail": ["explicit-empty", "explicit-unknown"] } },
+    { "id": "N04b", "add": { "mutation": "stop-at-empty-locale-instead-of-falling-through", "mustFail": ["P10-v2"] } }
+  ]
+}

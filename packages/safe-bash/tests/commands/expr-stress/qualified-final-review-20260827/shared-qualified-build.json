@@ -1,0 +1,19 @@
+{
+  "name": "shared-qualified-build",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/shared-qualified/tsconfig.build.json",
+    "--skipLibCheck",
+    "false"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/shared-qualified",
+  "started": "2026-08-27T19:40:57.038Z",
+  "finished": "2026-08-27T19:41:01.670Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,61 @@
+{
+  "baselineTree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+  "baseComposition": "7c68831a81fc49c94ad9177e58ca9fd7d0aca352",
+  "candidateComposedTree": "b820fa91a3bcc904005c690d48038d9a3900cede",
+  "changes": {
+    "src/fs/webdav/webdav.ts": "cb5454597ff3ee2d87f55b18c467d947020ed677",
+    "src/fs/webdav/README.md": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78",
+    "src/shell/runtime.ts": "d32239c31e5b4cdf11fd7863a407283119a209ec"
+  },
+  "proof": {
+    "48e5ae39ce98e1c8e416bae77da40d88b75e1db5": "MTAwNjQ0IC5naXRpZ25vcmUASjpjj79qK4Sr++QGk9OCaguHY9gxMDA2NDQgQUdFTlRTLm1kANJPnlD8JxrL7fFMa/QVOTVyN2YiMTAwNjQ0IFJFQURNRS5tZADD34vZWNBymPXfheCoHsc1iRI3QjQwMDAwIGJlbmNobWFya3MAf6OxDM+PvgF7cz5y1nZwp/FPIKg0MDAwMCBkb2NzAAAhYYg6KtbBT4JKEXPGd5bx4339MTAwNjQ0IHBhY2thZ2UtbG9jay5qc29uAF1lYtpmOqGzY8XOXxAe2Eac7OTaMTAwNjQ0IHBhY2thZ2UuanNvbgAWEZHqno5Wu+oOdLSK9U7le2RgFTQwMDAwIHNjcmlwdHMApeb6njlLw0Awzpy9U1xPEeuDNdw0MDAwMCBzcmMAKSL/vFQLDxFJBbPT2bgKUI3iOu00MDAwMCB0ZXN0cwDJ/rBKZixy3OC4Ns4dzymcHNu7qjEwMDY0NCB0c2NvbmZpZy5idWlsZC5qc29uAInmtWF7lJhYxukJU7Vhs4CJx43XMTAwNjQ0IHRzY29uZmlnLmpzb24Aal8GiMforB1j1i7vkVmX0vzKMbY=",
+    "2922ffbc540b0f114905b3d3d9b80a508de23aed": "NDAwMDAgY29tbWFuZHMALbafDIDbUlFBgFLhDh3mq6DXlMI0MDAwMCBjb250cmFjdHMABUAXwF7wlGOs1Bsg5tM2Bi6So5w0MDAwMCBmcwCeOhzsixVpP2d6Zpgpwi9UHhokGDEwMDY0NCBpbmRleC50cwD/erm05KLyol6w+ujbHTFJxRStFjQwMDAwIGludGVncmF0aW9ucwBGpkwD0vI8BAMipGqdteqqJQmwazQwMDAwIHBsdWdpbnMAMmYZXYEa+Cp/LAXXJm42VzvvRYI0MDAwMCBzaGVsbADlYKZeLFkUfrj3F3ngXOEoTYRZ2g==",
+    "9e3a1cec8b15693f677a669829c22f541e1a2418": "NDAwMDAgbWVtb3J5AMM4eXKtQPu13TkzMQPxJK6iz7VqNDAwMDAgbW91bnQAifBcrsOm3fVHWcwHx/TLqUYl6Fk0MDAwMCBvdmVybGF5AEyHFapCNKeVnHqSy21IxV+LjrewNDAwMDAgcmVhZG9ubHkA5cgOtHeWPnTTWccEzg+YU6GXW1o0MDAwMCByZWFsAG7IB1VUR2cJx06zS1O/ftY5t4XnNDAwMDAgczMA2iz8v4pIXtNBRSMWPEhY0ndQryw0MDAwMCB3ZWJkYXYAwW1/Ap4khOIKfKx0YSjnMQ13jdQ=",
+    "c16d7f029e2484e20a7cac746128e7310d778dd4": "MTAwNjQ0IFBST0RVQ1RJT05fQ0hFQ0tQT0lOVC5tZADxf/khAbXWLHm9fPVfCCrX+WLrCjEwMDY0NCBSRUFETUUubWQA/juzrlVfqeIhy2QHahQQr4cCscIxMDA2NDQgaW5kZXgudHMAwkuPPQJuRKKEvDM4u5YaNm3UpMsxMDA2NDQgcmVzb3VyY2UtaWQudHMAawW5wzr+lYHtsyVAWqxE2Vz0E9gxMDA2NDQgd2ViZGF2LnRzAKnC+iPpS/BYNAAopKoO2id3EWPJMTAwNjQ0IHhtbC50cwBThDy3y4uCZkz3oUbjMii1P9hoMw==",
+    "4863cc4a27a0964eaf43fed4e29c20448e09b731": "MTAwNjQ0IFBST0RVQ1RJT05fQ0hFQ0tQT0lOVC5tZADxf/khAbXWLHm9fPVfCCrX+WLrCjEwMDY0NCBSRUFETUUubWQAlPby5tg9dsv18L2LOJlMo/ToHngxMDA2NDQgaW5kZXgudHMAwkuPPQJuRKKEvDM4u5YaNm3UpMsxMDA2NDQgcmVzb3VyY2UtaWQudHMAawW5wzr+lYHtsyVAWqxE2Vz0E9gxMDA2NDQgd2ViZGF2LnRzAMtUVFl/8+4th/VbGMRn2UcCDtZ3MTAwNjQ0IHhtbC50cwBThDy3y4uCZkz3oUbjMii1P9hoMw==",
+    "b1ce0a29fc211e98c1672100d3dc46f2b23a7ac4": "NDAwMDAgbWVtb3J5AMM4eXKtQPu13TkzMQPxJK6iz7VqNDAwMDAgbW91bnQAifBcrsOm3fVHWcwHx/TLqUYl6Fk0MDAwMCBvdmVybGF5AEyHFapCNKeVnHqSy21IxV+LjrewNDAwMDAgcmVhZG9ubHkA5cgOtHeWPnTTWccEzg+YU6GXW1o0MDAwMCByZWFsAG7IB1VUR2cJx06zS1O/ftY5t4XnNDAwMDAgczMA2iz8v4pIXtNBRSMWPEhY0ndQryw0MDAwMCB3ZWJkYXYASGPMSieglk6vQ/7U4pwgRI4JtzE=",
+    "60a76e7bf0c5b0c747088ec22dbdca520c233c63": "NDAwMDAgY29tbWFuZHMALbafDIDbUlFBgFLhDh3mq6DXlMI0MDAwMCBjb250cmFjdHMABUAXwF7wlGOs1Bsg5tM2Bi6So5w0MDAwMCBmcwCxzgop/CEemMFnIQDT3Ebysjp6xDEwMDY0NCBpbmRleC50cwD/erm05KLyol6w+ujbHTFJxRStFjQwMDAwIGludGVncmF0aW9ucwBGpkwD0vI8BAMipGqdteqqJQmwazQwMDAwIHBsdWdpbnMAMmYZXYEa+Cp/LAXXJm42VzvvRYI0MDAwMCBzaGVsbADlYKZeLFkUfrj3F3ngXOEoTYRZ2g==",
+    "7c68831a81fc49c94ad9177e58ca9fd7d0aca352": "MTAwNjQ0IC5naXRpZ25vcmUASjpjj79qK4Sr++QGk9OCaguHY9gxMDA2NDQgQUdFTlRTLm1kANJPnlD8JxrL7fFMa/QVOTVyN2YiMTAwNjQ0IFJFQURNRS5tZADD34vZWNBymPXfheCoHsc1iRI3QjQwMDAwIGJlbmNobWFya3MAf6OxDM+PvgF7cz5y1nZwp/FPIKg0MDAwMCBkb2NzAAAhYYg6KtbBT4JKEXPGd5bx4339MTAwNjQ0IHBhY2thZ2UtbG9jay5qc29uAF1lYtpmOqGzY8XOXxAe2Eac7OTaMTAwNjQ0IHBhY2thZ2UuanNvbgAWEZHqno5Wu+oOdLSK9U7le2RgFTQwMDAwIHNjcmlwdHMApeb6njlLw0Awzpy9U1xPEeuDNdw0MDAwMCBzcmMAYKdue/DFsMdHCI7CLb3KUgwjPGM0MDAwMCB0ZXN0cwDJ/rBKZixy3OC4Ns4dzymcHNu7qjEwMDY0NCB0c2NvbmZpZy5idWlsZC5qc29uAInmtWF7lJhYxukJU7Vhs4CJx43XMTAwNjQ0IHRzY29uZmlnLmpzb24Aal8GiMforB1j1i7vkVmX0vzKMbY=",
+    "e560a65e2c59147eb8f71779e05ce1284d8459da": "MTAwNjQ0IGFyaXRobWV0aWMudHMAIjEBlG0TrJtE9KiY9Y/RYAS6hrkxMDA2NDQgY2FuY2VsbGF0aW9uLnRzAKDmjHv7LVQZZBlNOO8wpKWQvsHeMTAwNjQ0IGNsZWFudXAudHMA6uBGUKVT5IINqcewiwJVprIPwBwxMDA2NDQgZGlzcGxheS50cwDs/4vxhc1UKUBgennuUlfykuhE9TEwMDY0NCBnZXRvcHRzLnRzALtQKwdgY8D7lXZpEWSNuniAAPi0MTAwNjQ0IGluZGV4LnRzAAEQvZ1cA4jcb+FavCfyehjdems4MTAwNjQ0IGlucHV0LnRzAD7scbcvh91I3axXLW5/65CX0yvkMTAwNjQ0IGxvY2FsZS50cwBaLNpkF/LyivOLM/LTKlYnHA9aWDEwMDY0NCBwYXJzZXIudHMA9XAjXR9lreD3J5zKz4BewTMxVfcxMDA2NDQgcGF0dGVybi50cwC+hznua2yekyPFWa/xXy3SfOgnHDEwMDY0NCBydW50aW1lLnRzAL9BtKl95MIKAgar/XsjXO/QruHbMTAwNjQ0IHNoZWxsLnRzAAuWqC9Owp2k291EeAbMpqL1FDEaMTAwNjQ0IHR5cGVzLnRzAHY9LuCtKxXH7XrzHnxhcfc5yYSG",
+    "8e2ea87726bc417ce3eaa984c76f6c2d40deed86": "MTAwNjQ0IGFyaXRobWV0aWMudHMAIjEBlG0TrJtE9KiY9Y/RYAS6hrkxMDA2NDQgY2FuY2VsbGF0aW9uLnRzAKDmjHv7LVQZZBlNOO8wpKWQvsHeMTAwNjQ0IGNsZWFudXAudHMA6uBGUKVT5IINqcewiwJVprIPwBwxMDA2NDQgZGlzcGxheS50cwDs/4vxhc1UKUBgennuUlfykuhE9TEwMDY0NCBnZXRvcHRzLnRzALtQKwdgY8D7lXZpEWSNuniAAPi0MTAwNjQ0IGluZGV4LnRzAAEQvZ1cA4jcb+FavCfyehjdems4MTAwNjQ0IGlucHV0LnRzAD7scbcvh91I3axXLW5/65CX0yvkMTAwNjQ0IGxvY2FsZS50cwBaLNpkF/LyivOLM/LTKlYnHA9aWDEwMDY0NCBwYXJzZXIudHMA9XAjXR9lreD3J5zKz4BewTMxVfcxMDA2NDQgcGF0dGVybi50cwC+hznua2yekyPFWa/xXy3SfOgnHDEwMDY0NCBydW50aW1lLnRzANMiOcMeW0zfEf14Y6QHKDEZognsMTAwNjQ0IHNoZWxsLnRzAAuWqC9Owp2k291EeAbMpqL1FDEaMTAwNjQ0IHR5cGVzLnRzAHY9LuCtKxXH7XrzHnxhcfc5yYSG",
+    "35acd28f890bb9a4f2ba5ed0d58a0658a3f1baa6": "NDAwMDAgY29tbWFuZHMALbafDIDbUlFBgFLhDh3mq6DXlMI0MDAwMCBjb250cmFjdHMABUAXwF7wlGOs1Bsg5tM2Bi6So5w0MDAwMCBmcwCxzgop/CEemMFnIQDT3Ebysjp6xDEwMDY0NCBpbmRleC50cwD/erm05KLyol6w+ujbHTFJxRStFjQwMDAwIGludGVncmF0aW9ucwBGpkwD0vI8BAMipGqdteqqJQmwazQwMDAwIHBsdWdpbnMAMmYZXYEa+Cp/LAXXJm42VzvvRYI0MDAwMCBzaGVsbACOLqh3JrxBfOPqqYTHb2wtQN7thg==",
+    "b820fa91a3bcc904005c690d48038d9a3900cede": "MTAwNjQ0IC5naXRpZ25vcmUASjpjj79qK4Sr++QGk9OCaguHY9gxMDA2NDQgQUdFTlRTLm1kANJPnlD8JxrL7fFMa/QVOTVyN2YiMTAwNjQ0IFJFQURNRS5tZADD34vZWNBymPXfheCoHsc1iRI3QjQwMDAwIGJlbmNobWFya3MAf6OxDM+PvgF7cz5y1nZwp/FPIKg0MDAwMCBkb2NzAAAhYYg6KtbBT4JKEXPGd5bx4339MTAwNjQ0IHBhY2thZ2UtbG9jay5qc29uAF1lYtpmOqGzY8XOXxAe2Eac7OTaMTAwNjQ0IHBhY2thZ2UuanNvbgAWEZHqno5Wu+oOdLSK9U7le2RgFTQwMDAwIHNjcmlwdHMApeb6njlLw0Awzpy9U1xPEeuDNdw0MDAwMCBzcmMANazSj4kLuaTyul7Q1YoGWKPxuqY0MDAwMCB0ZXN0cwDJ/rBKZixy3OC4Ns4dzymcHNu7qjEwMDY0NCB0c2NvbmZpZy5idWlsZC5qc29uAInmtWF7lJhYxukJU7Vhs4CJx43XMTAwNjQ0IHRzY29uZmlnLmpzb24Aal8GiMforB1j1i7vkVmX0vzKMbY="
+  },
+  "commits": [
+    {
+      "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+      "sha256": "01ad99023196ba585da043d94ba40a2f93071d985b0b6b3801876fc601975b1c",
+      "raw": "tree 8faf9e151d5b821cf245a081d32d9146e055f57b\nparent c6569532babb6b7e9604e21486dee4da43ac995f\nauthor Kamil Jopek <kjopek@quora.com> 1787895408 -0500\ncommitter Kamil Jopek <kjopek@quora.com> 1787895408 -0500\n\nfeat(shell): add bounded CDPATH lookup with delegated directory access\n"
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "sha256": "aa362ca6fc8df2774bb5d1dc857ad2fb3d465529481ffae86324e3c62fdacfdc",
+      "raw": "tree 997f4f94bd52bf24ea515e4a9604fb253ed1d7df\nparent e9db21578f51408df9b79fa4b32dbc21687a94a9\nauthor Kamil Jopek <kjopek@quora.com> 1787895598 -0500\ncommitter Kamil Jopek <kjopek@quora.com> 1787895598 -0500\n\ntest(shell): seal bounded cd candidate replay and initial failures\n"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "285999c1e01e52076a2ae9075db6cafd26c791a73a7c5af24cd9ce02e1039f59",
+      "raw": "tree 48e5ae39ce98e1c8e416bae77da40d88b75e1db5\nparent 284857d7aa9b0ee0df2b6fdd1a71f41115d7b909\nauthor Kamil Jopek <kjopek@quora.com> 1787882255 -0500\ncommitter Kamil Jopek <kjopek@quora.com> 1787882255 -0500\n\nCoherent77 readiness: accepted WHICH77 + helper578 + exact Stage2 five blobs + four maintained inventories\n"
+    },
+    {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "sha256": "67fe16c5ac44536f764f367ea064546a3340aa7aba3f1ecf99f7d1c4a96e1585",
+      "raw": "tree 5acf18c67b12d4e6894305018028cb6aead47adf\nparent b53f7fff5a2a33c8ab3501ead65d40fadcfbc644\nauthor Kamil Jopek <kjopek@quora.com> 1787889098 -0500\ncommitter Kamil Jopek <kjopek@quora.com> 1787889098 -0500\n\nfeat(webdav): support bounded virtual directory access checks\n"
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "sha256": "6dc75ed7eb5ce1da00404137e8df52971d3944333f3a3ecef3c47ce1d6cdcd31",
+      "raw": "tree fd18b86521de5f2688c76047420568164ffb6a1a\nparent 2d2c3356adcb91594804f76fe68b03d8e080d7cf\nauthor Kamil Jopek <kjopek@quora.com> 1787896511 -0500\ncommitter Kamil Jopek <kjopek@quora.com> 1787896511 -0500\n\ntest(shell): prepare gated cd review executor without candidate execution\n"
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "sha256": "988cba1fb3a88881f84833d60c2bd06580db2e95a5a7508d43ac43ce1b02da30",
+      "raw": "tree 82eff59a221b83576f720f7136cd7f3ea17a5741\nparent 8d578ca03cd184a434485b646030ec0b9b49ca8c\nauthor Kamil Jopek <kjopek@quora.com> 1787894116 -0500\ncommitter Kamil Jopek <kjopek@quora.com> 1787894116 -0500\n\ntest(shell): freeze independent cd prerequisite contract and controls\n"
+    },
+    {
+      "commit": "2fbd1e051993cadf384cf4fc559f20e3f0b7cc1c",
+      "sha256": "3d09dd46722e8abbd17c2e18d315a55637c75fed6e1f56ec64847df14c467cbe",
+      "raw": "tree 31575eb7fb9d6c983d2c3a15659c5c3a689c95e0\nparent beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e\nauthor Kamil Jopek <kjopek@quora.com> 1787894477 -0500\ncommitter Kamil Jopek <kjopek@quora.com> 1787894477 -0500\n\ndocs(shell): bind sealed ROOT cd ratification without changing freeze\n"
+    }
+  ]
+}

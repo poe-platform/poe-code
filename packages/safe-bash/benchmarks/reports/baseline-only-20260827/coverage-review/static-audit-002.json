@@ -1,0 +1,4359 @@
+{
+  "schema": "independent-static-preflight-1",
+  "capturedAt": "2026-08-27T03:45:40.880Z",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "workloadsExecuted": 0,
+  "constructorCalls": 0,
+  "productsImported": false,
+  "optionalAssetsLoaded": false,
+  "head": "0b232952f269e0515b5f2c17638ebc2d71c913cb",
+  "dirty": " M tests/fs/s3/http/interop/run.mjs\n M tests/fs/s3/http/interop/transport-check.mjs\n M tests/stress/regex-execution/staged-controls/README.md\n M tests/stress/regex-execution/staged-controls/REPORT.md\n?? benchmarks/reports/baseline-only-20260827/coverage-review/\n?? tests/commands/archive-stress/pax-deletion-evidence/\n?? tests/commands/archive/pax-deletion.test.ts\n?? tests/commands/core-regression-stress/output-accounting/\n?? tests/commands/core-regression-stress/verify-output-accounting.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/s3/http/interop/fallback-check.mjs\n?? tests/stress/regex-execution/single-grep/",
+  "index": "",
+  "node": {
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "executable": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "kind": "file",
+      "links": [],
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  },
+  "baseline": {
+    "version": "3.4.2",
+    "lock": {
+      "version": "3.4.2",
+      "resolved": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+      "dev": true,
+      "license": "Apache-2.0",
+      "dependencies": {
+        "diff": "^8.0.4",
+        "fast-xml-parser": "^5.10.1",
+        "file-type": "^21.3.4",
+        "ini": "^6.0.0",
+        "minimatch": "^10.2.6",
+        "modern-tar": "^0.7.7",
+        "papaparse": "^5.6.0",
+        "quickjs-emscripten": "^0.32.0",
+        "re2js": "^1.3.3",
+        "seek-bzip": "^2.0.0",
+        "smol-toml": "^1.8.0",
+        "sprintf-js": "^1.1.3",
+        "sql.js": "^1.14.1",
+        "turndown": "^7.2.4",
+        "undici": "^7.29.0",
+        "yaml": "^2.9.0"
+      },
+      "bin": {
+        "just-bash": "dist/bin/just-bash.js",
+        "just-bash-shell": "dist/bin/shell/shell.js"
+      },
+      "engines": {
+        "node": ">=20.18.1"
+      },
+      "optionalDependencies": {
+        "@mongodb-js/zstd": "^7.0.0",
+        "node-liblzma": "^2.2.0"
+      }
+    },
+    "exports": {
+      ".": {
+        "browser": "./dist/bundle/browser.js",
+        "require": {
+          "types": "./dist/index.d.cts",
+          "default": "./dist/bundle/index.cjs"
+        },
+        "import": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/bundle/index.js"
+        }
+      },
+      "./browser": {
+        "types": "./dist/browser.d.ts",
+        "import": "./dist/bundle/browser.js"
+      }
+    },
+    "integrityBoundary": "Lockfile SRI recorded, not tarball reattestation. No installation or asset startup.",
+    "registry": [
+      {
+        "name": "echo",
+        "import": "./chunks/echo-PLLZYM2L.js",
+        "exported": "echoCommand",
+        "offset": 1319
+      },
+      {
+        "name": "cat",
+        "import": "./chunks/cat-33KGN4MZ.js",
+        "exported": "catCommand",
+        "offset": 1403
+      },
+      {
+        "name": "printf",
+        "import": "./chunks/printf-V42QCPHL.js",
+        "exported": "printfCommand",
+        "offset": 1484
+      },
+      {
+        "name": "ls",
+        "import": "./chunks/ls-R5CQLZQM.js",
+        "exported": "lsCommand",
+        "offset": 1574
+      },
+      {
+        "name": "mkdir",
+        "import": "./chunks/mkdir-WDDKK2P3.js",
+        "exported": "mkdirCommand",
+        "offset": 1652
+      },
+      {
+        "name": "rmdir",
+        "import": "./chunks/rmdir-WZKAT6M5.js",
+        "exported": "rmdirCommand",
+        "offset": 1739
+      },
+      {
+        "name": "touch",
+        "import": "./chunks/touch-W4DF6Z4T.js",
+        "exported": "touchCommand",
+        "offset": 1826
+      },
+      {
+        "name": "rm",
+        "import": "./chunks/rm-JQ4GDKDD.js",
+        "exported": "rmCommand",
+        "offset": 1913
+      },
+      {
+        "name": "cp",
+        "import": "./chunks/cp-FKTQRFYJ.js",
+        "exported": "cpCommand",
+        "offset": 1991
+      },
+      {
+        "name": "mv",
+        "import": "./chunks/mv-XSJA2FNL.js",
+        "exported": "mvCommand",
+        "offset": 2069
+      },
+      {
+        "name": "ln",
+        "import": "./chunks/ln-VYDFOFNO.js",
+        "exported": "lnCommand",
+        "offset": 2147
+      },
+      {
+        "name": "chmod",
+        "import": "./chunks/chmod-APOXUPXW.js",
+        "exported": "chmodCommand",
+        "offset": 2225
+      },
+      {
+        "name": "pwd",
+        "import": "./chunks/pwd-76BPYV5F.js",
+        "exported": "pwdCommand",
+        "offset": 2312
+      },
+      {
+        "name": "readlink",
+        "import": "./chunks/readlink-IY6QKK2P.js",
+        "exported": "readlinkCommand",
+        "offset": 2393
+      },
+      {
+        "name": "head",
+        "import": "./chunks/head-CFENJILH.js",
+        "exported": "headCommand",
+        "offset": 2489
+      },
+      {
+        "name": "tail",
+        "import": "./chunks/tail-BDNMS4FR.js",
+        "exported": "tailCommand",
+        "offset": 2573
+      },
+      {
+        "name": "wc",
+        "import": "./chunks/wc-RUR7HE5O.js",
+        "exported": "wcCommand",
+        "offset": 2657
+      },
+      {
+        "name": "stat",
+        "import": "./chunks/stat-6KILP5AL.js",
+        "exported": "statCommand",
+        "offset": 2735
+      },
+      {
+        "name": "grep",
+        "import": "./chunks/grep-5UPEO42U.js",
+        "exported": "grepCommand",
+        "offset": 2819
+      },
+      {
+        "name": "fgrep",
+        "import": "./chunks/grep-5UPEO42U.js",
+        "exported": "fgrepCommand",
+        "offset": 2903
+      },
+      {
+        "name": "egrep",
+        "import": "./chunks/grep-5UPEO42U.js",
+        "exported": "egrepCommand",
+        "offset": 2989
+      },
+      {
+        "name": "rg",
+        "import": "./chunks/rg-UQE6KUBP.js",
+        "exported": "rgCommand",
+        "offset": 3075
+      },
+      {
+        "name": "sed",
+        "import": "./chunks/sed-JW2JDLSI.js",
+        "exported": "sedCommand",
+        "offset": 3153
+      },
+      {
+        "name": "awk",
+        "import": "./chunks/awk2-NPLZQ3K7.js",
+        "exported": "awkCommand2",
+        "offset": 3234
+      },
+      {
+        "name": "sort",
+        "import": "./chunks/sort-PV2NEQHF.js",
+        "exported": "sortCommand",
+        "offset": 3317
+      },
+      {
+        "name": "uniq",
+        "import": "./chunks/uniq-OVOW532K.js",
+        "exported": "uniqCommand",
+        "offset": 3401
+      },
+      {
+        "name": "comm",
+        "import": "./chunks/comm-DTWKU2MC.js",
+        "exported": "commCommand",
+        "offset": 3485
+      },
+      {
+        "name": "cut",
+        "import": "./chunks/cut-RWPUW5FY.js",
+        "exported": "cutCommand",
+        "offset": 3569
+      },
+      {
+        "name": "paste",
+        "import": "./chunks/paste-LLZ3ZQR2.js",
+        "exported": "pasteCommand",
+        "offset": 3650
+      },
+      {
+        "name": "tr",
+        "import": "./chunks/tr-3I4MDKIF.js",
+        "exported": "trCommand",
+        "offset": 3737
+      },
+      {
+        "name": "rev",
+        "import": "./chunks/rev-EPOS3MFH.js",
+        "exported": "rev",
+        "offset": 3815
+      },
+      {
+        "name": "nl",
+        "import": "./chunks/nl-RFXH2GNX.js",
+        "exported": "nl",
+        "offset": 3889
+      },
+      {
+        "name": "fold",
+        "import": "./chunks/fold-QJBPHRFJ.js",
+        "exported": "fold",
+        "offset": 3960
+      },
+      {
+        "name": "expand",
+        "import": "./chunks/expand-2BPPGGSM.js",
+        "exported": "expand",
+        "offset": 4037
+      },
+      {
+        "name": "unexpand",
+        "import": "./chunks/unexpand-YD5BWFH4.js",
+        "exported": "unexpand",
+        "offset": 4120
+      },
+      {
+        "name": "strings",
+        "import": "./chunks/strings-WTD7Q2EF.js",
+        "exported": "strings",
+        "offset": 4209
+      },
+      {
+        "name": "split",
+        "import": "./chunks/split-2SD6EP72.js",
+        "exported": "split",
+        "offset": 4295
+      },
+      {
+        "name": "column",
+        "import": "./chunks/column-LKMDIDCH.js",
+        "exported": "column",
+        "offset": 4375
+      },
+      {
+        "name": "join",
+        "import": "./chunks/join-KQ4Z5OD4.js",
+        "exported": "join",
+        "offset": 4458
+      },
+      {
+        "name": "tee",
+        "import": "./chunks/tee-OOWSWHRQ.js",
+        "exported": "teeCommand",
+        "offset": 4535
+      },
+      {
+        "name": "find",
+        "import": "./chunks/find-PM3TD7V4.js",
+        "exported": "findCommand",
+        "offset": 4616
+      },
+      {
+        "name": "basename",
+        "import": "./chunks/basename-SJZQ5W65.js",
+        "exported": "basenameCommand",
+        "offset": 4700
+      },
+      {
+        "name": "dirname",
+        "import": "./chunks/dirname-Z2ZMOOW2.js",
+        "exported": "dirnameCommand",
+        "offset": 4796
+      },
+      {
+        "name": "tree",
+        "import": "./chunks/tree-7OOL2MH6.js",
+        "exported": "treeCommand",
+        "offset": 4889
+      },
+      {
+        "name": "du",
+        "import": "./chunks/du-PR3M44X6.js",
+        "exported": "duCommand",
+        "offset": 4973
+      },
+      {
+        "name": "env",
+        "import": "./chunks/env-VUUMB47B.js",
+        "exported": "envCommand",
+        "offset": 5051
+      },
+      {
+        "name": "printenv",
+        "import": "./chunks/env-VUUMB47B.js",
+        "exported": "printenvCommand",
+        "offset": 5132
+      },
+      {
+        "name": "alias",
+        "import": "./chunks/alias-T5TO5GWK.js",
+        "exported": "aliasCommand",
+        "offset": 5223
+      },
+      {
+        "name": "unalias",
+        "import": "./chunks/alias-T5TO5GWK.js",
+        "exported": "unaliasCommand",
+        "offset": 5310
+      },
+      {
+        "name": "history",
+        "import": "./chunks/history-3N762S3K.js",
+        "exported": "historyCommand",
+        "offset": 5401
+      },
+      {
+        "name": "xargs",
+        "import": "./chunks/xargs-L7TJHOJT.js",
+        "exported": "xargsCommand",
+        "offset": 5494
+      },
+      {
+        "name": "true",
+        "import": "./chunks/true-QUBPEGGU.js",
+        "exported": "trueCommand",
+        "offset": 5581
+      },
+      {
+        "name": "false",
+        "import": "./chunks/true-QUBPEGGU.js",
+        "exported": "falseCommand",
+        "offset": 5665
+      },
+      {
+        "name": "clear",
+        "import": "./chunks/clear-KPIUNI6K.js",
+        "exported": "clearCommand",
+        "offset": 5751
+      },
+      {
+        "name": "bash",
+        "import": "./chunks/bash-HIEWVHJ2.js",
+        "exported": "bashCommand",
+        "offset": 5838
+      },
+      {
+        "name": "sh",
+        "import": "./chunks/bash-HIEWVHJ2.js",
+        "exported": "shCommand",
+        "offset": 5922
+      },
+      {
+        "name": "jq",
+        "import": "./chunks/jq-X2P7Q64K.js",
+        "exported": "jqCommand",
+        "offset": 6002
+      },
+      {
+        "name": "base64",
+        "import": "./chunks/base64-2BAITDZF.js",
+        "exported": "base64Command",
+        "offset": 6080
+      },
+      {
+        "name": "diff",
+        "import": "./chunks/diff-CSARC7WF.js",
+        "exported": "diffCommand",
+        "offset": 6170
+      },
+      {
+        "name": "date",
+        "import": "./chunks/date-FN2DXAEE.js",
+        "exported": "dateCommand",
+        "offset": 6254
+      },
+      {
+        "name": "sleep",
+        "import": "./chunks/sleep-PPRBTSVR.js",
+        "exported": "sleepCommand",
+        "offset": 6338
+      },
+      {
+        "name": "timeout",
+        "import": "./chunks/timeout-C6WDYPLV.js",
+        "exported": "timeoutCommand",
+        "offset": 6425
+      },
+      {
+        "name": "time",
+        "import": "./chunks/time-NERE2JJ2.js",
+        "exported": "timeCommand",
+        "offset": 6518
+      },
+      {
+        "name": "seq",
+        "import": "./chunks/seq-5R2GKXC6.js",
+        "exported": "seqCommand",
+        "offset": 6602
+      },
+      {
+        "name": "expr",
+        "import": "./chunks/expr-UMT2OHZ7.js",
+        "exported": "exprCommand",
+        "offset": 6683
+      },
+      {
+        "name": "md5sum",
+        "import": "./chunks/md5sum-JEDX55KS.js",
+        "exported": "md5sumCommand",
+        "offset": 6767
+      },
+      {
+        "name": "sha1sum",
+        "import": "./chunks/sha1sum-BLPZJ6MP.js",
+        "exported": "sha1sumCommand",
+        "offset": 6857
+      },
+      {
+        "name": "sha256sum",
+        "import": "./chunks/sha256sum-VJZ4PHQ4.js",
+        "exported": "sha256sumCommand",
+        "offset": 6950
+      },
+      {
+        "name": "file",
+        "import": "./chunks/file-VEGKTTSF.js",
+        "exported": "fileCommand",
+        "offset": 7049
+      },
+      {
+        "name": "html-to-markdown",
+        "import": "./chunks/html-to-markdown-GGVR4YGL.js",
+        "exported": "htmlToMarkdownCommand",
+        "offset": 7133
+      },
+      {
+        "name": "help",
+        "import": "./chunks/help-QDDMBDU7.js",
+        "exported": "helpCommand",
+        "offset": 7251
+      },
+      {
+        "name": "which",
+        "import": "./chunks/which-UWVKETYW.js",
+        "exported": "whichCommand",
+        "offset": 7335
+      },
+      {
+        "name": "tac",
+        "import": "./chunks/tac-YXC4HBTR.js",
+        "exported": "tac",
+        "offset": 7422
+      },
+      {
+        "name": "hostname",
+        "import": "./chunks/hostname-CESD3CQR.js",
+        "exported": "hostname",
+        "offset": 7496
+      },
+      {
+        "name": "whoami",
+        "import": "./chunks/whoami-KR6E7UIR.js",
+        "exported": "whoami",
+        "offset": 7585
+      },
+      {
+        "name": "od",
+        "import": "./chunks/od-BI6XJPXY.js",
+        "exported": "od",
+        "offset": 7668
+      },
+      {
+        "name": "gzip",
+        "import": "./chunks/gzip-ZINVK3M6.js",
+        "exported": "gzipCommand",
+        "offset": 7739
+      },
+      {
+        "name": "gunzip",
+        "import": "./chunks/gzip-ZINVK3M6.js",
+        "exported": "gunzipCommand",
+        "offset": 7823
+      },
+      {
+        "name": "zcat",
+        "import": "./chunks/gzip-ZINVK3M6.js",
+        "exported": "zcatCommand",
+        "offset": 7911
+      },
+      {
+        "name": "tar",
+        "import": "./chunks/tar-6365WH6H.js",
+        "exported": "tarCommand",
+        "offset": 8045
+      },
+      {
+        "name": "yq",
+        "import": "./chunks/yq-MI27NZ2U.js",
+        "exported": "yqCommand",
+        "offset": 8135
+      },
+      {
+        "name": "xan",
+        "import": "./chunks/xan-HUOXKUQA.js",
+        "exported": "xanCommand",
+        "offset": 8222
+      },
+      {
+        "name": "sqlite3",
+        "import": "./chunks/sqlite3-UVVRYDAL.js",
+        "exported": "sqlite3Command",
+        "offset": 8312
+      },
+      {
+        "name": "python3",
+        "import": "./chunks/python3-F5S5TYGS.js",
+        "exported": "python3Command",
+        "offset": 8466
+      },
+      {
+        "name": "python",
+        "import": "./chunks/python3-F5S5TYGS.js",
+        "exported": "pythonCommand",
+        "offset": 8568
+      },
+      {
+        "name": "js-exec",
+        "import": "./chunks/js-exec-XKF2B7C3.js",
+        "exported": "jsExecCommand",
+        "offset": 8720
+      },
+      {
+        "name": "node",
+        "import": "./chunks/js-exec-XKF2B7C3.js",
+        "exported": "nodeStubCommand",
+        "offset": 8821
+      },
+      {
+        "name": "curl",
+        "import": "./chunks/curl-DEHFBW27.js",
+        "exported": "curlCommand",
+        "offset": 8922
+      }
+    ],
+    "kernel": [
+      ".",
+      ":",
+      "[",
+      "break",
+      "builtin",
+      "cd",
+      "command",
+      "compgen",
+      "complete",
+      "compopt",
+      "continue",
+      "declare",
+      "dirs",
+      "eval",
+      "exec",
+      "exit",
+      "export",
+      "false",
+      "getopts",
+      "hash",
+      "help",
+      "let",
+      "local",
+      "mapfile",
+      "popd",
+      "pushd",
+      "read",
+      "readarray",
+      "readonly",
+      "return",
+      "set",
+      "shift",
+      "shopt",
+      "source",
+      "test",
+      "true",
+      "type",
+      "typeset",
+      "unset",
+      "wait"
+    ],
+    "classifierOnly": [
+      "bg",
+      "caller",
+      "disown",
+      "enable",
+      "fc",
+      "fg",
+      "jobs",
+      "kill",
+      "suspend",
+      "times",
+      "trap",
+      "ulimit",
+      "umask"
+    ]
+  },
+  "ours": {
+    "registrationEvidence": [
+      {
+        "name": "true",
+        "path": "src/commands/basic.ts"
+      },
+      {
+        "name": "false",
+        "path": "src/commands/basic.ts"
+      },
+      {
+        "name": "echo",
+        "path": "src/commands/basic.ts"
+      },
+      {
+        "name": "pwd",
+        "path": "src/commands/basic.ts"
+      },
+      {
+        "name": "basename",
+        "path": "src/commands/basic.ts"
+      },
+      {
+        "name": "dirname",
+        "path": "src/commands/basic.ts"
+      },
+      {
+        "name": "printf",
+        "path": "src/commands/basic.ts"
+      },
+      {
+        "name": "mkdir",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "touch",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "cp",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "mv",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "rm",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "rmdir",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "ln",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "readlink",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "realpath",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "ls",
+        "path": "src/commands/filesystem.ts"
+      },
+      {
+        "name": "cat",
+        "path": "src/commands/streams.ts"
+      },
+      {
+        "name": "wc",
+        "path": "src/commands/streams.ts"
+      },
+      {
+        "name": "tee",
+        "path": "src/commands/streams.ts"
+      },
+      {
+        "name": "tr",
+        "path": "src/commands/streams.ts"
+      },
+      {
+        "name": "sort",
+        "path": "src/commands/text.ts"
+      },
+      {
+        "name": "uniq",
+        "path": "src/commands/text.ts"
+      },
+      {
+        "name": "cut",
+        "path": "src/commands/text.ts"
+      },
+      {
+        "name": "grep",
+        "path": "src/commands/grep.ts"
+      },
+      {
+        "name": "env",
+        "path": "src/commands/execution.ts"
+      },
+      {
+        "name": "xargs",
+        "path": "src/commands/execution.ts"
+      },
+      {
+        "name": "find",
+        "path": "src/commands/find.ts"
+      },
+      {
+        "name": "head",
+        "path": "src/commands/streams.ts"
+      },
+      {
+        "name": "tail",
+        "path": "src/commands/streams.ts"
+      },
+      {
+        "name": "test",
+        "path": "src/commands/predicates.ts"
+      },
+      {
+        "name": "[",
+        "path": "src/commands/predicates.ts"
+      },
+      {
+        "name": "sed",
+        "path": "src/commands/text-programs/sed.ts"
+      },
+      {
+        "name": "awk",
+        "path": "src/commands/text-programs/awk.ts"
+      },
+      {
+        "name": "jq",
+        "path": "src/commands/structured/jq.ts"
+      },
+      {
+        "name": "rg",
+        "path": "src/commands/search/rg.ts"
+      },
+      {
+        "name": "base32",
+        "path": "src/commands/bytes/encoding/index.ts"
+      },
+      {
+        "name": "base64",
+        "path": "src/commands/bytes/encoding/index.ts"
+      },
+      {
+        "name": "xxd",
+        "path": "src/commands/bytes/encoding/index.ts"
+      },
+      {
+        "name": "od",
+        "path": "src/commands/bytes/encoding/index.ts"
+      },
+      {
+        "name": "sha256sum",
+        "path": "src/commands/bytes/checksums/index.ts"
+      },
+      {
+        "name": "sha1sum",
+        "path": "src/commands/bytes/checksums/index.ts"
+      },
+      {
+        "name": "md5sum",
+        "path": "src/commands/bytes/checksums/index.ts"
+      },
+      {
+        "name": "cksum",
+        "path": "src/commands/bytes/checksums/index.ts"
+      },
+      {
+        "name": "gzip",
+        "path": "src/commands/bytes/compression/index.ts"
+      },
+      {
+        "name": "gunzip",
+        "path": "src/commands/bytes/compression/index.ts"
+      },
+      {
+        "name": "zcat",
+        "path": "src/commands/bytes/compression/index.ts"
+      },
+      {
+        "name": "diff",
+        "path": "src/commands/diff-patch/diff.ts"
+      },
+      {
+        "name": "patch",
+        "path": "src/commands/diff-patch/patch.ts"
+      },
+      {
+        "name": "chmod",
+        "path": "src/commands/metadata/chmod.ts"
+      },
+      {
+        "name": "stat",
+        "path": "src/commands/metadata/stat.ts"
+      },
+      {
+        "name": "mktemp",
+        "path": "src/commands/metadata/mktemp.ts"
+      },
+      {
+        "name": "tar",
+        "path": "src/commands/archive/index.ts"
+      },
+      {
+        "name": "paste",
+        "path": "src/commands/table-text/paste.ts"
+      },
+      {
+        "name": "comm",
+        "path": "src/commands/table-text/comm.ts"
+      },
+      {
+        "name": "join",
+        "path": "src/commands/table-text/join.ts"
+      }
+    ],
+    "registered": [
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "cat",
+      "chmod",
+      "cksum",
+      "comm",
+      "cp",
+      "cut",
+      "diff",
+      "dirname",
+      "echo",
+      "env",
+      "false",
+      "find",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "join",
+      "jq",
+      "ln",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "od",
+      "paste",
+      "patch",
+      "printf",
+      "pwd",
+      "readlink",
+      "realpath",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "sha1sum",
+      "sha256sum",
+      "sort",
+      "stat",
+      "tail",
+      "tar",
+      "tee",
+      "test",
+      "touch",
+      "tr",
+      "true",
+      "uniq",
+      "wc",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "kernel": [
+      ".",
+      ":",
+      "break",
+      "cd",
+      "command",
+      "continue",
+      "eval",
+      "exit",
+      "export",
+      "false",
+      "local",
+      "pwd",
+      "read",
+      "readonly",
+      "return",
+      "set",
+      "shift",
+      "source",
+      "true",
+      "type",
+      "unset"
+    ],
+    "shadowedRegistry": [
+      "false",
+      "pwd",
+      "true"
+    ],
+    "union": [
+      ".",
+      ":",
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "bash",
+      "break",
+      "cat",
+      "cd",
+      "chmod",
+      "cksum",
+      "comm",
+      "command",
+      "continue",
+      "cp",
+      "cut",
+      "diff",
+      "dirname",
+      "echo",
+      "env",
+      "eval",
+      "exit",
+      "export",
+      "false",
+      "find",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "join",
+      "jq",
+      "ln",
+      "local",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "od",
+      "paste",
+      "patch",
+      "printf",
+      "pwd",
+      "read",
+      "readlink",
+      "readonly",
+      "realpath",
+      "return",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "set",
+      "sh",
+      "sha1sum",
+      "sha256sum",
+      "shift",
+      "sort",
+      "source",
+      "stat",
+      "tail",
+      "tar",
+      "tee",
+      "test",
+      "touch",
+      "tr",
+      "true",
+      "type",
+      "uniq",
+      "unset",
+      "wc",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "method": "Static concrete factory/dispatcher inspection; no constructor or command invocation"
+  },
+  "census": {
+    "historical": {
+      "names": 53,
+      "namesWithPrimaryRecipes": 3,
+      "unmeasuredNames": 50,
+      "recipes": 3,
+      "virtualPass": 0,
+      "virtualFail": 3,
+      "baselinePass": 3,
+      "baselineFail": 0
+    },
+    "oursDefaultRegistered": 56,
+    "oursDefaultUnion": 76,
+    "baselineDefaultRegistered": 83,
+    "baselineDefaultUnion": 120,
+    "currentBaselineOnly": [
+      "alias",
+      "builtin",
+      "clear",
+      "column",
+      "compgen",
+      "complete",
+      "compopt",
+      "date",
+      "declare",
+      "dirs",
+      "du",
+      "egrep",
+      "exec",
+      "expand",
+      "expr",
+      "fgrep",
+      "file",
+      "fold",
+      "getopts",
+      "hash",
+      "help",
+      "history",
+      "hostname",
+      "html-to-markdown",
+      "let",
+      "mapfile",
+      "nl",
+      "popd",
+      "printenv",
+      "pushd",
+      "readarray",
+      "rev",
+      "seq",
+      "shopt",
+      "sleep",
+      "split",
+      "sqlite3",
+      "strings",
+      "tac",
+      "time",
+      "timeout",
+      "tree",
+      "typeset",
+      "unalias",
+      "unexpand",
+      "wait",
+      "which",
+      "whoami",
+      "xan",
+      "yq"
+    ],
+    "currentBaselineOnlyCount": 50,
+    "additionalOptional": [
+      "js-exec",
+      "node",
+      "python",
+      "python3"
+    ],
+    "historicalNowOverlap": [
+      ".",
+      "eval",
+      "source"
+    ],
+    "missingNamesInDeclaration": [],
+    "unexpectedHistoricalNames": [],
+    "declaredRecipes": 60,
+    "uniqueDeclaredNames": 59,
+    "cohorts": {
+      "additional-optional": [
+        "js-exec",
+        "node",
+        "python",
+        "python3"
+      ],
+      "historical-measured-control": [
+        ".",
+        "source",
+        "eval"
+      ],
+      "historical-unmeasured": [
+        "alias",
+        "builtin",
+        "clear",
+        "column",
+        "compgen",
+        "complete",
+        "compopt",
+        "date",
+        "declare",
+        "dirs",
+        "du",
+        "egrep",
+        "exec",
+        "expand",
+        "expr",
+        "fgrep",
+        "file",
+        "fold",
+        "getopts",
+        "hash",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "let",
+        "mapfile",
+        "nl",
+        "popd",
+        "printenv",
+        "pushd",
+        "readarray",
+        "rev",
+        "seq",
+        "shopt",
+        "sleep",
+        "split",
+        "sqlite3",
+        "strings",
+        "tac",
+        "time",
+        "timeout",
+        "tree",
+        "typeset",
+        "unalias",
+        "unexpand",
+        "wait",
+        "which",
+        "whoami",
+        "xan",
+        "yq"
+      ],
+      "shared-control": [
+        "printf",
+        "printf"
+      ],
+      "shared-optional-control": [
+        "curl"
+      ]
+    }
+  },
+  "classificationLimits": {
+    "operationalMeasurements": 0,
+    "unavailableMeasured": 0,
+    "unmeasured": 60,
+    "documentationOnly": [
+      "help"
+    ],
+    "explicitNoOp": [
+      "wait"
+    ],
+    "diagnosticRuntimeStub": [
+      "node"
+    ],
+    "fixedVirtualIdentity": [
+      "hostname",
+      "whoami"
+    ],
+    "aliasSpellings": [
+      [
+        "egrep",
+        "grep -E"
+      ],
+      [
+        "fgrep",
+        "grep -F"
+      ],
+      [
+        "typeset",
+        "declare"
+      ],
+      [
+        "readarray",
+        "mapfile"
+      ],
+      [
+        "python",
+        "python3"
+      ]
+    ],
+    "caveat": "Alias spelling census is not distinct independent implementation count. Missing names are not missing equivalent capabilities; no functional result is inferred."
+  },
+  "declarations": {
+    "input": {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/cases.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/cases.mjs",
+      "kind": "file",
+      "links": [],
+      "bytes": 19373,
+      "sha256": "45cfbf02a4e68483e2b4f0fe85dc2c72d40a2a6c16ede16420480c80eb160b72"
+    },
+    "inventory": {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/inventory.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-setup/inventory.json",
+      "kind": "file",
+      "links": [],
+      "bytes": 85367,
+      "sha256": "4496aedf610d3f0a6e79f099849af5a1becc0bb66652a770bea5b3d33943fff9"
+    },
+    "cases": [
+      {
+        "id": "alias-positive",
+        "name": "alias",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "alias greet='printf alias-ok' && shopt -s expand_aliases && eval greet",
+        "targetArgv": [
+          "alias",
+          "greet=printf alias-ok"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YWxpYXMtb2s=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Define and expand an alias into an actual command, not merely list its definition.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "builtin-positive",
+        "name": "builtin",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "builtin printf '%s\\n' builtin-ok",
+        "targetArgv": [
+          "builtin",
+          "printf",
+          "%s\\n",
+          "builtin-ok"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YnVpbHRpbi1vawo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Dispatch the printf builtin through builtin.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "clear-positive",
+        "name": "clear",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "clear",
+        "targetArgv": [
+          "clear"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "G1syShtbSA==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Emit the documented terminal erase/home control sequence; capture raw terminal bytes.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "column-positive",
+        "name": "column",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "input.csv": {
+            "base64": "YSxiYgpjYyxkCg==",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "column -t -s , -o '|' input.csv",
+        "targetArgv": [
+          "column",
+          "-t",
+          "-s",
+          ",",
+          "-o",
+          "|",
+          "input.csv"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YSB8YmIKY2N8ZAo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Align unequal-width CSV fields into an exact table.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "compgen-positive",
+        "name": "compgen",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "compgen -W 'alpha alpine beta' al",
+        "targetArgv": [
+          "compgen",
+          "-W",
+          "alpha alpine beta",
+          "al"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YWxwaGEKYWxwaW5lCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Compute prefix-filtered completion candidates.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "complete-positive",
+        "name": "complete",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "complete -W 'alpha beta' deploy && complete -p deploy",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutIncludes": [
+            "complete",
+            "alpha beta",
+            "deploy"
+          ],
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Create and retrieve a named completion specification; no interactive completion claim.",
+        "proofLimit": "Stored specification only; an interactive completion engine is not exercised."
+      },
+      {
+        "id": "compopt-positive",
+        "name": "compopt",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "complete -W 'alpha beta' deploy && compopt -o nospace deploy && compopt deploy",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutIncludes": [
+            "nospace",
+            "deploy"
+          ],
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Mutate and retrieve options on an existing completion specification.",
+        "proofLimit": "Stored completion option only, not interactive behavior; complete is a prerequisite."
+      },
+      {
+        "id": "date-positive",
+        "name": "date",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "date -u -d @0 '+%Y-%m-%dT%H:%M:%SZ'",
+        "targetArgv": [
+          "date",
+          "-u",
+          "-d",
+          "@0",
+          "+%Y-%m-%dT%H:%M:%SZ"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "MTk3MC0wMS0wMVQwMDowMDowMFoK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Format a fixed epoch in UTC; do not query the wall clock.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "declare-positive",
+        "name": "declare",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "declare -i count=6 && count=count+7 && printf '%s\\n' \"$count\"",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "MTMK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Declare an integer variable and observe arithmetic assignment semantics.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "dirs-positive",
+        "name": "dirs",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [
+          "sub"
+        ],
+        "symlinks": {},
+        "script": "pushd /fixture/sub > /fixture/push-output && dirs -p",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "L2ZpeHR1cmUvc3ViCi9maXh0dXJlCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Observe a nonempty directory stack after navigation; preserve pushd output separately.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "du-positive",
+        "name": "du",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "data.txt": {
+            "base64": "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "du data.txt",
+        "targetArgv": [
+          "du",
+          "data.txt"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "MglkYXRhLnR4dAo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Measure a 2048-byte file using the pinned logical-VFS-size profile.",
+        "proofLimit": "The baseline reports ceiling(logical bytes/1024), not native allocated blocks. No native disk-allocation parity claim; -b is not a supported pinned baseline option."
+      },
+      {
+        "id": "egrep-positive",
+        "name": "egrep",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "colors": {
+            "base64": "cmVkCmdyZWVuCmJsdWUK",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "egrep '^(red|blue)$' colors",
+        "targetArgv": [
+          "egrep",
+          "^(red|blue)$",
+          "colors"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "cmVkCmJsdWUK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Use extended alternation through the actual egrep alias handler.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "exec-positive",
+        "name": "exec",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "exec printf '%s\\n' exec-ok; target_status=$?; printf 'unexpected-tail\\n' > /fixture/after-exec; exit \"$target_status\"",
+        "targetArgv": [
+          "exec",
+          "printf",
+          "%s\\n",
+          "exec-ok"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "ZXhlYy1vawo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [
+            "after-exec"
+          ],
+          "preserveInputs": true
+        },
+        "intent": "Dispatch a real command through exec and require subsequent statements not to run. If they do run, preserve the target's own status rather than masking it.",
+        "proofLimit": "Virtual control-flow replacement only, never host-process replacement."
+      },
+      {
+        "id": "expand-positive",
+        "name": "expand",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "tabs": {
+            "base64": "YQliCg==",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "expand -t 4 tabs",
+        "targetArgv": [
+          "expand",
+          "-t",
+          "4",
+          "tabs"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YSAgIGIK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Expand a tab to a fixed four-column stop.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "expr-positive",
+        "name": "expr",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "expr 7 + 5",
+        "targetArgv": [
+          "expr",
+          "7",
+          "+",
+          "5"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "MTIK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Evaluate a nonzero arithmetic expression.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "fgrep-positive",
+        "name": "fgrep",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "literals": {
+            "base64": "YS5iCmF4Ygo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "fgrep 'a.b' literals",
+        "targetArgv": [
+          "fgrep",
+          "a.b",
+          "literals"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YS5iCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Match a literal dot without regex interpretation.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "file-positive",
+        "name": "file",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "note.txt": {
+            "base64": "cGxhaW4gdGV4dAo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "file -b note.txt",
+        "targetArgv": [
+          "file",
+          "-b",
+          "note.txt"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutIncludes": [
+            "ASCII text"
+          ],
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Classify deterministic ASCII text content, not a command label.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "fold-positive",
+        "name": "fold",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "lines": {
+            "base64": "YWJjZGVmZ2hpago=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "fold -w 4 lines",
+        "targetArgv": [
+          "fold",
+          "-w",
+          "4",
+          "lines"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YWJjZAplZmdoCmlqCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Wrap a ten-character line at four columns.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "getopts-positive",
+        "name": "getopts",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "getopts 'n:' option -n value && printf '%s:%s:%s\\n' \"$option\" \"$OPTARG\" \"$OPTIND\"",
+        "targetArgv": [
+          "getopts",
+          "n:",
+          "option",
+          "-n",
+          "value"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "bjp2YWx1ZTozCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Parse an option argument and observe all three resulting variables.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "hash-positive",
+        "name": "hash",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "hash -p /bin/echo echo && hash -t echo && echo hash-ok",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "L2Jpbi9lY2hvCmhhc2gtb2sK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Assign and retrieve a command hash mapping, then dispatch the mapped command.",
+        "proofLimit": "Mapping and invocation do not establish cache performance or native PATH-search equivalence."
+      },
+      {
+        "id": "help-positive",
+        "name": "help",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "help printf > /fixture/help.txt",
+        "targetArgv": [
+          "help",
+          "printf"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "files": {
+            "help.txt": {
+              "includes": [
+                "printf"
+              ]
+            }
+          },
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Attempt the intrinsic documentation operation and retain output as a VFS artifact; explicitly excluded from operational-tool success.",
+        "proofLimit": "User prohibits help/usage as operational proof. This name is attempted but can never earn functional credit from this recipe.",
+        "operationalCredit": false
+      },
+      {
+        "id": "history-positive",
+        "name": "history",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {
+          "BASH_HISTORY": "[\"printf old-entry\"]"
+        },
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "history -c && history",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Clear a deliberately seeded history list and verify retrieval is empty.",
+        "proofLimit": "Seeded public environment storage, not proof that interactive commands are automatically recorded."
+      },
+      {
+        "id": "hostname-positive",
+        "name": "hostname",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "hostname",
+        "targetArgv": [
+          "hostname"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "bG9jYWxob3N0Cg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Read the sandbox's virtual hostname, not the host machine identity.",
+        "proofLimit": "Pinned baseline returns a fixed virtual identity; no configurable/network hostname claim."
+      },
+      {
+        "id": "html-to-markdown-positive",
+        "name": "html-to-markdown",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "page.html": {
+            "base64": "PGgxPlJlbGVhc2U8L2gxPjxwPlJlYWR5IDxzdHJvbmc+bm93PC9zdHJvbmc+LjwvcD4=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "html-to-markdown page.html",
+        "targetArgv": [
+          "html-to-markdown",
+          "page.html"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutIncludes": [
+            "# Release",
+            "**now**"
+          ],
+          "stdoutExcludes": [
+            "<h1>",
+            "<strong>"
+          ],
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Convert structured HTML heading and emphasis into Markdown.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "let-positive",
+        "name": "let",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "count=6; let 'count+=7' && printf '%s\\n' \"$count\"",
+        "targetArgv": [
+          "let",
+          "count+=7"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "MTMK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Mutate an arithmetic variable and observe its value.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "mapfile-positive",
+        "name": "mapfile",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "rows.txt": {
+            "base64": "YWxwaGEKYmV0YQo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "mapfile -t rows < rows.txt && printf '%s|%s\\n' \"${rows[0]}\" \"${rows[1]}\"",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YWxwaGF8YmV0YQo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Read two VFS lines into an indexed array without trailing delimiters.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "nl-positive",
+        "name": "nl",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "lines": {
+            "base64": "YWxwaGEKCmJldGEK",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "nl -ba -w 1 -s ':' lines",
+        "targetArgv": [
+          "nl",
+          "-ba",
+          "-w",
+          "1",
+          "-s",
+          ":",
+          "lines"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "MTphbHBoYQoyOgozOmJldGEK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Number every line, including an empty line.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "popd-positive",
+        "name": "popd",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [
+          "sub"
+        ],
+        "symlinks": {},
+        "script": "pushd /fixture/sub > /fixture/push-output && popd > /fixture/pop-output && pwd",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "L2ZpeHR1cmUK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Return from a previously pushed directory; redirected target output remains captured in VFS.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "printenv-positive",
+        "name": "printenv",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {
+          "COVERAGE_VALUE": "fixture-value"
+        },
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "printenv COVERAGE_VALUE",
+        "targetArgv": [
+          "printenv",
+          "COVERAGE_VALUE"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "Zml4dHVyZS12YWx1ZQo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Retrieve a deliberately supplied environment variable.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "pushd-positive",
+        "name": "pushd",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [
+          "sub"
+        ],
+        "symlinks": {},
+        "script": "pushd /fixture/sub > /fixture/push-output && pwd",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "L2ZpeHR1cmUvc3ViCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Change the current directory through stack navigation.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "readarray-positive",
+        "name": "readarray",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "rows.txt": {
+            "base64": "YWxwaGEKYmV0YQo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "readarray -t rows < rows.txt && printf '%s|%s\\n' \"${rows[0]}\" \"${rows[1]}\"",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YWxwaGF8YmV0YQo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Invoke the readarray name to populate and read a two-element array.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "rev-positive",
+        "name": "rev",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "lines": {
+            "base64": "YWJjCjEyMwo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "rev lines",
+        "targetArgv": [
+          "rev",
+          "lines"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "Y2JhCjMyMQo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Reverse characters independently on each line.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "seq-positive",
+        "name": "seq",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "seq 2 3 8",
+        "targetArgv": [
+          "seq",
+          "2",
+          "3",
+          "8"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "Mgo1CjgK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Generate an inclusive stepped numeric sequence.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "shopt-positive",
+        "name": "shopt",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          ".hidden": {
+            "base64": "aGlkZGVuCg==",
+            "mode": 420
+          },
+          "visible": {
+            "base64": "dmlzaWJsZQo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "shopt -s dotglob && printf '%s\\n' *",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "LmhpZGRlbgp2aXNpYmxlCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Enable dotglob and verify that glob expansion changes.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "sleep-positive",
+        "name": "sleep",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "sleep 0.02",
+        "targetArgv": [
+          "sleep",
+          "0.02"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "elapsedAtLeastMs": 10,
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Await a nonzero short timer without an injected sleep shim.",
+        "proofLimit": "A broad lower-bound sanity check only; elapsed time is retained raw and is not a performance comparison."
+      },
+      {
+        "id": "split-positive",
+        "name": "split",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "rows": {
+            "base64": "YWxwaGEKYmV0YQpnYW1tYQo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "split -l 2 rows part-",
+        "targetArgv": [
+          "split",
+          "-l",
+          "2",
+          "rows",
+          "part-"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "files": {
+            "part-aa": {
+              "base64": "YWxwaGEKYmV0YQo="
+            },
+            "part-ab": {
+              "base64": "Z2FtbWEK"
+            }
+          },
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Split a three-line file into exact two-line/one-line VFS outputs.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "sqlite3-positive",
+        "name": "sqlite3",
+        "cohort": "historical-unmeasured",
+        "configuration": "sqlite",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "sqlite3 /fixture/data.db 'CREATE TABLE items(name TEXT, value INTEGER); INSERT INTO items VALUES (\"alpha\", 2), (\"beta\", 3); SELECT sum(value) FROM items;'",
+        "targetArgv": [
+          "sqlite3",
+          "/fixture/data.db",
+          "CREATE TABLE items(name TEXT, value INTEGER); INSERT INTO items VALUES (\"alpha\", 2), (\"beta\", 3); SELECT sum(value) FROM items;"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "NQo=",
+          "stderrBase64": "",
+          "files": {
+            "data.db": {
+              "prefixBase64": "U1FMaXRlIGZvcm1hdCAzAA==",
+              "minBytes": 100
+            }
+          },
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Create a real virtual SQLite database, insert rows, and aggregate them.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "strings-positive",
+        "name": "strings",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "blob": {
+            "base64": "AAFIRUxMTwACV09STEQA",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "strings -n 4 blob",
+        "targetArgv": [
+          "strings",
+          "-n",
+          "4",
+          "blob"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "SEVMTE8KV09STEQK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Extract printable spans from binary VFS bytes.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "tac-positive",
+        "name": "tac",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "rows": {
+            "base64": "YWxwaGEKYmV0YQpnYW1tYQo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "tac rows",
+        "targetArgv": [
+          "tac",
+          "rows"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "Z2FtbWEKYmV0YQphbHBoYQo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Reverse complete line order.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "time-positive",
+        "name": "time",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "command time -f completed printf '%s\\n' timed",
+        "targetArgv": [
+          "time",
+          "-f",
+          "completed",
+          "printf",
+          "%s\\n",
+          "timed"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "dGltZWQK",
+          "stderrBase64": "Y29tcGxldGVkCg==",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Force the time registry wrapper, execute a child, and emit a deterministic format string rather than accidentally measuring the shell keyword.",
+        "proofLimit": "Custom-format dispatch control, not timer accuracy or performance evidence."
+      },
+      {
+        "id": "timeout-positive",
+        "name": "timeout",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "timeout 5 printf '%s\\n' bounded",
+        "targetArgv": [
+          "timeout",
+          "5",
+          "printf",
+          "%s\\n",
+          "bounded"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "Ym91bmRlZAo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Run a successful child inside a deadline; this is not timeout-expiry/cancellation proof.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "tree-positive",
+        "name": "tree",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "tree-input/a.txt": {
+            "base64": "YQo=",
+            "mode": 420
+          },
+          "tree-input/sub/b.txt": {
+            "base64": "Ygo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "tree tree-input",
+        "targetArgv": [
+          "tree",
+          "tree-input"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "dHJlZS1pbnB1dArilJzilIDilIAgYS50eHQK4pSU4pSA4pSAIHN1YgogICAg4pSU4pSA4pSAIGIudHh0CgoxIGRpcmVjdG9yeSwgMiBmaWxlcwo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Traverse a deterministic nested VFS tree using the supported default interface.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "typeset-positive",
+        "name": "typeset",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "typeset -i count=6 && count=count+7 && printf '%s\\n' \"$count\"",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "MTMK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Exercise integer declaration and arithmetic assignment via the typeset spelling.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "unalias-positive",
+        "name": "unalias",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "alias echo='printf wrong' && unalias echo && eval 'echo restored'",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "cmVzdG9yZWQK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Remove an alias and verify normal dispatch is restored.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "unexpand-positive",
+        "name": "unexpand",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "spaces": {
+            "base64": "YSAgIGIK",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "unexpand -a -t 4 spaces",
+        "targetArgv": [
+          "unexpand",
+          "-a",
+          "-t",
+          "4",
+          "spaces"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YQliCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Compress spaces to a fixed tab stop.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "wait-positive",
+        "name": "wait",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "printf 'child-done\\n' > /fixture/child.txt & wait",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "files": {
+            "child.txt": {
+              "base64": "Y2hpbGQtZG9uZQo="
+            }
+          },
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Launch a virtual background write, wait, then inspect the resulting file outside the script.",
+        "proofLimit": "Pinned source says wait is a no-op and background execution is unsupported. Even matching output cannot establish asynchronous job-join semantics; never functional-credit a no-op.",
+        "operationalCredit": false
+      },
+      {
+        "id": "which-positive",
+        "name": "which",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "which echo",
+        "targetArgv": [
+          "which",
+          "echo"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "L3Vzci9iaW4vZWNobwo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Resolve a callable command's virtual path; separate from builtin type labels.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "whoami-positive",
+        "name": "whoami",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "whoami",
+        "targetArgv": [
+          "whoami"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "dXNlcgo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Read the sandbox's virtual user identity.",
+        "proofLimit": "Pinned baseline's fixed virtual user is not host-user or permission enforcement evidence."
+      },
+      {
+        "id": "xan-positive",
+        "name": "xan",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "rows.csv": {
+            "base64": "bmFtZSx2YWx1ZQphbHBoYSwyCmJldGEsMwo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "xan select name rows.csv",
+        "targetArgv": [
+          "xan",
+          "select",
+          "name",
+          "rows.csv"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "bmFtZQphbHBoYQpiZXRhCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Project one named column from a CSV table.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "yq-positive",
+        "name": "yq",
+        "cohort": "historical-unmeasured",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "data.yaml": {
+            "base64": "aXRlbXM6CiAgLSBuYW1lOiBhbHBoYQogIC0gbmFtZTogYmV0YQo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "yq -o json '.items[1].name' data.yaml",
+        "targetArgv": [
+          "yq",
+          "-o",
+          "json",
+          ".items[1].name",
+          "data.yaml"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "ImJldGEiCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Parse YAML and extract a nested scalar as JSON.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "js-exec-positive",
+        "name": "js-exec",
+        "cohort": "additional-optional",
+        "configuration": "javascript",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "js-exec -c 'console.log(6 * 7)'",
+        "targetArgv": [
+          "js-exec",
+          "-c",
+          "console.log(6 * 7)"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Execute guest JavaScript arithmetic in the shipped QuickJS worker, not host Node.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "node-positive",
+        "name": "node",
+        "cohort": "additional-optional",
+        "configuration": "javascript",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "node -e 'console.log(6 * 7)'",
+        "targetArgv": [
+          "node",
+          "-e",
+          "console.log(6 * 7)"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Attempt actual JavaScript execution through node and preserve the pinned diagnostic-stub response.",
+        "proofLimit": "No native Node fallback or js-exec substitution. A diagnostic response is baseline-stub, not a working runtime."
+      },
+      {
+        "id": "python-positive",
+        "name": "python",
+        "cohort": "additional-optional",
+        "configuration": "python",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "python -c 'from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)'",
+        "targetArgv": [
+          "python",
+          "-c",
+          "from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "files": {
+            "result.txt": {
+              "base64": "NDIK"
+            }
+          },
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Run guest Python arithmetic and write exact bytes through the shipped CPython VFS bridge.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "python3-positive",
+        "name": "python3",
+        "cohort": "additional-optional",
+        "configuration": "python",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "python3 -c 'from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)'",
+        "targetArgv": [
+          "python3",
+          "-c",
+          "from pathlib import Path; Path(\"/fixture/result.txt\").write_text(\"42\\n\"); print(6 * 7)"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "NDIK",
+          "stderrBase64": "",
+          "files": {
+            "result.txt": {
+              "base64": "NDIK"
+            }
+          },
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Run guest Python arithmetic and write exact bytes through the shipped CPython VFS bridge.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "dot-positive",
+        "name": ".",
+        "cohort": "historical-measured-control",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "loaded.sh": {
+            "base64": "TE9BREVEX1ZBTFVFPWxvYWRlZAo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": ". /fixture/loaded.sh && printf '%s\\n' \"$LOADED_VALUE\"",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "bG9hZGVkCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Exercise the now-overlapping source handler, preserving its historical inventory row.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "source-positive",
+        "name": "source",
+        "cohort": "historical-measured-control",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {
+          "loaded.sh": {
+            "base64": "TE9BREVEX1ZBTFVFPWxvYWRlZAo=",
+            "mode": 420
+          }
+        },
+        "directories": [],
+        "symlinks": {},
+        "script": "source /fixture/loaded.sh && printf '%s\\n' \"$LOADED_VALUE\"",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "bG9hZGVkCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Exercise the now-overlapping source handler, preserving its historical inventory row.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "eval-positive",
+        "name": "eval",
+        "cohort": "historical-measured-control",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "eval 'VALUE=loaded' && printf '%s\\n' \"$VALUE\"",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "bG9hZGVkCg==",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Exercise now-overlapping eval state mutation without changing historical results.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "printf-positive",
+        "name": "printf",
+        "cohort": "shared-control",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "printf 'ascii:%s\\n' control",
+        "targetArgv": [
+          "printf",
+          "ascii:%s\\n",
+          "control"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "YXNjaWk6Y29udHJvbAo=",
+          "stderrBase64": "",
+          "files": {},
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Check shell invocation, terminal capture and known shared behavior.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "terminal-byte-control",
+        "name": "printf",
+        "cohort": "shared-control",
+        "configuration": "default",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "printf '\\000\\177\\200\\377' > bytes; cat bytes",
+        "targetArgv": null,
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "",
+          "files": {
+            "bytes": {
+              "base64": "AH+A/w=="
+            }
+          },
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Separate exact internal VFS bytes from the public terminal-byte API.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      },
+      {
+        "id": "curl-positive",
+        "name": "curl",
+        "cohort": "shared-optional-control",
+        "configuration": "loopback-network",
+        "cwd": "/fixture",
+        "env": {},
+        "stdinBase64": "",
+        "files": {},
+        "directories": [],
+        "symlinks": {},
+        "script": "curl -sS '{{BASE}}/fixture.txt' -o /fixture/download.txt",
+        "targetArgv": [
+          "curl",
+          "-sS",
+          "{{BASE}}/fixture.txt",
+          "-o",
+          "/fixture/download.txt"
+        ],
+        "expected": {
+          "exitCode": 0,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "files": {
+            "download.txt": {
+              "base64": "bG9vcGJhY2stZml4dHVyZQo="
+            }
+          },
+          "absent": [],
+          "preserveInputs": true
+        },
+        "intent": "Use each documented optional network plugin to download fixed loopback-only response bytes.",
+        "proofLimit": "One bounded positive recipe, not complete command or option coverage."
+      }
+    ],
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "/home/user",
+      "TMPDIR": "/tmp",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "USER": "user"
+    },
+    "budgets": {
+      "ordinaryMs": 30000,
+      "optionalMs": 120000,
+      "childGraceMs": 10000,
+      "maxOutputBytes": 4194304,
+      "maxCensusBytes": 33554432,
+      "maxEntries": 4096,
+      "maxDepth": 32
+    },
+    "networkFixture": {
+      "host": "127.0.0.1",
+      "method": "GET",
+      "path": "/fixture.txt",
+      "status": 200,
+      "contentType": "text/plain",
+      "bodyBase64": "bG9vcGJhY2stZml4dHVyZQo="
+    }
+  },
+  "sourceAndDependencyTrees": [
+    {
+      "path": "src",
+      "entries": 165,
+      "bytes": 1626130,
+      "manifestSha256": "8c30a64838399bc319dfe56558cfd5d995bb6377233c388a2af51fc8239c723f",
+      "symlinks": []
+    },
+    {
+      "path": "node_modules",
+      "entries": 318,
+      "bytes": 48179371,
+      "manifestSha256": "c4e4006576ebfb788f59dd25db76189de55696cdf37c26273493bd2fe7dfbf27",
+      "symlinks": [
+        {
+          "path": "node_modules/.bin/esbuild",
+          "kind": "symlink",
+          "target": "../esbuild/bin/esbuild",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild"
+        },
+        {
+          "path": "node_modules/.bin/tsc",
+          "kind": "symlink",
+          "target": "../typescript/bin/tsc",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc"
+        },
+        {
+          "path": "node_modules/.bin/tsserver",
+          "kind": "symlink",
+          "target": "../typescript/bin/tsserver",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsserver"
+        },
+        {
+          "path": "node_modules/.bin/tsx",
+          "kind": "symlink",
+          "target": "../tsx/dist/cli.mjs",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs"
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules",
+      "entries": 3510,
+      "bytes": 75292558,
+      "manifestSha256": "4a467155d6bde22378487a3d699ec834d098150ea0254e41e7c23db65d0290d1",
+      "symlinks": [
+        {
+          "path": "benchmarks/node_modules/.bin/fxparser",
+          "kind": "symlink",
+          "target": "../fast-xml-parser/src/cli/cli.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/fast-xml-parser/src/cli/cli.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/just-bash",
+          "kind": "symlink",
+          "target": "../just-bash/dist/bin/just-bash.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bin/just-bash.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/just-bash-shell",
+          "kind": "symlink",
+          "target": "../just-bash/dist/bin/shell/shell.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bin/shell/shell.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/node-gyp-build",
+          "kind": "symlink",
+          "target": "../node-gyp-build/bin.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-gyp-build/bin.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/node-gyp-build-optional",
+          "kind": "symlink",
+          "target": "../node-gyp-build/optional.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-gyp-build/optional.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/node-gyp-build-test",
+          "kind": "symlink",
+          "target": "../node-gyp-build/build-test.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-gyp-build/build-test.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/nxz",
+          "kind": "symlink",
+          "target": "../node-liblzma/lib/cli/nxz.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-liblzma/lib/cli/nxz.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/prebuild-install",
+          "kind": "symlink",
+          "target": "../prebuild-install/bin.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/prebuild-install/bin.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/rc",
+          "kind": "symlink",
+          "target": "../rc/cli.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/rc/cli.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/seek-bunzip",
+          "kind": "symlink",
+          "target": "../seek-bzip/bin/seek-bunzip",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/seek-bzip/bin/seek-bunzip"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/seek-table",
+          "kind": "symlink",
+          "target": "../seek-bzip/bin/seek-bzip-table",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/seek-bzip/bin/seek-bzip-table"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/semver",
+          "kind": "symlink",
+          "target": "../semver/bin/semver.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/semver/bin/semver.js"
+        },
+        {
+          "path": "benchmarks/node_modules/.bin/yaml",
+          "kind": "symlink",
+          "target": "../yaml/bin.mjs",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/yaml/bin.mjs"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "benchmarks/node_modules/just-bash/README.md",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/README.md",
+      "kind": "file",
+      "links": [],
+      "bytes": 28914,
+      "sha256": "3232b230a378c2d853029df513fc8740ce32819d531acc6faed41c2d780b44e2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/Bash.d.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/Bash.d.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 10289,
+      "sha256": "e3a69cccbb3838ea6923f9fe0e0f8da738394292a1d47c7995e24eb1ee988188"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/alias-T5TO5GWK.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/alias-T5TO5GWK.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 279,
+      "sha256": "44c4f43551b5996f8c0e15a7211cf74882de31f6df8c366b0273631fd42810d0"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/awk2-NPLZQ3K7.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/awk2-NPLZQ3K7.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 478,
+      "sha256": "72f4a1977f93ce875ef7fea646acc266804030f2a3e9390be864e1540023c77f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/base64-2BAITDZF.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/base64-2BAITDZF.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 424,
+      "sha256": "e51b403f20799fd3a770b30d6f8b8c4919e22552bad6ef0b2c46ea2d38eb4af8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/basename-SJZQ5W65.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/basename-SJZQ5W65.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 230,
+      "sha256": "a497d403e368e079ac36fd4eb49b0525c09fa3d51de43878087c4e942b1d333e"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/bash-HIEWVHJ2.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/bash-HIEWVHJ2.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 324,
+      "sha256": "08351ad82e8ed96953d0f2433bb994b975e13793a9097dfbae536aa9a66f2157"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/cat-33KGN4MZ.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/cat-33KGN4MZ.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 421,
+      "sha256": "0dfae92b0f8143e4832d17a4a493b1e29e46925985cab6231faf9816f985b0ce"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chmod-APOXUPXW.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/chmod-APOXUPXW.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 451,
+      "sha256": "963114c49cb4cb8d6f9113414bad21400772dd4bbb834c99fe476d43658dfa7b"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/clear-KPIUNI6K.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/clear-KPIUNI6K.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 227,
+      "sha256": "50b4279f5cfea14a8624f58b77960de85485ef30c6034a6c7762e511c9bb094f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/column-LKMDIDCH.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/column-LKMDIDCH.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 333,
+      "sha256": "d3a018a4240bebc842f14a51fc692afca490a8b218a0326180a33daab84e0d9d"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/comm-DTWKU2MC.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/comm-DTWKU2MC.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 254,
+      "sha256": "5019f920d39a3b4e2f55ec91ab9cf74f8becc87fad37e91e497cb9bbb35b763a"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/cp-FKTQRFYJ.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/cp-FKTQRFYJ.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 420,
+      "sha256": "7ffd5df081c5bb161c516376d0bbdd8da3914b7fd50589ed01c521abf17b09ff"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/curl-DEHFBW27.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/curl-DEHFBW27.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 12557,
+      "sha256": "848a911a7b198a790faa7beb86321975733fbae4f7bf69772df62adc5c6c06e2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/cut-RWPUW5FY.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/cut-RWPUW5FY.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 365,
+      "sha256": "a90cf4140b59a0e6ea566570a829c6375a43a045f049c20b569cdcdec0f0bc55"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/date-FN2DXAEE.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/date-FN2DXAEE.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 338,
+      "sha256": "298adab48cbf269688f60aeae3cfcee65e20af760b631e89297ff3c1e13c01c9"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/diff-CSARC7WF.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/diff-CSARC7WF.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 282,
+      "sha256": "71308d8503298469521d3adf0c466af8d1bc0507410dc641deec5ef09505777a"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/dirname-Z2ZMOOW2.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/dirname-Z2ZMOOW2.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 229,
+      "sha256": "51f7b7ffca8dc896c413303d141663aab5055fc1db762ac1cb908fe26c0fc8f4"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/du-PR3M44X6.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/du-PR3M44X6.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 392,
+      "sha256": "b119872235f1069abe77bdf0893307e6adb6267866d64dc770cf24ce2f4e1d3f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/echo-PLLZYM2L.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/echo-PLLZYM2L.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 198,
+      "sha256": "dfb9626beda861927d978e83c543f5136f46d7217d13e03be3924255490b85af"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/env-VUUMB47B.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/env-VUUMB47B.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 335,
+      "sha256": "5a57e193c05cca34476722a1418a15dcd3fc2b0b696b71aab81c3aa71d731b96"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/expand-2BPPGGSM.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/expand-2BPPGGSM.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 305,
+      "sha256": "f8dd72ea5d3bafe166ab577008f593ed7e60ae41a2df16ac19c4b9d200d40cbd"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/expr-UMT2OHZ7.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/expr-UMT2OHZ7.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 394,
+      "sha256": "0f985bcf8fd630ad94642a2039f0dd31148fe52920545507e9a1eeba83fe6846"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/file-VEGKTTSF.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/file-VEGKTTSF.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 366,
+      "sha256": "94aff2a71912ad0d2b9362c65d8aa4408c61d52d31dc67daf27a25e0b45d902f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/find-PM3TD7V4.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/find-PM3TD7V4.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 562,
+      "sha256": "220216412f26dbaf35794fdc6e797eae80d5c5dea53aa2b412f1a57a4edb56d8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/fold-QJBPHRFJ.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/fold-QJBPHRFJ.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 247,
+      "sha256": "7ccdd9e8012939954fe09068c1dbbe12cb89f9e159594d6d7069aff3daabb5e3"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/grep-5UPEO42U.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/grep-5UPEO42U.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 546,
+      "sha256": "934d2c479122e3b45d8a1c760f6403372f404f0df639d0b3e5e208923f091512"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/gzip-ZINVK3M6.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/gzip-ZINVK3M6.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 602,
+      "sha256": "eed2621d49197d5fd6b88b1785c8481d35205333007c9fb46f1402c7cd61b1d6"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/head-CFENJILH.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/head-CFENJILH.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 394,
+      "sha256": "78fde441e25544694260ba4504895b43335de104a9574f0758af2dddf6d7c18f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/help-QDDMBDU7.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/help-QDDMBDU7.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 226,
+      "sha256": "96ad493059810decd48e1075288fa4f58d3a83bce98c79b150fe1c094cba6016"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/history-3N762S3K.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/history-3N762S3K.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 229,
+      "sha256": "ed7e0c911fefa0e2ced47e4c8793550c51290c6bfcbd6570f9f04c380ca07531"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/hostname-CESD3CQR.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/hostname-CESD3CQR.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 195,
+      "sha256": "ac7e7cf7c434d8d010246b625ed69a6a2ecc36595d13667808c99f4ea51b9473"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/html-to-markdown-GGVR4YGL.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/html-to-markdown-GGVR4YGL.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 348,
+      "sha256": "1af7740573e4f5a868cc8fd6f3bfaea391f208597aeac0094973606c85fbe233"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/join-KQ4Z5OD4.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/join-KQ4Z5OD4.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 303,
+      "sha256": "84a965e93f5aa2cc38315998ed8fd9e72bec30d290aa3e2b2633cc5678ff00d7"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/jq-X2P7Q64K.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/jq-X2P7Q64K.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 588,
+      "sha256": "0214bd547d69b9954e2e55b9db3163b38cd08bb9906b881e65623ea2a0ef8a2a"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-XKF2B7C3.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-XKF2B7C3.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 9752,
+      "sha256": "3a238ea12066e1d2fce776ba8cc0cc0c14453b10a41cc28b2617e5bd4a1d7ed7"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-worker.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 157508,
+      "sha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/ln-VYDFOFNO.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/ln-VYDFOFNO.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 252,
+      "sha256": "76a4b46b2823afcbfd272214eaa882f0913cadb3348da366aa1608e8e5e81a38"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/ls-R5CQLZQM.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/ls-R5CQLZQM.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 448,
+      "sha256": "db9dc53efb37a2d514026fdbb81779aefb0019b6e6d8fc797223b817cde67058"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/md5sum-JEDX55KS.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/md5sum-JEDX55KS.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 284,
+      "sha256": "da2690b4258af4607b26e8d30e3fe5d915d0b74047edf763204e9e05b89151b9"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/mkdir-WDDKK2P3.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/mkdir-WDDKK2P3.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 311,
+      "sha256": "1d7548f8a9032744c9b975a53f8f9e352a869f780fffabf8603493007dfda39f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/mv-XSJA2FNL.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/mv-XSJA2FNL.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 420,
+      "sha256": "5ea67011f3915ad39271c87c3625ebb32bd23019994b763fa8c7ae20b3ff5f4e"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/nl-RFXH2GNX.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/nl-RFXH2GNX.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 273,
+      "sha256": "cd6f1f37329d585d7b8934af1a3f95b02f20b3251bd5b2d091c6def32b33165b"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/od-BI6XJPXY.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/od-BI6XJPXY.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 329,
+      "sha256": "ac5df8aae80d7110ebdb5405e0da06ab083dbbf70882f9f27482301ce4b519e8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/paste-LLZ3ZQR2.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/paste-LLZ3ZQR2.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 395,
+      "sha256": "35d650ddc67d337f988a67ee322c09626e55a5ffedefa345232da9be6dd1a60a"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/printf-V42QCPHL.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/printf-V42QCPHL.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 368,
+      "sha256": "1e5eee55d7665ce96419c154fd486b559ab1be7ffba549912b20a5d4b16ec429"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/pwd-76BPYV5F.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/pwd-76BPYV5F.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 197,
+      "sha256": "65c9f9c60eaf87886a4375626dfcb544d7582de8af320d0488a348bea465a761"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/python3-F5S5TYGS.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/python3-F5S5TYGS.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 8221,
+      "sha256": "7a4b808a72e6dcb307293be5385052638181deb8b795d122f14ee7e7c7d7f295"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/readlink-IY6QKK2P.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/readlink-IY6QKK2P.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 370,
+      "sha256": "53e0f80523c9f3553e59e5ce30acfe298088245561100713b857dea0bff387ef"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/rev-EPOS3MFH.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/rev-EPOS3MFH.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 246,
+      "sha256": "41542d88626b49e6b3fc3fa2b4d18e2c66902994aa2f50e7f5fee51c33d16eda"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/rg-UQE6KUBP.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/rg-UQE6KUBP.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 560,
+      "sha256": "22ae626f7848f0f07e4251345c48b19c550c7d0e0df9d6d02b959a2b8e36760d"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/rm-JQ4GDKDD.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/rm-JQ4GDKDD.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 308,
+      "sha256": "f42b840ed48100ece25a08e56db7562b9bd3a90ce00b6b3d7e664d6f92ccba5c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/rmdir-WZKAT6M5.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/rmdir-WZKAT6M5.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 423,
+      "sha256": "1595e06c920719bd5dda9626906744db1eb72396738fb9016f19b421b747c4bc"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sed-JW2JDLSI.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sed-JW2JDLSI.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 449,
+      "sha256": "584104299666126da835874e182866e997a47a77cdbecc379899d2e15cddf128"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/seq-5R2GKXC6.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/seq-5R2GKXC6.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 281,
+      "sha256": "08c21d83e124e9d3c5bf3234bdbd757e278509bfa69c443ced49f3cb34987c5f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sha1sum-BLPZJ6MP.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sha1sum-BLPZJ6MP.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 285,
+      "sha256": "7ef3d1771d814654146fc80174fa75bf54bc65c7f5b81a576c391fc0934208ed"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sha256sum-VJZ4PHQ4.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sha256sum-VJZ4PHQ4.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 287,
+      "sha256": "dd2ebb4508e4b84a1b1e3bc963c4c9f773d181f6c9926d6fdfc8c1c865976586"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sleep-PPRBTSVR.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sleep-PPRBTSVR.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 311,
+      "sha256": "700062ddd83b6047aedc71d589caf1fc3579100387cd570825a2779b96823800"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sort-PV2NEQHF.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sort-PV2NEQHF.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 338,
+      "sha256": "d9c7e5246e0a1eaab45c9a92faec5768978db0a07c246b98371b719d7ec2cc37"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/split-2SD6EP72.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/split-2SD6EP72.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 416,
+      "sha256": "a3cf1b8565668b53aafc8697cd64b9ab7f09d83f1667a0c908a825e83832fa0f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-UVVRYDAL.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-UVVRYDAL.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 527,
+      "sha256": "617367dcdd7ae8cdcfc6b3343bf25b00d31b1ffeb9e7b8f11032dcddc1354d15"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 61413,
+      "sha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/stat-6KILP5AL.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/stat-6KILP5AL.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 394,
+      "sha256": "eb1f7f782c957513dc3a6826b5755c1254005fec89d33ae4b21ba6dd7b5b6d2b"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/strings-WTD7Q2EF.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/strings-WTD7Q2EF.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 278,
+      "sha256": "094f0377e56e2f3508a5645a609a4098f7aabaa8647001bd34dcafc855c2a560"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tac-YXC4HBTR.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/tac-YXC4HBTR.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 218,
+      "sha256": "db0e560b8c81614acdc720b9c1ac88f66c81ea6a8d47434192d0ff96c64112b0"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tail-BDNMS4FR.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/tail-BDNMS4FR.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 394,
+      "sha256": "b89fff3c2d7883e30096e7638707b89357b4644c23eba58a8c90a0d0ed667d9a"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tar-6365WH6H.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/tar-6365WH6H.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 421,
+      "sha256": "231fcf412f9ea25c262264babfac21977d5a80ee8a9c0df7f16fe50517e16139"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tee-OOWSWHRQ.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/tee-OOWSWHRQ.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 281,
+      "sha256": "5d4fb65b7edcbff49de16ded9f1a6005845fa9a3f3d7fb88f62c6e309c3382a1"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/time-NERE2JJ2.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/time-NERE2JJ2.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 338,
+      "sha256": "72dfe24742ea7338169ddebd03337cf355a45e724212ab318d810351c767cfc2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/timeout-C6WDYPLV.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/timeout-C6WDYPLV.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 397,
+      "sha256": "dbe5560df622b0807c3ec3ccb4181b6c412c8408e1d6a09d0a79c7a4acfe7dec"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/touch-W4DF6Z4T.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/touch-W4DF6Z4T.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 255,
+      "sha256": "99a51b1eb68fa10775d1c4680046df21425715d30cc514b890a4a6a99778b7b8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tr-3I4MDKIF.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/tr-3I4MDKIF.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 392,
+      "sha256": "da45ced93cc2bdb7c2700cd0b606aad7817e694f200df5301571ab8f190b06aa"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/tree-7OOL2MH6.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/tree-7OOL2MH6.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 282,
+      "sha256": "9218838b33dbd376ab1022c940597954f5d8ed04cd03c2ae3a6f0aa0bd110413"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/true-QUBPEGGU.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/true-QUBPEGGU.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 246,
+      "sha256": "af9897132750ed45861deda6adadae7c130c6fb202337f658b530744ce3bd3e9"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/unexpand-YD5BWFH4.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/unexpand-YD5BWFH4.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 251,
+      "sha256": "026129f24c5b906ca2dd5fdd4ddb16a7772385b8d4f9e1369e155049399c5bfa"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/uniq-OVOW532K.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/uniq-OVOW532K.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 366,
+      "sha256": "967faee923afd0d52e050d8dcd16858d03167d277aa77e907ce550cc30858b78"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/wc-RUR7HE5O.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/wc-RUR7HE5O.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 364,
+      "sha256": "9fe94434f117b0f9c75e024cbb3486de958c92174ea10a3d396285e41e3c8a86"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/which-UWVKETYW.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/which-UWVKETYW.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 255,
+      "sha256": "d247c38b38b61508492192562fe9c9b9ed65ed5bb25d96d7e7e460b06d5af327"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/whoami-KR6E7UIR.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/whoami-KR6E7UIR.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 193,
+      "sha256": "b7c14275d73c2d8c7581443fdff35b458565a5546663fda8c3ea0fee48b81496"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/worker.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 105168,
+      "sha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/xan-HUOXKUQA.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/xan-HUOXKUQA.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 645,
+      "sha256": "2a9510fd64c3aa732c94b3965cd776d5af2a765101d9bd799136be5b52f65ed8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/xargs-L7TJHOJT.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/xargs-L7TJHOJT.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 367,
+      "sha256": "7bd72d83b2421ac9cd0b2372629cf9b6b37bfe88b358cc257cf1d32b4438562c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/yq-MI27NZ2U.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/yq-MI27NZ2U.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 560,
+      "sha256": "4bd9afa1c2ee26c03046bbd12d75958a56933ffd2078c584ebbd76b19b4733c7"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "kind": "file",
+      "links": [],
+      "bytes": 510637,
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/limits.d.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/limits.d.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 5436,
+      "sha256": "29d3fcf11067339e0e8a307b2e4b977f81398484f5c79b0de0c937d307f8e97b"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/package.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/package.json",
+      "kind": "file",
+      "links": [],
+      "bytes": 7757,
+      "sha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+      "kind": "file",
+      "links": [],
+      "bytes": 108476,
+      "sha256": "b45f414d674fafeeefbd72b544bf7e5079f230f424371e462bd748eb5f82ec42"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.wasm",
+      "kind": "file",
+      "links": [],
+      "bytes": 5974624,
+      "sha256": "b2b1a3f18a6fe035d609e3aa47e9508b55729e5f3ebbd2a40d467c0cd3200eee"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python313.zip",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python313.zip",
+      "kind": "file",
+      "links": [],
+      "bytes": 4303799,
+      "sha256": "00b6fb26ce2157860ce0eaae6849ea2b673f32ca06456503176e8d1fe8be4915"
+    },
+    {
+      "path": "benchmarks/package-lock.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/package-lock.json",
+      "kind": "file",
+      "links": [],
+      "bytes": 38701,
+      "sha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+    },
+    {
+      "path": "benchmarks/package.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/package.json",
+      "kind": "file",
+      "links": [],
+      "bytes": 266,
+      "sha256": "acd6d0930859b5fb4bd6d4d34a066bbde720d8629e10778989214a7bf61a6dc4"
+    },
+    {
+      "path": "node_modules/.bin/tsx",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs",
+      "kind": "symlink",
+      "links": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsx",
+          "target": "../tsx/dist/cli.mjs",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs"
+        }
+      ],
+      "bytes": 121808,
+      "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+    },
+    {
+      "path": "node_modules/tsx/package.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/package.json",
+      "kind": "file",
+      "links": [],
+      "bytes": 1601,
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "path": "package-lock.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/package-lock.json",
+      "kind": "file",
+      "links": [],
+      "bytes": 16734,
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    {
+      "path": "package.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/package.json",
+      "kind": "file",
+      "links": [],
+      "bytes": 2206,
+      "sha256": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b"
+    },
+    {
+      "path": "src/commands/archive/index.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/archive/index.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 3599,
+      "sha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0"
+    },
+    {
+      "path": "src/commands/basic.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 8605,
+      "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+    },
+    {
+      "path": "src/commands/bytes/checksums/index.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/checksums/index.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 12862,
+      "sha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab"
+    },
+    {
+      "path": "src/commands/bytes/compression/index.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/index.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 2119,
+      "sha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9"
+    },
+    {
+      "path": "src/commands/bytes/encoding/index.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/index.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 389,
+      "sha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f"
+    },
+    {
+      "path": "src/commands/diff-patch/diff.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/diff.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 12580,
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 19225,
+      "sha256": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 8967,
+      "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700"
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 22388,
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f"
+    },
+    {
+      "path": "src/commands/find.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 9193,
+      "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 6568,
+      "sha256": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 2161,
+      "sha256": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+    },
+    {
+      "path": "src/commands/metadata/chmod.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/chmod.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 6888,
+      "sha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd"
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/mktemp.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 5683,
+      "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4"
+    },
+    {
+      "path": "src/commands/metadata/stat.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/stat.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 11535,
+      "sha256": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b"
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 5535,
+      "sha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/search/rg.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 9322,
+      "sha256": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 16807,
+      "sha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/jq.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 11388,
+      "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+    },
+    {
+      "path": "src/commands/table-text/comm.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/comm.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 3885,
+      "sha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd"
+    },
+    {
+      "path": "src/commands/table-text/join.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/join.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 9692,
+      "sha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0"
+    },
+    {
+      "path": "src/commands/table-text/paste.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/paste.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 3946,
+      "sha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5"
+    },
+    {
+      "path": "src/commands/text-programs/awk.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 1831,
+      "sha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3"
+    },
+    {
+      "path": "src/commands/text-programs/sed.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/sed.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 22047,
+      "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9"
+    },
+    {
+      "path": "src/commands/text.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 15558,
+      "sha256": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2"
+    },
+    {
+      "path": "src/index.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/index.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 917,
+      "sha256": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/plugins/index.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 3243,
+      "sha256": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+      "kind": "file",
+      "links": [],
+      "bytes": 92077,
+      "sha256": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449"
+    }
+  ],
+  "resolution": [
+    {
+      "specifier": "sql.js",
+      "from": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "resolved": {
+        "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/dist/sql-wasm.js",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/dist/sql-wasm.js",
+        "kind": "file",
+        "links": [],
+        "bytes": 46535,
+        "sha256": "f1c84000dbc856c9d87f4f3aabc4d3654bd436165db4be3da13751db3a9c20d7"
+      },
+      "loaded": false
+    },
+    {
+      "specifier": "sql.js/dist/sql-wasm.wasm",
+      "from": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "resolved": {
+        "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/dist/sql-wasm.wasm",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/dist/sql-wasm.wasm",
+        "kind": "file",
+        "links": [],
+        "bytes": 658410,
+        "sha256": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a"
+      },
+      "loaded": false
+    },
+    {
+      "specifier": "quickjs-emscripten",
+      "from": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "resolved": {
+        "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/quickjs-emscripten/dist/index.js",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/quickjs-emscripten/dist/index.js",
+        "kind": "file",
+        "links": [],
+        "bytes": 3314,
+        "sha256": "20df8520dfd41a66644aff7c6011ef531b8a600624422a07bb8e837e72b47b6b"
+      },
+      "loaded": false
+    },
+    {
+      "specifier": "turndown",
+      "from": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "resolved": {
+        "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/turndown/lib/turndown.cjs.js",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/turndown/lib/turndown.cjs.js",
+        "kind": "file",
+        "links": [],
+        "bytes": 24503,
+        "sha256": "6c6cd6f7c7093a80c016429f3b5635bec677aba687e09e817ec387ec4cf888ee"
+      },
+      "loaded": false
+    },
+    {
+      "specifier": "../../../vendor/cpython-emscripten/python.cjs",
+      "from": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "resolved": {
+        "path": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+        "kind": "file",
+        "links": [],
+        "bytes": 108476,
+        "sha256": "b45f414d674fafeeefbd72b544bf7e5079f230f424371e462bd748eb5f82ec42"
+      },
+      "loaded": false
+    },
+    {
+      "specifier": "tsx",
+      "from": "package.json",
+      "resolved": {
+        "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "kind": "file",
+        "links": [],
+        "bytes": 743,
+        "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+      },
+      "loaded": false
+    }
+  ],
+  "handoffs": [
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-setup-status.txt",
+      "exists": true,
+      "sha256": "008d77f7e54d4f583505b4664f81b2d9d0210f2d376593435365f3375af6feee",
+      "text": "READY 2026-08-27 commit 5a410d8420cd764bb4a4df82b17613688a92f907. Setup-only handoff complete: 50 current-default unmeasured names, 54 optional-inclusive, node stub retained; historical53/3/50 unchanged. Zero benchmark cases/workers/installs/product edits. Owned-only commit and shared index preservation verified. Complete result: /tmp/safe-bash-baseline-coverage-setup-result.txt. Root release remains required; leaf finished.\n"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-setup-result.txt",
+      "exists": true,
+      "sha256": "c3a8cbd456162a2c8ea3deb38bd84e2ed4ace7dd2e4ed7773b45038795575176",
+      "text": "{\n  \"status\": \"READY\",\n  \"handoffOnly\": true,\n  \"executionRelease\": false,\n  \"preparedAt\": \"2026-08-27T03:40:23.543Z\",\n  \"commit\": \"5a410d8420cd764bb4a4df82b17613688a92f907\",\n  \"committedPaths\": [\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/SETUP.md\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/after.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/before.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/capture.mjs\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/case-plans.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/freeze.mjs\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/inventory.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/plan-cases.mjs\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/primary-sources.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/refine.mjs\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/setup-local.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/setup-profiles.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/validation.json\",\n    \"benchmarks/reports/baseline-only-20260827/coverage-setup/verify.mjs\"\n  ],\n  \"noCasesExecuted\": true,\n  \"noWorkersStarted\": true,\n  \"noInstallsOrProductEdits\": true,\n  \"sharedIndex\": {\n    \"beforeOwnedStaging\": \"\",\n    \"afterOwnedOnlyCommit\": \"\",\n    \"preserved\": true\n  },\n  \"counts\": {\n    \"historicalFrozen\": 53,\n    \"historicalMeasuredPrimary\": 3,\n    \"historicalUnmeasured\": 50,\n    \"currentDefaultUnmeasured\": 50,\n    \"currentOptionalInclusiveUnmeasured\": 54,\n    \"optionalAdditional\": 4,\n    \"diagnosticOnlyNode\": 1\n  },\n  \"exactCurrentDefaultUnmeasuredNames\": [\n    \"alias\",\n    \"builtin\",\n    \"clear\",\n    \"column\",\n    \"compgen\",\n    \"complete\",\n    \"compopt\",\n    \"date\",\n    \"declare\",\n    \"dirs\",\n    \"du\",\n    \"egrep\",\n    \"exec\",\n    \"expand\",\n    \"expr\",\n    \"fgrep\",\n    \"file\",\n    \"fold\",\n    \"getopts\",\n    \"hash\",\n    \"help\",\n    \"history\",\n    \"hostname\",\n    \"html-to-markdown\",\n    \"let\",\n    \"mapfile\",\n    \"nl\",\n    \"popd\",\n    \"printenv\",\n    \"pushd\",\n    \"readarray\",\n    \"rev\",\n    \"seq\",\n    \"shopt\",\n    \"sleep\",\n    \"split\",\n    \"sqlite3\",\n    \"strings\",\n    \"tac\",\n    \"time\",\n    \"timeout\",\n    \"tree\",\n    \"typeset\",\n    \"unalias\",\n    \"unexpand\",\n    \"wait\",\n    \"which\",\n    \"whoami\",\n    \"xan\",\n    \"yq\"\n  ],\n  \"exactCurrentOptionalInclusiveUnmeasuredNames\": [\n    \"alias\",\n    \"builtin\",\n    \"clear\",\n    \"column\",\n    \"compgen\",\n    \"complete\",\n    \"compopt\",\n    \"date\",\n    \"declare\",\n    \"dirs\",\n    \"du\",\n    \"egrep\",\n    \"exec\",\n    \"expand\",\n    \"expr\",\n    \"fgrep\",\n    \"file\",\n    \"fold\",\n    \"getopts\",\n    \"hash\",\n    \"help\",\n    \"history\",\n    \"hostname\",\n    \"html-to-markdown\",\n    \"js-exec\",\n    \"let\",\n    \"mapfile\",\n    \"nl\",\n    \"node\",\n    \"popd\",\n    \"printenv\",\n    \"pushd\",\n    \"python\",\n    \"python3\",\n    \"readarray\",\n    \"rev\",\n    \"seq\",\n    \"shopt\",\n    \"sleep\",\n    \"split\",\n    \"sqlite3\",\n    \"strings\",\n    \"tac\",\n    \"time\",\n    \"timeout\",\n    \"tree\",\n    \"typeset\",\n    \"unalias\",\n    \"unexpand\",\n    \"wait\",\n    \"which\",\n    \"whoami\",\n    \"xan\",\n    \"yq\"\n  ],\n  \"newlyOverlappingHistoricalNames\": [\n    \".\",\n    \"eval\",\n    \"source\"\n  ],\n  \"classifierOnlyExcludedNames\": [\n    \"bg\",\n    \"caller\",\n    \"disown\",\n    \"enable\",\n    \"fc\",\n    \"fg\",\n    \"jobs\",\n    \"kill\",\n    \"suspend\",\n    \"times\",\n    \"trap\",\n    \"ulimit\",\n    \"umask\"\n  ],\n  \"baseline\": {\n    \"version\": \"3.4.2\",\n    \"directory\": \"benchmarks/node_modules/just-bash\",\n    \"entrypoint\": \"dist/bundle/index.js\",\n    \"tag\": \"just-bash@3.4.2\",\n    \"upstreamCommit\": \"a021f95f53f7e01df48dab71b46ffd4637fb4b53\",\n    \"lockIntegrity\": \"sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==\",\n    \"integrityBoundary\": \"Lockfile SRI plus publisher metadata and installed-file SHA256 manifests. No tarball re-download, signature verification, install, build, native addon loading or runtime startup occurred; package content is not claimed fully re-attested against registry SRI.\",\n    \"dependencies\": [\n      {\n        \"name\": \"diff\",\n        \"version\": \"8.0.4\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/diff/libcjs/index.js\",\n        \"entrypointSha256\": \"ed9fa05cfc3115e1f4a599641ba05bc1fbdffb1f3a12629dafd09ac6b6d84c64\"\n      },\n      {\n        \"name\": \"fast-xml-parser\",\n        \"version\": \"5.11.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/fast-xml-parser/lib/fxp.cjs\",\n        \"entrypointSha256\": \"d3d4c4d274fabdd6a4596e1c464ff73151bf75edbfbb5e83274262d7ef5edde2\"\n      },\n      {\n        \"name\": \"file-type\",\n        \"version\": \"21.3.4\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/file-type/index.js\",\n        \"entrypointSha256\": \"0fc881f41231a6e387e6dedfc4a0aff2ac07589888d4ffb011e17ad77f90f2e2\"\n      },\n      {\n        \"name\": \"ini\",\n        \"version\": \"6.0.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/ini/lib/ini.js\",\n        \"entrypointSha256\": \"007123836ffec243f41c8b35584fb3db0498aa12a440a9e0efc675d0000f4c32\"\n      },\n      {\n        \"name\": \"minimatch\",\n        \"version\": \"10.2.6\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/minimatch/dist/commonjs/index.js\",\n        \"entrypointSha256\": \"d224f71f20d7c206fcc5b7e9f747324c7698345a0b2c28d717dd9cf698306783\"\n      },\n      {\n        \"name\": \"modern-tar\",\n        \"version\": \"0.7.7\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/modern-tar/dist/web/index.js\",\n        \"entrypointSha256\": \"33858096e2cf3bfa9f06822ceb3b5c7ee14742af2850a0ab4de9802238fc0dea\"\n      },\n      {\n        \"name\": \"papaparse\",\n        \"version\": \"5.7.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/papaparse/papaparse.js\",\n        \"entrypointSha256\": \"01d32cdc0b8ceced438f078c6859e16c8aefc0d3eb5fb06992df0d3f63666ba0\"\n      },\n      {\n        \"name\": \"quickjs-emscripten\",\n        \"version\": \"0.32.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/quickjs-emscripten/dist/index.js\",\n        \"entrypointSha256\": \"20df8520dfd41a66644aff7c6011ef531b8a600624422a07bb8e837e72b47b6b\"\n      },\n      {\n        \"name\": \"re2js\",\n        \"version\": \"1.3.3\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/re2js/build/index.cjs.cjs\",\n        \"entrypointSha256\": \"24f6daf0b4490a2f241798dcffc7ace74698c02bb80d9d35527c79871f95fd44\"\n      },\n      {\n        \"name\": \"seek-bzip\",\n        \"version\": \"2.0.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/seek-bzip/lib/index.js\",\n        \"entrypointSha256\": \"71e9584b89c6468f5b65b78498e3d37793eff429051820a724bf3a09f87c605e\"\n      },\n      {\n        \"name\": \"smol-toml\",\n        \"version\": \"1.8.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/smol-toml/dist/index.cjs\",\n        \"entrypointSha256\": \"195ca51fc784617d361af3697756a896518e45bec4e35976baec2dffd656cb8f\"\n      },\n      {\n        \"name\": \"sprintf-js\",\n        \"version\": \"1.1.3\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sprintf-js/src/sprintf.js\",\n        \"entrypointSha256\": \"95add43f116385be221745307fae02d06751b01d4f939df1debb17dbe2ebf4eb\"\n      },\n      {\n        \"name\": \"sql.js\",\n        \"version\": \"1.14.2\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/dist/sql-wasm.js\",\n        \"entrypointSha256\": \"f1c84000dbc856c9d87f4f3aabc4d3654bd436165db4be3da13751db3a9c20d7\"\n      },\n      {\n        \"name\": \"turndown\",\n        \"version\": \"7.2.4\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/turndown/lib/turndown.cjs.js\",\n        \"entrypointSha256\": \"6c6cd6f7c7093a80c016429f3b5635bec677aba687e09e817ec387ec4cf888ee\"\n      },\n      {\n        \"name\": \"undici\",\n        \"version\": \"7.29.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/undici/index.js\",\n        \"entrypointSha256\": \"dca95e2bbf4bae18325a4e5d9c887427a8a63a1345ed92a46f1067360dec0ffa\"\n      },\n      {\n        \"name\": \"yaml\",\n        \"version\": \"2.9.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/yaml/dist/index.js\",\n        \"entrypointSha256\": \"2d58984e0ae80de4acbd8f009fab332f5ce77d9e1a5f138a3058a0ada6567fb9\"\n      },\n      {\n        \"name\": \"@mongodb-js/zstd\",\n        \"version\": \"7.0.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@mongodb-js/zstd/lib/index.js\",\n        \"entrypointSha256\": \"3f7d81861201e87e3e22270d07d3ee499544d0057661e18e2056aac9a319bfb3\"\n      },\n      {\n        \"name\": \"node-liblzma\",\n        \"version\": \"2.2.0\",\n        \"available\": true,\n        \"entrypoint\": \"/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-liblzma/lib/lzma.js\",\n        \"entrypointSha256\": \"abef6fc0955a94882bdff24f6319f1a457d1902c131e1b368e294262df81ee9c\"\n      }\n    ]\n  },\n  \"settings\": {\n    \"javascript\": \"Bash({javascript:true}); js-exec -c or FILE; node is diagnostic-only\",\n    \"python\": \"Bash({python:true}); vendored CPython python/python3 aliases\",\n    \"sqlite3\": \"Default Bash Node bundle; no sqlite boolean; installed sql.js1.14.2 and local WASM\",\n    \"htmlToMarkdown\": \"Default local file/stdin conversion; no network required; direct URL not fetched\",\n    \"network\": \"Optional shared curl only; exact loopback network policy or injected SecureFetch; no fixture requests executed\",\n    \"oursNetwork\": \"Explicit networkCommands({authorize,transport?}), public Node transport available\",\n    \"oursSafejs\": \"Explicit safeJsCommands runtime hooks required; no local injected runtime available; do not install/private-load/adapt\",\n    \"fullOptions\": \"benchmarks/reports/baseline-only-20260827/coverage-setup/setup-profiles.json\"\n  },\n  \"sourceHashes\": [\n    {\n      \"path\": \"src/index.ts\",\n      \"beforeSha256\": \"76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1\",\n      \"afterSha256\": \"76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1\"\n    },\n    {\n      \"path\": \"src/plugins/index.ts\",\n      \"beforeSha256\": \"b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d\",\n      \"afterSha256\": \"b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d\"\n    },\n    {\n      \"path\": \"src/shell/runtime.ts\",\n      \"beforeSha256\": \"fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f\",\n      \"afterSha256\": \"c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449\"\n    },\n    {\n      \"path\": \"benchmarks/package-lock.json\",\n      \"beforeSha256\": \"6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70\",\n      \"afterSha256\": \"6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70\"\n    },\n    {\n      \"path\": \"benchmarks/node_modules/just-bash/package.json\",\n      \"beforeSha256\": \"b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd\",\n      \"afterSha256\": \"b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd\"\n    },\n    {\n      \"path\": \"benchmarks/node_modules/just-bash/dist/bundle/index.js\",\n      \"beforeSha256\": \"70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c\",\n      \"afterSha256\": \"70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c\"\n    },\n    {\n      \"path\": \"benchmarks/expanded/inventory.mjs\",\n      \"beforeSha256\": \"2c939cd53c1688247950900f56534882435861cd40bab713bd264cca512100bd\",\n      \"afterSha256\": \"2c939cd53c1688247950900f56534882435861cd40bab713bd264cca512100bd\"\n    },\n    {\n      \"path\": \"benchmarks/expanded/engine.mjs\",\n      \"beforeSha256\": \"c6744398ee47d8ba6e975deae2b694e4e9c641d400166ac639cf797b0b623323\",\n      \"afterSha256\": \"c6744398ee47d8ba6e975deae2b694e4e9c641d400166ac639cf797b0b623323\"\n    },\n    {\n      \"path\": \"benchmarks/expanded/native.mjs\",\n      \"beforeSha256\": \"14d0ac24733a6f4b84965c1dbb68e4108904bb3a52768ee03281e847fb490055\",\n      \"afterSha256\": \"14d0ac24733a6f4b84965c1dbb68e4108904bb3a52768ee03281e847fb490055\"\n    },\n    {\n      \"path\": \"benchmarks/expanded/recipes.mjs\",\n      \"beforeSha256\": \"0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94\",\n      \"afterSha256\": \"0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94\"\n    },\n    {\n      \"path\": \"benchmarks/reports/expanded-20260827/baseline-only-frozen/matrix.json\",\n      \"beforeSha256\": \"acb1867f74f60f6ebf9a5a28c9f6119a564ccca18d1936d1458f199ca7cf6a40\",\n      \"afterSha256\": \"acb1867f74f60f6ebf9a5a28c9f6119a564ccca18d1936d1458f199ca7cf6a40\"\n    }\n  ],\n  \"liveChanges\": [\n    {\n      \"path\": \"src/fs/s3/http/README.md\",\n      \"beforeSha256\": null,\n      \"afterSha256\": \"e4d84d63641c4f59655cab296c9f49a0951d23774546655699e802bedf61832d\"\n    },\n    {\n      \"path\": \"src/fs/s3/http/transport.ts\",\n      \"beforeSha256\": \"481bcd949e28f3779d581f223573bfc2be52703e2e3bb352fe42c089b301eb86\",\n      \"afterSha256\": \"ce19e4a347d50d84fb87b993c862717fc57fed183b584bc4b0ca04bcecb3a728\"\n    },\n    {\n      \"path\": \"src/fs/s3/http/types.ts\",\n      \"beforeSha256\": \"9b6208fbdbce733bc676bef386026ce29fae09e74bd8efeb8bd93aab798fbc74\",\n      \"afterSha256\": \"b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e\"\n    },\n    {\n      \"path\": \"src/fs/s3/http/xml.ts\",\n      \"beforeSha256\": \"fccb867dde41ed1869c5a9e8fd084145f6c0468fd33072b9d3a15e4f749a1ee9\",\n      \"afterSha256\": \"8d1a20c393b193ba9b9d3e06e4348d191a2f950d0b63a99a5d1bd57eefe350a8\"\n    },\n    {\n      \"path\": \"src/shell/runtime.ts\",\n      \"beforeSha256\": \"fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f\",\n      \"afterSha256\": \"c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449\"\n    }\n  ],\n  \"sourceInterval\": {\n    \"beforeHead\": \"3b832d94d41b5a67fb3d9f9948ce6587a743cc1f\",\n    \"afterHead\": \"9b72400ae2a5d1c876e8c9ab25bfa35bb03c8a97\",\n    \"currentDispatchSha256\": \"c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449\",\n    \"registryAndKernelNamesUnchanged\": true\n  },\n  \"docs\": [\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/README.md\",\n      \"accessedAt\": \"2026-08-27T03:27:52.955Z\",\n      \"sha256\": \"3232b230a378c2d853029df513fc8740ce32819d531acc6faed41c2d780b44e2\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/package.json\",\n      \"accessedAt\": \"2026-08-27T03:27:53.130Z\",\n      \"sha256\": \"91efbc19d567bd5269fef4eeab0be63221cdabf4ff31df0d8f2eeaadbc975b95\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts\",\n      \"accessedAt\": \"2026-08-27T03:27:53.360Z\",\n      \"sha256\": \"3cb4b0b65833c39fe8650a0f539e8e628ea6f042336bebdbf238084e8e20d617\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts\",\n      \"accessedAt\": \"2026-08-27T03:27:53.464Z\",\n      \"sha256\": \"593eb7d65e49c27f7eb97b077d7798741a2d5ade5d4d421c09715fccdc76a591\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/README.md\",\n      \"accessedAt\": \"2026-08-27T03:27:53.568Z\",\n      \"sha256\": \"087966a0b7a5f0e47cc5570edd819407d5f870bdfab94b986d50cb87ba9fb51a\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec.ts\",\n      \"accessedAt\": \"2026-08-27T03:27:53.735Z\",\n      \"sha256\": \"6db79a4e01ccc816e94bcf07c7e7c47964e608d49783f284d89c5f451e173b42\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/python3/worker.ts\",\n      \"accessedAt\": \"2026-08-27T03:27:53.880Z\",\n      \"sha256\": \"5175adb4ecb47ea71fd4313187f0cd831d51b919fd9fd4d2d999d3279b69fd70\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/sqlite3/worker.ts\",\n      \"accessedAt\": \"2026-08-27T03:27:53.984Z\",\n      \"sha256\": \"06dc312cb3fb0ff5aff4c89bc495af874974ee99607b9c2fcf5451e58c5676d6\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/html-to-markdown/html-to-markdown.ts\",\n      \"accessedAt\": \"2026-08-27T03:27:54.101Z\",\n      \"sha256\": \"ac2cccb22033fb9d42520b4e05afb24f89fb433b1b0be7f190088035fd4c305c\",\n      \"status\": 200\n    },\n    {\n      \"url\": \"https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/network/fetch.ts\",\n      \"accessedAt\": \"2026-08-27T03:27:54.207Z\",\n      \"sha256\": \"ec96ff0622830df175b12553dc8774ef43a58cd0c154dc6c5881618021683d69\",\n      \"status\": 200\n    }\n  ],\n  \"constraints\": [\n    \"Root must release a different executor only after exact-two characterization closes; this READY status is not release.\",\n    \"All 54 names have meaningful deterministic plans; node has a desired positive plan blocked by the pinned stub, not a false setup failure.\",\n    \"50 historical unmeasured names retained; optional-inclusive 54 is a separate denominator, not rewritten historical53.\",\n    \"Local runtime assets present is not startup proof; runtime/setup-unavailable outcomes cannot count as baseline failure or ours win.\",\n    \"No operational credit from classifier/help/type alone; wait/exec/history limitations are explicit.\",\n    \"Native profiles for absent helpers must be independently validated; no native product replacement or host identity/user data.\",\n    \"Five batches are provisional engineering judgment, not telemetry; no performance or superiority claims.\",\n    \"All metadata/evidence children returned normally, no retained sessions/servers/workers; no benchmark execution, corpus expansion or further waiting by this leaf.\"\n  ],\n  \"validation\": {\n    \"file\": \"benchmarks/reports/baseline-only-20260827/coverage-setup/validation.json\",\n    \"result\": \"PASS: evidence schema, exact 54-name equality, 50 default names, input hashes, current public registry/kernel set equality, pinned docs/lock agreement, unchanged baseline/helpers/dependency entrypoints/assets/native files\",\n    \"syntaxChecks\": \"5 evidence .mjs files passed node --check\",\n    \"gitDiffCheck\": \"owned staged paths passed git diff --cached --check\"\n  },\n  \"readFirst\": \"benchmarks/reports/baseline-only-20260827/coverage-setup/SETUP.md\",\n  \"machineInventory\": \"benchmarks/reports/baseline-only-20260827/coverage-setup/inventory.json\",\n  \"cases\": \"benchmarks/reports/baseline-only-20260827/coverage-setup/case-plans.json\"\n}\n"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-execution-plan.txt",
+      "exists": true,
+      "sha256": "fff4ee2255428924951d5214436c56124d07b4259564cade0d0881d7a2346c57",
+      "text": "PREPARED 2026-08-27T03:37:56.929Z; product executions=0; root-marker=false; setup-final-result=false.\nNames/configuration/cases derive from setup inventory and SETUP.md; complete final handoff and root marker still required.\nExact original unmeasured 50: alias, builtin, clear, column, compgen, complete, compopt, date, declare, dirs, du, egrep, exec, expand, expr, fgrep, file, fold, getopts, hash, help, history, hostname, html-to-markdown, let, mapfile, nl, popd, printenv, pushd, readarray, rev, seq, shopt, sleep, split, sqlite3, strings, tac, time, timeout, tree, typeset, unalias, unexpand, wait, which, whoami, xan, yq.\nAdditional optional 4: js-exec, node, python, python3.\nHistorical overlapping controls: ., eval, source. Shared controls: printf ASCII, printf binary/VFS, curl loopback. Total recipes=60.\nBaseline pin 3.4.2; Node ESM entry; python:true; javascript:true; sqlite3 default; network exact loopback origin/resource GET only. Existing shipped assets only; no installs/private runtime.\nOurs uses public Shell + agentCommands; curl explicit networkCommands. safejs runtime unavailable in allowed package roots and not a name-compatible replacement.\nBudgets ordinary=30000ms, optional=120000ms, cleanup=10000ms; output=4MiB, VFS census=32MiB/4096 entries/depth32.\nInputs: benchmarks/reports/baseline-only-20260827/coverage-execution/prepared-inputs.json. Full preserved-name matrix: benchmarks/reports/baseline-only-20260827/coverage-execution/prepared-matrix.json.\nRunner design: benchmarks/reports/baseline-only-20260827/coverage-execution/RUNNER_PLAN.md. No executable benchmark runner yet; no source snapshot/load, server, native commands, workers, or product-case executions.\nRead completed setup result, reconcile final deltas, implement guarded runner, freeze exact recipes/source/deps/loader and verify byte/mode/symlink/dispatch controls after release.\nhelp informational and wait no-op never gain functional credit; node must be attempted operationally and classified honestly as the pinned diagnostic stub when observed.\nBlocked prerequisites remain distinct; no optional setup failure becomes ours win; both-failing is never parity. All raw attempts and before/after drift must remain immutable.\n"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-execution-status.txt",
+      "exists": true,
+      "sha256": "2733516cdec4b92899688db8f1bf661c8bccf723cca472c754281cf980e392ed",
+      "text": "PREPARED_BLOCKED 2026-08-27; meaningful executions=0; root release marker absent at final check.\nCommit 9b72400ae2a5d1c876e8c9ab25bfa35bb03c8a97 contains ONLY six new coverage-execution files.\n60 declared recipes: 50 original unmeasured names + 4 additional optional names + 3 historical overlap controls + 3 shared controls. All 53 original rows and 4 optional rows preserved in prepared-matrix.json, observations null.\nRead setup SETUP.md, setup-profiles.json, inventory and primary evidence; setup result still absent and status IN_PROGRESS. No setup-owned files edited or setup investigation rerun.\nPreparation syntax, exact-name counts, all evidence hashes and explicit-path staged whitespace checks passed. Full executable runner/source freeze/product validation remain pending, not completed.\nResume requires root marker plus completed setup result; reconcile final handoff, implement guarded runner, freeze source/deps/loader/inputs, then execute controls and all declared targets with separate raw attempts.\nNo server, product child, optional worker, source snapshot or host fixture tree created. No table fixes, SGID retry, installs, product edits, custom implementation shims or unrelated cleanup performed.\n"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-execution-result.txt",
+      "exists": true,
+      "sha256": "cf10320b1459ed667cac6c531017fce8e90c0ee9410ef90f879cabaf4604cfa7",
+      "text": "PREPARATION CHECKPOINT ONLY — BLOCKED, NOT EXECUTED\nDate: 2026-08-27 (UTC evidence timestamps).\nCommit: 9b72400ae2a5d1c876e8c9ab25bfa35bb03c8a97\nScope: six new files ONLY under benchmarks/reports/baseline-only-20260827/coverage-execution; explicit git commit --only paths, shared index empty before/after observed commit. No existing product/setup/report/root/dependency file edited.\n\nCounts: 60 recipes; original unmeasured=50; extra optional=4; newly overlapping historical controls=3; shared controls=3. Preserved all 53 historical inventory rows plus all 4 extra optional rows. Meaningful product executions=0; measured successes=0; failures=0; results unobserved, not claimed as parity or functionality.\nOriginal unmeasured names: alias, builtin, clear, column, compgen, complete, compopt, date, declare, dirs, du, egrep, exec, expand, expr, fgrep, file, fold, getopts, hash, help, history, hostname, html-to-markdown, let, mapfile, nl, popd, printenv, pushd, readarray, rev, seq, shopt, sleep, split, sqlite3, strings, tac, time, timeout, tree, typeset, unalias, unexpand, wait, which, whoami, xan, yq.\nExtra optional: js-exec, node, python, python3.\nHistorical controls: ., eval, source.\nShared controls: printf ASCII; printf binary terminal/VFS; optional curl exact-loopback download.\n\nArtifacts:\n- cases.mjs: exact scripts/argv where literal/stdin/fixtures/expectations/intent declared before execution.\n- prepared-inputs.json: 60 expanded declarations, per-case SHA256, constructor-profile authority, bounded budgets/environment and setup/evidence hashes.\n- prepared-matrix.json: complete original/current rows, classifications retained, recipes mapped, all observations null.\n- RUNNER_PLAN.md: freeze/loader/symlink/dependency/source rules, capture/census, classification, lifecycle and replay design; NOT an executable benchmark runner.\n- prepare.mjs: preparation-only validation and immutable artifact generation; imports no product runtime.\n- README.md: preparation status, setup requirements and limitations.\n\nConfiguration proof inspected from setup leaf SETUP.md/setup-profiles.json and installed primary types/source:\nbaseline package/lock version 3.4.2 verified without execution; ESM dist/bundle/index.js; javascript:true enables QuickJS/node stub; python:true enables shipped CPython Emscripten; sqlite3 default registration/local sql.js assets, no invented sqlite flag. Optional cold budget=120000ms, ordinary=30000ms, cleanup=10000ms. Baseline and ours curl explicit loopback-only configuration; no broad network authorization. Ours public Shell/agentCommands; optional safejs requires legitimate injected runtime absent from allowed node_modules roots and is not a compatible alias for the baseline optional names. No runtime-startup success claimed.\n\nSHA256:\nprepared-inputs.json 2520e7c15cee5e760c9cb883aeb89ac9793176b21203b206e27420c8b7571915\nprepared-matrix.json 861db0797f752f6d8865a1dae6a6c38abcfa821d5a6d5469c4a371655e4f2fd7\ncases.mjs 45cfbf02a4e68483e2b4f0fe85dc2c72d40a2a6c16ede16420480c80eb160b72\nOther consumed preparation-evidence hashes are in prepared-inputs.json. These are NOT a full execution source/dependency/runtime freeze; that must happen once after release. Lock SRI agreement is not installed-tarball reattestation.\n\nValidation: node --check both modules; declaration-only assert checks for 60 recipes/53 original rows/4 optional rows/57 unique inventory names; every evidence SHA256 checked; no non-null engine observation; git diff --cached --check exact owned paths. All passed. No product tests or benchmark cases run.\n\nRemaining blockers at last check: root marker /tmp/safe-bash-baseline-coverage-execute.ready absent; /tmp/safe-bash-baseline-coverage-setup-result.txt absent, setup status IN_PROGRESS. Root must confirm exact-two table-characterization cleanup and final setup leaf closure. I did not run meaningful cases, waive gates, narrow names, or wait indefinitely.\nResume: read final handoff; reconcile any setup delta; implement guarded runner within owned subtree; add the planned census mode/symlink control; freeze single source snapshot, dependency trees and actual loader/symlink paths; execute actual targets and honest blocked-prerequisite attempts; preserve failed attempts; deliver observed per-name matrix, controls, drift/cleanup and engineering-judgment batches. help/wait/node attribution limits remain explicit. No tool batches implemented or ranked as observed evidence.\nCleanup: no fixture server, product child/worker, source snapshot, native fixture tree or dormant process created; no SIGSTOP; no unrelated fixture touched. Only declaration-validation Node processes and normal short shell/git/apply_patch commands ran and exited. No cleanup action required.\n"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-review.ready",
+      "exists": false
+    }
+  ],
+  "blockers": [
+    "Root review release and closed main-executor result required",
+    "No frozen author source/input/config/loader snapshot yet supplied",
+    "Static paths describe live preflight only, not the final measured process",
+    "Native references have not been launched; no native oracle validity claim",
+    "Raw results, fixture effects, exceptions and timeout classifications remain unmeasured"
+  ]
+}

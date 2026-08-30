@@ -1,0 +1,101 @@
+{
+  "at": "2026-08-28T00:15:18.513Z",
+  "checks": [
+    {
+      "name": "aggregation.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "1a6dc464baccc9ac854eba8cd1643595dbb36a4d011247d2f9920e578f59b49d"
+    },
+    {
+      "name": "authenticate.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f"
+    },
+    {
+      "name": "bindings.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "04ebbcbf54fcbb8eab15233741b818e74c993e17387b634f9b35e980f24199fc"
+    },
+    {
+      "name": "consumer-observation.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "bf45931f2e5b6ad7d5b90140444fadc010f3df58dfc6805fbb34a078ba51e977"
+    },
+    {
+      "name": "coordinator.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "56ff7bdc05f5546b79fbd401f33f8b930e5081a1708a65cb5b3d177938d6049d"
+    },
+    {
+      "name": "core.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+    },
+    {
+      "name": "forwarding-controls.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "d4208d79df5eddb3efe452aff0246e46ad33fda10714ff50e6cf5eb22b09f9a9"
+    },
+    {
+      "name": "forwarding-worker.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a"
+    },
+    {
+      "name": "ordered-stop.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "10522969618bd623307dfeaf8f25e9722181561e9718c4b3d931fa2dc0bc81d5"
+    },
+    {
+      "name": "producer-observer.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "5394054ac87d331a327ef31a3e57fc3c00dd3213b69438f4160c269e734c3ca0"
+    },
+    {
+      "name": "stream-fixture.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c"
+    },
+    {
+      "name": "synthetic-controls.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "05fc8d5cfd1c781ebdffc1f8fd004289d76ee724363ecbc988167064c7c94202"
+    },
+    {
+      "name": "telemetry.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89"
+    },
+    {
+      "name": "terminal-predicate.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "c18dbe90c7bb0648b35c0a0d9e42c0fa5390657fc03d981b967464598691d5cf"
+    },
+    {
+      "name": "worker.mjs",
+      "status": 0,
+      "signal": null,
+      "sha256": "fb92f472913624dec312b7de2de014bcb8ddfb8d2a47d7e4c83e5c9e141004fd"
+    }
+  ],
+  "allPassed": true,
+  "controlRuntimeExecutions": 0,
+  "policyByteValuesUnchanged": true,
+  "toolsUnchanged": true,
+  "pinnedReadableSourceSha256": "c801fa2e228bb112318eda73ff9aa53860270d8a8e92789b1993b78d7773d93a",
+  "finalStaticFinding": "Removed semantic synthetic/forwarding allExpected gate from real-control admission; only forwarding physical safety gates real cohort. Aggregate exit still includes all semantic failures."
+}

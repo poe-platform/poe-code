@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-08-29T17:35:17.407Z",
+  "notBefore": "2026-08-29T17:30:00.000Z",
+  "latestStart": "2026-08-29T17:40:00.000Z",
+  "activeEnd": "2026-08-29T17:57:00.000Z",
+  "expiry": "2026-08-29T18:00:00.000Z",
+  "launched": false,
+  "grantInstalled": true,
+  "status": "READY_FOR_EXACT_DISPATCH",
+  "afterInstall": "2026-08-29T17:35:17.416Z",
+  "packetPins": 32
+}

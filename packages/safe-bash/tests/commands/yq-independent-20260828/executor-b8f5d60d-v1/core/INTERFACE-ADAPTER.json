@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "interfaceCommit": "9d582d791336fd66d865f6592b830c39a359d344",
+  "interfaceSha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+  "workerCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "workerFinalSealSha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+  "workerResultSchemaSha256": "c0d2a2d224a906bdba73fc5785cbfb16e3509b6086c329948d4cd5d6253a000c",
+  "methodsAdded": [],
+  "version": "yq-b8-core-worker-v1",
+  "dispatchDelta": {
+    "build": "core/build-stage.mjs",
+    "reason": "Peer completed TYPE/LOADED scope supplies no build worker; early interface dispatch placeholder is concretely implemented inside core without changing any peer capability."
+  },
+  "workerRequestExtensions": [
+    "workerRole",
+    "materializationRoot",
+    "deadline.reservationNs",
+    "bindings.toolProfile"
+  ],
+  "phaseAdapter": {
+    "types": "Sealed peer owns setup/admission/operation/capture/cleanup/complete. Core host does not duplicate setup. Compiler events separately record actual parent spawn/reap; operation is a type batch including fixture generation, not a claimed isolated TypeScript CPU timer.",
+    "loaded": "Peer owns setup/admission. Peer operation request becomes a named note; actual operation transition occurs after authenticated import, immediately before command. Core persists capture before return; peer capture acknowledgement becomes one note, not a duplicate transition. No clock reset or extra time.",
+    "semantic": "Core owns setup; semantic module owns admission/cleanup/complete; capture helper owns actual command operation and durable capture."
+  },
+  "toolProjection": {
+    "toolManifest": "Named data-only projection of the exact freshly admitted249-file copied tool map; historical profile digests recomputed from fresh content/modes and compared. No ambient paths or fabricated tool runtime version probe.",
+    "compilerEnvironment": {
+      "LANG": "C",
+      "LC_ALL": "C"
+    },
+    "compilerProvenance": "Exact actual executable/argv/cwd/root tree identities and supervisor monotonic spawn/end/reap; TypeScript.path is root and sha256 is complete historical-content algorithm, not just tsc.js.",
+    "generatedInputs": "Acknowledged two-file generated-type-inputs note enrolls exact folder membership/modes/bytes/identity. Compiler refuses unregistered type config. Prefix retained and rechecked before next tool and job."
+  },
+  "loadedProjection": {
+    "entry": "absolute root/dist/commands/yq/index.js",
+    "resolutions": "Actual candidate regular loads with real resolver parent URL; builtin/harness roles separately fenced.",
+    "pristine": "Parent proves current-cohort original149 same-environment primitive prerequisite before variant materialization. Core copies authenticated raw receipt into current evidence for peer capture-path containment, records originalCapturePath and preserves original retained tree.",
+    "primitiveScope": "Only four exact frozen witness hashes admit the unchanged legacy primitive assertion body. Full v2 F01 is always evaluated and persisted first. UTF22 natural-language obligation remains INCOMPLETE in original runtime job and record. Only nonsemantic LOADED control receipt can report BOUND_PROJECTION_ONLY for the existing primitive subset, carrying fullRecordStatus INCOMPLETE; no golden/input/expected alteration, no extra invocation."
+  },
+  "controls": "18 declared component guard/classifier cases plus31 CMD22 definitions occupy19 existing slots. Independent real host/type/loaded stress controls remain unexecuted prerequisites, not new semantic cohort slots.",
+  "implementationOnly": true,
+  "dynamicConformance": false,
+  "RootGO": false
+}

@@ -1,0 +1,47 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "pack",
+    "--offline",
+    "--ignore-scripts",
+    "--json",
+    "--cache",
+    "/tmp/safe-bash-fraction-independent-packed-I9CT4m/npm-cache",
+    "--pack-destination",
+    "/tmp/safe-bash-fraction-independent-packed-I9CT4m"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-I9CT4m/archive",
+  "pid": 77570,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1227,
+  "timeoutMs": 120000,
+  "outputBytes": 79537,
+  "observed": [
+    {
+      "pid": 77570,
+      "parent": 76740,
+      "group": 77570,
+      "born": "Thu Aug 27 04:04:30 2026",
+      "command": "npm"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 79537,
+    "sha256": "3eacbfd06bd77c076d23fdcc47a9be54a1ce62357f03a0ad678d3cef056e250d"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {}
+}

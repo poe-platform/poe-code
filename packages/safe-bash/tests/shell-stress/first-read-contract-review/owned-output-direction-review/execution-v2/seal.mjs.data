@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile, readdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+
+const temp = '/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I';
+const parent = '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-review';
+const owned = path.join(parent, 'execution-v2');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const manifestEntry = async (root, filename) => {
+  const bytes = await readFile(path.join(root, filename));
+  return { path: filename, bytes: bytes.length, sha256: hash(bytes) };
+};
+const authentication = JSON.parse(await readFile(path.join(owned, 'authentication.json'), 'utf8'));
+for (const entry of authentication.parentInventory) assert.deepEqual(await manifestEntry(parent, entry.path), entry);
+for (const filename of ['prepare.mjs', 'fixtures.mjs', 'driver.mjs', 'checks.mjs', 'seal.mjs']) {
+  await writeFile(path.join(owned, `${filename}.data`), await readFile(path.join(temp, filename)), { flag: 'wx' });
+}
+const files = [];
+for (const entry of await readdir(owned, { withFileTypes: true })) {
+  assert.equal(entry.isFile(), true);
+  assert.equal(/\.(ts|mts|cts|js|mjs|cjs)$/.test(entry.name), false, 'Captured executable payload must be inert');
+  files.push(await manifestEntry(owned, entry.name));
+}
+files.sort((left, right) => left.path.localeCompare(right.path));
+const seal = {
+  schema: 1,
+  sealedAt: new Date().toISOString(),
+  classification: 'partial-independent-declaration-binding-and-inert-harness-input-freeze',
+  parentFreezeSha256: 'eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d3f35efc1cbfae0527ae',
+  parentPreparationSha256: 'c0efba18e44d625ebd690937992a8ba6ae942f9167ae14610d9a7274f831eddb',
+  parentFilesUnchanged: authentication.parentInventory.length,
+  candidateSourceAccess: false,
+  authorTestBodyAccess: false,
+  candidateImport: false,
+  productExecutions: 0,
+  logicalCaseCount: 7,
+  completeExecutableProductDriver: false,
+  fixtureChanges: [],
+  focusedHarnessFixRounds: 1,
+  compilerHash: null,
+  candidateSourceHash: null,
+  candidateTestHash: null,
+  compiledCandidateHash: null,
+  candidateSourceAlignment: 'not-authenticated-not-restored',
+  node: authentication.node,
+  files
+};
+const bytes = Buffer.from(`${JSON.stringify(seal, null, 2)}\n`);
+await writeFile(path.join(owned, 'binding-seal.json'), bytes, { flag: 'wx' });
+console.log(JSON.stringify({ sealedAt: seal.sealedAt, files: files.length, sha256: hash(bytes), productExecutions: 0, parentFilesUnchanged: seal.parentFilesUnchanged }, null, 2));

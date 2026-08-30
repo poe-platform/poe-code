@@ -1,0 +1,2111 @@
+{
+  "schema": "PROPOSED_SEMANTIC_OWNED_PROCESS_AND_RESOURCE_CENSUS_V1",
+  "authorization": "INACTIVE_ROOT_DECISION_REQUIRED",
+  "workers": 99,
+  "coordinatorMetadata": 2,
+  "workerMetadata": 198,
+  "runtimeProcesses": 302,
+  "administrationProcesses": 20,
+  "wrapperHelpersIncludedInAdministration": 2,
+  "totalPlanned": 322,
+  "oldAdmissionCap128Fits": false,
+  "proposedAllProcessCap": 322,
+  "extraAttemptPermission": 0,
+  "peak": 5,
+  "peakRoute": [
+    "owner",
+    "launcher",
+    "coordinator",
+    "one case worker",
+    "one synchronous real Git metadata child"
+  ],
+  "workerConcurrency": 1,
+  "noOwnedWaitingShell": true,
+  "processes": [
+    {
+      "id": "owner",
+      "role": "outer capture owner",
+      "parent": "exec-replaced administration entry",
+      "maximumChildren": 1
+    },
+    {
+      "id": "launcher",
+      "role": "sealed launcher",
+      "parent": "owner",
+      "maximumChildren": 1
+    },
+    {
+      "id": "coordinator",
+      "role": "case coordinator",
+      "parent": "launcher",
+      "maximumChildren": 101
+    },
+    {
+      "id": "coordinator-review",
+      "role": "real Git review metadata",
+      "parent": "coordinator",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "coordinator-grant",
+      "role": "real Git grant metadata",
+      "parent": "coordinator",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-1",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 1,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-1-review",
+      "role": "real Git authority metadata",
+      "parent": "case-1",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-1-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-1",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-2",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 2,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-2-review",
+      "role": "real Git authority metadata",
+      "parent": "case-2",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-2-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-2",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-3",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 3,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-3-review",
+      "role": "real Git authority metadata",
+      "parent": "case-3",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-3-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-3",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-4",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 4,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-4-review",
+      "role": "real Git authority metadata",
+      "parent": "case-4",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-4-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-4",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-5",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 5,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-5-review",
+      "role": "real Git authority metadata",
+      "parent": "case-5",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-5-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-5",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-6",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 6,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-6-review",
+      "role": "real Git authority metadata",
+      "parent": "case-6",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-6-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-6",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-7",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 7,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-7-review",
+      "role": "real Git authority metadata",
+      "parent": "case-7",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-7-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-7",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-8",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 8,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-8-review",
+      "role": "real Git authority metadata",
+      "parent": "case-8",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-8-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-8",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-9",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 9,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-9-review",
+      "role": "real Git authority metadata",
+      "parent": "case-9",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-9-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-9",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-10",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 10,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-10-review",
+      "role": "real Git authority metadata",
+      "parent": "case-10",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-10-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-10",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-11",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 11,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-11-review",
+      "role": "real Git authority metadata",
+      "parent": "case-11",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-11-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-11",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-12",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 12,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-12-review",
+      "role": "real Git authority metadata",
+      "parent": "case-12",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-12-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-12",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-13",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 13,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-13-review",
+      "role": "real Git authority metadata",
+      "parent": "case-13",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-13-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-13",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-14",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 14,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-14-review",
+      "role": "real Git authority metadata",
+      "parent": "case-14",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-14-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-14",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-15",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 15,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-15-review",
+      "role": "real Git authority metadata",
+      "parent": "case-15",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-15-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-15",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-16",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 16,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-16-review",
+      "role": "real Git authority metadata",
+      "parent": "case-16",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-16-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-16",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-17",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 17,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-17-review",
+      "role": "real Git authority metadata",
+      "parent": "case-17",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-17-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-17",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-18",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 18,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-18-review",
+      "role": "real Git authority metadata",
+      "parent": "case-18",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-18-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-18",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-19",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 19,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-19-review",
+      "role": "real Git authority metadata",
+      "parent": "case-19",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-19-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-19",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-20",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 20,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-20-review",
+      "role": "real Git authority metadata",
+      "parent": "case-20",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-20-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-20",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-21",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 21,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-21-review",
+      "role": "real Git authority metadata",
+      "parent": "case-21",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-21-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-21",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-22",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 22,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-22-review",
+      "role": "real Git authority metadata",
+      "parent": "case-22",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-22-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-22",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-23",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 23,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-23-review",
+      "role": "real Git authority metadata",
+      "parent": "case-23",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-23-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-23",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-24",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 24,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-24-review",
+      "role": "real Git authority metadata",
+      "parent": "case-24",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-24-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-24",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-25",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 25,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-25-review",
+      "role": "real Git authority metadata",
+      "parent": "case-25",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-25-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-25",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-26",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 26,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-26-review",
+      "role": "real Git authority metadata",
+      "parent": "case-26",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-26-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-26",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-27",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 27,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-27-review",
+      "role": "real Git authority metadata",
+      "parent": "case-27",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-27-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-27",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-28",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 28,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-28-review",
+      "role": "real Git authority metadata",
+      "parent": "case-28",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-28-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-28",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-29",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 29,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-29-review",
+      "role": "real Git authority metadata",
+      "parent": "case-29",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-29-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-29",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-30",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 30,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-30-review",
+      "role": "real Git authority metadata",
+      "parent": "case-30",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-30-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-30",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-31",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 31,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-31-review",
+      "role": "real Git authority metadata",
+      "parent": "case-31",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-31-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-31",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-32",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 32,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-32-review",
+      "role": "real Git authority metadata",
+      "parent": "case-32",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-32-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-32",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-33",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 33,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-33-review",
+      "role": "real Git authority metadata",
+      "parent": "case-33",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-33-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-33",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-34",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 34,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-34-review",
+      "role": "real Git authority metadata",
+      "parent": "case-34",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-34-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-34",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-35",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 35,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-35-review",
+      "role": "real Git authority metadata",
+      "parent": "case-35",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-35-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-35",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-36",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 36,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-36-review",
+      "role": "real Git authority metadata",
+      "parent": "case-36",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-36-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-36",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-37",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 37,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-37-review",
+      "role": "real Git authority metadata",
+      "parent": "case-37",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-37-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-37",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-38",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 38,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-38-review",
+      "role": "real Git authority metadata",
+      "parent": "case-38",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-38-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-38",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-39",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 39,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-39-review",
+      "role": "real Git authority metadata",
+      "parent": "case-39",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-39-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-39",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-40",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 40,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-40-review",
+      "role": "real Git authority metadata",
+      "parent": "case-40",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-40-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-40",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-41",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 41,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-41-review",
+      "role": "real Git authority metadata",
+      "parent": "case-41",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-41-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-41",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-42",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 42,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-42-review",
+      "role": "real Git authority metadata",
+      "parent": "case-42",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-42-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-42",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-43",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 43,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-43-review",
+      "role": "real Git authority metadata",
+      "parent": "case-43",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-43-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-43",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-44",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 44,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-44-review",
+      "role": "real Git authority metadata",
+      "parent": "case-44",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-44-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-44",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-45",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 45,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-45-review",
+      "role": "real Git authority metadata",
+      "parent": "case-45",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-45-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-45",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-46",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 46,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-46-review",
+      "role": "real Git authority metadata",
+      "parent": "case-46",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-46-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-46",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-47",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 47,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-47-review",
+      "role": "real Git authority metadata",
+      "parent": "case-47",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-47-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-47",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-48",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 48,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-48-review",
+      "role": "real Git authority metadata",
+      "parent": "case-48",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-48-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-48",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-49",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 49,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-49-review",
+      "role": "real Git authority metadata",
+      "parent": "case-49",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-49-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-49",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-50",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 50,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-50-review",
+      "role": "real Git authority metadata",
+      "parent": "case-50",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-50-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-50",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-51",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 51,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-51-review",
+      "role": "real Git authority metadata",
+      "parent": "case-51",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-51-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-51",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-52",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 52,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-52-review",
+      "role": "real Git authority metadata",
+      "parent": "case-52",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-52-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-52",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-53",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 53,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-53-review",
+      "role": "real Git authority metadata",
+      "parent": "case-53",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-53-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-53",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-54",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 54,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-54-review",
+      "role": "real Git authority metadata",
+      "parent": "case-54",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-54-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-54",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-55",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 55,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-55-review",
+      "role": "real Git authority metadata",
+      "parent": "case-55",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-55-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-55",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-56",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 56,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-56-review",
+      "role": "real Git authority metadata",
+      "parent": "case-56",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-56-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-56",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-57",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 57,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-57-review",
+      "role": "real Git authority metadata",
+      "parent": "case-57",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-57-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-57",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-58",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 58,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-58-review",
+      "role": "real Git authority metadata",
+      "parent": "case-58",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-58-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-58",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-59",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 59,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-59-review",
+      "role": "real Git authority metadata",
+      "parent": "case-59",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-59-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-59",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-60",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 60,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-60-review",
+      "role": "real Git authority metadata",
+      "parent": "case-60",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-60-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-60",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-61",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 61,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-61-review",
+      "role": "real Git authority metadata",
+      "parent": "case-61",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-61-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-61",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-62",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 62,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-62-review",
+      "role": "real Git authority metadata",
+      "parent": "case-62",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-62-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-62",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-63",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 63,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-63-review",
+      "role": "real Git authority metadata",
+      "parent": "case-63",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-63-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-63",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-64",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 64,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-64-review",
+      "role": "real Git authority metadata",
+      "parent": "case-64",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-64-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-64",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-65",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 65,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-65-review",
+      "role": "real Git authority metadata",
+      "parent": "case-65",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-65-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-65",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-66",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 66,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-66-review",
+      "role": "real Git authority metadata",
+      "parent": "case-66",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-66-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-66",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-67",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 67,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-67-review",
+      "role": "real Git authority metadata",
+      "parent": "case-67",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-67-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-67",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-68",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 68,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-68-review",
+      "role": "real Git authority metadata",
+      "parent": "case-68",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-68-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-68",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-69",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 69,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-69-review",
+      "role": "real Git authority metadata",
+      "parent": "case-69",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-69-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-69",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-70",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 70,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-70-review",
+      "role": "real Git authority metadata",
+      "parent": "case-70",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-70-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-70",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-71",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 71,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-71-review",
+      "role": "real Git authority metadata",
+      "parent": "case-71",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-71-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-71",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-72",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 72,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-72-review",
+      "role": "real Git authority metadata",
+      "parent": "case-72",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-72-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-72",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-73",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 73,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-73-review",
+      "role": "real Git authority metadata",
+      "parent": "case-73",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-73-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-73",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-74",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 74,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-74-review",
+      "role": "real Git authority metadata",
+      "parent": "case-74",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-74-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-74",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-75",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 75,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-75-review",
+      "role": "real Git authority metadata",
+      "parent": "case-75",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-75-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-75",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-76",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 76,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-76-review",
+      "role": "real Git authority metadata",
+      "parent": "case-76",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-76-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-76",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-77",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 77,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-77-review",
+      "role": "real Git authority metadata",
+      "parent": "case-77",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-77-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-77",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-78",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 78,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-78-review",
+      "role": "real Git authority metadata",
+      "parent": "case-78",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-78-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-78",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-79",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 79,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-79-review",
+      "role": "real Git authority metadata",
+      "parent": "case-79",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-79-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-79",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-80",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 80,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-80-review",
+      "role": "real Git authority metadata",
+      "parent": "case-80",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-80-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-80",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-81",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 81,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-81-review",
+      "role": "real Git authority metadata",
+      "parent": "case-81",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-81-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-81",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-82",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 82,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-82-review",
+      "role": "real Git authority metadata",
+      "parent": "case-82",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-82-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-82",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-83",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 83,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-83-review",
+      "role": "real Git authority metadata",
+      "parent": "case-83",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-83-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-83",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-84",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 84,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-84-review",
+      "role": "real Git authority metadata",
+      "parent": "case-84",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-84-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-84",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-85",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 85,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-85-review",
+      "role": "real Git authority metadata",
+      "parent": "case-85",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-85-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-85",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-86",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 86,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-86-review",
+      "role": "real Git authority metadata",
+      "parent": "case-86",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-86-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-86",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-87",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 87,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-87-review",
+      "role": "real Git authority metadata",
+      "parent": "case-87",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-87-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-87",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-88",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 88,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-88-review",
+      "role": "real Git authority metadata",
+      "parent": "case-88",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-88-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-88",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-89",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 89,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-89-review",
+      "role": "real Git authority metadata",
+      "parent": "case-89",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-89-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-89",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-90",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 90,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-90-review",
+      "role": "real Git authority metadata",
+      "parent": "case-90",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-90-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-90",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-91",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 91,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-91-review",
+      "role": "real Git authority metadata",
+      "parent": "case-91",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-91-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-91",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-92",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 92,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-92-review",
+      "role": "real Git authority metadata",
+      "parent": "case-92",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-92-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-92",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-93",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 93,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-93-review",
+      "role": "real Git authority metadata",
+      "parent": "case-93",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-93-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-93",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-94",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 94,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-94-review",
+      "role": "real Git authority metadata",
+      "parent": "case-94",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-94-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-94",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-95",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 95,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-95-review",
+      "role": "real Git authority metadata",
+      "parent": "case-95",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-95-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-95",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-96",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 96,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-96-review",
+      "role": "real Git authority metadata",
+      "parent": "case-96",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-96-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-96",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-97",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 97,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-97-review",
+      "role": "real Git authority metadata",
+      "parent": "case-97",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-97-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-97",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-98",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 98,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-98-review",
+      "role": "real Git authority metadata",
+      "parent": "case-98",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-98-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-98",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-99",
+      "role": "case worker",
+      "parent": "coordinator",
+      "operationOrdinal": 99,
+      "maximumChildren": 2
+    },
+    {
+      "id": "case-99-review",
+      "role": "real Git authority metadata",
+      "parent": "case-99",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "case-99-grant",
+      "role": "real Git authority metadata",
+      "parent": "case-99",
+      "deadlineMs": 10000
+    },
+    {
+      "id": "admin-01",
+      "role": "capture-first preflight/status",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-02",
+      "role": "recipe/interface binding check",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-03",
+      "role": "retained admission reference check",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-04",
+      "role": "offline source availability metadata",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-05",
+      "role": "review receipt metadata",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-06",
+      "role": "root grant explicit-path stage",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-07",
+      "role": "root grant explicit-path commit",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-08",
+      "role": "AUTH explicit-path stage",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-09",
+      "role": "AUTH explicit-path commit",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-10",
+      "role": "activation source/data guard",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-11",
+      "role": "wrapper prepare private captures helper",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-12",
+      "role": "wrapper verify preopened descriptors helper",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-13",
+      "role": "postflight capture and retirement reconciliation",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-14",
+      "role": "postguard receipt publication",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-15",
+      "role": "evidence manifest write/verify",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-16",
+      "role": "evidence explicit-path stage",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-17",
+      "role": "evidence explicit-path commit",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-18",
+      "role": "final publication stage/commit",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-19",
+      "role": "final owned status",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    },
+    {
+      "id": "admin-20",
+      "role": "reserved bounded publication failure accounting",
+      "parent": "direct metadata harness / exec-replaced dispatch",
+      "oneProcessSlot": true
+    }
+  ],
+  "callCensus": {
+    "newSemantic": 99,
+    "newTargetEmptySetup": 66,
+    "newC11": 0,
+    "newTotal": 165,
+    "historicalAdmissionC11": 2,
+    "oldCrossPhaseTotal": 167
+  },
+  "time": {
+    "ownerWindowMs": 4500000,
+    "administrationReserveMs": 900000,
+    "totalMs": 5400000,
+    "workerMs": 30000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "metadataMs": 10000,
+    "metadataInsideWorkerDeadline": true,
+    "nominal99WorkerDeadlineAndGraceMs": 3267000,
+    "supervisorAdditionalAbsencePollingPerWorkerMaxMs": 1000,
+    "serial99PlusPollingAndCoordinatorAuthorityMs": 3386000,
+    "nominalOwnerRemainderMs": 1114000,
+    "qualification": "Conditional cooperative budget, not completion/latency guarantee or hard preemption. Hashing/census/serialization and FS waits are not independently interruptible. One unsafe worker stops the tail; at most one unresolved worker emergency closure adds up to3s nominal polling. Parent collector owns deadline separately."
+  },
+  "capture": {
+    "totalBytes": 269484032,
+    "bodyBytes": 260046848,
+    "collectorBytes": 8388608,
+    "outerBytes": 524288,
+    "administrationBytes": 524288,
+    "recordBytes": 262144,
+    "documentBytes": 33554432,
+    "newStdoutBytes": 65536,
+    "newStderrBytes": 65536,
+    "legacyCombinedStdoutStderrBytes": 8388608,
+    "workerFD3Bytes": 262144,
+    "rawWorkerSuccessfulCeilingsSumBytes": 608698368,
+    "guaranteed99CompletionWithinAggregate": false,
+    "proposal": "KEEP257MiB fail-closed cumulative cap; do not enlarge automatically. Worst-case per-child allowances cannot all be consumed. Raw streams, base64 duplicates, configurations, assessments, references and final multipart documents share cumulative accounting. This is not a claimed size prediction."
+  },
+  "working": {
+    "proposedBytes": 805306368,
+    "retainedPhysicalStageBytes": 143592389,
+    "capturePartitionBytes": 269484032,
+    "offlineArchiveBytes": 10628977,
+    "conservativeStagePlusCapturesPlusArchivesBytes": 423705398,
+    "remainingForOwnedAdministrationBytes": 381600970,
+    "noNewStageCopy": true,
+    "scope": "Owned physical artifacts including retained stages counted conservatively; no disk reservation, whole-checkout census, heap or RSS claim"
+  },
+  "heap": {
+    "oldSpaceMiB": 256,
+    "RSSClaim": false
+  },
+  "guards": "No loss/integrity/deadline/unknown retirement waiver. Ordinary semantic mismatches aggregate only after existing cleanup and binding gates."
+}

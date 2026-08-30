@@ -1,0 +1,10 @@
+{
+  "id": "symlink-root",
+  "expected": "SYMLINK",
+  "value": null,
+  "error": {
+    "code": "SYMLINK",
+    "message": "SYMLINK: /private/tmp/yq-composition-independent-aoq9aj85/.synthetic-DqaDhO/symlink-root/fake-alias",
+    "stack": "Error: SYMLINK: /private/tmp/yq-composition-independent-aoq9aj85/.synthetic-DqaDhO/symlink-root/fake-alias\n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at regularRoot (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:48:5)\n    at inspectTree (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:58:10)\n    at assertPackageTree (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:94:18)\n    at symlink-root (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:113:100)\n    at file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:153:41"
+  }
+}

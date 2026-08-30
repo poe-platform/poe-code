@@ -1,0 +1,42 @@
+{
+  "id": "source-blobs",
+  "executable": "/usr/bin/git",
+  "args": [
+    "cat-file",
+    "--batch"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "started": "2026-08-29T16:06:12.839Z",
+  "pid": 53071,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "signals": [],
+  "primaryPresent": false,
+  "primary": null,
+  "bytes": {
+    "stdout": 2792669,
+    "stderr": 0
+  },
+  "finished": "2026-08-29T16:06:13.060Z",
+  "stdout": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source-blobs.stdout",
+    "size": 2792669,
+    "mode": 384,
+    "sha256": "6433039d94543b3aa7a10a16d0d00ad2d5b479f9c8505e878665363ce86c34d8"
+  },
+  "stderr": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source-blobs.stderr",
+    "size": 0,
+    "mode": 384,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "retired": true
+}

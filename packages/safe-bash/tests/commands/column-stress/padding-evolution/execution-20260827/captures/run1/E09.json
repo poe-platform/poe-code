@@ -1,0 +1,177 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "E09",
+  "mutation": "none",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "E09/boundary-1",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {
+            "maxRows": 2,
+            "maxCells": 4,
+            "maxFields": 3,
+            "maxInputBytes": 8
+          },
+          "inputHex": "613a623a630a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 15,
+          "stdoutSha256": "b968d14df9eb6b1dd71c27392ba55b937c7ece444332010eb1959a0c6e275bb9",
+          "stdoutHex": "612020622020630a7820202020200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 9,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E09/boundary-2",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {
+            "maxRows": 1
+          },
+          "inputHex": "613a623a630a780a",
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20726f7773206c696d69742065786365656465640a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 1,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E09/boundary-3",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {
+            "maxCells": 3
+          },
+          "inputHex": "613a623a630a780a",
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e2063656c6c73206c696d69742065786365656465640a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 1,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E09/boundary-4",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {
+            "maxFields": 2
+          },
+          "inputHex": "613a623a630a780a",
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e206669656c64732070657220726f77206c696d69742065786365656465640a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 1,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E09/boundary-5",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {
+            "maxInputBytes": 7
+          },
+          "inputHex": "613a623a630a780a",
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 1,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 82,
+    "units": 102
+  },
+  "counts": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  }
+}

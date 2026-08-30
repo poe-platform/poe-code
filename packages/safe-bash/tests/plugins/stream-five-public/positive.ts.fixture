@@ -1,0 +1,28 @@
+import {
+  createAgentCommands, agentCommands, createStreamFormatCommands, streamFormatCommands,
+  createSplitCommands, splitCommands, createStreamInspectionCommands,
+  type AgentCommandsOptions, type StreamFormatCommandsOptions, type StreamFormatLimits,
+  type SplitCommandsOptions, type SplitLimits, type RegexExecutionOptions,
+} from "virtual-bash";
+import {
+  createStreamFormatCommands as subFormat, streamFormatCommands as subFormatPlugin,
+  type StreamFormatCommandsOptions as SubFormatOptions, type StreamFormatLimits as SubFormatLimits,
+} from "virtual-bash/commands/stream-format";
+import {
+  createSplitCommands as subSplit, splitCommands as subSplitPlugin,
+  type SplitCommandsOptions as SubSplitOptions, type SplitLimits as SubSplitLimits,
+} from "virtual-bash/commands/split";
+
+const formatLimits: StreamFormatLimits & SubFormatLimits = { maxInputBytes: 100, maxOutputBytes: 200, maxRecordBytes: 100, maxChunkBytes: 50, maxFiles: 2, maxSteps: 1000, maxArgumentBytes: 100, maxNumericDigits: 20 };
+const splitLimits: SplitLimits & SubSplitLimits = { maxInputBytes: 100, maxOutputBytes: 200, maxFiles: 2, maxBufferBytes: 100, maxChunkBytes: 50, maxArgumentBytes: 100, maxSuffixLength: 4, maxSteps: 1000 };
+const formatOptions: StreamFormatCommandsOptions & SubFormatOptions = { replace: true, limits: formatLimits };
+const splitOptions: SplitCommandsOptions & SubSplitOptions = { replace: true, limits: splitLimits };
+const options: AgentCommandsOptions = { replace: true, streamFormat: { limits: formatLimits }, split: { limits: splitLimits }, streamInspection: { limits: { maxInputBytes: 100 } } };
+const regexOptions: RegexExecutionOptions = {};
+void regexOptions;
+createAgentCommands(options); agentCommands(options);
+createStreamFormatCommands(formatOptions); streamFormatCommands(formatOptions);
+createSplitCommands(splitOptions); splitCommands(splitOptions);
+subFormat(formatOptions); subFormatPlugin(formatOptions);
+subSplit(splitOptions); subSplitPlugin(splitOptions);
+createStreamInspectionCommands({ limits: { maxInputBytes: 100 } });

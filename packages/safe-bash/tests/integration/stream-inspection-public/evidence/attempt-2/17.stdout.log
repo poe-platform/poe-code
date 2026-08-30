@@ -1,0 +1,4 @@
+invalid.ts(4,44): error TS2322: Type 'string' is not assignable to type 'number'.
+invalid.ts(5,28): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'.
+invalid.ts(6,24): error TS2322: Type 'boolean' is not assignable to type 'number'.
+invalid.ts(7,23): error TS2322: Type 'never[]' is not assignable to type 'number'.

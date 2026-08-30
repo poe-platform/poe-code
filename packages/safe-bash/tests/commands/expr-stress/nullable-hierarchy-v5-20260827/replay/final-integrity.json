@@ -1,0 +1,870 @@
+{
+  "archiveAfter": [
+    {
+      "path": "tests",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/BINDINGS.json",
+      "kind": "file",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/CHECKPOINT.txt",
+      "kind": "file",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/INPUTS.json",
+      "kind": "file",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/LIMITS.json",
+      "kind": "file",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/MANIFEST.json",
+      "kind": "file",
+      "bytes": 3097,
+      "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/POLICY.md",
+      "kind": "file",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/PREDICTIONS.json",
+      "kind": "file",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/README.md",
+      "kind": "file",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/SOURCES.json",
+      "kind": "file",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/ARTIFACT-MANIFEST.data",
+      "kind": "file",
+      "bytes": 9779,
+      "sha256": "16988780a21753128be37222bace55a205d2e0eeb20d27be96cca6f58c74b2ac"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/ATTEMPT-NOTES.md",
+      "kind": "file",
+      "bytes": 1485,
+      "sha256": "3476dfa50958508fefa4de47de1f75059ac023bc3c41672e61cb8bb70a0d1754"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/AUTHENTICATION.data",
+      "kind": "file",
+      "bytes": 3262,
+      "sha256": "051c3245c5b78a158efb7b41d4bf53f6ba37308972b3d2a119b822c76d089165"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/CANDIDATE.md",
+      "kind": "file",
+      "bytes": 1859,
+      "sha256": "6adcd03d6bd3a7c66fd594ae660ee645ec51e0c23ed1182906d3578c99e9f21b"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/DESIGN.md",
+      "kind": "file",
+      "bytes": 3780,
+      "sha256": "91ec332f44f9f190a04f6b736924fee512759acc1e86137b648db4d58a1b7281"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/EXECUTION-01.data",
+      "kind": "file",
+      "bytes": 8452,
+      "sha256": "0fe8eb9dd08b3c6e4a17a79c079a34d9fa7009b98fa96b9987239c06ac7a35ba"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/EXECUTION-02.data",
+      "kind": "file",
+      "bytes": 18053,
+      "sha256": "8a1ba2ed64659cdda7e033c923021e93dd33a375bada5e3b95bf9e3515849d24"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/FINAL-REPORT.md",
+      "kind": "file",
+      "bytes": 8742,
+      "sha256": "008589f662c277d8cf48caf8241a588fba065c1a7ceb4d1256bbc1521aa6b648"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/PLAN.md",
+      "kind": "file",
+      "bytes": 4945,
+      "sha256": "b659b34f896b1fe01f5ef371174b33dfd0f5d9d90b359c57c6d1cf95cd577a7b"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/POSTSEAL-VERIFICATION.data",
+      "kind": "file",
+      "bytes": 21991,
+      "sha256": "a481b5b0050cea40baeff6d113482f061cec2855f38f0fc3d36b58aac58bf523"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/REPRODUCE.md",
+      "kind": "file",
+      "bytes": 2314,
+      "sha256": "636e122f2f745340783bf2190bb520879e8bda90dabe383748523e53dd408d2c"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/RUN-INPUTS.data",
+      "kind": "file",
+      "bytes": 3145,
+      "sha256": "18abb88d06b9d7138f1808dc284a524d2fb475eda6a9209ef16298d63adcd87b"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/AUTHENTICATION.data.data",
+      "kind": "file",
+      "bytes": 3262,
+      "sha256": "051c3245c5b78a158efb7b41d4bf53f6ba37308972b3d2a119b822c76d089165"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/DESIGN.md.data",
+      "kind": "file",
+      "bytes": 3780,
+      "sha256": "91ec332f44f9f190a04f6b736924fee512759acc1e86137b648db4d58a1b7281"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/PLAN.md.data",
+      "kind": "file",
+      "bytes": 4945,
+      "sha256": "b659b34f896b1fe01f5ef371174b33dfd0f5d9d90b359c57c6d1cf95cd577a7b"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/RUN-INPUTS.data.data",
+      "kind": "file",
+      "bytes": 3145,
+      "sha256": "25cd69e45bd7e142fff3414a73e0a1963d0e769e229870bfff38458246098d99"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/freeze-candidate.txt.data",
+      "kind": "file",
+      "bytes": 5458,
+      "sha256": "826e74d5390a3ef5795a41d0b5c1688f9a8bc68e25280e71628cb7d58c05ca52"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/BINDINGS.json.data",
+      "kind": "file",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/CHECKPOINT.txt.data",
+      "kind": "file",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/INPUTS.json.data",
+      "kind": "file",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/LIMITS.json.data",
+      "kind": "file",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/MANIFEST.json.data",
+      "kind": "file",
+      "bytes": 3097,
+      "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/POLICY.md.data",
+      "kind": "file",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/PREDICTIONS.json.data",
+      "kind": "file",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/README.md.data",
+      "kind": "file",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/frozen/SOURCES.json.data",
+      "kind": "file",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/inherited-model.mjs.data",
+      "kind": "file",
+      "bytes": 12331,
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/integrity.mjs.data",
+      "kind": "file",
+      "bytes": 2380,
+      "sha256": "2c3e10ff0ef1a338fa9e9424f59b31902622f24362fac98dbaea7bfce48448c8"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/model-extension.patch.data.data",
+      "kind": "file",
+      "bytes": 13359,
+      "sha256": "5eacd748d1d0aab124a1e7a11e6110f0860c0cc5b0a1c7d88f946424576d64ac"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/model.mjs.data",
+      "kind": "file",
+      "bytes": 13012,
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/run-prototype.mjs.data",
+      "kind": "file",
+      "bytes": 19619,
+      "sha256": "10cef7ef51fc7865aaee85263dbd6941f9d44e2a751f3c51bb69c9dbe6ab3bb8"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01-source/verify.mjs.data",
+      "kind": "file",
+      "bytes": 3495,
+      "sha256": "7f0881a0a378538d419af1f848259ffe5ab508fb65c46d92c895951916894020"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01.stderr.data",
+      "kind": "file",
+      "bytes": 12,
+      "sha256": "24d43c81e188922d4ae0a09501560c240c68a6fd1fb26898818919eb041224a7"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/attempt-01.stdout.data",
+      "kind": "file",
+      "bytes": 65272,
+      "sha256": "0f78a8bb25ea9cb13e2c7cd05ae735b9fcbb163276126adfe7e2a3645211773b"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/freeze-candidate.txt",
+      "kind": "file",
+      "bytes": 5458,
+      "sha256": "826e74d5390a3ef5795a41d0b5c1688f9a8bc68e25280e71628cb7d58c05ca52"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/BINDINGS.json",
+      "kind": "file",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/CHECKPOINT.txt",
+      "kind": "file",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/INPUTS.json",
+      "kind": "file",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/LIMITS.json",
+      "kind": "file",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/MANIFEST.json",
+      "kind": "file",
+      "bytes": 3097,
+      "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/POLICY.md",
+      "kind": "file",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/PREDICTIONS.json",
+      "kind": "file",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/README.md",
+      "kind": "file",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/frozen/SOURCES.json",
+      "kind": "file",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/inherited-model.mjs",
+      "kind": "file",
+      "bytes": 12331,
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/integrity.mjs",
+      "kind": "file",
+      "bytes": 2545,
+      "sha256": "63bfe364bdb92896976e1ce01e00e6b73d80db5cd0230c64235513990a102530"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/model-extension.patch.data",
+      "kind": "file",
+      "bytes": 13359,
+      "sha256": "5eacd748d1d0aab124a1e7a11e6110f0860c0cc5b0a1c7d88f946424576d64ac"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/model.mjs",
+      "kind": "file",
+      "bytes": 13012,
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/run-01.data",
+      "kind": "file",
+      "bytes": 65228,
+      "sha256": "f03a50b39976e9bec1bdb02a04ff9f5ac45d7114a3aaacaee266301066e73491"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/run-prototype.mjs",
+      "kind": "file",
+      "bytes": 20167,
+      "sha256": "9da988d034f5c00fd6c8ac0a9558b168c5d164bafab14677835363841d40319f"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/verify.mjs",
+      "kind": "file",
+      "bytes": 3495,
+      "sha256": "7f0881a0a378538d419af1f848259ffe5ab508fb65c46d92c895951916894020"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review",
+      "kind": "directory"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/AUTH-CONFIG-PREP.json",
+      "kind": "file",
+      "bytes": 846,
+      "sha256": "827b2dc420d7b7981ca978855577e33eddc839c481c03e6d79f6914c9b931a09"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/BINDING.json",
+      "kind": "file",
+      "bytes": 601,
+      "sha256": "77acd2fa20f36e18d2113fef6a90220706864b95de22c12ac51803874897df1b"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/CHECKPOINT.txt",
+      "kind": "file",
+      "bytes": 3513,
+      "sha256": "ecb889978eeba72df7fd297f08efb4cd61acd2822f44e5c7432d6f8574c56640"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/CONTROLS.json",
+      "kind": "file",
+      "bytes": 4571,
+      "sha256": "af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/FREEZE.md",
+      "kind": "file",
+      "bytes": 6361,
+      "sha256": "7920430de1d009400bfaed4d3484b2490b8592f72fc1cf278c9dc41577080cbb"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/MANIFEST.json",
+      "kind": "file",
+      "bytes": 4375,
+      "sha256": "10901b9d6fc55eceb81a1445be3ce26d831c59d86e575dc8624d51825ca56f13"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/POLICY-REVIEW.md",
+      "kind": "file",
+      "bytes": 5704,
+      "sha256": "ee377858a70390f40d84f4fae205ea67799a9ae7e90d2b8885921961486a0dae"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/REPORT.md",
+      "kind": "file",
+      "bytes": 6757,
+      "sha256": "fd177e76163aab0c01c8573b024e8cd5806584de1077c5f31f287971d3b8412e"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/archive-final-check-01.json",
+      "kind": "file",
+      "bytes": 4323,
+      "sha256": "1654090c5a4ae094dc82d7d6163488fda9eb358d4f507939005112960a766494"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/archive-preparatory-check-01.json",
+      "kind": "file",
+      "bytes": 4323,
+      "sha256": "9bbcad18462bbb96560482f6f15bf49c28540f0d3205682ec39e3ca3bd6d6df5"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/authenticate.mjs",
+      "kind": "file",
+      "bytes": 3589,
+      "sha256": "8255048a1e04c2aa978c7fe1c8995203973355008f2b5bd12b8f484ebbb54188"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/authentication-prep-01.json",
+      "kind": "file",
+      "bytes": 20142,
+      "sha256": "436158f34bb62ef4d8b013ff90ccf0738d61e36b87372f9b4343f9349f6157d4"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/freezer-input-derivations-01.json",
+      "kind": "file",
+      "bytes": 15227,
+      "sha256": "46d5d53a1072102b421bd35fb891e162e38aeb131c40b50b2a67ef3f80fb790b"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/historical-bindings-01.json",
+      "kind": "file",
+      "bytes": 23691,
+      "sha256": "7e11dff469993a36380c6a2f7c80745409c2a27c25814b0319cf3b97ab910905"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/independent-oracle-precode-01.json",
+      "kind": "file",
+      "bytes": 4929,
+      "sha256": "14de560ddca4046b5d2e112bb976f3b3941d34c418e921758695ba6ff52adbb8"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/input-derivations-01.json",
+      "kind": "file",
+      "bytes": 91299,
+      "sha256": "1f8942397c203e74d16e02f5e2d7cfe05abb13ebb3ea6e948bee3f77b6d1a5a2"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/oracle.mjs",
+      "kind": "file",
+      "bytes": 3648,
+      "sha256": "bb380d38f3a9b25838f05c4e1e229a4dd55d6a080bdf26bc1b9c91cddb1cb134"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/run-controls.mjs",
+      "kind": "file",
+      "bytes": 24175,
+      "sha256": "ca82b5c348604e4ae4cf55638dd0d8441a353cb294804901793a74312e938c07"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/validate-inputs.mjs",
+      "kind": "file",
+      "bytes": 3618,
+      "sha256": "9626e2c1eb0363f9da51917b617dd399cdb0a203c15f960cef1a9024dc333cc9"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/verify-archives.mjs",
+      "kind": "file",
+      "bytes": 1938,
+      "sha256": "208d51549d82860c83abb26b032dcd5a248b706948a79f7fe8b7bda03299d27b"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/verify-frozen-inputs.mjs",
+      "kind": "file",
+      "bytes": 3319,
+      "sha256": "689a80333ef87bda1d7424ab4509fc0a8c454b4a5366f813548f51aaf187dc89"
+    }
+  ],
+  "sealedAfter": [
+    {
+      "path": "ARTIFACT-MANIFEST.data",
+      "kind": "file",
+      "bytes": 9779,
+      "sha256": "16988780a21753128be37222bace55a205d2e0eeb20d27be96cca6f58c74b2ac"
+    },
+    {
+      "path": "ATTEMPT-NOTES.md",
+      "kind": "file",
+      "bytes": 1485,
+      "sha256": "3476dfa50958508fefa4de47de1f75059ac023bc3c41672e61cb8bb70a0d1754"
+    },
+    {
+      "path": "AUTHENTICATION.data",
+      "kind": "file",
+      "bytes": 3262,
+      "sha256": "051c3245c5b78a158efb7b41d4bf53f6ba37308972b3d2a119b822c76d089165"
+    },
+    {
+      "path": "CANDIDATE.md",
+      "kind": "file",
+      "bytes": 1859,
+      "sha256": "6adcd03d6bd3a7c66fd594ae660ee645ec51e0c23ed1182906d3578c99e9f21b"
+    },
+    {
+      "path": "DESIGN.md",
+      "kind": "file",
+      "bytes": 3780,
+      "sha256": "91ec332f44f9f190a04f6b736924fee512759acc1e86137b648db4d58a1b7281"
+    },
+    {
+      "path": "EXECUTION-01.data",
+      "kind": "file",
+      "bytes": 8452,
+      "sha256": "0fe8eb9dd08b3c6e4a17a79c079a34d9fa7009b98fa96b9987239c06ac7a35ba"
+    },
+    {
+      "path": "EXECUTION-02.data",
+      "kind": "file",
+      "bytes": 18053,
+      "sha256": "8a1ba2ed64659cdda7e033c923021e93dd33a375bada5e3b95bf9e3515849d24"
+    },
+    {
+      "path": "PLAN.md",
+      "kind": "file",
+      "bytes": 4945,
+      "sha256": "b659b34f896b1fe01f5ef371174b33dfd0f5d9d90b359c57c6d1cf95cd577a7b"
+    },
+    {
+      "path": "REPRODUCE.md",
+      "kind": "file",
+      "bytes": 2314,
+      "sha256": "636e122f2f745340783bf2190bb520879e8bda90dabe383748523e53dd408d2c"
+    },
+    {
+      "path": "RUN-INPUTS.data",
+      "kind": "file",
+      "bytes": 3145,
+      "sha256": "18abb88d06b9d7138f1808dc284a524d2fb475eda6a9209ef16298d63adcd87b"
+    },
+    {
+      "path": "attempt-01-source",
+      "kind": "directory"
+    },
+    {
+      "path": "attempt-01-source/AUTHENTICATION.data.data",
+      "kind": "file",
+      "bytes": 3262,
+      "sha256": "051c3245c5b78a158efb7b41d4bf53f6ba37308972b3d2a119b822c76d089165"
+    },
+    {
+      "path": "attempt-01-source/DESIGN.md.data",
+      "kind": "file",
+      "bytes": 3780,
+      "sha256": "91ec332f44f9f190a04f6b736924fee512759acc1e86137b648db4d58a1b7281"
+    },
+    {
+      "path": "attempt-01-source/PLAN.md.data",
+      "kind": "file",
+      "bytes": 4945,
+      "sha256": "b659b34f896b1fe01f5ef371174b33dfd0f5d9d90b359c57c6d1cf95cd577a7b"
+    },
+    {
+      "path": "attempt-01-source/RUN-INPUTS.data.data",
+      "kind": "file",
+      "bytes": 3145,
+      "sha256": "25cd69e45bd7e142fff3414a73e0a1963d0e769e229870bfff38458246098d99"
+    },
+    {
+      "path": "attempt-01-source/freeze-candidate.txt.data",
+      "kind": "file",
+      "bytes": 5458,
+      "sha256": "826e74d5390a3ef5795a41d0b5c1688f9a8bc68e25280e71628cb7d58c05ca52"
+    },
+    {
+      "path": "attempt-01-source/frozen",
+      "kind": "directory"
+    },
+    {
+      "path": "attempt-01-source/frozen/BINDINGS.json.data",
+      "kind": "file",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "attempt-01-source/frozen/CHECKPOINT.txt.data",
+      "kind": "file",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "attempt-01-source/frozen/INPUTS.json.data",
+      "kind": "file",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "attempt-01-source/frozen/LIMITS.json.data",
+      "kind": "file",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "attempt-01-source/frozen/MANIFEST.json.data",
+      "kind": "file",
+      "bytes": 3097,
+      "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632"
+    },
+    {
+      "path": "attempt-01-source/frozen/POLICY.md.data",
+      "kind": "file",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "attempt-01-source/frozen/PREDICTIONS.json.data",
+      "kind": "file",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "attempt-01-source/frozen/README.md.data",
+      "kind": "file",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "attempt-01-source/frozen/SOURCES.json.data",
+      "kind": "file",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    },
+    {
+      "path": "attempt-01-source/inherited-model.mjs.data",
+      "kind": "file",
+      "bytes": 12331,
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0"
+    },
+    {
+      "path": "attempt-01-source/integrity.mjs.data",
+      "kind": "file",
+      "bytes": 2380,
+      "sha256": "2c3e10ff0ef1a338fa9e9424f59b31902622f24362fac98dbaea7bfce48448c8"
+    },
+    {
+      "path": "attempt-01-source/model-extension.patch.data.data",
+      "kind": "file",
+      "bytes": 13359,
+      "sha256": "5eacd748d1d0aab124a1e7a11e6110f0860c0cc5b0a1c7d88f946424576d64ac"
+    },
+    {
+      "path": "attempt-01-source/model.mjs.data",
+      "kind": "file",
+      "bytes": 13012,
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86"
+    },
+    {
+      "path": "attempt-01-source/run-prototype.mjs.data",
+      "kind": "file",
+      "bytes": 19619,
+      "sha256": "10cef7ef51fc7865aaee85263dbd6941f9d44e2a751f3c51bb69c9dbe6ab3bb8"
+    },
+    {
+      "path": "attempt-01-source/verify.mjs.data",
+      "kind": "file",
+      "bytes": 3495,
+      "sha256": "7f0881a0a378538d419af1f848259ffe5ab508fb65c46d92c895951916894020"
+    },
+    {
+      "path": "attempt-01.stderr.data",
+      "kind": "file",
+      "bytes": 12,
+      "sha256": "24d43c81e188922d4ae0a09501560c240c68a6fd1fb26898818919eb041224a7"
+    },
+    {
+      "path": "attempt-01.stdout.data",
+      "kind": "file",
+      "bytes": 65272,
+      "sha256": "0f78a8bb25ea9cb13e2c7cd05ae735b9fcbb163276126adfe7e2a3645211773b"
+    },
+    {
+      "path": "freeze-candidate.txt",
+      "kind": "file",
+      "bytes": 5458,
+      "sha256": "826e74d5390a3ef5795a41d0b5c1688f9a8bc68e25280e71628cb7d58c05ca52"
+    },
+    {
+      "path": "frozen",
+      "kind": "directory"
+    },
+    {
+      "path": "frozen/BINDINGS.json",
+      "kind": "file",
+      "bytes": 31482,
+      "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf"
+    },
+    {
+      "path": "frozen/CHECKPOINT.txt",
+      "kind": "file",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9"
+    },
+    {
+      "path": "frozen/INPUTS.json",
+      "kind": "file",
+      "bytes": 11736,
+      "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2"
+    },
+    {
+      "path": "frozen/LIMITS.json",
+      "kind": "file",
+      "bytes": 3177,
+      "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424"
+    },
+    {
+      "path": "frozen/MANIFEST.json",
+      "kind": "file",
+      "bytes": 3097,
+      "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632"
+    },
+    {
+      "path": "frozen/POLICY.md",
+      "kind": "file",
+      "bytes": 13390,
+      "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233"
+    },
+    {
+      "path": "frozen/PREDICTIONS.json",
+      "kind": "file",
+      "bytes": 7917,
+      "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72"
+    },
+    {
+      "path": "frozen/README.md",
+      "kind": "file",
+      "bytes": 4970,
+      "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1"
+    },
+    {
+      "path": "frozen/SOURCES.json",
+      "kind": "file",
+      "bytes": 3127,
+      "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb"
+    },
+    {
+      "path": "inherited-model.mjs",
+      "kind": "file",
+      "bytes": 12331,
+      "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0"
+    },
+    {
+      "path": "integrity.mjs",
+      "kind": "file",
+      "bytes": 2545,
+      "sha256": "63bfe364bdb92896976e1ce01e00e6b73d80db5cd0230c64235513990a102530"
+    },
+    {
+      "path": "model-extension.patch.data",
+      "kind": "file",
+      "bytes": 13359,
+      "sha256": "5eacd748d1d0aab124a1e7a11e6110f0860c0cc5b0a1c7d88f946424576d64ac"
+    },
+    {
+      "path": "model.mjs",
+      "kind": "file",
+      "bytes": 13012,
+      "sha256": "9e411191722e796460f347b0848c32da60abaea108bdd78bdf8886ab8c1a8e86"
+    },
+    {
+      "path": "run-01.data",
+      "kind": "file",
+      "bytes": 65228,
+      "sha256": "f03a50b39976e9bec1bdb02a04ff9f5ac45d7114a3aaacaee266301066e73491"
+    },
+    {
+      "path": "run-prototype.mjs",
+      "kind": "file",
+      "bytes": 20167,
+      "sha256": "9da988d034f5c00fd6c8ac0a9558b168c5d164bafab14677835363841d40319f"
+    },
+    {
+      "path": "verify.mjs",
+      "kind": "file",
+      "bytes": 3495,
+      "sha256": "7f0881a0a378538d419af1f848259ffe5ab508fb65c46d92c895951916894020"
+    }
+  ],
+  "guardsAfter": [
+    {
+      "path": "src/commands/expr/internal.ts",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "matchesInitialC3Guard": true
+    },
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "matchesInitialC3Guard": true
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "matchesInitialC3Guard": true
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "matchesInitialC3Guard": true
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "matchesInitialC3Guard": true
+    }
+  ],
+  "completeBeforeAfterInventoryEqual": true,
+  "addedEntriesAndTypesDetected": true,
+  "allOwnedChildrenSynchronousAndReaped": true,
+  "sourceCleanWithinFiveGuards": true,
+  "noProductExecution": true
+}

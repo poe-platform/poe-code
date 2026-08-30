@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "focusedHarnessFixRounds": 1,
+  "maximumAuthorizedRounds": 2,
+  "corrections": [
+    {
+      "round": 1,
+      "classification": "verifier-binding-metadata-transcription-error-not-product-defect",
+      "original": "binding.initial-invalid.json.data",
+      "rawFailure": "node-preflight-initial.stderr.data",
+      "field": "parentFreezeSha256",
+      "old": "eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d9694a82d3f35efc1cbfae0527ae",
+      "new": "eb2fde0beb13aeb738019309c6db9ec8aa4ab9694a82d3f35efc1cbfae0527ae",
+      "criteriaChanged": false,
+      "fixtureBytesChanged": false,
+      "candidateSourceChanged": false,
+      "productExecutions": 0
+    }
+  ]
+}

@@ -1,0 +1,210 @@
+tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/run-v2.mjs SHA256 27513d8c4c158999c42508fe797831280657e50f2f96eacd345871eb1d71dfac
+134:   for (const name of ['home', 'tmp', 'cache', 'source', 'harness']) await fs.mkdir(path.join(output, name));
+135:   for (const name of ['npmrc', 'global-npmrc']) await write(path.join(output, name), '');
+136:   const blobs = await child('development-blobs', '/usr/bin/git', ['-c','gc.auto=0','-c','maintenance.auto=false','-c','core.hooksPath=/dev/null','cat-file','--batch'], repo, { GIT_OPTIONAL_LOCKS: '0', PATH: '/usr/bin' }, manifest.inputs.map(row => row.blob).join('\n') + '\n');
+137:   assert.equal(blobs.code, 0); let offset = 0;
+138:   for (const row of manifest.inputs) {
+139:     assert.ok(!row.path.startsWith('/') && !row.path.split('/').some(part => part === '..' || part === 'AGENTS.md'));
+140:     const newline = blobs.out.indexOf(10, offset); assert.equal(blobs.out.subarray(offset, newline).toString(), `${row.blob} blob ${row.bytes}`); offset = newline + 1;
+141:     const bytes = blobs.out.subarray(offset, offset + row.bytes); offset += row.bytes + 1; assert.equal(sha(bytes), row.sha256); assert.equal(objectHash('blob', bytes), row.blob); assert.equal(blobs.out[offset - 1], 10);
+142:     await write(path.join(source, row.path), bytes, Number.parseInt(row.mode, 8) & 0o777);
+143:   }
+144:   assert.equal(offset, blobs.out.length);
+145:   for (const name of ['typescript', '@types/node', 'undici-types', 'npm']) {
+146:     const tool = base.tools[name], destination = name === 'npm' ? path.join(output, 'tools/npm') : path.join(source, 'node_modules', name);
+147:     assert.equal(sha(Buffer.from(JSON.stringify(tool.originalRows))), manifest.toolBindings[name].inventorySha256);
+148:     for (const [relative, mode, length, digest] of tool.originalRows) {
+149:       const filename = path.join(tool.origin, relative), stat = await fs.lstat(filename);
+150:       if (mode === 'SYMLINK') { assert.ok(stat.isSymbolicLink()); assert.equal(await fs.readlink(filename), length); assert.ok(tool.omittedInternalBinLinks.some(([name, target]) => name === relative && target === length)); const target = await fs.realpath(filename), real = await fs.realpath(tool.origin); assert.ok(target.startsWith(real + path.sep)); const row = tool.originalRows.find(row => row[0] === path.relative(real, target)); assert.ok(row && row[1] !== 'SYMLINK'); assert.equal(sha(await fs.readFile(target)), row[3]); continue; }
+151:       assert.ok(stat.isFile() && !stat.isSymbolicLink()); assert.equal(stat.size, length); const bytes = await fs.readFile(filename); assert.equal(stat.mode & 0o777, mode); assert.equal(bytes.length, length); assert.equal(sha(bytes), digest); await write(path.join(destination, relative), bytes, mode);
+152:     }
+153:     receipt.tools[name] = { origin: tool.origin, rows: tool.originalRows, omittedInternalBinLinks: tool.omittedInternalBinLinks, copied: destination };
+154:     assert.equal(JSON.parse(await fs.readFile(path.join(destination, 'package.json'))).version, tool.version);
+155:   }
+156:   const harnessMap = [
+157:     ['fixture.json', 'tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json'], ['packs.json', 'tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json'],
+158:     ...['public.mjs', 'apply-public.mjs', 'm1a.mjs', 'packs.mjs', 'resources.mjs', 'names.mjs', 'loader.mjs', 'consumer.ts.fixture'].map(name => [name, ['resources.mjs','loader.mjs'].includes(name) ? 'tests/integration/git-public-independent-20260829/successor-bindings-v2/' + name : 'tests/integration/git-public-20260829/' + name]),
+159:     ['arrays.mjs', 'tests/integration/coherent78-arrays-author-20260828/arrays.mjs'], ['ARRAY-CASES.json', 'tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json'],
+160:     ...['probe.mjs', 'names.mjs', 'CASES.json', 'CASES-v2-overlay.json'].map(name => ['coherence/' + name, 'tests/integration/coherent78-shell-author-20260828/' + name]),
+161:     ['stream-consumer.mjs', 'tests/plugins/stream-five-public/consumer.mjs'],
+162:   ];
+163:   harnessMap.push(['redirections.mjs', 'tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs'], ['redirection-cases.json', 'tests/compatibility/bash-redirection-author-20260829/CASES.json'], ['close-observer.mjs', 'tests/compatibility/bash-redirection-author-20260829/close-observer.mjs'], ['strict.mjs', 'tests/compatibility/bash-strict-mode-author-20260829/strict.mjs'], ['strict-design.json', 'tests/compatibility/bash-strict-mode-design-20260829/CASES.json']);
+164:   harnessMap.push(['conditional.mjs', 'tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs']);
+165:   harnessMap.push(['extension.mjs', 'tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs'], ['extension-design.json', 'tests/compatibility/bash-strict-extension-design-20260829/CASES.json']);
+166:   harnessMap.push(['worker-policy.mjs','tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs'],['novel.mjs','tests/compatibility/bash-strict-extension-independent-20260829/novel.mjs']);
+167:   harnessMap.push(['n14.mjs','tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs'],['identity.mjs','tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/identity.mjs']);
+168:   for (const [destination, from] of harnessMap) { const row = executor.files.find(row => row.path === from), bytes = await fs.readFile(path.join(repo, from)); assert.equal(sha(bytes), row.sha256); await write(path.join(harness, destination), bytes); }
+169:   const sourceBefore = await inventory(path.join(source, 'src'));
+170:   compiler = path.join(source, 'node_modules/typescript/bin/tsc'); npm = path.join(output, 'tools/npm/bin/npm-cli.js');
+171:   const build = await child('production-build-once', process.execPath, [compiler, '-p', path.join(source, 'tsconfig.build.json')], source); assert.equal(build.code, 0, build.out.toString());
+172:   const packed = await child('offline-pack', process.execPath, [npm, 'pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', output], source); assert.equal(packed.code, 0, packed.err.toString());
+173:   const filename = JSON.parse(packed.out.toString())[0].filename; assert.equal(path.basename(filename), filename); const tarball = path.join(output, filename), archive = await fs.readFile(tarball);
+174:   receipt.package = { file: filename, bytes: archive.length, sha256: sha(archive), manifest: JSON.parse(packed.out.toString())[0] };
+175:   const tar = gunzipSync(archive, { maxOutputLength: 67108864 }), tarRows = []; let cursor = 0;
+176:   while (cursor + 512 <= tar.length && tar[cursor] !== 0) {
+177:     const header = tar.subarray(cursor, cursor + 512), name = header.subarray(0, 100).toString().split('\0')[0], size = Number.parseInt(header.subarray(124, 136).toString().replace(/\0/g, '').trim(), 8), mode = Number.parseInt(header.subarray(100, 108).toString().replace(/\0/g, '').trim(), 8), type = header[156];
+178:     assert.ok(name.startsWith('package/') && !name.split('/').some(part => part === '..' || part === 'AGENTS.md')); assert.ok(type === 0 || type === 48); assert.ok(Number.isSafeInteger(size) && size >= 0 && size <= tar.length - cursor - 512);
+179:     let checksum = 0; for (let position = 0; position < 512; position++) checksum += position >= 148 && position < 156 ? 32 : header[position]; assert.equal(checksum, Number.parseInt(header.subarray(148, 156).toString().replace(/\0/g, '').trim(), 8));
+180:     tarRows.push({ path: name.slice(8), mode, bytes: size, sha256: sha(tar.subarray(cursor + 512, cursor + 512 + size)) }); cursor += 512 + Math.ceil(size / 512) * 512;
+181:   }
+182:   assert.ok(tar.subarray(cursor).every(byte => byte === 0)); assert.equal(new Set(tarRows.map(row => row.path)).size, tarRows.length); receipt.package.members = tarRows;
+183:   packageRows = tarRows; assert.equal(receipt.package.sha256, seal.expectedPackageSha256); assert.equal(tarRows.length, seal.expectedPackageMembers); assert.deepEqual(JSON.parse(await fs.readFile(path.join(source, 'package.json'))).dependencies ?? {}, {});
+184:   const sourceDist = await inventory(path.join(source, 'dist'));
+185:   for (const row of tarRows) { const bytes = await fs.readFile(path.join(source, row.path)); assert.equal(sha(bytes), row.sha256); }
+186:   const coherenceIds = Array.from({ length: 17 }, (_, index) => 'C' + String(index + 2).padStart(2, '0')).concat('R15').join(',');
+187:   async function layout(label, product) {
+188:     await setupConsumer(product, label); await cohort(label + '-redirections-v3', product, 'redirections.mjs', 48); await cohort(label + '-strict', product, 'strict.mjs', 50); await cohort(label + '-conditional', product, 'conditional.mjs', 67); await cohort(label + '-extension', product, 'extension.mjs', 35); await cohort(label + '-arrays', product, 'arrays.mjs', 12); await cohort(label + '-novel', product, 'novel.mjs', 16); await cohort(label + '-n14', product, 'n14.mjs', 12); await cohort(label + '-identity', product, 'identity.mjs', 8); await types(label, product);
+189:   }
+190:   await layout('source', source);
+191:   const installed = path.join(output, 'installed'); await write(path.join(installed, 'package.json'), '{"private":true,"type":"module"}\n');
+192:   const install = await child('offline-install', process.execPath, [npm, 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', '--omit=dev', tarball], installed); assert.equal(install.code, 0, install.err.toString());
+193:   const installedRoot = path.join(installed, 'node_modules/virtual-bash'); assert.deepEqual(await inventory(installedRoot), [...tarRows].sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+194:   await layout('installed', installedRoot);
+195:   const moved = path.join(output, 'moved package'); await fs.rename(installed, moved); const movedRoot = path.join(moved, 'node_modules/virtual-bash');
+196:   consumers.set(await fs.realpath(movedRoot), await fs.realpath(moved));
+197:   await cohort('moved-redirections-v3', movedRoot, 'redirections.mjs', 48); await cohort('moved-strict', movedRoot, 'strict.mjs', 50); await cohort('moved-conditional', movedRoot, 'conditional.mjs', 67); await cohort('moved-extension', movedRoot, 'extension.mjs', 35); await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await cohort('moved-novel', movedRoot, 'novel.mjs', 16); await cohort('moved-n14', movedRoot, 'n14.mjs', 12); await cohort('moved-identity', movedRoot, 'identity.mjs', 8); await types('moved', movedRoot);
+198:   const mutant = path.join(output, 'operator-mutants'); await write(path.join(mutant, 'package.json'), '{"private":true,"type":"module"}\n');
+199:   const mutantRoot = path.join(mutant, 'node_modules/virtual-bash');
+200:   for (const row of tarRows) await write(path.join(mutantRoot, row.path), await fs.readFile(path.join(movedRoot, row.path)), row.mode);
+201:   await setupConsumer(mutantRoot, 'mutant');
+202:   const mutations = [
+203:   {
+204:     "id": "drop-exact-provenance",
+205:     "file": "shell/runtime.js",
+206:     "before": "this.cancellationState.recordDiagnostic(publicPromise, reason);",
+207:     "after": "void publicPromise;",
+208:     "case": "N10"
+209:   },
+tests/integration/git-public-independent-20260829/successor-bindings-v2/loader.mjs SHA256 9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342
+1: import fs from 'node:fs/promises';
+2: import path from 'node:path';
+3: import { fileURLToPath } from 'node:url';
+4: import { createHash } from 'node:crypto';
+5: const binding = JSON.parse(await fs.readFile(process.env.PUBLIC_BINDING));
+6: const admitted = new Map(binding.inputs.map(row => [path.join(binding.root, 'dist', row.path), row]));
+7: const harness = new Map(binding.harness.map(row => [row.path, row]));
+8: export async function load(url, context, next) {
+9:   if (url.startsWith('node:')) return next(url, context);
+10:   if (!url.startsWith('file:')) throw Error('Non-file module capability denied');
+11:   const filename = fileURLToPath(url), metadata = await fs.lstat(filename);
+12:   if (!metadata.isFile() || metadata.isSymbolicLink() || await fs.realpath(filename) !== filename || metadata.size > 8388608) throw Error('Module file admission failed');
+13:   const row = harness.get(filename) ?? admitted.get(filename);
+14:   if (!row) throw Error('package outside authenticated compiled root or package binding missing member');
+15:   const data = await fs.readFile(filename), sha256 = createHash('sha256').update(data).digest('hex');
+16:   if (sha256 !== row.sha256) throw Error('package hash mismatch');
+17:   if (admitted.has(filename)) await fs.appendFile(binding.trace, JSON.stringify({ file: filename, sha256 }) + '\n');
+18:   return { format: 'module', source: data, shortCircuit: true };
+19: }
+20: 
+tests/integration/git-public-independent-20260829/successor-bindings-v2/resources.mjs SHA256 a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f
+1: import fs from 'node:fs';
+2: import path from 'node:path';
+3: import workerThreads from 'node:worker_threads';
+4: import { syncBuiltinESMExports } from 'node:module';
+5: import { fileURLToPath } from 'node:url';
+6: import { createHash } from 'node:crypto';
+7: import assert from 'node:assert/strict';
+8: import { admitWorker } from './worker-policy.mjs';
+9: const closure = {"qualification":"STATIC_AUTHENTICATED_IMPORT_INVENTORY_NOT_RUNTIME_TRACE","members":{"dist/commands/regex-execution/worker.js":{"sha256":"46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f","bytes":1981,"imports":["node:worker_threads","./matching.js","../expr/bre-worker.js","./protocol.js"],"dynamicImportLiteral":false,"requireLiteral":false,"workerConstructorLiteral":false},"dist/commands/regex-execution/protocol.js":{"sha256":"a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6","bytes":7869,"imports":[],"dynamicImportLiteral":false,"requireLiteral":false,"workerConstructorLiteral":false},"dist/commands/expr/bre-worker.js":{"sha256":"e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874","bytes":19153,"imports":["node:worker_threads","../regex-execution/protocol.js"],"dynamicImportLiteral":false,"requireLiteral":false,"workerConstructorLiteral":false},"dist/commands/regex-execution/matching.js":{"sha256":"2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791","bytes":13278,"imports":["node:buffer"],"dynamicImportLiteral":false,"requireLiteral":false,"workerConstructorLiteral":false}},"builtins":["node:buffer","node:worker_threads"],"candidate":"c83f352f057c64917f219eb938f54aa42cdab829","packageSha256":"4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156"};
+10: 
+11: const destination = process.env.RESOURCE_LOG;
+12: const allowance = Number(process.env.RESOURCE_ALLOWANCE);
+13: assert.ok(destination && Number.isSafeInteger(allowance) && allowance >= 0 && allowance <= 32);
+14: const binding = JSON.parse(fs.readFileSync(process.env.PUBLIC_BINDING));
+15: const emit = event => fs.appendFileSync(destination, JSON.stringify(event) + '\n');
+16: const NativeWorker = workerThreads.Worker;
+17: let created = 0, live = 0;
+18: emit({ kind: 'bootstrap', pid: process.pid, allowance });
+19: workerThreads.Worker = class extends NativeWorker {
+20:   constructor(filename, options) {
+21:     assert.ok(created < allowance && live < 2, 'owned worker admission budget');
+22:     const entry = filename instanceof URL ? fileURLToPath(filename) : filename;
+23:     const expected = path.join(binding.root, 'dist/commands/regex-execution/worker.js');
+24:     assert.equal(entry, expected, 'only selected RegexWorker is admitted');
+25:     const metadata = fs.lstatSync(entry); assert.ok(metadata.isFile() && !metadata.isSymbolicLink());
+26:     assert.equal(fs.realpathSync(entry), entry);
+27:     const row = binding.inputs.find(item => item.path === 'commands/regex-execution/worker.js');
+28:     assert.ok(row); assert.equal(createHash('sha256').update(fs.readFileSync(entry)).digest('hex'), row.sha256);
+29:     admitWorker(entry, expected, options, created, live, allowance);
+30:     for (const [relative, member] of Object.entries(closure.members)) {
+31:       const target = path.join(binding.root, relative), metadata = fs.lstatSync(target);
+32:       assert.ok(metadata.isFile() && !metadata.isSymbolicLink()); assert.equal(fs.realpathSync(target), target);
+33:       const data = fs.readFileSync(target); assert.equal(data.length, member.bytes); assert.equal(createHash('sha256').update(data).digest('hex'), member.sha256);
+34:       assert.equal(binding.inputs.find(row => 'dist/' + row.path === relative)?.sha256, member.sha256);
+35:     }
+36:     emit({ kind: 'worker-admit', entry, options });
+37:     super(filename, { execArgv: [], resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 } });
+38:     const id = ++created; live++;
+39:     this.once('exit', code => { live--; try { emit({ kind: 'worker-exit', id, code, live }); } catch { process.exitCode = 78; } });
+40:     try { emit({ kind: 'worker-create', id, threadId: this.threadId, entry, sha256: row.sha256, live }); } catch (error) { process.exitCode = 78; void this.terminate().catch(() => { process.exitCode = 78; }); throw error; }
+41:   }
+42: };
+43: syncBuiltinESMExports();
+44: process.once('beforeExit', () => { emit({ kind: 'before-exit', created, live }); if (live !== 0) process.exitCode = 78; });
+45: 
+{"npmPackSourcePaths":["node_modules/libnpmpack/lib/index.js"]}
+/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/libnpmpack/lib/index.js SHA256 1a800b0b7294d89e65e8a334322db2b98569e2c3705630cf274cdb85e245b98d
+1: 'use strict'
+2: 
+3: const pacote = require('pacote')
+4: const npa = require('npm-package-arg')
+5: const runScript = require('@npmcli/run-script')
+6: const path = require('node:path')
+7: const Arborist = require('@npmcli/arborist')
+8: const { writeFile } = require('node:fs/promises')
+9: 
+10: module.exports = pack
+11: async function pack (spec = 'file:.', opts = {}) {
+12:   // gets spec
+13:   spec = npa(spec)
+14: 
+15:   const manifest = await pacote.manifest(spec, opts)
+16: 
+17:   const stdio = opts.foregroundScripts ? 'inherit' : 'pipe'
+18: 
+19:   if (spec.type === 'directory' && !opts.ignoreScripts) {
+20:     // prepack
+21:     await runScript({
+22:       ...opts,
+23:       event: 'prepack',
+24:       path: spec.fetchSpec,
+25:       stdio,
+26:       pkg: manifest,
+27:     })
+28:   }
+29: 
+30:   // packs tarball
+31:   const tarball = await pacote.tarball(manifest._resolved, {
+32:     ...opts,
+33:     Arborist,
+34:     integrity: manifest._integrity,
+35:   })
+36: 
+37:   // check for explicit `false` so the default behavior is to skip writing to disk
+38:   if (opts.dryRun === false) {
+39:     const filename = `${manifest.name}-${manifest.version}.tgz`
+40:       .replace(/^@/, '').replace(/\//, '-')
+41:     const destination = path.resolve(opts.packDestination, filename)
+42:     await writeFile(destination, tarball)
+43:   }
+44: 
+45:   if (spec.type === 'directory' && !opts.ignoreScripts) {
+46:     // postpack
+47:     await runScript({
+48:       ...opts,
+49:       event: 'postpack',
+50:       path: spec.fetchSpec,
+51:       stdio,
+52:       pkg: manifest,
+53:       env: {
+54:         npm_package_from: tarball.from,
+55:         npm_package_resolved: tarball.resolved,
+56:         npm_package_integrity: tarball.integrity,
+57:       },
+58:     })
+59:   }
+60: 
+61:   return tarball
+62: }
+63: 
+{"retainedArchive":{"path":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz","stat":{"size":872281,"regular":true},"sha256":"3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49","footerISIZE":5545984,"footerQualification":"Untrusted gzip trailer metadata inspected as bytes, not fresh decompression/validation"}}

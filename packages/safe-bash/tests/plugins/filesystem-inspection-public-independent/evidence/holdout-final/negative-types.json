@@ -1,0 +1,15 @@
+{
+  "name": "negative-types",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-obpIZ1/source/node_modules/typescript/bin/tsc",
+    "-p",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-obpIZ1/moved/negative.json",
+    "--noEmit"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-obpIZ1/moved",
+  "status": 2,
+  "signal": null,
+  "stdout": "negative.mts(4,25): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TreeCommandsOptions, \"replace\">'.\nnegative.mts(5,25): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<FileCommandsOptions, \"replace\">'.\nnegative.mts(6,31): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(7,31): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(8,16): error TS2353: Object literal may only specify known properties, and 'unknown' does not exist in type 'TreeCommandsOptions'.\nnegative.mts(9,16): error TS2353: Object literal may only specify known properties, and 'unknown' does not exist in type 'FileCommandsOptions'.\n",
+  "stderr": ""
+}

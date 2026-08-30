@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: TEXT-BOUND-001: direct readlink metadata is admitted before escaping
+ok 1 - TEXT-BOUND-001: direct readlink metadata is admitted before escaping
+  ---
+  duration_ms: 2.343084
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: actual Shell rejects oversized link text without changing stored target
+ok 2 - TEXT-BOUND-001: actual Shell rejects oversized link text without changing stored target
+  ---
+  duration_ms: 3.25325
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: backend error messages consume bounded input before expansion
+ok 3 - TEXT-BOUND-001: backend error messages consume bounded input before expansion
+  ---
+  duration_ms: 0.3945
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: MIME-only links do not escape an unused target description
+ok 4 - TEXT-BOUND-001: MIME-only links do not escape an unused target description
+  ---
+  duration_ms: 0.443333
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: output length is admitted before encoding
+ok 5 - TEXT-BOUND-001: output length is admitted before encoding
+  ---
+  duration_ms: 0.270333
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: failure prefix is bounded before encoding and preserves codepoints
+ok 6 - TEXT-BOUND-001: failure prefix is bounded before encoding and preserves codepoints
+  ---
+  duration_ms: 0.19325
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: metadata input is cumulative across multiple operands
+ok 7 - TEXT-BOUND-001: metadata input is cumulative across multiple operands
+  ---
+  duration_ms: 0.372292
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: metadata and output work are cumulative across entries
+ok 8 - TEXT-BOUND-001: metadata and output work are cumulative across entries
+  ---
+  duration_ms: 0.311958
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: backend diagnostic input is cumulative, not reset for each error
+ok 9 - TEXT-BOUND-001: backend diagnostic input is cumulative, not reset for each error
+  ---
+  duration_ms: 0.433542
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: argument string length is checked before UTF-8 scanning
+ok 10 - TEXT-BOUND-001: argument string length is checked before UTF-8 scanning
+  ---
+  duration_ms: 0.458583
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: small Unicode links and permission diagnostics retain their profile
+ok 11 - TEXT-BOUND-001: small Unicode links and permission diagnostics retain their profile
+  ---
+  duration_ms: 0.353708
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: exact UTF-8 output bytes and work are admitted before encoding
+ok 12 - TEXT-BOUND-001: exact UTF-8 output bytes and work are admitted before encoding
+  ---
+  duration_ms: 0.310875
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: emergency diagnostic reserve is cumulative and independent of exhausted normal work
+ok 13 - TEXT-BOUND-001: emergency diagnostic reserve is cumulative and independent of exhausted normal work
+  ---
+  duration_ms: 0.072333
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: metadata admission accounts for UTF-8 bytes, not only UTF-16 length
+ok 14 - TEXT-BOUND-001: metadata admission accounts for UTF-8 bytes, not only UTF-16 length
+  ---
+  duration_ms: 0.660125
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: MIME-only mode preserves readlink permission failures
+ok 15 - TEXT-BOUND-001: MIME-only mode preserves readlink permission failures
+  ---
+  duration_ms: 0.213041
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: long admitted metadata yields to cancellation without output
+ok 16 - TEXT-BOUND-001: long admitted metadata yields to cancellation without output
+  ---
+  duration_ms: 3.381417
+  type: 'test'
+  ...
+# Subtest: TEXT-BOUND-001: admitted long usage errors retain complete diagnostics
+ok 17 - TEXT-BOUND-001: admitted long usage errors retain complete diagnostics
+  ---
+  duration_ms: 0.141958
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 551.685

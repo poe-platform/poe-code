@@ -1,0 +1,301 @@
+{
+  "status": "METADATA_BOUND_NO_ACTUAL_GO",
+  "sourceCommit": "ee7d38d7287893717f3a5f95f5f4fbbc10aaa13c",
+  "preseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PRESEAL.json",
+    "bytes": 6332,
+    "sha256": "560890378aa5856b70881dd937d25db6a00a9f05c62e2f585809e19814eed179"
+  },
+  "final": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+    "bytes": 25661,
+    "sha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b"
+  },
+  "publicationIdentity": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-BINDING.json",
+    "bytes": 4786,
+    "sha256": "9061e713e626a5ce3ae57486894972b88e5e037da23ec4c36a13e81a8eb4f63d"
+  },
+  "publicationSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-PRESEAL.json",
+    "bytes": 1512,
+    "sha256": "04d1567ee882dc873e4fcba0a03221347e5f9ac4a6e361cf1dd6ac5c56ea038f"
+  },
+  "clock": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/CLOCK-AND-SLOTS.json",
+    "bytes": 918,
+    "sha256": "428f2e97dbd2b0ddc5f4ec9a1563dd504b218015c6ca91f17657c1efce6fddd5"
+  },
+  "command": {
+    "executable": "/bin/zsh",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+      "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "25661",
+      "ROOT_B1_R6_LIVE_ADMIN_20260829_ONE_ACTUAL_AFTER_FINAL_ACCEPTANCE"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false,
+    "env": {
+      "B1_ADMIN_ROOT_GO": "ROOT_B1_R5_LIVE_ADMIN_EXPLICIT_AUTHORIZATION"
+    },
+    "launch": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh",
+      "bytes": 295,
+      "sha256": "b9d9955c621c7aa71ebd1d31b11de114df7019040ca309736bbf0ea393b0c852"
+    },
+    "actualGo": false
+  },
+  "snapshot": {
+    "schema": "administrative-owner-r1",
+    "self": {
+      "id": "owner-59480",
+      "role": "administrative-owner",
+      "pid": 59480,
+      "startUTC": "2026-08-29T16:30:22.520Z",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false,
+      "state": "LIVE_COORDINATOR"
+    },
+    "starts": [
+      {
+        "id": "git-root-59482",
+        "role": "git-root",
+        "pid": 59482,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "startUTC": "2026-08-29T16:30:22.579Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:30:22.773Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:30:22.773Z"
+      },
+      {
+        "id": "git-scoped-status-59484",
+        "role": "git-scoped-status",
+        "pid": 59484,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2"
+        ],
+        "startUTC": "2026-08-29T16:30:22.775Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:30:22.825Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:30:22.825Z"
+      },
+      {
+        "id": "git-binding-add-59485",
+        "role": "git-binding-add",
+        "pid": 59485,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "add",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/bind.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch-preparation.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-BINDING.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/COMMAND.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/CLOCK-AND-SLOTS.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PRESEAL.json"
+        ],
+        "startUTC": "2026-08-29T16:30:22.833Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:30:22.905Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:30:22.905Z"
+      },
+      {
+        "id": "git-binding-commit-59486",
+        "role": "git-binding-commit",
+        "pid": 59486,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "commit",
+          "--only",
+          "-m",
+          "Bind fresh r6 UTC window and unused outer capture slots",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/bind.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch-preparation.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-BINDING.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/COMMAND.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/CLOCK-AND-SLOTS.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PRESEAL.json"
+        ],
+        "startUTC": "2026-08-29T16:30:22.907Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:30:23.299Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:30:23.299Z"
+      },
+      {
+        "id": "git-binding-receipt-59489",
+        "role": "git-binding-receipt",
+        "pid": 59489,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "startUTC": "2026-08-29T16:30:23.300Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:30:23.327Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:30:23.327Z"
+      }
+    ],
+    "attempts": [
+      {
+        "role": "git-root",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "atUTC": "2026-08-29T16:30:22.577Z",
+        "spawned": true
+      },
+      {
+        "role": "git-scoped-status",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2"
+        ],
+        "atUTC": "2026-08-29T16:30:22.774Z",
+        "spawned": true
+      },
+      {
+        "role": "git-binding-add",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "add",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/bind.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch-preparation.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-BINDING.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/COMMAND.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/CLOCK-AND-SLOTS.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PRESEAL.json"
+        ],
+        "atUTC": "2026-08-29T16:30:22.832Z",
+        "spawned": true
+      },
+      {
+        "role": "git-binding-commit",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "commit",
+          "--only",
+          "-m",
+          "Bind fresh r6 UTC window and unused outer capture slots",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/bind.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch-preparation.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-BINDING.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PUBLICATION-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/COMMAND.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/CLOCK-AND-SLOTS.json",
+          "tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/PRESEAL.json"
+        ],
+        "atUTC": "2026-08-29T16:30:22.906Z",
+        "spawned": true
+      },
+      {
+        "role": "git-binding-receipt",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "atUTC": "2026-08-29T16:30:23.299Z",
+        "spawned": true
+      }
+    ],
+    "knownStarts": 6,
+    "activeKnownPIDs": [],
+    "captureBytes": 1804,
+    "metadataBytes": 40536,
+    "elapsedMs": 810.042042,
+    "poisoned": false
+  },
+  "qualifications": {
+    "reviewer": "6acd8e3c7a308536f18646f72722023b74b4f651",
+    "terminal": "HOLD_RETAINED",
+    "root": "QUALIFIED adjudication based on source-linked returned control bodies and postguards; not an independent terminal PASS or full archive census",
+    "reviewerPublicationUTC": "2026-08-29T16:12:31.025Z",
+    "separatePostguardUTC": "UNRECORDED"
+  }
+}

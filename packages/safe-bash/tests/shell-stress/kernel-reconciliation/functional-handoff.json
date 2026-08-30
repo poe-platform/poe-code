@@ -1,0 +1,236 @@
+{
+  "sourceAnchor": {
+    "timestamp": "2026-08-27T04:30:37.183Z",
+    "head": "d3f9e8d6b3cc359b5cc13361e6f440fb10997630",
+    "runtimeCommit": "c116d637aa82e4b075460fc07088a5703a10e7b4",
+    "shell": {
+      "src/shell/arithmetic.ts": {
+        "actual": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "committed": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "matches": true
+      },
+      "src/shell/display.ts": {
+        "actual": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "committed": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "matches": true
+      },
+      "src/shell/index.ts": {
+        "actual": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "committed": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "matches": true
+      },
+      "src/shell/input.ts": {
+        "actual": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "committed": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "matches": true
+      },
+      "src/shell/locale.ts": {
+        "actual": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "committed": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "matches": true
+      },
+      "src/shell/parser.ts": {
+        "actual": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+        "committed": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+        "matches": true
+      },
+      "src/shell/pattern.ts": {
+        "actual": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "committed": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "matches": true
+      },
+      "src/shell/runtime.ts": {
+        "actual": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+        "committed": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+        "matches": true
+      },
+      "src/shell/shell.ts": {
+        "actual": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "committed": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "matches": true
+      },
+      "src/shell/types.ts": {
+        "actual": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "committed": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "matches": true
+      }
+    },
+    "status": "M src/commands/archive/README.md\n M src/commands/archive/extract.ts\n M src/commands/archive/format.ts\n M tests/commands/archive/options.test.ts\n?? tests/commands/archive-stress/pax-deletion-evidence/\n?? tests/commands/archive-stress/pax-deletion-independent/\n?? tests/commands/archive/pax-deletion.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/s3/http-independent/\n?? tests/integration/safejs-current-20260827/\n?? tests/shell-stress/kernel-reconciliation/\n?? tests/stress/regex-execution/compiled-matrix/claims/\n?? tests/stress/regex-execution/compiled-matrix/evidence/",
+    "staged": "",
+    "valid": true
+  },
+  "fixCandidate": {
+    "cohort": "expanded36",
+    "id": "parameter-existing-controls",
+    "fixture": {
+      "id": "parameter-existing-controls",
+      "script": "VALUE=abcabc; printf \"%s:%s:%s:%s\" \"${#VALUE}\" \"${VALUE:1:3}\" \"${MISSING:-default}\" \"${VALUE:+set}\""
+    },
+    "actual": {
+      "status": 2,
+      "stdoutHex": "",
+      "stderrHex": "7368656c6c3a20556e7465726d696e61746564206f7220756e737570706f7274656420706172616d6574657220657870616e73696f6e206174206f66667365742035350a",
+      "effects": "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5"
+    },
+    "profiles": [
+      {
+        "role": "primary",
+        "tuple": {
+          "status": 0,
+          "stdoutHex": "363a6263613a64656661756c743a736574",
+          "stderrHex": "",
+          "effects": "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5"
+        },
+        "passed": false
+      },
+      {
+        "role": "historical",
+        "tuple": {
+          "status": 0,
+          "stdoutHex": "363a6263613a64656661756c743a736574",
+          "stderrHex": "",
+          "effects": "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5"
+        },
+        "passed": false
+      }
+    ],
+    "classification": "Functional missing scalar substring expansion. Both native profiles execute the unchanged valid input; virtual parser rejects it before output. No new-regression claim."
+  },
+  "profileDecisionCandidates": [
+    {
+      "cohort": "expanded36",
+      "id": "env-single-kernel-argument",
+      "fixture": {
+        "id": "env-single-kernel-argument",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "#!/usr/bin/env bash -e\nprintf should-not-run > marker\n",
+            "mode": 493
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762062617368202d650a",
+        "effects": "ec256cdcb961703855cff42d269976ae3b8e0dba0d14d1b81582a32592d63f8f"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "effects": "d2ba028bee10e2f225ef0aed44f21c7e4d1962789c181c9f3a9547da6031aabb"
+          },
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "effects": "d2ba028bee10e2f225ef0aed44f21c7e4d1962789c181c9f3a9547da6031aabb"
+          },
+          "passed": false
+        }
+      ],
+      "classification": "Real optional-interpreter-argument capability gap under the explicit virtual allowlist; Darwin-specific successful native launch, not universal Linux semantics."
+    },
+    {
+      "cohort": "expanded36",
+      "id": "env-injection-text",
+      "fixture": {
+        "id": "env-injection-text",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "#!/usr/bin/env bash;touch marker\nprintf should-not-run > marker\n",
+            "mode": 493
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e7620626173683b746f756368206d61726b65720a",
+        "effects": "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "656e763a20626173683b746f7563683a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463"
+          },
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "656e763a20626173683b746f7563683a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463"
+          },
+          "passed": false
+        }
+      ],
+      "classification": "Observable127-versus126 error/status boundary under interpreter allowlist. Native treats semicolon literally; neither implementation injects a command or executes the body."
+    },
+    {
+      "cohort": "expanded36",
+      "id": "env-missing-target",
+      "fixture": {
+        "id": "env-missing-target",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "#!/usr/bin/env verifier-no-such-interpreter\nprintf forbidden > marker\n",
+            "mode": 493
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762076657269666965722d6e6f2d737563682d696e7465727072657465720a",
+        "effects": "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "656e763a2076657269666965722d6e6f2d737563682d696e7465727072657465723a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3"
+          },
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "656e763a2076657269666965722d6e6f2d737563682d696e7465727072657465723a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3"
+          },
+          "passed": false
+        }
+      ],
+      "classification": "Observable127-versus126 missing-target/unsupported-interpreter policy distinction. Not an environment leak or successful-command regression."
+    }
+  ],
+  "expectations": "These are exact existing frozen cases, not new unmeasured simplified tests or relaxed expectations. All listed losses remain red. ROOT alone authorizes scope and source changes.",
+  "productRepro": "node --import tsx tests/shell-stress/expanded-gaps/product.mjs parameter-existing-controls",
+  "sourceReview": {
+    "parser": "src/shell/parser.ts:435-455: supported operator list omits substring colon/offset/length.",
+    "interpreter": "src/shell/runtime.ts:1106-1112: only exact /usr/bin/env bash|sh binds a virtual interpreter; other env text rejects126."
+  }
+}

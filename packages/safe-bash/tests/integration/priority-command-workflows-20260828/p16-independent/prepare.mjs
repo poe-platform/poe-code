@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { sha, regular, put, census } from './common.mjs';
+const here = path.dirname(fileURLToPath(import.meta.url)), repo = path.resolve(here, '../../../..'), parent = path.dirname(here), author = path.join(parent, 'npm-pin-rebinding-v2/p16-trace-repair-v4');
+const requests = [], files = new Map();
+const role = filename => { const bytes = regular(filename); return { path: path.relative(repo, filename), bytes: bytes.length, sha256: sha(bytes), mode: fs.statSync(filename).mode & 0o777 }; };
+const bind = (filename, revision, category) => { const binding = role(filename); files.set(binding.path, binding); if (revision !== null) { assert.match(revision, /^[a-f0-9]{40}$/); assert.ok(!/[\0\n\r]/.test(binding.path)); const bytes = regular(filename); assert.deepEqual(Buffer.from(bytes.toString('utf8')), bytes, 'text-only Git capture is lossless'); const expression = revision + ':' + binding.path; if (!requests.some(row => row.expression === expression)) requests.push({ expression, ...binding, category }); } return binding; };
+const json = filename => JSON.parse(regular(filename));
+for (const name of fs.readdirSync(author).sort()) if (fs.lstatSync(path.join(author, name)).isFile()) bind(path.join(author, name), '8918f35bed8d9ec11f523a53e52488f885f627f3', 'final-evidence');
+const roles = json(path.join(author, 'AUTHORITY-ROLES.json'));
+for (const row of json(path.join(author, 'PRECODE-SEAL.json')).authority) bind(path.join(repo, row.path), row.commit, 'predeclared-history-DATA');
+for (const name of roles.packet.paths) bind(path.join(repo, name), roles.packet.commit, 'packet');
+for (const row of roles.code.rows) { const colon = row.expression.indexOf(':'); bind(path.join(repo, row.expression.slice(colon + 1)), row.expression.slice(0, colon), 'runtime-code-DATA-only'); }
+const bindings = json(path.join(author, 'BINDINGS.json'));
+for (const row of [...bindings.receipts, bindings.archive, bindings.authoritativePriority]) bind(path.join(repo, row.path), row.commit, 'source-authority');
+for (const row of json(path.join(author, 'PREPARATION-SEAL-v4.json')).files) bind(path.resolve(author, row.path), null, 'sealed-dependency-DATA');
+const proof = path.join(parent, 'npm-pin-rebinding-independent/o6-composition-v3');
+for (const name of ['MEMBERSHIP-268.json','ROLEMAP.json','RESULTS.json','FINAL-SEAL.json','REVIEW.md','GENERATED-TREES.json']) bind(path.join(proof, name), '3f780826f645b7297e8cf9b5030e55385b235aff', 'accepted-complete268-proof');
+bind(path.join(proof, 'COMPOSED-ROOT.tree.data'), null, 'derived-preimage-bound-by-authenticated-RESULTS-rootSha256');
+for (const name of ['CASES.json','FIXTURES.json','BINDINGS.json']) bind(path.join(parent, 'npm-pin-rebinding-v2', name), '7ef6e6b816ccc6b2449605c7950ab825d148a529', 'unchanged-original-packet');
+for (const name of ['GO.json','SOURCE-AUTH.json']) bind(path.join(parent, 'npm-pin-rebinding-v2', name), null, 'old-closed-DATA');
+bind(path.join(parent, 'PARENT-BUDGET.json'), null, 'old-closed-DATA');
+const oldReview = json(path.join(repo, 'tests/commands/git-independent-20260828/observer-v8-independent/SEAL.json'));
+for (const row of oldReview.roles.filter(row => row.path.startsWith('tests/shell/'))) { const actual = role(path.join(repo, row.path)); assert.deepEqual(actual, row); files.set(row.path, row); }
+const executableRoles = ['PRESEAL.md','common.mjs','prepare.mjs','review.mjs','data.mjs','worker.mjs','bootstrap.mjs'].map(name => role(path.join(here, name)));
+const node = oldReview.node, git = '/Library/Developer/CommandLineTools/usr/bin/git', ps = '/bin/ps';
+const policy = { ...oldReview.policy, maxOtherSupervisedChildren: 31, maxProductWorkers: 1, maxGitChildren: 1, totalElapsedMsIncludingCleanup: 1200000, maxGitCaptureBytes: 32 * 1024 * 1024, maxTotalGitBytes: 32 * 1024 * 1024, maxToolCaptureBytes: 4 * 1024 * 1024, maxRuntimeWorkerMs: 120000, maxRuntimeWorkerCaptureBytes: 16 * 1024 * 1024, maxTotalCapturedChildBytes: 64 * 1024 * 1024, maxWorkingBytes: 256 * 1024 * 1024, maxRecordBytes: 48 * 1024 * 1024, maxPersistedEvidenceBytes: 64 * 1024 * 1024 };
+const seal = { schema: 'p16-independent-CODE-DATA-only', label: 'P16-INDEPENDENT-01', author: path.relative(repo, author), requests, files: [...files.values()], executableRoles, node, git: { path: git, sha256: sha(regular(git)), args: ['-c','gc.auto=0','-c','maintenance.auto=false','-c','core.fsmonitor=false','cat-file','--batch'] }, ps: { path: ps, sha256: sha(regular(ps)), args: ['-axo','pid=,ppid=,pgid=,comm='] }, policy, protectedAuthor: { root: author, entries: census(author) }, expected: { original: [9,7,5], candidateExecutions: 0, futureGo: false, selection: 78, selectedInputs: 268 }, presealQualification: 'local pin preparation, not Git authentication or synthetic results' };
+put(path.join(here, 'SEAL.json'), Buffer.from(JSON.stringify(seal, null, 2) + '\n'));
+console.log(JSON.stringify({ sha256: sha(regular(path.join(here, 'SEAL.json'))), plannedStoredRequests: requests.length, candidateExecutions: 0, actualControlsExecuted: 0 }));

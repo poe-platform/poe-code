@@ -1,0 +1,40 @@
+{
+  "schema": "node-public-author-actual-grant-v1",
+  "sourceCommit": "bb4dd0571a0335b20e29448bf88126ca02c1a32d",
+  "startedMs": 1787984766427,
+  "candidate": "a6d20781d3c099fb7b3d36c10696beb06615af1b",
+  "sealSha256": "627bfa0b9c2a40cbe72544e6f8d8b6f4e7c8eba04f3d589d3ddde67881400bae",
+  "conditionalGrantActivated": true,
+  "rootBounds": {
+    "seconds": 3600,
+    "allOsProcesses": 160,
+    "peak": 4,
+    "captureBytes": 268435456,
+    "workBytes": 1073741824,
+    "caseSeconds": 30,
+    "buildSeconds": 120,
+    "allWorkerCategories": 192
+  },
+  "plannedCensus": {
+    "directRunnerChildren": 69,
+    "coordinatorNode": 1,
+    "outerPython": 1,
+    "execShellConservativeExtra": 1,
+    "administrationCeiling": 48,
+    "knownPlanWithConservativeAdmin": 120,
+    "allOsCeiling": 160,
+    "qualification": "Known direct/admin roles and actual close records; reservation counts never presented as measured transitive OS census"
+  },
+  "prep": {
+    "sourceCommit": "bb4dd0571a0335b20e29448bf88126ca02c1a32d",
+    "elapsedSeconds": 1520.919,
+    "knownDirectAndShellRoles": 27,
+    "editingHelperConservativeExtra": 9,
+    "conservativeTotal": 36,
+    "allKnownChildrenClosed": true,
+    "activeChildren": 0,
+    "qualification": "Direct capture records; conservative edit helpers are reservation not measured descendant census. Initial editing expression parse failure tool-only retained.",
+    "syntaxOnlyPass": 6,
+    "productImports": 0
+  }
+}

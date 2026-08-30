@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "state": "ADDITIVE_FUTURE_EXPECTATIONS_NOT_EXECUTED",
+  "recordCount": 32,
+  "defaults": {
+    "argv": [
+      "-o",
+      "json",
+      "-c",
+      "."
+    ],
+    "source": "<stdin>",
+    "successPreconditions": "Frozen limits, cleanup/cancellation and sink contracts apply; no injected failure. Resource mechanism remains pending; no unconditional runtime/step claim.",
+    "failureFrame": "yq: CATEGORY: CODE [at SOURCE[:LINE:COLUMN]]\n",
+    "location": "Optional and truthful only; no exact parser location is frozen."
+  },
+  "provenance": "Hand-authored expectations; selected prior witnesses reused by explicit lineage. Byte fields computed from supplied constant expected strings, not from a YAML parser or product. No imported official fixtures.",
+  "cases": [
+    {"id":"N1-01","decision":"N1","lineage":{"kind":"prior-held-witness","refs":["normative:G03"]},"input":{"utf8":"{\"red\n  blue\": 1}\n"},"expect":{"status":0,"stdout":{"utf8":"{\"red blue\":1}\n","hex":"7b2272656420626c7565223a317d0a","bytes":15},"stderr":{"utf8":"","hex":"","bytes":0},"documents":[{"red blue":1}]}},
+    {"id":"N1-02","decision":"N1","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"{\"red\n  blue\": 1}\n"},"expect":{"status":0,"stdout":{"utf8":"\"red blue\": 1\n","hex":"2272656420626c7565223a20310a","bytes":14},"stderr":{"utf8":"","hex":"","bytes":0},"documents":[{"red blue":1}]},"argv":[]},
+    {"id":"N1-03","decision":"N1","lineage":{"kind":"prior-control","refs":["normative:G04"]},"input":{"utf8":"\"red\n  blue\": 1\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"}}},
+    {"id":"N1-04","decision":"N1","lineage":{"kind":"prior-control","refs":["normative:G06"]},"input":{"utf8":"[\"red\n  blue\": 1]\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"}}},
+    {"id":"N2-01","decision":"N2","lineage":{"kind":"prior-held-witness","refs":["freeze:NUM-15","normative:N07"]},"input":{"utf8":"10e-1147483647\n"},"expect":{"status":0,"stdout":{"utf8":"1E-1147483646\n","hex":"31452d313134373438333634360a","bytes":14},"stderr":{"utf8":"","hex":"","bytes":0},"numeric":{"coefficient":"1","exponent":-1147483646,"removedTrailingZeros":1,"exactIntegral":false,"doubleText":"0","canonicalText":"1E-1147483646"}}},
+    {"id":"N2-02","decision":"N2","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"100e-1147483649\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_DECIMAL_RANGE"}}},
+    {"id":"N2-03","decision":"N2","lineage":{"kind":"prior-control","refs":["freeze:NUM-12","normative:N06","query-budget:N08"]},"input":{"utf8":"1e-1147483647\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_DECIMAL_RANGE"}}},
+    {"id":"N2-04","decision":"N2","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"1e999999999999999999999\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_DECIMAL_RANGE"}}},
+    {"id":"N2-05","decision":"N2","lineage":{"kind":"prior-control","refs":["freeze:NUM-14","query-budget:N10"]},"input":{"utf8":"0e1000000000\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_DECIMAL_RANGE"}}},
+    {"id":"N2-06","decision":"N2","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"0e-1147483647\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_DECIMAL_RANGE"}}},
+    {"id":"N2-07","decision":"N2","lineage":{"kind":"prior-control","refs":["query-budget:N09"]},"input":{"utf8":"0e999999999\n"},"expect":{"status":0,"stdout":{"utf8":"0E+999999999\n","hex":"30452b3939393939393939390a","bytes":13},"stderr":{"utf8":"","hex":"","bytes":0}}},
+    {"id":"N2-08","decision":"N2","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"90071992547409920e-1\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_UNSAFE_INTEGER"}}},
+    {"id":"N2-09","decision":"N2","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"9007199254740991.90\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_UNSAFE_INTEGER"}}},
+    {"id":"N3-01","decision":"N3","lineage":{"kind":"prior-held-witness","refs":["normative:Q11"]},"input":{"utf8":"\"\\uD83D\\uDE80\"\n"},"expect":{"status":0,"stdout":{"utf8":"\"🚀\"\n","hex":"22f09f9a80220a","bytes":7},"stderr":{"utf8":"","hex":"","bytes":0},"documents":["🚀"],"scalar":{"codePoint":"U+1F680","decimal":128640,"utf8Hex":"f09f9a80","utf8Bytes":4,"high":55357,"low":56960}}},
+    {"id":"N3-02","decision":"N3","lineage":{"kind":"prior-held-witness","refs":["freeze:UTF-12"]},"input":{"utf8":"\"\\uD83D\\uDE42\"\n"},"expect":{"status":0,"stdout":{"utf8":"\"🙂\"\n","hex":"22f09f9982220a","bytes":7},"stderr":{"utf8":"","hex":"","bytes":0},"documents":["🙂"],"scalar":{"codePoint":"U+1F642","decimal":128578,"utf8Hex":"f09f9982","utf8Bytes":4,"high":55357,"low":56898}}},
+    {"id":"N3-03","decision":"N3","lineage":{"kind":"prior-control","refs":["normative:Q10"]},"input":{"utf8":"\"\\uD800\"\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"},"refusalClass":"unpaired"}},
+    {"id":"N3-04","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\uDC00\"\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"},"refusalClass":"unpaired"}},
+    {"id":"N3-05","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\uDE80\\uD83D\"\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"},"refusalClass":"reversed"}},
+    {"id":"N3-06","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\uD83Dx\\uDE80\"\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"},"refusalClass":"intervening"}},
+    {"id":"N3-07","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\uD83D\\\n  \\uDE80\"\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"},"refusalClass":"intervening"}},
+    {"id":"N3-08","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\uD83D\\uD83D\"\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"},"refusalClass":"mismatched"}},
+    {"id":"N3-09","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\U0001F680\"\n"},"expect":{"status":0,"stdout":{"utf8":"\"🚀\"\n","hex":"22f09f9a80220a","bytes":7},"stderr":{"utf8":"","hex":"","bytes":0},"documents":["🚀"]}},
+    {"id":"N3-10","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\U0000D800\"\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"},"refusalClass":"unchanged-U-surrogate"}},
+    {"id":"N3-11","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\U00110000\"\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_YAML_SYNTAX"},"refusalClass":"unchanged-U-out-of-range"}},
+    {"id":"N3-12","decision":"N3","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"'\\uD83D\\uDE80'\n"},"expect":{"status":0,"stdout":{"utf8":"\"\\\\uD83D\\\\uDE80\"\n","hex":"225c5c75443833445c5c7544453830220a","bytes":17},"stderr":{"utf8":"","hex":"","bytes":0},"documents":["\\uD83D\\uDE80"]}},
+    {"id":"N3-13","decision":"N3","lineage":{"kind":"prior-control","refs":["normative:Q12"]},"input":{"hex":"22eda080220a"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"input","code":"INPUT_INVALID_UTF8"}}},
+    {"id":"N4-01","decision":"N4","lineage":{"kind":"prior-held-witness","refs":["normative:T13"]},"input":{"utf8":"!!float 7\n"},"expect":{"status":0,"stdout":{"utf8":"7\n","hex":"370a","bytes":2},"stderr":{"utf8":"","hex":"","bytes":0},"documents":[7]}},
+    {"id":"N4-02","decision":"N4","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"!!int 7.0\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_TAG_LEXEME_MISMATCH"}}},
+    {"id":"N4-03","decision":"N4","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"!!float .NaN\n"},"expect":{"status":5,"stdout":{"utf8":"","hex":"","bytes":0},"diagnostic":{"category":"schema","code":"SCHEMA_NONFINITE_NUMBER"}}},
+    {"id":"N4-04","decision":"N4","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"!!int 7\n"},"expect":{"status":0,"stdout":{"utf8":"7\n","hex":"370a","bytes":2},"stderr":{"utf8":"","hex":"","bytes":0},"documents":[7]}},
+    {"id":"E-01","decision":"B-ENCODER-ESCAPE-SPELLING","lineage":{"kind":"prior-held-witness","refs":["freeze:ENC-07"]},"input":{"utf8":"\"\\0\"\n"},"expect":{"status":0,"stdout":{"utf8":"\"\\u0000\"\n","hex":"225c7530303030220a","bytes":9},"stderr":{"utf8":"","hex":"","bytes":0},"documents":["\u0000"],"yamlFrame":{"documents":1,"separators":0,"separator":"---\n","finalLf":true}},"argv":[]},
+    {"id":"E-02","decision":"B-ENCODER-ESCAPE-SPELLING","lineage":{"kind":"new-bounded-control","refs":[]},"input":{"utf8":"\"\\0\"\n---\n\"\\0\"\n"},"expect":{"status":0,"stdout":{"utf8":"\"\\u0000\"\n---\n\"\\u0000\"\n","hex":"225c7530303030220a2d2d2d0a225c7530303030220a","bytes":22},"stderr":{"utf8":"","hex":"","bytes":0},"documents":["\u0000","\u0000"],"yamlFrame":{"documents":2,"separators":1,"separator":"---\n","finalLf":true}},"argv":[]}
+  ]
+}

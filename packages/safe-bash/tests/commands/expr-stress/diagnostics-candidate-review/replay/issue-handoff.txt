@@ -1,0 +1,18 @@
+Independent final execution leaf; candidate 21220b465537bf45ffcfb36740956a69f43bf75e.
+Measured source divergence, already disclosed historically, not a new diagnostic regression:
+literal argv ["1", "/", "0", "x"], LC_ALL=C, virtual command label expr.
+GNU 9.7 on pinned Darwin executable with argv0=expr:
+  status 2; stdout empty; stderr "expr: division by zero\n".
+Exact archived/built/packed/offline script-free installed/moved candidate physical expr module:
+  status 2; stdout empty; stderr "expr: syntax error: unexpected argument 'x'\n".
+Cause remains AST-first parsing versus native evaluation/error precedence.
+Frozen independent holdout ast-first-precedence-counterexample is a real strict failure,
+not silently waived or counted among the requested nine C diagnostics (which pass 9/9).
+Evidence: tests/commands/expr-stress/diagnostics-candidate-review/replay/independent-first/independent.json.
+No source fix made; root must route any separately authorized redesign.
+
+Separate frozen optional cap-profile expectation also fails, not established as a source defect:
+argv ["1", "x"], limits {maxOutputBytes:1}; frozen assumption status 2 with full syntax
+diagnostic, observed status 3 and "expr: output bytes limit exceeded\n". Preserved as
+11/12 runtime controls, with no expectation rewrite. This agrees with the sealed
+author's bounded-diagnostic policy; the fixed limit-refusal stderr itself exceeds 1 byte.

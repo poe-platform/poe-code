@@ -1,0 +1,206 @@
+{
+  "now": "2026-08-29T14:11:04.813Z",
+  "plan": {
+    "deadline": "2026-08-29T14:14:29.528Z",
+    "grant": {
+      "minutes": 12,
+      "knownOS": 32,
+      "peak": 3,
+      "capture": 50331648,
+      "work": 201326592
+    },
+    "planned": [
+      {
+        "role": "bootstrap+implementation patches",
+        "count": 2
+      },
+      {
+        "role": "inspect owner+Git",
+        "count": 2
+      },
+      {
+        "role": "up to four bounded metadata readers",
+        "count": 4
+      },
+      {
+        "role": "prepare owner+syntax",
+        "count": 2
+      },
+      {
+        "role": "preseal owner+Git add/commit",
+        "count": 3
+      },
+      {
+        "role": "replay owner+PURE helper",
+        "count": 2
+      },
+      {
+        "role": "publication owner+Git add/commit/status",
+        "count": 4
+      }
+    ],
+    "plannedKnown": 19,
+    "reserve": 13,
+    "expectedPeak": 2,
+    "PUREHelpersMax": 2,
+    "harmlessFixturesPlanned": 0,
+    "Bash": 0,
+    "Workers": 0,
+    "oldPIDProbes": 0
+  },
+  "owner": "import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import assert from 'node:assert/strict';import {spawn} from 'node:child_process';\nconst root=path.dirname(new URL(import.meta.url).pathname),repo='/Users/kjopek/Workspace/safe-bash',author=repo+'/tests/compatibility/bash-pipestatus-typed-native-reference-20260829';\nconst mode=process.argv[2],capture=fs.mkdtempSync('/tmp/pipestatus-typed-review-'+mode+'-'),journal=fs.openSync(capture+'/events.jsonl','wx',0o600),deadline=fs.statSync('/tmp/pipestatus-typed-review-bootstrap-20260829.stdout').birthtimeMs+720000;\nconst hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');const event=row=>{fs.writeSync(journal,JSON.stringify({at:new Date().toISOString(),...row})+'\\n');fs.fsyncSync(journal);};\nfunction read(file,max=4194304){const stat=fs.lstatSync(file);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=max);const fd=fs.openSync(file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const before=fs.fstatSync(fd);assert(before.dev===stat.dev&&before.ino===stat.ino);const bytes=fs.readFileSync(fd),after=fs.fstatSync(fd);assert(bytes.length===stat.size&&after.size===before.size&&after.mtimeMs===before.mtimeMs);return bytes;}finally{fs.closeSync(fd);}}\nfunction write(name,value){fs.writeFileSync(root+'/'+name,typeof value==='string'?value:JSON.stringify(value,null,2)+'\\n',{flag:'wx',mode:0o600});}function emit(value){const bytes=JSON.stringify(value,null,2)+'\\n';process.stdout.write(bytes);fs.writeSync(3,bytes);}\nasync function child(label,exe,args){assert(Date.now()<deadline);const stdout=fs.openSync(capture+'/'+label+'.stdout','wx',0o600),stderr=fs.openSync(capture+'/'+label+'.stderr','wx',0o600);let exit=false,error=false;try{const proc=spawn(exe,args,{cwd:repo,stdio:['ignore',stdout,stderr],env:{...process.env,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null'}});const done=new Promise(resolve=>{proc.on('error',()=>{error=true;});proc.on('exit',(code,signal)=>{exit=true;event({event:'exit',label,pid:proc.pid,code,signal});});proc.on('close',(code,signal)=>resolve({code,signal}));});event({event:'enrolled',label,pid:proc.pid,exe,args});let expired=false;const timer=setTimeout(()=>{expired=true;proc.kill('SIGKILL');},Math.min(60000,deadline-Date.now()));const result=await done;clearTimeout(timer);fs.fsyncSync(stdout);fs.fsyncSync(stderr);event({event:'close',label,pid:proc.pid,...result,exit,error,expired});assert(exit&&!error&&!expired&&result.signal===null,'CAPTURE_OR_RETIREMENT_STOP');return{...result,stdout:capture+'/'+label+'.stdout',stderr:capture+'/'+label+'.stderr'};}finally{fs.closeSync(stdout);fs.closeSync(stderr);}}\nasync function git(label,args){const result=await child(label,'/usr/bin/git',['-c','gc.auto=0','-c','maintenance.auto=false','-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','-c','core.abbrev=40',...args]);assert.equal(result.code,0);return read(result.stdout);}\nasync function main(){assert(Date.now()<deadline);event({event:'owner-start',pid:process.pid,mode,capture});\nif(mode==='inspect'){write('ROLE-PLAN.json',{deadline:new Date(deadline).toISOString(),grant:{minutes:12,knownOS:32,peak:3,capture:50331648,work:201326592},planned:[{role:'bootstrap+implementation patches',count:2},{role:'inspect owner+Git',count:2},{role:'up to four bounded metadata readers',count:4},{role:'prepare owner+syntax',count:2},{role:'preseal owner+Git add/commit',count:3},{role:'replay owner+PURE helper',count:2},{role:'publication owner+Git add/commit/status',count:4}],plannedKnown:19,reserve:13,expectedPeak:2,PUREHelpersMax:2,harmlessFixturesPlanned:0,Bash:0,Workers:0,oldPIDProbes:0});const handoff=await git('handoff',['show','e10e371dc9c70583681add9c1747c85a710b1f59:'+path.relative(repo,author+'/HANDOFF.md')]);assert(handoff.equals(read(author+'/HANDOFF.md')));write('HANDOFF.raw',handoff.toString());const files=fs.readdirSync(author).sort().map(name=>{const stat=fs.lstatSync(author+'/'+name);return{name,bytes:stat.size,regular:stat.isFile(),mode:stat.mode&511};});write('LOCATORS.json',{files,capture});emit({capture,files,handoff:handoff.toString()});}\nelse if(mode==='prepare'){\n const readyRaw=read(author+'/READY-SEAL.json');assert.equal(readyRaw.length,11288);assert.equal(hash(readyRaw),'798c191fdad35bdf6c1592afda1954764da2209ad18984d966e5488c5e80bdd0');const ready=JSON.parse(readyRaw);for(const pin of ready.files){assert(!pin.path.startsWith('/')&&!pin.path.split('/').includes('..'));const bytes=read(author+'/'+pin.path);assert.equal(bytes.length,pin.bytes);assert.equal(hash(bytes),pin.sha256);assert.equal(fs.lstatSync(author+'/'+pin.path).mode&511,pin.mode);}\n const executable=read(author+'/materialized/PRESEAL.json');assert.equal(hash(executable),'ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e');const source=read(author+'/prepare.mjs').toString(),start=source.indexOf(' const admission=await import('),end=source.indexOf(\" authenticate(root+'/CONTROL-PRESEAL.json');authenticate(materialized+'/PRESEAL.json');await authenticateTools\",start);assert(start>0&&end>start);const body=source.slice(start,end);assert.equal((body.match(/test\\('D\\d\\d'/g)||[]).length,12);assert.equal(body.split(\"root+'/control-work'\").length,2);const relocated=body.replace(\"root+'/control-work'\",\"reviewRoot+'/work'\");\n write('INPUTS.json',{readySha256:hash(readyRaw),executableSha256:hash(executable),readyFiles:ready.files,authorSource:{path:author+'/prepare.mjs',bytes:Buffer.byteLength(source),sha256:hash(Buffer.from(source)),start,end,controlsSha256:hash(Buffer.from(body)),relocatedSha256:hash(Buffer.from(relocated)),change:'scratch/output ownership relocation only; no D01-D12 assertion change'},parentRoot:repo+'/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2'});\n write('replay.mjs',read(root+'/prefix.fragment.data').toString()+relocated+'\\nconst retainedAssertions=assertions;assert.equal(retainedAssertions,120);\\n'+read(root+'/novel.fragment.data').toString()+read(root+'/suffix.fragment.data').toString());const result=await child('syntax-replay','/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node',['--check',root+'/replay.mjs']);assert.equal(result.code,0);write('PRESEAL.json',{at:new Date().toISOString(),source:'e10e371dc9c70583681add9c1747c85a710b1f59',readySha256:hash(readyRaw),executableSha256:hash(executable),files:['owner.mjs','replay.mjs','INPUTS.json','ROLE-PLAN.json'].map(name=>{const bytes=read(root+'/'+name);return{path:name,bytes:bytes.length,sha256:hash(bytes)};}),controls:{retained:'D01-D12 unchanged120 assertions',novel:'N01-N08 fixed DATA',PUREHelpers:1,harmlessFixtures:0,Bash:0,Workers:0}});emit({capture,presealSha256:hash(read(root+'/PRESEAL.json'))});\n}\nelse if(mode==='seal'){await git('stage-preseal',['add','--',path.relative(repo,root)]);const commit=await git('commit-preseal',['commit','--only','-m','test: preseal typed PIPESTATUS six-native DATA review','--',path.relative(repo,root)]);emit({capture,commit:commit.toString().match(/\\[main ([a-f0-9]{40})\\]/)?.[1]});}\nelse if(mode==='replay'){const seal=JSON.parse(read(root+'/PRESEAL.json'));for(const pin of seal.files){const bytes=read(root+'/'+pin.path);assert.equal(bytes.length,pin.bytes);assert.equal(hash(bytes),pin.sha256);}const result=await child('pure-replay','/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node',[root+'/replay.mjs']);write('EXECUTION.json',{...result,capture});assert.equal(result.code,0);emit({capture,stdout:read(result.stdout).toString()});}\nelse if(mode==='publish'){const files=[];let bytes=0;for(const name of fs.readdirSync(root).sort()){const stat=fs.lstatSync(root+'/'+name);if(stat.isDirectory())continue;const body=read(root+'/'+name);bytes+=body.length;files.push({path:name,bytes:body.length,sha256:hash(body)});}assert(bytes<201326592);write('PUBLICATION-SNAPSHOT.json',{at:new Date().toISOString(),domain:'owned root regular files; nested scratch separately reported',bytes,entries:files.length,files,capture});await git('stage-results',['add','--',path.relative(repo,root)]);const commit=await git('commit-results',['commit','--only','-m','test: publish typed PIPESTATUS six-native preexecution verdict','--',path.relative(repo,root)]);assert.equal((await git('status',['status','--porcelain=v1','--untracked-files=normal','--',path.relative(repo,root)])).length,0);emit({capture,commit:commit.toString().match(/\\[main ([a-f0-9]{40})\\]/)?.[1],receiptSha256:hash(read(root+'/RECEIPT.json')),cleanOwned:true,at:new Date().toISOString()});}else throw Error('mode');}\ntry{await main();event({event:'owner-complete',pid:process.pid,mode,code:0});}catch(reason){event({event:'primary',present:true,message:String(reason),stack:reason?.stack});console.error(reason);process.exitCode=1;}finally{fs.closeSync(journal);}\n",
+  "report": "# Typed PIPESTATUS six-native preexecution review\n\n**ACCEPT_SCOPED_PREEXECUTION_ONLY. No native authority or expected outputs.**\n\nRetained D01–D12: 12/12, 120 unchanged assertions. Independent N01–N08: 8/8, 48 assertions. One PURE helper; zero harmless lifecycle fixtures, Bash, product, Worker or async-loader starts. Fresh regular-file/size/hash/mode admission precedes helper imports and repeats after controls; four tools stream-hashed as DATA. Initial edit API NUL rejection occurred before any OS process and remains separately disclosed, not a fabricated process capture.\n\n## Exact literals\n- P19: `declare -p PIPESTATUS`\n- P20: `readonly PIPESTATUS; false; declare -p PIPESTATUS`\n- P21: `false; readonly PIPESTATUS; true; declare -p PIPESTATUS`\n- P22: `f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS`\n- P23: `f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS`\n- P24: `PIPESTATUS=seed; false; declare -p PIPESTATUS`\n\nP19 has no prologue. Only fixed f invocations, shell builtins/declarations/assignments and two finite pipelines occur; no source/eval/variable-command/slash or failed lookup allowed. Empty stdin, zero fixtures, all file effects refused including old F05. No output/type/readonly policy inferred.\n\n## Source and lifetime scope\nThree modules changed: admission/entry/observation; six capture/lifecycle/group-observer/observer-state/state/storage bodies retain parent bytes. Parent SHA256 plus Git-blob identities authenticated against native26 source. Entry catch/finally tail unchanged; limits, FD validation and authenticated-start guards precede case launch. No fresh lifecycle fixture was needed for byte-identical ownership machinery; no old groups probed.\n\n## Pending actual authority\nFresh typed runtime review, ROOT GO and preprovision must be committed/pinned. UTC issued/expiry/latest-full600s-start remain PENDING. Fresh owned parents/empty journal and initially absent bootstrap captures required; actual descriptor/inode/read validation deferred. Resolve only ROOT_APPROVED_GRANT_SHA256 in command template d4e97d0e932825d3c8318792b2c2d98bd4aa997800805f95bdfa1f091326140e, obtain separate DATA slot review and exact require_escalated/login:false/no-prefix approval. No automatic activation.\n\nActual proposal600s inclusive/setup60/tail60/case3/TERM2/KILL1;29slots=7managed+4UNOBSERVEDstage reservations+18admin, peak5 proposal,32MiBcapture/128MiBwork/64KiBstreams. Not OS quota/universal census. Initial tool-shell startup trusted outside child fresh-env/capture qualification; no GNU5.3/fullBash claim. Older observations/source gaps/historical holds remain unchanged.\n",
+  "receipt": {
+    "schema": "pipestatus-typed-independent-preexecution-v1",
+    "decision": "ACCEPT_SCOPED_PREEXECUTION_ONLY",
+    "source": "e10e371dc9c70583681add9c1747c85a710b1f59",
+    "readySha256": "798c191fdad35bdf6c1592afda1954764da2209ad18984d966e5488c5e80bdd0",
+    "executableSha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e",
+    "commandTemplateSha256": "d4e97d0e932825d3c8318792b2c2d98bd4aa997800805f95bdfa1f091326140e",
+    "counts": {
+      "retainedPass": 12,
+      "retainedAssertions": 120,
+      "novelPass": 8,
+      "novelAssertions": 48,
+      "pass": 20,
+      "fail": 0,
+      "assertions": 168
+    },
+    "changed": [
+      {
+        "path": "admission.mjs",
+        "parentSha256": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+        "candidateSha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8",
+        "changed": true
+      },
+      {
+        "path": "entry.mjs",
+        "parentSha256": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+        "candidateSha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd",
+        "changed": true
+      },
+      {
+        "path": "observation.mjs",
+        "parentSha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+        "candidateSha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b",
+        "changed": true
+      }
+    ],
+    "unchanged": [
+      {
+        "path": "capture.mjs",
+        "parentSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+        "candidateSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+        "changed": false
+      },
+      {
+        "path": "lifecycle.mjs",
+        "parentSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+        "candidateSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+        "changed": false
+      },
+      {
+        "path": "group-observer.mjs",
+        "parentSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+        "candidateSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+        "changed": false
+      },
+      {
+        "path": "observer-state.mjs",
+        "parentSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+        "candidateSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+        "changed": false
+      },
+      {
+        "path": "state.mjs",
+        "parentSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+        "candidateSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+        "changed": false
+      },
+      {
+        "path": "storage.mjs",
+        "parentSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+        "candidateSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+        "changed": false
+      }
+    ],
+    "programs": [
+      {
+        "id": "P19",
+        "program": "declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P20",
+        "program": "readonly PIPESTATUS; false; declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P21",
+        "program": "false; readonly PIPESTATUS; true; declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P22",
+        "program": "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P23",
+        "program": "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P24",
+        "program": "PIPESTATUS=seed; false; declare -p PIPESTATUS",
+        "expectedNative": null
+      }
+    ],
+    "nativeAuthority": false,
+    "nativeObservations": 0,
+    "expectedOutputs": "NONE",
+    "PUREHelpers": 1,
+    "harmlessFixtures": 0,
+    "Workers": 0,
+    "oldPIDProbes": 0,
+    "limits": {
+      "totalMs": 600000,
+      "setupMs": 60000,
+      "finalizationTailMs": 60000,
+      "perCaseMs": 3000,
+      "termMs": 2000,
+      "killMs": 1000,
+      "knownManagedProcessCeiling": 7,
+      "knownPeakCeiling": 2,
+      "allKnownProcessProposalCeiling": 29,
+      "allKnownPeakProposalCeiling": 5,
+      "ownerStarts": 1,
+      "nativeStarts": 6,
+      "administrativeChildStarts": 0,
+      "sourceInternalForkReservations": 4,
+      "perStreamBytes": 65536,
+      "aggregateCaptureBytes": 33554432,
+      "workingBytes": 134217728,
+      "emergencyReserveBytes": 65536,
+      "ownerWriteBytes": 262144,
+      "snapshotEntries": 32,
+      "snapshotFileBytes": 65536,
+      "snapshotBytes": 262144
+    },
+    "pending": {
+      "root": "fresh committed typed runtime review/ROOT GO/preprovision",
+      "window": "PENDING absolute UTC issued/expires/latest-full600s-start; no authority inherited",
+      "command": "sole ROOT_APPROVED_GRANT_SHA256 slot; separate DATA review; exact require_escalated/login:false/no-prefix approval",
+      "captures": "owned fresh parents and empty journal; bootstrap captures absent for noclobber; actual FD checks deferred"
+    },
+    "qualifications": [
+      "six lifecycle/capture/state modules byte-identical; no fresh ownership-fixture runtime claimed",
+      "29slots=7managed+4UNOBSERVED native-stage reservations+18admin; peak5 proposal not observed census/OS quota",
+      "initial tool-shell startup trusted host outside child fresh environment/raw capture",
+      "all six native probes UNRUN; no initialization/type/readonly/nonarray/local policy selected",
+      "old26/12/37 observations and all failures/holds not rescored",
+      "initial edit API rejected a literal NUL before any OS process; tool-transcript primary record retained, no process raw capture existed"
+    ],
+    "at": "2026-08-29T14:10:56.380Z"
+  }
+}

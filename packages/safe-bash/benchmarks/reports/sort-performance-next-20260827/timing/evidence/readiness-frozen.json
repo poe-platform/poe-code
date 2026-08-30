@@ -1,0 +1,448 @@
+{
+  "stage": "frozen",
+  "planCommit": "bac58e3e9f11283b95f592080ba43d5e17a859e7",
+  "sourceArchiveSha256": "23832d5dc73f8088b96264539a761911be6a76cb47e585669bc802dc3aa7a539",
+  "base": "dce6e3824d6de6d03490a531cf2bc7d2d279bb8c",
+  "revisions": {
+    "A": "dce6e3824d6de6d03490a531cf2bc7d2d279bb8c",
+    "B": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+    "C": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54"
+  },
+  "textHashes": {
+    "A": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+    "B": "dfc9baed56564395bf90472fd505ea56a8eb5820712c0a5096d95ef2e2db47cc",
+    "C": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895"
+  },
+  "fixturesSha256": "5f85291991a4af60b737c944c025e97aebf56237b9925092cb8049984245035f",
+  "frozenManifestSha256": "55dd5cdcde68818797b6ccd0c9cbe9cafa8dcd5969516759b8d8cc361dd22672",
+  "profiles": [
+    {
+      "id": "unkeyed-distinct-8000",
+      "script": "sort -sn input",
+      "timing": true,
+      "cold": true,
+      "pair": [
+        "A",
+        "B"
+      ],
+      "records": 8000,
+      "logicalCharge": 640000,
+      "inputBytes": 112000,
+      "inputSha256": "ca6415bf65b4fb96d5f1564dd8f3cba4d012fc39f4b0b7ebad83e01aebc6ce11",
+      "expectedSha256": "449fdcc57bd3ddf22d2a54d8cccea7e9bfbdeb3dcd4d2973a7ff9cf990279ad0"
+    },
+    {
+      "id": "unkeyed-duplicates-8000",
+      "script": "sort -sn input",
+      "timing": true,
+      "cold": true,
+      "pair": [
+        "A",
+        "B"
+      ],
+      "records": 8000,
+      "logicalCharge": 640000,
+      "inputBytes": 112000,
+      "inputSha256": "6d17ca3fedc3cd08aeb2f30f37035b6ff654b7b8d8b1c270095e22ecc2fdf0c6",
+      "expectedSha256": "c408bbf40fd7e54e48168b1d9f01bd13caeb2ed58af644a4476af4e243f22fbc"
+    },
+    {
+      "id": "unkeyed-entries-at",
+      "script": "sort -sn input",
+      "timing": false,
+      "cold": false,
+      "pair": [
+        "A",
+        "B"
+      ],
+      "records": 16384,
+      "logicalCharge": 524288,
+      "inputBytes": 98304,
+      "inputSha256": "9a1229cfa6850ee00472cf62e6c27b4a73bd58ccb897212ebe4f146c71dc099d",
+      "expectedSha256": "4c05aed02cb936164e64dfe49db47884c9640c07a5883c92616397bec261a620"
+    },
+    {
+      "id": "unkeyed-entries-over",
+      "script": "sort -sn input",
+      "timing": true,
+      "cold": false,
+      "pair": [
+        "A",
+        "B"
+      ],
+      "records": 16385,
+      "logicalCharge": 524320,
+      "inputBytes": 98310,
+      "inputSha256": "bbb14e2e48bbd36e7d3f0c365dc8f26f3ac2d27d10a17314a21675450f233c34",
+      "expectedSha256": "720c419df50789a98c2011bfb5d8859956e00c45579039fec65ce9d00230409c"
+    },
+    {
+      "id": "unkeyed-charge-at",
+      "script": "sort -sn input",
+      "timing": false,
+      "cold": false,
+      "pair": [
+        "A",
+        "B"
+      ],
+      "records": 8192,
+      "logicalCharge": 1048576,
+      "inputBytes": 180224,
+      "inputSha256": "8ed286c89a17c302337e9ee77fc92c8c7b33f7101f7d3a5f3f0f3f1398a8c8ec",
+      "expectedSha256": "da286c88580dabb34f40bd1c4dac21262c39f6eeb303f8836dc7220a5187a8ce"
+    },
+    {
+      "id": "unkeyed-charge-over",
+      "script": "sort -sn input",
+      "timing": false,
+      "cold": false,
+      "pair": [
+        "A",
+        "B"
+      ],
+      "records": 8193,
+      "logicalCharge": 1048704,
+      "inputBytes": 180246,
+      "inputSha256": "946f6e5bc3d06a7cdef9bfbdf58214c8422526c29ce47b3e85728e589f7e016f",
+      "expectedSha256": "c4dc1e6b0d74d98f9821d853acbbb130f77882af600e2a3bca0e1e9b099db2ba"
+    },
+    {
+      "id": "keyed-distinct-8000",
+      "script": "sort -s -t: -k2,2n input",
+      "timing": true,
+      "cold": true,
+      "pair": [
+        "B",
+        "C"
+      ],
+      "records": 8000,
+      "logicalCharge": 352000,
+      "inputBytes": 136000,
+      "inputSha256": "d3b2274655fd7085437d3a4e22a53bef151b40f784e2b874a0305ce1cd8661cd",
+      "expectedSha256": "ff26b19df4ca4f5f78584f1e919686ad372478946b7b79621744d3302b1947ac"
+    },
+    {
+      "id": "keyed-duplicates-8000",
+      "script": "sort -s -t: -k2,2n input",
+      "timing": true,
+      "cold": true,
+      "pair": [
+        "B",
+        "C"
+      ],
+      "records": 8000,
+      "logicalCharge": 352000,
+      "inputBytes": 136000,
+      "inputSha256": "616ba7e7773c7a88459f2a9b5134b00767be61b0091bd33486953fe33ee803a2",
+      "expectedSha256": "df4594f432e3621ebcc2222004b4357cecab00bf282c7f54ace50e5e76dea9a6"
+    },
+    {
+      "id": "keyed-entries-at",
+      "script": "sort -s -t: -k2,2n input",
+      "timing": false,
+      "cold": false,
+      "pair": [
+        "B",
+        "C"
+      ],
+      "records": 16384,
+      "logicalCharge": 524288,
+      "inputBytes": 245760,
+      "inputSha256": "bf486e1b3c50b49574a26896ebd032c5ee5fa89483b4ff0863ff64582ed0c771",
+      "expectedSha256": "da9e60e1e401b120f32817682e8aa64de07ed684f412c03e7b228b4fd40db6df"
+    },
+    {
+      "id": "keyed-entries-over",
+      "script": "sort -s -t: -k2,2n input",
+      "timing": false,
+      "cold": false,
+      "pair": [
+        "B",
+        "C"
+      ],
+      "records": 16385,
+      "logicalCharge": 524320,
+      "inputBytes": 245775,
+      "inputSha256": "3db9c84079dd52f3478b4d94554963e57badcc7581ea0cf9795000b338277616",
+      "expectedSha256": "d3836f11ea0fb2d97650e2411aa8e673b7b4855f78ad7e529ed6f72f6eec1386"
+    },
+    {
+      "id": "keyed-charge-at",
+      "script": "sort -s -t: -k2,2n input",
+      "timing": false,
+      "cold": false,
+      "pair": [
+        "B",
+        "C"
+      ],
+      "records": 8192,
+      "logicalCharge": 1048576,
+      "inputBytes": 253952,
+      "inputSha256": "c9bb302d0d2f7340c3e3dfd8a3b22f2043349b0fba9b90791eee3fbde14df163",
+      "expectedSha256": "68a84a92d1313d2b216b57112d671f00a61d8388d83d8f087b19e7d551816f05"
+    },
+    {
+      "id": "keyed-charge-over",
+      "script": "sort -s -t: -k2,2n input",
+      "timing": true,
+      "cold": false,
+      "pair": [
+        "B",
+        "C"
+      ],
+      "records": 8193,
+      "logicalCharge": 1048704,
+      "inputBytes": 253983,
+      "inputSha256": "115ee34c6e824fc19b3ed5f801eb944add088f4d0594e3e82f3b8f6b8378e9a0",
+      "expectedSha256": "597f84540f03b40718cfd2304ec5da82d36a80ac05189359e77f4413e3fc4b1e"
+    },
+    {
+      "id": "plain-control-AB",
+      "script": "sort input",
+      "timing": true,
+      "cold": false,
+      "pair": [
+        "A",
+        "B"
+      ],
+      "records": 1024,
+      "logicalCharge": null,
+      "inputBytes": 5120,
+      "inputSha256": "92485fe24f41a3876e695946f7f16e003694a2e0a458ef6b6f24cc37eaa6b490",
+      "expectedSha256": "539cb89a927731ba1d6b288b5dd7486f8e1cce64fea6c758427b3f25fa02701e"
+    },
+    {
+      "id": "plain-control-BC",
+      "script": "sort input",
+      "timing": true,
+      "cold": false,
+      "pair": [
+        "B",
+        "C"
+      ],
+      "records": 1024,
+      "logicalCharge": null,
+      "inputBytes": 5120,
+      "inputSha256": "92485fe24f41a3876e695946f7f16e003694a2e0a458ef6b6f24cc37eaa6b490",
+      "expectedSha256": "539cb89a927731ba1d6b288b5dd7486f8e1cce64fea6c758427b3f25fa02701e"
+    },
+    {
+      "id": "unkeyed-precision-stable",
+      "script": "sort -sn input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 93,
+      "inputSha256": "f165ce48c4f1ff2f0881f1817dcbedf11de3ec23974df986513fddb7b3a8cf15",
+      "expectedSha256": "ea8ae3cdeee8469655379953cbd11465c5cc3870ab3e732b543f90b7e92ad7c1"
+    },
+    {
+      "id": "keyed-precision-stable",
+      "script": "sort -s -t: -k2,2n input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 93,
+      "inputSha256": "ecdcf0427d7a1bf11c6e7f9733e0c6a8d2fcd3011c794e3e7f7ae64950b14811",
+      "expectedSha256": "b8aa161d266478cc576b3403dfefbde13ef8fc4828dbff42c3c3a7990c96231c"
+    },
+    {
+      "id": "unkeyed-unique-reverse",
+      "script": "sort -nru input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 18,
+      "inputSha256": "7f96444b606c0620056daca6faef76f5f818fcc39707b604792dfd321fbdc9bd",
+      "expectedSha256": "b0ead90c2e4c3e7acf49a51d1ce9ada603542ffb99a1c61e8ab6a399a953afa7"
+    },
+    {
+      "id": "keyed-unique-reverse",
+      "script": "sort -ru -t: -k2,2nr input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 18,
+      "inputSha256": "cff06f63c16144b72299734f8033b126868d96a235aabd39121066f8b197ecfc",
+      "expectedSha256": "f6982196bc7ced845ac84fb9f18065e22486e93d008f5da4df85b4f5ad2b57d0"
+    },
+    {
+      "id": "unkeyed-nul",
+      "script": "sort -zn input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 5,
+      "inputSha256": "f3ccc5178550c3efa138fda88c7124abb1656ca853696159f0c03ee347b08bb3",
+      "expectedSha256": "6723d736878e902a842a4091d4025969b88361d37304c0077e8e77149e7be24b"
+    },
+    {
+      "id": "keyed-nul",
+      "script": "sort -z -t: -k2,2n input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 9,
+      "inputSha256": "deddf52aff6950fa08117b5ee12c267e9e944b1cb71d700aa9937aeb5a62e0d8",
+      "expectedSha256": "a765171dad447128134fb26f6ab537b5790b240ab3d5583fe96f90cc33ddbeb2"
+    },
+    {
+      "id": "unkeyed-in-place",
+      "script": "sort -n -o input input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 4,
+      "inputSha256": "451d660bc5f37a981539cf07c4c6a182693a7d165b4589ecb1165a72555ff90a",
+      "expectedSha256": "66a749698bf103039eb45dcc4f3cec0e153306b39b4d9d459de1b6a40f0776bc"
+    },
+    {
+      "id": "keyed-in-place",
+      "script": "sort -t: -k2,2n -o input input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 8,
+      "inputSha256": "2dcd0ad23c1ff2dc4b80acbaaa49d07733c5bb62aca1915757638f1c4defc32c",
+      "expectedSha256": "11749d5e697eb51156014f191ccc1754483c525f23af1b158f797167b029dd48"
+    },
+    {
+      "id": "excluded--nb",
+      "script": "sort -nb input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 4,
+      "inputSha256": "451d660bc5f37a981539cf07c4c6a182693a7d165b4589ecb1165a72555ff90a",
+      "expectedSha256": "e9260599473222728b1a784d2db71a5932bf8892edb7aaf165b41085d14c2165"
+    },
+    {
+      "id": "excluded--nf",
+      "script": "sort -nf input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 4,
+      "inputSha256": "451d660bc5f37a981539cf07c4c6a182693a7d165b4589ecb1165a72555ff90a",
+      "expectedSha256": "e9260599473222728b1a784d2db71a5932bf8892edb7aaf165b41085d14c2165"
+    },
+    {
+      "id": "excluded-key-b",
+      "script": "sort -t: -k2,2nb input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 8,
+      "inputSha256": "2dcd0ad23c1ff2dc4b80acbaaa49d07733c5bb62aca1915757638f1c4defc32c",
+      "expectedSha256": "c049e7a811ba54fb6f30dd612df946e8959770788558efdfe3d0ae6126ddab62"
+    },
+    {
+      "id": "excluded-key-f",
+      "script": "sort -t: -k2,2nf input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 8,
+      "inputSha256": "2dcd0ad23c1ff2dc4b80acbaaa49d07733c5bb62aca1915757638f1c4defc32c",
+      "expectedSha256": "c049e7a811ba54fb6f30dd612df946e8959770788558efdfe3d0ae6126ddab62"
+    },
+    {
+      "id": "excluded-multikey",
+      "script": "sort -k2,2n -k1,1 input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 12,
+      "inputSha256": "5ccbe378d6288a342c69e96132c215bdc68c06b20541ede56a2bf542a68f1cd6",
+      "expectedSha256": "fbdf6faa6ecf3fc6f249b4e1b853a725776c617482774544e251bffbee4fc9f1"
+    },
+    {
+      "id": "excluded-check",
+      "script": "sort -cn input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 4,
+      "inputSha256": "451d660bc5f37a981539cf07c4c6a182693a7d165b4589ecb1165a72555ff90a",
+      "expectedSha256": "863a609b389db56f387f575ec458e32627058e088771811ef325507d555227f2"
+    },
+    {
+      "id": "excluded-key-check",
+      "script": "sort -cu -k2,2n input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 9,
+      "inputSha256": "097096334dfb4ff2dcb7651e5629713e3debf950cd769c196d2896ae2d32b545",
+      "expectedSha256": "c1fc55cce48b7f463dfa8c71f76191ada491857b0b7f94b2b19a46544731c656"
+    },
+    {
+      "id": "borrowed-unkeyed",
+      "script": "sort -n input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 4,
+      "inputSha256": "451d660bc5f37a981539cf07c4c6a182693a7d165b4589ecb1165a72555ff90a",
+      "expectedSha256": "e9260599473222728b1a784d2db71a5932bf8892edb7aaf165b41085d14c2165"
+    },
+    {
+      "id": "borrowed-keyed",
+      "script": "sort -t: -k2,2n input",
+      "timing": false,
+      "cold": false,
+      "pair": null,
+      "records": null,
+      "logicalCharge": null,
+      "inputBytes": 8,
+      "inputSha256": "2dcd0ad23c1ff2dc4b80acbaaa49d07733c5bb62aca1915757638f1c4defc32c",
+      "expectedSha256": "c049e7a811ba54fb6f30dd612df946e8959770788558efdfe3d0ae6126ddab62"
+    }
+  ],
+  "counts": {
+    "correctness": 93,
+    "measuredWarm": 192,
+    "measuredCold": 32,
+    "warmups": 32
+  },
+  "loadPolicy": "PLAN.md: conjunctive absolute 1/5/15 load 2/2.5/3, normalized load1 <=.15, CPU <=10%, CPU range <=5pp, load1 range <=.25, competing visible CPU <25%; 3 attempts, 45 seconds; fail closed; during/post gates mandatory",
+  "commands": [
+    "node /Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/timing/run.mjs"
+  ],
+  "root": "/private/tmp/sort-cache-timing-EmcEYN",
+  "loadObserved": false,
+  "timingSamples": 0,
+  "allTimingClaims": "PENDING DIFFERENT ROOT-ROUTED REVIEWER"
+}

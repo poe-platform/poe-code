@@ -1,0 +1,322 @@
+INSPECTION {"at":"2026-08-29T12:11:07.419Z","pid":77141,"mode":"SOURCE_DATA_ONLY"}
+BINDING {"relative":"tests/integration/agent-bash-coherent-independent-20260829/public-engine-preflight/HANDOFF.md","bytes":14639,"sha256":"d20d3f41b04d6673442d1f221249ba87b9d5d9e1802435bfb880be16c3134ad9"}
+68:   `tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64`,
+69:   **461669 encoded-file bytes**, SHA256
+70:   `8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637`.
+71:   Eight-MiB bounded gunzip after encoded-byte authentication. Schema
+72:   `public98-exact-core-source-v1`, commit
+73:   `bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e`, `files[]` has `path`, `mode`,
+74:   `blob`, `bytes`, `sha256`, **`base64`**, and `proof.commitBase64` plus
+75:   `proof.trees[] {sha,rawBase64}`. Paths are **packages/safejs-relative**, not
+76:   monorepo-root-relative. This review checks the commit,15 proof trees and all98
+77:   file/blob paths through that prefix. The source counterpart of the support
+78:   emission is the separate `preparation-v3/inputs/errors.ts.data`, not an
+79:   upstream engine file. No private checkout is involved.
+80:
+81:## Exact staged closure and public provider
+82:
+83:Let `$FIXTURE` mean the future owner's declared, fresh, regular-file-only
+84:fixture root (not a path already admitted by this review):
+85:
+86:- Each engine record goes to `$FIXTURE/` + `target.slice('compiled/'.length)`.
+87:  This yields `engine/dist/**`, `engine/package.json`, `support/errors.js`.
+88:  Do not flatten the support directory. Do not symlink to old author scratch.
+89:- Normal adapter, at30ac:
+90:  `tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs`,
+91: 1484bytes, SHA256
+92:  `2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d`,
+93:  goes to `$FIXTURE/engine-adapter-v1.mjs`. Its exact static import is
+94:  `./engine/dist/core.js` (`run`, `Budget`), the public ./core export target,
+95:  not an inferred private ABI. The source entry is `src/core.ts`.
+96:- The adapter's frozen ABI is `NP1-ENGINE-PUBLIC-SYNC-1`, identity
+97:  `author-public-bb23-node-adapter-v1`. Public construction already exercised:
+98:  `createNodeWorkerProvider({entry:pathToFileURL(adapterPath).href,
+99:  identity:'author-public-bb23-node-adapter-v1',observe})`.
+100:  `entry` is the **adapter URL**, not product worker-main.js. Identity and URL
+101:  are trusted configuration, **not byte authentication or host authorization**.
+102:  Explicit command grants remain separate and default denied.
+103:- The actual application Worker entry comes from the fresh selected package:
+104:  `$PACKAGE/dist/commands/node/worker-main.js`. Bind its emitted hash from that
+105:  package, not an old source/directory. The static adapter is test-side only,
+106:  never a package dependency or vendored engine.
+107:- The adapter uses existing Budget maxSteps100000/maxCallDepth128 and a262144
+108:  byte combined context-prefix/program admission. It does not change the
+109:  command's fixed limits. Promise constructor, ESM/.js/TLA/npm/npx/async fs/
+110:  process.exit/package search remain unsupported; Worker-L is not all-jobs/RSS.
+111:
+112:PUBLIC95-BINDINGS.json records all95 source/emission mappings, package metadata,
+113:adapter/guard hashes and10 exact external importer edges from the compiler graph.
+114:They are host-only scoped edges (`node:crypto`, `node:async_hooks`,
+115:`node:fs/promises`, `node:path`, `node:util`), **not a guest/global allowlist**.
+116:SOURCE-EDGES.json retains the whole95-module static graph. Fresh product and
+117:fixture imports also need admission; authenticating only the engine is insufficient.
+118:
+119:## Existing instrumentation: reuse rules, not old execution scope
+120:
+121:At30ac, `tests/integration/node-public-author-20260829/` contains:
+122:`node-policy.mjs`, `node-load-guard.mjs`, `internal-loader-arguments.mjs`,
+123:`node-batch.mjs`, `public-node-v2.mjs`, `run-v3.mjs`, `run-v4.mjs`.
+124:Their exact executor pins and selected bodies are captured in this sidecar.
+125:The internal-loader helper is byte-identical at several accepted executor paths;
+126:the generated content-pin table names the first matching strict-mode locator.
+127:Use the explicitly named public-author locator above when staging that recipe;
+128:do not infer a different required subtree from a duplicate-content hash.
+129:The old runner-node.mjs.data fragment still has the original engine-only path
+130:test; **run-v3.mjs:136** is the corrected actual inclusion of
+131:`compiled/support/errors.js`. Do not execute or transplant that obsolete fragment.
+132:
+133:Existing `node-policy.json` fields are `log`, `maximum`, `workerEntry`, `adapters`.
+134:The policy observes create/exit, refuses nested application Workers and verifies:
+135:empty env/argv; stdout/stderr true; resourceLimits old32/young8/code8/stack4MiB;
+136:workerData exact `request,entry,identity,sab`; SAB197056bytes; request exact
+137:`profile,selector,source,program,filename,cwd,argv,env,grants,limits` and
+138:NP1-CJS-WRQ-L-SYNC-1. Rebind log/entry/adapter paths to each owned layout.
+139:The raw adapter identity check alone is not a file hash guard.
+140:
+141:Existing `load-manifest.json` is `{files,aliases}`. `files[]` contains absolute
+142:`path`, `bytes`, `sha256`, `builtins` (plus inventory metadata); aliases map the
+143:root and exact commands/node import to that layout's actual emitted files.
+144:`node-load-guard.mjs` uses registerHooks, requires regular non-symlink files,
+145:checks size/hash before import (262144bytes/file), checks per-importer builtin
+146:edges, rejects unlisted bare package fallback/query/fragment, and emits
+147:`@@NODE_LOAD` records. The manifest itself is bounded2MiB, loads2048. The
+148:guard/policy bootstrap files and their config must first be outer-authenticated;
+149:self-declared identity is not admission. Refresh and compare complete membership,
+150:not only previously present paths, after materialization and every move.
+151:
+152:The old application consumer argv is exactly shaped as:
+153:`NODE --experimental-permission --allow-fs-read=OWNED_ROOT
+154:--allow-fs-write=OWNED_ROOT --allow-worker --import POLICY --import LOAD_GUARD
+155:ENTRY INPUT_JSON`. This is historical scaffolding, not an executable GO here.
+156:Policy/guard startup and inherited Worker imports need the exact bounded paths.
+BINDING {"relative":"tests/integration/agent-bash-coherent-author-20260829/stage-b/dispatch.mjs","bytes":5132,"sha256":"5780dbe8327aa30098c8bb977a82f536c088e2ad47b1e16659674ba71d593e1d"}
+1:import fs from 'node:fs';
+2:import path from 'node:path';
+3:import assert from 'node:assert/strict';
+4:import { pathToFileURL } from 'node:url';
+5:import { admitFile } from './admission.mjs';
+6:import { runWorkflow, engineFreeIds, engineIds } from './workflows.mjs';
+7:
+8:export async function main(args) {
+9:  assert.equal(args.length, 4);
+10:  assert.equal(args[0], '--run');
+11:  const request = JSON.parse(admitFile(args[1], { bytes: Number(args[3]), sha256: args[2] }, 1048576));
+12:  assert.equal(request.action, 'ROOT_RUN_COHERENT_STAGE_B');
+13:  assert.equal(request.sourceTree, '3adc676a0ab638c9788ef007e465931d65d2c6fe');
+14:  assert.equal(request.packageSha256, '2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca');
+15:  assert.ok(['engine-free', 'PUBLIC95'].includes(request.profile));
+16:  const ids = request.profile === 'engine-free' ? engineFreeIds : engineIds;
+17:  assert.deepEqual(request.ids, ids);
+18:  assert.ok(['source-built', 'installed', 'physically-moved'].includes(request.layout));
+19:  assert.equal(request.independentGrantRequired, true);
+20:  assert.ok(typeof request.rootAuthorization === 'string' && request.rootAuthorization.length > 0);
+21:  const packageRoot = fs.realpathSync(request.packageRoot);
+22:  assert.equal(packageRoot, request.packageRoot);
+23:  const membership = JSON.parse(admitFile(request.membership.path, request.membership, 1048576));
+24:  assert.equal(membership.length, 1014);
+25:  const expected = new Map(membership.map(row => [row.path, row]));
+26:  assert.equal(expected.size, 1014);
+27:  function verifyMembership() {
+28:    const observed = [];
+29:    function walk(directory, prefix = '') {
+30:      for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+31:        const relative = prefix ? prefix + '/' + entry.name : entry.name;
+32:        const filename = path.join(directory, entry.name);
+33:        assert.ok(entry.name !== 'AGENTS.md' && !entry.isSymbolicLink());
+34:        if (entry.isDirectory()) walk(filename, relative);
+35:        else {
+36:          assert.ok(entry.isFile());
+37:          const row = expected.get(relative);
+38:          assert.ok(row, relative);
+39:          admitFile(filename, row, 16777216);
+40:          observed.push(relative);
+41:        }
+42:      }
+43:    }
+44:    walk(packageRoot);
+45:    assert.deepEqual(observed.sort(), [...expected.keys()].sort());
+46:  }
+47:  verifyMembership();
+48:  const metadata = JSON.parse(admitFile(path.join(packageRoot, 'package.json'), expected.get('package.json'), 1048576));
+49:  assert.equal(metadata.name, 'virtual-bash');
+50:  assert.deepEqual(metadata.dependencies ?? {}, {});
+51:  const rootUrl = import.meta.resolve('virtual-bash');
+52:  const nodeUrl = import.meta.resolve('virtual-bash/commands/node');
+53:  assert.equal(rootUrl, pathToFileURL(path.join(packageRoot, 'dist/index.js')).href);
+54:  assert.equal(nodeUrl, pathToFileURL(path.join(packageRoot, 'dist/commands/node/index.js')).href);
+55:  await assert.rejects(import('virtual-bash/commands/node/host'));
+56:  const fixture = JSON.parse(admitFile(request.fixture.path, request.fixture, 1048576));
+57:  const api = await import(rootUrl);
+58:  const nodeApi = await import(nodeUrl);
+59:  const observations = [];
+60:  let engine;
+61:  if (request.profile === 'PUBLIC95') {
+62:    const receipt = JSON.parse(admitFile(request.engineReceipt.path, request.engineReceipt, 131072));
+63:    assert.equal(request.engineReceipt.sha256, 'a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de');
+64:    assert.equal(receipt.productWorker.sha256, '2ef280342b55c028c8e35e0f6cc98c9bf45c580134c9f0ada078815da1b3820d');
+65:    assert.equal(fs.realpathSync(request.adapter.path), request.adapter.path);
+66:    assert.equal(request.adapter.sha256, '2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d');
+67:    admitFile(request.adapter.path, request.adapter, 16384);
+68:    engine = {
+69:      role: 'SEPARATELY_AUTHENTICATED_PUBLIC_ENGINE',
+70:      createProvider() {
+71:        return nodeApi.createNodeWorkerProvider({
+72:          entry: pathToFileURL(request.adapter.path).href,
+73:          identity: 'author-public-bb23-node-adapter-v1',
+74:          observe(event) { assert.ok(observations.length < 512); observations.push(event); },
+75:        });
+76:      },
+77:    };
+78:  } else {
+79:    assert.equal(Object.hasOwn(request, 'engineReceipt'), false);
+80:    assert.equal(Object.hasOwn(request, 'adapter'), false);
+81:  }
+82:  const rows = [];
+83:  for (const id of ids) {
+84:    const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+85:    try { rows.push(await runWorkflow(id, { api, nodeApi, fixture, engine })); }
+86:    catch (error) {
+87:      rows.push({ id, status: 'FAIL', detail: String(error?.stack ?? error), facts: error?.facts });
+88:      if (error?.facts?.cleanupFailure) throw error;
+89:    } finally { clearTimeout(timer); }
+90:  }
+91:  assert.equal(rows.length, ids.length);
+92:  assert.equal(new Set(rows.map(row => row.id)).size, ids.length);
+93:  verifyMembership();
+94:  console.log(JSON.stringify({ layout: request.layout, profile: request.profile, rows, observations }));
+95:  process.exitCode = rows.some(row => row.status !== 'PASS') ? 1 : 0;
+96:}
+97:
+98:if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) await main(process.argv.slice(2));
+99:
+BINDING {"relative":"tests/integration/agent-bash-coherent-author-20260829/stage-b/PROPOSAL.md","bytes":9101,"sha256":"680f829588fcbb64c485aa051c2256414b82355b876cb5e0908f9f60e65e6e71"}
+1:# Stage B preparation — not runtime authorization
+2:
+3:Date: August 29, 2026. This is a source/data packet, not a coherent-product
+4:acceptance or an executable full-cohort preseal. All semantic cases are UNRUN.
+5:
+6:## Fixed producer and source
+7:
+8:Use Stage A receipt d8524695c472cdea1e506bc234f426b4e6829cce, selected derived
+9:tree 3adc676a0ab638c9788ef007e465931d65d2c6fe, exactly 309 inputs. The source
+10:manifest SHA is ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae.
+11:All 16 Node files are unchanged. Default inventory is 80; Node and curl remain
+12:explicit opt-ins. No mutable HEAD, private checkout, unaccepted ERE/YQ/XAN or
+13:stale dist is a source authority.
+14:
+15:The newly produced complete package is 930368 bytes, SHA256
+16:2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca: 1012 emitted
+17:files and 1014 members. This is an actual producer result, not the earlier
+18:1014 prediction. Stage B must admit regular-file/type/exact-size/hash before
+19:every decode, extraction or import, use the same admitted Buffer, and compare
+20:the entire member inventory including unexpected entries. No new build is
+21:proposed: source-built uses authenticated retained Stage A emissions.
+22:
+23:## PUBLIC95 receipt
+24:
+25:PUBLIC-ENGINE-RECEIPT.json binds 95 emissions plus package metadata, including
+26:support/errors.js, PUBLIC98 source provenance, historical compiler recipe,
+27:static adapter and prospective product Worker identity. Its generation reads
+28:authenticated public evidence archives as DATA only. It does not open any
+29:private pathname, materialize/import engine JavaScript, run an engine or prove
+30:a strict engine build. Historical source-path fields are not read locators.
+31:
+32:The receipt SHA is a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de.
+33:The adapter has SHA2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d;
+34:the new package's Worker entry has SHA2ef280342b55c028c8e35e0f6cc98c9bf45c580134c9f0ada078815da1b3820d.
+35:The engine stays outside the product package. The obsolete engine-only selector
+36:in runner-node.mjs.data is not a staging authority: it omits support/errors.js.
+37:
+38:## Literal roles and future counts
+39:
+40:For EACH of source-built, installed and physically-moved:
+41:
+42:| Role | Literal planned identities | Per layout | All three |
+43:| --- | --- | ---: | ---: |
+44:| Main engine-free | C01–C09,C12,C13,C14,C17 | 13 | 39 |
+45:| Main PUBLIC95 | C10,C11,C15,C16,C18 | 5 | 15 |
+46:| Retained redirection | original retained role | 48 | 144 |
+47:| Retained Unit2 | ALL current 50 identities, exactly once | 50 | 150 |
+48:| Retained conditional | current version | 67 | 201 |
+49:| Retained extension | current version | 35 | 105 |
+50:| Retained arrays | current version | 12 | 36 |
+51:| Retained exact-Promise N14 | current version | 12 | 36 |
+52:
+53:Thus 212 retained core rows/layout, 636 total; N14 adds 36, main adds 54:
+54:726 proposed semantic rows, 711 engine-free and 15 PUBLIC95. These are planned
+55:roles inherited from authenticated receipts, not newly executed/fully audited
+56:row censuses. Deduplicate by (role, exact fixture identity, layout), not printed
+57:short ID alone: different cohorts reuse C/H/S labels. Do not rerun/double-credit
+58:Unit2 from both its direct fixture and a retained aggregate. Design/native OPEN
+59:identities are not silently inserted into the 50 or counted as passes.
+60:
+61:C17 remains the unchanged NON-ASYNC guard returning the exact invoke Promise.
+62:Transformed/async wrapper provenance is not promised. C11/C14 retain the v4
+63:source-defined Git index header expectations; older expectations remain UNRUN.
+64:Independent proposed E01–E08 are distinct and not author execution slots.
+65:
+66:## Future commands and layouts — proposal, not dispatch authority
+67:
+68:All executable/cwd/env/read/write/output paths must use the same physical
+69:/private/tmp owned root, with no parent-directory permission widening. Use the
+70:pinned Node22.22.2 binary and Stage A's authenticated 2274 tool/12 link closure.
+71:No ambient npm configuration or network. Under a NEW runtime grant:
+72:
+73:1. Verify retained source, emissions, package and tool inventories; do not rebuild.
+74:2. Create a source-built shipping view from retained dist/package.json/README,
+75:   byte-identical to the 1014-member package. Do not import the mixed Stage A
+76:   source directory as if it were a shipping-only inventory.
+77:3. Invoke the admitted npm-cli.js using Node's existing owned-root permissions:
+78:   `install --offline --ignore-scripts --no-audit --no-fund --package-lock=false
+79:   --cache OWNED/cache --prefix OWNED/installed OWNED/input/virtual-bash-0.0.0.tgz`.
+80:   Recheck package/installer lifecycle policy; no execution is authorized now.
+81:4. Use a separate installed consumer directory and physically rename it for the
+82:   moved layout. Verify identical complete installed-package members before and
+83:   after movement. Rebuild request/load manifests for the physical moved paths.
+84:5. Stage admitted admission.mjs, unchanged v4/workflows.mjs and draft dispatch.mjs
+85:   together. Run Node with the independently admitted load/policy bootstrap and
+86:   `dispatch.mjs --run REQUEST EXPECTED_SHA EXPECTED_BYTES`. Profile and exact IDs
+87:   are separate engine-free/PUBLIC95 requests. Importing dispatch is inert.
+88:6. Type checks use admitted TS `tsc.js --noEmit --strict --target ES2022 --module
+89:   NodeNext --moduleResolution NodeNext --skipLibCheck false CONSUMER.mts` in each
+90:   staged consumer. Exact positive/negative fixture staging and diagnostic mapping
+91:   must still be sealed; no inference of 21 negative passes from planned sites.
+92:
+93:## Proposed actual envelope, requiring ROOT review
+94:
+95:Propose 45 minutes INCLUSIVE of 5-minute publication tail, 112 known OS starts,
+96:peak 4, case 30s, install/type child 120s, cleanup 5s, capture 192MiB total/8MiB
+97:per child, work 1GiB. Decode package at compressed exact930368/max1MiB, inflated
+98:64MiB ceiling; admit/close/release each archive before the next. PUBLIC input
+99:encoded1939657/decoded1454742/inflated5238350, limits respectively2MiB/2MiB/16MiB;
+100:PUBLIC98 encoded461669/max1MiB and inflated8MiB. Concurrent retained decoded
+101:buffers need an explicit 96MiB accounting ceiling in the future extractor.
+102:
+103:Reserve at most40 internal-loader admissions and 8 RegexWorkers for retained
+104:qualified regressions only; engine-free/main conditional logic must not use a
+105:guest Worker. Propose at most18 PUBLIC95 application Workers, maximum6/layout,
+106:tracked separately from internal loader threads, RegexWorkers and OS children.
+107:The exact C10/C18 command-to-Worker schedule and create/exit validation remain
+108:a blocking static audit item, not measured starts or an accepted ceiling. No
+109:provider job/preemption/RSS promise follows from these counters.
+110:
+111:## Maintained selector proposal — no outside edits
+112:
+113:Propose new `tests/integration/agent-bash-smoke.test.ts` and, only with ROOT
+114:approval, one literal-path script in package.json selecting that file plus the
+115:existing contracts/io.test.ts and contracts/command.test.ts after verifying
+116:their current names/roles. Do not use test globs. The new smoke should cover
+117:MemoryFS strict/conditional/redirection and inert Node provider dispatch with
+118:default80; actual PUBLIC95 belongs in a distinct explicitly selected integration
+119:entry. No native/private/network/held XAN/YQ auto-discovery. These outside paths
+120:are proposals only, not asserted existing authenticated fixture bindings.
+121:
+122:## Concrete blockers before an executable Stage B preseal
+123:
+124:1. Complete the maintained known-role outer supervisor wiring: capture-before-
+125:   launch, inclusive deadline, bounded drain, exit AND close, owned PID/group
+126:   observations, teardown faults and final tree guards. The draft dispatcher is
+127:   NOT an outer supervisor; its fatal timer needs that verified owner. No harmless
+128:   fixture cohort has run in this grant. Do not activate it alone.
+129:2. Finish exact staging/import/builtin tables for all retained helper sources and
+130:   types; audit stale export expectations against the new Node root metadata.

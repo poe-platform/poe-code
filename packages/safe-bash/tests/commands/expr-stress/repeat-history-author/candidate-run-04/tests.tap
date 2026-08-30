@@ -1,0 +1,1126 @@
+TAP version 13
+# Subtest: structural signal implements EventTarget and AbortSignal; native undefined is a DOMException
+ok 1 - structural signal implements EventTarget and AbortSignal; native undefined is a DOMException
+  ---
+  duration_ms: 0.85925
+  type: 'test'
+  ...
+# Subtest: direct run structural-undefined preaborted preserves rejection and sibling
+ok 2 - direct run structural-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.485917
+  type: 'test'
+  ...
+# Subtest: direct run structural-undefined startup preserves rejection and sibling
+ok 3 - direct run structural-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 32.867042
+  type: 'test'
+  ...
+# Subtest: direct run structural-undefined active preserves rejection and sibling
+ok 4 - direct run structural-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 44.616541
+  type: 'test'
+  ...
+# Subtest: direct run structural-undefined queued preserves rejection and sibling
+ok 5 - direct run structural-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 22.443292
+  type: 'test'
+  ...
+# Subtest: direct run native-undefined preaborted preserves rejection and sibling
+ok 6 - direct run native-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.212625
+  type: 'test'
+  ...
+# Subtest: direct run native-undefined startup preserves rejection and sibling
+ok 7 - direct run native-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 33.10825
+  type: 'test'
+  ...
+# Subtest: direct run native-undefined active preserves rejection and sibling
+ok 8 - direct run native-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 43.5695
+  type: 'test'
+  ...
+# Subtest: direct run native-undefined queued preserves rejection and sibling
+ok 9 - direct run native-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 24.535375
+  type: 'test'
+  ...
+# Subtest: direct run native-zero preaborted preserves rejection and sibling
+ok 10 - direct run native-zero preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.323208
+  type: 'test'
+  ...
+# Subtest: direct run native-zero startup preserves rejection and sibling
+ok 11 - direct run native-zero startup preserves rejection and sibling
+  ---
+  duration_ms: 33.347292
+  type: 'test'
+  ...
+# Subtest: direct run native-zero active preserves rejection and sibling
+ok 12 - direct run native-zero active preserves rejection and sibling
+  ---
+  duration_ms: 43.815959
+  type: 'test'
+  ...
+# Subtest: direct run native-zero queued preserves rejection and sibling
+ok 13 - direct run native-zero queued preserves rejection and sibling
+  ---
+  duration_ms: 24.301958
+  type: 'test'
+  ...
+# Subtest: direct run native-null preaborted preserves rejection and sibling
+ok 14 - direct run native-null preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.15375
+  type: 'test'
+  ...
+# Subtest: direct run native-null startup preserves rejection and sibling
+ok 15 - direct run native-null startup preserves rejection and sibling
+  ---
+  duration_ms: 33.223625
+  type: 'test'
+  ...
+# Subtest: direct run native-null active preserves rejection and sibling
+ok 16 - direct run native-null active preserves rejection and sibling
+  ---
+  duration_ms: 45.620084
+  type: 'test'
+  ...
+# Subtest: direct run native-null queued preserves rejection and sibling
+ok 17 - direct run native-null queued preserves rejection and sibling
+  ---
+  duration_ms: 22.613958
+  type: 'test'
+  ...
+# Subtest: direct run native-false preaborted preserves rejection and sibling
+ok 18 - direct run native-false preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.181917
+  type: 'test'
+  ...
+# Subtest: direct run native-false startup preserves rejection and sibling
+ok 19 - direct run native-false startup preserves rejection and sibling
+  ---
+  duration_ms: 33.369833
+  type: 'test'
+  ...
+# Subtest: direct run native-false active preserves rejection and sibling
+ok 20 - direct run native-false active preserves rejection and sibling
+  ---
+  duration_ms: 38.595459
+  type: 'test'
+  ...
+# Subtest: direct run native-false queued preserves rejection and sibling
+ok 21 - direct run native-false queued preserves rejection and sibling
+  ---
+  duration_ms: 18.220333
+  type: 'test'
+  ...
+# Subtest: direct run native-empty-string preaborted preserves rejection and sibling
+ok 22 - direct run native-empty-string preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.154916
+  type: 'test'
+  ...
+# Subtest: direct run native-empty-string startup preserves rejection and sibling
+ok 23 - direct run native-empty-string startup preserves rejection and sibling
+  ---
+  duration_ms: 31.216167
+  type: 'test'
+  ...
+# Subtest: direct run native-empty-string active preserves rejection and sibling
+ok 24 - direct run native-empty-string active preserves rejection and sibling
+  ---
+  duration_ms: 41.910084
+  type: 'test'
+  ...
+# Subtest: direct run native-empty-string queued preserves rejection and sibling
+ok 25 - direct run native-empty-string queued preserves rejection and sibling
+  ---
+  duration_ms: 23.111417
+  type: 'test'
+  ...
+# Subtest: direct run native-Error preaborted preserves rejection and sibling
+ok 26 - direct run native-Error preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.10675
+  type: 'test'
+  ...
+# Subtest: direct run native-Error startup preserves rejection and sibling
+ok 27 - direct run native-Error startup preserves rejection and sibling
+  ---
+  duration_ms: 30.84875
+  type: 'test'
+  ...
+# Subtest: direct run native-Error active preserves rejection and sibling
+ok 28 - direct run native-Error active preserves rejection and sibling
+  ---
+  duration_ms: 44.073791
+  type: 'test'
+  ...
+# Subtest: direct run native-Error queued preserves rejection and sibling
+ok 29 - direct run native-Error queued preserves rejection and sibling
+  ---
+  duration_ms: 17.636041
+  type: 'test'
+  ...
+# Subtest: session run native-undefined preaborted preserves rejection and sibling
+ok 30 - session run native-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.27725
+  type: 'test'
+  ...
+# Subtest: session run native-undefined startup preserves rejection and sibling
+ok 31 - session run native-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 32.406625
+  type: 'test'
+  ...
+# Subtest: session run native-undefined active preserves rejection and sibling
+ok 32 - session run native-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 42.616
+  type: 'test'
+  ...
+# Subtest: session run native-undefined queued preserves rejection and sibling
+ok 33 - session run native-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 22.288875
+  type: 'test'
+  ...
+# Subtest: session run native-zero preaborted preserves rejection and sibling
+ok 34 - session run native-zero preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.079625
+  type: 'test'
+  ...
+# Subtest: session run native-zero startup preserves rejection and sibling
+ok 35 - session run native-zero startup preserves rejection and sibling
+  ---
+  duration_ms: 30.649334
+  type: 'test'
+  ...
+# Subtest: session run native-zero active preserves rejection and sibling
+ok 36 - session run native-zero active preserves rejection and sibling
+  ---
+  duration_ms: 42.164167
+  type: 'test'
+  ...
+# Subtest: session run native-zero queued preserves rejection and sibling
+ok 37 - session run native-zero queued preserves rejection and sibling
+  ---
+  duration_ms: 23.560666
+  type: 'test'
+  ...
+# Subtest: session run native-null preaborted preserves rejection and sibling
+ok 38 - session run native-null preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.126083
+  type: 'test'
+  ...
+# Subtest: session run native-null startup preserves rejection and sibling
+ok 39 - session run native-null startup preserves rejection and sibling
+  ---
+  duration_ms: 33.553291
+  type: 'test'
+  ...
+# Subtest: session run native-null active preserves rejection and sibling
+ok 40 - session run native-null active preserves rejection and sibling
+  ---
+  duration_ms: 42.637083
+  type: 'test'
+  ...
+# Subtest: session run native-null queued preserves rejection and sibling
+ok 41 - session run native-null queued preserves rejection and sibling
+  ---
+  duration_ms: 19.539791
+  type: 'test'
+  ...
+# Subtest: session run native-false preaborted preserves rejection and sibling
+ok 42 - session run native-false preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.206792
+  type: 'test'
+  ...
+# Subtest: session run native-false startup preserves rejection and sibling
+ok 43 - session run native-false startup preserves rejection and sibling
+  ---
+  duration_ms: 31.942833
+  type: 'test'
+  ...
+# Subtest: session run native-false active preserves rejection and sibling
+ok 44 - session run native-false active preserves rejection and sibling
+  ---
+  duration_ms: 43.410292
+  type: 'test'
+  ...
+# Subtest: session run native-false queued preserves rejection and sibling
+ok 45 - session run native-false queued preserves rejection and sibling
+  ---
+  duration_ms: 23.14725
+  type: 'test'
+  ...
+# Subtest: session run native-empty-string preaborted preserves rejection and sibling
+ok 46 - session run native-empty-string preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.08275
+  type: 'test'
+  ...
+# Subtest: session run native-empty-string startup preserves rejection and sibling
+ok 47 - session run native-empty-string startup preserves rejection and sibling
+  ---
+  duration_ms: 31.764667
+  type: 'test'
+  ...
+# Subtest: session run native-empty-string active preserves rejection and sibling
+ok 48 - session run native-empty-string active preserves rejection and sibling
+  ---
+  duration_ms: 41.317708
+  type: 'test'
+  ...
+# Subtest: session run native-empty-string queued preserves rejection and sibling
+ok 49 - session run native-empty-string queued preserves rejection and sibling
+  ---
+  duration_ms: 22.08475
+  type: 'test'
+  ...
+# Subtest: session run native-Error preaborted preserves rejection and sibling
+ok 50 - session run native-Error preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.144125
+  type: 'test'
+  ...
+# Subtest: session run native-Error startup preserves rejection and sibling
+ok 51 - session run native-Error startup preserves rejection and sibling
+  ---
+  duration_ms: 31.557583
+  type: 'test'
+  ...
+# Subtest: session run native-Error active preserves rejection and sibling
+ok 52 - session run native-Error active preserves rejection and sibling
+  ---
+  duration_ms: 42.068875
+  type: 'test'
+  ...
+# Subtest: session run native-Error queued preserves rejection and sibling
+ok 53 - session run native-Error queued preserves rejection and sibling
+  ---
+  duration_ms: 26.783875
+  type: 'test'
+  ...
+# Subtest: run natural structural success and native valid-context cleanup
+ok 54 - run natural structural success and native valid-context cleanup
+  ---
+  duration_ms: 38.016292
+  type: 'test'
+  ...
+# Subtest: run active structural undefined awaits retirement before rejecting
+ok 55 - run active structural undefined awaits retirement before rejecting
+  ---
+  duration_ms: 28.429958
+  type: 'test'
+  ...
+# Subtest: run session preserves explicit transport rejection undefined
+ok 56 - run session preserves explicit transport rejection undefined
+  ---
+  duration_ms: 18.861667
+  type: 'test'
+  ...
+# Subtest: direct matchExpr structural-undefined preaborted preserves rejection and sibling
+ok 57 - direct matchExpr structural-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.139167
+  type: 'test'
+  ...
+# Subtest: direct matchExpr structural-undefined startup preserves rejection and sibling
+ok 58 - direct matchExpr structural-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 33.431709
+  type: 'test'
+  ...
+# Subtest: direct matchExpr structural-undefined active preserves rejection and sibling
+ok 59 - direct matchExpr structural-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 34.875333
+  type: 'test'
+  ...
+# Subtest: direct matchExpr structural-undefined queued preserves rejection and sibling
+ok 60 - direct matchExpr structural-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 24.65225
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-undefined preaborted preserves rejection and sibling
+ok 61 - direct matchExpr native-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.157708
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-undefined startup preserves rejection and sibling
+ok 62 - direct matchExpr native-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 33.285583
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-undefined active preserves rejection and sibling
+ok 63 - direct matchExpr native-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 41.714041
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-undefined queued preserves rejection and sibling
+ok 64 - direct matchExpr native-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 24.110375
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-zero preaborted preserves rejection and sibling
+ok 65 - direct matchExpr native-zero preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.153583
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-zero startup preserves rejection and sibling
+ok 66 - direct matchExpr native-zero startup preserves rejection and sibling
+  ---
+  duration_ms: 32.40975
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-zero active preserves rejection and sibling
+ok 67 - direct matchExpr native-zero active preserves rejection and sibling
+  ---
+  duration_ms: 45.580417
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-zero queued preserves rejection and sibling
+ok 68 - direct matchExpr native-zero queued preserves rejection and sibling
+  ---
+  duration_ms: 22.33025
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-null preaborted preserves rejection and sibling
+ok 69 - direct matchExpr native-null preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.114917
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-null startup preserves rejection and sibling
+ok 70 - direct matchExpr native-null startup preserves rejection and sibling
+  ---
+  duration_ms: 33.044917
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-null active preserves rejection and sibling
+ok 71 - direct matchExpr native-null active preserves rejection and sibling
+  ---
+  duration_ms: 42.87725
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-null queued preserves rejection and sibling
+ok 72 - direct matchExpr native-null queued preserves rejection and sibling
+  ---
+  duration_ms: 19.575667
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-false preaborted preserves rejection and sibling
+ok 73 - direct matchExpr native-false preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.189958
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-false startup preserves rejection and sibling
+ok 74 - direct matchExpr native-false startup preserves rejection and sibling
+  ---
+  duration_ms: 32.715459
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-false active preserves rejection and sibling
+ok 75 - direct matchExpr native-false active preserves rejection and sibling
+  ---
+  duration_ms: 43.293167
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-false queued preserves rejection and sibling
+ok 76 - direct matchExpr native-false queued preserves rejection and sibling
+  ---
+  duration_ms: 26.628041
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-empty-string preaborted preserves rejection and sibling
+ok 77 - direct matchExpr native-empty-string preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.107625
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-empty-string startup preserves rejection and sibling
+ok 78 - direct matchExpr native-empty-string startup preserves rejection and sibling
+  ---
+  duration_ms: 33.726041
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-empty-string active preserves rejection and sibling
+ok 79 - direct matchExpr native-empty-string active preserves rejection and sibling
+  ---
+  duration_ms: 43.335375
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-empty-string queued preserves rejection and sibling
+ok 80 - direct matchExpr native-empty-string queued preserves rejection and sibling
+  ---
+  duration_ms: 24.896792
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-Error preaborted preserves rejection and sibling
+ok 81 - direct matchExpr native-Error preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.110625
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-Error startup preserves rejection and sibling
+ok 82 - direct matchExpr native-Error startup preserves rejection and sibling
+  ---
+  duration_ms: 32.935875
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-Error active preserves rejection and sibling
+ok 83 - direct matchExpr native-Error active preserves rejection and sibling
+  ---
+  duration_ms: 41.040084
+  type: 'test'
+  ...
+# Subtest: direct matchExpr native-Error queued preserves rejection and sibling
+ok 84 - direct matchExpr native-Error queued preserves rejection and sibling
+  ---
+  duration_ms: 25.519917
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-undefined preaborted preserves rejection and sibling
+ok 85 - session matchExpr native-undefined preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.132208
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-undefined startup preserves rejection and sibling
+ok 86 - session matchExpr native-undefined startup preserves rejection and sibling
+  ---
+  duration_ms: 32.921959
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-undefined active preserves rejection and sibling
+ok 87 - session matchExpr native-undefined active preserves rejection and sibling
+  ---
+  duration_ms: 42.3185
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-undefined queued preserves rejection and sibling
+ok 88 - session matchExpr native-undefined queued preserves rejection and sibling
+  ---
+  duration_ms: 25.095583
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-zero preaborted preserves rejection and sibling
+ok 89 - session matchExpr native-zero preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.12875
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-zero startup preserves rejection and sibling
+ok 90 - session matchExpr native-zero startup preserves rejection and sibling
+  ---
+  duration_ms: 34.688916
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-zero active preserves rejection and sibling
+ok 91 - session matchExpr native-zero active preserves rejection and sibling
+  ---
+  duration_ms: 43.891708
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-zero queued preserves rejection and sibling
+ok 92 - session matchExpr native-zero queued preserves rejection and sibling
+  ---
+  duration_ms: 24.210625
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-null preaborted preserves rejection and sibling
+ok 93 - session matchExpr native-null preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.078958
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-null startup preserves rejection and sibling
+ok 94 - session matchExpr native-null startup preserves rejection and sibling
+  ---
+  duration_ms: 32.736
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-null active preserves rejection and sibling
+ok 95 - session matchExpr native-null active preserves rejection and sibling
+  ---
+  duration_ms: 37.167084
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-null queued preserves rejection and sibling
+ok 96 - session matchExpr native-null queued preserves rejection and sibling
+  ---
+  duration_ms: 24.930667
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-false preaborted preserves rejection and sibling
+ok 97 - session matchExpr native-false preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.093958
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-false startup preserves rejection and sibling
+ok 98 - session matchExpr native-false startup preserves rejection and sibling
+  ---
+  duration_ms: 34.930791
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-false active preserves rejection and sibling
+ok 99 - session matchExpr native-false active preserves rejection and sibling
+  ---
+  duration_ms: 41.837
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-false queued preserves rejection and sibling
+ok 100 - session matchExpr native-false queued preserves rejection and sibling
+  ---
+  duration_ms: 23.960167
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-empty-string preaborted preserves rejection and sibling
+ok 101 - session matchExpr native-empty-string preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.092542
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-empty-string startup preserves rejection and sibling
+ok 102 - session matchExpr native-empty-string startup preserves rejection and sibling
+  ---
+  duration_ms: 33.717291
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-empty-string active preserves rejection and sibling
+ok 103 - session matchExpr native-empty-string active preserves rejection and sibling
+  ---
+  duration_ms: 41.475833
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-empty-string queued preserves rejection and sibling
+ok 104 - session matchExpr native-empty-string queued preserves rejection and sibling
+  ---
+  duration_ms: 24.049333
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-Error preaborted preserves rejection and sibling
+ok 105 - session matchExpr native-Error preaborted preserves rejection and sibling
+  ---
+  duration_ms: 0.082625
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-Error startup preserves rejection and sibling
+ok 106 - session matchExpr native-Error startup preserves rejection and sibling
+  ---
+  duration_ms: 32.093459
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-Error active preserves rejection and sibling
+ok 107 - session matchExpr native-Error active preserves rejection and sibling
+  ---
+  duration_ms: 43.4635
+  type: 'test'
+  ...
+# Subtest: session matchExpr native-Error queued preserves rejection and sibling
+ok 108 - session matchExpr native-Error queued preserves rejection and sibling
+  ---
+  duration_ms: 24.1355
+  type: 'test'
+  ...
+# Subtest: matchExpr natural structural success and native valid-context cleanup
+ok 109 - matchExpr natural structural success and native valid-context cleanup
+  ---
+  duration_ms: 39.06575
+  type: 'test'
+  ...
+# Subtest: matchExpr active structural undefined awaits retirement before rejecting
+ok 110 - matchExpr active structural undefined awaits retirement before rejecting
+  ---
+  duration_ms: 28.310958
+  type: 'test'
+  ...
+# {"abortReasonWorkers":138,"activeBeforeSafetyCleanup":0,"activeAfter":0}
+# Subtest: matchExpr session preserves explicit transport rejection undefined
+ok 111 - matchExpr session preserves explicit transport rejection undefined
+  ---
+  duration_ms: 19.35975
+  type: 'test'
+  ...
+# Subtest: expr skipped regex branches submit/compile zero jobs and never access stdin
+ok 112 - expr skipped regex branches submit/compile zero jobs and never access stdin
+  ---
+  duration_ms: 2.159208
+  type: 'test'
+  ...
+# Subtest: registration is synchronous before session admission and rejected cleanup acquires nothing
+ok 113 - registration is synchronous before session admission and rejected cleanup acquires nothing
+  ---
+  duration_ms: 25.513208
+  type: 'test'
+  ...
+# Subtest: expr cleanup shares one promise with finally and closes active matching
+ok 114 - expr cleanup shares one promise with finally and closes active matching
+  ---
+  duration_ms: 23.265084
+  type: 'test'
+  ...
+# Subtest: active and startup cancellation preserve exact reasons and reap workers
+ok 115 - active and startup cancellation preserve exact reasons and reap workers
+  ---
+  duration_ms: 28.418083
+  type: 'test'
+  ...
+# Subtest: startup and active deadlines remain separate with retirement before rejection
+ok 116 - startup and active deadlines remain separate with retirement before rejection
+  ---
+  duration_ms: 93.961167
+  type: 'test'
+  ...
+# Subtest: actual bounded BRE execution is terminated by the active deadline
+ok 117 - actual bounded BRE execution is terminated by the active deadline
+  ---
+  duration_ms: 20.907667
+  type: 'test'
+  ...
+# Subtest: expr admission bytes/count, queued ownership, cancellation and sibling sessions
+ok 118 - expr admission bytes/count, queued ownership, cancellation and sibling sessions
+  ---
+  duration_ms: 47.244916
+  type: 'test'
+  ...
+# Subtest: queued abort withdraws admission without retiring another session's worker
+ok 119 - queued abort withdraws admission without retiring another session's worker
+  ---
+  duration_ms: 27.728959
+  type: 'test'
+  ...
+# Subtest: malformed reply, worker exit and syntax failure retire only the failed worker
+ok 120 - malformed reply, worker exit and syntax failure retire only the failed worker
+  ---
+  duration_ms: 121.617458
+  type: 'test'
+  ...
+# Subtest: idle retirement and executor dispose keep expr sessions bounded
+ok 121 - idle retirement and executor dispose keep expr sessions bounded
+  ---
+  duration_ms: 35.488417
+  type: 'test'
+  ...
+# {"exprWorkers":20,"activeBeforeSafetyCleanup":0,"activeAfter":0}
+# Subtest: actual Shell abort settles after regex retirement and leaves siblings usable
+ok 122 - actual Shell abort settles after regex retirement and leaves siblings usable
+  ---
+  duration_ms: 45.911625
+  type: 'test'
+  ...
+# Subtest: expr regex cap: input bytes
+ok 123 - expr regex cap: input bytes
+  ---
+  duration_ms: 2.267334
+  type: 'test'
+  ...
+# Subtest: expr regex cap: nodes
+ok 124 - expr regex cap: nodes
+  ---
+  duration_ms: 22.315084
+  type: 'test'
+  ...
+# Subtest: expr regex cap: depth
+ok 125 - expr regex cap: depth
+  ---
+  duration_ms: 19.559125
+  type: 'test'
+  ...
+# Subtest: expr regex cap: states
+ok 126 - expr regex cap: states
+  ---
+  duration_ms: 21.236875
+  type: 'test'
+  ...
+# Subtest: expr regex cap: allocation
+ok 127 - expr regex cap: allocation
+  ---
+  duration_ms: 18.596416
+  type: 'test'
+  ...
+# Subtest: expr regex cap: work
+ok 128 - expr regex cap: work
+  ---
+  duration_ms: 19.531916
+  type: 'test'
+  ...
+# Subtest: expr regex cap: output bytes
+ok 129 - expr regex cap: output bytes
+  ---
+  duration_ms: 22.051291
+  type: 'test'
+  ...
+# Subtest: regex policy ceilings are validated at factory creation
+ok 130 - regex policy ceilings are validated at factory creation
+  ---
+  duration_ms: 0.518333
+  type: 'test'
+  ...
+# Subtest: regex capture output preserves partial C bytes and waits for backpressure
+ok 131 - regex capture output preserves partial C bytes and waits for backpressure
+  ---
+  duration_ms: 19.645917
+  type: 'test'
+  ...
+# Subtest: actual Shell expr plugin evaluates regex in pipelines and redirections
+ok 132 - actual Shell expr plugin evaluates regex in pipelines and redirections
+  ---
+  duration_ms: 94.889333
+  type: 'test'
+  ...
+# Subtest: expr replies validate exact shape, original byte bounds and scalar boundaries
+ok 133 - expr replies validate exact shape, original byte bounds and scalar boundaries
+  ---
+  duration_ms: 1.194792
+  type: 'test'
+  ...
+# Subtest: expr request shape, limits and admission validation are bounded
+ok 134 - expr request shape, limits and admission validation are bounded
+  ---
+  duration_ms: 0.325041
+  type: 'test'
+  ...
+# Subtest: worker returns distinct absent, unmatched, empty and failed capture states
+ok 135 - worker returns distinct absent, unmatched, empty and failed capture states
+  ---
+  duration_ms: 26.497541
+  type: 'test'
+  ...
+# Subtest: the BRE compiler refuses main-thread execution
+ok 136 - the BRE compiler refuses main-thread execution
+  ---
+  duration_ms: 6.201209
+  type: 'test'
+  ...
+# Subtest: expr longest matching does not change legacy ordered alternatives in the same worker
+ok 137 - expr longest matching does not change legacy ordered alternatives in the same worker
+  ---
+  duration_ms: 23.363083
+  type: 'test'
+  ...
+# Subtest: provisional sole-empty/first-completed policy: original subject ""
+ok 138 - provisional sole-empty/first-completed policy: original subject ""
+  ---
+  duration_ms: 22.594667
+  type: 'test'
+  ...
+# Subtest: provisional sole-empty/first-completed policy: original subject "a"
+ok 139 - provisional sole-empty/first-completed policy: original subject "a"
+  ---
+  duration_ms: 0.599625
+  type: 'test'
+  ...
+# Subtest: provisional sole-empty/first-completed policy: original subject "aa"
+ok 140 - provisional sole-empty/first-completed policy: original subject "aa"
+  ---
+  duration_ms: 0.337417
+  type: 'test'
+  ...
+# Subtest: provisional sole-empty/first-completed policy: original subject "aaa"
+ok 141 - provisional sole-empty/first-completed policy: original subject "aaa"
+  ---
+  duration_ms: 0.271834
+  type: 'test'
+  ...
+# Subtest: required empty iterations finish with completed captures: \\(a*\\)\\{2\\}\\1
+ok 142 - required empty iterations finish with completed captures: \\(a*\\)\\{2\\}\\1
+  ---
+  duration_ms: 0.314041
+  type: 'test'
+  ...
+# Subtest: required empty iterations finish with completed captures: \\(\\)\\{2\\}\\1
+ok 143 - required empty iterations finish with completed captures: \\(\\)\\{2\\}\\1
+  ---
+  duration_ms: 0.40325
+  type: 'test'
+  ...
+# Subtest: required empty iterations finish with completed captures: \\(\\(a*\\)\\{2\\}\\)\\{3\\}\\2
+ok 144 - required empty iterations finish with completed captures: \\(\\(a*\\)\\{2\\}\\)\\{3\\}\\2
+  ---
+  duration_ms: 0.277709
+  type: 'test'
+  ...
+# Subtest: zero iterations leave captures absent: \\(a*\\)\\{0\\}\\1
+ok 145 - zero iterations leave captures absent: \\(a*\\)\\{0\\}\\1
+  ---
+  duration_ms: 0.25025
+  type: 'test'
+  ...
+# Subtest: zero iterations leave captures absent: \\(\\)\\{0\\}\\1
+ok 146 - zero iterations leave captures absent: \\(\\)\\{0\\}\\1
+  ---
+  duration_ms: 0.379667
+  type: 'test'
+  ...
+# Subtest: static repeat identity does not unroll 1000 required empty copies into nodes
+ok 147 - static repeat identity does not unroll 1000 required empty copies into nodes
+  ---
+  duration_ms: 1.6755
+  type: 'test'
+  ...
+# Subtest: required progress counts remain bounded by maxSteps
+ok 148 - required progress counts remain bounded by maxSteps
+  ---
+  duration_ms: 14.955917
+  type: 'test'
+  ...
+# Subtest: required progress counts remain bounded by maxAllocatedUnits
+ok 149 - required progress counts remain bounded by maxAllocatedUnits
+  ---
+  duration_ms: 19.862375
+  type: 'test'
+  ...
+# Subtest: nullable branch state admission rejects before publishing an earlier match
+ok 150 - nullable branch state admission rejects before publishing an earlier match
+  ---
+  duration_ms: 20.936542
+  type: 'test'
+  ...
+# Subtest: original prototype regressions stay fixed to existing CLI bytes, not flat capture length
+ok 151 - original prototype regressions stay fixed to existing CLI bytes, not flat capture length
+  ---
+  duration_ms: 39.367542
+  type: 'test'
+  ...
+# Subtest: actual CLI aaa is a completed witness, not GNU's unfinished-register empty output
+ok 152 - actual CLI aaa is a completed witness, not GNU's unfinished-register empty output
+  ---
+  duration_ms: 21.403958
+  type: 'test'
+  ...
+# Subtest: nullable capture obeys exact suffix and anchor continuation
+ok 153 - nullable capture obeys exact suffix and anchor continuation
+  ---
+  duration_ms: 18.616
+  type: 'test'
+  ...
+# Subtest: provisional descendant last-participation survives a skipped later inner group
+ok 154 - provisional descendant last-participation survives a skipped later inner group
+  ---
+  duration_ms: 0.377875
+  type: 'test'
+  ...
+# Subtest: 63 bounded subjects have complete witnesses and maximal whole endpoints under the provisional empty rule
+ok 155 - 63 bounded subjects have complete witnesses and maximal whole endpoints under the provisional empty rule
+  ---
+  duration_ms: 7.612916
+  type: 'test'
+  ...
+# Subtest: exact maxSteps admission boundary: nullable
+ok 156 - exact maxSteps admission boundary: nullable
+  ---
+  duration_ms: 152.321791
+  type: 'test'
+  ...
+# {"name":"nullable","limit":"maxSteps","admitted":1833,"rejected":1832,"rejection":"engine-limit"}
+# Subtest: exact maxAllocatedUnits admission boundary: nullable
+ok 157 - exact maxAllocatedUnits admission boundary: nullable
+  ---
+  duration_ms: 170.248417
+  type: 'test'
+  ...
+# {"name":"nullable","limit":"maxAllocatedUnits","admitted":1670,"rejected":1669,"rejection":"engine-limit"}
+# Subtest: exact maxNodes admission boundary: nullable
+ok 158 - exact maxNodes admission boundary: nullable
+  ---
+  duration_ms: 99.342791
+  type: 'test'
+  ...
+# {"name":"nullable","limit":"maxNodes","admitted":16,"rejected":15,"rejection":"engine-limit"}
+# Subtest: exact maxStates admission boundary: nullable
+ok 159 - exact maxStates admission boundary: nullable
+  ---
+  duration_ms: 102.932459
+  type: 'test'
+  ...
+# {"name":"nullable","limit":"maxStates","admitted":24,"rejected":23,"rejection":"engine-limit"}
+# Subtest: exact maxSteps admission boundary: required-empty
+ok 160 - exact maxSteps admission boundary: required-empty
+  ---
+  duration_ms: 120.180583
+  type: 'test'
+  ...
+# {"name":"required-empty","limit":"maxSteps","admitted":876,"rejected":875,"rejection":"engine-limit"}
+# Subtest: exact maxAllocatedUnits admission boundary: required-empty
+ok 161 - exact maxAllocatedUnits admission boundary: required-empty
+  ---
+  duration_ms: 147.170292
+  type: 'test'
+  ...
+# {"name":"required-empty","limit":"maxAllocatedUnits","admitted":813,"rejected":812,"rejection":"engine-limit"}
+# Subtest: exact maxNodes admission boundary: required-empty
+ok 162 - exact maxNodes admission boundary: required-empty
+  ---
+  duration_ms: 59.583584
+  type: 'test'
+  ...
+# {"name":"required-empty","limit":"maxNodes","admitted":11,"rejected":10,"rejection":"engine-limit"}
+# Subtest: exact maxStates admission boundary: required-empty
+ok 163 - exact maxStates admission boundary: required-empty
+  ---
+  duration_ms: 22.277917
+  type: 'test'
+  ...
+# {"name":"required-empty","limit":"maxStates","admitted":1,"rejected":0,"rejection":"protocol-minimum"}
+# Subtest: exact maxSteps admission boundary: branch-rollback
+ok 164 - exact maxSteps admission boundary: branch-rollback
+  ---
+  duration_ms: 103.171542
+  type: 'test'
+  ...
+# {"name":"branch-rollback","limit":"maxSteps","admitted":592,"rejected":591,"rejection":"engine-limit"}
+# Subtest: exact maxAllocatedUnits admission boundary: branch-rollback
+ok 165 - exact maxAllocatedUnits admission boundary: branch-rollback
+  ---
+  duration_ms: 103.047416
+  type: 'test'
+  ...
+# {"name":"branch-rollback","limit":"maxAllocatedUnits","admitted":542,"rejected":541,"rejection":"engine-limit"}
+# Subtest: exact maxNodes admission boundary: branch-rollback
+ok 166 - exact maxNodes admission boundary: branch-rollback
+  ---
+  duration_ms: 59.018709
+  type: 'test'
+  ...
+# {"name":"branch-rollback","limit":"maxNodes","admitted":18,"rejected":17,"rejection":"engine-limit"}
+# Subtest: exact maxStates admission boundary: branch-rollback
+ok 167 - exact maxStates admission boundary: branch-rollback
+  ---
+  duration_ms: 40.920541
+  type: 'test'
+  ...
+# {"name":"branch-rollback","limit":"maxStates","admitted":2,"rejected":1,"rejection":"engine-limit"}
+# Subtest: exact maxSteps admission boundary: nested
+ok 168 - exact maxSteps admission boundary: nested
+  ---
+  duration_ms: 106.095167
+  type: 'test'
+  ...
+# {"name":"nested","limit":"maxSteps","admitted":1336,"rejected":1335,"rejection":"engine-limit"}
+# Subtest: exact maxAllocatedUnits admission boundary: nested
+ok 169 - exact maxAllocatedUnits admission boundary: nested
+  ---
+  duration_ms: 148.384042
+  type: 'test'
+  ...
+# {"name":"nested","limit":"maxAllocatedUnits","admitted":1213,"rejected":1212,"rejection":"engine-limit"}
+# Subtest: exact maxNodes admission boundary: nested
+ok 170 - exact maxNodes admission boundary: nested
+  ---
+  duration_ms: 86.680209
+  type: 'test'
+  ...
+# {"name":"nested","limit":"maxNodes","admitted":22,"rejected":21,"rejection":"engine-limit"}
+# Subtest: exact maxStates admission boundary: nested
+ok 171 - exact maxStates admission boundary: nested
+  ---
+  duration_ms: 67.895
+  type: 'test'
+  ...
+# {"name":"nested","limit":"maxStates","admitted":10,"rejected":9,"rejection":"engine-limit"}
+# Subtest: branch rollback does not leak inner participation
+ok 172 - branch rollback does not leak inner participation
+  ---
+  duration_ms: 21.078208
+  type: 'test'
+  ...
+# Subtest: failed shorter alternative restores open outer capture
+ok 173 - failed shorter alternative restores open outer capture
+  ---
+  duration_ms: 0.417375
+  type: 'test'
+  ...
+# Subtest: absent closed group is not completed empty
+ok 174 - absent closed group is not completed empty
+  ---
+  duration_ms: 0.35375
+  type: 'test'
+  ...
+# Subtest: completed empty group can be referenced
+ok 175 - completed empty group can be referenced
+  ---
+  duration_ms: 0.698709
+  type: 'test'
+  ...
+# Subtest: reopened nonnullable capture closes at new position
+ok 176 - reopened nonnullable capture closes at new position
+  ---
+  duration_ms: 0.3055
+  type: 'test'
+  ...
+# Subtest: end anchor excludes final newline
+ok 177 - end anchor excludes final newline
+  ---
+  duration_ms: 0.233958
+  type: 'test'
+  ...
+# Subtest: C byte capture preserves invalid UTF-8 without malformed wire intervals
+ok 178 - C byte capture preserves invalid UTF-8 without malformed wire intervals
+  ---
+  duration_ms: 0.281834
+  type: 'test'
+  ...
+# Subtest: scalar repetition returns byte offsets, including supplementary characters
+ok 179 - scalar repetition returns byte offsets, including supplementary characters
+  ---
+  duration_ms: 0.392958
+  type: 'test'
+  ...
+# Subtest: maxSteps exhaustion rejects instead of returning partial best
+ok 180 - maxSteps exhaustion rejects instead of returning partial best
+  ---
+  duration_ms: 23.222625
+  type: 'test'
+  ...
+# Subtest: maxAllocatedUnits exhaustion rejects instead of returning partial best
+ok 181 - maxAllocatedUnits exhaustion rejects instead of returning partial best
+  ---
+  duration_ms: 18.761833
+  type: 'test'
+  ...
+# Subtest: maxNodes exhaustion rejects instead of returning partial best
+ok 182 - maxNodes exhaustion rejects instead of returning partial best
+  ---
+  duration_ms: 20.319959
+  type: 'test'
+  ...
+# Subtest: maxStates exhaustion rejects instead of returning partial best
+ok 183 - maxStates exhaustion rejects instead of returning partial best
+  ---
+  duration_ms: 21.555208
+  type: 'test'
+  ...
+1..183
+# tests 183
+# suites 0
+# pass 183
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6437.499

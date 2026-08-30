@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "profile": "root-ratified-literal-fixed-v1",
+  "execution": "NOT_RUN",
+  "authority": "User assignment overrides proposal-only API/configuration; profile and original32 are immutable cited inputs.",
+  "ownership": "tests/commands/apply-patch-independent-20260828/matrix/",
+  "candidateInspected": false,
+  "candidateImported": false,
+  "productExecuted": false,
+  "nativeOracleExecuted": false,
+  "comparatorExecuted": false,
+  "networkProductExecuted": false,
+  "defaults": {
+    "cwd": "/work",
+    "directories": [
+      "/",
+      "/work"
+    ],
+    "capabilities": {
+      "readOnly": false,
+      "permissions": true
+    },
+    "access": "allow",
+    "fileType": "file",
+    "targetBytes": "owned Uint8Array",
+    "signal": "one borrowed root signal",
+    "stdinIsDefault": false,
+    "unrelatedSentinel": {
+      "path": "/sentinel",
+      "bytes": {
+        "hex": "00ff53454e54494e454c0a"
+      }
+    },
+    "externalMutation": "none unless explicitly scheduled",
+    "unknownIdentity": "unknown, never fabricated distinctness"
+  },
+  "fixtureEncoding": {
+    "utf8": "exact Unicode scalar text encoded UTF-8; no normalization",
+    "hex": "exact even-length lower-case hexadecimal bytes",
+    "concat": "ordered concatenation of byte specs",
+    "repeat": "{repeat: byteSpec, count: nonnegative safe integer}",
+    "utf16CodeUnits": "literal JS argv string including deliberately malformed surrogate; never pre-replacement-encode",
+    "parameterization": "Only explicit finite variants expand. Templates and substitutions are specified per boundary row; never execute text as code."
+  },
+  "limits": {
+    "maxPatchBytes": 4194304,
+    "maxFileBytes": 8388608,
+    "maxStagedBytes": 33554432,
+    "maxReadBytes": 67108864,
+    "maxFiles": 256,
+    "maxHunks": 4096,
+    "maxWork": 134217728,
+    "maxPathBytes": 16384,
+    "maxPathComponents": 256,
+    "maxLines": 262144,
+    "maxInputChunks": 65536,
+    "maxFsCalls": 65536,
+    "maxOutputBytes": 1048576,
+    "maxDiagnosticBytes": 16384,
+    "yieldEveryWorkUnits": 4096,
+    "maxSinkChunkBytes": 16384
+  },
+  "constraints": {
+    "GLOBAL": [
+      "No native process, host fallback, network, environment expansion, source import or nested Shell by product.",
+      "All command FS calls carry the supplied signal. Await every sink write; stdout/stderr chunks <=16384 bytes.",
+      "No recursive removal, temp rename, backup/reject files, rollback or new public options/limits.",
+      "Unspecified entries and /sentinel remain byte-for-byte unchanged. Exact files maps describe all declared fixture files, not merely a subset; explicit actor/housekeeping effects are separate.",
+      "No inode/metadata preservation or hardlink isolation is inferred from content equality."
+    ],
+    "INITIAL_PREFLIGHT": [
+      "Complete syntax/lexical conflict validation before any FS call.",
+      "ReadOnly capability refusal before target reads.",
+      "Complete ALL initial metadata/alias/permission/content and bounded-summary reservations before first command mkdir/writeFile/rm.",
+      "Preflight may cause adapter read-side atime/garbage housekeeping; that is not a command publication or proof of zero backend writes.",
+      "Validate existing components with lstat; observed symlinks/non-directory ancestors/non-file leaves refuse."
+    ],
+    "SUCCESS": [
+      "Return exitCode 0 only after publication and awaited summary emission and cooperative cleanup.",
+      "stdout exact specified summary in input operation order using literal header paths; Move reports destination M; stderr empty.",
+      "New Add uses flag wx; existing Add/Update uses w. Unchanged Update skips write.",
+      "Create absent parents individually after preflight; validate EEXIST as directory. Revalidate bytes/metadata before destructive effects."
+    ],
+    "NO_COMMAND_MUTATION": [
+      "Command issues zero mkdir/writeFile/appendFile/writeStream/rm/rmdir/rename/copyFile/truncate/chmod/link/symlink/utimes calls.",
+      "Actor and disclosed read-side housekeeping are not forbidden by this constraint. This constraint concerns mutations only; each case separately specifies output, including successful unchanged-content Update."
+    ],
+    "ZERO_FS_CALLS": [
+      "No public VFS method invocation, including metadata/access/compareEntry."
+    ],
+    "MOVE": [
+      "Destination must be absent and writeFile flag wx must fulfill before source removal.",
+      "After destination fulfillment, revalidate source bytes/metadata before rm(source,{recursive:false or omitted}).",
+      "Failed, uncertain, ENOTSUP or raced destination write never permits source rm or retry using w.",
+      "No native rename/copy fallback. Successful destination can remain when later source revalidation/unlink fails."
+    ],
+    "REASON": [
+      "Direct handler escaping rejection uses exact thrown-reason identity, including falsy values; not wrapped/coerced to status 2.",
+      "Actual Shell/runtime mapping is separate: assert root caller > escaping execution/control failure > local cancellation; numeric mapped statuses do not resurrect escaping errors.",
+      "Caller cancellation observed before public settlement wins over execution and cleanup, even errno-shaped reason.",
+      "Otherwise preserve selected execution rejection; otherwise sole cleanup failure unchanged or AggregateError for multiple failures; otherwise numeric result.",
+      "Do not wait for opaque losing host promise to discover hypothetical future errors; observe its late rejection."
+    ],
+    "CLEANUP": [
+      "Register owned cleanup synchronously before acquisition/admission; same idempotent callback in finally; overlapping closes share completion.",
+      "Close acquisition admission permanently; drain admitted cooperative resources before public exec/dispose settlement.",
+      "No arbitrary host next/return/FS/sink work becomes cooperative owned work merely by awaiting it.",
+      "Direct contexts without registerCleanup still execute finally; no runtime barrier guarantee is invented."
+    ],
+    "OUTPUT_ISOLATION": [
+      "stdout-owned close controls only enrolled stdout summary work, not sibling file/stderr resources or root signal.",
+      "Closing stdout is not root-caller cancellation. File effects already completed remain.",
+      "Destination ownership must be explicit; wrapping a sink alone does not enroll children."
+    ],
+    "BOUNDED": [
+      "Charge checked capacity before allocation/copy/record retention/FS call/work.",
+      "Count all stdin chunks including zero-length; own retained source bytes before next pull AND producer finalization.",
+      "Use readFile(maxBytes:8388608) or tighter remaining allowance; charge initial and revalidation bytes cumulatively.",
+      "Yield at <=4096 charged work-unit intervals and check cancellation before/after and final flush.",
+      "No lowered public caps/options or raised shared shell budget to reach a test. A masked cap is not a pass."
+    ]
+  },
+  "diagnostics": {
+    "preflight-diagnostic": {
+      "stdoutBytes": 0,
+      "stderrUtf8": true,
+      "prefix": "apply_patch: ",
+      "endsWith": "\n",
+      "maxBytes": 16384,
+      "semantic": "Human-readable failure meaning and relevant target/path; no invented exact body; source review required before exact assertion."
+    },
+    "publication-diagnostic": {
+      "stdoutBytes": 0,
+      "stderrUtf8": true,
+      "prefix": "apply_patch: ",
+      "endsWith": "\n",
+      "maxBytes": 16384,
+      "semantic": "Error meaning, failing path and operation ordinal; explicitly prior changes may remain; never claim rollback.",
+      "specifiedPartialPhrase": "operation N; prior changes may remain"
+    },
+    "escaped-reason": {
+      "semantic": "Do not manufacture command diagnostic/exit status for unexpected host rejection; direct reason identity asserted; runtime mapping separately bound."
+    },
+    "truncation": {
+      "suffix": " [truncated]\n",
+      "inclusiveMaxBytes": 16384,
+      "reserveBeforeConstruction": true
+    }
+  },
+  "limitations": [
+    "Stable honest host/VFS positive profile, not hostile-JavaScript sandbox.",
+    "No namespace atomicity, CAS, ABA defense or guarantee against an unobserved racing symlink.",
+    "Permission ENOTSUP/EOPNOTSUPP with permissions:false is UNOBSERVABLE, not allow; provider write still authorizes.",
+    "In-place Add/Update on hardlinks follows provider behavior; multiple known alias operations refuse.",
+    "Derived-only tree identities need canonical reconstruction/hash authentication, not stored-object lookup. Stored-object claims still require verification.",
+    "All future semantic executions remain NOT_RUN; synthetic preparation cannot establish product parity or service acceptance."
+  ]
+}

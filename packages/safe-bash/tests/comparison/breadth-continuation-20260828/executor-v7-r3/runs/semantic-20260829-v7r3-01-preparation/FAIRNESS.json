@@ -1,0 +1,320 @@
+{
+  "schema": "SEMANTIC_PROFILE_FAIRNESS_NOT_WINNER_V1",
+  "global": {
+    "pinnedComparator": "just-bash3.4.2 not latest",
+    "nonstockBootstrap": "Only ordered literal module then worker_threads returns undefined; zero delegation; all wrappers revoked before factory. This is NOT stock Node capabilities and NOT caller authentication.",
+    "scope": "Agent-command semantic comparisons within explicitly different engine adapters, not whole runtime superiority or equal resource cost.",
+    "guardRefusal": "Record harness/capability-profile refusal separately; do not call it an implementation failure. Unsafe guard/closure failures stop dependents and leave tails unrun.",
+    "network": "No transport/mocks configured in frozen33; no external requests. This cohort does not compare curl/network/provider behavior.",
+    "faults": "No new injected fault adapters/guest engines; historical admission fault controls are bound, not repeated or counted as semantic calls.",
+    "stdin": "Target admits Uint8Array except W03 owned four-chunk async source. Comparator admits Latin-1 ByteString with stdinKind=bytes, rawScript=true, replaceEnv=true.",
+    "stderr": "Target raw stderrBytes; comparator UTF8 encoding of public string. No comparator arbitrary-binary stderr identity claim.",
+    "disposal": "Target await shell.dispose; comparator has no authenticated dispose API. Settled return, offline pending/descriptors checks and natural process closure bound comparator scope, not equivalent lifecycle APIs.",
+    "performance": "No benchmark/speed claim; sleep-positive retains its frozen >=10ms product-exec observation only."
+  },
+  "rows": [
+    {
+      "id": "column-positive",
+      "script": "column -t -s , -o '|' input.csv",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "date-positive",
+      "script": "date -u -d @0 '+%Y-%m-%dT%H:%M:%SZ'",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "du-positive",
+      "script": "du data.txt",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "UNCHANGED_PHYSICAL_ALLOCATION_INTENT_PROFILE_GAP_NOT_NATIVE_PARITY",
+      "additionalQualification": null
+    },
+    {
+      "id": "egrep-positive",
+      "script": "egrep '^(red|blue)$' colors",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "expand-positive",
+      "script": "expand -t 4 tabs",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "expr-positive",
+      "script": "expr 7 + 5",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "fgrep-positive",
+      "script": "fgrep 'a.b' literals",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "file-positive",
+      "script": "file -b note.txt",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "fold-positive",
+      "script": "fold -w 4 lines",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "getopts-positive",
+      "script": "getopts 'n:' option -n value && printf '%s:%s:%s\\n' \"$option\" \"$OPTARG\" \"$OPTIND\"",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "html-to-markdown-positive",
+      "script": "html-to-markdown page.html",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "nl-positive",
+      "script": "nl -ba -w 1 -s ':' lines",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "printenv-positive",
+      "script": "printenv COVERAGE_VALUE",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "rev-positive",
+      "script": "rev lines",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "seq-positive",
+      "script": "seq 2 3 8",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "sleep-positive",
+      "script": "sleep 0.02",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "UNCHANGED_MINIMUM_WAIT_SEMANTICS_NOT_PERFORMANCE",
+      "additionalQualification": null
+    },
+    {
+      "id": "split-positive",
+      "script": "split -l 2 rows part-",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "strings-positive",
+      "script": "strings -n 4 blob",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "tac-positive",
+      "script": "tac rows",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "timeout-positive",
+      "script": "timeout 5 printf '%s\\n' bounded",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "tree-positive",
+      "script": "tree tree-input",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "unexpand-positive",
+      "script": "unexpand -a -t 4 spaces",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "which-positive",
+      "script": "which echo",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "UNCHANGED_FIXED_PATH_INTENT_NOT_COMMAND_NAME_WIN",
+      "additionalQualification": null
+    },
+    {
+      "id": "W01",
+      "script": "cat inventory | grep '^keep:' | cut -d : -f 2 | sort | uniq | tee selected",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "W02",
+      "script": "split -l 2 rows part- && cat part-aa part-ab | tee joined",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "W03",
+      "script": "timeout 0 cat | tee copied",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_BYTES_STATUS_FS_WITH_SEPARATE_PARTIAL_TELEMETRY",
+      "additionalQualification": null
+    },
+    {
+      "id": "W04",
+      "script": "getopts 'n:' option -n result.txt && printf '%s:%s\\n' \"$option\" \"$OPTIND\" > \"$OPTARG\" && cat result.txt",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "W05",
+      "script": "html-to-markdown page.html | tee rendered.md | grep '^#'",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "W06",
+      "script": "du -b a.txt b.txt | tee sizes",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "EXPLICIT_APPARENT_BYTES_NO_PHYSICAL_ALLOCATION_CLAIM",
+      "additionalQualification": "Explicit apparent-size mode only; Memory allocation unknown remains unknown. Not old du-positive credit, physical parity or another metadata audit."
+    },
+    {
+      "id": "W07",
+      "script": "which tool > resolved && cat resolved",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "TARGET_OBSERVATIONS_REQUIRED_COMPARATOR_UNQUALIFIED_UNCREDITED",
+      "additionalQualification": "No which echo reinterpretation; actual virtual file/access semantics."
+    },
+    {
+      "id": "W08",
+      "script": "sha256sum payload > sums && sha256sum -c sums",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "W09",
+      "script": "mkdir stage && cp input stage/copy && mv stage/copy stage/final && cat stage/final | tee snapshot && rm stage/final && rmdir stage",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": null
+    },
+    {
+      "id": "W10",
+      "script": "printf '%s\\n' *.txt | sort > listing && cat listing",
+      "status": "UNEXECUTED",
+      "expectationsChanged": false,
+      "classification": "SHARED_FROZEN_SEMANTIC_INTENT_UNDER_DECLARED_ADAPTERS",
+      "additionalQualification": "Existing default glob only, not shopt/dotglob support. Dotglob future branch stays separate."
+    }
+  ],
+  "W03": {
+    "sharedExpectations": "Unchanged seven bytes AP9BCg2AAA==, exactstatus/stdout/stderr/FS",
+    "target": {
+      "chunks": "observable1,2,1,3",
+      "dispatch": "middleware cat count",
+      "iteratorCleanup": "owned supplied producer only",
+      "timers": "UNQUALIFIED"
+    },
+    "comparator": {
+      "byteAdmission": "observable ByteString",
+      "chunks": "UNQUALIFIED",
+      "dispatch": "UNQUALIFIED",
+      "iteratorCleanup": "UNQUALIFIED",
+      "timers": "UNQUALIFIED"
+    },
+    "completeTelemetryQualified": false
+  },
+  "W07": {
+    "comparatorSemanticCredit": false,
+    "comparatorNonExecutionCredit": false,
+    "matchingBytesMayBeReportedSeparately": true,
+    "obligationsNotRemoved": true
+  },
+  "namespaces": {
+    "workflowOwnedEntries": 64,
+    "targetScaffoldingEntries": 4,
+    "comparatorScaffoldingEntries": 191,
+    "targetTotalEntries": 68,
+    "comparatorTotalEntries": 255,
+    "wholeRoot64Claim": false,
+    "exactScaffoldingBinding": "executor-overlay-v2/NAMESPACES.json",
+    "legacySeparateCap": {
+      "entries": 4096,
+      "fileBytes": 33554432,
+      "depth": 32,
+      "snapshotTransportBytes": 131072
+    }
+  },
+  "noScoresRewritten": true
+}

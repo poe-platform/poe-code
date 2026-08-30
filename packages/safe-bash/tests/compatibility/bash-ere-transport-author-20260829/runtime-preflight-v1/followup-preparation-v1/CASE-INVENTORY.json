@@ -1,0 +1,2474 @@
+{
+  "schema": 1,
+  "packageSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+  "entries": 25,
+  "emissions": 24,
+  "cases": [
+    {
+      "purpose": "constructor",
+      "layout": "built",
+      "folder": "01-constructor-built",
+      "Workers": 0,
+      "caseSha256": "9ff1998cd820a6736d60de03a4d2bf144690cfc899af21e27c80fd141e5a3762",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 3741,
+          "mode": 420,
+          "sha256": "9ff1998cd820a6736d60de03a4d2bf144690cfc899af21e27c80fd141e5a3762"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "package/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "package/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "package/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "package/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "package/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "package/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "package/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "package/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "package/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "package/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "package/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "package/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "package/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "package/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "package/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "package/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "package/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "package/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "package/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "package/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "constructor",
+      "layout": "installed",
+      "folder": "02-constructor-installed",
+      "Workers": 0,
+      "caseSha256": "0e54867c32593bc2dde5650bd67de1d2ab04941c02d52d96442a1b65714c1ee7",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 4895,
+          "mode": 420,
+          "sha256": "0e54867c32593bc2dde5650bd67de1d2ab04941c02d52d96442a1b65714c1ee7"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "constructor",
+      "layout": "moved",
+      "folder": "03-constructor-moved",
+      "Workers": 0,
+      "caseSha256": "2608a332d5620a271e15f7c5e42ab5c50e4645adafa9ef0479602bd710011534",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 5141,
+          "mode": 420,
+          "sha256": "2608a332d5620a271e15f7c5e42ab5c50e4645adafa9ef0479602bd710011534"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "normal",
+      "layout": "built",
+      "folder": "04-normal-built",
+      "Workers": 1,
+      "caseSha256": "2a8c44de52b37c2d39ffdebc220220e61ed6459f13d61f449d7f684e399fdc5a",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 3731,
+          "mode": 420,
+          "sha256": "2a8c44de52b37c2d39ffdebc220220e61ed6459f13d61f449d7f684e399fdc5a"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "package/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "package/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "package/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "package/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "package/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "package/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "package/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "package/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "package/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "package/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "package/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "package/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "package/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "package/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "package/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "package/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "package/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "package/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "package/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "package/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "normal",
+      "layout": "installed",
+      "folder": "05-normal-installed",
+      "Workers": 1,
+      "caseSha256": "2c825bc3c07509ba3b7433d4d4b05a08e9de108bf3e02d9bf6a4474007dd2ccb",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 4885,
+          "mode": 420,
+          "sha256": "2c825bc3c07509ba3b7433d4d4b05a08e9de108bf3e02d9bf6a4474007dd2ccb"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "normal",
+      "layout": "moved",
+      "folder": "06-normal-moved",
+      "Workers": 1,
+      "caseSha256": "e3496495d7cfe3402388580d53039776f994ca099c3ff9d69e431e0a05a62f48",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 5131,
+          "mode": 420,
+          "sha256": "e3496495d7cfe3402388580d53039776f994ca099c3ff9d69e431e0a05a62f48"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "post",
+      "layout": "built",
+      "folder": "07-post-built",
+      "Workers": 1,
+      "caseSha256": "146a67df487cd39d820c06739ae7090b83f0d6f236336340dff334b676000f05",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 3727,
+          "mode": 420,
+          "sha256": "146a67df487cd39d820c06739ae7090b83f0d6f236336340dff334b676000f05"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "package/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "package/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "package/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "package/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "package/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "package/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "package/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "package/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "package/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "package/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "package/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "package/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "package/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "package/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "package/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "package/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "package/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "package/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "package/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "package/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "post",
+      "layout": "installed",
+      "folder": "08-post-installed",
+      "Workers": 1,
+      "caseSha256": "1d644867b53de5565e720157b531e3cd897c983bc77d29dcf7e42186804a6ccb",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 4881,
+          "mode": 420,
+          "sha256": "1d644867b53de5565e720157b531e3cd897c983bc77d29dcf7e42186804a6ccb"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "post",
+      "layout": "moved",
+      "folder": "09-post-moved",
+      "Workers": 1,
+      "caseSha256": "009255cf7cee47350d3e0d0ca3847b0267ee1bf0437dba6d33584d3708a3905f",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 5127,
+          "mode": 420,
+          "sha256": "009255cf7cee47350d3e0d0ca3847b0267ee1bf0437dba6d33584d3708a3905f"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "single",
+      "layout": "built",
+      "folder": "10-single-built",
+      "Workers": 1,
+      "caseSha256": "1f4fc31a2e170cdff1dc0f78ba7ca78cfe406b1dd34f7175aa246cbb6b599c4c",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 3731,
+          "mode": 420,
+          "sha256": "1f4fc31a2e170cdff1dc0f78ba7ca78cfe406b1dd34f7175aa246cbb6b599c4c"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "package/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "package/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "package/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "package/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "package/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "package/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "package/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "package/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "package/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "package/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "package/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "package/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "package/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "package/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "package/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "package/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "package/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "package/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "package/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "package/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "single",
+      "layout": "installed",
+      "folder": "11-single-installed",
+      "Workers": 1,
+      "caseSha256": "de07091380c83a4ac70ace091d4501fab98e05e02cf0624111c4aa2a6a7c6b5b",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 4885,
+          "mode": 420,
+          "sha256": "de07091380c83a4ac70ace091d4501fab98e05e02cf0624111c4aa2a6a7c6b5b"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "node_modules/@safe-bash-internal/ere-transport-review/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "single",
+      "layout": "moved",
+      "folder": "12-single-moved",
+      "Workers": 1,
+      "caseSha256": "78ad6e03847fea570986f5e5767a429c1bf1c4a49b920fe892d08f8daecaf2a4",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 5131,
+          "mode": 420,
+          "sha256": "78ad6e03847fea570986f5e5767a429c1bf1c4a49b920fe892d08f8daecaf2a4"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "relocated/node_modules/@safe-bash-internal/ere-transport-review/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    },
+    {
+      "purpose": "persistent",
+      "layout": "built",
+      "folder": "13-persistent-built",
+      "Workers": 1,
+      "caseSha256": "468a2069dabf3b455c2c5287664cfe21fd0534797d9e103497b0126e7fd68468",
+      "files": [
+        {
+          "path": "CASE.json",
+          "size": 3739,
+          "mode": 420,
+          "sha256": "468a2069dabf3b455c2c5287664cfe21fd0534797d9e103497b0126e7fd68468"
+        },
+        {
+          "path": "case-runner.mjs",
+          "size": 6727,
+          "mode": 420,
+          "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+        },
+        {
+          "path": "journal.mjs",
+          "size": 1701,
+          "mode": 420,
+          "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+        },
+        {
+          "path": "package/ere/errors.d.ts",
+          "size": 691,
+          "mode": 420,
+          "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+        },
+        {
+          "path": "package/ere/errors.js",
+          "size": 1045,
+          "mode": 420,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "package/ere/limits.d.ts",
+          "size": 671,
+          "mode": 420,
+          "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+        },
+        {
+          "path": "package/ere/limits.js",
+          "size": 3265,
+          "mode": 420,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "package/ere/matcher.d.ts",
+          "size": 231,
+          "mode": 420,
+          "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+        },
+        {
+          "path": "package/ere/matcher.js",
+          "size": 9747,
+          "mode": 420,
+          "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+        },
+        {
+          "path": "package/ere/syntax.d.ts",
+          "size": 445,
+          "mode": 420,
+          "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+        },
+        {
+          "path": "package/ere/syntax.js",
+          "size": 14270,
+          "mode": 420,
+          "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+        },
+        {
+          "path": "package/ere/transport/accounting.d.ts",
+          "size": 1925,
+          "mode": 420,
+          "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+        },
+        {
+          "path": "package/ere/transport/accounting.js",
+          "size": 7003,
+          "mode": 420,
+          "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+        },
+        {
+          "path": "package/ere/transport/owner.d.ts",
+          "size": 658,
+          "mode": 420,
+          "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+        },
+        {
+          "path": "package/ere/transport/owner.js",
+          "size": 9897,
+          "mode": 420,
+          "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+        },
+        {
+          "path": "package/ere/transport/protocol.d.ts",
+          "size": 2658,
+          "mode": 420,
+          "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+        },
+        {
+          "path": "package/ere/transport/protocol.js",
+          "size": 1198,
+          "mode": 420,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "package/ere/transport/root.d.ts",
+          "size": 645,
+          "mode": 420,
+          "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+        },
+        {
+          "path": "package/ere/transport/root.js",
+          "size": 14619,
+          "mode": 420,
+          "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+        },
+        {
+          "path": "package/ere/transport/validation.d.ts",
+          "size": 1462,
+          "mode": 420,
+          "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+        },
+        {
+          "path": "package/ere/transport/validation.js",
+          "size": 12831,
+          "mode": 420,
+          "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.d.ts",
+          "size": 164,
+          "mode": 420,
+          "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+        },
+        {
+          "path": "package/ere/transport/wire-engine.js",
+          "size": 2514,
+          "mode": 420,
+          "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.d.ts",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/ere/transport/worker-entry.js",
+          "size": 1502,
+          "mode": 420,
+          "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+        },
+        {
+          "path": "package/ere/types.d.ts",
+          "size": 1606,
+          "mode": 420,
+          "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+        },
+        {
+          "path": "package/ere/types.js",
+          "size": 11,
+          "mode": 420,
+          "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+        },
+        {
+          "path": "package/package.json",
+          "size": 228,
+          "mode": 420,
+          "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+        },
+        {
+          "path": "state.mjs",
+          "size": 440,
+          "mode": 420,
+          "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+        },
+        {
+          "path": "worker-bridge.mjs",
+          "size": 2334,
+          "mode": 420,
+          "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+        }
+      ]
+    }
+  ],
+  "cells": 13,
+  "Workers": 10,
+  "layouts": {
+    "built": 5,
+    "installed": 4,
+    "moved": 4
+  },
+  "actualWorkers": 0,
+  "actualMatching": 0
+}

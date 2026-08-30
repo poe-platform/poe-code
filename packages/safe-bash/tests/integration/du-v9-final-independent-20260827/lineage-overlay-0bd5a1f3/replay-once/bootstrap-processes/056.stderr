@@ -1,0 +1,5 @@
+Error: native environment table failed (1, timeout=false, spawn=none): 
+    at success (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-adapter.mjs:36:11)
+    at executeMaterialized (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-adapter.mjs:626:50)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-adapter.mjs:744:21
+Failed evidence retained at /Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/run-2026-08-27T212245338Z-1682b6

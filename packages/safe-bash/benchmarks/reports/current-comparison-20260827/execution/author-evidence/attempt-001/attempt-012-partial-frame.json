@@ -1,0 +1,241 @@
+{
+  "request": {
+    "id": "synthetic/partial-frame",
+    "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "partial-frame",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/partial-frame",
+    "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "{\"name\":\"AssertionError\",\"message\":\"partial frame at EOF\",\"code\":\"ERR_ASSERTION\"}",
+      "engine crash/forced exit",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally"
+    ],
+    "events": [
+      {
+        "atMs": 0.365,
+        "kind": "group-admitted",
+        "pid": 58801,
+        "pgid": 58801,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 34.267,
+        "id": "synthetic/partial-frame",
+        "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+        "kind": "engine-spawn",
+        "pid": 58802,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 81.218,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1481.2162500000002
+      },
+      {
+        "atMs": 81.221,
+        "id": "synthetic/partial-frame",
+        "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+        "kind": "ready"
+      },
+      {
+        "atMs": 81.863,
+        "id": "synthetic/partial-frame",
+        "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 82.917,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"AssertionError\",\"message\":\"partial frame at EOF\",\"code\":\"ERR_ASSERTION\"}"
+      },
+      {
+        "atMs": 82.938,
+        "id": "synthetic/partial-frame",
+        "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+        "kind": "failure",
+        "error": {
+          "name": "AssertionError",
+          "message": "partial frame at EOF",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "atMs": 84.824,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 84.826,
+        "id": "synthetic/partial-frame",
+        "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+        "kind": "engine-exit",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 84.889,
+        "id": "synthetic/partial-frame",
+        "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+        "kind": "engine-close",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 84.943,
+        "id": "synthetic/partial-frame",
+        "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 84.973,
+        "id": "synthetic/partial-frame",
+        "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 87.217,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 87.219,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": null,
+    "engineExit": {
+      "code": 1,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 1,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 58801,
+    "enginePid": 58802,
+    "cancelSent": true,
+    "network": {
+      "id": "synthetic/partial-frame",
+      "nonce": "b9c4b7bf-1242-4c73-8578-9e85588603ea",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 92.546,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1481.216,
+      "guest": 261.86
+    },
+    "hostBytes": 0,
+    "reportBytes": 1316
+  },
+  "check": {
+    "mode": "partial-frame",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 92.546,
+    "groupGone": true,
+    "signals": [],
+    "raw": "attempt-012-partial-frame.json"
+  }
+}

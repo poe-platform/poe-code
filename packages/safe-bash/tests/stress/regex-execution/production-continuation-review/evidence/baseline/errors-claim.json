@@ -1,0 +1,15 @@
+{
+  "time": "2026-08-27T07:07:04.131Z",
+  "name": "baseline",
+  "job": "errors",
+  "label": "errors",
+  "sourceHead": "329eb2722052e8ace0ec18a751f12c30ed87a25b",
+  "sourceManifestSha256": "ded2ab6a8e44b860463b8015a405d93e570da6edbd13118099926ca97076beb8",
+  "childSha256": "1288b367ad76c6e7ef6f32636c994a2b4213cb79e17855c415f2002d0d49842a",
+  "heapMb": 128,
+  "watchdogMs": 20000,
+  "outputCap": 65536,
+  "ipcCap": 1048576,
+  "strictUnhandled": true,
+  "riskConsumed": 0
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "ere-capture-independent-acceptance-v1",
+  "decision": "ACCEPT",
+  "profile": "ere-capture-reference-v1",
+  "presealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "requestsSha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8",
+  "reviewer": "ROOT-ratified scoped independent review f5d9e55e",
+  "reviewCommit": "f5d9e55ec3f3643904f1ec51d1cfa110b6a6dea8"
+}

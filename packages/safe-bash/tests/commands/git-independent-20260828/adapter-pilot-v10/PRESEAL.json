@@ -1,0 +1,1847 @@
+{
+  "schema": "adapter-pilot-v10-author-only",
+  "frozenWall": "2026-08-28T20:33:49.092541+00:00",
+  "preparationAttempts": [
+    {
+      "attempt": 1,
+      "role": "DATA only",
+      "failure": "apply_patch argv exceeded ARG_MAX writing PACKAGE-DATA.json; no compiler or product executed"
+    },
+    {
+      "attempt": 2,
+      "role": "DATA only",
+      "repair": "apply_patch stdin transport; previously generated exact bytes verified, not rewritten"
+    }
+  ],
+  "preparationFirstWall": "2026-08-28T20:22:24Z",
+  "preparationScriptMs": 456.917583,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "typescript": {
+    "name": "typescript",
+    "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+    "version": "5.9.3",
+    "rows": [
+      {
+        "path": "LICENSE.txt",
+        "bytes": 9197,
+        "mode": 420,
+        "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+      },
+      {
+        "path": "README.md",
+        "bytes": 2842,
+        "mode": 420,
+        "sha256": "73147458477d90cd6236627cdd9b0871df12e6e8a21d2d0fda6d1ad2826bdc0e"
+      },
+      {
+        "path": "SECURITY.md",
+        "bytes": 2656,
+        "mode": 420,
+        "sha256": "7b6976eec43edfa68b79a459dd089c56b7a395916dbf1a01bd11e6d86e12128f"
+      },
+      {
+        "path": "ThirdPartyNoticeText.txt",
+        "bytes": 37824,
+        "mode": 420,
+        "sha256": "1af3c68039c57e539422da82a4faada506ce6d0ea6f90e0b699d02dbcdb7a90c"
+      },
+      {
+        "path": "bin",
+        "directory": true
+      },
+      {
+        "path": "bin/tsc",
+        "bytes": 45,
+        "mode": 493,
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+      },
+      {
+        "path": "bin/tsserver",
+        "bytes": 50,
+        "mode": 493,
+        "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+      },
+      {
+        "path": "lib",
+        "directory": true
+      },
+      {
+        "path": "lib/_tsc.js",
+        "bytes": 6213092,
+        "mode": 420,
+        "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+      },
+      {
+        "path": "lib/_tsserver.js",
+        "bytes": 27888,
+        "mode": 420,
+        "sha256": "0efcc88cdf0593cc1dcc8b6afd605c7bed9eca6f648c70c8f0df8695114bf6d7"
+      },
+      {
+        "path": "lib/_typingsInstaller.js",
+        "bytes": 10363,
+        "mode": 420,
+        "sha256": "62a69c574365f1c81633b86b3214f9df860aad08843028dd5244b00aa7f1e190"
+      },
+      {
+        "path": "lib/cs",
+        "directory": true
+      },
+      {
+        "path": "lib/cs/diagnosticMessages.generated.json",
+        "bytes": 320453,
+        "mode": 420,
+        "sha256": "5b30e58d35f877521e14c16551c86320b2ed19ddb70fe5f41841b561d27f18c2"
+      },
+      {
+        "path": "lib/de",
+        "directory": true
+      },
+      {
+        "path": "lib/de/diagnosticMessages.generated.json",
+        "bytes": 344426,
+        "mode": 420,
+        "sha256": "a4031a8028febc35f92ba317104878d93f02c1750e6ee16351c2270ab4dff517"
+      },
+      {
+        "path": "lib/es",
+        "directory": true
+      },
+      {
+        "path": "lib/es/diagnosticMessages.generated.json",
+        "bytes": 340054,
+        "mode": 420,
+        "sha256": "3c7844125e1f2a3a2227e16dd1fed75218a3454919706b34cd8a5da9d43cda22"
+      },
+      {
+        "path": "lib/fr",
+        "directory": true
+      },
+      {
+        "path": "lib/fr/diagnosticMessages.generated.json",
+        "bytes": 346016,
+        "mode": 420,
+        "sha256": "9fc1836d7575840a8b7a63dacdedd99e90e4144c0bbe29a4b7fa78a86e0e8bf5"
+      },
+      {
+        "path": "lib/it",
+        "directory": true
+      },
+      {
+        "path": "lib/it/diagnosticMessages.generated.json",
+        "bytes": 339409,
+        "mode": 420,
+        "sha256": "a740fe2b2338d72a8d165fb8c7c22ac1393a18b6aa7f1ed6d45b79887867f98a"
+      },
+      {
+        "path": "lib/ja",
+        "directory": true
+      },
+      {
+        "path": "lib/ja/diagnosticMessages.generated.json",
+        "bytes": 381398,
+        "mode": 420,
+        "sha256": "ae1a2d439bfb60b9fa32408bde0e9ec39840a33d621014fcb5b2fb4e69a606de"
+      },
+      {
+        "path": "lib/ko",
+        "directory": true
+      },
+      {
+        "path": "lib/ko/diagnosticMessages.generated.json",
+        "bytes": 346139,
+        "mode": 420,
+        "sha256": "31b27d2d556fc037eeac1672f771bf940ec70afba342e977faa75a2fa292a8be"
+      },
+      {
+        "path": "lib/lib.d.ts",
+        "bytes": 992,
+        "mode": 420,
+        "sha256": "a7297ff837fcdf174a9524925966429eb8e5feecc2cc55cc06574e6b092c1eaa"
+      },
+      {
+        "path": "lib/lib.decorators.d.ts",
+        "bytes": 13192,
+        "mode": 420,
+        "sha256": "8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea"
+      },
+      {
+        "path": "lib/lib.decorators.legacy.d.ts",
+        "bytes": 1326,
+        "mode": 420,
+        "sha256": "782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538"
+      },
+      {
+        "path": "lib/lib.dom.asynciterable.d.ts",
+        "bytes": 1887,
+        "mode": 420,
+        "sha256": "d7a3c8b952931daebdfc7a2897c53c0a1c73624593fa070e46bd537e64dcd20a"
+      },
+      {
+        "path": "lib/lib.dom.d.ts",
+        "bytes": 1874901,
+        "mode": 420,
+        "sha256": "080941d9f9ff9307f7e27a83bcd888b7c8270716c39af943532438932ec1d0b9"
+      },
+      {
+        "path": "lib/lib.dom.iterable.d.ts",
+        "bytes": 29802,
+        "mode": 420,
+        "sha256": "2e80ee7a49e8ac312cc11b77f1475804bee36b3b2bc896bead8b6e1266befb43"
+      },
+      {
+        "path": "lib/lib.es2015.collection.d.ts",
+        "bytes": 5229,
+        "mode": 420,
+        "sha256": "dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44"
+      },
+      {
+        "path": "lib/lib.es2015.core.d.ts",
+        "bytes": 22866,
+        "mode": 420,
+        "sha256": "c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671"
+      },
+      {
+        "path": "lib/lib.es2015.d.ts",
+        "bytes": 1241,
+        "mode": 420,
+        "sha256": "45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4"
+      },
+      {
+        "path": "lib/lib.es2015.generator.d.ts",
+        "bytes": 2557,
+        "mode": 420,
+        "sha256": "515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71"
+      },
+      {
+        "path": "lib/lib.es2015.iterable.d.ts",
+        "bytes": 18200,
+        "mode": 420,
+        "sha256": "0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3"
+      },
+      {
+        "path": "lib/lib.es2015.promise.d.ts",
+        "bytes": 3200,
+        "mode": 420,
+        "sha256": "0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537"
+      },
+      {
+        "path": "lib/lib.es2015.proxy.d.ts",
+        "bytes": 5251,
+        "mode": 420,
+        "sha256": "ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671"
+      },
+      {
+        "path": "lib/lib.es2015.reflect.d.ts",
+        "bytes": 6493,
+        "mode": 420,
+        "sha256": "8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0"
+      },
+      {
+        "path": "lib/lib.es2015.symbol.d.ts",
+        "bytes": 1649,
+        "mode": 420,
+        "sha256": "4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d"
+      },
+      {
+        "path": "lib/lib.es2015.symbol.wellknown.d.ts",
+        "bytes": 11010,
+        "mode": 420,
+        "sha256": "fb0f136d372979348d59b3f5020b4cdb81b5504192b1cacff5d1fbba29378aa1"
+      },
+      {
+        "path": "lib/lib.es2016.array.include.d.ts",
+        "bytes": 5204,
+        "mode": 420,
+        "sha256": "d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a"
+      },
+      {
+        "path": "lib/lib.es2016.d.ts",
+        "bytes": 965,
+        "mode": 420,
+        "sha256": "3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75"
+      },
+      {
+        "path": "lib/lib.es2016.full.d.ts",
+        "bytes": 1032,
+        "mode": 420,
+        "sha256": "807e0e0bdc67605dd28efe18f20ab5fcd75d944ef95936120702335f9379094b"
+      },
+      {
+        "path": "lib/lib.es2016.intl.d.ts",
+        "bytes": 1484,
+        "mode": 420,
+        "sha256": "68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618"
+      },
+      {
+        "path": "lib/lib.es2017.arraybuffer.d.ts",
+        "bytes": 915,
+        "mode": 420,
+        "sha256": "eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a"
+      },
+      {
+        "path": "lib/lib.es2017.d.ts",
+        "bytes": 1162,
+        "mode": 420,
+        "sha256": "e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962"
+      },
+      {
+        "path": "lib/lib.es2017.date.d.ts",
+        "bytes": 1916,
+        "mode": 420,
+        "sha256": "38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119"
+      },
+      {
+        "path": "lib/lib.es2017.full.d.ts",
+        "bytes": 1032,
+        "mode": 420,
+        "sha256": "1d242d5c24cf285c88bc4fb93c5ff903de8319064e282986edeb6247ba028d5e"
+      },
+      {
+        "path": "lib/lib.es2017.intl.d.ts",
+        "bytes": 1449,
+        "mode": 420,
+        "sha256": "4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc"
+      },
+      {
+        "path": "lib/lib.es2017.object.d.ts",
+        "bytes": 2473,
+        "mode": 420,
+        "sha256": "69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e"
+      },
+      {
+        "path": "lib/lib.es2017.sharedmemory.d.ts",
+        "bytes": 7209,
+        "mode": 420,
+        "sha256": "a680117f487a4d2f30ea46f1b4b7f58bef1480456e18ba53ee85c2746eeca012"
+      },
+      {
+        "path": "lib/lib.es2017.string.d.ts",
+        "bytes": 2378,
+        "mode": 420,
+        "sha256": "2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893"
+      },
+      {
+        "path": "lib/lib.es2017.typedarrays.d.ts",
+        "bytes": 1542,
+        "mode": 420,
+        "sha256": "954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667"
+      },
+      {
+        "path": "lib/lib.es2018.asyncgenerator.d.ts",
+        "bytes": 2692,
+        "mode": 420,
+        "sha256": "ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c"
+      },
+      {
+        "path": "lib/lib.es2018.asynciterable.d.ts",
+        "bytes": 2257,
+        "mode": 420,
+        "sha256": "0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376"
+      },
+      {
+        "path": "lib/lib.es2018.d.ts",
+        "bytes": 1088,
+        "mode": 420,
+        "sha256": "5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8"
+      },
+      {
+        "path": "lib/lib.es2018.full.d.ts",
+        "bytes": 1074,
+        "mode": 420,
+        "sha256": "95f1023b824c2c511c48f1201e2d1188bcb0ca1138a309a870b956d2e92e44ab"
+      },
+      {
+        "path": "lib/lib.es2018.intl.d.ts",
+        "bytes": 3021,
+        "mode": 420,
+        "sha256": "9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb"
+      },
+      {
+        "path": "lib/lib.es2018.promise.d.ts",
+        "bytes": 1353,
+        "mode": 420,
+        "sha256": "811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c"
+      },
+      {
+        "path": "lib/lib.es2018.regexp.d.ts",
+        "bytes": 1232,
+        "mode": 420,
+        "sha256": "717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca"
+      },
+      {
+        "path": "lib/lib.es2019.array.d.ts",
+        "bytes": 3163,
+        "mode": 420,
+        "sha256": "d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2"
+      },
+      {
+        "path": "lib/lib.es2019.d.ts",
+        "bytes": 1071,
+        "mode": 420,
+        "sha256": "68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7"
+      },
+      {
+        "path": "lib/lib.es2019.full.d.ts",
+        "bytes": 1074,
+        "mode": 420,
+        "sha256": "08f6861df84fba9719c14d5adc3ba40be9f0c687639e6c4df3c05b9301b8ff94"
+      },
+      {
+        "path": "lib/lib.es2019.intl.d.ts",
+        "bytes": 958,
+        "mode": 420,
+        "sha256": "74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b"
+      },
+      {
+        "path": "lib/lib.es2019.object.d.ts",
+        "bytes": 1473,
+        "mode": 420,
+        "sha256": "71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557"
+      },
+      {
+        "path": "lib/lib.es2019.string.d.ts",
+        "bytes": 1528,
+        "mode": 420,
+        "sha256": "576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850"
+      },
+      {
+        "path": "lib/lib.es2019.symbol.d.ts",
+        "bytes": 1006,
+        "mode": 420,
+        "sha256": "89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6"
+      },
+      {
+        "path": "lib/lib.es2020.bigint.d.ts",
+        "bytes": 38185,
+        "mode": 420,
+        "sha256": "d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca"
+      },
+      {
+        "path": "lib/lib.es2020.d.ts",
+        "bytes": 1201,
+        "mode": 420,
+        "sha256": "5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4"
+      },
+      {
+        "path": "lib/lib.es2020.date.d.ts",
+        "bytes": 2956,
+        "mode": 420,
+        "sha256": "063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df"
+      },
+      {
+        "path": "lib/lib.es2020.full.d.ts",
+        "bytes": 1074,
+        "mode": 420,
+        "sha256": "1305d1e76ca44e30fb8b2b8075fa522b83f60c0bcf5d4326a9d2cf79b53724f8"
+      },
+      {
+        "path": "lib/lib.es2020.intl.d.ts",
+        "bytes": 22438,
+        "mode": 420,
+        "sha256": "639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a"
+      },
+      {
+        "path": "lib/lib.es2020.number.d.ts",
+        "bytes": 1587,
+        "mode": 420,
+        "sha256": "368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1"
+      },
+      {
+        "path": "lib/lib.es2020.promise.d.ts",
+        "bytes": 1803,
+        "mode": 420,
+        "sha256": "934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab"
+      },
+      {
+        "path": "lib/lib.es2020.sharedmemory.d.ts",
+        "bytes": 5128,
+        "mode": 420,
+        "sha256": "52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47"
+      },
+      {
+        "path": "lib/lib.es2020.string.d.ts",
+        "bytes": 2556,
+        "mode": 420,
+        "sha256": "3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6"
+      },
+      {
+        "path": "lib/lib.es2020.symbol.wellknown.d.ts",
+        "bytes": 1606,
+        "mode": 420,
+        "sha256": "59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867"
+      },
+      {
+        "path": "lib/lib.es2021.d.ts",
+        "bytes": 1036,
+        "mode": 420,
+        "sha256": "feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569"
+      },
+      {
+        "path": "lib/lib.es2021.full.d.ts",
+        "bytes": 1074,
+        "mode": 420,
+        "sha256": "4a66df3ab5de5cfcda11538cffddd67ff6a174e003788e270914c1e0248483cf"
+      },
+      {
+        "path": "lib/lib.es2021.intl.d.ts",
+        "bytes": 8245,
+        "mode": 420,
+        "sha256": "965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d"
+      },
+      {
+        "path": "lib/lib.es2021.promise.d.ts",
+        "bytes": 2262,
+        "mode": 420,
+        "sha256": "af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74"
+      },
+      {
+        "path": "lib/lib.es2021.string.d.ts",
+        "bytes": 1592,
+        "mode": 420,
+        "sha256": "995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399"
+      },
+      {
+        "path": "lib/lib.es2021.weakref.d.ts",
+        "bytes": 3171,
+        "mode": 420,
+        "sha256": "959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a"
+      },
+      {
+        "path": "lib/lib.es2022.array.d.ts",
+        "bytes": 4676,
+        "mode": 420,
+        "sha256": "3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b"
+      },
+      {
+        "path": "lib/lib.es2022.d.ts",
+        "bytes": 1108,
+        "mode": 420,
+        "sha256": "ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2"
+      },
+      {
+        "path": "lib/lib.es2022.error.d.ts",
+        "bytes": 2379,
+        "mode": 420,
+        "sha256": "0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005"
+      },
+      {
+        "path": "lib/lib.es2022.full.d.ts",
+        "bytes": 1074,
+        "mode": 420,
+        "sha256": "3cbad9a1ba4453443026ed38e4b8be018abb26565fa7c944376463ad9df07c41"
+      },
+      {
+        "path": "lib/lib.es2022.intl.d.ts",
+        "bytes": 7692,
+        "mode": 420,
+        "sha256": "8cdf8847677ac7d20486e54dd3fcf09eda95812ac8ace44b4418da1bbbab6eb8"
+      },
+      {
+        "path": "lib/lib.es2022.object.d.ts",
+        "bytes": 1085,
+        "mode": 420,
+        "sha256": "8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a"
+      },
+      {
+        "path": "lib/lib.es2022.regexp.d.ts",
+        "bytes": 1331,
+        "mode": 420,
+        "sha256": "b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad"
+      },
+      {
+        "path": "lib/lib.es2022.string.d.ts",
+        "bytes": 1155,
+        "mode": 420,
+        "sha256": "3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004"
+      },
+      {
+        "path": "lib/lib.es2023.array.d.ts",
+        "bytes": 40236,
+        "mode": 420,
+        "sha256": "df83c2a6c73228b625b0beb6669c7ee2a09c914637e2d35170723ad49c0f5cd4"
+      },
+      {
+        "path": "lib/lib.es2023.collection.d.ts",
+        "bytes": 900,
+        "mode": 420,
+        "sha256": "436aaf437562f276ec2ddbee2f2cdedac7664c1e4c1d2c36839ddd582eeb3d0a"
+      },
+      {
+        "path": "lib/lib.es2023.d.ts",
+        "bytes": 999,
+        "mode": 420,
+        "sha256": "27bdc30a0e32783366a5abeda841bc22757c1797de8681bbe81fbc735eeb1c10"
+      },
+      {
+        "path": "lib/lib.es2023.full.d.ts",
+        "bytes": 1074,
+        "mode": 420,
+        "sha256": "785921608325fa246b450f05b238f4b3ed659f1099af278ce9ebbc9416a13f1d"
+      },
+      {
+        "path": "lib/lib.es2023.intl.d.ts",
+        "bytes": 2645,
+        "mode": 420,
+        "sha256": "8e3c06ea092138bf9fa5e874a1fdbc9d54805d074bee1de31b99a11e2fec239d"
+      },
+      {
+        "path": "lib/lib.es2024.arraybuffer.d.ts",
+        "bytes": 2637,
+        "mode": 420,
+        "sha256": "87dc0f382502f5bbce5129bdc0aea21e19a3abbc19259e0b43ae038a9fc4e326"
+      },
+      {
+        "path": "lib/lib.es2024.collection.d.ts",
+        "bytes": 1224,
+        "mode": 420,
+        "sha256": "b1cb28af0c891c8c96b2d6b7be76bd394fddcfdb4709a20ba05a7c1605eea0f9"
+      },
+      {
+        "path": "lib/lib.es2024.d.ts",
+        "bytes": 1166,
+        "mode": 420,
+        "sha256": "8fd575e12870e9944c7e1d62e1f5a73fcf23dd8d3a321f2a2c74c20d022283fe"
+      },
+      {
+        "path": "lib/lib.es2024.full.d.ts",
+        "bytes": 1074,
+        "mode": 420,
+        "sha256": "b3e9cef4eed59f8a2249ed834ba4aabe9d0d4e9037d4679487fa17dad99004a3"
+      },
+      {
+        "path": "lib/lib.es2024.object.d.ts",
+        "bytes": 1259,
+        "mode": 420,
+        "sha256": "2fef54945a13095fdb9b84f705f2b5994597640c46afeb2ce78352fab4cb3279"
+      },
+      {
+        "path": "lib/lib.es2024.promise.d.ts",
+        "bytes": 1389,
+        "mode": 420,
+        "sha256": "ac77cb3e8c6d3565793eb90a8373ee8033146315a3dbead3bde8db5eaf5e5ec6"
+      },
+      {
+        "path": "lib/lib.es2024.regexp.d.ts",
+        "bytes": 1073,
+        "mode": 420,
+        "sha256": "56e4ed5aab5f5920980066a9409bfaf53e6d21d3f8d020c17e4de584d29600ad"
+      },
+      {
+        "path": "lib/lib.es2024.sharedmemory.d.ts",
+        "bytes": 3077,
+        "mode": 420,
+        "sha256": "4ece9f17b3866cc077099c73f4983bddbcb1dc7ddb943227f1ec070f529dedd1"
+      },
+      {
+        "path": "lib/lib.es2024.string.d.ts",
+        "bytes": 1194,
+        "mode": 420,
+        "sha256": "0a6282c8827e4b9a95f4bf4f5c205673ada31b982f50572d27103df8ceb8013c"
+      },
+      {
+        "path": "lib/lib.es5.d.ts",
+        "bytes": 218439,
+        "mode": 420,
+        "sha256": "c430d44666289dae81f30fa7b2edebf186ecc91a2d4c71266ea6ae76388792e1"
+      },
+      {
+        "path": "lib/lib.es6.d.ts",
+        "bytes": 1032,
+        "mode": 420,
+        "sha256": "df039a67536fe2acc3affdcbfb645892f842db36fe599e8e652e2f0c640a90d1"
+      },
+      {
+        "path": "lib/lib.esnext.array.d.ts",
+        "bytes": 1791,
+        "mode": 420,
+        "sha256": "1c9319a09485199c1f7b0498f2988d6d2249793ef67edda49d1e584746be9032"
+      },
+      {
+        "path": "lib/lib.esnext.collection.d.ts",
+        "bytes": 3878,
+        "mode": 420,
+        "sha256": "e3a2a0cee0f03ffdde24d89660eba2685bfbdeae955a6c67e8c4c9fd28928eeb"
+      },
+      {
+        "path": "lib/lib.esnext.d.ts",
+        "bytes": 1282,
+        "mode": 420,
+        "sha256": "2ab096661c711e4a81cc464fa1e6feb929a54f5340b46b0a07ac6bbf857471f0"
+      },
+      {
+        "path": "lib/lib.esnext.decorators.d.ts",
+        "bytes": 1070,
+        "mode": 420,
+        "sha256": "d4b1d2c51d058fc21ec2629fff7a76249dec2e36e12960ea056e3ef89174080f"
+      },
+      {
+        "path": "lib/lib.esnext.disposable.d.ts",
+        "bytes": 6806,
+        "mode": 420,
+        "sha256": "51ad4c928303041605b4d7ae32e0c1ee387d43a24cd6f1ebf4a2699e1076d4fa"
+      },
+      {
+        "path": "lib/lib.esnext.error.d.ts",
+        "bytes": 1029,
+        "mode": 420,
+        "sha256": "73f78680d4c08509933daf80947902f6ff41b6230f94dd002ae372620adb0f60"
+      },
+      {
+        "path": "lib/lib.esnext.float16.d.ts",
+        "bytes": 20528,
+        "mode": 420,
+        "sha256": "196cb558a13d4533a5163286f30b0509ce0210e4b316c56c38d4c0fd2fb38405"
+      },
+      {
+        "path": "lib/lib.esnext.full.d.ts",
+        "bytes": 1074,
+        "mode": 420,
+        "sha256": "bde31fd423cd93b0eff97197a3f66df7c93e8c0c335cbeb113b7ff1ac35c23f4"
+      },
+      {
+        "path": "lib/lib.esnext.intl.d.ts",
+        "bytes": 893,
+        "mode": 420,
+        "sha256": "811c71eee4aa0ac5f7adf713323a5c41b0cf6c4e17367a34fbce379e12bbf0a4"
+      },
+      {
+        "path": "lib/lib.esnext.iterator.d.ts",
+        "bytes": 8676,
+        "mode": 420,
+        "sha256": "22adec94ef7047a6c9d1af3cb96be87a335908bf9ef386ae9fd50eeb37f44c47"
+      },
+      {
+        "path": "lib/lib.esnext.promise.d.ts",
+        "bytes": 1658,
+        "mode": 420,
+        "sha256": "60037901da1a425516449b9a20073aa03386cce92f7a1fd902d7602be3a7c2e9"
+      },
+      {
+        "path": "lib/lib.esnext.sharedmemory.d.ts",
+        "bytes": 1067,
+        "mode": 420,
+        "sha256": "c5239f5c01bcfa9cd32f37c496cf19c61d69d37e48be9de612b541aac915805b"
+      },
+      {
+        "path": "lib/lib.scripthost.d.ts",
+        "bytes": 9451,
+        "mode": 420,
+        "sha256": "cd034f499c6cdca722b60c04b5b1b78e058487a7085a8e0d6fb50809947ee573"
+      },
+      {
+        "path": "lib/lib.webworker.asynciterable.d.ts",
+        "bytes": 1887,
+        "mode": 420,
+        "sha256": "ca417afee74054e99d5a8252b35bef26ca6e2942d67d343fce6b42fc9f432993"
+      },
+      {
+        "path": "lib/lib.webworker.d.ts",
+        "bytes": 609557,
+        "mode": 420,
+        "sha256": "6d08cde2bfb6ff909efbf7cb7d6d55be412cf4b9f48fd0430185986973fa91f5"
+      },
+      {
+        "path": "lib/lib.webworker.importscripts.d.ts",
+        "bytes": 1041,
+        "mode": 420,
+        "sha256": "80e18897e5884b6723488d4f5652167e7bb5024f946743134ecc4aa4ee731f89"
+      },
+      {
+        "path": "lib/lib.webworker.iterable.d.ts",
+        "bytes": 22768,
+        "mode": 420,
+        "sha256": "d6c6331ce67c41b2ad5bfb0c8c022403980b479a377a44da8f16b61120418f66"
+      },
+      {
+        "path": "lib/pl",
+        "directory": true
+      },
+      {
+        "path": "lib/pl/diagnosticMessages.generated.json",
+        "bytes": 342111,
+        "mode": 420,
+        "sha256": "0645575abe920de1ee4cf3f2f70c7abc7f6691daa01cf1e9ad6b1ce53917c9ff"
+      },
+      {
+        "path": "lib/pt-br",
+        "directory": true
+      },
+      {
+        "path": "lib/pt-br/diagnosticMessages.generated.json",
+        "bytes": 330482,
+        "mode": 420,
+        "sha256": "34a649eb937cd70fe7b15663c2e5479e753d42df0e5c2933636789b60c2c939d"
+      },
+      {
+        "path": "lib/ru",
+        "directory": true
+      },
+      {
+        "path": "lib/ru/diagnosticMessages.generated.json",
+        "bytes": 443587,
+        "mode": 420,
+        "sha256": "29bb8ea9d44f55bb7acdedfac0a57865ea40552f004d0d6e3b96746ac76666cc"
+      },
+      {
+        "path": "lib/tr",
+        "directory": true
+      },
+      {
+        "path": "lib/tr/diagnosticMessages.generated.json",
+        "bytes": 330684,
+        "mode": 420,
+        "sha256": "9466915f3e0cdb2625495bbe9c02c8b7ef9e3543fffae957ba034655563abf65"
+      },
+      {
+        "path": "lib/tsc.js",
+        "bytes": 267,
+        "mode": 420,
+        "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+      },
+      {
+        "path": "lib/tsserver.js",
+        "bytes": 272,
+        "mode": 420,
+        "sha256": "e3ccfeec65ec5c470b8ffc5611878a31182650c7e8a062c38a719f83b523edcb"
+      },
+      {
+        "path": "lib/tsserverlibrary.d.ts",
+        "bytes": 865,
+        "mode": 420,
+        "sha256": "73b15a0b7cf5c6df9076b9408c5ce682f11813453bf54c54cb284f075b5224cf"
+      },
+      {
+        "path": "lib/tsserverlibrary.js",
+        "bytes": 1012,
+        "mode": 420,
+        "sha256": "7ca9b464de80a5382d9ccfed2b224323bc0274c8de61bf0464e89ee824677c76"
+      },
+      {
+        "path": "lib/typesMap.json",
+        "bytes": 16788,
+        "mode": 420,
+        "sha256": "4143fb8b1c5d4421dfa19a4b80ddf2da375fc0835a349c3b18519fda5955e1d9"
+      },
+      {
+        "path": "lib/typescript.d.ts",
+        "bytes": 588085,
+        "mode": 420,
+        "sha256": "e134052a6b1ded61693b4037f615dc72f14e2881e79c1ddbff6c514c8a516b05"
+      },
+      {
+        "path": "lib/typescript.js",
+        "bytes": 9112572,
+        "mode": 420,
+        "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+      },
+      {
+        "path": "lib/typingsInstaller.js",
+        "bytes": 280,
+        "mode": 420,
+        "sha256": "2d48a038523ea7c626fa2796a30fa5fdc07612ea5fab83544423009d7683a213"
+      },
+      {
+        "path": "lib/watchGuard.js",
+        "bytes": 2313,
+        "mode": 420,
+        "sha256": "471200d4bc555ef8d8429358bdca2a68ea7c9bfff6c853b5b048d2512fe4092a"
+      },
+      {
+        "path": "lib/zh-cn",
+        "directory": true
+      },
+      {
+        "path": "lib/zh-cn/diagnosticMessages.generated.json",
+        "bytes": 295909,
+        "mode": 420,
+        "sha256": "6bd4ae6aea0991f6b73c46ec79ebb643b280a07e4808be363b07d01d2f6d399d"
+      },
+      {
+        "path": "lib/zh-tw",
+        "directory": true
+      },
+      {
+        "path": "lib/zh-tw/diagnosticMessages.generated.json",
+        "bytes": 292532,
+        "mode": 420,
+        "sha256": "c35cf732ff01539090a3622b7a07f7bb4cadb28f6f13048b366012c458329be1"
+      },
+      {
+        "path": "package.json",
+        "bytes": 3620,
+        "mode": 420,
+        "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+      }
+    ]
+  },
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ES2022",
+    "sourceMap": false,
+    "declaration": false
+  },
+  "candidateGit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "base": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "sourceSelection": "original authenticated M1A derived package composition; not whole988 checkout",
+  "membership": [
+    {
+      "id": "A57",
+      "expectedExit": 0,
+      "expectedStdout": "two\n",
+      "createdObjects": 6,
+      "route": "direct-noHook"
+    },
+    {
+      "id": "A60",
+      "expectedExit": 0,
+      "expectedStdout": "two\n",
+      "createdObjects": 6,
+      "route": "actual-Shell-plugin"
+    },
+    {
+      "id": "H09",
+      "expectedExit": 128,
+      "expectedStdout": "",
+      "createdObjects": 3,
+      "route": "direct-registered-cleanup"
+    }
+  ],
+  "negativeControls": [],
+  "limits": {
+    "aggregateMs": 600000,
+    "setupMs": 120000,
+    "caseMs": 30000,
+    "notificationMs": 5000,
+    "workerMs": 110000,
+    "captureBytes": 33554432,
+    "workBytes": 268435456,
+    "processes": 3,
+    "directSpawnedChildren": 2,
+    "conservativeChildrenIncludingCoordinator": 3,
+    "ceiling": 12,
+    "peak": 2,
+    "syntaxChildren": 0
+  },
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/commands/git-independent-20260828/adapter-pilot-v10/run.mjs",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "childEnvironment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+    "UV_THREADPOOL_SIZE": "1"
+  },
+  "children": [
+    {
+      "role": "bounded-five-module-compiler",
+      "argv": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-pilot-v10/compile.mjs"
+      ]
+    },
+    {
+      "role": "three-case-mechanical-pilot",
+      "argv": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-pilot-v10/bootstrap.mjs"
+      ]
+    }
+  ],
+  "allowedBuiltins": [
+    "node:assert/strict",
+    "node:async_hooks",
+    "node:buffer",
+    "node:crypto",
+    "node:events",
+    "node:fs",
+    "node:fs/promises",
+    "node:http",
+    "node:https",
+    "node:module",
+    "node:net",
+    "node:path",
+    "node:perf_hooks",
+    "node:stream",
+    "node:stream/promises",
+    "node:stream/web",
+    "node:timers",
+    "node:timers/promises",
+    "node:url",
+    "node:util",
+    "node:worker_threads",
+    "node:zlib"
+  ],
+  "sourcePreparationGitCommands": [
+    [
+      "git",
+      "show",
+      "655cb37b97521558c4c90581b5b23fc6c3ad9bf2:tests/commands/git-independent-20260828/m1a-review-v5/BINDING.json"
+    ],
+    [
+      "git",
+      "show",
+      "655cb37b97521558c4c90581b5b23fc6c3ad9bf2:tests/commands/git-independent-20260828/m1a-review-v5/PRESEAL.json"
+    ],
+    [
+      "git",
+      "show",
+      "655cb37b97521558c4c90581b5b23fc6c3ad9bf2:tests/commands/git-independent-20260828/m1a-review-v5/INPUTS.json"
+    ],
+    [
+      "git",
+      "show",
+      "655cb37b97521558c4c90581b5b23fc6c3ad9bf2:tests/commands/git-independent-20260828/m1a-review-v5/WORKING.json.gz.base64"
+    ],
+    [
+      "git",
+      "show",
+      "655cb37b97521558c4c90581b5b23fc6c3ad9bf2:tests/commands/git-independent-20260828/m1a-review-v5/cases.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "655cb37b97521558c4c90581b5b23fc6c3ad9bf2:tests/commands/git-independent-20260828/m1a-review-v5/fixtures.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "2ed1e2e620b0db2bcfc05c733b56cad6f201d0b5:tests/commands/git-independent-20260828/adapter-v9/SOURCE-TRANSFORMS.json"
+    ],
+    [
+      "git",
+      "show",
+      "2ed1e2e620b0db2bcfc05c733b56cad6f201d0b5:tests/commands/git-independent-20260828/adapter-v9/adapter.mjs"
+    ]
+  ],
+  "files": [
+    {
+      "path": "CAPACITY.json",
+      "bytes": 15216,
+      "sha256": "bc79be731c4bfa0671de544bd367eb07cacaeae0aea8ce3411a496a49822ab87"
+    },
+    {
+      "path": "CRITERION.md",
+      "bytes": 7117,
+      "sha256": "eb06b7619fe13587376d34e242dad76080d09b5819c42d010556fadb230a5433"
+    },
+    {
+      "path": "PACKAGE-DATA.json",
+      "bytes": 2724658,
+      "sha256": "426932b2b3a3e6f91fc8ff888ceb3eede844220db095a2adedee0635a85e1a95"
+    },
+    {
+      "path": "TRANSFORMS.json",
+      "bytes": 663032,
+      "sha256": "d458ba97f3c289c3753b1741edf49967112b42ec516e40cf377d84c7007a92c8"
+    },
+    {
+      "path": "adapter.mjs",
+      "bytes": 13355,
+      "sha256": "71e235422fb0a16ddf052dc4825e644b88f5a3e5ea217feac5e96bd110b8c62f"
+    },
+    {
+      "path": "bootstrap.mjs",
+      "bytes": 1400,
+      "sha256": "e38a084c532ffe3523b548a511b83fe1484cd445099347b4b92fd347f67de519"
+    },
+    {
+      "path": "cases.mjs",
+      "bytes": 35121,
+      "sha256": "cee11f55eca592103f5fe183f02afff3840a0729c4c84d818c2318b216edf996"
+    },
+    {
+      "path": "compile.mjs",
+      "bytes": 3910,
+      "sha256": "ca1e1d02532b9a7a319f377eebaa7d2ba2bd808f7bd14af644ab1f57ff573f77"
+    },
+    {
+      "path": "fixtures.mjs",
+      "bytes": 6833,
+      "sha256": "7130f0cdf6dea855f1d1c805569fb3e2d0d982e4c6f196be46728b0d05f1e396"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 2287,
+      "sha256": "88965022808889c01db6ee122d9e4f58f995950d386bc1f662f687a8d701259c"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 15809,
+      "sha256": "296351d58192565190932b54dc27fba363c02124776a85e58435ec3ac11f10a1"
+    },
+    {
+      "path": "records.json",
+      "bytes": 161781,
+      "sha256": "e502117739af665d49f572a138d580ab2f1d37b33d92f0cf45a5643ca447cde8"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 10977,
+      "sha256": "cbcb18ab04cdcc61133d4f11f51baba9a737ed4c7178a0da9b017d2bad8043cc"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 6966,
+      "sha256": "1828198d068bae92de2ff29c1202e53b4e81a3053b9c636b851251f47b046ee3"
+    }
+  ],
+  "oldTrees": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+      "rows": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/AUDIT.json",
+          "bytes": 33025,
+          "sha256": "1e826bf7812654a0cd7e523d69afec6e3e635e60fa09622a05aa6f8cd40d17bc"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/BINDING.json",
+          "bytes": 323015,
+          "sha256": "435739487723415b02ce1b4c558828d5b6548876bdd5a4566d4e922d508a6a13"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/CLEANUP.json",
+          "bytes": 343,
+          "sha256": "3a7073c03af8e5b40f2c70db3caaaacd2de70eeeda19f4df3b1630c94687a058"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/FINAL-SEAL.json",
+          "bytes": 4843,
+          "sha256": "d1d72406b854edcc8993028c41982e82404a9435d341a88d089a5c079ba89193"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/H09-FIXTURE.json",
+          "bytes": 2660,
+          "sha256": "abba06e3f44fc2bf5844debc3f1521c9a423303077cce5e448dd6298162df49a"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/HANDOFF.md",
+          "bytes": 11173,
+          "sha256": "59ee37e1b31f585009c7f975f0169056c174b1cd643ffdbb2e55222385aa719c"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/INPUTS.json",
+          "bytes": 3387857,
+          "sha256": "f23c38e5e78c365da8d396e3a0fb60ddcd224bb71fe948802642f676d5db701b"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/NODE-CLOSE-STATIC.json",
+          "bytes": 1450,
+          "sha256": "29afa9d347f9f1c1e0be906a090f1ee60def8f9a3079c0d0c41a6e71281bed7a"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/PRESEAL.json",
+          "bytes": 14163,
+          "sha256": "963d9ff5d158f2f68d68004efaa463d669d144fbfa246330a6fb9f14fd5f5b21"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/RAW.json.gz.base64",
+          "bytes": 1245993,
+          "sha256": "9d1debc1fec5229c4c1afaaf56049342013dea6950a12baf47fcbaf5e2cbb64f"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/RECIPE.md",
+          "bytes": 7853,
+          "sha256": "33822eabe5db51938fe2f64ec559f7961fcfb74dfea790a179c4ba4b2422db95"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/RESULT.json",
+          "bytes": 15675,
+          "sha256": "c23f5eaea80a7c5d453c7a2837259e0888b4ace6b446fef599a673f4797536c6"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/WORKING.json.gz.base64",
+          "bytes": 3208909,
+          "sha256": "933c05e3a489ef0171987908f5d260b6a8bea97727665af058049f60064a97d9"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/audit.mjs",
+          "bytes": 11809,
+          "sha256": "86f37dd970b101ebf7337d581cb7767571f45eaa6a6aa65cb2be6855100978dd"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/cases.mjs",
+          "bytes": 34603,
+          "sha256": "807a2e32b286da6a7e979cc45c75d0985de1e49db79b9d1926627c7a444f8b21"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/child.mjs",
+          "bytes": 1122,
+          "sha256": "1b7a11aa795c94ac2a8b9bd2bd91b8db9b2a0c545f8e3882b44433d7d0c75dd7"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/common.mjs",
+          "bytes": 3207,
+          "sha256": "62b88de6158a1d7c27b0483e92b57e3eb60947f8f218f0f4c9c37eb9d266c769"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/finalize.mjs",
+          "bytes": 2735,
+          "sha256": "7952ab3be7052179e594072e1d47b87eeeadf67bb951c3cebb9ecb6666a0d2d7"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/fixtures.mjs",
+          "bytes": 6833,
+          "sha256": "7130f0cdf6dea855f1d1c805569fb3e2d0d982e4c6f196be46728b0d05f1e396"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/freeze.mjs",
+          "bytes": 6235,
+          "sha256": "861311f281467c58b429cd1deac35c0b30379e99c7d25b2a38ef2d23e214f6ab"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/loader.mjs",
+          "bytes": 2944,
+          "sha256": "7609cf3388e0850334f438dd5e14124f3f2afbd395d5e2f026b83307b6c8fd09"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/prepare.mjs",
+          "bytes": 8274,
+          "sha256": "19ce1e5d75d97958fcad07fdaf54077fe0359d0963c8531f6fcc8021c15307bc"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/run.mjs",
+          "bytes": 15148,
+          "sha256": "a5aad3b074bb31991a57d0a5fcab51978b68d5aa123b3d5d7119388df1b88831"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/supervisor.mjs",
+          "bytes": 4493,
+          "sha256": "84ab6d711f4353a80e0346433074232985b47a820a82d95fd4f4f27b395c4a62"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/worker.mjs",
+          "bytes": 5143,
+          "sha256": "4ed48d8e1a40a7abc298d9ac16d6fcaba3d844c5a1673835868a586c3844182c"
+        }
+      ]
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6",
+      "rows": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/AUDIT.json",
+          "bytes": 4131,
+          "sha256": "03916f114a8b35210ef7bf15fdcffca81505c334763b4cf8f73e8cf705c9e917"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/CONTINUATION-PROPOSED.json",
+          "bytes": 8127,
+          "sha256": "338ffcf7b055900f667eef175919978f7ba545977ad1022c2e485f1609f1cbeb"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/CONTROLS.json",
+          "bytes": 1663,
+          "sha256": "d700a90576b557f3d70a6cf24df695c02892536366b36312ffaeba288aa42de4"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/CRITERION.md",
+          "bytes": 8195,
+          "sha256": "a069101a63c3ab4b5a4fd003d02d4b6c7ec350c40d891deaeae8619b4456b505"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/HANDOFF.md",
+          "bytes": 8579,
+          "sha256": "2c282b31f7571c5fd31f5ae712530ffdb815dce311cf6d4242a08ba08415236a"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/NODE-SOURCES.json",
+          "bytes": 862575,
+          "sha256": "35277f8bbedf0a011da961f09922b6480e74ba613b93a2e64a6bbfee7deaa329"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/PRESEAL.json",
+          "bytes": 9209,
+          "sha256": "bd2755b9ab6b71e6014e514de0c1b4130162f59100628ec501656c49640e85a2"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/RUN-01",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/RUN-01/RECEIPT.json",
+          "bytes": 3431,
+          "sha256": "3fc78821542c747df773a1fb58ab06583c39a637450137ddeee8d01096dd1e90"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/RUN-01/worker.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/RUN-01/worker.stdout.jsonl",
+          "bytes": 21573,
+          "sha256": "ae456d931de752a78ae2b8e72102679257d7e01e1381e29ae26f0696b8036a22"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/SOURCE-DATA.json",
+          "bytes": 27686,
+          "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/WORKER-ADAPTER-PROPOSAL.md",
+          "bytes": 5145,
+          "sha256": "7e77312e20959b65d0d8a1adea57316787c993fd20cf0bf76ecc76d6b0987745"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/audit.py",
+          "bytes": 10121,
+          "sha256": "c3fd17ee9328803e2b5f92f5f944282a7878d0299f0a0df21077f22407561e72"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/observer.mjs",
+          "bytes": 7527,
+          "sha256": "2f6b88f05d53d8c4c5b95724baddc3b6b7e825163f05abb6c69bcdf161de4abb"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/prepare.py",
+          "bytes": 6736,
+          "sha256": "0a0e7d2f74c920c698226bd8fa625f25ec68e6b78e8c2c91c9010c6b91e1f2e7"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/run.mjs",
+          "bytes": 8863,
+          "sha256": "b96f113cbf919c6f223d5dddf1e043424078b047bada0d46a3d94f30c32ac44d"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v6/worker.mjs",
+          "bytes": 11903,
+          "sha256": "e5ef38f0946793f0f3e99b99aa4b740e7ca41ff5f94259cf4d7e4bc1e6c58cf8"
+        }
+      ]
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7",
+      "rows": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/AUDIT.json",
+          "bytes": 7079,
+          "sha256": "e96d722eadfbadd28fad4878759d06abebd91106ba619ef2e18f2b0a8545cbfb"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/CONTROLS.json",
+          "bytes": 1762,
+          "sha256": "39084f4d241facccda63eb257408a90d00050cc9a9ffde33680c2d6535baa61c"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/CORRESPONDENCE.json",
+          "bytes": 3880,
+          "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/CRITERION.md",
+          "bytes": 9531,
+          "sha256": "1fd70d51ecaf2a5e80912d849b1bcc2ca8053ab9b14b26a39fe86e7003dcbca6"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/DIFF-V6.patch",
+          "bytes": 27516,
+          "sha256": "7f967b2aff21015c201a37c5c3e91bc59a2f73967f4a5e53688aeee664b0c82c"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/HANDOFF.md",
+          "bytes": 7172,
+          "sha256": "eae3d7a298fa955fb6b4d924e25f6bd6be55a094f2756c8c107513978572c247"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/PRESEAL.json",
+          "bytes": 17240,
+          "sha256": "45011d93a274d531261cd28666c93739a75a2f11b5b1d435e17a093506e56ea4"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/RUN-01",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/RUN-01/PUBLICATION-CLOCK.json",
+          "bytes": 81,
+          "sha256": "e46740bdb7b5b616715795423dc8aa5e0992452ccf7a677ef18f6673c8576a33"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/RUN-01/RECEIPT.json",
+          "bytes": 4024,
+          "sha256": "92efbee139bb7d4f10d44f0eb6a6a7055a4db0ae0ecde560641ffd1e4cebae09"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/RUN-01/worker.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/RUN-01/worker.stdout.jsonl",
+          "bytes": 96602,
+          "sha256": "dd3e06091b8414e0bb73f0e609ff8930910b4cb68aae42aed3f8334492e6b9cf"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/SOURCE-DATA.json",
+          "bytes": 27686,
+          "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/audit.py",
+          "bytes": 6675,
+          "sha256": "a7584f92656760960e9b108517af318ef59b559c5316a34bdc04c28d8caa2726"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/observer.mjs",
+          "bytes": 11712,
+          "sha256": "43c4bbb26c152e8e73b85b8ab4c38bcd438a424cbdfe517403daaf8721033d8d"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/prepare.py",
+          "bytes": 9803,
+          "sha256": "9c9c5dffadaa5149cb641f796dbbbbd48fb023b14ac538c2ff83cc0e31871522"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/run.mjs",
+          "bytes": 9188,
+          "sha256": "90073bb4f581f93dbbb4bf06d6733034325ded7747397441fc457b7fa6334743"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/worker.mjs",
+          "bytes": 16855,
+          "sha256": "2bf398a8f74acd6b1fab73908c1d314af2d12586d4ca5897d7de74df50431e60"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v7/writer-surrogate.mjs",
+          "bytes": 1189,
+          "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+        }
+      ]
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8",
+      "rows": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/AUDIT.json",
+          "bytes": 8473,
+          "sha256": "0a9bbf99e6c39e4335470ffb7b2c2796b7310c09861733d0ca65556932541b25"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/CONTINUATION-PROPOSED.json",
+          "bytes": 8766,
+          "sha256": "24d89f323c44cb86ea9be23880489bf7270e10fbfbab322413c44d13a34e2a42"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/CONTROLS.json",
+          "bytes": 1847,
+          "sha256": "6b14dc90df85f3ad41f51f2d2405491bd95ed8b05df4a1514ad24c27550f6642"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/CORRESPONDENCE.json",
+          "bytes": 3880,
+          "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/CRITERION.md",
+          "bytes": 10225,
+          "sha256": "00bd64f79dadfcbc88a349a96115d4c3500420381945c60a8514596c896be33f"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/DELTA-V7.json",
+          "bytes": 26093,
+          "sha256": "59e2a4c41422d0f7ccebd2d4d79f93bab1ccd3166b4c10809abe23fee54d93dc"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/HANDOFF.md",
+          "bytes": 7611,
+          "sha256": "0470667678f8e6437d469785a91e664d858ecb647730562ea0db0c0f4c2468e6"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/NODE-PRIMARY.json",
+          "bytes": 722751,
+          "sha256": "2bf28e73ff32639a9ca015ac4b654601a581aa9c96709156ca58edadcc2caff5"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/NODE-PROVENANCE.json",
+          "bytes": 6137,
+          "sha256": "348dc3010327e23cfc99233b50b0159a28bdceaa4ea6d0ce94834433866cd936"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/PRESEAL.json",
+          "bytes": 23187,
+          "sha256": "dc1918ec176c0da906903ce9ff1c55b277d74eea9c283f442f69f9718ed4d0de"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/RUN-01",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/RUN-01/PUBLICATION-CLOCK.json",
+          "bytes": 80,
+          "sha256": "ab1ee14050e2d453821db7114c4dc6be00dc2ba1da4f602b5124dda343ddd27d"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/RUN-01/RECEIPT.json",
+          "bytes": 6866,
+          "sha256": "d53c813987f9882977e8a594faa8e532abd945af1cdef5e9293358b465477baf"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/RUN-01/worker.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/RUN-01/worker.stdout.jsonl",
+          "bytes": 388140,
+          "sha256": "48741daa583e8e8189732dc8687f38b2218a473b1403ac1d6feb1699ad48d47e"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/SOURCE-DATA.json",
+          "bytes": 27686,
+          "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/WORKER-ADAPTER-PROPOSAL.md",
+          "bytes": 5846,
+          "sha256": "5fbc84e198bcca25e5d2ef35cc486ae1cd3e2ac5d87f4f2db42ee9546e70370d"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/audit.py",
+          "bytes": 13993,
+          "sha256": "75ae13dfaffe0817bdddfd9dd53cc7823c07415239bbc5dcbc439f4769e6554d"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/observer.mjs",
+          "bytes": 15146,
+          "sha256": "30d33df91fe6bfbb89a10ac81b93e39d321bdc7aa39a6133fa2e0dfd65e1f7c1"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/prepare.py",
+          "bytes": 11577,
+          "sha256": "d9e55a25bd2d93d1ce2558eaec9821eed53635ca08105ff1cc2dbde258a2688e"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/retirement.mjs",
+          "bytes": 5974,
+          "sha256": "c8a19a9389d045b2807eb1d60534747297e2430fd93c7950e1e5025e698720f2"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/run.mjs",
+          "bytes": 9188,
+          "sha256": "79f72599908d7a5102a939103de6eb2e6f0f77bd1651a4ce1fc6614984d31675"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/worker.mjs",
+          "bytes": 21443,
+          "sha256": "7a80e290169f1c2980b2696127c2989f6fe7218a905d9ca2dda9bf9b4f71beee"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/writer-surrogate.mjs",
+          "bytes": 1189,
+          "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+        }
+      ]
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent",
+      "rows": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/ADAPTER-READINESS.md",
+          "bytes": 9679,
+          "sha256": "c1e48e0399fd96c766eaf26c14fba1918d180ed830b12011e867da050a689a26"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/PRESEAL.md",
+          "bytes": 3018,
+          "sha256": "d8332143672cd5f2dde6afd613c45472ccd955e0d3b37579acc49b14580e64d5"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/REPORT.md",
+          "bytes": 7161,
+          "sha256": "cbf0355e1b23b795abaf52f30ed67693c58628aa48adf9503dabcd13c9f9aadd"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/CONTROLS.json",
+          "bytes": 1847,
+          "sha256": "6b14dc90df85f3ad41f51f2d2405491bd95ed8b05df4a1514ad24c27550f6642"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/CORRESPONDENCE.json",
+          "bytes": 3880,
+          "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/SOURCE-DATA.json",
+          "bytes": 27686,
+          "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/bootstrap.mjs",
+          "bytes": 1413,
+          "sha256": "c6dc5f8ebc44955b75e427c445c710f8bb81c9391885d39f4f98a2d22b092dde"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/counter.mjs",
+          "bytes": 7279,
+          "sha256": "87add152f903ef42bfcf64b83d377f6ed9355f37bcf76cb1fe461fdf1e9e2c21"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/observer.mjs",
+          "bytes": 15146,
+          "sha256": "30d33df91fe6bfbb89a10ac81b93e39d321bdc7aa39a6133fa2e0dfd65e1f7c1"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/retirement.mjs",
+          "bytes": 5974,
+          "sha256": "c8a19a9389d045b2807eb1d60534747297e2430fd93c7950e1e5025e698720f2"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/worker.mjs",
+          "bytes": 21443,
+          "sha256": "7a80e290169f1c2980b2696127c2989f6fe7218a905d9ca2dda9bf9b4f71beee"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/app/writer-surrogate.mjs",
+          "bytes": 1189,
+          "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/home",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/records",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/records/FINAL.json",
+          "bytes": 3977,
+          "sha256": "3cd763a37714139cdffe3055b73307e8bf7d3a40adc42c7e0320c2a9c98e5bfd"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/records/child-001.json",
+          "bytes": 443955,
+          "sha256": "9cb40329f4c2fdd94ca5a2250b402e6f45c1517617300ed4c5d4ce86bacb728c"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/records/child-002.json",
+          "bytes": 149865,
+          "sha256": "f88f08d65be81975e6f2653d04430d0abf7b86cc5c31d4b99077d45152b534b1"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/records/manifest.json",
+          "bytes": 2726,
+          "sha256": "148d7446decfb73bd243c64a10287416a07c3635aa97abeca3e6f6ae0285b118"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/records/observations-1.json",
+          "bytes": 388929,
+          "sha256": "ef136fa465ae8e08e978f9459087cd6c2930c38774862719ef18b11794a68956"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/records/observations-2.json",
+          "bytes": 131488,
+          "sha256": "69c317968c691f971059e619bccc2b2312710287761aa15d613086186a2185ef"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/tmp",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/SEAL.json",
+          "bytes": 24719,
+          "sha256": "0a7adae6a9fb3c8f63b6ad97313584e798bf9ef105febc1b5674f8e773fdd391"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/archive.mjs",
+          "bytes": 5206,
+          "sha256": "fec57aee7ab57f6108de820e1e8ab918e2da3b508581307e1e367daf851b8f8f"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/bootstrap.mjs",
+          "bytes": 1413,
+          "sha256": "c6dc5f8ebc44955b75e427c445c710f8bb81c9391885d39f4f98a2d22b092dde"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/common.mjs",
+          "bytes": 1601,
+          "sha256": "492169e009efbb8935077d78e3268d28c2919e97a0b65301e55881764df73a30"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/counter.mjs",
+          "bytes": 7279,
+          "sha256": "87add152f903ef42bfcf64b83d377f6ed9355f37bcf76cb1fe461fdf1e9e2c21"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/AUDIT.json",
+          "bytes": 215851,
+          "sha256": "9af4fc654f1d1c3de72d9dd982a6be9990630ce567a8c7a8a6cc017036221e9d"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/EXECUTION.json",
+          "bytes": 498,
+          "sha256": "82b2f0c1c5dd002c2da9fbc740d6b61e46eae9ed4b528c1bba5199a4e1b4c331"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/TERMINAL.json",
+          "bytes": 527,
+          "sha256": "b5dd93ce13b5a71bb085eeccac359490dd174c673d8f40ffcf39218eba64f97a"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/records",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/records/FINAL.json",
+          "bytes": 3977,
+          "sha256": "3cd763a37714139cdffe3055b73307e8bf7d3a40adc42c7e0320c2a9c98e5bfd"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/records/child-001.json",
+          "bytes": 443955,
+          "sha256": "9cb40329f4c2fdd94ca5a2250b402e6f45c1517617300ed4c5d4ce86bacb728c"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/records/child-002.json",
+          "bytes": 149865,
+          "sha256": "f88f08d65be81975e6f2653d04430d0abf7b86cc5c31d4b99077d45152b534b1"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/records/manifest.json",
+          "bytes": 2726,
+          "sha256": "148d7446decfb73bd243c64a10287416a07c3635aa97abeca3e6f6ae0285b118"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/records/observations-1.json",
+          "bytes": 388929,
+          "sha256": "ef136fa465ae8e08e978f9459087cd6c2930c38774862719ef18b11794a68956"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/evidence/records/observations-2.json",
+          "bytes": 131488,
+          "sha256": "69c317968c691f971059e619bccc2b2312710287761aa15d613086186a2185ef"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/prepare.mjs",
+          "bytes": 5623,
+          "sha256": "e1fe9a582000ea820d5e38427145011acc949f4b48f766a37e76410a1f7b5eb0"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/run.mjs",
+          "bytes": 6060,
+          "sha256": "6a5c87ea91d0ce80a26a003e1d99743301074a0b056b63ec8b4d477a9782fad4"
+        }
+      ]
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9",
+      "rows": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/AUDIT.json",
+          "bytes": 7787,
+          "sha256": "b27f85fef260d130dfa7560d033fc8bdd10a99f8f09cd8a6d839e5e2b1c99796"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/CONTINUATION-PROPOSED.json",
+          "bytes": 12162,
+          "sha256": "34c7f0a8cce8811d4e869a909aae7101cfcbf5910f688845791bf82700d3c335"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/CONTROLS.json",
+          "bytes": 1737,
+          "sha256": "40cfb4f34dd774e8a99b5b19080ec0ff67721f7ba58cd064539f750cab64b170"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/CRITERION.md",
+          "bytes": 8036,
+          "sha256": "3e583be16a2c4959ed58e3f2f7f58af784794edad9e903430b8f775c33deb6da"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/HANDOFF.md",
+          "bytes": 6402,
+          "sha256": "b634baf4dd971c04ba76df90659574b4bf51152d9ecd8a3717c27077b6555670"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/PRESEAL.json",
+          "bytes": 39603,
+          "sha256": "2bc4698a9319b7e8149bae5ca9237388c075700ac9ec912299b155b486798672"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/RUN-01",
+          "directory": true,
+          "bytes": 0
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/RUN-01/PUBLICATION-CLOCK.json",
+          "bytes": 81,
+          "sha256": "19851fd35cc0b238e44d989001a0f82f716447258711a08d42505d834591b0f1"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/RUN-01/RECEIPT.json",
+          "bytes": 3461,
+          "sha256": "79eca48f57b8407b30382ae45e153e9f13b390d876564a00c22044664a888601"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/RUN-01/worker.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/RUN-01/worker.stdout.jsonl",
+          "bytes": 24273,
+          "sha256": "df720f490557ac06ba3082d46d94e0d76a107d9e43d5f44d40774392c399ef1b"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/SOURCE-TRANSFORMS.json",
+          "bytes": 736480,
+          "sha256": "2b87f6fd696255949302082f0bd759ffa5051c0898cf68826dd9c8ce5bf85568"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/WORKER-DELTA.json",
+          "bytes": 1354,
+          "sha256": "1ed69de6ef421f3b34d7d9910240673de199e0b3f71fd136ad6293dbc42b029f"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/adapter.mjs",
+          "bytes": 11892,
+          "sha256": "c789e86bea280a3b76a56d9721b4ce262306fdfdcb5677e71c67348af3374628"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/audit.py",
+          "bytes": 5864,
+          "sha256": "a1a428f2446366a46d517c896078ffc131e10c8c10f8fab13256a6f3a75ef329"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/prepare.py",
+          "bytes": 15426,
+          "sha256": "f9d4756eb431116e95f4fa286b3956bed8510c95bbeeae9b7db4dbad4ee92f23"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/run.mjs",
+          "bytes": 9188,
+          "sha256": "6f56c189546d9d1f27936812f3525c23a1d0f6e989e914c2f270a9b995d5442a"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/adapter-v9/worker.mjs",
+          "bytes": 16593,
+          "sha256": "8111f097718deedd66e958ebfddb5a744e490a72d3914616779937d1d14eebdc"
+        }
+      ]
+    }
+  ],
+  "foreignIndexBefore": "",
+  "emitBinding": "compiler output SHA256 + transformed input SHA + options + compiler identity recorded before worker starts; loader returns exact verified bytes and records actual module URL/hash; no fallback"
+}

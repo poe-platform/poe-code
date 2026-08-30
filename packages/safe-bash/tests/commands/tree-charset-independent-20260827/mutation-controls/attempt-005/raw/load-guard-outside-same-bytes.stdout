@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "pid": 23852,
+  "requested": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-005/outside-source-copy/virtual-bash/dist/index.js",
+  "parentUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-005/baseline-consumer/load-guard-outside-same-bytes.mjs",
+  "resolvedUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-005/outside-source-copy/virtual-bash/dist/index.js",
+  "expected": {
+    "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-005/baseline-consumer/node_modules/virtual-bash",
+    "manifestSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+    "entrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d"
+  },
+  "actual": {
+    "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-005/outside-source-copy/virtual-bash",
+    "manifestUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-controls/.work/attempt-005/outside-source-copy/virtual-bash/package.json",
+    "manifestSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+    "entrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d"
+  },
+  "allowed": false,
+  "rejectionReasons": [
+    "resolved package root is outside expected installation"
+  ],
+  "loaded": false
+}

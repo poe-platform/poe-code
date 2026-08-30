@@ -1,0 +1,26 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-manifest-digest",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-manifest-digest/harness/execution-prep-v1/load-guard.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-manifest-digest/harness/execution-prep-v1/probe-worker.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-manifest-digest/guard-manifest.json",
+    "0000000000000000000000000000000000000000000000000000000000000000"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-manifest-digest",
+  "started": "2026-08-28T07:58:18.181Z",
+  "finished": "2026-08-28T07:58:18.225Z",
+  "pid": 29663,
+  "code": 1,
+  "signal": null,
+  "spawnError": null,
+  "failure": null,
+  "groupAbsent": true,
+  "closeObserved": true,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: manifest SHA256\n+ actual - expected\n\n+ '9fb4535db216b0686069962ab78f5ee16c05f14e66e9ca76ed856054486b0a3d'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n\n    at readAdmission (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-manifest-digest/harness/execution-prep-v1/support.mjs:18:44)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-manifest-digest/harness/execution-prep-v1/load-guard.mjs:8:18\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:112:9) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '9fb4535db216b0686069962ab78f5ee16c05f14e66e9ca76ed856054486b0a3d',\n  expected: '0000000000000000000000000000000000000000000000000000000000000000',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "bytes": 1132
+}

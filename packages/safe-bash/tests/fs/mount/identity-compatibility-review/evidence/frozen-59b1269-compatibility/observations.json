@@ -1,0 +1,7292 @@
+[
+  {
+    "case": "positive overwrite: independent-memory, distinct backing files",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "positive overwrite: shared-memory, distinct backing files",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "positive overwrite: readonly, distinct backing files",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "positive overwrite: overlay, distinct backing files",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "positive overwrite: opaque, distinct backing files",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "positive overwrite: real-shared-root, distinct backing files",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "paired alias control: opaque does not manufacture disjoint scopes",
+    "expectedCode": "EINVAL",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "paired alias control: real-shared-root does not manufacture disjoint scopes",
+    "expectedCode": "EINVAL",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "positive same-mount memory rename replaces a distinct file",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "rename",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "REQUIRED shared memory backend mounted twice: distinct-file mv overwrite",
+    "outcome": {
+      "status": "command-error",
+      "exitCode": 1,
+      "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "mv",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "REQUIRED cross-mount memory mv, target missing",
+    "outcome": {
+      "status": "command-error",
+      "exitCode": 1,
+      "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "mv",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "REQUIRED cross-mount memory mv, target existing",
+    "outcome": {
+      "status": "command-error",
+      "exitCode": 1,
+      "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "mv",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": []
+  },
+  {
+    "case": "REQUIRED s3 direct copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 direct copy, target existing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 one-mount copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 one-mount copy, target existing",
+    "outcome": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/source",
+      "dest": "/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 separate-clients copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 separate-clients copy, target existing",
+    "outcome": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ]
+  },
+  {
+    "case": "positive s3 direct existing-target rename (non-atomic opt-in)",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "rename",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "positive s3 one-mount existing-target rename (non-atomic opt-in)",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "rename",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "copyObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "deleteObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 separate-clients cross-mount mv, target missing",
+    "outcome": {
+      "status": "command-error",
+      "exitCode": 1,
+      "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "mv",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED s3 separate-clients cross-mount mv, target existing",
+    "outcome": {
+      "status": "command-error",
+      "exitCode": 1,
+      "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "mv",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ]
+  },
+  {
+    "case": "paired s3 opaque separate-client alias stays unchanged (traversal may reject first)",
+    "expectedCode": "ENOTSUP",
+    "cause": "ENOTSUP: operation not supported",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory to-remote s3 copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "putObject",
+        "key": "same-prefix/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory to-remote s3 copy, target existing",
+    "outcome": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/target/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory from-remote s3 copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "getObject",
+        "key": "same-prefix/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory from-remote s3 copy, target existing",
+    "outcome": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source"
+      },
+      {
+        "operation": "headObject",
+        "key": "same-prefix/source/"
+      },
+      {
+        "operation": "listObjectsV2",
+        "key": ""
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav direct copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav direct copy, target existing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav one-mount copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "COPY",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav one-mount copy, target existing",
+    "outcome": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/source",
+      "dest": "/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav separate-clients copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav separate-clients copy, target existing",
+    "outcome": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "positive webdav direct existing-target rename (default lock policy)",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "rename",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "MOVE",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "positive webdav one-mount existing-target rename (default lock policy)",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/source",
+    "target": "/target",
+    "action": "rename",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "LOCK",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "MOVE",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "UNLOCK",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav separate-clients cross-mount mv, target missing",
+    "outcome": {
+      "status": "command-error",
+      "exitCode": 1,
+      "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "mv",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED webdav separate-clients cross-mount mv, target existing",
+    "outcome": {
+      "status": "command-error",
+      "exitCode": 1,
+      "stderr": "mv: EXDEV: cross-device link not permitted, rename '/left/source' -> '/right/target'\\n"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "mv",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "paired webdav opaque separate-client alias stays unchanged (traversal may reject first)",
+    "expectedCode": "ENOTSUP",
+    "cause": "ENOTSUP: operation not supported",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory to-remote webdav copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      },
+      {
+        "operation": "PUT",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory to-remote webdav copy, target existing",
+    "outcome": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/target"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory from-remote webdav copy, target missing",
+    "outcome": {
+      "status": "success"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      },
+      {
+        "operation": "GET",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "REQUIRED memory from-remote webdav copy, target existing",
+    "outcome": {
+      "status": "filesystem-error",
+      "code": "ENOTSUP",
+      "syscall": "copyFile",
+      "path": "/left/source",
+      "dest": "/right/target",
+      "cause": "ENOTSUP: operation not supported"
+    },
+    "source": "/left/source",
+    "target": "/right/target",
+    "action": "copy",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": [
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/"
+      },
+      {
+        "operation": "PROPFIND",
+        "key": "/dav/source"
+      }
+    ]
+  },
+  {
+    "case": "declared S3 default rename limit remains typed ENOTSUP and effect-free",
+    "expectedCode": "ENOTSUP",
+    "before": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "after": {
+      "left": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ],
+      "right": [
+        {
+          "name": "keep",
+          "type": "file",
+          "bytes": [
+            75,
+            69,
+            69,
+            80
+          ]
+        },
+        {
+          "name": "source",
+          "type": "file",
+          "bytes": [
+            0,
+            255,
+            128,
+            13,
+            10,
+            65,
+            66,
+            67,
+            0
+          ]
+        },
+        {
+          "name": "target",
+          "type": "file",
+          "bytes": [
+            79,
+            76,
+            68,
+            255
+          ]
+        }
+      ]
+    },
+    "operations": []
+  }
+]

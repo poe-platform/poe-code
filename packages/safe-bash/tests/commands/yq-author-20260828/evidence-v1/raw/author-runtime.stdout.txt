@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: factories are frozen and replace-only
+ok 1 - factories are frozen and replace-only
+  ---
+  duration_ms: 0.8565
+  type: 'test'
+  ...
+# Subtest: exact information forms avoid input
+ok 2 - exact information forms avoid input
+  ---
+  duration_ms: 2.038667
+  type: 'test'
+  ...
+# Subtest: CLI admission and refusals use finite diagnostics
+ok 3 - CLI admission and refusals use finite diagnostics
+  ---
+  duration_ms: 1.040792
+  type: 'test'
+  ...
+# Subtest: block and flow collections compose and encode
+ok 4 - block and flow collections compose and encode
+  ---
+  duration_ms: 11.575167
+  type: 'test'
+  ...
+# Subtest: quoted and block scalar families
+ok 5 - quoted and block scalar families
+  ---
+  duration_ms: 4.789625
+  type: 'test'
+  ...
+# Subtest: directives and documents remain independent
+ok 6 - directives and documents remain independent
+  ---
+  duration_ms: 1.079792
+  type: 'test'
+  ...
+# Subtest: numeric normalization and tag family decisions
+ok 7 - numeric normalization and tag family decisions
+  ---
+  duration_ms: 4.144583
+  type: 'test'
+  ...
+# Subtest: decoded keys and merge-like presentation rules
+ok 8 - decoded keys and merge-like presentation rules
+  ---
+  duration_ms: 2.171916
+  type: 'test'
+  ...
+# Subtest: anchor reuse uses active records and deep copies
+ok 9 - anchor reuse uses active records and deep copies
+  ---
+  duration_ms: 2.162042
+  type: 'test'
+  ...
+# Subtest: query compiles once and each document yields independently
+ok 10 - query compiles once and each document yields independently
+  ---
+  duration_ms: 2.522333
+  type: 'test'
+  ...
+# Subtest: production-specific implicit key grammar accepts only the flow witness
+ok 11 - production-specific implicit key grammar accepts only the flow witness
+  ---
+  duration_ms: 1.096542
+  type: 'test'
+  ...
+# Subtest: quoted nb-json breadth and escape scalar validity stay distinct
+ok 12 - quoted nb-json breadth and escape scalar validity stay distinct
+  ---
+  duration_ms: 2.400041
+  type: 'test'
+  ...
+# Subtest: document-prefix BOM, markers, and exact NUL encoding
+ok 13 - document-prefix BOM, markers, and exact NUL encoding
+  ---
+  duration_ms: 0.864333
+  type: 'test'
+  ...
+# Subtest: Core numeric spellings retain the restricted signed-base rule
+ok 14 - Core numeric spellings retain the restricted signed-base rule
+  ---
+  duration_ms: 1.631959
+  type: 'test'
+  ...
+# Subtest: explicit tag allow-list and kind checks
+ok 15 - explicit tag allow-list and kind checks
+  ---
+  duration_ms: 0.979791
+  type: 'test'
+  ...
+# Subtest: anchor copies retain earlier values and namespaces reset per document
+ok 16 - anchor copies retain earlier values and namespaces reset per document
+  ---
+  duration_ms: 1.613083
+  type: 'test'
+  ...
+# Subtest: private query session rejects retry, overlap, and post-close use
+ok 17 - private query session rejects retry, overlap, and post-close use
+  ---
+  duration_ms: 0.488458
+  type: 'test'
+  ...
+# Subtest: checkpoint await preserves falsy caller reason
+ok 18 - checkpoint await preserves falsy caller reason
+  ---
+  duration_ms: 0.621
+  type: 'test'
+  ...
+# Subtest: prepaid reservation consumes threshold credit once and close expires idle credit
+ok 19 - prepaid reservation consumes threshold credit once and close expires idle credit
+  ---
+  duration_ms: 9.4785
+  type: 'test'
+  ...
+# Subtest: carried owned work reaches the exact one-Budget ceiling
+ok 20 - carried owned work reaches the exact one-Budget ceiling
+  ---
+  duration_ms: 34.899792
+  type: 'test'
+  ...
+# Subtest: sink failures escape by identity even when shaped like a query limit
+ok 21 - sink failures escape by identity even when shaped like a query limit
+  ---
+  duration_ms: 0.823167
+  type: 'test'
+  ...
+# Subtest: literal VFS order and repetitions use the configured filesystem
+ok 22 - literal VFS order and repetitions use the configured filesystem
+  ---
+  duration_ms: 1.42325
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 370.610583

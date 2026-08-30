@@ -1,0 +1,11 @@
+{
+  "role": "FRESH_DATA_BOOTSTRAP_NOT_PRODUCT",
+  "node": {"path":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","version":"v22.22.2","sha256":"5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"},
+  "masterGrantStarted": "2026-08-29T07:51:00.000Z",
+  "bounds": {"totalSeconds":1200,"knownOS":40,"peak":3,"captureBytes":67108864,"workBytes":268435456},
+  "preparationEntrySha256":"58d82edc22f0f4fce42907a128702cda09279d153b3a4e7c59d27b4b79093a46",
+  "outerSha256":"4a4d7635eb7853c172f70558680c1e9dd00f2bda4206d417b288bf39fffb5868",
+  "command":["node","run-v2.mjs","--run"],
+  "controlledChecks":["captured syntax refusal","missing-parent entry refusal","exact two-stream marker capture"],
+  "productExecutions":0
+}

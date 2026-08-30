@@ -1,0 +1,269 @@
+{
+  "schema": "HARMLESS_REGEX_CONTROLS_V3",
+  "unsafe": true,
+  "qualified": 0,
+  "ordinaryFailed": 0,
+  "unrun": 54,
+  "launched": 1,
+  "created": 0,
+  "knownOsProcesses": 2,
+  "conservativeCaptureAndCaseBytes": 827,
+  "rows": [
+    {
+      "id": "G01.1",
+      "status": "UNSAFE_STOP",
+      "error": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/runs/controls-01/G01.1/RESULT.json'",
+      "supervision": {
+        "id": "G01.1",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "--permission",
+          "--allow-worker",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/runs/controls-01/G01.1",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/case.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/runs/controls-01/G01.1/CONFIG.json",
+          "46973cbd82fa606433582c8d68f6a9742bfc6083b7ac27461a0993adb3feca1d"
+        ],
+        "pid": 6938,
+        "closed": true,
+        "status": 1,
+        "signal": null,
+        "observed": [
+          68,
+          759
+        ],
+        "retained": [
+          68,
+          759
+        ],
+        "failures": [],
+        "sentSignals": [],
+        "capturesClosed": true
+      }
+    },
+    {
+      "id": "G01.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G01.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G01.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G01.5",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G02.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G02.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G02.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G02.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G02.5",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G02.6",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G02.7",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G03.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G03.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G03.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G03.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G03.5",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G04.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G04.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G04.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G04.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G04.5",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G05.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G05.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G05.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G05.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G06.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G06.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G06.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G06.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G07.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G07.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G07.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G07.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G08.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G08.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G08.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G08.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G09.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G09.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G09.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G09.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G10.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G10.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G10.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G10.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G11.5",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G12.1",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G12.2",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G12.3",
+      "status": "UNRUN_UNSAFE_TAIL"
+    },
+    {
+      "id": "G12.4",
+      "status": "UNRUN_UNSAFE_TAIL"
+    }
+  ],
+  "actualProductImports": 0,
+  "actualComparatorImports": 0,
+  "actualSemanticCalls": 0
+}

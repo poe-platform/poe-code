@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "stage": "STATIC_DATA_INSPECTION_ONLY",
+  "admission": "DENY_PENDING_FRESH_ROOT_GO",
+  "sourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "evidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "handoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "expectedArchiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+  "expectedPackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "files": {
+    "BINDING-SPEC.md": {
+      "sha256": "c94883c42c25a6ef5c2c6fc391840e3ee1684c1a01dee970c21a3fa8e561b375",
+      "bytes": 8997,
+      "mode": 420
+    },
+    "INSPECTION-PLAN.md": {
+      "sha256": "05c78ccc8f0f0b4944bcb9762865ef7582125632b339ba07423d05e7eb897d88",
+      "bytes": 3592,
+      "mode": 420
+    },
+    "inspect-data.mjs": {
+      "sha256": "88e84e21e2ed3359beeeb0aac985b00ece0f2ea2f2724aa484508bc5a3f29453",
+      "bytes": 31676,
+      "mode": 420
+    }
+  },
+  "command": "node tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs DATA_PRESEAL_SHA256",
+  "bounds": {
+    "gitReadBufferBytes": 67108864,
+    "tarBytes": 16777216,
+    "tarEntries": 4096,
+    "historyFileBytes": 67108864,
+    "historyScopeBytes": 536870912
+  },
+  "scope": "Read fixed Git blobs and bounded tar data in memory; hash whole immutable historical scoped trees; write owned JSON through apply_patch. No extraction, materialization, repack, product import/execution, build, compiler, types, native oracle, author script or harness cohort.",
+  "checksBeforeInspection": {
+    "nodeSyntax": "PASS",
+    "writeSpecLint": "PASS_0_WARNINGS"
+  },
+  "failurePolicy": "Preserve failure and stop; no automatic rerun or evidence normalization."
+}

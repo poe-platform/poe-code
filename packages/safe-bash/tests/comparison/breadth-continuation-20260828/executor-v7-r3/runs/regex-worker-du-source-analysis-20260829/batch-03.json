@@ -1,0 +1,25 @@
+[
+  {
+    "id": "qualified-reports",
+    "kind": "git",
+    "args": [
+      "show",
+      "7b2a72e9:tests/integration/git-public-independent-20260829/internal-loader-repair-v1/REPORT.md",
+      "6b4d6c6f:tests/integration/git-public-independent-20260829/successor-bindings-v2/HANDOFF.md",
+      "053c4e942c66928972af6aa227177726ca503eab:tests/integration/git-public-loader-review-20260829/REPORT.md",
+      "5fabc790:tests/integration/git-public-independent-20260829/actual-v2/evidence/REPORT.md",
+      "8918f35b:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/HANDOFF.md",
+      "0a942ed2:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/actual-run02-v1/REPORT.md"
+    ]
+  },
+  {
+    "id": "du-implementation",
+    "kind": "git",
+    "args": [
+      "show",
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/du/du.ts",
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/filesystem.ts",
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/memory/index.ts"
+    ]
+  }
+]

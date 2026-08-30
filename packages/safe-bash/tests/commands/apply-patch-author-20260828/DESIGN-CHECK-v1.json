@@ -1,0 +1,31 @@
+{
+  "date": "2026-08-28",
+  "role": "author design-data validation only",
+  "status": "awaiting root profile and implementation approval",
+  "inputs": [
+    {"path":"PROFILE-PROPOSAL-v1.md","bytes":17119,"sha256":"a10ed971116193969888f7c18f013871a8c93977bcf19852459fac7e85be4064"},
+    {"path":"CASES-v1.json","bytes":9459,"sha256":"e13c2ed4ddce65dc0d976a06ba32ddd42f00d7472579cbc30769d007ea42ab61"},
+    {"path":"SOURCES-v1.json","bytes":7130,"sha256":"c42a5c0e7e5e28ba3e8454468e43124659de801f5bb78715d0c5df6fa942cce3"}
+  ],
+  "checks": {
+    "newArtifactsRegularNonSymlinkFiles": 3,
+    "jsonDocumentsParsed": 2,
+    "literalProposedCases": 32,
+    "adversarialProposedFamilies": 12,
+    "adversarialScenarioLabels": 68,
+    "uniqueTopLevelCaseIds": 44,
+    "officialFetchedSourceBufferDigestMatches": 6,
+    "localInspectedFileDigestMatchesOnRecheck": 19
+  },
+  "notExecuted": [
+    "apply_patch command product implementation or parser",
+    "any product source import",
+    "any native CLI/oracle invocation",
+    "runtime tests, provider operations or Shell fixtures",
+    "typecheck/build/package/install/moved consumer",
+    "private engine or native-service cohorts"
+  ],
+  "qualification": "No semantic passes. Checks used JSON parsing, SHA256 and read-only regular-file metadata/content reads in the design process. Official documentation/source were fetched for inspection only. Shared HEAD advanced; manifests identify inspected file bytes, not a coherent accepted runtime candidate. No dependency install, private access or runtime/source edits.",
+  "toolingObservation": "One development apply_patch edit had a missing context and failed without file changes; corrected editing request succeeded. This is not a product test or product defect.",
+  "nextGate": "Root R1-R5/caps approval, finite author fixtures, bounded implementation, separate independent review before default/public integration. Mapfile remains deferred."
+}

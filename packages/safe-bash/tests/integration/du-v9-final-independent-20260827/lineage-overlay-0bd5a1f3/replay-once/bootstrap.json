@@ -1,0 +1,47 @@
+{
+  "freezeCommit": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "candidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "admissionControl": {
+    "rejected": true,
+    "writes": 0,
+    "forbiddenPathWasNeverCreated": true
+  },
+  "packlistControl": {
+    "rejected": true,
+    "archiveCreations": 0,
+    "writes": 0,
+    "extractions": 0,
+    "forbiddenPathWasNeverCreated": true
+  },
+  "freezeManifestSha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+  "freezeArchiveSha256": "af1d29784fea14837690bfc4b7b093daba65266ad0ef5f0be5225aa71f9891f5",
+  "materializedBeforeChild": {
+    "phase": "bootstrap-materialized-before-child",
+    "completeFileCount": 23,
+    "identityBinding": {
+      "phase": "bootstrap-materialized-before-child",
+      "baseCommit": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+      "baseManifestSha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+      "overlayCommit": "0bd5a1f3c31ef5e6203a82026181fa0fc73acc79",
+      "manifestDeltaSha256": "06df5f3200a2c93d4fdf78ad1f968e1e6c29eacbd7b712403b7e0e244f256147",
+      "patchSha256": "25c4c85f336ed1343da3ac4255fb84d92b8672ba936cbc2cf723ce180389923a",
+      "baseHarness": {
+        "path": "harness/verify-v5.mjs",
+        "bytes": 59616,
+        "sha256": "447ec395027d6d57902e9c22e5d731519d4205da36ea7256c757b6e9de354cfc",
+        "gitBlob": "8b48d1b7bf6190e617a1a3b6853f41d2348c0ee9"
+      },
+      "patchedHarness": {
+        "path": "harness/verify-v5.mjs",
+        "bytes": 61495,
+        "sha256": "f857b1f5421d74860515ff60fcfbe52d7a876e488db50a30b94f9f040d8c5e25",
+        "gitBlob": "c6aaae94cd50a3c3052467161818a943ba48d345"
+      },
+      "untouchedFiles": 22,
+      "oldManifestAuthenticatesPatchedBytes": false
+    },
+    "everyByteSizeSha256AndGitBlobVerified": true,
+    "exactInventoryNoNewOrDeletedEntries": true,
+    "inventorySha256": "87446fac15f6abd2d6ebcd9e2d57fafee73c29bcf5d871a884b616af6cb1dd31"
+  }
+}

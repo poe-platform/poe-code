@@ -1,0 +1,142 @@
+{
+  "classification": "HISTORICAL_AUDIT_METADATA_ROLE_NOT_NEW_CANDIDATE_SOURCE_GATE",
+  "packetRevision": "e729a5ab8776ea768d10e6107692149989b2511d",
+  "historyReceiptSha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+  "modeAuthoritySha256": "b1d05bb9ad80a8bc432742dba561fadead341bb74bdab8940d2ad16e7721aacd",
+  "originalAuthorityReferencesAuthenticated": [
+    {
+      "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/FINAL-SEAL.json",
+      "sha256": "979cacf27eae6d3fc46980d35df17f8135274a4441f1d08d1f2768907b4cced3",
+      "bytes": 3017,
+      "blob": "ec1d438ac617b22d4fb4bb42e384b04cbec1931d"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+      "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+      "bytes": 116989,
+      "blob": "d1961e78d32c0bc11452ce1736211e2f014ebdaa",
+      "pointer": "/bindings/0"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/FINAL-SEAL.json",
+      "sha256": "c8c6b98809ddb909c4b93f6e057d67cfd566bbfbeafd7088b2b0eeb4ebafcdb6",
+      "bytes": 4673,
+      "blob": "87fdb02f21e8a64a9b4bf136980c636138ebd54f"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/BUILD-PROOF-AUTHENTICATED.json",
+      "sha256": "7d015946d7992ba32d62036a310e607a99ed6fc139e0bb92d7c37c8467915fe5",
+      "bytes": 20068,
+      "blob": "c54e0c5f800fbad4c060f628f3231558edf378a7",
+      "pointer": "/scopeSnapshot/5"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/FINAL-SEAL.json",
+      "sha256": "c1d91e34da93ba6ee547e5d6fc9647ca7116bfbbcc731afda51a13790ac07321",
+      "bytes": 549324,
+      "blob": "a2a4cfddfccd83e64e69558cd34be06e4da8d71b"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/INDEX.json",
+      "sha256": "8ff8fd648037871238ec1a46df9bdd36559a578d840562fa82eef409a4c59af1",
+      "bytes": 286707,
+      "blob": "2279eba3c2fc4567003f4433ba5cf0df6e9e05fc",
+      "pointer": "/roots/actual"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.mjs",
+      "sha256": "561a63533dfab0f3deaf982d3012be993e2e74b3f450a9f09847d4fb167cd21a",
+      "bytes": 31158,
+      "blob": "f9fe85370460bd0786aad15cdce27d66ffeffe4a"
+    },
+    {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+      "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+      "bytes": 2843,
+      "blob": "97ee9e9035df2ea6025138a899c3074693750180"
+    }
+  ],
+  "historySummary": [
+    {
+      "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+      "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-v1",
+      "files": 15,
+      "directories": 1,
+      "snapshotSha256": "6a27863dbbb93aa0b953062ef6c8f521ea5bc77f6f55ca223aae516d50fcb2cd",
+      "modeAuthorityDenials": []
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1",
+      "files": 21,
+      "directories": 1,
+      "snapshotSha256": "bb3bb04b61893f5093882d287f629a91dd82eaf0f6dd79e9b62e8f951c1c4939",
+      "modeAuthorityDenials": []
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "scope": "tests/commands/yq-independent-20260828/actual-35da1854-v1",
+      "files": 1719,
+      "directories": 340,
+      "snapshotSha256": "7b16c68f5a61cfe591dcf1b38cc34106e0899b4e206f32ae8210f97031a07306",
+      "modeAuthorityDenials": []
+    },
+    {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+      "files": 13,
+      "directories": 1,
+      "snapshotSha256": "dc2dd75abe910fded6a35015cc67daa9510f019a7eec0c0f00914128ec49bb37",
+      "modeAuthorityDenials": [
+        {
+          "path": "FINAL-SEAL.json",
+          "reason": "MODE_AUTHORITY_MISSING",
+          "goldenPosixModeVerified": false
+        }
+      ]
+    }
+  ],
+  "beforeAfterReceiptsEqual": true,
+  "filesInAuthorSnapshots": 1768,
+  "directoriesInAuthorSnapshots": 343,
+  "independentLiveHistoryResnapshot": false,
+  "originalThreeScopesGoldenModeData": "Exact original authority references authenticate; the v2 snapshot receipt reports no golden-mode denials for those scopes. No independent live re-observation or change-and-restore guarantee.",
+  "originalCompoundEntry": {
+    "path": "raw-compound/COMPOUND-RESULT.json",
+    "kind": "file",
+    "sha256": "f70f554c513e6a52c45496cf515c20cd796591c37e5eea2aa155e32fbac9f8a8",
+    "bytes": 64460,
+    "mode": 384
+  },
+  "priorV1SelfSealOriginalPosixMode": null,
+  "priorV1SelfSealPredicate": "DENY_MODE_AUTHORITY_MISSING_UNCHANGED",
+  "v1InspectorFailurePreserved": {
+    "exit": 1,
+    "elapsedMs": 922,
+    "reaped": true,
+    "artifactAuthenticationReached": false,
+    "classification": "IMMUTABLE_V1_FAIL_NOT_RESCORED"
+  },
+  "policyEvidence": {
+    "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+    "sourceAuthorityPath": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/SOURCE-AUTHORITY.json",
+    "sourceAuthoritySha256": "718253db9c04fdcd459283362d00d80766c9b5ad3264b931ac127cb9aaa5db5d",
+    "guardPath": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs",
+    "guardSha256": "7185edea6beeb17282feb773a49476b76da216b228cc8b2f0f710346e18bda4a",
+    "guardLines": "193-237 selected-source admission; source authority is selected baseline/interpreter/new blobs, not legacy audit-metadata permissions"
+  },
+  "policyConclusion": "The original ROOT selected-source policy does not require a historical inspector self-seal full-POSIX permission claim as a new source/package identity prerequisite. Treating this metadata-only DENY as failure of the authenticated new artifact hashes or as a mandatory whole-candidate data-binding gate would be an overbroad harness dependency. Keep the historical predicate DENY, label its scope, and separately gate new source/package/runtime admission; this is role separation, not a waiver or fabricated permission.",
+  "proposalLimit": "No bound-plan seal was available at the single checkpoint, so no claim is made that an actual v2 coordinator has implemented or misimplemented this separation.",
+  "newArtifactHashFailure": false,
+  "newCandidateGO": "DENY_INDEPENDENTLY_PENDING_IMPLEMENTATION_ROOT_SEALS_AND_BUILD",
+  "authorInspectorReexecuted": false,
+  "productControlBuildTypeLoaderExecutions": 0
+}

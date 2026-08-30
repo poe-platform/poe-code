@@ -1,0 +1,16 @@
+{"atMs":0.832,"kind":"group-admitted","pid":77683,"pgid":77683,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-oOOmAr","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-oOOmAr","TMPDIR":"/private/tmp/safe-bash-execution-author-oOOmAr","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":44.111,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"engine-spawn","pid":77684,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":103.65,"kind":"request-start","absoluteDeadlineMs":1503.637833}
+{"atMs":103.653,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"ready"}
+{"atMs":104.57,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"phase","phase":"exec-start"}
+{"atMs":104.846,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"phase","phase":"exec-settled"}
+{"atMs":105.047,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"phase","phase":"snapshot-complete"}
+{"atMs":105.151,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"phase","phase":"dispose-start"}
+{"atMs":105.77,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"phase","phase":"dispose-settled"}
+{"atMs":105.876,"kind":"result-received","sha256":"0af907732e15e33af08b7ae38e648323b7ea5f4a6f8da89b322c30b47e309968","absoluteTotalUnchangedMs":4500}
+{"atMs":108.919,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"engine-exit","code":0,"signal":null}
+{"atMs":108.986,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"engine-close","code":0,"signal":null}
+{"atMs":109.114,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":109.212,"id":"synthetic/wrong-output","nonce":"9d96551c-8189-4dd4-bc81-d0213b1b132e","kind":"session-complete"}
+{"atMs":113.001,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":113.007,"kind":"coordinator-close","code":0,"signal":null}

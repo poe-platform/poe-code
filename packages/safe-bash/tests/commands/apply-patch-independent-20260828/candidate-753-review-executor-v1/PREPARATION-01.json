@@ -1,0 +1,26 @@
+{
+  "classification": "draft source syntax preflight failure; no actual review attempt/build/import",
+  "exitCode": 1,
+  "controller": {
+    "bytes": 34281,
+    "sha256": "c46498985da56d9a271ad5fae96fef8fdbd95ec092bd2786f02e0e52ffdeb9c0",
+    "mode": 420
+  },
+  "preflight": {
+    "bytes": 5366,
+    "sha256": "708f3c7d027a0d3ea3a6bae566a5baead053ad14144efb99528c0f460a8c9aab",
+    "mode": 420
+  },
+  "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 420
+  },
+  "stderr": {
+    "bytes": 1327,
+    "sha256": "2b671da1476570a8c6a2f7234f713d34bb9d0901416582ab1a8f04019b12dc49",
+    "mode": 420
+  },
+  "failure": "missing closing parenthesis in consumer append guard; repaired before execution preseal",
+  "productLoads": 0
+}

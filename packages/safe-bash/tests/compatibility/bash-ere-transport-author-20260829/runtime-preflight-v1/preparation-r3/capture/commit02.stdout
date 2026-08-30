@@ -1,0 +1,36 @@
+[main 108841afd] Seal T1 r3 causal receipt gate and finite unknown ownership controls
+ 34 files changed, 232 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/.gitignore
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/CONTROL-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/NODE.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/OWNER-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/PREP.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/PREP.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/add01.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/add01.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/add02.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/add02.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/commit01.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/commit01.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch01.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch01.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch02.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch02.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch03.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch03.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch04.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch04.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch05.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch05.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch06.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/patch06.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/status-before.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/capture/status-before.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/controls.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-controls-r3.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owner-controls.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/receipt-fixture.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/receipt-gate.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/stub.mjs

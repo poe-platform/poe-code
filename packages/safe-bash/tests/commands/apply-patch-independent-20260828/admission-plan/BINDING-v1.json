@@ -1,0 +1,52 @@
+{
+  "schema": "apply-patch-independent-admission-binding-v1",
+  "status": "PREPARATION_ONLY_NOT_AUTHORIZATION",
+  "authorPreparationCommit": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+  "candidate": {
+    "storedCommit": null,
+    "compositionKind": null,
+    "baseInputs": null,
+    "orderedDelta": null,
+    "sourceInventorySha256": null,
+    "gitObjectFormat": null,
+    "derivedTreeId": null,
+    "sourceTestHelperInventorySha256": null,
+    "authorFixtureCommit": null,
+    "authorFixtureSha256": null,
+    "independentMatrixCommit": null,
+    "independentMatrixSha256": null,
+    "actualApiAndEntryPoints": null,
+    "reviewDriverCommit": null,
+    "reviewDriverClosureSha256": null,
+    "buildEmissionSha256": null,
+    "packageTarSha256": null,
+    "installedInventorySha256": null,
+    "movedInventorySha256": null,
+    "typeConsumerClosureSha256": null,
+    "developerToolClosureSha256": null,
+    "runtimeGuardClosureSha256": null,
+    "concreteMutantBindingsSha256": null
+  },
+  "authority": {
+    "rootGoDocument": null,
+    "rootGoSha256": null,
+    "rootReceiptCommit": null,
+    "oneAttemptId": null,
+    "ownedOutputRoot": null,
+    "exactOrderedJobsSha256": null
+  },
+  "defaults": "NONE; never populate candidate or authority from HEAD or current working tree",
+  "handoff": "New explicit authenticated record after separate authority; this preinspection record remains unchanged",
+  "execution": {
+    "candidateInspections": 0,
+    "productImports": 0,
+    "productExecutions": 0,
+    "builds": 0,
+    "typeCompilations": 0,
+    "packageInstalls": 0,
+    "movedRuns": 0,
+    "nativeOrCodexOrComparatorExecutions": 0,
+    "networkOperations": 0,
+    "timingExperiments": 0
+  }
+}

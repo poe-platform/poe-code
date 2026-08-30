@@ -1,0 +1,3 @@
+{"event": "capture-before-admission", "pid": 88229}
+{"event": "enrolled-before-spawn", "command": ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node", "/Users/kjopek/Workspace/safe-bash/tests/integration/node-public-author-20260829/run-v4.mjs", "--run"]}
+{"event": "terminal", "primaryPresent": false, "cleanupPresent": false, "closed": true, "signals": [], "bytes": 354, "pid": 88255, "exitCode": 0, "ownedGroupAbsent": true, "elapsedSeconds": 16.602166083001066}

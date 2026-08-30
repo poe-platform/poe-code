@@ -1,0 +1,8 @@
+leaf-negative.mts(2,25): error TS2353: Object literal may only specify known properties, and 'unknownOption' does not exist in type 'TimeEnvCommandsOptions'.
+leaf-negative.mts(3,25): error TS2322: Type '() => string' is not assignable to type '() => number'.
+  Type 'string' is not assignable to type 'number'.
+leaf-negative.mts(4,25): error TS2741: Property 'clearTimeout' is missing in type '{ now: () => number; setTimeout: () => number; }' but required in type 'SleepScheduler'.
+leaf-negative.mts(5,35): error TS2322: Type 'string' is not assignable to type 'number'.
+leaf-negative.mts(6,52): error TS2322: Type '(_callback: string) => number' is not assignable to type '(callback: () => void, milliseconds: number) => unknown'.
+  Types of parameters '_callback' and 'callback' are incompatible.
+    Type '() => void' is not assignable to type 'string'.

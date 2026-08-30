@@ -1,0 +1,132 @@
+{
+  "schema": "k08-archive-v3-controls-preseal",
+  "created": "2026-08-29T15:54:36.928Z",
+  "deadline": "2026-08-29T16:03:06.257Z",
+  "groups": [
+    "A01 actual981948B hash-before-sameBuffer decode +1006unique/fullset/hash/format/padding",
+    "A02 type/size/hash refusals before decoder",
+    "A03 stale cardinality/duplicate expected/shape",
+    "A04 alignment/truncation/terminator",
+    "A05 unexpected/duplicate actual members",
+    "A06 missing member fullset count",
+    "A07 payload hash and metadata mismatch",
+    "A08 USTAR/type/link/path/padding shape"
+  ],
+  "files": {
+    "auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    "direct-child.mjs": {
+      "bytes": 5895,
+      "sha256": "97b818b690af71f59e85e8c0f5f87536aabdc5352fa391fcb0fb3495e66c3120"
+    },
+    "collector-core.mjs": {
+      "bytes": 121,
+      "sha256": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61"
+    },
+    "preauth.mjs": {
+      "bytes": 339,
+      "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e"
+    },
+    "helper-driver.mjs": {
+      "bytes": 3013,
+      "sha256": "fe537fc9dfced47c536311b0de817bbfffad6f86d657bf0cff44e168c6bd6c9d"
+    },
+    "case-adapter.mjs": {
+      "bytes": 4474,
+      "sha256": "0200f5240559bf0b09a132d68e378d566475a2454cc89ae7401be01f678544bc"
+    },
+    "target-owner.mjs": {
+      "bytes": 14221,
+      "sha256": "631f8cd1a5129feaa0a0d9fc88ba26eb68d6155d40e100b861a8c544b911d566"
+    },
+    "collector.mjs": {
+      "bytes": 4518,
+      "sha256": "1ea24df11554f3105704860496928f2fad3a9738edb01aefc73b25b5d908ec9e"
+    },
+    "case-driver.mjs": {
+      "bytes": 2829,
+      "sha256": "e9e89d46c104f62acaf7d2e1a5f095d0f0fa65afa60b2ce8f5860e797c2b7351"
+    },
+    "activation.mjs": {
+      "bytes": 2129,
+      "sha256": "97fb6eb669446148738eea3f35d15a51f548b55b9ba4dc23f4a3cbb15876e58e"
+    },
+    "qualification.mjs": {
+      "bytes": 4426,
+      "sha256": "5ccf67fdf7cda3f5ade85fe10ce8013cebc7ce74dc16e0b9970234b215625fd1"
+    },
+    "parse-manifest.mjs": {
+      "bytes": 4746,
+      "sha256": "6dee9fd80de5cd1885a372a5e245949578ce69b318c357f6d21053b22805629a"
+    },
+    "owner-archive.mjs": {
+      "bytes": 939,
+      "sha256": "a0846c4a6970f3a6228d63011174f0745545f9bc977050d96525b9d70db962ea"
+    },
+    "package-admission.mjs": {
+      "bytes": 3896,
+      "sha256": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7"
+    },
+    "controls.mjs": {
+      "bytes": 5387,
+      "sha256": "7a1dcdac70093a118b34f6086b50eabc63d88378ae46f429f77400e55b8618f4"
+    },
+    "ARCHIVE-AUTHORITY.json": {
+      "bytes": 189363,
+      "sha256": "dbf70ef18f00b89ff5bb34d5fc0f0a2eb6860cd90f777050337b1a043b976ac2"
+    }
+  },
+  "syntaxFiles": [
+    "auth.mjs",
+    "direct-child.mjs",
+    "collector-core.mjs",
+    "preauth.mjs",
+    "helper-driver.mjs",
+    "case-adapter.mjs",
+    "target-owner.mjs",
+    "collector.mjs",
+    "case-driver.mjs",
+    "activation.mjs",
+    "qualification.mjs",
+    "parse-manifest.mjs",
+    "owner-archive.mjs",
+    "package-admission.mjs"
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "archive": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+    "decodedBytes": 5803008,
+    "shippingMembers": 1006
+  },
+  "execution": {
+    "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3",
+      "--allow-fs-read=/private/tmp/safe-bash-k08-author-RAvH2m",
+      "--experimental-vm-modules",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/controls.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3",
+    "env": {
+      "HOME": "/private/tmp/safe-bash-k08-archive-v3-6g2j3q",
+      "PATH": "",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "limitMs": 30000,
+    "noProductEvaluation": true
+  }
+}

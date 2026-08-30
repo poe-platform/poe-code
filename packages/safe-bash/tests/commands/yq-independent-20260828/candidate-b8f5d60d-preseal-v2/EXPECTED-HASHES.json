@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "result": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/RESULT.json",
+    "sha256": "d3c93c27d5b1a86dff0a9a62426294e6b9b15132e2eb958ab3b614a19ce1d988",
+    "bytes": 8460,
+    "mode": 420
+  },
+  "sourceAuthority": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+    "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+    "bytes": 3766,
+    "mode": 420
+  },
+  "sourceReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+    "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+    "bytes": 1408,
+    "mode": 420
+  },
+  "fullReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+    "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+    "bytes": 7455,
+    "mode": 420
+  },
+  "authorArtifactReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+    "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5",
+    "bytes": 1368,
+    "mode": 420
+  },
+  "composition": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+    "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+    "bytes": 25587,
+    "mode": 420
+  },
+  "wholeGit": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/GIT-IDENTITIES.json",
+    "sha256": "7502886ae594a13b1c8d1c358b7925ce6376463c84608489a1dac7744bd93528",
+    "bytes": 13993,
+    "mode": 420
+  },
+  "toolchain": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/TOOLCHAIN-AND-PROOF-ROLES.json",
+    "sha256": "b5ef3247d489bfc5edcc78f98b597711598e203a1601f56fa431a9fc801c849b",
+    "bytes": 4800,
+    "mode": 420
+  },
+  "history": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/HISTORY-PRESERVATION.json",
+    "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+    "bytes": 15621,
+    "mode": 420
+  },
+  "routing": "Root must independently authenticate the owned Git seal and raw hashes; proposed receipts and self-reported digests grant no execution permission."
+}

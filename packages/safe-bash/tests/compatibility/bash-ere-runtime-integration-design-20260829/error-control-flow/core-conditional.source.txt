@@ -1,0 +1,51 @@
+131:}
+132:
+133:async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "unary" | "binary" }>, context: ConditionalContext): Promise<boolean> {
+134:  if (node.kind === "nonempty") return (await context.expand(node.operand)).length > 0;
+135:  if (node.kind === "unary") return unary(node.operator, await context.expand(node.operand), context);
+136:  const left = await context.expand(node.left);
+137:  const pattern = ["=", "==", "!="].includes(node.operator);
+138:  const right = await context.expand(node.right, pattern);
+139:  if (node.operator === "=~" || ["-nt", "-ot", "-ef"].includes(node.operator)) unsupported(node.operator);
+140:  if (pattern) {
+141:    await patternAdmission(right, context);
+142:    const match = await matchesPattern(right, left, context.work);
+143:    return node.operator === "!=" ? !match : match;
+144:  }
+145:  if (node.operator === "<" || node.operator === ">") {
+146:    cLocale(context);
+147:    await charge(context, Buffer.byteLength(left) + Buffer.byteLength(right));
+148:    const order = Buffer.compare(Buffer.from(left), Buffer.from(right));
+149:    return node.operator === "<" ? order < 0 : order > 0;
+150:  }
+151:  const first = await integer(left, context), second = await integer(right, context);
+152:  switch (node.operator) {
+153:    case "-eq": return first === second;
+154:    case "-ne": return first !== second;
+155:    case "-lt": return first < second;
+156:    case "-le": return first <= second;
+157:    case "-gt": return first > second;
+158:    case "-ge": return first >= second;
+159:    default: return unsupported(node.operator);
+160:  }
+161:}
+162:
+163:export async function evaluateConditional(expression: ConditionalExpression, context: ConditionalContext): Promise<boolean> {
+164:  const stack: { node: ConditionalExpression; stage: number }[] = [{ node: expression, stage: 0 }];
+165:  let result = false;
+166:  while (stack.length) {
+167:    await charge(context);
+168:    const frame = stack.at(-1)!, node = frame.node;
+169:    if (node.kind === "not") {
+170:      if (frame.stage++ === 0) stack.push({ node: node.operand, stage: 0 });
+171:      else { result = !result; stack.pop(); }
+172:    } else if (node.kind === "and" || node.kind === "or") {
+173:      if (frame.stage === 0) { frame.stage = 1; stack.push({ node: node.left, stage: 0 }); }
+174:      else if (frame.stage === 1 && (node.kind === "and" ? result : !result)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }
+175:      else stack.pop();
+176:    } else { result = await leaf(node, context); stack.pop(); }
+177:  }
+178:  context.signal.throwIfAborted();
+179:  return result;
+180:}
+181:

@@ -1,0 +1,11 @@
+{"role":"TRUSTED_OUTER_STARTUP_CAPTURE_ESTABLISHED","argv":["/private/tmp/git-m1b-fca-independent-20260828-1e1c790b5f2ff78c","/Users/kjopek/Workspace/safe-bash/tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/execution-v2-review/activation/ROOT-ROUTE.json","9059c787403d6de826988115a2f8339f436a60e5c4a99d82bfad0239c701cb26","199993178918333"],"pid":75423,"targetStarts":0,"captureReservationBytes":4194304}
+{"role":"COORDINATOR_START","pid":75432,"totalStartsIncludingOuter":2}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"OWNED_CHILD_START","pid":75446,"id":"source-objects"}}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"OWNED_CHILD_CLOSE","pid":75446,"id":"source-objects","code":0,"signal":null}}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"OWNED_CHILD_START","pid":75509,"id":"independent-build"}}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"OWNED_CHILD_CLOSE","pid":75509,"id":"independent-build","code":0,"signal":null}}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"OWNED_CHILD_START","pid":75551,"id":"offline-install"}}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"OWNED_CHILD_CLOSE","pid":75551,"id":"offline-install","code":0,"signal":null}}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"OWNED_CHILD_START","pid":75773,"id":"SEM-S-01"}}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"OWNED_CHILD_CLOSE","pid":75773,"id":"SEM-S-01","code":null,"signal":"SIGKILL"}}
+{"role":"COORDINATOR_IPC_RAW","message":{"role":"COORDINATOR_RESULT","result":{"status":"FAIL","active":0,"unsafe":"SEM-S-01:M1A-W1:ESCAPING_SETUP_OR_ACTOR_FAILURE","root":"/private/tmp/git-m1b-fca-independent-20260828-1e1c790b5f2ff78c","captureCharged":6939383,"workReserved":418513801,"startsIncludingCoordinator":5,"peakIncludingOuter":3}}}

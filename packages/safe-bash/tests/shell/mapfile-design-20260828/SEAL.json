@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "date": "2026-08-28",
+  "role": "design and neutral observation PRESEAL; no implementation or observer execution authorization",
+  "scope": "tests/shell/mapfile-design-20260828/",
+  "artifactHashes": {
+    "README.md": "3f018e69542630c2fce0134b5834d9745a48b17d4966e4fd061ff0ed299a828e",
+    "PROFILE.md": "75728871b797eb9c8075631d32f610dae17223f95f455290c802dad647280b7a",
+    "OBSERVER-PROTOCOL.md": "0f805b39e14d458cc18e8e807d7788a38fe5595d3398c8f00c854aafdde0df65",
+    "OBSERVATIONS.json": "f252918ca8594cd4401d1938051498628e48211c18343c47011dfb5c6843083d",
+    "SOURCE-BINDINGS.json": "5af734d1acb1879e26351d6fea1b65ba33ca61576cc1efc151820adb45818e29"
+  },
+  "sourceBindings": 8,
+  "arrayPolicyBindings": 8,
+  "nativeRecipes": 32,
+  "scriptBytes": 3264,
+  "stdinBytes": 217,
+  "nativeCalls": 0,
+  "productCalls": 0,
+  "modelCalls": 0,
+  "testsExecuted": 0,
+  "builds": 0,
+  "privateEngineCalls": 0,
+  "observerImplementation": false,
+  "baseline": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "arrayFoundation": "unaccepted author implementation; private API not assumed",
+  "rootDecisionsPending": [
+    "Initial callbacks and all FD-u refusal profile",
+    "Numeric grammar/domain and extra-operand/status policy",
+    "ASCII delimiter and UTF8/NUL record representation after neutral observations",
+    "Clear/convert and per-row publication/index-overflow phases",
+    "Private cursor/ledger bridge and raw middleware input-owner binding"
+  ],
+  "differentReviewRequired": true
+}

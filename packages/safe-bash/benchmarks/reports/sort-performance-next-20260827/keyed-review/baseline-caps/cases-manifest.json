@@ -1,0 +1,52 @@
+[
+  {
+    "id": "entry-below",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 185490
+  },
+  {
+    "id": "entry-at",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 185502
+  },
+  {
+    "id": "entry-above",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 185514
+  },
+  {
+    "id": "retained-below",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 174767
+  },
+  {
+    "id": "retained-at",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 174768
+  },
+  {
+    "id": "retained-above",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 174769
+  },
+  {
+    "id": "oversized-extracted-small-prefix",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 174806
+  },
+  {
+    "id": "oversized-record-small-key",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 174807
+  },
+  {
+    "id": "fallback-mid-sort-stable-ties",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 275662
+  },
+  {
+    "id": "empty-keys-entry-cap",
+    "script": "sort -s -t: -k2,2n",
+    "inputBytes": 185510
+  }
+]

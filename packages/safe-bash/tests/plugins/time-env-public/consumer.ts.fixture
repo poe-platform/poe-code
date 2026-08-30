@@ -1,0 +1,274 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { getEventListeners } from "node:events";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import {
+  Shell, agentCommands, createAgentCommands, createMemoryFileSystem, CommandRegistry,
+  createTimeEnvCommands, timeEnvCommands,
+  type AgentCommandsOptions, type TimeEnvCommandsOptions, type TimeEnvLimits, type SleepScheduler,
+} from "virtual-bash";
+import {
+  createTimeEnvCommands as subFactory, timeEnvCommands as subPlugin,
+  type TimeEnvCommandsOptions as SubOptions, type TimeEnvLimits as SubLimits,
+  type SleepScheduler as SubScheduler,
+} from "virtual-bash/commands/time-env";
+
+const expectedNames = [
+  "[", "awk", "base32", "base64", "basename", "cat", "chmod", "cksum", "comm", "cp", "cut",
+  "date", "diff", "dirname", "echo", "env", "expand", "false", "find", "fold", "grep", "gunzip",
+  "gzip", "head", "join", "jq", "ln", "ls", "md5sum", "mkdir", "mktemp", "mv", "nl", "od",
+  "paste", "patch", "printenv", "printf", "pwd", "readlink", "realpath", "rev", "rg", "rm", "rmdir",
+  "sed", "seq", "sha1sum", "sha256sum", "sleep", "sort", "split", "stat", "strings", "tac", "tail",
+  "tar", "tee", "test", "touch", "tr", "true", "unexpand", "uniq", "wc", "xargs", "xxd", "zcat",
+];
+const limits: Partial<TimeEnvLimits> = { maxFormatWidth: 128, maxOutputBytes: 4096 };
+const subLimits: Partial<SubLimits> = limits;
+const options: TimeEnvCommandsOptions = { clock: () => 1709210096123, limits: subLimits };
+const subOptions: SubOptions = options;
+const aggregate: AgentCommandsOptions = { timeEnv: subOptions };
+const replaceOnlyAtTop: "replace" extends keyof NonNullable<AgentCommandsOptions["timeEnv"]> ? false : true = true;
+const immediate = (): Promise<void> => new Promise(resolve => setImmediate(resolve));
+
+async function usingShell(action: (shell: Shell) => Promise<void>, settings: AgentCommandsOptions = aggregate) {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(settings));
+  try { await shell.exec(""); await action(shell); } finally { await shell.dispose(); }
+}
+
+test("public root/subpath declarations and runtime resolve only moved packed dist", () => {
+  const root = realpathSync(fileURLToPath(new URL("../node_modules/virtual-bash", import.meta.url)));
+  for (const name of ["virtual-bash", "virtual-bash/commands/time-env"]) {
+    assert.ok(realpathSync(fileURLToPath(import.meta.resolve(name))).startsWith(`${root}/dist/`));
+  }
+  assert.equal(existsSync(`${root}/src`), false);
+  const manifest = JSON.parse(readFileSync(`${root}/package.json`, "utf8"));
+  assert.deepEqual(manifest.dependencies ?? {}, {});
+  assert.deepEqual(manifest.exports["./commands/time-env"], {
+    types: "./dist/commands/time-env/index.d.ts", import: "./dist/commands/time-env/index.js",
+  });
+  assert.equal(createTimeEnvCommands, subFactory);
+  assert.equal(timeEnvCommands, subPlugin);
+  assert.equal(replaceOnlyAtTop, true);
+  assert.deepEqual(subFactory(subOptions).map(command => command.name), ["date", "sleep", "printenv"]);
+});
+
+test("factory and installed registry have the explicit68 names, optional capabilities absent", async () => {
+  assert.equal(expectedNames.length, 68);
+  assert.equal(new Set(expectedNames).size, 68);
+  assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expectedNames);
+  await usingShell(async shell => {
+    assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expectedNames);
+    for (const name of ["curl", "safejs"]) assert.equal(shell.commands.has(name), false);
+  });
+});
+
+test("standalone public family requires no options and does not install the aggregate", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(subPlugin());
+  try {
+    await shell.exec("");
+    assert.deepEqual(shell.commands.list().map(command => command.name), ["date", "sleep", "printenv"]);
+    assert.equal((await shell.exec("date -u -d @0 +%FT%TZ")).stdout, "1970-01-01T00:00:00Z\n");
+    assert.equal((await shell.exec("sleep 0")).exitCode, 0);
+    assert.equal((await shell.exec("printenv VALUE", { env: { VALUE: "leaf" } })).stdout, "leaf\n");
+  } finally { await shell.dispose(); }
+});
+
+test("default clock observes real wall time and virtual timezone defaults to UTC", async () => {
+  await usingShell(async shell => {
+    const before = Math.floor(Date.now() / 1000);
+    const result = await shell.exec("date '+%s|%z'");
+    const after = Math.floor(Date.now() / 1000);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const [seconds, zone] = result.stdout.trimEnd().split("|");
+    assert.ok(Number(seconds) >= before && Number(seconds) <= after);
+    assert.equal(zone, "+0000");
+  }, {});
+});
+
+test("configured clock read once, fractional forms and year-zero formats dispatch through defaults", async () => {
+  let calls = 0;
+  await usingShell(async shell => {
+    const result = await shell.exec("date -u '+%FT%T.%3NZ|%6N|%12N|%s'");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "2024-02-29T12:34:56.123Z|123000|123000000000|1709210096\n");
+    assert.equal(calls, 1);
+    const formats = await shell.exec("date -u -d @0.123400500 '+%3N|%6N|%_12N|%-12N|%-N'; date -u -d '0000-01-01' '+%G|%g|%V'");
+    assert.equal(formats.exitCode, 0, formats.stderr);
+    assert.equal(formats.stdout, "123|123400|1234005     |1234005|1234005\n-001|01|52\n");
+    assert.equal(calls, 1);
+  }, { timeEnv: { clock: () => { calls++; return 1709210096123; } } });
+});
+
+test("timezone precedence stays virtual and date-reference/VFS pipelines preserve bytes", async () => {
+  await usingShell(async shell => {
+    assert.equal((await shell.exec("date +%z")).stdout, "-0200\n");
+    assert.equal((await shell.exec("date +%z", { env: { TZ: "UTC-03" } })).stdout, "+0300\n");
+    assert.equal((await shell.exec("date -u +%z", { env: { TZ: "UTC-03" } })).stdout, "+0000\n");
+    const result = await shell.exec("mkdir /work; date -u -d @0 +%FT%TZ | tee /work/stamp; printenv -0 VALUE > /work/value; cat /work/value", { env: { VALUE: "π\nβ" } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, Uint8Array.from(Buffer.from("1970-01-01T00:00:00Z\nπ\nβ\0")));
+    const copied = await shell.exec("date -u -r /work/stamp +%s");
+    assert.equal(copied.exitCode, 0, copied.stderr);
+    assert.match(copied.stdout, /^\d+\n$/);
+    assert.equal((await shell.exec("cat /work/stamp")).stdout, "1970-01-01T00:00:00Z\n");
+  }, { timeEnv: { clock: () => 0, defaultTimeZone: "UTC+02" } });
+});
+
+test("printenv own special names, empty/missing values and NUL termination survive public env", async () => {
+  const env: Record<string, string> = Object.assign(Object.create(null), {
+    constructor: "constructor-value", toString: "toString-value", EMPTY: "", UNICODE: "λ\nμ",
+  });
+  Object.defineProperty(env, "__proto__", { value: "proto-value", enumerable: true });
+  await usingShell(async shell => {
+    const result = await shell.exec("printenv -0 __proto__ constructor toString EMPTY MISSING UNICODE", { env });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, Uint8Array.from(Buffer.from("proto-value\0constructor-value\0toString-value\0\0λ\nμ\0")));
+    const listed = await shell.exec("env -i K=v EMPTY= printenv -0");
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    assert.deepEqual(listed.stdout.split("\0").filter(Boolean).sort(), ["EMPTY=", "K=v"]);
+  });
+});
+
+for (const name of ["date", "sleep", "printenv"]) test(`${name} collision is atomic; only top-level replacement authorizes overwrite`, async () => {
+  const original = { name, execute: () => ({ exitCode: 31 }) };
+  const custom = { name: "custom", execute: () => ({ exitCode: 32 }) };
+  const registry = new CommandRegistry([original, custom]);
+  const originalRegistered = registry.get(name);
+  const customRegistered = registry.get("custom");
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: registry });
+  try {
+    const forbidden = agentCommands({ timeEnv: { replace: true } } as unknown as AgentCommandsOptions);
+    assert.throws(() => forbidden.setup({ commands: registry, use() { throw new Error("Unexpected middleware"); },
+      registerFileSystem() { throw new Error("Unexpected filesystem"); } }), /already registered/);
+    assert.deepEqual(registry.list(), [original, custom]);
+    const rejectedShell = new Shell({ fs: createMemoryFileSystem(), commands: registry }).use(forbidden);
+    try { await assert.rejects(rejectedShell.exec(""), /already registered/); }
+    finally { await rejectedShell.dispose(); }
+    assert.deepEqual(registry.list(), [original, custom]);
+    shell.use(agentCommands({ replace: true, timeEnv: { clock: () => 0 } }));
+    await shell.exec("");
+    assert.equal(registry.list().length, 69);
+    assert.equal(registry.get("custom"), customRegistered);
+    assert.notEqual(registry.get(name), originalRegistered);
+    assert.equal((await shell.exec("date -u +%s")).stdout, "0\n");
+  } finally { await shell.dispose(); }
+});
+
+test("family limits fail before output publication and bad options fail registration", async () => {
+  assert.throws(() => createAgentCommands({ timeEnv: { limits: { maxFormatWidth: 0 } } }), RangeError);
+  await usingShell(async shell => {
+    let written = 0;
+    const result = await shell.exec("date +%12N", { stdout: { async write(chunk) { written += chunk.length; } } });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /time-env output limit exceeded/);
+    assert.equal(result.stdout, "");
+    assert.equal(written, 0);
+  }, { timeEnv: { limits: { maxOutputBytes: 8 } } });
+  const command = createTimeEnvCommands({ limits: { maxOutputBytes: 8 } }).find(entry => entry.name === "date")!;
+  let written = 0;
+  await assert.rejects(async () => await command.execute({ command: "date", args: ["+%12N"], cwd: "/", env: {},
+    fs: createMemoryFileSystem(), signal: new AbortController().signal, stdin: (async function* () {})(),
+    stdout: { async write(chunk) { written += chunk.length; } }, stderr: { async write() {} },
+  }), { code: "EFBIG" });
+  assert.equal(written, 0);
+});
+
+test("exact decimal sleep sums once and chunks a monotonic injected timer", async () => {
+  let elapsed = 0;
+  const delays: number[] = [];
+  const pending = new Set<object>();
+  const scheduler: SleepScheduler = {
+    now: () => elapsed,
+    setTimeout(callback, milliseconds) {
+      const handle = {}; pending.add(handle); delays.push(milliseconds);
+      queueMicrotask(() => { if (pending.delete(handle)) { elapsed += milliseconds; callback(); } });
+      return handle;
+    },
+    clearTimeout(handle) { pending.delete(handle as object); },
+  };
+  const subScheduler: SubScheduler = scheduler;
+  await usingShell(async shell => {
+    const result = await shell.exec("sleep .0005 .0005; sleep .003");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.deepEqual(delays, [1, 2, 1]);
+    assert.equal(pending.size, 0);
+  }, { timeEnv: { scheduler: subScheduler, maxTimerMilliseconds: 2 } });
+});
+
+for (const mode of ["preabort", "abort", "dispose"] as const) test(`sleep ${mode} drains its timer without host leaks`, async () => {
+  const pending = new Set<object>();
+  let admitted!: () => void;
+  const admission = new Promise<void>(resolve => { admitted = resolve; });
+  const scheduler: SleepScheduler = {
+    now: () => 0,
+    setTimeout() { const handle = {}; pending.add(handle); admitted(); return handle; },
+    clearTimeout(handle) { assert.ok(pending.delete(handle as object)); },
+  };
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({ timeEnv: { scheduler } }));
+  const controller = new AbortController();
+  const reason = Object.freeze({ timeEnvPublicAbort: mode });
+  const listenersBefore = getEventListeners(controller.signal, "abort").length;
+  if (mode === "preabort") controller.abort(reason);
+  const execution = shell.exec("sleep 999999", { signal: controller.signal });
+  const rejection = assert.rejects(execution, error => mode === "dispose" || error === reason);
+  try {
+    if (mode !== "preabort") { await admission; assert.equal(pending.size, 1); }
+    if (mode === "dispose") await shell.dispose(); else controller.abort(reason);
+    await rejection;
+    assert.equal(pending.size, 0);
+    assert.equal(getEventListeners(controller.signal, "abort").length, listenersBefore);
+    await immediate();
+  } finally { controller.abort(reason); await shell.dispose(); }
+});
+
+test("public workflows leave host environment unchanged", async () => {
+  const before = { ...process.env };
+  await usingShell(async shell => {
+    const result = await shell.exec("export ONLY_VIRTUAL=changed; printenv ONLY_VIRTUAL; date -u -d @0 +%s; sleep 0");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "changed\n0\n");
+  });
+  assert.deepEqual({ ...process.env }, before);
+});
+
+test("default sleep cancels its actual Node timer before public settlement", async () => {
+  const timeouts = () => process.getActiveResourcesInfo().filter(name => name === "Timeout").length;
+  const before = timeouts();
+  await usingShell(async shell => {
+    const controller = new AbortController();
+    const reason = Object.freeze({ actualTimerAbort: true });
+    const rejection = assert.rejects(shell.exec("sleep 60", { signal: controller.signal }), error => error === reason);
+    try {
+      await immediate();
+      assert.equal(timeouts(), before + 1);
+    } finally { controller.abort(reason); }
+    await rejection;
+    assert.equal(timeouts(), before);
+    assert.equal(getEventListeners(controller.signal, "abort").length, 0);
+  });
+  assert.equal(timeouts(), before);
+});
+
+test("large printenv output honors asynchronous sink backpressure without chunk aliasing", async () => {
+  await usingShell(async shell => {
+    const value = "π".repeat(20000);
+    let active = 0, maximum = 0;
+    const chunks: Uint8Array[] = [];
+    const result = await shell.exec("printenv PAYLOAD | cat", { env: { PAYLOAD: value }, stdout: {
+      async write(chunk) {
+        maximum = Math.max(maximum, ++active);
+        const before = Uint8Array.from(chunk);
+        await immediate();
+        assert.deepEqual(chunk, before);
+        chunks.push(before); active--;
+      },
+    } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(maximum, 1);
+    assert.ok(chunks.length > 1);
+    assert.equal(Buffer.concat(chunks).toString(), `${value}\n`);
+    assert.equal(result.stdout, `${value}\n`);
+  }, {});
+});

@@ -1,0 +1,13 @@
+{
+  "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/scratch/source",
+  "tarball": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/scratch/virtual-bash-0.0.0.tgz",
+  "packageSha256": "e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296",
+  "initialResultSha256": "658edf49064e22511d5aa2b0e9ba4a2a334051587a2bd29dbe8c9cb1e63fe51b",
+  "originalGlobalStart": 1787977926793,
+  "originalDirectChildren": 7,
+  "originalLoaderAdmissions": 4,
+  "originalRegexWorkers": 0,
+  "originalAllRetired": true,
+  "preserve": "all ACTUAL-01 bytes and 3fb5c684 fixtures unchanged",
+  "corrections": "public import uses declared root; N06 display stays in same exec because bound Shell.exec creates a fresh functions Map"
+}

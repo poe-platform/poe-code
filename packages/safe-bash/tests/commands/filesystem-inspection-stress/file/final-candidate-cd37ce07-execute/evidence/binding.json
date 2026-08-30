@@ -1,0 +1,47 @@
+{
+  "approvedAt": "2026-08-27T09:27:04.207Z",
+  "candidateCommit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "peerPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/V2_REVIEW.md",
+  "peerReportSha256": "63350a5e103d837f22dc03ddf32ffe2a64b5afc98d452f74d35fe73a745c4a44",
+  "approval": "Root explicitly accepts durable V2_REVIEW.md GO F29v2 and prior F33/F34 GO; previous required tmp path superseded for availability only",
+  "rootAuthorization": "Full original40 exactly once on already READY frozen candidate; zero new native calls; no retries or source/oracle edits",
+  "runnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "previousChildSha256": "31e77ccd3d43fedaab618653bcd3babf676224606f0dd5489099e61cdff5f15e",
+  "childSha256": "cf5e7d19464e00ef992ed66e5d24f3140b0c5750bb79936f41a10195138926a8",
+  "loaderSha256": "6beac734bccb7f6a05d1da5920072414854238d8eb11075374be0330c2afe8c9",
+  "bridgeReplacements": [
+    [
+      "'/private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/commands/file/index.js'",
+      "'./candidate/dist/commands/file/index.js'"
+    ],
+    [
+      "'/private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/contracts/index.js'",
+      "'./candidate/dist/contracts/index.js'"
+    ],
+    [
+      "'/private/tmp/safe-bash-file-run.WeB7Vfsc/candidate/dist/shell/index.js'",
+      "'./candidate/dist/shell/index.js'"
+    ],
+    [
+      "'./holdout/corrected-observed-runner.mjs'",
+      "'./holdout/v2-runner.mjs'"
+    ],
+    [
+      "assert(['F29', 'F33', 'F34'].includes(caseId), 'Only the three root-authorized correction cases');",
+      "assert(/^F(?:0[1-9]|[12][0-9]|3[0-9]|40)$/u.test(caseId), 'Only the forty root-authorized frozen cases');"
+    ]
+  ],
+  "options": {
+    "limits": {
+      "maxSniffBytes": 65536,
+      "maxReadFileBytes": 65536
+    }
+  },
+  "unsupportedFormats": [],
+  "predicateChangesThisPhase": [],
+  "fixtureChanges": [],
+  "oracleChanges": [],
+  "policyQualification": "PREP policy.candidateExecutions=0 is historical seal metadata, not live execution telemetry",
+  "buildAndTypes": "REUSED_READY_NOT_RERUN",
+  "standaloneConsumer": "NOT_RUN_NOT_CLAIMED"
+}

@@ -1,0 +1,2 @@
+{"scenario":"C8","verdict":"PASS","result":{"firstWriteAccepted":true,"secondWriteBlocked":true,"readsBeforeAbort":0},"cleanup":0,"reads":0,"events":[{"order":1,"value":"write1.accepted:no-reader-next"},{"order":2,"value":"write2.blocked:no-reader-next"},{"order":3,"value":"pending-write-close-read.reject:same-reason"}]}
+{"scenario":"C8","teardown":"disposed","cleanup":0}

@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "cohort": "staged-controls-only",
+  "node": "v22.22.2",
+  "v8": "12.4.254.21-node.39",
+  "platform": "darwin",
+  "arch": "arm64",
+  "parentFlags": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=32",
+    "--max-semi-space-size=1",
+    "--stack-size=256"
+  ],
+  "controlsExecuted": 1,
+  "controlsPassed": 0,
+  "productExecutions": 0,
+  "regexExecutions": 0,
+  "provenProductViolations": 0,
+  "control": {
+    "mode": "waiting",
+    "startedAtUtc": "2026-08-27T03:35:04.625Z",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=16",
+      "--max-semi-space-size=1",
+      "--stack-size=256",
+      "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/staged-controls/waiting.mjs"
+    ],
+    "shell": false,
+    "detached": false,
+    "environment": {
+      "LANG": "C",
+      "LC_ALL": "C"
+    },
+    "limits": {
+      "startupMs": 1000,
+      "executionMs": 200,
+      "cleanupWarningMs": 1000,
+      "oldSpaceMiB": 16,
+      "semiSpaceMiB": 1,
+      "stackKiB": 256,
+      "stdoutBytes": 1024,
+      "stderrBytes": 1024,
+      "childMessages": 2,
+      "messageBytes": 16,
+      "parentMessages": 1
+    },
+    "pid": 2462,
+    "readyMs": 35.054,
+    "startSentMs": 35.067,
+    "executionDeadlineMs": 235.067,
+    "deadlineFiredMs": 237.524,
+    "killRequestedMs": 237.599,
+    "killAccepted": true,
+    "killError": null,
+    "exitMs": 239.485,
+    "closeMs": 239.602,
+    "terminationReason": "execution-deadline",
+    "cleanupWarning": false,
+    "stdout": "",
+    "stderr": "",
+    "stdoutObservedBytes": 0,
+    "stderrObservedBytes": 0,
+    "stdoutCapturedBytes": 0,
+    "stderrCapturedBytes": 0,
+    "messages": [
+      {
+        "message": "ready",
+        "atMs": 35.048
+      },
+      {
+        "message": "started",
+        "atMs": 35.3
+      }
+    ],
+    "childMessageCount": 2,
+    "parentMessageCount": 1,
+    "error": null,
+    "exitCode": null,
+    "exitSignal": "SIGKILL",
+    "closeCode": null,
+    "closeSignal": "SIGKILL",
+    "exitObserved": true,
+    "closeObserved": true,
+    "ipcDisconnected": true,
+    "stdoutClosed": true,
+    "stderrClosed": true,
+    "activeOwnedChildren": 0,
+    "pass": false,
+    "postStartCloseMs": 204.535,
+    "killToCloseMs": 2.003
+  }
+}

@@ -1,0 +1,76 @@
+# ROOT-qualified Unit2 resolved-profile acceptance
+
+2026-08-29. ROOT accepts the exact resolved profile below, not complete strict-mode
+or GNU Bash compatibility. This additive decision records the user-authorized
+adjudication after the independent review; it does not alter that review or rerun it.
+
+## Immutable binding
+
+- Unit2 source: `928be5585f05c15867fbbb5f4b5debe153b0734e`.
+- Selected derived composition: `26215b99cb379a9f825f803454f758fab5a3c8e9`.
+- Base: accepted public80 `c83f352f057c64917f219eb938f54aa42cdab829` plus accepted
+  Unit1 source `1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e`; no live-HEAD overlay.
+- Full950 package SHA256:
+  `1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4`.
+- Independent evidence commit: `fab0c0994caf287a125cb98bb75a23a3424bf742`.
+- Evidence manifest SHA256:
+  `fa86b6ca4f168c9696b5546a7df9cb419aa1fe235a23c67ac305f93357589073`.
+- Preseal commit: `0159295905a4adfaa2079537df94e6b5c1c4aea8`; executable seal SHA256:
+  `e79f3804e4eae96c7c495bb668b622c5d6c8f7777fa9fa5ca9f51a9eef2fb114`.
+
+## Accepted resolved behavior and evidence
+
+Signed e/u option clusters, terminal o consuming a supported option name (including
+nounset), retained named/--/positional forms, and nounset OFF by default are in the
+resolved profile. Lazy expansion distinguishes missing from present-empty values,
+with the documented @/*/array-aggregate/default/alternative exceptions. Functions
+and sourced scopes unwind to the same logical execution boundary; subshells,
+pipeline stages and command substitutions catch at their own boundary before
+existing pipeline/errexit behavior. Existing caller cancellation, public
+ShellLimitError, sink and registered-cleanup precedence remain; diagnostic bytes
+receive no exemption. This does not broaden the frozen cases into general semantics.
+
+| Independently executed membership | Result |
+| --- | --- |
+| Author resolved controls, each source-build/installed/moved layout |50/50|
+| Independent novel cases, each layout |16/16|
+| Selected retained regressions, each layout |151/151|
+| Three-layout semantic total |651/651|
+| Separate public-consumer type groups |6;18 exact negative diagnostics|
+| Separate loaded mutants / restores / binding refusals |3 /3 /2|
+
+The50 author controls cover39 resolved original design IDs plus11 separately named
+controls, not all50 original design IDs. Type evidence is not a new nounset public
+API/complete AST proof. Loaded controls are not added to651 semantic identities.
+
+## Explicitly unqualified
+
+U06/U07/U17/U27/U28/U31–U36 remain11 OPEN, UNEXECUTED and UNQUALIFIED: arithmetic
+nounset, unset-versus-empty aggregate lengths, invalid-option partial mutation and
+exact GNU diagnostic/status/line bytes. Fatal status1 remains a provisional
+project-policy choice, not an oracle-verified GNU golden. No native Bash/Git oracle
+or version execution occurred. No complete strict-mode/full-Bash, general arithmetic,
+Node, current HEAD, whole gate, performance, RSS or comparator acceptance follows.
+
+Default80, public registration and runtime dependencies remain unchanged. Historical
+public80/Unit1/author failures and the preparation wrong-path HOLD remain immutable;
+no original failure is rescored. Inherited module/provider/private-writer/source-only
+qualifications remain. Unit1 is an accepted unchanged dependency; its48 selected
+redirection controls per layout are part of the151 regressions, not a replay of
+all historical Unit1 evidence.
+
+The review observed39 direct children plus coordinator/capture owner (41 runtime
+processes;50 known/52 conservative slots including publication),29 fixed internal
+loader admissions and0 RegexWorkers. Known hosting processes retired; individual
+internal-worker exits remain unobserved, with no global process/native-lifetime
+census claim. This docs-only acceptance adds no execution or lifecycle observations.
+
+See `REPORT.md`, `evidence/SUMMARY.json` and the unchanged `evidence/MANIFEST.json`
+for original results, captures, source/package bindings and retained-root locators.
+The historical manifest binds its original48 members; this later acceptance is
+intentionally not retroactively inserted into that frozen evidence manifest.
+
+{"name":"design-0","keys":["schema","date","candidate","execution","expectedRuntimeForEveryCase","rule","cases"],"cases":[{"id":"U01","program":"set -euo pipefail; printf '%s\\n' ready","question":"Common header accepts clusters; existing e/pipefail unchanged","basis":"P1/G1"},{"id":"U02","program":"set -eu; set +ue; printf '<%s>\\n' \"$missing\"","question":"Both bits disable; missing value after+u","basis":"P1/G1"},{"id":"U03","program":"set -o nounset; set +o nounset; printf '<%s>\\n' \"$missing\"","question":"Named on/off agrees with short forms","basis":"P1/G1"},{"id":"U04","program":"set -u -- -x ''; printf '%s|<%s>|<%s>\\n' \"$#\" \"$1\" \"$2\"; set --; printf '%s\\n' \"$#\"","question":"-- replaces/clears positionals and preserves empty","basis":"G1/P1"},{"id":"U05","program":"set -- a b; set -; printf '%s:%s\\n' \"$#\" \"$1\"; set - c; printf '%s:%s\\n' \"$#\" \"$1\"","question":"Lone- positional behavior","basis":"P1"},{"id":"U06","program":"set -uz; printf '%s\\n' after","question":"Invalid-tail status/termination/partial mutation must be qualified","basis":"OPEN-P1"},{"id":"U07","program":"set -u; set -o; printf '%s\\n' after","question":"Missing o operand/listing remains explicit supported-profile gap","basis":"OUTSIDE-P1"},{"id":"U08","program":"set -eu; printf '%s\\n' \"$-\"; set +u; printf '%s\\n' \"$-\"","question":"Actual e/u visibility; native extra flags retained as differences","basis":"P1"},{"id":"U09","program":"printf '<%s>\\n' \"$missing\"","question":"Default nounset off","basis":"ROOT"},{"id":"U10","program":"set -u; printf '<%s>\\n' \"$missing\"; printf '%s\\n' after","question":"Fatal unguarded scalar expansion and no later statement","basis":"G1/P4"},{"id":"U11","program":"set -u; empty=; printf '<%s>\\n' \"$empty\"","question":"Empty value is set","basis":"G2"},{"id":"U12","program":"set -u; empty=; printf '%s|%s|%s|%s\\n' \"${missing-default}\" \"${missing:-default}\" \"${empty-default}\" \"${empty:-default}\"","question":"Unset versus empty colon tests","basis":"G2"},{"id":"U13","program":"set -u; empty=; printf '<%s>|<%s>|<%s>|<%s>\\n' \"${missing+yes}\" \"${missing:+yes}\" \"${empty+yes}\" \"${empty:+yes}\"","question":"Alternative presence tests without eager read failure","basis":"G2"},{"id":"U14","program":"set -u; printf '%s\\n' \"${missing:=ok}\"; printf '%s\\n' \"$missing\"","question":"Guarded assignment creates value","basis":"G2"},{"id":"U15","program":"set -u; value=ok; printf '%s|<%s>\\n' \"${value:-$missing}\" \"${absent:+$missing}\"","question":"Unselected alternates not expanded","basis":"G2/P2"},{"id":"U16","program":"set -u; printf '%s\\n' \"${absent:-$missing}\"; printf '%s\\n' after","question":"Selected alternate missing read fails","basis":"G2/P2"},{"id":"U17","program":"set -u; printf '%s\\n' \"${missing:?required}\"; printf '%s\\n' after","question":"Existing explicit-error behavior separate from new nounset mapping","basis":"G2/KNOWN-PROFILE"},{"id":"U18","program":"set -u; set --; printf '<%s>\\n' \"$1\"; printf '%s\\n' after","question":"Missing positional error","basis":"G1"},{"id":"U19","program":"set -u; set -- ''; printf '<%s>|%s\\n' \"$1\" \"${10-default}\"","question":"Present empty and guarded multi-digit positional","basis":"G2"},{"id":"U20","program":"set -u; set --; printf 'n=%s\\n' \"$#\"; printf '<%s>\\n' \"$@\"; printf '<%s>\\n' \"$*\"","question":"Zero positionals @/* exceptions and word counts","basis":"G1"},{"id":"U21","program":"set -u; set -- a '' b; IFS=:; printf '<%s>\\n' \"$@\"; printf '<%s>\\n' \"$*\"","question":"Exceptions preserve joins and empty members","basis":"G1/G2"},{"id":"U22","program":"set -u; printf '<%s>\\n' \"${a[@]}\"; printf '<%s>\\n' \"${a[*]}\"","question":"Unset array member expansion exemption","basis":"G1"},{"id":"U23","program":"set -u; a=(); printf '<%s>\\n' \"${a[@]}\"; printf '<%s>\\n' \"${a[*]}\"","question":"Present empty array member exemption","basis":"G1/G4"},{"id":"U24","program":"set -u; a=([2]=''); printf '<%s>\\n' \"${a[2]}\"; printf '<%s>\\n' \"${a[1]}\"","question":"Sparse missing versus present empty element","basis":"G4/P2"},{"id":"U25","program":"set -u; a=([2]=x); printf '<%s>\\n' \"$a\"","question":"Bare sparse array reads element0 not any-member existence","basis":"G4/P2"},{"id":"U26","program":"set -u; a=; printf '<%s>\\n' \"${a[0]}\"; printf '<%s>\\n' \"${a[1]}\"","question":"Scalar-as-array zero versus missing nonzero","basis":"P2"},{"id":"U27","program":"set -u; printf '%s\\n' \"${#a[@]}\"","question":"Unset array count exception: exact GNU5.3 rule unresolved","basis":"OPEN-P2"},{"id":"U28","program":"set -u; a=(); printf '%s|%s\\n' \"${#a[@]}\" \"${#a[*]}\"","question":"Empty array count: exact GNU5.3 rule unresolved","basis":"OPEN-P2"},{"id":"U29","program":"set -u; printf '%s\\n' \"${#missing}\"","question":"Scalar length consumes missing value","basis":"P2"},{"id":"U30","program":"set -u; printf '%s\\n' \"${missing#x}\"","question":"Pattern removal consumes missing value","basis":"P2"},{"id":"U31","program":"set -u; printf '%s\\n' \"$((missing+1))\"; printf '%s\\n' after","question":"Arithmetic bare read nounset override needs primary/native qualification","basis":"OPEN-P3"},{"id":"U32","program":"set -u; ((missing=2)); printf '%s\\n' \"$missing\"","question":"Pure assignment LHS not read","basis":"P3"},{"id":"U33","program":"set -u; ((missing+=2)); printf '%s\\n' after","question":"Compound LHS read and fatal scope","basis":"OPEN-P3"},{"id":"U34","program":"set -u; let 'missing++'; printf '%s\\n' after","question":"LET increment read/control preservation","basis":"OPEN-P3"},{"id":"U35","program":"set -u; empty=; printf '%s\\n' \"$((empty+1))\"; printf '%s\\n' \"$((1 || missing))\"; printf '%s\\n' \"$((0 ? missing : 4))\"","question":"Empty zero and unvisited branches","basis":"G3/P3"},{"id":"U36","program":"set -u; value=missing; let 'value+1'; printf '%s\\n' after","question":"Recursive arithmetic missing-name diagnostic/termination","basis":"OPEN-P3"},{"id":"U37","program":"set -u; printf '%s\\n' \"$(printf '%s' \"$missing\"; printf '%s' child-after)\"; printf '%s\\n' parent-after","question":"Substitution child terminates; outer command status not forcibly replaced","basis":"G5/P4"},{"id":"U38","program":"set -u; value=$(printf '%s' \"$missing\"); printf 'parent:%s\\n' \"$?\"","question":"Assignment-only substitution status without-e","basis":"G5/P4"},{"id":"U39","program":"set -u; f() { printf '%s\\n' \"$missing\"; }; f || printf '%s\\n' caught; printf '%s\\n' after","question":"Function/current-scope nounset versus errexit suppression","basis":"P4"},{"id":"U40","program":"set -u; source ./unit2-source.sh; printf '%s\\n' after","files":{"unit2-source.sh":"printf '%s\\n' \"$missing\"\nprintf '%s\\n' source-after\n"},"question":"Sourced fatal scope and exact source line","basis":"G5/P4"},{"id":"U41","program":"set -u; eval 'printf \"%s\\n\" \"$missing\"'; printf '%s\\n' after","question":"Eval current fatal scope/source attribution","basis":"P4"},{"id":"U42","program":"set -u; (printf '%s\\n' \"$missing\"); printf 'parent:%s\\n' \"$?\"","question":"Subshell isolation and parent status","basis":"G5/P4"},{"id":"U43","program":"set -u -o pipefail; printf '%s\\n' \"$missing\" | cat; printf 'pipeline:%s\\n' \"$?\"","question":"Pipeline child failure through unchanged pipefail","basis":"G1/G5/P4"},{"id":"U44","program":"set -euo pipefail; if false; then printf bad; fi; false || printf '%s\\n' guarded; printf '%s\\n' done","question":"Existing errexit exemptions remain unchanged","basis":"G1/P1"},{"id":"U45","protocol":"PUBLIC_REUSE","question":"Exec set-u fatal then fresh exec missing expansion on same Shell; options reset, original stdin/shared budgets not leaked"},{"id":"U46","protocol":"NESTED_INVOKE","question":"Literal registered command invokes current function under copied nounset; no environment/local promotion; sibling and parent option isolation"},{"id":"U47","protocol":"CALLER_PRECEDENCE","question":"Controlled caller abort during blocked diagnostic; exact caller reason including falsy sentinel, owned cleanup completed before settlement"},{"id":"U48","protocol":"LIMIT_PRECEDENCE","question":"Exact existing ShellLimitError from diagnostic budget is not swallowed/recast as nounset status or duplicate diagnostic"},{"id":"U49","protocol":"SINK_REJECTION","question":"Diagnostic sink throws distinct object/undefined in predeclared separate control roles; exact escaping reason, no fallback message or success"},{"id":"U50","protocol":"UNWIND_RESOURCES","question":"Controlled source/function/array/input owners unwind once on nounset; required cleanup awaited; failures retained, sibling lease untouched; no opaque host preemption"}]}
+{"name":"design-1","bytes":8373}
+{"name":"paths","paths":["100644 blob 243d554e21239ba0c6d28f63098dd30ce6890ae5\ttests/compatibility/bash-strict-mode-author-20260829/HANDOFF.md","100644 blob 8213dbc29c4b23bef3b79d446e3a5e42802e9d97\ttests/compatibility/bash-strict-mode-author-20260829/PREPARATION-ROOT.json","100644 blob c439c2d9ba853fbbcf7de34bb0c66eb56a35e53c\ttests/compatibility/bash-strict-mode-author-20260829/PRESEAL.json","100644 blob f4fdc4cfd07a367948b20e7fb5f4168f4e2ad3f5\ttests/compatibility/bash-strict-mode-author-20260829/results-v1/SUMMARY.json","100644 blob b4ee7f68efab51af8c364db48f955826495e1f15\ttests/compatibility/bash-strict-mode-independent-20260829/EXECUTION-SEAL.json","100644 blob 0a2f9c0a91ed00b1712c7e1d1c40f7681cc5a15f\ttests/compatibility/bash-strict-mode-independent-20260829/PRESEAL.json","100644 blob 7b7c1e8cefa7c672f25d6bfd11c21dadf9db7709\ttests/compatibility/bash-strict-mode-independent-20260829/PRESEAL.md","100644 blob d0edd56791b366c35e4a248fb3114143c3717d0d\ttests/compatibility/bash-strict-mode-independent-20260829/REPORT.md","100644 blob b7238f1b40964bbf33e2e5a1c99d863d83c33502\ttests/compatibility/bash-strict-mode-independent-20260829/RETAINED-ROOT.json","100644 blob 808afef72eef571ed98a7fe9a0726a619a5064e4\ttests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md","100644 blob 604a4db671583253b8cb175ab22fe5cee5a99c9f\ttests/compatibility/bash-strict-mode-independent-20260829/evidence/SUMMARY.json"]}
+{"name":"gnu-inventory","bytes":365787}

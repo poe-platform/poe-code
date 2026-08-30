@@ -1,0 +1,282 @@
+[
+  {
+    "id": "F01",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F02",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F03",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F04",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F05",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F06",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F07",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "native-profile-conflict",
+    "adjudication": "native-profile-conflict",
+    "recommendation": null
+  },
+  {
+    "id": "F08",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F09",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F10",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F11",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F12",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "native-profile-conflict",
+    "adjudication": "native-profile-conflict",
+    "recommendation": null
+  },
+  {
+    "id": "F13",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F14",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F15",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F16",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "native-profile-conflict",
+    "adjudication": "native-profile-conflict",
+    "recommendation": "SQLITE-MIME-001: prefer registered application/vnd.sqlite3; avoid deprecated alias absent compatibility requirement"
+  },
+  {
+    "id": "F17",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F18",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "native-profile-conflict",
+    "adjudication": "native-profile-conflict",
+    "recommendation": null
+  },
+  {
+    "id": "F19",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F20",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "pass",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F21",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F22",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F23",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F24",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F25",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F26",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F27",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F28",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F29",
+    "rawSemanticStatus": "fail",
+    "rawNativeStatus": "not-run",
+    "adjudication": "harness-defect",
+    "recommendation": null
+  },
+  {
+    "id": "F30",
+    "rawSemanticStatus": "backend-limitation",
+    "rawNativeStatus": "not-run",
+    "adjudication": "backend-limitation",
+    "recommendation": null
+  },
+  {
+    "id": "F31",
+    "rawSemanticStatus": "backend-limitation",
+    "rawNativeStatus": "not-run",
+    "adjudication": "backend-limitation",
+    "recommendation": null
+  },
+  {
+    "id": "F32",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F33",
+    "rawSemanticStatus": "fail",
+    "rawNativeStatus": "not-run",
+    "adjudication": "harness-defect",
+    "recommendation": null
+  },
+  {
+    "id": "F34",
+    "rawSemanticStatus": "fail",
+    "rawNativeStatus": "not-run",
+    "adjudication": "harness-defect",
+    "recommendation": null
+  },
+  {
+    "id": "F35",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F36",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F37",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F38",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F39",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  },
+  {
+    "id": "F40",
+    "rawSemanticStatus": "pass",
+    "rawNativeStatus": "not-run",
+    "adjudication": "pass",
+    "recommendation": null
+  }
+]

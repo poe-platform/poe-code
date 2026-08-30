@@ -1,0 +1,40 @@
+{
+  "capabilityGaps": {
+    "ids": [
+      "B12",
+      "B13",
+      "B17",
+      "B18",
+      "B19",
+      "B22",
+      "B30",
+      "B34",
+      "B35",
+      "B38"
+    ],
+    "description": "Observed nullglob/extglob refusal, nonliteral array subscript rejection, missing declare/typeset, read -a refusal, absent PIPESTATUS expansion, arithmetic for/function-keyword parser refusal, missing trap EXIT effect."
+  },
+  "diagnosticContext": {
+    "ids": [
+      "B20",
+      "B21",
+      "B32",
+      "B39"
+    ],
+    "description": "Exact stderr differs: native surface-case versus virtual shell: line1. B20/B21 jointly lack mapfile/readarray: matching failed lookup effects are not implementation evidence. No stderr normalization."
+  },
+  "oldNativeApplicability": {
+    "ids": [
+      "B23",
+      "B24",
+      "B36"
+    ],
+    "description": "Native Bash3.2 rejects read -N (B23 despite final status0), |& (B24), and ;& (B36), while candidate executes these forms. These local observations cannot become fabricated Bash5.3 goldens. B23 additionally has the recorded file-mode difference."
+  },
+  "fileModeContext": {
+    "ids": [
+      "B25"
+    ],
+    "description": "Identical status/stdout/stderr/out bytes, but native out mode0644 versus virtual0666. Native umask is not represented by the public caller profile. B23 shares this mode difference. Retain raw mismatch; not automatically a provider bug or normalized pass."
+  }
+}

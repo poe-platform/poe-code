@@ -1,0 +1,3 @@
+import test from 'node:test';
+const pattern = /^hidden (public stdin ownership|exact total-byte limit boundary|source error|missing later|pending input cancellation|empty-chunk cancellation)/u;
+export const selectedTest = (name, body) => pattern.test(name) ? test(name, body) : test.skip(name, body);

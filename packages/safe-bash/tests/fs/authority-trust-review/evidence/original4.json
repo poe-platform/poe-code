@@ -1,0 +1,41 @@
+{
+  "name": "original4",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/mount/copy-identity.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-fixed-2Nwe9Y",
+  "startedAt": "2026-08-27T03:01:35.716Z",
+  "finishedAt": "2026-08-27T03:01:35.895Z",
+  "code": 0,
+  "signal": null,
+  "executedTestHashes": {
+    "tests/fs/mount/copy-identity.test.ts": "e752e633abc902025670c09305c09e7319b171549350ddec7573b6644d29d115"
+  },
+  "counts": {
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "timedOut": false,
+  "outputExceeded": false,
+  "residualGroup": false,
+  "unchangedInputs": true,
+  "stdoutSha256": "2d74c96dca450119cb992e5c946c8534db32f701c82c1d7535c270c7c35c118f",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tests": [
+    "ok 1 - direct cross-mount copy rejects a real same-path alias without touching source bytes",
+    "ok 2 - direct cross-mount copy rejects a real hardlink alias without touching source bytes",
+    "ok 3 - direct cross-mount copy rejects a real symlink alias without touching source bytes",
+    "ok 4 - cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity"
+  ],
+  "temporaryFixturesRemoved": "/tmp/safe-bash-authority-fixtures-UGqT9Z"
+}

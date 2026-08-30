@@ -1,0 +1,30 @@
+{
+  "copies": [
+    {
+      "source": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures",
+      "digest": "4099acdb7de660febdf978eb4d038ca92f3e1281cd45bae04a1d76d1d026d182",
+      "files": 1667,
+      "completeMembershipAndModes": true
+    },
+    {
+      "source": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/metadata",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/metadata",
+      "digest": "0de0fb74757917ab3a363159e88f323e5621fd33837374202a8dd73eb8dd90a1",
+      "files": 2,
+      "completeMembershipAndModes": true
+    }
+  ],
+  "compoundSource": {
+    "sha256": "f70f554c513e6a52c45496cf515c20cd796591c37e5eea2aa155e32fbac9f8a8",
+    "bytes": 64460,
+    "mode": 384
+  },
+  "compoundCopy": {
+    "sha256": "f70f554c513e6a52c45496cf515c20cd796591c37e5eea2aa155e32fbac9f8a8",
+    "bytes": 64460,
+    "mode": 384
+  },
+  "rawBytesUnchanged": true,
+  "packageCopiesRetainedExternallyNotDeleted": true
+}

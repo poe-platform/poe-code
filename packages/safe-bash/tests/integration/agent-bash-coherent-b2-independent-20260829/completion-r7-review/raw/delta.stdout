@@ -1,0 +1,127 @@
+FILE staged/new/trace.mjs
+import fs from "node:fs";
+import crypto from "node:crypto";
+import assert from "node:assert/strict";
+
+export function createTrace(filename, io = fs) {
+  let total = 0;
+  let identity;
+  let failed = false;
+  return value => {
+    assert.ok(!failed, "failed trace cannot be reused");
+    const bytes = Buffer.from(JSON.stringify(value) + "\n");
+    assert.ok(total + bytes.length <= 524288);
+    let descriptor;
+    let owned = false;
+    let primaryPresent = false;
+    let primary;
+    try {
+      descriptor = io.openSync(filename, identity ? fs.constants.O_WRONLY | fs.constants.O_APPEND | fs.constants.O_NOFOLLOW : fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW, 0o600);
+      owned = true;
+      const opened = io.fstatSync(descriptor);
+      assert.ok(opened.isFile());
+      assert.equal(opened.size, total);
+      if (identity) { assert.equal(opened.dev, identity.dev); assert.equal(opened.ino, identity.ino); }
+      else identity = { dev: opened.dev, ino: opened.ino };
+      let offset = 0;
+      while (offset < bytes.length) {
+        const count = io.writeSync(descriptor, bytes, offset, bytes.length - offset);
+        assert.ok(Number.isSafeInteger(count) && count > 0 && count <= bytes.length - offset, "trace write must make valid progress");
+        offset += count;
+      }
+      assert.equal(io.fstatSync(descriptor).size, total + bytes.length);
+    } catch (error) { primaryPresent = true; primary = error; }
+    if (owned) {
+      try { io.closeSync(descriptor); }
+      catch (error) { if (!primaryPresent) { primaryPresent = true; primary = error; } }
+    }
+    if (primaryPresent) { failed = true; throw primary; }
+    total += bytes.length;
+  };
+}
+
+export function verifyRetiredTrace(filename, result) {
+  assert.equal(result.exited, true); assert.equal(result.closed, true);
+  const before = fs.lstatSync(filename);
+  assert.ok(before.isFile() && !before.isSymbolicLink() && before.size <= 524288);
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  let bytes;
+  try {
+    const opened = fs.fstatSync(descriptor);
+    assert.equal(opened.dev, before.dev); assert.equal(opened.ino, before.ino); assert.equal(opened.size, before.size);
+    bytes = Buffer.alloc(opened.size); let offset = 0;
+    while (offset < bytes.length) { const count = fs.readSync(descriptor, bytes, offset, bytes.length - offset, offset); assert.ok(count > 0); offset += count; }
+    const after = fs.fstatSync(descriptor);
+    assert.equal(after.size, opened.size); assert.equal(after.mtimeMs, opened.mtimeMs);
+  } finally { fs.closeSync(descriptor); }
+  assert.ok(bytes.length > 0 && bytes.at(-1) === 10, "complete JSONL trace required");
+  const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  const records = text.slice(0, -1).split("\n").map(line => JSON.parse(line));
+  return { bytes: bytes.length, sha256: crypto.createHash("sha256").update(bytes).digest("hex"), records, afterExitAndClose: true, crashDurability: false };
+}
+FILE staged/new/loader.mjs
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import assert from "node:assert/strict";
+import { admit, canonical } from "./support.mjs";
+import { createTrace } from "./trace.mjs";
+
+const bindingFile = process.env.PUBLIC_BINDING;
+canonical(bindingFile);
+assert.match(process.env.PUBLIC_BINDING_BYTES ?? "", /^(0|[1-9][0-9]*)$/);
+const binding = JSON.parse(admit(bindingFile, { bytes: Number(process.env.PUBLIC_BINDING_BYTES), sha256: process.env.PUBLIC_BINDING_SHA256 }, 1048576));
+canonical(binding.packageRoot); canonical(binding.trace);
+const members = new Map(binding.members.map(row => [row.absolute, row]));
+assert.equal(members.size, binding.members.length);
+const trace = createTrace(binding.trace);
+export async function resolve(specifier, context, nextResolve) {
+  if (specifier === "virtual-bash") return { url: pathToFileURL(path.join(binding.packageRoot, "dist/index.js")).href, shortCircuit: true };
+  if (specifier.startsWith("virtual-bash/")) throw new Error("undeclared B2 public alias");
+  return nextResolve(specifier, context);
+}
+export async function load(url, context, nextLoad) {
+  if (url.startsWith("node:")) return nextLoad(url, context);
+  assert.ok(url.startsWith("file:"));
+  const filename = fileURLToPath(url);
+  const row = members.get(filename);
+  function refuse(alteration) {
+    const member = path.relative(binding.packageRoot, filename);
+    const identity = `B2_BINDING_REFUSAL:${alteration}:${filename}`;
+    trace({ kind: "binding-refusal", alteration, member, filename, identity });
+    throw new Error(identity);
+  }
+  if (!row) refuse("missing");
+  const before = fs.lstatSync(filename); assert.ok(before.isFile() && !before.isSymbolicLink()); assert.equal(before.size, row.bytes);
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  let source;
+  try {
+    const opened = fs.fstatSync(descriptor); assert.equal(opened.ino, before.ino); assert.equal(opened.dev, before.dev);
+    source = Buffer.alloc(row.bytes); let offset = 0;
+    while (offset < source.length) { const count = fs.readSync(descriptor, source, offset, source.length - offset, offset); assert.ok(count > 0); offset += count; }
+    const after = fs.fstatSync(descriptor); assert.equal(after.size, before.size); assert.equal(after.mtimeMs, before.mtimeMs);
+  } finally { fs.closeSync(descriptor); }
+  const digest = crypto.createHash("sha256").update(source).digest("hex");
+  if (digest !== row.sha256) refuse("changed");
+  trace({ kind: "authenticated-source-prepared", url, member: row.path, sha256: digest });
+  return { format: "module", source, shortCircuit: true };
+}
+10: import { verifyRetiredTrace } from "./trace.mjs";
+39:     for (const name of ["home", "tmp", "cache", "input", "bindings", "traces", "source-built"]) fs.mkdirSync(path.join(root, name), { mode: 0o700 });
+58:     let mutantCreated = false;
+63:         const args = ["--experimental-permission", `--allow-fs-read=${root}`, `--allow-fs-read=${toolsRoot}`, `--allow-fs-read=${process.execPath}`, `--allow-fs-write=${installed}`, `--allow-fs-write=${root}/cache`, `--allow-fs-write=${root}/home`, recipe.npm, "install", "--offline", "--ignore-scripts", "--no-audit", "--no-fund", "--package-lock=false", "--cache", path.join(root, "cache"), "--prefix", installed, archive];
+73:       if (role.layout === "mutant-copy" && !mutantCreated) {
+74:         for (const row of frozen.packageMembers) put(path.join(root, "mutant-copy/node_modules/virtual-bash", row.path), admit(path.join(root, "physically-moved/node_modules/virtual-bash", row.path), row), row.mode);
+75:         stageConsumer("mutant-copy"); mutantCreated = true;
+82:         const args = ["--experimental-permission", `--allow-fs-read=${root}`, `--allow-fs-read=${toolsRoot}`, `--allow-fs-read=${process.execPath}`, recipe.compiler, "--strict", "--exactOptionalPropertyTypes", "--noEmit", "--target", "ES2022", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--skipLibCheck", "--pretty", "false", "--listFiles", "--typeRoots", recipe.typeRoots, filename];
+93:       if (role.kind === "mutant") {
+99:       const members = frozen.packageMembers.filter(row => row.path.endsWith(".js")).map(row => ({ ...row, absolute: path.join(packageRoot, row.path), ...(role.kind === "mutant" && row.path === `dist/${mutation.file}` ? { bytes: fs.statSync(mutatedPath).size, sha256: mutation.prospectiveMutantSha256 } : {}) }));
+103:       const trace = path.join(root, "traces", `${role.role}.jsonl`); const bindingFile = path.join(root, "bindings", `${role.role}.json`);
+104:       const bindingBody = Buffer.from(JSON.stringify({ packageRoot, members, trace }));
+106:       const args = ["--experimental-permission", `--allow-fs-read=${root}`, `--allow-fs-read=${stageRoot}`, `--allow-fs-read=${process.execPath}`, `--allow-fs-write=${consumer}`, `--allow-fs-write=${root}/tmp`, `--allow-fs-write=${trace}`, "--allow-worker", "--loader", pathToFileURL(path.join(stageRoot, "new/loader.mjs")).href, path.join(consumer, role.script)];
+111:         const verifiedTrace = verifyRetiredTrace(trace, result);
+112:         put(trace + ".verified.json", JSON.stringify(verifiedTrace));
+114:         else if (role.kind === "mutant") classifications.push(classifyMutant(result, rows(output), verifiedTrace.records, mutation, recipe.mutantFailures[mutation.id]));
+115:         else if (role.kind === "restore") classifications.push(classifyRestore(result, rows(output), verifiedTrace.records, mutation));
+125:     accounting.terminal(path.join(root, "RESULT.json"), { schema: "B2_COMPLETED_RUNTIME_ONLY_R3", status: "PASS", retainedCases: 672, typeChecks: 6, expectedNegativeDiagnostics: 24, loadedMutants: 7, restores: 7, bindingRefusals: 2, completed, classifications, installedIdentity, retirement, accounting: accounting.snapshot(), regexWorkersExpectedByStaticClosure: 0, mainLoaderAdmissions: 34, guestEngines: 0, coherentAcceptance: false });

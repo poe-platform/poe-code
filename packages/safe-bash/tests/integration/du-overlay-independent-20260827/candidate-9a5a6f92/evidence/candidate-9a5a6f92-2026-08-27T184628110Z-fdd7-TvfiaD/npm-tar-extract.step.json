@@ -1,0 +1,16 @@
+{
+  "name": "npm-tar-extract",
+  "command": "tar",
+  "args": [
+    "-xzf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-NNOCQH/virtual-bash-0.0.0.tgz",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-NNOCQH/unpacked"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

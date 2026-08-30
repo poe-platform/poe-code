@@ -1,0 +1,38 @@
+{
+  "frozenCommit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+  "frozenPath": "tests/commands/expr-stress/diagnostics-review/freeze/runtime-binding.json",
+  "originalSha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b",
+  "version2Sha256": "6d31d82b20320c589d76156086cc721267f5041263238a74bf216b58cf072636",
+  "driverSha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8",
+  "changed": [
+    {
+      "before": {
+        "id": "syntax-output-one",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxOutputBytes": 1
+        },
+        "expectedStatus": 2,
+        "expectedStderr": "expr: syntax error: unexpected argument 'x'\n",
+        "workers": 0
+      },
+      "after": {
+        "id": "syntax-output-one",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxOutputBytes": 1
+        },
+        "expectedStatus": 3,
+        "expectedStderr": "expr: output bytes limit exceeded\n",
+        "workers": 0
+      }
+    }
+  ],
+  "classification": "Version 2 changes exactly two expected tuple fields in one row. All 12 argv, limits, environment behavior and driver assertions are retained. Not a recapture or rebaseline."
+}

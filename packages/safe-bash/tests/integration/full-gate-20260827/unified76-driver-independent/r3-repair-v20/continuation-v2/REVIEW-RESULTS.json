@@ -1,0 +1,1253 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-08-28T16:27:32.932827+00:00",
+  "presealCommit": "2978c5a3b34e2df51af7e7eda08475b570647696",
+  "presealCommittedAt": "2026-08-28T11:24:56-05:00",
+  "status": "HOLD_SOURCE_FAILURES_AND_REVIEW_HARNESS_DEFECT_NO_RETRY",
+  "oneAttempt": {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "--experimental-vm-modules",
+      "--disable-warning=ExperimentalWarning",
+      "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/review.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "attempts": 1,
+    "retries": 0,
+    "terminalToolExitCode": 1,
+    "terminalToolWallSeconds": 0.2115,
+    "terminalToolOutput": "cohort observed exit=1\n",
+    "captureQualification": "Exit1 and 0.2115 seconds transcribed from the terminal execution tool, not inferred from RESULTS; raw stdout/stderr and shell exit receipt are direct separate captures. No total-work-duration claim.",
+    "exitReceipt": {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.exit.txt",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "stdout": {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.stdout.raw",
+      "bytes": 60,
+      "mode": 420,
+      "sha256": "d121098569b9bb64393ecf3018bda292976a7467fe3b0a40105b74993470e89b"
+    },
+    "stderr": {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "naturalProcessExitObserved": true,
+    "signalsSent": 0,
+    "subjectProcessLaunches": 0,
+    "realScratchAcquisitions": 0
+  },
+  "rawSummary": {
+    "checks": 53,
+    "pass": 47,
+    "fail": 6,
+    "harnessErrors": 0,
+    "skip": 0
+  },
+  "reconciledSummary": {
+    "planned": 53,
+    "wrappersAttempted": 53,
+    "pass": 47,
+    "sourceFailures": 4,
+    "reviewHarnessFailures": 2,
+    "skipped": 0,
+    "unexecutedWrappers": 0,
+    "unexecutedIntendedStreamOperations": 2,
+    "qualification": "Two stream operations are unexecuted within the two failed harness wrappers, not additional controls. Raw FAIL6/HARNESS0 is preserved, not trusted as failure provenance."
+  },
+  "roles": {
+    "DATA": {
+      "planned": 3,
+      "pass": 3,
+      "fail": 0,
+      "harness": 0,
+      "targetUnexecuted": 0,
+      "skip": 0
+    },
+    "SOURCE": {
+      "planned": 1,
+      "pass": 1,
+      "fail": 0,
+      "harness": 0,
+      "targetUnexecuted": 0,
+      "skip": 0
+    },
+    "SYNTHETIC": {
+      "planned": 10,
+      "pass": 10,
+      "fail": 0,
+      "harness": 0,
+      "targetUnexecuted": 0,
+      "skip": 0
+    },
+    "STUB": {
+      "planned": 39,
+      "pass": 33,
+      "fail": 4,
+      "harness": 2,
+      "targetUnexecuted": 2,
+      "skip": 0
+    }
+  },
+  "fatalStopCompliance": {
+    "satisfied": false,
+    "firstRefusalOrdinal": 31,
+    "secondRefusalOrdinal": 32,
+    "first30": {
+      "pass": 26,
+      "sourceFailures": 4
+    },
+    "laterRawRows": 22,
+    "laterRawPasses": 21,
+    "laterHarnessRefusals": 1,
+    "laterRowsQualifiedAsCompliantContinuation": false,
+    "noAdditionalNodeAttempt": true
+  },
+  "runnerBudgets": {
+    "readCount": 77,
+    "totalBytes": 718667,
+    "operations": 727,
+    "evaluations": 39,
+    "recordingDispatches": 82
+  },
+  "successfulWholeModuleEvaluations": 37,
+  "distinctSuccessfulSubjectModules": 10,
+  "attemptedEvaluations": 39,
+  "streamLinkRefusals": 2,
+  "wholeModuleCounts": {
+    "tests/commands/table-text-stress/support.ts": 6,
+    "tests/commands/table-text-stress/shared-stdin-fix/support.ts": 4,
+    "tests/commands/diff-patch-stress/gnu-target/oracle.ts": 4,
+    "tests/shell-stress/helpers.ts": 3,
+    "tests/commands/diff-patch-stress/editflows/helpers.ts": 3,
+    "tests/plugins/qualified-current-release-native-data/helpers.ts": 3,
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs": 4,
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs": 2,
+    "tests/commands/search-stress/safety.test.ts": 4,
+    "tests/commands/search-stress/streaming.test.ts": 4
+  },
+  "recordingDispatches": 82,
+  "tableFixtureRecordingDispatches": 71,
+  "reporterFakeBoundedCalls": 8,
+  "actualNativeTools": 0,
+  "actualCompilerBuildProductGatePrivate": 0,
+  "all53Results": [
+    {
+      "ordinal": 1,
+      "id": "D01-committed-seals-and-selected-source",
+      "role": "DATA",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "D01-committed-seals-and-selected-source",
+        "role": "DATA",
+        "status": "PASS",
+        "observed": {
+          "selected": 15,
+          "authorSealMembers": 7,
+          "toolSealMembers": 8,
+          "protectedOriginalRoots": "committed tree bindings only; no root-content rehash"
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 2,
+      "id": "D02-five-tools-calls-aliases-OS-pairs",
+      "role": "DATA",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "D02-five-tools-calls-aliases-OS-pairs",
+        "role": "DATA",
+        "status": "PASS",
+        "observed": {
+          "pairs": 5,
+          "qualification": "ROOT-ratified OS-METADATA ONLY",
+          "missingImageHash": null,
+          "actualImageReads": 0,
+          "future20Actual": "UNRUN",
+          "actualScripts": 0
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 3,
+      "id": "S01-source-overlay-route-and-cleanup-boundaries",
+      "role": "SOURCE",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "S01-source-overlay-route-and-cleanup-boundaries",
+        "role": "SOURCE",
+        "status": "PASS",
+        "observed": {
+          "fixtureOverlay": 13,
+          "shippingDriverFiles": 2,
+          "S3": "SOURCE ONLY; top-level acquisition not run",
+          "mount": "SOURCE ONLY; no product callback run",
+          "auxiliaryAndFollowup": "SOURCE callsite preservation only",
+          "historical632": "immutable, not executed"
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 4,
+      "id": "V01-cross-realm-exact-data",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V01-cross-realm-exact-data",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 5,
+      "id": "V02-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V02-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 6,
+      "id": "V03-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V03-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 7,
+      "id": "V04-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V04-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 8,
+      "id": "V05-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V05-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 9,
+      "id": "V06-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V06-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 10,
+      "id": "V07-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V07-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 11,
+      "id": "V08-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V08-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 12,
+      "id": "V09-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V09-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 13,
+      "id": "V10-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "V10-reject-malformed-role",
+        "role": "SYNTHETIC",
+        "status": "PASS",
+        "observed": null
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 14,
+      "id": "T01-table71-call-env-input-owned-cleanup",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T01-table71-call-env-input-owned-cleanup",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "fixtureCount": 71,
+          "stubDispatches": 71,
+          "oracleSemanticPasses": 0,
+          "foreignCanary": "preserved",
+          "fixtureBytes": "unchanged"
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 15,
+      "id": "T02-write",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T02-write",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "cleanupAttempted": true,
+          "remainingOwned": [],
+          "foreign": "preserved"
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 16,
+      "id": "T02-spawn",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T02-spawn",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "cleanupAttempted": true,
+          "remainingOwned": [],
+          "foreign": "preserved"
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 17,
+      "id": "T02-cleanup-only",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T02-cleanup-only",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "cleanupAttempted": true,
+          "remainingOwned": [
+            "/gate/tmp/safe-bash-table-native-S1"
+          ],
+          "foreign": "preserved"
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 18,
+      "id": "T02-primary-plus-cleanup",
+      "role": "STUB",
+      "rawStatus": "FAIL",
+      "reviewStatus": "FAIL",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T02-primary-plus-cleanup",
+        "role": "STUB",
+        "status": "FAIL",
+        "error": {
+          "name": "Error",
+          "message": "primary thrown identity not preserved"
+        },
+        "observed": {
+          "cleanupAttempted": true,
+          "remainingOwned": [
+            "/gate/tmp/safe-bash-table-native-S1"
+          ],
+          "foreign": "preserved",
+          "actual": {
+            "name": "Error",
+            "message": "CLEANUP-primary-plus-cleanup"
+          },
+          "expected": {
+            "name": "Error",
+            "message": "PRIMARY-primary-plus-cleanup"
+          }
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 19,
+      "id": "T02-late-cleanup",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T02-late-cleanup",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "cleanupAttempted": true,
+          "remainingOwned": [],
+          "foreign": "preserved"
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 20,
+      "id": "T03-shared-success",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T03-shared-success",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "operations": [
+            {
+              "operation": "rm",
+              "path": "/gate/tmp/safe-bash-table-shared-S1/native-S2"
+            },
+            {
+              "operation": "rmdir",
+              "path": "/gate/tmp/safe-bash-table-shared-S1"
+            }
+          ],
+          "foreignRetained": false
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 21,
+      "id": "T03-shared-foreign-parent",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T03-shared-foreign-parent",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "operations": [
+            {
+              "operation": "rm",
+              "path": "/gate/tmp/safe-bash-table-shared-S1/native-S2"
+            },
+            {
+              "operation": "rmdir",
+              "path": "/gate/tmp/safe-bash-table-shared-S1"
+            }
+          ],
+          "foreignRetained": true
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 22,
+      "id": "T03-shared-child-acquisition",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T03-shared-child-acquisition",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "operations": [
+            {
+              "operation": "rmdir",
+              "path": "/gate/tmp/safe-bash-table-shared-S1"
+            }
+          ],
+          "foreignRetained": false
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 23,
+      "id": "T03-shared-primary-plus-foreign",
+      "role": "STUB",
+      "rawStatus": "FAIL",
+      "reviewStatus": "FAIL",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "T03-shared-primary-plus-foreign",
+        "role": "STUB",
+        "status": "FAIL",
+        "error": {
+          "name": "Error",
+          "message": "primary thrown identity not preserved"
+        },
+        "observed": {
+          "operations": [
+            {
+              "operation": "rm",
+              "path": "/gate/tmp/safe-bash-table-shared-S1/native-S2"
+            },
+            {
+              "operation": "rmdir",
+              "path": "/gate/tmp/safe-bash-table-shared-S1"
+            }
+          ],
+          "foreignRetained": true,
+          "actual": {
+            "name": "Error",
+            "message": "nonempty owned parent"
+          },
+          "expected": {
+            "name": "Error",
+            "message": "SHARED-PRIMARY"
+          }
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 24,
+      "id": "P01-patch-scratch-success",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "P01-patch-scratch-success",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "invoked": 1,
+          "cleanup": [
+            {
+              "operation": "rm",
+              "path": "/gate/tmp/safe-bash-patch-scratch-S1"
+            }
+          ]
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 25,
+      "id": "P01-patch-scratch-throw",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "P01-patch-scratch-throw",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "invoked": 1,
+          "cleanup": [
+            {
+              "operation": "rm",
+              "path": "/gate/tmp/safe-bash-patch-scratch-S1"
+            }
+          ]
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 26,
+      "id": "P01-patch-scratch-outside",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "P01-patch-scratch-outside",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "invoked": 0,
+          "cleanup": []
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 27,
+      "id": "P01-patch-scratch-primary-plus-cleanup",
+      "role": "STUB",
+      "rawStatus": "FAIL",
+      "reviewStatus": "FAIL",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "P01-patch-scratch-primary-plus-cleanup",
+        "role": "STUB",
+        "status": "FAIL",
+        "error": {
+          "name": "Error",
+          "message": "primary thrown identity not preserved"
+        },
+        "observed": {
+          "cleanupAttempts": 1,
+          "actual": {
+            "name": "Error",
+            "message": "PATCH-CLEANUP"
+          },
+          "expected": {
+            "name": "Error",
+            "message": "PATCH-PRIMARY"
+          }
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 28,
+      "id": "H01-shell-success-canary",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "H01-shell-success-canary",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "separateScratch": true,
+          "semanticFilter": false
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 29,
+      "id": "H01-shell-outside",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "H01-shell-outside",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 0,
+          "separateScratch": true,
+          "semanticFilter": false
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 30,
+      "id": "H01-shell-primary-plus-cleanup",
+      "role": "STUB",
+      "rawStatus": "FAIL",
+      "reviewStatus": "FAIL",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "H01-shell-primary-plus-cleanup",
+        "role": "STUB",
+        "status": "FAIL",
+        "error": {
+          "name": "Error",
+          "message": "primary thrown identity not preserved"
+        },
+        "observed": {
+          "removals": [
+            {
+              "operation": "rm",
+              "path": "/gate/tmp/virtual-bash-shell-stress-S1"
+            },
+            {
+              "operation": "rm",
+              "path": "/gate/tmp/safe-bash-shell-scratch-S2"
+            }
+          ],
+          "actual": {
+            "name": "Error",
+            "message": "SHELL-CLEANUP"
+          },
+          "expected": {
+            "name": "Error",
+            "message": "SHELL-PRIMARY"
+          }
+        }
+      },
+      "qualification": "before-first-harness-refusal"
+    },
+    {
+      "ordinal": 31,
+      "id": "H02-stream-success",
+      "role": "STUB",
+      "rawStatus": "FAIL",
+      "reviewStatus": "HARNESS_ERROR",
+      "intendedTargetOperationExecuted": false,
+      "rawResult": {
+        "id": "H02-stream-success",
+        "role": "STUB",
+        "status": "FAIL",
+        "error": {
+          "name": "AssertionError",
+          "message": "undeclared import ./helpers.js"
+        },
+        "observed": null
+      },
+      "qualification": "harness-refusal-subject-unexecuted"
+    },
+    {
+      "ordinal": 32,
+      "id": "H02-stream-primary-plus-cleanup",
+      "role": "STUB",
+      "rawStatus": "FAIL",
+      "reviewStatus": "HARNESS_ERROR",
+      "intendedTargetOperationExecuted": false,
+      "rawResult": {
+        "id": "H02-stream-primary-plus-cleanup",
+        "role": "STUB",
+        "status": "FAIL",
+        "error": {
+          "name": "AssertionError",
+          "message": "undeclared import ./helpers.js"
+        },
+        "observed": null
+      },
+      "qualification": "harness-refusal-subject-unexecuted"
+    },
+    {
+      "ordinal": 33,
+      "id": "R01-git-positive",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R01-git-positive",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "actualToolReads": 0,
+          "identity": "synthetic only",
+          "nonzeroPreserved": 9
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 34,
+      "id": "R01-git-wrong-hash",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R01-git-wrong-hash",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 0,
+          "actualToolReads": 0,
+          "identity": "synthetic only",
+          "nonzeroPreserved": null
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 35,
+      "id": "R01-git-wrong-realpath",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R01-git-wrong-realpath",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 0,
+          "actualToolReads": 0,
+          "identity": "synthetic only",
+          "nonzeroPreserved": null
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 36,
+      "id": "R01-npm-positive",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R01-npm-positive",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "actualToolReads": 0,
+          "identity": "synthetic only",
+          "nonzeroPreserved": 9
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 37,
+      "id": "R01-npm-wrong-hash",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R01-npm-wrong-hash",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 0,
+          "actualToolReads": 0,
+          "identity": "synthetic only",
+          "nonzeroPreserved": null
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 38,
+      "id": "R01-npm-wrong-realpath",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R01-npm-wrong-realpath",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 0,
+          "actualToolReads": 0,
+          "identity": "synthetic only",
+          "nonzeroPreserved": null
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 39,
+      "id": "C01-root-compiler-positive",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "C01-root-compiler-positive",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "actualCompilerInvocations": 0,
+          "selection": {
+            "args": [
+              "/candidate/node_modules/typescript/bin/tsc",
+              "--noEmit",
+              "-p",
+              "tsconfig.json"
+            ],
+            "bindings": [
+              {
+                "path": "/candidate/node_modules/typescript/package.json",
+                "sha256": "cbb85036598ebe48b0a082813d820c53f77c695de3f1589297458616c11d0182"
+              },
+              {
+                "path": "/candidate/node_modules/typescript/bin/tsc",
+                "sha256": "fb5722f59bc9b4d417f4f00457fab3a5678a8d7ef3a438b0435b57f033a07854"
+              },
+              {
+                "path": "/candidate/node_modules/typescript/lib/tsc.js",
+                "sha256": "e826286f4b8a3307cdf18f1bc79c3b30d51b6c950f5c85fd42b0978ade488b32"
+              },
+              {
+                "path": "/candidate/node_modules/typescript/lib/_tsc.js",
+                "sha256": "4042c00045223a3c47542ba41600f2be2dfa2577de8489dc08e4027e24d11ea9"
+              }
+            ],
+            "cwd": "/candidate/benchmarks"
+          }
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 40,
+      "id": "C01-root-compiler-missing",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "C01-root-compiler-missing",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "actualCompilerInvocations": 0,
+          "selection": "refused"
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 41,
+      "id": "C01-root-compiler-wrong-hash",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "C01-root-compiler-wrong-hash",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "actualCompilerInvocations": 0,
+          "selection": "refused"
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 42,
+      "id": "C01-root-compiler-wrong-version",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "C01-root-compiler-wrong-version",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "actualCompilerInvocations": 0,
+          "selection": "refused"
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 43,
+      "id": "C02-build-counter-benchmark",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "C02-build-counter-benchmark",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "syntheticAuditWrites": 0,
+          "actualBuilds": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 44,
+      "id": "C02-build-counter-production",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "C02-build-counter-production",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "syntheticAuditWrites": 1,
+          "actualBuilds": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 45,
+      "id": "R02-reporter-10-success",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R02-reporter-10-success",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "otherRegisteredTestsRun": 0,
+          "actualChildren": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 46,
+      "id": "R02-reporter-10-wrong-output",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R02-reporter-10-wrong-output",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "otherRegisteredTestsRun": 0,
+          "actualChildren": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 47,
+      "id": "R02-reporter-10-nonzero-with-pass",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R02-reporter-10-nonzero-with-pass",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "otherRegisteredTestsRun": 0,
+          "actualChildren": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 48,
+      "id": "R02-reporter-10-late-pass-timeout",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R02-reporter-10-late-pass-timeout",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "otherRegisteredTestsRun": 0,
+          "actualChildren": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 49,
+      "id": "R02-reporter-6-success",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R02-reporter-6-success",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "otherRegisteredTestsRun": 0,
+          "actualChildren": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 50,
+      "id": "R02-reporter-6-wrong-output",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R02-reporter-6-wrong-output",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "otherRegisteredTestsRun": 0,
+          "actualChildren": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 51,
+      "id": "R02-reporter-6-nonzero-with-pass",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R02-reporter-6-nonzero-with-pass",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "otherRegisteredTestsRun": 0,
+          "actualChildren": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 52,
+      "id": "R02-reporter-6-late-pass-timeout",
+      "role": "STUB",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "R02-reporter-6-late-pass-timeout",
+        "role": "STUB",
+        "status": "PASS",
+        "observed": {
+          "dispatches": 1,
+          "otherRegisteredTestsRun": 0,
+          "actualChildren": 0
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    },
+    {
+      "ordinal": 53,
+      "id": "D03-protected-read-set-postcheck",
+      "role": "DATA",
+      "rawStatus": "PASS",
+      "reviewStatus": "PASS",
+      "intendedTargetOperationExecuted": true,
+      "rawResult": {
+        "id": "D03-protected-read-set-postcheck",
+        "role": "DATA",
+        "status": "PASS",
+        "observed": {
+          "originalReadPaths": 38,
+          "newEntryDetection": false,
+          "qualification": "finite read-set comparison only; Git protected-tree checks recorded separately"
+        }
+      },
+      "qualification": "raw-observed-after-required-fatal-stop-not-qualified"
+    }
+  ],
+  "originalFailureUnchanged": {
+    "exit": 1,
+    "executed": 0,
+    "unexecuted": 53,
+    "harnessFailures": 1
+  },
+  "notExecuted": [
+    "20 actual tool controls",
+    "5 actual script replays",
+    "stream capture success and primary-plus-cleanup operations blocked by harness link",
+    "shared verifyOracle operation",
+    "arbitrary-thrown-values and undefined-primary distinction",
+    "two-distinct-cleanup-reasons identity",
+    "env-S actual execution",
+    "public structural signal",
+    "directory/socket diagnostics",
+    "any declaration check"
+  ],
+  "noFurtherGO": true
+}

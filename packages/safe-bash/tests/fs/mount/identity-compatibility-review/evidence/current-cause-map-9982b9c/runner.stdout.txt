@@ -1,0 +1,15 @@
+{
+  "mode": "revision",
+  "revision": "9982b9c8810f13d4a2d8dc6c4a70fca9154e4bc1",
+  "counts": {
+    "tests": 43,
+    "pass": 33,
+    "fail": 10,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "exitCode": 1,
+  "typecheckExitCode": 0,
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/evidence/current-cause-map-9982b9c"
+}

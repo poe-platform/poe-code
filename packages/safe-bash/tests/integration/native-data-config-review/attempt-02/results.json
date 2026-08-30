@@ -1,0 +1,73 @@
+{
+  "started": "2026-08-27T08:58:15.825Z",
+  "candidate": "78e80717b9791a4bc5f49005b962b1da9232335d",
+  "parent": "f6406cdc1d946bbe829535d888d6e8a09a7c8d9e",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "typescript": "5.9.3",
+  "controls": [
+    {
+      "name": "exact-config-and-package-only-behavioral-delta",
+      "status": "PASS"
+    },
+    {
+      "name": "all-72-files-classified-with-producer-provenance",
+      "status": "PASS"
+    }
+  ],
+  "inputFreeze": [
+    {
+      "path": "CRITERIA.md",
+      "bytes": 4867,
+      "sha256": "658d60cf955f63746b05dae878e0ff47451eb1240f58c074e63b2007092752f6"
+    },
+    {
+      "path": "fixtures.json",
+      "bytes": 1257,
+      "sha256": "d93e3aaeda49eebe7aa65bd2653dddf92b0e942c246f8fb9faba40b3876c1053"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 23422,
+      "sha256": "cc7033087c0d64a02450072a81a97fb9b5c380e4b4f1431c63f389686de169d8"
+    }
+  ],
+  "changedPaths": [
+    "README.md",
+    "docs/PROJECT_LEDGER.md",
+    "package.json",
+    "tests/plugins/qualified-current-release-native-data/.gitignore",
+    "tests/plugins/qualified-current-release-native-data/REPORT.md",
+    "tests/plugins/qualified-current-release-native-data/after.json",
+    "tests/plugins/qualified-current-release-native-data/before-02.json",
+    "tests/plugins/qualified-current-release-native-data/before.json",
+    "tests/plugins/qualified-current-release-native-data/capture.mjs",
+    "tests/plugins/qualified-current-release-native-data/classification.json",
+    "tests/plugins/qualified-current-release-native-data/controls-final.json",
+    "tests/plugins/qualified-current-release-native-data/controls-initial.json",
+    "tests/plugins/qualified-current-release-native-data/controls.test.ts",
+    "tests/plugins/qualified-current-release-native-data/helpers.ts",
+    "tests/plugins/qualified-current-release-native-data/verify.mjs",
+    "tsconfig.json"
+  ],
+  "rawIgnoreRules": "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/alpha.ts\ntests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/beta.ts\ntests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/ab.ts\n\"tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/\\360\\237\\231\\202.ts\"\ntests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/a.ts\ntests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/d.ts\n",
+  "liveGlobalStatus": "FAILED",
+  "liveCensus": {
+    "total": 3949,
+    "production": 176,
+    "testTree": 3538,
+    "other": 235,
+    "discovered": 543,
+    "discoveredIncluded": 543,
+    "tracked": 536,
+    "trackedIncluded": 536
+  },
+  "finished": "2026-08-27T08:58:36.027Z",
+  "scopedStatus": "FAILED",
+  "failure": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      bytes: 8594,\n      path: 'src/commands/archive/create.ts',\n      sha256: 'cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c'\n...\n    {\n+     bytes: 9346,\n-     bytes: 9306,\n      path: 'tests/integration/adapter-tools/atomic-webdav-profile/controls.ts',\n+     sha256: '67fbeed3ae12b1c2cc4ecdcc0e9060895f8ca1d5a466086cb1526922fa04e5b8'\n-     sha256: 'd0e0fe79ab9b5f26cf8b50af995755dc05113af4c66c7f2bd8ed4e6d15554bdb'\n    },\n    {\n      bytes: 9519,\n      path: 'tests/integration/adapter-tools/fixtures.ts',\n      sha256: '127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      bytes: 8594,\n      path: 'src/commands/archive/create.ts',\n      sha256: 'cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c'\n...\n    {\n+     bytes: 9346,\n-     bytes: 9306,\n      path: 'tests/integration/adapter-tools/atomic-webdav-profile/controls.ts',\n+     sha256: '67fbeed3ae12b1c2cc4ecdcc0e9060895f8ca1d5a466086cb1526922fa04e5b8'\n-     sha256: 'd0e0fe79ab9b5f26cf8b50af995755dc05113af4c66c7f2bd8ed4e6d15554bdb'\n    },\n    {\n      bytes: 9519,\n      path: 'tests/integration/adapter-tools/fixtures.ts',\n      sha256: '127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/native-data-config-review/review.mjs:174:12\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/native-data-config-review/review.mjs:29:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/native-data-config-review/review.mjs:171:3\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+  }
+}

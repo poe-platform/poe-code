@@ -1,0 +1,19 @@
+{
+  "revision": "57d9d9860bd51fabd910814efeea4efbca0e4c26",
+  "dirty": true,
+  "statusBefore": " M package.json\n M src/fs/s3/README.md\n M src/fs/webdav/README.md\n M src/index.ts\n M src/plugins/index.ts\n M tests/fs/mount/mutation-identity.probe.ts\n M tests/plugins/agent-commands.test.ts\n?? benchmarks/reports/current-integration/audit.py\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/.gitignore\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/native-preparation.json\n?? tests/commands/diff-patch-stress/gnu-revised-full-review/probe.mjs\n?? tests/commands/diff-patch-stress/gnu-revised-full/delta-v1.mjs\n?? tests/commands/diff-patch-stress/gnu-revised-full/proof.mjs\n?? tests/commands/diff-patch-stress/gnu-revised-full/run.mjs\n?? tests/commands/metadata/integration.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? tests/shell-stress/invocation-modes/capture-native.ts\n?? tests/shell-stress/invocation-modes/cases.ts\n?? tests/shell-stress/invocation-modes/harness.ts\n?? tests/shell-stress/invocation-modes/native-capture.log\n?? tests/shell-stress/invocation-modes/native-evidence.json\n?? tests/shell-stress/invocation-modes/trace.mjs\n?? tests/stress/adapters/remote-safe-workflows.test.ts\n",
+  "workspace": "/tmp/safe-bash-current-integration-69dbdy0m",
+  "snapshot": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+  "inputFingerprint": "5905112264b83a5e12ca549eec5a88d90f956b2838d54095e97bcec545c91560",
+  "sourceFingerprint": "20b8ecb2d2b6e47fc86784b23ba0094f0486a1197fcfcb71dcb61731cfea31ab",
+  "scripts": {
+    "benchmark": "node --import tsx benchmarks/run.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\""
+  },
+  "startedAt": "2026-08-26T23:45:55Z",
+  "dependencyMethod": "Private regular-file copies of installed dependency trees to snapshot node_modules and benchmarks/node_modules, excluded from source inventory; only verified internal dependency links preserved; never link back to live tree.",
+  "derivedOnlyFromFrozenSnapshot": "/tmp/safe-bash-current-integration-69dbdy0m/source"
+}

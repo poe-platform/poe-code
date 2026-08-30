@@ -1,0 +1,36 @@
+{
+  "label": "diagnostic-first-read-curl-body",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/diagnostic-first-read-probe.ts",
+    "first-read-curl-body"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:37.472Z",
+  "finishedAt": "2026-08-27T10:11:37.653Z",
+  "durationMs": 181.76766600000155,
+  "timeoutMs": 3000,
+  "maxBytes": 1048576,
+  "pid": 23153,
+  "initialIdentity": "23153 22800 23153 Thu Aug 27 05:11:37 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/diagnostic-first-read-probe.ts first-read-curl-body",
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"diagnostic\":true,\"originalObservedAborted\":false,\"ioAborted\":true,\"ioReasonCode\":\"EPIPE\",\"stageAborted\":false,\"stageAbortedAtIoClose\":false,\"callerAbortedAtIoClose\":false,\"firstWrites\":0,\"scenario\":\"first-read-curl-body\",\"active\":1,\"reads\":1,\"returned\":0,\"abortedBeforeTeardown\":false,\"events\":[\"assertion.before:assert.ok(address && typeof address !== \\\"string\\\");\",\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"diagnostic.io.abort\",\"command.settled:curl:141\",\"command.settled:true:0\",\"assertion.before:assert.equal(result.exitCode, 0);\",\"assertion.before:assert.equal(result.stdout, \\\"\\\");\",\"assertion.before:assert.equal(result.stderr, \\\"\\\");\",\"assertion.before:assert.equal(trace.controller.signal.aborted, false);\",\"assertion.before:assert.equal(observed?.aborted, true);\"]}\n{\"diagnosticAfterTeardown\":true,\"scenario\":\"first-read-curl-body\",\"reads\":1,\"returned\":1,\"active\":0,\"unhandled\":0,\"callerAborted\":true}\n",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at <anonymous> (/private/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/bound/tests/shell/diagnostic-first-read-probe.ts:127:12) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+}

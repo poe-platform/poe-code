@@ -1,0 +1,54 @@
+import assert from "node:assert/strict";
+import { spawn, spawnSync } from "node:child_process";
+import { closeSync, mkdirSync, openSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
+import { authenticate, fileHash, gitHash, inventory, node, owned, parse, recipe, repository, write } from "./authenticate.mjs";
+
+const freeze = process.argv[2];
+assert.match(freeze, /^[a-f0-9]{40}$/);
+const output = join(owned, "execution-01");
+mkdirSync(output);
+mkdirSync(join(output, "tmp"));
+const manifest = parse(join(recipe, "MANIFEST.json"));
+assert.deepEqual(inventory(recipe).sort(), [...Object.keys(manifest.files), "MANIFEST.json"].sort());
+for (const filename of [...Object.keys(manifest.files), "MANIFEST.json"]) {
+  const absolute = join(recipe, filename);
+  const current = await fileHash(absolute);
+  if (filename !== "MANIFEST.json") assert.equal(current, manifest.files[filename].sha256);
+  assert.equal(await gitHash(freeze, relative(repository, absolute)), current);
+}
+const authentication = await authenticate();
+write(join(output, "AUTHENTICATION-PRE.json"), authentication);
+const environment = { PATH: "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin", HOME: join(output, "tmp"), TMPDIR: join(output, "tmp"), LC_ALL: "C", LANG: "C", TZ: "UTC", GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_NO_REPLACE_OBJECTS: "1", GIT_TERMINAL_PROMPT: "0", HTML74_RESULT: join(output, "RESULT.json"), HTML74_PRODUCER_TELEMETRY: join(output, "PRODUCER.json") };
+const args = ["--max-old-space-size=96", join(recipe, "diagnose.mjs")];
+const command = { executable: node, args, cwd: repository, env: environment, detached: true, stdout: join(output, "stdout.data"), stderr: join(output, "stderr.data"), processListing: { executable: "/bin/ps", args: ["-axo", "pid=,ppid=,pgid=,stat=,command="] } };
+write(join(output, "PRE.json"), { at: new Date().toISOString(), freeze, recipeManifestSha256: await fileHash(join(recipe, "MANIFEST.json")), supervisorSha256: await fileHash(join(recipe, "supervise.mjs")), command, environmentSha256: await import("node:crypto").then(({ createHash }) => createHash("sha256").update(JSON.stringify(environment)).digest("hex")), commandSha256: await import("node:crypto").then(({ createHash }) => createHash("sha256").update(JSON.stringify(command)).digest("hex")), runsAllowed: 1, candidateExecuted: false });
+const stdout = openSync(command.stdout, "wx");
+const stderr = openSync(command.stderr, "wx");
+const child = spawn(node, args, { cwd: repository, env: environment, detached: true, stdio: ["ignore", stdout, stderr] });
+const started = new Date().toISOString();
+const signalsSent = [];
+const timeout = setTimeout(() => { signalsSent.push("SIGTERM"); try { process.kill(-child.pid, "SIGTERM"); } catch {} }, 190000);
+const killed = setTimeout(() => { signalsSent.push("SIGKILL"); try { process.kill(-child.pid, "SIGKILL"); } catch {} }, 195000);
+const settlement = await new Promise(resolveResult => {
+  let error;
+  child.once("error", caught => { error = { name: caught.name, message: caught.message, code: caught.code }; });
+  child.once("close", (code, signal) => resolveResult({ code, signal, error, closeObserved: true }));
+});
+clearTimeout(timeout);
+clearTimeout(killed);
+closeSync(stdout);
+closeSync(stderr);
+const listing = spawnSync("/bin/ps", command.processListing.args, { encoding: "utf8", maxBuffer: 8 * 1024 ** 2 });
+const remainingGroupMembers = listing.stdout?.split("\n").filter(line => line.trim().split(/\s+/)[2] === String(child.pid)) ?? [];
+write(join(output, "SETTLEMENT.json"), { started, finished: new Date().toISOString(), pid: child.pid, pgid: child.pid, ...settlement, signalsSent, ps: { status: listing.status, signal: listing.signal, error: listing.error?.message }, remainingGroupMembers });
+assert.equal(listing.status, 0);
+assert.deepEqual(remainingGroupMembers, []);
+const post = await authenticate();
+assert.deepEqual(post.selected, authentication.selected);
+assert.deepEqual(post.tools, authentication.tools);
+for (const filename of [...Object.keys(manifest.files), "MANIFEST.json"]) assert.equal(await fileHash(join(recipe, filename)), await gitHash(freeze, relative(repository, join(recipe, filename))));
+assert.deepEqual(inventory(recipe).sort(), [...Object.keys(manifest.files), "MANIFEST.json"].sort());
+write(join(output, "POST.json"), { at: new Date().toISOString(), selectedRelevantFilesUnchanged: post.selected.length, toolsUnchanged: post.tools, recipeFreeze: freeze, recipeManifestSha256: await fileHash(join(recipe, "MANIFEST.json")), recipePathInventoryAppendChecked: true, foreignIndexCompared: false, fullArchiveRehashed: false, tmpEntries: inventory(join(output, "tmp")), resultSha256: await fileHash(join(output, "RESULT.json")), producerSha256: await fileHash(join(output, "PRODUCER.json")), stdoutSha256: await fileHash(command.stdout), stderrSha256: await fileHash(command.stderr) });
+console.log(readFileSync(join(output, "RESULT.json"), "utf8"));
+process.exitCode = settlement.code === 0 && !settlement.signal ? 0 : 1;

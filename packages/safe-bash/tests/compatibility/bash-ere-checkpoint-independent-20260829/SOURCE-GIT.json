@@ -1,0 +1,27 @@
+[
+  {
+    "path": "src/commands/regex-execution/ere/types.ts",
+    "gitBlob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+    "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+  },
+  {
+    "path": "src/commands/regex-execution/ere/errors.ts",
+    "gitBlob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+    "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+  },
+  {
+    "path": "src/commands/regex-execution/ere/limits.ts",
+    "gitBlob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+    "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+  },
+  {
+    "path": "src/commands/regex-execution/ere/syntax.ts",
+    "gitBlob": "30752089bf9eee3dff40fddee78f29ac5fb2a599",
+    "sha256": "be0082e84d90783731163aa3a92fa3fc56b379c2c8c522fee567bafc5654b64f"
+  },
+  {
+    "path": "src/commands/regex-execution/ere/matcher.ts",
+    "gitBlob": "4999c609ebef6c7c750cf77b01b3664ac0d9c910",
+    "sha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8"
+  }
+]

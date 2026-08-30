@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "role": "SOURCE_METADATA_ONLY_PUBLIC_PROTOTYPE_METHOD",
+  "toolSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "method": "Worker.prototype.terminate",
+  "bytes": 834,
+  "sha256": "a418b39c68a6c0b6c8c839c5bedfbe01dc01f04fb0b4e7f5072f3b560dbd9b89",
+  "source": "terminate(callback) {\n    debug(`[${threadId}] terminates Worker with ID ${this.threadId}`);\n\n    this.ref();\n\n    if (typeof callback === 'function') {\n      process.emitWarning(\n        'Passing a callback to worker.terminate() is deprecated. ' +\n        'It returns a Promise instead.',\n        'DeprecationWarning', 'DEP0132');\n      if (this[kHandle] === null) return PromiseResolve();\n      this.once('exit', (exitCode) => callback(null, exitCode));\n    }\n\n    if (this[kHandle] === null) return PromiseResolve();\n\n    this[kHandle].stopThread();\n\n    // Do not use events.once() here, because the 'exit' event will always be\n    // emitted regardless of any errors, and the point is to only resolve\n    // once the thread has actually stopped.\n    return new Promise((resolve) => {\n      this.once('exit', resolve);\n    });\n  }",
+  "methodInvoked": false,
+  "WorkerConstructed": false,
+  "privateBindingUsed": false,
+  "productImported": false,
+  "qualification": "No Worker constructor, terminate method, native handles, or operating-system lifecycle operation is invoked. This bounded public method source is not a binary executable dump or OS proof."
+}

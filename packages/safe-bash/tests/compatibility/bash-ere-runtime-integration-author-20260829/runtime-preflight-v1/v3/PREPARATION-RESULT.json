@@ -1,0 +1,167 @@
+{
+  "status": "SOURCE_PREPARATION_HOLD",
+  "pid": 49666,
+  "syntax": [
+    {
+      "name": "cell-v3.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "additions.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    },
+    {
+      "name": "prepare.mjs",
+      "status": "PASS",
+      "diagnostic": null
+    }
+  ],
+  "topLevelIds": 70,
+  "layoutCells": 210,
+  "wholeBodies": 65,
+  "incomplete": [
+    "H02",
+    "H03",
+    "H04",
+    "H05",
+    "H07"
+  ],
+  "sourceConflicts": [
+    "EH01",
+    "EH02"
+  ],
+  "allRuntimeCells": "UNRUN",
+  "bindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/PREP-SHA256SUMS",
+      "size": 946,
+      "mode": 420,
+      "sha256": "4cae7f299c5935ab1e4e50d4b4d33b3ab41813ce3e2cc968671029d73df12e4e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/prepare.mjs",
+      "size": 5501,
+      "mode": 420,
+      "sha256": "2d76ea3a6ff2425418096241643a8d55be915663e6cc68b8229c3b181a5f864c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-core70-v3-20260829/prepare.mjs",
+      "size": 5501,
+      "mode": 420,
+      "sha256": "2d76ea3a6ff2425418096241643a8d55be915663e6cc68b8229c3b181a5f864c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/additions.mjs",
+      "size": 4056,
+      "mode": 420,
+      "sha256": "c26295269b50bbbf42804e5db9149bd1f9de34b117b40e467b7b4b31302644f9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/PRESEAL.md",
+      "size": 2239,
+      "mode": 420,
+      "sha256": "860f527cc7b8a7234b776ab8fc9f8af12785058a81eb993cd721309e28c2959e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/cell.mjs",
+      "size": 5822,
+      "mode": 420,
+      "sha256": "0b06698891c38b9d17be2122fe57d21802b4cf9ae18ab5eb7cae03c084c0c84e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/CASES.json",
+      "size": 46064,
+      "mode": 420,
+      "sha256": "f58bb9be691194360f152c69b20f75754e012759eeaadb660faec5a2c9c4e677"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/cell.mjs",
+      "size": 5822,
+      "mode": 420,
+      "sha256": "0b06698891c38b9d17be2122fe57d21802b4cf9ae18ab5eb7cae03c084c0c84e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/CASES.json",
+      "size": 46064,
+      "mode": 420,
+      "sha256": "f58bb9be691194360f152c69b20f75754e012759eeaadb660faec5a2c9c4e677"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/additions.mjs",
+      "size": 4056,
+      "mode": 420,
+      "sha256": "c26295269b50bbbf42804e5db9149bd1f9de34b117b40e467b7b4b31302644f9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/prepare.mjs",
+      "size": 5501,
+      "mode": 420,
+      "sha256": "2d76ea3a6ff2425418096241643a8d55be915663e6cc68b8229c3b181a5f864c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v2/owner.mjs",
+      "size": 4751,
+      "mode": 420,
+      "sha256": "247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v2/harmless.mjs",
+      "size": 120,
+      "mode": 420,
+      "sha256": "6802837fd93d5f35cf42eaeba84bbe561110a1916fa33a083ca94f73ab7f3fdc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v2/controls.mjs",
+      "size": 9724,
+      "mode": 420,
+      "sha256": "3e534c4ef793721b0532ac6ee7b88e97360926eea5d5905427fec6830a30416e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v2/PRESEAL.md",
+      "size": 2274,
+      "mode": 420,
+      "sha256": "2e1b947407bf7f10c6da8605301136e894671c06b46b0b3334671c5d08d3abe4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/START.json",
+      "size": 197,
+      "mode": 420,
+      "sha256": "a5d1862e9962187c9d8b4bfe088671f02d72134a1f2ace3154db177b149a0baf"
+    },
+    {
+      "path": "/private/tmp/safe-bash-core70-v3-20260829/owner-controls/owner.mjs",
+      "size": 4751,
+      "mode": 384,
+      "sha256": "247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-core70-v3-20260829/owner-controls/harmless.mjs",
+      "size": 120,
+      "mode": 384,
+      "sha256": "6802837fd93d5f35cf42eaeba84bbe561110a1916fa33a083ca94f73ab7f3fdc"
+    },
+    {
+      "path": "/private/tmp/safe-bash-core70-v3-20260829/owner-controls/controls.mjs",
+      "size": 9724,
+      "mode": 384,
+      "sha256": "3e534c4ef793721b0532ac6ee7b88e97360926eea5d5905427fec6830a30416e"
+    },
+    {
+      "path": "/private/tmp/safe-bash-core70-v3-20260829/owner-controls/PRESEAL.md",
+      "size": 2274,
+      "mode": 384,
+      "sha256": "2e1b947407bf7f10c6da8605301136e894671c06b46b0b3334671c5d08d3abe4"
+    },
+    {
+      "path": "/private/tmp/safe-bash-core70-v3-20260829/owner-controls/START.json",
+      "size": 197,
+      "mode": 384,
+      "sha256": "a5d1862e9962187c9d8b4bfe088671f02d72134a1f2ace3154db177b149a0baf"
+    }
+  ],
+  "controllerRoot": "/private/tmp/safe-bash-core70-v3-20260829/owner-controls",
+  "productImports": 0,
+  "workers": 0
+}

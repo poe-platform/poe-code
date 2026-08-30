@@ -1,0 +1,42 @@
+[
+  {
+    "label": "missing-group",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/missing-group.ts.data",
+    "before": "      await host.chown(join(canonicalRoot, name), before.uid, gid);",
+    "after": "",
+    "originalSha256": "659652208d50a185f52ecb5c220c296a2056e07cd686da39db79ba30771b856b",
+    "mutatedSha256": "93cba4f34aec4988fa77f704a37cf46943d03a2f6f1e31ed4a28c0e13bc335f0",
+    "status": 1,
+    "killed": true
+  },
+  {
+    "label": "missing-mode-readback",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/missing-mode-readback.ts.data",
+    "before": "&& (after.mode & 0o7777) === mode",
+    "after": "",
+    "originalSha256": "659652208d50a185f52ecb5c220c296a2056e07cd686da39db79ba30771b856b",
+    "mutatedSha256": "f5f7a9cb48ab5ce49caf97f536c2316e5b630503c44ada69b6b00620aaefeed6",
+    "status": 1,
+    "killed": true
+  },
+  {
+    "label": "missing-owner",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/missing-owner.ts.data",
+    "before": "&& entry.uid === uid,",
+    "after": ",",
+    "originalSha256": "659652208d50a185f52ecb5c220c296a2056e07cd686da39db79ba30771b856b",
+    "mutatedSha256": "2e0fa7fa11b5f1a516aa21a768716decd39364a9e828b45ef0dc8e39347a1801",
+    "status": 1,
+    "killed": true
+  },
+  {
+    "label": "missing-group-readback",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/permission-profile-independent/.work/attempt-03/missing-group-readback.ts.data",
+    "before": "&& after.gid === gid,",
+    "after": ",",
+    "originalSha256": "659652208d50a185f52ecb5c220c296a2056e07cd686da39db79ba30771b856b",
+    "mutatedSha256": "dd834884b33b602df270f21a36dc12ca1225b1becaaee3ab55217394c9fad925",
+    "status": 1,
+    "killed": true
+  }
+]

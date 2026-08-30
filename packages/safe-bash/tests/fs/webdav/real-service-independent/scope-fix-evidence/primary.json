@@ -1,0 +1,127 @@
+[
+  {
+    "name": "rfc4918",
+    "url": "https://www.rfc-editor.org/rfc/rfc4918.txt",
+    "retrievedAt": "2026-08-27T06:56:31.150Z",
+    "sha256": "619ad705b4c0e26af2d0652bb48ca1fa9bd080546993d46730d604b9fe2bdf25",
+    "bytes": 276352,
+    "matches": [
+      {
+        "line": 3394,
+        "pattern": "/^9\\.10\\.1\\./",
+        "text": "9.10.1.  Creating a Lock on an Existing Resource\n\n   A LOCK request to an existing resource will create a lock on the\n   resource identified by the Request-URI, provided the resource is not\n   already locked with a conflicting lock.  The resource identified in\n   the Request-URI becomes the root of the lock.  LOCK method requests\n   to create a new lock MUST have an XML request body.  The server MUST\n   preserve the information provided by the client in the 'owner'\n   element in the LOCK request.  The LOCK request MAY have a Timeout\n   header.\n\n   When a new lock is created, the LOCK response:\n\n   o  MUST contain a body with the value of the DAV:lockdiscovery\n      property in a prop XML element.  This MUST contain the full\n      information about the lock just granted, while information about\n      other (shared) locks is OPTIONAL.\n\n   o  MUST include the Lock-Token response header with the token\n      associated with the new lock.\n\n\n\n\nDusseault                   Standards Track                    [Page 61]\n\f\nRFC 4918                         WebDAV                        June 2007\n\n\n9.10.2.  Refreshing Locks"
+      },
+      {
+        "line": 4276,
+        "pattern": "/^10\\.5\\./",
+        "text": "10.5.  Lock-Token Header\n\n      Lock-Token = \"Lock-Token\" \":\" Coded-URL\n\n   The Lock-Token request header is used with the UNLOCK method to\n   identify the lock to be removed.  The lock token in the Lock-Token\n   request header MUST identify a lock that contains the resource\n   identified by Request-URI as a member.\n\n   The Lock-Token response header is used with the LOCK method to\n   indicate the lock token created as a result of a successful LOCK\n   request to create a new lock.\n\n10.6.  Overwrite Header\n\n      Overwrite = \"Overwrite\" \":\" (\"T\" | \"F\")\n\n   The Overwrite request header specifies whether the server should\n   overwrite a resource mapped to the destination URL during a COPY or\n   MOVE.  A value of \"F\" states that the server must not perform the\n   COPY or MOVE operation if the destination URL does map to a resource.\n   If the overwrite header is not included in a COPY or MOVE request,\n   then the resource MUST treat the request as if it has an overwrite\n   header of value \"T\".  While the Overwrite header appears to duplicate\n   the functionality of using an \"If-Match: *\" header (see [RFC2616]),\n   If-Match applies only to the Request-URI, and not to the Destination\n   of a COPY or MOVE.\n\n   If a COPY or MOVE is not performed due to the value of the Overwrite\n   header, the method MUST fail with a 412 (Precondition Failed) status"
+      },
+      {
+        "line": 4680,
+        "pattern": "/^14\\.12\\./",
+        "text": "14.12.  lockroot XML Element\n\n   Name:   lockroot\n\n   Purpose:   Contains the root URL of the lock, which is the URL\n      through which the resource was addressed in the LOCK request.\n\n   Description:   The href element contains the root of the lock.  The\n      server SHOULD include this in all DAV:lockdiscovery property\n      values and the response to LOCK requests.\n\n   <!ELEMENT lockroot (href) >\n\n14.13.  lockscope XML Element\n\n   Name:   lockscope\n\n   Purpose:   Specifies whether a lock is an exclusive lock, or a shared\n      lock.\n\n\n     <!ELEMENT lockscope (exclusive | shared) >\n\n\n\n\nDusseault                   Standards Track                    [Page 84]\n\f\nRFC 4918                         WebDAV                        June 2007\n"
+      },
+      {
+        "line": 4693,
+        "pattern": "/^14\\.13\\./",
+        "text": "14.13.  lockscope XML Element\n\n   Name:   lockscope\n\n   Purpose:   Specifies whether a lock is an exclusive lock, or a shared\n      lock.\n\n\n     <!ELEMENT lockscope (exclusive | shared) >\n\n\n\n\nDusseault                   Standards Track                    [Page 84]\n\f\nRFC 4918                         WebDAV                        June 2007\n\n\n14.14.  locktoken XML Element\n\n   Name:   locktoken\n\n   Purpose:   The lock token associated with a lock.\n\n   Description:   The href contains a single lock token URI, which\n      refers to the lock.\n\n   <!ELEMENT locktoken (href) >\n\n14.15.  locktype XML Element"
+      },
+      {
+        "line": 4722,
+        "pattern": "/^14\\.15\\./",
+        "text": "14.15.  locktype XML Element\n\n   Name:   locktype\n\n   Purpose:   Specifies the access type of a lock.  At present, this\n      specification only defines one lock type, the write lock.\n\n\n   <!ELEMENT locktype (write) >\n\n\n14.16.  multistatus XML Element\n\n   Name:   multistatus\n\n   Purpose:   Contains multiple response messages.\n\n   Description:   The 'responsedescription' element at the top level is\n      used to provide a general message describing the overarching\n      nature of the response.  If this value is available, an\n      application may use it instead of presenting the individual\n      response descriptions contained within the responses.\n\n\n   <!ELEMENT multistatus (response*, responsedescription?)  >\n\n\n14.17.  owner XML Element\n\n   Name:   owner"
+      },
+      {
+        "line": 5168,
+        "pattern": "/^15\\.6\\./",
+        "text": "15.6.  getetag Property\n\n   Name:   getetag\n\n   Purpose:   Contains the ETag header value (from Section 14.19 of\n      [RFC2616]) as it would be returned by a GET without accept\n      headers.\n\n   Value:   entity-tag (defined in Section 3.11 of [RFC2616])\n\n   Protected:  MUST be protected because this value is created and\n      controlled by the server.\n\n   COPY/MOVE behavior:   This property value is dependent on the final\n      state of the destination resource, not the value of the property\n      on the source resource.  Also note the considerations in\n      Section 8.8.\n\n   Description:   The getetag property MUST be defined on any DAV-\n      compliant resource that returns the Etag header.  Refer to Section\n      3.11 of RFC 2616 for a complete definition of the semantics of an\n      ETag, and to Section 8.6 for a discussion of ETags in WebDAV.\n\n   <!ELEMENT getetag (#PCDATA) >\n\n15.7.  getlastmodified Property\n\n   Name:   getlastmodified\n\n   Purpose:   Contains the Last-Modified header value (from Section"
+      },
+      {
+        "line": 5627,
+        "pattern": "/^17\\.  /",
+        "text": "17.  XML Extensibility in DAV\n\n   The XML namespace extension ([REC-XML-NAMES]) is used in this\n   specification in order to allow for new XML elements to be added\n   without fear of colliding with other element names.  Although WebDAV\n   request and response bodies can be extended by arbitrary XML\n   elements, which can be ignored by the message recipient, an XML\n   element in the \"DAV:\" namespace SHOULD NOT be used in the request or\n   response body unless that XML element is explicitly defined in an\n   IETF RFC reviewed by a WebDAV working group.\n\n   For WebDAV to be both extensible and backwards-compatible, both\n   clients and servers need to know how to behave when unexpected or\n   unrecognized command extensions are received.  For XML processing,\n   this means that clients and servers MUST process received XML\n   documents as if unexpected elements and attributes (and all children\n   of unrecognized elements) were not there.  An unexpected element or\n   attribute includes one that may be used in another context but is not\n   expected here.  Ignoring such items for purposes of processing can of\n   course be consistent with logging all information or presenting for\n   debugging.\n\n   This restriction also applies to the processing, by clients, of DAV\n   property values where unexpected XML elements SHOULD be ignored\n   unless the property's schema declares otherwise.\n\n   This restriction does not apply to setting dead DAV properties on the\n   server where the server MUST record all XML elements.\n\n"
+      }
+    ]
+  },
+  {
+    "name": "rfc2518",
+    "url": "https://www.rfc-editor.org/rfc/rfc2518.txt",
+    "retrievedAt": "2026-08-27T06:56:31.264Z",
+    "sha256": "64edb8d7a9a9a2fb1fbbfe131a600cde15b22f4f746f1e57eccfdbdf0ee8f63f",
+    "bytes": 202829,
+    "matches": [
+      {
+        "line": 2527,
+        "pattern": "/^8\\.10\\.1 /",
+        "text": "8.10.1 Operation\n\n   A LOCK method invocation creates the lock specified by the lockinfo\n   XML element on the Request-URI.  Lock method requests SHOULD have a\n   XML request body which contains an owner XML element for this lock\n   request, unless this is a refresh request. The LOCK request may have\n   a Timeout header.\n\n   Clients MUST assume that locks may arbitrarily disappear at any time,\n   regardless of the value given in the Timeout header.  The Timeout\n   header only indicates the behavior of the server if \"extraordinary\"\n   circumstances do not occur.  For example, an administrator may remove\n   a lock at any time or the system may crash in such a way that it\n   loses the record of the lock's existence. The response MUST contain\n   the value of the lockdiscovery property in a prop XML element.\n\n   In order to indicate the lock token associated with a newly created\n   lock, a Lock-Token response header MUST be included in the response\n   for every successful LOCK request for a new lock.  Note that the\n   Lock-Token header would not be returned in the response for a\n   successful refresh LOCK request because a new lock was not created.\n\n8.10.2 The Effect of Locks on Properties and Collections\n\n   The scope of a lock is the entire state of the resource, including\n   its body and associated properties.  As a result, a lock on a\n   resource MUST also lock the resource's properties.\n\n   For collections, a lock also affects the ability to add or remove\n   members.  The nature of the effect depends upon the type of access"
+      },
+      {
+        "line": 3153,
+        "pattern": "/^9\\.5 /",
+        "text": "9.5 Lock-Token Header\n\n   Lock-Token = \"Lock-Token\" \":\" Coded-URL\n\n   The Lock-Token request header is used with the UNLOCK method to\n   identify the lock to be removed.  The lock token in the Lock-Token\n   request header MUST identify a lock that contains the resource\n   identified by Request-URI as a member.\n\n   The Lock-Token response header is used with the LOCK method to\n   indicate the lock token created as a result of a successful LOCK\n   request to create a new lock.\n\n9.6 Overwrite Header\n\n   Overwrite = \"Overwrite\" \":\" (\"T\" | \"F\")\n\n   The Overwrite header specifies whether the server should overwrite\n   the state of a non-null destination resource during a COPY or MOVE.\n   A value of \"F\" states that the server must not perform the COPY or\n   MOVE operation if the state of the destination resource is non-null.\n   If the overwrite header is not included in a COPY or MOVE request\n   then the resource MUST treat the request as if it has an overwrite\n   header of value \"T\". While the Overwrite header appears to duplicate\n   the functionality of the If-Match: * header of HTTP/1.1, If-Match\n   applies only to the Request-URI, and not to the Destination of a COPY\n   or MOVE.\n\n   If a COPY or MOVE is not performed due to the value of the Overwrite\n   header, the method MUST fail with a 412 (Precondition Failed) status"
+      },
+      {
+        "line": 3375,
+        "pattern": "/^12\\.1 activelock/",
+        "text": "12.1 activelock XML Element\n\n   Name:       activelock\n   Namespace:  DAV:\n   Purpose:    Describes a lock on a resource.\n\n   <!ELEMENT activelock (lockscope, locktype, depth, owner?, timeout?,\n   locktoken?) >\n\n12.1.1 depth XML Element\n\n   Name:       depth\n   Namespace:  DAV:\n   Purpose:    The value of the Depth header.\n   Value:      \"0\" | \"1\" | \"infinity\"\n\n   <!ELEMENT depth (#PCDATA) >\n\n12.1.2 locktoken XML Element\n\n   Name:       locktoken\n   Namespace:  DAV:\n   Purpose:    The lock token associated with a lock.\n   Description: The href contains one or more opaque lock token URIs\n   which all refer to the same lock (i.e., the OpaqueLockToken-URI\n   production in section 6.4).\n\n   <!ELEMENT locktoken (href+) >\n\n12.1.3 timeout XML Element"
+      },
+      {
+        "line": 3501,
+        "pattern": "/^12\\.7 lockscope/",
+        "text": "12.7 lockscope XML Element\n\n   Name:       lockscope\n   Namespace:  DAV:\n   Purpose:    Specifies whether a lock is an exclusive lock, or a\n   shared lock.\n\n   <!ELEMENT lockscope (exclusive | shared) >\n\n12.7.1 exclusive XML Element\n\n   Name:       exclusive\n   Namespace:  DAV:\n   Purpose:    Specifies an exclusive lock\n\n   <!ELEMENT exclusive EMPTY >\n\n12.7.2 shared XML Element\n\n   Name:       shared\n   Namespace:  DAV:\n   Purpose:    Specifies a shared lock\n\n   <!ELEMENT shared EMPTY >\n\n\n\n\n\nGoland, et al.              Standards Track                    [Page 63]"
+      },
+      {
+        "line": 3535,
+        "pattern": "/^12\\.8 locktype/",
+        "text": "12.8 locktype XML Element\n\n   Name:       locktype\n   Namespace:  DAV:\n   Purpose:    Specifies the access type of a lock.  At present, this\n   specification only defines one lock type, the write lock.\n\n   <!ELEMENT locktype (write) >\n\n12.8.1 write XML Element\n\n   Name:       write\n   Namespace:  DAV:\n   Purpose:    Specifies a write lock.\n\n   <!ELEMENT write EMPTY >\n\n12.9 multistatus XML Element\n\n   Name:       multistatus\n   Namespace:  DAV:\n   Purpose:    Contains multiple response messages.\n   Description: The responsedescription at the top level is used to\n   provide a general message describing the overarching nature of the\n   response.  If this value is available an application may use it\n   instead of presenting the individual response descriptions contained\n   within the responses.\n\n   <!ELEMENT multistatus (response+, responsedescription?) >\n"
+      }
+    ]
+  },
+  {
+    "name": "apache-2.4.66-lock",
+    "url": "https://raw.githubusercontent.com/apache/httpd/2.4.66/modules/dav/main/util_lock.c",
+    "retrievedAt": "2026-08-27T06:56:31.388Z",
+    "sha256": "6b26b0425b33ea20dfc51fb3510f99a2287e11eb60e34b0e8df3ee36b9124b10",
+    "bytes": 28273,
+    "matches": [
+      {
+        "line": 42,
+        "pattern": "/DAV_DECLARE\\(const char \\*\\) dav_lock_get_activelock/",
+        "text": "DAV_DECLARE(const char *) dav_lock_get_activelock(request_rec *r,\n                                                  dav_lock *lock,\n                                                  dav_buffer *pbuf)\n{\n    dav_lock *lock_scan;\n    const dav_hooks_locks *hooks = DAV_GET_HOOKS_LOCKS(r);\n    int count = 0;\n    dav_buffer work_buf = { 0 };\n    apr_pool_t *p = r->pool;\n\n    /* If no locks or no lock provider, there are no locks */\n    if (lock == NULL || hooks == NULL) {\n        /*\n        ** Since resourcediscovery is defined with (activelock)*,\n        ** <D:activelock/> shouldn't be necessary for an empty lock.\n        */\n        return \"\";\n    }\n\n    /*\n    ** Note: it could be interesting to sum the lengths of the owners\n    **       and locktokens during this loop. However, the buffer\n    **       mechanism provides some rough padding so that we don't\n    **       really need to have an exact size. Further, constructing\n    **       locktoken strings could be relatively expensive.\n    */\n    for (lock_scan = lock; lock_scan != NULL; lock_scan = lock_scan->next)\n        count++;\n\n    /* if a buffer was not provided, then use an internal buffer */\n    if (pbuf == NULL)\n        pbuf = &work_buf;\n\n    /* reset the length before we start appending stuff */\n    pbuf->cur_len = 0;\n\n    /* prep the buffer with a \"good\" size */\n    dav_check_bufsize(p, pbuf, count * 300);\n\n    for (; lock != NULL; lock = lock->next) {\n        char tmp[100];\n\n#if DAV_DEBUG\n        if (lock->rectype == DAV_LOCKREC_INDIRECT_PARTIAL) {\n            /* ### crap. design error */\n            dav_buffer_append(p, pbuf,\n                              \"DESIGN ERROR: attempted to product an \"\n                              \"activelock element from a partial, indirect \"\n                              \"lock record. Creating an XML parsing error \"\n                              \"to ease detection of this situation: <\");\n        }\n#endif\n\n        dav_buffer_append(p, pbuf, \"<D:activelock>\" DEBUG_CR \"<D:locktype>\");\n        switch (lock->type) {\n        case DAV_LOCKTYPE_WRITE:\n            dav_buffer_append(p, pbuf, \"<D:write/>\");\n            break;\n        default:\n            /* ### internal error. log something? */\n            break;\n        }\n        dav_buffer_append(p, pbuf, \"</D:locktype>\" DEBUG_CR \"<D:lockscope>\");\n        switch (lock->scope) {\n        case DAV_LOCKSCOPE_EXCLUSIVE:\n            dav_buffer_append(p, pbuf, \"<D:exclusive/>\");\n            break;\n        case DAV_LOCKSCOPE_SHARED:\n            dav_buffer_append(p, pbuf, \"<D:shared/>\");\n            break;\n        default:\n            /* ### internal error. log something? */\n            break;\n        }\n        dav_buffer_append(p, pbuf, \"</D:lockscope>\" DEBUG_CR);\n        apr_snprintf(tmp, sizeof(tmp), \"<D:depth>%s</D:depth>\" DEBUG_CR,\n                     lock->depth == DAV_INFINITY ? \"infinity\" : \"0\");\n        dav_buffer_append(p, pbuf, tmp);\n\n        if (lock->owner) {\n            /*\n            ** This contains a complete, self-contained <DAV:owner> element,\n            ** with namespace declarations and xml:lang handling. Just drop\n            ** it in.\n            */\n            dav_buffer_append(p, pbuf, lock->owner);\n        }\n\n        dav_buffer_append(p, pbuf, \"<D:timeout>\");\n        if (lock->timeout == DAV_TIMEOUT_INFINITE) {\n            dav_buffer_append(p, pbuf, \"Infinite\");\n        }\n        else {\n            time_t now = time(NULL);\n            \n            /*\n            ** Check if the timeout is not, for any reason, already elapsed.\n            ** (e.g., because of a large collection, or disk under heavy load...)\n             */\n            if (now >= lock->timeout) {"
+      }
+    ]
+  },
+  {
+    "name": "wsgidav-4.3.5-request",
+    "url": "https://raw.githubusercontent.com/mar10/wsgidav/v4.3.5/wsgidav/request_server.py",
+    "retrievedAt": "2026-08-27T06:56:31.469Z",
+    "sha256": "1594b6cd9be9cc9eb0ac0f34e3e6b8a9f61b508701207cd47cf0c2a1d1b8c87e",
+    "bytes": 66073,
+    "matches": [
+      {
+        "line": 922,
+        "pattern": "/self\\._evaluate_if_headers\\(dest_res/",
+        "text": "        self._evaluate_if_headers(dest_res, environ)\n        # Check permissions\n        # http://www.webdav.org/specs/rfc4918.html#rfc.section.7.4\n        if is_move:\n            self._check_write_permission(src_res, \"infinity\", environ)\n            # Cannot remove members from locked-0 collections\n            if src_parent_res:\n                self._check_write_permission(src_parent_res, \"0\", environ)\n\n        # Cannot create or new members in locked-0 collections\n        if not dest_exists:\n            self._check_write_permission(dest_parent_res, \"0\", environ)\n        # If target exists, it must not be locked\n        self._check_write_permission(dest_res, \"infinity\", environ)\n\n        if src_path == dest_path:\n            self._fail(HTTP_FORBIDDEN, \"Cannot copy/move source onto itself\")\n        elif util.is_equal_or_child_uri(src_path, dest_path):\n            self._fail(HTTP_FORBIDDEN, \"Cannot copy/move source below itself\")\n\n        if dest_exists and environ[\"HTTP_OVERWRITE\"] != \"T\":\n            self._fail(\n                HTTP_PRECONDITION_FAILED,\n                \"Destination already exists and Overwrite is set to false\",\n            )\n\n        # --- Let provider handle the request natively ------------------------\n\n        # Errors in copy/move; [ (<ref-url>, <DAVError>), ... ]\n        error_list = []"
+      },
+      {
+        "line": 1285,
+        "pattern": "/\\(\"Lock-Token\", lock\\[\"token\"\\]\\)/",
+        "text": "                (\"Lock-Token\", lock[\"token\"]),\n                (\"Date\", util.get_rfc1123_time()),\n            ],\n        )\n        return [xml]\n\n        # TODO: LOCK may also fail with HTTP_FORBIDDEN.\n        #       In this case we should return 207 Multi-Status.\n        #       http://www.webdav.org/specs/rfc4918.html#rfc.section.9.10.9\n        #       Checking this would require to call res.prevent_locking()\n        #       recursively.\n\n    #        # --- Locking FAILED: return fault response\n    #        if len(conflictList) == 1 and conflictList[0][0][\"root\"] == res.get_ref_url():\n    #            # If there is only one error for the root URL, send as simple error response\n    #            return util.send_status_response(environ, start_response, conflictList[0][1])\n    #\n    #        dictStatus = {}\n    #\n    #        for lock_dict, e in conflictList:\n    #            dictStatus[lock_dict[\"root\"]] = e\n    #\n    #        if not res.get_ref_url() in dictStatus:\n    #            dictStatus[res.get_ref_url()] = DAVError(HTTP_FAILED_DEPENDENCY)\n    #\n    #        # Return multi-status fault response\n    #        multistatusEL = xml_tools.make_multistatus_el()\n    #        for nu, e in dictStatus.items():\n    #            responseEL = etree.SubElement(multistatusEL, \"{DAV:}response\")\n    #            etree.SubElement(responseEL, \"{DAV:}href\").text = nu"
+      }
+    ]
+  },
+  {
+    "name": "wsgidav-4.3.5-property",
+    "url": "https://raw.githubusercontent.com/mar10/wsgidav/v4.3.5/wsgidav/dav_provider.py",
+    "retrievedAt": "2026-08-27T06:56:31.561Z",
+    "sha256": "3014717f46cc4c4f96b6df3bd96fdc4e2f40b6b20de7cc411eb892f640412334",
+    "bytes": 60190,
+    "matches": [
+      {
+        "line": 748,
+        "pattern": "/elif name == \"\\{DAV:\\}getetag\"/",
+        "text": "            elif name == \"{DAV:}getetag\" and self.get_etag() is not None:\n                return self.get_etag()\n            elif name == \"{DAV:}displayname\" and self.get_display_name() is not None:\n                return self.get_display_name()\n\n            # Unsupported, no persistence available, or property not found\n            raise DAVError(HTTP_NOT_FOUND)\n\n        # Dead property\n        pm = self.provider.prop_manager\n        if pm:\n            value = pm.get_property(refUrl, name, self.environ)\n            if value is not None:\n                return xml_tools.string_to_xml(value)\n\n        # No persistence available, or property not found\n        raise DAVError(HTTP_NOT_FOUND)\n\n    def set_property_value(self, name, value, *, dry_run=False):\n        \"\"\"Set a property value or remove a property.\n\n        value == None means 'remove property'.\n        Raise HTTP_FORBIDDEN if property is read-only, or not supported.\n\n        When dry_run is True, this function should raise errors, as in a real\n        run, but MUST NOT change any data.\n\n        This default implementation\n\n        - raises HTTP_FORBIDDEN, if trying to modify a locking property"
+      }
+    ]
+  }
+]

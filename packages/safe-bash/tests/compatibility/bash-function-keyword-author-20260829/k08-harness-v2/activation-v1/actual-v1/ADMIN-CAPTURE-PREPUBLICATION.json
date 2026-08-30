@@ -1,0 +1,60 @@
+{
+  "ledger": {
+    "schema": "k08-actual-administration-v1",
+    "started": 1788018166057,
+    "deadline": 1788019666057,
+    "starts": [
+      {
+        "index": 1,
+        "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "started": 1788018332329,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "finished": 1788018332354,
+        "stdout": {
+          "path": "/private/tmp/safe-bash-k08-actual-record-v1-9snTQP/capture/01.stdout",
+          "bytes": 1599,
+          "sha256": "cc513cea7a7fafae50597f0833aac80c096133c13502f35bd08569225949bb68"
+        },
+        "stderr": {
+          "path": "/private/tmp/safe-bash-k08-actual-record-v1-9snTQP/capture/01.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    ],
+    "captureBytes": 1599,
+    "maximumAdministrativeStarts": 7,
+    "actualRuntimeStarts": 2,
+    "maximumKnownStarts": 86,
+    "peak": 3,
+    "captureMaximum": 100663296,
+    "workMaximum": 536870912,
+    "attemptConsumed": true
+  },
+  "streams": [
+    {
+      "index": 1,
+      "kind": "stdout",
+      "path": "/private/tmp/safe-bash-k08-actual-record-v1-9snTQP/capture/01.stdout",
+      "bytes": 1599,
+      "sha256": "cc513cea7a7fafae50597f0833aac80c096133c13502f35bd08569225949bb68",
+      "base64": "U3VjY2Vzcy4gVXBkYXRlZCB0aGUgZm9sbG93aW5nIGZpbGVzOgpBIHRlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1mdW5jdGlvbi1rZXl3b3JkLWF1dGhvci0yMDI2MDgyOS9rMDgtaGFybmVzcy12Mi9hY3RpdmF0aW9uLXYxL2FjdHVhbC12MS9SRVBPUlQubWQKQSB0ZXN0cy9jb21wYXRpYmlsaXR5L2Jhc2gtZnVuY3Rpb24ta2V5d29yZC1hdXRob3ItMjAyNjA4MjkvazA4LWhhcm5lc3MtdjIvYWN0aXZhdGlvbi12MS9hY3R1YWwtdjEvUkVTVUxULmpzb24KQSB0ZXN0cy9jb21wYXRpYmlsaXR5L2Jhc2gtZnVuY3Rpb24ta2V5d29yZC1hdXRob3ItMjAyNjA4MjkvazA4LWhhcm5lc3MtdjIvYWN0aXZhdGlvbi12MS9hY3R1YWwtdjEvUFJFQVVUSC5qc29uCkEgdGVzdHMvY29tcGF0aWJpbGl0eS9iYXNoLWZ1bmN0aW9uLWtleXdvcmQtYXV0aG9yLTIwMjYwODI5L2swOC1oYXJuZXNzLXYyL2FjdGl2YXRpb24tdjEvYWN0dWFsLXYxL1JBVy1DQVBUVVJFLU1BTklGRVNULmpzb24KQSB0ZXN0cy9jb21wYXRpYmlsaXR5L2Jhc2gtZnVuY3Rpb24ta2V5d29yZC1hdXRob3ItMjAyNjA4MjkvazA4LWhhcm5lc3MtdjIvYWN0aXZhdGlvbi12MS9hY3R1YWwtdjEvUkVTT1VSQ0UtU05BUFNIT1QuanNvbgpBIHRlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1mdW5jdGlvbi1rZXl3b3JkLWF1dGhvci0yMDI2MDgyOS9rMDgtaGFybmVzcy12Mi9hY3RpdmF0aW9uLXYxL2FjdHVhbC12MS9ST09ULUFDVFVBTC1BVVRIT1JJWkFUSU9OLmpzb24KQSB0ZXN0cy9jb21wYXRpYmlsaXR5L2Jhc2gtZnVuY3Rpb24ta2V5d29yZC1hdXRob3ItMjAyNjA4MjkvazA4LWhhcm5lc3MtdjIvYWN0aXZhdGlvbi12MS9hY3R1YWwtdjEvcmF3L0NPTExFQ1RPUi5qc29uCkEgdGVzdHMvY29tcGF0aWJpbGl0eS9iYXNoLWZ1bmN0aW9uLWtleXdvcmQtYXV0aG9yLTIwMjYwODI5L2swOC1oYXJuZXNzLXYyL2FjdGl2YXRpb24tdjEvYWN0dWFsLXYxL3Jhdy9PV05FUi1MSUZFQ1lDTEUuanNvbgpBIHRlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1mdW5jdGlvbi1rZXl3b3JkLWF1dGhvci0yMDI2MDgyOS9rMDgtaGFybmVzcy12Mi9hY3RpdmF0aW9uLXYxL2FjdHVhbC12MS9yYXcvVEFSR0VULVJFU1VMVC5qc29uCkEgdGVzdHMvY29tcGF0aWJpbGl0eS9iYXNoLWZ1bmN0aW9uLWtleXdvcmQtYXV0aG9yLTIwMjYwODI5L2swOC1oYXJuZXNzLXYyL2FjdGl2YXRpb24tdjEvYWN0dWFsLXYxL3Jhdy9jb2xsZWN0b3Itc3RhcnR1cC5zdGRlcnIKQSB0ZXN0cy9jb21wYXRpYmlsaXR5L2Jhc2gtZnVuY3Rpb24ta2V5d29yZC1hdXRob3ItMjAyNjA4MjkvazA4LWhhcm5lc3MtdjIvYWN0aXZhdGlvbi12MS9hY3R1YWwtdjEvcmF3L2NvbGxlY3Rvci1zdGFydHVwLnN0ZG91dApBIHRlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1mdW5jdGlvbi1rZXl3b3JkLWF1dGhvci0yMDI2MDgyOS9rMDgtaGFybmVzcy12Mi9hY3RpdmF0aW9uLXYxL2FjdHVhbC12MS9yYXcvb3duZXIuc3RkZXJyCkEgdGVzdHMvY29tcGF0aWJpbGl0eS9iYXNoLWZ1bmN0aW9uLWtleXdvcmQtYXV0aG9yLTIwMjYwODI5L2swOC1oYXJuZXNzLXYyL2FjdGl2YXRpb24tdjEvYWN0dWFsLXYxL3Jhdy9vd25lci5zdGRvdXQK"
+    },
+    {
+      "index": 1,
+      "kind": "stderr",
+      "path": "/private/tmp/safe-bash-k08-actual-record-v1-9snTQP/capture/01.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    }
+  ]
+}

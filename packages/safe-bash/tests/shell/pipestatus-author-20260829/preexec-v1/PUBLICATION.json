@@ -1,0 +1,58 @@
+{
+  "seal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/SEAL-v2.json",
+    "bytes": 795793,
+    "mode": 420,
+    "sha256": "f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5"
+  },
+  "bootstrap": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/BOOTSTRAP-v2.sha256",
+    "bytes": 2796,
+    "mode": 420,
+    "sha256": "c16da3ceff48df98fca0ae09acb84048c4b1e5bc17da05ab29759139398b4037"
+  },
+  "controls": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/CONTROLS.json",
+    "bytes": 9205,
+    "mode": 420,
+    "sha256": "b8f49f87de185d210d643f353d8975bb32c038849d6182014c5561efaf778383"
+  },
+  "raw": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/raw-controls-dispatch.stdout",
+      "bytes": 7,
+      "mode": 420,
+      "sha256": "19eaf43821a7660ec323a87c8457bf74823beb296c39f5e01aa8a683aa50f061"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/raw-controls-dispatch.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/raw-publication-patch.stdout",
+      "bytes": 332,
+      "mode": 420,
+      "sha256": "31a4b36f11748b2416f21a729061c7e86a99a9159450857b7c56b3232887ec5d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/raw-publication-patch.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "workCensus": {
+    "files": 1064,
+    "bytes": 6176695
+  },
+  "publicationAt": 1788019771209,
+  "deadline": 1788020118869,
+  "productExecutions": 0,
+  "Workers": 0,
+  "helpers": "Three PURE helpers: prepare, controls, publish. Three harmless children with exit/close/both EOF/capture closure. No active managed children.",
+  "knownRoles": "51 starts through this helper, followed by bounded publication; snapshot contains actual returned roles and launch enrolment. Final shell/Git receipts are separate.",
+  "originalSealPreserved": true,
+  "command": "ROOT must bind literal SEAL-v2 size/hash, BOOTSTRAP-v2 hash and fresh grant path/size/hash, then /bin/zsh /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch-v2.sh; NOT authorized now."
+}

@@ -1,0 +1,593 @@
+{
+  "role": "existing audit host DATA inspection; no extra child/helper execution",
+  "rows": [
+    {
+      "id": "case-source-built-P01-keyword",
+      "pid": 56868,
+      "spawn": 1788020422349,
+      "exit": 1788020422570,
+      "close": 1788020422571
+    },
+    {
+      "id": "case-source-built-P01-legacy",
+      "pid": 56869,
+      "spawn": 1788020422779,
+      "exit": 1788020423002,
+      "close": 1788020423002
+    },
+    {
+      "id": "case-source-built-P02-top",
+      "pid": 56872,
+      "spawn": 1788020423214,
+      "exit": 1788020423453,
+      "close": 1788020423453
+    },
+    {
+      "id": "case-source-built-P03-frames",
+      "pid": 56879,
+      "spawn": 1788020423645,
+      "exit": 1788020423872,
+      "close": 1788020423872
+    },
+    {
+      "id": "case-source-built-P04-decimals",
+      "pid": 56880,
+      "spawn": 1788020424066,
+      "exit": 1788020424289,
+      "close": 1788020424289
+    },
+    {
+      "id": "case-source-built-P05-precedence",
+      "pid": 56881,
+      "spawn": 1788020424486,
+      "exit": 1788020424706,
+      "close": 1788020424706
+    },
+    {
+      "id": "case-source-built-P05-signed",
+      "pid": 56883,
+      "spawn": 1788020424901,
+      "exit": 1788020425122,
+      "close": 1788020425122
+    },
+    {
+      "id": "case-source-built-P06-repeated",
+      "pid": 56885,
+      "spawn": 1788020425389,
+      "exit": 1788020425714,
+      "close": 1788020425715
+    },
+    {
+      "id": "case-source-built-P07-quote",
+      "pid": 56886,
+      "spawn": 1788020425938,
+      "exit": 1788020426157,
+      "close": 1788020426157
+    },
+    {
+      "id": "case-source-built-P08-skipped",
+      "pid": 56894,
+      "spawn": 1788020426372,
+      "exit": 1788020426585,
+      "close": 1788020426585
+    },
+    {
+      "id": "case-source-built-P08-active",
+      "pid": 56895,
+      "spawn": 1788020426789,
+      "exit": 1788020427008,
+      "close": 1788020427008
+    },
+    {
+      "id": "case-source-built-P09-missing",
+      "pid": 56897,
+      "spawn": 1788020427206,
+      "exit": 1788020427429,
+      "close": 1788020427429
+    },
+    {
+      "id": "case-source-built-P09-empty",
+      "pid": 56899,
+      "spawn": 1788020427626,
+      "exit": 1788020427848,
+      "close": 1788020427848
+    },
+    {
+      "id": "case-source-built-P10-injection",
+      "pid": 56900,
+      "spawn": 1788020428075,
+      "exit": 1788020428310,
+      "close": 1788020428310
+    },
+    {
+      "id": "case-source-built-P11-write",
+      "pid": 56901,
+      "spawn": 1788020428505,
+      "exit": 1788020428715,
+      "close": 1788020428715
+    },
+    {
+      "id": "case-source-built-P11-readonly",
+      "pid": 56902,
+      "spawn": 1788020428908,
+      "exit": 1788020429143,
+      "close": 1788020429143
+    },
+    {
+      "id": "case-source-built-P12-below",
+      "pid": 56906,
+      "spawn": 1788020429359,
+      "exit": 1788020429593,
+      "close": 1788020429593
+    },
+    {
+      "id": "case-source-built-P12-at",
+      "pid": 56912,
+      "spawn": 1788020429792,
+      "exit": 1788020430003,
+      "close": 1788020430003
+    },
+    {
+      "id": "case-source-built-P12-above",
+      "pid": 56913,
+      "spawn": 1788020430194,
+      "exit": 1788020430414,
+      "close": 1788020430414
+    },
+    {
+      "id": "case-source-built-P14-command",
+      "pid": 56915,
+      "spawn": 1788020430613,
+      "exit": 1788020430826,
+      "close": 1788020430826
+    },
+    {
+      "id": "case-source-built-P14-division",
+      "pid": 56917,
+      "spawn": 1788020431022,
+      "exit": 1788020431251,
+      "close": 1788020431251
+    },
+    {
+      "id": "case-source-built-P14-let",
+      "pid": 56918,
+      "spawn": 1788020431448,
+      "exit": 1788020431664,
+      "close": 1788020431664
+    },
+    {
+      "id": "case-source-built-P15-static",
+      "pid": 56919,
+      "spawn": 1788020431867,
+      "exit": 1788020432122,
+      "close": 1788020432122
+    },
+    {
+      "id": "helpers-source-built",
+      "pid": 56920,
+      "spawn": 1788020432312,
+      "exit": 1788020432370,
+      "close": 1788020432370
+    },
+    {
+      "id": "case-installed-P01-keyword",
+      "pid": 56929,
+      "spawn": 1788020432581,
+      "exit": 1788020432828,
+      "close": 1788020432828
+    },
+    {
+      "id": "case-installed-P01-legacy",
+      "pid": 56931,
+      "spawn": 1788020432996,
+      "exit": 1788020433226,
+      "close": 1788020433226
+    },
+    {
+      "id": "case-installed-P02-top",
+      "pid": 56932,
+      "spawn": 1788020433392,
+      "exit": 1788020433602,
+      "close": 1788020433602
+    },
+    {
+      "id": "case-installed-P03-frames",
+      "pid": 56934,
+      "spawn": 1788020433770,
+      "exit": 1788020433997,
+      "close": 1788020433997
+    },
+    {
+      "id": "case-installed-P04-decimals",
+      "pid": 56936,
+      "spawn": 1788020434160,
+      "exit": 1788020434391,
+      "close": 1788020434391
+    },
+    {
+      "id": "case-installed-P05-precedence",
+      "pid": 56937,
+      "spawn": 1788020434554,
+      "exit": 1788020434794,
+      "close": 1788020434794
+    },
+    {
+      "id": "case-installed-P05-signed",
+      "pid": 56939,
+      "spawn": 1788020434964,
+      "exit": 1788020435185,
+      "close": 1788020435185
+    },
+    {
+      "id": "case-installed-P06-repeated",
+      "pid": 56943,
+      "spawn": 1788020435356,
+      "exit": 1788020435590,
+      "close": 1788020435590
+    },
+    {
+      "id": "case-installed-P07-quote",
+      "pid": 56950,
+      "spawn": 1788020435752,
+      "exit": 1788020435968,
+      "close": 1788020435968
+    },
+    {
+      "id": "case-installed-P08-skipped",
+      "pid": 56951,
+      "spawn": 1788020436122,
+      "exit": 1788020436377,
+      "close": 1788020436377
+    },
+    {
+      "id": "case-installed-P08-active",
+      "pid": 56957,
+      "spawn": 1788020436549,
+      "exit": 1788020436785,
+      "close": 1788020436785
+    },
+    {
+      "id": "case-installed-P09-missing",
+      "pid": 56959,
+      "spawn": 1788020436959,
+      "exit": 1788020437187,
+      "close": 1788020437187
+    },
+    {
+      "id": "case-installed-P09-empty",
+      "pid": 56960,
+      "spawn": 1788020437350,
+      "exit": 1788020437566,
+      "close": 1788020437566
+    },
+    {
+      "id": "case-installed-P10-injection",
+      "pid": 56961,
+      "spawn": 1788020437736,
+      "exit": 1788020437962,
+      "close": 1788020437962
+    },
+    {
+      "id": "case-installed-P11-write",
+      "pid": 56963,
+      "spawn": 1788020438132,
+      "exit": 1788020438348,
+      "close": 1788020438348
+    },
+    {
+      "id": "case-installed-P11-readonly",
+      "pid": 56973,
+      "spawn": 1788020438527,
+      "exit": 1788020438770,
+      "close": 1788020438770
+    },
+    {
+      "id": "case-installed-P12-below",
+      "pid": 56974,
+      "spawn": 1788020438939,
+      "exit": 1788020439165,
+      "close": 1788020439165
+    },
+    {
+      "id": "case-installed-P12-at",
+      "pid": 56975,
+      "spawn": 1788020439342,
+      "exit": 1788020439565,
+      "close": 1788020439565
+    },
+    {
+      "id": "case-installed-P12-above",
+      "pid": 56977,
+      "spawn": 1788020439740,
+      "exit": 1788020439971,
+      "close": 1788020439971
+    },
+    {
+      "id": "case-installed-P14-command",
+      "pid": 56978,
+      "spawn": 1788020440147,
+      "exit": 1788020440378,
+      "close": 1788020440378
+    },
+    {
+      "id": "case-installed-P14-division",
+      "pid": 56980,
+      "spawn": 1788020440548,
+      "exit": 1788020440765,
+      "close": 1788020440766
+    },
+    {
+      "id": "case-installed-P14-let",
+      "pid": 56981,
+      "spawn": 1788020440924,
+      "exit": 1788020441154,
+      "close": 1788020441154
+    },
+    {
+      "id": "case-installed-P15-static",
+      "pid": 56985,
+      "spawn": 1788020441333,
+      "exit": 1788020441595,
+      "close": 1788020441595
+    },
+    {
+      "id": "helpers-installed",
+      "pid": 56993,
+      "spawn": 1788020441765,
+      "exit": 1788020441821,
+      "close": 1788020441821
+    },
+    {
+      "id": "case-physically-moved-P01-keyword",
+      "pid": 56994,
+      "spawn": 1788020441998,
+      "exit": 1788020442246,
+      "close": 1788020442246
+    },
+    {
+      "id": "case-physically-moved-P01-legacy",
+      "pid": 56996,
+      "spawn": 1788020442420,
+      "exit": 1788020442647,
+      "close": 1788020442647
+    },
+    {
+      "id": "case-physically-moved-P02-top",
+      "pid": 56998,
+      "spawn": 1788020442822,
+      "exit": 1788020443045,
+      "close": 1788020443045
+    },
+    {
+      "id": "case-physically-moved-P03-frames",
+      "pid": 57000,
+      "spawn": 1788020443219,
+      "exit": 1788020443427,
+      "close": 1788020443427
+    },
+    {
+      "id": "case-physically-moved-P04-decimals",
+      "pid": 57001,
+      "spawn": 1788020443592,
+      "exit": 1788020443819,
+      "close": 1788020443819
+    },
+    {
+      "id": "case-physically-moved-P05-precedence",
+      "pid": 57002,
+      "spawn": 1788020443998,
+      "exit": 1788020444235,
+      "close": 1788020444235
+    },
+    {
+      "id": "case-physically-moved-P05-signed",
+      "pid": 57005,
+      "spawn": 1788020444407,
+      "exit": 1788020444649,
+      "close": 1788020444649
+    },
+    {
+      "id": "case-physically-moved-P06-repeated",
+      "pid": 57012,
+      "spawn": 1788020444818,
+      "exit": 1788020445037,
+      "close": 1788020445037
+    },
+    {
+      "id": "case-physically-moved-P07-quote",
+      "pid": 57013,
+      "spawn": 1788020445207,
+      "exit": 1788020445425,
+      "close": 1788020445425
+    },
+    {
+      "id": "case-physically-moved-P08-skipped",
+      "pid": 57015,
+      "spawn": 1788020445598,
+      "exit": 1788020445830,
+      "close": 1788020445830
+    },
+    {
+      "id": "case-physically-moved-P08-active",
+      "pid": 57017,
+      "spawn": 1788020446003,
+      "exit": 1788020446236,
+      "close": 1788020446236
+    },
+    {
+      "id": "case-physically-moved-P09-missing",
+      "pid": 57018,
+      "spawn": 1788020446406,
+      "exit": 1788020446627,
+      "close": 1788020446627
+    },
+    {
+      "id": "case-physically-moved-P09-empty",
+      "pid": 57019,
+      "spawn": 1788020446791,
+      "exit": 1788020447021,
+      "close": 1788020447021
+    },
+    {
+      "id": "case-physically-moved-P10-injection",
+      "pid": 57020,
+      "spawn": 1788020447186,
+      "exit": 1788020447411,
+      "close": 1788020447412
+    },
+    {
+      "id": "case-physically-moved-P11-write",
+      "pid": 57028,
+      "spawn": 1788020447592,
+      "exit": 1788020447829,
+      "close": 1788020447829
+    },
+    {
+      "id": "case-physically-moved-P11-readonly",
+      "pid": 57030,
+      "spawn": 1788020448004,
+      "exit": 1788020448313,
+      "close": 1788020448313
+    },
+    {
+      "id": "case-physically-moved-P12-below",
+      "pid": 57034,
+      "spawn": 1788020448494,
+      "exit": 1788020448717,
+      "close": 1788020448717
+    },
+    {
+      "id": "case-physically-moved-P12-at",
+      "pid": 57036,
+      "spawn": 1788020448885,
+      "exit": 1788020449113,
+      "close": 1788020449113
+    },
+    {
+      "id": "case-physically-moved-P12-above",
+      "pid": 57037,
+      "spawn": 1788020449298,
+      "exit": 1788020449518,
+      "close": 1788020449518
+    },
+    {
+      "id": "case-physically-moved-P14-command",
+      "pid": 57039,
+      "spawn": 1788020449699,
+      "exit": 1788020449933,
+      "close": 1788020449933
+    },
+    {
+      "id": "case-physically-moved-P14-division",
+      "pid": 57042,
+      "spawn": 1788020450106,
+      "exit": 1788020450320,
+      "close": 1788020450320
+    },
+    {
+      "id": "case-physically-moved-P14-let",
+      "pid": 57043,
+      "spawn": 1788020450489,
+      "exit": 1788020450742,
+      "close": 1788020450742
+    },
+    {
+      "id": "case-physically-moved-P15-static",
+      "pid": 57051,
+      "spawn": 1788020450900,
+      "exit": 1788020451118,
+      "close": 1788020451118
+    },
+    {
+      "id": "helpers-physically-moved",
+      "pid": 57052,
+      "spawn": 1788020451286,
+      "exit": 1788020451342,
+      "close": 1788020451342
+    },
+    {
+      "id": "M01",
+      "pid": 57064,
+      "spawn": 1788020454718,
+      "exit": 1788020454960,
+      "close": 1788020454960
+    },
+    {
+      "id": "M02",
+      "pid": 57076,
+      "spawn": 1788020458644,
+      "exit": 1788020458905,
+      "close": 1788020458905
+    },
+    {
+      "id": "M03",
+      "pid": 57089,
+      "spawn": 1788020462273,
+      "exit": 1788020462328,
+      "close": 1788020462328
+    },
+    {
+      "id": "N01",
+      "pid": 57090,
+      "spawn": 1788020462524,
+      "exit": 1788020462574,
+      "close": 1788020462574
+    },
+    {
+      "id": "N02",
+      "pid": 57091,
+      "spawn": 1788020462770,
+      "exit": 1788020462823,
+      "close": 1788020462823
+    },
+    {
+      "id": "author-owner",
+      "pid": 56824,
+      "spawn": 1788020418052,
+      "exit": 1788020462917,
+      "close": 1788020462918
+    }
+  ],
+  "sourceEventField": "name",
+  "postguardsHelperEventDisplay": "Used fallback key labels; not used as chronology proof",
+  "ownerStarted": 1788020418093,
+  "finished": 1788020462902,
+  "collectorStarted": 1788020417931,
+  "deadline": 1788021917931,
+  "captureBytes": 15218627,
+  "work": {
+    "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+    "at": 1788020462901,
+    "bytes": 79433140,
+    "entries": 7685,
+    "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+  },
+  "archive": {
+    "result": {
+      "members": 1006,
+      "expectedMembers": 1006,
+      "payloadBytes": 5037566,
+      "decodedBytes": 5803008,
+      "alignmentRemainder": 0,
+      "format": "ustar-regular-v1",
+      "terminatorBytes": 1024,
+      "paddingBytes": 249346,
+      "paddingZero": true,
+      "fullSetVerified": true,
+      "extractionCalls": 0
+    },
+    "compressedBytes": 981948,
+    "decodedBytes": 5803008,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+  },
+  "archiveEvents": [
+    "lstat-type-size",
+    "bounded-read",
+    "postread-identity",
+    "exact-hash",
+    "descriptor-closed",
+    "concurrent-buffers-reserved",
+    "decoded",
+    "parsed"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "owner": 65119,
+  "ownerEnteredAt": 1788000184673,
+  "exit": true,
+  "close": true,
+  "signals": [],
+  "childAcquisitionAt": 1788000184674,
+  "child": 65120,
+  "childSpawnAt": 1788000184675,
+  "childExitAt": 1788000185352,
+  "status": 0,
+  "signal": null,
+  "childCloseAt": 1788000185352,
+  "stdoutBytes": 265,
+  "stderrBytes": 0,
+  "finalizingAt": 1788000185356
+}

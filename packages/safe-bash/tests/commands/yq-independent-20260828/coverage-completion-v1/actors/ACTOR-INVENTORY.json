@@ -1,0 +1,777 @@
+{
+  "schema": 1,
+  "status": "EARLY_INVENTORY_NO_COMPLETE_COVERAGE_CLAIM",
+  "checklistCommit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+  "counts": {
+    "originalNormativeIds": 194,
+    "overlays": 8,
+    "overlaysAddIds": 0,
+    "previouslyUnassigned": 25,
+    "inventoryIds": 33,
+    "implementedActorIds": 0,
+    "syntheticExecutions": 0,
+    "targetExecutions": 0
+  },
+  "countRule": "77 missing bindings/40 fragments overlap existing IDs; do not add them as independent cases.",
+  "records": [
+    {
+      "id": "WRK-01",
+      "previouslyUnassigned": true,
+      "actorRole": "argv-entry-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/0",
+        "recordSha256": "70deaa00edf956b973c4d7cddb988c26d1e3e699ed2451f88af5575d6538f7db",
+        "inputSha256": "c00415046966a4231d8d8df9c844a815ef2d1c5fa2dc6ff0bf55bfef749fc2b8",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-01::missing/0",
+        "WRK-01::missing/1"
+      ],
+      "dependency": "Host argv and acquisition event observation; private no-string-traversal/session order remains source argument.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-02",
+      "previouslyUnassigned": true,
+      "actorRole": "argv-byte-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/1",
+        "recordSha256": "01e416e3d15b24653be3da52d4afae6048da20908d5246985019a6f31b9edcfe",
+        "inputSha256": "4944a63ec20c494580166130501f559877cbb197d2c1ea29a057b50978de4b7d",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-02::missing/0",
+        "WRK-02::missing/1"
+      ],
+      "dependency": "Exact65536/65537 UTF8 argv with each path <=16384; internal aggregate-allocation absence is source-only.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-03",
+      "previouslyUnassigned": true,
+      "actorRole": "operand-path-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/2",
+        "recordSha256": "b78e84be7363dcdfdd9076668a6ea042ff2e520fa021649d15d5a1516b715dcc",
+        "inputSha256": "8eba89f4820e94dfa437e801955510abfda31293aa550c02b3ec78a185a33601",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-03::missing/0",
+        "WRK-03::missing/1"
+      ],
+      "dependency": "Exact4096 emoji scalars plus optional ASCII suffix; atC path admission only, not general provider success.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-04",
+      "previouslyUnassigned": true,
+      "actorRole": "query-source-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/3",
+        "recordSha256": "ea0df5778a53499a40e38ffa5aa306f37b1e4e655ee117338a12e9dfad223c52",
+        "inputSha256": "fbddd55e944d5db7d2ee70771367545352b46069177e450cd247d27e0a241945",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-04::missing/0",
+        "WRK-04::missing/1"
+      ],
+      "dependency": "Dot plus spaces8192/8193; actual output/read events, compileOnce count requires internal observer/source argument.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-09",
+      "previouslyUnassigned": true,
+      "actorRole": "value-depth-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/8",
+        "recordSha256": "c9b1f3769b2f1f28683a3c0958747151ab83432d3eb81608ef31beed43e07a00",
+        "inputSha256": "21d18fe6542493cc270961bbf328e2972906b58e23d4092171b2aeddb1a83ca3",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-09::missing/0",
+        "WRK-09::missing/1"
+      ],
+      "dependency": "Nested arrays128/129, no cap replacement; allocation order remains source-only.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-10",
+      "previouslyUnassigned": true,
+      "actorRole": "ast-depth-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/9",
+        "recordSha256": "27b0ea76c02d9f23a8302cf6313b13131f45c50e11ebbbe242403486c4b1fcac",
+        "inputSha256": "d0e4bdb9db76904dd25010080325f35af890c04e2ffc42034a548525a92e91b0",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": "final-manifest#/overlays/5",
+      "missingIds": [
+        "WRK-10::missing/0",
+        "WRK-10::missing/1"
+      ],
+      "dependency": "Accepted overlay:63/64 postfix optional operators, not parentheses depth.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-19",
+      "previouslyUnassigned": true,
+      "actorRole": "diagnostic-filename-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/18",
+        "recordSha256": "484c6b717266ec0dbd6c4960ccafb5b724920bbf2e0b0977af4ee27b8fac2ad4",
+        "inputSha256": "b228d08d168b8552f78184a1ba68e5ea34b1a3e3a17bcf6b56118ae5517466d3",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-19::missing/0",
+        "WRK-19::missing/1"
+      ],
+      "dependency": "Exact JSON-escaped filename field256/257 bytes with emoji/quote/backslash/LF; raw diagnostic observation.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-25",
+      "previouslyUnassigned": true,
+      "actorRole": "implicit-key-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/24",
+        "recordSha256": "5e9cdd707d2282ceac8ddefa26870b2a696f9429e90bd1bd32c646f7775f895e",
+        "inputSha256": "6eceeaa1d7ac5bb3a2625e416bacb033d09fd077e8ad90d67fc2461462909f4e",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-25::missing/0",
+        "WRK-25::missing/1"
+      ],
+      "dependency": "1024/1025 emoji plain keys plus explicit1025-key form.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-01",
+      "previouslyUnassigned": true,
+      "actorRole": "cleanup-registration",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/0",
+        "recordSha256": "b4418e444313dfd975538c458926dc23846d1af4dd77686d7b551749655cf0fa",
+        "inputSha256": "983953a46d7583dbbef943efe065bb7ab81990169dbdd35c295ed57aa6d5b9e0",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-01::missing/0",
+        "LIF-01::missing/1"
+      ],
+      "dependency": "Host cleanup registration/acquisition/finally events; session/internal admission closure order needs source/observer.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-02",
+      "previouslyUnassigned": true,
+      "actorRole": "iterator-failure-no-registration",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/1",
+        "recordSha256": "8a7d2cdd7829bf162b9e740710c2ce9800061a89c460cd3f1db66e2e815466fb",
+        "inputSha256": "34ea2510e1489b5335d104c2e1dcafd865908f3bb492f4546b3e20c74cfc706b",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-02::missing/0",
+        "LIF-02::missing/1"
+      ],
+      "dependency": "Direct execute without registerCleanup; original input-next throw and return events.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-03",
+      "previouslyUnassigned": true,
+      "actorRole": "caller-abort-precedence",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/2",
+        "recordSha256": "809618424d857d76e337c9323fd4c8d26634af958bbd266ad92955e55e1c5b69",
+        "inputSha256": "c4b85997293839028b22d94374c4d049cde6acdaebebdd36060fa65ad191a14a",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-03::missing/0",
+        "LIF-03::missing/1"
+      ],
+      "dependency": "Exact caller reason object vs read+cleanup failures; retain raw actual identity channel.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-04",
+      "previouslyUnassigned": true,
+      "actorRole": "sink-failure-precedence",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/3",
+        "recordSha256": "041d89dd3ca7899022c856a1588e3d95f994b8ae5c17e99fdd4f6e92d9663ff0",
+        "inputSha256": "b3524fee16125ea591f9e0d2e4a1f026132e0b2412e5b7c7cc35c8440d0d703e",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-04::missing/0",
+        "LIF-04::missing/1"
+      ],
+      "dependency": "Zero/prefix/all accepted bytes then exactEPIPE rejection with cleanup failure; no rollback claims.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-05",
+      "previouslyUnassigned": true,
+      "actorRole": "host-failure-precedence",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/4",
+        "recordSha256": "640aab4336e273eddfad203f0128e2cd7fa2e81781077e88bf1cec7e2f2d1c48",
+        "inputSha256": "84305d9f9cece884666b67bd558ca63fd2703e17fa6889c29b708e5547cea18e",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-05::missing/0",
+        "LIF-05::missing/1"
+      ],
+      "dependency": "Unknown host read exception vs cleanup failure, same raw thrown reason.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-06",
+      "previouslyUnassigned": true,
+      "actorRole": "cleanup-failure-settlement",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/5",
+        "recordSha256": "9a78e7d0fa5cde932fe52ae30885f6161ea5089f4888baafcc0306399c7d0ca6",
+        "inputSha256": "3a4f72665b02ab2f099b2c7e1f2cdee08a2f6404392f5f4ac0b4bf2c71d9b983",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-06::missing/0",
+        "LIF-06::missing/1"
+      ],
+      "dependency": "Normal body with cooperative cleanup rejection; no premature numeric success.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-07",
+      "previouslyUnassigned": true,
+      "actorRole": "destination-scope-isolation",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/6",
+        "recordSha256": "4abc1fd3c59dca94716792cb13a6184b7632e16ec48fb91f03964b0c62a54aab",
+        "inputSha256": "e4ea9a4178705d5b47f7140b783e5bfa7a2195fbe9aa9013abe089c56000d3e5",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-07::missing/0",
+        "LIF-07::missing/1"
+      ],
+      "dependency": "Requires exact ownedOutput sink contract and independently admitted stderr/VFS siblings; public byte fallback insufficient.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-08",
+      "previouslyUnassigned": true,
+      "actorRole": "backpressure-and-query-return",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/7",
+        "recordSha256": "cb82a91329ae57611dcb2c303892ff93ae31f34d863289faa8ddfb69aa072a97",
+        "inputSha256": "1973c109200c0430f51eb21d713513db1fd762c61ebc53d3b61a945ca2e4efd3",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-08::missing/0",
+        "LIF-08::missing/1"
+      ],
+      "dependency": "Delayed first write via controllable host gate; exact engine-next/return counts need internal observer/source proof.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-09",
+      "previouslyUnassigned": true,
+      "actorRole": "shell-dispose-barrier",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/8",
+        "recordSha256": "bf584242bc27c703a94a6fb2efada5a4d9887e493c044c6ad86bae5af572d5db",
+        "inputSha256": "614427e54cfd4e8b4c04f375bd65401c0e08c255e026bef1766537003e22ccfe",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-09::missing/0",
+        "LIF-09::missing/1"
+      ],
+      "dependency": "Requires actual admitted Shell/registry/resource constructors and cooperative disposal host seam; no direct-command substitute.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-10",
+      "previouslyUnassigned": true,
+      "actorRole": "late-cooperative-cleanup",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/9",
+        "recordSha256": "b1967abb60b8ec7e188e95af712ba9be281b4732c9be12a9d54849dc5bd79a8d",
+        "inputSha256": "4e1b050f880d2ae54c7899f738adf815414bdd8266268cd0bb7fb1e5e29a960a",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "LIF-10::missing/0",
+        "LIF-10::missing/1"
+      ],
+      "dependency": "Controlled next failure and delayed iterator.return rejection; opaque work separately unenrolled, not awaited or force-killed.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-02",
+      "previouslyUnassigned": true,
+      "actorRole": "vfs-open-failure",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/11",
+        "recordSha256": "efca754b9e03274dec348baade3b6df175ea896ef04ef9a660784958626dbd04",
+        "inputSha256": "c3f7194fd9221cd6631d636c70f1483524e6a78fb96dd30ce2c705bd0862aad6",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "FS-02::missing/0",
+        "FS-02::missing/1"
+      ],
+      "dependency": "Exact candidate FsError constructor dependency; readStream throws before iterator creation.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-03",
+      "previouslyUnassigned": true,
+      "actorRole": "vfs-read-failure",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/12",
+        "recordSha256": "d14765de777d3b1b02b79e491f57da3ab42f502fca55d87f05e0d6e52818506d",
+        "inputSha256": "e293e0c24bb08cfd705234e7d4ff55c57720a6b54ed91a7dd3edec2ca4aa3da5",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "FS-03::missing/0",
+        "FS-03::missing/1"
+      ],
+      "dependency": "Exact candidate FsError dependency; iterator.next rejectsEIO after creation, return recorded.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-04",
+      "previouslyUnassigned": true,
+      "actorRole": "vfs-fallback-failure",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/13",
+        "recordSha256": "4a4257794df8813653e5c9b6b447c282a13a1ee25780624b8e5aa0bfad70b402",
+        "inputSha256": "d0c47e825964259fd8f171a7129dc2c94307d3585a11b5efd3b715c64a4b4c56",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "FS-04::missing/0",
+        "FS-04::missing/1"
+      ],
+      "dependency": "Exact candidate FsError dependency; no readStream, readFile rejectsENOENT.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-06",
+      "previouslyUnassigned": true,
+      "actorRole": "adapter-replay",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/15",
+        "recordSha256": "34196490da571b589244cb0a806111f76060f429f7b5773bd60e494da746d700",
+        "inputSha256": "e9eec185f525c9e3ca187eca523d74871c2f51b26ee07098f1f90cba866a772b",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "FS-06::missing/0",
+        "FS-06::missing/1"
+      ],
+      "dependency": "Requires core-admitted MemoryFileSystem plus explicitly configured real/remote adapter and exact FS01/05 reuse; no network/ambient credentials now.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-05",
+      "previouslyUnassigned": true,
+      "actorRole": "factory-option-validation",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/23",
+        "recordSha256": "f9676a403137b2128a663b496e229fd29d8b57e6e311ad556acdf6d354dad7ee",
+        "inputSha256": "bebcd6783520fac11a9ddbfe3a65a73fc7a29f39f5cf48332ede65d6012f0bf7",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "TYP-05::missing/0",
+        "TYP-05::missing/1"
+      ],
+      "dependency": "Actual admitted yqCommands; getter read count and invalid/null/unknown-key refusal before host registration.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-06",
+      "previouslyUnassigned": true,
+      "actorRole": "factory-collision",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/24",
+        "recordSha256": "4795f207e94a410dc668089677a59865c1ec10a923074bccf58e8b2689f8590b",
+        "inputSha256": "06d692c4a14c4b0e2e4c9e0b7d6985c69026380d69e054b322cb2b81341bc28d",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "TYP-06::missing/0",
+        "TYP-06::missing/1"
+      ],
+      "dependency": "Actual admitted plugin and scoped registry host; snapshot before duplicate and explicitreplace.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NEG-05",
+      "previouslyUnassigned": true,
+      "actorRole": "counter-reset-loaded-dependency",
+      "state": "SOURCE_ONLY_DEPENDENCY_PENDING_CORE_CLASSIFICATION",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/31",
+        "recordSha256": "11ef367e2c933f94680311f3b8105f787dddc28e4d277e6f4cd0337cea190d16",
+        "inputSha256": "6d296eac676b4b11b98f849de72d9db90150630c3a0706b0336db92f76c42b6a",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "NEG-05::missing/0"
+      ],
+      "dependency": "SOURCE_ONLY_DEPENDENCY: exact approved loaded mutant mapping and witnesses QUE11/WRK11/12/15/ALS11 belong to core; no mutation or fake reset counter here.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-06",
+      "previouslyUnassigned": false,
+      "actorRole": "raw-document-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/5",
+        "recordSha256": "acba8bba1a790fbe9e232dc0f06b70b5316d8968f181f0b1cac8f1560185c66a",
+        "inputSha256": "97bf87229b4d38c0167a499890047569dc0400921a7120f76eb51231c45fb874",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-06::missing/0",
+        "WRK-06::missing/1"
+      ],
+      "dependency": "ExactatC andC+1 raw bytes separately; marker/CRLF and copy-order source/observer dependencies. AuthorC+1 is notCsuccess.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-07",
+      "previouslyUnassigned": false,
+      "actorRole": "decoded-scalar-boundary",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/6",
+        "recordSha256": "b099e91ac88725299ec3d561e9ab9b6d7a4d66417254300b1797f54b1d3164a9",
+        "inputSha256": "e176d598c42734efe6533fea7fe6b8944789aa1d27d04ae19eed1e4fe9969402",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-07::missing/0",
+        "WRK-07::missing/1"
+      ],
+      "dependency": "Four-byte construction pending exactsource work-gate analysis; authorASCII C masked by1000000steps. No noopWork public success.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-13",
+      "previouslyUnassigned": false,
+      "actorRole": "collection-boundary",
+      "state": "SOURCE_ONLY_DEPENDENCY_PENDING_CORE_CLASSIFICATION",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/12",
+        "recordSha256": "5edc88ff2f8bbb7a6bee415b8fe7d8b961193b1682a052377b9e925de7eab0b1",
+        "inputSha256": "cb43951e3a1543bf40350f7eefe03acd87a0e464192551cbf8e7191d86293b64",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-13::missing/0",
+        "WRK-13::missing/1"
+      ],
+      "dependency": "SOURCE_ONLY_DEPENDENCY for root+100000scalar flat sequence masked by100000nodes; no state injection. Applicable actor must preserve that gate.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-17",
+      "previouslyUnassigned": false,
+      "actorRole": "encoder-boundary",
+      "state": "SOURCE_ONLY_DEPENDENCY_PENDING_CORE_CLASSIFICATION",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/16",
+        "recordSha256": "884994f761eb5b519a186e4734ce3cdbd25c071bd68e9009fb5f288d97b67a24",
+        "inputSha256": "10cdea5ac9581e7fd331e92a6dc410847e082a93f71c6616470dda1852cbcfc0",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "WRK-17::missing/0",
+        "WRK-17::missing/1"
+      ],
+      "dependency": "SOURCE_ONLY_DEPENDENCY for public16MiB boundary under old2MiB hostcapture; internal7/8 encoder threshold is PROOFCONTROL only.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-22",
+      "previouslyUnassigned": false,
+      "actorRole": "carry-signal-closed-session",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/21",
+        "recordSha256": "cc85dbbbe76ba671fe2e387fc894393b7f331edd8055c331d3782081b6c9c8e1",
+        "inputSha256": "548be592bd076335d02a9d56645779cfc8b3dabd30d080f58e848c2a57f2f0cb",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": "final-manifest#/overlays/6",
+      "missingIds": [
+        "WRK-22::missing/0",
+        "WRK-22::missing/1"
+      ],
+      "dependency": "Actual exported internal query-session/ownedWork methods only; no Budget access/reset. Captures checkpoint-cancellation and guard observations; exact private counters still source-only.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-26",
+      "previouslyUnassigned": false,
+      "actorRole": "private-role-invalid-counts",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/25",
+        "recordSha256": "1b1dad171afcf446120499280d1b85d39880d2951ba3c7af91996ba21a65835c",
+        "inputSha256": "28a0d4d81f4be03831a86f157fb0edc16b6bf1fd6e2da0eb587959cbb3c6493a",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": "final-manifest#/overlays/7",
+      "missingIds": [
+        "WRK-26::missing/0",
+        "WRK-26::missing/1"
+      ],
+      "dependency": "Actual charge/reserve/input/output admission roles; no invented step/tick exports or injectedstate.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-22",
+      "previouslyUnassigned": false,
+      "actorRole": "reuse-producer-and-retention-proposal",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-utf8",
+        "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/21",
+        "recordSha256": "5800fe8e40af4e8470c6944ee83525e46032bf46d1377a06dc48132b53bb22f3",
+        "inputSha256": "187ba82678310cd5b9972cf606eb75f8eb153a166151fdcacbf5f44fc8a473c8",
+        "defaultsSha256": "4806f191f0a41f9a24c9e20e373fb40cc3f307f3e0af67f3133f54d9e4dceca1"
+      },
+      "currentOverlay": null,
+      "missingIds": [],
+      "dependency": "Stock host producer events/output are partial only; private owned-fragment proof needs separately approved isolatedobserver.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-07",
+      "previouslyUnassigned": false,
+      "actorRole": "factory-undefined-runtime",
+      "state": "ACTOR_INVENTORIED_NOT_YET_IMPLEMENTED",
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/25",
+        "recordSha256": "ee91a529f6c77688cf251d7b12a7c2520bab4113a917d0b41cbe94dcb967b173",
+        "inputSha256": "c7784e079de7a6e9b2f62022fe6525d8b6c304cc678f342d2411cb7d05a4797b",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "missingIds": [
+        "TYP-07::missing/0",
+        "TYP-07::missing/1"
+      ],
+      "dependency": "Runtimeundefined acceptance only; exactOptionalPropertyTypes proof stays with type worker.",
+      "actualTarget": "UNRUN",
+      "fullRecordPass": false
+    }
+  ],
+  "coreAbi": "AWAITING_SEALED_COMMON_ABI_NO_GUESSED_API",
+  "finalClassificationOwner": "coverage-completion-v1/core",
+  "assertionsOwner": "coverage-completion-v1/assertions",
+  "rootTargetGO": false
+}

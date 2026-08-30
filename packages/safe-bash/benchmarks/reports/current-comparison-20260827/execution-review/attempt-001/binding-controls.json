@@ -1,0 +1,102 @@
+{
+  "syntheticReceiptsOnly": true,
+  "importedPackages": 0,
+  "cases": [
+    {
+      "name": "synthetic-cannot-masquerade-as-just-bash342",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'b22f41febfa5308d0aaa6983cf20c0664f8811fe230b820e87b75751a7d30f68'\n- '70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c'\n",
+        "actual": "b22f41febfa5308d0aaa6983cf20c0664f8811fe230b820e87b75751a7d30f68",
+        "expected": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "profile-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   'aligned',\n    'original',\n-   'aligned',\n    'breadth'\n  ]\n",
+        "actual": [
+          "aligned",
+          "original",
+          "breadth"
+        ],
+        "expected": [
+          "original",
+          "aligned",
+          "breadth"
+        ]
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "source-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "bound hash changed\n+ actual - expected\n\n+ '04d58ddfae3eb8261b188db6fc5774d2ca3030eeb1c572bcd2b6e2c1b5c13bc4'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+        "actual": "04d58ddfae3eb8261b188db6fc5774d2ca3030eeb1c572bcd2b6e2c1b5c13bc4",
+        "expected": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "pack-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "bound hash changed\n+ actual - expected\n\n+ '4a3afcb5023c85c8017ce8d33a5629388e79760f4ab33ed6f7e2ff07d1ec68cb'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+        "actual": "4a3afcb5023c85c8017ce8d33a5629388e79760f4ab33ed6f7e2ff07d1ec68cb",
+        "expected": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "manifest-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000000000000000000000000000'\n- 'fc83a39b801c55beab5c98c486e025b065be3d0356783551da275e7adaa88b02'\n",
+        "actual": "0000000000000000000000000000000000000000000000000000000000000000",
+        "expected": "fc83a39b801c55beab5c98c486e025b065be3d0356783551da275e7adaa88b02"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "asset-rebinding",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "bound hash changed\n+ actual - expected\n\n+ '3d700980f74407dc8ff35d0c36198c126d1953f47ee32c54f0bd6ffcbc15b07f'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+        "actual": "3d700980f74407dc8ff35d0c36198c126d1953f47ee32c54f0bd6ffcbc15b07f",
+        "expected": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "path-traversal",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "unsafe path",
+        "actual": false,
+        "expected": true
+      },
+      "syntheticReceiptNotActualAuthority": true
+    },
+    {
+      "name": "symlink-path",
+      "refused": true,
+      "expectedReason": true,
+      "error": {
+        "message": "symlink component forbidden",
+        "actual": false,
+        "expected": true
+      },
+      "syntheticReceiptNotActualAuthority": true
+    }
+  ]
+}

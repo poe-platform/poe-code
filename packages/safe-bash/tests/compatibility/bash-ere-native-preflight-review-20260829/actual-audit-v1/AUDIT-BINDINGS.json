@@ -1,0 +1,1230 @@
+{
+  "schema": "ere12-independent-actual-audit-bindings-v1",
+  "actualCommit": "6b4ca17046a6f86b1947df28cd5bbdb876c9031f",
+  "observationManifestSha256": "d77e2767f6b36a9ec710224ef31faa53ec388304b5616a4818e18657bf1cb274",
+  "finalSealSha256": "1bb8ab78a65d8e85b7624b2dafb00fdc74ce19a7ed70a4cbe16ad72c96a604fc",
+  "sourceSealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "grantSha256": "9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec",
+  "commandSha256": "9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25",
+  "allActualInputs": [
+    {
+      "path": "FINAL-SEAL.json",
+      "oid": "18b9579710d5c99902961d8db61ed28d88271057",
+      "bytes": 13004,
+      "sha256": "1bb8ab78a65d8e85b7624b2dafb00fdc74ce19a7ed70a4cbe16ad72c96a604fc"
+    },
+    {
+      "path": "HANDOFF.md",
+      "oid": "7f9363841a24c048f48cc94bccc7eae76c807581",
+      "bytes": 5525,
+      "sha256": "79c82d888b1cee7ac105b28b2a362044b598c26a86d6525b6adf8e15c8da9c7e"
+    },
+    {
+      "path": "OBSERVATIONS.json",
+      "oid": "ae7acd76f921ccb44974975879d7f3f3fd4f44f4",
+      "bytes": 51236,
+      "sha256": "d77e2767f6b36a9ec710224ef31faa53ec388304b5616a4818e18657bf1cb274"
+    },
+    {
+      "path": "OBSERVATIONS.md",
+      "oid": "cb2a36fee01adf9f6e6374e3b46a3b606d818c13",
+      "bytes": 1979,
+      "sha256": "a7f41284f3ff9636cccd90196e417898d96b9b65ef9bfd7726213c35300b2d1e"
+    },
+    {
+      "path": "PREFLIGHT.json",
+      "oid": "c5c2724e4a8ec26ea88675980537d496e6dbd16f",
+      "bytes": 2879,
+      "sha256": "453c38fc8fdff7e9f2d5da9eeb086b4279a896568078045ba295f0be6dd5fa21"
+    },
+    {
+      "path": "SCOPE.md",
+      "oid": "8a186b5c4e5f209ac1791279842e669bf4d1e726",
+      "bytes": 2050,
+      "sha256": "a29fd2e7bfbcaff0932b375ba6ec786acc870a822cbb2fec6a8049cd65666fdb"
+    },
+    {
+      "path": "SLOT-REPORT.md.data",
+      "oid": "a24d8832a77d31f9589684b2a502324616d57765",
+      "bytes": 5650,
+      "sha256": "00c702c726774d8acf3f144b932b65f179e39cb4bf3b7797d9bb9658e99c803f"
+    },
+    {
+      "path": "TOOL-RETURN.json",
+      "oid": "6c310db6feb4a047043940267344d32eb7d275fd",
+      "bytes": 708,
+      "sha256": "16a8d327940a4e5f2440eaa247c42f4df229cac30c0689f9ca690a6664a37148"
+    },
+    {
+      "path": "preflight.mjs",
+      "oid": "21b3f628dc78a8ab97ebb7371cb03c730fdab08e",
+      "bytes": 6182,
+      "sha256": "1bc7339a7d3d905062b4dfabdca3807fac18c8e9897705fd5cf4055cf23f7199"
+    },
+    {
+      "path": "publish.mjs",
+      "oid": "e42fc3a6eeb66d1b6eb893742e477e0af7395c76",
+      "bytes": 8822,
+      "sha256": "24eb9042d8a8f0cc557fa8213b9ecfdef327ace4f7370ecb02de61fcc7c64a12"
+    },
+    {
+      "path": "raw/preflight-syntax.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/preflight-syntax.stdout",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/preflight.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/preflight.stdout",
+      "oid": "dd9ce64cb87b193341e2a713eb8d8cb291bb6a14",
+      "bytes": 8015,
+      "sha256": "6496263a5bb79dd86569abc4cddde048523d6cfdb189e0d6b8ae031de5b5ce87"
+    },
+    {
+      "path": "raw/publish-syntax.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/publish-syntax.stdout",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/publish.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/publish.stdout",
+      "oid": "a32843bc51afb300ceceba85ad03d76ca090c7b1",
+      "bytes": 1219,
+      "sha256": "618c9f6d2d6c4b8d09e0f55b0d675f4b255a6c6bab82d7daccefa1cf0c86b5c6"
+    },
+    {
+      "path": "raw/seal-syntax.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/seal-syntax.stdout",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/seal.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/seal.stdout",
+      "oid": "051b0a5e038c94f4ea9ea72bb407a07783ee127e",
+      "bytes": 404,
+      "sha256": "016ce3cfe50c48370b0e4fef20b92bc4976755000bbd327b572551ed83dee240"
+    },
+    {
+      "path": "raw/slot-report.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/slot-report.stdout",
+      "oid": "a24d8832a77d31f9589684b2a502324616d57765",
+      "bytes": 5650,
+      "sha256": "00c702c726774d8acf3f144b932b65f179e39cb4bf3b7797d9bb9658e99c803f"
+    },
+    {
+      "path": "raw/slot-size.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/slot-size.stdout",
+      "oid": "40edf1c57fffafa9c45931faeb8a4b4891302ff0",
+      "bytes": 5,
+      "sha256": "01540bf2961839f4c7788e71a10ce3841ecfc8d3df84c944bfadf4bdb3f17ac0"
+    },
+    {
+      "path": "runtime/JOURNAL.jsonl",
+      "oid": "18706763829fbecdb440323064b577fc640e0c4b",
+      "bytes": 24679,
+      "sha256": "1071f9ca11b37241be0f0b66de9a60efbe7b699b0c106f187c14df38b9443d75"
+    },
+    {
+      "path": "runtime/N01.json",
+      "oid": "feeea9815afec61f62be7151e4d7e2325ec6d8c2",
+      "bytes": 2130,
+      "sha256": "718b519fec15dd2bdb280ecd963448a94b3956c6bef2450ee5c3de4ef9acf072"
+    },
+    {
+      "path": "runtime/N02.json",
+      "oid": "b9dda789c0877563508c9d2ae0b654b1402da3f9",
+      "bytes": 2133,
+      "sha256": "2413f791bc6dfdb9a61e3f8223bfcc54ae1caa91d1d038e3887a6300af31a1e7"
+    },
+    {
+      "path": "runtime/N03.json",
+      "oid": "ac8ca8c51b1afa2e5637888b92937b482aa24a22",
+      "bytes": 2141,
+      "sha256": "945b207bdc8270a2dde82f210ea1ba394451dd3b3d7d385413e02d4cbee5d4c4"
+    },
+    {
+      "path": "runtime/N04.json",
+      "oid": "3c85d9c9b4a808462e65b31b783b7506d0221996",
+      "bytes": 2163,
+      "sha256": "55082f4feefd6d5bd88e58cd115cbb29933cdf4b68fc02e257b6b5d8a6742fb1"
+    },
+    {
+      "path": "runtime/N05.json",
+      "oid": "a92792550a3ca0ef76eddab33549dabc1c9c5b24",
+      "bytes": 2130,
+      "sha256": "735af0c5016886556c76484902b89c08eccf4d1c4b9b6d9d7ede7843eda4a2d3"
+    },
+    {
+      "path": "runtime/N06.json",
+      "oid": "aa49083c96a44c47742dffbbdbcf807a51bd7747",
+      "bytes": 2130,
+      "sha256": "afd34aec27110dd4f7bc9f1dce7d0b49d982509ccc7b2b0b40af4040fdf6de6d"
+    },
+    {
+      "path": "runtime/N07.json",
+      "oid": "cc2ae1aa59b8bd985844fab7b49a9ddde448f655",
+      "bytes": 2133,
+      "sha256": "2204861ab51f0916fb1041fcab2a95c4b8a0185bd12e7faea744be2267f4e682"
+    },
+    {
+      "path": "runtime/N08.json",
+      "oid": "aba576e51b5c1f92834524902ff97e5309c0f74a",
+      "bytes": 2134,
+      "sha256": "0afc3b068682e2496906c482629234049d9e4021a2a89ca60bf44a4a61e08f0f"
+    },
+    {
+      "path": "runtime/N09.json",
+      "oid": "d8d066bceca79f539078ad7c2fc0e64cfa8cf0e0",
+      "bytes": 2123,
+      "sha256": "35983efb79b29ee6dfaa0fde280d17f71baa89b6da52b15d6d4ad539d2919989"
+    },
+    {
+      "path": "runtime/N10.json",
+      "oid": "63404f7ad05a3e7fe780b85924462d781780d55d",
+      "bytes": 2123,
+      "sha256": "a06af5e8d131b6aaf2e77cb91ee74830e64b600e975e57ca083f71488305d925"
+    },
+    {
+      "path": "runtime/N11.json",
+      "oid": "148ae29264444cd11e7250b1f8e0c34b8841491a",
+      "bytes": 2117,
+      "sha256": "668ace012feb839c0951dfebdd523be93cdeb068359d1c9041c35113395b38ed"
+    },
+    {
+      "path": "runtime/N12.json",
+      "oid": "7a8feb3bb9444df1eaea137c24568282e49f1b31",
+      "bytes": 2117,
+      "sha256": "1ec18b6f6d7644bc203ea9f62c98491623f2184c68ec56f728c06ac38e3c2d1d"
+    },
+    {
+      "path": "runtime/RESULTS.json",
+      "oid": "2f11369adc203377465c6a44cb076755fc6f840e",
+      "bytes": 1392,
+      "sha256": "41da43b996497caa6cfb4dc87a5416372fba3fa7b779891db092f440bb67307f"
+    },
+    {
+      "path": "runtime/captures/N01/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N01/stdout",
+      "oid": "60bbbc0f6862c2eaa8fe7b55ba8ca899f7f93bf5",
+      "bytes": 40,
+      "sha256": "ca063856db9e46321d362ba6a9d5193db0ee18dd09db101f8da3640e82956d71"
+    },
+    {
+      "path": "runtime/captures/N02/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N02/stdout",
+      "oid": "2ed2be15dcca2fae8837b0ed55898038c3fe4d85",
+      "bytes": 40,
+      "sha256": "fa6cba9fe5429ece510b12ea812d253a40289c576c852ab4c2102d50074dad0a"
+    },
+    {
+      "path": "runtime/captures/N03/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N03/stdout",
+      "oid": "975d9d1f922b38f3cf96463478e6f1755b1d0ea0",
+      "bytes": 44,
+      "sha256": "aa4fff05764522031ca059bf19ae5883f2dbad51b28f36ae0cd8fbbf5fc01043"
+    },
+    {
+      "path": "runtime/captures/N04/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N04/stdout",
+      "oid": "3daa919676724f6fe2ca06ee45bb687987ca90b1",
+      "bytes": 52,
+      "sha256": "979646061e95c094daf72ec2c2c088f1c7274e0d686a35fcca1e7c657e52491e"
+    },
+    {
+      "path": "runtime/captures/N05/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N05/stdout",
+      "oid": "1fe58da3b45ebb3d3527128ecc159297d7c1b14d",
+      "bytes": 40,
+      "sha256": "3bdf48927452a0fb0bcc6eacbf23e7e4148a957ae46cdc70fa7ffdfe9066813f"
+    },
+    {
+      "path": "runtime/captures/N06/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N06/stdout",
+      "oid": "e6fbddf05a2de0c16357106f8e9d0810e1f2fac1",
+      "bytes": 40,
+      "sha256": "6a674682192803c8390a3b4fdeb826731bb95affc75613a547e4ed6211892e11"
+    },
+    {
+      "path": "runtime/captures/N07/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N07/stdout",
+      "oid": "13de504d2e1b61e7aaf3e5a7f7b83f41ce4b2757",
+      "bytes": 40,
+      "sha256": "83a3fa11ec791fa1eaa809b970b50bd8c2ab5ce86cd14f5860e79da5d2cbcbfe"
+    },
+    {
+      "path": "runtime/captures/N08/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N08/stdout",
+      "oid": "f79798af3920db0d95757aec12432047a6682379",
+      "bytes": 41,
+      "sha256": "16667c3f754de26ed938a5ff721ee2281a0a49c874e4b6cb35f4171af00de487"
+    },
+    {
+      "path": "runtime/captures/N09/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N09/stdout",
+      "oid": "d15508d982eecf406b43acfb61b062ade9a159f1",
+      "bytes": 37,
+      "sha256": "64283c9be32919281d385b18fbe8422754797c6b05cb2ddbc368956516ca7a62"
+    },
+    {
+      "path": "runtime/captures/N10/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N10/stdout",
+      "oid": "b6a514fd24b3c37a9e6f3ae18a35f63032a65355",
+      "bytes": 37,
+      "sha256": "3cd19518bf9af51569b66c16e873a17fece88e1665e349f44a3947074476252d"
+    },
+    {
+      "path": "runtime/captures/N11/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N11/stdout",
+      "oid": "d729ced426bcd1028a3b6e48574a3add7e3ba7ed",
+      "bytes": 36,
+      "sha256": "7de67ecdf7b029c5565e6bd0637dfc5bf05f2a65acbf3d713ec310b5788cef4e"
+    },
+    {
+      "path": "runtime/captures/N12/stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/captures/N12/stdout",
+      "oid": "dee598078aef348b83e2476d70005a3ebc8ae22a",
+      "bytes": 36,
+      "sha256": "5c275256db14e2da1ed7a7b99cae97ae0319f9939c6ed52f5b6d0178134af952"
+    },
+    {
+      "path": "runtime/outer/bootstrap.stderr",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/outer/bootstrap.stdout",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "seal.mjs",
+      "oid": "71ad4f4afa5d8d515b1b6599437bf8a2df2179bf",
+      "bytes": 5325,
+      "sha256": "291690924eb85d7032095c66ce28fc90325463cce0432bea3d5ea6dc73ac7f4f"
+    }
+  ],
+  "sealExclusions": [
+    {
+      "path": "FINAL-SEAL.json",
+      "sha256": "1bb8ab78a65d8e85b7624b2dafb00fdc74ce19a7ed70a4cbe16ad72c96a604fc",
+      "binding": "actual Git commit; FINAL-SEAL self and active publisher captures excluded from recursive seal"
+    },
+    {
+      "path": "raw/seal.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "binding": "actual Git commit; FINAL-SEAL self and active publisher captures excluded from recursive seal"
+    },
+    {
+      "path": "raw/seal.stdout",
+      "sha256": "016ce3cfe50c48370b0e4fef20b92bc4976755000bbd327b572551ed83dee240",
+      "binding": "actual Git commit; FINAL-SEAL self and active publisher captures excluded from recursive seal"
+    }
+  ],
+  "normativeInputs": [
+    {
+      "path": "SUMMARY.json",
+      "oid": "482f401b1d24379ce5dd2a37fa432a068d0bf2dc",
+      "bytes": 34683,
+      "sha256": "c4cbd72d05136a8a7432a2c4600d7922c9efe23a8bab24cbf5f776fde090a9c8"
+    },
+    {
+      "path": "acquire.mjs",
+      "oid": "fe414e0ede3dc328fc202f0b10cf73064f793051",
+      "bytes": 3416,
+      "sha256": "fadb0be831da5c67e4702f36c50ff0dedb483fac587b23fb6d193fb85bf674df"
+    },
+    {
+      "path": "entry.mjs",
+      "oid": "fb57448fb95ea193b245ccf8811c9ffb9c7bd601",
+      "bytes": 1537,
+      "sha256": "e39398008a22b274cac0a3908d77215a8c4307be9cd8121ff70f8376591a36db"
+    },
+    {
+      "path": "finalize.mjs",
+      "oid": "cb7c7413315a801b067eb262e31b1cb5858faf3d",
+      "bytes": 7059,
+      "sha256": "4a08a58dfc010a9feb1b9dfca130717ac0a2ec068a55bb44b6149bfb51dab151"
+    },
+    {
+      "path": "independent.mjs",
+      "oid": "7053cbfbd53d938c697aeb0a934f5fb609db08d4",
+      "bytes": 8827,
+      "sha256": "4f253b0cc3df654e24e2511ed49edd4fba440331e5a32f1efd8770e4e28c1065"
+    },
+    {
+      "path": "publish.mjs",
+      "oid": "cb6403b20ac92b91e0eecd96505fe39428c08cc2",
+      "bytes": 2729,
+      "sha256": "4ed154c82e74ad51f3023925afcba91ef6807ac699bd56ae1a8bea39fc93302b"
+    },
+    {
+      "path": "run.mjs",
+      "oid": "66049a02e97c4461149b176f364ef610ae782e47",
+      "bytes": 12993,
+      "sha256": "8c93d541857e0d796f95361f594cf1c4d0ab39da578f0611db64255b0db58163"
+    },
+    {
+      "path": "seal-v2.mjs",
+      "oid": "cd7e1306262ca7f3aa66d08783383985362940b8",
+      "bytes": 4603,
+      "sha256": "499e6fd85cf8f17705f62fab34ee907233c6ce75f4e7ed0c163869a934b62187"
+    },
+    {
+      "path": "seal.mjs",
+      "oid": "db8c8c15653a5c89a39d83d3d10c6eaf5a922b71",
+      "bytes": 4420,
+      "sha256": "2a490bb1a9293dd0727fd65dcb658fef04161858abc9464668b441d55fe83546"
+    },
+    {
+      "path": "supplement.mjs",
+      "oid": "7aea22af2f29240705db91b6d47eb9406a9c30e1",
+      "bytes": 3258,
+      "sha256": "329b2b74ca0c654fd38fbcb590a9f03180741803120d8324acb4eb2f0091f5c7"
+    },
+    {
+      "path": "witnesses/cases.json.data",
+      "oid": "7104342d4116fce12a7cfa1a7f7a884a55ec2525",
+      "bytes": 4114,
+      "sha256": "c19afeb49fc6f830aeeafcd6464fe9bb30da1504d9964ac3f2f7d2e7f5bc919b"
+    }
+  ],
+  "decoded": [
+    {
+      "id": "N01",
+      "pattern": "(a(b)?)+",
+      "subject": "aba",
+      "status": 0,
+      "cardinality": 3,
+      "values": [
+        "aba",
+        "a",
+        ""
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 3,
+          "base64": "YWJh"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "YQ=="
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 40,
+      "stdoutSha256": "ca063856db9e46321d362ba6a9d5193db0ee18dd09db101f8da3640e82956d71",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998604416,
+      "finished": 1787998604459,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N02",
+      "pattern": "((a)|(b))+",
+      "subject": "ab",
+      "status": 0,
+      "cardinality": 4,
+      "values": [
+        "ab",
+        "b",
+        "",
+        "b"
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 2,
+          "base64": "YWI="
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "Yg=="
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "Yg=="
+        }
+      ],
+      "stdoutBytes": 40,
+      "stdoutSha256": "fa6cba9fe5429ece510b12ea812d253a40289c576c852ab4c2102d50074dad0a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998604485,
+      "finished": 1787998604528,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N03",
+      "pattern": "((a(b)?)c)+",
+      "subject": "abcac",
+      "status": 0,
+      "cardinality": 4,
+      "values": [
+        "abcac",
+        "ac",
+        "a",
+        ""
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 5,
+          "base64": "YWJjYWM="
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 2,
+          "base64": "YWM="
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "YQ=="
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 44,
+      "stdoutSha256": "aa4fff05764522031ca059bf19ae5883f2dbad51b28f36ae0cd8fbbf5fc01043",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998604555,
+      "finished": 1787998604591,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N04",
+      "pattern": "(ba(na)*s )*",
+      "subject": "bananas bas ",
+      "status": 0,
+      "cardinality": 3,
+      "values": [
+        "bananas bas ",
+        "bas ",
+        ""
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 12,
+          "base64": "YmFuYW5hcyBiYXMg"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 4,
+          "base64": "YmFzIA=="
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 52,
+      "stdoutSha256": "979646061e95c094daf72ec2c2c088f1c7274e0d686a35fcca1e7c657e52491e",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998604628,
+      "finished": 1787998604667,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N05",
+      "pattern": "(a(b)?){2}",
+      "subject": "aba",
+      "status": 0,
+      "cardinality": 3,
+      "values": [
+        "aba",
+        "a",
+        ""
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 3,
+          "base64": "YWJh"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "YQ=="
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 40,
+      "stdoutSha256": "3bdf48927452a0fb0bcc6eacbf23e7e4148a957ae46cdc70fa7ffdfe9066813f",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998604705,
+      "finished": 1787998604745,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N06",
+      "pattern": "((a)?b){2}",
+      "subject": "abb",
+      "status": 0,
+      "cardinality": 3,
+      "values": [
+        "abb",
+        "b",
+        ""
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 3,
+          "base64": "YWJi"
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "Yg=="
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 40,
+      "stdoutSha256": "6a674682192803c8390a3b4fdeb826731bb95affc75613a547e4ed6211892e11",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998604788,
+      "finished": 1787998604833,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N07",
+      "pattern": "((a)|(b))+",
+      "subject": "ba",
+      "status": 0,
+      "cardinality": 4,
+      "values": [
+        "ba",
+        "a",
+        "a",
+        ""
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 2,
+          "base64": "YmE="
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "YQ=="
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "YQ=="
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 40,
+      "stdoutSha256": "83a3fa11ec791fa1eaa809b970b50bd8c2ab5ce86cd14f5860e79da5d2cbcbfe",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998604874,
+      "finished": 1787998604923,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N08",
+      "pattern": "(a(b)?)+",
+      "subject": "ab",
+      "status": 0,
+      "cardinality": 3,
+      "values": [
+        "ab",
+        "ab",
+        "b"
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 2,
+          "base64": "YWI="
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 2,
+          "base64": "YWI="
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "Yg=="
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 41,
+      "stdoutSha256": "16667c3f754de26ed938a5ff721ee2281a0a49c874e4b6cb35f4171af00de487",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998604971,
+      "finished": 1787998605023,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N09",
+      "pattern": "(a)?b",
+      "subject": "b",
+      "status": 0,
+      "cardinality": 2,
+      "values": [
+        "b",
+        ""
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "Yg=="
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 37,
+      "stdoutSha256": "64283c9be32919281d385b18fbe8422754797c6b05cb2ddbc368956516ca7a62",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998605076,
+      "finished": 1787998605129,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N10",
+      "pattern": "(a*)b",
+      "subject": "b",
+      "status": 0,
+      "cardinality": 2,
+      "values": [
+        "b",
+        ""
+      ],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": true,
+          "bytes": 1,
+          "base64": "Yg=="
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": true,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 37,
+      "stdoutSha256": "3cd19518bf9af51569b66c16e873a17fece88e1665e349f44a3947074476252d",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998605198,
+      "finished": 1787998605259,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N11",
+      "pattern": "(a)",
+      "subject": "b",
+      "status": 1,
+      "cardinality": 0,
+      "values": [],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 36,
+      "stdoutSha256": "7de67ecdf7b029c5565e6bd0637dfc5bf05f2a65acbf3d713ec310b5788cef4e",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998605324,
+      "finished": 1787998605384,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    },
+    {
+      "id": "N12",
+      "pattern": "(",
+      "subject": "a",
+      "status": 2,
+      "cardinality": 0,
+      "values": [],
+      "slots": [
+        {
+          "index": 0,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 1,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 2,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        },
+        {
+          "index": 3,
+          "shellSlotPresent": false,
+          "bytes": 0,
+          "base64": ""
+        }
+      ],
+      "stdoutBytes": 36,
+      "stdoutSha256": "5c275256db14e2da1ed7a7b99cae97ae0319f9939c6ed52f5b6d0178134af952",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "started": 1787998605457,
+      "finished": 1787998605520,
+      "receiptPublishedStored": false,
+      "creditCorroborated": true
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "N01",
+      "originalFailureId": "I01-parent-optional-reset",
+      "nativeVisibleValues": [
+        "aba",
+        "a",
+        ""
+      ],
+      "documentedModelVisibleProjection": [
+        "aba",
+        "a",
+        ""
+      ],
+      "priorEngineValues": [
+        "aba",
+        "a",
+        "b"
+      ],
+      "visibleResetWitness": true,
+      "nativeSpans": "UNKNOWN_NOT_DERIVED",
+      "originalFailuresUnrescored": true
+    },
+    {
+      "id": "N02",
+      "originalFailureId": "I02-parent-alternative-reset",
+      "nativeVisibleValues": [
+        "ab",
+        "b",
+        "",
+        "b"
+      ],
+      "documentedModelVisibleProjection": [
+        "ab",
+        "b",
+        "",
+        "b"
+      ],
+      "priorEngineValues": [
+        "ab",
+        "b",
+        "a",
+        "b"
+      ],
+      "visibleResetWitness": true,
+      "nativeSpans": "UNKNOWN_NOT_DERIVED",
+      "originalFailuresUnrescored": true
+    },
+    {
+      "id": "N03",
+      "originalFailureId": "I03-nested-parent-reset",
+      "nativeVisibleValues": [
+        "abcac",
+        "ac",
+        "a",
+        ""
+      ],
+      "documentedModelVisibleProjection": [
+        "abcac",
+        "ac",
+        "a",
+        ""
+      ],
+      "priorEngineValues": [
+        "abcac",
+        "ac",
+        "a",
+        "b"
+      ],
+      "visibleResetWitness": true,
+      "nativeSpans": "UNKNOWN_NOT_DERIVED",
+      "originalFailuresUnrescored": true
+    },
+    {
+      "id": "N04",
+      "originalFailureId": "I04-manual-example",
+      "nativeVisibleValues": [
+        "bananas bas ",
+        "bas ",
+        ""
+      ],
+      "documentedModelVisibleProjection": [
+        "bananas bas ",
+        "bas ",
+        ""
+      ],
+      "priorEngineValues": [
+        "bananas bas ",
+        "bas ",
+        "na"
+      ],
+      "visibleResetWitness": true,
+      "nativeSpans": "UNKNOWN_NOT_DERIVED",
+      "originalFailuresUnrescored": true
+    },
+    {
+      "id": "N05",
+      "originalFailureId": "I05-finite-parent-reset",
+      "nativeVisibleValues": [
+        "aba",
+        "a",
+        ""
+      ],
+      "documentedModelVisibleProjection": [
+        "aba",
+        "a",
+        ""
+      ],
+      "priorEngineValues": [
+        "aba",
+        "a",
+        "b"
+      ],
+      "visibleResetWitness": true,
+      "nativeSpans": "UNKNOWN_NOT_DERIVED",
+      "originalFailuresUnrescored": true
+    },
+    {
+      "id": "N06",
+      "originalFailureId": "I06-parent-zero-iteration",
+      "nativeVisibleValues": [
+        "abb",
+        "b",
+        ""
+      ],
+      "documentedModelVisibleProjection": [
+        "abb",
+        "b",
+        ""
+      ],
+      "priorEngineValues": [
+        "abb",
+        "b",
+        "a"
+      ],
+      "visibleResetWitness": true,
+      "nativeSpans": "UNKNOWN_NOT_DERIVED",
+      "originalFailuresUnrescored": true
+    }
+  ],
+  "reference": {
+    "path": "/bin/bash",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "version": "3.2.57 from inherited metadata; no fresh probe",
+    "gnu53": false
+  },
+  "timing": {
+    "actualPreflightStart": "2026-08-29T10:16:29.774Z",
+    "outerActualDeadline": "2026-08-29T10:26:29.774Z",
+    "ownerStarted": "2026-08-29T10:16:44.325Z",
+    "ownerRuntimeDeadline": "2026-08-29T10:26:44.325Z",
+    "readbackAt": "2026-08-29T10:17:19.402Z",
+    "sealAt": "2026-08-29T10:20:31.333Z",
+    "commitTimestamp": "2026-08-29T10:20:31.000Z",
+    "grantExpiry": "2026-08-29T10:46:09.884Z",
+    "dualClockDifferenceMs": 14551
+  },
+  "accounting": {
+    "runtimeFiles": 40,
+    "runtimeDirectories": 75,
+    "runtimeBytes": 52128,
+    "rawStdoutBytes": 483,
+    "rawStderrBytes": 0,
+    "managedStarts": 13,
+    "managedPeak": 2,
+    "knownDirectStartsReported": 35,
+    "conservativeExecutableRolesReported": 36,
+    "universalOsCensus": false,
+    "ownerFinalActiveAtPreExitReceipt": 1,
+    "ownerExitEvidence": "agent-recorded tool exit0 plus ROOT attestation, not direct OS exit observation by auditor"
+  },
+  "preserved": {
+    "originalR01Failures": 7,
+    "I23OriginalChecks": 62,
+    "I23OriginalContradictions": 52,
+    "E12OriginalValues": [
+      "aba",
+      "a",
+      "b"
+    ],
+    "N11PriorNonemptyStateTested": false,
+    "N12PriorNonemptyStateTested": false,
+    "toolApprovalUnobservedByAuditor": true,
+    "attemptConsumed": true
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "expectedRows": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "diagnostics": [
+    {
+      "file": "source/extension-eight-negative-source.ts",
+      "line": 5,
+      "column": 34,
+      "code": 2322,
+      "message": "Type 'null' is not assignable to type 'AbortSignal | undefined'."
+    },
+    {
+      "file": "source/extension-eight-negative-source.ts",
+      "line": 6,
+      "column": 34,
+      "code": 2740,
+      "message": "Type 'AbortController' is missing the following properties from type 'AbortSignal': aborted, onabort, reason, throwIfAborted, and 3 more."
+    },
+    {
+      "file": "source/extension-eight-negative-source.ts",
+      "line": 7,
+      "column": 45,
+      "code": 2322,
+      "message": "Type 'string' is not assignable to type 'number'."
+    },
+    {
+      "file": "source/extension-eight-negative-source.ts",
+      "line": 8,
+      "column": 57,
+      "code": 2322,
+      "message": "Type '\"invoke-option\"' is not assignable to type '\"budget-control\" | \"pipeline-control\"'."
+    },
+    {
+      "file": "source/extension-eight-negative-source.ts",
+      "line": 9,
+      "column": 83,
+      "code": 2740,
+      "message": "Type '{ aborted: false; }' is missing the following properties from type 'AbortSignal': onabort, reason, throwIfAborted, addEventListener, and 2 more."
+    },
+    {
+      "file": "source/extension-eight-negative-source.ts",
+      "line": 10,
+      "column": 27,
+      "code": 2345,
+      "message": "Argument of type '{ owned: true; }' is not assignable to parameter of type 'PreparedChildCancellation'."
+    },
+    {
+      "file": "source/extension-eight-negative-source.ts",
+      "line": 11,
+      "column": 10,
+      "code": 2540,
+      "message": "Cannot assign to 'owned' because it is a read-only property."
+    },
+    {
+      "file": "source/extension-eight-negative-source.ts",
+      "line": 12,
+      "column": 74,
+      "code": 2345,
+      "message": "Argument of type 'number' is not assignable to parameter of type 'CancellationOrigin'."
+    }
+  ],
+  "exit": 2,
+  "accepted": true
+}

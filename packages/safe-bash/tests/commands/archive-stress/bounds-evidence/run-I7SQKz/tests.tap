@@ -1,0 +1,80 @@
+TAP version 13
+# Subtest: H01 plain/gzip backward hardlink chains preserve inode, nlink and write aliases
+ok 1 - H01 plain/gzip backward hardlink chains preserve inode, nlink and write aliases
+  ---
+  duration_ms: 7.9745
+  type: 'test'
+  ...
+# {"gzip":false,"fixtureSha256":"9faa2234be4d7d191626fe8acbea1e48311fa89c4f5976e17985051670320613","limits":{"maxEntryBytes":4,"maxTotalBytes":4,"maxMembers":3},"nlink":3,"sameIdentityAndSharedWrites":true}
+# {"gzip":true,"fixtureSha256":"c3538e237fa4500cc1bed95de681faf2174476ae660468bca48099c2b8f18939","limits":{"maxEntryBytes":4,"maxTotalBytes":4,"maxMembers":3},"nlink":3,"sameIdentityAndSharedWrites":true}
+# Subtest: H02 missing hardlink method or false capability explicitly rejects without copy fallback
+ok 2 - H02 missing hardlink method or false capability explicitly rejects without copy fallback
+  ---
+  duration_ms: 4.40125
+  type: 'test'
+  ...
+# {"missingMethod":true,"linkCalls":0,"fixtureSha256":"9faa2234be4d7d191626fe8acbea1e48311fa89c4f5976e17985051670320613","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: filesystem does not support hardlinks\\n"}
+# {"missingMethod":false,"linkCalls":0,"fixtureSha256":"c3538e237fa4500cc1bed95de681faf2174476ae660468bca48099c2b8f18939","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: filesystem does not support hardlinks\\n"}
+# Subtest: H03 malicious hardlink target and destination vectors preserve outside VFS sentinels
+ok 3 - H03 malicious hardlink target and destination vectors preserve outside VFS sentinels
+  ---
+  duration_ms: 1.596167
+  type: 'test'
+  ...
+# {"pivot":false,"fixtureSha256":"e7632e22b6ab9cf1befb4c0c1c238566b7d0dc66383c7d475a61d1b28ee5ecd9","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: unsafe parent component in member: ../outside/sentinel\\n"}
+# {"pivot":true,"fixtureSha256":"eb304290422a8c557fe53977c6048437acf089599add77de64efe1f2ac8eb685","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: unsafe non-directory or symlink ancestor: /output/pivot\\n"}
+# Subtest: B01 configured entry, PAX and expanded-archive boundaries accept exact and reject one over
+ok 4 - B01 configured entry, PAX and expanded-archive boundaries accept exact and reject one over
+  ---
+  duration_ms: 8.932166
+  type: 'test'
+  ...
+# {"label":"entry","valid":true,"limits":{"maxEntryBytes":17},"fixtureSha256":"f4e0e78f25f54efd67858f76d23517eb470eb6521155659536be49fe40efdc6a","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# {"label":"entry","valid":false,"limits":{"maxEntryBytes":17},"fixtureSha256":"d217dcc5206356bd59f7f76b81e259764d437c29f1f84adfa2e2db9be3d07ea7","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: entry byte limit exceeded\\n"}
+# {"label":"PAX","valid":true,"limits":{"maxPaxBytes":17},"fixtureSha256":"45b20478cb6e0b17cdf3c6f9cd3f0b7c588bb2853e1f14b6240523785abb76c0","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# {"label":"PAX","valid":false,"limits":{"maxPaxBytes":17},"fixtureSha256":"b9b7578cdcbb3377342e08525d5b219bfd9e06bf0414583779a1cf2433d3b326","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: extended header byte limit exceeded\\n"}
+# {"label":"expanded archive","valid":true,"limits":{"maxArchiveBytes":2048},"fixtureSha256":"14bdf5626b5d98ee92ba34a12505e103bbf1ab26915fec9df5e2c73bde1de9b5","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# {"label":"expanded archive","valid":false,"limits":{"maxArchiveBytes":2048},"fixtureSha256":"2a65b003c1f7bb2137bf4ef6460f47db2abd14dc864a6d05e5e633f54be599d6","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: archive byte limit exceeded\\n"}
+# Subtest: B02 default 64 MiB entry declaration rejects plus one before body reads or publication
+ok 5 - B02 default 64 MiB entry declaration rejects plus one before body reads or publication
+  ---
+  duration_ms: 1.348
+  type: 'test'
+  ...
+# {"over":false,"declaredBytes":67108864,"headerBytes":512,"fixtureSha256":"c21195bebe2b19453dde6583bfaf751ca100864dc99aacb09fcac92a366d0c93","pulls":2,"returns":1,"exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: independent boundary control reached body read\\n"}
+# {"over":true,"declaredBytes":67108865,"headerBytes":512,"fixtureSha256":"2f6dbac00692dbe9c385c2a345a295df2ffa794d7f7c8b0bfd9cf2e2996461d1","pulls":1,"returns":1,"exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: entry byte limit exceeded\\n"}
+# Subtest: B03 small gzip amplification obeys expanded-byte budget and a valid full-size control
+ok 6 - B03 small gzip amplification obeys expanded-byte budget and a valid full-size control
+  ---
+  duration_ms: 3.449458
+  type: 'test'
+  ...
+# {"compressedBytes":102,"expandedBytes":9728,"maxArchiveBytes":2048,"retainedBytes":1536,"fixtureSha256":"cb009ae1f6dd2e44085383f934009f583902932846a5bc3965f660ae7e5d5659","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: archive byte limit exceeded\\n"}
+# {"compressedBytes":102,"expandedBytes":9728,"maxArchiveBytes":9728,"retainedBytes":8192,"fixtureSha256":"cb009ae1f6dd2e44085383f934009f583902932846a5bc3965f660ae7e5d5659","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# Subtest: B04 late body, padding and gated gzip trailer failures retain exact partial effects
+ok 7 - B04 late body, padding and gated gzip trailer failures retain exact partial effects
+  ---
+  duration_ms: 5.173041
+  type: 'test'
+  ...
+# {"kind":"valid","retainedBytes":29,"directoryMode":"0755","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# {"kind":"body","retainedBytes":7,"directoryMode":"0700","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: truncated archive body\\n"}
+# {"kind":"padding","retainedBytes":29,"directoryMode":"0700","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: truncated archive body\\n"}
+# {"kind":"gzip trailer","retainedBytes":29,"directoryMode":"0700","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: incorrect data check\\n"}
+# Subtest: B05 blocked compressed extraction bounds source pulls, resumes, or aborts with exact cleanup
+ok 8 - B05 blocked compressed extraction bounds source pulls, resumes, or aborts with exact cleanup
+  ---
+  duration_ms: 92.416333
+  type: 'test'
+  ...
+# {"abort":false,"fixtureSha256":"ca14ad5b93c62f7a33069f1679b1a87ee907000f41fafae8867ab2eec5ecf256","compressedBytes":131305,"sourceChunkBytes":512,"maximumBlockedSourceBytes":16384,"blockedBytes":1024,"blockedPulls":2,"finalSourceBytes":131305,"pulls":258,"returns":0,"sourceFinalized":1,"committed":131072,"writes":512}
+# {"abort":true,"fixtureSha256":"ca14ad5b93c62f7a33069f1679b1a87ee907000f41fafae8867ab2eec5ecf256","compressedBytes":131305,"sourceChunkBytes":512,"maximumBlockedSourceBytes":16384,"blockedBytes":1024,"blockedPulls":2,"finalSourceBytes":1024,"pulls":2,"returns":1,"sourceFinalized":1,"committed":7,"writes":1}
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 774.396917

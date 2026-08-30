@@ -1,0 +1,47 @@
+TAP version 13
+# Subtest: exact-integers-above-double
+not ok 1 - exact-integers-above-double
+  ---
+  duration_ms: 12.945083
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-double-precision/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    exact-integers-above-double: stdout
+    + actual - expected
+    
+      {
+        bytes: 78,
+    +   sha256: 'd7df08248b2f8253e5f2d641a90ad917c350e98c1f75eb8bbcc5135b9abe6f5d'
+    -   sha256: 'fc8465643019b11c0f308b9b4f097caf33ba8c0b0621388e6fc19e0f19d5a717'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 78
+    sha256: 'fc8465643019b11c0f308b9b4f097caf33ba8c0b0621388e6fc19e0f19d5a717'
+  actual:
+    bytes: 78
+    sha256: 'd7df08248b2f8253e5f2d641a90ad917c350e98c1f75eb8bbcc5135b9abe6f5d'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-double-precision/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: exact-fractions-and-prefix-grammar
+ok 2 - exact-fractions-and-prefix-grammar
+  ---
+  duration_ms: 1.150542
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 194.3515

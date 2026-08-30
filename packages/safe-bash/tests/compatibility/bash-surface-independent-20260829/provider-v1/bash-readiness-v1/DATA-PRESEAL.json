@@ -1,0 +1,49 @@
+{
+  "schema": "eight-observer-data-preseal-v1",
+  "role": "DATA_ONLY_NO_SIGNAL_NO_PROCESS_PROBE",
+  "cases": [
+    {
+      "id": "success-present",
+      "kind": "success",
+      "expected": "present"
+    },
+    {
+      "id": "ESRCH-absent",
+      "kind": "error",
+      "code": "ESRCH",
+      "expected": "absent"
+    },
+    {
+      "id": "EPERM-unknown",
+      "kind": "error",
+      "code": "EPERM",
+      "expected": "unknown"
+    },
+    {
+      "id": "EINVAL-unknown",
+      "kind": "error",
+      "code": "EINVAL",
+      "expected": "unknown"
+    },
+    {
+      "id": "TypeError-missing-code",
+      "kind": "typeerror",
+      "expected": "unknown"
+    },
+    {
+      "id": "undefined-thrown",
+      "kind": "undefined",
+      "expected": "unknown"
+    },
+    {
+      "id": "accessor-not-invoked",
+      "kind": "accessor",
+      "expected": "unknown"
+    },
+    {
+      "id": "oversized-code",
+      "kind": "oversized",
+      "expected": "unknown"
+    }
+  ]
+}

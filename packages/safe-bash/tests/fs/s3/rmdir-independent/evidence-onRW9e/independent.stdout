@@ -1,0 +1,157 @@
+TAP version 13
+# (node:10871) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("file%3A///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-independent/load-audit.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: hidden descendant .hidden: paginate and preserve every byte
+ok 1 - hidden descendant .hidden: paginate and preserve every byte
+  ---
+  duration_ms: 2.044666
+  type: 'test'
+  ...
+# Subtest: hidden descendant nested/: paginate and preserve every byte
+ok 2 - hidden descendant nested/: paginate and preserve every byte
+  ---
+  duration_ms: 0.534875
+  type: 'test'
+  ...
+# Subtest: hidden descendant nested/.hidden: paginate and preserve every byte
+ok 3 - hidden descendant nested/.hidden: paginate and preserve every byte
+  ---
+  duration_ms: 0.331208
+  type: 'test'
+  ...
+# Subtest: fail closed: missing completeness
+ok 4 - fail closed: missing completeness
+  ---
+  duration_ms: 0.255417
+  type: 'test'
+  ...
+# Subtest: fail closed: string completeness
+ok 5 - fail closed: string completeness
+  ---
+  duration_ms: 0.286583
+  type: 'test'
+  ...
+# Subtest: fail closed: missing token
+ok 6 - fail closed: missing token
+  ---
+  duration_ms: 0.316084
+  type: 'test'
+  ...
+# Subtest: fail closed: empty token
+ok 7 - fail closed: empty token
+  ---
+  duration_ms: 0.394667
+  type: 'test'
+  ...
+# Subtest: fail closed: cyclic token
+ok 8 - fail closed: cyclic token
+  ---
+  duration_ms: 0.275291
+  type: 'test'
+  ...
+# Subtest: fail closed: second page lacks completeness
+ok 9 - fail closed: second page lacks completeness
+  ---
+  duration_ms: 1.139125
+  type: 'test'
+  ...
+# Subtest: fail closed: foreign key
+ok 10 - fail closed: foreign key
+  ---
+  duration_ms: 0.417625
+  type: 'test'
+  ...
+# Subtest: fail closed: missing size
+ok 11 - fail closed: missing size
+  ---
+  duration_ms: 0.175417
+  type: 'test'
+  ...
+# Subtest: fail closed: noncanonical hidden key
+ok 12 - fail closed: noncanonical hidden key
+  ---
+  duration_ms: 0.155792
+  type: 'test'
+  ...
+# Subtest: fail closed: nonempty slash object
+ok 13 - fail closed: nonempty slash object
+  ---
+  duration_ms: 0.119584
+  type: 'test'
+  ...
+# Subtest: fail closed: self common prefix
+ok 14 - fail closed: self common prefix
+  ---
+  duration_ms: 0.134917
+  type: 'test'
+  ...
+# Subtest: fail closed: marker absent from completed list
+ok 15 - fail closed: marker absent from completed list
+  ---
+  duration_ms: 0.1305
+  type: 'test'
+  ...
+# Subtest: incomplete valid pages exhaust budget without mutation
+ok 16 - incomplete valid pages exhaust budget without mutation
+  ---
+  duration_ms: 0.196292
+  type: 'test'
+  ...
+# Subtest: cancel after complete LIST, errno-shaped reason: no DELETE
+ok 17 - cancel after complete LIST, errno-shaped reason: no DELETE
+  ---
+  duration_ms: 0.248208
+  type: 'test'
+  ...
+# Subtest: late child survives successful marker-only DELETE and directory remains
+ok 18 - late child survives successful marker-only DELETE and directory remains
+  ---
+  duration_ms: 0.653875
+  type: 'test'
+  ...
+# Subtest: same-content marker replacement is deleted: explicit ABA non-guarantee
+ok 19 - same-content marker replacement is deleted: explicit ABA non-guarantee
+  ---
+  duration_ms: 0.211208
+  type: 'test'
+  ...
+# Subtest: dynamic routed capability becomes snapshot; overlay refuses without whiteout
+ok 20 - dynamic routed capability becomes snapshot; overlay refuses without whiteout
+  ---
+  duration_ms: 2.457458
+  type: 'test'
+  ...
+# Subtest: capability changes during final readdir: overlay must recheck before DELETE
+ok 21 - capability changes during final readdir: overlay must recheck before DELETE
+  ---
+  duration_ms: 1.558875
+  type: 'test'
+  ...
+# Subtest: overlay lower-only refusal does not copy up or hide lower directory
+ok 22 - overlay lower-only refusal does not copy up or hide lower directory
+  ---
+  duration_ms: 0.470625
+  type: 'test'
+  ...
+# Subtest: readonly adapter refuses before transport mutation
+ok 23 - readonly adapter refuses before transport mutation
+  ---
+  duration_ms: 0.112875
+  type: 'test'
+  ...
+# Subtest: readonly wrapper refuses before transport mutation
+ok 24 - readonly wrapper refuses before transport mutation
+  ---
+  duration_ms: 0.096291
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 138.4175

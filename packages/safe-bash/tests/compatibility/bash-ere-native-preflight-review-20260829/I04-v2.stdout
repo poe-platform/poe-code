@@ -1,0 +1,1 @@
+{"id":"I04-v2-acyclic-binding-rejections","assertions":8,"status":"PASS","sourceUnchanged":true,"native":0,"entryImported":false,"prior":"I04-v1 expected /MANIFEST/ incorrectly; actual first SEAL_CYCLE rejection preserved. Remaining seven assertions previously unrun."}

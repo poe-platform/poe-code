@@ -1,0 +1,19 @@
+{
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--experimental-loader",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/audit-loader.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/corrected-cursor-consumer.mjs"
+  ],
+  "started": "2026-08-27T19:51:33.528Z",
+  "milliseconds": 73.22512500000005,
+  "status": 0,
+  "signal": null,
+  "terminated": null,
+  "pid": 18787,
+  "settled": true,
+  "stdout": "{\"total\":3,\"pass\":3,\"fail\":0}\n",
+  "stderr": "(node:18787) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"file%3A///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/audit-loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+  "stdoutBase64": "eyJ0b3RhbCI6MywicGFzcyI6MywiZmFpbCI6MH0K",
+  "stderrBase64": "KG5vZGU6MTg3ODcpIEV4cGVyaW1lbnRhbFdhcm5pbmc6IGAtLWV4cGVyaW1lbnRhbC1sb2FkZXJgIG1heSBiZSByZW1vdmVkIGluIHRoZSBmdXR1cmU7IGluc3RlYWQgdXNlIGByZWdpc3RlcigpYDoKLS1pbXBvcnQgJ2RhdGE6dGV4dC9qYXZhc2NyaXB0LGltcG9ydCB7IHJlZ2lzdGVyIH0gZnJvbSAibm9kZTptb2R1bGUiOyBpbXBvcnQgeyBwYXRoVG9GaWxlVVJMIH0gZnJvbSAibm9kZTp1cmwiOyByZWdpc3RlcigiZmlsZSUzQS8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsL2dldG9wdHMtaW5kZXBlbmRlbnQtMjAyNjA4MjcvYXVkaXQtbG9hZGVyLm1qcyIsIHBhdGhUb0ZpbGVVUkwoIi4vIikpOycKKFVzZSBgbm9kZSAtLXRyYWNlLXdhcm5pbmdzIC4uLmAgdG8gc2hvdyB3aGVyZSB0aGUgd2FybmluZyB3YXMgY3JlYXRlZCkK"
+}

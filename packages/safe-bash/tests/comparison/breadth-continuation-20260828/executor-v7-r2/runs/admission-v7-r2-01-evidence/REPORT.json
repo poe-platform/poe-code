@@ -1,0 +1,1057 @@
+{
+  "schema": "V7_R2_ONE_ADMISSION_POSTCAPTURE_EVIDENCE",
+  "date": "2026-08-28",
+  "runId": "admission-v7-r2-01",
+  "attempts": 1,
+  "status": "UNSAFE_STOP",
+  "admissionQualified": false,
+  "unsafe": true,
+  "grantConsumed": true,
+  "grant": {
+    "commit": "8830c48b242de7f6b29e84e71def3cabee8d22db",
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01-grant/GRANT.json",
+    "sha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3"
+  },
+  "review": {
+    "commit": "be863ac06e915403292b3722d170788099bc221d",
+    "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/REVIEW.json",
+    "sha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12"
+  },
+  "authSha256": "1afde12dabbd7d6fc8d29d5438eaac2c153e0e0cdc7eb2f0c7235ffe8c9347f2",
+  "recipeSha256": "b19d04354088d31ac387c82606aaa0a7ce64cf26efd0ffbebcfc4f4e5969a03c",
+  "actual": {
+    "workers": 3,
+    "plannedWorkers": 14,
+    "unlaunchedWorkers": 11,
+    "qualifiedProbes": 2,
+    "C11": 0,
+    "semanticCalls": 0,
+    "authorityMetadataChildren": 8,
+    "coordinatorChildren": 1,
+    "processesExcludingLauncherAndPostcapture": 12,
+    "targetNextLoad": 422,
+    "comparatorNextLoad": 0,
+    "nativeDelegations": 0,
+    "getterWindowActivated": false
+  },
+  "primary": {
+    "name": "Error",
+    "message": "ADMISSION_PROBE_STOP: {\"rows\":[{\"id\":\"target-installed\",\"pass\":true,\"safe\":true},{\"id\":\"target-moved\",\"pass\":true,\"safe\":true},{\"id\":\"baseline-installed\"}]}",
+    "code": "ADMISSION_PROBE_STOP"
+  },
+  "fatalPhaseLabel": "receipt-persistence",
+  "cause": "Worker installs offline guard at worker.mjs:51 before authenticateBootstrap at55. That helper calls boundFile at bootstrap.mjs:24; its fs.lstatSync is already replaced by offline deny. Actual OFFLINE_DENIED is on the exact baseline consumer wrapper before createQueryWindow/import. Harness ordering contradiction, not comparator/product behavior failure or builtin-capability outcome.",
+  "sourceQualification": "The recorded stack establishes the denied authentication call. Moving/narrowly separating preflight from guarded import is only a proposed root-reviewed successor; no repair or retry executed.",
+  "comparatorResourceQualification": "Final report is null. cleanupErrors and late are empty and process reaped, but pending/descriptors snapshot was not retained; do not invent zero numeric counters. No bootstrap query window was created on this source path.",
+  "launch": {
+    "bytes": 500,
+    "sha256": "4bc6318d34ed23fec877d445d43c8f27ac3cfab6c5facedf34fa44295ac81fe8",
+    "shellExit": 1,
+    "qualification": "Sealed launch summary retained; shell exit is not fabricated asynchronous launcher telemetry."
+  },
+  "coordinator": {
+    "reference": {
+      "path": "COORDINATOR-RECEIPT.json",
+      "bytes": 4710,
+      "sha256": "600064b7066f2c3fa2d8b616aa73545514aa5f8348e0d928c281b998386f9af1",
+      "mode": 420
+    },
+    "summaryReference": {
+      "path": "OUTER.json",
+      "bytes": 1074,
+      "sha256": "de7111af6dce919f40e303b5087ed1d439ad930680fa0e512c59987abd62a772",
+      "mode": 420
+    },
+    "cleanup": [],
+    "publicationFailures": []
+  },
+  "capture": [
+    {
+      "role": "coordinator",
+      "pid": 5104,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "natural": false,
+      "reaped": true,
+      "captureBytes": {
+        "stdout": 915,
+        "stderr": 0,
+        "records": 1391
+      },
+      "retainedBytes": {
+        "stdout": 915,
+        "stderr": 0,
+        "records": 1391
+      },
+      "events": {
+        "authority-observed": 2,
+        "final": 1
+      },
+      "failures": [],
+      "signals": [],
+      "finalKind": "final"
+    },
+    {
+      "role": "probe-1",
+      "pid": 5248,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "natural": true,
+      "reaped": true,
+      "captureBytes": {
+        "stdout": 0,
+        "stderr": 0,
+        "records": 139578
+      },
+      "retainedBytes": {
+        "stdout": 0,
+        "stderr": 0,
+        "records": 139578
+      },
+      "events": {
+        "authority-observed": 2,
+        "consumer-entry-attempt": 1,
+        "consumer-entry-observed": 1,
+        "consumer-entry-resolution": 1,
+        "asset-read": 211,
+        "nextLoad": 211,
+        "consumer-resolution-observed": 1,
+        "consumer-resolution": 1,
+        "consumer-evaluated": 1,
+        "final": 1
+      },
+      "failures": [],
+      "signals": [],
+      "finalKind": "final"
+    },
+    {
+      "role": "probe-2",
+      "pid": 5331,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "natural": true,
+      "reaped": true,
+      "captureBytes": {
+        "stdout": 0,
+        "stderr": 0,
+        "records": 139498
+      },
+      "retainedBytes": {
+        "stdout": 0,
+        "stderr": 0,
+        "records": 139498
+      },
+      "events": {
+        "authority-observed": 2,
+        "consumer-entry-attempt": 1,
+        "consumer-entry-observed": 1,
+        "consumer-entry-resolution": 1,
+        "asset-read": 211,
+        "nextLoad": 211,
+        "consumer-resolution-observed": 1,
+        "consumer-resolution": 1,
+        "consumer-evaluated": 1,
+        "final": 1
+      },
+      "failures": [],
+      "signals": [],
+      "finalKind": "final"
+    },
+    {
+      "role": "probe-3",
+      "pid": 5419,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "natural": false,
+      "reaped": true,
+      "captureBytes": {
+        "stdout": 0,
+        "stderr": 0,
+        "records": 3444
+      },
+      "retainedBytes": {
+        "stdout": 0,
+        "stderr": 0,
+        "records": 3444
+      },
+      "events": {
+        "authority-observed": 2,
+        "offline-denied": 1,
+        "final": 1
+      },
+      "failures": [],
+      "signals": [],
+      "finalKind": "final"
+    }
+  ],
+  "probes": [
+    {
+      "operation": "probe-1",
+      "launch": 1,
+      "view": "target-installed",
+      "qualifiedProbe": true,
+      "nextLoad": 211,
+      "assetReads": 211,
+      "consumerEvaluated": 1,
+      "bootstrapEvents": 0,
+      "reportPresent": true,
+      "postGuard": true,
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "assetReads": 211
+      },
+      "fatal": null,
+      "denied": [],
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "operation": "probe-2",
+      "launch": 2,
+      "view": "target-moved",
+      "qualifiedProbe": true,
+      "nextLoad": 211,
+      "assetReads": 211,
+      "consumerEvaluated": 1,
+      "bootstrapEvents": 0,
+      "reportPresent": true,
+      "postGuard": true,
+      "resources": {
+        "pending": 0,
+        "descriptors": 0,
+        "violations": [],
+        "assetReads": 211
+      },
+      "fatal": null,
+      "denied": [],
+      "cleanupErrors": [],
+      "late": []
+    },
+    {
+      "operation": "probe-3",
+      "launch": 3,
+      "view": "baseline-installed",
+      "qualifiedProbe": false,
+      "nextLoad": 0,
+      "assetReads": 0,
+      "consumerEvaluated": 0,
+      "bootstrapEvents": 0,
+      "reportPresent": false,
+      "postGuard": null,
+      "resources": null,
+      "fatal": {
+        "name": "Error",
+        "code": "OFFLINE_DENIED",
+        "message": "OFFLINE_DENIED:fs.lstatSync",
+        "stack": "Error: OFFLINE_DENIED:fs.lstatSync\n    at Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs:37:25)\n    at boundFile (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/projection.mjs:9:19)\n    at authenticateBootstrap (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/bootstrap.mjs:24:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/worker.mjs:55:21\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)",
+        "original": null
+      },
+      "denied": [
+        {
+          "sequence": 2,
+          "kind": "offline-denied",
+          "operation": "fs.lstatSync",
+          "argument": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs"
+        }
+      ],
+      "cleanupErrors": [],
+      "late": []
+    }
+  ],
+  "authorityMetadata": [
+    {
+      "parentRole": "coordinator",
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "be863ac06e915403292b3722d170788099bc221d",
+        "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/REVIEW.json",
+        "sha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12"
+      },
+      "pid": 5105,
+      "group": -5105,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "parentRole": "coordinator",
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "8830c48b242de7f6b29e84e71def3cabee8d22db",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01-grant/GRANT.json",
+        "sha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3"
+      },
+      "pid": 5106,
+      "group": -5106,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 951,
+      "stdoutSha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "parentRole": "probe-1",
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "be863ac06e915403292b3722d170788099bc221d",
+        "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/REVIEW.json",
+        "sha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12"
+      },
+      "pid": 5252,
+      "group": -5252,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "parentRole": "probe-1",
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "8830c48b242de7f6b29e84e71def3cabee8d22db",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01-grant/GRANT.json",
+        "sha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3"
+      },
+      "pid": 5255,
+      "group": -5255,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 951,
+      "stdoutSha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "parentRole": "probe-2",
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "be863ac06e915403292b3722d170788099bc221d",
+        "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/REVIEW.json",
+        "sha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12"
+      },
+      "pid": 5337,
+      "group": -5337,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "parentRole": "probe-2",
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "8830c48b242de7f6b29e84e71def3cabee8d22db",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01-grant/GRANT.json",
+        "sha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3"
+      },
+      "pid": 5338,
+      "group": -5338,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 951,
+      "stdoutSha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "parentRole": "probe-3",
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "be863ac06e915403292b3722d170788099bc221d",
+        "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/REVIEW.json",
+        "sha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12"
+      },
+      "pid": 5422,
+      "group": -5422,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "e3c3764394a6e19dce23abbbbe218d9b37f27779abb8e1b01862ea7e3880fc12",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "parentRole": "probe-3",
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "8830c48b242de7f6b29e84e71def3cabee8d22db",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01-grant/GRANT.json",
+        "sha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3"
+      },
+      "pid": 5423,
+      "group": -5423,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 951,
+      "stdoutSha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3",
+      "stderrBase64": "",
+      "reaped": true
+    }
+  ],
+  "processes": [
+    {
+      "role": "coordinator/authority-1",
+      "pid": 5105,
+      "group": -5105,
+      "disposition": "spawnSync status0/signalnull, recorded reaped",
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "coordinator/authority-2",
+      "pid": 5106,
+      "group": -5106,
+      "disposition": "spawnSync status0/signalnull, recorded reaped",
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "coordinator",
+      "pid": 5104,
+      "group": -5104,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "natural": false,
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-1/authority-1",
+      "pid": 5252,
+      "group": -5252,
+      "disposition": "spawnSync status0/signalnull, recorded reaped",
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-1/authority-2",
+      "pid": 5255,
+      "group": -5255,
+      "disposition": "spawnSync status0/signalnull, recorded reaped",
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-1",
+      "pid": 5248,
+      "group": -5248,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "natural": true,
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-2/authority-1",
+      "pid": 5337,
+      "group": -5337,
+      "disposition": "spawnSync status0/signalnull, recorded reaped",
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-2/authority-2",
+      "pid": 5338,
+      "group": -5338,
+      "disposition": "spawnSync status0/signalnull, recorded reaped",
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-2",
+      "pid": 5331,
+      "group": -5331,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "natural": true,
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-3/authority-1",
+      "pid": 5422,
+      "group": -5422,
+      "disposition": "spawnSync status0/signalnull, recorded reaped",
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-3/authority-2",
+      "pid": 5423,
+      "group": -5423,
+      "disposition": "spawnSync status0/signalnull, recorded reaped",
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    },
+    {
+      "role": "probe-3",
+      "pid": 5419,
+      "group": -5419,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "natural": false,
+      "recordedReaped": true,
+      "postCaptureAbsence": {
+        "pid": "ABSENT",
+        "group": "ABSENT"
+      }
+    }
+  ],
+  "views": [
+    {
+      "name": "target-installed",
+      "engine": "virtual-bash",
+      "files": 860,
+      "omittedMetadataOnly": 0,
+      "entries": 906,
+      "complete": true,
+      "oldOriginAbsent": null,
+      "bytes": 4149191
+    },
+    {
+      "name": "target-moved",
+      "engine": "virtual-bash",
+      "files": 860,
+      "omittedMetadataOnly": 0,
+      "entries": 906,
+      "complete": true,
+      "oldOriginAbsent": true,
+      "bytes": 4149191
+    },
+    {
+      "name": "baseline-installed",
+      "engine": "just-bash",
+      "files": 3845,
+      "omittedMetadataOnly": 0,
+      "entries": 4277,
+      "complete": true,
+      "oldOriginAbsent": null,
+      "bytes": 135294007
+    }
+  ],
+  "stagedProof": "exact accepted target pack reuse plus declared comparator projection, not rebuild/full-history proof",
+  "originalComparatorMetadataCensus": {
+    "before": {
+      "files": 3843,
+      "omittedMetadataOnly": 1,
+      "entries": 4275,
+      "complete": true
+    },
+    "after": {
+      "files": 3843,
+      "omittedMetadataOnly": 1,
+      "entries": 4275,
+      "complete": true
+    }
+  },
+  "targetPackMembers": 858,
+  "comparatorDeclaredInputs": 3843,
+  "comparatorInstructionMetadataOnly": [
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+      "bytes": 9231,
+      "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+      "mode": 292
+    }
+  ],
+  "stageQualification": "858 full target pack members plus2 consumer files in each layout;3843 comparator inputs plus2 consumer files. Stage remains locally intact; archive deliberately excludes duplicate stage bytes, retaining authenticated STAGED manifests and all raw receipts. No instruction plaintext materialized/read.",
+  "evidenceAtTerminal": {
+    "files": 5588,
+    "entries": 6116,
+    "observedEvidence": 2626062,
+    "attemptedEvidence": 2626376,
+    "limit": 260046848,
+    "observedStage": 143592389,
+    "declaredStageBytes": 143592389,
+    "partial": true,
+    "wholeCheckoutClaim": false
+  },
+  "terminalResult": {
+    "path": "RESULT.json",
+    "bytes": 80143,
+    "sha256": "83c4400d0cf18632c19e570bc7af578d86f7225491fb47d9c1116179abc79d66",
+    "mode": 420
+  },
+  "terminalAccounting": {
+    "enrolled": 3,
+    "attempted": 3,
+    "launched": 3,
+    "closed": 3,
+    "unknownAcquisitions": 0,
+    "allChildrenReaped": true,
+    "unsafe": false
+  },
+  "unrun": [
+    {
+      "id": "C01",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C02",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C03",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C04",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C05",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C06",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C07",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C08",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C09",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C10",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C11",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    },
+    {
+      "id": "C12",
+      "status": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+    }
+  ],
+  "operations": [
+    {
+      "id": "probe-1",
+      "launch": 1
+    },
+    {
+      "id": "probe-2",
+      "launch": 2
+    },
+    {
+      "id": "probe-3",
+      "launch": 3
+    },
+    {
+      "id": "C03-esm",
+      "launch": null
+    },
+    {
+      "id": "C03-cjs",
+      "launch": null
+    },
+    {
+      "id": "C03-require",
+      "launch": null
+    },
+    {
+      "id": "C03-wrong-hash",
+      "launch": null
+    },
+    {
+      "id": "C04-unbound",
+      "launch": null
+    },
+    {
+      "id": "C04-offline",
+      "launch": null
+    },
+    {
+      "id": "C09-status",
+      "launch": null
+    },
+    {
+      "id": "C09-deadline",
+      "launch": null
+    },
+    {
+      "id": "C11-positive",
+      "launch": null
+    },
+    {
+      "id": "C11-rejected",
+      "launch": null
+    },
+    {
+      "id": "C12-loaded-noop",
+      "launch": null
+    }
+  ],
+  "archive": {
+    "files": 34,
+    "rawBytes": 2720815,
+    "compressedBytes": 990191,
+    "maxPhysicalRawRecordBytes": 262144,
+    "gzipSha256": "337d1f05a9f678c2ee0cb1a94c1ff082ccc845d997b36b34e8a08ab5659e14b1",
+    "parts": [
+      {
+        "path": "raw-0000.gzpart",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "99d82d177d734b13c477b96fe260b27c6aed5e24d661c47269521a97361dbe6c"
+      },
+      {
+        "path": "raw-0001.gzpart",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "510b77c716ff8bcdfd40836a8f892135f7601fc3afd08544f4ed51285b288ad4"
+      },
+      {
+        "path": "raw-0002.gzpart",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "3e8489225975a9d349b8d6852867247b46ca471c9e21f073f815de22f6668510"
+      },
+      {
+        "path": "raw-0003.gzpart",
+        "bytes": 203759,
+        "mode": 420,
+        "sha256": "e1bd85064f3a56c8eb6907feac3dda0adf77a24390ceafdb77a9da8f377cb7f0"
+      }
+    ],
+    "roundTrip": "ALL_RAW_BYTES_MODES_HASHES_EXACT",
+    "stagedBytesCopiedToArchive": 0
+  },
+  "postGuard": {
+    "recipe": "359_BINDINGS_EXACT",
+    "auth": "EXACT",
+    "tools": "EXACT",
+    "views": "ALL_EXACT_COMPLETE_CENSUS",
+    "oldMoveOrigin": "ABSENT",
+    "primaryUnchanged": true
+  },
+  "collectorSourceSha256": "6d39cb5cd2b2d6faee29a4150a47cfef5863152ebe9e9367959eafc3091baad5",
+  "exclusions": [
+    "No retry, policy widening, product repair, extra engine execution or historical rescore",
+    "No99semanticGO",
+    "W07 comparator nonexecution UNQUALIFIED/UNCREDITED",
+    "Prior V6 lost294045 bytes/oversized records and all prior consumed grants unchanged",
+    "Old30+1/7of8/31of33/F08EPERM unchanged",
+    "Full248+8MiB quota boundaries STATIC_ONLY;256MiB heap not RSS;75min checked elapsed not hard preemption"
+  ],
+  "files": [
+    {
+      "path": "runs/admission-v7-r2-01/AUTHORITY.lock",
+      "bytes": 376,
+      "mode": 292,
+      "sha256": "e2ee05b8f8856877f1516b173d83666b46035584e66cd54c0c0ecc661ac1e7c3"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/AUTHORIZATION.json",
+      "bytes": 862,
+      "mode": 420,
+      "sha256": "bfad7c0343ce50471f39157ce39d7980db0f2c6b4d2b06d46feb7a8ff6852572"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/RESULT.json",
+      "bytes": 80143,
+      "mode": 420,
+      "sha256": "83c4400d0cf18632c19e570bc7af578d86f7225491fb47d9c1116179abc79d66"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/STAGED.json",
+      "bytes": 694,
+      "mode": 420,
+      "sha256": "0cf2fb97c9a56fadf4f6751fb824d3d2d9684266b68962eb0033a9cfe73d6f97"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/STAGED.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "305beced3a917526524bf583e5e294028fddf0834686a98005ca124a19641a91"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/STAGED.json.part-0001.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "a68afe679ae7fdd59dfd134f23a99250578d05efb47330c640e16b3259670fe6"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/STAGED.json.part-0002.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "9d53d24952bd1f4e80d237db82483551b8e2550de84d596b50721d0fca06d07d"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/STAGED.json.part-0003.data",
+      "bytes": 193136,
+      "mode": 420,
+      "sha256": "a54544221fc723ef7bd0207869e9d66c2ad0b518edc2f25054b88e6aeeccf179"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-001.json",
+      "bytes": 148518,
+      "mode": 420,
+      "sha256": "197977a4288caa5b7cbe5202a0b54687313731d279f4d8fbe56dffd8adb02bb8"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-001.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "b10fa70fe8a7e87e4450f3c2325308a6599e9a37c0c5c9d9773163ae5b9eb188"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-001.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "79b56067046d88702221c79e6ec5a5cbc8413b48d61a0d741d5e2f6689b21f73"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-001.receipt.json.part-0001.data",
+      "bytes": 63780,
+      "mode": 420,
+      "sha256": "6d941c927e690069d6807c2479f436a01542781c0fff93970af1a04bf56a45fd"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-002.json",
+      "bytes": 148645,
+      "mode": 420,
+      "sha256": "aecdee8de409746c9fa4567f7838377a68a53ae66b7df135859af3b4f005d93e"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-002.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "690f72dfb3253c6841844696c4aeb777539f2d3dd9e6136539aea84dfa3d3aeb"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-002.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "f1986a2af11b8d62e4ecb9a860de0426fe9db9d9c880f9e6307ad345b9d6be8c"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-002.receipt.json.part-0001.data",
+      "bytes": 63596,
+      "mode": 420,
+      "sha256": "2cf39697801c39fdf23e6bac6a67cdf1d33f3be2c8e3ba8e162293f984695205"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-003.json",
+      "bytes": 563,
+      "mode": 420,
+      "sha256": "cdfc986cee031e53c95e97cea5b1889a9f98bd027e2b1931c908eddae1d541c7"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-003.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "245c66a5ca2159cf6dcccbc2f106565ee638aeb5b1071030747c87487613ec43"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-003.json.part-0001.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "3bedda0e424d0a96188e6d89324ea14e278f1f73ba38e88b756d33a90a3d3b19"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-003.json.part-0002.data",
+      "bytes": 161199,
+      "mode": 420,
+      "sha256": "2685d538f516c773e995f4fdbf77892addd2d2643cc190db012c6be3408fe6ee"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/child-003.receipt.json",
+      "bytes": 8277,
+      "mode": 420,
+      "sha256": "f50e1bac58ec49c084a24707ffe1bb145cf0ca84d090f8aefd820e18e64e3414"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/operation-probe-1.claim",
+      "bytes": 180,
+      "mode": 292,
+      "sha256": "d52bfe824ab87aad4088a6b79d1996dd03634383d8144139b23b0178e7e20444"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/operation-probe-2.claim",
+      "bytes": 176,
+      "mode": 292,
+      "sha256": "b01bc35cedf8764e6915ab5e155e5af522f5429aecdb3f131f46daa2026faae3"
+    },
+    {
+      "path": "runs/admission-v7-r2-01/operation-probe-3.claim",
+      "bytes": 182,
+      "mode": 292,
+      "sha256": "e60e2c6072caf75839014e0fbd1830c3876e279e4dc99dab5b21505e31d28a5f"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-supervision/COORDINATOR-RECEIPT.json",
+      "bytes": 4710,
+      "mode": 420,
+      "sha256": "600064b7066f2c3fa2d8b616aa73545514aa5f8348e0d928c281b998386f9af1"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-supervision/LAUNCH.json",
+      "bytes": 900,
+      "mode": 420,
+      "sha256": "7961622b9cf08e668f4068572eda811ccc5d0e645721f11b773c4ec28336aa40"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-supervision/OUTER.json",
+      "bytes": 1074,
+      "mode": 420,
+      "sha256": "de7111af6dce919f40e303b5087ed1d439ad930680fa0e512c59987abd62a772"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-grant/AUTH.json",
+      "bytes": 544,
+      "mode": 420,
+      "sha256": "1afde12dabbd7d6fc8d29d5438eaac2c153e0e0cdc7eb2f0c7235ffe8c9347f2"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-grant/GRANT.json",
+      "bytes": 951,
+      "mode": 420,
+      "sha256": "1de161b4493b20cf200e7a8f845399c9757f41192928def1f820f78626309ce3"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-grant/LAUNCH-INTENT.json",
+      "bytes": 2098,
+      "mode": 420,
+      "sha256": "61e7036e19418f1399b12f03f42d373736bfbd30c4765613985fb09d23d2a24e"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-grant/LAUNCH-SHELL-EXIT.data",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-grant/LAUNCH.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-grant/LAUNCH.stdout",
+      "bytes": 500,
+      "mode": 420,
+      "sha256": "4bc6318d34ed23fec877d445d43c8f27ac3cfab6c5facedf34fa44295ac81fe8"
+    },
+    {
+      "path": "runs/admission-v7-r2-01-grant/ROOT-MESSAGE.md",
+      "bytes": 3831,
+      "mode": 420,
+      "sha256": "9b82135e653fe45bd2d957d4cee843ee992b93b5086c492dada8cce9d51f1f1f"
+    }
+  ]
+}

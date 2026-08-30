@@ -1,0 +1,210 @@
+{
+  "schema": "timeout-public-executor-preparation/1",
+  "sealedAt": "2026-08-28T04:57:43.404Z",
+  "freezeCommit": "031d4ddfed2fd88e2747bcf1d69242384096b754",
+  "freezeSha256": "18e3c23c425065f79c92ff6a17e7853c643e316db3e38d5806c3450a63448991",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedModule": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "publicCandidate": null,
+  "status": "PREPARATION_ONLY_WAITING_EXACT_CANDIDATE",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 6966,
+      "sha256": "32bfb06c35e20a50da3f4934a67d2da5f5bfffa4696696f073ea5bbbc77bfbd9"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 4119,
+      "sha256": "dec89e7aaa05a24b974a01fa54f066c780b20ac4cf6c48b5532a414fbe10dc4a"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 7661,
+      "sha256": "7e792e6421a9a49e4c9ba889fc6de5ce512681dad642323473c3c9a2cd83effa"
+    },
+    {
+      "path": "type-trace.mjs",
+      "bytes": 3209,
+      "sha256": "23476cfac54706b7cc6fd4aa2dc67ec81f56e683c2ae32867049b66517ded4e1"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 3246,
+      "sha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155"
+    },
+    {
+      "path": "legacy-transform.mjs",
+      "bytes": 3208,
+      "sha256": "2de37ea61616a63c9f30294ce02b5905ab4f3f6bf932b3022c83857f851cfacd"
+    },
+    {
+      "path": "legacy-adapter.mjs",
+      "bytes": 15423,
+      "sha256": "d8e830e89970e1d8bf38ee1c5468a7a747a46d9a4d1e2d5ab06a95b06275c158"
+    },
+    {
+      "path": "ADAPTER.json",
+      "bytes": 2591,
+      "sha256": "159c1ba8c9455ca8a88abed174a0b2e95c732e3741fa9bca34e0bc5005d05001"
+    },
+    {
+      "path": "preload.mjs",
+      "bytes": 3456,
+      "sha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18"
+    },
+    {
+      "path": "runtime.mjs",
+      "bytes": 26697,
+      "sha256": "9b946a5b8568b002b7dadd409bc1e056fd62a9bc0ec46858efbfed2655a4e558"
+    },
+    {
+      "path": "execute.mjs",
+      "bytes": 15871,
+      "sha256": "2f73228958da14f65383e62c9a27f3794bbef6a817807366185735069c95b1de"
+    },
+    {
+      "path": "negative-worker.mjs",
+      "bytes": 1246,
+      "sha256": "f411557139d8242ba6d42e2ce42a37520142c51d10e39b7a508ed9d6442a6cce"
+    },
+    {
+      "path": "negative-protocol.mjs",
+      "bytes": 7639,
+      "sha256": "9cda00e431a67d89130c1c7750993b78eefbe8b2fe5ed1bad249dfb9ceea596d"
+    },
+    {
+      "path": "archive.mjs",
+      "bytes": 2546,
+      "sha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 3564,
+      "sha256": "4f01ac7baa57f1982a91212369b96797a4d9d1d786c9daa4ccc34583624f0a00"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 10431,
+      "sha256": "2cab6d698e0cba9eab785690759ba609bde6c056d0d68cf219a34b91271b32e2"
+    }
+  ],
+  "references": [
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/MANIFEST.json",
+      "repositoryRelative": true,
+      "sha256": "18e3c23c425065f79c92ff6a17e7853c643e316db3e38d5806c3450a63448991",
+      "bytes": 1734
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/BINDINGS.json",
+      "repositoryRelative": true,
+      "sha256": "7a32cb77fac733116f12e5f08ca38c883ddcda85cfa5c7ac3927c6520362014e",
+      "bytes": 304012
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/cases.mjs",
+      "repositoryRelative": true,
+      "sha256": "e9b6408731e74c9e61523684146f9863d42a9b5e1d5208e4e6f29a055a5966e2",
+      "bytes": 21906
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/types.mjs",
+      "repositoryRelative": true,
+      "sha256": "166ace4eaaa37a6cd7ffdeea615ddc31a01591cf06b354311bf2220e9d4879e1",
+      "bytes": 4613
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/predicates.mjs",
+      "repositoryRelative": true,
+      "sha256": "619f0ad371ad5d7134318bdb63519136b430062be187637f8a463e9a53e55aec",
+      "bytes": 4181
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/cases.mjs",
+      "repositoryRelative": true,
+      "sha256": "e8d4c902c7984acd098728a62f72a0e2aa692b030144d9cb439d5d6c96c9ec74",
+      "bytes": 48255
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/io.mjs",
+      "repositoryRelative": true,
+      "sha256": "78262115a1350aea9654be67f4b530c11c3639c16a74758cf50ee9e09533f112",
+      "bytes": 4665
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/tool-observer.cjs",
+      "repositoryRelative": true,
+      "sha256": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967",
+      "bytes": 5913
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/borrowed-boundary.mjs",
+      "repositoryRelative": true,
+      "sha256": "57205242ad82f7ee57a59c5c3d8d93769b373f9a3eca1c49a24e3518c0d5f047",
+      "bytes": 2043
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/BINDINGS.json",
+      "repositoryRelative": true,
+      "sha256": "1b5604ae518b793f18a0c940a1fb461d0010ea1746cd03ca095bc5b196aaee93",
+      "bytes": 321801
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/clock.mjs",
+      "repositoryRelative": true,
+      "sha256": "86b98eee4ec0b3d2aeb740eb8922b7dcff31a050c52b7088e0878d0e3f08d61d",
+      "bytes": 1987
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/review-preparation-v1/recipe/support.mjs",
+      "repositoryRelative": true,
+      "sha256": "cfcdc9008e2b5f8e937a7a3072c1b2980b7ed50d32a73aa3fe91ee05aa15fde0",
+      "bytes": 5730
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/closure.json",
+      "repositoryRelative": true,
+      "sha256": "b4263e32e6b2ea91a7f8eccceb1133a04ef09d614adca2c8021737572dbd0ad7",
+      "bytes": 628683
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "profile": {
+    "runtimeFamilies": 30,
+    "runtimeLayouts": 3,
+    "typePayloads": 10,
+    "typeLayouts": 2,
+    "admissionFamilies": 8,
+    "freshGuards": 6,
+    "packageNegatives": 7,
+    "productMutants": 8,
+    "original32Replay": false,
+    "numeric70Replay": false,
+    "native": 0,
+    "safeJS": 0
+  },
+  "supervision": {
+    "perCaseMilliseconds": 10000,
+    "perTypeMilliseconds": 10000,
+    "buildPackInstallMilliseconds": 120000,
+    "childOutputBytes": 16777216,
+    "runtimeRecordBytes": 1048576,
+    "compactArchiveBytes": 134217728
+  },
+  "preparationControls": 26,
+  "actualPublicRuntime": 0,
+  "actualPublicTypes": 0,
+  "actualProductImports": 0,
+  "actualBuildPackInstall": 0,
+  "chronology": "Accepted a238 module already inspected; no public candidate handoff/inspection or execution. Adapter selects aggregate and retains exact caller/retirement predicates; no module policy change."
+}

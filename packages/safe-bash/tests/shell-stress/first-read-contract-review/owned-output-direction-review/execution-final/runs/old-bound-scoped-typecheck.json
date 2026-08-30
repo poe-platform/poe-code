@@ -1,0 +1,35 @@
+{
+  "label": "old-bound-scoped-typecheck",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/bound/tsconfig.json"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:00.104Z",
+  "finishedAt": "2026-08-27T10:38:00.543Z",
+  "durationMs": 438.5083750000001,
+  "timeoutMs": 30000,
+  "maxBytes": 262144,
+  "pid": 4943,
+  "initialIdentity": "4943  4804  4943 Thu Aug 27 05:38:00 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate/node_modules/typescript/bin/tsc --noEmit -p /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/bound/tsconfig.json",
+  "status": 0,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "",
+  "stderr": ""
+}

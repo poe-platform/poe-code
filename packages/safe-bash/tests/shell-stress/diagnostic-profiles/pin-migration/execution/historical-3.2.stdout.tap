@@ -1,0 +1,1212 @@
+TAP version 13
+# Subtest: historical-3.2: pinned identity and original native lifecycle control
+ok 1 - historical-3.2: pinned identity and original native lifecycle control
+  ---
+  duration_ms: 210.3785
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe
+ok 2 - historical-3.2: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe
+  ---
+  duration_ms: 251.8625
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: descriptor-move-closes-original-after-copy
+ok 3 - historical-3.2: original-differential: descriptor-move-closes-original-after-copy
+  ---
+  duration_ms: 230.060292
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: closing-stdout-then-reopening-is-left-to-right
+ok 4 - historical-3.2: original-differential: closing-stdout-then-reopening-is-left-to-right
+  ---
+  duration_ms: 243.139875
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: closing-stderr-does-not-close-duplicated-stdout
+ok 5 - historical-3.2: original-differential: closing-stderr-does-not-close-duplicated-stdout
+  ---
+  duration_ms: 229.10375
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: group-redirection-is-restored-after-return
+ok 6 - historical-3.2: original-differential: group-redirection-is-restored-after-return
+  ---
+  duration_ms: 220.075042
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: pipe-established-before-stderr-copy-and-output-redirect
+ok 7 - historical-3.2: original-differential: pipe-established-before-stderr-copy-and-output-redirect
+  ---
+  duration_ms: 232.948958
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: nested-truncate-does-not-reset-outer-file-offset
+ok 8 - historical-3.2: original-differential: nested-truncate-does-not-reset-outer-file-offset
+  ---
+  duration_ms: 226.272292
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: independent-output-descriptors-have-separate-offsets
+ok 9 - historical-3.2: original-differential: independent-output-descriptors-have-separate-offsets
+  ---
+  duration_ms: 235.563292
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: duplicated-output-descriptors-share-offset
+ok 10 - historical-3.2: original-differential: duplicated-output-descriptors-share-offset
+  ---
+  duration_ms: 245.00725
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: append-descriptor-observes-intervening-truncation
+ok 11 - historical-3.2: original-differential: append-descriptor-observes-intervening-truncation
+  ---
+  duration_ms: 253.4135
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: redirect-expansion-side-effect-precedes-truncate
+ok 12 - historical-3.2: original-differential: redirect-expansion-side-effect-precedes-truncate
+  ---
+  duration_ms: 238.526167
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-and-substitution-consume-one-inherited-offset
+ok 13 - historical-3.2: original-differential: read-and-substitution-consume-one-inherited-offset
+  ---
+  duration_ms: 229.211042
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-in-subshell-consumes-input-but-not-parent-variable
+ok 14 - historical-3.2: original-differential: read-in-subshell-consumes-input-but-not-parent-variable
+  ---
+  duration_ms: 227.645167
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: multiple-input-redirections-only-last-is-consumed
+ok 15 - historical-3.2: original-differential: multiple-input-redirections-only-last-is-consumed
+  ---
+  duration_ms: 228.906208
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-n-consumes-exactly-two-characters
+ok 16 - historical-3.2: original-differential: read-n-consumes-exactly-two-characters
+  ---
+  duration_ms: 231.716333
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-d-consumes-through-delimiter-only
+ok 17 - historical-3.2: original-differential: read-d-consumes-through-delimiter-only
+  ---
+  duration_ms: 225.9755
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-backslash-newline-joins-before-splitting
+ok 18 - historical-3.2: original-differential: read-backslash-newline-joins-before-splitting
+  ---
+  duration_ms: 218.964167
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-last-variable-preserves-inner-separators
+ok 19 - historical-3.2: original-differential: read-last-variable-preserves-inner-separators
+  ---
+  duration_ms: 214.043042
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: redirected-pipeline-input-leaves-inherited-input-intact
+ok 20 - historical-3.2: original-differential: redirected-pipeline-input-leaves-inherited-input-intact
+  ---
+  duration_ms: 234.203208
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: pipefail-picks-rightmost-nonzero-not-first
+ok 21 - historical-3.2: original-differential: pipefail-picks-rightmost-nonzero-not-first
+  ---
+  duration_ms: 217.571125
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: pipeline-negation-with-pipefail-controls-conditional
+ok 22 - historical-3.2: original-differential: pipeline-negation-with-pipefail-controls-conditional
+  ---
+  duration_ms: 219.747
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: function-in-middle-of-pipeline-preserves-bytes
+ok 23 - historical-3.2: original-differential: function-in-middle-of-pipeline-preserves-bytes
+  ---
+  duration_ms: 231.815834
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: early-pipeline-reader-closes-bounded-producer
+ok 24 - historical-3.2: original-differential: early-pipeline-reader-closes-bounded-producer
+  ---
+  duration_ms: 250.325709
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: quoted-positional-at-concatenates-only-edge-fields
+ok 25 - historical-3.2: original-differential: quoted-positional-at-concatenates-only-edge-fields
+  ---
+  duration_ms: 228.054125
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: quoted-star-uses-first-ifs-character
+ok 26 - historical-3.2: original-differential: quoted-star-uses-first-ifs-character
+  ---
+  duration_ms: 240.359416
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields
+ok 27 - historical-3.2: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields
+  ---
+  duration_ms: 240.344125
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field
+ok 28 - historical-3.2: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field
+  ---
+  duration_ms: 233.279708
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: default-operator-does-not-evaluate-unused-substitution
+ok 29 - historical-3.2: original-differential: default-operator-does-not-evaluate-unused-substitution
+  ---
+  duration_ms: 245.792417
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: assignment-default-side-effect-persists-outside-expansion
+ok 30 - historical-3.2: original-differential: assignment-default-side-effect-persists-outside-expansion
+  ---
+  duration_ms: 236.209
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: prefix-assignment-value-expansion-sees-prior-assignment
+ok 31 - historical-3.2: original-differential: prefix-assignment-value-expansion-sees-prior-assignment
+  ---
+  duration_ms: 219.352
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: command-substitution-file-shortcut-reads-and-trims
+ok 32 - historical-3.2: original-differential: command-substitution-file-shortcut-reads-and-trims
+  ---
+  duration_ms: 242.571459
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: substitution-retains-interior-newlines-and-isolates-variable
+ok 33 - historical-3.2: original-differential: substitution-retains-interior-newlines-and-isolates-variable
+  ---
+  duration_ms: 233.599375
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: last-assignment-substitution-status-wins
+ok 34 - historical-3.2: original-differential: last-assignment-substitution-status-wins
+  ---
+  duration_ms: 234.519208
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: substitution-does-not-reparse-metacharacters
+ok 35 - historical-3.2: original-differential: substitution-does-not-reparse-metacharacters
+  ---
+  duration_ms: 302.468625
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing
+ok 36 - historical-3.2: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing
+  ---
+  duration_ms: 240.7955
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: backquote-substitution-preserves-double-quoted-result
+ok 37 - historical-3.2: original-differential: backquote-substitution-preserves-double-quoted-result
+  ---
+  duration_ms: 239.614292
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: quoted-glob-fragment-remains-literal-inside-pattern
+ok 38 - historical-3.2: original-differential: quoted-glob-fragment-remains-literal-inside-pattern
+  ---
+  duration_ms: 249.690917
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: glob-question-mark-matches-one-character-including-brackets
+ok 39 - historical-3.2: original-differential: glob-question-mark-matches-one-character-including-brackets
+  ---
+  duration_ms: 235.917125
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: glob-hidden-directory-requires-explicit-dot
+ok 40 - historical-3.2: original-differential: glob-hidden-directory-requires-explicit-dot
+  ---
+  duration_ms: 221.337667
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: redirect-glob-resolves-single-match-with-space
+ok 41 - historical-3.2: original-differential: redirect-glob-resolves-single-match-with-space
+  ---
+  duration_ms: 236.379667
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: tilde-prefix-in-assignment-not-in-quoted-word
+ok 42 - historical-3.2: original-differential: tilde-prefix-in-assignment-not-in-quoted-word
+  ---
+  duration_ms: 224.875167
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: heredoc-tab-stripping-keeps-other-whitespace
+ok 43 - historical-3.2: original-differential: heredoc-tab-stripping-keeps-other-whitespace
+  ---
+  duration_ms: 224.693
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: multiple-heredocs-last-input-wins
+ok 44 - historical-3.2: original-differential: multiple-heredocs-last-input-wins
+  ---
+  duration_ms: 215.790625
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: here-string-expands-without-splitting-or-globbing
+ok 45 - historical-3.2: original-differential: here-string-expands-without-splitting-or-globbing
+  ---
+  duration_ms: 221.312625
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side
+ok 46 - historical-3.2: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side
+  ---
+  duration_ms: 221.007417
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: compound-loop-return-restores-outer-function-positionals
+ok 47 - historical-3.2: original-differential: compound-loop-return-restores-outer-function-positionals
+  ---
+  duration_ms: 233.866542
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+not ok 48 - historical-3.2: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+  ---
+  duration_ms: 244.994208
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+    + actual - expected
+    
+      {
+    +   exitCode: 127,
+    +   files: {},
+    +   stderr: "shell: -c: line 1: syntax error near unexpected token `)'\n" +
+    +     'shell: -c: line 1: `printf touched >marker; printf \'%s\' "$(true |)"\'\n',
+    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==',
+    -   exitCode: 0,
+    -   files: {
+    -     marker: {
+    -       base64: 'dG91Y2hlZA==',
+    -       type: 'file'
+    -     }
+    -   },
+    -   stderr: 'shell: command substitution: line 1: syntax error: unexpected end of file\n',
+    -   stderrBase64: 'c2hlbGw6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: command substitution: line 1: syntax error: unexpected end of file
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo='
+    exitCode: 0
+    files:
+      marker:
+        type: 'file'
+        base64: 'dG91Y2hlZA=='
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 1: syntax error near unexpected token `)'
+      shell: -c: line 1: `printf touched >marker; printf '%s' "$(true |)"'
+      
+    exitCode: 127
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects
+ok 49 - historical-3.2: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects
+  ---
+  duration_ms: 235.3045
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: early-reader-must-not-cancel-redirected-producer-output
+ok 50 - historical-3.2: original-differential: early-reader-must-not-cancel-redirected-producer-output
+  ---
+  duration_ms: 226.67475
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe
+ok 51 - historical-3.2: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe
+  ---
+  duration_ms: 223.976291
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: fatal-parameter-expansion-prevents-following-file-effect
+not ok 52 - historical-3.2: original-differential: fatal-parameter-expansion-prevents-following-file-effect
+  ---
+  duration_ms: 232.323958
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: fatal-parameter-expansion-prevents-following-file-effect
+    + actual - expected
+    
+      {
+        exitCode: 127,
+        files: {},
+    +   stderr: 'shell: line 1: missing: stop\n',
+    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',
+    -   stderr: 'shell: missing: stop\n',
+    -   stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: missing: stop
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK'
+    exitCode: 127
+    files:
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: line 1: missing: stop
+      
+    exitCode: 127
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect
+not ok 53 - historical-3.2: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect
+  ---
+  duration_ms: 233.041334
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: fatal-arithmetic-expansion-prevents-following-file-effect
+    + actual - expected
+    
+      {
+        exitCode: 1,
+        files: {},
+    +   stderr: 'shell: line 1: 1/0: division by 0 (error token is "0")\n',
+    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==',
+    -   stderr: 'shell: 1/0: division by 0 (error token is "0")\n',
+    -   stderrBase64: 'c2hlbGw6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: 1/0: division by 0 (error token is "0")
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo='
+    exitCode: 1
+    files:
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: line 1: 1/0: division by 0 (error token is "0")
+      
+    exitCode: 1
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-differential: fatal-expansion-in-substitution-stops-substitution-only
+not ok 54 - historical-3.2: original-differential: fatal-expansion-in-substitution-stops-substitution-only
+  ---
+  duration_ms: 232.282042
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: fatal-expansion-in-substitution-stops-substitution-only
+    + actual - expected
+    
+      {
+        exitCode: 0,
+        files: {},
+    +   stderr: 'shell: line 1: missing: stop\n',
+    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',
+    -   stderr: 'shell: missing: stop\n',
+    -   stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK',
+        stdout: '<>:1\n',
+        stdoutBase64: 'PD46MQo='
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: |-
+      <>:1
+      
+    stderr: |-
+      shell: missing: stop
+      
+    stdoutBase64: 'PD46MQo='
+    stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK'
+    exitCode: 0
+    files:
+  actual:
+    stdout: |-
+      <>:1
+      
+    stderr: |-
+      shell: line 1: missing: stop
+      
+    exitCode: 0
+    files:
+    stdoutBase64: 'PD46MQo='
+    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-differential: group-inherits-descriptor-three-for-inner-redirection
+ok 55 - historical-3.2: original-differential: group-inherits-descriptor-three-for-inner-redirection
+  ---
+  duration_ms: 242.497083
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: group-inherits-input-descriptor-and-shared-read-offset
+ok 56 - historical-3.2: original-differential: group-inherits-input-descriptor-and-shared-read-offset
+  ---
+  duration_ms: 234.614792
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect
+ok 57 - historical-3.2: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect
+  ---
+  duration_ms: 223.586333
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-escaped-ifs-character-is-not-a-field-separator
+ok 58 - historical-3.2: original-differential: read-escaped-ifs-character-is-not-a-field-separator
+  ---
+  duration_ms: 220.275291
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields
+ok 59 - historical-3.2: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields
+  ---
+  duration_ms: 215.519459
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter
+ok 60 - historical-3.2: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter
+  ---
+  duration_ms: 222.829875
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: quoted-pattern-removal-star-is-literal
+ok 61 - historical-3.2: original-differential: quoted-pattern-removal-star-is-literal
+  ---
+  duration_ms: 230.633125
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: glob-posix-bracket-digit-class
+ok 62 - historical-3.2: original-differential: glob-posix-bracket-digit-class
+  ---
+  duration_ms: 230.390667
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: command-substitution-removes-nul-bytes
+not ok 63 - historical-3.2: original-differential: command-substitution-removes-nul-bytes
+  ---
+  duration_ms: 232.230167
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: command-substitution-removes-nul-bytes
+    + actual - expected
+    
+      {
+        exitCode: 0,
+        files: {},
+    +   stderr: 'shell: line 1: warning: command substitution: ignored null byte in input\n',
+    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==',
+    -   stderr: '',
+    -   stderrBase64: '',
+        stdout: '<ab>\n',
+        stdoutBase64: 'PGFiPgo='
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: |-
+      <ab>
+      
+    stderr: ''
+    stdoutBase64: 'PGFiPgo='
+    stderrBase64: ''
+    exitCode: 0
+    files:
+  actual:
+    stdout: |-
+      <ab>
+      
+    stderr: |-
+      shell: line 1: warning: command substitution: ignored null byte in input
+      
+    exitCode: 0
+    files:
+    stdoutBase64: 'PGFiPgo='
+    stderrBase64: 'c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-differential: export-prefix-assignment-persists-in-shell
+ok 64 - historical-3.2: original-differential: export-prefix-assignment-persists-in-shell
+  ---
+  duration_ms: 209.193667
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: local-without-assignment-starts-unset
+ok 65 - historical-3.2: original-differential: local-without-assignment-starts-unset
+  ---
+  duration_ms: 212.347084
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: glob-matches-newline-bytes-and-the-exact-filename
+ok 66 - historical-3.2: original-differential: glob-matches-newline-bytes-and-the-exact-filename
+  ---
+  duration_ms: 220.423583
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: parameter-patterns-match-newlines-with-exact-boundaries
+ok 67 - historical-3.2: original-differential: parameter-patterns-match-newlines-with-exact-boundaries
+  ---
+  duration_ms: 208.552834
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: seed-5eed1234-glob-pipeline-0
+ok 68 - historical-3.2: original-differential: seed-5eed1234-glob-pipeline-0
+  ---
+  duration_ms: 234.661083
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: seed-5eed1234-glob-pipeline-1
+ok 69 - historical-3.2: original-differential: seed-5eed1234-glob-pipeline-1
+  ---
+  duration_ms: 242.982625
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: seed-5eed1234-glob-pipeline-2
+ok 70 - historical-3.2: original-differential: seed-5eed1234-glob-pipeline-2
+  ---
+  duration_ms: 238.0875
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: seed-5eed1234-glob-pipeline-3
+ok 71 - historical-3.2: original-differential: seed-5eed1234-glob-pipeline-3
+  ---
+  duration_ms: 251.336667
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: seed-5eed1234-glob-pipeline-4
+ok 72 - historical-3.2: original-differential: seed-5eed1234-glob-pipeline-4
+  ---
+  duration_ms: 242.53925
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-differential: seed-5eed1234-glob-pipeline-5
+ok 73 - historical-3.2: original-differential: seed-5eed1234-glob-pipeline-5
+  ---
+  duration_ms: 249.92425
+  type: 'test'
+  ...
+# Subtest: historical-3.2: original-syntax: unterminated-quote-after-write
+not ok 74 - historical-3.2: original-syntax: unterminated-quote-after-write
+  ---
+  duration_ms: 222.726
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: unterminated-quote-after-write
+    + actual - expected
+    
+      {
+        exitCode: 2,
+        files: {},
+    +   stderr: 'shell: -c: line 1: unexpected EOF while looking for matching `"\'\n',
+    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=',
+    -   stderr: 'shell: -c: line 0: unexpected EOF while looking for matching `"\'\n' +
+    -     'shell: -c: line 1: syntax error: unexpected end of file\n',
+    -   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 0: unexpected EOF while looking for matching `"'
+      shell: -c: line 1: syntax error: unexpected end of file
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg=='
+    exitCode: 2
+    files:
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 1: unexpected EOF while looking for matching `"'
+      
+    exitCode: 2
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-syntax: missing-pipeline-command-after-write
+not ok 75 - historical-3.2: original-syntax: missing-pipeline-command-after-write
+  ---
+  duration_ms: 228.836708
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: missing-pipeline-command-after-write
+    + actual - expected
+    
+      {
+        exitCode: 2,
+        files: {},
+    +   stderr: 'shell: -c: line 2: syntax error: unexpected end of file\n',
+    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=',
+    -   stderr: 'shell: -c: line 1: syntax error: unexpected end of file\n',
+    -   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 1: syntax error: unexpected end of file
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo='
+    exitCode: 2
+    files:
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 2: syntax error: unexpected end of file
+      
+    exitCode: 2
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-syntax: missing-conditional-operand-after-write
+not ok 76 - historical-3.2: original-syntax: missing-conditional-operand-after-write
+  ---
+  duration_ms: 225.355042
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: missing-conditional-operand-after-write
+    + actual - expected
+    
+      {
+        exitCode: 2,
+        files: {},
+    +   stderr: 'shell: -c: line 2: syntax error: unexpected end of file\n',
+    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=',
+    -   stderr: 'shell: -c: line 1: syntax error: unexpected end of file\n',
+    -   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 1: syntax error: unexpected end of file
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo='
+    exitCode: 2
+    files:
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 2: syntax error: unexpected end of file
+      
+    exitCode: 2
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-syntax: missing-group-terminator-after-write
+not ok 77 - historical-3.2: original-syntax: missing-group-terminator-after-write
+  ---
+  duration_ms: 223.466375
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: missing-group-terminator-after-write
+    + actual - expected
+    
+      {
+        exitCode: 2,
+        files: {},
+    +   stderr: "shell: -c: line 2: syntax error: unexpected end of file from `{' command on line 1\n",
+    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGB7JyBjb21tYW5kIG9uIGxpbmUgMQo=',
+    -   stderr: 'shell: -c: line 1: syntax error: unexpected end of file\n',
+    -   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 1: syntax error: unexpected end of file
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo='
+    exitCode: 2
+    files:
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 2: syntax error: unexpected end of file from `{' command on line 1
+      
+    exitCode: 2
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGB7JyBjb21tYW5kIG9uIGxpbmUgMQo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: original-syntax: missing-if-fi-after-write
+not ok 78 - historical-3.2: original-syntax: missing-if-fi-after-write
+  ---
+  duration_ms: 218.370125
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: missing-if-fi-after-write
+    + actual - expected
+    
+      {
+        exitCode: 2,
+        files: {},
+    +   stderr: "shell: -c: line 2: syntax error: unexpected end of file from `if' command on line 1\n",
+    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGBpZicgY29tbWFuZCBvbiBsaW5lIDEK',
+    -   stderr: 'shell: -c: line 1: syntax error: unexpected end of file\n',
+    -   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 1: syntax error: unexpected end of file
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo='
+    exitCode: 2
+    files:
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 2: syntax error: unexpected end of file from `if' command on line 1
+      
+    exitCode: 2
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDI6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZSBmcm9tIGBpZicgY29tbWFuZCBvbiBsaW5lIDEK'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: current-gaps: move-output-really-closes-source
+not ok 79 - historical-3.2: current-gaps: move-output-really-closes-source
+  ---
+  duration_ms: 223.873833
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: move-output-really-closes-source
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        exitCode: 0,
+        files: {
+          saved: {
+            base64: 'bW92ZWQ=',
+    ...
+        },
+    +   stderr: 'shell: line 1: 3: Bad file descriptor\n',
+    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=',
+    -   stderr: 'shell: 3: Bad file descriptor\n',
+    -   stderrBase64: 'c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK',
+        stdout: 'status=1',
+        stdoutBase64: 'c3RhdHVzPTE='
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: 'status=1'
+    stderr: |-
+      shell: 3: Bad file descriptor
+      
+    stdoutBase64: 'c3RhdHVzPTE='
+    stderrBase64: 'c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK'
+    exitCode: 0
+    files:
+      saved:
+        type: 'file'
+        base64: 'bW92ZWQ='
+  actual:
+    stdout: 'status=1'
+    stderr: |-
+      shell: line 1: 3: Bad file descriptor
+      
+    exitCode: 0
+    files:
+      saved:
+        type: 'file'
+        base64: 'bW92ZWQ='
+    stdoutBase64: 'c3RhdHVzPTE='
+    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: current-gaps: move-input-really-closes-source
+not ok 80 - historical-3.2: current-gaps: move-input-really-closes-source
+  ---
+  duration_ms: 233.510042
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: move-input-really-closes-source
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        exitCode: 0,
+        files: {
+          input: {
+            base64: 'Zmlyc3QKc2Vjb25kCg==',
+    ...
+        },
+    +   stderr: 'shell: line 1: 3: Bad file descriptor\n',
+    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=',
+    -   stderr: 'shell: 3: Bad file descriptor\n',
+    -   stderrBase64: 'c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK',
+        stdout: '<first>status=1',
+        stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: '<first>status=1'
+    stderr: |-
+      shell: 3: Bad file descriptor
+      
+    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'
+    stderrBase64: 'c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK'
+    exitCode: 0
+    files:
+      input:
+        type: 'file'
+        base64: 'Zmlyc3QKc2Vjb25kCg=='
+  actual:
+    stdout: '<first>status=1'
+    stderr: |-
+      shell: line 1: 3: Bad file descriptor
+      
+    exitCode: 0
+    files:
+      input:
+        type: 'file'
+        base64: 'Zmlyc3QKc2Vjb25kCg=='
+    stdoutBase64: 'PGZpcnN0PnN0YXR1cz0x'
+    stderrBase64: 'c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: current-gaps: read-n-stops-at-newline-before-count
+ok 81 - historical-3.2: current-gaps: read-n-stops-at-newline-before-count
+  ---
+  duration_ms: 234.419042
+  type: 'test'
+  ...
+# Subtest: historical-3.2: current-gaps: read-d-empty-selects-nul
+ok 82 - historical-3.2: current-gaps: read-d-empty-selects-nul
+  ---
+  duration_ms: 218.949709
+  type: 'test'
+  ...
+# Subtest: historical-3.2: current-gaps: read-d-missing-delimiter-retains-data-with-failure
+ok 83 - historical-3.2: current-gaps: read-d-missing-delimiter-retains-data-with-failure
+  ---
+  duration_ms: 219.971583
+  type: 'test'
+  ...
+# Subtest: historical-3.2: current-gaps: file-shortcut-does-not-consume-inherited-stdin
+ok 84 - historical-3.2: current-gaps: file-shortcut-does-not-consume-inherited-stdin
+  ---
+  duration_ms: 234.288584
+  type: 'test'
+  ...
+# Subtest: historical-3.2: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed
+ok 85 - historical-3.2: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed
+  ---
+  duration_ms: 231.150542
+  type: 'test'
+  ...
+# Subtest: historical-3.2: current-gaps: pathname-classes-c-locale-alpha-negation
+ok 86 - historical-3.2: current-gaps: pathname-classes-c-locale-alpha-negation
+  ---
+  duration_ms: 222.190959
+  type: 'test'
+  ...
+# Subtest: historical-3.2: current-gaps: prevalidation-prior-output-and-file
+not ok 87 - historical-3.2: current-gaps: prevalidation-prior-output-and-file
+  ---
+  duration_ms: 231.58675
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: prevalidation-prior-output-and-file
+    + actual - expected
+    
+      {
+    +   exitCode: 127,
+    +   files: {},
+    +   stderr: "shell: -c: line 1: syntax error near unexpected token `)'\n" +
+    +     'shell: -c: line 1: `printf before; printf marker >marker; printf "%s" "$(true |)"; printf after\'\n',
+    +   stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=',
+    +   stdout: '',
+    +   stdoutBase64: ''
+    -   exitCode: 0,
+    -   files: {
+    -     marker: {
+    -       base64: 'bWFya2Vy',
+    -       type: 'file'
+    -     }
+    -   },
+    -   stderr: 'shell: command substitution: line 1: syntax error: unexpected end of file\n',
+    -   stderrBase64: 'c2hlbGw6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=',
+    -   stdout: 'beforeafter',
+    -   stdoutBase64: 'YmVmb3JlYWZ0ZXI='
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: 'beforeafter'
+    stderr: |-
+      shell: command substitution: line 1: syntax error: unexpected end of file
+      
+    stdoutBase64: 'YmVmb3JlYWZ0ZXI='
+    stderrBase64: 'c2hlbGw6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo='
+    exitCode: 0
+    files:
+      marker:
+        type: 'file'
+        base64: 'bWFya2Vy'
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: -c: line 1: syntax error near unexpected token `)'
+      shell: -c: line 1: `printf before; printf marker >marker; printf "%s" "$(true |)"; printf after'
+      
+    exitCode: 127
+    files:
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: current-gaps: fatal-parameter-preserves-only-earlier-effects
+not ok 88 - historical-3.2: current-gaps: fatal-parameter-preserves-only-earlier-effects
+  ---
+  duration_ms: 235.921292
+  type: 'test'
+  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:643'
+  failureType: 'testCodeFailure'
+  error: |-
+    historical-3.2, uniform argv0=shell, no normalization: fatal-parameter-preserves-only-earlier-effects
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        exitCode: 127,
+        files: {
+          before: {
+            base64: 'YmVmb3Jl',
+    ...
+        },
+    +   stderr: 'shell: line 1: missing: stop\n',
+    +   stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=',
+    -   stderr: 'shell: missing: stop\n',
+    -   stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK',
+        stdout: '',
+        stdoutBase64: ''
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: ''
+    stderr: |-
+      shell: missing: stop
+      
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IG1pc3Npbmc6IHN0b3AK'
+    exitCode: 127
+    files:
+      before:
+        type: 'file'
+        base64: 'YmVmb3Jl'
+  actual:
+    stdout: ''
+    stderr: |-
+      shell: line 1: missing: stop
+      
+    exitCode: 127
+    files:
+      before:
+        type: 'file'
+        base64: 'YmVmb3Jl'
+    stdoutBase64: ''
+    stderrBase64: 'c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo='
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pins-run-oGyQdU/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:18:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: historical-3.2: current-gaps: unmatched-case-bracket-literal-control
+ok 89 - historical-3.2: current-gaps: unmatched-case-bracket-literal-control
+  ---
+  duration_ms: 213.66225
+  type: 'test'
+  ...
+1..89
+# tests 89
+# suites 0
+# pass 75
+# fail 14
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 20779.569458

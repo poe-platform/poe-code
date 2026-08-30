@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, lstatSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { git, owned, json, sha256, verifyFrozen } from './review.mjs';
+
+const manifest = JSON.parse(readFileSync(`${owned}/execution-manifest.json`));
+function inventory(directory, prefix = '') {
+  return readdirSync(directory).sort().flatMap(name => {
+    const path = join(directory, name), relative = prefix ? `${prefix}/${name}` : name;
+    const stat = lstatSync(path);
+    assert(!stat.isSymbolicLink(), `unexpected link ${path}`);
+    return stat.isDirectory() ? inventory(path, relative) : relative === 'execution-manifest.json' ? [] : [{ path: relative, sha256: sha256(readFileSync(path)) }];
+  });
+}
+assert.deepEqual(inventory(owned), manifest.files, 'sealed replay file inventory changed, missing or appended');
+assert.equal(sha256(json(manifest.files)), manifest.inventorySha256);
+const final = JSON.parse(readFileSync(`${owned}/final-integrity.json`));
+assert.deepEqual(verifyFrozen(), final.freezes);
+for (const record of final.readonly) {
+  for (const file of record.files) {
+    assert.equal(sha256(readFileSync(file.path)), file.sha256);
+    assert.equal(sha256(git('show', `${record.commit}:${file.path}`)), file.sha256);
+  }
+  if (record.additionsChecked) assert.deepEqual(inventory(record.base).map(file => `${record.base}/${file.path}`).sort(), record.files.map(file => file.path).sort());
+}
+for (const record of final.stages) {
+  const stage = JSON.parse(readFileSync(`${owned}/${record.label}/stage.json`));
+  assert.deepEqual(record.sourceInventory, stage.sourceFiles);
+  assert.deepEqual(record.installedInventory, stage.installedFiles);
+  assert.equal(sha256(json(stage.sourceFiles)), record.sourceInventorySha256);
+  assert.equal(sha256(json(stage.installedFiles)), record.installedInventorySha256);
+}
+const coverage = JSON.parse(readFileSync(`${owned}/coverage.json`));
+assert.equal(coverage.original.length, 16); assert.equal(coverage.extension.length, 24);
+assert.equal(coverage.mutations.length, 32); assert.equal(coverage.shellWorkflows.length, 7);
+for (const collection of [coverage.original, coverage.extension, coverage.mutations, coverage.shellWorkflows]) for (const requirement of collection) {
+  for (const observation of requirement.observations) {
+    const capture = JSON.parse(readFileSync(`${owned}/${observation.capture}`));
+    assert(capture.rows.find(row => row.id === observation.id)?.passed, `missing passing row ${observation.id}`);
+  }
+  for (const artifact of requirement.artifacts ?? []) assert(existsSync(`${owned}/${artifact}`));
+}
+for (const row of final.cleanup) assert(row.removed);
+console.log(JSON.stringify({ readOnly: true, files: manifest.files.length, inventorySha256: manifest.inventorySha256, sourceCommit: manifest.sourceCommit, frozenSubtrees: final.freezes.length, originalRequirements: 16, extensionRequirements: 24, mutationSpecs: 32, workflows: 7, historicalAcceptanceUnchanged: true, currentFrozenAcceptance: 'FAIL', undefinedDefects: 'CLOSED', cleanupReceiptRoots: final.cleanup.length }));

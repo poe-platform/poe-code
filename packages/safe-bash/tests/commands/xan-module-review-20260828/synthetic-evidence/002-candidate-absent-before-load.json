@@ -1,0 +1,14 @@
+{
+  "id": "candidate-absent-before-load",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "CANDIDATE_PENDING",
+      "name": "Error",
+      "message": "CANDIDATE_PENDING"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

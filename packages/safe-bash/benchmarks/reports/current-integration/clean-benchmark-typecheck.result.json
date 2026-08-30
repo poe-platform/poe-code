@@ -1,0 +1,19 @@
+{
+  "name": "clean-benchmark-typecheck",
+  "command": [
+    "npm",
+    "--prefix",
+    "benchmarks",
+    "run",
+    "typecheck"
+  ],
+  "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+  "startedAt": 1787788763.795698,
+  "durationSeconds": 1.4817142486572266,
+  "timeoutSeconds": 180,
+  "timedOut": false,
+  "returnCode": 2,
+  "signal": null,
+  "cleanup": [],
+  "observedChildCount": 2
+}

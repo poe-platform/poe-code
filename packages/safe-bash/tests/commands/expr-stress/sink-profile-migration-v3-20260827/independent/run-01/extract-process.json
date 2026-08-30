@@ -1,0 +1,16 @@
+{
+  "started": "2026-08-27T21:31:56.834Z",
+  "finished": "2026-08-27T21:31:56.931Z",
+  "executable": "tar",
+  "args": [
+    "-xf",
+    "-",
+    "-C",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/source"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

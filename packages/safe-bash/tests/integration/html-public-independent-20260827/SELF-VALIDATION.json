@@ -1,0 +1,529 @@
+{
+  "schema": 1,
+  "scope": "Fixture syntax, structure, five TS input parse checks, synthetic JS poison/sourceguard and permission controls ONLY; zero product imports, builds, packs, installs, public integration, baseline replay or candidate execution.",
+  "finalExecutableValidationRun": "selfcheck-lXqhIl",
+  "evidenceFileCreatedAfterChecks": true,
+  "allRawRetainedInOwnedIgnoredScratch": true,
+  "runs": [
+    {
+      "directory": "tests/integration/html-public-independent-20260827/scratch/selfcheck-lhZhR5",
+      "pre": {
+        "node": "v22.22.2",
+        "fixtureFiles": {
+          ".gitignore": "263777208781d93e37da9e703e6f23af85591ca52f3c53029886336dc7ee9f28",
+          "contract.mjs": "d1003d1c6b6ef8a040bd22005b5adb0fcdf8e3a8d3d0a929421c6a7523a993d5",
+          "driver.mjs": "5795bdc65d11bea3dfce0b14e7f2163b781add3bc1986a3dd31ce481e86d860d",
+          "lifecycle.mjs": "fafe7a4a0e815870c4f586a05f2da169119b16b41c3ca3efe793de4110037be9",
+          "loader.mjs": "5c1c7332eded8de2830211dcb9176e059ed0d7d4d584f28075a4e1b7ae6e5d31",
+          "negative-limit.ts.data": "43c37b5440470bc68701f9d71e97cc1e298bdb1e6e7b751dcacdcda677571068",
+          "negative-option.ts.data": "9aa4cf8ec4d5c1c6219f7b735b978addd5db217a07307858e946159905129663",
+          "negative-private.ts.data": "b378a23daa89a7b539045973dc17d98efcbe92fc2b6131c53e9b35d6e1c5b80e",
+          "negative-replace.ts.data": "93572fb8f3e4b2f19b09c072612bc355208ab8c4c0b0bbfec7dd7d043457c125",
+          "permission.mjs": "a5a5c7dafa19fd4facded808ef0a40a18e5c8c921dbb18aee21f7682a534f95e",
+          "poison.mjs": "5bdd3e765c85e49e068a7ac2ed01a1ada1c30cb8d273f5413006e6bbed1d277a",
+          "positive.ts.data": "c9b4c7bbfcb35eafc772349853ab3475a11410a5fc6cfbbc0f3f8ab41482ea66",
+          "public.mjs": "4c213d8aec449f03f45ee5fa3bb07de58740cc85d32f8084dc711bb53ea279b9",
+          "run.mjs": "889f1d579e12ccbbb0f8f03bf43aa4db0a5a6c6fa32634665cbffbdfd0ba1c81",
+          "selfcheck.mjs": "bbde99b3ea7983eff6c940f8e1d896513f6cf7e4be724b3a3246903a88f40219"
+        },
+        "kind": "FIXTURE_SELF_VALIDATION_NO_PRODUCT_IMPORT_BUILD_PACK_OR_CANDIDATE",
+        "date": "2026-08-27T21:37:11.972Z",
+        "counts": {
+          "semantics": 9,
+          "public": 14,
+          "lifecycle": 11,
+          "runtime": 34,
+          "strictTypeInputs": 5,
+          "futureControlClasses": 10
+        },
+        "steps": []
+      },
+      "result": {
+        "kind": "FIXTURE_SELF_VALIDATION_NO_PRODUCT_IMPORT_BUILD_PACK_OR_CANDIDATE",
+        "node": "v22.22.2",
+        "date": "2026-08-27T21:37:11.972Z",
+        "counts": {
+          "semantics": 9,
+          "public": 14,
+          "lifecycle": 11,
+          "runtime": 34,
+          "strictTypeInputs": 5,
+          "futureControlClasses": 10
+        },
+        "steps": [
+          {
+            "name": "syntax-contract.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-driver.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-lifecycle.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-loader.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-permission.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-poison.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-public.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-run.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-selfcheck.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "qualified-poison",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:26659) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"./loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\nfile:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-lhZhR5/node_modules/sentinel/poison.mjs:1\nthrow new Error(\"HTML_POISON_SENTINEL_20260827\");\n      ^\n\nError: HTML_POISON_SENTINEL_20260827\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-lhZhR5/node_modules/sentinel/poison.mjs:1:7\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "qualified-sourceguard",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:26665) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"./loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\n\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\nError: BOUNDARY:SOURCE_FALLBACK:file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/poison.mjs\n    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-lhZhR5/loader.mjs:13:11)\n    at async nextResolve (node:internal/modules/esm/hooks:748:22)\n    at async Hooks.resolve (node:internal/modules/esm/hooks:240:24)\n    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18)\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "permission-positive",
+            "status": 0,
+            "signal": null,
+            "stdout": "PERMISSION_CONTROL_READ:fixture-readable\n",
+            "stderr": ""
+          },
+          {
+            "name": "permission-negative",
+            "status": 17,
+            "signal": null,
+            "stdout": "",
+            "stderr": "BOUNDARY:PERMISSION_DENIED:FileSystemRead\n"
+          }
+        ],
+        "result": "SELF_CHECKS_PASS_ONLY"
+      },
+      "rawManifest": {
+        "PRE.json": "c1b1b38f2ecd84cc71ab292b0d3a9c1fcd5e0086c0e14ebb93dea5d0b396026c",
+        "RESULT.json": "d5fc2f343b57e2c460cd6055c02f1182d254be131e685e271631f5d9b2032078",
+        "TYPESCRIPT-PRE.json": "c741ca540ae317dc907eb4cabaa5b934da731fe4daf8aa43fc87e66ecaeff1e6",
+        "permission-negative.PRE.json": "b6dd533ebea62e3dcd9aaa363b803fc785a8f82e772811e0a974b2ab4b972077",
+        "permission-negative.RAW.json": "4752fd1948972e73051163315732500d1506e6eb82bbd78edd71d4dd4016d489",
+        "permission-positive.PRE.json": "823aea36a67a70797e94bdc2b52985e98394ab8b97ac8820aa3b09b8f22022a9",
+        "permission-positive.RAW.json": "b5decc79945ec90123648b29ecb8775997dfdb54caffbfb9f77c2d9883161594",
+        "qualified-poison.PRE.json": "4748c8ab6e7747c717490ab0b232541279209aaa58d447d947a61e091d713bf8",
+        "qualified-poison.RAW.json": "74d39017b4064f2dc7369a9add5a7a82c5c287c8b93b14830af1f2fc36dfb162",
+        "qualified-sourceguard.PRE.json": "a023fcd4200b0234dfa9d566408d4bea1baa365eac65ad22dcf4e9fd98c2e7a0",
+        "qualified-sourceguard.RAW.json": "a3480474d0dda97aed47cd18bd59c4c2280389ced983a020c421ffc837c0c93c",
+        "syntax-contract.mjs.PRE.json": "5e9dd4fccdd74944177e139d1ec7a1fb65de77bfb3067877ac54be0055148b07",
+        "syntax-contract.mjs.RAW.json": "0ce350a0e7a28de2bef8b237ade4c70a3aa85dfc19a9597fc35265225cfbcba0",
+        "syntax-driver.mjs.PRE.json": "372081b51f024196d9e7bf9291c4e859d1f780d50c00e9dffaaa4ee0708283cd",
+        "syntax-driver.mjs.RAW.json": "bc23117fe1cb2d802fc39c90c19773fc2df1585d7b8648ba2c410d3a24d3870c",
+        "syntax-lifecycle.mjs.PRE.json": "85d94d94d774b8882e5dd9a6dac07b9568a8ccae5a084beec39612a92a9d0adf",
+        "syntax-lifecycle.mjs.RAW.json": "931e2c8bf520a55571fe93355d4e2857ab3f5bf7c1974e41a014bc537995658a",
+        "syntax-loader.mjs.PRE.json": "146f513a9bc17cc15894187b4e893083482657c6a84f75ae150daf699ac56320",
+        "syntax-loader.mjs.RAW.json": "6d70927758c7667ebfe2706b59c5cebcfb393d384b1418fa10897a17dc1f3f27",
+        "syntax-permission.mjs.PRE.json": "05aaa6fda95014f5bbc01d77dfbb0fb7e195cd30f08d90144f2f09a1d69da61a",
+        "syntax-permission.mjs.RAW.json": "951db65dd6c50936449a54bf0ed593e95aec882ad8f6d0df021da6d27a51ee35",
+        "syntax-poison.mjs.PRE.json": "1a3dca0f016b5cefd85a62de2f964b9dd39276d0e32270b825f49392c75b0a0d",
+        "syntax-poison.mjs.RAW.json": "d595208b1c8ec7fec2dd228aeb415ac4c8d2c0ee5d8a3dc23997bd2ec6c590f7",
+        "syntax-public.mjs.PRE.json": "2f0118e4fc1dc506118b949ac69505b0be463a387c7890bdb69aa9c68cbc2780",
+        "syntax-public.mjs.RAW.json": "4c4fadc55cf45545da40f7e711b951d165440edc901125f7e61369cbb2ee977c",
+        "syntax-run.mjs.PRE.json": "15934269da9f265eac159fb101a014abab79b6dbb0f7d0a99acec1dec14f4e82",
+        "syntax-run.mjs.RAW.json": "fbbbfbf467ccedd484a6d777a51037d5e1000c9ac1991d4e339c625090de0d01",
+        "syntax-selfcheck.mjs.PRE.json": "e684e3fa3205658686fb4385e06b2230d9efa4c6fe7ff55c189f44c0330ccf34",
+        "syntax-selfcheck.mjs.RAW.json": "5f30525f82c176e0e3ff01f107e47b7688d7bf6a7f9c9f1c46aa38ff1a917a70"
+      }
+    },
+    {
+      "directory": "tests/integration/html-public-independent-20260827/scratch/selfcheck-7vXYBv",
+      "pre": {
+        "node": "v22.22.2",
+        "fixtureFiles": {
+          ".gitignore": "263777208781d93e37da9e703e6f23af85591ca52f3c53029886336dc7ee9f28",
+          "README.md": "7279a59da95fd1c8ebf5e0b5f8ea72d26493e3359b44f94ff8c088d637a8dd26",
+          "READS.json": "4d14693a3bf4da47554d454ff413bfecbcacceaf3b90ce1dfe3a44b97403be97",
+          "contract.mjs": "78dd45fb6e899de2d34b24b176ac29e17fa144a5f3a957fad30f33bccb4b169e",
+          "driver.mjs": "5795bdc65d11bea3dfce0b14e7f2163b781add3bc1986a3dd31ce481e86d860d",
+          "lifecycle.mjs": "fafe7a4a0e815870c4f586a05f2da169119b16b41c3ca3efe793de4110037be9",
+          "loader.mjs": "5c1c7332eded8de2830211dcb9176e059ed0d7d4d584f28075a4e1b7ae6e5d31",
+          "negative-limit.ts.data": "43c37b5440470bc68701f9d71e97cc1e298bdb1e6e7b751dcacdcda677571068",
+          "negative-option.ts.data": "9aa4cf8ec4d5c1c6219f7b735b978addd5db217a07307858e946159905129663",
+          "negative-private.ts.data": "b378a23daa89a7b539045973dc17d98efcbe92fc2b6131c53e9b35d6e1c5b80e",
+          "negative-replace.ts.data": "93572fb8f3e4b2f19b09c072612bc355208ab8c4c0b0bbfec7dd7d043457c125",
+          "permission.mjs": "a5a5c7dafa19fd4facded808ef0a40a18e5c8c921dbb18aee21f7682a534f95e",
+          "poison.mjs": "5bdd3e765c85e49e068a7ac2ed01a1ada1c30cb8d273f5413006e6bbed1d277a",
+          "positive.ts.data": "c9b4c7bbfcb35eafc772349853ab3475a11410a5fc6cfbbc0f3f8ab41482ea66",
+          "public.mjs": "4c213d8aec449f03f45ee5fa3bb07de58740cc85d32f8084dc711bb53ea279b9",
+          "run.mjs": "b01b3d08ffa32fdd9d9551b5c00691fa737f4b64f7d93c83d9c39595faa6b830",
+          "selfcheck.mjs": "bbde99b3ea7983eff6c940f8e1d896513f6cf7e4be724b3a3246903a88f40219"
+        },
+        "kind": "FIXTURE_SELF_VALIDATION_NO_PRODUCT_IMPORT_BUILD_PACK_OR_CANDIDATE",
+        "date": "2026-08-27T21:41:58.507Z",
+        "counts": {
+          "semantics": 9,
+          "public": 14,
+          "lifecycle": 11,
+          "runtime": 34,
+          "strictTypeInputs": 5,
+          "futureControlClasses": 10
+        },
+        "steps": []
+      },
+      "result": {
+        "kind": "FIXTURE_SELF_VALIDATION_NO_PRODUCT_IMPORT_BUILD_PACK_OR_CANDIDATE",
+        "node": "v22.22.2",
+        "date": "2026-08-27T21:41:58.507Z",
+        "counts": {
+          "semantics": 9,
+          "public": 14,
+          "lifecycle": 11,
+          "runtime": 34,
+          "strictTypeInputs": 5,
+          "futureControlClasses": 10
+        },
+        "steps": [
+          {
+            "name": "syntax-contract.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-driver.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-lifecycle.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-loader.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-permission.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-poison.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-public.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-run.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-selfcheck.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "qualified-poison",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:40712) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"./loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\nfile:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-7vXYBv/node_modules/sentinel/poison.mjs:1\nthrow new Error(\"HTML_POISON_SENTINEL_20260827\");\n      ^\n\nError: HTML_POISON_SENTINEL_20260827\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-7vXYBv/node_modules/sentinel/poison.mjs:1:7\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "qualified-sourceguard",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:40713) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"./loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\n\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\nError: BOUNDARY:SOURCE_FALLBACK:file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/poison.mjs\n    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-7vXYBv/loader.mjs:13:11)\n    at async nextResolve (node:internal/modules/esm/hooks:748:22)\n    at async Hooks.resolve (node:internal/modules/esm/hooks:240:24)\n    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18)\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "permission-positive",
+            "status": 0,
+            "signal": null,
+            "stdout": "PERMISSION_CONTROL_READ:fixture-readable\n",
+            "stderr": ""
+          },
+          {
+            "name": "permission-negative",
+            "status": 17,
+            "signal": null,
+            "stdout": "",
+            "stderr": "BOUNDARY:PERMISSION_DENIED:FileSystemRead\n"
+          }
+        ],
+        "result": "SELF_CHECKS_PASS_ONLY"
+      },
+      "rawManifest": {
+        "PRE.json": "a88a3eafc652a0294d6f086a0896eddb73bf7a090bcaee6df920383561ec0ad2",
+        "RESULT.json": "27d5336a2ba8f0e0de87e2cfc3abf9ea3aeba8b1eb211bc8a0ec86e2a49c3e64",
+        "TYPESCRIPT-PRE.json": "c741ca540ae317dc907eb4cabaa5b934da731fe4daf8aa43fc87e66ecaeff1e6",
+        "permission-negative.PRE.json": "eb469794eb19f7790ac2fdc6e9ada7455e75a22fcd2c6c861dd6a8e38bef81ea",
+        "permission-negative.RAW.json": "4752fd1948972e73051163315732500d1506e6eb82bbd78edd71d4dd4016d489",
+        "permission-positive.PRE.json": "3e782c6f431ab86a112c17962aad51f4e804c4b5c7b7024f9b30da5849f1db9f",
+        "permission-positive.RAW.json": "b5decc79945ec90123648b29ecb8775997dfdb54caffbfb9f77c2d9883161594",
+        "qualified-poison.PRE.json": "1bb15fd2e583ab6db3e1cce223876b35ee4fde37ccdccb400843430d1a089fff",
+        "qualified-poison.RAW.json": "370ca2ff49899b95b9856021e83ae3574387afff23b302735330da6e8992d5c5",
+        "qualified-sourceguard.PRE.json": "7d52307e2cc037dddc272af6c01c42a9ea706b2ee92501adca25295a11f52815",
+        "qualified-sourceguard.RAW.json": "2989fd4e54cbc65922a48b644e7e544a66302eb8592724fad5aede4573d8784d",
+        "syntax-contract.mjs.PRE.json": "ed01e0fb7d9c7afdb8d45cf6f3e0a5f2b4030a3c865943c9d3f9204f7121083a",
+        "syntax-contract.mjs.RAW.json": "0ce350a0e7a28de2bef8b237ade4c70a3aa85dfc19a9597fc35265225cfbcba0",
+        "syntax-driver.mjs.PRE.json": "9a8f3a5a9443a50216f64f0cf2afa8553562b77648580970d270e4e458e270d6",
+        "syntax-driver.mjs.RAW.json": "bc23117fe1cb2d802fc39c90c19773fc2df1585d7b8648ba2c410d3a24d3870c",
+        "syntax-lifecycle.mjs.PRE.json": "9b47006cfcac3541613680d6cfad3d2bfc2f1d005193bf5927976ec5d8937d8d",
+        "syntax-lifecycle.mjs.RAW.json": "931e2c8bf520a55571fe93355d4e2857ab3f5bf7c1974e41a014bc537995658a",
+        "syntax-loader.mjs.PRE.json": "841fa7826f192ac5fe20d0fa2a31088294df7737786afc69d8cf1f49a0b82ab8",
+        "syntax-loader.mjs.RAW.json": "6d70927758c7667ebfe2706b59c5cebcfb393d384b1418fa10897a17dc1f3f27",
+        "syntax-permission.mjs.PRE.json": "1114e5bb10d1c91121d443f383494c8f3e4490bd9d75e514934b182a6b1e06dc",
+        "syntax-permission.mjs.RAW.json": "951db65dd6c50936449a54bf0ed593e95aec882ad8f6d0df021da6d27a51ee35",
+        "syntax-poison.mjs.PRE.json": "2901476fad3b482fb1890878f05629b9512e0899ec94df62b4eb1e3990dad186",
+        "syntax-poison.mjs.RAW.json": "d595208b1c8ec7fec2dd228aeb415ac4c8d2c0ee5d8a3dc23997bd2ec6c590f7",
+        "syntax-public.mjs.PRE.json": "3e5eaab033a31a9cbca479bfbdac2b7c38b15a78ebba2a0452048a5cd711079a",
+        "syntax-public.mjs.RAW.json": "4c4fadc55cf45545da40f7e711b951d165440edc901125f7e61369cbb2ee977c",
+        "syntax-run.mjs.PRE.json": "4d49f550b06589fe6e2dfcaa4e38ec0078897a260aa0b03e348bddd7340d9ef3",
+        "syntax-run.mjs.RAW.json": "fbbbfbf467ccedd484a6d777a51037d5e1000c9ac1991d4e339c625090de0d01",
+        "syntax-selfcheck.mjs.PRE.json": "c7d8de3d3843152909cccbfd8e4884960cc72df2bdb06dae41ad16b991dfde66",
+        "syntax-selfcheck.mjs.RAW.json": "5f30525f82c176e0e3ff01f107e47b7688d7bf6a7f9c9f1c46aa38ff1a917a70"
+      }
+    },
+    {
+      "directory": "tests/integration/html-public-independent-20260827/scratch/selfcheck-lXqhIl",
+      "pre": {
+        "node": "v22.22.2",
+        "fixtureFiles": {
+          ".gitignore": "263777208781d93e37da9e703e6f23af85591ca52f3c53029886336dc7ee9f28",
+          "README.md": "e8627c954f39dfbd9babc3a30aa68eff858236478aa90a6b1a1359eb61c9b196",
+          "READS.json": "d12b7a209fcb8e1b925c7a262783e7a58d4568c6f929f27f571ab1e23ee41993",
+          "contract.mjs": "d91b6a36986a1dea7ef693e2337565c18b035f0715d939234d2750d81a2c5e93",
+          "driver.mjs": "5795bdc65d11bea3dfce0b14e7f2163b781add3bc1986a3dd31ce481e86d860d",
+          "lifecycle.mjs": "fafe7a4a0e815870c4f586a05f2da169119b16b41c3ca3efe793de4110037be9",
+          "loader.mjs": "5c1c7332eded8de2830211dcb9176e059ed0d7d4d584f28075a4e1b7ae6e5d31",
+          "negative-limit.ts.data": "43c37b5440470bc68701f9d71e97cc1e298bdb1e6e7b751dcacdcda677571068",
+          "negative-option.ts.data": "9aa4cf8ec4d5c1c6219f7b735b978addd5db217a07307858e946159905129663",
+          "negative-private.ts.data": "b378a23daa89a7b539045973dc17d98efcbe92fc2b6131c53e9b35d6e1c5b80e",
+          "negative-replace.ts.data": "93572fb8f3e4b2f19b09c072612bc355208ab8c4c0b0bbfec7dd7d043457c125",
+          "permission.mjs": "a5a5c7dafa19fd4facded808ef0a40a18e5c8c921dbb18aee21f7682a534f95e",
+          "poison.mjs": "5bdd3e765c85e49e068a7ac2ed01a1ada1c30cb8d273f5413006e6bbed1d277a",
+          "positive.ts.data": "c9b4c7bbfcb35eafc772349853ab3475a11410a5fc6cfbbc0f3f8ab41482ea66",
+          "public.mjs": "626d5484c6ab5a897c89a713fbf9ee306350e77555528707329d010738ec98c7",
+          "run.mjs": "3e05654ca42f8479db4ca4a66747c94d88fd8b9c7760feefc34ea85d7afe1733",
+          "selfcheck.mjs": "a341ade15dcf995b1043c79ab5ca1b6ad8f828468f985ea166d9f9d60f3be80a"
+        },
+        "kind": "FIXTURE_SELF_VALIDATION_NO_PRODUCT_IMPORT_BUILD_PACK_OR_CANDIDATE",
+        "date": "2026-08-27T21:44:01.179Z",
+        "counts": {
+          "semantics": 9,
+          "public": 14,
+          "lifecycle": 11,
+          "runtime": 34,
+          "strictTypeInputs": 5,
+          "futureControlClasses": 10
+        },
+        "steps": []
+      },
+      "result": {
+        "kind": "FIXTURE_SELF_VALIDATION_NO_PRODUCT_IMPORT_BUILD_PACK_OR_CANDIDATE",
+        "node": "v22.22.2",
+        "date": "2026-08-27T21:44:01.179Z",
+        "counts": {
+          "semantics": 9,
+          "public": 14,
+          "lifecycle": 11,
+          "runtime": 34,
+          "strictTypeInputs": 5,
+          "futureControlClasses": 10
+        },
+        "steps": [
+          {
+            "name": "syntax-contract.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-driver.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-lifecycle.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-loader.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-permission.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-poison.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-public.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-run.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "syntax-selfcheck.mjs",
+            "status": 0,
+            "signal": null,
+            "stdout": "",
+            "stderr": ""
+          },
+          {
+            "name": "qualified-poison",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:43560) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"./loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\nfile:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-lXqhIl/node_modules/sentinel/poison.mjs:1\nthrow new Error(\"HTML_POISON_SENTINEL_20260827\");\n      ^\n\nError: HTML_POISON_SENTINEL_20260827\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-lXqhIl/node_modules/sentinel/poison.mjs:1:7\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "qualified-sourceguard",
+            "status": 1,
+            "signal": null,
+            "stdout": "",
+            "stderr": "(node:43562) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n--import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"./loader.mjs\", pathToFileURL(\"./\"));'\n(Use `node --trace-warnings ...` to show where the warning was created)\n\nnode:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\nError: BOUNDARY:SOURCE_FALLBACK:file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/poison.mjs\n    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/scratch/selfcheck-lXqhIl/loader.mjs:13:11)\n    at async nextResolve (node:internal/modules/esm/hooks:748:22)\n    at async Hooks.resolve (node:internal/modules/esm/hooks:240:24)\n    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18)\n\nNode.js v22.22.2\n"
+          },
+          {
+            "name": "permission-positive",
+            "status": 0,
+            "signal": null,
+            "stdout": "PERMISSION_CONTROL_READ:fixture-readable\n",
+            "stderr": ""
+          },
+          {
+            "name": "permission-negative",
+            "status": 17,
+            "signal": null,
+            "stdout": "",
+            "stderr": "BOUNDARY:PERMISSION_DENIED:FileSystemRead\n"
+          }
+        ],
+        "result": "SELF_CHECKS_PASS_ONLY"
+      },
+      "rawManifest": {
+        "PRE.json": "6c2883a24f17eb130b6d5166ae049256bd1cb643064b2957bb827c96dd4e32e8",
+        "RESULT.json": "a03230c3206217effcc5f14b43ea78a647010cb32facdff832b10d26c88da541",
+        "TYPESCRIPT-PRE.json": "c741ca540ae317dc907eb4cabaa5b934da731fe4daf8aa43fc87e66ecaeff1e6",
+        "permission-negative.PRE.json": "25895a2ab31d56cf79b7cc84bed825dfde000496c75b83cd0cf026195c271b7b",
+        "permission-negative.RAW.json": "4752fd1948972e73051163315732500d1506e6eb82bbd78edd71d4dd4016d489",
+        "permission-positive.PRE.json": "bc81bbe25c6911d4e405875ef022fc3867893c1a6e137527b0996f9c66bb391c",
+        "permission-positive.RAW.json": "b5decc79945ec90123648b29ecb8775997dfdb54caffbfb9f77c2d9883161594",
+        "qualified-poison.PRE.json": "8d1e022eaf3ce7d7fa1030834cef0c09fa3e4380f279febcec50e68d35e54982",
+        "qualified-poison.RAW.json": "38ec3539cbf3142d86e0314125ab0c702f40305899217bd7f737d519ba737f2e",
+        "qualified-sourceguard.PRE.json": "1287dcac9560646f2e4c3985d88ed6897e7dec81ba42d3843c25e7a082a3cd2c",
+        "qualified-sourceguard.RAW.json": "ee9e3acbf1020c9a39a9ab13b8838f2b1b100d0509bed6724a264000a54a1e1f",
+        "syntax-contract.mjs.PRE.json": "8a590d548a9fce3b242221bbf3dbc456123341988b0198fa8f84ab43262c7230",
+        "syntax-contract.mjs.RAW.json": "0ce350a0e7a28de2bef8b237ade4c70a3aa85dfc19a9597fc35265225cfbcba0",
+        "syntax-driver.mjs.PRE.json": "579b3bfec2380b63ac59db05cacd29b2d8db2927ffc4c40049cc65fe8c27565c",
+        "syntax-driver.mjs.RAW.json": "bc23117fe1cb2d802fc39c90c19773fc2df1585d7b8648ba2c410d3a24d3870c",
+        "syntax-lifecycle.mjs.PRE.json": "cbed516091554ba3a13156b4c39ba401a792b49f3ceb67d404e5abd3e14b9268",
+        "syntax-lifecycle.mjs.RAW.json": "931e2c8bf520a55571fe93355d4e2857ab3f5bf7c1974e41a014bc537995658a",
+        "syntax-loader.mjs.PRE.json": "8dc2fd077ba07cdf98f35b01ca527005968c5165ac4d6ff0e6b4e83cfa25177b",
+        "syntax-loader.mjs.RAW.json": "6d70927758c7667ebfe2706b59c5cebcfb393d384b1418fa10897a17dc1f3f27",
+        "syntax-permission.mjs.PRE.json": "dfba7a3a28426bf58a0f7388e83661d5f398d55750323aead76b2943d0f9e4ec",
+        "syntax-permission.mjs.RAW.json": "951db65dd6c50936449a54bf0ed593e95aec882ad8f6d0df021da6d27a51ee35",
+        "syntax-poison.mjs.PRE.json": "243db4ba09531416a29535b6af1e5dc68e05a3aae56b316950963f89d1a57f53",
+        "syntax-poison.mjs.RAW.json": "d595208b1c8ec7fec2dd228aeb415ac4c8d2c0ee5d8a3dc23997bd2ec6c590f7",
+        "syntax-public.mjs.PRE.json": "ab6fdda3fbe7c192f18b8d785f48c5f7591cfd9436359344d1bc0daa1d562bb2",
+        "syntax-public.mjs.RAW.json": "4c4fadc55cf45545da40f7e711b951d165440edc901125f7e61369cbb2ee977c",
+        "syntax-run.mjs.PRE.json": "879fa3fb81afadf3cf86061ae4dbbe53b69fa9f4d7f5293596a36d9a0a5d2f27",
+        "syntax-run.mjs.RAW.json": "fbbbfbf467ccedd484a6d777a51037d5e1000c9ac1991d4e339c625090de0d01",
+        "syntax-selfcheck.mjs.PRE.json": "c9689623759157eba19178e6c25a07ac21e4583a77b08c870e03030d403f3d9d",
+        "syntax-selfcheck.mjs.RAW.json": "5f30525f82c176e0e3ff01f107e47b7688d7bf6a7f9c9f1c46aa38ff1a917a70"
+      }
+    }
+  ]
+}

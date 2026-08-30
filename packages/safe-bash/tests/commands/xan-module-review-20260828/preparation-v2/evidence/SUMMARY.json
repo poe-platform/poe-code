@@ -1,0 +1,56 @@
+{
+  "started": "2026-08-28T05:32:33.591Z",
+  "ended": "2026-08-28T05:32:37.298Z",
+  "recipeCommit": "0a02e846b3f4985cad4394187717ceabd0188f25",
+  "planned": 3022,
+  "qualified": 3022,
+  "failed": 0,
+  "unrun": 0,
+  "stopped": false,
+  "retries": 0,
+  "children": 8,
+  "reaped": 8,
+  "naturalPositiveChildren": [
+    "ordinary-success",
+    "large-stream",
+    "SOURCE",
+    "INSTALLED_MOVED"
+  ],
+  "intentionalKillChildren": [
+    "raw-overflow",
+    "intentional-timeout"
+  ],
+  "counts": {
+    "case": 264,
+    "case-mutant": 138,
+    "diagnostic": 192,
+    "scenario": 109,
+    "scenario-mutant": 1791,
+    "resource": 144,
+    "resource-extra": 10,
+    "admission": 20,
+    "emission": 7,
+    "delivery": 6,
+    "cooperative": 6,
+    "lifecycle": 4,
+    "authority": 7,
+    "mock": 6,
+    "guard": 296,
+    "flag": 8,
+    "process": 8,
+    "aggregate": 6
+  },
+  "errors": [],
+  "raw": {
+    "bytes": 1597759,
+    "sha256": "4d2fdcfc5c8d5a9bbcdd411c8bde5468c4099775c6a9a538c5143d33ceb0e909"
+  },
+  "productExecutions": 0,
+  "xanSourceReads": 0,
+  "nativeExecutions": 0,
+  "builds": 0,
+  "typecompiles": 0,
+  "prior88ProductCases": "PREPARED_UNEXECUTED",
+  "historical74Rescored": false,
+  "exitCode": 0
+}

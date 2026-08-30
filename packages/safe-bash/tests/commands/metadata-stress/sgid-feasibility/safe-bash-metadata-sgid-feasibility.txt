@@ -1,0 +1,242 @@
+BOUNDED METADATA SGID FEASIBILITY CHECKPOINT
+For root to route to Poincare/Curie. No direct peer API or ownership change.
+2026-08-27 UTC (2026-08-26 America/Chicago).
+
+DECISION
+The six unchanged GNU CLI compatibility failures reproduce on current source.
+This is a demonstrated platform API semantic difference AND an unresolved
+product compatibility defect under the explicitly selected GNU CLI profile.
+It is not a demonstrated chmod parser bug, nor a bug in RealFS honestly
+forwarding Node chmod. Raw RealFS semantics must not be relabeled as GNU parity.
+No safe exact-status-and-effects command-only remedy through the current
+FileSystem API was established. Root/backend contract decision is necessary.
+No implementation, repository edit, fixture change, staging or commit performed.
+
+EXACT SIX CURRENT REPLAY
+Input source: tests/commands/metadata-stress/runtime-review/original141.json,
+groups.chmod-existing-special-bits.failures, exactly six existing rows.
+Actual invocation: chmod -- u-s,g=s,o-t NAME, configured/native umask027.
+Both GNU instrumentation and actual metadata dispatch request02707 (1479).
+
+ID  object     measured initial  GNU status/final  Node status/final  RealFS status/final  metadata status/final
+C1  file       04777             1/04777           0/00707            0/00707              0/00707
+C2  file       00777             1/00777           0/00707            0/00707              0/00707
+C3  file       01777             1/01777           0/00707            0/00707              0/00707
+C4  directory  04777             1/04777           0/00707            0/00707              0/00707
+C5  directory  00777             1/00777           0/00707            0/00707              0/00707
+C6  directory  01777             1/01777           0/00707            0/00707              0/00707
+
+GNU stdout empty; exact stderr is:
+chmod: changing permissions of 'file': Operation not permitted\n
+or the identical diagnostic naming 'directory'. Node/RealFS/metadata success
+outputs are empty. Every GNU before/after captured stat object is identical,
+including nanosecond ctime, not just permission bits. Each quartet/direct
+control starts from verified measured initial mode; new replay also explicitly
+restores that mode after each observation and captures restored stat metadata.
+Restoration is a harness isolation step, NOT a proposed product rollback.
+MemoryFS same six inputs return0/02707, preserving historical original results.
+Metadata execution uses its actual CommandDefinition.execute with traced VFS
+calls, not a substitute parser. This is direct command integration, not a new
+whole-shell replay. Complete argv, byte outputs, API calls, errors and effects
+are retained in /tmp/safe-bash-metadata-sgid-replay.json.
+
+HOST/ORACLE PROFILE AND HANDOFF VALIDATION
+Inspected actual commit d7a81792ddb1ae92fff83916125f7af37e425566 and its source,
+reproduction helper, source-proof, README and evidence; not just root summary.
+Current chmod.ts SHA256 equals Poincare's recorded hash:
+9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd
+Current src/fs/real/index.ts also equals Poincare's recorded hash:
+d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da
+
+GNU binary: tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod
+Actual --version: chmod (GNU coreutils) 9.7
+SHA256: 3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2
+Matches existing oracle-evidence.json pin, not merely a path/version assumption.
+Actual Node v22.22.2, libuv1.51.0, darwin arm64.
+Node binary SHA256:
+5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011
+Darwin25.4.0 xnu-12377.101.15~1; macOS26.4.1 build25E253.
+uid/euid501, gid/egid20; supplemental group list:
+20,12,61,79,80,81,701,33,98,100,204,250,395,398,400.
+Original fixtures uid501/gid0; gid0 absent from caller groups.
+Raw ls -lndeO@ before/after records no ACL entries and no displayed flags;
+com.apple.provenance xattr retained. No ACL calibration or privilege elevation.
+Saved caller umask restored on exit. All fixtures isolated under owned /tmp.
+
+CAUSE: INDEPENDENT RUNTIME REPLAY PLUS PRIMARY SOURCE
+For each original row, freshly compiled development helper distinguishes
+public libc chmod ->0/0707 from exported raw __chmod ->EPERM/unchanged and
+fchmodat ->EPERM/unchanged. Separate GNU DYLD interposition observes its actual
+fchmodat request02707 and errno1. Plain GNU result is retained separately.
+Public libc successful return may leave stale errno1; that is not failure.
+Node-boundary instrumentation confirms direct Node, raw RealFS and actual
+metadata each receive02707; no command/backend bit stripping is observed.
+
+Apple UNIX03 wrapper source calls __chmod, and after EPERM retries without
+SGID. That explains this measured success-with0707. Kernel chmod/fchmodat
+share the underlying helper; this is not contradictory kernel authorization.
+The kernel source has conditions beyond a simple numeric group check:
+mode change, supported attrs, privileged authority, group membership lookup,
+immutability and other authorization. Existing SGID/no-change cases must not
+be conflated with newly setting SGID. Process.getgroups is not a backend
+authorization oracle and was used ONLY for these isolated diagnostic probes.
+Five primary source bytes were independently fetched and their SHA256 hashes
+matched all five d7a8179 source-proof records. web.run also opened primary
+Apple, libuv, Node and GNU sources. Full URLs/hashes are in the appendix.
+No signed/rebuilt shared-cache or kernel verification and no kernel event trace.
+
+FOCUSED CONTROLS; NOT NEW ACCEPTANCE CORPUS
+Existing four causal controls replayed: file/directory gid0 without requested
+SGID ->0707 success, file/directory caller gid20 with requested SGID ->02707
+success. Four scenarios/24 layer observations, kept separate from six originals.
+Three additional native safety scenarios, four layers each (GNU/Node/RealFS/
+metadata): already-set member SGID retained at02777; explicit g-s clears to0777;
+real denied directory-search permission returns status1/EACCES with child mode
+0777 unchanged. No user-owned host fixture outside our isolated temp tree used.
+The positive controls refute rejecting all SGID or narrowing away good workflows.
+Already-set nonmember SGID and non-owner chmod denial were not manufactured by
+elevation; do not treat member/ancestor controls as exhaustive ACL/owner coverage.
+
+Fourteen deterministic command-boundary controls in separate /tmp script/report:
+- readonly ->1/EROFS; permissions:false or absent chmod ->1/ENOTSUP, zero writes.
+- Missing optional uid/gid/dev/ino/scope on otherwise capable MemoryFS ->0/02707.
+  Legitimate virtual semantics cannot be denied using ambient Darwin identity.
+- Caller abort before work ->same abort rejection, zero chmod calls.
+- Backend abort reason with EPERM during chmod ->same abort rejection, one call,
+  no mutation. Never reinterpret a cancellation errno as ordinary permission.
+- Injected EPERM/EACCES/EIO/ENOTSUP ->status1, one call, unchanged mode; no retry.
+  These four are fault-injection controls, not newly observed native errors.
+- Changed inode reported by fresh lstat ->EIO before chmod, zero writes.
+- Same-inode concurrent mode0600 before fresh lstat ->stale computed02707 applied.
+- Replacement inode behind reused pathname AFTER fresh lstat ->replacement
+  receives02707. Identity checks are snapshots, not a lease or ABA protection.
+- Cooperative backend sets mode then aborts but fulfills ->current command
+  returns0/02707. This measured cancellation boundary remains visible; it is not
+  a new fix or green cancellation guarantee. A postcheck cannot undo that effect.
+These are feasibility/risk characterizations, NOT14 new native parity passes.
+No stress expansion, broad audit, full build/typecheck or emitted TypeScript.
+
+WHY COMMAND-ONLY CANDIDATES ARE UNSAFE OR INSUFFICIENT
+1. Post-stat then return1 detects some missing SGID but leaves0707, not GNU's
+   unchanged original. This fails all six required effects even if status matches.
+2. Restore the original mode after detection overwrites a concurrent mode change
+   or replacement/alias target; even a same dev/ino check is not atomic and ctime
+   is irreversibly changed. Errors/cancellation may occur between each effect.
+   Same identity is not permission authority, exclusion, or an incarnation lease.
+3. Probe chmod(oldMode|SGID) then restore is itself a mutation, including possible
+   ctime/SGID changes. Success/failure does not reserve target identity, group,
+   credentials or ACL until the final operation. Not a harmless preflight.
+4. Check process.platform/getuid/getgroups against FileStat.gid: metadata lacks
+   backend credential authority and ACL context; optional gid may be absent;
+   Memory/remote/wrappers use different namespaces/policies. Even a RealFS brand
+   does not atomically bind a pathname to stat metadata/authorization. No such
+   indiscriminate host lookup should be added to metadata.
+5. Blanket SGID rejection, permissions:false downgrade, or ignoring EPERM would
+   contradict positive native workflows and/or misreport missing/error cases.
+6. Retrying on EPERM/EIO/transient failures duplicates effects or silently changes
+   requested mode. Abort-bearing errno reasons are especially unsafe to swallow.
+No candidate closes all six while honestly preserving raw RealFS and the safety
+requirements through the current stat/lstat/chmod-only contract.
+
+MINIMUM ROUTED REQUEST / PRECISE DESIGN BOUNDARY (NOT APPROVED API)
+Root should ask Poincare/Curie whether an OPTIONAL backend-owned, effectful
+permission operation can express selected GNU/Darwin fchmodat-style behavior,
+without changing existing raw FileSystem.chmod semantics. Shape/name undecided;
+do not publish a proposed export as delivered. Required behavior:
+- Receives virtual path, already-calculated requested mode, supplied signal and
+  an explicit supported permission-operation profile; does not import process
+  identity or native paths into the command. Wrappers route to actual backend.
+- Performs native permission authorization and application as one backend
+  operation, with no userspace SGID-stripping retry; this host's SGID refusal is
+  EPERM before permission effects. Ordinary, SGID-clear and legitimate SGID-set
+  operations remain available. Existing raw chmod keeps current Node semantics.
+- Prefer real fchmodat-equivalent host authority rather than an emulated group
+  preflight. Separate metadata-only authorization without atomic enforcement
+  is insufficient. A profile name must not promise all platforms retain every
+  requested bit: the target is GNU's selected syscall status/effects, not an
+  invented universal 'exact bits' guarantee.
+- If snapshot-based checks are instead proposed, backend must bind/check all
+  authorization-relevant state in the same operation, without a check/use gap;
+  existing compareEntry/identityScope do not supply this. Path-resolution race
+  limitations must be explicit, not upgraded to race-proof claims. A one-syscall
+  native operation matches that syscall's race semantics, not a global lease.
+- Preserve native denial/missing/readonly/transient/backend errors and aborts;
+  no broad retries, rollback or fabricated success. Before-dispatch abort has
+  no effect; in-flight host mutation may complete and cannot be retroactively
+  cancelled. Document the exact completion/abort boundary.
+- Missing capability/authority is explicit unsupported selected-profile work,
+  not silently raw fallback or an acceptance waiver. Do not disable legitimate
+  raw chmod/virtual metadata workflows merely to make a score green.
+Current API exposes no such operation or atomic permission-authority facility.
+Current Node-backed path uses public libc chmod. This investigation has not
+identified a supported zero-dependency Node primitive bypassing that retry.
+If root permits an explicitly host-injected backend primitive, the library can
+remain zero-runtime-dependency; host implementation feasibility remains separate.
+No native addon, subprocess/host command, eval, private Node binding or product
+fallback is proposed as an implemented solution. If no backend primitive is
+allowed/available, exact selected GNU compatibility remains blocked, not waived.
+
+BOUNDED COUNTS AND LIMITS
+Six distinct unresolved original cases; six RealFS counterparts are observations
+of those same inputs, not six more bugs. Historical original135/141 and separate
+combined165/177 remain unchanged, not rerun here. Original raw18 benchmark
+failures are unrelated and retained. No aggregate superiority, shell completion,
+72-hour work claim, capability skip or green waiver follows from this checkpoint.
+No precise production fix authorized. Stop here for root/backend coordination.
+
+REPRODUCTION/ARTIFACTS
+/tmp/safe-bash-metadata-sgid-replay.mjs: existing handoff reproduction adapted via
+apply_patch to /tmp absolute imports/output, plus per-observation mode restoration.
+/tmp/safe-bash-metadata-sgid-replay.json: full exact-six, four original controls,
+97-input before/after SHA256 snapshots, native instrumentation and fixture cleanup.
+/tmp/safe-bash-metadata-sgid-controls.mjs: only focused controls above.
+/tmp/safe-bash-metadata-sgid-controls.json: raw outcomes, primary-source hashes,
+same reachable-input snapshots, sentinel checks and owned fixture cleanup.
+Run from repository using node --import tsx and the absolute /tmp script path.
+Replay intentionally refuses an existing output file; choose/update only the
+owned /tmp destination via apply_patch for any future authorized rerun.
+
+Frozen replay/control HEAD: 29a61222a8744ce479601ff33061a38b4a193b78.
+Both before/after97-input digests:
+1ae6a983ac29a446d4f5f9a444428b164e2ef171adba66a2813c57ddc63cc121
+No consumed-input drift between replay and controls. Git worktree already had
+other workers' changes; stable scoped inputs are not clean whole-HEAD validation.
+Final rehash/artifact hashes and primary source appendix follow.
+
+FINAL CHECK 2026-08-27T02:04:16.028Z
+Final HEAD 90cbf287b8533c2dad9211d87d6cb66290a80132
+Final consumed-input drift: []
+Owned fixture directories remaining: []
+All spawned children ran synchronously and exited; active owned child processes:0.
+Replay and control driver processes exited0. This means classification captured,
+NOT native-parity acceptance. Both owned fixture cleanup checks:true.
+Owned metadata/real/contracts Git status: ""
+No Git writes, staging, commits, source or repository fixture edits by this leaf.
+Other workers' existing changes remain untouched.
+
+ARTIFACT HASHES
+/tmp/safe-bash-metadata-sgid-replay.mjs
+SHA256 0725f3aa137c0a86d6fb0d6cb9fe067508178f694e465a61878427d6f225df49
+/tmp/safe-bash-metadata-sgid-replay.json
+SHA256 0fa98f7ded51eb0024f631c35aefcc5b1592c2aa5395622c8da965be42825328
+/tmp/safe-bash-metadata-sgid-controls.mjs
+SHA256 34a1dfc0df80ef3a0b333c997162b2e2766e7ecba291290849ef261554fcb842
+/tmp/safe-bash-metadata-sgid-controls.json
+SHA256 44a87a141f596bef65418723ad35b460ec3376d294d77d08573a89e387af382a
+
+PRIMARY SOURCE APPENDIX (fresh byte hash matches prior evidence in all five)
+https://raw.githubusercontent.com/apple-oss-distributions/xnu/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291/libsyscall/wrappers/unix03/chmod.c
+SHA256 668aba30c535ba6ae952bc118e051b9ed62c67ded6fd9288133296d5522894fd; bytes 1826; prior hash match true
+https://raw.githubusercontent.com/apple-oss-distributions/xnu/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291/bsd/vfs/vfs_syscalls.c
+SHA256 e227c4eadadaf995c0b93a6a21fa30026b9782672c87d19baf423a079e84766f; bytes 390305; prior hash match true
+https://raw.githubusercontent.com/apple-oss-distributions/xnu/5c306bec31e314fa4d8bbdafb2f6f5a6b7e7b291/bsd/vfs/vfs_subr.c
+SHA256 8c6a409de992ad34a0541951173368731354a77ad369de1efa4f94b572ca1291; bytes 346302; prior hash match true
+https://raw.githubusercontent.com/libuv/libuv/v1.51.0/src/unix/fs.c
+SHA256 ffe2cd709c894083d4e470bce5248eee71c5e5594418be3d7a6d80e44d723a61; bytes 59847; prior hash match true
+https://raw.githubusercontent.com/nodejs/node/v22.22.2/src/node_file.cc
+SHA256 d9bd85b74171f392d96217ca5e1fbf522b504c2cb94f0f84965ebd4ceee9ef06; bytes 137052; prior hash match true
+GNU9.7 primary source additionally inspected through web.run:
+https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/chmod.c
+Pinned local release src/chmod.c and lib/modechange.c/fchmodat.c hashes are in
+replay.before.files; built binary proof is the local runtime instrumentation.
+External source inspection is kept separate from actual local native evidence.

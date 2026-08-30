@@ -1,0 +1,166 @@
+import { open, lstat, readFile, writeFile, mkdir, copyFile, rename, readdir, chmod } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { dirname, join, resolve, relative, basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import assert from 'node:assert/strict';
+
+const own = dirname(fileURLToPath(import.meta.url));
+const author = "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829"; const repo = "/Users/kjopek/Workspace/safe-bash";
+const [mode, label] = process.argv.slice(2);
+if (!['run'].includes(mode) || !/^[A-Z0-9-]{1,40}$/.test(label ?? '')) throw new Error('explicit mode/unique label required');
+const started = Date.now(); const deadline = started + (mode === 'seal' ? 10 : 35) * 60000;
+const output = join(own, label); await mkdir(output);
+const outer = await open(join(output, 'outer.jsonl'), 'wx');
+let active = 0, count = 0, peak = 0, captureBytes = 0;
+const receipts = [];
+const event = value => outer.write(JSON.stringify({ at: new Date().toISOString(), elapsed: Date.now() - started, ...value }) + '\n');
+function time() { if (Date.now() >= deadline) throw new Error('SAFETY deadline'); }
+async function hash(path) {
+  time(); const stat = await lstat(path);
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 128 * 1024 * 1024) throw new Error('SAFETY regular-file/size admission');
+  const digest = createHash('sha256'); for await (const buffer of createReadStream(path, { highWaterMark: 65536 })) { time(); digest.update(buffer); }
+  return { path, size: stat.size, mode: stat.mode & 0o777, sha256: digest.digest('hex') };
+}
+async function text(path) {
+  const record = await hash(path); if (record.size > 1048576) throw new Error('SAFETY text cap');
+  const bytes = await readFile(path); assert.equal(createHash('sha256').update(bytes).digest('hex'), record.sha256, 'SAFETY read drift');
+  return bytes.toString('utf8');
+}
+async function bound(entries) { for (const expected of entries) assert.deepEqual(await hash(expected.path), expected, 'SAFETY input binding'); }
+async function census(directory) {
+  const stat = await lstat(directory); assert.ok(stat.isDirectory() && !stat.isSymbolicLink(), 'SAFETY directory');
+  const entries = [];
+  for (const name of (await readdir(directory)).sort()) {
+    const path = join(directory, name); const stat = await lstat(path); assert.ok(!stat.isSymbolicLink(), 'SAFETY symlink');
+    if (stat.isDirectory()) entries.push(...await census(path)); else entries.push(await hash(path));
+  }
+  return entries;
+}
+async function child(role, args, cwd, timeout = 30000) {
+  time(); if (++count > 30 || active !== 0) throw new Error('SAFETY dispatch cap');
+  const prefix = `${String(count).padStart(2,'0')}-${role}`;
+  const out = await open(join(output, prefix + '.stdout'), 'wx'); const err = await open(join(output, prefix + '.stderr'), 'wx');
+  const chunks = { stdout: [], stderr: [] }; const writes = [];
+  let failure, timer; let size = 0;
+  const worker = spawn(process.execPath, args, { cwd, env: { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C', HOME: output }, stdio: ['ignore','pipe','pipe'] });
+  active++; peak = Math.max(peak, active);
+  const closed = new Promise(resolveClose => {
+    worker.once('error', error => { failure ??= error; });
+    worker.once('close', (code, signal) => { active--; clearTimeout(timer); resolveClose({ code, signal }); });
+  });
+  for (const [channel, handle] of [['stdout',out],['stderr',err]]) worker[channel].on('data', bytes => {
+    size += bytes.length; captureBytes += bytes.length;
+    if (size > 8 * 1024 * 1024 || captureBytes > 128 * 1024 * 1024) { failure ??= new Error('SAFETY capture cap'); worker.kill('SIGKILL'); return; }
+    chunks[channel].push(bytes); writes.push(handle.write(bytes).catch(error => { failure ??= error; worker.kill('SIGKILL'); }));
+  });
+  timer = setTimeout(() => { failure ??= new Error('SAFETY deadline/child timeout'); worker.kill('SIGKILL'); }, Math.min(timeout, Math.max(1, deadline - Date.now())));
+  try { await event({ event: 'spawn', role, pid: worker.pid ?? null, args, cwd }); } catch (error) { failure ??= error; worker.kill('SIGKILL'); }
+  const terminal = await closed; await Promise.all(writes); await out.close(); await err.close();
+  const receipt = { role, pid: worker.pid ?? null, args, ...terminal, size, retired: true }; receipts.push(receipt); await event({ event: 'close', ...receipt });
+  if (failure || terminal.signal) throw failure ?? new Error('SAFETY unexpected signal'); time();
+  return { ...receipt, stdout: Buffer.concat(chunks.stdout).toString('utf8'), stderr: Buffer.concat(chunks.stderr).toString('utf8') };
+}
+try {
+  await event({ event: 'start', mode, label, started, deadline, pid: process.pid, execPath: process.execPath, version: process.version });
+  if (mode === 'seal') {
+    const previous = JSON.parse(await text(join(author, 'SEAL-v3.json')));
+    await bound([previous.node, ...previous.tools]);
+    const sources = [];
+    const originals = [];
+    for (const entry of previous.sources) {
+      sources.push(await hash(entry.path));
+      const original = await hash(join(author, 'ACTUAL-03/work/source', basename(entry.path)));
+      assert.equal(original.sha256, entry.sha256); originals.push(original);
+      if (!['matcher.ts','syntax.ts'].includes(basename(entry.path))) assert.deepEqual(sources.at(-1), entry);
+    }
+    const fixtures = [];
+    for (const name of ['suite.mjs','cases.json','consumer.mts','negative.mts']) {
+      const row = await hash(join(author, name)); const expected = previous.inputs.find(entry => entry.path === row.path); assert.deepEqual(row, expected); fixtures.push(row);
+    }
+    const oldResult = JSON.parse(await text(join(author, 'ACTUAL-03/RESULT.json')));
+    const reversionInputs = oldResult.emittedBinding.filter(entry => /\/(syntax|matcher)\.js$/.test(entry.path)); await bound(reversionInputs);
+    const harness = []; for (const name of ['runner.mjs','checkpoints.mjs','RECIPE.md']) harness.push(await hash(join(own, name)));
+    const seal = { baseline: previous.baseline, engineBaseline: 'f97fd06024cb63edfd01873d81d84576a22189db', sources, originals, fixtures, reversionInputs, harness, node: previous.node, tools: previous.tools, tscFlags: previous.tscFlags, compiler: previous.compiler, noCompression: true, expectedChildren: 19, caseGroups: { author: 66, targeted: 8, layouts: 3 }, deadlineMs: 2100000 };
+    await writeFile(join(own, 'SEAL.json'), JSON.stringify(seal, null, 2) + '\n', { flag: 'wx' });
+    await event({ event: 'sealed', seal: await hash(join(own, 'SEAL.json')) });
+  } else {
+    const seal = JSON.parse(await text(join(own, 'AUTHOR-SEAL.json')));
+    await bound(JSON.parse(await text(join(own, 'EXECUTOR.json'))).files);
+    const inputs = [seal.node, ...seal.sources, ...seal.originals, ...seal.fixtures, ...seal.reversionInputs, ...seal.harness, ...seal.tools]; await bound(inputs);
+    const work = join(output, 'work'); await mkdir(work);
+    for (const entry of seal.tools) {
+      const destination = join(work, relative(repo, entry.path)); await mkdir(dirname(destination), { recursive: true }); await copyFile(entry.path, destination); await chmod(destination, entry.mode);
+      assert.equal((await hash(destination)).sha256, entry.sha256);
+    }
+    const source = join(work, 'source'); await mkdir(source);
+    for (const entry of seal.sources) { const destination = join(source, basename(entry.path)); await copyFile(entry.path, destination); assert.equal((await hash(destination)).sha256, entry.sha256); }
+    await writeFile(join(source, 'package.json'), '{"type":"module","private":true}\n');
+    const compiler = join(work, relative(repo, seal.compiler)); const typeRoots = join(work, 'node_modules/@types'); const emitted = join(work, 'emitted');
+    const build = await child('strict-build', [compiler, ...seal.tscFlags, '--typeRoots', typeRoots, '--declaration', '--outDir', emitted, ...seal.sources.map(entry => join(source, basename(entry.path)))], work, 120000);
+    if (build.code !== 0) throw new Error('ORDINARY compiler failure; dependent product loads withheld');
+    await writeFile(join(emitted, 'package.json'), '{"type":"module","private":true}\n'); const emittedBindings = await census(emitted);
+    const rows = []; const types = [];
+    async function runCases(role, directory, target = false, selection = 'all', mutated = null) {
+      const script = target === 'novel' ? join(own, 'novel.mjs') : target ? join(author, 'r02-v1/checkpoints.mjs') : join(author, 'suite.mjs');
+      const args = target ? [script,directory,selection] : [script,directory,join(author,'cases.json')];
+      const result = await child(role,args,work);
+      const records = result.stdout.trim().split('\n').map(line => JSON.parse(line));
+      const observed = records.find(record => record.event === 'results'); const loaded = records.find(record => record.event === 'loaded');
+      if (!observed || !loaded || observed.rows.length === 0 || result.code !== (observed.fail ? 1 : 0)) throw new Error('SAFETY result/exit/capture mismatch');
+      assert.equal(loaded.execPath, seal.node.path, 'SAFETY child binary');
+      for (const [name, entry] of Object.entries(loaded.files)) {
+        const expected = emittedBindings.find(item => basename(item.path) === `${name}.js`);
+        const actual = await hash(join(directory, `${name}.js`)); assert.equal(entry.sha256, actual.sha256, 'SAFETY loaded witness');
+        if (name === mutated) assert.notEqual(entry.sha256, expected.sha256); else assert.equal(entry.sha256, expected.sha256, 'SAFETY artifact member binding');
+      }
+      assert.equal(observed.rows.length, selection !== 'all' ? 1 : target === 'novel' ? 6 : target ? 8 : 66, 'SAFETY exact membership');
+      rows.push({ role, mutated, exitCode: result.code, observed, loaded }); return observed;
+    }
+    const app = join(work,'installed-app'); await mkdir(join(app,'artifact'),{recursive:true}); await writeFile(join(app,'package.json'),'{"type":"module"}\n');
+    for (const entry of emittedBindings) await copyFile(entry.path,join(app,'artifact',basename(entry.path)));
+    for (const name of ['consumer.mts','negative.mts']) await copyFile(join(author,name),join(app,name));
+    for (const layout of ['source','installed','moved']) {
+      const location = layout === 'moved' ? join(work,'physically-moved-app') : app;
+      if (layout === 'moved') { await rename(app,location); await assert.rejects(lstat(app),error=>error.code==='ENOENT'); }
+      const directory = layout === 'source' ? emitted : join(location,'artifact');
+      await runCases(`${layout}-author66`,directory); await runCases(`${layout}-checkpoints8`,directory,true); await runCases(`${layout}-novel6`,directory,'novel');
+      const positive = await child(`${layout}-types-positive`,[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'consumer.mts')],work,120000);
+      const negative = await child(`${layout}-types-negative`,[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'negative.mts')],work,120000);
+      const diagnostics = [...negative.stdout.matchAll(/error TS(\d+):/g)].map(entry=>Number(entry[1]));
+      types.push({layout,positive:positive.code,negative:negative.code,diagnostics,pass:positive.code===0 && negative.code!==0 && JSON.stringify(diagnostics)==='[2345,2339,2322]' && negative.stdout.includes('negative.mts(4,') && negative.stdout.includes('negative.mts(6,') && negative.stdout.includes('negative.mts(7,')});
+    }
+    const mutations = [
+      {id:'M01',name:'matcher',start:'async function historyOrder(',oldStart:'async function historyOrder(',end:'async function preferred(',selection:'C01'},
+      {id:'M02',name:'syntax',start:'    async count()',oldStart:'    count()',end:'    async atom(',selection:'C05'},
+      {id:'M03',name:'syntax',start:'    async set(begin)',oldStart:'    set(begin)',end:'\n}\nexport async function compileEre',selection:'C07'},
+    ];
+    const mutants = [];
+    for (const spec of mutations) {
+      const location = join(emitted,`${spec.name}.js`); const original = await text(location);
+      const oldLocation = seal.reversionInputs.find(entry=>basename(entry.path)===`${spec.name}.js`).path; const old = await text(oldLocation);
+      const begin=original.indexOf(spec.start), end=original.indexOf(spec.end,begin), oldBegin=old.indexOf(spec.oldStart), oldEnd=old.indexOf(spec.end,oldBegin);
+      if ([begin,end,oldBegin,oldEnd].some(index=>index<0)) { mutants.push({id:spec.id,activated:false,reason:'exact method marker absent'}); continue; }
+      const changed = original.slice(0,begin)+old.slice(oldBegin,oldEnd)+original.slice(end); assert.notEqual(changed,original);
+      await writeFile(location,changed); let outcome;
+      try { outcome=await runCases(spec.id,emitted,true,spec.selection,spec.name); } finally { await writeFile(location,original); }
+      await bound(emittedBindings); const restored=await runCases(`${spec.id}-restore`,emitted,true,spec.selection);
+      mutants.push({id:spec.id,activated:true,killed:outcome.fail>0,restored:restored.fail===0,methodSha256:createHash('sha256').update(old.slice(oldBegin,oldEnd)).digest('hex')});
+    }
+    const bad = join(work,'binding-negative.js'); await writeFile(bad,'changed');
+    const expected = { ...emittedBindings.find(entry=>basename(entry.path)==='matcher.js'),path:bad };
+    const guards=[];
+    for (const [id,entry] of [['B01-content',expected],['B02-missing',{...expected,path:join(work,'absent.js')}]]) {
+      let reason; try { await bound([entry]); } catch(error) {reason=String(error);}
+      assert.ok(reason); guards.push({id,refused:true,reason,dataOnly:true});
+    }
+    await bound(inputs); await bound(emittedBindings); const finalCensus=await census(work); const workBytes=finalCensus.reduce((sum,entry)=>sum+entry.size,0);
+    if(workBytes>512*1024*1024) throw new Error('SAFETY work cap');
+    const result={sourceBindings:seal.sources,emittedBindings,rows,types,mutants,guards,receipts,children:count,peakChildren:peak,active,captureBytes,workBytes,finalCensus,elapsedMs:Date.now()-started};
+    await writeFile(join(output,'RESULT.json'),JSON.stringify(result,null,2)+'\n');
+    const failed=rows.some(row=>!row.mutated&&row.observed.fail)||types.some(row=>!row.pass)||mutants.some(row=>!row.activated||!row.killed||!row.restored);
+    await event({event:'complete',failed,children:count,active,captureBytes,workBytes}); if(failed) process.exitCode=1;
+  }
+} catch(error) { await event({event:'failure',error:String(error?.stack??error),receipts,active}); process.exitCode=1; }
+finally { await event({event:'settled',active,count,peak,captureBytes}); await outer.close(); if(active) process.exitCode=78; }

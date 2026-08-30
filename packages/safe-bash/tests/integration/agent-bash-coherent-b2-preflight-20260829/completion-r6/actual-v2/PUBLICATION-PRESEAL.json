@@ -1,0 +1,15 @@
+{
+  "schema": "B2_R6_STOP_DATA_PUBLICATION",
+  "script": {
+    "bytes": 7648,
+    "sha256": "360e14016dfe86ada1e3c224fe81b53bcee271501b53d0df0df27cc87d0a8c30"
+  },
+  "inputRoot": "/private/tmp/safe-bash-b2-runtime-r6",
+  "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/actual-v2",
+  "publicationExpiry": "2026-08-29T15:45:12.109Z",
+  "maximumFiles": 16384,
+  "maximumFileBytes": 33554432,
+  "copyMaximum": 4194304,
+  "children": 0,
+  "runtimeExecution": false
+}

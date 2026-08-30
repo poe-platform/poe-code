@@ -1,0 +1,202 @@
+TAP version 13
+# Subtest: hard-deadline pipeline close: first-read-head-zero
+ok 1 - hard-deadline pipeline close: first-read-head-zero
+  ---
+  duration_ms: 195.20125
+  type: 'test'
+  ...
+# {"scenario":"first-read-head-zero","pid":79170,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"first-read-head-zero: passed\\n{\\"scenario\\":\\"first-read-head-zero\\",\\"active\\":0,\\"reads\\":0,\\"returned\\":1,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"command.settled:head:0\\"]}\\n","stderr":""}
+# Subtest: hard-deadline pipeline close: first-read-local
+not ok 2 - hard-deadline pipeline close: first-read-local
+  ---
+  duration_ms: 1404.91475
+  type: 'test'
+  location: '/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-local: /private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-local (1200ms)
+        at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-local","pid":79172,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-local\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"source.next:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-local (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-s3
+not ok 3 - hard-deadline pipeline close: first-read-s3
+  ---
+  duration_ms: 1416.719
+  type: 'test'
+  location: '/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-s3: /private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-s3 (1200ms)
+        at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-s3","pid":79182,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-s3\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\\",\\"op:S3.headObject:input:callerAborted=false:signal=live\\",\\"op:S3.headObject:input/:callerAborted=false:signal=live\\",\\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\\",\\"op:S3.getObjectStream:input:callerAborted=false:signal=live\\",\\"source.next:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-s3 (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-webdav
+not ok 4 - hard-deadline pipeline close: first-read-webdav
+  ---
+  duration_ms: 1419.593125
+  type: 'test'
+  location: '/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-webdav: /private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-webdav (1200ms)
+        at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-webdav","pid":79186,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-webdav\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\\",\\"http.socket.open\\",\\"http.request:PROPFIND:/dav/input\\",\\"http.response.close:PROPFIND:finished=true\\",\\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\\",\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-webdav (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-curl-body
+not ok 5 - hard-deadline pipeline close: first-read-curl-body
+  ---
+  duration_ms: 1418.377584
+  type: 'test'
+  location: '/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-curl-body: /private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-curl-body (1200ms)
+        at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-curl-body","pid":79199,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-curl-body\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-curl-body (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-curl-headers
+not ok 6 - hard-deadline pipeline close: first-read-curl-headers
+  ---
+  duration_ms: 1417.505375
+  type: 'test'
+  location: '/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-curl-headers: /private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-curl-headers (1200ms)
+        at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-curl-headers","pid":79201,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-curl-headers\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-curl-headers (1200ms)\\n    at Timeout.<anonymous> (/private/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+1..6
+# tests 6
+# suites 0
+# pass 1
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7387.18375

@@ -1,0 +1,8 @@
+{
+  "job": "controls",
+  "time": "2026-08-27T08:42:24.324Z",
+  "preparationSha256": "75e2c89496a1d7f9f19c8bb1bbbcefc3ca8898fb0fd5f263bc95f3c4a4987b87",
+  "riskReserved": 0,
+  "noRetry": true,
+  "watchdogMs": 6000
+}

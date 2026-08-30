@@ -1,0 +1,2 @@
+{"kind":"birth","pid":46770,"ppid":46590,"role":"types-negative-public-root"}
+../../../types/negative-public-root.ts(1,9): error TS2724: '"/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash/dist/index.js"' has no exported member named 'createGitCommand'. Did you mean 'createTarCommand'?

@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "parentAuthorCommit": "e748f20fe9d0ea1d29aefe70939d3ee76951ef68",
+  "parentStageSha256": "ce3616e090734009c3eefffaffdd2d02c79a258192f873001fd73afc3d4b43df",
+  "changes": [
+    {
+      "before": "from \"./common.mjs\";",
+      "after": "from \"../harness/common.mjs\";\nimport { captureArchive, committedEntries, executionDirectory, executionFreeze, hashFile, snapshot, verifyArchiveBytes } from \"./archive-binding.mjs\";"
+    },
+    {
+      "before": "gitEntries, inventory, json",
+      "after": "gitEntries, inventory as regularInventory, json"
+    },
+    {
+      "before": "  const tooling = verifyTooling();",
+      "after": "  const tooling = verifyTooling();\n  const execution = executionFreeze();\n  const binding = json(join(executionDirectory, \"CANDIDATE.json\"));\n  assert.equal(binding.commit, release.candidateCommit);"
+    },
+    {
+      "before": "  const product = join(temporary, \"candidate\");",
+      "after": "  const product = join(temporary, \"candidate\");\n  const inventory = root => snapshot(root, product, binding.nativeFixtureSymlinks);"
+    },
+    {
+      "before": "release, author, temporary, product",
+      "after": "release, author, execution, temporary, product"
+    },
+    {
+      "before": "    const selectors = [...roots, \"src\", \"scripts\", ...(release.maintainedTypecheck ? [\"tests\"] : [])];\n    const inputs = gitEntries(release.candidateCommit, selectors);",
+      "after": "    const inputs = committedEntries(release.candidateCommit);"
+    },
+    {
+      "before": "    writeNew(archivePath, git(\"archive\", \"--format=tar\", release.candidateCommit, \"--\", ...selectors));\n    archiveHash = sha256(regular(archivePath));",
+      "after": "    captureArchive(release.candidateCommit, archivePath);\n    archiveHash = hashFile(archivePath);"
+    },
+    {
+      "before": "    for (const entry of inputs) assert.deepEqual(regular(join(product, entry.path)), git(\"cat-file\", \"blob\", entry.blob), entry.path);",
+      "after": "    verifyArchiveBytes(product, inputs);"
+    },
+    {
+      "before": "    const compiler = join(product, \"node_modules/typescript/bin/tsc\");",
+      "after": "    childEnvironment.GIT_DIR = git(\"rev-parse\", \"--absolute-git-dir\").toString().trim();\n    childEnvironment.GIT_INDEX_FILE = join(temporary, \"candidate.index\");\n    childEnvironment.GIT_WORK_TREE = product;\n    childEnvironment.GIT_CONFIG_COUNT = \"1\";\n    childEnvironment.GIT_CONFIG_KEY_0 = \"core.fsmonitor\";\n    childEnvironment.GIT_CONFIG_VALUE_0 = \"false\";\n    run(\"bind-current-index\", \"/usr/bin/git\", [\"-c\", \"core.fsmonitor=false\", \"read-tree\", release.candidateCommit], product);\n    report.candidateIndexSha256 = hashFile(childEnvironment.GIT_INDEX_FILE);\n    const compiler = join(product, \"node_modules/typescript/bin/tsc\");"
+    },
+    {
+      "before": "      if (archivePath) assert.equal(sha256(regular(archivePath)), archiveHash);",
+      "after": "      if (archivePath) assert.equal(hashFile(archivePath), archiveHash);\n      if (report.candidateIndexSha256) assert.equal(hashFile(childEnvironment.GIT_INDEX_FILE), report.candidateIndexSha256);"
+    },
+    {
+      "before": "      verifyRelease(release);",
+      "after": "      verifyRelease(release);\n      executionFreeze();"
+    }
+  ],
+  "classification": "Archive/input/location bindings only; unchanged public and strict fixtures; preserve all 12 authenticated native-data symlinks and all committed maintained inputs; isolated candidate index supports unchanged git ls-files target; stream archive to avoid 512MiB capture limit",
+  "fixtureAssertionsChanged": false,
+  "privateQueries": 0
+}

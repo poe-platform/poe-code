@@ -1,0 +1,7 @@
+{
+  "file": "tests/commands/helpers.ts",
+  "revision": "6e99656",
+  "archiveSha256": "b45f568938b1496fa36329e8f6295f88cd9c86c298119400d852004487470201",
+  "bothIdentical": true,
+  "reason": "Adjacent original tests require shared helper; first captures retain module-not-found. No assertion edits."
+}

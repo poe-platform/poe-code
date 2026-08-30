@@ -1,0 +1,246 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { createReadStream, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync,
+  rmSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { release } from "node:os";
+import { fileURLToPath } from "node:url";
+
+const base = dirname(fileURLToPath(import.meta.url));
+const root = resolve(base, "../../../..");
+const candidate = "28cfe0f2cdc9b82c940523fce7d6fc08dacaeb94";
+const label = process.argv[2];
+assert.ok(label && /^[a-zA-Z0-9][a-zA-Z0-9-]*$/.test(label), "supply a unique capture label");
+assert.equal(process.cwd(), root);
+const destination = join(base, label);
+mkdirSync(destination);
+const scratch = mkdtempSync(join(base, ".work-"));
+const archive = join(scratch, "candidate");
+mkdirSync(archive);
+const temporary = join(scratch, "tmp");
+mkdirSync(temporary);
+const digest = data => createHash("sha256").update(data).digest("hex");
+const save = (path, value) => writeFileSync(join(destination, path), typeof value === "string" ? value : JSON.stringify(value, null, 2) + "\n", { flag: "wx" });
+const git = (...args) => {
+  const result = spawnSync("git", args, { cwd: root, maxBuffer: 64 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr.toString());
+  return result.stdout;
+};
+const names = git("ls-tree", "-rz", "--name-only", candidate).toString().split("\0").filter(Boolean);
+const nameSet = new Set(names);
+const frozenPaths = names.filter(path => path.startsWith("src/") || path.startsWith("tests/fs/") && path.endsWith(".ts")
+  || path.startsWith("tests/contracts/") && path.endsWith(".ts") || ["package.json", "package-lock.json", "tsconfig.json", "tsconfig.build.json"].includes(path));
+function manifest(directory, paths) {
+  return Object.fromEntries(paths.map(path => [path, digest(readFileSync(join(directory, path)))]));
+}
+function files(directory, prefix = "") {
+  return readdirSync(join(directory, prefix), { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))
+    .flatMap(entry => {
+      const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+      return entry.isDirectory() ? files(directory, path) : [path];
+    });
+}
+function treeManifest(directory, paths) {
+  return Object.fromEntries(paths.map(path => {
+    const absolute = join(directory, path);
+    const stat = lstatSync(absolute);
+    return [path, stat.isSymbolicLink() ? { link: readlinkSync(absolute) } : { sha256: digest(readFileSync(absolute)), mode: stat.mode & 0o777 }];
+  }));
+}
+const core = ["tests/contracts/filesystem-allocation.test.ts", "tests/fs/real/allocation.test.ts"];
+const legacy = ["tests/contracts/filesystem.test.ts", "tests/contracts/filesystem-identity.test.ts",
+  "tests/fs/real/conformance.test.ts", "tests/fs/real/cancellation-regression.test.ts"];
+const wrappers = ["tests/fs/readonly/allocation.test.ts", "tests/fs/mount/allocation.test.ts", "tests/fs/overlay/allocation.test.ts",
+  "tests/fs/readonly/metadata.test.ts", "tests/fs/readonly/readonly.test.ts", "tests/fs/readonly/streaming.test.ts",
+  "tests/fs/readonly/rmdir.test.ts", "tests/fs/readonly/snapshot-rmdir.test.ts", "tests/fs/mount/review-regressions.test.ts",
+  "tests/fs/mount/comparison.test.ts", "tests/fs/mount/identity-scope.test.ts", "tests/fs/mount/copy-identity.test.ts",
+  "tests/fs/mount/copy-identity-guards.test.ts", "tests/fs/mount/snapshot-rmdir.test.ts",
+  "tests/fs/mount/identity-authority-review/authority.test.ts", "tests/fs/overlay/review-regressions.test.ts",
+  "tests/fs/overlay/copy-identity.test.ts", "tests/fs/overlay/scoped-links.test.ts", "tests/fs/overlay/rmdir.test.ts",
+  "tests/fs/overlay/snapshot-rmdir.test.ts", "tests/fs/overlay/streaming.test.ts"];
+const report = { candidate, startedAt: new Date().toISOString(), headBefore: git("rev-parse", "HEAD").toString().trim(),
+  statusBefore: git("status", "--short").toString(), profile: { node: process.version, uv: process.versions.uv,
+    platform: process.platform, arch: process.arch, release: release(), executable: process.execPath },
+  commands: [], mutants: [], cohorts: { core, legacy, wrappers }, scratch,
+  qualifications: ["committed full archive, not a strict-live or whole-product gate", "Linux native execution not performed",
+    "copied preexisting development dependencies; no install or network services", "SafeJS synthetic blocks outside this feature",
+    "historical source/evidence remain untouched; scoped counts are not superiority or full gate evidence"] };
+function run(label, executable, args, cwd = archive, expected = 0, env = {}) {
+  const result = spawnSync(executable, args, { cwd, env: { ...process.env, TMPDIR: temporary, TMP: temporary, TEMP: temporary,
+    npm_config_cache: join(scratch, "npm-cache"), npm_config_update_notifier: "false", ...env },
+    encoding: "utf8", timeout: 180000, maxBuffer: 64 * 1024 * 1024 });
+  save(`${label}.stdout.txt`, result.stdout ?? "");
+  save(`${label}.stderr.txt`, result.stderr ?? "");
+  const counts = Object.fromEntries([...(result.stdout ?? "").matchAll(/^# (tests|suites|pass|fail|cancelled|skipped|todo) (\d+)$/gm)].map(match => [match[1], Number(match[2])]));
+  const record = { label, executable, args, cwd, status: result.status, signal: result.signal, error: result.error?.message ?? null, counts };
+  report.commands.push(record);
+  console.log(JSON.stringify({ label, status: result.status, counts }));
+  if (expected === "nonzero") assert.ok(result.status !== 0 && result.status !== null, `${label} did not detect mutant`);
+  else assert.equal(result.status, expected, `${label}: ${result.stderr}\n${result.stdout?.slice(-5000)}`);
+  return result.stdout;
+}
+
+const typeFlags = ["--target", "ES2023", "--lib", "ES2023", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict",
+  "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--verbatimModuleSyntax", "--forceConsistentCasingInFileNames", "--types", "node"];
+let authorBefore;
+let archiveBefore;
+try {
+  const harnessFiles = ["verify.mjs", "boundary.test.ts", "public-consumer.mts.txt", "load-trace.mjs", "consumer-package.json.txt"];
+  report.harnessInputs = manifest(base, harnessFiles);
+  mkdirSync(join(destination, "inputs"));
+  for (const path of harnessFiles) cpSync(join(base, path), join(destination, "inputs", `${path}.txt`));
+  authorBefore = manifest(root, frozenPaths);
+  save("author-before.json", authorBefore);
+  const archiveFile = join(scratch, "candidate.tar");
+  const result = spawnSync("git", ["archive", candidate, "--output", archiveFile], { cwd: root });
+  assert.equal(result.status, 0);
+  const archiveHash = createHash("sha256");
+  for await (const chunk of createReadStream(archiveFile)) archiveHash.update(chunk);
+  report.archiveSha256 = archiveHash.digest("hex");
+  report.archiveBytes = lstatSync(archiveFile).size;
+  const extracted = spawnSync("tar", ["-xf", archiveFile, "-C", archive], { maxBuffer: 1024 * 1024 });
+  assert.equal(extracted.status, 0, extracted.stderr.toString());
+  archiveBefore = treeManifest(archive, names);
+  save("archive-inputs.json", archiveBefore);
+  save("candidate-inputs.json", manifest(archive, frozenPaths));
+  assert.deepEqual(manifest(archive, frozenPaths), authorBefore, "author inputs must initially equal frozen candidate");
+  cpSync(join(root, "node_modules"), join(archive, "node_modules"), { recursive: true, dereference: true });
+  report.toolchain = { typescript: JSON.parse(readFileSync(join(archive, "node_modules/typescript/package.json"))).version,
+    files: manifest(archive, ["node_modules/typescript/lib/tsc.js", "node_modules/typescript/lib/_tsc.js",
+      "node_modules/typescript/lib/typescript.js", "node_modules/tsx/package.json", "node_modules/@types/node/package.json"]),
+    nodeExecutableSha256: digest(readFileSync(process.execPath)) };
+  mkdirSync(join(archive, "tests/fs/overlay/allocation-evidence"), { recursive: true });
+  report.harnessPreparation = "Created empty overlay/allocation-evidence parent inside isolated archive: frozen wrapper native fixture expects it; no helper/source changes.";
+  const independentPath = "tests/fs/real/allocation-independent";
+  mkdirSync(join(archive, independentPath), { recursive: true });
+  cpSync(join(base, "boundary.test.ts"), join(archive, independentPath, "boundary.test.ts"));
+  run("independent-boundary", process.execPath, ["--import", "tsx", "--test", `${independentPath}/boundary.test.ts`]);
+  run("author-core", process.execPath, ["--import", "tsx", "--test", "--test-concurrency=1", ...core]);
+  run("author-legacy", process.execPath, ["--import", "tsx", "--test", "--test-concurrency=1", ...legacy]);
+  run("author-wrappers", process.execPath, ["--import", "tsx", "--test", "--test-concurrency=1", ...wrappers]);
+  run("source-types", process.execPath, ["node_modules/typescript/bin/tsc", ...typeFlags, "--noEmit", "--listFiles", ...core, ...legacy, ...wrappers, `${independentPath}/boundary.test.ts`]);
+  run("build", "npm", ["run", "build", "--", "--listEmittedFiles", "--listFiles"]);
+  const distFiles = files(join(archive, "dist"));
+  save("emitted-files.json", manifest(archive, distFiles.map(path => `dist/${path}`)));
+  report.emitted = { files: distFiles.length, javascript: distFiles.filter(path => path.endsWith(".js")).length,
+    declarations: distFiles.filter(path => path.endsWith(".d.ts")).length };
+  const packDirectory = join(scratch, "pack");
+  mkdirSync(packDirectory);
+  const packed = JSON.parse(run("pack", "npm", ["pack", "--ignore-scripts", "--json", "--pack-destination", packDirectory, "--cache", join(scratch, "npm-cache")]));
+  const tarball = join(packDirectory, packed[0].filename);
+  report.pack = { ...packed[0], sha256: digest(readFileSync(tarball)) };
+  const consumer = join(scratch, "consumer");
+  const packageRoot = join(consumer, "node_modules/virtual-bash");
+  mkdirSync(packageRoot, { recursive: true });
+  const unpack = spawnSync("tar", ["-xf", tarball, "--strip-components=1", "-C", packageRoot]);
+  assert.equal(unpack.status, 0, unpack.stderr.toString());
+  cpSync(join(archive, "node_modules/@types"), join(consumer, "node_modules/@types"), { recursive: true });
+  cpSync(join(archive, "node_modules/undici-types"), join(consumer, "node_modules/undici-types"), { recursive: true });
+  cpSync(join(base, "public-consumer.mts.txt"), join(consumer, "public-consumer.mts"));
+  cpSync(join(base, "load-trace.mjs"), join(consumer, "load-trace.mjs"));
+  cpSync(join(base, "consumer-package.json.txt"), join(consumer, "package.json"));
+  assert.equal(existsSync(join(packageRoot, "src")), false);
+  report.publicPackageBefore = manifest(packageRoot, files(packageRoot));
+  const typeOutput = run("packed-types", process.execPath, [join(archive, "node_modules/typescript/bin/tsc"), ...typeFlags,
+    "--listFiles", "--listEmittedFiles", "--rootDir", ".", "--outDir", "emitted", "--noEmitOnError", "public-consumer.mts"], consumer);
+  const typeClosure = typeOutput.split("\n").map(line => line.trim()).filter(path => path.startsWith(consumer + "/") && existsSync(path));
+  assert.ok(typeClosure.some(path => path === join(packageRoot, "dist/contracts/filesystem.d.ts")));
+  assert.ok(!typeClosure.some(path => path.includes("/src/")));
+  assert.ok(!typeOutput.includes(join(root, "dist") + "/") && !typeOutput.includes(join(root, "src") + "/"));
+  save("packed-type-closure.json", manifest(consumer, typeClosure.map(path => relative(consumer, path))));
+  const runtimeRoot = join(scratch, "runtime");
+  mkdirSync(runtimeRoot);
+  const trace = join(destination, "packed-loads.jsonl");
+  const runtimeArgs = ["--loader", "./load-trace.mjs", "--test", "--test-concurrency=1", "emitted/public-consumer.mjs"];
+  const runtimeEnv = { ALLOCATION_TASK_ROOT: runtimeRoot, ALLOCATION_LOAD_TRACE: trace };
+  run("packed-runtime", process.execPath, runtimeArgs, consumer, 0, runtimeEnv);
+  assert.deepEqual(readdirSync(runtimeRoot), []);
+  const loaded = readFileSync(trace, "utf8").trim().split("\n").map(line => JSON.parse(line));
+  const packageLoads = loaded.filter(entry => entry.path.startsWith(packageRoot + "/"));
+  assert.ok(packageLoads.some(entry => entry.path.endsWith("/dist/fs/real/index.js")));
+  assert.ok(packageLoads.some(entry => entry.path.endsWith("/dist/fs/real/allocation.js")));
+  for (const entry of packageLoads) assert.equal(entry.sha256, report.publicPackageBefore[relative(packageRoot, entry.path)]);
+  assert.ok(loaded.every(entry => entry.path.startsWith(consumer + "/")), "runtime file loads must remain inside the isolated consumer");
+  save("loaded-package.json", Object.fromEntries(packageLoads.map(entry => [relative(packageRoot, entry.path), entry.sha256])));
+  report.loadedPackageModules = new Set(packageLoads.map(entry => entry.path)).size;
+  const mutations = [
+    { name: "wrong-unit", path: "dist/fs/real/allocation.js", from: "blocks * 512", to: "blocks * 4096" },
+    { name: "size-fallback", path: "dist/fs/real/index.js", from: "nativeAllocatedBytes(stats.blocks, process.platform)", to: "nativeAllocatedBytes(stats.blocks, process.platform) ?? stats.size" },
+    { name: "zero-omission", path: "dist/fs/real/index.js", from: "allocatedBytes === undefined", to: "!allocatedBytes" },
+    { name: "overflow", path: "dist/fs/real/allocation.js", from: "Number.isSafeInteger(bytes) ? bytes : undefined", to: "bytes" },
+    ...["readonly", "mount", "overlay"].map(wrapper => ({ name: `forwarding-${wrapper}`, path: `dist/fs/${wrapper}/index.js`,
+      from: "...(allocatedBytes === undefined ? {} : { allocatedBytes }),", to: "" })),
+  ];
+  for (const mutation of mutations) {
+    const mutantConsumer = join(scratch, `mutant-${mutation.name}`);
+    const mutantPackage = join(mutantConsumer, "node_modules/virtual-bash");
+    mkdirSync(dirname(mutantPackage), { recursive: true });
+    cpSync(packageRoot, mutantPackage, { recursive: true });
+    cpSync(join(consumer, "emitted"), join(mutantConsumer, "emitted"), { recursive: true });
+    cpSync(join(consumer, "load-trace.mjs"), join(mutantConsumer, "load-trace.mjs"));
+    cpSync(join(consumer, "package.json"), join(mutantConsumer, "package.json"));
+    const path = join(mutantPackage, mutation.path);
+    const original = readFileSync(path, "utf8");
+    assert.equal(original.split(mutation.from).length, 2, mutation.name);
+    const changed = original.replace(mutation.from, mutation.to);
+    const patch = `*** Begin Patch\n*** Update File: ${path}\n@@\n-${original.split("\n").find(line => line.includes(mutation.from))}\n+${changed.split("\n").find((line, index) => line !== original.split("\n")[index])}\n*** End Patch\n`;
+    if (mutation.to === "") {
+      const line = original.split("\n").find(line => line.includes(mutation.from));
+      const applied = spawnSync("apply_patch", { input: `*** Begin Patch\n*** Update File: ${path}\n@@\n-${line}\n+${line.replace(mutation.from, "")}\n*** End Patch\n`, encoding: "utf8" });
+      assert.equal(applied.status, 0, applied.stderr);
+    } else {
+      const applied = spawnSync("apply_patch", { input: patch, encoding: "utf8" });
+      assert.equal(applied.status, 0, applied.stderr);
+    }
+    const mutationTrace = join(destination, `mutant-${mutation.name}.loads.jsonl`);
+    run(`mutant-${mutation.name}`, process.execPath, runtimeArgs, mutantConsumer, "nonzero", { ...runtimeEnv,
+      ALLOCATION_LOAD_TRACE: mutationTrace });
+    const command = report.commands.at(-1);
+    assert.ok(command.counts.fail > 0 && command.counts.pass > 0, "require assertion failures, not setup failure");
+    const mutationLoads = readFileSync(mutationTrace, "utf8").trim().split("\n").map(line => JSON.parse(line));
+    assert.ok(mutationLoads.every(entry => entry.path.startsWith(mutantConsumer + "/")));
+    assert.ok(mutationLoads.some(entry => entry.path === path && entry.sha256 === digest(readFileSync(path))));
+    report.mutants.push({ ...mutation, originalSha256: digest(original), mutatedSha256: digest(readFileSync(path)), counts: command.counts,
+      scope: "separate packed-package copy; original consumer package never mutated" });
+    assert.deepEqual(readdirSync(runtimeRoot), []);
+  }
+  assert.deepEqual(manifest(packageRoot, files(packageRoot)), report.publicPackageBefore);
+  report.packedUnchanged = true;
+  report.verdict = "bounded acceptance";
+} catch (error) {
+  report.verdict = "failed or incomplete; inspect first failing command";
+  report.error = { message: error.message, stack: error.stack };
+  process.exitCode = 1;
+} finally {
+  try {
+    if (authorBefore) {
+      const after = manifest(root, frozenPaths);
+      save("author-after.json", after);
+      report.authorInputsUnchanged = JSON.stringify(after) === JSON.stringify(authorBefore);
+      assert.ok(report.authorInputsUnchanged);
+      report.harnessInputsUnchanged = JSON.stringify(manifest(base, Object.keys(report.harnessInputs))) === JSON.stringify(report.harnessInputs);
+      assert.ok(report.harnessInputsUnchanged);
+    }
+    if (archiveBefore) {
+      const after = treeManifest(archive, names);
+      report.archiveTrackedInputsUnchanged = JSON.stringify(after) === JSON.stringify(archiveBefore);
+      assert.ok(report.archiveTrackedInputsUnchanged);
+      const newFiles = files(archive).filter(path => !nameSet.has(path) && !path.startsWith("node_modules/") && !path.startsWith("dist/")
+        && path !== "tests/fs/real/allocation-independent/boundary.test.ts");
+      report.unexpectedArchiveAdditions = newFiles;
+      assert.deepEqual(newFiles, []);
+      report.archiveAfterManifestSha256 = digest(JSON.stringify(after));
+    }
+  } catch (error) {
+    report.integrityError = error.message;
+    process.exitCode = 1;
+  }
+  rmSync(scratch, { recursive: true, force: true });
+  report.cleanup = { scratchRemoved: !existsSync(scratch), remainingOwnedWorkRoots: readdirSync(base).filter(name => name.startsWith(".work-")) };
+  report.finishedAt = new Date().toISOString();
+  report.headAfter = git("rev-parse", "HEAD").toString().trim();
+  if (process.exitCode) report.verdict = "failed or incomplete; see preserved evidence";
+  save("report.json", report);
+  console.log(JSON.stringify({ destination, verdict: report.verdict, cleanup: report.cleanup }));
+}

@@ -1,0 +1,12 @@
+{
+  "revision": "25a892f0908c12c1d00846690167fb520fa0fe42",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/metadata-stress/canonical-env/runner.mjs",
+    "release"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\n  \"status\": \"qualified-scoped-pass\",\n  \"executedTests\": 318,\n  \"counts\": {\n    \"tests\": 318,\n    \"pass\": 318,\n    \"fail\": 0,\n    \"cancelled\": 0,\n    \"skipped\": 0,\n    \"todo\": 0\n  },\n  \"nativeRowsPassed\": 22,\n  \"issues\": []\n}\n",
+  "stderr": ""
+}

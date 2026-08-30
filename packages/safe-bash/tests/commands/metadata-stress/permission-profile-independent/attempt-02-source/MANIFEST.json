@@ -1,0 +1,16 @@
+{
+  "attempt": "attempt-02",
+  "classification": "historical verifier source captured as nonexecutable data; unchanged review.test.ts and observe.mjs remain canonical",
+  "records": [
+    {
+      "path": "attempt-02-source/capture.mjs.data",
+      "sha256": "1a52e719f165da8a955a6d92acf7269d8859e512a1ebb85572f23369a1c6d74a",
+      "bytes": 12990
+    },
+    {
+      "path": "attempt-02-source/native-profile.mjs.data",
+      "sha256": "bb64ea01f7243d6c79eea27a31447ba450a4c8edd76161521de46ee71f405e03",
+      "bytes": 9181
+    }
+  ]
+}

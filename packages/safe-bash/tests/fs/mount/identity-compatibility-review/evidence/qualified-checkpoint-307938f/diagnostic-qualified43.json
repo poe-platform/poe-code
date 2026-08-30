@@ -1,0 +1,29 @@
+{
+  "name": "diagnostic-qualified43",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:40:08.684Z",
+  "finishedAt": "2026-08-27T01:40:09.049Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 43,
+    "pass": 43,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "5cc5c380301c477b726600cdc8a207d0b47aeebdeb071e14c3bfd68cd25d14b3",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

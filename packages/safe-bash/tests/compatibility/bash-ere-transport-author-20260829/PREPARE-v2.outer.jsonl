@@ -1,0 +1,2 @@
+{"started":"2026-08-29T09:59:29.267Z","pid":13167,"role":"source-only exact helper versioning"}
+{"changes":[["phase==='seal'","phase==='seal-v2'"],["phase!=='seal'","phase!=='seal-v2'"],["phase==='types'","phase==='types-v2'"],["/^TYPE-0[1-2]$/","/^TYPE-02$/"],["'SEAL.outer.jsonl'","'SEAL-v2.outer.jsonl'"],["'SEAL.json'","'SEAL-v2.json'"],["'SEAL-RESULT.json'","'SEAL-v2-RESULT.json'"],["'PRESEAL.md','typecheck.mjs'","'PRESEAL.md','typecheck-v2.mjs','REVISION-v2.md'"]],"sha256":"c3bdfce2185b2290006ea9efad8adea9fcadfba78b1f6ffbdf3c37648e24847b","runtimeImports":0}

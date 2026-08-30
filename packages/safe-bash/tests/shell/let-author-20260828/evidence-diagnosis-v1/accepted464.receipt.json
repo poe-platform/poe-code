@@ -1,0 +1,12 @@
+{
+  "layout": "accepted464",
+  "pid": 85284,
+  "code": 0,
+  "signal": null,
+  "groupAbsent": true,
+  "failure": null,
+  "stdoutSHA256": "57d7615e1caf64990203b7efd785dd7a6e7ccc3e75a0a3895f63a93694e4730d",
+  "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdoutBytes": 3162,
+  "stderrBytes": 0
+}

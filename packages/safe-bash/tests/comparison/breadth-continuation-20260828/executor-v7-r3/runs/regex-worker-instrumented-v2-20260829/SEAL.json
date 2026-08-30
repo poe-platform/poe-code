@@ -1,0 +1,226 @@
+{
+  "schema": "REGEX_HARMLESS_SUCCESSOR_PRESEAL_V2",
+  "created": "2026-08-29T08:40:13.531Z",
+  "rootMessageSha256": "77bad3c9b760b9da9f68b203e78c3f51b5114ff511e4d16fa835adc6012befc4",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "git": {
+    "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "bytes": 3704880,
+    "mode": 493,
+    "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+  },
+  "files": [
+    {
+      "path": "AUTH-INACTIVE.json",
+      "bytes": 237,
+      "mode": 420,
+      "sha256": "e5b2f549cf1e628dd1fbfa1497636236cae81b12e8f72987807d64a6eb27dbda"
+    },
+    {
+      "path": "INSTRUMENTATION.json",
+      "bytes": 2398,
+      "mode": 420,
+      "sha256": "4386662b560e2617829183725dc368b3ef406e75e802bb6188dd331445e59e79"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 1867,
+      "mode": 420,
+      "sha256": "b9135278102903fdaa78d2fa12b2df5604df6e0acfdf8a97a77dff07bdfbcba5"
+    },
+    {
+      "path": "PRIOR-DRAFT.json",
+      "bytes": 2364,
+      "mode": 420,
+      "sha256": "8bde35ea28c24a5774b6fca7a36cf3e09692cb7790c6f28d37516fb51f9f3534"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3143,
+      "mode": 420,
+      "sha256": "b40a3b90b2b3197cf8782a695320784d32ede8894392a9f7345d87113e92b73d"
+    },
+    {
+      "path": "ROOT-AUTHORITY.txt",
+      "bytes": 2043,
+      "mode": 420,
+      "sha256": "77bad3c9b760b9da9f68b203e78c3f51b5114ff511e4d16fa835adc6012befc4"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 3580,
+      "mode": 420,
+      "sha256": "bec2c39e33cc328501f81da286cba3282abc0eb703d8648fd6064b4f986f8d38"
+    },
+    {
+      "path": "case.mjs",
+      "bytes": 14772,
+      "mode": 420,
+      "sha256": "b0cc49e8c5a9da67b700bfe5e3875bc976cb76e52250541a08442e04904d152a"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 10558,
+      "mode": 420,
+      "sha256": "ce6e03d1b89b127052f946f616d3fed327af18850b7468aec19a382cd3c748d5"
+    },
+    {
+      "path": "controls.json",
+      "bytes": 3022,
+      "mode": 420,
+      "sha256": "8c287c074fdef8e9e468d29e751310cef78df7d0380918cb3b4d97812fd0bb5e"
+    },
+    {
+      "path": "fixtures.json",
+      "bytes": 1162,
+      "mode": 420,
+      "sha256": "5ce1402b14d52c489b075b8fe6cc71b74d7d6172afa9996a35269c40883437a1"
+    },
+    {
+      "path": "guarded-operation.mjs",
+      "bytes": 1711,
+      "mode": 420,
+      "sha256": "b39b15a79436e6b433084f0171b8fdde64c385af708edfea9988a8eaf2f79899"
+    },
+    {
+      "path": "observer.mjs",
+      "bytes": 9103,
+      "mode": 420,
+      "sha256": "b12c34100aef3a6d6f3062a5f30d8298d27d839986c51f63f8c431451491980d"
+    },
+    {
+      "path": "package.json",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "ace4d0c30cd0af4d6433293b02d31872d821d730c6a3ab5c1bbd974c78620218"
+    },
+    {
+      "path": "policy.mjs",
+      "bytes": 3091,
+      "mode": 420,
+      "sha256": "50fd78a5295d4a028694ddc3ce883240b54d37476825a58edd4d2e78e34e3ee7"
+    },
+    {
+      "path": "preload.mjs",
+      "bytes": 4915,
+      "mode": 420,
+      "sha256": "68c52d59c2e164dc0ea1b10677e87e80e9bd8125b7f8e6120bdc5a17f9b14c28"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 11091,
+      "mode": 420,
+      "sha256": "8ee3a3e9f181ee8dfeb99ff361f2e7fd3489886388763cfaec13d3f51d7a421c"
+    }
+  ],
+  "inherited": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+      "bytes": 8590,
+      "mode": 420,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    }
+  ],
+  "originalDraft": {
+    "AUTH-INACTIVE.json": {
+      "bytes": 237,
+      "sha256": "e5b2f549cf1e628dd1fbfa1497636236cae81b12e8f72987807d64a6eb27dbda"
+    },
+    "INSTRUMENTATION.json": {
+      "bytes": 1728,
+      "sha256": "6229bd15e324582b1f5c7fce92b64664811301a1ea1bb757c8a61e4ab30738e4"
+    },
+    "PLAN.json": {
+      "bytes": 1336,
+      "sha256": "63b71fc027cfed985fd5dfdd0252f7f767f4759c18c54d6080348a5afdb6c754"
+    },
+    "README.md": {
+      "bytes": 6012,
+      "sha256": "039ca145fac184644a7d54845879e4bd2264569631680393181f7e66ea5c4e06"
+    },
+    "case.mjs": {
+      "bytes": 12956,
+      "sha256": "085a3e809b4f7b088ea16207b45b9be74d412e435e2122ceddc074a758862158"
+    },
+    "common.mjs": {
+      "bytes": 9978,
+      "sha256": "35cb6cdb64ce285839934fd000ab81b6e68713816c5a15dd10ad6c925cd80388"
+    },
+    "controls.json": {
+      "bytes": 3022,
+      "sha256": "8c287c074fdef8e9e468d29e751310cef78df7d0380918cb3b4d97812fd0bb5e"
+    },
+    "fixtures.json": {
+      "bytes": 1162,
+      "sha256": "5ce1402b14d52c489b075b8fe6cc71b74d7d6172afa9996a35269c40883437a1"
+    },
+    "guarded-operation.mjs": {
+      "bytes": 1690,
+      "sha256": "3467a8d005f393b20bbb4905a3ccc72e154f8463180edcab8e45df5e070fd368"
+    },
+    "observer.mjs": {
+      "bytes": 8757,
+      "sha256": "85ea94dd4bca98919443c3aa43f10dfacc48fbacc77149d985384ce2f402c1c4"
+    },
+    "package.json": {
+      "bytes": 74,
+      "sha256": "ace4d0c30cd0af4d6433293b02d31872d821d730c6a3ab5c1bbd974c78620218"
+    },
+    "policy.mjs": {
+      "bytes": 3091,
+      "sha256": "50fd78a5295d4a028694ddc3ce883240b54d37476825a58edd4d2e78e34e3ee7"
+    },
+    "preload.mjs": {
+      "bytes": 5090,
+      "sha256": "8e6966ab68e86db15713b29f2b1db1777734429ce4b6873adf9ac77b898e5eb6"
+    },
+    "supervisor.mjs": {
+      "bytes": 10471,
+      "sha256": "5dafc0e1bef758000cd252573c0e289cc9aa89df82dab617e099b5bba13fa695"
+    }
+  },
+  "controlCount": 55,
+  "childControls": 51,
+  "inProcessData": 4,
+  "plannedWorkers": 41,
+  "workerCeiling": 48,
+  "environmentDataApproved": true,
+  "actualEngineAuthorized": false,
+  "slotPolicy": "synchronous-install-constructor-finally-restore; module-wide reentry denial",
+  "witnessCases": [
+    "missing",
+    "null",
+    "inherited-fields",
+    "wrong-token",
+    "ArrayBuffer",
+    "SAB8",
+    "forged-SAB",
+    "accessor",
+    "own-fields-inherited-prototype",
+    "Proxy",
+    "already-sticky"
+  ],
+  "limitations": [
+    "not caller authentication",
+    "not tamper proofing",
+    "no native constructor authority beyond admitted harness",
+    "real integration remains withheld"
+  ]
+}

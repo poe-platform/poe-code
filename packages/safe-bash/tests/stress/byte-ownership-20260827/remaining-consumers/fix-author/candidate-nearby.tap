@@ -1,0 +1,544 @@
+TAP version 13
+# Subtest: root exposes the explicit usable network capability without altering aggregate
+ok 1 - root exposes the explicit usable network capability without altering aggregate
+  ---
+  duration_ms: 14.4875
+  type: 'test'
+  ...
+# Subtest: VFS binary upload and output match native curl bytes
+ok 2 - VFS binary upload and output match native curl bytes
+  ---
+  duration_ms: 32.6215
+  type: 'test'
+  ...
+# Subtest: -O and -D write VFS-only files with exact native header bytes
+ok 3 - -O and -D write VFS-only files with exact native header bytes
+  ---
+  duration_ms: 21.288417
+  type: 'test'
+  ...
+# Subtest: HEAD/include and dumped headers preserve every redirect block
+ok 4 - HEAD/include and dumped headers preserve every redirect block
+  ---
+  duration_ms: 38.975958
+  type: 'test'
+  ...
+# Subtest: writeout format comes from VFS, not the host home/config
+ok 5 - writeout format comes from VFS, not the host home/config
+  ---
+  duration_ms: 2.681208
+  type: 'test'
+  ...
+# Subtest: fail flags do not report success or fabricate successful output
+ok 6 - fail flags do not report success or fabricate successful output
+  ---
+  duration_ms: 3.6445
+  type: 'test'
+  ...
+# Subtest: multipart literal/file fields match native structural bytes
+ok 7 - multipart literal/file fields match native structural bytes
+  ---
+  duration_ms: 20.236708
+  type: 'test'
+  ...
+# Subtest: real filesystem download is streamed and confined to its supplied root
+ok 8 - real filesystem download is streamed and confined to its supplied root
+  ---
+  duration_ms: 4.939125
+  type: 'test'
+  ...
+# Subtest: actual Shell can pipe binary curl output through virtual commands
+ok 9 - actual Shell can pipe binary curl output through virtual commands
+  ---
+  duration_ms: 13.344708
+  type: 'test'
+  ...
+# Subtest: native curl: GET binary
+ok 10 - native curl: GET binary
+  ---
+  duration_ms: 24.520042
+  type: 'test'
+  ...
+# Subtest: native curl: GET echo
+ok 11 - native curl: GET echo
+  ---
+  duration_ms: 15.994542
+  type: 'test'
+  ...
+# Subtest: native curl: DELETE custom method
+ok 12 - native curl: DELETE custom method
+  ---
+  duration_ms: 15.176667
+  type: 'test'
+  ...
+# Subtest: native curl: custom header
+ok 13 - native curl: custom header
+  ---
+  duration_ms: 15.169042
+  type: 'test'
+  ...
+# Subtest: native curl: repeated headers
+ok 14 - native curl: repeated headers
+  ---
+  duration_ms: 16.11275
+  type: 'test'
+  ...
+# Subtest: native curl: basic authentication
+ok 15 - native curl: basic authentication
+  ---
+  duration_ms: 15.257583
+  type: 'test'
+  ...
+# Subtest: native curl: bearer authentication
+ok 16 - native curl: bearer authentication
+  ---
+  duration_ms: 14.285292
+  type: 'test'
+  ...
+# Subtest: native curl: literal POST data
+ok 17 - native curl: literal POST data
+  ---
+  duration_ms: 15.672875
+  type: 'test'
+  ...
+# Subtest: native curl: raw at is literal
+ok 18 - native curl: raw at is literal
+  ---
+  duration_ms: 14.98425
+  type: 'test'
+  ...
+# Subtest: native curl: JSON
+ok 19 - native curl: JSON
+  ---
+  duration_ms: 13.540292
+  type: 'test'
+  ...
+# Subtest: native curl: JSON concatenation
+ok 20 - native curl: JSON concatenation
+  ---
+  duration_ms: 12.75375
+  type: 'test'
+  ...
+# Subtest: native curl: stdin binary
+ok 21 - native curl: stdin binary
+  ---
+  duration_ms: 12.394625
+  type: 'test'
+  ...
+# Subtest: native curl: stdin data strips CR LF NUL
+ok 22 - native curl: stdin data strips CR LF NUL
+  ---
+  duration_ms: 11.626166
+  type: 'test'
+  ...
+# Subtest: native curl: PUT stdin
+ok 23 - native curl: PUT stdin
+  ---
+  duration_ms: 12.092625
+  type: 'test'
+  ...
+# Subtest: native curl: encoded query
+ok 24 - native curl: encoded query
+  ---
+  duration_ms: 11.739583
+  type: 'test'
+  ...
+# Subtest: native curl: encoded stdin query
+ok 25 - native curl: encoded stdin query
+  ---
+  duration_ms: 10.913542
+  type: 'test'
+  ...
+# Subtest: native curl: encoded POST
+ok 26 - native curl: encoded POST
+  ---
+  duration_ms: 10.927334
+  type: 'test'
+  ...
+# Subtest: native curl: GET rejects literal whitespace
+ok 27 - native curl: GET rejects literal whitespace
+  ---
+  duration_ms: 9.734625
+  type: 'test'
+  ...
+# Subtest: native curl: content type suppression
+ok 28 - native curl: content type suppression
+  ---
+  duration_ms: 11.055125
+  type: 'test'
+  ...
+# Subtest: native curl: HEAD
+ok 29 - native curl: HEAD
+  ---
+  duration_ms: 12.619958
+  type: 'test'
+  ...
+# Subtest: native curl: include headers
+ok 30 - native curl: include headers
+  ---
+  duration_ms: 11.61125
+  type: 'test'
+  ...
+# Subtest: native curl: HTTP failure default is zero
+ok 31 - native curl: HTTP failure default is zero
+  ---
+  duration_ms: 10.5635
+  type: 'test'
+  ...
+# Subtest: native curl: HTTP fail discards body
+ok 32 - native curl: HTTP fail discards body
+  ---
+  duration_ms: 11.059542
+  type: 'test'
+  ...
+# Subtest: native curl: HTTP fail retains body
+ok 33 - native curl: HTTP fail retains body
+  ---
+  duration_ms: 10.98725
+  type: 'test'
+  ...
+# Subtest: native curl: silent HTTP failure
+ok 34 - native curl: silent HTTP failure
+  ---
+  duration_ms: 12.208
+  type: 'test'
+  ...
+# Subtest: native curl: silent show error
+ok 35 - native curl: silent show error
+  ---
+  duration_ms: 16.144042
+  type: 'test'
+  ...
+# Subtest: native curl: writeout
+ok 36 - native curl: writeout
+  ---
+  duration_ms: 15.538709
+  type: 'test'
+  ...
+# Subtest: native curl: explicit POST method after redirect
+ok 37 - native curl: explicit POST method after redirect
+  ---
+  duration_ms: 14.118334
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 301
+ok 38 - native curl: POST redirect 301
+  ---
+  duration_ms: 12.861542
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 302
+ok 39 - native curl: POST redirect 302
+  ---
+  duration_ms: 13.019625
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 303
+ok 40 - native curl: POST redirect 303
+  ---
+  duration_ms: 12.538417
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 307
+ok 41 - native curl: POST redirect 307
+  ---
+  duration_ms: 11.7535
+  type: 'test'
+  ...
+# Subtest: native curl: POST redirect 308
+ok 42 - native curl: POST redirect 308
+  ---
+  duration_ms: 12.550416
+  type: 'test'
+  ...
+# Subtest: native curl: stdin redirect replay
+ok 43 - native curl: stdin redirect replay
+  ---
+  duration_ms: 11.836959
+  type: 'test'
+  ...
+# Subtest: per-hop authorization and cross-origin custom credentials are removed
+ok 44 - per-hop authorization and cross-origin custom credentials are removed
+  ---
+  duration_ms: 2.857542
+  type: 'test'
+  ...
+# Subtest: retry status and bounded fractional delay
+ok 45 - retry status and bounded fractional delay
+  ---
+  duration_ms: 4.047833
+  type: 'test'
+  ...
+# Subtest: redirect quota reports curl 47 without infinite requests
+ok 46 - redirect quota reports curl 47 without infinite requests
+  ---
+  duration_ms: 1.503875
+  type: 'test'
+  ...
+# Subtest: verbose diagnostics never expose credential header values
+ok 47 - verbose diagnostics never expose credential header values
+  ---
+  duration_ms: 0.699625
+  type: 'test'
+  ...
+# Subtest: registration requires an explicit authorizer
+ok 48 - registration requires an explicit authorizer
+  ---
+  duration_ms: 0.661125
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--connect-timeout","1"]
+ok 49 - unsupported/malformed arguments fail before networking: ["--connect-timeout","1"]
+  ---
+  duration_ms: 0.854333
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--proxy","http://proxy.invalid"]
+ok 50 - unsupported/malformed arguments fail before networking: ["--proxy","http://proxy.invalid"]
+  ---
+  duration_ms: 0.201083
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--netrc"]
+ok 51 - unsupported/malformed arguments fail before networking: ["--netrc"]
+  ---
+  duration_ms: 0.113041
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-k"]
+ok 52 - unsupported/malformed arguments fail before networking: ["-k"]
+  ---
+  duration_ms: 0.144709
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--compressed"]
+ok 53 - unsupported/malformed arguments fail before networking: ["--compressed"]
+  ---
+  duration_ms: 0.185834
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-X","GET\\r\\nInjected: bad"]
+ok 54 - unsupported/malformed arguments fail before networking: ["-X","GET\\r\\nInjected: bad"]
+  ---
+  duration_ms: 0.113959
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-X","CONNECT"]
+ok 55 - unsupported/malformed arguments fail before networking: ["-X","CONNECT"]
+  ---
+  duration_ms: 0.0985
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Authorization: secret\\r\\nX: injection"]
+ok 56 - unsupported/malformed arguments fail before networking: ["-H","Authorization: secret\\r\\nX: injection"]
+  ---
+  duration_ms: 0.3115
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Content-Length: 9"]
+ok 57 - unsupported/malformed arguments fail before networking: ["-H","Content-Length: 9"]
+  ---
+  duration_ms: 0.496458
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Host: elsewhere"]
+ok 58 - unsupported/malformed arguments fail before networking: ["-H","Host: elsewhere"]
+  ---
+  duration_ms: 0.135292
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--max-time","NaN"]
+ok 59 - unsupported/malformed arguments fail before networking: ["--max-time","NaN"]
+  ---
+  duration_ms: 0.153333
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--retry","-1"]
+ok 60 - unsupported/malformed arguments fail before networking: ["--retry","-1"]
+  ---
+  duration_ms: 0.126208
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--data","x","-T","file"]
+ok 61 - unsupported/malformed arguments fail before networking: ["--data","x","-T","file"]
+  ---
+  duration_ms: 0.084083
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--json","{}","-F","x=y"]
+ok 62 - unsupported/malformed arguments fail before networking: ["--json","{}","-F","x=y"]
+  ---
+  duration_ms: 0.112917
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-u","user-without-password"]
+ok 63 - unsupported/malformed arguments fail before networking: ["-u","user-without-password"]
+  ---
+  duration_ms: 0.06975
+  type: 'test'
+  ...
+# Subtest: denied URLs neither invoke transport nor consume uploads
+ok 64 - denied URLs neither invoke transport nor consume uploads
+  ---
+  duration_ms: 0.881875
+  type: 'test'
+  ...
+# Subtest: timeout covers authorization and observes late rejection
+ok 65 - timeout covers authorization and observes late rejection
+  ---
+  duration_ms: 51.84975
+  type: 'test'
+  ...
+# Subtest: late transport responses are disposed after timeout
+ok 66 - late transport responses are disposed after timeout
+  ---
+  duration_ms: 52.556875
+  type: 'test'
+  ...
+# Subtest: pre-aborted commands perform no work
+ok 67 - pre-aborted commands perform no work
+  ---
+  duration_ms: 0.247375
+  type: 'test'
+  ...
+# Subtest: external abort closes a streaming HTTP response
+ok 68 - external abort closes a streaming HTTP response
+  ---
+  duration_ms: 57.087375
+  type: 'test'
+  ...
+# Subtest: downstream EPIPE closes request/body without a shell workaround
+ok 69 - downstream EPIPE closes request/body without a shell workaround
+  ---
+  duration_ms: 50.125208
+  type: 'test'
+  ...
+# Subtest: total timeout closes a server that never sends headers
+ok 70 - total timeout closes a server that never sends headers
+  ---
+  duration_ms: 63.597083
+  type: 'test'
+  ...
+# Subtest: download quota stops stream and returns curl 63
+ok 71 - download quota stops stream and returns curl 63
+  ---
+  duration_ms: 38.818166
+  type: 'test'
+  ...
+# Subtest: upload quota stops bytes rather than truncating successfully
+ok 72 - upload quota stops bytes rather than truncating successfully
+  ---
+  duration_ms: 1.193791
+  type: 'test'
+  ...
+# Subtest: stdin replay overflow fails honestly instead of sending a prefix
+ok 73 - stdin replay overflow fails honestly instead of sending a prefix
+  ---
+  duration_ms: 3.449584
+  type: 'test'
+  ...
+# Subtest: output awaits sink pressure before pulling subsequent chunks
+ok 74 - output awaits sink pressure before pulling subsequent chunks
+  ---
+  duration_ms: 16.157209
+  type: 'test'
+  ...
+# Subtest: producer throws and partial output cannot become success
+ok 75 - producer throws and partial output cannot become success
+  ---
+  duration_ms: 0.61125
+  type: 'test'
+  ...
+# Subtest: empty-chunk producers do not starve timeout cancellation
+ok 76 - empty-chunk producers do not starve timeout cancellation
+  ---
+  duration_ms: 22.037709
+  type: 'test'
+  ...
+# Subtest: VFS output errors remain failure and dispose the response
+ok 77 - VFS output errors remain failure and dispose the response
+  ---
+  duration_ms: 0.443
+  type: 'test'
+  ...
+# Subtest: sensitive URL userinfo is absent from policy, transport and diagnostics
+ok 78 - sensitive URL userinfo is absent from policy, transport and diagnostics
+  ---
+  duration_ms: 0.479875
+  type: 'test'
+  ...
+# Subtest: non-slurp emits before EOF and honors output backpressure
+ok 79 - non-slurp emits before EOF and honors output backpressure
+  ---
+  duration_ms: 2.917083
+  type: 'test'
+  ...
+# Subtest: slurp and exit-status wait for EOF rather than stopping at false
+ok 80 - slurp and exit-status wait for EOF rather than stopping at false
+  ---
+  duration_ms: 22.438125
+  type: 'test'
+  ...
+# Subtest: cancellation interrupts pending stdin and observes late source rejection
+ok 81 - cancellation interrupts pending stdin and observes late source rejection
+  ---
+  duration_ms: 8.124084
+  type: 'test'
+  ...
+# Subtest: pending program/data filesystem reads receive cancellation signal
+ok 82 - pending program/data filesystem reads receive cancellation signal
+  ---
+  duration_ms: 11.295667
+  type: 'test'
+  ...
+# Subtest: empty chunk producers still yield for timer-driven cancellation
+ok 83 - empty chunk producers still yield for timer-driven cancellation
+  ---
+  duration_ms: 43.52625
+  type: 'test'
+  ...
+# Subtest: closed stdout propagates EPIPE and closes upstream immediately
+ok 84 - closed stdout propagates EPIPE and closes upstream immediately
+  ---
+  duration_ms: 0.780292
+  type: 'test'
+  ...
+# Subtest: abort interrupts stalled iterator return and ignores its late rejection
+ok 85 - abort interrupts stalled iterator return and ignores its late rejection
+  ---
+  duration_ms: 1.014875
+  type: 'test'
+  ...
+# Subtest: abort interrupts fallback readFile and pending stdout with late rejection
+ok 86 - abort interrupts fallback readFile and pending stdout with late rejection
+  ---
+  duration_ms: 4.879625
+  type: 'test'
+  ...
+# Subtest: pre-aborted signals produce no command I/O
+ok 87 - pre-aborted signals produce no command I/O
+  ---
+  duration_ms: 0.289208
+  type: 'test'
+  ...
+# Subtest: actual Shell pipeline transforms multiple values, slurps, and uses relative -f
+ok 88 - actual Shell pipeline transforms multiple values, slurps, and uses relative -f
+  ---
+  duration_ms: 16.395917
+  type: 'test'
+  ...
+# Subtest: actual Shell downstream head closes a large jq generator
+ok 89 - actual Shell downstream head closes a large jq generator
+  ---
+  duration_ms: 2.409125
+  type: 'test'
+  ...
+1..89
+# tests 89
+# suites 0
+# pass 89
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 662.771666

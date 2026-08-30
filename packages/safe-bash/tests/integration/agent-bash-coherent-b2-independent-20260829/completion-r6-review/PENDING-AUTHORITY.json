@@ -1,0 +1,51 @@
+{
+  "executionAuthorized": false,
+  "rootGrantPath": "/private/tmp/B2-R6-ROOT-GO.json",
+  "requiredRootGrant": {
+    "schema": "B2_RUNTIME_GO_R6",
+    "authority": "ROOT_B2_672_EXPLICIT_FRESH_GO",
+    "reviewAuthority": "INDEPENDENT_PREEXEC_REVIEW_ACCEPTED",
+    "reviewCommit": null,
+    "packetSha256": "a2a5a6a23f4c30bd490b3a1db29f0cdc6e4e57a4f179ba0368489af7652fb554",
+    "caps": {
+      "seconds": 1800,
+      "reserveSeconds": 180,
+      "knownOsStarts": 64,
+      "peakOs": 3,
+      "rawBytes": 100663296,
+      "childRawBytes": 67108864,
+      "workBytes": 536870912,
+      "terminalReserveBytes": 4194304,
+      "traceBytesPerRole": 524288,
+      "loaderAdmissions": 34,
+      "regexWorkers": 0,
+      "regexLoaderAdmissions": 0,
+      "guestEngines": 0,
+      "loaderThreads": 34,
+      "peakLoaderThreads": 1,
+      "decoderBytes": 67108864,
+      "maximumInventoryEntries": 16384
+    },
+    "workRoot": "/private/tmp/safe-bash-b2-runtime-r6",
+    "issuedAt": null,
+    "notBefore": null,
+    "activeDeadline": null,
+    "deadline": null
+  },
+  "remaining": "ROOT loader/boundary approval; fresh valid dates and actual review commit; exclusive grant/capture/work admission; all-source/tool reauthentication; external administration/publication census.",
+  "command": {
+    "shell": "/bin/zsh",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/new/launch.sh",
+      "/private/tmp/B2-R6-ROOT-GO.json",
+      "6222"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false
+  },
+  "timeRelations": {
+    "fullMilliseconds": 1800000,
+    "reserveMilliseconds": 180000,
+    "activeMilliseconds": 1620000
+  }
+}

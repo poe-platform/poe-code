@@ -1,0 +1,5029 @@
+{
+  "started": "2026-08-27T04:42:31.131Z",
+  "finished": "2026-08-27T04:42:31.893Z",
+  "head": "b4cde0bf2694c353222e21ebd8f49eeae329401e",
+  "node": "v22.22.2",
+  "policy": {
+    "primary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "primarySha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "historical": "/bin/bash",
+    "locales": [
+      "C",
+      "en_US.UTF-8"
+    ],
+    "argv0": "bash",
+    "shellName": "shell",
+    "environment": {
+      "PATH": "/nonexistent",
+      "HOME": "/nonexistent",
+      "TZ": "UTC"
+    },
+    "deadlineMs": 3000,
+    "compare": [
+      "stdout",
+      "stderr",
+      "status",
+      "entries"
+    ],
+    "normalization": "none; preserve raw bytes and relative file effects, including modes"
+  },
+  "casesHash": "84a43ac0f979092690fcf8d2c682f4f867d9a76b64bc66fe2eaa0aeeea65509f",
+  "helper": {
+    "path": "tests/shell-stress/current-shell/support.mjs",
+    "sha256": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a"
+  },
+  "captureRunnerSha256": "2d35b5dabb4067598b3591304c968b7c024ba8fcf5e6dd2257f995c76e6fb3ee",
+  "nativeCount": 24,
+  "hostCount": 2,
+  "productImported": false,
+  "newAuthorSourceOrExpectationsRead": false,
+  "localeTool": {
+    "path": "/usr/bin/locale",
+    "sha256": "6e4001dd2997062ad2a4d992b381b15d0cda78200679a04ccd52c80e26794487",
+    "availableLocales": {
+      "pid": 42403,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "groupAlive": false,
+      "stdout": "ZmFfSVIKY2FfQUQuVVRGLTgKZW5fTloKZW5fU0cuSVNPODg1OS0xCm5sX05MLlVURi04Cmx2X0xWLlVURi04CnB0X0JSLlVURi04CmNhX0ZSLklTTzg4NTktMTUKZnJfQ0guSVNPODg1OS0xNQpldV9FUy5JU084ODU5LTE1CmVuX1VTLlVTLUFTQ0lJCmFmX1pBCmJnX0JHCmVuX0lFLklTTzg4NTktMQplbl9ISwplc19NWC5VVEYtOApjc19DWi5VVEYtOApmaV9GSQp6aF9DTi5VVEYtOApldV9FUwpza19TSy5JU084ODU5LTIKbmxfQkUKZnJfQkUKc3ZfRkkuVVRGLTgKc2tfU0sKc2VfTk8uVVRGLTgKZW5fVVMuVVRGLTgKbmJfTk8uSVNPODg1OS0xNQplbl9OWi5JU084ODU5LTEKZGVfQ0gKc2tfU0suVVRGLTgKZGVfREUuVVRGLTgKYW1fRVQuVVRGLTgKemhfSEsKYmVfQlkuVVRGLTgKdWtfVUEKcHRfUFQuSVNPODg1OS0xCmVuX0FVLlVTLUFTQ0lJCmtrX0taLlBUMTU0CmVuX1VTCmVuX1pBLlVURi04CmNhX0lUCm5sX0JFLklTTzg4NTktMTUKZmFfSVIuVVRGLTgKZGVfQVQuSVNPODg1OS0xCmhyX0hSLklTTzg4NTktMgpmcl9GUi5JU084ODU5LTEKYWZfWkEuVVRGLTgKYW1fRVQKc3ZfRkkuSVNPODg1OS0xCmZpX0ZJLklTTzg4NTktMQpyb19STy5VVEYtOAphcl9BRQphZl9aQS5JU084ODU5LTE1CmVuX05aLlVURi04CmZpX0ZJLlVURi04CmhpX0lOLlVURi04CkMuVVRGLTgKaHJfSFIuVVRGLTgKZGFfREsuVVRGLTgKY2FfRVMuSVNPODg1OS0xCmVuX0FVLklTTzg4NTktMTUKcm9fUk8uSVNPODg1OS0yCmRlX0FULlVURi04CnB0X1BULklTTzg4NTktMTUKc3ZfU0UKZnJfQ0EuSVNPODg1OS0xCmZyX0JFLklTTzg4NTktMQplbl9VUy5JU084ODU5LTE1Cml0X0NILklTTzg4NTktMQplbl9OWi5JU084ODU5LTE1CmVuX0FVLlVURi04CmFyX01BCmx2X0xWLklTTzg4NTktMTMKZGVfQVQuSVNPODg1OS0xNQphZl9aQS5JU084ODU5LTEKaHVfSFUuVVRGLTgKY2FfQUQuSVNPODg1OS0xCmV0X0VFLlVURi04CmVzX0FSLklTTzg4NTktMQpoZV9JTC5VVEYtOAp1a19VQS5LT0k4LVUKdWtfVUEuQ1AxMjUxCmJlX0JZCmtrX0taCmh1X0hVLklTTzg4NTktMgppdF9DSApwdF9CUgprb19LUgppdF9JVApmcl9CRS5VVEYtOApydV9SVS5JU084ODU5LTUKZXRfRUUuSVNPODg1OS0xCnNlX0ZJLlVURi04CnpoX1RXCmVzX0NSCnNyX1JTCm5iX05PCnpoX0NOLkdCMjMxMgpub19OTy5JU084ODU5LTE1CmFyX0pPCnN2X0ZJLklTTzg4NTktMTUKY2FfQUQKZGVfREUuSVNPODg1OS0xNQplbl9JTi5VVEYtOAplbl9DQQpmcl9DSC5VVEYtOApzbF9TSS5VVEYtOAp1a19VQS5JU084ODU5LTUKcHRfUFQKaHJfSFIKY3NfQ1oKY2FfRlIuVVRGLTgKZnJfQ0gKaGVfSUwKZW5fSEsuSVNPODg1OS0xCnpoX0NOLkdCSwp6aF9DTi5HQjE4MDMwCmZyX0NBCmVuX0lFLklTTzg4NTktMTUKcGxfUEwuVVRGLTgKamFfSlAuU0pJUwpoaV9JTgpzcl9ZVS5JU084ODU5LTUKYmVfQlkuQ1AxMjUxCnNyX1lVLklTTzg4NTktMgpzdl9TRS5VVEYtOApzZV9OTwpzcl9ZVS5VVEYtOApkZV9DSC5VVEYtOApzbF9TSQphcl9RQQplbl9JTgpwdF9QVC5VVEYtOApyb19STwplbl9OWi5VUy1BU0NJSQpqYV9KUAp6aF9DTgpmcl9DSC5JU084ODU5LTEKa29fS1IuZXVjS1IKbm5fTk8uSVNPODg1OS0xCmJlX0JZLklTTzg4NTktNQpubF9OTC5JU084ODU5LTE1CmVuX0dCLklTTzg4NTktMQplbl9DQS5VUy1BU0NJSQpuYl9OTy5VVEYtOApjYV9GUi5JU084ODU5LTEKaXNfSVMuSVNPODg1OS0xCnJ1X1JVLkNQODY2Cm5sX05MCmNhX0lULklTTzg4NTktMTUKc2VfRkkKZnJfQ0EuSVNPODg1OS0xNQpzdl9TRS5JU084ODU5LTE1Cmh5X0FNCmVzX01YLklTTzg4NTktMQphcl9KTy5VVEYtOAplbl9DQS5JU084ODU5LTE1CmVuX1VTLklTTzg4NTktMQp6aF9UVy5CaWc1CmNhX0VTLlVURi04CnJ1X1JVLkNQMTI1MQplbl9HQi5VVEYtOAphcl9BRS5VVEYtOApzcl9SUy5JU084ODU5LTUKZW5fR0IuVVMtQVNDSUkKcnVfUlUuVVRGLTgKc3JfUlMuVVRGLTgKZXVfRVMuVVRGLTgKZXNfRVMuSVNPODg1OS0xCmh1X0hVCmVsX0dSLklTTzg4NTktNwplbl9BVQphcl9TQQppdF9DSC5VVEYtOAplbl9HQgpzbF9TSS5JU084ODU5LTIKcnVfUlUuS09JOC1SCmdhX0lFLlVURi04CmdhX0lFCm5sX0JFLlVURi04CmV0X0VFCmZyX0ZSLklTTzg4NTktMTUKY3NfQ1ouSVNPODg1OS0yCmVzX01YCmx0X0xULlVURi04CmVuX1pBCnBsX1BMLklTTzg4NTktMgpmcl9CRS5JU084ODU5LTE1CmlzX0lTLlVURi04CnRyX1RSLklTTzg4NTktOQpkYV9ESy5JU084ODU5LTEKZW5fSEsuVVRGLTgKZW5fWkEuSVNPODg1OS0xCmx0X0xULklTTzg4NTktNApsdF9MVC5JU084ODU5LTEzCmVuX1NHCnpoX1RXLlVURi04CmJnX0JHLkNQMTI1MQplbF9HUi5VVEYtOAplbl9QSApiZV9CWS5DUDExMzEKYXJfTUEuVVRGLTgKZGFfREsuSVNPODg1OS0xNQppc19JUy5JU084ODU5LTE1Cm5vX05PLklTTzg4NTktMQpubF9OTC5JU084ODU5LTEKbmxfQkUuSVNPODg1OS0xCnN2X1NFLklTTzg4NTktMQpsdl9MVgpwdF9CUi5JU084ODU5LTEKZXNfQVIKemhfQ04uZXVjQ04KaXRfSVQuVVRGLTgKZW5fQ0EuVVRGLTgKdWtfVUEuVVRGLTgKbm5fTk8uSVNPODg1OS0xNQpkZV9DSC5JU084ODU5LTE1CmNhX0ZSCmRlX0RFLklTTzg4NTktMQpjYV9FUwpzcl9ZVQpoeV9BTS5BUk1TQ0lJLTgKcnVfUlUKemhfSEsuVVRGLTgKZXVfRVMuSVNPODg1OS0xCmlzX0lTCmJnX0JHLlVURi04CmphX0pQLlVURi04CmFyX0VHCml0X0NILklTTzg4NTktMTUKZnJfRlIuVVRGLTgKbW5fTU4uVVRGLTgKbW5fTU4Ka29fS1IuVVRGLTgKZXRfRUUuSVNPODg1OS0xNQphcl9RQS5VVEYtOAplc19BUi5VVEYtOApubl9OTwplbl9aQS5JU084ODU5LTE1CmtrX0taLlVURi04CmNhX0VTLklTTzg4NTktMTUKZW5fSUUuVVRGLTgKY2FfQUQuSVNPODg1OS0xNQplc19FUwpkZV9DSC5JU084ODU5LTEKbmJfTk8uSVNPODg1OS0xCmVuX1pBLlVTLUFTQ0lJCmVuX0NBLklTTzg4NTktMQplc19FUy5JU084ODU5LTE1CmVuX0FVLklTTzg4NTktMQplbF9HUgpkYV9ESwpub19OTwphcl9FRy5VVEYtOApjYV9JVC5VVEYtOAppdF9JVC5JU084ODU5LTEKZW5fSUUKemhfSEsuQmlnNUhLU0NTCmhpX0lOLklTQ0lJLURFVgpqYV9KUC5ldWNKUAppdF9JVC5JU084ODU5LTE1CnBsX1BMCmtvX0tSLkNQOTQ5CmVuX1BILlVURi04CmZyX0NBLlVURi04CmZpX0ZJLklTTzg4NTktMTUKZW5fR0IuSVNPODg1OS0xNQpmcl9GUgpoeV9BTS5VVEYtOApub19OTy5VVEYtOApubl9OTy5VVEYtOApjYV9JVC5JU084ODU5LTEKZXNfRVMuVVRGLTgKZW5fU0cuVVRGLTgKZGVfQVQKc3ZfRkkKdHJfVFIuVVRGLTgKZmFfQUYKZGVfREUKYXJfU0EuVVRGLTgKbHRfTFQKZXNfQ1IuVVRGLTgKZmFfQUYuVVRGLTgKdHJfVFIKc3JfUlMuVVRGLThAbGF0aW4KQwpQT1NJWAo=",
+      "stderr": ""
+    }
+  },
+  "profiles": [
+    {
+      "id": "primary-C",
+      "role": "primary",
+      "locale": "C",
+      "binary": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "binarySha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": {
+        "pid": 42404,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+        "stderr": ""
+      },
+      "charmap": {
+        "pid": 42405,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "VVMtQVNDSUkK",
+        "stderr": ""
+      },
+      "control": {
+        "script": "VALUE=\"Aé猫🙂Z\"; printf \"%s|%s|%s|%s|\" \"$0\" \"$1\" \"$LC_ALL\" \"${#VALUE}\"; printf \"%s\" \"${VALUE:1:1}\"; printf \"\\000\\377\"",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "VALUE=\"Aé猫🙂Z\"; printf \"%s|%s|%s|%s|\" \"$0\" \"$1\" \"$LC_ALL\" \"${#VALUE}\"; printf \"%s\" \"${VALUE:1:1}\"; printf \"\\000\\377\"",
+          "shell",
+          "control-argument"
+        ],
+        "env": {
+          "PATH": "/nonexistent",
+          "HOME": "/nonexistent",
+          "TZ": "UTC",
+          "LANG": "C",
+          "LC_ALL": "C"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash",
+        "argv0": "bash",
+        "expected": "c2hlbGx8Y29udHJvbC1hcmd1bWVudHxDfDExfMMA/w==",
+        "run": {
+          "pid": 42406,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdout": "c2hlbGx8Y29udHJvbC1hcmd1bWVudHxDfDExfMMA/w==",
+          "stderr": ""
+        }
+      },
+      "rows": [
+        {
+          "id": "positive-slice-grid",
+          "scriptSha256": "9a4ea60353aaa122d6588745100ce11794f0a6dc623a2aeab431125a8b579518",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:0:1}\" \"${VALUE:2:3}\" \"${VALUE:8:6}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-NYKKrf",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42407,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGE+fDxjZGU+fDxpaj4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGE+fDxjZGU+fDxpaj4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "omitted-empty-zero-length",
+          "scriptSha256": "6b9b1661c5899ab65ebf4142394ef1a5f1524c1abcfa91b6f47e28dec0feb3c6",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:3}\" \"${VALUE:3:}\" \"${VALUE:3:0}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-H09EY7",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42408,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGRlZmdoaWo+fDw+fDw+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGRlZmdoaWo+fDw+fDw+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-offset-spelling",
+          "scriptSha256": "ab88f52fed470a76c68be83c159a96b4ff7aac7f960f8c5fe2a988655dc6cea7",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:0:2}\" \"${VALUE: -3:2}\" \"${VALUE:(-3):2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-0aoazD",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42409,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGFiPnw8aGk+fDxoaT4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGFiPnw8aGk+fDxoaT4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "beyond-either-bound",
+          "scriptSha256": "5ab2abb3e5e2813ad3278dc568321269eafad55f6c039d9ed6501b87017db947",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:99:2}\" \"${VALUE: -99:2}\" \"${VALUE:10:3}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-7LouKT",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42410,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD58PD58PD4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD58PD58PD4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-length-endpoint",
+          "scriptSha256": "691e79d89f67e23411d4826735f0dc193711e5725e3220f32680c39872c28650",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"before|\"; printf \"<%s>|after\" \"${VALUE:2:-2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-Of9DyX",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42411,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmVmb3JlfDxjZGVmZ2g+fGFmdGVy",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YmVmb3JlfDxjZGVmZ2g+fGFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-length-inverted",
+          "scriptSha256": "eecacfbeb06841e7f360b0c6f98da9414540f10c0d071c235245e0e4a07adf91",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf before > phase; printf \"<%s>\" \"${VALUE:8:-4}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-AZqBLm",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42412,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLTQ6IHN1YnN0cmluZyBleHByZXNzaW9uIDwgMAo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLTQ6IHN1YnN0cmluZyBleHByZXNzaW9uIDwgMAo=",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "arithmetic-names",
+          "scriptSha256": "0dd3374efa14c47268aba76590139e1bf0090642288cd832c82f8187c60c48bb",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; START=1; WIDTH=2; printf \"<%s>\" \"${VALUE:START+1:WIDTH*2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-2LjZol",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42413,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZWY+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZWY+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "arithmetic-increment-order",
+          "scriptSha256": "b6550349bedb9caed390cc52414db756ad10d3d33c32f41cb9c4481f04b1dea7",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; START=1; WIDTH=2; printf \"<%s>\" \"${VALUE:START++:++WIDTH}\"; printf \"|%s:%s\" \"$START\" \"$WIDTH\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-49OP2X",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42414,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGJjZD58Mjoz",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGJjZD58Mjoz",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "ternary-short-circuit",
+          "scriptSha256": "df07718c915072cec6100e686903209cecddecd7551d1ccfc305e0c43ef2ef7f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; FLAG=0; LEFT=0; RIGHT=1; printf \"<%s>\" \"${VALUE:(FLAG?++LEFT:++RIGHT):2}\"; printf \"|%s:%s\" \"$LEFT\" \"$RIGHT\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-iFrGZ2",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42415,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkPnwwOjI=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkPnwwOjI=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "unparenthesized-ternary-colons",
+          "scriptSha256": "5622df286eb045ad62e7655e998a49dc1b0d851bf7b76a3dc26a442e5cb0743c",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; FLAG=1; printf \"<%s>\" \"${VALUE:FLAG ? 2 : 4:2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-S3Vxf1",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42416,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "default-versus-negative-offset",
+          "scriptSha256": "00074e832738633c47a1e97cd275b217c4a53b68e9c0611073f9ae86eff15156",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; EMPTY=; printf \"<%s>|<%s>|<%s>|<%s>\" \"${VALUE:-3}\" \"${VALUE: -3}\" \"${EMPTY:-3}\" \"${MISSING:-3}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-yCCn6C",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42417,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGFiY2RlZmdoaWo+fDxoaWo+fDwzPnw8Mz4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGFiY2RlZmdoaWo+fDxoaWo+fDwzPnw8Mz4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "empty-unset-arithmetic-effects",
+          "scriptSha256": "f7b8a65f9776e376b3ec2b3776a6ef1792442491b918ee3846cecf1f10770bdb",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "EMPTY=; INDEX=1; printf \"<%s>|<%s>\" \"${EMPTY:INDEX++:2}\" \"${MISSING:INDEX++:2}\"; printf \"|%s\" \"$INDEX\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-3i8yjc",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42418,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD58PD58Mg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD58PD58Mg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "nested-default-arithmetic-words",
+          "scriptSha256": "39095875fd1045bef267e1a4b7e24cc9369301c06e44ac71e1b10f77474a7cd1",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:${START:-2}:${WIDTH:-3}}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-VJRZ6z",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42419,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZT4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZT4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "offset-length-command-effects",
+          "scriptSha256": "f8aa9d2a1337e4843508867b250bbb98813bf4cb54a90c6dc61f129a23e2853f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:$(printf 2; printf offset > offset):$(printf 3; printf length > length)}\"; printf \"|after\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-XCHnbr",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "length": {
+              "bytes": "c2VlZC1sZW5ndGg=",
+              "mode": 420
+            },
+            "offset": {
+              "bytes": "c2VlZC1vZmZzZXQ=",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42420,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZT58YWZ0ZXI=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZT58YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "length": {
+                "bytes": "bGVuZ3Ro",
+                "mode": 420
+              },
+              "offset": {
+                "bytes": "b2Zmc2V0",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "quoted-and-split-fields",
+          "scriptSha256": "397049e1725113897b04166d7384789ce874098f3a2e3219ca47f5bfdae1818e",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\" aa bb cc \"; IFS=\" \"; set -- ${VALUE:1:5}; printf \"[%s][%s][%s]|<%s>\" \"$#\" \"$1\" \"$2\" \"${VALUE:1:5}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-cSVyT0",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42423,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzJdW2FhXVtiYl18PGFhIGJiPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzJdW2FhXVtiYl18PGFhIGJiPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "nonwhite-ifs-boundary",
+          "scriptSha256": "be45f0272e40ea6da619aa8c64db6b6b2fa03a65ab8879037a4dbe4c6a5c1955",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\":ab:cd:\"; IFS=:; set -- ${VALUE:0:6}; printf \"[%s][%s][%s][%s]\" \"$#\" \"$1\" \"$2\" \"$3\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-IRBApa",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42424,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzNdW11bYWJdW2NkXQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzNdW11bYWJdW2NkXQ==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "empty-quoted-concatenation",
+          "scriptSha256": "7184e69ecb6d04cb5267088d590c58bddc3413b5f7a3b28944ac34ce57a5feb1",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abc; set -- \"L${VALUE:99:2}R\" \"${VALUE:1:0}\" ${VALUE:1:0}; printf \"[%s][%s][%s]\" \"$#\" \"$1\" \"$2\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-E0wHeY",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42425,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzJdW0xSXVtd",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzJdW0xSXVtd",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "scalar-positional-parameters",
+          "scriptSha256": "ebccb00d754698a47e5fd4ac11dba1fed287b8b0ad9f7ad15ea1d1b09333edd5",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "set -- 012345 uvwxyz; printf \"<%s>|<%s>\" \"${1:2:3}\" \"${2: -2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-80uIzi",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42426,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PDIzND58PHl6Pg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PDIzND58PHl6Pg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "division-error-before-after-effects",
+          "scriptSha256": "9f4c542182bc23640546a4bc4692755e833576ec737f46f4e102154ae333fd2e",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abc; printf \"<%s>\" \"${VALUE:1/0:2}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ovO4Eq",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42427,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "late-malformed-expansion-same-line",
+          "scriptSha256": "5e83ce75d97c6764526b670079f38d2d71afde41ca316fe1497d2e6391286d97",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abc; printf \"%s\" \"${VALUE:1:2\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-BHiMWc",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42428,
+            "status": 2,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=",
+            "status": 2,
+            "entries": {
+              "phase": {
+                "bytes": "c2VlZA==",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "invalid-octal-offset",
+          "scriptSha256": "44e995bd19887a323dfa260e1f8c9e61385c92fabbd8b240a59052e05028b4ad",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:08:2}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-lY95np",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42429,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiB2YWx1ZSB0b28gZ3JlYXQgZm9yIGJhc2UgKGVycm9yIHRva2VuIGlzICIwOCIpCg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiB2YWx1ZSB0b28gZ3JlYXQgZm9yIGJhc2UgKGVycm9yIHRva2VuIGlzICIwOCIpCg==",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "unicode-single-boundaries",
+          "scriptSha256": "e4749e24556e4a00eb1871fefc02e210a5c71ab399ba3236e800ff170b329034",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"Aé猫🙂Z\"; printf \"<%s>|<%s>\" \"${VALUE:1:1}\" \"${VALUE:3:1}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ln6FOV",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42430,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PMM+fDznPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PMM+fDznPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "unicode-negative-and-tail",
+          "scriptSha256": "d65df249e0c26712b9388cf8a4e9153f9e4b4d00292baf0c26f1c8585b73652f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"Aé猫🙂Z\"; printf \"<%s>|<%s>\" \"${VALUE: -2:1}\" \"${VALUE:2:99}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-LVhrSC",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42431,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PII+fDyp54yr8J+Zglo+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PII+fDyp54yr8J+Zglo+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "combining-codepoints-not-graphemes",
+          "scriptSha256": "f9b1ddf1e041d05aa6fb5bb23ff99fda148a72322da8e207c0164618c4206b41",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"éx\"; printf \"%s|<%s>|<%s>\" \"${#VALUE}\" \"${VALUE:1:1}\" \"${VALUE:1:2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-e2pPne",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42432,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "NHw8zD58PMyBPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "NHw8zD58PMyBPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "primary-en_US.UTF-8",
+      "role": "primary",
+      "locale": "en_US.UTF-8",
+      "binary": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "binarySha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": {
+        "pid": 42404,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+        "stderr": ""
+      },
+      "charmap": {
+        "pid": 42433,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "VVRGLTgK",
+        "stderr": ""
+      },
+      "control": {
+        "script": "VALUE=\"Aé猫🙂Z\"; printf \"%s|%s|%s|%s|\" \"$0\" \"$1\" \"$LC_ALL\" \"${#VALUE}\"; printf \"%s\" \"${VALUE:1:1}\"; printf \"\\000\\377\"",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "VALUE=\"Aé猫🙂Z\"; printf \"%s|%s|%s|%s|\" \"$0\" \"$1\" \"$LC_ALL\" \"${#VALUE}\"; printf \"%s\" \"${VALUE:1:1}\"; printf \"\\000\\377\"",
+          "shell",
+          "control-argument"
+        ],
+        "env": {
+          "PATH": "/nonexistent",
+          "HOME": "/nonexistent",
+          "TZ": "UTC",
+          "LANG": "en_US.UTF-8",
+          "LC_ALL": "en_US.UTF-8"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash",
+        "argv0": "bash",
+        "expected": "c2hlbGx8Y29udHJvbC1hcmd1bWVudHxlbl9VUy5VVEYtOHw1fMOpAP8=",
+        "run": {
+          "pid": 42434,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdout": "c2hlbGx8Y29udHJvbC1hcmd1bWVudHxlbl9VUy5VVEYtOHw1fMOpAP8=",
+          "stderr": ""
+        }
+      },
+      "rows": [
+        {
+          "id": "positive-slice-grid",
+          "scriptSha256": "9a4ea60353aaa122d6588745100ce11794f0a6dc623a2aeab431125a8b579518",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:0:1}\" \"${VALUE:2:3}\" \"${VALUE:8:6}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-3pS0Sj",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42435,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGE+fDxjZGU+fDxpaj4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGE+fDxjZGU+fDxpaj4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "omitted-empty-zero-length",
+          "scriptSha256": "6b9b1661c5899ab65ebf4142394ef1a5f1524c1abcfa91b6f47e28dec0feb3c6",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:3}\" \"${VALUE:3:}\" \"${VALUE:3:0}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-zb1q4g",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42436,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGRlZmdoaWo+fDw+fDw+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGRlZmdoaWo+fDw+fDw+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-offset-spelling",
+          "scriptSha256": "ab88f52fed470a76c68be83c159a96b4ff7aac7f960f8c5fe2a988655dc6cea7",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:0:2}\" \"${VALUE: -3:2}\" \"${VALUE:(-3):2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-XlCpsL",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42437,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGFiPnw8aGk+fDxoaT4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGFiPnw8aGk+fDxoaT4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "beyond-either-bound",
+          "scriptSha256": "5ab2abb3e5e2813ad3278dc568321269eafad55f6c039d9ed6501b87017db947",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:99:2}\" \"${VALUE: -99:2}\" \"${VALUE:10:3}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ruAv7P",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42438,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD58PD58PD4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD58PD58PD4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-length-endpoint",
+          "scriptSha256": "691e79d89f67e23411d4826735f0dc193711e5725e3220f32680c39872c28650",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"before|\"; printf \"<%s>|after\" \"${VALUE:2:-2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-dL2Apu",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42439,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmVmb3JlfDxjZGVmZ2g+fGFmdGVy",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "YmVmb3JlfDxjZGVmZ2g+fGFmdGVy",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-length-inverted",
+          "scriptSha256": "eecacfbeb06841e7f360b0c6f98da9414540f10c0d071c235245e0e4a07adf91",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf before > phase; printf \"<%s>\" \"${VALUE:8:-4}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ATWaHv",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42440,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLTQ6IHN1YnN0cmluZyBleHByZXNzaW9uIDwgMAo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLTQ6IHN1YnN0cmluZyBleHByZXNzaW9uIDwgMAo=",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "arithmetic-names",
+          "scriptSha256": "0dd3374efa14c47268aba76590139e1bf0090642288cd832c82f8187c60c48bb",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; START=1; WIDTH=2; printf \"<%s>\" \"${VALUE:START+1:WIDTH*2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-rCUL4Y",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42441,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZWY+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZWY+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "arithmetic-increment-order",
+          "scriptSha256": "b6550349bedb9caed390cc52414db756ad10d3d33c32f41cb9c4481f04b1dea7",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; START=1; WIDTH=2; printf \"<%s>\" \"${VALUE:START++:++WIDTH}\"; printf \"|%s:%s\" \"$START\" \"$WIDTH\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-mPbATK",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42442,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGJjZD58Mjoz",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGJjZD58Mjoz",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "ternary-short-circuit",
+          "scriptSha256": "df07718c915072cec6100e686903209cecddecd7551d1ccfc305e0c43ef2ef7f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; FLAG=0; LEFT=0; RIGHT=1; printf \"<%s>\" \"${VALUE:(FLAG?++LEFT:++RIGHT):2}\"; printf \"|%s:%s\" \"$LEFT\" \"$RIGHT\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-lijtFG",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42443,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkPnwwOjI=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkPnwwOjI=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "unparenthesized-ternary-colons",
+          "scriptSha256": "5622df286eb045ad62e7655e998a49dc1b0d851bf7b76a3dc26a442e5cb0743c",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; FLAG=1; printf \"<%s>\" \"${VALUE:FLAG ? 2 : 4:2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-Nhyca8",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42444,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "default-versus-negative-offset",
+          "scriptSha256": "00074e832738633c47a1e97cd275b217c4a53b68e9c0611073f9ae86eff15156",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; EMPTY=; printf \"<%s>|<%s>|<%s>|<%s>\" \"${VALUE:-3}\" \"${VALUE: -3}\" \"${EMPTY:-3}\" \"${MISSING:-3}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-EgwW86",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42445,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGFiY2RlZmdoaWo+fDxoaWo+fDwzPnw8Mz4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGFiY2RlZmdoaWo+fDxoaWo+fDwzPnw8Mz4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "empty-unset-arithmetic-effects",
+          "scriptSha256": "f7b8a65f9776e376b3ec2b3776a6ef1792442491b918ee3846cecf1f10770bdb",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "EMPTY=; INDEX=1; printf \"<%s>|<%s>\" \"${EMPTY:INDEX++:2}\" \"${MISSING:INDEX++:2}\"; printf \"|%s\" \"$INDEX\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-dj3QzP",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42446,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD58PD58Mg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD58PD58Mg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "nested-default-arithmetic-words",
+          "scriptSha256": "39095875fd1045bef267e1a4b7e24cc9369301c06e44ac71e1b10f77474a7cd1",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:${START:-2}:${WIDTH:-3}}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-JfUIOZ",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42447,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZT4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZT4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "offset-length-command-effects",
+          "scriptSha256": "f8aa9d2a1337e4843508867b250bbb98813bf4cb54a90c6dc61f129a23e2853f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:$(printf 2; printf offset > offset):$(printf 3; printf length > length)}\"; printf \"|after\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-x4TyBm",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "length": {
+              "bytes": "c2VlZC1sZW5ndGg=",
+              "mode": 420
+            },
+            "offset": {
+              "bytes": "c2VlZC1vZmZzZXQ=",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42448,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZT58YWZ0ZXI=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZT58YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "length": {
+                "bytes": "bGVuZ3Ro",
+                "mode": 420
+              },
+              "offset": {
+                "bytes": "b2Zmc2V0",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "quoted-and-split-fields",
+          "scriptSha256": "397049e1725113897b04166d7384789ce874098f3a2e3219ca47f5bfdae1818e",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\" aa bb cc \"; IFS=\" \"; set -- ${VALUE:1:5}; printf \"[%s][%s][%s]|<%s>\" \"$#\" \"$1\" \"$2\" \"${VALUE:1:5}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-0pBhM0",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42451,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzJdW2FhXVtiYl18PGFhIGJiPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzJdW2FhXVtiYl18PGFhIGJiPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "nonwhite-ifs-boundary",
+          "scriptSha256": "be45f0272e40ea6da619aa8c64db6b6b2fa03a65ab8879037a4dbe4c6a5c1955",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\":ab:cd:\"; IFS=:; set -- ${VALUE:0:6}; printf \"[%s][%s][%s][%s]\" \"$#\" \"$1\" \"$2\" \"$3\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-rrNKrA",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42452,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzNdW11bYWJdW2NkXQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzNdW11bYWJdW2NkXQ==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "empty-quoted-concatenation",
+          "scriptSha256": "7184e69ecb6d04cb5267088d590c58bddc3413b5f7a3b28944ac34ce57a5feb1",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abc; set -- \"L${VALUE:99:2}R\" \"${VALUE:1:0}\" ${VALUE:1:0}; printf \"[%s][%s][%s]\" \"$#\" \"$1\" \"$2\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-jgQRWR",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42453,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzJdW0xSXVtd",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzJdW0xSXVtd",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "scalar-positional-parameters",
+          "scriptSha256": "ebccb00d754698a47e5fd4ac11dba1fed287b8b0ad9f7ad15ea1d1b09333edd5",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "set -- 012345 uvwxyz; printf \"<%s>|<%s>\" \"${1:2:3}\" \"${2: -2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-q0aHgs",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42454,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PDIzND58PHl6Pg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PDIzND58PHl6Pg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "division-error-before-after-effects",
+          "scriptSha256": "9f4c542182bc23640546a4bc4692755e833576ec737f46f4e102154ae333fd2e",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abc; printf \"<%s>\" \"${VALUE:1/0:2}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-BXAEW7",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42455,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "late-malformed-expansion-same-line",
+          "scriptSha256": "5e83ce75d97c6764526b670079f38d2d71afde41ca316fe1497d2e6391286d97",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abc; printf \"%s\" \"${VALUE:1:2\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ZO8r4Z",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42457,
+            "status": 2,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=",
+            "status": 2,
+            "entries": {
+              "phase": {
+                "bytes": "c2VlZA==",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "invalid-octal-offset",
+          "scriptSha256": "44e995bd19887a323dfa260e1f8c9e61385c92fabbd8b240a59052e05028b4ad",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:08:2}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ryHidc",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42458,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiB2YWx1ZSB0b28gZ3JlYXQgZm9yIGJhc2UgKGVycm9yIHRva2VuIGlzICIwOCIpCg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiB2YWx1ZSB0b28gZ3JlYXQgZm9yIGJhc2UgKGVycm9yIHRva2VuIGlzICIwOCIpCg==",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "unicode-single-boundaries",
+          "scriptSha256": "e4749e24556e4a00eb1871fefc02e210a5c71ab399ba3236e800ff170b329034",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"Aé猫🙂Z\"; printf \"<%s>|<%s>\" \"${VALUE:1:1}\" \"${VALUE:3:1}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-w4ZjhS",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42459,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PMOpPnw88J+Zgj4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PMOpPnw88J+Zgj4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "unicode-negative-and-tail",
+          "scriptSha256": "d65df249e0c26712b9388cf8a4e9153f9e4b4d00292baf0c26f1c8585b73652f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"Aé猫🙂Z\"; printf \"<%s>|<%s>\" \"${VALUE: -2:1}\" \"${VALUE:2:99}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-g42Y0k",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42460,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PPCfmYI+fDznjKvwn5mCWj4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PPCfmYI+fDznjKvwn5mCWj4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "combining-codepoints-not-graphemes",
+          "scriptSha256": "f9b1ddf1e041d05aa6fb5bb23ff99fda148a72322da8e207c0164618c4206b41",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"éx\"; printf \"%s|<%s>|<%s>\" \"${#VALUE}\" \"${VALUE:1:1}\" \"${VALUE:1:2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-3WWSPa",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42461,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "M3w8zIE+fDzMgXg+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "M3w8zIE+fDzMgXg+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "historical-C",
+      "role": "historical",
+      "locale": "C",
+      "binary": "/bin/bash",
+      "binarySha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": {
+        "pid": 42462,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gMy4yLjU3KDEpLXJlbGVhc2UgKGFybTY0LWFwcGxlLWRhcndpbjI1KQpDb3B5cmlnaHQgKEMpIDIwMDcgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuCg==",
+        "stderr": ""
+      },
+      "charmap": {
+        "pid": 42463,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "VVMtQVNDSUkK",
+        "stderr": ""
+      },
+      "control": {
+        "script": "VALUE=\"Aé猫🙂Z\"; printf \"%s|%s|%s|%s|\" \"$0\" \"$1\" \"$LC_ALL\" \"${#VALUE}\"; printf \"%s\" \"${VALUE:1:1}\"; printf \"\\000\\377\"",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "VALUE=\"Aé猫🙂Z\"; printf \"%s|%s|%s|%s|\" \"$0\" \"$1\" \"$LC_ALL\" \"${#VALUE}\"; printf \"%s\" \"${VALUE:1:1}\"; printf \"\\000\\377\"",
+          "shell",
+          "control-argument"
+        ],
+        "env": {
+          "PATH": "/nonexistent",
+          "HOME": "/nonexistent",
+          "TZ": "UTC",
+          "LANG": "C",
+          "LC_ALL": "C"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash",
+        "argv0": "bash",
+        "expected": "c2hlbGx8Y29udHJvbC1hcmd1bWVudHxDfDExfMMA/w==",
+        "run": {
+          "pid": 42464,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdout": "c2hlbGx8Y29udHJvbC1hcmd1bWVudHxDfDExfMMA/w==",
+          "stderr": ""
+        }
+      },
+      "rows": [
+        {
+          "id": "positive-slice-grid",
+          "scriptSha256": "9a4ea60353aaa122d6588745100ce11794f0a6dc623a2aeab431125a8b579518",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:0:1}\" \"${VALUE:2:3}\" \"${VALUE:8:6}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-h0HiG7",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42465,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGE+fDxjZGU+fDxpaj4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGE+fDxjZGU+fDxpaj4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "omitted-empty-zero-length",
+          "scriptSha256": "6b9b1661c5899ab65ebf4142394ef1a5f1524c1abcfa91b6f47e28dec0feb3c6",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:3}\" \"${VALUE:3:}\" \"${VALUE:3:0}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-vABdHW",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42466,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGRlZmdoaWo+fDw+fDw+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGRlZmdoaWo+fDw+fDw+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-offset-spelling",
+          "scriptSha256": "ab88f52fed470a76c68be83c159a96b4ff7aac7f960f8c5fe2a988655dc6cea7",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:0:2}\" \"${VALUE: -3:2}\" \"${VALUE:(-3):2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-RS5J60",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42467,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGFiPnw8aGk+fDxoaT4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGFiPnw8aGk+fDxoaT4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "beyond-either-bound",
+          "scriptSha256": "5ab2abb3e5e2813ad3278dc568321269eafad55f6c039d9ed6501b87017db947",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:99:2}\" \"${VALUE: -99:2}\" \"${VALUE:10:3}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-XVqUBo",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42468,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD58PD58PD4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD58PD58PD4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-length-endpoint",
+          "scriptSha256": "691e79d89f67e23411d4826735f0dc193711e5725e3220f32680c39872c28650",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"before|\"; printf \"<%s>|after\" \"${VALUE:2:-2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-nrEWi9",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42469,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmVmb3JlfA==",
+            "stderr": "c2hlbGw6IC0yOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK"
+          },
+          "tuple": {
+            "stdout": "YmVmb3JlfA==",
+            "stderr": "c2hlbGw6IC0yOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+            "status": 1,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-length-inverted",
+          "scriptSha256": "eecacfbeb06841e7f360b0c6f98da9414540f10c0d071c235245e0e4a07adf91",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf before > phase; printf \"<%s>\" \"${VALUE:8:-4}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-xB9Lov",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42470,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC00OiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK"
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC00OiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "arithmetic-names",
+          "scriptSha256": "0dd3374efa14c47268aba76590139e1bf0090642288cd832c82f8187c60c48bb",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; START=1; WIDTH=2; printf \"<%s>\" \"${VALUE:START+1:WIDTH*2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-TPOWAy",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42471,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZWY+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZWY+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "arithmetic-increment-order",
+          "scriptSha256": "b6550349bedb9caed390cc52414db756ad10d3d33c32f41cb9c4481f04b1dea7",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; START=1; WIDTH=2; printf \"<%s>\" \"${VALUE:START++:++WIDTH}\"; printf \"|%s:%s\" \"$START\" \"$WIDTH\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-jN4pOZ",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42472,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGJjZD58Mjoz",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGJjZD58Mjoz",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "ternary-short-circuit",
+          "scriptSha256": "df07718c915072cec6100e686903209cecddecd7551d1ccfc305e0c43ef2ef7f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; FLAG=0; LEFT=0; RIGHT=1; printf \"<%s>\" \"${VALUE:(FLAG?++LEFT:++RIGHT):2}\"; printf \"|%s:%s\" \"$LEFT\" \"$RIGHT\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-juxE3u",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42473,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkPnwwOjI=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkPnwwOjI=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "unparenthesized-ternary-colons",
+          "scriptSha256": "5622df286eb045ad62e7655e998a49dc1b0d851bf7b76a3dc26a442e5cb0743c",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; FLAG=1; printf \"<%s>\" \"${VALUE:FLAG ? 2 : 4:2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-xD5S1h",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42474,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "default-versus-negative-offset",
+          "scriptSha256": "00074e832738633c47a1e97cd275b217c4a53b68e9c0611073f9ae86eff15156",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; EMPTY=; printf \"<%s>|<%s>|<%s>|<%s>\" \"${VALUE:-3}\" \"${VALUE: -3}\" \"${EMPTY:-3}\" \"${MISSING:-3}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-m51WAY",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42475,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGFiY2RlZmdoaWo+fDxoaWo+fDwzPnw8Mz4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGFiY2RlZmdoaWo+fDxoaWo+fDwzPnw8Mz4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "empty-unset-arithmetic-effects",
+          "scriptSha256": "f7b8a65f9776e376b3ec2b3776a6ef1792442491b918ee3846cecf1f10770bdb",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "EMPTY=; INDEX=1; printf \"<%s>|<%s>\" \"${EMPTY:INDEX++:2}\" \"${MISSING:INDEX++:2}\"; printf \"|%s\" \"$INDEX\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-wUJPJ3",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42476,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD58PD58Mg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD58PD58Mg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "nested-default-arithmetic-words",
+          "scriptSha256": "39095875fd1045bef267e1a4b7e24cc9369301c06e44ac71e1b10f77474a7cd1",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:${START:-2}:${WIDTH:-3}}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-D8Ee3F",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42477,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6ICR7U1RBUlQ6IGJhZCBzdWJzdGl0dXRpb24K"
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6ICR7U1RBUlQ6IGJhZCBzdWJzdGl0dXRpb24K",
+            "status": 1,
+            "entries": {}
+          }
+        },
+        {
+          "id": "offset-length-command-effects",
+          "scriptSha256": "f8aa9d2a1337e4843508867b250bbb98813bf4cb54a90c6dc61f129a23e2853f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:$(printf 2; printf offset > offset):$(printf 3; printf length > length)}\"; printf \"|after\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-zyIHkj",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "length": {
+              "bytes": "c2VlZC1sZW5ndGg=",
+              "mode": 420
+            },
+            "offset": {
+              "bytes": "c2VlZC1vZmZzZXQ=",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42478,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZT58YWZ0ZXI=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZT58YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "length": {
+                "bytes": "bGVuZ3Ro",
+                "mode": 420
+              },
+              "offset": {
+                "bytes": "b2Zmc2V0",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "quoted-and-split-fields",
+          "scriptSha256": "397049e1725113897b04166d7384789ce874098f3a2e3219ca47f5bfdae1818e",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\" aa bb cc \"; IFS=\" \"; set -- ${VALUE:1:5}; printf \"[%s][%s][%s]|<%s>\" \"$#\" \"$1\" \"$2\" \"${VALUE:1:5}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-gsQocf",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42481,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzJdW2FhXVtiYl18PGFhIGJiPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzJdW2FhXVtiYl18PGFhIGJiPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "nonwhite-ifs-boundary",
+          "scriptSha256": "be45f0272e40ea6da619aa8c64db6b6b2fa03a65ab8879037a4dbe4c6a5c1955",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\":ab:cd:\"; IFS=:; set -- ${VALUE:0:6}; printf \"[%s][%s][%s][%s]\" \"$#\" \"$1\" \"$2\" \"$3\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-M5C7jb",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42482,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzNdW11bYWJdW2NkXQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzNdW11bYWJdW2NkXQ==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "empty-quoted-concatenation",
+          "scriptSha256": "7184e69ecb6d04cb5267088d590c58bddc3413b5f7a3b28944ac34ce57a5feb1",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abc; set -- \"L${VALUE:99:2}R\" \"${VALUE:1:0}\" ${VALUE:1:0}; printf \"[%s][%s][%s]\" \"$#\" \"$1\" \"$2\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-CAeBWr",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42483,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzJdW0xSXVtd",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzJdW0xSXVtd",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "scalar-positional-parameters",
+          "scriptSha256": "ebccb00d754698a47e5fd4ac11dba1fed287b8b0ad9f7ad15ea1d1b09333edd5",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "set -- 012345 uvwxyz; printf \"<%s>|<%s>\" \"${1:2:3}\" \"${2: -2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-LYk1uS",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42484,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PDIzND58PHl6Pg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PDIzND58PHl6Pg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "division-error-before-after-effects",
+          "scriptSha256": "9f4c542182bc23640546a4bc4692755e833576ec737f46f4e102154ae333fd2e",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abc; printf \"<%s>\" \"${VALUE:1/0:2}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-hbh6rP",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42485,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK"
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "late-malformed-expansion-same-line",
+          "scriptSha256": "5e83ce75d97c6764526b670079f38d2d71afde41ca316fe1497d2e6391286d97",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abc; printf \"%s\" \"${VALUE:1:2\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-2CTjo9",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42486,
+            "status": 2,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+            "status": 2,
+            "entries": {
+              "phase": {
+                "bytes": "c2VlZA==",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "invalid-octal-offset",
+          "scriptSha256": "44e995bd19887a323dfa260e1f8c9e61385c92fabbd8b240a59052e05028b4ad",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:08:2}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-jfvxZK",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42487,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IFZBTFVFOiAwODogdmFsdWUgdG9vIGdyZWF0IGZvciBiYXNlIChlcnJvciB0b2tlbiBpcyAiMDgiKQo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IFZBTFVFOiAwODogdmFsdWUgdG9vIGdyZWF0IGZvciBiYXNlIChlcnJvciB0b2tlbiBpcyAiMDgiKQo=",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "unicode-single-boundaries",
+          "scriptSha256": "e4749e24556e4a00eb1871fefc02e210a5c71ab399ba3236e800ff170b329034",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"Aé猫🙂Z\"; printf \"<%s>|<%s>\" \"${VALUE:1:1}\" \"${VALUE:3:1}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-wPo6nj",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42488,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PMM+fDznPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PMM+fDznPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "unicode-negative-and-tail",
+          "scriptSha256": "d65df249e0c26712b9388cf8a4e9153f9e4b4d00292baf0c26f1c8585b73652f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"Aé猫🙂Z\"; printf \"<%s>|<%s>\" \"${VALUE: -2:1}\" \"${VALUE:2:99}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-NS4wHz",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42489,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PII+fDyp54yr8J+Zglo+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PII+fDyp54yr8J+Zglo+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "combining-codepoints-not-graphemes",
+          "scriptSha256": "f9b1ddf1e041d05aa6fb5bb23ff99fda148a72322da8e207c0164618c4206b41",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"éx\"; printf \"%s|<%s>|<%s>\" \"${#VALUE}\" \"${VALUE:1:1}\" \"${VALUE:1:2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-9PxV5Z",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "C",
+            "LC_ALL": "C"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42490,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "NHw8zD58PMyBPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "NHw8zD58PMyBPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "historical-en_US.UTF-8",
+      "role": "historical",
+      "locale": "en_US.UTF-8",
+      "binary": "/bin/bash",
+      "binarySha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": {
+        "pid": 42462,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gMy4yLjU3KDEpLXJlbGVhc2UgKGFybTY0LWFwcGxlLWRhcndpbjI1KQpDb3B5cmlnaHQgKEMpIDIwMDcgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuCg==",
+        "stderr": ""
+      },
+      "charmap": {
+        "pid": 42491,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "VVRGLTgK",
+        "stderr": ""
+      },
+      "control": {
+        "script": "VALUE=\"Aé猫🙂Z\"; printf \"%s|%s|%s|%s|\" \"$0\" \"$1\" \"$LC_ALL\" \"${#VALUE}\"; printf \"%s\" \"${VALUE:1:1}\"; printf \"\\000\\377\"",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "VALUE=\"Aé猫🙂Z\"; printf \"%s|%s|%s|%s|\" \"$0\" \"$1\" \"$LC_ALL\" \"${#VALUE}\"; printf \"%s\" \"${VALUE:1:1}\"; printf \"\\000\\377\"",
+          "shell",
+          "control-argument"
+        ],
+        "env": {
+          "PATH": "/nonexistent",
+          "HOME": "/nonexistent",
+          "TZ": "UTC",
+          "LANG": "en_US.UTF-8",
+          "LC_ALL": "en_US.UTF-8"
+        },
+        "cwd": "/Users/kjopek/Workspace/safe-bash",
+        "argv0": "bash",
+        "expected": "c2hlbGx8Y29udHJvbC1hcmd1bWVudHxlbl9VUy5VVEYtOHw1fMOpAP8=",
+        "run": {
+          "pid": 42492,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "groupAlive": false,
+          "stdout": "c2hlbGx8Y29udHJvbC1hcmd1bWVudHxlbl9VUy5VVEYtOHw1fMOpAP8=",
+          "stderr": ""
+        }
+      },
+      "rows": [
+        {
+          "id": "positive-slice-grid",
+          "scriptSha256": "9a4ea60353aaa122d6588745100ce11794f0a6dc623a2aeab431125a8b579518",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:0:1}\" \"${VALUE:2:3}\" \"${VALUE:8:6}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-9mAHaX",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42493,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGE+fDxjZGU+fDxpaj4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGE+fDxjZGU+fDxpaj4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "omitted-empty-zero-length",
+          "scriptSha256": "6b9b1661c5899ab65ebf4142394ef1a5f1524c1abcfa91b6f47e28dec0feb3c6",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:3}\" \"${VALUE:3:}\" \"${VALUE:3:0}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-OP4TSx",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42494,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGRlZmdoaWo+fDw+fDw+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGRlZmdoaWo+fDw+fDw+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-offset-spelling",
+          "scriptSha256": "ab88f52fed470a76c68be83c159a96b4ff7aac7f960f8c5fe2a988655dc6cea7",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:0:2}\" \"${VALUE: -3:2}\" \"${VALUE:(-3):2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-9gwyYU",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42495,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGFiPnw8aGk+fDxoaT4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGFiPnw8aGk+fDxoaT4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "beyond-either-bound",
+          "scriptSha256": "5ab2abb3e5e2813ad3278dc568321269eafad55f6c039d9ed6501b87017db947",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>|<%s>|<%s>\" \"${VALUE:99:2}\" \"${VALUE: -99:2}\" \"${VALUE:10:3}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-aG1C2f",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42496,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD58PD58PD4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD58PD58PD4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-length-endpoint",
+          "scriptSha256": "691e79d89f67e23411d4826735f0dc193711e5725e3220f32680c39872c28650",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"before|\"; printf \"<%s>|after\" \"${VALUE:2:-2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-7A8rBA",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42497,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "YmVmb3JlfA==",
+            "stderr": "c2hlbGw6IC0yOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK"
+          },
+          "tuple": {
+            "stdout": "YmVmb3JlfA==",
+            "stderr": "c2hlbGw6IC0yOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+            "status": 1,
+            "entries": {}
+          }
+        },
+        {
+          "id": "negative-length-inverted",
+          "scriptSha256": "eecacfbeb06841e7f360b0c6f98da9414540f10c0d071c235245e0e4a07adf91",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf before > phase; printf \"<%s>\" \"${VALUE:8:-4}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-CPrgnb",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42498,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC00OiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK"
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC00OiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "arithmetic-names",
+          "scriptSha256": "0dd3374efa14c47268aba76590139e1bf0090642288cd832c82f8187c60c48bb",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; START=1; WIDTH=2; printf \"<%s>\" \"${VALUE:START+1:WIDTH*2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-I4jcU9",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42499,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZWY+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZWY+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "arithmetic-increment-order",
+          "scriptSha256": "b6550349bedb9caed390cc52414db756ad10d3d33c32f41cb9c4481f04b1dea7",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; START=1; WIDTH=2; printf \"<%s>\" \"${VALUE:START++:++WIDTH}\"; printf \"|%s:%s\" \"$START\" \"$WIDTH\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-S4WPUW",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42500,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGJjZD58Mjoz",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGJjZD58Mjoz",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "ternary-short-circuit",
+          "scriptSha256": "df07718c915072cec6100e686903209cecddecd7551d1ccfc305e0c43ef2ef7f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; FLAG=0; LEFT=0; RIGHT=1; printf \"<%s>\" \"${VALUE:(FLAG?++LEFT:++RIGHT):2}\"; printf \"|%s:%s\" \"$LEFT\" \"$RIGHT\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-pDY2hJ",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42501,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkPnwwOjI=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkPnwwOjI=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "unparenthesized-ternary-colons",
+          "scriptSha256": "5622df286eb045ad62e7655e998a49dc1b0d851bf7b76a3dc26a442e5cb0743c",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; FLAG=1; printf \"<%s>\" \"${VALUE:FLAG ? 2 : 4:2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-LT6L83",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42502,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "default-versus-negative-offset",
+          "scriptSha256": "00074e832738633c47a1e97cd275b217c4a53b68e9c0611073f9ae86eff15156",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; EMPTY=; printf \"<%s>|<%s>|<%s>|<%s>\" \"${VALUE:-3}\" \"${VALUE: -3}\" \"${EMPTY:-3}\" \"${MISSING:-3}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-7N3cF6",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42503,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGFiY2RlZmdoaWo+fDxoaWo+fDwzPnw8Mz4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGFiY2RlZmdoaWo+fDxoaWo+fDwzPnw8Mz4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "empty-unset-arithmetic-effects",
+          "scriptSha256": "f7b8a65f9776e376b3ec2b3776a6ef1792442491b918ee3846cecf1f10770bdb",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "EMPTY=; INDEX=1; printf \"<%s>|<%s>\" \"${EMPTY:INDEX++:2}\" \"${MISSING:INDEX++:2}\"; printf \"|%s\" \"$INDEX\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ZaYyZw",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42504,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PD58PD58Mg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PD58PD58Mg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "nested-default-arithmetic-words",
+          "scriptSha256": "39095875fd1045bef267e1a4b7e24cc9369301c06e44ac71e1b10f77474a7cd1",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:${START:-2}:${WIDTH:-3}}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-98P46Y",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42505,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6ICR7U1RBUlQ6IGJhZCBzdWJzdGl0dXRpb24K"
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6ICR7U1RBUlQ6IGJhZCBzdWJzdGl0dXRpb24K",
+            "status": 1,
+            "entries": {}
+          }
+        },
+        {
+          "id": "offset-length-command-effects",
+          "scriptSha256": "f8aa9d2a1337e4843508867b250bbb98813bf4cb54a90c6dc61f129a23e2853f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:$(printf 2; printf offset > offset):$(printf 3; printf length > length)}\"; printf \"|after\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-BNHD2f",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "length": {
+              "bytes": "c2VlZC1sZW5ndGg=",
+              "mode": 420
+            },
+            "offset": {
+              "bytes": "c2VlZC1vZmZzZXQ=",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42506,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PGNkZT58YWZ0ZXI=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PGNkZT58YWZ0ZXI=",
+            "stderr": "",
+            "status": 0,
+            "entries": {
+              "length": {
+                "bytes": "bGVuZ3Ro",
+                "mode": 420
+              },
+              "offset": {
+                "bytes": "b2Zmc2V0",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "quoted-and-split-fields",
+          "scriptSha256": "397049e1725113897b04166d7384789ce874098f3a2e3219ca47f5bfdae1818e",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\" aa bb cc \"; IFS=\" \"; set -- ${VALUE:1:5}; printf \"[%s][%s][%s]|<%s>\" \"$#\" \"$1\" \"$2\" \"${VALUE:1:5}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-JCY5BX",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42509,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzJdW2FhXVtiYl18PGFhIGJiPg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzJdW2FhXVtiYl18PGFhIGJiPg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "nonwhite-ifs-boundary",
+          "scriptSha256": "be45f0272e40ea6da619aa8c64db6b6b2fa03a65ab8879037a4dbe4c6a5c1955",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\":ab:cd:\"; IFS=:; set -- ${VALUE:0:6}; printf \"[%s][%s][%s][%s]\" \"$#\" \"$1\" \"$2\" \"$3\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-nLjbao",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42510,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzNdW11bYWJdW2NkXQ==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzNdW11bYWJdW2NkXQ==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "empty-quoted-concatenation",
+          "scriptSha256": "7184e69ecb6d04cb5267088d590c58bddc3413b5f7a3b28944ac34ce57a5feb1",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=abc; set -- \"L${VALUE:99:2}R\" \"${VALUE:1:0}\" ${VALUE:1:0}; printf \"[%s][%s][%s]\" \"$#\" \"$1\" \"$2\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-6IsMeT",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42511,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "WzJdW0xSXVtd",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "WzJdW0xSXVtd",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "scalar-positional-parameters",
+          "scriptSha256": "ebccb00d754698a47e5fd4ac11dba1fed287b8b0ad9f7ad15ea1d1b09333edd5",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "set -- 012345 uvwxyz; printf \"<%s>|<%s>\" \"${1:2:3}\" \"${2: -2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-AhVrd6",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42512,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PDIzND58PHl6Pg==",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PDIzND58PHl6Pg==",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "division-error-before-after-effects",
+          "scriptSha256": "9f4c542182bc23640546a4bc4692755e833576ec737f46f4e102154ae333fd2e",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abc; printf \"<%s>\" \"${VALUE:1/0:2}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-njmjIn",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42513,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK"
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "late-malformed-expansion-same-line",
+          "scriptSha256": "5e83ce75d97c6764526b670079f38d2d71afde41ca316fe1497d2e6391286d97",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abc; printf \"%s\" \"${VALUE:1:2\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-E1piHy",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42514,
+            "status": 2,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg=="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+            "status": 2,
+            "entries": {
+              "phase": {
+                "bytes": "c2VlZA==",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "invalid-octal-offset",
+          "scriptSha256": "44e995bd19887a323dfa260e1f8c9e61385c92fabbd8b240a59052e05028b4ad",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "printf before > phase; VALUE=abcdefghij; printf \"<%s>\" \"${VALUE:08:2}\"; printf after > phase",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-n6EnGS",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {
+            "phase": {
+              "bytes": "c2VlZA==",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 42515,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "",
+            "stderr": "c2hlbGw6IFZBTFVFOiAwODogdmFsdWUgdG9vIGdyZWF0IGZvciBiYXNlIChlcnJvciB0b2tlbiBpcyAiMDgiKQo="
+          },
+          "tuple": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IFZBTFVFOiAwODogdmFsdWUgdG9vIGdyZWF0IGZvciBiYXNlIChlcnJvciB0b2tlbiBpcyAiMDgiKQo=",
+            "status": 1,
+            "entries": {
+              "phase": {
+                "bytes": "YmVmb3Jl",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "unicode-single-boundaries",
+          "scriptSha256": "e4749e24556e4a00eb1871fefc02e210a5c71ab399ba3236e800ff170b329034",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"Aé猫🙂Z\"; printf \"<%s>|<%s>\" \"${VALUE:1:1}\" \"${VALUE:3:1}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-1GI1JD",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42516,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PMOpPnw88J+Zgj4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PMOpPnw88J+Zgj4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "unicode-negative-and-tail",
+          "scriptSha256": "d65df249e0c26712b9388cf8a4e9153f9e4b4d00292baf0c26f1c8585b73652f",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"Aé猫🙂Z\"; printf \"<%s>|<%s>\" \"${VALUE: -2:1}\" \"${VALUE:2:99}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-LQGM2P",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42517,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "PPCfmYI+fDznjKvwn5mCWj4=",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "PPCfmYI+fDznjKvwn5mCWj4=",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        },
+        {
+          "id": "combining-codepoints-not-graphemes",
+          "scriptSha256": "f9b1ddf1e041d05aa6fb5bb23ff99fda148a72322da8e207c0164618c4206b41",
+          "argv0": "bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "VALUE=\"éx\"; printf \"%s|<%s>|<%s>\" \"${#VALUE}\" \"${VALUE:1:1}\" \"${VALUE:1:2}\"",
+            "shell"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-UJ7Sm1",
+          "env": {
+            "PATH": "/nonexistent",
+            "HOME": "/nonexistent",
+            "TZ": "UTC",
+            "LANG": "en_US.UTF-8",
+            "LC_ALL": "en_US.UTF-8"
+          },
+          "stdin": "",
+          "before": {},
+          "run": {
+            "pid": 42518,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdout": "M3w8zIE+fDzMgXg+",
+            "stderr": ""
+          },
+          "tuple": {
+            "stdout": "M3w8zIE+fDzMgXg+",
+            "stderr": "",
+            "status": 0,
+            "entries": {}
+          }
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "children": [
+      {
+        "pid": 42403,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42404,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42405,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42406,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42407,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42408,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42409,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42410,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42411,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42412,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42413,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42414,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42415,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42416,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42417,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42418,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42419,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42420,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42423,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42424,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42425,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42426,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42427,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42428,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42429,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42430,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42431,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42432,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42433,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42434,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42435,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42436,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42437,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42438,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42439,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42440,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42441,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42442,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42443,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42444,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42445,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42446,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42447,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42448,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42451,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42452,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42453,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42454,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42455,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42457,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42458,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42459,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42460,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42461,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42462,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42463,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42464,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42465,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42466,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42467,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42468,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42469,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42470,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42471,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42472,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42473,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42474,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42475,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42476,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42477,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42478,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42481,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42482,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42483,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42484,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42485,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42486,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42487,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42488,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42489,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42490,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42491,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42492,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42493,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42494,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42495,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42496,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42497,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42498,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42499,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42500,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42501,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42502,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42503,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42504,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42505,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42506,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42509,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42510,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42511,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42512,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42513,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42514,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42515,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42516,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42517,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      },
+      {
+        "pid": 42518,
+        "groupAlive": false,
+        "timedOut": false,
+        "overflow": false,
+        "signal": null
+      }
+    ],
+    "allChildrenCompleted": true,
+    "removedDirectories": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-NYKKrf",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-H09EY7",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-0aoazD",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-7LouKT",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-Of9DyX",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-AZqBLm",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-2LjZol",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-49OP2X",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-iFrGZ2",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-S3Vxf1",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-yCCn6C",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-3i8yjc",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-VJRZ6z",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-XCHnbr",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-cSVyT0",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-IRBApa",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-E0wHeY",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-80uIzi",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ovO4Eq",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-BHiMWc",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-lY95np",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ln6FOV",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-LVhrSC",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-e2pPne",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-3pS0Sj",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-zb1q4g",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-XlCpsL",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ruAv7P",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-dL2Apu",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ATWaHv",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-rCUL4Y",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-mPbATK",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-lijtFG",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-Nhyca8",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-EgwW86",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-dj3QzP",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-JfUIOZ",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-x4TyBm",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-0pBhM0",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-rrNKrA",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-jgQRWR",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-q0aHgs",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-BXAEW7",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ZO8r4Z",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ryHidc",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-w4ZjhS",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-g42Y0k",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-3WWSPa",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-h0HiG7",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-vABdHW",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-RS5J60",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-XVqUBo",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-nrEWi9",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-xB9Lov",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-TPOWAy",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-jN4pOZ",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-juxE3u",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-xD5S1h",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-m51WAY",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-wUJPJ3",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-D8Ee3F",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-zyIHkj",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-gsQocf",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-M5C7jb",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-CAeBWr",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-LYk1uS",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-hbh6rP",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-2CTjo9",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-jfvxZK",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-wPo6nj",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-NS4wHz",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-9PxV5Z",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-9mAHaX",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-OP4TSx",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-9gwyYU",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-aG1C2f",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-7A8rBA",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-CPrgnb",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-I4jcU9",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-S4WPUW",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-pDY2hJ",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-LT6L83",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-7N3cF6",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-ZaYyZw",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-98P46Y",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-BNHD2f",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-JCY5BX",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-nLjbao",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-6IsMeT",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-AhVrd6",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-njmjIn",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-E1piHy",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-n6EnGS",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-1GI1JD",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-LQGM2P",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/substring-holdout/.native-UJ7Sm1"
+    ],
+    "allDirectoriesAbsent": true
+  }
+}

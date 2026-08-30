@@ -1,0 +1,48 @@
+{
+  "schema": "npm-pin-independent-review-preseal-v1",
+  "date": "2026-08-28",
+  "authority": {
+    "packet": "7ef6e6b816ccc6b2449605c7950ab825d148a529",
+    "sourceAuthorization": "a52819daa6ff2c867187b01a7a5bbbb189f0da02",
+    "sealEvidence": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "entry": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/REBINDING.json"
+  },
+  "expectedSha256": {
+    "original2039Tuples": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+    "newSeal": "ab4fb40a7c4f73ddc9a34dba1ebc8a081b214f7fbec549a8b34539b241b39812",
+    "template": "6f155760db46aef36e511e15a40a29690ce929c9a78c59366ef6d2cd2d9d47fb",
+    "supervisor": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e"
+  },
+  "tool": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+    "kind": "regular",
+    "mode": "755",
+    "size": 7604272,
+    "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+  },
+  "caps": {
+    "globalMs": 600000,
+    "sourceAdmissionCutoffMs": 480000,
+    "childMs": 60000,
+    "children": 12,
+    "peakProcesses": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728,
+    "renewals": 0,
+    "retries": 0
+  },
+  "roles": {
+    "independentWorkflowExecutions": 0,
+    "workflowUnrun": 93,
+    "authorDataControlsForStaticAssessment": 34,
+    "authorPositive": 12,
+    "authorNegative": 22,
+    "independentControlReplays": 0
+  },
+  "reservation": {
+    "state": ["EXCLUSIVE", "UNSPENT", "UNRELEASED"],
+    "deadline": 1788026556000,
+    "operationsAuthorized": 0
+  },
+  "executionGo": false
+}

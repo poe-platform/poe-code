@@ -1,0 +1,140 @@
+{
+  "schema": "v6-data-only-postcohort-audit",
+  "presealCommit": "65b73e44d5641b5472e2b96000d51d5b6f81f7ff",
+  "classification": "data/hash authentication only; no observer or candidate imports or qualification replay",
+  "observedResult": "PARTIAL_HOLD",
+  "executedReal": 2,
+  "passedReal": 1,
+  "failedReal": 1,
+  "executedSynthetic": 0,
+  "executedDataControls": 0,
+  "unexecuted": [
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "D01",
+    "D02"
+  ],
+  "qualificationChildren": {
+    "worker": 1,
+    "syntax": 0,
+    "standaloneControls": 0,
+    "candidate": 0,
+    "peakOwnedProcesses": 2
+  },
+  "naturalWorkerClosure": true,
+  "workerExit": 1,
+  "workerSignal": null,
+  "knownChildCleanupSettled": true,
+  "realR02WriterCleanupSettled": false,
+  "oldRegularFileInventoryPreserved": true,
+  "oldRegularFiles": 25,
+  "newRegularFilesDetected": true,
+  "emptyNestedDirectoryAdditionsDetectedByCohortGuard": false,
+  "newPresealInputsPreserved": true,
+  "nodeExecutableHashPreserved": true,
+  "sourcePreparationFirstReliableWall": "2026-08-28T18:33:14Z",
+  "frozenWall": "2026-08-28T18:43:38.310787+00:00",
+  "cohortMonotonicThroughPreReceiptMs": 3179.155875,
+  "receiptFileMtimeNs": 1787942652828909582,
+  "captureBytesIncludingReceipt": 25004,
+  "publicationContentBytesExcludingThisAudit": 1001333,
+  "filesExcludingThisAudit": [
+    {
+      "path": "CONTINUATION-PROPOSED.json",
+      "bytes": 8127,
+      "sha256": "338ffcf7b055900f667eef175919978f7ba545977ad1022c2e485f1609f1cbeb"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 1663,
+      "sha256": "d700a90576b557f3d70a6cf24df695c02892536366b36312ffaeba288aa42de4"
+    },
+    {
+      "path": "CRITERION.md",
+      "bytes": 8195,
+      "sha256": "a069101a63c3ab4b5a4fd003d02d4b6c7ec350c40d891deaeae8619b4456b505"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 8579,
+      "sha256": "2c282b31f7571c5fd31f5ae712530ffdb815dce311cf6d4242a08ba08415236a"
+    },
+    {
+      "path": "NODE-SOURCES.json",
+      "bytes": 862575,
+      "sha256": "35277f8bbedf0a011da961f09922b6480e74ba613b93a2e64a6bbfee7deaa329"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 9209,
+      "sha256": "bd2755b9ab6b71e6014e514de0c1b4130162f59100628ec501656c49640e85a2"
+    },
+    {
+      "path": "RUN-01/RECEIPT.json",
+      "bytes": 3431,
+      "sha256": "3fc78821542c747df773a1fb58ab06583c39a637450137ddeee8d01096dd1e90"
+    },
+    {
+      "path": "RUN-01/worker.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RUN-01/worker.stdout.jsonl",
+      "bytes": 21573,
+      "sha256": "ae456d931de752a78ae2b8e72102679257d7e01e1381e29ae26f0696b8036a22"
+    },
+    {
+      "path": "SOURCE-DATA.json",
+      "bytes": 27686,
+      "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+    },
+    {
+      "path": "WORKER-ADAPTER-PROPOSAL.md",
+      "bytes": 5145,
+      "sha256": "7e77312e20959b65d0d8a1adea57316787c993fd20cf0bf76ecc76d6b0987745"
+    },
+    {
+      "path": "audit.py",
+      "bytes": 10121,
+      "sha256": "c3fd17ee9328803e2b5f92f5f944282a7878d0299f0a0df21077f22407561e72"
+    },
+    {
+      "path": "observer.mjs",
+      "bytes": 7527,
+      "sha256": "2f6b88f05d53d8c4c5b95724baddc3b6b7e825163f05abb6c69bcdf161de4abb"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 6736,
+      "sha256": "0a0e7d2f74c920c698226bd8fa625f25ec68e6b78e8c2c91c9010c6b91e1f2e7"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 8863,
+      "sha256": "b96f113cbf919c6f223d5dddf1e043424078b047bada0d46a3d94f30c32ac44d"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 11903,
+      "sha256": "e5ef38f0946793f0f3e99b99aa4b740e7ca41ff5f94259cf4d7e4bc1e6c58cf8"
+    }
+  ],
+  "indexAtAuditSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "metadataChildrenThisAudit": 13,
+  "auditMonotonicElapsedMs": 685.071291,
+  "auditedWall": "2026-08-28T18:50:00.100721+00:00",
+  "candidateContinuationAuthorized": false
+}

@@ -1,0 +1,47 @@
+{
+  "status": "INDEPENDENT_PREAUTHOR_PREPARATION_FROZEN_NO_EXECUTION",
+  "reviewer": "Codex Independent Leaf Verifier",
+  "thread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "at": "2026-08-27T17:19:00.500550+00:00",
+  "statement": "I independently prepared these source-only overlay admission rules and replay invariants from authenticated S1 and accepted bb7f5972/32debb6a inputs before seeing the new author fixtures. No build, product/guest/private-engine/transport/native execution, private checkout query or new acceptance pass occurred. Exact author hashes and future releases remain pending. NO-PROMOTION.",
+  "files": [
+    {
+      "path": "ALLOWLIST.json",
+      "bytes": 3986,
+      "sha256": "dc9c450f964cb3c9b2a8675d1b0a312d82d3e7f0391c50f5005abd6371cdea8f"
+    },
+    {
+      "path": "CRITERIA.json",
+      "bytes": 18232,
+      "sha256": "e21a64bdffd80555af7b292fcfad69f8e998d941f2b87e0659ad6fadb9453a6e"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 13871,
+      "sha256": "f43e9fe0627712f73823e96172f7583b691b9c7cb94ee086fa7a16d88b08d070"
+    },
+    {
+      "path": "PREPARATION.md",
+      "bytes": 7106,
+      "sha256": "0c25e83ccf14874d8c4326728dc1b3b99e0301f325a350362ebfd864eecdc241"
+    },
+    {
+      "path": "SOURCE-INVENTORIES.json",
+      "bytes": 75066,
+      "sha256": "9eafa5deec668f807209525511ea083d98d99f503863bfa08b76ce2ab4b649ea"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "bytes": 951,
+      "sha256": "ccd4b4fda3758f0322e3d742d4fbc79091c98b236c8479ac67df04d6c5185155"
+    },
+    {
+      "path": "allowed-source.patch-data",
+      "bytes": 662,
+      "sha256": "2223c4fe1f9aaa31642cbc7e0b0d03f81592a2a825637d3bd0eee81787ccda53"
+    }
+  ],
+  "filesManifestSha256": "b69f0f1eec15200c85f9ab9bd933e3c2441c380dbf3675de971c3e47019cf887",
+  "attestationQualification": "SHA256 plus the containing Git commit attribute this preparation to the stated thread; no cryptographic personal-identity claim.",
+  "noPromotion": true
+}

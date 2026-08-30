@@ -1,0 +1,9 @@
+{
+  "command": "git diff --cached --check -- EXPLICIT_REGULAR_FILE_ARGV",
+  "checkedFiles": 374,
+  "exitCode": 0,
+  "diagnostics": "",
+  "stderr": "",
+  "warnings": [],
+  "preservation": "Historical copied artifacts are not rewritten. Any current authored-source warning requires specific inspection before commit."
+}

@@ -1,0 +1,82 @@
+node:internal/modules/cjs/loader:1424
+  throw err;
+  ^
+
+Error: Cannot find module '/Users/kjopek/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)
+    at Module._load (node:internal/modules/cjs/loader:1227:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.11.1
+node:internal/errors:985
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js install --offline --ignore-scripts --no-audit --no-fund --package-lock=false /Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/public-package.tgz
+node:internal/modules/cjs/loader:1424
+  throw err;
+  ^
+
+Error: Cannot find module '/Users/kjopek/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1421:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1059:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1064:22)
+    at Module._load (node:internal/modules/cjs/loader:1227:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.11.1
+
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/prepare.mjs:57:17 {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    Buffer(0) [Uint8Array] [],
+    Buffer(776) [Uint8Array] [
+      110, 111, 100, 101,  58, 105, 110, 116, 101, 114, 110,  97,
+      108,  47, 109, 111, 100, 117, 108, 101, 115,  47,  99, 106,
+      115,  47, 108, 111,  97, 100, 101, 114,  58,  49,  52,  50,
+       52,  10,  32,  32, 116, 104, 114, 111, 119,  32, 101, 114,
+      114,  59,  10,  32,  32,  94,  10,  10,  69, 114, 114, 111,
+      114,  58,  32,  67,  97, 110, 110, 111, 116,  32, 102, 105,
+      110, 100,  32, 109, 111, 100, 117, 108, 101,  32,  39,  47,
+       85, 115, 101, 114, 115,  47, 107, 106, 111, 112, 101, 107,
+       47,  46, 110, 118,
+      ... 676 more items
+    ]
+  ],
+  pid: 75136,
+  stdout: Buffer(0) [Uint8Array] [],
+  stderr: Buffer(776) [Uint8Array] [
+    110, 111, 100, 101,  58, 105, 110, 116, 101, 114, 110,  97,
+    108,  47, 109, 111, 100, 117, 108, 101, 115,  47,  99, 106,
+    115,  47, 108, 111,  97, 100, 101, 114,  58,  49,  52,  50,
+     52,  10,  32,  32, 116, 104, 114, 111, 119,  32, 101, 114,
+    114,  59,  10,  32,  32,  94,  10,  10,  69, 114, 114, 111,
+    114,  58,  32,  67,  97, 110, 110, 111, 116,  32, 102, 105,
+    110, 100,  32, 109, 111, 100, 117, 108, 101,  32,  39,  47,
+     85, 115, 101, 114, 115,  47, 107, 106, 111, 112, 101, 107,
+     47,  46, 110, 118,
+    ... 676 more items
+  ]
+}
+
+Node.js v24.11.1

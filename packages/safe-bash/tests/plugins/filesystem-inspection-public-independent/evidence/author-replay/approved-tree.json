@@ -1,0 +1,13 @@
+{
+  "name": "approved-tree",
+  "command": [
+    "git",
+    "rev-parse",
+    "436bda3e^{commit}"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "436bda3e21b2b6041409fac7408cf072b5d3fe5e\n",
+  "stderr": ""
+}

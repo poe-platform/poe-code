@@ -1,0 +1,108 @@
+{
+  "claim": {
+    "label": "runtime-r1",
+    "job": "runtime",
+    "time": "2026-08-27T08:35:10.558Z",
+    "source": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+    "sourceManifestSha256": "11393027a812e9e25cc4af47309c38b9f444f8f8099e4772a04e6dfc145dd70a",
+    "harnessSha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007",
+    "heapMb": 128,
+    "watchdogMs": 20000,
+    "outputCap": 65536,
+    "ipcCap": 1048576,
+    "strictUnhandled": true,
+    "riskConsumed": 0
+  },
+  "pid": 11986,
+  "events": [
+    "disconnect",
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "kind": "result",
+    "pass": false,
+    "counts": {
+      "controls": 8,
+      "passed": 7,
+      "failed": 1
+    },
+    "observations": [
+      {
+        "name": "public:drain-all-sync-async-duplicates-cleanup-errors",
+        "pass": true,
+        "details": {
+          "variants": [
+            {
+              "errors": 0,
+              "calls": 4
+            },
+            {
+              "errors": 1,
+              "calls": 4
+            },
+            {
+              "errors": 2,
+              "calls": 4
+            }
+          ]
+        }
+      },
+      {
+        "name": "public:primary-error-and-abort-during-drain-identities",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n\n+ [AggregateError: Invocation cleanup failed]\n- [Error: selected execution failure]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs:104:12\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs:40:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs:83:1"
+      },
+      {
+        "name": "public:nested-abort-late-admission-before-child-work",
+        "pass": true
+      },
+      {
+        "name": "public:pipeline-and-substitution-own-descendant-drains",
+        "pass": true,
+        "details": {
+          "variants": [
+            "leaf | cat",
+            "printf \"%s\" \"$(leaf)\"",
+            "outer"
+          ]
+        }
+      },
+      {
+        "name": "public:overlapping-and-repeated-dispose-await-drain",
+        "pass": true
+      },
+      {
+        "name": "public:same-shell-and-other-shell-cancellation-isolation",
+        "pass": true
+      },
+      {
+        "name": "public:abort-avoids-opaque-input-fs-sink-middleware",
+        "pass": true,
+        "details": {
+          "variants": [
+            "stdin",
+            "fs",
+            "sink",
+            "middleware"
+          ]
+        }
+      },
+      {
+        "name": "public:admitted-cooperative-acquisition-closes-permanently",
+        "pass": true
+      }
+    ],
+    "riskConsumed": 0,
+    "boundary": "actual frozen Shell.exec, nested CommandContext.invoke and Shell.dispose"
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

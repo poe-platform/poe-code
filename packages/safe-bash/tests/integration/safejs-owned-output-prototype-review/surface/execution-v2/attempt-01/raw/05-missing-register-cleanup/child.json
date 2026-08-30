@@ -1,0 +1,17 @@
+{
+  "id": "05-missing-register-cleanup",
+  "pid": 32753,
+  "started": 1787847590332,
+  "deadline": 1787847600332,
+  "timedOut": false,
+  "outputExceeded": false,
+  "code": 0,
+  "signal": null,
+  "closed": 1787847591604,
+  "parentAfter": {
+    "pid": 32545,
+    "at": "2026-08-27T16:19:51.604Z",
+    "alive": true,
+    "knownLiveChildren": []
+  }
+}

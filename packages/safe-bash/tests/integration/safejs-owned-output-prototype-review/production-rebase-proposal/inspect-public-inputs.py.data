@@ -1,0 +1,253 @@
+import difflib
+import hashlib
+import io
+import json
+import re
+import subprocess
+import tarfile
+
+HEAD = "53f2a4681cd22a65299576ba655cf9338c3d1de0"
+TREE = "7fb1fc3b54596ec936e7f16ae462e1366ec3dc9e"
+ROOT = "tests/shell-stress/first-read-contract-review/"
+V1 = ROOT + "owned-output-prototype/"
+STREAMING = ROOT + "owned-output-streaming-prototype/"
+QUALIFIED = ROOT + "owned-output-qualified-prototype/"
+ORDERING = ROOT + "owned-output-qualified-review/ordering-replay-q1/"
+RECEIPT = "tests/integration/safejs-owned-output-prototype-review/receipt-review/"
+
+
+def git(*arguments):
+    return subprocess.check_output(["git", *arguments])
+
+
+def blob(path, commit=HEAD):
+    return git("show", commit + ":" + path)
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def identity(path, data):
+    return {"path": path, "bytes": len(data), "sha256": sha(data)}
+
+
+def inventory(files):
+    return [identity(path, files[path]) for path in sorted(files)]
+
+
+def manifest_id(entries):
+    return sha(json.dumps(entries, separators=(",", ":"), ensure_ascii=False).encode())
+
+
+assert git("rev-parse", "--show-toplevel").decode().strip() == "/Users/kjopek/Workspace/safe-bash"
+assert git("rev-parse", HEAD + "^{tree}").decode().strip() == TREE
+artifacts = []
+
+
+def authenticate(path, commit, expected=None):
+    data = blob(path)
+    original = blob(path, commit)
+    assert data == original, path
+    if expected:
+        assert sha(data) == expected, path
+    artifacts.append({**identity(path, data), "gitBlob": git("rev-parse", HEAD + ":" + path).decode().strip(),
+                      "originalCommit": git("rev-parse", commit).decode().strip(), "originalBytesEqualFrozen": True})
+    return data
+
+
+baseline_bytes = authenticate(V1 + "baseline.tar.gz.data", "1ff82cb7", "0066bc48069f116b549ea895e4972c02ed6958be641fd23ea3b6db26cc181f05")
+v1_patch = authenticate(V1 + "source-r1.patch-data", "1ff82cb7", "d73bb2637d54b97f62fd6e1baa57100cf0018a763679c31386349e30a19cc4e2")
+retention_patch = authenticate(STREAMING + "baseline-current-retention.patch-data", "c1985fd5", "063751093b7cf887d35b33498b65e1ef49a2f35f9dfb28e368ab6e409fda05b5")
+s1_patch = authenticate(STREAMING + "source-S1-r0.patch-data", "c1985fd5", "80c523e21610d90c67c8ab0084532ab465f645a0d57442dcd952795de01f2f3f")
+assert authenticate(STREAMING + "source-S1-r1.patch-data", "c1985fd5") == s1_patch
+qualified_bytes = authenticate(QUALIFIED + "candidate.tar.gz.data", "b8f5d46a", "a3b9aa6fcb4596e8281de2c30943b98baa01449941c8368401d1172bce95d420")
+profile = json.loads(authenticate(QUALIFIED + "SOURCE-PROFILE.json", "b8f5d46a"))
+proof = json.loads(authenticate(RECEIPT + "attempts/r2/proof.json", "07a7dae5"))
+authenticate(RECEIPT + "STAGES.md", "07a7dae5")
+authenticate(RECEIPT + "REPORT.md", "db139ae9")
+authenticate(RECEIPT + "verification.json", "07a7dae5")
+
+
+def archive_files(data, sidecars=False):
+    files = {}
+    metadata = []
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
+        for member in archive.getmembers():
+            assert not member.name.startswith("/") and ".." not in member.name.split("/")
+            if member.isdir():
+                continue
+            assert member.isfile(), member.name
+            payload = archive.extractfile(member).read()
+            if sidecars and member.name.split("/")[-1].startswith("._"):
+                assert len(payload) == 163 and sha(payload) == "5934932f7beff3c908b0c8b6af6ea8a142bb02b0c16dc2d411fbde870a31e988"
+                metadata.append(identity(member.name, payload))
+            else:
+                assert member.name not in files
+                files[member.name] = payload
+    return files, metadata
+
+
+baseline_all, metadata = archive_files(baseline_bytes, True)
+qualified_all, unexpected_metadata = archive_files(qualified_bytes)
+assert len(baseline_all) == 227 and len(metadata) == 270 and not unexpected_metadata
+assert len(qualified_all) == 940
+qualified_inventory = inventory(qualified_all)
+assert manifest_id(qualified_inventory) == "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28"
+profile_candidate = next(item for item in profile["archives"] if item["name"] == "candidate")
+assert sorted(profile_candidate["files"], key=lambda item: item["path"]) == qualified_inventory
+assert inventory(baseline_all) == proof["stages"][0]["files"]
+
+
+def sources(files):
+    return {path: data for path, data in files.items() if path.startswith("src/")}
+
+
+stages = {"B0": sources(baseline_all)}
+deltas = []
+
+
+def apply_in_memory(before, patch, stage_name):
+    after = dict(before)
+    sections = re.split(r"(?=^diff --git )", patch.decode(), flags=re.MULTILINE)
+    changed = []
+    for section in sections:
+        if not section:
+            continue
+        lines = section.splitlines(keepends=True)
+        path = re.match(r"diff --git a/(\S+) b/(\S+)\n", lines[0])[2]
+        old = before.get(path, b"").decode().splitlines(keepends=True)
+        output = []
+        position = 0
+        hunks = []
+        cursor = 0
+        while cursor < len(lines):
+            header = re.match(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", lines[cursor])
+            if not header:
+                cursor += 1
+                continue
+            old_start = int(header[1])
+            old_count = int(header[2] or 1)
+            new_start = int(header[3])
+            new_count = int(header[4] or 1)
+            start = old_start - 1 if old_count else old_start
+            assert start >= position
+            output.extend(old[position:start])
+            position = start
+            removed = []
+            added = []
+            hunk_start = cursor
+            cursor += 1
+            while cursor < len(lines) and lines[cursor][:1] in (" ", "+", "-"):
+                line = lines[cursor]
+                if line[0] in (" ", "-"):
+                    removed.append(line[1:])
+                if line[0] in (" ", "+"):
+                    added.append(line[1:])
+                cursor += 1
+            assert len(removed) == old_count and len(added) == new_count, (path, header[0])
+            assert old[position:position + old_count] == removed, (path, header[0])
+            position += old_count
+            output.extend(added)
+            hunks.append({"header": lines[hunk_start].strip(), "patchSectionLine": hunk_start + 1,
+                          "sha256": sha("".join(lines[hunk_start:cursor]).encode())})
+        output.extend(old[position:])
+        after[path] = "".join(output).encode()
+        changed.append({"path": path, "before": identity(path, before[path]) if path in before else None,
+                        "after": identity(path, after[path]), "sectionSha256": sha(section.encode()), "hunks": hunks})
+    assert sorted(item["path"] for item in changed) == sorted(path for path in after if before.get(path) != after[path])
+    deltas.append({"stage": stage_name, "changedPaths": changed})
+    return after
+
+
+stages["V1"] = apply_in_memory(stages["B0"], v1_patch, "B0-to-V1")
+stages["retention"] = apply_in_memory(stages["V1"], retention_patch, "V1-to-retention")
+stages["final-S1"] = apply_in_memory(stages["retention"], s1_patch, "retention-to-final-S1")
+assert [len(item["changedPaths"]) for item in deltas] == [9, 4, 2]
+for recorded in proof["stages"]:
+    actual = inventory(stages[recorded["name"]])
+    expected = [item for item in recorded["files"] if item["path"].startswith("src/")]
+    assert actual == expected
+    assert manifest_id(actual) == recorded["sourceId"]
+assert stages["final-S1"] == sources(qualified_all)
+assert len(stages["final-S1"]) == 213
+assert manifest_id(inventory(stages["final-S1"])) == "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea"
+ordering = []
+for phase in ("before", "after"):
+    record = json.loads(authenticate(ORDERING + "authentication-" + phase + ".json", "e57b5aa1"))
+    prefix = "/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL/candidate/"
+    bound = [{"path": item["path"][len(prefix):], "sha256": item["sha256"]}
+             for item in record["files"] if item["path"].startswith(prefix)]
+    assert sorted(bound, key=lambda item: item["path"]) == [{"path": item["path"], "sha256": item["sha256"]} for item in qualified_inventory]
+    ordering.append({"phase": phase, "exactPrefix": prefix, "matchedFiles": len(bound), "binding": "path and SHA-256; ordering receipt omits byte counts"})
+
+current_paths = git("ls-tree", "-r", "--name-only", HEAD, "--", "src").decode().splitlines()
+current = {path: blob(path) for path in current_paths}
+feature_paths = [item["path"] for item in deltas[0]["changedPaths"]]
+retention_paths = [item["path"] for item in deltas[1]["changedPaths"]]
+dirty_paths = ["src/commands/tree/arguments.ts", "src/commands/tree/io.ts", "src/commands/tree/tree.ts"]
+extra_paths = ["src/commands/network/shared.ts", "src/commands/network/README.md", "src/commands/network/index.ts",
+               "src/commands/network/output.ts", "src/commands/network/args.ts", "src/contracts/command.ts",
+               "src/contracts/command.md", "src/shell/cleanup.ts", "src/shell/types.ts", "src/index.ts", "package.json",
+               "src/commands/execution.ts", "src/commands/env-split.ts", "src/commands/search/rg.ts",
+               "src/commands/search/index.ts", "src/shell/input.ts", "src/plugins/index.ts"]
+path_evidence = []
+for path in sorted(set(feature_paths + retention_paths + dirty_paths + extra_paths)):
+    current_data = current.get(path) if path.startswith("src/") else blob(path)
+    entry = {"path": path, "current": identity(path, current_data) if current_data is not None else None,
+             "currentGitBlob": git("rev-parse", HEAD + ":" + path).decode().strip() if current_data is not None else None,
+             "historical": {name: identity(path, files[path]) if path in files else None for name, files in stages.items()},
+             "sameAsFinalS1": current_data == stages["final-S1"].get(path) if path in stages["final-S1"] else None}
+    if path in feature_paths:
+        changes = list(difflib.unified_diff(stages["final-S1"].get(path, b"").decode().splitlines(keepends=True),
+                     (current_data or b"").decode().splitlines(keepends=True), fromfile="S1/" + path, tofile="frozen/" + path))
+        entry["s1ToCurrentDiff"] = {"sha256": sha("".join(changes).encode()), "bytes": len("".join(changes).encode()),
+                                    "hunks": [line.strip() for line in changes if line.startswith("@@")]}
+    path_evidence.append(entry)
+
+clean_baseline_commit = "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79"
+dirty = []
+for path in stages["B0"]:
+    clean = blob(path, clean_baseline_commit)
+    if clean != stages["B0"][path]:
+        dirty.append({"path": path, "cleanGitBlob": git("rev-parse", clean_baseline_commit + ":" + path).decode().strip(),
+                      "clean": identity(path, clean), "captured": identity(path, stages["B0"][path])})
+assert sorted(item["path"] for item in dirty) == sorted(dirty_paths)
+zero_commit = "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29"
+zero_path = "src/commands/network/shared.ts"
+assert blob(zero_path, zero_commit) == current[zero_path]
+assert b'const minimum = name === "maxRedirects" || name === "maxRetries" ? 0 : 1;' in current[zero_path]
+base_equal = ["src/commands/network/curl.ts", "src/commands/network/transport.ts", "src/commands/network/types.ts",
+              "src/contracts/index.ts", "src/contracts/io.ts", "src/shell/shell.ts"]
+assert all(current[path] == stages["B0"][path] for path in base_equal)
+retention_equal = ["src/commands/internal.ts", "src/commands/network/body.ts", "src/commands/structured/jq.ts"]
+assert all(current[path] == stages["final-S1"][path] for path in retention_equal)
+stream_patch_section = re.search(r"^diff --git a/src/commands/streams.ts .*?(?=^diff --git|\Z)", retention_patch.decode(), re.MULTILINE | re.DOTALL)[0]
+streams_without_feature = apply_in_memory({"src/commands/streams.ts": stages["B0"]["src/commands/streams.ts"]}, stream_patch_section.encode(), "streams-retention-only-check")
+assert current["src/commands/streams.ts"] == streams_without_feature["src/commands/streams.ts"]
+stream_verification = deltas.pop()
+for token in (b"ownedOutput", b"createOutputOperation", b"accountedWrite"):
+    assert not any(token in data for path, data in current.items() if path.endswith(".ts")), token
+current_comparison = []
+for path in sorted(set(current) | set(stages["final-S1"])):
+    historical = stages["final-S1"].get(path)
+    present = current.get(path)
+    if historical != present:
+        current_comparison.append({"path": path, "status": "current-only" if historical is None else "S1-only" if present is None else "different",
+                                   "currentSha256": sha(present) if present is not None else None,
+                                   "finalS1Sha256": sha(historical) if historical is not None else None})
+
+print(json.dumps({"schema": 1, "scope": "read-only public Git/archive byte inspection; no execution, extraction, build, tests, private access or live-source reads",
+    "frozenCommit": HEAD, "frozenTree": TREE, "artifacts": artifacts,
+    "stageSummaries": [{"name": name, "sourceCount": len(files), "sourceManifestSha256": manifest_id(inventory(files))} for name, files in stages.items()],
+    "fullQualifiedManifest": {"files": 940, "sha256": manifest_id(qualified_inventory)},
+    "baselineMetadata": {"regularSemanticFiles": len(baseline_all), "appleDoubleSidecars": len(metadata), "classification": "exact archive only; in-memory; no extraction"},
+    "deltas": deltas, "sourceRouteMatchesQualified": True, "receiptStageIdentitiesMatch": True, "orderingBindings": ordering,
+    "capturedDirtyBaseline": dirty, "featurePaths": feature_paths, "retentionPaths": retention_paths,
+    "v1ToFinalPaths": sorted(path for path in stages["final-S1"] if stages["V1"].get(path) != stages["final-S1"][path]),
+    "pathEvidence": path_evidence, "currentVersusFinalS1": current_comparison,
+    "currentSourceCount": len(current), "currentSourceManifestSha256": manifest_id(inventory(current)),
+    "zeroCapsAlreadyLive": {"path": zero_path, "commit": zero_commit, "bytesEqualFrozen": True},
+    "featureComparisonAssertions": {"currentEqualsB0": base_equal, "retentionAlreadyFinalS1": retention_equal,
+                                    "currentStreamsEqualsB0PlusRetentionOnly": True, "streamsRetentionCheck": stream_verification},
+    "absentCurrentTypeScriptTokens": ["ownedOutput", "createOutputOperation", "accountedWrite"]}, indent=2))

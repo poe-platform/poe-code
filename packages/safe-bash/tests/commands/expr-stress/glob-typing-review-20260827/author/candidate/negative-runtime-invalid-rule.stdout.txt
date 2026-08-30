@@ -1,0 +1,60 @@
+TAP version 13
+# Subtest: worker globs retain code-unit strings, Unicode predicates and ancestor policy
+ok 1 - worker globs retain code-unit strings, Unicode predicates and ancestor policy
+  ---
+  duration_ms: 15.522167
+  type: 'test'
+  ...
+# Subtest: glob validation preserves first invalid rule and ignore-file literal brackets
+not ok 2 - glob validation preserves first invalid rule and ignore-file literal brackets
+  ---
+  duration_ms: 13.963875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/[eval1]:36:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /deliberately impossible diagnostic/u. Input:
+    
+    'Error: invalid glob: Invalid regular expression: /(?:^|/)[z-a]$/u: Range out of order in character class'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: 'invalid glob: Invalid regular expression: /(?:^|/)[z-a]$/u: Range out of order in character class'
+  stack: |-
+    matchGlobs (/Users/kjopek/Workspace/safe-bash/src/commands/search/glob.ts:35:81)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/[eval1]:40:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/[eval1]:40:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: glob batching caps ordinary descriptors without reordering matches
+ok 3 - glob batching caps ordinary descriptors without reordering matches
+  ---
+  duration_ms: 16.207333
+  type: 'test'
+  ...
+# Subtest: glob queue accounting includes options and UTF16LE path bytes
+ok 4 - glob queue accounting includes options and UTF16LE path bytes
+  ---
+  duration_ms: 0.16875
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.679292

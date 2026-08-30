@@ -1,0 +1,83 @@
+{
+  "pid": 30491,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "offline-denied",
+      "operation": "asset-read",
+      "code": "UNBOUND_ASSET"
+    },
+    {
+      "sequence": 1,
+      "kind": "offline-denied",
+      "operation": "UNSUPPORTED_WORKER_ASSET_ADMISSION",
+      "argument": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/fixtures/entry.mjs"
+    },
+    {
+      "sequence": 2,
+      "kind": "offline-denied",
+      "operation": "UNSUPPORTED_WASM_ADMISSION.compile",
+      "argument": "object"
+    },
+    {
+      "sequence": 3,
+      "kind": "load-denied",
+      "code": "UNBOUND_MODULE",
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/fixtures/unlisted.mjs"
+    },
+    {
+      "sequence": 4,
+      "kind": "final",
+      "report": {
+        "denied": [
+          "UNBOUND_ASSET",
+          "OFFLINE_DENIED",
+          "OFFLINE_DENIED",
+          "UNBOUND_MODULE"
+        ],
+        "loads": [],
+        "resources": {
+          "pending": 0,
+          "descriptors": 0,
+          "violations": [
+            {
+              "operation": "asset-read",
+              "code": "UNBOUND_ASSET"
+            },
+            {
+              "operation": "UNSUPPORTED_WORKER_ASSET_ADMISSION",
+              "argument": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/fixtures/entry.mjs"
+            },
+            {
+              "operation": "UNSUPPORTED_WASM_ADMISSION.compile",
+              "argument": "object"
+            }
+          ],
+          "assets": [],
+          "scope": "trusted dependency operation guard; not adversarial JavaScript isolation",
+          "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+        }
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 1325
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6Im9mZmxpbmUtZGVuaWVkIiwib3BlcmF0aW9uIjoiYXNzZXQtcmVhZCIsImNvZGUiOiJVTkJPVU5EX0FTU0VUIn0KeyJzZXF1ZW5jZSI6MSwia2luZCI6Im9mZmxpbmUtZGVuaWVkIiwib3BlcmF0aW9uIjoiVU5TVVBQT1JURURfV09SS0VSX0FTU0VUX0FETUlTU0lPTiIsImFyZ3VtZW50IjoiL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhcmlzb24vYnJlYWR0aC1jb250aW51YXRpb24taW5kZXBlbmRlbnQtMjAyNjA4MjgvZXhlY3V0b3ItdjMtcmV2aWV3L2ZpeHR1cmVzL2VudHJ5Lm1qcyJ9Cnsic2VxdWVuY2UiOjIsImtpbmQiOiJvZmZsaW5lLWRlbmllZCIsIm9wZXJhdGlvbiI6IlVOU1VQUE9SVEVEX1dBU01fQURNSVNTSU9OLmNvbXBpbGUiLCJhcmd1bWVudCI6Im9iamVjdCJ9Cnsic2VxdWVuY2UiOjMsImtpbmQiOiJsb2FkLWRlbmllZCIsImNvZGUiOiJVTkJPVU5EX01PRFVMRSIsInNwZWNpZmllciI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvY29tcGFyaXNvbi9icmVhZHRoLWNvbnRpbnVhdGlvbi1pbmRlcGVuZGVudC0yMDI2MDgyOC9leGVjdXRvci12My1yZXZpZXcvZml4dHVyZXMvdW5saXN0ZWQubWpzIn0KeyJzZXF1ZW5jZSI6NCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7ImRlbmllZCI6WyJVTkJPVU5EX0FTU0VUIiwiT0ZGTElORV9ERU5JRUQiLCJPRkZMSU5FX0RFTklFRCIsIlVOQk9VTkRfTU9EVUxFIl0sImxvYWRzIjpbXSwicmVzb3VyY2VzIjp7InBlbmRpbmciOjAsImRlc2NyaXB0b3JzIjowLCJ2aW9sYXRpb25zIjpbeyJvcGVyYXRpb24iOiJhc3NldC1yZWFkIiwiY29kZSI6IlVOQk9VTkRfQVNTRVQifSx7Im9wZXJhdGlvbiI6IlVOU1VQUE9SVEVEX1dPUktFUl9BU1NFVF9BRE1JU1NJT04iLCJhcmd1bWVudCI6Ii9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXYzLXJldmlldy9maXh0dXJlcy9lbnRyeS5tanMifSx7Im9wZXJhdGlvbiI6IlVOU1VQUE9SVEVEX1dBU01fQURNSVNTSU9OLmNvbXBpbGUiLCJhcmd1bWVudCI6Im9iamVjdCJ9XSwiYXNzZXRzIjpbXSwic2NvcGUiOiJ0cnVzdGVkIGRlcGVuZGVuY3kgb3BlcmF0aW9uIGd1YXJkOyBub3QgYWR2ZXJzYXJpYWwgSmF2YVNjcmlwdCBpc29sYXRpb24iLCJ3b3JrZXJXYXNtUG9saWN5IjoicmVmdXNlIGJlZm9yZSBjcmVhdGlvbi9jb21waWxhdGlvbjsgdW5zdXBwb3J0ZWQgbmV2ZXIgcXVhbGlmaWVzIn19fQo=",
+  "natural": true
+}

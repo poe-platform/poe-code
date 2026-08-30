@@ -1,0 +1,719 @@
+{
+  "actualRun": {
+    "pid": 94911,
+    "started": "2026-08-27T21:17:05.392Z",
+    "finished": "2026-08-27T21:17:09.845Z",
+    "inheritedStartupTMPDIR": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary"
+  },
+  "helperSha256": "5c2d84931141471fdb14a1c9aab8aa487ad65094c06790444b53e57e131578ef",
+  "observations": [
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-fthOsS",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:05.946Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-CtgWoB",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.127Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-jF6pFe",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.128Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-9sgY4f",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.134Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-tERgkP",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.145Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-KPVbGL",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.247Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-yttKNB",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.457Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-FTJHrD",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.545Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-8eDNuT",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.641Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-SzIqjd",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.741Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-xrRi8u",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.868Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-kHgthP",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:06.945Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-rNsMdM",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:07.237Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-jLdNYx",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:07.461Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-2rN1fT",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:07.560Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-9q0eaT",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:07.645Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-3tqoJ7",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:07.731Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-G7WhyD",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:07.868Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-Ggjxyp",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:07.954Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-x1rCUK",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.045Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-LS0Y1q",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.141Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-qminlW",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.238Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-Vq5HCc",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.374Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-7CiaHP",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.459Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-8p5bFf",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.556Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            ".gitignore",
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": "*.txt\n"
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-NomVMc",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.758Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            ".ignore",
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-sYoi3x",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.862Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "#hash",
+            "keep"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "!bang",
+            "#hash",
+            ".ignore",
+            "keep",
+            "trailing "
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-WMsbm9",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.956Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            ".ignore",
+            ".secret",
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-lnBJHG",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:08.969Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            ".ignore",
+            ".secret",
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-EVOw4M",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:09.038Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alias",
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-TyjxO3",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:09.077Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "text"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-LYvAsx",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:09.164Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "binary"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-qtiaqX",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:09.249Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "binary"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-wKuEfv",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:09.373Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        },
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-uWyMyG",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:09.464Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-B6qWYD",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:09.545Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "binary"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    },
+    {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary/virtual-rg-native-e2dHwN",
+      "parentRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+      "firstObserved": "2026-08-27T21:17:09.672Z",
+      "runnerPid": 94911,
+      "snapshots": [
+        {
+          "names": [
+            "alpha.txt",
+            "beta.txt",
+            "sub"
+          ],
+          "gitMarkerPresent": false,
+          "gitignore": null
+        }
+      ]
+    }
+  ],
+  "caveat": "Read-only best-effort sampling, not a complete native-spawn trace; native output bytes remain governed by unchanged differential assertions, not separately intercepted."
+}

@@ -1,0 +1,22 @@
+Success. Updated the following files:
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/CASES-v2.json
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/SOURCE-MEMBERS.json
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/SOURCE-CAPSULE.json.gz.base64
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/TOOLS.json
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/case-driver.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/package.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/consumer.mts.data
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/auth.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/direct-child.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/guard.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/profile.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/case-adapter.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/package-admission.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/parse-manifest.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/supervisor.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/finalization.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/fixture-package.json.data
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/canonical.mjs
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/fixture-entry.js.data
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/fixture-payload.js.data
+A tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/fixture-installed-entry.js.data

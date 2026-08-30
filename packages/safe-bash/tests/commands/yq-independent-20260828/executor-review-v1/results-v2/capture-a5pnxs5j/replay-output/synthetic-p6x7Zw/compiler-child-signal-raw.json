@@ -1,0 +1,10 @@
+{
+  "id": "compiler-child-signal",
+  "expected": "COMPILER_STATUS",
+  "value": null,
+  "error": {
+    "code": "COMPILER_STATUS",
+    "message": "COMPILER_STATUS: synthetic",
+    "stack": "Error: COMPILER_STATUS: synthetic\n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at classifyCompilerOutcome (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/type-worker.mjs:22:3)\n    at compileControl (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:52:10)\n    at compiler-child-signal (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:130:35)\n    at file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:153:41"
+  }
+}

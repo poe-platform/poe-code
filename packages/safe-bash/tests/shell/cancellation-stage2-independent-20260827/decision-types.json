@@ -1,0 +1,14 @@
+[
+  {
+    "id": "T01-U1",
+    "family": "T01",
+    "decision": "Root decision 1: explicit undefined is permitted under exactOptionalPropertyTypes",
+    "source": "import type { CommandContext, CommandInvokeOptions } from '$PUBLIC';\nconst options: CommandInvokeOptions = { signal: undefined };\ndeclare const context: CommandContext;\ncontext.invoke?.('true', [], options);\ncontext.invoke?.('true', [], { signal: undefined });\n"
+  },
+  {
+    "id": "T02-U1",
+    "family": "T02",
+    "decision": "Root decision 1: internal and public optional signal include undefined and remain readonly",
+    "source": "import type { CommandInvokeOptions } from '$PUBLIC';\nimport type { ShellInvokeOptions, ShellCommandContext } from '$SHELL';\nconst internal: ShellInvokeOptions = { signal: undefined };\nconst publicOptions: CommandInvokeOptions = internal;\nconst back: ShellInvokeOptions = publicOptions;\ndeclare const context: ShellCommandContext;\ncontext.invoke('true', [], back);\ncontext.invoke('true', [], { signal: undefined });\n// @ts-expect-error signal remains readonly even when explicitly undefined\nback.signal = undefined;\n"
+  }
+]

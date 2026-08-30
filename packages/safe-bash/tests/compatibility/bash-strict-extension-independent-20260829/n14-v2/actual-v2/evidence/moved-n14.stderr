@@ -1,0 +1,76 @@
+(node:84135) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:84135) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs", pathToFileURL("./"));'
+(node:84135) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"protocol":"N01","event":"registered"}
+{"protocol":"N01","event":"diagnostic"}
+{"protocol":"N01","event":"cleanup-enter"}
+{"protocol":"N01","event":"release"}
+{"protocol":"N01","event":"cleanup-finished"}
+{"protocol":"N01","event":"settled"}
+{"protocol":"N02","event":"registered"}
+{"protocol":"N02","event":"diagnostic"}
+{"protocol":"N02","event":"cleanup-enter"}
+{"protocol":"N02","event":"release"}
+{"protocol":"N02","event":"cleanup-finished"}
+{"protocol":"N02","event":"settled"}
+{"protocol":"N03","event":"registered"}
+{"protocol":"N03","event":"diagnostic"}
+{"protocol":"N03","event":"cleanup-enter"}
+{"protocol":"N03","event":"release"}
+{"protocol":"N03","event":"cleanup-finished"}
+{"protocol":"N03","event":"settled"}
+{"protocol":"N04","event":"registered"}
+{"protocol":"N04","event":"diagnostic"}
+{"protocol":"N04","event":"invoke-rejected"}
+{"protocol":"N04","event":"cleanup-enter"}
+{"protocol":"N04","event":"release"}
+{"protocol":"N04","event":"cleanup-finished"}
+{"protocol":"N04","event":"settled"}
+{"protocol":"N06","event":"registered"}
+{"protocol":"N06","event":"diagnostic"}
+{"protocol":"N06","event":"cleanup-enter"}
+{"protocol":"N06","event":"release"}
+{"protocol":"N06","event":"cleanup-finished"}
+{"protocol":"N06","event":"settled"}
+{"protocol":"N07","event":"registered"}
+{"protocol":"N07","event":"diagnostic"}
+{"protocol":"N07","event":"cleanup-enter"}
+{"protocol":"N07","event":"release"}
+{"protocol":"N07","event":"cleanup-finished"}
+{"protocol":"N07","event":"diagnostic"}
+{"protocol":"N07","event":"settled"}
+{"protocol":"N08","event":"registered"}
+{"protocol":"N08","event":"diagnostic"}
+{"protocol":"N08","event":"cleanup-enter"}
+{"protocol":"N08","event":"release"}
+{"protocol":"N08","event":"cleanup-finished"}
+{"protocol":"N08","event":"diagnostic"}
+{"protocol":"N08","event":"settled"}
+{"protocol":"N09","event":"registered"}
+{"protocol":"N09","event":"diagnostic"}
+{"protocol":"N09","event":"cleanup-enter"}
+{"protocol":"N09","event":"caller-abort"}
+{"protocol":"N09","event":"release"}
+{"protocol":"N09","event":"cleanup-finished"}
+{"protocol":"N09","event":"settled"}
+{"protocol":"N10","event":"registered"}
+{"protocol":"N10","event":"diagnostic"}
+{"protocol":"N10","event":"cleanup-enter"}
+{"protocol":"N10","event":"release"}
+{"protocol":"N10","event":"cleanup-finished"}
+{"protocol":"N10","event":"settled"}
+{"protocol":"N11","event":"registered"}
+{"protocol":"N11","event":"diagnostic"}
+{"protocol":"N11","event":"cleanup-enter"}
+{"protocol":"N11","event":"release"}
+{"protocol":"N11","event":"cleanup-finished"}
+{"protocol":"N11","event":"settled"}
+{"protocol":"N12","event":"registered"}
+{"protocol":"N12","event":"diagnostic"}
+{"protocol":"N12","event":"cleanup-enter"}
+{"protocol":"N12","event":"release"}
+{"protocol":"N12","event":"cleanup-finished"}
+{"protocol":"N12","event":"settled"}

@@ -1,0 +1,61 @@
+{
+  "id": "L02",
+  "subjectRow": {
+    "number": 1,
+    "role": "workflow",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review",
+      "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/L02",
+      "--disallow-code-generation-from-strings",
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=64",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/stub.mjs",
+      "hold"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/L02",
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "containment": "OWNED_FAILURE",
+    "naturallyReaped": false,
+    "closeObserved": true,
+    "signalsRequested": [
+      "SIGTERM"
+    ],
+    "pid": 54331,
+    "status": null,
+    "signal": "SIGTERM",
+    "primaryFailure": {
+      "type": "object",
+      "name": "Error",
+      "code": null,
+      "message": "POSTSPAWN_CLOCK",
+      "stack": "Error: POSTSPAWN_CLOCK\n    at context (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:96:46)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:138:21\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    "secondaryFailures": [
+      {
+        "type": "object",
+        "name": "Error",
+        "code": null,
+        "message": "POSTSPAWN_CLOCK",
+        "stack": "Error: POSTSPAWN_CLOCK\n    at context (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:96:46)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:138:21\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+      }
+    ]
+  },
+  "enrollment": [
+    "publication-after-enrollment-and-listeners",
+    "clock-after-enrollment-and-listeners"
+  ],
+  "remainingCalls": 2,
+  "fulfilled": false,
+  "reason": {
+    "type": "object",
+    "name": "Error",
+    "code": null,
+    "message": "POSTSPAWN_CLOCK",
+    "stack": "Error: POSTSPAWN_CLOCK\n    at context (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:96:46)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:138:21\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "exactPrimaryIdentity": true,
+  "status": "PASS"
+}

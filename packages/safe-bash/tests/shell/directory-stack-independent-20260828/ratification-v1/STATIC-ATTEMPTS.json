@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "kind": "additive-static-only-attempts",
+  "firstSuccessfulRecordedClock": "2026-08-28T07:33:29Z",
+  "preparatoryFailures": [
+    {
+      "id": "read-01",
+      "exitStatus": 127,
+      "operation": "initial status/instruction read before author-document comparison",
+      "cause": "zsh loop variable path overwrote shell PATH; subsequent cat/git/date could not resolve",
+      "diagnostics": [
+        "zsh:1: command not found: cat",
+        "zsh:1: command not found: cat",
+        "zsh:1: command not found: git",
+        "zsh:1: command not found: date"
+      ],
+      "effects": "read-only; no authored or product file changes",
+      "correction": "new shell invocation used file loop variable; exact instructions and normative commits then read successfully"
+    }
+  ],
+  "attempts": [
+    {
+      "id": "static-01",
+      "startedAt": "2026-08-28T07:39:13.597Z",
+      "finishedAt": "2026-08-28T07:39:16.406Z",
+      "command": "node tests/shell/directory-stack-independent-20260828/ratification-v1/verify.mjs",
+      "node": "v22.22.2",
+      "platform": "darwin",
+      "arch": "arm64",
+      "sealSha256": "6289b8b6a8d2d4d114179c0062416833ac5c8be30dd9b6a4aad59eb2284026cf",
+      "verifierSha256": "4a3cd74dceba2b9745b044261534c65e3799c047078acf36fb02cfe90dfc657c",
+      "exitStatus": 0,
+      "stdout": "{\n  \"status\": \"static-only-pass\",\n  \"at\": \"2026-08-28T07:39:16.401Z\",\n  \"originalFreezeCommit\": \"302351279c8ca6122c618e72768782c8ad118878\",\n  \"authorityCommit\": \"232c2f357a1049cbf096dbef3051445c8f7c476b\",\n  \"sealedCommit\": null,\n  \"unchangedOriginalFiles\": 9,\n  \"appendixFiles\": 5,\n  \"ratificationArtifactsAuthenticated\": 4,\n  \"parentArtifactsIndependentlyRehashed\": 10,\n  \"pinnedSourceBlobsIndependentlyRehashed\": 5,\n  \"totalReferenceRecords\": 28,\n  \"comparisonAreas\": 12,\n  \"semanticReview\": \"manual comparison found no substantive contradiction; not automated equivalence\",\n  \"countsUnchanged\": {\n    \"declarativeRows\": 138,\n    \"sourceInvariants\": 24,\n    \"positiveTypes\": 8,\n    \"negativeTypes\": 8,\n    \"frozenStaticNegatives\": 16,\n    \"futureMutationFamilies\": 16,\n    \"futureImportNegativeFamilies\": 6\n  },\n  \"newStaticNegativesRejected\": [\n    \"RN01\",\n    \"RN02\",\n    \"RN03\",\n    \"RN04\",\n    \"RN05\",\n    \"RN06\",\n    \"RN07\",\n    \"RN08\"\n  ],\n  \"fullMembershipCheckedBeforeAndAfter\": true,\n  \"addedFilesDirectoriesSymlinksRejected\": true,\n  \"implementationInspections\": 0,\n  \"productRuns\": 0,\n  \"nativeOracleRuns\": 0,\n  \"providerRequests\": 0,\n  \"typeCompiles\": 0,\n  \"cohortRuns\": 0,\n  \"stackRuntimeAuthorized\": false\n}\n",
+      "stderr": ""
+    }
+  ],
+  "productRuns": 0,
+  "nativeOracleRuns": 0,
+  "providerRequests": 0,
+  "typeCompiles": 0,
+  "cohortRuns": 0,
+  "implementationInspections": 0,
+  "qualification": "Git byte hashing is not implementation inspection. Keep every failed static attempt; post-seal integrity reruns report to terminal without rewriting this appendix.",
+  "summary": {
+    "staticAttempts": 1,
+    "passed": 1,
+    "failed": 0,
+    "preparatoryFailures": 1,
+    "recordedWindow": {
+      "firstClock": "2026-08-28T07:33:29Z",
+      "through": "2026-08-28T07:39:16.406Z",
+      "qualification": "local additive review window only, later than original freeze; not72hours or global no-implementation proof"
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "role": "FRESH_NARROW_FOLLOWUP_NOT_OLD_GRANT_REUSE",
+  "startedAt": "2026-08-29T07:07:31.819Z",
+  "deadline": 1787989051819,
+  "candidate": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "sourceCommit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "packageSha256": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+  "prior": {
+    "attempt2": {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02",
+      "result": "5aaa6245af4d173c5699c0a71ccb729bd7fb9ea75239bb1fccc4165d06d4120e"
+    }
+  },
+  "selections": [
+    {
+      "label": "source-affected",
+      "ids": [
+        "N01",
+        "N10",
+        "N11"
+      ]
+    },
+    {
+      "label": "installed-affected",
+      "ids": [
+        "N01",
+        "N10",
+        "N11"
+      ]
+    },
+    {
+      "label": "moved-affected",
+      "ids": [
+        "N01",
+        "N10",
+        "N11"
+      ]
+    }
+  ],
+  "mechanisms": [
+    {
+      "label": "M06-baseline",
+      "id": "H02-v4",
+      "expectedPass": true
+    },
+    {
+      "label": "M04-mutated",
+      "id": "N10",
+      "expectedPass": false
+    },
+    {
+      "label": "M04-restored",
+      "id": "N10",
+      "expectedPass": true
+    },
+    {
+      "label": "M06-preabort-counter",
+      "id": "H01",
+      "expectedPass": true
+    },
+    {
+      "label": "M06-mutated",
+      "id": "H02-v4",
+      "expectedPass": false
+    },
+    {
+      "label": "M06-restored",
+      "id": "H02-v4",
+      "expectedPass": true
+    }
+  ],
+  "bindings": [
+    "missing",
+    "changed"
+  ],
+  "plannedDirectChildren": 12,
+  "plannedLoaderAdmissions": 11,
+  "maximumNewLoaderAdmissions": 20,
+  "maximumRegexWorkers": 4,
+  "selectedRegexWorkers": 0,
+  "builds": 0,
+  "compilers": 0,
+  "old39Admissions": "CLOSED_NOT_DEBITED_OR_REUSED",
+  "ordinaryFailureAggregation": "after known cleanup and intact bindings",
+  "sourceRole": "fresh verified copy of previously authenticated build outputs, not a new build",
+  "newProcessLimit": 72
+}
+

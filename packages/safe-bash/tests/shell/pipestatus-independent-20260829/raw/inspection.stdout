@@ -1,0 +1,119 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-independent-20260829/inspect.mjs
+# Corrected PIPESTATUS: ready for SOURCE/PREEXEC review
+
+2026-08-29. This is author build/pure qualification, not independent public
+PIPESTATUS acceptance. No Shell, native utility, Worker, install, ERE engine or
+network activation occurred. Production source was not changed in this phase.
+The earlier 23/24 result, original build/artifact and old capture remain literal.
+
+## Exact selected source
+
+- Corrected source commit: `43050e861bfeb6dcc8c3e97784b80ce18dc8f793`.
+- **307 shipping inputs**, individually listed with Git blob, size, mode, SHA256,
+  originating revision and base blob/revision in `SEAL.json`.
+- Derived shipping-projection Git tree: `74fec4d4e26d9c0b2d27613c15af7a88cb56f628`.
+  Recomputed from canonical Git tree serialization, not required to exist as a
+  stored tree and not claimed to be the entire repository tree.
+- Base: `da4e1cc187022255521879b00db2ac77674f79d9`; its original 305-source
+  manifest remains authenticated. PIPE runtime/helper are acquired from the
+  corrected stored commit. Every other selected source remains byte-identical.
+- K08: `ffac894aa98b8cd98476b8ea109ef2e2425c2a07` arithmetic module and preserved
+  runtime callsites. **B35 is excluded**: the manifest identifies the unchanged
+  base parser blob/revision; there is no invented B35 pin or HEAD substitution.
+- ERE engine: `72187e5abc1179883f85a63e1ef558f2e141c542`.
+- All seven ERE transport files: **46611a5b67ad7af276154421ac7f50dd536ec570**,
+  authenticated against stored source blobs. **4abb is not included**.
+
+The selected transport ownership files are:
+
+| File | Git blob | SHA256 |
+| --- | --- | --- |
+| `src/commands/regex-execution/ere/transport/owner.ts` | `547a529f9522d8b22788947e2114694497e3b241` | `a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf` |
+| `src/commands/regex-execution/ere/transport/root.ts` | `0e7c7ab6fc007813baf1afccd4251416462b9fde` | `1a0ac9feddf151a3ab2e2d6432dca259a7c0c93136adbc86bbac7627621e733b` |
+
+This pinning does not upgrade transport/runtime acceptance or certify later
+coherent Node/B35 compositions. Existing AST-clone, source-only/private ownership,
+and global resource qualifications remain inherited.
+
+## Actual results
+
+One clean pinned strict TypeScript build: **exit 0**, empty stdout/stderr.
+`BUILD.json` records executable, argv, PID and normal return. It includes the
+existing positive private type use, two unchanged expected-negative positions,
+and the complete new public host-protocol source. No host module was imported.
+
+**24/24 unchanged PURE groups pass**, including original G18. Their body bytes
+are authenticated against the original source-sealed fixture; only isolated
+absolute roots change. `PURE-RESULTS.json`, `RUNNER.stdout`, and the exact
+`LOADED-CLOSURE.json` retain outcomes and actual private module bindings.
+No old result is rescored: this is a new corrected-emits replay.
+
+Six separately labeled DATA checks pass; they are not six extra product cases.
+Both Node helper processes and the one compiler returned normally. All pure
+fixture scopes were awaited. The final runner exits 0. The publication snapshot
+records 21 known starts through its creation, known peak three, and 9,125,345
+scratch bytes; later explicit documentation/Git roles are in the external fresh
+role log, not silently included in that earlier snapshot. This is a known-role
+census, not a universal OS-descendant guarantee.
+
+## New artifact and receipts
+
+`corrected-build-artifact.tgz`: **1,010 members**,
+SHA256 `6c60e2d766fa675b7972afdc0eb6f5304f99231abceff1daf5cb196b897346a5`.
+This is a manual USTAR/gzip build projection, **not npm-produced or installed
+proof**. It includes the corrected helper emissions. Both validation-only type
+and host-executor emissions are excluded from shipping membership.
+`PACKAGE.json` lists every member's path/mode/size/hash and the actual compressed
+size/hash. The receipt is frozen without any inflation; a future consumer must
+admit regular-file type/size/hash before decoding that same buffer.
+
+New seal SHA256:
+`c590f60ab8f53c5988056087257e2ed8564ef0db5e256ca4a7d836fa88fce718`.
+In inherited receipt field names, `originalSourceSeal` means this phase's seal,
+not the earlier `ac0a0b30...` seal. The old 1,010-member artifact
+`01419e11674fcea74867afe1918bfeb5474e5aa3c2e919f0819ea8aa5920c144`
+remains unchanged and does not acquire the correction.
+
+## Concrete public executor and matrix
+
+`host-protocols.ts` contains actual typed public-API code for H01–H08:
+
+- H01 registered cleanup raw false, cleanup count one, no subsequent command.
+- H02 caller raw zero over execution object plus cleanup false; cleanup count one.
+- H03 exact returned context.invoke Promise and genuine shared maxCommands error.
+- H04 genuine maxExpansionBytes:1 refusal before command entry.
+- H05 genuine maxOutputBytes:1 failure from two-byte output.
+- H06 standalone raw-false **nounset diagnostic stderr** route, no caller abort;
+  this is not a claim that every ordinary command/sink maps errors identically.
+- H07 numeric errexit result/no later command. The inaccessible internal vector
+  ordering remains SOURCE-qualified rather than invented public observation.
+- H08 two independent exec calls each receive their legitimate initial command
+  allowance; H03 separately forbids a descendant reset.
+
+`runVisibleCases` executes exact script/stdout/stderr/status comparisons and
+always disposes the public Shell. `runHost` uses the actual imported API namespace,
+never internal binding injection, and also always disposes. Both remain **UNRUN**.
+The caller must supply a freshly authenticated actual layout module, not a stub.
+
+`MATRIX.json`: each of source-built/offline-installed/physically-moved layouts has
+18 visible scripts plus eight host cases: **78 case cells**, **81 public exec
+calls**, and **three additional context.invoke calls** overall. These are planned,
+not observed. Earlier 32 and typed-six records remain separate authorities/history.
+
+Prospective actual grant: 30 minutes inclusive cleanup/publication; 48 known OS
+starts, peak three; 96 MiB capture/512 MiB work; 30 seconds/case; **zero Workers,
+native or network**. Eight planned managed children are specified in PRESEAL.md.
+Installation/materialization, complete layout load/fallback fences, outer owner
+and per-case deadline admission still require the later actual-launch preseal and
+ROOT authorization. Public execution and independent semantic acceptance are
+not implied by source/pure/type readiness.
+
+## Ownership
+
+Only this versioned author-evidence directory changes. Production remains at
+the specified correction; durable rules commit `1f9e3a1244354a477674d7b88f52cba5d1c688e8`
+is unchanged. No cleanup or modification of old scratch, captures, author
+fixtures, unrelated source or foreign staging is performed.
+
+FILES [{"file":"tests/shell/pipestatus-author-20260829/BUILD.json","size":574,"sha256":"bccf3ea8743fe8150f3b3fa0c68566c17ae4dd471e1fee1a0103ce3f0792b5f0"},{"file":"tests/shell/pipestatus-author-20260829/G18-SOURCE-CORRECTION.md","size":1294,"sha256":"625efc4191d1ccf65d527358f4ca6a7c30319e3bac69c0756261e5f434603fb2"},{"file":"tests/shell/pipestatus-author-20260829/HANDOFF.md","size":5051,"sha256":"560cfdc01b071bce26eccbe1220654993d3071c0fbb63690460ea62c8454ce5b"},{"file":"tests/shell/pipestatus-author-20260829/LEGACY-BINDING.json","size":239,"sha256":"89c18f909f546913107a394bd8cd4a418990152234055b84033384a73f66b26d"},{"file":"tests/shell/pipestatus-author-20260829/LOADED-CLOSURE.json","size":1042,"sha256":"1597cf8b98fcb4eec7c8ee1f1f3168c29bcf4fa3341ca9d078aad8969b38c0a5"},{"file":"tests/shell/pipestatus-author-20260829/PACKAGE.json","size":197534,"sha256":"77175e68fc2ec613e7892c1fe194f5cd166900186c6872e6c1cb7528635e1410"},{"file":"tests/shell/pipestatus-author-20260829/PRESEAL.md","size":4528,"sha256":"8ec88fa417b43d5e358aa421e083c6a228e4d83425c777d503a7129463276fb6"},{"file":"tests/shell/pipestatus-author-20260829/PUBLICATION.json","size":3180,"sha256":"74aeaec1ae2855fb6611329e5886ba90787ad4fced05de094f16af23d1f5eafd"},{"file":"tests/shell/pipestatus-author-20260829/PURE-RESULTS.json","size":1524,"sha256":"fb70b34c6e64f3dc51c7daa3cc7edd327853e786bea731f82842d00e1b7e4036"},{"file":"tests/shell/pipestatus-author-20260829/SEAL.json","size":171230,"sha256":"ac0a0b3066a9e89667336cb9f3012fd7896abc9d59d1a53a47669a59336b0994"},{"file":"tests/shell/pipestatus-author-20260829/SOURCE-SUCCESSOR.json","size":959,"sha256":"117a9e68c825ecf473f9aef45a082a44e285dc1f005ee848b97b378585fa9526"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/BUILD.json","size":571,"sha256":"a2f0d532771b27ff2b7cbb30d9e9fa53e31e412082f7606bf88641cffff71b62"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/DATA-CONTROLS.json","size":715,"sha256":"8fb1d800a4418359545ebcee23601e9f189641350b4e6e4f22855d4a3a0429f5"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/GIT.json","size":94,"sha256":"b60f231039b4b18bbc32fd5fba782cf6c48b8a9b17a0bbb65e290ce8a44c6978"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/HANDOFF.md","size":6794,"sha256":"251d5d9e6d738add89521537d73190f4bfe4d1fc72965e6b33ba3433a9d100a2"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/LEGACY-BINDING.json","size":239,"sha256":"89c18f909f546913107a394bd8cd4a418990152234055b84033384a73f66b26d"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/LOADED-CLOSURE.json","size":1027,"sha256":"d470219838507995d4dd902d87340014a4ed4b161ef200d8c49ed4e339291b9e"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/MATRIX.json","size":3816,"sha256":"78b08ad54fc67aeb735fee299f45ade898b1994a5c592290be589dc0db0ac11e"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/PACKAGE.json","size":197547,"sha256":"55bfb3ac054fc7525a2127487ce90e42dd51e3c281561739e7d50113b6aa546c"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/PRESEAL.md","size":3712,"sha256":"feb429654ec8799f1dfe549e06059b9f2438b6d3dbb0c7c58402dd22e9e881ac"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/PUBLICATION-QUALIFICATION.md","size":1648,"sha256":"e7da2ceb009ed080d34dd2119119a516ef837c4b6a0adc52ce4046f500aa5e17"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/PUBLICATION.json","size":1975,"sha256":"c61586b7012dd4d9fb06eb65cd44f304f9761091492ad80507f7aa51ab978c5a"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/PURE-RESULTS.json","size":1444,"sha256":"2a940bf6a3130d751fdce772fe3307c685a5d39932a6f90c887bef15754a25ef"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/SEAL.json","size":215132,"sha256":"c590f60ab8f53c5988056087257e2ed8564ef0db5e256ca4a7d836fa88fce718"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/SOURCE-SUCCESSOR.json","size":1049,"sha256":"cf64b4f963e5690b18863eac0ff7369f768085ea38908ce4592550cf59d091a4"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/legacy-32.data.json","size":14863,"sha256":"4cc58513f5b0f02becdd6febf271460f354370daf4d2db4321eec316f87dcc13"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/prepare.mjs","size":11889,"sha256":"c54864c7b457bee00e1a787f8646265c5d8b6889a0669d1347b2c2c0e4cecf59"},{"file":"tests/shell/pipestatus-author-20260829/corrected-v2/runner.mjs","size":19242,"sha256":"59d08a996a3600a0644e8531a9a49adbe58b8d968f91816ce90def7fda6c8609"},{"file":"tests/shell/pipestatus-author-20260829/legacy-32.data.json","size":14863,"sha256":"4cc58513f5b0f02becdd6febf271460f354370daf4d2db4321eec316f87dcc13"},{"file":"tests/shell/pipestatus-author-20260829/prepare.mjs","size":7761,"sha256":"3bd6642790da94af1def1b3b2d9e2ec0193ad8a958e89bf1b262d606efb45420"},{"file":"tests/shell/pipestatus-author-20260829/publish.mjs","size":7572,"sha256":"7d790f991f6a6368d2cff47e481d7321a5bfcfb491adb75e30ae0c8b6126b1a0"},{"file":"tests/shell/pipestatus-author-20260829/pure.mjs","size":11645,"sha256":"ce9a5f133decbac8c7927543ccdd4cca40ec1b34fde3a0aea9218f8a094145c5"},{"file":"tests/shell/pipestatus-author-20260829/runtime-cases.json","size":3682,"sha256":"9ece84f2f5cc4a4916d7deab4a173e17dc4fb5d3b5240267e54adf252d310806"}]

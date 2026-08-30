@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "STATIC_SOURCE_PRESEALED_BEFORE_SYNTAX_CHECK_ONLY",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4",
+  "entries": [
+    {
+      "path": "ASSEMBLY-OVERLAY.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3137,
+      "sha256": "3b13adfff112166e5d4803da62761fd8d400f9cd355db97019d7efa31cc3eac3"
+    },
+    {
+      "path": "DEFERRED-CONDITIONS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5746,
+      "sha256": "ef053644a1eed1a89a69eaefc86cff6d3e53f62a4890bc3698c8ad56456609c1"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5371,
+      "sha256": "4f9dca821a5c09a907e2bdb183843d985cad1c0cf66c0f554e3551e9434bd355"
+    },
+    {
+      "path": "PREPARATION-HISTORY.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2064,
+      "sha256": "eb4763f9950ba8abd5ae8f3e982b89876d35a4b29fc48cec2277aa343dbe4732"
+    },
+    {
+      "path": "SOURCE-CHANGES.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2462,
+      "sha256": "81c6abf2abe2a95006d054b757f351ad53ab7fac54c91455564effcfa6742808"
+    },
+    {
+      "path": "SPECIFICATION.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5594,
+      "sha256": "412e896d04cc3fcd2a23142d08eb8250bff58444bd222646297a17e951bfd5ea"
+    },
+    {
+      "path": "overlay/core/supervisor.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 27700,
+      "sha256": "49c7c7050769e2c2edf71a27edd26790ac786e05dc6afbc02c93eba372d361a0"
+    }
+  ],
+  "directories": [
+    {
+      "path": "",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "overlay",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "overlay/core",
+      "kind": "directory",
+      "mode": 493
+    }
+  ],
+  "posixModeAuthority": "New owned files declared0644/directories0755; exact lstat verified. No Git-mode-to-POSIX inference and no chmod.",
+  "checksAuthorizedHere": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/overlay/core/supervisor.mjs"
+      ],
+      "timeoutMs": 30000,
+      "maxBufferBytes": 1048576,
+      "class": "SYNTAX_ONLY_NO_IMPORT_RESOLUTION_OR_EVALUATION"
+    },
+    {
+      "argv": [
+        "python3",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/SPECIFICATION.md"
+      ],
+      "timeoutMs": 30000,
+      "maxBufferBytes": 1048576,
+      "class": "TRUSTED_SPEC_TEXT_LINT_NOT_HARNESS_EXECUTION"
+    },
+    {
+      "role": "Static literal source comparison, Git blob/hash, exact regular-file/mode/membership and JSON data checks only"
+    }
+  ],
+  "hostNode": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "kind": "file",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "role": "Existing host syntax/data tool, not copied/admitted candidate toolchain or runtime proof"
+  },
+  "specChecker": {
+    "path": "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+    "bytes": 3644,
+    "sha256": "e866d8f5806a40483cbe25f3250fc583f9a1e45d29a4255af41f6839693430bd",
+    "role": "Read-only skill linter; implemented-through Not applicable avoids Git helper invocation"
+  },
+  "environment": {
+    "NODE_OPTIONS": "ABSENT",
+    "NODE_PATH": "ABSENT",
+    "PYTHONDONTWRITEBYTECODE": "1 for document check"
+  },
+  "allowedNewEvidenceFiles": [
+    "STATIC-CHECKS.json",
+    "FINAL-SEAL.json"
+  ],
+  "targetExecutions": 0,
+  "compilerExecutions": 0,
+  "controlExecutions": 0,
+  "receiptConstructionExecutions": 0,
+  "dynamicProof": "ALL_UNRUN",
+  "independentReview": "PENDING",
+  "rootGO": false
+}

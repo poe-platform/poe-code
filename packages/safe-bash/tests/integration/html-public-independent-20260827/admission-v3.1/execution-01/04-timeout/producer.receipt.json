@@ -1,0 +1,46 @@
+{
+  "pid": 34643,
+  "ppid": 34642,
+  "status": 1,
+  "signal": null,
+  "uncaught": null,
+  "memory": {
+    "baseline": {
+      "rss": 45203456,
+      "heapTotal": 5652480,
+      "heapUsed": 4871000,
+      "external": 1962447,
+      "arrayBuffers": 16655
+    },
+    "fieldwisePeaks": {
+      "rss": 47120384,
+      "heapTotal": 6701056,
+      "heapUsed": 4951048,
+      "external": 2028023,
+      "arrayBuffers": 82191
+    },
+    "latest": {
+      "rss": 47120384,
+      "heapTotal": 6701056,
+      "heapUsed": 4662016,
+      "external": 2028023,
+      "arrayBuffers": 82191
+    },
+    "samples": 3,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "flow": {
+    "writes": 19,
+    "acceptedBytes": 1245184,
+    "maxChunkBytes": 65536,
+    "falseWrites": 15,
+    "drains": 14,
+    "pendingDrains": 1,
+    "maxPendingDrains": 1,
+    "maxWritableLength": 65536,
+    "writableHighWaterMark": 65536,
+    "writableLength": 0
+  },
+  "scope": "producer only; accepted writes are not a claim of delivered bytes"
+}

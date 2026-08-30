@@ -1,0 +1,21 @@
+{
+  "executable": {
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": "755"
+  },
+  "args": [
+    "--permission",
+    "--disallow-code-generation-from-strings",
+    "--disable-proto=throw",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/f11-reconciliation-v1/synthetic-child.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/f11-reconciliation-v1/synthetic-child.mjs",
+    "duplicate",
+    "{\"job\":\"parent-duplicate\",\"phase\":\"SYNTHETIC_RECEIPT_ONLY\",\"nonce\":\"afb825fa-5d4e-4492-9e30-7c89f2e8537f\",\"manifest\":\"be29dce60f7d3f40ad4db46758333dde738d5d4d390d7340a1d5fa44e7833db5\",\"requiredIds\":[\"required-a\",\"required-b\"],\"rawBound\":65536}"
+  ],
+  "timeoutMs": 2000,
+  "rawBytes": 65536,
+  "logBytes": 16384,
+  "kind": "ORDINARY_SMALL_FIXTURE_NO_PRODUCT",
+  "started": "2026-08-28T07:25:34.200Z"
+}

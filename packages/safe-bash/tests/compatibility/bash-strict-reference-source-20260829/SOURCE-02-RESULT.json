@@ -1,0 +1,1436 @@
+{
+  "identities": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "bytes": 37239,
+      "sha256": "014aabf3c591c496bfcb39851d38f3691eb56d14c1e99b69e2b7cd3134f6e05b",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1695
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "shell.c",
+      "bytes": 59208,
+      "sha256": "5f3d539f15e19c032a09ece500efecc9c63d050d408e985b6f385c64329bf73d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 2130
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/evalstring.c",
+      "bytes": 25533,
+      "sha256": "063da6502b5472c1a126f86fcdb4fc8c351ae1d3a1510cb2167ff0b6be3b066f",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 867
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "bytes": 30119,
+      "sha256": "ec6b093d992985412690dcfb359710a2bd237a9fc28be96a9ed3791d5c810d1c",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1048
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "bytes": 9304,
+      "sha256": "1437faf7b83170a35abb9381c2d169d66b6c6c925ad7fbec7329a3f02316f402",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 463
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "bytes": 9304,
+      "sha256": "1437faf7b83170a35abb9381c2d169d66b6c6c925ad7fbec7329a3f02316f402",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 463
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "authority": "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts",
+      "lines": 3899
+    }
+  ],
+  "sourceBytesRead": 751783,
+  "cumulativeSourceBytes": 1409521,
+  "distinctSources": 7,
+  "requests": [
+    {
+      "file": "expr.c",
+      "pattern": "unbound_vars_is_error|expr_streval|jump_to_top_level|set_exit_status|FORCE_EOF",
+      "limit": 25
+    },
+    {
+      "file": "shell.c",
+      "pattern": "run_one_command|FORCE_EOF|DISCARD|command_execution_string|SEVAL_RESETLINE",
+      "limit": 35
+    },
+    {
+      "file": "builtins/evalstring.c",
+      "pattern": "FORCE_EOF|DISCARD|last_result|EX_BADUSAGE|SEVAL_RESETLINE",
+      "limit": 35
+    },
+    {
+      "file": "builtins/set.def",
+      "start": 703,
+      "end": 773
+    },
+    {
+      "file": "subst.c",
+      "start": 7488,
+      "end": 7545
+    },
+    {
+      "file": "error.c",
+      "start": 74,
+      "end": 152
+    },
+    {
+      "file": "error.c",
+      "start": 442,
+      "end": 455
+    },
+    {
+      "file": "runtime",
+      "product": true,
+      "start": 3199,
+      "end": 3248
+    }
+  ],
+  "results": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "selected": [
+        {
+          "line": 196,
+          "text": "static intmax_t\texpr_streval (char *, int, struct lvalue *);"
+        },
+        {
+          "line": 1150,
+          "text": "expr_streval (char *tok, int e, struct lvalue *lvalue)"
+        },
+        {
+          "line": 1162,
+          "text": "/*itrace(\"expr_streval: %s: noeval = %d expanded=%d\", tok, noeval, already_expanded);*/"
+        },
+        {
+          "line": 1190,
+          "text": "  if ((v == 0 || invisible_p (v)) && unbound_vars_is_error)"
+        },
+        {
+          "line": 1198,
+          "text": "      set_exit_status (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 1213,
+          "text": "\t  jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 1216,
+          "text": "\tjump_to_top_level (FORCE_EOF);"
+        },
+        {
+          "line": 1398,
+          "text": "\t  tokval = expr_streval (tokstr, e, &curlval);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "shell.c",
+      "selected": [
+        {
+          "line": 305,
+          "text": "char *command_execution_string;\t/* argument to -c option */"
+        },
+        {
+          "line": 332,
+          "text": "static int run_one_command (char *);"
+        },
+        {
+          "line": 444,
+          "text": "  command_execution_string = shell_script_filename = NULL;"
+        },
+        {
+          "line": 521,
+          "text": "      command_execution_string = argv[arg_index];"
+        },
+        {
+          "line": 522,
+          "text": "      if (command_execution_string == 0)"
+        },
+        {
+          "line": 541,
+          "text": "      (!command_execution_string &&\t/* No -c command and ... */"
+        },
+        {
+          "line": 696,
+          "text": "  else if (command_execution_string)"
+        },
+        {
+          "line": 759,
+          "text": "  if (command_execution_string)"
+        },
+        {
+          "line": 768,
+          "text": "      run_one_command (command_execution_string);"
+        },
+        {
+          "line": 771,
+          "text": "      with_input_from_string (command_execution_string, \"-c\");"
+        },
+        {
+          "line": 1157,
+          "text": "      act_like_sh == 0 && command_execution_string && shell_level < 2)"
+        },
+        {
+          "line": 1393,
+          "text": "\tcase FORCE_EOF:"
+        },
+        {
+          "line": 1399,
+          "text": "\tcase DISCARD:"
+        },
+        {
+          "line": 1457,
+          "text": "run_one_command (char *command)"
+        },
+        {
+          "line": 1471,
+          "text": "\tcase FORCE_EOF:"
+        },
+        {
+          "line": 1477,
+          "text": "\tcase DISCARD:"
+        },
+        {
+          "line": 1480,
+          "text": "\t  command_error (\"run_one_command\", CMDERR_BADJUMP, code, 0);"
+        },
+        {
+          "line": 1483,
+          "text": "   return (parse_and_execute (savestring (command), \"-c\", SEVAL_NOHIST|SEVAL_RESETLINE));"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/evalstring.c",
+      "selected": [
+        {
+          "line": 308,
+          "text": "   \t(flags & SEVAL_RESETLINE) -> reset line_number to 1"
+        },
+        {
+          "line": 318,
+          "text": "  volatile int should_jump_to_top_level, last_result;"
+        },
+        {
+          "line": 326,
+          "text": "  lreset = flags & SEVAL_RESETLINE;"
+        },
+        {
+          "line": 351,
+          "text": "  last_result = EXECUTION_SUCCESS;"
+        },
+        {
+          "line": 365,
+          "text": "\t  last_result = EXECUTION_FAILURE;"
+        },
+        {
+          "line": 395,
+          "text": "\t    case FORCE_EOF:\t      "
+        },
+        {
+          "line": 423,
+          "text": "\t    case DISCARD:"
+        },
+        {
+          "line": 426,
+          "text": "\t      last_result = last_command_exit_value = EXECUTION_FAILURE; /* XXX */"
+        },
+        {
+          "line": 457,
+          "text": "\t      last_result = EXECUTION_SUCCESS;"
+        },
+        {
+          "line": 480,
+          "text": "\t\t      last_result = last_command_exit_value = EX_BADUSAGE;"
+        },
+        {
+          "line": 563,
+          "text": "\t\t  last_result = (r < 0) ? EXECUTION_FAILURE : EXECUTION_SUCCESS;"
+        },
+        {
+          "line": 567,
+          "text": "\t\tlast_result = execute_command_internal"
+        },
+        {
+          "line": 586,
+          "text": "\t  last_result = EX_BADUSAGE;\t/* was EXECUTION_FAILURE */"
+        },
+        {
+          "line": 594,
+          "text": "\t      last_command_exit_value = EX_BADUSAGE;"
+        },
+        {
+          "line": 621,
+          "text": "  return (last_result);"
+        },
+        {
+          "line": 681,
+          "text": "\t    case FORCE_EOF:"
+        },
+        {
+          "line": 685,
+          "text": "\t    case DISCARD:\t\t/* XXX */"
+        },
+        {
+          "line": 719,
+          "text": "\t      code = DISCARD;"
+        },
+        {
+          "line": 748,
+          "text": "      if (code == DISCARD)"
+        },
+        {
+          "line": 749,
+          "text": "\treturn -DISCARD;"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "selected": [
+        {
+          "line": 703,
+          "text": "\t{"
+        },
+        {
+          "line": 704,
+          "text": "\t  list = list->next;"
+        },
+        {
+          "line": 705,
+          "text": ""
+        },
+        {
+          "line": 706,
+          "text": "\t  /* `set --' unsets the positional parameters. */"
+        },
+        {
+          "line": 707,
+          "text": "\t  if (arg[1] == '-')"
+        },
+        {
+          "line": 708,
+          "text": "\t    force_assignment = 1;"
+        },
+        {
+          "line": 709,
+          "text": ""
+        },
+        {
+          "line": 710,
+          "text": "\t  /* Until told differently, the old shell behaviour of"
+        },
+        {
+          "line": 711,
+          "text": "\t     `set - [arg ...]' being equivalent to `set +xv [arg ...]'"
+        },
+        {
+          "line": 712,
+          "text": "\t     stands.  Posix.2 says the behaviour is marked as obsolescent. */"
+        },
+        {
+          "line": 713,
+          "text": "\t  else"
+        },
+        {
+          "line": 714,
+          "text": "\t    {"
+        },
+        {
+          "line": 715,
+          "text": "\t      change_flag ('x', '+');"
+        },
+        {
+          "line": 716,
+          "text": "\t      change_flag ('v', '+');"
+        },
+        {
+          "line": 717,
+          "text": "\t      opts_changed = 1;"
+        },
+        {
+          "line": 718,
+          "text": "\t    }"
+        },
+        {
+          "line": 719,
+          "text": ""
+        },
+        {
+          "line": 720,
+          "text": "\t  break;"
+        },
+        {
+          "line": 721,
+          "text": "\t}"
+        },
+        {
+          "line": 722,
+          "text": ""
+        },
+        {
+          "line": 723,
+          "text": "      if ((on_or_off = *arg) && (on_or_off == '-' || on_or_off == '+'))"
+        },
+        {
+          "line": 724,
+          "text": "\t{"
+        },
+        {
+          "line": 725,
+          "text": "\t  while (flag_name = *++arg)"
+        },
+        {
+          "line": 726,
+          "text": "\t    {"
+        },
+        {
+          "line": 727,
+          "text": "\t      if (flag_name == '?')"
+        },
+        {
+          "line": 728,
+          "text": "\t\t{"
+        },
+        {
+          "line": 729,
+          "text": "\t\t  builtin_usage ();"
+        },
+        {
+          "line": 730,
+          "text": "\t\t  return (EXECUTION_SUCCESS);"
+        },
+        {
+          "line": 731,
+          "text": "\t\t}"
+        },
+        {
+          "line": 732,
+          "text": "\t      else if (flag_name == 'o') /* -+o option-name */"
+        },
+        {
+          "line": 733,
+          "text": "\t\t{"
+        },
+        {
+          "line": 734,
+          "text": "\t\t  char *option_name;"
+        },
+        {
+          "line": 735,
+          "text": "\t\t  WORD_LIST *opt;"
+        },
+        {
+          "line": 736,
+          "text": ""
+        },
+        {
+          "line": 737,
+          "text": "\t\t  opt = list->next;"
+        },
+        {
+          "line": 738,
+          "text": ""
+        },
+        {
+          "line": 739,
+          "text": "\t\t  if (opt == 0)"
+        },
+        {
+          "line": 740,
+          "text": "\t\t    {"
+        },
+        {
+          "line": 741,
+          "text": "\t\t      list_minus_o_opts (-1, (on_or_off == '+'));"
+        },
+        {
+          "line": 742,
+          "text": "\t\t      rv = sh_chkwrite (rv);"
+        },
+        {
+          "line": 743,
+          "text": "\t\t      continue;"
+        },
+        {
+          "line": 744,
+          "text": "\t\t    }"
+        },
+        {
+          "line": 745,
+          "text": ""
+        },
+        {
+          "line": 746,
+          "text": "\t\t  option_name = opt->word->word;"
+        },
+        {
+          "line": 747,
+          "text": ""
+        },
+        {
+          "line": 748,
+          "text": "\t\t  if (option_name == 0 || *option_name == '\\0' ||"
+        },
+        {
+          "line": 749,
+          "text": "\t\t      *option_name == '-' || *option_name == '+')"
+        },
+        {
+          "line": 750,
+          "text": "\t\t    {"
+        },
+        {
+          "line": 751,
+          "text": "\t\t      list_minus_o_opts (-1, (on_or_off == '+'));"
+        },
+        {
+          "line": 752,
+          "text": "\t\t      continue;"
+        },
+        {
+          "line": 753,
+          "text": "\t\t    }"
+        },
+        {
+          "line": 754,
+          "text": "\t\t  list = list->next; /* Skip over option name. */"
+        },
+        {
+          "line": 755,
+          "text": ""
+        },
+        {
+          "line": 756,
+          "text": "\t\t  opts_changed = 1;"
+        },
+        {
+          "line": 757,
+          "text": "\t\t  if ((r = set_minus_o_option (on_or_off, option_name)) != EXECUTION_SUCCESS)"
+        },
+        {
+          "line": 758,
+          "text": "\t\t    {"
+        },
+        {
+          "line": 759,
+          "text": "\t\t      set_shellopts ();"
+        },
+        {
+          "line": 760,
+          "text": "\t\t      return (r);"
+        },
+        {
+          "line": 761,
+          "text": "\t\t    }"
+        },
+        {
+          "line": 762,
+          "text": "\t\t}"
+        },
+        {
+          "line": 763,
+          "text": "\t      else if (change_flag (flag_name, on_or_off) == FLAG_ERROR)"
+        },
+        {
+          "line": 764,
+          "text": "\t\t{"
+        },
+        {
+          "line": 765,
+          "text": "\t\t  s[0] = on_or_off;"
+        },
+        {
+          "line": 766,
+          "text": "\t\t  s[1] = flag_name;"
+        },
+        {
+          "line": 767,
+          "text": "\t\t  s[2] = '\\0';"
+        },
+        {
+          "line": 768,
+          "text": "\t\t  sh_invalidopt (s);"
+        },
+        {
+          "line": 769,
+          "text": "\t\t  builtin_usage ();"
+        },
+        {
+          "line": 770,
+          "text": "\t\t  set_shellopts ();"
+        },
+        {
+          "line": 771,
+          "text": "\t\t  return (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 772,
+          "text": "\t\t}"
+        },
+        {
+          "line": 773,
+          "text": "\t      opts_changed = 1;"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 7488,
+          "text": "array_length_reference (const char *s)"
+        },
+        {
+          "line": 7489,
+          "text": "{"
+        },
+        {
+          "line": 7490,
+          "text": "  int len;"
+        },
+        {
+          "line": 7491,
+          "text": "  arrayind_t ind;"
+        },
+        {
+          "line": 7492,
+          "text": "  char *akey;"
+        },
+        {
+          "line": 7493,
+          "text": "  char *t, c;"
+        },
+        {
+          "line": 7494,
+          "text": "  ARRAY *array;"
+        },
+        {
+          "line": 7495,
+          "text": "  HASH_TABLE *h;"
+        },
+        {
+          "line": 7496,
+          "text": "  SHELL_VAR *var;"
+        },
+        {
+          "line": 7497,
+          "text": ""
+        },
+        {
+          "line": 7498,
+          "text": "  var = array_variable_part (s, 0, &t, &len);"
+        },
+        {
+          "line": 7499,
+          "text": ""
+        },
+        {
+          "line": 7500,
+          "text": "  /* If unbound variables should generate an error, report one and return"
+        },
+        {
+          "line": 7501,
+          "text": "     failure. */"
+        },
+        {
+          "line": 7502,
+          "text": "  if ((var == 0 || invisible_p (var) || (assoc_p (var) == 0 && array_p (var) == 0)) && unbound_vars_is_error)"
+        },
+        {
+          "line": 7503,
+          "text": "    {"
+        },
+        {
+          "line": 7504,
+          "text": "      set_exit_status (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 7505,
+          "text": "#if 1"
+        },
+        {
+          "line": 7506,
+          "text": "      /* If the array isn't subscripted with `@' or `*', it's an error. */"
+        },
+        {
+          "line": 7507,
+          "text": "      if (ALL_ELEMENT_SUB (t[0]) == 0 || t[1] != RBRACK)"
+        },
+        {
+          "line": 7508,
+          "text": "        return (INTMAX_MIN);\t\t/* caller prints error */"
+        },
+        {
+          "line": 7509,
+          "text": "#endif"
+        },
+        {
+          "line": 7510,
+          "text": "      /* If the variable is subscripted with `@' or `*', ksh93 allows it to"
+        },
+        {
+          "line": 7511,
+          "text": "\t return 0. We treat it as a non-fatal error. */"
+        },
+        {
+          "line": 7512,
+          "text": "      c = *--t;"
+        },
+        {
+          "line": 7513,
+          "text": "      *t = '\\0';"
+        },
+        {
+          "line": 7514,
+          "text": "      err_unboundvar (s);"
+        },
+        {
+          "line": 7515,
+          "text": "      *t = c;"
+        },
+        {
+          "line": 7516,
+          "text": "      return (-1);"
+        },
+        {
+          "line": 7517,
+          "text": "    }"
+        },
+        {
+          "line": 7518,
+          "text": "  else if (var == 0 || invisible_p (var))"
+        },
+        {
+          "line": 7519,
+          "text": "    return 0;"
+        },
+        {
+          "line": 7520,
+          "text": ""
+        },
+        {
+          "line": 7521,
+          "text": "  /* We support a couple of expansions for variables that are not arrays."
+        },
+        {
+          "line": 7522,
+          "text": "     We'll return the length of the value for v[0], and 1 for v[@] or"
+        },
+        {
+          "line": 7523,
+          "text": "     v[*].  Return 0 for everything else. */"
+        },
+        {
+          "line": 7524,
+          "text": ""
+        },
+        {
+          "line": 7525,
+          "text": "  array = array_p (var) ? array_cell (var) : (ARRAY *)NULL;"
+        },
+        {
+          "line": 7526,
+          "text": "  h = assoc_p (var) ? assoc_cell (var) : (HASH_TABLE *)NULL;"
+        },
+        {
+          "line": 7527,
+          "text": ""
+        },
+        {
+          "line": 7528,
+          "text": "  if (ALL_ELEMENT_SUB (t[0]) && t[1] == RBRACK)"
+        },
+        {
+          "line": 7529,
+          "text": "    {"
+        },
+        {
+          "line": 7530,
+          "text": "      if (assoc_p (var))"
+        },
+        {
+          "line": 7531,
+          "text": "\treturn (h ? assoc_num_elements (h) : 0);"
+        },
+        {
+          "line": 7532,
+          "text": "      else if (array_p (var))"
+        },
+        {
+          "line": 7533,
+          "text": "\treturn (array ? array_num_elements (array) : 0);"
+        },
+        {
+          "line": 7534,
+          "text": "      else"
+        },
+        {
+          "line": 7535,
+          "text": "\treturn (var_isset (var) ? 1 : 0);"
+        },
+        {
+          "line": 7536,
+          "text": "    }"
+        },
+        {
+          "line": 7537,
+          "text": ""
+        },
+        {
+          "line": 7538,
+          "text": "  /* If an array variable is set, length expansions for unset elements"
+        },
+        {
+          "line": 7539,
+          "text": "     return 0. This is compatible with ksh93. */"
+        },
+        {
+          "line": 7540,
+          "text": "  if (assoc_p (var))"
+        },
+        {
+          "line": 7541,
+          "text": "    {"
+        },
+        {
+          "line": 7542,
+          "text": "      t[len - 1] = '\\0';"
+        },
+        {
+          "line": 7543,
+          "text": "      akey = expand_subscript_string (t, 0);"
+        },
+        {
+          "line": 7544,
+          "text": "      t[len - 1] = RBRACK;"
+        },
+        {
+          "line": 7545,
+          "text": "      if (akey == 0 || *akey == 0)"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "selected": [
+        {
+          "line": 74,
+          "text": "error_prolog (int print_lineno)"
+        },
+        {
+          "line": 75,
+          "text": "{"
+        },
+        {
+          "line": 76,
+          "text": "  char *ename;"
+        },
+        {
+          "line": 77,
+          "text": "  int line;"
+        },
+        {
+          "line": 78,
+          "text": ""
+        },
+        {
+          "line": 79,
+          "text": "  ename = get_name_for_error ();"
+        },
+        {
+          "line": 80,
+          "text": "  line = (print_lineno && interactive_shell == 0) ? executing_line_number () : -1;"
+        },
+        {
+          "line": 81,
+          "text": ""
+        },
+        {
+          "line": 82,
+          "text": "  if (line > 0)"
+        },
+        {
+          "line": 83,
+          "text": "    fprintf (stderr, \"%s:%s%d: \", ename, gnu_error_format ? \"\" : _(\" line \"), line);"
+        },
+        {
+          "line": 84,
+          "text": "  else"
+        },
+        {
+          "line": 85,
+          "text": "    fprintf (stderr, \"%s: \", ename);"
+        },
+        {
+          "line": 86,
+          "text": "}"
+        },
+        {
+          "line": 87,
+          "text": ""
+        },
+        {
+          "line": 88,
+          "text": "/* Return the name of the shell or the shell script for error reporting. */"
+        },
+        {
+          "line": 89,
+          "text": "char *"
+        },
+        {
+          "line": 90,
+          "text": "get_name_for_error (void)"
+        },
+        {
+          "line": 91,
+          "text": "{"
+        },
+        {
+          "line": 92,
+          "text": "  char *name;"
+        },
+        {
+          "line": 93,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 94,
+          "text": "  SHELL_VAR *bash_source_v;"
+        },
+        {
+          "line": 95,
+          "text": "  ARRAY *bash_source_a;"
+        },
+        {
+          "line": 96,
+          "text": "#endif"
+        },
+        {
+          "line": 97,
+          "text": ""
+        },
+        {
+          "line": 98,
+          "text": "  name = (char *)NULL;"
+        },
+        {
+          "line": 99,
+          "text": "  if (interactive_shell == 0)"
+        },
+        {
+          "line": 100,
+          "text": "    {"
+        },
+        {
+          "line": 101,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 102,
+          "text": "      bash_source_v = find_variable (\"BASH_SOURCE\");"
+        },
+        {
+          "line": 103,
+          "text": "      if (bash_source_v && array_p (bash_source_v) &&"
+        },
+        {
+          "line": 104,
+          "text": "\t  (bash_source_a = array_cell (bash_source_v)))"
+        },
+        {
+          "line": 105,
+          "text": "\tname = array_reference (bash_source_a, 0);"
+        },
+        {
+          "line": 106,
+          "text": "      if (name == 0 || *name == '\\0')\t/* XXX - was just name == 0 */"
+        },
+        {
+          "line": 107,
+          "text": "#endif"
+        },
+        {
+          "line": 108,
+          "text": "\tname = dollar_vars[0];"
+        },
+        {
+          "line": 109,
+          "text": "    }"
+        },
+        {
+          "line": 110,
+          "text": "  if (name == 0 && shell_name && *shell_name)"
+        },
+        {
+          "line": 111,
+          "text": "    name = base_pathname (shell_name);"
+        },
+        {
+          "line": 112,
+          "text": "  if (name == 0)"
+        },
+        {
+          "line": 113,
+          "text": "#if defined (PROGRAM)"
+        },
+        {
+          "line": 114,
+          "text": "    name = PROGRAM;"
+        },
+        {
+          "line": 115,
+          "text": "#else"
+        },
+        {
+          "line": 116,
+          "text": "    name = \"bash\";"
+        },
+        {
+          "line": 117,
+          "text": "#endif"
+        },
+        {
+          "line": 118,
+          "text": ""
+        },
+        {
+          "line": 119,
+          "text": "  return (name);"
+        },
+        {
+          "line": 120,
+          "text": "}"
+        },
+        {
+          "line": 121,
+          "text": ""
+        },
+        {
+          "line": 122,
+          "text": "/* Report an error having to do with FILENAME.  This does not use"
+        },
+        {
+          "line": 123,
+          "text": "   sys_error so the filename is not interpreted as a printf-style"
+        },
+        {
+          "line": 124,
+          "text": "   format string. */"
+        },
+        {
+          "line": 125,
+          "text": "void"
+        },
+        {
+          "line": 126,
+          "text": "file_error (const char *filename)"
+        },
+        {
+          "line": 127,
+          "text": "{"
+        },
+        {
+          "line": 128,
+          "text": "  report_error (\"%s: %s\", filename, strerror (errno));"
+        },
+        {
+          "line": 129,
+          "text": "}"
+        },
+        {
+          "line": 130,
+          "text": ""
+        },
+        {
+          "line": 131,
+          "text": "void"
+        },
+        {
+          "line": 132,
+          "text": "programming_error (const char *format, ...)"
+        },
+        {
+          "line": 133,
+          "text": "{"
+        },
+        {
+          "line": 134,
+          "text": "  va_list args;"
+        },
+        {
+          "line": 135,
+          "text": "  char *h;"
+        },
+        {
+          "line": 136,
+          "text": ""
+        },
+        {
+          "line": 137,
+          "text": "#if defined (JOB_CONTROL)"
+        },
+        {
+          "line": 138,
+          "text": "  give_terminal_to (shell_pgrp, 0);"
+        },
+        {
+          "line": 139,
+          "text": "#endif /* JOB_CONTROL */"
+        },
+        {
+          "line": 140,
+          "text": ""
+        },
+        {
+          "line": 141,
+          "text": "  va_start (args, format);"
+        },
+        {
+          "line": 142,
+          "text": ""
+        },
+        {
+          "line": 143,
+          "text": "  vfprintf (stderr, format, args);"
+        },
+        {
+          "line": 144,
+          "text": "  fprintf (stderr, \"\\n\");"
+        },
+        {
+          "line": 145,
+          "text": "  va_end (args);"
+        },
+        {
+          "line": 146,
+          "text": ""
+        },
+        {
+          "line": 147,
+          "text": "#if defined (HISTORY)"
+        },
+        {
+          "line": 148,
+          "text": "  if (remember_on_history)"
+        },
+        {
+          "line": 149,
+          "text": "    {"
+        },
+        {
+          "line": 150,
+          "text": "      h = last_history_line ();"
+        },
+        {
+          "line": 151,
+          "text": "      fprintf (stderr, _(\"last command: %s\\n\"), h ? h : \"(null)\");"
+        },
+        {
+          "line": 152,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "selected": [
+        {
+          "line": 442,
+          "text": "  report_error (\"%s: %s\", s, _(bash_badsub_errmsg));"
+        },
+        {
+          "line": 443,
+          "text": "}"
+        },
+        {
+          "line": 444,
+          "text": "#endif"
+        },
+        {
+          "line": 445,
+          "text": ""
+        },
+        {
+          "line": 446,
+          "text": "void"
+        },
+        {
+          "line": 447,
+          "text": "err_unboundvar (const char *s)"
+        },
+        {
+          "line": 448,
+          "text": "{"
+        },
+        {
+          "line": 449,
+          "text": "  report_error (_(\"%s: unbound variable\"), s);"
+        },
+        {
+          "line": 450,
+          "text": "}"
+        },
+        {
+          "line": 451,
+          "text": ""
+        },
+        {
+          "line": 452,
+          "text": "void"
+        },
+        {
+          "line": 453,
+          "text": "err_readonly (const char *s)"
+        },
+        {
+          "line": 454,
+          "text": "{"
+        },
+        {
+          "line": 455,
+          "text": "  report_error (_(\"%s: readonly variable\"), s);"
+        }
+      ]
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "selected": [
+        {
+          "line": 3199,
+          "text": ""
+        },
+        {
+          "line": 3200,
+          "text": "  async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {"
+        },
+        {
+          "line": 3201,
+          "text": "    const { command, args, stdout, stderr } = context;"
+        },
+        {
+          "line": 3202,
+          "text": "    if (command === \":\" || command === \"true\") return 0;"
+        },
+        {
+          "line": 3203,
+          "text": "    if (command === \"false\") return 1;"
+        },
+        {
+          "line": 3204,
+          "text": "    if (command === \"shopt\") return this.shoptBuiltin(context, state);"
+        },
+        {
+          "line": 3205,
+          "text": "    if (command === \"let\") return this.letBuiltin(context, state);"
+        },
+        {
+          "line": 3206,
+          "text": "    if (command === \"getopts\") return this.getoptsBuiltin(context, state);"
+        },
+        {
+          "line": 3207,
+          "text": "    if (command === \"pushd\" || command === \"dirs\" || command === \"popd\") return this.directoryStackBuiltin(context, state, diagnose);"
+        },
+        {
+          "line": 3208,
+          "text": "    if (command === \"pwd\") {"
+        },
+        {
+          "line": 3209,
+          "text": "      if (args.some((arg) => arg !== \"-L\" && arg !== \"-P\")) { await writeText(stderr, \"pwd: invalid option\\n\"); return 2; }"
+        },
+        {
+          "line": 3210,
+          "text": "      const path = args.at(-1) === \"-P\" ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;"
+        },
+        {
+          "line": 3211,
+          "text": "      await writeText(stdout, `${path}\\n`);"
+        },
+        {
+          "line": 3212,
+          "text": "      return 0;"
+        },
+        {
+          "line": 3213,
+          "text": "    }"
+        },
+        {
+          "line": 3214,
+          "text": "    if (command === \"cd\") return this.changeDirectory(context, state, args, diagnose);"
+        },
+        {
+          "line": 3215,
+          "text": "    if (command === \"set\") {"
+        },
+        {
+          "line": 3216,
+          "text": "      let index = 0;"
+        },
+        {
+          "line": 3217,
+          "text": "      let positionals = false;"
+        },
+        {
+          "line": 3218,
+          "text": "      while (index < args.length) {"
+        },
+        {
+          "line": 3219,
+          "text": "        const option = args[index]!;"
+        },
+        {
+          "line": 3220,
+          "text": "        if (option === \"--\") { index++; positionals = true; break; }"
+        },
+        {
+          "line": 3221,
+          "text": "        if (option === \"-\") { index++; positionals = index < args.length; break; }"
+        },
+        {
+          "line": 3222,
+          "text": "        const flags = /^[-+]([eu]*o|[eu]+)$/u.exec(option)?.[1];"
+        },
+        {
+          "line": 3223,
+          "text": "        const named = flags?.endsWith(\"o\");"
+        },
+        {
+          "line": 3224,
+          "text": "        const name = named ? args[index + 1] : undefined;"
+        },
+        {
+          "line": 3225,
+          "text": "        if (flags && (!named || name === \"pipefail\" || name === \"errexit\" || name === \"nounset\")) {"
+        },
+        {
+          "line": 3226,
+          "text": "          const enabled = option.startsWith(\"-\");"
+        },
+        {
+          "line": 3227,
+          "text": "          for (const flag of flags) {"
+        },
+        {
+          "line": 3228,
+          "text": "            if (flag === \"e\" || flag === \"o\" && name === \"errexit\") state.errexit = enabled;"
+        },
+        {
+          "line": 3229,
+          "text": "            else if (flag === \"u\" || flag === \"o\" && name === \"nounset\") state.nounset = enabled;"
+        },
+        {
+          "line": 3230,
+          "text": "            else if (flag === \"o\" && name === \"pipefail\") state.pipefail = enabled;"
+        },
+        {
+          "line": 3231,
+          "text": "          }"
+        },
+        {
+          "line": 3232,
+          "text": "          index += named ? 2 : 1;"
+        },
+        {
+          "line": 3233,
+          "text": "          continue;"
+        },
+        {
+          "line": 3234,
+          "text": "        }"
+        },
+        {
+          "line": 3235,
+          "text": "        if (/^[+-]/u.test(option)) {"
+        },
+        {
+          "line": 3236,
+          "text": "          await writeText(stderr, \"set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\\n\");"
+        },
+        {
+          "line": 3237,
+          "text": "          if (state.profile === \"sh\" && suppressSpecial) return 2;"
+        },
+        {
+          "line": 3238,
+          "text": "          throw new Flow(\"exit\", 2);"
+        },
+        {
+          "line": 3239,
+          "text": "        }"
+        },
+        {
+          "line": 3240,
+          "text": "        positionals = true;"
+        },
+        {
+          "line": 3241,
+          "text": "        break;"
+        },
+        {
+          "line": 3242,
+          "text": "      }"
+        },
+        {
+          "line": 3243,
+          "text": "      if (positionals) { state.positional = args.slice(index); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }"
+        },
+        {
+          "line": 3244,
+          "text": "      if (args.length) return 0;"
+        },
+        {
+          "line": 3245,
+          "text": "      await writeText(stderr, \"set: supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\\n\");"
+        },
+        {
+          "line": 3246,
+          "text": "      return 2;"
+        },
+        {
+          "line": 3247,
+          "text": "    }"
+        },
+        {
+          "line": 3248,
+          "text": "    if (command === \"shift\") {"
+        }
+      ]
+    }
+  ]
+}

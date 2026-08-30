@@ -1,0 +1,51 @@
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/author-r0.test.ts.data b/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/author-r1.test.ts.data
+index a63e75ac..ddb8cd90 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/author-r0.test.ts.data
++++ b/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/author-r1.test.ts.data
+@@ -128,7 +128,7 @@ test("S2 loopback streaming upload cancels only owned transfer", { timeout: 6000
+ });
+ 
+ test("S3 actual invoke borrows live owner while opaque next settles late", { timeout: 6000 }, async testContext => {
+-  for (const late of ["fulfill", "reject"] as const) {
++  for (const late of ["fulfill", "reject"] as const) for (const binding of ["custom", "curl"] as const) {
+     const fs = new MemoryFileSystem();
+     const shell = new Shell({ fs }).use(agentCommands());
+     const output = sink();
+@@ -140,6 +140,17 @@ test("S3 actual invoke borrows live owner while opaque next settles late", { tim
+     let ownerLive = false;
+     let stageAborted = true;
+     let childStatus = -1;
++    shell.use(networkCommands({ authorize: () => true, transport: async request => {
++      assert.ok(request.body); assert.ok(request.registerCleanup);
++      request.registerCleanup(() => { closed = true; });
++      for await (const chunk of readBytes(request.body, request.signal)) assert.ok(chunk instanceof Uint8Array);
++      return response();
++    } }));
++    shell.use(async (context, next) => {
++      const result = await next();
++      if (context.command === "curl") stageAborted = context.signal.aborted;
++      return result;
++    });
+     const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
+       next() { reads++; started.resolve(); return pending.promise; },
+       async return() { returns++; return { done: true, value: undefined }; },
+@@ -155,7 +166,9 @@ test("S3 actual invoke borrows live owner while opaque next settles late", { tim
+     } });
+     shell.commands.register({ name: "owner", async execute(context) {
+       assert.ok(context.invoke);
+-      const child = context.invoke("borrower", [], { stdout: output.output });
++      const child = binding === "custom"
++        ? context.invoke("borrower", [], { stdout: output.output })
++        : context.invoke("curl", ["-T", "-", "http://127.0.0.1/borrowed"], { stdout: output.output });
+       await started.promise;
+       output.controller.abort(new FsError("EPIPE"));
+       childStatus = (await child).exitCode;
+@@ -176,7 +189,7 @@ test("S3 actual invoke borrows live owner while opaque next settles late", { tim
+       assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stderr, "owner-live\n");
+       assert.equal(Buffer.from(await fs.readFile("/sibling")).toString(), "sibling");
+       assert.equal(reads, 1);
+-      testContext.diagnostic(JSON.stringify({ late, publicStatus: result.exitCode, childStatus, operationClosed: closed, stageAborted, ownerLiveDuringCheck: ownerLive, borrowedReturnsWhileOwnerLive: 0, topLevelOwnerReturns: returns, noHandbackAssertion: true }));
++      testContext.diagnostic(JSON.stringify({ late, binding, publicStatus: result.exitCode, childStatus, operationClosed: closed, stageAborted, ownerLiveDuringCheck: ownerLive, borrowedReturnsWhileOwnerLive: 0, topLevelOwnerReturns: returns, noHandbackAssertion: true }));
+     } finally { pending.resolve({ done: true, value: undefined }); await shell.dispose(); }
+   }
+ });

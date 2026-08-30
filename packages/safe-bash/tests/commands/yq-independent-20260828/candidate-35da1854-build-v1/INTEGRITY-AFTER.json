@@ -1,0 +1,126 @@
+{
+  "retainedTrees": [
+    {
+      "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-271-original",
+      "files": 271,
+      "directories": 45,
+      "filesSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+      "directoriesSha256": "8120f80d1e5cf1a51a4b2e47ad6ab1d7b2b98cebf84ee621fdb47bb3bbb3266c",
+      "treeMapSha256": "52a8d51ad6bb8bdb162fc8317fb36b4847748c2c2502b3a700829471319989a2"
+    },
+    {
+      "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-271-moved",
+      "files": 271,
+      "directories": 45,
+      "filesSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+      "directoriesSha256": "8120f80d1e5cf1a51a4b2e47ad6ab1d7b2b98cebf84ee621fdb47bb3bbb3266c",
+      "treeMapSha256": "52a8d51ad6bb8bdb162fc8317fb36b4847748c2c2502b3a700829471319989a2"
+    },
+    {
+      "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/package-870-original",
+      "files": 870,
+      "directories": 44,
+      "filesSha256": "00b1b86aa438c94545a1bf9719a38dc235570ebb6d7b5b6e1f71ec41c10e9922",
+      "directoriesSha256": "be671ccd895867f4980aa62c27e524abeeebb16364e6cf23fe7563ff7a1c8810",
+      "treeMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088"
+    },
+    {
+      "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/package-870-moved",
+      "files": 870,
+      "directories": 44,
+      "filesSha256": "00b1b86aa438c94545a1bf9719a38dc235570ebb6d7b5b6e1f71ec41c10e9922",
+      "directoriesSha256": "be671ccd895867f4980aa62c27e524abeeebb16364e6cf23fe7563ff7a1c8810",
+      "treeMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088"
+    },
+    {
+      "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-archive-273",
+      "files": 273,
+      "directories": 46,
+      "filesSha256": "fe1c69f46314ee6aad5c953410c716897253c89d265059afec3ce8bbaeef8fa1",
+      "directoriesSha256": "64a087b689042c9ef2a86410615fbbff5986f03b34e7042c83877b99594ea214",
+      "treeMapSha256": "816523191e68cc64a47b35dac92033a6b85fabd082bef31645033ef8bf1b6e8f"
+    },
+    {
+      "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/artifacts",
+      "files": 5,
+      "directories": 1,
+      "filesSha256": "a9865fd11be399e61e825f89d5893a9cd87f6aafed1924bfd0a05173d3fa98a2",
+      "directoriesSha256": "4ac4437e08078a366ebecbc83f49eb4e7b4ddb73858348f990114c4a29583a6c",
+      "treeMapSha256": "3aae3edc00f2ef2f8921e13f2783d820ca090d3534c2d732b51addbb89de4881"
+    }
+  ],
+  "source": {
+    "files": 271,
+    "directories": 45,
+    "filesSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "directoriesSha256": "8120f80d1e5cf1a51a4b2e47ad6ab1d7b2b98cebf84ee621fdb47bb3bbb3266c",
+    "treeMapSha256": "52a8d51ad6bb8bdb162fc8317fb36b4847748c2c2502b3a700829471319989a2"
+  },
+  "tools": {
+    "typescript": {
+      "original": {
+        "files": 132,
+        "directories": 16,
+        "filesSha256": "92b21e060d177639ceafe1959f860ab8d87f679943cff945a077afbd19670c90",
+        "directoriesSha256": "ab5b5a8e8593707f107bca7e9f74fcb38d439b24a5d4790b6d833fa725470043",
+        "treeMapSha256": "47ad24032ea37bae6779702c1a405694f9386e6ef3ceaa486cc74e7eaa9ab72e"
+      },
+      "copied": {
+        "files": 132,
+        "directories": 16,
+        "filesSha256": "92b21e060d177639ceafe1959f860ab8d87f679943cff945a077afbd19670c90",
+        "directoriesSha256": "ab5b5a8e8593707f107bca7e9f74fcb38d439b24a5d4790b6d833fa725470043",
+        "treeMapSha256": "47ad24032ea37bae6779702c1a405694f9386e6ef3ceaa486cc74e7eaa9ab72e"
+      }
+    },
+    "nodeTypes": {
+      "original": {
+        "files": 74,
+        "directories": 10,
+        "filesSha256": "e942b04610cd16d9911d1a718ae283a2b69d19d8ba2f315ac61fd46b2f4a7e36",
+        "directoriesSha256": "54294c913b5e153235721391b62604867391d8690ddc89747dfcc0bffb6200a0",
+        "treeMapSha256": "256d221c7ee0798dddc615e8383a8b9d9b7f1d4ad3db96c149031af72eea2cf1"
+      },
+      "copied": {
+        "files": 74,
+        "directories": 10,
+        "filesSha256": "e942b04610cd16d9911d1a718ae283a2b69d19d8ba2f315ac61fd46b2f4a7e36",
+        "directoriesSha256": "54294c913b5e153235721391b62604867391d8690ddc89747dfcc0bffb6200a0",
+        "treeMapSha256": "256d221c7ee0798dddc615e8383a8b9d9b7f1d4ad3db96c149031af72eea2cf1"
+      }
+    },
+    "undiciTypes": {
+      "original": {
+        "files": 41,
+        "directories": 1,
+        "filesSha256": "bde3fcc612aebc8dcbf852484e20abba7ac7fb87083ed5562a4aeba0ab548e38",
+        "directoriesSha256": "4ac4437e08078a366ebecbc83f49eb4e7b4ddb73858348f990114c4a29583a6c",
+        "treeMapSha256": "ca9957c48be414cd570c5beae50d9db8a10006426deda858522d7e79058e1547"
+      },
+      "copied": {
+        "files": 41,
+        "directories": 1,
+        "filesSha256": "bde3fcc612aebc8dcbf852484e20abba7ac7fb87083ed5562a4aeba0ab548e38",
+        "directoriesSha256": "4ac4437e08078a366ebecbc83f49eb4e7b4ddb73858348f990114c4a29583a6c",
+        "treeMapSha256": "ca9957c48be414cd570c5beae50d9db8a10006426deda858522d7e79058e1547"
+      }
+    }
+  },
+  "rawOutput": {
+    "files": 868,
+    "directories": 44,
+    "filesSha256": "055e0cd29bb5a4925bf43bb37a959d13615d058133f474ea3797654ebca25051",
+    "directoriesSha256": "be671ccd895867f4980aa62c27e524abeeebb16364e6cf23fe7563ff7a1c8810",
+    "treeMapSha256": "cf3fa62eb793d5e04f798a8a4d9c3af0aeb0bb4835b402f97873bdce334d4194"
+  },
+  "independentPackage": {
+    "files": 870,
+    "directories": 44,
+    "filesSha256": "00b1b86aa438c94545a1bf9719a38dc235570ebb6d7b5b6e1f71ec41c10e9922",
+    "directoriesSha256": "be671ccd895867f4980aa62c27e524abeeebb16364e6cf23fe7563ff7a1c8810",
+    "treeMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088"
+  },
+  "oldPacketAndConsumersSealsVerified": true,
+  "addedEntryDetection": true,
+  "scope": "Before/after complete membership/bytes/modes; not change-and-restore detection or filesystem transaction"
+}

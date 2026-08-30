@@ -1,0 +1,813 @@
+{
+  "version": 2,
+  "inventory": {
+    "path": "packages/safe-bash/integration-lint-inventory.json",
+    "bytes": 546230,
+    "sha256": "dc8d3d98eeb65c8d0f601d86bd16d446079e52f8580b968da8526b29317271f6"
+  },
+  "records": [
+    {
+      "id": "GAP-01",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\slash",
+      "kind": "regular",
+      "selection": "unconfigured",
+      "target": null,
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-02",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/carriage\rreturn",
+      "kind": "regular",
+      "selection": "unconfigured",
+      "target": null,
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-03",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/escape\u001b[31m",
+      "kind": "regular",
+      "selection": "unconfigured",
+      "target": null,
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-04",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/line\nbreak.txt",
+      "kind": "regular",
+      "selection": "unconfigured",
+      "target": null,
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-05",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/cycle/inner/back",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "..",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.cycle",
+            "case N15"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.cycle",
+            "case N15"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.cycle",
+            "case N15"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-06",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/links/alias-a",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "target",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-07",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/links/alias-b",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "target",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-08",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/links/dangling",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "missing",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-09",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/links/file-link",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "target/leaf.txt",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-10",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/rootlink",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "links/target",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.rootlink",
+            "case N16"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.rootlink",
+            "case N16"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/prepare-final.mjs",
+          "bytes": 8440,
+          "sha256": "3041a4e6d663fba825321a632e9e44271b982d3edf29a1cd9d04f2af63307aa8",
+          "selectors": [
+            "fixtures.rootlink",
+            "case N16"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-11",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/back\\slash",
+      "kind": "regular",
+      "selection": "unconfigured",
+      "target": null,
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-12",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/carriage\rreturn",
+      "kind": "regular",
+      "selection": "unconfigured",
+      "target": null,
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-13",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/escape\u001b[31m",
+      "kind": "regular",
+      "selection": "unconfigured",
+      "target": null,
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-14",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/line\nbreak.txt",
+      "kind": "regular",
+      "selection": "unconfigured",
+      "target": null,
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.controls",
+            "cases N11/N12/N20"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-15",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/cycle/inner/back",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "..",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.cycle",
+            "case N15"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.cycle",
+            "case N15"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-16",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/links/alias-a",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "target",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-17",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/links/alias-b",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "target",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-18",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/links/dangling",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "missing",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-19",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/links/file-link",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "target/leaf.txt",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.links",
+            "cases N13/N14"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-20",
+      "group": "tree-fixtures-20",
+      "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/rootlink",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "links/target",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/corpus.mjs",
+          "bytes": 8177,
+          "sha256": "1dc3e241eaf3708facb9062abf219c7a7e6c01d348ebd7cb1516aaff3d0ae8a4",
+          "selectors": [
+            "fixtures.rootlink",
+            "case N16"
+          ]
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/prepare.mjs",
+          "bytes": 6111,
+          "sha256": "66a45b4b7f76f1fb1db11c0b142df2ff243836711bb9d72f68472c6a8a3fc1f1",
+          "selectors": [
+            "fixtures.rootlink",
+            "case N16"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-21",
+      "group": "inventory-worker-links-2",
+      "path": "packages/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.5/worker.mjs",
+      "kind": "symlink",
+      "selection": "ignored",
+      "target": "matching.mjs",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/EVIDENCE-MANIFEST-v2.json",
+          "bytes": 57554,
+          "sha256": "364258f39ea8e0ea0f88afc64332b6b9449cea7bfdfcc0e2abd490cecf9eaa2b",
+          "selectors": [
+            "entries[]: literal runs/controls-01/ .mjs entries"
+          ]
+        }
+      ],
+      "inventoryRecord": "generated-regex-worker-instrumented-v2-20260829",
+      "companion": {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v2-20260829/runs/controls-01/G01.5/matching.mjs",
+        "bytes": 110,
+        "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+      }
+    },
+    {
+      "id": "GAP-22",
+      "group": "inventory-worker-links-2",
+      "path": "packages/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G01.5/worker.mjs",
+      "kind": "symlink",
+      "selection": "ignored",
+      "target": "matching.mjs",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/CAPTURE-INVENTORY.json",
+          "bytes": 79768,
+          "sha256": "a0b9e0c96347aeed8fa33d41f8c293ed6b2eaba8d83890104bb19ac055326f54",
+          "selectors": [
+            "entries[]: literal runs/controls-01/ .mjs entries"
+          ]
+        }
+      ],
+      "inventoryRecord": "generated-regex-worker-instrumented-v3-20260829",
+      "companion": {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G01.5/matching.mjs",
+        "bytes": 110,
+        "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+      }
+    },
+    {
+      "id": "GAP-23",
+      "group": "admission-links-2",
+      "path": "packages/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/faults/N05/witness.data",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "target.data",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/faults.mjs",
+          "bytes": 8324,
+          "sha256": "347f6334519dd5bb75053450b375afb50be790b77052e1d4096a610fe1ede52b",
+          "selectors": [
+            "runFaults ordinal 5 => N05",
+            "collectDeferred allowed witness.data + snapshot binding",
+            "ordinal 1 qualified/closed positive"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "GAP-24",
+      "group": "admission-links-2",
+      "path": "packages/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/capture/data-controls/link.data",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "plain.data",
+      "owners": [
+        {
+          "path": "packages/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs",
+          "bytes": 24171,
+          "sha256": "fbfe05cd3b41abdf8fb49ab3b1b42b4bbd21c11e615a60325fb1b61ff862c86b",
+          "selectors": [
+            "A05-link-type",
+            "A01-same-buffer"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    },
+    {
+      "id": "root-claude-link",
+      "group": "root-claude-link-1",
+      "path": "CLAUDE.md",
+      "kind": "symlink",
+      "selection": "unconfigured",
+      "target": "AGENTS.md",
+      "owners": [
+        {
+          "path": "packages/safe-bash/integration-lint-audit/root-claude-link-owner.json",
+          "bytes": 607,
+          "sha256": "b5ed3f1fe26a3f8f24e244bb53dd310b1a95766636266640009eb5f99146d8c3",
+          "selectors": [
+            "/link",
+            "/observations/0",
+            "/observations/1"
+          ]
+        }
+      ],
+      "inventoryRecord": null,
+      "companion": null
+    }
+  ]
+}

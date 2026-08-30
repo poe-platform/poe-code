@@ -1,0 +1,23 @@
+3929: 
+3930: exec
+3931: /bin/zsh -lc "make -C /tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1 CC=cc CFLAGS='-O2 -std=c11 -Wall -Wextra' LDFLAGS= tree; /tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1/tree --version; uname -sm; cc --version | head -2; rg -n 'ShellCommandContext|budget' src/shell/types.ts; sed -n '1,55p' tests/commands/time-env/integration.test.ts; cat src/contracts/errors.ts; cat src/contracts/filesystem.ts | head -37" in /Users/kjopek/Workspace/safe-bash
+3932:  succeeded in 1688ms:
+3933: tree.c:137:9: warning: unused variable 'stddata_fd' [-Wunused-variable]
+3934:   137 |   char *stddata_fd;
+3935:       |         ^~~~~~~~~~
+3936: 1 warning generated.
+3937: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o list.o list.c
+3938: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o hash.o hash.c
+3939: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o color.o color.c
+3940: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o file.o file.c
+3941: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o filter.o filter.c
+3942: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o info.o info.c
+3943: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o unix.o unix.c
+3944: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o xml.o xml.c
+3945: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o json.o json.c
+3946: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o html.o html.c
+3947: cc -O2 -std=c11 -Wall -Wextra -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -c -o strverscmp.o strverscmp.c
+3948: cc  -o tree tree.o list.o hash.o color.o file.o filter.o info.o unix.o xml.o json.o html.o strverscmp.o
+3949: tree v2.2.1 © 1996 - 2024 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro
+3950: Darwin arm64
+3951: Apple clang version 21.0.0 (clang-2100.1.1.101)

@@ -1,0 +1,32 @@
+await control('C07',()=>{
+ const observations=[];
+ for(const content of ['', 'ABCDE']){
+  const filename=jsonFile(content.length?'descriptor-full.data':'descriptor-empty.data',content),stat=fs.lstatSync(filename);
+  for(const [label,flag] of [['readwrite',fs.constants.O_RDWR],['readonly',fs.constants.O_RDONLY],['writeonly',fs.constants.O_WRONLY]]){
+   const fd=fs.openSync(filename,flag|fs.constants.O_NOFOLLOW);let readCalls=0,writeCalls=0;const reads=[];
+   try{
+    const operations={fstatSync(){return fs.fstatSync(fd);},lstatSync(){return fs.lstatSync(filename);},realpathSync(value){return value;},readSync(unused,buffer,offset,length,position){readCalls++;check(length===1&&position===0);const amount=fs.readSync(fd,buffer,offset,length,position);reads.push({length,position,amount});return amount;},writeSync(unused,...args){writeCalls++;return fs.writeSync(fd,...args);}};
+    if(label==='readwrite'){
+     if(content.length){const first=Buffer.alloc(1);check(fs.readSync(fd,first,0,1,null)===1&&first[0]===65);}
+     check(admission.validateOuter('/synthetic','stdout',1,operations).ino===stat.ino);
+     check(readCalls===1&&writeCalls===1&&reads[0].amount===(content.length?1:0));
+     if(content.length){const next=Buffer.alloc(1);check(fs.readSync(fd,next,0,1,null)===1&&next[0]===66);}
+     for(const override of [{lstatSync(){return {...stat,isFile:()=>true,isSymbolicLink:()=>false,ino:stat.ino+1};}},{fstatSync(){return {...stat,isFile:()=>true,mode:420};}},{lstatSync(){return {...stat,isFile:()=>false,isSymbolicLink:()=>false};}},{realpathSync(){return '/other';}}]){const beforeRead=readCalls,beforeWrite=writeCalls;rejects(()=>admission.validateOuter('/synthetic','stdout',1,{...operations,...override}),/OUTER_FD_BINDING/);check(readCalls===beforeRead&&writeCalls===beforeWrite);}
+     const beforeRead=readCalls,beforeWrite=writeCalls;rejects(()=>admission.validateOuter('/synthetic','stdout',1,{...operations,fstatSync(){throw Object.assign(Error('REFUSED_DESCRIPTOR'),{code:'EBADF'});}}),/REFUSED_DESCRIPTOR/);check(readCalls===beforeRead&&writeCalls===beforeWrite);
+    }else{
+     let rejected=false,code;
+     try{admission.validateOuter('/synthetic','stdout',1,operations);}catch(error){rejected=true;code=error.code;}
+     check(rejected&&code==='EBADF');check(readCalls===1&&writeCalls===(label==='readonly'?1:0));
+     if(label==='readonly')check(reads.length===1&&reads[0].amount===(content.length?1:0));else check(reads.length===0);
+    }
+    observations.push({contentBytes:content.length,openRole:label,readCalls,writeCalls,reads,descriptorClosedInFinally:true});
+   }finally{fs.closeSync(fd);}
+  }
+  check(fs.readFileSync(filename).equals(Buffer.from(content)));
+ }
+ const parents=['/synthetic','/synthetic/outer','/synthetic/cases','/synthetic/captures'].map(filename=>({path:filename,device:'1',inode:'2',mode:448}));
+ const operations={lstatSync(){return {dev:1n,ino:2n,mode:448n,isDirectory:()=>true,isSymbolicLink:()=>false};},realpathSync:value=>value};
+ check(admission.validateProvision({parents},'/synthetic',operations));
+ rejects(()=>admission.validateProvision({parents:parents.slice(1)},'/synthetic',operations),/PROVISION_MEMBERSHIP/);
+ console.log(JSON.stringify({event:'C07_DESCRIPTOR_OBSERVATIONS',observations,oldThreeAssertionsCompleted:true,emptyReadIsEOF:true,cursorProof:'nonempty next sequential byte remains B'}));
+});

@@ -1,0 +1,35 @@
+{
+  "schema": "html-actual34-execution/1",
+  "started": "2026-08-28T01:12:51.968Z",
+  "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+  "recipeCommit": "7885ce6a043653eeacbf4dd885f1c59ee570b5a7",
+  "manifestSha256": "ea975baf71e9586aa45f567ce848863ef45cf1a52df4949069ef47d2d459ec3a",
+  "invocation": 1,
+  "retries": 0,
+  "runtime": [],
+  "types": [],
+  "controls": [],
+  "commands": [],
+  "layouts": [],
+  "unexpected": [],
+  "unexecuted": [],
+  "signals": [],
+  "status": "running",
+  "runtimeProfile": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "layouts": [
+      "installed",
+      "physically-moved-consumer"
+    ],
+    "uniqueCases": 34,
+    "expectedReceipts": 68,
+    "types": 10,
+    "controlClasses": 10
+  },
+  "wholeGate": false,
+  "du29": 0,
+  "expr104": 0
+}

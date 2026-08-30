@@ -1,0 +1,13 @@
+{
+  "presealCommit": "b6a8ee3b76ba4aafb8a5abe981aa041906f38ceb",
+  "sessionId": 37015,
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/f11-v2/run.mjs f7eb9c2aa47ab5fb121e8b6b3dbb25d943aa2490fed6b367531c7a9984acfc54 COHERENT78-F11-V2-20260828-01",
+  "exitCode": 0,
+  "stdoutFile": "TERMINAL.json",
+  "stderr": "",
+  "attempts": 1,
+  "newBuilds": 0,
+  "compilerRuns": 0,
+  "installs": 0,
+  "nativeOrPrivateOrNetworkRuns": 0
+}

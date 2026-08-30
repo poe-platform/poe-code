@@ -1,0 +1,128 @@
+{
+  "schema": "ere-native-activation-preflight-v1",
+  "decision": "PASS_DATA_ONLY_AWAIT_RESOLVED_SLOT_REVIEW",
+  "at": "2026-08-29T10:01:09.911Z",
+  "prepStarted": 1787997272403.8667,
+  "prepDeadline": 1787998172403.8667,
+  "sourceCommit": "2d07f5921010fda988dcda36ac81a89831fbac55",
+  "independentCommit": "f5d9e55ec3f3643904f1ec51d1cfa110b6a6dea8",
+  "presealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "controlSealSha256": "b73f207cb4dd7e5a8c903075f4219cd27635b03f3be16f947846c7ff42943b03",
+  "toolObservations": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "at": "2026-08-29T10:01:09.861Z"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "at": "2026-08-29T10:01:09.866Z"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "at": "2026-08-29T10:01:09.866Z"
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "at": "2026-08-29T10:01:09.869Z"
+    }
+  ],
+  "receipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/REVIEW-ACCEPTANCE.json",
+    "bytes": 424,
+    "mode": 384,
+    "sha256": "644630c96f3cdc647aabd9f21cf6c660d2c982fd75b0d8b33c61b241168e2476"
+  },
+  "provision": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/PREPROVISION.json",
+    "bytes": 695,
+    "mode": 384,
+    "sha256": "309a4cdfa95f6b84e88bf69c1ad9e5a459bd1dc742f20845cd172dca3185ee55"
+  },
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/GO.json",
+    "bytes": 1796,
+    "mode": 384,
+    "sha256": "9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec"
+  },
+  "resolved": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/RESOLVED-COMMAND.json",
+    "bytes": 1295,
+    "mode": 384,
+    "sha256": "d2dca84a74ff36a2a7fae05986f237acd5cf3d8c35caa3e4d97ee96344d6460d"
+  },
+  "template": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/APPROVAL-PROPOSAL.template.json",
+    "bytes": 2621,
+    "sha256": "6e092362c293a54bdd108b44a59ad245346890265f3d16d3ff18918239cf7881"
+  },
+  "commandStringSha256": "9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25",
+  "issuedAt": "2026-08-29T10:01:09.884Z",
+  "expiresAt": "2026-08-29T10:46:09.884Z",
+  "latestStartAt": "2026-08-29T10:36:09.884Z",
+  "runtimeRoot": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+  "parents": [
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+      "device": "16777232",
+      "inode": "187030136",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer",
+      "device": "16777232",
+      "inode": "187030137",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases",
+      "device": "16777232",
+      "inode": "187030138",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/captures",
+      "device": "16777232",
+      "inode": "187030139",
+      "mode": 448
+    }
+  ],
+  "journal": {
+    "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/JOURNAL.jsonl",
+    "bytes": 0,
+    "mode": 384,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "rootEntries": [
+    "JOURNAL.jsonl",
+    "captures",
+    "cases",
+    "outer"
+  ],
+  "outerCapturePaths": [
+    "/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stdout",
+    "/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stderr"
+  ],
+  "outerCapturesAbsent": true,
+  "freshCaseDirectoriesCreated": 0,
+  "fixtures": 0,
+  "stdinBytes": 0,
+  "programs": 12,
+  "sourceIntegrityAfter": true,
+  "entryImported": false,
+  "nativeChildren": 0,
+  "approvalRequested": false,
+  "observationStatus": "12_UNRUN",
+  "guardFunctionOnly": "admit + validateProvision + validateCohort + resolveApproval; no entry/launch"
+}

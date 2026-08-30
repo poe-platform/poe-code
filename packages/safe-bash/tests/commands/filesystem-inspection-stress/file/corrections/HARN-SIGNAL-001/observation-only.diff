@@ -1,0 +1,46 @@
+diff --git a/tmp/safe-bash-file-harness-correction.RN51tj5j/holdout/corrected-assertions-runner.mjs b/tmp/safe-bash-file-harness-correction.RN51tj5j/holdout/corrected-observed-runner.mjs
+index f9dde2d..1e2d745 100644
+--- a/tmp/safe-bash-file-harness-correction.RN51tj5j/holdout/corrected-assertions-runner.mjs
++++ b/tmp/safe-bash-file-harness-correction.RN51tj5j/holdout/corrected-observed-runner.mjs
+@@ -195,8 +195,8 @@ export async function runHoldouts(adapter) {
+     let capturedSignal;
+     const source = {
+       [Symbol.asyncIterator]() { return this; },
+-      next() { started.resolve(); return pendingRead.promise; },
+-      return() { returned++; return id === 'F34' ? pendingReturn.promise : Promise.resolve({ done: true, value: undefined }); },
++      next() { adapter.observeHoldout?.("source-next", {}); started.resolve(); return pendingRead.promise; },
++      return() { returned++; adapter.observeHoldout?.("source-return", { returned, pendingCleanup: id === "F34" }); return id === 'F34' ? pendingReturn.promise : Promise.resolve({ done: true, value: undefined }); },
+     };
+     const rig = makeFs({ '/input': fileEntry(fixture('F09').bytes) }, { readStream(path, options) { capturedSignal = options?.signal; return source; } });
+     process.on('unhandledRejection', onUnhandled);
+@@ -205,21 +205,29 @@ export async function runHoldouts(adapter) {
+       await deadline(started.promise, `${id} initial next`);
+       controller.abort(reason);
+       await assert.rejects(deadline(invocation.promise, `${id} cancellation`), (error) => error === reason);
++      adapter.observeHoldout?.("exact-caller-reason-verified", {});
+       await turn();
+       assert(capturedSignal instanceof AbortSignal);
+       assert.equal(capturedSignal.aborted, true);
+       assert.equal(capturedSignal.reason, reason);
++      adapter.observeHoldout?.("fs-abort-propagation-verified", { aborted: capturedSignal.aborted, exactReason: capturedSignal.reason === reason });
+       assert.equal(returned, 1);
+       pendingRead.reject(lateReadError);
+-      if (id === 'F34') pendingReturn.reject(lateReturnError);
++      adapter.observeHoldout?.("late-read-rejection-injected", { message: lateReadError.message });
++      if (id === 'F34') {
++        pendingReturn.reject(lateReturnError);
++        adapter.observeHoldout?.("late-return-rejection-injected", { message: lateReturnError.message });
++      }
+       await turn();
+       await turn();
+       assert.deepEqual(unhandled, []);
++      adapter.observeHoldout?.("late-error-window-verified", { unhandledCount: unhandled.length, readInjected: true, returnInjected: id === "F34", eventLoopTurns: 2 });
+       row.evidence = { returned, exactAbortIdentity: true, lateErrorsObserved: true };
+     } finally {
+       controller.abort(reason);
+       pendingRead.resolve({ done: true, value: undefined });
+       pendingReturn.resolve({ done: true, value: undefined });
++      adapter.observeHoldout?.("cleanup-gates-released", { returned });
+       await turn();
+       process.off('unhandledRejection', onUnhandled);
+     }

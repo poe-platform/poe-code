@@ -1,0 +1,34 @@
+# Launcher v2 — author preexecution qualification
+
+Date: August29,2026. Native Bash, original9/40, prospective37, product/engine/Worker, network and P2 executions: ZERO. This is not OS containment qualification or permission to activate the reference cohort.
+
+## Findings addressed
+
+F1: capture finalization independently attempts flush, size/identity, exact bounded read/hash and close for BOTH handles. First-close failure gets one bounded cleanup attempt, but qualification stays false. Missing capture, errors or any false prerequisite bars completion. Entry credits a case only after its own snapshots, receipt write/fsync/close and credit journal publication. A later outer/final-publication failure makes the overall run STOP, not an accepted cohort; earlier independently durable case records are not silently rescored.
+
+F2: TERM is attempted on first stop; KILL is scheduled two seconds from that actual TERM-attempt timestamp, with one further second for bounded retirement. Residual groups get the same bounded cleanup rather than KILL-and-return. Group states are observed after escalation and again until absent or cutoff; unknown remains STOP. Direct exit/close is not inferred to mean group absence. Opaque blocking filesystem calls, scheduling pauses and post-KILL close have no hard-time guarantee.
+
+F3: all future outer capture PARENTS and empty journal were preprovisioned during preparation; PREPROVISION.json pins their device/inode/mode. The proposed exact tool command opens outer regular descriptors BEFORE env/Node/module loading, uses exec replacement (no waiting wrapper), and disables zsh MULTIOS. It first creates each file with noclobber write redirection and then reopens the same private owned pathname read/write so inherited descriptors can be hashed. No atomic identity-open claim under hostile host mutation; preexecution parent/absence checks and Node FD-vs-name checks remain required. The wrapper is SOURCE-only, not executed in these controls. Startup/outer output completion is regular-file completion, never streamed EOF.
+
+The actual grant must be mode0600, exact GO.json path, and raw SHA256 supplied literally in the root-approved command. Its independently accepted review receipt must also have exact canonical path, mode0600, size/hash, version2 schema, accepted decision, matching source seal and request hash. A boolean alone is insufficient. Sagan c332ff182a0d3a84bfd262db62f59a34592ebd26 supports the literals but is NOT accepted v2-launcher authority. Root must supply a NEW accepted receipt after re-review; none is fabricated here.
+
+F4: charged start slots/active reservations are separate from spawn-event-confirmed starts/peak. Future managed ceiling80/known peak6 includes owner; exact planned roles are owner1 + native37, administrative children ZERO. env replaces the tool-shell process with Node; executable roles are not extra starts. Source-internal fork reservations13 are separate, qualified planning, not observed starts or an OS quota. No arbitrary admin executable is admitted by the future owner. All raw/receipt/summary publication occurs inside the same600000ms deadline, with60000ms admission tail and explicit finalization checks. Subsequent Git publication requires separate administrative permission; it is not an uncounted child or implicit deadline extension.
+
+All regular files below the run root are conservatively included in sampled aggregate32MiB capture and128MiB work accounting (including fixtures, journals, per-case JSON, base64 duplication and outer captures). Owner writes are pre-admitted, at most256KiB each, with64KiB reserved inside both caps for one terminal record. Native-file writes are sampled, NOT a before-write/kernel disk barrier; an observed overshoot is recorded as STOP, not claimed impossible. The emergency record can still be attempted after an already-observed physical overshoot; no false hard-cap claim. Child streams are checked during polling and finalization; outer streams are checked at finalization. Logical regular-file bytes are not RSS, allocated blocks, or hidden runtime allocations.
+
+## Frozen controls and actual outcomes
+
+CONTROL-PRESEAL SHA184fe18871faeb0eee80fe3ae353f3657f2647368fa9cd619c6b416330a54fb5 authenticates17 files. All remain byte-identical after controls. Twelve identities were sealed before any control owner/fixture launch: ten DATA/synthetic and two actual no-import literal Node fixtures. No additional fixture/control identity or retry was run.
+
+- C01/C02: synthetic fsync/close failures retain errors, attempt both captures' cleanup and deny credit. C03/C04: DATA receipt bytes/mode/path/hash/content controls; the positive receipt is explicitly SYNTHETIC, not root acceptance. C05–C10: charged/confirmed accounting, capture/work admission, finalization tail, unknown observer, timing origin and all completion prerequisites. These do not constitute actual filesystem faults or lifecycle proof.
+- C11 PID46918: literal11-byte stdout, empty stderr; TERM, then exit0; exit/close and ESRCH group absence observed. Finished174ms after TERM; no KILL. This intentionally deadline-stopped fixture remains ineligible for a Bash observation.
+- C12 PID46994: literal8-byte stdout, empty stderr; ignored TERM; KILL2002ms later. Group observed present immediately after KILL, absent12ms later; exit/close observed, SIGKILL retained. Also ineligible for a Bash observation.
+- Both actual captures passed flush/size/hash/close. Control owner PID46907 exited0 after8339ms (outer capture receipt gives exact timestamps), stdout71 bytes/stderr0, exit/close/both EOF observed. Known Node starts: owner1 + fixtures2 =3. Peak with the pre-existing coordinator was3. No descendant/session census is claimed; residual-group paths beyond these single-process groups remain source/synthetic coverage.
+
+Exact raw results: CONTROLS-RESULTS.json (11321 bytes, SHA80ba72a92d6f6d42370296c5e2e3f51e90caf95dfd46a07b2f36a99d04993048). CONTROL-CAPTURE retains stdout/stderr, journal, synthetic fixture inputs and owner result. No actual native37 approval request was issued.
+
+## Immutable inputs and remaining boundary
+
+AUDIT.json is byte-identical to v1, preserving all40 program bodies/four fixtures and withheld B26/B27/B28. REQUESTS.json changes ONLY declared owned-root/cases namespace locations; argv, stdin, source hashes, ordering and fork reservations remain unchanged. Root-ratified failed lookups are exactly mapfile/readarray/__surface_missing_command__ in the fresh owned empty PATH. No successful external execution is authorized. Output/status/diagnostics are never normalized; case-root mapping is filesystem-only.
+
+Different Sagan review is still required for the final packet, admission, source-only exec/redirection transport and any remaining implementation defects. Neither12 controls nor Bash3.2.57 metadata qualifies Bash5.3, native surface parity, OS containment, product acceptance or an execution grant.

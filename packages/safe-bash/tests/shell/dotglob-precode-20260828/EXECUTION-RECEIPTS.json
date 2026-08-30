@@ -1,0 +1,59 @@
+{
+  "readiness": {
+    "schema": "dotglob-readiness-v1",
+    "created": "2026-08-28T08:10:54.558Z",
+    "protocolCommit": "f01b393b32cf624f6a832c591a6a84f1c5e7a407",
+    "manifestSha256": "bcb72368ffe1c3c818e2c35c7337da4581a6dd55002d94237293603dd2f32070",
+    "toolHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "rowsCount": 24,
+    "nativeCallsSoFar": 0,
+    "output": "/tmp/dotglob-precode-20260828-output-TuMjeZ",
+    "fixtureRoot": "/tmp/dotglob-precode-20260828-fixtures-GBPaJ2"
+  },
+  "pre": {
+    "schema": "dotglob-readiness-v1",
+    "created": "2026-08-28T08:10:54.558Z",
+    "protocolCommit": "f01b393b32cf624f6a832c591a6a84f1c5e7a407",
+    "manifestSha256": "bcb72368ffe1c3c818e2c35c7337da4581a6dd55002d94237293603dd2f32070",
+    "toolHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "rowsCount": 24,
+    "nativeCallsSoFar": 0,
+    "output": "/tmp/dotglob-precode-20260828-output-TuMjeZ",
+    "fixtureRoot": "/tmp/dotglob-precode-20260828-fixtures-GBPaJ2",
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "gitStatus": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/xan-module-review-20260828/actual-review-v2/build-continuation/\n?? tests/commands/xan-module-review-20260828/actual-review-v2/evidence-continuation/\n?? tests/commands/yq-independent-20260828/final-carry-review-v1/results-v1/\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/\n?? tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md\n?? tests/shell/directory-stack-independent-20260828/executor-preparation-v1/\n?? tests/shell/let-independent-20260828/actual-amendments-01/\n?? tests/shell/let-independent-20260828/settlement-results-actual-package-02/\n",
+    "tools": [
+      {
+        "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+        "bytes": 1395864,
+        "mode": 493,
+        "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+      },
+      {
+        "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+        "bytes": 415804,
+        "mode": 420,
+        "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5"
+      },
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      {
+        "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "bytes": 3704880,
+        "mode": 493,
+        "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+      }
+    ]
+  },
+  "claim": {
+    "commit": "f01b393b32cf624f6a832c591a6a84f1c5e7a407",
+    "start": "2026-08-28T08:11:03.060Z"
+  },
+  "rawResultsSha256": "ae76bf0406d709e63c3640fc762b8d439bcc5e5e1a4bc03e15ccb21ce9f92f13"
+}

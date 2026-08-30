@@ -1,0 +1,16 @@
+{
+  "schema": "timeout-verifier-reconciliation-pre-execution-validation/1",
+  "verifiedBeforeRecipeCommit": true,
+  "recipeManifestSha256": "32ebd8694afc58d317303b5ea631ee757c2f91e4be0d139ae1ab3f66eacb9fdd",
+  "checks": {
+    "allRecipeModulesNodeSyntaxChecked": true,
+    "allManifestFileHashesChecked": true,
+    "originalCaseAssertionLinesByteIdentical": 77,
+    "originalRootTypePayloadByteIdentical": true,
+    "exactRootDiagnosticMatchesAuthenticatedHistoricalStdout": true,
+    "gitDiffCheck": "PASS"
+  },
+  "focusedControlsExecuted": 0,
+  "productExecutions": 0,
+  "newF22CandidateReceivedOrInspected": false
+}

@@ -1,0 +1,59 @@
+{
+  "classification": "immutable historical preservation and authenticated references; not reconstructed historical replay raw",
+  "sealedAt": "2026-08-27T12:52:56.675Z",
+  "authorStartCommit": "0ebba13251e5af5ec97db2f66f0eba0aa5605f93",
+  "ownership": [
+    "tests/stress/adapters/remote-safe-workflows.test.ts",
+    "tests/stress/adapters/s3-snapshot-profile/**"
+  ],
+  "approval": "Root approved the exact fixture-only S3 profile split in the current conversation; production/contracts/root config remain read-only.",
+  "survivingClassificationReport": {
+    "source": "/tmp/s3-routed-review-d4EdKC.md",
+    "archived": "classification-report.md.data",
+    "bytes": 15686,
+    "sha256": "2ac8fccf4f61899f80c06785d51749c0e8f87ca222a8632e02a7d4256862a2d4"
+  },
+  "unavailablePriorRaw": {
+    "directory": "/tmp/s3-routed-review-d4EdKC",
+    "existsAtSeal": false,
+    "status": "Prior investigation cleaned its archive/repro/raw results before this approval. No historical replay raw is recreated or claimed retained; only its surviving report is sealed."
+  },
+  "originalFixture": {
+    "commit": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+    "path": "tests/stress/adapters/remote-safe-workflows.test.ts",
+    "archived": "remote-safe-workflows.test.ts.data",
+    "bytes": 5233,
+    "sha256": "e8f5e47e15f8e601b08176954533eacff02102c4910d4c6da52547546989f4e5",
+    "gitBlob": "3035b03a8179f211665f6b0e54e3aa65cd9a95f4",
+    "matchesWorkingTreeBeforeMigration": true
+  },
+  "originalFailure": {
+    "commit": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+    "qualification": "RAW UNQUALIFIED historical whole-cohort totals unchanged: 16520 pass, 307 fail, 13 skip; not product acceptance",
+    "raw": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/evidence/canonical/test.stdout.log.data.gzbase64",
+      "encoding": "gzip-base64",
+      "storedSha256": "9bcc6ef303a27cfc1749eece78b991acdb2e43b48f2990e5a089a751d91985f3",
+      "decodedSha256": "f51ee8beb275d7a4fd53024f57b98e614886a2ed7ae143b133d95d73e6fec3bd",
+      "decodedBytes": 4246176,
+      "lineStart": 109631,
+      "lineEnd": 109645,
+      "excerptSha256": "178a95b179de36d072c77029486b1d9954e1709d6187ef6f6c3f9cd478415a7e"
+    },
+    "repositoryManifest": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/EVIDENCE_MANIFEST.json",
+      "sha256": "7c51be90526be8724e503c5dc58f65f038311c0e1d78990dda48d1a3ebf11107"
+    },
+    "routing": {
+      "path": "tests/integration/full-gate-20260827/combined-b494675c/FAILURE_ROUTING.json",
+      "sha256": "661480e44691b0636b8a1dcba84b92271165b7fd361bb8c88822746ce811a260",
+      "id": "tap-line-109632",
+      "group": "S3-rmdir-old-refusal",
+      "ordinal": 16491,
+      "name": "s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects",
+      "error": "Missing expected rejection.",
+      "assertionPath": "tests/stress/adapters/remote-safe-workflows.test.ts:58:5"
+    }
+  },
+  "dataClassification": "The .data files are captured historical prose/source bytes, not maintained TypeScript source, runnable tests, or new product acceptance. No discovery/config exclusions added."
+}

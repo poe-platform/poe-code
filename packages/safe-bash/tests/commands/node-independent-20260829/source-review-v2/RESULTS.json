@@ -1,0 +1,53 @@
+{
+  "role": "SOURCE_DATA_PREPARATION_NOT_MODULE_ACCEPTANCE",
+  "source": "c10d338331d56e1f293970010c7015fa602b6a8d",
+  "reviewCommit": "f2248c3218ca977ce8550705ee9247c9514745a1",
+  "sealSha256": "109b6f9083bb6d4b80cf750d571ea94f3f727b9dd860e66361ca8e38c887a738",
+  "actual": {
+    "dataChecksPassed": 18,
+    "dataChecksTotal": 18,
+    "freshInventoryBindings": 16,
+    "authenticatedInputBlobs": 27,
+    "nodeSourceDocBytes": 137593,
+    "semanticFamiliesBound": 38,
+    "typeFamiliesBound": 8,
+    "loadFamiliesBound": 6,
+    "rawControlsPreparedNotRun": 12,
+    "productExecutions": 0,
+    "typecheckerExecutions": 0,
+    "compilerExecutions": 0,
+    "buildInstallExecutions": 0,
+    "workers": 0,
+    "guestEntries": 0,
+    "nativeOracle": 0,
+    "privateOrNetworkReads": 0
+  },
+  "preservedAttempts": [
+    "Original a653 derived-object admission failure and all prior source review history unchanged",
+    "Author v1 899658 owned-output READ permission admission stop is not a product failure",
+    "close-preparation v1 metadata schema error exited1; original inner raw inventory not persisted, outer error returned fully",
+    "close-preparation-v2 fresh raw-before-parse metadata replay succeeded separately"
+  ],
+  "resourceAccounting": {
+    "authorizedMinutes": 30,
+    "conservativeWallReservationMinutes": 25,
+    "elapsedAtSealReadMinutesSinceWrittenPreseal": 13.230900036621094,
+    "wallQualification": "The preseal mtime observation excludes earlier instruction/context reading; the conservative25min reservation includes those reads and final publication. Not an exact OS-wide wall census.",
+    "allOwnedChildCeiling": 64,
+    "chargedSlotsIncludingFinalPublicationReserve": 61,
+    "childQualification": "Conservative slots include24 initial context/tool-wrapper slots, every later shell/Git/Node/edit invocation and extra patch/publication launcher reserve. This is not a claim61 distinct PIDs were observed. No test dispatcher spawned a child; immutable source capture and each inventory attempt used one synchronous Git child.",
+    "peakCeiling": 3,
+    "observedLaunchPattern": "Serial; outer shell plus Node metadata dispatcher plus one Git child at most. No async launched process or Worker.",
+    "captureCeilingBytes": 134217728,
+    "conservativeCaptureReservationBytes": 16777216,
+    "workCeilingBytes": 536870912,
+    "conservativeWorkingReservationBytes": 67108864,
+    "sealedArtifactBytesBeforeHandoff": 294823,
+    "captureQualification": "Bounded whole source batch473711 decoded archive bytes plus finite metadata/tool displays; no large binary executable read. Context-only display truncations are disclosed, not test capture passes.",
+    "ownedActiveChildrenAtHandoff": 0,
+    "ownedTemporaryRoots": 0,
+    "unknownRetirements": 0
+  },
+  "readiness": "SOURCE findings relayed; actual review DISARMED. Successor candidate/full package, E/S dispatcher+row expansion, tool/load/owner bindings and separate ROOT grant still required.",
+  "ownership": "Only tests/commands/node-independent-20260829/source-review-v2/** edited and explicitly committed; no product/author/root changes or broad staged commit."
+}

@@ -1,0 +1,27 @@
+{
+  "schema": "unified76-stopped-setup-static-diagnosis-v12",
+  "recordedAt": "2026-08-28T04:30:54-05:00",
+  "timing": "POST-author/POST-attempt, PRE-detailed stopped-run artifact inspection; prior reviewer source-chain knowledge and user-reported hypothesis disclosed, not blind pre-code review",
+  "authority": "Source/artifact diagnosis only; no rerun, imports, native probes, permission changes, private reads, retained-root cleanup or signaling",
+  "bindings": {
+    "evidence": "df89d474bb863b3815f6e81f81917dcef4227779",
+    "authorization": "8e6b40ecd2cec2b6dcaf2ce80c0cff477d39e6eb",
+    "packet": "d9dd698a33421b197ee15432a6606ad91dd06c63",
+    "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "priorMetadataReview": "7fd7c7aee3902e8a8a0cc66460858e8ea6966e13"
+  },
+  "reportedNotYetVerified": {
+    "result": "exit1/HOLD; 0/14; admission passed; setup spawnSync git EPERM",
+    "hypothesis": "Historical prerequisites receives environment but Git spawn omits env, inheriting process.env rather than controlled finite PATH"
+  },
+  "questions": [
+    "What exact original argv, error fields, environment evidence and OS/Node guard stage distinguish a proven route defect from an inferred kernel denial?",
+    "Where is finite tool routing created, verified, passed, inherited or lost, without executing any helper?",
+    "Which setup operations, phase entries and private/instruction pre/postchecks were actually reached, absent or unverifiable?",
+    "What do committed cleanup/PID/retained-root receipts establish, and what remains only author assertion or unknown?",
+    "What minimal current-wrapper correction preserves immutable helpers, tool authentication, finite PATH and unchanged permissions, and what future bounded controls would be needed?"
+  ],
+  "preservation": "All prior cohorts and acceptances remain historical and qualified; no rescore. Initial foreign staged indexed-array files were observed, then concurrently committed by another owner before this freeze; no foreign edits/staging performed. Retained original scratch is evidence, not cleanup scope.",
+  "output": "Compact source/log hash bindings and diagnosis with confidence and unreached-work qualifications; no new executable framework"
+}

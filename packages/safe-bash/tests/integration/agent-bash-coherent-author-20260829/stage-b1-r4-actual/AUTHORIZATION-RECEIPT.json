@@ -1,0 +1,30 @@
+{
+  "identity": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4-final-binding/ACTUAL-ROOT-GRANT.json",
+    "bytes": 2113,
+    "sha256": "119323e33033162aebfb1786ba3149e026b566350b556acdffda9bbb55bd0893"
+  },
+  "review": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/stage-b1-r4-final-slot/RECEIPT.json",
+    "bytes": 6208,
+    "sha256": "242621c6c21d00b37516d9fcc19433b86ca11fb7672229422794ed10afb4f89f",
+    "blob": "f92be20e0c67b1e2412c6d04ca1786c247560181",
+    "commit": "b087e5ce19424bff913d73f0dd68b56973e8d7d5"
+  },
+  "utc": "2026-08-29T15:11:12.886Z",
+  "pid": 75402,
+  "node": {
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+  },
+  "package": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "checkedRuntimePins": 55,
+  "allSlotsAbsentBeforeGrant": true,
+  "startedUTC": "2026-08-29T15:08:17.066Z",
+  "deadlineUTC": "2026-08-29T15:38:17.066Z"
+}

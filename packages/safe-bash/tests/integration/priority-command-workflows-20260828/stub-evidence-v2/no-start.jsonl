@@ -1,0 +1,2 @@
+{"pid":57923,"event":"worker-parent","action":"admission-refused","error":"AssertionError [ERR_ASSERTION]: WORKER_URL_DRIFT"}
+{"pid":57923,"event":"worker-parent","action":"admission-refused","error":"AssertionError [ERR_ASSERTION]: WORKER_OPTIONS_DRIFT\n+ actual - expected\n\n  {\n+   execArgv: [\n+     '--inspect'\n+   ],\n-   execArgv: [],\n    resourceLimits: {\n      maxOldGenerationSizeMb: 128,\n      stackSizeMb: 4\n    }\n  }\n"}

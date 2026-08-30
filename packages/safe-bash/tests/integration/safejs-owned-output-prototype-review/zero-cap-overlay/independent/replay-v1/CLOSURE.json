@@ -1,0 +1,43 @@
+{
+  "at": "2026-08-27T18:11:33.037605+00:00",
+  "independentRunnerFreeze": "326ca8e758ac0ac4167ba09418e7b7667d6ee5e1",
+  "admissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "sealedOwnFilesUnchanged": {
+    "inspection-v1": 22,
+    "admission-v1": 3,
+    "replay-v1/execution": 6
+  },
+  "originalAuthorFilesStillExact": 88,
+  "wholeAuthorTreeAuthentication": "REFUSED; additions diagnosed separately, not ignored",
+  "candidateFiles": 940,
+  "packageFiles": 709,
+  "candidateStillExact": true,
+  "packageStillExact": true,
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+  "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010",
+  "nodeSha256Matches": true,
+  "nodeExecuted": false,
+  "privateBeforeAfter": "NOT_REACHED_NO_COHORT_ENTERED",
+  "privateCheckoutQueries": 0,
+  "freshPrivateIdentityEstablished": false,
+  "privateCopiesCreated": 0,
+  "productEngineGuestNativeProbes": 0,
+  "ownedNodeParents": 0,
+  "ownedGuestChildren": 0,
+  "remainingOwnedToolSessions": 0,
+  "killedOrRescuedChildren": 0,
+  "pythonInvocationExit": 1,
+  "pythonInvocationNaturallyExited": true,
+  "newRuntimePasses": 0,
+  "retryInvocations": 0,
+  "retainedOutputRoot": "/private/tmp/safe-bash-zero-overlay-independent-replay-7h4lk8c0",
+  "retainedAttemptMarkerSha256": "90fa380e4bca720c52b4152c2d896ad6d058564d52ed452d8fd422f5693966bf",
+  "outputFiles": [
+    "attempt-once.json"
+  ],
+  "sharedAuthorPrivateSourceWrites": 0,
+  "noPromotion": true
+}

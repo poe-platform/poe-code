@@ -1,0 +1,484 @@
+{
+  "schema": "virtual-node-design-sources-v1",
+  "date": "2026-08-28",
+  "sealClass": "post-existing-source-inspection/preimplementation",
+  "artifactRole": "source-reference metadata only; no copied engine source bodies or executable fixtures",
+  "ownedDirectory": "tests/commands/node-design-20260828",
+  "initialLiveHeadObserved": "400dd9bdff966d926701ae34f56b9e4430fb6a89",
+  "liveContractMetadataHead": "363616da2d8e3f95f98e3cdd9b13ffe5a06b5e11",
+  "acceptedEvidenceCommit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+  "acceptedEngineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "acceptedPackageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+  "acceptedPackageQualification": "Inherited frozen package identity and scoped six-workflow acceptance; no tarball extraction/re-hash/build/install in this task; A1 retains43/268 membership proof and35 missing trees. No live HEAD acceptance.",
+  "officialSafeJsDocumentation": {
+    "available": true,
+    "sourceId": "E11",
+    "notAuthority": [
+      "safe.js.org",
+      "unrelated arxiv SafeJS"
+    ]
+  },
+  "inspectionPolicy": {
+    "privateCheckoutReads": 0,
+    "privateGitCommands": 0,
+    "privateWrites": 0,
+    "privateCopies": 0,
+    "subjectExecutions": 0,
+    "newProbes": 0,
+    "builds": 0,
+    "installs": 0,
+    "nativeOracleExecutions": 0,
+    "wholeSourceSnapshots": 0,
+    "metadataTools": "read-only Git/file reads, bounded public HTTP byte retrieval and standard hashing/JSON parsing only; body text never imported/evaluated"
+  },
+  "instructionsRead": [
+    "/Users/kjopek/Workspace/AGENTS.md",
+    "/Users/kjopek/Workspace/safe-bash/AGENTS.md",
+    "docs/COMMAND_PRIORITIES.md"
+  ],
+  "descendantInstructions": "No AGENTS.md present at tests/, tests/commands/ or owned directory ancestry when checked; other fixture descendant AGENTS do not apply.",
+  "sources": [
+    {
+      "id": "A1",
+      "classification": "frozen prior measured report; inspected, not replayed",
+      "commit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/execution-checkpoints/c78-safejs-20260828-01/REPORT.md",
+      "bytes": 4040,
+      "sha256": "6e222230b41cfc7d571c2bef381f182c45253660de796efc28ce1f41774ee113",
+      "gitBlob": "0f8e4145ccf4ebcd49c57f5bc272c90202a87250"
+    },
+    {
+      "id": "A1-auth",
+      "classification": "frozen prior authentication record; no fresh full archive verification",
+      "commit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/execution-checkpoints/c78-safejs-20260828-01/AUTHENTICATION.json",
+      "bytes": 11984,
+      "sha256": "721ea004d64de5331f844b694c7006dc09cc1775257d89429c72d628d0f8f6f4",
+      "gitBlob": "8f81146c4036343b02aad98f375ea484881a03d1"
+    },
+    {
+      "id": "A2",
+      "classification": "frozen source/package provenance data",
+      "commit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/BINDINGS.json",
+      "bytes": 33576,
+      "sha256": "a782ffd74ca9d2c8b85024c9db0bef6da6a7554b6359e6f609f1d4a1150ed608",
+      "gitBlob": "4eb9be3b90074b7c6861950bc5f00860fdceb5b6"
+    },
+    {
+      "id": "A3",
+      "classification": "frozen selected63 engine source inventory",
+      "commit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/ENGINE.json",
+      "bytes": 21706,
+      "sha256": "3be5cdcd7869e0b50da41335a34c7aa44a19abcd089ea3c86290529bf08ab687",
+      "gitBlob": "9da7a82083f20a9e7266fbe190876518084b00e0"
+    },
+    {
+      "id": "A4",
+      "classification": "frozen user-priority/registration source audit, not runtime acceptance",
+      "commit": "dcaa5ccc54fb31b48d16a207484ea15a3bbedc91",
+      "path": "docs/COMMAND_PRIORITIES.md",
+      "bytes": 16839,
+      "sha256": "713d89f0f03223dcc5c0d5a4f9151754c3b79fc065770f019035cf6774e4e048",
+      "gitBlob": "ac013c74a47e9a374ff162708f602c7ff97a942e"
+    },
+    {
+      "id": "P1",
+      "classification": "frozen-composition selected source; live equality checked, not live acceptance",
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/safejs/index.ts",
+      "bytes": 8649,
+      "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+      "gitBlob": "b981d9fc64d9cce94dcc79652ee5437d61b50e80",
+      "liveEqualsFrozenAtInspection": true,
+      "acceptedPackageAssociation": "Inherited A2 selected-input provenance; package-only A1 qualifications retained"
+    },
+    {
+      "id": "P2",
+      "classification": "frozen-composition selected source; live equality checked, not live acceptance",
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/safejs/types.ts",
+      "bytes": 2243,
+      "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "gitBlob": "99b00cbf92e062838ae253ff6f8649ff4b34985b",
+      "liveEqualsFrozenAtInspection": true,
+      "acceptedPackageAssociation": "Inherited A2 selected-input provenance; package-only A1 qualifications retained"
+    },
+    {
+      "id": "P3",
+      "classification": "frozen-composition selected source; live equality checked, not live acceptance",
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/safejs/options.ts",
+      "bytes": 2464,
+      "sha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "gitBlob": "d632015ceab0146605d271d6ea0b5557a26aea29",
+      "liveEqualsFrozenAtInspection": true,
+      "acceptedPackageAssociation": "Inherited A2 selected-input provenance; package-only A1 qualifications retained"
+    },
+    {
+      "id": "P4",
+      "classification": "frozen-composition selected source; live equality checked, not live acceptance",
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/integrations/safejs/shell.ts",
+      "bytes": 3695,
+      "sha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "gitBlob": "2d1b1bdf717670ad6652ca0742ab8f4ed58bf00d",
+      "liveEqualsFrozenAtInspection": true,
+      "acceptedPackageAssociation": "Inherited A2 selected-input provenance; package-only A1 qualifications retained"
+    },
+    {
+      "id": "P5",
+      "classification": "frozen-composition selected source; live equality checked, not live acceptance",
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/integrations/safejs/values.ts",
+      "bytes": 2446,
+      "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "gitBlob": "d326d0a41a7145bae4f6f12d3774522c9c500d76",
+      "liveEqualsFrozenAtInspection": true,
+      "acceptedPackageAssociation": "Inherited A2 selected-input provenance; package-only A1 qualifications retained"
+    },
+    {
+      "id": "P6",
+      "classification": "frozen-composition selected source; live equality checked, not live acceptance",
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/integrations/safejs/filesystem.ts",
+      "bytes": 21470,
+      "sha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "gitBlob": "a1593368ebe58df7695bf6010e192bbbce9e9da6",
+      "liveEqualsFrozenAtInspection": true,
+      "acceptedPackageAssociation": "Inherited A2 selected-input provenance; package-only A1 qualifications retained"
+    },
+    {
+      "id": "P7",
+      "classification": "frozen-composition selected source; live equality checked, not live acceptance",
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/contracts/command.ts",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "gitBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "liveEqualsFrozenAtInspection": true,
+      "acceptedPackageAssociation": "Inherited A2 selected-input provenance; package-only A1 qualifications retained"
+    },
+    {
+      "id": "L1",
+      "classification": "live-inspected contract excerpts, NOT accepted frozen package evidence",
+      "commit": "363616da2d8e3f95f98e3cdd9b13ffe5a06b5e11",
+      "path": "src/contracts/command.md",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "gitBlob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "liveEqualsRecordedCommit": true
+    },
+    {
+      "id": "L2",
+      "classification": "live-inspected contract excerpts, NOT accepted frozen package evidence",
+      "commit": "363616da2d8e3f95f98e3cdd9b13ffe5a06b5e11",
+      "path": "src/contracts/io.ts",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "gitBlob": "6dc0efb87132376763228a845b2e62638898268a",
+      "liveEqualsRecordedCommit": true
+    },
+    {
+      "id": "L3",
+      "classification": "live-inspected contract excerpts, NOT accepted frozen package evidence",
+      "commit": "363616da2d8e3f95f98e3cdd9b13ffe5a06b5e11",
+      "path": "src/contracts/filesystem.md",
+      "bytes": 20876,
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "gitBlob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192",
+      "liveEqualsRecordedCommit": true
+    },
+    {
+      "id": "E1",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/run.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/run.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "RunOptions",
+        "run",
+        "createExecutableNode",
+        "throwIfReturnedPromiseRejected"
+      ],
+      "bytes": 25016,
+      "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b",
+      "gitBlob": "2f829e27c65da9421001772f2db2233adc5edfe0",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E2",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/parse/parser.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/parse/parser.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "parse",
+        "parseModule",
+        "parseExecutableModule",
+        "parseTopLevelItem"
+      ],
+      "bytes": 133783,
+      "sha256": "cf69c4192e77a65b019de8661079da3276582958361a9b446d488214051957b3",
+      "gitBlob": "6a9a1bd6eca9b036951de8c11985d73f880bc297",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E3",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/interp/interpreter.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/interpreter.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "InterpreterResult",
+        "evaluateBlockStatement"
+      ],
+      "bytes": 97921,
+      "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715",
+      "gitBlob": "07f5c623d88a7799dfa45028fdd0393ab589dd8e",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E4",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/interp/host-bridge.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/host-bridge.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "executeHostCall",
+        "copyHostResultToSandbox",
+        "createHostErrorValue",
+        "wrapSandboxClosureForHost",
+        "wrapHostPromiseWithSignal",
+        "copyHostValueToSandbox"
+      ],
+      "bytes": 30852,
+      "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90",
+      "gitBlob": "5e1a6ef3b90912c190d0f4a849c1b1e91f845b1c",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E5",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/interp/cancel.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/cancel.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "wrapCancelableBindings",
+        "awaitSandboxValue",
+        "awaitWithSignal"
+      ],
+      "bytes": 6588,
+      "sha256": "6e6b5a9a1dc3b58fcdf7e259a3a2e129877bdf97c93b09268ace0084d9e3e97a",
+      "gitBlob": "03f38bbee5e0cfb8aee2ef032606a75efa506ac4",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E6",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/interp/budget.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/budget.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "reset"
+      ],
+      "bytes": 9007,
+      "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3",
+      "gitBlob": "2f69c852a87f134470acfcac7e0be37c6e3d0412",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E7",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/interp/values.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/values.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "SandboxValue"
+      ],
+      "bytes": 24602,
+      "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd",
+      "gitBlob": "7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E8",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/modules/registry.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/modules/registry.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "resolveModuleImports",
+        "bindImportDeclaration",
+        "resolveImportSpecifier"
+      ],
+      "bytes": 6478,
+      "sha256": "466490d886714c678d8e99d5e4cf6703a0a26a130365ea0db365094356f13d0f",
+      "gitBlob": "8d7d52115b27822446540edf9267beb20e58688b",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E9",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/interp/globals/console-json.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/globals/console-json.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "createConsoleJsonGlobals"
+      ],
+      "bytes": 10644,
+      "sha256": "2b4e345e75d0f3647e53daa588dc71d1b3e363b3a55fd0381e5ada37e8a93b43",
+      "gitBlob": "23363392746d1189027f7ea6058f6a47cb633106",
+      "matchesFrozen63Inventory": true
+    },
+    {
+      "id": "E10",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/src/index.ts",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/index.ts",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "public exports"
+      ],
+      "bytes": 3030,
+      "sha256": "560faee9a73e3609e2198f5b60921cb1983245b32de3859212a03ff773c35977",
+      "gitBlob": "2a17cf5247c33fa0ea47732f9d320a962f97019c",
+      "matchesFrozen63Inventory": null,
+      "qualification": "Additional public commit-pinned inspection; not a member of the frozen63 executed engine closure"
+    },
+    {
+      "id": "E11",
+      "classification": "commit-pinned official public source inspection; no execution or private read",
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "path": "packages/safejs/README.md",
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/README.md",
+      "retrievedDate": "2026-08-28",
+      "inspectedSymbolsOrSections": [
+        "Sandbox by design",
+        "optional fs module"
+      ],
+      "bytes": 30971,
+      "sha256": "3fa05ec0e0c66f7276b440d451fe7f7989d448897ae9fbbd7c07183755ebeb2b",
+      "gitBlob": "d7ea192aa01cd2016a30926407055b130b0c44af",
+      "matchesFrozen63Inventory": null,
+      "qualification": "Additional public commit-pinned inspection; not a member of the frozen63 executed engine closure"
+    },
+    {
+      "id": "N1",
+      "classification": "official version-pinned public documentation; no native oracle run",
+      "version": "v22.15.0",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/cli.html",
+      "retrievedDate": "2026-08-28",
+      "bytes": 249925,
+      "sha256": "3d88800f2f3dd6dceba815e37b28d034725307a2e575ba2b823a854dac397224",
+      "inspectedSections": [
+        "eval",
+        "print",
+        "stdin",
+        "input-type",
+        "entry selection"
+      ],
+      "qualification": "HTML response hash binds retrieval bytes, not a Node release source-tree or behavioral result"
+    },
+    {
+      "id": "N2",
+      "classification": "official version-pinned public documentation; no native oracle run",
+      "version": "v22.15.0",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/process.html",
+      "retrievedDate": "2026-08-28",
+      "bytes": 347870,
+      "sha256": "55b1eda686c4353dce763ea3630e4a31652069ca5e10cb14390953b25ee50f07",
+      "inspectedSections": [
+        "argv",
+        "env",
+        "exitCode",
+        "stdin/stdout/stderr",
+        "process I/O"
+      ],
+      "qualification": "HTML response hash binds retrieval bytes, not a Node release source-tree or behavioral result"
+    },
+    {
+      "id": "N3",
+      "classification": "official version-pinned public documentation; no native oracle run",
+      "version": "v22.15.0",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/fs.html",
+      "retrievedDate": "2026-08-28",
+      "bytes": 674521,
+      "sha256": "997d2212b288511607fb1f69818c451ed8a2d4e460e0c9d492113f3d7834375a",
+      "inspectedSections": [
+        "sync versus promise APIs",
+        "readFileSync fd/encoding",
+        "readFile/writeFile options"
+      ],
+      "qualification": "HTML response hash binds retrieval bytes, not a Node release source-tree or behavioral result"
+    },
+    {
+      "id": "N4",
+      "classification": "official version-pinned public documentation; no native oracle run",
+      "version": "v22.15.0",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/modules.html",
+      "retrievedDate": "2026-08-28",
+      "bytes": 98239,
+      "sha256": "f04ebd1d706d07d7d9b2c8a4bd5ad0f70d3832865cd5a0fe8c0713be9c3706a8",
+      "inspectedSections": [
+        "builtin modules",
+        "resolved-filename caching",
+        "file modules"
+      ],
+      "qualification": "HTML response hash binds retrieval bytes, not a Node release source-tree or behavioral result"
+    },
+    {
+      "id": "N5",
+      "classification": "official version-pinned public documentation; no native oracle run",
+      "version": "v22.15.0",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/esm.html",
+      "retrievedDate": "2026-08-28",
+      "bytes": 88408,
+      "sha256": "0e61728103526e405bffecd0314fe419c1d19191df97cfe09ca047b6f71838f0",
+      "inspectedSections": [
+        "mandatory file extensions",
+        "static/dynamic imports",
+        "builtin modules"
+      ],
+      "qualification": "HTML response hash binds retrieval bytes, not a Node release source-tree or behavioral result"
+    },
+    {
+      "id": "N6",
+      "classification": "official version-pinned public documentation; no native oracle run",
+      "version": "v22.15.0",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/path.html",
+      "retrievedDate": "2026-08-28",
+      "bytes": 58651,
+      "sha256": "651ae03f3bf6faac9bca553036a05db50857b2871044a0085b691c2d9ea565ae",
+      "inspectedSections": [
+        "POSIX namespace",
+        "resolve/join/relative"
+      ],
+      "qualification": "HTML response hash binds retrieval bytes, not a Node release source-tree or behavioral result"
+    },
+    {
+      "id": "N7",
+      "classification": "official version-pinned public documentation; no native oracle run",
+      "version": "v22.15.0",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/stream.html",
+      "retrievedDate": "2026-08-28",
+      "bytes": 417760,
+      "sha256": "2dfa3bbb79a2b88014c0dc0d727969dcfd23537e1455a195c848fdd3557e17bb",
+      "inspectedSections": [
+        "writable.write return value and backpressure"
+      ],
+      "qualification": "HTML response hash binds retrieval bytes, not a Node release source-tree or behavioral result"
+    }
+  ]
+}

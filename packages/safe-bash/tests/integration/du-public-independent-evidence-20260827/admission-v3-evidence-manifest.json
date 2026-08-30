@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 3,
+  "role": "single-attempt additive evidence seal, excludes only this manifest",
+  "recipeCommit": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+  "recipeManifestSha256": "1ca6554a66e0c4160dca6da399229208719f8721ad19331b3daa30fd8c5afa79",
+  "runManifestSha256": "2528124ae7a9d099af2f448c3e55d9142fcc25beac70caa1c3773d1e37858e48",
+  "semanticAttempts": 1,
+  "semanticRetries": 0,
+  "focusedNegativePasses": 6,
+  "originalApplicablePasses": 9,
+  "heldOriginalControls": [
+    "A06",
+    "P03"
+  ],
+  "duCasesExecuted": 0,
+  "duCasesHeld": 29,
+  "original37Unchanged": true,
+  "namespaceScope": "Exact new recipe/run only; historical pinned files, not whole owner-root/live-checkout/global-index",
+  "files": [
+    {
+      "path": "admission-v3-outcome.md",
+      "mode": 420,
+      "type": "file",
+      "bytes": 5348,
+      "sha256": "db68decb3831471e2512856b1a5a0dc9f49bd9cda0a40f1fe9632dc69a11376d"
+    },
+    {
+      "path": "post-run-v3-bindings.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 13536,
+      "sha256": "1f294dfe8c8836c5bd6c88d0b368b13a74f48cb45b8cd4008d9402f26dc344f4"
+    },
+    {
+      "path": "run-v3/A07-live-observation.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 943,
+      "sha256": "d25889e5a040f6c9395704b96536e2d2fbce9681f2cfc82d78e2a33fd658f8a3"
+    },
+    {
+      "path": "run-v3/EVIDENCE-MANIFEST.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 5078,
+      "sha256": "2528124ae7a9d099af2f448c3e55d9142fcc25beac70caa1c3773d1e37858e48"
+    },
+    {
+      "path": "run-v3/LAUNCH-RESULT.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 429,
+      "sha256": "969ecabd204cf00f74350aa3580067f5a585e6764cfbf6ac7492d84ee4d82121"
+    },
+    {
+      "path": "run-v3/POST.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 901461,
+      "sha256": "0122fa7fd75ceb1c54ff8cb4906b7e7eabed58eae4bf8bebb70617a01f286393"
+    },
+    {
+      "path": "run-v3/PRE.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 901461,
+      "sha256": "0122fa7fd75ceb1c54ff8cb4906b7e7eabed58eae4bf8bebb70617a01f286393"
+    },
+    {
+      "path": "run-v3/RESULT.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 6153,
+      "sha256": "2dfbbdc311a395c6036b32d4b67d727935df8555f6b5793c819ce692c66856ed"
+    },
+    {
+      "path": "run-v3/author-pack-authentication.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 137,
+      "sha256": "2710ababa244cf8ff7b5f59933b1d03dc0fafa891cff1cb2eadf52c2817381f2"
+    },
+    {
+      "path": "run-v3/build-actual-loads.jsonl",
+      "mode": 420,
+      "type": "file",
+      "bytes": 112660,
+      "sha256": "d62c7c48774b79e78b8fbb9475906cf57c8ba2bffd8d3d61a19a2d7610c104ed"
+    },
+    {
+      "path": "run-v3/build-load-proof.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 131,
+      "sha256": "a69ca80d8fa75204dc761bd791e439f3641275bc655195ceba6c0aef835989d9"
+    },
+    {
+      "path": "run-v3/build-status.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 159,
+      "sha256": "e486e6a89fa29c36692351d7f729c32af232f635913b066204fa2a37c6da961c"
+    },
+    {
+      "path": "run-v3/committed-inputs.jsonl.gz",
+      "mode": 420,
+      "type": "file",
+      "bytes": 3345073,
+      "sha256": "95012769c9047e5a72c0086a7984e58b2f0a295add437ec5665c412bcb39b316"
+    },
+    {
+      "path": "run-v3/dist-census.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 161476,
+      "sha256": "153a2f1193aebe79299f4c35e0406a3641f5354f9fcd89d062ce3e1f94e486ff"
+    },
+    {
+      "path": "run-v3/events.jsonl",
+      "mode": 420,
+      "type": "file",
+      "bytes": 402957,
+      "sha256": "b4be26880cc06f93a38a0eb0b1e09c20423513403ffc5cf929dfecd0331c225e"
+    },
+    {
+      "path": "run-v3/launch-events.jsonl",
+      "mode": 420,
+      "type": "file",
+      "bytes": 14126,
+      "sha256": "c3fba6582c7d0fbb6f7b7a5b416f9653ffabf8ed74eb528afa5f7c712a7e66f6"
+    },
+    {
+      "path": "run-v3/materialized-inputs-POST.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 397822,
+      "sha256": "921dbcbc35e7fdc07f5fad261bcdd2298890c917ac3431fc251c36aec5b0b12a"
+    },
+    {
+      "path": "run-v3/materialized-inputs.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 177907,
+      "sha256": "fecd69639f10a48c9b3f75186e52f9914f345d7963f5aff01f5c79cbfd32299f"
+    },
+    {
+      "path": "run-v3/pack-actual-loads.jsonl",
+      "mode": 420,
+      "type": "file",
+      "bytes": 393465,
+      "sha256": "7b432b4d2899d0fd8fd42197350dbdcc7d2f29d874230cf916e039f8a3c4a190"
+    },
+    {
+      "path": "run-v3/pack-census.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 89588,
+      "sha256": "bd14fab2ac792cae94af19b478bc4814d2babfd25859500cfdf77c929e24bfe7"
+    },
+    {
+      "path": "run-v3/pack-load-proof.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 133,
+      "sha256": "ddc2f6bc015ca7431d468028c4a4ab154e7c17b410e6d0c568da6bf16191aa75"
+    },
+    {
+      "path": "run-v3/pack-status.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 162,
+      "sha256": "28bcc0a790c76b4633a70ece876723f0e4e604e3b9c9189f0ecabd7df8d66100"
+    },
+    {
+      "path": "run-v3/pack.stdout.log",
+      "mode": 420,
+      "type": "file",
+      "bytes": 93950,
+      "sha256": "a2da729faec5d7a6b6c83d8f332fd253d9672634b7110df2478a10caacbdb479"
+    },
+    {
+      "path": "run-v3/post-audit-receipts.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 401,
+      "sha256": "118a7ab3ce97d134a478e24ec176fef40563fdb039a22b9d51ea19aee35c4bb7"
+    },
+    {
+      "path": "run-v3/reproduced-package.tgz",
+      "mode": 420,
+      "type": "file",
+      "bytes": 726693,
+      "sha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d"
+    },
+    {
+      "path": "run-v3/staged-tools-POST.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 584231,
+      "sha256": "f27044c126d718ecef39da18648d73c470f9881e5a5e0660c5d7498b34633231"
+    },
+    {
+      "path": "run-v3/staged-tools-PRE.json",
+      "mode": 420,
+      "type": "file",
+      "bytes": 584231,
+      "sha256": "f27044c126d718ecef39da18648d73c470f9881e5a5e0660c5d7498b34633231"
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "schema": "m1b-mechanical-source-sites-v1",
+  "sites": {
+    "limits": [
+      {
+        "path": "src/commands/git/limits.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "7b9cea64680f0a8d57eb8655f200c451ee6a44f9",
+        "fileSha256": "23175737832fdca114176825e1224daaa7f498fada7697f00cdf5064e08202df",
+        "lineStart": 1,
+        "lineEnd": 15,
+        "spanBytes": 702,
+        "spanSha256": "78f941410eef0ecf7cc1a7eff05d77db4e74f409f4f2e8cc70919ba9ece17285"
+      }
+    ],
+    "index": [
+      {
+        "path": "src/commands/git/pack.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "ed67d2e55de0286dbc8c1e8c96a400ef98397366",
+        "fileSha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce",
+        "lineStart": 105,
+        "lineEnd": 152,
+        "spanBytes": 2842,
+        "spanSha256": "a8416d7a14dabf65a73dc4aff5a293406daca793a9e2fd70fef91720e9698775"
+      }
+    ],
+    "budget": [
+      {
+        "path": "src/commands/git/io.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "06792522f11df568aa96c2e27b1eea47e619350c",
+        "fileSha256": "4eda6c4b334b4344370feca84859744afbb9974b5b8fd4d641657c0941dcff45",
+        "lineStart": 31,
+        "lineEnd": 85,
+        "spanBytes": 1848,
+        "spanSha256": "98d5d5c6f83b64f71b42f05c898fd7a3027898d9160b25d48f78779e12e916b8"
+      }
+    ],
+    "read": [
+      {
+        "path": "src/commands/git/io.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "06792522f11df568aa96c2e27b1eea47e619350c",
+        "fileSha256": "4eda6c4b334b4344370feca84859744afbb9974b5b8fd4d641657c0941dcff45",
+        "lineStart": 224,
+        "lineEnd": 295,
+        "spanBytes": 3788,
+        "spanSha256": "e80a69f407eb6eca8ea8a4edf60bf116319dd9492de03f37525e92246312b962"
+      }
+    ],
+    "catalogue": [
+      {
+        "path": "src/commands/git/pack.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "ed67d2e55de0286dbc8c1e8c96a400ef98397366",
+        "fileSha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce",
+        "lineStart": 23,
+        "lineEnd": 51,
+        "spanBytes": 1094,
+        "spanSha256": "84e6e525b3b5ec0da1af41be7e9ce35126e929c800c6e49b82939a39beb9e7e0"
+      }
+    ],
+    "census": [
+      {
+        "path": "src/commands/git/pack.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "ed67d2e55de0286dbc8c1e8c96a400ef98397366",
+        "fileSha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce",
+        "lineStart": 53,
+        "lineEnd": 103,
+        "spanBytes": 2895,
+        "spanSha256": "8be5dcbcf78d174bec25754be000e10f47535901b4498805bec5a671d503bb23"
+      }
+    ],
+    "graph": [
+      {
+        "path": "src/commands/git/pack.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "ed67d2e55de0286dbc8c1e8c96a400ef98397366",
+        "fileSha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce",
+        "lineStart": 154,
+        "lineEnd": 252,
+        "spanBytes": 5281,
+        "spanSha256": "19f0c9551de88b21dc2aa23f22df2833d862dc6a9c676a004753e3ecd70c587b"
+      }
+    ],
+    "delta": [
+      {
+        "path": "src/commands/git/delta.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "9fb0eb9704af80e396b381aa11c6d61804215003",
+        "fileSha256": "c280cdc9d8837db078bd57d6e8322c8af3652af517f98074c90a3f5b2dd944a5",
+        "lineStart": 1,
+        "lineEnd": 54,
+        "spanBytes": 2547,
+        "spanSha256": "b6e69d7c9ef316b4de7dff465b88dbc8ed4707561e4e22ccd3f2d31e963da8ee"
+      }
+    ],
+    "crc": [
+      {
+        "path": "src/commands/git/crc.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "8e538c83779c9051d28c8b9d0bb2d824b83551cb",
+        "fileSha256": "dbdc947c848508bb194a39eabaecbf60e357e510f9c52af2b36bf09f3acb8df8",
+        "lineStart": 1,
+        "lineEnd": 14,
+        "spanBytes": 540,
+        "spanSha256": "dbdc947c848508bb194a39eabaecbf60e357e510f9c52af2b36bf09f3acb8df8"
+      }
+    ],
+    "codec": [
+      {
+        "path": "src/commands/git/codec.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "0c320318979fef4b9c9764bda4010b28b70eb986",
+        "fileSha256": "365fa7576691126c4baaa8b8d8c5ddf0fc9a02cf4a659d2839cf3baaffa8b8e2",
+        "lineStart": 1,
+        "lineEnd": 80,
+        "spanBytes": 3547,
+        "spanSha256": "448ebdd710a694b63c0ef3fbc6bcfbcd43b5f12025ec5a88bb68861f2d5d6204"
+      }
+    ],
+    "operation": [
+      {
+        "path": "src/contracts/output.ts",
+        "origin": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+        "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+        "fileSha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+        "lineStart": 13,
+        "lineEnd": 117,
+        "spanBytes": 4149,
+        "spanSha256": "d77f935a7d53419f1c5e4d9caf4239542d743eb428a3cf47d4eb2e615c2cf6e3"
+      }
+    ],
+    "command": [
+      {
+        "path": "src/commands/git/index.ts",
+        "origin": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "blob": "4909fdcb919b2fceb1e11c49a0809d17e1dd25ce",
+        "fileSha256": "3c3c3621e5b95fc7b9d53aa7f80d4c4d81bb93372c7a14f9e1000f38b10672bd",
+        "lineStart": 19,
+        "lineEnd": 41,
+        "spanBytes": 1239,
+        "spanSha256": "04485955c1ddcb11847f67dbcf879a32916b350ef8dd664d22cf876fbb81f45a"
+      }
+    ]
+  }
+}

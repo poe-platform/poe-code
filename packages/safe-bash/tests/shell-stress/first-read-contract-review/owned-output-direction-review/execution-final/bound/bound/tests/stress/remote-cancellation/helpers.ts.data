@@ -1,0 +1,278 @@
+import assert from "node:assert/strict";
+import { once } from "node:events";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import type { Socket } from "node:net";
+import { setImmediate as turn } from "node:timers/promises";
+import { test } from "node:test";
+import { agentCommands, MockS3Client, S3FileSystem, Shell, ShellLimitError, WebDavFileSystem } from "../../../../candidate/dist/index.js";
+import type { ByteSource, FileSystem, ShellResult, S3Transport } from "../../../../candidate/dist/index.js";
+import type { S3StreamPutInput } from "../../../../candidate/dist/fs/s3/transport.js";
+import { MockDav } from "../../fs/webdav/mock.js";
+
+export const bytes = (value: string): Uint8Array => new TextEncoder().encode(value);
+export const text = (value: Uint8Array): string => new TextDecoder().decode(value);
+export const original = bytes("first\nsecond\n");
+export const saved = bytes("KEEP");
+
+export function gate<Value = void>() {
+  let resolve!: (value: Value) => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<Value>((accept, fail) => { resolve = accept; reject = fail; });
+  void promise.catch(() => {});
+  return { promise, resolve, reject };
+}
+
+export async function bounded<Value>(pending: PromiseLike<Value>, label: string, milliseconds = 1200): Promise<Value> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([pending, new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
+export function observe<Value>(pending: PromiseLike<Value>) {
+  return Promise.resolve(pending).then(value => ({ kind: "value" as const, value }), error => ({ kind: "error" as const, error: error as unknown }));
+}
+
+export class Trace {
+  readonly events: string[] = [];
+  readonly cleanups: (() => unknown | Promise<unknown>)[] = [];
+  readonly controller = new AbortController();
+  readonly signals = new WeakSet<AbortSignal>();
+  pipelineCount = 0;
+  event(value: string): void { this.events.push(value); }
+  abort(): void { this.event("caller.abort"); this.controller.abort(new Error("audit cancellation")); }
+  operation(name: string, signal?: AbortSignal | null): void {
+    this.event(`op:${name}:callerAborted=${this.controller.signal.aborted}:signal=${signal ? signal.aborted ? "aborted" : "live" : "absent"}`);
+    if (signal && !this.signals.has(signal)) {
+      this.signals.add(signal);
+      const aborted = () => this.event(`transport.signal.abort:${name}`);
+      signal.addEventListener("abort", aborted, { once: true });
+      this.cleanups.push(() => signal.removeEventListener("abort", aborted));
+    }
+  }
+  noNewOperations(): void {
+    assert.equal(this.events.filter(value => value.startsWith("op:") && value.includes("callerAborted=true")).length, 0, "no transport starts after observed caller abort");
+    assert.equal(this.events.filter(value => value.startsWith("op:") && value.endsWith("signal=aborted")).length, 0, "no transport starts with an aborted operation signal");
+  }
+}
+
+export function audit(name: string, run: (trace: Trace) => Promise<void>): void {
+  test(name, { timeout: 8000 }, async context => {
+    const trace = new Trace();
+    const started = performance.now();
+    let verdict = "PASS";
+    const failures: unknown[] = [];
+    try { await run(trace); }
+    catch (error) { verdict = "FAIL"; trace.event(`failure:${String(error)}`); trace.controller.abort(); failures.push(error); }
+    finally {
+      for (const cleanup of trace.cleanups.reverse()) {
+        try { await bounded(Promise.resolve().then(cleanup), "fixture cleanup", 2000); }
+        catch (error) { verdict = "FAIL"; trace.event(`cleanup.failure:${String(error)}`); failures.push(error); }
+      }
+      await turn();
+      context.diagnostic(JSON.stringify({ name, verdict, durationMs: Math.round(performance.now() - started), pipelines: trace.pipelineCount, events: trace.events }));
+    }
+    if (failures.length === 1) throw failures[0];
+    if (failures.length > 1) throw new AggregateError(failures, "audit assertion and cleanup failures");
+  });
+}
+
+export function shell(fs: FileSystem, trace: Trace) {
+  const instance = new Shell({ fs, limits: { pipeHighWaterMark: 1 } }).use(agentCommands()).use(async (context, next) => {
+    trace.event(`command.start:${context.command}`);
+    try { return await next(); }
+    finally { trace.event(`command.settled:${context.command}`); }
+  });
+  trace.cleanups.push(() => instance.dispose());
+  return (script: string, options: Parameters<Shell["exec"]>[1] = {}) => {
+    trace.pipelineCount++;
+    trace.event(`pipeline:${script}`);
+    return observe(instance.exec(script, { signal: trace.controller.signal, ...options }));
+  };
+}
+
+export async function canceled(pending: ReturnType<typeof observe>, trace: Trace, label: string): Promise<void> {
+  const started = performance.now();
+  const result = await bounded(pending, label);
+  assert.equal(result.kind, "error", "filesystem cancellation rejects");
+  if (result.kind === "error") {
+    trace.event(`settled:error:${(result.error as { code?: string }).code}:waitMs=${Math.round(performance.now() - started)}`);
+    assert.equal((result.error as { code?: string }).code, "ECANCELED");
+  }
+}
+
+export async function shellFailure(pending: ReturnType<typeof observe<ShellResult>>, trace: Trace, expected: "cancel" | "quota" = "cancel"): Promise<void> {
+  const result = await bounded(pending, "shell failure settlement");
+  assert.equal(result.kind, "error", `shell ${expected} must reject`);
+  if (result.kind === "error") {
+    trace.event(`settled:shell-rejection:${String(result.error)}`);
+    if (expected === "quota") {
+      assert.ok(result.error instanceof ShellLimitError);
+      assert.equal(result.error.limit, "maxOutputBytes");
+    } else {
+      assert.equal(trace.controller.signal.aborted, true);
+      assert.equal(result.error, trace.controller.signal.reason);
+    }
+  }
+}
+
+export function producer(trace: Trace, first = original, lateCleanup = false) {
+  const pending = gate<IteratorResult<Uint8Array>>();
+  const entered = gate();
+  const returned = gate();
+  const cleanup = gate<IteratorResult<Uint8Array>>();
+  let count = 0;
+  const source: ByteSource & AsyncIterator<Uint8Array> = {
+    [Symbol.asyncIterator]() { trace.event("source.acquire"); return this; },
+    next() {
+      trace.event("source.next");
+      if (count++ === 0) return Promise.resolve({ done: false, value: first });
+      entered.resolve();
+      return pending.promise;
+    },
+    return() {
+      trace.event("source.return"); returned.resolve();
+      return lateCleanup ? cleanup.promise : Promise.resolve({ done: true, value: undefined });
+    },
+  };
+  trace.cleanups.push(async () => {
+    pending.reject(new Error("late source.next rejection"));
+    cleanup.reject(new Error("late source.return rejection"));
+    await turn();
+  });
+  return { source, entered, returned, pending, cleanup };
+}
+
+export async function s3Fixture(trace: Trace, overrides: Partial<S3Transport> = {}, maxStreamBytes?: number) {
+  const client = new MockS3Client({ buckets: ["audit"] });
+  await client.putObject({ Bucket: "audit", Key: "input", Body: original });
+  await client.putObject({ Bucket: "audit", Key: "output", Body: saved });
+  const bound: S3Transport = {
+    capabilities: client.capabilities,
+    headObject: client.headObject.bind(client), getObject: client.getObject.bind(client),
+    putObject: client.putObject.bind(client), listObjectsV2: client.listObjectsV2.bind(client),
+    copyObject: client.copyObject.bind(client), deleteObject: client.deleteObject.bind(client),
+    getObjectStream: client.getObjectStream.bind(client), putObjectStream: client.putObjectStream.bind(client),
+    ...overrides,
+  };
+  const transport = new Proxy(bound, { get(target, key, receiver) {
+    const value: unknown = Reflect.get(target, key, receiver);
+    if (typeof value !== "function") return value;
+    return (input: { Key?: string }, options?: { abortSignal?: AbortSignal }) => {
+      trace.operation(`S3.${String(key)}:${input.Key ?? "list"}`, options?.abortSignal);
+      if (key === "putObjectStream") {
+        const request = input as S3StreamPutInput;
+        const body: ByteSource = { [Symbol.asyncIterator]() {
+          trace.event("PUT.transport.body.acquire");
+          const iterator = request.Body[Symbol.asyncIterator]();
+          return {
+            async next() {
+              trace.event("PUT.transport.body.next");
+              try {
+                const result = await iterator.next();
+                if (result.done) trace.event("PUT.transport.body.done");
+                return result;
+              } catch (error) { trace.event(`PUT.transport.body.error:${(error as { code?: string }).code}`); throw error; }
+            },
+            async return() {
+              trace.event("PUT.transport.body.return");
+              return iterator.return ? iterator.return() : { done: true, value: undefined };
+            },
+          };
+        } };
+        return Reflect.apply(value, target, [{ ...request, Body: body }, options]);
+      }
+      return Reflect.apply(value, target, [input, options]);
+    };
+  } });
+  const fs = new S3FileSystem({ bucket: "audit", transport, allowNonAtomicRename: true,
+    ...(maxStreamBytes === undefined ? {} : { maxStreamBytes }) });
+  const contents = async (key: string) => (await client.getObject({ Bucket: "audit", Key: key })).Body;
+  return { fs, client, contents, transport };
+}
+
+export type HttpHook = (request: IncomingMessage, response: ServerResponse, mock: MockDav) => boolean | Promise<boolean>;
+
+export async function httpFixture(trace: Trace, hook?: HttpHook, maxResponseBytes?: number) {
+  const mock = new MockDav();
+  mock.files.set("/input", original);
+  mock.files.set("/output", saved);
+  const sockets = new Set<Socket>();
+  const socketClosures = new Set<Promise<void>>();
+  const tasks = new Set<Promise<void>>();
+  const failures: unknown[] = [];
+  const server = createServer((request, response) => {
+    trace.event(`http.request:${request.method}:${request.url}`);
+    request.on("aborted", () => trace.event(`http.request.aborted:${request.method}`));
+    response.on("close", () => trace.event(`http.response.close:${request.method}:finished=${response.writableFinished}`));
+    const task = (async () => {
+      if (await hook?.(request, response, mock)) return;
+      const chunks: Buffer[] = [];
+      let size = 0;
+      for await (const chunk of request) {
+        size += chunk.length;
+        assert.ok(size <= 1024 * 1024, "fixture request cap");
+        chunks.push(Buffer.from(chunk));
+      }
+      const headers = new Headers();
+      for (const [name, value] of Object.entries(request.headers)) if (value !== undefined) headers.set(name, Array.isArray(value) ? value.join(", ") : value);
+      const result = await mock.fetch(`http://${request.headers.host}${request.url}`, {
+        method: request.method!, headers,
+        ...(chunks.length ? { body: Buffer.concat(chunks) } : {}),
+      });
+      const payload = new Uint8Array(await result.arrayBuffer());
+      if (!response.destroyed) { response.writeHead(result.status, Object.fromEntries(result.headers)); response.end(payload); }
+    })().catch((error: unknown) => {
+      if (!request.aborted && !response.destroyed) failures.push(error);
+      response.destroy();
+    });
+    tasks.add(task);
+    void task.finally(() => tasks.delete(task));
+  });
+  server.on("connection", socket => {
+    sockets.add(socket); trace.event("http.socket.open");
+    const closed = new Promise<void>(resolve => socket.on("close", () => {
+      sockets.delete(socket); trace.event("http.socket.close"); resolve();
+    }));
+    socketClosures.add(closed);
+    void closed.then(() => socketClosures.delete(closed));
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  trace.cleanups.push(async () => {
+    const stopped = new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    server.closeAllConnections();
+    for (const socket of sockets) socket.destroy();
+    await stopped;
+    await Promise.all(socketClosures);
+    await Promise.all(tasks);
+    await turn();
+    trace.event(`http.final:sockets=${sockets.size}:tasks=${tasks.size}:listening=${server.listening}:errors=${failures.length}`);
+    assert.equal(sockets.size, 0);
+    assert.equal(tasks.size, 0);
+    assert.equal(server.listening, false);
+    assert.deepEqual(failures, []);
+  });
+  const fs = new WebDavFileSystem({ baseUrl: `http://127.0.0.1:${address.port}/dav/`, timeoutMs: 4000,
+    ...(maxResponseBytes === undefined ? {} : { maxResponseBytes }),
+    fetch: (url, init) => { trace.operation(`DAV.${init.method}:${new URL(url).pathname}`, init.signal); return fetch(url, init); },
+  });
+  return { fs, mock, server };
+}
+
+export function injectedDav(trace: Trace, intercept: (url: string, init: RequestInit, mock: MockDav) => Promise<Response | undefined>) {
+  const mock = new MockDav();
+  mock.files.set("/input", original);
+  mock.files.set("/output", saved);
+  const fs = new WebDavFileSystem({ baseUrl: "http://127.0.0.1:1/dav/", timeoutMs: 4000,
+    fetch: async (url, init) => {
+      trace.operation(`DAV.${init.method}`, init.signal);
+      return await intercept(url, init, mock) ?? mock.fetch(url, init);
+    },
+  });
+  return { fs, mock };
+}

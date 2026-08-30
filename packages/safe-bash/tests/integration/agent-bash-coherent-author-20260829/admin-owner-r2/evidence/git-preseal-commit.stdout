@@ -1,0 +1,27 @@
+[main 07e3249ae] Preseal single-live-owner ledger integration and bounded controls
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 12 files changed, 897 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/HANDOFF.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/RECIPE.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/admin-dispatch.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/launch-preparation.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/materialize.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/preimport.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/prepare.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/probe.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/publish.mjs

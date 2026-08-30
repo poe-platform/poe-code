@@ -1,0 +1,4 @@
+import { resolve } from 'node:path';
+import { capture, candidate } from './supervisor.mjs';
+const round = process.argv[2] ?? 'v2-r0';
+await capture(`${round}-direction-author`, process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', '--test', '--test-concurrency=1', resolve(candidate, 'tests/shell/owned-output-direction-author.test.ts')]);

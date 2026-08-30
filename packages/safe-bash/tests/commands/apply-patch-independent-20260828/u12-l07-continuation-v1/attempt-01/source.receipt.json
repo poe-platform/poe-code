@@ -1,0 +1,21 @@
+{
+  "layout": "source",
+  "pid": 18664,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "absent": true,
+  "failure": null,
+  "channels": {
+    "stdout": {
+      "path": "source.stdout.raw",
+      "bytes": 228564,
+      "sha256": "f427e384efb48f71b43bbbd28d328af051431dca5e08173b6cffeb2a985c4819"
+    },
+    "stderr": {
+      "path": "source.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

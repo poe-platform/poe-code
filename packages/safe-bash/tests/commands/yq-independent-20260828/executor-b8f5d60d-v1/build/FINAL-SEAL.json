@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build",
+  "status": "STATIC_COMPONENT_SEALED_NO_EXECUTION_GO",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "proofRole": "CODE_DATA_SCHEMA_AND_STATIC_CHECKS_ONLY_NOT_INDEPENDENT_BUILD",
+  "sourcePreseal": {
+    "path": "BUILD-SOURCE-PRESEAL.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 6518,
+    "sha256": "3ff5b3158acd151a7a85fe54ec05085aafbf39a3f6fb7f827923caf2fb233502"
+  },
+  "assemblyMap": {
+    "path": "ASSEMBLY-MAP.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 3254,
+    "sha256": "3d3040400ee14017a2eed7277603b7421c4348a6ae67db1c2b49799278d802bd"
+  },
+  "directoryEntries": [
+    {
+      "path": "",
+      "kind": "directory",
+      "mode": 493
+    }
+  ],
+  "entries": [
+    {
+      "path": "ASSEMBLY-MAP.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3254,
+      "sha256": "3d3040400ee14017a2eed7277603b7421c4348a6ae67db1c2b49799278d802bd"
+    },
+    {
+      "path": "BUILD-RESULT-SCHEMA.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 22550,
+      "sha256": "da85783b1c82dfa63c6bc7644b9ef9882214445c5f7b2cd5fb750b57ff2ee603"
+    },
+    {
+      "path": "BUILD-SOURCE-PRESEAL.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6518,
+      "sha256": "3ff5b3158acd151a7a85fe54ec05085aafbf39a3f6fb7f827923caf2fb233502"
+    },
+    {
+      "path": "BUILD-SPECIFICATION.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9270,
+      "sha256": "960522cb5f4d90979353540748531efb9df6fa6bf846874ea74fc87519d2a16c"
+    },
+    {
+      "path": "DEFERRED-CONTROLS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3786,
+      "sha256": "dd0836ec6f696bd4adfa3f8283202b0e88cf5a663d5c80597743b726ddda1435"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4658,
+      "sha256": "7403eba2325c6ad1804f57defe7610c924496cf482f8b72fdd573ff500222368"
+    },
+    {
+      "path": "INTEGRATION.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5306,
+      "sha256": "2db77e2e883513e7fdf0c2f0beed0c2ea5af67c791390be70c141544a2efc111"
+    },
+    {
+      "path": "PREPARATION-HISTORY.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2294,
+      "sha256": "afdbd1f1241fc181acc64cfb386ea09014ea54c04df156771f731ca0923f818d"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1784,
+      "sha256": "8b774d5ef9df08b990fcfd31dbe64eb8b82a044a8e98b4400992d49ef7481ada"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 16300,
+      "sha256": "2ce07b4ee61174b9e4b9b827f1b5c1ffadea6068828763480f98337bc990a9eb"
+    },
+    {
+      "path": "build-fs.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7894,
+      "sha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21"
+    },
+    {
+      "path": "build-outputs.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7266,
+      "sha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a"
+    },
+    {
+      "path": "build-package-manifest.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 152021,
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7"
+    },
+    {
+      "path": "build-plan.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 170411,
+      "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1"
+    },
+    {
+      "path": "build-source-manifest.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 47504,
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286"
+    },
+    {
+      "path": "build-worker.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 21275,
+      "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4"
+    }
+  ],
+  "membership": {
+    "filesIncludingSeal": 17,
+    "directoriesIncludingRoot": 1,
+    "exactNames": [
+      "ASSEMBLY-MAP.json",
+      "BUILD-RESULT-SCHEMA.json",
+      "BUILD-SOURCE-PRESEAL.json",
+      "BUILD-SPECIFICATION.md",
+      "DEFERRED-CONTROLS.json",
+      "FINAL-SEAL.json",
+      "INPUTS.json",
+      "INTEGRATION.md",
+      "PREPARATION-HISTORY.md",
+      "README.md",
+      "STATIC-CHECKS.json",
+      "build-fs.mjs",
+      "build-outputs.mjs",
+      "build-package-manifest.json",
+      "build-plan.json",
+      "build-source-manifest.json",
+      "build-worker.mjs"
+    ],
+    "symlinks": 0,
+    "agentsFiles": 0
+  },
+  "selfEntry": {
+    "path": "FINAL-SEAL.json",
+    "kind": "file",
+    "mode": 420,
+    "modeAuthority": "Fresh0644 declaration; full mode verified after atomic publication, never inferred from Git100644.",
+    "byteAuthority": "SHA256 and size are external in /tmp/yq-executor-build-ready.txt and immutable Git blob; no circular self-hash."
+  },
+  "activeCodeClosure": "ASSEMBLY-MAP.json six entries only; documentation/history are not runtime imports.",
+  "remainingDynamicProof": "All compiler/build/packing/loader/semantic/type/loaded/moved/lifecycle controls UNRUN; fresh RootGO and separately sealed core integration required.",
+  "historicalFailuresPreserved": true
+}

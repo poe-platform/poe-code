@@ -1,0 +1,13 @@
+AssertionError [ERR_ASSERTION]: unique runner replacement
+
+1 !== 2
+
+    at change (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/prepare.mjs:75:43)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/prepare.mjs:97:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+{"at":1787995931569,"event":"capture-open","pid":84439}
+{"at":1787995931782,"event":"child-close","pid":84443,"command":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","cat-file","--batch"],"status":0,"signal":null,"error":null}
+{"at":1787995931786,"event":"primary","reasonPresent":true,"reason":"AssertionError [ERR_ASSERTION]: unique runner replacement\n\n1 !== 2\n\n    at change (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/prepare.mjs:75:43)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/prepare.mjs:97:3\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"}
+{"at":1787995931786,"event":"capture-closure","children":[{"pid":84443,"command":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","cat-file","--batch"],"status":0,"signal":null,"error":null}]}

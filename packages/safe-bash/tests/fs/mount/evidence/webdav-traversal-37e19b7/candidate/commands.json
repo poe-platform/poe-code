@@ -1,0 +1,6 @@
+[
+  {"name":"new-traversal-regressions","args":["--unhandled-rejections=strict","--import","tsx","--test","tests/fs/mount/webdav-traversal.test.ts"]},
+  {"name":"webdav-required11","args":["--unhandled-rejections=strict","--import","tsx","--test","--test-name-pattern=^(REQUIRED webdav (one-mount|separate-clients)|REQUIRED memory .* webdav|positive webdav one-mount)","tests/fs/mount/identity-compatibility-review/compatibility.test.ts"]},
+  {"name":"original4","args":["--unhandled-rejections=strict","--import","tsx","--test","tests/fs/mount/copy-identity.test.ts"]},
+  {"name":"required49","args":["--unhandled-rejections=strict","--import","tsx","--test","tests/fs/mount/copy-identity-guards.test.ts","tests/fs/overlay/copy-identity.test.ts"]}
+]

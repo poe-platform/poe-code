@@ -1,0 +1,18 @@
+{
+  "url": "https://savannah.gnu.org/projects/bash/",
+  "cap": 131072,
+  "name": "bash-project.html",
+  "startedAt": "2026-08-29T04:59:47.216Z",
+  "bytes": 19232,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:59:47 GMT",
+    "content-type": "text/html; charset=utf-8",
+    "content-length": null,
+    "location": null
+  },
+  "sha256": "b86400e9a153274baa306cc0641810fc5ebedb65333c66dbf071ae5dcfda29fc",
+  "capture": "bash-project.html.data",
+  "disposition": "PUBLISHER_RESPONSE_NOT_YET_ATTRIBUTED_SIGNER",
+  "endedAt": "2026-08-29T04:59:47.521Z"
+}

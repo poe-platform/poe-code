@@ -1,0 +1,303 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "classification": "AUTHOR_STATIC_CHECKS_NOT_DYNAMIC_ACCEPTANCE",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "components": [
+    {
+      "name": "core",
+      "commit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/",
+      "seal": "SOURCE-SEAL.json",
+      "sha256": "bbd95c1fd7b7e5303003ae4d982fe75f2d0c6a8ac1d13cbab1d7431bf0560d3f",
+      "files": 59,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    },
+    {
+      "name": "workers",
+      "commit": "c0353685540288d504b93f206735fe4c448268ef",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+      "files": 30,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    },
+    {
+      "name": "build",
+      "commit": "937c1f6a35c620146e62924b16d90e808319024f",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "e796e30489e031c4ab6d58882542e7f3b6c644ead90ae29474c2744003f73c9d",
+      "files": 17,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    },
+    {
+      "name": "cwF01",
+      "commit": "89bc7bd545f8b6f7215b7c2a49cccf644a08e07f",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "2ddd402a35916f4fb7ab29b33c9f740aebde5134a2feca43383b5abf6c427fb6",
+      "files": 7,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    },
+    {
+      "name": "cwF02",
+      "commit": "9fe3c8574b32df9839284307942be5003d87d0a0",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "e124f052e7bf148073ac6831b48fe7436ee4b54fc2ca06ea1f595bb12dca1197",
+      "files": 9,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    }
+  ],
+  "syntax": [
+    {
+      "path": "assembly/core/admission.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "e21f6d31eaca277cb1f2ae81bc4a5e10ba844dad268303e2c34d69e71eccbd94"
+    },
+    {
+      "path": "assembly/core/build-adapter.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "c6482449fc028b7890955203513991707e42d56e3ad37178e4466c8d69e46a45"
+    },
+    {
+      "path": "assembly/core/classification.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c"
+    },
+    {
+      "path": "assembly/core/cli.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "e1e9b64a89fda6b5e2d2f2874785927a0dd5b7975ce3785de22191ba053dcfd1"
+    },
+    {
+      "path": "assembly/core/coordinator.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "b6ca292314e703933661d571ff52038a5f9c92e4ef96960e71eedfb56ab32bc1"
+    },
+    {
+      "path": "assembly/core/coverage.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "c4816093400d404c9b804e881b1b928d4c03265d843f43a8e1aacd6c5e757f2a"
+    },
+    {
+      "path": "assembly/core/frozen/assert-capture.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0"
+    },
+    {
+      "path": "assembly/core/frozen/cmd22-read-paths.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647"
+    },
+    {
+      "path": "assembly/core/frozen/context.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821"
+    },
+    {
+      "path": "assembly/core/frozen/deferred-fixtures.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939"
+    },
+    {
+      "path": "assembly/core/frozen/integrity.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"
+    },
+    {
+      "path": "assembly/core/frozen/original-assert-capture.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd"
+    },
+    {
+      "path": "assembly/core/infrastructure-worker.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a"
+    },
+    {
+      "path": "assembly/core/loader.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "9c64aa1d79e065bc54af9f9f63ce985075215c8aae8d423b45c22181557b4065"
+    },
+    {
+      "path": "assembly/core/materialization.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "8c164b69ed05f38c3d1d393ea0d12bfe2017aa5ad214776bdc55e2d4a33dc853"
+    },
+    {
+      "path": "assembly/core/owned-process.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302"
+    },
+    {
+      "path": "assembly/core/phase-capture.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64"
+    },
+    {
+      "path": "assembly/core/primitives.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506"
+    },
+    {
+      "path": "assembly/core/semantic-worker.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "883196604d607ed53bdc8f7a13a21cc3d41bdc0eb2e8b3132d55c85a184e2bba"
+    },
+    {
+      "path": "assembly/core/source-audit-worker.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "564caff0a2c9728ee1443b3969ebc86121bce2e8aae1a6a58d49dd0d6e929c62"
+    },
+    {
+      "path": "assembly/core/supervisor.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed"
+    },
+    {
+      "path": "assembly/core/tool-bridge.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "5837e2f3f36fafdd9c5f935610a9b23601b4353a5302b11cde4983a67308477d"
+    },
+    {
+      "path": "assembly/core/tool-profile.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "ee9c0db3b961af6d9b2e5cab6172c6200b8ed650f2d8554cc5a361a693900ce2"
+    },
+    {
+      "path": "assembly/core/worker-api.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876"
+    },
+    {
+      "path": "assembly/core/worker-host.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "62fdb743912b058200fcaf745aac894a3878a067082b6aa2e0a0a953544b45e3"
+    },
+    {
+      "path": "assembly/workers/build-fs.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21"
+    },
+    {
+      "path": "assembly/workers/build-outputs.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a"
+    },
+    {
+      "path": "assembly/workers/build-worker.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4"
+    },
+    {
+      "path": "assembly/workers/loaded-worker.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c"
+    },
+    {
+      "path": "assembly/workers/type-worker.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd"
+    },
+    {
+      "path": "assembly/workers/worker-support.mjs",
+      "operation": "node --check; no module evaluation",
+      "status": 0,
+      "sha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905"
+    }
+  ],
+  "specification": {
+    "result": "OK",
+    "warnings": 0,
+    "initialErrors": 2
+  },
+  "dataChecks": {
+    "assemblyFiles": 70,
+    "assemblyDirectories": 7,
+    "relativeImportEdges": 51,
+    "allRelativeImportsResolveWithinUnion": true,
+    "externalPackageImports": 0,
+    "freshWorkerInputDescriptors": 17,
+    "buildProjectionFiles": 6,
+    "byteExactCwF01": true,
+    "byteExactCwF02": true,
+    "originalF01AndF02ContextAnd149BytesUnchanged": true,
+    "primitiveFallbackAbsent": true,
+    "sourceProjection271": true,
+    "archive273Separate": true,
+    "package870WithReadme": true,
+    "compilerCopiedFiles": 248,
+    "totalCopiedTools": 249,
+    "compilerToolLayoutMatchesBuildPlan": true,
+    "sourceAndDestinationHashesModesMembership": true,
+    "outerSlots": 336,
+    "phaseTotalMs": 24165000,
+    "compilerMaximum": 18,
+    "two149Profiles": true,
+    "loadedSlots": 10,
+    "knownLoadedObservationGaps": 4,
+    "actualLoadedGapClosure": false,
+    "selectedToolGitCalls": 546,
+    "executionDestinationAbsent": true
+  },
+  "seals": {
+    "recipeSha256": "40c9e4c0a407fd1ebebbb17a421a52d2949c3ef6316b4a46499504127b64174d",
+    "assemblySealSha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+    "toolCopySha256": "0d0793d63f31b1d1f5cc91d2d77fe5b14c854c0c3980dd2d25e90c06a424e5b8",
+    "loadClosureSha256": "edfd944ea63674c3123ebb3036f1f43daf94bb938bd7660dccf611582b451e8a"
+  },
+  "knownImplementationLimits": {
+    "unimplementedObservationAdapter": "Explicitly not authorized; two positives incomplete and two retained variants denied",
+    "sourceArguments": "23 designated source records/four repair arguments not automatically public runtime proof",
+    "originalMissingBindings": "80records/135obligations remain UNRUN",
+    "additionalConcreteCompositionApiGaps": "None identified by this static author inspection; independent review may find defects",
+    "runtimeConformance": "UNVERIFIED; no dynamic checks allowed"
+  },
+  "executionCounts": {
+    "syntaxFiles": 31,
+    "productImports": 0,
+    "authoredModuleEvaluation": 0,
+    "compilerExecutions": 0,
+    "loaderCalls": 0,
+    "workerExecutions": 0,
+    "coordinatorExecutions": 0,
+    "controlPredicateExecutions": 0,
+    "authoredMaterializerExecutions": 0,
+    "copiedToolExecutions": 0,
+    "candidateMaterializations": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "RootGO": false
+}

@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+const root='/Users/kjopek/Workspace/safe-bash',own='tests/compatibility/bash-strict-extension-independent-20260829/n14-v2';
+const cap=root+'/'+own+'/startup-correction';fs.mkdirSync(cap);
+const stdout=fs.openSync(cap+'/stdout.raw','wx'),stderr=fs.openSync(cap+'/stderr.raw','wx');
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const read=name=>fs.readFileSync(root+'/'+own+'/'+name);
+const write=(name,value)=>fs.writeFileSync(root+'/'+own+'/'+name,value,{flag:'wx'});
+const json=(name,value)=>write(name,JSON.stringify(value,null,2)+'\n');
+function change(text,from,to){assert.equal(text.split(from).length,2,from);return text.replace(from,to);}
+function child(label,exe,args){fs.appendFileSync(cap+'/events.jsonl',JSON.stringify({event:'before-spawn',label,exe,args})+'\n');const out=fs.openSync(cap+'/'+label+'.stdout.raw','wx'),err=fs.openSync(cap+'/'+label+'.stderr.raw','wx');const result=spawnSync(exe,args,{cwd:root,stdio:['ignore',out,err],timeout:30000});fs.closeSync(out);fs.closeSync(err);fs.appendFileSync(cap+'/events.jsonl',JSON.stringify({event:'closed',label,pid:result.pid,status:result.status,signal:result.signal,errorPresent:!!result.error})+'\n');assert(!result.error&&!result.signal&&result.status===0,label);return fs.readFileSync(cap+'/'+label+'.stdout.raw');}
+try{
+ const terminal=JSON.parse(read('actual-v1/TERMINAL.json'));assert.equal(terminal.exitCode,1);assert.equal(terminal.ownedGroupAbsent,true);assert.equal(terminal.closed,true);assert.equal(terminal.primaryPresent,false);assert.equal(terminal.cleanupPresent,false);assert.equal(terminal.signals.length,0);assert.match(read('actual-v1/stderr.raw').toString(),/ENOENT.*tests\/tests\/commands\/git-design/s);
+ const start=fs.statSync(root+'/'+own+'/actual-dispatch.stdout.raw').birthtimeMs;const elapsed=Math.ceil((Date.now()-start)/1000);assert(elapsed<600);
+ const prepare=change(read('prepare.mjs').toString(),'export const repo = path.resolve(own, "../../..");','export const repo = "/Users/kjopek/Workspace/safe-bash";');write('prepare-v2.mjs',prepare);
+ const imported=await import('./prepare-v2.mjs');assert.equal(imported.repo,root);assert.equal(imported.own,root+'/'+own);
+ let runner=change(read('run.mjs').toString(),"'./prepare.mjs'","'./prepare-v2.mjs'");runner=change(runner,"'PRESEAL.json'","'PRESEAL-v2.json'");runner=change(runner,"'EXECUTOR.json'","'EXECUTOR-v2.json'");write('run-v2.mjs',runner);
+ const seal=JSON.parse(read('PRESEAL.json'));seal.bounds.totalSeconds-=elapsed;seal.priorElapsedSeconds=elapsed;seal.originalGrantStartedMs=start;seal.correction='Source-only rootlocator; original startup0setup/product preserved; same original actual60min budget.';json('PRESEAL-v2.json',seal);
+ let launcher=change(read('launch.py').toString(),"'actual-v1'","'actual-v2'");launcher=change(launcher,"'run.mjs'","'run-v2.mjs'");launcher=change(launcher,"'PRESEAL.json'","'PRESEAL-v2.json'");launcher=change(launcher,"'EXECUTOR.json'","'EXECUTOR-v2.json'");launcher=change(launcher,'< 3300,',`< ${3300-elapsed},`);write('launch-v2.py',launcher);
+ child('syntax-run-v2',seal.node.path,['--check',root+'/'+own+'/run-v2.mjs']);
+ const executor=JSON.parse(read('EXECUTOR.json'));for(const name of ['prepare-v2.mjs','run-v2.mjs','launch-v2.py','PRESEAL-v2.json','correct-startup-v2.mjs']){const bytes=read(name);executor.files.push({path:own+'/'+name,bytes:bytes.length,sha256:hash(bytes)});}json('EXECUTOR-v2.json',executor);
+ const receipt={date:'2026-08-29',original:{exit:1,setupChildren:0,product:0,terminal,stderrSha256:hash(read('actual-v1/stderr.raw'))},correction:{before:'repo resolved from a parent count valid only at the original directory depth',after:'exact authorized root literal; no product/fixture/permission changes',changedExports:['repo'],originalPrepare:hash(read('prepare.mjs')),newPrepare:hash(read('prepare-v2.mjs'))},beforeConsumerImportCheck:{repo:imported.repo,own:imported.own,pass:true},scope:'ROOT ordinary fully captured retired source-helper correction allowed within same actual grant; not safety override or new budget.',newExecutorSha256:hash(read('EXECUTOR-v2.json')),newSealSha256:hash(read('PRESEAL-v2.json')),originalGrantStartedMs:start,priorElapsedSeconds:elapsed};json('STARTUP-CORRECTION.json',receipt);
+ assert(!fs.existsSync(root+'/'+own+'/actual-v2'));
+ const git=['-c','gc.auto=0','-c','maintenance.auto=false','-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','-c','core.abbrev=40'];const paths=['prepare-v2.mjs','run-v2.mjs','launch-v2.py','PRESEAL-v2.json','EXECUTOR-v2.json','STARTUP-CORRECTION.json','correct-startup-v2.mjs'].map(name=>own+'/'+name);child('stage-correction','/usr/bin/git',[...git,'add','--',...paths]);const commit=child('commit-correction','/usr/bin/git',[...git,'commit','--only','-m','test: version N14 nested-harness root locator correction','--',...paths]);const final={commit:commit.toString().split('\n')[0],...receipt};fs.writeSync(stdout,JSON.stringify(final)+'\n');console.log(JSON.stringify({commit:final.commit,newExecutorSha256:receipt.newExecutorSha256,newSealSha256:receipt.newSealSha256,priorElapsedSeconds:elapsed}));
+}catch(error){fs.writeSync(stderr,String(error.stack)+'\n');console.error(error);process.exitCode=1;}finally{fs.closeSync(stdout);fs.closeSync(stderr);}

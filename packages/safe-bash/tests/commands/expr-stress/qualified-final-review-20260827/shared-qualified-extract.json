@@ -1,0 +1,18 @@
+{
+  "name": "shared-qualified-extract",
+  "executable": "/usr/bin/tar",
+  "args": [
+    "-xf",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/shared-qualified.tar",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/shared-qualified"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work",
+  "started": "2026-08-27T19:40:47.881Z",
+  "finished": "2026-08-27T19:40:48.031Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "",
+  "stderr": ""
+}

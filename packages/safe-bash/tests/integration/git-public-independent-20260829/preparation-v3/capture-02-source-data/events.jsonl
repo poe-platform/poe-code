@@ -1,0 +1,5 @@
+{"startNs": 1787967952808264000, "pid": 55666, "slots": 6}
+{"read": "tests/integration/apply-patch-public-independent-20260829/RAW.json.gz.base64", "bytes": 8780277, "sha256": "95398e911fa279431a90a4dad1c093a49531b5e1ac6f8c366d04b543420c8e84"}
+{"read": "tests/integration/git-public-20260829/run.mjs", "bytes": 29986, "sha256": "8bd1cbd8f1e108b231fc399692b92ada9ea0c6846217a680edb9908cdf4492d4"}
+{"read": "tests/integration/git-public-20260829/public.mjs", "bytes": 13001, "sha256": "5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176"}
+{"terminal": "natural", "productExecutions": 0}

@@ -1,0 +1,95 @@
+import hashlib
+import io
+import json
+from pathlib import Path
+import re
+import subprocess
+import tarfile
+
+baseline = "a03b9288a6f4b652387be9fefa8faf17ef58b9e7"
+root = "tests/integration/owned-output-production-rebase/author/"
+proposal = "tests/integration/safejs-owned-output-prototype-review/production-rebase-proposal/"
+zero = "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/"
+artifacts = []
+
+
+def git(*arguments):
+    return subprocess.check_output(["git", *arguments])
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def authenticate(path, commit):
+    original = git("show", commit + ":" + path)
+    assert original == Path(path).read_bytes() == git("show", baseline + ":" + path), path
+    artifacts.append({"path": path, "originalCommit": git("rev-parse", commit).decode().strip(),
+                      "gitBlob": git("rev-parse", baseline + ":" + path).decode().strip(),
+                      "sha256": sha(original), "bytes": len(original), "unchangedAtBaselineAndRead": True})
+    return original
+
+
+def inventory(files):
+    return [{"path": path, "bytes": len(data), "sha256": sha(data)} for path, data in sorted(files.items())]
+
+
+def identity(rows):
+    return sha(json.dumps(rows, separators=(",", ":")).encode())
+
+
+assert Path.cwd() == Path("/Users/kjopek/Workspace/safe-bash")
+assert not Path(root + "PROVENANCE.json").exists()
+for name in ["PROPOSAL.md", "MANIFEST.json", "inspect-public-inputs.py.data"]:
+    authenticate(proposal + name, "7adabe6ba4f5a3da5ba2e90660f2cc0cefe7598b")
+archive = authenticate("tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/candidate.tar.gz.data", "b8f5d46a")
+assert sha(archive) == "a3b9aa6fcb4596e8281de2c30943b98baa01449941c8368401d1172bce95d420"
+with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as bundle:
+    sources = {member.name: bundle.extractfile(member).read() for member in bundle.getmembers()
+               if member.isfile() and member.name.startswith("src/")}
+parent = json.loads(authenticate(zero + "inventories/parent-source213.json", "a61e63bc46e8389e59c0d8fdc1d424003f62c769"))
+candidate = json.loads(authenticate(zero + "inventories/candidate-source213.json", "a61e63bc46e8389e59c0d8fdc1d424003f62c769"))
+assert len(sources) == 213 and inventory(sources) == parent
+assert identity(parent) == "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea"
+patch = authenticate(zero + "overlay/zero-validation.patch-data", "a61e63bc46e8389e59c0d8fdc1d424003f62c769")
+assert sha(patch) == "2223c4fe1f9aaa31642cbc7e0b0d03f81592a2a825637d3bd0eee81787ccda53"
+path = "src/commands/network/shared.ts"
+lines = patch.decode().splitlines(keepends=True)
+assert lines[:2] == ["--- a/" + path + "\n", "+++ b/" + path + "\n"]
+assert sum(line.startswith("--- ") for line in lines) == 1
+old = sources[path].decode().splitlines(keepends=True)
+result = []
+position = 0
+offset = 2
+while offset < len(lines):
+    match = re.match(r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", lines[offset])
+    assert match
+    start = int(match[1]) - 1
+    removed = []
+    added = []
+    offset += 1
+    while offset < len(lines) and lines[offset][:1] in (" ", "+", "-"):
+        if lines[offset][0] in (" ", "-"):
+            removed.append(lines[offset][1:])
+        if lines[offset][0] in (" ", "+"):
+            added.append(lines[offset][1:])
+        offset += 1
+    assert len(removed) == int(match[2] or 1) and len(added) == int(match[4] or 1)
+    assert start >= position and old[start:start + len(removed)] == removed
+    result += old[position:start] + added
+    position = start + len(removed)
+result += old[position:]
+sources[path] = "".join(result).encode()
+assert sources[path] == git("show", "bb7f5972:" + path) == git("show", baseline + ":" + path) == Path(path).read_bytes()
+assert inventory(sources) == candidate
+assert identity(candidate) == "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1"
+record = {"artifacts": artifacts, "verifiedHistoricalSourceCount": 213,
+          "S1SourceManifestSha256": identity(parent), "zeroOverlaySourceManifestSha256": identity(candidate),
+          "zeroOnlyPatchSha256": sha(patch), "zeroOnlySourcePath": path, "zeroCurrentBytesEqualAccepted": True,
+          "auditsNotRerun": ["ed21ae6c214e9b76d3361004ce6097c2be5b7136", "9f15ac3f54397835318978ef43a056bbf11a0d06"],
+          "historicalOnly": True, "baselineFrozen": baseline,
+          "rootObservedHeadDelta": git("diff", "--stat", "8897ece39c730812b74164377180b90d6cd02444", baseline, "--", "src").decode()}
+text = json.dumps(record, indent=2) + "\n"
+subprocess.run(["apply_patch", "*** Begin Patch\n*** Add File: " + root + "PROVENANCE.json\n" +
+                "".join("+" + line + "\n" for line in text.splitlines()) + "*** End Patch\n"], check=True)
+print("Authenticated exact 213-source S1 + zero-only patch; current shared.ts unchanged")

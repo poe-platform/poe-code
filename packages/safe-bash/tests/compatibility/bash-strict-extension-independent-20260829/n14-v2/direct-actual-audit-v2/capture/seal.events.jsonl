@@ -1,0 +1,12 @@
+{"at":"2026-08-29T11:55:29.894Z","event":"owner-start","pid":57954,"mode":"seal"}
+{"at":"2026-08-29T11:55:29.906Z","event":"capture-open","label":"stage-preseal"}
+{"at":"2026-08-29T11:55:29.912Z","event":"enrolled","label":"stage-preseal","pid":57957,"executable":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","add","--","tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2","tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v1/capture/v2-bootstrap.stdout","tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v1/capture/v2-bootstrap.stderr"]}
+{"at":"2026-08-29T11:55:30.023Z","event":"exit","label":"stage-preseal","pid":57957,"code":0,"signal":null}
+{"at":"2026-08-29T11:55:30.029Z","event":"close","label":"stage-preseal","pid":57957,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"spawnErrorPresent":false}
+{"at":"2026-08-29T11:55:30.032Z","event":"capture-closed","label":"stage-preseal"}
+{"at":"2026-08-29T11:55:30.036Z","event":"capture-open","label":"commit-preseal"}
+{"at":"2026-08-29T11:55:30.040Z","event":"enrolled","label":"commit-preseal","pid":57958,"executable":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","commit","--only","-m","test: preseal corrected virtual37 receipt-layer data audit","--","tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2","tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v1/capture/v2-bootstrap.stdout","tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v1/capture/v2-bootstrap.stderr"]}
+{"at":"2026-08-29T11:55:30.369Z","event":"exit","label":"commit-preseal","pid":57958,"code":0,"signal":null}
+{"at":"2026-08-29T11:55:30.378Z","event":"close","label":"commit-preseal","pid":57958,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"spawnErrorPresent":false}
+{"at":"2026-08-29T11:55:30.381Z","event":"capture-closed","label":"commit-preseal"}
+{"at":"2026-08-29T11:55:30.385Z","event":"owner-complete","pid":57954,"code":0}

@@ -1,0 +1,16 @@
+import { createYqCommand, createYqCommands, yqCommands } from "@@YQ@@";
+import type { CommandDefinition, VirtualShellPlugin } from "@@CONTRACTS@@";
+
+type Equal<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends (<Value>() => Value extends Right ? 1 : 2) ? true : false;
+type Assert<Value extends true> = Value;
+export type CommandShape = Assert<Equal<ReturnType<typeof createYqCommand>, CommandDefinition>>;
+export type CommandsShape = Assert<Equal<ReturnType<typeof createYqCommands>, readonly CommandDefinition[]>>;
+export type PluginShape = Assert<Equal<ReturnType<typeof yqCommands>, VirtualShellPlugin>>;
+export type CommandArguments = Assert<Equal<Parameters<typeof createYqCommand>, []>>;
+export type CommandsArguments = Assert<Equal<Parameters<typeof createYqCommands>, []>>;
+export type PluginOptions = Assert<Equal<NonNullable<Parameters<typeof yqCommands>[0]>, { readonly replace?: boolean }>>;
+createYqCommand();
+createYqCommands();
+yqCommands();
+yqCommands({ replace: true });
+yqCommands({ replace: false });

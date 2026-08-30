@@ -1,0 +1,67 @@
+{
+  "controls": [
+    {
+      "id": "A01-same-buffer",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A02-hash-before-consumer",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A03-exact-size",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A04-cap",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A05-link-type",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A06-directory-type",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A07-missing",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A08-no-reread",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A09-hash-before-inflate",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A10-bad-hash-no-inflate",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A11-decoded-bound",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    },
+    {
+      "id": "A12-metadata-shape",
+      "pass": true,
+      "role": "DATA_ONLY_NO_PRODUCT"
+    }
+  ],
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "decodeQualification": "Only harmless task-owned DATA; no product package inflated."
+}

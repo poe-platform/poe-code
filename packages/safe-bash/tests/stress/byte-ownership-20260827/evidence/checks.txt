@@ -1,0 +1,23 @@
+Scoped compiler: node_modules/.bin/tsc -p tests/stress/byte-ownership-20260827/tsconfig.json
+Corrected scaffold exit 0; corrected seeded fixture exit 0. No emission/dist write.
+The initial compile-only scaffold failure remains in scaffold-typecheck.txt.
+
+Final binding command: node tests/stress/byte-ownership-20260827/binding.mjs
+BINDING verified 222 source/fixture hashes; node=v22.22.2; currentHead=e312860960f1534c2c77545fcf0fb20b3bd6f029; frozenHead=a31b7c36eef00c41763875c863a559594049f13f
+Exit 0. Source hashes match before/after matrix and final evidence preparation.
+
+Evidence integrity: raw TAP SHA-256 equals evidence/results.json rawTapSha256;
+20 observation records; 17 pass; failing IDs exactly 02,04,06; TAP counts agree.
+Raw diagnostic whitespace is intentionally retained in .tap evidence.
+
+Main matrix command/exit/counts and observations are in evidence/results.json.
+Every test/compiler exec session has returned. Test processes exit naturally;
+case cleanup disposes all Shells, closes/aborts pipe, finalizes sources and
+releases explicit barriers. Process inspection found no remaining audit test
+process (only the coordinating Codex process and inspection shell).
+No audit listener/server, network call, global build, source edit or dependency
+installation was performed. Node documentation lookup was the sole web lookup.
+
+git diff --name-only HEAD -- src: empty at final source verification.
+Global status is not claimed clean: other workers' paths are preserved.
+Only the owned directory is staged/committed by explicit paths and --only.

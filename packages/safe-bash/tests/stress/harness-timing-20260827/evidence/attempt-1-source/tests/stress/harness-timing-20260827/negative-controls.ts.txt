@@ -1,0 +1,73 @@
+import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { getEventListeners } from "node:events";
+import { writeFileSync } from "node:fs";
+import { setTimeout as delay } from "node:timers/promises";
+import { nativeDelivery, NativeHarnessError } from "./native-delivery.js";
+import { withHarnessWatchdog } from "./watchdog.js";
+
+const evidence: unknown[] = [];
+const sentinel = spawn(process.execPath, ["--unhandled-rejections=strict", "-e", 'process.stdout.write("sentinel-ready\\n"); process.stdin.resume();'], { stdio: ["pipe", "pipe", "pipe"] });
+const sentinelEvents: unknown[] = [];
+const sentinelOutput: Buffer[] = []; const sentinelErrors: Buffer[] = [];
+const onData = (chunk: Buffer) => { sentinelOutput.push(Buffer.from(chunk)); };
+const onErrorData = (chunk: Buffer) => { sentinelErrors.push(Buffer.from(chunk)); };
+const onError = (error: Error) => { sentinelEvents.push({ error: String(error) }); };
+const onExit = (code: number | null, signal: NodeJS.Signals | null) => { sentinelEvents.push({ event: "exit", code, signal }); };
+sentinel.stdout.on("data", onData); sentinel.stderr.on("data", onErrorData); sentinel.on("error", onError); sentinel.on("exit", onExit);
+const sentinelClosed = new Promise<void>(resolve => sentinel.once("close", () => { sentinelEvents.push({ event: "close" }); resolve(); }));
+let forcedSentinelCleanup = false;
+try {
+  await withHarnessWatchdog(10000, async signal => {
+    while (!Buffer.concat(sentinelOutput).toString().includes("sentinel-ready\n")) { signal.throwIfAborted(); await delay(10); }
+  });
+  for (const mutation of ["suppress-readiness", "withhold-delivery", "stall-completion", "suppress-cleanup"] as const) {
+    let caught: NativeHarnessError | undefined;
+    try { await nativeDelivery({ lineBuffered: true, mutation, readinessMs: mutation === "stall-completion" || mutation === "suppress-cleanup" ? 10000 : 250, completionMs: 250, cleanupMs: 250 }); }
+    catch (error) { assert(error instanceof NativeHarnessError); caught = error; }
+    assert(caught, `${mutation} must fail rather than be accepted`);
+    const expected = mutation === "stall-completion" ? "completion" : mutation === "suppress-cleanup" ? "cleanup" : "readiness";
+    assert.equal(caught.message, `native ${expected} deadline`);
+    const result = caught.evidence;
+    assert.equal(result.actualClose, true);
+    assert.equal(result.ownedListenersRemaining, 0);
+    assert.equal(result.activeTimers, 0);
+    assert.deepEqual(result.streamsDestroyed, [true, true, true]);
+    if (mutation === "suppress-readiness") assert.equal(result.stdout, "foo\n");
+    if (mutation === "withhold-delivery") { assert.equal(result.stdout, ""); assert(!result.events.some(event => event.event === "write")); }
+    if (mutation === "stall-completion") { assert.equal(result.ready, true); assert.equal(result.stdout, "foo\n"); }
+    if (mutation === "suppress-cleanup") { assert.equal(result.code, 0); assert.equal(result.signal, null); assert(result.events.some(event => event.event === "cleanup-acknowledgement-suppressed")); }
+    assert.equal(sentinel.exitCode, null); assert.equal(sentinel.signalCode, null); assert.equal(sentinel.killed, false);
+    process.kill(sentinel.pid!, 0);
+    evidence.push({ mutation, expectedFailure: caught.message, sentinelAlive: true, ...result });
+  }
+  let observedSignal: AbortSignal | undefined;
+  let cancelled = false;
+  await assert.rejects(withHarnessWatchdog(25, async signal => {
+    observedSignal = signal;
+    await new Promise<void>((_resolve, reject) => {
+      const onAbort = () => { cancelled = true; signal.removeEventListener("abort", onAbort); reject(signal.reason); };
+      signal.addEventListener("abort", onAbort);
+    });
+  }), /semantic harness watchdog after 25ms/u);
+  assert.equal(cancelled, true);
+  assert.equal(getEventListeners(observedSignal!, "abort").length, 0);
+  evidence.push({ mutation: "jq-execution-stall", cancelled, abortListeners: 0 });
+  let lateRejectionObserved = false;
+  await assert.rejects(withHarnessWatchdog(25, async () => {
+    await delay(60); lateRejectionObserved = true; throw new Error("late host rejection");
+  }), /semantic harness watchdog after 25ms/u);
+  await delay(75);
+  assert(lateRejectionObserved);
+  evidence.push({ mutation: "late-host-rejection", observedUnderStrictUnhandledRejections: true });
+} finally {
+  sentinel.stdin.end();
+  const cleanup = setTimeout(() => { forcedSentinelCleanup = true; sentinel.kill("SIGKILL"); }, 5000);
+  await sentinelClosed;
+  clearTimeout(cleanup);
+  sentinel.stdout.removeListener("data", onData); sentinel.stderr.removeListener("data", onErrorData); sentinel.removeListener("error", onError); sentinel.removeListener("exit", onExit);
+  evidence.push({ sentinelCleanup: { forced: forcedSentinelCleanup, events: sentinelEvents, stderr: Buffer.concat(sentinelErrors).toString(), streamsDestroyed: [sentinel.stdin, sentinel.stdout, sentinel.stderr].map(stream => stream.destroyed), ownedListenersRemaining: [sentinel.stdout.listeners("data").includes(onData), sentinel.stderr.listeners("data").includes(onErrorData), sentinel.listeners("error").includes(onError), sentinel.listeners("exit").includes(onExit)].filter(Boolean).length } });
+  writeFileSync(new URL("evidence/negative-controls-detail.json", import.meta.url), JSON.stringify(evidence, null, 2) + "\n", { flag: "wx" });
+}
+assert.equal(forcedSentinelCleanup, false);
+console.log("negative controls: four native phase failures, jq stall, late rejection; sentinel retired separately");

@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "created": "2026-08-29T13:11:43.864Z",
+  "deadline": "2026-08-29T13:22:07.880Z",
+  "entry": "ownership-review.mjs",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "ownerSeal": "3c710b3bb3f69a18f603803c95f0c668bc83eafc25ff463a3682e29c06849938",
+  "files": [
+    {
+      "path": "ownership-review.mjs",
+      "bytes": 2431,
+      "sha256": "cbbe44c0cd5f560646f5f625b2124729d79e4db2a5e812f338b9d63808c40346"
+    },
+    {
+      "path": "run/preparation-r2/data-support.mjs",
+      "bytes": 5286,
+      "sha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017"
+    },
+    {
+      "path": "run/preparation-r2/owned-process.mjs",
+      "bytes": 3219,
+      "sha256": "e0558f92c09e8e9f582ad19bcb14efba9a913237d0832e5fbfe4c18c4ac651fe"
+    },
+    {
+      "path": "run/preparation-r2/owner-controls.mjs",
+      "bytes": 2420,
+      "sha256": "d59dbac0ab89478bcc11bf71e4c2ead1293183a09ca7668302a3b04499e084b5"
+    },
+    {
+      "path": "run/preparation-r2/OWNER-PRESEAL.json",
+      "bytes": 978,
+      "sha256": "3c710b3bb3f69a18f603803c95f0c668bc83eafc25ff463a3682e29c06849938"
+    },
+    {
+      "path": "run/preparation-r2/stub.mjs",
+      "bytes": 176,
+      "sha256": "9f93bbd839c4d78c4c50d7f10f579c09019f5e9b6a7fd1ee8fe4a2849744704d"
+    }
+  ],
+  "roles": [
+    "reviewer-controller",
+    "original-normal-stub",
+    "original-held-stub"
+  ],
+  "controllerSeconds": 40,
+  "fixtureStarts": 2,
+  "fixturePeak": 1,
+  "knownPeakIncludingTool": 3,
+  "captureBytes": 1048576,
+  "Workers": 0,
+  "productImports": 0
+}

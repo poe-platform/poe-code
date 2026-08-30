@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "role": "PRESEALED_FINITE_DATA_CONTROLS_NOT_PRODUCT",
+  "sealedAt": "2026-08-28T18:45:06.216Z",
+  "protocolSha256": "73030dc75cb3061725b6e60724a60db22af32608501dc3b4d9ad51d5f9dadf23",
+  "inputs": {
+    "archive": {
+      "path": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "bytes": 5916905,
+      "sha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+      "gzipSha256": "af8bebfcfd125e6008e3ec2071f030a7a438e48b5b01b3720f9ff637378f1f4c",
+      "decodeBound": 67108864,
+      "packagePointer": "pack.base64",
+      "qualification": "Authenticated encoded archive, bounded JSON decode and package tar metadata/declarations in memory only. No archived source strings decoded/evaluated, no code import, no disk extraction."
+    },
+    "preservedInventory": {
+      "sha256": "242f6ef74dfaf422c6513707c33187af5bc90297f8479d9a1bec72206afb3f79",
+      "bytes": 301990
+    },
+    "historicalSource": {
+      "path": "tests/integration/coherent78-shell-independent-20260828/run-v2.mjs.data",
+      "sha256": "2c5ff316a4fda0548869101cf9da58bbaad864c5b7dacb114e647d6ccd0350be"
+    }
+  },
+  "canonicalization": "Buffer.from(JSON.stringify(value), utf8), no BOM/no trailing newline; preserve tuple/row order, numeric mode and length, link target strings",
+  "positives": [
+    {
+      "id": "full-originalRows",
+      "expectedSha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "equality": "All preserved HOLD tuples equal all archive.tools.npm.originalRows tuples in exact order"
+    },
+    {
+      "id": "historical-copied-projection",
+      "projection": "originalRows.filter(row => row[1] !== 'SYMLINK')",
+      "expectedSha256": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d"
+    }
+  ],
+  "negatives": [
+    {
+      "id": "encoding",
+      "transform": "Encode full canonical string UTF16LE",
+      "pin": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "id": "newline",
+      "transform": "Append LF to full canonical string",
+      "pin": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "id": "order",
+      "transform": "Reverse full rows",
+      "pin": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "id": "mode",
+      "transform": "Clone full rows; first numeric mode XOR 1",
+      "pin": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "id": "changedrow",
+      "transform": "Clone full rows; first digest replace with 64 zeroes",
+      "pin": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "id": "wrongprojection-full",
+      "transform": "Compare copied projection to full pin",
+      "pin": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "id": "wrongprojection-copy",
+      "transform": "Compare full rows to copied pin",
+      "pin": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d"
+    }
+  ],
+  "expected": "All positives exact equality; all seven negatives unequal; no acceptance predicate weakened",
+  "counterCorrection": "Initial PROTOCOL initialCounters captured stale primitive REPL binding after first child. Authoritative raw completed-child records show status, which apply_patch, protocol apply_patch = 3 direct launches before this control seal. Mutable meter thereafter."
+}

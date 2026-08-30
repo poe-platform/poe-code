@@ -1,0 +1,485 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "classification": "AUTHOR_STATIC_RESEAL_ONLY_NOT_ACCEPTANCE",
+  "selectedInputs": {
+    "parentCommit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+    "overlayCommit": "30c38df6a8ee526392fc59850475dfad679cfd59",
+    "parentFiles": 85,
+    "overlayFiles": 10,
+    "committedAndLiveRegularModesHashesSizesMembership": true,
+    "beforeAfterUnchanged": true
+  },
+  "union": {
+    "files": 72,
+    "modules": 33,
+    "unchangedParentFiles": 71,
+    "changedTarget": "core/supervisor.mjs",
+    "preSha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+    "postSha256": "49c7c7050769e2c2edf71a27edd26790ac786e05dc6afbc02c93eba372d361a0",
+    "beforeBytes": 27596,
+    "afterBytes": 27700,
+    "changedLines": [
+      276
+    ],
+    "addedBytes": 104,
+    "exactSealedInsertion": true,
+    "otherActiveBodyChanges": 0,
+    "APIChanges": 0
+  },
+  "closure": {
+    "literalRelativeEdges": 56,
+    "builtinEdges": 63,
+    "dynamicSites": 2,
+    "unresolvedLiteralImports": 0,
+    "topologyUnchanged": true,
+    "dataBindings": 23,
+    "jsonActiveFiles": 28,
+    "syntax": [
+      {
+        "path": "core/admission.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/build-adapter.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/capture-budget-v3.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/classification.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/cli.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/coordinator.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/coverage.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/assert-capture.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/cmd22-read-paths.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/context.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/deferred-fixtures.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/integrity.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/frozen/original-assert-capture.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/infrastructure-worker.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/loader.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/materialization.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/owned-process.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/phase-capture.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/primitives.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/semantic-worker.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/source-audit-worker.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/supervisor.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/tool-bridge.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/tool-profile.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/tool-request.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/worker-api.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "core/worker-host.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/build-fs.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/build-outputs.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/build-worker.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/loaded-worker.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/type-worker.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "path": "workers/worker-support.mjs",
+        "mode": "SYNTAX_ONLY_NO_MODULE_EVALUATION",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "assemblySha256": "5496ce256fbd2f69798b52ffc11f0ebf0e4d0bcbf37e356ce25722d57a6f3014",
+    "recipeSha256": "92b4c7b958b9f07b75c2f55fa719e83093317a506bb41f74526a4df09eed7c90",
+    "toolSha256": "d977b6e68190077c9bb7a231465e91f3d459374361736d0f8e9fd5a07167afe0",
+    "loadSha256": "c4a4646f273ee7e5dd2fdfed192614b11e8dca7d61812453b87c2ded0d9331b4"
+  },
+  "physical": {
+    "tools": 249,
+    "compilerSubset": 248,
+    "archives": 2,
+    "completeBeforeAfterCurrentModesHashesSizesKindsAddedMembership": true,
+    "root": "/private/tmp/yq-b8-composition-v2-bMqyvD",
+    "executionRootAbsent": true,
+    "noRecopy": true,
+    "candidateExtraction": false
+  },
+  "schedule": {
+    "phases": [
+      {
+        "id": "AUTHENTICATION",
+        "capMs": 120000,
+        "jobs": 1,
+        "sumSlotCapsMs": 120000,
+        "absoluteCutoffOffsetMs": 120000
+      },
+      {
+        "id": "BUILD",
+        "capMs": 300000,
+        "jobs": 1,
+        "sumSlotCapsMs": 300000,
+        "absoluteCutoffOffsetMs": 420000
+      },
+      {
+        "id": "SETUP",
+        "capMs": 180000,
+        "jobs": 2,
+        "sumSlotCapsMs": 180000,
+        "absoluteCutoffOffsetMs": 600000
+      },
+      {
+        "id": "CONTROLS",
+        "capMs": 570000,
+        "jobs": 19,
+        "sumSlotCapsMs": 570000,
+        "absoluteCutoffOffsetMs": 1170000
+      },
+      {
+        "id": "SOURCE_AUDIT",
+        "capMs": 300000,
+        "jobs": 1,
+        "sumSlotCapsMs": 300000,
+        "absoluteCutoffOffsetMs": 1470000
+      },
+      {
+        "id": "SOURCE_RUNTIME",
+        "capMs": 6705000,
+        "jobs": 149,
+        "sumSlotCapsMs": 6705000,
+        "absoluteCutoffOffsetMs": 8175000
+      },
+      {
+        "id": "MOVED_RUNTIME",
+        "capMs": 13410000,
+        "jobs": 149,
+        "sumSlotCapsMs": 13410000,
+        "absoluteCutoffOffsetMs": 21585000
+      },
+      {
+        "id": "TYPES",
+        "capMs": 1560000,
+        "jobs": 3,
+        "sumSlotCapsMs": 1560000,
+        "absoluteCutoffOffsetMs": 23145000
+      },
+      {
+        "id": "LOADED_CONTROLS",
+        "capMs": 900000,
+        "jobs": 10,
+        "sumSlotCapsMs": 900000,
+        "absoluteCutoffOffsetMs": 24045000
+      },
+      {
+        "id": "FINALIZATION",
+        "capMs": 120000,
+        "jobs": 1,
+        "sumSlotCapsMs": 120000,
+        "absoluteCutoffOffsetMs": 24165000
+      }
+    ],
+    "globalMs": 24165000,
+    "outerReservations": 336,
+    "knownPreOuterDenials": 2,
+    "maxOuterStartsAbsentOtherRefusals": 334,
+    "plannedCompilers": 13,
+    "maxCompilers": 18,
+    "publicConditionalUnrun": 5,
+    "profiles": 2,
+    "runtimeEach": 149
+  },
+  "capture": {
+    "jobBytes": 33554432,
+    "terminalInside": 933888,
+    "phaseInside": 4194304,
+    "peakProcesses": 4,
+    "arithmeticUnchanged": true,
+    "actualSaturationOrTimingProof": "UNRUN"
+  },
+  "specification": {
+    "initialExitCode": 1,
+    "correctedExitCode": 0,
+    "warnings": 0
+  },
+  "preparationFailures": [
+    {
+      "id": "PREP-01",
+      "operation": "Author literal source insertion comparison",
+      "status": "FAIL_RETAINED",
+      "observed": "The author data check assumed insertion after parent.code; sealed SOURCE-CHANGES places it after parent.overflow.",
+      "correction": "Compared exact sealed oldFragment/newFragment; +104bytes only, line276, no code change.",
+      "targetExecution": false
+    },
+    {
+      "id": "PREP-02",
+      "operation": "Initial specification structure check",
+      "exitCode": 1,
+      "observed": "Missing Goals and Non-Goals section.",
+      "correction": "Added the missing scope-only heading/sentence; corrected lint exit0/0warnings. No contract or executable change.",
+      "targetExecution": false
+    }
+  ],
+  "priorPreparationFailures": "Parent and overlay records remain immutable, not rescored.",
+  "sourceBlocker": null,
+  "knownRemaining": {
+    "independentSourceFixReview": "PENDING",
+    "independentUnionReview": "FUTURE_EXACT_FINAL_SEAL_REQUIRED",
+    "loadedObservationGaps": 4,
+    "recordsMissingBindings": 80,
+    "missingObligations": 135,
+    "publicFixturesUnrun": 5,
+    "semanticSelection": {
+      "complete": 94,
+      "partial": 17,
+      "passes": 0
+    },
+    "sourceProof": "Source allocation/four repair arguments remain source roles, not public runtime boundary proof",
+    "dynamic": "All actual build/types/loaded/capture/coordinator/controls/runtime/reap proof remains UNRUN"
+  },
+  "newControlEnrollment": 0,
+  "deferredOverlayConditions": {
+    "declared": 13,
+    "executed": 0,
+    "passes": 0
+  },
+  "executionCounts": {
+    "targetModule": 0,
+    "candidate": 0,
+    "product": 0,
+    "compiler": 0,
+    "copiedTool": 0,
+    "coordinator": 0,
+    "worker": 0,
+    "harnessHelper": 0,
+    "materializer": 0,
+    "composeHelper": 0,
+    "control": 0,
+    "classifier": 0,
+    "predicate": 0,
+    "budget": 0,
+    "clock": 0,
+    "loader": 0,
+    "authoredModuleImport": 0,
+    "receiptConstruction": 0,
+    "runtimePasses": 0,
+    "semanticPasses": 0,
+    "controlPasses": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "parentReviewOrCompletionClaim": false,
+  "RootGO": false,
+  "goFileRunIdTokenCreated": false,
+  "release": false,
+  "fullGate": false
+}

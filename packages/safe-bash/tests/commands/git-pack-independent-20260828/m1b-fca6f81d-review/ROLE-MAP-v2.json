@@ -1,0 +1,4556 @@
+{
+  "schema": "m1b-v2-role-allocation",
+  "candidate": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "manifests": [
+    {
+      "path": "semantic/CASES.json",
+      "mode": 420,
+      "bytes": 47492,
+      "sha256": "bc12868ad2897c28363280d7a93f21f20f7729130f8f70bc07bd5c1acdc2d737"
+    },
+    {
+      "path": "mechanical-type-api-v2/CASES.json",
+      "mode": 420,
+      "bytes": 10747,
+      "sha256": "aa69d383d54be01306be88f4cd04660851c504f799b42c5bb05c10c75ef733c7"
+    },
+    {
+      "path": "semantic-integration-v2/CASES.json",
+      "mode": 420,
+      "bytes": 4546,
+      "sha256": "9fad5b63d02ff2e4961ad6cd6dc4bf84b5333c75ae146acab365a438c1a549e9"
+    }
+  ],
+  "cases": [
+    {
+      "id": "M1A-W1",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-W1"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P01-W1",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-01"
+      ],
+      "variants": [
+        "P01-W1"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P02-W1",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-02"
+      ],
+      "variants": [
+        "P02-W1"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-W2",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-W2"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P01-W2",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-01"
+      ],
+      "variants": [
+        "P01-W2"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P02-W2",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-02"
+      ],
+      "variants": [
+        "P02-W2"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-W3",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-W3"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P01-W3",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-01"
+      ],
+      "variants": [
+        "P01-W3"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P02-W3",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-02"
+      ],
+      "variants": [
+        "P02-W3"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-W4",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-W4"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P01-W4",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-01"
+      ],
+      "variants": [
+        "P01-W4"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P02-W4",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-02"
+      ],
+      "variants": [
+        "P02-W4"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-W5",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-W5"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P01-W5",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-01"
+      ],
+      "variants": [
+        "P01-W5"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P02-W5",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-02"
+      ],
+      "variants": [
+        "P02-W5"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-W6",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-W6"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P01-W6",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-01"
+      ],
+      "variants": [
+        "P01-W6"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P02-W6",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-02"
+      ],
+      "variants": [
+        "P02-W6"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P03-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-11"
+      ],
+      "variants": [
+        "P03-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P04-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-13"
+      ],
+      "variants": [
+        "P04-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P05-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-13",
+        "GFP-24"
+      ],
+      "variants": [
+        "P05-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P06-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-16"
+      ],
+      "variants": [
+        "P06-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P07-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-17"
+      ],
+      "variants": [
+        "P07-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P08-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-18"
+      ],
+      "variants": [
+        "P08-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P09-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-19",
+        "GFP-03"
+      ],
+      "variants": [
+        "P09-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P11-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-25"
+      ],
+      "variants": [
+        "P11-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P12-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P12-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P10-empty",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-03"
+      ],
+      "variants": [
+        "P10-empty"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "P13-depth33",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P13-depth33"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "empty-blob",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-03"
+      ],
+      "variants": [
+        "empty-blob"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "empty-tree",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-03"
+      ],
+      "variants": [
+        "empty-tree"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-program4-result1",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-07"
+      ],
+      "variants": [
+        "delta-program4-result1"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-zero-result",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-09"
+      ],
+      "variants": [
+        "delta-zero-result"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "shared-DAG",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-15"
+      ],
+      "variants": [
+        "shared-DAG"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "inherit-commit",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-16"
+      ],
+      "variants": [
+        "inherit-commit"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "inherit-tree",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-16"
+      ],
+      "variants": [
+        "inherit-tree"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "inherit-blob",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-16"
+      ],
+      "variants": [
+        "inherit-blob"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "inherit-tag",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-16"
+      ],
+      "variants": [
+        "inherit-tag"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "header-short",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-04"
+      ],
+      "variants": [
+        "header-short"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "header-signature",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-04"
+      ],
+      "variants": [
+        "header-signature"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "header-version",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-04"
+      ],
+      "variants": [
+        "header-version"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "header-count",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-04"
+      ],
+      "variants": [
+        "header-count"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "type-0",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-05"
+      ],
+      "variants": [
+        "type-0"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "type-5",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-05"
+      ],
+      "variants": [
+        "type-5"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "declared-short",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-06"
+      ],
+      "variants": [
+        "declared-short"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "declared-long",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-06"
+      ],
+      "variants": [
+        "declared-long"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "declared-overcap",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-05"
+      ],
+      "variants": [
+        "declared-overcap"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-short-two",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-08"
+      ],
+      "variants": [
+        "delta-short-two"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-short-three",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-08"
+      ],
+      "variants": [
+        "delta-short-three"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-base-size",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-10"
+      ],
+      "variants": [
+        "delta-base-size"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-varint-truncated",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-10"
+      ],
+      "variants": [
+        "delta-varint-truncated"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "ofs-zero",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-12"
+      ],
+      "variants": [
+        "ofs-zero"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "ofs-interior",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-12"
+      ],
+      "variants": [
+        "ofs-interior"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "ofs-truncated",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-12"
+      ],
+      "variants": [
+        "ofs-truncated"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "ref-prefix19",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-13"
+      ],
+      "variants": [
+        "ref-prefix19"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "ref-missing",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-14"
+      ],
+      "variants": [
+        "ref-missing"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "cycle-two",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-15"
+      ],
+      "variants": [
+        "cycle-two"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "cycle-self",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-15"
+      ],
+      "variants": [
+        "cycle-self"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-opcode0",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-19"
+      ],
+      "variants": [
+        "delta-opcode0"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-copy-outside",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-20"
+      ],
+      "variants": [
+        "delta-copy-outside"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-literal-truncated",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-20"
+      ],
+      "variants": [
+        "delta-literal-truncated"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-result-overflow",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-20"
+      ],
+      "variants": [
+        "delta-result-overflow"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-result-short",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-20"
+      ],
+      "variants": [
+        "delta-result-short"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "delta-oid",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-31"
+      ],
+      "variants": [
+        "delta-oid"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "pack-SHA",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-21"
+      ],
+      "variants": [
+        "pack-SHA"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-SHA",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-21"
+      ],
+      "variants": [
+        "idx-SHA"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-pack-copy",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-21"
+      ],
+      "variants": [
+        "idx-pack-copy"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "crc-inner",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-inner"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-fanout",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-23"
+      ],
+      "variants": [
+        "idx-fanout"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-order",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-23"
+      ],
+      "variants": [
+        "idx-order"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-duplicate-oid",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-23"
+      ],
+      "variants": [
+        "idx-duplicate-oid"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-duplicate-offset",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-24"
+      ],
+      "variants": [
+        "idx-duplicate-offset"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-first-offset",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-24"
+      ],
+      "variants": [
+        "idx-first-offset"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-offset-outside",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-28"
+      ],
+      "variants": [
+        "idx-offset-outside"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-unsafe64",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-28"
+      ],
+      "variants": [
+        "idx-unsafe64"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-slot",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-27"
+      ],
+      "variants": [
+        "idx-slot"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "crc-header",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-header"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "crc-base",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-base"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-all-indirect",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-26"
+      ],
+      "variants": [
+        "idx-all-indirect"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "idx-empty-slot",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-27"
+      ],
+      "variants": [
+        "idx-empty-slot"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "empty-pack-trailing",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-24"
+      ],
+      "variants": [
+        "empty-pack-trailing"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "zlib-truncated",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-29"
+      ],
+      "variants": [
+        "zlib-truncated"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "zlib-dictionary",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-29"
+      ],
+      "variants": [
+        "zlib-dictionary"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "zlib-byte",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-30"
+      ],
+      "variants": [
+        "zlib-byte"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "zlib-member",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-30"
+      ],
+      "variants": [
+        "zlib-member"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "zlib-trailing-nextfeed",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-30"
+      ],
+      "variants": [
+        "zlib-trailing-nextfeed"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "oid-inner",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-31",
+        "GFP-34"
+      ],
+      "variants": [
+        "oid-inner"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "unselected-program",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-33"
+      ],
+      "variants": [
+        "unselected-program"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "loose-shadow-bad-pack",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-35"
+      ],
+      "variants": [
+        "loose-shadow-bad-pack"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "physical-duplicates",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-36"
+      ],
+      "variants": [
+        "physical-duplicates"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "orphan-idx",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-37"
+      ],
+      "variants": [
+        "orphan-idx"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "orphan-pack",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-37"
+      ],
+      "variants": [
+        "orphan-pack"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "sidecars-inert",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-37"
+      ],
+      "variants": [
+        "sidecars-inert"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "sidecar-metadata-change",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-37"
+      ],
+      "variants": [
+        "sidecar-metadata-change"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "sidecar-same-stat-body",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-37"
+      ],
+      "variants": [
+        "sidecar-same-stat-body"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-A10-pack",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-37"
+      ],
+      "variants": [
+        "M1A-A10-pack"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-A10-idx",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-37"
+      ],
+      "variants": [
+        "M1A-A10-idx"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-A10-promisor",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-37"
+      ],
+      "variants": [
+        "M1A-A10-promisor"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "borrowed-Uint8Array",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-38"
+      ],
+      "variants": [
+        "borrowed-Uint8Array"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "pack-prepublication-change",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-38"
+      ],
+      "variants": [
+        "pack-prepublication-change"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-preabort",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-preabort"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-host-null",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-host-null"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-host-undefined",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-host-undefined"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "M1A-sink-reason",
+      "role": "STOCK",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [],
+      "variants": [
+        "M1A-sink-reason"
+      ],
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ],
+      "entry": "semantic/semantic.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-reserve-error",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:allocation_throw_unwind"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-reserve-null",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:allocation_throw_unwind"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-reserve-undefined",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:allocation_throw_unwind"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-allocate-error",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:allocation_throw_unwind"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-allocate-null",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:allocation_throw_unwind"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-allocate-undefined",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:allocation_throw_unwind"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-first-reserve",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:reservation_before_allocation"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-late-step",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:allocation_throw_unwind"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-success",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [
+        "RC06:reservation_before_allocation",
+        "RC06:one_owner_one_release"
+      ],
+      "requires": [
+        "PRIVATE-INDEX-N2-L1"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "CHECK-CRC",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC07",
+        "RC25"
+      ],
+      "variants": [
+        "RC07:CRC_hash_checkpoint_interleaving",
+        "RC25:abort_during_CRC"
+      ],
+      "requires": [],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "CHECK-HASH",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC07",
+        "RC25"
+      ],
+      "variants": [
+        "RC07:CRC_hash_checkpoint_interleaving",
+        "RC25:abort_during_hash"
+      ],
+      "requires": [],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "CHECK-REPLAY",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC07",
+        "RC25"
+      ],
+      "variants": [
+        "RC07:delta_replay_checkpoint_interleaving",
+        "RC25:abort_during_replay"
+      ],
+      "requires": [],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "INHERIT-blob",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC16"
+      ],
+      "variants": [
+        "RC16:blob_inheritance"
+      ],
+      "requires": [],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "INHERIT-tree",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC16"
+      ],
+      "variants": [
+        "RC16:tree_inheritance"
+      ],
+      "requires": [],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "INHERIT-commit",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC16"
+      ],
+      "variants": [
+        "RC16:commit_inheritance"
+      ],
+      "requires": [],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "INHERIT-tag",
+      "role": "MECHANICAL",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC16"
+      ],
+      "variants": [
+        "RC16:tag_inheritance"
+      ],
+      "requires": [],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-pristine",
+      "role": "LOADED",
+      "layouts": [
+        "S"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [],
+      "requires": [
+        "PRISTINE-ISOLATED"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-reverted",
+      "role": "LOADED",
+      "layouts": [
+        "S"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [],
+      "requires": [
+        "L-S01"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "S01-restored",
+      "role": "LOADED",
+      "layouts": [
+        "S"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [],
+      "requires": [
+        "RESTORE-L-S01"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "COUNTER-pristine",
+      "role": "LOADED",
+      "layouts": [
+        "S"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [],
+      "requires": [
+        "PRISTINE-ISOLATED"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "COUNTER-mutant",
+      "role": "LOADED",
+      "layouts": [
+        "S"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [],
+      "requires": [
+        "L-COUNTER"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "COUNTER-restored",
+      "role": "LOADED",
+      "layouts": [
+        "S"
+      ],
+      "rows": [
+        "RC06"
+      ],
+      "variants": [],
+      "requires": [
+        "RESTORE-L-COUNTER"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "T01",
+      "role": "TYPE",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC01"
+      ],
+      "variants": [],
+      "requires": [
+        "T01"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "T02",
+      "role": "TYPE",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC01"
+      ],
+      "variants": [],
+      "requires": [
+        "T02"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "T03",
+      "role": "TYPE",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC01"
+      ],
+      "variants": [],
+      "requires": [
+        "T03"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "T04",
+      "role": "TYPE",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC01"
+      ],
+      "variants": [],
+      "requires": [
+        "T04"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "T05",
+      "role": "TYPE",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "RC01"
+      ],
+      "variants": [],
+      "requires": [
+        "T05"
+      ],
+      "entry": "mechanical-type-api-v2/adapter.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-CRC-STOCK",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-inner",
+        "STOCK"
+      ],
+      "requires": [
+        "L-CRC",
+        "crc-inner",
+        "FULL910_AUTHENTICATED"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-CRC-MUTANT",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-inner",
+        "MUTANT"
+      ],
+      "requires": [
+        "L-CRC",
+        "crc-inner",
+        "FULL910_AUTHENTICATED",
+        "L-CRC-STOCK"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-CRC-RESTORE",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-inner",
+        "RESTORE"
+      ],
+      "requires": [
+        "L-CRC",
+        "crc-inner",
+        "FULL910_AUTHENTICATED",
+        "L-CRC-MUTANT",
+        "EXACT_SAME_ROOT_RESTORATION"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-OID-STOCK",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-31",
+        "GFP-34"
+      ],
+      "variants": [
+        "oid-inner",
+        "STOCK"
+      ],
+      "requires": [
+        "L-OID",
+        "oid-inner",
+        "FULL910_AUTHENTICATED"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-OID-MUTANT",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-31",
+        "GFP-34"
+      ],
+      "variants": [
+        "oid-inner",
+        "MUTANT"
+      ],
+      "requires": [
+        "L-OID",
+        "oid-inner",
+        "FULL910_AUTHENTICATED",
+        "L-OID-STOCK"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-OID-RESTORE",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-31",
+        "GFP-34"
+      ],
+      "variants": [
+        "oid-inner",
+        "RESTORE"
+      ],
+      "requires": [
+        "L-OID",
+        "oid-inner",
+        "FULL910_AUTHENTICATED",
+        "L-OID-MUTANT",
+        "EXACT_SAME_ROOT_RESTORATION"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-DEPTH-STOCK",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P13-depth33",
+        "STOCK"
+      ],
+      "requires": [
+        "L-DEPTH",
+        "P13-depth33",
+        "FULL910_AUTHENTICATED"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-DEPTH-MUTANT",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P13-depth33",
+        "MUTANT"
+      ],
+      "requires": [
+        "L-DEPTH",
+        "P13-depth33",
+        "FULL910_AUTHENTICATED",
+        "L-DEPTH-STOCK"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    },
+    {
+      "id": "L-DEPTH-RESTORE",
+      "role": "LOADED",
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P13-depth33",
+        "RESTORE"
+      ],
+      "requires": [
+        "L-DEPTH",
+        "P13-depth33",
+        "FULL910_AUTHENTICATED",
+        "L-DEPTH-MUTANT",
+        "EXACT_SAME_ROOT_RESTORATION"
+      ],
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "status": "UNRUN"
+    }
+  ],
+  "schedule": [
+    {
+      "id": "M1A-W1",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W1",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W1",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W2",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W2",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W2",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W3",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W3",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W3",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W4",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W4",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W4",
+      "layout": "S",
+      "batch": "SEM-S-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W5",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W5",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W5",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W6",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W6",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W6",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P03-body",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P04-body",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P05-body",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P06-body",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P07-body",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P08-body",
+      "layout": "S",
+      "batch": "SEM-S-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P09-body",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "P11-body",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "P12-body",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "P10-empty",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "P13-depth33",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "empty-blob",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "empty-tree",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-program4-result1",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-zero-result",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "shared-DAG",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "inherit-commit",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "inherit-tree",
+      "layout": "S",
+      "batch": "SEM-S-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "inherit-blob",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "inherit-tag",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "header-short",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "header-signature",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "header-version",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "header-count",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "type-0",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "type-5",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "declared-short",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "declared-long",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "declared-overcap",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-short-two",
+      "layout": "S",
+      "batch": "SEM-S-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-short-three",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-base-size",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-varint-truncated",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ofs-zero",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ofs-interior",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ofs-truncated",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ref-prefix19",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ref-missing",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "cycle-two",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "cycle-self",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-opcode0",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-copy-outside",
+      "layout": "S",
+      "batch": "SEM-S-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-literal-truncated",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-result-overflow",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-result-short",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-oid",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "pack-SHA",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-SHA",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-pack-copy",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "crc-inner",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-fanout",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-order",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-duplicate-oid",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-duplicate-offset",
+      "layout": "S",
+      "batch": "SEM-S-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-first-offset",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-offset-outside",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-unsafe64",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-slot",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "crc-header",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "crc-base",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-all-indirect",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-empty-slot",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "empty-pack-trailing",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-truncated",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-dictionary",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-byte",
+      "layout": "S",
+      "batch": "SEM-S-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-member",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-trailing-nextfeed",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "oid-inner",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "unselected-program",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "loose-shadow-bad-pack",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "physical-duplicates",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "orphan-idx",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "orphan-pack",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "sidecars-inert",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "sidecar-metadata-change",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "sidecar-same-stat-body",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-A10-pack",
+      "layout": "S",
+      "batch": "SEM-S-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-A10-idx",
+      "layout": "S",
+      "batch": "SEM-S-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-A10-promisor",
+      "layout": "S",
+      "batch": "SEM-S-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "borrowed-Uint8Array",
+      "layout": "S",
+      "batch": "SEM-S-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "pack-prepublication-change",
+      "layout": "S",
+      "batch": "SEM-S-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-preabort",
+      "layout": "S",
+      "batch": "SEM-S-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-host-null",
+      "layout": "S",
+      "batch": "SEM-S-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-host-undefined",
+      "layout": "S",
+      "batch": "SEM-S-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-sink-reason",
+      "layout": "S",
+      "batch": "SEM-S-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W1",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W1",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W1",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W2",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W2",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W2",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W3",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W3",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W3",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W4",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W4",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W4",
+      "layout": "M",
+      "batch": "SEM-M-01",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W5",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W5",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W5",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-W6",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P01-W6",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P02-W6",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P03-body",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P04-body",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P05-body",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P06-body",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P07-body",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P08-body",
+      "layout": "M",
+      "batch": "SEM-M-02",
+      "role": "STOCK"
+    },
+    {
+      "id": "P09-body",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "P11-body",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "P12-body",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "P10-empty",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "P13-depth33",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "empty-blob",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "empty-tree",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-program4-result1",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-zero-result",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "shared-DAG",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "inherit-commit",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "inherit-tree",
+      "layout": "M",
+      "batch": "SEM-M-03",
+      "role": "STOCK"
+    },
+    {
+      "id": "inherit-blob",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "inherit-tag",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "header-short",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "header-signature",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "header-version",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "header-count",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "type-0",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "type-5",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "declared-short",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "declared-long",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "declared-overcap",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-short-two",
+      "layout": "M",
+      "batch": "SEM-M-04",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-short-three",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-base-size",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-varint-truncated",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ofs-zero",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ofs-interior",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ofs-truncated",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ref-prefix19",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "ref-missing",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "cycle-two",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "cycle-self",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-opcode0",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-copy-outside",
+      "layout": "M",
+      "batch": "SEM-M-05",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-literal-truncated",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-result-overflow",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-result-short",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "delta-oid",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "pack-SHA",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-SHA",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-pack-copy",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "crc-inner",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-fanout",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-order",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-duplicate-oid",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-duplicate-offset",
+      "layout": "M",
+      "batch": "SEM-M-06",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-first-offset",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-offset-outside",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-unsafe64",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-slot",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "crc-header",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "crc-base",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-all-indirect",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "idx-empty-slot",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "empty-pack-trailing",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-truncated",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-dictionary",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-byte",
+      "layout": "M",
+      "batch": "SEM-M-07",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-member",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "zlib-trailing-nextfeed",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "oid-inner",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "unselected-program",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "loose-shadow-bad-pack",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "physical-duplicates",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "orphan-idx",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "orphan-pack",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "sidecars-inert",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "sidecar-metadata-change",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "sidecar-same-stat-body",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-A10-pack",
+      "layout": "M",
+      "batch": "SEM-M-08",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-A10-idx",
+      "layout": "M",
+      "batch": "SEM-M-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-A10-promisor",
+      "layout": "M",
+      "batch": "SEM-M-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "borrowed-Uint8Array",
+      "layout": "M",
+      "batch": "SEM-M-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "pack-prepublication-change",
+      "layout": "M",
+      "batch": "SEM-M-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-preabort",
+      "layout": "M",
+      "batch": "SEM-M-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-host-null",
+      "layout": "M",
+      "batch": "SEM-M-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-host-undefined",
+      "layout": "M",
+      "batch": "SEM-M-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "M1A-sink-reason",
+      "layout": "M",
+      "batch": "SEM-M-09",
+      "role": "STOCK"
+    },
+    {
+      "id": "S01-reserve-error",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-reserve-null",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-reserve-undefined",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-allocate-error",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-allocate-null",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-allocate-undefined",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-first-reserve",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-late-step",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-success",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "CHECK-CRC",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "CHECK-HASH",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "CHECK-REPLAY",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "INHERIT-blob",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "INHERIT-tree",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "INHERIT-commit",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "INHERIT-tag",
+      "layout": "S",
+      "batch": "PRIVATE-S",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-reserve-error",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-reserve-null",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-reserve-undefined",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-allocate-error",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-allocate-null",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-allocate-undefined",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-first-reserve",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-late-step",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "S01-success",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "CHECK-CRC",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "CHECK-HASH",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "CHECK-REPLAY",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "INHERIT-blob",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "INHERIT-tree",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "INHERIT-commit",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "INHERIT-tag",
+      "layout": "M",
+      "batch": "PRIVATE-M",
+      "role": "MECHANICAL"
+    },
+    {
+      "id": "T01",
+      "layout": "S",
+      "batch": "T01-S",
+      "role": "TYPE"
+    },
+    {
+      "id": "T01",
+      "layout": "M",
+      "batch": "T01-M",
+      "role": "TYPE"
+    },
+    {
+      "id": "T02",
+      "layout": "S",
+      "batch": "T02-S",
+      "role": "TYPE"
+    },
+    {
+      "id": "T02",
+      "layout": "M",
+      "batch": "T02-M",
+      "role": "TYPE"
+    },
+    {
+      "id": "T03",
+      "layout": "S",
+      "batch": "T03-S",
+      "role": "TYPE"
+    },
+    {
+      "id": "T03",
+      "layout": "M",
+      "batch": "T03-M",
+      "role": "TYPE"
+    },
+    {
+      "id": "T04",
+      "layout": "S",
+      "batch": "T04-S",
+      "role": "TYPE"
+    },
+    {
+      "id": "T04",
+      "layout": "M",
+      "batch": "T04-M",
+      "role": "TYPE"
+    },
+    {
+      "id": "T05",
+      "layout": "S",
+      "batch": "T05-S",
+      "role": "TYPE"
+    },
+    {
+      "id": "T05",
+      "layout": "M",
+      "batch": "T05-M",
+      "role": "TYPE"
+    },
+    {
+      "id": "S01-pristine",
+      "layout": "S",
+      "batch": "S01-pristine-S",
+      "role": "LOADED"
+    },
+    {
+      "id": "S01-reverted",
+      "layout": "S",
+      "batch": "S01-reverted-S",
+      "role": "LOADED"
+    },
+    {
+      "id": "S01-restored",
+      "layout": "S",
+      "batch": "S01-restored-S",
+      "role": "LOADED"
+    },
+    {
+      "id": "COUNTER-pristine",
+      "layout": "S",
+      "batch": "COUNTER-pristine-S",
+      "role": "LOADED"
+    },
+    {
+      "id": "COUNTER-mutant",
+      "layout": "S",
+      "batch": "COUNTER-mutant-S",
+      "role": "LOADED"
+    },
+    {
+      "id": "COUNTER-restored",
+      "layout": "S",
+      "batch": "COUNTER-restored-S",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-CRC-STOCK",
+      "layout": "S",
+      "batch": "LI-S-STOCK",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-OID-STOCK",
+      "layout": "S",
+      "batch": "LI-S-STOCK",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-DEPTH-STOCK",
+      "layout": "S",
+      "batch": "LI-S-STOCK",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-CRC-MUTANT",
+      "layout": "S",
+      "batch": "LI-S-L-CRC-MUTANT",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-CRC-RESTORE",
+      "layout": "S",
+      "batch": "LI-S-L-CRC-RESTORE",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-OID-MUTANT",
+      "layout": "S",
+      "batch": "LI-S-L-OID-MUTANT",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-OID-RESTORE",
+      "layout": "S",
+      "batch": "LI-S-L-OID-RESTORE",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-DEPTH-MUTANT",
+      "layout": "S",
+      "batch": "LI-S-L-DEPTH-MUTANT",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-DEPTH-RESTORE",
+      "layout": "S",
+      "batch": "LI-S-L-DEPTH-RESTORE",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-CRC-STOCK",
+      "layout": "M",
+      "batch": "LI-M-STOCK",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-OID-STOCK",
+      "layout": "M",
+      "batch": "LI-M-STOCK",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-DEPTH-STOCK",
+      "layout": "M",
+      "batch": "LI-M-STOCK",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-CRC-MUTANT",
+      "layout": "M",
+      "batch": "LI-M-L-CRC-MUTANT",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-CRC-RESTORE",
+      "layout": "M",
+      "batch": "LI-M-L-CRC-RESTORE",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-OID-MUTANT",
+      "layout": "M",
+      "batch": "LI-M-L-OID-MUTANT",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-OID-RESTORE",
+      "layout": "M",
+      "batch": "LI-M-L-OID-RESTORE",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-DEPTH-MUTANT",
+      "layout": "M",
+      "batch": "LI-M-L-DEPTH-MUTANT",
+      "role": "LOADED"
+    },
+    {
+      "id": "L-DEPTH-RESTORE",
+      "layout": "M",
+      "batch": "LI-M-L-DEPTH-RESTORE",
+      "role": "LOADED"
+    }
+  ],
+  "counts": {
+    "uniqueIds": 140,
+    "layoutCalls": 274,
+    "stockOriginal": 208,
+    "privateMechanical": 32,
+    "types": 10,
+    "priorLoaded": 6,
+    "newLoaded": 18,
+    "newLoadedBatchCount": 14,
+    "totalBatchCount": 50,
+    "maximumSharedWindowSumMs": 1500000,
+    "stockMaximumCommandInvocations": 320,
+    "newLoadedMaximumCommandInvocations": 36
+  },
+  "resourceAuthority": {
+    "commit": "856b0a59846ad09680cd32227c686925db882258",
+    "binding": {
+      "path": "mechanical/RESOURCE-MAP.json",
+      "mode": 420,
+      "bytes": 58986,
+      "sha256": "df33fcbd78bc633ad4f9e4f3ecf69b8aacf583f249b5d008b88fc8e3b0dff955"
+    },
+    "status": "108MAPPINGS_NOT108RUNTIME_PASSES",
+    "sourceOnly": 12,
+    "semanticDependencies": 69,
+    "privatePartials": 12,
+    "unqualified": 15
+  },
+  "classification": "TYPE/LOADED/MECHANICAL/admission/source-static are not ordinary stock semantic passes; two physical layouts do not double unique IDs."
+}

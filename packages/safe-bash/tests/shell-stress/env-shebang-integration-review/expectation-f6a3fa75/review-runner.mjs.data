@@ -1,0 +1,138 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync, spawn } from 'node:child_process';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, lstatSync, readlinkSync, symlinkSync, existsSync } from 'node:fs';
+import path from 'node:path';
+
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const scratch = path.dirname(new URL(import.meta.url).pathname);
+const source = path.join(scratch, 'source');
+const product = 'ea409a6b49d5c1523e3238f0384048218b559c4c';
+const candidate = 'f6a3fa75280bd4d925027e62498aa67b5d9785dc';
+const testPath = 'tests/shell/env-shebang.test.ts';
+const hostPath = 'tests/shell/env-shebang-host.test.ts';
+const runtimePath = 'src/shell/runtime.ts';
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const git = (...args) => execFileSync('git', args, { cwd: repo, maxBuffer: 1024 * 1024 * 1024 });
+const blob = (commit, name) => git('show', `${commit}:${name}`);
+const report = { product, candidate, startedAt: new Date().toISOString(), scratch, platform: process.platform, arch: process.arch, node: process.version, commands: [] };
+const original = blob(product, testPath);
+const corrected = blob(candidate, testPath);
+assert.equal(sha(original), 'fa3920c0e09cf2c614540a0a804cc36d60d73da1e8bdf14d590c1e262de78129');
+assert.equal(sha(corrected), 'ac45453fa01328c5eb783952c384446d68a8cceaaa39e54b2b23c6a74d1a4341');
+assert.equal(git('diff-tree', '--no-commit-id', '--name-only', '-r', candidate).toString().trim(), testPath);
+assert.deepEqual(blob(`${candidate}^`, testPath), original);
+const expected = original.toString().replace(
+  'registry, function and PATH names cannot hijack the reserved interpreter',
+  'reserved interpreter resists hijacks while exact registered targets execute',
+).replace(
+  '  await fs.writeFile("/program", encode("#!/usr/bin/env -S alien\\nsay BAD"));\n  assert.equal((await shell.exec("/program")).exitCode, 127);\n  assert.equal(hijacks, 0);',
+  '  assert.equal(hijacks, 0);\n  await fs.writeFile("/program", encode("#!/usr/bin/env -S alien\\nsay BAD"));\n  const registered = await shell.exec("/program");\n  assert.equal(registered.exitCode, 37);\n  assert.equal(registered.stdout, "");\n  assert.equal(registered.stderr, "");\n  assert.equal(hijacks, 1);',
+);
+assert.equal(corrected.toString(), expected);
+report.exactAuthorizedTransformation = true;
+report.testSha256 = { original: sha(original), corrected: sha(corrected), host: sha(blob(product, hostPath)) };
+assert.equal(report.testSha256.host, '1d94c3d9bf4008915c85f373c0e14b1acc0818f4c0f7a850d4ddabb51d669537');
+assert.deepEqual(blob(candidate, hostPath), blob(product, hostPath));
+report.literalNegativeReview = { preserved: true, evidence: ['env-shebang.test.ts:22-25 literal bash -e => 127 and exact diagnostic', 'env-shebang.test.ts:125-139 missing => 127 with empty stdout', 'env-shebang.test.ts:149-153 reserved bash override => 126 and zero hijacks before alien', 'env-shebang.test.ts:330-348 unregistered/true/pwd/host-only-never-registered => 127, exact stderr, empty stdout, zero lookups'] };
+report.originalEightConflicts = ['tests/shell-stress/env-split-author/resume-host.ts', 'tests/shell/errexit-host.test.ts', 'tests/shell/expanded-gaps-env-host.test.ts'].map(name => {
+  assert.deepEqual(blob(product, name), blob(candidate, name));
+  return { path: name, sha256: sha(blob(product, name)), byteIdentical: true };
+});
+report.priorReceipts = [
+  ['ee7d909c0379ca1237f729f55a0a22fbe35aa8f7', 'tests/shell-stress/env-shebang-author/guarded-completion/fourth-author.tap'],
+  ['01cc25f94247f6a2f9279f33c058fc4c7862f6ac', 'tests/shell-stress/env-shebang-integration-review/guarded-ea409a6b-20260827-review1-controls/author.tap'],
+].map(([commit, name]) => {
+  const bytes = blob(commit, name);
+  assert.match(bytes.toString(), /# tests 48\n# suites 0\n# pass 47\n# fail 1/u);
+  assert.match(bytes.toString(), /37 !== 127/u);
+  assert.deepEqual(readFileSync(path.join(repo, name)), bytes);
+  return { commit, path: name, sha256: sha(bytes), tests: 48, pass: 47, fail: 1 };
+});
+report.excludedTextDelta = { productSha256: sha(blob(product, 'src/commands/text.ts')), candidateSha256: sha(blob(candidate, 'src/commands/text.ts')) };
+writeFileSync(path.join(scratch, 'input-delta.diff'), git('diff', '--no-ext-diff', `${candidate}^`, candidate, '--', testPath));
+mkdirSync(source);
+const archive = path.join(scratch, 'accepted-product.tar');
+git('archive', '--format=tar', `--output=${archive}`, product);
+report.archive = { format: 'git archive tar', sha256: sha(readFileSync(archive)), bytes: lstatSync(archive).size, tree: git('rev-parse', `${product}^{tree}`).toString().trim() };
+execFileSync('tar', ['-xf', archive, '-C', source]);
+function snapshot() {
+  const rows = [];
+  function visit(directory, relative = '') {
+    for (const name of readdirSync(directory).sort()) {
+      const entry = relative ? `${relative}/${name}` : name;
+      if (entry === 'node_modules' || entry === 'dist') continue;
+      const full = path.join(directory, name);
+      const stat = lstatSync(full);
+      if (stat.isDirectory()) { rows.push([entry, 'directory', stat.mode & 0o777]); visit(full, entry); }
+      else rows.push([entry, stat.isSymbolicLink() ? 'symlink' : 'file', stat.mode & 0o777, sha(stat.isSymbolicLink() ? readlinkSync(full) : readFileSync(full))]);
+    }
+  }
+  visit(source);
+  return rows;
+}
+assert.equal(existsSync(path.join(source, 'dist')), false);
+assert.equal(existsSync(path.join(source, 'node_modules')), false);
+const pristine = snapshot();
+writeFileSync(path.join(source, testPath), corrected);
+const before = snapshot();
+report.inputDelta = before.filter((row, index) => JSON.stringify(row) !== JSON.stringify(pristine[index]));
+assert.equal(before.length, pristine.length);
+assert.deepEqual(report.inputDelta.map(row => row[0]), [testPath]);
+report.inputTree = { algorithm: 'SHA256(JSON.stringify(sorted recursive [path,type,mode,contentSHA256] rows)); directories included; only initially absent dist and node_modules excluded', entries: before.length, pristineSha256: sha(JSON.stringify(pristine)), beforeSha256: sha(JSON.stringify(before)) };
+report.runtimeSha256 = sha(readFileSync(path.join(source, runtimePath)));
+assert.equal(report.runtimeSha256, '4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06');
+assert.equal(sha(readFileSync(path.join(source, 'src/commands/text.ts'))), report.excludedTextDelta.productSha256);
+symlinkSync(path.join(repo, 'node_modules'), path.join(source, 'node_modules'));
+const lock = JSON.parse(blob(product, 'package-lock.json'));
+report.tools = ['tsx', 'typescript', '@types/node', 'esbuild'].map(name => {
+  const installed = readFileSync(path.join(repo, 'node_modules', name, 'package.json'));
+  const version = JSON.parse(installed).version;
+  assert.equal(version, lock.packages[`node_modules/${name}`].version);
+  return { name, version, packageJsonSha256: sha(installed) };
+});
+function groupExists(pid) { try { process.kill(-pid, 0); return true; } catch (error) { if (error.code === 'ESRCH') return false; throw error; } }
+async function run(label, executable, args) {
+  const child = spawn(executable, args, { cwd: source, detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, TSX_DISABLE_CACHE: '1' } });
+  const stdout = [], stderr = [];
+  child.stdout.on('data', bytes => stdout.push(bytes));
+  child.stderr.on('data', bytes => stderr.push(bytes));
+  const timer = setTimeout(() => { if (groupExists(child.pid)) process.kill(-child.pid, 'SIGKILL'); }, 120000);
+  const outcome = await new Promise((resolve, reject) => { child.once('error', reject); child.once('close', (exitCode, signal) => resolve({ exitCode, signal })); });
+  clearTimeout(timer);
+  for (let attempt = 0; groupExists(child.pid) && attempt < 100; attempt++) await new Promise(resolve => setTimeout(resolve, 20));
+  const remaining = groupExists(child.pid);
+  if (remaining) process.kill(-child.pid, 'SIGKILL');
+  const output = Buffer.concat(stdout), errors = Buffer.concat(stderr);
+  writeFileSync(path.join(scratch, `${label}.stdout`), output);
+  writeFileSync(path.join(scratch, `${label}.stderr`), errors);
+  report.commands.push({ label, executable, args, cwd: source, pid: child.pid, ...outcome, processGroupAbsent: !remaining, stdoutSha256: sha(output), stderrSha256: sha(errors) });
+  assert.equal(remaining, false);
+  return output.toString();
+}
+try {
+  await run('build', 'npm', ['run', 'build']);
+  const tap = await run('author', process.execPath, ['--import', 'tsx', '--test', testPath, hostPath]);
+  const flags = ['--noEmit', '--target', 'ES2023', '--lib', 'ES2023', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--strict', '--noUncheckedIndexedAccess', '--exactOptionalPropertyTypes', '--verbatimModuleSyntax', '--forceConsistentCasingInFileNames', '--skipLibCheck', '--types', 'node'];
+  await run('strict', process.execPath, ['node_modules/typescript/bin/tsc', ...flags, testPath, hostPath]);
+  report.counts = Object.fromEntries(['tests', 'suites', 'pass', 'fail', 'cancelled', 'skipped', 'todo'].map(name => [name, Number(tap.match(new RegExp(`^# ${name} (\\d+)$`, 'm'))?.[1])]));
+  assert.deepEqual(report.counts, { tests: 48, suites: 0, pass: 48, fail: 0, cancelled: 0, skipped: 0, todo: 0 });
+  assert.ok(report.commands.every(command => command.exitCode === 0 && command.signal === null));
+  const after = snapshot();
+  report.inputTree.afterSha256 = sha(JSON.stringify(after));
+  assert.deepEqual(after, before);
+  assert.equal(sha(readFileSync(archive)), report.archive.sha256);
+  report.inputTree.appendAwarePostcheck = true;
+  report.archive.unchangedAfter = true;
+  for (const receipt of report.priorReceipts) assert.equal(sha(readFileSync(path.join(repo, receipt.path))), receipt.sha256);
+  report.priorReceiptsUnchangedAfter = true;
+  report.status = 'PASS: bounded single-expectation acceptance only';
+} catch (error) {
+  report.status = 'FAIL';
+  report.error = String(error.stack);
+  process.exitCode = 1;
+} finally {
+  report.finishedAt = new Date().toISOString();
+  writeFileSync(path.join(scratch, 'report.json'), JSON.stringify(report, null, 2) + '\n');
+  console.log(JSON.stringify({ status: report.status, counts: report.counts, commands: report.commands, error: report.error }, null, 2));
+}

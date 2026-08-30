@@ -1,0 +1,62 @@
+{
+  "classification": "STATIC_SOURCE_AND_DATA_INSPECTION_NOT_CONTROL_EXECUTION",
+  "criteriaCommit": "b24d87a736dd1c74c13d09a3a3bd598ad0014677",
+  "adapterCommit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+  "checks": {
+    "bindingObjectHash": "15397c06c09297f1dcd3a386af12bca3f673ff6c5acc68380bb083e5db88aeb9",
+    "profileObjectHash": "1d49d68bc1136d126aef0695f3c8380f2caebfe5d6a95f50432466694201caef",
+    "frozenJobHash": "ae7d0831845bc564edaab13216e81a113a1c8c6d1cfe01ae5be2c641d72e8cb3",
+    "controlBaseJobMatchesFrozen": true,
+    "literalExpected": [
+      "-name"
+    ],
+    "resolvedExpected": [
+      "/v/-name"
+    ],
+    "actualPathsPreserved": [
+      "/v/-name"
+    ],
+    "fixedVirtualCwd": "/v",
+    "changedExistingFiles": [
+      "assert-capture.mjs"
+    ],
+    "declaredTextEdits": 2,
+    "addedFiles": {
+      "cmd22-read-paths.mjs": "read-path-binding.mjs",
+      "cmd22-binding.json": "CMD22-BINDING.json"
+    },
+    "definitions": 31,
+    "definitionRoutes": {
+      "original-v2": 1,
+      "successor": 17,
+      "binding-predicate": 2,
+      "resolver-only": 11
+    },
+    "definitionOutcomeLabels": {
+      "FAIL": 17,
+      "PROJECTION_MATCH": 1,
+      "INCOMPLETE": 7,
+      "RESOLVER_VALUE": 6
+    },
+    "mutationBranches": 17,
+    "absoluteFS05UnchangedAndIncomplete": true
+  },
+  "limits": [
+    "No adapter/predicate/fixture/resolver invocation",
+    "Text edits inspected; no successor recipe materialized",
+    "Wrong-cwd profile controls reject an unbound profile; they do not isolate the downstream absolute-cwd validation branch",
+    "Capture-before-assert must be supplied by a separately bound future outer runner; deferred helper is not a complete execution harness",
+    "Current predecessor candidate pin remains consumed; adapter candidateBinding null and completeRecipe false"
+  ],
+  "newClearStaticContradictions": [],
+  "executionCounts": {
+    "controls": 0,
+    "runtime": 0,
+    "product": 0,
+    "builds": 0,
+    "types": 0,
+    "materializers": 0,
+    "loaders": 0
+  },
+  "allDefinitionsUnrun": true
+}

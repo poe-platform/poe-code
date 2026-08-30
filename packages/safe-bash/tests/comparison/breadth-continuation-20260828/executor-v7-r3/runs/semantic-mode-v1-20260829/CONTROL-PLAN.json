@@ -1,0 +1,109 @@
+{
+  "schema": "FINITE_SEMANTIC_MODE_PREEXECUTION_CONTROLS_V1",
+  "attempts": 1,
+  "newControls": 18,
+  "retainedAdmissionDataControls": 3,
+  "controllerMs": 180000,
+  "controllerChildren": 0,
+  "controllerStdoutBytes": 65536,
+  "controllerStderrBytes": 65536,
+  "modeledRows": {
+    "S01": 99,
+    "S02": 99,
+    "S15": 0
+  },
+  "actualEngines": 0,
+  "actualWorkers": 0,
+  "actualC11": 0,
+  "actualSemanticPrograms": 0,
+  "syntheticPids": "Numeric receipt models only; not launched/reaped OS-process claims",
+  "wholeBody": "S01/S02/S15 run actual successor runCoordinator/publisher with explicitly synthetic source-data drivers; actual assessor reads real owned model documents, configs and captures. Not actual production-authority/load proof.",
+  "rows": [
+    {
+      "id": "S01",
+      "expected": "complete99modelrows,98qualifications+W07uncredited,165modeledcalls"
+    },
+    {
+      "id": "S02",
+      "expected": "ordinary mismatch traverses99modelrows; exactcoordinator1 protocolcompletion"
+    },
+    {
+      "id": "S03",
+      "expected": "all-qualifiable-row count with wrong nonzero coordinator refuses"
+    },
+    {
+      "id": "S04",
+      "expected": "incomplete retirement refuses"
+    },
+    {
+      "id": "S05",
+      "expected": "observed-byte truncation refuses"
+    },
+    {
+      "id": "S06",
+      "expected": "getter-before-schema refuses with zero gettercalls"
+    },
+    {
+      "id": "S07",
+      "expected": "missing failures schema refuses"
+    },
+    {
+      "id": "S08",
+      "expected": "duplicate operation/child summary refuses"
+    },
+    {
+      "id": "S09",
+      "expected": "167/newC11 setupcount substitution refuses"
+    },
+    {
+      "id": "S10",
+      "expected": "W07falsecredit count refuses"
+    },
+    {
+      "id": "S11",
+      "expected": "unobserved authority refuses"
+    },
+    {
+      "id": "S12",
+      "expected": "newgrant valid; primitivecandidatearray refuses"
+    },
+    {
+      "id": "S13",
+      "expected": "wrong acceptedadmission binding refuses"
+    },
+    {
+      "id": "S14",
+      "expected": "small actual sharedbudget exhaustion refuses; unchanged aggregate metadata"
+    },
+    {
+      "id": "S15",
+      "expected": "wholebody undefinedprimary plus falsecleanup retained; no modelworkers"
+    },
+    {
+      "id": "S16",
+      "expected": "terminal extras refuse"
+    },
+    {
+      "id": "S17",
+      "expected": "changed frozen specimen refuses operationauth"
+    },
+    {
+      "id": "S18",
+      "expected": "wrapper source exec topology/022/private600 checks only"
+    },
+    {
+      "id": "A01",
+      "expected": "retained acceptedadmission terminaldata positive; no run"
+    },
+    {
+      "id": "A02",
+      "expected": "retained admissiondata wrongexit7 refuses"
+    },
+    {
+      "id": "A03",
+      "expected": "retained admissiondata capture truncation refuses"
+    }
+  ],
+  "noWholeProductionWorkerOrActualAuthorityClaim": true,
+  "noFull248MiBAllocationBoundaryClaim": true
+}

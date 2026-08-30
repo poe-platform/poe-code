@@ -1,0 +1,643 @@
+{
+  "schema": "EXACT_55_OUTCOMES_UNSAFE_TAIL",
+  "rows": [
+    {
+      "id": "G01.1",
+      "kind": "positive",
+      "workers": 1,
+      "outcome": {
+        "id": "G01.1",
+        "status": "UNSAFE_STOP",
+        "error": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/runs/controls-01/G01.1/RESULT.json'",
+        "supervision": {
+          "id": "G01.1",
+          "args": [
+            "--unhandled-rejections=strict",
+            "--max-old-space-size=256",
+            "--permission",
+            "--allow-worker",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+            "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/runs/controls-01/G01.1",
+            "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/case.mjs",
+            "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/runs/controls-01/G01.1/CONFIG.json",
+            "46973cbd82fa606433582c8d68f6a9742bfc6083b7ac27461a0993adb3feca1d"
+          ],
+          "pid": 6938,
+          "closed": true,
+          "status": 1,
+          "signal": null,
+          "observed": [
+            68,
+            759
+          ],
+          "retained": [
+            68,
+            759
+          ],
+          "failures": [],
+          "sentSignals": [],
+          "capturesClosed": true
+        }
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNSAFE_UNQUALIFIED"
+    },
+    {
+      "id": "G01.2",
+      "kind": "moved",
+      "workers": 1,
+      "outcome": {
+        "id": "G01.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G01.3",
+      "kind": "hash-drift",
+      "workers": 0,
+      "outcome": {
+        "id": "G01.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G01.4",
+      "kind": "mode-drift",
+      "workers": 0,
+      "outcome": {
+        "id": "G01.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G01.5",
+      "kind": "symlink",
+      "workers": 0,
+      "outcome": {
+        "id": "G01.5",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G02.1",
+      "kind": "url-positive",
+      "workers": 1,
+      "outcome": {
+        "id": "G02.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G02.2",
+      "kind": "url-forged",
+      "workers": 0,
+      "outcome": {
+        "id": "G02.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G02.3",
+      "kind": "url-getter-proxy",
+      "workers": 0,
+      "outcome": {
+        "id": "G02.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G02.4",
+      "kind": "url-query",
+      "workers": 0,
+      "outcome": {
+        "id": "G02.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G02.5",
+      "kind": "url-fragment",
+      "workers": 0,
+      "outcome": {
+        "id": "G02.5",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G02.6",
+      "kind": "url-percent",
+      "workers": 0,
+      "outcome": {
+        "id": "G02.6",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G02.7",
+      "kind": "url-outside",
+      "workers": 0,
+      "outcome": {
+        "id": "G02.7",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G03.1",
+      "kind": "options-positive",
+      "workers": 1,
+      "outcome": {
+        "id": "G03.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G03.2",
+      "kind": "options-inherited",
+      "workers": 0,
+      "outcome": {
+        "id": "G03.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G03.3",
+      "kind": "options-accessor",
+      "workers": 0,
+      "outcome": {
+        "id": "G03.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G03.4",
+      "kind": "options-extra",
+      "workers": 0,
+      "outcome": {
+        "id": "G03.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G03.5",
+      "kind": "options-limit",
+      "workers": 0,
+      "outcome": {
+        "id": "G03.5",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G04.1",
+      "kind": "url-data",
+      "workers": 0,
+      "outcome": {
+        "id": "G04.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G04.2",
+      "kind": "options-eval",
+      "workers": 0,
+      "outcome": {
+        "id": "G04.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G04.3",
+      "kind": "options-argv",
+      "workers": 0,
+      "outcome": {
+        "id": "G04.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G04.4",
+      "kind": "url-string",
+      "workers": 0,
+      "outcome": {
+        "id": "G04.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G04.5",
+      "kind": "url-foreign",
+      "workers": 0,
+      "outcome": {
+        "id": "G04.5",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G05.1",
+      "kind": "after-admission-drift",
+      "workers": 1,
+      "outcome": {
+        "id": "G05.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G05.2",
+      "kind": "loaded-source-drift",
+      "workers": 1,
+      "outcome": {
+        "id": "G05.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G05.3",
+      "kind": "import-escape",
+      "workers": 1,
+      "outcome": {
+        "id": "G05.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G05.4",
+      "kind": "builtin-escape",
+      "workers": 1,
+      "outcome": {
+        "id": "G05.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G06.1",
+      "kind": "caught-parent",
+      "workers": 0,
+      "outcome": {
+        "id": "G06.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G06.2",
+      "kind": "caught-nested",
+      "workers": 1,
+      "outcome": {
+        "id": "G06.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G06.3",
+      "kind": "child-publication",
+      "workers": 1,
+      "outcome": {
+        "id": "G06.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G06.4",
+      "kind": "sticky-zero-exit-assessment",
+      "workers": 1,
+      "outcome": {
+        "id": "G06.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G07.1",
+      "kind": "eight-starts",
+      "workers": 8,
+      "outcome": {
+        "id": "G07.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G07.2",
+      "kind": "ninth-start",
+      "workers": 8,
+      "outcome": {
+        "id": "G07.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G07.3",
+      "kind": "second-active",
+      "workers": 1,
+      "outcome": {
+        "id": "G07.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G07.4",
+      "kind": "zero-allowance",
+      "workers": 0,
+      "outcome": {
+        "id": "G07.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G08.1",
+      "kind": "four-loads",
+      "workers": 1,
+      "outcome": {
+        "id": "G08.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G08.2",
+      "kind": "missing-witness",
+      "workers": 1,
+      "outcome": {
+        "id": "G08.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G08.3",
+      "kind": "duplicate-token",
+      "workers": 1,
+      "outcome": {
+        "id": "G08.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G08.4",
+      "kind": "parent-hash-only",
+      "workers": 0,
+      "outcome": {
+        "id": "G08.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G09.1",
+      "kind": "natural-cleanup",
+      "workers": 1,
+      "outcome": {
+        "id": "G09.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G09.2",
+      "kind": "caller-abort",
+      "workers": 1,
+      "outcome": {
+        "id": "G09.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G09.3",
+      "kind": "startup-failure",
+      "workers": 1,
+      "outcome": {
+        "id": "G09.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G09.4",
+      "kind": "constructor-unknown-data",
+      "workers": 0,
+      "outcome": {
+        "id": "G09.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G10.1",
+      "kind": "start-publication-null",
+      "workers": 1,
+      "outcome": {
+        "id": "G10.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G10.2",
+      "kind": "terminate-publication-undefined",
+      "workers": 1,
+      "outcome": {
+        "id": "G10.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G10.3",
+      "kind": "missing-exit-assessment",
+      "workers": 1,
+      "outcome": {
+        "id": "G10.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G10.4",
+      "kind": "bounded-journal-falsy-primary",
+      "workers": 1,
+      "outcome": {
+        "id": "G10.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G11.1",
+      "kind": "effective-argv",
+      "workers": 1,
+      "outcome": {
+        "id": "G11.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G11.2",
+      "kind": "preload-drift",
+      "workers": 0,
+      "outcome": {
+        "id": "G11.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G11.3",
+      "kind": "caller-preload",
+      "workers": 0,
+      "outcome": {
+        "id": "G11.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G11.4",
+      "kind": "recursive-worker",
+      "workers": 1,
+      "outcome": {
+        "id": "G11.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G11.5",
+      "kind": "source-fallback",
+      "workers": 1,
+      "outcome": {
+        "id": "G11.5",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G12.1",
+      "kind": "allocation-unknown-data",
+      "workers": 0,
+      "outcome": {
+        "id": "G12.1",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G12.2",
+      "kind": "allocation-zero-data",
+      "workers": 0,
+      "outcome": {
+        "id": "G12.2",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G12.3",
+      "kind": "allocation-known-data",
+      "workers": 0,
+      "outcome": {
+        "id": "G12.3",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    },
+    {
+      "id": "G12.4",
+      "kind": "historical-fail-data",
+      "workers": 0,
+      "outcome": {
+        "id": "G12.4",
+        "status": "UNRUN_UNSAFE_TAIL"
+      },
+      "actualWorkerCounters": null,
+      "qualification": "UNRUN_UNQUALIFIED"
+    }
+  ]
+}

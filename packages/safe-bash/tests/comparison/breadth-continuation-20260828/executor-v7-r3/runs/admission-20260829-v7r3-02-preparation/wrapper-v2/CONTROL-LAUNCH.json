@@ -1,0 +1,17 @@
+{
+  "schema": "MODE_CONTROL_LAUNCH_INTENT_V2",
+  "presealCommit": "cc17e9188ce66fda714d4b558def0dfb4686a757",
+  "sealSha256": "f3a56c999e133d1727b474efc4bba589f7e88006356bdbb04a88f8ea4fe19bec",
+  "attempt": 1,
+  "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v2/controls-01",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v2/controls.mjs",
+    "f3a56c999e133d1727b474efc4bba589f7e88006356bdbb04a88f8ea4fe19bec"
+  ],
+  "route": "/bin/sh exec -c replaces shell with runner; runner->wrapper->one sequential helper peak3; final stub replaces wrapper",
+  "createdAt": "2026-08-29T03:47:12.428Z",
+  "actualOwnerLauncherCoordinatorProductWorkers": 0
+}

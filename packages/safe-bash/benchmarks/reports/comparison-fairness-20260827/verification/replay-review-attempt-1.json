@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "kind": "OFFLINE_REPLAY_REVIEW",
+  "createdAt": "2026-08-27T05:20:20.078Z",
+  "productExecutions": 0,
+  "profiles": {},
+  "blockers": [
+    {
+      "code": "INCOMPLETE_OR_MISMATCHED_EVIDENCE",
+      "detail": {
+        "message": "snapshot mode drift: audit/config.json\n\n292 !== 420\n",
+        "stack": "AssertionError [ERR_ASSERTION]: snapshot mode drift: audit/config.json\n\n292 !== 420\n\n    at walk (file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.mjs:42:16)\n    at async walk (file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.mjs:33:32)\n    at async verifyFreeze (file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.mjs:49:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.mjs:143:25"
+      }
+    }
+  ],
+  "limitations": [
+    "No product, native, performance or recipe execution. No claim about current live HEAD. Public terminal-byte API failures remain separate from internal pipe/file effects. No automatic whole-comparison acceptance."
+  ],
+  "readinessSha256": "2fc4b1143c0f6129c94598c3de289f3ada8bf690f6c63f7df070247f2b46f65a",
+  "source": {
+    "frozenHead": "c2902a6016dd4a42818e27d055895c0dc29f73f2",
+    "dirtyState": " M src/commands/safejs/README.md\n M src/commands/safejs/index.ts\n M src/shell/parser.ts\n M src/shell/runtime.ts\n M tests/commands/safejs-stress/safety.test.ts\n M tests/commands/safejs-stress/upstream-limitations.test.ts\n M tests/commands/safejs/command.test.ts\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? src/commands/stream-inspection/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/stream-inspection/\n?? tests/fs/s3/http-independent/download-service.mjs\n?? tests/fs/s3/http-independent/evidence/\n?? tests/fs/s3/http-independent/finalize-evidence.mjs\n?? tests/fs/s3/http-independent/lifecycle.test.ts\n?? tests/fs/s3/http-independent/minio-service.mjs\n?? tests/fs/s3/http-independent/mutants.mjs\n?? tests/fs/s3/http-independent/oracle-curl-check.mjs\n?? tests/fs/s3/http-independent/oracle-signature.mjs\n?? tests/fs/s3/http-independent/prepare.mjs\n?? tests/fs/s3/http-independent/public-workflow.mts\n?? tests/fs/s3/http-independent/replay-author-service.mjs\n?? tests/fs/s3/http-independent/validate.mjs\n?? tests/shell/substring-bounds.test.ts\n?? tests/shell/substring-bounds.ts\n?? tests/shell/substring-cases.ts\n?? tests/shell/substring-native.json\n?? tests/shell/substring-native.ts\n?? tests/shell/substring-positional-native.json\n?? tests/shell/substring-positional.test.ts\n?? tests/shell/substring-positional.ts\n?? tests/shell/substring-red.json\n?? tests/shell/substring-verify.mjs\n?? tests/shell/substring.test.ts\n?? tests/stress/regex-execution/design/\n",
+    "sourceTreeSha256": "76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c",
+    "product": "/private/tmp/safe-bash-comparison-replay-20260827-EuLV2d/product",
+    "sourceFiles": 176,
+    "qualification": "same current dirty source seal for both profiles; not whole latest HEAD"
+  },
+  "result": "BLOCKED_NO_SYNTHETIC_SCORES"
+}

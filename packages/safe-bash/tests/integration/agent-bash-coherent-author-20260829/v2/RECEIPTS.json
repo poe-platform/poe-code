@@ -1,0 +1,50 @@
+[
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/COMPOSITION.json",
+    "blob": "e90341d1eb8ee4e7e54e826c205b7978b21ac98d",
+    "bytes": 131348,
+    "sha256": "9def80500ee79d157054dcdd8a8dd06b7f77c2f8a720bd34e34c550aec5831f9"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/TREE-WITNESSES.json",
+    "blob": "b440f05d2d58a9310fb11fc45136696b6deed73a",
+    "bytes": 161248,
+    "sha256": "64ed23c6e2f74890ecb2d72284d9458da00af3e59a9ea8975405fd75deb2610a"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/SOURCE-TREE-INVENTORY.json",
+    "blob": "0b995d3cb3b461d479aa88d52b6d47ea043f722f",
+    "bytes": 40195,
+    "sha256": "4f00a838cf440a8f09e9591495357037b33432d3cc141594295860d12fa4d8a4"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/EVIDENCE.md",
+    "blob": "720bd6625465c6b6da046a1f0292ff171c33cae4",
+    "bytes": 2596,
+    "sha256": "55481fd9d7ad674c931f3fa7d5ccaec84a6736ca1889eb36aa7462e9fd964a73"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json",
+    "blob": "cbce5f039417a2ca96dd967b678f5fdaf0ad8b47",
+    "bytes": 230044,
+    "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/PRESEAL-v4.json",
+    "blob": "1b6a4875e52fcd319bfbd0f821ae783517b05c66",
+    "bytes": 4237,
+    "sha256": "5735b4f62fd237713ba7865ebbe2955798d092441961797ed993935d514f39b5"
+  },
+  {
+    "reference": "bb4dd0571a0335b20e29448bf88126ca02c1a32d:tests/integration/node-public-author-20260829/public-node.mjs",
+    "blob": "4dd969c1c93eb552c64049d4525a7a480eb8a2c7",
+    "bytes": 11663,
+    "sha256": "b7e3b584d845fe120758305ff92543a4dc9f039c3ca6f48b42fae84ff3108aa2"
+  },
+  {
+    "reference": "b7dc87ff84a45567dc8d912cc15dd10f089ed68a:tests/integration/agent-bash-coherent-independent-20260829/PROBES.json",
+    "blob": "836ebb617ed01885825527feaf7e3bdd4aaa0fd5",
+    "bytes": 7253,
+    "sha256": "4d4a3f840ba29844568271a42584103387370588217b66c82eea0e4213c4745b"
+  }
+]

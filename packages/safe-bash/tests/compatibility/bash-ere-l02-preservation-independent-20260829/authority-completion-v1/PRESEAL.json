@@ -1,0 +1,26 @@
+{
+  "scope": "Narrow SOURCE/DATA completion only",
+  "expected": {
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-l02-followup-independent-20260829/r4/REVIEW-ACCEPTANCE.json",
+      "bytes": 1250,
+      "sha256": "39244351bc27769439f7f881cdeb6b68b92f694eb9f21c316a9f0eff44acea69",
+      "commit": "2e6d59787df9d1949d9e342fbd2769cb76240651"
+    },
+    "grant": {
+      "bytes": 523,
+      "sha256": "b0cf01197a9ab3fdf5439540759541b04c923f10004b16e1620f17f9534ecc78"
+    },
+    "profileHash": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa"
+  },
+  "authorBinding": "5a2e4a11c647cffcfbfd8d77122f467e9e28f12d",
+  "membership": "receipt+pending grant+static activation formula+consumed grant if present+profile+command",
+  "roles": {
+    "helper": 1,
+    "metadataGit": 2,
+    "syntaxOnly": 1,
+    "ceilingKnownOS": 12,
+    "peak": 3
+  },
+  "runtime": 0
+}

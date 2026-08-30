@@ -1,0 +1,20 @@
+{
+  "schema": "m1b-direct-prelaunch-review-v1",
+  "date": "2026-08-28",
+  "disposition": "PRELAUNCH_COMPONENT_REVIEW_COMPLETE",
+  "role": "SOURCE_DATA_REVIEW_NOT_PRODUCT_ACCEPTANCE",
+  "reviewedCommit": "64d76feb39275e4fa9d7e820c02eb48aaa68849b",
+  "recipeSha256": "a4c3fab089d7c2a957f4d263298a153b7cdea3d856c9820b5c90f6b0f2d591a6",
+  "finalSealSha256": "d23931c1dcf4127cc075a99e603c6a78e5a509a8feff084cd4599137b6f5d309",
+  "components": [
+    { "component": "complete-executor-v2", "sourceSeal": "16b732a8bdcdb0606644a2448ed18e3dd845c44592942254cc21de66c0862473" },
+    { "component": "type-api-v2", "sourceSeal": "e2a71c452cea79089296fe3051ff9686d5b7f74096305a7ab2fd01ff5eb63ea7" },
+    { "component": "semantic-mode-v3", "sourceSeal": "9e597aec4494f171a4921b2617787fc682400d39531f81b9db9cd0d7ea08ae4c" },
+    { "component": "semantic-loaded-v2", "sourceSeal": "7a26dae3833255423416068f8810e94f5f85b698f5f9a15f78095a5a4155f69a" }
+  ],
+  "sourceChecks": { "selectedFiles": 55, "storedOrigins": 7, "storedBlobs": 55, "metadataChildren": 8, "knownRetired": 8 },
+  "actualCandidateExecutions": 0,
+  "remaining": ["H09_ADAPTER_UNQUALIFIED", "S02_SOURCE_CONCERN_UNRUN", "RESOURCE_MAP_NOT_FULL_RUNTIME_PROOF", "PUBLIC_EXPORT_GAP"],
+  "authorResultsInherited": false,
+  "newExecutionAllowance": false
+}

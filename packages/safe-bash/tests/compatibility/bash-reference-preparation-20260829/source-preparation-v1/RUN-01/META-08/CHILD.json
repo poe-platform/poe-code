@@ -1,0 +1,32 @@
+{
+  "id": "META-08",
+  "disposition": {
+    "code": 0,
+    "signal": null
+  },
+  "events": [
+    {
+      "event": "spawn-request",
+      "pid": 76617
+    },
+    {
+      "event": "exit",
+      "code": 0,
+      "signal": null,
+      "ms": 15.198625000000902
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "ms": 15.245333000000755
+    }
+  ],
+  "lengths": [
+    487,
+    0
+  ],
+  "elapsedMs": 15.252291999999215,
+  "closed": true,
+  "failure": null
+}

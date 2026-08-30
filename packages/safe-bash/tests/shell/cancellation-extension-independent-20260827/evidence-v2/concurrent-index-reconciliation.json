@@ -1,0 +1,9 @@
+{
+  "beforeHead": "c812e818a87c58dcd1c6b4616b41ac8ae2c9daeb",
+  "afterHead": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "stagedForeignBefore": "",
+  "stagedForeignAfter": "",
+  "fullIndexMatchesEachHead": true,
+  "rawIndexIdentical": false,
+  "concurrentCommittedChanges": "A\tsrc/commands/which/README.md\nA\tsrc/commands/which/index.ts\nA\tsrc/commands/which/options.ts\nA\tsrc/commands/which/which.ts\nA\ttests/commands/which/README.md\nA\ttests/commands/which/behavior.test.ts\nA\ttests/commands/which/consumer.ts.data\nA\ttests/commands/which/helpers.ts\nA\ttests/commands/which/limits.test.ts\nA\ttests/commands/which/moved-runtime.mjs\nA\ttests/commands/which/safety.test.ts\nA\ttests/commands/which/verify-isolated.mjs\n"
+}

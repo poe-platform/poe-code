@@ -1,0 +1,113 @@
+{
+  "scope": "analysis of retained followup executions; zero new native runs",
+  "comparisons": [
+    {
+      "profile": "bash53",
+      "mode": "source",
+      "id": "F01",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5",
+      "productBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5"
+    },
+    {
+      "profile": "bash53",
+      "mode": "source",
+      "id": "F02",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "8b45c3afa1d2398a1badb971e58cd2feed951cdc866c0cde4fe492c4349f769e",
+      "productBytesSha256": "8b45c3afa1d2398a1badb971e58cd2feed951cdc866c0cde4fe492c4349f769e"
+    },
+    {
+      "profile": "bash53",
+      "mode": "source",
+      "id": "F03",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5",
+      "productBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5"
+    },
+    {
+      "profile": "bash53",
+      "mode": "moved",
+      "id": "F01",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5",
+      "productBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5"
+    },
+    {
+      "profile": "bash53",
+      "mode": "moved",
+      "id": "F02",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "8b45c3afa1d2398a1badb971e58cd2feed951cdc866c0cde4fe492c4349f769e",
+      "productBytesSha256": "8b45c3afa1d2398a1badb971e58cd2feed951cdc866c0cde4fe492c4349f769e"
+    },
+    {
+      "profile": "bash53",
+      "mode": "moved",
+      "id": "F03",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5",
+      "productBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5"
+    },
+    {
+      "profile": "bash32",
+      "mode": "source",
+      "id": "F01",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5",
+      "productBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5"
+    },
+    {
+      "profile": "bash32",
+      "mode": "source",
+      "id": "F02",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "8b45c3afa1d2398a1badb971e58cd2feed951cdc866c0cde4fe492c4349f769e",
+      "productBytesSha256": "8b45c3afa1d2398a1badb971e58cd2feed951cdc866c0cde4fe492c4349f769e"
+    },
+    {
+      "profile": "bash32",
+      "mode": "source",
+      "id": "F03",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5",
+      "productBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5"
+    },
+    {
+      "profile": "bash32",
+      "mode": "moved",
+      "id": "F01",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5",
+      "productBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5"
+    },
+    {
+      "profile": "bash32",
+      "mode": "moved",
+      "id": "F02",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "8b45c3afa1d2398a1badb971e58cd2feed951cdc866c0cde4fe492c4349f769e",
+      "productBytesSha256": "8b45c3afa1d2398a1badb971e58cd2feed951cdc866c0cde4fe492c4349f769e"
+    },
+    {
+      "profile": "bash32",
+      "mode": "moved",
+      "id": "F03",
+      "records": 2,
+      "pass": true,
+      "nativeBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5",
+      "productBytesSha256": "c31ba66290843c465ecbec59490f0de53298ba18c3df8c12674f4897102c74e5"
+    }
+  ]
+}

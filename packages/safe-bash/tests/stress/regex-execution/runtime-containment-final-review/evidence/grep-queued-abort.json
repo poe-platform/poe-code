@@ -1,0 +1,1108 @@
+{
+  "job": "grep-queued-abort",
+  "time": "2026-08-27T09:25:58.108Z",
+  "pass": true,
+  "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+  "claim": {
+    "job": "grep-queued-abort",
+    "time": "2026-08-27T09:25:57.916Z",
+    "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+    "approval": {
+      "authority": "ROOT_EXPLICIT_EXECUTION_AFTER_REVIEWED_BENIGN_GREEN",
+      "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+      "benignSha256": "d27d834f2a1b3773ccc8918a95a1b29b838efa48d833c9f3507ad740c233cb99",
+      "controlsSha256": "1229baac8c348b8232d12ed0e5187fad3873bd43ca091881a8eba41530ce9931",
+      "sourceCommit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "archiveSha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b",
+      "fixtureCommit": "8d0909ff3cf29290051e3d91dc3205e629ef6bda",
+      "reviewedIndependentBenignGreen": true,
+      "noConcurrentLifecycleProbesOrPerformance": true,
+      "totalTargetBudget": 6,
+      "totalPathologicalRequestBudget": 4,
+      "jobs": [
+        "grep-default",
+        "rg-default",
+        "grep-abort",
+        "rg-abort",
+        "grep-queued-abort",
+        "rg-queued-abort"
+      ],
+      "expiresAt": "2026-08-27T11:20:45.477Z",
+      "sha256": "f0979bf95c009526e30db02b9c402867bbe176fef5816c70003d89e824431092"
+    },
+    "targetSlotsReserved": 1,
+    "pathologicalRequestsReserved": 0,
+    "noRetry": true
+  },
+  "runs": [
+    {
+      "job": "grep-queued-abort",
+      "pid": 55232,
+      "watchdogMs": 8000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": {
+        "kind": "result",
+        "job": "grep-queued-abort",
+        "pass": true,
+        "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/index.js",
+        "elapsedMs": 85.180541,
+        "details": {
+          "phase": "trusted real-worker response/control boundary; benign matching only",
+          "beforeQueue": [
+            {
+              "owner": "sibling-one",
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": false,
+              "readyAtMs": 106.753542,
+              "terminationCalls": 0,
+              "terminationAwaited": false,
+              "requests": [
+                {
+                  "owner": "sibling-one",
+                  "id": 1,
+                  "atMs": 106.858917,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^a"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": []
+                },
+                {
+                  "owner": "sibling-one",
+                  "id": 3,
+                  "atMs": 107.554958,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^a"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": [
+                    {
+                      "bytes": "YWI=",
+                      "terminated": true
+                    }
+                  ]
+                }
+              ],
+              "responses": [
+                {
+                  "id": 1,
+                  "atMs": 107.000958
+                },
+                {
+                  "id": 3,
+                  "atMs": 107.733625
+                }
+              ],
+              "heldResponses": 1,
+              "listeners": {
+                "message": 1,
+                "messageerror": 1,
+                "error": 1,
+                "exit": 1
+              }
+            },
+            {
+              "owner": "sibling-two",
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": false,
+              "readyAtMs": 106.870125,
+              "terminationCalls": 0,
+              "terminationAwaited": false,
+              "requests": [
+                {
+                  "owner": "sibling-two",
+                  "id": 2,
+                  "atMs": 106.889958,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^a"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": []
+                },
+                {
+                  "owner": "sibling-two",
+                  "id": 4,
+                  "atMs": 107.719,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^a"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": [
+                    {
+                      "bytes": "YWI=",
+                      "terminated": true
+                    }
+                  ]
+                }
+              ],
+              "responses": [
+                {
+                  "id": 2,
+                  "atMs": 107.586667
+                },
+                {
+                  "id": 4,
+                  "atMs": 107.855167
+                }
+              ],
+              "heldResponses": 1,
+              "listeners": {
+                "message": 1,
+                "messageerror": 1,
+                "error": 1,
+                "exit": 1
+              }
+            }
+          ],
+          "queueAdmission": {
+            "owner": "queued-target",
+            "atMs": 108.2465,
+            "callbackSha256": "1a556f0d45086fe075c148b1c7f309bb91afb61da3b78f796853b6dab44a76dc"
+          },
+          "abortAtMs": 108.280083,
+          "abortLatencyMs": 0.4234170000000006,
+          "queuedOwnedWorkers": 0,
+          "siblingsAliveAtQueuedSettlement": 2,
+          "siblings": [
+            {
+              "exitCode": 0,
+              "stdout": "YWIK",
+              "stderr": ""
+            },
+            {
+              "exitCode": 0,
+              "stdout": "YWIK",
+              "stderr": ""
+            }
+          ],
+          "beforeDispose": [
+            {
+              "owner": "sibling-one",
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "readyAtMs": 106.753542,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "requests": [
+                {
+                  "owner": "sibling-one",
+                  "id": 1,
+                  "atMs": 106.858917,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^a"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": []
+                },
+                {
+                  "owner": "sibling-one",
+                  "id": 3,
+                  "atMs": 107.554958,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^a"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": [
+                    {
+                      "bytes": "YWI=",
+                      "terminated": true
+                    }
+                  ]
+                }
+              ],
+              "responses": [
+                {
+                  "id": 1,
+                  "atMs": 107.000958
+                },
+                {
+                  "id": 3,
+                  "atMs": 107.733625
+                }
+              ],
+              "exitCode": 1,
+              "heldResponses": 0,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            },
+            {
+              "owner": "sibling-two",
+              "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+              "options": {
+                "execArgv": [],
+                "resourceLimits": {
+                  "maxOldGenerationSizeMb": 128,
+                  "stackSizeMb": 4
+                }
+              },
+              "exited": true,
+              "readyAtMs": 106.870125,
+              "terminationCalls": 1,
+              "terminationAwaited": true,
+              "requests": [
+                {
+                  "owner": "sibling-two",
+                  "id": 2,
+                  "atMs": 106.889958,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^a"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": []
+                },
+                {
+                  "owner": "sibling-two",
+                  "id": 4,
+                  "atMs": 107.719,
+                  "descriptor": {
+                    "kind": "grep",
+                    "patterns": [
+                      "^a"
+                    ],
+                    "fixed": false,
+                    "extended": true,
+                    "insensitive": false,
+                    "whole": false,
+                    "word": false
+                  },
+                  "rows": [
+                    {
+                      "bytes": "YWI=",
+                      "terminated": true
+                    }
+                  ]
+                }
+              ],
+              "responses": [
+                {
+                  "id": 2,
+                  "atMs": 107.586667
+                },
+                {
+                  "id": 4,
+                  "atMs": 107.855167
+                }
+              ],
+              "exitCode": 1,
+              "heldResponses": 0,
+              "listeners": {
+                "message": 0,
+                "messageerror": 0,
+                "error": 0,
+                "exit": 0
+              }
+            }
+          ]
+        },
+        "boundaries": [
+          {
+            "owner": "queued-target",
+            "command": "grep -E '^a'",
+            "rejected": true,
+            "error": "Error: exact independent caller reason: grep-queued-abort",
+            "exactCallerReason": true,
+            "callerListeners": 0,
+            "signals": [
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "sibling-one",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": false,
+                "readyAtMs": 106.753542,
+                "terminationCalls": 0,
+                "terminationAwaited": false,
+                "requests": [
+                  {
+                    "owner": "sibling-one",
+                    "id": 1,
+                    "atMs": 106.858917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "sibling-one",
+                    "id": 3,
+                    "atMs": 107.554958,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 107.000958
+                  },
+                  {
+                    "id": 3,
+                    "atMs": 107.733625
+                  }
+                ],
+                "heldResponses": 1,
+                "listeners": {
+                  "message": 1,
+                  "messageerror": 1,
+                  "error": 1,
+                  "exit": 1
+                }
+              },
+              {
+                "owner": "sibling-two",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": false,
+                "readyAtMs": 106.870125,
+                "terminationCalls": 0,
+                "terminationAwaited": false,
+                "requests": [
+                  {
+                    "owner": "sibling-two",
+                    "id": 2,
+                    "atMs": 106.889958,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "sibling-two",
+                    "id": 4,
+                    "atMs": 107.719,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 2,
+                    "atMs": 107.586667
+                  },
+                  {
+                    "id": 4,
+                    "atMs": 107.855167
+                  }
+                ],
+                "heldResponses": 1,
+                "listeners": {
+                  "message": 1,
+                  "messageerror": 1,
+                  "error": 1,
+                  "exit": 1
+                }
+              }
+            ]
+          },
+          {
+            "owner": "sibling-one",
+            "command": "grep -E '^a'",
+            "rejected": false,
+            "result": {
+              "exitCode": 0,
+              "stdout": "YWIK",
+              "stderr": ""
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "sibling-one",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": false,
+                "readyAtMs": 106.753542,
+                "terminationCalls": 1,
+                "terminationAwaited": false,
+                "requests": [
+                  {
+                    "owner": "sibling-one",
+                    "id": 1,
+                    "atMs": 106.858917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "sibling-one",
+                    "id": 3,
+                    "atMs": 107.554958,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 107.000958
+                  },
+                  {
+                    "id": 3,
+                    "atMs": 107.733625
+                  }
+                ],
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 1,
+                  "messageerror": 1,
+                  "error": 1,
+                  "exit": 2
+                }
+              },
+              {
+                "owner": "sibling-two",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": false,
+                "readyAtMs": 106.870125,
+                "terminationCalls": 1,
+                "terminationAwaited": false,
+                "requests": [
+                  {
+                    "owner": "sibling-two",
+                    "id": 2,
+                    "atMs": 106.889958,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "sibling-two",
+                    "id": 4,
+                    "atMs": 107.719,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 2,
+                    "atMs": 107.586667
+                  },
+                  {
+                    "id": 4,
+                    "atMs": 107.855167
+                  }
+                ],
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 1,
+                  "messageerror": 1,
+                  "error": 1,
+                  "exit": 2
+                }
+              }
+            ]
+          },
+          {
+            "owner": "sibling-two",
+            "command": "grep -E '^a'",
+            "rejected": false,
+            "result": {
+              "exitCode": 0,
+              "stdout": "YWIK",
+              "stderr": ""
+            },
+            "exactCallerReason": null,
+            "callerListeners": null,
+            "signals": [
+              {
+                "aborted": false,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              },
+              {
+                "aborted": true,
+                "listeners": 0
+              }
+            ],
+            "workers": [
+              {
+                "owner": "sibling-one",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 106.753542,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "sibling-one",
+                    "id": 1,
+                    "atMs": 106.858917,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "sibling-one",
+                    "id": 3,
+                    "atMs": 107.554958,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 1,
+                    "atMs": 107.000958
+                  },
+                  {
+                    "id": 3,
+                    "atMs": 107.733625
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              },
+              {
+                "owner": "sibling-two",
+                "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+                "options": {
+                  "execArgv": [],
+                  "resourceLimits": {
+                    "maxOldGenerationSizeMb": 128,
+                    "stackSizeMb": 4
+                  }
+                },
+                "exited": true,
+                "readyAtMs": 106.870125,
+                "terminationCalls": 1,
+                "terminationAwaited": true,
+                "requests": [
+                  {
+                    "owner": "sibling-two",
+                    "id": 2,
+                    "atMs": 106.889958,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": []
+                  },
+                  {
+                    "owner": "sibling-two",
+                    "id": 4,
+                    "atMs": 107.719,
+                    "descriptor": {
+                      "kind": "grep",
+                      "patterns": [
+                        "^a"
+                      ],
+                      "fixed": false,
+                      "extended": true,
+                      "insensitive": false,
+                      "whole": false,
+                      "word": false
+                    },
+                    "rows": [
+                      {
+                        "bytes": "YWI=",
+                        "terminated": true
+                      }
+                    ]
+                  }
+                ],
+                "responses": [
+                  {
+                    "id": 2,
+                    "atMs": 107.586667
+                  },
+                  {
+                    "id": 4,
+                    "atMs": 107.855167
+                  }
+                ],
+                "exitCode": 1,
+                "heldResponses": 0,
+                "listeners": {
+                  "message": 0,
+                  "messageerror": 0,
+                  "error": 0,
+                  "exit": 0
+                }
+              }
+            ]
+          }
+        ],
+        "admissions": [
+          {
+            "owner": "sibling-one",
+            "atMs": 82.874292,
+            "callbackSha256": "1a556f0d45086fe075c148b1c7f309bb91afb61da3b78f796853b6dab44a76dc"
+          },
+          {
+            "owner": "sibling-two",
+            "atMs": 84.066625,
+            "callbackSha256": "1a556f0d45086fe075c148b1c7f309bb91afb61da3b78f796853b6dab44a76dc"
+          },
+          {
+            "owner": "sibling-one",
+            "atMs": 107.514958,
+            "callbackSha256": "1a556f0d45086fe075c148b1c7f309bb91afb61da3b78f796853b6dab44a76dc"
+          },
+          {
+            "owner": "sibling-two",
+            "atMs": 107.699083,
+            "callbackSha256": "1a556f0d45086fe075c148b1c7f309bb91afb61da3b78f796853b6dab44a76dc"
+          },
+          {
+            "owner": "queued-target",
+            "atMs": 108.2465,
+            "callbackSha256": "1a556f0d45086fe075c148b1c7f309bb91afb61da3b78f796853b6dab44a76dc"
+          }
+        ],
+        "finalWorkers": [
+          {
+            "owner": "sibling-one",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+            "options": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "readyAtMs": 106.753542,
+            "terminationCalls": 1,
+            "terminationAwaited": true,
+            "requests": [
+              {
+                "owner": "sibling-one",
+                "id": 1,
+                "atMs": 106.858917,
+                "descriptor": {
+                  "kind": "grep",
+                  "patterns": [
+                    "^a"
+                  ],
+                  "fixed": false,
+                  "extended": true,
+                  "insensitive": false,
+                  "whole": false,
+                  "word": false
+                },
+                "rows": []
+              },
+              {
+                "owner": "sibling-one",
+                "id": 3,
+                "atMs": 107.554958,
+                "descriptor": {
+                  "kind": "grep",
+                  "patterns": [
+                    "^a"
+                  ],
+                  "fixed": false,
+                  "extended": true,
+                  "insensitive": false,
+                  "whole": false,
+                  "word": false
+                },
+                "rows": [
+                  {
+                    "bytes": "YWI=",
+                    "terminated": true
+                  }
+                ]
+              }
+            ],
+            "responses": [
+              {
+                "id": 1,
+                "atMs": 107.000958
+              },
+              {
+                "id": 3,
+                "atMs": 107.733625
+              }
+            ],
+            "exitCode": 1,
+            "heldResponses": 0,
+            "listeners": {
+              "message": 0,
+              "messageerror": 0,
+              "error": 0,
+              "exit": 0
+            }
+          },
+          {
+            "owner": "sibling-two",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+            "options": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "readyAtMs": 106.870125,
+            "terminationCalls": 1,
+            "terminationAwaited": true,
+            "requests": [
+              {
+                "owner": "sibling-two",
+                "id": 2,
+                "atMs": 106.889958,
+                "descriptor": {
+                  "kind": "grep",
+                  "patterns": [
+                    "^a"
+                  ],
+                  "fixed": false,
+                  "extended": true,
+                  "insensitive": false,
+                  "whole": false,
+                  "word": false
+                },
+                "rows": []
+              },
+              {
+                "owner": "sibling-two",
+                "id": 4,
+                "atMs": 107.719,
+                "descriptor": {
+                  "kind": "grep",
+                  "patterns": [
+                    "^a"
+                  ],
+                  "fixed": false,
+                  "extended": true,
+                  "insensitive": false,
+                  "whole": false,
+                  "word": false
+                },
+                "rows": [
+                  {
+                    "bytes": "YWI=",
+                    "terminated": true
+                  }
+                ]
+              }
+            ],
+            "responses": [
+              {
+                "id": 2,
+                "atMs": 107.586667
+              },
+              {
+                "id": 4,
+                "atMs": 107.855167
+              }
+            ],
+            "exitCode": 1,
+            "heldResponses": 0,
+            "listeners": {
+              "message": 0,
+              "messageerror": 0,
+              "error": 0,
+              "exit": 0
+            }
+          }
+        ],
+        "lateErrors": [],
+        "targetSlotsConsumed": 1,
+        "pathologicalRequests": 0
+      },
+      "killed": false,
+      "outputBytes": 0,
+      "ipcBytes": 14624,
+      "readyMs": 34.583458000000064,
+      "code": 0,
+      "signal": null,
+      "closeAwaited": true,
+      "streamsAndIPCClosed": true,
+      "activeChildren": 0,
+      "childElapsedMs": 180.39854100000048,
+      "pass": true
+    }
+  ],
+  "targetSlotsConsumed": 1,
+  "activeChildren": 0
+}

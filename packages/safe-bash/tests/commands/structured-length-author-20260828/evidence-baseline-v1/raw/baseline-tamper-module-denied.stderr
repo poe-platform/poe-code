@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: dist/commands/structured/interpreter.js
++ actual - expected
+
++ 'f8edb4ecf318caa4e75d59ccba88a40007c7b0f86eff488900f31b4f51abd249'
+- '42366cfd87db215b3ededa70c255fd8395d72706591360d503bd863f1ecb9d4c'
+
+    at load (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/worker.mjs:23:10)
+    at async allocationDiscriminator (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/worker.mjs:151:27)
+    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/worker.mjs:211:51 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'f8edb4ecf318caa4e75d59ccba88a40007c7b0f86eff488900f31b4f51abd249',
+  expected: '42366cfd87db215b3ededa70c255fd8395d72706591360d503bd863f1ecb9d4c',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

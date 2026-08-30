@@ -1,0 +1,105 @@
+{
+  "cases": [
+    {
+      "id": "stdout-failure-no-regex-replay",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": "sink"
+      },
+      "observed": {
+        "rejected": "other",
+        "stdout": "",
+        "stderr": ""
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999985,
+          "steps": 57
+        }
+      ],
+      "encodes": [
+        "a",
+        "a",
+        "1"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "worker-start",
+          "url": "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/worker.js"
+        },
+        {
+          "kind": "match-result",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "worker-exit",
+          "code": 1
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "rejection identity/output"
+      ],
+      "passed": false
+    }
+  ],
+  "imports": [
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/evaluate.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/internal.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/expr/syntax.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/command.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/errors.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/filesystem.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/index.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/io.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/output.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/path.js",
+    "file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash/dist/contracts/plugin.js",
+    "node:path",
+    "node:stream/web",
+    "node:util",
+    "node:worker_threads"
+  ],
+  "activeWorkers": 0
+}

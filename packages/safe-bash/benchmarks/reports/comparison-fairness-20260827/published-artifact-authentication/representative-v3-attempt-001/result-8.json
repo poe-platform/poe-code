@@ -1,0 +1,118 @@
+{
+  "sequence": 8,
+  "profile": "scratch-aligned",
+  "recipeId": "command/patch/dry-run",
+  "requestId": 8,
+  "response": {
+    "id": 8,
+    "observation": {
+      "stdout": "",
+      "stderr": "YmFzaDogcGF0Y2g6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+      "exitCode": 127,
+      "entries": {
+        "change": {
+          "type": "file",
+          "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "input": {
+          "type": "file",
+          "bytes": "b2xkCg=="
+        }
+      },
+      "events": [],
+      "registryEvents": [],
+      "executeMs": 6.259166000000022,
+      "memory": {
+        "before": {
+          "rss": 161857536,
+          "heapTotal": 33701888,
+          "heapUsed": 15495656,
+          "external": 4064647,
+          "arrayBuffers": 144191
+        },
+        "after": {
+          "rss": 162381824,
+          "heapTotal": 33701888,
+          "heapUsed": 16435440,
+          "external": 4067648,
+          "arrayBuffers": 144191
+        },
+        "sampledPeak": {
+          "rss": 162381824,
+          "heapUsed": 16434248,
+          "external": 4067648
+        },
+        "processMaxRssKiB": 158576,
+        "sampleIntervalMs": 2
+      },
+      "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+    }
+  },
+  "comparisons": {
+    "native": {
+      "pass": false,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": false
+        },
+        {
+          "field": "exitCode",
+          "pass": false
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "oldBaseline": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "sequence": 8,
+    "profile": "scratch-aligned",
+    "recipeId": "command/patch/dry-run",
+    "requestId": 8,
+    "pid": 80735,
+    "terminal": true,
+    "spawnFailed": false,
+    "code": 0,
+    "signal": null,
+    "signals": [],
+    "errors": [],
+    "normal": true
+  },
+  "errors": [],
+  "hostBytes": 0,
+  "pid": 80735,
+  "trace": {
+    "sha256": "ab04296c08a28a4d9d9878c7b0ab2449b05d12c1c2f5bc8a5b64468cea5c77b1",
+    "events": 320,
+    "forbiddenProcessAttempts": 0,
+    "limitation": "resolve/load hooks and engine ready protocol only; not universal evaluation/thread/process tracing"
+  }
+}

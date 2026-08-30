@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-fallback",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-fallback/harness/execution-prep-v1/load-guard.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-fallback/harness/execution-prep-v1/probe-worker.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-fallback/guard-manifest.json",
+    "6821ed54d8357416b03b0fbf79c4e10a6bc0758f213a06af8774208bfd1511c9",
+    "fallback"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-fallback",
+  "started": "2026-08-28T07:58:21.868Z",
+  "finished": "2026-08-28T07:58:22.415Z",
+  "pid": 29679,
+  "code": 1,
+  "signal": null,
+  "spawnError": null,
+  "failure": null,
+  "groupAbsent": true,
+  "closeObserved": true,
+  "stdout": "{\"admission\":{\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"manifestSha256\":\"6821ed54d8357416b03b0fbf79c4e10a6bc0758f213a06af8774208bfd1511c9\",\"runtimeSha256\":\"6441001391e091b0b893d0d0becd5805effb44a787f8428a46dd515a75ab792f\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-fallback/harness/execution-prep-v1/probe-worker.mjs\",\"sha256\":\"4de5a977b7dd9c93d7b2f0ae16cd8625af7708bdfe4f9d90999c5df3da1cd975\"}}\n",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: unbound module /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/source/dist/index.js\n    at load (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-fallback/harness/execution-prep-v1/load-guard.mjs:19:48)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at loadWithHooks (node:internal/modules/customization_hooks:352:18)\n    at #loadSync (node:internal/modules/esm/loader:849:14)\n    at ModuleLoader.load (node:internal/modules/esm/loader:808:28)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "bytes": 1698
+}

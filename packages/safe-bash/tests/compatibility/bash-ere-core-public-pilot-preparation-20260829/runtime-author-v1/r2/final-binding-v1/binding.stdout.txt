@@ -1,0 +1,71 @@
+{
+  "status": "BLOCKED_ASSIGNED_WINDOW_VIOLATES_REVIEWED_VALIDATOR",
+  "sampledUtc": "2026-08-29T17:17:25.538Z",
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v1/PENDING-GRANT.json",
+    "bytes": 667,
+    "sha256": "113c7c2d8334710bc114ae5225dbd1876ae149e75e61362b5e36f26d55434256",
+    "candidateOnlyNotIssued": true,
+    "authorizedTrueOnlyIfFutureRootPromotesExactBytes": true
+  },
+  "command": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v1/RESOLVED-COMMAND.txt",
+    "bytes": 995,
+    "sha256": "e7ccc9891438f326b12829b2664a27612d8010d26d0f7f11211daecfe5bd0bc5"
+  },
+  "monotonic": {
+    "source": "Number(process.hrtime.bigint() / 1000000n)",
+    "outerStarted": 267256708,
+    "sampledMonotonic": 267257666,
+    "elapsedBindingMilliseconds": 958,
+    "remainingMillisecondsAtSample": 1199042,
+    "publicationReservationMilliseconds": 180000,
+    "caseAndSetupMillisecondsAfterPublicationReserve": 1019042,
+    "notPerformanceNow": true,
+    "notWallClock": true,
+    "immutableOriginIfPromoted": true,
+    "priorInspectionIsSeparatePrepNotClaimedRuntimeStart": true
+  },
+  "currentCaptureOwnership": {
+    "helperPid": 90963,
+    "parentPid": 79787,
+    "declaredCommandShellPid": 90963,
+    "captureDescriptors": [
+      {
+        "descriptor": 1,
+        "regular": true,
+        "device": 16777232,
+        "inode": 190073606,
+        "sizeAtSample": 0
+      },
+      {
+        "descriptor": 2,
+        "regular": true,
+        "device": 16777232,
+        "inode": 190073607,
+        "sizeAtSample": 0
+      }
+    ],
+    "shellCaptureEstablishedBeforeHelperStartup": true,
+    "currentCaptureQualification": "finite DATA helper output, direct shell files reserved/postchecked; NOT claimed prewrite OS enforcement or proof of future parent ownership"
+  },
+  "checkedFiles": 5370,
+  "tools": 2028,
+  "assets": 8,
+  "layoutRows": [
+    {
+      "name": "source-built",
+      "productFiles": 1305
+    },
+    {
+      "name": "installed",
+      "productFiles": 1002
+    },
+    {
+      "name": "moved",
+      "productFiles": 1002
+    }
+  ],
+  "unusedPathCount": 76,
+  "activationPathsCreated": false
+}

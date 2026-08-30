@@ -1,0 +1,81 @@
+{
+  "schema": "functional-source-data-results-v1",
+  "presealSha256": "cc018edf5b1023bce976ce3c2ba0ed6ca1931a844ba1e8abb88d774a60c3698f",
+  "validatorSha256": "517f0d5d7b685c880e27e918e4d11a1c5efde19d9a2ef3527d76e42234877128",
+  "rows": [
+    {
+      "id": "C01",
+      "label": "all40 exact decoded programs and fixtures",
+      "expected": true,
+      "accepted": true,
+      "matched": true
+    },
+    {
+      "id": "C02",
+      "label": "roundtrip serialized full proposal",
+      "expected": true,
+      "accepted": true,
+      "matched": true
+    },
+    {
+      "id": "C03",
+      "label": "changed program",
+      "expected": false,
+      "accepted": false,
+      "matched": true
+    },
+    {
+      "id": "C04",
+      "label": "changed stdin",
+      "expected": false,
+      "accepted": false,
+      "matched": true
+    },
+    {
+      "id": "C05",
+      "label": "fixture traversal pathname",
+      "expected": false,
+      "accepted": false,
+      "matched": true
+    },
+    {
+      "id": "C06",
+      "label": "changed source fixture bytes",
+      "expected": false,
+      "accepted": false,
+      "matched": true
+    },
+    {
+      "id": "C07",
+      "label": "withheld heredoc selected",
+      "expected": false,
+      "accepted": false,
+      "matched": true
+    },
+    {
+      "id": "C08",
+      "label": "ambient-style environment key",
+      "expected": false,
+      "accepted": false,
+      "matched": true
+    },
+    {
+      "id": "C09",
+      "label": "duplicate case replacing missing",
+      "expected": false,
+      "accepted": false,
+      "matched": true
+    },
+    {
+      "id": "C10",
+      "label": "diagnostic normalization requested",
+      "expected": false,
+      "accepted": false,
+      "matched": true
+    }
+  ],
+  "matched": 10,
+  "qualification": "DATA_ONLY_NO_NATIVE_NO_PRODUCT_NO_LIFECYCLE_PROOF",
+  "native": 0,
+  "children": 0
+}

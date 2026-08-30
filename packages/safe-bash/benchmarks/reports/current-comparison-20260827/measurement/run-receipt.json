@@ -1,0 +1,20 @@
+{
+  "startedAt": "2026-08-27T12:53:46.913Z",
+  "wrapperPid": 84948,
+  "commandProcessPid": 84951,
+  "commandProcessGroup": 84951,
+  "exactCommand": "/usr/bin/env -i 'PATH=/usr/bin:/bin' 'HOME=/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/home' 'TMPDIR=/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/tmp' 'LANG=C' 'LC_ALL=C' 'TZ=UTC' '/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/node' '/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/run.mjs' 'MEASURE' '--binding' '/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze/execution-binding.json' '--root-receipt' '/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze/proposed-root-receipt.json' '--root-receipt-sha256' 'c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5' '--output' '/private/tmp/safe-bash-measurement-freeze-XAFOrN/measurement-attempt-001'",
+  "commandSha256": "ee21e6dfbc6922b97bdbfa3a034162b00bf1faa57a2f53ac0bfb38c178205ff0",
+  "output": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/measurement-attempt-001",
+  "bindingSha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e",
+  "rootReceiptSha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5",
+  "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "sourceSha256": "903784b4a5b1123d285e81fff65883b44d486759fb5ce3f4d28c602ed66736cf",
+  "candidatePackSha256": "bc4f0e01d9daba5dc7c99a7d66615e52808a83a162140d59e88544c7c71fbd51",
+  "planned": {
+    "original": 448,
+    "aligned": 448,
+    "breadth": 136
+  },
+  "score": null
+}

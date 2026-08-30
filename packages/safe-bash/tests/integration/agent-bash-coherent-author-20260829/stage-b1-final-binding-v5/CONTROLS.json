@@ -1,0 +1,50 @@
+{
+  "atUTC": "2026-08-29T14:03:58.768Z",
+  "passed": 8,
+  "outcomes": [
+    {
+      "id": "I01-both-lists-actual-iteration",
+      "status": "PASS",
+      "role": "PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation"
+    },
+    {
+      "id": "I02-nested-array",
+      "status": "PASS",
+      "role": "PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation"
+    },
+    {
+      "id": "I03-missing-path",
+      "status": "PASS",
+      "role": "PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation"
+    },
+    {
+      "id": "I04-hidden-key",
+      "status": "PASS",
+      "role": "PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation"
+    },
+    {
+      "id": "I05-symbol-keys",
+      "status": "PASS",
+      "role": "PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation"
+    },
+    {
+      "id": "I06-accessor",
+      "status": "PASS",
+      "role": "PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation"
+    },
+    {
+      "id": "I07-duplicate-across-lists",
+      "status": "PASS",
+      "role": "PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation"
+    },
+    {
+      "id": "I08-invalid-scalars-and-hole",
+      "status": "PASS",
+      "role": "PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation"
+    }
+  ],
+  "actualRuntimeCalls": 0,
+  "actualPublisherImported": false,
+  "futureHelperMainExecuted": false,
+  "actualFileIterationExecuted": true
+}

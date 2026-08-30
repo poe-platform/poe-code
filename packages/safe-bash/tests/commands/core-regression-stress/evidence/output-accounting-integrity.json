@@ -1,0 +1,82 @@
+{
+  "capturedAt": "2026-08-27T03:49:03.588Z",
+  "revision": "f7000b05b15fa34371226b35cf537d3f73bbf004",
+  "sourceHashCount": 158,
+  "sixRecipeSourceMatches": true,
+  "sourceUnchanged": true,
+  "testsUnchanged": true,
+  "protectedInputs": [
+    {
+      "revision": "e9783ec",
+      "path": "tests/commands/core-regression-stress/native.test.ts",
+      "sha256": "c05d58d086a6b3f781084d176478fdd518188204fdb36edaf4110af30ee6dc0b",
+      "unchanged": true
+    },
+    {
+      "revision": "e9783ec",
+      "path": "tests/commands/core-regression-stress/runtime.test.ts",
+      "sha256": "e5b33d945242d125d2f9000f6b01468c5f8d4afb85f9a77c4271362ae61ae574",
+      "unchanged": true
+    },
+    {
+      "revision": "e9783ec",
+      "path": "tests/commands/core-regression-stress/resources.test.ts",
+      "sha256": "087c34b39091e31d3feb9db97a0b00237f353ddf49151570be7b50c0759c1076",
+      "unchanged": true
+    },
+    {
+      "revision": "e9783ec",
+      "path": "tests/commands/core-regression-stress/helpers.ts",
+      "sha256": "ff32d27d43981a3f80563a38a3de322816edfbc7183d93cc0c0b8ec00e80a580",
+      "unchanged": true
+    },
+    {
+      "revision": "e9783ec",
+      "path": "tests/commands/core-regression-stress/vectors.ts",
+      "sha256": "146836e761b1205e6a98bbe4ea0359ae204852b62287b0510d08a5b9a8c7d003",
+      "unchanged": true
+    },
+    {
+      "revision": "e9783ec",
+      "path": "tests/commands/core-regression-stress/native.json",
+      "sha256": "a6dd7d352291bdce5a022d5528a9bc3b56d6b21c8f11e741345a8c0b14ca7bbc",
+      "unchanged": true
+    },
+    {
+      "revision": "6909acc",
+      "path": "tests/commands/core-regression-stress/env-accounting.mjs",
+      "sha256": "61d6c0979012ba6b4bbf977cb04658d3cb1d47ccc463f88b9d5c0a8a45a17a4f",
+      "unchanged": true
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    {
+      "path": "node_modules/tsx/package.json",
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "path": "node_modules/typescript/package.json",
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "path": "node_modules/typescript/lib/typescript.js",
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+    }
+  ],
+  "initialMutantSurvivor": {
+    "name": "omit-budget-owner-check",
+    "detected": false,
+    "guardFileSha256": "62f5b3dd7969f406e66370b9694be27fb8f43d7f1f5d34bf082489c1ec309cb6",
+    "probe": "test(\"independent accounting: another Shell budget does not confer exemption\", async () => {\n  const outer = makeShell(), inner = makeShell();\n  let failure: unknown;\n  outer.register({ name: \"bridge\", async execute(context) {\n    try { await inner.exec(\"printf 1234; printf 1234\", { stdout: context.stdout, limits: { maxOutputBytes: 4 } }); }\n    catch (error) { failure = error; }\n    return { exitCode: 0 };\n  } });\n  try {\n    const result = await outer.exec(\"bridge\", { limits: { maxOutputBytes: 16 } });\n    assert.equal(result.exitCode, 0);\n    assert.equal(result.stdout, \"1234\");\n    assert.ok(limitError(failure));\n  } finally { await inner.dispose(); await outer.dispose(); }\n});\n\n",
+    "correction": "Only the new guard route was strengthened from exec observer to literal invoke forwarding of a known foreign sink. Expected values unchanged."
+  },
+  "finalMutantsDetected": 7
+}

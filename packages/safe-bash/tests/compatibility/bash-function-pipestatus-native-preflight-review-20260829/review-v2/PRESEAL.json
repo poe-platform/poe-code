@@ -1,0 +1,87 @@
+{
+  "schema": "native26-independent-review-v2",
+  "source": "62c262a0c673908388748d7133a001978da4f968",
+  "readySha256": "7cad2e981d9008e90f64bc04d528ecc9da02458bd46859382d1028020c925b47",
+  "executableSha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901",
+  "readyFiles": 115,
+  "files": [
+    {
+      "path": "owner.mjs",
+      "bytes": 18292,
+      "mode": 420,
+      "sha256": "c9cfb472034e3938eb5dd49348a922d711869d09307b234d5c63c05eda40919d"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 17540,
+      "mode": 384,
+      "sha256": "ee15e4fe3f526ff61a87e72d9279163cbf223e6f6617acc9631ebb6d79729434"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 25602,
+      "mode": 384,
+      "sha256": "895848e054a736aa287f6a2abe01d9ab41678abf817da642ddb84729dddf16e1"
+    },
+    {
+      "path": "START.json",
+      "bytes": 102,
+      "mode": 384,
+      "sha256": "f0d4a1b6221443663f97cb1842b6b3042a0579cfec7ab18cc8c10eac32624efd"
+    },
+    {
+      "path": "ROLE-PLAN.json",
+      "bytes": 1361,
+      "mode": 384,
+      "sha256": "13b7052751114b3987e71a201efefe80c4039f7b3992f5188de0e1862f7d809c"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "phase": "metadata-read-only-not-executed"
+    },
+    {
+      "schema": "functional-wrapper-tool-metadata-v2",
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "regular": true,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "version": "NOT_PROBED",
+      "execution": "NONE_THIS_PHASE",
+      "scope": "platform tool wrapper only; not Bash reference",
+      "preexecutionRequired": true
+    }
+  ],
+  "oldReviewSha256": "110605d305cac09571b39e0f5b44bca85694f16de71b439a94aa7d1d75bd503d",
+  "newReviewSha256": "ee15e4fe3f526ff61a87e72d9279163cbf223e6f6617acc9631ebb6d79729434",
+  "unchanged20ControlBodiesSha256": "e2accc730f3b4535ccd80b2763258bb099327237f0be9d41c88968491316259b",
+  "onlyAdapterChange": "reviewRoot derives new file location; grant deadline1200000->900000, no test/assertion/fixture change",
+  "expected": {
+    "groups": 20,
+    "assertions": 142,
+    "controller": 1,
+    "harmlessFixtures": 2,
+    "peak": 3,
+    "native": 0,
+    "Workers": 0,
+    "asyncLoaders": 0
+  },
+  "authority": "SOURCE/DATA and harmless Node controls only; no native GO"
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "timeout-public-runtime-closure/1",
+  "work": [
+    {
+      "path": "disabled-config.json",
+      "mode": 420,
+      "bytes": 209,
+      "sha256": "3f8a24be4da7bc4c206c72968355ad87ca1a905db84b5b2539f1a858aeb7cf0c"
+    },
+    {
+      "path": "fresh/input.data",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "9c45da1b799a603c167323bd7ed4f52034ec28ea5e04373045a9c11f1ddc5446"
+    }
+  ],
+  "raw": [
+    {
+      "path": "OUTCOMES.json",
+      "mode": 420,
+      "bytes": 2422,
+      "sha256": "8e21e1fd38fd40d76d0be7f614da4f518446ddc44d8c00323c944bfaa6ffe5e6"
+    },
+    {
+      "path": "P23-child.json",
+      "mode": 420,
+      "bytes": 1223,
+      "sha256": "b1b953ab0628158262963591f3d700632bdc32f1056b1be6d3d9a551dde2aef0"
+    },
+    {
+      "path": "P24-child.json",
+      "mode": 420,
+      "bytes": 1318,
+      "sha256": "c1418da749241d14578cc04dd6971012cf1c9846a508d2514aba6e1ae3da49cb"
+    }
+  ],
+  "archive": {
+    "path": "RECEIPTS.json.gz",
+    "sha256": "e5f48c0727df32e9974a0d40bd3549b6d2bc7014aeb579b340e41f76b6c2e2d8",
+    "bytes": 2758,
+    "retainedFiles": 5
+  },
+  "omittedBytes": "Pinned Git materialization, authenticated installed pack, tools and declared mutants remain reconstructible from candidate/recipe bindings; inventories retained, not relabeled as full archives.",
+  "removed": false
+}

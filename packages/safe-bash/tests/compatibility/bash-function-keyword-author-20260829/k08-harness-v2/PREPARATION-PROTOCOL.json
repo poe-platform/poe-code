@@ -1,0 +1,45 @@
+{
+  "schema": "k08-harness-v2-preparation-protocol",
+  "started": "2026-08-29T15:05:12.721Z",
+  "deadline": "2026-08-29T15:25:12.721Z",
+  "authority": "ROOT harness-only 20min48knownOS peak3 64MiBcapture384MiBwork; source/package fixed; no product execution",
+  "budget": {
+    "knownOS": 48,
+    "adminSubcap": 32,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 402653184,
+    "pureHelpers": 3,
+    "fixedGroups": 16,
+    "harmlessNodeFixtures": 2
+  },
+  "plan": "One PURE helper, sixteen DATA groups, no real lifecycle fixture required for this source-qualified deadline repair. No runtime retirement acceptance inferred.",
+  "controls": [
+    "B1 undefined primary + false publication",
+    "B1 null primary + zero publication",
+    "B1 false primary + Error publication",
+    "B1 zero primary + undefined publication",
+    "B1 Error identity + null publication",
+    "B1 no child primary fallback + cleanup",
+    "B2 complete result accepted",
+    "B2 semantic fail stays nonacceptance",
+    "B2 missing/duplicate membership refused",
+    "B2 failed publication refused",
+    "B3 exact old K08 signature only",
+    "B3 unrelated red/extra errors refused",
+    "B3 actual helper load hash/path/count required",
+    "B4 late owner inherits same deadline",
+    "B4 insufficient cleanup time refuses admission",
+    "B4 known outstanding/capture failure cannot qualify"
+  ],
+  "historical": "SOURCE accepted8800f405; original51/54 and2MiBSTOP unchanged; no actual K08 grant",
+  "source": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "archive": {
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+  },
+  "review": {
+    "commit": "8800f4051faeaa0b9c87d15a3add47a0edf88bad",
+    "sha256": "dc8bc1e98ab0292f998026a87499f91cbb942483b1cb000a4a1de56f887f10f4"
+  }
+}

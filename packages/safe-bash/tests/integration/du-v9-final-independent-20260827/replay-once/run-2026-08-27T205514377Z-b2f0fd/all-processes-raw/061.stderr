@@ -1,0 +1,58 @@
+ok - direct stat v5 measured metadata contract
+ok - direct lstat v5 measured metadata contract
+ok - direct readdir v5 measured metadata contract
+ok - direct du-metadata v5 measured metadata contract
+ok - direct du-pending v5 measured metadata contract
+ok - readonly stat v5 measured metadata contract
+ok - readonly lstat v5 measured metadata contract
+ok - readonly readdir v5 measured metadata contract
+ok - readonly du-metadata v5 measured metadata contract
+ok - readonly du-pending v5 measured metadata contract
+ok - mount-over-overlay stat v5 measured metadata contract
+ok - mount-over-overlay lstat v5 measured metadata contract
+ok - mount-over-overlay readdir v5 measured metadata contract
+ok - mount-over-overlay du-metadata v5 measured metadata contract
+ok - mount-over-overlay du-pending v5 measured metadata contract
+ok - overlay-over-mount stat v5 measured metadata contract
+ok - overlay-over-mount lstat v5 measured metadata contract
+ok - overlay-over-mount readdir v5 measured metadata contract
+ok - overlay-over-mount du-metadata v5 measured metadata contract
+ok - exact child lstat EIO suppresses incomplete total and retry is mutation-free
+ok - real directory listing visibly changes only directory atime
+ok - real lstat observer is atime-stable
+ok - observer-only file read calibrates provider atime outside product phase
+ok - content-read and deterministic file-atime listing mutant trips independent guards
+ok - real non-atime-stat listing mutant fails unchanged assertions
+ok - real byte-change listing mutant fails unchanged assertions
+ok - real entry-change listing mutant fails unchanged assertions
+ok - exact v2 pre-abort reason is preserved
+ok - exact v2 mid-traversal reason is preserved
+ok - active mkdir-stage queues exactly one readdir read
+ok - active mkdir-stage queues exactly one du read
+ok - literal 1500-byte three-level environment precedence table
+ok - explicit cleanup removes the exact pending stage
+ok - consumer-registered pending cleanup runs through actual Shell lifecycle
+ok - normal mutation cleans pending garbage then publishes exact byte
+ok - ordinary content read proves the content oracle
+ok - unchanged assertions kill readdir-removal behavior mutant
+ok - unchanged assertions kill content-read behavior mutant
+ok - unchanged assertions kill copy-up behavior mutant
+ok - actual Shell lifecycle runs DU registered cleanup and preserves caller reason
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: fresh v5 must retain exactly 31 historical frozen-derived cases
+
+32 !== 31
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once/bootstrap-scratch/extracted/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/harness/verify-v5.mjs:1153:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 32,
+  expected: 31,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

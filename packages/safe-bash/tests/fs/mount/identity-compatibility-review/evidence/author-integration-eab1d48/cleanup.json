@@ -1,0 +1,36 @@
+{
+  "runnerPid": 23502,
+  "processes": [
+    {
+      "name": "original43",
+      "pid": 23911,
+      "startedAt": "2026-08-27T02:32:22.300Z",
+      "ownership": "spawned by this runner only"
+    },
+    {
+      "name": "original4",
+      "pid": 23917,
+      "startedAt": "2026-08-27T02:32:22.846Z",
+      "ownership": "spawned by this runner only"
+    },
+    {
+      "name": "required49",
+      "pid": 23922,
+      "startedAt": "2026-08-27T02:32:23.053Z",
+      "ownership": "spawned by this runner only"
+    },
+    {
+      "name": "scoped-types",
+      "pid": 23955,
+      "startedAt": "2026-08-27T02:32:23.430Z",
+      "ownership": "spawned by this runner only"
+    }
+  ],
+  "allRecordedCommandsClosed": true,
+  "residualGroups": [],
+  "ownedScratchRemoved": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/author-integration-iBEH0L",
+  "ownedNativeRootRemoved": "/tmp/sb-author-pqVnPV",
+  "remainingOwnedScratchEntries": [],
+  "noUnownedProcessesOrTempsTouched": true,
+  "ownedStatusAfter": "?? tests/fs/mount/identity-compatibility-review/author-integration-eab1d48.mjs\n?? tests/fs/mount/identity-compatibility-review/evidence/author-integration-eab1d48/\n"
+}

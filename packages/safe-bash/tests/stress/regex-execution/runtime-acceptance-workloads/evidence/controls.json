@@ -1,0 +1,130 @@
+{
+  "job": "controls",
+  "pass": true,
+  "time": "2026-08-27T08:42:24.576Z",
+  "preparedSha256": "75e2c89496a1d7f9f19c8bb1bbbcefc3ca8898fb0fd5f263bc95f3c4a4987b87",
+  "runs": [
+    {
+      "job": "success",
+      "pid": 28977,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": {
+        "kind": "result",
+        "pass": true,
+        "job": "success",
+        "workers": [],
+        "riskConsumed": 0,
+        "boundary": "standalone supervisor control; no product imported"
+      },
+      "killed": false,
+      "readyMs": 37.88825,
+      "code": 0,
+      "signal": null,
+      "closeAwaited": true,
+      "childElapsedMs": 40.560874999999996,
+      "outputBytes": 0,
+      "ipcBytes": 171
+    },
+    {
+      "job": "already-aborted",
+      "pid": 28978,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": {
+        "kind": "result",
+        "pass": true,
+        "job": "already-aborted",
+        "workers": [],
+        "riskConsumed": 0,
+        "boundary": "standalone supervisor control; no product imported"
+      },
+      "killed": false,
+      "readyMs": 38.170417,
+      "code": 0,
+      "signal": null,
+      "closeAwaited": true,
+      "childElapsedMs": 40.540583999999996,
+      "outputBytes": 0,
+      "ipcBytes": 187
+    },
+    {
+      "job": "owned-timeout",
+      "pid": 28979,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stderr-close",
+        {
+          "exit": null,
+          "signal": "SIGKILL"
+        },
+        "stdout-close"
+      ],
+      "stdout": "",
+      "stderr": "",
+      "result": null,
+      "killed": true,
+      "readyMs": 36.78220800000001,
+      "killReason": "benign owned timeout",
+      "killSent": true,
+      "code": null,
+      "signal": "SIGKILL",
+      "closeAwaited": true,
+      "childElapsedMs": 115.98466599999999,
+      "outputBytes": 0,
+      "ipcBytes": 38
+    },
+    {
+      "job": "late-rejection",
+      "pid": 28981,
+      "watchdogMs": 6000,
+      "events": [
+        "ready",
+        "disconnect",
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 1,
+          "signal": null
+        }
+      ],
+      "stdout": "",
+      "stderr": "uncaught: Error: standalone preserved late rejection\nfile:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-acceptance-workloads/.temporary/compiled/child.mjs:16\n        setTimeout(() => { void Promise.reject(new Error('standalone preserved late rejection')); }, 5);\n                                               ^\n\nError: standalone preserved late rejection\n    at Timeout._onTimeout (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/runtime-acceptance-workloads/.temporary/compiled/child.mjs:16:48)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)\n\nNode.js v22.22.2\n",
+      "result": null,
+      "killed": false,
+      "readyMs": 43.77241700000002,
+      "code": 1,
+      "signal": null,
+      "closeAwaited": true,
+      "childElapsedMs": 52.59195799999998,
+      "outputBytes": 673,
+      "ipcBytes": 39
+    }
+  ],
+  "riskConsumed": 0,
+  "activeChildren": 0
+}

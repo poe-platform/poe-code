@@ -1,0 +1,1141 @@
+{
+  "role": "ACTUAL_V2_RESULT_BINDING_NOT_ALL_GREEN",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "sourceSupplementCommit": "d469a6e7bf75c8dbc2e50ebeca24a86dcb76bbe8",
+  "dispatchSealSha256": "3ff48f525339d0fd60266012e89513d30e5e29cf2bf65fa1c56551dfcfa57ea4",
+  "files": [
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/coordinator.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/coordinator.stdout.raw",
+      "bytes": 517,
+      "sha256": "c9156dbf00b1cc9b1df0b7ba7b6672a10e8db21d1e42f6dcca5d8efaf46b9202"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/COUNTS.json",
+      "bytes": 178482,
+      "sha256": "14e36ac6ed384ed8626be14beed2f725897b5420a79905767a611a90820cf1e0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/I03-SOURCE-DIAGNOSIS.json",
+      "bytes": 4427,
+      "sha256": "f8437f4bd7e73aa9f517d75dc37e9c7dc58e612047e80060313d402974d95db8"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/MOVED-PACKAGE-INVENTORY.json",
+      "bytes": 166252,
+      "sha256": "763201a89b6ad154322971e0a92a04a01a9a9cd7e56869785d43068ceb16112f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/POSTGUARD.json",
+      "bytes": 28517,
+      "sha256": "d0737302ef551c8c3f22365e24b331467fc52420ff655e2f867bc19dd3c1fb15"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/RAW-MANIFEST.json",
+      "bytes": 65424,
+      "sha256": "05dd4df409813a47ca2e3af6b706d5f1b2dd077518b1c2eeb46489a0b6e413d6"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/REPORT.md",
+      "bytes": 6415,
+      "sha256": "3e4833192048cf46a39efeeb0355f44ab2227a9c3830d68a42ebbddefb5d2ea2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/RESOURCE-RECEIPT.json",
+      "bytes": 1722,
+      "sha256": "18c48df850e25ea32413f1e018d24edd91a489092ad40a2c9baac316d393f5b2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/RETAINED-LOCATION.json",
+      "bytes": 1570,
+      "sha256": "bccd2f49bdecb2b8077727b3ffd835b6046d3fd2613102b48110d7a3166a0221"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/SUPPLEMENT-POSTGUARD.json",
+      "bytes": 3985,
+      "sha256": "98b0edcca4bdf0781d9d82b49ed82fad6db7e27fdbdddd0973fdac464a9a49be"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/publication.events.jsonl",
+      "bytes": 185,
+      "sha256": "309e8d3a6b3d3f86a775e9f301aef1de293a96bba79f1836ebbdad050f7dd7b0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/publication.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/publication.stdout.raw",
+      "bytes": 119,
+      "sha256": "3d2f9fa5dddb9a7ba1f397eca74f1ee29bd199f9daa7e04f54ea5bd56624b54f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/RESULT.json",
+      "bytes": 1432408,
+      "sha256": "a89a4eb1a69a081a90f13391a748452ab63c97e7c7bdc62ee39e68fc2ea6a9b4"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-changed-binding.json",
+      "bytes": 134238,
+      "sha256": "52a86911f4ec80321e01ce0b370f48892253e22b5786a10f251f80f371a8073c"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-changed-loads.jsonl",
+      "bytes": 255,
+      "sha256": "af775e21239c4d129f4dc4b0b96e4c6ea4f8be12bca54a84bea6c1c180f9f139"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-changed-resources.jsonl",
+      "bytes": 47,
+      "sha256": "934d172b25b11d0b990ea53efa31f6176cf3618c695b6fe1d09868c514e6c2d6"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-changed.stderr",
+      "bytes": 1277,
+      "sha256": "8d194892edb1db248ec3eaac9c5125dddc06ffd801c8125ed5771c17fc978388"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-changed.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-missing-binding.json",
+      "bytes": 134118,
+      "sha256": "bd94dbab981c255ad3eeba6e294630ba9f152e91f06207e96c21a7bdce1e9533"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-missing-resources.jsonl",
+      "bytes": 47,
+      "sha256": "bb707f5b98c541f3f4d251f140e507be52a1c1f786e4b6d9b7a1e04221bda70f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-missing.stderr",
+      "bytes": 1333,
+      "sha256": "5bdf67d427d8dbede43eb121358760ee4cf406e05606d89c8d54b5c2ab125edb"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-missing.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-outside-binding.json",
+      "bytes": 134252,
+      "sha256": "e434bca6f742d65d45bb2130573ee5a8fe569a37af84c2b72490517898fa7682"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-outside-resources.jsonl",
+      "bytes": 47,
+      "sha256": "45862d90a68db3b259895a16a7d057db85cf8ec64852fa226e0ac3a8a9ce57f1"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-outside.stderr",
+      "bytes": 1333,
+      "sha256": "113246a8c4ab55910b781ba271c7342696a22983c6f954faae5757ad572a9673"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/binding-outside.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/development-blobs.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/development-blobs.stdout",
+      "bytes": 2683040,
+      "sha256": "704d21ba2d5f6f605f21dda311241ecd26e22018a8959b4a48c9e7bd43ebd4c3"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/explicit-export-restored-binding.json",
+      "bytes": 134271,
+      "sha256": "e71d1effd1825994a7f5a9dfdae8b2b36dbccff8cad132ca142e1287011ddf5a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/explicit-export-restored-cases.json",
+      "bytes": 189,
+      "sha256": "bbbb3c75ebbe49728a7c35eccbc32049a4fb2b6efa2e1f757739f4972dd9b777"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/explicit-export-restored-loads.jsonl",
+      "bytes": 64833,
+      "sha256": "075ebf26824fa7019cdd596e514dac15504af58fd9e23e6f54de25ced2f67cf7"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/explicit-export-restored-resources.jsonl",
+      "bytes": 91,
+      "sha256": "f98be5a2c9e71c53f7453fa8fd8158630559b723c80d7c1c693af40ad410573b"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/explicit-export-restored.stderr",
+      "bytes": 801,
+      "sha256": "1d6d82960ba121c48190571fe11455be7601d9c6bd37dfb33b22771675a19177"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/explicit-export-restored.stdout",
+      "bytes": 104,
+      "sha256": "513f4a5a50cd2eb1afbedf2f81dc225819f699abb1376e730ce0d6d5863d3cb2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-apply-binding.json",
+      "bytes": 134228,
+      "sha256": "625e198e1395a299ab2d163b8ca55b11b812b396b527c52137b92dd1abfba8de"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-apply-cases.json",
+      "bytes": 3039,
+      "sha256": "518925c41ad25cf4f717b7b86df529b715b3a5ecd7314f0bf9111627938741a5"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-apply-loads.jsonl",
+      "bytes": 62503,
+      "sha256": "c9c1d3f98a370dc9f6adbad647e27171807c10e225a218e58122b6a6e71ce4fc"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-apply-resources.jsonl",
+      "bytes": 91,
+      "sha256": "ee635f76802eabc30dc5de61cb8839535dfc22773aadf85186707ead923efe77"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-apply.stderr",
+      "bytes": 801,
+      "sha256": "61ea8fc0a45c60248e344fd84636e3a56f1f8f4c14378c421e89eff45621b938"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-apply.stdout",
+      "bytes": 1821,
+      "sha256": "85c7446b4da735b7e2943d2f2bb822b6ac14f453106524c7bfcb3a0205632324"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-arrays-binding.json",
+      "bytes": 134223,
+      "sha256": "9057620f534070f06d2c1e7c513e8c42897bf964b135011185ad679eff00b19c"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-arrays-loads.jsonl",
+      "bytes": 62503,
+      "sha256": "c2d2508a10298237c4e22a0a84ba3fe0bbb117e01bc79dfca10136f5d85474ed"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-arrays-resources.jsonl",
+      "bytes": 91,
+      "sha256": "275291c23611825b152cc5feeefbee92f9c5b9357008d62345744a6b582fb3d6"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-arrays.stderr",
+      "bytes": 801,
+      "sha256": "5ab7e6cd3e0099a68112698dd55ecb1511649c6e9308d206f22f96b463e893aa"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-arrays.stdout",
+      "bytes": 3818,
+      "sha256": "54bdae0aa211de57a7694da3a16f5168e1a10c81107005e965b03afb28dafb9b"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-coherence-binding.json",
+      "bytes": 134235,
+      "sha256": "79d7f6ac04f427cb6499749fb06e01a572e5a2e25d8a48609aac07b6126c4ba9"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-coherence-loads.jsonl",
+      "bytes": 62503,
+      "sha256": "feb0f60ce4d02a1d79afeff37b329ce01d4c0a7565029791db68ea7e4ec7aba0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-coherence-resources.jsonl",
+      "bytes": 91,
+      "sha256": "2da0bbebe19be746aa108ea1c4edcc77cd23b96120687240f42325aafcddb230"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-coherence.stderr",
+      "bytes": 801,
+      "sha256": "7b3794867196e0f65154726c1355cbaef5c85aa2aab6c59a9d3861a5a84eb87a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-coherence.stdout",
+      "bytes": 5553,
+      "sha256": "20f0ea5b725a726d2be134da494ecb83ee9247cfb1efa94093ac9c52548f2d9a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-m1a-binding.json",
+      "bytes": 134217,
+      "sha256": "dced59e5eb916d81662653e541e7ddbd7b73fb960f8ee2b6e5ba803092aea780"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-m1a-git-cases.json",
+      "bytes": 18179,
+      "sha256": "4c1b87d6863111184278467c113626dc50661ae286cdb6f0a1f8d9cbbd09ae90"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-m1a-git-cases.json.events.jsonl",
+      "bytes": 21855,
+      "sha256": "50a6efde97d20c10af62fe36995c46c91ec1425f8191557319cb7155d1bc8e0c"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-m1a-loads.jsonl",
+      "bytes": 62503,
+      "sha256": "592a68bf85bb6dc6cd3fc5cebd4a002a753a796aaa49c5fbc6b16de1144f9afe"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-m1a-resources.jsonl",
+      "bytes": 91,
+      "sha256": "42d1fe852f482d522bcc8b24c41adf7d7901145d13e401b7330156179d4cc24e"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-m1a.stderr",
+      "bytes": 801,
+      "sha256": "af99e55f7b69d86d828a449c77057a6fac2e24371d2c42321666005e73e8d927"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-m1a.stdout",
+      "bytes": 22,
+      "sha256": "5955a47fedaca2bdba6fa361d20251135e2938c5a86e6404846c28fcbc5566d0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-novel-binding.json",
+      "bytes": 134221,
+      "sha256": "fc061438baba954469c22e2ae8581c87a9f6a55091a6c7c81ed1d0f790283542"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-novel-loads.jsonl",
+      "bytes": 62503,
+      "sha256": "812dadbaea58610a4f570c42b076282e8a9eae0033789f1a4af1c66365d7a385"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-novel-resources.jsonl",
+      "bytes": 91,
+      "sha256": "93720f7d4b632a3a8fbb755edf021ea044e5880084def675e1668f43ef594acf"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-novel.stderr",
+      "bytes": 801,
+      "sha256": "f50a5cfbeb6e94b52c5d6dac2cf4d77967dff38706ba01ce211c6c0b309eea09"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-novel.stdout",
+      "bytes": 1715,
+      "sha256": "30d7639da6c7c2e6dc7a5692fc7fa7f3d025515c806f2bf5c84d71850144a8ff"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-packs-binding.json",
+      "bytes": 134221,
+      "sha256": "a31f42b69d017260677d51784b59ad27e4208d12041d61d5b90b6944bc9eb67e"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-packs-git-cases.json",
+      "bytes": 8184,
+      "sha256": "1b5db8e369a0a007e0bc35a2701dc75baf0e785f130f7b2dd7ae8e9ad386c54e"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-packs-loads.jsonl",
+      "bytes": 62503,
+      "sha256": "25a932fc6a83a6a4de6dfa10d0f453d4a10652501c2d21550fb6e211688d2638"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-packs-resources.jsonl",
+      "bytes": 91,
+      "sha256": "cb56015ded9280a1e5f99f3806ad0f55aa95a68139e0e37980e12ece32c59a6a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-packs.stderr",
+      "bytes": 801,
+      "sha256": "67095560d43aa4c19bc6335bfab8c85d9e04fc475d30d71cf0feb1700e7fc8e3"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-packs.stdout",
+      "bytes": 21,
+      "sha256": "2004e6e598a35a97216cf4b9b55765394721dd1ffcdacc1b20e66070948cdff9"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-public-binding.json",
+      "bytes": 134223,
+      "sha256": "fdf27dd5c6717d9fd3286d38d20a464b6a930f35afbaeee308946dce831b85f1"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-public-cases.json",
+      "bytes": 4804,
+      "sha256": "97e95adb5a5b157f6cb6eff634214ab723ba8d22a617203d063e9b4bf4ffd44a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-public-loads.jsonl",
+      "bytes": 62503,
+      "sha256": "967b61ee13ffbe22c8a595da0d41a2c00c290c8ae2a794da121476639c95e64f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-public-resources.jsonl",
+      "bytes": 91,
+      "sha256": "b5d91b14cb519c30ff22ced0963d8b15ac6d1160a7736df84320eb73dca53ccf"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-public.stderr",
+      "bytes": 801,
+      "sha256": "44693da3da05688750275ec063a11fff001e3d8918f747a331c9355fbd1850ed"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/installed-public.stdout",
+      "bytes": 2872,
+      "sha256": "67ff0c5a553a49e1aa4585198d30c143abe5f73f99d1a85e56957763c4f147b3"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-binding.json",
+      "bytes": 135377,
+      "sha256": "ab67bc975502fda9d9c091e20c4a31a12d3e8da36a13b2f321c8c38449a20cb5"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-fixture-compile.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-fixture-compile.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-four-bodies-resources.jsonl",
+      "bytes": 2628,
+      "sha256": "c54c213c670d0d4c2bcc00dada5e81a15e4c81cf1804bc471b950a4b69697b4d"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-four-bodies.stderr",
+      "bytes": 801,
+      "sha256": "9dc85fb9dcdedc4d204eb3b07b30b109b68e7a38041fa270e7b7bb9edd1a519d"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-four-bodies.stdout",
+      "bytes": 16105,
+      "sha256": "03eb11664f0897feff0addc51c63473e73c805034ef409b0ee81fd9383ba7c4f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-loads.jsonl",
+      "bytes": 55746,
+      "sha256": "85d2b54b14c815f52cfab7dcd5e9ffc080c06aa31c27319e41c539aa34a08729"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-stream-consumer-binding.json",
+      "bytes": 134258,
+      "sha256": "082999485affd31102669b163bd6e212f98c90d1613fabf3154794ac85031466"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-stream-consumer-loads.jsonl",
+      "bytes": 63435,
+      "sha256": "eb3053b4d80ca54aae75609b39239fd1e0667644441c597a2fa4ce6f6046b6fb"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-stream-consumer-resources.jsonl",
+      "bytes": 91,
+      "sha256": "288b47139ff119ef1ab5352cd19bfda02a47d5ecdc1957cfaeb7e234cbcd1658"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-stream-consumer.stderr",
+      "bytes": 801,
+      "sha256": "974c2d79a324e56435764810e8a515cf5e0698a301374dbddeeb3e7669642188"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/maintained-stream-consumer.stdout",
+      "bytes": 3687,
+      "sha256": "6ade288caf7608945f623750adcb5ef9f26cf81514696a04eb4ef83e80581a83"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/missing-explicit-export-binding.json",
+      "bytes": 134270,
+      "sha256": "353a56d5d9789480b9f2087b1fd83df9ae7d0e1af75b766645ad00a77b3f558e"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/missing-explicit-export-resources.jsonl",
+      "bytes": 47,
+      "sha256": "ea181f65bf51f45893d2b03c204aa8a30ac7fb9b359989d95d79e86247f34893"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/missing-explicit-export.stderr",
+      "bytes": 2024,
+      "sha256": "1f0f34f6d3cf616f8e6311b99caabc32b131cc18026b012b24a9bffab9b96c76"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/missing-explicit-export.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-apply-binding.json",
+      "bytes": 134240,
+      "sha256": "f25657951fb50a945325cd13d1941879515f2370da68328f7e6b101866ff07b1"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-apply-cases.json",
+      "bytes": 3039,
+      "sha256": "518925c41ad25cf4f717b7b86df529b715b3a5ecd7314f0bf9111627938741a5"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-apply-loads.jsonl",
+      "bytes": 63435,
+      "sha256": "e312f386a5e61f3b70734b300b2dbeb00b01b136d10545cd5ea616b9ab2594d3"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-apply-resources.jsonl",
+      "bytes": 91,
+      "sha256": "f48ad72c48e2a06555d945cefd4a09606a4f8d4096929a77304aec63087325c3"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-apply.stderr",
+      "bytes": 801,
+      "sha256": "d629269564f2d3d1ee6c1aeed5e11d83fd4092d0c0fd5e01a5f9293d44f2643a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-apply.stdout",
+      "bytes": 1821,
+      "sha256": "85c7446b4da735b7e2943d2f2bb822b6ac14f453106524c7bfcb3a0205632324"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-arrays-binding.json",
+      "bytes": 134235,
+      "sha256": "35c72f302202b0d3884c85f35686ebd4ac20b7729288c8861b7e7bfa547aacb0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-arrays-loads.jsonl",
+      "bytes": 63435,
+      "sha256": "43edd811d447f14a8cc982159c59b3855d74066551b320847ab0d1361735e4da"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-arrays-resources.jsonl",
+      "bytes": 91,
+      "sha256": "4c91e562271c4b4753995b135b846b9cd712b86afd91e7381743b4195c6321c2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-arrays.stderr",
+      "bytes": 801,
+      "sha256": "8c8219b43e4fbec6d2f65a709aaca34a9ee7b803f15fbc99fde51a2d3e67bb6f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-arrays.stdout",
+      "bytes": 3818,
+      "sha256": "54bdae0aa211de57a7694da3a16f5168e1a10c81107005e965b03afb28dafb9b"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-coherence-binding.json",
+      "bytes": 134247,
+      "sha256": "a0d61fa48abd46d1baffebf8951a89f273854b6db5a398463e2d5c77026b647c"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-coherence-loads.jsonl",
+      "bytes": 63435,
+      "sha256": "3f03374096592ecde49db8c7ce39b2ca80ab197ab8d30e0802f85a73d90369ad"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-coherence-resources.jsonl",
+      "bytes": 91,
+      "sha256": "91b11ec138cb9225b8b1ddde93ebc04229f47544de2dcdfb27f25983cde25e79"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-coherence.stderr",
+      "bytes": 801,
+      "sha256": "a8f127d3bad4d4def6a2aaed58e1e151a5d409d7e76a99bf67c7fd9154391070"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-coherence.stdout",
+      "bytes": 5549,
+      "sha256": "b9edb46bd5a7cc50a57bacc49617085dfa4c375937d3ce2b1f4ed55f107b5478"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-m1a-binding.json",
+      "bytes": 134229,
+      "sha256": "565f2eb92f45fb481ffe7840c8db9b5ef3ec8469d71b7311a5b43da955f522d8"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-m1a-git-cases.json",
+      "bytes": 18180,
+      "sha256": "72e72b5106a4cf6bd2943fd0c8f88bdb19b53929c3a7928a82f485da4033854e"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-m1a-git-cases.json.events.jsonl",
+      "bytes": 21852,
+      "sha256": "d0ce47da2199b476d6ce8b033343671c9e42afad974e4e8ca9ad432796112810"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-m1a-loads.jsonl",
+      "bytes": 63435,
+      "sha256": "480a8cfd199583898d9eec7a21a0ac0fac84ca7d6256f6c9ec0c2bf9c519d779"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-m1a-resources.jsonl",
+      "bytes": 91,
+      "sha256": "6fe1342a1a018508c1140a4b4a8d078996dab3f6c547f00dac3ebfcb664f64e9"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-m1a.stderr",
+      "bytes": 801,
+      "sha256": "830ec18909b6891a5f0b0a4d3184a9b359d7a132162db67cf240a55dd513ec2d"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-m1a.stdout",
+      "bytes": 22,
+      "sha256": "5955a47fedaca2bdba6fa361d20251135e2938c5a86e6404846c28fcbc5566d0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-novel-binding.json",
+      "bytes": 134233,
+      "sha256": "547ab1018526b9f20a876d497e3a37b65474dfb885c79490e0450a7828444185"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-novel-loads.jsonl",
+      "bytes": 63435,
+      "sha256": "9595fe4699985d7e274d983030ab5ecfff0b3b46087a0a0403838d556db9abbe"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-novel-resources.jsonl",
+      "bytes": 91,
+      "sha256": "d9349b9e136931d75267eac0023f7add7bfd71dc9394b79a735957dfd39aa99a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-novel.stderr",
+      "bytes": 801,
+      "sha256": "bbb1896b55fe5b82fc96b6da366ce4dd64cf3985108d4f4e06b7955e2721bc64"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-novel.stdout",
+      "bytes": 1733,
+      "sha256": "d9fa7f1c2e0117d3b169c4dcce4f8a424edf6bfe745b4c769c4ca0816ee64bcf"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-packs-binding.json",
+      "bytes": 134233,
+      "sha256": "e21ee1ebdd6a1c9bd52d07986e67a38e3e005847228ecc38e64f2eb765e01fff"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-packs-git-cases.json",
+      "bytes": 8187,
+      "sha256": "455e53cce0af1838b67473dd8f016f7ca0f7d463e7d3bc19032c03b2a068277f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-packs-loads.jsonl",
+      "bytes": 63435,
+      "sha256": "d63732d2a479fd511f2ea451c9cd9e6b529a57cca0360be0897d8e2d439d62c4"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-packs-resources.jsonl",
+      "bytes": 91,
+      "sha256": "f89a4527ded696dd100cf5fb8f8f86307b45f108fa115f86080ed3ec15435f93"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-packs.stderr",
+      "bytes": 801,
+      "sha256": "40c83a1b758e4ce0e6d5e0d40b62d08e29531b449f23109a95aecfac6956f438"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-packs.stdout",
+      "bytes": 21,
+      "sha256": "2004e6e598a35a97216cf4b9b55765394721dd1ffcdacc1b20e66070948cdff9"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-public-binding.json",
+      "bytes": 134235,
+      "sha256": "e918395beca54517cf6eada98a789ab68862e831168623b57a8e305b8db21f6c"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-public-cases.json",
+      "bytes": 4804,
+      "sha256": "97e95adb5a5b157f6cb6eff634214ab723ba8d22a617203d063e9b4bf4ffd44a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-public-loads.jsonl",
+      "bytes": 63435,
+      "sha256": "c821989fd4f3824db79150497b380a633e156c0dd384673017d6f4afc65c80ac"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-public-resources.jsonl",
+      "bytes": 91,
+      "sha256": "c38d67cd7b497c60e2c8d3a7095bb846b78cb07462f5cbc48e8b3b2a2bda7001"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-public.stderr",
+      "bytes": 801,
+      "sha256": "0f6f9a707a21fd32134efbf18445c81e489839e32f382f850a3cc7dad65111b8"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/moved-public.stdout",
+      "bytes": 2872,
+      "sha256": "67ff0c5a553a49e1aa4585198d30c143abe5f73f99d1a85e56957763c4f147b3"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/offline-install.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/offline-install.stdout",
+      "bytes": 23,
+      "sha256": "da13ab9d025b19c91553bc7d4c450975d3e4e36dd7c5fef6f223f8008ba39547"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/offline-pack.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/offline-pack.stdout",
+      "bytes": 106822,
+      "sha256": "db163d69ef607e840e216a009d4e699a419109b367548e7c8814c567175b58da"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/production-build-once.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/production-build-once.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-mutant-binding.json",
+      "bytes": 134266,
+      "sha256": "773dbf6e66aa37e41e2bcdb73896b5998b1f65adfe24f8dfe3496f6aa211a2a5"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-mutant-cases.json",
+      "bytes": 997,
+      "sha256": "4b250aa87714f36a51550d61db184dd5ac98d87cae83c2a1441056f9353d16d7"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-mutant-loads.jsonl",
+      "bytes": 64833,
+      "sha256": "47555ff5d911b142f43c2c5b290eac7b828b0992b70f0cd141b3a094eaebe3b6"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-mutant-resources.jsonl",
+      "bytes": 91,
+      "sha256": "84d57f87294a4fcdd70c0712e044f113c6ee90064804ca6a34d35a53b93eb3c5"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-mutant.stderr",
+      "bytes": 801,
+      "sha256": "63f7cf73138e643304adeae018f68edbce9b58606691345ecc1a2ed1f806c289"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-mutant.stdout",
+      "bytes": 904,
+      "sha256": "fd89093d576d4d4469e44e0b65e87c63f76dc316c768e32f261021fe8e462289"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-restored-binding.json",
+      "bytes": 134268,
+      "sha256": "3e835a591d6e1f7445bb46bd6af659ef982be87b6b15d0d1cfb2c82a69a1b993"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-restored-cases.json",
+      "bytes": 182,
+      "sha256": "400dcaefebb46afb947a7b732d4d0f936f14db35c579c8809929d8726548e32f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-restored-loads.jsonl",
+      "bytes": 64833,
+      "sha256": "07b86c129304920386c912b5fe97fb4fae78ee0d8067e7314e21c8a2892f985f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-restored-resources.jsonl",
+      "bytes": 91,
+      "sha256": "e1260ce6070f88d471849aa0ca9d979bafbb4e68e83cfeda9a8cbe062bbf0976"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-restored.stderr",
+      "bytes": 801,
+      "sha256": "aea824ba81c316bf5e6c5261870003812a2e303102e785a60208860d73c3f637"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/registration-restored.stdout",
+      "bytes": 97,
+      "sha256": "eed4302b667bf885c09b3ec39ebc0e3ab90b055d755bc196f188ac35320cb11d"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-mutant-binding.json",
+      "bytes": 134265,
+      "sha256": "b6acfc7d0790dfc104cae703acf07599ffc7e48791819b038cff9a39029ab3d4"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-mutant-cases.json",
+      "bytes": 854,
+      "sha256": "26a5b2c9cde61b2965f3635061d0114b7483118f12ec54711252cdbd8d1da0dc"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-mutant-loads.jsonl",
+      "bytes": 64833,
+      "sha256": "0c86cab911aa57b4fe09e641a292620043bb157853baad69c785646880dfa2e3"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-mutant-resources.jsonl",
+      "bytes": 91,
+      "sha256": "31da9ab46e2c02e09fabe7762e1582997fbccf447a390109e9d5036fbd6b6ec9"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-mutant.stderr",
+      "bytes": 801,
+      "sha256": "0fe8b4af1cd2ebbcec6b1a10bea2761ed02d2681e13bbc60238b382aac20ac52"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-mutant.stdout",
+      "bytes": 761,
+      "sha256": "9ebb6f7f993574ed7b053974a51f6be623bbdebc098fe05d82d8ff321c1d4cc1"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-restored-binding.json",
+      "bytes": 134267,
+      "sha256": "1dfaee4147661de35eebf0eb32a8d4297ea39a68982eb1616e4d32fa6dc01a59"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-restored-cases.json",
+      "bytes": 189,
+      "sha256": "bbbb3c75ebbe49728a7c35eccbc32049a4fb2b6efa2e1f757739f4972dd9b777"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-restored-loads.jsonl",
+      "bytes": 64833,
+      "sha256": "8c3599e016212aa8ff8b966d2188c5864d86fe0edb9b5ff8327cbcfdc90a641e"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-restored-resources.jsonl",
+      "bytes": 91,
+      "sha256": "57480d64969e8f51e09479d53094e9b2301b485a53e0e28a723fa6791c2bf400"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-restored.stderr",
+      "bytes": 801,
+      "sha256": "bbe6cb8be01c8716dc054942ddc70eb318a3136a35b17700de0bfdd89a80daa5"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/root-export-restored.stdout",
+      "bytes": 104,
+      "sha256": "513f4a5a50cd2eb1afbedf2f81dc225819f699abb1376e730ce0d6d5863d3cb2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-apply-binding.json",
+      "bytes": 134220,
+      "sha256": "9db4240624c508ccd22ad613a75e1b9dc6ddcc46be992982ff2796de55696049"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-apply-cases.json",
+      "bytes": 3039,
+      "sha256": "518925c41ad25cf4f717b7b86df529b715b3a5ecd7314f0bf9111627938741a5"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-apply-loads.jsonl",
+      "bytes": 55746,
+      "sha256": "bbe8dd2034fecbf2eea0adaf93aa7635f6a9756679d89b5181870685da960c5a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-apply-resources.jsonl",
+      "bytes": 91,
+      "sha256": "be8bd348700c41aa0241184d23e2b9f91b108b4b2fa00520f6be6c116d9bd0b6"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-apply.stderr",
+      "bytes": 801,
+      "sha256": "bad4c18eb19ec1498b762d90b4e22d40a00b1f15dc403d2eb3d6dcae35859f97"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-apply.stdout",
+      "bytes": 1821,
+      "sha256": "85c7446b4da735b7e2943d2f2bb822b6ac14f453106524c7bfcb3a0205632324"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-arrays-binding.json",
+      "bytes": 134215,
+      "sha256": "6b9ce17705b77f25603f609e124399fa597da371612fd917282e2fcc12b0ccc2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-arrays-loads.jsonl",
+      "bytes": 55746,
+      "sha256": "a0e525ff57e9f5654477b18d7fefeb3d659adff9492b8f83c983412be7fc06b6"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-arrays-resources.jsonl",
+      "bytes": 91,
+      "sha256": "dcf7efff805e59e30b50be4bb1a9b39d3b3f83d196107b3271026ce799fdbc87"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-arrays.stderr",
+      "bytes": 801,
+      "sha256": "03e03286d1e76305f5cdcbdb1791936728260cb1f7d76be4a0a7a7a044d436e2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-arrays.stdout",
+      "bytes": 3818,
+      "sha256": "54bdae0aa211de57a7694da3a16f5168e1a10c81107005e965b03afb28dafb9b"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-coherence-binding.json",
+      "bytes": 134227,
+      "sha256": "14a1f41f056160c94c747246316707c37f91e14899f200b7f88230b1512b4682"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-coherence-loads.jsonl",
+      "bytes": 55746,
+      "sha256": "a21cc59960973169c3bd374bcc924c852792c74fc38d30319dffa2fc9bd3608a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-coherence-resources.jsonl",
+      "bytes": 91,
+      "sha256": "9c3a033d69d3c8b9a0c9d996ee3f62c5148eede4bc36f0c7f37fc7599fb1fe98"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-coherence.stderr",
+      "bytes": 801,
+      "sha256": "95f5370bb489642fec1c784de33f37630584343d182908d7d5d35a6d7e4c03ac"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-coherence.stdout",
+      "bytes": 5550,
+      "sha256": "28683a74bb6b8eda37eaf7854fabe23379d08490cbfb521d8e4d4c8184a33460"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-m1a-binding.json",
+      "bytes": 134209,
+      "sha256": "a767d70764a6fa3d6cf3948ef9d018a5422b91696845e5b6c350dd417550b204"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-m1a-git-cases.json",
+      "bytes": 18149,
+      "sha256": "500d3983e64d48f1f099105a7597cb11c276ae216f356d50518c02b8e561f484"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-m1a-git-cases.json.events.jsonl",
+      "bytes": 21854,
+      "sha256": "08d80b518675938795e15f5b2e7b88f13f3a75c912891d9f82b2106c3fb404ab"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-m1a-loads.jsonl",
+      "bytes": 55746,
+      "sha256": "683674ef1cdb5f16ecde54916602310008f3ba504078579a9683a74f4f1c7b13"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-m1a-resources.jsonl",
+      "bytes": 91,
+      "sha256": "9b41757541872c03ba2e8ba6612252b984d2c13a410aeea440b7846272cc3d6f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-m1a.stderr",
+      "bytes": 801,
+      "sha256": "9d59cd807afbce3cd95afee9a17f77b4016dc3bd3d1f10fabe30dda79f90bfff"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-m1a.stdout",
+      "bytes": 22,
+      "sha256": "5955a47fedaca2bdba6fa361d20251135e2938c5a86e6404846c28fcbc5566d0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-novel-binding.json",
+      "bytes": 134213,
+      "sha256": "c92fdf1db01b6eeac71b98b9ec13748c7b89d71f40d093dc1054755a7989b83b"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-novel-loads.jsonl",
+      "bytes": 55746,
+      "sha256": "69888a970adc2aaa8cb1b497b72b7361d35f6ebb0f6ecb4b0db7572d7b7c19ad"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-novel-resources.jsonl",
+      "bytes": 91,
+      "sha256": "4bb082c41a505940291de9b7fa91ba302d4d2bc823276460c2f8c65b05f318de"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-novel.stderr",
+      "bytes": 801,
+      "sha256": "13805504685f934ed7a2aabc9deba07835789e7e7f7304dc60c2cb1411ada61b"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-novel.stdout",
+      "bytes": 1739,
+      "sha256": "89e519a4cd9a08d5bc3d35330d4e24345f8171f28e75b4f9ee83ee6959ead096"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-packs-binding.json",
+      "bytes": 134213,
+      "sha256": "93e431b4d5d7f6ae52ad58269680b060d52c37c64a9291a86d66679d4802bfa0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-packs-git-cases.json",
+      "bytes": 8181,
+      "sha256": "46ebf7dee809232cea74bca85373bad62eb365cda52242810a8d1cc2c4e677f6"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-packs-loads.jsonl",
+      "bytes": 55746,
+      "sha256": "7cfbb3b6e9e1bf86e317760daa32bfbfbd28ed502bd9b63f46427c9f2b027404"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-packs-resources.jsonl",
+      "bytes": 91,
+      "sha256": "d775368a4696c17c061a19aa1fb4aa790e6838ff0304922528132806b60d7a32"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-packs.stderr",
+      "bytes": 801,
+      "sha256": "a35705999b93807b3eee5c95e6420aa80bb73ac9cdd7c07e85ad43a11a15ca4c"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-packs.stdout",
+      "bytes": 21,
+      "sha256": "2004e6e598a35a97216cf4b9b55765394721dd1ffcdacc1b20e66070948cdff9"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-public-binding.json",
+      "bytes": 134215,
+      "sha256": "e53064ba36b41cde4cfdd306ccee8791772567704afd76941679cac6da465a4a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-public-cases.json",
+      "bytes": 4804,
+      "sha256": "97e95adb5a5b157f6cb6eff634214ab723ba8d22a617203d063e9b4bf4ffd44a"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-public-loads.jsonl",
+      "bytes": 55746,
+      "sha256": "e21899fefb740f7ed94d5469fad74f70bd3e7174f0456309d9f068a350644bee"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-public-resources.jsonl",
+      "bytes": 91,
+      "sha256": "f6a572739218a39e753f4c4c4502a9ac49f3937c128e9853486d1f1161dbd2ce"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-public.stderr",
+      "bytes": 801,
+      "sha256": "a2c0e3e23323bedd0d5cc1327fd52222e573201785c0e430d8fd9c7fe2fc1dfe"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/source-public.stdout",
+      "bytes": 2872,
+      "sha256": "67ff0c5a553a49e1aa4585198d30c143abe5f73f99d1a85e56957763c4f147b3"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-installed-false.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-installed-false.stdout",
+      "bytes": 44356,
+      "sha256": "5ec9f47804a0a378c4439ea4e833faf9efd2a523cb684b0d708ddde2c652b7ff"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-installed-true.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-installed-true.stdout",
+      "bytes": 45602,
+      "sha256": "1940f05a0484259d847cedfa9d79267a065d7faaa20c0c0c05417344cb9920f2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-moved-false.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-moved-false.stdout",
+      "bytes": 44716,
+      "sha256": "b7b736c835019e0563d0bafb4698b92d8d9175401ec5278de9f8a249f0ba68c1"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-moved-true.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-moved-true.stdout",
+      "bytes": 45962,
+      "sha256": "7ff00678bf18a2d26458162a4937115fcf0cd78024b6a69c15d771a22655f648"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-source-false.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-source-false.stdout",
+      "bytes": 41751,
+      "sha256": "4b959ec659d14b4f6c1a8126743e45746e11076f80e7ff3c8431b4c1afe9ca60"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-source-true.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/raw/types-source-true.stdout",
+      "bytes": 43037,
+      "sha256": "4b77a39b3de1a2beb4bd63f45cfbf2b707fa33f8e3d1753a1e8729e2c8eac6ee"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/retention.events.jsonl",
+      "bytes": 401,
+      "sha256": "f3246b500e7526d092cebbdd2102de1567059c636bf137154c5f37556d0edc47"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/outer-events.jsonl",
+      "bytes": 2020,
+      "sha256": "3dc46fc2543d475fa4bc987f656cfedfc3bab983b9cfc09cdc04fe6c796c5811"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/ACTIVATION-COMMIT-RECEIPT.json",
+      "bytes": 413,
+      "sha256": "65f18eb95f0909c2f3100f9ee96e06f59afee73916352903cdf9e884cf0ad6bc"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/ACTUAL-CLI-RESULT.json",
+      "bytes": 3663,
+      "sha256": "b0222ccae9386eb73e52208596f998f95b3b3098af63bd621a3f7607395db3c2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/ACTUAL-START.json",
+      "bytes": 941,
+      "sha256": "32016f53f5a923c8ae30e7867d870b81d9a7e1f083b2c86c7bbd7871d2cef9a4"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/actual-cli.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/actual-cli.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/entry-w0cjeh8i/ACTIVATION.json",
+      "bytes": 394,
+      "sha256": "e688e3f5bc407c83a0ce55e6c2ff4cfe3c0a1c199cdd5dddc0e0a5b5487bfe1d"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/entry-w0cjeh8i/ROOT_AUTHORIZATION.json",
+      "bytes": 956,
+      "sha256": "881362b5931dc7eec63a1c7754962ec7e6c06af07aeb5c910b8f06e33ee42c23"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/entry-w0cjeh8i/events.jsonl",
+      "bytes": 887,
+      "sha256": "dc4fde7958fb8bde836fddc864e22a2336a7f117695827c3cba0db73ee91a0ce"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/entry-w0cjeh8i/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/entry-w0cjeh8i/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "originalExit": 1,
+  "threeI03FailuresRetained": true
+}

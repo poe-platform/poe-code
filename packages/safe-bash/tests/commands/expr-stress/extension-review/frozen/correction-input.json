@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "id": "class-parenthesis-quoted-correction",
+  "argv": ["+", "(", ":", "[(]"],
+  "corrects": "class-parenthesis-not-capture",
+  "reason": "The original bare '(' operand enters expr expression grouping and produces a syntax error before BRE evaluation. Preserve that input and original exact native error as grammar evidence, not a passing bracket/capture test. GNU forced-literal + fixes only operand quoting; this new positive is independently captured.",
+  "profiles": ["gnu-9.7-darwin-C", "apple-darwin-C"],
+  "expectationPolicy": "GNU native receipt is authoritative; Apple may reject GNU forced-literal syntax and stays separate. Original20 and correction1 are separate denominators, not replacement or rewritten evidence."
+}

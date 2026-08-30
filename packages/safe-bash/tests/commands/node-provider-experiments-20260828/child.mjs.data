@@ -1,0 +1,259 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { bindReferenceRuntime } from './reference-entry.mjs';
+
+const sha = value => createHash('sha256').update(value).digest('hex');
+const consumer = process.env.C78_CONSUMER;
+const label = process.env.ABI_CASE;
+const output = process.env.ABI_RESULT;
+const control = JSON.parse(fs.readFileSync(path.join(consumer, 'harness/CONTROL.json')));
+assert.ok(control.evaluations.includes(label));
+assert.equal(path.dirname(output), path.join(process.env.C78_SCRATCH, 'logs', label));
+const frozenBytes = fs.readFileSync(path.join(consumer, 'harness/FROZEN-EXPERIMENTS.json'));
+assert.equal(sha(frozenBytes), control.frozenExperimentsSha256);
+const frozen = JSON.parse(frozenBytes);
+const id = label.startsWith('F06-') ? 'F06' : label;
+const experiment = frozen.experiments.find(value => value.id === id);
+assert.ok(experiment);
+assert.equal(sha(experiment.guestSource), control.guestSources[id]);
+const limits = frozen.commonPreparation;
+const report = { schema: 'node-abi-child-v1', label, identity: id, sourceSha256: sha(experiment.guestSource), events: [], marks: [], assertions: [], unhandled: [], counters: { engineEntered: 0, engineSettled: 0, budgetCreated: 0, factoryCreated: 0, intrinsicEntered: 0, intrinsicSettled: 0, hostOperations: 0, hostOperationsSettled: 0, readsAdmitted: 0, readsSettled: 0, bytesRead: 0, guestRecordsCreated: 0, cleanupRegistrations: 0, cleanupEffects: 0, postCloseAdmissions: 0 }, classification: 'INCOMPLETE', clean: false };
+const shape = value => ({ type: value === null ? 'null' : typeof value, ...(typeof value === 'object' && value !== null ? { name: typeof value.name === 'string' ? value.name.slice(0,128) : null, message: typeof value.message === 'string' ? value.message.slice(0,4096) : null } : { text: String(value).slice(0,4096) }) });
+function persist() {
+  const bytes = Buffer.from(JSON.stringify(report) + '\n');
+  assert.ok(bytes.length <= control.limits.receiptBytesPerChild);
+  fs.writeFileSync(output, bytes, { mode: 0o600 });
+}
+function event(name, detail = {}) {
+  assert.ok(report.events.length < control.limits.eventsPerChild, 'EVENT_CAP');
+  report.events.push({ ordinal: report.events.length + 1, event: name, ...detail });
+}
+function check(name, action) {
+  try { action(); report.assertions.push({ name, pass: true }); }
+  catch (reason) { report.assertions.push({ name, pass: false, reason: shape(reason) }); }
+}
+function deferred() {
+  let resolve, reject, settled = false;
+  const promise = new Promise((accept, refuse) => { resolve = accept; reject = refuse; });
+  void promise.catch(() => {});
+  return { promise, get settled() { return settled; }, resolve(value) { if (!settled) { settled = true; resolve(value); } }, reject(reason) { if (!settled) { settled = true; reject(reason); } } };
+}
+async function turns() { for (let index = 0; index < 32; index++) await Promise.resolve(); }
+function exactArguments(value, count) {
+  assert.ok(Array.isArray(value));
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  assert.equal(Reflect.ownKeys(descriptors).length, count + 1);
+  assert.equal(descriptors.length.value, count);
+  const result = [];
+  for (let index = 0; index < count; index++) {
+    const descriptor = descriptors[String(index)];
+    assert.ok(descriptor && Object.hasOwn(descriptor, 'value'));
+    result.push(descriptor.value);
+  }
+  return result;
+}
+const unhandled = reason => { assert.ok(report.unhandled.length < 8); report.unhandled.push(shape(reason)); };
+process.on('unhandledRejection', unhandled);
+const caller = new AbortController();
+const callerReason = label === 'F06-null' ? null : Object.freeze({ code: 'ENOENT', tag: 'root' });
+let readGate;
+const admissionGate = deferred(), cleanupGate = deferred();
+if (id !== 'F06') cleanupGate.resolve();
+const operations = new Set();
+const guestCache = new Map();
+const immutableFileBytes = Uint8Array.from([65, 66]);
+const filesystem = new Map([['/work/a', immutableFileBytes]]);
+const granted = Object.freeze({ read: true, write: false });
+let accepting = true, closePromise, enginePromise, publicPromise;
+let engineDone = false, engineThrown = false, engineReason, engineResult;
+let publicDone = false, publicRejected = false, publicReason, publicValue;
+let intrinsicPending = 0, hostPending = 0, readPending = 0;
+let detached = false, aborted = false, runtime, savedBudget;
+let sawCallerReason, cleanupRegistered = false;
+function registerCleanup() {
+  assert.equal(cleanupRegistered, false);
+  cleanupRegistered = true;
+  report.counters.cleanupRegistrations++;
+  event('cleanup-registered');
+}
+function close() {
+  if (closePromise) return closePromise;
+  accepting = false;
+  report.counters.cleanupEffects++;
+  event('cleanup-start');
+  closePromise = (async () => {
+    await Promise.allSettled([...operations]);
+    await cleanupGate.promise;
+    guestCache.clear();
+    caller.signal.removeEventListener('abort', onAbort);
+    detached = true;
+    event('cleanup-done');
+  })();
+  return closePromise;
+}
+function onAbort() {
+  aborted = true;
+  sawCallerReason = caller.signal.reason;
+  event('caller-abort', { reasonType: shape(sawCallerReason).type });
+  void close().catch(() => {});
+}
+function admit(name) {
+  assert.equal(cleanupRegistered, true, 'ACQUIRE_BEFORE_CLEANUP');
+  if (!accepting) {
+    report.counters.postCloseAdmissions++;
+    throw caller.signal.aborted ? caller.signal.reason : new Error('OWNER_CLOSED');
+  }
+  caller.signal.throwIfAborted();
+  assert.ok(++report.counters.hostOperations <= limits.controllerCaps.hostCalls, 'HOST_CALL_CAP');
+  hostPending++;
+  event('host-enter', { name });
+}
+function finishHost(name, rejected) {
+  hostPending--;
+  report.counters.hostOperationsSettled++;
+  event('host-settle', { name, rejected });
+}
+function hostOperation(name, operation) {
+  return (...args) => {
+    admit(name);
+    let result;
+    try { result = operation(...args); }
+    catch (reason) { finishHost(name, true); throw reason; }
+    if (!(result instanceof Promise)) { finishHost(name, false); return result; }
+    const pending = result.then(value => { finishHost(name, false); return value; }, reason => { finishHost(name, true); throw reason; });
+    operations.add(pending);
+    pending.then(() => operations.delete(pending), () => operations.delete(pending));
+    return pending;
+  };
+}
+function readFile(filename, encoding) {
+  assert.equal(granted.read, true); assert.equal(granted.write, false);
+  assert.equal(filename, '/work/a'); assert.equal(encoding, 'utf8');
+  assert.ok(readPending < limits.controllerCaps.pendingHostReads);
+  assert.equal(readGate, undefined);
+  readGate = deferred();
+  readPending++; report.counters.readsAdmitted++;
+  event('read-admitted'); admissionGate.resolve();
+  const pending = readGate.promise.then(() => {
+    const bytes = Uint8Array.from(filesystem.get(filename));
+    assert.ok(bytes.length <= limits.controllerCaps.copiedVfsBytes);
+    report.counters.bytesRead += bytes.length;
+    return new TextDecoder().decode(bytes);
+  });
+  return pending.then(value => { readPending--; report.counters.readsSettled++; event('read-settle', { rejected: false }); return value; }, reason => { readPending--; report.counters.readsSettled++; event('read-settle', { rejected: true }); throw reason; });
+}
+function witness(name, detail) {
+  event(name, detail);
+  if (name === 'engine-enter') report.counters.engineEntered++;
+  if (name === 'engine-settle') report.counters.engineSettled++;
+  if (name === 'budget-create') report.counters.budgetCreated++;
+  if (name === 'factory-create') report.counters.factoryCreated++;
+  if (name === 'intrinsic-enter') { report.counters.intrinsicEntered++; intrinsicPending++; }
+  if (name === 'intrinsic-settle') { report.counters.intrinsicSettled++; intrinsicPending--; }
+}
+registerCleanup();
+caller.signal.addEventListener('abort', onAbort, { once: true });
+try {
+  runtime = bindReferenceRuntime(control.abi, witness);
+  const mark = runtime.ordinary(hostOperation('mark', value => {
+    assert.ok(value === null || ['string','number','boolean','undefined'].includes(typeof value));
+    if (typeof value === 'number') assert.ok(Number.isFinite(value));
+    if (typeof value === 'string') assert.ok(Buffer.byteLength(value) <= 4096);
+    assert.ok(report.marks.length < limits.controllerCaps.eventRecords);
+    report.marks.push(value);
+    event('guest-mark', { value });
+  }));
+  const bindings = { mark };
+  const modules = {};
+  const read = hostOperation('readFile', readFile);
+  if (id === 'F01') {
+    modules.host = { default: {
+      pure: runtime.ordinary(hostOperation('pure', value => { assert.equal(value, 6); return value + 1; })),
+      fail: runtime.ordinary(hostOperation('fail', () => { throw new Error('PURE'); })),
+    } };
+  } else if (id === 'F05') {
+    const hostRecord = { value: 1 };
+    const guestRecord = runtime.createGuestData({ value: 1 });
+    guestCache.set('cached', guestRecord);
+    report.counters.guestRecordsCreated++;
+    assert.ok(report.counters.guestRecordsCreated <= limits.controllerCaps.retainedGuestObjects);
+    modules.cached = { default: { value: 1 } };
+    bindings.hostRequire = runtime.ordinary(hostOperation('hostRequire', name => { assert.equal(name, 'cached'); return hostRecord; }));
+    bindings.require = runtime.intrinsic('require', hostOperation('require', args => { const [name] = exactArguments(args,1); assert.equal(name,'cached'); assert.ok(guestCache.has('cached')); return guestCache.get('cached'); }));
+    report.cacheProviderState = () => ({ hostValue: hostRecord.value, guestBackingValue: guestRecord.value, guestRecordsCreated: report.counters.guestRecordsCreated, liveCacheEntries: guestCache.size, backingJsonBytes: Buffer.byteLength(JSON.stringify(guestRecord)) });
+  } else {
+    bindings.fs = { readFileSync: ['F02', 'F07'].includes(id) ? runtime.ordinary(read) : runtime.intrinsic('readFileSync', args => read(...exactArguments(args,2))) };
+  }
+  const budgetOptions = { ...limits.budgets, deadline: Date.now() + limits.budgets.deadlineOffsetMs };
+  delete budgetOptions.deadlineOffsetMs;
+  savedBudget = runtime.createBudget(budgetOptions);
+  report.budget = { options: budgetOptions, resetCallsObserved: null, qualification: 'Construction is witnessed by budgetCreated; internal reset calls are not instrumented. Source inspection says run resets Budget. No Shell or shared Shell budget is instantiated.' };
+  enginePromise = runtime.runOnce(experiment.guestSource, { budget: savedBudget, filename: label + '.ajs', bindings, modules, signal: caller.signal, sink: { log() { throw new Error('UNPLANNED_CONSOLE'); }, error() { throw new Error('UNPLANNED_CONSOLE'); } } });
+  enginePromise.then(value => { engineDone = true; engineResult = value; }, reason => { engineDone = true; engineThrown = true; engineReason = reason; });
+  publicPromise = (async () => {
+    try { await enginePromise; } catch {}
+    await close();
+    if (caller.signal.aborted) throw caller.signal.reason;
+    if (engineThrown) throw engineReason;
+    return engineResult;
+  })();
+  publicPromise.then(value => { publicDone = true; publicValue = value; event('public-settle', { rejected: false }); }, reason => { publicDone = true; publicRejected = true; publicReason = reason; event('public-settle', { rejected: true, reasonType: shape(reason).type }); });
+  if (!['F01', 'F05'].includes(id)) {
+    await admissionGate.promise;
+    await turns();
+    report.held = { marks: [...report.marks], enginePending: !engineDone, publicPending: !publicDone, hostPending, readPending, intrinsicPending };
+    if (id === 'F02') check('ordinary host Promise stays boxed', () => assert.deepEqual(report.marks, [false, 'object', 'after']));
+    if (['F03','F04','F06'].includes(id)) check('ordinary intrinsic call holds guest progress', () => { assert.deepEqual(report.marks, []); assert.equal(engineDone, false); });
+    if (id === 'F07') check('explicit await releases queued reaction', () => { assert.deepEqual(report.marks, ['job']); assert.equal(engineDone, false); });
+    if (id === 'F06') {
+      caller.abort(callerReason);
+      await turns();
+      report.cancellation = { callbackSawExactReason: sawCallerReason === callerReason, signalStoresExactReason: caller.signal.reason === callerReason, rawEnginePending: !engineDone, rawEngineThrown: engineThrown, rawEngineReasonIdentity: engineThrown && engineReason === callerReason, engineErrorShape: engineResult?.ok === false ? shape(engineResult.error) : null, whileCleanupHeldPublicPending: !publicDone };
+      check('held cleanup blocks public settlement', () => assert.equal(publicDone, false));
+      readGate.reject(new Error('late-host'));
+      await turns();
+      check('underlying read settled but cleanup still holds', () => { assert.equal(readPending, 0); assert.equal(publicDone, false); });
+      cleanupGate.resolve();
+    } else if (id === 'F04') readGate.reject('DENIED');
+    else readGate.resolve();
+  }
+  await publicPromise.then(() => {}, () => {});
+  await turns();
+  const expected = { F01: [7,'PURE','after'], F02: [false,'object','after'], F03: [true,2,'after','job'], F04: [true,'after'], F05: [true,false,true,2], F06: [], F07: ['job',true,2,'after'] }[id];
+  check('exact interpreter-dependent primitive marks', () => assert.deepEqual(report.marks, expected));
+  check('one actual engine evaluation and settlement', () => { assert.equal(report.counters.engineEntered, 1); assert.equal(report.counters.engineSettled, 1); });
+  check('one actual Budget construction', () => assert.equal(report.counters.budgetCreated, 1));
+  check('cooperative cleanup precedes actual public settlement', () => {
+    const cleanup = report.events.find(row => row.event === 'cleanup-done');
+    const settlement = report.events.find(row => row.event === 'public-settle');
+    assert.ok(cleanup && settlement && cleanup.ordinal < settlement.ordinal);
+    assert.equal(report.counters.cleanupRegistrations,1);
+  });
+  if (id === 'F06') {
+    check('actual public rejection preserves caller reason including null', () => { assert.equal(aborted, true); assert.equal(publicRejected, true); assert.equal(publicReason, callerReason); assert.equal(sawCallerReason, callerReason); });
+    report.publicReasonProof = { rejected: publicRejected, exactIdentity: publicReason === callerReason, reasonType: shape(callerReason).type };
+  } else check('real interpreter and envelope succeed', () => { assert.equal(publicRejected, false); assert.equal(engineThrown, false); assert.equal(engineResult.ok, true); assert.equal(publicValue, engineResult); });
+  check('intrinsic route actually entered where required', () => assert.equal(report.counters.intrinsicEntered, id === 'F05' ? 2 : ['F03','F04','F06'].includes(id) ? 1 : 0));
+  check('actual host/read operations retire', () => { assert.equal(hostPending, 0); assert.equal(readPending, 0); assert.equal(intrinsicPending, 0); assert.equal(report.counters.hostOperations, report.counters.hostOperationsSettled); assert.equal(report.counters.intrinsicEntered, report.counters.intrinsicSettled); assert.equal(report.counters.readsAdmitted, ['F01','F05'].includes(id) ? 0 : 1); assert.equal(report.counters.readsAdmitted, report.counters.readsSettled); });
+  check('virtual namespace and default write denial', () => { assert.equal(granted.write, false); assert.deepEqual([...filesystem.keys()], ['/work/a']); assert.deepEqual([...filesystem.get('/work/a')], [65,66]); });
+  if (report.cacheProviderState) { const state = report.cacheProviderState(); delete report.cacheProviderState; report.cacheState = state; check('ordinary host record remains isolated', () => assert.equal(state.hostValue, 1)); }
+} catch (reason) {
+  report.driverFailure = shape(reason);
+} finally {
+  if (readGate && !readGate.settled) readGate.reject(new Error('DRIVER_RETIREMENT'));
+  cleanupGate.resolve();
+  await close();
+  if (enginePromise) await enginePromise.catch(() => {});
+  if (publicPromise) await publicPromise.catch(() => {});
+  await turns();
+  process.removeListener('unhandledRejection', unhandled);
+  report.engineOutcome = { settled: engineDone, thrown: engineThrown, ok: engineResult?.ok ?? null, error: engineThrown ? shape(engineReason) : engineResult?.ok === false ? shape(engineResult.error) : null, stats: engineResult?.stats ?? null };
+  report.finalResources = { hostPending, readPending, intrinsicPending, trackedOperations: operations.size, guestCacheEntries: guestCache.size, listenerDetached: detached, accepting };
+  report.clean = hostPending === 0 && readPending === 0 && intrinsicPending === 0 && operations.size === 0 && guestCache.size === 0 && detached && !accepting && report.counters.cleanupEffects === 1 && report.counters.postCloseAdmissions === 0;
+  report.classification = !report.clean || report.driverFailure || report.unhandled.length ? 'SAFETY_STOP' : report.assertions.every(row => row.pass) ? 'PASS' : 'ASSERTION_FAILURE_CLEAN';
+  persist();
+}
+process.stdout.write(JSON.stringify({ label, classification: report.classification, receiptSha256: sha(fs.readFileSync(output)) }) + '\n');
+process.exitCode = report.classification === 'PASS' ? 0 : report.classification === 'ASSERTION_FAILURE_CLEAN' ? 1 : 2;

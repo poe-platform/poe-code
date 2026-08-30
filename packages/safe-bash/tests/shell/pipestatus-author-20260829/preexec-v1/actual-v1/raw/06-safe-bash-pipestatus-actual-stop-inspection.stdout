@@ -1,0 +1,19 @@
+inspection-start=1788021663.8598859310
+
+FILE /private/tmp/safe-bash-pipestatus-actual-preparation-v1.stdout
+role2 preparation/launch shell started=1788021652.3412799835
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/ROOT-AUTHORIZATION.md
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/RESULT.json
+role3 apply_patch authorization returned
+role4 git-add returned
+role5 git-commit returned
+
+FILE /private/tmp/safe-bash-pipestatus-actual-preparation-v1.stderr
+zsh:37: unknown function: int
+
+FILE /private/tmp/safe-bash-pipestatus-actual-authorization-commit.stdout
+[main 200993b448ae5a788481784d16be1504b4a6b1ac] test(shell): record ROOT one-attempt PIPESTATUS authorization
+ 2 files changed, 12 insertions(+)
+ create mode 100644 tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/RESULT.json
+ create mode 100644 tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/ROOT-AUTHORIZATION.md

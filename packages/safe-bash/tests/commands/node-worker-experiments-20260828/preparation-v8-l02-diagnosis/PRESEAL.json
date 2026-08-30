@@ -1,0 +1,208 @@
+{
+  "schema": "l02-parent-only-preseal-v1",
+  "date": "2026-08-28",
+  "history": "345b9851f00e77ba520014b36567259440fd4ed0 immutable; not L02 Worker rerun/rescore",
+  "authority": "ONE parent-only probe plus source/data diagnosis; zero engine/Worker/guest/compiler/private/network",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "modules": [
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f",
+      "edges": [
+        {
+          "specifier": "./wire.mjs",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/wire.mjs"
+        },
+        {
+          "specifier": "./fixtures.mjs",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/fixtures.mjs"
+        }
+      ]
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4",
+      "edges": [
+        {
+          "specifier": "./compiled/support/errors.js",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/compiled/support/errors.js"
+        }
+      ]
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44",
+      "edges": [
+        {
+          "specifier": "./json-size.mjs",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/json-size.mjs"
+        }
+      ]
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5",
+      "edges": []
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b",
+      "edges": [
+        {
+          "specifier": "./wire.mjs",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/wire.mjs"
+        }
+      ]
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/compiled/support/errors.js",
+      "bytes": 3191,
+      "sha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+      "edges": [
+        {
+          "specifier": "node:util",
+          "target": "node:util"
+        }
+      ]
+    },
+    {
+      "path": "observe.mjs",
+      "bytes": 2172,
+      "sha256": "c57585c2694b3b9824615eb479c0d184ee24cae1d98240bf0b7fda3d9d0c34de",
+      "edges": [
+        {
+          "specifier": "node:util",
+          "target": "node:util"
+        }
+      ]
+    },
+    {
+      "path": "probe.mjs",
+      "bytes": 4699,
+      "sha256": "200f493e72ac52712b2fd0a608148574c55708e90dca872e3f4a7d12edd8ac4f",
+      "edges": [
+        {
+          "specifier": "./observe.mjs",
+          "target": "observe.mjs"
+        },
+        {
+          "specifier": "../preparation-v7-capture/actual-v7-01/capsule/owner.mjs",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/owner.mjs"
+        },
+        {
+          "specifier": "../preparation-v7-capture/actual-v7-01/capsule/fixtures.mjs",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/fixtures.mjs"
+        },
+        {
+          "specifier": "../preparation-v7-capture/actual-v7-01/capsule/errors.mjs",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/errors.mjs"
+        },
+        {
+          "specifier": "../preparation-v7-capture/actual-v7-01/capsule/wire.mjs",
+          "target": "../preparation-v7-capture/actual-v7-01/capsule/wire.mjs"
+        }
+      ]
+    }
+  ],
+  "hostInputs": [
+    {
+      "path": "launch.mjs",
+      "bytes": 3611,
+      "sha256": "7d544cf6168b883a988aa62d9b4375692074b2d07b417938c772385b0caeeb33"
+    },
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "bytes": 3125,
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    }
+  ],
+  "trustedEntryBuiltins": [
+    "node:module",
+    "node:fs",
+    "node:crypto",
+    "node:url"
+  ],
+  "hostLauncherBuiltins": [
+    "node:fs",
+    "node:child_process",
+    "node:crypto",
+    "node:url"
+  ],
+  "case": {
+    "instance": "WRQ02-L02-v3",
+    "wrq": "WRQ02",
+    "root": "L02",
+    "fixture": "L02",
+    "reason": "none",
+    "workers": 1,
+    "guestEvaluations": 1,
+    "candidateImplemented": true,
+    "schedule": "future actual typed missing-file provider; postcopy reconstruction; trusted witness; guest catch; actual exit and cleanup",
+    "expectedStdout": "FsError:ENOENT:/missing\n",
+    "expectedStderr": "",
+    "expectedStatus": 0,
+    "expectedEffects": {},
+    "unqualified": [
+      "Source branch only; actual compiler/provider/heap observations remain unrun; K1–K4 not accepted."
+    ]
+  },
+  "request": {
+    "v": 3,
+    "session": 1,
+    "slot": 0,
+    "seq": 2,
+    "op": "readText",
+    "authority": "data",
+    "path": "/missing",
+    "flag": "r",
+    "totalBytes": null,
+    "moduleKey": null
+  },
+  "limits": {
+    "rootWallMs": 300000,
+    "childWallMs": 30000,
+    "killGraceMs": 2000,
+    "maximumChildren": 6,
+    "peakOSProcesses": 3,
+    "captureBytes": 1048576,
+    "rootCaptureBytes": 16777216,
+    "rootWorkBytes": 134217728,
+    "moduleBytes": 65536,
+    "moduleRecords": 16,
+    "edgeRecords": 32,
+    "reasonKeys": 16,
+    "reasonFieldBytes": 1024,
+    "receiptBytes": 65536
+  },
+  "expected": "Observe actual compiled FsError; recognition true; strict DTO may accept or reject. Record outcome without predetermining historical cause; samePrimary on rejection; operation and owner cleanup; proven-none Worker acquisition.",
+  "unrun": "No parent-rpc frame/Worker/guest run; route attribution source-only; original124 unchanged",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v8-l02-diagnosis/run-01",
+  "argv": [
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/owner.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/fixtures.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/wire.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/json-size.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/errors.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/compiled/support/errors.js",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v8-l02-diagnosis/observe.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v8-l02-diagnosis/probe.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v8-l02-diagnosis/PRESEAL.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v8-l02-diagnosis/probe.mjs"
+  ]
+}

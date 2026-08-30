@@ -1,0 +1,45 @@
+{
+  "schema": "AP753-all-source-preflight-v2",
+  "performed": "2026-08-28T23:35:47.606Z",
+  "sourceFiles": 20,
+  "externalBindings": 80,
+  "toolInventories": 3,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493
+  },
+  "git": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+    "bytes": 7604272,
+    "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae",
+    "mode": 493
+  },
+  "jobs": 54,
+  "plannedAllOwned": 62,
+  "bounds": {
+    "elapsedMs": 6600000,
+    "cleanupReserveMs": 30000,
+    "maximumAllOwnedProcesses": 70,
+    "plannedOwnerAndChildren": 62,
+    "peakTotal": 4,
+    "targetFlatPeak": 2,
+    "combinedCaptureBytes": 134217728,
+    "workingBytes": 536870912,
+    "perCaseMs": 30000,
+    "perBuildMs": 120000
+  },
+  "controlSealSha256": "8f327bead14593184c9f984795c9034c9d7fa0a64652bbf4cd22937499cf2293",
+  "actualSeal": {
+    "bytes": 107950,
+    "sha256": "d75db6e78b9a891705c8d8ffd753ef54624df4bb64b1670a523ecb365290e364"
+  },
+  "productEvaluations": 0,
+  "builds": 0,
+  "qualification": {
+    "pass": 31,
+    "fail": 0,
+    "retired": true
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "schema": "b1-final-binding-independent-review-v1",
+  "verdict": "HOLD_NEW_PUBLICATION_RECIPE",
+  "source": "2cd4302dd",
+  "evidence": "c7c90133e98c221461f6b8c2c2fc056e9e565700",
+  "binding": {
+    "bytes": 4265,
+    "sha256": "adce87b6432ac4c80b84bdf13a225e1b9b0771a398740866734b70476610c97f"
+  },
+  "candidate": "bd0f227d081829512bafc2936f0b33632e02890b",
+  "runtimePreseal": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json",
+    "bytes": 17692,
+    "sha256": "007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"
+  },
+  "priorReview": {
+    "commit": "ebf511e84bdb7d6fb0b11bca05310710c56967b9",
+    "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-preexecution-review/RECEIPT.json",
+    "blob": "23680ef5a35b130c50ffd3a2c73d484b63a5ac19",
+    "bytes": 5276,
+    "sha256": "12c8f7e03af23977ccf5015a902fe04956681a26c89f59165409d606fc0578c2"
+  },
+  "independentPresealSha256": "c1fb98229f924c57da58184a3abe1d89af40695633c015810658adf370b2963f",
+  "utc": "2026-08-29T13:14:34.004Z",
+  "window": {
+    "issued": "2026-08-29T12:58:33.833Z",
+    "latestStart": "2026-08-29T13:18:33.833Z",
+    "expires": "2026-08-29T13:48:33.833Z",
+    "fullThirtyMinutesRemain": true,
+    "noExtension": true
+  },
+  "absence": [
+    {
+      "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/coherent-b1-public15-20260829-r2.launch.stdout",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/coherent-b1-public15-20260829-r2.launch.stderr",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/coherent-b1-public15-20260829-r2.publication.stdout",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/coherent-b1-public15-20260829-r2.publication.stderr",
+      "absent": true
+    }
+  ],
+  "controls": {
+    "passed": 8,
+    "total": 8,
+    "actual": 0,
+    "onePureChild": true,
+    "stdoutBytes": 28,
+    "stderrBytes": 0,
+    "productImports": 0,
+    "engineImports": 0,
+    "workers": 0,
+    "compilers": 0,
+    "builds": 0,
+    "installs": 0
+  },
+  "sourceFindings": [
+    {
+      "id": "F01",
+      "status": "SOURCE_BLOCKER",
+      "claim": "Aggregate publication resource accounting is incomplete: copied raw bytes are bounded, generated metadata/live publication output/out-of-work evidence are not admitted against one task capture/work budget.",
+      "notClaimed": "No actual overrun, runtime loss or resource-limit boundary execution."
+    },
+    {
+      "id": "F02",
+      "status": "SOURCE_OUTCOME_LIMITATION_REQUIRES_DECISION",
+      "claim": "Existing partial RESULT aggregate is rejected by matrix() before OBSERVATIONS/final inventory/evidence commit, despite earlier raw copies. Missing RESULT follows a different empty route.",
+      "notClaimed": "No false pass credit; no actual partial attempt or loss was executed."
+    }
+  ],
+  "runtimeBindings": "Unchanged; prior finite preexecution review not rescored or revoked. Source/publisher repair or explicit ROOT policy adjudication required before this new publication recipe is ready.",
+  "slotDelta": {
+    "originalLaunchSlotsUnchanged": 2,
+    "newPublicationSlots": 2,
+    "workRootUnchanged": true,
+    "actualAuthorization": false
+  },
+  "prospective": {
+    "knownOS": 32,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "command": "B1_ROOT_GO=ROOT_B1_PUBLIC15_EXPLICIT_FRESH_AUTHORIZATION /bin/zsh tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json 007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc 17692",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "publicationAuthority": {
+    "action": "ROOT_B1_PUBLIC15_ACTUAL",
+    "fields": [
+      "authorization",
+      "bindingSha256",
+      "startedUTC",
+      "knownStartsBeforePublication"
+    ],
+    "knownStartsBeforePublicationRange": [
+      7,
+      27
+    ],
+    "publicationRoles": 5,
+    "finalGitReceiptOutsideCommit": true
+  },
+  "timestampQualification": {
+    "humanLabels": "08:04:57/58 CDT, not UTC authority",
+    "convertedUTC": [
+      "2026-08-29T13:04:57.000Z",
+      "2026-08-29T13:04:58.000Z"
+    ],
+    "bindingIsoWindowUnchanged": true
+  },
+  "knownReviewRoles": {
+    "plannedThroughPublication": 22,
+    "limit": 24,
+    "peakObservedRoleChain": 2,
+    "peakLimit": 3,
+    "qualification": "Task-local direct-launch bookkeeping plus synchronous child return; not global census or independently traced exit/close events."
+  },
+  "remaining": {
+    "actualRootGrantRequired": true,
+    "actualB1": 0,
+    "B2Retained672": "UNRUN",
+    "unit2PerLayout": 50,
+    "fullCoherentAcceptance": false
+  },
+  "artifacts": [
+    {
+      "path": "REPORT.md",
+      "bytes": 7404,
+      "sha256": "2b0ca0a9cfe3e6d41dc1b42e42ec6f29f15af82e45645b14274b4b7bb847582b"
+    },
+    {
+      "path": "PLAN.md",
+      "bytes": 1622,
+      "sha256": "66ea97b7ff6af62afa8ffae035258f0bacc43aaf8fef9b7319096650584cc45f"
+    },
+    {
+      "path": "INDEPENDENT-PRESEAL.json",
+      "bytes": 11563,
+      "sha256": "c1fb98229f924c57da58184a3abe1d89af40695633c015810658adf370b2963f"
+    },
+    {
+      "path": "CONTROL-RESULTS.json",
+      "bytes": 964,
+      "sha256": "3475654c7e7b4341953eb194b0fcdc1ceeba513456ffd87dd4ade5e9dcdef6e3"
+    },
+    {
+      "path": "POSTGUARDS.json",
+      "bytes": 69,
+      "sha256": "5d30f43877e4291f44d55b4c554cfef9d0b272a7b27875de7d3d298ee7d6a58b"
+    },
+    {
+      "path": "prepare.jsonl",
+      "bytes": 645,
+      "sha256": "1972b5ae8488e4376bf3220f12b536ff8640f870a0ab09a15b617e29598d10bf"
+    },
+    {
+      "path": "run.jsonl",
+      "bytes": 1106,
+      "sha256": "4f0db0866d29e94965279ffcc63a2b362b25053138b597c28f35239436ef21fb"
+    },
+    {
+      "path": "pure.stdout",
+      "bytes": 28,
+      "sha256": "394f14ade333bce722996a30d3cab7d107f6c7d4132c8ee2da977e1f9a63a202"
+    },
+    {
+      "path": "pure.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

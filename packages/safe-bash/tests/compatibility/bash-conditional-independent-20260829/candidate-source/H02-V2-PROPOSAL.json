@@ -1,0 +1,57 @@
+{
+  "schema": "H02-proposed-versioned-controls-v1",
+  "status": "PRESEALED_PROPOSAL_UNRUN_REQUIRES_ROOT_ACTUAL_GO",
+  "original": {
+    "fixtureSha256": "29593d551f6e4fe310907036b82d9f3494ac0b76780ae6008ef4b5cb1647af25",
+    "line": 61,
+    "script": "[[ -f file ]]",
+    "preservedFailure": "closed === true at public rejection fails all three author layouts; exact caller reason passes"
+  },
+  "controls": [
+    {
+      "id": "H02-v2-opaque",
+      "route": "Direct Shell.exec, adapted stat, no registration",
+      "steps": [
+        "Create immutable caller reason, explicit finalizer gate and completion observer before exec.",
+        "stat records exactly one entry, aborts caller and throws signal.reason; finally records entered and awaits explicit host release.",
+        "Attach both result branches to the actual stat promise immediately; record terminal reason without rethrowing an abandoned observer.",
+        "Capture public exec rejection and compare exact caller identity while gate remains unreleased; do not require implicit provider drain.",
+        "Capture dispose independently; this does not prove provider completion.",
+        "Always release the host gate in harness finally, await actual observed provider completion, assert exact reason, one finalizer and no outstanding owned fixture task."
+      ],
+      "forbiddenInference": "No leak/no-leak claim from public rejection or disposal alone; no public registered-cleanup guarantee for this raw FS promise."
+    },
+    {
+      "id": "H02-v2-enrolled",
+      "route": "Registered bridge command with mandatory context.registerCleanup and context.invoke capability checks; invoke bash -c with identical [[ -f file ]] under same FS/caller",
+      "steps": [
+        "Register invocation cleanup before starting child/provider acquisition.",
+        "Callback records cleanup-start and awaits the actual tracked provider-finalizer completion, without racing it against the aborted signal.",
+        "Provider aborts and waits at the same controlled gate. Assert admissions/entry counts and exact reason object.",
+        "At cleanup-start retain gate closed; public settlement must not precede the callback completion. Record causal ordering, not an arbitrary sleep.",
+        "Host finally releases gate; observe actual provider retirement, callback retirement, then public rejection with original caller identity.",
+        "Dispose and verify single registration/single finalizer; always observe all pending fixture promises even if an assertion fails."
+      ],
+      "scope": "Explicit registered callback boundary only; does not add registerCleanup to FsOptions."
+    },
+    {
+      "id": "H02-v2-normal",
+      "route": "Direct Shell.exec, no abort, same controlled stat finalizer",
+      "steps": [
+        "Provider returns real fixture metadata only after controlled finally completion.",
+        "Record provider entry; release gate from host.",
+        "Expect fulfilled status0 and finalizer completed before public fulfillment.",
+        "Dispose, verify exactly one call/one completion and no fixture-owned pending task."
+      ],
+      "scope": "Ordinary await-chain positive, not general provider resource certification."
+    }
+  ],
+  "supervision": {
+    "caseDeadlineMs": 30000,
+    "releaseFinallyMandatory": true,
+    "completionMustBeObserved": true,
+    "unknownRetirementStopsDependents": true,
+    "ordinaryAssertionsAggregateAfterKnownFixtureRetirement": true
+  },
+  "counting": "Three variants of existing H02 host-protocol identity, not three additional independent product IDs. Original H02 remains failed and never rescored."
+}

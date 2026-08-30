@@ -1,0 +1,20 @@
+{
+  "classification": "STATIC_CLOSURE_NOT_PRODUCT_OR_BUILD_ACCEPTANCE",
+  "preparedFilesPreserved": 3,
+  "executionRecipeHashesMatch": true,
+  "observations": 62,
+  "matchingControls": 60,
+  "controlFailures": 2,
+  "familiesRepresented": 18,
+  "baselinePackageEntries": 846,
+  "baselineReadme": {
+    "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+    "bytes": 36273,
+    "mode": 420
+  },
+  "actualCandidateInspected": false,
+  "fixtureInvalidFailuresIdentified": 0,
+  "scriptCollectionExitCode": 0,
+  "frameworkVerdict": "NOT_READY_OWNER_DISPOSITION_REQUIRED",
+  "newEvidenceFilesBeforeClosure": 199
+}

@@ -1,0 +1,10 @@
+import { createS3HttpTransport, type S3HttpCredentials } from "virtual-bash";
+import type { S3HttpTransportOptions } from "virtual-bash/fs/s3/http";
+
+createS3HttpTransport({ endpoint: "https://example.invalid", region: "us-east-1" });
+const incompleteCredentials: S3HttpCredentials = { accessKeyId: "synthetic-access" };
+const invalidRegion: S3HttpTransportOptions = {
+  endpoint: "https://example.invalid", region: 123,
+  credentials: { accessKeyId: "synthetic-access", secretAccessKey: "synthetic-secret" },
+};
+void [incompleteCredentials, invalidRegion];

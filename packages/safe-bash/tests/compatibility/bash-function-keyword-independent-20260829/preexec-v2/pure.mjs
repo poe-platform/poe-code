@@ -1,0 +1,28 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {fileURLToPath} from 'node:url';
+import {replay} from './author-pure.mjs';
+import {refuses} from './predicate.mjs';
+import {wire,finishOwner} from './frozen/owner-finalization.mjs';
+import {canonicalRoot,assertOwned,validateCanonicalRole} from './frozen/canonical.mjs';
+import {caseArguments} from './frozen/profile.mjs';
+import {readPinned,hash} from './frozen/auth.mjs';
+import {runDirect} from './frozen/direct-child.mjs';
+const root=fileURLToPath(new URL('.',import.meta.url));
+const stat=fs.lstatSync(root+'STATE.json');assert.ok(stat.isFile()&&stat.size<32768);const state=JSON.parse(fs.readFileSync(root+'STATE.json'));
+const author=[];replay(state.work,state,root+'frozen',author);
+const novel=[];const check=(id,body)=>{try{body();novel.push({id,pass:true});}catch(error){novel.push({id,pass:false,error:String(error)});}};
+const preseal=process.env.B35_PRESEAL_SHA256;
+const valid=()=>{const started=Date.now();return {started,grant:{decision:'GO',preseal,work:state.work,calls:54,latestStartEpochMs:started+60000,expiresEpochMs:started+1500001},review:{decision:'ACCEPT',preseal}};};
+check('N01',()=>{const value=valid();assert.equal(refuses(value.grant,value.review,state.work,value.started),false);});
+check('N02',()=>{const value=valid();delete value.grant.latestStartEpochMs;delete value.grant.expiresEpochMs;assert.equal(refuses(value.grant,value.review,state.work,value.started),true);});
+check('N03',()=>{const value=valid();value.grant.latestStartEpochMs='not-a-time';value.grant.expiresEpochMs='not-a-time';assert.equal(refuses(value.grant,value.review,state.work,value.started),true);});
+check('N04',()=>{for(const change of [value=>{value.grant.decision='PENDING';},value=>{value.grant.preseal='wrong';},value=>{value.grant.latestStartEpochMs=0;},value=>{value.grant.expiresEpochMs=0;}]){const value=valid();change(value);assert.equal(refuses(value.grant,value.review,state.work,value.started),true);}});
+check('N05',()=>{for(const reason of [undefined,null,false,0]){const value=wire({primaryPresent:true,primary:reason,secondaryPresent:false,secondary:[],sampledWorkPresent:false,publicationAttempted:false,publicationSucceeded:false});assert.equal(value.primaryPresent,true);assert.equal(value.primary.kind,reason===null?'null':typeof reason);if(reason===false||reason===0)assert.equal(value.primary.value,reason);}});
+check('N06',()=>{const seen=[];const reason={tag:'primary'};const value=finishOwner({initial:{primaryPresent:true,primary:reason},captures:[{path:'a',fd:1},{path:'b',fd:2}],operations:{fsyncSync(fd){seen.push(['flush',fd]);throw undefined;},closeSync(fd){seen.push(['close',fd]);throw false;}},census(){throw null;},publish(){throw 0;}});assert.equal(value.primary,reason);assert.deepEqual(seen,[['flush',1],['close',1],['flush',2],['close',2]]);assert.deepEqual(value.secondary.map(row=>row.reason),[undefined,false,undefined,false,null,0]);});
+check('N07',()=>{assert.equal(canonicalRoot(state.work),state.work);for(const name of [state.work+'-sibling/a',state.work+'/../a',state.work+'/./a'])assert.throws(()=>assertOwned(state.work,name));});
+check('N08',()=>{const item=state.roles[0];const role=JSON.parse(readPinned(item.rolePath,item.rolePin));const args=caseArguments(role);assert.equal(args[0],'--permission');assert.ok(!args.some(arg=>arg==='--allow-worker'||arg==='--allow-child-process'));for(const key of ['workerPermission','childProcessPermission','loaderThreads'])assert.throws(()=>caseArguments({...role,[key]:1}));});
+const ledger={starts:1,maximum:3,active:0,stopped:false,captureBytes:0,captureMaximum:4194304,rows:[]};
+const readiness=[];
+for(const item of state.roles){const role=JSON.parse(readPinned(item.rolePath,item.rolePin));validateCanonicalRole(state.work,role,item.env);const child=await runDirect({id:role.id,node:state.node,args:caseArguments(role),cwd:role.app,env:item.env,capture:item.capture,timeoutMs:5000,bodyDeadline:state.deadline-10000,finalDeadline:state.deadline},ledger);readiness.push(child.row);if(!child.row.qualified)break;assert.equal(child.row.status,0);assert.equal(child.row.captures.find(row=>row.kind==='stdout').base64,Buffer.from('B35_CANONICAL_READY\n').toString('base64'));assert.equal(child.row.captures.find(row=>row.kind==='stderr').bytes,0);const traceStat=fs.lstatSync(role.trace);assert.ok(traceStat.isFile()&&traceStat.size<65536);const bytes=fs.readFileSync(role.trace);const events=bytes.toString().trim().split('\n').map(line=>JSON.parse(line));assert.equal(events.filter(row=>row.event==='permission-admitted').length,1);assert.equal(events.filter(row=>row.event==='synchronous-hooks-installed').length,1);child.row.trace={bytes:bytes.length,sha256:hash(bytes),events};}
+const result={author,novel,readiness,ledger,productImports:0,workerStarts:0};fs.writeFileSync(root+'RESULT.json',JSON.stringify(result,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({author:author.length,novelPass:novel.filter(row=>row.pass).length,novelTotal:novel.length,readinessQualified:readiness.filter(row=>row.qualified).length,readinessTotal:readiness.length}));if(novel.some(row=>!row.pass)||readiness.some(row=>!row.qualified))process.exitCode=1;

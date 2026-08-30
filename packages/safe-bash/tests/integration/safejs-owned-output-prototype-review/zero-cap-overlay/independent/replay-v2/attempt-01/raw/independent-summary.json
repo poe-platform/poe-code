@@ -1,0 +1,38 @@
+{
+  "finished": "2026-08-27T18:22:11.151096+00:00",
+  "runs": [
+    {
+      "cohort": "surface",
+      "started": "2026-08-27T18:22:03.248744+00:00",
+      "status": "PRIVATE_GUARD_NONPASS",
+      "childrenLaunched": 0,
+      "error": "AssertionError('status')",
+      "privateUnchanged": true,
+      "privateAfterFailure": "AssertionError('status')",
+      "finished": "2026-08-27T18:22:11.149739+00:00"
+    },
+    {
+      "cohort": "lifecycle",
+      "started": "2026-08-27T18:22:11.150232+00:00",
+      "status": "BLOCKED",
+      "childrenLaunched": 0,
+      "reason": "Earlier surface cohort nonpass; no later cohort or retry launched"
+    },
+    {
+      "cohort": "controls",
+      "started": "2026-08-27T18:22:11.150758+00:00",
+      "status": "BLOCKED",
+      "childrenLaunched": 0,
+      "reason": "Earlier surface cohort nonpass; no later cohort or retry launched"
+    }
+  ],
+  "dataNegatives": {
+    "kind": "DATA_ONLY_NOT_GUEST_PASSES",
+    "status": "BLOCKED",
+    "reason": "All three independently passing baselines required",
+    "guestExecutions": 0
+  },
+  "automaticRetries": 0,
+  "noPromotion": true,
+  "allPass": false
+}

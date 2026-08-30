@@ -1,0 +1,671 @@
+{
+  "schema": 2,
+  "capturedAt": "2026-08-28T00:54:48.552Z",
+  "candidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+  "tree": "d1e5f90a4ebcf184b9558b96ff6b7c5f0c410d35",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "previousCandidate": "07047e8f7bd577f60350246b1380732712305f58",
+  "previousDriver": "86f75025b423f9d25a9dbcb35d07e73e95d33f9d",
+  "fixtureSource": "fd3f71e5c84988dd960d00119597eec51db79c6c",
+  "driverCommit": "0d7ae0ba4418321c76fc10499c895a16e413e1f2",
+  "driverSha256": "fe9d2aa889e9d9cd04a34512b504638fa65e7d974d99a6b009448f7098b10115",
+  "profileSha256": "2fdedfe701553059038b0c4530574e8e3ec1874485bb99c4779ae2a94d6a7969",
+  "profileEncodedSha256": "1517de07a4804ba37f45428df3041efa89ba6406019dd94ac9ab4283b60290d4",
+  "cleanupFileSha256": "550823b0256e8c2bab22592a5cf38b30f1aebc4c7ddcc56404b324a295d4093f",
+  "packageManifestSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+  "actualRebuiltTarballSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "packageUnchanged": true,
+  "sourceBindings": {
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/FREEZE.json": "04044ceb59587dc99b179e160d025c7a3455c399bce44f7f8b0a9ec17898aabb",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/README.md": "df77b88c45b75109a377ef32070419cf307b9e5c81774bc3356292f238b95e76",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/controls.mjs": "047cbc4071d3b670188a3a1290a1f75744176a061cdc96740f581857f03caa44",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/CANDIDATE.json": "fe746b7f0c59f912c4f45e3e936564a52bde4350ff52db0560503abe2227f140",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/CLEANUP.json": "550823b0256e8c2bab22592a5cf38b30f1aebc4c7ddcc56404b324a295d4093f",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/CODE-LINEAGE.json": "f0f34fea8d0c3ff641cbf44ec9bd7ef23f7233a2239cfa021b9f7a24cb7b69ea",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/DRIVER.json": "2ed16070d0923220ae694b7945d045805701727c4b0b996a6b95fa600be767c7",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/PROFILE-RECEIPT.json": "77950f0781f791aab62cde58c111aca1daf0f0aadf1de413273b8f5e60760b2f",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/PROFILE.json.gz.base64": "1517de07a4804ba37f45428df3041efa89ba6406019dd94ac9ab4283b60290d4",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/admission.mjs": "0cce85ae5b383aab16feb417c8ba31ffa371cc7806ce740e50597d7e2a135890",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/common.mjs": "69891096b119b013a863c58da0ce98f4a179032f9ae9c13ad79ef17264b1d62d",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/profile.mjs": "993790dbb6468d8f8769dc572599a1a2219e9628caebd36102a1406d2492f9f7",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/reconstruct.mjs": "0e8e68dead9ac65450c9686f5d491a8ed974208a582842e477947f1980c75f16",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/restore.mjs": "2e3535d14b2cc9ceb2217ef6ffe6de5191d191b51b3baed2178de0f81c9430d2",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/driver/run.mjs": "f7cd826f3da5bac74daf362b4a933fb682dfa3cdfc117183c5f8df55553e0d8a",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/prepare.mjs": "ef5557f9afd3b0aaad1203131775187d42213ce8eab5e7f0f2f05eaec2c26ef0",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v2/proof.mjs": "23af768e4a425a7d2a20fa456aa5ae0e39750e4afc055220d109adddeaa26af9"
+  },
+  "reconstruction": {
+    "candidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+    "reachableBase": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "reachableFixtures": "fd3f71e5c84988dd960d00119597eec51db79c6c",
+    "packBytes": 1097604,
+    "qualification": "fresh minimal tree skeleton and four blobs reconstruct exact tree/commit; other product/evidence blobs remain supplied by the separately reachable full base, not by this skeleton",
+    "results": [
+      {
+        "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-reconstruct-QUpwpw/first",
+        "absentBefore": true,
+        "tree": "d1e5f90a4ebcf184b9558b96ff6b7c5f0c410d35",
+        "commit": "2ffcb23d6029250c48950030120ed0adad2e5769"
+      },
+      {
+        "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-reconstruct-o1KVjx/with spaces",
+        "absentBefore": true,
+        "tree": "d1e5f90a4ebcf184b9558b96ff6b7c5f0c410d35",
+        "commit": "2ffcb23d6029250c48950030120ed0adad2e5769"
+      }
+    ]
+  },
+  "controls": {
+    "pass": 18,
+    "fail": 0,
+    "native": 51,
+    "executedRuntime": {
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "requested": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "supported": true,
+      "refusalStatus": 78,
+      "identity": {
+        "version": "v24.11.1",
+        "execPath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "platform": "darwin",
+        "arch": "arm64",
+        "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+      }
+    },
+    "scope": "amendment-only controls; original54 not rescored"
+  },
+  "proof": {
+    "result": "EXPECTED_REMAINING_FIXTURE_FAILURE_RETAINED",
+    "commands": [
+      {
+        "label": "build",
+        "args": [
+          "node_modules/typescript/bin/tsc",
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "pack",
+        "args": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+          "pack",
+          "--ignore-scripts",
+          "--json",
+          "--pack-destination",
+          "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/pack"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutSha256": "4565108f1c4d79d7d34bd7eb88ee5e08e6f94a14268870427623a92c5cc6abfe",
+        "stderrSha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+      },
+      {
+        "label": "previous-targeted",
+        "args": [
+          "--import",
+          "tsx",
+          "--test",
+          "--test-reporter=tap",
+          "--test-concurrency=2",
+          "--test-name-pattern=^root family exports preserve",
+          "tests/integration/stream-inspection-public-author/public.test.ts"
+        ],
+        "status": 1,
+        "signal": null,
+        "stdoutSha256": "8d69b2adabd22ebde285f3919a87e366ed4d37c0ca622af4df2e859b048f6ffd",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "accounting": {
+          "summary": {
+            "tests": 1,
+            "suites": 0,
+            "pass": 0,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 812.936292
+          },
+          "counts": {
+            "pass": 0,
+            "fail": 1,
+            "skipped": 0,
+            "todo": 0,
+            "cancelled": 0
+          },
+          "reconciled": true,
+          "reconciliation": {
+            "completeFooter": true,
+            "testInstances": true,
+            "statuses": {
+              "pass": true,
+              "fail": true,
+              "skipped": true,
+              "todo": true,
+              "cancelled": true
+            }
+          },
+          "cases": [
+            {
+              "id": "tap-line-3",
+              "line": 3,
+              "indent": 0,
+              "ordinal": 1,
+              "name": "root family exports preserve four inspection definitions in the 73-command aggregate",
+              "status": "fail",
+              "type": "test",
+              "failureType": "testCodeFailure",
+              "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995",
+              "code": "ERR_ASSERTION",
+              "error": "|-",
+              "detail": "  ---\n  duration_ms: 4.09175\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    76 !== 73\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 73\n  actual: 76\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:31:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1106:25)\n    Test.start (node:internal/test_runner/test:1003:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)\n  ..."
+            }
+          ],
+          "suites": [],
+          "skips": [],
+          "characterizations": [],
+          "nonpassing": [
+            {
+              "id": "tap-line-3",
+              "line": 3,
+              "indent": 0,
+              "ordinal": 1,
+              "name": "root family exports preserve four inspection definitions in the 73-command aggregate",
+              "status": "fail",
+              "type": "test",
+              "failureType": "testCodeFailure",
+              "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995",
+              "code": "ERR_ASSERTION",
+              "error": "|-",
+              "detail": "  ---\n  duration_ms: 4.09175\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    76 !== 73\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 73\n  actual: 76\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:31:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1106:25)\n    Test.start (node:internal/test_runner/test:1003:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)\n  ..."
+            }
+          ],
+          "disclaimer": "A passing negative guard is not automatically a defect characterization. Explicit known-limitation/policy names are separately listed, not waived or promoted to feature acceptance."
+        }
+      },
+      {
+        "label": "amended-targeted",
+        "args": [
+          "--import",
+          "tsx",
+          "--test",
+          "--test-reporter=tap",
+          "--test-concurrency=2",
+          "--test-name-pattern=^root family exports preserve",
+          "tests/integration/stream-inspection-public-author/public.test.ts"
+        ],
+        "status": 1,
+        "signal": null,
+        "stdoutSha256": "199b7c1de95b2b74501b5621a8d7dbd6c82d313897d5e7504d12789f73bf0d20",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "accounting": {
+          "summary": {
+            "tests": 1,
+            "suites": 0,
+            "pass": 0,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 462.68125
+          },
+          "counts": {
+            "pass": 0,
+            "fail": 1,
+            "skipped": 0,
+            "todo": 0,
+            "cancelled": 0
+          },
+          "reconciled": true,
+          "reconciliation": {
+            "completeFooter": true,
+            "testInstances": true,
+            "statuses": {
+              "pass": true,
+              "fail": true,
+              "skipped": true,
+              "todo": true,
+              "cancelled": true
+            }
+          },
+          "cases": [
+            {
+              "id": "tap-line-3",
+              "line": 3,
+              "indent": 0,
+              "ordinal": 1,
+              "name": "root family exports preserve four inspection definitions in the 73-command aggregate",
+              "status": "fail",
+              "type": "test",
+              "failureType": "testCodeFailure",
+              "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995",
+              "code": "ERR_ASSERTION",
+              "error": "|-",
+              "detail": "  ---\n  duration_ms: 4.322333\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    76 !== 73\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 73\n  actual: 76\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:32:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1106:25)\n    Test.start (node:internal/test_runner/test:1003:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)\n  ..."
+            }
+          ],
+          "suites": [],
+          "skips": [],
+          "characterizations": [],
+          "nonpassing": [
+            {
+              "id": "tap-line-3",
+              "line": 3,
+              "indent": 0,
+              "ordinal": 1,
+              "name": "root family exports preserve four inspection definitions in the 73-command aggregate",
+              "status": "fail",
+              "type": "test",
+              "failureType": "testCodeFailure",
+              "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995",
+              "code": "ERR_ASSERTION",
+              "error": "|-",
+              "detail": "  ---\n  duration_ms: 4.322333\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    76 !== 73\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 73\n  actual: 76\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:32:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1106:25)\n    Test.start (node:internal/test_runner/test:1003:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)\n  ..."
+            }
+          ],
+          "disclaimer": "A passing negative guard is not automatically a defect characterization. Explicit known-limitation/policy names are separately listed, not waived or promoted to feature acceptance."
+        }
+      },
+      {
+        "label": "amended-full-file",
+        "args": [
+          "--import",
+          "tsx",
+          "--test",
+          "--test-reporter=tap",
+          "--test-concurrency=2",
+          "tests/integration/stream-inspection-public-author/public.test.ts"
+        ],
+        "status": 1,
+        "signal": null,
+        "stdoutSha256": "197a9048ee73949ee5a5065cdebd51ef53e7c4a558e61bd2e0f33cb66c640efd",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "accounting": {
+          "summary": {
+            "tests": 21,
+            "suites": 0,
+            "pass": 20,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 477.084708
+          },
+          "counts": {
+            "pass": 20,
+            "fail": 1,
+            "skipped": 0,
+            "todo": 0,
+            "cancelled": 0
+          },
+          "reconciled": true,
+          "reconciliation": {
+            "completeFooter": true,
+            "testInstances": true,
+            "statuses": {
+              "pass": true,
+              "fail": true,
+              "skipped": true,
+              "todo": true,
+              "cancelled": true
+            }
+          },
+          "cases": [
+            {
+              "id": "tap-line-3",
+              "line": 3,
+              "indent": 0,
+              "ordinal": 1,
+              "name": "root family exports preserve four inspection definitions in the 73-command aggregate",
+              "status": "fail",
+              "type": "test",
+              "failureType": "testCodeFailure",
+              "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995",
+              "code": "ERR_ASSERTION",
+              "error": "|-",
+              "detail": "  ---\n  duration_ms: 3.803125\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    76 !== 73\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 73\n  actual: 76\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:32:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1106:25)\n    Test.start (node:internal/test_runner/test:1003:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)\n  ..."
+            },
+            {
+              "id": "tap-line-27",
+              "line": 27,
+              "indent": 0,
+              "ordinal": 2,
+              "name": "factory actual Shell dispatch: tac",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-33",
+              "line": 33,
+              "indent": 0,
+              "ordinal": 3,
+              "name": "factory actual Shell dispatch: expand",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-39",
+              "line": 39,
+              "indent": 0,
+              "ordinal": 4,
+              "name": "factory actual Shell dispatch: fold",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-45",
+              "line": 45,
+              "indent": 0,
+              "ordinal": 5,
+              "name": "factory actual Shell dispatch: strings",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-51",
+              "line": 51,
+              "indent": 0,
+              "ordinal": 6,
+              "name": "plugin actual Shell dispatch: tac",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-57",
+              "line": 57,
+              "indent": 0,
+              "ordinal": 7,
+              "name": "plugin actual Shell dispatch: expand",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-63",
+              "line": 63,
+              "indent": 0,
+              "ordinal": 8,
+              "name": "plugin actual Shell dispatch: fold",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-69",
+              "line": 69,
+              "indent": 0,
+              "ordinal": 9,
+              "name": "plugin actual Shell dispatch: strings",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-75",
+              "line": 75,
+              "indent": 0,
+              "ordinal": 10,
+              "name": "aggregate preflights tac before installing any family",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-81",
+              "line": 81,
+              "indent": 0,
+              "ordinal": 11,
+              "name": "aggregate preflights expand before installing any family",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-87",
+              "line": 87,
+              "indent": 0,
+              "ordinal": 12,
+              "name": "aggregate preflights fold before installing any family",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-93",
+              "line": 93,
+              "indent": 0,
+              "ordinal": 13,
+              "name": "aggregate preflights strings before installing any family",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-99",
+              "line": 99,
+              "indent": 0,
+              "ordinal": 14,
+              "name": "standalone and aggregate share one explicit replacement boundary",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-105",
+              "line": 105,
+              "indent": 0,
+              "ordinal": 15,
+              "name": "aggregate validates stream limits before registration",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-111",
+              "line": 111,
+              "indent": 0,
+              "ordinal": 16,
+              "name": "stream family limits reach all four defaults without restricting other families",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-117",
+              "line": 117,
+              "indent": 0,
+              "ordinal": 17,
+              "name": "memory defaults preserve byte pipes and VFS publication",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-123",
+              "line": 123,
+              "indent": 0,
+              "ordinal": 18,
+              "name": "real defaults preserve byte pipes and VFS publication",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-129",
+              "line": 129,
+              "indent": 0,
+              "ordinal": 19,
+              "name": "registry-only fallback dispatches all four without an invocation stub",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-135",
+              "line": 135,
+              "indent": 0,
+              "ordinal": 20,
+              "name": "actual invoke retains literal argv, middleware, VFS and shared output budget",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            },
+            {
+              "id": "tap-line-141",
+              "line": 141,
+              "indent": 0,
+              "ordinal": 21,
+              "name": "default bundle leaves optional curl and SafeJS unavailable",
+              "status": "pass",
+              "type": "test",
+              "failureType": null,
+              "location": null,
+              "code": null,
+              "error": null
+            }
+          ],
+          "suites": [],
+          "skips": [],
+          "characterizations": [],
+          "nonpassing": [
+            {
+              "id": "tap-line-3",
+              "line": 3,
+              "indent": 0,
+              "ordinal": 1,
+              "name": "root family exports preserve four inspection definitions in the 73-command aggregate",
+              "status": "fail",
+              "type": "test",
+              "failureType": "testCodeFailure",
+              "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995",
+              "code": "ERR_ASSERTION",
+              "error": "|-",
+              "detail": "  ---\n  duration_ms: 3.803125\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:1:995'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    76 !== 73\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 73\n  actual: 76\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/tests/integration/stream-inspection-public-author/public.test.ts:32:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1106:25)\n    Test.start (node:internal/test_runner/test:1003:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)\n  ..."
+            }
+          ],
+          "disclaimer": "A passing negative guard is not automatically a defect characterization. Explicit known-limitation/policy names are separately listed, not waived or promoted to feature acceptance."
+        }
+      },
+      {
+        "label": "built-authorized-count",
+        "args": [
+          "--input-type=module",
+          "-e",
+          "import assert from 'node:assert/strict';import{createAgentCommands,agentCommands,CommandRegistry}from\"file:///var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-amendment-proof-UHxnqr/source/dist/index.js\";const definitions=createAgentCommands({streamInspection:{limits:{maxInputBytes:1024}}}).map(command=>command.name);assert.equal(definitions.length,76);assert.equal(new Set(definitions).size,76);assert.deepEqual(definitions.slice(73),['html-to-markdown','du','expr']);const commands=new CommandRegistry([{name:'custom',execute:()=>({exitCode:23})}]);await agentCommands({replace:true}).setup({commands,use(){throw Error('unexpected middleware')},registerFileSystem(){throw Error('unexpected fs')}});assert.equal(commands.list().length,77);console.log(JSON.stringify({ordinary:definitions.length,unique:new Set(definitions).size,custom:commands.list().length,appended:definitions.slice(73)}));"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutSha256": "d532e0b05298f3157eb1035690c3d12a2d265d95f0aa141fe4c49edaae7df323",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "sourceInputsUnchanged": true,
+    "remaining": {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "line": 32,
+      "expected": 73,
+      "actual": 76,
+      "suffixLine34NotReached": true
+    },
+    "firstWrapperFailureRetained": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nundefined !== 20\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/amendment-v2/proof.mjs:40:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:671:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
+  },
+  "profile": {
+    "canonical": 632,
+    "mts": 192,
+    "cleanup": 256,
+    "nativeBase": 49,
+    "nativeExtensions": 2,
+    "closure": {
+      "kind": "complete committed-tree conservative runtime-input superset, not compact typing selection",
+      "entries": 37397,
+      "bytes": 2382440287,
+      "storedArchive": false,
+      "streamedAtExecution": true,
+      "qualification": "Historical canonical audits read captured data and Git history. No claim that a smaller static-import selection is complete; all committed tree blobs and ancestor Git objects are retained in isolated temporary storage."
+    }
+  },
+  "authority": {
+    "qualification": "Root-approved F01 current candidate provider binding; old static failure preserved; inventory unmodified",
+    "blob": "21f5fe464f028b4e056d2aae40b26612f560bd95",
+    "sha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+    "recordedInventorySha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b"
+  },
+  "raw": {
+    "entries": 27,
+    "payloadSha256": "567c6860e79daca0fac4484007e5779fa6d8cc57bc4c39b363653f39a69f4831",
+    "encodedSha256": "f2e9b2b1630e7fe7f906506819cc4f5fdea4222af4b09608acc2c143bfaacc49"
+  },
+  "fullGateLaunched": false,
+  "acceptance": "AUTHOR_REVIEW_READY_NOT_INDEPENDENT_ACCEPTANCE"
+}

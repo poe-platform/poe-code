@@ -1,0 +1,99 @@
+{
+  "platform": "darwin",
+  "release": {
+    "status": 0,
+    "stdout": "Darwin m5mb-kjopek 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:50 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6050 arm64\n",
+    "stderr": ""
+  },
+  "macOS": {
+    "status": 0,
+    "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+    "stderr": ""
+  },
+  "native": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+  "expectedHash": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+  "version": {
+    "status": 0,
+    "stdout": "expr (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, James Youngman, and Paul Eggert.\n",
+    "stderr": ""
+  },
+  "libraries": {
+    "status": 0,
+    "stdout": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+    "stderr": ""
+  },
+  "locale": [
+    {
+      "name": "C",
+      "charmap": {
+        "status": 0,
+        "stdout": "US-ASCII\n",
+        "stderr": ""
+      },
+      "scalar": {
+        "status": 0,
+        "stdout": "4\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "C.UTF-8",
+      "charmap": {
+        "status": 0,
+        "stdout": "UTF-8\n",
+        "stderr": ""
+      },
+      "scalar": {
+        "status": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "en_US.UTF-8",
+      "charmap": {
+        "status": 0,
+        "stdout": "UTF-8\n",
+        "stderr": ""
+      },
+      "scalar": {
+        "status": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "apple": {
+    "path": "/bin/expr",
+    "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f"
+  },
+  "declaredAdditions": [
+    {
+      "path": "tests/commands/metadata-stress",
+      "mode": 493,
+      "type": "directory"
+    },
+    {
+      "path": "tests/commands/metadata-stress/.oracle",
+      "mode": 493,
+      "type": "directory"
+    },
+    {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7",
+      "mode": 493,
+      "type": "directory"
+    },
+    {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src",
+      "mode": 493,
+      "type": "directory"
+    },
+    {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "mode": 493,
+      "type": "symlink",
+      "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr"
+    }
+  ],
+  "qualification": "Authenticated GNU coreutils 9.7 on Darwin; not Linux. Explicit read-only symlink authorized for archived native prerequisites. Apple separately identified. No new native result captures committed."
+}

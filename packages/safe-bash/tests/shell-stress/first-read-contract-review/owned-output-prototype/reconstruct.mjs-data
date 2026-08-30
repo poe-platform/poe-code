@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, mkdtempSync, symlinkSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+
+const root = process.cwd();
+assert.equal(root, '/Users/kjopek/Workspace/safe-bash');
+const accepted = resolve(root, 'tests/shell-stress/first-read-contract-review');
+const owned = resolve(accepted, 'owned-output-prototype');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const pin = JSON.parse(readFileSync(resolve(accepted, 'evidence/freeze.json')));
+const inputs = JSON.parse(readFileSync(resolve(accepted, 'evidence/inputs.json')));
+assert.equal(pin.head, 'c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79');
+const sourceCopy = JSON.parse(readFileSync(resolve(accepted, 'evidence/source-copy.json')));
+assert.equal(sourceCopy.sourceManifestSha256, '6d8589043618e623e35a63e92cbecc160b7f587335a69bba3e0b0f57e34dca8b');
+for (const tool of inputs.tools) assert.equal(hash(readFileSync(tool.path)), tool.sha256, `Changed tool ${tool.path}`);
+const temp = mkdtempSync('/tmp/safe-bash-owned-output-prototype-');
+const candidate = resolve(temp, 'candidate');
+const paths = new Map(pin.manifest.filter(entry => entry.path.startsWith('src/') || ['package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.build.json'].includes(entry.path)).map(entry => [entry.path, entry.sha256]));
+for (const input of inputs.manifest.filter(entry => entry.classification.startsWith('unchanged execution'))) paths.set(input.path, input.sha256);
+const manifest = [];
+for (const [path, sha256] of paths) {
+  const archive = resolve(accepted, 'preserved', `${path}.data`);
+  const bytes = existsSync(archive) ? readFileSync(archive) : execFileSync('git', ['show', `${pin.head}:${path}`], { maxBuffer: 8 * 1024 * 1024 });
+  assert.equal(hash(bytes), sha256, `Cannot restore ${path}`);
+  mkdirSync(dirname(resolve(candidate, path)), { recursive: true });
+  writeFileSync(resolve(candidate, path), bytes, { flag: 'wx' });
+  manifest.push({ path, sha256, bytes: bytes.length, restoration: existsSync(archive) ? 'accepted-preserved-data' : `${pin.head}:${path}` });
+}
+symlinkSync(resolve(root, 'node_modules'), resolve(candidate, 'node_modules'), 'dir');
+mkdirSync(resolve(temp, 'evidence/runs'), { recursive: true });
+mkdirSync(resolve(temp, '.scratch'));
+for (const name of ['supervisor.mjs', 'run-existing.mjs', 'run-controls.mjs', 'controls.mjs', 'native.mjs']) {
+  let script = readFileSync(resolve(accepted, name), 'utf8');
+  script = script.replace("resolve('tests/shell-stress/first-read-contract-review')", JSON.stringify(temp));
+  script = script.replace("resolve(owned, '.scratch/candidate')", JSON.stringify(candidate));
+  script = script.replace("resolve('node_modules/typescript/bin/tsc')", JSON.stringify(resolve(root, 'node_modules/typescript/bin/tsc')));
+  writeFileSync(resolve(temp, name), script, { flag: 'wx' });
+}
+const protectedPaths = ['src/index.ts', 'src/plugins/index.ts', 'package.json', 'README.md', 'docs/PROJECT_LEDGER.md'];
+const report = { temp, candidate, restoredAt: new Date().toISOString(), baselineHead: pin.head, acceptedSourceManifest: sourceCopy.sourceManifestSha256,
+  files: manifest, tools: inputs.tools, protectedPaths: protectedPaths.map(path => ({ path, sha256: hash(readFileSync(resolve(root, path))) })),
+  initialStatus: execFileSync('git', ['status', '--short'], { encoding: 'utf8' }), initialIndex: execFileSync('git', ['diff', '--cached', '--name-only'], { encoding: 'utf8' }),
+  harnessDelta: 'Absolute task-owned temp/candidate paths and explicit existing compiler path only; no source fallback. Existing dev tooling via temporary symlink, no installs.' };
+writeFileSync(resolve(owned, 'reconstruction.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ temp, candidate, files: paths.size, sourceFiles: manifest.filter(entry => entry.path.startsWith('src/')).length }));

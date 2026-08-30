@@ -1,0 +1,807 @@
+[
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3d429b39cec9ff382a53774694cbd92f85b12852",
+    "bytes": 1754,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/BUILTIN-AUTHORITY-REQUEST.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6114b72eb9f6cc5fed4f73fca439bd8725e6a8ce",
+    "bytes": 376,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/COMPILE-GRANT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "978d61ceb223fe2654a2428afb7173d3e01199b8",
+    "bytes": 23827,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/EMISSION-RECIPE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "015904679c2bfc3fba62868bb5dc81e23c51f2a7",
+    "bytes": 3928,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3891a8e0fb4dd41c11d11fff3ef76a4c917788d3",
+    "bytes": 2725,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/PROFILE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d5776fd250dcbc78e11b77311b69f79bd0d9b8b6",
+    "bytes": 2734,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/README.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "337fcac74963884d6398ef94810fe13bb29f7b6f",
+    "bytes": 425,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/ROOT-GO.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9e585c737e5e854a07cd2c2728add3736357e657",
+    "bytes": 2386,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/TOOLS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7d791a58a20226bb8bd9d16b6705229e10f55e49",
+    "bytes": 1716,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/WORKER-PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c5e735174140d208afcfbb48b2f1fdc7831b78d5",
+    "bytes": 7140,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/compile-entry.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0a0da6afd3633e203abdc2788023541155d0d4da",
+    "bytes": 3648,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/outcome-judge.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "492bdb0aa737e00eeae9ecc52c2077a1969613c0",
+    "bytes": 3447,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/outer-runner.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3bb096ea5eec0f36c43f3edd26ce33bbc074de5e",
+    "bytes": 3392,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/parent-entry.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dcb89f9637134d9124c90d14a392176670822248",
+    "bytes": 356381,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/EMISSIONS.json.gz.base64"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8c327d622ed51760105ac2155006198bb10d4040",
+    "bytes": 107069,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/EMITTED.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7ba0b2413d6b0f43953d8744afcd0c4b0eee6338",
+    "bytes": 25282,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/EVIDENCE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4b56b5cf460bdff00468f291b0962ed7f6165792",
+    "bytes": 635,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/OUTER.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ff6a9b563e3084a449c0c986d25771133e2124d1",
+    "bytes": 388,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/TOOL-LAUNCH.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "51e7c7b0e0ba5de9a254666d84d7a857d267e5b3",
+    "bytes": 165,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/core.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4ed3ca6f91d6e94577e8c21e0134f712ae67efb8",
+    "bytes": 380,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/error-codes.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9f349b94047bea36a91c9687b1bdde2373035554",
+    "bytes": 4684,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/error/shape.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7531185783875d0e2cc1179f7f543b0bcfaed52c",
+    "bytes": 3189,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/graph-depth.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d6986697d21ad16066233cf40e10aff073b07dfa",
+    "bytes": 1926,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/arguments.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fc5c642623c74c73fd9dbc78f38231820f24ff88",
+    "bytes": 9577,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/async.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "823fc6904184e81e34ad18ad3c825d5ff2ef6eab",
+    "bytes": 8584,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/budget.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fc92c93395eb33f58253adb1e861a682e3f86455",
+    "bytes": 6106,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/cancel.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "efd87c4b6971896992e1d42310bfdaf5a9b8b8d7",
+    "bytes": 15549,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/exceptions.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1e335a13cde684eb9094c93570c2c8ff0a507b7c",
+    "bytes": 4629,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/generator.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2f7b4b0189e09c2bdc02eca8881ea8eb783c015a",
+    "bytes": 3774,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/globals/collections.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f2454653a26df181e888ba4726ed9d99793c78c8",
+    "bytes": 9671,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/globals/console-json.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "81a8432abc2178c0106bb082d6c5e28a8710125c",
+    "bytes": 2079,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/globals/error.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fafcacbbcfdb4d02e7b54faa578c8511e6bd97fa",
+    "bytes": 2105,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/globals/math.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7d895856c3397bc04d26eb3d4cf6093b7cd67dd3",
+    "bytes": 2137,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/globals/misc.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0bcb64dbb11ad50d1599d5702a1f1471f97a4230",
+    "bytes": 9929,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/globals/object-array.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "42cb9f5de1e6a7c78612f767599427d807583233",
+    "bytes": 317,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/globals/regex.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "809bc30cd45f0f8915a11f0602cd1a56c7a260fa",
+    "bytes": 28892,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/host-bridge.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "78051e4bdf64dcc62467947739340d42b49e1e80",
+    "bytes": 22060,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/host-call.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3762e4654b1d5b73b8e132af1f684b409e4a368b",
+    "bytes": 89873,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/interpreter.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "14bc80a2ffac2c55a0dac5b3afca661366683622",
+    "bytes": 2248,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/iteration.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "34ba02512e16abe9864e88fcb7c608ea31b40aaf",
+    "bytes": 2680,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/jobs.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2e30824d6e43c035b0fd3a6881e86cd755599931",
+    "bytes": 20062,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/array.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7ab15859dbc260614facbade313873001265ec43",
+    "bytes": 1344,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/function.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "269a0a946ef326cc6ac141fd92309bc2ffc1de0f",
+    "bytes": 718,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/generator.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8aae21cdf8809dcc153d29496fa5776bbf582d09",
+    "bytes": 2744,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/map.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a8cc936884cbecb781ab3004be7547f7330556aa",
+    "bytes": 2453,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/number.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7439e26a44883e92ad4344c841c5d9972bb5cfc0",
+    "bytes": 1666,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/regex.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f54e3da7621d09d7dd6bb472e347c97fbf08fa61",
+    "bytes": 2530,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/set.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e353febdf08ac5585542063825854446b540097a",
+    "bytes": 11311,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/methods/string.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a13f8138d4eda78fdf2c29e80815f807e95fee25",
+    "bytes": 7577,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/patterns.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ea3c38109a3e5c009130469b1c99cbc845e085b2",
+    "bytes": 15785,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/promise-replay.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4c418a4eacc0f33961bbce8d7936cc09a900b71a",
+    "bytes": 1839,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/promise-tracker.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "292638e4384b84e78cbd4ba2dc673b506fc9b8fa",
+    "bytes": 13405,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/promise.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6ce314d9eb7a085b79a840bf2ac5c3a8c91fb22c",
+    "bytes": 9177,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/regex/engine.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "130672101902ab7855632097c2d6bb45a62ad06c",
+    "bytes": 11159,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/regex/parse.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ee8d9ef0c41d784d77a411857d2c1e5698624965",
+    "bytes": 1219,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/running-state.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f7d9fe2b84925a43c4e9df2ef220463c4069add5",
+    "bytes": 7345,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/scope.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e46bd9dafd03e78e88fb70a19a141bf6f872002a",
+    "bytes": 20587,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/values.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d39648796d579a945c42a46c4751ab62797e015a",
+    "bytes": 5190,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/interp/var-hoist.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8719cadabcd71fa319e05b90947654c68fa6e68c",
+    "bytes": 40,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3793b3d908304b6a27d39acf07674fdcb12d8e74",
+    "bytes": 14807,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/index.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2c3e6da3f610595406cc6490eb91e2c6f00e07cd",
+    "bytes": 21598,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-async-not-needed.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2b506681c9d36b1e40d4f29b9b94c039dfcd36e9",
+    "bytes": 9706,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-await-non-promise.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "94ed88d477850f359077b44c594772b81487f00e",
+    "bytes": 14741,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-destructure-null-default.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "26d2796998e3dd4406e7aeabdb432a61eae0775a",
+    "bytes": 14239,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-export-import-meta.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2ad1288c907d61aced15a79250856950488d3014",
+    "bytes": 22233,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-floating-promise.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e0a16159d336ac5e9893efd7ac1ef9b853d9764c",
+    "bytes": 13829,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "12bdf6cce197821b9fbbc83e2efb4d8473a909ba",
+    "bytes": 3275,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-import-cycle.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f2d7117ff553ad6cd7ecd2d8ba0c409f14611cb2",
+    "bytes": 25599,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-jsdoc-type.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e811797f02c48840071c47953e12a21e180d09a1",
+    "bytes": 12029,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-large-literal.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "affe51749e9e863671b5a578dc0e7d6eb471553d",
+    "bytes": 20385,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-missing-async.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e30743a3b6fbc5a0c1bde19668d8478b87e3466a",
+    "bytes": 17646,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-mutating-frozen.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "43d48f93020230c9ea56026e01aa52d9092f254c",
+    "bytes": 14245,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-needless-template.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f0236a5ed769ec290d51eed84bcbe3c1b283b67d",
+    "bytes": 13315,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-shadow-global.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "42c61b847b037fff766b59271777bc7ad4035c03",
+    "bytes": 12551,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unbounded-loop.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "377533b374c70be47dd82fbf9d01f6922d6cc997",
+    "bytes": 10269,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unreachable.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5d73e1046ddaeaf8c70a5dc053b6f11cae8b23c5",
+    "bytes": 22135,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS-unused-import.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "11f48667a1698d233ea18ae643c7f30e2d651ada",
+    "bytes": 21928,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS001.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8aa4f9c9bf4d23b4a18cd2eca3567996161a118b",
+    "bytes": 20355,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS003.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "09138f33c69ab164f2fc1b550d06164654b41dc7",
+    "bytes": 943,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS004.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fdc1a951c42bfb9af4ba2f5d0e9098e45fe5a3e2",
+    "bytes": 1456,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS005.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2dc72d1f33bdc21cd21744cbe79d98d1fd954db9",
+    "bytes": 21166,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS006-007.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "de0a43858792b8b4774fe145252e82f03702a32a",
+    "bytes": 12053,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS008.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6ff9c8ebc19729eab037d7793bc64574393e5593",
+    "bytes": 15987,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS009.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "94803eaa4053bb7c40adce2718dbd407771da113",
+    "bytes": 22441,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS010.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0295367c8ec428e0977ee85a7ab338607402a60b",
+    "bytes": 11276,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS011.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60d1891dc58defef1ef76a5b33145b7d1a78b775",
+    "bytes": 2840,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS013.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dae4d364e31c42474061849471d64c54dee62b8b",
+    "bytes": 10802,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/AS015.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "caed49e17029650aa78bc3c0d6a2d99480f4e548",
+    "bytes": 398,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/known-globals.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "be7006fe99c929ec7b46b1996e4b7907924cf2ab",
+    "bytes": 4135,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/lint/rules/module-registry.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cf73eac44fef749704d47dc9161f4d03dc3d6f87",
+    "bytes": 4956,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/modules/registry.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9703189e291efae40a8a65dc51b6307783635ed3",
+    "bytes": 2556,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/observability/otel.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "644fb5f94c50948e97bd57fe71123828883b8a59",
+    "bytes": 66,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/parse.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2af681d8be69fcc484059578d5b89414b88a47ee",
+    "bytes": 3010,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/parse/assign-ids.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "89e60a47ce82c2aaf737a5cab15fb0a76a6a98f4",
+    "bytes": 6922,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/parse/format-error.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "65978517bfdb8219b1d9fbc64a5bd9d15589d79c",
+    "bytes": 2846,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/parse/hash.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "47ebca4fa881a03b8e91c85d04b451339b674863",
+    "bytes": 2161,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/parse/parse-export.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4be32e6754519217980a04a0e884eebb7cad50d7",
+    "bytes": 948,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/parse/parse-import-meta.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fa53cd0bd0e0d7c2c1248a8b1f3edce0b992bdb5",
+    "bytes": 131417,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/parse/parser.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ad7dad02c4e08800698aa5fcded0b3daf32050d2",
+    "bytes": 31558,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/parse/tokenizer.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f658f8efb984f921d878868d15c496d4a44c378d",
+    "bytes": 998,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/random.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "29531f2e665dd55dd010e39832d7f0e7f7027f47",
+    "bytes": 1627,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/restore.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "63aed1d0c0ebf0cfe9ef416f71029c6dbc97842b",
+    "bytes": 23493,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/run.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "be719fb670e5a86a2f343beb1774695e43012e0d",
+    "bytes": 1442,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/arguments.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "690720a83fdbc57de208113254c91ada8620fdb2",
+    "bytes": 5485,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/backend.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e3448e8b53a82994a19b346b75aeefff3f98a66c",
+    "bytes": 6985,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/dump-format.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a572158c86186ca83435e830c6f4a8f76c352388",
+    "bytes": 5871,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/dump.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6eb3735e690e52b3c2c67da39dc39efc3604df0d",
+    "bytes": 5109,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/policy.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8db0179f295d8a63c54358f60aa3453e685c8d10",
+    "bytes": 13059,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/replay-data.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "88f23e93742eb1092ce16a49512542f814f40393",
+    "bytes": 4897,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/replay-inputs.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e229f101b1db93099262c368cd57a49ada2200c9",
+    "bytes": 2495,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/scheduler.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "37eb3f7317283efc17cba2602ca9bea5cf583168",
+    "bytes": 11838,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/serialize.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "31c283d4759b5fad4e85aaa1f39859a2cefd2987",
+    "bytes": 28147,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/engine/dist/snapshot/validation.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "382302bad1792ce228a795397e2353cb2cf0beac",
+    "bytes": 3191,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiled/support/errors.js"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiler.stderr.raw"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "ec8eddc7dc66bb472991558bf58131a3db715cde",
+    "bytes": 64,
+    "path": "tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/run/compiler.stdout.raw"
+  }
+]

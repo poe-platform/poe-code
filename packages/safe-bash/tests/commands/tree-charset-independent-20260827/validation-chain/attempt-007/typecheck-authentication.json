@@ -1,0 +1,196 @@
+{
+  "compiler": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "entrypoint": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/node_modules/typescript/bin/tsc",
+    "entrypointSha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+    "implementation": {
+      "typescript/bin/tsc": {
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+        "bytes": 45,
+        "mode": 493
+      },
+      "typescript/lib/tsc.js": {
+        "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983",
+        "bytes": 267,
+        "mode": 420
+      },
+      "typescript/lib/_tsc.js": {
+        "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+        "bytes": 6213092,
+        "mode": 420
+      },
+      "typescript/package.json": {
+        "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+        "bytes": 3620,
+        "mode": 420
+      }
+    },
+    "argv": [
+      "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/node_modules/typescript/bin/tsc",
+      "--project",
+      "tsconfig.json",
+      "--pretty",
+      "false",
+      "--listFiles"
+    ]
+  },
+  "baseline": {
+    "config": {
+      "compilerOptions": {
+        "strict": true,
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "skipLibCheck": false,
+        "noEmit": true,
+        "types": [
+          "node"
+        ]
+      },
+      "files": [
+        "./consumer.mts"
+      ]
+    },
+    "status": {
+      "code": 0,
+      "signal": null,
+      "at": "2026-08-27T17:49:44.685Z"
+    },
+    "rootDeclaration": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/index.d.ts",
+    "rootDeclarationSha256": "ee6c684912bfe559e9eb704bc83f249bca3fcf09b7d9576860bab13f4d3dc553",
+    "treeDeclaration": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/tree/index.d.ts",
+    "treeDeclarationSha256": "29cef61ca31995ef8c2c0ccbcaf8f2149902bf4000ae44d09a4cae856518119a",
+    "loadedMovedPackageDeclarations": [
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/contracts/io.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/contracts/filesystem.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/contracts/command.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/contracts/errors.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/contracts/path.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/contracts/plugin.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/contracts/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/text-programs/shared.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/text-programs/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/structured/numbers.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/structured/limits.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/structured/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/search/options.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/search/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/diff-patch/shared.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/diff-patch/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/metadata/internal.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/metadata/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/archive/internal.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/archive/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/table-text/internal.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/table-text/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/stream-inspection/shared.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/stream-inspection/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/stream-format/shared.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/stream-format/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/split/options.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/split/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/time-env/shared.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/time-env/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/tree/options.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/tree/tree.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/tree/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/file/shared.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/file/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/plugins/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/shell/types.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/shell/shell.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/shell/arithmetic.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/shell/parser.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/shell/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/bytes/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/integrations/safejs/filesystem.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/integrations/safejs/shell.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/integrations/safejs/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/safejs/types.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/safejs/options.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/safejs/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/network/types.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/network/transport.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/network/curl.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/commands/network/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/memory/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/real/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/s3/transport.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/s3/filesystem.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/s3/mock.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/s3/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/s3/http/transport.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/s3/http/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/webdav/webdav.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/webdav/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/readonly/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/mount/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/fs/overlay/index.d.ts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/consumerB-moved/node_modules/virtual-bash/dist/index.d.ts"
+    ],
+    "pass": true
+  },
+  "faultInjection": {
+    "purpose": "test-only copied declaration fault; installed baseline package was not modified",
+    "copiedPackage": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-4YIn2Z/types-invalid/node_modules/virtual-bash",
+    "injectedRelativePath": "dist/index.d.ts",
+    "injectedText": "\nexport declare const __validationChainInvalid: ValidationChainMissingType;\n",
+    "beforeSha256": "ee6c684912bfe559e9eb704bc83f249bca3fcf09b7d9576860bab13f4d3dc553",
+    "afterSha256": "6f46a50aceff072b129a52c4c518e158be015ed54c9ff67ee547fca77f4237cb",
+    "changedFiles": [
+      "dist/index.d.ts"
+    ],
+    "skipLibCheckFalse": {
+      "config": {
+        "compilerOptions": {
+          "strict": true,
+          "target": "ES2022",
+          "module": "NodeNext",
+          "moduleResolution": "NodeNext",
+          "skipLibCheck": false,
+          "noEmit": true,
+          "types": [
+            "node"
+          ]
+        },
+        "files": [
+          "./consumer.mts"
+        ]
+      },
+      "status": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-27T17:49:46.015Z"
+      },
+      "failed": true
+    },
+    "skipLibCheckTrue": {
+      "config": {
+        "compilerOptions": {
+          "strict": true,
+          "target": "ES2022",
+          "module": "NodeNext",
+          "moduleResolution": "NodeNext",
+          "skipLibCheck": true,
+          "noEmit": true,
+          "types": [
+            "node"
+          ]
+        },
+        "files": [
+          "./consumer.mts"
+        ]
+      },
+      "status": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-27T17:49:46.356Z"
+      },
+      "passed": true
+    }
+  }
+}

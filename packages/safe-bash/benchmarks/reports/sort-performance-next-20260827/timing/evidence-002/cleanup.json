@@ -1,0 +1,92 @@
+{
+  "ownedChildren": [
+    {
+      "pid": 20050,
+      "label": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --max-old-space-size=512 /Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc -p tsconfig.build.json",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20103,
+      "label": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm pack --ignore-scripts --json --pack-destination /private/tmp/sort-cache-timing-EmcEYN --cache /private/tmp/sort-cache-timing-EmcEYN/npm-cache",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20128,
+      "label": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --max-old-space-size=512 /Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc -p tsconfig.build.json",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20193,
+      "label": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm pack --ignore-scripts --json --pack-destination /private/tmp/sort-cache-timing-EmcEYN --cache /private/tmp/sort-cache-timing-EmcEYN/npm-cache",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20210,
+      "label": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --max-old-space-size=512 /Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc -p tsconfig.build.json",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20291,
+      "label": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm pack --ignore-scripts --json --pack-destination /private/tmp/sort-cache-timing-EmcEYN --cache /private/tmp/sort-cache-timing-EmcEYN/npm-cache",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20485,
+      "label": "worker-A",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20784,
+      "label": "worker-B",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20891,
+      "label": "worker-C",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 20892,
+      "label": "/usr/bin/top -l 6 -s 1 -n 12 -o cpu -stats pid,command,cpu -F -R",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 21355,
+      "label": "/usr/bin/top -l 6 -s 1 -n 12 -o cpu -stats pid,command,cpu -F -R",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 22178,
+      "label": "/usr/bin/top -l 6 -s 1 -n 12 -o cpu -stats pid,command,cpu -F -R",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    }
+  ],
+  "activeOwnedChildren": [],
+  "inertScratchRetained": "/private/tmp/sort-cache-timing-EmcEYN",
+  "noOtherProcessSignals": true,
+  "noServersStarted": true
+}

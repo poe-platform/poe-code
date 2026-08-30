@@ -1,0 +1,67 @@
+{
+  "schema": "yq-final-carry-independent-preparation-result/1",
+  "date": "2026-08-28",
+  "status": "PREPARED_AUTHOR_HANDOFF_NOT_READY_AT_BOUNDED_DEADLINE",
+  "presealCommit": "c52a1d733576aebad79f154e71146923b5aa4e0c",
+  "candidateCommit": null,
+  "authorPacketRead": false,
+  "wait": {
+    "marker": "/tmp/yq-final-carry-author-ready.txt",
+    "maximumMs": 480000,
+    "observedElapsedMs": 480325,
+    "result": "marker absent at bounded wait completion; no further wait or live author inspection"
+  },
+  "rootPolicy": "CARRY settled; no policy reopening or length prerequisite",
+  "preparedIntegrity": {
+    "unchangedPresealedFiles": 2,
+    "protectedFilesBeforeAfter": 50,
+    "protectedMembershipEntriesBeforeAfter": 59,
+    "scopeCount": 8,
+    "gitModesAndSha256": true,
+    "newEntriesDetectedWithinSelectedScopes": true,
+    "wholeRepositoryAppendProof": false
+  },
+  "checks": {
+    "ownLiteralCheckerRuns": 1,
+    "status": "CHOSEN_CARRY_LITERAL_CHECKS_PASS_NOT_RUNTIME",
+    "authenticatedPriorRecords": 64,
+    "authenticatedPriorSourceBindings": 20,
+    "scheduleComparisons": 16,
+    "sequenceComparisons": 5,
+    "chosenAdmissionComparisons": 8,
+    "refusalComparisons": 9,
+    "prospectiveTraceSchemaRecords": 12,
+    "terminalAndEmptyCarryBoundaries": "pass",
+    "closeComparisonHistoryUnchanged": true
+  },
+  "negativeControls": {
+    "familiesPrepared": 14,
+    "candidateDependentRuns": 0,
+    "status": "deferred until exact committed candidate handoff"
+  },
+  "deferred": [
+    "authenticate candidate commit diff and declared manifest",
+    "read committed CONTRACT/full194 crosswalk/trace overlays",
+    "run authenticated author and required unchanged static checkers",
+    "compare committed guard/resource bindings and run in-memory negatives",
+    "seal candidate-facing static verdict"
+  ],
+  "execution": {
+    "product": 0,
+    "native": 0,
+    "authorChecker": 0,
+    "oldChecker": 0,
+    "build": 0,
+    "type": 0,
+    "dependencies": 0,
+    "privateCheckout": 0,
+    "archive": 0
+  },
+  "artifactHashes": {
+    "PROTOCOL.md": "83d32319c0859114b0a4fc829007f604d5793fac5edf1bb014ffde68638a243d",
+    "PREDICATES.json": "ac3c96476bec0bd2a2a6a63facf8805a5d28b5e15454f67d8c94ac50ba135733",
+    "PROTECTED_BASELINE.json": "7d1ff3935e81304d6ba44f6174971c23c6b262a5dfca026711e0c262192b71a1",
+    "check-literals.mjs": "8cedf7a4e31c50b17044d44c6d58a55eb57c7256def06115308ca07802d44c99"
+  },
+  "qualification": "Preparation is complete and immutable inputs preserved; candidate review has not happened. Root may resume using the exact committed handoff; this is neither candidate acceptance nor implementation GO."
+}

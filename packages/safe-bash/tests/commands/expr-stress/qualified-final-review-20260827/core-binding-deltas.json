@@ -1,0 +1,25 @@
+{
+  "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/source/tests/commands/expr-stress/diagnostics-candidate-review/replay/accept-controls.mjs",
+  "originalSha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b",
+  "boundSha256": "84afeca73bbb859a0f3014d9712a7ffd053424267bc3a5fe93fe1358563fbee1",
+  "delta": [
+    [
+      "from './watchdog.mjs'",
+      "from \"/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/source/tests/commands/expr-stress/diagnostics-candidate-review/replay/watchdog.mjs\""
+    ],
+    [
+      "from './review.mjs'",
+      "from './core-bindings.mjs'"
+    ],
+    [
+      "const stage = JSON.parse(readFileSync(`${owned}/candidate-diagnostics/stage.json`));",
+      "const stage = {\"installed\":\"/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work/moved-consumer/node_modules/virtual-bash\",\"commit\":\"4f01c1593486c1abff3b007f9a3b16923b88559f\",\"installedArtifactSha256\":\"ef02d05362be8b61323f8c5ec304119456d0d00f45ad21c9e676c1c20e5db27a\"};"
+    ],
+    [
+      "join(tmpdir(), 'expr-final-real-vfs-')",
+      "join(\"/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work\", 'expr-final-real-vfs-')"
+    ]
+  ],
+  "assertionOrInputChanges": false,
+  "qualification": "Only import, installed stage, output sink, frozen Git input and scratch-path bindings. All assertions in accept-controls preserved byte-for-byte outside these four exact replacements. Controls are reused independently executed, not independently authored."
+}

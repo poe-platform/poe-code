@@ -1,0 +1,28 @@
+{
+  "documentKind": "NON_AUTHORIZING_V5_AUTHORITY_DESCRIPTION",
+  "usableGrantIssued": false,
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "requiredDifferentReview": { "role": "different-reviewer", "verdict": "PREEXECUTION_ACCEPTED", "recipeSha256": "SHA256 of final V5 SEAL.json bytes" },
+  "futureRootGrantShape": {
+    "role": "root", "phase": "admission", "attempts": 1,
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "recipeSha256": "SHA256 of final V5 SEAL.json bytes, NOT raw coordinator or plan bytes",
+    "reviewSha256": "SHA256 of future committed different-review verdict",
+    "runId": "fresh root selected identifier; no identifier granted here",
+    "outputRoot": "absolute executor-v5/runs/<same-runId>",
+    "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+    "command": { "entry": "coordinator.mjs", "phase": "admission", "runId": "same root-selected identifier", "nodeArgs": ["--unhandled-rejections=strict", "--max-old-space-size=256"] }
+  },
+  "authReferences": "review and grant each require immutable40hex commit, relative non-instruction JSON path, exact64hex SHA256",
+  "planHashMeaning": "SHA256 of JSON.stringify({limits:plan.limits,command:plan.command,phase:'admission',operations:plan.admission})",
+  "consumerBinding": "Exact CONSUMER-SCOPES.json and wrapper bytes transitively bound by V5 SEAL; scope identity validated before actual bare import",
+  "oldGrant": "c1b03b64 remains consumed; old recipe hash and V4 output root cannot authorize V5",
+  "futureCommandTemplate": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node", "--unhandled-rejections=strict", "--max-old-space-size=256",
+    "tests/comparison/breadth-continuation-20260828/executor-v5/coordinator.mjs", "admission", "<FRESH_ROOT_RUN_ID>", "<PINNED_AUTH_JSON>"
+  ],
+  "semanticCohortAuthorized": false,
+  "resourceBudgetsOrPermissionsChanged": false
+}

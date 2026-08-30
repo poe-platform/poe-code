@@ -1,0 +1,30 @@
+{
+  "sequence": 50,
+  "command": "tar",
+  "args": [
+    "-tf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v7-replay-9a5a6f92/replay-001/bootstrap-scratch/freeze.tar"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "pid": 47052,
+  "pgid": 47052,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T20:11:38.912Z",
+  "finishedAt": "2026-08-27T20:11:38.918Z",
+  "durationMs": 6.226166,
+  "stdoutSha256": "6c5353cbe55aa095c5b7fc6c30b58dfe1a57322bbd74845fa2e2a2130cb1a196",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

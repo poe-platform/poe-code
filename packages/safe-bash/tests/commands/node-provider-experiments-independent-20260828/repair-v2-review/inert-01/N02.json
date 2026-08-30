@@ -1,0 +1,7 @@
+{
+  "id": "N02",
+  "status": "UNSCORED_DIAGNOSTIC",
+  "accepted": true,
+  "scope": "standalone F05 nativePromise-only counterfactual, not real child output",
+  "nativePromise": true
+}

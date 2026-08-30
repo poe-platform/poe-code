@@ -1,0 +1,73 @@
+{
+  "schema": "independent-path-transport-review-preseal-v1",
+  "date": "2026-08-28",
+  "phase": "PREPARATION_ONLY_BEFORE_NEW_AUTHOR_SOURCE_READ",
+  "authorCandidateCommit": null,
+  "authorCandidateSeal": null,
+  "productCommit": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "controlCount": 206,
+  "actualHistoricalPathCount": 98,
+  "historicalSourceCount": 12,
+  "historicalDataCount": 19,
+  "reachableHistoricalSites": 21,
+  "newAuthorSourceReads": 0,
+  "newAuthorExecutions": 0,
+  "candidateControlResults": "ALL_NOT_RUN",
+  "presealCommit": "reported externally; the commit containing this seal",
+  "files": [
+    {
+      "path": "ACTUAL98.json",
+      "bytes": 55646,
+      "mode": 420,
+      "sha256": "c0a0081aa342742d6f5fd3b9221a5f42ea235ebd662aef34ef837c6d8eec4a32"
+    },
+    {
+      "path": "CONSUMERS.md",
+      "bytes": 8341,
+      "mode": 420,
+      "sha256": "10bd3e2d70d557d6d20099e811fe83e15d9dc7263c8c0f1180c4b59485b7f848"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 678348,
+      "mode": 420,
+      "sha256": "e8601ad08a14bcfaf372729882ee0b0ac1b37b46512d0469a31b1b84cb1042b8"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 2590,
+      "mode": 420,
+      "sha256": "47f2bce52859ef2279ed2d1690abb1d8d76378d2f707a8e0c951faf0aee8ca6a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9753,
+      "mode": 420,
+      "sha256": "2fd79722c9004f0096eca67c687959e3307dcba0e22ed247e9fa8c0eab81ae6e"
+    },
+    {
+      "path": "SOURCE-INVENTORY.json",
+      "bytes": 7432,
+      "mode": 420,
+      "sha256": "d19288d6b14f686c199841bf57c1de1e66acab572a2e3ba4ceded8c266d2efde"
+    },
+    {
+      "path": "prepare-data.mjs",
+      "bytes": 27539,
+      "mode": 420,
+      "sha256": "262633ce78aa96f712fd3bc5485bf5aeb5aef5fc57e387c4d74e32a8edb6e4d8"
+    }
+  ],
+  "allowedFinalEntries": [
+    "ACTUAL98.json",
+    "CONSUMERS.md",
+    "CONTROLS.json",
+    "PREPARATION.json",
+    "PRESEAL.json",
+    "README.md",
+    "SOURCE-INVENTORY.json",
+    "prepare-data.mjs"
+  ],
+  "validation": "DATA-only: unique 206 controls/98 paths, all candidate outcomes NOT_RUN, exact seven-file preseal inventory and all 31 historical input hashes/modes/sizes rechecked. No tests or candidate import/execution.",
+  "limits": "Three preparation Git metadata children serial <=10000ms each; no persistent workers. No new author source inspected. Existing captures, matrix, harness and product are read-only."
+}

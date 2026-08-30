@@ -1,0 +1,133 @@
+{
+  "classification": "binding detail only; preserves frozen case/parameter identities; all UNRUN",
+  "sourceIdentity": "UNBOUND",
+  "records": [
+    {
+      "id": "S01", "parameter": "original-local-pending-source",
+      "command": "pending-stream | head -n 0; true",
+      "startBarrier": "head middleware awaits the original started.promise; generator increments exactly once before pending first byte",
+      "expected": ["explicit createOutputOperation before pendingSource admission", "operation signal aborts; generator finally runs exactly once; active becomes zero before teardown", "public exitCode 0, stdout empty, stderr empty; caller not aborted", "record operation close separately from stage signal"]
+    },
+    {
+      "id": "S02", "parameter": "original-mock-s3-pending-source",
+      "command": "cat /input | head -n 0; true",
+      "startBarrier": "original s3Fixture overrides getObjectStream; head awaits pendingSource first next",
+      "expected": ["actual cat auto-enrollment; do not replace its IO", "one source next/finally; active zero; honored source operation signal aborted before teardown", "public exitCode 0, stdout/stderr empty, caller live", "mock only; no provider claim; stage signal separate"]
+    },
+    {
+      "id": "S03", "parameter": "original-loopback-body-withheld",
+      "command": "cat /input | head -n 0; true",
+      "startBarrier": "original httpFixture GET increments server counter; flush headers; setImmediate resolves started; body withheld",
+      "expected": ["actual WebDAV cat auto-enrollment", "one server GET/response close; active zero before teardown", "public exitCode 0, stdout/stderr empty, caller live", "client body reads unobserved; do not infer from server GET"]
+    },
+    {
+      "id": "S04", "parameter": "original-loopback-body-withheld",
+      "command": "curl ${url} | head -n 0; true",
+      "startBarrier": "exact original dynamic /dav/input URL, GET authorization, flushed headers, withheld body, setImmediate started",
+      "expected": ["actual curl auto-enrollment", "one server GET/response close; active zero before teardown", "public exitCode 0, stdout/stderr empty, caller live", "operation closed has no public getter; report transfer closure, public result, and stage separately"]
+    },
+    {
+      "id": "S05", "parameter": "original-loopback-headers-withheld",
+      "command": "curl ${url} | head -n 0; true",
+      "startBarrier": "original GET starts, no response headers or body sent, setImmediate started gates head",
+      "expected": ["actual curl acquisition auto-enrollment before response headers", "one server GET/response close; active zero before teardown", "public exitCode 0, stdout/stderr empty, caller live", "never rescue acceptance by closing server in teardown"]
+    },
+    {
+      "id": "S06", "parameter": "upload-before-eof",
+      "command": "curl -T - ${boundedLoopbackUrl}",
+      "startBarrier": "server receives body bytes while permitEof remains pending; only this observed event releases EOF",
+      "expected": ["streaming-before-EOF true; no timer opens acceptance gate", "exact uploaded before-eof\\nafter-observation\\n", "public exitCode 0; teardown releases do not count as streaming"]
+    },
+    {
+      "id": "S06", "parameter": "retained-reused-buffer",
+      "command": "curl -T - ${boundedLoopbackUrl}",
+      "startBarrier": "same Buffer AAAA then BBBB, mutated only on producer advance; finalization fills X; server bytes precede EOF gate",
+      "expected": ["uploaded AAAABBBB exactly", "no arbitrary concurrent mutation or chunk framing assertion", "public exitCode 0; retained bytes must be owned"]
+    },
+    {
+      "id": "S06", "parameter": "awaited-write-backpressure",
+      "command": "bound-copy",
+      "startBarrier": "explicit operation output write stalls; one event-loop turn before sink release",
+      "expected": ["one read and no producer finalization while this sequential plugin awaits first write", "AAAA then BBBB retained correctly; finalization once after write completion", "public exitCode 0; this is not a global zero-read-ahead scheduler demand"]
+    },
+    {
+      "id": "S07", "parameter": "stdout-only-request",
+      "command": "live-owner -> context.invoke('curl', [url], existing stdin provenance, explicit stdout/stderr)",
+      "bindingStatus": "BLOCKED_PUBLIC_NESTED_CURL_PROFILE",
+      "startBarrier": "server request observed while parent command/input owner remains live; close stdout capability",
+      "expected": ["owned response connection closes before owner finalization", "zero borrowed returns before and through nested settlement; parent signal live", "public nested status/stderr UNBOUND, not guessed 0/141", "normal later top-level owner return allowed"]
+    },
+    {
+      "id": "S07", "parameter": "stdout-only-streaming-upload",
+      "command": "live-owner -> context.invoke('curl', ['-T', '-', url], existing stdin provenance, explicit stdout/stderr)",
+      "bindingStatus": "BLOCKED_PUBLIC_NESTED_CURL_PROFILE",
+      "startBarrier": "server body bytes observed before closing stdout; parent owner remains live",
+      "expected": ["honored network work closes with borrowed-input return count zero", "if producer next remains opaque, record pre-release child/public states then externally release fixture; never credit preemption", "nested cleanup completes before owner finalization without returning borrowed stdin", "public nested status/stderr UNBOUND"]
+    },
+    {
+      "id": "S08", "parameter": "required-body-file-and-stdout-writeout",
+      "command": "mixed-owner -> curl -o /body -w 'code=%{http_code}\\n' ${url}",
+      "bindingStatus": "BLOCKED_STDOUT_WRITEOUT_RETENTION_AND_PUBLIC_PROFILE",
+      "startBarrier": "request starts with response withheld; close stdout then allow required response",
+      "expected": ["/body exact required-body\\n; independent /independent file and parent stderr exact", "stdout writeout stays stdout, never rerouted for a manufactured positive", "positive retained-writeout observation after stdout closure UNBOUND in S1", "exact nested result/stderr UNBOUND; owner remains live during required effects"]
+    },
+    {
+      "id": "S08", "parameter": "stdout-body-and-required-header-file",
+      "command": "mixed-owner -> curl -D /headers ${url}",
+      "bindingStatus": "BLOCKED_PUBLIC_NESTED_CURL_PROFILE",
+      "startBarrier": "request starts; close stdout before required response headers/body are released",
+      "expected": ["/headers includes HTTP/1.1 200 and X-Binding: required-header", "independent file and parent stderr bytes present with parent signal live", "exact nested result/stderr UNBOUND", "no requirement to deliver body into closed stdout"]
+    },
+    {
+      "id": "S08", "parameter": "required-files-writeout-and-independent-stderr",
+      "command": "mixed-owner -> curl -o /body -D /headers -w @/format ${url}",
+      "bindingStatus": "BLOCKED_STDOUT_WRITEOUT_RETENTION_AND_PUBLIC_PROFILE",
+      "startBarrier": "/format contains code=%{http_code}\\n; request starts; close stdout then release response",
+      "expected": ["exact body file and required header fields retained", "independent /independent file and actual parent-context stderr bytes retained", "required stdout-writeout observability and exact nested result/stderr UNBOUND", "no stdout-to-stderr rewrite; no upload prebuffer promotion"]
+    },
+    {
+      "id": "S09", "parameter": "three-level-overlapping-cleanup-and-late-admission",
+      "command": "tree-drain",
+      "startBarrier": "parent/child/grandchild acquire; grandchild cooperative release gate blocks; overlap normal close, second close, registered callback and finally",
+      "expected": ["registration precedes IO; late acquisition and child admission refused without starting", "all close routes pending until cooperative descendant release", "release callbacks once each; public settlement after drain; normal close does not abort signal", "do not compare returned Promise references or await arbitrary host work"]
+    },
+    {
+      "id": "S10", "parameter": "close-child-then-parent-with-live-sibling-effects",
+      "command": "tree-owner",
+      "startBarrier": "owner reads one input chunk, child closes; sibling/parent then perform useful work",
+      "expected": ["parent and sibling output bytes, sibling VFS file, actual context stderr positive", "parent/sibling signals live; sibling cleanup not yet called; owner alive and borrowed return zero", "deliberate parent close remains pending until sibling registered release; each cleanup once", "normal final owner return separately recorded"]
+    },
+    {
+      "id": "S11", "parameter": "caller-reason-zero",
+      "command": "precedence-probe",
+      "startBarrier": "registered operation begins, then caller abort(0)",
+      "expected": ["caller and operation reason identity exactly 0; public shell rejection exactly 0", "cooperative cleanup once and operation close awaited", "stage state separate; no unhandled rejection"]
+    },
+    {
+      "id": "S11", "parameter": "io-error-before-caller-abort",
+      "command": "set -o pipefail; precedence-probe | cat",
+      "bindingStatus": "BLOCKED_PUBLIC_IO_PIPEFAIL_PROFILE",
+      "startBarrier": "controlled IO rejection delivered to command catch before caller abort(0)",
+      "expected": ["exact public IO/caller/pipefail result and first operation reason UNBOUND", "record IO-delivery event separately from public settlement; no invented race winner", "cleanup identity/count and late rejections observed; incompatible cleanup-precedence interpretations remain blocked"]
+    },
+    {
+      "id": "S11", "parameter": "caller-abort-before-late-io-rejection",
+      "command": "set -o pipefail; precedence-probe | cat",
+      "bindingStatus": "BLOCKED_PUBLIC_IO_PIPEFAIL_PROFILE",
+      "startBarrier": "caller abort(0), operation abort event, then externally reject pending IO",
+      "expected": ["exact public IO/caller/pipefail result and operation reason UNBOUND", "late IO rejection observed and not unhandled", "public result, operation cleanup, stage signal and caller signal distinct"]
+    },
+    {
+      "id": "S12", "parameter": "opaque-read-late-resolve",
+      "command": "opaque-owner -> context.invoke('opaque-reader', [], existing input provenance)",
+      "startBarrier": "opaque next pending; close destination; record states after two event-loop turns before external resolve",
+      "expected": ["opaque promise still pending, borrowed return zero, owner alive before external release", "record nested public/operation/stage separately without universal nonhang requirement", "externally resolve done; cooperative cleanup once; no borrowed return before owner finalization", "late fixture resolution never counted as product preemption"]
+    },
+    {
+      "id": "S12", "parameter": "opaque-read-late-reject",
+      "command": "opaque-owner -> context.invoke('opaque-reader', [], existing input provenance)",
+      "startBarrier": "same opaque read/output-close observations, then explicit external rejection",
+      "expected": ["pre-release opaque promise remains pending, borrowed return zero, owner alive", "observe late rejection through nested public result; no unhandled rejection", "cooperative operation cleanup once; no operation-induced borrowed return", "record post-release settlement, not universal read preemption"]
+    }
+  ]
+}

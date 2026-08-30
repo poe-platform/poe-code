@@ -1,0 +1,15 @@
+{
+  "name": "adjacent-stream-options.mts",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-27qMJU/moved/consumer",
+    "emitted/stream-options.mjs"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-27qMJU/moved/consumer",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"resolutions\":{\"virtual-bash\":\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-27qMJU/moved/consumer/node_modules/virtual-bash/dist/index.js\",\"virtual-bash/commands/stream-format\":\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-27qMJU/moved/consumer/node_modules/virtual-bash/dist/commands/stream-format/index.js\",\"virtual-bash/commands/split\":\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-27qMJU/moved/consumer/node_modules/virtual-bash/dist/commands/split/index.js\"},\"defaultCount\":70,\"standaloneFormatCount\":4,\"standaloneSplitCount\":1,\"aggregatePipeline\":\"1\\n2\\n\",\"formatReplaceTopLevel\":true,\"splitReplaceTopLevel\":true}\n",
+  "stderr": ""
+}

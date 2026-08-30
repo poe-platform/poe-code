@@ -1,0 +1,30 @@
+{
+  "events": [
+    {
+      "event": "spawn-request",
+      "elapsedMs": 3.1910000000000025,
+      "pid": 81760
+    },
+    {
+      "event": "exit",
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 13.590958999999998
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 13.609959000000003
+    }
+  ],
+  "lengths": {
+    "stdout": 109,
+    "stderr": 0
+  },
+  "termination": null,
+  "ownedClosed": true,
+  "elapsedMs": 13.845833999999996,
+  "starts": 1,
+  "status": "CLOSED_METADATA_ONLY"
+}

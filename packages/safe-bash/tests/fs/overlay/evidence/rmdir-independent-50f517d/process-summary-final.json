@@ -1,0 +1,9 @@
+{
+  "checked": "2026-08-26T23:22:28.846Z",
+  "runnerPid": 81086,
+  "activeCheckpointProcesses": [],
+  "capturePid": 98156,
+  "captureParentPid": 73879,
+  "scope": "Checkpoint runner/test/typecheck processes only; the reporting leaf and this ephemeral capture process are not asserted absent.",
+  "normalization": "Both /tmp and /private/tmp aliases recognized by matching the unique directory basename."
+}

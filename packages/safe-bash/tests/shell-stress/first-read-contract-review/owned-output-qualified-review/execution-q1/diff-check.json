@@ -1,0 +1,24 @@
+{
+  "full": {
+    "exitCode": 2,
+    "output": "diff-check.raw.data"
+  },
+  "qualified": {
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "exactInertByteExclusions": [
+    "driver-binding.patch-data",
+    "comparison-binding.patch-data",
+    "native-capture/C01/headers.data",
+    "native-capture/C02/headers.data",
+    "native-capture/C03/headers.data",
+    "native-capture/C04/headers.data",
+    "native-capture/C05/headers.data",
+    "native-capture/C06/headers.data",
+    "native-capture/C07/headers.data",
+    "native-capture/C08/headers.data"
+  ],
+  "reason": "Preserve exact unified-diff context and native HTTP CRLF bytes; no source/test assertion exclusion"
+}

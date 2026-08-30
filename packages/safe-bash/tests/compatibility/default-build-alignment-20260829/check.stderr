@@ -1,0 +1,18 @@
+AssertionError [ERR_ASSERTION]: source symlink not admitted src/commands/html-to-markdown/node_modules/inline-normalization-early/baseline-02/tools/node_modules/.bin/esbuild
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:202)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:297)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:297)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:297)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:297)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:297)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:297)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:297)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:23:297)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/default-build-alignment-20260829/check-inputs.mjs:24:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

@@ -1,0 +1,15 @@
+{
+  "profile": "GNU coreutils9.7 Darwin arm64 LC_ALL=C; binary64 floating path",
+  "sourceBeforeFix": "8e0f7b1 seq implementation, unchanged through752d6df",
+  "method": "Actual native and source opt-in Shell dispatch, same args; all statuses0 and stderr empty.",
+  "cases": [
+    { "args": ["-f", "%.2f", "2.675", "2.675"], "native": "2.67\n", "virtual": "2.68\n" },
+    { "args": ["-f", "%.17g", "0.1", "0.1", "0.3"], "native": "0.10000000000000001\n0.20000000000000001\n", "virtual": "0.1\n0.2\n0.3\n" },
+    { "args": ["-f", "%.1f", "0.15", "0.1", "0.45"], "native": "0.1\n0.2\n0.3\n0.5\n", "virtual": "0.2\n0.2\n0.4\n0.4\n" },
+    { "args": ["-f", "%g", "-0", "0"], "native": "-0\n", "virtual": "0\n" },
+    { "args": ["-w", "-0", "2"], "native": "-0\n01\n02\n", "virtual": "0\n1\n2\n" },
+    { "args": ["-f", "%.17g", "1", "0.1", "1.3"], "native": "1\n1.1000000000000001\n1.2\n1.3\n", "virtual": "1\n1.1\n1.2\n1.3\n" }
+  ],
+  "resolution": "Source fix required, not fixture relaxation. Explicit f/e/g formatting uses measured Darwin binary64 first+index*step and rounding/range behavior; unformatted exact decimal progression remains separate and bounded. Negative zero preserved. Added regression controls before fix.",
+  "intermediateFailure": "Initial binary64 correction passed8/9 new controls but two-rounding JavaScript .15+3*.1 gave0.45000000000000007, excluding the last native line. Native %.17g reports0.45000000000000001. Exact binary arithmetic followed by a single binary64 rounding fixes the measured Darwin arm64 fused-arithmetic profile; no fixture change."
+}

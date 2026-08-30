@@ -1,0 +1,191 @@
+TAP version 13
+# Subtest: R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+not ok 1 - R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+  ---
+  duration_ms: 1.56675
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:1:474'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:26:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: R1 async admitted setup can register after acquisition without reopening external admission
+not ok 2 - R1 async admitted setup can register after acquisition without reopening external admission
+  ---
+  duration_ms: 2.218167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:1:984'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:61:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: R1 multiple queued asynchronous setups finish before reverse plugin disposal
+not ok 3 - R1 multiple queued asynchronous setups finish before reverse plugin disposal
+  ---
+  duration_ms: 0.591
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:1:2333'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'first:start',
+    -   'first:ready',
+    -   'second:start',
+    -   'second:ready',
+    -   'second:dispose',
+    -   'first:dispose'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'first:start'
+    1: 'first:ready'
+    2: 'second:start'
+    3: 'second:ready'
+    4: 'second:dispose'
+    5: 'first:dispose'
+  actual:
+    0: 'first:start'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:83:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: R1 saved completed setup hosts do not borrow another setup's disposal admission
+not ok 4 - R1 saved completed setup hosts do not borrow another setup's disposal admission
+  ---
+  duration_ms: 2.791416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:1:3023'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:113:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+not ok 5 - R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+  ---
+  duration_ms: 0.188667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:1:3966'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:148:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+ok 6 - R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+  ---
+  duration_ms: 1.443209
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection undefined and successful prior disposal
+ok 7 - R1 preserves explicit setup rejection undefined and successful prior disposal
+  ---
+  duration_ms: 0.386792
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection null and successful prior disposal
+ok 8 - R1 preserves explicit setup rejection null and successful prior disposal
+  ---
+  duration_ms: 0.394917
+  type: 'test'
+  ...
+# Subtest: R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+not ok 9 - R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+  ---
+  duration_ms: 0.39075
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:1:6115'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + []
+    - [
+    -   'prior:ready',
+    -   'failed:setup',
+    -   'prior:dispose'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'prior:ready'
+    1: 'failed:setup'
+    2: 'prior:dispose'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/invocation-cleanup-setup.test.ts:178:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+ok 10 - R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+  ---
+  duration_ms: 0.559083
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 4
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.158208
+{"code":1,"signal":null,"deadlineMs":15000}

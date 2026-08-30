@@ -1,0 +1,57 @@
+{
+  "pass": true,
+  "receipt": {
+    "role": "A11",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/node_modules/typescript/lib/tsc.js",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "--noEmit",
+      "--typeRoots",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/node_modules/@types",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/positive-v2.mts"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2",
+    "pid": 46606,
+    "retired": true,
+    "code": 0,
+    "signal": null
+  },
+  "stdout": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/A11.stdout",
+    "size": 0,
+    "mode": 420,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/A11.stderr",
+    "size": 0,
+    "mode": 420,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "retainedMembers": 1549,
+  "retainedSources": 305,
+  "retainedTools": 241,
+  "capture": 0,
+  "elapsedFromFreshStartMs": 179482,
+  "compilerStarts": 1,
+  "runtimeImports": 0,
+  "Workers": 0,
+  "originalPositive": "TS2724 preserved, not rescored",
+  "oldAdministrativeCensus": "uncertified64 preserved",
+  "obligations": "70 UNRUN"
+}

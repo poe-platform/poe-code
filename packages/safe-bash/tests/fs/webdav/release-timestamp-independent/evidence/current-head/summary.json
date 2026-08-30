@@ -1,0 +1,74 @@
+{
+  "source": "8e1298b02966a1a2344d81c04f3eddd906828682",
+  "requested": "HEAD",
+  "profile": "candidate",
+  "helperCommit": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "started": "2026-08-27T09:35:41.259Z",
+  "finished": "2026-08-27T09:35:46.758Z",
+  "results": [
+    {
+      "name": "original-consumer13",
+      "status": 0,
+      "counts": {
+        "tests": 13,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "author-regressions19",
+      "status": 0,
+      "counts": {
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "independent-controls",
+      "status": 0,
+      "counts": {
+        "tests": 23,
+        "pass": 23,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "unchanged-postcondition5",
+      "status": 0,
+      "counts": {
+        "tests": 5,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "mutantKills": [
+    "MUTANT_KILLED omit-readback",
+    "MUTANT_KILLED nonpersisting",
+    "MUTANT_KILLED mask-eagain"
+  ],
+  "loadedModuleCounts": {
+    "original-consumer13": 164,
+    "author-regressions19": 164,
+    "independent-controls": 164
+  },
+  "protectedFiles": 1900,
+  "historicalRawFiles": 31,
+  "cleanup": {
+    "workspace": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/release-timestamp-independent/.work-DlmCQP",
+    "removed": true
+  }
+}

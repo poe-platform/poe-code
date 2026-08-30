@@ -1,0 +1,132 @@
+
+---tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/cell-v4.mjs---
+91:   } else if (definition.id === 'EH01' || definition.id === 'EH02') {
+92:     const pattern = 'a'.repeat(65537);
+93:     const prefix = ''; 
+94:     const variants = definition.id === 'EH01'
+95:       ? [['[[ x =~ $re ]]', 3], ['[[ ! x =~ $re ]]', 3], ['[[ x =~ $re || yes ]]', 3], ['[[ x =~ $re && yes ]]', 3], ['[[ yes && x =~ $re ]]', 3], ["[[ '' || x =~ $re ]]", 3], ['[[ yes || x =~ $re ]]', 0], ["[[ '' && x =~ $re ]]", 1]]
+96:       : [['[[ x =~ $re ]] || :', 0], ['[[ x =~ $re ]] && :', 3], ['! [[ x =~ $re ]]', 0]];
+97:     for (const [script, exitCode] of variants) await check(prefix + script, { exitCode }, { env: { re: pattern } });
+98:   } else if (definition.id === 'EH03') {
+99:     for (const [script, options, limit] of [['echo ignored', { limits: { maxSourceBytes: 0 } }, 'maxSourceBytes'], ["bad='('; [[ a =~ $bad ]]", { limits: { maxOutputBytes: 0 } }, 'maxOutputBytes']]) {
+100:       let caught; try { await shell.exec(script, options); } catch (error) { caught = error; }
+101:       assert.ok(caught instanceof api.ShellLimitError); assert.equal(caught.limit, limit); observer.assertRetired();
+102:     }
+103:   } else throw new Error('missing host executor');
+104: } catch (error) { primaryFailed = true; primary = error; emit({ event: 'failure', name: error?.name, message: String(error) }); }
+105: finally {
+106:   try { await shell?.dispose(); await arrays?.settle(); observer?.assertRetired(); } catch (error) { cleanupFailed = true; if (!primaryFailed) { primaryFailed = true; primary = error; } emit({ event: 'unsafe-retirement', message: String(error) }); }
+107:   arrays?.restore();
+108:   observer?.restore();
+109:   emit({ event: 'result', id: cellId, ...terminalOutcome(primaryFailed, cleanupFailed, undefined), workers: observer?.rows ?? [] });
+110:   fs.closeSync(output);
+111:   if (primaryFailed) process.exitCode = 1;
+112: }
+113: 
+---tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/pure-controls.mjs---
+36: const binding = { path: fixture, size: 6, mode: 0o600, sha256: createHash('sha256').update('bound\n').digest('hex') };
+37: await control('source/exact', () => assert.equal(boundFile(binding).toString(), 'bound\n'));
+38: await control('source/wrong-hash-refused', () => assert.throws(() => boundFile({ ...binding, sha256: '0'.repeat(64) }), /hash/));
+39: await control('source/wrong-size-refused', () => assert.throws(() => boundFile({ ...binding, size: 5 }), /size/));
+40: await control('source/parent-traversal-refused', () => assert.throws(() => boundFile({ ...binding, path: root + '/../binding.txt' }), /canonical/));
+41: await control('source/missing-file-refused', () => assert.throws(() => boundFile({ ...binding, path: root + '/missing.txt' }), { code: 'ENOENT' }));
+42: class Owner {
+43:   constructor() { this.calls = []; this.completion = Promise.resolve(); this.ledger = { snapshot: () => ({ caps: [100,100,100,100,100,100,100], used: [0,0,0,0,0,0,0], lastIssued: 0 }) }; }
+44:   reserve(charge) { this.calls.push('reserve'); if (Object.hasOwn(charge, 'fail')) throw charge.fail; return charge; }
+45:   hold() { this.calls.push('hold'); return { release() {} }; }
+46:   close() { this.calls.push('close'); return this.completion; }
+47: }
+48: class Binding {
+49:   constructor(owner) { this.owner = owner; }
+50:   retain() { return this; }
+51:   release() { return this.owner.completion; }
+52: }
+53: await control('array/forward-return-and-close-identity', async () => {
+54:   const observe = observeArrays(Owner, Binding), owner = new Owner(), binding = new Binding(owner), charge = { work: 2 };
+55:   try { assert.strictEqual(owner.reserve(charge), charge); assert.strictEqual(binding.retain(), binding); assert.strictEqual(binding.release(), owner.completion); assert.strictEqual(owner.close(), owner.completion); await observe.settle(); assert.deepEqual(owner.calls, ['reserve', 'close']); }
+56:   finally { observe.restore(); }
+57: });
+58: await control('array/original-falsy-rejection-identity', async () => {
+59:   const observe = observeArrays(Owner, Binding), owner = new Owner();
+60:   try { let rejected = false, reason; try { owner.reserve({ fail: false }); } catch (error) { rejected = true; reason = error; } assert.equal(rejected, true); assert.strictEqual(reason, false); await observe.settle(); }
+61:   finally { observe.restore(); }
+62: });
+63: await control('array/throwing-observer-still-forwards-close', async () => {
+64:   const observe = observeArrays(Owner, Binding), owner = new Owner(), failure = Object.freeze({ observation: true });
+65:   owner.ledger.snapshot = () => { throw failure; };
+66:   try { assert.strictEqual(owner.close(), owner.completion); assert.deepEqual(owner.calls, ['close']); let caught; try { await observe.settle(); } catch (error) { caught = error; } assert.strictEqual(caught, failure); }
+67:   finally { observe.restore(); }
+68: });
+69: await control('array/close-rejection-is-original-not-observer', async () => {
+70:   const observe = observeArrays(Owner, Binding), owner = new Owner(); owner.completion = Promise.reject(false); void owner.completion.catch(() => {});
+71:   try { const returned = owner.close(); assert.strictEqual(returned, owner.completion); let caught; try { await returned; } catch (error) { caught = error; } assert.strictEqual(caught, false); await observe.settle(); assert.ok(observe.rows.some(row => row.outcome === 'rejected')); }
+72:   finally { observe.restore(); }
+73: });
+74: fs.writeFileSync(root + '/ADDITIONAL-CONTROLS.json', JSON.stringify({ status: results.every(row => row.status === 'PASS') ? 'PASS' : 'HOLD', results, productImports: 0, Workers: 0, pid: process.pid }, null, 2) + '\n', { flag: 'wx' });
+75: if (results.some(row => row.status === 'FAIL')) throw new Error('PURE control failure; dependent harmless children not started');
+76: await import('./controls.mjs');
+77: for (const row of sourceBindings) assert.equal(createHash('sha256').update(fs.readFileSync(row.path)).digest('hex'), row.sha256);
+78: assert.ok(Date.now() < phase.deadlineMs);
+79: console.log(JSON.stringify({ additionalPure: results.length, status: 'PASS', ownerResults: 'separate RESULT.json', productExecutions: 0, Workers: 0 }));
+80: 
+---/private/tmp/safe-bash-core70-v6-20260829/controls/controls.mjs---
+1: import * as fs from 'node:fs';
+2: import * as path from 'node:path';
+3: import assert from 'node:assert/strict';
+4: import { createHash } from 'node:crypto';
+5: import { EventEmitter } from 'node:events';
+6: import { SourceTextModule } from 'node:vm';
+7: import { pathToFileURL } from 'node:url';
+8: 
+9: const root = fs.realpathSync(path.dirname(process.argv[1]));
+10: const phase = JSON.parse(fs.readFileSync(path.join(root, 'START.json'), 'utf8'));
+11: if (!root.startsWith('/private/tmp/') || !Number.isSafeInteger(phase.deadlineMs) || Date.now() >= phase.deadlineMs) throw new Error('phase admission');
+12: const collector = process.env.CORE70_COLLECTOR;
+13: if (collector !== root + '/controller') throw new Error('external collector identity');
+14: for (const [descriptor, suffix] of [[1, '.stdout'], [2, '.stderr']]) {
+15:   const actual = fs.fstatSync(descriptor);
+16:   const declared = fs.lstatSync(collector + suffix);
+17:   if (!actual.isFile() || !declared.isFile() || declared.isSymbolicLink() || actual.dev !== declared.dev || actual.ino !== declared.ino) throw new Error('external collector is not actually connected');
+18: }
+19: const read = (name, cap = 131072) => {
+20:   const file = path.join(root, name), stat = fs.lstatSync(file);
+21:   if (!stat.isFile() || stat.isSymbolicLink() || stat.size > cap) throw new Error(`file shape ${name}`);
+22:   const bytes = fs.readFileSync(file);
+23:   if (bytes.length !== stat.size) throw new Error('file changed during read');
+24:   return bytes;
+25: };
+26: const inventory = read('SHA256SUMS').toString('utf8').trimEnd().split('\n').map(line => {
+27:   const match = /^([a-f0-9]{64})  ([a-zA-Z0-9.-]+)$/.exec(line);
+28:   if (!match) throw new Error('seal record');
+29:   return { name: match[2], sha256: match[1] };
+30: });
+31: assert.deepEqual(inventory.map(row => row.name), ['owner.mjs', 'harmless.mjs', 'controls.mjs', 'PRESEAL.md', 'START.json']);
+32: for (const row of inventory) assert.equal(createHash('sha256').update(read(row.name)).digest('hex'), row.sha256);
+33: const binary = fs.lstatSync(process.execPath);
+34: assert.equal(process.execPath, '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node');
+35: assert.equal(binary.size, 112989184);
+36: assert.ok(binary.isFile() && !binary.isSymbolicLink());
+37: const hash = createHash('sha256');
+38: for await (const chunk of fs.createReadStream(process.execPath, { highWaterMark: 65536 })) hash.update(chunk);
+39: assert.equal(hash.digest('hex'), '5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011');
+40: const rows = [];
+41: for (const file of ['owner.mjs', 'harmless.mjs', 'controls.mjs']) {
+42:   try { new SourceTextModule(read(file).toString('utf8'), { identifier: path.join(root, file) }); rows.push({ id: `syntax/${file}`, status: 'PASS', diagnostic: null }); }
+43:   catch (error) { rows.push({ id: `syntax/${file}`, status: 'FAIL', diagnostic: String(error) }); }
+44: }
+45: if (rows.some(row => row.status === 'FAIL')) throw new Error('syntax admission');
+46: const { ownProcess, validateOwner } = await import(pathToFileURL(path.join(root, 'owner.mjs')));
+47: const deadline = Math.min(phase.deadlineMs, Date.now() + 60000);
+48: const state = () => ({ starts: 0, maximumStarts: 1, capture: 0, maximumCapture: 65536, owned: [], secondary: [], deadline });
+49: const spec = id => ({ id, stdout: root + '/' + id + '.stdout', stderr: root + '/' + id + '.stderr', cwd: root, executable: process.execPath, argv: [root + '/harmless.mjs'], env: { HOME: root, TMPDIR: root, LC_ALL: 'C', TZ: 'UTC' }, caseMs: 2000, retireMs: 500, childCapture: 32768 });
+50: const control = async (id, body) => {
+51:   try { await body(); rows.push({ id, status: 'PASS' }); }
+52:   catch (error) { rows.push({ id, status: 'FAIL', reason: String(error) }); }
+53: };
+54: const rejection = async (promise, expected) => {
+55:   let rejected = false, reason;
+56:   try { await promise; } catch (error) { rejected = true; reason = error; }
+57:   assert.ok(rejected); assert.strictEqual(reason, expected);
+58: };
+59: function fake(options = {}) {
+60:   let nextFd = 0;

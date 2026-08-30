@@ -1,0 +1,35 @@
+{
+  "kind": "INITIAL_OBSERVATIONS_AND_PRESEAL_SCOPE_SNAPSHOT",
+  "initial": {
+    "clockFirstExplicitlyObserved": "2026-08-28T11:39:24Z",
+    "headFirstExplicitlyRecorded": "2a9d59c77c9a4d94fa56d61962c5d6dfd01c189f",
+    "ownedDirectoryExisted": false,
+    "indexEmpty": true,
+    "foreignTrackedModified": [
+      "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs",
+      "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs",
+      "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/profile.mjs",
+      "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs"
+    ],
+    "foreignUntrackedPresent": true,
+    "foreignUntrackedExamples": [
+      "tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/",
+      "tests/commands/search-stress/.native-1m4O1e/",
+      "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.json",
+      "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/STAGED.json"
+    ],
+    "note": "First tool output is the full initial status; later full snapshot below is explicitly later, not a claim of identical foreign state."
+  },
+  "snapshotAt": "2026-08-28T11:47:32.790Z",
+  "statusShort": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/xan-module-review-20260828/actual-review-v2/build-continuation/\n?? tests/commands/xan-module-review-20260828/actual-review-v2/evidence-continuation/\n?? tests/commands/yq-independent-20260828/successor-review-preseal-v2/\n?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/STAGED.json\n?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.json\n?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/operation-probe-1.claim\n?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/\n?? tests/comparison/breadth-continuation-20260828/executor-v5/\n?? tests/comparison/breadth-continuation-independent-20260828/executor-v5-review/\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/\n?? tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md\n",
+  "indexNameStatus": "",
+  "successor": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v5",
+    "exists": true,
+    "trackedPathsOnly": [],
+    "contentsRead": false,
+    "firstObservedPresent": "2026-08-28T11:44:35Z",
+    "claimPreSuccessorAppearance": false
+  }
+}

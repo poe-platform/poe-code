@@ -1,0 +1,55 @@
+{
+  "run": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved",
+      "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--import",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/execution-prep-v1/load-guard.mjs",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/execution-prep-v1/literal-entry.mjs",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/manifest.json",
+      "c2baf2f4595fdf9080ee84eee2f3d83660be857c9ebdf90195805ed658affee0"
+    ],
+    "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved",
+    "started": "2026-08-28T08:09:37.995Z",
+    "finished": "2026-08-28T08:09:38.289Z",
+    "pid": 48171,
+    "code": 1,
+    "signal": null,
+    "spawnError": null,
+    "failure": null,
+    "groupAbsent": true,
+    "closeObserved": true,
+    "stdout": "{\"admission\":{\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"manifestSha256\":\"c2baf2f4595fdf9080ee84eee2f3d83660be857c9ebdf90195805ed658affee0\",\"runtimeSha256\":\"6441001391e091b0b893d0d0becd5805effb44a787f8428a46dd515a75ab792f\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/execution-prep-v1/literal-entry.mjs\",\"sha256\":\"ad100ca2cb691786a34922200a95587857cfe3633156d50c401527c92cffaaa4\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/worker.mjs\",\"sha256\":\"343f476ade71a38ca93aeebdc43ed610325085e923c9b89118e72e6ae2aa3d96\"}}\n",
+    "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- '5137a74ec855a32d8a8860eb66b62eb44d11e290'\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/worker.mjs:13:8\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/execution-prep-v1/literal-entry.mjs:2:1 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: '5137a74ec855a32d8a8860eb66b62eb44d11e290',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+    "bytes": 1534
+  },
+  "result": {
+    "coherent": false,
+    "accepted": false,
+    "mutantKilled": false,
+    "expected": 1,
+    "observed": 0,
+    "passed": 0,
+    "failed": [],
+    "errors": [
+      "missing/duplicate/unexpected observation",
+      "missing/duplicate summary",
+      "exit status contradicts body outcomes",
+      "required actual runtime load missing"
+    ],
+    "observations": [],
+    "loads": [
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/execution-prep-v1/literal-entry.mjs",
+        "sha256": "ad100ca2cb691786a34922200a95587857cfe3633156d50c401527c92cffaaa4"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/worker.mjs",
+        "sha256": "343f476ade71a38ca93aeebdc43ed610325085e923c9b89118e72e6ae2aa3d96"
+      }
+    ],
+    "activations": []
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "status": "static-only-pass",
+  "at": "2026-08-28T09:46:53.151Z",
+  "mode": "preclean",
+  "commit": "dc9c839c19c515156d984363a06154c87cc5aa39",
+  "groups": 18,
+  "checks": [
+    "V01-sealed-evidence-manifests",
+    "V02-prior49-immutable-append-aware",
+    "V03-raw-commit-tree-reachable265-source",
+    "V04-exact-mathematical-base-and-two-overrides",
+    "V05-all1247-original-raw-bytes",
+    "V06-all1124-new-raw-config-bytes",
+    "V07-independent-full846-package-members",
+    "V08-original414-actual-layout-receipts",
+    "V09-versioned84-receipts-no-S13-rescore",
+    "V10-strict30-types-diagnostics-inversions",
+    "V11-sixteen-valid-mechanisms-twelve-kills",
+    "V12-six-import-families-with20-actual-imports",
+    "V13-regression-failures-retained-and196-distinct-passes",
+    "V14-twentyfour-pinned-source-only-proof-anchors",
+    "V15-frozen138-dispositions-and77-defaults",
+    "V16-complete-raw-archive-before-scratch-cleanup",
+    "V17-current-authenticated-scratch-or-cleanup",
+    "V18-final-append-aware-owned-membership"
+  ],
+  "immutablePriorFiles": 49,
+  "originalRawFiles": 1247,
+  "newRawFilesAndConfigs": 1124,
+  "sourceInputs": 265,
+  "packageMembers": 846,
+  "candidateComposedTree": "099455f232870fa1ea59e1a0ae482e003fd170db",
+  "productExecutionByVerifier": 0,
+  "qualifications": [
+    "C06 equal-valued simultaneous root/escaping/local stack schedule not dynamically completed; existing unchanged-source provenance and scoped unit/public regressions support it but are not that observation",
+    "S13 original /bin/sh shebang unsupported in accepted LET and candidate; /bin/bash supplement is distinct",
+    "I24 private work, final flush, diagnostic ownership and masked8Mi display remain source-only; no fabricated runtime counters",
+    "Directory membership and file modes guarded before/after; directory modes added only to final archival/cleanup census, not retroclaimed per execution",
+    "Natural direct child close observed; no independent descendant process census or opaque host preemption guarantee",
+    "Post-source versioned adapters and controls never claimed original precode; no production fixes"
+  ]
+}

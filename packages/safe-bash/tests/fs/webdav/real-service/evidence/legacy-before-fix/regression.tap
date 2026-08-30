@@ -1,0 +1,174 @@
+TAP version 13
+# Subtest: default copyFile accepts the captured RFC2518 Apache grant without lockroot
+not ok 1 - default copyFile accepts the captured RFC2518 Apache grant without lockroot
+  ---
+  duration_ms: 14.256125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/legacy-lock.test.ts:1:2180'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: server did not grant a finite exclusive depth-infinity write lock, LOCK '/target'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    fail (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:41:9)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:846:11)
+    async <anonymous> (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:241:13)
+    async WebDavFileSystem.requestStream (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:306:9)
+    async WebDavFileSystem.request (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:240:22)
+    async WebDavFileSystem.withDestinationLock (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:824:7)
+    async WebDavFileSystem.transfer (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:804:5)
+    async WebDavFileSystem.copyFile (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:866:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/legacy-lock.test.ts:54:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: default rename accepts the captured RFC2518 Apache grant without lockroot
+not ok 2 - default rename accepts the captured RFC2518 Apache grant without lockroot
+  ---
+  duration_ms: 1.29275
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/legacy-lock.test.ts:1:2180'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: server did not grant a finite exclusive depth-infinity write lock, LOCK '/target'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    fail (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:41:9)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:846:11)
+    async <anonymous> (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:241:13)
+    async WebDavFileSystem.requestStream (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:306:9)
+    async WebDavFileSystem.request (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:240:22)
+    async WebDavFileSystem.withDestinationLock (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:824:7)
+    async WebDavFileSystem.transfer (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:804:5)
+    async WebDavFileSystem.rename (/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts:862:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/legacy-lock.test.ts:54:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+  ...
+# Subtest: an explicit matching modern lockroot remains accepted
+ok 3 - an explicit matching modern lockroot remains accepted
+  ---
+  duration_ms: 2.138334
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects wrong same-origin root before effects
+ok 4 - legacy compatibility rejects wrong same-origin root before effects
+  ---
+  duration_ms: 1.13075
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects foreign root before effects
+ok 5 - legacy compatibility rejects foreign root before effects
+  ---
+  duration_ms: 0.653208
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects out-of-scope root before effects
+ok 6 - legacy compatibility rejects out-of-scope root before effects
+  ---
+  duration_ms: 0.522584
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects explicit empty root before effects
+ok 7 - legacy compatibility rejects explicit empty root before effects
+  ---
+  duration_ms: 0.467292
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects root with foreign href before effects
+ok 8 - legacy compatibility rejects root with foreign href before effects
+  ---
+  duration_ms: 0.502792
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects duplicate root before effects
+ok 9 - legacy compatibility rejects duplicate root before effects
+  ---
+  duration_ms: 1.293333
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects shared before effects
+ok 10 - legacy compatibility rejects shared before effects
+  ---
+  duration_ms: 0.667167
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects wrong type before effects
+ok 11 - legacy compatibility rejects wrong type before effects
+  ---
+  duration_ms: 0.405708
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects depth zero before effects
+ok 12 - legacy compatibility rejects depth zero before effects
+  ---
+  duration_ms: 0.423958
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects infinite timeout before effects
+ok 13 - legacy compatibility rejects infinite timeout before effects
+  ---
+  duration_ms: 0.359875
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects zero timeout before effects
+ok 14 - legacy compatibility rejects zero timeout before effects
+  ---
+  duration_ms: 0.400791
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects token mismatch before effects
+ok 15 - legacy compatibility rejects token mismatch before effects
+  ---
+  duration_ms: 0.867792
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects unbracketed token before effects
+ok 16 - legacy compatibility rejects unbracketed token before effects
+  ---
+  duration_ms: 0.349542
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects missing token before effects
+ok 17 - legacy compatibility rejects missing token before effects
+  ---
+  duration_ms: 0.355
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects HTTP 201 without transfer
+ok 18 - legacy compatibility rejects HTTP 201 without transfer
+  ---
+  duration_ms: 0.354583
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects HTTP 207 without transfer
+ok 19 - legacy compatibility rejects HTTP 207 without transfer
+  ---
+  duration_ms: 0.691791
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects HTTP 302 without transfer
+ok 20 - legacy compatibility rejects HTTP 302 without transfer
+  ---
+  duration_ms: 0.257541
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects HTTP 423 without transfer
+ok 21 - legacy compatibility rejects HTTP 423 without transfer
+  ---
+  duration_ms: 0.366666
+  type: 'test'
+  ...
+# Subtest: legacy compatibility rejects a transport-changed response URL
+ok 22 - legacy compatibility rejects a transport-changed response URL
+  ---
+  duration_ms: 0.334916
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 20
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 222.800625

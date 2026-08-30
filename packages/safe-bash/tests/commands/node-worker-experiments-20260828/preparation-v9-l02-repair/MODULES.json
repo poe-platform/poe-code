@@ -1,0 +1,3779 @@
+{
+  "schema": "wrq-l02-repair-v9-importer-bound-composition",
+  "publicEntry": {
+    "name": "@poe-code/safejs/core",
+    "path": "compiled/engine/dist/core.js",
+    "status": "compiled-source-bound-not-runtime-qualified"
+  },
+  "files": [
+    {
+      "path": "ENGINE-PACKAGE.json.data",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a",
+      "roles": []
+    },
+    {
+      "path": "compiled/engine/dist/core.js",
+      "bytes": 165,
+      "sha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/error-codes.js",
+      "bytes": 380,
+      "sha256": "8ef9f6c15ab94c4545e81e33ab7f56cef4604f3035c85b344e11e0e1f410edac",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/error/shape.js",
+      "bytes": 4684,
+      "sha256": "5276a36e63131f7fa270188ede06a491230204de323c9e39f4e8874dbab9eacb",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/graph-depth.js",
+      "bytes": 3189,
+      "sha256": "16996539c9612405dc544b9cf9ac21c50fb588c4445f8956fea46aa0962b355b",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/arguments.js",
+      "bytes": 1926,
+      "sha256": "a946254930385dbd83a6d49a53ab703ff6f56ad834663d38f8ee0f2a021c7349",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/async.js",
+      "bytes": 9577,
+      "sha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/budget.js",
+      "bytes": 8584,
+      "sha256": "5379c5240faa9310253a22820229996f5c3e47865e509f99bece5fdc5dcf942a",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/cancel.js",
+      "bytes": 6106,
+      "sha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/exceptions.js",
+      "bytes": 15549,
+      "sha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/generator.js",
+      "bytes": 4629,
+      "sha256": "82048a59fe3e45bbc091ab4f32391ac630335861ab9beb21416997330892c26e",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/collections.js",
+      "bytes": 3774,
+      "sha256": "88ef1edce943130e884a7751b9200f6a5d215a11795e6a8a5f8660e7c5f3a349",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/console-json.js",
+      "bytes": 9671,
+      "sha256": "bcdfe5d0651a04a9d3344afe0eb1ede780ba0d56486b6f60ca7c1f5f9d87aae6",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/error.js",
+      "bytes": 2079,
+      "sha256": "5ec3d6755ede676a3af142a5ac2bbedfb851793321b182845b724e4335a51028",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/math.js",
+      "bytes": 2105,
+      "sha256": "1a102f3b7d6c67c9ea222e72f5304f1baaa62d14f550789e0449d18ff997a260",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/misc.js",
+      "bytes": 2137,
+      "sha256": "9655ed0db25a7e2be99c6f7d25e1cf5e03c18cc56b832ba77d18e89664683035",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/object-array.js",
+      "bytes": 9929,
+      "sha256": "db28b89e56fe3e8ca148fa8c906b7eb9b5c0b28f5a302141410662bb6f87bf5d",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/globals/regex.js",
+      "bytes": 317,
+      "sha256": "1fea1fe74bd7d445b397234b1f649cda37fa3c4b11aee3438772dd575825211c",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/host-bridge.js",
+      "bytes": 28892,
+      "sha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/host-call.js",
+      "bytes": 22060,
+      "sha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/interpreter.js",
+      "bytes": 89873,
+      "sha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/iteration.js",
+      "bytes": 2248,
+      "sha256": "38210e280e8096201f9c8140eceaf0f7ea139a289447e88f860929493ce1eee9",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/jobs.js",
+      "bytes": 2680,
+      "sha256": "99eb5ef2405fe14d17d50b354ee4a0bfbf1826d33ccdb9523aa02cc6e0b710c4",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/array.js",
+      "bytes": 20062,
+      "sha256": "1c2829f32e3f69eea0695863c0f0d7be23bb2728580c41503abb0644936e3d49",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/function.js",
+      "bytes": 1344,
+      "sha256": "5b86a98e4bd0ce1ae6f9969682553f8acaf618df568cd043da325d679acdc7fb",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/generator.js",
+      "bytes": 718,
+      "sha256": "8186701b9918ce484d58ec84a2cd9bf1aa4406f4a58292d8569b4a484770db3c",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/map.js",
+      "bytes": 2744,
+      "sha256": "57a1525ef623ddb9c249594012a76453888f9cf2760c52e5fada4c7e1ae02137",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/number.js",
+      "bytes": 2453,
+      "sha256": "d258acca285bcbda201c7fd94189e8b4a90a87c3ac9f2525ec60d146f903707d",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/regex.js",
+      "bytes": 1666,
+      "sha256": "01368bb129c97ade13af1ec43a6764f1fc02bc810ac2391785d6b2d1ba46f2bf",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/set.js",
+      "bytes": 2530,
+      "sha256": "c74586e2137d5e3e0e312807659d5090f8ff25cba994767a4549f52190971565",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/methods/string.js",
+      "bytes": 11311,
+      "sha256": "1022751636e73d936848935a2cc2c3863102afbbefce1fd1ff27c9cda5423590",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/patterns.js",
+      "bytes": 7577,
+      "sha256": "72c07adb4ba16c788230b0e696726e5728f4da96b1589e22847fe4f0eff7f053",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/promise-replay.js",
+      "bytes": 15785,
+      "sha256": "2c812f3f6a2eaca50a287307645200b50f837ec5b02f4a5929c2762b34101707",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/promise-tracker.js",
+      "bytes": 1839,
+      "sha256": "c5f9facc771b3c2efd6512593ad395039e424666e8ab40b054036f0c0c7f2669",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/promise.js",
+      "bytes": 13405,
+      "sha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/regex/engine.js",
+      "bytes": 9177,
+      "sha256": "693d2758fe6d278ac38751cde19ecb4bf8a050daa42d0e24e056eae190367c02",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/regex/parse.js",
+      "bytes": 11159,
+      "sha256": "bc5cd67be005150637d5fe657f846f5dd62b0c8d0c36dadc88960f456f2015d8",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/running-state.js",
+      "bytes": 1219,
+      "sha256": "e6cfc8f3e42d1422b0d8aa28c97e10d545250bb2a4c07bc9fd541cf30496cb5e",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/scope.js",
+      "bytes": 7345,
+      "sha256": "c1d4780c0ff46255077c0db3e63633932a6611c80e31741d466c213a352490ff",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/values.js",
+      "bytes": 20587,
+      "sha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/interp/var-hoist.js",
+      "bytes": 5190,
+      "sha256": "e4f19a664dd9ee5921e271a29b2518861e751c7ef20ef24d1643e9ba2b549a20",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint.js",
+      "bytes": 40,
+      "sha256": "64a00e32becd30dee81e4790dda0dd37b55df224cd021f172042561927f65095",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/index.js",
+      "bytes": 14807,
+      "sha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+      "bytes": 21598,
+      "sha256": "9e11747ac5828525aedabeb81d6192b3978d7a8a8d0dbf3c8c24a288693423a5",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+      "bytes": 9706,
+      "sha256": "bcdfd66dc56f5689eeebdb1c6b5cfe577bb4ca0f122132d51bc9ba24d3f574ae",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+      "bytes": 14741,
+      "sha256": "dea489073144d583b185563d88a17129930452c2ddf91a2fc95cb655faffe503",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+      "bytes": 14239,
+      "sha256": "68e712f1c46cd0449ebae256f77f2032e821bb6e086dc5252163340e588ad39f",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "bytes": 22233,
+      "sha256": "110a35370998c20d46d339ad27c50a6cac8140e7e6fdd38b759048b2a86c39da",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+      "bytes": 13829,
+      "sha256": "aa05b168c86d487fc375f5bf6880bb67f1e13ef4579806e0536276a41a6bc43d",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "bytes": 3275,
+      "sha256": "306106b7124aa126f23946c962ebd49abbb4edbd0c80c3fca200378395521a3f",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "bytes": 25599,
+      "sha256": "d0fa7778a69c32dfb9cde472e879ae205a51dc0fff14032e0a602212788d1a0d",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-large-literal.js",
+      "bytes": 12029,
+      "sha256": "49359fe538509b50342d5011f42beadc066e7e7c3c5d2d8296919dc3b51d6dbe",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-missing-async.js",
+      "bytes": 20385,
+      "sha256": "fea668a4d55ada887b6d329c86693720c9ca5cf39e7023e9531842cd0186c2ef",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+      "bytes": 17646,
+      "sha256": "f465ffd79899253083fe9436b3f5e1029c68b8310ab110c9235150c9a4400cd8",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-needless-template.js",
+      "bytes": 14245,
+      "sha256": "f41b7cf99a9baf7a9052d46591aaafa9a494059823dce27ab557632616d26a75",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "bytes": 13315,
+      "sha256": "a2aa4a600c6caf7c12d6747b9a2f8450c6d92ff1689571756380f5de1a08073d",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+      "bytes": 12551,
+      "sha256": "1604d5d91f11d72831fd424f9f128734c9c4e831cfb17a484f1ae86e43f04b3c",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-unreachable.js",
+      "bytes": 10269,
+      "sha256": "9176c95e2f96aee9ad59ad6adcd1eaa8c2c7dfc426252f3317fff2a82c0f2181",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS-unused-import.js",
+      "bytes": 22135,
+      "sha256": "148ae0fa99edbeab55424f7e1fbb3852f4a1a8beea6434f767c8036a05d1737c",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS001.js",
+      "bytes": 21928,
+      "sha256": "a3f9061233c2c957254681f544dd267612c0372c9848dcca43870afa68b207f3",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS003.js",
+      "bytes": 20355,
+      "sha256": "09ad2cb913f600a6a8038260fdb5f8bd5d69eaefe8ddaa1e56d6714229aba11e",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS004.js",
+      "bytes": 943,
+      "sha256": "493c0f87fc6e823a9108fd3c7c521ce689bcf750f51a88f51d0fd9937dc81d3b",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS005.js",
+      "bytes": 1456,
+      "sha256": "28c5722fa23253adfe2947ed044f67580027f3d9b33985d5fb451859cc430bd5",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS006-007.js",
+      "bytes": 21166,
+      "sha256": "e88b7277ee6d0defe9980d375af0798c155bd3d63d7efeb63667f288fe3778aa",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS008.js",
+      "bytes": 12053,
+      "sha256": "cc0adc7fbb0ea3d70dcb1ee2be78936b09afed976348b33b7aca8a96fabc37e6",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS009.js",
+      "bytes": 15987,
+      "sha256": "4ac73151cfe1a77812d5c3d6229d9a30db9bc16ebb81bee0a852c8b703644d97",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS010.js",
+      "bytes": 22441,
+      "sha256": "cdd6d668c5a19a83860e52ce81010c80e83c35bfcf4b93b607f959e10fe435e9",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS011.js",
+      "bytes": 11276,
+      "sha256": "eee4a4494f198637bb85e03a1b583893803db0de6f866a3e85e22a8d83a755f2",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS013.js",
+      "bytes": 2840,
+      "sha256": "cfc77b0d6ea41deb2fe2fc8d94949dc0cb90a6da97377a236a4525393640fa7b",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/AS015.js",
+      "bytes": 10802,
+      "sha256": "4c3bd61ffb05ce89d9aa0c3bf36daf75c6001d9cd9e55e629f1149e510c6e6ac",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/known-globals.js",
+      "bytes": 398,
+      "sha256": "34da3b4c2fe23900c52aa0afffa13b6c569820beb826fcc2b485cf7b79940e26",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/lint/rules/module-registry.js",
+      "bytes": 4135,
+      "sha256": "d4cb50437700fd7624551c5262106308bb3d896048ee26ba0e1cce89a85b3587",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/modules/registry.js",
+      "bytes": 4956,
+      "sha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/observability/otel.js",
+      "bytes": 2556,
+      "sha256": "207fcb25c59c7da36bc8e993c9306ca714e7ad46d5fdd60d2f5f7f21299d0b9c",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/parse.js",
+      "bytes": 66,
+      "sha256": "d3ec3eaf7b687ba81d0103d8daae97a1de4db433be83ddf1f830d0725ebf6549",
+      "roles": []
+    },
+    {
+      "path": "compiled/engine/dist/parse/assign-ids.js",
+      "bytes": 3010,
+      "sha256": "8079e0f14c170b1f1aeedf49568c841772ffd60014b04491a55ebd45c63784bf",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/parse/format-error.js",
+      "bytes": 6922,
+      "sha256": "34208a971171e4c3b5878f7db8295288053d5db221668a6877c44de441bdeae3",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/parse/hash.js",
+      "bytes": 2846,
+      "sha256": "4a778ac7e62e5593dcf491968ea8905a331f680edd7a5254531a9847627d9be3",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/parse/parse-export.js",
+      "bytes": 2161,
+      "sha256": "77d80fe4763e3975bab687b773c8976d4fe7e7eaff73debdf10c275585f427b8",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/parse/parse-import-meta.js",
+      "bytes": 948,
+      "sha256": "07d443545ea0b2c6687b33aad3f5d6908f1d768742cc5671b07545aaed5898dc",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/parse/parser.js",
+      "bytes": 131417,
+      "sha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/parse/tokenizer.js",
+      "bytes": 31558,
+      "sha256": "33d268af0338dde0abe423eea1078b93cf2f28611e008b0f207f7becacc0b8cf",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/random.js",
+      "bytes": 998,
+      "sha256": "9710011b510a74a5ff991f03cff32bfdbf2e1e83937d3228aa68512b2cd2596b",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/restore.js",
+      "bytes": 1627,
+      "sha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/run.js",
+      "bytes": 23493,
+      "sha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/arguments.js",
+      "bytes": 1442,
+      "sha256": "c2f9617cdb99204dd05817379f68ad149e3c2cb6f552a2aa64d1fb1c036fe475",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/backend.js",
+      "bytes": 5485,
+      "sha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/dump-format.js",
+      "bytes": 6985,
+      "sha256": "2a3041a933418152dfbf3a1335b216ac9a8fe27304c105539baf2398b05b4dca",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/dump.js",
+      "bytes": 5871,
+      "sha256": "897b4206d49228f08ce251f97bb952ffbe1cc14dd83a68206c6a145e166ecd6b",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/policy.js",
+      "bytes": 5109,
+      "sha256": "6220531e03288996671b95777d32005c19342167d0c766057b177204b619a75b",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/replay-data.js",
+      "bytes": 13059,
+      "sha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/replay-inputs.js",
+      "bytes": 4897,
+      "sha256": "32a77265b9824363873ff0c009e6441c754fa415c7c9d069edf4f6e356ceafea",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/scheduler.js",
+      "bytes": 2495,
+      "sha256": "fdd379446ff76b1493877f27f9750b0a2aab210604e7b5fcfce387d09d7013dc",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/serialize.js",
+      "bytes": 11838,
+      "sha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/engine/dist/snapshot/validation.js",
+      "bytes": 28147,
+      "sha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "compiled/support/errors.js",
+      "bytes": 3191,
+      "sha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "errors.mjs",
+      "bytes": 2278,
+      "sha256": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "path": "fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "heap-worker.mjs",
+      "bytes": 418,
+      "sha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "path": "json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "path": "load-attestation.mjs",
+      "bytes": 962,
+      "sha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "load-guard.mjs",
+      "bytes": 2602,
+      "sha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "path": "outcome-judge.mjs",
+      "bytes": 6605,
+      "sha256": "437e3422d7e7d370bb05791fcc375397a8ac7a0e6fe283bb94508674016ffd65",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "parent-entry.mjs",
+      "bytes": 3433,
+      "sha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "scaffold.guest.js.data",
+      "bytes": 7000,
+      "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 6942,
+      "sha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "sync-bridge.mjs",
+      "bytes": 4769,
+      "sha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "path": "worker-body.mjs",
+      "bytes": 2232,
+      "sha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "worker-entry.mjs",
+      "bytes": 297,
+      "sha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "worker-permissions.mjs",
+      "bytes": 1261,
+      "sha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "importer": "compiled/engine/dist/core.js",
+      "importerSha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852",
+      "specifier": "./interp/budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/core.js",
+      "importerSha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852",
+      "specifier": "./lint.js",
+      "target": "compiled/engine/dist/lint.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/core.js",
+      "importerSha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852",
+      "specifier": "./random.js",
+      "target": "compiled/engine/dist/random.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/core.js",
+      "importerSha256": "ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852",
+      "specifier": "./run.js",
+      "target": "compiled/engine/dist/run.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/graph-depth.js",
+      "importerSha256": "16996539c9612405dc544b9cf9ac21c50fb588c4445f8956fea46aa0962b355b",
+      "specifier": "./error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/graph-depth.js",
+      "importerSha256": "16996539c9612405dc544b9cf9ac21c50fb588c4445f8956fea46aa0962b355b",
+      "specifier": "./interp/arguments.js",
+      "target": "compiled/engine/dist/interp/arguments.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/graph-depth.js",
+      "importerSha256": "16996539c9612405dc544b9cf9ac21c50fb588c4445f8956fea46aa0962b355b",
+      "specifier": "./interp/budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/async.js",
+      "importerSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "specifier": "../observability/otel.js",
+      "target": "compiled/engine/dist/observability/otel.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/async.js",
+      "importerSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "specifier": "./cancel.js",
+      "target": "compiled/engine/dist/interp/cancel.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/async.js",
+      "importerSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "specifier": "./generator.js",
+      "target": "compiled/engine/dist/interp/generator.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/async.js",
+      "importerSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "specifier": "./jobs.js",
+      "target": "compiled/engine/dist/interp/jobs.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/async.js",
+      "importerSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "specifier": "./patterns.js",
+      "target": "compiled/engine/dist/interp/patterns.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/async.js",
+      "importerSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "specifier": "./promise.js",
+      "target": "compiled/engine/dist/interp/promise.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/async.js",
+      "importerSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/async.js",
+      "importerSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1",
+      "specifier": "./var-hoist.js",
+      "target": "compiled/engine/dist/interp/var-hoist.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/budget.js",
+      "importerSha256": "5379c5240faa9310253a22820229996f5c3e47865e509f99bece5fdc5dcf942a",
+      "specifier": "../error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/cancel.js",
+      "importerSha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068",
+      "specifier": "../error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/cancel.js",
+      "importerSha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068",
+      "specifier": "./promise-tracker.js",
+      "target": "compiled/engine/dist/interp/promise-tracker.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/cancel.js",
+      "importerSha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068",
+      "specifier": "./promise.js",
+      "target": "compiled/engine/dist/interp/promise.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/cancel.js",
+      "importerSha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/exceptions.js",
+      "importerSha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970",
+      "specifier": "../error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/exceptions.js",
+      "importerSha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970",
+      "specifier": "./budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/exceptions.js",
+      "importerSha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970",
+      "specifier": "./host-call.js",
+      "target": "compiled/engine/dist/interp/host-call.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/exceptions.js",
+      "importerSha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/generator.js",
+      "importerSha256": "82048a59fe3e45bbc091ab4f32391ac630335861ab9beb21416997330892c26e",
+      "specifier": "./running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/collections.js",
+      "importerSha256": "88ef1edce943130e884a7751b9200f6a5d215a11795e6a8a5f8660e7c5f3a349",
+      "specifier": "../iteration.js",
+      "target": "compiled/engine/dist/interp/iteration.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/collections.js",
+      "importerSha256": "88ef1edce943130e884a7751b9200f6a5d215a11795e6a8a5f8660e7c5f3a349",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/console-json.js",
+      "importerSha256": "bcdfe5d0651a04a9d3344afe0eb1ede780ba0d56486b6f60ca7c1f5f9d87aae6",
+      "specifier": "../host-bridge.js",
+      "target": "compiled/engine/dist/interp/host-bridge.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/console-json.js",
+      "importerSha256": "bcdfe5d0651a04a9d3344afe0eb1ede780ba0d56486b6f60ca7c1f5f9d87aae6",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/error.js",
+      "importerSha256": "5ec3d6755ede676a3af142a5ac2bbedfb851793321b182845b724e4335a51028",
+      "specifier": "../exceptions.js",
+      "target": "compiled/engine/dist/interp/exceptions.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/error.js",
+      "importerSha256": "5ec3d6755ede676a3af142a5ac2bbedfb851793321b182845b724e4335a51028",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/math.js",
+      "importerSha256": "1a102f3b7d6c67c9ea222e72f5304f1baaa62d14f550789e0449d18ff997a260",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/misc.js",
+      "importerSha256": "9655ed0db25a7e2be99c6f7d25e1cf5e03c18cc56b832ba77d18e89664683035",
+      "specifier": "../../graph-depth.js",
+      "target": "compiled/engine/dist/graph-depth.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/misc.js",
+      "importerSha256": "9655ed0db25a7e2be99c6f7d25e1cf5e03c18cc56b832ba77d18e89664683035",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/object-array.js",
+      "importerSha256": "db28b89e56fe3e8ca148fa8c906b7eb9b5c0b28f5a302141410662bb6f87bf5d",
+      "specifier": "../iteration.js",
+      "target": "compiled/engine/dist/interp/iteration.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/object-array.js",
+      "importerSha256": "db28b89e56fe3e8ca148fa8c906b7eb9b5c0b28f5a302141410662bb6f87bf5d",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/globals/regex.js",
+      "importerSha256": "1fea1fe74bd7d445b397234b1f649cda37fa3c4b11aee3438772dd575825211c",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "../error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "../observability/otel.js",
+      "target": "compiled/engine/dist/observability/otel.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "../snapshot/replay-data.js",
+      "target": "compiled/engine/dist/snapshot/replay-data.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "./async.js",
+      "target": "compiled/engine/dist/interp/async.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "./budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "./exceptions.js",
+      "target": "compiled/engine/dist/interp/exceptions.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "./host-call.js",
+      "target": "compiled/engine/dist/interp/host-call.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "./promise-replay.js",
+      "target": "compiled/engine/dist/interp/promise-replay.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "./running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-bridge.js",
+      "importerSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-call.js",
+      "importerSha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784",
+      "specifier": "../snapshot/policy.js",
+      "target": "compiled/engine/dist/snapshot/policy.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-call.js",
+      "importerSha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784",
+      "specifier": "../snapshot/replay-data.js",
+      "target": "compiled/engine/dist/snapshot/replay-data.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-call.js",
+      "importerSha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784",
+      "specifier": "../snapshot/validation.js",
+      "target": "compiled/engine/dist/snapshot/validation.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-call.js",
+      "importerSha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/host-call.js",
+      "importerSha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784",
+      "specifier": "node:crypto",
+      "target": "node:crypto",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "../error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./async.js",
+      "target": "compiled/engine/dist/interp/async.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./exceptions.js",
+      "target": "compiled/engine/dist/interp/exceptions.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./globals/collections.js",
+      "target": "compiled/engine/dist/interp/globals/collections.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./globals/error.js",
+      "target": "compiled/engine/dist/interp/globals/error.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./host-call.js",
+      "target": "compiled/engine/dist/interp/host-call.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./iteration.js",
+      "target": "compiled/engine/dist/interp/iteration.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./jobs.js",
+      "target": "compiled/engine/dist/interp/jobs.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./methods/array.js",
+      "target": "compiled/engine/dist/interp/methods/array.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./methods/function.js",
+      "target": "compiled/engine/dist/interp/methods/function.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./methods/generator.js",
+      "target": "compiled/engine/dist/interp/methods/generator.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./methods/map.js",
+      "target": "compiled/engine/dist/interp/methods/map.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./methods/number.js",
+      "target": "compiled/engine/dist/interp/methods/number.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./methods/regex.js",
+      "target": "compiled/engine/dist/interp/methods/regex.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./methods/set.js",
+      "target": "compiled/engine/dist/interp/methods/set.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./methods/string.js",
+      "target": "compiled/engine/dist/interp/methods/string.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./patterns.js",
+      "target": "compiled/engine/dist/interp/patterns.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./promise-replay.js",
+      "target": "compiled/engine/dist/interp/promise-replay.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./promise.js",
+      "target": "compiled/engine/dist/interp/promise.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./scope.js",
+      "target": "compiled/engine/dist/interp/scope.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./scope.js",
+      "target": "compiled/engine/dist/interp/scope.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/interpreter.js",
+      "importerSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177",
+      "specifier": "./var-hoist.js",
+      "target": "compiled/engine/dist/interp/var-hoist.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/iteration.js",
+      "importerSha256": "38210e280e8096201f9c8140eceaf0f7ea139a289447e88f860929493ce1eee9",
+      "specifier": "./running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/iteration.js",
+      "importerSha256": "38210e280e8096201f9c8140eceaf0f7ea139a289447e88f860929493ce1eee9",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/jobs.js",
+      "importerSha256": "99eb5ef2405fe14d17d50b354ee4a0bfbf1826d33ccdb9523aa02cc6e0b710c4",
+      "specifier": "node:async_hooks",
+      "target": "node:async_hooks",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/array.js",
+      "importerSha256": "1c2829f32e3f69eea0695863c0f0d7be23bb2728580c41503abb0644936e3d49",
+      "specifier": "../running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/array.js",
+      "importerSha256": "1c2829f32e3f69eea0695863c0f0d7be23bb2728580c41503abb0644936e3d49",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/function.js",
+      "importerSha256": "5b86a98e4bd0ce1ae6f9969682553f8acaf618df568cd043da325d679acdc7fb",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/generator.js",
+      "importerSha256": "8186701b9918ce484d58ec84a2cd9bf1aa4406f4a58292d8569b4a484770db3c",
+      "specifier": "../iteration.js",
+      "target": "compiled/engine/dist/interp/iteration.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/generator.js",
+      "importerSha256": "8186701b9918ce484d58ec84a2cd9bf1aa4406f4a58292d8569b4a484770db3c",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/map.js",
+      "importerSha256": "57a1525ef623ddb9c249594012a76453888f9cf2760c52e5fada4c7e1ae02137",
+      "specifier": "../running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/map.js",
+      "importerSha256": "57a1525ef623ddb9c249594012a76453888f9cf2760c52e5fada4c7e1ae02137",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/number.js",
+      "importerSha256": "d258acca285bcbda201c7fd94189e8b4a90a87c3ac9f2525ec60d146f903707d",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/regex.js",
+      "importerSha256": "01368bb129c97ade13af1ec43a6764f1fc02bc810ac2391785d6b2d1ba46f2bf",
+      "specifier": "../regex/engine.js",
+      "target": "compiled/engine/dist/interp/regex/engine.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/regex.js",
+      "importerSha256": "01368bb129c97ade13af1ec43a6764f1fc02bc810ac2391785d6b2d1ba46f2bf",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/set.js",
+      "importerSha256": "c74586e2137d5e3e0e312807659d5090f8ff25cba994767a4549f52190971565",
+      "specifier": "../running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/set.js",
+      "importerSha256": "c74586e2137d5e3e0e312807659d5090f8ff25cba994767a4549f52190971565",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/string.js",
+      "importerSha256": "1022751636e73d936848935a2cc2c3863102afbbefce1fd1ff27c9cda5423590",
+      "specifier": "../regex/engine.js",
+      "target": "compiled/engine/dist/interp/regex/engine.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/string.js",
+      "importerSha256": "1022751636e73d936848935a2cc2c3863102afbbefce1fd1ff27c9cda5423590",
+      "specifier": "../values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/methods/string.js",
+      "importerSha256": "1022751636e73d936848935a2cc2c3863102afbbefce1fd1ff27c9cda5423590",
+      "specifier": "./regex.js",
+      "target": "compiled/engine/dist/interp/methods/regex.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/patterns.js",
+      "importerSha256": "72c07adb4ba16c788230b0e696726e5728f4da96b1589e22847fe4f0eff7f053",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise-replay.js",
+      "importerSha256": "2c812f3f6a2eaca50a287307645200b50f837ec5b02f4a5929c2762b34101707",
+      "specifier": "../snapshot/validation.js",
+      "target": "compiled/engine/dist/snapshot/validation.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise-replay.js",
+      "importerSha256": "2c812f3f6a2eaca50a287307645200b50f837ec5b02f4a5929c2762b34101707",
+      "specifier": "node:async_hooks",
+      "target": "node:async_hooks",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise-tracker.js",
+      "importerSha256": "c5f9facc771b3c2efd6512593ad395039e424666e8ab40b054036f0c0c7f2669",
+      "specifier": "node:async_hooks",
+      "target": "node:async_hooks",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise.js",
+      "importerSha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887",
+      "specifier": "./exceptions.js",
+      "target": "compiled/engine/dist/interp/exceptions.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise.js",
+      "importerSha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887",
+      "specifier": "./jobs.js",
+      "target": "compiled/engine/dist/interp/jobs.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise.js",
+      "importerSha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887",
+      "specifier": "./promise-tracker.js",
+      "target": "compiled/engine/dist/interp/promise-tracker.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise.js",
+      "importerSha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887",
+      "specifier": "./values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/regex/engine.js",
+      "importerSha256": "693d2758fe6d278ac38751cde19ecb4bf8a050daa42d0e24e056eae190367c02",
+      "specifier": "../budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/running-state.js",
+      "importerSha256": "e6cfc8f3e42d1422b0d8aa28c97e10d545250bb2a4c07bc9fd541cf30496cb5e",
+      "specifier": "./budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/values.js",
+      "importerSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "specifier": "../graph-depth.js",
+      "target": "compiled/engine/dist/graph-depth.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/values.js",
+      "importerSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "specifier": "../observability/otel.js",
+      "target": "compiled/engine/dist/observability/otel.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/values.js",
+      "importerSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "specifier": "./arguments.js",
+      "target": "compiled/engine/dist/interp/arguments.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/values.js",
+      "importerSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "specifier": "./arguments.js",
+      "target": "compiled/engine/dist/interp/arguments.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/values.js",
+      "importerSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "specifier": "./budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/values.js",
+      "importerSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "specifier": "./promise-replay.js",
+      "target": "compiled/engine/dist/interp/promise-replay.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/values.js",
+      "importerSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "specifier": "./promise-tracker.js",
+      "target": "compiled/engine/dist/interp/promise-tracker.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/values.js",
+      "importerSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb",
+      "specifier": "./regex/parse.js",
+      "target": "compiled/engine/dist/interp/regex/parse.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint.js",
+      "importerSha256": "64a00e32becd30dee81e4790dda0dd37b55df224cd021f172042561927f65095",
+      "specifier": "./lint/index.js",
+      "target": "compiled/engine/dist/lint/index.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "../parse/tokenizer.js",
+      "target": "compiled/engine/dist/parse/tokenizer.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-async-not-needed.js",
+      "target": "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-await-non-promise.js",
+      "target": "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-destructure-null-default.js",
+      "target": "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-export-import-meta.js",
+      "target": "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-floating-promise.js",
+      "target": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-frontmatter-field-unused.js",
+      "target": "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-import-cycle.js",
+      "target": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-jsdoc-type.js",
+      "target": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-large-literal.js",
+      "target": "compiled/engine/dist/lint/rules/AS-large-literal.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-missing-async.js",
+      "target": "compiled/engine/dist/lint/rules/AS-missing-async.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-mutating-frozen.js",
+      "target": "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-needless-template.js",
+      "target": "compiled/engine/dist/lint/rules/AS-needless-template.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-shadow-global.js",
+      "target": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-unbounded-loop.js",
+      "target": "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-unreachable.js",
+      "target": "compiled/engine/dist/lint/rules/AS-unreachable.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS-unused-import.js",
+      "target": "compiled/engine/dist/lint/rules/AS-unused-import.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS001.js",
+      "target": "compiled/engine/dist/lint/rules/AS001.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS003.js",
+      "target": "compiled/engine/dist/lint/rules/AS003.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS004.js",
+      "target": "compiled/engine/dist/lint/rules/AS004.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS005.js",
+      "target": "compiled/engine/dist/lint/rules/AS005.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS006-007.js",
+      "target": "compiled/engine/dist/lint/rules/AS006-007.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS008.js",
+      "target": "compiled/engine/dist/lint/rules/AS008.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS009.js",
+      "target": "compiled/engine/dist/lint/rules/AS009.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS010.js",
+      "target": "compiled/engine/dist/lint/rules/AS010.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS011.js",
+      "target": "compiled/engine/dist/lint/rules/AS011.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS013.js",
+      "target": "compiled/engine/dist/lint/rules/AS013.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/index.js",
+      "importerSha256": "16f4500ea061f3c241309b6ce25be3dc2ee25e3b6b5e52d3ca2d2a44981a2068",
+      "specifier": "./rules/AS015.js",
+      "target": "compiled/engine/dist/lint/rules/AS015.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+      "importerSha256": "9e11747ac5828525aedabeb81d6192b3978d7a8a8d0dbf3c8c24a288693423a5",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+      "importerSha256": "bcdfd66dc56f5689eeebdb1c6b5cfe577bb4ca0f122132d51bc9ba24d3f574ae",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+      "importerSha256": "dea489073144d583b185563d88a17129930452c2ddf91a2fc95cb655faffe503",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+      "importerSha256": "68e712f1c46cd0449ebae256f77f2032e821bb6e086dc5252163340e588ad39f",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "importerSha256": "110a35370998c20d46d339ad27c50a6cac8140e7e6fdd38b759048b2a86c39da",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+      "importerSha256": "110a35370998c20d46d339ad27c50a6cac8140e7e6fdd38b759048b2a86c39da",
+      "specifier": "./module-registry.js",
+      "target": "compiled/engine/dist/lint/rules/module-registry.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+      "importerSha256": "aa05b168c86d487fc375f5bf6880bb67f1e13ef4579806e0536276a41a6bc43d",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "importerSha256": "306106b7124aa126f23946c962ebd49abbb4edbd0c80c3fca200378395521a3f",
+      "specifier": "../../parse/format-error.js",
+      "target": "compiled/engine/dist/parse/format-error.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "importerSha256": "306106b7124aa126f23946c962ebd49abbb4edbd0c80c3fca200378395521a3f",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+      "importerSha256": "306106b7124aa126f23946c962ebd49abbb4edbd0c80c3fca200378395521a3f",
+      "specifier": "./module-registry.js",
+      "target": "compiled/engine/dist/lint/rules/module-registry.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "importerSha256": "d0fa7778a69c32dfb9cde472e879ae205a51dc0fff14032e0a602212788d1a0d",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+      "importerSha256": "d0fa7778a69c32dfb9cde472e879ae205a51dc0fff14032e0a602212788d1a0d",
+      "specifier": "./module-registry.js",
+      "target": "compiled/engine/dist/lint/rules/module-registry.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-large-literal.js",
+      "importerSha256": "49359fe538509b50342d5011f42beadc066e7e7c3c5d2d8296919dc3b51d6dbe",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-missing-async.js",
+      "importerSha256": "fea668a4d55ada887b6d329c86693720c9ca5cf39e7023e9531842cd0186c2ef",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+      "importerSha256": "f465ffd79899253083fe9436b3f5e1029c68b8310ab110c9235150c9a4400cd8",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-needless-template.js",
+      "importerSha256": "f41b7cf99a9baf7a9052d46591aaafa9a494059823dce27ab557632616d26a75",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "importerSha256": "a2aa4a600c6caf7c12d6747b9a2f8450c6d92ff1689571756380f5de1a08073d",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+      "importerSha256": "a2aa4a600c6caf7c12d6747b9a2f8450c6d92ff1689571756380f5de1a08073d",
+      "specifier": "./known-globals.js",
+      "target": "compiled/engine/dist/lint/rules/known-globals.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+      "importerSha256": "1604d5d91f11d72831fd424f9f128734c9c4e831cfb17a484f1ae86e43f04b3c",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-unreachable.js",
+      "importerSha256": "9176c95e2f96aee9ad59ad6adcd1eaa8c2c7dfc426252f3317fff2a82c0f2181",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS-unused-import.js",
+      "importerSha256": "148ae0fa99edbeab55424f7e1fbb3852f4a1a8beea6434f767c8036a05d1737c",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS003.js",
+      "importerSha256": "09ad2cb913f600a6a8038260fdb5f8bd5d69eaefe8ddaa1e56d6714229aba11e",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS003.js",
+      "importerSha256": "09ad2cb913f600a6a8038260fdb5f8bd5d69eaefe8ddaa1e56d6714229aba11e",
+      "specifier": "./known-globals.js",
+      "target": "compiled/engine/dist/lint/rules/known-globals.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS004.js",
+      "importerSha256": "493c0f87fc6e823a9108fd3c7c521ce689bcf750f51a88f51d0fd9937dc81d3b",
+      "specifier": "./module-registry.js",
+      "target": "compiled/engine/dist/lint/rules/module-registry.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS005.js",
+      "importerSha256": "28c5722fa23253adfe2947ed044f67580027f3d9b33985d5fb451859cc430bd5",
+      "specifier": "./module-registry.js",
+      "target": "compiled/engine/dist/lint/rules/module-registry.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS006-007.js",
+      "importerSha256": "e88b7277ee6d0defe9980d375af0798c155bd3d63d7efeb63667f288fe3778aa",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS008.js",
+      "importerSha256": "cc0adc7fbb0ea3d70dcb1ee2be78936b09afed976348b33b7aca8a96fabc37e6",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS009.js",
+      "importerSha256": "4ac73151cfe1a77812d5c3d6229d9a30db9bc16ebb81bee0a852c8b703644d97",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS010.js",
+      "importerSha256": "cdd6d668c5a19a83860e52ce81010c80e83c35bfcf4b93b607f959e10fe435e9",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS011.js",
+      "importerSha256": "eee4a4494f198637bb85e03a1b583893803db0de6f866a3e85e22a8d83a755f2",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS013.js",
+      "importerSha256": "cfc77b0d6ea41deb2fe2fc8d94949dc0cb90a6da97377a236a4525393640fa7b",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS013.js",
+      "importerSha256": "cfc77b0d6ea41deb2fe2fc8d94949dc0cb90a6da97377a236a4525393640fa7b",
+      "specifier": "./module-registry.js",
+      "target": "compiled/engine/dist/lint/rules/module-registry.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/AS015.js",
+      "importerSha256": "4c3bd61ffb05ce89d9aa0c3bf36daf75c6001d9cd9e55e629f1149e510c6e6ac",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/lint/rules/module-registry.js",
+      "importerSha256": "d4cb50437700fd7624551c5262106308bb3d896048ee26ba0e1cce89a85b3587",
+      "specifier": "../../parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/modules/registry.js",
+      "importerSha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0",
+      "specifier": "../error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/modules/registry.js",
+      "importerSha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0",
+      "specifier": "../interp/cancel.js",
+      "target": "compiled/engine/dist/interp/cancel.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/modules/registry.js",
+      "importerSha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0",
+      "specifier": "../interp/host-bridge.js",
+      "target": "compiled/engine/dist/interp/host-bridge.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/modules/registry.js",
+      "importerSha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0",
+      "specifier": "../snapshot/policy.js",
+      "target": "compiled/engine/dist/snapshot/policy.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/parse.js",
+      "importerSha256": "d3ec3eaf7b687ba81d0103d8daae97a1de4db433be83ddf1f830d0725ebf6549",
+      "specifier": "./parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": []
+    },
+    {
+      "importer": "compiled/engine/dist/parse/format-error.js",
+      "importerSha256": "34208a971171e4c3b5878f7db8295288053d5db221668a6877c44de441bdeae3",
+      "specifier": "../error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/parse/hash.js",
+      "importerSha256": "4a778ac7e62e5593dcf491968ea8905a331f680edd7a5254531a9847627d9be3",
+      "specifier": "./parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/parse/parser.js",
+      "importerSha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436",
+      "specifier": "../interp/regex/parse.js",
+      "target": "compiled/engine/dist/interp/regex/parse.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/parse/parser.js",
+      "importerSha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436",
+      "specifier": "./assign-ids.js",
+      "target": "compiled/engine/dist/parse/assign-ids.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/parse/parser.js",
+      "importerSha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436",
+      "specifier": "./format-error.js",
+      "target": "compiled/engine/dist/parse/format-error.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/parse/parser.js",
+      "importerSha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436",
+      "specifier": "./parse-export.js",
+      "target": "compiled/engine/dist/parse/parse-export.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/parse/parser.js",
+      "importerSha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436",
+      "specifier": "./parse-import-meta.js",
+      "target": "compiled/engine/dist/parse/parse-import-meta.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/parse/parser.js",
+      "importerSha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436",
+      "specifier": "./tokenizer.js",
+      "target": "compiled/engine/dist/parse/tokenizer.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/random.js",
+      "importerSha256": "9710011b510a74a5ff991f03cff32bfdbf2e1e83937d3228aa68512b2cd2596b",
+      "specifier": "./interp/globals/math.js",
+      "target": "compiled/engine/dist/interp/globals/math.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/random.js",
+      "importerSha256": "9710011b510a74a5ff991f03cff32bfdbf2e1e83937d3228aa68512b2cd2596b",
+      "specifier": "node:crypto",
+      "target": "node:crypto",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/restore.js",
+      "importerSha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016",
+      "specifier": "./error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/restore.js",
+      "importerSha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016",
+      "specifier": "./interp/running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/restore.js",
+      "importerSha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016",
+      "specifier": "./parse/hash.js",
+      "target": "compiled/engine/dist/parse/hash.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/restore.js",
+      "importerSha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016",
+      "specifier": "./snapshot/dump-format.js",
+      "target": "compiled/engine/dist/snapshot/dump-format.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/restore.js",
+      "importerSha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016",
+      "specifier": "./snapshot/validation.js",
+      "target": "compiled/engine/dist/snapshot/validation.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/cancel.js",
+      "target": "compiled/engine/dist/interp/cancel.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/globals/collections.js",
+      "target": "compiled/engine/dist/interp/globals/collections.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/globals/console-json.js",
+      "target": "compiled/engine/dist/interp/globals/console-json.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/globals/error.js",
+      "target": "compiled/engine/dist/interp/globals/error.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/globals/math.js",
+      "target": "compiled/engine/dist/interp/globals/math.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/globals/misc.js",
+      "target": "compiled/engine/dist/interp/globals/misc.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/globals/object-array.js",
+      "target": "compiled/engine/dist/interp/globals/object-array.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/globals/regex.js",
+      "target": "compiled/engine/dist/interp/globals/regex.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/host-bridge.js",
+      "target": "compiled/engine/dist/interp/host-bridge.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/host-call.js",
+      "target": "compiled/engine/dist/interp/host-call.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/interpreter.js",
+      "target": "compiled/engine/dist/interp/interpreter.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/promise-replay.js",
+      "target": "compiled/engine/dist/interp/promise-replay.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/promise-tracker.js",
+      "target": "compiled/engine/dist/interp/promise-tracker.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/promise.js",
+      "target": "compiled/engine/dist/interp/promise.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/running-state.js",
+      "target": "compiled/engine/dist/interp/running-state.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./interp/values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./modules/registry.js",
+      "target": "compiled/engine/dist/modules/registry.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./observability/otel.js",
+      "target": "compiled/engine/dist/observability/otel.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./parse/hash.js",
+      "target": "compiled/engine/dist/parse/hash.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./parse/parser.js",
+      "target": "compiled/engine/dist/parse/parser.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./random.js",
+      "target": "compiled/engine/dist/random.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./restore.js",
+      "target": "compiled/engine/dist/restore.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./snapshot/dump-format.js",
+      "target": "compiled/engine/dist/snapshot/dump-format.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./snapshot/dump.js",
+      "target": "compiled/engine/dist/snapshot/dump.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./snapshot/replay-data.js",
+      "target": "compiled/engine/dist/snapshot/replay-data.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./snapshot/replay-inputs.js",
+      "target": "compiled/engine/dist/snapshot/replay-inputs.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./snapshot/scheduler.js",
+      "target": "compiled/engine/dist/snapshot/scheduler.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/run.js",
+      "importerSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8",
+      "specifier": "./snapshot/serialize.js",
+      "target": "compiled/engine/dist/snapshot/serialize.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/backend.js",
+      "importerSha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "specifier": "../error-codes.js",
+      "target": "compiled/engine/dist/error-codes.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/backend.js",
+      "importerSha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "specifier": "./dump-format.js",
+      "target": "compiled/engine/dist/snapshot/dump-format.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/backend.js",
+      "importerSha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "specifier": "node:crypto",
+      "target": "node:crypto",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/backend.js",
+      "importerSha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "specifier": "node:fs/promises",
+      "target": "node:fs/promises",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/backend.js",
+      "importerSha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "specifier": "node:path",
+      "target": "node:path",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/dump-format.js",
+      "importerSha256": "2a3041a933418152dfbf3a1335b216ac9a8fe27304c105539baf2398b05b4dca",
+      "specifier": "../graph-depth.js",
+      "target": "compiled/engine/dist/graph-depth.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/dump-format.js",
+      "importerSha256": "2a3041a933418152dfbf3a1335b216ac9a8fe27304c105539baf2398b05b4dca",
+      "specifier": "../interp/arguments.js",
+      "target": "compiled/engine/dist/interp/arguments.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/dump-format.js",
+      "importerSha256": "2a3041a933418152dfbf3a1335b216ac9a8fe27304c105539baf2398b05b4dca",
+      "specifier": "./arguments.js",
+      "target": "compiled/engine/dist/snapshot/arguments.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/dump.js",
+      "importerSha256": "897b4206d49228f08ce251f97bb952ffbe1cc14dd83a68206c6a145e166ecd6b",
+      "specifier": "../interp/budget.js",
+      "target": "compiled/engine/dist/interp/budget.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/dump.js",
+      "importerSha256": "897b4206d49228f08ce251f97bb952ffbe1cc14dd83a68206c6a145e166ecd6b",
+      "specifier": "./dump-format.js",
+      "target": "compiled/engine/dist/snapshot/dump-format.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/replay-data.js",
+      "importerSha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5",
+      "specifier": "../graph-depth.js",
+      "target": "compiled/engine/dist/graph-depth.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/replay-data.js",
+      "importerSha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5",
+      "specifier": "../interp/values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/replay-data.js",
+      "importerSha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5",
+      "specifier": "./arguments.js",
+      "target": "compiled/engine/dist/snapshot/arguments.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/replay-data.js",
+      "importerSha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5",
+      "specifier": "./validation.js",
+      "target": "compiled/engine/dist/snapshot/validation.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/replay-inputs.js",
+      "importerSha256": "32a77265b9824363873ff0c009e6441c754fa415c7c9d069edf4f6e356ceafea",
+      "specifier": "../interp/values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/replay-inputs.js",
+      "importerSha256": "32a77265b9824363873ff0c009e6441c754fa415c7c9d069edf4f6e356ceafea",
+      "specifier": "./replay-data.js",
+      "target": "compiled/engine/dist/snapshot/replay-data.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/scheduler.js",
+      "importerSha256": "fdd379446ff76b1493877f27f9750b0a2aab210604e7b5fcfce387d09d7013dc",
+      "specifier": "./backend.js",
+      "target": "compiled/engine/dist/snapshot/backend.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/serialize.js",
+      "importerSha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913",
+      "specifier": "../graph-depth.js",
+      "target": "compiled/engine/dist/graph-depth.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/serialize.js",
+      "importerSha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913",
+      "specifier": "../interp/values.js",
+      "target": "compiled/engine/dist/interp/values.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/serialize.js",
+      "importerSha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913",
+      "specifier": "../parse/hash.js",
+      "target": "compiled/engine/dist/parse/hash.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/serialize.js",
+      "importerSha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913",
+      "specifier": "./arguments.js",
+      "target": "compiled/engine/dist/snapshot/arguments.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/validation.js",
+      "importerSha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca",
+      "specifier": "../error/shape.js",
+      "target": "compiled/engine/dist/error/shape.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/validation.js",
+      "importerSha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca",
+      "specifier": "../graph-depth.js",
+      "target": "compiled/engine/dist/graph-depth.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/validation.js",
+      "importerSha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca",
+      "specifier": "./dump-format.js",
+      "target": "compiled/engine/dist/snapshot/dump-format.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/validation.js",
+      "importerSha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca",
+      "specifier": "node:util",
+      "target": "node:util",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/support/errors.js",
+      "importerSha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+      "specifier": "node:util",
+      "target": "node:util",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "errors.mjs",
+      "importerSha256": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c",
+      "specifier": "./wire.mjs",
+      "target": "wire.mjs",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "importer": "fixtures.mjs",
+      "importerSha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4",
+      "specifier": "./compiled/support/errors.js",
+      "target": "compiled/support/errors.js",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "heap-worker.mjs",
+      "importerSha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7",
+      "specifier": "./worker-permissions.mjs",
+      "target": "worker-permissions.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "heap-worker.mjs",
+      "importerSha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7",
+      "specifier": "node:worker_threads",
+      "target": "node:worker_threads",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "load-attestation.mjs",
+      "importerSha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67",
+      "specifier": "./receipt-schema.mjs",
+      "target": "receipt-schema.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "load-attestation.mjs",
+      "importerSha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67",
+      "specifier": "./wire.mjs",
+      "target": "wire.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "load-guard.mjs",
+      "importerSha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b",
+      "specifier": "./import-policy.mjs",
+      "target": "import-policy.mjs",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "importer": "load-guard.mjs",
+      "importerSha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b",
+      "specifier": "node:crypto",
+      "target": "node:crypto",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "importer": "load-guard.mjs",
+      "importerSha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b",
+      "specifier": "node:fs",
+      "target": "node:fs",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "importer": "load-guard.mjs",
+      "importerSha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b",
+      "specifier": "node:module",
+      "target": "node:module",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "importer": "load-guard.mjs",
+      "importerSha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b",
+      "specifier": "node:url",
+      "target": "node:url",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "importer": "outcome-judge.mjs",
+      "importerSha256": "437e3422d7e7d370bb05791fcc375397a8ac7a0e6fe283bb94508674016ffd65",
+      "specifier": "./receipt-schema.mjs",
+      "target": "receipt-schema.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "owner.mjs",
+      "importerSha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f",
+      "specifier": "./fixtures.mjs",
+      "target": "fixtures.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "owner.mjs",
+      "importerSha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f",
+      "specifier": "./wire.mjs",
+      "target": "wire.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "parent-entry.mjs",
+      "importerSha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75",
+      "specifier": "./load-guard.mjs",
+      "target": "load-guard.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "parent-entry.mjs",
+      "importerSha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75",
+      "specifier": "./outcome-judge.mjs",
+      "target": "outcome-judge.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "parent-entry.mjs",
+      "importerSha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75",
+      "specifier": "./supervisor.mjs",
+      "target": "supervisor.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "parent-entry.mjs",
+      "importerSha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75",
+      "specifier": "node:crypto",
+      "target": "node:crypto",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "parent-entry.mjs",
+      "importerSha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75",
+      "specifier": "node:fs",
+      "target": "node:fs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "parent-rpc.mjs",
+      "importerSha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b",
+      "specifier": "./errors.mjs",
+      "target": "errors.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "parent-rpc.mjs",
+      "importerSha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b",
+      "specifier": "./wire.mjs",
+      "target": "wire.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "receipt-schema.mjs",
+      "importerSha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957",
+      "specifier": "./wire.mjs",
+      "target": "wire.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "./fixtures.mjs",
+      "target": "fixtures.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "./load-attestation.mjs",
+      "target": "load-attestation.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "./owner.mjs",
+      "target": "owner.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "./parent-rpc.mjs",
+      "target": "parent-rpc.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "./reservations.mjs",
+      "target": "reservations.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "./wire.mjs",
+      "target": "wire.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "./worker-permissions.mjs",
+      "target": "worker-permissions.mjs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "node:crypto",
+      "target": "node:crypto",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "node:fs",
+      "target": "node:fs",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "supervisor.mjs",
+      "importerSha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae",
+      "specifier": "node:worker_threads",
+      "target": "node:worker_threads",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "importer": "sync-bridge.mjs",
+      "importerSha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497",
+      "specifier": "./errors.mjs",
+      "target": "errors.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "sync-bridge.mjs",
+      "importerSha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497",
+      "specifier": "./json-size.mjs",
+      "target": "json-size.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "sync-bridge.mjs",
+      "importerSha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497",
+      "specifier": "./wire.mjs",
+      "target": "wire.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "wire.mjs",
+      "importerSha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44",
+      "specifier": "./json-size.mjs",
+      "target": "json-size.mjs",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-body.mjs",
+      "importerSha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5",
+      "specifier": "./sync-bridge.mjs",
+      "target": "sync-bridge.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-body.mjs",
+      "importerSha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5",
+      "specifier": "./wire.mjs",
+      "target": "wire.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-body.mjs",
+      "importerSha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5",
+      "specifier": "@poe-code/safejs/core",
+      "target": "compiled/engine/dist/core.js",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-body.mjs",
+      "importerSha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5",
+      "specifier": "node:crypto",
+      "target": "node:crypto",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-body.mjs",
+      "importerSha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5",
+      "specifier": "node:fs",
+      "target": "node:fs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-body.mjs",
+      "importerSha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5",
+      "specifier": "node:worker_threads",
+      "target": "node:worker_threads",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-entry.mjs",
+      "importerSha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c",
+      "specifier": "./load-guard.mjs",
+      "target": "load-guard.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-entry.mjs",
+      "importerSha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c",
+      "specifier": "./worker-body.mjs",
+      "target": "worker-body.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-entry.mjs",
+      "importerSha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c",
+      "specifier": "./worker-permissions.mjs",
+      "target": "worker-permissions.mjs",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-permissions.mjs",
+      "importerSha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0",
+      "specifier": "node:fs",
+      "target": "node:fs",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "importer": "worker-permissions.mjs",
+      "importerSha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0",
+      "specifier": "node:url",
+      "target": "node:url",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    }
+  ],
+  "bootstrap": [
+    {
+      "path": "parent-entry.mjs",
+      "bytes": 3433,
+      "sha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75"
+    },
+    {
+      "path": "worker-entry.mjs",
+      "bytes": 297,
+      "sha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c"
+    },
+    {
+      "path": "heap-worker.mjs",
+      "bytes": 418,
+      "sha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7"
+    },
+    {
+      "path": "load-guard.mjs",
+      "bytes": 2602,
+      "sha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b"
+    },
+    {
+      "path": "import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    },
+    {
+      "path": "worker-permissions.mjs",
+      "bytes": 1261,
+      "sha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0"
+    }
+  ],
+  "engineReachable": [
+    "compiled/engine/dist/core.js",
+    "compiled/engine/dist/error-codes.js",
+    "compiled/engine/dist/error/shape.js",
+    "compiled/engine/dist/graph-depth.js",
+    "compiled/engine/dist/interp/arguments.js",
+    "compiled/engine/dist/interp/async.js",
+    "compiled/engine/dist/interp/budget.js",
+    "compiled/engine/dist/interp/cancel.js",
+    "compiled/engine/dist/interp/exceptions.js",
+    "compiled/engine/dist/interp/generator.js",
+    "compiled/engine/dist/interp/globals/collections.js",
+    "compiled/engine/dist/interp/globals/console-json.js",
+    "compiled/engine/dist/interp/globals/error.js",
+    "compiled/engine/dist/interp/globals/math.js",
+    "compiled/engine/dist/interp/globals/misc.js",
+    "compiled/engine/dist/interp/globals/object-array.js",
+    "compiled/engine/dist/interp/globals/regex.js",
+    "compiled/engine/dist/interp/host-bridge.js",
+    "compiled/engine/dist/interp/host-call.js",
+    "compiled/engine/dist/interp/interpreter.js",
+    "compiled/engine/dist/interp/iteration.js",
+    "compiled/engine/dist/interp/jobs.js",
+    "compiled/engine/dist/interp/methods/array.js",
+    "compiled/engine/dist/interp/methods/function.js",
+    "compiled/engine/dist/interp/methods/generator.js",
+    "compiled/engine/dist/interp/methods/map.js",
+    "compiled/engine/dist/interp/methods/number.js",
+    "compiled/engine/dist/interp/methods/regex.js",
+    "compiled/engine/dist/interp/methods/set.js",
+    "compiled/engine/dist/interp/methods/string.js",
+    "compiled/engine/dist/interp/patterns.js",
+    "compiled/engine/dist/interp/promise-replay.js",
+    "compiled/engine/dist/interp/promise-tracker.js",
+    "compiled/engine/dist/interp/promise.js",
+    "compiled/engine/dist/interp/regex/engine.js",
+    "compiled/engine/dist/interp/regex/parse.js",
+    "compiled/engine/dist/interp/running-state.js",
+    "compiled/engine/dist/interp/scope.js",
+    "compiled/engine/dist/interp/values.js",
+    "compiled/engine/dist/interp/var-hoist.js",
+    "compiled/engine/dist/lint.js",
+    "compiled/engine/dist/lint/index.js",
+    "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+    "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+    "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+    "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+    "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+    "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+    "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+    "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+    "compiled/engine/dist/lint/rules/AS-large-literal.js",
+    "compiled/engine/dist/lint/rules/AS-missing-async.js",
+    "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+    "compiled/engine/dist/lint/rules/AS-needless-template.js",
+    "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+    "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+    "compiled/engine/dist/lint/rules/AS-unreachable.js",
+    "compiled/engine/dist/lint/rules/AS-unused-import.js",
+    "compiled/engine/dist/lint/rules/AS001.js",
+    "compiled/engine/dist/lint/rules/AS003.js",
+    "compiled/engine/dist/lint/rules/AS004.js",
+    "compiled/engine/dist/lint/rules/AS005.js",
+    "compiled/engine/dist/lint/rules/AS006-007.js",
+    "compiled/engine/dist/lint/rules/AS008.js",
+    "compiled/engine/dist/lint/rules/AS009.js",
+    "compiled/engine/dist/lint/rules/AS010.js",
+    "compiled/engine/dist/lint/rules/AS011.js",
+    "compiled/engine/dist/lint/rules/AS013.js",
+    "compiled/engine/dist/lint/rules/AS015.js",
+    "compiled/engine/dist/lint/rules/known-globals.js",
+    "compiled/engine/dist/lint/rules/module-registry.js",
+    "compiled/engine/dist/modules/registry.js",
+    "compiled/engine/dist/observability/otel.js",
+    "compiled/engine/dist/parse/assign-ids.js",
+    "compiled/engine/dist/parse/format-error.js",
+    "compiled/engine/dist/parse/hash.js",
+    "compiled/engine/dist/parse/parse-export.js",
+    "compiled/engine/dist/parse/parse-import-meta.js",
+    "compiled/engine/dist/parse/parser.js",
+    "compiled/engine/dist/parse/tokenizer.js",
+    "compiled/engine/dist/random.js",
+    "compiled/engine/dist/restore.js",
+    "compiled/engine/dist/run.js",
+    "compiled/engine/dist/snapshot/arguments.js",
+    "compiled/engine/dist/snapshot/backend.js",
+    "compiled/engine/dist/snapshot/dump-format.js",
+    "compiled/engine/dist/snapshot/dump.js",
+    "compiled/engine/dist/snapshot/policy.js",
+    "compiled/engine/dist/snapshot/replay-data.js",
+    "compiled/engine/dist/snapshot/replay-inputs.js",
+    "compiled/engine/dist/snapshot/scheduler.js",
+    "compiled/engine/dist/snapshot/serialize.js",
+    "compiled/engine/dist/snapshot/validation.js"
+  ],
+  "format": "module",
+  "qualification": "One-line native non-DTO stack accessor exclusion; exact source overlay only. Original Worker L01 PASS/L02 FAIL preserved. No new Worker/engine load."
+}

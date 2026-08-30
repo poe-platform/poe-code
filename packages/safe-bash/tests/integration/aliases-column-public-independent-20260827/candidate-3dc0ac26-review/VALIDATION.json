@@ -1,0 +1,32 @@
+{
+  "date": "2026-08-27T17:43:17.866Z",
+  "checks": [
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/integration/aliases-column-public-independent-20260827/candidate-3dc0ac26-review/verify-evidence.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "tests/integration/aliases-column-public-independent-20260827/candidate-3dc0ac26-review/verify-evidence.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"status\":\"PASS capture authentication only\",\"files\":122,\"candidate\":\"3dc0ac26d681badfd4db6319f2630274095c3100\",\"exactPack\":\"994dca37308937059b1adacade54f24bd8227589ad65c46c7f4fb661c702c9d5\",\"originalDriverPack\":\"REJECTED mismatch preserved\",\"runtime\":\"56/56 exact + 56/56 original\",\"supplemental\":\"4/4\",\"frozenFilesUnchanged\":11,\"observedWorkerExits\":138,\"productExecutions\":0}\n",
+      "stderr": ""
+    }
+  ],
+  "ownedTemporaryRemoved": [
+    "/tmp/aliases-column-independent-20260827-IKr3Hl",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/aliases-column-public-freeze-dDzrTX"
+  ],
+  "cleanup": "Only these two uniquely created review directories removed after reversible capture authentication. Worker exits separately authenticated in raw evidence. No prior or foreign evidence removed.",
+  "originalFrozenFiles": "11 immutable originals verified unchanged; new evidence is append-only"
+}

@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "status": "STOP_NOT_READY_NO_ACTIVATION",
+  "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "transport": "46611a5b67ad7af276154421ac7f50dd536ec570",
+  "sourceManifestSha256": "84d53de2f9f0905caba16fcf728c324e3a325d72328bb733510371479d78119b",
+  "buildPresealSha256": "5c5d04fd30c17f1222bc126e3a6043f4c5200a9e220d561c1dc6082545056c9e",
+  "producerSha256": "471ac9f789315b23b67642cc0340acd00fe60460d4cd095fd64b8851b31c8e02",
+  "packageSha256": "fcf17fcb9682a8d3970f0ec3577807359ac03d437ad0d0f7e4fac36d1260f674",
+  "actual": {
+    "strictCompilerProcesses": 1,
+    "strictExit": 0,
+    "sourceModules": 12,
+    "emissions": 24,
+    "packageEntries": 25,
+    "packageTarBytes": 105472,
+    "packageCompressedBytes": 17324,
+    "layouts": 3,
+    "installedMethod": "strict USTAR DATA materializer, not npm/full public package",
+    "oldMoveOriginAbsent": true,
+    "DATAcontrols": 14,
+    "DATAcontrolsPassed": 14,
+    "DATAhelperProcesses": 4,
+    "finalDATAhelperExit": 1,
+    "finalFailure": "future fixture syntax diagnostics; exact diagnostic rows not retained by helper",
+    "syntaxTextsPlanned": 28,
+    "syntaxPassedClaim": false,
+    "productImports": 0,
+    "Workers": 0,
+    "engineMatching": 0
+  },
+  "proposedOnly": {
+    "originalFamilies": 32,
+    "originalIdentities": 60,
+    "eligibleIdentities": 47,
+    "blockedIdentities": 13,
+    "cells": 135,
+    "perLayoutCells": 45,
+    "WorkerCeiling": 111,
+    "peakWorkerThreads": 1,
+    "caseOSChildren": 135,
+    "ownerOSChildren": 1,
+    "adminReservation": 10,
+    "knownOSCeiling": 146,
+    "wallMilliseconds": 1800000,
+    "captureBytes": 67108864,
+    "workBytes": 268435456,
+    "derivation": "135 sequential cases x10s =1350s +450s materialization/TERM2s/KILL/retirement/archive/publication reservation; max1 Worker/case, 24 no-Worker cells ->111. Case capture <=64KiB stdout+64KiB stderr+128KiB receipt+64KiB nested loads;135*320KiB +16MiB owner <64MiB. Worker ceilings do not bound native V8/libuv/helper OS threads or RSS."
+  },
+  "blockers": [
+    "Fourth DATA helper found syntax diagnostics but threw before publishing rows; exact offending input unknown, no re-execution or repair under exhausted four-helper allowance.",
+    "Self-contained campaign supervisor/per-case materializer, complete receipt reconciliation and final executable/tool/asset/grant seal are NOT implemented. No copyable actual campaign launch exists.",
+    "13 original roles cannot be satisfied by this private closure: nine runtime-integration variants, legacy Expr pin, two type-consumer variants, and a genuine native messageerror trigger. See CASE-MAPPING.json; do not rescore stand-ins.",
+    "Parent Worker wrapper, validator observation facade,23 static fault assets and child-bootstrap imports are SOURCE proposals only. No authority transfer or blanket loader approval."
+  ],
+  "retention": {
+    "allKnownProcessesClosedThroughSnapshot": 25,
+    "knownProcessesThroughSnapshot": 25,
+    "peakKnownIncludingExistingNodeReplOwner": 3,
+    "elapsedMilliseconds": 1415604,
+    "buildTools": "retained owned BUILD/work, no process active; final helper aborted before archive/census/cleanup. No unknown-tree deletion.",
+    "layouts": "retained owned LAYOUTS, package contents census already qualified by installer/DATA controls; not runtime proof",
+    "rawArchive": {
+      "file": "STOP-EVIDENCE.json.gz.base64.data",
+      "compressedBytes": 27943,
+      "compressedSha256": "ce821c2d37a12a800344d0bee0fbdd6162f05009b29c2f8486a1f2ae70ef54d9",
+      "decodedBytes": 169040,
+      "decodedSha256": "4e8c02ac35254e680b53fc617f5ea4826c604edd80f62abfabdbe028d93c714b",
+      "textBytes": 37261,
+      "textSha256": "44b7b90ea5265bb47f7ae5eee0a4c13e153a55ee8dff895acac60be654bb75b7",
+      "entries": 11
+    },
+    "publicationTail": "subsequent scoped patch/Git children separately observed/captured; not included in snapshot future claim"
+  },
+  "futureAuthority": {
+    "parentProductEdges": [
+      [
+        "ere/limits.js",
+        "node:timers/promises"
+      ],
+      [
+        "ere/transport/owner.js",
+        "node:worker_threads"
+      ],
+      [
+        "ere/transport/validation.js",
+        "node:util"
+      ]
+    ],
+    "workerProductEdges": [
+      [
+        "ere/limits.js",
+        "node:timers/promises"
+      ],
+      [
+        "ere/transport/validation.js",
+        "node:util"
+      ],
+      [
+        "ere/transport/worker-entry.js",
+        "node:worker_threads"
+      ]
+    ],
+    "parentWrapper": "exact owner importer only -> worker-bridge; real NativeWorker handles/events, not synthetic spawn/exit. L08 explicitly test-owner rescue, never subject-clean claim.",
+    "childBootstrap": "INSTRUMENTED entry only: node:fs/crypto/module/url/path + host exit handler, writes own adjacent child-loads.jsonl <=64KiB, imports renamed original entry; additional edge grant REQUIRED, not baseline nested-load proof.",
+    "unmodifiedChild": "Original env:{},execArgv:[],workerData operation/version, stdout/stderr true, oldgen128MiB/stack4MiB; parent synchronous hooks do not propagate into child.",
+    "permission": "No actual Node Worker permission/platform/physical-path/bootstrap admission qualified here. No trusted-host/Node-permission/global-confinement assumption is approved by this preparation.",
+    "core": "e013f817f not needed/read/edited; public/runtime integration remains separate"
+  },
+  "allOriginal60": "UNRUN"
+}

@@ -1,0 +1,1395 @@
+{
+  "at": "2026-08-27T05:08:10.798Z",
+  "source": {
+    "timestamp": "2026-08-27T05:08:10.454Z",
+    "anchor": "f1bb98b4ec8fd9cc198959e85f96e38880e72243",
+    "head": "3b27782db975ca95eac4bf3f881e1725a63bbcf7",
+    "runtimeCommit": "f1bb98b4ec8fd9cc198959e85f96e38880e72243",
+    "shell": {
+      "src/shell/arithmetic.ts": {
+        "actual": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "committed": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "matches": true
+      },
+      "src/shell/display.ts": {
+        "actual": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "committed": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "matches": true
+      },
+      "src/shell/index.ts": {
+        "actual": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "committed": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+        "matches": true
+      },
+      "src/shell/input.ts": {
+        "actual": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "committed": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+        "matches": true
+      },
+      "src/shell/locale.ts": {
+        "actual": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "committed": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "matches": true
+      },
+      "src/shell/parser.ts": {
+        "actual": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+        "committed": "feb6cbb2f03ec0c409adeb816bec506788fb3014a23c8dd02f4002362dc4b9f2",
+        "matches": true
+      },
+      "src/shell/pattern.ts": {
+        "actual": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "committed": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+        "matches": true
+      },
+      "src/shell/runtime.ts": {
+        "actual": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+        "committed": "e8f1edb842d04498050d314091269974df157b11ab13cabba41d9c84a0191538",
+        "matches": true
+      },
+      "src/shell/shell.ts": {
+        "actual": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "committed": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+        "matches": true
+      },
+      "src/shell/types.ts": {
+        "actual": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "committed": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+        "matches": true
+      }
+    },
+    "immutableDrift": [],
+    "status": "M tests/commands/stream-inspection-stress/README.md\n M tests/commands/stream-inspection-stress/evidence/artifact-hashes.json\n M tests/commands/stream-inspection-stress/tools/review-snapshot.mjs\n M tests/commands/stream-inspection-stress/tools/run-review.mjs\n M tests/commands/stream-inspection/numeric-syntax-oracle.ts\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/stream-inspection-stress/REVIEW.md\n?? tests/commands/stream-inspection-stress/evidence/SUMMARY.json\n?? tests/commands/stream-inspection-stress/evidence/initial-commit.json\n?? tests/commands/stream-inspection-stress/evidence/snapshot-2026-08-27T04-57-07-841Z/post-run-audit.json\n?? tests/commands/stream-inspection-stress/tools/audit-snapshot.mjs\n?? tests/commands/stream-inspection-stress/tools/check-evidence.mjs\n?? tests/commands/stream-inspection-stress/tools/summarize.mjs\n?? tests/commands/stream-inspection/evidence/FIXER-NUMERIC-SYNTAX.md\n?? tests/commands/stream-inspection/evidence/fixer-order-exploratory.json\n?? tests/commands/stream-inspection/evidence/fixer-validation-final.json\n?? tests/commands/stream-inspection/evidence/fixer-validation-first.json\n?? tests/commands/stream-inspection/fixer-verify.mjs\n?? tests/integration/safejs-current-independent/\n?? tests/shell-stress/kernel-reconciliation/ACCEPTANCE.md\n?? tests/shell-stress/kernel-reconciliation/ACCEPTANCE_ROWS.md\n?? tests/shell-stress/kernel-reconciliation/acceptance-audit.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-capture.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-compilers-f1bb98b.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-compilers.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-corrected72.tap\n?? tests/shell-stress/kernel-reconciliation/acceptance-f1bb98b.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-native36-f1bb98b.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-native36.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-native57-f1bb98b.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-native57.ts\n?? tests/shell-stress/kernel-reconciliation/acceptance-ready-proof.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-report.mjs\n?? tests/shell-stress/kernel-reconciliation/acceptance-rows.json\n?? tests/shell-stress/kernel-reconciliation/acceptance-support.mjs",
+    "staged": "",
+    "valid": true
+  },
+  "baselineCount": 18,
+  "baselineDrift": [],
+  "files": {
+    "tests/shell-stress/kernel-reconciliation/ACCEPTANCE.md": "83f43714cbf969e50639a01509e8788a76615e08fbb60da62f4127c4615d3250",
+    "tests/shell-stress/kernel-reconciliation/ACCEPTANCE_ROWS.md": "8bcabba5155b0b0aae0a54736d463bab186080fecb6958727b65dcc61238a227",
+    "tests/shell-stress/kernel-reconciliation/acceptance-audit.json": "bc44f2a6208bd61f761408b63aa165827936a163fd06a46b47a160492e992c4e",
+    "tests/shell-stress/kernel-reconciliation/acceptance-capture.mjs": "a038e4629d21abcf4621ca0f2329ec8695bc485340ea615fb30093434844ecc0",
+    "tests/shell-stress/kernel-reconciliation/acceptance-compilers-f1bb98b.json": "b088ebe93140033c393eb625be5ef3995c3dbf130d9a14e9aa530c48ebb5857d",
+    "tests/shell-stress/kernel-reconciliation/acceptance-compilers.mjs": "bab998bd631ff97ce0cf513f8e3a5102918d1ad98c3c8ef9260564ea3a190f79",
+    "tests/shell-stress/kernel-reconciliation/acceptance-corrected72.tap": "aaf4fba3fb396e044b0080888103a12dbd2015ca4f6062d434631b700de906f9",
+    "tests/shell-stress/kernel-reconciliation/acceptance-f1bb98b.json": "9801fecbd83c07ea0e7492ca9a30e35fd2bf62f81f1a1177e3fbda1bd83c1088",
+    "tests/shell-stress/kernel-reconciliation/acceptance-native36-f1bb98b.json": "3171d2d3fde6b0f2ce9ea5c733071720d48902643317cc9a9a970d0154442394",
+    "tests/shell-stress/kernel-reconciliation/acceptance-native36.mjs": "3a00a3c438ddf50d76cf438eeff08a7e422f9c30507483abc6fd14d5df9574ff",
+    "tests/shell-stress/kernel-reconciliation/acceptance-native57-f1bb98b.json": "01ce0d567aa1c5b3ec647329bb3af31a371d7c7d94d922559273e78bd6adfd66",
+    "tests/shell-stress/kernel-reconciliation/acceptance-native57.ts": "72e2daa8c8d663ebad150ee64cd87c588f5ed6095bda963118ea2e2f478dcd24",
+    "tests/shell-stress/kernel-reconciliation/acceptance-ready-proof.json": "5281e3072bbf9d2c0170fe03155f89aa9b0d3a78687e629331cf193b052e181b",
+    "tests/shell-stress/kernel-reconciliation/acceptance-report.mjs": "1323c1ecb99d981322d1773ccced853aad55423a8af6a6ed57fac2dd9c10668a",
+    "tests/shell-stress/kernel-reconciliation/acceptance-rows.json": "b95ed79e4e45dc6535e1d9815ff453f1b19fb8704cb08bfa3da9ce4207605e45",
+    "tests/shell-stress/kernel-reconciliation/acceptance-support.mjs": "7775f9f96c37d9c97e85ca41a546e8768a62d62b7987114fb80d4835c2bb554e"
+  },
+  "syntax": [
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-capture.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-compilers.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-native36.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-report.mjs",
+      "status": 0
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/acceptance-support.mjs",
+      "status": 0
+    }
+  ],
+  "invalidNative": [],
+  "children": [
+    {
+      "pid": 4170,
+      "groupAlive": false
+    },
+    {
+      "pid": 4174,
+      "groupAlive": false
+    },
+    {
+      "pid": 4175,
+      "groupAlive": false
+    },
+    {
+      "pid": 4176,
+      "groupAlive": false
+    },
+    {
+      "pid": 4178,
+      "groupAlive": false
+    },
+    {
+      "pid": 4180,
+      "groupAlive": false
+    },
+    {
+      "pid": 4183,
+      "groupAlive": false
+    },
+    {
+      "pid": 4186,
+      "groupAlive": false
+    },
+    {
+      "pid": 4188,
+      "groupAlive": false
+    },
+    {
+      "pid": 4190,
+      "groupAlive": false
+    },
+    {
+      "pid": 4191,
+      "groupAlive": false
+    },
+    {
+      "pid": 4192,
+      "groupAlive": false
+    },
+    {
+      "pid": 4193,
+      "groupAlive": false
+    },
+    {
+      "pid": 4194,
+      "groupAlive": false
+    },
+    {
+      "pid": 4195,
+      "groupAlive": false
+    },
+    {
+      "pid": 4199,
+      "groupAlive": false
+    },
+    {
+      "pid": 4200,
+      "groupAlive": false
+    },
+    {
+      "pid": 4202,
+      "groupAlive": false
+    },
+    {
+      "pid": 4214,
+      "groupAlive": false
+    },
+    {
+      "pid": 4271,
+      "groupAlive": false
+    },
+    {
+      "pid": 4320,
+      "groupAlive": false
+    },
+    {
+      "pid": 4396,
+      "groupAlive": false
+    },
+    {
+      "pid": 4399,
+      "groupAlive": false
+    },
+    {
+      "pid": 4404,
+      "groupAlive": false
+    },
+    {
+      "pid": 4412,
+      "groupAlive": false
+    },
+    {
+      "pid": 4418,
+      "groupAlive": false
+    },
+    {
+      "pid": 4421,
+      "groupAlive": false
+    },
+    {
+      "pid": 4433,
+      "groupAlive": false
+    },
+    {
+      "pid": 4438,
+      "groupAlive": false
+    },
+    {
+      "pid": 4442,
+      "groupAlive": false
+    },
+    {
+      "pid": 4446,
+      "groupAlive": false
+    },
+    {
+      "pid": 4454,
+      "groupAlive": false
+    },
+    {
+      "pid": 4461,
+      "groupAlive": false
+    },
+    {
+      "pid": 4465,
+      "groupAlive": false
+    },
+    {
+      "pid": 4469,
+      "groupAlive": false
+    },
+    {
+      "pid": 4476,
+      "groupAlive": false
+    },
+    {
+      "pid": 4480,
+      "groupAlive": false
+    },
+    {
+      "pid": 4484,
+      "groupAlive": false
+    },
+    {
+      "pid": 4649,
+      "groupAlive": false
+    },
+    {
+      "pid": 4655,
+      "groupAlive": false
+    },
+    {
+      "pid": 4662,
+      "groupAlive": false
+    },
+    {
+      "pid": 4669,
+      "groupAlive": false
+    },
+    {
+      "pid": 4675,
+      "groupAlive": false
+    },
+    {
+      "pid": 4685,
+      "groupAlive": false
+    },
+    {
+      "pid": 4689,
+      "groupAlive": false
+    },
+    {
+      "pid": 4697,
+      "groupAlive": false
+    },
+    {
+      "pid": 4708,
+      "groupAlive": false
+    },
+    {
+      "pid": 4712,
+      "groupAlive": false
+    },
+    {
+      "pid": 4718,
+      "groupAlive": false
+    },
+    {
+      "pid": 4726,
+      "groupAlive": false
+    },
+    {
+      "pid": 4733,
+      "groupAlive": false
+    },
+    {
+      "pid": 4746,
+      "groupAlive": false
+    },
+    {
+      "pid": 4751,
+      "groupAlive": false
+    },
+    {
+      "pid": 4810,
+      "groupAlive": false
+    },
+    {
+      "pid": 4860,
+      "groupAlive": false
+    },
+    {
+      "pid": 4863,
+      "groupAlive": false
+    },
+    {
+      "pid": 4906,
+      "groupAlive": false
+    },
+    {
+      "pid": 4983,
+      "groupAlive": false
+    },
+    {
+      "pid": 5048,
+      "groupAlive": false
+    },
+    {
+      "pid": 5136,
+      "groupAlive": false
+    },
+    {
+      "pid": 5137,
+      "groupAlive": false
+    },
+    {
+      "pid": 5138,
+      "groupAlive": false
+    },
+    {
+      "pid": 5151,
+      "groupAlive": false
+    },
+    {
+      "pid": 5152,
+      "groupAlive": false
+    },
+    {
+      "pid": 5153,
+      "groupAlive": false
+    },
+    {
+      "pid": 5167,
+      "groupAlive": false
+    },
+    {
+      "pid": 5170,
+      "groupAlive": false
+    },
+    {
+      "pid": 5173,
+      "groupAlive": false
+    },
+    {
+      "pid": 5192,
+      "groupAlive": false
+    },
+    {
+      "pid": 5196,
+      "groupAlive": false
+    },
+    {
+      "pid": 5199,
+      "groupAlive": false
+    },
+    {
+      "pid": 5217,
+      "groupAlive": false
+    },
+    {
+      "pid": 5221,
+      "groupAlive": false
+    },
+    {
+      "pid": 5225,
+      "groupAlive": false
+    },
+    {
+      "pid": 5240,
+      "groupAlive": false
+    },
+    {
+      "pid": 5241,
+      "groupAlive": false
+    },
+    {
+      "pid": 5391,
+      "groupAlive": false
+    },
+    {
+      "pid": 6352,
+      "groupAlive": false
+    },
+    {
+      "pid": 6403,
+      "groupAlive": false
+    },
+    {
+      "pid": 6416,
+      "groupAlive": false
+    },
+    {
+      "pid": 6430,
+      "groupAlive": false
+    },
+    {
+      "pid": 6432,
+      "groupAlive": false
+    },
+    {
+      "pid": 6446,
+      "groupAlive": false
+    },
+    {
+      "pid": 6460,
+      "groupAlive": false
+    },
+    {
+      "pid": 6462,
+      "groupAlive": false
+    },
+    {
+      "pid": 6476,
+      "groupAlive": false
+    },
+    {
+      "pid": 6490,
+      "groupAlive": false
+    },
+    {
+      "pid": 6504,
+      "groupAlive": false
+    },
+    {
+      "pid": 6506,
+      "groupAlive": false
+    },
+    {
+      "pid": 6520,
+      "groupAlive": false
+    },
+    {
+      "pid": 6534,
+      "groupAlive": false
+    },
+    {
+      "pid": 6548,
+      "groupAlive": false
+    },
+    {
+      "pid": 6550,
+      "groupAlive": false
+    },
+    {
+      "pid": 6564,
+      "groupAlive": false
+    },
+    {
+      "pid": 6579,
+      "groupAlive": false
+    },
+    {
+      "pid": 6581,
+      "groupAlive": false
+    },
+    {
+      "pid": 6596,
+      "groupAlive": false
+    },
+    {
+      "pid": 6610,
+      "groupAlive": false
+    },
+    {
+      "pid": 6624,
+      "groupAlive": false
+    },
+    {
+      "pid": 6626,
+      "groupAlive": false
+    },
+    {
+      "pid": 6640,
+      "groupAlive": false
+    },
+    {
+      "pid": 6654,
+      "groupAlive": false
+    },
+    {
+      "pid": 6658,
+      "groupAlive": false
+    },
+    {
+      "pid": 6672,
+      "groupAlive": false
+    },
+    {
+      "pid": 6686,
+      "groupAlive": false
+    },
+    {
+      "pid": 6689,
+      "groupAlive": false
+    },
+    {
+      "pid": 6703,
+      "groupAlive": false
+    },
+    {
+      "pid": 6718,
+      "groupAlive": false
+    },
+    {
+      "pid": 6732,
+      "groupAlive": false
+    },
+    {
+      "pid": 6734,
+      "groupAlive": false
+    },
+    {
+      "pid": 6748,
+      "groupAlive": false
+    },
+    {
+      "pid": 6763,
+      "groupAlive": false
+    },
+    {
+      "pid": 6777,
+      "groupAlive": false
+    },
+    {
+      "pid": 6779,
+      "groupAlive": false
+    },
+    {
+      "pid": 6798,
+      "groupAlive": false
+    },
+    {
+      "pid": 6812,
+      "groupAlive": false
+    },
+    {
+      "pid": 6827,
+      "groupAlive": false
+    },
+    {
+      "pid": 6913,
+      "groupAlive": false
+    },
+    {
+      "pid": 6990,
+      "groupAlive": false
+    },
+    {
+      "pid": 7056,
+      "groupAlive": false
+    },
+    {
+      "pid": 7177,
+      "groupAlive": false
+    },
+    {
+      "pid": 7338,
+      "groupAlive": false
+    },
+    {
+      "pid": 7423,
+      "groupAlive": false
+    },
+    {
+      "pid": 7510,
+      "groupAlive": false
+    },
+    {
+      "pid": 7654,
+      "groupAlive": false
+    },
+    {
+      "pid": 7719,
+      "groupAlive": false
+    },
+    {
+      "pid": 7720,
+      "groupAlive": false
+    },
+    {
+      "pid": 7721,
+      "groupAlive": false
+    },
+    {
+      "pid": 7727,
+      "groupAlive": false
+    },
+    {
+      "pid": 7728,
+      "groupAlive": false
+    },
+    {
+      "pid": 7729,
+      "groupAlive": false
+    },
+    {
+      "pid": 7730,
+      "groupAlive": false
+    },
+    {
+      "pid": 7731,
+      "groupAlive": false
+    },
+    {
+      "pid": 7732,
+      "groupAlive": false
+    },
+    {
+      "pid": 7733,
+      "groupAlive": false
+    },
+    {
+      "pid": 7735,
+      "groupAlive": false
+    },
+    {
+      "pid": 7737,
+      "groupAlive": false
+    },
+    {
+      "pid": 7738,
+      "groupAlive": false
+    },
+    {
+      "pid": 7740,
+      "groupAlive": false
+    },
+    {
+      "pid": 7742,
+      "groupAlive": false
+    },
+    {
+      "pid": 7745,
+      "groupAlive": false
+    },
+    {
+      "pid": 7748,
+      "groupAlive": false
+    },
+    {
+      "pid": 7750,
+      "groupAlive": false
+    },
+    {
+      "pid": 7752,
+      "groupAlive": false
+    },
+    {
+      "pid": 7754,
+      "groupAlive": false
+    },
+    {
+      "pid": 7756,
+      "groupAlive": false
+    },
+    {
+      "pid": 7758,
+      "groupAlive": false
+    },
+    {
+      "pid": 7760,
+      "groupAlive": false
+    },
+    {
+      "pid": 7762,
+      "groupAlive": false
+    },
+    {
+      "pid": 7765,
+      "groupAlive": false
+    },
+    {
+      "pid": 7767,
+      "groupAlive": false
+    },
+    {
+      "pid": 7769,
+      "groupAlive": false
+    },
+    {
+      "pid": 7771,
+      "groupAlive": false
+    },
+    {
+      "pid": 7773,
+      "groupAlive": false
+    },
+    {
+      "pid": 7776,
+      "groupAlive": false
+    },
+    {
+      "pid": 7778,
+      "groupAlive": false
+    },
+    {
+      "pid": 7780,
+      "groupAlive": false
+    },
+    {
+      "pid": 7782,
+      "groupAlive": false
+    },
+    {
+      "pid": 7784,
+      "groupAlive": false
+    },
+    {
+      "pid": 7788,
+      "groupAlive": false
+    },
+    {
+      "pid": 7790,
+      "groupAlive": false
+    },
+    {
+      "pid": 7792,
+      "groupAlive": false
+    },
+    {
+      "pid": 7794,
+      "groupAlive": false
+    },
+    {
+      "pid": 7797,
+      "groupAlive": false
+    },
+    {
+      "pid": 7799,
+      "groupAlive": false
+    },
+    {
+      "pid": 7802,
+      "groupAlive": false
+    },
+    {
+      "pid": 7804,
+      "groupAlive": false
+    },
+    {
+      "pid": 7806,
+      "groupAlive": false
+    },
+    {
+      "pid": 7809,
+      "groupAlive": false
+    },
+    {
+      "pid": 7812,
+      "groupAlive": false
+    },
+    {
+      "pid": 7815,
+      "groupAlive": false
+    },
+    {
+      "pid": 7818,
+      "groupAlive": false
+    },
+    {
+      "pid": 7826,
+      "groupAlive": false
+    },
+    {
+      "pid": 7829,
+      "groupAlive": false
+    },
+    {
+      "pid": 7832,
+      "groupAlive": false
+    },
+    {
+      "pid": 7835,
+      "groupAlive": false
+    },
+    {
+      "pid": 7839,
+      "groupAlive": false
+    },
+    {
+      "pid": 7847,
+      "groupAlive": false
+    },
+    {
+      "pid": 7850,
+      "groupAlive": false
+    },
+    {
+      "pid": 7860,
+      "groupAlive": false
+    },
+    {
+      "pid": 7863,
+      "groupAlive": false
+    },
+    {
+      "pid": 7867,
+      "groupAlive": false
+    },
+    {
+      "pid": 7870,
+      "groupAlive": false
+    },
+    {
+      "pid": 7874,
+      "groupAlive": false
+    },
+    {
+      "pid": 7876,
+      "groupAlive": false
+    },
+    {
+      "pid": 7878,
+      "groupAlive": false
+    },
+    {
+      "pid": 7881,
+      "groupAlive": false
+    },
+    {
+      "pid": 7883,
+      "groupAlive": false
+    },
+    {
+      "pid": 7897,
+      "groupAlive": false
+    },
+    {
+      "pid": 7898,
+      "groupAlive": false
+    },
+    {
+      "pid": 7899,
+      "groupAlive": false
+    },
+    {
+      "pid": 7901,
+      "groupAlive": false
+    },
+    {
+      "pid": 7903,
+      "groupAlive": false
+    },
+    {
+      "pid": 7905,
+      "groupAlive": false
+    },
+    {
+      "pid": 8320,
+      "groupAlive": false
+    },
+    {
+      "pid": 8708,
+      "groupAlive": false
+    },
+    {
+      "pid": 9056,
+      "groupAlive": false
+    },
+    {
+      "pid": 9453,
+      "groupAlive": false
+    },
+    {
+      "pid": 9829,
+      "groupAlive": false
+    },
+    {
+      "pid": 10173,
+      "groupAlive": false
+    },
+    {
+      "pid": 10525,
+      "groupAlive": false
+    },
+    {
+      "pid": 10899,
+      "groupAlive": false
+    },
+    {
+      "pid": 11253,
+      "groupAlive": false
+    },
+    {
+      "pid": 11601,
+      "groupAlive": false
+    },
+    {
+      "pid": 11951,
+      "groupAlive": false
+    },
+    {
+      "pid": 12306,
+      "groupAlive": false
+    },
+    {
+      "pid": 12657,
+      "groupAlive": false
+    },
+    {
+      "pid": 13011,
+      "groupAlive": false
+    },
+    {
+      "pid": 13363,
+      "groupAlive": false
+    },
+    {
+      "pid": 13716,
+      "groupAlive": false
+    },
+    {
+      "pid": 14065,
+      "groupAlive": false
+    },
+    {
+      "pid": 14420,
+      "groupAlive": false
+    },
+    {
+      "pid": 14769,
+      "groupAlive": false
+    },
+    {
+      "pid": 15122,
+      "groupAlive": false
+    },
+    {
+      "pid": 15474,
+      "groupAlive": false
+    },
+    {
+      "pid": 15852,
+      "groupAlive": false
+    },
+    {
+      "pid": 16214,
+      "groupAlive": false
+    },
+    {
+      "pid": 16584,
+      "groupAlive": false
+    },
+    {
+      "pid": 16974,
+      "groupAlive": false
+    },
+    {
+      "pid": 17325,
+      "groupAlive": false
+    },
+    {
+      "pid": 17679,
+      "groupAlive": false
+    },
+    {
+      "pid": 18032,
+      "groupAlive": false
+    },
+    {
+      "pid": 18848,
+      "groupAlive": false
+    },
+    {
+      "pid": 19624,
+      "groupAlive": false
+    },
+    {
+      "pid": 19972,
+      "groupAlive": false
+    },
+    {
+      "pid": 20333,
+      "groupAlive": false
+    },
+    {
+      "pid": 20681,
+      "groupAlive": false
+    },
+    {
+      "pid": 21033,
+      "groupAlive": false
+    },
+    {
+      "pid": 21391,
+      "groupAlive": false
+    },
+    {
+      "pid": 21743,
+      "groupAlive": false
+    },
+    {
+      "pid": 22139,
+      "groupAlive": false
+    },
+    {
+      "pid": 22494,
+      "groupAlive": false
+    },
+    {
+      "pid": 22860,
+      "groupAlive": false
+    },
+    {
+      "pid": 23216,
+      "groupAlive": false
+    },
+    {
+      "pid": 23595,
+      "groupAlive": false
+    },
+    {
+      "pid": 23957,
+      "groupAlive": false
+    },
+    {
+      "pid": 24527,
+      "groupAlive": false
+    },
+    {
+      "pid": 25287,
+      "groupAlive": false
+    },
+    {
+      "pid": 25651,
+      "groupAlive": false
+    },
+    {
+      "pid": 26011,
+      "groupAlive": false
+    },
+    {
+      "pid": 26368,
+      "groupAlive": false
+    },
+    {
+      "pid": 26370,
+      "groupAlive": false
+    },
+    {
+      "pid": 26372,
+      "groupAlive": false
+    },
+    {
+      "pid": 26375,
+      "groupAlive": false
+    },
+    {
+      "pid": 26377,
+      "groupAlive": false
+    },
+    {
+      "pid": 26379,
+      "groupAlive": false
+    },
+    {
+      "pid": 26382,
+      "groupAlive": false
+    },
+    {
+      "pid": 26384,
+      "groupAlive": false
+    },
+    {
+      "pid": 26386,
+      "groupAlive": false
+    },
+    {
+      "pid": 26391,
+      "groupAlive": false
+    },
+    {
+      "pid": 26394,
+      "groupAlive": false
+    },
+    {
+      "pid": 26399,
+      "groupAlive": false
+    },
+    {
+      "pid": 26407,
+      "groupAlive": false
+    },
+    {
+      "pid": 26410,
+      "groupAlive": false
+    },
+    {
+      "pid": 26413,
+      "groupAlive": false
+    },
+    {
+      "pid": 26425,
+      "groupAlive": false
+    },
+    {
+      "pid": 26427,
+      "groupAlive": false
+    },
+    {
+      "pid": 26428,
+      "groupAlive": false
+    },
+    {
+      "pid": 26429,
+      "groupAlive": false
+    },
+    {
+      "pid": 26432,
+      "groupAlive": false
+    },
+    {
+      "pid": 26434,
+      "groupAlive": false
+    },
+    {
+      "pid": 26437,
+      "groupAlive": false
+    },
+    {
+      "pid": 26440,
+      "groupAlive": false
+    },
+    {
+      "pid": 26442,
+      "groupAlive": false
+    },
+    {
+      "pid": 26446,
+      "groupAlive": false
+    },
+    {
+      "pid": 26450,
+      "groupAlive": false
+    },
+    {
+      "pid": 26453,
+      "groupAlive": false
+    },
+    {
+      "pid": 26456,
+      "groupAlive": false
+    },
+    {
+      "pid": 26460,
+      "groupAlive": false
+    },
+    {
+      "pid": 26463,
+      "groupAlive": false
+    },
+    {
+      "pid": 26464,
+      "groupAlive": false
+    },
+    {
+      "pid": 26467,
+      "groupAlive": false
+    },
+    {
+      "pid": 26474,
+      "groupAlive": false
+    },
+    {
+      "pid": 26482,
+      "groupAlive": false
+    },
+    {
+      "pid": 26484,
+      "groupAlive": false
+    },
+    {
+      "pid": 26515,
+      "groupAlive": false
+    },
+    {
+      "pid": 26526,
+      "groupAlive": false
+    },
+    {
+      "pid": 26529,
+      "groupAlive": false
+    },
+    {
+      "pid": 26532,
+      "groupAlive": false
+    },
+    {
+      "pid": 26534,
+      "groupAlive": false
+    },
+    {
+      "pid": 26538,
+      "groupAlive": false
+    },
+    {
+      "pid": 26548,
+      "groupAlive": false
+    },
+    {
+      "pid": 26551,
+      "groupAlive": false
+    },
+    {
+      "pid": 26553,
+      "groupAlive": false
+    },
+    {
+      "pid": 26557,
+      "groupAlive": false
+    },
+    {
+      "pid": 26558,
+      "groupAlive": false
+    },
+    {
+      "pid": 26560,
+      "groupAlive": false
+    },
+    {
+      "pid": 26563,
+      "groupAlive": false
+    },
+    {
+      "pid": 26566,
+      "groupAlive": false
+    },
+    {
+      "pid": 26571,
+      "groupAlive": false
+    },
+    {
+      "pid": 26573,
+      "groupAlive": false
+    },
+    {
+      "pid": 26575,
+      "groupAlive": false
+    },
+    {
+      "pid": 26579,
+      "groupAlive": false
+    },
+    {
+      "pid": 26582,
+      "groupAlive": false
+    },
+    {
+      "pid": 26585,
+      "groupAlive": false
+    },
+    {
+      "pid": 26589,
+      "groupAlive": false
+    },
+    {
+      "pid": 26594,
+      "groupAlive": false
+    },
+    {
+      "pid": 26596,
+      "groupAlive": false
+    },
+    {
+      "pid": 26599,
+      "groupAlive": false
+    },
+    {
+      "pid": 26608,
+      "groupAlive": false
+    },
+    {
+      "pid": 26612,
+      "groupAlive": false
+    },
+    {
+      "pid": 26615,
+      "groupAlive": false
+    },
+    {
+      "pid": 26617,
+      "groupAlive": false
+    },
+    {
+      "pid": 26620,
+      "groupAlive": false
+    },
+    {
+      "pid": 26623,
+      "groupAlive": false
+    },
+    {
+      "pid": 26626,
+      "groupAlive": false
+    },
+    {
+      "pid": 26631,
+      "groupAlive": false
+    },
+    {
+      "pid": 26635,
+      "groupAlive": false
+    },
+    {
+      "pid": 26638,
+      "groupAlive": false
+    },
+    {
+      "pid": 26652,
+      "groupAlive": false
+    },
+    {
+      "pid": 26658,
+      "groupAlive": false
+    },
+    {
+      "pid": 26661,
+      "groupAlive": false
+    },
+    {
+      "pid": 26662,
+      "groupAlive": false
+    },
+    {
+      "pid": 26665,
+      "groupAlive": false
+    },
+    {
+      "pid": 28536,
+      "groupAlive": false
+    },
+    {
+      "pid": 28538,
+      "groupAlive": false
+    },
+    {
+      "pid": 28955,
+      "groupAlive": false
+    },
+    {
+      "pid": 28956,
+      "groupAlive": false
+    },
+    {
+      "pid": 29305,
+      "groupAlive": false
+    },
+    {
+      "pid": 29307,
+      "groupAlive": false
+    }
+  ],
+  "foreignIndex": {
+    "count": 7455,
+    "sha256": "b39aed6289eb3b5d1392877cdfa8ee9a4d96278d984ab85fcfc1d4554b91d50b"
+  },
+  "scope": "Only new acceptance paths; all original18 baseline files and immutable31 inputs preserved. Compiler/global phases not rerun after documentation-only reporting. No source write."
+}

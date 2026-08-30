@@ -1,0 +1,19 @@
+{
+  "role": "Sealed author executor before build or product dispatch",
+  "date": "2026-08-28",
+  "files": {
+    "PRESEAL.json": "26d4021fe060add0aff23eb38020c1bfb30feb31127d25cd12b94157975b18c7",
+    "SOURCE.json": "fe906972d6e0d34c99b45930e584b6177c5780e2ceddc83ea48418c64ee4f465",
+    "ARRAY-CASES.json": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+    "prepare.mjs": "92d081f32455b7ddade0a40a83f4edb1e3325f66e74013792226230940fe71ee",
+    "arrays.mjs": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+    "run.mjs": "1dfb06031fb161664180162db41edfa77ba3250db2feb33ca8d8eb33e62fbb7f"
+  },
+  "supervision": "Single awaited direct child,120s deadline,TERM then owned-only KILL after1s,close observed; no hard descendant drain. At most64/30minutes, working retained for review; actual source-build uses fresh emitted JS.",
+  "typeAggregation": "Two positive and four inversion bodies get lexical braces only to avoid unrelated repeated const names; each original body preserved.",
+  "existingRunnerReuse": "Authenticated coherent78 probe/loader/names/cases/types unchanged; bounded child/blob/tool-copy mechanics adapted from existing git-author runner. No generic gate or new native roles.",
+  "semanticExecutionsAtSeal": 0,
+  "version": 3,
+  "prior": "8fc3c4f6 setup-only npm link refusal; RAW-v1 preserved; one closed metadata child and zero builds/product",
+  "npmStaging": "2039 accepted inventory rows:2027 regular and12 exact authenticated omitted internal bin links, unchanged accepted tool profile"
+}

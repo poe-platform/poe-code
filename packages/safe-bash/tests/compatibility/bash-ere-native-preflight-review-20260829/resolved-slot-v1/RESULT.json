@@ -1,0 +1,352 @@
+{
+  "schema": "ere12-resolved-slot-independent-review-v1",
+  "decision": "ACCEPT",
+  "activationCommit": "016aa3a940c19dc17fd94bce0ed7468676e1d5c5",
+  "acceptedSourceCommit": "2d07f5921010fda988dcda36ac81a89831fbac55",
+  "acceptedIndependentCommit": "f5d9e55ec3f3643904f1ec51d1cfa110b6a6dea8",
+  "runtimeReceiptSha256": "644630c96f3cdc647aabd9f21cf6c660d2c982fd75b0d8b33c61b241168e2476",
+  "grantSha256": "9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec",
+  "resolvedJsonSha256": "d2dca84a74ff36a2a7fae05986f237acd5cf3d8c35caa3e4d97ee96344d6460d",
+  "commandUtf8Sha256": "9423c7e1d4bbbc6c77bef3962bfe97b93fe333f65263cb2f4df12f555a239e25",
+  "executablePresealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "requestsSha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8",
+  "checkedAt": "2026-08-29T10:09:40.311Z",
+  "issuedAt": "2026-08-29T10:01:09.884Z",
+  "expiresAt": "2026-08-29T10:46:09.884Z",
+  "latestFull600sStartAt": "2026-08-29T10:36:09.884Z",
+  "remainingToLatestStartMs": 1589573,
+  "remainingToExpiryMs": 2189573,
+  "autoRenew": false,
+  "onlyDesignatedSlotChanged": true,
+  "exactAllOtherParameters": true,
+  "mode0600Checked": true,
+  "sourceFilesChecked": 25,
+  "nineModules": [
+    "admission.mjs",
+    "capture.mjs",
+    "entry.mjs",
+    "group-observer.mjs",
+    "lifecycle.mjs",
+    "observation.mjs",
+    "observer-state.mjs",
+    "state.mjs",
+    "storage.mjs"
+  ],
+  "programs": 12,
+  "fixtures": 0,
+  "emptyStdin": true,
+  "sourceImports": 0,
+  "nativeExecutions": 0,
+  "approvalRequests": 0,
+  "allNativeCases": "UNRUN",
+  "physical": [
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+      "device": "16777232",
+      "inode": "187030136",
+      "mode": 448,
+      "entries": [
+        "JOURNAL.jsonl",
+        "captures",
+        "cases",
+        "outer"
+      ]
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer",
+      "device": "16777232",
+      "inode": "187030137",
+      "mode": 448,
+      "entries": []
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases",
+      "device": "16777232",
+      "inode": "187030138",
+      "mode": 448,
+      "entries": []
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/captures",
+      "device": "16777232",
+      "inode": "187030139",
+      "mode": 448,
+      "entries": []
+    }
+  ],
+  "records": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-preflight-review-20260829/resolved-slot-v1/AUTHORITY-INPUTS.json",
+      "bytes": 121483,
+      "mode": 420,
+      "sha256": "c10f9ad00b59b34edac7e971d46f095c4aaa8efb329978595073131d5c251049",
+      "inode": 187088012,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-preflight-review-20260829/resolved-slot-v1/INPUTS.json",
+      "bytes": 40302,
+      "mode": 420,
+      "sha256": "8aa0c6920cf6dd97e03eafb57f9c5d9c20300a0b6b828a35f8cf1fa081438aeb",
+      "inode": 187082647,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/PRESEAL.json",
+      "bytes": 4527,
+      "mode": 384,
+      "sha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+      "inode": 186939492,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/REVIEW-ACCEPTANCE.json",
+      "bytes": 424,
+      "mode": 384,
+      "sha256": "644630c96f3cdc647aabd9f21cf6c660d2c982fd75b0d8b33c61b241168e2476",
+      "inode": 187030142,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/PREPROVISION.json",
+      "bytes": 695,
+      "mode": 384,
+      "sha256": "309a4cdfa95f6b84e88bf69c1ad9e5a459bd1dc742f20845cd172dca3185ee55",
+      "inode": 187030141,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/GO.json",
+      "bytes": 1796,
+      "mode": 384,
+      "sha256": "9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec",
+      "inode": 187030143,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/RESOLVED-COMMAND.json",
+      "bytes": 1295,
+      "mode": 384,
+      "sha256": "d2dca84a74ff36a2a7fae05986f237acd5cf3d8c35caa3e4d97ee96344d6460d",
+      "inode": 187030144,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/COHORT.json",
+      "bytes": 13100,
+      "mode": 384,
+      "sha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e",
+      "inode": 186939467,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/PROTOCOL.json",
+      "bytes": 1881,
+      "mode": 384,
+      "sha256": "948519ae3d428f24ae666c8d6f9961779e08e9e37e0a3a2708994f9630d91828",
+      "inode": 186939468,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/REQUESTS.json",
+      "bytes": 14844,
+      "mode": 384,
+      "sha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8",
+      "inode": 186939469,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/TOOLS.json",
+      "bytes": 3067,
+      "mode": 384,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+      "inode": 186939470,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/admission.mjs",
+      "bytes": 9447,
+      "mode": 384,
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa",
+      "inode": 186939471,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/capture.mjs",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "inode": 186939472,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/entry.mjs",
+      "bytes": 6928,
+      "mode": 384,
+      "sha256": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e",
+      "inode": 186939473,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/group-observer.mjs",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "inode": 186939474,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "inode": 186939475,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/observation.mjs",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13",
+      "inode": 186939476,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/observer-state.mjs",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "inode": 186939477,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N01.bash.data",
+      "bytes": 522,
+      "mode": 384,
+      "sha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8",
+      "inode": 186939478,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N02.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6",
+      "inode": 186939479,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N03.bash.data",
+      "bytes": 527,
+      "mode": 384,
+      "sha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb",
+      "inode": 186939480,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N04.bash.data",
+      "bytes": 535,
+      "mode": 384,
+      "sha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931",
+      "inode": 186939481,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N05.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b",
+      "inode": 186939482,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N06.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce",
+      "inode": 186939483,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N07.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2",
+      "inode": 186939484,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N08.bash.data",
+      "bytes": 521,
+      "mode": 384,
+      "sha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37",
+      "inode": 186939485,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N09.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373",
+      "inode": 186939486,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N10.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea",
+      "inode": 186939487,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N11.bash.data",
+      "bytes": 515,
+      "mode": 384,
+      "sha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97",
+      "inode": 186939488,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N12.bash.data",
+      "bytes": 513,
+      "mode": 384,
+      "sha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8",
+      "inode": 186939489,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/state.mjs",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "inode": 186939490,
+      "device": 16777232
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/storage.mjs",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "inode": 186939491,
+      "device": 16777232
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/JOURNAL.jsonl",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inode": 187030140,
+      "device": 16777232
+    }
+  ],
+  "limitations": [
+    "Snapshot freshness, not a reservation of future execution time",
+    "Future actual preflight and exact require_escalated tool approval remain necessary",
+    "Trusted initial tool shell startup outside child clean-env/capture qualification",
+    "Current executable hashes were not remeasured in this narrow slot review; future preflight must check them",
+    "Raw NUL observations are not passes; no hidden span/nonparticipation inference",
+    "No OS containment, native parity, full transitive census or fresh GNU5.3 claim",
+    "Prior helper/fixture failures and forced-termination HOLDs unchanged"
+  ]
+}

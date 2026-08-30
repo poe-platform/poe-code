@@ -1,0 +1,292 @@
+{
+  "approval": "ROOT_TWO_ROW_CORRECTION_EXECUTION_AUTHORIZED",
+  "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "baseAuthorization": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-root-approved.json",
+    "sha256": "e4d048afb4784f802047de589212519465bb7589ccdb99e10ba677add39cee1c"
+  },
+  "harnessSha256": "f29c603e3205e69716d6fafff4b256d128c981cd010fc8c0021d604ae2c06b77",
+  "sealSha256": "8111403a37f392dd8934c3e0f9d89bc6b8338bf5d14becb3471bc68a6ee682df",
+  "cases": [
+    "T-DP-cumulative",
+    "T-sort-many"
+  ],
+  "caseHashes": [
+    {
+      "id": "T-DP-cumulative",
+      "sha256": "9bca8031edc1f3bcd1a429081dadaa0057d49c3a25e1efbf5d65093a3df01fe1"
+    },
+    {
+      "id": "T-sort-many",
+      "sha256": "cb58f411a1d5396d96383b387c561d2a500d4b9738e4ec62457e937320d26aa1"
+    }
+  ],
+  "maximumNewProductInvocations": 2,
+  "maximumTotalProductInvocations": 6,
+  "previousRun": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/summary.json",
+    "sha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465"
+  },
+  "reuseWithoutRerun": [
+    "T-empty-many",
+    "F-JSON-cumulative",
+    "F-header-many",
+    "F-metadata-many"
+  ],
+  "executionClaim": "/tmp/safe-bash-inspection-derived-two-436bda3-execution-claim.json",
+  "proofs": {
+    "dpNonEliminated": {
+      "status": "approved",
+      "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+      "files": [
+        "src/commands/tree/pattern.ts",
+        "src/commands/tree/tree.ts",
+        "src/commands/tree/io.ts",
+        "src/shell/runtime.ts",
+        "src/shell/shell.ts",
+        "src/contracts/errors.ts",
+        "src/commands/tree/arguments.ts"
+      ],
+      "shellReturnsStatusOne": true,
+      "phaseTraceReviewed": true,
+      "perOperandReset": false,
+      "independentReviewPath": "/tmp/safe-bash-inspection-v2-proof-detail.txt",
+      "independentReviewSha256": "c072c58a4a96606091fdea1c41bb7cedf1e262e2a7383a95a1100ac95d656216",
+      "basis": "Independent peer frozen-source review: pattern.ts compile18+18+17=53; root FS2; listing1+alternative1+row129+17*258=4517/filter. Singleton55+4517+childstat1=4573 fits16384. Three13606; four18123. Fourth initial13737; token10 accepted16317; token11 attempts16575 before allocation. One WalkBudget, no suffix elimination/reset. tree.ts:101-112 must yield only first4 names before its throw/IteratorClose(return1); sort at114 requires exhaustion. Exact trace next4/yielded4/done=false/returned1 + root-only calls + resolved Shell status1/empty stdout/relevant exact-cap work diagnostic rejects full-list reset/later-sort surrogates. Independent mock throw preserved the identical sentinel; phase trace is not a token meter. Original v1 singleton premise remains invalidated; this is a disclosed derived input budget, no runtime result.",
+      "singleEntryMaximumWork": 4573,
+      "fourFiltersDemandedWork": 18123,
+      "acceptedWorkBeforeFailure": 16317,
+      "attemptedWorkAtFailure": 16575,
+      "failedTokenOrdinal": 11,
+      "patternEvaluationEliminated": false,
+      "rejectingPhase": "fourth-filter-before-sort"
+    },
+    "sortByteCost": {
+      "status": "approved",
+      "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+      "files": [
+        "src/commands/tree/pattern.ts",
+        "src/commands/tree/tree.ts",
+        "src/commands/tree/io.ts",
+        "src/shell/runtime.ts",
+        "src/shell/shell.ts",
+        "src/contracts/errors.ts",
+        "src/commands/tree/arguments.ts"
+      ],
+      "shellReturnsStatusOne": true,
+      "phaseTraceReviewed": true,
+      "perOperandReset": false,
+      "independentReviewPath": "/tmp/safe-bash-inspection-v2-proof-detail.txt",
+      "independentReviewSha256": "c072c58a4a96606091fdea1c41bb7cedf1e262e2a7383a95a1100ac95d656216",
+      "basis": "Independent peer frozen-source review: root FS2+64 listing steps=66. tree.ts:114-117 reserves1+512+512=1025 BEFORE Buffer.compare; first3 admitted3141, fourth attempt4166 exceeds4096 before compare/child stat/output. Exact trace exhausts64 names next65/done=true/return0 with only root lstat/readdir; oracle rejects partial or break-on-last traces. tree.ts:128-131 reserves1 per constant-size dirsfirst comparison on SAME budget; this second pass is STATIC ONLY and is not reached. Shell runtime:494-512 resolves status1 with bounded work-specific diagnostic, not rejected EFBIG promise. No exact total engine comparator count, changed sort input, product execution or full-v1 pass is claimed.",
+      "comparedByteCostMetered": true,
+      "bothSortPassesMetered": true,
+      "comparisonReservation": 1025,
+      "acceptedWorkBeforeFailure": 3141,
+      "attemptedWorkAtFailure": 4166,
+      "rejectingPhase": "fourth-name-comparison-before-child-stat"
+    }
+  },
+  "reuseEvidence": [
+    {
+      "id": "T-empty-many",
+      "status": "pass",
+      "rowPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/T-empty-many.json",
+      "rowSha256": "5f993475c8d05e937774cc744ac91521e3aebbda18471e76666db09ec5e59edc",
+      "summarySha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465",
+      "previousCommandInvocations": 1,
+      "newInvocations": 0,
+      "stdoutBytes": 8262,
+      "stderrBytes": 0
+    },
+    {
+      "id": "F-JSON-cumulative",
+      "status": "pass",
+      "rowPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-JSON-cumulative.json",
+      "rowSha256": "1a1a98546e58054aa3d8fca1a506bce8dffcf768a125df816d6e946207dc7047",
+      "summarySha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465",
+      "previousCommandInvocations": 1,
+      "newInvocations": 0,
+      "stdoutBytes": 29,
+      "stderrBytes": 26
+    },
+    {
+      "id": "F-header-many",
+      "status": "pass",
+      "rowPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-header-many.json",
+      "rowSha256": "1dd6cd2527356ea2986e7166fbae704a4252f669d3c1261822784534382c6d52",
+      "summarySha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465",
+      "previousCommandInvocations": 1,
+      "newInvocations": 0,
+      "stdoutBytes": 1192,
+      "stderrBytes": 0
+    },
+    {
+      "id": "F-metadata-many",
+      "status": "pass",
+      "rowPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-metadata-many.json",
+      "rowSha256": "58c2283ac8c26d39aa8c38561dcc4efda9a95ba31ae85248414959ed68eb96df",
+      "summarySha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465",
+      "previousCommandInvocations": 1,
+      "newInvocations": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 28
+    }
+  ],
+  "originalInvalidatedRowsRemain": [
+    {
+      "id": "T-DP-cumulative",
+      "status": "HOLD",
+      "productInvocations": 0,
+      "reason": "Changed allocation/transition coefficient invalidates the sealed singleton premise: startup53 compilation+2 FS=55; each matcher costs1+129+17*258=4516 plus listing1. First filter4572 and singleton completion4573 both exceed4096. Token16 requests258 at accepted4056 and rejects at attempted4314 before allocation; no cumulative-many-entry stress is reached. All64 filters would289143. No suffix optimization, no reset. Independently frozen Shell runtime.ts:494-512 converts this FsError to stderr/status1, contrary to sealed outer-rejection/empty-stderr oracle. Keep original input HOLD, not pass/source bug."
+    },
+    {
+      "id": "T-sort-many",
+      "status": "HOLD",
+      "productInvocations": 0,
+      "reason": "Static metering is valid: tree.ts:114-117 reserves1025 per512/512-byte name comparison before Buffer.compare; startup66, three accepted comparisons reach3141, fourth rejects at4166 before any child stat/output. Complete-sort lower bound63 comparisons reserves64512 byte-span units. dirsfirst:128-131 separately reserves1 per constant-size grouping comparison on same budget. However required actual Shell catches the propagated EFBIG in runtime.ts:494-512, emits human stderr and returns exitCode1. Sealed oracle demands outer rejected=true, EFBIG, empty stderr, so this row is HOLD with no invocation. Not a source defect and no fixture/oracle rewrite."
+    }
+  ],
+  "inheritedSnapshotIdentity": {
+    "snapshot": "/private/tmp/safe-bash-inspection-final-YZxhi8/snapshot",
+    "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+    "filesCount": 920,
+    "filesManifestSha256": "7baa251230bcbf0e0776ba530c943850d362993c8e43bdbbf5c96200b7a035c1",
+    "entrypoints": {
+      "shell": "dist/shell/index.js",
+      "contracts": "dist/contracts/index.js",
+      "tree": "dist/commands/tree/index.js",
+      "file": "dist/commands/file/index.js"
+    },
+    "entrypointFiles": [
+      {
+        "path": "dist/shell/index.js",
+        "sha256": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb"
+      },
+      {
+        "path": "dist/contracts/index.js",
+        "sha256": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27"
+      },
+      {
+        "path": "dist/commands/tree/index.js",
+        "sha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a"
+      },
+      {
+        "path": "dist/commands/file/index.js",
+        "sha256": "2f63be99b23805e68498f39b71382134d70ab2929f7413460337790d8d3e5ad5"
+      }
+    ],
+    "provenanceSha256": "2b30576b2fa5474ca9054c6802705e69116e1f663e663ad0f3613302b5755027",
+    "note": "No top-level files/snapshot/entrypoints override; existing v2 runner inherits exact base authorization"
+  },
+  "peerReview": {
+    "decision": "GO_FOR_ROOT_REVIEW_NOT_EXECUTION_AUTHORIZATION",
+    "reportPath": "/tmp/safe-bash-inspection-v2-proof-detail.txt",
+    "reportSha256": "c072c58a4a96606091fdea1c41bb7cedf1e262e2a7383a95a1100ac95d656216",
+    "finalAuthorHandoff": {
+      "path": "/tmp/safe-bash-inspection-safety-run-detail.txt",
+      "sha256": "e565fef2a8f4e092881e8052745ad34b2ea3dc7b811d3b230b7f2107e343e469"
+    },
+    "authorManifest": {
+      "path": "/tmp/safe-bash-inspection-safety-run-owned-manifest.json",
+      "sha256": "846e7f419fb9f208270e5ab94c222b283fb296b255aa78d6ad4a1118f93a72e5"
+    },
+    "inputDiff": [
+      {
+        "id": "T-DP-cumulative",
+        "unchangedEntriesSha256": "aaf99f20ac1bd1684528c5f4087bdbeedb77a65cd05795f412964ede21637672",
+        "unchangedArgsSha256": "fa1f525088186add6a9a1144f0ba8fe05b1c6779a8b2f6127bdc3f7d613859dd",
+        "entries": 66,
+        "childNames": 64,
+        "budgetChange": [
+          4096,
+          16384
+        ],
+        "changedExpectedKeys": [
+          "exitCode",
+          "listing",
+          "mode",
+          "qualification",
+          "stderr"
+        ],
+        "originalCaseSha256": "23d8158b9d24bb9b784f05267768cca66926da966b1d7a84fe15215cbaac0d15",
+        "derivedCaseSha256": "9bca8031edc1f3bcd1a429081dadaa0057d49c3a25e1efbf5d65093a3df01fe1"
+      },
+      {
+        "id": "T-sort-many",
+        "unchangedEntriesSha256": "fe77a80cec91208f566d617d62c7641c8b29ffc7d0d86d94a9cfea1d8259dd26",
+        "unchangedArgsSha256": "95c87232030cf7a7597a7cdb90903170a20cf2e02dee29a8bb9d7bb61a47e9a6",
+        "entries": 66,
+        "childNames": 64,
+        "budgetChange": [
+          4096,
+          4096
+        ],
+        "changedExpectedKeys": [
+          "exitCode",
+          "listing",
+          "mode",
+          "qualification",
+          "stderr"
+        ],
+        "originalCaseSha256": "38e6dc5054b20b5e824e22c3b4a3f204d29a0b37327a277eadc75105f75e6684",
+        "derivedCaseSha256": "cb58f411a1d5396d96383b387c561d2a500d4b9738e4ec62457e937320d26aa1"
+      }
+    ],
+    "arithmetic": {
+      "startup": 55,
+      "perFilter": 4517,
+      "singleton": 4573,
+      "threeFilters": 13606,
+      "fourFilters": 18123,
+      "accepted": 16317,
+      "attempted": 16575,
+      "sortReservation": 1025,
+      "sortAccepted": 3141,
+      "sortAttempted": 4166
+    },
+    "checks": [
+      {
+        "path": "/private/tmp/safe-bash-inspection-v2-peer-E3UA3q/selfcheck.tap",
+        "sha256": "ef671a64e685700a19190aac73402553d6776a95dc2fa90e46856eb8703d4e39"
+      },
+      {
+        "path": "/private/tmp/safe-bash-inspection-v2-peer-E3UA3q/offline-validation.json",
+        "sha256": "e9b218cd8f8910fca3e1e00d2a36e85861bb856fdf9e84efd03bd6f514c09e35"
+      },
+      {
+        "path": "/private/tmp/safe-bash-inspection-v2-peer-E3UA3q/preparation-check.json",
+        "sha256": "0612835a32044063add533c65b7c202c8b1a649e99641b16edbb785c5a1e16a8"
+      },
+      {
+        "path": "/private/tmp/safe-bash-inspection-v2-peer-E3UA3q/peer-controls.tap",
+        "sha256": "eab2be41fbd7e91d5e55f9794ef6fbb5e9b4de454fb9578f851666e397e68ede"
+      },
+      {
+        "path": "/private/tmp/safe-bash-inspection-v2-peer-E3UA3q/peer-controls-r2.tap",
+        "sha256": "bfc2621d262866a2c54143c62c6231f5ee0c491d358a5c0384e0499e8fafe35d"
+      }
+    ],
+    "peerControlSource": {
+      "path": "/tmp/safe-bash-inspection-v2-peer-controls.test.mjs",
+      "sha256": "7e1669cf2bdcb80e17190b23b3dd9fea5080b402fb4a535e3d9ba41da67c33c4"
+    },
+    "preparationFailurePreserved": "First peer-control attempt failed to parse await in a nonasync callback; raw TAP retained, no product imports; corrected /tmp helper then5/5",
+    "currentProductInvocations": 4,
+    "derivedProductInvocations": 0,
+    "peerProductImports": 0,
+    "peerProductInvocations": 0,
+    "nativeOracleCalls": 0,
+    "officialExecutionClaimAbsent": true,
+    "sourceRebuilds": 0,
+    "allOwnedCheckProcessesSettled": true,
+    "limitations": [
+      "Original two v1 rows remain HOLD even if derived future results pass",
+      "No full-six-v1 or broad-gate claim",
+      "maxSteps is not CPU preemption or hard memory containment",
+      "Loader trusted-helper parent prefix is broader than exact helper allowlist; actual imports/hash identities reviewed",
+      "Fixed claim is cooperative, no protection against explicit host deletion/bypass",
+      "Only first sort pass is dynamically targeted"
+    ]
+  }
+}

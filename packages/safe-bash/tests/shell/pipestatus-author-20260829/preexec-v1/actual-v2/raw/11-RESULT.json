@@ -1,0 +1,6427 @@
+{
+  "primaryPresent": false,
+  "secondaryPresent": false,
+  "secondary": [],
+  "sampledWorkPresent": true,
+  "sampledWork": {
+    "bytes": 46763381,
+    "files": 2985
+  },
+  "publicationAttempted": true,
+  "publicationSucceeded": false,
+  "results": [
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R01",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R02",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R03",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R04",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R05",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R06",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R07",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R08",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R09",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R10",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R11",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R12",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R13",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R14",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R15",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R16",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "source-built",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R18",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H01",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H02",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H03",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H04",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H05",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H06",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H07",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H08",
+      "layout": "source-built",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R01",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R02",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R03",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R04",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R05",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R06",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R07",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R08",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R09",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R10",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R11",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R12",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R13",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R14",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R15",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R16",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "installed",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R18",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H01",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H02",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H03",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H04",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H05",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H06",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H07",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H08",
+      "layout": "installed",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R01",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R02",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R03",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R04",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R05",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R06",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R07",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R08",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R09",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R10",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R11",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R12",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R13",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R14",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R15",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R16",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "physically-moved",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R18",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H01",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H02",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H03",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H04",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H05",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H06",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H07",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "H08",
+      "layout": "physically-moved",
+      "pass": true,
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    }
+  ],
+  "ledger": {
+    "starts": 79,
+    "maximum": 79,
+    "active": 0,
+    "stopped": false,
+    "captureBytes": 33409479,
+    "captureMaximum": 100663296,
+    "rows": [
+      {
+        "id": "offline-install",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021898469
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021898471
+          },
+          {
+            "name": "spawn",
+            "at": 1788021898471
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021901193
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021901194
+          },
+          {
+            "name": "exit",
+            "at": 1788021901195
+          },
+          {
+            "name": "close",
+            "at": 1788021901195
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 23,
+            "sha256": "84b3615a2b55669c4069410770606e7290261ae70a9db72789bff656c372ce48",
+            "base64": "CmFkZGVkIDEgcGFja2FnZSBpbiAzcwo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 208,
+            "sha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240",
+            "base64": "bnBtIG5vdGljZQpucG0gbm90aWNlIE5ldyBtYWpvciB2ZXJzaW9uIG9mIG5wbSBhdmFpbGFibGUhIDEwLjkuNyAtPiAxMi4wLjIKbnBtIG5vdGljZSBDaGFuZ2Vsb2c6IGh0dHBzOi8vZ2l0aHViLmNvbS9ucG0vY2xpL3JlbGVhc2VzL3RhZy92MTIuMC4yCm5wbSBub3RpY2UgVG8gdXBkYXRlIHJ1bjogbnBtIGluc3RhbGwgLWcgbnBtQDEyLjAuMgpucG0gbm90aWNlCg==",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67831,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021901204
+      },
+      {
+        "id": "source-built-R01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021901628
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021901628
+          },
+          {
+            "name": "spawn",
+            "at": 1788021901628
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021901824
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021901824
+          },
+          {
+            "name": "exit",
+            "at": 1788021901824
+          },
+          {
+            "name": "close",
+            "at": 1788021901824
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "71de40ee98658aea131c3591d469c6ebf1e5c7d510b639ab710158fe7d256471",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMSIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67878,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021901828
+      },
+      {
+        "id": "source-built-R02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021902114
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021902115
+          },
+          {
+            "name": "spawn",
+            "at": 1788021902115
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021902308
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021902308
+          },
+          {
+            "name": "exit",
+            "at": 1788021902309
+          },
+          {
+            "name": "close",
+            "at": 1788021902309
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "1e580cd2eeadcbcd2843fcb3b758b4ef6bdf8278a6b5e888649918be04c2f384",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMiIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67879,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021902313
+      },
+      {
+        "id": "source-built-R03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021902601
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021902602
+          },
+          {
+            "name": "spawn",
+            "at": 1788021902602
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021902825
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021902825
+          },
+          {
+            "name": "exit",
+            "at": 1788021902825
+          },
+          {
+            "name": "close",
+            "at": 1788021902825
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "2d7502c5dfee82071f7ab28fb5b41c6603ff2f5b98464dff7d2182077857ab5d",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMyIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67887,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021902833
+      },
+      {
+        "id": "source-built-R04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021903097
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021903098
+          },
+          {
+            "name": "spawn",
+            "at": 1788021903098
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021903302
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021903302
+          },
+          {
+            "name": "exit",
+            "at": 1788021903302
+          },
+          {
+            "name": "close",
+            "at": 1788021903302
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "5aa622ef2ac73328443dd07dba8c47a98b9f69c32c3951f7c81f132d71d8ac27",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNCIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67889,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021903308
+      },
+      {
+        "id": "source-built-R05",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021903572
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021903573
+          },
+          {
+            "name": "spawn",
+            "at": 1788021903573
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021903776
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021903776
+          },
+          {
+            "name": "exit",
+            "at": 1788021903776
+          },
+          {
+            "name": "close",
+            "at": 1788021903776
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "1c7634e6dd85505f67bace32446a5df1dd5856b27f853fecdb4638b235f191cb",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNSIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67890,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021903781
+      },
+      {
+        "id": "source-built-R06",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021904022
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021904023
+          },
+          {
+            "name": "spawn",
+            "at": 1788021904023
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021904228
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021904228
+          },
+          {
+            "name": "exit",
+            "at": 1788021904228
+          },
+          {
+            "name": "close",
+            "at": 1788021904228
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "af1bdb2f95758670e340737ea3622c8ab7d0f4c72fd77377b7e936f54adaa4e0",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNiIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67891,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021904231
+      },
+      {
+        "id": "source-built-R07",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021904493
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021904493
+          },
+          {
+            "name": "spawn",
+            "at": 1788021904494
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021904705
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021904705
+          },
+          {
+            "name": "exit",
+            "at": 1788021904705
+          },
+          {
+            "name": "close",
+            "at": 1788021904705
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "c839845bf26cb2c52ff0906c5c5239d5611bf6dfa3d866f2ba615372c0b9b562",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNyIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67894,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021904708
+      },
+      {
+        "id": "source-built-R08",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021904966
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021904967
+          },
+          {
+            "name": "spawn",
+            "at": 1788021904967
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021905167
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021905167
+          },
+          {
+            "name": "exit",
+            "at": 1788021905167
+          },
+          {
+            "name": "close",
+            "at": 1788021905167
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "be154494beba90df2c86ea6c4e8b2901e61e48e816071acb778a4fe190de7e79",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwOCIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67895,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021905170
+      },
+      {
+        "id": "source-built-R09",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021905433
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021905433
+          },
+          {
+            "name": "spawn",
+            "at": 1788021905433
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021905635
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021905635
+          },
+          {
+            "name": "exit",
+            "at": 1788021905635
+          },
+          {
+            "name": "close",
+            "at": 1788021905635
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "d6b0659137cf49892684907182cc20758e006167789dee45b765d010e50a19ab",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwOSIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67899,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021905639
+      },
+      {
+        "id": "source-built-R10",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021905900
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021905901
+          },
+          {
+            "name": "spawn",
+            "at": 1788021905901
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021906103
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021906103
+          },
+          {
+            "name": "exit",
+            "at": 1788021906103
+          },
+          {
+            "name": "close",
+            "at": 1788021906103
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "60bbc0b2da303b91b442f97f2cccfcfecf755ca9f33c90dbe371a6a6d6a4a8f2",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMCIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67905,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021906107
+      },
+      {
+        "id": "source-built-R11",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021906356
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021906356
+          },
+          {
+            "name": "spawn",
+            "at": 1788021906356
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021906598
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021906598
+          },
+          {
+            "name": "exit",
+            "at": 1788021906598
+          },
+          {
+            "name": "close",
+            "at": 1788021906598
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "1b211e50851b7110a120c4d44918a5a2ab5e139a979c039e9e439a5da402506b",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMSIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67907,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021906608
+      },
+      {
+        "id": "source-built-R12",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021906997
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021906998
+          },
+          {
+            "name": "spawn",
+            "at": 1788021906998
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021907275
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021907276
+          },
+          {
+            "name": "exit",
+            "at": 1788021907276
+          },
+          {
+            "name": "close",
+            "at": 1788021907276
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "776369f93593815b092a9da6b889de948193d3f274cad33beada175b68fa73e9",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMiIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67912,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021907286
+      },
+      {
+        "id": "source-built-R13",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021907594
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021907595
+          },
+          {
+            "name": "spawn",
+            "at": 1788021907595
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021908029
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021908029
+          },
+          {
+            "name": "exit",
+            "at": 1788021908029
+          },
+          {
+            "name": "close",
+            "at": 1788021908029
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "c7a868f53089bb9415ae479f4e8526156301b2f12a15d1301b3d4938521ac426",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMyIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67914,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021908034
+      },
+      {
+        "id": "source-built-R14",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021908503
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021908504
+          },
+          {
+            "name": "spawn",
+            "at": 1788021908504
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021908894
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021908894
+          },
+          {
+            "name": "exit",
+            "at": 1788021908894
+          },
+          {
+            "name": "close",
+            "at": 1788021908894
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "f93ad2337154bd260a9fc945bd5c15e9f4fd4a5d807fd956014a0604601293bc",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNCIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67921,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021908898
+      },
+      {
+        "id": "source-built-R15",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021909291
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021909291
+          },
+          {
+            "name": "spawn",
+            "at": 1788021909292
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021909522
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021909523
+          },
+          {
+            "name": "exit",
+            "at": 1788021909523
+          },
+          {
+            "name": "close",
+            "at": 1788021909523
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "f74da291a09f9faa812a6363575a320f04d37a8dfdaddd9007eddba654dfaadf",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNSIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67927,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021909581
+      },
+      {
+        "id": "source-built-R16",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021909880
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021909880
+          },
+          {
+            "name": "spawn",
+            "at": 1788021909880
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021910143
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021910143
+          },
+          {
+            "name": "exit",
+            "at": 1788021910143
+          },
+          {
+            "name": "close",
+            "at": 1788021910143
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "e1baa13a0fb2d4764bc9ea161af321bc2fe7b814b02641e930dc157e61c16d5f",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNiIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67929,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021910154
+      },
+      {
+        "id": "source-built-R17",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021910496
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021910497
+          },
+          {
+            "name": "spawn",
+            "at": 1788021910497
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021910758
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021910759
+          },
+          {
+            "name": "exit",
+            "at": 1788021910759
+          },
+          {
+            "name": "close",
+            "at": 1788021910759
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 405,
+            "sha256": "17d062dd659940c142332f3b390ac18e5c65587502314a47c6f01602934ca094",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNyIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOmZhbHNlLCJyZWFzb24iOnsia2luZCI6Im9iamVjdCIsIm5hbWUiOiJBc3NlcnRpb25FcnJvciIsIm1lc3NhZ2UiOiJSMTdcbisgYWN0dWFsIC0gZXhwZWN0ZWRcblxuKyAnbG9jYWw9PD5cXG5vdXRlcj08MD5cXG4nXG4tICdsb2NhbD08MSAwPlxcbm91dGVyPTwwPlxcbidcbiAgICAgICAgICBeXG4iLCJhc3NlcnRpb24iOnRydWV9LCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67934,
+        "status": 1,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021910767
+      },
+      {
+        "id": "source-built-R18",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021911118
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021911119
+          },
+          {
+            "name": "spawn",
+            "at": 1788021911119
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021911400
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021911400
+          },
+          {
+            "name": "exit",
+            "at": 1788021911400
+          },
+          {
+            "name": "close",
+            "at": 1788021911400
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "ef99d365019db9da829123cccc6c589572faf2f52f752c6409116dd27fee7092",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxOCIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67935,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021911410
+      },
+      {
+        "id": "source-built-H01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021911791
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021911792
+          },
+          {
+            "name": "spawn",
+            "at": 1788021911792
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021912167
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021912167
+          },
+          {
+            "name": "exit",
+            "at": 1788021912167
+          },
+          {
+            "name": "close",
+            "at": 1788021912167
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "feaaeb7a35f9a3fc72c968d35f151e47e8c31cb81e6636915a7d977ad8dfe341",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMSIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67940,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021912173
+      },
+      {
+        "id": "source-built-H02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021912520
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021912521
+          },
+          {
+            "name": "spawn",
+            "at": 1788021912521
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021912737
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021912738
+          },
+          {
+            "name": "exit",
+            "at": 1788021912738
+          },
+          {
+            "name": "close",
+            "at": 1788021912738
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "e3ce97aa3b0b5535f7ea1486696f141e7cda262df8291b9e099642b1f43fab71",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMiIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67959,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021912744
+      },
+      {
+        "id": "source-built-H03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021913006
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021913006
+          },
+          {
+            "name": "spawn",
+            "at": 1788021913006
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021913196
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021913196
+          },
+          {
+            "name": "exit",
+            "at": 1788021913197
+          },
+          {
+            "name": "close",
+            "at": 1788021913197
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "5b2f9257512551d2d1b49956c32ea53a30840787e381e5fbb3d120896286feb5",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMyIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67961,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021913200
+      },
+      {
+        "id": "source-built-H04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021913469
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021913469
+          },
+          {
+            "name": "spawn",
+            "at": 1788021913469
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021913682
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021913682
+          },
+          {
+            "name": "exit",
+            "at": 1788021913682
+          },
+          {
+            "name": "close",
+            "at": 1788021913683
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "bb6fc29189834241e53a2b8b6f49680af9173a153a04a2ce7fe36d2851bdaa26",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNCIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67963,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021913687
+      },
+      {
+        "id": "source-built-H05",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021913968
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021913969
+          },
+          {
+            "name": "spawn",
+            "at": 1788021913969
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021914170
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021914170
+          },
+          {
+            "name": "exit",
+            "at": 1788021914170
+          },
+          {
+            "name": "close",
+            "at": 1788021914170
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "c4d6fc6c1e170f08c8e0eaa720531cc064caea63363ce8a5265290d8f161cc31",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNSIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67969,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021914173
+      },
+      {
+        "id": "source-built-H06",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021914439
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021914440
+          },
+          {
+            "name": "spawn",
+            "at": 1788021914440
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021914629
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021914629
+          },
+          {
+            "name": "exit",
+            "at": 1788021914629
+          },
+          {
+            "name": "close",
+            "at": 1788021914629
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "8204459ec67e5f653da5d2746d23b716f3d9c0e0ab9cec330034281bca2e59c0",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNiIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67971,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021914633
+      },
+      {
+        "id": "source-built-H07",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021914901
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021914902
+          },
+          {
+            "name": "spawn",
+            "at": 1788021914902
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021915099
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021915099
+          },
+          {
+            "name": "exit",
+            "at": 1788021915100
+          },
+          {
+            "name": "close",
+            "at": 1788021915100
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "67e7782f855f682ca8ddf26e29c2e86fa8c87d3cbd78e34b46ba332244e6fc1d",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNyIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67979,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021915103
+      },
+      {
+        "id": "source-built-H08",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021915362
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021915363
+          },
+          {
+            "name": "spawn",
+            "at": 1788021915363
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021915566
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021915566
+          },
+          {
+            "name": "exit",
+            "at": 1788021915566
+          },
+          {
+            "name": "close",
+            "at": 1788021915566
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 221,
+            "sha256": "d389b38dee8c991a76f123ddec54ce57b2b501f3c158ab4c288098760b6cea2b",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwOCIsImxheW91dCI6InNvdXJjZS1idWlsdCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67984,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021915570
+      },
+      {
+        "id": "installed-R01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021915921
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021915922
+          },
+          {
+            "name": "spawn",
+            "at": 1788021915922
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021916135
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021916136
+          },
+          {
+            "name": "exit",
+            "at": 1788021916136
+          },
+          {
+            "name": "close",
+            "at": 1788021916136
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "dfcecf5af8e20ec342362f6ee21b76ecb0887760298d564aa631988bf20cc270",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMSIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67985,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021916140
+      },
+      {
+        "id": "installed-R02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021916417
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021916418
+          },
+          {
+            "name": "spawn",
+            "at": 1788021916418
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021916617
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021916618
+          },
+          {
+            "name": "exit",
+            "at": 1788021916618
+          },
+          {
+            "name": "close",
+            "at": 1788021916618
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "79988c6f6f50910199d6ff5d5b72ad889e1f303b31efd1e4adf34e1e8ec54c70",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMiIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67991,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021916621
+      },
+      {
+        "id": "installed-R03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021916870
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021916871
+          },
+          {
+            "name": "spawn",
+            "at": 1788021916871
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021917080
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021917081
+          },
+          {
+            "name": "exit",
+            "at": 1788021917081
+          },
+          {
+            "name": "close",
+            "at": 1788021917081
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "a24995c8947b9db69e934304aad89cd3bfb31345bb530691106e314ff13083b2",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMyIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67992,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021917085
+      },
+      {
+        "id": "installed-R04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021917341
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021917342
+          },
+          {
+            "name": "spawn",
+            "at": 1788021917342
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021917544
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021917544
+          },
+          {
+            "name": "exit",
+            "at": 1788021917544
+          },
+          {
+            "name": "close",
+            "at": 1788021917544
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "91291f8fe92cb98ba6c6ac92b8710d0e8812dd2cf99a4d0d87bda25cc334c8ca",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNCIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 67993,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021917547
+      },
+      {
+        "id": "installed-R05",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021917823
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021917823
+          },
+          {
+            "name": "spawn",
+            "at": 1788021917823
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021918018
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021918018
+          },
+          {
+            "name": "exit",
+            "at": 1788021918018
+          },
+          {
+            "name": "close",
+            "at": 1788021918018
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "62ba2cb23d4515ec5a6dacd636015f290f0ab1348a0ee91feb17e293906eba58",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNSIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68001,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021918025
+      },
+      {
+        "id": "installed-R06",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021918292
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021918293
+          },
+          {
+            "name": "spawn",
+            "at": 1788021918293
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021918507
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021918507
+          },
+          {
+            "name": "exit",
+            "at": 1788021918507
+          },
+          {
+            "name": "close",
+            "at": 1788021918507
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "3f7ff02f41fc9ab2c95db267c5a53bcafe1c6ddda247a9c75d99d46ac43adb9b",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNiIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68003,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021918511
+      },
+      {
+        "id": "installed-R07",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021918765
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021918766
+          },
+          {
+            "name": "spawn",
+            "at": 1788021918766
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021918967
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021918968
+          },
+          {
+            "name": "exit",
+            "at": 1788021918968
+          },
+          {
+            "name": "close",
+            "at": 1788021918968
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "232cb6314543db86db7d9bcef0e946158bf6e3bdabaf32715ca65055d165c253",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNyIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68006,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021918971
+      },
+      {
+        "id": "installed-R08",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021919230
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021919231
+          },
+          {
+            "name": "spawn",
+            "at": 1788021919231
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021919423
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021919424
+          },
+          {
+            "name": "exit",
+            "at": 1788021919424
+          },
+          {
+            "name": "close",
+            "at": 1788021919424
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "9fdda97486ff0f68404654ff7cf0192edc7b4880c2ca29ffa973b19867b7aa30",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwOCIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68007,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021919427
+      },
+      {
+        "id": "installed-R09",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021919686
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021919687
+          },
+          {
+            "name": "spawn",
+            "at": 1788021919687
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021919899
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021919899
+          },
+          {
+            "name": "exit",
+            "at": 1788021919899
+          },
+          {
+            "name": "close",
+            "at": 1788021919899
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "df33ad01740ad95ab6591fce9b1ec2312a942ec178ecb30784f7a347a5d55f21",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwOSIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68009,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021919903
+      },
+      {
+        "id": "installed-R10",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021920186
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021920187
+          },
+          {
+            "name": "spawn",
+            "at": 1788021920187
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021920381
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021920381
+          },
+          {
+            "name": "exit",
+            "at": 1788021920381
+          },
+          {
+            "name": "close",
+            "at": 1788021920381
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "a67f1620ba2312f1277bf12e89ca9b4244aecb5cf1b8450cb92d0e54ed6088c5",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMCIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68011,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021920385
+      },
+      {
+        "id": "installed-R11",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021920647
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021920648
+          },
+          {
+            "name": "spawn",
+            "at": 1788021920648
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021920855
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021920855
+          },
+          {
+            "name": "exit",
+            "at": 1788021920855
+          },
+          {
+            "name": "close",
+            "at": 1788021920855
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "a908169012a7a1a2178978b761f2206ac302b7c233d8bbec02a47b6b6ac8cd7b",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMSIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68012,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021920860
+      },
+      {
+        "id": "installed-R12",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021921117
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021921117
+          },
+          {
+            "name": "spawn",
+            "at": 1788021921118
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021921316
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021921316
+          },
+          {
+            "name": "exit",
+            "at": 1788021921316
+          },
+          {
+            "name": "close",
+            "at": 1788021921316
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "ae6686c36a9d31384a1cd7d7f56e878d8d5b203d92f5ddb70399d23b9b2bd501",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMiIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68020,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021921320
+      },
+      {
+        "id": "installed-R13",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021921582
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021921583
+          },
+          {
+            "name": "spawn",
+            "at": 1788021921583
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021921767
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021921767
+          },
+          {
+            "name": "exit",
+            "at": 1788021921768
+          },
+          {
+            "name": "close",
+            "at": 1788021921768
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "80a6d0dd873d34070710a39ea6f027eab43498bb3305e6e2b1facf445a4be37c",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMyIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68021,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021921771
+      },
+      {
+        "id": "installed-R14",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021922050
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021922051
+          },
+          {
+            "name": "spawn",
+            "at": 1788021922051
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021922256
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021922256
+          },
+          {
+            "name": "exit",
+            "at": 1788021922256
+          },
+          {
+            "name": "close",
+            "at": 1788021922256
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "5364258455a3fccc12b707b3161706e6c95c7cf3ec7af832172ed132c4cbac34",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNCIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68024,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021922259
+      },
+      {
+        "id": "installed-R15",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021922519
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021922520
+          },
+          {
+            "name": "spawn",
+            "at": 1788021922520
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021922715
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021922715
+          },
+          {
+            "name": "exit",
+            "at": 1788021922715
+          },
+          {
+            "name": "close",
+            "at": 1788021922715
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "635f748f70ca9a7d53fbdabb36fd74a4f89264c070a9ef9fbe146bf87ab3ff5b",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNSIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68026,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021922719
+      },
+      {
+        "id": "installed-R16",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021922999
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021923000
+          },
+          {
+            "name": "spawn",
+            "at": 1788021923000
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021923243
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021923243
+          },
+          {
+            "name": "exit",
+            "at": 1788021923243
+          },
+          {
+            "name": "close",
+            "at": 1788021923243
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "70a90a9c8e04f97c2c2f7dfe11ea24f2dceffd5dd852e8ceffed68431f20d295",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNiIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68027,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021923247
+      },
+      {
+        "id": "installed-R17",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021923496
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021923497
+          },
+          {
+            "name": "spawn",
+            "at": 1788021923497
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021923711
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021923711
+          },
+          {
+            "name": "exit",
+            "at": 1788021923711
+          },
+          {
+            "name": "close",
+            "at": 1788021923712
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 402,
+            "sha256": "0d9e402eb2ff00121739fa0ce33e3ef69869920fd4d4885478d2e373c5dd033e",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNyIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOmZhbHNlLCJyZWFzb24iOnsia2luZCI6Im9iamVjdCIsIm5hbWUiOiJBc3NlcnRpb25FcnJvciIsIm1lc3NhZ2UiOiJSMTdcbisgYWN0dWFsIC0gZXhwZWN0ZWRcblxuKyAnbG9jYWw9PD5cXG5vdXRlcj08MD5cXG4nXG4tICdsb2NhbD08MSAwPlxcbm91dGVyPTwwPlxcbidcbiAgICAgICAgICBeXG4iLCJhc3NlcnRpb24iOnRydWV9LCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68028,
+        "status": 1,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021923715
+      },
+      {
+        "id": "installed-R18",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021923992
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021923993
+          },
+          {
+            "name": "spawn",
+            "at": 1788021923993
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021924189
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021924189
+          },
+          {
+            "name": "exit",
+            "at": 1788021924189
+          },
+          {
+            "name": "close",
+            "at": 1788021924189
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "3a0a48897345003699f912a5053342930bc69f35a188aea9e066e8ce2cdefa0d",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxOCIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68036,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021924192
+      },
+      {
+        "id": "installed-H01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021924447
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021924448
+          },
+          {
+            "name": "spawn",
+            "at": 1788021924448
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021924646
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021924646
+          },
+          {
+            "name": "exit",
+            "at": 1788021924646
+          },
+          {
+            "name": "close",
+            "at": 1788021924646
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "d19d942f3220ac616389baaec07324370c90062d954540c95d6b538c0699bf28",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMSIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68038,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021924649
+      },
+      {
+        "id": "installed-H02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021924905
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021924905
+          },
+          {
+            "name": "spawn",
+            "at": 1788021924905
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021925097
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021925098
+          },
+          {
+            "name": "exit",
+            "at": 1788021925098
+          },
+          {
+            "name": "close",
+            "at": 1788021925098
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "83a5a08163f0399e71ac1d2af170930492b7ce4815200bb57370c70778387e91",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMiIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68039,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021925101
+      },
+      {
+        "id": "installed-H03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021925359
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021925360
+          },
+          {
+            "name": "spawn",
+            "at": 1788021925360
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021925565
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021925565
+          },
+          {
+            "name": "exit",
+            "at": 1788021925566
+          },
+          {
+            "name": "close",
+            "at": 1788021925566
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "d7695a653a679c3e0b11bd45eb7c7e7295a1a42c779ad08b2dd589e8442be880",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMyIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68041,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021925569
+      },
+      {
+        "id": "installed-H04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021925836
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021925837
+          },
+          {
+            "name": "spawn",
+            "at": 1788021925837
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021926031
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021926032
+          },
+          {
+            "name": "exit",
+            "at": 1788021926032
+          },
+          {
+            "name": "close",
+            "at": 1788021926032
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "7c8fd097657f149d749f7cb03d9b731a70352174f31083053471ac7bf15e244a",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNCIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68043,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021926036
+      },
+      {
+        "id": "installed-H05",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021926292
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021926293
+          },
+          {
+            "name": "spawn",
+            "at": 1788021926293
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021926476
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021926476
+          },
+          {
+            "name": "exit",
+            "at": 1788021926476
+          },
+          {
+            "name": "close",
+            "at": 1788021926476
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "8d12f9de642b2fdbf8c3795d368c641b0df926dbfcde77cdf42b97bb658f211c",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNSIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68044,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021926480
+      },
+      {
+        "id": "installed-H06",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021926740
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021926741
+          },
+          {
+            "name": "spawn",
+            "at": 1788021926741
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021926934
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021926934
+          },
+          {
+            "name": "exit",
+            "at": 1788021926934
+          },
+          {
+            "name": "close",
+            "at": 1788021926934
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "1ddd17b2091ef69aaeb87ff1be9194e9aa5aace341d6e9a04cf29577b52f1ef5",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNiIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68045,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021926938
+      },
+      {
+        "id": "installed-H07",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021927222
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021927222
+          },
+          {
+            "name": "spawn",
+            "at": 1788021927222
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021927437
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021927437
+          },
+          {
+            "name": "exit",
+            "at": 1788021927437
+          },
+          {
+            "name": "close",
+            "at": 1788021927437
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "710e9f5395cfbd9042205412b30d1c851958605778651ce468b90eb2457e2c22",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNyIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68054,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021927444
+      },
+      {
+        "id": "installed-H08",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021927715
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021927716
+          },
+          {
+            "name": "spawn",
+            "at": 1788021927716
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021927909
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021927910
+          },
+          {
+            "name": "exit",
+            "at": 1788021927910
+          },
+          {
+            "name": "close",
+            "at": 1788021927910
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 218,
+            "sha256": "9a491f19a9175a12ac3c07a6e12b1cb5f5e84d8a105073920b7c642b2138d8b5",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwOCIsImxheW91dCI6Imluc3RhbGxlZCIsInBhc3MiOnRydWUsImRpc3Bvc2FscyI6W3siZW50ZXJlZCI6dHJ1ZSwic2V0dGxlZCI6dHJ1ZSwicmVqZWN0ZWQiOmZhbHNlfV0sImNsZWFudXBRdWFsaWZpZWQiOnRydWUsIm9ic2VydmVyIjoiZXhhY3QgZGlzcG9zZSBQcm9taXNlIGZvcndhcmRpbmcgc3ViY2xhc3MifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68081,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021927913
+      },
+      {
+        "id": "physically-moved-R01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021928256
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021928256
+          },
+          {
+            "name": "spawn",
+            "at": 1788021928256
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021928477
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021928477
+          },
+          {
+            "name": "exit",
+            "at": 1788021928477
+          },
+          {
+            "name": "close",
+            "at": 1788021928477
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "3c09d46e212b2ccc0241de76a3e284989fe300418fdfd42a715e420caeb21fbf",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMSIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68082,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021928481
+      },
+      {
+        "id": "physically-moved-R02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021928740
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021928741
+          },
+          {
+            "name": "spawn",
+            "at": 1788021928741
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021928956
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021928956
+          },
+          {
+            "name": "exit",
+            "at": 1788021928956
+          },
+          {
+            "name": "close",
+            "at": 1788021928956
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "16ab04c4b60d7f1b7517b1ee125afac7ea15a49c9f2400613a635459150d2fcd",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMiIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68084,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021928963
+      },
+      {
+        "id": "physically-moved-R03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021929253
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021929254
+          },
+          {
+            "name": "spawn",
+            "at": 1788021929254
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021929454
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021929454
+          },
+          {
+            "name": "exit",
+            "at": 1788021929454
+          },
+          {
+            "name": "close",
+            "at": 1788021929455
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "4c2ee2b644146028530207184460c912d80afc2e53714008454b4f056bbe23d5",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwMyIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68086,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021929459
+      },
+      {
+        "id": "physically-moved-R04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021929717
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021929718
+          },
+          {
+            "name": "spawn",
+            "at": 1788021929718
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021929932
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021929933
+          },
+          {
+            "name": "exit",
+            "at": 1788021929933
+          },
+          {
+            "name": "close",
+            "at": 1788021929933
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "b9fece207f2ed355394de2fab34fef814f21f4d3374b0de2e97aa522fc378484",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNCIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68087,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021929936
+      },
+      {
+        "id": "physically-moved-R05",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021930207
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021930208
+          },
+          {
+            "name": "spawn",
+            "at": 1788021930208
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021930408
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021930408
+          },
+          {
+            "name": "exit",
+            "at": 1788021930408
+          },
+          {
+            "name": "close",
+            "at": 1788021930408
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "29191ed798e0140214f37b6de4a22b76570452be37ad10cee9f4d8190147e3cb",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNSIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68095,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021930411
+      },
+      {
+        "id": "physically-moved-R06",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021930672
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021930672
+          },
+          {
+            "name": "spawn",
+            "at": 1788021930672
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021930868
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021930868
+          },
+          {
+            "name": "exit",
+            "at": 1788021930868
+          },
+          {
+            "name": "close",
+            "at": 1788021930868
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "89e539d37009c2ba71ab702b449069828a619311a9adaab8a26934d45871a2ac",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNiIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68096,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021930873
+      },
+      {
+        "id": "physically-moved-R07",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021931135
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021931136
+          },
+          {
+            "name": "spawn",
+            "at": 1788021931136
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021931340
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021931340
+          },
+          {
+            "name": "exit",
+            "at": 1788021931340
+          },
+          {
+            "name": "close",
+            "at": 1788021931340
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "84f7e3e419b931c7fc5e95be33e964d072b8d52d89b473116d8f4f077aaba05d",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwNyIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68099,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021931344
+      },
+      {
+        "id": "physically-moved-R08",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021931603
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021931603
+          },
+          {
+            "name": "spawn",
+            "at": 1788021931603
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021931844
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021931844
+          },
+          {
+            "name": "exit",
+            "at": 1788021931844
+          },
+          {
+            "name": "close",
+            "at": 1788021931844
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "443dd4f8f8057381b509016443eb9147c18b45780095461aed5e52800b6a1fe7",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwOCIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68142,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021931848
+      },
+      {
+        "id": "physically-moved-R09",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021932127
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021932128
+          },
+          {
+            "name": "spawn",
+            "at": 1788021932128
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021932396
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021932397
+          },
+          {
+            "name": "exit",
+            "at": 1788021932397
+          },
+          {
+            "name": "close",
+            "at": 1788021932397
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "e63b2e02742b1ecdd644fc518932acc4d748174a2b0116704df626da7e9b3f43",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIwOSIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68158,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021932402
+      },
+      {
+        "id": "physically-moved-R10",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021932685
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021932686
+          },
+          {
+            "name": "spawn",
+            "at": 1788021932686
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021932899
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021932899
+          },
+          {
+            "name": "exit",
+            "at": 1788021932899
+          },
+          {
+            "name": "close",
+            "at": 1788021932899
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "4a4b479cd70c4e3735b9502996f18947ba4d539c57a2cdf3e13904f0bff72f93",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMCIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68165,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021932904
+      },
+      {
+        "id": "physically-moved-R11",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021933174
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021933174
+          },
+          {
+            "name": "spawn",
+            "at": 1788021933174
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021933377
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021933377
+          },
+          {
+            "name": "exit",
+            "at": 1788021933377
+          },
+          {
+            "name": "close",
+            "at": 1788021933377
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "d36077a766632867c9a3648cf1e6628437798d3aa01f6872bb31fb8c74d16221",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMSIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68168,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021933382
+      },
+      {
+        "id": "physically-moved-R12",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021933636
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021933637
+          },
+          {
+            "name": "spawn",
+            "at": 1788021933637
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021933837
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021933837
+          },
+          {
+            "name": "exit",
+            "at": 1788021933837
+          },
+          {
+            "name": "close",
+            "at": 1788021933837
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "5e4835f98fc42ed56784ffddcae1326899fe9ec9b50884acdbd717ac6bc93f21",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMiIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68175,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021933841
+      },
+      {
+        "id": "physically-moved-R13",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021934100
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021934101
+          },
+          {
+            "name": "spawn",
+            "at": 1788021934101
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021934302
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021934302
+          },
+          {
+            "name": "exit",
+            "at": 1788021934302
+          },
+          {
+            "name": "close",
+            "at": 1788021934302
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "666ba037a841a2f04a72984ae07669517514c82c1048ee78fa6dbee25bd34bb7",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxMyIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68176,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021934306
+      },
+      {
+        "id": "physically-moved-R14",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021934562
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021934562
+          },
+          {
+            "name": "spawn",
+            "at": 1788021934562
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021934769
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021934769
+          },
+          {
+            "name": "exit",
+            "at": 1788021934769
+          },
+          {
+            "name": "close",
+            "at": 1788021934769
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "88312174a5e1e90253901fd0c732409dc50bd6e29d6570973427724322ead090",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNCIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68178,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021934773
+      },
+      {
+        "id": "physically-moved-R15",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021935050
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021935050
+          },
+          {
+            "name": "spawn",
+            "at": 1788021935050
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021935242
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021935242
+          },
+          {
+            "name": "exit",
+            "at": 1788021935242
+          },
+          {
+            "name": "close",
+            "at": 1788021935242
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "cccbfaec5357d0faa1fc87a70888ef964478734807baf249d65a0584bd00a2ef",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNSIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68180,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021935246
+      },
+      {
+        "id": "physically-moved-R16",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021935501
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021935501
+          },
+          {
+            "name": "spawn",
+            "at": 1788021935501
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021935708
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021935708
+          },
+          {
+            "name": "exit",
+            "at": 1788021935708
+          },
+          {
+            "name": "close",
+            "at": 1788021935708
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "05206c27eacdcdad9976e059ba536547d1afe072c8b2b9f3113dc74fab03292a",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNiIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68181,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021935712
+      },
+      {
+        "id": "physically-moved-R17",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021935965
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021935966
+          },
+          {
+            "name": "spawn",
+            "at": 1788021935966
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021936166
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021936166
+          },
+          {
+            "name": "exit",
+            "at": 1788021936166
+          },
+          {
+            "name": "close",
+            "at": 1788021936166
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 409,
+            "sha256": "61246c1712ff2d110e0e26d4a3aacc0337419a2f35e12a20a472ad986802bd40",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxNyIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjpmYWxzZSwicmVhc29uIjp7ImtpbmQiOiJvYmplY3QiLCJuYW1lIjoiQXNzZXJ0aW9uRXJyb3IiLCJtZXNzYWdlIjoiUjE3XG4rIGFjdHVhbCAtIGV4cGVjdGVkXG5cbisgJ2xvY2FsPTw+XFxub3V0ZXI9PDA+XFxuJ1xuLSAnbG9jYWw9PDEgMD5cXG5vdXRlcj08MD5cXG4nXG4gICAgICAgICAgXlxuIiwiYXNzZXJ0aW9uIjp0cnVlfSwiZGlzcG9zYWxzIjpbeyJlbnRlcmVkIjp0cnVlLCJzZXR0bGVkIjp0cnVlLCJyZWplY3RlZCI6ZmFsc2V9XSwiY2xlYW51cFF1YWxpZmllZCI6dHJ1ZSwib2JzZXJ2ZXIiOiJleGFjdCBkaXNwb3NlIFByb21pc2UgZm9yd2FyZGluZyBzdWJjbGFzcyJ9Cg==",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68182,
+        "status": 1,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021936170
+      },
+      {
+        "id": "physically-moved-R18",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021936446
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021936446
+          },
+          {
+            "name": "spawn",
+            "at": 1788021936446
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021936657
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021936657
+          },
+          {
+            "name": "exit",
+            "at": 1788021936657
+          },
+          {
+            "name": "close",
+            "at": 1788021936657
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "11ee15206cca73e32ccf17f10f4edbb70609c7458a1d624a177513db33522984",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IlIxOCIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68190,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021936661
+      },
+      {
+        "id": "physically-moved-H01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021936925
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021936926
+          },
+          {
+            "name": "spawn",
+            "at": 1788021936926
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021937120
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021937120
+          },
+          {
+            "name": "exit",
+            "at": 1788021937120
+          },
+          {
+            "name": "close",
+            "at": 1788021937120
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "786e4dccdd0ba5167673ec60fea235ce2f15594a1558fc89a684c5e0021f79cb",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMSIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68192,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021937124
+      },
+      {
+        "id": "physically-moved-H02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021937394
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021937395
+          },
+          {
+            "name": "spawn",
+            "at": 1788021937395
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021937585
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021937585
+          },
+          {
+            "name": "exit",
+            "at": 1788021937585
+          },
+          {
+            "name": "close",
+            "at": 1788021937585
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "a6c1616e8f5997d1be336e2e718ec5a63932e14e1a2f4c5965fa81202b72681e",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMiIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68194,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021937590
+      },
+      {
+        "id": "physically-moved-H03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021937842
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021937843
+          },
+          {
+            "name": "spawn",
+            "at": 1788021937843
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021938050
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021938050
+          },
+          {
+            "name": "exit",
+            "at": 1788021938050
+          },
+          {
+            "name": "close",
+            "at": 1788021938050
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "a9ad92c83e18770677bb7666f49eabfc197705078ae556c913c3e1ca7206b0e0",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwMyIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68195,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021938054
+      },
+      {
+        "id": "physically-moved-H04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021938305
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021938305
+          },
+          {
+            "name": "spawn",
+            "at": 1788021938305
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021938487
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021938488
+          },
+          {
+            "name": "exit",
+            "at": 1788021938488
+          },
+          {
+            "name": "close",
+            "at": 1788021938488
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "23824f9949a4a1179fd3e3d0ac323fbe7016d13a406b087d3351154e25faec80",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNCIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68196,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021938492
+      },
+      {
+        "id": "physically-moved-H05",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021938760
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021938761
+          },
+          {
+            "name": "spawn",
+            "at": 1788021938761
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021938949
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021938949
+          },
+          {
+            "name": "exit",
+            "at": 1788021938949
+          },
+          {
+            "name": "close",
+            "at": 1788021938949
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "8930049363a084e4fea640508bc1669116f099941ddacf9e23ed835f1abf0b53",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNSIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68198,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021938953
+      },
+      {
+        "id": "physically-moved-H06",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021939210
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021939211
+          },
+          {
+            "name": "spawn",
+            "at": 1788021939211
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021939401
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021939401
+          },
+          {
+            "name": "exit",
+            "at": 1788021939401
+          },
+          {
+            "name": "close",
+            "at": 1788021939401
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "53bc3ffad53adeabead3a53382a83b3e213014f9c9ded96bcf759c22a8b1c198",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNiIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68199,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021939406
+      },
+      {
+        "id": "physically-moved-H07",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021939685
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021939685
+          },
+          {
+            "name": "spawn",
+            "at": 1788021939685
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021939883
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021939883
+          },
+          {
+            "name": "exit",
+            "at": 1788021939883
+          },
+          {
+            "name": "close",
+            "at": 1788021939883
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "5a39ecb160a1e0fa799ca97654626489550415cb1bb7ad0b05ab0b9104bc075c",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwNyIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68207,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021939887
+      },
+      {
+        "id": "physically-moved-H08",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788021940137
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788021940137
+          },
+          {
+            "name": "spawn",
+            "at": 1788021940137
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788021940341
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788021940341
+          },
+          {
+            "name": "exit",
+            "at": 1788021940341
+          },
+          {
+            "name": "close",
+            "at": 1788021940341
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 225,
+            "sha256": "d24bfa75a05ddaae009c05a3eb2a4e4c2f72fd6a269df21ffc08e6d06dd9a92d",
+            "base64": "eyJzY2hlbWEiOiJwaXBlc3RhdHVzLWNhc2UtdjEiLCJpZCI6IkgwOCIsImxheW91dCI6InBoeXNpY2FsbHktbW92ZWQiLCJwYXNzIjp0cnVlLCJkaXNwb3NhbHMiOlt7ImVudGVyZWQiOnRydWUsInNldHRsZWQiOnRydWUsInJlamVjdGVkIjpmYWxzZX1dLCJjbGVhbnVwUXVhbGlmaWVkIjp0cnVlLCJvYnNlcnZlciI6ImV4YWN0IGRpc3Bvc2UgUHJvbWlzZSBmb3J3YXJkaW5nIHN1YmNsYXNzIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 68208,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788021940345
+      }
+    ]
+  },
+  "finished": 1788021940432
+}

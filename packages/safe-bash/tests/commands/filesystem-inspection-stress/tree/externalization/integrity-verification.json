@@ -1,0 +1,50 @@
+{
+  "action": "--verify",
+  "verification": {
+    "repositoryReferences": 845,
+    "externalReferences": 4,
+    "manifests": [
+      {
+        "path": "EVIDENCE-MANIFEST.json",
+        "entries": 316,
+        "sha256": "66ecd953ee0959f249387b3eab9f7d9f20afa32eca36bb123a82810187997b01"
+      },
+      {
+        "path": "corrections/n18-positive-depth/CORRECTION-MANIFEST.json",
+        "entries": 35,
+        "sha256": "18cb04609766ba7ee13a8f2d6a5d41094ebe58e63cdffb298f61f12c81c9d5d6"
+      },
+      {
+        "path": "corrections/n18-positive-depth-v2/V2-MANIFEST.json",
+        "entries": 37,
+        "sha256": "211a071d5e78a66791b37790804bbe6fa5cb737fafc052c00529a8d4d282602d"
+      },
+      {
+        "path": "evidence/final-436bda3/FINAL-MANIFEST.json",
+        "entries": 358,
+        "sha256": "f5d0e4c69a0c7d797e77b0af89a6cc471ce4f39496a747a56d0d682597839d7b"
+      },
+      {
+        "path": "evidence/final-436bda3/FINAL-RECEIPT.json",
+        "entries": 6,
+        "sha256": "24bdcd1d829a2d112cefae87a83a292c3c9b9850255ad017dbf798bd0d4d51e8"
+      }
+    ],
+    "originalInventoryReferences": 97,
+    "missingInputs": 0
+  },
+  "externalPrerequisites": [
+    {
+      "path": "sealed/oracle/tree",
+      "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a"
+    },
+    {
+      "path": "sealed/oracle/tree-2.2.1.tar.bz2",
+      "sha256": "e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5"
+    }
+  ],
+  "repositoryContainsAllInputs": false,
+  "nativeCalls": 0,
+  "productCalls": 0,
+  "testReplays": 0
+}

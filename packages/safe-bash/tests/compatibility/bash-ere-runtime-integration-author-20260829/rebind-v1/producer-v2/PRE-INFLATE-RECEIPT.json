@@ -1,0 +1,20 @@
+{
+  "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+  "size": 908381,
+  "mode": 420,
+  "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e",
+  "sha1": "ecebdb80aa7b03e442f444aa156ab87f99d3ef70",
+  "integrity": "sha512-KzzqUOrAYgMJiCTY0WssQ+gsD2RnEqqQUWHUkNB3eM534WmoU6cGo7bPtHflQbnDgioe5kDiH7KsYTZrM1AV7Q==",
+  "producer": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stdout",
+    "size": 113591,
+    "mode": 420,
+    "sha256": "31295818cc75f97dd8d3b775774aa72afdec84d74ccd0b3fbf5a9037f6336458",
+    "sha1": "f5a4dbcee7242771ef4f3806f2c8525c9b11bf9d",
+    "integrity": "sha512-We+VwiAKAA9IBGIC2u/K6Y6zRG0HVu2It6zbgQZNll0XCh3n5H2ZNj20z4wxcF1HbHG5xebsKwWuniXi9x8/6A=="
+  },
+  "sourceTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+  "sizeBound": 16777216,
+  "decodedBound": 67108864,
+  "phase": "Streaming hash completed; archive bytes and this receipt committed BEFORE first full-buffer read or inflate."
+}

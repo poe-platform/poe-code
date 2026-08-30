@@ -1,0 +1,3308 @@
+{
+  "timestampSummary": {
+    "originalRows": 30,
+    "semantic": 30,
+    "calibrationOnly": 0,
+    "causes": {
+      "negative-fraction": 15,
+      "negative-fraction-and-narrow-width": 4,
+      "narrow-width": 11
+    },
+    "note": "Requested Date milliseconds differ from measured timestamps in some fixtures, but original VFS inputs already used the exact measured values. All 30 differences survive input-equality classification; none may be dismissed solely as calibration."
+  },
+  "timestampRows": [
+    {
+      "id": "T01",
+      "original": {
+        "milliseconds": -16016,
+        "measured": -16015.999,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-17][-17][-17.0][-16.01][-16.015]",
+        "actual": "[-17][-17][-16.1][-16.02][-16.016]",
+        "nativeNs": "-16015999000"
+      },
+      "requestedMs": -16016,
+      "rawVfsMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "rawRealMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "deterministicMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "nativeNs": "-16015999000",
+      "nativeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-17][-17][-17.0][-16.01][-16.015]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-17][-17][-17.0][-16.01][-16.015]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-17][-17][-17.0][-16.01][-16.015]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-17][-17][-17.0][-16.01][-16.015]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-17.0",
+          "originalActual": "-16.1",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-16.01",
+          "originalActual": "-16.02",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.3Y",
+          "native": "-16.015",
+          "originalActual": "-16.016",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T02",
+      "original": {
+        "milliseconds": -16016,
+        "measured": -16015.999,
+        "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+        "native": "[-00016.015][-00016.015][-16.015   ]",
+        "actual": "[-00016.016][-00016.016][-16.016   ]",
+        "nativeNs": "-16015999000"
+      },
+      "requestedMs": -16016,
+      "rawVfsMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "rawRealMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "deterministicMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "nativeNs": "-16015999000",
+      "nativeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-00016.015][-00016.015][-16.015   ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-00016.015][-00016.015][-16.015   ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-00016.015][-00016.015][-16.015   ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-00016.015][-00016.015][-16.015   ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%+010.3Y",
+          "native": "-00016.015",
+          "originalActual": "-00016.016",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "% 010.3Y",
+          "native": "-00016.015",
+          "originalActual": "-00016.016",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%-10.3Y",
+          "native": "-16.015   ",
+          "originalActual": "-16.016   ",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T03",
+      "original": {
+        "milliseconds": -16016,
+        "measured": -16015.999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-16.015][-16.015][-16.015][-16.015]",
+        "actual": "[-16.016][-16.016][-16.016][-16.016]",
+        "nativeNs": "-16015999000"
+      },
+      "requestedMs": -16016,
+      "rawVfsMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "rawRealMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "deterministicMtimeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "nativeNs": "-16015999000",
+      "nativeMs": {
+        "value": -16015.999,
+        "decimal17": "-16015.999000000000",
+        "ieee754be": "c0cf47ffdf3b645a"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-16.015][-16.015][-16.015][-16.015]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-16.015][-16.015][-16.015][-16.015]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-16.015][-16.015][-16.015][-16.015]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-16.015][-16.015][-16.015][-16.015]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%1.3Y",
+          "native": "-16.015",
+          "originalActual": "-16.016",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%2.3Y",
+          "native": "-16.015",
+          "originalActual": "-16.016",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%3.3Y",
+          "native": "-16.015",
+          "originalActual": "-16.016",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%4.3Y",
+          "native": "-16.015",
+          "originalActual": "-16.016",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T04",
+      "original": {
+        "milliseconds": -4004,
+        "measured": -4003.999,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-5][-5][-5.0][-5.00][-4.003]",
+        "actual": "[-5][-5][-4.1][-4.01][-4.004]",
+        "nativeNs": "-4003999000"
+      },
+      "requestedMs": -4004,
+      "rawVfsMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "rawRealMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "deterministicMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "nativeNs": "-4003999000",
+      "nativeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-5][-5][-5.0][-5.00][-4.003]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-5][-5][-5.0][-5.00][-4.003]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-5][-5][-5.0][-5.00][-4.003]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-5][-5][-5.0][-5.00][-4.003]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-5.0",
+          "originalActual": "-4.1",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-5.00",
+          "originalActual": "-4.01",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.3Y",
+          "native": "-4.003",
+          "originalActual": "-4.004",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T05",
+      "original": {
+        "milliseconds": -4004,
+        "measured": -4003.999,
+        "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+        "native": "[-00004.003][-00004.003][-4.003    ]",
+        "actual": "[-00004.004][-00004.004][-4.004    ]",
+        "nativeNs": "-4003999000"
+      },
+      "requestedMs": -4004,
+      "rawVfsMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "rawRealMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "deterministicMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "nativeNs": "-4003999000",
+      "nativeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-00004.003][-00004.003][-4.003    ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-00004.003][-00004.003][-4.003    ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-00004.003][-00004.003][-4.003    ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-00004.003][-00004.003][-4.003    ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%+010.3Y",
+          "native": "-00004.003",
+          "originalActual": "-00004.004",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "% 010.3Y",
+          "native": "-00004.003",
+          "originalActual": "-00004.004",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%-10.3Y",
+          "native": "-4.003    ",
+          "originalActual": "-4.004    ",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T06",
+      "original": {
+        "milliseconds": -4004,
+        "measured": -4003.999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-4.003][-4.003][-4.003][-4.003  ]",
+        "actual": "[-4.004][-4.004][-4.004][-4.004]",
+        "nativeNs": "-4003999000"
+      },
+      "requestedMs": -4004,
+      "rawVfsMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "rawRealMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "deterministicMtimeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "nativeNs": "-4003999000",
+      "nativeMs": {
+        "value": -4003.999,
+        "decimal17": "-4003.9989999999998",
+        "ieee754be": "c0af47ff7ced9168"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction-and-narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[-4.003][-4.003][-4.003][-4.003  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-4.003][-4.003][-4.003][-4.003  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-4.003][-4.003][-4.003][-4.003  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-4.003][-4.003][-4.003][-4.003  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%1.3Y",
+          "native": "-4.003",
+          "originalActual": "-4.004",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%2.3Y",
+          "native": "-4.003",
+          "originalActual": "-4.004",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%3.3Y",
+          "native": "-4.003",
+          "originalActual": "-4.004",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%4.3Y",
+          "native": "-4.003  ",
+          "originalActual": "-4.004",
+          "numericTextDifference": true,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T07",
+      "original": {
+        "milliseconds": -2002,
+        "measured": -2001.999,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-3][-3][-3.0][-3.00][-2.001]",
+        "actual": "[-3][-3][-2.1][-2.01][-2.002]",
+        "nativeNs": "-2001999000"
+      },
+      "requestedMs": -2002,
+      "rawVfsMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "rawRealMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "deterministicMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "nativeNs": "-2001999000",
+      "nativeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-3][-3][-3.0][-3.00][-2.001]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-3][-3][-3.0][-3.00][-2.001]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-3][-3][-3.0][-3.00][-2.001]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-3][-3][-3.0][-3.00][-2.001]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-3.0",
+          "originalActual": "-2.1",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-3.00",
+          "originalActual": "-2.01",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.3Y",
+          "native": "-2.001",
+          "originalActual": "-2.002",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T08",
+      "original": {
+        "milliseconds": -2002,
+        "measured": -2001.999,
+        "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+        "native": "[-00002.001][-00002.001][-2.001    ]",
+        "actual": "[-00002.002][-00002.002][-2.002    ]",
+        "nativeNs": "-2001999000"
+      },
+      "requestedMs": -2002,
+      "rawVfsMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "rawRealMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "deterministicMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "nativeNs": "-2001999000",
+      "nativeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-00002.001][-00002.001][-2.001    ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-00002.001][-00002.001][-2.001    ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-00002.001][-00002.001][-2.001    ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-00002.001][-00002.001][-2.001    ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%+010.3Y",
+          "native": "-00002.001",
+          "originalActual": "-00002.002",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "% 010.3Y",
+          "native": "-00002.001",
+          "originalActual": "-00002.002",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%-10.3Y",
+          "native": "-2.001    ",
+          "originalActual": "-2.002    ",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T09",
+      "original": {
+        "milliseconds": -2002,
+        "measured": -2001.999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-2.001][-2.001][-2.001][-2.001  ]",
+        "actual": "[-2.002][-2.002][-2.002][-2.002]",
+        "nativeNs": "-2001999000"
+      },
+      "requestedMs": -2002,
+      "rawVfsMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "rawRealMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "deterministicMtimeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "nativeNs": "-2001999000",
+      "nativeMs": {
+        "value": -2001.999,
+        "decimal17": "-2001.9990000000000",
+        "ieee754be": "c09f47fef9db22d1"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction-and-narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[-2.001][-2.001][-2.001][-2.001  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-2.001][-2.001][-2.001][-2.001  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-2.001][-2.001][-2.001][-2.001  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-2.001][-2.001][-2.001][-2.001  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%1.3Y",
+          "native": "-2.001",
+          "originalActual": "-2.002",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%2.3Y",
+          "native": "-2.001",
+          "originalActual": "-2.002",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%3.3Y",
+          "native": "-2.001",
+          "originalActual": "-2.002",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%4.3Y",
+          "native": "-2.001  ",
+          "originalActual": "-2.002",
+          "numericTextDifference": true,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T10",
+      "original": {
+        "milliseconds": -1005,
+        "measured": -1004.999,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-2][-2][-2.0][-2.00][-1.004]",
+        "actual": "[-2][-2][-1.1][-1.01][-1.005]",
+        "nativeNs": "-1004999000"
+      },
+      "requestedMs": -1005,
+      "rawVfsMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "rawRealMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "deterministicMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "nativeNs": "-1004999000",
+      "nativeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-2][-2][-2.0][-2.00][-1.004]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-2][-2][-2.0][-2.00][-1.004]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-2][-2][-2.0][-2.00][-1.004]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-2][-2][-2.0][-2.00][-1.004]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-2.0",
+          "originalActual": "-1.1",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-2.00",
+          "originalActual": "-1.01",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.3Y",
+          "native": "-1.004",
+          "originalActual": "-1.005",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T11",
+      "original": {
+        "milliseconds": -1005,
+        "measured": -1004.999,
+        "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+        "native": "[-00001.004][-00001.004][-1.004    ]",
+        "actual": "[-00001.005][-00001.005][-1.005    ]",
+        "nativeNs": "-1004999000"
+      },
+      "requestedMs": -1005,
+      "rawVfsMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "rawRealMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "deterministicMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "nativeNs": "-1004999000",
+      "nativeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-00001.004][-00001.004][-1.004    ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-00001.004][-00001.004][-1.004    ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-00001.004][-00001.004][-1.004    ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-00001.004][-00001.004][-1.004    ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%+010.3Y",
+          "native": "-00001.004",
+          "originalActual": "-00001.005",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "% 010.3Y",
+          "native": "-00001.004",
+          "originalActual": "-00001.005",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%-10.3Y",
+          "native": "-1.004    ",
+          "originalActual": "-1.005    ",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T12",
+      "original": {
+        "milliseconds": -1005,
+        "measured": -1004.999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-1.004][-1.004][-1.004][-1.004  ]",
+        "actual": "[-1.005][-1.005][-1.005][-1.005]",
+        "nativeNs": "-1004999000"
+      },
+      "requestedMs": -1005,
+      "rawVfsMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "rawRealMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "deterministicMtimeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "nativeNs": "-1004999000",
+      "nativeMs": {
+        "value": -1004.999,
+        "decimal17": "-1004.9990000000000",
+        "ieee754be": "c08f67fdf3b645a2"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction-and-narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[-1.004][-1.004][-1.004][-1.004  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-1.004][-1.004][-1.004][-1.004  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-1.004][-1.004][-1.004][-1.004  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-1.004][-1.004][-1.004][-1.004  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%1.3Y",
+          "native": "-1.004",
+          "originalActual": "-1.005",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%2.3Y",
+          "native": "-1.004",
+          "originalActual": "-1.005",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%3.3Y",
+          "native": "-1.004",
+          "originalActual": "-1.005",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%4.3Y",
+          "native": "-1.004  ",
+          "originalActual": "-1.005",
+          "numericTextDifference": true,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T13",
+      "original": {
+        "milliseconds": -1001,
+        "measured": -1000.999,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-2][-2][-2.0][-2.00][-2.000]",
+        "actual": "[-2][-2][-1.1][-1.01][-1.001]",
+        "nativeNs": "-1000999000"
+      },
+      "requestedMs": -1001,
+      "rawVfsMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "rawRealMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "deterministicMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "nativeNs": "-1000999000",
+      "nativeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-2][-2][-2.0][-2.00][-2.000]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-2][-2][-2.0][-2.00][-2.000]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-2][-2][-2.0][-2.00][-2.000]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-2][-2][-2.0][-2.00][-2.000]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-2.0",
+          "originalActual": "-1.1",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-2.00",
+          "originalActual": "-1.01",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.3Y",
+          "native": "-2.000",
+          "originalActual": "-1.001",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T14",
+      "original": {
+        "milliseconds": -1001,
+        "measured": -1000.999,
+        "format": "[%+010.3Y][% 010.3Y][%-10.3Y]",
+        "native": "[-00002.000][-00002.000][-2.000    ]",
+        "actual": "[-00001.001][-00001.001][-1.001    ]",
+        "nativeNs": "-1000999000"
+      },
+      "requestedMs": -1001,
+      "rawVfsMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "rawRealMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "deterministicMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "nativeNs": "-1000999000",
+      "nativeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-00002.000][-00002.000][-2.000    ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-00002.000][-00002.000][-2.000    ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-00002.000][-00002.000][-2.000    ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-00002.000][-00002.000][-2.000    ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%+010.3Y",
+          "native": "-00002.000",
+          "originalActual": "-00001.001",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "% 010.3Y",
+          "native": "-00002.000",
+          "originalActual": "-00001.001",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%-10.3Y",
+          "native": "-2.000    ",
+          "originalActual": "-1.001    ",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T15",
+      "original": {
+        "milliseconds": -1001,
+        "measured": -1000.999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-2.000][-2.000][-2.000][-2.000  ]",
+        "actual": "[-1.001][-1.001][-1.001][-1.001]",
+        "nativeNs": "-1000999000"
+      },
+      "requestedMs": -1001,
+      "rawVfsMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "rawRealMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "deterministicMtimeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "nativeNs": "-1000999000",
+      "nativeMs": {
+        "value": -1000.999,
+        "decimal17": "-1000.9990000000000",
+        "ieee754be": "c08f47fdf3b645a2"
+      },
+      "nativeSubMillisecondNs": "-999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction-and-narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[-2.000][-2.000][-2.000][-2.000  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-2.000][-2.000][-2.000][-2.000  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-2.000][-2.000][-2.000][-2.000  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-2.000][-2.000][-2.000][-2.000  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%1.3Y",
+          "native": "-2.000",
+          "originalActual": "-1.001",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%2.3Y",
+          "native": "-2.000",
+          "originalActual": "-1.001",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%3.3Y",
+          "native": "-2.000",
+          "originalActual": "-1.001",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%4.3Y",
+          "native": "-2.000  ",
+          "originalActual": "-1.001",
+          "numericTextDifference": true,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T16",
+      "original": {
+        "milliseconds": -999,
+        "measured": -999,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-1][-1][-0.9][-0.99][-0.999]",
+        "actual": "[-1][-1][-1.0][-1.00][-0.999]",
+        "nativeNs": "-999000000"
+      },
+      "requestedMs": -999,
+      "rawVfsMtimeMs": {
+        "value": -999,
+        "decimal17": "-999.00000000000000",
+        "ieee754be": "c08f380000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": -999,
+        "decimal17": "-999.00000000000000",
+        "ieee754be": "c08f380000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": -999,
+        "decimal17": "-999.00000000000000",
+        "ieee754be": "c08f380000000000"
+      },
+      "nativeNs": "-999000000",
+      "nativeMs": {
+        "value": -999,
+        "decimal17": "-999.00000000000000",
+        "ieee754be": "c08f380000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-1][-1][-0.9][-0.99][-0.999]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-1][-1][-0.9][-0.99][-0.999]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-1][-1][-0.9][-0.99][-0.999]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-1][-1][-0.9][-0.99][-0.999]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-0.9",
+          "originalActual": "-1.0",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-0.99",
+          "originalActual": "-1.00",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T17",
+      "original": {
+        "milliseconds": -999,
+        "measured": -999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-0.999][-0.999][-0.999][-0.999  ]",
+        "actual": "[-0.999][-0.999][-0.999][-0.999]",
+        "nativeNs": "-999000000"
+      },
+      "requestedMs": -999,
+      "rawVfsMtimeMs": {
+        "value": -999,
+        "decimal17": "-999.00000000000000",
+        "ieee754be": "c08f380000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": -999,
+        "decimal17": "-999.00000000000000",
+        "ieee754be": "c08f380000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": -999,
+        "decimal17": "-999.00000000000000",
+        "ieee754be": "c08f380000000000"
+      },
+      "nativeNs": "-999000000",
+      "nativeMs": {
+        "value": -999,
+        "decimal17": "-999.00000000000000",
+        "ieee754be": "c08f380000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[-0.999][-0.999][-0.999][-0.999  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-0.999][-0.999][-0.999][-0.999  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-0.999][-0.999][-0.999][-0.999  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-0.999][-0.999][-0.999][-0.999  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%4.3Y",
+          "native": "-0.999  ",
+          "originalActual": "-0.999",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T18",
+      "original": {
+        "milliseconds": -101,
+        "measured": -101,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-1][-1][-0.1][-0.10][-0.101]",
+        "actual": "[-1][-1][-0.2][-0.11][-0.101]",
+        "nativeNs": "-101000000"
+      },
+      "requestedMs": -101,
+      "rawVfsMtimeMs": {
+        "value": -101,
+        "decimal17": "-101.00000000000000",
+        "ieee754be": "c059400000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": -101,
+        "decimal17": "-101.00000000000000",
+        "ieee754be": "c059400000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": -101,
+        "decimal17": "-101.00000000000000",
+        "ieee754be": "c059400000000000"
+      },
+      "nativeNs": "-101000000",
+      "nativeMs": {
+        "value": -101,
+        "decimal17": "-101.00000000000000",
+        "ieee754be": "c059400000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-1][-1][-0.1][-0.10][-0.101]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-1][-1][-0.1][-0.10][-0.101]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-1][-1][-0.1][-0.10][-0.101]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-1][-1][-0.1][-0.10][-0.101]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-0.1",
+          "originalActual": "-0.2",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-0.10",
+          "originalActual": "-0.11",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T19",
+      "original": {
+        "milliseconds": -101,
+        "measured": -101,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-0.101][-0.101][-0.101][-0.101  ]",
+        "actual": "[-0.101][-0.101][-0.101][-0.101]",
+        "nativeNs": "-101000000"
+      },
+      "requestedMs": -101,
+      "rawVfsMtimeMs": {
+        "value": -101,
+        "decimal17": "-101.00000000000000",
+        "ieee754be": "c059400000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": -101,
+        "decimal17": "-101.00000000000000",
+        "ieee754be": "c059400000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": -101,
+        "decimal17": "-101.00000000000000",
+        "ieee754be": "c059400000000000"
+      },
+      "nativeNs": "-101000000",
+      "nativeMs": {
+        "value": -101,
+        "decimal17": "-101.00000000000000",
+        "ieee754be": "c059400000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[-0.101][-0.101][-0.101][-0.101  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-0.101][-0.101][-0.101][-0.101  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-0.101][-0.101][-0.101][-0.101  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-0.101][-0.101][-0.101][-0.101  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%4.3Y",
+          "native": "-0.101  ",
+          "originalActual": "-0.101",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T20",
+      "original": {
+        "milliseconds": -11,
+        "measured": -11,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-1][-1][-1.0][-0.01][-0.011]",
+        "actual": "[-1][-1][-0.1][-0.02][-0.011]",
+        "nativeNs": "-11000000"
+      },
+      "requestedMs": -11,
+      "rawVfsMtimeMs": {
+        "value": -11,
+        "decimal17": "-11.000000000000000",
+        "ieee754be": "c026000000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": -11,
+        "decimal17": "-11.000000000000000",
+        "ieee754be": "c026000000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": -11,
+        "decimal17": "-11.000000000000000",
+        "ieee754be": "c026000000000000"
+      },
+      "nativeNs": "-11000000",
+      "nativeMs": {
+        "value": -11,
+        "decimal17": "-11.000000000000000",
+        "ieee754be": "c026000000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-1][-1][-1.0][-0.01][-0.011]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-1][-1][-1.0][-0.01][-0.011]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-1][-1][-1.0][-0.01][-0.011]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-1][-1][-1.0][-0.01][-0.011]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-1.0",
+          "originalActual": "-0.1",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-0.01",
+          "originalActual": "-0.02",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T21",
+      "original": {
+        "milliseconds": -11,
+        "measured": -11,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-0.011][-0.011][-0.011][-0.011  ]",
+        "actual": "[-0.011][-0.011][-0.011][-0.011]",
+        "nativeNs": "-11000000"
+      },
+      "requestedMs": -11,
+      "rawVfsMtimeMs": {
+        "value": -11,
+        "decimal17": "-11.000000000000000",
+        "ieee754be": "c026000000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": -11,
+        "decimal17": "-11.000000000000000",
+        "ieee754be": "c026000000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": -11,
+        "decimal17": "-11.000000000000000",
+        "ieee754be": "c026000000000000"
+      },
+      "nativeNs": "-11000000",
+      "nativeMs": {
+        "value": -11,
+        "decimal17": "-11.000000000000000",
+        "ieee754be": "c026000000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[-0.011][-0.011][-0.011][-0.011  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-0.011][-0.011][-0.011][-0.011  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-0.011][-0.011][-0.011][-0.011  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-0.011][-0.011][-0.011][-0.011  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%4.3Y",
+          "native": "-0.011  ",
+          "originalActual": "-0.011",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T22",
+      "original": {
+        "milliseconds": -1,
+        "measured": -1,
+        "format": "[%Y][%.0Y][%.1Y][%.2Y][%.3Y]",
+        "native": "[-1][-1][-1.0][-1.00][-0.001]",
+        "actual": "[-1][-1][-0.1][-0.01][-0.001]",
+        "nativeNs": "-1000000"
+      },
+      "requestedMs": -1,
+      "rawVfsMtimeMs": {
+        "value": -1,
+        "decimal17": "-1.0000000000000000",
+        "ieee754be": "bff0000000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": -1,
+        "decimal17": "-1.0000000000000000",
+        "ieee754be": "bff0000000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": -1,
+        "decimal17": "-1.0000000000000000",
+        "ieee754be": "bff0000000000000"
+      },
+      "nativeNs": "-1000000",
+      "nativeMs": {
+        "value": -1,
+        "decimal17": "-1.0000000000000000",
+        "ieee754be": "bff0000000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "negative-fraction",
+      "expected": {
+        "code": 0,
+        "stdout": "[-1][-1][-1.0][-1.00][-0.001]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-1][-1][-1.0][-1.00][-0.001]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-1][-1][-1.0][-1.00][-0.001]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-1][-1][-1.0][-1.00][-0.001]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%.1Y",
+          "native": "-1.0",
+          "originalActual": "-0.1",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        },
+        {
+          "format": "%.2Y",
+          "native": "-1.00",
+          "originalActual": "-0.01",
+          "numericTextDifference": true,
+          "whitespaceDifference": false
+        }
+      ]
+    },
+    {
+      "id": "T23",
+      "original": {
+        "milliseconds": -1,
+        "measured": -1,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[-0.001][-0.001][-0.001][-0.001  ]",
+        "actual": "[-0.001][-0.001][-0.001][-0.001]",
+        "nativeNs": "-1000000"
+      },
+      "requestedMs": -1,
+      "rawVfsMtimeMs": {
+        "value": -1,
+        "decimal17": "-1.0000000000000000",
+        "ieee754be": "bff0000000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": -1,
+        "decimal17": "-1.0000000000000000",
+        "ieee754be": "bff0000000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": -1,
+        "decimal17": "-1.0000000000000000",
+        "ieee754be": "bff0000000000000"
+      },
+      "nativeNs": "-1000000",
+      "nativeMs": {
+        "value": -1,
+        "decimal17": "-1.0000000000000000",
+        "ieee754be": "bff0000000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[-0.001][-0.001][-0.001][-0.001  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[-0.001][-0.001][-0.001][-0.001  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[-0.001][-0.001][-0.001][-0.001  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[-0.001][-0.001][-0.001][-0.001  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%4.3Y",
+          "native": "-0.001  ",
+          "originalActual": "-0.001",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T24",
+      "original": {
+        "milliseconds": 0,
+        "measured": 0,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[0.000][0.000][0.000  ][0.000 ]",
+        "actual": "[0.000][0.000][0.000][0.000]",
+        "nativeNs": "0"
+      },
+      "requestedMs": 0,
+      "rawVfsMtimeMs": {
+        "value": 0,
+        "decimal17": "0.0000000000000000",
+        "ieee754be": "0000000000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": 0,
+        "decimal17": "0.0000000000000000",
+        "ieee754be": "0000000000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": 0,
+        "decimal17": "0.0000000000000000",
+        "ieee754be": "0000000000000000"
+      },
+      "nativeNs": "0",
+      "nativeMs": {
+        "value": 0,
+        "decimal17": "0.0000000000000000",
+        "ieee754be": "0000000000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[0.000][0.000][0.000  ][0.000 ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[0.000][0.000][0.000  ][0.000 ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[0.000][0.000][0.000  ][0.000 ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[0.000][0.000][0.000  ][0.000 ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%3.3Y",
+          "native": "0.000  ",
+          "originalActual": "0.000",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        },
+        {
+          "format": "%4.3Y",
+          "native": "0.000 ",
+          "originalActual": "0.000",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T25",
+      "original": {
+        "milliseconds": 1,
+        "measured": 1,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[0.001][0.001][0.001  ][0.001 ]",
+        "actual": "[0.001][0.001][0.001][0.001]",
+        "nativeNs": "1000000"
+      },
+      "requestedMs": 1,
+      "rawVfsMtimeMs": {
+        "value": 1,
+        "decimal17": "1.0000000000000000",
+        "ieee754be": "3ff0000000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": 1,
+        "decimal17": "1.0000000000000000",
+        "ieee754be": "3ff0000000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": 1,
+        "decimal17": "1.0000000000000000",
+        "ieee754be": "3ff0000000000000"
+      },
+      "nativeNs": "1000000",
+      "nativeMs": {
+        "value": 1,
+        "decimal17": "1.0000000000000000",
+        "ieee754be": "3ff0000000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[0.001][0.001][0.001  ][0.001 ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[0.001][0.001][0.001  ][0.001 ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[0.001][0.001][0.001  ][0.001 ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[0.001][0.001][0.001  ][0.001 ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%3.3Y",
+          "native": "0.001  ",
+          "originalActual": "0.001",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        },
+        {
+          "format": "%4.3Y",
+          "native": "0.001 ",
+          "originalActual": "0.001",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T26",
+      "original": {
+        "milliseconds": 11,
+        "measured": 11,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[0.011][0.011][0.011  ][0.011 ]",
+        "actual": "[0.011][0.011][0.011][0.011]",
+        "nativeNs": "11000000"
+      },
+      "requestedMs": 11,
+      "rawVfsMtimeMs": {
+        "value": 11,
+        "decimal17": "11.000000000000000",
+        "ieee754be": "4026000000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": 11,
+        "decimal17": "11.000000000000000",
+        "ieee754be": "4026000000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": 11,
+        "decimal17": "11.000000000000000",
+        "ieee754be": "4026000000000000"
+      },
+      "nativeNs": "11000000",
+      "nativeMs": {
+        "value": 11,
+        "decimal17": "11.000000000000000",
+        "ieee754be": "4026000000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[0.011][0.011][0.011  ][0.011 ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[0.011][0.011][0.011  ][0.011 ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[0.011][0.011][0.011  ][0.011 ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[0.011][0.011][0.011  ][0.011 ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%3.3Y",
+          "native": "0.011  ",
+          "originalActual": "0.011",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        },
+        {
+          "format": "%4.3Y",
+          "native": "0.011 ",
+          "originalActual": "0.011",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T27",
+      "original": {
+        "milliseconds": 999,
+        "measured": 999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[0.999][0.999][0.999  ][0.999 ]",
+        "actual": "[0.999][0.999][0.999][0.999]",
+        "nativeNs": "999000000"
+      },
+      "requestedMs": 999,
+      "rawVfsMtimeMs": {
+        "value": 999,
+        "decimal17": "999.00000000000000",
+        "ieee754be": "408f380000000000"
+      },
+      "rawRealMtimeMs": {
+        "value": 999,
+        "decimal17": "999.00000000000000",
+        "ieee754be": "408f380000000000"
+      },
+      "deterministicMtimeMs": {
+        "value": 999,
+        "decimal17": "999.00000000000000",
+        "ieee754be": "408f380000000000"
+      },
+      "nativeNs": "999000000",
+      "nativeMs": {
+        "value": 999,
+        "decimal17": "999.00000000000000",
+        "ieee754be": "408f380000000000"
+      },
+      "nativeSubMillisecondNs": "0",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[0.999][0.999][0.999  ][0.999 ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[0.999][0.999][0.999  ][0.999 ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[0.999][0.999][0.999  ][0.999 ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[0.999][0.999][0.999  ][0.999 ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%3.3Y",
+          "native": "0.999  ",
+          "originalActual": "0.999",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        },
+        {
+          "format": "%4.3Y",
+          "native": "0.999 ",
+          "originalActual": "0.999",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T28",
+      "original": {
+        "milliseconds": 1001,
+        "measured": 1000.999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[1.000][1.000][1.000  ][1.000 ]",
+        "actual": "[1.000][1.000][1.000][1.000]",
+        "nativeNs": "1000999000"
+      },
+      "requestedMs": 1001,
+      "rawVfsMtimeMs": {
+        "value": 1000.999,
+        "decimal17": "1000.9990000000000",
+        "ieee754be": "408f47fdf3b645a2"
+      },
+      "rawRealMtimeMs": {
+        "value": 1000.999,
+        "decimal17": "1000.9990000000000",
+        "ieee754be": "408f47fdf3b645a2"
+      },
+      "deterministicMtimeMs": {
+        "value": 1000.999,
+        "decimal17": "1000.9990000000000",
+        "ieee754be": "408f47fdf3b645a2"
+      },
+      "nativeNs": "1000999000",
+      "nativeMs": {
+        "value": 1000.999,
+        "decimal17": "1000.9990000000000",
+        "ieee754be": "408f47fdf3b645a2"
+      },
+      "nativeSubMillisecondNs": "999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[1.000][1.000][1.000  ][1.000 ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[1.000][1.000][1.000  ][1.000 ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[1.000][1.000][1.000  ][1.000 ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[1.000][1.000][1.000  ][1.000 ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%3.3Y",
+          "native": "1.000  ",
+          "originalActual": "1.000",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        },
+        {
+          "format": "%4.3Y",
+          "native": "1.000 ",
+          "originalActual": "1.000",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T29",
+      "original": {
+        "milliseconds": 1005,
+        "measured": 1004.999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[1.004][1.004][1.004  ][1.004 ]",
+        "actual": "[1.004][1.004][1.004][1.004]",
+        "nativeNs": "1004999000"
+      },
+      "requestedMs": 1005,
+      "rawVfsMtimeMs": {
+        "value": 1004.999,
+        "decimal17": "1004.9990000000000",
+        "ieee754be": "408f67fdf3b645a2"
+      },
+      "rawRealMtimeMs": {
+        "value": 1004.999,
+        "decimal17": "1004.9990000000000",
+        "ieee754be": "408f67fdf3b645a2"
+      },
+      "deterministicMtimeMs": {
+        "value": 1004.999,
+        "decimal17": "1004.9990000000000",
+        "ieee754be": "408f67fdf3b645a2"
+      },
+      "nativeNs": "1004999000",
+      "nativeMs": {
+        "value": 1004.999,
+        "decimal17": "1004.9990000000000",
+        "ieee754be": "408f67fdf3b645a2"
+      },
+      "nativeSubMillisecondNs": "999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[1.004][1.004][1.004  ][1.004 ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[1.004][1.004][1.004  ][1.004 ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[1.004][1.004][1.004  ][1.004 ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[1.004][1.004][1.004  ][1.004 ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%3.3Y",
+          "native": "1.004  ",
+          "originalActual": "1.004",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        },
+        {
+          "format": "%4.3Y",
+          "native": "1.004 ",
+          "originalActual": "1.004",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    },
+    {
+      "id": "T30",
+      "original": {
+        "milliseconds": 16016,
+        "measured": 16015.999,
+        "format": "[%1.3Y][%2.3Y][%3.3Y][%4.3Y]",
+        "native": "[16.015][16.015][16.015][16.015  ]",
+        "actual": "[16.015][16.015][16.015][16.015]",
+        "nativeNs": "16015999000"
+      },
+      "requestedMs": 16016,
+      "rawVfsMtimeMs": {
+        "value": 16015.999,
+        "decimal17": "16015.999000000000",
+        "ieee754be": "40cf47ffdf3b645a"
+      },
+      "rawRealMtimeMs": {
+        "value": 16015.999,
+        "decimal17": "16015.999000000000",
+        "ieee754be": "40cf47ffdf3b645a"
+      },
+      "deterministicMtimeMs": {
+        "value": 16015.999,
+        "decimal17": "16015.999000000000",
+        "ieee754be": "40cf47ffdf3b645a"
+      },
+      "nativeNs": "16015999000",
+      "nativeMs": {
+        "value": 16015.999,
+        "decimal17": "16015.999000000000",
+        "ieee754be": "40cf47ffdf3b645a"
+      },
+      "nativeSubMillisecondNs": "999000",
+      "nativeSubMicrosecondNs": "0",
+      "observedInputGranularity": "The existing Date/utimes controls include microsecond-aligned timestamps, sometimes 1000ns toward zero from the requested integer ms; this does not establish filesystem timestamp resolution.",
+      "sameOriginalNativeNs": true,
+      "sameOriginalVfsMs": true,
+      "sameVfsVsNativeMs": true,
+      "originalNativeReproduced": true,
+      "classification": "semantic",
+      "calibrationOnly": false,
+      "cause": "narrow-width",
+      "expected": {
+        "code": 0,
+        "stdout": "[16.015][16.015][16.015][16.015  ]",
+        "stderr": ""
+      },
+      "actualMemory": {
+        "code": 0,
+        "stdout": "[16.015][16.015][16.015][16.015  ]",
+        "stderr": ""
+      },
+      "actualReal": {
+        "code": 0,
+        "stdout": "[16.015][16.015][16.015][16.015  ]",
+        "stderr": ""
+      },
+      "actualDeterministic": {
+        "code": 0,
+        "stdout": "[16.015][16.015][16.015][16.015  ]",
+        "stderr": ""
+      },
+      "memoryEqual": true,
+      "realEqual": true,
+      "deterministicEqual": true,
+      "originalFieldDifferences": [
+        {
+          "format": "%4.3Y",
+          "native": "16.015  ",
+          "originalActual": "16.015",
+          "numericTextDifference": false,
+          "whitespaceDifference": true
+        }
+      ]
+    }
+  ],
+  "chmodRows": [
+    {
+      "id": "C1",
+      "original": {
+        "name": "file",
+        "initial": "4777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "4777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "requestedOriginalInitial": "6777",
+      "initialSetup": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "initialAcl": {
+        "code": 0,
+        "stdout": "-rwsrwxrwx@ 1 kjopek  wheel  - 4 Jan  1  1970 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/file\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "targetMode": "2707",
+      "expected": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "chmod: changing permissions of 'file': Operation not permitted\n"
+      },
+      "nativeResult": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realInitial": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realCalls": [
+        {
+          "path": "/work/file",
+          "targetMode": "2707"
+        }
+      ],
+      "actualReal": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "realResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "memoryInitial": "4777",
+      "actualMemory": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "memoryResult": "2707",
+      "nodeInitial": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "directNode": {
+        "fulfilled": true
+      },
+      "nodeResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "apiInitial": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realApi": {
+        "fulfilled": true
+      },
+      "apiResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "finalAcl": {
+        "code": 0,
+        "stdout": "-rwx---rwx@ 1 kjopek  wheel  - 4 Jan  1  1970 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/file\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "originalNativeReproduced": true,
+      "originalMemoryReproduced": true,
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized."
+    },
+    {
+      "id": "C2",
+      "original": {
+        "name": "file",
+        "initial": "777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "requestedOriginalInitial": "2777",
+      "initialSetup": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "initialAcl": {
+        "code": 0,
+        "stdout": "-rwxrwxrwx@ 1 kjopek  wheel  - 4 Jan  1  1970 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/file\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "targetMode": "2707",
+      "expected": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "chmod: changing permissions of 'file': Operation not permitted\n"
+      },
+      "nativeResult": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realInitial": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realCalls": [
+        {
+          "path": "/work/file",
+          "targetMode": "2707"
+        }
+      ],
+      "actualReal": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "realResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "memoryInitial": "777",
+      "actualMemory": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "memoryResult": "2707",
+      "nodeInitial": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "directNode": {
+        "fulfilled": true
+      },
+      "nodeResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "apiInitial": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realApi": {
+        "fulfilled": true
+      },
+      "apiResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "finalAcl": {
+        "code": 0,
+        "stdout": "-rwx---rwx@ 1 kjopek  wheel  - 4 Jan  1  1970 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/file\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "originalNativeReproduced": true,
+      "originalMemoryReproduced": true,
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized."
+    },
+    {
+      "id": "C3",
+      "original": {
+        "name": "file",
+        "initial": "1777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "1777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "requestedOriginalInitial": "1777",
+      "initialSetup": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "initialAcl": {
+        "code": 0,
+        "stdout": "-rwxrwxrwt@ 1 kjopek  wheel  - 4 Jan  1  1970 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/file\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "targetMode": "2707",
+      "expected": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "chmod: changing permissions of 'file': Operation not permitted\n"
+      },
+      "nativeResult": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realInitial": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realCalls": [
+        {
+          "path": "/work/file",
+          "targetMode": "2707"
+        }
+      ],
+      "actualReal": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "realResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "memoryInitial": "1777",
+      "actualMemory": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "memoryResult": "2707",
+      "nodeInitial": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "directNode": {
+        "fulfilled": true
+      },
+      "nodeResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "apiInitial": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "realApi": {
+        "fulfilled": true
+      },
+      "apiResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132383",
+        "mtimeNs": "16015999000"
+      },
+      "finalAcl": {
+        "code": 0,
+        "stdout": "-rwx---rwx@ 1 kjopek  wheel  - 4 Jan  1  1970 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/file\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "originalNativeReproduced": true,
+      "originalMemoryReproduced": true,
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized."
+    },
+    {
+      "id": "C4",
+      "original": {
+        "name": "directory",
+        "initial": "4777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "4777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "requestedOriginalInitial": "6777",
+      "initialSetup": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "initialAcl": {
+        "code": 0,
+        "stdout": "drwsrwxrwx@ 2 kjopek  wheel  - 64 Aug 27 00:56 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/directory\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "targetMode": "2707",
+      "expected": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "nativeResult": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realInitial": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realCalls": [
+        {
+          "path": "/work/directory",
+          "targetMode": "2707"
+        }
+      ],
+      "actualReal": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "realResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "memoryInitial": "4777",
+      "actualMemory": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "memoryResult": "2707",
+      "nodeInitial": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "directNode": {
+        "fulfilled": true
+      },
+      "nodeResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "apiInitial": {
+        "mode": "4777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realApi": {
+        "fulfilled": true
+      },
+      "apiResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "finalAcl": {
+        "code": 0,
+        "stdout": "drwx---rwx@ 2 kjopek  wheel  - 64 Aug 27 00:56 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/directory\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "originalNativeReproduced": true,
+      "originalMemoryReproduced": true,
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized."
+    },
+    {
+      "id": "C5",
+      "original": {
+        "name": "directory",
+        "initial": "777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "requestedOriginalInitial": "2777",
+      "initialSetup": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "initialAcl": {
+        "code": 0,
+        "stdout": "drwxrwxrwx@ 2 kjopek  wheel  - 64 Aug 27 00:56 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/directory\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "targetMode": "2707",
+      "expected": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "nativeResult": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realInitial": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realCalls": [
+        {
+          "path": "/work/directory",
+          "targetMode": "2707"
+        }
+      ],
+      "actualReal": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "realResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "memoryInitial": "777",
+      "actualMemory": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "memoryResult": "2707",
+      "nodeInitial": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "directNode": {
+        "fulfilled": true
+      },
+      "nodeResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "apiInitial": {
+        "mode": "777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realApi": {
+        "fulfilled": true
+      },
+      "apiResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "finalAcl": {
+        "code": 0,
+        "stdout": "drwx---rwx@ 2 kjopek  wheel  - 64 Aug 27 00:56 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/directory\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "originalNativeReproduced": true,
+      "originalMemoryReproduced": true,
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized."
+    },
+    {
+      "id": "C6",
+      "original": {
+        "name": "directory",
+        "initial": "1777",
+        "mode": "u-s,g=s,o-t",
+        "expectedMode": "1777",
+        "actualMode": "2707",
+        "nativeCode": 1,
+        "actualCode": 0
+      },
+      "requestedOriginalInitial": "1777",
+      "initialSetup": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "initialAcl": {
+        "code": 0,
+        "stdout": "drwxrwxrwt@ 2 kjopek  wheel  - 64 Aug 27 00:56 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/directory\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "targetMode": "2707",
+      "expected": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "chmod: changing permissions of 'directory': Operation not permitted\n"
+      },
+      "nativeResult": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realInitial": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realCalls": [
+        {
+          "path": "/work/directory",
+          "targetMode": "2707"
+        }
+      ],
+      "actualReal": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "realResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "memoryInitial": "1777",
+      "actualMemory": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "memoryResult": "2707",
+      "nodeInitial": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "directNode": {
+        "fulfilled": true
+      },
+      "nodeResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "apiInitial": {
+        "mode": "1777",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "realApi": {
+        "fulfilled": true
+      },
+      "apiResult": {
+        "mode": "707",
+        "uid": "501",
+        "gid": "0",
+        "device": "16777232",
+        "inode": "170132384",
+        "mtimeNs": "1787792191972883689"
+      },
+      "finalAcl": {
+        "code": 0,
+        "stdout": "drwx---rwx@ 2 kjopek  wheel  - 64 Aug 27 00:56 /tmp/safe-bash-metadata-runtime-calibration-ziGVJ8/work/directory\n\tcom.apple.provenance\t11 \n",
+        "stderr": ""
+      },
+      "originalNativeReproduced": true,
+      "originalMemoryReproduced": true,
+      "classification": "host syscall/status-effect divergence; concrete RealFS/native parity concern, not a demonstrated symbolic parser defect or waived EPERM",
+      "routing": "Poincare/root: GNU9.7 chmod uses fchmodat; RealFS calls Node fs.promises.chmod. Direct Node and RealFS behavior captured separately. No FS source edits authorized."
+    }
+  ]
+}

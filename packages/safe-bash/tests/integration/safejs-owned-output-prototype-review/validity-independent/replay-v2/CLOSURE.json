@@ -1,0 +1,198 @@
+{
+  "at": "2026-08-27T16:57:59.182435+00:00",
+  "dataOnlyClosureRecheck": true,
+  "additionalGuestExecutions": 0,
+  "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "cohorts": {
+    "surface": {
+      "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "engineFiles": 264,
+      "metadataFiles": 6,
+      "freshPrivateUnchanged": true,
+      "directoryNamesReenumerated": true,
+      "knownChildrenNaturallyClosed": 8,
+      "remainingKnownChildren": 0,
+      "actualGuestRuns": 8,
+      "rawChecksPassed": 8,
+      "failed": 0,
+      "invalid": 0,
+      "unproved": 0,
+      "blocked": 0,
+      "imports": [
+        {
+          "capture": "01-supported-facades",
+          "records": 223,
+          "engineFiles": 63
+        },
+        {
+          "capture": "02-direct-surface",
+          "records": 223,
+          "engineFiles": 63
+        },
+        {
+          "capture": "03-namespace-spread",
+          "records": 223,
+          "engineFiles": 63
+        },
+        {
+          "capture": "04-shell-module",
+          "records": 223,
+          "engineFiles": 63
+        },
+        {
+          "capture": "05-missing-register-cleanup",
+          "records": 223,
+          "engineFiles": 63
+        },
+        {
+          "capture": "06-missing-acquire",
+          "records": 223,
+          "engineFiles": 63
+        },
+        {
+          "capture": "07-reflection-profile",
+          "records": 223,
+          "engineFiles": 63
+        },
+        {
+          "capture": "08-function-spread-profile",
+          "records": 223,
+          "engineFiles": 63
+        }
+      ],
+      "actualCopiedInventories": {
+        "full": {
+          "files": 940,
+          "sha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28"
+        },
+        "source": {
+          "files": 213,
+          "sha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea"
+        },
+        "compiled": {
+          "files": 708,
+          "sha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f"
+        },
+        "package": {
+          "files": 709,
+          "sha256": "4a81b133665b238545f2111bf349250329e874917691235be67d703056a4f018"
+        }
+      }
+    },
+    "lifecycle": {
+      "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "engineFiles": 264,
+      "metadataFiles": 6,
+      "freshPrivateUnchanged": true,
+      "directoryNamesReenumerated": true,
+      "knownChildrenNaturallyClosed": 11,
+      "remainingKnownChildren": 0,
+      "actualGuestRuns": 11,
+      "rawChecksPassed": 11,
+      "failed": 0,
+      "invalid": 0,
+      "unproved": 0,
+      "blocked": 0,
+      "imports": [
+        {
+          "capture": "L01-aliases.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L02-budget-exhausted.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L02-budget-positive.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L03-callback-after-lifetime.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L03-callback-live.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L04-explicit-children.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L05-caller-error.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L05-cleanup-error.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L05-execution-error.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L06-curl-consumer-closed.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        },
+        {
+          "capture": "L06-curl-open.imports.ndjson",
+          "records": 224,
+          "engineFiles": 63
+        }
+      ],
+      "actualCopiedInventories": {
+        "full": {
+          "files": 940,
+          "sha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28"
+        },
+        "source": {
+          "files": 213,
+          "sha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea"
+        },
+        "compiled": {
+          "files": 708,
+          "sha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f"
+        },
+        "package": {
+          "files": 709,
+          "sha256": "4a81b133665b238545f2111bf349250329e874917691235be67d703056a4f018"
+        }
+      }
+    }
+  },
+  "originalsUnchanged": [
+    {
+      "commit": "65a887ac7aa0e361216b827f9fedee20389bc609",
+      "prefix": "tests/integration/safejs-owned-output-prototype-review/validity-independent",
+      "files": 4
+    },
+    {
+      "commit": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+      "prefix": "tests/integration/safejs-owned-output-prototype-review/validity-independent/phase2",
+      "files": 4
+    },
+    {
+      "commit": "7deed0a2176c24c5c7c7b0562d5c50be59c82366",
+      "prefix": "tests/integration/safejs-owned-output-prototype-review/validity-independent/replay-v2",
+      "files": 4
+    },
+    {
+      "commit": "c53e63f3bfe26e0f9982f17c391e11255512201d",
+      "prefix": "tests/integration/safejs-owned-output-prototype-review/validity-independent/replay-v2/execution",
+      "files": 10
+    }
+  ],
+  "noPromotion": true
+}

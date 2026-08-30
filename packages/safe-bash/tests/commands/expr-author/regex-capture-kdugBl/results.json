@@ -1,0 +1,8614 @@
+[
+  {
+    "name": "C/anchored-not-search",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "+",
+      "a"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/anchored-start",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "^a"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/newline-dot",
+    "locale": "C",
+    "args": [
+      "+",
+      "a\nb",
+      ":",
+      "+",
+      ".*$"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/newline-end-not-before-final-LF",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "a\n",
+      "+",
+      "a$"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/empty-pattern",
+    "locale": "C",
+    "args": [
+      "+",
+      "abc",
+      ":",
+      "+",
+      ""
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/empty-subject",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "a*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/plain-length",
+    "locale": "C",
+    "args": [
+      "+",
+      "abc",
+      ":",
+      "+",
+      "ab"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/first-capture",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "a\\(.\\)c"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/empty-capture",
+    "locale": "C",
+    "args": [
+      "+",
+      "abc",
+      ":",
+      "+",
+      "\\(\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/absent-capture",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "b",
+      "+",
+      "a"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/unmatched-capture",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "+",
+      "\\(a\\)\\?b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/failed-capture",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "b",
+      "+",
+      "\\(a\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/capture-other-alternative",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "+",
+      "a\\(x\\)\\|b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/first-not-last-group",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "\\(a\\)\\(b\\)c"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/leftmost-longest",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "+",
+      "a\\|ab"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/first-alternative-tie",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "aaa",
+      "+",
+      "\\(a\\|aa\\)a*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/greedy-capture-tie",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "+",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/longer-alternative",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "aaa",
+      "+",
+      "\\(a\\|aaa\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/basename",
+    "locale": "C",
+    "args": [
+      "+",
+      "/tmp/path/file.txt",
+      ":",
+      "+",
+      ".*/\\(.*\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "66696c652e7478740a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "66696c652e7478740a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/extension",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "file.txt",
+      "+",
+      ".*\\.\\([^.]*\\)$"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "7478740a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "7478740a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/version",
+    "locale": "C",
+    "args": [
+      "+",
+      "v12.34.5",
+      ":",
+      "+",
+      "v\\([0-9]\\+\\)\\."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "31320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "31320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/backreference",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "abab",
+      "+",
+      "\\(ab\\)\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/failed-backreference",
+    "locale": "C",
+    "args": [
+      "+",
+      "abac",
+      ":",
+      "+",
+      "\\(ab\\)\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/empty-backreference",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "\\(\\)\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/unmatched-backreference",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "+",
+      "\\(a\\)\\?\\1b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/nested-backreference",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "abab",
+      "+",
+      "\\(\\(ab\\)\\2\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "616261620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "616261620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/repeated-capture",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "+",
+      "\\(ab\\)*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/nullable-repeated-capture",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "aa",
+      "+",
+      "\\(a*\\)*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/star",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "+",
+      "a*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/plus",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "aaa",
+      "+",
+      "a\\+"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/question",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "+",
+      "a\\?"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/interval-exact",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "aaaa",
+      "+",
+      "a\\{2\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/interval-range",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaaa",
+      ":",
+      "+",
+      "a\\{1,3\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/interval-open",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "aaaa",
+      "+",
+      "a\\{2,\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/interval-zero",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaaa",
+      ":",
+      "+",
+      "a\\{0\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/interval-group",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "ababab",
+      "+",
+      "\\(ab\\)\\{1,2\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-ERE",
+    "locale": "C",
+    "args": [
+      "+",
+      "(a)+?|{}",
+      ":",
+      "+",
+      "(a)+?|{}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "380a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "380a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-dot",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "a.b",
+      "+",
+      "a\\.b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-slash",
+    "locale": "C",
+    "args": [
+      "+",
+      "a/b",
+      ":",
+      "+",
+      "a\\/b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-backslash",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "a\\b",
+      "+",
+      "a\\\\b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-middle-caret",
+    "locale": "C",
+    "args": [
+      "+",
+      "a^b",
+      ":",
+      "+",
+      "a^b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-middle-dollar",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "a$b",
+      "+",
+      "a$b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-leading-star",
+    "locale": "C",
+    "args": [
+      "+",
+      "*a",
+      ":",
+      "+",
+      "*a"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-bracket-in-class",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "[",
+      "+",
+      "[[]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-close-in-class",
+    "locale": "C",
+    "args": [
+      "+",
+      "]",
+      ":",
+      "+",
+      "[]a]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/literal-hyphen",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "-",
+      "+",
+      "[-a]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/negated-class",
+    "locale": "C",
+    "args": [
+      "+",
+      "z",
+      ":",
+      "+",
+      "[^ab]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/empty-range",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "b",
+      "+",
+      "[z-a]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/ascii-range",
+    "locale": "C",
+    "args": [
+      "+",
+      "abc123",
+      ":",
+      "+",
+      "[a-z]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/digits",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "123abc",
+      "+",
+      "[[:digit:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/space",
+    "locale": "C",
+    "args": [
+      "+",
+      " \t\nX",
+      ":",
+      "+",
+      "[[:space:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/alnum",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "Az12!",
+      "+",
+      "[[:alnum:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/punct",
+    "locale": "C",
+    "args": [
+      "+",
+      "!?a",
+      ":",
+      "+",
+      "[[:punct:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/hex",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "aF09Z",
+      "+",
+      "[[:xdigit:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/empty-alternative",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "+",
+      "\\|ab"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/group-anchor",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "\\(^ab\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/alternative-anchor",
+    "locale": "C",
+    "args": [
+      "+",
+      "abc",
+      ":",
+      "+",
+      "x\\|^abc$"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/unicode-dot",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "😀é",
+      "+",
+      "."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/unicode-two-dots",
+    "locale": "C",
+    "args": [
+      "+",
+      "😀é",
+      ":",
+      "+",
+      ".."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/unicode-capture",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "😀é",
+      "+",
+      "\\(.\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "f00a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "f00a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/unicode-literal",
+    "locale": "C",
+    "args": [
+      "+",
+      "éé",
+      ":",
+      "+",
+      "é*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/unicode-backref",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "😀😀",
+      "+",
+      "\\(😀\\)\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "f09f98800a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "f09f98800a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/unicode-class-literal",
+    "locale": "C",
+    "args": [
+      "+",
+      "é",
+      ":",
+      "+",
+      "[é]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/combining-mark",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "é",
+      "+",
+      ".."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/BOM-is-input",
+    "locale": "C",
+    "args": [
+      "+",
+      "﻿x",
+      ":",
+      "+",
+      "."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-empty-bracket",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "["
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid regular expression\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid regular expression\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-unclosed-bracket",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "+",
+      "[abc"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched [, [^, [:, [., or [=\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched [, [^, [:, [., or [=\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-trailing-backslash",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "\\"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Trailing backslash\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Trailing backslash\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-open-group",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "+",
+      "\\("
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched ( or \\(\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched ( or \\(\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-close-group",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched ) or \\)\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched ) or \\)\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-backreference",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "+",
+      "\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid back reference\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid back reference\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-open-backreference",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "\\(a\\1\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid back reference\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid back reference\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-class",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "+",
+      "[[:bogus:]]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid character class name\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid character class name\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C/invalid-interval-order",
+    "locale": "C",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "a\\{3,1\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid content of \\{\\}\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid content of \\{\\}\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/anchored-not-search",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "+",
+      "a"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/anchored-start",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "^a"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/newline-dot",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "a\nb",
+      ":",
+      "+",
+      ".*$"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/newline-end-not-before-final-LF",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "a\n",
+      "+",
+      "a$"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/empty-pattern",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "abc",
+      ":",
+      "+",
+      ""
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/empty-subject",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "a*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/plain-length",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "abc",
+      ":",
+      "+",
+      "ab"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/first-capture",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "a\\(.\\)c"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/empty-capture",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "abc",
+      ":",
+      "+",
+      "\\(\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/absent-capture",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "b",
+      "+",
+      "a"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/unmatched-capture",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "+",
+      "\\(a\\)\\?b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/failed-capture",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "b",
+      "+",
+      "\\(a\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/capture-other-alternative",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "+",
+      "a\\(x\\)\\|b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/first-not-last-group",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "\\(a\\)\\(b\\)c"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/leftmost-longest",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "+",
+      "a\\|ab"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/first-alternative-tie",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "aaa",
+      "+",
+      "\\(a\\|aa\\)a*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/greedy-capture-tie",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "+",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/longer-alternative",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "aaa",
+      "+",
+      "\\(a\\|aaa\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/basename",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "/tmp/path/file.txt",
+      ":",
+      "+",
+      ".*/\\(.*\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "66696c652e7478740a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "66696c652e7478740a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/extension",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "file.txt",
+      "+",
+      ".*\\.\\([^.]*\\)$"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "7478740a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "7478740a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/version",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "v12.34.5",
+      ":",
+      "+",
+      "v\\([0-9]\\+\\)\\."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "31320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "31320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/backreference",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "abab",
+      "+",
+      "\\(ab\\)\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/failed-backreference",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "abac",
+      ":",
+      "+",
+      "\\(ab\\)\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/empty-backreference",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "\\(\\)\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/unmatched-backreference",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "+",
+      "\\(a\\)\\?\\1b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/nested-backreference",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "abab",
+      "+",
+      "\\(\\(ab\\)\\2\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "616261620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "616261620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/repeated-capture",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "+",
+      "\\(ab\\)*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/nullable-repeated-capture",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "aa",
+      "+",
+      "\\(a*\\)*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/star",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "+",
+      "a*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/plus",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "aaa",
+      "+",
+      "a\\+"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/question",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "+",
+      "a\\?"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/interval-exact",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "aaaa",
+      "+",
+      "a\\{2\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/interval-range",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "aaaa",
+      ":",
+      "+",
+      "a\\{1,3\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/interval-open",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "aaaa",
+      "+",
+      "a\\{2,\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/interval-zero",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "aaaa",
+      ":",
+      "+",
+      "a\\{0\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/interval-group",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "ababab",
+      "+",
+      "\\(ab\\)\\{1,2\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-ERE",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "(a)+?|{}",
+      ":",
+      "+",
+      "(a)+?|{}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "380a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "380a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-dot",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "a.b",
+      "+",
+      "a\\.b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-slash",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "a/b",
+      ":",
+      "+",
+      "a\\/b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-backslash",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "a\\b",
+      "+",
+      "a\\\\b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-middle-caret",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "a^b",
+      ":",
+      "+",
+      "a^b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-middle-dollar",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "a$b",
+      "+",
+      "a$b"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-leading-star",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "*a",
+      ":",
+      "+",
+      "*a"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-bracket-in-class",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "[",
+      "+",
+      "[[]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-close-in-class",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "]",
+      ":",
+      "+",
+      "[]a]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/literal-hyphen",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "-",
+      "+",
+      "[-a]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/negated-class",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "z",
+      ":",
+      "+",
+      "[^ab]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/empty-range",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "b",
+      "+",
+      "[z-a]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "300a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/ascii-range",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "abc123",
+      ":",
+      "+",
+      "[a-z]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/digits",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "123abc",
+      "+",
+      "[[:digit:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/space",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      " \t\nX",
+      ":",
+      "+",
+      "[[:space:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/alnum",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "Az12!",
+      "+",
+      "[[:alnum:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/punct",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "!?a",
+      ":",
+      "+",
+      "[[:punct:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/hex",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "aF09Z",
+      "+",
+      "[[:xdigit:]]*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "340a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/empty-alternative",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "+",
+      "\\|ab"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/group-anchor",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "abc",
+      "+",
+      "\\(^ab\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/alternative-anchor",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "abc",
+      ":",
+      "+",
+      "x\\|^abc$"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/unicode-dot",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "😀é",
+      "+",
+      "."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/unicode-two-dots",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "😀é",
+      ":",
+      "+",
+      ".."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/unicode-capture",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "😀é",
+      "+",
+      "\\(.\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "f09f98800a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "f09f98800a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/unicode-literal",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "éé",
+      ":",
+      "+",
+      "é*"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/unicode-backref",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "😀😀",
+      "+",
+      "\\(😀\\)\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "f09f98800a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "f09f98800a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/unicode-class-literal",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "é",
+      ":",
+      "+",
+      "[é]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/combining-mark",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "é",
+      "+",
+      ".."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/BOM-is-input",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "﻿x",
+      ":",
+      "+",
+      "."
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-empty-bracket",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "["
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid regular expression\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid regular expression\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-unclosed-bracket",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "",
+      ":",
+      "+",
+      "[abc"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched [, [^, [:, [., or [=\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched [, [^, [:, [., or [=\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-trailing-backslash",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "\\"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Trailing backslash\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Trailing backslash\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-open-group",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "",
+      ":",
+      "+",
+      "\\("
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched ( or \\(\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched ( or \\(\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-close-group",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched ) or \\)\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Unmatched ) or \\)\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-backreference",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "",
+      ":",
+      "+",
+      "\\1"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid back reference\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid back reference\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-open-backreference",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "\\(a\\1\\)"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid back reference\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid back reference\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-class",
+    "locale": "C.UTF-8",
+    "args": [
+      "+",
+      "",
+      ":",
+      "+",
+      "[[:bogus:]]"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid character class name\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid character class name\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "C.UTF-8/invalid-interval-order",
+    "locale": "C.UTF-8",
+    "args": [
+      "match",
+      "+",
+      "",
+      "+",
+      "a\\{3,1\\}"
+    ],
+    "cohort": "primary-controls",
+    "expected": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid content of \\{\\}\n"
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: Invalid content of \\{\\}\n"
+    },
+    "equal": true
+  },
+  {
+    "name": "GNU-word-extension",
+    "args": [
+      "abc",
+      ":",
+      "\\w*"
+    ],
+    "locale": "C",
+    "cohort": "known-unsupported",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: unsupported BRE: alphabetic, word or buffer escape\n"
+    },
+    "equal": false
+  },
+  {
+    "name": "GNU-stacked-repeat",
+    "args": [
+      "aa",
+      ":",
+      "a**"
+    ],
+    "locale": "C",
+    "cohort": "known-unsupported",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "320a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: unsupported BRE: stacked repetition operators\n"
+    },
+    "equal": false
+  },
+  {
+    "name": "GNU-alphabetic-escape",
+    "args": [
+      "a",
+      ":",
+      "\\a"
+    ],
+    "locale": "C",
+    "cohort": "known-unsupported",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: unsupported BRE: alphabetic, word or buffer escape\n"
+    },
+    "equal": false
+  },
+  {
+    "name": "collating-symbol",
+    "args": [
+      "a",
+      ":",
+      "[[.a.]]"
+    ],
+    "locale": "C",
+    "cohort": "known-unsupported",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: unsupported BRE: collating symbols and equivalence classes\n"
+    },
+    "equal": false
+  },
+  {
+    "name": "Unicode-class",
+    "args": [
+      "é",
+      ":",
+      "[[:alpha:]]"
+    ],
+    "locale": "C.UTF-8",
+    "cohort": "known-unsupported",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: unsupported BRE: non-ASCII subject with locale character classes\n"
+    },
+    "equal": false
+  },
+  {
+    "name": "Unicode-range",
+    "args": [
+      "é",
+      ":",
+      "[à-ö]"
+    ],
+    "locale": "C.UTF-8",
+    "cohort": "known-unsupported",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "310a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 2,
+      "stdoutHex": "",
+      "stderr": "expr: unsupported BRE: non-ASCII range endpoints\n"
+    },
+    "equal": false
+  },
+  {
+    "name": "nullable-audit/0/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/0/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/1/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)\\+"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/2/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)\\{2\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/3/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)\\{1,3\\}"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/4/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a\\|aa\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "62620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "62620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/5/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\|b*\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/6/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\|b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/7/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a\\|ab\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/8/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/9/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)b*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/10/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)\\(b*\\)\\1\\2"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/11/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)*b"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": false
+  },
+  {
+    "name": "nullable-audit/12/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/12/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/13/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a\\)\\?\\(b\\)\\?"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/14/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)\\|\\(b*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/15/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "a*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/16/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/17/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a\\|\\)a*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/18/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a\\|ab\\)b*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "610a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/19/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(a*\\)*\\(a*\\)"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/0",
+    "locale": "C",
+    "args": [
+      "+",
+      "",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/1",
+    "locale": "C",
+    "args": [
+      "+",
+      "a",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/2",
+    "locale": "C",
+    "args": [
+      "+",
+      "aa",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/3",
+    "locale": "C",
+    "args": [
+      "+",
+      "aaa",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 1,
+      "stdoutHex": "0a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/4",
+    "locale": "C",
+    "args": [
+      "+",
+      "b",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/5",
+    "locale": "C",
+    "args": [
+      "+",
+      "ab",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/6",
+    "locale": "C",
+    "args": [
+      "+",
+      "aba",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/7",
+    "locale": "C",
+    "args": [
+      "+",
+      "abab",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "61620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/8",
+    "locale": "C",
+    "args": [
+      "+",
+      "aab",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "6161620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "6161620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/9",
+    "locale": "C",
+    "args": [
+      "+",
+      "abb",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  },
+  {
+    "name": "nullable-audit/20/10",
+    "locale": "C",
+    "args": [
+      "+",
+      "ba",
+      ":",
+      "\\(\\(a\\)*b\\)*"
+    ],
+    "cohort": "nullable-audit",
+    "expected": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "actual": {
+      "exitCode": 0,
+      "stdoutHex": "620a",
+      "stderr": ""
+    },
+    "equal": true
+  }
+]

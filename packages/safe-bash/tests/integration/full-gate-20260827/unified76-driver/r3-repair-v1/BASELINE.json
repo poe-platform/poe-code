@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "presealBaseHead": "54efa0081bd2c6fd588888610d798a36b4667fe1",
+  "product": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driver": "aca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424",
+  "files": [
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "bytes": 6646,
+      "sha256": "54cc1fc805761d2a78985609b6af521dfdd487c69259490d9147834b8eb2dadc",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "bytes": 6158,
+      "sha256": "bdc050aa3f6b82622c770a72112a9f212d30a9a4896d5782da011f83a88189be",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+      "bytes": 12928,
+      "sha256": "5863faba4a084160d64a3990cc8cc0b33f8b43251e26ca41ea11af071145137a",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "bytes": 21765,
+      "sha256": "025968a81758ca3b8da8d9c17930ab085c2b55740fe2a600eb9fddd8f12d2189",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "bytes": 3851,
+      "sha256": "b444f194bca7b32612c4770314c5ad34075bcf63702e9a423920fc95d234228c",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/integration/s3-http-exports/verify.mjs",
+      "bytes": 10055,
+      "sha256": "b2795a02f4da644e1a2d2c9b2e3096f7cff899ef50a6d5d970cbeba8435d9131",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "bytes": 2145,
+      "sha256": "87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "bytes": 2611,
+      "sha256": "7ee399edec15bc490577738d10050ea00cdb7cbe468b76a3ff3ffab2d74ef3c9",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "bytes": 662,
+      "sha256": "8df0258324e0694a1712ac9e614f1fea690aa9581180b4bed3a1ac9455c2fa80",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "bytes": 3049,
+      "sha256": "ad9920197aa38291dfff5d04170c5e1b87cd225bf590c8073a8ebba8c68181cc",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts",
+      "bytes": 8655,
+      "sha256": "5b778681b523a7b0e5d55c8796a177a15037f727796e30585d0e0abb9aabffa3",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts",
+      "bytes": 4382,
+      "sha256": "4aa2380cdb73984442b1e3db0c44adc0580029db618027ffd9d58bc31c9ba454",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "bytes": 3924,
+      "sha256": "7e6b128a0f52c42f45ac3b43edbda9b7bed71671d0fc584069bb692ebb8e35c5",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "bytes": 5784,
+      "sha256": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6",
+      "matchesFrozenSource": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "bytes": 4644,
+      "sha256": "dd6743e02555e2a458979b813c42397598ee559db450a07b53f397b0bddcae22",
+      "matchesFrozenSource": false
+    }
+  ],
+  "recipeSha256": "8e6e57890f16fcf3aaa0cf6374f0425139e6051e6158f132866876536a2e389a",
+  "executionCount": 0,
+  "qualification": "Pre-successor-code seal; metadata only. No native/product/build/private execution."
+}

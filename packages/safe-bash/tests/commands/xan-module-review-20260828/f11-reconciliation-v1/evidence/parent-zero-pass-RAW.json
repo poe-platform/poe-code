@@ -1,0 +1,47 @@
+{
+  "id": "parent-zero-pass",
+  "state": "PASS",
+  "exitCode": 0,
+  "phases": [
+    {
+      "id": "build",
+      "status": "PASS"
+    },
+    {
+      "id": "child:parent-zero-pass",
+      "status": "PASS",
+      "exitCode": 0,
+      "receiptFailures": 0
+    }
+  ],
+  "admitted": {
+    "stage": "FINALIZATION",
+    "job": "parent-zero-pass",
+    "phase": "SYNTHETIC_RECEIPT_ONLY",
+    "nonce": "20849dab-0fe2-4020-96d0-3696db1b2c5f",
+    "manifest": "be29dce60f7d3f40ad4db46758333dde738d5d4d390d7340a1d5fa44e7833db5",
+    "requiredIds": [
+      "required-a",
+      "required-b"
+    ],
+    "rawBound": 65536,
+    "requiredCount": 2,
+    "completedCount": 2,
+    "failures": 0,
+    "complete": true,
+    "closed": true,
+    "intact": true,
+    "exitCode": 0,
+    "reaped": true,
+    "requiredPhase": "SYNTHETIC_RECEIPT_ONLY",
+    "completedPhase": "SYNTHETIC_RECEIPT_ONLY",
+    "rawBoundExceeded": false,
+    "requiredChildPhase": {
+      "id": "child:parent-zero-pass",
+      "status": "PASS",
+      "exitCode": 0,
+      "receiptFailures": 0
+    }
+  },
+  "error": null
+}

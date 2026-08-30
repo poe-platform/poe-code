@@ -1,0 +1,428 @@
+TAP version 13
+# Subtest: literal invoke returns nonzero to its custom caller
+not ok 1 - literal invoke returns nonzero to its custom caller
+  ---
+  duration_ms: 5.353625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:573'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '' !== 'chosenafter'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'chosenafter'
+  actual: ''
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:23:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: literal invoke child interpreter honors its own option in tested parent
+not ok 2 - literal invoke child interpreter honors its own option in tested parent
+  ---
+  duration_ms: 0.663833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:1041'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '' !== 'chosenafter'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'chosenafter'
+  actual: ''
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:34:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: e presence only, state isolation across exec and nested child
+not ok 3 - e presence only, state isolation across exec and nested child
+  ---
+  duration_ms: 0.373875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:1525'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '' !== '[][e][][e]'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '[][e][][e]'
+  actual: ''
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:39:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: errexit never swallows shared commands budget
+not ok 4 - errexit never swallows shared commands budget
+  ---
+  duration_ms: 0.750208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:2269'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:52:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: errexit never swallows shared source budget
+not ok 5 - errexit never swallows shared source budget
+  ---
+  duration_ms: 0.441542
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:2269'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:52:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: errexit never swallows shared depth budget
+not ok 6 - errexit never swallows shared depth budget
+  ---
+  duration_ms: 0.342167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:2269'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:52:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: errexit never swallows shared loops budget
+not ok 7 - errexit never swallows shared loops budget
+  ---
+  duration_ms: 0.302708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:2269'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:52:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: errexit never swallows shared expansion budget
+not ok 8 - errexit never swallows shared expansion budget
+  ---
+  duration_ms: 0.370292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:2269'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:52:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: errexit never swallows shared output budget
+ok 9 - errexit never swallows shared output budget
+  ---
+  duration_ms: 0.824042
+  type: 'test'
+  ...
+# Subtest: pipeline succeeds at unchanged producer plus consumer byte budget
+not ok 10 - pipeline succeeds at unchanged producer plus consumer byte budget
+  ---
+  duration_ms: 1.214084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:2458'
+  failureType: 'testCodeFailure'
+  error: 'Shell limit exceeded: maxOutputBytes'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ShellLimitError'
+  stack: |-
+    Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:62:19)
+    Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:90:78)
+    writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)
+    Runtime.builtin (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:1347:15)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:824:38)
+    dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)
+    next (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:44:13)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:11:76)
+    dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:57:30)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)
+  ...
+# Subtest: parent cancellation identity survives tested context
+not ok 11 - parent cancellation identity survives tested context
+  ---
+  duration_ms: 0.501417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:2725'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:64:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cancellation during delayed command observes late rejection
+not ok 12 - cancellation during delayed command observes late rejection
+  ---
+  duration_ms: 0.34775
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:3105'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:74:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: delayed pipeline consumer drains before aggregate exit
+not ok 13 - delayed pipeline consumer drains before aggregate exit
+  ---
+  duration_ms: 0.400583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:3759'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 7
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 7
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:86:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: failed redirected group stops but earlier file effect is retained
+not ok 14 - failed redirected group stops but earlier file effect is retained
+  ---
+  duration_ms: 0.321209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:4322'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:93:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: source cleanup after errexit preserves parent literal caller
+ok 15 - source cleanup after errexit preserves parent literal caller
+  ---
+  duration_ms: 3.442416
+  type: 'test'
+  ...
+# Subtest: binary stdin and default origin survive nested literal invocation
+not ok 16 - binary stdin and default origin survive nested literal invocation
+  ---
+  duration_ms: 0.686334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:5070'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + Uint8Array(0) []
+    - Uint8Array(4) [
+    -   0,
+    -   255,
+    -   10,
+    -   128
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 0
+    1: 255
+    2: 10
+    3: 128
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:112:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: single optional shebang argument \#!/bin/bash -e
+not ok 17 - single optional shebang argument \#!/bin/bash -e
+  ---
+  duration_ms: 0.724958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:5810'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'after'
+    - '[][a b]after'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '[][a b]after'
+  actual: 'after'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:120:44)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: single optional shebang argument \#!/usr/bin/bash -ee
+not ok 18 - single optional shebang argument \#!/usr/bin/bash -ee
+  ---
+  duration_ms: 0.532708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:1:5810'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'after'
+    - '[][a b]after'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '[][a b]after'
+  actual: 'after'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:120:44)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit interpreter does not apply file header option twice
+not ok 19 - explicit interpreter does not apply file header option twice
+  ---
+  duration_ms: 0.225541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:3:188'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '' !== 'body'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'body'
+  actual: ''
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/errexit-host.test.ts:126:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: literal shebang refusal \#!/usr/bin/env bash -e
+ok 20 - literal shebang refusal \#!/usr/bin/env bash -e
+  ---
+  duration_ms: 1.226708
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/usr/bin/env -S bash -e
+ok 21 - literal shebang refusal \#!/usr/bin/env -S bash -e
+  ---
+  duration_ms: 0.358625
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash -e -e
+ok 22 - literal shebang refusal \#!/bin/bash -e -e
+  ---
+  duration_ms: 0.252708
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash -c
+ok 23 - literal shebang refusal \#!/bin/bash -c
+  ---
+  duration_ms: 0.238667
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash '-e'
+ok 24 - literal shebang refusal \#!/bin/bash '-e'
+  ---
+  duration_ms: 0.311417
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/unknown -e
+ok 25 - literal shebang refusal \#!/unknown -e
+  ---
+  duration_ms: 0.28
+  type: 'test'
+  ...
+# Subtest: direct permission and invalid UTF8 refusals remain
+ok 26 - direct permission and invalid UTF8 refusals remain
+  ---
+  duration_ms: 0.612875
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected bash -u -c true
+ok 27 - unimplemented switch stays rejected bash -u -c true
+  ---
+  duration_ms: 0.18075
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected bash +c true
+ok 28 - unimplemented switch stays rejected bash +c true
+  ---
+  duration_ms: 0.167916
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected set -u
+ok 29 - unimplemented switch stays rejected set -u
+  ---
+  duration_ms: 0.199083
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected set -o inherit_errexit
+ok 30 - unimplemented switch stays rejected set -o inherit_errexit
+  ---
+  duration_ms: 0.197625
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 13
+# fail 17
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 226.792542

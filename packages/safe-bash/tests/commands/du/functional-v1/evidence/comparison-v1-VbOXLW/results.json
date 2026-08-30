@@ -1,0 +1,945 @@
+{
+  "qualification": "Scoped author GNU9.7/Darwin comparison; preserved explicit-B wording gaps and unchanged O060; no all-input acceptance",
+  "created": "2026-08-27T18:18:05.577Z",
+  "platform": "darwin",
+  "node": "v22.22.2",
+  "sourceHead": "1c793b934dcd06aa42e0df24a7228b395178cf3d",
+  "sourceHashes": {
+    "src/commands/du/arguments.ts": "1c25d25f2c1464b2b47e9a574d8c786c032d2c5f80b231d15e444a7020a3c409",
+    "src/commands/du/du.ts": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03",
+    "src/commands/du/format.ts": "84463e68db86ca767b05b410c79c0844e97be2c3585ed7fff2f81ae15411daa1",
+    "src/commands/du/budget.ts": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971",
+    "src/commands/du/options.ts": "5765a37baccf628f3de85c94409627a16cf4dda02f66c9d2a37cf2929bf26253",
+    "src/commands/du/index.ts": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7"
+  },
+  "changedSources": [],
+  "originalPathsOnly": true,
+  "binaryBeforeSha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+  "binaryAfterSha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+  "fixtureRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/du/functional-v1/.native-comparison-IRBxvf",
+  "fixtureBytes": 1025,
+  "summary": {
+    "liveRealCases": 36,
+    "exactStatusStdout": 36,
+    "exactAllFields": 31,
+    "selectedOriginalCases": 4,
+    "originalSelectedExact": 3
+  },
+  "results": [
+    {
+      "id": "env-01",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {},
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-02",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-03",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "POSIXLY_CORRECT": "1"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-04",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-05",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-06",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-07",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "POSIXLY_CORRECT": "1"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-08",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad",
+        "BLOCK_SIZE": "1",
+        "BLOCKSIZE": "2K"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-09",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "1",
+        "BLOCKSIZE": "2K"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-10",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad",
+        "BLOCK_SIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-11",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-12",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "bad",
+        "BLOCKSIZE": "1"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-13",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "",
+        "BLOCKSIZE": "1"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-14",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "bad",
+        "BLOCKSIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-15",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "",
+        "BLOCKSIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-16",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "bad"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-17",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-18",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "bad",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-19",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-20",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1",
+        "BLOCK_SIZE": "bad",
+        "BLOCKSIZE": "bad"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-21",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "K",
+        "BLOCK_SIZE": "1"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2K\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2K\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-22",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "1",
+        "BLOCKSIZE": "bad"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-23",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "1"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-24",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "0"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "env-25",
+      "args": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "-1"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "explicit-bytes-over-invalid",
+      "args": [
+        "-b",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "explicit-k-over-empty",
+      "args": [
+        "--apparent-size",
+        "-k",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "1",
+        "POSIXLY_CORRECT": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "explicit-unit-over-invalid",
+      "args": [
+        "--apparent-size",
+        "-B1",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "bad"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1025\tfile\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "explicit-invalid-1",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid -B argument ''\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size ''\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "id": "explicit-invalid-2",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "bad",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid -B argument 'bad'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size 'bad'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "id": "explicit-invalid-3",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "0",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid -B argument '0'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid or unsafe block size '0'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "id": "explicit-invalid-4",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "-1",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid -B argument '-1'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size '-1'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "id": "explicit-invalid-5",
+      "args": [
+        "--apparent-size",
+        "-B",
+        "1.5K",
+        "file"
+      ],
+      "env": {
+        "DU_BLOCK_SIZE": "1"
+      },
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid suffix in -B argument '1.5K'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size '1.5K'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "id": "empty-only",
+      "args": [
+        "-b",
+        ""
+      ],
+      "env": {},
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "empty-then-file",
+      "args": [
+        "-b",
+        "",
+        "file"
+      ],
+      "env": {},
+      "native": {
+        "status": 1,
+        "stdout": "1025\tfile\n",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "1025\tfile\n",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "file-then-empty",
+      "args": [
+        "-b",
+        "file",
+        ""
+      ],
+      "env": {},
+      "native": {
+        "status": 1,
+        "stdout": "1025\tfile\n",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "1025\tfile\n",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    }
+  ],
+  "originalSelected": [
+    {
+      "id": "O060",
+      "native": {
+        "name": "-b tree tree",
+        "args": [
+          "-b",
+          "tree",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n0\ttree/sub\n0\ttree\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": false,
+      "exactAllFields": false
+    },
+    {
+      "id": "O062",
+      "native": {
+        "name": "-b ",
+        "args": [
+          "-b",
+          ""
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "O086",
+      "native": {
+        "name": "env:{\"DU_BLOCK_SIZE\":\"bad\"}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "bad"
+        },
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "id": "O087",
+      "native": {
+        "name": "env:{\"DU_BLOCK_SIZE\":\"\",\"BLOCK_SIZE\":\"2K\"}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "",
+          "BLOCK_SIZE": "2K"
+        },
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    }
+  ]
+}

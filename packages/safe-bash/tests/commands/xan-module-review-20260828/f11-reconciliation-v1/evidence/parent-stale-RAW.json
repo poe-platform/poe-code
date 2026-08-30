@@ -1,0 +1,15 @@
+{
+  "id": "parent-stale",
+  "state": "HOLD",
+  "exitCode": 1,
+  "phases": [
+    {
+      "id": "build",
+      "status": "PASS"
+    }
+  ],
+  "error": {
+    "name": "Error",
+    "message": "A01_HOLD_DEPENDENTS: receipt nonce\n+ actual - expected\n\n+ 'stale'\n- 'e7a00028-6aae-4e19-adb5-e58dffff04d2'\n"
+  }
+}

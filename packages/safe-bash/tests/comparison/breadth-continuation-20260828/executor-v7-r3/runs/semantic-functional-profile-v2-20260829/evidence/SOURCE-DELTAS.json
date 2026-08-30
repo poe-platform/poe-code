@@ -1,0 +1,302 @@
+{
+  "schema": "FUNCTIONAL_V2_SOURCE_DELTAS",
+  "presealSha": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "sourceCommit": "45dd71f18882900070c5a925a5c01e0a6045aa5b",
+  "rows": [
+    {
+      "path": "AUTH-INACTIVE.json",
+      "newSha256": "9dbfec48b3bca733672eaa6737bf971b416c4c55242841c4b810c83f4aa5457b",
+      "newBytes": 2065,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/AUTH-INACTIVE.json",
+        "sha256": "a6c8af93e3ad366131a20ad2c8dc3eaa5e2aaa5af623941c5719934b8bd77799"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "CONTROL-PLAN.json",
+      "newSha256": "03e67d21efd0fe3702506e3dad456500fa2cd4843952c62251a6e58334920453",
+      "newBytes": 3254,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/CONTROL-PLAN.json",
+        "sha256": "8c7f8602d627e8aff7dd7d36585842cc8c77a14235bd827630455f738caf0bde"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "FUTURE-LAUNCH.sh.data",
+      "newSha256": "f2c89a1d1cd4d6c3ef020b8a96721bf8b24e01a166c19c6976676257c6437f78",
+      "newBytes": 2049,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/FUTURE-LAUNCH.sh.data",
+        "sha256": "daf31a74f899c20442772119e85e3e35355d6c2d837060f8f4de65acb1410449"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "INTERFACE-DELTA.json",
+      "newSha256": "ef4c9b79b28a581e55d9e5abf31cd88484708749cd1f444c26f5514ee8bb2d9a",
+      "newBytes": 5162,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/INTERFACE-DELTA.json",
+        "sha256": "42e988c1194ea12f482dc19b60dd4db8a0f5ce728e9f9ebf4447ed3ffab5e319"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "README.md",
+      "newSha256": "f5f9718119918cebadb241f2b1fcfde54de0391b67172e9e61342115d4655339",
+      "newBytes": 3564,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/README.md",
+        "sha256": "e7fde7e8ec830fd3c585272aaa37b7b5710941ff33f7bd1efa0480690aa1bee8"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "SOURCE-MAP.json",
+      "newSha256": "f0fe6e85788e42733bd2facae3b2b5dd990c9b25be52d753ff6dfabf3bafb0a8",
+      "newBytes": 1170,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/SOURCE-MAP.json",
+        "sha256": "c43d81680fea29e07bb791d7cc78b53f1709e251361450cb73ce56e413cebe68"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "adapter.mjs",
+      "newSha256": "50ca801d8961b1cbcc798e10d3bacb72e1d42dad428ef36b195411647afbc765",
+      "newBytes": 8877,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/adapter.mjs",
+        "bytes": 8602,
+        "mode": 420,
+        "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+      },
+      "role": "versioned-adapter-copy",
+      "changed": true
+    },
+    {
+      "path": "admission.mjs",
+      "newSha256": "c37765a865de5a27e4c454a30c216d70f378bbe35c131d07a55a1e5a742242d8",
+      "newBytes": 1408,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-overlay-v2/admission.mjs",
+        "bytes": 1246,
+        "mode": 420,
+        "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+      },
+      "role": "versioned-adapter-copy",
+      "changed": true
+    },
+    {
+      "path": "authorization.mjs",
+      "newSha256": "e442fad1aa887ddc14b35983ec8c02f508a6f55c72473bd5de7162a796b6f61e",
+      "newBytes": 6450,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/authorization.mjs",
+        "sha256": "69cf09ce23ee3f2a766e73bfb0c5c5fd29976d2d80692b604fcf4ca52341e34d"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "body.mjs",
+      "newSha256": "340aac186f1a7db4d4b72be493cc11649cf6eb06d5d16d2de59d0764e00a0a99",
+      "newBytes": 13564,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/body.mjs",
+        "sha256": "13e8d76d892aa0a85db2dec66db64659467cf98bee4055f12e3c17c9f4911029"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "contracts.mjs",
+      "newSha256": "d03c5bfce308b8efb986dd8f02fb30d1efd79d5e847314838cae181eb407f335",
+      "newBytes": 1032,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/contracts.mjs",
+        "sha256": "8c282793af87f45022ed6b75dd430ffe91bd1cba9f87e94ab765213f26809412"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "controls.mjs",
+      "newSha256": "e4ab9aa5bb6f43c62b1da1776c4c3f5f8029a7b380369a5cbc70de2c8a13ba2c",
+      "newBytes": 11567,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/controls.mjs",
+        "sha256": "9643d42d7a263388b296f43016121ddf17d004e1e3006bfefc6e31da003d7214"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "coordinator.mjs",
+      "newSha256": "aeff9a46997433cdecfe85fff662baa9751373a72933ecf43351e38f561115da",
+      "newBytes": 1847,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/coordinator.mjs",
+        "sha256": "527ca0d0f61b6abf96ea7c6e1df7304ee93887c409fe63c573b9d1d8f6fcd729"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "fixtures.mjs",
+      "newSha256": "2613b4df3649c20c8e05f98c286fb069be00e950d0bccea4ff61968b02fcfaa4",
+      "newBytes": 12184,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/fixtures.mjs",
+        "sha256": "9f65e195edc79bf89eaf4beba07b271c221061e57a3c1edbe8a9223694921452"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "functional-profile.mjs",
+      "newSha256": "df5099f862d5930c35a8b3799cdd9983e44f56d270f02c8c073d6bf1bc06d399",
+      "newBytes": 195,
+      "prior": null,
+      "role": "new-helper",
+      "changed": true
+    },
+    {
+      "path": "host-environment.mjs",
+      "newSha256": "95807f8e73771338b8724c368a94ee72536049b382a8ea4f7893889188a6880b",
+      "newBytes": 1077,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/host-environment.mjs",
+        "sha256": "fd890ac03880d187f57285d76c1cc6e04c16a47d6efdb110ca899de111be0955"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "invocations.mjs",
+      "newSha256": "43c06527a391ee4733eec2f04c3c5f0e300a8a186f87f20864923666d86be760",
+      "newBytes": 8449,
+      "prior": null,
+      "role": "new-helper",
+      "changed": true
+    },
+    {
+      "path": "launch.mjs",
+      "newSha256": "e809e3279760cfd5377977ff8894730d5a109fde4d17c894b69943819c2e6671",
+      "newBytes": 2668,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/launch.mjs",
+        "sha256": "7cc596b830b779e89ebfcbcc7fbb5e6872b4d2b149a9f3065167ddee86c4684b"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "outer.mjs",
+      "newSha256": "73cd00671691571c4b22b8006c51060ebaa444425a4c65d802e5e9d70977a787",
+      "newBytes": 3421,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/outer.mjs",
+        "sha256": "fea502365e4df75bb4119dde2221602e713059c0860212d49860d4a8b06389c4"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "owner.mjs",
+      "newSha256": "cdff83625c510ed0af1b02e289bf1ff4a089630da0aa12fb0b9c6f5d841d4d91",
+      "newBytes": 3365,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/owner.mjs",
+        "sha256": "653532ad92a4eb5366085385ccfdda5d06499d4805940e9224da78fccc91e20d"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "prepare-captures.mjs",
+      "newSha256": "091b1a837a2c7e90272f4c829ae4e79ee2945596aa86af354728f7f7ab1e5270",
+      "newBytes": 2312,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/prepare-captures.mjs",
+        "sha256": "3682ea27b29333ab9ac19b5593d68945006d748a2102820d8b16c6469a36efed"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "production.mjs",
+      "newSha256": "f71778f3fd3e18879930b0a41fa048067596f8df141f12f31e225d8aa7c87117",
+      "newBytes": 4198,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/production.mjs",
+        "sha256": "866a2123827869f3eb2427415508eb5297bb653e93291286c0ebeec0fbd59f2b"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "profile.mjs",
+      "newSha256": "c026be88b50e50537b407860ecbe400277097fae45862652f7b8efa044ec9f5b",
+      "newBytes": 6335,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/profile.mjs",
+        "sha256": "0bcfe8f9e871bf434c8b84879062dbb32cc199c03abed0935b589335e0ef1197"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "report.mjs",
+      "newSha256": "b1fbb2a1a0fe5567cd3c7012c885f129e014ea06845fa30d1a7cf86da5362981",
+      "newBytes": 6552,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/report.mjs",
+        "sha256": "af15856b67b3894a7d0f64b75e0414dc981d0f0883b6b78cf95cf71dc1b36a92"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "semantic-assessor.mjs",
+      "newSha256": "a8e7cda5f2c34b4efe37ba740c6260659cf3cf8413c8c36fa5b68acbf8db3d45",
+      "newBytes": 20181,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/semantic-assessor.mjs",
+        "sha256": "0dfbba53e65b6d9aa35239bf48b6d0a39e81421bfe58a03b724b38d3d00a209f"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "verify-fds-v3.mjs",
+      "newSha256": "f323ee47b3e951261e3249d449a6c1a2834f9d69fcd4daf825288189545dcf71",
+      "newBytes": 1181,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/verify-fds-v3.mjs",
+        "sha256": "741e3e694b7f345bba414de660e05c2b8014589f8442360d9a40fb901ff745c0"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    },
+    {
+      "path": "worker.mjs",
+      "newSha256": "d7ead5c761ad3a3790a4c39c25946209d3f580ffd9e1a8da32ff32c2e2758098",
+      "newBytes": 12602,
+      "prior": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs",
+        "sha256": "6cce4182827c3c07099f298a71e52e94d8e8b7d8c2dbe72c36afb1c232a69d3e"
+      },
+      "role": "versioned-successor-copy",
+      "changed": true
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{"atMs":0.379,"kind":"group-admitted","pid":58789,"pgid":58789,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-3bLn2Q","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-3bLn2Q","TMPDIR":"/private/tmp/safe-bash-execution-author-3bLn2Q","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":43.659,"id":"synthetic/crash","nonce":"4ed92864-9aca-41a5-bac6-f03376a75620","kind":"engine-spawn","pid":58790,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":97.655,"kind":"request-start","absoluteDeadlineMs":1497.6524170000002}
+{"atMs":97.658,"id":"synthetic/crash","nonce":"4ed92864-9aca-41a5-bac6-f03376a75620","kind":"ready"}
+{"atMs":98.285,"id":"synthetic/crash","nonce":"4ed92864-9aca-41a5-bac6-f03376a75620","kind":"phase","phase":"exec-start"}
+{"atMs":100.483,"kind":"sticky-failure","reason":"engine crash/forced exit"}
+{"atMs":100.51,"id":"synthetic/crash","nonce":"4ed92864-9aca-41a5-bac6-f03376a75620","kind":"engine-exit","code":9,"signal":null}
+{"atMs":100.714,"id":"synthetic/crash","nonce":"4ed92864-9aca-41a5-bac6-f03376a75620","kind":"engine-close","code":9,"signal":null}
+{"atMs":100.776,"id":"synthetic/crash","nonce":"4ed92864-9aca-41a5-bac6-f03376a75620","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":100.837,"id":"synthetic/crash","nonce":"4ed92864-9aca-41a5-bac6-f03376a75620","kind":"session-complete"}
+{"atMs":103.037,"kind":"signal","signal":"SIGTERM","pgid":58789}
+{"atMs":103.062,"kind":"signal-error","error":{"name":"Error","message":"kill EPERM","code":"EPERM"}}
+{"atMs":103.102,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":103.105,"kind":"coordinator-close","code":0,"signal":null}

@@ -1,0 +1,26 @@
+{
+  "schema": "PRESEALED_DATA_CONTROLLER_LAUNCH",
+  "presealCommit": "cc8139986c0914649cc4a2c4792dbcc8212db338",
+  "presealSha256": "40d8b596e48231ba36d09968a3feb58797be6428c36f661c73ca37bdcd4cf490",
+  "attempt": 1,
+  "file": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01-preparation/data-controls.mjs",
+    "40d8b596e48231ba36d09968a3feb58797be6428c36f661c73ca37bdcd4cf490"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/Users/kjopek",
+    "LANG": "C",
+    "LC_ALL": "C"
+  },
+  "capturePreopened": true,
+  "mode": 384,
+  "deadlineMs": 10000,
+  "TERMGraceMs": 2000,
+  "engineImports": 0,
+  "internalChildren": 0
+}

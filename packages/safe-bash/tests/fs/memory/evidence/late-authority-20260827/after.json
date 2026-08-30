@@ -1,0 +1,60 @@
+{
+  "head": "bb1ae0a194f31d1ec755b00e55e9a428de45b74b",
+  "captured": "2026-08-27T01:41:00.547Z",
+  "sourceHashes": {
+    "src/commands/filesystem.ts": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+    "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+    "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/s3/authority.ts": "0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4",
+    "src/fs/s3/filesystem.ts": "8c98a7738aed477a238084624b4e374d4cdf1575708684d0991869427288a120",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821",
+    "src/fs/s3/transport.ts": "df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/resource-id.ts": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc",
+    "src/fs/webdav/webdav.ts": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "tests/fs/memory/late-authority.test.ts": "bcdd289cb8d5d9b75a686121a04cbbff916c66526e3fcd676169ba2ed076cfab",
+    "tests/fs/mount/copy-identity-guards.test.ts": "bd8074c17c5e0fc418a5408028b409946b2178e64fad29bfa87c5f8aa1eb8027",
+    "tests/fs/mount/copy-identity.test.ts": "e752e633abc902025670c09305c09e7319b171549350ddec7573b6644d29d115",
+    "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+    "tests/fs/overlay/copy-identity.test.ts": "d877488ecc76799552313b55db0119c83ecf433ad17ceb88079fa0d9bddd872e"
+  },
+  "results": {
+    "independentMemory": {
+      "before": {
+        "pass": 0,
+        "total": 1
+      },
+      "after": {
+        "pass": 1,
+        "total": 1
+      }
+    },
+    "author": {
+      "pass": 17,
+      "total": 17
+    },
+    "focused": {
+      "pass": 135,
+      "total": 135
+    },
+    "scopedTypes": {
+      "exit": 0,
+      "stdout": ""
+    }
+  },
+  "originalPositiveGate": "Not rerun: scoped307938f historical31/38 remains open; no fixture change."
+}

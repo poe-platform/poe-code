@@ -1,0 +1,114 @@
+diff --git a/src/contracts/filesystem.md b/src/contracts/filesystem.md
+index 9977edb..52827fe 100644
+--- a/src/contracts/filesystem.md
++++ b/src/contracts/filesystem.md
+@@ -5,15 +5,15 @@ optional, directory-only operation. `FsOptions` contains only `signal`; this
+ operation has no recursive or force mode. Existing `rm` semantics are unchanged.
+ Existing structural filesystem implementations remain valid without `rmdir`.
+ 
+-A supported call removes an empty directory entry, never its descendants or a
+-final symlink. Nonempty directories fail with `FsError.code === "ENOTEMPTY"`;
++In the default profile a supported call removes an empty directory entry, never
++its descendants or a final symlink. Nonempty directories fail with `FsError.code === "ENOTEMPTY"`;
+ nondirectories (including final symlinks) fail with `ENOTDIR`; missing paths fail
+ with `ENOENT`. Preserve the directory and its children on these failures.
+ Protect virtual and mounted roots from removal. Permission, read-only, IO and
+ path-resolution failures retain their normal typed errors.
+ 
+-Emptiness must be enforced by the removal operation, not a prior `readdir`
+-followed by recursive deletion. A concurrent child must not be deleted because
++Default-profile emptiness must be enforced by the removal operation, not a prior
++`readdir` followed by recursive deletion. A concurrent child must not be deleted because
+ an earlier listing was empty. Do not approximate this operation with
+ `rm({ recursive: true })`, a recursive remote collection DELETE, or traversal
+ and deletion of descendants. A backend unable to provide safe empty-directory
+@@ -21,6 +21,12 @@ removal must leave the namespace unchanged and return `ENOTSUP`; absence of
+ the optional method is also an explicit unsupported capability at consumers.
+ Method presence alone does not guarantee support for every mounted path.
+ 
++The only additive alternative is the explicitly disclosed **snapshot-marker
++profile** below: `capabilities.snapshotRmdir === true`. It qualifies both the
++nonempty-directory rule and removal-time-emptiness rule for marker-only calls.
++Omission or `false` retains the default contract; it does not silently select
++snapshot behavior. Neither profile ever permits deletion of descendants.
++
+ Forward `signal` into host work and reject a pre-aborted call before mutation.
+ Cancellation cannot undo a removal already performed by the host. This method
+ does not add a namespace transaction, descriptor-relative path identity or a
+@@ -31,6 +37,64 @@ operation. `rm -d` uses it only for directories; ordinary file/symlink removal
+ and explicitly recursive `rm` continue to use `rm`. Missing capability is not
+ silently ignored, including with `rm -df`.
+ 
++## Explicit snapshot-marker profile
++
++`FileSystemCapabilities.snapshotRmdir?: boolean` discloses that supported
++`rmdir` calls may use snapshot-empty **explicit directory-marker** removal,
++rather than removal-time logical-directory emptiness. It is a semantic profile,
++not a claim that `rmdir` exists, that every path supports it, or that a provider
++implements atomic prefix deletion. Existing memory/real guarantees are unchanged.
++The operation signature and signal-only options remain unchanged; callers must
++not infer this profile from a backend name, missing capability or transport type.
++
++A backend using this profile must declare `snapshotRmdir: true` and document its
++marker representation and supported provider configuration. It must:
++
++- Resolve an unambiguous explicit directory marker and protect roots, final
++  symlinks, ordinary files and ambiguous file/prefix representations. Existing
++  typed errors, read-only checks and permission/cancellation rules still apply.
++- Complete the required emptiness observation, including pagination, before
++  mutation. Any observed descendant, including a nested directory marker, causes
++  `ENOTEMPTY` without mutation. Incomplete/failed inspection is not empty; an
++  unsupported representation or unavailable safe operation yields `ENOTSUP`.
++  Provider listing correctness remains a prerequisite, not established by HTTP200.
++- Delete **only the exact identified marker key**, never any child, nested marker,
++  prefix batch, recursive collection, or descendant namespace entry. Do not use
++  recursive `rm`, recursive DELETE, cleanup traversal, or a compensating whiteout.
++- Report success only when the marker-removal operation succeeds. Success means
++  marker removal under this profile, **not logical-directory absence**. A child
++  created after inspection survives unchanged and can keep the directory visible
++  after a successful call. Do not turn that observation into an `ENOTEMPTY` claim
++  of no mutation, delete the new child, or reinsert a marker as purported rollback.
++
++This profile does not make the observation/removal pair transactional and does not
++promise marker-instance or same-content ABA protection. A concurrent replacement
++at the same marker key can be affected if the provider lacks a verified stronger
++condition. Truthful object conditions may improve marker protection but are not
++prefix-emptiness conditions. Once deletion is issued, an error or cancellation
++may leave its outcome uncertain; preserve the error and never claim rollback.
++Pre-aborted calls still perform no mutation, and signals propagate into host work.
++
++Wrappers must not conceal weaker delegated semantics. A mount/composite that
++allows snapshot-marker removal on any routed writable path must expose
++`snapshotRmdir: true`, or refuse that delegated operation. The aggregate flag
++does not weaken strict operations on other paths; clients needing the stronger
++guarantee must resolve that path's actual contract or refuse snapshot-profile
++calls. A wrapper that always refuses removal need not advertise this profile.
++Flag propagation alone is insufficient for an overlay: it must not hide a
++concurrent descendant with a whiteout or otherwise turn surviving children into
++removed namespace entries. It must independently preserve the invariant or refuse.
++
++This is not a WebDAV recursive-DELETE exception. A collection lock, empty listing,
++validator or lease checked before recursive traversal does not supply the default
++empty-only removal operation. A WebDAV deployment without a genuine server-side
++atomic empty-directory primitive must refuse with `ENOTSUP`. An explicitly
++configured host adapter/extension may provide such a primitive only for its
++truthfully bound backing resource: the primitive itself must reject nonempty
++directories without deleting descendants, including concurrent native/alias
++writers. Lock expiry or cancellation cannot be relied on to undo recursive work.
++No bundled primitive, new WebDAV API or provider support is implied by this rule.
++
+ # Point-in-time backing-entry identity
+ 
+ `FileStat.identityScope?: object | symbol` is an additive, opaque identity
+diff --git a/src/contracts/filesystem.ts b/src/contracts/filesystem.ts
+index c865ae2..2c2cef5 100644
+--- a/src/contracts/filesystem.ts
++++ b/src/contracts/filesystem.ts
+@@ -31,6 +31,7 @@ export interface FileSystemCapabilities {
+   readonly permissions?: boolean;
+   readonly timestamps?: boolean;
+   readonly atomicRename?: boolean;
++  readonly snapshotRmdir?: boolean;
+   readonly streamingRead?: boolean;
+   readonly streamingWrite?: boolean;
+   readonly [capability: string]: boolean | undefined;

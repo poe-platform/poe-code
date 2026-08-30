@@ -1,0 +1,15 @@
+{
+  "label": "runner-candidate",
+  "executable": "npm",
+  "args": [
+    "test"
+  ],
+  "cwd": "tests/integration/native-data-config-review/.scratch/runner",
+  "started": "2026-08-27T08:56:46.922Z",
+  "ended": "2026-08-27T08:56:47.273Z",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "\n> virtual-bash@0.0.0 test\n> node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...files, ...process.argv.slice(1)], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --\n\nTAP version 13\n# Subtest: KEPT:tests/commands/regex-execution/continuation/artifacts/native space 🙂/control.test.ts\nok 1 - KEPT:tests/commands/regex-execution/continuation/artifacts/native space 🙂/control.test.ts\n  ---\n  duration_ms: 0.311792\n  type: 'test'\n  ...\n# Subtest: KEPT:tests/commands/regex-execution/continuation/artifacts/native-sibling/control.test.ts\nok 2 - KEPT:tests/commands/regex-execution/continuation/artifacts/native-sibling/control.test.ts\n  ---\n  duration_ms: 0.351416\n  type: 'test'\n  ...\n# Subtest: KEPT:tests/commands/regex-execution/continuation/artifacts/native.test.ts\nok 3 - KEPT:tests/commands/regex-execution/continuation/artifacts/native.test.ts\n  ---\n  duration_ms: 0.280166\n  type: 'test'\n  ...\n# Subtest: KEPT:tests/commands/regex-execution/continuation/artifacts/neighbor.test.ts\nok 4 - KEPT:tests/commands/regex-execution/continuation/artifacts/neighbor.test.ts\n  ---\n  duration_ms: 0.35375\n  type: 'test'\n  ...\n# Subtest: KEPT:tests/review/canonical.test.ts\nok 5 - KEPT:tests/review/canonical.test.ts\n  ---\n  duration_ms: 0.306542\n  type: 'test'\n  ...\n# Subtest: KEPT:tests/space 🙂/canonical.test.ts\nok 6 - KEPT:tests/space 🙂/canonical.test.ts\n  ---\n  duration_ms: 0.397541\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 176.112875\n",
+  "stderr": ""
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "ere-native-root-issuance-v1",
+  "role": "ROOT_CONDITIONAL_AUTHORITY_NOT_EXECUTION",
+  "issuedEpochMs": 1787997669884,
+  "issuedAt": "2026-08-29T10:01:09.884Z",
+  "expiryEpochMs": 1788000369884,
+  "expiresAt": "2026-08-29T10:46:09.884Z",
+  "expiryDeltaMs": 2700000,
+  "latestStartEpochMs": 1787999769884,
+  "latestStartAt": "2026-08-29T10:36:09.884Z",
+  "autoRenew": false,
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/GO.json",
+    "bytes": 1796,
+    "mode": 384,
+    "sha256": "9eec9e95250998fc3bf78ee8727bbfbbba6d32c7aab42155291a5cea34a753ec"
+  },
+  "requiredBeforeActual": [
+    "different resolved-slot DATA ACCEPT",
+    "committed fresh GO and preflight PASS",
+    "at least 600000ms remaining when actual starts",
+    "exact require_escalated tool approval, login:false, no prefix rule"
+  ],
+  "actualExecution": false
+}

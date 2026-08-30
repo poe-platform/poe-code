@@ -1,0 +1,7 @@
+*** Begin Patch
+*** Update File: src/commands/du/du.ts
+@@
+-    const { identityScope: scope, dev, ino } = stat;
++    const { dev, ino } = stat;
++    const scope = Symbol.for("independent-mutant-shared");
+*** End Patch

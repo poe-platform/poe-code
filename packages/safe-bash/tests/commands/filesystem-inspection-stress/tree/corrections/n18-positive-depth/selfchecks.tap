@@ -1,0 +1,196 @@
+TAP version 13
+# Subtest: nonproduct positive depth diagnostic 1
+ok 1 - nonproduct positive depth diagnostic 1
+  ---
+  duration_ms: 0.960083
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 2
+ok 2 - nonproduct positive depth diagnostic 2
+  ---
+  duration_ms: 0.3775
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 3
+ok 3 - nonproduct positive depth diagnostic 3
+  ---
+  duration_ms: 0.10175
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 4
+ok 4 - nonproduct positive depth diagnostic 4
+  ---
+  duration_ms: 0.046375
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 5
+ok 5 - nonproduct positive depth diagnostic 5
+  ---
+  duration_ms: 0.045291
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 6
+ok 6 - nonproduct positive depth diagnostic 6
+  ---
+  duration_ms: 0.327292
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 7
+ok 7 - nonproduct positive depth diagnostic 7
+  ---
+  duration_ms: 0.029583
+  type: 'test'
+  ...
+# Subtest: nonproduct positive depth diagnostic 8
+ok 8 - nonproduct positive depth diagnostic 8
+  ---
+  duration_ms: 0.065542
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects success status
+ok 9 - nonproduct countercheck rejects success status
+  ---
+  duration_ms: 0.398833
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects empty diagnostic
+ok 10 - nonproduct countercheck rejects empty diagnostic
+  ---
+  duration_ms: 0.199208
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects whitespace diagnostic
+ok 11 - nonproduct countercheck rejects whitespace diagnostic
+  ---
+  duration_ms: 0.079292
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects unrelated permission diagnostic
+ok 12 - nonproduct countercheck rejects unrelated permission diagnostic
+  ---
+  duration_ms: 0.034584
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects unrelated positive range
+ok 13 - nonproduct countercheck rejects unrelated positive range
+  ---
+  duration_ms: 0.029125
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects option without a positive constraint
+ok 14 - nonproduct countercheck rejects option without a positive constraint
+  ---
+  duration_ms: 0.033959
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects zero inclusive range
+ok 15 - nonproduct countercheck rejects zero inclusive range
+  ---
+  duration_ms: 0.031292
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects zero minimum
+ok 16 - nonproduct countercheck rejects zero minimum
+  ---
+  duration_ms: 0.029834
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects negative exclusive lower bound
+ok 17 - nonproduct countercheck rejects negative exclusive lower bound
+  ---
+  duration_ms: 0.107833
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects zero dotted range
+ok 18 - nonproduct countercheck rejects zero dotted range
+  ---
+  duration_ms: 0.036667
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects reversed range
+ok 19 - nonproduct countercheck rejects reversed range
+  ---
+  duration_ms: 0.031458
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects zero upper range
+ok 20 - nonproduct countercheck rejects zero upper range
+  ---
+  duration_ms: 0.055292
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects wrong case short flag
+ok 21 - nonproduct countercheck rejects wrong case short flag
+  ---
+  duration_ms: 0.026625
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects nonempty normal stdout
+ok 22 - nonproduct countercheck rejects nonempty normal stdout
+  ---
+  duration_ms: 0.124875
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects diagnostic in stdout only
+ok 23 - nonproduct countercheck rejects diagnostic in stdout only
+  ---
+  duration_ms: 0.089334
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects fractional bound
+ok 24 - nonproduct countercheck rejects fractional bound
+  ---
+  duration_ms: 0.030167
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects fractional upper bound
+ok 25 - nonproduct countercheck rejects fractional upper bound
+  ---
+  duration_ms: 0.028542
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects unsafe upper bound
+ok 26 - nonproduct countercheck rejects unsafe upper bound
+  ---
+  duration_ms: 0.0315
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects positive but contradictory zero bound
+ok 27 - nonproduct countercheck rejects positive but contradictory zero bound
+  ---
+  duration_ms: 0.029584
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects positive or zero
+ok 28 - nonproduct countercheck rejects positive or zero
+  ---
+  duration_ms: 0.02775
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects invalid negative status
+ok 29 - nonproduct countercheck rejects invalid negative status
+  ---
+  duration_ms: 0.022458
+  type: 'test'
+  ...
+# Subtest: nonproduct countercheck rejects invalid oversized status
+ok 30 - nonproduct countercheck rejects invalid oversized status
+  ---
+  duration_ms: 0.022375
+  type: 'test'
+  ...
+# Subtest: only the derived N18 predicate and its import differ; corpus and native bytes remain unchanged
+ok 31 - only the derived N18 predicate and its import differ; corpus and native bytes remain unchanged
+  ---
+  duration_ms: 5.990459
+  type: 'test'
+  ...
+1..31
+# tests 31
+# suites 0
+# pass 31
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.892709

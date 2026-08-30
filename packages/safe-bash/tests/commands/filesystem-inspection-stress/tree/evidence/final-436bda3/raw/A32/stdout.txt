@@ -1,0 +1,1 @@
+{"id":"A32","status":"pass","evidence":{"active":0,"maxActive":1,"writes":15}}

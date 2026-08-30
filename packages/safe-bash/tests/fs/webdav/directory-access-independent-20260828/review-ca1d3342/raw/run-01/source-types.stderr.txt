@@ -1,0 +1,34 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: original frozen 8-positive/10-negative consumer
++ actual - expected
+
++ [
++   {
++     code: 2353,
++     file: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/scratch/composition/src/fs/webdav/webdav.ts',
++     line: 745,
++     message: "Object literal may only specify known properties, and 'duplex' does not exist in type 'RequestInit'."
++   }
++ ]
+- []
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/types.mjs:42:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    {
+      code: 2353,
+      file: '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/scratch/composition/src/fs/webdav/webdav.ts',
+      line: 745,
+      message: "Object literal may only specify known properties, and 'duplex' does not exist in type 'RequestInit'."
+    }
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

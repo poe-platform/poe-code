@@ -1,0 +1,7 @@
+{
+  "sha256": "f03a50b39976e9bec1bdb02a04ff9f5ac45d7114a3aaacaee266301066e73491",
+  "exclusiveCaptureMatched": true,
+  "overwriteRefused": true,
+  "overwriteChangedBytes": false,
+  "recovery": "Authenticated retained child evidence; no capture or author cohort rerun. First driver incorrectly required exit2; actual uncaught EEXIST exits1."
+}

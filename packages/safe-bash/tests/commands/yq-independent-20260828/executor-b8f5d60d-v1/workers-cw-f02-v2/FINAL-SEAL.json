@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "SEALED_CW-F02_CANDIDATE_OVERLAY_DIFFERENT_REVIEW_PENDING_NO_GO",
+  "reviewerCommit": "73578f6c24a77d0e52bd91b9a445cda0954ce499",
+  "witnessCommit": "7d265b20892bb1da712d9585e013938ab6aaed35",
+  "parentComponentCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "files": {
+    "ASSEMBLY.json": {
+      "sha256": "18876bf2415f08ff7dc5397e6313823ac204bd58084a3a6de4218155be18257a",
+      "bytes": 26266,
+      "mode": 420,
+      "kind": "file"
+    },
+    "CORE-STATUS-INTEGRATION.json": {
+      "sha256": "5834ebbe925781533a3f367a49a893f5045fb60cc1c5666eac1590cf3dc3458c",
+      "bytes": 7818,
+      "mode": 420,
+      "kind": "file"
+    },
+    "DEFERRED-CONTROLS.json": {
+      "sha256": "aca951dd013acee3b4542d24bbb27d53d741aa6dd3fc975ef26799f3e536a7a5",
+      "bytes": 15039,
+      "mode": 420,
+      "kind": "file"
+    },
+    "OBSERVATION-PROPOSAL.json": {
+      "sha256": "96606644f59afb0747949f977d18c6d1c3a27cd864c1101026b2584686b519ff",
+      "bytes": 2601,
+      "mode": 420,
+      "kind": "file"
+    },
+    "SOURCE-SEAL.json": {
+      "sha256": "5024fb1989532ff9f5051cc7e4cff32efd0918e4a2ea31e2151d9e34c35a99b2",
+      "bytes": 1402,
+      "mode": 420,
+      "kind": "file"
+    },
+    "SPECIFICATION.md": {
+      "sha256": "4a43cabdf24f9eab816e3f020757ff24fe6461a9e42a7bc93602b2f0d966bf03",
+      "bytes": 9132,
+      "mode": 420,
+      "kind": "file"
+    },
+    "STATIC-CHECKS.json": {
+      "sha256": "9b8d8529865c0b6d2260b399f989744f86bddf67702f3e79134662fe77962baf",
+      "bytes": 4672,
+      "mode": 420,
+      "kind": "file"
+    },
+    "loaded-worker.mjs": {
+      "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+      "bytes": 11554,
+      "mode": 420,
+      "kind": "file"
+    }
+  },
+  "directories": {
+    "": 493
+  },
+  "membership": {
+    "self": "FINAL-SEAL.json",
+    "selfMode": 420,
+    "selfKind": "file",
+    "selfExpectedSha256": "REQUIRED_FROM_EXTERNAL_ROOT_HANDOFF",
+    "exactFilesIncludingSelf": 9,
+    "broadExclusions": []
+  },
+  "assembly": {
+    "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/loaded-worker.mjs",
+    "destination": "workers/loaded-worker.mjs",
+    "preimage": {
+      "sha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+      "bytes": 9806,
+      "mode": 420,
+      "kind": "file"
+    },
+    "postimage": {
+      "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+      "bytes": 11554,
+      "mode": 420,
+      "kind": "file"
+    },
+    "changedExecutableFiles": 1,
+    "sourceEdits": 5,
+    "unchangedParentInputs": 29,
+    "companionCW_F01": "Separate pending disjoint TYPE overlay, not accepted or modified here"
+  },
+  "knownRoleGaps": 4,
+  "retainedViewPreAdmissionDenials": 2,
+  "unaffectedDynamicSlots": 6,
+  "staticCheckGroups": 11,
+  "syntaxChecks": 1,
+  "deferredControls": 22,
+  "deferredControlsExecuted": 0,
+  "observationAdapterImplemented": false,
+  "rootGO": false,
+  "compoundComplete": false,
+  "independentAcceptance": false,
+  "executionCounts": {
+    "compiler": 0,
+    "classifier": 0,
+    "projection": 0,
+    "worker": 0,
+    "control": 0,
+    "loader": 0,
+    "product": 0,
+    "moduleImports": 0
+  }
+}

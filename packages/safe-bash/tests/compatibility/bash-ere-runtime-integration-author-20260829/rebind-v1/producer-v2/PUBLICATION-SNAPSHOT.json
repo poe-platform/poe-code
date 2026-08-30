@@ -1,0 +1,3477 @@
+{
+  "at": "2026-08-29T12:23:32.196Z",
+  "elapsedMs": 320860,
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+    "size": 908381,
+    "mode": 420,
+    "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+  },
+  "knownRolesAtSnapshot": 15,
+  "finalGitRolesNotYetCredited": [
+    "A16",
+    "A17",
+    "A18"
+  ],
+  "source": "da4e1cc187022255521879b00db2ac77674f79d9",
+  "storageBytes": 3549159,
+  "files": [
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A01-startup-preserved.jsonl",
+      "size": 175,
+      "mode": 420,
+      "sha256": "65671cf5cac193ccbc61c43c3d301f529987f316b600c93d8f889c662f7fb851"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A02-index-before.raw",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A02-index-before.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A03-edit.log",
+      "size": 26,
+      "mode": 420,
+      "sha256": "9485d56dcee9c11c842f88eb83e9e7870e2763cbc8f2565a9a01d10a5dd2a465"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A06.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A06.stdout",
+      "size": 29390,
+      "mode": 420,
+      "sha256": "1a67dfc8d112a09a89f75b4ed04b1861141af80268fbf2177f98fa4fa750feaf"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A07.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A07.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A08.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A08.stdout",
+      "size": 1342,
+      "mode": 420,
+      "sha256": "b03e61d07b080ffc24d5fcd1ca30d2a09bf0984cf1deb46f1cad8ff4aaf0ede3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stdout",
+      "size": 113591,
+      "mode": 420,
+      "sha256": "31295818cc75f97dd8d3b775774aa72afdec84d74ccd0b3fbf5a9037f6336458"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A11.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A11.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A12.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A12.stdout",
+      "size": 1141,
+      "mode": 420,
+      "sha256": "7b47ee88ce70d4debcdea41f724cd6120fec93c5e71b119393ae1a39a497d84d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A13-publication-preparation.jsonl",
+      "size": 294,
+      "mode": 420,
+      "sha256": "667f191328a38c7914a361f98c6dbd1c899a2115548305134587c85cccfb2a8e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A15-final-publication.jsonl",
+      "size": 59,
+      "mode": 420,
+      "sha256": "51ec4ad71949ea3c6cc03362e0c95fb7fbf2180228a54ead1e1a47a68ee8eba7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/HANDOFF.md",
+      "size": 4149,
+      "mode": 420,
+      "sha256": "676604850b5ae02ca6df3e1b764dcc41da6e8e4ecfc2ae3e6106f50c88de269c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PACKAGE-MANIFEST.json",
+      "size": 205721,
+      "mode": 420,
+      "sha256": "09f5f0a974cb5c33a91dc947d7b94bfb2473706e479014b4ef750a1182678fbb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PRE-INFLATE-RECEIPT.json",
+      "size": 1143,
+      "mode": 420,
+      "sha256": "19070a7cc0642d4cf364e1a89eda54279bbf8b965e6d71e73dba918b8ea37019"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PRESEAL.md",
+      "size": 2438,
+      "mode": 420,
+      "sha256": "40ad6f2f177cba261cad67e221a1b84b8805e86e4928da40f01c79f1dce10e5d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/RESULT.json",
+      "size": 3918,
+      "mode": 420,
+      "sha256": "28f00b32905246d286350d4c5e1f31e6993e577f13fc4492a1ba30fd90be2c29"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/SEAL.json",
+      "size": 7074,
+      "mode": 420,
+      "sha256": "f78151de4b59220dc906ee29600f19fb5ed90ee99d88985093d422ea8d54e934"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/cache/_cacache/content-v2/sha512/2b/3c/ea50eac06203098824d8d16b2c43e82c0f646712aa905161d490d07778ce77e169a853a706a3b6cfb477e541b9c3822a1ee640e21fb2ac61366b335015ed",
+      "size": 908381,
+      "mode": 420,
+      "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/cache/_cacache/index-v5/a0/40/b9b06a357d931fe172b782f613f5bd2ffa71a294718d672e31ef8e7f9de8",
+      "size": 335,
+      "mode": 420,
+      "sha256": "24170b40cb965838db120f594d53d0b3d1c3c3e471bea7017eeda4001b16b89e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/cache/_logs/2026-08-29T12_21_43_398Z-debug-0.log",
+      "size": 1739,
+      "mode": 420,
+      "sha256": "0c57214a6646e1bbefd0d727d0ab7a63b666b8f6772626e8886c912beb86fb6c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/global.npmrc",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/00d3c7a2",
+      "size": 1140,
+      "mode": 384,
+      "sha256": "2e515e9755c82e334fca720be66f807d21cff337f5daf99e2ad59d91690c995b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/00f69c86",
+      "size": 1460,
+      "mode": 384,
+      "sha256": "01d27b0944270756b6cceb777e50d58eded612094777ce0b9ba7c8c3aee5be51"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/01618921",
+      "size": 916,
+      "mode": 384,
+      "sha256": "cd877ca6db524b37d117da518c796486a6f78355ee913f10db16f52aded8d98b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/01621f30",
+      "size": 1844,
+      "mode": 384,
+      "sha256": "6615e592f22e02bdcc1fa47b7c75a65aa5bd968db88132b837f8f92568067d47"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/02821ddd",
+      "size": 7268,
+      "mode": 384,
+      "sha256": "b5b8050fc1ddc11de05887cdef0931253d7bf756d99ca5a72829cb5109032ee6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/02a0494d",
+      "size": 1556,
+      "mode": 384,
+      "sha256": "9fa2062aa62505b45e74dda356a5fbb70172676a80ae8be0e5af08017980a0a5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/02b7ad59",
+      "size": 948,
+      "mode": 384,
+      "sha256": "ea90a872dc7e2a640c060a4a70018926e8724eea7ea5006ec7e71418c949cbe9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0411ea5d",
+      "size": 1076,
+      "mode": 384,
+      "sha256": "e6eef09e450611970c644c8b4b3cdbebd0ef4ee1e34b2d238be9e7e80470a762"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/04a948fe",
+      "size": 1124,
+      "mode": 384,
+      "sha256": "3af7a2789952de0fa8164f8ce204005f9997629df2232511e6e17081ddc65ac0"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/04c79373",
+      "size": 1324,
+      "mode": 384,
+      "sha256": "3e74e3bff606e39822d62ea057ba611f3888b4928d579133d26b77f07f33c012"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/07030290",
+      "size": 1132,
+      "mode": 384,
+      "sha256": "309bb178f5c235b57257bd52743d9585d9bc5e689b1add892878d4124c29a33f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/073d6b89",
+      "size": 956,
+      "mode": 384,
+      "sha256": "04d6950595189860467d18eb12fb6350487c2d1e119d21a151ddbcb32a380a65"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/077727a9",
+      "size": 2884,
+      "mode": 384,
+      "sha256": "56d1abfb928228ce689de10e9c08aba099254b81c85cbb39fcefd65423c80c46"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/078f86e2",
+      "size": 1068,
+      "mode": 384,
+      "sha256": "25e90ae13c8a0dedb5381ec60544f18e028878ffff66bb607a9df758b76b6c65"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/079b8281",
+      "size": 3388,
+      "mode": 384,
+      "sha256": "5101f472981a626d03ccc42d49a114c41a061f3d71ef1d59cc2f55fdddc8bff3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/08d2c0cb",
+      "size": 1380,
+      "mode": 384,
+      "sha256": "a6bfa753fba14937dceec66b12181d72b2dd5953d0dd6c5cacc04ec7fb2a26f6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/094daadb",
+      "size": 2460,
+      "mode": 384,
+      "sha256": "6732d28be1588f361af9b219ca37bf60eb5b9e91d8df30d2d14bd288324351d7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/09c81e40",
+      "size": 1212,
+      "mode": 384,
+      "sha256": "5a9cca3ede2450453ef493bba7a6f2ac8386aa0e50d62c676cc3afe0647956e3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/09d14d27",
+      "size": 2540,
+      "mode": 384,
+      "sha256": "f6140e0b691ce3bec6cb4e20c77eca3b0cc186ed442f780b856915afcf8c49a7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/09d71e35",
+      "size": 1708,
+      "mode": 384,
+      "sha256": "8a4c3b545a76aed31337956918d6db7a82d8594846c02f05ee467427a6d7ef91"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0a371e93",
+      "size": 1244,
+      "mode": 384,
+      "sha256": "1b487f36010a5c59cb2847da249afdad915bbd38df6782b07adf4731613e72ce"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0a3fbb7d",
+      "size": 1068,
+      "mode": 384,
+      "sha256": "4a6e9ab1820ea850647aa51d1a530843657f383c108066fac77fe281f925bdfd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0ab9886f",
+      "size": 1828,
+      "mode": 384,
+      "sha256": "cd8064b1a20c5c352d056596ef0a4ffaa0e332a26f0ac4f0b7e2ee3d12d10441"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0ac42c70",
+      "size": 1652,
+      "mode": 384,
+      "sha256": "a147cde8fc5a83bf177c4a6922cb8ee4f1d01fa0b14868bb07681cd3ebbba514"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0b0829ca",
+      "size": 8628,
+      "mode": 384,
+      "sha256": "ad03deb7a7c5e2b068ce7039bfe49f98c29917bc64092d222b5fbcadb81dd945"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0b4ae5d9",
+      "size": 2596,
+      "mode": 384,
+      "sha256": "df54315baf8f68790b17cb0253e5289bc2c45331a850df7a1c6ec6e12288d1df"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0befb9c1",
+      "size": 1052,
+      "mode": 384,
+      "sha256": "89f5a454e27f04ee4e9dd2f56f47dbe89309cdc3d5ba04e30d19eb88e86fd5ab"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0c191f6f",
+      "size": 4092,
+      "mode": 384,
+      "sha256": "13e141972da0408c3da5ef367f9f837d636f3590a460a2c83d86296854ef9f04"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0d14b749",
+      "size": 3684,
+      "mode": 384,
+      "sha256": "3dca242a9f30235342c80ca46b00bd8e819e2231b1e4555861d9166e5e7a274b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0d300ee3",
+      "size": 1092,
+      "mode": 384,
+      "sha256": "6d1ff970e509b11a361ddf3d74d6d7afdb61842eac76b969c520f0907323af29"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0d644850",
+      "size": 1300,
+      "mode": 384,
+      "sha256": "500463a1457fcafc678134c9efac5c64bdea10885449ff5ca0916e23cc17b888"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0db6c5db",
+      "size": 1068,
+      "mode": 384,
+      "sha256": "b2e88f3f18c6951aa6ef594b3f7a01e502150c5f960960065cfd4dac811a1012"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0dc77d77",
+      "size": 1100,
+      "mode": 384,
+      "sha256": "6bb59873c6f20e023eedd8b5d35fbcc3ccf8d1ba889ba625b32bf984b3cbbd9c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0dd5a962",
+      "size": 4476,
+      "mode": 384,
+      "sha256": "7e35be54cd4db02e6bfacd0cd5af9ea3bd425b1590ea3556b1aa20490e5209c4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0f5229af",
+      "size": 988,
+      "mode": 384,
+      "sha256": "33a39de465fb5281085f1754d60386587b53c927e0f7e8e409696e1caadbc703"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0f86103b",
+      "size": 1340,
+      "mode": 384,
+      "sha256": "580f3ec7b8891fde1cfb99fe319560da7721a0e102a2026f7d01bdd6822b5817"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/0febd7ba",
+      "size": 948,
+      "mode": 384,
+      "sha256": "55ae429fcdd269e3601b52f27ae50b23ba29cb895ba0d629a0d344d56e172798"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/12dd9ae7",
+      "size": 2932,
+      "mode": 384,
+      "sha256": "d1ea0addf10516f4a9ee355bedfa5896fff4c9cdfecc2ece8971250d3e6dccde"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/146f3805",
+      "size": 1052,
+      "mode": 384,
+      "sha256": "2b15f72da4bb98535de954cde967b1fa69a47a0f1dbe8f4da5c252010c20bb08"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/14f291ae",
+      "size": 1628,
+      "mode": 384,
+      "sha256": "4079bf700ce043ba1dfb480a8ad9e2411bdf9c1c013ca008dcf592288187a895"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1500c0dc",
+      "size": 2884,
+      "mode": 384,
+      "sha256": "d8486cac8076f60edc36130355cd07267b66dc1f8dc2079feb23cdfc4abb5afb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/157d7add",
+      "size": 1316,
+      "mode": 384,
+      "sha256": "64090ad7d7edf64fe5a2ac4bf926ac012399a42d8f6b07332aa1297addc3e383"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/15c72e60",
+      "size": 1300,
+      "mode": 384,
+      "sha256": "7ab16d95999af30e5eaf9e4b0d3410dadcffac8129d4729754098b3d1f0e467a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1600a3a6",
+      "size": 948,
+      "mode": 384,
+      "sha256": "3c3511fad897e829d27e9cdebd679db0ad38cc77e4a43ef2fb9b41a9052887a4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/166241ac",
+      "size": 1124,
+      "mode": 384,
+      "sha256": "e5f8ef1a55a9584f7978537f9f1844efb972cb4cb8fa40f98cd6063ba48fb29b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1666a7f3",
+      "size": 1164,
+      "mode": 384,
+      "sha256": "aab9fc9b4ab305fa276d6d35c65fab3bf5443a65f89752cf10fc49cfb83f3f66"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/17539d39",
+      "size": 6324,
+      "mode": 384,
+      "sha256": "8c841158536e933f4f4b0b23cc9a14a78a15b7f7a91f644cad8f649d2446691e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/177f2a5b",
+      "size": 1052,
+      "mode": 384,
+      "sha256": "6cd1a0083d03b0242b6c04a0b701674171adf2cec38360f8fed91b52962003a8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/179c58a1",
+      "size": 10732,
+      "mode": 384,
+      "sha256": "3b756da0ebc431f670d5edd9bc9d2539a895086469b7459930dad479684e44c7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/18502647",
+      "size": 1204,
+      "mode": 384,
+      "sha256": "567c5bd2fe4e775c2ee9cfc58c1dca673e7f67462109a2a60bec853a0acc0eef"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/19212542",
+      "size": 1820,
+      "mode": 384,
+      "sha256": "7b26cba949b91326f035819adcc1ab37a488c8fb8bf344ce0e9d9b2f9ea1f0fa"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/194ac934",
+      "size": 1724,
+      "mode": 384,
+      "sha256": "9e3513356d84e3960dce570cd60ba1b5038c4d951ff959abc8b9d5f853bd6d8b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/199eb4d3",
+      "size": 1100,
+      "mode": 384,
+      "sha256": "d9568b09b9740f36354271791d43f746f6d6cc8cc78d9c638f5578b72870b136"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/19b0fae0",
+      "size": 2676,
+      "mode": 384,
+      "sha256": "b8c9d48cbee61a9bcbc11e6e52207e555709435e8aa85884bf22739769af00eb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1a0d0bf6",
+      "size": 1484,
+      "mode": 384,
+      "sha256": "461df0aeae53801f3956b17577ca9b856b53fa8d5c5cea9749f5483624427954"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1a27c343",
+      "size": 2068,
+      "mode": 384,
+      "sha256": "398fb7f5f6c7ec812865568bfbb8d7f2aa1b152b7a10220b465e0b4c769d81a4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1a7376cb",
+      "size": 932,
+      "mode": 384,
+      "sha256": "a1ac587da14ce8c8e4a769851652e62dba6d0a5f44a29b985b716f7dc8546300"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1a8a8792",
+      "size": 5284,
+      "mode": 384,
+      "sha256": "81cfb551a7d3e51c7207cc03251cfc7637f443e2ac27e1793c3e3af76b4435b2"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1ab18ba3",
+      "size": 1572,
+      "mode": 384,
+      "sha256": "dafda13db4a115e1ddacd717664e8bd391ccaec615ccaf90d3a8d15be6c28bd0"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1adc4bad",
+      "size": 1084,
+      "mode": 384,
+      "sha256": "2c7a7dc0dfb602e26f4555560c99a9a1e99b6d9e52879ca00ddc616e421ddf05"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1add5b91",
+      "size": 876,
+      "mode": 384,
+      "sha256": "7f063778968a6af098a22271860d9161087e2eb227d3a011a15b6d0253651cf5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1b509a68",
+      "size": 2148,
+      "mode": 384,
+      "sha256": "36a1018719c93273d995888c4570deb85d27416995b6e4faea50092844059010"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1c0e9265",
+      "size": 3644,
+      "mode": 384,
+      "sha256": "400c7060d724f801c9d144f743eb6012b72930fc0c270a6c081c5d762ea4758e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1dd7cc62",
+      "size": 924,
+      "mode": 384,
+      "sha256": "18ac45e897f15b792a660d27b966ca508ce76cff9944514e45860c8612540d0d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1f7063a7",
+      "size": 1012,
+      "mode": 384,
+      "sha256": "b38c6fc9830f1b2ae885076fe9b56bf5a3d323f0310cb55748c589511bfea557"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/1f93cdf6",
+      "size": 1924,
+      "mode": 384,
+      "sha256": "62972ff38b8fb1358cc7b8e56a6cc0d702bdeb4090e802480bf524b78cef7eec"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/20b8deb5",
+      "size": 1068,
+      "mode": 384,
+      "sha256": "874d06db0e04e5afdac70329274e37d6d11b2cfc447ea4a1369dd4c369c309fa"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/20bde488",
+      "size": 932,
+      "mode": 384,
+      "sha256": "0bb395bd8e1f78d77a89b0e5e602163b1601ca7a37cf822a4156bcf38a7bf126"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/21704f27",
+      "size": 948,
+      "mode": 384,
+      "sha256": "23de7e1d44da124fbdafb7a82b297699b069e5571c2f54d5a9383c9ded17cfe1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/223fc680",
+      "size": 1404,
+      "mode": 384,
+      "sha256": "45f0d298ee3b3cb3fc63ab18c99521f99da28103ec59cad46f132e0c47c10655"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/22e794ca",
+      "size": 1612,
+      "mode": 384,
+      "sha256": "ed22ffa4898274224240d12ab99e1bc532b69454e3b676cd865fcdaa3e14bad8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2312ebbb",
+      "size": 2076,
+      "mode": 384,
+      "sha256": "dd13361469e8c475a01295a0ec67bbe6d3cfe4180af5b89a2926dca44acf3a58"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/23741f87",
+      "size": 1316,
+      "mode": 384,
+      "sha256": "3efa543fa8348f365e57c201d5237eef673df1071b67649b6a09feb1e7f1a226"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2378f07b",
+      "size": 3716,
+      "mode": 384,
+      "sha256": "0193ebe2e9eec036286134f97efb276da82c48cd83b7ba4bd8a1ca918edbf2d5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/23d437db",
+      "size": 2004,
+      "mode": 384,
+      "sha256": "210525a7219f540e2400d6f4d3bb4f7e320a58ff9e4aa09c3739a1542c988352"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/23e84aed",
+      "size": 71812,
+      "mode": 384,
+      "sha256": "51e3abf6c86f8e1b98d9f6e4c4e3f23393d459ac035d40a175328cdabd185588"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/244c79e1",
+      "size": 1812,
+      "mode": 384,
+      "sha256": "953b2dd9862be25e5b30ec1866bbffa98ebdacf2bb63a932174d53b744a74793"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/24ca1597",
+      "size": 948,
+      "mode": 384,
+      "sha256": "ec31fb5523cee7e459cf6e5259f682a3a1ba91e0fe4d0599db96bf6909fd1f50"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/24d0d753",
+      "size": 1116,
+      "mode": 384,
+      "sha256": "66ad265f7cc6491518b4348745b2d0cbd26a41289b65850903b590b0f774b132"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2558a4a5",
+      "size": 1380,
+      "mode": 384,
+      "sha256": "25e77d805ad6c6c4733ac9c03fccaef21f9ae20d88dcbcb3b91dd768972a4c7a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/27fdaf22",
+      "size": 972,
+      "mode": 384,
+      "sha256": "bfc35e1b782a74fddf17ecaca0442c69167f93b3544ff5eb13b6d28193d7c809"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/28aaf6e9",
+      "size": 972,
+      "mode": 384,
+      "sha256": "18854eee7a77ec09b1c74418b04294b5f69176f6191b492176ad01ac31144891"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/28b4bd8b",
+      "size": 1116,
+      "mode": 384,
+      "sha256": "c31f77d100e341e6a8f188d90b15d0a89fd802af3f7ff87082dcd2ebc60e61e2"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/28f3f1f7",
+      "size": 1236,
+      "mode": 384,
+      "sha256": "4ebbdceafa478ddfd4723b8a08ec213c26dee76c0bb01bfccc24b845d77f5f03"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2915e8d6",
+      "size": 900,
+      "mode": 384,
+      "sha256": "6de4cdb86905779f7c88301b6c11bfaa26dbe2b2490d96c615654a165afee6ed"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/294ca029",
+      "size": 852,
+      "mode": 384,
+      "sha256": "ec59c8abc4e4ed82422cab851fcaab9e61d8d8354d771827165a7fa661780515"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2994847a",
+      "size": 5540,
+      "mode": 384,
+      "sha256": "fabc0047154e099a544a638451521934c8d95b8f2485792394e5bc4e5e8d3dd7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/29c53968",
+      "size": 1396,
+      "mode": 384,
+      "sha256": "53e5eea5483f22b5b0263ea101326add4d8cc9bc863cfd3c4847a09a071c2fb6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2b5b41dd",
+      "size": 7796,
+      "mode": 384,
+      "sha256": "ba7e5a0f393289e3b17999d6fb306fc019bfe75efb550a638bd680caf2db830b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2bca30cc",
+      "size": 1212,
+      "mode": 384,
+      "sha256": "7858405fc6405b9e06b502fa66bfcb6a9ae206c04334fd26b4f8c537afdda41c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2bd83832",
+      "size": 1700,
+      "mode": 384,
+      "sha256": "799946fd9ea9c539de1c1bc2233841375f9452bd393f63686278e0b3db0ea110"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2c30bdb4",
+      "size": 812,
+      "mode": 384,
+      "sha256": "d0187f7408eb08254a2b2f7b869d81dbf35597a3631a81cd69dfdde10394c1ea"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2cba9c81",
+      "size": 1420,
+      "mode": 384,
+      "sha256": "4d4324824212384d764d387cb835f460acfc047a9f161cbf536b6e8c6a5e6b2f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2cf66af3",
+      "size": 892,
+      "mode": 384,
+      "sha256": "be1c2f788c09145241259a19aad973c5498bf57ea1b48dfd1310a78b7ebf6a88"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2d06cb19",
+      "size": 5964,
+      "mode": 384,
+      "sha256": "ddc7699778652b699d537af014f162d937195c7582a95e11796033448d41c66d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2d088838",
+      "size": 1436,
+      "mode": 384,
+      "sha256": "faf24a098dc02d20a51ce0823b41c24de202bb03c76e07daf8c465e3486d3cbb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2d1534c8",
+      "size": 3092,
+      "mode": 384,
+      "sha256": "5a5d2a3873355396a10e7c8828e6f0418332ce332b9aaf617f8deedb207a1e25"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2d7bf4a7",
+      "size": 2212,
+      "mode": 384,
+      "sha256": "26fca86c4cfc8f196bad825c6ac442a0dcbbc7ac936cde310ee89e86d8069fbc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2ddec0a2",
+      "size": 2964,
+      "mode": 384,
+      "sha256": "5106027b8d2efe8656c0530ce30d745b38304fc7ca4efd6cfdc9dd7ff19b7780"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2e582e05",
+      "size": 3964,
+      "mode": 384,
+      "sha256": "d026ca212dec5b6ddfb70be93d55f15e7d71d8a9a391cbc2bd95c9cd734100ab"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2e5ba7c2",
+      "size": 1484,
+      "mode": 384,
+      "sha256": "69259ea0bfd2f88e0df4f28a03685bf4d4dc9406d883fb17498c5f61d86681aa"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2e656931",
+      "size": 5020,
+      "mode": 384,
+      "sha256": "c3b720129d9becdb6d0692e2399ca42205c5e8fb323afa0d64ad664b41a7fdff"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/2f54accb",
+      "size": 1036,
+      "mode": 384,
+      "sha256": "e1211db7809f1a3833b63273309d9ce819945b5299691afcfd311a62431df19a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/30443b89",
+      "size": 2516,
+      "mode": 384,
+      "sha256": "baa3e08a05cb99e76fe37c87838deeb5ca2ee69456bf5080e3fa567d499a655f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/304cb6db",
+      "size": 2916,
+      "mode": 384,
+      "sha256": "c54461176b8b89bf04da3db43b15fed7e1eea449b2f5bb668275ae3cd7cec3d4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3058264e",
+      "size": 1020,
+      "mode": 384,
+      "sha256": "e055d3a99932be99aac89a38060d8e823892b8be5b2980e5506af95207a65d8d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/30e70630",
+      "size": 2612,
+      "mode": 384,
+      "sha256": "fb041324111c71c1eb8ab079dc6c0a70d70014077a4d65754b3dad5f1e6e7bef"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/30ef214a",
+      "size": 1564,
+      "mode": 384,
+      "sha256": "01fcfdc372d31fd9e5be4fbb4ee2d6d3f4b8931fecbe6b234104394ec7ab8081"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3147a494",
+      "size": 2276,
+      "mode": 384,
+      "sha256": "71b99f2fbe3a5c38e319c164742403a0e178ee2b48a73d52820dab69c4ad1ef8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3169d3b6",
+      "size": 22932,
+      "mode": 384,
+      "sha256": "333dbb22a85d06981b358790563cdb11b9938e22aaf09e79f3dc99e7f58a0520"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/318119b7",
+      "size": 2428,
+      "mode": 384,
+      "sha256": "d70bcd1258aadb4cb58669cecb16ba0c3db4bd5c06ec0e6f7255a1bed3e154c3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/31b45c19",
+      "size": 1900,
+      "mode": 384,
+      "sha256": "676bca266c89b34421656dd8fe61181e0146f90533cdeca564c144ab572496f1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/31bcb8d0",
+      "size": 1172,
+      "mode": 384,
+      "sha256": "7a8530a8f899b1a59c4c7cd9453eb47554e51e10b33a06d440ab5e343844bb56"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/320cda06",
+      "size": 932,
+      "mode": 384,
+      "sha256": "d950f57b1f7fee6dd71e2aa2104304375d2a89b69a5b34008adeaff59c4124a9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3292df06",
+      "size": 1692,
+      "mode": 384,
+      "sha256": "360dd6e084cb9184146852cd6acbd2ae7e19ded7698d5b29a040fefcc602e1a8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3314820c",
+      "size": 1996,
+      "mode": 384,
+      "sha256": "8a2478b874f89042501a86225ea41f0a7f8142f1c8706dcf6f3d8469a55ba2ce"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/331c3928",
+      "size": 1500,
+      "mode": 384,
+      "sha256": "c800863704257b8e338bfa49fbabde349cd7799773dbecaf57a12f940857e208"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/333067f9",
+      "size": 1252,
+      "mode": 384,
+      "sha256": "d7c1b87b3ceb92101440a94eb0fdd821085b3e292db55146d27964fdc76d5c9f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/334121b3",
+      "size": 1340,
+      "mode": 384,
+      "sha256": "ae875c283bf9dc117c3c0466050614a050dc3b247b0d90f240ef9270d1f22175"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/33484940",
+      "size": 1196,
+      "mode": 384,
+      "sha256": "f1dd6cae616e7c77215b34edd95449341674a11188b6931b97020bef6c0decc1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/336d4958",
+      "size": 3644,
+      "mode": 384,
+      "sha256": "8ff82435a721dc8e775c7a707429a074ec9340440ff82d938391d9f788621815"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/33883e81",
+      "size": 3532,
+      "mode": 384,
+      "sha256": "f2b29ed61c8cea69c5d583e2f870ec3eeca39bdba7dadac909af2d9eabd64fa4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/33dbd913",
+      "size": 1236,
+      "mode": 384,
+      "sha256": "f11442e90b02c00a5b3ccfc47ab125b4bdf2233f1388c09ae43e5fac8a8d4157"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/342fd59b",
+      "size": 2068,
+      "mode": 384,
+      "sha256": "6b487ed4ad99a15901c835132f8cae4ddd0355d5820ac4d70fbc728cf991aa9b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/368ca69c",
+      "size": 1340,
+      "mode": 384,
+      "sha256": "dc89f37199dd9455366a1e964d3953a8329c0c2823e78ff488dcfe6436e79526"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3749523a",
+      "size": 1756,
+      "mode": 384,
+      "sha256": "ed13f45984ecdba05283a4915475e463c09c5f22882b982ca2f0e537a079ee90"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/37b6ba28",
+      "size": 996,
+      "mode": 384,
+      "sha256": "d2175d72819d9b15d3c338acafbc9836e9a3c679027e23c00a2b446735ca7cfd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/38209763",
+      "size": 2172,
+      "mode": 384,
+      "sha256": "3e25f1b669c083fc81dc86c0e215d735ffea0c1c539fa42741e4dd44472799a1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/385cb293",
+      "size": 1708,
+      "mode": 384,
+      "sha256": "5b24d236877babf46a9f1ebbffab8956e6b1cf1d926dbc09add969559831752d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/389be39e",
+      "size": 2252,
+      "mode": 384,
+      "sha256": "82d2ad5c047e63c658202489fe8f5f2f179bf6ba8341061fc0c6ac6017b21796"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/396304df",
+      "size": 1108,
+      "mode": 384,
+      "sha256": "c453886e321771aec8f267bd70af9ea582725a657ccad1286c4e8e676530a127"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3a640a98",
+      "size": 3300,
+      "mode": 384,
+      "sha256": "cc4d1efae1bde9c1859bab617483cedccb242a73e7c2c1cf68030d7d2d875b8b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3cae18e0",
+      "size": 4084,
+      "mode": 384,
+      "sha256": "96f5e928d3faa37ff203e3f02d19f8f1cc5ce832731c2010dc36782fec18e63f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3d6d79ad",
+      "size": 3748,
+      "mode": 384,
+      "sha256": "cd543ceceb1f4f2f32fc3df39ceabba9b850c1675dae778b264a5511e2999402"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3eaded86",
+      "size": 3404,
+      "mode": 384,
+      "sha256": "948d1b2c57e901f27bdab5ae00edcfbb6e3b219fa03cf04f2ae76a4827b7ea21"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3f0f4825",
+      "size": 2316,
+      "mode": 384,
+      "sha256": "b843a7145dcf0ff5b68f7fdbcacf8015381d486fa8045963b790ced1f9f0efe9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3f7a565f",
+      "size": 1308,
+      "mode": 384,
+      "sha256": "9bcd6c1d43089220a0b9dde344cfbecadbe3d1a96a16d8e187cc90f73af208a5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/3ffe083d",
+      "size": 1020,
+      "mode": 384,
+      "sha256": "49b9db4bfe0a4eef854227090a3f8f2a5f5417519ef4abe6de5c55088d1b05b6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/406cf8ab",
+      "size": 980,
+      "mode": 384,
+      "sha256": "30bb702329937e36e7dee929d826fe1923bf6b80e13845e655254ad433c6c0a8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/40a9d3dd",
+      "size": 1556,
+      "mode": 384,
+      "sha256": "760f3576ca4b94f8090dcc88b2dfb420abb16defc3520b6fd314ac88d0c06817"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4145787b",
+      "size": 4780,
+      "mode": 384,
+      "sha256": "d4df7f1eb8e1bcff6b5c9bc560ad12572dc3a6c148ca25307b970432feeee6e6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/42485653",
+      "size": 1116,
+      "mode": 384,
+      "sha256": "2c88bd10562d6e39b6a6c4901bc9213937b78ee16cb9b8478f36e24bd7bef64e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/44406910",
+      "size": 1076,
+      "mode": 384,
+      "sha256": "f887bc3f7fe008610c06810668d644dd5ac108d7fd7698dbcea5f03ee182e22a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4461a4ff",
+      "size": 3740,
+      "mode": 384,
+      "sha256": "f841b6ef41916e2eae2822bceef5c8b0bdaccfa226f3c897c4b52566af7b506f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/44a02653",
+      "size": 8292,
+      "mode": 384,
+      "sha256": "683e3cb2e9c407098e2343fef5cc1ea6a52a411cc6da68845bfb1db90ef0a44d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/44b1e054",
+      "size": 2292,
+      "mode": 384,
+      "sha256": "34358f55170072704a6bd27ffdc5cc8c87f1b45170d8612f838af1e4ec77a167"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/44dff02c",
+      "size": 1668,
+      "mode": 384,
+      "sha256": "95a5dc9e4e98098cb23f5d502ee1c263fbe64cfe6bc9aac6a8f9c01398b88ef6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/45e7ffd4",
+      "size": 9332,
+      "mode": 384,
+      "sha256": "2b7e1aac272cadac6bc37941e7d96601afc58fbae9395c7682ebfe1b3cade726"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/464b07c8",
+      "size": 4100,
+      "mode": 384,
+      "sha256": "7820c7915b1d6cf1cc80b07d8c60115cffbc4f3388da65a75a97817423f9afd2"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4699ef59",
+      "size": 1620,
+      "mode": 384,
+      "sha256": "a360638f1462aab1e48db21f896da43c4c176d9968fc294d45649f9ef6335bf8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/47447dfd",
+      "size": 1708,
+      "mode": 384,
+      "sha256": "a14c03a5e762be94ca1e3460a65bc6876b15f14c7a94ba40231aee9c1680a143"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/47cce13d",
+      "size": 2116,
+      "mode": 384,
+      "sha256": "6905f2c3d3eceb93c3503ebb5d2cc164241919cc2b70eb6c2c8ff898de5bf5cd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/49372087",
+      "size": 1116,
+      "mode": 384,
+      "sha256": "b0c224edacd7a605323968acd06d83453b00cfb8e4b38aca8ba3f5e349efcccb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4a116fd6",
+      "size": 1028,
+      "mode": 384,
+      "sha256": "c3569d7e4bf3a53224b0cdf0f56778caeb1655f3cb083f31ef22a7fdf447bf60"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4a7262b6",
+      "size": 1116,
+      "mode": 384,
+      "sha256": "1ebe228522b9c7b9d73c9b0011cd7d054fd6c5d91ad474cc4eb07566e5c6b272"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4a734dc6",
+      "size": 3364,
+      "mode": 384,
+      "sha256": "65c92d5d8ae8a54a113c8e47e06f8e0e1cff0be4ca5c4860d3218ecd3b9f42a2"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4aae2c97",
+      "size": 876,
+      "mode": 384,
+      "sha256": "24f31fefd5e403616552b2d941f7589ebb51a4135383749ca8dca37454b134b1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4afa7752",
+      "size": 12668,
+      "mode": 384,
+      "sha256": "4023a9dc7b72d5dad875c70559610500ddd57b96d80c0c846dba85f220fd6888"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4b65fbca",
+      "size": 980,
+      "mode": 384,
+      "sha256": "f519d7bc0afd7de74e6caed6a6e4e4da91d12372868573f97eacb6f00ad914c1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4b8f5655",
+      "size": 1052,
+      "mode": 384,
+      "sha256": "7d265022c90bf082aac79b11036e49cf7cb0addf0bb251b30400f280b436db13"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4bb9cc08",
+      "size": 2540,
+      "mode": 384,
+      "sha256": "47c588af6a958a1f962a2403aee445e7c808e5cf93edcc90b1eeb24321374cb7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4bf58a3d",
+      "size": 1052,
+      "mode": 384,
+      "sha256": "d0d0e754435506e1e30c4b28d068e0b7e0ee54e643641ed01fd075eed2089fa1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4d0d571a",
+      "size": 1420,
+      "mode": 384,
+      "sha256": "adb657c1b4b50a58a8682c2bf9997190edc771fc4c1a74239afda34df3dba268"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4d20b770",
+      "size": 1364,
+      "mode": 384,
+      "sha256": "d465d2f134fa71e2b74548252d348eddee9769d1411d6fe714bd108a1a2f8860"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4d2d61b6",
+      "size": 1164,
+      "mode": 384,
+      "sha256": "83450bcf7589b59e13c2f820f8f11d65a5ad103bf6542eb2b9c5ac8acbe326bd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4d86c782",
+      "size": 964,
+      "mode": 384,
+      "sha256": "1d67f6b3fe0b83a9dfc9e47e885a2ac8f3692f08b24f8e07bf9aa1ff591e2b0f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4ecfbd7b",
+      "size": 956,
+      "mode": 384,
+      "sha256": "f1f6a4adf62e57ce1886136656cd191627451c5cc53c67d708464c49fdbffb69"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/4f2e6127",
+      "size": 2332,
+      "mode": 384,
+      "sha256": "0a1da1bd19be7cc92d546f6b65261a8166b412a634be3894045c7a718d333630"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/50640e61",
+      "size": 924,
+      "mode": 384,
+      "sha256": "94aea6d922fd62dd34bafcbaebe2ebfb0f5899c7741f763753607e33ad29ee3c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5076253b",
+      "size": 5092,
+      "mode": 384,
+      "sha256": "b212a4000b0391018f21ba3f160dc17b88a0c9c04abaf8d07289265a1ac18f4b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/50f5c362",
+      "size": 1164,
+      "mode": 384,
+      "sha256": "e2beef3d05fd37276746b3991f2c8fc4bd3dfe2ed661676709da45e385286dd7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/510d88f8",
+      "size": 1404,
+      "mode": 384,
+      "sha256": "68944ec550e1c1f984c104d4a871dff5e7bb9d830cd6523f074db89115e698e9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/513d54b7",
+      "size": 1268,
+      "mode": 384,
+      "sha256": "b4cd16dd9313a76ef6d7e4359ea3b128d8e210b8066aef2406e8ef53650c4665"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/52aa5b3f",
+      "size": 3228,
+      "mode": 384,
+      "sha256": "c12b4452eac5cde062ed9bc4f75a354672cf1dd2d1557dd0053e42ff8044288a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/52b0310c",
+      "size": 2844,
+      "mode": 384,
+      "sha256": "39f9dbbb3309a5b6bab6e18335103a7df0835fa76cb249eb503df36737c8b3ec"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/534e4ae5",
+      "size": 2356,
+      "mode": 384,
+      "sha256": "5d5ee361e4f773c61e41a70021fe63b86f8968692c37ade703a65f8ca8a1c7bf"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/53757849",
+      "size": 1516,
+      "mode": 384,
+      "sha256": "428f0f8d496397d02f70c56e97d3e5fa8704e27cff65f6375ebc9691315cbb4f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/53758cae",
+      "size": 1924,
+      "mode": 384,
+      "sha256": "b7fed438a73644c2e372251e5d8585e5cbc90a8b72bd156d5967933830879cf9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/538599fd",
+      "size": 1060,
+      "mode": 384,
+      "sha256": "c6bcafa077d59d266bedc8771a74b7c23614da7752eced93503049f3e7a33b7f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/538c6978",
+      "size": 900,
+      "mode": 384,
+      "sha256": "48445d0e0947dc84ff1a69e39550ce53f6bf2aa0df24a18748432c274b47e5bc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/53a50050",
+      "size": 2356,
+      "mode": 384,
+      "sha256": "935678e4116c421875f3d1f3f64e363e3b0d7065c8eec3887cc2d39afcd41e24"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/542299a6",
+      "size": 1476,
+      "mode": 384,
+      "sha256": "c6c21183e0c1e5bad9f08a71c1aa43035263e718649eb4c50acfa361fda20f4b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5524635a",
+      "size": 2300,
+      "mode": 384,
+      "sha256": "c884651f976e078a7b5471284d4cd53a67b41641482216b2865932bf49dfaac6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/55bf8db6",
+      "size": 1004,
+      "mode": 384,
+      "sha256": "9387814cfc5aaaaf9d4b3c7fe595d61944d0d40c19e68d64fb8e542cc55a14c7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/563195e9",
+      "size": 1036,
+      "mode": 384,
+      "sha256": "f1c69c7a9280f65842155ce97a27ab14ef2ae0235233a985c7e9d39331715d75"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/56e4cc5d",
+      "size": 1300,
+      "mode": 384,
+      "sha256": "e370f1c36b2b7cbfaa6368a0a70eb440fa8254b9e1c4b02704632ac0db216a82"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/576dd599",
+      "size": 932,
+      "mode": 384,
+      "sha256": "30439e7e232b134c4ff2f12cebcdd990486ad944453d3989868204d29c2a7d14"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/577e984b",
+      "size": 5340,
+      "mode": 384,
+      "sha256": "8a527fb8a24464c61a85c66d570783b7fa04bb03bb28e45085b76c505e35dd98"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/57a639d4",
+      "size": 5908,
+      "mode": 384,
+      "sha256": "60900a6a771d989b56a3c20353b4317a170ac0a0d800ba0dc10b3ea99a293366"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/58b0cd20",
+      "size": 940,
+      "mode": 384,
+      "sha256": "79da23d8fb6338d127375412e65cd115e0cee7679d29395da8952d7d9e59cb7f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/58b3a65d",
+      "size": 3244,
+      "mode": 384,
+      "sha256": "e02f3af6f951bc406eec2aa0e8a3361a31a931ef0e6a57abb1da5137e57dae3e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/58cb2ac5",
+      "size": 932,
+      "mode": 384,
+      "sha256": "4c433c0dfe7f1d342f356000f7723fc0a098ebdc445dd13fa4551b7ec43f4b6f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/595f69c7",
+      "size": 2404,
+      "mode": 384,
+      "sha256": "edcd8e19a942bae8877053a19f948e34560d8c4d265961c1c2025206f0889256"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/59c59359",
+      "size": 2732,
+      "mode": 384,
+      "sha256": "7783f60013b6baa880533c991916c89394b705596d6722f0a10d07d0457dac62"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/59dfe266",
+      "size": 1236,
+      "mode": 384,
+      "sha256": "5deed0d4f7e483e084afc8d6f9bd557311816987edf6ca5bfb3dd7f4843de74e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5a17b2a4",
+      "size": 1900,
+      "mode": 384,
+      "sha256": "386463e3499b467bf777cedfc1e1b02eadae1ede26394fa1fbfbcefa67828dd8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5a307d74",
+      "size": 7052,
+      "mode": 384,
+      "sha256": "62c08a4d478516cd933f7452daa3b90ff8ff70dfbbc5f02a378c147d0ffc09ab"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5a4f933b",
+      "size": 2220,
+      "mode": 384,
+      "sha256": "815bb7dd181c63ee28cbffaae6fd99ec46ffb1cf43b7364c47942ecd7c188624"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5a6d1e58",
+      "size": 6332,
+      "mode": 384,
+      "sha256": "3af5ead3734ce310301a4767a40624ea822164e4061289f206f9b7a416a226b3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5ac58f0f",
+      "size": 956,
+      "mode": 384,
+      "sha256": "5386f51334d9f3e200b4b03a9532731e3b421d5d8a7afa1566896744e7db038c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5b29e18d",
+      "size": 2268,
+      "mode": 384,
+      "sha256": "d882d5aeb88f6b7e2cfd759a0831f977844e1a026893692dbbdccfc8d22bd192"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5b6fbb80",
+      "size": 8228,
+      "mode": 384,
+      "sha256": "b8ead392b63e8e75eb85fa8f60768e1291d81188c31dabe5b0b49d71cf151c97"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5c2bb567",
+      "size": 2108,
+      "mode": 384,
+      "sha256": "1a4eb34ef94fbf997530be952008f490d2b2e02593cfda5295c289729985d4ae"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5d89e7da",
+      "size": 3372,
+      "mode": 384,
+      "sha256": "41904e926f8ec948c71e50d3877201bf161ecf3868c8beac525abb3605ee9174"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5d9f50d3",
+      "size": 2860,
+      "mode": 384,
+      "sha256": "901331eb2732089b60b7e3ac00d931fa2c9b47a3af32b0256adf9acde1d353af"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5df798d5",
+      "size": 956,
+      "mode": 384,
+      "sha256": "07637a62326742802243c7a0aa776d78ee17b79ee0e2fc372c96086eb08cc567"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5e68090f",
+      "size": 1420,
+      "mode": 384,
+      "sha256": "e676470c1026c58e74b6ad9303853f3b12337aab3cec1e3377ce0562df9f7b64"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5e7e5ecf",
+      "size": 1052,
+      "mode": 384,
+      "sha256": "3ea94439dd796d939ca4847d9bc759d020eb731828f2f7774892240b5fe7b504"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5ebb69e7",
+      "size": 964,
+      "mode": 384,
+      "sha256": "2b7f7d1c54b1e134745ec5790d48ed248cb3afdd3b4ff3a132190c617a830dfc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5ebd8236",
+      "size": 956,
+      "mode": 384,
+      "sha256": "5442cae214f936d460e4e2237a8ecc668a30fca2af78eef5f7ce8d3f47261ae5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5f9fda93",
+      "size": 12356,
+      "mode": 384,
+      "sha256": "767b0b7b54557ca82b13c97f3a82369d9facde06c35a58f6c610e099794aa273"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5fde8546",
+      "size": 2268,
+      "mode": 384,
+      "sha256": "5bbc6ca8144d28eca67457e4dc7209ccec0e2f66b4e6c14de3c8f6c4645d2217"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/5fe99001",
+      "size": 2140,
+      "mode": 384,
+      "sha256": "fa363b384917cc2f2cc7d0f9ecb5a0a1163b66fab1144a582ca8f1dcadf81cbd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/60ac74b0",
+      "size": 892,
+      "mode": 384,
+      "sha256": "d4681a6cc6e702ed0573d4ab8bf3448a84c47a50865181503d2329f1e617e44a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/617c1286",
+      "size": 2604,
+      "mode": 384,
+      "sha256": "88748ceef69c56a37f17acdd2eb16a97ccca890e87b833e10e28d45abcc48d81"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/63115acd",
+      "size": 988,
+      "mode": 384,
+      "sha256": "b84adbad65d06e4df72e8b7bc433119df160af4d8aae484e7bc859a40a61c12f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/633a6d95",
+      "size": 1540,
+      "mode": 384,
+      "sha256": "32e949242041337f08628354f7f6e173dc7b40278d0d08355b978c00535f406a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/63a922ce",
+      "size": 1804,
+      "mode": 384,
+      "sha256": "5cc63f14ad4b2fc0c84cd7b36f2ef587e46c4a2e65e28ae3b338c60319a1f250"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/64822e02",
+      "size": 2132,
+      "mode": 384,
+      "sha256": "f9c3757cf67eb8c34b4d9822a6d20036ddf9b221ba6e111057bab6880a014de3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6538445c",
+      "size": 2284,
+      "mode": 384,
+      "sha256": "1597ed90344bd02863da7cf23e446f5ce738e315402c594ba6c5b1bf10378006"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/65c6b33e",
+      "size": 1196,
+      "mode": 384,
+      "sha256": "0c381e03edc31056780eee1d47f99d77a1e2efc914990a2922452391a05747ef"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/65eaae7a",
+      "size": 3700,
+      "mode": 384,
+      "sha256": "fb7f2ba366aba5e5329700395eead40236539034ef6f5a815cd1a738ac48dc95"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/666a4883",
+      "size": 1148,
+      "mode": 384,
+      "sha256": "8cf03807ee4ba71540a65e17b321b75bb2bba9efb3073ad20e36ac55fc41c274"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/671201b2",
+      "size": 2428,
+      "mode": 384,
+      "sha256": "cde2ab60ef82a8e6f1c9847ac65e13ceba03cdd9abf0325a225597cf02d2a755"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6793db46",
+      "size": 2332,
+      "mode": 384,
+      "sha256": "2728162d5487fc283e2d9a3055fb071306d253e817a0e77bc65194ba6ec578e8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/67bda8d9",
+      "size": 988,
+      "mode": 384,
+      "sha256": "9abebf68075a460f233f7032fa4db54c4ffff877e93ae40c742a8e30f727065b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/684230f1",
+      "size": 988,
+      "mode": 384,
+      "sha256": "be807477a71c5da79a6afe46aab15c5179746bd2d1bff0d0d606d6866c04e462"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/68e7bb0c",
+      "size": 3924,
+      "mode": 384,
+      "sha256": "1f5a0d857cbd9914f6904998c2f191803341986b5a036f553c2080ec7598e43b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/69a1d08a",
+      "size": 996,
+      "mode": 384,
+      "sha256": "2ae4f8cef5c24fe61b03b7c41866a2aebdd9783c95c0a904d25963c4536afebe"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6a174f4b",
+      "size": 2100,
+      "mode": 384,
+      "sha256": "7045b65aa9f02b178a7e4e88c58a1b3da12e9f887414f4a43024be334bc86c32"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6a33323f",
+      "size": 7492,
+      "mode": 384,
+      "sha256": "d6f6a9313a5ef258659462eae20c3b84c0e833ae2569c9772b3a4c92c8a54ca7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6a350716",
+      "size": 2548,
+      "mode": 384,
+      "sha256": "8bc6d7f52b93f585ce3f9d058492feca564ede94881c8077fa88795337a7cd52"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6b296ef7",
+      "size": 1644,
+      "mode": 384,
+      "sha256": "4764cf2a6af2291a9a294e6d42db66e521d19c4caac974dea88c38b97f056905"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6b68c43b",
+      "size": 1276,
+      "mode": 384,
+      "sha256": "1eb325830f327fd9a83ea3216dced8924a16a204a1def4c4047625b8691daaed"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6cecdafb",
+      "size": 1228,
+      "mode": 384,
+      "sha256": "164ef14f886245de8f6c55b7dc0e8003b7924428fd5105bdd482ff3b39c4e166"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6e017d61",
+      "size": 1412,
+      "mode": 384,
+      "sha256": "f45bede7a3e953bf2e532140f1fe0047659afb9d0e53f26188e30fb010ac46bd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6e3d71d7",
+      "size": 2940,
+      "mode": 384,
+      "sha256": "d9ad4eb98e41984b5b19409eb114a9e43f7faba60d199e13d365ebdeb305ee7c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6e410964",
+      "size": 2572,
+      "mode": 384,
+      "sha256": "cb35228863274f115b561dd361cd87910a8a875b22219980b99f9abd82132d12"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6f13df22",
+      "size": 1948,
+      "mode": 384,
+      "sha256": "063b8a81bde42d0759e1fa979addf9fe2c000ba2894e6f65868cfe3166c7f16f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/702d5e5a",
+      "size": 1476,
+      "mode": 384,
+      "sha256": "dc65b86cac061a68754f9fa077ff1a314877a5070c22b397f1d52869afad7c4f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/708adbbc",
+      "size": 2164,
+      "mode": 384,
+      "sha256": "fcd82174babfffaa7e855d58428ec5dcd35936906e083545028cb030ae67ecbe"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/70a041a3",
+      "size": 4244,
+      "mode": 384,
+      "sha256": "1b1fd05536dd10e185a2db33cb5a47b045d82d8253438e10d467726faf7b9dee"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/70dd8f31",
+      "size": 1404,
+      "mode": 384,
+      "sha256": "3a36e2dda6b479d2a9422d52ac3a3759835b6a1edb20f41f9ff268e663337c57"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/717e5f00",
+      "size": 1100,
+      "mode": 384,
+      "sha256": "7e6f69b96a1b4a2d8bfa8faf8dc8e2aee85c8b47546cd11d1ce55a71293d7c3e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/71f08b5d",
+      "size": 1004,
+      "mode": 384,
+      "sha256": "3e6b5e7e9948dbc1dd14b565342444c9bc5023e6ee6755c6c8edc6d2ba45ca44"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/71ffe3f8",
+      "size": 1492,
+      "mode": 384,
+      "sha256": "25b853a978a5c8d53d7004d79623ed6560cf2f573dbb832e1d04b406a143fe8a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/724edde4",
+      "size": 964,
+      "mode": 384,
+      "sha256": "4dcda1d57026379b0f7507d1e1b331a590e70cd6b3da280f669c6375820615dd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7286f856",
+      "size": 1516,
+      "mode": 384,
+      "sha256": "fbb0d7804e22c92b944e8777927fb7bbda3a176ba0dba1bea3ce8eddb903436c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/72885b10",
+      "size": 1204,
+      "mode": 384,
+      "sha256": "25a050a034b4c2b3c4c9f99f94f40b5f2631ced92d17cc6316390cf276f25d32"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/72f01620",
+      "size": 3372,
+      "mode": 384,
+      "sha256": "4e484c664e6372458bed5ac90c7572630fc3e46577fe611043b5003a4a69183d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/737e5cb9",
+      "size": 1460,
+      "mode": 384,
+      "sha256": "9ddd1e8906aab320503bfbfe9ec78f68060f85b763b78b9dd353694f56b2260c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/74074a52",
+      "size": 3324,
+      "mode": 384,
+      "sha256": "3299f7b231a26a39c8c4c74eb1e185fa02aeb9f57fe0c6f0e9ae728fa75f9fbf"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7469f4a6",
+      "size": 1628,
+      "mode": 384,
+      "sha256": "eee82c7a495719b848e35c8416da99cef81006f1d623ff59e0d3716b57c9e601"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/74b4fed3",
+      "size": 1180,
+      "mode": 384,
+      "sha256": "37f7375096f203324151f95905979bcab336b467f673cc1baa48a3d774c6e7a1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/74d0bab6",
+      "size": 1548,
+      "mode": 384,
+      "sha256": "9e37df96d6d994858e3d8cacce4191af004a16992a25de1f8c585298ff46da82"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/75837df0",
+      "size": 892,
+      "mode": 384,
+      "sha256": "6a63382164880ab079066934b5d9a26e7da03ef338fb9f5ad95e7d7de3a6b93b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/75a87320",
+      "size": 1180,
+      "mode": 384,
+      "sha256": "880dc3e8865d4650906d8518094f3208e881dd47747e1940593b958e102d46a8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/75e3fe11",
+      "size": 1484,
+      "mode": 384,
+      "sha256": "eacd6588b42b5b3c39caf44e4fafa8b3ac7d13f9c50f030ea89ff63a2f252582"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/75fc30b5",
+      "size": 1020,
+      "mode": 384,
+      "sha256": "fcb27b26fe79d2393dc7e0adfbc81d8bc0ae43e93d79c3b0c0d366aeb2aca070"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/765ea16e",
+      "size": 3356,
+      "mode": 384,
+      "sha256": "ec729b1132ea77068c44612e43e3108a5ac7e598ec3f2f7f7f48b160a29c46fb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/76868bdf",
+      "size": 4676,
+      "mode": 384,
+      "sha256": "5010c3edb99a7c9044ca61fa3e02515434435a1d8a46c2e948585b5aa49986e8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/76c0b9dc",
+      "size": 2580,
+      "mode": 384,
+      "sha256": "b2da5cd1285a618b987892b358f8e859b4d16ed3bc98a0bb0f6e48dd2abe081b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/76f7ca40",
+      "size": 2252,
+      "mode": 384,
+      "sha256": "caa6fbfbc803efcbc5d10daf39fe50b88b7e24f6e63d7c83b9e8c4a76e95cc94"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/77103ca1",
+      "size": 940,
+      "mode": 384,
+      "sha256": "afca8d651cfc0532ffe7f8a09b53cbd55c0f83043a9690386274c1db6a334aae"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/77154251",
+      "size": 3004,
+      "mode": 384,
+      "sha256": "6dfb85a69472f903ae490344edcb4cbec6c331435271f3ce076ec2457bf5cc81"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/775b3998",
+      "size": 2644,
+      "mode": 384,
+      "sha256": "ff8797a38978bead01b967e827aec61c843e1c29655ee7fcc2218916449cdb28"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/779a0b8b",
+      "size": 1708,
+      "mode": 384,
+      "sha256": "0ff0ca9af2fbba6c6fda8b28f831ec5124dcc40b40a396185c1d36fc7706c2a5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7868b855",
+      "size": 8188,
+      "mode": 384,
+      "sha256": "9eedcef27e8938a87c9f1c5b21413dc40dbc37f5666a16dc5ae0631255d656bb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/78717e55",
+      "size": 1788,
+      "mode": 384,
+      "sha256": "92b62aeaa2d4634e4b505aff034d35e924dbff56a43d89777b1c7344080ca965"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/789cd47a",
+      "size": 1892,
+      "mode": 384,
+      "sha256": "a1120e290f5ce542f943a3d075b8907088442eb0bfdb22dfeaccae1fce00f2c5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/789fdd4e",
+      "size": 1100,
+      "mode": 384,
+      "sha256": "5735e8326d81b1f956fae986cf364ab19480a725c2ad0f35b0a76de982392fd3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/78d829b6",
+      "size": 2900,
+      "mode": 384,
+      "sha256": "a91dc4c430bb8b6fae358185fae5922e80191d213a7676cd83ecda14eaab6f61"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/79c137eb",
+      "size": 1436,
+      "mode": 384,
+      "sha256": "4ade9a41fd7cc009ca68de509c741c9f326711616437445d6d3ca794bf3afbd2"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7b297066",
+      "size": 916,
+      "mode": 384,
+      "sha256": "4ea186b88cf52cf79af2ad6331510adc48c47e2b9658bb81e422d6f46a6bcdbb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7b3cd75d",
+      "size": 1212,
+      "mode": 384,
+      "sha256": "d14e84dd06919d6b4dc6cddafeb5365d364e76e7afe6ec5f9060cd67811ddf7b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7c156189",
+      "size": 9036,
+      "mode": 384,
+      "sha256": "07925437630c78cc0a01a8f7d12c643829b0b7d7c58682103afc1f3c957b364f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7c4309fc",
+      "size": 2396,
+      "mode": 384,
+      "sha256": "5f2ca194d7af72869edb33d670b88c96a916ac5f07a182ba9071dc19bb966878"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7cefb9fb",
+      "size": 1324,
+      "mode": 384,
+      "sha256": "1d33ce7cac8023f2e2ff486aec261e2d7e3f974f0fe9c76b4e4599d689f0ed5e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7d3e7146",
+      "size": 900,
+      "mode": 384,
+      "sha256": "4ba5c0e7e3ee440e61b707f65940c81143f871cd97d3aba3feefcb971b7b7607"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7da54d3e",
+      "size": 1060,
+      "mode": 384,
+      "sha256": "31b7d30f5358d648515c904c48f14a306aa59d7ab6b1e434eec379d7577a90b1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7dc4775c",
+      "size": 1236,
+      "mode": 384,
+      "sha256": "da27848f3cde6eddb1b94701b36365de2827349510ce0c3fb7c176546c59bed1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7e52878f",
+      "size": 5452,
+      "mode": 384,
+      "sha256": "b0770df061061294cd1588848f99dc7f099656c7863a7441089403fb18e2e3df"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/7ecda7fc",
+      "size": 3724,
+      "mode": 384,
+      "sha256": "c9f3002287eedf3b029cd78aa9ff65a6018b38a01518275db2fbad44413e9cc6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8002ae54",
+      "size": 2100,
+      "mode": 384,
+      "sha256": "1a703ae2cde927bfb32b9cd4e8ee7ba0a89829776c263d748a74fe0932396205"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/801f8fea",
+      "size": 1516,
+      "mode": 384,
+      "sha256": "cdc63114de6a349ef8365af2436b7579cfd31558638f5620093a43d10a6d54f2"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/802974ae",
+      "size": 1628,
+      "mode": 384,
+      "sha256": "85385eec176aada6ea34ed039eb3eaaab56b85a5bc86b38f90f65b3a74628966"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/80ad4449",
+      "size": 8332,
+      "mode": 384,
+      "sha256": "2045bc1202dba09d944847b774ba162ad7c1cb1e3e097991bcebd07c49a86aa1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/816ee3a0",
+      "size": 4340,
+      "mode": 384,
+      "sha256": "cb90626833375235b52265024c8d92a299fadc671e85073b9c58784cb1416708"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/81aa461a",
+      "size": 1404,
+      "mode": 384,
+      "sha256": "31703a1027896ab8baf50e93c75fd4c309270c17b3dd897dc9b6b377611f0a7f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/82467db0",
+      "size": 4076,
+      "mode": 384,
+      "sha256": "305cbf3be4b455961dd0606e156ae1e16fa17e6e92fa373af8a2f67c15d3aecc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/82dcfde0",
+      "size": 964,
+      "mode": 384,
+      "sha256": "60ad772c27a44b23ea779b03984dd4105ecb49d56546a01fa9f5c55889b2b2e1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/84020fd9",
+      "size": 868,
+      "mode": 384,
+      "sha256": "efdfba63ad432a7168553955d5fb65d25c9b57fa5b857b748849a147cf703949"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8489bae2",
+      "size": 1284,
+      "mode": 384,
+      "sha256": "b9f20c8d9fb544a51a4fef7c18d6af12725437bf5445dd0d95669570b153e8d1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/85003256",
+      "size": 1380,
+      "mode": 384,
+      "sha256": "b484656246f7d799db16980b0ea82fb54d29c2d0442f405c009903192fad5802"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/856d9933",
+      "size": 2212,
+      "mode": 384,
+      "sha256": "0abff3ab4bdc6faf51279cd03a28004d01c22138f898a899e9f9c66f5a3a80ac"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/85c04b9e",
+      "size": 1300,
+      "mode": 384,
+      "sha256": "74990d9db4d3a86d933f06dbcb9461aefe2b5db0a95f3b5473cb606553973812"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/85f324d3",
+      "size": 2316,
+      "mode": 384,
+      "sha256": "d690304ac8fee35c1c36c73a22e4a71c78dd938a56a1ce5fc69a3341fe62e1db"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/865400a3",
+      "size": 940,
+      "mode": 384,
+      "sha256": "3c2d5102b64477267e478cae5e3bd70f5f3ff405e85bcfee53700be142b79825"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8692ea2c",
+      "size": 8244,
+      "mode": 384,
+      "sha256": "8257948063da0f4d1a60039d6d7dc80c5f2858633ddf67eb692e2e7e2846e2ae"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/86aee4e3",
+      "size": 1932,
+      "mode": 384,
+      "sha256": "e72238f0bf31c82dd1e50fc209989f4a5c4f0d798877d03c158d21beef0bc79e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/86d1dbf2",
+      "size": 2284,
+      "mode": 384,
+      "sha256": "5284d439ac4088f6ff8b750097647e9ccb8dcf3705d965b96b2d2e91e4cb5423"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/87cc4ba2",
+      "size": 2444,
+      "mode": 384,
+      "sha256": "8db49021bc7c00f53bba09bae7ae7522e74b5f959af91bb184481faa76d15b7e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/87ee5d5d",
+      "size": 2148,
+      "mode": 384,
+      "sha256": "bf4fb6d1e4837a634f0694bd1feb631a18fbccefd20298063eafd1fc3c9084de"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/88a5cdaf",
+      "size": 2204,
+      "mode": 384,
+      "sha256": "b2d6572ea6f85b4b03ced3edba144d2e94406283de78c705e5c3d825d704aeaa"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/896ceb3a",
+      "size": 932,
+      "mode": 384,
+      "sha256": "3f352ada6f378869ea490c97bed63a2978c312e3dbddb8cc20342ff4e1240756"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/89851194",
+      "size": 1980,
+      "mode": 384,
+      "sha256": "698f944b8a076936884d6c1f344598d76d976c876e81209fef020273dec30363"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8986c39b",
+      "size": 2420,
+      "mode": 384,
+      "sha256": "c35ff97ca8e44cc9e91a8905d53c984b18a713015918be01e80f4fc5081bd3a1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/898a80ec",
+      "size": 2036,
+      "mode": 384,
+      "sha256": "20a5727fd9b3ad20a89fcdacf4250f21fbbcb916d66e760ac1eba2c122c7a66b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8aa82ba6",
+      "size": 1436,
+      "mode": 384,
+      "sha256": "577ce8eed5d071a2ebee716fe8ae26c0e198c2d79a58802f3e14ee0af4fc5fde"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8aa83598",
+      "size": 1372,
+      "mode": 384,
+      "sha256": "864926586d3090f79b17d7201ebc13133dbf40513f99b496aa49a77a058872ef"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8ad29989",
+      "size": 1156,
+      "mode": 384,
+      "sha256": "c35c4a2cf70ab5e7847990eb33f7bedd7fa26174a1064564f819e3552e969da8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8ad83585",
+      "size": 2092,
+      "mode": 384,
+      "sha256": "7e155d5337bd8477279847f792cf22c3af396f387453d62dc82857ed7b140141"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8ae6bc28",
+      "size": 9036,
+      "mode": 384,
+      "sha256": "45ae1b010cbcb934cf8308422bf03344423e891e6b4070a8340b9925ace3a752"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8b6a0c40",
+      "size": 1188,
+      "mode": 384,
+      "sha256": "fa2695586554e09471663847bf086ba98946525b530283ab4afd3c7ad53f7fa9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8bab1d3c",
+      "size": 2356,
+      "mode": 384,
+      "sha256": "267272f17d82da00a77a17e3e2ace6b57e36b1e06285596d69069fccc6b0e81e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8bf8b888",
+      "size": 1452,
+      "mode": 384,
+      "sha256": "4a29436589f563683e8ab24950dd51de9f7a22ad3a9a0d05830e7b1e56bfe722"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8c39f6f6",
+      "size": 1204,
+      "mode": 384,
+      "sha256": "8e61ff5581f9e385adbe4f32a19bbf53d854bdb860b63b29fa2dcff0307ea2b9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8c998c21",
+      "size": 1244,
+      "mode": 384,
+      "sha256": "3edbdb7820cdc94298d40f3226a22dea32bc8d88709e9fef7fc24b0c3b37bca0"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8dc9ef3e",
+      "size": 964,
+      "mode": 384,
+      "sha256": "e6d7695eee628a1c7319ba4cf4b95c7fdff0a09885f31713b28e3d8bf8b92d9a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8dff9baa",
+      "size": 3780,
+      "mode": 384,
+      "sha256": "aa18d92873db581247d96a5dc2314420979d532e1a8b5306742f40aa1a7ee34b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/8e6b6159",
+      "size": 2372,
+      "mode": 384,
+      "sha256": "b232233d43143e9a53e74ecbb7e2784be0fe15e0ce6d0ce9455c9c0f305abe8e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/90577162",
+      "size": 1076,
+      "mode": 384,
+      "sha256": "b6c0b5d9289074c3cf80b060d0f9363895c13ab57d29323503a41e46ae02529c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/906571d7",
+      "size": 3604,
+      "mode": 384,
+      "sha256": "39fdacf4c4a377625e78b1f49ce69593524e879a50e79232311e147b64090226"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9083a314",
+      "size": 1332,
+      "mode": 384,
+      "sha256": "5cf532935f78dd78353f62a3558b3c53c79c70b4d29f76d211dd1d38c4e72ee9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/908d8aec",
+      "size": 1948,
+      "mode": 384,
+      "sha256": "4579ce837544046cf78ebfc8310383f5676a523d67b2ba8a0ea6611d68281d3e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/90f58a0f",
+      "size": 1740,
+      "mode": 384,
+      "sha256": "e12cbeeca94861507bbe81783015e5496bb65d1129c869bba17616be7f0dd455"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/923c0431",
+      "size": 948,
+      "mode": 384,
+      "sha256": "ae7cc900e5f81814d49b1b5498765d3c86f725c5466033875639012c241e4667"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9273d2a2",
+      "size": 1140,
+      "mode": 384,
+      "sha256": "0ac52d7cae5acd2dd5f776e078a5a022d38f5d3af4443a88ebffe2809163ba7d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/92c105ac",
+      "size": 8484,
+      "mode": 384,
+      "sha256": "92bb55222a8d0b080d76a84321dc993b2c3c29b369de44e8faaf03d20fbccd72"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/93bb16fb",
+      "size": 3964,
+      "mode": 384,
+      "sha256": "d1d3846da5be07cae49733eb414120d50a9c6cc298126606325f97c37c073ca4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/94bac2d6",
+      "size": 1348,
+      "mode": 384,
+      "sha256": "ff3e9680b0ac23e44d2b3f14edb2903e812b3e10eb1e284ad08fb1ec07108278"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/96d84b42",
+      "size": 1380,
+      "mode": 384,
+      "sha256": "43a55a491a7ebd3194c8addad1165ff8ef93bbf2b93c0174094527f71d308ceb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/97729a96",
+      "size": 924,
+      "mode": 384,
+      "sha256": "c8570d7a1193ef5cd70bc5f7ef6f0207e889f0a28b6fe1ad3f8c54526f781818"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/97da60f4",
+      "size": 3468,
+      "mode": 384,
+      "sha256": "0d4d067857fafcff19015bc49fd8d0a8eda5c112cb60f75419e8087f786d49e5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/97f8f534",
+      "size": 932,
+      "mode": 384,
+      "sha256": "697920ca0186ac8b8d0620195e292ce6f81de00f4b7b35424a1a6ba03ff47f39"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/988af9df",
+      "size": 1396,
+      "mode": 384,
+      "sha256": "0c19033c526e59b7635e3e8a8e560d39b2821c88038041fa6f74022a9fc97cc9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/99991302",
+      "size": 3652,
+      "mode": 384,
+      "sha256": "9f1f98b2a6997d8d6fbace3e9b3910375938c8ddbbffaf680aec3e7da1da6d55"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/99aaf1a4",
+      "size": 1332,
+      "mode": 384,
+      "sha256": "89b46d75528e1c8859a6f5031ce762a395dc45f5a392aef0699a22a7c33b2efc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9a08ac5c",
+      "size": 1204,
+      "mode": 384,
+      "sha256": "5e05c69b5a403645bc3cc4f62470c7685898d5b8aaa057c2ec1c54719a272d69"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9a0ce148",
+      "size": 5780,
+      "mode": 384,
+      "sha256": "de9047aa23f8cdcbe07a906e1907a648e59ce1dc390899e10a7e13b8858a06af"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9ab05750",
+      "size": 1580,
+      "mode": 384,
+      "sha256": "04b0f07620427820286802d3bf18b0baae4d7351dd614dbdd800114e51d07dfa"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9cbf462f",
+      "size": 932,
+      "mode": 384,
+      "sha256": "8b179f6e4f774cbe113e0e1919ba82c8e5b361e1a8fb6f9dad471bc50b1050b5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9cf2a43e",
+      "size": 11004,
+      "mode": 384,
+      "sha256": "2113fca21199539264f1b0687bce7eb7c269a79fe9fe899489739164c81452e5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9e6a9f43",
+      "size": 2796,
+      "mode": 384,
+      "sha256": "839d54f2b35a2a3be4da4afcdbacd24f952cdf0528cd4bc143872b2e88616305"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9ed728ec",
+      "size": 2268,
+      "mode": 384,
+      "sha256": "c1180ba21c0c24db9ce9b4e4bf542f878c3c8b2f69e857e0b0d8d441eedc7b8a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/9f5c9046",
+      "size": 1988,
+      "mode": 384,
+      "sha256": "697e973e76d07e20358f07be859bc16c19bb80c12a709efbfacb26653dc5ea4a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a101e141",
+      "size": 5380,
+      "mode": 384,
+      "sha256": "70b7d24c08ae4f688c96a2f9490c0ce90455217c757f479c0742c3c5aaa30753"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a3aaca4e",
+      "size": 1284,
+      "mode": 384,
+      "sha256": "64ee5dc677e899207336d35fecd0b5e6f75163db56914b0a00b4bc6fb173fed6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a3e51148",
+      "size": 2460,
+      "mode": 384,
+      "sha256": "c5de748e3f342124d77985c800fb10eff54109f5c4c5cb99f281f090e76df71b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a4117d3c",
+      "size": 2724,
+      "mode": 384,
+      "sha256": "2b457c12083363bb00f12947c24fa0dd33cb6ecb799bc009f45ac9df50c64701"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a459dc48",
+      "size": 2748,
+      "mode": 384,
+      "sha256": "075be1c936486c96761eb43420bc31372fd01fda887697d190b4975389058ad4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a4a1f3ce",
+      "size": 5268,
+      "mode": 384,
+      "sha256": "91a84330d906fe632fc2e2afacf0765718f1a3b5d9efce45fe76c8579f4037ee"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a50bb417",
+      "size": 3332,
+      "mode": 384,
+      "sha256": "822df9add1f9e8906a58238da8b7c1125aefce5024302c70264f7b9a81ac73a4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a541dfed",
+      "size": 1404,
+      "mode": 384,
+      "sha256": "86bfed13680c35cd3b8c722fd57b45d8f64c98283f78fd38a3976e9b7912f61b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a5455d28",
+      "size": 1212,
+      "mode": 384,
+      "sha256": "62d960625b9c5e6e7593dcfd61c0735517814129efd7b06c66216b23666e5ed8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a6d4070d",
+      "size": 4012,
+      "mode": 384,
+      "sha256": "cc0e31efde76e5eb1cfa77e51c1e69a502ebd75a4969754e774e63f0bf872730"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a726095a",
+      "size": 1396,
+      "mode": 384,
+      "sha256": "a5cec34f440818b49d09eae16b04c4c6c08d92fde5421762113cab0f65dd92bc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a84f9275",
+      "size": 948,
+      "mode": 384,
+      "sha256": "7ca0b3cb8d70cbeea9e3347a41b5d261caffff50eb51ea91ee68eb658347b492"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a98cbb89",
+      "size": 884,
+      "mode": 384,
+      "sha256": "6c18a0e77bc2c9e8dab7af7ef353a6b72307fe9dbbff797cea3e1701d69113c7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/a9a4ee30",
+      "size": 1420,
+      "mode": 384,
+      "sha256": "1ee02ba3676460d79bc70ecf6fd515713bd6bcbe647ca701f8649f7c678a1a37"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/aa5dbd80",
+      "size": 2484,
+      "mode": 384,
+      "sha256": "4c7e6fe27b10832ea128976730ccb250b50a8ef7881e348000bd76cec71a96b8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/aa995712",
+      "size": 932,
+      "mode": 384,
+      "sha256": "a80ec3e7d7382eae37a0d7ed7cf6e1d925562ef9a0e8ebd81aee66ac809a9719"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ac07387d",
+      "size": 2004,
+      "mode": 384,
+      "sha256": "cc1d1cf3950fdeaf1269cf36cb151f1dc8b828581776fa31ce4b0927a4c94bf6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ac726104",
+      "size": 3620,
+      "mode": 384,
+      "sha256": "615072af1df7d94fdf95cb35787b860454e1d7377aef16d502605b66cc74264d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ac79a4f1",
+      "size": 1804,
+      "mode": 384,
+      "sha256": "ea5fbabe9a2d24e57c36c6319989c63e04593ab28f7a7b6759e2592f81ad1c73"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/aed6a484",
+      "size": 3676,
+      "mode": 384,
+      "sha256": "e2d798dbf0f3e2a240e26a34690a573e92e5cf8f45f138fc40ea2d93e7866fb0"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/afc7570a",
+      "size": 1540,
+      "mode": 384,
+      "sha256": "e26b8dd52781c5f260481ddf214231c477fa9dd27ca4e4a6f5d7701d154698d9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/afcd8548",
+      "size": 1292,
+      "mode": 384,
+      "sha256": "b492e1d6a8ce06c84ab60dccfbfbca4b8950df8f8b51fd85bfacf9de81903bac"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b003f1fe",
+      "size": 2260,
+      "mode": 384,
+      "sha256": "dfa3079960d9203f71d1dfa462a638045ce08d6f0a2f454dfa8351d817b4290a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b0205d8f",
+      "size": 2204,
+      "mode": 384,
+      "sha256": "be06febe2cdff33ffe5c172adf45258db89fba8602e4559967733483861c1ece"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b1059ead",
+      "size": 1164,
+      "mode": 384,
+      "sha256": "c9d37f8635b757fba8f505e1ccf8f575d81267f67d79396561e984957c7a68cd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b1a3dc8b",
+      "size": 2164,
+      "mode": 384,
+      "sha256": "9939613e8d8fb1d1742a52ca403cdb485c8baf100660d7f995145821922bd92a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b244b2e8",
+      "size": 1108,
+      "mode": 384,
+      "sha256": "bf5a990c9844962d0a908124dd87342dcb3454e9f4bb001c2a7b14c21bb6c74c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b2576e5d",
+      "size": 1804,
+      "mode": 384,
+      "sha256": "d059f389ba70f2b0044d96f35a6c1591a4efc8f01999d7b8f025cf0dafbd82ae"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b2a61851",
+      "size": 1260,
+      "mode": 384,
+      "sha256": "976e0049a27eac2a9e6cee70faf5568d58afeb883a55045b5c9d10b9c6a4d4cb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b30c5de2",
+      "size": 2500,
+      "mode": 384,
+      "sha256": "b0addc3c6214d4c1bb03d997dc459cb2b845a922efff0bf9ef204adb3f9727bb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b3106b9a",
+      "size": 1156,
+      "mode": 384,
+      "sha256": "9fdf516a0fa6c9352e20b37ffbbb6504aff867718b8af3fe1a8ff0d5ef9f126b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b3927ad7",
+      "size": 5596,
+      "mode": 384,
+      "sha256": "a5132f27431bee56b940b72a5dd458f73cbe9640dd7caa89aced7d8fba3ebc22"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b542bd27",
+      "size": 1532,
+      "mode": 384,
+      "sha256": "3f31ea5971f7d97f0237c4136c00fd82620024594c6cf5895b221ccd591eaac6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b66d83e1",
+      "size": 4140,
+      "mode": 384,
+      "sha256": "9385fae65cf3dda9ea220c879a07308b850d551491756a2ad96a1c13775b757d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b6e2a740",
+      "size": 1148,
+      "mode": 384,
+      "sha256": "4fa9a45946282f8a5735efee3c421c1c890743207b9489ac870a1cc70c6efb66"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b6f0263d",
+      "size": 1148,
+      "mode": 384,
+      "sha256": "3355998e65354b45ffca6b3672f875540dc12a8af709c293928a31630afe93d5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b71c2c2d",
+      "size": 1156,
+      "mode": 384,
+      "sha256": "95e0fd0594cd75f1a30a366687974f70e3c482526541b5e4e52469f6a21ca514"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b7d270c3",
+      "size": 5196,
+      "mode": 384,
+      "sha256": "fed516658ec3e4b02b2c4e26caf952b1d8e1df48d99561fa28a2582242c6f1aa"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b7eb9278",
+      "size": 1124,
+      "mode": 384,
+      "sha256": "30e278306736e4db3d1ba12e6044112c3f6a55316243ba1fe7bcac4006c03a35"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b8354436",
+      "size": 2180,
+      "mode": 384,
+      "sha256": "630240442461cf56ceca32b7e08619d23b63d4495a65e16449fa300f26db7f36"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b8a49ed8",
+      "size": 1932,
+      "mode": 384,
+      "sha256": "581ae8414542a29936ecab20a785fac5dff0c0d317c2554e6f2a02726bf5ed6d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b9bff473",
+      "size": 9036,
+      "mode": 384,
+      "sha256": "4610323da567a9023f1f26b35382153194b364c3c4df8d7754f47be7d4dc56dd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/b9d48b8d",
+      "size": 1004,
+      "mode": 384,
+      "sha256": "ab7edc206d5f1c48ec59e84cb50f7f2b6ff967b456872de9a3dc0323ba321800"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ba2f2669",
+      "size": 4876,
+      "mode": 384,
+      "sha256": "2d351e689298a17dc0929807a2db98faface2d20780f8dfbb8e1a1da114848eb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ba81b96e",
+      "size": 2020,
+      "mode": 384,
+      "sha256": "a6846fe0f38c82eb00e86b70bdd5ff1e0bdd522a4179d8c9eee363e7c770e7c6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/baf9263e",
+      "size": 1612,
+      "mode": 384,
+      "sha256": "bb79fe8c2c0e07bf62ed35c78486a1c05de72d17f1e9e286a247d7dcb3dfd81b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/bb1271f5",
+      "size": 1668,
+      "mode": 384,
+      "sha256": "87c882c29cd088bda5cfb840d819e79d84bcbf11f1c6877b689addb39255aa24"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/bbbb7dc6",
+      "size": 2284,
+      "mode": 384,
+      "sha256": "9f7eeb8140a74839ee0744e3e3c5a8d074e99503be9aa48f0dd69083b0248e28"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/bc195520",
+      "size": 1188,
+      "mode": 384,
+      "sha256": "9139153b243f5582900d292c4c7757079eaa9d9f1a2f71061243bd26372c1e04"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/bcf280b5",
+      "size": 3540,
+      "mode": 384,
+      "sha256": "d1d3408b0f7cde17773d213f44268695a98ec27ae1b4de4d58506d4582757e8d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/bd5d107f",
+      "size": 2300,
+      "mode": 384,
+      "sha256": "e51ad3389a04353bfac5c1b5390cbdfebc44efc619e50e61769118d4b5aff455"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/be1bb720",
+      "size": 1252,
+      "mode": 384,
+      "sha256": "3df5bb408c9ed0a36f2374567dc65fb954e165a5f5f391a7647728c1249946d9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/be860c8c",
+      "size": 1276,
+      "mode": 384,
+      "sha256": "6583385ed13b2488dcb728f78f87490889603eaa08b25728156abb445da5de97"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/be9f14e9",
+      "size": 5964,
+      "mode": 384,
+      "sha256": "12155803e0c2f685fe65d9c2e431f566766d4fc25f28a25c1b49ad98a6aedd78"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/bea0dbc1",
+      "size": 2988,
+      "mode": 384,
+      "sha256": "d8639e2e8d8f1d2964269b8ad941b05e620fb0707b544540c7c2bbba558954d4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c006f28d",
+      "size": 1116,
+      "mode": 384,
+      "sha256": "b4fe8bc6584902955668ac8f6ad31cdbcc89bb16f4fd9c5efee30f6070340a39"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c0d9404e",
+      "size": 1252,
+      "mode": 384,
+      "sha256": "75523aa61528229d14cda75732593f92e77f918aed6bc2e762992be452f04845"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c15be291",
+      "size": 964,
+      "mode": 384,
+      "sha256": "f8f4b53346400856e1f732a38f2c07d83eb58981cc221aa4b9b08c9a6bb923db"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c16271f1",
+      "size": 1524,
+      "mode": 384,
+      "sha256": "0257459c65d2baf98b8c375411a6d4b398f77c58897a1e571cdf96110c981213"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c17997cf",
+      "size": 1708,
+      "mode": 384,
+      "sha256": "2d843cefc88c2fcce6649039e5591fe42980ee66b7bf30bc2f0c88a568d19cc8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c18fd3be",
+      "size": 2284,
+      "mode": 384,
+      "sha256": "7d12f944591c8f867a5b43c31f288eeb69022e92411f34cf7e90ac36f2fad7b9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c19dcc0a",
+      "size": 8100,
+      "mode": 384,
+      "sha256": "37c63ebf2561f42bb2080b8c1584b2b05701b3c4b8ffc79f6cc3f4daaa5ae188"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c1ac0091",
+      "size": 1716,
+      "mode": 384,
+      "sha256": "266da4adb0a2de64672dacf5878ccf13d4df96e736ed670b386888ae422cfa4c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c1e1684d",
+      "size": 1572,
+      "mode": 384,
+      "sha256": "1c79aea9c4137b4db933c9832899e6a2acf5ee8897d2205eb98c63679d186b6c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c287ace1",
+      "size": 956,
+      "mode": 384,
+      "sha256": "613fcb346dfa6efa00a0761584f565a6da7a9e44f7aae7c85a025603cd5ab6ab"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c291aff0",
+      "size": 11612,
+      "mode": 384,
+      "sha256": "d62d4647fd191f6b820494ab129da6507c3039fed0dcfd5fc22ccf98ac4e2a69"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c3c0d29a",
+      "size": 988,
+      "mode": 384,
+      "sha256": "7bd6bb10d06cb436add716038741a25401e9d07e7a9c3429b80601e8bd81f1a6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c439b9c6",
+      "size": 1380,
+      "mode": 384,
+      "sha256": "e8bdcb4ce865035fd6d7e5d793ef889021791baa040d5bde8f3ed3da3e980820"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c454743e",
+      "size": 1620,
+      "mode": 384,
+      "sha256": "6cda3e46f888d4255c62c548977fa19d93b540ec074b0ad78ff41ec0828ba414"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c4d83168",
+      "size": 964,
+      "mode": 384,
+      "sha256": "1a4d2f90fe9d56bec5b94f1f9e8dd8c761866ad2f1c7c46087a791eed953a60c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c4ea8d8c",
+      "size": 1036,
+      "mode": 384,
+      "sha256": "ca689b670f59392c13680672f9f60ae002a91d7ae19612128a1131c9057468ad"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c5699032",
+      "size": 1356,
+      "mode": 384,
+      "sha256": "9758e9f1c4a278c3092806e592ce8d39db71bf7ea6352b4d73be423b53b3860e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c57caa75",
+      "size": 1348,
+      "mode": 384,
+      "sha256": "eb6760929e55d13b481dfa0a602a29189ffaa0c6f1735e8f00fd96cd60734236"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c5fcfa88",
+      "size": 1476,
+      "mode": 384,
+      "sha256": "b1c42dadd70139d62111c5d9c38f8ff6ef6f3e1fffa7110a3f0f841b09a53434"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c645266b",
+      "size": 924,
+      "mode": 384,
+      "sha256": "ac94070e52e3cd60c9902b647a2c3d9cd09841c12e1218818c242abbb8d0fd68"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c6b89cba",
+      "size": 1052,
+      "mode": 384,
+      "sha256": "a1901c76dd12fe544b227388fc2a560c642ddc25b1c6d587396fbd1f57a8a1a3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c6c606d4",
+      "size": 1228,
+      "mode": 384,
+      "sha256": "96ca15d6abe6fc5c1b049c8b7b8f42cf6267fe22fe99cf8af9c28baf6825e348"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c6ca4fc2",
+      "size": 2484,
+      "mode": 384,
+      "sha256": "bef122e17340a885381711f1dcda021d0543aa158c8f3e81b22554f48e037902"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c703eec9",
+      "size": 4916,
+      "mode": 384,
+      "sha256": "a890e58b6afb10176432fa6e9075a208f500c159a0f36573217998c01700746b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/c9ae9046",
+      "size": 1244,
+      "mode": 384,
+      "sha256": "6b27d6a30046cd9c8394704c031d91edf98bfaaa79739bcf5da04fd0eaad4114"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cafe2256",
+      "size": 4092,
+      "mode": 384,
+      "sha256": "2d3f7e1984f8aa5b6b08fd904a37468c55b8906d0424b75ac764525317119656"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cb18967e",
+      "size": 2476,
+      "mode": 384,
+      "sha256": "436478bdc36eeba1ac4303ecbedde22323a810664e2ce26189e4e93e9f9fc835"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cb9822db",
+      "size": 876,
+      "mode": 384,
+      "sha256": "fbe3cfa32ea98ae10081faee0e8e640d9973891da5e168a1a5d1d1b748d1de29"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cbb4aae0",
+      "size": 892,
+      "mode": 384,
+      "sha256": "03c94e5e842672e338d1432b3c6dd5483443bd3e4394629da4310acc9182dba8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cbca3b76",
+      "size": 1452,
+      "mode": 384,
+      "sha256": "efd63afff34e4ea48a9667bccac1dc5bc67ec9b5def71c05c1331a8bebb18a26"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cbcfff00",
+      "size": 1284,
+      "mode": 384,
+      "sha256": "668f21136a4e47e08282845b87a7d0d96fbd0e631901fede2644dbb7f114350a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cc99c1c0",
+      "size": 1180,
+      "mode": 384,
+      "sha256": "485f19a7edae39d17783f01601a8d3ec368071c1429ce2422eb324c768ac5ddc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cd076c68",
+      "size": 1412,
+      "mode": 384,
+      "sha256": "c654df6c80a7187058ee62ea64092f1758f2db39d32843bf34aa65a94d80488c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cd81e31d",
+      "size": 1724,
+      "mode": 384,
+      "sha256": "70d897be385c23d5faeeca536477ea2262a529598004f56412fbe0b810a86bc7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cd92d711",
+      "size": 2116,
+      "mode": 384,
+      "sha256": "da60eb3ae705ca875121e6f4e6cb383ed89afc5423a6ccfa9c0307c095dcf599"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cd989c0f",
+      "size": 1436,
+      "mode": 384,
+      "sha256": "8c0b1466fd2f238700b21c2b510606b855321193d625fc09062d2585d5454874"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ce265177",
+      "size": 1340,
+      "mode": 384,
+      "sha256": "3d1c69a60bc5b5017f25a72c622274fe0b4fa91a44c5943dde604313203b8716"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ce7cb774",
+      "size": 1676,
+      "mode": 384,
+      "sha256": "3aad10752190d5e205904f43f7eece28d2e71b67fa24fa49312039d1a4aca1cd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cf6f33a7",
+      "size": 1196,
+      "mode": 384,
+      "sha256": "86fbaee1816c92c0f7971a91dcddb399b09c6524d31ea0b2b856d1679c1bfc01"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cf782093",
+      "size": 1244,
+      "mode": 384,
+      "sha256": "7fa5197b84a5cf84fc7b6fa2bd1ccb98fc2a7759b863a29b4f253cc1062857af"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cfd6f327",
+      "size": 4300,
+      "mode": 384,
+      "sha256": "c9fefb7ff3872c2219b3e930776a0b1215cbf4c550467ec8697eb94bc754679f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cfdee3e3",
+      "size": 1116,
+      "mode": 384,
+      "sha256": "c94f4b932264a97bad942bbd8b391694563397ee4ac2196e630229715b8de1ef"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/cfeb16f6",
+      "size": 2900,
+      "mode": 384,
+      "sha256": "aff944dfb92be1a2cf4fbb343ef31081e0ecb8aa2d74a293c0826db19afb6274"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d17538fe",
+      "size": 3276,
+      "mode": 384,
+      "sha256": "5479f227871e3fa1dff2c4042ca1408701f7c7f92fe44d4d59e9951bbd29b1e9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d26398f9",
+      "size": 2476,
+      "mode": 384,
+      "sha256": "59157819fb90281134fd23d275332eb358cca917377e80351b8a627372dea0dc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d34afd2b",
+      "size": 3564,
+      "mode": 384,
+      "sha256": "3c2d5fa9a05359fde904f8ccbf03e730a37c98f7f6213276ab72875f6583c3ff"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d4277d51",
+      "size": 2796,
+      "mode": 384,
+      "sha256": "f80b0c80a916dade6945c54005fd9ab0f362342beb486e8b4dfabad53cc0a762"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d4379a1a",
+      "size": 3588,
+      "mode": 384,
+      "sha256": "835ab84faeb74a7aa5fac84ea8bec09ef2a776074e76d840595aa8517b29c694"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d43da3f3",
+      "size": 1252,
+      "mode": 384,
+      "sha256": "d0b3f96d473efd89dd2126c426cd58d101a3dc4b7c0a7ef6145538c4da369a28"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d47ff588",
+      "size": 852,
+      "mode": 384,
+      "sha256": "6c18b53bda07b595240acdd6b4628d58ab3f4ea05bb01a3c8225ad074885ccdb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d4d4ca05",
+      "size": 1668,
+      "mode": 384,
+      "sha256": "e5acd29369e179e4fe8ab6d132c35fbfca83f79890451f3a36f81f2c648529de"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d6b0730c",
+      "size": 1404,
+      "mode": 384,
+      "sha256": "3a22577bc3fd83afa35011020abaaa205248b45766ec15e990b1f2f6a2aa1b7d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d714c23c",
+      "size": 1300,
+      "mode": 384,
+      "sha256": "fa4ae444571819523192d3625ff68078a6b260bc2c0e0a678cd80d866446d124"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d735ae61",
+      "size": 1212,
+      "mode": 384,
+      "sha256": "150cad08ac05cc5364263b77fd3f3d266f373e7d5b19c7fcef2f6a94bf1de52f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d79a7080",
+      "size": 1828,
+      "mode": 384,
+      "sha256": "37b8eae3f270d15ea7116b41280fc3bc6e28bbabade23adfc5a8808ea32db4eb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d7cb0801",
+      "size": 2140,
+      "mode": 384,
+      "sha256": "06d16e1bee838e52845c7ced0e471de9e455454c4d1e8dc105e2588c7737f895"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d7cbd291",
+      "size": 1428,
+      "mode": 384,
+      "sha256": "6621901fff086a9b6e5f05b9fab87016f7ee0bbffb66d96f47950c4fb9ea2bae"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d8b36738",
+      "size": 2316,
+      "mode": 384,
+      "sha256": "570aef5ce5c22628476815ca9f96985e671cbc052a183e1d0515edefeaa2c448"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d8b8a207",
+      "size": 1252,
+      "mode": 384,
+      "sha256": "ed859eaad4d3bd2455922167dea21ff7e9340a6b5b3522694e99c357525dd973"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d8bd7484",
+      "size": 1772,
+      "mode": 384,
+      "sha256": "192f2d1a8b87f309d7fe093ee4c1964ed4084c660e640f4a77d3996da383d868"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d9675588",
+      "size": 1588,
+      "mode": 384,
+      "sha256": "3e52002c01278d7f7ac1d9412e05c0c6ce361977753128416280264d5c3bdf02"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/d9d0dfa0",
+      "size": 1428,
+      "mode": 384,
+      "sha256": "81011889b45b993a0f38604b97a5fe56543b53e93a9d34de18b11ed8ebd2d103"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/da270b2b",
+      "size": 2012,
+      "mode": 384,
+      "sha256": "b4e324de593a4d19d304c8ab434dc4dc4fffb99af7ce9425bc6f8bc9a487fd3c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/da4bb0df",
+      "size": 2388,
+      "mode": 384,
+      "sha256": "75e7097c39e25e5e23ba32e521b1bcea45ef622c497f20b30a8591b0455a14cb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/da901eb1",
+      "size": 884,
+      "mode": 384,
+      "sha256": "69742197458b9525f7534175b3bce5242a169c07bde1d95393b2011f8eb6a6e9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/db3c3aa3",
+      "size": 980,
+      "mode": 384,
+      "sha256": "e218b674c790ff0d811888741faebf9b90874a5f48199f59481421e34537868f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/db7612f8",
+      "size": 5924,
+      "mode": 384,
+      "sha256": "cc34a70921fea4a62b3ab390dd7f4b774dbf0b86bdf365adc5e48fd3e5224069"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/db8d6781",
+      "size": 3708,
+      "mode": 384,
+      "sha256": "0d5d418ce55fbcee74033a03cf2d5570076dc23a5010da8bcf840b619ad6d5c4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/dbbf36fa",
+      "size": 3732,
+      "mode": 384,
+      "sha256": "8f2aececd1496524cd1d1f67aae341803169a6c219c372680ac5f4cb7e85dc16"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/dc220370",
+      "size": 2452,
+      "mode": 384,
+      "sha256": "ba343634b39632a57ff3335a688a0f57dedf4f32126c5b7367a9414ed9d084db"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/dc4604f0",
+      "size": 1956,
+      "mode": 384,
+      "sha256": "08c47249f1b6f0dfe5fc6f8e2b800038077909640d7e11eab61ace9dfd724dfe"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/dc964805",
+      "size": 2412,
+      "mode": 384,
+      "sha256": "d761cd488b134c566b47c11b6abd32125bf7e621284084e75ffb5c1b5bd506a7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/dcc50700",
+      "size": 1036,
+      "mode": 384,
+      "sha256": "ac6d554f55c1699b73481708ff291ea2777c7d1db28522e705a85d5df9572de5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/dd03c6b5",
+      "size": 1108,
+      "mode": 384,
+      "sha256": "74d614278f2c9fd49782064af5b1f982f6ada5a5b6dcd92f66269494978a4634"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/dd9656e0",
+      "size": 1572,
+      "mode": 384,
+      "sha256": "849442b96995153617da07107b819c80b7624bf3a6bf557eb4bef558e604dd08"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ddcc7679",
+      "size": 1340,
+      "mode": 384,
+      "sha256": "fb4d953938aca2f13f8e3402836f0c9da73138462e9e4074f954c6b74fddfd6a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/de50e93b",
+      "size": 3300,
+      "mode": 384,
+      "sha256": "177a72a995e959256053f04a94e7c5cb942b26c58085ba417bd5c05905a9a98e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/decfb37a",
+      "size": 1444,
+      "mode": 384,
+      "sha256": "e4434aa0702b9da8a41c343188ba739e0c45fb3ade2e83259366bf029b87fba0"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e07ef03e",
+      "size": 1868,
+      "mode": 384,
+      "sha256": "fdcd0cab06da45c08adcabb334ab7836e2249181ee214f29e5f3e1295b907a0d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e0895d70",
+      "size": 1588,
+      "mode": 384,
+      "sha256": "683dcd2e12475b30ea3c1256d619611c814e0df8fa445e2575367cc0045d4bcf"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e0f46b31",
+      "size": 972,
+      "mode": 384,
+      "sha256": "d430c3147708e402a679e1227b6bc9869a17ea177c3ddad30bbd3ab3f987b43f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e1dc09dd",
+      "size": 884,
+      "mode": 384,
+      "sha256": "5dd454b16a60a403f8f55889cf0bfd55dd37b3b975bcc085d1483fbb56718326"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e1e96d06",
+      "size": 940,
+      "mode": 384,
+      "sha256": "d22ea1a9b83e05b93b33b64f2bdc9031fc47f0c3b6b05127e859fb9d81255200"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e225b64f",
+      "size": 1988,
+      "mode": 384,
+      "sha256": "6a14fa28c8e05688754d0a8b6b86887c9081226922bb593949017cbefb923751"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e2440ebf",
+      "size": 988,
+      "mode": 384,
+      "sha256": "00ee0a3142df8a7b4325d9617f6ff6d9b3ce58e8389d41421a1a269215684d89"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e26e4094",
+      "size": 980,
+      "mode": 384,
+      "sha256": "9e68857c6a31fda215e17632d582ecdcdc8697a0bacbb778c499090502f194e8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e31c5ccd",
+      "size": 2836,
+      "mode": 384,
+      "sha256": "8c3ddbd264a1e4bdd6c15a19e62821b2972ea9da95ad1364a732a99379bfde7d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e4a3ef44",
+      "size": 4428,
+      "mode": 384,
+      "sha256": "724f32ddefa74a2444b665ced350a5f3840554b60c63aaedd7f8ddec208d7e87"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e528a901",
+      "size": 3196,
+      "mode": 384,
+      "sha256": "b0023a5faab7e78d341509f3157bc4ca11e450a9d8ba3428cbd5545917719386"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e5838b69",
+      "size": 2572,
+      "mode": 384,
+      "sha256": "ccb7b2c4b5596608ab606dde328b2601b2b5485afeb7a24ef186c99317607245"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e616a96a",
+      "size": 1564,
+      "mode": 384,
+      "sha256": "2fffcdc58e1c9e695b67d715df3aa1c2d08c0f88102a3c70aac78dad5842ce9b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e6565deb",
+      "size": 3484,
+      "mode": 384,
+      "sha256": "8bf751dc4ed59efb4074e13b9e82c74a0fefae66cf0b0f5e23ec5844b890510c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e6b1b10a",
+      "size": 956,
+      "mode": 384,
+      "sha256": "f1b8079a05bb08450d1c7e34ee9e7cc8baf637ca11d6909b071c97e8d39ecacd"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e70cfa48",
+      "size": 1396,
+      "mode": 384,
+      "sha256": "3b6f87efad2889cc07dc0bbef69a33c8305e03744cfc400fb128f64ac42410c2"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e769147d",
+      "size": 1276,
+      "mode": 384,
+      "sha256": "d865ffcda08d04bf305133dfa5b104c725cc9eb9e1d832fc7d4b16eeb86f5646"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e7b6c857",
+      "size": 1476,
+      "mode": 384,
+      "sha256": "65335c730fce461616508f805f1d612658e06a237bcbc0062da4f9edfae592b8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e912de73",
+      "size": 1252,
+      "mode": 384,
+      "sha256": "1ba714a15ae45d044cba3885efd717e12677f8802fb3caca8b5f78e641ca7d47"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/e9ff55c2",
+      "size": 1156,
+      "mode": 384,
+      "sha256": "bb8583d025d5be64dc2f58d2661333c100c3a682aadd8c93e38f22216fbcb988"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ea11f288",
+      "size": 1788,
+      "mode": 384,
+      "sha256": "b24f25dafb630edc0141fe112473c763bd7515f6963943df6e6aba1f53d1e25f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ea1517ed",
+      "size": 948,
+      "mode": 384,
+      "sha256": "8eda6850a8ecc0f13234cfbef0666e6e0a05ca2822fa1d8b0b78a7f3177b09e9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ea213930",
+      "size": 1836,
+      "mode": 384,
+      "sha256": "8b460fcff2edb868721ac6fea059e656f37908e7c070f09cc8ddd57c66b45445"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ea32a139",
+      "size": 1268,
+      "mode": 384,
+      "sha256": "de3dfabd02ef1eab2a234dbdb61fd44ec5eace27b50b050d726d874908e60310"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ea9ae9c8",
+      "size": 1540,
+      "mode": 384,
+      "sha256": "d0fc2d0c0b7d36a7e32e3f5af0c480209292415dfe8a8c87100c8c9193b59c15"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/eb0b8289",
+      "size": 924,
+      "mode": 384,
+      "sha256": "3e6d8994f4835522346011e5e7d4c3bd09a4aec2c23dd5b8059e72b6abecc4ac"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/eb8513ad",
+      "size": 1012,
+      "mode": 384,
+      "sha256": "8f9ff47475270dd640a44c70270f5f6398635073f4ddb207f88671f41c341a2f"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ec3b4c6e",
+      "size": 5340,
+      "mode": 384,
+      "sha256": "0b77af38ead6ce7cb4aa337c0e6046c81a9ec25fee392396b272aef440413115"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/edbea685",
+      "size": 876,
+      "mode": 384,
+      "sha256": "7f94ef7fd6b32bea12d6b78b6037454d57a2a8d0446eeae65bfb48249ab0d9d4"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ee4a16d6",
+      "size": 1388,
+      "mode": 384,
+      "sha256": "23554faab56bf5e2a2d1081f81e0e1b3ca0da1905e4e4b55502da505dacc347d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ee78bbaf",
+      "size": 3388,
+      "mode": 384,
+      "sha256": "011e4db11adbc417d15eae7313c20a340c7c05a7122b73fedd51f5a8d141651b"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ee8477ee",
+      "size": 5532,
+      "mode": 384,
+      "sha256": "02b620326e394b61dfa8f7f1e1f8e10b67fa9bada5a85ce7a5a332d9a73e3307"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/eec1442f",
+      "size": 2716,
+      "mode": 384,
+      "sha256": "25ee373bf39ba3bbca7bf4ff2f8a65811792ac8411fbf514f6cb71d788d1f394"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ef0b7d08",
+      "size": 1948,
+      "mode": 384,
+      "sha256": "73e1436963a2f8d5ad5a3d6e44d6351659a7aed387a130695873f2bdc11aff07"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/ef3289f1",
+      "size": 1308,
+      "mode": 384,
+      "sha256": "bd8ab0fcae1f27f6805111b9246110688489baff9bf89f4ec3b3c3540f8d4c75"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/efd8a311",
+      "size": 1492,
+      "mode": 384,
+      "sha256": "3fde217ef99a6f1473c71e95bdd033c2a5bfa0c2825a19971661d8aa5693d258"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f0060d15",
+      "size": 1012,
+      "mode": 384,
+      "sha256": "a083225b5caafa3f68007751d35193ba4eb19880fbb297a62bd33ce1fc1ac2d3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f0c27ac0",
+      "size": 2644,
+      "mode": 384,
+      "sha256": "6007280ce180f4948b0609790c283d7825f6686bd61ed60e14679637b8fe6564"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f1630f74",
+      "size": 1060,
+      "mode": 384,
+      "sha256": "b3d6a16a1083d7c3f561e4619d43033ac3da143482c12567dba9e751ac786f8d"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f1b4ea77",
+      "size": 7884,
+      "mode": 384,
+      "sha256": "f89f495b9c1733f5629ac845d9622e4632541be501b164a09cb7a10479b01ee8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f22d78dc",
+      "size": 1868,
+      "mode": 384,
+      "sha256": "8ef95e0166b50cb335777f4cc147cfe11c40e223aa8956a31f679c8a1d0efa6e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f23ec7ec",
+      "size": 972,
+      "mode": 384,
+      "sha256": "9fa1f13bb4b4e7d787ef79ca350ac11000641525e228cd0539716e5736e55659"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f3529edd",
+      "size": 1316,
+      "mode": 384,
+      "sha256": "3d957d0708ee0f418162d72b82e62bbeceaa8801045186d19e3ad08e028401a7"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f3a2f982",
+      "size": 3148,
+      "mode": 384,
+      "sha256": "098d56a73354e58a3614db206c9b3e9ea05b75da51d5725002e3eaa29c7cd8cc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f49db4fb",
+      "size": 1852,
+      "mode": 384,
+      "sha256": "afa261e9d6310aa88078b003d95be3d452225c827172b47e3ccbc826d3e575be"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f4a9eacd",
+      "size": 3444,
+      "mode": 384,
+      "sha256": "d56fdc7875ae4017455701670256228546e4a7c83c816d12d7de21de23dda1e6"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f52139ef",
+      "size": 1644,
+      "mode": 384,
+      "sha256": "7e38ae7c286de2404e8120e22d9e674a6e7bf7ab4f5dbb20a30f9e351c685ce9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f54ecc3c",
+      "size": 6820,
+      "mode": 384,
+      "sha256": "658c796f4c919cce76342ae7cd03ac6d9eee6a584a4452fd2eec05b42e66ebdc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f5c39eb0",
+      "size": 7820,
+      "mode": 384,
+      "sha256": "14cf866738d38711d15572c7014159c93cae4012d8fcd673174d2d6bb16a332e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f69d5945",
+      "size": 2772,
+      "mode": 384,
+      "sha256": "e4d8c3958dbeba0b9fa1d85dc67a511d6dd87242c7074bff0108f598e341c661"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f6ed38fc",
+      "size": 1364,
+      "mode": 384,
+      "sha256": "8914ffc1fb5ec949cb5dbde19a0727231bf2deddb13af5b1f40654dcd5ecb25e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f7c18dfa",
+      "size": 3628,
+      "mode": 384,
+      "sha256": "850f445f6c308fcc3e722015efdc2ec90e041cacddd6ecdd53ba4c17bb2a5c21"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f91a5caf",
+      "size": 1436,
+      "mode": 384,
+      "sha256": "d3664bd91b7bddf1e70342119260610c5809eabd0dbe889478fb54123b0f03fc"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f999d40c",
+      "size": 2316,
+      "mode": 384,
+      "sha256": "82474b72f70e548abbd8826146dc99cb49781d8fae6c07259611e77886e025fe"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/f99a45f5",
+      "size": 4828,
+      "mode": 384,
+      "sha256": "47fd52fa79335891890ead310c17615857b1ba37a053c51f4833bdd616b5b590"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/facee962",
+      "size": 1220,
+      "mode": 384,
+      "sha256": "e5c5f38ec27f4ee925918cbbcf320b621d33320acf59f58f03149cdd24da48eb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/fb01d558",
+      "size": 1084,
+      "mode": 384,
+      "sha256": "2bbb895cdd52cc61635b1b733e3fe2ab5957f28587fee89411abf2ba6e773a91"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/fb29bf34",
+      "size": 1292,
+      "mode": 384,
+      "sha256": "ae71a63b9b5727437a48e3ba863e068efedccf5d469b746ef780aae7f2a9b854"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/fb4acc86",
+      "size": 1796,
+      "mode": 384,
+      "sha256": "dc1869e3fd0a290ab555890ee5e421c363f3ef179d438ccf371a5cb774fa2496"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/fc193630",
+      "size": 3876,
+      "mode": 384,
+      "sha256": "0630bd92cbc1d2e6ca95c77389e6dddec8950b245056894115d0aad09caf5176"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/fc87defe",
+      "size": 1132,
+      "mode": 384,
+      "sha256": "da8618782ed167a1d946a0fb688a0c2fbc6e9467c3c354b5eba0b43f99e31ff5"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/fcfb48b1",
+      "size": 1580,
+      "mode": 384,
+      "sha256": "14cc5ab0aae399abe1364b4b190c6660e7d24c7d4de92800b532434c07b5f546"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/fd7050a4",
+      "size": 1396,
+      "mode": 384,
+      "sha256": "c9b24eaaef43cc843c7d428a8a60ac9c9d8c9b56f9f67cb9da25624726fdbda0"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/node-compile-cache/v22.22.2-arm64-2b4477fa-501/fe3912bd",
+      "size": 7220,
+      "mode": 384,
+      "sha256": "32798793beba2f15bc85c93872d02586d11979edf349bf7698d7697e2f52e6b1"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+      "size": 908381,
+      "mode": 420,
+      "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/produce.outer.jsonl",
+      "size": 7509,
+      "mode": 420,
+      "sha256": "27b59d82a1346c3f33bba8b372c2e3a82fa6662ea7c7d27cfb3c0fc5b9332235"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/runner.mjs",
+      "size": 17671,
+      "mode": 420,
+      "sha256": "9a8544306c48c76851b92da7600fc6674625af3789438df8d5eeff9ca1d4d84c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/seal.outer.jsonl",
+      "size": 8558,
+      "mode": 420,
+      "sha256": "a782ffd1a9205e9f9ff006fbc413f2744e716fe8f14bcd3ee180a5469b413e09"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/user.npmrc",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "qualification": "Immutable local owned snapshot, not ambient counters; no old64 certification"
+}

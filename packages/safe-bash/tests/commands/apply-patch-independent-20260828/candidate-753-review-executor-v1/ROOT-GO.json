@@ -1,0 +1,14 @@
+{
+  "binding": {
+    "authorization": "ROOT AP753 ONE REVIEW",
+    "attempt": 1,
+    "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+    "sealSha256": "e0031def83ab08a4ba17bd08863cc8e23bee925bbe8bb34330d27153ceef74ce",
+    "sourceCommit": "bf6e96e9f418b130ca6efb52a58635f5c70f3631"
+  },
+  "command": "exec -c /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --no-warnings /Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v1/controller.mjs bf6e96e9f418b130ca6efb52a58635f5c70f3631 e0031def83ab08a4ba17bd08863cc8e23bee925bbe8bb34330d27153ceef74ce",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "authority": "ROOT message received 2026-08-28: accepts557b61ed6/6+4/4+startuprefusals and authorizes concrete candidate753 review after complete54-job preseal committed, with no further root roundtrip if constraints fit. Exact source753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d/tree6a59ca403c5411344dea2ee057909ba179bf7043/full882f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95. ONE actual review;110min incl cleanup;70 all owned processes;peak4 total;128MiB combined capture;512MiB work;case30s/build120s. Safety/integrity/capture/unknown-retirement STOP without retry.",
+  "historicalIntegrity": "All original58be27/70HOLD, peak>=3 violation,32+80 fixtures, all38/40 diagnostic history and intermediate harness HOLDs remain immutable. This grant neither accepts the product nor authorizes root/default integration."
+}

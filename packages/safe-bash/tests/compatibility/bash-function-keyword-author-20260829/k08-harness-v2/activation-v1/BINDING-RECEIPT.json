@@ -1,0 +1,55 @@
+{
+  "schema": "k08-resolved-binding-receipt-v1",
+  "at": "2026-08-29T15:35:10.505Z",
+  "status": "READY_FOR_DIFFERENT_SLOT_REVIEW_NOT_ACTIVATED",
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/GO.json",
+      "bytes": 976,
+      "sha256": "5faba4fe944420c29637b0d9d643c24555cc6be05638134d90910f6d59a2891b",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/REVIEW.json",
+      "bytes": 211,
+      "sha256": "19b53c9dcc8c9eaa5b3f63b4b5599cdbcaa3e79d5ca24a587371aeaa7e50a684",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/activation-v1/COMMAND.resolved.txt",
+      "bytes": 346,
+      "sha256": "e48cfe86594ed6f3fd56e6add6f3a839770d9e190f45135de77342bd0fe803d9",
+      "mode": 420
+    }
+  ],
+  "window": {
+    "issuedAt": "2026-08-29T15:33:29.112Z",
+    "latestStart": "2026-08-29T15:53:29.112Z",
+    "expiresAt": "2026-08-29T16:18:29.112Z"
+  },
+  "independentCommit": "29b6f0d5696e920cf42dbaac120b05e675e6b03f",
+  "richReceiptSha256": "bd5c3e5bddc871a929d510c734d95c1f5ac6d62ec5eb84e84be5e40ad23b5690",
+  "reviewSlotSha256": "19b53c9dcc8c9eaa5b3f63b4b5599cdbcaa3e79d5ca24a587371aeaa7e50a684",
+  "notRichReceiptSlot": true,
+  "helper": {
+    "status": 0,
+    "stdoutBytes": 3682,
+    "stderrBytes": 0,
+    "sourceInputs": 306,
+    "shippingMembers": 1006,
+    "actualCalls": 0
+  },
+  "prepublication": {
+    "knownStarts": 6,
+    "allClosed": true,
+    "captureBytes": 6997,
+    "ledgerSha256": "2fd19991f8138d516b264b9d22c724d694b9ba851b87f16f2c583eb83c82abe7"
+  },
+  "qualifications": [
+    "No full census repeated. Identity checks used exact bound manifests and named unused paths.",
+    "Fresh0600 modes verified; raw grant/review/command hashes checked after write.",
+    "Metadata query with too-narrow historical review namespace returned empty; accepted commit inventory then supplied actual path. Both captured, no guessed receipt.",
+    "Later publication starts are retained in on-disk ledger and reported separately.",
+    "This is conditional binding, not ROOT actual GO."
+  ]
+}

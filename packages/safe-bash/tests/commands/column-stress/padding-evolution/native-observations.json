@@ -1,0 +1,1222 @@
+{
+  "schemaVersion": 1,
+  "classification": "raw-native-observations-not-product-results",
+  "createdAt": "2026-08-27T15:37:05.959Z",
+  "recipeSha256": "7d4dd9969efaaf4abd246aa0498917a6dccbf9415f501f9dedf087379bba0ba2",
+  "captureScriptSha256": "01f1cd28e16b61eda0b1dbc74d25aca64ed74b975c25835701cd2b033326f264",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "en_US.UTF-8",
+    "LANG": "en_US.UTF-8",
+    "COLUMNS": "80",
+    "TERM": "dumb",
+    "HOME": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-home",
+    "XDG_CONFIG_HOME": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-home/config",
+    "NO_COLOR": "1"
+  },
+  "limits": {
+    "maxRecipes": 17,
+    "maxNativeInvocationsPerProfile": 17,
+    "maxInputBytesPerInvocation": 4096,
+    "maxNativeOutputBytesPerStream": 65536,
+    "nativeDeadlineMs": 2000
+  },
+  "runtime": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "host": {
+    "uname": {
+      "argv": [
+        "-a"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "44617277696e206d356d622d6b6a6f70656b2032352e342e302044617277696e204b65726e656c2056657273696f6e2032352e342e303a20546875204d61722031392031393a33333a35302050445420323032363b20726f6f743a786e752d31323337372e3130312e31357e312f52454c454153455f41524d36345f54363035302061726d36340a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 136,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    "swVers": {
+      "argv": [],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "50726f647563744e616d653a09096d61634f530a50726f6475637456657273696f6e3a090932362e342e310a4275696c6456657273696f6e3a09093235453235330a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 66,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    }
+  },
+  "profiles": [
+    {
+      "name": "bsd-darwin",
+      "executable": "/usr/bin/column",
+      "resolvedPath": "/usr/bin/column",
+      "sha256": "c6d7b469d8e8437c7185bedd356626ca69867c9c6b002cbb0020d995a6e4cc5f",
+      "bytes": 135264,
+      "versionProbe": {
+        "argv": [
+          "--version"
+        ],
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d202d0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+        "observedBytes": {
+          "stdout": 0,
+          "stderr": 90
+        },
+        "termination": null,
+        "spawnError": null,
+        "stdinError": null,
+        "deadlineMs": 2000,
+        "cleanup": "close-observed-process-group-retired"
+      },
+      "shortVersionProbe": {
+        "argv": [
+          "-V"
+        ],
+        "status": 1,
+        "signal": null,
+        "stdoutHex": "",
+        "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d20560a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+        "observedBytes": {
+          "stdout": 0,
+          "stderr": 90
+        },
+        "termination": null,
+        "spawnError": null,
+        "stdinError": null,
+        "deadlineMs": 2000,
+        "cleanup": "close-observed-process-group-retired"
+      },
+      "fileIdentity": {
+        "argv": [
+          "/usr/bin/column"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "2f7573722f62696e2f636f6c756d6e3a204d6163682d4f20756e6976657273616c2062696e6172792077697468203220617263686974656374757265733a205b7838365f36343a4d6163682d4f2036342d6269742065786563757461626c65207838365f36345d205b61726d3634653a4d6163682d4f2036342d6269742065786563757461626c652061726d3634655d0a2f7573722f62696e2f636f6c756d6e2028666f7220617263686974656374757265207838365f3634293a094d6163682d4f2036342d6269742065786563757461626c65207838365f36340a2f7573722f62696e2f636f6c756d6e2028666f72206172636869746563747572652061726d363465293a094d6163682d4f2036342d6269742065786563757461626c652061726d3634650a",
+        "stderrHex": "",
+        "observedBytes": {
+          "stdout": 295,
+          "stderr": 0
+        },
+        "termination": null,
+        "spawnError": null,
+        "stdinError": null,
+        "deadlineMs": 2000,
+        "cleanup": "close-observed-process-group-retired"
+      },
+      "linkedLibraries": {
+        "argv": [
+          "-L",
+          "/usr/bin/column"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "2f7573722f62696e2f636f6c756d6e3a0a092f7573722f6c69622f6c696253797374656d2e422e64796c69622028636f6d7061746962696c6974792076657273696f6e20312e302e302c2063757272656e742076657273696f6e20313335362e302e30290a",
+        "stderrHex": "",
+        "observedBytes": {
+          "stdout": 101,
+          "stderr": 0
+        },
+        "termination": null,
+        "spawnError": null,
+        "stdinError": null,
+        "deadlineMs": 2000,
+        "cleanup": "close-observed-process-group-retired"
+      }
+    },
+    {
+      "name": "util-linux-2.41.2-darwin",
+      "executable": "/tmp/safe-bash-column-stress-prep-Y7nUWq/util-linux-2.41.2/column",
+      "resolvedPath": "/private/tmp/safe-bash-column-stress-prep-Y7nUWq/util-linux-2.41.2/column",
+      "sha256": "a599976edf85eaa3222ac745309596023b5e63283a8b8ee3c3834d741214dd88",
+      "bytes": 196024,
+      "versionProbe": {
+        "argv": [
+          "--version"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "636f6c756d6e2066726f6d207574696c2d6c696e757820322e34312e320a",
+        "stderrHex": "",
+        "observedBytes": {
+          "stdout": 30,
+          "stderr": 0
+        },
+        "termination": null,
+        "spawnError": null,
+        "stdinError": null,
+        "deadlineMs": 2000,
+        "cleanup": "close-observed-process-group-retired"
+      },
+      "shortVersionProbe": {
+        "argv": [
+          "-V"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "636f6c756d6e2066726f6d207574696c2d6c696e757820322e34312e320a",
+        "stderrHex": "",
+        "observedBytes": {
+          "stdout": 30,
+          "stderr": 0
+        },
+        "termination": null,
+        "spawnError": null,
+        "stdinError": null,
+        "deadlineMs": 2000,
+        "cleanup": "close-observed-process-group-retired"
+      },
+      "fileIdentity": {
+        "argv": [
+          "/private/tmp/safe-bash-column-stress-prep-Y7nUWq/util-linux-2.41.2/column"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "2f707269766174652f746d702f736166652d626173682d636f6c756d6e2d7374726573732d707265702d59376e5557712f7574696c2d6c696e75782d322e34312e322f636f6c756d6e3a204d6163682d4f2036342d6269742065786563757461626c652061726d36340a",
+        "stderrHex": "",
+        "observedBytes": {
+          "stdout": 106,
+          "stderr": 0
+        },
+        "termination": null,
+        "spawnError": null,
+        "stdinError": null,
+        "deadlineMs": 2000,
+        "cleanup": "close-observed-process-group-retired"
+      },
+      "linkedLibraries": {
+        "argv": [
+          "-L",
+          "/private/tmp/safe-bash-column-stress-prep-Y7nUWq/util-linux-2.41.2/column"
+        ],
+        "status": 0,
+        "signal": null,
+        "stdoutHex": "2f707269766174652f746d702f736166652d626173682d636f6c756d6e2d7374726573732d707265702d59376e5557712f7574696c2d6c696e75782d322e34312e322f636f6c756d6e3a0a092f7573722f6c69622f6c696253797374656d2e422e64796c69622028636f6d7061746962696c6974792076657273696f6e20312e302e302c2063757272656e742076657273696f6e20313335362e302e30290a",
+        "stderrHex": "",
+        "observedBytes": {
+          "stdout": 159,
+          "stderr": 0
+        },
+        "termination": null,
+        "spawnError": null,
+        "stdinError": null,
+        "deadlineMs": 2000,
+        "cleanup": "close-observed-process-group-retired"
+      }
+    }
+  ],
+  "counts": {
+    "recipes": 17,
+    "variantsPerProfile": 17,
+    "nativeInvocations": 34,
+    "identityInvocations": 10,
+    "safetyRecipesPreparedOnly": 0,
+    "candidateInvocations": 0
+  },
+  "observations": [
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P01",
+      "variant": "literal",
+      "oracleUse": "unchanged-original-util-linux-exact",
+      "startedAt": "2026-08-27T15:37:05.743Z",
+      "endedAt": "2026-08-27T15:37:05.747Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P01-MZ7GsA",
+      "stdinHex": "207a093920200a616c706861202031207461696c0a20620932320a",
+      "files": [],
+      "argv": [
+        "-t"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a202020202020390a616c7068612020312020207461696c0a6220202020202032320a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 35,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P02",
+      "variant": "two-delimiters",
+      "oracleUse": "unchanged-original-util-linux-exact",
+      "startedAt": "2026-08-27T15:37:05.748Z",
+      "endedAt": "2026-08-27T15:37:05.752Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P02-JTyFy7",
+      "stdinHex": "612c623a630a643a3a652c0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ",:"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020622020630a642020650a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 13,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P03",
+      "variant": "four-columns",
+      "oracleUse": "util-linux-exact-ascii-layout",
+      "startedAt": "2026-08-27T15:37:05.752Z",
+      "endedAt": "2026-08-27T15:37:05.756Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P03-mBAduH",
+      "stdinHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+      "files": [],
+      "argv": [
+        "-t"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020202020626220206363632020646464640a7a0a6c6f6e672020780a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 30,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P04",
+      "variant": "bars",
+      "oracleUse": "util-linux-exact-bsd-o-unsupported",
+      "startedAt": "2026-08-27T15:37:05.757Z",
+      "endedAt": "2026-08-27T15:37:05.761Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P04-8FSRT1",
+      "stdinHex": "613a62623a6363633a646464640a7a0a6c6f6e673a780a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        "|"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+      "observedBytes": {
+        "stdout": 0,
+        "stderr": 90
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P05",
+      "variant": "wide-separator",
+      "oracleUse": "util-linux-exact-supported-scalar-profile",
+      "startedAt": "2026-08-27T15:37:05.761Z",
+      "endedAt": "2026-08-27T15:37:05.765Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P05-xRy2TI",
+      "stdinHex": "613a62623a6363630a7a0a6c6f6e673a780a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        "界"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+      "observedBytes": {
+        "stdout": 0,
+        "stderr": 90
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P06",
+      "variant": "zero-separator-bytes",
+      "oracleUse": "util-linux-exact-bsd-o-unsupported",
+      "startedAt": "2026-08-27T15:37:05.765Z",
+      "endedAt": "2026-08-27T15:37:05.769Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P06-f0Glkt",
+      "stdinHex": "613a62623a6363630a7a0a713a3a0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+      "observedBytes": {
+        "stdout": 0,
+        "stderr": 90
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P07",
+      "variant": "four-fields",
+      "oracleUse": "util-linux-exact-retain-bsd-empty-dialect",
+      "startedAt": "2026-08-27T15:37:05.770Z",
+      "endedAt": "2026-08-27T15:37:05.773Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P07-GJHLxL",
+      "stdinHex": "3a613a3a0a623a3a633a0a3a3a3a0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "610a622020630a286e756c6c290a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 14,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P08",
+      "variant": "zero-width-columns",
+      "oracleUse": "util-linux-exact-retain-bsd-empty-dialect",
+      "startedAt": "2026-08-27T15:37:05.774Z",
+      "endedAt": "2026-08-27T15:37:05.778Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P08-V8rgg4",
+      "stdinHex": "613a3a0a620a3a3a0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "610a620a286e756c6c290a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 11,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P09",
+      "variant": "zero-display-not-zero-byte",
+      "oracleUse": "native-qualified-fixed-scalar-width-independent",
+      "startedAt": "2026-08-27T15:37:05.778Z",
+      "endedAt": "2026-08-27T15:37:05.782Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P09-WjtpBl",
+      "stdinHex": "613acc813acc800a620a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+      "observedBytes": {
+        "stdout": 0,
+        "stderr": 90
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P10",
+      "variant": "scalar-not-grapheme",
+      "oracleUse": "native-qualified-fixed-scalar-width-independent",
+      "startedAt": "2026-08-27T15:37:05.783Z",
+      "endedAt": "2026-08-27T15:37:05.788Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P10-bSdqI7",
+      "stdinHex": "e7958c3a65cc813af09f98800a610a62623ae4b8ad0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "e7958c202065cc81202020f09f98800a610a62622020e4b8ad0a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 26,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P11",
+      "variant": "no-final-lf",
+      "oracleUse": "util-linux-exact-retain-bsd-partial-error",
+      "startedAt": "2026-08-27T15:37:05.789Z",
+      "endedAt": "2026-08-27T15:37:05.792Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P11-OSHUro",
+      "stdinHex": "20090a7a20390a616c7068612031207461696c0a62203232",
+      "files": [],
+      "argv": [
+        "-t"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "7a202020202020390a616c70686120203120207461696c0a",
+      "stderrHex": "636f6c756d6e3a206c696e6520746f6f206c6f6e670a",
+      "observedBytes": {
+        "stdout": 24,
+        "stderr": 22
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P12",
+      "variant": "width-80",
+      "oracleUse": "common-fill-exact-control",
+      "startedAt": "2026-08-27T15:37:05.793Z",
+      "endedAt": "2026-08-27T15:37:05.796Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P12-hgmpM4",
+      "stdinHex": "7a0a610a710a620a790a630a780a640a770a650a760a",
+      "files": [],
+      "argv": [],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a097109790978097709760a6109620963096409650a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 22,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P13",
+      "variant": "across",
+      "oracleUse": "common-fill-exact-control",
+      "startedAt": "2026-08-27T15:37:05.796Z",
+      "endedAt": "2026-08-27T15:37:05.800Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P13-TQZgQp",
+      "stdinHex": "7a0a610a710a620a790a630a780a",
+      "files": [],
+      "argv": [
+        "-x",
+        "-c",
+        "24"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a096109710a62097909630a780a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 14,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P14",
+      "variant": "down",
+      "oracleUse": "common-fill-exact-control",
+      "startedAt": "2026-08-27T15:37:05.800Z",
+      "endedAt": "2026-08-27T15:37:05.805Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P14-3djOeW",
+      "stdinHex": "7a0a610a710a620a790a630a780a",
+      "files": [],
+      "argv": [
+        "-c",
+        "24"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a096209780a6109790a7109630a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 14,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P15",
+      "variant": "narrow",
+      "oracleUse": "common-fill-exact-control",
+      "startedAt": "2026-08-27T15:37:05.806Z",
+      "endedAt": "2026-08-27T15:37:05.810Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P15-zmfZ3O",
+      "stdinHex": "616c7068610a620a630a",
+      "files": [],
+      "argv": [
+        "-x",
+        "-c",
+        "1"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "616c7068610a620a630a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 10,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P16",
+      "variant": "width-one",
+      "oracleUse": "util-linux-exact-ascii-layout",
+      "startedAt": "2026-08-27T15:37:05.810Z",
+      "endedAt": "2026-08-27T15:37:05.814Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P16-avTnUB",
+      "stdinHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-c",
+        "1"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020202020626220206363632020646464640a7a0a6c6f6e672020780a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 30,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "bsd-darwin",
+      "recipe": "P17",
+      "variant": "comma-and-cjk",
+      "oracleUse": "native-qualified-fixed-scalar-separator-independent",
+      "startedAt": "2026-08-27T15:37:05.815Z",
+      "endedAt": "2026-08-27T15:37:05.818Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-bsd-darwin-P17-eulTzF",
+      "stdinHex": "61e7958c622c630a64e7958ce7958c652c0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ",界"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020622020630a642020650a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 13,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P01",
+      "variant": "literal",
+      "oracleUse": "unchanged-original-util-linux-exact",
+      "startedAt": "2026-08-27T15:37:05.859Z",
+      "endedAt": "2026-08-27T15:37:05.865Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P01-PfUYsU",
+      "stdinHex": "207a093920200a616c706861202031207461696c0a20620932320a",
+      "files": [],
+      "argv": [
+        "-t"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 40,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P02",
+      "variant": "two-delimiters",
+      "oracleUse": "unchanged-original-util-linux-exact",
+      "startedAt": "2026-08-27T15:37:05.865Z",
+      "endedAt": "2026-08-27T15:37:05.871Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P02-wutESG",
+      "stdinHex": "612c623a630a643a3a652c0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ",:"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6120206220206320200a6420202020206520200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 20,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P03",
+      "variant": "four-columns",
+      "oracleUse": "util-linux-exact-ascii-layout",
+      "startedAt": "2026-08-27T15:37:05.871Z",
+      "endedAt": "2026-08-27T15:37:05.876Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P03-GBP4Z6",
+      "stdinHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+      "files": [],
+      "argv": [
+        "-t"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 52,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P04",
+      "variant": "bars",
+      "oracleUse": "util-linux-exact-bsd-o-unsupported",
+      "startedAt": "2026-08-27T15:37:05.877Z",
+      "endedAt": "2026-08-27T15:37:05.883Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P04-hETEWa",
+      "stdinHex": "613a62623a6363633a646464640a7a0a6c6f6e673a780a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        "|"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020207c62627c6363637c646464640a7a2020207c20207c2020207c0a6c6f6e677c78207c2020207c0a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 43,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P05",
+      "variant": "wide-separator",
+      "oracleUse": "util-linux-exact-supported-scalar-profile",
+      "startedAt": "2026-08-27T15:37:05.884Z",
+      "endedAt": "2026-08-27T15:37:05.890Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P05-EqqdIn",
+      "stdinHex": "613a62623a6363630a7a0a6c6f6e673a780a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        "界"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "61202020e7958c6262e7958c6363630a7a202020e7958c2020e7958c0a6c6f6e67e7958c7820e7958c0a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 42,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P06",
+      "variant": "zero-separator-bytes",
+      "oracleUse": "util-linux-exact-bsd-o-unsupported",
+      "startedAt": "2026-08-27T15:37:05.890Z",
+      "endedAt": "2026-08-27T15:37:05.895Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P06-5iqcuO",
+      "stdinHex": "613a62623a6363630a7a0a713a3a0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6162626363630a7a20200a7120200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 15,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P07",
+      "variant": "four-fields",
+      "oracleUse": "util-linux-exact-retain-bsd-empty-dialect",
+      "startedAt": "2026-08-27T15:37:05.896Z",
+      "endedAt": "2026-08-27T15:37:05.901Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P07-tRUMTI",
+      "stdinHex": "3a613a3a0a623a3a633a0a3a3a3a0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 30,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P08",
+      "variant": "zero-width-columns",
+      "oracleUse": "util-linux-exact-retain-bsd-empty-dialect",
+      "startedAt": "2026-08-27T15:37:05.902Z",
+      "endedAt": "2026-08-27T15:37:05.908Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P08-uaL2JE",
+      "stdinHex": "613a3a0a620a3a3a0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "61202020200a62202020200a20202020200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 18,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P09",
+      "variant": "zero-display-not-zero-byte",
+      "oracleUse": "native-qualified-fixed-scalar-width-independent",
+      "startedAt": "2026-08-27T15:37:05.908Z",
+      "endedAt": "2026-08-27T15:37:05.913Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P09-2KIQf1",
+      "stdinHex": "613acc813acc800a620a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "61cc81cc800a620a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 8,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P10",
+      "variant": "scalar-not-grapheme",
+      "oracleUse": "native-qualified-fixed-scalar-width-independent",
+      "startedAt": "2026-08-27T15:37:05.913Z",
+      "endedAt": "2026-08-27T15:37:05.919Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P10-Q92u9n",
+      "stdinHex": "e7958c3a65cc813af09f98800a610a62623ae4b8ad0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 35,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P11",
+      "variant": "no-final-lf",
+      "oracleUse": "util-linux-exact-retain-bsd-partial-error",
+      "startedAt": "2026-08-27T15:37:05.919Z",
+      "endedAt": "2026-08-27T15:37:05.924Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P11-SgqY7d",
+      "stdinHex": "20090a7a20390a616c7068612031207461696c0a62203232",
+      "files": [],
+      "argv": [
+        "-t"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 40,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P12",
+      "variant": "width-80",
+      "oracleUse": "common-fill-exact-control",
+      "startedAt": "2026-08-27T15:37:05.925Z",
+      "endedAt": "2026-08-27T15:37:05.930Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P12-AmPbpK",
+      "stdinHex": "7a0a610a710a620a790a630a780a640a770a650a760a",
+      "files": [],
+      "argv": [],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a097109790978097709760a6109620963096409650a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 22,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P13",
+      "variant": "across",
+      "oracleUse": "common-fill-exact-control",
+      "startedAt": "2026-08-27T15:37:05.931Z",
+      "endedAt": "2026-08-27T15:37:05.936Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P13-9mzr9H",
+      "stdinHex": "7a0a610a710a620a790a630a780a",
+      "files": [],
+      "argv": [
+        "-x",
+        "-c",
+        "24"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a096109710a62097909630a780a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 14,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P14",
+      "variant": "down",
+      "oracleUse": "common-fill-exact-control",
+      "startedAt": "2026-08-27T15:37:05.936Z",
+      "endedAt": "2026-08-27T15:37:05.942Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P14-M0ijxY",
+      "stdinHex": "7a0a610a710a620a790a630a780a",
+      "files": [],
+      "argv": [
+        "-c",
+        "24"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "7a096209780a6109790a7109630a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 14,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P15",
+      "variant": "narrow",
+      "oracleUse": "common-fill-exact-control",
+      "startedAt": "2026-08-27T15:37:05.942Z",
+      "endedAt": "2026-08-27T15:37:05.947Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P15-ARX8p4",
+      "stdinHex": "616c7068610a620a630a",
+      "files": [],
+      "argv": [
+        "-x",
+        "-c",
+        "1"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "616c7068610a620a630a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 10,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P16",
+      "variant": "width-one",
+      "oracleUse": "util-linux-exact-ascii-layout",
+      "startedAt": "2026-08-27T15:37:05.948Z",
+      "endedAt": "2026-08-27T15:37:05.953Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P16-6dk9pA",
+      "stdinHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-c",
+        "1"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 52,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    },
+    {
+      "profile": "util-linux-2.41.2-darwin",
+      "recipe": "P17",
+      "variant": "comma-and-cjk",
+      "oracleUse": "native-qualified-fixed-scalar-separator-independent",
+      "startedAt": "2026-08-27T15:37:05.953Z",
+      "endedAt": "2026-08-27T15:37:05.958Z",
+      "cwd": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-util-linux-2.41.2-darwin-P17-MlvwGr",
+      "stdinHex": "61e7958c622c630a64e7958ce7958c652c0a",
+      "files": [],
+      "argv": [
+        "-t",
+        "-s",
+        ",界"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6120206220206320200a6420202020206520200a",
+      "stderrHex": "",
+      "observedBytes": {
+        "stdout": 20,
+        "stderr": 0
+      },
+      "termination": null,
+      "spawnError": null,
+      "stdinError": null,
+      "deadlineMs": 2000,
+      "cleanup": "close-observed-process-group-retired"
+    }
+  ],
+  "cleanup": {
+    "invocationDirectoriesRemoved": true,
+    "ownedNativeProcessesRetired": true,
+    "persistentIsolatedHome": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-home"
+  }
+}

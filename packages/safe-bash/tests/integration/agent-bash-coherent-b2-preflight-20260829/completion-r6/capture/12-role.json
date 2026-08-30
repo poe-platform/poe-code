@@ -1,0 +1,15 @@
+{
+  "role": "definition-only-and-pure-controls",
+  "pid": 93363,
+  "start": "2026-08-29T14:32:04.702Z",
+  "children": 0,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "end": "2026-08-29T14:32:04.758Z"
+}

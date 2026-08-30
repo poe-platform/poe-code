@@ -1,0 +1,51 @@
+{
+  "schema": "node-abi-execution-control-v1",
+  "classification": "PREPARE ONLY; no GO",
+  "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "abi": {
+    "identity": "safejs-bb23ec27-values-7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269-v1",
+    "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "valuesSha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd",
+    "factory": "src/interp/values.ts#createSandboxClosure",
+    "sameInstance": "reference entry imports run and intrinsic factory through one authenticated physical engine tree/loader; no parallel copy or brand synthesis"
+  },
+  "evaluations": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06-object",
+    "F06-null",
+    "F07"
+  ],
+  "maximumSpawnedChildren": 9,
+  "maximumEvaluationChildren": 8,
+  "maximumConcurrentChildren": 1,
+  "maximumProcessesIncludingSupervisor": 10,
+  "frozenExperimentsSha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+  "guestSources": {
+    "F01": "536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84",
+    "F02": "4022c213e11724bb32d4997857af5d9ea25bf16e23dfd0f1d7f10632acb83dda",
+    "F03": "641ec3911a0ff323eaea5f20734b0238fac625b9807d662b9d416790e2e0954d",
+    "F04": "f1919050c32e1f14fd750875ce29ea0c4309d96a8612b408b550b14642284220",
+    "F05": "7d92fcb2a85411771489c8ae8108082563ddf7646b9a26c2c4a92b326870cc68",
+    "F06": "87e9b1663ca510887bc958875a52cde1e0be59a5080d401d65f6657efa98970c",
+    "F07": "ca1d5c98af3377b0d8fc20533f4a6caa1e1ef11d4dd00e04a66e4d301a16a2bb"
+  },
+  "limits": {
+    "overallContainmentMs": 480000,
+    "cleanupReserveMs": 30000,
+    "workflowContainmentMs": 30000,
+    "containmentGraceMs": 1000,
+    "scratchFiles": 512,
+    "scratchBytes": 201326592,
+    "stdoutBytesPerChild": 65536,
+    "stderrBytesPerChild": 65536,
+    "loadTraceBytesPerChild": 2097152,
+    "receiptBytesPerChild": 65536,
+    "totalEvidenceBytes": 33554432,
+    "eventsPerChild": 32
+  },
+  "sourceQualification": "Original seven immutable guest programs;8 evaluations with explicit additional F06-null mechanism obligation;66 public source files authenticated to exact commit;63 static runtime candidates with inherited emission hashes,3 source-only additions; actual-load subset measured anew. No old6/25, product, native oracle or full Node acceptance."
+}

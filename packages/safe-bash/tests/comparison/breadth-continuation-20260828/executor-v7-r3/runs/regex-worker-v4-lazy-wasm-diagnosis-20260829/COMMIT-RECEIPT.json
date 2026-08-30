@@ -1,0 +1,73 @@
+{
+  "commit": "ca285a4d120fcb0b96ee24a4137cb80b8236a69d",
+  "adminTail": [
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "add",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/ADMIN-RECEIPTS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/BUILD-ENTRY-NOTE.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/FUTURE-PROPOSAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/LOCAL-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/POST-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/PRIMARY-SOURCES.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SCOPE.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SEAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SOURCE-TRACE.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "diff",
+        "--cached",
+        "--check",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "core.abbrev=40",
+        "commit",
+        "--only",
+        "-m",
+        "docs: adjudicate lazy WebSocket bootstrap without runtime probes",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/ADMIN-RECEIPTS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/BUILD-ENTRY-NOTE.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/FUTURE-PROPOSAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/LOCAL-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/POST-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/PRIMARY-SOURCES.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SCOPE.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SEAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SOURCE-TRACE.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "[main ca285a4d120fcb0b96ee24a4137cb80b8236a69d] docs: adjudicate lazy WebSocket bootstrap without runtime probes\n 10 files changed, 1088 insertions(+)\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/ADMIN-RECEIPTS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/BUILD-ENTRY-NOTE.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/FUTURE-PROPOSAL.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/LOCAL-BINDINGS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/POST-BINDINGS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/PRIMARY-SOURCES.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/README.md\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SCOPE.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SEAL.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-v4-lazy-wasm-diagnosis-20260829/SOURCE-TRACE.json\n",
+      "stderr": ""
+    }
+  ],
+  "at": "2026-08-29T10:08:05.402Z",
+  "ownedChildrenClosed": true,
+  "NodeRuntimeChildrenStarted": 0
+}

@@ -1,0 +1,2382 @@
+{
+  "kind": "post-run SOURCE/DATA audit and lossless archive, no candidate execution",
+  "presealCommit": "1193d9c4ef8690c1433a579e301a41a8cbf3ee96",
+  "sealSha256": "c9ad1b06247602063001f2b87f8e42d28751d3aaf47c606b718fb5d799cd38db",
+  "candidate": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "base": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "array": "c0adae539c736db0e4023d401562ce958d9ebb00",
+  "sourceInputs": 272,
+  "package": {
+    "sha256": "f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956",
+    "bytes": 795138,
+    "members": 874,
+    "added": [
+      "dist/shell/arrays/bindings.js",
+      "dist/shell/arrays/ledger.js",
+      "dist/shell/arrays/state.js",
+      "dist/shell/arrays/syntax.js",
+      "dist/shell/arrays/bindings.d.ts.map",
+      "dist/shell/arrays/bindings.js.map",
+      "dist/shell/arrays/ledger.d.ts.map",
+      "dist/shell/arrays/ledger.js.map",
+      "dist/shell/arrays/state.d.ts.map",
+      "dist/shell/arrays/state.js.map",
+      "dist/shell/arrays/syntax.d.ts.map",
+      "dist/shell/arrays/syntax.js.map",
+      "dist/shell/arrays/bindings.d.ts",
+      "dist/shell/arrays/ledger.d.ts",
+      "dist/shell/arrays/state.d.ts",
+      "dist/shell/arrays/syntax.d.ts"
+    ],
+    "changed": [
+      "dist/shell/parser.js",
+      "dist/shell/runtime.js",
+      "dist/shell/parser.d.ts.map",
+      "dist/shell/parser.js.map",
+      "dist/shell/runtime.d.ts.map",
+      "dist/shell/runtime.js.map",
+      "dist/shell/runtime.d.ts"
+    ],
+    "removed": []
+  },
+  "terminal": {
+    "sessionId": 4020,
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/run.mjs c9ad1b06247602063001f2b87f8e42d28751d3aaf47c606b718fb5d799cd38db COHERENT78-ARRAYS-20260828-01",
+    "exitCode": 1,
+    "stdout": "{\"receipt\":{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/records/FINAL.json\",\"sha256\":\"d05296cfd27314c76f0cfcf9929e2e74ce48afa4e3667ac909d422aaeb720b91\"},\"accepted\":false,\"unsafeStop\":false,\"elapsedBeforeAnnouncementMs\":419155.962041,\"work\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01\",\"childrenRetired\":true,\"requiresZeroCoordinatorExit\":true}\n",
+    "stderr": "",
+    "qualification": "Actual supervisor terminal output and tool exit. Exit1 is preserved ordinary assertion failure, not acceptance. No retry."
+  },
+  "layouts": {
+    "source-build": {
+      "runtime": [
+        {
+          "label": "source-build-author-core",
+          "accepted": true,
+          "summary": {
+            "layout": "source-build-author-core",
+            "profile": "root-approved-v2",
+            "cases": 19,
+            "positives": 18,
+            "positivePass": 18,
+            "refusalControls": 1,
+            "refusalPass": 1,
+            "pass": 19,
+            "failed": [],
+            "created": 21,
+            "disposed": 21,
+            "forbiddenNetwork": 0,
+            "nativeRuns": 0,
+            "privateSafeJsRuns": 0
+          },
+          "failures": []
+        },
+        {
+          "label": "source-build-author-array",
+          "accepted": true,
+          "summary": {
+            "profile": "coherent78-array-author-v1",
+            "cases": 12,
+            "pass": 12,
+            "disposed": 12
+          },
+          "failures": []
+        },
+        {
+          "label": "source-build-literal",
+          "accepted": false,
+          "summary": {
+            "cases": 16,
+            "pass": 15,
+            "disposed": 16
+          },
+          "failures": [
+            {
+              "id": "F11",
+              "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '/w|stable\\n'\n- '/search/project|stable\\n'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/worker.mjs:37:142",
+              "actual": {
+                "stdout": "/w|stable\n",
+                "stderr": "shell: line 1: /dev/null: No such file or directory\nshell: line 1: /dev/null: No such file or directory\nshell: line 1: /dev/null: No such file or directory\n",
+                "stdoutBytes": {
+                  "0": 47,
+                  "1": 119,
+                  "2": 124,
+                  "3": 115,
+                  "4": 116,
+                  "5": 97,
+                  "6": 98,
+                  "7": 108,
+                  "8": 101,
+                  "9": 10
+                },
+                "stderrBytes": {
+                  "0": 115,
+                  "1": 104,
+                  "2": 101,
+                  "3": 108,
+                  "4": 108,
+                  "5": 58,
+                  "6": 32,
+                  "7": 108,
+                  "8": 105,
+                  "9": 110,
+                  "10": 101,
+                  "11": 32,
+                  "12": 49,
+                  "13": 58,
+                  "14": 32,
+                  "15": 47,
+                  "16": 100,
+                  "17": 101,
+                  "18": 118,
+                  "19": 47,
+                  "20": 110,
+                  "21": 117,
+                  "22": 108,
+                  "23": 108,
+                  "24": 58,
+                  "25": 32,
+                  "26": 78,
+                  "27": 111,
+                  "28": 32,
+                  "29": 115,
+                  "30": 117,
+                  "31": 99,
+                  "32": 104,
+                  "33": 32,
+                  "34": 102,
+                  "35": 105,
+                  "36": 108,
+                  "37": 101,
+                  "38": 32,
+                  "39": 111,
+                  "40": 114,
+                  "41": 32,
+                  "42": 100,
+                  "43": 105,
+                  "44": 114,
+                  "45": 101,
+                  "46": 99,
+                  "47": 116,
+                  "48": 111,
+                  "49": 114,
+                  "50": 121,
+                  "51": 10,
+                  "52": 115,
+                  "53": 104,
+                  "54": 101,
+                  "55": 108,
+                  "56": 108,
+                  "57": 58,
+                  "58": 32,
+                  "59": 108,
+                  "60": 105,
+                  "61": 110,
+                  "62": 101,
+                  "63": 32,
+                  "64": 49,
+                  "65": 58,
+                  "66": 32,
+                  "67": 47,
+                  "68": 100,
+                  "69": 101,
+                  "70": 118,
+                  "71": 47,
+                  "72": 110,
+                  "73": 117,
+                  "74": 108,
+                  "75": 108,
+                  "76": 58,
+                  "77": 32,
+                  "78": 78,
+                  "79": 111,
+                  "80": 32,
+                  "81": 115,
+                  "82": 117,
+                  "83": 99,
+                  "84": 104,
+                  "85": 32,
+                  "86": 102,
+                  "87": 105,
+                  "88": 108,
+                  "89": 101,
+                  "90": 32,
+                  "91": 111,
+                  "92": 114,
+                  "93": 32,
+                  "94": 100,
+                  "95": 105,
+                  "96": 114,
+                  "97": 101,
+                  "98": 99,
+                  "99": 116,
+                  "100": 111,
+                  "101": 114,
+                  "102": 121,
+                  "103": 10,
+                  "104": 115,
+                  "105": 104,
+                  "106": 101,
+                  "107": 108,
+                  "108": 108,
+                  "109": 58,
+                  "110": 32,
+                  "111": 108,
+                  "112": 105,
+                  "113": 110,
+                  "114": 101,
+                  "115": 32,
+                  "116": 49,
+                  "117": 58,
+                  "118": 32,
+                  "119": 47,
+                  "120": 100,
+                  "121": 101,
+                  "122": 118,
+                  "123": 47,
+                  "124": 110,
+                  "125": 117,
+                  "126": 108,
+                  "127": 108,
+                  "128": 58,
+                  "129": 32,
+                  "130": 78,
+                  "131": 111,
+                  "132": 32,
+                  "133": 115,
+                  "134": 117,
+                  "135": 99,
+                  "136": 104,
+                  "137": 32,
+                  "138": 102,
+                  "139": 105,
+                  "140": 108,
+                  "141": 101,
+                  "142": 32,
+                  "143": 111,
+                  "144": 114,
+                  "145": 32,
+                  "146": 100,
+                  "147": 105,
+                  "148": 114,
+                  "149": 101,
+                  "150": 99,
+                  "151": 116,
+                  "152": 111,
+                  "153": 114,
+                  "154": 121,
+                  "155": 10
+                },
+                "exitCode": 0
+              }
+            }
+          ]
+        },
+        {
+          "label": "source-build-dynamic",
+          "accepted": true,
+          "summary": {
+            "cases": 8,
+            "pass": 8,
+            "disposed": 8
+          },
+          "failures": []
+        },
+        {
+          "label": "source-build-fallback",
+          "accepted": true,
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "disposed": 1
+          },
+          "failures": []
+        }
+      ],
+      "types": [
+        {
+          "group": "array-option",
+          "cases": [
+            "N-array-option"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-array-option.mts(5,15): error TS2353: Object literal may only specify known properties, and 'arrays' does not exist in type 'ShellOptions'."
+          ]
+        },
+        {
+          "group": "inversions",
+          "cases": [
+            "I-array-option",
+            "I-private-limit",
+            "I-invoke-signal",
+            "I-replace-option"
+          ],
+          "accepted": true,
+          "code": 0,
+          "errors": []
+        },
+        {
+          "group": "invoke-signal",
+          "cases": [
+            "N-invoke-signal"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-invoke-signal.mts(5,41): error TS2322: Type 'number' is not assignable to type 'AbortSignal'."
+          ]
+        },
+        {
+          "group": "positive",
+          "cases": [
+            "T-api",
+            "T-ast"
+          ],
+          "accepted": true,
+          "code": 0,
+          "errors": []
+        },
+        {
+          "group": "private-limit",
+          "cases": [
+            "N-private-limit"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-private-limit.mts(5,23): error TS2353: Object literal may only specify known properties, and 'arrayWork' does not exist in type 'ShellLimits'."
+          ]
+        },
+        {
+          "group": "replace-option",
+          "cases": [
+            "N-replace-option"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-replace-option.mts(5,47): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeoutCommandsOptions, \"replace\">'."
+          ]
+        }
+      ]
+    },
+    "installed": {
+      "runtime": [
+        {
+          "label": "installed-fallback",
+          "accepted": true,
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "disposed": 1
+          },
+          "failures": []
+        },
+        {
+          "label": "installed-author-core",
+          "accepted": true,
+          "summary": {
+            "layout": "installed-author-core",
+            "profile": "root-approved-v2",
+            "cases": 19,
+            "positives": 18,
+            "positivePass": 18,
+            "refusalControls": 1,
+            "refusalPass": 1,
+            "pass": 19,
+            "failed": [],
+            "created": 21,
+            "disposed": 21,
+            "forbiddenNetwork": 0,
+            "nativeRuns": 0,
+            "privateSafeJsRuns": 0
+          },
+          "failures": []
+        },
+        {
+          "label": "installed-author-array",
+          "accepted": true,
+          "summary": {
+            "profile": "coherent78-array-author-v1",
+            "cases": 12,
+            "pass": 12,
+            "disposed": 12
+          },
+          "failures": []
+        },
+        {
+          "label": "installed-literal",
+          "accepted": false,
+          "summary": {
+            "cases": 16,
+            "pass": 15,
+            "disposed": 16
+          },
+          "failures": [
+            {
+              "id": "F11",
+              "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '/w|stable\\n'\n- '/search/project|stable\\n'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/worker.mjs:37:142",
+              "actual": {
+                "stdout": "/w|stable\n",
+                "stderr": "shell: line 1: /dev/null: No such file or directory\nshell: line 1: /dev/null: No such file or directory\nshell: line 1: /dev/null: No such file or directory\n",
+                "stdoutBytes": {
+                  "0": 47,
+                  "1": 119,
+                  "2": 124,
+                  "3": 115,
+                  "4": 116,
+                  "5": 97,
+                  "6": 98,
+                  "7": 108,
+                  "8": 101,
+                  "9": 10
+                },
+                "stderrBytes": {
+                  "0": 115,
+                  "1": 104,
+                  "2": 101,
+                  "3": 108,
+                  "4": 108,
+                  "5": 58,
+                  "6": 32,
+                  "7": 108,
+                  "8": 105,
+                  "9": 110,
+                  "10": 101,
+                  "11": 32,
+                  "12": 49,
+                  "13": 58,
+                  "14": 32,
+                  "15": 47,
+                  "16": 100,
+                  "17": 101,
+                  "18": 118,
+                  "19": 47,
+                  "20": 110,
+                  "21": 117,
+                  "22": 108,
+                  "23": 108,
+                  "24": 58,
+                  "25": 32,
+                  "26": 78,
+                  "27": 111,
+                  "28": 32,
+                  "29": 115,
+                  "30": 117,
+                  "31": 99,
+                  "32": 104,
+                  "33": 32,
+                  "34": 102,
+                  "35": 105,
+                  "36": 108,
+                  "37": 101,
+                  "38": 32,
+                  "39": 111,
+                  "40": 114,
+                  "41": 32,
+                  "42": 100,
+                  "43": 105,
+                  "44": 114,
+                  "45": 101,
+                  "46": 99,
+                  "47": 116,
+                  "48": 111,
+                  "49": 114,
+                  "50": 121,
+                  "51": 10,
+                  "52": 115,
+                  "53": 104,
+                  "54": 101,
+                  "55": 108,
+                  "56": 108,
+                  "57": 58,
+                  "58": 32,
+                  "59": 108,
+                  "60": 105,
+                  "61": 110,
+                  "62": 101,
+                  "63": 32,
+                  "64": 49,
+                  "65": 58,
+                  "66": 32,
+                  "67": 47,
+                  "68": 100,
+                  "69": 101,
+                  "70": 118,
+                  "71": 47,
+                  "72": 110,
+                  "73": 117,
+                  "74": 108,
+                  "75": 108,
+                  "76": 58,
+                  "77": 32,
+                  "78": 78,
+                  "79": 111,
+                  "80": 32,
+                  "81": 115,
+                  "82": 117,
+                  "83": 99,
+                  "84": 104,
+                  "85": 32,
+                  "86": 102,
+                  "87": 105,
+                  "88": 108,
+                  "89": 101,
+                  "90": 32,
+                  "91": 111,
+                  "92": 114,
+                  "93": 32,
+                  "94": 100,
+                  "95": 105,
+                  "96": 114,
+                  "97": 101,
+                  "98": 99,
+                  "99": 116,
+                  "100": 111,
+                  "101": 114,
+                  "102": 121,
+                  "103": 10,
+                  "104": 115,
+                  "105": 104,
+                  "106": 101,
+                  "107": 108,
+                  "108": 108,
+                  "109": 58,
+                  "110": 32,
+                  "111": 108,
+                  "112": 105,
+                  "113": 110,
+                  "114": 101,
+                  "115": 32,
+                  "116": 49,
+                  "117": 58,
+                  "118": 32,
+                  "119": 47,
+                  "120": 100,
+                  "121": 101,
+                  "122": 118,
+                  "123": 47,
+                  "124": 110,
+                  "125": 117,
+                  "126": 108,
+                  "127": 108,
+                  "128": 58,
+                  "129": 32,
+                  "130": 78,
+                  "131": 111,
+                  "132": 32,
+                  "133": 115,
+                  "134": 117,
+                  "135": 99,
+                  "136": 104,
+                  "137": 32,
+                  "138": 102,
+                  "139": 105,
+                  "140": 108,
+                  "141": 101,
+                  "142": 32,
+                  "143": 111,
+                  "144": 114,
+                  "145": 32,
+                  "146": 100,
+                  "147": 105,
+                  "148": 114,
+                  "149": 101,
+                  "150": 99,
+                  "151": 116,
+                  "152": 111,
+                  "153": 114,
+                  "154": 121,
+                  "155": 10
+                },
+                "exitCode": 0
+              }
+            }
+          ]
+        },
+        {
+          "label": "installed-dynamic",
+          "accepted": true,
+          "summary": {
+            "cases": 8,
+            "pass": 8,
+            "disposed": 8
+          },
+          "failures": []
+        }
+      ],
+      "types": [
+        {
+          "group": "array-option",
+          "cases": [
+            "N-array-option"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-array-option.mts(5,15): error TS2353: Object literal may only specify known properties, and 'arrays' does not exist in type 'ShellOptions'."
+          ]
+        },
+        {
+          "group": "inversions",
+          "cases": [
+            "I-array-option",
+            "I-private-limit",
+            "I-invoke-signal",
+            "I-replace-option"
+          ],
+          "accepted": true,
+          "code": 0,
+          "errors": []
+        },
+        {
+          "group": "invoke-signal",
+          "cases": [
+            "N-invoke-signal"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-invoke-signal.mts(5,41): error TS2322: Type 'number' is not assignable to type 'AbortSignal'."
+          ]
+        },
+        {
+          "group": "positive",
+          "cases": [
+            "T-api",
+            "T-ast"
+          ],
+          "accepted": true,
+          "code": 0,
+          "errors": []
+        },
+        {
+          "group": "private-limit",
+          "cases": [
+            "N-private-limit"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-private-limit.mts(5,23): error TS2353: Object literal may only specify known properties, and 'arrayWork' does not exist in type 'ShellLimits'."
+          ]
+        },
+        {
+          "group": "replace-option",
+          "cases": [
+            "N-replace-option"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-replace-option.mts(5,47): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeoutCommandsOptions, \"replace\">'."
+          ]
+        }
+      ]
+    },
+    "moved": {
+      "runtime": [
+        {
+          "label": "moved-author-core",
+          "accepted": true,
+          "summary": {
+            "layout": "moved-author-core",
+            "profile": "root-approved-v2",
+            "cases": 19,
+            "positives": 18,
+            "positivePass": 18,
+            "refusalControls": 1,
+            "refusalPass": 1,
+            "pass": 19,
+            "failed": [],
+            "created": 21,
+            "disposed": 21,
+            "forbiddenNetwork": 0,
+            "nativeRuns": 0,
+            "privateSafeJsRuns": 0
+          },
+          "failures": []
+        },
+        {
+          "label": "moved-author-array",
+          "accepted": true,
+          "summary": {
+            "profile": "coherent78-array-author-v1",
+            "cases": 12,
+            "pass": 12,
+            "disposed": 12
+          },
+          "failures": []
+        },
+        {
+          "label": "moved-literal",
+          "accepted": false,
+          "summary": {
+            "cases": 16,
+            "pass": 15,
+            "disposed": 16
+          },
+          "failures": [
+            {
+              "id": "F11",
+              "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '/w|stable\\n'\n- '/search/project|stable\\n'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/worker.mjs:37:142",
+              "actual": {
+                "stdout": "/w|stable\n",
+                "stderr": "shell: line 1: /dev/null: No such file or directory\nshell: line 1: /dev/null: No such file or directory\nshell: line 1: /dev/null: No such file or directory\n",
+                "stdoutBytes": {
+                  "0": 47,
+                  "1": 119,
+                  "2": 124,
+                  "3": 115,
+                  "4": 116,
+                  "5": 97,
+                  "6": 98,
+                  "7": 108,
+                  "8": 101,
+                  "9": 10
+                },
+                "stderrBytes": {
+                  "0": 115,
+                  "1": 104,
+                  "2": 101,
+                  "3": 108,
+                  "4": 108,
+                  "5": 58,
+                  "6": 32,
+                  "7": 108,
+                  "8": 105,
+                  "9": 110,
+                  "10": 101,
+                  "11": 32,
+                  "12": 49,
+                  "13": 58,
+                  "14": 32,
+                  "15": 47,
+                  "16": 100,
+                  "17": 101,
+                  "18": 118,
+                  "19": 47,
+                  "20": 110,
+                  "21": 117,
+                  "22": 108,
+                  "23": 108,
+                  "24": 58,
+                  "25": 32,
+                  "26": 78,
+                  "27": 111,
+                  "28": 32,
+                  "29": 115,
+                  "30": 117,
+                  "31": 99,
+                  "32": 104,
+                  "33": 32,
+                  "34": 102,
+                  "35": 105,
+                  "36": 108,
+                  "37": 101,
+                  "38": 32,
+                  "39": 111,
+                  "40": 114,
+                  "41": 32,
+                  "42": 100,
+                  "43": 105,
+                  "44": 114,
+                  "45": 101,
+                  "46": 99,
+                  "47": 116,
+                  "48": 111,
+                  "49": 114,
+                  "50": 121,
+                  "51": 10,
+                  "52": 115,
+                  "53": 104,
+                  "54": 101,
+                  "55": 108,
+                  "56": 108,
+                  "57": 58,
+                  "58": 32,
+                  "59": 108,
+                  "60": 105,
+                  "61": 110,
+                  "62": 101,
+                  "63": 32,
+                  "64": 49,
+                  "65": 58,
+                  "66": 32,
+                  "67": 47,
+                  "68": 100,
+                  "69": 101,
+                  "70": 118,
+                  "71": 47,
+                  "72": 110,
+                  "73": 117,
+                  "74": 108,
+                  "75": 108,
+                  "76": 58,
+                  "77": 32,
+                  "78": 78,
+                  "79": 111,
+                  "80": 32,
+                  "81": 115,
+                  "82": 117,
+                  "83": 99,
+                  "84": 104,
+                  "85": 32,
+                  "86": 102,
+                  "87": 105,
+                  "88": 108,
+                  "89": 101,
+                  "90": 32,
+                  "91": 111,
+                  "92": 114,
+                  "93": 32,
+                  "94": 100,
+                  "95": 105,
+                  "96": 114,
+                  "97": 101,
+                  "98": 99,
+                  "99": 116,
+                  "100": 111,
+                  "101": 114,
+                  "102": 121,
+                  "103": 10,
+                  "104": 115,
+                  "105": 104,
+                  "106": 101,
+                  "107": 108,
+                  "108": 108,
+                  "109": 58,
+                  "110": 32,
+                  "111": 108,
+                  "112": 105,
+                  "113": 110,
+                  "114": 101,
+                  "115": 32,
+                  "116": 49,
+                  "117": 58,
+                  "118": 32,
+                  "119": 47,
+                  "120": 100,
+                  "121": 101,
+                  "122": 118,
+                  "123": 47,
+                  "124": 110,
+                  "125": 117,
+                  "126": 108,
+                  "127": 108,
+                  "128": 58,
+                  "129": 32,
+                  "130": 78,
+                  "131": 111,
+                  "132": 32,
+                  "133": 115,
+                  "134": 117,
+                  "135": 99,
+                  "136": 104,
+                  "137": 32,
+                  "138": 102,
+                  "139": 105,
+                  "140": 108,
+                  "141": 101,
+                  "142": 32,
+                  "143": 111,
+                  "144": 114,
+                  "145": 32,
+                  "146": 100,
+                  "147": 105,
+                  "148": 114,
+                  "149": 101,
+                  "150": 99,
+                  "151": 116,
+                  "152": 111,
+                  "153": 114,
+                  "154": 121,
+                  "155": 10
+                },
+                "exitCode": 0
+              }
+            }
+          ]
+        },
+        {
+          "label": "moved-dynamic",
+          "accepted": true,
+          "summary": {
+            "cases": 8,
+            "pass": 8,
+            "disposed": 8
+          },
+          "failures": []
+        },
+        {
+          "label": "moved-fallback",
+          "accepted": true,
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "disposed": 1
+          },
+          "failures": []
+        }
+      ],
+      "types": [
+        {
+          "group": "array-option",
+          "cases": [
+            "N-array-option"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-array-option.mts(5,15): error TS2353: Object literal may only specify known properties, and 'arrays' does not exist in type 'ShellOptions'."
+          ]
+        },
+        {
+          "group": "inversions",
+          "cases": [
+            "I-array-option",
+            "I-private-limit",
+            "I-invoke-signal",
+            "I-replace-option"
+          ],
+          "accepted": true,
+          "code": 0,
+          "errors": []
+        },
+        {
+          "group": "invoke-signal",
+          "cases": [
+            "N-invoke-signal"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-invoke-signal.mts(5,41): error TS2322: Type 'number' is not assignable to type 'AbortSignal'."
+          ]
+        },
+        {
+          "group": "positive",
+          "cases": [
+            "T-api",
+            "T-ast"
+          ],
+          "accepted": true,
+          "code": 0,
+          "errors": []
+        },
+        {
+          "group": "private-limit",
+          "cases": [
+            "N-private-limit"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-private-limit.mts(5,23): error TS2353: Object literal may only specify known properties, and 'arrayWork' does not exist in type 'ShellLimits'."
+          ]
+        },
+        {
+          "group": "replace-option",
+          "cases": [
+            "N-replace-option"
+          ],
+          "accepted": true,
+          "code": 2,
+          "errors": [
+            "type-replace-option.mts(5,47): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TimeoutCommandsOptions, \"replace\">'."
+          ]
+        }
+      ]
+    }
+  },
+  "guards": [
+    {
+      "label": "guard-manifest",
+      "refused": true
+    },
+    {
+      "label": "guard-drift",
+      "refused": true
+    },
+    {
+      "label": "guard-missing",
+      "refused": true
+    },
+    {
+      "label": "guard-overlay",
+      "refused": true
+    }
+  ],
+  "mutations": [
+    {
+      "label": "U-zero",
+      "accepted": true,
+      "activation": {
+        "id": "U-zero",
+        "hits": 1,
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/U-zero/node_modules/virtual-bash/dist/shell/arrays/bindings.js",
+        "sha256": "a11a4987ba1aae507a7a8cbf9a2b272cc3a28ff932ff952c4cd9ca90d5282c5c"
+      },
+      "observations": [
+        {
+          "id": "F02",
+          "pass": false
+        },
+        {
+          "id": "D03-preabort",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "label": "U-jq-unicode",
+      "accepted": true,
+      "activation": {
+        "id": "U-jq-unicode",
+        "hits": 4,
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/U-jq-unicode/node_modules/virtual-bash/dist/commands/structured/interpreter.js",
+        "sha256": "09e8641974d34685736065735d4bba11e62b25a95bc7d88266d05313aad5cd3e"
+      },
+      "observations": [
+        {
+          "id": "F12",
+          "pass": false
+        },
+        {
+          "id": "F09",
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "restored": [
+    {
+      "label": "U-zero-restored",
+      "accepted": true,
+      "summary": {
+        "cases": 2,
+        "pass": 2,
+        "disposed": 2
+      }
+    },
+    {
+      "label": "U-jq-unicode-restored",
+      "accepted": true,
+      "summary": {
+        "cases": 2,
+        "pass": 2,
+        "disposed": 2
+      }
+    }
+  ],
+  "declarationBindings": {
+    "source-build": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/archive/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/archive/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/bytes/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/column/column.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/column/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/column/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/diff-patch/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/diff-patch/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/du/du.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/du/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/du/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/expr/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/file/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/file/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/grep-aliases/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/html-to-markdown/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/html-to-markdown/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/metadata/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/metadata/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/network/curl.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/network/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/network/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/network/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/regex-execution/client.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/regex-execution/protocol.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/safejs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/safejs/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/safejs/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/search/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/search/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/split/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/split/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/stream-format/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/stream-format/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/stream-inspection/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/stream-inspection/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/structured/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/structured/limits.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/structured/numbers.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/table-text/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/table-text/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/text-programs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/text-programs/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/time-env/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/time-env/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/timeout/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/tree/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/tree/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/tree/tree.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/which/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/which/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/commands/which/which.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/contracts/command.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/contracts/errors.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/contracts/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/contracts/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/contracts/io.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/contracts/output.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/contracts/path.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/contracts/plugin.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/memory/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/mount/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/overlay/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/readonly/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/real/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/s3/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/s3/http/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/s3/http/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/s3/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/s3/mock.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/s3/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/webdav/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/fs/webdav/webdav.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/integrations/safejs/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/integrations/safejs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/integrations/safejs/shell.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/plugins/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/shell/arithmetic.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/shell/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/shell/parser.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/shell/shell.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/source-build/node_modules/virtual-bash/dist/shell/types.d.ts"
+    ],
+    "installed": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/archive/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/archive/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/bytes/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/column/column.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/column/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/column/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/diff-patch/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/diff-patch/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/du/du.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/du/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/du/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/expr/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/file/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/file/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/grep-aliases/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/html-to-markdown/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/html-to-markdown/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/metadata/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/metadata/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/network/curl.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/network/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/network/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/network/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/regex-execution/client.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/regex-execution/protocol.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/safejs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/safejs/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/safejs/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/search/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/search/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/split/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/split/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/stream-format/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/stream-format/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/stream-inspection/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/stream-inspection/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/structured/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/structured/limits.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/structured/numbers.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/table-text/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/table-text/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/text-programs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/text-programs/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/time-env/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/time-env/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/timeout/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/tree/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/tree/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/tree/tree.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/which/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/which/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/commands/which/which.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/contracts/command.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/contracts/errors.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/contracts/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/contracts/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/contracts/io.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/contracts/output.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/contracts/path.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/contracts/plugin.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/memory/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/mount/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/overlay/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/readonly/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/real/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/s3/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/s3/http/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/s3/http/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/s3/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/s3/mock.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/s3/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/webdav/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/fs/webdav/webdav.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/integrations/safejs/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/integrations/safejs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/integrations/safejs/shell.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/plugins/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/shell/arithmetic.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/shell/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/shell/parser.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/shell/shell.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/installed/node_modules/virtual-bash/dist/shell/types.d.ts"
+    ],
+    "moved": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/archive/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/archive/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/bytes/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/column/column.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/column/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/column/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/diff-patch/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/diff-patch/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/du/du.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/du/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/du/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/expr/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/expr/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/file/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/file/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/grep-aliases/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/html-to-markdown/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/html-to-markdown/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/metadata/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/metadata/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/network/curl.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/network/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/network/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/network/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/regex-execution/client.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/regex-execution/protocol.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/safejs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/safejs/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/safejs/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/search/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/search/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/split/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/split/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/stream-format/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/stream-format/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/stream-inspection/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/stream-inspection/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/structured/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/structured/limits.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/structured/numbers.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/table-text/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/table-text/internal.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/text-programs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/text-programs/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/time-env/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/time-env/shared.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/timeout/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/tree/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/tree/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/tree/tree.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/which/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/which/options.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/commands/which/which.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/contracts/command.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/contracts/errors.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/contracts/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/contracts/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/contracts/io.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/contracts/output.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/contracts/path.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/contracts/plugin.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/memory/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/mount/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/overlay/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/readonly/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/real/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/s3/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/s3/http/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/s3/http/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/s3/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/s3/mock.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/s3/transport.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/webdav/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/fs/webdav/webdav.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/integrations/safejs/filesystem.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/integrations/safejs/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/integrations/safejs/shell.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/plugins/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/shell/arithmetic.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/shell/index.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/shell/parser.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/shell/shell.d.ts",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps/moved/node_modules/virtual-bash/dist/shell/types.d.ts"
+    ]
+  },
+  "loadWitnesses": 4066,
+  "failures": [
+    "source-build-literal",
+    "installed-literal",
+    "moved-literal"
+  ],
+  "resources": {
+    "elapsedBeforeAnnouncementMs": 419155.962041,
+    "children": 44,
+    "childCapturedBytes": 2192592,
+    "childRoles": {
+      "tool": 3,
+      "product": 23,
+      "type": 18
+    },
+    "recordBytes": 15459251,
+    "records": 109,
+    "preparedBytes": 41896853,
+    "retainedWorkingBytes": 100909129,
+    "allChildrenRetired": true,
+    "retainedIncludingPreparedBytes": 142805982
+  },
+  "finalCensusRoots": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/source",
+      "entries": 1509
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/tools",
+      "entries": 2542
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/apps",
+      "entries": 7495
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/artifacts",
+      "entries": 2
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/home",
+      "entries": 2
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/tmp",
+      "entries": 559
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/cache",
+      "entries": 20
+    }
+  ],
+  "archive": [
+    {
+      "path": "FINAL.json",
+      "bytes": 1955506,
+      "mode": 420,
+      "sha256": "d05296cfd27314c76f0cfcf9929e2e74ce48afa4e3667ac909d422aaeb720b91",
+      "archive": "records/FINAL.json.gz",
+      "compressedBytes": 522896,
+      "compressedSha256": "b61a3971f80c814b4050881279b1f2bfef7695bfa3659197c30edf87ecb5a85d"
+    },
+    {
+      "path": "body-1.json",
+      "bytes": 67515,
+      "mode": 420,
+      "sha256": "945f91ffc7ac2070e151e0f73cf30ec368bc14b681697479ba9a3635e77db9ee",
+      "archive": "records/body-1.json.gz",
+      "compressedBytes": 11173,
+      "compressedSha256": "bde247a4fde2a0f6238cd72bcf79713cbc53f48bdf5e981f8633cb8d0c12bc08"
+    },
+    {
+      "path": "body-10.json",
+      "bytes": 61052,
+      "mode": 420,
+      "sha256": "60b2a5da1c08de65be13a3b764d4a8a75143f9a335a7138d1c12a1ec4255a0d6",
+      "archive": "records/body-10.json.gz",
+      "compressedBytes": 9890,
+      "compressedSha256": "dc5561be8e5b808f37492a5e5abc4b4ee1119bbfd6b98d82d2ef393e9069e47d"
+    },
+    {
+      "path": "body-11.json",
+      "bytes": 66003,
+      "mode": 420,
+      "sha256": "d7966d5c4c6fb314fd96a6cb3094412a90227fe41162c28aa8d327511e481bf6",
+      "archive": "records/body-11.json.gz",
+      "compressedBytes": 11178,
+      "compressedSha256": "c11e4acb52937c9564f3bfa99bb8af9433353f426df38d5320ac3d821115935a"
+    },
+    {
+      "path": "body-12.json",
+      "bytes": 63915,
+      "mode": 420,
+      "sha256": "0ca91f77c35a70c76c6115d022ac02153d1d5096be60cff999acd380fdb36d38",
+      "archive": "records/body-12.json.gz",
+      "compressedBytes": 11060,
+      "compressedSha256": "56ffc84813a4b88f774195d5c047cc4f31bb144f2790200a78d28e6649c80c96"
+    },
+    {
+      "path": "body-13.json",
+      "bytes": 66342,
+      "mode": 420,
+      "sha256": "ee088d7b53d502a6c934fc8de476eb20ef094e3be5838d82dfe5013fea6c81f4",
+      "archive": "records/body-13.json.gz",
+      "compressedBytes": 11758,
+      "compressedSha256": "4bafe99e2a47e9377e68a134fd713882845e431c739aa0b61ffdaedac9a0267c"
+    },
+    {
+      "path": "body-14.json",
+      "bytes": 61392,
+      "mode": 420,
+      "sha256": "f0614c0833a649b0021828ab5b12559bba8e5b8e555f089e71ff58ee4d93d816",
+      "archive": "records/body-14.json.gz",
+      "compressedBytes": 10340,
+      "compressedSha256": "776258cf732b74e1ec7e12db196aba7dbe6e45eb4050bf6ccfcf98c146b220da"
+    },
+    {
+      "path": "body-15.json",
+      "bytes": 60192,
+      "mode": 420,
+      "sha256": "29a515ef1775fa250764a285453d2b8ca010db76cef26ed4156dad674ec12b76",
+      "archive": "records/body-15.json.gz",
+      "compressedBytes": 9887,
+      "compressedSha256": "607235091e4e0d85f65569321f4356f0e05b7098e7765a35d2628cc86e0e5c8a"
+    },
+    {
+      "path": "body-16.json",
+      "bytes": 731,
+      "mode": 420,
+      "sha256": "3dbc94e08b51f3a2edea3523961a59e9be8498c0ddd97b0bd3b1a3812fd4adb0",
+      "archive": "records/body-16.json.gz",
+      "compressedBytes": 466,
+      "compressedSha256": "3c928f7b940be4e09f78af6df260556838455f392173237359ccb8c9e5712b93"
+    },
+    {
+      "path": "body-17.json",
+      "bytes": 1230,
+      "mode": 420,
+      "sha256": "132aa8393e899ab6fecf65fac5190d14e8c50997c5124b8ce1f9e0cad9d2096b",
+      "archive": "records/body-17.json.gz",
+      "compressedBytes": 727,
+      "compressedSha256": "d55c49dd6ebcd81c38f8eb82f59259798f301c112a9a743e1cd9fe5d3944a9b4"
+    },
+    {
+      "path": "body-18.json",
+      "bytes": 1162,
+      "mode": 420,
+      "sha256": "c135d87b57fe058a1f7da710a26d2caca024659075be01d9992b5db70209b4ea",
+      "archive": "records/body-18.json.gz",
+      "compressedBytes": 685,
+      "compressedSha256": "3755a0674d063da467d68b7404dfc033063c246c72e5f1de8061f6119fb40ab8"
+    },
+    {
+      "path": "body-19.json",
+      "bytes": 1068,
+      "mode": 420,
+      "sha256": "9fbd628f78d036a0a92c5f49edfbfe8ff7f44a5cdc957878bf2e422f3a074f47",
+      "archive": "records/body-19.json.gz",
+      "compressedBytes": 657,
+      "compressedSha256": "5181b975db2677ab149b5ac9c3fe3421dae6ae50601b43916faad3dabb51e1e5"
+    },
+    {
+      "path": "body-2.json",
+      "bytes": 65420,
+      "mode": 420,
+      "sha256": "3367d1939d12329751d746f3248137c408e13570be680d18db933db52a7de05e",
+      "archive": "records/body-2.json.gz",
+      "compressedBytes": 11051,
+      "compressedSha256": "43a3917001d5aca8e314d5e10efa1a77fd1c940ab6a2dfd09f3a9f7f7f915f47"
+    },
+    {
+      "path": "body-20.json",
+      "bytes": 61396,
+      "mode": 420,
+      "sha256": "cc1325c5192d9fc1913682c20d94565e842da5750a4ba8dc2990ecfdc3ce2fff",
+      "archive": "records/body-20.json.gz",
+      "compressedBytes": 10341,
+      "compressedSha256": "fe4bfd7114a28575a590bf64d7a220b331c0924f5746c373db1ae7e7acca8fe1"
+    },
+    {
+      "path": "body-21.json",
+      "bytes": 60471,
+      "mode": 420,
+      "sha256": "3752d02dd257edf505b47a5efb6027757aa7f7fa54ca474917c25afb1e186ec7",
+      "archive": "records/body-21.json.gz",
+      "compressedBytes": 10070,
+      "compressedSha256": "4009fe43869eb60917389c6c90705ad5691d5ada600079fc8aa3cbd053bb975b"
+    },
+    {
+      "path": "body-22.json",
+      "bytes": 62655,
+      "mode": 420,
+      "sha256": "3b8a06d055f038258836a05e6fa1859cb8d0f79b9a64cf03758ac6bf6f59dbc7",
+      "archive": "records/body-22.json.gz",
+      "compressedBytes": 10250,
+      "compressedSha256": "13cd133b109446e85d7c5d9121ca82d2515aeabd57cdda6ecd46252aa2c4b235"
+    },
+    {
+      "path": "body-23.json",
+      "bytes": 60548,
+      "mode": 420,
+      "sha256": "b399280c294126945b5673bff57e31cfc62904287e91b382ad7e0f255a0f66c6",
+      "archive": "records/body-23.json.gz",
+      "compressedBytes": 10069,
+      "compressedSha256": "7e4b8e26a516a7cf4f81fb164ea374afe3e24bc3d94174fc921a3ea4ff377e93"
+    },
+    {
+      "path": "body-3.json",
+      "bytes": 67854,
+      "mode": 420,
+      "sha256": "9cb5aa919ccd616d2683282262805f362dac819a97673f795fbb8de85b9df41a",
+      "archive": "records/body-3.json.gz",
+      "compressedBytes": 11752,
+      "compressedSha256": "9bcbbee7377170b290a228cc8b59b69ff5355dc843118581ac76036a4077af94"
+    },
+    {
+      "path": "body-4.json",
+      "bytes": 62897,
+      "mode": 420,
+      "sha256": "08b402f8ac792eabc102adc3deec965f203fa209a4cb6444a1dcf960a45efa41",
+      "archive": "records/body-4.json.gz",
+      "compressedBytes": 10337,
+      "compressedSha256": "ceb61c60de11ba89dbd159684a4f13624e04022241227eb5cc682de303eabe9f"
+    },
+    {
+      "path": "body-5.json",
+      "bytes": 61697,
+      "mode": 420,
+      "sha256": "cce20ec33cce63b36f5a26265d2f8847fa858ff5f264a11ae00ecd8cdbb41041",
+      "archive": "records/body-5.json.gz",
+      "compressedBytes": 9881,
+      "compressedSha256": "31b0fe61df5d2919999fa8e6ba09f67bb6d09820077a92e4cf7c74da046d2f1c"
+    },
+    {
+      "path": "body-6.json",
+      "bytes": 66867,
+      "mode": 420,
+      "sha256": "b95b8c5d168acbc5f4d14784873357cf5f4f26ac59fb8a0ac141425490818b98",
+      "archive": "records/body-6.json.gz",
+      "compressedBytes": 11184,
+      "compressedSha256": "57b7ebee6636a23d81d9a453187b30a3cbb86bfddc54678fa1c912fd2ee48dd3"
+    },
+    {
+      "path": "body-7.json",
+      "bytes": 64775,
+      "mode": 420,
+      "sha256": "1647c5fcb6696e24368b2987943aee855994166dbe9408321dd28613d48bd6ea",
+      "archive": "records/body-7.json.gz",
+      "compressedBytes": 11061,
+      "compressedSha256": "861297bceed2d3836b920d2ebbf85e74dfb52fa065ce4ce0cce95fe25b602c73"
+    },
+    {
+      "path": "body-8.json",
+      "bytes": 67206,
+      "mode": 420,
+      "sha256": "8069b85fa397615a21ee988c47e1d4bdad8b1e89cc482476d71b72aa4d21a0d4",
+      "archive": "records/body-8.json.gz",
+      "compressedBytes": 11760,
+      "compressedSha256": "d4dc06569cc70868c4408d541729f841e946a40a255df57e12bbe025ecb32071"
+    },
+    {
+      "path": "body-9.json",
+      "bytes": 62252,
+      "mode": 420,
+      "sha256": "f5ce3819fff9cd4275466b16ee16a489824a3f38c2afd383aca772a5275d5a27",
+      "archive": "records/body-9.json.gz",
+      "compressedBytes": 10345,
+      "compressedSha256": "4997c5e1fcf0274b5197e1c4c46cddde39f8bb16668694ec22822a9cc54d0155"
+    },
+    {
+      "path": "child-001.json",
+      "bytes": 1014,
+      "mode": 420,
+      "sha256": "6959e701630977b7a877294fd7af50186797f542cef4f34b7f02872ecaf4aa4b",
+      "archive": "records/child-001.json.gz",
+      "compressedBytes": 455,
+      "compressedSha256": "afcc16365694694bbfdfcf6a91858763f8404a489647e66e23c7515570b7811c"
+    },
+    {
+      "path": "child-002.json",
+      "bytes": 110984,
+      "mode": 420,
+      "sha256": "df39bafe21b70e903049ae829b975c00a6c3de0112527b5ba748e1804098f208",
+      "archive": "records/child-002.json.gz",
+      "compressedBytes": 7136,
+      "compressedSha256": "7f3b5660f76431206c0853806455e7e964bd01fe8fd53de964af4e1bb286c5f4"
+    },
+    {
+      "path": "child-003.json",
+      "bytes": 1261,
+      "mode": 420,
+      "sha256": "33c3ab9429384fc5e510c346d2dd751c82036a5425973719b5bbcd2b8b0abc38",
+      "archive": "records/child-003.json.gz",
+      "compressedBytes": 527,
+      "compressedSha256": "947dfffdb682d05fac513e48d0668ca1928928451773eeb524ca460a2e16c359"
+    },
+    {
+      "path": "child-004.json",
+      "bytes": 73787,
+      "mode": 420,
+      "sha256": "20d5648de409c6c9a5d23474cd5a6953eb2ed9a6c163a0c4845272a32951c80e",
+      "archive": "records/child-004.json.gz",
+      "compressedBytes": 11578,
+      "compressedSha256": "9ecf87a67ad684ce9d4002d628179f898f350ca7e14aa3ac44c48855d33211a9"
+    },
+    {
+      "path": "child-005.json",
+      "bytes": 71685,
+      "mode": 420,
+      "sha256": "9cb3d43170cf78242c479bf3ef95b71e91cb2b04508cdb675919e509d810bb6f",
+      "archive": "records/child-005.json.gz",
+      "compressedBytes": 11464,
+      "compressedSha256": "931bb588eaec183b00242b724f76abaae49f696c9ed16cd1c6bf397f65c6ed65"
+    },
+    {
+      "path": "child-006.json",
+      "bytes": 74877,
+      "mode": 420,
+      "sha256": "9b0e8bfceceeb3a796e9ddf0a503fd712845aa0f5916edbcba2aeca597c9728e",
+      "archive": "records/child-006.json.gz",
+      "compressedBytes": 12187,
+      "compressedSha256": "7a588e2d3ce5154762177f6aca15e08005a0dbe3a88abadf309b40c48e8735c6"
+    },
+    {
+      "path": "child-007.json",
+      "bytes": 68712,
+      "mode": 420,
+      "sha256": "17f536b5499fb056632d67c6341c27db2626beb46554d239c8338c3e412e130e",
+      "archive": "records/child-007.json.gz",
+      "compressedBytes": 10778,
+      "compressedSha256": "29ba5f2d1b18e10ba11b5856deb9a4467e53a9c4c3567b1715589e42fe604eea"
+    },
+    {
+      "path": "child-008.json",
+      "bytes": 67173,
+      "mode": 420,
+      "sha256": "b1972e36bb57b35687d22741ca308af8ca6930274dd85cf0226b902ffe29c200",
+      "archive": "records/child-008.json.gz",
+      "compressedBytes": 10278,
+      "compressedSha256": "cb7d5fd3e116a3b63011c6a8cafe0ef9cdaab240044034ea9063b4ede830d229"
+    },
+    {
+      "path": "child-009.json",
+      "bytes": 48908,
+      "mode": 420,
+      "sha256": "ae5454de8cd4b48e81551db613029302849268cfe5ae88a49d9ad8198396fb03",
+      "archive": "records/child-009.json.gz",
+      "compressedBytes": 2155,
+      "compressedSha256": "7a5ef6e90842e3a466d2ec4bcf7e8f0da1a91ddcc466567ddd707f50c511c54a"
+    },
+    {
+      "path": "child-010.json",
+      "bytes": 49065,
+      "mode": 420,
+      "sha256": "7865e6b885d316d6795f640e1177a22ceb2a60d025367da6084ef004b2162efc",
+      "archive": "records/child-010.json.gz",
+      "compressedBytes": 2249,
+      "compressedSha256": "a3441983d82afc8b1333f6189e5ae25bec7d9657314a27172907126d7153c165"
+    },
+    {
+      "path": "child-011.json",
+      "bytes": 49070,
+      "mode": 420,
+      "sha256": "2a7400e8d796bb991ac6c3641023d195edb130a01c35095f654a905b8c2348fd",
+      "archive": "records/child-011.json.gz",
+      "compressedBytes": 2253,
+      "compressedSha256": "f0529e7d29f8879914561573e2f0f821334a2238e85b43e268e2a77bcfaafea9"
+    },
+    {
+      "path": "child-012.json",
+      "bytes": 49021,
+      "mode": 420,
+      "sha256": "bf0b251a2ac05690bc5ceb0e2c416196410d8511e93f5ecc249850c7933f1f43",
+      "archive": "records/child-012.json.gz",
+      "compressedBytes": 2219,
+      "compressedSha256": "85dd2aa267eb9b2848564967ab816b8b0f12c18162aa19a379409977585f1d28"
+    },
+    {
+      "path": "child-013.json",
+      "bytes": 49100,
+      "mode": 420,
+      "sha256": "d49f0360465c0d2bcbb1e914ed9c89a72002a95617daaa09b14ab8ed0b7bc9b0",
+      "archive": "records/child-013.json.gz",
+      "compressedBytes": 2270,
+      "compressedSha256": "2478d0a4183c7c5817d2fd451cd0453b46a9565ce5086a0536da86c7f91c43b5"
+    },
+    {
+      "path": "child-014.json",
+      "bytes": 48916,
+      "mode": 420,
+      "sha256": "808b06a1f7bca2af9fb7952dad51e2aa2faf677952da1c047b149996af30b82e",
+      "archive": "records/child-014.json.gz",
+      "compressedBytes": 2153,
+      "compressedSha256": "83c1820b53253dd5911706286e14e995facd236f0409152a6dba159570db30e6"
+    },
+    {
+      "path": "child-015.json",
+      "bytes": 73137,
+      "mode": 420,
+      "sha256": "b232090b6de056142e1bb9c10d425254f111a63f8a68dbd80bc9c0425d5613bb",
+      "archive": "records/child-015.json.gz",
+      "compressedBytes": 11567,
+      "compressedSha256": "dbc67ced1ef8820f55cb176dae856433f6f225b8787de02e4938c89ea6c41bed"
+    },
+    {
+      "path": "child-016.json",
+      "bytes": 71038,
+      "mode": 420,
+      "sha256": "67df5cd80b0ee9405a4c97537ef755c2705b343a6acc8b296964c8dee1dfa5e4",
+      "archive": "records/child-016.json.gz",
+      "compressedBytes": 11455,
+      "compressedSha256": "975208020c46f23f66573824e3dc0e900c9dee73fe7bcdd7353560d318e9d69c"
+    },
+    {
+      "path": "child-017.json",
+      "bytes": 74228,
+      "mode": 420,
+      "sha256": "910f63f7153f6c6dfb0613ed719316502333d9d05349669cb38c8481afdff150",
+      "archive": "records/child-017.json.gz",
+      "compressedBytes": 12176,
+      "compressedSha256": "d0ef172bafde5c52040ee0460cd623bb93f059b98fa702a4a37f6759627ff478"
+    },
+    {
+      "path": "child-018.json",
+      "bytes": 68065,
+      "mode": 420,
+      "sha256": "54cb6d04260930bd923d514a844e1ca51d50f80b5780eba1b5d4a4bb40d11259",
+      "archive": "records/child-018.json.gz",
+      "compressedBytes": 10769,
+      "compressedSha256": "8a2b142510f60e20dcb8b38a216c892ca50631d4b58c8b8c88a7dbaeef081555"
+    },
+    {
+      "path": "child-019.json",
+      "bytes": 66526,
+      "mode": 420,
+      "sha256": "91ce3ae47ab6a51edfa8485637c7fc06982fd23b312d7a593eee0f9ba9161d9c",
+      "archive": "records/child-019.json.gz",
+      "compressedBytes": 10274,
+      "compressedSha256": "07a1fcddb6a5d885836b97b5e19090e814eedf88105db20224192f080bb22f62"
+    },
+    {
+      "path": "child-020.json",
+      "bytes": 48646,
+      "mode": 420,
+      "sha256": "ed01923a513e732847eedbffa26f09dac7b61f3cf6a6775574f5e9c26b717a55",
+      "archive": "records/child-020.json.gz",
+      "compressedBytes": 2148,
+      "compressedSha256": "015867f85d471e459da1a5c8be2851254f0aac4e80779bfa03a081a8ad6b930e"
+    },
+    {
+      "path": "child-021.json",
+      "bytes": 48800,
+      "mode": 420,
+      "sha256": "e7080fcb30252ea6dd4866f6cfdbe23e8eea626bc62e1b4e6bc6dbbc37252ff7",
+      "archive": "records/child-021.json.gz",
+      "compressedBytes": 2238,
+      "compressedSha256": "9b3b07f5c43bbbac5cbf6776a484302646ca68cff295ab567a40de5a92b4a87f"
+    },
+    {
+      "path": "child-022.json",
+      "bytes": 48802,
+      "mode": 420,
+      "sha256": "d4f5f86c12df788821c985c19338d6cab1ea972cc1c4e9c496a766d43ee819eb",
+      "archive": "records/child-022.json.gz",
+      "compressedBytes": 2242,
+      "compressedSha256": "ff21a366f9ae10df9f38df49e678b3cdb06d3847714cb96e421ad993df3d6339"
+    },
+    {
+      "path": "child-023.json",
+      "bytes": 48756,
+      "mode": 420,
+      "sha256": "60cabdf10f3d4720c306e4baecc1b3e793163c8c59ce9bc2628289b48d6a6f22",
+      "archive": "records/child-023.json.gz",
+      "compressedBytes": 2210,
+      "compressedSha256": "51b050b5282a00feefc956eef2d55f9a7e43e6b53508f998aa5e2a3f2600cc87"
+    },
+    {
+      "path": "child-024.json",
+      "bytes": 48836,
+      "mode": 420,
+      "sha256": "8f445d60ecd668c7238442f2a9e428b52b6f6064fb49c7d92b89d87a9b6e11d1",
+      "archive": "records/child-024.json.gz",
+      "compressedBytes": 2264,
+      "compressedSha256": "f13d72925809d3c7d198d3b1722a80d6c4b6238aecd413451888b8e579729d80"
+    },
+    {
+      "path": "child-025.json",
+      "bytes": 48650,
+      "mode": 420,
+      "sha256": "00d7001f6f7267fc703507c9ca55c67cdc83515a6a42cb3e80d5a908797811d7",
+      "archive": "records/child-025.json.gz",
+      "compressedBytes": 2147,
+      "compressedSha256": "5e4cb2742617a7a064d7c7591465fbbd8b4c4f992d9f4ec7ce7ca959651c9c62"
+    },
+    {
+      "path": "child-026.json",
+      "bytes": 72272,
+      "mode": 420,
+      "sha256": "a789b2e1d239cff100aa56105e022e047526282fe4a371fdbda83409d709b427",
+      "archive": "records/child-026.json.gz",
+      "compressedBytes": 11555,
+      "compressedSha256": "7660d35855b2e8a1275ae7e012e3bb48adcff11c5a5da707bfc2a3e371b33d32"
+    },
+    {
+      "path": "child-027.json",
+      "bytes": 70174,
+      "mode": 420,
+      "sha256": "ebfcfffcfd1628855dd585a89db8604c1f56b38069fe113a81ab134d6f5b49cc",
+      "archive": "records/child-027.json.gz",
+      "compressedBytes": 11446,
+      "compressedSha256": "6a0b575cea18687212b1b11564097c312df946fe569f216e37ae6bf8d8be4c77"
+    },
+    {
+      "path": "child-028.json",
+      "bytes": 73362,
+      "mode": 420,
+      "sha256": "b34b028a6572740c802ea55fcc892ee53cdf3c53522649a721db7174d30a3d40",
+      "archive": "records/child-028.json.gz",
+      "compressedBytes": 12171,
+      "compressedSha256": "c45ba0d10ee1bb17f2d68a300ae78cc16479b0991ac336ddca7fdad90f9d20c1"
+    },
+    {
+      "path": "child-029.json",
+      "bytes": 67204,
+      "mode": 420,
+      "sha256": "4c69d8cb65638c955f5461a1e238ddc8ab5e357216ac027e76d143a3399d2a03",
+      "archive": "records/child-029.json.gz",
+      "compressedBytes": 10759,
+      "compressedSha256": "0d2c928887272c7e83eab0ab85b1ee6ffa358905413adee494d144a6d3fd350e"
+    },
+    {
+      "path": "child-030.json",
+      "bytes": 65665,
+      "mode": 420,
+      "sha256": "28bbd2dd77192feba5e6503f92a1e090eda8640d7abdb3eb5c6cef72754f6a8c",
+      "archive": "records/child-030.json.gz",
+      "compressedBytes": 10267,
+      "compressedSha256": "287090fcec99eaf51bcafc3023fa9f67140d3f633c1c723a76afc5ff318b98eb"
+    },
+    {
+      "path": "child-031.json",
+      "bytes": 48290,
+      "mode": 420,
+      "sha256": "2827ed186460d003c34a3a7983191bad132e88ac9e15808dfe831dcc1173b325",
+      "archive": "records/child-031.json.gz",
+      "compressedBytes": 2137,
+      "compressedSha256": "2b43b443eff72f99fa81d799be1e92170eefc9742c1eb24b65ff64ff127f2e6e"
+    },
+    {
+      "path": "child-032.json",
+      "bytes": 48444,
+      "mode": 420,
+      "sha256": "e04ad08f9388ca7a70d2cadebea7f588796fab97d724b02dc35ae92fdc1d4cca",
+      "archive": "records/child-032.json.gz",
+      "compressedBytes": 2229,
+      "compressedSha256": "d46f0619de1370316e5db64c9797341667131fdc8efe66077c89eea799dfdbf5"
+    },
+    {
+      "path": "child-033.json",
+      "bytes": 48449,
+      "mode": 420,
+      "sha256": "ae7e768f0b9a415912443f960023494445074def8b39508bd22c9dfaad3955db",
+      "archive": "records/child-033.json.gz",
+      "compressedBytes": 2232,
+      "compressedSha256": "260de6d57288aed511cad51262cf3755235f8a5177cc209877972aed29b15286"
+    },
+    {
+      "path": "child-034.json",
+      "bytes": 48400,
+      "mode": 420,
+      "sha256": "e26d60bd366db27aa18c0ad2a37914bec8ded86cbb26c72214e14026147ef1fa",
+      "archive": "records/child-034.json.gz",
+      "compressedBytes": 2198,
+      "compressedSha256": "6c4467d8858c3643587340f582ec2b708dd247369b7be3bf0aa262de77506236"
+    },
+    {
+      "path": "child-035.json",
+      "bytes": 48479,
+      "mode": 420,
+      "sha256": "4b596fe8b0b3b46bbadad55d46922f83e8075a07afa1cf34a48078b5b015a447",
+      "archive": "records/child-035.json.gz",
+      "compressedBytes": 2248,
+      "compressedSha256": "e1c6a8949c6f51c4d45e48c7c1fa326de78e0dabcbeb1ee327e9e8c3df2ef4f4"
+    },
+    {
+      "path": "child-036.json",
+      "bytes": 48294,
+      "mode": 420,
+      "sha256": "f97bb418d5f2da418b779727a849bb3eda57a12ac7b2d4add677ebfa13f1c4df",
+      "archive": "records/child-036.json.gz",
+      "compressedBytes": 2135,
+      "compressedSha256": "a9e9a7414a9dabfedd551c0e0dde37cbfd7608f7674e902c7b4a9db95bc5c900"
+    },
+    {
+      "path": "child-037.json",
+      "bytes": 1945,
+      "mode": 420,
+      "sha256": "4e7a7e96a6aa57ddedb68047f5ebfac15ca4a63a853c8d4cd166f25ae2ea2689",
+      "archive": "records/child-037.json.gz",
+      "compressedBytes": 748,
+      "compressedSha256": "6fdd0bd7f244cd53575ea29c69dc44b98781cba2066472cefd968922513f209c"
+    },
+    {
+      "path": "child-038.json",
+      "bytes": 2461,
+      "mode": 420,
+      "sha256": "8a58ba634e02573007e0123782c5e2ab82bd9f95db53e2a40c043dc78204a5f1",
+      "archive": "records/child-038.json.gz",
+      "compressedBytes": 1050,
+      "compressedSha256": "fe0e716d4fbf419fe5d0d2b83267d8bea9061d664e47d98aaf63f4ea462660cf"
+    },
+    {
+      "path": "child-039.json",
+      "bytes": 2393,
+      "mode": 420,
+      "sha256": "3e44dd19072292bc340edd7a626c4ec7fd74955f444d1b94c274922e06facb3f",
+      "archive": "records/child-039.json.gz",
+      "compressedBytes": 1011,
+      "compressedSha256": "0c204544fbf95932c9fdb26fd2f0b4ab5aab4ba29639b09ee7c3a6e469fb9c15"
+    },
+    {
+      "path": "child-040.json",
+      "bytes": 2298,
+      "mode": 420,
+      "sha256": "1442a3a06eb9e53fd99e62b576062afc8414a73b25b03689cec3bceea05166c8",
+      "archive": "records/child-040.json.gz",
+      "compressedBytes": 986,
+      "compressedSha256": "4cb03b5d9429e4c220ef870b883cee7690e493475c59ad59c70213337dad24a8"
+    },
+    {
+      "path": "child-041.json",
+      "bytes": 67006,
+      "mode": 420,
+      "sha256": "f2fad64bf03f3b65e4640c073f9df56aa0fc35118e6258582477ad975a1f462b",
+      "archive": "records/child-041.json.gz",
+      "compressedBytes": 10706,
+      "compressedSha256": "c1c3d76639429057fdf0cb2ee131ffc2f62e6de6572a84f0719eb1f9c9402247"
+    },
+    {
+      "path": "child-042.json",
+      "bytes": 66016,
+      "mode": 420,
+      "sha256": "519b4c12ced3d6b19a20c2f14f16dec8ca035602590b6cafdddc7ea1b5a56a4b",
+      "archive": "records/child-042.json.gz",
+      "compressedBytes": 10438,
+      "compressedSha256": "290e3058d73d226dc14b9c5b5845e17a3eeaf5d51758edb06f047c03301cab81"
+    },
+    {
+      "path": "child-043.json",
+      "bytes": 68272,
+      "mode": 420,
+      "sha256": "2aba5bb43fb57f00f8e7f80951ea8c15ff25ac023109086101b7ea82c05baec8",
+      "archive": "records/child-043.json.gz",
+      "compressedBytes": 10642,
+      "compressedSha256": "59717cdd3f65e463df9066a327b53eb5c07dd7cab2e0f1bd0e92154f3646205d"
+    },
+    {
+      "path": "child-044.json",
+      "bytes": 66110,
+      "mode": 420,
+      "sha256": "4b1fda5bd7d6d570cc57f4f40c9bf76270c2d6857f2dd6fef521a15d993546bd",
+      "archive": "records/child-044.json.gz",
+      "compressedBytes": 10433,
+      "compressedSha256": "469c7b6441dbd390710db2861378199879c18bae6be401a519b139aa06b0cd22"
+    },
+    {
+      "path": "manifest-1.json",
+      "bytes": 421919,
+      "mode": 420,
+      "sha256": "ad9ac037342c1fe6f275b679f69bb800c665d3fef3f56394c4c2fbf911a51dde",
+      "archive": "records/manifest-1.json.gz",
+      "compressedBytes": 82056,
+      "compressedSha256": "57068b3175c492c9bf98fe20168e072378aea0ebb2bea2913bb8efe8da68c25f"
+    },
+    {
+      "path": "manifest-10.json",
+      "bytes": 419658,
+      "mode": 420,
+      "sha256": "72793a01ac76c55f1c5698cd3f353d3b1ec0dd86524b2e782d260c37e7407708",
+      "archive": "records/manifest-10.json.gz",
+      "compressedBytes": 82185,
+      "compressedSha256": "eed5195c18b139c6bca6d3aa33d4a5c9e4d3ee8650c34580dee54fce41ac7a1c"
+    },
+    {
+      "path": "manifest-11.json",
+      "bytes": 416090,
+      "mode": 420,
+      "sha256": "d83088966e3e4b0aecb45c7453ba475438047e0ea8272d7ccb53a1cded9cabf1",
+      "archive": "records/manifest-11.json.gz",
+      "compressedBytes": 82179,
+      "compressedSha256": "fefd0fd586bd2714ab6522c75d69ff584078a6a444c337ffb9c52c463ec5f41e"
+    },
+    {
+      "path": "manifest-12.json",
+      "bytes": 416090,
+      "mode": 420,
+      "sha256": "d83088966e3e4b0aecb45c7453ba475438047e0ea8272d7ccb53a1cded9cabf1",
+      "archive": "records/manifest-12.json.gz",
+      "compressedBytes": 82179,
+      "compressedSha256": "fefd0fd586bd2714ab6522c75d69ff584078a6a444c337ffb9c52c463ec5f41e"
+    },
+    {
+      "path": "manifest-13.json",
+      "bytes": 416090,
+      "mode": 420,
+      "sha256": "d83088966e3e4b0aecb45c7453ba475438047e0ea8272d7ccb53a1cded9cabf1",
+      "archive": "records/manifest-13.json.gz",
+      "compressedBytes": 82179,
+      "compressedSha256": "fefd0fd586bd2714ab6522c75d69ff584078a6a444c337ffb9c52c463ec5f41e"
+    },
+    {
+      "path": "manifest-14.json",
+      "bytes": 416090,
+      "mode": 420,
+      "sha256": "d83088966e3e4b0aecb45c7453ba475438047e0ea8272d7ccb53a1cded9cabf1",
+      "archive": "records/manifest-14.json.gz",
+      "compressedBytes": 82179,
+      "compressedSha256": "fefd0fd586bd2714ab6522c75d69ff584078a6a444c337ffb9c52c463ec5f41e"
+    },
+    {
+      "path": "manifest-15.json",
+      "bytes": 416090,
+      "mode": 420,
+      "sha256": "d83088966e3e4b0aecb45c7453ba475438047e0ea8272d7ccb53a1cded9cabf1",
+      "archive": "records/manifest-15.json.gz",
+      "compressedBytes": 82179,
+      "compressedSha256": "fefd0fd586bd2714ab6522c75d69ff584078a6a444c337ffb9c52c463ec5f41e"
+    },
+    {
+      "path": "manifest-16.json",
+      "bytes": 424118,
+      "mode": 420,
+      "sha256": "ee6f6f7b5fe38a076ed54a16503b7374cb4675ba2464f488d370bd26c91c24ef",
+      "archive": "records/manifest-16.json.gz",
+      "compressedBytes": 82177,
+      "compressedSha256": "b5f0cc99d6f3b205104a2531854f39ed239b249b4911f309981e9aeec4d0cd78"
+    },
+    {
+      "path": "manifest-17.json",
+      "bytes": 421442,
+      "mode": 420,
+      "sha256": "de2f9910e87df2acc5e98afd697a7097f07662969dde66036b5607d71f0d172b",
+      "archive": "records/manifest-17.json.gz",
+      "compressedBytes": 82181,
+      "compressedSha256": "32c9ca9caa817fb3c2ed4fb5c6637ddeefe50c986c87d257b5a46610177d35e7"
+    },
+    {
+      "path": "manifest-18.json",
+      "bytes": 423226,
+      "mode": 420,
+      "sha256": "b1e7357a597080fb3b2c129880c8ffa769db6c6fadeb9396f14dd38926fbc4b1",
+      "archive": "records/manifest-18.json.gz",
+      "compressedBytes": 82177,
+      "compressedSha256": "bce16704ef0d42d8dd7985b0488b524d3c11f6bb89ee56b93a0439733c41ba5a"
+    },
+    {
+      "path": "manifest-19.json",
+      "bytes": 423226,
+      "mode": 420,
+      "sha256": "57a2a715ace01277a615f471c49b3b9c3074f7abaeb07b80982a32c1783258cc",
+      "archive": "records/manifest-19.json.gz",
+      "compressedBytes": 82165,
+      "compressedSha256": "92ed8e89a8307ded263501fee0e28d198333125703adc518c6912ef5d4b2a14e"
+    },
+    {
+      "path": "manifest-2.json",
+      "bytes": 421919,
+      "mode": 420,
+      "sha256": "ad9ac037342c1fe6f275b679f69bb800c665d3fef3f56394c4c2fbf911a51dde",
+      "archive": "records/manifest-2.json.gz",
+      "compressedBytes": 82056,
+      "compressedSha256": "57068b3175c492c9bf98fe20168e072378aea0ebb2bea2913bb8efe8da68c25f"
+    },
+    {
+      "path": "manifest-20.json",
+      "bytes": 417209,
+      "mode": 420,
+      "sha256": "c3414adc10fe268896e66051eaadb7ca4d233764126cd1a39a8a8722ab773223",
+      "archive": "records/manifest-20.json.gz",
+      "compressedBytes": 82251,
+      "compressedSha256": "b0769d9504f8694a8e0276ca7666fa69c6bc58a956666020096a22b4840984b6"
+    },
+    {
+      "path": "manifest-21.json",
+      "bytes": 416090,
+      "mode": 420,
+      "sha256": "d83088966e3e4b0aecb45c7453ba475438047e0ea8272d7ccb53a1cded9cabf1",
+      "archive": "records/manifest-21.json.gz",
+      "compressedBytes": 82179,
+      "compressedSha256": "fefd0fd586bd2714ab6522c75d69ff584078a6a444c337ffb9c52c463ec5f41e"
+    },
+    {
+      "path": "manifest-22.json",
+      "bytes": 422583,
+      "mode": 420,
+      "sha256": "a5ef01d5a7353165e2b6ce240a4e37eb87ce59dcd479d2f53dc9042628e7daab",
+      "archive": "records/manifest-22.json.gz",
+      "compressedBytes": 82266,
+      "compressedSha256": "2b7d363702e2ed0c7ed69a58d9530afcd629cadb6a152128ca738567adcb5ef4"
+    },
+    {
+      "path": "manifest-23.json",
+      "bytes": 416090,
+      "mode": 420,
+      "sha256": "d83088966e3e4b0aecb45c7453ba475438047e0ea8272d7ccb53a1cded9cabf1",
+      "archive": "records/manifest-23.json.gz",
+      "compressedBytes": 82179,
+      "compressedSha256": "fefd0fd586bd2714ab6522c75d69ff584078a6a444c337ffb9c52c463ec5f41e"
+    },
+    {
+      "path": "manifest-3.json",
+      "bytes": 421919,
+      "mode": 420,
+      "sha256": "ad9ac037342c1fe6f275b679f69bb800c665d3fef3f56394c4c2fbf911a51dde",
+      "archive": "records/manifest-3.json.gz",
+      "compressedBytes": 82056,
+      "compressedSha256": "57068b3175c492c9bf98fe20168e072378aea0ebb2bea2913bb8efe8da68c25f"
+    },
+    {
+      "path": "manifest-4.json",
+      "bytes": 421919,
+      "mode": 420,
+      "sha256": "ad9ac037342c1fe6f275b679f69bb800c665d3fef3f56394c4c2fbf911a51dde",
+      "archive": "records/manifest-4.json.gz",
+      "compressedBytes": 82056,
+      "compressedSha256": "57068b3175c492c9bf98fe20168e072378aea0ebb2bea2913bb8efe8da68c25f"
+    },
+    {
+      "path": "manifest-5.json",
+      "bytes": 421919,
+      "mode": 420,
+      "sha256": "ad9ac037342c1fe6f275b679f69bb800c665d3fef3f56394c4c2fbf911a51dde",
+      "archive": "records/manifest-5.json.gz",
+      "compressedBytes": 82056,
+      "compressedSha256": "57068b3175c492c9bf98fe20168e072378aea0ebb2bea2913bb8efe8da68c25f"
+    },
+    {
+      "path": "manifest-6.json",
+      "bytes": 419658,
+      "mode": 420,
+      "sha256": "72793a01ac76c55f1c5698cd3f353d3b1ec0dd86524b2e782d260c37e7407708",
+      "archive": "records/manifest-6.json.gz",
+      "compressedBytes": 82185,
+      "compressedSha256": "eed5195c18b139c6bca6d3aa33d4a5c9e4d3ee8650c34580dee54fce41ac7a1c"
+    },
+    {
+      "path": "manifest-7.json",
+      "bytes": 419658,
+      "mode": 420,
+      "sha256": "72793a01ac76c55f1c5698cd3f353d3b1ec0dd86524b2e782d260c37e7407708",
+      "archive": "records/manifest-7.json.gz",
+      "compressedBytes": 82185,
+      "compressedSha256": "eed5195c18b139c6bca6d3aa33d4a5c9e4d3ee8650c34580dee54fce41ac7a1c"
+    },
+    {
+      "path": "manifest-8.json",
+      "bytes": 419658,
+      "mode": 420,
+      "sha256": "72793a01ac76c55f1c5698cd3f353d3b1ec0dd86524b2e782d260c37e7407708",
+      "archive": "records/manifest-8.json.gz",
+      "compressedBytes": 82185,
+      "compressedSha256": "eed5195c18b139c6bca6d3aa33d4a5c9e4d3ee8650c34580dee54fce41ac7a1c"
+    },
+    {
+      "path": "manifest-9.json",
+      "bytes": 419658,
+      "mode": 420,
+      "sha256": "72793a01ac76c55f1c5698cd3f353d3b1ec0dd86524b2e782d260c37e7407708",
+      "archive": "records/manifest-9.json.gz",
+      "compressedBytes": 82185,
+      "compressedSha256": "eed5195c18b139c6bca6d3aa33d4a5c9e4d3ee8650c34580dee54fce41ac7a1c"
+    },
+    {
+      "path": "types-installed-array-option.json",
+      "bytes": 17414,
+      "mode": 420,
+      "sha256": "9938b3b45e0d64a12aa4a0532521bc3d9b09fc2735eb60e8249c50859a52ad1f",
+      "archive": "records/types-installed-array-option.json.gz",
+      "compressedBytes": 863,
+      "compressedSha256": "1ec68bbbea1c5434cd530ee675a2824b425377167c2a494aef8f613917354744"
+    },
+    {
+      "path": "types-installed-inversions.json",
+      "bytes": 17321,
+      "mode": 420,
+      "sha256": "09b6d50ec096874aeeb62792d1b1522855b77cbd0e975d5206d391420b5b214b",
+      "archive": "records/types-installed-inversions.json.gz",
+      "compressedBytes": 797,
+      "compressedSha256": "bf25a967e942816aa7f2b3fba19ce168209a1e48c4c384abd83ad5fba228224c"
+    },
+    {
+      "path": "types-installed-invoke-signal.json",
+      "bytes": 17370,
+      "mode": 420,
+      "sha256": "63dc568c63f53c85c84bdf4fa48b347e671708cb8c96274065177e64c5fa70b9",
+      "archive": "records/types-installed-invoke-signal.json.gz",
+      "compressedBytes": 832,
+      "compressedSha256": "dfbc11b25639e4ddc83a410848c4d7fbe116adc58763f5043ce1c98703911bf2"
+    },
+    {
+      "path": "types-installed-positive.json",
+      "bytes": 17263,
+      "mode": 420,
+      "sha256": "383c8bbb6d4876414b2beeb671ad5f05be946fd895278736647327554081dff5",
+      "archive": "records/types-installed-positive.json.gz",
+      "compressedBytes": 765,
+      "compressedSha256": "f33fc58b6460c3b243c326745a8d3e670bfaf250198bf0939ac6e6281c493b42"
+    },
+    {
+      "path": "types-installed-private-limit.json",
+      "bytes": 17419,
+      "mode": 420,
+      "sha256": "8b9e5edc6f0b6c9c40a831f0cd3d26e7679065d09aecc9824cdc20d663c36b1b",
+      "archive": "records/types-installed-private-limit.json.gz",
+      "compressedBytes": 868,
+      "compressedSha256": "65ad175a133260e14f1ae8131cfce213078854ec335a6d3fbae33a6319d657af"
+    },
+    {
+      "path": "types-installed-replace-option.json",
+      "bytes": 17450,
+      "mode": 420,
+      "sha256": "082f31680c6881aa3f63796238535cd22df4075a243047701bec106ccd32eeae",
+      "archive": "records/types-installed-replace-option.json.gz",
+      "compressedBytes": 883,
+      "compressedSha256": "7010dbac2b07eb9c4477ed19765573ed2ffb842a78bbd1133f1079fb44b77ea5"
+    },
+    {
+      "path": "types-moved-array-option.json",
+      "bytes": 17070,
+      "mode": 420,
+      "sha256": "02a277c60e3d68ed97cb0e538c0dfd32f32697e9773b7faf81f14c12fa8e9a79",
+      "archive": "records/types-moved-array-option.json.gz",
+      "compressedBytes": 857,
+      "compressedSha256": "bbde1ebf23b159f06213bfa8044089c9e1d785f861fa6c79b189a5a77488f348"
+    },
+    {
+      "path": "types-moved-inversions.json",
+      "bytes": 16977,
+      "mode": 420,
+      "sha256": "be8b69fa254c366b4493679f46f7fe9d9d4a1f2caaf8a24e5058886745b84140",
+      "archive": "records/types-moved-inversions.json.gz",
+      "compressedBytes": 794,
+      "compressedSha256": "efc4f0d49d961f97226536724ccccd6ad7c9a8ab01bd9b4fc3a754bb535e99d8"
+    },
+    {
+      "path": "types-moved-invoke-signal.json",
+      "bytes": 17026,
+      "mode": 420,
+      "sha256": "d64e4df0add48c6d1250004e52524364814f23ed41359bc2f1f68ebef3fa82a1",
+      "archive": "records/types-moved-invoke-signal.json.gz",
+      "compressedBytes": 826,
+      "compressedSha256": "d24ce2f3a81aa517d30ea824d3d99bc5c50ea7185c3049715d20768cbedaad1f"
+    },
+    {
+      "path": "types-moved-positive.json",
+      "bytes": 16919,
+      "mode": 420,
+      "sha256": "bcb09037ce2f52ff26ae14df9c7e18db3175465ca41eb6f49e5d9d02898b5351",
+      "archive": "records/types-moved-positive.json.gz",
+      "compressedBytes": 760,
+      "compressedSha256": "d817d2ef40e9f06973cc9e96131e6cb663e8e17cc80ede72ed7997ef044e7cf3"
+    },
+    {
+      "path": "types-moved-private-limit.json",
+      "bytes": 17075,
+      "mode": 420,
+      "sha256": "519e3ccc2c6e51a4bdc63e4e4cd58533b3359eee5c1634f5418f7eb893f7db63",
+      "archive": "records/types-moved-private-limit.json.gz",
+      "compressedBytes": 862,
+      "compressedSha256": "356675f9b94fab5d3ffec8c8d6fefac8c8348c324d088080fe92d4e8315f6577"
+    },
+    {
+      "path": "types-moved-replace-option.json",
+      "bytes": 17106,
+      "mode": 420,
+      "sha256": "1eba78cd835ee5aa8fddb0ff768a618016b9413e8ed816aa3c224780145060e0",
+      "archive": "records/types-moved-replace-option.json.gz",
+      "compressedBytes": 878,
+      "compressedSha256": "5d508c2caa720d360fcc31e90a906c8d1099c0c57795b00dd4d39fbbdceea988"
+    },
+    {
+      "path": "types-source-build-array-option.json",
+      "bytes": 17672,
+      "mode": 420,
+      "sha256": "b1232b5afd82b0fa43097f50fc4d11ebdd56a843743f425f9971fc959fb1ed25",
+      "archive": "records/types-source-build-array-option.json.gz",
+      "compressedBytes": 866,
+      "compressedSha256": "df7d1a6bf997e4e723e6785c852761bb112a7dc0d0455a7764e2256bbeb592ff"
+    },
+    {
+      "path": "types-source-build-inversions.json",
+      "bytes": 17579,
+      "mode": 420,
+      "sha256": "26682b68162535632b9b536c27602096028aa2453ba3942aefe74401ec62b5f4",
+      "archive": "records/types-source-build-inversions.json.gz",
+      "compressedBytes": 800,
+      "compressedSha256": "f68455afcf288da4727f7d15c72ea43b3cde9d08e7572168e912b76043861851"
+    },
+    {
+      "path": "types-source-build-invoke-signal.json",
+      "bytes": 17628,
+      "mode": 420,
+      "sha256": "ff264e870e260ecc561d830072aceb663785aa9f10585ef5e86f6314870aa8e8",
+      "archive": "records/types-source-build-invoke-signal.json.gz",
+      "compressedBytes": 834,
+      "compressedSha256": "e19f166f0389c266ffa6e344e3e02b67aeaa56cf4b5cced6826bbd0cd2c4a7af"
+    },
+    {
+      "path": "types-source-build-positive.json",
+      "bytes": 17521,
+      "mode": 420,
+      "sha256": "dfdf14b308de313c10e918bb5c5003f14e28a9af386d6f1bbae958be69b2b4be",
+      "archive": "records/types-source-build-positive.json.gz",
+      "compressedBytes": 767,
+      "compressedSha256": "1ac37491d27c6403244d79d518390296e83fbfba5be9a17b78c2ecc937d2a0d6"
+    },
+    {
+      "path": "types-source-build-private-limit.json",
+      "bytes": 17677,
+      "mode": 420,
+      "sha256": "a9beb9a9843cbee68ce6ee21e5f3f8b39bfb0aa9cb4307e94b666a6e0b8d987c",
+      "archive": "records/types-source-build-private-limit.json.gz",
+      "compressedBytes": 871,
+      "compressedSha256": "c67b6f9b36520f082514b1365522a09f8fc88bb377b09269a529ef7e077836b2"
+    },
+    {
+      "path": "types-source-build-replace-option.json",
+      "bytes": 17708,
+      "mode": 420,
+      "sha256": "3380d95a8414e84d8883fd3c03f8290ce6e17512e3df03a3a83aaca43a5d0e6c",
+      "archive": "records/types-source-build-replace-option.json.gz",
+      "compressedBytes": 886,
+      "compressedSha256": "8b4072cd63612332bf43d76549f98a6513a47e2b786ee704f90925bf7dbaf81c"
+    }
+  ],
+  "archiveRoundTrip": {
+    "files": 109,
+    "bytes": 15459251,
+    "rawRetained": true,
+    "deletion": false,
+    "censusBeforeAfterEqual": true
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "role": "VERSIONED_FIXTURE_EXECUTION_SUPPLEMENT",
+  "runSha256": "20d28edd272d7946ef6bd343744be2e0260359ca4228e1be9d7bdc678a8c6fac",
+  "launcherSha256": "d76a8a5b48a3a9e99bed4dbe4e526a3e8c3ed3e4889c1f1fa9ce08862f1d5d03",
+  "executorSha256": "807a4faa6b7f5c9c2ea4a52970e31d6838b7d4c3cb93ed527bf4385da13b2708",
+  "presealSha256": "c01ef136a37b4bb54d16fd7697b51a13200b10c1172be4816fcb30c86ed068b5",
+  "source": "8371452bb024f99763c9240b42cb891cabe1311afafb32766e0ea24da09c6949",
+  "oldV3Retained": true,
+  "sourceProductChanges": 0,
+  "sourceDataReasons": "P06/P17 must use truthful acquired Worker provider; P07 snapshot registered copy; optional grant TS2322 union exact. New forced replacement mutant actually changes collision outcome; original preflight-only mutation unqualified."
+}

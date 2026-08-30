@@ -1,0 +1,8 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/node_modules/baseline-01",
+  "scratchAbsent": true,
+  "createdParent": true,
+  "temporaryParentAbsent": true,
+  "children": "spawnSync children settled; worker drivers report and await owned workers",
+  "integrity": "Frozen original paths rehashed plus append detection in freeze/historical; full extracted source and compiled inventories compare new entries too."
+}

@@ -1,0 +1,63 @@
+diff --git a/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/canonical/contracts.test.ts.data b/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/canonical/contracts.test.ts.data
+index 61b4c30b..725abbf9 100644
+--- a/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/canonical/contracts.test.ts.data
++++ b/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/canonical/contracts.test.ts.data
+@@ -135,9 +135,14 @@ test("work yields for timer cancellation without consuming stdin", async () => {
+   } finally { clearTimeout(timer); }
+ });
+ 
+-test("sink failure is status 3 and diagnostic failure is not swallowed", async () => {
+-  const result = await run(["1"], {}, { stdout: { async write() { throw new Error("sink failure"); } } });
+-  assert.equal(result.exitCode, 3); assert.match(result.stderr, /output failure/u);
++test("sink failure preserves its reason without a diagnostic and diagnostic failure is not swallowed", async () => {
++  const stdoutReason = new Error("sink failure");
++  let diagnosticWrites = 0;
++  await assert.rejects(run(["1"], {}, {
++    stdout: { async write() { throw stdoutReason; } },
++    stderr: { async write() { diagnosticWrites++; } },
++  }), error => error === stdoutReason);
++  assert.equal(diagnosticWrites, 0);
+   const reason = new Error("diagnostic sink failure");
+   await assert.rejects(run([], {}, { stderr: { async write() { throw reason; } } }), error => error === reason);
+ });
+diff --git a/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/core/runtime-driver.mjs b/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/core/runtime-driver.mjs
+index 4efa630a..c57f2259 100644
+--- a/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/core/runtime-driver.mjs
++++ b/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/core/runtime-driver.mjs
+@@ -103,7 +103,7 @@ export async function run(payload) {
+       try { await direct(['41', '+', '1'], {}, { stdout: { write() { writes.push('stdout'); return Promise.reject(first); } }, stderr: { write() { writes.push('stderr'); return Promise.reject(second); } } }); state = 'fulfilled'; }
+       catch (error) { state = 'rejected'; reason = error; }
+       result = { state, stderrReasonIdentity: Object.is(reason, second), stdoutReasonIdentity: Object.is(reason, first), writes };
+-      assert.equal(state, 'rejected'); assert.equal(reason, second); assert.deepEqual(writes, ['stdout', 'stderr']);
++      assert.equal(state, 'rejected'); assert.equal(reason, first); assert.deepEqual(writes, ['stdout']);
+     } else if (payload.mode === 'abort') {
+       const controller = new AbortController();
+       const reason = payload.reason === 'zero' ? 0 : payload.reason === 'undefined-native' ? undefined : Object.assign(new Error('review abort'), { code: 'ENOENT' });
+diff --git a/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/quota/cases.mjs b/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/quota/cases.mjs
+index 3593659c..eef4173a 100644
+--- a/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/quota/cases.mjs
++++ b/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/quota/cases.mjs
+@@ -33,7 +33,7 @@ add('normal-diagnostic-awaited', ['1', 'x'], 44, { status: 2, stderr: syntax },
+ add('stdout-awaited', ['1'], 2, { status: 0, stdout: '1\n', stderr: '' }, { mode: 'held-stdout' });
+ add('emergency-rejection', ['1', 'x'], 1, { status: null, stderr: '', rejection: 'sink' }, { mode: 'reject-stderr' });
+ add('normal-diagnostic-rejection', ['1', 'x'], 44, { status: null, stderr: '', rejection: 'sink' }, { mode: 'reject-stderr' });
+-add('stdout-rejection-normal-quota', ['1'], 2, {}, { mode: 'reject-stdout' });
++add('stdout-rejection-normal-quota', ['1'], 2, { status: null, stderr: '', rejection: 'sink' }, { mode: 'reject-stdout' });
+ add('emergency-abort-late-rejection', ['1', 'x'], 1, { status: null, stderr: '', rejection: 'abort' }, { mode: 'abort-stderr' });
+ add('stdout-abort-late-rejection', ['1'], 2, { status: null, stdout: '', stderr: '', rejection: 'abort' }, { mode: 'abort-stdout' });
+ add('preabort-no-output', ['1', 'x'], 1, { status: null, stderr: '', rejection: 'abort' }, { mode: 'preabort' });
+diff --git a/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/nearby/controls.json b/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/nearby/controls.json
+index 607b4742..dc2d3e36 100644
+--- a/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/original/nearby/controls.json
++++ b/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/revised/nearby/controls.json
+@@ -304,9 +304,7 @@
+       ],
+       "sink": "fail-stdout",
+       "expected": {
+-        "exitCode": 3,
+-        "stdout": "",
+-        "stderr": "expr: execution or output failure\n"
++        "rejected": "sink"
+       },
+       "subjects": [
+         "a"

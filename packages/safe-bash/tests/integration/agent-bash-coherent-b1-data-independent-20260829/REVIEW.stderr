@@ -1,0 +1,23 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '2eec40065a75caf8f4f0b37c1025ce4b6e8f9abf'
+- '86c0a0693ba0371ad9b8dbc292ad6711874b8ffd'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b1-data-independent-20260829/review.mjs:16:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '2eec40065a75caf8f4f0b37c1025ce4b6e8f9abf',
+  expected: '86c0a0693ba0371ad9b8dbc292ad6711874b8ffd',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

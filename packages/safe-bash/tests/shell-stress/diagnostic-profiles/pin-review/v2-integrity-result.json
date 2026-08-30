@@ -1,0 +1,11 @@
+{
+  "time": "2026-08-27T12:31:43.226Z",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--test",
+    "tests/shell-stress/diagnostic-profiles/pin-review/v2-integrity.test.mjs"
+  ],
+  "status": 0,
+  "stdout": "TAP version 13\n# Subtest: all fifteen prior review files remain immutable, including original three control failures\nok 1 - all fifteen prior review files remain immutable, including original three control failures\n  ---\n  duration_ms: 10.950583\n  type: 'test'\n  ...\n# Subtest: 237 authenticated inputs differ only in the corrected control module, outside prior case load closure\nok 2 - 237 authenticated inputs differ only in the corrected control module, outside prior case load closure\n  ---\n  duration_ms: 5271.173625\n  type: 'test'\n  ...\n# Subtest: fresh six corrected controls pass; distinct wrong-code laboratory mutant is rejected\nok 3 - fresh six corrected controls pass; distinct wrong-code laboratory mutant is rejected\n  ---\n  duration_ms: 0.23725\n  type: 'test'\n  ...\n# Subtest: actual imports, full archive, development tools, native binaries and Node remain authenticated\nok 4 - actual imports, full archive, development tools, native binaries and Node remain authenticated\n  ---\n  duration_ms: 60.259375\n  type: 'test'\n  ...\n# Subtest: regular scratch and owned runner groups are closed with a bound cleanup receipt\nok 5 - regular scratch and owned runner groups are closed with a bound cleanup receipt\n  ---\n  duration_ms: 0.914208\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 5389.920833\n",
+  "stderr": ""
+}

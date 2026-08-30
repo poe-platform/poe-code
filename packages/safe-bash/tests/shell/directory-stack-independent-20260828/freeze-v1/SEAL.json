@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "scope": "README.md plus exact freeze-v1 membership; later authorized sibling captures excluded, never additions within freeze-v1",
+  "directories": [
+    "freeze-v1"
+  ],
+  "files": [
+    "README.md",
+    "freeze-v1/BINDING.json",
+    "freeze-v1/CONTRACT.md",
+    "freeze-v1/SEAL.json",
+    "freeze-v1/STATIC-ATTEMPTS.json",
+    "freeze-v1/cases.json",
+    "freeze-v1/controls.json",
+    "freeze-v1/proofs.json",
+    "freeze-v1/verify.mjs"
+  ],
+  "sha256": {
+    "README.md": "3cd42dafd7bf2bd49b2ea070a0b97cbf9587d88a5adbddfa92116971e2983f40",
+    "freeze-v1/BINDING.json": "4aed58fe6f965bf01b7bc03d8e4aaed46947574892c8be96d980f863c1aae5f2",
+    "freeze-v1/CONTRACT.md": "24cb53d6fcbc2fcccb86fd722b568a56ed5650897bb33fff155554f39709ef78",
+    "freeze-v1/STATIC-ATTEMPTS.json": "36c552ae74a5f2a4cb4767b7a85d512eea8dfa0415b8a49d28554a36f39d4fa4",
+    "freeze-v1/cases.json": "6221e26160ebc3fbab38e6ab2e037a201693eb6c9ab00acd0394398003a817c1",
+    "freeze-v1/controls.json": "28c64f21f1ee1b10ecdef21195b211dc53ca176e1c26190185a355285b85ab5f",
+    "freeze-v1/proofs.json": "4eeb9f7a1cb70d16a0ad50cae41f8c283ed91fa13d7d10c0f03c80a2f6c2f080",
+    "freeze-v1/verify.mjs": "57916891df7ee80f57f8c677f24c3e8b9647a3ffe3bff1d3347fcc4093e5de45"
+  },
+  "selfAuthentication": "SEAL.json is authenticated by explicit full Git commit, not its own digest"
+}

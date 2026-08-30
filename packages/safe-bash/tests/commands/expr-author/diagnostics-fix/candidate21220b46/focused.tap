@@ -1,0 +1,436 @@
+TAP version 13
+# Subtest: C diagnostic original: ambiguous-index-keyword
+ok 1 - C diagnostic original: ambiguous-index-keyword
+  ---
+  duration_ms: 2.114833
+  type: 'test'
+  ...
+# Subtest: C diagnostic original: missing-operands
+ok 2 - C diagnostic original: missing-operands
+  ---
+  duration_ms: 0.431084
+  type: 'test'
+  ...
+# Subtest: C diagnostic original: missing-rhs
+ok 3 - C diagnostic original: missing-rhs
+  ---
+  duration_ms: 0.302
+  type: 'test'
+  ...
+# Subtest: C diagnostic original: missing-close
+ok 4 - C diagnostic original: missing-close
+  ---
+  duration_ms: 0.280875
+  type: 'test'
+  ...
+# Subtest: C diagnostic original: trailing-token
+ok 5 - C diagnostic original: trailing-token
+  ---
+  duration_ms: 1.2205
+  type: 'test'
+  ...
+# Subtest: C diagnostic original: skip-still-requires-rhs
+ok 6 - C diagnostic original: skip-still-requires-rhs
+  ---
+  duration_ms: 0.179625
+  type: 'test'
+  ...
+# Subtest: C diagnostic original: skip-still-requires-close
+ok 7 - C diagnostic original: skip-still-requires-close
+  ---
+  duration_ms: 0.195625
+  type: 'test'
+  ...
+# Subtest: C diagnostic original: skip-still-requires-keyword-args
+ok 8 - C diagnostic original: skip-still-requires-keyword-args
+  ---
+  duration_ms: 0.107
+  type: 'test'
+  ...
+# Subtest: C diagnostic extension: class-parenthesis-not-capture
+ok 9 - C diagnostic extension: class-parenthesis-not-capture
+  ---
+  duration_ms: 0.338792
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: empty-after-end-options
+ok 10 - C diagnostic control: empty-after-end-options
+  ---
+  duration_ms: 0.45525
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: forced-token-missing
+ok 11 - C diagnostic control: forced-token-missing
+  ---
+  duration_ms: 0.157
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: length-missing
+ok 12 - C diagnostic control: length-missing
+  ---
+  duration_ms: 0.080792
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: index-missing
+ok 13 - C diagnostic control: index-missing
+  ---
+  duration_ms: 0.081458
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: match-missing
+ok 14 - C diagnostic control: match-missing
+  ---
+  duration_ms: 0.066541
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: substr-missing
+ok 15 - C diagnostic control: substr-missing
+  ---
+  duration_ms: 0.05975
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: open-only
+ok 16 - C diagnostic control: open-only
+  ---
+  duration_ms: 0.125792
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: unexpected-close
+ok 17 - C diagnostic control: unexpected-close
+  ---
+  duration_ms: 0.143875
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: empty-group
+ok 18 - C diagnostic control: empty-group
+  ---
+  duration_ms: 0.072042
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: wrong-close
+ok 19 - C diagnostic control: wrong-close
+  ---
+  duration_ms: 0.068834
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: nested-missing-close
+ok 20 - C diagnostic control: nested-missing-close
+  ---
+  duration_ms: 0.070042
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: trailing-close
+ok 21 - C diagnostic control: trailing-close
+  ---
+  duration_ms: 0.070417
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: rhs-close
+ok 22 - C diagnostic control: rhs-close
+  ---
+  duration_ms: 0.062083
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: help-is-not-an-option-with-operands
+ok 23 - C diagnostic control: help-is-not-an-option-with-operands
+  ---
+  duration_ms: 0.060542
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: version-is-not-an-option-with-operands
+ok 24 - C diagnostic control: version-is-not-an-option-with-operands
+  ---
+  duration_ms: 0.083
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: skip-or-forced-token
+ok 25 - C diagnostic control: skip-or-forced-token
+  ---
+  duration_ms: 0.055459
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: skip-and-prefix
+ok 26 - C diagnostic control: skip-and-prefix
+  ---
+  duration_ms: 0.161458
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: skip-or-wrong-close
+ok 27 - C diagnostic control: skip-or-wrong-close
+  ---
+  duration_ms: 0.091125
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: skip-and-trailing
+ok 28 - C diagnostic control: skip-and-trailing
+  ---
+  duration_ms: 0.081458
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: skip-invalid-regex-then-trailing
+ok 29 - C diagnostic control: skip-invalid-regex-then-trailing
+  ---
+  duration_ms: 0.15625
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: quoted-apostrophe
+ok 30 - C diagnostic control: quoted-apostrophe
+  ---
+  duration_ms: 0.094666
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: quoted-backslash
+ok 31 - C diagnostic control: quoted-backslash
+  ---
+  duration_ms: 0.068542
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: quoted-newline
+ok 32 - C diagnostic control: quoted-newline
+  ---
+  duration_ms: 0.062833
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: quoted-tab
+ok 33 - C diagnostic control: quoted-tab
+  ---
+  duration_ms: 0.063167
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: quoted-control-bytes
+ok 34 - C diagnostic control: quoted-control-bytes
+  ---
+  duration_ms: 0.077042
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: quoted-utf8-bytes
+ok 35 - C diagnostic control: quoted-utf8-bytes
+  ---
+  duration_ms: 0.06925
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: quoted-double-quote
+ok 36 - C diagnostic control: quoted-double-quote
+  ---
+  duration_ms: 0.064583
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: quoted-empty
+ok 37 - C diagnostic control: quoted-empty
+  ---
+  duration_ms: 0.057709
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-after-empty
+ok 38 - C diagnostic control: missing-after-empty
+  ---
+  duration_ms: 0.058
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-after-newline
+ok 39 - C diagnostic control: missing-after-newline
+  ---
+  duration_ms: 0.0665
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: close-after-apostrophe
+ok 40 - C diagnostic control: close-after-apostrophe
+  ---
+  duration_ms: 0.065625
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: close-instead-of-backslash
+ok 41 - C diagnostic control: close-instead-of-backslash
+  ---
+  duration_ms: 0.060666
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-|
+ok 42 - C diagnostic control: missing-operator-rhs-|
+  ---
+  duration_ms: 0.061042
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-&
+ok 43 - C diagnostic control: missing-operator-rhs-&
+  ---
+  duration_ms: 0.225959
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-<
+ok 44 - C diagnostic control: missing-operator-rhs-<
+  ---
+  duration_ms: 0.132167
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-<=
+ok 45 - C diagnostic control: missing-operator-rhs-<=
+  ---
+  duration_ms: 0.09125
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-=
+ok 46 - C diagnostic control: missing-operator-rhs-=
+  ---
+  duration_ms: 0.088708
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-==
+ok 47 - C diagnostic control: missing-operator-rhs-==
+  ---
+  duration_ms: 0.0925
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-!=
+ok 48 - C diagnostic control: missing-operator-rhs-!=
+  ---
+  duration_ms: 0.093625
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs->=
+ok 49 - C diagnostic control: missing-operator-rhs->=
+  ---
+  duration_ms: 0.085167
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs->
+ok 50 - C diagnostic control: missing-operator-rhs->
+  ---
+  duration_ms: 0.115333
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs--
+ok 51 - C diagnostic control: missing-operator-rhs--
+  ---
+  duration_ms: 0.111542
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-*
+ok 52 - C diagnostic control: missing-operator-rhs-*
+  ---
+  duration_ms: 0.377791
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-/
+ok 53 - C diagnostic control: missing-operator-rhs-/
+  ---
+  duration_ms: 0.167666
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-%
+ok 54 - C diagnostic control: missing-operator-rhs-%
+  ---
+  duration_ms: 0.106542
+  type: 'test'
+  ...
+# Subtest: C diagnostic control: missing-operator-rhs-:
+ok 55 - C diagnostic control: missing-operator-rhs-:
+  ---
+  duration_ms: 0.090125
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: forced-index
+ok 56 - diagnostic grammar control: forced-index
+  ---
+  duration_ms: 2.106584
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: forced-close
+ok 57 - diagnostic grammar control: forced-close
+  ---
+  duration_ms: 0.101375
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: help-after-end-options
+ok 58 - diagnostic grammar control: help-after-end-options
+  ---
+  duration_ms: 0.057125
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: version-after-end-options
+ok 59 - diagnostic grammar control: version-after-end-options
+  ---
+  duration_ms: 0.049292
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: skip-division
+ok 60 - diagnostic grammar control: skip-division
+  ---
+  duration_ms: 0.060333
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: skip-noninteger
+ok 61 - diagnostic grammar control: skip-noninteger
+  ---
+  duration_ms: 0.105625
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: skip-regex
+ok 62 - diagnostic grammar control: skip-regex
+  ---
+  duration_ms: 0.06125
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: skip-regex-and
+ok 63 - diagnostic grammar control: skip-regex-and
+  ---
+  duration_ms: 0.097583
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: nested-closed
+ok 64 - diagnostic grammar control: nested-closed
+  ---
+  duration_ms: 0.168375
+  type: 'test'
+  ...
+# Subtest: diagnostic grammar control: quoted-correction1
+ok 65 - diagnostic grammar control: quoted-correction1
+  ---
+  duration_ms: 25.159583
+  type: 'test'
+  ...
+# Subtest: empty invocation guidance uses the registered virtual name and help remains virtual
+ok 66 - empty invocation guidance uses the registered virtual name and help remains virtual
+  ---
+  duration_ms: 5.211459
+  type: 'test'
+  ...
+# Subtest: skipped grammar errors submit no BRE requests or acquire stdin
+ok 67 - skipped grammar errors submit no BRE requests or acquire stdin
+  ---
+  duration_ms: 0.823459
+  type: 'test'
+  ...
+# Subtest: diagnostic expansion stays within string, work, and output budgets
+ok 68 - diagnostic expansion stays within string, work, and output budgets
+  ---
+  duration_ms: 0.537709
+  type: 'test'
+  ...
+# Subtest: argument, numeric, node and depth refusals retain precedence and status
+ok 69 - argument, numeric, node and depth refusals retain precedence and status
+  ---
+  duration_ms: 0.261541
+  type: 'test'
+  ...
+# Subtest: diagnostic writes preserve backpressure and exact sink exception identity
+ok 70 - diagnostic writes preserve backpressure and exact sink exception identity
+  ---
+  duration_ms: 0.63975
+  type: 'test'
+  ...
+# Subtest: aborted diagnostics preserve the caller reason, including pending sink rejection
+ok 71 - aborted diagnostics preserve the caller reason, including pending sink rejection
+  ---
+  duration_ms: 0.620709
+  type: 'test'
+  ...
+1..71
+# tests 71
+# suites 0
+# pass 71
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 267.092375

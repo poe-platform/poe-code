@@ -1,0 +1,39 @@
+{
+  "schema": "k08-v3-archive-repair-preseal-policy",
+  "started": "2026-08-29T15:48:06.257Z",
+  "deadline": "2026-08-29T16:03:06.257Z",
+  "scope": "Source/DATA only. Actual sealed archive admission through owner-archive.mjs; no product evaluation/extraction/build/Worker/native.",
+  "oldPredicate": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/parse-manifest.mjs",
+    "sha256": "9d0dcb72429b36dbbb5555e06b7a645d4c415bc7a68ad953aa728f2eea085708",
+    "initialExpectedLiteral": 1002,
+    "terminalSeenLiteral": 1002,
+    "manifestLength": 1006,
+    "sealedCount": 1006
+  },
+  "formatBasis": {
+    "producerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package.mjs",
+    "sha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2",
+    "declared": "Producer writes USTAR magic/version, regular files, zero data padding and1024zero terminator bytes; actual observations must independently confirm."
+  },
+  "controlGroups": [
+    "A01 actual981948B hash-before-sameBuffer decode +1006unique/fullset/hash/format/padding",
+    "A02 type/size/hash refusals before decoder",
+    "A03 stale cardinality/duplicate expected/shape",
+    "A04 alignment/truncation/terminator",
+    "A05 unexpected/duplicate actual members",
+    "A06 missing member fullset count",
+    "A07 payload hash and metadata mismatch",
+    "A08 USTAR/type/link/path/padding shape"
+  ],
+  "limits": {
+    "knownOS": 40,
+    "adminSubcap": 32,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "logicalWorkBytes": 268435456,
+    "pureHelpers": 2,
+    "groups": 8
+  },
+  "historical": "8f95143e owner/collector primaries andUNKNOWN immutable; no rescore or actual69repeat"
+}

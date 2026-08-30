@@ -1,0 +1,30 @@
+{
+  "id": "shell-primary-sink-error",
+  "mutant": "none",
+  "pass": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "exact rejection identity\n+ actual - expected\n\n+ Error: independent-return-failure\n+     at file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:16:20\n- Error: independent-primary-failure\n-     at file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:17:22\n      at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n      at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n",
+    "stack": "AssertionError [ERR_ASSERTION]: exact rejection identity\n+ actual - expected\n\n+ Error: independent-return-failure\n+     at file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:16:20\n- Error: independent-primary-failure\n-     at file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:17:22\n      at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n      at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\n    at rejected (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:75:122)\n    at run (file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:127:5)\n    at async file:///private/tmp/shared-stdin-independent-candidate-work-1dpIJX/moved-consumer/original32/probe.mjs:286:7"
+  },
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "return",
+    "return-entered:release",
+    "rejected:Error: independent-return-failure"
+  ],
+  "input": {
+    "reads": 1,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [
+    "00ff"
+  ],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

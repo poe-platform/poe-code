@@ -1,0 +1,15 @@
+{
+  "id": "poison-acquisition",
+  "families": [
+    "F04",
+    "F06"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "POISON_ACQUIRE",
+      "name": "Error",
+      "message": "POISON_ACQUIRE"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "parent-only-owner-v1",
+  "launched": true,
+  "pid": 99465,
+  "closed": true,
+  "code": 0,
+  "signal": null,
+  "childErrorPresent": false,
+  "elapsedMs": 173,
+  "capture": {
+    "primary": {
+      "present": false,
+      "origin": null
+    },
+    "secondary": [],
+    "slots": [
+      {
+        "acquired": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      {
+        "acquired": true,
+        "closeAttempted": true,
+        "closed": true
+      }
+    ],
+    "bytesSeen": 4785,
+    "bytesWritten": 4785,
+    "writeCalls": 1,
+    "cleanupComplete": true
+  },
+  "primary": {
+    "present": false,
+    "origin": null
+  },
+  "secondary": []
+}

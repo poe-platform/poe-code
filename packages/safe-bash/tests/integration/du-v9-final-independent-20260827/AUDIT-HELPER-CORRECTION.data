@@ -1,0 +1,9 @@
+Before any V9 replay, the reviewer-authored PRE helper exited 1 at audit.mjs
+inventory(): npm/node_modules/.bin/arborist is an ordinary internal symlink.
+The generic inventory originally rejected every symlink, including tool trees.
+No PRE output, candidate build/import, native semantic case or replay was run.
+This is a reviewer helper representation error, not a frozen V9 control or
+environmental-prerequisite failure. Tool-package inventories now record internal
+symlink targets and target hashes, rejecting package escapes. Frozen V8/V9
+inventories still reject all symlinks. The immutable procedure is unchanged.
+No V9 retry occurred; exactly one actual replay remains authorized.

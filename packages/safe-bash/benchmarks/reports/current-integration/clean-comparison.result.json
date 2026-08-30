@@ -1,0 +1,20 @@
+{
+  "name": "clean-comparison",
+  "command": [
+    "npm",
+    "run",
+    "benchmark",
+    "--",
+    "--output",
+    "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/clean-comparison.json"
+  ],
+  "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+  "startedAt": 1787788765.348535,
+  "durationSeconds": 1.0257959365844727,
+  "timeoutSeconds": 300,
+  "timedOut": false,
+  "returnCode": 1,
+  "signal": null,
+  "cleanup": [],
+  "observedChildCount": 5
+}

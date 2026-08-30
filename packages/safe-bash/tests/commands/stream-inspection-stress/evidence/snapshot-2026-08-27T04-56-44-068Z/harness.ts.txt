@@ -1,0 +1,376 @@
+import assert from "node:assert/strict";
+import { readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { resolve } from "node:path";
+import test from "node:test";
+import { Shell } from "../../../src/shell/index.js";
+import { createMemoryFileSystem, MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { standardCommands } from "../../../src/commands/index.js";
+import { FsError, readBytes, writeBytes, type ByteSource, type FsOptions, type ReadStreamOptions } from "../../../src/contracts/index.js";
+import { streamInspectionCommands, createStreamInspectionCommands, type StreamInspectionCommandsOptions } from "../../../src/commands/stream-inspection/index.js";
+
+interface Fixture {
+  id: string;
+  command: string;
+  args: string[];
+  stdinHex: string;
+  files: Record<string, string>;
+  locale: string;
+  negative?: boolean;
+  diagnosticPath?: string;
+  oracle: string;
+  expected: { stdoutHex: string; stderrHex: string | null; exitCode: number };
+}
+
+const evidence = process.env.STREAM_HOLDOUT_DIR ?? resolve("tests/commands/stream-inspection-stress/evidence");
+const corpusText = readFileSync(resolve(evidence, "cases.json"));
+assert.equal(createHash("sha256").update(corpusText).digest("hex"), "956152bcc27f97af0111073f582e9ca0e74199c309ec406b71ca0c022190da75");
+const fixtures: Fixture[] = JSON.parse(corpusText.toString());
+const names = ["tac", "expand", "fold", "strings"];
+const quote = (value: string): string => `'${value.replaceAll("'", "'\\''")}'`;
+const encode = (text: string): Uint8Array => new TextEncoder().encode(text);
+const tick = (): Promise<void> => new Promise(resolve => setImmediate(resolve));
+
+function deferred<Value>() {
+  let resolve!: (value: Value | PromiseLike<Value>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<Value>((onResolve, onReject) => { resolve = onResolve; reject = onReject; });
+  return { promise, resolve, reject };
+}
+
+function shell(fs = createMemoryFileSystem(), options: StreamInspectionCommandsOptions = {}): Shell {
+  return new Shell({ fs, cwd: "/work", env: { LC_ALL: "C" } }).use(standardCommands()).use(streamInspectionCommands(options));
+}
+
+async function workspace(): Promise<MemoryFileSystem> {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  return fs;
+}
+
+async function* chunked(bytes: Uint8Array, width: number, reuse = false): ByteSource {
+  const storage = new Uint8Array(width);
+  for (let offset = 0; offset < bytes.length; offset += width) {
+    const part = bytes.subarray(offset, offset + width);
+    if (reuse) {
+      storage.set(part);
+      yield storage.subarray(0, part.length);
+    } else yield part.slice();
+  }
+}
+
+const profile = process.env.STREAM_PROFILE ?? "original";
+assert.ok(["original", "native"].includes(profile));
+const supplemental: { captures: { id: string; expected: Fixture["expected"] }[] } = JSON.parse(readFileSync(resolve(evidence, "gnu-strings-supplement/report.json"), "utf8"));
+const activeFixtures = fixtures.map(fixture => {
+  if (profile !== "native" || fixture.command !== "strings") return fixture;
+  const native = supplemental.captures.find(capture => capture.id === fixture.id);
+  assert.ok(native);
+  return { ...fixture, expected: native.expected };
+});
+
+for (const fixture of activeFixtures) {
+  test(`frozen fixture: ${fixture.id}`, { timeout: 10000 }, async () => {
+    const fs = await workspace();
+    for (const [name, hex] of Object.entries(fixture.files)) await fs.writeFile(`/work/${name}`, Buffer.from(hex, "hex"));
+    const instance = shell(fs);
+    try {
+      const result = await instance.exec([fixture.command, ...fixture.args.map(quote)].join(" "), { stdin: Buffer.from(fixture.stdinHex, "hex"), env: { LC_ALL: fixture.locale } });
+      if (process.env.STREAM_RESULTS_DIR) writeFileSync(resolve(process.env.STREAM_RESULTS_DIR, `${fixture.id}.json`), JSON.stringify({ id: fixture.id, profile, expected: fixture.expected, actual: { stdoutHex: Buffer.from(result.stdoutBytes).toString("hex"), stderrHex: Buffer.from(result.stderrBytes).toString("hex"), exitCode: result.exitCode } }, null, 2) + "\n", { flag: "wx" });
+      assert.equal(result.exitCode, fixture.expected.exitCode, result.stderr);
+      assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), fixture.expected.stdoutHex);
+      if (fixture.expected.exitCode === 0) assert.equal(result.stderr, "");
+      else {
+        assert.match(result.stderr, new RegExp(`^${fixture.command}:`, "m"));
+        assert.notEqual(result.stderr.trim(), "");
+      }
+      if (fixture.diagnosticPath) {
+        assert.ok(result.stderr.includes(fixture.diagnosticPath));
+        assert.match(result.stderr, /no such file/i);
+      }
+    } finally { await instance.dispose(); }
+  });
+}
+
+for (const id of ["tac-overlap-before", "tac-nul-before", "expand-backspace-revisit-stop", "expand-utf8-byte-columns", "fold-byte-controls", "fold-tab-spaces", "strings-tab-is-printable", "strings-long-run-reused-buffer"]) {
+  test(`chunk ownership: ${id}`, { timeout: 10000 }, async () => {
+    const fixture = fixtures.find(item => item.id === id);
+    assert.ok(fixture);
+    const instance = shell(await workspace());
+    try {
+      const result = await instance.exec([fixture.command, ...fixture.args.map(quote)].join(" "), { stdin: chunked(Buffer.from(fixture.stdinHex, "hex"), id.includes("long") ? 31 : 1, true) });
+      assert.equal(result.exitCode, fixture.expected.exitCode, result.stderr);
+      assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), fixture.expected.stdoutHex);
+    } finally { await instance.dispose(); }
+  });
+}
+
+for (const name of names) {
+  test(`VFS error fidelity and continuation: ${name}`, async () => {
+    const fs = await workspace();
+    await fs.mkdir("/work/directory");
+    await fs.writeFile("/work/good", encode("ABCD\n"));
+    const instance = shell(fs);
+    try {
+      const result = await instance.exec(`${name} missing directory good`);
+      if (process.env.STREAM_RESULTS_DIR) writeFileSync(resolve(process.env.STREAM_RESULTS_DIR, `contract-directory-${name}.json`), JSON.stringify({ exitCode: result.exitCode, stdoutHex: Buffer.from(result.stdoutBytes).toString("hex"), stderrHex: Buffer.from(result.stderrBytes).toString("hex"), entries: await fs.readdir("/work"), goodHex: Buffer.from(await fs.readFile("/work/good")).toString("hex"), directoryEntries: await fs.readdir("/work/directory") }, null, 2) + "\n", { flag: "wx" });
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, `${name}: ENOENT: no such file or directory, stat '/work/missing'\n${name}: EISDIR: illegal operation on a directory '/work/directory'\n`);
+      assert.equal(result.stdout, "ABCD\n");
+      assert.deepEqual((await fs.readdir("/work")).sort(), ["directory", "good"]);
+      assert.deepEqual(await fs.readdir("/work/directory"), []);
+      assert.deepEqual(await fs.readFile("/work/good"), encode("ABCD\n"));
+    } finally { await instance.dispose(); }
+  });
+
+  test(`invocation-local limits across operands: ${name}`, async () => {
+    for (const [limits, label] of [
+      [{ maxInputBytes: 9 }, "input"],
+      [{ maxOutputBytes: 9 }, "output"],
+      [{ maxFiles: 1 }, "file"],
+      [{ maxArgumentBytes: 5 }, "argument"],
+      [{ maxSteps: 1 }, "step"],
+      [{ maxChunkBytes: 2 }, "chunk"],
+    ] satisfies [StreamInspectionCommandsOptions["limits"], string][]) {
+      const fs = await workspace();
+      await fs.writeFile("/work/one", encode("ABCD\n"));
+      await fs.writeFile("/work/two", encode("EFGH\n"));
+      const instance = shell(fs, { limits });
+      try {
+        const result = await instance.exec(`${name} one two`);
+        assert.notEqual(result.exitCode, 0, `${name} ${label}`);
+        assert.match(result.stderr, /limit/i);
+        assert.match(result.stderr, new RegExp(label));
+        if (limits?.maxOutputBytes) assert.ok(result.stdoutBytes.length <= limits.maxOutputBytes);
+      } finally { await instance.dispose(); }
+    }
+  });
+
+  test(`preabort does not touch source: ${name}`, async () => {
+    const instance = shell(await workspace());
+    const controller = new AbortController();
+    controller.abort(new FsError("ENOENT", { message: "abort sentinel" }));
+    let touched = false;
+    const stdin: ByteSource = { async *[Symbol.asyncIterator]() { touched = true; yield encode("ABCD"); } };
+    try {
+      await assert.rejects(instance.exec(name, { stdin, signal: controller.signal }), reason => reason === controller.signal.reason);
+      assert.equal(touched, false);
+    } finally { await instance.dispose(); }
+  });
+
+  test(`blocked source cancellation observes late rejection: ${name}`, { timeout: 3000 }, async () => {
+    const instance = shell(await workspace());
+    const controller = new AbortController();
+    const entered = deferred<void>();
+    const blocked = deferred<IteratorResult<Uint8Array>>();
+    const stdin: ByteSource = { [Symbol.asyncIterator]() { return { next() { entered.resolve(); return blocked.promise; } }; } };
+    const running = instance.exec(name, { stdin, signal: controller.signal });
+    const checked = assert.rejects(running, reason => reason === controller.signal.reason);
+    try {
+      await entered.promise;
+      controller.abort(new FsError("EACCES", { message: "blocked read abort" }));
+      await checked;
+      blocked.reject(new Error("late source failure"));
+      await tick();
+    } finally { controller.abort(); blocked.resolve({ done: true, value: undefined }); await instance.dispose(); }
+  });
+
+  test(`blocked sink cancellation and ownership: ${name}`, { timeout: 3000 }, async () => {
+    const instance = shell(await workspace());
+    const controller = new AbortController();
+    const entered = deferred<void>();
+    const release = deferred<void>();
+    let writes = 0;
+    let retained: Uint8Array | undefined;
+    let original: Uint8Array | undefined;
+    const running = instance.exec(name, { stdin: "ABCD\nEFGH\n", signal: controller.signal, stdout: { async write(chunk) { writes++; retained = chunk; original = chunk.slice(); entered.resolve(); await release.promise; } } });
+    const checked = assert.rejects(running, reason => reason === controller.signal.reason);
+    try {
+      await entered.promise;
+      await tick();
+      assert.equal(writes, 1);
+      assert.deepEqual(retained, original);
+      controller.abort(new FsError("ENOENT", { message: "sink abort sentinel" }));
+      await checked;
+      release.reject(new Error("late sink failure"));
+      await tick();
+      assert.equal(writes, 1);
+    } finally { controller.abort(); release.resolve(); await instance.dispose(); }
+  });
+}
+
+test("actual backpressure suspends upstream pull and retains sink bytes", { timeout: 5000 }, async () => {
+  const instance = shell(await workspace(), { limits: { maxChunkBytes: 4 } });
+  const release = deferred<void>();
+  const entered = deferred<void>();
+  let pulls = 0;
+  let active = 0;
+  let peak = 0;
+  const retained: Uint8Array[] = [];
+  const copies: Uint8Array[] = [];
+  const stdin: ByteSource = { async *[Symbol.asyncIterator]() { for (const text of ["ABCD", "EFGH", "IJKL"]) { pulls++; yield encode(text); } } };
+  const running = instance.exec("expand", { stdin, stdout: { async write(chunk) { active++; peak = Math.max(peak, active); retained.push(chunk); copies.push(chunk.slice()); entered.resolve(); await release.promise; active--; } } });
+  try {
+    await entered.promise;
+    await tick();
+    assert.equal(pulls, 1);
+    assert.equal(peak, 1);
+    release.resolve();
+    const result = await running;
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(peak, 1);
+    assert.deepEqual(retained, copies);
+    assert.equal(Buffer.concat(retained).toString(), "ABCDEFGHIJKL");
+  } finally { release.resolve(); await running.catch(() => {}); await instance.dispose(); }
+});
+
+test("literal invoke traverses middleware and retains virtual filesystem", async () => {
+  const fs = await workspace();
+  await fs.writeFile("/work/a b", encode("first\nsecond\n"));
+  const visited: string[] = [];
+  const instance = shell(fs).use(async (context, next) => { visited.push(context.command); return next(); });
+  instance.register({ name: "literal", execute(context) { assert.ok(context.invoke); return context.invoke("tac", ["a b"]); } });
+  try {
+    const result = await instance.exec("literal");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "second\nfirst\n");
+    assert.deepEqual(visited, ["literal", "tac"]);
+  } finally { await instance.dispose(); }
+});
+
+test("complex byte pipeline and VFS output effect", async () => {
+  const fs = await workspace();
+  const instance = shell(fs);
+  try {
+    const result = await instance.exec("printf 'A\\tB\\nC\\tD\\n' | expand -t 4 | fold -w 5 | tac | tee saved | head -n 1");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "C   D\n");
+    assert.equal(Buffer.from(await fs.readFile("/work/saved")).toString(), "C   D\nA   B\n");
+    await fs.writeFile("/work/blob", Buffer.from([0,66,69,84,65,0,65,76,80,72,65,0]));
+    const extraction = await instance.exec("strings -a blob | sort | tac > markers; cat markers | wc -l");
+    assert.equal(extraction.exitCode, 0, extraction.stderr);
+    assert.equal(extraction.stdout.trim(), "2");
+    assert.equal(Buffer.from(await fs.readFile("/work/markers")).toString(), "BETA\nALPHA\n");
+  } finally { await instance.dispose(); }
+});
+
+test("shared shell output limit and invocation limits do not reset globally", async () => {
+  const instance = shell(await workspace(), { limits: { maxInputBytes: 6 } });
+  try {
+    const result = await instance.exec("printf 'ABCD\\n' | expand | fold -w 9 | tac");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "ABCD\n");
+    await assert.rejects(instance.exec("printf 'ABCD\\n' | expand | tac", { limits: { maxOutputBytes: 4 } }), /maxOutputBytes/);
+    await assert.rejects(instance.exec("expand; fold; tac", { limits: { maxCommands: 2 } }), /maxCommands/);
+  } finally { await instance.dispose(); }
+});
+
+test("tac and strings bound retained records", async () => {
+  for (const name of ["tac", "strings", "fold"]) {
+    const instance = shell(await workspace(), { limits: { maxRecordBytes: 3 } });
+    try {
+      const result = await instance.exec(name, { stdin: "ABCD" });
+      assert.notEqual(result.exitCode, 0);
+      assert.match(result.stderr, /record.*limit/i);
+    } finally { await instance.dispose(); }
+  }
+});
+
+test("factory rejects invalid finite positive integer budgets", () => {
+  for (const limit of ["maxInputBytes", "maxOutputBytes", "maxRecordBytes", "maxChunkBytes", "maxFiles", "maxSteps", "maxArgumentBytes"]) {
+    for (const value of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1]) {
+      assert.throws(() => createStreamInspectionCommands({ limits: { [limit]: value } }), /limit/i);
+    }
+  }
+});
+
+test("factory collision preflight and explicit replacement", async () => {
+  const instance = new Shell({ fs: await workspace() });
+  instance.register({ name: "fold", execute: () => ({ exitCode: 42 }) });
+  instance.use(streamInspectionCommands());
+  try { await assert.rejects(instance.exec("fold"), /already registered/); assert.equal(instance.commands.has("tac"), false); }
+  finally { await instance.dispose(); }
+  const replacement = new Shell({ fs: await workspace() });
+  replacement.register({ name: "fold", execute: () => ({ exitCode: 42 }) });
+  replacement.use(streamInspectionCommands({ replace: true }));
+  try { assert.equal((await replacement.exec("fold", { stdin: "ABC" })).stdout, "ABC"); }
+  finally { await replacement.dispose(); }
+  assert.deepEqual(createStreamInspectionCommands().map(command => command.name), names);
+});
+
+test("VFS streamed read abort propagates supplied signal", { timeout: 3000 }, async () => {
+  const entered = deferred<AbortSignal>();
+  const blocked = deferred<IteratorResult<Uint8Array>>();
+  class BlockingFs extends MemoryFileSystem {
+    override readStream(_path: string, options: ReadStreamOptions = {}): ByteSource {
+      assert.ok(options.signal);
+      entered.resolve(options.signal);
+      return { [Symbol.asyncIterator]() { return { next: () => blocked.promise }; } };
+    }
+  }
+  const fs = new BlockingFs();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/input", encode("ABCD"));
+  const instance = shell(fs);
+  const controller = new AbortController();
+  const running = instance.exec("tac input", { signal: controller.signal });
+  const checked = assert.rejects(running, reason => reason === controller.signal.reason);
+  try {
+    const supplied = await entered.promise;
+    controller.abort(new FsError("EIO", { message: "VFS abort" }));
+    await checked;
+    assert.equal(supplied.aborted, true);
+    blocked.reject(new Error("late VFS rejection"));
+    await tick();
+  } finally { controller.abort(); blocked.resolve({ done: true, value: undefined }); await instance.dispose(); }
+});
+
+test("VFS permission diagnostic preserves path and continuation", async () => {
+  class DeniedFs extends MemoryFileSystem {
+    override async stat(path: string, options?: FsOptions) {
+      if (path === "/work/denied") throw new FsError("EACCES", { path, syscall: "stat" });
+      return super.stat(path, options);
+    }
+  }
+  const fs = new DeniedFs();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/good", encode("ABCD\n"));
+  const instance = shell(fs);
+  try {
+    for (const name of names) {
+      const result = await instance.exec(`${name} denied good`);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /permission denied/i);
+      assert.match(result.stderr, /denied/);
+      assert.equal(result.stdout, "ABCD\n");
+    }
+  } finally { await instance.dispose(); }
+});
+
+test("raw object marker and unsupported encoding/data options stay honest", async () => {
+  const instance = shell(await workspace());
+  const objectLike = Buffer.concat([Buffer.from([127,69,76,70,0,0]), Buffer.from("OUTSIDE_DATA\0")]);
+  try {
+    const result = await instance.exec("strings -a", { stdin: objectLike });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "OUTSIDE_DATA\n");
+    for (const args of ["-d", "-e l", "-U locale"]) {
+      const rejected = await instance.exec(`strings ${args}`, { stdin: objectLike });
+      assert.notEqual(rejected.exitCode, 0);
+      assert.notEqual(rejected.stderr, "");
+    }
+  } finally { await instance.dispose(); }
+});
+
+test("internal pipe binary bytes remain exact with chunk ownership", async () => {
+  const fs = await workspace();
+  const instance = shell(fs);
+  instance.register({ name: "sourcebytes", async execute(context) { await writeBytes(context.stdout, Uint8Array.of(255,10,128,0,10), context.signal); return { exitCode: 0 }; } });
+  instance.register({ name: "sinkbytes", async execute(context) { for await (const chunk of readBytes(context.stdin, context.signal)) await writeBytes(context.stdout, chunk, context.signal); return { exitCode: 0 }; } });
+  try {
+    const result = await instance.exec("sourcebytes | tac | sinkbytes > saved; cat saved");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await fs.readFile("/work/saved"), Uint8Array.of(128,0,10,255,10));
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(128,0,10,255,10));
+  } finally { await instance.dispose(); }
+});

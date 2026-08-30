@@ -1,0 +1,724 @@
+TAP version 13
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A
+not ok 1 - real agent pipeline: env -i A=1 B=2 env -u A
+  ---
+  duration_ms: 5.176625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:972'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'PUBLIC=parent\nPWD=/work\nB=2\n'
+    - 'B=2\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    B=2
+    
+  actual: |-
+    PUBLIC=parent
+    PWD=/work
+    B=2
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:30:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A | cat
+not ok 2 - real agent pipeline: env -i A=1 B=2 env -u A | cat
+  ---
+  duration_ms: 2.987666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:972'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'PUBLIC=parent\nPWD=/work\nB=2\n'
+    - 'B=2\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    B=2
+    
+  actual: |-
+    PUBLIC=parent
+    PWD=/work
+    B=2
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:30:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A env
+not ok 3 - real agent pipeline: env -i A=1 B=2 env -u A env
+  ---
+  duration_ms: 0.910209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:972'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'PUBLIC=parent\nA=1\nPWD=/work\nB=2\n'
+    - 'B=2\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    B=2
+    
+  actual: |-
+    PUBLIC=parent
+    A=1
+    PWD=/work
+    B=2
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:30:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: real agent pipeline: TEMP=prefix env -i env
+not ok 4 - real agent pipeline: TEMP=prefix env -i env
+  ---
+  duration_ms: 0.877833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:972'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'PUBLIC=parent\nA=ancestor\nPWD=/work\nTEMP=prefix\n'
+    - ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: |-
+    PUBLIC=parent
+    A=ancestor
+    PWD=/work
+    TEMP=prefix
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:30:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: real agent pipeline: env -i
+ok 5 - real agent pipeline: env -i
+  ---
+  duration_ms: 0.403333
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i EMPTY= VALUE=a=b env
+not ok 6 - real agent pipeline: env -i EMPTY= VALUE=a=b env
+  ---
+  duration_ms: 0.435292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:972'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'PUBLIC=parent\nA=ancestor\nPWD=/work\nVALUE=a=b\nEMPTY=\n'
+    - 'EMPTY=\nVALUE=a=b\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    EMPTY=
+    VALUE=a=b
+    
+  actual: |-
+    PUBLIC=parent
+    A=ancestor
+    PWD=/work
+    VALUE=a=b
+    EMPTY=
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:30:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: exact exported map: env -u PUBLIC report
+not ok 7 - exact exported map: env -u PUBLIC report
+  ---
+  duration_ms: 1.02
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:1441'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        args: [],
+        cwd: '/work',
+        env: {
+          A: 'ancestor',
+    +     PUBLIC: 'parent',
+          PWD: '/work'
+        },
+        origin: true
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    env:
+      A: 'ancestor'
+      PWD: '/work'
+    cwd: '/work'
+    origin: true
+    args:
+  actual:
+    env:
+      PUBLIC: 'parent'
+      A: 'ancestor'
+      PWD: '/work'
+    cwd: '/work'
+    origin: true
+    args:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:44:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: exact exported map: env -i report
+not ok 8 - exact exported map: env -i report
+  ---
+  duration_ms: 0.617083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:1441'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        args: [],
+        cwd: '/work',
+    +   env: {
+    +     A: 'ancestor',
+    +     PUBLIC: 'parent',
+    +     PWD: '/work'
+    +   },
+    -   env: {},
+        origin: true
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    env:
+    cwd: '/work'
+    origin: true
+    args:
+  actual:
+    env:
+      PUBLIC: 'parent'
+      A: 'ancestor'
+      PWD: '/work'
+    cwd: '/work'
+    origin: true
+    args:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:44:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: exact exported map: env -i -C /other PWD=caller report
+not ok 9 - exact exported map: env -i -C /other PWD=caller report
+  ---
+  duration_ms: 0.680583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:1441'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        args: [],
+        cwd: '/other',
+        env: {
+    +     A: 'ancestor',
+    +     PUBLIC: 'parent',
+    +     PWD: '/other'
+    -     PWD: 'caller'
+        },
+        origin: true
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    env:
+      PWD: 'caller'
+    cwd: '/other'
+    origin: true
+    args:
+  actual:
+    env:
+      PUBLIC: 'parent'
+      A: 'ancestor'
+      PWD: '/other'
+    cwd: '/other'
+    origin: true
+    args:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:44:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: exact exported map: env -i -C /other report
+not ok 10 - exact exported map: env -i -C /other report
+  ---
+  duration_ms: 0.729625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:1441'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        args: [],
+        cwd: '/other',
+    +   env: {
+    +     A: 'ancestor',
+    +     PUBLIC: 'parent',
+    +     PWD: '/other'
+    +   },
+    -   env: {},
+        origin: true
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    env:
+    cwd: '/other'
+    origin: true
+    args:
+  actual:
+    env:
+      PUBLIC: 'parent'
+      A: 'ancestor'
+      PWD: '/other'
+    cwd: '/other'
+    origin: true
+    args:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:44:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: private/exported separation at bash startup
+not ok 11 - private/exported separation at bash startup
+  ---
+  duration_ms: 2.536042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:1758'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '<parent>|<>|<value>|</work>\nparent|private|/work\n'
+    - '<>|<>|<value>|</work>\nparent|private|/work\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    <>|<>|<value>|</work>
+    parent|private|/work
+    
+  actual: |-
+    <parent>|<>|<value>|</work>
+    parent|private|/work
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:52:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: private/exported separation at sh startup
+not ok 12 - private/exported separation at sh startup
+  ---
+  duration_ms: 1.173834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:1758'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '<parent>|<>|<value>|</work>\nparent|private|/work\n'
+    - '<>|<>|<value>|</work>\nparent|private|/work\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    <>|<>|<value>|</work>
+    parent|private|/work
+    
+  actual: |-
+    <parent>|<>|<value>|</work>
+    parent|private|/work
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:52:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: literal invoke replace=undefined supplied=false
+ok 13 - literal invoke replace=undefined supplied=false
+  ---
+  duration_ms: 0.360125
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=undefined supplied=true
+ok 14 - literal invoke replace=undefined supplied=true
+  ---
+  duration_ms: 0.241833
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=false supplied=false
+ok 15 - literal invoke replace=false supplied=false
+  ---
+  duration_ms: 0.218375
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=false supplied=true
+ok 16 - literal invoke replace=false supplied=true
+  ---
+  duration_ms: 0.194083
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=true supplied=false
+not ok 17 - literal invoke replace=true supplied=false
+  ---
+  duration_ms: 0.9335
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:2299'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        args: [
+          '',
+          'a b',
+          '$PUBLIC'
+        ],
+        cwd: '/work',
+    +   env: {
+    +     A: 'ancestor',
+    +     PUBLIC: 'parent',
+    +     PWD: '/work'
+    +   },
+    -   env: {},
+        origin: true
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    env:
+    cwd: '/work'
+    origin: true
+    args:
+      0: ''
+      1: 'a b'
+      2: '$PUBLIC'
+  actual:
+    env:
+      PUBLIC: 'parent'
+      A: 'ancestor'
+      PWD: '/work'
+    cwd: '/work'
+    origin: true
+    args:
+      0: ''
+      1: 'a b'
+      2: '$PUBLIC'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:66:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: literal invoke replace=true supplied=true
+not ok 18 - literal invoke replace=true supplied=true
+  ---
+  duration_ms: 0.359084
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:2299'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        args: [
+          '',
+          'a b',
+          '$PUBLIC'
+    ...
+        env: {
+    +     A: 'ancestor',
+          ADDED: 'yes',
+    +     PUBLIC: 'parent',
+    +     PWD: '/work'
+    -     PWD: 'caller'
+        },
+        origin: true
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    env:
+      ADDED: 'yes'
+      PWD: 'caller'
+    cwd: '/work'
+    origin: true
+    args:
+      0: ''
+      1: 'a b'
+      2: '$PUBLIC'
+  actual:
+    env:
+      PUBLIC: 'parent'
+      A: 'ancestor'
+      PWD: '/work'
+      ADDED: 'yes'
+    cwd: '/work'
+    origin: true
+    args:
+      0: ''
+      1: 'a b'
+      2: '$PUBLIC'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:66:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: shell-local type mirrors the approved contract without casts
+ok 19 - shell-local type mirrors the approved contract without casts
+  ---
+  duration_ms: 0.03475
+  type: 'test'
+  ...
+# Subtest: validation before entry {"bad=name":"value"}
+ok 20 - validation before entry {"bad=name":"value"}
+  ---
+  duration_ms: 0.326875
+  type: 'test'
+  ...
+# Subtest: validation before entry {"bad\\u0000name":"value"}
+ok 21 - validation before entry {"bad\\u0000name":"value"}
+  ---
+  duration_ms: 0.180375
+  type: 'test'
+  ...
+# Subtest: validation before entry {"GOOD":"bad\\u0000value"}
+ok 22 - validation before entry {"GOOD":"bad\\u0000value"}
+  ---
+  duration_ms: 0.195375
+  type: 'test'
+  ...
+# Subtest: parent function locals, exports, cwd survive replacement and child status
+ok 23 - parent function locals, exports, cwd survive replacement and child status
+  ---
+  duration_ms: 1.385541
+  type: 'test'
+  ...
+# Subtest: private clone remains private until explicit export; no global lineage reset
+not ok 24 - private clone remains private until explicit export; no global lineage reset
+  ---
+  duration_ms: 0.357125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:4535'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    -   {},
+        {
+    +     A: 'ancestor',
+    +     PUBLIC: 'parent',
+    +     PWD: '/work'
+    +   },
+    +   {
+    +     A: 'ancestor',
+    +     PUBLIC: 'parent',
+    +     PWD: '/work',
+          SECRET: 'private'
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+    1:
+      SECRET: 'private'
+  actual:
+    0:
+      PUBLIC: 'parent'
+      A: 'ancestor'
+      PWD: '/work'
+    1:
+      PUBLIC: 'parent'
+      A: 'ancestor'
+      PWD: '/work'
+      SECRET: 'private'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:108:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: middleware sees exact child map; caller map is copied
+not ok 25 - middleware sees exact child map; caller map is copied
+  ---
+  duration_ms: 2.604292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:4970'
+  failureType: 'testCodeFailure'
+  error: 'Unexpected end of JSON input'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    JSON.parse (<anonymous>)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:125:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: origin and binary cursor undefined
+not ok 26 - origin and binary cursor undefined
+  ---
+  duration_ms: 0.843709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:5731'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:140:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: origin and binary cursor 
+not ok 27 - origin and binary cursor 
+  ---
+  duration_ms: 0.573875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:5731'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:140:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: origin and binary cursor 0,255,195,169,10
+not ok 28 - origin and binary cursor 0,255,195,169,10
+  ---
+  duration_ms: 0.68625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:1:5731'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + Uint8Array(0) []
+    - Uint8Array(5) [
+    -   0,
+    -   255,
+    -   195,
+    -   169,
+    -   10
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 0
+    1: 255
+    2: 195
+    3: 169
+    4: 10
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/env-replacement.test.ts:139:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: read consumes only its prefix before nested replacement
+ok 29 - read consumes only its prefix before nested replacement
+  ---
+  duration_ms: 0.526792
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 11
+# fail 18
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 221.509375

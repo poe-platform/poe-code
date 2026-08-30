@@ -1,0 +1,27 @@
+{
+  "stage": "post-public-three-layout success, before actual full-import negatives",
+  "reason": "Initial12 negative controls invoked the loader guard directly for missing/tampered paths. They remain predicate-guard evidence, not full-import proof. Strengthen with actual import(virtual-bash) and an existing unadmitted exact runtime file.",
+  "count": 12,
+  "modes": [
+    "source",
+    "installed",
+    "moved"
+  ],
+  "perMode": [
+    "existing-exact-runtime-outside-admission",
+    "missing-real-public-entry",
+    "modified-runtime",
+    "modified-provider"
+  ],
+  "movement": "Temporarily move the verified real installed consumer back to its original location for installed controls, then physically move back; final original location absent and complete package/consumer bytes and modes unchanged.",
+  "scripts": [
+    {
+      "name": "full-load-entry.mjs",
+      "sha256": "3de32459f4d05bbdeac2d15b46c6196c6106cf08b35c6ea2b18af4bc712d25ed"
+    },
+    {
+      "name": "full-load-controls.mjs",
+      "sha256": "d03065a1b661407e92bcd6c14680a2682a66b0c68cca7b71553506935a8647b6"
+    }
+  ]
+}

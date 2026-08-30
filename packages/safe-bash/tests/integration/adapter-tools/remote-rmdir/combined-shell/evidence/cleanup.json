@@ -1,0 +1,8 @@
+{
+  "operation": "rmSync",
+  "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/combined-shell/.frozen-lBF2JY",
+  "recursive": true,
+  "force": true,
+  "existsAfter": false,
+  "observedAt": "2026-08-27T07:24:49.883Z"
+}

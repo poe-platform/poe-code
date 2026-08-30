@@ -1,0 +1,236 @@
+TREE / FILE BOUNDED DISCOVERY — AUTHOR HANDOFF, NOT IMPLEMENTATION
+
+1. Ownership and stopping point
+Read ../AGENTS.md and repository AGENTS.md. This is the assigned leaf, not a
+root delegation run. No subordinate authors were launched. Only new
+tests/commands/filesystem-inspection-stress/dispatch/discover.mjs and /tmp
+evidence were authored, using apply_patch. Existing source, root defaults,
+exports/package metadata, FS, core/runtime, contracts, metadata commands,
+earlier authorization/cold/archive scopes and unowned native artifacts are
+untouched. No staging, commits, dependency installation, build or full suite.
+
+Proposed assignments, requiring root confirmation before authoring:
+- tree: src/commands/tree/** and tests/commands/tree/**.
+- file: src/commands/file/** and tests/commands/file/**.
+- integration owner later: src/index.ts, src/plugins/index.ts, package.json,
+  public-consumer/build evidence and aggregate registration tests.
+All four proposed author directories were absent at dispatch and final check.
+This leaf owns no implementation directory. Stop here for root assignments.
+
+2. Current actual dispatch, not a historical classifier inference
+Run: node --import tsx tests/commands/filesystem-inspection-stress/dispatch/discover.mjs
+Result: exit 0, exactly SIX Shell.exec calls; no rerun or further call.
+Window: 2026-08-27T07:57:47.284Z to 2026-08-27T07:57:47.424Z.
+Profile: Node v22.22.2, darwin arm64, current src/index.ts source through
+installed tsx; NOT built dist or package-export consumer verification.
+MemoryFileSystem only; /fixture/example.txt contains dispatch-control\n.
+Fresh shells, explicit cwd / and PATH /__absent__, no executable fallback,
+custom handlers, functions or aliases. Imported optional adapter/plugin
+modules were not configured or used for host/network/private execution.
+
+Profile                 Source                        Status / result
+bare                    tree /fixture                 127, empty stdout
+bare                    file /fixture/example.txt     127, empty stdout
+agentCommands           tree /fixture                 127, empty stdout
+agentCommands           file /fixture/example.txt     127, empty stdout
+agentCommands           type tree file                1, empty stdout
+agentCommands           cat /fixture/example.txt      0, dispatch-control\n
+
+Exact missing-command stderr:
+shell: line 1: tree: command not found\n
+shell: line 1: file: command not found\n
+Exact type stderr:
+shell: line 1: type: tree: not found\nshell: line 1: type: file: not found\n
+cat stderr is empty; JSON retains all output bytes as hex.
+
+Both bare and aggregate registries lack tree/file. Middleware saw the actual
+aggregate tree/file dispatch attempts as registered:false and cat as
+registered:true. Source runtime classification excludes tree/file from its
+builtin set. No target replacement was installed to manufacture availability.
+Current createStandardCommands returns 32 names; agent registry and aggregate
+factory return 65 names. These are inventory observations, not coverage scores.
+All six proposed root exports are currently undefined; family source paths
+are absent, and package exports currently contain no tree/file subpaths.
+
+3. Source identity and concurrent work
+Initial and immediate before/after HEAD:
+e9daab5722c682377cc59abec099648e3692c6ec.
+Tracked working tree/index were clean; unrelated untracked workers' evidence
+was present. Full dirty listings are preserved in before/after text files.
+One unrelated native-setid-child.mjs appeared between initial inspection and
+the dispatch pre-snapshot; it was not inspected or modified by this leaf.
+Source was not a frozen worktree. A node:module load hook recorded 157 actual
+loaded src files; each has exact before/after SHA256 in the JSON. A superset
+of 167 source TS files was checked in-run, plus package.json, package-lock.json
+and the historical inventory: zero changed inputs during dispatch.
+These are on-disk source hashes, not hashes of tsx-transformed JavaScript.
+
+Other workers advanced HEAD while this leaf read API contracts. Final git
+snapshot is 90c1a3cb04a6a01e456544cbac747b327a8dfb1d, not the dispatch HEAD.
+At 2026-08-27T07:59:13.887Z all 160 recorded loaded-source/package/inventory
+inputs still matched, and all four proposed directories remained absent.
+Do not attribute concurrent commits to this leaf or claim a whole-repo freeze.
+
+Evidence SHA256:
+678dae6ebd9e1fcd75c8a4dddff167e578b1a5d4af2ed3df868059ed557af810
+Harness SHA256:
+8f02c679bb2aad15576bef41f2b109983eaf328a88f0ea7c609060705867b4d9
+Files:
+/tmp/safe-bash-inspection-discovery-dispatch.json
+/tmp/safe-bash-inspection-discovery-before.txt
+/tmp/safe-bash-inspection-discovery-after.txt
+/tmp/safe-bash-inspection-discovery-final-git.txt
+/tmp/safe-bash-inspection-discovery-final-hashes.json
+/tmp/safe-bash-inspection-discovery-checkpoint.txt
+
+4. Historical 54-name inventory, preserved as historical
+Read benchmarks/reports/baseline-only-20260827/coverage-setup/inventory.json.
+SHA256 4496aedf610d3f0a6e79f099849af5a1becc0bb66652a770bea5b3d33943fff9.
+Captured 2026-08-27T03:27:52.713Z at
+0a0f712b432fc804551ce409e28145a37a5c4c91, without Shell.exec or handlers.
+Its 54 is 50 default unmeasured names plus 4 optional names, including the
+node diagnostic stub; 53 optional-inclusive operational candidates exclude
+that stub. Earlier frozen membership was 53 names / 3 recipes / 50 unmeasured.
+Both tree and file rows said no public default/optional handler with
+operationalProof:false, and baseline lazy registry handler present-unexecuted.
+This leaf supplies CURRENT operational absence only for these two names.
+It does not replay just-bash, refresh the entire 54, credit any implementation,
+or establish superiority/parity. Original inventory and failures are unchanged.
+
+5. Proposed family API, consistent with current patterns
+Propose TreeCommandsOptions / FileCommandsOptions, each with replace?: boolean
+and family-specific limits, validated by its own implementation. Suggested
+factory shape for each family (NOT currently available):
+treeCommands(options = {}): VirtualShellPlugin
+createTreeCommands(options = {}): readonly CommandDefinition[]
+createTreeCommand(options = {}): CommandDefinition
+fileCommands(options = {}): VirtualShellPlugin
+createFileCommands(options = {}): readonly CommandDefinition[]
+createFileCommand(options = {}): CommandDefinition
+
+Family index should explicitly export its singular constructor if advertised.
+Existing metadata factory accepts configuration; split/stream-inspection
+singular factories instead accept normalized limits and are not re-exported
+by those family indexes. Thus singular public exports are a deliberate new
+family choice, not an assertion that every old family already provides them.
+Use plugin names tree-commands/file-commands; preflight ALL definition names
+before registration unless replace is intentional. Register with one consistent
+replace policy. Existing aggregate uses CommandRegistry collision checking.
+Root may later compose each family ONCE and strip family replace controls from
+aggregate options, matching AgentCommandsOptions. Do not add optional curl or
+SafeJS to defaults. No plugin or export was authored by this discovery leaf.
+
+6. Exact byte/read/cancellation constraints
+src/contracts/io.ts exports ByteSource = AsyncIterable<Uint8Array>, ByteSink
+write(chunk): Promise<void>, readBytes(source, signal?), writeBytes(sink,
+chunk, signal?), collectBytes(source, {maxBytes, signal?}) and pipeBytes.
+Await sink writes, preserve chunk ownership, count retained bytes and emit
+byte streams; terminal Shell.exec buffers, internal pipes remain byte-oriented.
+collectBytes is bounded WHOLE collection and throws EFBIG on excess; it is
+not a prefix-reader and must not be used as a truncating sample operation.
+
+FileSystem.readStream? accepts {signal, start?, endExclusive?, chunkSize?}.
+For a bounded file sample, request start:0/endExclusive:sampleBound with a
+bounded chunk size, consume via readBytes, copy only owned bounded sample
+bytes, and stop/close the iterator once the bound is met. Enforce consumer
+chunk/byte limits as well; a provider can overfetch internally, which this
+surface cannot universally prevent. Do not claim prefix sampling proves
+whole-file text encoding or exact libmagic behavior for unseen bytes.
+readFile(path, {signal,maxBytes}) has no offset/prefix return API. Memory
+readFile rejects EFBIG for larger files before returning any prefix; do not
+retry unbounded readFile when streaming is absent. Nonstreaming large-file
+prefix support is missing and needs an explicit limitation/unsupported result,
+not a contracts edit or fabricated classification. Small bounded whole-file
+fallback is possible. The generic commands/internal.ts input fallback omits
+maxBytes, so it is not itself a sufficient bounded classifier-input helper.
+
+readBytes checks pre-abort before acquiring the source iterator; validates
+Uint8Array chunks; races next() against cancellation; invokes iterator.return
+on early exit/failure. Without cancellation it awaits cleanup; after abort it
+observes late cleanup rejection rather than waiting forever. Consumer code
+must actually close its wrapper iterator (for-await break/finally or explicit
+return) rather than abandoning manual next() calls. Do not assume cancellation
+forcibly stops uncooperative provider work or undoes completed effects.
+writeBytes similarly races the awaited sink operation and observes rejection.
+Forward context.signal into every FS call and rethrow cancellation before
+ordinary diagnostics, including errno-shaped abort reasons. For stdin sample
+consumption, preserve stdinIsDefault provenance and explicitly manage owned
+iterators; implicit/default stdin does not establish that bytes are absent.
+
+7. Traversal, symlinks, identity and collection caveats
+Required FileSystem methods: stat/lstat/readdir/realpath; optional readlink,
+symlink and compareEntry. All accept signal-bearing FsOptions where applicable.
+Use lstat to inspect the final link itself, stat to follow it, readlink for its
+text only when supported. Do not turn missing readlink support into a fabricated
+target. Realpath resolves through the adapter; lexical resolvePath/joinPath are
+virtual POSIX helpers, not symlink containment or cross-mount authority.
+DirectoryEntry is only {name,type}; readdir returns Promise<DirectoryEntry[]>,
+NOT an iterator, page API or bounded listing. Memory readdir collects and sorts
+the whole directory before return. A command entry limit can bound subsequent
+retention/traversal/output, but cannot cap that adapter-side allocation. Whole
+subtree collection/sorting likewise needs explicit limits and cancellation
+yields. No directory snapshot, descriptor-relative traversal or lease exists.
+Ancestor cycle detection plus depth/entry/work bounds are needed if authors
+choose link-following; unknown identity is not proof that a new path is safe
+to recurse forever, nor permission to collapse unrelated entries as duplicates.
+
+FileStat identity is complete only with non-null object/symbol identityScope
+AND safe nonnegative integer dev and ino. Compare scope by ===, never stringify
+or invent per-client scopes. Same complete tuple means same observed entry;
+different complete tuples/scopes mean distinct under truthful authority.
+Any missing/invalid identity remains unknown; bare inode or differing pathname,
+URL, wrapper/client, credentials or ETag is not authority. compareEntry? returns
+same/distinct/unknown for FOLLOWED backing entries, not link entries or content.
+Missing support/unrecognized peers are unknown; real FS/cancellation errors
+propagate. Invalid/conflicting answers fail EIO; known aliases are not overridden.
+At most one query per distinct operand authority, no recursive negotiation.
+Comparison is point-in-time only, never a lease, transaction or ABA defense.
+See src/contracts/filesystem.md:98 and :160; no contract changes proposed.
+
+8. Budget surface and metadata capabilities (fields only)
+CommandContext exposes fs/signal/stdin/stdout/stderr/cwd/env/args/command,
+optional invoke and registerCleanup, but NO public traversal/input Budget.
+ShellLimits covers maxOutputBytes, maxCommands, maxLoopIterations,
+maxSubstitutionDepth, maxSourceBytes, maxExpansionFields, maxExpansionBytes,
+pipeHighWaterMark. Internal src/shell/runtime.ts Budget has tick/loop/source/
+sink and controller/signal; it is NOT re-exported by src/shell/index.ts.
+Do not import internal runtime Budget for a new family or claim command-family
+limits are a single shared shell budget. Existing sinks enforce shared shell
+output accounting; new families still need their own explicit sample, chunk,
+argument, entry, depth, retained-state, output and operation limits as relevant.
+Public invoke preserves the existing dispatch/middleware/fs/signal/budgets;
+there is no need to spawn native processes for either new command.
+
+FileStat required fields: type, size, mode, mtimeMs, atimeMs, ctimeMs.
+Optional fields: birthtimeMs, identityScope, ino, dev, nlink, uid, gid.
+FileType is only file/directory/symlink. No blocks, allocatedSize, blksize,
+rdev, owner/group-name lookup, special-device/FIFO/socket type, nanosecond time,
+or bundled magic database appears in this contract. Report unknown optional
+fields honestly. Do NOT implement du or infer allocated size from size.
+permissions:false makes modes advisory, not protection; omitted capability
+does not imply enforcement. access is a best-effort policy probe, not a later
+GET/PUT guarantee. No general no-atime read/listing option exists: Memory
+readStream and readdir update atime. Do not promise metadata-unchanged inspection
+or restore times through mutating calls. No metadata command behavior changed.
+
+9. Oracle availability and author verification suggestions
+Exactly ONE native version probe was executed: /usr/bin/file --version.
+Output: file-5.41; magic file from /usr/share/file/magic. Darwin host profile,
+not Linux semantics. No native file-content classification was performed.
+command -v tree returned no path; /opt/homebrew/bin/tree, /usr/local/bin/tree
+and /usr/bin/tree were absent. Zero tree version probes, no private searches,
+downloads or installs. Native tree comparison is unavailable in this inspected
+PATH/common-path profile, not an assertion about every file on the host.
+Primary upstream documentation and command dialect decisions are deferred to
+future assigned authors; no web/native semantic oracle was used here.
+
+Suggested later author tests within their disjoint scopes: actual Shell plus
+explicit family registration (not just context stubs); default absence until
+integration; collision/replacement preflight; Memory file/directory/dangling
+link/cycle fixtures; bounded sample chunk splitting and oversize rejection;
+early iterator return, canceled blocked read/write and late rejection handling;
+unavailable streaming/readlink, unknown identity and advisory metadata; directory
+entry/depth/work/output limits; diagnostics and binary pipeline byte preservation.
+These are handoff suggestions, not completed tests or reduced feature scope.
+
+Discovery complete. No authors/plugins started; root assigns next work.

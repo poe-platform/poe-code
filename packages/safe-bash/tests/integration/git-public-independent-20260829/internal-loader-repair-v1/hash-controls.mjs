@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { hashRegularFile } from './hash-regular-file.mjs';
+const root = fileURLToPath(new URL('.', import.meta.url));
+const seal = JSON.parse(fs.readFileSync(root + 'HASH-CONTROL-SEAL.json', 'utf8'));
+assert.equal(process.execPath, seal.node.path); assert.equal(process.version, seal.node.version);
+assert.equal(hashRegularFile(root + 'hash-regular-file.mjs').sha256, seal.helperSha256);
+const small = hashRegularFile(root + 'PLAN.json'); assert.equal(small.sha256, seal.dataSha256); assert.ok(small.largestRead <= 65536);
+assert.throws(() => hashRegularFile(root));
+const executable = hashRegularFile(process.execPath); assert.equal(executable.sha256, seal.node.sha256); assert.equal(executable.bytesRead, seal.node.bytes); assert.ok(executable.largestRead <= 65536); assert.ok(executable.readCalls > 1);
+console.log(JSON.stringify({ groups: 3, pass: 3, fail: 0, executable, data: small, descriptorClosedByFinally: 'source qualification', productImports: 0, loaderWorkers: 0, applicationWorkers: 0 }));

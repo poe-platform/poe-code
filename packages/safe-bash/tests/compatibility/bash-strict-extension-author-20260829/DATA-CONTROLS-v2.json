@@ -1,0 +1,113 @@
+{
+  "role": "DATA_STRUCTURE_AND_SYNTAX_ONLY",
+  "productExecutions": 0,
+  "cases": [
+    {
+      "id": "D01-original-authenticated",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D02-first32-prefix-unchanged",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D03-summary-suffix-unchanged",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D04-registered-invoke-finally",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D05-isolation-assertions-preserved",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D06-event-obligations",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D07-counts-and-open-roles",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D08-fixed-source",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D09-retained-pack-binding",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D10-versioned-dispatch",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D11-remove-invoke-mutant",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D12-remove-finally-mutant",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D13-anchor-missing-read-zero",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D13-anchor-read-assignment-lhs",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D13-anchor-let-recast",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D13-anchor-rollback-prefix",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D13-anchor-swallow-parameter-sink",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D13-anchor-false-option-state",
+      "role": "DATA_STRUCTURE_NOT_PRODUCT",
+      "pass": true
+    },
+    {
+      "id": "D14-syntax-extension-v2.mjs",
+      "role": "SYNTAX_ONLY_NO_IMPORT",
+      "pass": true
+    },
+    {
+      "id": "D14-syntax-run-v2.mjs",
+      "role": "SYNTAX_ONLY_NO_IMPORT",
+      "pass": true
+    },
+    {
+      "id": "D14-syntax-launch-v2.mjs",
+      "role": "SYNTAX_ONLY_NO_IMPORT",
+      "pass": true
+    }
+  ],
+  "pass": 21,
+  "capture": "/tmp/strict-extension-v2-seal-jfrYit"
+}

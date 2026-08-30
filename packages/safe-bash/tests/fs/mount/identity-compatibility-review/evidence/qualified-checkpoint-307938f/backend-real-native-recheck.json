@@ -1,0 +1,56 @@
+{
+  "revision": "307938f17db2714db9debc451f935e3134e2660e",
+  "archiveSha256": "9fa8ad561bfbab7c0b799c088799c835c8edf9d0b793c3a999c029dfdbef48c2",
+  "sourceSetSha256": "3acf6a8cfa85852f60f81aa1c78b6c9e5e323a45f5ca333cc1977708581b878a",
+  "tests": [
+    "tests/fs/real/adversarial.test.ts",
+    "tests/fs/real/cancellation-regression.test.ts",
+    "tests/fs/real/conformance.test.ts",
+    "tests/fs/real/copy-identity.test.ts",
+    "tests/fs/real/rmdir.test.ts",
+    "tests/fs/real/stress.test.ts",
+    "tests/fs/real/timestamps.test.ts",
+    "tests/fs/real/traversal-regression.test.ts"
+  ],
+  "excludedHistoricalArtifactReader": [
+    "tests/fs/real/metadata-review/classification.test.ts"
+  ],
+  "sourceOrTestEdits": [],
+  "nativeRootCreatedByThisLeaf": "/tmp/sb-real-oefBqG",
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/same-archive-real-SJ1aT6",
+  "startedAt": "2026-08-27T01:42:39.937Z",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/real/adversarial.test.ts",
+    "tests/fs/real/cancellation-regression.test.ts",
+    "tests/fs/real/conformance.test.ts",
+    "tests/fs/real/copy-identity.test.ts",
+    "tests/fs/real/rmdir.test.ts",
+    "tests/fs/real/stress.test.ts",
+    "tests/fs/real/timestamps.test.ts",
+    "tests/fs/real/traversal-regression.test.ts"
+  ],
+  "pid": 88128,
+  "code": 0,
+  "signal": null,
+  "residualGroup": false,
+  "launchError": null,
+  "counts": {
+    "tests": 94,
+    "pass": 94,
+    "fail": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cancelled": 0
+  },
+  "inputsStable": true,
+  "finishedAt": "2026-08-27T01:42:40.975Z",
+  "scratchRemoved": true,
+  "ownedNativeRootRemoved": true,
+  "noUnownedPathsDeleted": true
+}

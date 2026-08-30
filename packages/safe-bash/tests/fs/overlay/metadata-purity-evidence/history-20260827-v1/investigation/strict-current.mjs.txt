@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import { pathToFileURL } from "node:url";
+
+const root = "/Users/kjopek/Workspace/safe-bash";
+const load = path => import(pathToFileURL(`${root}/${path}`).href);
+const { FsError } = await load("src/contracts/index.ts");
+const { createMemoryFileSystem } = await load("src/fs/memory/index.ts");
+const { createOverlayFileSystem } = await load("src/fs/overlay/index.ts");
+const { wrapped, trace, shellRun } = await load("tests/commands/du/helpers.ts");
+
+const upper = createMemoryFileSystem(); let denyCleanup = true; const mutations = [];
+const observedUpper = wrapped(upper, { async rm(path, options) {
+  mutations.push(path);
+  if (denyCleanup) throw new FsError("EACCES");
+  return upper.rm(path, options);
+} });
+const overlay = createOverlayFileSystem({ upper: observedUpper, lower: createMemoryFileSystem() });
+try {
+  await overlay.mkdir("/tree");
+  const before = await upper.readdir("/");
+  assert.ok(before.some(entry => entry.name.startsWith(".virtual-bash-overlay-")));
+  mutations.length = 0; denyCleanup = false;
+  const checked = trace(overlay); const result = await shellRun(checked.fs, ["-bs", "tree"]);
+  const after = await upper.readdir("/");
+  console.log(JSON.stringify({ before, after, mutations, commandCalls: checked.calls.map(call => call.method),
+    result: { exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr } }, null, 2));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "0\ttree\n");
+  assert.equal(result.stderr, "");
+  assert.deepEqual(checked.calls.map(call => call.method), ["lstat", "readdir"]);
+  assert.deepEqual(mutations, [], "strict actual no backend mutations");
+  assert.deepEqual(after, before, "metadata reads must leave the backing namespace unchanged");
+} finally {
+  denyCleanup = false;
+  await overlay.cleanup();
+}

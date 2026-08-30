@@ -1,0 +1,39 @@
+[
+  {
+    "name": "scoped-types",
+    "argv": [
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "tests/commands/tree/tsconfig.json",
+      "--listFiles"
+    ],
+    "cwd": "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+    "pid": 56494,
+    "completion": {
+      "exitCode": 0,
+      "signal": null
+    },
+    "timedOut": false,
+    "elapsedMs": 873
+  },
+  {
+    "name": "standalone-build",
+    "argv": [
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate/node_modules/typescript/bin/tsc",
+      "-p",
+      "tests/commands/tree/tsconfig.build.json",
+      "--outDir",
+      "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/build",
+      "--listEmittedFiles"
+    ],
+    "cwd": "/private/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+    "pid": 56499,
+    "completion": {
+      "exitCode": 0,
+      "signal": null
+    },
+    "timedOut": false,
+    "elapsedMs": 702
+  }
+]

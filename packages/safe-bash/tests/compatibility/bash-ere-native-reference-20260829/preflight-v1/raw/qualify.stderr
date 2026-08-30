@@ -1,0 +1,13 @@
+preflight-v1/controls.mjs:113
+ for(const mutate of [bytes=>bytes.subarray(0,bytes.length-1),bytes=>Buffer.from(bytes.toString().replace('N01','N02')),bytes=>Buffer.from(bytes.toString().replace('EREOBS1\0N01\00\00','EREOBS1\0N01\00\05'))]){const changed=clone(value),bytes=mutate(Buffer.from(changed.capture[0].base64,'base64'));changed.capture[0].base64=bytes.toString('base64');changed.capture[0].sha256=digest(bytes);rejects(()=>decodeObservation(changed));}
+                                                                                                                                                                                                          ^
+
+SyntaxError: Octal escape sequences are not allowed in strict mode.
+    at new Module (node:internal/vm/module:141:21)
+    at new SourceTextModule (node:internal/vm/module:287:5)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v1/qualify.mjs:10:326
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2

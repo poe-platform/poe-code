@@ -1,0 +1,1157 @@
+{
+  "schema": "k08-static-inherited-edges-v1",
+  "originalRole": {
+    "path": "case-source-built-K01.role.json",
+    "bytes": 96734,
+    "sha256": "9a41e0e71574284d115ad214db89f52720adf47613c1eac7cd4296031abb86d8",
+    "mode": 384
+  },
+  "changes": [
+    {
+      "path": "dist/shell/arithmetic-parameters.js",
+      "current": "9bc23fc6879c735aa46222faa48d2738edaa82785cd3e089e868fc91324601e9"
+    },
+    {
+      "path": "dist/shell/runtime.js",
+      "previous": "50f78b160d523e5d3c54655dce73023a5eac33a0cc10cb588ec19b8db1e4d90e",
+      "current": "075b7e08efbade4f54ccbb50aa7fcd87e69db96ea3ba19ed581d245a9ad233aa"
+    }
+  ],
+  "edges": {
+    "dist/commands/apply-patch/apply.js": [
+      "../../contracts/index.js",
+      "./parser.js",
+      "./matcher.js",
+      "./shared.js"
+    ],
+    "dist/commands/apply-patch/index.js": [
+      "./apply.js",
+      "./options.js"
+    ],
+    "dist/commands/apply-patch/matcher.js": [
+      "./shared.js"
+    ],
+    "dist/commands/apply-patch/options.js": [],
+    "dist/commands/apply-patch/parser.js": [
+      "../../contracts/index.js",
+      "./shared.js"
+    ],
+    "dist/commands/apply-patch/shared.js": [
+      "node:timers/promises",
+      "../../contracts/index.js"
+    ],
+    "dist/commands/archive/create.js": [
+      "../../contracts/index.js",
+      "./format.js",
+      "./internal.js",
+      "./options.js"
+    ],
+    "dist/commands/archive/extract.js": [
+      "../../contracts/index.js",
+      "./format.js",
+      "./internal.js",
+      "./options.js",
+      "./stream.js"
+    ],
+    "dist/commands/archive/format.js": [
+      "./internal.js"
+    ],
+    "dist/commands/archive/index.js": [
+      "../../contracts/index.js",
+      "./create.js",
+      "./extract.js",
+      "./internal.js",
+      "./options.js",
+      "./stream.js"
+    ],
+    "dist/commands/archive/internal.js": [
+      "../../contracts/index.js"
+    ],
+    "dist/commands/archive/options.js": [
+      "../../contracts/index.js",
+      "./internal.js"
+    ],
+    "dist/commands/archive/stream.js": [
+      "node:zlib",
+      "../../contracts/index.js",
+      "./internal.js"
+    ],
+    "dist/commands/basic.js": [
+      "../contracts/index.js",
+      "./internal.js"
+    ],
+    "dist/commands/bytes/checksums/index.js": [
+      "node:crypto",
+      "../../../contracts/index.js",
+      "../../internal.js"
+    ],
+    "dist/commands/bytes/compression/files.js": [
+      "node:crypto",
+      "../../../contracts/index.js",
+      "../../internal.js",
+      "./stream.js"
+    ],
+    "dist/commands/bytes/compression/gunzip.js": [
+      "node:timers/promises",
+      "node:zlib",
+      "../../../contracts/index.js"
+    ],
+    "dist/commands/bytes/compression/index.js": [
+      "../../../contracts/index.js",
+      "../../internal.js",
+      "./files.js",
+      "./options.js",
+      "./stream.js"
+    ],
+    "dist/commands/bytes/compression/options.js": [
+      "../../internal.js"
+    ],
+    "dist/commands/bytes/compression/stream.js": [
+      "node:stream",
+      "node:stream/promises",
+      "node:timers/promises",
+      "node:zlib",
+      "../../../contracts/index.js",
+      "./gunzip.js"
+    ],
+    "dist/commands/bytes/encoding/base.js": [
+      "../../internal.js",
+      "./shared.js"
+    ],
+    "dist/commands/bytes/encoding/index.js": [
+      "./base.js",
+      "./od.js",
+      "./xxd.js"
+    ],
+    "dist/commands/bytes/encoding/od.js": [
+      "../../internal.js",
+      "./shared.js"
+    ],
+    "dist/commands/bytes/encoding/shared.js": [
+      "node:timers/promises",
+      "../../../contracts/index.js",
+      "../../internal.js"
+    ],
+    "dist/commands/bytes/encoding/xxd.js": [
+      "../../internal.js",
+      "./shared.js"
+    ],
+    "dist/commands/bytes/index.js": [
+      "./encoding/index.js",
+      "./checksums/index.js",
+      "./compression/index.js"
+    ],
+    "dist/commands/column/column.js": [
+      "../../contracts/index.js",
+      "./display.js",
+      "./internal.js",
+      "./options.js",
+      "./table.js"
+    ],
+    "dist/commands/column/display.js": [
+      "../../contracts/index.js"
+    ],
+    "dist/commands/column/index.js": [
+      "./column.js"
+    ],
+    "dist/commands/column/internal.js": [
+      "../../contracts/index.js",
+      "../table-text/internal.js",
+      "./options.js"
+    ],
+    "dist/commands/column/options.js": [
+      "../../contracts/index.js",
+      "../table-text/internal.js"
+    ],
+    "dist/commands/column/table.js": [
+      "./internal.js"
+    ],
+    "dist/commands/copy-identity.js": [
+      "../contracts/index.js"
+    ],
+    "dist/commands/diff-patch/diff-format.js": [],
+    "dist/commands/diff-patch/diff.js": [
+      "../../contracts/index.js",
+      "./shared.js",
+      "./diff-format.js"
+    ],
+    "dist/commands/diff-patch/index.js": [
+      "./diff.js",
+      "./patch.js"
+    ],
+    "dist/commands/diff-patch/patch-envelope.js": [
+      "./shared.js"
+    ],
+    "dist/commands/diff-patch/patch-formats.js": [
+      "./shared.js",
+      "./unified.js",
+      "./patch-path.js"
+    ],
+    "dist/commands/diff-patch/patch-gnu-paths.js": [
+      "../../contracts/index.js",
+      "./patch-path.js",
+      "./shared.js"
+    ],
+    "dist/commands/diff-patch/patch-gnu-reject.js": [],
+    "dist/commands/diff-patch/patch-path.js": [
+      "./shared.js"
+    ],
+    "dist/commands/diff-patch/patch.js": [
+      "../../contracts/index.js",
+      "./shared.js",
+      "./unified.js",
+      "./patch-path.js",
+      "./patch-envelope.js",
+      "./patch-formats.js",
+      "./patch-gnu-paths.js",
+      "./patch-gnu-reject.js"
+    ],
+    "dist/commands/diff-patch/shared.js": [
+      "node:timers/promises",
+      "../../contracts/index.js"
+    ],
+    "dist/commands/diff-patch/unified.js": [
+      "./shared.js",
+      "./patch-path.js"
+    ],
+    "dist/commands/du/arguments.js": [
+      "./format.js"
+    ],
+    "dist/commands/du/budget.js": [
+      "../../contracts/index.js"
+    ],
+    "dist/commands/du/du.js": [
+      "../../contracts/index.js",
+      "./arguments.js",
+      "./budget.js",
+      "./format.js",
+      "./options.js"
+    ],
+    "dist/commands/du/format.js": [],
+    "dist/commands/du/index.js": [
+      "./du.js"
+    ],
+    "dist/commands/du/options.js": [],
+    "dist/commands/env-split.js": [
+      "./internal.js"
+    ],
+    "dist/commands/execution.js": [
+      "../contracts/index.js",
+      "./internal.js",
+      "./env-split.js"
+    ],
+    "dist/commands/expr/bre-worker.js": [
+      "node:worker_threads",
+      "../regex-execution/protocol.js"
+    ],
+    "dist/commands/expr/evaluate.js": [
+      "./internal.js"
+    ],
+    "dist/commands/expr/index.js": [
+      "../../contracts/index.js",
+      "../regex-execution/client.js",
+      "../regex-execution/protocol.js",
+      "./evaluate.js",
+      "./internal.js",
+      "./syntax.js"
+    ],
+    "dist/commands/expr/internal.js": [
+      "../regex-execution/protocol.js"
+    ],
+    "dist/commands/expr/syntax.js": [
+      "./internal.js",
+      "./evaluate.js"
+    ],
+    "dist/commands/file/classify.js": [],
+    "dist/commands/file/index.js": [
+      "../../contracts/index.js",
+      "./classify.js",
+      "./shared.js"
+    ],
+    "dist/commands/file/shared.js": [
+      "../../contracts/index.js"
+    ],
+    "dist/commands/filesystem.js": [
+      "../contracts/index.js",
+      "./internal.js",
+      "./copy-identity.js",
+      "./move.js"
+    ],
+    "dist/commands/find.js": [
+      "../contracts/index.js",
+      "./internal.js"
+    ],
+    "dist/commands/git/arguments.js": [
+      "../../contracts/index.js",
+      "./io.js",
+      "./limits.js"
+    ],
+    "dist/commands/git/codec.js": [
+      "node:zlib",
+      "./limits.js"
+    ],
+    "dist/commands/git/config.js": [
+      "./limits.js"
+    ],
+    "dist/commands/git/crc.js": [],
+    "dist/commands/git/delta.js": [
+      "./limits.js"
+    ],
+    "dist/commands/git/diff.js": [
+      "./arguments.js",
+      "./limits.js"
+    ],
+    "dist/commands/git/ignore.js": [
+      "./limits.js"
+    ],
+    "dist/commands/git/index.js": [
+      "./arguments.js",
+      "./io.js",
+      "./limits.js",
+      "./queries.js",
+      "./repository.js"
+    ],
+    "dist/commands/git/io.js": [
+      "node:crypto",
+      "node:timers/promises",
+      "../../contracts/index.js",
+      "./limits.js"
+    ],
+    "dist/commands/git/limits.js": [],
+    "dist/commands/git/pack.js": [
+      "./codec.js",
+      "./crc.js",
+      "./delta.js",
+      "./limits.js"
+    ],
+    "dist/commands/git/queries.js": [
+      "../../contracts/index.js",
+      "./arguments.js",
+      "./diff.js",
+      "./ignore.js",
+      "./io.js",
+      "./limits.js",
+      "./repository.js"
+    ],
+    "dist/commands/git/repository.js": [
+      "./config.js",
+      "./codec.js",
+      "./io.js",
+      "./limits.js",
+      "./pack.js"
+    ],
+    "dist/commands/grep-aliases/index.js": [
+      "../grep.js"
+    ],
+    "dist/commands/grep.js": [
+      "./internal.js",
+      "./regex-execution/client.js"
+    ],
+    "dist/commands/html-to-markdown/budget.js": [
+      "node:timers/promises",
+      "../../contracts/index.js"
+    ],
+    "dist/commands/html-to-markdown/entities.js": [
+      "./budget.js",
+      "./text.js"
+    ],
+    "dist/commands/html-to-markdown/index.js": [
+      "../../contracts/index.js",
+      "./budget.js",
+      "./input.js",
+      "./options.js",
+      "./render.js"
+    ],
+    "dist/commands/html-to-markdown/input.js": [
+      "../../contracts/index.js",
+      "../internal.js",
+      "./parser.js"
+    ],
+    "dist/commands/html-to-markdown/options.js": [],
+    "dist/commands/html-to-markdown/parser.js": [
+      "./entities.js"
+    ],
+    "dist/commands/html-to-markdown/render.js": [
+      "./budget.js",
+      "./entities.js",
+      "./parser.js",
+      "./text.js"
+    ],
+    "dist/commands/html-to-markdown/text.js": [
+      "./budget.js"
+    ],
+    "dist/commands/index.js": [
+      "../contracts/index.js",
+      "./basic.js",
+      "./filesystem.js",
+      "./streams.js",
+      "./text.js",
+      "./grep.js",
+      "./predicates.js",
+      "./execution.js",
+      "./find.js",
+      "./internal.js"
+    ],
+    "dist/commands/internal.js": [
+      "../contracts/index.js"
+    ],
+    "dist/commands/metadata/chmod.js": [
+      "../../contracts/index.js",
+      "../internal.js",
+      "./internal.js"
+    ],
+    "dist/commands/metadata/index.js": [
+      "./chmod.js",
+      "./stat.js",
+      "./mktemp.js",
+      "./internal.js"
+    ],
+    "dist/commands/metadata/internal.js": [
+      "../../contracts/index.js",
+      "../internal.js"
+    ],
+    "dist/commands/metadata/mktemp.js": [
+      "node:crypto",
+      "../../contracts/index.js",
+      "../internal.js",
+      "./internal.js"
+    ],
+    "dist/commands/metadata/stat.js": [
+      "../../contracts/index.js",
+      "../internal.js",
+      "./internal.js"
+    ],
+    "dist/commands/move.js": [
+      "../contracts/index.js",
+      "./copy-identity.js",
+      "./internal.js"
+    ],
+    "dist/commands/network/args.js": [
+      "node:http",
+      "./types.js"
+    ],
+    "dist/commands/network/body.js": [
+      "node:crypto",
+      "node:path",
+      "node:timers/promises",
+      "../../contracts/index.js",
+      "../internal.js",
+      "./shared.js",
+      "./types.js"
+    ],
+    "dist/commands/network/curl.js": [
+      "node:path",
+      "node:timers/promises",
+      "../../contracts/index.js",
+      "../internal.js",
+      "./args.js",
+      "./body.js",
+      "./output.js",
+      "./shared.js",
+      "./transport.js",
+      "./types.js"
+    ],
+    "dist/commands/network/index.js": [
+      "./curl.js",
+      "./types.js",
+      "./transport.js"
+    ],
+    "dist/commands/network/output.js": [
+      "../../contracts/index.js",
+      "../internal.js",
+      "./shared.js",
+      "./types.js"
+    ],
+    "dist/commands/network/shared.js": [
+      "../../contracts/index.js",
+      "./types.js"
+    ],
+    "dist/commands/network/transport.js": [
+      "node:http",
+      "node:https",
+      "../../contracts/index.js",
+      "./types.js",
+      "./shared.js"
+    ],
+    "dist/commands/network/types.js": [],
+    "dist/commands/predicates.js": [
+      "../contracts/index.js",
+      "./internal.js"
+    ],
+    "dist/commands/regex-execution/client.js": [
+      "node:worker_threads",
+      "./protocol.js"
+    ],
+    "dist/commands/regex-execution/ere/errors.js": [],
+    "dist/commands/regex-execution/ere/limits.js": [
+      "node:timers/promises",
+      "./errors.js"
+    ],
+    "dist/commands/regex-execution/ere/matcher.js": [
+      "./limits.js",
+      "./syntax.js"
+    ],
+    "dist/commands/regex-execution/ere/syntax.js": [
+      "./errors.js",
+      "./limits.js"
+    ],
+    "dist/commands/regex-execution/ere/transport/accounting.js": [
+      "../limits.js",
+      "./protocol.js"
+    ],
+    "dist/commands/regex-execution/ere/transport/owner.js": [
+      "node:worker_threads",
+      "./protocol.js",
+      "./validation.js"
+    ],
+    "dist/commands/regex-execution/ere/transport/protocol.js": [],
+    "dist/commands/regex-execution/ere/transport/root.js": [
+      "../errors.js",
+      "./accounting.js",
+      "./owner.js",
+      "./protocol.js",
+      "./validation.js"
+    ],
+    "dist/commands/regex-execution/ere/transport/validation.js": [
+      "node:util",
+      "../errors.js",
+      "../limits.js",
+      "./accounting.js",
+      "./protocol.js"
+    ],
+    "dist/commands/regex-execution/ere/transport/wire-engine.js": [
+      "../limits.js",
+      "../syntax.js",
+      "../matcher.js",
+      "../errors.js",
+      "./accounting.js",
+      "./protocol.js",
+      "./validation.js"
+    ],
+    "dist/commands/regex-execution/ere/transport/worker-entry.js": [
+      "node:worker_threads",
+      "./protocol.js",
+      "./validation.js",
+      "./wire-engine.js",
+      "./accounting.js"
+    ],
+    "dist/commands/regex-execution/ere/types.js": [],
+    "dist/commands/regex-execution/matching.js": [
+      "node:buffer"
+    ],
+    "dist/commands/regex-execution/protocol.js": [],
+    "dist/commands/regex-execution/worker.js": [
+      "node:worker_threads",
+      "./matching.js",
+      "../expr/bre-worker.js",
+      "./protocol.js"
+    ],
+    "dist/commands/safejs/index.js": [
+      "../../contracts/index.js",
+      "../../integrations/safejs/index.js",
+      "../../integrations/safejs/values.js",
+      "../internal.js",
+      "./io.js",
+      "./options.js",
+      "./types.js"
+    ],
+    "dist/commands/safejs/io.js": [
+      "node:timers/promises",
+      "../../contracts/index.js",
+      "./types.js",
+      "./render.js"
+    ],
+    "dist/commands/safejs/options.js": [
+      "../internal.js"
+    ],
+    "dist/commands/safejs/render.js": [
+      "../../integrations/safejs/values.js",
+      "./types.js"
+    ],
+    "dist/commands/safejs/types.js": [],
+    "dist/commands/search/glob.js": [
+      "../regex-execution/client.js",
+      "./options.js"
+    ],
+    "dist/commands/search/index.js": [
+      "./rg.js"
+    ],
+    "dist/commands/search/matcher.js": [
+      "../regex-execution/client.js",
+      "./options.js"
+    ],
+    "dist/commands/search/options.js": [],
+    "dist/commands/search/output.js": [
+      "node:buffer",
+      "./shared.js"
+    ],
+    "dist/commands/search/rg.js": [
+      "../../contracts/index.js",
+      "./matcher.js",
+      "./options.js",
+      "./output.js",
+      "./shared.js",
+      "./walk.js",
+      "../regex-execution/client.js"
+    ],
+    "dist/commands/search/shared.js": [
+      "node:timers/promises",
+      "../../contracts/index.js",
+      "./options.js"
+    ],
+    "dist/commands/search/walk.js": [
+      "../../contracts/index.js",
+      "../regex-execution/client.js",
+      "./glob.js",
+      "./options.js",
+      "./shared.js"
+    ],
+    "dist/commands/split/index.js": [
+      "./options.js",
+      "./split.js"
+    ],
+    "dist/commands/split/io.js": [
+      "node:timers/promises",
+      "../../contracts/index.js",
+      "../internal.js"
+    ],
+    "dist/commands/split/names.js": [],
+    "dist/commands/split/options.js": [],
+    "dist/commands/split/outputs.js": [
+      "../../contracts/index.js",
+      "../internal.js",
+      "./io.js"
+    ],
+    "dist/commands/split/split.js": [
+      "../../contracts/index.js",
+      "./io.js",
+      "./names.js",
+      "./outputs.js",
+      "./options.js"
+    ],
+    "dist/commands/stream-format/index.js": [
+      "./seq.js",
+      "./nl.js",
+      "./rev.js",
+      "./unexpand.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-format/nl.js": [
+      "../internal.js",
+      "../text-programs/regex.js",
+      "../text-programs/shared.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-format/rev.js": [
+      "../internal.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-format/seq.js": [
+      "../internal.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-format/shared.js": [
+      "../../contracts/index.js",
+      "../internal.js"
+    ],
+    "dist/commands/stream-format/unexpand.js": [
+      "../internal.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-inspection/expand.js": [
+      "../internal.js",
+      "./numeric-options.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-inspection/fold.js": [
+      "../internal.js",
+      "./numeric-options.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-inspection/index.js": [
+      "./tac.js",
+      "./expand.js",
+      "./fold.js",
+      "./strings.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-inspection/numeric-options.js": [
+      "../internal.js"
+    ],
+    "dist/commands/stream-inspection/shared.js": [
+      "../../contracts/index.js",
+      "../internal.js"
+    ],
+    "dist/commands/stream-inspection/strings.js": [
+      "../internal.js",
+      "./numeric-options.js",
+      "./shared.js"
+    ],
+    "dist/commands/stream-inspection/tac.js": [
+      "../internal.js",
+      "./shared.js"
+    ],
+    "dist/commands/streams.js": [
+      "../contracts/index.js",
+      "./internal.js"
+    ],
+    "dist/commands/structured/index.js": [
+      "./jq.js",
+      "./limits.js"
+    ],
+    "dist/commands/structured/input.js": [
+      "../../contracts/index.js",
+      "./limits.js",
+      "./numbers.js"
+    ],
+    "dist/commands/structured/interpreter.js": [
+      "./limits.js",
+      "./numbers.js",
+      "./input.js",
+      "./split.js",
+      "./values.js"
+    ],
+    "dist/commands/structured/jq.js": [
+      "../../contracts/index.js",
+      "./limits.js",
+      "./input.js",
+      "./interpreter.js",
+      "./parser.js"
+    ],
+    "dist/commands/structured/limits.js": [
+      "node:timers/promises",
+      "./numbers.js"
+    ],
+    "dist/commands/structured/numbers.js": [],
+    "dist/commands/structured/parser.js": [
+      "./limits.js",
+      "./numbers.js"
+    ],
+    "dist/commands/structured/split.js": [
+      "./limits.js"
+    ],
+    "dist/commands/structured/values.js": [
+      "./limits.js",
+      "./numbers.js",
+      "./input.js"
+    ],
+    "dist/commands/table-text/comm.js": [
+      "./internal.js"
+    ],
+    "dist/commands/table-text/index.js": [
+      "./paste.js",
+      "./comm.js",
+      "./join.js",
+      "./internal.js"
+    ],
+    "dist/commands/table-text/internal.js": [
+      "../../contracts/index.js",
+      "../internal.js"
+    ],
+    "dist/commands/table-text/join.js": [
+      "./internal.js"
+    ],
+    "dist/commands/table-text/paste.js": [
+      "../internal.js",
+      "./internal.js"
+    ],
+    "dist/commands/text-programs/awk-runtime.js": [
+      "../../contracts/index.js",
+      "./awk-syntax.js",
+      "./awk-values.js",
+      "./regex.js",
+      "./shared.js"
+    ],
+    "dist/commands/text-programs/awk-syntax.js": [
+      "./regex.js",
+      "./shared.js",
+      "./awk-values.js"
+    ],
+    "dist/commands/text-programs/awk-values.js": [
+      "./shared.js"
+    ],
+    "dist/commands/text-programs/awk.js": [
+      "./awk-syntax.js",
+      "./awk-runtime.js",
+      "./shared.js"
+    ],
+    "dist/commands/text-programs/index.js": [
+      "./sed.js",
+      "./awk.js"
+    ],
+    "dist/commands/text-programs/regex.js": [
+      "./shared.js"
+    ],
+    "dist/commands/text-programs/sed.js": [
+      "../../contracts/index.js",
+      "./regex.js",
+      "./shared.js"
+    ],
+    "dist/commands/text-programs/shared.js": [
+      "node:timers/promises",
+      "../../contracts/index.js"
+    ],
+    "dist/commands/text.js": [
+      "../contracts/index.js",
+      "./internal.js"
+    ],
+    "dist/commands/time-env/calendar.js": [
+      "./shared.js"
+    ],
+    "dist/commands/time-env/date.js": [
+      "../../contracts/index.js",
+      "./calendar.js",
+      "./format.js",
+      "./shared.js"
+    ],
+    "dist/commands/time-env/format.js": [
+      "./shared.js",
+      "./calendar.js"
+    ],
+    "dist/commands/time-env/index.js": [
+      "./printenv.js",
+      "./date.js",
+      "./sleep.js",
+      "./shared.js"
+    ],
+    "dist/commands/time-env/printenv.js": [
+      "./shared.js"
+    ],
+    "dist/commands/time-env/shared.js": [
+      "../../contracts/index.js"
+    ],
+    "dist/commands/time-env/sleep.js": [
+      "./shared.js"
+    ],
+    "dist/commands/timeout/duration.js": [],
+    "dist/commands/timeout/index.js": [
+      "../../contracts/index.js",
+      "./duration.js",
+      "./scheduler.js"
+    ],
+    "dist/commands/timeout/scheduler.js": [
+      "node:perf_hooks",
+      "node:timers"
+    ],
+    "dist/commands/tree/arguments.js": [
+      "./io.js",
+      "./pattern.js",
+      "./charset.js"
+    ],
+    "dist/commands/tree/charset.js": [
+      "./io.js"
+    ],
+    "dist/commands/tree/index.js": [
+      "./tree.js"
+    ],
+    "dist/commands/tree/io.js": [
+      "node:timers/promises",
+      "../../contracts/index.js"
+    ],
+    "dist/commands/tree/options.js": [],
+    "dist/commands/tree/pattern.js": [
+      "./io.js"
+    ],
+    "dist/commands/tree/tree.js": [
+      "../../contracts/index.js",
+      "../copy-identity.js",
+      "./arguments.js",
+      "./io.js",
+      "./options.js",
+      "./pattern.js"
+    ],
+    "dist/commands/which/index.js": [
+      "./which.js"
+    ],
+    "dist/commands/which/options.js": [],
+    "dist/commands/which/which.js": [
+      "../../contracts/index.js",
+      "./options.js"
+    ],
+    "dist/contracts/command.js": [],
+    "dist/contracts/errors.js": [
+      "node:util"
+    ],
+    "dist/contracts/filesystem.js": [],
+    "dist/contracts/index.js": [
+      "./command.js",
+      "./errors.js",
+      "./filesystem.js",
+      "./io.js",
+      "./output.js",
+      "./path.js",
+      "./plugin.js"
+    ],
+    "dist/contracts/io.js": [
+      "node:stream/web",
+      "./errors.js"
+    ],
+    "dist/contracts/output.js": [
+      "./io.js"
+    ],
+    "dist/contracts/path.js": [
+      "node:path",
+      "./errors.js"
+    ],
+    "dist/contracts/plugin.js": [],
+    "dist/fs/memory/index.js": [
+      "../../contracts/errors.js",
+      "../mount/comparison.js",
+      "../s3/authority.js",
+      "../webdav/resource-id.js"
+    ],
+    "dist/fs/mount/comparison.js": [
+      "node:async_hooks",
+      "../../contracts/errors.js",
+      "./identity.js"
+    ],
+    "dist/fs/mount/identity.js": [],
+    "dist/fs/mount/index.js": [
+      "../../contracts/errors.js",
+      "../../contracts/io.js",
+      "../../contracts/path.js",
+      "./identity.js",
+      "./comparison.js"
+    ],
+    "dist/fs/overlay/index.js": [
+      "node:crypto",
+      "../../contracts/index.js",
+      "../mount/identity.js",
+      "../mount/comparison.js"
+    ],
+    "dist/fs/readonly/index.js": [
+      "../../contracts/index.js",
+      "../mount/comparison.js"
+    ],
+    "dist/fs/real/allocation.js": [],
+    "dist/fs/real/index.js": [
+      "node:fs",
+      "node:fs/promises",
+      "node:path",
+      "./allocation.js",
+      "../../contracts/index.js"
+    ],
+    "dist/fs/s3/authority.js": [
+      "node:async_hooks",
+      "../../contracts/errors.js"
+    ],
+    "dist/fs/s3/filesystem.js": [
+      "node:path",
+      "../../contracts/errors.js",
+      "../../contracts/io.js",
+      "../mount/comparison.js",
+      "./authority.js",
+      "./transport.js"
+    ],
+    "dist/fs/s3/http/index.js": [
+      "./transport.js"
+    ],
+    "dist/fs/s3/http/request.js": [
+      "node:events",
+      "node:http",
+      "node:https",
+      "../transport.js"
+    ],
+    "dist/fs/s3/http/signature.js": [
+      "node:crypto",
+      "../transport.js"
+    ],
+    "dist/fs/s3/http/transport.js": [
+      "node:net",
+      "../transport.js",
+      "./request.js",
+      "./signature.js",
+      "./xml.js"
+    ],
+    "dist/fs/s3/http/types.js": [],
+    "dist/fs/s3/http/xml.js": [
+      "../transport.js"
+    ],
+    "dist/fs/s3/index.js": [
+      "./filesystem.js",
+      "./mock.js",
+      "./transport.js"
+    ],
+    "dist/fs/s3/mock.js": [
+      "node:crypto",
+      "../../contracts/io.js",
+      "./authority.js",
+      "./transport.js"
+    ],
+    "dist/fs/s3/transport.js": [],
+    "dist/fs/webdav/index.js": [
+      "./webdav.js"
+    ],
+    "dist/fs/webdav/resource-id.js": [
+      "../../contracts/errors.js"
+    ],
+    "dist/fs/webdav/webdav.js": [
+      "../../contracts/errors.js",
+      "../../contracts/io.js",
+      "./xml.js",
+      "../mount/comparison.js",
+      "./resource-id.js"
+    ],
+    "dist/fs/webdav/xml.js": [],
+    "dist/index.js": [
+      "./contracts/index.js",
+      "./plugins/index.js",
+      "./shell/index.js",
+      "./commands/index.js",
+      "./commands/text-programs/index.js",
+      "./commands/structured/index.js",
+      "./commands/search/index.js",
+      "./commands/bytes/index.js",
+      "./commands/diff-patch/index.js",
+      "./commands/safejs/index.js",
+      "./commands/network/index.js",
+      "./commands/metadata/index.js",
+      "./commands/archive/index.js",
+      "./commands/table-text/index.js",
+      "./commands/stream-inspection/index.js",
+      "./commands/stream-format/index.js",
+      "./commands/split/index.js",
+      "./commands/time-env/index.js",
+      "./commands/tree/index.js",
+      "./commands/file/index.js",
+      "./commands/grep-aliases/index.js",
+      "./commands/column/index.js",
+      "./commands/html-to-markdown/index.js",
+      "./commands/du/index.js",
+      "./commands/expr/index.js",
+      "./commands/which/index.js",
+      "./commands/timeout/index.js",
+      "./commands/apply-patch/index.js",
+      "./commands/git/index.js",
+      "./fs/memory/index.js",
+      "./fs/real/index.js",
+      "./fs/s3/index.js",
+      "./fs/s3/http/index.js",
+      "./fs/webdav/index.js",
+      "./fs/readonly/index.js",
+      "./fs/mount/index.js",
+      "./fs/overlay/index.js",
+      "./integrations/safejs/index.js"
+    ],
+    "dist/integrations/safejs/filesystem.js": [
+      "node:crypto",
+      "node:path",
+      "node:url",
+      "./stats.js",
+      "./values.js"
+    ],
+    "dist/integrations/safejs/index.js": [
+      "./filesystem.js",
+      "./shell.js"
+    ],
+    "dist/integrations/safejs/shell.js": [
+      "./values.js"
+    ],
+    "dist/integrations/safejs/stats.js": [],
+    "dist/integrations/safejs/values.js": [],
+    "dist/plugins/index.js": [
+      "../contracts/index.js",
+      "../commands/index.js",
+      "../commands/internal.js",
+      "../commands/text-programs/index.js",
+      "../commands/structured/index.js",
+      "../commands/search/index.js",
+      "../commands/bytes/index.js",
+      "../commands/diff-patch/index.js",
+      "../commands/metadata/index.js",
+      "../commands/archive/index.js",
+      "../commands/table-text/index.js",
+      "../commands/stream-inspection/index.js",
+      "../commands/stream-format/index.js",
+      "../commands/split/index.js",
+      "../commands/time-env/index.js",
+      "../commands/tree/index.js",
+      "../commands/file/index.js",
+      "../commands/grep-aliases/index.js",
+      "../commands/column/index.js",
+      "../commands/html-to-markdown/index.js",
+      "../commands/du/index.js",
+      "../commands/expr/index.js",
+      "../commands/which/index.js",
+      "../commands/timeout/index.js",
+      "../commands/apply-patch/index.js",
+      "../commands/git/index.js"
+    ],
+    "dist/shell/arithmetic.js": [
+      "./types.js"
+    ],
+    "dist/shell/arrays/bindings.js": [
+      "./ledger.js"
+    ],
+    "dist/shell/arrays/ledger.js": [],
+    "dist/shell/arrays/state.js": [
+      "./ledger.js",
+      "./bindings.js"
+    ],
+    "dist/shell/arrays/syntax.js": [
+      "../types.js"
+    ],
+    "dist/shell/cancellation.js": [],
+    "dist/shell/cleanup.js": [],
+    "dist/shell/conditional.js": [
+      "../contracts/index.js",
+      "./pattern.js"
+    ],
+    "dist/shell/display.js": [],
+    "dist/shell/getopts.js": [],
+    "dist/shell/index.js": [
+      "./shell.js",
+      "./parser.js",
+      "./types.js"
+    ],
+    "dist/shell/input.js": [
+      "./runtime.js"
+    ],
+    "dist/shell/locale.js": [],
+    "dist/shell/parser.js": [
+      "./types.js",
+      "./arithmetic.js",
+      "./arrays/syntax.js",
+      "./conditional.js"
+    ],
+    "dist/shell/pattern.js": [],
+    "dist/shell/shell.js": [
+      "../contracts/index.js",
+      "./parser.js",
+      "./input.js",
+      "./locale.js",
+      "./runtime.js",
+      "./types.js",
+      "./cleanup.js",
+      "./cancellation.js"
+    ],
+    "dist/shell/types.js": [],
+    "dist/shell/runtime.js": [
+      "../contracts/index.js",
+      "./parser.js",
+      "./types.js",
+      "./input.js",
+      "./arithmetic.js",
+      "./pattern.js",
+      "./locale.js",
+      "./display.js",
+      "./conditional.js",
+      "./cleanup.js",
+      "../commands/execution.js",
+      "./getopts.js",
+      "./cancellation.js",
+      "./arrays/syntax.js",
+      "./arrays/ledger.js",
+      "./arrays/bindings.js",
+      "./arrays/state.js",
+      "../commands/regex-execution/ere/transport/root.js",
+      "../commands/regex-execution/ere/transport/protocol.js",
+      "../commands/regex-execution/ere/errors.js",
+      "./arithmetic-parameters.js"
+    ],
+    "dist/shell/arithmetic-parameters.js": [
+      "./arithmetic.js"
+    ]
+  },
+  "qualification": "Source-bound inherited edges; only runtime import added and new helper import. No compiler API or product imports executed to produce this manifest."
+}

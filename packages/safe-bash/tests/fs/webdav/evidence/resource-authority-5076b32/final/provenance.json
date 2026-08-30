@@ -1,0 +1,8 @@
+{
+  "phase": "final",
+  "pin": "8eb2c80351b212224df15eb9d75e02036ac60cb9",
+  "movingSnapshot": true,
+  "node": "v22.22.2",
+  "archiveBaseSha256": "5e7d56c5e67db11364c4309f66bee23b09716997d20e263c1032a17c256a0a10",
+  "status": " M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/commands/filesystem.ts\n M src/fs/s3/README.md\n M src/fs/s3/filesystem.ts\n M src/fs/s3/mock.ts\n M src/fs/s3/transport.ts\n M src/fs/webdav/README.md\n M src/fs/webdav/webdav.ts\n M src/shell/input.ts\n M src/shell/runtime.ts\n M src/shell/shell.ts\n M tests/fs/webdav/mock.ts\n M tests/shell/invocation-closure-native.ts\n M tests/shell/invocation-closure-probe.ts\n M tests/shell/invocation-closure.md\n?? benchmarks/reports/current-integration/registry-unblock/\n?? src/fs/s3/COMPARISON.md\n?? src/fs/s3/authority.ts\n?? src/fs/webdav/resource-id.ts\n?? tests/commands/archive-stress/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-authority-stress/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/\n?? tests/fs/mount/identity-authority-review/implementation/\n?? tests/fs/s3/comparison.test.ts\n?? tests/fs/webdav/resource-id.test.ts\n?? tests/shell/invocation-closure-imports.ts\n?? tests/shell/invocation-closure-sh-cases.ts\n?? tests/shell/invocation-closure-sh-reference.json\n?? tests/shell/invocation-closure-sh.test.ts\n?? tests/stress/adapters/s3-permission-profile/authority-bound-validation-01.json\n?? tests/stress/adapters/s3-permission-profile/authority-first-original-gate.json\n?? tests/stress/adapters/s3-permission-profile/rejected-head-only-source.json\n?? tests/stress/adapters/s3-permission-profile/validate-authority.mjs\n"
+}

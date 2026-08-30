@@ -1,0 +1,423 @@
+{
+  "results": [
+    {
+      "id": "grep-basic",
+      "code": 0,
+      "stdout": "MTphK2IK",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "1:a+b\n",
+      "expectedPass": true
+    },
+    {
+      "id": "grep-extended",
+      "code": 0,
+      "stdout": "YWJhYgphYgo=",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "abab\nab\n",
+      "expectedPass": true
+    },
+    {
+      "id": "grep-fixed",
+      "code": 0,
+      "stdout": "YS5iCg==",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "a.b\n",
+      "expectedPass": true
+    },
+    {
+      "id": "grep-word",
+      "code": 0,
+      "stdout": "Y2F0CmNhdAo=",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "cat\ncat\n",
+      "expectedPass": true
+    },
+    {
+      "id": "grep-empty",
+      "code": 0,
+      "stdout": "MTphCjI6CjM6Ygo=",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "1:a\n2:\n3:b\n",
+      "expectedPass": true
+    },
+    {
+      "id": "grep-invert",
+      "code": 0,
+      "stdout": "Mgo=",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "2\n",
+      "expectedPass": true
+    },
+    {
+      "id": "grep-case",
+      "code": 0,
+      "stdout": "QmV0YQpCRVRBCg==",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "Beta\nBETA\n",
+      "expectedPass": true
+    },
+    {
+      "id": "grep-patterns",
+      "code": 0,
+      "stdout": "YWJjCmFiCg==",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "abc\nab\n",
+      "expectedPass": true
+    },
+    {
+      "id": "grep-invalid",
+      "code": 2,
+      "stdout": "",
+      "stderr": "Z3JlcDogaW52YWxpZCByZWd1bGFyIGV4cHJlc3Npb24gJ1snCg==",
+      "expectedCode": 2,
+      "expectedPass": true
+    },
+    {
+      "id": "grep-nomatch",
+      "code": 1,
+      "stdout": "",
+      "stderr": "",
+      "expectedCode": 1,
+      "expectedOutput": "",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-unicode",
+      "code": 0,
+      "stdout": "MTozOmNhdAoxOjc6Y2F0CjI6MTU6Y2F0Cg==",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "1:3:cat\n1:7:cat\n2:15:cat\n",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-fixed",
+      "code": 0,
+      "stdout": "YS5iCg==",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "a.b\n",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-case",
+      "code": 0,
+      "stdout": "awpLCuKEqgo=",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "k\nK\nK\n",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-empty",
+      "code": 0,
+      "stdout": "MTphCjI6CjM6Ygo=",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "1:a\n2:\n3:b\n",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-onlyempty",
+      "code": 0,
+      "stdout": "CmFhCgo=",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "aa\n",
+      "expectedPass": false
+    },
+    {
+      "id": "rg-word",
+      "code": 0,
+      "stdout": "Y2F0CmNhdCEK",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "cat\ncat!\n",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-patterns",
+      "code": 0,
+      "stdout": "YWIKYWIK",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "ab\nab\n",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-crlf",
+      "code": 0,
+      "stdout": "YQ0K",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "a\r\n",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-namedbackref",
+      "code": 0,
+      "stdout": "YWEK",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "aa\n",
+      "expectedPass": true
+    },
+    {
+      "id": "rg-lookahead",
+      "code": 2,
+      "stdout": "",
+      "stderr": "cmc6IGJhY2tyZWZlcmVuY2VzIGFuZCBsb29rLWFyb3VuZCBhcmUgbm90IHN1cHBvcnRlZAo=",
+      "expectedCode": 2,
+      "expectedPass": true
+    },
+    {
+      "id": "rg-invalid",
+      "code": 2,
+      "stdout": "",
+      "stderr": "cmc6IGludmFsaWQgb3IgdW5zdXBwb3J0ZWQgcmVndWxhciBleHByZXNzaW9uOiBJbnZhbGlkIHJlZ3VsYXIgZXhwcmVzc2lvbjogLyg/OlspL2d1OiBVbnRlcm1pbmF0ZWQgY2hhcmFjdGVyIGNsYXNzCg==",
+      "expectedCode": 2,
+      "expectedPass": true
+    },
+    {
+      "id": "rg-nomatch",
+      "code": 1,
+      "stdout": "",
+      "stderr": "",
+      "expectedCode": 1,
+      "expectedOutput": "",
+      "expectedPass": true
+    },
+    {
+      "id": "pipe-regex",
+      "code": 0,
+      "stdout": "YWIKYWIK",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "ab\nab\n",
+      "expectedPass": true
+    },
+    {
+      "id": "pipe-early",
+      "code": 0,
+      "stdout": "YWIK",
+      "stderr": "",
+      "expectedCode": 0,
+      "expectedOutput": "ab\n",
+      "expectedPass": true
+    }
+  ],
+  "native": [
+    {
+      "id": "grep-basic",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 0,
+      "signal": null,
+      "stdout": "MTphK2IK",
+      "stderr": ""
+    },
+    {
+      "id": "grep-extended",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 0,
+      "signal": null,
+      "stdout": "YWJhYgphYgo=",
+      "stderr": ""
+    },
+    {
+      "id": "grep-fixed",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 0,
+      "signal": null,
+      "stdout": "YS5iCg==",
+      "stderr": ""
+    },
+    {
+      "id": "grep-word",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 0,
+      "signal": null,
+      "stdout": "Y2F0Cg==",
+      "stderr": ""
+    },
+    {
+      "id": "grep-empty",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 0,
+      "signal": null,
+      "stdout": "MTphCjI6CjM6Ygo=",
+      "stderr": ""
+    },
+    {
+      "id": "grep-invert",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 0,
+      "signal": null,
+      "stdout": "Mgo=",
+      "stderr": ""
+    },
+    {
+      "id": "grep-case",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 0,
+      "signal": null,
+      "stdout": "QmV0YQpCRVRBCg==",
+      "stderr": ""
+    },
+    {
+      "id": "grep-patterns",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 0,
+      "signal": null,
+      "stdout": "YWJjCmFiCg==",
+      "stderr": ""
+    },
+    {
+      "id": "grep-invalid",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "Z3JlcDogYnJhY2tldHMgKFsgXSkgbm90IGJhbGFuY2VkCg=="
+    },
+    {
+      "id": "grep-nomatch",
+      "executable": "/usr/bin/grep",
+      "profile": "primary Darwin BSD grep",
+      "code": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "id": "rg-unicode",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 0,
+      "signal": null,
+      "stdout": "MTozOmNhdAoxOjc6Y2F0CjI6MTU6Y2F0Cg==",
+      "stderr": ""
+    },
+    {
+      "id": "rg-fixed",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 0,
+      "signal": null,
+      "stdout": "YS5iCg==",
+      "stderr": ""
+    },
+    {
+      "id": "rg-case",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 0,
+      "signal": null,
+      "stdout": "awpLCuKEqgo=",
+      "stderr": ""
+    },
+    {
+      "id": "rg-empty",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 0,
+      "signal": null,
+      "stdout": "MTphCjI6CjM6Ygo=",
+      "stderr": ""
+    },
+    {
+      "id": "rg-onlyempty",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 0,
+      "signal": null,
+      "stdout": "CmFhCgo=",
+      "stderr": ""
+    },
+    {
+      "id": "rg-word",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 0,
+      "signal": null,
+      "stdout": "Y2F0CmNhdCEK",
+      "stderr": ""
+    },
+    {
+      "id": "rg-patterns",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 0,
+      "signal": null,
+      "stdout": "YWIKYWIK",
+      "stderr": ""
+    },
+    {
+      "id": "rg-crlf",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 0,
+      "signal": null,
+      "stdout": "YQ0K",
+      "stderr": ""
+    },
+    {
+      "id": "rg-namedbackref",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "cmc6IHJlZ2V4IHBhcnNlIGVycm9yOgogICAgKD86KD88d29yZD5hKVxrPHdvcmQ+KQogICAgICAgICAgICAgICAgIF5eCmVycm9yOiB1bnJlY29nbml6ZWQgZXNjYXBlIHNlcXVlbmNlCg=="
+    },
+    {
+      "id": "rg-lookahead",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "cmc6IHJlZ2V4IHBhcnNlIGVycm9yOgogICAgKD86YSg/PWIpKQogICAgICAgIF5eXgplcnJvcjogbG9vay1hcm91bmQsIGluY2x1ZGluZyBsb29rLWFoZWFkIGFuZCBsb29rLWJlaGluZCwgaXMgbm90IHN1cHBvcnRlZAoKQ29uc2lkZXIgZW5hYmxpbmcgUENSRTIgd2l0aCB0aGUgLS1wY3JlMiBmbGFnLCB3aGljaCBjYW4gaGFuZGxlIGJhY2tyZWZlcmVuY2VzCmFuZCBsb29rLWFyb3VuZC4K"
+    },
+    {
+      "id": "rg-invalid",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 2,
+      "signal": null,
+      "stdout": "",
+      "stderr": "cmc6IHJlZ2V4IHBhcnNlIGVycm9yOgogICAgKD86WykKICAgICAgIF4KZXJyb3I6IHVuY2xvc2VkIGNoYXJhY3RlciBjbGFzcwo="
+    },
+    {
+      "id": "rg-nomatch",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "profile": "primary default-engine rg",
+      "code": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "versions": {
+    "rg": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+    "bsdGrep": "grep (BSD grep, GNU compatible) 2.6.0-FreeBSD\n",
+    "gnuAvailable": false
+  },
+  "riskConsumed": 0
+}

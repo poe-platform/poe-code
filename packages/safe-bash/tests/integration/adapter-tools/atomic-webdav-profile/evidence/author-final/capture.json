@@ -1,0 +1,41 @@
+{
+  "startedAt": "2026-08-27T09:01:15.528Z",
+  "revision": "b2ecb594b766b13c143cc4cfec51cb245d1817da",
+  "sourceTree": "67da7e232729bb75fc3313f80d644112558dc1fa",
+  "liveHead": "b2ecb594b766b13c143cc4cfec51cb245d1817da",
+  "liveStatus": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/file/text-bound.test.ts\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/harness-review/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env-stress/fraction-independent/\n?? tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml/\n?? tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-final/\n?? tests/integration/native-data-config-review/\n",
+  "inputsSha256": "5c7c184c2219b55a3c9ea0ce92695a767f735af89103a441a68adf76c7b76045",
+  "archiveSha256": "520a448f167238a0d0b98ad05761890f1e62b70c079e7f9dffbf0ddfdaac79b5",
+  "node": "v22.22.2",
+  "nodeExecutableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "platform": "darwin",
+  "arch": "arm64",
+  "toolchain": [
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "packageJsonSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "packageJsonSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "packageJsonSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "packageJsonSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  ],
+  "role": "resumed matrix/wrapper author; NOT independent verification",
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-eV6iml",
+  "profile": "Original six writable backends plus original readonly rows; WebDAV MockDav loopback HTTP. Configured profile changes only WebDAV atomicEmptyDirectory fixture capability, besides public import relocation. No real-service claims.",
+  "mockPolicy": "Original MockDav source body preserved. Public files/locks feed synchronous helper. Original mock's own registerOwnedResourceResponse import remains on frozen build for fixture bookkeeping, never new private identity access. Loopback matrix serialization does not forward private response ownership.",
+  "toolchainPolicy": "Existing local dev tools; no install or new dependency; tool package metadata, not whole dependency trees, hashed.",
+  "cohostLoad": "Concurrent workers; durations are not benchmarks. No native provider/oracle invoked."
+}

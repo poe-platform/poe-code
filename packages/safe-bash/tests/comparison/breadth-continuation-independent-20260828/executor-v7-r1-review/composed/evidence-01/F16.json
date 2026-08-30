@@ -1,0 +1,52 @@
+{
+  "id": "F16",
+  "expected": "Actual store partial write plus close failure preserves both reasons; partial audit and publication failure compose.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.630Z",
+  "finished": "2026-08-28T15:01:02.632Z",
+  "detail": {
+    "partial": {
+      "files": 1,
+      "entries": 1,
+      "observedEvidence": 7,
+      "attemptedEvidence": 34,
+      "limit": 8192,
+      "observedStage": 0,
+      "declaredStageBytes": 0,
+      "partial": true,
+      "wholeCheckoutClaim": false
+    },
+    "exactWriteAndCloseReasons": true,
+    "publicationFailures": 2,
+    "store": {
+      "accounted": 1913,
+      "totalLimit": 268435456,
+      "writes": [
+        {
+          "path": "partial.json",
+          "bytes": 34,
+          "sha256": "ab6ef008071b04030d8d9548749f6b62ed19dbd4afbbd33736475a7ab9b331a1",
+          "mode": 420,
+          "complete": false,
+          "closeFailure": true
+        },
+        {
+          "path": "RESULT.json",
+          "bytes": 794,
+          "sha256": "0351af2eef41a8f458185bac80527244e8a8094087ab76dfc3c6dcecb9f2579b",
+          "mode": 420,
+          "complete": false,
+          "closeFailure": true
+        },
+        {
+          "path": "PUBLICATION-FAILURE.json",
+          "bytes": 1085,
+          "sha256": "2452648899637a01ab105d5880265f9a2c50b250cd34738a6a48a80f181fd57f",
+          "mode": 420,
+          "complete": false,
+          "closeFailure": true
+        }
+      ]
+    }
+  }
+}

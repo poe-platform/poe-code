@@ -1,0 +1,10 @@
+{
+  "rootAnnouncedSource": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "rootAnnouncedFreeze": "72a109971d6c82f783ae91de62f7c15e2af21d8b",
+  "rootAnnouncedEvidence": "b53f7fff5a2a33c8ab3501ead65d40fadcfbc644",
+  "timing": "Received after this reconciliation recipe was committed and its one execution completed.",
+  "inspected": false,
+  "authenticatedByThisRun": false,
+  "executed": false,
+  "nextBoundary": "Return the exact PC01 boundary proposal to root before implementing any semantic predicate correction; new source needs its own versioned bindings and execution."
+}

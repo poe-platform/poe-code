@@ -1,0 +1,81 @@
+{
+  "schema": "m1b-remaining-v5-root-grant-v1",
+  "authority": "USER_ROOT_ACTUAL_GO_ONE60_CALL_CONTINUATION",
+  "acceptedPresealCommit": "e0b385439c9aaa6c203c9fccb0540e0e8a769be1",
+  "recipeSha256": "c2f2ba391c1578d17035338810901808a8a5f6a6f582b71df1e7954bb18eecc0",
+  "finalSealSha256": "05e83d63d328562280950971dccfc38176aea3472c8375ab76f2b99651237e68",
+  "assemblySha256": "80183cc5ba100f61e8da7e96b29eeff316807b6b21648dc46205c0c89eb6069f",
+  "executableClosureSha256": "0dcea9d4b0e52af9030ab49f4bdf85e26dcf586f3bda436ec425ec96b5ad3e1c",
+  "reviewReceiptSha256": "a8b791e0b21df5684e054d3e9ead2cdb6363c61f50587ce0a902337e75b5d0ea",
+  "sourceCommit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "evidenceCommit": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+  "derivedTree": "23074ef0c443ca618c4f26204b5f3d2274b86895",
+  "packageSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+  "sourceInputs": 282,
+  "packageMembers": 910,
+  "calls": {
+    "versionedQueries": 26,
+    "types": 10,
+    "loaded": 24,
+    "total": 60,
+    "completed214Replay": 0
+  },
+  "host": {
+    "platform": "darwin",
+    "uid": 501,
+    "additionalEnvironment": {
+      "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+    },
+    "unknownEnvironmentAllowed": false,
+    "secretCapture": false
+  },
+  "caps": {
+    "wallMs": 7200000,
+    "allOwnedStarts": 168,
+    "peakProcesses": 4,
+    "combinedCaptureBytes": 268435456,
+    "runtimeCaptureBytes": 255852544,
+    "workingBytes": 1073741824,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "processProposal": {
+    "runtimeIncludingOuter": 49,
+    "sourceAuthenticationIncludingController": 12,
+    "route": 1,
+    "cleanup": 1,
+    "otherMetadataHelperCeiling": 40,
+    "totalCeiling": 103,
+    "qualification": "One additional stored-origin metadata child charged inside existing authoring reserve; no cap increase."
+  },
+  "conditions": [
+    "one fresh monotonic origin starts before fresh source preauthorization and includes cleanup",
+    "no retry after safety/capture/integrity/unknown-retirement stop",
+    "ordinary assertions aggregate only after safe teardown",
+    "no product edits/native Git/private/network/YQ/XAN",
+    "preserve old214PASS26FAIL34unfulfilled/S02/H09 and private-writer qualifications",
+    "one continuation; new queries do not rescore original bare-OID failures"
+  ],
+  "typePreflight": {
+    "emitSkippedPredicate": false,
+    "nativeCliExit2Predicate": false,
+    "missingNamedExportFixture": false,
+    "protocol": "TYPESCRIPT_COMPILER_API; exact expected diagnostics means successful wrapper0, not native CLI status",
+    "fixtureCodes": {
+      "T01": [],
+      "T02": [
+        2353
+      ],
+      "T03": [
+        2353
+      ],
+      "T04": [
+        2322
+      ],
+      "T05": [
+        2322
+      ]
+    },
+    "role": "SOURCE_ONLY not new compiler execution"
+  }
+}

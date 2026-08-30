@@ -1,0 +1,78 @@
+{
+  "label": "policy-caught",
+  "pid": 45032,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "mode": "caught",
+        "nativeCalls": 0,
+        "factoryCalls": 0,
+        "revokedBeforeReturn": true,
+        "snapshot": {
+          "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+          "opened": true,
+          "revoked": true,
+          "consumed": 0,
+          "nativeDelegations": 0,
+          "violations": [
+            {
+              "code": "BOOTSTRAP_QUERY",
+              "consumed": 0
+            },
+            {
+              "code": "BOOTSTRAP_REVOKED",
+              "consumed": 0
+            }
+          ],
+          "callerAuthenticated": false,
+          "stockNodeCapabilities": false
+        },
+        "events": [
+          {
+            "kind": "nextLoad",
+            "path": "caught.mjs",
+            "format": "module",
+            "bytes": 223,
+            "sha256": "248d53df4a2aa70586ab58401838fa5b807e09134e0ee97014b07ffb7793b450",
+            "evaluationProven": false,
+            "origin": "actual-nextLoad-source"
+          },
+          {
+            "kind": "bootstrap-denied",
+            "code": "BOOTSTRAP_QUERY",
+            "consumed": 0
+          },
+          {
+            "kind": "bootstrap-denied",
+            "code": "BOOTSTRAP_REVOKED",
+            "consumed": 0
+          }
+        ],
+        "identityPreserved": true,
+        "loaderClosed": true
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 797
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7Im1vZGUiOiJjYXVnaHQiLCJuYXRpdmVDYWxscyI6MCwiZmFjdG9yeUNhbGxzIjowLCJyZXZva2VkQmVmb3JlUmV0dXJuIjp0cnVlLCJzbmFwc2hvdCI6eyJwcm9maWxlIjoiSlVTVF9CQVNIXzNfNF8yX1VOQVZBSUxBQkxFX0JPT1RTVFJBUF9WMSIsIm9wZW5lZCI6dHJ1ZSwicmV2b2tlZCI6dHJ1ZSwiY29uc3VtZWQiOjAsIm5hdGl2ZURlbGVnYXRpb25zIjowLCJ2aW9sYXRpb25zIjpbeyJjb2RlIjoiQk9PVFNUUkFQX1FVRVJZIiwiY29uc3VtZWQiOjB9LHsiY29kZSI6IkJPT1RTVFJBUF9SRVZPS0VEIiwiY29uc3VtZWQiOjB9XSwiY2FsbGVyQXV0aGVudGljYXRlZCI6ZmFsc2UsInN0b2NrTm9kZUNhcGFiaWxpdGllcyI6ZmFsc2V9LCJldmVudHMiOlt7ImtpbmQiOiJuZXh0TG9hZCIsInBhdGgiOiJjYXVnaHQubWpzIiwiZm9ybWF0IjoibW9kdWxlIiwiYnl0ZXMiOjIyMywic2hhMjU2IjoiMjQ4ZDUzZGY0YTJhYTcwNTg2YWI1ODQwMTgzOGZhNWI4MDdlMDkxMzRlMGVlOTcwMTRiMDdmZmI3NzkzYjQ1MCIsImV2YWx1YXRpb25Qcm92ZW4iOmZhbHNlLCJvcmlnaW4iOiJhY3R1YWwtbmV4dExvYWQtc291cmNlIn0seyJraW5kIjoiYm9vdHN0cmFwLWRlbmllZCIsImNvZGUiOiJCT09UU1RSQVBfUVVFUlkiLCJjb25zdW1lZCI6MH0seyJraW5kIjoiYm9vdHN0cmFwLWRlbmllZCIsImNvZGUiOiJCT09UU1RSQVBfUkVWT0tFRCIsImNvbnN1bWVkIjowfV0sImlkZW50aXR5UHJlc2VydmVkIjp0cnVlLCJsb2FkZXJDbG9zZWQiOnRydWV9fQo=",
+  "natural": true
+}

@@ -1,0 +1,73 @@
+{
+  "args": [
+    "policy",
+    "lease-free-live-shell"
+  ],
+  "pid": 69638,
+  "readyAt": 43.26720800000021,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 86.6215830000001
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 88.60116700000071
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 88.60566700000072
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "lease-free-live-shell",
+        "pass": true,
+        "trace": [
+          "upstream-lease-free",
+          "downstream-lease-free",
+          "downstream-lease-free",
+          "downstream-lease-free",
+          "upstream-lease-free",
+          "downstream-lease-free",
+          "downstream-lease-free",
+          "downstream-lease-free"
+        ],
+        "stdout": "a\na\n",
+        "adapter": {
+          "active": 0,
+          "peak": 1,
+          "completed": 6,
+          "created": 2,
+          "terminated": 2,
+          "peakWaiting": 1,
+          "idleWorkers": 0
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 404,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

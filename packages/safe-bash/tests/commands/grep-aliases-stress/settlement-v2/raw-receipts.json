@@ -1,0 +1,94 @@
+{
+  "classification": "byte-for-byte-captured-output-receipts",
+  "exports": [
+    {
+      "path": "attempts/01/execution.json",
+      "sha256": "57064b0e6c042d445e2b5cf2ddb96b33916ac4ccacdfad985711e27ad713a9a9",
+      "bytes": 154095,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/execution.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/01/fixture-binding.json",
+      "sha256": "1234f4e9b780019a2da8f88dc874506403f00055d2b69406e99bc6c9be798a0c",
+      "bytes": 4322,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/fixture-binding.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/01/base-receipt.json",
+      "sha256": "9667e3477c7a6372aeaa2628e46d81f081fd8a4d82d1d167fe7d9c7d0d4afeaf",
+      "bytes": 37058,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/base-01/receipt.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/01/base-results.json",
+      "sha256": "7fa78c5a1c67cfd828a35defe5b9560cbd5ab23ca054486456bc1fff6ba9a4a4",
+      "bytes": 280298,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/base-01/results/results.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/01/native-profile-comparison.json",
+      "sha256": "58b84da61b1e0618000a1a288f4c4c171180d1be6de518afc4d3920e54cbaebc",
+      "bytes": 3284,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/base-01/results/comparison.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/01/base-driver-source.txt",
+      "sha256": "8c0d4fb8a4f4b2293f2ad4a454a91696ccea421828bc26b81486f93b33fe255b",
+      "bytes": 5720,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/bound-base.mjs",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/01/supplement-receipt.json",
+      "sha256": "aad556968075803bbc4bc9b8eb4fd1d6ae4628d3a31b5acfbc5a9d07c02ef755",
+      "bytes": 3272,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/supplement-01/receipt.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/01/supplement-results.json",
+      "sha256": "9559d323917deb71d2c2f089e1f97caeb3e38aaa09c81dabf47741fe8ac04a22",
+      "bytes": 3290,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/supplement-01/results/results.json",
+      "byteForByte": true
+    },
+    {
+      "path": "attempts/01/supplement-driver-source.txt",
+      "sha256": "f4f9772d6763dea52c22eec9d1819342afb568753360a02c699a363a2c896c27",
+      "bytes": 4190,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/bound-supplement.mjs",
+      "byteForByte": true
+    },
+    {
+      "path": "controls/01-process.json",
+      "sha256": "ddf4501a776cf7a01aee4f18a97889b360bafe4259312d61b199f38ef7914067",
+      "bytes": 505,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/assertion-controls.json",
+      "byteForByte": true
+    },
+    {
+      "path": "controls/02-process.json",
+      "sha256": "d5577bc7a3ecbcea8dd0cddc211bf483e460f027b27ae8dec447d39c3084357c",
+      "bytes": 624,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/assertion-controls-recapture-process.json",
+      "byteForByte": true
+    },
+    {
+      "path": "controls/02-results.json",
+      "sha256": "efaa8b1ada40a6c9e961b7ced3e7c6583c40a8c9ef57f594fe94c9f3e46987d8",
+      "bytes": 15888,
+      "origin": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/assertion-control-results.json",
+      "byteForByte": true
+    },
+    {
+      "path": "summary.json",
+      "sha256": "b08e1a56199c17c1b59b6441b07ca61aa4d5b20bd0ff78fc383c698f21845927",
+      "bytes": 11653
+    }
+  ]
+}

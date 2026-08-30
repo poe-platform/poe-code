@@ -1,0 +1,18 @@
+{
+  "qualification": "Actual Node/load-hook/read-fence controls using tiny owned data modules; NOT a LET/Shell/public-package acceptance test",
+  "started": "2026-08-28T07:38:02.318Z",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "runs": [],
+  "productExecutions": 0,
+  "candidateBuilds": 0,
+  "scratchRemoved": true,
+  "failure": {
+    "message": "positive\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at readAdmission (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-SV3JLP/positive/harness/support.mjs:21:21)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-SV3JLP/positive/harness/load-guard.mjs:8:18\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:112:9) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node'\n}\n\nNode.js v22.22.2\n\n\n1 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: positive\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at readAdmission (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-SV3JLP/positive/harness/support.mjs:21:21)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-SV3JLP/positive/harness/load-guard.mjs:8:18\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:112:9) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node'\n}\n\nNode.js v22.22.2\n\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/admission-selftest.mjs:28:12\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "finished": "2026-08-28T07:38:02.439Z"
+}

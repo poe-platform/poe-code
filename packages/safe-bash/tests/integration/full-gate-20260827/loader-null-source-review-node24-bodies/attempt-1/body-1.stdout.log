@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: GNU mktemp template grammar and quiet diagnostics: 24 controls
+ok 1 - GNU mktemp template grammar and quiet diagnostics: 24 controls
+  ---
+  duration_ms: 264.433458
+  type: 'test'
+  ...
+# Subtest: mktemp 64 concurrent creations reserve distinct names with virtual umasks
+ok 2 - mktemp 64 concurrent creations reserve distinct names with virtual umasks
+  ---
+  duration_ms: 2.276875
+  type: 'test'
+  ...
+# Subtest: mktemp crypto provenance remains node randomInt with no native/host filesystem fallback
+ok 3 - mktemp crypto provenance remains node randomInt with no native/host filesystem fallback
+  ---
+  duration_ms: 7.144667
+  type: 'test'
+  ...
+# Subtest: mktemp directory collision retries never delete competing entries
+ok 4 - mktemp directory collision retries never delete competing entries
+  ---
+  duration_ms: 0.32475
+  type: 'test'
+  ...
+# Subtest: mktemp post-create cancellation leaves one entry, never unsafe cleanup or retries
+ok 5 - mktemp post-create cancellation leaves one entry, never unsafe cleanup or retries
+  ---
+  duration_ms: 0.260167
+  type: 'test'
+  ...
+# Subtest: mktemp exclusive file creation cannot follow a competing symlink
+ok 6 - mktemp exclusive file creation cannot follow a competing symlink
+  ---
+  duration_ms: 0.200708
+  type: 'test'
+  ...
+# Subtest: mktemp byte-length and absent VFS TMPDIR failures leave the namespace untouched
+ok 7 - mktemp byte-length and absent VFS TMPDIR failures leave the namespace untouched
+  ---
+  duration_ms: 0.301959
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1081.830458

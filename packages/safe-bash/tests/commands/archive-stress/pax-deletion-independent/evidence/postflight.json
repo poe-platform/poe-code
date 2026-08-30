@@ -1,0 +1,356 @@
+{
+  "status": "OPEN; not accepted",
+  "created": "2026-08-27T04:13:10.095Z",
+  "rawRunPath": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/evidence.json",
+  "rawRunSha256": "96e8be34a76f5741fb9b92e83cea0b126e581a22f365775c0615e63e9b2bf72f",
+  "frozenRoot": "/tmp/safe-bash-pax-deletion-independent-FEprCU/tree",
+  "frozenHead": "98de827f9f8986f572532d750d3eb9d5ce1c0a86",
+  "currentHead": "3d8f96e4ad557d7a644f85cda032a23c3faf1b09",
+  "started": "2026-08-27T04:05:31.776Z",
+  "finished": "2026-08-27T04:06:05.975Z",
+  "elapsedMs": 34199,
+  "profiles": {
+    "baseline-literal177": {
+      "tests": 177,
+      "pass": 177,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "uniqueNames": 177
+    },
+    "patched-literal177": {
+      "tests": 177,
+      "pass": 176,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "uniqueNames": 177
+    },
+    "corrected177": {
+      "tests": 177,
+      "pass": 177,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "uniqueNames": 177
+    },
+    "author-new": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "uniqueNames": 12
+    },
+    "independent-new": {
+      "tests": 7,
+      "pass": 5,
+      "fail": 2,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "uniqueNames": 7
+    }
+  },
+  "rawCorrectedCombined": {
+    "tests": 196,
+    "pass": 194,
+    "fail": 2,
+    "notARecalculatedPassAfterFixtureFix": true
+  },
+  "commandStatus": [
+    {
+      "name": "gnu-version",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "bsd-version",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "historical-observation-control",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "baseline-literal177-original-author128",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "baseline-literal177-original-wiring1",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "baseline-literal177-native-profile-b02-observation-refactored-stress30",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "baseline-literal177-accepted-author12",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "baseline-literal177-accepted-independent6",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "patched-literal177-original-author128",
+      "status": 1,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "patched-literal177-original-wiring1",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "patched-literal177-native-profile-b02-observation-refactored-stress30",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "patched-literal177-accepted-author12",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "patched-literal177-accepted-independent6",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "corrected177-original-author128",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "corrected177-original-wiring1",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "corrected177-native-profile-b02-observation-refactored-stress30",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "corrected177-accepted-author12",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "corrected177-accepted-independent6",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "author-new-deletion",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "independent-new-deletion7",
+      "status": 1,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "scoped-types",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "global-typecheck",
+      "status": 2,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "global-build",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    },
+    {
+      "name": "built4",
+      "status": 0,
+      "timedOut": false,
+      "limited": false
+    }
+  ],
+  "capture": {
+    "files": 1911,
+    "bytes": 69218823,
+    "liveInputHash": "f2e8523051a225fd01e030eb9fe5df840a4ee0a1c5f2397e71f94dba9d2effac",
+    "originalFullHash": "baad44817bf891c9ef6dcb22c32628c90cd6fab8325baa95afff27bcd1e7e6d6",
+    "observedPostBuildFullHash": "5a74db8afe0ae7d9af78e88aa63459d214cf98a2e40503905511f949bb78f5e6",
+    "completeFrozenBefore": "7bb1ac458d5f54480979e7d79832bb7cb468755a9d176c23f62206c6800b72ba",
+    "fullInputStability": false,
+    "nonOutputCount": 1859,
+    "nonOutputHashBefore": "cae7b25d8aed4efa5cf584f7f9de57ef24f65fafd6822be9f606b41fdc3628a0",
+    "nonOutputHashAfter": "cae7b25d8aed4efa5cf584f7f9de57ef24f65fafd6822be9f606b41fdc3628a0",
+    "actualGeneratedTypeInputs": 52,
+    "generatedTypeInputChanges": [
+      {
+        "path": "dist/commands/table-text/internal.d.ts",
+        "before": "530e915b77e12bb867d3bf13c75a04d53bf6c569261cccf7f3b09d37224fa772",
+        "after": "3b0e5eb7846be58ab8998f5742d56d86b053698e3a8b839ae02ec9977a164ad6"
+      },
+      {
+        "path": "dist/fs/s3/filesystem.d.ts",
+        "before": "8ca56b461b5acca0e5e15affd28d31ebf6b1aced99ea8b25deb16b4764bfe3a0",
+        "after": "16d454487b0e837a5498b47d1697635f8d7e1c84593e196d49c561a0b32ab484"
+      },
+      {
+        "path": "dist/fs/webdav/webdav.d.ts",
+        "before": "094f357c6317a09d83689328de701fc2d86288ea997552b6cfb9ff351fa80f0f",
+        "after": "1eef2b53c304b65a2bed05df16cabeebb8b276d156c00801d6dfb1dc8d542e4f"
+      },
+      {
+        "path": "dist/shell/parser.d.ts",
+        "before": "93aaede3c12e88699230a30edb02dc05ecfdff05f509377307a98c49a4c13abc",
+        "after": "e8a7627ae03cd6b4987487b1ab2f730a55d5c87e6ab05571b2943f07fa75f826"
+      },
+      {
+        "path": "dist/shell/types.d.ts",
+        "before": "5752110d43ca50f870270a345aa0910279fd641d3b1f4761368632dce39488bf",
+        "after": "983ec4067a45d672ed4db6c6a42ad9225d5dc1b242e6f983cb6358c574fe56b8"
+      }
+    ],
+    "legacyTransport": {
+      "original": "tests/commands/archive/options.test.ts",
+      "path": "tests/commands/archive/options.legacy.mts",
+      "sha256": "34e3aa6ac71cc7078371502255c7880994ef0644ecf00dc8da351e785532d66f",
+      "bytes": 7449,
+      "scope": "temporary frozen test sibling only; exact bytes/relative imports unchanged; separately scoped typed"
+    },
+    "legacyTransportHashAfter": "34e3aa6ac71cc7078371502255c7880994ef0644ecf00dc8da351e785532d66f"
+  },
+  "types": {
+    "globalExit": 2,
+    "scopedExit": 0,
+    "listCountBefore": 1079,
+    "listCountAfter": 1079,
+    "listHashBefore": "22cd23648aa9db2b4f417fe3653e7151af41ed6aa8b96b78d8136cea06ac0af1",
+    "listHashAfter": "22cd23648aa9db2b4f417fe3653e7151af41ed6aa8b96b78d8136cea06ac0af1",
+    "samePaths": true,
+    "groups": {
+      "benchmarks": 6,
+      "dist": 52,
+      "node_modules": 167,
+      "src": 136,
+      "tests": 718
+    },
+    "postBuildListCommand": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/node_modules/typescript/bin/tsc",
+        "--listFilesOnly",
+        "--pretty",
+        "false",
+        "-p",
+        "tsconfig.json"
+      ],
+      "cwd": "/tmp/safe-bash-pax-deletion-independent-FEprCU/tree",
+      "status": 0
+    },
+    "unrelatedError": "tests/shell/diagnostic-context-bounds.test.ts(7,176) TS2769: detached not a SpawnSyncOptions property"
+  },
+  "protectedVerified": [
+    {
+      "name": "author10",
+      "files": 10,
+      "unchanged": true
+    },
+    {
+      "name": "oldAuthor167",
+      "files": 167,
+      "unchanged": true
+    },
+    {
+      "name": "historical90",
+      "files": 90,
+      "unchanged": true
+    },
+    {
+      "name": "accepted273",
+      "files": 273,
+      "unchanged": true
+    }
+  ],
+  "baselineInputsVerified": 1778,
+  "historicalControlInputsVerified": 1629,
+  "laterLiveInputDrift": [
+    {
+      "path": "package.json",
+      "expected": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+      "actual": "b183a9d2d451b5888b951a4e84656f6c18a94f09e7bd97e0a6af89ac48657e9b"
+    },
+    {
+      "path": "src/index.ts",
+      "expected": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+      "actual": "93db829fa8897c5978d6a7e19e6fc974f980cd659f79be6fcfd2f868bad76613"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/controls.test.ts",
+      "expected": "c28db0169c9b3d1d7677eaac9bb2485c0bd019a90c519cdf5a0dcbdf689d6cea",
+      "actual": "43ff3bcb19deb2fb6cc9892569744bad3a4edbd64837b8cff0a5c96c101bfb7f"
+    },
+    {
+      "path": "tests/fs/s3/http/interop/README.md",
+      "expected": "48e21e67da6056e6a3fb6f0e33d99cf161aa3a745d628e6a81fc41e445905209",
+      "actual": "94487aa2fbf4304c1c77bc1ad5cad3adf55bf000791d41bfe3672bf37c434195"
+    },
+    {
+      "path": "tests/shell/diagnostic-context-bounds.test.ts",
+      "expected": "99e43b4d3d3dd50aefe6dac7894fa452edcb97a87c0337178a6ec7aada9da35e",
+      "actual": "3ea904e89a8eeccbe45eeed7b6242742944ddc2d7b5026c9ad76ae5fee81e648"
+    },
+    {
+      "path": "tests/shell/diagnostic-context-report.md",
+      "expected": "3adb69be9340c553da6210807185c8aec00cb5e6cfdab021ad72de602a595299",
+      "actual": "4d4b0b2652c78ec84e38768088e17d1f22b02d3f92f332217ca556e6ebb3a49c"
+    },
+    {
+      "path": "tests/shell/diagnostic-context-verify.mjs",
+      "expected": "a6289c6f69db045c2ac24d155abfe1847999beeef919b74de3426b62a2b8ce12",
+      "actual": "af50bff437b88ef73cebcd730e092a3024b9535f78c94840beb16fd3279eefa5"
+    }
+  ],
+  "cleanup": [],
+  "interpretation": {
+    "D04": "Verifier fixture defect: FF is valid signed base-256 minus one. Live mutation bytes corrected to ASCII9; same expectations; separate focused1/1 pass. Original5/7 remains immutable.",
+    "D07": "Shadowed known numeric value 1e3 followed by empty accepted by both baseline and patch; effective invalid1e3 rejected by both. Existing selected-value validation vs verifier all-record numeric restriction requires root disposition; not demonstrated new-source regression.",
+    "capture": "52 generated declarations are actual current global inputs; build rewrites five. Runner aborts on expected input/output collision. No source/test/config/dependency bytes change in frozen non-output closure; no full immutable-input pass claim."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "alias-identity",
+  "families": [
+    "F10"
+  ],
+  "observation": {
+    "returned": {
+      "hard": true,
+      "link": true,
+      "comparison": "same"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

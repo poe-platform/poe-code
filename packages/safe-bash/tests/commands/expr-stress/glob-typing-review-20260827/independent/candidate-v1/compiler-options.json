@@ -1,0 +1,80 @@
+{
+  "committed": {
+    "compilerOptions": {
+      "target": "ES2023",
+      "lib": [
+        "ES2023"
+      ],
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "strict": true,
+      "noUncheckedIndexedAccess": true,
+      "exactOptionalPropertyTypes": true,
+      "verbatimModuleSyntax": true,
+      "forceConsistentCasingInFileNames": true,
+      "skipLibCheck": true,
+      "types": [
+        "node"
+      ]
+    },
+    "include": [
+      "src/**/*.ts",
+      "tests/**/*.ts"
+    ],
+    "exclude": [
+      "dist",
+      "node_modules",
+      "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+      "tests/commands/regex-execution/continuation/artifacts/native",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
+      "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts"
+    ]
+  },
+  "applied": {
+    "target": 10,
+    "lib": [
+      "lib.es2023.d.ts"
+    ],
+    "module": 199,
+    "moduleResolution": 99,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "rootDir": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-candidate-v1-BcscoI/archive",
+    "outDir": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-candidate-v1-BcscoI/emitted",
+    "typeRoots": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+    ],
+    "noEmitOnError": false,
+    "sourceMap": false,
+    "inlineSourceMap": false,
+    "declaration": false
+  },
+  "exactRootFiles": [
+    "tests/commands/regex-execution/continuation/glob.test.ts"
+  ],
+  "runtimeSupportRootFiles": [
+    "src/commands/regex-execution/client.ts",
+    "src/contracts/command.ts",
+    "src/contracts/filesystem.ts",
+    "src/contracts/io.ts",
+    "src/contracts/errors.ts",
+    "src/commands/regex-execution/protocol.ts",
+    "src/commands/search/glob.ts",
+    "src/commands/search/options.ts",
+    "src/commands/regex-execution/worker.ts",
+    "src/commands/regex-execution/matching.ts",
+    "src/commands/expr/bre-worker.ts",
+    "tests/commands/expr/regex-protocol.test.ts"
+  ],
+  "scope": "Explicit files, no include/exclude discovery; compiler strictness inherited unchanged. Emit despite baseline diagnostics. Explicit closure roots ensure emission of imports housed beneath task-owned node_modules."
+}

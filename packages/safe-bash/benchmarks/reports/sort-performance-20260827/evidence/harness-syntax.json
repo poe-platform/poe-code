@@ -1,0 +1,18 @@
+{
+  "node": "v22.22.2",
+  "scripts": [
+    "apply-prototype.mjs",
+    "finish.mjs",
+    "holdouts.mjs",
+    "measure.mjs",
+    "mutants.mjs",
+    "prepare.mjs",
+    "probe.mjs",
+    "session.mjs",
+    "summarize.mjs",
+    "validate.mjs",
+    "worker.mjs",
+    "workloads.mjs"
+  ],
+  "allExitZero": true
+}

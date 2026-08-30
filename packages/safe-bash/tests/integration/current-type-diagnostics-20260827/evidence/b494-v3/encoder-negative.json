@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/b494-VYykQV/snapshot/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "diagnostic-probes/encoder-negative.json",
+    "--pretty",
+    "false"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/b494-VYykQV/snapshot",
+  "status": 2,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 228.77987499999654,
+  "stdoutSha256": "96d4a86d015316d39c1796c48a210a08970ac3c78d8cefedd377a8c5c328da07",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnostics": [
+    {
+      "path": "diagnostic-probes/encoder-negative.ts",
+      "line": 2,
+      "column": 76,
+      "code": "TS2345",
+      "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+    }
+  ]
+}

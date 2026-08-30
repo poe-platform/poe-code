@@ -1,0 +1,146 @@
+{
+  "candidate": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "fullBuiltEntrySetsIdentical": true,
+  "comparisons": [
+    {
+      "cohort": "old47",
+      "passed": 46,
+      "total": 47,
+      "identicalSemanticRows": true
+    },
+    {
+      "cohort": "additional",
+      "passed": 21,
+      "total": 21,
+      "identicalSemanticRows": true
+    }
+  ],
+  "hashes": [
+    {
+      "run": "baseline-01",
+      "files": [
+        {
+          "path": "dist/commands/expr/bre-worker.js",
+          "type": "file",
+          "size": 19153,
+          "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874"
+        },
+        {
+          "path": "dist/commands/expr/index.d.ts",
+          "type": "file",
+          "size": 542,
+          "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+        },
+        {
+          "path": "dist/commands/expr/index.js",
+          "type": "file",
+          "size": 5297,
+          "sha256": "3b631313012b5637f437034cfa534aa49b37fc02f569b65ee0e32a4577d0cc11"
+        },
+        {
+          "path": "dist/commands/regex-execution/worker.js",
+          "type": "file",
+          "size": 1981,
+          "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+        },
+        {
+          "path": "src/commands/expr/index.ts",
+          "type": "file",
+          "size": 4701,
+          "sha256": "4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d"
+        }
+      ]
+    },
+    {
+      "run": "candidate-01",
+      "files": [
+        {
+          "path": "dist/commands/expr/bre-worker.js",
+          "type": "file",
+          "size": 19153,
+          "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874"
+        },
+        {
+          "path": "dist/commands/expr/index.d.ts",
+          "type": "file",
+          "size": 542,
+          "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+        },
+        {
+          "path": "dist/commands/expr/index.js",
+          "type": "file",
+          "size": 5772,
+          "sha256": "719a60ebfbe659f4411aef28ea6c443320afcb8e9ea5df10f047ce8877969957"
+        },
+        {
+          "path": "dist/commands/regex-execution/worker.js",
+          "type": "file",
+          "size": 1981,
+          "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+        },
+        {
+          "path": "src/commands/expr/index.ts",
+          "type": "file",
+          "size": 5072,
+          "sha256": "b1ad46e35f4077659aee2d148ab30a1ac6ba4032a877669ae2c5bfb27447c7fa"
+        }
+      ]
+    },
+    {
+      "run": "candidate-02",
+      "files": [
+        {
+          "path": "dist/commands/expr/bre-worker.js",
+          "type": "file",
+          "size": 19153,
+          "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874"
+        },
+        {
+          "path": "dist/commands/expr/index.d.ts",
+          "type": "file",
+          "size": 542,
+          "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+        },
+        {
+          "path": "dist/commands/expr/index.js",
+          "type": "file",
+          "size": 5772,
+          "sha256": "719a60ebfbe659f4411aef28ea6c443320afcb8e9ea5df10f047ce8877969957"
+        },
+        {
+          "path": "dist/commands/regex-execution/worker.js",
+          "type": "file",
+          "size": 1981,
+          "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+        },
+        {
+          "path": "src/commands/expr/index.ts",
+          "type": "file",
+          "size": 5072,
+          "sha256": "b1ad46e35f4077659aee2d148ab30a1ac6ba4032a877669ae2c5bfb27447c7fa"
+        }
+      ]
+    }
+  ],
+  "timing": [
+    {
+      "run": "baseline-01",
+      "start": "2026-08-27T20:49:22.114Z",
+      "end": "2026-08-27T20:49:30.280Z",
+      "archiveSha256": "322ac32e805fe36ca9e1c50c45b7f9b2c282de95583ab8662b96f67108bba78f"
+    },
+    {
+      "run": "candidate-01",
+      "start": "2026-08-27T20:51:36.679Z",
+      "end": "2026-08-27T20:51:45.020Z",
+      "archiveSha256": "150c509d7c4f22032568eef007585955b0d7b48eeeaa9f39d709325f7c7fcf62"
+    },
+    {
+      "run": "candidate-02",
+      "start": "2026-08-27T20:52:08.787Z",
+      "end": "2026-08-27T20:52:15.531Z",
+      "archiveSha256": "150c509d7c4f22032568eef007585955b0d7b48eeeaa9f39d709325f7c7fcf62"
+    }
+  ],
+  "note": "Repeated runs are reproducibility, not doubled independent case coverage. Full built manifests include the exact compiled actual worker and declarations."
+}

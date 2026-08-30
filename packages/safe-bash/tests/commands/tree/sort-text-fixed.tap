@@ -1,0 +1,87 @@
+TAP version 13
+# Subtest: TREE-WORK-002: actual Shell meters many long-prefix byte comparisons
+ok 1 - TREE-WORK-002: actual Shell meters many long-prefix byte comparisons
+  ---
+  duration_ms: 3.66375
+  type: 'test'
+  ...
+# {"entries":32,"nameBytes":64,"commonPrefixBytes":62,"maxSteps":256,"exitCode":1,"stdoutBytes":0,"stderr":"shell: line 1: EFBIG: tree work limit exceeded (256)\\n"}
+# Subtest: TREE-WORK-002: dirsfirst consumes work beyond the first sorting pass
+ok 2 - TREE-WORK-002: dirsfirst consumes work beyond the first sorting pass
+  ---
+  duration_ms: 4.779875
+  type: 'test'
+  ...
+# {"entries":32,"nameBytes":2,"plainSteps":221,"dirsfirstExitCode":1,"stderr":"shell: line 1: EFBIG: tree work limit exceeded (221)\\n"}
+# Subtest: TEXT-BOUND-001: oversized backend error is admitted before regex or byte scanning
+ok 3 - TEXT-BOUND-001: oversized backend error is admitted before regex or byte scanning
+  ---
+  duration_ms: 0.567584
+  type: 'test'
+  ...
+# {"messageCodeUnits":96,"maxPathBytes":32,"measuredRawMessageScans":{"replace":0,"byteLength":0,"encode":0}}
+# Subtest: TEXT-BOUND-001: prefix stripping cannot evade raw backend message admission
+ok 4 - TEXT-BOUND-001: prefix stripping cannot evade raw backend message admission
+  ---
+  duration_ms: 0.428875
+  type: 'test'
+  ...
+# {"rawMessageCodeUnits":104,"maxPathBytes":32,"exitCode":1,"stdout":"","stderr":"shell: line 1: EFBIG: tree path/name limit exceeded (32)\\n"}
+# Subtest: byte comparison reservation fails before calling Buffer.compare
+ok 5 - byte comparison reservation fails before calling Buffer.compare
+  ---
+  duration_ms: 0.34775
+  type: 'test'
+  ...
+# {"nameBytes":64,"maxSteps":100,"measuredByteComparisons":0}
+# Subtest: dirsfirst checks cancellation before the next comparator evaluation
+ok 6 - dirsfirst checks cancellation before the next comparator evaluation
+  ---
+  duration_ms: 0.633417
+  type: 'test'
+  ...
+# Subtest: remaining metadata is checked before scans; bounded UTF-8 sizing remains exact
+ok 7 - remaining metadata is checked before scans; bounded UTF-8 sizing remains exact
+  ---
+  duration_ms: 0.16525
+  type: 'test'
+  ...
+# Subtest: raw argument and sink text use constant-time lower bounds before byte sizing
+ok 8 - raw argument and sink text use constant-time lower bounds before byte sizing
+  ---
+  duration_ms: 0.14175
+  type: 'test'
+  ...
+# Subtest: opaque non-Error exceptions do not invoke arbitrary text coercion
+ok 9 - opaque non-Error exceptions do not invoke arbitrary text coercion
+  ---
+  duration_ms: 0.194541
+  type: 'test'
+  ...
+# Subtest: control-heavy text and JSON honor exact completed-output bounds
+ok 10 - control-heavy text and JSON honor exact completed-output bounds
+  ---
+  duration_ms: 4.406666
+  type: 'test'
+  ...
+# Subtest: control-heavy backend diagnostics fail admission without writing oversized fragments
+ok 11 - control-heavy backend diagnostics fail admission without writing oversized fragments
+  ---
+  duration_ms: 0.357333
+  type: 'test'
+  ...
+# Subtest: prior empty-alternative quota remains cumulative after accounting for sorting
+ok 12 - prior empty-alternative quota remains cumulative after accounting for sorting
+  ---
+  duration_ms: 2.053583
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 163.42775

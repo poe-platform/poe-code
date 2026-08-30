@@ -1,0 +1,219 @@
+TAP version 13
+# Subtest: A01 named create is a snapshot; selected extraction truncates only its destination
+ok 1 - A01 named create is a snapshot; selected extraction truncates only its destination
+  ---
+  duration_ms: 5.743084
+  type: 'test'
+  ...
+# Subtest: A02 strict USTAR output independently validates prefix, checksum, padding and payload
+ok 2 - A02 strict USTAR output independently validates prefix, checksum, padding and payload
+  ---
+  duration_ms: 0.648167
+  type: 'test'
+  ...
+# Subtest: A03 excluding a locally overridden member consumes its PAX state before global replacement
+ok 3 - A03 excluding a locally overridden member consumes its PAX state before global replacement
+  ---
+  duration_ms: 3.473417
+  type: 'test'
+  ...
+# Subtest: A04 repeated PAX path keys use the last UTF-8 value only for the next member
+ok 4 - A04 repeated PAX path keys use the last UTF-8 value only for the next member
+  ---
+  duration_ms: 7.674875
+  type: 'test'
+  ...
+# Subtest: A05 selecting a PAX long path before stripping preserves unselected existing files
+ok 5 - A05 selecting a PAX long path before stripping preserves unselected existing files
+  ---
+  duration_ms: 0.692625
+  type: 'test'
+  ...
+# Subtest: A06 a traversal hidden in PAX path cannot be laundered by exclude plus strip
+ok 6 - A06 a traversal hidden in PAX path cannot be laundered by exclude plus strip
+  ---
+  duration_ms: 0.490666
+  type: 'test'
+  ...
+# Subtest: A07 escaping PAX linkpath overrides a harmless raw symlink target and must fail
+ok 7 - A07 escaping PAX linkpath overrides a harmless raw symlink target and must fail
+  ---
+  duration_ms: 0.43475
+  type: 'test'
+  ...
+# Subtest: A08 safe forward long PAX link resolves only when its later file is published
+ok 8 - A08 safe forward long PAX link resolves only when its later file is published
+  ---
+  duration_ms: 1.764708
+  type: 'test'
+  ...
+# Subtest: A09 corrupt PAX extension checksum cannot rename or replace an existing destination
+ok 9 - A09 corrupt PAX extension checksum cannot rename or replace an existing destination
+  ---
+  duration_ms: 0.383625
+  type: 'test'
+  ...
+# Subtest: A10 truncation inside PAX UTF-8 records and extension padding has no file effects
+ok 10 - A10 truncation inside PAX UTF-8 records and extension padding has no file effects
+  ---
+  duration_ms: 0.8005
+  type: 'test'
+  ...
+# Subtest: A11 concatenated gzip members split inside a PAX header decode as one virtual archive
+ok 11 - A11 concatenated gzip members split inside a PAX header decode as one virtual archive
+  ---
+  duration_ms: 6.246208
+  type: 'test'
+  ...
+# Subtest: A12 virtual recompression pipeline preserves several deterministic files under tiny pipes
+ok 12 - A12 virtual recompression pipeline preserves several deterministic files under tiny pipes
+  ---
+  duration_ms: 67.809333
+  type: 'test'
+  ...
+# Subtest: A13 blocked gzip output resumes losslessly without overlapping sink writes
+ok 13 - A13 blocked gzip output resumes losslessly without overlapping sink writes
+  ---
+  duration_ms: 66.679959
+  type: 'test'
+  ...
+# Subtest: A14 cancellation settles both composed gzip commands while listing output is blocked
+ok 14 - A14 cancellation settles both composed gzip commands while listing output is blocked
+  ---
+  duration_ms: 14.202625
+  type: 'test'
+  ...
+# Subtest: A15 PAX-renamed member cannot write through an existing VFS symlink ancestor
+ok 15 - A15 PAX-renamed member cannot write through an existing VFS symlink ancestor
+  ---
+  duration_ms: 0.506625
+  type: 'test'
+  ...
+# Subtest: H01 plain/gzip backward hardlink chains preserve inode, nlink and write aliases
+ok 16 - H01 plain/gzip backward hardlink chains preserve inode, nlink and write aliases
+  ---
+  duration_ms: 6.526166
+  type: 'test'
+  ...
+# {"gzip":false,"fixtureSha256":"9faa2234be4d7d191626fe8acbea1e48311fa89c4f5976e17985051670320613","limits":{"maxEntryBytes":4,"maxTotalBytes":4,"maxMembers":3},"nlink":3,"sameIdentityAndSharedWrites":true}
+# {"gzip":true,"fixtureSha256":"c3538e237fa4500cc1bed95de681faf2174476ae660468bca48099c2b8f18939","limits":{"maxEntryBytes":4,"maxTotalBytes":4,"maxMembers":3},"nlink":3,"sameIdentityAndSharedWrites":true}
+# Subtest: H02 missing hardlink method or false capability explicitly rejects without copy fallback
+ok 17 - H02 missing hardlink method or false capability explicitly rejects without copy fallback
+  ---
+  duration_ms: 3.95525
+  type: 'test'
+  ...
+# {"missingMethod":true,"linkCalls":0,"fixtureSha256":"9faa2234be4d7d191626fe8acbea1e48311fa89c4f5976e17985051670320613","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: filesystem does not support hardlinks\\n"}
+# {"missingMethod":false,"linkCalls":0,"fixtureSha256":"c3538e237fa4500cc1bed95de681faf2174476ae660468bca48099c2b8f18939","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: filesystem does not support hardlinks\\n"}
+# Subtest: H03 malicious hardlink target and destination vectors preserve outside VFS sentinels
+ok 18 - H03 malicious hardlink target and destination vectors preserve outside VFS sentinels
+  ---
+  duration_ms: 1.289875
+  type: 'test'
+  ...
+# {"pivot":false,"fixtureSha256":"e7632e22b6ab9cf1befb4c0c1c238566b7d0dc66383c7d475a61d1b28ee5ecd9","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: unsafe parent component in member: ../outside/sentinel\\n"}
+# {"pivot":true,"fixtureSha256":"eb304290422a8c557fe53977c6048437acf089599add77de64efe1f2ac8eb685","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: unsafe non-directory or symlink ancestor: /output/pivot\\n"}
+# Subtest: B01 configured entry, PAX and expanded-archive boundaries accept exact and reject one over
+ok 19 - B01 configured entry, PAX and expanded-archive boundaries accept exact and reject one over
+  ---
+  duration_ms: 9.162666
+  type: 'test'
+  ...
+# {"label":"entry","valid":true,"limits":{"maxEntryBytes":17},"fixtureSha256":"f4e0e78f25f54efd67858f76d23517eb470eb6521155659536be49fe40efdc6a","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# {"label":"entry","valid":false,"limits":{"maxEntryBytes":17},"fixtureSha256":"d217dcc5206356bd59f7f76b81e259764d437c29f1f84adfa2e2db9be3d07ea7","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: entry byte limit exceeded\\n"}
+# {"label":"PAX","valid":true,"limits":{"maxPaxBytes":17},"fixtureSha256":"45b20478cb6e0b17cdf3c6f9cd3f0b7c588bb2853e1f14b6240523785abb76c0","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# {"label":"PAX","valid":false,"limits":{"maxPaxBytes":17},"fixtureSha256":"b9b7578cdcbb3377342e08525d5b219bfd9e06bf0414583779a1cf2433d3b326","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: extended header byte limit exceeded\\n"}
+# {"label":"expanded archive","valid":true,"limits":{"maxArchiveBytes":2048},"fixtureSha256":"14bdf5626b5d98ee92ba34a12505e103bbf1ab26915fec9df5e2c73bde1de9b5","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# {"label":"expanded archive","valid":false,"limits":{"maxArchiveBytes":2048},"fixtureSha256":"2a65b003c1f7bb2137bf4ef6460f47db2abd14dc864a6d05e5e633f54be599d6","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: archive byte limit exceeded\\n"}
+# Subtest: B02 default 64 MiB entry declaration rejects plus one before body reads or publication
+ok 20 - B02 default 64 MiB entry declaration rejects plus one before body reads or publication
+  ---
+  duration_ms: 1.0165
+  type: 'test'
+  ...
+# {"over":false,"declaredBytes":67108864,"headerBytes":512,"fixtureSha256":"c21195bebe2b19453dde6583bfaf751ca100864dc99aacb09fcac92a366d0c93","pulls":2,"returns":1,"publications":1,"exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: independent boundary control reached body read\\n"}
+# {"over":true,"declaredBytes":67108865,"headerBytes":512,"fixtureSha256":"2f6dbac00692dbe9c385c2a345a295df2ffa794d7f7c8b0bfd9cf2e2996461d1","pulls":1,"returns":1,"publications":0,"exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: entry byte limit exceeded\\n"}
+# Subtest: B03 small gzip amplification obeys expanded-byte budget and a valid full-size control
+ok 21 - B03 small gzip amplification obeys expanded-byte budget and a valid full-size control
+  ---
+  duration_ms: 3.297042
+  type: 'test'
+  ...
+# {"compressedBytes":102,"expandedBytes":9728,"maxArchiveBytes":2048,"retainedBytes":1536,"fixtureSha256":"cb009ae1f6dd2e44085383f934009f583902932846a5bc3965f660ae7e5d5659","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: archive byte limit exceeded\\n"}
+# {"compressedBytes":102,"expandedBytes":9728,"maxArchiveBytes":9728,"retainedBytes":8192,"fixtureSha256":"cb009ae1f6dd2e44085383f934009f583902932846a5bc3965f660ae7e5d5659","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# Subtest: B04 late body, padding and gated gzip trailer failures retain exact partial effects
+ok 22 - B04 late body, padding and gated gzip trailer failures retain exact partial effects
+  ---
+  duration_ms: 5.606417
+  type: 'test'
+  ...
+# {"kind":"valid","retainedBytes":29,"directoryMode":"0755","exitCode":0,"stdout":{"type":"Buffer","data":[]},"stderr":""}
+# {"kind":"body","retainedBytes":7,"directoryMode":"0700","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: truncated archive body\\n"}
+# {"kind":"padding","retainedBytes":29,"directoryMode":"0700","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: truncated archive body\\n"}
+# {"kind":"gzip trailer","retainedBytes":29,"directoryMode":"0700","exitCode":2,"stdout":{"type":"Buffer","data":[]},"stderr":"tar: incorrect data check\\n"}
+# Subtest: B05 blocked compressed extraction bounds source pulls, resumes, or aborts with exact cleanup
+ok 23 - B05 blocked compressed extraction bounds source pulls, resumes, or aborts with exact cleanup
+  ---
+  duration_ms: 101.566292
+  type: 'test'
+  ...
+# {"abort":false,"fixtureSha256":"ca14ad5b93c62f7a33069f1679b1a87ee907000f41fafae8867ab2eec5ecf256","compressedBytes":131305,"sourceChunkBytes":512,"maximumBlockedSourceBytes":16384,"blockedBytes":1024,"blockedPulls":2,"finalSourceBytes":131305,"pulls":258,"returns":0,"sourceFinalized":1,"committed":131072,"writes":512}
+# {"abort":true,"fixtureSha256":"ca14ad5b93c62f7a33069f1679b1a87ee907000f41fafae8867ab2eec5ecf256","compressedBytes":131305,"sourceChunkBytes":512,"maximumBlockedSourceBytes":16384,"blockedBytes":1024,"blockedPulls":2,"finalSourceBytes":1024,"pulls":2,"returns":1,"sourceFinalized":1,"committed":7,"writes":1}
+# Subtest: PAX links retain exact full targets and nonempty safe USTAR fallback
+ok 24 - PAX links retain exact full targets and nonempty safe USTAR fallback
+  ---
+  duration_ms: 1.407083
+  type: 'test'
+  ...
+# {"kind":"raw-archive","archiveSha256":"6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e","archiveBase64":"UGF4SGVhZGVyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2NDQAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMjE0ADE0NTI0NzcwNDAwADAxMTE0MAAgeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxNDAgbGlua3BhdGg9Y3Jvc3MteHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHguYmluCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHN5bWJvbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwNzc3ADAwMDAwMDAAMDAwMDAwMAAwMDAwMDAwMDAwMAAxNDUyNDc3MDQwMAAwMTE3NjUAIDJQYXhMaW5rAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdXN0YXIAMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAwMDAwMAAwMDAwMDAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==","extensionOffset":0,"payloadOffset":512,"linkHeaderOffset":1024,"paxPayloadBase64":"MTQwIGxpbmtwYXRoPWNyb3NzLXh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4LmJpbgo=","linkHeaderBase64":"c3ltYm9sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA3NzcAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDAwADE0NTI0NzcwNDAwADAxMTc2NQAgMlBheExpbmsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAwMDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","typeflagHex":"32","rawLinknameHex":"5061784c696e6b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"}
+# Subtest: GNU 1.35: plain AND gzip extract an exact symlink, never an empty regular file
+ok 25 - GNU 1.35: plain AND gzip extract an exact symlink, never an empty regular file
+  ---
+  duration_ms: 72.181042
+  type: 'test'
+  ...
+# {"kind":"native","consumer":"GNU 1.35","binary":"/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar","sha256":"49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66","version":{"args":["--version"],"status":0,"signal":null,"error":null,"stdout":"tar (GNU tar) 1.35\\nCopyright (C) 2023 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by John Gilmore and Jay Fenlason.\\n","stderr":""},"observations":[{"format":"plain","archiveSha256":"6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e","listing":{"args":["-tf","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-LtxpSA/input.tar"],"status":0,"signal":null,"error":null,"stdout":"symbol\\n","stderr":""},"extraction":{"args":["-xf","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-LtxpSA/input.tar","-C","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-LtxpSA/plain"],"status":0,"signal":null,"error":null,"stdout":"","stderr":""},"type":"symlink","size":126,"linkTarget":"cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin","throughLinkBase64":"aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=","targetBase64":"aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=","entries":["cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin","symbol"]},{"format":"gzip","archiveSha256":"e426720d4e2fe936cf68a447ea65260070a6fe0f75ae78d0550fcf8de3b25356","listing":{"args":["-tzf","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-LtxpSA/input.tar.gz"],"status":0,"signal":null,"error":null,"stdout":"symbol\\n","stderr":""},"extraction":{"args":["-xzf","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-LtxpSA/input.tar.gz","-C","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-LtxpSA/gzip"],"status":0,"signal":null,"error":null,"stdout":"","stderr":""},"type":"symlink","size":126,"linkTarget":"cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin","throughLinkBase64":"aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=","targetBase64":"aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=","entries":["cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin","symbol"]}]}
+# Subtest: BSD 3.5.3: plain AND gzip extract an exact symlink, never an empty regular file
+ok 26 - BSD 3.5.3: plain AND gzip extract an exact symlink, never an empty regular file
+  ---
+  duration_ms: 39.232125
+  type: 'test'
+  ...
+# {"kind":"native","consumer":"BSD 3.5.3","binary":"/usr/bin/bsdtar","sha256":"bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9","version":{"args":["--version"],"status":0,"signal":null,"error":null,"stdout":"bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \\n","stderr":""},"observations":[{"format":"plain","archiveSha256":"6f9dfdd3025c52a19b62713f4276c4a392d1578a5b9ea3d6fcc851b99f6a011e","listing":{"args":["-tf","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-KGW0XA/input.tar"],"status":0,"signal":null,"error":null,"stdout":"symbol\\n","stderr":""},"extraction":{"args":["-xf","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-KGW0XA/input.tar","-C","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-KGW0XA/plain"],"status":0,"signal":null,"error":null,"stdout":"","stderr":""},"type":"symlink","size":126,"linkTarget":"cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin","throughLinkBase64":"aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=","targetBase64":"aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=","entries":["cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin","symbol"]},{"format":"gzip","archiveSha256":"e426720d4e2fe936cf68a447ea65260070a6fe0f75ae78d0550fcf8de3b25356","listing":{"args":["-tzf","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-KGW0XA/input.tar.gz"],"status":0,"signal":null,"error":null,"stdout":"symbol\\n","stderr":""},"extraction":{"args":["-xzf","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-KGW0XA/input.tar.gz","-C","/private/tmp/safe-bash-pax-deletion-independent-SXbduM/tree/tests/commands/archive-stress/long-link-evidence/.native-long-link-KGW0XA/gzip"],"status":0,"signal":null,"error":null,"stdout":"","stderr":""},"type":"symlink","size":126,"linkTarget":"cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin","throughLinkBase64":"aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=","targetBase64":"aW5kZXBlbmRlbnQgbG9uZy1saW5rIHRhcmdldAo=","entries":["cross-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.bin","symbol"]}]}
+# Subtest: N-GNU-in native PAX plain/gzip archives and independent extension fixture extract virtually
+ok 27 - N-GNU-in native PAX plain/gzip archives and independent extension fixture extract virtually
+  ---
+  duration_ms: 157.279958
+  type: 'test'
+  ...
+# GNU: tar (GNU tar) 1.35; executable sha256 49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66
+# Subtest: N-GNU-out native reads and extracts virtual plain/gzip PAX without modifying sources
+ok 28 - N-GNU-out native reads and extracts virtual plain/gzip PAX without modifying sources
+  ---
+  duration_ms: 62.227583
+  type: 'test'
+  ...
+# GNU: tar (GNU tar) 1.35; executable sha256 49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66
+# Subtest: N-BSD-in native PAX plain/gzip archives and independent extension fixture extract virtually
+ok 29 - N-BSD-in native PAX plain/gzip archives and independent extension fixture extract virtually
+  ---
+  duration_ms: 93.927
+  type: 'test'
+  ...
+# BSD: bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8; executable sha256 bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9
+# Subtest: N-BSD-out native reads and extracts virtual plain/gzip PAX without modifying sources
+ok 30 - N-BSD-out native reads and extracts virtual plain/gzip PAX without modifying sources
+  ---
+  duration_ms: 47.048125
+  type: 'test'
+  ...
+# BSD: bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8; executable sha256 bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1445.476042

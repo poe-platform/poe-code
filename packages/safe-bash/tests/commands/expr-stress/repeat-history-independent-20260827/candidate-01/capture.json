@@ -1,0 +1,1151 @@
+{
+  "started": "2026-08-27T19:31:39.041Z",
+  "base": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "workerSha256": "663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890",
+  "patchSha256": "900d10baaaad15e6e428747ca5815b3c284f14a612d6752c9b7bdf91b2fed6de",
+  "shared": [
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "baseSha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "baseSha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "baseSha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "baseSha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    }
+  ],
+  "casesSha256": "8e2017cd35508eab72be745ab82f9354109e6bcd5932bab192fe525b75c1982d",
+  "rows": [
+    {
+      "id": "original/empty",
+      "classification": "established-narrow",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "steps": 582
+      },
+      "validSpans": true,
+      "captureHex": "",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 0,
+        "captureText": ""
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "originalGNUUnchanged": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "originalGNUStrictAgreement": true
+    },
+    {
+      "id": "original/a",
+      "classification": "established-narrow",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "steps": 765
+      },
+      "validSpans": true,
+      "captureHex": "",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 0,
+        "captureText": ""
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "originalGNUUnchanged": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "originalGNUStrictAgreement": true
+    },
+    {
+      "id": "original/aa",
+      "classification": "established-narrow",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "steps": 1125
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 2,
+        "captureText": "a"
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "originalGNUUnchanged": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "originalGNUStrictAgreement": true
+    },
+    {
+      "id": "original/aaa",
+      "classification": "established-narrow",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1833
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 3,
+        "captureText": "a"
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "originalGNUUnchanged": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "originalGNUStrictAgreement": false
+    },
+    {
+      "id": "original/no-reference",
+      "classification": "compatibility-control",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 3
+        },
+        "steps": 1781
+      },
+      "validSpans": true,
+      "captureHex": "616161",
+      "command": {
+        "status": 0,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "originalGNUUnchanged": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YWFhCg==",
+        "stderrBase64": ""
+      },
+      "originalGNUStrictAgreement": true
+    },
+    {
+      "id": "original/not-repeated",
+      "classification": "established-narrow",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "steps": 662
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 2,
+        "captureText": "a"
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "originalGNUUnchanged": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "originalGNUStrictAgreement": true
+    },
+    {
+      "id": "original/nonnullable",
+      "classification": "established-narrow",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 717
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 3,
+        "captureText": "a"
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "originalGNUUnchanged": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "YQo=",
+        "stderrBase64": ""
+      },
+      "originalGNUStrictAgreement": true
+    },
+    {
+      "id": "original/mandatory-empty",
+      "classification": "established-narrow",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "steps": 727
+      },
+      "validSpans": true,
+      "captureHex": "",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 0,
+        "captureText": ""
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "originalGNUUnchanged": {
+        "status": 1,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "Cg==",
+        "stderrBase64": ""
+      },
+      "originalGNUStrictAgreement": true
+    },
+    {
+      "id": "history-four",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 4
+        },
+        "capture": {
+          "start": 2,
+          "end": 3
+        },
+        "steps": 3244
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "history-six",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 6
+        },
+        "capture": {
+          "start": 4,
+          "end": 5
+        },
+        "steps": 11667
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "mandatory-nonempty",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 3,
+          "end": 3
+        },
+        "steps": 1690
+      },
+      "validSpans": true,
+      "captureHex": "",
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "mandatory-no-reference",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 3,
+          "end": 3
+        },
+        "steps": 1633
+      },
+      "validSpans": true,
+      "captureHex": "",
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "bounded-history",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 2637
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "alternation-longest",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 2,
+          "end": 3
+        },
+        "steps": 1184
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "nested-nullable",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 4
+        },
+        "capture": {
+          "start": 0,
+          "end": 3
+        },
+        "steps": 17096
+      },
+      "validSpans": true,
+      "captureHex": "616161",
+      "command": {
+        "status": 0,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "nested-reference",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 4
+        },
+        "capture": {
+          "start": 0,
+          "end": 2
+        },
+        "steps": 1658
+      },
+      "validSpans": true,
+      "captureHex": "6161",
+      "command": {
+        "status": 0,
+        "stdoutHex": "61610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "descendant-retention",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 5
+        },
+        "capture": {
+          "start": 3,
+          "end": 4
+        },
+        "steps": 1491
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "nested-mandatory-empty",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "steps": 1316
+      },
+      "validSpans": true,
+      "captureHex": "",
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "optional-child-empty",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 2,
+          "end": 3
+        },
+        "steps": 1170
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "branch-isolation-forward",
+      "classification": "structural-extension-control",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "steps": 560
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 2,
+        "captureText": "a"
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "branch-isolation-reversed",
+      "classification": "structural-extension-control",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 2
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "steps": 559
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 2,
+        "captureText": "a"
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "branch-absent-reference",
+      "classification": "structural-control",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": false,
+        "hasCapture": true,
+        "overall": null,
+        "capture": null,
+        "steps": 503
+      },
+      "validSpans": true,
+      "captureHex": null,
+      "expected": {
+        "matched": false,
+        "wholeEnd": null,
+        "captureText": null
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "nonparticipation",
+      "classification": "structural-control",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": false,
+        "hasCapture": true,
+        "overall": null,
+        "capture": null,
+        "steps": 461
+      },
+      "validSpans": true,
+      "captureHex": null,
+      "expected": {
+        "matched": false,
+        "wholeEnd": null,
+        "captureText": null
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "required-three-empty",
+      "classification": "established-mandatory-extension-of-derivation",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 0
+        },
+        "capture": {
+          "start": 0,
+          "end": 0
+        },
+        "steps": 828
+      },
+      "validSpans": true,
+      "captureHex": "",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 0,
+        "captureText": ""
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "target-end-anchor",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1873
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "target-suffix",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 4
+        },
+        "capture": {
+          "start": 1,
+          "end": 2
+        },
+        "steps": 1886
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "byte-span",
+      "classification": "observation-only",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "steps": 680
+      },
+      "validSpans": true,
+      "captureHex": "c3",
+      "command": {
+        "status": 0,
+        "stdoutHex": "c30a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "scalar-span",
+      "classification": "byte-protocol-control",
+      "profile": "utf8-scalar",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 4
+        },
+        "capture": {
+          "start": 0,
+          "end": 2
+        },
+        "steps": 396
+      },
+      "validSpans": true,
+      "captureHex": "c3a9",
+      "expected": {
+        "matched": true,
+        "wholeEnd": 4,
+        "captureText": "é"
+      },
+      "establishedExpectationPass": true,
+      "command": {
+        "status": 0,
+        "stdoutHex": "c3a90a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "historical/alternation-longest",
+      "classification": "historical-compatibility-replay",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 0,
+          "end": 1
+        },
+        "steps": 853
+      },
+      "validSpans": true,
+      "captureHex": "61",
+      "command": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "historical/mandatory-no-reference",
+      "classification": "historical-compatibility-replay",
+      "profile": "byte",
+      "result": {
+        "offsetUnit": "byte",
+        "matched": true,
+        "hasCapture": true,
+        "overall": {
+          "start": 0,
+          "end": 3
+        },
+        "capture": {
+          "start": 3,
+          "end": 3
+        },
+        "steps": 1633
+      },
+      "validSpans": true,
+      "captureHex": "",
+      "command": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      }
+    }
+  ],
+  "controls": [
+    {
+      "id": "budget/maxPatternBytes",
+      "passed": false,
+      "error": {
+        "name": "Error",
+        "category": "limit",
+        "message": "regex input bytes limit exceeded"
+      }
+    },
+    {
+      "id": "budget/maxSubjectBytes",
+      "passed": false,
+      "error": {
+        "name": "Error",
+        "category": "limit",
+        "message": "regex input bytes limit exceeded"
+      }
+    },
+    {
+      "id": "budget/maxNodes",
+      "passed": true,
+      "detail": {
+        "limit": 1,
+        "identity": "ExprMatchError",
+        "category": "limit",
+        "noPartialMatch": true
+      }
+    },
+    {
+      "id": "budget/maxDepth",
+      "passed": true,
+      "detail": {
+        "limit": 1,
+        "identity": "ExprMatchError",
+        "category": "limit",
+        "noPartialMatch": true
+      }
+    },
+    {
+      "id": "budget/maxSteps",
+      "passed": true,
+      "detail": {
+        "limit": 1,
+        "identity": "ExprMatchError",
+        "category": "limit",
+        "noPartialMatch": true
+      }
+    },
+    {
+      "id": "budget/maxStates",
+      "passed": true,
+      "detail": {
+        "limit": 1,
+        "identity": "ExprMatchError",
+        "category": "limit",
+        "noPartialMatch": true
+      }
+    },
+    {
+      "id": "budget/maxAllocatedUnits",
+      "passed": true,
+      "detail": {
+        "limit": 1,
+        "identity": "ExprMatchError",
+        "category": "limit",
+        "noPartialMatch": true
+      }
+    },
+    {
+      "id": "protocol/half-negative",
+      "passed": true,
+      "detail": {
+        "rejected": true,
+        "errorClass": "RegexExecutionError",
+        "code": "PROTOCOL"
+      }
+    },
+    {
+      "id": "protocol/out-of-subject",
+      "passed": true,
+      "detail": {
+        "rejected": true,
+        "errorClass": "RegexExecutionError",
+        "code": "PROTOCOL"
+      }
+    },
+    {
+      "id": "protocol/outside-whole",
+      "passed": true,
+      "detail": {
+        "rejected": true,
+        "errorClass": "RegexExecutionError",
+        "code": "PROTOCOL"
+      }
+    },
+    {
+      "id": "protocol/unmatched-capture",
+      "passed": true,
+      "detail": {
+        "rejected": true,
+        "errorClass": "RegexExecutionError",
+        "code": "PROTOCOL"
+      }
+    },
+    {
+      "id": "protocol/extra-result-key",
+      "passed": true,
+      "detail": {
+        "rejected": true,
+        "errorClass": "RegexExecutionError",
+        "code": "PROTOCOL"
+      }
+    },
+    {
+      "id": "protocol/extra-reply-key",
+      "passed": true
+    },
+    {
+      "id": "protocol/invalid-limits",
+      "passed": true
+    },
+    {
+      "id": "cancel/pre-abort-identity",
+      "passed": false,
+      "error": {
+        "code": "ENOENT"
+      }
+    },
+    {
+      "id": "main-thread/refusal",
+      "passed": true
+    },
+    {
+      "id": "branch/reused-session-after-failure",
+      "passed": true,
+      "detail": {
+        "orderedCases": [
+          "syntax error",
+          "reversed branch",
+          "absent branch",
+          "forward branch"
+        ],
+        "freshWorkUsable": true
+      }
+    }
+  ],
+  "scopedTests": [
+    {
+      "name": "regex-protocol",
+      "sourceSha256": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": "regex-protocol.tap"
+    },
+    {
+      "name": "regex-lifecycle",
+      "sourceSha256": "b93f0556799a4ee48e86af05ca5d4b9c051967e2dfdd7dde6b71307b412c8ed3",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": "regex-lifecycle.tap"
+    },
+    {
+      "name": "regex-limits",
+      "sourceSha256": "4b938f201b7ffffcb317734f7784d7b88cf5a95aacbad53a5e4df957d3f9c2a8",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": "regex-limits.tap"
+    },
+    {
+      "name": "abort-reason-regression",
+      "sourceSha256": "24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "log": "abort-reason-regression.tap"
+    }
+  ],
+  "cleanup": {
+    "workers": 67,
+    "activeBeforeSafetyCleanup": 0,
+    "activeAfter": 0,
+    "terminations": 67,
+    "childProcesses": "bounded spawnSync; each scoped test process owns its worker threads",
+    "caveat": "No claim of preemption of opaque host promises."
+  },
+  "postIntegrity": {
+    "originalFilesUnchanged": true,
+    "newlyAddedEntriesDetected": true,
+    "scope": "isolated source and compiled trees, not entire repository"
+  },
+  "finished": "2026-08-27T19:31:45.292Z",
+  "counts": {
+    "cases": 30,
+    "validResults": 30,
+    "expectationDenominator": 13,
+    "expectationsMet": 13,
+    "observationsOnly": 17,
+    "controls": 17,
+    "controlsPassed": 14,
+    "originalGNUAgreement": 7,
+    "originalGNUFailures": [
+      "original/aaa"
+    ],
+    "scopedFiles": 4,
+    "scopedFilesPassed": 4
+  }
+}

@@ -1,0 +1,1136 @@
+{
+  "status": "EVIDENCE_INTEGRITY_PASS_WITH_LIFECYCLE_GATE_FAILED",
+  "validationModule": {
+    "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/finalize-audit.mjs",
+    "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/finalize-audit.mjs",
+    "symlink": null,
+    "links": [],
+    "bytes": 13765,
+    "sha256": "6544722795b06a50f1fde088121c7795ae125a9474a6cc903d0759b990bf7333"
+  },
+  "assertions": {
+    "all136RawResultsPresent": true,
+    "all136AssessmentsRecomputedWithoutChanges": true,
+    "all136CaseHashes": true,
+    "snapshotAndConfigAndDependenciesAndHarnessUnchanged": true,
+    "allObservedModulePathsBound": true,
+    "originalPreparationHashesUnchanged": true,
+    "original53RowsAnd4OptionalRowsRetained": true,
+    "exact54TargetNamesConfirmedMissingOnOursByActualDispatch": true,
+    "completeBeforeAfterCensuses": true,
+    "cleanLifecycleGate": false
+  },
+  "exceptions": [
+    {
+      "engine": "baseline",
+      "id": "js-exec-positive",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "reason": "child retained resources after result; cleanup grace exceeded",
+      "productResult": {
+        "exitCode": 0,
+        "stdout": "42\n",
+        "stderr": "",
+        "stdoutKind": null,
+        "stdoutEncoding": null,
+        "stdoutBase64": "NDIK",
+        "stderrBase64": "",
+        "stdoutBoundary": "public stdoutAsBytes ByteString encoded Latin-1; not inferred from text",
+        "stderrBoundary": "derived UTF-8 of public stderr string; no raw byte API"
+      },
+      "productElapsedMs": 196.796541,
+      "totalElapsedMs": 10356.827375,
+      "lifecycleAccepted": false
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/alias-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/alias-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313365,
+      "sha256": "44f4b15b8fd1d52938acdf35509f00fb7bd0bbb7dfad3057d8712088e95904b5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/alias-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/alias-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 282670,
+      "sha256": "81d927b8738111350f1c6bc0a1836f003fd5143e602f724f71d1929ccdf7beb9"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/builtin-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/builtin-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 308356,
+      "sha256": "91bcda673f818b2f5485685c8fe5e118f7e29f4b4cfbc91e6fc063f84d3fb4e2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/builtin-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/builtin-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 277394,
+      "sha256": "f2b7a41b08aa9d784416f64c2207442e4b60188592da8313e46a9ab27a60ffd0"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/clear-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/clear-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313372,
+      "sha256": "98384307125b759dc512bcd142474162221941603c116e6ccdeb0cea0d7216dd"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/clear-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/clear-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 266370,
+      "sha256": "f3a563f7c4624695fd520bbe4aa064dca8d4342181b06ed8a3938f1db2cd5a31"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/column-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/column-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315211,
+      "sha256": "e7866f4688cebc6e89d80f4f59ff78b3fb221bcc1f0eed62d5e5f16d18172e2d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/column-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/column-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 274066,
+      "sha256": "5a7f5c4bea3ad0b49a82880b5b0a55c6b837cc34d80e103ae1fecc290d7a2e26"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compgen-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compgen-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313389,
+      "sha256": "09bbdb6d677ad2a9333bf802b33cfa4b8c53831339a69c8f216e00e11c5845d8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compgen-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compgen-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 260723,
+      "sha256": "6f97bc547a8976164c1c0a9b21c591af89798b103ab09b9796e1d72b70521bc7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/complete-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/complete-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313665,
+      "sha256": "1238d73f0312c6b1a5f7719994f9fab9b1081ef5c71e5555720de0a3735b7dff"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/complete-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/complete-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 259554,
+      "sha256": "bc60a466541eeb62cfd333fc55958d7a31670d50fd03cebd8f6874b8becc5247"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compopt-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compopt-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 312784,
+      "sha256": "340c93464cb2ea0579a2824c221327d89d3906d04681fc2f5b0ee083cc19175f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compopt-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compopt-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 260781,
+      "sha256": "b19d7dc52575a128965e4f4c36b7051a0ae61e1a3573cf92ff52a84223483e33"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/date-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/date-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313372,
+      "sha256": "bd2aa50d4a5cfa3ebaccddaf1b8c8409067b7bbc84c2ef0fa7bfae192a7a4e01"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/date-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/date-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 270390,
+      "sha256": "c6bd71b5fc6dbdeb05af56657acdc0c60a3e16dca7256cadddd38b8249e8f9fc"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/declare-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/declare-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313373,
+      "sha256": "24af161d1d1101149ec9e6ed6fdeac04359e1915d74dab1355ba8aa946c7ed92"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/declare-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/declare-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 277361,
+      "sha256": "fe9b439fad69f3882b5d4076cb423ec894cf9ee70f2e5d1763f761223dfc5f48"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dirs-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dirs-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315873,
+      "sha256": "fa60a55030af86203afe7117b687421e10da85dd6b7ffcc33747eb8af339a652"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dirs-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dirs-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 262903,
+      "sha256": "3107e95706f563f67ddf94d35509242e298f44264bd921a4fdb84bb107e42ef9"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/du-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/du-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 323341,
+      "sha256": "0aaa5fc4cdd08348bd85ee6198165d31510628f8c372a9cbf4b0e4470927d247"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/du-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/du-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 285800,
+      "sha256": "2d6cedd7e9045c77e5f7ed0bdca9324b7d1ad64c8cc92762d52d89d52d322058"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/egrep-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/egrep-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315193,
+      "sha256": "d7ccba2855ee00aa88c299fd3d4349b856b6b816eff65f4161fd0fa0759eae66"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/egrep-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/egrep-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 279537,
+      "sha256": "d211b54226f1873a99b67055f6458f2f6a6ac5915002779376cebaa81f7fd4fc"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/exec-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/exec-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 314569,
+      "sha256": "a8f94b6050d8047a0e30f4b4207f4379bce186b62f43eebc955b6fa58cb00d5e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/exec-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/exec-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 278468,
+      "sha256": "f999f27760093e27f455d75e811efa82f5c584157605fe9933f865ef9df8ff34"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/expand-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/expand-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315147,
+      "sha256": "afc85f0b472d940ef1ec8932657b5a58e616b669a79e64cd47ec38fbca4f9c7d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/expand-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/expand-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 271420,
+      "sha256": "d534eb7645a636549d1066baefae1bd3a8b211d6319376bb83bf221775567d1e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/expr-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/expr-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313347,
+      "sha256": "28d86f97bb3bb7c0e89071b0713e1af0532879ccb132a17bbd2990297c96e6fb"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/expr-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/expr-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 271994,
+      "sha256": "f13c7a6b6d666a68689c166a2e653874bafad647a6f5f7fae7fe573836b82137"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/fgrep-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/fgrep-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315181,
+      "sha256": "01925a7a45001ecbf2e220d035e6e9278c613cb425a79cc948ae336bb773afbf"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/fgrep-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/fgrep-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 283735,
+      "sha256": "556638f5b7bb45c7a6fe989f729d34cad0a203f427470dbfffaac9ac9a5c959d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/file-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/file-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315154,
+      "sha256": "9cc42024e978d13e2d56b33586be99915ceafd2f27afd015220119c9f25eca89"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/file-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/file-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 274413,
+      "sha256": "bb0848a777f140c7487d588f24be956b84a96ea7d26c433b77c73e26c332c254"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/fold-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/fold-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315178,
+      "sha256": "39d4df4bf41a5b95b2826a4c76519b02cfcdbc1d771bea2d89962ed017206760"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/fold-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/fold-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 269325,
+      "sha256": "d60bea175ff2dc84c3d6c056b9064e42f1b70664c1b93a0c406f57c8210b2361"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/getopts-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/getopts-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313384,
+      "sha256": "a8ae8cd9f6c58f47a82f743200ef9cda8e2457b72ea6036c73011e06b80fd62d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/getopts-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/getopts-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 277405,
+      "sha256": "f996ae14ac027e668b21e3301b4e3407349c53841641509c9ba2d984948abb46"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/hash-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/hash-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313368,
+      "sha256": "b271f965c5676d0e58a02fd9b89be7b5ae41eaaecfcf7274acb997962e37ece3"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/hash-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/hash-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 264117,
+      "sha256": "62b40ff5dda40154c120b15e256981150ab0ef51e68280e77d2424250350b87e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/help-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/help-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 314580,
+      "sha256": "c00812b53188a0b06b0f67ee2c7651b5e092552a50ffef47f88e4fea19ddcac3"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/help-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/help-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 264320,
+      "sha256": "21228d24a598612a8c9e08e13621850fa49897f09f88e5cae431c29f892a714e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/history-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/history-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313343,
+      "sha256": "5a8d29d8839d159f665e210d144f1613a89907ab941eacc703bd07c598b1ea3e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/history-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/history-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 266346,
+      "sha256": "356fb569626c67fd11dcbb356f883fadb509e3594f4c061b632a190e45d55600"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/hostname-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/hostname-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313399,
+      "sha256": "63c7e0c076d0e3ea812e549d2650435ef954e1e803b776dcb268e8724fc23652"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/hostname-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/hostname-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 264138,
+      "sha256": "7df929397d271e7ba84b6db9a255c98f4269c3b151558a74046330ecac4d10bc"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/html-to-markdown-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/html-to-markdown-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315783,
+      "sha256": "746d2c0a883d01f51ba152be2c21d0eafdb3fd2b0368dca1522cad7a5218edd7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/html-to-markdown-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/html-to-markdown-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 303105,
+      "sha256": "e919e7a7eec95bbabdd41e177541241c42d8ab9a0b5b64ba73df39dc348e5c30"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/let-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/let-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313343,
+      "sha256": "774c1de5dd97001a8def86c5aae8c7d16cf1aa5eb0d6769500f5e53ba707d050"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/let-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/let-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 277346,
+      "sha256": "be0feed7a2c54ae723aa118f022f4a611cccee809aa08a180640d68a69c48910"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/mapfile-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/mapfile-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 314633,
+      "sha256": "38cf23ede9ae31422998da0bd161b8a3589871fc1aae62e62df909ba86ebc5fa"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/mapfile-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/mapfile-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 278947,
+      "sha256": "6dab8bdccb0bf227b747cc52ad7f9bb288a94ea3dab87b30c5da44bf9262667e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/nl-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/nl-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315173,
+      "sha256": "395b3a81402c8995211282c016f0e018d3b6213eadd2a11a85a4520537f345f4"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/nl-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/nl-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 270716,
+      "sha256": "1490e6bcb64084d50a9a7e2ef3d40f0f605693efd230dbc3dc8018a9ef84f7d5"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/popd-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/popd-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315134,
+      "sha256": "6ba43aa707f2948ac81e00a60e94b8a7ed861b50fbae6cdb212b2ef2c736cc61"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/popd-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/popd-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 267055,
+      "sha256": "5d407973a3e8918b5622264fcd79d344cf3e5cc9ef7a930b835827e862f80764"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/printenv-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/printenv-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313403,
+      "sha256": "c35fcd096ab4bc2350924dd4264f1f4575a74e4f16cee1578a48e241ec1230cc"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/printenv-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/printenv-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 268509,
+      "sha256": "e5edf6ccf4f662d2beca8598049aa1879d1039ecaca11617054850f7c92df7b1"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/pushd-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/pushd-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315871,
+      "sha256": "bda3d7e7f0a94773ae7fd096b4ca851be8bd9898b67043de358a87f0381d7b6f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/pushd-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/pushd-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 266215,
+      "sha256": "0db83b1c1d58562cf51282b3f4e49d0b62da40835de2b8512f5e19a729e4f9ab"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/readarray-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/readarray-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315364,
+      "sha256": "c4695a6879e7f199af5c4d02be54bc4fcfbb30f6933528f15412e2ffd89a2942"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/readarray-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/readarray-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 278956,
+      "sha256": "9e2ff0365462d4048c1a2ece644772f09cfdb0bcfe1c688c726a32c3ad3a0c29"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/rev-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/rev-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315146,
+      "sha256": "b1d8327ad8ba808e8d4f8540404dd3f3664975414228c8b4bb0566ff553de4a3"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/rev-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/rev-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 269247,
+      "sha256": "afdd24f0d1780337e103c413139004bc2215c96de13f08a4f03665fbca3d876c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/seq-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/seq-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313346,
+      "sha256": "5a29fb34b1cf9f875f47401842209eb349ebbeb71045e6fc29cef870d81c5a3d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/seq-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/seq-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 266149,
+      "sha256": "bc032b51015f76ae864a5cc6d0149cf06e97e1e82b54b67387bede5d0dedf993"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/shopt-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/shopt-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 317001,
+      "sha256": "127a24d791b66340f9a4f891e743db72c29e2efc6e97cce9157536583167591b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/shopt-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/shopt-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 280468,
+      "sha256": "2d14923087df10d516f8fd767e08903c5e793f4dbefad58ccd5709e1d4950028"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/sleep-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/sleep-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313583,
+      "sha256": "fd7b2313a7431128c44cc0b97131930cff5af078a45f085997eb7d4ebe403463"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/sleep-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/sleep-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 271389,
+      "sha256": "c8e255b53e12016f0ebedfa50e19ede8f4f8580eff5a223662f1faa123aa7c36"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/split-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/split-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315707,
+      "sha256": "6e06a7b745dab7099ce8e0413387431517cd1548d647e72eeece66f2f127203a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/split-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/split-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 278679,
+      "sha256": "b2cbfcce50dddfdc60985cb073225893aba57f58c5de82abcbcd618fded724d8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/sqlite3-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/sqlite3-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313787,
+      "sha256": "7799235559596ac9b05585dd5f5da03681208719ec375cfced3d23e4f253066f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/sqlite3-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/sqlite3-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 320958,
+      "sha256": "0e2c294bf4932011894ce58068da4eed370477755f4ce0a438524d452fb5657b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/strings-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/strings-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315195,
+      "sha256": "c4ee07d0d5c104dbba212313f2b2b9c93aee41351fa24e3d67795cb85609660c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/strings-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/strings-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 270096,
+      "sha256": "ec253c019ca83606887f2a12c588f0e04ffa0f990a7bcb9c29c95e3f07414891"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/tac-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/tac-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 314473,
+      "sha256": "8b2b1ce2e724d397b184931bf4260775ceb63c6277d445846d08efccdf1675d8"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/tac-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/tac-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 266338,
+      "sha256": "37c6ba371eb6c08c12c95bd09071665927cf910c8493fc310eed346a78f6f466"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/time-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/time-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313366,
+      "sha256": "5390ae77ab0502a7f754656440c60f200f7d8b958be1d15473c9ce2f65bdcec2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/time-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/time-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 287692,
+      "sha256": "98026bf6417077c712076e0f946711304d3ecbef95aed607312c92ccc10397ec"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/timeout-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/timeout-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313377,
+      "sha256": "c5af9158e08488b8efd76ed91d02269c1386e1dbd6eaa109fc435af331d51129"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/timeout-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/timeout-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 290738,
+      "sha256": "7ce1cd66cc23392f15e7db9e757072fae6db5a0c7c89ab2a3556fc49d1fdcce4"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/tree-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/tree-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 320188,
+      "sha256": "9044adffae36f87b62d285b8426ade7b5b4e21dabbd47bfb15c8ff7cf973eed7"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/tree-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/tree-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 274837,
+      "sha256": "596cd7a49632a6dc0e52fb63ade44376d6f32ec5f0090d94cef15a0fdd38da9d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/typeset-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/typeset-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313369,
+      "sha256": "18373c0047de89f2381cfd747071f24d8237accb5a0e7fd41d4ec3a131531f37"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/typeset-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/typeset-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 277360,
+      "sha256": "23c9b0519eed5088cc0fdda6b1a4851f2d1558cd5a4e9e3e3db3c18dfcbc2313"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unalias-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unalias-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313395,
+      "sha256": "08eb1a64e80ddb54bcf70dddfefe93c08e538820dce6bd8147687d6b0d6a3fa9"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unalias-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unalias-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 286826,
+      "sha256": "293c5f412da941e443d7ce32a6a94343d66b9f374622ee12fef6dadf564ab822"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unexpand-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unexpand-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315182,
+      "sha256": "a38fa3ce8a039d927d2e1c6590487a548129fae4305e807c3844905cd84decba"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unexpand-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unexpand-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 269330,
+      "sha256": "51dcbf9f265d02775252d0afd6eae62c0c2339d418a427737b036453bcd515d0"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/wait-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/wait-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313634,
+      "sha256": "f3eeed37cecfa1e57a8ee91ae1754f655b4c74c3b71a481e605d51a8e6d0cd0f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/wait-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/wait-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 278455,
+      "sha256": "1705384adf03aae465bb2dada3afcbea2c1ad1515f664096560921a43043bf05"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/which-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/which-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313378,
+      "sha256": "9cfbbc9d1b616cb619059b936c6c0760672a49bb5f4b581dc7e515e6bcdec697"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/which-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/which-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 268238,
+      "sha256": "8fda19fe55fac74e98dc946ab7ef948c838eba45167a7a586405f3537c4fba17"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/whoami-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/whoami-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313370,
+      "sha256": "5aba994e2eccb44b959098be293d3626225d746770bb8c087319126c54149543"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/whoami-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/whoami-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 264068,
+      "sha256": "9fa67cb10f84a1bb7ff59d3008ed6daaf0e6980f7fc50bbc82d24e1a06c37271"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/xan-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/xan-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315254,
+      "sha256": "6005a1b87ca099123a2690dd9efaebe968c2240747c3a5a8982f234ff9c11c3a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/xan-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/xan-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 287473,
+      "sha256": "4c9bc5845209fbdd351498fb31bd88fa5a3b62029bc4f6200dd3c3c25656ad56"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/yq-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/yq-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315293,
+      "sha256": "6ec070cff9a9de73827f40a5a93b3d53a8b17570c34934734257402fa658ab3d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/yq-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/yq-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 285968,
+      "sha256": "e609185b53cdcad719aaaf3f87c7e67399ebd1e26e011f044f5147904eaddf2d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/js-exec-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/js-exec-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313369,
+      "sha256": "2883f2697da8abd533b7a6af0762962ded58574b1ec5a99bfb173f799ab73157"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/js-exec-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/js-exec-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 285243,
+      "sha256": "5d27e9056c896177f1d10a0a3dd5307b8f7ea7e5b8f1919ce4319278b63333e0"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/node-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/node-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313347,
+      "sha256": "65cb4fc09bc69ed6707c6b24e818097f68965496cb7c61c7c45a8810863d8caf"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/node-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/node-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 294261,
+      "sha256": "2ee3540392376038d798c79574a141ef0637e846ea5e1cd2ddfa409423a4c69d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/python-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/python-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313646,
+      "sha256": "ff2a26744d2d5d43298d3cd877ec06ce00b6a9fdc1c4c4b4ee523fb0287b755d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/python-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/python-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 286902,
+      "sha256": "9d7024342c9006e3614d18f42db84d2933951b8aa29e0516a193cc493e8e2d4a"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/python3-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/python3-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 312460,
+      "sha256": "4b13e485423b0daaf27a707c77ac3791a8f7cdbf6d1b009318e6393737389441"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/python3-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/python3-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 286904,
+      "sha256": "3664f0b4a1c8cd2feaf92d834843793df519c25277cd575fca8813c92c6c604d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dot-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dot-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 314985,
+      "sha256": "c3b978577e4903a43ce87acb3b0ce731bc886a2cc748ca1465b6281e18dc94ae"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dot-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dot-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 278962,
+      "sha256": "b41b4e9305b42f7b1677c70af542fef9e439c25d60a940f12a46a6e0808ae2d3"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/source-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/source-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315008,
+      "sha256": "6babf94991cc509e4c189f6d1aa4a037fa759c1394407f64f754de8571fdb3d9"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/source-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/source-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 278967,
+      "sha256": "4187820e7de09c9ed24a299137525e52a05055f5585707086ce0b7e15fafd53f"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/eval-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/eval-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 311937,
+      "sha256": "4a3221687abc2c8a04e50a3dcae0cec31edfc24ef2606b46339f891a681e4d31"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/eval-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/eval-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 277380,
+      "sha256": "fa069a506de1077eb7a78fe72cb0f9b135d9a8bb08842bde80ab133818df726e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/printf-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/printf-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 313165,
+      "sha256": "e335628b2a7b18deb077c6b2e9ae5e0fffef2643970201edc34e6fdaa2adf649"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/printf-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/printf-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 277431,
+      "sha256": "fd0f990a5df16e164ccd9d8c0db3aa4237cd08f367bebf4f591bc4ad8ac5c0d2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/terminal-byte-control.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/terminal-byte-control.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 314356,
+      "sha256": "3807569bf43f9569cc1988bc760283c3776ca6a8f7460c5ba9f4406c0c016b5e"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/terminal-byte-control.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/terminal-byte-control.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 293519,
+      "sha256": "34a5b61bcf88f499040573f3264e08b77b2ce47c75d9ef4af53067b7023fd1a2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/curl-positive.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/curl-positive.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 315036,
+      "sha256": "415bf154d69e1829ab6f113b7efb54a16b7dcc20dd7eebe47701c3ce635b5c37"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/curl-positive.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/curl-positive.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 270415,
+      "sha256": "f4ca7fbde7a163a2823baf1d1904ab08cf102d00de9d167bc127f83d1e3c1168"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/vfs-census-control.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/vfs-census-control.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 317275,
+      "sha256": "c4ec28e37fab115bd828fe13f3a2ae8a424e7643a8f037958b85e92344da35ad"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/vfs-census-control.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/vfs-census-control.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 296434,
+      "sha256": "b0e6e7a2c378e7ca619021c9a24faf3effd3bd9654f4e2a0909419576cc56d0d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compopt-direct-diagnostic.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compopt-direct-diagnostic.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 312808,
+      "sha256": "1409355eae7c89483f2194a1e1c628ad84ddedab75bcf07d7877521f2f18eb1d"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compopt-direct-diagnostic.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/compopt-direct-diagnostic.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 260228,
+      "sha256": "20516d342c2eea7b7822e10a7b084b90b87e8ce990dc903a2f9426faa1742311"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dirs-direct-diagnostic.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dirs-direct-diagnostic.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 312788,
+      "sha256": "68bb7e28ec4f01483a68ac0cf2fae5e18fbb04e810fd7738f75199270a16bd80"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dirs-direct-diagnostic.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/dirs-direct-diagnostic.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 256304,
+      "sha256": "8921681a394560619741b3a4d4e6e12c5e0de9aaabc93265175a1e49595d7823"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/popd-direct-diagnostic.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/popd-direct-diagnostic.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 312789,
+      "sha256": "39a6998f2db1f1cb46f0d703653098095dbaa82defd740c1a5996aa1638972a2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/popd-direct-diagnostic.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/popd-direct-diagnostic.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 254514,
+      "sha256": "23d527ddbbc68eafed96e692ac2882346772c8f3087c9f55391057aae8e83022"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unalias-direct-diagnostic.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unalias-direct-diagnostic.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 312808,
+      "sha256": "1008bae3212d3d22836dd6eec2f93321abca14591a0a783b28fb3b765d5b7652"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unalias-direct-diagnostic.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/unalias-direct-diagnostic.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 266006,
+      "sha256": "5534ef07a0a0a2c76336cf4f6b02d8666dd7fa8a5395a89c3aa841867e2f2835"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/wait-direct-diagnostic.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/wait-direct-diagnostic.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 312789,
+      "sha256": "6611d6509089168b2d832e73c2d5da92ec9a6a6d830fa55169a8c42611951bea"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/wait-direct-diagnostic.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/wait-direct-diagnostic.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 260213,
+      "sha256": "4cc8c07fa5adf87e06c5cb5edaa5662341487c9601ce9e9ff786f6cf72be947b"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/mapfile-direct-diagnostic.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/mapfile-direct-diagnostic.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 314289,
+      "sha256": "32cd226d2d5822d62ac301461e467f7d9b9545dccaecbd4d012dbfa93ffcd027"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/mapfile-direct-diagnostic.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/mapfile-direct-diagnostic.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 256751,
+      "sha256": "ca9944d843d2638c442c9430b7c31eefc7b4e94d0939b2bd23310c2a66766ebe"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/readarray-direct-diagnostic.ours.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/readarray-direct-diagnostic.ours.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 314302,
+      "sha256": "88e203c7bd3f60eee7c50a82e6025735f9c5cfa58d2c2068a2b5e88249f13435"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/readarray-direct-diagnostic.baseline.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/raw/readarray-direct-diagnostic.baseline.json",
+      "symlink": null,
+      "links": [],
+      "bytes": 261413,
+      "sha256": "1705ec0b964a75b8e93ee7c7047a183bc1ffc1552bc1db26fcc5e4b6e47c0048"
+    }
+  ]
+}

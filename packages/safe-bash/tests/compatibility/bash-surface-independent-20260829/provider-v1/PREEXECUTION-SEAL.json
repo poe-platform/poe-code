@@ -1,0 +1,871 @@
+{
+  "schema": "macos-provider-preexecution-v1",
+  "created": 1787978046850,
+  "preparationDeadline": 1787979964482,
+  "authority": "ROOT harmless Node fixture qualification only; no Bash/product/Worker/network connection",
+  "files": [
+    {
+      "path": "CONTROLS.json",
+      "bytes": 4443,
+      "sha256": "37dfd2093cd97aa922103661967fcb06b22230efca57b248ca861292665fc157"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 4956,
+      "sha256": "a830e56bad179a77bbe06edc4479d5a79845a1f248accf3625ec05180d091956"
+    },
+    {
+      "path": "profile.mjs",
+      "bytes": 4315,
+      "sha256": "ae8485e2d3f0447aab93bc6ab113db17c2ee7fad755a9b07d6b780777395ddd3"
+    },
+    {
+      "path": "fixture.mjs",
+      "bytes": 4118,
+      "sha256": "0c7c680d63eb1dbe5a12c59bf4169814bdaac22bec29919541fe37c5b8b26865"
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 9865,
+      "sha256": "4922f58acb0970307f923df3e1bf7a5bda4a66b050af0eb078a8d5e969596e8e"
+    },
+    {
+      "path": "provider.mjs",
+      "bytes": 3066,
+      "sha256": "bafc959c445f3dbc2a1662e1f55152e8930891d28d6d8c2f68abcafafb5ce2c4"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 11412,
+      "sha256": "fc53c71aaf23103d8cfbd1d4fc32fab947f7f6160449160a5a4650b28982f55f"
+    }
+  ],
+  "requests": [
+    {
+      "id": "F01",
+      "sha256": "ed28b34136b4db4dbde30a5aa3d6bf0ba95fbf8016dffed8906ba37c0104906e",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F01",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F01",
+          "owned",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F02",
+      "sha256": "27f9c917ef85b8f0e8969a4c42df92a6bb193270dc9d0d4a06144af6663d9d4e",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F02",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F02",
+          "error",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F02",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F02/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F02",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F02/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F02/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F02/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F03",
+      "sha256": "67edac4fe0f75756482945148a36df5587db427e49df6e893294af53b80b6d1f",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F03",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F03",
+          "outside-read",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F03",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F03/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F03",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F03/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F03/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F03/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F04",
+      "sha256": "29c56e23edfeaf58c16b0874fea6db7425bc42fb3d4b01f11a957417b5a3f22b",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F04",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F04",
+          "outside-write",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F04",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F04/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F04",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F04/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F04/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F04/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F05",
+      "sha256": "45d84df5009ac18cae6491e512c8102cc4228a4b10f358400c70bc7e7b0a2537",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F05",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F05",
+          "symlink-read",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F05",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F05/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F05",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F05/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F05/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F05/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F06",
+      "sha256": "b970f8f87e84d165af70d5422f972830827bfc392c9600a919155ab5f0e24977",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F06",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F06",
+          "exec-denied",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F06",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F06/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F06",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F06/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F06/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F06/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": true,
+        "extraChildReservation": 1,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F07",
+      "sha256": "16842428d481d2999f14831cee41e1139e85efd61f84163d92c2625d87ced2f7",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F07",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F07",
+          "term",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F07",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F07/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F07",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F07/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F07/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F07/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F08",
+      "sha256": "bbccc6274f30538aa1a8f5955ed0b471469849409ae3e1f66c63c8bc706b2782",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F08",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F08",
+          "kill",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F08",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F08/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F08",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F08/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F08/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F08/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F09",
+      "sha256": "aa855b12b8ec3cd8c874119bf48031a9b1061c1e30d524bc680954527ef96225",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F09",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F09",
+          "descendant",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F09",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F09/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F09",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F09/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F09/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F09/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": true,
+        "extraChildReservation": 1,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F10",
+      "sha256": "b3e9b7097a73e6e1edffc8ba28a4c027d9fc9fe64b6d08e913e87b440e2b9c8d",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F10",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F10",
+          "drain",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F10",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F10/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F10",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F10/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F10/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F10/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F11",
+      "sha256": "4b1692e2dd9cea16ca2a8cb50a4fd988afeea08bcbc504fcbf4315576df21977",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F11",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F11",
+          "abort-zero",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F11",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F11/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F11",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F11/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F11/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F11/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F12",
+      "sha256": "bc72074b8f326f44ea17f9b8c4a06c289451be5e66a1b6f11843440810f477d8",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F12",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F12",
+          "abort-false",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F12",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F12/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F12",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F12/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F12/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F12/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F13",
+      "sha256": "cb0f713211da97b934db6a038dcae371a7c5f19716c77d87fb2463c2b6d01546",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F13",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F13",
+          "abort-empty",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F13",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F13/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F13",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F13/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F13/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F13/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F14",
+      "sha256": "3885a5e1b01d28f21b784c51c8ad5653f77f811cd3f7bdeb0f9485fa899d0a6a",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F14",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F14",
+          "abort-default",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F14",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F14/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F14",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F14/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F14/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F14/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F15",
+      "sha256": "346f856ab6d98cfac79d01ae4de51b9dfd04bd34969c80a5abafc8601b67fa7d",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F15",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F15",
+          "stdin",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F15",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F15/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F15",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F15/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F15/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F15/empty-path"
+        },
+        "stdinBase64": "QQBC/wo=",
+        "forkAllowed": false,
+        "extraChildReservation": 0,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    },
+    {
+      "id": "F16",
+      "sha256": "1d5e48c186f31d3dde85271af086ee8bfdaecba89c9ddbfd85c01a5fea898da5",
+      "request": {
+        "role": "harmless-node-fixture",
+        "id": "F16",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs",
+          "F16",
+          "descendant-term",
+          "/private/tmp/safe-bash-surface-provider-author-v1/cases/F16",
+          "/private/tmp/safe-bash-surface-provider-author-v1/canary"
+        ],
+        "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F16/work",
+        "filesystemRoot": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F16",
+        "environment": {
+          "LC_ALL": "C",
+          "LANG": "C",
+          "TZ": "UTC",
+          "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F16/home",
+          "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F16/tmp",
+          "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F16/empty-path"
+        },
+        "stdinBase64": "",
+        "forkAllowed": true,
+        "extraChildReservation": 1,
+        "workerStartsAllowed": 0,
+        "networkAllowed": false,
+        "bounds": {
+          "caseMs": 5000,
+          "termMs": 2000,
+          "killMs": 1000,
+          "perStreamBytes": 262144,
+          "eventBytes": 65536,
+          "fixtureChildReservations": 19,
+          "maxFixtureChildren": 24,
+          "peakAllProcessesIncludingOuter": 4,
+          "cohortMs": 150000,
+          "captureBytes": 16777216,
+          "workBytes": 67108864
+        }
+      }
+    }
+  ],
+  "profiles": [
+    {
+      "id": "F01",
+      "sha256": "f0c96a5833d751c7b1ca194094390d75f91fe7c2286920c8eb3c4163afd2c58d",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F01\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F01\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F01\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F02",
+      "sha256": "f6957be823302124cd9a7aa58a7c676ec6a9dc116cd48461edf6317ab5e300a9",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F02\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F02\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F02\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F03",
+      "sha256": "4aa07496eb14ff0a8cbe0180e542450b2506da2fa457b5c72bfa5e6854aa3783",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F03\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F03\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F03\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F04",
+      "sha256": "2f15e70efb7415f2210cac82646d34cd7ea257d3c437ae7a4a5d63c55584da7c",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F04\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F04\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F04\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F05",
+      "sha256": "7924dd10a86b45f26a1022e72cc589b25116cd6026f500255585709b7e5b655b",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F05\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F05\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F05\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F06",
+      "sha256": "054c33e6dc9f1bf623779bffbb7dfaf307d7ba0da1cf7b809d3d6002b9ac0b2d",
+      "bytes": 5766,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F06\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F06\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F06\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n(allow process-fork)\n"
+    },
+    {
+      "id": "F07",
+      "sha256": "f23fcddec12092503b6a589f103192c53db52b66fa49a4be3dc2d1fd72e2c5aa",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F07\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F07\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F07\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F08",
+      "sha256": "a5abd5b039d699d5672d2fc730bd1d3585a2f2c9ec04def653f94bcd918d281b",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F08\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F08\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F08\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F09",
+      "sha256": "02aa872aea2609ca6f8a00461b3dd7c40ef4c455f94826363b41cffa0634015d",
+      "bytes": 5766,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F09\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F09\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F09\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n(allow process-fork)\n"
+    },
+    {
+      "id": "F10",
+      "sha256": "cb80b25669e3b9c2ff2d1e37b1092d732f5cf4cf5ff8c8eb9a50e440ed2f84e8",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F10\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F10\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F10\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F11",
+      "sha256": "d9ac7e3f3be216475dd6a8a660a734d3973cfa6f1ec78f6e2893ce938bb0d8f7",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F11\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F11\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F11\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F12",
+      "sha256": "d6b613a500c093748fab218792c133f6ab3ba2c64f64954d7f2ea53afd130d3b",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F12\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F12\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F12\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F13",
+      "sha256": "93f73bb32804fa460682312062c0b97627afc5bafd86f4e8ffa5228ab535f92e",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F13\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F13\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F13\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F14",
+      "sha256": "3e283baef13a2dc143c882eab43e58b9f1acd986529bd1f02d05f7ca27758155",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F14\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F14\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F14\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F15",
+      "sha256": "2d894a43ab869574398aeba1df3d90851500d4d89940d8bdf4d1f168f849ae83",
+      "bytes": 5745,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F15\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F15\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F15\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n"
+    },
+    {
+      "id": "F16",
+      "sha256": "5870497cce035a5d8a2da8e797f130b55b57b307b0aa34e6ff17e21e72410134",
+      "bytes": 5766,
+      "text": "(version 1)\n(deny default)\n(deny network*)\n(deny process-fork)\n(deny file-write*)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\"))\n(allow file-read-data (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F16\"))\n(allow file-read-metadata (literal \"/\") (literal \"/System\") (literal \"/System/Library\") (literal \"/System/Library/Frameworks\") (literal \"/System/Library/Frameworks/CoreFoundation.framework\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A\") (literal \"/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation\") (literal \"/System/Library/Frameworks/Security.framework\") (literal \"/System/Library/Frameworks/Security.framework/Versions\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A\") (literal \"/System/Library/Frameworks/Security.framework/Versions/A/Security\") (literal \"/System/Volumes\") (literal \"/System/Volumes/Preboot\") (literal \"/System/Volumes/Preboot/Cryptexes\") (literal \"/System/Volumes/Preboot/Cryptexes/OS\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11\") (literal \"/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit\") (literal \"/Users\") (literal \"/Users/kjopek\") (literal \"/Users/kjopek/.nvm\") (literal \"/Users/kjopek/.nvm/versions\") (literal \"/Users/kjopek/.nvm/versions/node\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin\") (literal \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\") (literal \"/private\") (literal \"/private/tmp\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/cases\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage\") (literal \"/private/tmp/safe-bash-surface-provider-author-v1/stage/fixture.mjs\") (literal \"/usr\") (literal \"/usr/lib\") (literal \"/usr/lib/dyld\") (literal \"/usr/lib/libSystem.B.dylib\") (literal \"/usr/lib/libc++.1.dylib\") (literal \"/usr/lib/libobjc.A.dylib\") (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F16\"))\n(allow file-write* (subpath \"/private/tmp/safe-bash-surface-provider-author-v1/cases/F16\"))\n(allow sysctl-read (sysctl-name \"hw.ncpu\") (sysctl-name \"hw.activecpu\") (sysctl-name \"hw.physicalcpu\") (sysctl-name \"hw.logicalcpu\") (sysctl-name \"hw.memsize\") (sysctl-name \"hw.pagesize\") (sysctl-name \"hw.optional.arm64\") (sysctl-name \"kern.osrelease\") (sysctl-name \"kern.osversion\"))\n(allow process-fork)\n"
+    }
+  ],
+  "cohort": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F12",
+    "F13",
+    "F14",
+    "F15",
+    "F16"
+  ],
+  "fixtureProcessReservations": 19,
+  "root": "/private/tmp/safe-bash-surface-provider-author-v1",
+  "observerQualification": "Direct ChildProcess plus source-trusted fixture child events; NOT lossless universal descendants",
+  "dependencyQualification": "Exact allowed path and current cache metadata binding; NO complete loaded-image/hash qualification; no broad dependency read roots.",
+  "nativeExecution": false,
+  "networkExecution": false
+}

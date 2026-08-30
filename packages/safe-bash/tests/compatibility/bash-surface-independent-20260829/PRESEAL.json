@@ -1,0 +1,157 @@
+{
+  "schema": "bash-surface-preparation-seal-v1",
+  "status": "SOURCE_DATA_PREPARED_NATIVE_CONTAINMENT_BLOCKED",
+  "createdEpochMs": 1787976890824,
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "originalCaseCount": 40,
+  "originalCaseSha256": "45ab3659b3769d33dc0a50fd9547ba96949540048aa7240385a674d85131ea29",
+  "nativeQualificationObservations": 9,
+  "executions": {
+    "native": 0,
+    "product": 0,
+    "worker": 0,
+    "compiler": 0,
+    "helperControlsV1": 22,
+    "helperControlsV2": 22
+  },
+  "controlQualification": "Same22 DATA controls run twice across helper source versions; not44 independent tests and not product proof.",
+  "files": [
+    {
+      "path": "BINDINGS.json",
+      "bytes": 2372,
+      "sha256": "cbd69ba20ec774b1b627238b30b77fa8d9cc2d9a16b1f0a32f4196c0193fe801"
+    },
+    {
+      "path": "CASE-REVIEW.json",
+      "bytes": 27618,
+      "sha256": "d6b1bf715670c53fefeb54332e10c8619ca75f3eb5302b747f2121ece5aff94f"
+    },
+    {
+      "path": "CASES.original.json",
+      "bytes": 5682,
+      "sha256": "45ab3659b3769d33dc0a50fd9547ba96949540048aa7240385a674d85131ea29"
+    },
+    {
+      "path": "HELPER-CONTROLS.presealed.json",
+      "bytes": 2846,
+      "sha256": "e16b48c03b8d004cf9c912f7f39ce0593781b3d09053c9e4e9871a3dcf07b7fc"
+    },
+    {
+      "path": "HELPER-PREEXECUTION-SEAL-v2.json",
+      "bytes": 2172,
+      "sha256": "50299a3d6e72747a9860555f486c133ce52343db5e423e2b2b03993906cf3704"
+    },
+    {
+      "path": "HELPER-PREEXECUTION-SEAL.json",
+      "bytes": 2007,
+      "sha256": "68cf9a72204dceb900a96c08b64046fc3ada14d40e104913c04e32ed2b8dc5ed"
+    },
+    {
+      "path": "HELPER-RESULTS-v1.json",
+      "bytes": 3762,
+      "sha256": "4b06c3040e91ec43116dbccfa151e96ae1eb85c7ae383a47729b4b89ba5ba9e5"
+    },
+    {
+      "path": "HELPER-RESULTS-v2.json",
+      "bytes": 3615,
+      "sha256": "1f61330ca1578d1fa05ffe9fcd9eb2c818879f7692915cbc8bb9331dcf81b79a"
+    },
+    {
+      "path": "HELPER-SOURCE-v1.json.gz.base64",
+      "bytes": 121277,
+      "sha256": "1157bab2e7d3814b46b5a212e25c2125927197094bc12124decbe5545feac1ee"
+    },
+    {
+      "path": "PACKAGE-MEMBERS.json",
+      "bytes": 166252,
+      "sha256": "0da5212776e31bde3ad18675e807cf7e11697d81c205bd8e7d2110e3a414e118"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 2812,
+      "sha256": "3000d3954c7c0a069f66588778b318ab88b7d37985e5f56fcef9f40ac975aed3"
+    },
+    {
+      "path": "PROVIDER-REQUIREMENTS.md",
+      "bytes": 3806,
+      "sha256": "94e495460a9dfd83f7adc65f416de74d8cfd55009fe3302a8c6749b2a71f30b9"
+    },
+    {
+      "path": "QUALIFICATION-CASES.json",
+      "bytes": 2851,
+      "sha256": "f3883f5b84c7980762f773a91d41ee0db6cba2729fee5df288d90524a80a51c0"
+    },
+    {
+      "path": "QUALIFICATION-GO.template.json",
+      "bytes": 971,
+      "sha256": "a7143dcc07e6ada0bf8bb2bd1ea517eb89fd81a5e61c081f3dc083c0b9e38e0f"
+    },
+    {
+      "path": "QUALIFICATION-PLAN.json",
+      "bytes": 13314,
+      "sha256": "1dba1691f4944194ee3b5657ebd289d3c3e9e5b68b373a64d6f2d842e19b685f"
+    },
+    {
+      "path": "README.md",
+      "bytes": 11443,
+      "sha256": "5ddcb2fc02dfafc5d0be52faacbd5ee5ebff1450014c2d500bf13d15960f79ee"
+    },
+    {
+      "path": "SEMANTICS-GO.template.json",
+      "bytes": 955,
+      "sha256": "86ac831de1be9bd6fa9605b3b0afca0e1ea3d59ac6dfa2faae07c4eeb7649b41"
+    },
+    {
+      "path": "SEMANTICS-PLAN.json",
+      "bytes": 56246,
+      "sha256": "03b4706e626c99e69f0b5e591a1def75570004f0b85990a07a52df65f833faac"
+    },
+    {
+      "path": "harness.mjs",
+      "bytes": 8267,
+      "sha256": "ff68dfb780744beefee1ab129313879111dd1a7a6c3a1d458f5070e9fc9ec65c"
+    },
+    {
+      "path": "helper-controls.mjs",
+      "bytes": 5759,
+      "sha256": "03792973a5e5ba6224ef348e0febd21fb583cea457b7ebbcf6b63d3f839a3acb"
+    },
+    {
+      "path": "prep-capture.mjs",
+      "bytes": 4634,
+      "sha256": "589fa72b302e7cd90cb93251721b520ae9db521af513fbef1857c0d908222c3a"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 9040,
+      "sha256": "6913903a37425a4aafdd283173e7b94b0bfcff7ea1310187f91931421dbde5eb"
+    },
+    {
+      "path": "virtual-case.mjs",
+      "bytes": 4196,
+      "sha256": "b0d7fd7a467b3dd01c8fcc813b551f69fb4a61805e533159cc20a7f93167d9cf"
+    },
+    {
+      "path": "virtual-guard.mjs",
+      "bytes": 2345,
+      "sha256": "4a7dc8154f746d33d3b06b3f69d869a5d4cb6948bd5e7be781bf3c6c124b332e"
+    }
+  ],
+  "excludes": [
+    "PRESEAL.json self-reference",
+    "PREPARATION-ACCOUNTING.json",
+    "PREPARATION-CAPTURE.json.gz.base64",
+    "PUBLICATION.json",
+    "HANDOFF.md"
+  ],
+  "readinessBarriers": [
+    "Qualified containment provider and full source/tool/dependency closure absent; run.mjs refuses missing provider.",
+    "Local /bin/bash version UNKNOWN. No actual version or fence observation.",
+    "Actual GNU Bash5.3 patch015 binary qualification absent; semantics executable remains null.",
+    "Source-only virtual capability guard requires independent qualification.",
+    "Fresh distinct root grants required; no old closed reservation reused."
+  ],
+  "sourceBindingQualification": "Original cases and full950 archive inventory authenticated as DATA. Source manifest is bound; full derived tree reconstruction/product audit not repeated.",
+  "authority": "Preparation only. No permission to run either future phase."
+}

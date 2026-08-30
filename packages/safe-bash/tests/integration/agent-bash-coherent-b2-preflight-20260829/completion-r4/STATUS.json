@@ -1,0 +1,22 @@
+{
+  "status": "IMPLEMENTED_PENDING_STATIC_QUALIFICATION_AND_CONTROLS_NOT_READY",
+  "retained": 672,
+  "layouts": 3,
+  "perLayout": [48, 50, 67, 35, 12, 12],
+  "roles": 41,
+  "typeChecks": 6,
+  "negativeDiagnosticIdentities": 24,
+  "loadedMutants": 7,
+  "restores": 7,
+  "bindingRefusals": 2,
+  "runtime": "UNRUN",
+  "oldPartialCommit": "881ed8989062e4aaff749d35400f1e72adf5f0db",
+  "legacyEOFException": {
+    "file": "runtime/harness/conditional.mjs",
+    "bytes": 14524,
+    "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+    "unchanged": true,
+    "priorFullDiffCheckExit": 2
+  },
+  "qualification": "r3 STOP and uncommitted identity inventory preserved; source309/dist1012/package authentication historical DATA; no blanket rebuild or replay; new authored whitespace checked separately"
+}

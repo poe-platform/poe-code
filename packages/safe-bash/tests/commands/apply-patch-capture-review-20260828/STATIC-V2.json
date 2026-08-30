@@ -1,0 +1,17 @@
+{
+  "schema": "c18-independent-static-v2",
+  "classification": "STATIC_METADATA_NOT_CONTROL_EXECUTION",
+  "correctedRepository": "/Users/kjopek/Workspace/safe-bash",
+  "matchedBindings": 109,
+  "inputManifestSha256": "893f515b6164f79ac2f89b3e27b15bb8e38ba62600ab94bfeb3de2657b6fe81b",
+  "sourceDeltaClasses": [
+    "repository depth four to three",
+    "two preseal filename substitutions",
+    "unique output namespace"
+  ],
+  "sourceBodiesOtherwiseIdentical": true,
+  "controlsExecuted": 0,
+  "children": 0,
+  "productActual": 0,
+  "symlinkOperations": 0
+}

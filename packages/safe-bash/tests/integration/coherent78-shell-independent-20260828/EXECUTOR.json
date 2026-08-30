@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "presealCommit": "083d939c3583a92a81db263d266c91b3e0756f47",
+  "phase": "after narrow source/API inspection, before first product execution",
+  "sourceSeen": "Selected shell.ts first115 lines, runtime.ts declaration/name grep, public shell/network/timeout/contracts APIs, jq length branch and surrounding grep. No product execution. Author probe exact pinned dependency only; own loader/orchestrator/holdouts/types.",
+  "mutantNeedle": "        let length = 0;\n        for (const _ of input) length++;\n        yield length;",
+  "mutantReplacement": "        yield input.length;",
+  "syntaxChecks": "node --input-type=module --check on all four .mjs.data payloads; no subject loaded",
+  "launch": "node --input-type=module < tests/integration/coherent78-shell-independent-20260828/run.mjs.data",
+  "artifacts": {
+    "PRESEAL.json": "472dc457e162015c0105d2afbbf1a5db79e1bc17893b7ddb5d61f24f399f0cb5",
+    "HOLDOUTS.json": "96cfee8f645709cba08da4f48aa3c4ef02cbf8354c7b213ab39b80b23d63a67a",
+    "TYPES.json": "a05046092d81e1fb2747aee4b8e770681169300e46c0996af945cf52388efc33",
+    "loader.mjs.data": "d0969da7329f25d3bd1442661bc62dc2ec77540c143ec7126a6d43736803c66e",
+    "guard.mjs.data": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+    "holdout.mjs.data": "e4f358d951ba7ad8dba7f7ec10e14c48fd0434a4c2eb916c7ed5d44affde5bcf",
+    "run.mjs.data": "8a277747a65b16f8350b3b131b8f7ed3054b58ef04437b8d101c9b82dad41134"
+  }
+}

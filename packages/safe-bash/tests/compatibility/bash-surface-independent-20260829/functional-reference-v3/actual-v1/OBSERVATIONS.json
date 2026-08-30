@@ -1,0 +1,2232 @@
+{
+  "schema": "functional-bash-v3-observations-v1",
+  "classification": "ACTUAL_NATIVE_OBSERVATIONS_NOT_COMPATIBILITY_PASSES",
+  "date": "2026-08-29",
+  "sourceCommit": "4eea354169492b4c47d373d504e5918e1c4f3830",
+  "presealSha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533",
+  "bindingCommit": "918cd1d414508364b676f8bd2e1a78c34ee9e060",
+  "slotReview": {
+    "commit": "f4e08835f26ad58f354e93329c4828c64af49484",
+    "sha256": "946ee078d89d05115ff5470ce7d04cb83e5a0068dbb51af1e3379ee5980aa48c"
+  },
+  "commandSha256": "b514681b0c165c2b029992c08b89dcf3ac793dc062f5ad4d6e7b5eb24c0bd1f6",
+  "native": {
+    "path": "/bin/bash",
+    "version": "3.2.57 inherited authenticated version evidence; not reprobed",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "gnu53": false,
+    "customSeatbelt": false
+  },
+  "selected": 37,
+  "completedObservations": 37,
+  "withheld": [
+    "B26",
+    "B27",
+    "B28"
+  ],
+  "statuses": {
+    "0": 33,
+    "1": 1,
+    "2": 2,
+    "7": 1
+  },
+  "rawStdoutBytes": 580,
+  "rawStderrBytes": 679,
+  "normalization": "NONE",
+  "virtualProductExecutions": 0,
+  "owner": {
+    "pid": 78594,
+    "started": 1787992073370,
+    "toolExitCode": 0,
+    "regularOuterCaptures": [
+      {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      }
+    ],
+    "rawLedger": {
+      "max": 80,
+      "peak": 6,
+      "starts": 38,
+      "active": 1,
+      "peakCharged": 2,
+      "confirmedStarts": 38,
+      "activeConfirmed": 1,
+      "peakConfirmed": 2,
+      "confirmedRoles": {
+        "owner": 1,
+        "case": 37
+      },
+      "roles": {
+        "owner": 1,
+        "case": 37
+      },
+      "sourceForkReservations": 13
+    },
+    "qualification": "Raw ledger retains active owner1 because serialized before owner exit; tool subsequently reports exit0. No extra owner-group census."
+  },
+  "directChildren": {
+    "count": 37,
+    "uniquePids": [
+      78598,
+      78601,
+      78605,
+      78611,
+      78615,
+      78664,
+      78671,
+      78675,
+      78701,
+      78705,
+      78711,
+      78716,
+      78720,
+      78727,
+      78735,
+      78764,
+      78773,
+      78789,
+      78794,
+      78819,
+      78832,
+      78869,
+      78877,
+      78888,
+      78896,
+      78912,
+      78929,
+      78942,
+      78954,
+      78962,
+      78972,
+      78987,
+      79008,
+      79025,
+      79045,
+      79076,
+      79097
+    ],
+    "allExitClose": true,
+    "allGroupsObservedAbsent": true,
+    "signals": 0,
+    "sourceForkReservations": 13,
+    "sourceForkActualCensus": "UNOBSERVED"
+  },
+  "cases": [
+    {
+      "id": "B01",
+      "pid": 78598,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 28,
+        "sha256": "fab3d28d553b9cd0a511e866e9d5caedf8816d7d3a0f1e644330346faae80554",
+        "base64": "PHByZWEgYnBvc3Q+Cjw+CjxsaXRlcmFsICo+Cg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992073480,
+      "finished": 1787992073514,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B02",
+      "pid": 78601,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 17,
+        "sha256": "0ad6d5a6a2d8fdf23bd9fc162e9612c4497b212c5e21ec82cc8e920bb6073d1f",
+        "base64": "PGJlZm9yZT4KPGFmdGVyPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992073575,
+      "finished": 1787992073606,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B03",
+      "pid": 78605,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 20,
+        "sha256": "3769076c74d53abd320291a64011688b65e833a3da6e1aebc60ad9588c36a1db",
+        "base64": "PHByZWEgYj4KPD4KPGNwb3N0Pgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992073665,
+      "finished": 1787992073702,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B04",
+      "pid": 78611,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 8,
+        "sha256": "3bfbfea854b47f8cd6efdef123ce8d97ebc8676848c2721d58814a741e31e6b0",
+        "base64": "PGE+CjxiPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992073820,
+      "finished": 1787992073852,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B05",
+      "pid": 78615,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 11,
+        "sha256": "10aa77bb9db6646abc7efcf0d7cd497656fe113dd42758c1fdc5f384c1e7d3fc",
+        "base64": "PGE+Cjw+CjxiPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992073927,
+      "finished": 1787992073970,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B06",
+      "pid": 78664,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 9,
+        "sha256": "d086755ed36b728e7e5640b84eeba6cb618f045b5834e72d9edfd810ed7a4985",
+        "base64": "PGEgYj4KPD4K"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992074089,
+      "finished": 1787992074136,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B07",
+      "pid": 78671,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 35,
+        "sha256": "bd2f46cf54e1969d96706fab567a6bf390c5d82f990b08e8e9d9acaa2c981e0d",
+        "base64": "PGRlZmF1bHQ+Cjw+CjxkZWZhdWx0Pgo8c2V0Pgo8c2V0Pgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992074275,
+      "finished": 1787992074333,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B08",
+      "pid": 78675,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 41,
+        "sha256": "04b705c8537ff5015b807ab570bd8e05f3e467d89ea91e462541a1f065a235bd",
+        "base64": "ZmlsZS50YXIuZ3oKZGlyL2ZpbGUudGFyCmRpci9maWxlX3Rhcl9nego="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992074485,
+      "finished": 1787992074545,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B09",
+      "pid": 78701,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 4,
+        "sha256": "fdca65e41ee4fb37ef9a8bd1ea74ff80175621c294e4c134071dcaef452cfe76",
+        "base64": "PGE+Cg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992074677,
+      "finished": 1787992074735,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B10",
+      "pid": 78705,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 35,
+        "sha256": "b942a3a982e71ae3123a18147a90013d7460dafce72d9178ca6901c7deedf75f",
+        "base64": "PGEudHh0Pgo8Yi50eHQ+CjwqLnR4dD4KPGFic2VudC0qPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992074909,
+      "finished": 1787992074975,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B11",
+      "pid": 78711,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 76,
+        "sha256": "c4ebc29c6c889d8137b43c864f925819f22b35e46056ebe34dd635a40b781511",
+        "base64": "PC5oaWRkZW4+CjxhLnR4dD4KPGIudHh0Pgo8c291cmNlLWZpeHR1cmU+CjxhLnR4dD4KPGIudHh0Pgo8c291cmNlLWZpeHR1cmU+Cg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992075155,
+      "finished": 1787992075221,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B12",
+      "pid": 78716,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 17,
+        "sha256": "0ad6d5a6a2d8fdf23bd9fc162e9612c4497b212c5e21ec82cc8e920bb6073d1f",
+        "base64": "PGJlZm9yZT4KPGFmdGVyPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992075376,
+      "finished": 1787992075436,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B13",
+      "pid": 78720,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 16,
+        "sha256": "ac23f64a9e2afbd9d61cf016371318b2589af225a991b82c7129886e0429cb20",
+        "base64": "PGEudHh0Pgo8Yi50eHQ+Cg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992075621,
+      "finished": 1787992075685,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B14",
+      "pid": 78727,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 23,
+        "sha256": "f3d3e31712259dfb5cad3196b8525c0228ab29727ebeb89ee4e927fe2cfd93f2",
+        "base64": "cHJlZml4Cm91dGVyCnN1YgpvdXRlcgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992075849,
+      "finished": 1787992075922,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B15",
+      "pid": 78735,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 12,
+        "sha256": "f5ad021b8cba8c7abeda52a4f9bbea935647cd19997adddd4154a2fc54faadc4",
+        "base64": "aW5uZXIKYWZ0ZXIK"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992076135,
+      "finished": 1787992076204,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B16",
+      "pid": 78764,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 24,
+        "sha256": "1f4083a69244f138525f9b9a168e410056c3b524fa8556ec3f53a18edc1ffb4f",
+        "base64": "PHR3byB3b3Jkcz4KPD4KPHRhaWw+CjMK"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992076437,
+      "finished": 1787992076524,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B17",
+      "pid": 78773,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 4,
+        "sha256": "27dd8ed44a83ff94d557f9fd0412ed5a8cbca69ea04922d88c01184a07300a5a",
+        "base64": "dHdvCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992076765,
+      "finished": 1787992076860,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B18",
+      "pid": 78789,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 49,
+        "sha256": "117334f8378b688723329aaa9b9a13cf99335e2e4caea001b2e251caef48c6b5",
+        "base64": "ZGVjbGFyZSAtYSBhPScoWzJdPSJ0d28iKScKZGVjbGFyZSAtcnggdj0idmFsdWUiCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992077121,
+      "finished": 1787992077213,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B19",
+      "pid": 78794,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 28,
+        "sha256": "3f28499edbdb4ef47f5b772f9898abe677f103cfe233b13fd893e4d9acf79959",
+        "base64": "ZGVjbGFyZSAtYSBhPScoWzBdPSJ6ZXJvIiknCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992077455,
+      "finished": 1787992077549,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B20",
+      "pid": 78819,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 3,
+        "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+        "base64": "PD4K"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 41,
+        "sha256": "751e41202700cbb2e5bd35f4c717c363efbb03ce0e09db876454e2154bf6882c",
+        "base64": "c3VyZmFjZS1jYXNlOiBtYXBmaWxlOiBjb21tYW5kIG5vdCBmb3VuZAo="
+      },
+      "started": 1787992077832,
+      "finished": 1787992077939,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B21",
+      "pid": 78832,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 13,
+        "sha256": "e0085f7808dc54fed4b9ba87f0cdbf92a476adf0441c242cc865dae44e2ddffb",
+        "base64": "PGtlZXA+CjxvbGQ+Cg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 43,
+        "sha256": "f4aabe5a9d213358b9f6120e840cac6667382aa807223c246cb70c77024088d2",
+        "base64": "c3VyZmFjZS1jYXNlOiByZWFkYXJyYXk6IGNvbW1hbmQgbm90IGZvdW5kCg=="
+      },
+      "started": 1787992078205,
+      "finished": 1787992078312,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B22",
+      "pid": 78869,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 11,
+        "sha256": "10aa77bb9db6646abc7efcf0d7cd497656fe113dd42758c1fdc5f384c1e7d3fc",
+        "base64": "PGE+Cjw+CjxiPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992078620,
+      "finished": 1787992078728,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B23",
+      "pid": 78877,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 2,
+        "sha256": "04d70d9d0e8ec1819725a2af68ac7db502686550aa0a90657c0ea9e8c749dd8e",
+        "base64": "RXw="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 150,
+        "sha256": "a97cf235d711e7fec1c247e4ead88046d62afe1da7be60ebdebca3f24704e16c",
+        "base64": "c3VyZmFjZS1jYXNlOiBsaW5lIDA6IHJlYWQ6IC1OOiBpbnZhbGlkIG9wdGlvbgpyZWFkOiB1c2FnZTogcmVhZCBbLWVyc10gWy11IGZkXSBbLXQgdGltZW91dF0gWy1wIHByb21wdF0gWy1hIGFycmF5XSBbLW4gbmNoYXJzXSBbLWQgZGVsaW1dIFtuYW1lIC4uLl0K"
+      },
+      "started": 1787992079006,
+      "finished": 1787992079120,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [
+        {
+          "path": "work/out",
+          "type": "file",
+          "mode": 420,
+          "base64": "Tw=="
+        }
+      ],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B24",
+      "pid": 78888,
+      "status": 2,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 190,
+        "sha256": "a14536b734334a2452cd7a8b22ef20e697e1e4137bd7261ed9750fe56ec828a2",
+        "base64": "c3VyZmFjZS1jYXNlOiAtYzogbGluZSAwOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGAmJwpzdXJmYWNlLWNhc2U6IC1jOiBsaW5lIDA6IGB7IHByaW50ZiAnT1xuJzsgcHJpbnRmICdFXG4nID4mMjsgfSB8JiB3aGlsZSBJRlM9IHJlYWQgLXIgbGluZTsgZG8gcHJpbnRmICc8JXM+XG4nICIkbGluZSI7IGRvbmUnCg=="
+      },
+      "started": 1787992079444,
+      "finished": 1787992079542,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B25",
+      "pid": 78896,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 5,
+        "sha256": "d117fa006ba9208500b2930ce69cbde436c647afa917cb7396a9bc9111a46dd2",
+        "base64": "ZG9uZQo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992079834,
+      "finished": 1787992079951,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [
+        {
+          "path": "work/out",
+          "type": "file",
+          "mode": 420,
+          "base64": "T0U="
+        }
+      ],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B29",
+      "pid": 78912,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 4,
+        "sha256": "82c1315e6c757f33c4a77ca58b2a184f5a88614470c05ec77f3d28918db6b8ae",
+        "base64": "MAoxCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992080294,
+      "finished": 1787992080415,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B30",
+      "pid": 78929,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 8,
+        "sha256": "43195836a7f07e0351e1d1cee72aca97c80af4916a76cd84c340e92ef2b8fe00",
+        "base64": "PDE+CjwwPgo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992080750,
+      "finished": 1787992080893,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B31",
+      "pid": 78942,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 9,
+        "sha256": "faf786fc9987d3f8f6e21cea4f8ec87e52d36d3206c6d14c3b5d18298375a1db",
+        "base64": "b3IKYWZ0ZXIK"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992081237,
+      "finished": 1787992081369,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B32",
+      "pid": 78954,
+      "status": 1,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 8,
+        "sha256": "01666ec060466c14b9fa06c613fbac449163f2a2017558fe16526209ab78c6b0",
+        "base64": "ZGVmYXVsdAo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 40,
+        "sha256": "a52eec196e947864ec3bf60821f99b7cb36e22c4e521e2233fbf622743a9297d",
+        "base64": "c3VyZmFjZS1jYXNlOiBtaXNzaW5nOiB1bmJvdW5kIHZhcmlhYmxlCg=="
+      },
+      "started": 1787992081719,
+      "finished": 1787992081855,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B33",
+      "pid": 78962,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 4,
+        "sha256": "5040625b1fb6fa4af07226683f6e6003b29e5e70b16f8cfb24be7a752393f0ee",
+        "base64": "eWVzCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992082298,
+      "finished": 1787992082444,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B34",
+      "pid": 78972,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 6,
+        "sha256": "b78a1987bcbdc0903ba6ba29ee3e1f4e7cc1ca868a60889beb141e26e06cb005",
+        "base64": "MAoxCjIK"
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992082833,
+      "finished": 1787992083009,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B35",
+      "pid": 78987,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 8,
+        "sha256": "c8d107905bbbf7f29936382d88eddcacfcd85bdd16898913c20537f0ae14c7b3",
+        "base64": "Zjp2YWx1ZQo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992083408,
+      "finished": 1787992083554,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B36",
+      "pid": 79008,
+      "status": 2,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 151,
+        "sha256": "bc52ccdd26f5e4d73c669ca517079355d4e64f0904bf4221b24f19dbf2a2c1d4",
+        "base64": "c3VyZmFjZS1jYXNlOiAtYzogbGluZSAwOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGAmJwpzdXJmYWNlLWNhc2U6IC1jOiBsaW5lIDA6IGBjYXNlIHggaW4geCkgcHJpbnRmIEEgOyYgeSkgcHJpbnRmIEIgOzsgZXNhYzsgcHJpbnRmICdcbicnCg=="
+      },
+      "started": 1787992084047,
+      "finished": 1787992084252,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B37",
+      "pid": 79025,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 16,
+        "sha256": "fea1dfa7ff246f31b8cf05601fc648e5ff9090301b75049d4f13a481dc18e73c",
+        "base64": "c291cmNlOmFyZwpldmFsCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992084831,
+      "finished": 1787992084993,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B38",
+      "pid": 79045,
+      "status": 7,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 11,
+        "sha256": "46c572d27662dab3a278384f6955d004a8496cf0b0193c4b38a767f3ec358b9b",
+        "base64": "Ym9keWNsZWFudXA="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "started": 1787992085483,
+      "finished": 1787992085639,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B39",
+      "pid": 79076,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 11,
+        "sha256": "bf2e8a0bf23d5e08257f2cb0f19689c4475cc36c56b573f4f062dac7a80c64eb",
+        "base64": "c3RhdHVzOjEyNwo="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 61,
+        "sha256": "eee4fa6a7a6ef282ed1961e83ae3839b3c97e55c682485b6f94363c51833dab2",
+        "base64": "c3VyZmFjZS1jYXNlOiBfX3N1cmZhY2VfbWlzc2luZ19jb21tYW5kX186IGNvbW1hbmQgbm90IGZvdW5kCg=="
+      },
+      "started": 1787992086094,
+      "finished": 1787992086264,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    },
+    {
+      "id": "B40",
+      "pid": 79097,
+      "status": 0,
+      "stdout": {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 4,
+        "sha256": "a2e9768fee6bf5a0338f228bb28865c7eedd0345e5f104066c475442a1e31faa",
+        "base64": "QQBCCg=="
+      },
+      "stderr": {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 3,
+        "sha256": "edd3a863872a04239eb29ad4bc12fc892b3d4ae57cc7e786a3697816f8e141c2",
+        "base64": "w6kK"
+      },
+      "started": 1787992086708,
+      "finished": 1787992086883,
+      "retired": true,
+      "group": {
+        "state": "absent",
+        "error": {
+          "thrownType": "object",
+          "fields": {
+            "name": {
+              "presence": "value",
+              "value": "Error"
+            },
+            "code": {
+              "presence": "value",
+              "value": "ESRCH"
+            },
+            "errno": {
+              "presence": "value",
+              "value": -3
+            },
+            "syscall": {
+              "presence": "value",
+              "value": "kill"
+            }
+          }
+        }
+      },
+      "signals": [],
+      "addedFiles": [],
+      "receiptPublishedStored": false,
+      "qualification": "Stored before receiptPublished=true; owner final completed counter and actual receipt existence retained separately"
+    }
+  ],
+  "rawArchive": {
+    "entries": 490,
+    "fileBytes": 146676,
+    "jsonBytes": 249849,
+    "gzipBytes": 25122,
+    "gzipSha256": "d366b454cbe0a46ac16740c61b207e810cb7f975be3457b4f54b5d348efc8d1b"
+  },
+  "rawResults": {
+    "bytes": 2667,
+    "sha256": "66ad0ff14fae318533cd2d371a95307798b1ae0b13eebe96da5f886b021e39f0"
+  },
+  "postIntegrity": "SOURCE24_TOOL4_AUTHORITY_AND_CAPTURE_EFFECT_BYTES_AUTHENTICATED",
+  "historical": "Original containment9/40 HOLD, three withheld and P2 pause unchanged"
+}

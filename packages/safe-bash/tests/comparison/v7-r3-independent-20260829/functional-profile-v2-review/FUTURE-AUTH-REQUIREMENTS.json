@@ -1,0 +1,74 @@
+{
+  "schema": "INDEPENDENT_FUTURE_AUTH_REQUIREMENTS",
+  "active": false,
+  "activationPerformed": false,
+  "review": {
+    "commit": "USE_THIS_RECEIPT_EVIDENCE_COMMIT",
+    "path": "tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/REVIEW.json",
+    "sha256": "f4a16fa6346397219c2c779fd30bb249759467d7da3295e5f5e7e26ab6e1e8f6"
+  },
+  "recipeSha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "interface": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/INTERFACE-DELTA.json",
+    "bytes": 5162,
+    "mode": 420,
+    "sha256": "ef4c9b79b28a581e55d9e5abf31cd88484708749cd1f444c26f5514ee8bb2d9a"
+  },
+  "inertLaunch": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/FUTURE-LAUNCH.sh.data",
+    "bytes": 2049,
+    "mode": 420,
+    "sha256": "f2c89a1d1cd4d6c3ef020b8a96721bf8b24e01a166c19c6976676257c6437f78"
+  },
+  "sealedInactiveTemplate": {
+    "schema": "INACTIVE_FUNCTIONAL_V2_AUTH_TEMPLATE",
+    "active": false,
+    "proposedAUTH": {
+      "review": {
+        "commit": null,
+        "path": null,
+        "sha256": null
+      },
+      "grant": {
+        "commit": null,
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+        "sha256": null
+      }
+    },
+    "futureRootGrant": {
+      "role": "root",
+      "phase": "cohort",
+      "attempts": 1,
+      "runId": "semantic-functional-20260829-v2-01",
+      "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "recipeSha256": "SUCCESSOR_SEAL_RAW_SHA256_AFTER_DIFFERENT_REVIEW",
+      "reviewSha256": "FUTURE_EXACT_DIFFERENT_RECEIPT_RAW_SHA256",
+      "planSha256": "9c8a87408a8769f1151cb937a3e5409140e17186da13a592af34e18ba770e736",
+      "bootstrapProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "reportProtocol": "BOUNDED_SEMANTIC_TERMINAL_V2",
+      "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "command": {
+        "entry": "coordinator.mjs",
+        "phase": "cohort",
+        "runId": "semantic-functional-20260829-v2-01",
+        "nodeArgs": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256"
+        ]
+      },
+      "acceptedAdmission": {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/RESULT.json",
+        "sha256": "22d9624cb1cfd3154b6070a3cde96d0958a202f2042ef80df37b012430bd7de0"
+      },
+      "functionalProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1_DID_FALSE_FUNCTIONAL_V2"
+    },
+    "admissionCommits": [
+      "3c4eedf2f153e12bc59851f7bcf22273a44652b6",
+      "aa36fe6225bad29d9fb4201ad5ea8006372a51e1"
+    ],
+    "noActualAuthorization": true,
+    "rootSelection": "Latest ROOT source implementation/preexecution GO only; new independent receipt and fresh actual root grant required."
+  },
+  "requiresFreshRootGrant": true
+}

@@ -1,0 +1,46 @@
+{
+  "role": "POST_STOP_COPIED_TOOLS_DATA_ONLY",
+  "tools": {
+    "typescript": {
+      "checkedRegularFiles": 132,
+      "omittedInternalLinks": 0,
+      "mismatches": []
+    },
+    "@types/node": {
+      "checkedRegularFiles": 74,
+      "omittedInternalLinks": 0,
+      "mismatches": []
+    },
+    "undici-types": {
+      "checkedRegularFiles": 41,
+      "omittedInternalLinks": 0,
+      "mismatches": []
+    },
+    "npm": {
+      "checkedRegularFiles": 2027,
+      "omittedInternalLinks": 12,
+      "mismatches": []
+    }
+  },
+  "executables": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "equal": true
+    },
+    {
+      "path": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "bytes": 34640,
+      "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+      "equal": true
+    },
+    {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "equal": true
+    }
+  ],
+  "allEqual": true
+}

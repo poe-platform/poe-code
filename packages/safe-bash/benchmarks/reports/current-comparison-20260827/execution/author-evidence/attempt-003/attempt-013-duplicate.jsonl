@@ -1,0 +1,15 @@
+{"atMs":0.411,"kind":"group-admitted","pid":77722,"pgid":77722,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-oOOmAr","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-oOOmAr","TMPDIR":"/private/tmp/safe-bash-execution-author-oOOmAr","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":39.044,"id":"synthetic/duplicate","nonce":"9dbabd36-2d15-4887-82bc-26047d06ecef","kind":"engine-spawn","pid":77723,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":94.553,"kind":"request-start","absoluteDeadlineMs":1494.54925}
+{"atMs":94.555,"id":"synthetic/duplicate","nonce":"9dbabd36-2d15-4887-82bc-26047d06ecef","kind":"ready"}
+{"atMs":95.555,"id":"synthetic/duplicate","nonce":"9dbabd36-2d15-4887-82bc-26047d06ecef","kind":"phase","phase":"exec-start"}
+{"atMs":95.632,"id":"synthetic/duplicate","nonce":"9dbabd36-2d15-4887-82bc-26047d06ecef","kind":"phase","phase":"exec-settled"}
+{"atMs":95.955,"id":"synthetic/duplicate","nonce":"9dbabd36-2d15-4887-82bc-26047d06ecef","kind":"phase","phase":"snapshot-complete"}
+{"atMs":96.134,"id":"synthetic/duplicate","nonce":"9dbabd36-2d15-4887-82bc-26047d06ecef","kind":"phase","phase":"dispose-start"}
+{"atMs":96.196,"id":"synthetic/duplicate","nonce":"9dbabd36-2d15-4887-82bc-26047d06ecef","kind":"phase","phase":"dispose-settled"}
+{"atMs":96.934,"kind":"result-received","sha256":"3097e3da95d3ae1287b88bf19ea5cd611c23a5e8f76ddf4020809b73fa351862","absoluteTotalUnchangedMs":4500}
+{"atMs":97.348,"kind":"sticky-failure","reason":"capture: AssertionError [ERR_ASSERTION]: duplicate/premature result"}
+{"atMs":106.525,"kind":"signal","signal":"SIGTERM","pgid":77722}
+{"atMs":108.029,"kind":"coordinator-exit","code":null,"signal":"SIGTERM"}
+{"atMs":108.033,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":108.036,"kind":"coordinator-close","code":null,"signal":"SIGTERM"}

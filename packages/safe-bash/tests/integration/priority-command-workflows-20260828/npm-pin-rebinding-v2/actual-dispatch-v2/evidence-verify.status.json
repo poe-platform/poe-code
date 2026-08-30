@@ -1,0 +1,20 @@
+{
+  "role": "DEVGIT_COMMITTED_EVIDENCE_AUTHENTICATION",
+  "command": [
+    "/usr/bin/git",
+    "--no-optional-locks",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "cat-file",
+    "--batch"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "pid": 13566,
+  "start": 1787950197211,
+  "end": 1787950197437,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutBytes": 33549064,
+  "stderrBytes": 0
+}

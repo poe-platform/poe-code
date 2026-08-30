@@ -1,0 +1,3072 @@
+{
+  "classification": "EXECUTABLE_PREPARATION_NOT_PRODUCT_COVERAGE",
+  "obligations": [
+    {
+      "kind": "prior-case",
+      "id": "T01H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/0",
+      "subtreeSha256": "ae46d72fe67b3e35f53c36c78057e6597fa0bf530360aa9bdbbdcb06f8aa2f48",
+      "engine": "assertCase",
+      "scenario": "T01H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T01C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/1",
+      "subtreeSha256": "f9faf0c81e416cdf45f4aae7aba6a4e11eb5b79afe9fb74e6b872ef11abb1d9d",
+      "engine": "assertCase",
+      "scenario": "T01C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T01S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/2",
+      "subtreeSha256": "29f1f19a4a6ec48f50c30bde7229e5d4ba6a04d9eef90d21803d293ab8dcae10",
+      "engine": "assertCase",
+      "scenario": "T01S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T01L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/3",
+      "subtreeSha256": "6ef9a85bb867e2a3195b7fa6fd2fe19016156b32c9ae182ca6fba1c2defc10f8",
+      "engine": "assertCase",
+      "scenario": "T01L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T02H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/4",
+      "subtreeSha256": "3f67d540ea7ceeffa5fbc4fe1825a07e84f8bf2c2a9d983c55a41d8acf8d3634",
+      "engine": "assertCase",
+      "scenario": "T02H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T02C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/5",
+      "subtreeSha256": "b204b224dfe3464483b3452d3b42dc292938628e8186ee0b074d45955dc9354e",
+      "engine": "assertCase",
+      "scenario": "T02C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T02S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/6",
+      "subtreeSha256": "49573dffe19b02f92a7170dd991f1f35965288709f047b6342aca4521b137edd",
+      "engine": "assertCase",
+      "scenario": "T02S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T02L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/7",
+      "subtreeSha256": "684565b051645004dd894a2c05f3bf9d6fd58c020f6f23e76af34d972decdbb6",
+      "engine": "assertCase",
+      "scenario": "T02L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T03H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/8",
+      "subtreeSha256": "1526e3d95797ce559011dca3fe8434f663d65f3cec91e4eec8135808b5805fa5",
+      "engine": "assertCase",
+      "scenario": "T03H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T03C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/9",
+      "subtreeSha256": "d4524eb87b5bfe52b7b89e6857a030be3805f08d9deba79df209531552dfa174",
+      "engine": "assertCase",
+      "scenario": "T03C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T03S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/10",
+      "subtreeSha256": "312275afde49f257f69f61ec0b197f3fff43ebf5305caacddb9d0863f5319712",
+      "engine": "assertCase",
+      "scenario": "T03S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T03L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/11",
+      "subtreeSha256": "d7b664e48c441ffa3b6ad93be57202088f154b6aefe9fa422dc80a54cb3be4ce",
+      "engine": "assertCase",
+      "scenario": "T03L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T04H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/12",
+      "subtreeSha256": "1f6191fb3cc72d300e2c2e45cf26345cad1b6feac37cf70a8bed3cd4a4f2e54a",
+      "engine": "assertCase",
+      "scenario": "T04H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T04C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/13",
+      "subtreeSha256": "ff254a4cd3dd0494cfddb683771d638dcc3dac11ebc180ba9519591a0bd6643a",
+      "engine": "assertCase",
+      "scenario": "T04C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T04S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/14",
+      "subtreeSha256": "57fa33409f7ec6e4e860acd6d4d911988599ebf23acefeee56771a18b40c2b41",
+      "engine": "assertCase",
+      "scenario": "T04S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T04L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/15",
+      "subtreeSha256": "05851a4b32cb55ac9cc125af28378168af7e64ddaad51d0da86a4ede809a0be1",
+      "engine": "assertCase",
+      "scenario": "T04L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T05H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/16",
+      "subtreeSha256": "638c9e6b64858abfad80fbf149e4dbcdcdb794557d6744f69cb766b86ef87071",
+      "engine": "assertCase",
+      "scenario": "T05H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T05C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/17",
+      "subtreeSha256": "8996a2b91e00498585fc6896b2fe578f31791ff096cd47ad09c0eb5c4f83ea0e",
+      "engine": "assertCase",
+      "scenario": "T05C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T05S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/18",
+      "subtreeSha256": "cdfbeb6919940457c1ff63927b9446d83ac9a51d1f53d67f2ae8ada354da7f83",
+      "engine": "assertCase",
+      "scenario": "T05S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T05L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/19",
+      "subtreeSha256": "48e66afe6e506e6b96deb1dab38dbee87e71907794dea0fce5024ef4ab99872e",
+      "engine": "assertCase",
+      "scenario": "T05L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T06H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/20",
+      "subtreeSha256": "b0a8849bc9f1c97f0856ba0169b0eed70943d07a12eaa667bd8b0fffeab4ba2f",
+      "engine": "assertCase",
+      "scenario": "T06H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T06C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/21",
+      "subtreeSha256": "0b50fcf8e894c8b5678e3e507b2d96d422605a90239259e4c80f18d67f249bb6",
+      "engine": "assertCase",
+      "scenario": "T06C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T06S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/22",
+      "subtreeSha256": "aa85d507624058ec40abcd083bf2372d15e14f270f75264af3c9ff09a1d8df26",
+      "engine": "assertCase",
+      "scenario": "T06S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T06L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/23",
+      "subtreeSha256": "b20b20bd08cb1d3e21045950f962d387c4d9fc96a05bdd0dbe9205299abadfbb",
+      "engine": "assertCase",
+      "scenario": "T06L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T07H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/24",
+      "subtreeSha256": "582fc0fd9818f55aa362812a8623774af551ca56ba076a2b5532e82c73dfe4c3",
+      "engine": "assertCase",
+      "scenario": "T07H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T07C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/25",
+      "subtreeSha256": "4a11ff785a0569b6ffe2a0877b7a5872659d43a565f4b08c5730a31150baa89e",
+      "engine": "assertCase",
+      "scenario": "T07C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T07S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/26",
+      "subtreeSha256": "18b42c045951adfc67f98261faa3ab000a5b2e6bc35c1d789245923c4a11851c",
+      "engine": "assertCase",
+      "scenario": "T07S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T07L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/27",
+      "subtreeSha256": "c874c3bdf661d9f1cbfb52caa831ffbfa7823c584f4470036619b4c275b5b95e",
+      "engine": "assertCase",
+      "scenario": "T07L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T08H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/28",
+      "subtreeSha256": "ff5e6d18234961295e12233172aa8f45f398b99d85a3c49edfb2ed25ed8dbbb5",
+      "engine": "assertCase",
+      "scenario": "T08H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T08C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/29",
+      "subtreeSha256": "bc0ebcbb22b67c1cc899400f6f768c7ee11ce9fccef81e81e732981817c77be6",
+      "engine": "assertCase",
+      "scenario": "T08C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T08S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/30",
+      "subtreeSha256": "764c21132c79a8422aa1a4ccfcb9f4bb9adea86f1f84a863abb137b03c24bd8f",
+      "engine": "assertCase",
+      "scenario": "T08S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T08L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/31",
+      "subtreeSha256": "64b9a537c37674a5927925890715b2fc2ceeed85f14f168a5eee94b1ed8a20e2",
+      "engine": "assertCase",
+      "scenario": "T08L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T09H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/32",
+      "subtreeSha256": "29375424a8da0860fdbdbddd8b368e4e29f47ff699c6781feb0e1e505bee826a",
+      "engine": "assertCase",
+      "scenario": "T09H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T09C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/33",
+      "subtreeSha256": "2ec72113cf6e102d8354fc4aacd4db0199572e6e5387771cced7a98d0af677d3",
+      "engine": "assertCase",
+      "scenario": "T09C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T09S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/34",
+      "subtreeSha256": "86dc321f426d0a57e2f8953a388615fe5a598d4d810ddfac2a82ee2be3ca7957",
+      "engine": "assertCase",
+      "scenario": "T09S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T09L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/35",
+      "subtreeSha256": "2b25e363d072faa829556422ef4d14b2c36ce847084bdfaddd8842c71a9c5cfa",
+      "engine": "assertCase",
+      "scenario": "T09L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T10H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/36",
+      "subtreeSha256": "29619ce892d611a6c47969d1b5eb9f209a309bcc7004c7d73267c63a1c7421d5",
+      "engine": "assertCase",
+      "scenario": "T10H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T10C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/37",
+      "subtreeSha256": "0a2dc968fec815e589391558eb8dad1694e66ef825a204e99ea6c99e847a2bf3",
+      "engine": "assertCase",
+      "scenario": "T10C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T10S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/38",
+      "subtreeSha256": "f1535f3bfffc804fad0ccaea3aa7c1a1dccdcdafdc23a80409e240d54afc0c58",
+      "engine": "assertCase",
+      "scenario": "T10S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T10L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/39",
+      "subtreeSha256": "1c8b0da7134f01fe994336a78b476e37d61a7f909539eea7d25203598720557c",
+      "engine": "assertCase",
+      "scenario": "T10L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T11H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/40",
+      "subtreeSha256": "cc0eabf7e546dc7d36d8cca6dbae4d743c1d6db56002d16b68f4bc4ac3dd6ecd",
+      "engine": "assertCase",
+      "scenario": "T11H/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T11C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/41",
+      "subtreeSha256": "28a4bd7a4fa1f525cae6f3a35109e48c9f373791832224b4e513be97fa0f4f68",
+      "engine": "assertCase",
+      "scenario": "T11C/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T11S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/42",
+      "subtreeSha256": "f666a3accb333f1cde7fda88a4009723ccd3604e0acace5de211d55930b7a92a",
+      "engine": "assertCase",
+      "scenario": "T11S/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T11L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/43",
+      "subtreeSha256": "b31fdd303b04472fc792d78a469f9a4e6c7c446ef2789c6e29629fac010f3bc0",
+      "engine": "assertCase",
+      "scenario": "T11L/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/44",
+      "subtreeSha256": "d81eec720cdbc97a35d56bd58311c549e91323de9d4f8ce9f7cc3b60d1b0dc6f",
+      "engine": "assertCase",
+      "scenario": "P01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/45",
+      "subtreeSha256": "d22a4bb3d9a4a44ebd5e66de91c0f834a6489078861c61dd8dab09424aaebc17",
+      "engine": "assertCase",
+      "scenario": "P02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/46",
+      "subtreeSha256": "485e9c3985dc9f60fc23145a2ea8a1bcc6f74bc214fed65da2ac2670fe8b72cf",
+      "engine": "assertCase",
+      "scenario": "O07/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O08",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/47",
+      "subtreeSha256": "969f1768e6df254102a58ff17353d9c51b08568b76e3363cff7a3a28ec67ad8b",
+      "engine": "assertCase",
+      "scenario": "O08/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O11",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/48",
+      "subtreeSha256": "8a4dce00f82459fb2cb6c4f2cad4c45a3dd0c84651394dce8e18503c952917a4",
+      "engine": "assertCase",
+      "scenario": "O11/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O13",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/49",
+      "subtreeSha256": "0bb7d33891e6ef9a08e9fd0cdf9dfd893c662e70d10a302a2855462766ddb287",
+      "engine": "assertCase",
+      "scenario": "O13/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O18",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/50",
+      "subtreeSha256": "e71d7498b8c0ed6094988971d38b22a9c83e03430169c99ba613ad4bb5bec42f",
+      "engine": "assertCase",
+      "scenario": "O18/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O19",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/51",
+      "subtreeSha256": "97e388dd1d6658eae7375ccf2c60a576421c790b35cff15f1ae4318a612b78c5",
+      "engine": "assertCase",
+      "scenario": "O19/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/52",
+      "subtreeSha256": "46f008240b5f763b7c2a389b83f3b6046b8b0e772250ac08805ad45a2e85d646",
+      "engine": "assertCase",
+      "scenario": "P03/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/53",
+      "subtreeSha256": "b1ba0414d2384a243ee6723afd8820e1b73a0095b3bc0f251c33438840e7ce3d",
+      "engine": "assertCase",
+      "scenario": "P04/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/54",
+      "subtreeSha256": "406a55cdcef25e68e0513cc9871c5277288492f4baafbbf46d01d605a9912c46",
+      "engine": "assertCase",
+      "scenario": "P05/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P06",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/55",
+      "subtreeSha256": "06ae645f23aad0f306cdaa8899ee7d1bd136750b6662dc03152b291354de56e5",
+      "engine": "assertCase",
+      "scenario": "P06/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/56",
+      "subtreeSha256": "ae1e7df699982495535c08357a561368dd004c813275b4fe2a1b489099abc40b",
+      "engine": "assertCase",
+      "scenario": "P07/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/57",
+      "subtreeSha256": "c44b1d1f0dd058a9bd436373d89412a61c47c87cd4cb84fb957edd1a7e4e10bb",
+      "engine": "assertCase",
+      "scenario": "E01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/58",
+      "subtreeSha256": "18c4888f3eb4bf34ebd930aa93348ec96c34f961c0d7a061f25f0db1e76ace7b",
+      "engine": "assertCase",
+      "scenario": "E02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/59",
+      "subtreeSha256": "93b95d47d583eb9bd0dba971a9856a301911a3c84329bf73ced4cd7e214d995a",
+      "engine": "assertCase",
+      "scenario": "E03/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/60",
+      "subtreeSha256": "a02f6e87a31787b347163159708637d369407acacaa031bf64c484f0863da84d",
+      "engine": "assertCase",
+      "scenario": "E04/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/61",
+      "subtreeSha256": "150697c3a300fa38be1257829a0a5471b272aa743d401bf7a7fd521976d3022e",
+      "engine": "assertCase",
+      "scenario": "E05/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E06",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/62",
+      "subtreeSha256": "1b330af44846a42eea4dd8dbc20d1186780c1ebdca76680f8e5eeb8cc3ad14fa",
+      "engine": "assertCase",
+      "scenario": "E06/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/63",
+      "subtreeSha256": "daab7af523371d393d03beb44e9fdb9375c14512377d4e2f03e969ce781d5292",
+      "engine": "assertCase",
+      "scenario": "E07/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E08",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/64",
+      "subtreeSha256": "3293322757d1717b1c8ed4ee55360fcda846b1850f24dd6db4c06ecb212f5603",
+      "engine": "assertCase",
+      "scenario": "E08/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E09",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/65",
+      "subtreeSha256": "c0a5bb1bbf1f7354dd030d5fb9bbf63de1753bce1d9e853c6b5accecb639f410",
+      "engine": "assertCase",
+      "scenario": "E09/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "U01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/66",
+      "subtreeSha256": "9b95f58aa68e92868986a088b8947fc65aa3ae4de38a457a487a2aecc8d7678f",
+      "engine": "assertCase",
+      "scenario": "U01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "U02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/67",
+      "subtreeSha256": "1fcd6e8da68292f19e5d556888438765a4b57b5f14782f7e73e21adbb4f0ccd6",
+      "engine": "assertCase",
+      "scenario": "U02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "U03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/68",
+      "subtreeSha256": "e32b2d1ec17b89579fc8df0171239d4b1cc3bc82992806f801d6a3887af10e24",
+      "engine": "assertCase",
+      "scenario": "U03/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/69",
+      "subtreeSha256": "a832e97be0d8f83a8855e67f1e68160704b444e8967d6b2f3b9047711a27c5d3",
+      "engine": "assertCase",
+      "scenario": "Z01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/70",
+      "subtreeSha256": "c51c4fc7eeaf936906fb928a62a38f8634015d4f3a08cfcf37ba13015edfb6c6",
+      "engine": "assertCase",
+      "scenario": "Z02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/71",
+      "subtreeSha256": "49c52a5e338e83e8c5febd8c6dfe8d8899379b0fe2183ff96c8faa382d5b9d0e",
+      "engine": "assertCase",
+      "scenario": "Z03/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/72",
+      "subtreeSha256": "4e2b0425eef9e1c1c3989a744b4dc886253eeef54f35326f61175f9766e288b2",
+      "engine": "assertCase",
+      "scenario": "Z04/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/73",
+      "subtreeSha256": "71cc8e21bbc72196aa3970f8278ad401f3d61019a903eb5909b729a8b885f5b6",
+      "engine": "assertCase",
+      "scenario": "Z05/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z06",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/74",
+      "subtreeSha256": "d61fd4f2a3b4917051d916d3626b54925d19755caa1a139bf77eea19be8e9a46",
+      "engine": "assertCase",
+      "scenario": "Z06/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/75",
+      "subtreeSha256": "c90c955533971f5713c6f6643a62be97558a9b5f464663a91a23141d75913e66",
+      "engine": "assertCase",
+      "scenario": "Z07/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z08",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/76",
+      "subtreeSha256": "5b81217ad4655e7c8d2640ab9eba884f2c18e87c89044f2c3b096b7a69f79544",
+      "engine": "assertCase",
+      "scenario": "Z08/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z09",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/77",
+      "subtreeSha256": "8b42d4e83f72f3bd50dc0eb7d8c759704e3114b5b82e9b9dbf1c98466329650c",
+      "engine": "assertCase",
+      "scenario": "Z09/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z10",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/78",
+      "subtreeSha256": "e5aec801e98ba9d4c8219571ff14b5de7dd950cafab642b3d6097eabd0c50569",
+      "engine": "assertCase",
+      "scenario": "Z10/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z11",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/79",
+      "subtreeSha256": "e770d37916115f7c24337b0602ef294d8b15d72be271c9b3ceeaa84741b9683d",
+      "engine": "assertCase",
+      "scenario": "Z11/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "X01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/80",
+      "subtreeSha256": "25b68871e91ea23768224c16508dc36636b974c02f51f1d40e924c4f434e76f6",
+      "engine": "assertCase",
+      "scenario": "X01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "X02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/81",
+      "subtreeSha256": "66169084748c56b67039f6bfdc25e26da469edff9ffbd798d9564736bc70441e",
+      "engine": "assertCase",
+      "scenario": "X02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "HCR",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/82",
+      "subtreeSha256": "eb996e401dd57f3dbf9ef9bea91f1c68cd7365e0721303c00038f37a44d53825",
+      "engine": "assertCase",
+      "scenario": "HCR/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/83",
+      "subtreeSha256": "fbc6c5149d2c9b9c18f6edc1f4ad7fb8cc4839dfa559c09db73f413610f5d4ba",
+      "engine": "assertCase",
+      "scenario": "R01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/84",
+      "subtreeSha256": "430431620a35d009219d108008460f6f08eeb4cbefe0fd44b71793b6ee5783f3",
+      "engine": "assertCase",
+      "scenario": "R02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/85",
+      "subtreeSha256": "ce0d88ec1de94ab85464753b694ec65c5a70daddce255fe6a57b26f2fc05f73d",
+      "engine": "assertCase",
+      "scenario": "R03/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/86",
+      "subtreeSha256": "6dd2db700ae8de83bb664a7b51a8b99e3abe71b0867e8b3c6f6d65b7b0333220",
+      "engine": "assertCase",
+      "scenario": "R04/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "pointer": "/cases/87",
+      "subtreeSha256": "bd83f1062dc414ef2747a4bed11b873fe34680192d74da9ccc28428e0aef08fa",
+      "engine": "assertCase",
+      "scenario": "R05/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/0",
+      "subtreeSha256": "574ca9012e852b57818dc19574522c7f72245edf597f5939a412b167b64bbab0",
+      "engine": "assertScenario",
+      "scenario": "F01",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/1",
+      "subtreeSha256": "9440a8a34eba46cd9ef90cb9c4fb69336bb341d28841727461c9b127660183e1",
+      "engine": "assertScenario",
+      "scenario": "F02",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/2",
+      "subtreeSha256": "25913fb6fce678879657e95ec23ad5030d37cf3adfe8e5fa48c49435e1845e5d",
+      "engine": "assertScenario",
+      "scenario": "F03",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/3",
+      "subtreeSha256": "715a287b6f764929ad0ef627aa92b0240399e50472c37e01feda505ae6c8ca5c",
+      "engine": "assertScenario",
+      "scenario": "F04",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/4",
+      "subtreeSha256": "153af4a13fb6b068cbb02221210c4b75b08ea533a4c6cf448f1932decda1a19f",
+      "engine": "assertScenario",
+      "scenario": "F05",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F06",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/5",
+      "subtreeSha256": "2af174b8d503dbb8bbd178f357d5fc59c46c7234e1bec4ad2833179a35224574",
+      "engine": "assertScenario",
+      "scenario": "F06",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/6",
+      "subtreeSha256": "d5264a1a81e1215187fd7f2b42070b27de2bfa30dd2ea2612208d9a121578af2",
+      "engine": "assertScenario",
+      "scenario": "F07",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F08",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/7",
+      "subtreeSha256": "333d2300952e07dded9a46e8015550a97d7380c7a3bffa2afc4f335068169770",
+      "engine": "assertScenario",
+      "scenario": "F08",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F09",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/8",
+      "subtreeSha256": "3dacb7fb630d52ba389f9a3b8e86d31ed297b1507eee025017adb10369e616bd",
+      "engine": "assertScenario",
+      "scenario": "F09",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F10",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/9",
+      "subtreeSha256": "8e25e7862b5a14290dd7ae2694685eed970c838a7f17eb6cf4e9e3c52ec88bfc",
+      "engine": "assertScenario",
+      "scenario": "F10",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F11",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/10",
+      "subtreeSha256": "dee78677822584221f23d025b05cdbd0baaa008f6a5bb51451a4a849537a16a3",
+      "engine": "assertScenario",
+      "scenario": "F11",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "family",
+      "id": "F12",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "pointer": "/families/11",
+      "subtreeSha256": "037652d17463dc00d78a4e8012c0747cfa274df759e16f3a5e2f5783e873aeb5",
+      "engine": "assertScenario",
+      "scenario": "F12",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxArgs",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/0",
+      "subtreeSha256": "3276ddf477458db9a600e12cb4c5714897fd5263c73a73248a8f6656405e07a7",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxArgs",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxArgumentBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/1",
+      "subtreeSha256": "b019f18053852d797f4f8196e058f98e4046e665b78a9e30edd5c091e6bc79eb",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxArgumentBytes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxInputFiles",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/2",
+      "subtreeSha256": "016c9c354244e5abde1714738726fb105f728a67b2574adf134fb00495e8e416",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxInputFiles",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxInputBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/3",
+      "subtreeSha256": "2ea1c0e531d736cf06d05f1427cc99bb0fb38831a18887eaa0a5318c468fc774",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxInputBytes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxChunks",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/4",
+      "subtreeSha256": "bff7ded3a9642b8893cb867f938aecf02987d7ba4386f1cba71f84168dd9303c",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxChunks",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxChunkBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/5",
+      "subtreeSha256": "4a9ee60c0d8b3c2839fc56ad59e65ef6501531905fe9f5762388fd4e5c7fa3de",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxChunkBytes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxRecordBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/6",
+      "subtreeSha256": "deecd57d70c67cc9c48cbd3ed9c9c4a31973fa4bc708cd61db41be727d1a013f",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxRecordBytes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxCellBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/7",
+      "subtreeSha256": "546946838d44d50acb8c3f949e8f4827617b671b503bd9e2f2d705c44f4ef4de",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxCellBytes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxColumns",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/8",
+      "subtreeSha256": "7bb325ff0d33bac5f8333450e73b9e4905491e51b7dea0e523932caf0d0e285f",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxColumns",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxRecords",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/9",
+      "subtreeSha256": "920a99b2e4f3c4be1609377886176ac622c1aecf92dcfd91a156fb28bb3e515b",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxRecords",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxSelectorBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/10",
+      "subtreeSha256": "8b81e7eff072f226dc8b62378949a9eccdc3c11434c58baca97de16db8dbd3ca",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxSelectorBytes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxSelectorNodes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/11",
+      "subtreeSha256": "ba025d65fc9e8ded4565b1fc69f5bb4aef32f8fa5b573f8268efc437f67c1281",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxSelectorNodes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxSelectorDepth",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/12",
+      "subtreeSha256": "f9bc84f45013fa79c2580648a79b11ca05c5c66834433308b6b701f5e9b4e9ce",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxSelectorDepth",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxSelectedColumns",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/13",
+      "subtreeSha256": "5d0946954356afee03fb4495f2199a3541e61985dff9882b6dcd671b25b607c8",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxSelectedColumns",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxLastRows",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/14",
+      "subtreeSha256": "84b4d84476859a1f10e5f2a4b7059fbf9c5b367587cc540923ecc4cd958d9e1c",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxLastRows",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxWork",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/15",
+      "subtreeSha256": "5fc75ad889e58de2641b949ea0c91ac817d39d042e58fdf97757f88d6b303fde",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxWork",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxOutputBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/16",
+      "subtreeSha256": "4ef9567e7adbc8f58bae533b82ea33655de5c339bff7f45e3ff18a938e6ab1db",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxOutputBytes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "cap",
+      "id": "maxRetainedBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "pointer": "/rows/17",
+      "subtreeSha256": "77bedbf2c1f306fa5e598f4bd802378ecf133c3fbba199db2828497c0e870b63",
+      "engine": "generator+assertResourceTrace",
+      "scenario": "maxRetainedBytes",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R1",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "pointer": "/rules/0",
+      "subtreeSha256": "8f3c5d75cfb8a56436616b3a035e3be58d59a74ed21f8608a75e1e222e24fbce",
+      "engine": "assertCase+matcher",
+      "scenario": "B01-R1",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R2",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "pointer": "/rules/1",
+      "subtreeSha256": "ec7f15123f9a84639c16f97a4d8a98ad57fab9f30d9b7202adc8d35e30ead354",
+      "engine": "assertCase+matcher",
+      "scenario": "B01-R2",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R3",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "pointer": "/rules/2",
+      "subtreeSha256": "8859ff4c05231c816cc11ec1f9649466b1b5fb61cc7d675209fd02e7fe6f1f73",
+      "engine": "assertCase+matcher",
+      "scenario": "B01-R3",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R4",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "pointer": "/rules/3",
+      "subtreeSha256": "b47aa306b60d7e3445b0359253729eb91097b9932222cff425d61f9d10d14c86",
+      "engine": "assertCase+matcher",
+      "scenario": "B01-R4",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R5",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "pointer": "/rules/4",
+      "subtreeSha256": "963aabe88439bc305877b629d4335734dfb2b9fea22482ecc00fd034d4e3ae8f",
+      "engine": "assertCase+matcher",
+      "scenario": "B01-R5",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R6",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "pointer": "/rules/5",
+      "subtreeSha256": "d87cd2c5c49f8995163cd14c2a7cd86e5b5179d74e6168d41077a18199a1b75c",
+      "engine": "assertCase+matcher",
+      "scenario": "B01-R6",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R7",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "pointer": "/rules/6",
+      "subtreeSha256": "85de07171a85e69a76f2f10cf40b3f82d5e573a138eebb2276ee79009ea55d91",
+      "engine": "assertCase+matcher",
+      "scenario": "B01-R7",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P01",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/0",
+      "subtreeSha256": "bc41d440e646dca4dfd4de77461acb108170ab010ee28fd2fe2d7512adb8f0fa",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P02",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/1",
+      "subtreeSha256": "3d88779c70c6d272786d68714b57e6a816439aa4145c54e17a21744058f1e80e",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P03",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/2",
+      "subtreeSha256": "0489d029152b5ef5ac5049c39204b340f4fe10cdd9f4e4a372afea06be40e2bc",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P03/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P04",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/3",
+      "subtreeSha256": "781f0421ce6d6a64f199ada31dd61d1f5dd46ab499fdbc3d2b83cdce4e1e076d",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P04/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P05",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/4",
+      "subtreeSha256": "e0538de9d78510b6bf551aa4152b946f1e8c9fe0e257c9203fc6b253938fe0a9",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P05/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P06",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/5",
+      "subtreeSha256": "f057d2dcf6b1e3f87e3224a0d19b44bb052807f93e3504ed6a14f7c291adde3b",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P06/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P07",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/6",
+      "subtreeSha256": "0b52e9fecf3649c84dc5c996815582d47e2a0fef83643f98ed58a5fd2fb0ab42",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P07/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P08",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/7",
+      "subtreeSha256": "06ff22dc56379afdb761af690aab2e3d8bc85daa207d1d9f31d2348a3ee1761f",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P08/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P09",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/8",
+      "subtreeSha256": "8075282d3ef7db69bd9a0521bb125a03b2611121ae8a2ff39f90cfd12cff1063",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P09/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P10",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/9",
+      "subtreeSha256": "ac3fb37c9b1199cf9afafc87c9af0fa6186064a1161388b47717e6ec8fb3acc6",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P10/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P11",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/10",
+      "subtreeSha256": "668b660341373bbef20d0505e579d49675d2d16d86473201e5560ee3d63c1384",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P11/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P12",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/11",
+      "subtreeSha256": "b71993180cdc57e13735e330f6e10c6dbabc38872bebd62e12737673b49afc13",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P12/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P13",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/12",
+      "subtreeSha256": "f3ae367196072cde46d0b3400ad4364d768b57f272d8b8b3c5038c2ce8482ced",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P13/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P14",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/13",
+      "subtreeSha256": "449006acf04ae9f55dafd31ff2a5b2a91558fec81fc90e79024a1bf9832512cc",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P14/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P15",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/14",
+      "subtreeSha256": "b776d7ffd10630820cfe5ef7a9d71afefbdba00873aaefb8455549da357f5938",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P15/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P16",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/15",
+      "subtreeSha256": "667339477b7e502228f33b9d8fc6c1890baa7ce00c86a6e500646bcb7baef89b",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P16/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P17",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/16",
+      "subtreeSha256": "f1004d05928869251ea7cd7f1890fc5e9a8fb5429e8793f0afa74a809d3491e3",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P17/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P18",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/17",
+      "subtreeSha256": "929ac168c21255c39f846d0717bc04ec909e5ee9370639c80f68cd2505bc4571",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P18/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P19",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/18",
+      "subtreeSha256": "b72b8c239f8ad2c22bba1c62f4e6a1db58b98e8ec9da09da6b266760133f2790",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P19/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P20",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/19",
+      "subtreeSha256": "fb935d56d77ebd35a6410b17e9da487978db9b40aafa20c1bdb534258dc7e135",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P20/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P21",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/20",
+      "subtreeSha256": "3c9e5a53dc8e2780c715517b59e8e93a1937f4e63d5fd0001ecf9f54709c8467",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-P21/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S01",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/21",
+      "subtreeSha256": "ed2f7dbf2fe38f09c4fb4e03999015b5142ac2511e88095bec86a8c45886e90a",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-S01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S02",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/22",
+      "subtreeSha256": "05474e1fbef9c8e0df8f8f2a767b9d97a72bfb417e99a3ffa2a12f55fbe80fa4",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-S02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S03",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/23",
+      "subtreeSha256": "6f9d8e6cd7e226a2ae0943245241a4e9e68c927ba8ebb1429382e67cb77d3305",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-S03/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S04",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/24",
+      "subtreeSha256": "0e1154ffac4df438059bf86b01c15819ea9897f92e4ee0479cec8fe4e6f01652",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-S04/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S05",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/25",
+      "subtreeSha256": "8f35acd45d1329d66d99e8b91bc4b8b63a9a4efc73e6f7aa4044c071c8effe52",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-S05/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-N01",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/26",
+      "subtreeSha256": "9eff401a3650681bc7762e6a5eaf0b2a0ef06e15cad706e8867fa43d9401c4b2",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-N01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-N02",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/27",
+      "subtreeSha256": "6ec4bfd9d91032060281ea1b50586527fcd73e4a2297d0d8f12c9d0ba2ccf0de",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-N02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R01",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/28",
+      "subtreeSha256": "417d0f356a4b3c936aef546991a35a160ab5df026421e89401186c70a813acaa",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-R01/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R02",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/29",
+      "subtreeSha256": "a57f008b916b263bf1ac30b004e85942b418390a2842c6140be7ef0ec10d2056",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-R02/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R03",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/30",
+      "subtreeSha256": "67dd735e966257fd5fdc801bb53975b12a7d20caf0e5f16b1721b92a060053d3",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-R03/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R04",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/31",
+      "subtreeSha256": "34cb1df770c371dd67408571f91cb3f30546af61676e6c01efc4c68a3a86c409",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-R04/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R05",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/32",
+      "subtreeSha256": "f18f260ea93fc74ef0ffeb9e70ff504f66710522969a29ab2789f30ab5bfdf91",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-R05/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R06",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/33",
+      "subtreeSha256": "3b39fb4e9547044589c3dbd4059cb82358f491b079ffbc6330a8c4452b9320b9",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-R06/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R07",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/34",
+      "subtreeSha256": "02a9e58a201b1421a0b639b9943cfe4d371b443b7881cea3cfdb5172c15bd22d",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-R07/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R08",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "pointer": "/cases/35",
+      "subtreeSha256": "82950f56af0f39565da7a72f7f097d862ef689e235b686b69363f0dde788046a",
+      "engine": "assertCase+assertPhase+matcher",
+      "scenario": "X4-R08/P0",
+      "candidateState": "PREPARED_UNEXECUTED"
+    }
+  ],
+  "normalizedRows": [
+    {
+      "id": "T01H",
+      "sha256": "8816af18353920a9b3fb26260790b91f8505a7fe5f30682a1999346c88a09926"
+    },
+    {
+      "id": "T01C",
+      "sha256": "50326f90dc93ba4690f5bffe68970cddd9b7cb69ca20dc45c2f8c7f3536ca34d"
+    },
+    {
+      "id": "T01S",
+      "sha256": "f0d5dbb1b4172b06c00f5dddfffa90ccc5d863aa20b564271853fb3732dbcfba"
+    },
+    {
+      "id": "T01L",
+      "sha256": "af7d2f182c4939372ee16f396dd34270549e7d2326f9e5a278b144edfbe31c20"
+    },
+    {
+      "id": "T02H",
+      "sha256": "f8b99106cd7a80efaf439fd8b0910ac44f4d9984324f029196324f7f1177b6f4"
+    },
+    {
+      "id": "T02C",
+      "sha256": "bd068ecf58a86064fa5b8574a6798f50c7743f50202c5adc41f5d2575c533882"
+    },
+    {
+      "id": "T02S",
+      "sha256": "5b1075759d04eb5a1faf1bd6a4409828c82cb4909101524eb052b0d6fbad56b7"
+    },
+    {
+      "id": "T02L",
+      "sha256": "81b838c076f1d479637c8d9421381857e3da45ffc82b604a2171f278dbcff37b"
+    },
+    {
+      "id": "T03H",
+      "sha256": "0147e15a06a9f1bc0b62fd2fa7d7f5b673d7d91263570a761fadd7cef530a69c"
+    },
+    {
+      "id": "T03C",
+      "sha256": "053793f69979ec29eefdfcdb824bda067ba7bf1af318fe156666f2d50aa144eb"
+    },
+    {
+      "id": "T03S",
+      "sha256": "a44d282c690e9fdda6c2397040cd64bf8fabef445730a63ca0493f6bc4c66091"
+    },
+    {
+      "id": "T03L",
+      "sha256": "40032ed297ae1b9ac2c36c932e74b02250597ec29cd6bb57ed29c94eb8ad6563"
+    },
+    {
+      "id": "T04H",
+      "sha256": "e9d07a2d7e463c7604618850b070c7464e84a685ce534a5e34620b167d070b31"
+    },
+    {
+      "id": "T04C",
+      "sha256": "8a99e072ba88a1499d0b972ecf66e40393ca780ce33744a1dd0b791f37de06c6"
+    },
+    {
+      "id": "T04S",
+      "sha256": "e88fa982de149323feb7e0a4d6fb0a8c321aa3dbf509781bc23f327c8aaf4599"
+    },
+    {
+      "id": "T04L",
+      "sha256": "5a1c940d7f7c99c7696f966d378b2d526fad10d2d5fce1109f6d611944ff492e"
+    },
+    {
+      "id": "T05H",
+      "sha256": "0c823b4e40491633bfe3ae25a26fea09d47d76f70e5e7fd2b057cdafd58e0d32"
+    },
+    {
+      "id": "T05C",
+      "sha256": "5977d2bc3a41365351a0479183ad83a2f8976b22cee5e3806f35805f2ed1ac14"
+    },
+    {
+      "id": "T05S",
+      "sha256": "1ffa460802e54af4378bbfe4917761ef5023cb15fdff48c4bb98d574e12b8a50"
+    },
+    {
+      "id": "T05L",
+      "sha256": "f76a5986db3745163f5695616bc56b03fe58c3bbdc802422f64140a56894c27c"
+    },
+    {
+      "id": "T06H",
+      "sha256": "675672897a58bcc1fd01dbb72fa1c7fcbec39d546c77457fd4fca8b6758a5efb"
+    },
+    {
+      "id": "T06C",
+      "sha256": "efe20cac791de536252304d1f4c16c876a1c7a9e895e10d20c5835276dd7a334"
+    },
+    {
+      "id": "T06S",
+      "sha256": "bd96123080d331de5c3c4a4fb012effbb7a5feb133603c355651f136ecfd7b0f"
+    },
+    {
+      "id": "T06L",
+      "sha256": "cdfa4ad43f4a02cf835aefbd9f6a4a3a4d75c5514bd6d492a2425b6c720a007c"
+    },
+    {
+      "id": "T07H",
+      "sha256": "6f6fc35c6bd523c4ccdd65679fd55652f96224430194d024cbd836458cc8598d"
+    },
+    {
+      "id": "T07C",
+      "sha256": "f3693285f846c41dc74416e8b9925f6def4f6d9ae14fed3093c7e13eaf3f3c64"
+    },
+    {
+      "id": "T07S",
+      "sha256": "315f98136b9e42a8e46527836943e0377255f0fabd5b1f3634c35f5b11bdd9ec"
+    },
+    {
+      "id": "T07L",
+      "sha256": "92bad028a22afce55aa96eb55b2a8ebba47881be54913f152d97b477a34a9912"
+    },
+    {
+      "id": "T08H",
+      "sha256": "db4ef5080637eece7f2f5b0bb57540697ae7d46c18a4f97d92b519195a28083d"
+    },
+    {
+      "id": "T08C",
+      "sha256": "350115b153341c7f83818d62c321dba8b74db8b68ea7ca79ff40596ba02ce8ba"
+    },
+    {
+      "id": "T08S",
+      "sha256": "21debafd8e4605776344af3a0bbbca0a73a819e8e2a8fbd6bd83ff6b57fe5d9e"
+    },
+    {
+      "id": "T08L",
+      "sha256": "2288041223283efdd2e87281a787a4fd06886a5c0bc260181e69c0bce5c3242e"
+    },
+    {
+      "id": "T09H",
+      "sha256": "28b9360e013aa46c821a576b0ce4a9979995533252c80073da2879590d5459bd"
+    },
+    {
+      "id": "T09C",
+      "sha256": "f1f9df195c6b3c3c407f695497ead0495ebee312323b6c323d94eec2d7db19e9"
+    },
+    {
+      "id": "T09S",
+      "sha256": "b3b5e403066964f7a6da34977ecfa66dfc13b8fd7c5441c6e4e69a3b2f1e8f84"
+    },
+    {
+      "id": "T09L",
+      "sha256": "fc6406a638880c5be9a38519dad9d762a7de7cfbdac0ab8454d122d8bd3bf386"
+    },
+    {
+      "id": "T10H",
+      "sha256": "cef523ce9dfed01b06ad0b277147c553e95496513f35649408aebf6a4cea13c8"
+    },
+    {
+      "id": "T10C",
+      "sha256": "c559b45a7026afa0ddd0fc0311979141f96dc8c1fa3198b22e1bbc5f4fe710fd"
+    },
+    {
+      "id": "T10S",
+      "sha256": "9da2ecfe194e7daa933c09db97d7c3e1c578367e3fe57996da948a12baa150d0"
+    },
+    {
+      "id": "T10L",
+      "sha256": "e7412d39d7ba77cb50bfb3c09f6a1d66ac2ef9162bcdf2b4035afd547ef03ceb"
+    },
+    {
+      "id": "T11H",
+      "sha256": "5dcfaebe6a1eee2ab6e8d173845875847b3a25573b600c2deb6b946c9e1fbb7a"
+    },
+    {
+      "id": "T11C",
+      "sha256": "2a3639cdf349b3f43b632f0cdb38fd2d9c1ac86e5a3442ac970cb2c56bc7d309"
+    },
+    {
+      "id": "T11S",
+      "sha256": "107d808b9193222835ae266f3570c3f96fa30ffbca7c7c009d2abeb1d259dc76"
+    },
+    {
+      "id": "T11L",
+      "sha256": "bca220acf62a1bc3c15eb94f6ec751e61569f59b7223f25ff75a6e66d7bd8f5b"
+    },
+    {
+      "id": "P01",
+      "sha256": "a07add66f0dbe8263c9585a76de2740a42427790f482a4e91048947e0af37e53"
+    },
+    {
+      "id": "P02",
+      "sha256": "3d3f3ce1ed04db5ec11cc1204bfe62b5dfca2d5e7e573b76bf24c4c4c6bda96a"
+    },
+    {
+      "id": "O07",
+      "sha256": "69ba43b746eeb93cdef361b7d84d7abd35951668b7329483116d6ca0023ad35c"
+    },
+    {
+      "id": "O08",
+      "sha256": "6d42394c1a43e18c8abd166bd6b6e461c071f8c8c85864d56a2986c26f271046"
+    },
+    {
+      "id": "O11",
+      "sha256": "5ef7a1a90f4fb893912661c6e2d2b0e462ebcd17cd5aea4b053189c8ebf18bcb"
+    },
+    {
+      "id": "O13",
+      "sha256": "c7ee4bfed42b945bcf583ea3f58321017a5899215a0721a2109e183f8e443fc2"
+    },
+    {
+      "id": "O18",
+      "sha256": "a58dbc7c12af2a8bdeafc108f25ecba64734b76041a70aa3b4862e5bf1f67be1"
+    },
+    {
+      "id": "O19",
+      "sha256": "3ce04cbac87fe0b9e27c988c75d7d15d85800c28d41ad1ebf690b67ffc3fe311"
+    },
+    {
+      "id": "P03",
+      "sha256": "010c807f07f315b42716ca004ebdc2bf5e0c7703720d672aa319ac9e40efb8bb"
+    },
+    {
+      "id": "P04",
+      "sha256": "55fb5563ba6e776d58a1308a083292c7f07a005895051064038829607f4e1cd6"
+    },
+    {
+      "id": "P05",
+      "sha256": "23ecae5081ca84e601497179a3d2d36122ecfb12e7b8d9679db9070cf48df9d8"
+    },
+    {
+      "id": "P06",
+      "sha256": "caeaa43349b1997029c5a97ceac81c8a16b7f1552a5dc306b1b6b3e187cebcbc"
+    },
+    {
+      "id": "P07",
+      "sha256": "c4d114900e2dfbcc028c99a3ccd9d1c4a13d5151aa774770f24c81376d827453"
+    },
+    {
+      "id": "E01",
+      "sha256": "337b6fc657f84d9691592ecab241bf20fa3ffbef9b1f5394a8b5f40445caf267"
+    },
+    {
+      "id": "E02",
+      "sha256": "c7c9660fdc69b25422778e48c383c2154981f4a188af26d5811c703eb8dadfeb"
+    },
+    {
+      "id": "E03",
+      "sha256": "1a1b22b16271b33b5c4123a3707ef637f98a01058dac1cf4b8df5998b9c5f11a"
+    },
+    {
+      "id": "E04",
+      "sha256": "2503a504b4499e82c9c580809b21798bb624acad39a5ebf838b54f134dfc1178"
+    },
+    {
+      "id": "E05",
+      "sha256": "c3b88560e2747761979bf0c5682c2a2b7c2ae03334d972d1bfea4075b9669158"
+    },
+    {
+      "id": "E06",
+      "sha256": "2fd72a07815390e1d0600dccd247d2ef497aaaf068c8b3efa94974cb43cfbee7"
+    },
+    {
+      "id": "E07",
+      "sha256": "36ad899956af4761cb32fa5b4d21209debfae7bec69e3054c3cf5e64721ae8a9"
+    },
+    {
+      "id": "E08",
+      "sha256": "819e7489d075a4ec6eca26362eb02d987c4cd7b1fad04f62bdda63d697b4dadc"
+    },
+    {
+      "id": "E09",
+      "sha256": "c5781ed638d00bbcfd035647934a0a51784ae9ee30112cefee41d8cdd389d613"
+    },
+    {
+      "id": "U01",
+      "sha256": "6cf67a41057b8128c3540b3a6dbbda0cc888f96fbfaca0cdf9c7cd3a58dc3019"
+    },
+    {
+      "id": "U02",
+      "sha256": "f9bb88b8cea7c80c1c3b5348077afb2fdfa260861d1ef0b37e73e475b86a83bc"
+    },
+    {
+      "id": "U03",
+      "sha256": "aaad9a52d5e2e91f7f7e5c1ccb72abdfbfb94ac4d04b2b1ef566e9401fb57147"
+    },
+    {
+      "id": "Z01",
+      "sha256": "b5f76a798cef145725a152705a29ae739fcbb521ef3485f143fe90be9d2d32ec"
+    },
+    {
+      "id": "Z02",
+      "sha256": "e815476c486fd94a114b36af6582b204253df5fb5811d9f32783eed2ac0e5d2a"
+    },
+    {
+      "id": "Z03",
+      "sha256": "9384be1b5195cd0c49eab1e3eab4a1b3de8f06e90516127ad8ca1d8c24fd66e9"
+    },
+    {
+      "id": "Z04",
+      "sha256": "48953a5fbaea2a123333cb56b6c822c61c1fee3eb9259a2c48ed5bed8833141c"
+    },
+    {
+      "id": "Z05",
+      "sha256": "6146fd4753d3034503c41ad00f496a7ee0496df5800eb5d21e41e90cc1bd35b5"
+    },
+    {
+      "id": "Z06",
+      "sha256": "d1d33860f370ec0a93bcfe3ff9adb936ec02872065b577f6b9f127fda64fad9b"
+    },
+    {
+      "id": "Z07",
+      "sha256": "149f400cc1c16e6a531b2560e4728832257e46f1f44ed2d7b7972f0446655a49"
+    },
+    {
+      "id": "Z08",
+      "sha256": "ce97cd94234dc984357ca25fdfd9f1ccdad2ae29c8d593713b23a088036ac669"
+    },
+    {
+      "id": "Z09",
+      "sha256": "3cc72fb18a3b16fbaf764e88886cd75eef8568b2baff78e1cbaf44259d6bf139"
+    },
+    {
+      "id": "Z10",
+      "sha256": "a5757c2cc599b1738b70b9a4a226664e2bbe22e5efda7987aa840aee31e564cd"
+    },
+    {
+      "id": "Z11",
+      "sha256": "688666a3c69a0a3e9fd46b25af085830350055c0be5f6d6890b00642c0620489"
+    },
+    {
+      "id": "X01",
+      "sha256": "a8c7b23ddfd7e20cc934f25b2aa4016966f556d88245891f5d0351954378b1d8"
+    },
+    {
+      "id": "X02",
+      "sha256": "79a18e144b58983fc33c5fdcc5d50a6133faae46940376582da01c985ef784e6"
+    },
+    {
+      "id": "HCR",
+      "sha256": "85cc5081c83e480828063a3c5bb57161a02a9896d6c72887a2fb2abd38b78641"
+    },
+    {
+      "id": "R01",
+      "sha256": "71de3dc35cc9ea0c0e99297de9e5a19b28c121eab14e7dfa831eb6df6802f352"
+    },
+    {
+      "id": "R02",
+      "sha256": "d7abffa64783c355188e52262f805ed5424556627d3c1aa6f5ff28f36d0d2fce"
+    },
+    {
+      "id": "R03",
+      "sha256": "1d5f39cafd18d5f1b864918d8137482078daf87088a094430fb4d30f98c00889"
+    },
+    {
+      "id": "R04",
+      "sha256": "c8f49a9f259f024cdeb15a7eed360b29944386b2c7dc4ecd25e640a6dc3477cb"
+    },
+    {
+      "id": "R05",
+      "sha256": "897f4ff94d5cba6e083c121ebdb08262e4e061a8e847c8f647a1e7161b1fccf7"
+    },
+    {
+      "id": "X4-P01",
+      "sha256": "3cb4e8fb911cc7a54486428a9cb9075e6ab9b49bbc85827c78f62fed3f7888ac"
+    },
+    {
+      "id": "X4-P02",
+      "sha256": "ff2fd0d74eae396c425109603aa30b4eea87ba4fbd2814b3f57ea15dc5947be2"
+    },
+    {
+      "id": "X4-P03",
+      "sha256": "6c4ee99c96faa9d0a5dd6dca8b7baf25f9db386fe1492a6aa8fc2fbe7262f6be"
+    },
+    {
+      "id": "X4-P04",
+      "sha256": "cbfd9fc86f86ed8009ce36e5a4230b6a1caf70e86ed619434f0e680021b24821"
+    },
+    {
+      "id": "X4-P05",
+      "sha256": "463b5317c140d61ccb636994a9c6620d0fca259bf6ff0294dc74c6657a93e836"
+    },
+    {
+      "id": "X4-P06",
+      "sha256": "3a9d793c96399153db9ba088b923effe7c4674a2ff44b12ad748ee1b3e336e10"
+    },
+    {
+      "id": "X4-P07",
+      "sha256": "fa25808ed2daf71157275a39b00b6c0c84d32e5b2d3161d62e2e18580f365015"
+    },
+    {
+      "id": "X4-P08",
+      "sha256": "51d0a8e40fc616e96afc93f2664a0eae7a3e8fed1a3cb3d49a37153a8237507b"
+    },
+    {
+      "id": "X4-P09",
+      "sha256": "748c994529bc9fad143d17d6bd57cb2ae3ad2d335e615979c37607ca7e4b4c5d"
+    },
+    {
+      "id": "X4-P10",
+      "sha256": "0a56219251fadda335efea5cf9666dc20cf68e08fa458eafca14b8875040a58f"
+    },
+    {
+      "id": "X4-P11",
+      "sha256": "c60eed8fa480b41481f93faf8394521008cbec57fc1b0dd492ba8398b29a2658"
+    },
+    {
+      "id": "X4-P12",
+      "sha256": "5c624140d74a2c9a065a9d162e4f6a6bd12b13b624d09f85ed2fa6ae8f690dc1"
+    },
+    {
+      "id": "X4-P13",
+      "sha256": "261475432063c2c47072eacded01ddff300f29e6a8aa904e1c85fec3fc3d80ea"
+    },
+    {
+      "id": "X4-P14",
+      "sha256": "7995b870846c109438ff507766c63e0aa442cd5567d6cbd399528d2f3f204484"
+    },
+    {
+      "id": "X4-P15",
+      "sha256": "c7fd3d9be5bd3d1a983f261c5263130a829fae6cc6430599d71c072b46006ba0"
+    },
+    {
+      "id": "X4-P16",
+      "sha256": "fbef9f7608dde992aa97fb2a395ae6af4df141842d9fd3aa6d8b72c8a8eab3a3"
+    },
+    {
+      "id": "X4-P17",
+      "sha256": "04f85126d164650fde2728d3d552b3f17c0473149b323d3d5f790fd13dd439b4"
+    },
+    {
+      "id": "X4-P18",
+      "sha256": "62d3f187170ddff2c808cd415ae08908572eedf61f92e7294790bbc072515a52"
+    },
+    {
+      "id": "X4-P19",
+      "sha256": "350fe7d2813d587dbff2485703973ae9b7f7907bd9c363c0a05b9732048a4675"
+    },
+    {
+      "id": "X4-P20",
+      "sha256": "54ff4f6859d45e05beef67c3c3a562dfcea330df4933acbd7a04ce9f413b99c9"
+    },
+    {
+      "id": "X4-P21",
+      "sha256": "65c181b7bc5e559cc3e86e7b0ea526bbf4a70d2dab149f5f3e65a2a8d58d2175"
+    },
+    {
+      "id": "X4-S01",
+      "sha256": "76b0237754a29845cfa855e53b284d228b646f452f5b47145e4a901ffeb27c0e"
+    },
+    {
+      "id": "X4-S02",
+      "sha256": "f14c438963e8a965c151815c29f88bc96a3f97e3f9a69121a948d3bb8ac196ea"
+    },
+    {
+      "id": "X4-S03",
+      "sha256": "28717e7e8c3db52a7139ea800db45acb4d2e2c5cfcf1d98e7d22dff504b8617b"
+    },
+    {
+      "id": "X4-S04",
+      "sha256": "36512a63e41cda6aa6feb500fdca93d5b6ed5c76686a213c5e06516cae616ec7"
+    },
+    {
+      "id": "X4-S05",
+      "sha256": "b109a85458fcb2be8c0b28a031b1e7684a35e478a92651100a7a2267c5714bf2"
+    },
+    {
+      "id": "X4-N01",
+      "sha256": "eb627b17ed3a3269cb384fab6e60344582ea250a6b210025532ec7de4e7c1eb0"
+    },
+    {
+      "id": "X4-N02",
+      "sha256": "e4f448b6a8a4a7bc26b4e9bd6455296d4132bc5650dc98e63007a4186dfa07d5"
+    },
+    {
+      "id": "X4-R01",
+      "sha256": "3a9a5c897cbc01e32be8f04611dde820caf6d62cd3111157eb55fb7fe11c589d"
+    },
+    {
+      "id": "X4-R02",
+      "sha256": "3bd87bf47c5cbf150403b74886f5d8a13669a844a499b60177979bef2153b236"
+    },
+    {
+      "id": "X4-R03",
+      "sha256": "8aaffc20e84f76f22d60f72383bd67b1181c1cb81d5d9be18ae3d66f9a9ea582"
+    },
+    {
+      "id": "X4-R04",
+      "sha256": "cb787afa39abff182a447a685927471625cef4c7be1986b5be87df62a21ddac6"
+    },
+    {
+      "id": "X4-R05",
+      "sha256": "f5d2b9fb16e2af8d43ca90a0b446027c5435732bb9afe5822b9c6ffbfab1c111"
+    },
+    {
+      "id": "X4-R06",
+      "sha256": "b7b3e2b8d8531bc2f5c2947ec716a43d4b768e1ec53b7478186f67e5b8ae54eb"
+    },
+    {
+      "id": "X4-R07",
+      "sha256": "36d16692d7cd5118aaad976afdd76f595bb05649486f2b1ad91946bee8d6ebc7"
+    },
+    {
+      "id": "X4-R08",
+      "sha256": "1b22e6d3d2dbb42de6b08c841a70c103004ac722571ca103bedd09ca7e0b9341"
+    },
+    {
+      "id": "B01-R1-repeat",
+      "sha256": "a7664e3a8d9b3d75117df68c2226cfa53bbbafd365f8f233437f7e797e094ab2"
+    },
+    {
+      "id": "B01-R2-cr",
+      "sha256": "980d66b7cecddf9dd22bcd1eb9eea664dc9af643e70678c6eff9cb797d736f45"
+    },
+    {
+      "id": "B01-R3-space",
+      "sha256": "f72075963b5bd5e3b1b80a6563d20981c9fc5dab70eeed01bcc6a1b39f251c65"
+    },
+    {
+      "id": "B01-R3-plus-control",
+      "sha256": "92476371a4f2b78e7c93b0376e99e99f20477ee7de2ff429be78d5a21d0defa0"
+    },
+    {
+      "id": "B01-R4-start-length",
+      "sha256": "18fd231c939df29897bde90325b995cf25446fab4fcea3dc72642c91bf40aa25"
+    },
+    {
+      "id": "B01-R4-index-one",
+      "sha256": "5ea09d5529142dd0f4b40926f66471e05656531ca4361983d8ae697d16845095"
+    },
+    {
+      "id": "B01-R4-header-column",
+      "sha256": "e9399cfd7f47cf626a5d94f22d6b92495a5c12fb59392d6e30c82fc495790837"
+    },
+    {
+      "id": "B01-R5-interior",
+      "sha256": "1080215c4c71849d4dc11db999a68a72e12182373cc76a3c4be41afa78c97e33"
+    },
+    {
+      "id": "B01-R5-trailing",
+      "sha256": "3dd66408475817897562a8d31eaed951b2c81ebf8588823f6eddb972699bfebc"
+    },
+    {
+      "id": "B01-R5-empty-whole",
+      "sha256": "0e3a144fbf4b94dac5b187d4bd8f157e2db30a1a0d400273bd5e9763114ef837"
+    },
+    {
+      "id": "B01-R6-L-range",
+      "sha256": "0602f69524525d2863fb7087bab7f65b9dc0e28d103afd2a427152b26381f74a"
+    },
+    {
+      "id": "B01-R6-I-range",
+      "sha256": "356a8021feeb7ae862503fd052d03983a877d52273682c7e5c38af616ea662d0"
+    },
+    {
+      "id": "B01-R6-L-I",
+      "sha256": "88aba16facc2c8b5af0ef35aadd90091aa3626457c08f05864007a9241a12442"
+    },
+    {
+      "id": "B01-R7-invalid-plural",
+      "sha256": "6f0b47b4ae160978a4e6f548a8a9ab2ab7556a0f023282011c685098f122d76f"
+    }
+  ],
+  "executionDocumentsSha256": "0cd441e42418e9e9f26d0496a4e644a70ecaa4b3af29129b229b0197dcc5b7e0",
+  "prior88": [
+    {
+      "id": "T01H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T01H/P0",
+      "expectedSha256": "4ecb373a1f9f468b2e784bd8f356132d39d7ea9317d647bb869ba08ac856c8de",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T01C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T01C/P0",
+      "expectedSha256": "8ca7eb88b81e05effc37a4f27f604b742e04c0f25bd9e1bae7618394b651baca",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T01S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T01S/P0",
+      "expectedSha256": "47b942c7aa3acb3332e7b8c0e697b9bbdf9555b8a0826d703c9909a82d12cbea",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T01L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T01L/P0",
+      "expectedSha256": "47b942c7aa3acb3332e7b8c0e697b9bbdf9555b8a0826d703c9909a82d12cbea",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T02H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T02H/P0",
+      "expectedSha256": "4ecb373a1f9f468b2e784bd8f356132d39d7ea9317d647bb869ba08ac856c8de",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T02C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T02C/P0",
+      "expectedSha256": "96c876446f4eb58a63f627651c067c16ad8010e9ee9963b972ba545b3649bf0c",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T02S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T02S/P0",
+      "expectedSha256": "65738b07d8216af578e98fb380e1e66bf5df35f934db85fb8fab22bd85d4afdf",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T02L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T02L/P0",
+      "expectedSha256": "684738bf2bf23ffec64dd0a574cd4ec0bd7b47021f9c6111003b36c813006e2a",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T03H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T03H/P0",
+      "expectedSha256": "4ecb373a1f9f468b2e784bd8f356132d39d7ea9317d647bb869ba08ac856c8de",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T03C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T03C/P0",
+      "expectedSha256": "8ca7eb88b81e05effc37a4f27f604b742e04c0f25bd9e1bae7618394b651baca",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T03S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T03S/P0",
+      "expectedSha256": "47b942c7aa3acb3332e7b8c0e697b9bbdf9555b8a0826d703c9909a82d12cbea",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T03L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T03L/P0",
+      "expectedSha256": "47b942c7aa3acb3332e7b8c0e697b9bbdf9555b8a0826d703c9909a82d12cbea",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T04H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T04H/P0",
+      "expectedSha256": "314904ceeed8800dff91205c49004a60ce2c1e848e434c87e1caadb4399644bf",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T04C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T04C/P0",
+      "expectedSha256": "81a5a190c69f3b2146c7823be914d5e2d7275b56cd80a53b17e5d85eab16ad49",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T04S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T04S/P0",
+      "expectedSha256": "fd7ac24251a8123d8f440fcc7e76bc5336191ce74fd1f628ab709c6e690f044d",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T04L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T04L/P0",
+      "expectedSha256": "fd7ac24251a8123d8f440fcc7e76bc5336191ce74fd1f628ab709c6e690f044d",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "T05H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T05H/P0",
+      "expectedSha256": "5d323d7c56f375e6aa526c8ac055da326d750d0ef773f5aadcd7831df7912e35",
+      "families": [
+        "F02",
+        "F12"
+      ]
+    },
+    {
+      "id": "T05C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T05C/P0",
+      "expectedSha256": "81a5a190c69f3b2146c7823be914d5e2d7275b56cd80a53b17e5d85eab16ad49",
+      "families": [
+        "F02",
+        "F12"
+      ]
+    },
+    {
+      "id": "T05S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T05S/P0",
+      "expectedSha256": "d33ba1bf53b5bd4de20da6c2853c7e8d6eb861ddc50502c32bd2f282f4ca4420",
+      "families": [
+        "F02",
+        "F12"
+      ]
+    },
+    {
+      "id": "T05L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T05L/P0",
+      "expectedSha256": "e59e20552a9542137d4b1e0880758e3438acf65bfddf601c804c932ab952765e",
+      "families": [
+        "F02",
+        "F12"
+      ]
+    },
+    {
+      "id": "T06H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T06H/P0",
+      "expectedSha256": "85dacb2ceb2612e50821caf43ceb1ffdce21f130710ddaed7439b19476b61012",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T06C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T06C/P0",
+      "expectedSha256": "81a5a190c69f3b2146c7823be914d5e2d7275b56cd80a53b17e5d85eab16ad49",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T06S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T06S/P0",
+      "expectedSha256": "bd2d47ce86b5a6b6d244b919bba8c74a79394277e76230eaaa4de2542e1ede7b",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T06L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T06L/P0",
+      "expectedSha256": "875b85876e522759b2c2a54e296ad4c3ca39acde1ee94d21ac9e459b8be079a0",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T07H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T07H/P0",
+      "expectedSha256": "4ecb373a1f9f468b2e784bd8f356132d39d7ea9317d647bb869ba08ac856c8de",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T07C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T07C/P0",
+      "expectedSha256": "8ca7eb88b81e05effc37a4f27f604b742e04c0f25bd9e1bae7618394b651baca",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T07S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T07S/P0",
+      "expectedSha256": "e55207543a9e166b62e32837a86ffe70c5530c43af7fd2edb4c6e151266719db",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T07L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T07L/P0",
+      "expectedSha256": "1ef007a9693514c455783b7fc56172afc650700e2afa8a674e1658d694deaee6",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T08H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T08H/P0",
+      "expectedSha256": "4ecb373a1f9f468b2e784bd8f356132d39d7ea9317d647bb869ba08ac856c8de",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T08C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T08C/P0",
+      "expectedSha256": "8ca7eb88b81e05effc37a4f27f604b742e04c0f25bd9e1bae7618394b651baca",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T08S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T08S/P0",
+      "expectedSha256": "e55207543a9e166b62e32837a86ffe70c5530c43af7fd2edb4c6e151266719db",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T08L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T08L/P0",
+      "expectedSha256": "1ef007a9693514c455783b7fc56172afc650700e2afa8a674e1658d694deaee6",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T09H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T09H/P0",
+      "expectedSha256": "4ecb373a1f9f468b2e784bd8f356132d39d7ea9317d647bb869ba08ac856c8de",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T09C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T09C/P0",
+      "expectedSha256": "8ca7eb88b81e05effc37a4f27f604b742e04c0f25bd9e1bae7618394b651baca",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T09S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T09S/P0",
+      "expectedSha256": "2d2459a5872b34cd53bd01e2b5eca633da29324ba07aa48f8e37ada73640c637",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T09L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T09L/P0",
+      "expectedSha256": "2d2459a5872b34cd53bd01e2b5eca633da29324ba07aa48f8e37ada73640c637",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T10H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T10H/P0",
+      "expectedSha256": "fd7ac24251a8123d8f440fcc7e76bc5336191ce74fd1f628ab709c6e690f044d",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T10C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T10C/P0",
+      "expectedSha256": "96c876446f4eb58a63f627651c067c16ad8010e9ee9963b972ba545b3649bf0c",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T10S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T10S/P0",
+      "expectedSha256": "3108ea8e84d02651435b4148c1bc5b99f0ede3d59ed50de9db634fe50a64095d",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T10L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T10L/P0",
+      "expectedSha256": "3108ea8e84d02651435b4148c1bc5b99f0ede3d59ed50de9db634fe50a64095d",
+      "families": [
+        "F02",
+        "F07"
+      ]
+    },
+    {
+      "id": "T11H",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T11H/P0",
+      "expectedSha256": "4698121cec32d7115e876f6174e6449f760e02354c43c87c5b0088c818ad3f9e",
+      "families": [
+        "F02",
+        "F12"
+      ]
+    },
+    {
+      "id": "T11C",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T11C/P0",
+      "expectedSha256": "96c876446f4eb58a63f627651c067c16ad8010e9ee9963b972ba545b3649bf0c",
+      "families": [
+        "F02",
+        "F12"
+      ]
+    },
+    {
+      "id": "T11S",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T11S/P0",
+      "expectedSha256": "217daa6820dd605d23fd9c767bb617927066eafb6434497d15602c34e41b4a03",
+      "families": [
+        "F02",
+        "F12"
+      ]
+    },
+    {
+      "id": "T11L",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "T11L/P0",
+      "expectedSha256": "99b11cafb7feacf7eeb184bd5ee149c7b3ff072710dd696d288861daa4e5aaff",
+      "families": [
+        "F02",
+        "F12"
+      ]
+    },
+    {
+      "id": "P01",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "P01/P0",
+      "expectedSha256": "79af317661b5e676a0129a4c9af39106394a55b2477160019acaed870b4cafed",
+      "families": [
+        "F01",
+        "F04"
+      ]
+    },
+    {
+      "id": "P02",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "P02/P0",
+      "expectedSha256": "6fd22e19f012fdecb191a4491943d7e8b4e4acd76f55d3bb173ea45f7f9570c0",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "O07",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "O07/P0",
+      "expectedSha256": "971f332ae23279c788fb4903e255a639e4963ddddb97b348e7cd9d94aa7b2a3d",
+      "families": [
+        "F04",
+        "F09",
+        "F10"
+      ]
+    },
+    {
+      "id": "O08",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "O08/P0",
+      "expectedSha256": "36878bb282bb2181841c3e62a5153ff09ec9ec3eca97a733ffa7708b5644a065",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "O11",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "O11/P0",
+      "expectedSha256": "6581dbdd34c956333cc932520fbdc567f55f79d891a976ccbeadfca62f0c14ea",
+      "families": [
+        "F01"
+      ]
+    },
+    {
+      "id": "O13",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "O13/P0",
+      "expectedSha256": "6581dbdd34c956333cc932520fbdc567f55f79d891a976ccbeadfca62f0c14ea",
+      "families": [
+        "F02"
+      ]
+    },
+    {
+      "id": "O18",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "O18/P0",
+      "expectedSha256": "437d3711e347b92da04014ffb8c354ac5e3d034e615a359f81a152c3a11b31fe",
+      "families": [
+        "F12"
+      ]
+    },
+    {
+      "id": "O19",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "O19/P0",
+      "expectedSha256": "4050fef3a572806f23822b72b471dd8f50cac530979bac30e5c5f9d4e781ca73",
+      "families": [
+        "F02",
+        "F05"
+      ]
+    },
+    {
+      "id": "P03",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "P03/P0",
+      "expectedSha256": "404a3c94d25bb0edbe50d94c15b817a12c02164aa8218cc44be1822ae47ec61e",
+      "families": [
+        "F05"
+      ]
+    },
+    {
+      "id": "P04",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "P04/P0",
+      "expectedSha256": "424d3b997c566555e7c98aeeec4514fd5f77776e5678abe93df960d936069d17",
+      "families": [
+        "F05"
+      ]
+    },
+    {
+      "id": "P05",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "P05/P0",
+      "expectedSha256": "fec9dfd98a3c793380acf70c4139db4f945e2faa930826d6fe3d909284afe685",
+      "families": [
+        "F05"
+      ]
+    },
+    {
+      "id": "P06",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "P06/P0",
+      "expectedSha256": "9600647b80ebe2d68dfc7dd84b8636f92b4495922f63c3ce4d6ee616ee84fadc",
+      "families": [
+        "F05"
+      ]
+    },
+    {
+      "id": "P07",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "P07/P0",
+      "expectedSha256": "0d18ab2bb4a4a9960819b2d857d0b99a249aa5f706bb9082de849db01ebc7f79",
+      "families": [
+        "F05",
+        "F04"
+      ]
+    },
+    {
+      "id": "E01",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E01/P0",
+      "expectedSha256": "6c6c3b461557038b33e89eaed0ae8a698bbff950366df4611faf47cf671f2bd5",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "E02",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E02/P0",
+      "expectedSha256": "314904ceeed8800dff91205c49004a60ce2c1e848e434c87e1caadb4399644bf",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "E03",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E03/P0",
+      "expectedSha256": "81a5a190c69f3b2146c7823be914d5e2d7275b56cd80a53b17e5d85eab16ad49",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "E04",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E04/P0",
+      "expectedSha256": "fd7ac24251a8123d8f440fcc7e76bc5336191ce74fd1f628ab709c6e690f044d",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "E05",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E05/P0",
+      "expectedSha256": "6c6c3b461557038b33e89eaed0ae8a698bbff950366df4611faf47cf671f2bd5",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "E06",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E06/P0",
+      "expectedSha256": "fd7ac24251a8123d8f440fcc7e76bc5336191ce74fd1f628ab709c6e690f044d",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "E07",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E07/P0",
+      "expectedSha256": "6c6c3b461557038b33e89eaed0ae8a698bbff950366df4611faf47cf671f2bd5",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "E08",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E08/P0",
+      "expectedSha256": "910a46ac29d09c369acefff2b2ae89410c51ae5bfcd4c747ccf64224eb1e20f3",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "E09",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "E09/P0",
+      "expectedSha256": "728fe91ef84e2df3adfc3bc674fd7b30a31263446d8e3e674fcb7e67886687a4",
+      "families": [
+        "F04"
+      ]
+    },
+    {
+      "id": "U01",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "U01/P0",
+      "expectedSha256": "b0e3182a410f0e131b30c0421478c93091f30b341ece7165395649903bfff956",
+      "families": [
+        "F02",
+        "F03"
+      ]
+    },
+    {
+      "id": "U02",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "U02/P0",
+      "expectedSha256": "69faa42dffba380d6e06356b7c5e69ee4c84bb2766eec70d8a74309623661f12",
+      "families": [
+        "F02",
+        "F03"
+      ]
+    },
+    {
+      "id": "U03",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "U03/P0",
+      "expectedSha256": "9aa9f0efc874ae9d3b2515ce06dbe01fe1dc40ef6b09c907dfc630ab4492d842",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "Z01",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z01/P0",
+      "expectedSha256": "2a7b1b51e31b930e81365dcf7146adc858f68a173143fad5dabaac1f0d8855a4",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z02",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z02/P0",
+      "expectedSha256": "6c6c3b461557038b33e89eaed0ae8a698bbff950366df4611faf47cf671f2bd5",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z03",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z03/P0",
+      "expectedSha256": "b84acdfbdd023614fc844beaeff4aa772c7cd8dc776911669c0eb828c046a5d9",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z04",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z04/P0",
+      "expectedSha256": "eaadf36da966d1ccf603db1daf3c5ffdf3e3aafc90f8bc0c6523fe2e3f4728d8",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z05",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z05/P0",
+      "expectedSha256": "eaadf36da966d1ccf603db1daf3c5ffdf3e3aafc90f8bc0c6523fe2e3f4728d8",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z06",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z06/P0",
+      "expectedSha256": "b84acdfbdd023614fc844beaeff4aa772c7cd8dc776911669c0eb828c046a5d9",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z07",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z07/P0",
+      "expectedSha256": "72faf9ba2a993dc501d5cbd03a226201bab8a4499b02210dae7bb83ab70aa545",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z08",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z08/P0",
+      "expectedSha256": "eaadf36da966d1ccf603db1daf3c5ffdf3e3aafc90f8bc0c6523fe2e3f4728d8",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z09",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z09/P0",
+      "expectedSha256": "71dc788353f7d11822cb9182c387f284714c011344d726b15e4d958cabb58d2d",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "Z10",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z10/P0",
+      "expectedSha256": "6d423c7d2af047710877ccc3cab431b30e54d71bf1c603b5a4eeec43f434db7a",
+      "families": [
+        "F06",
+        "F07",
+        "F10"
+      ]
+    },
+    {
+      "id": "Z11",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "Z11/P0",
+      "expectedSha256": "2965d9c9eb4d3e237c9f6d9a58546aafac56983db553d99de0e58f3c0716327c",
+      "families": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "X01",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "X01/P0",
+      "expectedSha256": "c18d55dd0e9d18a435a2f6e2ad95500162938aff580ba4ad4f04174a182d511c",
+      "families": [
+        "F12",
+        "F10"
+      ]
+    },
+    {
+      "id": "X02",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "X02/P0",
+      "expectedSha256": "f13fd60c4a3026b436914cad440a91d1aabb02ec4f398891f913aa36105ad5d8",
+      "families": [
+        "F05",
+        "F12"
+      ]
+    },
+    {
+      "id": "HCR",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "HCR/P0",
+      "expectedSha256": "2a7b1b51e31b930e81365dcf7146adc858f68a173143fad5dabaac1f0d8855a4",
+      "families": [
+        "F02",
+        "F04"
+      ]
+    },
+    {
+      "id": "R01",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "R01/P0",
+      "expectedSha256": "9f81624b21f5fd0b779a78186f2958ffb73fd192de0f4faff4ea4e949f96e668",
+      "families": [
+        "F12"
+      ]
+    },
+    {
+      "id": "R02",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "R02/P0",
+      "expectedSha256": "291f6bc63f2482372efe2a7f57e0fefb70c06acd3edd04f4265acf98a63c32a2",
+      "families": [
+        "F12"
+      ]
+    },
+    {
+      "id": "R03",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "R03/P0",
+      "expectedSha256": "aedce1a6ae7e5f286c48189fcdee07877325da917c23f4df62287106abb5fe48",
+      "families": [
+        "F12"
+      ]
+    },
+    {
+      "id": "R04",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "R04/P0",
+      "expectedSha256": "7910b4f6f7bffed172958be9a1559a2d77022547c3cfd8cbbd4152a92739de29",
+      "families": [
+        "F12"
+      ]
+    },
+    {
+      "id": "R05",
+      "assertion": "cases.mjs:assertCase",
+      "scenario": "R05/P0",
+      "expectedSha256": "bcd7b6f533a2ddb172be3eab73069b18e1377585acd42dcafef940af25980df4",
+      "families": [
+        "F12"
+      ]
+    }
+  ],
+  "selectors": {
+    "valid": 21,
+    "S": 5,
+    "N": 2,
+    "R": 8
+  },
+  "contextualMatchers": [
+    "U03",
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "X4-S01",
+    "X4-S02",
+    "X4-S03",
+    "X4-S04",
+    "X4-S05",
+    "X4-N01",
+    "X4-N02",
+    "X4-R01",
+    "X4-R02",
+    "X4-R03",
+    "X4-R04",
+    "X4-R05",
+    "X4-R06",
+    "X4-R07",
+    "X4-R08",
+    "B01-R1-repeat",
+    "B01-R2-cr",
+    "B01-R3-space",
+    "B01-R4-start-length",
+    "B01-R4-index-one",
+    "B01-R4-header-column",
+    "B01-R5-interior",
+    "B01-R6-L-range",
+    "B01-R6-I-range",
+    "B01-R6-L-I",
+    "B01-R7-invalid-plural"
+  ],
+  "actualProductCasesExecuted": 0
+}

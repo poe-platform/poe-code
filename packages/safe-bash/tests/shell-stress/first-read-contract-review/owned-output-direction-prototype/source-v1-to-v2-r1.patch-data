@@ -1,0 +1,142 @@
+--- a/src/commands/network/body.ts
++++ b/src/commands/network/body.ts
+@@ -16,6 +16,7 @@
+ 
+ export interface RequestBody {
+   readonly contentType?: string;
++  readonly usesStdin?: boolean;
+   open(signal: AbortSignal): ByteSource;
+ }
+ 
+@@ -116,6 +117,7 @@
+     }
+   };
+   return {
++    usesStdin: hasStdin,
+     ...(contentType === undefined ? {} : { contentType }),
+     open(signal) {
+       return (async function* (): ByteSource {
+--- a/src/commands/network/curl.ts
++++ b/src/commands/network/curl.ts
+@@ -1,6 +1,6 @@
+ import { posix } from "node:path";
+ import { setImmediate } from "node:timers/promises";
+-import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
++import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type OutputOperation } from "../../contracts/index.js";
+ import { pathOf } from "../internal.js";
+ import { parseArguments, type CurlArguments } from "./args.js";
+ import { createBody, queryData } from "./body.js";
+@@ -112,8 +112,12 @@
+   const timeout = setTimeout(() => lifetime.abort(new CurlError(28, "Operation timed out")), args.maxTimeMs);
+   const transferSignal = AbortSignal.any([context.signal, lifetime.signal]);
+   const hasFileOutput = args.remoteName || args.output !== undefined && args.output !== "-" || args.dumpHeader !== undefined && args.dumpHeader !== "-";
+-  const operation = createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
+-  const signal = operation.signal;
++  let operation: OutputOperation | undefined;
++  let signal = transferSignal;
++  const borrowed: ByteSource = { [Symbol.asyncIterator]() {
++    const iterator = context.stdin[Symbol.asyncIterator]();
++    return { next: () => iterator.next() };
++  } };
+   const start = performance.now();
+   let response: HttpResponse | undefined;
+   let failure: CurlError | undefined;
+@@ -135,10 +139,18 @@
+     } finally { await writing.close(); }
+   };
+   try {
++    let body: ReturnType<typeof createBody>;
++    let bodyFailure: { error: unknown } | undefined;
++    try { body = createBody({ ...context, stdin: borrowed }, args, limits); }
++    catch (error) { bodyFailure = { error }; }
++    if (format !== "@-" && !body?.usesStdin) {
++      operation = createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
++      signal = operation.signal;
++    }
+     if (format?.startsWith("@")) {
+       try {
+         const bytes = format === "@-"
+-          ? await collectBytes(context.stdin, { signal, maxBytes: limits.maxBufferBytes })
++          ? await collectBytes(borrowed, { signal, maxBytes: limits.maxBufferBytes })
+           : await withSignal(() => context.fs.readFile(pathOf(context, format!.slice(1)), { signal, maxBytes: limits.maxBufferBytes }), signal);
+         format = Buffer.from(bytes).toString("utf8");
+       } catch { signal.throwIfAborted(); throw new CurlError(26, "Failed reading write-out format"); }
+@@ -146,7 +158,11 @@
+     if (format !== undefined) { writeOutFormat(format, values); formatReady = true; }
+     const parsed = parseUrl(input, args.globoff);
+     const initial = parsed.url;
+-    let body = createBody(context, args, limits);
++    if (bodyFailure) throw bodyFailure.error;
++    if (body?.usesStdin) {
++      const bytes = await collectBytes(body.open(signal), { signal, maxBytes: limits.maxUploadBytes });
++      body = { ...(body.contentType === undefined ? {} : { contentType: body.contentType }), open: () => toByteSource(bytes) };
++    }
+     if (args.get && body) {
+       const query = await queryData(body, signal, limits);
+       if (/[^\x21-\x7e]/.test(query)) throw new CurlError(3, "GET data must be URL encoded");
+@@ -161,6 +177,8 @@
+     }
+     const initialMethod = args.method ?? (args.head ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET");
+     requestHeaders(args, body?.contentType, args.user ?? parsed.user, true, limits.maxHeaderBytes);
++    operation ??= createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
++    signal = operation.signal;
+     for (let attempt = 0; attempt <= args.retries; attempt++) {
+       values.num_retries = String(attempt);
+       downloaded = 0;
+@@ -188,7 +206,7 @@
+         })();
+         response = await operation.acquire(async () => {
+           const acquired = await transport({ url: current.href, method, headers, signal,
+-            registerCleanup: operation.registerCleanup, ...(upload ? { body: upload } : {}) });
++            registerCleanup: operation!.registerCleanup, ...(upload ? { body: upload } : {}) });
+           let cleanup: Promise<void> | undefined;
+           return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };
+         }, result => result.dispose());
+@@ -286,7 +304,7 @@
+     else failure = signal.aborted && signal.reason instanceof CurlError ? signal.reason : networkError(error);
+   } finally {
+     clearTimeout(timeout);
+-    await operation.close();
++    await operation?.close();
+     lifetime.abort();
+   }
+   values.size_download = String(downloaded);
+--- a/src/contracts/output.ts
++++ b/src/contracts/output.ts
+@@ -4,6 +4,7 @@
+ export interface OutputOperation {
+   readonly signal: AbortSignal;
+   readonly output: ByteSink;
++  child(destination: ByteSink): OutputOperation;
+   registerCleanup(cleanup: InvocationCleanup): void;
+   acquire<Value>(start: (signal: AbortSignal) => Value | Promise<Value>, release: (resource: Value) => void | Promise<void>): Promise<Value>;
+   close(): Promise<void>;
+@@ -14,6 +15,7 @@
+   const signal = controller.signal;
+   const capability = destination.ownedOutput;
+   const callbacks: InvocationCleanup[] = [];
++  const children: OutputOperation[] = [];
+   const closedReason = new Error("Output operation is closed");
+   let accepting = true;
+   let drain: Promise<void> | undefined;
+@@ -33,6 +35,7 @@
+       if (failures.length) throw new AggregateError(failures, "Output operation cleanup failed");
+     });
+     void drain.catch(() => {});
++    for (const child of children) void child.close().catch(() => {});
+     return drain;
+   };
+   const abort = (reason: unknown): void => {
+@@ -74,6 +77,12 @@
+       },
+     },
+     registerCleanup,
++    child(destination) {
++      assertOpen();
++      const child = createOutputOperation({ signal, registerCleanup }, destination);
++      children.push(child);
++      return child;
++    },
+     async acquire(start, release) {
+       assertOpen();
+       let resource: { value: Awaited<ReturnType<typeof start>> } | undefined;

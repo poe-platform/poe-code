@@ -1,0 +1,221 @@
+{
+  "schema": "independent-bridge-repair-final-bindings-v1",
+  "disposition": "HOLD_F05_VERIFIER_CONTRADICTION",
+  "sourceCommit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+  "authorEvidence": "7b269a291d9fdc76e0760d36446d937e54060757",
+  "independentPreseal": "a63988b21970a5e648ab1d35ba615ce800216f56",
+  "reviewSha256": "63ae68d441ef8e0b01a30468ce554746629370855b59b5f4a9cfe7d46ccfc507",
+  "qualified": 20,
+  "checks": 21,
+  "failures": [
+    "P06"
+  ],
+  "unscoredDiagnostics": 3,
+  "unrunChecks": 0,
+  "children": 11,
+  "naturalChildren": 7,
+  "subjectSigtermChildren": 4,
+  "reviewerRescue": 0,
+  "unsafe": false,
+  "elapsedMs": 2121,
+  "cleanup": {
+    "scratchAbsent": true,
+    "knownChildrenClosed": true
+  },
+  "engineEvaluations": 0,
+  "workerReview": false,
+  "files": [
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/README.md",
+      "bytes": 5737,
+      "mode": 420,
+      "sha256": "4bbcc69b6f5e0e8de87021698ecd088bc566cacd928a14e889a29f8e778f9daf"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/REVIEW.json",
+      "bytes": 1317,
+      "mode": 420,
+      "sha256": "63ae68d441ef8e0b01a30468ce554746629370855b59b5f4a9cfe7d46ccfc507"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/AUTHORIZATION-STATUS.json",
+      "bytes": 457,
+      "mode": 420,
+      "sha256": "1eaff692e9983b6bc45e662bd2a20ecd876265e722f41d5efd26d20e69acf2db"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/PRESEAL.json",
+      "bytes": 3770,
+      "mode": 420,
+      "sha256": "b717a19a5170c096010ca74314ae8060761d324e5c6058745c42f4b20db7557a"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/launch.stdout.raw",
+      "bytes": 528,
+      "mode": 420,
+      "sha256": "d0899aa04850fc86991490adf985bd9abbef85b840da48e426d64d41b5da524c"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/launch.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/CAPTURE.json.gz.base64",
+      "bytes": 9973,
+      "mode": 384,
+      "sha256": "8c5975672aea1b2f94236c3a8a1aed0d53be08ec2e8ad67a9afbc3e750f3f5b1"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/REPORT.json",
+      "bytes": 143434,
+      "mode": 384,
+      "sha256": "eee109c86082c7b9b77a16ee785088c38fcbf139823cb0269f42d59ded4f4ec3"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/L01.json",
+      "bytes": 1474,
+      "mode": 384,
+      "sha256": "cd7b2536ca2a573ec8a1e99625a2753bea85832fb30362ce8cd9d1a8f05322fc"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/L02.json",
+      "bytes": 3035,
+      "mode": 384,
+      "sha256": "3f7410c7d0053586e3ebd7e63fdf68213756dce24c87f937d54fa5b83c96ad76"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/L03.json",
+      "bytes": 1531,
+      "mode": 384,
+      "sha256": "43e1de4f353cb0e0ae158a09b4a461b363b97363e602dd95cec155df0968f5e0"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/L04.json",
+      "bytes": 2090,
+      "mode": 384,
+      "sha256": "0e63038770738d6f949062f85df7b6f4799227ac1a7ccfa7d9ee3a2f1920722c"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/L05.json",
+      "bytes": 3226,
+      "mode": 384,
+      "sha256": "8e0d97bf42c2220ad8b1af1524643efa42d987e62378c64ae7be34c3824fd75c"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/P01.json",
+      "bytes": 1937,
+      "mode": 384,
+      "sha256": "5b20e335b559992ef7727dd485312eb843f48a08092a85174c47d47464b6bc54"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/P02.json",
+      "bytes": 2752,
+      "mode": 384,
+      "sha256": "44a5fcb6fc20daf6fb3730622ca7ba50f528f1a8a4e9a8e1def967d426d3ab63"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/P03.json",
+      "bytes": 2647,
+      "mode": 384,
+      "sha256": "77b5a117e36ce08f4badc63a602bda871856505fcad9d27b90f56233b29b2392"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/P04.json",
+      "bytes": 2765,
+      "mode": 384,
+      "sha256": "6fb8aa985d3fa181342e60b135a006c9c7fdb533756aef1ec6ea6b061bd93ed3"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/P05.json",
+      "bytes": 3055,
+      "mode": 384,
+      "sha256": "09b386e4fb44ef0cc6c3a929e74a0f546361d6da21f94f4397137bb8ef5a251b"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/P06.json",
+      "bytes": 3397,
+      "mode": 384,
+      "sha256": "d313ab40263b6415379d7804fbc59f9ed147f4fa41b85b56a7418ec9d3ec1983"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D01.json",
+      "bytes": 878,
+      "mode": 384,
+      "sha256": "2613ad0b3667cfc33dd3a34903cce1d2c000dc9740530371b5a28e72d004ae2e"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D02.json",
+      "bytes": 917,
+      "mode": 384,
+      "sha256": "3752187c1e397534dcecd2adf50915b8c0516fd7ea122550378c8f54bbcc2e71"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D03.json",
+      "bytes": 791,
+      "mode": 384,
+      "sha256": "d7f66101c409d10c631691092762ba0ff5798bf03d097880f66139966c40114c"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D04.json",
+      "bytes": 791,
+      "mode": 384,
+      "sha256": "6767d637098b24a54b64691bd28a67f9d70d2933108bc6233fd270fd0c8e0f25"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D05.json",
+      "bytes": 791,
+      "mode": 384,
+      "sha256": "bc5dc5e9f729d3f3d7b7de885180d9ccb6ade305c980ec40db567c84ce101190"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D06.json",
+      "bytes": 804,
+      "mode": 384,
+      "sha256": "71327702adaf63bba532ee2af8e06d9643bf8ddae33c5fefbb0fe74641c76620"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D07.json",
+      "bytes": 754,
+      "mode": 384,
+      "sha256": "a4057a6f9e74731d2bb5ee17f6fa4eb4ae0191f7bf4046b944027cdb855036ea"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D08.json",
+      "bytes": 804,
+      "mode": 384,
+      "sha256": "48a2b5a5a901ad5032fd829110ce581ae4d5313c1b6b51ff688ce7a877538687"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D09.json",
+      "bytes": 790,
+      "mode": 384,
+      "sha256": "556010ac92497b97a594149722da6b17a92be724aad588b6d3d084bf4732c8c0"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/D10.json",
+      "bytes": 1083,
+      "mode": 384,
+      "sha256": "91a01e86ee53c47708a827b3d1494b719d090c42ca5537ea2e50a5e870298d8b"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/N01.json",
+      "bytes": 264,
+      "mode": 384,
+      "sha256": "6db3241ab8efcf168d96ab7711cd0d88875b28158cf13366de2c4c03e393c2d2"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/N02.json",
+      "bytes": 184,
+      "mode": 384,
+      "sha256": "1a472431ed05a1e14b8a2e75c0b55ad067075cc36ab229de9c4c39e4985af5f3"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/N03.json",
+      "bytes": 873,
+      "mode": 384,
+      "sha256": "dbb5930b2e6f992f2ac67cd96f94f0b41b4ceedc9add604e28c8d331018cee52"
+    }
+  ]
+}

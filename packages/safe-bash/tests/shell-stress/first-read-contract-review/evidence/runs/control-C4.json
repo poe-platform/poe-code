@@ -1,0 +1,34 @@
+{
+  "label": "control-C4",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/controls.mjs",
+    "C4"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/.scratch/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T09:18:57.692Z",
+  "finishedAt": "2026-08-27T09:18:57.783Z",
+  "durationMs": 90.09787500000004,
+  "timeoutMs": 3000,
+  "maxBytes": 65536,
+  "pid": 36829,
+  "initialIdentity": "36829 36599 36829 Thu Aug 27 04:18:57 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/controls.mjs C4",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"scenario\":\"C4\",\"verdict\":\"PASS\",\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"exitCode\":0,\"effect\":\"kept\"},\"cleanup\":1,\"reads\":0,\"events\":[{\"order\":1,\"value\":\"middleware.enter:set\"},{\"order\":2,\"value\":\"middleware.finally:set\"},{\"order\":3,\"value\":\"middleware.enter:produce\"},{\"order\":4,\"value\":\"producer.invoked\"},{\"order\":5,\"value\":\"middleware.enter:consume\"},{\"order\":6,\"value\":\"consumer.invoked\"},{\"order\":7,\"value\":\"consumer.return:no-more-reads\"},{\"order\":8,\"value\":\"middleware.finally:consume\"},{\"order\":9,\"value\":\"producer.after-downstream-close\"},{\"order\":10,\"value\":\"effect:kept\"},{\"order\":11,\"value\":\"producer.finally:live\"},{\"order\":12,\"value\":\"middleware.finally:produce\"},{\"order\":13,\"value\":\"public.exec.settled\"}]}\n{\"scenario\":\"C4\",\"teardown\":\"disposed\",\"cleanup\":1}\n",
+  "stderr": ""
+}

@@ -1,0 +1,8 @@
+{
+  "source": "9c85c63d2797e8c8686037ccc8c1a2802bfe32d7",
+  "candidateOverlay": true,
+  "archiveSha256": "aec62de0061990c3019c3377e0a98f547999176f4f595fed6bbcccc1c606e7f4",
+  "sourceSha256": "d61d6d36eeea65f0c7e6eb5ecbe118e353ffe5a87131e4e26c1a3d772ee71acf",
+  "testSha256": "2bce00c07c95b81ff8be2a7e8c42ac96e890bfc478c5c13677985f19fd95ac63",
+  "grantFixtureSha256": "222ca485d152f08211a722acdc96fedf827a3b0a38f158ef68ab96e3834ed1ca"
+}

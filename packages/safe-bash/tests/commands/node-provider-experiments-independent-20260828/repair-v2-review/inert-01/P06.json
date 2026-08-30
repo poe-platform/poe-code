@@ -1,0 +1,60 @@
+{
+  "id": "P06",
+  "subjectRow": {
+    "number": 1,
+    "role": "workflow",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review",
+      "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/P06",
+      "--disallow-code-generation-from-strings",
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=64",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/stub.mjs",
+      "receipt",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/P06/fixture.json",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/P06/logs/F05/receipt.json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/P06",
+    "stdoutBytes": 123,
+    "stderrBytes": 0,
+    "containment": null,
+    "naturallyReaped": true,
+    "closeObserved": true,
+    "signalsRequested": [],
+    "pid": 54376,
+    "status": 0,
+    "signal": null,
+    "stdoutSha256": "49525cd1170da5ab59d31e388cf8e853dd17ce5a10170da76aaea0e1ef4fb26b",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "enrollment": [
+    "publication-after-enrollment-and-listeners",
+    "clock-after-enrollment-and-listeners"
+  ],
+  "remainingCalls": 2,
+  "fulfilled": true,
+  "caught": true,
+  "acceptanceReason": {
+    "type": "object",
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "Expected values to be strictly equal:\n\nfalse !== true\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at reconcileReceipt (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:178:54)\n    at Object.acceptEvaluation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:264:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:166:39\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "portCalls": [
+    "guard:after-F05",
+    "immutable:after-F05",
+    "auditLoads:F05"
+  ],
+  "scope": "valid synchronous F05 source-conformant inert record; refusal is a verifier finding, not real-engine failure",
+  "status": "FAIL",
+  "failure": {
+    "type": "object",
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:170:16\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  }
+}

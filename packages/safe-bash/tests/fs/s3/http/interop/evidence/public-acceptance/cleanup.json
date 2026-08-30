@@ -1,0 +1,15 @@
+{
+  "servicePid": 71832,
+  "activeOwnedServiceProcesses": 0,
+  "binary": "/tmp/safe-bash-minio-download-jKkK4h/minio",
+  "binaryRemoved": true,
+  "shutdown": {
+    "pid": 71832,
+    "code": 0,
+    "signal": null,
+    "ownedDataRemoved": true,
+    "ownedHomeRemoved": true,
+    "time": "2026-08-27T04:15:57.817Z"
+  },
+  "verifiedAt": "2026-08-27T04:18:20.185Z"
+}

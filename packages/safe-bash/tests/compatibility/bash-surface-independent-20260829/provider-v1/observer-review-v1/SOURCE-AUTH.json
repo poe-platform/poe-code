@@ -1,0 +1,80 @@
+{
+  "schema": "observer-review-source-auth-v1",
+  "historicalCommit": "a1f98c3fad9601996ad7998d454e7b7bd611544d",
+  "gitRows": [
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/provider-v1/unified-log-v1/DATA-CONTROLS.json",
+      "mode": "100644",
+      "object": "78ea642d0a316eaec4139a9a9cdc4c51a0e31440",
+      "bytes": 4287,
+      "sha256": "8ee3f369214b76f93bb652f46b706d104ed4902e4638ad03626ea4f68ef4a241"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/provider-v1/unified-log-v1/PLAN.json",
+      "mode": "100644",
+      "object": "736b9b5527ac56ba5d3659fe95c90850e2fd9fff",
+      "bytes": 2733,
+      "sha256": "4c10007ea862acf1cd1680378dabecc3782613622d53d1d49ffd2a5be7101601"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/provider-v1/unified-log-v1/PREPARATION-ATTEMPT.json",
+      "mode": "100644",
+      "object": "47415467f3dde299f9aabd22dd591a3568570298",
+      "bytes": 164,
+      "sha256": "338f7dc5ed9dba11d7ef00333e30313e6e1d698ae1f67d6392fbdf7f157658e5"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/provider-v1/unified-log-v1/PRESEAL.json",
+      "mode": "100644",
+      "object": "60ac709b5991d62285832283c7d5886fbeb27566",
+      "bytes": 1156,
+      "sha256": "b896f4434eed1ab926ec488323d8e71e7b5719697ed19156d7f52ee85d79abc5"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/provider-v1/unified-log-v1/admin.mjs",
+      "mode": "100644",
+      "object": "acca4fc968556591128694bb615cbad528a3c749",
+      "bytes": 4098,
+      "sha256": "bcf0c729081324dfeed11b00c729cc33fcdeaca95db7a816ae7ac5b5a4eb4fcf"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/provider-v1/unified-log-v1/runner.mjs",
+      "mode": "100644",
+      "object": "4f0499800168908d4f71595a380258969964d642",
+      "bytes": 5938,
+      "sha256": "0e60dbd43266b49eb9ef95360305666382032a963a7d6259a8e6f93a61373573"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/provider-v1/unified-log-v1/selector.mjs",
+      "mode": "100644",
+      "object": "51826bd3ddb2cc0f2e37ab42e1eda1e12daf8dd1",
+      "bytes": 2010,
+      "sha256": "52c538bbae5ec9a0f3dff4158f098e324559d3cdf1b8ab3c869ee68369b82f17"
+    }
+  ],
+  "metadataCapture": {
+    "bytes": 1039,
+    "sha256": "b31336dc1f531fad4bb72b85a57e139cdd41629bf35fa6183f9da313b382a5fe"
+  },
+  "historicalTerminal": {
+    "bytes": 2449,
+    "sha256": "40dcc85bebf86611540ab751fd6dfe0f78012bb50f9481700cd93d55d8695efe"
+  },
+  "policySources": [
+    {
+      "path": "../profile.mjs",
+      "bytes": 4315,
+      "sha256": "ae8485e2d3f0447aab93bc6ab113db17c2ee7fad755a9b07d6b780777395ddd3"
+    },
+    {
+      "path": "../TOOLS.json",
+      "bytes": 4956,
+      "sha256": "a830e56bad179a77bbe06edc4479d5a79845a1f248accf3625ec05180d091956"
+    },
+    {
+      "path": "../capture-transport-v1/PROFILE.sb.data",
+      "bytes": 6128,
+      "sha256": "cd24747ce2db626904e4c6c3986e6a303a85dada923a9dc1e6e8496dee9a93a5"
+    }
+  ]
+}

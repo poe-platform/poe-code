@@ -1,0 +1,668 @@
+{
+  "revision": "91d56dbececa0cbc273c7680c60cf9a054470414",
+  "manifestSha256": "f2da4c6fa472789ed927085f97c1c770439414bf7aed81297ad7a5b634534864",
+  "runnerSha256": "cb8e72990cba150f44ba44532e3a88a591a24c9b028602c0ea362c2599ba803a",
+  "startedAt": "2026-08-27T16:16:27.358Z",
+  "entries": [
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-AzLhGR/alpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-AzLhGR/line\nalpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-NxSmdI/alpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-NxSmdI/alpha[",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/alpha.js",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/alpha.ts",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/beta.ts",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-gzYxjR/alpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-gzYxjR/alpha*",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-l4XkWk/alpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-l4XkWk/beta",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-l4XkWk/gamma",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-mPrLIT/alpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-mPrLIT/dir\n/alpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-mPrLIT/sub/alpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-rpJeoj/1",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-rpJeoj/a",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/ab.ts",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/🙂.ts",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-wzghdL/alpha",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/a.ts",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/d.ts",
+      "declaredSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "74a02f560cc1d8e023280b5f08a1ee7266e4bec6cea61ca457dc1a758d080fc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-00183736978c20a7f072fafc6a38275df524f938",
+      "declaredSha256": "f69f6554d4c8d43f70697e985342ede0dde2593696b69b455cb261ebcf0c947f",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "f69f6554d4c8d43f70697e985342ede0dde2593696b69b455cb261ebcf0c947f",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-0820fc10096d963f16fad003543cef14581d986f",
+      "declaredSha256": "0af3e935cf000c30c92a1ee223db0227fc6250a26b2a4a25c05a3081335d7bc8",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "0af3e935cf000c30c92a1ee223db0227fc6250a26b2a4a25c05a3081335d7bc8",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-0c11311cf5d6266bdbbcea2810316b52761cbb0a",
+      "declaredSha256": "d423a0f84c4c46e1cfabfec2cf359e3f3873d9657251427482ebb9d7bc31d818",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "d423a0f84c4c46e1cfabfec2cf359e3f3873d9657251427482ebb9d7bc31d818",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-0c20d2afe80522187d6797365e5fafb0d7488dbb",
+      "declaredSha256": "dd757ebe9bfe61768bd9d1d450a518b0d42db078184c32fb096333baab5c7648",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "dd757ebe9bfe61768bd9d1d450a518b0d42db078184c32fb096333baab5c7648",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-1c2d4913a4f71294e615460bd2335714288b4be9",
+      "declaredSha256": "7190647f7c76a83b15bcfc5c79183407976c668f0de76bafe361a2ab0fbaec5f",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "7190647f7c76a83b15bcfc5c79183407976c668f0de76bafe361a2ab0fbaec5f",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-1c3ae99221d55db31873cd706ae81c836a926686",
+      "declaredSha256": "f73840702137ee38f95118e574c3b690d07573f331b5a8fdc03fe9b448af8442",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "f73840702137ee38f95118e574c3b690d07573f331b5a8fdc03fe9b448af8442",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-242cf0326131c413c05f3cdf7b036018a5e74d1d",
+      "declaredSha256": "dd6db36e02d8ba3b8e468d7dbe5f66574e88edc00a097011774c2ddb4b1f377e",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "dd6db36e02d8ba3b8e468d7dbe5f66574e88edc00a097011774c2ddb4b1f377e",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-2f99d1b02321be4f63a4bb6752e9904301de0c2f",
+      "declaredSha256": "309cb70ef9c4970dc2b5c70b1caf75b0638bcaf8874d8cc570ff000f21367621",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "309cb70ef9c4970dc2b5c70b1caf75b0638bcaf8874d8cc570ff000f21367621",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-31de8343f6aa8c66763c7cd80397a14ea280fac4",
+      "declaredSha256": "edcdc808370ae36fb9b39727d7f4b222f5c97a12cd1e64feca573447359d8b98",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "edcdc808370ae36fb9b39727d7f4b222f5c97a12cd1e64feca573447359d8b98",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-389df5d82c91a0df2038dd3d3d4d568c3727692e",
+      "declaredSha256": "80cf1a293b29d7791d1cf575a8416fd668c4be59fd124fdbaff8f36760c338da",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "80cf1a293b29d7791d1cf575a8416fd668c4be59fd124fdbaff8f36760c338da",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-3a88a713418b98861b8ddeece65bed4dc86105eb",
+      "declaredSha256": "75a2121e8209b3348ffc184df12bb34ab14338e5a152bc74dcdf557a40c13003",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "75a2121e8209b3348ffc184df12bb34ab14338e5a152bc74dcdf557a40c13003",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-4c5e7271d492a4458b18301edf8c3345305cd35c",
+      "declaredSha256": "d6ea9dd2b39fd6f43fbcdcb2c1ec70a17fd3a15dca48ac0583ca32a5b325d05f",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "d6ea9dd2b39fd6f43fbcdcb2c1ec70a17fd3a15dca48ac0583ca32a5b325d05f",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-4cfb8ecb2a9958d44990cb9820bf2a798435a387",
+      "declaredSha256": "87a6b2ab40a777d9b91061aa325fe517e2cabb9d6e6b8cbe46eeb0fbcaf54d0a",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "87a6b2ab40a777d9b91061aa325fe517e2cabb9d6e6b8cbe46eeb0fbcaf54d0a",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-4fdc51e63ab55f865bd714dfd3d7e70fd66c6603",
+      "declaredSha256": "d4d893806d93dd965e1fd623141ec8b2a8af3e32d4221df7e292ba7997189ef7",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "d4d893806d93dd965e1fd623141ec8b2a8af3e32d4221df7e292ba7997189ef7",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-5e5e6b7520a444d029a50614a7bc71e0d119d4b3",
+      "declaredSha256": "b127147af069a60579492372fba92ed247b55b5815b84abac24916db3078763a",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "b127147af069a60579492372fba92ed247b55b5815b84abac24916db3078763a",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-5e76d734520f080faa7ffa2e154642a83e20aaf7",
+      "declaredSha256": "847426ffd716d410b848dc6722285c231b1f25ba3fe17cb0cb430bd3e7e2d1ef",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "847426ffd716d410b848dc6722285c231b1f25ba3fe17cb0cb430bd3e7e2d1ef",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-5f30138439dd70688b75f721bb23ebe4ae053415",
+      "declaredSha256": "a40089937a5b76b25728e9ed44c9d7f21281d63e359e1ac388530d405bb76078",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "a40089937a5b76b25728e9ed44c9d7f21281d63e359e1ac388530d405bb76078",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-684a4e227822f6bff5c5aec6d3989609ba80dd58",
+      "declaredSha256": "43a7cfbb59a9d2668cf987c0d7c522cc73bc722f0cf6b03a4a4a18518cfd4c17",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "43a7cfbb59a9d2668cf987c0d7c522cc73bc722f0cf6b03a4a4a18518cfd4c17",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-68cb7b74134ee100ad24f2e443b5f37621969a27",
+      "declaredSha256": "e3cc4dad858b3178587f273e34e571a1aa3b463f23fc7f6385f142474ffa5360",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "e3cc4dad858b3178587f273e34e571a1aa3b463f23fc7f6385f142474ffa5360",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-6d005dbe8a4c9b5af9d5682063fc23dd5fa2faa0",
+      "declaredSha256": "26dfff36e5511ef894bf2808a41220ec98839eb91370cd212c353a68c8c0438d",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "26dfff36e5511ef894bf2808a41220ec98839eb91370cd212c353a68c8c0438d",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-6f64fcd355f587885dc87900c36405fb2d13f442",
+      "declaredSha256": "c6839f4f7b2e6ecdd29ae418e95e352e74daabb5f761f809fd6cc09bb41fa3a1",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "c6839f4f7b2e6ecdd29ae418e95e352e74daabb5f761f809fd6cc09bb41fa3a1",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-7879369a9561355f0ca8de565458a5486ff8b2d2",
+      "declaredSha256": "3b06e3ee00e76c42e627b98ddf5faa20cca152f7a39ce49b2926987606f3d2cc",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "3b06e3ee00e76c42e627b98ddf5faa20cca152f7a39ce49b2926987606f3d2cc",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-7a6df8d9379a18da1d260d0f5191dd0b27b81f6b",
+      "declaredSha256": "8d0d841390930ecda3b35c538f632bf3cbf5cd877481fb5ae8dc4dc9a8b7a67f",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "8d0d841390930ecda3b35c538f632bf3cbf5cd877481fb5ae8dc4dc9a8b7a67f",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-7c86cc1409dd8712f54330af3c24bf50956f5f19",
+      "declaredSha256": "7bc7cf14c3d7b07848016d506295356c678152eab3cff0f5f0b7c0fe14cfc072",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "7bc7cf14c3d7b07848016d506295356c678152eab3cff0f5f0b7c0fe14cfc072",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-81e012d724bda7e3e71ebc49fd5030ccd22d5125",
+      "declaredSha256": "00e8b86811e0963d3b64d343101b1f463ebaee7aa4cb73137572f1353b7d870d",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "00e8b86811e0963d3b64d343101b1f463ebaee7aa4cb73137572f1353b7d870d",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-87663dd88e6a19f82b1059d170bac22d0dd96f1b",
+      "declaredSha256": "5bb04d09ecd03752aa1f8281f0769ecee74c8b9c9fe909ed89d779d53f1b5b49",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "5bb04d09ecd03752aa1f8281f0769ecee74c8b9c9fe909ed89d779d53f1b5b49",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-8fc81b78b5926ede879ae7e008155137e7f0f405",
+      "declaredSha256": "3152d14f65768ddfb587bff37e67988516f8692d930e7249a3b17232078a4128",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "3152d14f65768ddfb587bff37e67988516f8692d930e7249a3b17232078a4128",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-93106097a810c9ea4b63fac086b4a8a1451d9fc2",
+      "declaredSha256": "d3d3c595450f40ecfee77bd682bb18d727f4468342f3ef59524dfdaadf06f5e5",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "d3d3c595450f40ecfee77bd682bb18d727f4468342f3ef59524dfdaadf06f5e5",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-9e4bd10c82b58007c27e561051f93c9ae7b0370a",
+      "declaredSha256": "f6e3bd243d2d2fae64caf9e82aadc7103f587e89a16ec3b42af58404b2f847d0",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "f6e3bd243d2d2fae64caf9e82aadc7103f587e89a16ec3b42af58404b2f847d0",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-9f0ab37909c458503747ad3ce1579a3fadfdfc2f",
+      "declaredSha256": "d326099efd498d0632919472797ce6bf7e4252a3b8d4b8c5408191e88c24a904",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "d326099efd498d0632919472797ce6bf7e4252a3b8d4b8c5408191e88c24a904",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-a08cd90ab64a4932f8e1c2dc64c44510a53dabdd",
+      "declaredSha256": "7d6a95bf01b9b9ed1176d241e5e56d6cf81007d8f098f7ffd888390eb9e7340b",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "7d6a95bf01b9b9ed1176d241e5e56d6cf81007d8f098f7ffd888390eb9e7340b",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-a3ad5c6fe5bb5b7d33bcf3eee56cf077febcabcf",
+      "declaredSha256": "05824e5e99681c02a1b573d6f04e8fb7e7e538ab8320644c9eac69dd8512c877",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "05824e5e99681c02a1b573d6f04e8fb7e7e538ab8320644c9eac69dd8512c877",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-a3f28f546799fb663d9a23a1ec2fce8e06b9baae",
+      "declaredSha256": "23eae9fd21275ad8b42098c63a92ab90d10783d354671bcf51fc463cddd3a458",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "23eae9fd21275ad8b42098c63a92ab90d10783d354671bcf51fc463cddd3a458",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-a895973afaff8e36c4da2546c88c0738d55a770a",
+      "declaredSha256": "e61cfc7330b10224b3a6ab17c4107a959553a3504a3dea6a595d245f2bd93525",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "e61cfc7330b10224b3a6ab17c4107a959553a3504a3dea6a595d245f2bd93525",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-b804755bc259424c677d0877d4c856ab92b5fe45",
+      "declaredSha256": "614b68132c6c520c795d2da4e86eedd1c97a4ea31960ec3e22c3f35e0b529707",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "614b68132c6c520c795d2da4e86eedd1c97a4ea31960ec3e22c3f35e0b529707",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-c1ecf4de2c1c635f50d75c56ee273fa91a01999b",
+      "declaredSha256": "04b4dc262e5fbd5c272f8021b7966cbf0559c126d39de00afb6e5e9877329676",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "04b4dc262e5fbd5c272f8021b7966cbf0559c126d39de00afb6e5e9877329676",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-c5a7400f1417f641e44e052cfa11a74c732f1b7b",
+      "declaredSha256": "4f2033f9e33e836934d9e8f0351aa480927b53dfbe37f1e7c49f04c960532399",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "4f2033f9e33e836934d9e8f0351aa480927b53dfbe37f1e7c49f04c960532399",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-cd0b0d85b5344147ee03237caf15cad70502d825",
+      "declaredSha256": "86e852afe81fe3682212ddd20bc28cec4ad18c9df3667094085ca830da37451d",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "86e852afe81fe3682212ddd20bc28cec4ad18c9df3667094085ca830da37451d",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-ce87a97d16e490047ffbbaae77956d996a484c10",
+      "declaredSha256": "e823e1ee39341efd96f661d5afe377b058d44d4e4ffa98759b336503d764806d",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "e823e1ee39341efd96f661d5afe377b058d44d4e4ffa98759b336503d764806d",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-ce98daa705582615b4104f68fd0b2802ff9f2fa1",
+      "declaredSha256": "fcceeef2d498968793dd5433a0193bf8a2d044b326c8fc31766c10503406fe32",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "fcceeef2d498968793dd5433a0193bf8a2d044b326c8fc31766c10503406fe32",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-cee136da615a658e57f2562c10afb0fdc7780f97",
+      "declaredSha256": "92ec80e72790f759fd6cba1a8a66f89942c2e8c77fb4a7869066eb5e74a1300f",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "92ec80e72790f759fd6cba1a8a66f89942c2e8c77fb4a7869066eb5e74a1300f",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-d32349a28ac21bf1091d3d61387ccb5efa8e820a",
+      "declaredSha256": "23f85cfee88e81243c07c9a242f1f9b5bfb059f737fad1cdf5efa24c887ae623",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "23f85cfee88e81243c07c9a242f1f9b5bfb059f737fad1cdf5efa24c887ae623",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-d88b07d6b310132834505085526bfe854bad09cc",
+      "declaredSha256": "a440db04e4a6196717874204187471db9446ee57d110e51d4db44205c935b0eb",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "a440db04e4a6196717874204187471db9446ee57d110e51d4db44205c935b0eb",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-d9d1a650825b5078aaacfbf5727222b29b0645a5",
+      "declaredSha256": "6b9f4cf397206a310ac19495a6c229497f376ab08287f8f09212f43aa87758b9",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "6b9f4cf397206a310ac19495a6c229497f376ab08287f8f09212f43aa87758b9",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-dd337f3fbbb1b074f69503148afdb98d0cdd75c6",
+      "declaredSha256": "067ce6fdde5616e5a0b312cd8f01bb11832f92a953ba8a888f8bdde9cd8face1",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "067ce6fdde5616e5a0b312cd8f01bb11832f92a953ba8a888f8bdde9cd8face1",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-e45e16b2858e223f0fe96c0066b705c2d025c982",
+      "declaredSha256": "2244809485d04db931a2fa9296c89ae9c95e946e1c3fe7bee59f4577cad56411",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "2244809485d04db931a2fa9296c89ae9c95e946e1c3fe7bee59f4577cad56411",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-e5290158a84070322ce917513e0f93b2729d5b35",
+      "declaredSha256": "504042b7f0e52e1831e530c22506be248d0d777b6652ae16d867fa37c04ccccf",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "504042b7f0e52e1831e530c22506be248d0d777b6652ae16d867fa37c04ccccf",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-e6bac0ac522be990ffafaecb715ee808c6204473",
+      "declaredSha256": "bbbd42ab68533de18e17c8b202a878b97382d10c3091439fb4d541839fd90cc3",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "bbbd42ab68533de18e17c8b202a878b97382d10c3091439fb4d541839fd90cc3",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-f69229f09672c7744aebfa3d1ce9ba6fcc47c4a3",
+      "declaredSha256": "39c22765f1f7df6fad102bb070496cc3a3f095a35e84ed59bb98dccc472be994",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "39c22765f1f7df6fad102bb070496cc3a3f095a35e84ed59bb98dccc472be994",
+      "gitMatches": false,
+      "liveMatches": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/artifacts/native/tsx-501/17878-f99ed922140dd4d7c9fca5f2c6a61be511f8a1b9",
+      "declaredSha256": "db672cba7eedcb785357aa587b23b46c937ead7be9b38ae05e31a17a1a8dbebd",
+      "gitTracked": false,
+      "liveExists": true,
+      "liveSha256": "db672cba7eedcb785357aa587b23b46c937ead7be9b38ae05e31a17a1a8dbebd",
+      "gitMatches": false,
+      "liveMatches": true
+    }
+  ],
+  "readOnlyLiveSupplement": true,
+  "historicalCommitClaimForUntrackedFiles": false,
+  "counts": {
+    "declared": 72,
+    "tracked": 0,
+    "untrackedAtCommit": 72,
+    "trackedMatching": 0,
+    "liveMatching": 72,
+    "liveMissing": 0,
+    "liveMismatched": 0
+  },
+  "finishedAt": "2026-08-27T16:16:27.386Z"
+}

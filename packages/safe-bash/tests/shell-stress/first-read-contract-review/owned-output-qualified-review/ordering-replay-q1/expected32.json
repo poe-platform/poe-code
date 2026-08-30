@@ -1,0 +1,199 @@
+{
+  "logical": 12,
+  "parameters": 32,
+  "records": [
+    {
+      "id": "S01",
+      "parameter": "original-local-pending-source",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S02",
+      "parameter": "original-mock-s3-pending-source",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S03",
+      "parameter": "original-loopback-body-withheld",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S04",
+      "parameter": "original-loopback-body-withheld",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S05",
+      "parameter": "original-loopback-headers-withheld",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S06",
+      "parameter": "upload-before-eof",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S06",
+      "parameter": "retained-reused-buffer",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S06",
+      "parameter": "awaited-write-backpressure",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S07",
+      "parameter": "stdout-only-request",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S07",
+      "parameter": "stdout-only-streaming-upload",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S08",
+      "parameter": "required-body-file-and-stdout-writeout",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S08",
+      "parameter": "stdout-body-and-required-header-file",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S08",
+      "parameter": "required-files-writeout-and-independent-stderr",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S09",
+      "parameter": "three-level-overlapping-cleanup-and-late-admission",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S10",
+      "parameter": "close-child-then-parent-with-live-sibling-effects",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "caller-reason-zero",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "io-error-before-caller-abort",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "caller-abort-before-late-io-rejection",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S12",
+      "parameter": "opaque-read-late-resolve",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S12",
+      "parameter": "opaque-read-late-reject",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "error-first-caller-error-cleanup-error",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "error-first-caller-zero-cleanup-error",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "caller-first-error-late-execution-zero",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "normal-close-then-caller-zero",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "normal-close-then-caller-default-undefined",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "execution-undefined-cleanup-error",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "cleanup-undefined-no-primary",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "execution-error-cleanup-zero",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "normal-close-synthetic-caller-undefined",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S11",
+      "parameter": "cleanup-zero-no-primary",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S09",
+      "parameter": "parent-abort-waits-admitted-child-cleanup",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    },
+    {
+      "id": "S10",
+      "parameter": "closed-child-parent-error-sibling-effects",
+      "expected": "PASS",
+      "unchangedCriteria": true
+    }
+  ],
+  "failurePolicy": "Retain FAIL/BLOCKED, never weaken or rerun"
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "state": "PRECODE_FUTURE_ASSERTIONS_NOT_EXECUTED",
+  "defaults": {"argv":["-o","json","-c","."],"stdinUtf8":"","effectProfile":"read-only","authority":["initial#3.1","adoption#/resolvedGrammar/quotedNbJson","primary#5.1","primary#5.7"]},
+  "cases": [
+    {"id":"UTF-01","category":"UTF8","input":{"stdinUtf8":"\"é中🙂\"\n","chunkPlan":"every-single-cut-and-single-byte-chunks"},"expect":{"status":0,"documents":["é中🙂"]}},
+    {"id":"UTF-02","category":"UTF8","input":{"stdinUtf8":"'\u007f\u0080\u009f\ufffe\uffff'\n","chunkPlan":"single-byte-chunks"},"expect":{"status":0,"documents":["\u007f\u0080\u009f\ufffe\uffff"]}},
+    {"id":"UTF-03","category":"UTF8","input":{"stdinUtf8":"\"\u007f\u0080\u009f\ufffe\uffff\"\n"},"expect":{"status":0,"documents":["\u007f\u0080\u009f\ufffe\uffff"]}},
+    {"id":"UTF-04","category":"UTF8","input":{"stdinUtf8":"\u007f\n"},"expect":{"status":5,"diagnosticCode":"INPUT_YAML_SYNTAX"}},
+    {"id":"UTF-05","category":"UTF8","input":{"stdinUtf8":"\"\u0000\"\n"},"expect":{"status":5,"diagnosticCode":"INPUT_YAML_SYNTAX"}},
+    {"id":"UTF-06","category":"UTF8","input":{"stdinUtf8":"\"\\0\\x7f\\u0080\\uFFFE\\uFFFF\\U0010FFFF\"\n"},"expect":{"status":0,"documents":["\u0000\u007f\u0080\ufffe\uffff􏿿"]}},
+    {"id":"UTF-07","category":"UTF8","input":{"stdinUtf8":"'\\u0041'\n"},"expect":{"status":0,"documents":["\\u0041"]}},
+    {"id":"UTF-08","category":"UTF8","input":{"stdinUtf8":"\"\\uD800\"\n"},"expect":{"status":5,"diagnosticCode":"INPUT_YAML_SYNTAX"}},
+    {"id":"UTF-09","category":"UTF8","input":{"stdinUtf8":"\"\\U00110000\"\n"},"expect":{"status":5,"diagnosticCode":"INPUT_YAML_SYNTAX"}},
+    {"id":"UTF-10","category":"UTF8","input":{"stdinUtf8":"\"\\x4\"\n"},"expect":{"status":5,"diagnosticCode":"INPUT_YAML_SYNTAX"}},
+    {"id":"UTF-11","category":"UTF8","input":{"stdinUtf8":"\"\\q\"\n"},"expect":{"status":5,"diagnosticCode":"INPUT_YAML_SYNTAX"}},
+    {"id":"UTF-12","category":"UTF8","input":{"stdinUtf8":"\"\\uD83D\\uDE42\"\n"},"blocked":"B-SURROGATE-PAIR-ESCAPES","expect":{"assertions":["No unpaired surrogate may enter the graph; reviewer must reconcile paired 16-bit escape handling versus scalar-code-point validity before status/bytes are frozen."]}},
+    {"id":"UTF-13","category":"UTF8","input":{"stdinHex":"22c0af220a","chunkPlan":"every-single-cut-and-single-byte-chunks"},"expect":{"status":5,"diagnosticCode":"INPUT_INVALID_UTF8"}},
+    {"id":"UTF-14","category":"UTF8","input":{"stdinHex":"22eda080220a","chunkPlan":"single-byte-chunks"},"expect":{"status":5,"diagnosticCode":"INPUT_INVALID_UTF8"}},
+    {"id":"UTF-15","category":"UTF8","input":{"stdinHex":"22f4908080220a"},"expect":{"status":5,"diagnosticCode":"INPUT_INVALID_UTF8"}},
+    {"id":"UTF-16","category":"UTF8","input":{"stdinChunksHex":["22e2","82",""]},"expect":{"status":5,"diagnosticCode":"INPUT_INVALID_UTF8"},"note":"Incomplete multibyte sequence fails on final decoder flush, including an empty last chunk."},
+    {"id":"UTF-17","category":"UTF8","input":{"stdinChunksHex":["22e2","28a1220a"]},"expect":{"status":5,"diagnosticCode":"INPUT_INVALID_UTF8"}},
+    {"id":"UTF-18","category":"UTF8","input":{"stdinUtf8":"\ufeff---\n\"x\ufeffy\"\n...\n\ufeff---\n2\n","chunkPlan":"single-byte-chunks"},"expect":{"status":0,"documents":["x\ufeffy",2]}},
+    {"id":"UTF-19","category":"UTF8","input":{"stdinUtf8":"[1,\ufeff2]\n"},"expect":{"status":5,"diagnosticCode":"INPUT_DOCUMENT_STRUCTURE"}},
+    {"id":"UTF-20","category":"UTF8","input":{"stdinUtf8":"\"a\u0085b\u2028c\u2029d\"\n","chunkPlan":"single-byte-chunks"},"expect":{"status":0,"documents":["a\u0085b\u2028c\u2029d"]}},
+    {"id":"UTF-21","category":"UTF8","input":{"stdinUtf8":"\"a\r\nb\"\r\n","chunkPlan":"single-byte-chunks"},"expect":{"status":0,"documents":["a b"]}},
+    {"id":"UTF-22","category":"UTF8","input":{"stdinChunksHex":["5b31","2c32","5d0a"],"producer":"same-Uint8Array-overwritten-before-each-next-and-on-return"},"expect":{"status":0,"stdoutUtf8":"[1,2]\n","assertions":["Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."]},"authority":["initial#10","final#/counterAdmission","baseline:io"]}
+  ]
+}

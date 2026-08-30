@@ -1,0 +1,66 @@
+{
+  "at": "2026-08-29T15:03:18.195Z",
+  "controls": [
+    {
+      "id": "C01",
+      "name": "NUL Git publication/evidence inventories",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C02",
+      "name": "Future seal and helper pins",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C03",
+      "name": "306 exact built source inputs",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C04",
+      "name": "Runtime inverse diff and ERE disjointness",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C05",
+      "name": "Shipping hash without inflation",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C06",
+      "name": "1006 shipping member bindings",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C07",
+      "name": "Existing public declaration byte comparison",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C08",
+      "name": "Finite matrix and role arithmetic",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C09",
+      "name": "Failure and outer qualification source findings",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C10",
+      "name": "Mutation source findings",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C11",
+      "name": "Pending versioned authority and shared-clock finding",
+      "status": "DATA_CHECK_COMPLETED"
+    },
+    {
+      "id": "C12",
+      "name": "Fresh owned census and inclusive review budget",
+      "status": "DATA_CHECK_COMPLETED"
+    }
+  ],
+  "actualGO": false
+}

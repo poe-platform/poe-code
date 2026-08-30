@@ -1,0 +1,13 @@
+{
+  "finishedAt": "2026-08-28T10:15:20.423Z",
+  "counts": {
+    "pass": 30,
+    "fail": 2,
+    "unexecuted": 1
+  },
+  "status": "QUALIFIED_HOLD",
+  "coordinatorExitCode": 1,
+  "workers": 5,
+  "stopped": false,
+  "rootsRemoved": true
+}

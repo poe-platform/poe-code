@@ -1,0 +1,4 @@
+85ca8a033b9a8b0cfade5aa645b27131dd13df2c4aeca02814b9fe054ffa1d84  tests/compatibility/bash-pipestatus-typed-native-independent-20260829/audit-v2.mjs
+7d3f7353ec359669a60f947ba08e7d220fd44a1d69692465646b34ef0fd6f1b8  tests/compatibility/bash-pipestatus-typed-native-independent-20260829/V2-PRESEAL.md
+6fc6991067ef47e5c9f7d614d0d22c13e6676ba7ec1d10549390d05fdc6bd07e  /private/tmp/safe-bash-typed6-independent-20260829/author-tree-supplement.nul
+74f4e4347355a82378cd1d71e2f0a25c53a61919727d739cc1f35f37c66ff8f9  /private/tmp/safe-bash-typed6-independent-20260829/frozen-source.batch

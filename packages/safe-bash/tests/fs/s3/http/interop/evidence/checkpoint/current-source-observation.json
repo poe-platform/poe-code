@@ -1,0 +1,34 @@
+{
+  "time": "2026-08-27T03:36:17.975Z",
+  "head": "f7000b05b15fa34371226b35cf537d3f73bbf004",
+  "source": [
+    {
+      "path": "src/fs/s3/http/index.ts",
+      "sha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4"
+    },
+    {
+      "path": "src/fs/s3/http/request.ts",
+      "sha256": "ba4667a138460dd6b9ca9111ecae8753c50d365b9aea8270ee354d1a59781107"
+    },
+    {
+      "path": "src/fs/s3/http/signature.ts",
+      "sha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b"
+    },
+    {
+      "path": "src/fs/s3/http/transport.ts",
+      "sha256": "ce19e4a347d50d84fb87b993c862717fc57fed183b584bc4b0ca04bcecb3a728"
+    },
+    {
+      "path": "src/fs/s3/http/types.ts",
+      "sha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e"
+    },
+    {
+      "path": "src/fs/s3/http/xml.ts",
+      "sha256": "8d1a20c393b193ba9b9d3e06e4348d191a2f950d0b63a99a5d1bd57eefe350a8"
+    }
+  ],
+  "note": "Current source observation only; test snapshots are separately frozen in builds/expanded.json",
+  "node": "v22.22.2",
+  "typescript": "5.9.3",
+  "status": "?? benchmarks/reports/baseline-only-20260827/\n?? src/fs/s3/http/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/authority-trust-review/helper-control/\n?? tests/fs/s3/http/\n"
+}

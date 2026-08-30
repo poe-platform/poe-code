@@ -1,0 +1,38 @@
+{
+  "authorOnly": true,
+  "results": [
+    {
+      "name": "packed Shell ordinary mkdir/write/read works",
+      "classification": "positive non-rmdir product control",
+      "passed": true,
+      "observation": {
+        "exitCode": 0,
+        "stdout": "payload",
+        "conditionalDelete": false,
+        "capabilities": {
+          "readOnly": false,
+          "symlinks": false,
+          "hardlinks": false,
+          "permissions": false,
+          "timestamps": true,
+          "atomicRename": false,
+          "streamingRead": true,
+          "streamingWrite": false
+        }
+      },
+      "productRequests": [
+        0,
+        26
+      ]
+    },
+    {
+      "name": "packed Shell ordinary empty rmdir remains blocked",
+      "classification": "required positive product workflow NOT satisfied",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /not supported/i. Input:\n\n\"rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/empty'\\n\"\n",
+      "stack": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /not supported/i. Input:\n\n\"rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/empty'\\n\"\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-qUfR5n/consumer/service-checks.mjs:73:12\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-qUfR5n/consumer/service-checks.mjs:22:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-qUfR5n/consumer/service-checks.mjs:68:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/run.mjs:102:5\n    at async Module.withService (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-qUfR5n/tooling/service.mjs:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/run.mjs:100:19"
+    }
+  ],
+  "verifiedProductRmdirPositiveWorkflows": 0,
+  "requestedPositiveWorkflowBlocked": true
+}

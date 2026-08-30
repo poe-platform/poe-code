@@ -1,0 +1,117 @@
+{
+  "candidate": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+  "shared": {
+    "name": "shared-legacy276",
+    "status": 1,
+    "counts": {
+      "tests": 110,
+      "pass": 105,
+      "fail": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "legacy": {
+    "name": "expr-legacy241-candidate",
+    "status": 1,
+    "counts": {
+      "tests": 241,
+      "pass": 240,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "author": {
+    "name": "source-author-additional",
+    "status": 1,
+    "counts": {
+      "tests": 225,
+      "pass": 221,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "compiler": {
+    "name": "source-tests-strict",
+    "status": 0,
+    "counts": {}
+  },
+  "exactSharedFileHashes": [
+    {
+      "path": "tests/commands/regex-execution/executor.test.ts",
+      "sha256": "c66088f18f79d9c16a30ad30936e2c4b2d85da04ca11a56b7789c506cc1574ad",
+      "historical": "c66088f18f79d9c16a30ad30936e2c4b2d85da04ca11a56b7789c506cc1574ad"
+    },
+    {
+      "path": "tests/commands/regex-execution/commands.test.ts",
+      "sha256": "47ddfea7abcb259838cc29920ad044cdffbd0e954043349b4289eaf79da7af67",
+      "historical": "47ddfea7abcb259838cc29920ad044cdffbd0e954043349b4289eaf79da7af67"
+    },
+    {
+      "path": "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+      "sha256": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf",
+      "historical": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf"
+    },
+    {
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+      "historical": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+      "sha256": "deee09a7278767c0b9e8ea4165d26eb47d9842fd6217e3362b5c32888a019f89",
+      "historical": "deee09a7278767c0b9e8ea4165d26eb47d9842fd6217e3362b5c32888a019f89"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/glob.test.ts",
+      "sha256": "3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd",
+      "historical": "3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/public.test.ts",
+      "sha256": "9ae166a7a444b293b54aedf38c0ed1630cf9c22d57d18262bbf3e633fa178dcc",
+      "historical": "9ae166a7a444b293b54aedf38c0ed1630cf9c22d57d18262bbf3e633fa178dcc"
+    },
+    {
+      "path": "tests/commands/grep-aliases/aliases.test.ts",
+      "sha256": "d166c44a1dc1e25878ed313d66097cd17e915b46bc2ba92750dcc5a8579a9ff5",
+      "historical": "d166c44a1dc1e25878ed313d66097cd17e915b46bc2ba92750dcc5a8579a9ff5"
+    },
+    {
+      "path": "tests/commands/grep-aliases/safety.test.ts",
+      "sha256": "4fda8ad4d35c9ef479aeed637b76e7bc31071ae7a6f8f0a7bdcce02999ab25f0",
+      "historical": "4fda8ad4d35c9ef479aeed637b76e7bc31071ae7a6f8f0a7bdcce02999ab25f0"
+    },
+    {
+      "path": "tests/commands/search/rg.test.ts",
+      "sha256": "aa9907fb7aeca44b64a8f7b3d38002ac23767d86e04179d3a3279d0f745094dd",
+      "historical": "aa9907fb7aeca44b64a8f7b3d38002ac23767d86e04179d3a3279d0f745094dd"
+    },
+    {
+      "path": "tests/commands/search/safety.test.ts",
+      "sha256": "54cc44add8a7b41ee315aec1fe7eb3d986efee63ff8516c0b96375f650256b49",
+      "historical": "54cc44add8a7b41ee315aec1fe7eb3d986efee63ff8516c0b96375f650256b49"
+    }
+  ],
+  "originalFiles": [
+    "tests/commands/expr/abort-reason-regression.test.ts",
+    "tests/commands/expr/contracts.test.ts",
+    "tests/commands/expr/grammar.test.ts",
+    "tests/commands/expr/native.test.ts",
+    "tests/commands/expr/regex-lifecycle.test.ts",
+    "tests/commands/expr/regex-limits.test.ts",
+    "tests/commands/expr/regex-native.test.ts",
+    "tests/commands/expr/regex-protocol.test.ts"
+  ],
+  "authorFiles": [
+    "tests/commands/expr/diagnostics-regression.test.ts",
+    "tests/commands/expr/inactive-prefix.test.ts",
+    "tests/commands/expr/named-profile.test.ts"
+  ],
+  "distinction": "Archived source controls and author regressions are not independent frozen holdouts. One obsolete en_US length assertion remains unchanged. Historical 239/241 is not rewritten."
+}

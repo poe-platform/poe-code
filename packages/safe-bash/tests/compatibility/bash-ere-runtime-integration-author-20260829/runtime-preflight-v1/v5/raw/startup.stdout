@@ -1,0 +1,2 @@
+shell_pid=49338 start=1788012983.5323901176 cwd=/Users/kjopek/Workspace/safe-bash
+known-starts: startup-shell=1 namespace-mkdir=1; mkdir necessarily preceded creation of new collector files

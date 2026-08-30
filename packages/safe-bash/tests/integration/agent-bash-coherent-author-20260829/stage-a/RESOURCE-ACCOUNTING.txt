@@ -1,0 +1,15 @@
+publication_epoch=1787996732.4134271145
+repository_regular_files=54
+repository_bytes_before_publication=4672101
+repository_capture_bytes=3490277
+retained_work_bytes=70925494
+prep_known_dispatch_roles=40
+producer_and_publication_known_dispatch_roles=21
+counts_are_known_dispatched_roles_not_full_transitive_pid_census=true
+producer_supervised_children=3
+producer_children_exit_close_and_owned_group_absent=3
+producer_signals_sent=0
+completed_builds=0
+pack_dispatches=0
+semantic_calls=0
+stage_b=UNRUN

@@ -1,0 +1,29 @@
+{
+  "sourceFixCommit": "b282159921ce530e932b02f90c64eca987de2704",
+  "freezeCommit": "07341c4751d776ee258bcea6086bb216216dd7c2",
+  "runtime": { "node": "v22.22.2", "typescript": "5.9.3" },
+  "profile": "shared live worktree; exact two-site and canonical hashes recorded; independent verifier owns committed-snapshot acceptance",
+  "runs": [
+    { "log": "baseline-canonical.tap", "tests": 18, "pass": 11, "fail": 7, "exitCode": 1, "fixtureDefects": 1 },
+    { "log": "baseline-corrected-canonical.tap", "tests": 18, "pass": 12, "fail": 6, "exitCode": 1, "fixtureDefects": 0 },
+    { "log": "candidate-canonical.tap", "tests": 18, "pass": 18, "fail": 0, "exitCode": 0 },
+    { "log": "baseline-nearby.tap", "tests": 89, "pass": 89, "fail": 0, "exitCode": 0 },
+    { "log": "candidate-nearby.tap", "tests": 89, "pass": 89, "fail": 0, "exitCode": 0 }
+  ],
+  "scopedTypeScript": [
+    { "log": "baseline-scoped-ts.log", "exitCode": 0 },
+    { "log": "baseline-corrected-scoped-ts.log", "exitCode": 0 },
+    { "log": "candidate-scoped-ts.log", "exitCode": 0 }
+  ],
+  "dataClassification": {
+    "*.tap": "unaltered raw node:test output",
+    "*.log": "unaltered raw scoped TypeScript output",
+    "*.ts.data": "original author fixture snapshots; not canonical TypeScript or test discovery inputs",
+    "*.sha256": "SHA-256 bindings; postrun-live-source explicitly captured after author runs"
+  },
+  "historicalCohortsModified": false,
+  "verifierCasesInspected": false,
+  "thirdSourceEditRequired": false,
+  "allAuthorCommandSessionsExited": true,
+  "acceptanceDecision": "reserved for independent verifier"
+}

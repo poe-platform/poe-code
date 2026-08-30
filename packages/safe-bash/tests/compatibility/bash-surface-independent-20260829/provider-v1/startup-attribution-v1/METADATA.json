@@ -1,0 +1,275 @@
+{
+  "schema": "current-metadata-not-loaded-images-v1",
+  "at": 1787980665755,
+  "sourceFiles": [
+    {
+      "path": "PREEXECUTION-SEAL.json",
+      "bytes": 126103,
+      "sha256": "48aa4690e4f0b2fcf835d8407fec00b3efcd40385999f415eeaa8e82868cb17b"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 4443,
+      "sha256": "37dfd2093cd97aa922103661967fcb06b22230efca57b248ca861292665fc157"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 4956,
+      "sha256": "a830e56bad179a77bbe06edc4479d5a79845a1f248accf3625ec05180d091956"
+    },
+    {
+      "path": "profile.mjs",
+      "bytes": 4315,
+      "sha256": "ae8485e2d3f0447aab93bc6ab113db17c2ee7fad755a9b07d6b780777395ddd3"
+    },
+    {
+      "path": "fixture.mjs",
+      "bytes": 4118,
+      "sha256": "0c7c680d63eb1dbe5a12c59bf4169814bdaac22bec29919541fe37c5b8b26865"
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 9865,
+      "sha256": "4922f58acb0970307f923df3e1bf7a5bda4a66b050af0eb078a8d5e969596e8e"
+    },
+    {
+      "path": "provider.mjs",
+      "bytes": 3066,
+      "sha256": "bafc959c445f3dbc2a1662e1f55152e8930891d28d6d8c2f68abcafafb5ce2c4"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 11412,
+      "sha256": "fc53c71aaf23103d8cfbd1d4fc32fab947f7f6160449160a5a4650b28982f55f"
+    },
+    {
+      "path": "diagnosis-v1/PRESEAL.json",
+      "bytes": 4329,
+      "sha256": "6e04e87087f3108b5bf1ed312fe0c3ec02f16c079cccb0f9af595350d6bc55c7"
+    },
+    {
+      "path": "diagnosis-v1/admin.mjs",
+      "bytes": 4265,
+      "sha256": "f3da8c54c988cebad79d22eada973008e6e537494646d73766810090bbc07e40"
+    },
+    {
+      "path": "diagnosis-v1/PLAN.json",
+      "bytes": 4096,
+      "sha256": "36aba9b0969824be68987bbc969cef92289ea28346dc06e653f3af3cce5b0eac"
+    },
+    {
+      "path": "diagnosis-v1/SOURCE-COMPARISON.md",
+      "bytes": 3701,
+      "sha256": "f2c17be70382838c80f6b4a40b7813cbc7da69dd285f3955f4fd2e1f0f7d5bcb"
+    },
+    {
+      "path": "diagnosis-v1/diagnostics.mjs",
+      "bytes": 9106,
+      "sha256": "b7472ab6623e8f2469f0d85f052a78bff3764e65c268f9a383581a511724150c"
+    },
+    {
+      "path": "capture-transport-v1/PRESEAL.json",
+      "bytes": 4435,
+      "sha256": "9f4455364897bdb5418ba39a79f0fc40b5592699679cb272820800e1c8d8bc8a"
+    },
+    {
+      "path": "capture-transport-v1/admin.mjs",
+      "bytes": 4280,
+      "sha256": "e82cb9b1f4994ba20cceb333a1127998a0cc1c5ed64ab85f91223d7493fea12a"
+    },
+    {
+      "path": "capture-transport-v1/PLAN.json",
+      "bytes": 4695,
+      "sha256": "e8e2253c0bbacbd9de3591b84b81f3916ee06ad8262086391b37a298793efb2f"
+    },
+    {
+      "path": "capture-transport-v1/PROFILE.sb.data",
+      "bytes": 6128,
+      "sha256": "cd24747ce2db626904e4c6c3986e6a303a85dada923a9dc1e6e8496dee9a93a5"
+    },
+    {
+      "path": "capture-transport-v1/PROTOCOL.md",
+      "bytes": 2966,
+      "sha256": "39202dfb73b3973155b18c2b4989a0ce7355b00ce258715a5772e014bc1fbdc3"
+    },
+    {
+      "path": "capture-transport-v1/capture-diagnostic.mjs",
+      "bytes": 11854,
+      "sha256": "a823bc2860c4b1cb9da48451fc6fe6c7a001c4776318c3ae53666a9fd0948b7e"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "execution": "NOT_EXECUTED_CURRENT_PHASE"
+    },
+    {
+      "path": "/usr/bin/sandbox-exec",
+      "realpath": "/usr/bin/sandbox-exec",
+      "bytes": 102560,
+      "mode": 493,
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+      "execution": "NOT_EXECUTED_CURRENT_PHASE"
+    },
+    {
+      "path": "/bin/bash",
+      "realpath": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "execution": "NOT_EXECUTED_CURRENT_PHASE"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+      "realpath": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+      "bytes": 18272848,
+      "mode": 493,
+      "sha256": "3cccdd0dad838d2130d7fc6237aa176c8c13a593a56b79c64fd980ddb89c670c",
+      "execution": "NOT_EXECUTED_CURRENT_PHASE"
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e",
+      "regular": true,
+      "symlink": false,
+      "bytes": 573440,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01",
+      "regular": true,
+      "symlink": false,
+      "bytes": 1702723584,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata",
+      "regular": true,
+      "symlink": false,
+      "bytes": 233996288,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly",
+      "regular": true,
+      "symlink": false,
+      "bytes": 126664704,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit",
+      "regular": true,
+      "symlink": false,
+      "bytes": 601358336,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05",
+      "regular": true,
+      "symlink": false,
+      "bytes": 1825177600,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata",
+      "regular": true,
+      "symlink": false,
+      "bytes": 237207552,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly",
+      "regular": true,
+      "symlink": false,
+      "bytes": 7290880,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit",
+      "regular": true,
+      "symlink": false,
+      "bytes": 616185856,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09",
+      "regular": true,
+      "symlink": false,
+      "bytes": 165773312,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata",
+      "regular": true,
+      "symlink": false,
+      "bytes": 21872640,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11",
+      "regular": true,
+      "symlink": false,
+      "bytes": 32768,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit",
+      "regular": true,
+      "symlink": false,
+      "bytes": 249774080,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/usr/lib/dyld",
+      "regular": true,
+      "symlink": false,
+      "bytes": 2357376,
+      "mode": 493,
+      "mtimeMs": 1775463057000
+    },
+    {
+      "path": "/usr/lib/libSystem.B.dylib",
+      "error": "ENOENT"
+    },
+    {
+      "path": "/usr/lib/libc++.1.dylib",
+      "error": "ENOENT"
+    },
+    {
+      "path": "/usr/lib/libobjc.A.dylib",
+      "error": "ENOENT"
+    },
+    {
+      "path": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+      "error": "ENOENT"
+    },
+    {
+      "path": "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+      "error": "ENOENT"
+    },
+    {
+      "path": "/usr/lib/libsandbox.1.dylib",
+      "error": "ENOENT"
+    }
+  ],
+  "reference": "38a4e7b08f47139328f3a4ac5b4b50d83a6544b3",
+  "binaryReads": "bounded64KiBstreamSHA256 only; no executable text decoding/cache contents"
+}

@@ -1,0 +1,149 @@
+import assert from "node:assert/strict";
+import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdtemp, open, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
+import type { Socket } from "node:net";
+import { join } from "node:path";
+import { closeResources } from "../close-resources.js";
+import { validateSourceRevision } from "../source-gate.js";
+
+const owned = "tests/commands/network-stress/final-verification";
+const source = await validateSourceRevision();
+const cases = [
+  { id: "two-retries-stdout", args: ["-w", ":%{size_download}:%{http_code}:%{exitcode}"] },
+  { id: "two-retries-file-headers-post", args: ["--fail-with-body", "-i", "-D", "headers.out", "-o", "result.bin", "--data-binary", "@payload.bin"] },
+  { id: "two-retries-shell-redirection", args: ["--fail-with-body"], redirect: true },
+] as const;
+const payload = Buffer.from([0, 255, 10, 13, 128, 65]);
+const quote = (value: string): string => `'${value.replaceAll("'", "'\\''")}'`;
+const encode = (bytes: Uint8Array): string => Buffer.from(bytes).toString("base64");
+const codes = (text: string): string[] => [...text.matchAll(/curl: \((\d+)\)/g)].map((match) => match[1]!);
+const rootsBefore = await readdir(owned);
+let nativeInvocations = 0;
+let virtualRows = 0;
+
+async function fixture() {
+  const sockets = new Set<Socket>();
+  const traces: { method: string; path: string; body: string }[] = [];
+  const server = createServer(async (request, response) => {
+    const chunks: Buffer[] = [];
+    for await (const chunk of request) chunks.push(Buffer.from(chunk));
+    traces.push({ method: request.method!, path: request.url!, body: encode(Buffer.concat(chunks)) });
+    const retry = traces.length < 3;
+    const bytes = Buffer.from(retry ? "retry" : "recovered");
+    response.sendDate = false;
+    response.writeHead(retry ? 503 : 200, { "Retry-After": "0", "Content-Length": bytes.length, "Connection": "close" });
+    response.end(bytes);
+  });
+  server.on("connection", (socket) => { sockets.add(socket); socket.once("close", () => sockets.delete(socket)); });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  assert(address && typeof address !== "string");
+  return { url: `http://127.0.0.1:${address.port}/retry-author`, traces, async close() { await closeResources([server], sockets); assert.equal(sockets.size, 0); } };
+}
+
+async function native(args: readonly string[], root: string, redirect = false) {
+  nativeInvocations++;
+  const argv = ["-q", ...args];
+  const environment = { PATH: "/usr/bin:/bin", HOME: root, CURL_HOME: root, XDG_CONFIG_HOME: root, LC_ALL: "C", LANG: "C", NO_PROXY: "*", no_proxy: "*" };
+  const output = redirect ? await open(join(root, "result.bin"), "w") : undefined;
+  const child = spawn("/usr/bin/curl", argv, { cwd: root, env: environment, shell: false, stdio: ["ignore", output?.fd ?? "pipe", "pipe"] });
+  const stdout: Buffer[] = [];
+  const stderr: Buffer[] = [];
+  let bytes = 0;
+  let forced = false;
+  const collect = (chunks: Buffer[], chunk: Buffer): void => {
+    bytes += chunk.length;
+    if (bytes > 1024 * 1024) { forced = true; child.kill("SIGKILL"); } else chunks.push(chunk);
+  };
+  child.stdout?.on("data", (chunk: Buffer) => collect(stdout, chunk));
+  child.stderr!.on("data", (chunk: Buffer) => collect(stderr, chunk));
+  const timer = setTimeout(() => { forced = true; child.kill("SIGKILL"); }, 7000);
+  try {
+    const exit = await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve, reject) => {
+      child.once("error", reject);
+      child.once("close", (code, signal) => resolve({ code, signal }));
+    });
+    assert(!forced);
+    return { argv, environment, stdoutFile: redirect ? "result.bin" : null, ...exit, stdout: encode(Buffer.concat(stdout)), stderr: Buffer.concat(stderr).toString() };
+  } finally { clearTimeout(timer); child.kill("SIGKILL"); await output?.close(); }
+}
+
+const versionRoot = await mkdtemp(join(owned, ".independent-"));
+let version: Awaited<ReturnType<typeof native>>;
+try { version = await native(["--version"], versionRoot); assert.equal(version.code, 0); }
+finally { await rm(versionRoot, { recursive: true, force: true }); }
+const observations = [];
+for (const row of cases) {
+  const root = await mkdtemp(join(owned, ".independent-"));
+  const lab = await fixture();
+  try {
+    await writeFile(join(root, "payload.bin"), payload);
+    await writeFile(join(root, "result.bin"), "old bytes");
+    const result = await native(["--silent", "--show-error", "--globoff", "--http1.1", "--noproxy", "*", "--proxy", "", "--proto", "=http", "--proto-redir", "=http", "--connect-timeout", "1", "--max-time", "3", "--retry", "2", "--retry-delay", "1", ...row.args, lab.url], root, "redirect" in row);
+    assert.equal(result.code, 0);
+    assert.equal(result.signal, null);
+    assert.equal(lab.traces.length, 3);
+    const files: Record<string, string> = {};
+    for (const path of await readdir(root)) files[path] = encode(await readFile(join(root, path)));
+    const observation = { id: row.id, ...result, files, traces: lab.traces };
+    observations.push(observation);
+    process.stdout.write(`${JSON.stringify({ phase: "native-before-product", ...observation })}\n`);
+  } finally { await lab.close(); await rm(root, { recursive: true, force: true }); }
+}
+const frozen = { source, capturedAt: new Date().toISOString(), productExecutions: 0, nativeInvocations, version, executableSha256: createHash("sha256").update(await readFile("/usr/bin/curl")).digest("hex"), fixtureSha256: createHash("sha256").update(await readFile(`${owned}/independent.ts`)).digest("hex"), observations, redirectionProfile: "Native stdout uses an actual pre-opened output fd (open w), not -o and no native shell; virtual uses actual shell >." };
+const target = `${owned}/independent-native-frozen.json`;
+await assert.rejects(readFile(target), { code: "ENOENT" });
+const text = JSON.stringify(frozen, null, 2);
+const saved = spawnSync("apply_patch", { input: `*** Begin Patch\n*** Add File: ${target}\n${text.split("\n").map((line) => `+${line}`).join("\n")}\n*** End Patch\n`, encoding: "utf8" });
+assert.equal(saved.status, 0, saved.stderr);
+assert.deepEqual(await validateSourceRevision(), source);
+const { Shell, agentCommands, networkCommands, curlCommands, createMemoryFileSystem } = await import("../../../../src/index.js");
+const subpath = await import("../../../../src/commands/network/index.js");
+assert.equal(networkCommands, curlCommands);
+assert.equal(networkCommands, subpath.networkCommands);
+assert.equal(curlCommands, subpath.curlCommands);
+for (const row of cases) {
+  const lab = await fixture();
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/payload.bin", payload);
+  await fs.writeFile("/work/result.bin", Buffer.from("old bytes"));
+  const attempts: number[] = [];
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands()).use(networkCommands({ authorize(request) { assert.equal(request.url, lab.url); attempts.push(request.attempt); return true; }, limits: { maxTimeMs: 5000 } }));
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error("Independent retry watchdog")), 6000);
+  try {
+    const command = `set -o pipefail; curl -sS --retry 2 --retry-delay 1 ${row.args.map(quote).join(" ")} ${quote(lab.url)} ${"redirect" in row ? "> result.bin" : "| cat"}`;
+    virtualRows++;
+    const result = await shell.exec(command, { signal: controller.signal });
+    const expected = observations.find((entry) => entry.id === row.id)!;
+    const files: Record<string, string> = {};
+    for (const entry of await fs.readdir("/work")) files[entry.name] = encode(await fs.readFile(`/work/${entry.name}`, { maxBytes: 1024 * 1024 }));
+    assert.equal(result.exitCode, expected.code);
+    assert.equal(encode(result.stdoutBytes), expected.stdout);
+    assert.deepEqual(files, expected.files);
+    assert.deepEqual(lab.traces, expected.traces);
+    assert.deepEqual(attempts, [0, 1, 2]);
+    assert.deepEqual(codes(result.stderr), codes(expected.stderr));
+    assert.equal(result.stderr.match(/503/g)?.length, expected.stderr.match(/503/g)?.length);
+    process.stdout.write(`${JSON.stringify({ id: row.id, phase: "public-product", status: "passed", command, code: result.exitCode, stdout: encode(result.stdoutBytes), stderr: result.stderr, files, traces: lab.traces, attempts })}\n`);
+  } finally { clearTimeout(timer); controller.abort(); await shell.dispose(); await lab.close(); }
+}
+const lab = await fixture();
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands()).use(curlCommands({ authorize: (request) => request.url === lab.url, limits: { maxTimeMs: 1500 } }));
+try {
+  const command = `curl --retry 2 --retry-delay 0.001 -w ':%{num_retries}' ${quote(lab.url)}`;
+  const result = await shell.exec(command, { signal: AbortSignal.timeout(2000) });
+  const nativeBody = Buffer.from(observations[0]!.stdout, "base64").toString().replace(/:9:200:0$/, "");
+  assert.equal(nativeBody, "retryretryrecovered");
+  assert.equal(result.stdout, `${nativeBody}:${observations[0]!.traces.length - 1}`);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(lab.traces.length, 3);
+  process.stdout.write(`${JSON.stringify({ id: "author-exact-public-repro", category: "separate fractional-delay/writeout contract; native 8.7.1 body reference only", command, stdout: result.stdout, staleAuthorExpected: "recovered:2", code: result.exitCode, requests: lab.traces.length, status: "passed" })}\n`);
+} finally { await shell.dispose(); await lab.close(); }
+assert.deepEqual(await validateSourceRevision(), source);
+assert.deepEqual((await readdir(owned)).filter((name) => name.startsWith(".independent-")), rootsBefore.filter((name) => name.startsWith(".independent-")));
+process.stdout.write(`${JSON.stringify({ source, total: 4, passed: 4, failed: 0, nativeParityRows: 3, authorReproContracts: 1, nativeInvocations, nativeTransferInvocations: 3, nativeVersionInvocations: 1, virtualComparisonRows: virtualRows, cleanup: "zero owned temporary roots, server listeners and tracked sockets" })}\n`);

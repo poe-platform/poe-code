@@ -1,0 +1,71 @@
+{
+  "at": 1787983159316,
+  "receipt": {
+    "bytes": 2449,
+    "sha256": "40dcc85bebf86611540ab751fd6dfe0f78012bb50f9481700cd93d55d8695efe"
+  },
+  "bindings": [
+    {
+      "path": "QUERY.stdout",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "QUERY.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "QUERY-EVENTS.jsonl",
+      "bytes": 1848,
+      "sha256": "7272ced9726075a7e4046dc20f7e49a1f7ce7ca49eca01871f80a1533c411e08"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 1474,
+      "sha256": "f55dd97a6dd87662a3be79dda6ebc5e3355bcff742a8e6d964d176718769bf85"
+    },
+    {
+      "path": "STATE.json",
+      "bytes": 9712,
+      "sha256": "db99e99f463b7c19a1f0e3dcf36fe37f602f964586d1fdd4c599ccbffdfdb492"
+    }
+  ],
+  "sourceSeal": {
+    "bytes": 1156,
+    "sha256": "b896f4434eed1ab926ec488323d8e71e7b5719697ed19156d7f52ee85d79abc5"
+  },
+  "sourceFiles": [
+    {
+      "path": "admin.mjs",
+      "bytes": 4098,
+      "sha256": "bcf0c729081324dfeed11b00c729cc33fcdeaca95db7a816ae7ac5b5a4eb4fcf"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 2733,
+      "sha256": "4c10007ea862acf1cd1680378dabecc3782613622d53d1d49ffd2a5be7101601"
+    },
+    {
+      "path": "selector.mjs",
+      "bytes": 2010,
+      "sha256": "52c538bbae5ec9a0f3dff4158f098e324559d3cdf1b8ab3c869ee68369b82f17"
+    },
+    {
+      "path": "runner.mjs",
+      "bytes": 5938,
+      "sha256": "0e60dbd43266b49eb9ef95360305666382032a963a7d6259a8e6f93a61373573"
+    },
+    {
+      "path": "DATA-CONTROLS.json",
+      "bytes": 4287,
+      "sha256": "8ee3f369214b76f93bb652f46b706d104ed4902e4638ad03626ea4f68ef4a241"
+    },
+    {
+      "path": "PREPARATION-ATTEMPT.json",
+      "bytes": 164,
+      "sha256": "338f7dc5ed9dba11d7ef00333e30313e6e1d698ae1f67d6392fbdf7f157658e5"
+    }
+  ],
+  "execution": "No retained module imported/executed; builtins-only metadata/hash/JSON parsing"
+}

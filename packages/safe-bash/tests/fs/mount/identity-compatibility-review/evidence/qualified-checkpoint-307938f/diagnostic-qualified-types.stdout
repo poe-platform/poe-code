@@ -1,0 +1,4 @@
+tests/fs/mount/identity-compatibility-review/compatibility.test.ts(44,18): error TS2345: Argument of type 'S3Transport' is not assignable to parameter of type 'MockS3Client'.
+  Type 'S3Transport' is missing the following properties from type 'MockS3Client': buckets, cursors, history, pageSize, and 9 more.
+tests/fs/mount/identity-compatibility-review/compatibility.test.ts(44,44): error TS2345: Argument of type 'S3Transport' is not assignable to parameter of type 'MockS3Client'.
+  Type 'S3Transport' is missing the following properties from type 'MockS3Client': buckets, cursors, history, pageSize, and 9 more.

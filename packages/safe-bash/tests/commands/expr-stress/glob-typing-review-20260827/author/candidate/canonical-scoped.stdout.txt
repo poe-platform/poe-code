@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: expr replies validate exact shape, original byte bounds and scalar boundaries
+ok 1 - expr replies validate exact shape, original byte bounds and scalar boundaries
+  ---
+  duration_ms: 1.414959
+  type: 'test'
+  ...
+# Subtest: expr request shape, limits and admission validation are bounded
+ok 2 - expr request shape, limits and admission validation are bounded
+  ---
+  duration_ms: 0.397667
+  type: 'test'
+  ...
+# Subtest: worker returns distinct absent, unmatched, empty and failed capture states
+ok 3 - worker returns distinct absent, unmatched, empty and failed capture states
+  ---
+  duration_ms: 22.120125
+  type: 'test'
+  ...
+# Subtest: the BRE compiler refuses main-thread execution
+ok 4 - the BRE compiler refuses main-thread execution
+  ---
+  duration_ms: 2.284625
+  type: 'test'
+  ...
+# Subtest: expr longest matching does not change legacy ordered alternatives in the same worker
+ok 5 - expr longest matching does not change legacy ordered alternatives in the same worker
+  ---
+  duration_ms: 22.586708
+  type: 'test'
+  ...
+# Subtest: glob queued admission accounts options, copies flags/bytes and cancels exact waiter
+ok 6 - glob queued admission accounts options, copies flags/bytes and cancels exact waiter
+  ---
+  duration_ms: 2.633083
+  type: 'test'
+  ...
+# Subtest: glob active abort retires its lease while another request remains usable
+ok 7 - glob active abort retires its lease while another request remains usable
+  ---
+  duration_ms: 0.829625
+  type: 'test'
+  ...
+# Subtest: glob acquisition error releases pending listener and invocation closes once
+ok 8 - glob acquisition error releases pending listener and invocation closes once
+  ---
+  duration_ms: 0.298417
+  type: 'test'
+  ...
+# Subtest: public ignore messageerror preserves fatal-resource versus malformed-rule behavior
+ok 9 - public ignore messageerror preserves fatal-resource versus malformed-rule behavior
+  ---
+  duration_ms: 5.869583
+  type: 'test'
+  ...
+# Subtest: public ignore match preserves fatal-resource versus malformed-rule behavior
+ok 10 - public ignore match preserves fatal-resource versus malformed-rule behavior
+  ---
+  duration_ms: 2.032791
+  type: 'test'
+  ...
+# Subtest: errno-shaped abort during ignore loading preserves identity and stops VFS traversal
+ok 11 - errno-shaped abort during ignore loading preserves identity and stops VFS traversal
+  ---
+  duration_ms: 1.195875
+  type: 'test'
+  ...
+# Subtest: worker globs retain code-unit strings, Unicode predicates and ancestor policy
+ok 12 - worker globs retain code-unit strings, Unicode predicates and ancestor policy
+  ---
+  duration_ms: 18.756041
+  type: 'test'
+  ...
+# Subtest: glob validation preserves first invalid rule and ignore-file literal brackets
+ok 13 - glob validation preserves first invalid rule and ignore-file literal brackets
+  ---
+  duration_ms: 63.194666
+  type: 'test'
+  ...
+# Subtest: glob batching caps ordinary descriptors without reordering matches
+ok 14 - glob batching caps ordinary descriptors without reordering matches
+  ---
+  duration_ms: 15.707625
+  type: 'test'
+  ...
+# Subtest: glob queue accounting includes options and UTF16LE path bytes
+ok 15 - glob queue accounting includes options and UTF16LE path bytes
+  ---
+  duration_ms: 0.168917
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 339.842417

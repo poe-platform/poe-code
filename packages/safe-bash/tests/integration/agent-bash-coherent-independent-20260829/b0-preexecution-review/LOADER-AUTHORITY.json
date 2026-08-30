@@ -1,0 +1,24 @@
+{
+  "spec": "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/stage-b/RETAINED-SOURCES.json",
+  "oid": "ae181705b8957a23c75588fe9869a720af566de8",
+  "bytes": 102475,
+  "sha256": "806c9ee4706132fd169925aaa84b569764029f5c3af303c338f773e224bd03a4",
+  "selected": [
+    {
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "path": "tests/integration/git-public-20260829/resources.mjs",
+      "blob": "f57ddbeecc878698bc03a5f265f3f76386107fbb",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+      "text": "import fs from 'node:fs';\nimport path from 'node:path';\nimport workerThreads from 'node:worker_threads';\nimport { syncBuiltinESMExports } from 'node:module';\nimport { fileURLToPath } from 'node:url';\nimport { createHash } from 'node:crypto';\nimport assert from 'node:assert/strict';\n\nconst destination = process.env.RESOURCE_LOG;\nconst allowance = Number(process.env.RESOURCE_ALLOWANCE);\nassert.ok(destination && Number.isSafeInteger(allowance) && allowance >= 0);\nconst binding = JSON.parse(fs.readFileSync(process.env.PUBLIC_BINDING));\nconst emit = event => fs.appendFileSync(destination, JSON.stringify(event) + '\\n');\nconst NativeWorker = workerThreads.Worker;\nlet created = 0, live = 0;\nemit({ kind: 'bootstrap', pid: process.pid, allowance });\nworkerThreads.Worker = class extends NativeWorker {\n  constructor(filename, options) {\n    assert.ok(created < allowance && live < 2, 'owned worker admission budget');\n    const entry = filename instanceof URL ? fileURLToPath(filename) : filename;\n    const expected = path.join(binding.root, 'dist/commands/regex-execution/worker.js');\n    assert.equal(entry, expected, 'only selected RegexWorker is admitted');\n    const metadata = fs.lstatSync(entry); assert.ok(metadata.isFile() && !metadata.isSymbolicLink());\n    assert.equal(fs.realpathSync(entry), entry);\n    const row = binding.inputs.find(item => item.path === 'commands/regex-execution/worker.js');\n    assert.ok(row); assert.equal(createHash('sha256').update(fs.readFileSync(entry)).digest('hex'), row.sha256);\n    assert.deepEqual(options.execArgv, []);\n    super(filename, options);\n    const id = ++created; live++;\n    emit({ kind: 'worker-create', id, threadId: this.threadId, entry, sha256: row.sha256, live });\n    this.once('exit', code => { live--; emit({ kind: 'worker-exit', id, code, live }); });\n  }\n};\nsyncBuiltinESMExports();\nprocess.once('beforeExit', () => { emit({ kind: 'before-exit', created, live }); if (live !== 0) process.exitCode = 78; });\n"
+    },
+    {
+      "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+      "path": "tests/integration/git-public-20260829/loader.mjs",
+      "blob": "9d2747828f958687f0ab5c2b93977c3988bf7ed6",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+      "text": "import fs from 'node:fs/promises';\nimport path from 'node:path';\nimport { fileURLToPath } from 'node:url';\nimport { createHash } from 'node:crypto';\nconst binding = JSON.parse(await fs.readFile(process.env.PUBLIC_BINDING));\nconst admitted = new Map(binding.inputs.map(row => [path.join(binding.root, 'dist', row.path), row]));\nconst harness = new Map(binding.harness.map(row => [row.path, row]));\nconst digest = bytes => createHash('sha256').update(bytes).digest('hex');\nexport async function load(url, context, next) {\n  if (!url.startsWith('file:')) return next(url, context);\n  const file = fileURLToPath(url), data = await fs.readFile(file);\n  if (harness.has(file)) {\n    if (digest(data) !== harness.get(file).sha256) throw Error('harness hash mismatch');\n  } else {\n    if (!file.startsWith(binding.root + '/dist/')) throw Error('package outside authenticated compiled root');\n    const row = admitted.get(file); if (!row) throw Error('package binding missing member');\n    if (digest(data) !== row.sha256) throw Error('package hash mismatch');\n    await fs.appendFile(binding.trace, JSON.stringify({ file, sha256: row.sha256 }) + '\\n');\n  }\n  return next(url, context);\n}\n"
+    }
+  ]
+}

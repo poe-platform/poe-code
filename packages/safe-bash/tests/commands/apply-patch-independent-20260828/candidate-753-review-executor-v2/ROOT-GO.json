@@ -1,0 +1,14 @@
+{
+  "binding": {
+    "authorization": "ROOT AP753 ONE REVIEW",
+    "attempt": 1,
+    "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+    "sealSha256": "d75db6e78b9a891705c8d8ffd753ef54624df4bb64b1670a523ecb365290e364",
+    "sourceCommit": "e0c80061c212929159ee3e727018d116f1534e8b"
+  },
+  "command": "exec -c /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --no-warnings /Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/controller.mjs e0c80061c212929159ee3e727018d116f1534e8b d75db6e78b9a891705c8d8ffd753ef54624df4bb64b1670a523ecb365290e364",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "authority": "ROOT latest explicit conditional ONE actual753 full54 GO: after versioned D02 exact30/IDs and two rootcause admission repairs pass all controls and complete full54 source/tool/consumer/loader/runtime budget seal is committed.110min/70 all-owned/peak4/128MiB combined capture/512MiB work/case30s/build120s. Fresh setup no old passes. No production/rootexports/native/private/network. Stop safety/capture/integrity/unknown retirement, no retry; ordinary clean assertions aggregate.",
+  "historicalIntegrity": "685cdd0d HOLD3/54/51 unrun;569a4b89 original22/23 wrong10;5f336d1a binary-output HOLD and all exact raw loss qualifications unchanged. This is fresh representation setup, not retroactive qualification."
+}

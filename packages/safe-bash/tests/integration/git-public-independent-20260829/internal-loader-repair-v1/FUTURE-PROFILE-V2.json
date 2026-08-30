@@ -1,0 +1,101 @@
+{
+  "status": "LATEST_SOURCE_ONLY_SUCCESSOR_PROPOSAL_NO_ACTUAL_GO",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "oldActualV1": "7bd3fc8e35b65d4bbda68f155ec9eb72534a1977 CONSUMED/HOLD",
+  "oldRunSha256": "582f7c4df2d3dd3d7f4298b428c548046ceefd8a30d9071be58b7002bbc74570",
+  "proposedRunSha256": "5dfbe0522523c3960785f69e96a07d0f926feeae0785cfb6a14feba26a9d74d8",
+  "helperSha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1",
+  "internalLoader": {
+    "maximumAdmissions": 32,
+    "labels": [
+      "source-public",
+      "source-apply",
+      "source-m1a",
+      "source-packs",
+      "source-arrays",
+      "source-coherence",
+      "source-novel",
+      "installed-public",
+      "installed-apply",
+      "installed-m1a",
+      "installed-packs",
+      "installed-arrays",
+      "installed-coherence",
+      "installed-novel",
+      "moved-public",
+      "moved-apply",
+      "moved-m1a",
+      "moved-packs",
+      "moved-arrays",
+      "moved-coherence",
+      "moved-novel",
+      "maintained-four-bodies",
+      "maintained-stream-consumer",
+      "registration-mutant",
+      "registration-restored",
+      "binding-missing",
+      "binding-changed",
+      "binding-outside",
+      "missing-explicit-export",
+      "explicit-export-restored",
+      "root-export-mutant",
+      "root-export-restored"
+    ],
+    "retirement": "known hosting process close, not independent per-loader Worker exit events",
+    "starts": "source-backed expectation, not runtime events in unchanged product loader"
+  },
+  "applicationRegex": {
+    "expected": 4,
+    "maximumCumulative": 32,
+    "maximumActive": 2,
+    "onlyRole": "maintained-four-bodies",
+    "otherRolesAllowance": 0,
+    "options": {
+      "execArgv": [],
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 128,
+        "stackSizeMb": 4
+      }
+    },
+    "closure": "unchanged authenticated four-member static inventory; no actual product import in this preparation"
+  },
+  "census": {
+    "coordinatorDirectChildren": 43,
+    "internalLoaderAdmissions": 32,
+    "applicationRegexMaximum": 32,
+    "internalCombinedMaximum": 107,
+    "internalReserve": 3,
+    "outerOwnerCoordinatorAdminReserve": 18,
+    "conservativeWholeCeiling": 128,
+    "osProcessPeakIncludingCaptureOwner": 4,
+    "threadCountsNotOsProcessPeak": true
+  },
+  "bounds": {
+    "seconds": 3600,
+    "ordinaryChildSeconds": 30,
+    "designatedBuildSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 268435456,
+    "workingBytes": 1073741824
+  },
+  "remaining": [
+    "assemble and seal complete successor runtime/inputs/unused namespace",
+    "full runner integration/binding-negative interactions not executed",
+    "fresh ROOT actual GO",
+    "no per-internal-worker exit census/hostile-JavaScript sandbox/global RSS claim"
+  ],
+  "harmlessEvidence": {
+    "original": "14PASS/8FAIL coordinator1 preserved",
+    "correction": "3PASS coordinator0; R02 child7 deliberately nonclean",
+    "internalAttempts": 12,
+    "internalObservedStarts": 11,
+    "applicationBirths": 2,
+    "applicationExits": 2,
+    "productRegexWorkers": 0
+  },
+  "supersedesSourceProposalOnly": "FUTURE-PROFILE.json",
+  "hashHelperSha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7",
+  "binaryHashMethod": "bounded65536-byte streaming; three source/data checks separate; historical whole-buffer method qualification retained",
+  "additionalDelta": "helper import and two executable hash call sites; reverse equals prior proposed source"
+}

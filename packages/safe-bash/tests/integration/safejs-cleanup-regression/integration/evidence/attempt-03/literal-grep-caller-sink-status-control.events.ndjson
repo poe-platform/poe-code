@@ -1,0 +1,20 @@
+{"order":0,"event":"public-exec-enter","argv":"safejs -e 'import { search } from \"companion\"; import { setExitCode } from \"command\"; setExitCode(await search(\"grep\", [\"-E\",\"^alpha\",\"/work/input\"]));'"}
+{"order":1,"event":"host-cleanup-registered"}
+{"order":2,"event":"host-admitted"}
+{"order":3,"event":"actual-engine-run"}
+{"order":4,"event":"guest-search-enter","name":"grep","args":["-E","^alpha","/work/input"]}
+{"order":5,"event":"registered-search-entry","command":"grep","args":["-E","^alpha","/work/input"],"stdinIsDefault":true}
+{"order":6,"event":"product-cleanup-registered","command":"grep"}
+{"order":7,"event":"worker-created","id":0,"threadId":2}
+{"order":8,"event":"worker-post","id":0,"count":1}
+{"order":9,"event":"worker-post","id":0,"count":2}
+{"order":10,"event":"caller-sink-error"}
+{"order":11,"event":"worker-terminate","id":0}
+{"order":12,"event":"worker-exit","id":0,"code":1}
+{"order":13,"event":"worker-termination-settled","id":0,"code":1}
+{"order":14,"event":"guest-search-settled","exitCode":2}
+{"order":15,"event":"host-cleanup-start"}
+{"order":16,"event":"host-cleanup-done"}
+{"order":17,"event":"public-exec-settled","cleanupDone":true,"hostCalls":1,"runnerCalls":1,"workers":[{"id":0,"threadId":2,"exited":true,"terminateCalls":1,"terminationSettled":true,"posts":2}]}
+{"order":18,"event":"public-dispose-settled","cleanupDone":true,"hostCalls":1,"runnerCalls":1,"workers":[{"id":0,"threadId":2,"exited":true,"terminateCalls":1,"terminationSettled":true,"posts":2}]}
+{"order":19,"event":"owned-tooling-closed","processes":[]}

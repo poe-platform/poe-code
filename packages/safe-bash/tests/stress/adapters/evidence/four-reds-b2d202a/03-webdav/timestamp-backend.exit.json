@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/fs/webdav/timestamps.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-adapter-corrections-0yDYsZ/03-webdav/archive",
+  "start": "2026-08-26T23:39:04.737Z",
+  "end": "2026-08-26T23:39:05.094Z",
+  "status": 0,
+  "signal": null
+}

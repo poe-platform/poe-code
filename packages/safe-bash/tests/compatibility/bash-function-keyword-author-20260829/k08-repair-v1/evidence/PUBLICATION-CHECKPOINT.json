@@ -1,0 +1,64 @@
+{
+  "schema": "k08-author-publication-checkpoint-v1",
+  "at": "2026-08-29T14:48:34.798Z",
+  "commits": [
+    "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+    "c564cb205b1823c3fd4fe86fd8f938ffb31cde8a",
+    "71a5556b19ebf51e4ddd88bbd634399ca5243184"
+  ],
+  "phaseDeadline": "2026-08-29T14:54:43.488Z",
+  "disposition": "SOURCE_IMPLEMENTED_STRICT_BUILD_PASS_RUNTIME_UNRUN",
+  "administrationSnapshot": {
+    "starts": 26,
+    "allExitCloseCaptured": true,
+    "captureBytes": 8937,
+    "ledgerRawBytes": 22501,
+    "ledgerSha256": "629478de5ceaf5f0d927fc6ea40fa0df3d6152eef24fc1d38309cb85707898b7"
+  },
+  "compiler": {
+    "distinctAdditionalKnownStart": 1,
+    "status": 0,
+    "qualified": true,
+    "stdoutBytes": 0,
+    "stderrBytes": 0
+  },
+  "knownStartsAtSnapshot": 27,
+  "knownPeak": 3,
+  "peakBasis": "Admin runner owner + build owner + its one compiler. Other administrative commands serial.",
+  "roots": [
+    {
+      "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+      "at": 1788014889022,
+      "bytes": 44101848,
+      "entries": 2934,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1",
+      "at": 1788014889023,
+      "bytes": 2239595,
+      "entries": 34,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    }
+  ],
+  "logicalBytesAtSnapshots": 46341443,
+  "qualifications": [
+    "Two independently timestamped fresh file-based root samples, not a historical peak or RSS guarantee.",
+    "This checkpoint precedes its own apply_patch/add/commit/final metadata publication; those roles remain in the retained on-disk capture LEDGER, not falsely included above.",
+    "No stale PID/group probe or universal descendant census.",
+    "No product/helper/mutant/native/Worker calls. No old capture archive retry."
+  ],
+  "publicationAllowance": {
+    "maximumFurtherAdministrativeStarts": 6,
+    "remainingAdminSubcap": 6
+  },
+  "future": {
+    "status": "PENDING_DIFFERENT_REVIEW_AND_ROOT_GO",
+    "sealBytes": 196558,
+    "sealSha256": "ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91",
+    "shellCalls": 71,
+    "knownStartsProposed": 86,
+    "peak": 3
+  },
+  "historical": "47a2311e source51/54 + equal legacy24/24 and administrative2MiBSTOP preserved."
+}

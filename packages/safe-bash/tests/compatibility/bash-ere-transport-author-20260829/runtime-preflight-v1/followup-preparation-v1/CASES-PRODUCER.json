@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "role": "DATA-only exact thirteen-case capsule; no module execution",
+  "compressedBytes": 480634,
+  "compressedSha256": "1ab7fd2f00fd359217c608c939c8686158935899588ec9284f6b80870789be23",
+  "decodedBytes": 1891990,
+  "decodedSha256": "cc92b48f570ad1d3defd9b37e0d047f30621d5ab5f9c22987c543e9afa723c26",
+  "entries": 390,
+  "rawBytes": 1365232,
+  "inventorySha256": "798090817dd88be2f3e598dddd257c6ad5792630b4e8c14fe800dbb219789528",
+  "format": "gzip JSON with base64 regular files; per-row65536/aggregate16MiB; hashes verified before same-buffer encoding",
+  "instructionFiles": 0
+}

@@ -1,0 +1,2399 @@
+482f401b1d24379ce5dd2a37fa432a068d0bf2dc blob 34683
+{
+  "source": "f97fd06024cb63edfd01873d81d84576a22189db",
+  "seal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/SEAL.json",
+    "size": 62193,
+    "mode": 384,
+    "sha256": "b5f681614a4f52373210202c0a573e9009d8e80920d1e3880315b0ab84c3f70b"
+  },
+  "disposition": "REJECT pending capture-reset correction/profile decision",
+  "layouts": [
+    {
+      "layout": "source",
+      "author": {
+        "pass": 66,
+        "fail": 0
+      },
+      "independent": {
+        "pass": 17,
+        "fail": 7
+      },
+      "failures": [
+        "I01-parent-optional-reset",
+        "I02-parent-alternative-reset",
+        "I03-nested-parent-reset",
+        "I04-manual-example",
+        "I05-finite-parent-reset",
+        "I06-parent-zero-iteration",
+        "I23-finite-reset-property"
+      ],
+      "property": {
+        "checks": 62,
+        "contradictions": 52
+      },
+      "observations": [
+        {
+          "event": "observation",
+          "pattern": "(a(b)?)+",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)|(b))+",
+          "subject": "ab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 1,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "ab",
+              "b",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            null,
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a(b)?)c)+",
+          "subject": "abcac",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 4
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abcac",
+              "ac",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(ba(na)*s )*",
+          "subject": "bananas bas ",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 12
+              },
+              {
+                "start": 8,
+                "end": 12
+              },
+              {
+                "start": 4,
+                "end": 6
+              }
+            ],
+            "values": [
+              "bananas bas ",
+              "bas ",
+              "na"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              12
+            ],
+            [
+              8,
+              12
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b)?){2}",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)?b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 1
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a*)b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a|aa)(a?)",
+          "subject": "aa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aa",
+              "aa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a*)(a*)",
+          "subject": "aaa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 3,
+                "end": 3
+              }
+            ],
+            "values": [
+              "aaa",
+              "aaa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "^b|a$",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 2,
+                "end": 3
+              }
+            ],
+            "values": [
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a+X)+",
+          "subject": "aaXaX",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              }
+            ],
+            "values": [
+              "aaXaX",
+              "aX"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b|bb))+",
+          "subject": "abbab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 4,
+                "end": 5
+              }
+            ],
+            "values": [
+              "abbab",
+              "ab",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a?)(a?)",
+          "subject": "a",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 1
+              }
+            ],
+            "values": [
+              "a",
+              "a",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "layout": "installed",
+      "author": {
+        "pass": 66,
+        "fail": 0
+      },
+      "independent": {
+        "pass": 17,
+        "fail": 7
+      },
+      "failures": [
+        "I01-parent-optional-reset",
+        "I02-parent-alternative-reset",
+        "I03-nested-parent-reset",
+        "I04-manual-example",
+        "I05-finite-parent-reset",
+        "I06-parent-zero-iteration",
+        "I23-finite-reset-property"
+      ],
+      "property": {
+        "checks": 62,
+        "contradictions": 52
+      },
+      "observations": [
+        {
+          "event": "observation",
+          "pattern": "(a(b)?)+",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)|(b))+",
+          "subject": "ab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 1,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "ab",
+              "b",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            null,
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a(b)?)c)+",
+          "subject": "abcac",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 4
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abcac",
+              "ac",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(ba(na)*s )*",
+          "subject": "bananas bas ",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 12
+              },
+              {
+                "start": 8,
+                "end": 12
+              },
+              {
+                "start": 4,
+                "end": 6
+              }
+            ],
+            "values": [
+              "bananas bas ",
+              "bas ",
+              "na"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              12
+            ],
+            [
+              8,
+              12
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b)?){2}",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)?b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 1
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a*)b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a|aa)(a?)",
+          "subject": "aa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aa",
+              "aa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a*)(a*)",
+          "subject": "aaa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 3,
+                "end": 3
+              }
+            ],
+            "values": [
+              "aaa",
+              "aaa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "^b|a$",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 2,
+                "end": 3
+              }
+            ],
+            "values": [
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a+X)+",
+          "subject": "aaXaX",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              }
+            ],
+            "values": [
+              "aaXaX",
+              "aX"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b|bb))+",
+          "subject": "abbab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 4,
+                "end": 5
+              }
+            ],
+            "values": [
+              "abbab",
+              "ab",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a?)(a?)",
+          "subject": "a",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 1
+              }
+            ],
+            "values": [
+              "a",
+              "a",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "layout": "moved",
+      "author": {
+        "pass": 66,
+        "fail": 0
+      },
+      "independent": {
+        "pass": 17,
+        "fail": 7
+      },
+      "failures": [
+        "I01-parent-optional-reset",
+        "I02-parent-alternative-reset",
+        "I03-nested-parent-reset",
+        "I04-manual-example",
+        "I05-finite-parent-reset",
+        "I06-parent-zero-iteration",
+        "I23-finite-reset-property"
+      ],
+      "property": {
+        "checks": 62,
+        "contradictions": 52
+      },
+      "observations": [
+        {
+          "event": "observation",
+          "pattern": "(a(b)?)+",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)|(b))+",
+          "subject": "ab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 1,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "ab",
+              "b",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            null,
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a(b)?)c)+",
+          "subject": "abcac",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 4
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abcac",
+              "ac",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              3,
+              4
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(ba(na)*s )*",
+          "subject": "bananas bas ",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 12
+              },
+              {
+                "start": 8,
+                "end": 12
+              },
+              {
+                "start": 4,
+                "end": 6
+              }
+            ],
+            "values": [
+              "bananas bas ",
+              "bas ",
+              "na"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              12
+            ],
+            [
+              8,
+              12
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b)?){2}",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 1,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aba",
+              "a",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a)?b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 1
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            null
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "((a*)b){2}",
+          "subject": "abb",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 3
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "abb",
+              "b",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a|aa)(a?)",
+          "subject": "aa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 0,
+                "end": 2
+              },
+              {
+                "start": 2,
+                "end": 2
+              }
+            ],
+            "values": [
+              "aa",
+              "aa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a*)(a*)",
+          "subject": "aaa",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 0,
+                "end": 3
+              },
+              {
+                "start": 3,
+                "end": 3
+              }
+            ],
+            "values": [
+              "aaa",
+              "aaa",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "^b|a$",
+          "subject": "aba",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 2,
+                "end": 3
+              }
+            ],
+            "values": [
+              "a"
+            ]
+          },
+          "expected": [
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a+X)+",
+          "subject": "aaXaX",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              }
+            ],
+            "values": [
+              "aaXaX",
+              "aX"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a(b|bb))+",
+          "subject": "abbab",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 5
+              },
+              {
+                "start": 3,
+                "end": 5
+              },
+              {
+                "start": 4,
+                "end": 5
+              }
+            ],
+            "values": [
+              "abbab",
+              "ab",
+              "b"
+            ]
+          },
+          "expected": [
+            [
+              0,
+              5
+            ],
+            [
+              3,
+              5
+            ],
+            [
+              4,
+              5
+            ]
+          ]
+        },
+        {
+          "event": "observation",
+          "pattern": "(a?)(a?)",
+          "subject": "a",
+          "observed": {
+            "matched": true,
+            "captures": [
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 0,
+                "end": 1
+              },
+              {
+                "start": 1,
+                "end": 1
+              }
+            ],
+            "values": [
+              "a",
+              "a",
+              ""
+            ]
+          },
+          "expected": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "id": "source-types-positive",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "expected": []
+    },
+    {
+      "id": "source-types-negative",
+      "pass": true,
+      "code": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "expected": [
+        2345,
+        2339,
+        2322
+      ]
+    },
+    {
+      "id": "installed-types-positive",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "expected": []
+    },
+    {
+      "id": "installed-types-negative",
+      "pass": true,
+      "code": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "expected": [
+        2345,
+        2339,
+        2322
+      ]
+    },
+    {
+      "id": "moved-types-positive",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "expected": []
+    },
+    {
+      "id": "moved-types-negative",
+      "pass": true,
+      "code": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "expected": [
+        2345,
+        2339,
+        2322
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "id": "M01-whole-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    },
+    {
+      "id": "M02-ascii-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    },
+    {
+      "id": "M03-nullable-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    },
+    {
+      "id": "M04-truncate-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    },
+    {
+      "id": "M05-slot-control",
+      "pass": true,
+      "killed": 3,
+      "restored": true
+    },
+    {
+      "id": "M06-binding-control",
+      "pass": true,
+      "killed": 1,
+      "restored": true
+    }
+  ],
+  "denials": [
+    {
+      "id": "wrong-hash",
+      "pass": true,
+      "code": 2
+    },
+    {
+      "id": "wrong-path",
+      "pass": true,
+      "code": 2
+    }
+  ],
+  "stockGroupOutcomes": {
+    "pass": 249,
+    "fail": 21,
+    "total": 270,
+    "uniqueGroupIds": 90,
+    "inputOverlap": true
+  },
+  "runtime": {
+    "children": 27,
+    "retired": 27,
+    "elapsedMs": 8491,
+    "captureBytes": 239356,
+    "work": {
+      "files": 275,
+      "bytes": 27517553
+    },
+    "peakOwnerAndChild": 2
+  },
+  "sourceOnlyChargeTrace": {
+    "historyEntries": 255,
+    "outerCharges": 255,
+    "leftLinkCharges": 32385,
+    "rightLinkCharges": 32385,
+    "total": 65025,
+    "checkpointPredicatesTrue": 0,
+    "classification": "SOURCE arithmetic only, not executed cancellation/timing proof"
+  },
+  "publicationElapsedMs": 198648,
+  "native": "UNRUN",
+  "shellIntegration": "UNRUN"
+}
+
+fe414e0ede3dc328fc202f0b10cf73064f793051 blob 3416
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+const root=path.dirname(new URL(import.meta.url).pathname);
+const capture=fs.openSync(root+'/ACQUIRE.capture.data','wx',0o600);
+const log=row=>fs.writeSync(capture,JSON.stringify(row)+'\n');
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const assert=(value,message)=>{if(!value)throw Error(message);};let starts=0;
+try{
+ log({event:'START',at:new Date().toISOString()});
+ const jobs=[['author','8bd170e5465c1253a52231c9cf08b5afef064d81',['tests/compatibility/bash-ere-engine-author-20260829/HANDOFF.md','tests/compatibility/bash-ere-engine-author-20260829/README.md']],['engine','f97fd06024cb63edfd01873d81d84576a22189db',['src/commands/regex-execution/ere']],['design','a2249d466436f1f94ba2976265f4e1cc9d93137b',['tests/compatibility/bash-ere-design-20260829']],['clarification','e2b4823c786a046f928b027225ce321c5af8a60d',['tests/compatibility/bash-ere-design-20260829']]];
+ for(const[label,commit,paths]of jobs){const destination=root+'/'+label;fs.mkdirSync(destination);const git=(args,input)=>{starts++;log({event:'ENROLLED',starts,args});const result=spawnSync('/usr/bin/git',args,{input,cwd:'/Users/kjopek/Workspace/safe-bash',env:{PATH:'/usr/bin:/bin',HOME:destination,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null',GIT_OPTIONAL_LOCKS:'0'},timeout:30000,maxBuffer:16*1024*1024});fs.writeFileSync(root+`/${starts}.stderr.data`,result.stderr??Buffer.alloc(0),{flag:'wx',mode:0o600});log({event:'RETIRED',starts,status:result.status,signal:result.signal,error:result.error?.message,stdoutBytes:result.stdout?.length});assert(!result.error&&!result.signal&&result.status===0,'METADATA_STOP');return result.stdout;};const listing=git(['ls-tree','-r','-z',commit,'--',...paths]);fs.writeFileSync(destination+'/inventory.data',listing,{flag:'wx',mode:0o600});const rows=listing.toString('utf8').split('\0').filter(Boolean).map(line=>{const match=/^(100644|100755) blob ([0-9a-f]{40})\t(.+)$/.exec(line);assert(match&&!match[3].split('/').includes('AGENTS.md'),'PATH_ROLE');return {mode:match[1],blob:match[2],path:match[3]};});assert(rows.length>0&&rows.length<=100,'COUNT');const batch=git(['cat-file','--batch'],Buffer.from(rows.map(row=>row.blob).join('\n')+'\n'));let offset=0;for(const[index,row]of rows.entries()){const end=batch.indexOf(10,offset),header=batch.subarray(offset,end).toString('ascii').split(' '),size=Number(header[2]);assert(header[0]===row.blob&&header[1]==='blob'&&Number.isSafeInteger(size)&&size>=0&&size<8*1024*1024,'HEADER');const bytes=batch.subarray(end+1,end+1+size);assert(bytes.length===size&&batch[end+1+size]===10,'FRAMING');assert(createHash('sha1').update(`blob ${size}\0`).update(bytes).digest('hex')===row.blob,'BLOB_HASH');row.bytes=size;row.sha256=hash(bytes);row.capture=`${index}.data`;fs.writeFileSync(destination+'/'+row.capture,bytes,{flag:'wx',mode:0o600});offset=end+size+2;}assert(offset===batch.length,'TRAILER');fs.writeFileSync(destination+'/MANIFEST.json',JSON.stringify({commit,rows},null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({label,files:rows.map(row=>({name:row.path,capture:row.capture,bytes:row.bytes,sha256:row.sha256}))}));}
+ log({event:'COMPLETE',starts});
+}catch(error){log({event:'STOP',message:error.message,starts});process.exitCode=1;}finally{fs.closeSync(capture);}
+
+fb57448fb95ea193b245ccf8811c9ffb9c7bd601 blob 1537
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { pathToFileURL } from 'node:url';
+const [manifestFile,suite,cases,selection='all'] = process.argv.slice(2);
+let admitted = false;
+try {
+  const manifest = JSON.parse(fs.readFileSync(manifestFile,'utf8'));
+  if (!path.isAbsolute(manifest.directory) || !Array.isArray(manifest.files) || manifest.files.length !== 11) throw Error('manifest shape');
+  const actualNames = fs.readdirSync(manifest.directory).sort();
+  if (JSON.stringify(actualNames) !== JSON.stringify(manifest.files.map(row=>row.name).sort())) throw Error('member set');
+  for (const row of manifest.files) {
+    if (!/^(types|errors|limits|syntax|matcher)\.(js|d\.ts)$|^package\.json$/.test(row.name)) throw Error('path');
+    const location = path.join(manifest.directory,row.name);
+    const stat = fs.lstatSync(location);
+    if (!stat.isFile() || stat.size !== row.size || (stat.mode&0o777) !== row.mode) throw Error('type/size/mode');
+    const sha256 = crypto.createHash('sha256').update(fs.readFileSync(location)).digest('hex');
+    if (sha256 !== row.sha256) throw Error('hash');
+  }
+  console.log(JSON.stringify({ event:'admitted', manifest }));
+  admitted = true;
+  process.argv = [process.execPath,suite,manifest.directory,cases,selection];
+  await import(pathToFileURL(suite).href);
+} catch (error) {
+  console.log(JSON.stringify({ event:admitted?'execution-error':'ADMISSION_DENIED', message:String(error?.stack??error) }));
+  process.exitCode = admitted?1:2;
+}
+
+cb7c7413315a801b067eb262e31b1cb5858faf3d blob 7059
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+const root=path.dirname(new URL(import.meta.url).pathname);
+const log=fs.openSync(path.join(root,'FINALIZE.capture.data'),'wx',0o600);
+const emit=value=>fs.writeSync(log,JSON.stringify(value)+'\n');
+const hash=location=>{
+  const stat=fs.lstatSync(location);assert.ok(stat.isFile());assert.ok(stat.size<=128*1024*1024);
+  const digest=crypto.createHash('sha256');const descriptor=fs.openSync(location,'r');const buffer=Buffer.alloc(65536);let size=0;
+  try{let count;while((count=fs.readSync(descriptor,buffer,0,buffer.length,null))>0){digest.update(buffer.subarray(0,count));size+=count;}}finally{fs.closeSync(descriptor);}
+  assert.equal(size,stat.size);return{path:location,size,mode:stat.mode&0o777,sha256:digest.digest('hex')};
+};
+try{
+  emit({event:'start',at:new Date().toISOString(),role:'DATA-only'});
+  const result=JSON.parse(fs.readFileSync(path.join(root,'ACTUAL-01/RESULT.json')));
+  assert.ok(Date.now()<result.started+3600000);
+  const seal=JSON.parse(fs.readFileSync(path.join(root,'SEAL.json')));
+  for(const row of [seal.node,...seal.sources,...seal.tools,...seal.inputs])assert.deepEqual(hash(row.path),{path:row.path,size:row.size,mode:row.mode,sha256:row.sha256});
+  assert.equal(result.source,'f97fd06024cb63edfd01873d81d84576a22189db');
+  assert.equal(result.children,27);assert.equal(result.receipts.length,27);
+  let rawBytes=0;
+  const captures=new Map();
+  for(const receipt of result.receipts){
+    assert.equal(receipt.retired,true);assert.equal(receipt.signal,null);assert.equal(receipt.stop,null);assert.ok([0,1,2].includes(receipt.code));
+    for(const row of [receipt.stdout,receipt.stderr]){assert.deepEqual(hash(row.path),row);rawBytes+=row.size;}
+    captures.set(receipt.id,fs.readFileSync(receipt.stdout.path,'utf8').split('\n').filter(Boolean));
+  }
+  assert.equal(rawBytes,result.captureBytes);
+  const expectedFailures=['I01-parent-optional-reset','I02-parent-alternative-reset','I03-nested-parent-reset','I04-manual-example','I05-finite-parent-reset','I06-parent-zero-iteration','I23-finite-reset-property'];
+  const layouts=[];
+  for(const layout of ['source','installed','moved']){
+    const author=result.results.find(row=>row.id===layout+'-author');
+    const independent=result.results.find(row=>row.id===layout+'-independent');
+    assert.equal(author.pass,true);assert.equal(author.results.pass,66);assert.equal(author.results.fail,0);
+    assert.equal(independent.pass,false);assert.equal(independent.results.pass,17);assert.equal(independent.results.fail,7);
+    assert.deepEqual(independent.results.rows.filter(row=>!row.pass).map(row=>row.id),expectedFailures);
+    const parsed=captures.get(layout+'-independent').map(line=>JSON.parse(line));
+    const property=parsed.find(row=>row.event==='property');assert.equal(property.checked,62);assert.equal(property.failures.length,52);
+    for(const suffix of ['author','independent']){
+      const admitted=captures.get(layout+'-'+suffix).map(line=>JSON.parse(line)).find(row=>row.event==='admitted');
+      assert.equal(admitted.manifest.files.length,11);
+      if(suffix==='author'){
+        const loaded=captures.get(layout+'-'+suffix).map(line=>JSON.parse(line)).find(row=>row.event==='loaded');
+        assert.deepEqual(Object.keys(loaded.files),['types','errors','limits','syntax','matcher']);
+        for(const [name,record] of Object.entries(loaded.files)){
+          assert.equal(new URL(record.url).pathname,path.join(admitted.manifest.directory,name+'.js'));
+          assert.equal(record.sha256,admitted.manifest.files.find(row=>row.name===name+'.js').sha256);
+        }
+      }
+    }
+    layouts.push({layout,author:{pass:66,fail:0},independent:{pass:17,fail:7},failures:expectedFailures,property:{checks:62,contradictions:52},observations:parsed.filter(row=>row.event==='observation')});
+  }
+  const types=result.results.filter(row=>row.id.includes('-types-'));assert.equal(types.length,6);assert.ok(types.every(row=>row.pass));
+  const mutations=result.results.filter(row=>/^M\d\d-.+-control$/.test(row.id));assert.equal(mutations.length,6);assert.ok(mutations.every(row=>row.pass&&row.restored));
+  const denials=result.results.filter(row=>row.id==='wrong-hash'||row.id==='wrong-path');assert.equal(denials.length,2);assert.ok(denials.every(row=>row.pass));
+  const original=JSON.parse(fs.readFileSync(path.join(root,'ACTUAL-01/original.manifest.json')));
+  for(const row of original.files){const current=hash(path.join(original.directory,row.name));assert.equal(current.sha256,row.sha256);assert.equal(current.mode,row.mode);assert.equal(current.size,row.size);}
+  assert.equal(fs.existsSync(path.join(root,'ACTUAL-01/work/installed-consumer')),false);
+  const chargeTrace={historyEntries:255,outerCharges:255,leftLinkCharges:255*254/2,rightLinkCharges:255*254/2,total:255**2,checkpointPredicatesTrue:0,classification:'SOURCE arithmetic only, not executed cancellation/timing proof'};
+  const summary={source:result.source,seal:result.seal,disposition:'REJECT pending capture-reset correction/profile decision',layouts,types,mutations,denials,stockGroupOutcomes:{pass:249,fail:21,total:270,uniqueGroupIds:90,inputOverlap:true},runtime:{children:27,retired:27,elapsedMs:result.elapsedMs,captureBytes:rawBytes,work:result.working,peakOwnerAndChild:2},sourceOnlyChargeTrace:chargeTrace,publicationElapsedMs:Date.now()-result.started,native:'UNRUN',shellIntegration:'UNRUN'};
+  fs.writeFileSync(path.join(root,'SUMMARY.json'),JSON.stringify(summary,null,2)+'\n',{mode:0o600,flag:'wx'});
+  const entries=[];
+  const visit=directory=>{for(const name of fs.readdirSync(directory)){if(directory===path.join(root,'ACTUAL-01')&&name==='work')continue;if(name.startsWith('FINALIZE')||name==='EVIDENCE.json')continue;const location=path.join(directory,name);const stat=fs.lstatSync(location);if(stat.isDirectory())visit(location);else if(stat.isFile())entries.push({...hash(location),path:path.relative(root,location)});else throw Error('unexpected evidence role');}};
+  visit(root);entries.sort((left,right)=>left.path<right.path?-1:1);
+  const evidence={files:entries,bytes:entries.reduce((sum,row)=>sum+row.size,0),canonicalEntriesSha256:crypto.createHash('sha256').update(JSON.stringify(entries)).digest('hex')};
+  fs.writeFileSync(path.join(root,'EVIDENCE.json'),JSON.stringify(evidence,null,2)+'\n',{mode:0o600,flag:'wx'});
+  emit({event:'complete',summary:hash(path.join(root,'SUMMARY.json')),evidence:hash(path.join(root,'EVIDENCE.json')),runtime:summary.runtime});
+  console.log(JSON.stringify({summary:hash(path.join(root,'SUMMARY.json')),evidence:hash(path.join(root,'EVIDENCE.json')),runtime:summary.runtime,types:types.map(row=>({id:row.id,diagnostics:row.diagnostics})),mutants:mutations.map(row=>({id:row.id,killed:row.killed})),sourceOnlyChargeTrace:chargeTrace}));
+}catch(error){emit({event:'failure',message:String(error?.stack??error)});process.exitCode=1;}
+finally{fs.fsyncSync(log);fs.closeSync(log);}
+
+7053cbfbd53d938c697aeb0a934f5fb609db08d4 blob 8827
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import { setImmediate as immediate } from 'node:timers/promises';
+const [directory] = process.argv.slice(2);
+const { EreLedger, deriveEreLimits } = await import(pathToFileURL(`${directory}/limits.js`).href);
+const { compileEre } = await import(pathToFileURL(`${directory}/syntax.js`).href);
+const { matchEre } = await import(pathToFileURL(`${directory}/matcher.js`).href);
+const { EreProfileLimitError, EreUsageUnknownError } = await import(pathToFileURL(`${directory}/errors.js`).href);
+const bounds = { maxExpansionBytes: 1048576, maxExpansionFields: 8192 };
+const rows = [];
+const check = async (id, body) => {
+  try { await body(); rows.push({ id, pass: true }); }
+  catch (error) { rows.push({ id, pass: false, message: String(error?.stack ?? error), actual: error?.actual, expected: error?.expected }); }
+};
+const result = async (pattern, subject) => {
+  const ledger = new EreLedger(bounds);
+  return matchEre(await compileEre(pattern, ledger), subject, ledger);
+};
+const vector = async (pattern, subject, expected) => {
+  const observed = await result(pattern, subject);
+  console.log(JSON.stringify({ event: 'observation', pattern, subject, observed, expected }));
+  assert.equal(observed.matched, true);
+  assert.deepEqual(observed.captures.map(span => span === null ? null : [span.start, span.end]), expected);
+};
+await check('I01-parent-optional-reset', () => vector('(a(b)?)+', 'aba', [[0,3],[2,3],null]));
+await check('I02-parent-alternative-reset', () => vector('((a)|(b))+', 'ab', [[0,2],[1,2],null,[1,2]]));
+await check('I03-nested-parent-reset', () => vector('((a(b)?)c)+', 'abcac', [[0,5],[3,5],[3,4],null]));
+await check('I04-manual-example', () => vector('(ba(na)*s )*', 'bananas bas ', [[0,12],[8,12],null]));
+await check('I05-finite-parent-reset', () => vector('(a(b)?){2}', 'aba', [[0,3],[2,3],null]));
+await check('I06-parent-zero-iteration', () => vector('((a)?b){2}', 'abb', [[0,3],[2,3],null]));
+await check('I07-empty-is-participation', () => vector('((a*)b){2}', 'abb', [[0,3],[2,3],[2,2]]));
+await check('I08-whole-subexpression-priority', () => vector('(a|aa)(a?)', 'aa', [[0,2],[0,2],[2,2]]));
+await check('I09-left-subexpression-priority', () => vector('(a*)(a*)', 'aaa', [[0,3],[0,3],[3,3]]));
+await check('I10-original-subject-anchors', () => vector('^b|a$', 'aba', [[2,3]]));
+await check('I11-last-iteration-not-largest', () => vector('(a+X)+', 'aaXaX', [[0,5],[3,5]]));
+await check('I12-nested-last-iteration', () => vector('(a(b|bb))+', 'abbab', [[0,5],[3,5],[4,5]]));
+await check('I13-empty-priority', () => vector('(a?)(a?)', 'a', [[0,1],[0,1],[1,1]]));
+await check('I14-nullable-refusal', async () => {
+  for (const pattern of ['(a*){2}', '(a?)+', '((a?)b?)*']) await assert.rejects(result(pattern, 'a'), error => error.name === 'EreUnsupportedError' && error.status === 2);
+});
+await check('I15-intervals', async () => {
+  for (const pattern of ['a{2,1}', 'a{,2}', 'a{1']) await assert.rejects(result(pattern, 'a'), error => error.name === 'EreSyntaxError' && error.status === 2);
+  await assert.rejects(result('a{256}', ''), error => error.name === 'EreUnsupportedError');
+  assert.equal((await result('a{0,255}', 'aaa')).values[0], 'aaa');
+});
+await check('I16-ascii-refusals', async () => {
+  for (const subject of ['\0', '\ud800', 'é']) await assert.rejects(result('.', subject), error => error.name === 'EreUnsupportedError' && error.status === 2);
+  assert.equal((await result('[[:cntrl:]]', '\x7f')).matched, true);
+  assert.equal((await result('[[:graph:]]', ' ')).matched, false);
+});
+await check('I17-all-captures', async () => {
+  const observed = await result('(a)'.repeat(32), 'a'.repeat(32));
+  assert.equal(observed.captures.length, 33);
+  for (let index = 1; index <= 32; index++) assert.deepEqual(observed.captures[index], { start: index-1, end:index });
+  await assert.rejects(result('(a)'.repeat(33), 'a'.repeat(33)), error => error.name === 'EreUnsupportedError');
+});
+await check('I18-saturating-formulas', () => {
+  const values = [0,1,255,256,31249,31250,499999,500000,1562499,1562500,Number.MAX_SAFE_INTEGER];
+  const cap = (value, limit) => Number(value < BigInt(limit) ? value : BigInt(limit));
+  for (const bytes of values) for (const fields of values) {
+    const observed = deriveEreLimits({ maxExpansionBytes: bytes, maxExpansionFields: fields });
+    assert.deepEqual(observed, { patternBytes: Math.min(bytes,65536), subjectBytes: Math.min(bytes,1048576), work:cap(BigInt(bytes)*32n,50000000), states:cap(BigInt(fields)*8n,65536), allocationUnits:cap(BigInt(bytes)*8n+BigInt(fields)*128n,4000000), captureBytes:bytes, captureSlots:fields });
+  }
+});
+await check('I19-cumulative-no-refund', async () => {
+  const ledger = new EreLedger(bounds, { captureSlots: 2 });
+  const program = await compileEre('a', ledger);
+  await matchEre(program, 'a', ledger);
+  const before = ledger.usage;
+  await matchEre(program, 'a', ledger);
+  await assert.rejects(matchEre(program, 'a', ledger), error => error instanceof EreProfileLimitError && error.resource === 'captureSlots' && error.status === 3);
+  const after = ledger.usage;
+  for (const key of Object.keys(before)) assert.ok(after[key] >= before[key]);
+  assert.equal(after.captureSlots, 2);
+  assert.equal(after.subjectBytes, 1);
+  assert.equal(after.patternBytes, 1);
+  assert.equal(after.captureBytes, 2);
+});
+await check('I20-poison-caller-identity', async () => {
+  for (const reason of [0,false,null,'cancelled',{ token: 1 }]) {
+    const ledger = new EreLedger(bounds);
+    const cause = { lost: true }; ledger.markUnknownUsage(cause);
+    await assert.rejects(compileEre('a', ledger), error => error instanceof EreUsageUnknownError && error.cause === cause);
+    const controller = new AbortController(); controller.abort(reason);
+    let caught = Symbol('not caught');
+    try { await compileEre('a', ledger, controller.signal); } catch (error) { caught = error; }
+    assert.equal(caught, reason);
+    assert.equal(ledger.usage.work, 0);
+  }
+});
+await check('I21-cooperative-cancel', async () => {
+  const ledger = new EreLedger(bounds);
+  const program = await compileEre('(a|aa)+b', ledger);
+  const controller = new AbortController(); const reason = { stop: true };
+  const active = matchEre(program, 'a'.repeat(22), ledger, controller.signal);
+  const cancel = immediate().then(() => controller.abort(reason));
+  let caught; try { await active; } catch (error) { caught = error; }
+  await cancel;
+  assert.equal(caught, reason);
+  const usage = ledger.usage;
+  await immediate(); assert.deepEqual(ledger.usage, usage);
+});
+await check('I22-integer-boundaries-errors', () => {
+  const ledger = new EreLedger({ maxExpansionBytes: Number.MAX_SAFE_INTEGER, maxExpansionFields: Number.MAX_SAFE_INTEGER });
+  ledger.charge('captureBytes', Number.MAX_SAFE_INTEGER);
+  assert.throws(() => ledger.charge('captureBytes', 1), error => error instanceof EreProfileLimitError && error.name !== 'ShellLimitError' && error.status === 3);
+  assert.equal(ledger.usage.captureBytes, Number.MAX_SAFE_INTEGER);
+  for (const amount of [-1,NaN,Infinity,0.1,Number.MAX_SAFE_INTEGER+1]) assert.throws(() => ledger.charge('work', amount), TypeError);
+  assert.equal(ledger.usage.work, 0);
+});
+await check('I23-finite-reset-property', async () => {
+  const failures = []; let checked = 0;
+  for (let length = 1; length <= 5; length++) for (let bits = 0; bits < 2 ** length; bits++) {
+    const subject = bits.toString(2).padStart(length,'0').replaceAll('0','a').replaceAll('1','b');
+    const observed = await result('((a)|(b))+', subject);
+    const last = { start:length-1,end:length };
+    const expected = [{ start:0,end:length },last,subject.endsWith('a')?last:null,subject.endsWith('b')?last:null];
+    checked++;
+    if (JSON.stringify(observed.captures) !== JSON.stringify(expected)) failures.push({ subject, observed:observed.captures, expected });
+  }
+  console.log(JSON.stringify({ event:'property', checked, failures }));
+  assert.equal(checked,62); assert.deepEqual(failures,[]);
+});
+await check('I24-handle-and-result-ownership', async () => {
+  const ledger = new EreLedger(bounds); const program = await compileEre('(a)', ledger);
+  await assert.rejects(matchEre(program,'a',new EreLedger(bounds)), TypeError);
+  await assert.rejects(matchEre({pattern:'(a)',groups:1},'a',ledger), TypeError);
+  const observed = await matchEre(program,'a',ledger);
+  for (const value of [program,observed,observed.captures,observed.values,...observed.captures]) assert.ok(Object.isFrozen(value));
+});
+console.log(JSON.stringify({ event:'results', rows, pass:rows.filter(row=>row.pass).length, fail:rows.filter(row=>!row.pass).length }));
+if (rows.length !== 24 || rows.some(row=>!row.pass)) process.exitCode = 1;
+
+cb6403b20ac92b91e0eecd96505fe39428c08cc2 blob 2729
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+const root=path.dirname(new URL(import.meta.url).pathname);
+const capture=fs.openSync(path.join(root,'PUBLICATION.capture.data'),'wx',0o600);
+const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+try{
+  fs.writeSync(capture,JSON.stringify({event:'start',at:new Date().toISOString(),role:'DATA-only publication'})+'\n');
+  const result=JSON.parse(fs.readFileSync(path.join(root,'ACTUAL-01/RESULT.json')));
+  assert.ok(Date.now()<result.started+3600000);
+  const old=JSON.parse(fs.readFileSync(path.join(root,'EVIDENCE.json')));
+  const handoff=fs.readFileSync(path.join(root,'HANDOFF.md'),'utf8');
+  const corrections=[['group entry lines147–150','group entry lines145–148'],['publication lines174–179','publication lines165–169']];
+  let original=handoff;
+  for(const [before,after] of corrections){assert.equal(original.split(after).length,2);original=original.replace(after,before);}
+  assert.equal(digest(original),old.files.find(row=>row.path==='HANDOFF.md').sha256);
+  const seal=JSON.parse(fs.readFileSync(path.join(root,'SEAL.json')));
+  const value={at:new Date().toISOString(),actualElapsedThroughPublicationMs:Date.now()-result.started,source:result.source,presealCommit:'5caf8e2d',initialEvidenceSha256:digest(fs.readFileSync(path.join(root,'EVIDENCE.json'))),summarySha256:digest(fs.readFileSync(path.join(root,'SUMMARY.json'))),reportOverride:{path:'HANDOFF.md',beforeSha256:digest(original),sha256:digest(handoff),bytes:Buffer.byteLength(handoff),corrections},sourceModules:seal.sources.length,compilerDeclarationClosureFiles:seal.tools.length,processes:{preparationKnown:47,actualRuntimeOwner:1,actualRuntimeChildren:27,actualRetiredChildren:27,knownActualThroughThisPublication:37,reservedFinalGitAndMetadataStarts:5,qualifiedFinalKnownCeiling:42,authorizedActualCeiling:128,peakKnown:2,notOSWideCensus:true},remainingActiveOwnedProcesses:0,retainedWork:'ACTUAL-01/work (known regular files, no active child)',qualifications:['no native observations','no Shell or Worker activation','no package root import/npm install','R02 SOURCE-only','original reviewer seal failure preserved']};
+  fs.writeFileSync(path.join(root,'PUBLICATION.json'),JSON.stringify(value,null,2)+'\n',{mode:0o600,flag:'wx'});
+  fs.writeSync(capture,JSON.stringify({event:'complete',sha256:digest(fs.readFileSync(path.join(root,'PUBLICATION.json')))})+'\n');
+  console.log(JSON.stringify(value));
+}catch(error){fs.writeSync(capture,JSON.stringify({event:'refused',error:String(error?.stack??error)})+'\n');process.exitCode=1;}
+finally{fs.fsyncSync(capture);fs.closeSync(capture);}
+
+66049a02e97c4461149b176f364ef610ae782e47 blob 12993
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
+const root=path.dirname(new URL(import.meta.url).pathname);
+const started=Date.now();
+const deadline=started+3600000;
+const output=path.join(root,'ACTUAL-01');
+fs.mkdirSync(output);
+const log=fs.openSync(path.join(output,'events.data'),'wx',0o600);
+const emit=value=>{if(Date.now()>=deadline)throw Error('STOP final deadline');fs.writeSync(log,JSON.stringify({at:new Date().toISOString(),...value})+'\n');};
+let starts=0,captureBytes=0;const receipts=[],results=[];let seal,work;
+const hash=location=>{
+  const stat=fs.lstatSync(location);if(!stat.isFile()||stat.size>128*1024*1024)throw Error('STOP file admission');
+  const digest=crypto.createHash('sha256');const descriptor=fs.openSync(location,'r');const buffer=Buffer.alloc(65536);let size=0;
+  try{let count;while((count=fs.readSync(descriptor,buffer,0,buffer.length,null))>0){digest.update(buffer.subarray(0,count));size+=count;}}finally{fs.closeSync(descriptor);}
+  if(size!==stat.size)throw Error('STOP changed during read');
+  return{path:location,size,mode:stat.mode&0o777,sha256:digest.digest('hex')};
+};
+const verify=rows=>{for(const row of rows){const actual=hash(row.path);if(actual.size!==row.size||actual.mode!==row.mode||actual.sha256!==row.sha256)throw Error('STOP integrity '+row.path);}};
+const write=(location,body)=>{fs.mkdirSync(path.dirname(location),{recursive:true});fs.writeFileSync(location,body,{mode:0o600,flag:'wx'});};
+const artifact=directory=>({directory,files:fs.readdirSync(directory).sort().map(name=>{const row=hash(path.join(directory,name));return{name,size:row.size,mode:row.mode,sha256:row.sha256};})});
+const manifest=(directory,label)=>{const value=artifact(directory);const location=path.join(output,label+'.manifest.json');write(location,JSON.stringify(value,null,2)+'\n');return{value,location};};
+const verifyArtifact=value=>{const actual=artifact(value.directory);if(JSON.stringify(actual)!==JSON.stringify(value))throw Error('STOP artifact integrity');};
+const census=directory=>{let count=0,size=0;const visit=current=>{for(const name of fs.readdirSync(current)){const location=path.join(current,name);const stat=fs.lstatSync(location);if(stat.isDirectory())visit(location);else if(stat.isFile()){count++;size+=stat.size;}else throw Error('STOP unexpected work role');}};visit(directory);if(size>1073741824)throw Error('STOP storage');return{files:count,bytes:size};};
+async function child(id,args,cap=30000){
+  if(Date.now()>=deadline-120000||++starts>32)throw Error('STOP runtime admission');
+  verify([seal.node,...seal.inputs]);
+  const stdoutPath=path.join(output,`${starts}-${id}.stdout.data`),stderrPath=path.join(output,`${starts}-${id}.stderr.data`);
+  const stdout=fs.openSync(stdoutPath,'wx',0o600),stderr=fs.openSync(stderrPath,'wx',0o600);
+  const begin=Date.now();let stop=null,code=null,signal=null,bodyBytes=0,pid=null;let timer,killTimer,retirementTimer;
+  const chunks=[];
+  try{
+    await new Promise((resolve,reject)=>{
+      const processChild=spawn(seal.node.path,args,{cwd:work,env:{PATH:'',HOME:path.join(work,'home'),TMPDIR:path.join(work,'tmp'),LANG:'C',LC_ALL:'C',TZ:'UTC'},stdio:['ignore','pipe','pipe'],detached:true});
+      pid=processChild.pid;emit({event:'start',id,pid,args,cap});
+      const terminate=reason=>{stop??=reason;try{process.kill(-pid,'SIGTERM');}catch(error){if(error.code!=='ESRCH')stop=String(error);}killTimer??=setTimeout(()=>{try{process.kill(-pid,'SIGKILL');}catch(error){if(error.code!=='ESRCH')stop=String(error);}},2000);};
+      timer=setTimeout(()=>terminate('deadline'),Math.min(cap,deadline-Date.now()-3000));
+      retirementTimer=setTimeout(()=>reject(Error('STOP unknown retirement after deadline and TERM/KILL grace')),Math.min(cap+3000,deadline-Date.now()));
+      const consume=(descriptor,data,collect)=>{try{bodyBytes+=data.length;captureBytes+=data.length;if(bodyBytes>8388608||captureBytes>201326592){terminate('capture cap');return;}fs.writeSync(descriptor,data);if(collect)chunks.push(data);}catch(error){terminate('capture '+String(error));}};
+      processChild.stdout.on('data',data=>consume(stdout,data,true));processChild.stderr.on('data',data=>consume(stderr,data,false));
+      processChild.on('error',error=>{stop??=String(error);});
+      processChild.on('close',(exit,reason)=>{code=exit;signal=reason;clearTimeout(timer);clearTimeout(killTimer);clearTimeout(retirementTimer);resolve();});
+    });
+    if(pid){try{process.kill(-pid,0);throw Error('STOP unknown group retirement');}catch(error){if(error.code!=='ESRCH')throw error;}}
+    fs.fsyncSync(stdout);fs.fsyncSync(stderr);
+  }finally{fs.closeSync(stdout);fs.closeSync(stderr);clearTimeout(timer);clearTimeout(killTimer);clearTimeout(retirementTimer);}
+  const receipt={id,pid,code,signal,stop,elapsedMs:Date.now()-begin,stdout:hash(stdoutPath),stderr:hash(stderrPath),bytes:bodyBytes,retired:true};receipts.push(receipt);emit({event:'retired',...receipt});
+  if(stop||signal)throw Error('STOP child '+id+' '+stop+' '+signal);
+  verify([seal.node,...seal.inputs]);census(work);
+  return{...receipt,text:Buffer.concat(chunks).toString('utf8')};
+}
+try{
+  emit({event:'begin',started,deadline,scope:'pure-engine-only'});
+  seal=JSON.parse(fs.readFileSync(path.join(root,'SEAL.json'),'utf8'));
+  verify([seal.node,...seal.inputs,...seal.sources,...seal.tools]);
+  if(seal.source!=='f97fd06024cb63edfd01873d81d84576a22189db')throw Error('STOP source');
+  work=path.join(output,'work');fs.mkdirSync(work);fs.mkdirSync(path.join(work,'home'));fs.mkdirSync(path.join(work,'tmp'));
+  const copied=[];
+  for(const row of seal.tools){const relative=path.relative('/Users/kjopek/Workspace/safe-bash',row.path);if(!relative.startsWith('node_modules/')||relative.includes('..'))throw Error('STOP tool path');const destination=path.join(work,relative);fs.mkdirSync(path.dirname(destination),{recursive:true});fs.copyFileSync(row.path,destination,fs.constants.COPYFILE_EXCL);fs.chmodSync(destination,row.mode);copied.push({...row,path:destination});}
+  verify(copied);
+  const source=path.join(work,'source');fs.mkdirSync(source);
+  for(const row of seal.sources){fs.copyFileSync(row.path,path.join(source,row.name),fs.constants.COPYFILE_EXCL);}
+  write(path.join(source,'package.json'),'{"type":"module","private":true}\n');
+  const sourceLayout=path.join(work,'source-consumer');fs.mkdirSync(sourceLayout);
+  const emitted=path.join(sourceLayout,'artifact');
+  const compiler=path.join(work,'node_modules/typescript/lib/tsc.js');
+  const typeRoots=path.join(work,'node_modules/@types');
+  const built=await child('strict-build',[compiler,...seal.flags,'--typeRoots',typeRoots,'--declaration','--outDir',emitted,...seal.sources.map(row=>path.join(source,row.name))],120000);
+  if(built.code!==0){results.push({id:'BUILD',pass:false,code:built.code});throw Error('ordinary build failed; dependent cases UNRUN');}
+  write(path.join(emitted,'package.json'),'{"type":"module","private":true}\n');
+  const original=manifest(emitted,'original');
+  if(original.value.files.length!==11)throw Error('STOP emitted membership');
+  write(path.join(sourceLayout,'consumer.mts'),fs.readFileSync(path.join(root,'witnesses/consumer.mts.data')));
+  write(path.join(sourceLayout,'negative.mts'),fs.readFileSync(path.join(root,'witnesses/negative.mts.data')));
+  const installed=path.join(work,'installed-consumer');fs.cpSync(sourceLayout,installed,{recursive:true,errorOnExist:true,force:false});
+  const suite=path.join(root,'witnesses/suite.mjs.data');
+  const authorSuite=path.join(work,'suite.mjs');write(authorSuite,fs.readFileSync(suite));
+  const independentSuite=path.join(root,'independent.mjs');
+  const entry=path.join(root,'entry.mjs');const cases=path.join(root,'witnesses/cases.json.data');
+  async function suiteRun(id,directory,suitePath,selection='all',expectedCount=66){
+    const bound=manifest(directory,id);const observed=await child(id,[entry,bound.location,suitePath,cases,selection]);verifyArtifact(bound.value);
+    const parsed=observed.text.split('\n').filter(Boolean).map(line=>JSON.parse(line));
+    const row=parsed.find(value=>value.event==='results');
+    const pass=observed.code===0&&row?.rows.length===expectedCount&&row.fail===0;
+    const summary={id,pass,code:observed.code,results:row??null,manifest:bound.value};results.push(summary);return summary;
+  }
+  for(const [layout,directory] of [['source',sourceLayout],['installed',installed],['moved',path.join(work,'moved-consumer')]]){
+    if(layout==='moved'){fs.renameSync(installed,directory);if(fs.existsSync(installed))throw Error('STOP old installed path remains');}
+    const directoryArtifact=path.join(directory,'artifact');
+    const compared=artifact(directoryArtifact);if(JSON.stringify(compared.files)!==JSON.stringify(original.value.files))throw Error('STOP layout changed');
+    await suiteRun(`${layout}-author`,directoryArtifact,authorSuite);
+    await suiteRun(`${layout}-independent`,directoryArtifact,independentSuite,'all',24);
+    for(const negative of [false,true]){
+      const id=`${layout}-types-${negative?'negative':'positive'}`;
+      const observed=await child(id,[compiler,...seal.flags,'--typeRoots',typeRoots,'--noEmit',path.join(directory,negative?'negative.mts':'consumer.mts')]);
+      const diagnostics=[...observed.text.matchAll(/error TS(\d+):/g)].map(match=>Number(match[1]));
+      const expected=negative?[2345,2339,2322]:[];
+      results.push({id,pass:observed.code===(negative?2:0)&&JSON.stringify(diagnostics)===JSON.stringify(expected),code:observed.code,diagnostics,expected});
+    }
+  }
+  const mutations=[
+    ['M01-whole','matcher','return candidate.position > incumbent.position;','return candidate.position < incumbent.position;','E03',1],
+    ['M02-ascii','syntax','if (code === 0 || code > 127)','if (false)','R14',1],
+    ['M03-nullable','syntax','if (child.nullable && child.captured && max > 1)','if (false)','R11',1],
+    ['M04-truncate','matcher','captures: Object.freeze(captures)','captures: Object.freeze(captures.slice(0, 1))','E08',1],
+    ['M05-slot','matcher','ledger.charge("captureSlots", width, signal);','void width;','all',66],
+    ['M06-binding','syntax','if (!entry || entry.ledger !== ledger)','if (!entry)','all',66],
+  ];
+  for(const [id,name,before,after,selection,count] of mutations){
+    const location=path.join(emitted,name+'.js');const bytes=fs.readFileSync(location);const text=bytes.toString('utf8');
+    if(text.split(before).length!==2){results.push({id,pass:false,reason:'exact mutation marker absent'});continue;}
+    const changed=text.replace(before,after);write(path.join(output,id+'.delta.json'),JSON.stringify({name,before,after,base:hash(location).sha256,changed:crypto.createHash('sha256').update(changed).digest('hex')},null,2)+'\n');
+    let killed;
+    try{fs.writeFileSync(location,changed);killed=await suiteRun(id,emitted,authorSuite,selection,count);}
+    finally{fs.writeFileSync(location,bytes);verifyArtifact(original.value);}
+    const restored=await suiteRun(id+'-restore',emitted,authorSuite,selection,count);
+    results.push({id:id+'-control',pass:killed.code===1&&killed.results?.fail>0&&restored.pass,killed:killed.results?.fail,restored:restored.pass});
+  }
+  for(const kind of ['wrong-hash','wrong-path']){
+    const value=structuredClone(original.value);if(kind==='wrong-hash')value.files[0].sha256='0'.repeat(64);else value.directory=path.join(work,'absent-artifact');
+    const location=path.join(output,kind+'.manifest.json');write(location,JSON.stringify(value)+'\n');
+    const observed=await child(kind,[entry,location,authorSuite,cases]);
+    results.push({id:kind,pass:observed.code===2&&observed.text.includes('ADMISSION_DENIED')&&!observed.text.includes('"event":"loaded"'),code:observed.code});
+  }
+  verify(copied);verify([seal.node,...seal.inputs,...seal.sources,...seal.tools]);verifyArtifact(original.value);
+  const working=census(work);
+  const failures=results.filter(row=>!row.pass&&!/^M\d\d-[^-]+$/.test(row.id));
+  const result={source:seal.source,seal:hash(path.join(root,'SEAL.json')),started,ended:Date.now(),elapsedMs:Date.now()-started,children:starts,peakRuntimeProcesses:2,captureBytes,working,receipts,results,disposition:failures.length?'FAIL':'PASS',knownFailures:failures.map(row=>row.id),native:'UNRUN',integration:'UNRUN',retainedWork:work};
+  write(path.join(output,'RESULT.json'),JSON.stringify(result,null,2)+'\n');emit({event:'complete',disposition:result.disposition,children:starts,captureBytes,working});
+  if(failures.length)process.exitCode=1;
+}catch(error){
+  emit({event:'terminal',message:String(error?.stack??error),children:starts,receipts:receipts.length,results:results.length});
+  write(path.join(output,'HOLD.json'),JSON.stringify({source:seal?.source,message:String(error?.stack??error),starts,receipts,results},null,2)+'\n');process.exitCode=2;
+}finally{fs.fsyncSync(log);fs.closeSync(log);}
+
+cd7e1306262ca7f3aa66d08783383985362940b8 blob 4603
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { SourceTextModule } from 'node:vm';
+const root = path.dirname(new URL(import.meta.url).pathname);
+const capture = fs.openSync(path.join(root,'SEAL-v2.capture.data'),'wx',0o600);
+const emit = value => fs.writeSync(capture,JSON.stringify(value)+'\n');
+function record(location) {
+  const stat = fs.lstatSync(location);
+  if (!stat.isFile() || stat.size > 128*1024*1024) throw Error('regular bounded file '+location);
+  const handle = fs.openSync(location,'r'); const hash = crypto.createHash('sha256'); const buffer = Buffer.alloc(65536);
+  let size = 0;
+  try { let read; while ((read=fs.readSync(handle,buffer,0,buffer.length,null))>0) {hash.update(buffer.subarray(0,read));size+=read;} } finally {fs.closeSync(handle);}
+  if (size!==stat.size) throw Error('read changed');
+  return { path:location, size, mode:stat.mode&0o777, sha256:hash.digest('hex') };
+}
+try {
+  emit({event:'start',at:new Date().toISOString(),revision:'declared acquisition path; original field mismatch retained'});
+  const witnessManifest = JSON.parse(fs.readFileSync(path.join(root,'witnesses/MANIFEST.json')));
+  for (const row of witnessManifest.rows) {
+    const observed=record(path.join(root,'witnesses',row.capture));
+    if (observed.sha256!==row.sha256 || observed.size!==row.bytes) throw Error('witness changed');
+  }
+  const author=JSON.parse(fs.readFileSync(path.join(root,'witnesses/SEAL-v3.json.data')));
+  for (const row of [author.node,...author.tools]) {
+    const observed=record(row.path);
+    if (observed.sha256!==row.sha256 || observed.size!==row.size || observed.mode!==row.mode) throw Error('tool changed '+row.path);
+  }
+  const sourceManifest=JSON.parse(fs.readFileSync(path.join(root,'engine/MANIFEST.json')));
+  if(sourceManifest.commit!=='f97fd06024cb63edfd01873d81d84576a22189db')throw Error('source commit');
+  const sources=sourceManifest.rows.map(row=>{
+    if(typeof row.path!=='string'||!row.path.startsWith('src/commands/regex-execution/ere/'))throw Error('source path schema');
+    const captured=record(path.join(root,'engine',row.capture));
+    const original=author.sources.find(item=>item.path.endsWith('/'+row.path));
+    if (!original || original.sha256!==captured.sha256 || captured.size!==original.size || captured.sha256!==row.sha256 || captured.size!==row.bytes) throw Error('source authority');
+    const bytes=fs.readFileSync(captured.path);
+    if(crypto.createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')!==row.blob)throw Error('source Git blob');
+    const imports=[...bytes.toString('utf8').matchAll(/from\s+"([^"]+)"/g)].map(match=>match[1]);
+    if (imports.some(name=>name!=='node:timers/promises' && !/^\.\/(types|errors|limits|syntax|matcher)\.js$/.test(name))) throw Error('source import closure');
+    return {...captured,name:path.basename(row.path),gitBlob:row.blob,imports};
+  });
+  if (sources.length!==5) throw Error('source membership');
+  const inputs=['run.mjs','entry.mjs','independent.mjs','RECIPE.md','seal-v2.mjs','witnesses/suite.mjs.data','witnesses/cases.json.data','witnesses/consumer.mts.data','witnesses/negative.mts.data'].map(name=>record(path.join(root,name)));
+  const syntax=[];
+  for (const name of ['run.mjs','entry.mjs','independent.mjs']) {
+    const body=fs.readFileSync(path.join(root,name),'utf8');
+    const parsed=new SourceTextModule(body,{identifier:name});
+    if(parsed.status!=='unlinked')throw Error('syntax status');
+    syntax.push({name,status:'parsed-unlinked-never-evaluated',sha256:crypto.createHash('sha256').update(body).digest('hex')});
+  }
+  const seal={source:'f97fd06024cb63edfd01873d81d84576a22189db',evidence:witnessManifest.commit,node:author.node,tools:author.tools,flags:author.tscFlags,sources,inputs,syntax,layouts:['source-compiled','installed-regular-copy','physically-moved'],groups:{author:66,independent:24},typeChecks:6,mutations:6,bindingRefusals:2,bounds:{overallMs:3600000,bodyMs:30000,buildMs:120000,children:32,captureBytes:201326592,workBytes:1073741824},sealedAt:new Date().toISOString()};
+  fs.writeFileSync(path.join(root,'SEAL.json'),JSON.stringify(seal,null,2)+'\n',{mode:0o600,flag:'wx'});
+  emit({event:'sealed',seal:record(path.join(root,'SEAL.json')),sources:sources.length,tools:author.tools.length,syntax});
+  console.log(JSON.stringify({seal:record(path.join(root,'SEAL.json')),sources:sources.length,tools:author.tools.length}));
+} catch(error) {emit({event:'refused',message:String(error?.stack??error)});process.exitCode=1;}
+finally {fs.closeSync(capture);}
+
+db8c8c15653a5c89a39d83d3d10c6eaf5a922b71 blob 4420
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+const root = path.dirname(new URL(import.meta.url).pathname);
+const capture = fs.openSync(path.join(root,'SEAL.capture.data'),'wx',0o600);
+const emit = value => fs.writeSync(capture,JSON.stringify(value)+'\n');
+function record(location) {
+  const stat = fs.lstatSync(location);
+  if (!stat.isFile() || stat.size > 128*1024*1024) throw Error('regular bounded file '+location);
+  const handle = fs.openSync(location,'r'); const hash = crypto.createHash('sha256'); const buffer = Buffer.alloc(65536);
+  let size = 0;
+  try { let read; while ((read=fs.readSync(handle,buffer,0,buffer.length,null))>0) {hash.update(buffer.subarray(0,read));size+=read;} } finally {fs.closeSync(handle);}
+  if (size!==stat.size) throw Error('read changed');
+  return { path:location, size, mode:stat.mode&0o777, sha256:hash.digest('hex') };
+}
+try {
+  emit({event:'start',at:new Date().toISOString()});
+  const witnessManifest = JSON.parse(fs.readFileSync(path.join(root,'witnesses/MANIFEST.json')));
+  for (const row of witnessManifest.rows) {
+    const observed=record(path.join(root,'witnesses',row.capture));
+    if (observed.sha256!==row.sha256 || observed.size!==row.bytes) throw Error('witness changed');
+  }
+  const author=JSON.parse(fs.readFileSync(path.join(root,'witnesses/SEAL-v3.json.data')));
+  for (const row of [author.node,...author.tools]) {
+    const observed=record(row.path);
+    if (observed.sha256!==row.sha256 || observed.size!==row.size || observed.mode!==row.mode) throw Error('tool changed '+row.path);
+  }
+  const sourceManifest=JSON.parse(fs.readFileSync(path.join(root,'engine/MANIFEST.json')));
+  const sources=sourceManifest.rows.map(row=>{
+    const captured=record(path.join(root,'engine',row.capture));
+    const original=author.sources.find(item=>item.path.endsWith(row.name));
+    if (!original || original.sha256!==captured.sha256 || captured.size!==original.size) throw Error('source authority');
+    const body=fs.readFileSync(captured.path,'utf8');
+    const imports=[...body.matchAll(/from\s+"([^"]+)"/g)].map(match=>match[1]);
+    if (imports.some(name=>name!=='node:timers/promises' && !/^\.\/(types|errors|limits|syntax|matcher)\.js$/.test(name))) throw Error('source import closure');
+    return {...captured,name:path.basename(row.name),gitBlob:row.blob,imports};
+  });
+  if (sources.length!==5) throw Error('source membership');
+  const inputs=['run.mjs','entry.mjs','independent.mjs','RECIPE.md','seal.mjs','witnesses/suite.mjs.data','witnesses/cases.json.data','witnesses/consumer.mts.data','witnesses/negative.mts.data'].map(name=>record(path.join(root,name)));
+  const syntax=[];
+  for (const name of ['run.mjs','entry.mjs','independent.mjs']) {
+    const stdout=fs.openSync(path.join(root,name+'.syntax.stdout.data'),'wx',0o600);
+    const stderr=fs.openSync(path.join(root,name+'.syntax.stderr.data'),'wx',0o600);
+    const started=Date.now();
+    let outcome;
+    try { outcome=spawnSync(author.node.path,['--check',path.join(root,name)],{env:{PATH:'',HOME:root,LANG:'C'},stdio:['ignore',stdout,stderr],timeout:10000}); }
+    finally {fs.closeSync(stdout);fs.closeSync(stderr);}
+    syntax.push({name,status:outcome.status,signal:outcome.signal,pid:outcome.pid,elapsedMs:Date.now()-started});
+    if (outcome.error || outcome.status!==0 || outcome.signal) throw Error('syntax refusal '+name);
+  }
+  const seal={source:'f97fd06024cb63edfd01873d81d84576a22189db',evidence:witnessManifest.commit,node:author.node,tools:author.tools,flags:author.tscFlags,sources,inputs,syntax,layouts:['source-compiled','installed-regular-copy','physically-moved'],groups:{author:66,independent:24},typeChecks:6,mutations:6,bindingRefusals:2,bounds:{overallMs:3600000,bodyMs:30000,buildMs:120000,children:32,captureBytes:201326592,workBytes:1073741824},sealedAt:new Date().toISOString()};
+  fs.writeFileSync(path.join(root,'SEAL.json'),JSON.stringify(seal,null,2)+'\n',{mode:0o600,flag:'wx'});
+  emit({event:'sealed',seal:record(path.join(root,'SEAL.json')),sources:sources.length,tools:author.tools.length,syntax});
+  console.log(JSON.stringify({seal:record(path.join(root,'SEAL.json')),sources:sources.length,tools:author.tools.length}));
+} catch(error) {emit({event:'refused',message:String(error?.stack??error)});process.exitCode=1;}
+finally {fs.closeSync(capture);}
+
+7aea22af2f29240705db91b6d47eb9406a9c30e1 blob 3258
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+const root = path.dirname(new URL(import.meta.url).pathname);
+const log = fs.openSync(path.join(root, 'SUPPLEMENT.capture.data'), 'wx', 0o600);
+const emit = value => fs.writeSync(log, JSON.stringify(value) + '\n');
+const prefix = 'tests/compatibility/bash-ere-engine-author-20260829/';
+const commit = '8bd170e5465c1253a52231c9cf08b5afef064d81';
+const directory = path.join(root, 'witnesses');
+try {
+  emit({ phase: 'start', at: new Date().toISOString() });
+  fs.mkdirSync(directory);
+  const git = (args, input) => {
+    emit({ phase: 'enroll', args });
+    const result = spawnSync('/usr/bin/git', args, { cwd: '/Users/kjopek/Workspace/safe-bash', env: { PATH: '/usr/bin:/bin', HOME: directory, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_OPTIONAL_LOCKS: '0' }, input, timeout: 30000, maxBuffer: 24 * 1024 * 1024 });
+    emit({ phase: 'retired', status: result.status, signal: result.signal, stderr: result.stderr?.toString() });
+    if (result.error || result.status !== 0 || result.signal) throw result.error ?? Error('git refused');
+    return result.stdout;
+  };
+  const inventory = git(['ls-tree', '-r', '-z', commit, '--', prefix]);
+  fs.writeFileSync(path.join(directory, 'inventory.data'), inventory, { mode: 0o600, flag: 'wx' });
+  const rows = inventory.toString().split('\0').filter(Boolean).map(row => {
+    const match = /^(100644|100755) blob ([0-9a-f]{40})\t(.+)$/.exec(row);
+    if (!match) throw Error('tree role');
+    return { mode: match[1], blob: match[2], name: match[3] };
+  }).filter(row => !row.name.slice(prefix.length).includes('/') && /\.(json|mjs|mts)$/.test(row.name));
+  if (!rows.length || rows.length > 30) throw Error('row cap');
+  const batch = git(['cat-file', '--batch'], rows.map(row => row.blob).join('\n') + '\n');
+  let cursor = 0;
+  for (const row of rows) {
+    const newline = batch.indexOf(10, cursor);
+    const [blob, type, length] = batch.subarray(cursor, newline).toString().split(' ');
+    const size = Number(length);
+    if (blob !== row.blob || type !== 'blob' || !Number.isSafeInteger(size) || size < 0 || size > 8 * 1024 * 1024) throw Error('header');
+    const bytes = batch.subarray(newline + 1, newline + 1 + size);
+    if (bytes.length !== size || batch[newline + 1 + size] !== 10 || crypto.createHash('sha1').update(`blob ${size}\0`).update(bytes).digest('hex') !== blob) throw Error('blob authentication');
+    row.bytes = size;
+    row.sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+    row.capture = path.basename(row.name) + '.data';
+    fs.writeFileSync(path.join(directory, row.capture), bytes, { mode: 0o600, flag: 'wx' });
+    cursor = newline + size + 2;
+  }
+  if (cursor !== batch.length) throw Error('trailing batch');
+  fs.writeFileSync(path.join(directory, 'MANIFEST.json'), JSON.stringify({ commit, rows }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+  emit({ phase: 'complete', rows: rows.length });
+  console.log(rows.map(row => ({ name: row.capture, bytes: row.bytes })));
+} catch (error) {
+  emit({ phase: 'failure', message: String(error) });
+  process.exitCode = 1;
+} finally { fs.closeSync(log); }
+
+7104342d4116fce12a7cfa1a7f7a884a55ec2525 blob 4114
+[
+  {"id":"E01","pattern":"","subject":"","values":[""],"spans":[[0,0]]},
+  {"id":"E02","pattern":"a","subject":"baac","values":["a"],"spans":[[1,2]]},
+  {"id":"E03","pattern":"a|aa","subject":"baa","values":["aa"],"spans":[[1,3]]},
+  {"id":"E04","pattern":"(a|aa)(a?)","subject":"aa","values":["aa","aa",""]},
+  {"id":"E05","pattern":"(a*)(a*)","subject":"aaa","values":["aaa","aaa",""]},
+  {"id":"E06","pattern":"(ab|a)(b*)","subject":"ab","values":["ab","ab",""]},
+  {"id":"E07","pattern":"(a|ab)(bc|c)","subject":"abc","values":["abc","ab","c"]},
+  {"id":"E08","pattern":"(a)?(b)","subject":"b","values":["b","","b"],"spans":[[0,1],null,[0,1]]},
+  {"id":"E09","pattern":"(a?)b","subject":"b","values":["b",""],"spans":[[0,1],[0,0]]},
+  {"id":"E10","pattern":"((ab)+)","subject":"abab","values":["abab","abab","ab"],"spans":[[0,4],[0,4],[2,4]]},
+  {"id":"E11","pattern":"(a|aa)*","subject":"aa","values":["aa","aa"]},
+  {"id":"E12","pattern":"(a(b)?)+","subject":"aba","values":["aba","a","b"],"spans":[[0,3],[2,3],[1,2]]},
+  {"id":"E13","pattern":"^a$","subject":"ba","values":null},
+  {"id":"E14","pattern":"^a$","subject":"a\n","values":null},
+  {"id":"E15","pattern":"^.$","subject":"\n","values":["\n"]},
+  {"id":"E16","pattern":"$","subject":"ab","values":[""],"spans":[[2,2]]},
+  {"id":"E17","pattern":"[a-c]+","subject":"zcbax","values":["cba"]},
+  {"id":"E18","pattern":"[^a]+","subject":"a\nb","values":["\nb"]},
+  {"id":"E19","pattern":"[]-]+","subject":"x]-y","values":["]-"]},
+  {"id":"E20","pattern":"[[:digit:]]{2,3}","subject":"x1234","values":["123"]},
+  {"id":"E21","pattern":"a{0}","subject":"a","values":[""]},
+  {"id":"E22","pattern":"a{2,}","subject":"baaa","values":["aaa"]},
+  {"id":"E23","pattern":"(a?){0,1}","subject":"","values":["",""]},
+  {"id":"E24","pattern":"(a|)b","subject":"b","values":["b",""]},
+  {"id":"E25","pattern":"\\(a\\)\\+","subject":"x(a)+","values":["(a)+"]},
+  {"id":"E26","pattern":"[[:alpha:]][[:space:]][[:xdigit:]]","subject":"z\tF","values":["z\tF"]},
+  {"id":"E27","pattern":"(a)|(b)","subject":"b","values":["b","","b"]},
+  {"id":"E28","pattern":"((a|aa)+)(a?)","subject":"aaa","values":["aaa","aaa","a",""]},
+  {"id":"Q01","pattern":[{"text":"a.","literal":true},{"text":"+","literal":false}],"subject":"a...","values":["a..."]},
+  {"id":"Q02","pattern":[{"text":"(x|y)$","literal":true}],"subject":"a(x|y)$z","values":["(x|y)$"]},
+  {"id":"Q03","pattern":[{"text":"[","literal":false},{"text":"]","literal":true},{"text":"]","literal":false}],"subject":"]","values":["]"]},
+  {"id":"Q04","pattern":[{"text":"[a","literal":false},{"text":"-","literal":true},{"text":"z]","literal":false}],"subject":"m","values":null},
+  {"id":"Q05","pattern":[{"text":"(","literal":true},{"text":"a","literal":false},{"text":")","literal":true}],"subject":"(a)","values":["(a)"]},
+  {"id":"R01","pattern":"(","subject":"","error":"EreSyntaxError"},
+  {"id":"R02","pattern":"[z-a]","subject":"","error":"EreSyntaxError"},
+  {"id":"R03","pattern":"a{3,2}","subject":"","error":"EreSyntaxError"},
+  {"id":"R04","pattern":"*a","subject":"","error":"EreSyntaxError"},
+  {"id":"R05","pattern":"a\\","subject":"","error":"EreSyntaxError"},
+  {"id":"R06","pattern":"[[:bogus:]]","subject":"","error":"EreSyntaxError"},
+  {"id":"R07","pattern":"(a)\\1","subject":"aa","error":"EreUnsupportedError"},
+  {"id":"R08","pattern":"(?:a)","subject":"a","error":"EreUnsupportedError"},
+  {"id":"R09","pattern":"a+?","subject":"a","error":"EreUnsupportedError"},
+  {"id":"R10","pattern":"a{256}","subject":"a","error":"EreUnsupportedError"},
+  {"id":"R11","pattern":"(a?)*","subject":"a","error":"EreUnsupportedError"},
+  {"id":"R12","pattern":"[[.a.]]","subject":"a","error":"EreUnsupportedError"},
+  {"id":"R13","pattern":"[[=a=]]","subject":"a","error":"EreUnsupportedError"},
+  {"id":"R14","pattern":"a","subject":"é","error":"EreUnsupportedError"},
+  {"id":"R15","pattern":"\u0000","subject":"","error":"EreUnsupportedError"},
+  {"id":"R16","pattern":"\ud800","subject":"","error":"EreUnsupportedError"},
+  {"id":"R17","pattern":"\\d","subject":"1","error":"EreUnsupportedError"}
+]
+

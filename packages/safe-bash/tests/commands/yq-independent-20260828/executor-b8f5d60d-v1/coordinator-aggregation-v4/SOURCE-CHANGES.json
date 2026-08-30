@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "finding": "CC-F01",
+  "assemblyTarget": "core/supervisor.mjs",
+  "preimage": {
+    "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs",
+    "kind": "file",
+    "bytes": 27596,
+    "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+    "gitMode": "100644",
+    "gitBlob": "a0d9fe3e2a2702fcf11936a649adcdb64718e917",
+    "mode": 420,
+    "posixModeAuthority": {
+      "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/FINAL-SEAL.json",
+      "sha256": "430af377d11b9a824320bedd7b163e1a314269b4b8ce5229138c7ecc13c0c7c4",
+      "pointer": "/entries/17/mode"
+    }
+  },
+  "postimage": {
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/overlay/core/supervisor.mjs",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 27700,
+    "sha256": "49c7c7050769e2c2edf71a27edd26790ac786e05dc6afbc02c93eba372d361a0",
+    "gitBlob": "4f0bfe4cc5e13b2caa11192769882821e759d683",
+    "gitMode": "100644",
+    "posixModeAuthority": "Fresh owned regular file declared0644, verified by lstat; independent of Git regular/nonexecutable class. No chmod or historical-mode inference."
+  },
+  "change": {
+    "kind": "one-exact-text-insertion",
+    "line": 276,
+    "occurrences": 1,
+    "oldFragment": "parent.timedOut || parent.overflow || !finalReap",
+    "newFragment": "parent.timedOut || parent.overflow || parent.spawnError !== null || parent.metadataComplete !== true || parent.metadataError !== undefined || !finalReap",
+    "addedBytes": 104,
+    "removedBytes": 0,
+    "changedLines": 1
+  },
+  "addedFailurePredicates": [
+    "parent.spawnError !== null",
+    "parent.metadataComplete !== true",
+    "parent.metadataError !== undefined"
+  ],
+  "unchanged": [
+    "All other source bytes",
+    "Imports and dependency paths",
+    "All old final failure predicates",
+    "Original parent object and error descriptors",
+    "Code/signal/reap/timing/provenance",
+    "Caller reason identity",
+    "No new try/catch or field assignment",
+    "Original 336/max334/18max/24165s/32MiB limits"
+  ],
+  "proofScope": "Literal source comparison only; no predicate, receipt construction or classification execution.",
+  "semanticOrControlPasses": 0,
+  "rootGO": false
+}

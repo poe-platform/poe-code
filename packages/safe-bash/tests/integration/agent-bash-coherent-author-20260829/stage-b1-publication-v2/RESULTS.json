@@ -1,0 +1,67 @@
+{
+  "atUTC": "2026-08-29T13:23:43.826Z",
+  "inspectionStartedUTC": "2026-08-29T13:16:46.167Z",
+  "elapsedSecondsToEvidence": 417.659,
+  "knownOSStartsThroughFinalCommit": 26,
+  "ceiling32": true,
+  "peakKnown": 2,
+  "pureHelpers": 1,
+  "pureGroups": 16,
+  "productCalls": 0,
+  "engineImports": 0,
+  "Workers": 0,
+  "sourceGuards": "v2 source and runtime PRESEAL byte-identical",
+  "files": 25,
+  "observedBytesBeforeReportAndCommit": 80014,
+  "captures": [
+    {
+      "file": "/private/tmp/coherent-b1-publication-v2-20260829-prep.stdout",
+      "bytes": 8058,
+      "stillLive": false
+    },
+    {
+      "file": "/private/tmp/coherent-b1-publication-v2-20260829-prep.stderr",
+      "bytes": 0,
+      "stillLive": false
+    },
+    {
+      "file": "/private/tmp/coherent-b1-publication-v2-20260829-source.stdout",
+      "bytes": 3451,
+      "stillLive": false
+    },
+    {
+      "file": "/private/tmp/coherent-b1-publication-v2-20260829-source.stderr",
+      "bytes": 0,
+      "stillLive": false
+    },
+    {
+      "file": "/private/tmp/coherent-b1-publication-v2-20260829-amend.stdout",
+      "bytes": 1462,
+      "stillLive": false
+    },
+    {
+      "file": "/private/tmp/coherent-b1-publication-v2-20260829-amend.stderr",
+      "bytes": 0,
+      "stillLive": false
+    },
+    {
+      "file": "/private/tmp/coherent-b1-publication-v2-20260829-validation.stdout",
+      "bytes": 0,
+      "stillLive": true
+    },
+    {
+      "file": "/private/tmp/coherent-b1-publication-v2-20260829-validation.stderr",
+      "bytes": 0,
+      "stillLive": true
+    }
+  ],
+  "publicationTailReservedBytes": 1048576,
+  "knownCommands": "all completed prior shell/Node/Git commands returned; final two Git commands recorded in external validation capture",
+  "fullCensus": "UNOBSERVED",
+  "groups": "UNOBSERVED",
+  "runtimeAuthority": false,
+  "newUTCSlots": "PENDING",
+  "retiredWindow": "unchanged",
+  "reviewReadiness": "SOURCE/PURE candidate; F01 qualifications in HANDOFF are not physical-storage/startup interception proof",
+  "finalGitReceipt": "external validation stdout; outside evidence commit"
+}

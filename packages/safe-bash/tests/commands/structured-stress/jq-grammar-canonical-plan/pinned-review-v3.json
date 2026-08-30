@@ -1,0 +1,17 @@
+[
+  {
+    "path": "tests/commands/structured-stress/jq-grammar-proposal-review/REPORT.md",
+    "commit": "f84b8e229063847833fff24bab55c890a318e715",
+    "sha256": "93d2b1c555fb5664a43b308a81a95866dc47ac302c6e00200abcc95b425a3d37"
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-grammar-proposal-review/audit.json",
+    "commit": "f84b8e229063847833fff24bab55c890a318e715",
+    "sha256": "031f5fc5c73bf9c1f1e888b6370de9ff9d3a78d952605bcf3619b31b6ed23b11"
+  },
+  {
+    "path": "tests/commands/structured-stress/jq-grammar-proposal-review/native-review.json",
+    "commit": "f84b8e229063847833fff24bab55c890a318e715",
+    "sha256": "49db842e9677e2287336dcf057bc9521da042ba46fafde584d724598212985e8"
+  }
+]

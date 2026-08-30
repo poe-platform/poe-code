@@ -1,0 +1,366 @@
+{
+  "schema": "indexed-arrays-independent-closure-acceptance-v1",
+  "date": "2026-08-28",
+  "status": "future candidate obligations, not executed behavior/model checks",
+  "originalRevision": "100685daa1a13dad8086c04bbbb24b0b19057a6f",
+  "frozenFiles": [
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/VECTORS.json",
+      "bytes": 5113,
+      "sha256": "7d9c591a044fa1fc609c1c6e72a06146ec9e0c26d7c45304d516418f425e5095"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/CONTROLS.json",
+      "bytes": 5806,
+      "sha256": "8c9c0604e4f855fd5bd9fdf7b5d4f09cee11b2b1a631bf99bc26217777d16951"
+    }
+  ],
+  "semantic": [
+    {
+      "id": "S01",
+      "specimenSha256": "941a96af3a943df57ac6bf1c515895643b775448fc6c40461462b4d0ea06983c",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S02",
+      "specimenSha256": "eb4dcdc3d5531cce4e09a8d7caf8dfb1cab16d03c60085e09be7af88c34057ec",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S03",
+      "specimenSha256": "abc9693f707f95573e6a89992998aab37a803932af61f81f2ab0924ffa3fcd5a",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S04",
+      "specimenSha256": "ecfa204ffe123ad6be68a8812e973b5cdbef23bd5206db18f06cc4affef6c6a9",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S05",
+      "specimenSha256": "2def7e466e1ea72e8fcc94510f8a31b38af7596c7674533971293ecdcfebee93",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S06",
+      "specimenSha256": "e2c2f06b2f3f9593de5325a12b34ab98479118be5a5d5c0e0b80c49c2d5d6c67",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S07",
+      "specimenSha256": "e66d407468e2eef0da7cf0455837192f786fa81cf83b21746ea1b41f28943c65",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S08",
+      "specimenSha256": "cc00adeabe019c4ac0ac03bd49fce73ecc15e5e81d0b05b141c58832ad8f7066",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S09",
+      "specimenSha256": "5b4806072ea92762a9c057d9f94bd07786f6e7914ee1a7c89451b198e9b591ac",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S10",
+      "specimenSha256": "5978407f29a1aa8482f650785eae279147f22b9470fbae639e8f14bdfa54f270",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S11",
+      "specimenSha256": "d479167e9a2540656834bab169ebfff9d192cda6d5456c32a750d61357d8d08a",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S12",
+      "specimenSha256": "bd569b52eb7c5c7b51aa8a0d8fd1cb08e76f07cb165561d24f33c9a76a1fb9cd",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S13",
+      "specimenSha256": "8d3c47448e6b05348f66236e0743d5ce16f6c4488a161d747c3496dcc3199738",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S14",
+      "specimenSha256": "ab33ca5d511cc9b217203ba6ae8180321649212d08c23cc0c9d2f4d3e2386649",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S15",
+      "specimenSha256": "7ca0557013e2a24926414220425a143ac75dde673f6de0432c4b44da1ebec18a",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S16",
+      "specimenSha256": "8a8e257f2601c75e20b6ffb72dc27596a76eb15032558357e0e31aeba8fe0d6e",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "S17",
+      "specimenSha256": "c6e1fe4985865b25274193d5a9fc2388e7bfe4993dd162619c50edfffaeb85ba",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O01",
+      "specimenSha256": "9fbdf3c804208a4e4884307e788f94e79710962cfd9479f48d8fad8e780a3e7a",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O02",
+      "specimenSha256": "5555d76c4c11eaed3390a955bd9c373196b1ec245489ae023ef3718612ed1d60",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O03",
+      "specimenSha256": "67110c79419de52d15dceb873cd3ebb58ea10e8c2e9d45a47d32ae11b5644587",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O04",
+      "specimenSha256": "876ecd4858e5949559be4fc7d587484419d42d16cc20a72d698a49fae983514b",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O05",
+      "specimenSha256": "d9a73b54a85efc6f5262b3aedb502583f1f795037ec03d440a2615bed58218d1",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O06",
+      "specimenSha256": "7a60183c9f5cf2355f245f8652dc673931c664c22110346bdaadde49d4df93a9",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O07",
+      "specimenSha256": "cf01a4ef8fe035f7261132b3c66d884a909e49d4f004b0f89a19c8ac1bd6bfe3",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O08",
+      "specimenSha256": "0302f0764795c7ce8268e23386eeca4151dc4a39982166cae444560fa563c871",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O09",
+      "specimenSha256": "6edbc9a5bfa1572c75ffb2fd524a50e6c61a6ac9b4cb1c63de936fa6dd665db2",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O10",
+      "specimenSha256": "e37db45a2a5f740cb0305082225c9653274786c703743dd0f228898e526c3be7",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O11",
+      "specimenSha256": "a6780efda6bd261d97d8e6d80be5fef049e53738f03c9112b12d8af7d68a239b",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O12",
+      "specimenSha256": "7626275c559822f5333416be4b6f5fd9a39853438ffc98864ea9e61146d2370c",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O13",
+      "specimenSha256": "3e195ce5f379484dfd8e9ffcefa586b2d569a1ca8a26d1810d8b7cc19b931625",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O14",
+      "specimenSha256": "691708023493250e323e2fa33a34f39855be44ba7ade4a2e93a0f42ae2146c17",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O15",
+      "specimenSha256": "0781036bd90f0b720d95c75d7d195a1e31a6c3812b01655963c87be81c8a9a32",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    },
+    {
+      "id": "O16",
+      "specimenSha256": "91057099a5f1341b1ecc7bc25ce1ce42216936d097f3c38deb8b1f22cf14e5af",
+      "disposition": "root-ratified G8/splice; unchanged future actual candidate requirement",
+      "proof": "actual parser/runtime and bound public-package workflow; model result insufficient"
+    }
+  ],
+  "mechanical": [
+    {
+      "id": "M01",
+      "specimenSha256": "cb491a8d694cc45d20b9abb67a0c8432c96a920044b6e5383d664e64b1105df6",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "loaded reservation helper near capacity; failed admission leaves counters/state unchanged"
+    },
+    {
+      "id": "M02",
+      "specimenSha256": "e994c401b660635147254b9f7d089805d80dd626c74a18a0294116751da79613",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "loaded reservation helper exact terminal capacity; uniqueness and safe cursor"
+    },
+    {
+      "id": "M03",
+      "specimenSha256": "f0b1f2d35ae1053a64faa9a4098fda560caa7f8e4e09bdf26a623cf26ab07034",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "loaded restoration and allocator identities; no numeric-time comparison"
+    },
+    {
+      "id": "M04",
+      "specimenSha256": "c8136121ca2bb6313130ae8ae13b2cf0f49073a0e00bb1ecf4277d2a25ed1df4",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual watch retirement/last-observer instrumentation; no surviving table slot"
+    },
+    {
+      "id": "M05",
+      "specimenSha256": "3e18e41f09072abe7a0c24c2e08f862bcdc97523110dbbd4934a9262464f4911",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual watched publication/unset/ABA and conflict refusal"
+    },
+    {
+      "id": "M06",
+      "specimenSha256": "cf02098bfa306a9252e8df5fc141f5b43cd5dbf2c587bf5de8ddc6a304d9126a",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual refcount/live counter trace; independent equal token companion"
+    },
+    {
+      "id": "M07",
+      "specimenSha256": "8332cd1975b3a3b9a37a7fa22fcad96b39553653f1c6892b1e87a9e7a85295e3",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual close/drainer one-shot behavior;27 is the declared graph input, not universal candidate object count"
+    },
+    {
+      "id": "M08",
+      "specimenSha256": "3bbdcf09271478e30e27ae08c995473be331b4e5f99214f17d65fd46cbdea4fa",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual nested cleanup under reversed/concurrent close requests"
+    },
+    {
+      "id": "M09",
+      "specimenSha256": "1d66d5bc5a7201cf8022f8635e4cf1ea0d0e8b7a1872ddd01faa4b714c79e914",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual typed local versus typed middleware overlay; scalar baseline companions separately required"
+    },
+    {
+      "id": "M10",
+      "specimenSha256": "2b887350d7a0c6526a231b2704dfefdce05c80560f6aa7c8e004344650653076",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual zero-payload admission and unaffected scalar-only exec"
+    },
+    {
+      "id": "M11",
+      "specimenSha256": "2faf504f07e7af2f6eb21021ec85bbfface62f1bd51851eb4cb229617b772f0d",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual zero-field admission before allocation; first applicable category in C3"
+    },
+    {
+      "id": "M12",
+      "specimenSha256": "244b3e7a3129dcd724b2828540123241225c45598c216ae569755accc13a4b97",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "reference minimum160>128 and actual tiny-cap refusal; no promised one-member capacity"
+    },
+    {
+      "id": "M13",
+      "specimenSha256": "a9a5f7e2b10f560700faa01c27a1123797b879d69287f2fda4bdbb528382fdb8",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "exact derived-cap helper at MAX_SAFE, lazy activation; no large allocation"
+    },
+    {
+      "id": "M14",
+      "specimenSha256": "775b22047e3298ecf23d792be0fb20db240b883ee0149ffbf34664c69da17691",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual table/value slot accounting; denied reservation no publication"
+    },
+    {
+      "id": "M15",
+      "specimenSha256": "c8398d4e9d70b35074ec0d77379bd57fea90fb0544c117f3069706e164e250cd",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual ordered failing reservation; previous successful charges retained"
+    },
+    {
+      "id": "M16",
+      "specimenSha256": "67bbfb9c4ed84f1123b62001232ec51a1f563757efcede6e6132152b69dbaaed",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual maximum deletion pre-publication failure and finite present-slot scan"
+    },
+    {
+      "id": "M17",
+      "specimenSha256": "e17bbbe6a9cb5b61fa635af08f05d249f4d9d1d2435cfb4f76f44aff011ed869",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual loaded snapshot/writer interleaving and source inventory including dotglob"
+    },
+    {
+      "id": "M18",
+      "specimenSha256": "38334c206a62fc7ff153fd86d38ca5413e923089ab11f1b7e8f73a9c3f3e1683",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual public-exec versus internal-invoke ledger identity and cumulative limits"
+    },
+    {
+      "id": "M19",
+      "specimenSha256": "b9cce5bbb71a70ef74bff99b9fd21131e760e4cb07d42651d51d9bf494d886d1",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual Unicode scan/token accounting and independent equal materializations"
+    },
+    {
+      "id": "M20",
+      "specimenSha256": "62162bde5e6f90b22114d419da25f44d820255f89fb9eb708cfea4abbf50de0c",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "reference graph accounting plus actual release invariants;2610/21/445 is not a whole-runtime exact-count assertion"
+    },
+    {
+      "id": "M21",
+      "specimenSha256": "607fbde7decaf649ae887de122db70655932545f8fdc56152831fcc688c62a8e",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "candidate dependency ownership graph/source proof plus loaded close controls; unbroken owning-cycle mutant rejected"
+    },
+    {
+      "id": "M22",
+      "specimenSha256": "89030cb12c5bffd33d39e83b78d8506dd3368a5f8ce463a8fec69b4524da9e23",
+      "disposition": "unchanged future implementation/accounting obligation under recommended closure decisions",
+      "proof": "actual caller/escaping/readonly/stale precedence and effect identity"
+    }
+  ],
+  "counts": {
+    "semanticRequirements": 33,
+    "mechanicalRequirements": 22,
+    "behaviorExecutions": 0,
+    "modelExecutions": 0,
+    "nativeExecutions": 0,
+    "mutantKills": 0
+  },
+  "qualifications": [
+    "All original rows included in original order; no rescore or copied oracle outputs.",
+    "Specimen digests are SHA256 of JSON.stringify of each original parsed row; whole-file digests additionally bind exact original bytes.",
+    "M07 and M20 reference numbers remain reference-graph claims; actual additional candidate objects/work must be accounted, not forced to those counts.",
+    "Additional mutation, package, type, source-binding and closure-specific scalar/mixed-overlay controls are not waived by this55-item inventory."
+  ]
+}

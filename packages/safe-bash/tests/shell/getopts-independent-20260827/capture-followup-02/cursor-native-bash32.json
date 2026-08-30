@@ -1,0 +1,125 @@
+{
+  "profile": "bash32",
+  "binary": "/bin/bash",
+  "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+  "sourceInformedSupplementNotFrozenHoldouts": true,
+  "results": [
+    {
+      "id": "F01",
+      "expectedStdoutBase64": "MABwADEAAAAwAHEAMgAAAA==",
+      "actualFields": [
+        "0",
+        "p",
+        "1",
+        "",
+        "",
+        "1",
+        "?",
+        "2",
+        "",
+        ""
+      ],
+      "pass": false,
+      "execution": {
+        "command": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\nobserve() {\n  getopts pqr option_name \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\ncase \"$1\" in\n  F01) observe '-pqr'; OPTIND=2; observe '-pqr' ;;\n  F02) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' 'operand' ;;\n  F03) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent-followup",
+          "F01"
+        ],
+        "started": "2026-08-27T19:47:53.957Z",
+        "milliseconds": 7.765833000000384,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 11396,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAxAD8AMgAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "F02",
+      "expectedStdoutBase64": "MABwADEAAAAwAHEAMgAAAA==",
+      "actualFields": [
+        "0",
+        "p",
+        "1",
+        "",
+        "",
+        "0",
+        "q",
+        "2",
+        "",
+        ""
+      ],
+      "pass": true,
+      "execution": {
+        "command": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\nobserve() {\n  getopts pqr option_name \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\ncase \"$1\" in\n  F01) observe '-pqr'; OPTIND=2; observe '-pqr' ;;\n  F02) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' 'operand' ;;\n  F03) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent-followup",
+          "F02"
+        ],
+        "started": "2026-08-27T19:47:53.965Z",
+        "milliseconds": 7.439582999999402,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 11397,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00000\u0000q\u00002\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAwAHEAMgAAAA==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "F03",
+      "expectedStdoutBase64": "MABwADEAAAAwAHEAMgAAAA==",
+      "actualFields": [
+        "0",
+        "p",
+        "1",
+        "",
+        "",
+        "1",
+        "?",
+        "2",
+        "",
+        ""
+      ],
+      "pass": false,
+      "execution": {
+        "command": "/bin/bash",
+        "args": [
+          "--noprofile",
+          "--norc",
+          "-c",
+          "OPTIND=1\nOPTERR=1\nunset OPTARG\nobserve() {\n  getopts pqr option_name \"$@\"\n  result_status=$?\n  printf '%s\\000%s\\000%s\\000%s\\000%s\\000' \"$result_status\" \"$option_name\" \"$OPTIND\" \"${OPTARG+x}\" \"${OPTARG-}\"\n}\ncase \"$1\" in\n  F01) observe '-pqr'; OPTIND=2; observe '-pqr' ;;\n  F02) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' 'operand' ;;\n  F03) observe '-pqr' 'operand'; OPTIND=2; observe '-pqr' ;;\n  *) exit 64 ;;\nesac\n",
+          "getopts-independent-followup",
+          "F03"
+        ],
+        "started": "2026-08-27T19:47:53.972Z",
+        "milliseconds": 7.114416999999776,
+        "status": 0,
+        "signal": null,
+        "terminated": null,
+        "pid": 11398,
+        "settled": true,
+        "stdout": "0\u0000p\u00001\u0000\u0000\u00001\u0000?\u00002\u0000\u0000\u0000",
+        "stderr": "",
+        "stdoutBase64": "MABwADEAAAAxAD8AMgAAAA==",
+        "stderrBase64": ""
+      }
+    }
+  ]
+}

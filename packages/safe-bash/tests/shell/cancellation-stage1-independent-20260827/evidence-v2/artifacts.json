@@ -1,0 +1,65 @@
+{
+  "artifactIdentity": [
+    {
+      "file": "cancellation.js",
+      "emittedHash": "a77d885824a0cfa4f454d9c574cc361aa9ea5507c7f62bd52f2ecc8a98254a28",
+      "movedHash": "a77d885824a0cfa4f454d9c574cc361aa9ea5507c7f62bd52f2ecc8a98254a28"
+    },
+    {
+      "file": "cancellation.d.ts",
+      "emittedHash": "67b90043f40ef0c5a53ae0be912351cb05f51707523ca4a3ae4e7d8b9f432e65",
+      "movedHash": "67b90043f40ef0c5a53ae0be912351cb05f51707523ca4a3ae4e7d8b9f432e65"
+    }
+  ],
+  "originalBuildRemovedBeforeMovedChecks": true,
+  "movedMembership": [
+    {
+      "path": "cancellation.d.ts",
+      "kind": "file",
+      "size": 3951,
+      "sha256": "67b90043f40ef0c5a53ae0be912351cb05f51707523ca4a3ae4e7d8b9f432e65"
+    },
+    {
+      "path": "cancellation.js",
+      "kind": "file",
+      "size": 18530,
+      "sha256": "a77d885824a0cfa4f454d9c574cc361aa9ea5507c7f62bd52f2ecc8a98254a28"
+    },
+    {
+      "path": "cohort.mjs",
+      "kind": "file",
+      "size": 15971,
+      "sha256": "b195fe6ac3d547235835311bc95b259f60bbe767592a13056ea85cbcf5cd59e1"
+    },
+    {
+      "path": "negative.json",
+      "kind": "file",
+      "size": 322,
+      "sha256": "e35b8d13f8d9c4414b5724cb9ac26bbecb216335188f4950939d98414d4b23cc"
+    },
+    {
+      "path": "negative.ts",
+      "kind": "file",
+      "size": 683,
+      "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "size": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "positive.json",
+      "kind": "file",
+      "size": 322,
+      "sha256": "33ce8f4125524e9b09c506480e71b6415b69d560b56699539d38eac0b44f1eb7"
+    },
+    {
+      "path": "positive.ts",
+      "kind": "file",
+      "size": 1315,
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { owned, root, base, frozen, hash, canonical, save, put, replaceOne } from './lib.mjs';
+
+const paths = ['core-01/core-controls.json','candidate-01/legacy-no-native-process.json','candidate-01/quota47-results.json','candidate-01/nearby16-results.json'];
+const originals = paths.map(path => {
+  const bytes = frozen(`${base}/${path}`);
+  assert.equal(hash(readFileSync(join(root, base, path))), hash(bytes));
+  return { path: `${base}/${path}`, commit: 'beba7b00d5ba277d2ac6770968d8e4b15c846171', bytes: bytes.length, sha256: hash(bytes), liveRawBodyUnchanged: true };
+});
+const legacy = JSON.parse(frozen(`${base}/candidate-01/regression-summary.json`));
+assert.deepEqual(canonical, legacy.lifecyclePaths);
+const initial = JSON.parse(readFileSync(join(owned, 'run-01/execution-freeze.json'))).drivers;
+const oldGuard = readFileSync(join(owned, 'import-guard.mjs'), 'utf8').replace('appendFileSync, realpathSync', 'appendFileSync').replace("realpathSync(process.env.REVIEW_INSTALLED) + '/'", "process.env.REVIEW_INSTALLED + '/'");
+assert.equal(hash(oldGuard), initial['import-guard.mjs']);
+put(join(owned, 'run-01/import-guard-initial.mjs.data'), oldGuard);
+let oldLib = readFileSync(join(owned, 'lib.mjs'), 'utf8');
+oldLib = replaceOne(oldLib, "input, detached: true, timeout:", 'input, timeout:');
+oldLib = replaceOne(oldLib, "  if (result.error && result.pid) {\n    try { process.kill(-result.pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH') throw error; }\n  }\n", '');
+assert.equal(hash(oldLib), initial['lib.mjs']);
+put(join(owned, 'run-01/lib-initial.mjs.data'), oldLib);
+let oldReplay = readFileSync(join(owned, 'replay.mjs'), 'utf8');
+oldReplay = oldReplay.replace('symlinkSync, realpathSync', 'symlinkSync');
+const start = oldReplay.indexOf('if (process.argv[4]) {');
+const end = oldReplay.indexOf('const auditDirectory', start);
+oldReplay = oldReplay.slice(0, start) + oldReplay.slice(end);
+oldReplay = replaceOne(oldReplay, "const suffix = process.argv[4] ?? '';\nconst harness = join(scratch, 'harness' + suffix);", "const harness = join(scratch, 'harness');");
+oldReplay = replaceOne(oldReplay, "join(scratch, profile + '-typed' + suffix)", "join(scratch, profile + '-typed')");
+oldReplay = replaceOne(oldReplay, "join(scratch, profile + '-typed' + suffix, 'review.json')", "join(scratch, profile + '-typed/review.json')");
+assert.equal(hash(oldReplay), initial['replay.mjs']);
+put(join(owned, 'run-01/replay-initial.mjs.data'), oldReplay);
+save(join(owned, 'PRESERVATION.json'), { originalHistoricalBodies: originals, exactBebaLegacyScope: canonical, exactBebaLegacyOriginalCounts: legacy.legacyNoNative, preservedInitialHarnessMatchesItsFreeze: true, attemptQualification: 'run-01 is a rejected binding/setup attempt. Its initial guard/lib/replay are retained with matching pre-execution hashes. The guard correction became visible before run-01 revised canonical launched; no run-01 results certify the final review. Fresh frozen run-02 consistently uses canonical physical paths and corrected guard; unchanged c3 installed bytes throughout.' });
+console.log('Historical raw bodies and initial failed harness preserved; exact beba canonical scope verified.');

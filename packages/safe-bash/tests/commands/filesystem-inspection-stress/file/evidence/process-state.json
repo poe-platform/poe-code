@@ -1,0 +1,10 @@
+{
+  "recordedAt": "2026-08-27T08:34:09.308Z",
+  "ownedChildCount": 40,
+  "completedAndReaped": 40,
+  "activeOwnedChildCount": 0,
+  "processEvidence": "All sequential spawnSync children returned status0 without signals/timeouts. Controller completed. No server or detached process launched.",
+  "shellAttempts": 5,
+  "disposedShells": 5,
+  "noFurtherProductExecutions": true
+}

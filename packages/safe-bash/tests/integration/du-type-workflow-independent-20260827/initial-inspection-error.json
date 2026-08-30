@@ -1,0 +1,8 @@
+{
+  "date": "2026-08-27",
+  "phase": "first read-only shell inspection, before authored supervisor",
+  "naturalExit": 127,
+  "cause": "The zsh loop variable named path replaced zsh's special PATH array. Initial pwd/git status/index inspection succeeded; subsequent cat/git lookups failed.",
+  "stderr": "zsh:1: command not found: cat\nzsh:1: command not found: cat\nzsh:1: command not found: git\n",
+  "correction": "Repeated the instruction/handoff read in a new shell using instruction_file; natural exit 0. No candidate, fixture, source, refs, or index changed."
+}

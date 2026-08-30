@@ -1,0 +1,5 @@
+[
+  {"name":"truncate-core","args":["--unhandled-rejections=strict","--import","tsx","--test","--test-name-pattern=optional truncate","tests/stress/adapters/core.test.ts"]},
+  {"name":"truncate-profile","args":["--unhandled-rejections=strict","--import","tsx","--test","tests/stress/adapters/s3-truncate-profile.test.ts"]},
+  {"name":"s3-mutations","args":["--unhandled-rejections=strict","--import","tsx","--test","tests/fs/s3/mutation-regressions.test.ts"]}
+]

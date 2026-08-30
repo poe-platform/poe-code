@@ -1,0 +1,94 @@
+{
+  "at": "2026-08-28T06:37:40.246Z",
+  "envelope": {
+    "schema": "unified76-os-instruction-fence/1",
+    "createdAt": "2026-08-28T06:37:39.964Z",
+    "launcherPid": 88829,
+    "roots": [
+      {
+        "path": "/private/tmp/unified76-os-write-T3cl87",
+        "device": 16777232,
+        "inode": 180543527,
+        "mode": 448,
+        "uid": 501
+      },
+      {
+        "path": "/private/tmp/unified76-build-types-review-ps-diagnostic-88829",
+        "device": 16777232,
+        "inode": 180543528,
+        "mode": 448,
+        "uid": 501
+      }
+    ],
+    "output": "/tmp/unified76-build-types-review-ps-diagnostic-88829",
+    "external": {
+      "manifestSha256": "fe1a7f720959472bdd8e39b4cb3c9e80e27a9be43961dd5558d69bb61560096f",
+      "binary": {
+        "path": "/usr/bin/sandbox-exec",
+        "bytes": 102560,
+        "mode": 493,
+        "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+      },
+      "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+      "systemReferences": [
+        [
+          "/usr/bin/sandbox-exec",
+          "/usr/lib/libsandbox.1.dylib"
+        ],
+        [
+          "/usr/bin/sandbox-exec",
+          "/usr/lib/libSystem.B.dylib"
+        ]
+      ],
+      "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception."
+    },
+    "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+    "profileSha256": "606f5603a35bf1ad88c2e546838416c1080e6d27a29291bccdd03d79e4477162"
+  },
+  "rows": [
+    {
+      "mode": "trusted-outer",
+      "status": 0,
+      "signal": null,
+      "observation": {
+        "pid": 88841,
+        "status": 0,
+        "signal": null,
+        "stdout": "88841\n",
+        "stderr": ""
+      }
+    },
+    {
+      "mode": "sandbox-allow-default",
+      "status": 0,
+      "signal": null,
+      "observation": {
+        "pid": 88846,
+        "status": null,
+        "signal": null,
+        "error": {
+          "code": "EPERM",
+          "errno": -1,
+          "message": "spawnSync /bin/ps EPERM"
+        }
+      }
+    },
+    {
+      "mode": "shipping-write-fence",
+      "status": 0,
+      "signal": null,
+      "observation": {
+        "pid": 88851,
+        "status": null,
+        "signal": null,
+        "error": {
+          "code": "EPERM",
+          "errno": -1,
+          "message": "spawnSync /bin/ps EPERM"
+        }
+      }
+    }
+  ],
+  "fullGate": false,
+  "qualification": "Read-only probe of its own PID. Records launch outcome; does not infer the underlying kernel rule or grant process access inside the target."
+}

@@ -1,0 +1,91 @@
+TAP version 13
+# Subtest: R01 detached snapshot entry does not truncate fanout
+not ok 1 - R01 detached snapshot entry does not truncate fanout
+  ---
+  duration_ms: 1.732417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts:1:940'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'A',
+    -   'C'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'A'
+    1: 'C'
+  actual:
+    0: 'A'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts:60:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: R02 close still stops fanout and naturally finalizes exact failures
+ok 2 - R02 close still stops fanout and naturally finalizes exact failures
+  ---
+  duration_ms: 0.242917
+  type: 'test'
+  ...
+# Subtest: R03 admission uses observed first-delivered control and skips getter
+not ok 3 - R03 admission uses observed first-delivered control and skips getter
+  ---
+  duration_ms: 0.27425
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts:1:2340'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be reference-equal to "expected":
+    + actual - expected
+    
+      {
+    +   marker: 'configured-A'
+    -   marker: 'delivered-B'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    marker: 'delivered-B'
+  actual:
+    marker: 'configured-A'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts:109:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: R04 ancestor ranking remains separate from immutable delivery and preserves provenance
+ok 4 - R04 ancestor ranking remains separate from immutable delivery and preserves provenance
+  ---
+  duration_ms: 0.270708
+  type: 'test'
+  ...
+# Subtest: R05 falsy equal control reasons remain exact and unwrapped
+ok 5 - R05 falsy equal control reasons remain exact and unwrapped
+  ---
+  duration_ms: 0.149375
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 3
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 173.3705

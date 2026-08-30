@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.stdout","value":{"utf8":"\"a\": 1\n"},"reason":"No assertion adapter bound"}],"semanticFullRecordPass":false}

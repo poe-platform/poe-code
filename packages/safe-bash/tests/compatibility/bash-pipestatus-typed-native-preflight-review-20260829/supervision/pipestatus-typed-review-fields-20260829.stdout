@@ -1,0 +1,387 @@
+{
+  "programs": {
+    "schema": "pipestatus-typed-literal-proposal-v1",
+    "nativeAuthority": false,
+    "fixtures": [],
+    "cases": [
+      {
+        "id": "P19",
+        "program": "declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P20",
+        "program": "readonly PIPESTATUS; false; declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P21",
+        "program": "false; readonly PIPESTATUS; true; declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P22",
+        "program": "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P23",
+        "program": "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+        "expectedNative": null
+      },
+      {
+        "id": "P24",
+        "program": "PIPESTATUS=seed; false; declare -p PIPESTATUS",
+        "expectedNative": null
+      }
+    ]
+  },
+  "delta": [
+    {
+      "path": "admission.mjs",
+      "parentSha256": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+      "candidateSha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8",
+      "changed": true
+    },
+    {
+      "path": "entry.mjs",
+      "parentSha256": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+      "candidateSha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd",
+      "changed": true
+    },
+    {
+      "path": "observation.mjs",
+      "parentSha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+      "candidateSha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b",
+      "changed": true
+    },
+    {
+      "path": "capture.mjs",
+      "parentSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "candidateSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "changed": false
+    },
+    {
+      "path": "lifecycle.mjs",
+      "parentSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "candidateSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "changed": false
+    },
+    {
+      "path": "group-observer.mjs",
+      "parentSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "candidateSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "changed": false
+    },
+    {
+      "path": "observer-state.mjs",
+      "parentSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "candidateSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "changed": false
+    },
+    {
+      "path": "state.mjs",
+      "parentSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "candidateSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "changed": false
+    },
+    {
+      "path": "storage.mjs",
+      "parentSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "candidateSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "changed": false
+    }
+  ],
+  "sourceAuth": {
+    "authorCommit": "5861ec9a8750de90bf38f93a2cd0df66198e8d9f",
+    "independent": "98192974514389759c96d20c7f35fe6050641c76",
+    "rootAcceptance": "cf6c47b8a976bb71bd6dd419c103e23264e71a32",
+    "parentRows": [
+      {
+        "path": "materialized/PRESEAL.json",
+        "gitBlob": "9b182ed9ddf2d2ca3b9b11eaf15d7748f1f2eccd",
+        "bytes": 6772,
+        "sha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901",
+        "mode": 384
+      },
+      {
+        "path": "materialized/admission.mjs",
+        "gitBlob": "fd54974d13dee24474346a6c7b18754151df31d8",
+        "bytes": 10000,
+        "sha256": "ee9f4ee485e3c3441c80d142b160f6b8eb70fb3b6cb099b271d9cb9c0288e8f5",
+        "mode": 384
+      },
+      {
+        "path": "materialized/entry.mjs",
+        "gitBlob": "b7b3ca7820e248ce5aaccf7967942036e81cd128",
+        "bytes": 7153,
+        "sha256": "e4b0550f5e15bc150ad769a135e1db75916fe0c6e916d33a2f59c2cf1a4a0c0f",
+        "mode": 384
+      },
+      {
+        "path": "materialized/observation.mjs",
+        "gitBlob": "47acd115cb1292dc391c589e8101ec6cbd2b0201",
+        "bytes": 2170,
+        "sha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0",
+        "mode": 384
+      },
+      {
+        "path": "materialized/capture.mjs",
+        "gitBlob": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+        "bytes": 1888,
+        "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+        "mode": 384
+      },
+      {
+        "path": "materialized/lifecycle.mjs",
+        "gitBlob": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+        "bytes": 5280,
+        "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+        "mode": 384
+      },
+      {
+        "path": "materialized/group-observer.mjs",
+        "gitBlob": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+        "bytes": 759,
+        "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+        "mode": 384
+      },
+      {
+        "path": "materialized/observer-state.mjs",
+        "gitBlob": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+        "bytes": 1240,
+        "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+        "mode": 384
+      },
+      {
+        "path": "materialized/state.mjs",
+        "gitBlob": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+        "bytes": 1824,
+        "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+        "mode": 384
+      },
+      {
+        "path": "materialized/storage.mjs",
+        "gitBlob": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+        "bytes": 3583,
+        "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+        "mode": 384
+      },
+      {
+        "path": "materialized/PROTOCOL.json",
+        "gitBlob": "8e146ded5b18b99b04aff44d854f731af5a34a87",
+        "bytes": 1613,
+        "sha256": "978d5ccbbe37febde406a1bbf2ea00d9313b6b32ce570221c16470db4a7ae931",
+        "mode": 384
+      },
+      {
+        "path": "materialized/TOOLS.json",
+        "gitBlob": "1e337cadb46f9454f0407cd3d98257908ac54df0",
+        "bytes": 3067,
+        "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+        "mode": 384
+      },
+      {
+        "path": "APPROVAL-PROPOSAL.template.json",
+        "gitBlob": "2413b7a0b57e95f96cb1b81b0f433d8d954ce1d5",
+        "bytes": 2902,
+        "sha256": "a6d8728e5f8c9db7e79c1c2eb1e403e2411edb72d88c02a3bf8b1a8cbf4670e7",
+        "mode": 384
+      }
+    ],
+    "verifiedTools": [
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "mode": 493
+      },
+      {
+        "path": "/bin/bash",
+        "bytes": 1293840,
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "mode": 365
+      },
+      {
+        "path": "/usr/bin/env",
+        "bytes": 102368,
+        "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+        "mode": 493
+      },
+      {
+        "path": "/bin/zsh",
+        "bytes": 1361216,
+        "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+        "mode": 493
+      }
+    ],
+    "oldAuthorityReused": false
+  },
+  "controlSeal": {
+    "schema": "pipestatus-typed-control-preseal-v1",
+    "files": [
+      {
+        "path": "prepare.mjs",
+        "bytes": 26523,
+        "sha256": "0eac1cd66ddf4806857bc469714e01bf02e539d7698726a8607128ff7a34bc32",
+        "mode": 420
+      },
+      {
+        "path": "PREPARE.md",
+        "bytes": 2585,
+        "sha256": "d75c5ae903a4577f7f2dd2d9854c2e78b84b40f81f59f13cc5f4490ab43a62b8",
+        "mode": 420
+      },
+      {
+        "path": "PROGRAMS.json",
+        "bytes": 829,
+        "sha256": "2961585eaaf0c2a28c010ff80b754c78f923ebaa8e97de9dc65ea5972b262133",
+        "mode": 420
+      },
+      {
+        "path": "cohort.fragment.data",
+        "bytes": 1244,
+        "sha256": "309adee644c6f385a330a7a4d706158bb18e3ed654571daad9cf3053bd5197f3",
+        "mode": 420
+      },
+      {
+        "path": "materialized/PRESEAL.json",
+        "bytes": 3283,
+        "sha256": "ade56f23358e284df533f7e57e462ba927fb0386899061e90699977746424b6e",
+        "mode": 384
+      },
+      {
+        "path": "APPROVAL-PROPOSAL.template.json",
+        "bytes": 2861,
+        "sha256": "8f14ef69db395a8dffd4bcd573e6944bc03bddf324ac204846c6b1c6412e6f4e",
+        "mode": 384
+      },
+      {
+        "path": "GO.template.json",
+        "bytes": 1760,
+        "sha256": "75422a2a18e06a86c1e0985072f45222e7af545b566768cfb43a8a3c67c92844",
+        "mode": 384
+      },
+      {
+        "path": "REVIEW-ACCEPTANCE.template.json",
+        "bytes": 361,
+        "sha256": "8946073cbadad02a168b8c3fd34daa9215091e3c585e1918d8bc41899c3cd35b",
+        "mode": 384
+      },
+      {
+        "path": "SOURCE-DELTA.json",
+        "bytes": 2142,
+        "sha256": "4fed7e03b88cc0215724d24705d8e7bfa1f1964100631a762fd901544363522c",
+        "mode": 384
+      },
+      {
+        "path": "SOURCE-AUTH.json",
+        "bytes": 4110,
+        "sha256": "d3c6533102bf38921b56f481813a0cefebd49880ea53b3b007c3c0c3f784237a",
+        "mode": 384
+      }
+    ]
+  },
+  "ready": {
+    "schema": "pipestatus-typed-preparation-publication-v1",
+    "files": 63
+  },
+  "sourceHead": [
+    "import fs from 'node:fs';",
+    "import path from 'node:path';",
+    "import crypto from 'node:crypto';",
+    "import assert from 'node:assert/strict';",
+    "import {spawnSync} from 'node:child_process';",
+    "import {pathToFileURL} from 'node:url';",
+    "",
+    "const root=path.dirname(new URL(import.meta.url).pathname);",
+    "assert.equal(root,'/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829');",
+    "const deadline=fs.statSync(root+'/raw/startup.stdout').birthtimeMs+1200000;",
+    "const time=()=>assert(Date.now()<=deadline,'PREPARATION_DEADLINE');time();",
+    "const parent='/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2';",
+    "const materialized=root+'/materialized',actualRoot='/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1';",
+    "const node='/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';",
+    "const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');",
+    "const blob=bytes=>crypto.createHash('sha1').update(`blob ${bytes.length}\\0`).update(bytes).digest('hex');",
+    "const decode=bytes=>new TextDecoder('utf-8',{fatal:true}).decode(bytes);",
+    "const read=(filename,maximum=4194304)=>{time();const stat=fs.lstatSync(filename);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=maximum&&stat.uid===process.getuid()&&stat.nlink===1);const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const before=fs.fstatSync(descriptor);assert.equal(before.ino,stat.ino);assert.equal(before.dev,stat.dev);const bytes=fs.readFileSync(descriptor),after=fs.fstatSync(descriptor);assert.equal(bytes.length,before.size);assert.equal(after.mtimeMs,before.mtimeMs);assert.equal(after.size,before.size);return bytes;}finally{fs.closeSync(descriptor);}};",
+    "const write=(relative,value)=>{time();const filename=root+'/'+relative;fs.mkdirSync(path.dirname(filename),{recursive:true,mode:448});const descriptor=fs.openSync(filename,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,384);try{fs.writeFileSync(descriptor,value);fs.fsyncSync(descriptor);}finally{fs.closeSync(descriptor);}};",
+    "const json=(relative,value)=>write(relative,JSON.stringify(value,null,2)+'\\n');",
+    "const parse=filename=>JSON.parse(decode(read(filename)));",
+    "const replace=(source,before,after)=>{assert.equal(source.split(before).length,2,'EXACT_SINGLE_DELTA');return source.replace(before,after);};",
+    "const modules=['admission','entry','observation','capture','lifecycle','group-observer','observer-state','state','storage'];",
+    "const seal=(directory,names,schema)=>({schema,files:names.map(name=>{const bytes=read(directory+'/'+name);return{path:name,bytes:bytes.length,sha256:hash(bytes),mode:fs.lstatSync(directory+'/'+name).mode&511};})});",
+    "const authenticate=filename=>{const value=parse(filename);for(const row of value.files){const bytes=read(path.dirname(filename)+'/'+row.path);assert.equal(bytes.length,row.bytes);assert.equal(hash(bytes),row.sha256);assert.equal(fs.lstatSync(path.dirname(filename)+'/'+row.path).mode&511,row.mode);}return value;};",
+    "async function authenticateTools(pins){const verified=[];for(const pin of [...pins.toolPins,pins.environmentLauncher,pins.wrapperTool]){const before=fs.lstatSync(pin.path);assert(before.isFile()&&before.size===pin.bytes&&(before.mode&511)===pin.mode);const digest=crypto.createHash('sha256');let size=0;for await(const bytes of fs.createReadStream(pin.path,{highWaterMark:65536})){time();size+=bytes.length;assert(size<=pin.bytes);digest.update(bytes);}assert.equal(size,pin.bytes);assert.equal(digest.digest('hex'),pin.sha256);const after=fs.lstatSync(pin.path);assert.equal(after.ino,before.ino);assert.equal(after.mtimeMs,before.mtimeMs);verified.push({path:pin.path,bytes:size,sha256:pin.sha256,mode:pin.mode});}return verified;}"
+  ],
+  "controlMarkers": [
+    {
+      "line": 26,
+      "text": "async function authenticateTools(pins){const verified=[];for(const pin of [...pins.toolPins,pins.environmentLauncher,pins.wrapperTool]){const before=fs.lstatSync(pin.path);assert(before.isFile()&&before.size===pin.bytes&&(before.mode&511)===pin.mode);const digest=crypto.createHash('sha256');let size=0;for await(const bytes of fs.createReadStream(pin.path,{highWaterMark:65536})){time();size+=bytes.length;assert(size<=pin.bytes);digest.update(bytes);}assert.equal(size,pin.bytes);assert.equal(digest.digest('hex'),pin.sha256);const after=fs.lstatSync(pin.path);assert.equal(after.ino,before.ino);assert.equal(after.mtimeMs,before.mtimeMs);verified.push({path:pin.path,bytes:size,sha256:pin.sha256,mode:pin.mode});}return verified;}"
+    },
+    {
+      "line": 61,
+      "text": "}else if(process.argv[2]==='controls'){"
+    },
+    {
+      "line": 72,
+      "text": " test('D01',()=>{verify(admission.validateCohort(cohort,requests,actualRoot));verify(requests.length===6&&cohort.fixtures.length===0);for(const row of cohort.cases){verify(hash(read(materialized+'/programs/'+row.id+'.bash.data'))===row.programSha256);verify(row.expectedNative===null);}verify(cohort.cases[0].program==='declare -p PIPESTATUS');});"
+    },
+    {
+      "line": 73,
+      "text": " test('D02',()=>{for(const alter of [rows=>rows[0].argv.push('extra'),rows=>rows[0].argv[3]='true; declare -p PIPESTATUS',rows=>rows[0].executable='/bin/sh',rows=>rows[0].stdinBase64='eA==',rows=>rows[0].environment.PATH='/bin',rows=>rows[0].environment.ENV='x',rows=>rows[0].cwd='/tmp',rows=>rows[0].extraProcessReservation=1]){const rows=clone();alter(rows);reject(()=>admission.validateCohort(cohort,rows,actualRoot));}});"
+    },
+    {
+      "line": 74,
+      "text": " test('D03',()=>{verify(admission.validateGrant(goodGrant,now));verify(admission.validateReview(goodReview,goodReview));reject(()=>admission.validateGrant({...goodGrant,failedLookupNames:['function']},now));reject(()=>admission.validateGrant({...goodGrant,schema:'function-pipestatus-root-grant-v2'},now));reject(()=>admission.validateReview({...goodReview,profile:'function-pipestatus-reference-v2'},goodReview));for(const value of [null,'123',Infinity,NaN])reject(()=>admission.validateGrant({...goodGrant,issuedEpochMs:value},now));reject(()=>admission.validateGrant(parse(root+'/GO.template.json'),now));});"
+    },
+    {
+      "line": 75,
+      "text": " test('D04',()=>{const sha='a'.repeat(64),resolved=structuredClone(template.parameters);resolved.cmd=resolved.cmd.replace('ROOT_APPROVED_GRANT_SHA256',sha);verify(admission.resolveApproval(template,resolved,sha));for(const bad of [{...resolved,cmd:resolved.cmd+' '},{...resolved,login:true},{...resolved,prefix_rule:['node']},{...resolved,sandbox_permissions:'use_default'}])reject(()=>admission.resolveApproval(template,bad,sha));verify(template.parameters.cmd.split('ROOT_APPROVED_GRANT_SHA256').length===2);});"
+    },
+    {
+      "line": 76,
+      "text": " test('D05',()=>{const directory=scratch+'/fd';fs.mkdirSync(directory,{mode:448});fs.mkdirSync(directory+'/outer',{mode:448});const filename=directory+'/outer/bootstrap.stdout';fs.writeFileSync(filename,'AB',{mode:384});for(const flag of ['r+','w','r','r+']){const fd=fs.openSync(filename,flag),ops=Object.create(fs);ops.fstatSync=()=>fs.fstatSync(fd);ops.readSync=(_fd,...args)=>fs.readSync(fd,...args);ops.writeSync=(_fd,...args)=>fs.writeSync(fd,...args);try{if(flag==='r+'){if(fs.fstatSync(fd).size===2){const first=Buffer.alloc(1),second=Buffer.alloc(1);fs.readSync(fd,first,0,1,null);verify(first.toString()==='A');verify(admission.validateOuter(directory,'stdout',1,ops));fs.readSync(fd,second,0,1,null);verify(second.toString()==='B');}else verify(admission.validateOuter(directory,'stdout',1,ops));}else reject(()=>admission.validateOuter(directory,'stdout',1,ops));}finally{fs.closeSync(fd);}}});"
+    },
+    {
+      "line": 77,
+      "text": " test('D06',()=>{const before=[{path:'work',type:'directory',mode:448}];for(const row of cohort.cases){verify(observation.validateEffects(row.id,before,before));reject(()=>observation.validateEffects(row.id,before,[...before,{path:'work/out',type:'file',mode:420,base64:'eA=='}]));}reject(()=>observation.validateEffects('F05',before,before));});"
+    },
+    {
+      "line": 78,
+      "text": " test('D07',()=>{const capture=(name,bytes)=>({name,flush:true,size:true,hash:true,close:true,bytes:bytes.length,sha256:hash(bytes),base64:bytes.toString('base64')});const row={id:'P19',status:1,capture:[capture('stdout',Buffer.from([0,255,10])),capture('stderr',Buffer.alloc(0))],filesVerified:true,filesBefore:[],filesAfter:[]};const frame=observation.encodeObservation(row),fields=frame.toString('ascii').split('\\0');verify(fields.length===9&&fields[1]==='P19'&&fields[2]==='1');verify(Buffer.from(fields[4],'base64').equals(Buffer.from([0,255,10])));reject(()=>observation.encodeObservation({...row,id:'P02'}));reject(()=>observation.encodeObservation({...row,status:256}));const bad=structuredClone(row);bad.capture[0].sha256='0'.repeat(64);reject(()=>observation.encodeObservation(bad));});"
+    },
+    {
+      "line": 79,
+      "text": " test('D08',()=>{verify(requests.reduce((sum,row)=>sum+row.extraProcessReservation,0)===4);verify(requests.filter(row=>row.extraProcessReservation).map(row=>row.id).join(',')==='P22,P23');verify(protocol.limits.knownManagedProcessCeiling===7&&protocol.limits.allKnownProcessProposalCeiling===29&&protocol.limits.allKnownPeakProposalCeiling===5);const ledger=new state.ManagedLedger(2,2);ledger.enter('case');ledger.confirm('case');reject(()=>ledger.enter('case'));ledger.retire(true);verify(ledger.active===1&&ledger.activeConfirmed===1);});"
+    },
+    {
+      "line": 80,
+      "text": " test('D09',()=>{verify(admission.validateGrant(goodGrant,goodGrant.deadlineEpochMs-600000));reject(()=>admission.validateGrant(goodGrant,goodGrant.deadlineEpochMs-599999));verify(state.deadlineAdmission(0,66000));verify(!state.deadlineAdmission(1,66000));const late=new Storage(scratch,{deadline:10},{now:()=>11});reject(()=>late.terminal({late:true}));verify(!fs.existsSync(scratch+'/TERMINAL-STOP.json'));const fault=new Storage(scratch,{deadline:10},{now:()=>0,terminalOperations:{openSync(){throw 0;}}});let caught='not';try{fault.terminal({zero:true});}catch(reason){caught=reason;}verify(caught===0);});"
+    },
+    {
+      "line": 81,
+      "text": " test('D10',()=>{verify(delta.filter(row=>row.changed).length===3);verify(delta.filter(row=>!row.changed).length===6);for(const row of delta){verify(hash(read(materialized+'/'+row.path))===row.candidateSha256);if(!row.changed)verify(row.parentSha256===row.candidateSha256);}const text=decode(read(materialized+'/admission.mjs'));verify(text.includes('operations.readSync(fd,Buffer.alloc(1),0,1,0)'));});"
+    },
+    {
+      "line": 82,
+      "text": " test('D11',()=>{verify(!fs.existsSync(actualRoot));for(const name of ['GO.json','REVIEW-ACCEPTANCE.json','PREPROVISION.json'])verify(!fs.existsSync(materialized+'/'+name));reject(()=>admission.admit(materialized,materialized+'/MISSING.json','0'.repeat(64)));verify(cohort.failedLookups.length===0&&cohort.fixtures.length===0);verify(template.parameters.login===false&&template.parameters.sandbox_permissions==='require_escalated'&&!Object.hasOwn(template.parameters,'prefix_rule'));});"
+    },
+    {
+      "line": 83,
+      "text": " test('D12',()=>{const literals=parse(root+'/PROGRAMS.json');verify(literals.cases[0].program==='declare -p PIPESTATUS');for(let index=0;index<6;index++){verify(literals.cases[index].program===requests[index].argv[3]);verify(requests[index].stdinBase64==='');verify(!literals.cases[index].program.includes('\\n'));}verify(protocol.limits.totalMs===600000&&protocol.limits.perCaseMs===3000&&protocol.limits.termMs===2000&&protocol.limits.killMs===1000);});"
+    },
+    {
+      "line": 85,
+      "text": " const result={schema:'pipestatus-typed-preexec-controls-v1',results,pass:results.filter(row=>row.status==='PASS').length,fail:results.filter(row=>row.status==='FAIL').length,assertions,nativeStarts:0,entryExecuted:false,controlChildren:0,syntaxChildrenRetired:3,helperImages:3,deadline};json('CONTROL-RESULT.json',result);"
+    },
+    {
+      "line": 87,
+      "text": " write('HANDOFF.md',`# Typed PIPESTATUS six-probe reference preparation\\n\\nDate: 2026-08-29. ${result.fail===0?'AUTHOR READY for DIFFERENT preexecution review':'HOLD: DATA controls failed'}. **No actual native authority. P19–P24 all UNRUN; no expected outputs or semantic policy chosen.**\\n\\nExact root-supplied literals are in PROGRAMS.json and materialized/programs; six hashes/argv/env/empty-stdin bindings in COHORT/REQUESTS. P19 is exactly declare -p PIPESTATUS as first command, no prologue. No eval/source/profile/external command/variable-command/slash lookup/network/private path. Only fixed f invocations, builtin declarations/readonly/assignment/true/false and two finite pipelines. Zero fixtures and zero permitted effects.\\n\\nParent author5861ec9a8750de90bf38f93a2cd0df66198e8d9f; independent98192974514389759c96d20c7f35fe6050641c76; ROOTcf6c47b8a976bb71bd6dd419c103e23264e71a32 are retained references, not reused authority. SOURCE-AUTH.json binds selected stored parent blobs and fresh tool hashes. Three owner modules change (admission/entry/observation); six remain byte-identical. Old F05 effects permission is removed, all lookups forbidden, IDs/counts/profile/paths are separately versioned. Host FNPIPEOBS1 framing and raw byte preservation remain unchanged.\\n\\nDATA controls ${result.pass}/12 PASS, ${result.fail} FAIL, ${assertions} assertions. Three changed-module Node syntax children retired. No lifecycle fixture child, Bash, actual entry, native version, compiler/build/product/Worker or network ran. Bootstrap syntax/prepare/controls are the three controller images. All individual raw captures and failures, if any, are retained.\\n\\nExecutable preseal SHA256 ${presealSha256}; control result ${controlSha256}; exact prospective command string ${commandSha256}. New runtime review/GO templates have strict finite fields and reject PENDING/non-numeric/old-profile authority. issued/expiry/latest-start UTC remain PENDING. Future preprovision must create fresh owned parents and empty journal; bootstrap captures remain absent until the exact noclobber/read-write wrapper. No actual root or runtime slot file is created here.\\n\\nProspective actual:600s inclusive/setup60s/tail60s, case3s/TERM2/KILL1;7 managed(owner1+Bash6)+4 UNOBSERVED stage reservations(P22/P23 two each)+18 admin=29 proposed slots. Managed peak2+2 unobserved stage allowance+margin1=peak5. Not observed census or OS quota.64KiB/stream,32MiB capture,128MiB work. Exact six-key child environment, owned empty PATH, no BASH_ENV/ENV/exported functions, --noprofile --norc. Initial tool/zsh startup remains trusted host outside child clean-env/raw-capture qualification; no containment or GNU5.3 claim.\\n\\nActual recipe: DIFFERENT preexec ACCEPT, fresh committed runtime ROOT review/GO/preprovision and fixed UTC window, separate resolved sole-slot DATA review, then EXACT exec_command require_escalated/login:false/no prefix with sealed APPROVAL-PROPOSAL.template.json parameters. No automatic follow-on, old grant reuse or actual request.\\n\\nOld26/12/37 observations, accounting holds and ambiguities remain unchanged. These six unrun type probes are intended to distinguish startup/readonly indexed versus nonarray/local bindings; preparation alone resolves none. F05 timing and ordinary command-substitution source limits are not rescored.\\n`);"
+    },
+    {
+      "line": 88,
+      "text": " const files=[];const visit=(directory,prefix='')=>{for(const name of fs.readdirSync(directory).sort()){const relative=prefix+name,filename=directory+'/'+name,stat=fs.lstatSync(filename);assert(!stat.isSymbolicLink());if(stat.isDirectory())visit(filename,relative+'/');else if(!['raw/controls.stdout','raw/controls.stderr'].includes(relative)){const bytes=read(filename);files.push({path:relative,bytes:bytes.length,mode:stat.mode&511,sha256:hash(bytes)});}}};visit(root);const total=files.reduce((sum,row)=>sum+row.bytes,0);assert(total<268435456);json('READY-SEAL.json',{schema:'pipestatus-typed-preparation-publication-v1',files,bytes:total,allSixUnrun:true,excludes:['READY-SEAL.json','raw/controls.stdout','raw/controls.stderr','later publication metadata'],deadline});console.log(JSON.stringify({pass:result.pass,fail:result.fail,assertions,presealSha256,controlSha256,commandSha256,readySealSha256:hash(read(root+'/READY-SEAL.json')),bytes:total,deadline}));process.exitCode=result.fail?1:0;"
+    }
+  ]
+}

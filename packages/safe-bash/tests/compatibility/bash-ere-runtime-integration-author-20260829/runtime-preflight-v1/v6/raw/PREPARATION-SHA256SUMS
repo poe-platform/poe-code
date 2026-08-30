@@ -1,0 +1,5 @@
+3ca51784f2158a0741e72653789ca0735b325b2ef142a7644dfd1847aafe9ec1  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v5/prepare.mjs
+3ed461b896823b659c4e1d204292127f1f41c58e78af28705cf3c963fd138fcb  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v5/root-binding.mjs
+55ea955129e9eec1d44ff8003badca65779ed19705bfd52bc72f3f469e8c0f8b  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/prepare.mjs
+d9a2fecb17a403eeb26f9bc060472ca5cd6f88075dfc41f87cdb1386e1305aa3  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/root-binding.mjs
+77482258ee64194dca27a9398c5fd026a14ce2f513ce4522241f96e75d9ee6cd  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/PRESEAL.md

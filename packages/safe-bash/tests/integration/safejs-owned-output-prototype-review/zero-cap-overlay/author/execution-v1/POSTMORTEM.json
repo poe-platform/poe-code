@@ -1,0 +1,60 @@
+{
+  "at": "2026-08-27T18:16:44.828122+00:00",
+  "primaryBlocker": {
+    "classification": "PRIVATE_HISTORICAL_STATUS_BINDING_MISMATCH",
+    "location": "execution-v1/run.py:90",
+    "expectedStatus": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+    "freshBeforeStatus": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md\n?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+    "freshAfterStatus": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md\n?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+    "extraStatusLines": [
+      "?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md",
+      "?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md"
+    ],
+    "removedStatusLines": [],
+    "privateStatusMutatedDuringAttempt": false,
+    "newPathContentsRead": false
+  },
+  "historicalBindings": {
+    "sourcePins": {
+      "commit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/SOURCE-PINS.json",
+      "sha256": "4b50b445e623976f52d5e16bb6023b16f3f427d95575c4350ee8bfa540b241d2"
+    },
+    "originalLifecyclePrivateAfter": {
+      "commit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+      "path": "tests/integration/safejs-owned-output-prototype-review/lifecycle/execution-v1/evidence/attempt-01/private-after.json",
+      "sha256": "b09af5cd11c3ea2448666417e787eb67d07fc5a99afa3cb84e24a4f221fe7d93",
+      "sameHistoricalStatusAsSourcePins": true,
+      "differentFromFreshBefore": true
+    }
+  },
+  "capturedPrivateComparison": {
+    "beforeExactlyEqualsAfterIncludingIndexMetadataEngineShapes": true,
+    "headMatchesHistorical": true,
+    "treeMatchesHistorical": true,
+    "indexBytesAndSha256MatchHistorical": true,
+    "stagingMatchesHistorical": true,
+    "metadata6HashesMatchHistorical": true,
+    "engine264BytesMatchPreparedAndHistorical": true
+  },
+  "secondaryRawGuardFailure": {
+    "location": "execution-v1/run.py:131",
+    "reason": "Primary status assertion stopped before shared_before/inputs_before assignment. Finally captured full after snapshots, but both before variables remained None, so raw flags are false and a second assertion overwrote the top-level stopReason. This is not evidence of shared/input mutation. Raw fields and traceback are preserved unchanged.",
+    "rawSharedUnchanged": false,
+    "rawInputsUnchanged": false,
+    "perCohortBeforeSnapshotsPresent": false,
+    "dataOnlySharedAfterEqualsCommittedPreparation": true,
+    "dataOnlyInputsAfterEqualsCommittedPreparation": true,
+    "qualification": "Postmortem data comparisons, not repaired attempt assertions, runtime passes, or substitute per-cohort before snapshots."
+  },
+  "interpretation": "No source/fixture/product execution occurred, so no zero-cap behavior, Surface07/08, L05 rejection or network lifetime result was measured. Private before/after guards closed; preexisting dirty and untracked state was preserved. No diagnosis asserts who created the two paths or reads their contents.",
+  "changesAfterFailure": {
+    "source": 0,
+    "fixtures": 0,
+    "assertions": 0,
+    "orchestrationRepairs": 0,
+    "reruns": 0
+  },
+  "independentReplayResultsRead": false,
+  "noPromotion": true
+}

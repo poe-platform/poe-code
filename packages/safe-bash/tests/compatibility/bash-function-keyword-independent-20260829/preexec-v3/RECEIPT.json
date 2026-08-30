@@ -1,0 +1,126 @@
+{
+  "schema": "b35-preexec-v3-independent-review-v1",
+  "utc": "2026-08-29T13:35:55.435Z",
+  "decision": "HOLD",
+  "finding": "S01_PARTIAL_OPEN_DOUBLE_FAULT_SOURCE_ONLY",
+  "authorSource": "d97a038f742ac06872a30a7c0dd27ea7ab86b640",
+  "authorEvidence": "475d165b49f7fbfef49254d2fbcd8314db3b0f81",
+  "authorPreseal": {
+    "bytes": 9140,
+    "sha256": "60f526f043e7e94b1526f8146d792b342a148efb261ffb3435dfb8b5ea2cc1ff"
+  },
+  "independentPresealSha256": "8579cdb10bbb87c64521227a237c4ef90e4e5010fd8eb5bff1b0dae431b08bcb",
+  "correctiveFindings": {
+    "F01": "SOURCE_PURE_CHECKS_PASS",
+    "F02": "NORMAL_ROUTE_SOURCE_PURE_AND_HARMLESS_CHECKS_PASS"
+  },
+  "observations": {
+    "authorPurePassed": 18,
+    "authorPureTotal": 18,
+    "priorIndependentPassed": 8,
+    "priorIndependentTotal": 8,
+    "harmlessReadinessPassed": 2,
+    "harmlessReadinessTotal": 2,
+    "postguards": 34,
+    "parentCaptureBytes": 74,
+    "fixtureArchiveBytes": 50229,
+    "fixtureArchiveFiles": 20,
+    "fixturePids": [
+      22776,
+      22777
+    ],
+    "controllerPid": 22775,
+    "parentPid": 22774,
+    "knownValidationChildrenClosed": true,
+    "ownedTemporaryWorkRemoved": true
+  },
+  "findingScope": {
+    "path": "frozen/direct-child.mjs",
+    "line": 13,
+    "condition": "stdout open succeeds; stderr open throws primary; closing stdout throws secondary",
+    "effect": "secondary close exception replaces selected open failure",
+    "evidence": "SOURCE_ONLY; native descriptor double failure not injected or observed",
+    "requires": "author correction or explicit root adjudication of narrower fault profile; no reviewer source patch"
+  },
+  "actualCampaign": {
+    "productImports": 0,
+    "parserImports": 0,
+    "engineImports": 0,
+    "workers": 0,
+    "compilerBuilds": 0,
+    "primaryCases": 0,
+    "legacyCases": 0,
+    "mutantCalls": 0
+  },
+  "prospectiveProfile": {
+    "knownRuntimeRoles": 65,
+    "administrativeRoles": 7,
+    "knownRoleCap": 72,
+    "peak": 3,
+    "shellExecCalls": 83,
+    "durationMs": 1500000,
+    "finalizationTailMs": 60000,
+    "collectorRetirementReserveMs": 5000,
+    "caseMs": 30000,
+    "buildMs": 120000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "streamBytes": 65536,
+    "ownerCaptureReservationBytes": 196608,
+    "rootGrantRequired": true,
+    "window": "fresh issued <= started <= now <= latestStart; latestStart = expires - 1500000; expires - issued <= 3000000",
+    "slots": [
+      "ROOT_APPROVED_GRANT_SHA256",
+      "INDEPENDENT_REVIEW_SHA256"
+    ]
+  },
+  "reviewAccounting": {
+    "knownRoleBudget": 32,
+    "conservativeKnownRolesIncludingPublication": 26,
+    "peak": 3,
+    "scope": "known owned roles only, not global process census"
+  },
+  "history": "Original 0/54 STOP and prior N02/N03 failures remain unchanged; no rescoring; e013/305 source acceptance is not runtime acceptance.",
+  "artifacts": [
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v3/REPORT.md",
+      "bytes": 7969,
+      "sha256": "c79d4c7c0d94e8f32d7c690e5bc059b2832367937105f2c54b61dee00c9fd947"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v3/PLAN.md",
+      "bytes": 1635,
+      "sha256": "0d14052a38e720f4857b2cd4f018b0b485f6b57ebc36f1ead8f3383b22aa18f2"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v3/INDEPENDENT-PRESEAL.json",
+      "bytes": 6166,
+      "sha256": "8579cdb10bbb87c64521227a237c4ef90e4e5010fd8eb5bff1b0dae431b08bcb"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v3/RESULT.json",
+      "bytes": 15321,
+      "sha256": "5ad54bfddb0af69dc9890958a300455132824b1744081b8f8ed76239e3ea038b"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v3/run.jsonl",
+      "bytes": 253,
+      "sha256": "7dba8a0e5bde141becdb0bfb0823808764c5f4d75ded3e4ca43db67732656724"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v3/child.stdout",
+      "bytes": 74,
+      "sha256": "e6db1f20cb1467a544c443ae7cd5d035eb7c2e85209c94b4f2afb18066e718a2"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v3/child.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/compatibility/bash-function-keyword-independent-20260829/preexec-v3/FIXTURE-ARCHIVE.json",
+      "bytes": 50229,
+      "sha256": "49f1499ada31c87a17a6b82274ddd44cf83100e23ddd6697e41d8de08a54d17e"
+    }
+  ]
+}

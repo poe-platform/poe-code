@@ -1,0 +1,2 @@
+(node:36306) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)

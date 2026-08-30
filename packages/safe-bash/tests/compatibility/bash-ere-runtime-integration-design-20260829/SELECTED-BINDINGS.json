@@ -1,0 +1,197 @@
+{
+  "role": "SOURCE/DATA only; no imports or evaluation",
+  "files": [
+    {
+      "authority": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sourcePath": "",
+      "storedBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "copy": "selected/src__contracts__command.ts.data"
+    },
+    {
+      "authority": "6dc0efb87132376763228a845b2e62638898268a",
+      "sourcePath": "",
+      "storedBlob": "6dc0efb87132376763228a845b2e62638898268a",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "copy": "selected/src__contracts__io.ts.data"
+    },
+    {
+      "authority": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "sourcePath": "",
+      "storedBlob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "copy": "selected/src__shell__arithmetic.ts.data"
+    },
+    {
+      "authority": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "sourcePath": "",
+      "storedBlob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "bytes": 9989,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "copy": "selected/src__shell__arrays__bindings.ts.data"
+    },
+    {
+      "authority": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "sourcePath": "",
+      "storedBlob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "copy": "selected/src__shell__arrays__ledger.ts.data"
+    },
+    {
+      "authority": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "sourcePath": "",
+      "storedBlob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "bytes": 13072,
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "copy": "selected/src__shell__arrays__state.ts.data"
+    },
+    {
+      "authority": "d74d8f5fde70dfd7b4fa44213f29e6fdf38e7564",
+      "sourcePath": "",
+      "storedBlob": "d74d8f5fde70dfd7b4fa44213f29e6fdf38e7564",
+      "bytes": 5471,
+      "sha256": "6868288c25bc6c2760adb327528e616890dddd18f2739452432f152ff0c40da0",
+      "copy": "selected/src__shell__arrays__syntax.ts.data"
+    },
+    {
+      "authority": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "sourcePath": "",
+      "storedBlob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "bytes": 31986,
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "copy": "selected/src__shell__cancellation.ts.data"
+    },
+    {
+      "authority": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "sourcePath": "",
+      "storedBlob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "copy": "selected/src__shell__cleanup.ts.data"
+    },
+    {
+      "authority": "a949d0b37e54b1874c297030a49895d5c2bbff08",
+      "sourcePath": "",
+      "storedBlob": "a949d0b37e54b1874c297030a49895d5c2bbff08",
+      "bytes": 2861,
+      "sha256": "6867adec384daf3b3de9c2c480b2d2a750ffc4359a5a6fefe87568135e68973b",
+      "copy": "selected/src__shell__display.ts.data"
+    },
+    {
+      "authority": "bb502b076063c0fb95766911648dba788000f8b4",
+      "sourcePath": "",
+      "storedBlob": "bb502b076063c0fb95766911648dba788000f8b4",
+      "bytes": 9964,
+      "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "copy": "selected/src__shell__getopts.ts.data"
+    },
+    {
+      "authority": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "sourcePath": "",
+      "storedBlob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "copy": "selected/src__shell__index.ts.data"
+    },
+    {
+      "authority": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+      "sourcePath": "",
+      "storedBlob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "copy": "selected/src__shell__input.ts.data"
+    },
+    {
+      "authority": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+      "sourcePath": "",
+      "storedBlob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "copy": "selected/src__shell__locale.ts.data"
+    },
+    {
+      "authority": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+      "sourcePath": "",
+      "storedBlob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+      "bytes": 42620,
+      "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690",
+      "copy": "selected/src__shell__parser.ts.data"
+    },
+    {
+      "authority": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "sourcePath": "",
+      "storedBlob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "bytes": 4863,
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "copy": "selected/src__shell__pattern.ts.data"
+    },
+    {
+      "authority": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+      "sourcePath": "",
+      "storedBlob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+      "bytes": 203623,
+      "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+      "copy": "selected/src__shell__runtime.ts.data"
+    },
+    {
+      "authority": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "sourcePath": "",
+      "storedBlob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "copy": "selected/src__shell__shell.ts.data"
+    },
+    {
+      "authority": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "sourcePath": "",
+      "storedBlob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "copy": "selected/src__shell__types.ts.data"
+    },
+    {
+      "authority": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+      "sourcePath": "",
+      "storedBlob": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+      "bytes": 8890,
+      "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0",
+      "copy": "selected/src__shell__conditional.ts.data"
+    },
+    {
+      "authority": "0f36459ccf38623906c5c80702c5d32111167f4d",
+      "sourcePath": "src/commands/regex-execution/ere/transport/root.ts",
+      "storedBlob": "9dfe6484bc69b369fa850ff326f441d3ead0795d",
+      "bytes": 9746,
+      "sha256": "8ef8739a129b3d9157b14e4bdba49e9f097a9aee1c4f33feda36248801165535",
+      "copy": "selected/transport-root.data"
+    },
+    {
+      "authority": "0f36459ccf38623906c5c80702c5d32111167f4d",
+      "sourcePath": "src/commands/regex-execution/ere/transport/protocol.ts",
+      "storedBlob": "77c9bbddcec5da13e4440b63228f3f1101948d4b",
+      "bytes": 2815,
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973",
+      "copy": "selected/transport-protocol.data"
+    },
+    {
+      "authority": "0f36459ccf38623906c5c80702c5d32111167f4d",
+      "sourcePath": "src/commands/regex-execution/ere/transport/owner.ts",
+      "storedBlob": "f25c1a52ae371b8cafb324a03cc60e705b2d5faa",
+      "bytes": 5248,
+      "sha256": "2a7097754ddd3c3e557a28554f8262a2f698c8bae8513c1e8c02db3056bd38cd",
+      "copy": "selected/transport-owner.data"
+    },
+    {
+      "authority": "0f36459ccf38623906c5c80702c5d32111167f4d",
+      "sourcePath": "src/commands/regex-execution/ere/transport/accounting.ts",
+      "storedBlob": "2cb2cb99ac1523b24c54c9e10416bd1c61c2c595",
+      "bytes": 5754,
+      "sha256": "ac6e1a3ac8ad43d680000b8e707f9c0205ef84ada6611916a614bec58cbb2366",
+      "copy": "selected/transport-accounting.data"
+    }
+  ]
+}

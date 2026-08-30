@@ -1,0 +1,11 @@
+{
+  "schema": "timeout-f22-repair-evidence-verification/1",
+  "evidence": "tests/commands/timeout-author-20260828/repair-f22-v1/evidence-v1",
+  "verifier": "verify-evidence.mjs",
+  "status": "PASS",
+  "files": 41,
+  "manifestSha256": "62955bea357c709aa2668a29e4d4a1b6b729dd330eca0007a8c0328d6442c17b",
+  "sealSha256": "638f9e1ca1f0fb61477c1e556b891437d393b0640a69e894fb292d2320acd9c4",
+  "changedMissingOrAppendedEntriesDetected": 0,
+  "qualification": "fresh author-side seal verification; independent Raman review remains required"
+}

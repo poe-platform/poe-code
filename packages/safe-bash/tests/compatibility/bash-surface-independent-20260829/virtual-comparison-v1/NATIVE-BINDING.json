@@ -1,0 +1,56 @@
+{
+  "schema": "immutable-native-observation-binding-v1",
+  "observationCommit": "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c",
+  "publicationCommit": "664b178c018c9de76a061b84b905c438ff02735b",
+  "native": {
+    "executable": "/bin/bash",
+    "bytes": 1293840,
+    "mode": "0555",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "version": "GNU Bash 3.2.57(1), arm64-apple-darwin25",
+    "qualification": "Existing Sagan version metadata and actual author cohort; NO new version probe or executable read this phase; not GNU5.3."
+  },
+  "artifacts": [
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/AUDIT.json",
+      "bytes": 40103,
+      "sha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6"
+    },
+    {
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/actual-v1/OBSERVATIONS.json",
+      "bytes": 60469,
+      "sha256": "e0128b578cb1cf4c019b233cdd3c21b4682888d0aacbaa51d6efce35b666a12a"
+    },
+    {
+      "identity": "native raw gzip archive",
+      "bytes": 25122,
+      "sha256": "d366b454cbe0a46ac16740c61b207e810cb7f975be3457b4f54b5d348efc8d1b",
+      "decodedBytes": 249849,
+      "entries": 490,
+      "files": 265
+    }
+  ],
+  "auditDisposition": "Independent artifact review still required before accepted parity-oracle use",
+  "selection": {
+    "observations": 37,
+    "withheld": [
+      "B26",
+      "B27",
+      "B28"
+    ],
+    "statusDistribution": {
+      "zero": 33,
+      "two": [
+        "B24",
+        "B36"
+      ],
+      "one": [
+        "B32"
+      ],
+      "seven": [
+        "B38"
+      ]
+    }
+  },
+  "reexecutions": 0
+}

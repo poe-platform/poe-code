@@ -1,0 +1,136 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "E14",
+  "mutation": "none",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "E14/partial/reuse-false",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 15,
+          "stdoutSha256": "b968d14df9eb6b1dd71c27392ba55b937c7ece444332010eb1959a0c6e275bb9",
+          "stdoutHex": "612020622020630a7820202020200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 9,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E14/partial/reuse-true",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 15,
+          "stdoutSha256": "b968d14df9eb6b1dd71c27392ba55b937c7ece444332010eb1959a0c6e275bb9",
+          "stdoutHex": "612020622020630a7820202020200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 9,
+          "maxWriteBytes": 5,
+          "pulls": 8,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E14/unicode/reuse-false",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 35,
+          "stdoutSha256": "c3bdd9a8ab16aa173b3e5d14666bce10fb0c5d1f37b747b39c37682409f4beda",
+          "stdoutHex": "e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 15,
+          "maxWriteBytes": 7,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E14/unicode/reuse-true",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 35,
+          "stdoutSha256": "c3bdd9a8ab16aa173b3e5d14666bce10fb0c5d1f37b747b39c37682409f4beda",
+          "stdoutHex": "e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 15,
+          "maxWriteBytes": 7,
+          "pulls": 23,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 198,
+    "units": 260
+  },
+  "counts": {
+    "total": 4,
+    "pass": 4,
+    "fail": 0
+  }
+}

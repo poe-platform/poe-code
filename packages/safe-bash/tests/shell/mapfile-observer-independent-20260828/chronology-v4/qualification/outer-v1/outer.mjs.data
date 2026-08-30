@@ -1,0 +1,52 @@
+import { createHash } from 'node:crypto';
+
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+export const hold = Object.freeze({status:'HOLD',qualificationAuthorized:false,missing:['inner cumulative FS/metadata/descriptor interception','production outer Node-process adapter','generated inner rootPid/authorization bridge']});
+export function main() { return hold; }
+export async function collect(ports, supplied, expected, ownerModule, data) {
+  const started=ports.now(), deadline=started+72000;
+  const plan=data.snapshotOwnData(supplied);data.assertOwnData(plan,expected,'exact finite outer plan');
+  if(plan.kind!=='SYNTHETIC_OUTER_CAPTURE_ONLY')throw new Error('NOT_AUTHORIZED_HOLD');
+  let done,interval,deadlineTimer,terminalTimer,parent,initialized=false,failed=false,failure,dataEvents=0;
+  const completion=new Promise(resolve=>{done=resolve;});
+  function first(reason){if(!failed){failed=true;failure=reason;}owner.fail(reason);}
+  const owner=ownerModule.createOwner({now:ports.now,journal:ports.store.journal,describe:args=>args.map(value=>typeof value==='number'||typeof value==='string'||value===null?value:data.describeReason(value)),
+    capture(id,channel,bytes){if(++dataEvents>1024)throw new Error('data event ceiling');if(id!=='parent'||!['stdout','stderr'].includes(channel))throw new Error('unknown capture route');ports.store.append(`${channel}.raw`,Buffer.from(bytes));},
+    deliver(){},signal:ports.signal,groupExists:ports.groupExists,release:ports.release
+  },{processes:1,events:1024,totalMs:72000,entryMs:72000,childMs:72000,termGraceMs:250,reapMs:1250,entryOutput:524288,childOutput:524288});
+  const step=()=>{try{const state=owner.tick();if(state.stopped||(parent?.closed&&state.settled))done();}catch(reason){first(reason);}};
+  deadlineTimer=ports.timer(72000,()=>{first(new Error('outer elapsed deadline'));step();});
+  terminalTimer=ports.timer(74000,()=>{first(new Error('outer terminal uncertainty'));owner.tick();done();});
+  interval=ports.interval(10,step);
+  try {
+    ports.store.initialize();initialized=true;
+    ports.authenticate(plan);
+    if(ports.now()>=deadline)throw new Error('startup deadline');
+    parent=owner.acquire('parent','entry',()=>ports.spawn(plan));
+    await completion;
+    await new Promise(resolve=>ports.timer(0,resolve));
+  }catch(reason){first(reason);}
+  finally{ports.clear(interval);ports.clear(deadlineTimer);ports.clear(terminalTimer);}
+  const state=owner.finish();if(state.failed&&!failed){failed=true;failure=state.failure;}
+  const record=state.records[0];
+  let captureComplete=!failed&&Boolean(record?.spawned&&record.exited&&record.closed&&record.settled&&record.groupAbsent&&record.code===0&&record.signal===null);
+  if(record&&(!record.spawned||!record.exited||!record.closed||!record.settled||record.code!==0||record.signal!==null)&&!failed){failed=true;failure=new Error('parent lifecycle/status refused');}
+  const descendantCleanupUnknown=Boolean(record?.attempted);
+  let receiptPublished=false,sealSha256=null,files=[];
+  try{
+    if(!initialized)throw new Error('outer initialization incomplete');
+    ports.store.close();
+    if(captureComplete){const bytes=ports.store.read(ports.store.location('stdout.raw'),262144);const report=data.snapshotOwnData(JSON.parse(bytes.toString('utf8')));data.assertOwnData(report,plan.expectedParentReport,'exact parent publication');}
+    const status={schema:'outer-raw-parent-status-v1',classification:'CAPTURE_ONLY_NOT_INNER_QUALIFICATION',captureComplete,qualificationAuthorized:false,failed,reason:failed?data.describeReason(failure):null,descendantCleanupUnknown,knownParent:record??null,dataEvents,elapsedMs:ports.now()-started};
+    const statusBytes=Buffer.from(JSON.stringify(status));if(statusBytes.length>65536)throw new Error('status ceiling');ports.store.append('status.json',statusBytes);ports.store.close();files=ports.store.audit();
+    const receipt={schema:'outer-capture-receipt-v1',phase:'PROVISIONAL_UNTIL_SEAL_AUTHENTICATED',qualificationAuthorized:false,captureComplete,sourceManifestSha256:plan.sourceManifestSha256,planSha256:hash(Buffer.from(JSON.stringify(plan))),files};
+    const receiptBytes=Buffer.from(JSON.stringify(receipt));if(receiptBytes.length>65536)throw new Error('receipt ceiling');ports.store.append('receipt.json',receiptBytes);ports.store.close();ports.store.audit();
+    const seal={schema:'outer-capture-seal-v1',qualificationAuthorized:false,captureComplete,receiptSha256:hash(receiptBytes),statusSha256:hash(statusBytes),sourceManifestSha256:plan.sourceManifestSha256,runId:plan.runId};
+    const sealBytes=Buffer.from(JSON.stringify(seal));if(sealBytes.length>65536)throw new Error('seal ceiling');ports.store.append('receipt.seal.json',sealBytes);ports.store.close();files=ports.store.audit();
+    data.assertOwnData(JSON.parse(ports.store.read(ports.store.location('receipt.seal.json'),65536)),seal);ports.authenticate(plan);if(ports.now()>=started+74000)throw new Error('publication elapsed ceiling');
+    receiptPublished=true;sealSha256=hash(sealBytes);
+  }catch(reason){if(!failed){failed=true;failure=reason;}captureComplete=false;}
+  finally{try{ports.store.close();}catch(reason){if(!failed){failed=true;failure=reason;}captureComplete=false;receiptPublished=false;}}
+  const result={status:'HOLD',qualificationAuthorized:false,captureComplete,receiptPublished,sealSha256,failed,descendantCleanupUnknown,knownParent:record??null,files,counters:{...ports.store.counters},hold};
+  if(failed)Object.defineProperty(result,'failureReason',{value:failure});return result;
+}

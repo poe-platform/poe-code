@@ -1,0 +1,11 @@
+{
+  "presealCommit": "eff3a609f30f8a2ea1c00c9391077e4c7fcc2ee1",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-v8-independent/run.mjs 0a7adae6a9fb3c8f63b6ad97313584e798bf9ef105febc1b5674f8e773fdd391 GIT-OBSERVER-V8-INDEPENDENT-01",
+  "exitCode": 0,
+  "stderr": "",
+  "stdoutFile": "TERMINAL.json",
+  "attempts": 1,
+  "candidateImports": 0,
+  "builds": 0,
+  "nativeGitOrPrivateOrNetworkRuns": 0
+}

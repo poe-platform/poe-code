@@ -1,0 +1,28 @@
+{
+  "id": "shell-status17-unread-sync",
+  "mutant": "none",
+  "pass": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "expected rejection, not fulfilled result\n\ntrue !== false\n",
+    "stack": "AssertionError [ERR_ASSERTION]: expected rejection, not fulfilled result\n\ntrue !== false\n\n    at rejected (file:///private/tmp/shared-stdin-independent-work-rYnRh0/moved-consumer/fixtures/probe.mjs:75:46)\n    at run (file:///private/tmp/shared-stdin-independent-work-rYnRh0/moved-consumer/fixtures/probe.mjs:119:5)\n    at async file:///private/tmp/shared-stdin-independent-work-rYnRh0/moved-consumer/fixtures/probe.mjs:286:7"
+  },
+  "events": [
+    "return",
+    "return-entered:release",
+    "fulfilled",
+    "observed-result:{\"stdout\":\"\",\"stderr\":\"\",\"stdoutBytes\":{},\"stderrBytes\":{},\"exitCode\":17}",
+    "next-entered:release"
+  ],
+  "input": {
+    "reads": 0,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 0
+  },
+  "output": [],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

@@ -1,0 +1,1 @@
+{"scenario":"first-read-curl-headers","active":1,"reads":1,"returned":0,"abortedBeforeTeardown":false,"events":["http.socket.open","http.request:GET:/dav/input","http.GET:pending-before-first-byte","command.settled:head:0","command.settled:curl:141","command.settled:true:0"]}

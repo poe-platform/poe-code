@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "date": "2026-08-27T22:48:09.309Z",
+  "archives": [
+    {
+      "label": "sealed-freeze",
+      "commit": "f561bd9fa33afdf8285154237f856ebfd8495ce4",
+      "root": "/tmp/expr-hierarchy-v5-review-iyyUu6/sealed-freeze",
+      "inventory": [
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/BINDINGS.json",
+          "mode": "100644",
+          "bytes": 31482,
+          "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf",
+          "gitBlob": "b6d0f60d3131f28032b0bd232dd0cf03da03061b",
+          "liveMatchesCommit": true
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/CHECKPOINT.txt",
+          "mode": "100644",
+          "bytes": 2410,
+          "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9",
+          "gitBlob": "f29b7b7b45de1ab3cba733e5653064f35b82dda2",
+          "liveMatchesCommit": true
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/INPUTS.json",
+          "mode": "100644",
+          "bytes": 11736,
+          "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2",
+          "gitBlob": "bd31d03bd1e05c51945f938e2058bbcc4e68822f",
+          "liveMatchesCommit": true
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/LIMITS.json",
+          "mode": "100644",
+          "bytes": 3177,
+          "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424",
+          "gitBlob": "4d77723b61ab0bace7ac1a9222dcec84e73035e6",
+          "liveMatchesCommit": true
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/MANIFEST.json",
+          "mode": "100644",
+          "bytes": 3097,
+          "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632",
+          "gitBlob": "e56895fb0cd8a4cb3dcbd8e563dede25d5c61c00",
+          "liveMatchesCommit": true
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/POLICY.md",
+          "mode": "100644",
+          "bytes": 13390,
+          "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233",
+          "gitBlob": "d110155a944d0c02531235bdb5906c2cf0dc6ea2",
+          "liveMatchesCommit": true
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/PREDICTIONS.json",
+          "mode": "100644",
+          "bytes": 7917,
+          "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72",
+          "gitBlob": "a5f0ff21777a617e8d2bd21d948d6f3df87a6220",
+          "liveMatchesCommit": true
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/README.md",
+          "mode": "100644",
+          "bytes": 4970,
+          "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1",
+          "gitBlob": "4d2c6c41e0dfc68febdf2aa8ebc1ded306be4c58",
+          "liveMatchesCommit": true
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/SOURCES.json",
+          "mode": "100644",
+          "bytes": 3127,
+          "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb",
+          "gitBlob": "985e5418b7cb3db9707f64c168a8a10381b70c04",
+          "liveMatchesCommit": true
+        }
+      ],
+      "completeBefore": [
+        {
+          "path": "tests",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands/expr-stress",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/BINDINGS.json",
+          "type": "file",
+          "sha256": "8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf",
+          "bytes": 31482
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/CHECKPOINT.txt",
+          "type": "file",
+          "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9",
+          "bytes": 2410
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/INPUTS.json",
+          "type": "file",
+          "sha256": "ef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2",
+          "bytes": 11736
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/LIMITS.json",
+          "type": "file",
+          "sha256": "a6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424",
+          "bytes": 3177
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/MANIFEST.json",
+          "type": "file",
+          "sha256": "d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632",
+          "bytes": 3097
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/POLICY.md",
+          "type": "file",
+          "sha256": "30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233",
+          "bytes": 13390
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/PREDICTIONS.json",
+          "type": "file",
+          "sha256": "122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72",
+          "bytes": 7917
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/README.md",
+          "type": "file",
+          "sha256": "036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1",
+          "bytes": 4970
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/SOURCES.json",
+          "type": "file",
+          "sha256": "9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb",
+          "bytes": 3127
+        }
+      ]
+    },
+    {
+      "label": "v4-limit-source",
+      "commit": "938fdbc6f128c5ba124d13879c3354a9ee46fc95",
+      "root": "/tmp/expr-hierarchy-v5-review-iyyUu6/v4-limit-source",
+      "inventory": [
+        {
+          "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/model.mjs",
+          "mode": "100644",
+          "bytes": 12331,
+          "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+          "gitBlob": "8350e080f3dea30dd0e80b8b96e6723accfb8163",
+          "liveMatchesCommit": true
+        }
+      ],
+      "completeBefore": [
+        {
+          "path": "tests",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands/expr-stress",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design",
+          "type": "directory"
+        },
+        {
+          "path": "tests/commands/expr-stress/nullable-history-order-v4-20260827/design/model.mjs",
+          "type": "file",
+          "sha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+          "bytes": 12331
+        }
+      ]
+    }
+  ],
+  "receipts": [
+    {
+      "path": "/tmp/expr-hierarchy-v5-freeze-checkpoint.txt",
+      "bytes": 2410,
+      "sha256": "3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9",
+      "text": "2026-08-27 — delegated leaf; FREEZE/DESIGN ONLY, no prototype or native execution.\nOwned: tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/**.\nMinimal contradiction found in immutable v4 prose versus review C1:\nP=\\(a*\\)*\\1 on aaaa: A=[aa]+ref aa, B=[a][a][a]+ref a.\nBoth whole spans [0,4). Static outer repeat aggregate A=[0,2), B=[0,3).\n44eed610 HNODE visits that semantic repeat before its body; HTREE compares\nthe current repeat span before its children. Both therefore prefer B.\ne38a68af C1 requires A by first-body 2>1. That expectation cannot follow\nfrom those definitions with their stated all-repeat-node AST mapping.\nA capture wrapper is not the enclosing repeat aggregate or its body list.\nRemoving only that aggregate changes the comparator, not its name; removing\nall repeat aggregates with END preferred loses uncaptured a* prefixes.\nWill freeze <=12 finite supplied-history/control groups and two literal\naggregate-bearing hierarchy variants (static NODE and dynamic TREE), explicitly\npredicting this C1 conflict, not pretending all six discrepancies can green.\nRules: whole earliest/longest; completed span earliest-start/latest-end;\nparticipating body > initial Absent; after an identical participating prefix,\nEND > further occurrence; NODE finishes static occurrence tables before children;\nTREE finishes each dynamic subtree before the next iteration. Wrappers alias\ntheir semantic body for ranking, while retaining capture enter/close lifetimes.\nBoth preserve uncaptured prefix extents; W4 distinguishes NODE from TREE.\nPrecise blocker: root must authorize changing aggregate precedence or C1's\nfirst-body expectation (and specify any changed END rule). No chosen policy.\nFinite permissive histories and LOCAL-TAIL-HYPOTHESIS stay separate alternatives.\nP/aaa [aaa][] changes capture env and is NOT an equivalent cycle. Narrow root a\nstays fixed; literal variants with permissive tails conflict with it.\nTEMP retains a descendant until THAT descendant reentry; Issue8 D/abab rejects\nthe retained-b witness, a deliberate experimental departure. No new native run.\nSame v4 limits; pre-admission work/allocation/state/depth/comparison accounting,\nrefusal after incumbent, no early pc/pos/env merge. Historical137 remains a\nfuture worker obligation; initial c3e40f8b live guard/source untouched.\nThis is an early reasoning checkpoint, not sealed inputs or execution evidence.\n"
+    },
+    {
+      "path": "/tmp/expr-hierarchy-v5-freeze-candidate.txt",
+      "bytes": 5458,
+      "sha256": "826e74d5390a3ef5795a41d0b5c1688f9a8bc68e25280e71628cb7d58c05ca52",
+      "text": "2026-08-27 — FREEZE/DOCS ONLY; delegated leaf; no redelegation.\nAtomic explicit owned-path commit: f561bd9fa33afdf8285154237f856ebfd8495ce4\nOwned freeze: tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/\nMANIFEST.json SHA256: d2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632\nEarly checkpoint: /tmp/expr-hierarchy-v5-freeze-checkpoint.txt; exact committed CHECKPOINT.txt copy.\n\nSealed before new prototype code by this leaf: 12 control groups; 36 unique finite supplied histories;\n38 group memberships (two deliberate overlaps); 13 positive ASTs + 3 negative-only ASTs.\nFINITE-PERMISSIVE:36 supplied eligible; LOCAL-TAIL-HYPOTHESIS:33 supplied eligible.\nThese are INPUT/PREDICTION counts, not executed tests, successful regex matches or a complete parse forest.\n\nPrecise policy blocker:\nP/aaaa A=[aa]+aa versus B=[a][a][a]+a: equal whole [0,4); outer repeat A=[0,2), B=[0,3).\nLiteral 44eed610 HNODE/HTREE aggregate-first definitions both prefer B; e38a review C1 requires A.\nCapture wrapper, static repeat aggregate and chronological body list are distinct.\nThis corrects the claimed derivation, NOT immutable v4 expectations or observations.\nHNODE-AGG-v5/HTREE-AGG-v5 fully specified in POLICY.md; both preserve three uncaptured prefix\npriorities and participating-empty > initial Absent, with END preferred only after participation.\nThey intentionally retain the C1 conflict. HNODE selects W4 A; HTREE selects W4 B, supplied pair only.\nNo general selected policy or green resolution of all six discrepancies. Root must resolve aggregate\nversus first-body precedence, W4 descent, and general optional-empty eligibility before acceptance.\n\nP/aaa fixed root completed a remains. [aaa][] changes capture env and is NOT an equivalent cycle.\nBoth variants prefer that tail if admitted; LOCAL-TAIL-HYPOTHESIS is separate and not generally approved.\nTEMP descendant retention through skip/ancestor entry stays; actual child reentry opens/invalidate then closes.\nIssue8 D/abab failure versus TEMP retained-b history remains a deliberate experimental departure.\nTwo bounded primary checks recorded in SOURCES.json; zero quotes, no broad repeated survey/native rerun.\n\nHistorical seals authenticated: normative44eed610; independent32 c0aec9fc; guarded0939a64a;\nwitnessa6ce736d; model938fdbc6; independent8groupsa5c2aed5; reviewe38a68af.\nAll full commit/blob/SHA256 bindings are in BINDINGS.json (40 v4 files +17 milestones +3 product files).\nPreserved v4 author2 failed predictions; independent46/52 six policy failures; original adapter44/50.\nSame v4 caps in LIMITS.json; mandatory pre-admission work/allocation/state/depth/comparison,\nrefusal-after-incumbent and no early pc/pos/env merge. Historical137 only binds future worker obligations.\n\nActual execution counts by this leaf: prototype0; supplied-history replay0; comparator checks0;\nnative0; worker0; product tests0; old quota/core/native cohorts0; historical137 reruns0.\nActual validation: JSON/data integrity, 135 declared-span bound checks, 19 declared reference-byte\nequalities, 23 capture-alias mappings, 60 historical blob/SHA256 checks; scoped staged whitespace passed.\nPostcommit full owned entry inventory/types and committed bytes verified; additions detected in freeze scope.\nThis is not append-proof auditing of the whole concurrent repository or proof of replay/ranking correctness.\n\nSource clean at postcommit check: git status --porcelain -- src was empty; current src tree 63191510092bbdbe6f895d09b30739316a1c19a9.\nInitial c3e40f8b bre-worker guard SHA256 remains f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0.\nNo live src/protocol/root/public/config or older fixture edits by this leaf. Concurrent DU75/source-tree\ncommits elsewhere are recorded, not imported, vetoed, or represented as this leaf work.\nOnly owned freeze files committed with git commit --only; foreign staging/work and native scratch preserved.\nAll synchronous fetch/metadata/commit children settled normally; no owned background worker/server/scratch;\nno SIGSTOP. Only the two requested /tmp handoffs remain. No promotion/full parity/superiority claim.\n\nSHA256 FILE MANIFEST:\n8c00abda86917fb7be71f378d94cdcc4fac7e863a859ed8b31c717f565e6c5bf  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/BINDINGS.json\n3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/CHECKPOINT.txt\nef8fa8b247befaba8e6a52b0ef5ea7447a4c449215567ff0f7038be7c5659aa2  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/INPUTS.json\na6de5a9e205fa34b8b71731ba0fb10189d095a67de66ff983648cdbaddc98424  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/LIMITS.json\nd2f9faa1269f8b0d86f070ee7a5c3df4a6cc39af3d71c1343ad826d1922eb632  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/MANIFEST.json\n30f57cf79ef5f7a3e0def45ab97d8ba657e729ddb88597c16a236e96833e8233  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/POLICY.md\n122f3a095b26f7bea49201e23214c8bd51cc7075a94cd8c10c9bc3533130ac72  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/PREDICTIONS.json\n036fe31e5ebdddecba99b84da59233a616ba03cdc85d5513d2294eac3b7a80d1  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/README.md\n9bb3447eb685d87f15ecdffe77dbcae92b26abe9e5af5fe0a3e77c3d2a4affeb  tests/commands/expr-stress/nullable-hierarchy-v5-20260827/freeze/SOURCES.json\n"
+    },
+    {
+      "path": "/tmp/expr-hierarchy-v5-prototype-checkpoint.txt",
+      "bytes": 2050,
+      "sha256": "9cbf1046818ead690a2fc5c2a150c5aabc912a28ed94455a07d777158b507ea8",
+      "text": "2026-08-27 delegated LEAF prototype checkpoint\nOwnership: ONLY new tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/** and requested receipts/unique OS-temp.\nRead root/project AGENTS; inspected clean tracked index and unrelated untracked work without changes.\nInspected v4 finite constructor, normative/report/design and independent six-failure report READONLY.\nNo prototype code or execution yet; freeze candidate receipt absent at initial check.\nArchitecture/caps plan: tests/commands/expr-stress/nullable-hierarchy-v5-20260827/prototype/PLAN.md\nDefinition blocker: repeat aggregate versus BODY priority, CAPTURE aliasing, initial absence versus END require independently frozen explicit rules.\nInherited model target SHA256 f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0; no caps increased.\nNo source/native/worker/cohort reruns; no redelegation; no promotion authorization.\nNext: authenticate freeze candidate/checkpoint, then <=2 named variants and <=12 frozen groups.\nRead independent early freeze checkpoint (2410 bytes): literal aggregate-bearing NODE/TREE conflict with historical C1 first-body expectation. Will preserve failure rather than tailor rules. Candidate seal still pending; no prototype code/execution.\nArchitecture-only commit 2027151f; later admission-detail PLAN additions remain owned pending candidate. Budgeted context tables and aggregate-preserving capture aliases planned, not implemented.\nREADONLY hash checks: inherited model matches f04c98a5...; guarded bre-worker f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0 and regex client/protocol/worker match c3e40f8b. No tracked source differences in those paths.\n22:46Z: inspected drafted/now committed freeze f561bd9f READONLY: HNODE-AGG-v5/HTREE-AGG-v5, 12 groups/36 unique histories/38 memberships. Exact checkpoint copy authenticated (SHA256 3e8f305c6db96ab872380d538bff3469cb58ca53628c8ce5f51e303dc15ebba9). Candidate receipt not present at latest check; no prototype code or execution before its authentication.\n"
+    }
+  ],
+  "guards": [
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "bytes": 17704,
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "c3Sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "matchesC3": true
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "bytes": 15319,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "c3Sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "matchesC3": true
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "bytes": 10890,
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "c3Sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "matchesC3": true
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "bytes": 1930,
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "c3Sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "matchesC3": true
+    }
+  ],
+  "controls": [
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/CONTROLS.json",
+      "sha256": "af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409",
+      "commit": "18104988c32c467e4025743927c20ee80eaa1781"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/FREEZE.md",
+      "sha256": "7920430de1d009400bfaed4d3484b2490b8592f72fc1cf278c9dc41577080cbb",
+      "commit": "18104988c32c467e4025743927c20ee80eaa1781"
+    }
+  ]
+}

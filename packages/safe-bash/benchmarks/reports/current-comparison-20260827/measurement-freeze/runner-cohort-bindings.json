@@ -1,0 +1,187 @@
+{
+  "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "runner": {
+    "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution",
+    "files": [
+      {
+        "path": "run.mjs",
+        "bytes": 5829,
+        "sha256": "a43284fd0161013f1ee9d64b3bf06f4aa84022dd65e9a37cb39e8ddfdd3225bb"
+      },
+      {
+        "path": "binding.mjs",
+        "bytes": 6589,
+        "sha256": "08d07b268738f24a0b9b744f77555f1ff1dc901a1d20e76c6ba47e03659d02ae"
+      },
+      {
+        "path": "cohorts.mjs",
+        "bytes": 3638,
+        "sha256": "1124a0984dddcba03c7060155680c1f51bae48f1b02338ca772b7032d07d6b38"
+      },
+      {
+        "path": "io.mjs",
+        "bytes": 5443,
+        "sha256": "3d9d5578cc1d7c889dc5dabc463eeff90d4a990f861d80ceed8935fcf5bfc811"
+      },
+      {
+        "path": "limits.mjs",
+        "bytes": 1009,
+        "sha256": "32dd62f87607971bf4be523b66e35fa4c7190f2116e797d838d69ce341005a36"
+      },
+      {
+        "path": "supervise.mjs",
+        "bytes": 14537,
+        "sha256": "5930f48aba28df735e3862f1b283b5d774fd0f4d55c81990c0f48f69a8f2df8a"
+      },
+      {
+        "path": "session.mjs",
+        "bytes": 4311,
+        "sha256": "82f410944057884aad4c5eed9a1be5aca10700f8a24011cff54ee301dcce0c3b"
+      },
+      {
+        "path": "engine-child.mjs",
+        "bytes": 7367,
+        "sha256": "448d618814613466abbc3719fb9d8acd748280de25b5ecd00a93d257559d2fa6"
+      },
+      {
+        "path": "expanded.mjs",
+        "bytes": 5051,
+        "sha256": "761bf2422d03f5dcc6162df7d42e1d2fd2bb974ec2e42b9fe0d51e3e406fe3e2"
+      },
+      {
+        "path": "breadth.mjs",
+        "bytes": 8736,
+        "sha256": "e798b84be8f49e4966a1f9df3e4e6438c3b2ec6618821339705e140e572ba2d8"
+      },
+      {
+        "path": "network.mjs",
+        "bytes": 3333,
+        "sha256": "a8f9607276a3da850006c708b5636f099c619fab654837d7e7fa6754bdbe3fc4"
+      },
+      {
+        "path": "observe-load.mjs",
+        "bytes": 1603,
+        "sha256": "57873f1dac8fd4dc2e028b119004091bce59d9dbbd84077f88cb4f7a0189dc2b"
+      },
+      {
+        "path": "assessment.mjs",
+        "bytes": 1193,
+        "sha256": "1ac0d0ba91dd685af45759beff9b3733bb5a4f136c61be6a21dfa22aa4d3b472"
+      },
+      {
+        "path": "reuse/expanded-common.mjs",
+        "bytes": 3439,
+        "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+      },
+      {
+        "path": "reuse/breadth-assess.mjs",
+        "bytes": 6915,
+        "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+      }
+    ]
+  },
+  "cohorts": {
+    "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/cohorts",
+    "files": [
+      {
+        "path": "SEAL.json",
+        "bytes": 1948,
+        "sha256": "da99ce71943feec45a2bbbae6319e38fb1816522b5ffddbe55ae28b0716ce230"
+      },
+      {
+        "path": "artifact-manifest.json",
+        "bytes": 295268,
+        "sha256": "dda28bc7dc39cb97401ae587878118ca66a3102dac2cacb6893aa7e34a26ceb9"
+      },
+      {
+        "path": "historical-224.json",
+        "bytes": 3723376,
+        "sha256": "f08e8624a37556e95f0089b16333cbb203f3bf4fdbf40a5498ee71babb58ce0a"
+      },
+      {
+        "path": "historical-breadth.json",
+        "bytes": 550134,
+        "sha256": "c4e322ce7a81c7909cd54121e4a435152c4a2eb9e1b2f69b5c09ba0f858e396a"
+      },
+      {
+        "path": "profiles.json",
+        "bytes": 182510,
+        "sha256": "6f7f6bbc1599f6adea468a40b9b2df4354e817f99dfc9248fb291e542df95a80"
+      },
+      {
+        "path": "proposed-holdouts.json",
+        "bytes": 64446,
+        "sha256": "2f37c49f9fc2f7003e6b209d7296d710c007759e9c8f44c3bed4959de3f32a6f"
+      },
+      {
+        "path": "public-profile-snapshot.json",
+        "bytes": 74975,
+        "sha256": "bdde79ced7bb176b58d2b58d587195cb43e7e8ade404bfb5b6691e07ec29945d"
+      },
+      {
+        "path": "overlap.json",
+        "bytes": 4897920,
+        "sha256": "3597aab5a3558828711c812af875e85f8efa24bde355da32ff30cee41892fa92"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 56519,
+        "sha256": "71ea8429cb4e3a8a4b7800f3b002e2f94f51bd651a671f22404741e86abdcb05"
+      },
+      {
+        "path": "prepare.mjs",
+        "bytes": 41239,
+        "sha256": "e7982089788fad042676e77b9ef947266659a1363aa782e2198f45ef846aa3bc"
+      },
+      {
+        "path": "COHORT_PLAN.md",
+        "bytes": 13471,
+        "sha256": "2a8d32a29ea43d01f4c04be27162cdc896e1060c83c0f402b83bcf0ca7952d87"
+      },
+      {
+        "path": "AMENDMENT_V2_SEAL.json",
+        "bytes": 741,
+        "sha256": "839d12181a024a6dcab928a5f1483ac3a9e10af8d04ab4bb9454dae02427e186"
+      },
+      {
+        "path": "amendment-v2.json",
+        "bytes": 3708,
+        "sha256": "b437a1b265ef9ae7866f4b9e16eeaef78c0485d3dda184edb0cd1dada845ff50"
+      },
+      {
+        "path": "AMENDMENT_V2.md",
+        "bytes": 3979,
+        "sha256": "e6bbe9e132cb8503deeab72d8948dfadf0de04b6076f953d672b236e7101598c"
+      },
+      {
+        "path": "verify-amendment-v2.mjs",
+        "bytes": 9057,
+        "sha256": "7ab2a4b2cd79f053912fc1a5b9b40b246b7f5ab580a5edfdf7912f955beaeb63"
+      }
+    ]
+  },
+  "seals": {
+    "SEAL.json": "da99ce71943feec45a2bbbae6319e38fb1816522b5ffddbe55ae28b0716ce230",
+    "AMENDMENT_V2_SEAL.json": "839d12181a024a6dcab928a5f1483ac3a9e10af8d04ab4bb9454dae02427e186"
+  },
+  "independentBridgeReview": {
+    "path": "benchmarks/reports/current-comparison-20260827/execution-review/FINAL_RECEIPT.json",
+    "bytes": 107025,
+    "sha256": "ea60bfb798cf66e6e38788066cc3063f629e6465c196393168a6e553a1c1bbee"
+  },
+  "all15ReviewedRuntimeHashesMatch": true,
+  "bridgeUnchanged": true,
+  "sourceReadFromGitOnly": true,
+  "noRelativePathBreak": true,
+  "staticEntryGraph": [
+    "run.mjs",
+    "binding.mjs",
+    "cohorts.mjs",
+    "io.mjs",
+    "limits.mjs",
+    "supervise.mjs",
+    "assessment.mjs",
+    "reuse/expanded-common.mjs",
+    "reuse/breadth-assess.mjs"
+  ]
+}

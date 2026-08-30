@@ -1,0 +1,456 @@
+{
+  "schema": 1,
+  "mode": "retry-native",
+  "revision": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/commands/network-stress/retry-native.ts"
+  ],
+  "environment": {
+    "CURL_VERIFY_AFTER_HANDOFF": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+    "CURL_VERIFY_SOURCE_REVISION": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+    "strictUnhandledRejections": true
+  },
+  "before": {
+    "at": "2026-08-26T22:58:16.414Z",
+    "head": "e13c2d40665981384ea9dcf38e0bc564fd95b38b",
+    "status": "A  docs/upstream-patches/safejs/ARTIFACTS.sha256\nA  docs/upstream-patches/safejs/EVIDENCE.md\nA  docs/upstream-patches/safejs/LICENSE.upstream\nA  docs/upstream-patches/safejs/README.md\nA  docs/upstream-patches/safejs/baseline-hashes.json\nA  docs/upstream-patches/safejs/evidence/author-checkpoint.txt\nA  docs/upstream-patches/safejs/evidence/baseline-acceptance.log\nA  docs/upstream-patches/safejs/evidence/baseline-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/baseline-invariants.log\nA  docs/upstream-patches/safejs/evidence/commands.json\nA  docs/upstream-patches/safejs/evidence/fullsuite-summary.json\nA  docs/upstream-patches/safejs/evidence/independent-review.txt\nA  docs/upstream-patches/safejs/evidence/patched-acceptance.log\nA  docs/upstream-patches/safejs/evidence/patched-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/patched-invariants.log\nA  docs/upstream-patches/safejs/evidence/private-observations.json\nA  docs/upstream-patches/safejs/evidence/typecheck.log\nA  docs/upstream-patches/safejs/evidence/v2/author-checkpoint.txt\nA  docs/upstream-patches/safejs/evidence/v2/baseline-acceptance.log\nA  docs/upstream-patches/safejs/evidence/v2/baseline-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/v2/baseline-invariants.log\nA  docs/upstream-patches/safejs/evidence/v2/baseline-reason-safety.log\nA  docs/upstream-patches/safejs/evidence/v2/commands.json\nA  docs/upstream-patches/safejs/evidence/v2/current-private-guard-refusal.json\nA  docs/upstream-patches/safejs/evidence/v2/design-investigation.txt\nA  docs/upstream-patches/safejs/evidence/v2/fullsuite-summary.json\nA  docs/upstream-patches/safejs/evidence/v2/guard-tests.log\nA  docs/upstream-patches/safejs/evidence/v2/patched-acceptance.log\nA  docs/upstream-patches/safejs/evidence/v2/patched-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/v2/patched-invariants.log\nA  docs/upstream-patches/safejs/evidence/v2/patched-reason-safety.log\nA  docs/upstream-patches/safejs/evidence/v2/private-drift-before.json\nA  docs/upstream-patches/safejs/evidence/v2/private-observations.json\nA  docs/upstream-patches/safejs/evidence/v2/source-before-copy.json\nA  docs/upstream-patches/safejs/evidence/v2/typecheck.log\nA  docs/upstream-patches/safejs/evidence/v2/validation-summary.json\nA  docs/upstream-patches/safejs/evidence/v3/archival-files.txt\nA  docs/upstream-patches/safejs/evidence/v3/baseline-acceptance.log\nA  docs/upstream-patches/safejs/evidence/v3/baseline-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/v3/baseline-invariants.log\nA  docs/upstream-patches/safejs/evidence/v3/baseline-reason-safety.log\nA  docs/upstream-patches/safejs/evidence/v3/commands.json\nA  docs/upstream-patches/safejs/evidence/v3/fullsuite-summary.json\nA  docs/upstream-patches/safejs/evidence/v3/guard-tests.log\nA  docs/upstream-patches/safejs/evidence/v3/independent-artifact-guards.log\nA  docs/upstream-patches/safejs/evidence/v3/independent-commands.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-delta-proof.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-guard-summary.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-private-observations.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-proof.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-result.txt\nA  docs/upstream-patches/safejs/evidence/v3/independent-review.txt\nA  docs/upstream-patches/safejs/evidence/v3/independent-source-guards.log\nA  docs/upstream-patches/safejs/evidence/v3/patched-acceptance.log\nA  docs/upstream-patches/safejs/evidence/v3/patched-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/v3/patched-invariants.log\nA  docs/upstream-patches/safejs/evidence/v3/patched-reason-safety.log\nA  docs/upstream-patches/safejs/evidence/v3/private-current-hashes.json\nA  docs/upstream-patches/safejs/evidence/v3/private-observations.json\nA  docs/upstream-patches/safejs/evidence/v3/source-before-copy.json\nA  docs/upstream-patches/safejs/evidence/v3/source-stable.txt\nA  docs/upstream-patches/safejs/evidence/v3/targeted.log\nA  docs/upstream-patches/safejs/evidence/v3/typecheck.log\nA  docs/upstream-patches/safejs/evidence/v3/validation-summary.json\nA  docs/upstream-patches/safejs/evidence/validation-summary.json\nA  docs/upstream-patches/safejs/history/v1/ARTIFACTS.sha256\nA  docs/upstream-patches/safejs/history/v1/EVIDENCE.md\nA  docs/upstream-patches/safejs/history/v1/NOTES.md\nA  docs/upstream-patches/safejs/history/v1/README.md\nA  docs/upstream-patches/safejs/history/v1/lifecycle.patch\nA  docs/upstream-patches/safejs/history/v1/patch-manifest.json\nA  docs/upstream-patches/safejs/history/v1/snapshot.mjs\nA  docs/upstream-patches/safejs/history/v1/verify.mjs\nA  docs/upstream-patches/safejs/history/v2/lifecycle.patch\nA  docs/upstream-patches/safejs/history/v2/patch-manifest.json\nA  docs/upstream-patches/safejs/history/v2/reason-contract.probe.mjs\nA  docs/upstream-patches/safejs/lifecycle.patch\nA  docs/upstream-patches/safejs/patch-manifest.json\nA  docs/upstream-patches/safejs/snapshot.mjs\nA  docs/upstream-patches/safejs/verify.mjs\n M src/commands/filesystem.ts\n M src/fs/memory/index.ts\n M src/fs/mount/index.ts\n M src/fs/overlay/index.ts\n M src/fs/readonly/README.md\n M src/fs/readonly/index.ts\n M src/fs/real/index.ts\nM  tests/commands/safejs-stress/README.md\nM  tests/commands/safejs-stress/UPSTREAM_PATCH_PROPOSAL.md\nA  tests/commands/safejs-stress/action-abort.child.mjs\nA  tests/commands/safejs-stress/action-abort.probe.ts\nA  tests/commands/safejs-stress/artifact-guards.probe.mjs\nA  tests/commands/safejs-stress/import-proof.mjs\nA  tests/commands/safejs-stress/promise-observation.child.mjs\nA  tests/commands/safejs-stress/reason-contract.probe.mjs\nA  tests/commands/safejs-stress/wrapper-invariants.probe.mjs\n M tests/shell/remote-close.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/gnu-revised-acceptance/\n?? tests/commands/empty-directory.test.ts\n?? tests/commands/network-stress/retry-native-driver.ts\n?? tests/commands/network-stress/retry-native.ts\n?? tests/commands/network-stress/retry-rows.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/memory/rmdir.test.ts\n?? tests/fs/mount-identity-review/evidence/native-5a6caff.json\n?? tests/fs/mount-identity-review/native-capture.mjs\n?? tests/fs/mount-identity-review/native-review.test.ts\n?? tests/fs/mount-identity-review/native-tsconfig.json\n?? tests/fs/readonly/rmdir.test.ts\n?? tests/fs/real/rmdir.test.ts\n?? tests/shell/first-read-probe.ts\n?? tests/stress/remote-cancellation/recheck90ddc74-verify.mjs",
+    "hashes": {
+      "package.json": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+      "src/commands/network/README.md": "4870f246647cbfd3f99c3131d4f0772124ed7b4dee9ba72ad83203143174bfd7",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "eb3683ae45b3f236e1929ddd67398baa8df5a901d4a0275df793b4dbb3e8236d",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+      "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "src/fs/mount/README.md": "daa3c8f88bb48fed07353e024baedfef27ea9756185fca8f519565b2bea63164",
+      "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+      "src/fs/overlay/README.md": "94fd398658d58d1ce203a8e69d84581967a091125a23f433f177cc6190472610",
+      "src/fs/overlay/index.ts": "b68fb33939bbc3422c3f4e42533e1e8075dd4a01c3148847e4eef9ce0f6465db",
+      "src/fs/readonly/README.md": "821ad184a05f3371e25ebdfa7012818199e7d64a91227190604ac30d859c6b5b",
+      "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+      "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+      "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+      "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-stress/capture-v2.mjs": "8ccc69775d17af0a97f07653277b24b0c5cfcde7959ce466c930f093c7efd6fc",
+      "tests/commands/network-stress/capture.mjs": "6f8b929e065ea7f21bf05ed1390dd55137f16b34f6b423ff15d0aa31636c2698",
+      "tests/commands/network-stress/cleanup-selfcheck.ts": "afb06a3b37b2f661e69588572aa9843caac46ba734744f86e897f75ac305199b",
+      "tests/commands/network-stress/close-resources.ts": "0924008f0bf372ef4f84448cdb4b2f223302797491717ed76f55aebeafad2ac3",
+      "tests/commands/network-stress/evidence.ts": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "tests/commands/network-stress/freeze.ts": "1fc80c4cacd51b2d67d951e122dd2406fe44eb5a3bb515ab342985344e2a2ae3",
+      "tests/commands/network-stress/handoff.json": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "tests/commands/network-stress/harness-diagnostic.ts": "8ab4fe13a67b492ac24232a081ed2f6c6f69fde5194e9242c6ad0eb4a8ea43e5",
+      "tests/commands/network-stress/lab-v2.ts": "dc0797d8134c69b4a167875ccaad41a559c316de1c596be0639e6023bfe4a9ce",
+      "tests/commands/network-stress/lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "tests/commands/network-stress/native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "tests/commands/network-stress/oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "tests/commands/network-stress/oracle.test.ts": "590100c6b0e53ad1e8cffd1c931f62b2811a615cd893f56dd15f5e5b1b283e82",
+      "tests/commands/network-stress/product-v2.ts": "230c2a9188fe071b38a840fbb10c5a746ba2f2167f9c8fc216e1f590f33b83cf",
+      "tests/commands/network-stress/product.ts": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42",
+      "tests/commands/network-stress/retry-native-driver.ts": "8dc729782534044c3a4f915b19b00fce61c72f0238a8f5a2c4f23f2469ea0707",
+      "tests/commands/network-stress/retry-native.ts": "04321f230a683c25d866b09bc8d03d26c10004d786d304e7b47346a21bd57af8",
+      "tests/commands/network-stress/retry-rows.ts": "527dc72f0eede1a2725288231d5ec2600b5de94a0933c26675070b7ccfb3916d",
+      "tests/commands/network-stress/rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "tests/commands/network-stress/source-gate.ts": "86c2a372d03323f9553bcbe3895975b5baea8ddc56ca0682a31c1533bee8c285",
+      "tests/commands/network-stress/supplement-lab.ts": "362e2322b9c422ab3bf01cd019f6335f1ad1db416d76116ff24c5c814964ee04",
+      "tests/commands/network-stress/supplement-rows.ts": "d6dbddcd52e223a55fd3c13c8c45e8d03959d148a669c47d8912be19f4bcd660",
+      "tests/commands/network-stress/supplement-v2.ts": "47a37c1607c1d7e772aa16e83c1ff83d676b2a1123fae8a677a54ec5ef903e57",
+      "tests/commands/network-stress/supplement.ts": "22d367ce6fb81f9ec5a5c93c7ec99d93280f71c9553d9a0adae2d16767844dfb",
+      "tests/commands/network-stress/transport.ts": "4384942fa9259718176ce981d83b7e6087cdade502de2dba120005da1cc17a69",
+      "tests/commands/network-stress/watchdog.mjs": "6a1643ba79904041e638a958536cc5fc9ad8096c8c02dab00594adec9c70bda1",
+      "tests/commands/network/tls/cert.pem": "073a4fb398e08fee1a757651f8de94b0e222b45073eb2bf5e0441679f020244d",
+      "tests/commands/network/tls/key.pem": "246b515a17d5940e973f46ffbb94f27e693e6411bc61c14b5467ade21ff9cc08"
+    },
+    "networkDigest": "46a75e15c8e63054dac33d79be354eaf9a12bb3be96390c5f610519a065cfdc3",
+    "networkMatchesRevision": true
+  },
+  "after": {
+    "at": "2026-08-26T22:58:18.841Z",
+    "head": "e13c2d40665981384ea9dcf38e0bc564fd95b38b",
+    "status": "A  docs/upstream-patches/safejs/ARTIFACTS.sha256\nA  docs/upstream-patches/safejs/EVIDENCE.md\nA  docs/upstream-patches/safejs/LICENSE.upstream\nA  docs/upstream-patches/safejs/README.md\nA  docs/upstream-patches/safejs/baseline-hashes.json\nA  docs/upstream-patches/safejs/evidence/author-checkpoint.txt\nA  docs/upstream-patches/safejs/evidence/baseline-acceptance.log\nA  docs/upstream-patches/safejs/evidence/baseline-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/baseline-invariants.log\nA  docs/upstream-patches/safejs/evidence/commands.json\nA  docs/upstream-patches/safejs/evidence/fullsuite-summary.json\nA  docs/upstream-patches/safejs/evidence/independent-review.txt\nA  docs/upstream-patches/safejs/evidence/patched-acceptance.log\nA  docs/upstream-patches/safejs/evidence/patched-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/patched-invariants.log\nA  docs/upstream-patches/safejs/evidence/private-observations.json\nA  docs/upstream-patches/safejs/evidence/typecheck.log\nA  docs/upstream-patches/safejs/evidence/v2/author-checkpoint.txt\nA  docs/upstream-patches/safejs/evidence/v2/baseline-acceptance.log\nA  docs/upstream-patches/safejs/evidence/v2/baseline-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/v2/baseline-invariants.log\nA  docs/upstream-patches/safejs/evidence/v2/baseline-reason-safety.log\nA  docs/upstream-patches/safejs/evidence/v2/commands.json\nA  docs/upstream-patches/safejs/evidence/v2/current-private-guard-refusal.json\nA  docs/upstream-patches/safejs/evidence/v2/design-investigation.txt\nA  docs/upstream-patches/safejs/evidence/v2/fullsuite-summary.json\nA  docs/upstream-patches/safejs/evidence/v2/guard-tests.log\nA  docs/upstream-patches/safejs/evidence/v2/patched-acceptance.log\nA  docs/upstream-patches/safejs/evidence/v2/patched-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/v2/patched-invariants.log\nA  docs/upstream-patches/safejs/evidence/v2/patched-reason-safety.log\nA  docs/upstream-patches/safejs/evidence/v2/private-drift-before.json\nA  docs/upstream-patches/safejs/evidence/v2/private-observations.json\nA  docs/upstream-patches/safejs/evidence/v2/source-before-copy.json\nA  docs/upstream-patches/safejs/evidence/v2/typecheck.log\nA  docs/upstream-patches/safejs/evidence/v2/validation-summary.json\nA  docs/upstream-patches/safejs/evidence/v3/archival-files.txt\nA  docs/upstream-patches/safejs/evidence/v3/baseline-acceptance.log\nA  docs/upstream-patches/safejs/evidence/v3/baseline-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/v3/baseline-invariants.log\nA  docs/upstream-patches/safejs/evidence/v3/baseline-reason-safety.log\nA  docs/upstream-patches/safejs/evidence/v3/commands.json\nA  docs/upstream-patches/safejs/evidence/v3/fullsuite-summary.json\nA  docs/upstream-patches/safejs/evidence/v3/guard-tests.log\nA  docs/upstream-patches/safejs/evidence/v3/independent-artifact-guards.log\nA  docs/upstream-patches/safejs/evidence/v3/independent-commands.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-delta-proof.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-guard-summary.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-private-observations.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-proof.json\nA  docs/upstream-patches/safejs/evidence/v3/independent-result.txt\nA  docs/upstream-patches/safejs/evidence/v3/independent-review.txt\nA  docs/upstream-patches/safejs/evidence/v3/independent-source-guards.log\nA  docs/upstream-patches/safejs/evidence/v3/patched-acceptance.log\nA  docs/upstream-patches/safejs/evidence/v3/patched-fullsuite-slow.log\nA  docs/upstream-patches/safejs/evidence/v3/patched-invariants.log\nA  docs/upstream-patches/safejs/evidence/v3/patched-reason-safety.log\nA  docs/upstream-patches/safejs/evidence/v3/private-current-hashes.json\nA  docs/upstream-patches/safejs/evidence/v3/private-observations.json\nA  docs/upstream-patches/safejs/evidence/v3/source-before-copy.json\nA  docs/upstream-patches/safejs/evidence/v3/source-stable.txt\nA  docs/upstream-patches/safejs/evidence/v3/targeted.log\nA  docs/upstream-patches/safejs/evidence/v3/typecheck.log\nA  docs/upstream-patches/safejs/evidence/v3/validation-summary.json\nA  docs/upstream-patches/safejs/evidence/validation-summary.json\nA  docs/upstream-patches/safejs/history/v1/ARTIFACTS.sha256\nA  docs/upstream-patches/safejs/history/v1/EVIDENCE.md\nA  docs/upstream-patches/safejs/history/v1/NOTES.md\nA  docs/upstream-patches/safejs/history/v1/README.md\nA  docs/upstream-patches/safejs/history/v1/lifecycle.patch\nA  docs/upstream-patches/safejs/history/v1/patch-manifest.json\nA  docs/upstream-patches/safejs/history/v1/snapshot.mjs\nA  docs/upstream-patches/safejs/history/v1/verify.mjs\nA  docs/upstream-patches/safejs/history/v2/lifecycle.patch\nA  docs/upstream-patches/safejs/history/v2/patch-manifest.json\nA  docs/upstream-patches/safejs/history/v2/reason-contract.probe.mjs\nA  docs/upstream-patches/safejs/lifecycle.patch\nA  docs/upstream-patches/safejs/patch-manifest.json\nA  docs/upstream-patches/safejs/snapshot.mjs\nA  docs/upstream-patches/safejs/verify.mjs\n M src/commands/filesystem.ts\n M src/fs/memory/index.ts\n M src/fs/mount/index.ts\n M src/fs/overlay/index.ts\n M src/fs/readonly/README.md\n M src/fs/readonly/index.ts\n M src/fs/real/index.ts\nM  tests/commands/safejs-stress/README.md\nM  tests/commands/safejs-stress/UPSTREAM_PATCH_PROPOSAL.md\nA  tests/commands/safejs-stress/action-abort.child.mjs\nA  tests/commands/safejs-stress/action-abort.probe.ts\nA  tests/commands/safejs-stress/artifact-guards.probe.mjs\nA  tests/commands/safejs-stress/import-proof.mjs\nA  tests/commands/safejs-stress/promise-observation.child.mjs\nA  tests/commands/safejs-stress/reason-contract.probe.mjs\nA  tests/commands/safejs-stress/wrapper-invariants.probe.mjs\n M tests/shell/remote-close.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch-stress/gnu-revised-acceptance/\n?? tests/commands/empty-directory.test.ts\n?? tests/commands/network-stress/retry-native-driver.ts\n?? tests/commands/network-stress/retry-native.ts\n?? tests/commands/network-stress/retry-rows.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/memory/rmdir.test.ts\n?? tests/fs/mount-identity-review/evidence/native-5a6caff.json\n?? tests/fs/mount-identity-review/native-capture.mjs\n?? tests/fs/mount-identity-review/native-review.test.ts\n?? tests/fs/mount-identity-review/native-tsconfig.json\n?? tests/fs/readonly/rmdir.test.ts\n?? tests/fs/real/rmdir.test.ts\n?? tests/shell/first-read-probe.ts\n?? tests/stress/remote-cancellation/recheck90ddc74-verify.mjs",
+    "hashes": {
+      "package.json": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+      "src/commands/network/README.md": "4870f246647cbfd3f99c3131d4f0772124ed7b4dee9ba72ad83203143174bfd7",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "eb3683ae45b3f236e1929ddd67398baa8df5a901d4a0275df793b4dbb3e8236d",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+      "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "src/fs/mount/README.md": "daa3c8f88bb48fed07353e024baedfef27ea9756185fca8f519565b2bea63164",
+      "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+      "src/fs/overlay/README.md": "94fd398658d58d1ce203a8e69d84581967a091125a23f433f177cc6190472610",
+      "src/fs/overlay/index.ts": "b68fb33939bbc3422c3f4e42533e1e8075dd4a01c3148847e4eef9ce0f6465db",
+      "src/fs/readonly/README.md": "821ad184a05f3371e25ebdfa7012818199e7d64a91227190604ac30d859c6b5b",
+      "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+      "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+      "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+      "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-stress/capture-v2.mjs": "8ccc69775d17af0a97f07653277b24b0c5cfcde7959ce466c930f093c7efd6fc",
+      "tests/commands/network-stress/capture.mjs": "6f8b929e065ea7f21bf05ed1390dd55137f16b34f6b423ff15d0aa31636c2698",
+      "tests/commands/network-stress/cleanup-selfcheck.ts": "afb06a3b37b2f661e69588572aa9843caac46ba734744f86e897f75ac305199b",
+      "tests/commands/network-stress/close-resources.ts": "0924008f0bf372ef4f84448cdb4b2f223302797491717ed76f55aebeafad2ac3",
+      "tests/commands/network-stress/evidence.ts": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "tests/commands/network-stress/freeze.ts": "1fc80c4cacd51b2d67d951e122dd2406fe44eb5a3bb515ab342985344e2a2ae3",
+      "tests/commands/network-stress/handoff.json": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "tests/commands/network-stress/harness-diagnostic.ts": "8ab4fe13a67b492ac24232a081ed2f6c6f69fde5194e9242c6ad0eb4a8ea43e5",
+      "tests/commands/network-stress/lab-v2.ts": "dc0797d8134c69b4a167875ccaad41a559c316de1c596be0639e6023bfe4a9ce",
+      "tests/commands/network-stress/lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "tests/commands/network-stress/native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "tests/commands/network-stress/oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "tests/commands/network-stress/oracle.test.ts": "590100c6b0e53ad1e8cffd1c931f62b2811a615cd893f56dd15f5e5b1b283e82",
+      "tests/commands/network-stress/product-v2.ts": "230c2a9188fe071b38a840fbb10c5a746ba2f2167f9c8fc216e1f590f33b83cf",
+      "tests/commands/network-stress/product.ts": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42",
+      "tests/commands/network-stress/retry-native-driver.ts": "8dc729782534044c3a4f915b19b00fce61c72f0238a8f5a2c4f23f2469ea0707",
+      "tests/commands/network-stress/retry-native.ts": "04321f230a683c25d866b09bc8d03d26c10004d786d304e7b47346a21bd57af8",
+      "tests/commands/network-stress/retry-rows.ts": "527dc72f0eede1a2725288231d5ec2600b5de94a0933c26675070b7ccfb3916d",
+      "tests/commands/network-stress/rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "tests/commands/network-stress/source-gate.ts": "86c2a372d03323f9553bcbe3895975b5baea8ddc56ca0682a31c1533bee8c285",
+      "tests/commands/network-stress/supplement-lab.ts": "362e2322b9c422ab3bf01cd019f6335f1ad1db416d76116ff24c5c814964ee04",
+      "tests/commands/network-stress/supplement-rows.ts": "d6dbddcd52e223a55fd3c13c8c45e8d03959d148a669c47d8912be19f4bcd660",
+      "tests/commands/network-stress/supplement-v2.ts": "47a37c1607c1d7e772aa16e83c1ff83d676b2a1123fae8a677a54ec5ef903e57",
+      "tests/commands/network-stress/supplement.ts": "22d367ce6fb81f9ec5a5c93c7ec99d93280f71c9553d9a0adae2d16767844dfb",
+      "tests/commands/network-stress/transport.ts": "4384942fa9259718176ce981d83b7e6087cdade502de2dba120005da1cc17a69",
+      "tests/commands/network-stress/watchdog.mjs": "6a1643ba79904041e638a958536cc5fc9ad8096c8c02dab00594adec9c70bda1",
+      "tests/commands/network/tls/cert.pem": "073a4fb398e08fee1a757651f8de94b0e222b45073eb2bf5e0441679f020244d",
+      "tests/commands/network/tls/key.pem": "246b515a17d5940e973f46ffbb94f27e693e6411bc61c14b5467ade21ff9cc08"
+    },
+    "networkDigest": "46a75e15c8e63054dac33d79be354eaf9a12bb3be96390c5f610519a065cfdc3",
+    "networkMatchesRevision": true
+  },
+  "changes": [],
+  "networkStable": true,
+  "exit": {
+    "code": 1,
+    "signal": null
+  },
+  "stdout": "{\"nativeProfile\":{\"executable\":\"/usr/bin/curl\",\"sha256\":\"5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226\",\"version\":\"curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\\nRelease-Date: 2024-03-27\\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\\n\",\"headSha256\":\"b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1\",\"config\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http\",\"--proto-redir\",\"=http\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\"],\"environment\":{\"PATH\":\"/usr/bin:/bin\",\"HOME\":\"{ROOT}\",\"CURL_HOME\":\"{ROOT}\",\"XDG_CONFIG_HOME\":\"{ROOT}\",\"LC_ALL\":\"C\",\"LANG\":\"C\",\"NO_PROXY\":\"*\",\"no_proxy\":\"*\"}},\"productExecutions\":0,\"sourceEdits\":0,\"total\":18}\n{\"id\":\"retry-stdout-explicit\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http\",\"--proto-redir\",\"=http\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"--resolve\",\"{H_HOST}:127.0.0.1\",\"--retry\",\"1\",\"-o\",\"-\",\"{A}/retry\"],\"code\":0,\"signal\":null,\"stdout\":\"cmV0cnktYm9keQpvawo=\",\"stderr\":\"\",\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"Host\",\"{A_HOST}\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"Host\",\"{A_HOST}\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"}],\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"consumerCode\":null,\"elapsedMs\":1016,\"consumerElapsedMs\":null}\n{\"id\":\"retry-fail\",\"argv\":[\"-q\",\"--silent\",\"--show-error\",\"--globoff\",\"--http1.1\",\"--noproxy\",\"*\",\"--proxy\",\"\",\"--proto\",\"=http\",\"--proto-redir\",\"=http\",\"--connect-timeout\",\"1\",\"--max-time\",\"3\",\"--max-redirs\",\"5\",\"--resolve\",\"{H_HOST}:127.0.0.1\",\"--retry\",\"1\",\"--fail\",\"{A}/retry\"],\"code\":0,\"signal\":null,\"stdout\":\"b2sK\",\"stderr\":\"curl: (22) The requested URL returned error: 503\\n\",\"traces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"accept\",\"*/*\"]],\"body\":\"\"}],\"wireTraces\":[{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"Host\",\"{A_HOST}\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"},{\"origin\":\"A\",\"method\":\"GET\",\"path\":\"/retry\",\"headers\":[[\"Host\",\"{A_HOST}\"],[\"User-Agent\",\"curl/8.7.1\"],[\"Accept\",\"*/*\"]],\"body\":\"\"}],\"files\":{\"binary.in\":\"AP/+QQ0KgABC\",\"result.bin\":\"b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy\",\"text.in\":\"Zmlyc3QNCnNlY29uZAoAdGFpbA==\"},\"consumerCode\":null,\"elapsedMs\":1023,\"consumerElapsedMs\":null}\n",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'curl: (22) The requested URL returned error: 503\\n'\n- ''\n\n    at assertNative (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/retry-native-driver.ts:167:33)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/network-stress/retry-native.ts:10:3) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 'curl: (22) The requested URL returned error: 503\\n',\n  expected: '',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "records": [
+    {
+      "nativeProfile": {
+        "executable": "/usr/bin/curl",
+        "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+        "version": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+        "headSha256": "b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1",
+        "config": [
+          "-q",
+          "--silent",
+          "--show-error",
+          "--globoff",
+          "--http1.1",
+          "--noproxy",
+          "*",
+          "--proxy",
+          "",
+          "--proto",
+          "=http",
+          "--proto-redir",
+          "=http",
+          "--connect-timeout",
+          "1",
+          "--max-time",
+          "3",
+          "--max-redirs",
+          "5"
+        ],
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "{ROOT}",
+          "CURL_HOME": "{ROOT}",
+          "XDG_CONFIG_HOME": "{ROOT}",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "NO_PROXY": "*",
+          "no_proxy": "*"
+        }
+      },
+      "productExecutions": 0,
+      "sourceEdits": 0,
+      "total": 18
+    },
+    {
+      "id": "retry-stdout-explicit",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--retry",
+        "1",
+        "-o",
+        "-",
+        "{A}/retry"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "cmV0cnktYm9keQpvawo=",
+      "stderr": "",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 1016,
+      "consumerElapsedMs": null
+    },
+    {
+      "id": "retry-fail",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--max-redirs",
+        "5",
+        "--resolve",
+        "{H_HOST}:127.0.0.1",
+        "--retry",
+        "1",
+        "--fail",
+        "{A}/retry"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdout": "b2sK",
+      "stderr": "curl: (22) The requested URL returned error: 503\n",
+      "traces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "wireTraces": [
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        },
+        {
+          "origin": "A",
+          "method": "GET",
+          "path": "/retry",
+          "headers": [
+            [
+              "Host",
+              "{A_HOST}"
+            ],
+            [
+              "User-Agent",
+              "curl/8.7.1"
+            ],
+            [
+              "Accept",
+              "*/*"
+            ]
+          ],
+          "body": ""
+        }
+      ],
+      "files": {
+        "binary.in": "AP/+QQ0KgABC",
+        "result.bin": "b2xkIGJ5dGVzIG11c3QgZGlzYXBwZWFy",
+        "text.in": "Zmlyc3QNCnNlY29uZAoAdGFpbA=="
+      },
+      "consumerCode": null,
+      "elapsedMs": 1023,
+      "consumerElapsedMs": null
+    }
+  ]
+}

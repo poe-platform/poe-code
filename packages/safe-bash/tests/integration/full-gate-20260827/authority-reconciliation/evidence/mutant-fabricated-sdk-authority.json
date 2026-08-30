@@ -1,0 +1,73 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 52811,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 672,
+  "timeoutMs": 120000,
+  "outputBytes": 32446,
+  "observed": [
+    {
+      "pid": 52811,
+      "parent": 51418,
+      "group": 52811,
+      "born": "Thu Aug 27 01:31:50 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 52818,
+      "parent": 52811,
+      "group": 52811,
+      "born": "Thu Aug 27 01:31:50 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 52867,
+      "parent": 52811,
+      "group": 52811,
+      "born": "Thu Aug 27 01:31:50 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts"
+    },
+    {
+      "pid": 52911,
+      "parent": 52811,
+      "group": 52811,
+      "born": "Thu Aug 27 01:31:51 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 85,
+    "pass": 83,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "S3 honest local-data remapper strips unrelated HEAD authority before destructive copy",
+    "S3 two honest clients omit unrelated mock authority for shared local data"
+  ],
+  "stdoutSha256": "824fd76314bf7e6b4f181f714b6924bcd648424ef7829b8763dfa7fc82ee1716",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,42 @@
+import hashlib
+import json
+import os
+from pathlib import Path, PurePosixPath
+import sys
+import tarfile
+
+archive_path, destination_name = sys.argv[1:]
+destination = Path(destination_name)
+assert destination.is_absolute() and not destination.exists()
+assert str(destination).startswith('/private/tmp/safe-bash-owned-output-receipt-review-')
+destination.mkdir()
+assert destination.resolve() == destination
+records = []
+seen = set()
+with tarfile.open(archive_path, 'r:gz') as archive:
+    members = archive.getmembers()
+    assert len(members) <= 5000
+    assert sum(member.size for member in members) <= 100 * 1024 * 1024
+    for member in members:
+        name = member.name
+        parts = PurePosixPath(name).parts
+        assert name and not name.startswith('/') and '..' not in parts and '\\' not in name
+        assert member.isfile() or member.isdir(), (name, member.type)
+        normalized = '/'.join(parts)
+        assert normalized not in seen, normalized
+        seen.add(normalized)
+    for member in members:
+        target = destination.joinpath(*PurePosixPath(member.name).parts)
+        assert target == destination or destination in target.parents
+        if member.isdir():
+            target.mkdir(parents=True, exist_ok=True)
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        assert target.parent.resolve() == target.parent
+        with archive.extractfile(member) as source:
+            content = source.read(member.size + 1)
+        assert len(content) == member.size
+        with target.open('xb') as output:
+            output.write(content)
+        records.append({'path': target.relative_to(destination).as_posix(), 'bytes': len(content), 'sha256': hashlib.sha256(content).hexdigest()})
+print(json.dumps({'files': sorted(records, key=lambda item: item['path']), 'links': 0, 'specialEntries': 0, 'destination': str(destination)}))

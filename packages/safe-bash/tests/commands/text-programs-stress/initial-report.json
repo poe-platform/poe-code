@@ -1,0 +1,6404 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-08-26T19:13:15.527Z",
+  "completedAt": "2026-08-26T19:13:16.407Z",
+  "provenance": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "osRelease": "25.4.0",
+    "nativeExecutableSha256": {
+      "/usr/bin/sed": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+      "/usr/bin/awk": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+      "/bin/bash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    "sourceBefore": "193af19747d143a285b2dbeaf045b88faa7f4b71296f4baa31ffa914d19ebea2",
+    "sourceAfter": "f258ddfddf1a930e234619cb2fb5445930ed8fc98fe8242fe87fe5d4cb2d05a6",
+    "sourceChanged": true,
+    "casesSha256": "9c4dc2ec8c368258f482205866de59ce996e4916341bde479cb27eb65d781414"
+  },
+  "methodology": {
+    "nativeScope": "trusted repository fixtures only; fresh owned temporary directories; fixed native executable argv; curated pipelines only",
+    "locale": "C",
+    "virtualWorkerDeadlineMs": 3000,
+    "nativeDeadlineMs": 3000,
+    "outputLimitBytes": 1048576,
+    "assertions": [
+      "stdout bytes",
+      "stderr bytes",
+      "exit status",
+      "complete descendant file/directory map, bytes and mode"
+    ],
+    "pendingIsSuccess": false,
+    "unsupportedIsSuccess": false,
+    "superiorityDemonstrated": false,
+    "performanceClaim": "None: one cold-to-warm correctness run, not a controlled throughput benchmark"
+  },
+  "summary": {
+    "total": 141,
+    "pass": 125,
+    "fail": 10,
+    "unsupported": 4,
+    "pending": 0,
+    "error": 0,
+    "timeout": 0,
+    "oracle-unavailable": 0,
+    "oracle-rejected": 2,
+    "skipped": 0
+  },
+  "byTool": {
+    "sed": {
+      "total": 99,
+      "pass": 88,
+      "fail": 5,
+      "unsupported": 4,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 2,
+      "skipped": 0
+    },
+    "awk": {
+      "total": 39,
+      "pass": 37,
+      "fail": 2,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "pipeline": {
+      "total": 3,
+      "pass": 0,
+      "fail": 3,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    }
+  },
+  "byFeature": {
+    "sed.address-matrix": {
+      "total": 48,
+      "pass": 48,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.control": {
+      "total": 17,
+      "pass": 16,
+      "fail": 1,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.regex": {
+      "total": 12,
+      "pass": 9,
+      "fail": 2,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 1,
+      "skipped": 0
+    },
+    "sed.parser": {
+      "total": 2,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 1,
+      "skipped": 0
+    },
+    "sed.script-files": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.options": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.files": {
+      "total": 2,
+      "pass": 1,
+      "fail": 1,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.in-place": {
+      "total": 4,
+      "pass": 3,
+      "fail": 1,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.file-read": {
+      "total": 1,
+      "pass": 0,
+      "fail": 0,
+      "unsupported": 1,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.file-write": {
+      "total": 1,
+      "pass": 0,
+      "fail": 0,
+      "unsupported": 1,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.list": {
+      "total": 1,
+      "pass": 0,
+      "fail": 0,
+      "unsupported": 1,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.regex-backreference": {
+      "total": 1,
+      "pass": 0,
+      "fail": 0,
+      "unsupported": 1,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "sed.bytes": {
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.fields": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.field": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.record": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.nf": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.regex": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.range": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.begin": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.next": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.numeric": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.arithmetic": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.short": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.concatenation": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.array": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.associative": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.multidimensional": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.for": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.split": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.do": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.function": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.recursive": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.sub": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.match": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.substr": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.sprintf": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.exit": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.end": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.paragraph": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.redirection": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.getline": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.unicode": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.flags": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.assignments": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "awk.script-files": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "pipeline.sed": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "pipeline.sed-awk": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    },
+    "pipeline.awk-sed": {
+      "total": 1,
+      "pass": 0,
+      "fail": 1,
+      "unsupported": 0,
+      "pending": 0,
+      "error": 0,
+      "timeout": 0,
+      "oracle-unavailable": 0,
+      "oracle-rejected": 0,
+      "skipped": 0
+    }
+  },
+  "backgroundErrors": [],
+  "cases": [
+    {
+      "name": "sed-address-0",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "1p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-1",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "1p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-2",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "1!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-3",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "1!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-4",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "1d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-5",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "1d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-6",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "1!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-7",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "1!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-8",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "$p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-9",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "$p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-10",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "$!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-11",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "$!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-12",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "$d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-13",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "$d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-14",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "$!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-15",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "$!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-16",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "2,3p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-17",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "2,3p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-18",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "2,3!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-19",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "2,3!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-20",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "2,3d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-21",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "2,3d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-22",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "2,3!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-23",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "2,3!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-24",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "3,1p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-25",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "3,1p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-26",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "3,1!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-27",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "3,1!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-28",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "3,1d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-29",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "3,1d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-30",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "3,1!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-31",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "3,1!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-32",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/end/p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-33",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/end/p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-34",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/end/!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-35",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/end/!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-36",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/end/d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-37",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/end/d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-38",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/end/!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-39",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/end/!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-40",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/start/p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-41",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/start/p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-42",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/start/!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-43",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/start/!p"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-44",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/start/d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-45",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/start/d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-address-46",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/start/!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+      "files": {}
+    },
+    {
+      "name": "sed-address-47",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "args": [
+        "-n",
+        "/start/,/start/!d"
+      ],
+      "stdin": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+      "files": {}
+    },
+    {
+      "name": "sed-range-resumes-after-n",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "2,3{n;p;}"
+      ],
+      "stdin": "MQoyCjMKNAo1Cg==",
+      "files": {}
+    },
+    {
+      "name": "sed-range-change-repeated",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "/a/,/b/c\\\nchanged"
+      ],
+      "stdin": "YQp4CmIKYwphCmIK",
+      "files": {}
+    },
+    {
+      "name": "sed-range-change-single-match",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "/a/,/a/c\\\nchanged"
+      ],
+      "stdin": "YQp4CmEKego=",
+      "files": {}
+    },
+    {
+      "name": "sed-delete-restarts-addressed-group",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "N;/a/{P;D;};p"
+      ],
+      "stdin": "YQpiCmMKZAo=",
+      "files": {}
+    },
+    {
+      "name": "sed-next-at-unterminated-eof",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "n;p"
+      ],
+      "stdin": "b25l",
+      "files": {}
+    },
+    {
+      "name": "sed-append-next-order",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "1a\\\nqueued\nn;p"
+      ],
+      "stdin": "b25lCnR3bwp0aHJlZQo=",
+      "files": {}
+    },
+    {
+      "name": "sed-append-delete-order",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "1a\\\nqueued\nd"
+      ],
+      "stdin": "b25lCnR3bwo=",
+      "files": {}
+    },
+    {
+      "name": "sed-hold-survives-delete",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "1{h;d;};G;p"
+      ],
+      "stdin": "b25lCnR3bwo=",
+      "files": {}
+    },
+    {
+      "name": "sed-hold-leading-empty",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "H;g;p"
+      ],
+      "stdin": "b25lCnR3bwo=",
+      "files": {}
+    },
+    {
+      "name": "sed-exchange-initial-empty",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "x;p;x;p"
+      ],
+      "stdin": "b25lCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-branch-test-reset",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "s/a/b/;t first\nb done\n:first\nt wrong\np;b done\n:wrong\ns/.*/WRONG/;p\n:done"
+      ],
+      "stdin": "YQo=",
+      "files": {}
+    },
+    {
+      "name": "sed-branch-after-failed-substitution",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "s/a/b/;s/x/y/;t yes\nb done\n:yes\np\n:done"
+      ],
+      "stdin": "YQo=",
+      "files": {}
+    },
+    {
+      "name": "sed-empty-regex-address-reuse",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "/a/s//A/;/b/s//B/"
+      ],
+      "stdin": "YWIKYmEK",
+      "files": {}
+    },
+    {
+      "name": "sed-empty-regex-skipped-command",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "/z/s/a/x/;s//Y/"
+      ],
+      "stdin": "YQp6Cg==",
+      "files": {}
+    },
+    {
+      "name": "sed-alternate-address-delimiter",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "\\#a/b#p"
+      ],
+      "stdin": "YS9iCmEtYgo=",
+      "files": {}
+    },
+    {
+      "name": "sed-brace-negation",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "/drop/!{s/a/A/g;p;}"
+      ],
+      "stdin": "ZHJvcCBhCmtlZXAgYQo=",
+      "files": {}
+    },
+    {
+      "name": "sed-repeated-files-empty-middle",
+      "tool": "sed",
+      "feature": "sed.control",
+      "args": [
+        "-n",
+        "$p"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-65",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/(a|ab)/[\\1]/g"
+      ],
+      "stdin": "YWJhYmEK",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-66",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/(a*)(a*)/[\\1][\\2]/"
+      ],
+      "stdin": "YWFhCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-67",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/((a|aa)*)/[\\1][\\2]/"
+      ],
+      "stdin": "YWFhYQo=",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-68",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/a*/X/g"
+      ],
+      "stdin": "YmFhYWNhYQo=",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-69",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/x*/X/2g"
+      ],
+      "stdin": "YWJjCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-70",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/^|$/X/g"
+      ],
+      "stdin": "YWJjCgo=",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-71",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/[^[:digit:]]+/&-&/g"
+      ],
+      "stdin": "YWIxMmNkCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-72",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/[]a]+/X/g"
+      ],
+      "stdin": "XWFhXQo=",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-73",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/[-a]+/X/g"
+      ],
+      "stdin": "YS1hCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-74",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/a{0,2}/X/g"
+      ],
+      "stdin": "YWFhYgo=",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-75",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/(ab)?c/[\\1]/g"
+      ],
+      "stdin": "YWJjIGMK",
+      "files": {}
+    },
+    {
+      "name": "sed-regex-76",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "args": [
+        "-E",
+        "s/a/\\&/g"
+      ],
+      "stdin": "YmFuYW5hCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-script-comment-after-label",
+      "tool": "sed",
+      "feature": "sed.parser",
+      "args": [
+        ":again # comment\ns/aa/a/\nt again"
+      ],
+      "stdin": "YWFhYQo=",
+      "files": {}
+    },
+    {
+      "name": "sed-script-first-line-quiet",
+      "tool": "sed",
+      "feature": "sed.parser",
+      "args": [
+        "#n\n2p"
+      ],
+      "stdin": "YQpiCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-script-file-order",
+      "tool": "sed",
+      "feature": "sed.script-files",
+      "args": [
+        "-f",
+        "first",
+        "-e",
+        "s/b/c/",
+        "input"
+      ],
+      "stdin": "",
+      "files": {
+        "first": "cy9hL2IvCg==",
+        "input": "YQo="
+      }
+    },
+    {
+      "name": "sed-program-named-like-option",
+      "tool": "sed",
+      "feature": "sed.options",
+      "args": [
+        "-n",
+        "-e",
+        "p",
+        "--",
+        "-input"
+      ],
+      "stdin": "",
+      "files": {
+        "-input": "cHJlc2VydmUK"
+      }
+    },
+    {
+      "name": "sed-file-boundary-no-newline",
+      "tool": "sed",
+      "feature": "sed.files",
+      "args": [
+        "-n",
+        "=;p",
+        "first",
+        "empty",
+        "last"
+      ],
+      "stdin": "",
+      "files": {
+        "first": "b25l",
+        "empty": "",
+        "last": "dHdvCg=="
+      }
+    },
+    {
+      "name": "sed-file-final-address",
+      "tool": "sed",
+      "feature": "sed.files",
+      "args": [
+        "-n",
+        "$p",
+        "first",
+        "last"
+      ],
+      "stdin": "",
+      "files": {
+        "first": "YQo=",
+        "last": "Ygo="
+      }
+    },
+    {
+      "name": "sed-inplace-quiet-truncates-by-request",
+      "tool": "sed",
+      "feature": "sed.in-place",
+      "args": [
+        "-ni.bak",
+        "s/a/b/",
+        "input"
+      ],
+      "stdin": "",
+      "files": {
+        "input": "YQo="
+      }
+    },
+    {
+      "name": "sed-inplace-empty-file",
+      "tool": "sed",
+      "feature": "sed.in-place",
+      "args": [
+        "-i.bak",
+        "s/a/b/",
+        "input"
+      ],
+      "stdin": "",
+      "files": {
+        "input": ""
+      }
+    },
+    {
+      "name": "sed-inplace-quit-per-file",
+      "tool": "sed",
+      "feature": "sed.in-place",
+      "args": [
+        "-i.bak",
+        "1q",
+        "first",
+        "last"
+      ],
+      "stdin": "",
+      "files": {
+        "first": "YQpiCg==",
+        "last": "YwpkCg=="
+      }
+    },
+    {
+      "name": "sed-inplace-existing-backup",
+      "tool": "sed",
+      "feature": "sed.in-place",
+      "args": [
+        "-i.bak",
+        "s/a/b/",
+        "input"
+      ],
+      "stdin": "",
+      "files": {
+        "input": "YQo=",
+        "input.bak": "b2xkIGJhY2t1cAo="
+      }
+    },
+    {
+      "name": "sed-read-command-gap",
+      "tool": "sed",
+      "feature": "sed.file-read",
+      "args": [
+        "1r extra"
+      ],
+      "stdin": "YQpiCg==",
+      "files": {
+        "extra": "ZXh0cmEK"
+      }
+    },
+    {
+      "name": "sed-write-command-gap",
+      "tool": "sed",
+      "feature": "sed.file-write",
+      "args": [
+        "-n",
+        "w written"
+      ],
+      "stdin": "YQpiCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-list-command-gap",
+      "tool": "sed",
+      "feature": "sed.list",
+      "args": [
+        "-n",
+        "l"
+      ],
+      "stdin": "YQliCg==",
+      "files": {}
+    },
+    {
+      "name": "sed-pattern-backreference-gap",
+      "tool": "sed",
+      "feature": "sed.regex-backreference",
+      "args": [
+        "s/\\([a-z]*\\)-\\1/same/"
+      ],
+      "stdin": "YWJjLWFiYwo=",
+      "files": {}
+    },
+    {
+      "name": "sed-binary-chunks-1",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "args": [
+        "s/a/Z/g"
+      ],
+      "stdin": "/2EAgAph",
+      "chunkWidth": 1
+    },
+    {
+      "name": "sed-unicode-c-locale-1",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "args": [
+        "s/é/Ω/g"
+      ],
+      "stdin": "cHLDqWZpeGUgw6kg8J+QiAo=",
+      "chunkWidth": 1
+    },
+    {
+      "name": "sed-binary-chunks-2",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "args": [
+        "s/a/Z/g"
+      ],
+      "stdin": "/2EAgAph",
+      "chunkWidth": 2
+    },
+    {
+      "name": "sed-unicode-c-locale-2",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "args": [
+        "s/é/Ω/g"
+      ],
+      "stdin": "cHLDqWZpeGUgw6kg8J+QiAo=",
+      "chunkWidth": 2
+    },
+    {
+      "name": "sed-binary-chunks-7",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "args": [
+        "s/a/Z/g"
+      ],
+      "stdin": "/2EAgAph",
+      "chunkWidth": 7
+    },
+    {
+      "name": "sed-unicode-c-locale-7",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "args": [
+        "s/é/Ω/g"
+      ],
+      "stdin": "cHLDqWZpeGUgw6kg8J+QiAo=",
+      "chunkWidth": 7
+    },
+    {
+      "name": "sed-binary-chunks-4096",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "args": [
+        "s/a/Z/g"
+      ],
+      "stdin": "/2EAgAph",
+      "chunkWidth": 4096
+    },
+    {
+      "name": "sed-unicode-c-locale-4096",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "args": [
+        "s/é/Ω/g"
+      ],
+      "stdin": "cHLDqWZpeGUgw6kg8J+QiAo=",
+      "chunkWidth": 4096
+    },
+    {
+      "name": "awk-fields-default-whitespace",
+      "tool": "awk",
+      "feature": "awk.fields",
+      "args": [
+        "{ print NF, $1, $NF }"
+      ],
+      "stdin": "ICBhICBiCSBjIAoKbGFzdAo=",
+      "files": {}
+    },
+    {
+      "name": "awk-field-assignment-rebuilds-record",
+      "tool": "awk",
+      "feature": "awk.field",
+      "args": [
+        "BEGIN{OFS=\"|\"} {$2=\"X\";print $0,NF}"
+      ],
+      "stdin": "YSBiIGMK",
+      "files": {}
+    },
+    {
+      "name": "awk-record-assignment-rebuilds-fields",
+      "tool": "awk",
+      "feature": "awk.record",
+      "args": [
+        "{$0=\"a:b:c\";print NF,$2}"
+      ],
+      "stdin": "aWdub3JlZAo=",
+      "files": {}
+    },
+    {
+      "name": "awk-nf-extending-clearing",
+      "tool": "awk",
+      "feature": "awk.nf",
+      "args": [
+        "BEGIN{OFS=\"|\"} {NF=5;print $0;NF=1;print $0}"
+      ],
+      "stdin": "YSBiCg==",
+      "files": {}
+    },
+    {
+      "name": "awk-regex-pattern-and-default-action",
+      "tool": "awk",
+      "feature": "awk.regex",
+      "args": [
+        "/keep/"
+      ],
+      "stdin": "a2VlcDphCnNraXA6YgprZWVwOmMK",
+      "files": {}
+    },
+    {
+      "name": "awk-range-pattern-restarts",
+      "tool": "awk",
+      "feature": "awk.range",
+      "args": [
+        "/start/,/end/ {print NR,$0}"
+      ],
+      "stdin": "c3RhcnQKeAplbmQKZ2FwCnN0YXJ0CmVuZAo=",
+      "files": {}
+    },
+    {
+      "name": "awk-begin-end-empty-input",
+      "tool": "awk",
+      "feature": "awk.begin",
+      "args": [
+        "BEGIN{print \"begin\"} END{print NR,\"end\"}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-next-still-counts-records",
+      "tool": "awk",
+      "feature": "awk.next",
+      "args": [
+        "NR%2 {next} {print NR,$0} END{print NR}"
+      ],
+      "stdin": "YQpiCmMKZAo=",
+      "files": {}
+    },
+    {
+      "name": "awk-numeric-string-comparison",
+      "tool": "awk",
+      "feature": "awk.numeric",
+      "args": [
+        "{print ($1==0),($1==\"0\"),($1<10),($1<\"10\")}"
+      ],
+      "stdin": "MAowMAoyCmFiYwo=",
+      "files": {}
+    },
+    {
+      "name": "awk-arithmetic-assignment-precedence",
+      "tool": "awk",
+      "feature": "awk.arithmetic",
+      "args": [
+        "BEGIN{x=2;print x++ + ++x, x;print -2^2,2^3^2}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-short-circuit-side-effects",
+      "tool": "awk",
+      "feature": "awk.short",
+      "args": [
+        "BEGIN{x=0;print (0 && ++x),(1 || ++x),x}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-concatenation-precedence",
+      "tool": "awk",
+      "feature": "awk.concatenation",
+      "args": [
+        "BEGIN{x=2;print \"pre\" x+1 \"post\"}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-array-membership-delete",
+      "tool": "awk",
+      "feature": "awk.array",
+      "args": [
+        "BEGIN{a[\"x\"]=3;print (\"x\" in a),(\"y\" in a);delete a[\"x\"];print (\"x\" in a)}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-associative-aggregation",
+      "tool": "awk",
+      "feature": "awk.associative",
+      "args": [
+        "{sum[$1]+=$2} END{print sum[\"a\"],sum[\"b\"]}"
+      ],
+      "stdin": "YSAyCmIgMwphIDQK",
+      "files": {}
+    },
+    {
+      "name": "awk-multidimensional-array",
+      "tool": "awk",
+      "feature": "awk.multidimensional",
+      "args": [
+        "BEGIN{a[1,2]=\"x\";print a[1,2],((1,2) in a)}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-for-in-order-independent-count",
+      "tool": "awk",
+      "feature": "awk.for",
+      "args": [
+        "BEGIN{a[\"a\"]=1;a[\"b\"]=2;for(k in a){sum+=a[k];count++}print sum,count}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-split-clears-existing-array",
+      "tool": "awk",
+      "feature": "awk.split",
+      "args": [
+        "BEGIN{a[9]=\"stale\";n=split(\"a:b:c\",a,\":\");print n,a[2],(9 in a)}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-for-while-break-continue",
+      "tool": "awk",
+      "feature": "awk.for",
+      "args": [
+        "BEGIN{for(i=0;i<8;i++){if(i==2)continue;if(i==6)break;s+=i}while(s<20)s++;print s}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-do-while",
+      "tool": "awk",
+      "feature": "awk.do",
+      "args": [
+        "BEGIN{i=0;do{i++}while(i<3);print i}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-function-array-reference",
+      "tool": "awk",
+      "feature": "awk.function",
+      "args": [
+        "function f(a,x){a[x]++;return a[x]} BEGIN{print f(a,\"x\"),f(a,\"x\"),a[\"x\"]}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-recursive-function",
+      "tool": "awk",
+      "feature": "awk.recursive",
+      "args": [
+        "function f(n){return n<2?1:n*f(n-1)} BEGIN{print f(6)}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-function-local-extra-parameter",
+      "tool": "awk",
+      "feature": "awk.function",
+      "args": [
+        "function f(x, temp){temp=x+1;return temp} BEGIN{temp=99;print f(3),temp}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-sub-gsub-replacement-count",
+      "tool": "awk",
+      "feature": "awk.sub",
+      "args": [
+        "{count=gsub(/a/,\"[&]\");print count,$0}"
+      ],
+      "stdin": "YmFuYW5hCg==",
+      "files": {}
+    },
+    {
+      "name": "awk-sub-target-field",
+      "tool": "awk",
+      "feature": "awk.sub",
+      "args": [
+        "{sub(/a/,\"X\",$2);print $0}"
+      ],
+      "stdin": "YSBiYW5hbmEK",
+      "files": {}
+    },
+    {
+      "name": "awk-match-rstart-rlength",
+      "tool": "awk",
+      "feature": "awk.match",
+      "args": [
+        "{print match($0,/a+/),RSTART,RLENGTH}"
+      ],
+      "stdin": "YmFhYWMKbm9uZQo=",
+      "files": {}
+    },
+    {
+      "name": "awk-substr-index-length",
+      "tool": "awk",
+      "feature": "awk.substr",
+      "args": [
+        "{print length($0),index($0,\"bc\"),substr($0,2,3)}"
+      ],
+      "stdin": "YWJjZGVmCg==",
+      "files": {}
+    },
+    {
+      "name": "awk-sprintf-printf-width",
+      "tool": "awk",
+      "feature": "awk.sprintf",
+      "args": [
+        "BEGIN{printf \"<%08.3d>|<%.0d>|%s\\n\",12,0,sprintf(\"%04d\",7)}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-exit-runs-end",
+      "tool": "awk",
+      "feature": "awk.exit",
+      "args": [
+        "BEGIN{print \"begin\";exit 7} END{print \"end\"}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-end-overrides-exit-status",
+      "tool": "awk",
+      "feature": "awk.end",
+      "args": [
+        "BEGIN{exit 7} END{exit 3}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-paragraph-record-separator",
+      "tool": "awk",
+      "feature": "awk.paragraph",
+      "args": [
+        "BEGIN{RS=\"\"} {print NR,NF,$1,$NF}"
+      ],
+      "stdin": "CmFscGhhIGJldGEKZ2FtbWEKCmRlbHRhCgo=",
+      "files": {}
+    },
+    {
+      "name": "awk-record-separator-colon",
+      "tool": "awk",
+      "feature": "awk.record",
+      "args": [
+        "BEGIN{RS=\":\";ORS=\"|\"} {print NR,$0}"
+      ],
+      "stdin": "b25lOnR3bzo6bGFzdA==",
+      "files": {}
+    },
+    {
+      "name": "awk-redirection-and-close",
+      "tool": "awk",
+      "feature": "awk.redirection",
+      "args": [
+        "BEGIN{print \"one\" > \"written\";close(\"written\");print \"two\" >> \"written\"}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-getline-from-file",
+      "tool": "awk",
+      "feature": "awk.getline",
+      "args": [
+        "BEGIN{while((getline value < \"extra\")>0)print value;close(\"extra\")}"
+      ],
+      "stdin": "",
+      "files": {
+        "extra": "Zmlyc3QKc2Vjb25kCg=="
+      }
+    },
+    {
+      "name": "awk-unicode-byte-length-c-locale",
+      "tool": "awk",
+      "feature": "awk.unicode",
+      "args": [
+        "{print length($0),substr($0,1,2)}"
+      ],
+      "stdin": "w6nOqQo=",
+      "files": {}
+    },
+    {
+      "name": "awk-fs-flag",
+      "tool": "awk",
+      "feature": "awk.flags",
+      "args": [
+        "-F",
+        ":",
+        "{print NF,$2}"
+      ],
+      "stdin": "YTpiOmMKOmE6Cg==",
+      "files": {}
+    },
+    {
+      "name": "awk-v-variable-before-begin",
+      "tool": "awk",
+      "feature": "awk.flags",
+      "args": [
+        "-v",
+        "VALUE=007",
+        "BEGIN{print VALUE,VALUE+0}"
+      ],
+      "stdin": "",
+      "files": {}
+    },
+    {
+      "name": "awk-assignment-operands-between-files",
+      "tool": "awk",
+      "feature": "awk.assignments",
+      "args": [
+        "BEGIN{print x} {print FNR,NR,x,$0}",
+        "x=first",
+        "one",
+        "x=second",
+        "two"
+      ],
+      "stdin": "",
+      "files": {
+        "one": "YQpiCg==",
+        "two": "Ywo="
+      }
+    },
+    {
+      "name": "awk-multiple-program-files",
+      "tool": "awk",
+      "feature": "awk.script-files",
+      "args": [
+        "-f",
+        "first.awk",
+        "-f",
+        "last.awk"
+      ],
+      "stdin": "YQpiCg==",
+      "files": {
+        "first.awk": "e3RvdGFsKz1sZW5ndGgoJDApfQo=",
+        "last.awk": "RU5Ee3ByaW50IHRvdGFsfQo="
+      }
+    },
+    {
+      "name": "awk-field-separator-regex",
+      "tool": "awk",
+      "feature": "awk.fields",
+      "args": [
+        "-F",
+        "[,:]+",
+        "{print NF,$1,$2,$3}"
+      ],
+      "stdin": "YTo6YixjCg==",
+      "files": {}
+    },
+    {
+      "name": "pipeline-sed-sort-uniq",
+      "tool": "pipeline",
+      "feature": "pipeline.sed",
+      "args": [],
+      "script": "sed -n '/^keep:/{s/^keep://;p;}' | sort | uniq | tee output",
+      "stdin": "a2VlcDpwZWFyCnNraXA6bm8Ka2VlcDphcHBsZQprZWVwOnBlYXIK"
+    },
+    {
+      "name": "pipeline-sed-awk-aggregate",
+      "tool": "pipeline",
+      "feature": "pipeline.sed-awk",
+      "args": [],
+      "script": "sed 's/:/ /g' | awk '{sum[$1]+=$2} END{print sum[\"a\"],sum[\"b\"]}' | tee output",
+      "stdin": "YToyCmI6MwphOjQK"
+    },
+    {
+      "name": "pipeline-awk-sed-format",
+      "tool": "pipeline",
+      "feature": "pipeline.awk-sed",
+      "args": [],
+      "script": "awk '$2>=2 {printf \"%s:%d\\n\",$1,$2*3}' | sed 's/:/ = /' | sort | tee output",
+      "stdin": "cGVhciAyCmFwcGxlIDQKcGx1bSAxCg=="
+    }
+  ],
+  "results": [
+    {
+      "name": "sed-address-0",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 6.472500000000011
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.9908339999999782
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-1",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.002958000000007
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1982500000000016
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-2",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.435583000000008
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.228541000000007
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-3",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.941167000000007
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.24100000000001387
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-4",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.897207999999978
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.3642910000000086
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-5",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.984791999999999
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.09770800000001145
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-6",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.384958000000012
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.2044170000000065
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-7",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.733249999999998
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.08387500000000614
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-8",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "bGFzdAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.0268330000000105
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "bGFzdAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.19583399999999074
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-9",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "bGFzdA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.533708000000047
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "bGFzdA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.184208999999953
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-10",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.533333000000027
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.12916699999999537
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-11",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.938583999999992
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKZW5kCnN0YXJ0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10504099999997152
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-12",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 8.022959000000014
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10225000000002638
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-13",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.360958000000039
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07766699999996263
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-14",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.844625000000008
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10304099999996197
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-15",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 6.885874999999999
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07858299999998053
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-16",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.6323749999999677
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.11245800000000372
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-17",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.7864170000000286
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.18145899999996118
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-18",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKbGFzdAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.759457999999995
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKbGFzdAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.13233400000001438
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-19",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKbGFzdA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.731749999999977
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKbGFzdA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.09262500000005502
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-20",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.8649580000000014
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.06508300000001555
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-21",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.9840839999999957
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07591700000000401
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-22",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.5715829999999755
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07466699999997672
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-23",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.612874999999974
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.06583299999999781
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-24",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "ZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.189915999999982
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "ZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.06670900000000302
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-25",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "ZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.7516669999999976
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "ZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07879200000002129
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-26",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKc3RhcnQKbGFzdAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.8876670000000217
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKc3RhcnQKbGFzdAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07283400000000029
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-27",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKc3RhcnQKbGFzdA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.7495420000000195
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc3RhcnQKc3RhcnQKbGFzdA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.08129199999996217
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-28",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.701166999999998
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.08754200000004175
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-29",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.259666999999979
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.06679100000002336
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-30",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.106459000000029
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.12662500000004684
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-31",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.217749999999967
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07370900000000802
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-32",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.124124999999992
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.6909580000000233
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-33",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.180707999999981
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cmxhc3Q=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.18008400000002212
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-34",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.144624999999962
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.11020800000000008
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-35",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 6.370124999999973
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.15850000000000364
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-36",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.564667000000043
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.27283299999999144
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-37",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.827832999999998
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.11891700000001038
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-38",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.064666000000045
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.19720799999998917
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-39",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.009707999999989
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.11491699999999128
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-40",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.713625000000036
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1464170000000422
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-41",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.908957999999984
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c3RhcnQKZW5kCnN0YXJ0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.09654199999999946
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-42",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKbGFzdAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.232208000000014
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKbGFzdAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.11783299999996188
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-43",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKbGFzdA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.329958000000033
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKbGFzdA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.17916700000000674
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-44",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.866583999999989
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.13729100000000471
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-45",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.651625000000024
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10866599999997106
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-46",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.429791000000023
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1435830000000351
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-address-47",
+      "tool": "sed",
+      "feature": "sed.address-matrix",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.845916999999986
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10187500000000682
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-range-resumes-after-n",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Mwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.8912090000000035
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Mwo1Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.08362499999998363
+      },
+      "status": "fail",
+      "differences": [
+        "stdout"
+      ]
+    },
+    {
+      "name": "sed-range-change-repeated",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Y2hhbmdlZApjaGFuZ2VkCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.005334000000005
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Y2hhbmdlZApjaGFuZ2VkCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1795420000000263
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-range-change-single-match",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Y2hhbmdlZAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.428999999999974
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Y2hhbmdlZAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.12745799999999008
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-delete-restarts-addressed-group",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YQpiCmMK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.246582999999987
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YQpiCmMK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1265409999999747
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-next-at-unterminated-eof",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.76237500000002
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.08495799999997189
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-append-next-order",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cXVldWVkCnR3bwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.0919999999999845
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cXVldWVkCnR3bwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.08999999999997499
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-append-delete-order",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cXVldWVkCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.590209000000016
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cXVldWVkCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.09491700000000947
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-hold-survives-delete",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "dHdvCm9uZQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.570832999999993
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "dHdvCm9uZQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.17916700000000674
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-hold-leading-empty",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Cm9uZQoKb25lCnR3bwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.215792000000022
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Cm9uZQoKb25lCnR3bwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.08691700000002811
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-exchange-initial-empty",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Cm9uZQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.643792000000019
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Cm9uZQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.14449999999999363
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-branch-test-reset",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ygo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.768000000000029
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ygo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.453125
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-branch-after-failed-substitution",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ygo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.22950000000003
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ygo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1522499999999809
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-empty-regex-address-reuse",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.306624999999997
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10449999999997317
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-empty-regex-skipped-command",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.630583999999999
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.15899999999999181
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-alternate-address-delimiter",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YS9iCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.344916000000012
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YS9iCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.09354099999995924
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-brace-negation",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "a2VlcCBBCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.932749999999942
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "a2VlcCBBCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.2190419999999449
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-repeated-files-empty-middle",
+      "tool": "sed",
+      "feature": "sed.control",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.985584000000017
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07933400000001711
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-65",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "W2FiXVthYl1bYV0K",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.491624999999999
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "W2FiXVthYl1bYV0K",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.23508399999991525
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-66",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "W2FhYV1bXQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.429416999999944
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "W2FhYV1bXQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1497909999999365
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-67",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "W2FhYWFdW2FhXQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.848541999999952
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "W2FhYWFdW2FdCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.18916600000000017
+      },
+      "status": "fail",
+      "differences": [
+        "stdout"
+      ]
+    },
+    {
+      "name": "sed-regex-68",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WGJYY1gK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.624500000000012
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WGJYY1gK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.21770900000001348
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-69",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 1,
+          "stdout": "",
+          "stderr": "c2VkOiAxOiAicy94Ki9YLzJnCiI6IG1vcmUgdGhhbiBvbmUgbnVtYmVyIG9yICdnJyBpbiBzdWJzdGl0dXRlIGZsYWdzCg==",
+          "files": {}
+        },
+        "durationMs": 4.487666999999988
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YVhiWGNYCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.13233400000001438
+      },
+      "status": "oracle-rejected",
+      "differences": [
+        "exitCode",
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "name": "sed-regex-70",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WGFiYwpYCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.255999999999972
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WGFiY1gKWAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.17966699999999491
+      },
+      "status": "fail",
+      "differences": [
+        "stdout"
+      ]
+    },
+    {
+      "name": "sed-regex-71",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YWItYWIxMmNkLWNkCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.10445900000002
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YWItYWIxMmNkLWNkCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.24608299999999872
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-72",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.440000000000055
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10187499999994998
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-73",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.564750000000004
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10058300000002873
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-74",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WFhiWAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.186791000000085
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "WFhiWAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.12941699999998946
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-75",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "W2FiXSBbXQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.159416999999962
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "W2FiXSBbXQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.15099999999995362
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-regex-76",
+      "tool": "sed",
+      "feature": "sed.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YiZuJm4mCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.820916000000011
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YiZuJm4mCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.09587499999997817
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-script-comment-after-label",
+      "tool": "sed",
+      "feature": "sed.parser",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 1,
+          "stdout": "",
+          "stderr": "c2VkOiA0OiAiOmFnYWluICMgY29tbWVudApzL2FhL2EgLi4uIjogdW5kZWZpbmVkIGxhYmVsICdhZ2FpbicK",
+          "files": {}
+        },
+        "durationMs": 4.393542000000025
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "c2VkOiBpbnZhbGlkIGJyYW5jaCBsYWJlbCAnYWdhaW4gIyBjb21tZW50Jwo=",
+          "files": {}
+        },
+        "durationMs": 0.15937499999995453
+      },
+      "status": "oracle-rejected",
+      "differences": [
+        "exitCode",
+        "stderr"
+      ]
+    },
+    {
+      "name": "sed-script-first-line-quiet",
+      "tool": "sed",
+      "feature": "sed.parser",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ygo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.42508399999997
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ygo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.07666700000004312
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-script-file-order",
+      "tool": "sed",
+      "feature": "sed.script-files",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ywo=",
+          "stderr": "",
+          "files": {
+            "first": {
+              "type": "file",
+              "bytes": "cy9hL2IvCg==",
+              "mode": 420
+            },
+            "input": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 5.1664160000000265
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ywo=",
+          "stderr": "",
+          "files": {
+            "first": {
+              "type": "file",
+              "bytes": "cy9hL2IvCg==",
+              "mode": 420
+            },
+            "input": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.4346249999999827
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-program-named-like-option",
+      "tool": "sed",
+      "feature": "sed.options",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHJlc2VydmUK",
+          "stderr": "",
+          "files": {
+            "-input": {
+              "type": "file",
+              "bytes": "cHJlc2VydmUK",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 5.545625000000086
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHJlc2VydmUK",
+          "stderr": "",
+          "files": {
+            "-input": {
+              "type": "file",
+              "bytes": "cHJlc2VydmUK",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.18262500000003
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-file-boundary-no-newline",
+      "tool": "sed",
+      "feature": "sed.files",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MQpvbmUKMgp0d28K",
+          "stderr": "",
+          "files": {
+            "empty": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            },
+            "first": {
+              "type": "file",
+              "bytes": "b25l",
+              "mode": 420
+            },
+            "last": {
+              "type": "file",
+              "bytes": "dHdvCg==",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 6.551042000000052
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MQpvbmUyCnR3bwo=",
+          "stderr": "",
+          "files": {
+            "empty": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            },
+            "first": {
+              "type": "file",
+              "bytes": "b25l",
+              "mode": 420
+            },
+            "last": {
+              "type": "file",
+              "bytes": "dHdvCg==",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.2759170000000495
+      },
+      "status": "fail",
+      "differences": [
+        "stdout"
+      ]
+    },
+    {
+      "name": "sed-file-final-address",
+      "tool": "sed",
+      "feature": "sed.files",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ygo=",
+          "stderr": "",
+          "files": {
+            "first": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            },
+            "last": {
+              "type": "file",
+              "bytes": "Ygo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 5.629167000000052
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Ygo=",
+          "stderr": "",
+          "files": {
+            "first": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            },
+            "last": {
+              "type": "file",
+              "bytes": "Ygo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.27441699999997127
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-inplace-quiet-truncates-by-request",
+      "tool": "sed",
+      "feature": "sed.in-place",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "input": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            },
+            "input.bak": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 6.452166999999918
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "input": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            },
+            "input.bak": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.3833750000000009
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-inplace-empty-file",
+      "tool": "sed",
+      "feature": "sed.in-place",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "input": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            },
+            "input.bak": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 6.020167000000015
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "input": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            },
+            "input.bak": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.1407089999999016
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-inplace-quit-per-file",
+      "tool": "sed",
+      "feature": "sed.in-place",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "first": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            },
+            "first.bak": {
+              "type": "file",
+              "bytes": "YQpiCg==",
+              "mode": 420
+            },
+            "last": {
+              "type": "file",
+              "bytes": "",
+              "mode": 420
+            },
+            "last.bak": {
+              "type": "file",
+              "bytes": "YwpkCg==",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 9.689792000000011
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "first": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            },
+            "first.bak": {
+              "type": "file",
+              "bytes": "YQpiCg==",
+              "mode": 420
+            },
+            "last": {
+              "type": "file",
+              "bytes": "Ywo=",
+              "mode": 420
+            },
+            "last.bak": {
+              "type": "file",
+              "bytes": "YwpkCg==",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.25899999999990087
+      },
+      "status": "fail",
+      "differences": [
+        "file:last"
+      ]
+    },
+    {
+      "name": "sed-inplace-existing-backup",
+      "tool": "sed",
+      "feature": "sed.in-place",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "input": {
+              "type": "file",
+              "bytes": "Ygo=",
+              "mode": 420
+            },
+            "input.bak": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 6.561750000000075
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "input": {
+              "type": "file",
+              "bytes": "Ygo=",
+              "mode": 420
+            },
+            "input.bak": {
+              "type": "file",
+              "bytes": "YQo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.16791699999998855
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-read-command-gap",
+      "tool": "sed",
+      "feature": "sed.file-read",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YQpleHRyYQpiCg==",
+          "stderr": "",
+          "files": {
+            "extra": {
+              "type": "file",
+              "bytes": "ZXh0cmEK",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 4.709917000000019
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "c2VkOiB1bnN1cHBvcnRlZCBzZWQgY29tbWFuZCAncicK",
+          "files": {
+            "extra": {
+              "type": "file",
+              "bytes": "ZXh0cmEK",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.1749169999999367
+      },
+      "status": "unsupported",
+      "differences": [
+        "exitCode",
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "name": "sed-write-command-gap",
+      "tool": "sed",
+      "feature": "sed.file-write",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "written": {
+              "type": "file",
+              "bytes": "YQpiCg==",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 4.823750000000018
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "c2VkOiB1bnN1cHBvcnRlZCBzZWQgY29tbWFuZCAndycK",
+          "files": {}
+        },
+        "durationMs": 0.11304200000006404
+      },
+      "status": "unsupported",
+      "differences": [
+        "exitCode",
+        "stderr",
+        "file:written"
+      ]
+    },
+    {
+      "name": "sed-list-command-gap",
+      "tool": "sed",
+      "feature": "sed.list",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YVx0YiQK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.445625000000064
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "c2VkOiB1bnN1cHBvcnRlZCBzZWQgY29tbWFuZCAnbCcK",
+          "files": {}
+        },
+        "durationMs": 0.09866700000009132
+      },
+      "status": "unsupported",
+      "differences": [
+        "exitCode",
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "name": "sed-pattern-backreference-gap",
+      "tool": "sed",
+      "feature": "sed.regex-backreference",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "c2FtZQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.830874999999992
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "c2VkOiBwYXR0ZXJuIGJhY2tyZWZlcmVuY2VzIGFyZSBub3Qgc3VwcG9ydGVkCg==",
+          "files": {}
+        },
+        "durationMs": 0.2169579999999769
+      },
+      "status": "unsupported",
+      "differences": [
+        "exitCode",
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "name": "sed-binary-chunks-1",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "/1oAgApa",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.205874999999992
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "/1oAgApa",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.18316699999991215
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-unicode-c-locale-1",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.239709000000062
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1164169999999558
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-binary-chunks-2",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "/1oAgApa",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.808999999999969
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "/1oAgApa",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1404170000000704
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-unicode-c-locale-2",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.992666999999983
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.09524999999996453
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-binary-chunks-7",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "/1oAgApa",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.1665420000000495
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "/1oAgApa",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.09658300000000963
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-unicode-c-locale-7",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.471042000000011
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.10120900000003985
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-binary-chunks-4096",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "/1oAgApa",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 6.723999999999933
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "/1oAgApa",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.13733400000000984
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "sed-unicode-c-locale-4096",
+      "tool": "sed",
+      "feature": "sed.bytes",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.418874999999957
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHLOqWZpeGUgzqkg8J+QiAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1296660000000429
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-fields-default-whitespace",
+      "tool": "awk",
+      "feature": "awk.fields",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBhIGMKMCAgCjEgbGFzdCBsYXN0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.346125000000029
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBhIGMKMCAgCjEgbGFzdCBsYXN0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 1.9104169999999385
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-field-assignment-rebuilds-record",
+      "tool": "awk",
+      "feature": "awk.field",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YXxYfGN8Mwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.042832999999973
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YXxYfGN8Mwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.4717919999999367
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-record-assignment-rebuilds-fields",
+      "tool": "awk",
+      "feature": "awk.record",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.230542000000014
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.37875000000008185
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-nf-extending-clearing",
+      "tool": "awk",
+      "feature": "awk.nf",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YXxifHx8CmEK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 7.013958000000002
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YXxifHx8CmEK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.41066699999998946
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-regex-pattern-and-default-action",
+      "tool": "awk",
+      "feature": "awk.regex",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "a2VlcDphCmtlZXA6Ywo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 6.299458999999956
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "a2VlcDphCmtlZXA6Ywo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.4592079999999896
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-range-pattern-restarts",
+      "tool": "awk",
+      "feature": "awk.range",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSBzdGFydAoyIHgKMyBlbmQKNSBzdGFydAo2IGVuZAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.593375000000037
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSBzdGFydAoyIHgKMyBlbmQKNSBzdGFydAo2IGVuZAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.4112920000000031
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-begin-end-empty-input",
+      "tool": "awk",
+      "feature": "awk.begin",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YmVnaW4KMCBlbmQK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.3432920000000195
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YmVnaW4KMCBlbmQK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.38762499999995725
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-next-still-counts-records",
+      "tool": "awk",
+      "feature": "awk.next",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MiBiCjQgZAo0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.246167000000014
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MiBiCjQgZAo0Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.3046669999999949
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-numeric-string-comparison",
+      "tool": "awk",
+      "feature": "awk.numeric",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAxIDEgMQoxIDAgMSAxCjAgMCAxIDAKMCAwIDAgMAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.560292000000004
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAxIDEgMQoxIDAgMSAxCjAgMCAxIDAKMCAwIDAgMAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.36075000000005275
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-arithmetic-assignment-precedence",
+      "tool": "awk",
+      "feature": "awk.arithmetic",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NiA0Ci00IDUxMgo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.885375000000067
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NiA0Ci00IDUxMgo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.2116249999999127
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-short-circuit-side-effects",
+      "tool": "awk",
+      "feature": "awk.short",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MCAxIDAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.185624999999959
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MCAxIDAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.12524999999993724
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-concatenation-precedence",
+      "tool": "awk",
+      "feature": "awk.concatenation",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHJlM3Bvc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.8137080000000196
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "cHJlM3Bvc3QK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.12945799999999963
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-array-membership-delete",
+      "tool": "awk",
+      "feature": "awk.array",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAwCjAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.39712499999996
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAwCjAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.2347500000000764
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-associative-aggregation",
+      "tool": "awk",
+      "feature": "awk.associative",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NiAzCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.466957999999977
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NiAzCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.3331670000000031
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-multidimensional-array",
+      "tool": "awk",
+      "feature": "awk.multidimensional",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "eCAxCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.550500000000056
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "eCAxCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.16658300000005966
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-for-in-order-independent-count",
+      "tool": "awk",
+      "feature": "awk.for",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyAyCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.6326250000000755
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyAyCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.2103749999999991
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-split-clears-existing-array",
+      "tool": "awk",
+      "feature": "awk.split",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBiIDAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.131416999999942
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBiIDAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.5228339999999889
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-for-while-break-continue",
+      "tool": "awk",
+      "feature": "awk.for",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MjAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.724084000000062
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MjAK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.3725000000000591
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-do-while",
+      "tool": "awk",
+      "feature": "awk.do",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Mwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.7714169999999285
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Mwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.16012499999999363
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-function-array-reference",
+      "tool": "awk",
+      "feature": "awk.function",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAyIDIK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 5.063541999999984
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAyIDIK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.41295800000000327
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-recursive-function",
+      "tool": "awk",
+      "feature": "awk.recursive",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NzIwCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.4887919999999895
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NzIwCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.25900000000001455
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-function-local-extra-parameter",
+      "tool": "awk",
+      "feature": "awk.function",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NCA5OQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 6.679084000000103
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NCA5OQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1728330000000824
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-sub-gsub-replacement-count",
+      "tool": "awk",
+      "feature": "awk.sub",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBiW2FdblthXW5bYV0K",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 6.009875000000079
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBiW2FdblthXW5bYV0K",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.22641599999997197
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-sub-target-field",
+      "tool": "awk",
+      "feature": "awk.sub",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YSBiWG5hbmEK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 7.822790999999938
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YSBiWG5hbmEK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.2277080000000069
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-match-rstart-rlength",
+      "tool": "awk",
+      "feature": "awk.match",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MiAyIDMKMCAwIC0xCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 6.07912500000009
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MiAyIDMKMCAwIC0xCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.24299999999993815
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-substr-index-length",
+      "tool": "awk",
+      "feature": "awk.substr",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NiAyIGJjZAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.439457999999945
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NiAyIGJjZAo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.1760420000000522
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-sprintf-printf-width",
+      "tool": "awk",
+      "feature": "awk.sprintf",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "PCAgICAgMDEyPnw8PnwwMDA3Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.593916000000036
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "PCAgICAgMDEyPnw8PnwwMDA3Cg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.6252090000000408
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-exit-runs-end",
+      "tool": "awk",
+      "feature": "awk.exit",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 7,
+          "stdout": "YmVnaW4KZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.470416
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 7,
+          "stdout": "YmVnaW4KZW5kCg==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.17879199999993034
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-end-overrides-exit-status",
+      "tool": "awk",
+      "feature": "awk.end",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 3,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.8743330000000924
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 3,
+          "stdout": "",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.11466600000005656
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-paragraph-record-separator",
+      "tool": "awk",
+      "feature": "awk.paragraph",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAzIGFscGhhIGdhbW1hCjIgMSBkZWx0YSBkZWx0YQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.85120900000004
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSAzIGFscGhhIGdhbW1hCjIgMSBkZWx0YSBkZWx0YQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.24408299999993233
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-record-separator-colon",
+      "tool": "awk",
+      "feature": "awk.record",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSBvbmV8MiB0d298MyB8NCBsYXN0fA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 3.6565420000000586
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MSBvbmV8MiB0d298MyB8NCBsYXN0fA==",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.13274999999998727
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-redirection-and-close",
+      "tool": "awk",
+      "feature": "awk.redirection",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "written": {
+              "type": "file",
+              "bytes": "b25lCnR3bwo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 4.498749999999973
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "files": {
+            "written": {
+              "type": "file",
+              "bytes": "b25lCnR3bwo=",
+              "mode": 438
+            }
+          }
+        },
+        "durationMs": 0.18170899999995527
+      },
+      "status": "fail",
+      "differences": [
+        "file:written"
+      ]
+    },
+    {
+      "name": "awk-getline-from-file",
+      "tool": "awk",
+      "feature": "awk.getline",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Zmlyc3QKc2Vjb25kCg==",
+          "stderr": "",
+          "files": {
+            "extra": {
+              "type": "file",
+              "bytes": "Zmlyc3QKc2Vjb25kCg==",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 6.049334000000044
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 2,
+          "stdout": "",
+          "stderr": "YXdrOiBleHBlY3RlZCBhbiBpZGVudGlmaWVyIGF0IGJ5dGUgMTMK",
+          "files": {
+            "extra": {
+              "type": "file",
+              "bytes": "Zmlyc3QKc2Vjb25kCg==",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.11341699999991306
+      },
+      "status": "fail",
+      "differences": [
+        "exitCode",
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "name": "awk-unicode-byte-length-c-locale",
+      "tool": "awk",
+      "feature": "awk.unicode",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NCDDqQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.316500000000019
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NCDDqQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.27083299999992505
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-fs-flag",
+      "tool": "awk",
+      "feature": "awk.flags",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBiCjMgYQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.079917000000023
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBiCjMgYQo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.18841700000007222
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-v-variable-before-begin",
+      "tool": "awk",
+      "feature": "awk.flags",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MDA3IDcK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.36099999999999
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MDA3IDcK",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.16783300000008694
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-assignment-operands-between-files",
+      "tool": "awk",
+      "feature": "awk.assignments",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "CjEgMSBmaXJzdCBhCjIgMiBmaXJzdCBiCjEgMyBzZWNvbmQgYwo=",
+          "stderr": "",
+          "files": {
+            "one": {
+              "type": "file",
+              "bytes": "YQpiCg==",
+              "mode": 420
+            },
+            "two": {
+              "type": "file",
+              "bytes": "Ywo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 7.281916000000024
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "CjEgMSBmaXJzdCBhCjIgMiBmaXJzdCBiCjEgMyBzZWNvbmQgYwo=",
+          "stderr": "",
+          "files": {
+            "one": {
+              "type": "file",
+              "bytes": "YQpiCg==",
+              "mode": 420
+            },
+            "two": {
+              "type": "file",
+              "bytes": "Ywo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.24608299999999872
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-multiple-program-files",
+      "tool": "awk",
+      "feature": "awk.script-files",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Mgo=",
+          "stderr": "",
+          "files": {
+            "first.awk": {
+              "type": "file",
+              "bytes": "e3RvdGFsKz1sZW5ndGgoJDApfQo=",
+              "mode": 420
+            },
+            "last.awk": {
+              "type": "file",
+              "bytes": "RU5Ee3ByaW50IHRvdGFsfQo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 5.404292000000055
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "Mgo=",
+          "stderr": "",
+          "files": {
+            "first.awk": {
+              "type": "file",
+              "bytes": "e3RvdGFsKz1sZW5ndGgoJDApfQo=",
+              "mode": 420
+            },
+            "last.awk": {
+              "type": "file",
+              "bytes": "RU5Ee3ByaW50IHRvdGFsfQo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 0.20391600000004928
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "awk-field-separator-regex",
+      "tool": "awk",
+      "feature": "awk.fields",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBhIGIgYwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 4.850458000000003
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "MyBhIGIgYwo=",
+          "stderr": "",
+          "files": {}
+        },
+        "durationMs": 0.18658400000003894
+      },
+      "status": "pass",
+      "differences": []
+    },
+    {
+      "name": "pipeline-sed-sort-uniq",
+      "tool": "pipeline",
+      "feature": "pipeline.sed",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YXBwbGUKcGVhcgo=",
+          "stderr": "",
+          "files": {
+            "output": {
+              "type": "file",
+              "bytes": "YXBwbGUKcGVhcgo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 16.343333999999913
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YXBwbGUKcGVhcgo=",
+          "stderr": "",
+          "files": {
+            "output": {
+              "type": "file",
+              "bytes": "YXBwbGUKcGVhcgo=",
+              "mode": 438
+            }
+          }
+        },
+        "durationMs": 7.9028749999999945
+      },
+      "status": "fail",
+      "differences": [
+        "file:output"
+      ]
+    },
+    {
+      "name": "pipeline-sed-awk-aggregate",
+      "tool": "pipeline",
+      "feature": "pipeline.sed-awk",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NiAzCg==",
+          "stderr": "",
+          "files": {
+            "output": {
+              "type": "file",
+              "bytes": "NiAzCg==",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 16.548584000000005
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "NiAzCg==",
+          "stderr": "",
+          "files": {
+            "output": {
+              "type": "file",
+              "bytes": "NiAzCg==",
+              "mode": 438
+            }
+          }
+        },
+        "durationMs": 1.9244579999999587
+      },
+      "status": "fail",
+      "differences": [
+        "file:output"
+      ]
+    },
+    {
+      "name": "pipeline-awk-sed-format",
+      "tool": "pipeline",
+      "feature": "pipeline.awk-sed",
+      "native": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YXBwbGUgPSAxMgpwZWFyID0gNgo=",
+          "stderr": "",
+          "files": {
+            "output": {
+              "type": "file",
+              "bytes": "YXBwbGUgPSAxMgpwZWFyID0gNgo=",
+              "mode": 420
+            }
+          }
+        },
+        "durationMs": 18.722375000000056
+      },
+      "virtual": {
+        "status": "completed",
+        "observation": {
+          "exitCode": 0,
+          "stdout": "YXBwbGUgPSAxMgpwZWFyID0gNgo=",
+          "stderr": "",
+          "files": {
+            "output": {
+              "type": "file",
+              "bytes": "YXBwbGUgPSAxMgpwZWFyID0gNgo=",
+              "mode": 438
+            }
+          }
+        },
+        "durationMs": 2.016208000000006
+      },
+      "status": "fail",
+      "differences": [
+        "file:output"
+      ]
+    }
+  ]
+}

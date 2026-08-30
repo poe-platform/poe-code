@@ -1,0 +1,26 @@
+{
+  "role": "make",
+  "path": "/Library/Developer/CommandLineTools/usr/bin/make",
+  "initial": {
+    "mode": 493,
+    "bytes": 403216,
+    "dev": 16777232,
+    "ino": 142104311,
+    "mtimeMs": 1779472532000,
+    "ctimeMs": 1785171104570.683
+  },
+  "symbolicLink": false,
+  "resolved": "/Library/Developer/CommandLineTools/usr/bin/make",
+  "target": {
+    "mode": 493,
+    "bytes": 403216,
+    "dev": 16777232,
+    "ino": 142104311,
+    "mtimeMs": 1779472532000,
+    "ctimeMs": 1785171104570.683
+  },
+  "sha256": "1cb12712fad2ccd6f67c05b73e8dece382f14bfef3be7550bc814eb7975c555b",
+  "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+  "executed": false,
+  "executedVersion": null
+}

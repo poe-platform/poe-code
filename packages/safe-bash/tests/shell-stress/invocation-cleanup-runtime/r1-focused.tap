@@ -1,0 +1,71 @@
+TAP version 13
+# Subtest: R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+ok 1 - R1 immediate dispose completes already-queued middleware plugin setup and releases its lease
+  ---
+  duration_ms: 0.7705
+  type: 'test'
+  ...
+# Subtest: R1 async admitted setup can register after acquisition without reopening external admission
+ok 2 - R1 async admitted setup can register after acquisition without reopening external admission
+  ---
+  duration_ms: 1.711417
+  type: 'test'
+  ...
+# Subtest: R1 multiple queued asynchronous setups finish before reverse plugin disposal
+ok 3 - R1 multiple queued asynchronous setups finish before reverse plugin disposal
+  ---
+  duration_ms: 0.182917
+  type: 'test'
+  ...
+# Subtest: R1 saved completed setup hosts do not borrow another setup's disposal admission
+ok 4 - R1 saved completed setup hosts do not borrow another setup's disposal admission
+  ---
+  duration_ms: 2.974916
+  type: 'test'
+  ...
+# Subtest: R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+ok 5 - R1 runtime-supported nested plugin setup remains tracked through asynchronous descendants
+  ---
+  duration_ms: 0.450792
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+ok 6 - R1 preserves explicit setup rejection Error: explicit setup failure and successful prior disposal
+  ---
+  duration_ms: 0.37125
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection undefined and successful prior disposal
+ok 7 - R1 preserves explicit setup rejection undefined and successful prior disposal
+  ---
+  duration_ms: 0.319708
+  type: 'test'
+  ...
+# Subtest: R1 preserves explicit setup rejection null and successful prior disposal
+ok 8 - R1 preserves explicit setup rejection null and successful prior disposal
+  ---
+  duration_ms: 0.361
+  type: 'test'
+  ...
+# Subtest: R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+ok 9 - R1 immediate dispose preserves explicit failure compatibility after a queued successful setup
+  ---
+  duration_ms: 0.263083
+  type: 'test'
+  ...
+# Subtest: R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+ok 10 - R1 completed setup disposal still drains reverse callbacks and aggregates exact failure
+  ---
+  duration_ms: 0.494791
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 185.707542
+{"code":0,"signal":null,"deadlineMs":15000}

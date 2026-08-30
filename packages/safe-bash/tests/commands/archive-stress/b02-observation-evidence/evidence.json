@@ -1,0 +1,127 @@
+{
+  "profile": "memory-intact-57a6148",
+  "classification": "fixture-only transient overlay on unchanged retained verifier inputs; not current moving-source or full-gate validation",
+  "frozen": "/private/tmp/safe-bash-pax-independent-YKSbHc/tree",
+  "sourceHead": "cd8b5c8025e9d40ba71594f7b709a42f5249988d",
+  "priorSeal": "3144d0d90d695e021f6bd279c34ef31c49cd49c567d5b29c80c7acae7346f261",
+  "started": "2026-08-27T02:28:53.642Z",
+  "commands": [
+    {
+      "label": "no-tar-observation",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/node_modules/tsx/dist/loader.mjs",
+        "/tmp/safe-bash-b02-overlay-Rhxejz/control.mjs",
+        "/private/tmp/safe-bash-pax-independent-YKSbHc/tree",
+        "memory-intact-57a6148"
+      ],
+      "cwd": "/private/tmp/safe-bash-pax-independent-YKSbHc/tree",
+      "timeout": 10000,
+      "cleanup": "owned group absent",
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"profile\":\"memory-intact-57a6148\",\"noTarImportedOrInvoked\":true,\"publications\":0,\"beforeUnscoped\":{\"type\":\"file\",\"size\":15,\"mode\":33206,\"ino\":2,\"dev\":0,\"uid\":0,\"gid\":0,\"nlink\":1,\"atimeMs\":1787797735167,\"mtimeMs\":1787797735167,\"ctimeMs\":1787797735167,\"birthtimeMs\":1787797735167},\"exposed\":{\"type\":\"file\",\"size\":15,\"mode\":33206,\"ino\":2,\"dev\":0,\"uid\":0,\"gid\":0,\"nlink\":1,\"atimeMs\":1787797735167,\"mtimeMs\":1787797735167,\"ctimeMs\":1787797735167,\"birthtimeMs\":1787797735167},\"sameScopeByReference\":true,\"fullStatEqualBeforeProofRead\":true,\"bytesPreserved\":true,\"interpretation\":\"same backing entry; instrumentation changed exposed identity eligibility before any archive operation\"}\n",
+      "stderr": "",
+      "bytes": 679
+    },
+    {
+      "label": "B02-only",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/node_modules/tsx/dist/loader.mjs",
+        "--test",
+        "--test-timeout=10000",
+        "--test-name-pattern=^B02 ",
+        "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/.b02-observation-Rhxejz.test.ts"
+      ],
+      "cwd": "/private/tmp/safe-bash-pax-independent-YKSbHc/tree",
+      "timeout": 20000,
+      "cleanup": "owned group absent",
+      "status": 0,
+      "signal": null,
+      "stdout": "TAP version 13\n# Subtest: B02 default 64 MiB entry declaration rejects plus one before body reads or publication\nok 1 - B02 default 64 MiB entry declaration rejects plus one before body reads or publication\n  ---\n  duration_ms: 5.321125\n  type: 'test'\n  ...\n# {\"over\":false,\"declaredBytes\":67108864,\"headerBytes\":512,\"fixtureSha256\":\"c21195bebe2b19453dde6583bfaf751ca100864dc99aacb09fcac92a366d0c93\",\"pulls\":2,\"returns\":1,\"publications\":1,\"exitCode\":2,\"stdout\":{\"type\":\"Buffer\",\"data\":[]},\"stderr\":\"tar: independent boundary control reached body read\\\\n\"}\n# {\"over\":true,\"declaredBytes\":67108865,\"headerBytes\":512,\"fixtureSha256\":\"2f6dbac00692dbe9c385c2a345a295df2ffa794d7f7c8b0bfd9cf2e2996461d1\",\"pulls\":1,\"returns\":1,\"publications\":0,\"exitCode\":2,\"stdout\":{\"type\":\"Buffer\",\"data\":[]},\"stderr\":\"tar: entry byte limit exceeded\\\\n\"}\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 156.487\n",
+      "stderr": "",
+      "bytes": 933
+    },
+    {
+      "label": "scoped-archive-types",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/node_modules/typescript/bin/tsc",
+        "-p",
+        "/tmp/safe-bash-b02-overlay-Rhxejz/scope.json"
+      ],
+      "cwd": "/private/tmp/safe-bash-pax-independent-YKSbHc/tree",
+      "timeout": 60000,
+      "cleanup": "owned group absent",
+      "status": 2,
+      "signal": null,
+      "stdout": "error TS2688: Cannot find type definition file for 'node'.\n  The file is in the program because:\n    Entry point of type library 'node' specified in compilerOptions\n",
+      "stderr": "",
+      "bytes": 165
+    }
+  ],
+  "node": "v22.22.2",
+  "preservedBefore": {
+    "authorManifest": "269d72a73614985f1f16257fa1951dd6eeb4d474230724be13db9c608780b06f",
+    "authorEntries": 167,
+    "rawFailure": "f3ea27f023c79ef47bd89e7973eaafafafea8af23f29123bae19e2d74478f465"
+  },
+  "frozenBefore": {
+    "count": 1629,
+    "sha256": "ff70233eeb538442add987577203ae48b6bc0ee148a629bb3686117ac238b6a0"
+  },
+  "overlay": {
+    "path": "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/.b02-observation-Rhxejz.test.ts",
+    "original": "tests/commands/archive-stress/limits-effects.test.ts",
+    "originalSha256": "b7962d85dd8362b5da7f4df5839fb6e7b1f9cbd19295607252717a4e7018f2ae",
+    "patchedSha256": "7bedea0eddefcf40feb216fe41a600d2af429ff10813ed8a64df2e2d63329efe",
+    "memoryHash": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+    "controlSha256": "33d23e73ab9bd99d38058adb802a2e8b002f2aeb587beac323149f3ab0598d23",
+    "regularFile": true,
+    "originalFrozenFileUnmodified": true
+  },
+  "scopedTypes": {
+    "extends": "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tsconfig.json",
+    "compilerOptions": {
+      "noEmit": true
+    },
+    "files": [
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/.b02-observation-Rhxejz.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/acceptance.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/fixtures.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/hardlink-identity.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/helpers.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/long-link-regression.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/native.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/pax-extensibility.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive-stress/pax-native.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/aggregate-integration.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/boundaries.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/capture-safety.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/capture-source.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/core.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/helpers.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/lifecycle.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/native.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/options.test.ts",
+      "/private/tmp/safe-bash-pax-independent-YKSbHc/tree/tests/commands/archive/safety.test.ts"
+    ],
+    "include": [],
+    "exclude": []
+  },
+  "pass": false,
+  "error": {
+    "message": "error TS2688: Cannot find type definition file for 'node'.\n  The file is in the program because:\n    Entry point of type library 'node' specified in compilerOptions\n\n\n2 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: error TS2688: Cannot find type definition file for 'node'.\n  The file is in the program because:\n    Entry point of type library 'node' specified in compilerOptions\n\n\n2 !== 0\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/b02-observation-evidence/run.mjs:72:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/b02-observation-evidence/run.mjs:101:3"
+  },
+  "cleanup": {
+    "removedOnlyOwnedOverlayAndTemporaryDirectory": true,
+    "originalSnapshotRetained": true
+  },
+  "finished": "2026-08-27T02:28:55.695Z"
+}

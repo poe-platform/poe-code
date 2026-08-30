@@ -1,0 +1,714 @@
+{
+  "schema": "scoped-env-v13-independent-final/1",
+  "at": "2026-08-28T10:18:35.287Z",
+  "verdict": "HOLD_NO_FULL_DRIVER_ACCEPTANCE_NO_RELEASE",
+  "preexecutionCommit": "608a74b85aabd4d55baf4cdd67e538fda6d12b3d",
+  "freeze": "bdb49d758809134e5aeb2aef57f8656a580f142e",
+  "source": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+  "reseal": "96daebc077381fb63ab6447a26ab707ce790ff25",
+  "evidence": "770381bc61b49b5abed96acdf0ab09f2d4b610ca",
+  "driverNormalizedSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
+  "profileNormalizedSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "projectionNormalizedSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "routesNormalizedSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+  "product": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "package": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "packageQualification": "Carried expected hash only; no fresh pack/A10/product execution",
+  "shipping": {
+    "boundFiles": 38,
+    "unchangedMembers": 35,
+    "changed": [
+      "DRIVER.json",
+      "execute.mjs",
+      "tool-routing.mjs"
+    ],
+    "loadChecks": [
+      {
+        "group": "core",
+        "modules": [
+          {
+            "name": "fenced-supervisor.mjs",
+            "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+          },
+          {
+            "name": "common.mjs",
+            "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+          },
+          {
+            "name": "policy.mjs",
+            "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+          },
+          {
+            "name": "supervise.mjs",
+            "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+          },
+          {
+            "name": "process-observer.mjs",
+            "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+          },
+          {
+            "name": "os-instruction-fence.mjs",
+            "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+          },
+          {
+            "name": "transport.mjs",
+            "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+          },
+          {
+            "name": "projection.mjs",
+            "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+          },
+          {
+            "name": "tool-routing.mjs",
+            "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+          },
+          {
+            "name": "external-admission.mjs",
+            "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+          },
+          {
+            "name": "external.mjs",
+            "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+          }
+        ]
+      },
+      {
+        "group": "compound-errors",
+        "modules": [
+          {
+            "name": "fenced-supervisor.mjs",
+            "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+          },
+          {
+            "name": "common.mjs",
+            "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+          },
+          {
+            "name": "policy.mjs",
+            "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+          },
+          {
+            "name": "supervise.mjs",
+            "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+          },
+          {
+            "name": "process-observer.mjs",
+            "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+          },
+          {
+            "name": "os-instruction-fence.mjs",
+            "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+          },
+          {
+            "name": "transport.mjs",
+            "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+          },
+          {
+            "name": "projection.mjs",
+            "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+          },
+          {
+            "name": "tool-routing.mjs",
+            "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+          },
+          {
+            "name": "external-admission.mjs",
+            "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+          },
+          {
+            "name": "external.mjs",
+            "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+          }
+        ]
+      },
+      {
+        "group": "poison-restoration",
+        "modules": [
+          {
+            "name": "fenced-supervisor.mjs",
+            "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+          },
+          {
+            "name": "common.mjs",
+            "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+          },
+          {
+            "name": "policy.mjs",
+            "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+          },
+          {
+            "name": "supervise.mjs",
+            "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+          },
+          {
+            "name": "process-observer.mjs",
+            "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+          },
+          {
+            "name": "os-instruction-fence.mjs",
+            "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+          },
+          {
+            "name": "transport.mjs",
+            "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+          },
+          {
+            "name": "projection.mjs",
+            "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+          },
+          {
+            "name": "tool-routing.mjs",
+            "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+          },
+          {
+            "name": "external-admission.mjs",
+            "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+          },
+          {
+            "name": "external.mjs",
+            "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+          }
+        ]
+      },
+      {
+        "group": "partial-installation",
+        "modules": [
+          {
+            "name": "fenced-supervisor.mjs",
+            "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+          },
+          {
+            "name": "common.mjs",
+            "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+          },
+          {
+            "name": "policy.mjs",
+            "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+          },
+          {
+            "name": "supervise.mjs",
+            "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+          },
+          {
+            "name": "process-observer.mjs",
+            "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+          },
+          {
+            "name": "os-instruction-fence.mjs",
+            "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+          },
+          {
+            "name": "transport.mjs",
+            "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+          },
+          {
+            "name": "projection.mjs",
+            "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+          },
+          {
+            "name": "tool-routing.mjs",
+            "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+          },
+          {
+            "name": "external-admission.mjs",
+            "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+          },
+          {
+            "name": "external.mjs",
+            "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+          }
+        ]
+      },
+      {
+        "group": "authority",
+        "modules": [
+          {
+            "name": "fenced-supervisor.mjs",
+            "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+          },
+          {
+            "name": "common.mjs",
+            "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+          },
+          {
+            "name": "policy.mjs",
+            "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+          },
+          {
+            "name": "supervise.mjs",
+            "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+          },
+          {
+            "name": "process-observer.mjs",
+            "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+          },
+          {
+            "name": "os-instruction-fence.mjs",
+            "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+          },
+          {
+            "name": "transport.mjs",
+            "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+          },
+          {
+            "name": "projection.mjs",
+            "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+          },
+          {
+            "name": "tool-routing.mjs",
+            "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+          },
+          {
+            "name": "external-admission.mjs",
+            "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+          },
+          {
+            "name": "external.mjs",
+            "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+          }
+        ]
+      }
+    ]
+  },
+  "counts": {
+    "pass": 30,
+    "fail": 2,
+    "unexecuted": 1
+  },
+  "accounting": {
+    "staticOnly": {
+      "pass": 9,
+      "fail": 1
+    },
+    "adapterCases": {
+      "pass": 20,
+      "fail": 1,
+      "unexecuted": 1
+    },
+    "lifecycle": {
+      "pass": 1
+    },
+    "totalCases": 33,
+    "wholeGateOrOld22Rescore": false
+  },
+  "families": [
+    {
+      "id": "E01",
+      "cases": [
+        {
+          "id": "E01.1",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E01.2",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E01.3",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        }
+      ]
+    },
+    {
+      "id": "E02",
+      "cases": [
+        {
+          "id": "E02.1",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        },
+        {
+          "id": "E02.2",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        },
+        {
+          "id": "E02.3",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        },
+        {
+          "id": "E02.4",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        }
+      ]
+    },
+    {
+      "id": "E03",
+      "cases": [
+        {
+          "id": "E03.1",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E03.2",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E03.3",
+          "status": "UNEXECUTED",
+          "kind": "EXERCISED_PREREQUISITE_ONLY"
+        },
+        {
+          "id": "E03.4",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        }
+      ]
+    },
+    {
+      "id": "E04",
+      "cases": [
+        {
+          "id": "E04.1",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E04.2",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        }
+      ]
+    },
+    {
+      "id": "E05",
+      "cases": [
+        {
+          "id": "E05.1",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E05.2",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E05.3",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        }
+      ]
+    },
+    {
+      "id": "E06",
+      "cases": [
+        {
+          "id": "E06.1",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E06.2",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        }
+      ]
+    },
+    {
+      "id": "E07",
+      "cases": [
+        {
+          "id": "E07.1",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E07.2",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E07.3",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        }
+      ]
+    },
+    {
+      "id": "E08",
+      "cases": [
+        {
+          "id": "E08.1",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E08.2",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        }
+      ]
+    },
+    {
+      "id": "E09",
+      "cases": [
+        {
+          "id": "E09.1",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E09.2",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E09.3",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "cases": [
+        {
+          "id": "E10.1",
+          "status": "FAIL",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E10.2",
+          "status": "PASS",
+          "kind": "EXERCISED"
+        },
+        {
+          "id": "E10.3",
+          "status": "FAIL",
+          "kind": "STATIC_ONLY"
+        }
+      ]
+    },
+    {
+      "id": "E11",
+      "cases": [
+        {
+          "id": "E11.1",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        },
+        {
+          "id": "E11.2",
+          "status": "PASS",
+          "kind": "EXERCISED_LIFECYCLE"
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "cases": [
+        {
+          "id": "E12.1",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        },
+        {
+          "id": "E12.2",
+          "status": "PASS",
+          "kind": "STATIC_ONLY"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "R1",
+      "affected": "E10.1",
+      "classification": "Reviewer VM fixture failure, not candidate route denial",
+      "detail": "Host assert.deepEqual(strict) compared the VM-realm argv array against a host-realm array at worker.mjs:240. It failed before boundedExec could record pre-dispatch telemetry or call spawnSync. Authority Git dispatches:0.",
+      "futureCorrectionOnly": "A separately authorized versioned harness can validate length and primitive argv entries or copy the array into the host realm before the same exact assertions. No correction or retry performed here."
+    },
+    {
+      "id": "R2",
+      "affected": "E10.3",
+      "classification": "Dependent missing-evidence failure",
+      "detail": "Telemetry assertion expected two records, observed zero (0 !== 2); preserved FAIL. No actual inherited Git authority-read acceptance under shipping fence."
+    },
+    {
+      "id": "R3",
+      "affected": "E03.3",
+      "classification": "Unexecuted restoration obligation, rejection observed",
+      "detail": "Shipping adapter correctly refuses nonempty ambient GIT_EXEC_PATH before callback/install. PATH nonempty and mixed restoration were exercised separately; no admission bypass or all-three-nonempty restoration pass claimed."
+    },
+    {
+      "id": "R4",
+      "affected": "Outer coordinator pipe capture; outside33 case denominator",
+      "classification": "Reviewer collector stream attribution defect",
+      "detail": "Function-scoped var chunks made both event handlers append to the stderr buffer. Combined bytes retained, actual event channel attribution unrecoverable. Raw recorded buffers preserved without relabeling; shipping worker stdout/stderr captures unaffected. Discovered after cohort completion; no later execution.",
+      "futureCorrectionOnly": "Use per-listener lexical capture in a new approved collector; do not rewrite these original buffers."
+    }
+  ],
+  "authorityRead": {
+    "actualDispatches": 0,
+    "attemptReached": "Adapter callback entered; VM exact argv assertion failed before dispatch/telemetry",
+    "syntheticOwnedObjectsOnly": true,
+    "actualProductAuthorityRead": false,
+    "originalEPERMTarget": "UNPROVEN"
+  },
+  "threeScopeProof": {
+    "kind": "STATIC_ONLY with actual adapter callback labels tested separately",
+    "sourceLines": {
+      "wholeAwaitedPrerequisites": 74,
+      "outerFinalSweep": 138,
+      "outerFinally": 142
+    },
+    "sourcePath": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+    "helperUnchangedSha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+    "privateFunctionsInvoked": false
+  },
+  "coordinator": {
+    "status": 1,
+    "signal": null,
+    "closed": true,
+    "pid": 76242,
+    "watchdogEvents": [],
+    "rawCapture": "OUTER-CAPTURE.json",
+    "streamAttribution": "UNRELIABLE_REVIEWER_CAPTURE_BUG",
+    "resultCountsNotOverridden": true
+  },
+  "workers": [
+    {
+      "group": "core",
+      "pid": 76287,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "clean": true,
+      "signals": [],
+      "survivors": [],
+      "profileSha256": "77cc6249506963f5501a67b085417528b468c5625f3faf94a3386d41e4b29744"
+    },
+    {
+      "group": "compound-errors",
+      "pid": 76344,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "clean": true,
+      "signals": [],
+      "survivors": [],
+      "profileSha256": "82fde770760212a048ef5e7c09a036e32e5c37eb8fca9851b22a52d6e4d1b173"
+    },
+    {
+      "group": "poison-restoration",
+      "pid": 76364,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "clean": true,
+      "signals": [],
+      "survivors": [],
+      "profileSha256": "5f719327e5be73a134519df433dad14051b1d0a69b84f405919536541ceac442"
+    },
+    {
+      "group": "partial-installation",
+      "pid": 76393,
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "clean": true,
+      "signals": [],
+      "survivors": [],
+      "profileSha256": "4bf4120f07a623bf5010c388e3e02078b23be19e9d5f8a4b17113b340ca6eabb"
+    },
+    {
+      "group": "authority",
+      "pid": 76418,
+      "status": 1,
+      "signal": null,
+      "closed": true,
+      "clean": true,
+      "signals": [],
+      "survivors": [],
+      "profileSha256": "1411534e89a7fb81b5aa8788b739bdd25b8c803d58d5edf59d0db3b8005aad53"
+    }
+  ],
+  "cleanup": {
+    "roots": [
+      {
+        "path": "/private/tmp/unified76-env-independent-pqwX9D",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-4ewEge",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-core",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-yeBxha",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-compound-errors",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-dwePej",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-poison-restoration",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-AYFcgK",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-partial-installation",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-JLwAsG",
+        "recordedRemoved": true,
+        "existsNow": false
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-authority",
+        "recordedRemoved": true,
+        "existsNow": false
+      }
+    ],
+    "allAbsent": true,
+    "ownedProcesses": "Coordinator and five workers closed naturally, no signals/watchdog/observed survivors; no additional process experiment. No kernel-hard or universal process claim.",
+    "oldRetainedRoots": "Not touched"
+  },
+  "captures": {
+    "rawFiles": 25,
+    "decodedBytes": 136623,
+    "allCompressedDecodedHashesMatch": true
+  },
+  "limits": [
+    "No actual prerequisites/privateState/privatecopy, A10/fullgate, pack, native semantic cohort or new tool bindings",
+    "No proof of actual bare Git dispatch in this independent cohort; old EPERM target remains unknown",
+    "No malicious-host-JS, arbitrary transient env mutation, preopened FD, background task or full OS attestation guarantee",
+    "35 byte-identical members permit only explicitly scoped historical evidence reuse; changed adapter/callsites/DRIVER not covered by old acceptance",
+    "Author original9/10, focused coordinatorEXIT1 and offline reporter8 remain separate, unchanged"
+  ],
+  "releasePrerequisites": [
+    "Root disposition of this HOLD and any separately authorized narrow corrected authority/collector cohort; no automatic retry",
+    "Explicit disposition or safe seam for E03.3 without weakening ambient rejection",
+    "Independent review of required missing evidence, then fresh packet binding source/reseal/newdriver/profile/tools/exact projection/candidate/package",
+    "Fresh root release for any later complete gate; consumed8e6/df89 and metadata/route historical seals grant no new run"
+  ]
+}

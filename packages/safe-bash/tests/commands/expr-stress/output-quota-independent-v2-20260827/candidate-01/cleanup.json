@@ -1,0 +1,27 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/output-quota-independent-v2-20260827/.owned-eGnj4b",
+  "absent": true,
+  "finishedAt": "2026-08-27T20:51:45.256Z",
+  "knownChildren": [
+    {
+      "name": "build",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "scoped-types",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "old47",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "additional",
+      "status": 0,
+      "signal": null
+    }
+  ]
+}

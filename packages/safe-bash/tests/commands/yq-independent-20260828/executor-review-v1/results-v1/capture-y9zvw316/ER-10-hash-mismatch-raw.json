@@ -1,0 +1,78 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": {
+    "stdoutBase64": "",
+    "stderrBase64": "bm9kZTppbnRlcm5hbC9tb2R1bGVzL3J1bl9tYWluOjEyMwogICAgdHJpZ2dlclVuY2F1Z2h0RXhjZXB0aW9uKAogICAgXgoKQXNzZXJ0aW9uRXJyb3IgW0VSUl9BU1NFUlRJT05dOiBSb290LXN1cHBsaWVkIGF1dGhvcml6YXRpb24gaGFzaAorIGFjdHVhbCAtIGV4cGVjdGVkCgorICdiMDhmYmFjMjI2NDRiNzE1ZmZiMjYyOWMxYTMzZDIwMWY3MDlhZWUzNDc0YjEzOTQ0MDQ4ZWZmN2VjZDE1MzhmJwotICcwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwJwoKICAgIGF0IGF1dGhvcml6ZSAoZmlsZTovLy9wcml2YXRlL3Zhci9mb2xkZXJzL3J3L3M0Y3k3NmhuNnY1NXFycDBkaGNidHBsYzAwMDBnbi9UL3lxLWluZGVwZW5kZW50LWZyYW1ld29yay1pbmZiOWJ5bi9hdXRoZW50aWNhdGVkL3Rlc3RzL2NvbW1hbmRzL3lxLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXByZXBhcmF0aW9uLXYxL3J1bnRpbWUvcmVjaXBlL2F1dGhvcml6YXRpb24ubWpzOjE2OjEwKQogICAgYXQgZmlsZTovLy9wcml2YXRlL3Zhci9mb2xkZXJzL3J3L3M0Y3k3NmhuNnY1NXFycDBkaGNidHBsYzAwMDBnbi9UL3lxLWluZGVwZW5kZW50LWZyYW1ld29yay1pbmZiOWJ5bi9hdXRoZW50aWNhdGVkL3Rlc3RzL2NvbW1hbmRzL3lxLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXByZXBhcmF0aW9uLXYxL3J1bnRpbWUvcmVjaXBlL2V4ZWN1dGUubWpzOjg6MTUKICAgIGF0IE1vZHVsZUpvYi5ydW4gKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbW9kdWxlX2pvYjozNDM6MjUpCiAgICBhdCBhc3luYyBvbkltcG9ydC50cmFjZVByb21pc2UuX19wcm90b19fIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2xvYWRlcjo2NjU6MjYpCiAgICBhdCBhc3luYyBhc3luY1J1bkVudHJ5UG9pbnRXaXRoRVNNTG9hZGVyIChub2RlOmludGVybmFsL21vZHVsZXMvcnVuX21haW46MTE3OjUpIHsKICBnZW5lcmF0ZWRNZXNzYWdlOiBmYWxzZSwKICBjb2RlOiAnRVJSX0FTU0VSVElPTicsCiAgYWN0dWFsOiAnYjA4ZmJhYzIyNjQ0YjcxNWZmYjI2MjljMWEzM2QyMDFmNzA5YWVlMzQ3NGIxMzk0NDA0OGVmZjdlY2QxNTM4ZicsCiAgZXhwZWN0ZWQ6ICcwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwJywKICBvcGVyYXRvcjogJ3N0cmljdEVxdWFsJywKICBkaWZmOiAnc2ltcGxlJwp9CgpOb2RlLmpzIHYyMi4yMi4yCg==",
+    "metadata": {
+      "pid": 62784,
+      "group": 62784,
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 55
+    },
+    "summary": null,
+    "rawFiles": null,
+    "importMarkerSeen": false,
+    "authorization": {
+      "schemaVersion": 1,
+      "purpose": "YQ_CANDIDATE_EXECUTION_EXPLICIT_HANDOFF",
+      "rootApproval": "SYNTHETIC FRAMEWORK ONLY",
+      "candidateCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "baselineCommit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "acceptedLengthCommit": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "contractCommit": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "independentReviewCommit": "de89e478d8ddce62eac955708f1b87d7be1bd137",
+      "recipe": {
+        "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe",
+        "sealSha256": "2fce675f035a2ad39c2e2e2ee9d54e2762a531383e70507149993268acedb7e8",
+        "treeSha256": "e04229e35902d8dd34c91c0adfbb357120312ff743ecdc9434b0d239c152db78"
+      },
+      "source": {
+        "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/hash-mismatch-source",
+        "treeSha256": "a02184c9e73467a54adbab4c43c6fec4934980f3a71fe363321d31b058ef28a3",
+        "provenance": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/hash-mismatch/composition.json",
+          "sha256": "da543e047382e3a3e4c12bf6504adcd68fbb0691f3ca61bef67b2c3ab11f5703"
+        }
+      },
+      "compiled": {
+        "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/hash-mismatch-compiled",
+        "treeSha256": "eab45d96570c80bd1ac9f7c6f841bcf62e72b46b365f02707904631b95e48f35",
+        "entry": {
+          "path": "entry.mjs",
+          "sha256": "70df188a18a4bd890bd2c448d1d0d556b98bb1b0042ca10371be55e0efd133de",
+          "exportName": "createYqCommand",
+          "proofRole": "direct-compiled-factory-handler-not-public-package"
+        }
+      },
+      "node": {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "mode": 493
+      },
+      "frozenRepository": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/frozen",
+      "selection": {
+        "ids": [
+          "CMD-01"
+        ],
+        "jobsSha256": "da4efe14dea553663eee7fa44963547058ee94216e80846a883dc48e442f0cad"
+      },
+      "bounds": {
+        "deadlineMs": 1000,
+        "termGraceMs": 100,
+        "reapMs": 300,
+        "captureBytes": 65536,
+        "maximumJobs": 4
+      },
+      "evidenceParent": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/host-evidence"
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

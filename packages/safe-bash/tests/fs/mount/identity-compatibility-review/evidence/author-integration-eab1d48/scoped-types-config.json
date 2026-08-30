@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/fs/**/*.ts",
+    "src/contracts/**/*.ts",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts",
+    "tests/fs/mount/copy-identity.test.ts",
+    "tests/fs/mount/copy-identity-guards.test.ts",
+    "tests/fs/overlay/copy-identity.test.ts"
+  ],
+  "exclude": []
+}

@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync, writeFileSync, readdirSync, chmodSync } from 'node:fs';
+import { resolve, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const root = process.cwd();
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-prototype');
+const handoff = JSON.parse(readFileSync(resolve(owned, 'handoff.json')));
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const walk = base => readdirSync(base, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(resolve(base, entry.name)) : entry.isFile() ? [resolve(base, entry.name)] : []).sort();
+for (const entry of [...handoff.source, ...handoff.tests, ...handoff.compiled]) assert.equal(hash(readFileSync(resolve(handoff.candidate, entry.path))), entry.sha256);
+const originalPaths = execFileSync('git', ['ls-tree', '-r', '--name-only', handoff.acceptedCommit, '--', 'tests/shell-stress/first-read-contract-review'], { encoding: 'utf8' }).split('\n').filter(Boolean);
+const changedAcceptedPaths = execFileSync('git', ['diff', '--name-only', handoff.acceptedCommit, '--', ...originalPaths], { encoding: 'utf8' }).trim();
+assert.equal(changedAcceptedPaths, '', 'Accepted evidence was changed');
+const api = await import(pathToFileURL(resolve(handoff.candidate, 'dist/index.js')).href);
+assert.equal(typeof api.createOutputOperation, 'function');
+assert.equal(typeof api.Shell, 'function');
+assert.equal(typeof api.createBytePipe, 'function');
+const rawCode = walk(owned).filter(path => /\.(?:ts|js|mjs|cjs|tsx|jsx)$/.test(path));
+assert.deepEqual(rawCode, []);
+const processClosure = handoff.runs.map(run => {
+  assert.equal(run.closeEventObserved, true); assert.equal(run.groupExistsAfterClose, false);
+  assert.equal(run.timedOut, false); assert.equal(run.oversized, false);
+  const current = spawnSync('/bin/ps', ['-p', String(run.pid), '-o', 'pid=,ppid=,pgid=,lstart=,command='], { encoding: 'utf8', timeout: 1000 });
+  return { label: run.label, pid: run.pid, immediateOwnedGroupClosed: true, currentPidIdentity: current.stdout.trim() };
+});
+const sourceWhitespace = spawnSync('git', ['diff', '--no-index', '--check', resolve(handoff.temp, 'baseline-src'), resolve(handoff.candidate, 'src')], { encoding: 'utf8', timeout: 5000 });
+assert.ok(sourceWhitespace.status === 0 || sourceWhitespace.status === 1);
+assert.equal(sourceWhitespace.stdout + sourceWhitespace.stderr, '', 'Source whitespace diagnostics');
+for (const path of walk(handoff.candidate)) chmodSync(path, 0o444);
+const protectedPaths = handoff.protectedPaths.map(entry => ({ ...entry, atSealSha256: hash(readFileSync(resolve(root, entry.path))) }));
+const closure = { sealedAt: new Date().toISOString(), sourceUnchangedSinceR1: true, candidateRegularFilesReadOnly: true, dependencySymlinkNotTraversed: true,
+  sourceManifestSha256: handoff.sourceManifestSha256, testManifestSha256: handoff.testManifestSha256, compiledManifestSha256: handoff.compiledManifestSha256,
+  originalAcceptedPathsChecked: originalPaths.length, changedAcceptedPaths: [], rawCodeDiscoveryFiles: rawCode,
+  compiledImportSmoke: 'Actual dist/index.js exports createOutputOperation, Shell, createBytePipe; not counted as another logical product case',
+  sourceWhitespace: { status: sourceWhitespace.status, stdout: sourceWhitespace.stdout, stderr: sourceWhitespace.stderr },
+  processClosure, protectedPaths,
+  indexBeforeOwnedStage: execFileSync('git', ['diff', '--cached', '--name-only'], { encoding: 'utf8' }),
+  statusBeforeOwnedStage: execFileSync('git', ['status', '--short'], { encoding: 'utf8' }),
+  finality: 'No further source, test or compiled artifact edits. Root must independently observe actual leaf CLOSED before READY. Temporary files retained, no live task process intended.' };
+writeFileSync(resolve(owned, 'evidence/closure.json'), JSON.stringify(closure, null, 2) + '\n');
+const artifacts = walk(owned).filter(path => relative(owned, path) !== 'ARTIFACTS.json').map(path => ({ path: relative(owned, path), bytes: readFileSync(path).length, sha256: hash(readFileSync(path)) }));
+writeFileSync(resolve(owned, 'ARTIFACTS.json'), JSON.stringify({ createdAt: new Date().toISOString(), manifestSha256: hash(JSON.stringify(artifacts)), files: artifacts }, null, 2) + '\n');
+console.log(JSON.stringify({ sealedAt: closure.sealedAt, candidate: handoff.candidate, originalAcceptedPathsChecked: originalPaths.length, rawCodeDiscoveryFiles: rawCode.length, runGroupsClosed: processClosure.length, pidsCurrentlyPresent: processClosure.filter(entry => entry.currentPidIdentity), artifactFiles: artifacts.length, artifactManifestSha256: hash(JSON.stringify(artifacts)) }, null, 2));

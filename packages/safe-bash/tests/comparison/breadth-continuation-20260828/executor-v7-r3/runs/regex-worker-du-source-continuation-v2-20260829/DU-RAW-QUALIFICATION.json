@@ -1,0 +1,626 @@
+{
+  "rawBindings": [
+    {
+      "id": "op7-input",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-007.json",
+      "bytes": 152204,
+      "mode": 420,
+      "sha256": "8d1cf4f6cb59757c9d9b6667bab9659e8423f3d4820b3c6a4a2a77dee2e627bb"
+    },
+    {
+      "id": "op7-receipt",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-007.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "8f21610b82d27a2d92ec3cd6d60bbf3bbae769a222228c1bbf9662dbeba56430"
+    },
+    {
+      "id": "op7-part0",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-007.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "d31cecdbbe74d51ef9af4cdf2f39cf3288a7eaa90e9a940c99deb419fe85ba04"
+    },
+    {
+      "id": "op7-part1",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-007.receipt.json.part-0001.data",
+      "bytes": 89811,
+      "mode": 420,
+      "sha256": "3408dd10aa6d664c058a2fa48ed0afd7564e96540ecf3ca5a7deabc626cd5230"
+    },
+    {
+      "id": "op9-input",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-009.json",
+      "bytes": 152339,
+      "mode": 420,
+      "sha256": "b54f6857de39b66cedb4f534fea1a2e54a73a9160b72f02b23dcbe12b70c42fc"
+    },
+    {
+      "id": "op9-receipt",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-009.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "4ed11b62497a4ad084ca2c5b10e6d2d7b90f9f93c6592aa339156701603cb1da"
+    },
+    {
+      "id": "op9-part0",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-009.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "edf703f3348c0a330de241da3f6765b49ae541f93e2ba52f2b1d67ebabcd7abf"
+    },
+    {
+      "id": "op9-part1",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-009.receipt.json.part-0001.data",
+      "bytes": 89607,
+      "mode": 420,
+      "sha256": "7c49b83748cd28e95ddf9659a0e437f09c78b9b65d22d5dca907fde8cf0fc387"
+    },
+    {
+      "id": "op10-input",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-010.json",
+      "bytes": 149446,
+      "mode": 420,
+      "sha256": "1c813d77dfc08f09c8479845ec43117ae9547e61e79ab470d833cf0897d9aef7"
+    },
+    {
+      "id": "op10-receipt",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-010.receipt.json",
+      "bytes": 435,
+      "mode": 420,
+      "sha256": "9a15c7822f6c4602694c3f4f97e08453cbe11ce07baa729410ccb3b70025154c"
+    },
+    {
+      "id": "op10-part0",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-010.receipt.json.part-0000.data",
+      "bytes": 262144,
+      "mode": 420,
+      "sha256": "6461a123b91813458956dfd5cf0ad881919cfe35bf19bdb4465769ebfb528f74"
+    },
+    {
+      "id": "op10-part1",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "path": "child-010.receipt.json.part-0001.data",
+      "bytes": 77592,
+      "mode": 420,
+      "sha256": "951bbeb4a6156c19bbee15571ac684fab8b6e83c125a7b90e03fcc07f942740e"
+    }
+  ],
+  "operations": [
+    {
+      "operation": 7,
+      "caseId": "du-positive",
+      "script": "du data.txt",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MglkYXRhLnR4dAo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Measure a 2048-byte file using the pinned logical-VFS-size profile.",
+      "proofLimit": "The baseline reports ceiling(logical bytes/1024), not native allocated blocks. No native disk-allocation parity claim; -b is not a supported pinned baseline option.",
+      "fixture": {
+        "data.txt": {
+          "keys": [
+            "base64",
+            "mode"
+          ],
+          "bytes": 2048,
+          "sha256": "1d1801f753ccd9fa57966c46f360585caf83337a394a5f238d4e4e7d6005788d",
+          "mode": 420
+        }
+      },
+      "result": {
+        "exitCode": 1,
+        "stdoutBoundary": "raw ShellResult.stdoutBytes",
+        "stderrBoundary": "raw ShellResult.stderrBytes"
+      },
+      "stdout": "",
+      "stderr": "du: \"data.txt\": allocated bytes unknown; total suppressed\n",
+      "snapshots": [
+        {
+          "phase": "before",
+          "complete": true,
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "mode": 16877,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture/data.txt",
+              "type": "file",
+              "mode": 33188,
+              "size": 2048,
+              "contentBytes": 2048,
+              "contentSha256": "1d1801f753ccd9fa57966c46f360585caf83337a394a5f238d4e4e7d6005788d"
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            }
+          ]
+        },
+        {
+          "phase": "after",
+          "complete": true,
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "mode": 16877,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture/data.txt",
+              "type": "file",
+              "mode": 33188,
+              "size": 2048,
+              "contentBytes": 2048,
+              "contentSha256": "1d1801f753ccd9fa57966c46f360585caf83337a394a5f238d4e4e7d6005788d"
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            }
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "path": "node_modules/virtual-bash/dist/fs/memory/index.js",
+          "bytes": 23141,
+          "sha256": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c"
+        },
+        {
+          "path": "node_modules/virtual-bash/dist/commands/du/du.js",
+          "bytes": 8959,
+          "sha256": "2fad6e6d31eb24f5757db3ca5533c7dddf551cb6b5b3e37bf9b4ec8978f6205f"
+        },
+        {
+          "path": "node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+          "bytes": 15146,
+          "sha256": "8817fdeb2a66376cd44ca8760408b48c015d99f95baf4ee977f951240bd5e5a5"
+        }
+      ],
+      "denial": [],
+      "reaped": true,
+      "natural": true,
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "late": [],
+      "cleanupErrors": [],
+      "rawDocumentSha256": "99567dbd4b78d4dfa33a96961306c3c11a5d8504a3d775dba18fe597710e66d5"
+    },
+    {
+      "operation": 9,
+      "caseId": "du-positive",
+      "script": "du data.txt",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "MglkYXRhLnR4dAo=",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Measure a 2048-byte file using the pinned logical-VFS-size profile.",
+      "proofLimit": "The baseline reports ceiling(logical bytes/1024), not native allocated blocks. No native disk-allocation parity claim; -b is not a supported pinned baseline option.",
+      "fixture": {
+        "data.txt": {
+          "keys": [
+            "base64",
+            "mode"
+          ],
+          "bytes": 2048,
+          "sha256": "1d1801f753ccd9fa57966c46f360585caf83337a394a5f238d4e4e7d6005788d",
+          "mode": 420
+        }
+      },
+      "result": {
+        "exitCode": 1,
+        "stdoutBoundary": "raw ShellResult.stdoutBytes",
+        "stderrBoundary": "raw ShellResult.stderrBytes"
+      },
+      "stdout": "",
+      "stderr": "du: \"data.txt\": allocated bytes unknown; total suppressed\n",
+      "snapshots": [
+        {
+          "phase": "before",
+          "complete": true,
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "mode": 16877,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture/data.txt",
+              "type": "file",
+              "mode": 33188,
+              "size": 2048,
+              "contentBytes": 2048,
+              "contentSha256": "1d1801f753ccd9fa57966c46f360585caf83337a394a5f238d4e4e7d6005788d"
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            }
+          ]
+        },
+        {
+          "phase": "after",
+          "complete": true,
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "mode": 16877,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture/data.txt",
+              "type": "file",
+              "mode": 33188,
+              "size": 2048,
+              "contentBytes": 2048,
+              "contentSha256": "1d1801f753ccd9fa57966c46f360585caf83337a394a5f238d4e4e7d6005788d"
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            }
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "path": "node_modules/virtual-bash/dist/fs/memory/index.js",
+          "bytes": 23141,
+          "sha256": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c"
+        },
+        {
+          "path": "node_modules/virtual-bash/dist/commands/du/du.js",
+          "bytes": 8959,
+          "sha256": "2fad6e6d31eb24f5757db3ca5533c7dddf551cb6b5b3e37bf9b4ec8978f6205f"
+        },
+        {
+          "path": "node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+          "bytes": 15146,
+          "sha256": "8817fdeb2a66376cd44ca8760408b48c015d99f95baf4ee977f951240bd5e5a5"
+        }
+      ],
+      "denial": [],
+      "reaped": true,
+      "natural": true,
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "late": [],
+      "cleanupErrors": [],
+      "rawDocumentSha256": "52c0718c809c8c98033b3a4c96b34fb3aa447e3407a7aa01c5e886450c469383"
+    },
+    {
+      "operation": 10,
+      "caseId": "egrep-positive",
+      "script": "egrep '^(red|blue)$' colors",
+      "expected": {
+        "exitCode": 0,
+        "stdoutBase64": "cmVkCmJsdWUK",
+        "stderrBase64": "",
+        "files": {},
+        "absent": [],
+        "preserveInputs": true
+      },
+      "intent": "Use extended alternation through the actual egrep alias handler.",
+      "proofLimit": "One bounded positive recipe, not complete command or option coverage.",
+      "fixture": {
+        "colors": {
+          "keys": [
+            "base64",
+            "mode"
+          ],
+          "bytes": 15,
+          "sha256": "9fec8b87d457cdab76088586670cbcc3b6f5f39ef95b320c07f4ec2b539c2be4",
+          "mode": 420
+        }
+      },
+      "result": {
+        "exitCode": 2,
+        "stdoutBoundary": "raw ShellResult.stdoutBytes",
+        "stderrBoundary": "raw ShellResult.stderrBytes"
+      },
+      "stdout": "",
+      "stderr": "egrep: OFFLINE_DENIED:UNSUPPORTED_WORKER_ASSET_ADMISSION\n",
+      "snapshots": [
+        {
+          "phase": "before",
+          "complete": true,
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "mode": 16877,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture/colors",
+              "type": "file",
+              "mode": 33188,
+              "size": 15,
+              "contentBytes": 15,
+              "contentSha256": "9fec8b87d457cdab76088586670cbcc3b6f5f39ef95b320c07f4ec2b539c2be4"
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            }
+          ]
+        },
+        {
+          "phase": "after",
+          "complete": true,
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "mode": 16877,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/fixture/colors",
+              "type": "file",
+              "mode": 33188,
+              "size": 15,
+              "contentBytes": 15,
+              "contentSha256": "9fec8b87d457cdab76088586670cbcc3b6f5f39ef95b320c07f4ec2b539c2be4"
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "mode": 16895,
+              "size": 0,
+              "contentBytes": null,
+              "contentSha256": null
+            }
+          ]
+        }
+      ],
+      "assets": [
+        {
+          "path": "node_modules/virtual-bash/dist/fs/memory/index.js",
+          "bytes": 23141,
+          "sha256": "d5aa69848d5c4c0e5da767aec4b785d422561248e750add180fb5e4949fcae6c"
+        },
+        {
+          "path": "node_modules/virtual-bash/dist/commands/du/du.js",
+          "bytes": 8959,
+          "sha256": "2fad6e6d31eb24f5757db3ca5533c7dddf551cb6b5b3e37bf9b4ec8978f6205f"
+        },
+        {
+          "path": "node_modules/virtual-bash/dist/commands/regex-execution/client.js",
+          "bytes": 15146,
+          "sha256": "8817fdeb2a66376cd44ca8760408b48c015d99f95baf4ee977f951240bd5e5a5"
+        }
+      ],
+      "denial": [
+        {
+          "sequence": 440,
+          "kind": "offline-denied",
+          "operation": "UNSUPPORTED_WORKER_ASSET_ADMISSION",
+          "argument": "object"
+        }
+      ],
+      "reaped": true,
+      "natural": false,
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "late": [],
+      "cleanupErrors": [],
+      "rawDocumentSha256": "f9bfeb8729e63c2edd8b5a7c1bcf588dd42bbafec9bb5d235ce541ff2814696e"
+    }
+  ],
+  "conclusion": "SOURCE_CORRELATED_UNKNOWN_ALLOCATION_PROFILE_GAP_NOT_DEMONSTRATED_KNOWN_ALLOCATION_FAILURE",
+  "qualification": "raw snapshots omit allocatedBytes; source supplies metadata provenance, not recovered numeric stat observations",
+  "originalDUMismatches": 2,
+  "rescored": false
+}

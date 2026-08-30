@@ -1,0 +1,256 @@
+TAP version 13
+# Subtest: printenv own dictionary []
+ok 1 - printenv own dictionary []
+  ---
+  duration_ms: 0.689583
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["A","EMPTY","UNICODE"]
+ok 2 - printenv own dictionary ["A","EMPTY","UNICODE"]
+  ---
+  duration_ms: 0.100458
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["missing","A","missing","EMPTY"]
+ok 3 - printenv own dictionary ["missing","A","missing","EMPTY"]
+  ---
+  duration_ms: 0.127042
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["A","A"]
+ok 4 - printenv own dictionary ["A","A"]
+  ---
+  duration_ms: 0.112167
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["--null","EMPTY","UNICODE"]
+ok 5 - printenv own dictionary ["--null","EMPTY","UNICODE"]
+  ---
+  duration_ms: 0.098917
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["-00","A"]
+ok 6 - printenv own dictionary ["-00","A"]
+  ---
+  duration_ms: 0.102459
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["A","-0"]
+ok 7 - printenv own dictionary ["A","-0"]
+  ---
+  duration_ms: 0.056042
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["A=one"]
+ok 8 - printenv own dictionary ["A=one"]
+  ---
+  duration_ms: 0.032833
+  type: 'test'
+  ...
+# Subtest: printenv own dictionary ["--","-0"]
+ok 9 - printenv own dictionary ["--","-0"]
+  ---
+  duration_ms: 0.168458
+  type: 'test'
+  ...
+# Subtest: printenv own prototype-shaped and nonenumerable names never consult inherited or host environment
+ok 10 - printenv own prototype-shaped and nonenumerable names never consult inherited or host environment
+  ---
+  duration_ms: 0.300792
+  type: 'test'
+  ...
+# Subtest: printenv empty dictionary and missing name do not acquire stdin or write output
+ok 11 - printenv empty dictionary and missing name do not acquire stdin or write output
+  ---
+  duration_ms: 0.06775
+  type: 'test'
+  ...
+# Subtest: printenv invalid option -i is status2 without stdout
+ok 12 - printenv invalid option -i is status2 without stdout
+  ---
+  duration_ms: 0.10725
+  type: 'test'
+  ...
+# Subtest: printenv invalid option -u is status2 without stdout
+ok 13 - printenv invalid option -u is status2 without stdout
+  ---
+  duration_ms: 0.04575
+  type: 'test'
+  ...
+# Subtest: printenv invalid option --null=yes is status2 without stdout
+ok 14 - printenv invalid option --null=yes is status2 without stdout
+  ---
+  duration_ms: 0.042625
+  type: 'test'
+  ...
+# Subtest: printenv invalid option --invalid is status2 without stdout
+ok 15 - printenv invalid option --invalid is status2 without stdout
+  ---
+  duration_ms: 0.037083
+  type: 'test'
+  ...
+# Subtest: printenv bounds output before effects and propagates sink rejection unchanged
+ok 16 - printenv bounds output before effects and propagates sink rejection unchanged
+  ---
+  duration_ms: 0.378084
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 0.125
+ok 17 - sleep summed fractional intervals 0.125
+  ---
+  duration_ms: 0.777334
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals .001s 0.002
+ok 18 - sleep summed fractional intervals .001s 0.002
+  ---
+  duration_ms: 0.162166
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 1e-3m
+ok 19 - sleep summed fractional intervals 1e-3m
+  ---
+  duration_ms: 0.05375
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals +0.0001h
+ok 20 - sleep summed fractional intervals +0.0001h
+  ---
+  duration_ms: 0.105583
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 0.00001d
+ok 21 - sleep summed fractional intervals 0.00001d
+  ---
+  duration_ms: 0.123042
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals -- 0.02
+ok 22 - sleep summed fractional intervals -- 0.02
+  ---
+  duration_ms: 0.047333
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 1. 0.5s
+ok 23 - sleep summed fractional intervals 1. 0.5s
+  ---
+  duration_ms: 0.069875
+  type: 'test'
+  ...
+# Subtest: sleep never finishes early and chunks intervals above timer range
+ok 24 - sleep never finishes early and chunks intervals above timer range
+  ---
+  duration_ms: 0.268333
+  type: 'test'
+  ...
+# Subtest: sleep configurable timer quantum and submillisecond durations do not spin
+ok 25 - sleep configurable timer quantum and submillisecond durations do not spin
+  ---
+  duration_ms: 0.235083
+  type: 'test'
+  ...
+# Subtest: sleep abort before/during clears listeners and pending timers
+ok 26 - sleep abort before/during clears listeners and pending timers
+  ---
+  duration_ms: 0.436416
+  type: 'test'
+  ...
+# Subtest: sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle
+ok 27 - sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle
+  ---
+  duration_ms: 0.0825
+  type: 'test'
+  ...
+# Subtest: sleep rejects nonmonotonic scheduler time and cleans the subscription
+ok 28 - sleep rejects nonmonotonic scheduler time and cleans the subscription
+  ---
+  duration_ms: 0.06275
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: []
+ok 29 - sleep validates all operands before waiting: []
+  ---
+  duration_ms: 0.121583
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["-1"]
+ok 30 - sleep validates all operands before waiting: ["-1"]
+  ---
+  duration_ms: 0.050333
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1ms"]
+ok 31 - sleep validates all operands before waiting: ["1ms"]
+  ---
+  duration_ms: 0.041833
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["NaN"]
+ok 32 - sleep validates all operands before waiting: ["NaN"]
+  ---
+  duration_ms: 0.0425
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["Infinity"]
+ok 33 - sleep validates all operands before waiting: ["Infinity"]
+  ---
+  duration_ms: 0.046416
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1e999"]
+ok 34 - sleep validates all operands before waiting: ["1e999"]
+  ---
+  duration_ms: 0.079166
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["0x1"]
+ok 35 - sleep validates all operands before waiting: ["0x1"]
+  ---
+  duration_ms: 0.040834
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1","bad"]
+ok 36 - sleep validates all operands before waiting: ["1","bad"]
+  ---
+  duration_ms: 0.040917
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1,2"]
+ok 37 - sleep validates all operands before waiting: ["1,2"]
+  ---
+  duration_ms: 0.078958
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1D"]
+ok 38 - sleep validates all operands before waiting: ["1D"]
+  ---
+  duration_ms: 0.069708
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["--invalid"]
+ok 39 - sleep validates all operands before waiting: ["--invalid"]
+  ---
+  duration_ms: 0.038417
+  type: 'test'
+  ...
+# Subtest: sleep zero does not consume stdin or write either channel
+ok 40 - sleep zero does not consume stdin or write either channel
+  ---
+  duration_ms: 0.052917
+  type: 'test'
+  ...
+# Subtest: sleep default scheduler waits against monotonic elapsed time
+ok 41 - sleep default scheduler waits against monotonic elapsed time
+  ---
+  duration_ms: 17.586833
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 41
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 163.925583

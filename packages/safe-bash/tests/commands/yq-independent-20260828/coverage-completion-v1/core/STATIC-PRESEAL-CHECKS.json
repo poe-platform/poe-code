@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "syntaxOnly": [
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/contributions.mjs",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/own-data.mjs",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/run-synthetic.mjs",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/source-arguments.mjs",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/source-audit-worker.mjs",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/source-files.mjs",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/synthetic-child.mjs",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "abiSpecChecker": {
+    "command": [
+      "python3",
+      "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+      "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.md"
+    ],
+    "status": 0,
+    "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.md (0 warning(s))\n"
+  },
+  "preparationErrors": [
+    {
+      "id": "ROOT-PATH-127",
+      "reference": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/PREPARATION-HISTORY.json",
+      "scope": "ROOT_REPORTED_HISTORICAL_PREPARATION_ONLY",
+      "targetActivity": false
+    },
+    {
+      "id": "AUTHOR-REPL-PROCESS-UNAVAILABLE",
+      "scope": "STATIC_METADATA_PREPARATION",
+      "message": "process is not defined",
+      "cause": "Persistent Node REPL does not expose process; metadata inspection stopped before reaching host executable identity.",
+      "resolution": "Read fixed host Node path through command -v and stat/hash. No helper/candidate was invoked.",
+      "targetActivity": false
+    }
+  ],
+  "targetImports": 0,
+  "compilerInvocations": 0,
+  "authoredModuleExecutions": 0
+}

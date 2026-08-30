@@ -1,0 +1,1231 @@
+TAP version 13
+# Subtest: qualified s3 existing-target copyFile to-remote
+ok 1 - qualified s3 existing-target copyFile to-remote
+  ---
+  duration_ms: 6.761875
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target cp to-remote
+ok 2 - qualified s3 existing-target cp to-remote
+  ---
+  duration_ms: 8.605042
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target mv to-remote
+ok 3 - qualified s3 existing-target mv to-remote
+  ---
+  duration_ms: 5.698167
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target copyFile from-remote
+ok 4 - qualified s3 existing-target copyFile from-remote
+  ---
+  duration_ms: 1.570375
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target cp from-remote
+ok 5 - qualified s3 existing-target cp from-remote
+  ---
+  duration_ms: 3.652459
+  type: 'test'
+  ...
+# Subtest: qualified s3 existing-target mv from-remote
+ok 6 - qualified s3 existing-target mv from-remote
+  ---
+  duration_ms: 2.885917
+  type: 'test'
+  ...
+# Subtest: qualified s3 resolves nested readonly source and overlay destination views
+ok 7 - qualified s3 resolves nested readonly source and overlay destination views
+  ---
+  duration_ms: 4.103167
+  type: 'test'
+  ...
+# Subtest: qualified s3 cannot bless altered or copied Memory observations
+not ok 8 - qualified s3 cannot bless altered or copied Memory observations
+  ---
+  duration_ms: 2.195292
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:5016'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:109:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unchanged inherited Memory operation mapping remains qualified with s3
+ok 9 - unchanged inherited Memory operation mapping remains qualified with s3
+  ---
+  duration_ms: 1.080125
+  type: 'test'
+  ...
+# Subtest: genuine s3 metadata with Memory-alias content mapping stays unknown to-remote
+not ok 10 - genuine s3 metadata with Memory-alias content mapping stays unknown to-remote
+  ---
+  duration_ms: 0.620458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:6671'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:156:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: genuine s3 metadata with Memory-alias content mapping stays unknown from-remote
+not ok 11 - genuine s3 metadata with Memory-alias content mapping stays unknown from-remote
+  ---
+  duration_ms: 0.217417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:6671'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:156:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified webdav existing-target copyFile to-remote
+ok 12 - qualified webdav existing-target copyFile to-remote
+  ---
+  duration_ms: 20.888291
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target cp to-remote
+ok 13 - qualified webdav existing-target cp to-remote
+  ---
+  duration_ms: 9.525125
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target mv to-remote
+ok 14 - qualified webdav existing-target mv to-remote
+  ---
+  duration_ms: 6.266833
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target copyFile from-remote
+ok 15 - qualified webdav existing-target copyFile from-remote
+  ---
+  duration_ms: 1.86475
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target cp from-remote
+ok 16 - qualified webdav existing-target cp from-remote
+  ---
+  duration_ms: 4.139125
+  type: 'test'
+  ...
+# Subtest: qualified webdav existing-target mv from-remote
+ok 17 - qualified webdav existing-target mv from-remote
+  ---
+  duration_ms: 4.815666
+  type: 'test'
+  ...
+# Subtest: qualified webdav resolves nested readonly source and overlay destination views
+ok 18 - qualified webdav resolves nested readonly source and overlay destination views
+  ---
+  duration_ms: 2.650208
+  type: 'test'
+  ...
+# Subtest: qualified webdav cannot bless altered or copied Memory observations
+not ok 19 - qualified webdav cannot bless altered or copied Memory observations
+  ---
+  duration_ms: 0.598791
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:5016'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:109:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unchanged inherited Memory operation mapping remains qualified with webdav
+ok 20 - unchanged inherited Memory operation mapping remains qualified with webdav
+  ---
+  duration_ms: 1.246792
+  type: 'test'
+  ...
+# Subtest: genuine webdav metadata with Memory-alias content mapping stays unknown to-remote
+not ok 21 - genuine webdav metadata with Memory-alias content mapping stays unknown to-remote
+  ---
+  duration_ms: 0.580958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:6671'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:156:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: genuine webdav metadata with Memory-alias content mapping stays unknown from-remote
+not ok 22 - genuine webdav metadata with Memory-alias content mapping stays unknown from-remote
+  ---
+  duration_ms: 0.307125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:6671'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:156:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: qualified comparison retains known Memory hardlink and symlink identity
+ok 23 - qualified comparison retains known Memory hardlink and symlink identity
+  ---
+  duration_ms: 0.399584
+  type: 'test'
+  ...
+# Subtest: qualified S3 metadata failure preserves both stores
+ok 24 - qualified S3 metadata failure preserves both stores
+  ---
+  duration_ms: 0.500792
+  type: 'test'
+  ...
+# Subtest: qualified S3 cancel failure preserves both stores
+ok 25 - qualified S3 cancel failure preserves both stores
+  ---
+  duration_ms: 0.291333
+  type: 'test'
+  ...
+# Subtest: qualified S3 write failure preserves both stores
+ok 26 - qualified S3 write failure preserves both stores
+  ---
+  duration_ms: 0.529583
+  type: 'test'
+  ...
+# Subtest: qualified S3 missing destination race keeps exclusive creation and source bytes
+ok 27 - qualified S3 missing destination race keeps exclusive creation and source bytes
+  ---
+  duration_ms: 0.407875
+  type: 'test'
+  ...
+# Subtest: Memory authority preserves exact cancellation during peer observation
+ok 28 - Memory authority preserves exact cancellation during peer observation
+  ---
+  duration_ms: 0.256792
+  type: 'test'
+  ...
+# Subtest: explicit Memory comparison authority is not shadowed by constructor registration
+ok 29 - explicit Memory comparison authority is not shadowed by constructor registration
+  ---
+  duration_ms: 0.367125
+  type: 'test'
+  ...
+# Subtest: Memory subclass data overrides cannot certify an alias to memory
+not ok 30 - Memory subclass data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 0.25175
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"memory","phase":"subclass","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to memory
+not ok 31 - Memory instance data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 0.124917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"memory","phase":"instance","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to memory
+not ok 32 - Memory prototype-before-construction data overrides cannot certify an alias to memory
+  ---
+  duration_ms: 0.204625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"memory","phase":"prototype-before-construction","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory subclass data overrides cannot certify an alias to s3
+not ok 33 - Memory subclass data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 0.455541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"s3","phase":"subclass","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to s3
+not ok 34 - Memory instance data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 1.095833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"s3","phase":"instance","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to s3
+not ok 35 - Memory prototype-before-construction data overrides cannot certify an alias to s3
+  ---
+  duration_ms: 0.548167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"s3","phase":"prototype-before-construction","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory subclass data overrides cannot certify an alias to webdav
+not ok 36 - Memory subclass data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 0.910792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"webdav","phase":"subclass","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory instance data overrides cannot certify an alias to webdav
+not ok 37 - Memory instance data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 0.741792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"webdav","phase":"instance","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: Memory prototype-before-construction data overrides cannot certify an alias to webdav
+not ok 38 - Memory prototype-before-construction data overrides cannot certify an alias to webdav
+  ---
+  duration_ms: 0.854834
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:1:13350'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'EIO' !== 'ENOTSUP'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ENOTSUP'
+  actual: 'EIO'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/comparison.test.ts:303:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"kind":"webdav","phase":"prototype-before-construction","code":"EIO","effects":1,"source":[17,18,19],"target":[4,0,253]}
+# Subtest: contract: instances start with isolated, writable directory roots
+ok 39 - contract: instances start with isolated, writable directory roots
+  ---
+  duration_ms: 1.245167
+  type: 'test'
+  ...
+# Subtest: contract: byte writes and reads preserve arbitrary binary values and isolate buffers
+ok 40 - contract: byte writes and reads preserve arbitrary binary values and isolate buffers
+  ---
+  duration_ms: 0.345625
+  type: 'test'
+  ...
+# Subtest: contract: write flags distinguish creation, replacement, and appending
+ok 41 - contract: write flags distinguish creation, replacement, and appending
+  ---
+  duration_ms: 0.308334
+  type: 'test'
+  ...
+# Subtest: contract: directories support recursive creation and typed, immediate children
+ok 42 - contract: directories support recursive creation and typed, immediate children
+  ---
+  duration_ms: 0.380458
+  type: 'test'
+  ...
+# Subtest: contract: rename moves directory trees and preserves file identity
+ok 43 - contract: rename moves directory trees and preserves file identity
+  ---
+  duration_ms: 0.608833
+  type: 'test'
+  ...
+# Subtest: contract: copy is independent, overwrites, and respects exclusivity
+ok 44 - contract: copy is independent, overwrites, and respects exclusivity
+  ---
+  duration_ms: 0.800916
+  type: 'test'
+  ...
+# Subtest: contract: removal requires recursion for directories and force only ignores missing paths
+ok 45 - contract: removal requires recursion for directories and force only ignores missing paths
+  ---
+  duration_ms: 0.290958
+  type: 'test'
+  ...
+# Subtest: contract: symlinks distinguish stat, lstat, readlink, and realpath
+ok 46 - contract: symlinks distinguish stat, lstat, readlink, and realpath
+  ---
+  duration_ms: 0.324375
+  type: 'test'
+  ...
+# Subtest: contract: permissions and timestamps have usable optional methods
+ok 47 - contract: permissions and timestamps have usable optional methods
+  ---
+  duration_ms: 0.313667
+  type: 'test'
+  ...
+# Subtest: contract: truncation shrinks or zero-fills and defaults to zero
+ok 48 - contract: truncation shrinks or zero-fills and defaults to zero
+  ---
+  duration_ms: 0.340208
+  type: 'test'
+  ...
+# Subtest: contract: hardlinks preserve shared contents, inode, and link count
+ok 49 - contract: hardlinks preserve shared contents, inode, and link count
+  ---
+  duration_ms: 0.18025
+  type: 'test'
+  ...
+# Subtest: contract: streaming round trips bytes and applies half-open read ranges
+ok 50 - contract: streaming round trips bytes and applies half-open read ranges
+  ---
+  duration_ms: 0.283
+  type: 'test'
+  ...
+# Subtest: contract: bounded reads reject overflow and permit exact or empty reads
+ok 51 - contract: bounded reads reject overflow and permit exact or empty reads
+  ---
+  duration_ms: 0.089959
+  type: 'test'
+  ...
+# Subtest: faithful Memory bound preserves scope and s3 copy as source
+ok 52 - faithful Memory bound preserves scope and s3 copy as source
+  ---
+  duration_ms: 5.517709
+  type: 'test'
+  ...
+# {"style":"bound","kind":"s3","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory bound preserves scope and s3 copy as target
+ok 53 - faithful Memory bound preserves scope and s3 copy as target
+  ---
+  duration_ms: 2.934958
+  type: 'test'
+  ...
+# {"style":"bound","kind":"s3","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory bound preserves scope and webdav copy as source
+ok 54 - faithful Memory bound preserves scope and webdav copy as source
+  ---
+  duration_ms: 21.769
+  type: 'test'
+  ...
+# {"style":"bound","kind":"webdav","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory bound preserves scope and webdav copy as target
+ok 55 - faithful Memory bound preserves scope and webdav copy as target
+  ---
+  duration_ms: 3.103625
+  type: 'test'
+  ...
+# {"style":"bound","kind":"webdav","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory decorator preserves scope and s3 copy as source
+ok 56 - faithful Memory decorator preserves scope and s3 copy as source
+  ---
+  duration_ms: 3.253125
+  type: 'test'
+  ...
+# {"style":"decorator","kind":"s3","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory decorator preserves scope and s3 copy as target
+ok 57 - faithful Memory decorator preserves scope and s3 copy as target
+  ---
+  duration_ms: 1.03775
+  type: 'test'
+  ...
+# {"style":"decorator","kind":"s3","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory decorator preserves scope and webdav copy as source
+ok 58 - faithful Memory decorator preserves scope and webdav copy as source
+  ---
+  duration_ms: 2.507042
+  type: 'test'
+  ...
+# {"style":"decorator","kind":"webdav","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory decorator preserves scope and webdav copy as target
+ok 59 - faithful Memory decorator preserves scope and webdav copy as target
+  ---
+  duration_ms: 2.457709
+  type: 'test'
+  ...
+# {"style":"decorator","kind":"webdav","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory subclass preserves scope and s3 copy as source
+ok 60 - faithful Memory subclass preserves scope and s3 copy as source
+  ---
+  duration_ms: 1.04525
+  type: 'test'
+  ...
+# {"style":"subclass","kind":"s3","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory subclass preserves scope and s3 copy as target
+ok 61 - faithful Memory subclass preserves scope and s3 copy as target
+  ---
+  duration_ms: 0.877875
+  type: 'test'
+  ...
+# {"style":"subclass","kind":"s3","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory subclass preserves scope and webdav copy as source
+ok 62 - faithful Memory subclass preserves scope and webdav copy as source
+  ---
+  duration_ms: 1.825083
+  type: 'test'
+  ...
+# {"style":"subclass","kind":"webdav","direction":"source","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful Memory subclass preserves scope and webdav copy as target
+ok 63 - faithful Memory subclass preserves scope and webdav copy as target
+  ---
+  duration_ms: 2.112292
+  type: 'test'
+  ...
+# {"style":"subclass","kind":"webdav","direction":"target","scopePresent":true,"scopePreserved":true,"relation":"distinct","error":null,"source":[1,0,255],"target":[1,0,255]}
+# Subtest: faithful bound Memory preserves known hardlink/symlink aliases and readonly denial
+ok 64 - faithful bound Memory preserves known hardlink/symlink aliases and readonly denial
+  ---
+  duration_ms: 0.694125
+  type: 'test'
+  ...
+# Subtest: truthful unknown Memory-backed alias stays unknown before content effects
+ok 65 - truthful unknown Memory-backed alias stays unknown before content effects
+  ---
+  duration_ms: 0.189584
+  type: 'test'
+  ...
+# Subtest: faithful Memory still requires original FS/path/stat observations
+ok 66 - faithful Memory still requires original FS/path/stat observations
+  ---
+  duration_ms: 0.355375
+  type: 'test'
+  ...
+# Subtest: late Memory source authority same precedes content effects
+ok 67 - late Memory source authority same precedes content effects
+  ---
+  duration_ms: 7.22975
+  type: 'test'
+  ...
+# Subtest: late Memory source authority distinct precedes content effects
+ok 68 - late Memory source authority distinct precedes content effects
+  ---
+  duration_ms: 2.857
+  type: 'test'
+  ...
+# Subtest: late Memory source authority unknown precedes content effects
+ok 69 - late Memory source authority unknown precedes content effects
+  ---
+  duration_ms: 1.52425
+  type: 'test'
+  ...
+# Subtest: late Memory source authority error precedes content effects
+ok 70 - late Memory source authority error precedes content effects
+  ---
+  duration_ms: 1.50975
+  type: 'test'
+  ...
+# Subtest: late Memory source authority invalid precedes content effects
+ok 71 - late Memory source authority invalid precedes content effects
+  ---
+  duration_ms: 1.939709
+  type: 'test'
+  ...
+# Subtest: late Memory source authority cancel precedes content effects
+ok 72 - late Memory source authority cancel precedes content effects
+  ---
+  duration_ms: 2.132375
+  type: 'test'
+  ...
+# Subtest: late Memory target authority same precedes content effects
+ok 73 - late Memory target authority same precedes content effects
+  ---
+  duration_ms: 1.309625
+  type: 'test'
+  ...
+# Subtest: late Memory target authority distinct precedes content effects
+ok 74 - late Memory target authority distinct precedes content effects
+  ---
+  duration_ms: 1.706584
+  type: 'test'
+  ...
+# Subtest: late Memory target authority unknown precedes content effects
+ok 75 - late Memory target authority unknown precedes content effects
+  ---
+  duration_ms: 1.917292
+  type: 'test'
+  ...
+# Subtest: late Memory target authority error precedes content effects
+ok 76 - late Memory target authority error precedes content effects
+  ---
+  duration_ms: 1.406
+  type: 'test'
+  ...
+# Subtest: late Memory target authority invalid precedes content effects
+ok 77 - late Memory target authority invalid precedes content effects
+  ---
+  duration_ms: 1.478667
+  type: 'test'
+  ...
+# Subtest: late Memory target authority cancel precedes content effects
+ok 78 - late Memory target authority cancel precedes content effects
+  ---
+  duration_ms: 0.771292
+  type: 'test'
+  ...
+# Subtest: complete Memory tuples still win over late explicit callbacks
+ok 79 - complete Memory tuples still win over late explicit callbacks
+  ---
+  duration_ms: 0.326
+  type: 'test'
+  ...
+# Subtest: shared Memory authority conflict queries each operand at most once
+ok 80 - shared Memory authority conflict queries each operand at most once
+  ---
+  duration_ms: 0.229583
+  type: 'test'
+  ...
+# Subtest: shared Memory authority cancel queries each operand at most once
+ok 81 - shared Memory authority cancel queries each operand at most once
+  ---
+  duration_ms: 0.10375
+  type: 'test'
+  ...
+# Subtest: shared Memory authority preconstruction-peer queries each operand at most once
+ok 82 - shared Memory authority preconstruction-peer queries each operand at most once
+  ---
+  duration_ms: 0.126666
+  type: 'test'
+  ...
+# Subtest: late forwarding of the base comparator remains bounded and unknown
+ok 83 - late forwarding of the base comparator remains bounded and unknown
+  ---
+  duration_ms: 0.424083
+  type: 'test'
+  ...
+# Subtest: relative paths, duplicate separators, dot components, and root-clamped parents
+ok 84 - relative paths, duplicate separators, dot components, and root-clamped parents
+  ---
+  duration_ms: 1.07725
+  type: 'test'
+  ...
+# Subtest: non-directory and missing components are not lexically erased by dot-dot
+ok 85 - non-directory and missing components are not lexically erased by dot-dot
+  ---
+  duration_ms: 1.219125
+  type: 'test'
+  ...
+# Subtest: symlink expansion happens before parent traversal
+ok 86 - symlink expansion happens before parent traversal
+  ---
+  duration_ms: 0.274166
+  type: 'test'
+  ...
+# Subtest: relative links resolve from their containing directory, including moved directories
+ok 87 - relative links resolve from their containing directory, including moved directories
+  ---
+  duration_ms: 0.171542
+  type: 'test'
+  ...
+# Subtest: dangling links are observable, exclusive writes refuse them, ordinary writes create targets
+ok 88 - dangling links are observable, exclusive writes refuse them, ordinary writes create targets
+  ---
+  duration_ms: 0.563167
+  type: 'test'
+  ...
+# Subtest: self loops, mutual loops, and intermediate loops report ELOOP
+ok 89 - self loops, mutual loops, and intermediate loops report ELOOP
+  ---
+  duration_ms: 0.550292
+  type: 'test'
+  ...
+# Subtest: exactly 40 symlink traversals succeed while 41 fail
+ok 90 - exactly 40 symlink traversals succeed while 41 fail
+  ---
+  duration_ms: 0.376
+  type: 'test'
+  ...
+# Subtest: directory symlinks retain entry types but support traversals and trailing slash stats
+ok 91 - directory symlinks retain entry types but support traversals and trailing slash stats
+  ---
+  duration_ms: 0.192291
+  type: 'test'
+  ...
+# Subtest: copy follows links but exclusive copy never replaces a dangling link
+ok 92 - copy follows links but exclusive copy never replaces a dangling link
+  ---
+  duration_ms: 0.336125
+  type: 'test'
+  ...
+# Subtest: renaming symlinks moves the link and replacing one does not touch its target
+ok 93 - renaming symlinks moves the link and replacing one does not touch its target
+  ---
+  duration_ms: 0.343708
+  type: 'test'
+  ...
+# Subtest: rename rejects descendant destinations even through aliases and leaves state unchanged
+ok 94 - rename rejects descendant destinations even through aliases and leaves state unchanged
+  ---
+  duration_ms: 0.192583
+  type: 'test'
+  ...
+# Subtest: rename type mismatches and nonempty destinations preserve both operands
+ok 95 - rename type mismatches and nonempty destinations preserve both operands
+  ---
+  duration_ms: 0.247041
+  type: 'test'
+  ...
+# Subtest: root aliases cannot be removed or renamed
+ok 96 - root aliases cannot be removed or renamed
+  ---
+  duration_ms: 0.398792
+  type: 'test'
+  ...
+# Subtest: POSIX filenames keep Unicode, backslashes, shell characters, and prototype-like names literal
+ok 97 - POSIX filenames keep Unicode, backslashes, shell characters, and prototype-like names literal
+  ---
+  duration_ms: 0.93025
+  type: 'test'
+  ...
+# Subtest: invalid paths and overlong UTF-8 names fail without side effects
+ok 98 - invalid paths and overlong UTF-8 names fail without side effects
+  ---
+  duration_ms: 0.325
+  type: 'test'
+  ...
+# Subtest: readFile returns byte snapshots and readdir/stat return detached metadata
+ok 99 - readFile returns byte snapshots and readdir/stat return detached metadata
+  ---
+  duration_ms: 0.153292
+  type: 'test'
+  ...
+# Subtest: file modes enforce owner access without host identity or umask
+ok 100 - file modes enforce owner access without host identity or umask
+  ---
+  duration_ms: 0.208792
+  type: 'test'
+  ...
+# Subtest: directory permissions distinguish traversal, listing, and parent mutations
+ok 101 - directory permissions distinguish traversal, listing, and parent mutations
+  ---
+  duration_ms: 0.176084
+  type: 'test'
+  ...
+# Subtest: failed recursive removal is atomic and does not follow symlinks
+ok 102 - failed recursive removal is atomic and does not follow symlinks
+  ---
+  duration_ms: 0.13075
+  type: 'test'
+  ...
+# Subtest: hardlink metadata follows overwrite, rename, chmod, truncate, and recursive unlink
+ok 103 - hardlink metadata follows overwrite, rename, chmod, truncate, and recursive unlink
+  ---
+  duration_ms: 0.152375
+  type: 'test'
+  ...
+# Subtest: hardlinking a symlink preserves link identity and relative target context
+ok 104 - hardlinking a symlink preserves link identity and relative target context
+  ---
+  duration_ms: 0.09625
+  type: 'test'
+  ...
+# Subtest: rename replacement decrements displaced hardlink counts
+ok 105 - rename replacement decrements displaced hardlink counts
+  ---
+  duration_ms: 0.066417
+  type: 'test'
+  ...
+# Subtest: timestamps preserve birthtime and explicit values until the relevant operation
+ok 106 - timestamps preserve birthtime and explicit values until the relevant operation
+  ---
+  duration_ms: 0.120833
+  type: 'test'
+  ...
+# Subtest: directory link counts reflect child directory moves
+ok 107 - directory link counts reflect child directory moves
+  ---
+  duration_ms: 0.076833
+  type: 'test'
+  ...
+# Subtest: invalid numeric options fail with EINVAL and preserve content
+ok 108 - invalid numeric options fail with EINVAL and preserve content
+  ---
+  duration_ms: 0.372209
+  type: 'test'
+  ...
+# Subtest: errno errors include Node-like codes, negative errno, syscall, source and destination
+ok 109 - errno errors include Node-like codes, negative errno, syscall, source and destination
+  ---
+  duration_ms: 0.120166
+  type: 'test'
+  ...
+# Subtest: parallel appends and exclusive creators are linearizable
+ok 110 - parallel appends and exclusive creators are linearizable
+  ---
+  duration_ms: 1.5705
+  type: 'test'
+  ...
+# Subtest: seeded mutation sequences match an independent byte-array model
+ok 111 - seeded mutation sequences match an independent byte-array model
+  ---
+  duration_ms: 7.413791
+  type: 'test'
+  ...
+# Subtest: pre-aborted operations never mutate or consume sources
+ok 112 - pre-aborted operations never mutate or consume sources
+  ---
+  duration_ms: 0.517542
+  type: 'test'
+  ...
+# Subtest: read streams use stable snapshots and chunks do not alias storage
+ok 113 - read streams use stable snapshots and chunks do not alias storage
+  ---
+  duration_ms: 0.093166
+  type: 'test'
+  ...
+# Subtest: read stream bounds handle empty ranges, EOF, and invalid options
+ok 114 - read stream bounds handle empty ranges, EOF, and invalid options
+  ---
+  duration_ms: 0.389875
+  type: 'test'
+  ...
+# Subtest: write streams preserve partial writes on source errors and close producers
+ok 115 - write streams preserve partial writes on source errors and close producers
+  ---
+  duration_ms: 0.128584
+  type: 'test'
+  ...
+# Subtest: stream cancellation closes generators and preserves only accepted chunks
+ok 116 - stream cancellation closes generators and preserves only accepted chunks
+  ---
+  duration_ms: 0.10625
+  type: 'test'
+  ...
+# Subtest: write streams target opened inodes rather than resolving paths after every chunk
+ok 117 - write streams target opened inodes rather than resolving paths after every chunk
+  ---
+  duration_ms: 0.062917
+  type: 'test'
+  ...
+# Subtest: invalid byte values are rejected before overwrite and while streaming
+ok 118 - invalid byte values are rejected before overwrite and while streaming
+  ---
+  duration_ms: 0.053125
+  type: 'test'
+  ...
+# Subtest: destructive operations on slash-suffixed symlinks never mutate their targets
+ok 119 - destructive operations on slash-suffixed symlinks never mutate their targets
+  ---
+  duration_ms: 0.100041
+  type: 'test'
+  ...
+# Subtest: terminal dot components do not remove or move their containing directory
+ok 120 - terminal dot components do not remove or move their containing directory
+  ---
+  duration_ms: 0.079125
+  type: 'test'
+  ...
+# Subtest: deep recursive removal uses bounded call-stack space
+ok 121 - deep recursive removal uses bounded call-stack space
+  ---
+  duration_ms: 19.340042
+  type: 'test'
+  ...
+# Subtest: directory rename accepts a new slash-suffixed destination
+ok 122 - directory rename accepts a new slash-suffixed destination
+  ---
+  duration_ms: 0.082375
+  type: 'test'
+  ...
+# Subtest: many-chunk streaming writes preserve byte order and logical size
+ok 123 - many-chunk streaming writes preserve byte order and logical size
+  ---
+  duration_ms: 25.495833
+  type: 'test'
+  ...
+# Subtest: append capacity does not expose unwritten bytes or alter in-flight read snapshots
+ok 124 - append capacity does not expose unwritten bytes or alter in-flight read snapshots
+  ---
+  duration_ms: 0.170292
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/. rejects EINVAL and preserves the tree
+ok 125 - review: recursive rm of terminal dot component /dir/. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 1.821125
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/. rejects EINVAL and preserves the tree
+ok 126 - review: rename from terminal dot component /dir/. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.546458
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/. rejects EINVAL and preserves both operands
+ok 127 - review: rename to terminal dot component /dir/. rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.332291
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/./ rejects EINVAL and preserves the tree
+ok 128 - review: recursive rm of terminal dot component /dir/./ rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.272458
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/./ rejects EINVAL and preserves the tree
+ok 129 - review: rename from terminal dot component /dir/./ rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.204875
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/./ rejects EINVAL and preserves both operands
+ok 130 - review: rename to terminal dot component /dir/./ rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.159334
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir//.// rejects EINVAL and preserves the tree
+ok 131 - review: recursive rm of terminal dot component /dir//.// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.283917
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir//.// rejects EINVAL and preserves the tree
+ok 132 - review: rename from terminal dot component /dir//.// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.119875
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir//.// rejects EINVAL and preserves both operands
+ok 133 - review: rename to terminal dot component /dir//.// rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.967042
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+ok 134 - review: recursive rm of terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.452541
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+ok 135 - review: rename from terminal dot component /dir/child/.. rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.168458
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/child/.. rejects EINVAL and preserves both operands
+ok 136 - review: rename to terminal dot component /dir/child/.. rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.080417
+  type: 'test'
+  ...
+# Subtest: review: recursive rm of terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+ok 137 - review: recursive rm of terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.107458
+  type: 'test'
+  ...
+# Subtest: review: rename from terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+ok 138 - review: rename from terminal dot component /dir/child/..// rejects EINVAL and preserves the tree
+  ---
+  duration_ms: 0.096667
+  type: 'test'
+  ...
+# Subtest: review: rename to terminal dot component /dir/child/..// rejects EINVAL and preserves both operands
+ok 139 - review: rename to terminal dot component /dir/child/..// rejects EINVAL and preserves both operands
+  ---
+  duration_ms: 0.060666
+  type: 'test'
+  ...
+# Subtest: review: exact directory rename to missing trailing-slash destination succeeds
+ok 140 - review: exact directory rename to missing trailing-slash destination succeeds
+  ---
+  duration_ms: 0.208125
+  type: 'test'
+  ...
+# Subtest: review: regular file cannot be renamed to a missing trailing-slash destination
+ok 141 - review: regular file cannot be renamed to a missing trailing-slash destination
+  ---
+  duration_ms: 0.191208
+  type: 'test'
+  ...
+# Subtest: review: existing regular-file destination with trailing slash rejects without replacement
+ok 142 - review: existing regular-file destination with trailing slash rejects without replacement
+  ---
+  duration_ms: 0.142125
+  type: 'test'
+  ...
+# Subtest: review: mixed symlink and parent traversal precedes trailing-directory rename validation
+ok 143 - review: mixed symlink and parent traversal precedes trailing-directory rename validation
+  ---
+  duration_ms: 0.167667
+  type: 'test'
+  ...
+# Subtest: review: mixed symlink paths with terminal dot and dotdot cannot mutate resolved directories
+ok 144 - review: mixed symlink paths with terminal dot and dotdot cannot mutate resolved directories
+  ---
+  duration_ms: 0.324208
+  type: 'test'
+  ...
+# Subtest: review: terminal-dot validation does not erase missing or non-directory traversal errors
+ok 145 - review: terminal-dot validation does not erase missing or non-directory traversal errors
+  ---
+  duration_ms: 0.288416
+  type: 'test'
+  ...
+# Subtest: review: operation paths and absolute or relative symlink targets preserve mixed components
+ok 146 - review: operation paths and absolute or relative symlink targets preserve mixed components
+  ---
+  duration_ms: 0.149542
+  type: 'test'
+  ...
+# Subtest: review: ordinary mixed-component mutations resolve their physical parent
+ok 147 - review: ordinary mixed-component mutations resolve their physical parent
+  ---
+  duration_ms: 0.100583
+  type: 'test'
+  ...
+# Subtest: memory rmdir removes only empty directories without consulting rm or readdir
+ok 148 - memory rmdir removes only empty directories without consulting rm or readdir
+  ---
+  duration_ms: 1.181833
+  type: 'test'
+  ...
+# Subtest: memory rmdir /missing reports ENOENT with its exact operand
+ok 149 - memory rmdir /missing reports ENOENT with its exact operand
+  ---
+  duration_ms: 0.911917
+  type: 'test'
+  ...
+# Subtest: memory rmdir /file reports ENOTDIR with its exact operand
+ok 150 - memory rmdir /file reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.208167
+  type: 'test'
+  ...
+# Subtest: memory rmdir /link reports ENOTDIR with its exact operand
+ok 151 - memory rmdir /link reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.545625
+  type: 'test'
+  ...
+# Subtest: memory rmdir /link/ reports ENOTDIR with its exact operand
+ok 152 - memory rmdir /link/ reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.194667
+  type: 'test'
+  ...
+# Subtest: memory rmdir /tree reports ENOTEMPTY with its exact operand
+ok 153 - memory rmdir /tree reports ENOTEMPTY with its exact operand
+  ---
+  duration_ms: 0.3645
+  type: 'test'
+  ...
+# Subtest: memory rmdir / reports EBUSY with its exact operand
+ok 154 - memory rmdir / reports EBUSY with its exact operand
+  ---
+  duration_ms: 0.131042
+  type: 'test'
+  ...
+# Subtest: memory rmdir /empty/. reports EINVAL with its exact operand
+ok 155 - memory rmdir /empty/. reports EINVAL with its exact operand
+  ---
+  duration_ms: 0.09475
+  type: 'test'
+  ...
+# Subtest: memory rmdir and child creation cannot interleave emptiness check and deletion
+ok 156 - memory rmdir and child creation cannot interleave emptiness check and deletion
+  ---
+  duration_ms: 0.3915
+  type: 'test'
+  ...
+# Subtest: memory rmdir preserves directories on cancellation and parent permission denial
+ok 157 - memory rmdir preserves directories on cancellation and parent permission denial
+  ---
+  duration_ms: 0.370708
+  type: 'test'
+  ...
+# Subtest: memory rm semantics remain unchanged for an empty directory
+ok 158 - memory rm semantics remain unchanged for an empty directory
+  ---
+  duration_ms: 0.124542
+  type: 'test'
+  ...
+1..158
+# tests 158
+# suites 0
+# pass 143
+# fail 15
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 284.068417

@@ -1,0 +1,471 @@
+{
+  "schema": "expr-public-component-v4-blocker/1",
+  "authorizationDate": "2026-08-28",
+  "observedAt": "2026-08-28T02:03:06.830Z",
+  "recipeCommit": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+  "sourceCommit": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+  "scope": "EXPRPUBLICCOMPONENT",
+  "verdict": "HELD; one invocation, no retry or postfreeze repair",
+  "hashes": {
+    "recipeManifest": "71ec5ec3a8b27cdcb0e3c6bfa27eec9b4d12396022f76d950c5b38ee9a2e1179",
+    "pins": "de02308e2c25fb05a40705bb74f379d66f4cdb028ac26c16e58e340169a2a9e1",
+    "manifest": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+    "evidenceSeal": "23678ecd1f6a8767b529ea85d72cf04ad2b9ba21437ca0ab1771ee99a5c997f4",
+    "rawBase64": "adb61830273c511e346ae03d2270e406faf21aec91a71a41a67cba53bb048510"
+  },
+  "reader": {
+    "status": "qualified",
+    "reusedControls": 16,
+    "newReaderControls": 0,
+    "selectedInputs": 357,
+    "retainedJSONBytes": 4644868,
+    "admissionChildren": 1403,
+    "finalChildren": 2668,
+    "allClosed": true,
+    "readerSemanticsChanged": false,
+    "constantMemoryOrRSSClaim": false
+  },
+  "repair": {
+    "pass": 28,
+    "planned": 28,
+    "permissions": 8,
+    "fixture": 3,
+    "aggregate": 17,
+    "controls": [
+      {
+        "id": "node22-permission",
+        "status": "pass"
+      },
+      {
+        "id": "node22-wrong-binding",
+        "status": "pass"
+      },
+      {
+        "id": "node22-absent-directory",
+        "status": "pass"
+      },
+      {
+        "id": "node22-positive-emission",
+        "status": "pass"
+      },
+      {
+        "id": "node24-permission",
+        "status": "pass"
+      },
+      {
+        "id": "node24-wrong-binding",
+        "status": "pass"
+      },
+      {
+        "id": "node24-absent-directory",
+        "status": "pass"
+      },
+      {
+        "id": "node24-positive-emission",
+        "status": "pass"
+      },
+      {
+        "id": "cases-positive",
+        "status": "pass"
+      },
+      {
+        "id": "cases-missing",
+        "status": "pass"
+      },
+      {
+        "id": "cases-hash-mismatch",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-positive",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-failed-P01",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-missing-P01",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-missing-admission",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-missing-repair",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-failed-repair",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-missing-controls",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-failed-control",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-missing-types",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-failed-type",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-unrun-case",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-missing-context",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-missing-finalization",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-failed-finalization",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-failed-check",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-unclosed-child",
+        "status": "pass"
+      },
+      {
+        "id": "aggregate-integrity-held",
+        "status": "pass"
+      }
+    ],
+    "v3AbsenceDiagnosis": "Confirmed by Node22/24 absent-directory compiler controls reaching four TS5033 output errors each; precreated-directory positives emit all four files. Exact product compiler then succeeds without broader grant or compiler path changes.",
+    "cases": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v1/cases.json",
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16",
+      "bytes": 5911,
+      "regenerated": false
+    }
+  },
+  "independentBuild": {
+    "status": "pass",
+    "buildExecuted": true,
+    "buildStatus": 0,
+    "independentInputs": 357,
+    "exactPackRequired": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packExecuted": true,
+    "packStatus": 0,
+    "actualPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packBytes": 727526,
+    "buildReceipt": "P01-build.json",
+    "packReceipt": "P01-pack.json",
+    "buildNaturalSettlement": true,
+    "packNaturalSettlement": true,
+    "members": 834,
+    "authorFallbackUsed": false
+  },
+  "newBlocker": {
+    "name": "installed-node22-type-positive",
+    "rawReceiptSha256": "da88e7c397d06a03f967778605241409ac8c5022fcd5c1df73a5c5c57711cb46",
+    "kind": "harness output supervision; not product semantic/type rejection",
+    "actualStatus": null,
+    "signal": "SIGKILL",
+    "closed": true,
+    "naturalSettlement": false,
+    "supervision": "combined-output-cap-1MiB",
+    "durationMs": 254,
+    "retainedStdoutBytes": 1048498,
+    "retainedStderrBytes": 0,
+    "retainedTraceLines": 5866,
+    "observedTSDiagnostics": [],
+    "outputBoundBytes": 1048576,
+    "fullTraceCaptured": false,
+    "totalProducedBytes": "not recorded by inherited supervisor; do not infer from retained prefix",
+    "actualArgs": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/tools",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/tools/node_modules/typescript/bin/tsc",
+      "-p",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/installed-node22-positive.json",
+      "--pretty",
+      "false",
+      "--traceResolution"
+    ],
+    "explanation": "Frozen --traceResolution exceeded the inherited combined 1MiB capture limit; supervisor killed the positive strict-type compiler after 254ms. It reached compiler trace output, not a missing-file launch failure. No completed strict-type verdict exists. Integrity hold blocked all remaining contexts and 104 case assertions."
+  },
+  "denominators": {
+    "repair": {
+      "pass": 28,
+      "fail": 0,
+      "unrun": 0,
+      "total": 28
+    },
+    "P01": {
+      "pass": 1,
+      "fail": 0,
+      "total": 1
+    },
+    "packageControls": {
+      "pass": 9,
+      "fail": 0,
+      "unrun": 27,
+      "total": 36
+    },
+    "types": {
+      "pass": 0,
+      "failedSupervision": 1,
+      "unrun": 39,
+      "total": 40
+    },
+    "runtimeAssertions": {
+      "pass": 0,
+      "fail": 0,
+      "unrun": 104,
+      "total": 104
+    },
+    "contexts": {
+      "started": 1,
+      "total": 4,
+      "physicallyMoved": false
+    }
+  },
+  "publicLoadProof": {
+    "profile": "installed Node22 package qualification controls only; NOT the unrun 26-case cohort",
+    "ordinaryStatus": 0,
+    "ordinaryNaturalSettlement": true,
+    "ordinaryMainLoadsAuthenticated": 206,
+    "entries": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.js",
+        "sha256": "f4e0e9324fad04101c172027378d889a300d7de8c6282652027cb756329c4c62"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.js",
+        "sha256": "22ecdead37b9f43312ac18b17ca6069d2fea830fa8cb271f5129a612a39018a0"
+      }
+    ],
+    "ordinaryWorker": {
+      "id": 0,
+      "original": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+      "originalSha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "actual": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+      "actualSha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "control": false,
+      "resourceLimits": {
+        "maxOldGenerationSizeMb": 128,
+        "stackSizeMb": 4
+      },
+      "requestedExecArgv": [],
+      "online": true,
+      "closed": true,
+      "requests": 1,
+      "terminations": 1,
+      "stderr": "EXPR_WORKER_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js\",\"sha256\":\"46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f\"}\nEXPR_WORKER_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/regex-execution/matching.js\",\"sha256\":\"2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791\"}\nEXPR_WORKER_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/bre-worker.js\",\"sha256\":\"e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874\"}\nEXPR_WORKER_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js\",\"sha256\":\"a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6\"}\n",
+      "ready": 1,
+      "loads": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+          "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/regex-execution/matching.js",
+          "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/bre-worker.js",
+          "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/regex-execution/protocol.js",
+          "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6"
+        }
+      ]
+    },
+    "allPackageControlWorkers": [
+      {
+        "receipt": "installed-node22-held-release",
+        "id": 0,
+        "closed": true,
+        "control": false,
+        "requests": 1,
+        "terminations": 1
+      },
+      {
+        "receipt": "installed-node22-held-withhold",
+        "id": 0,
+        "closed": true,
+        "control": false,
+        "requests": 1,
+        "terminations": 1
+      },
+      {
+        "receipt": "installed-node22-ordinary",
+        "id": 0,
+        "closed": true,
+        "control": false,
+        "requests": 1,
+        "terminations": 1
+      },
+      {
+        "receipt": "installed-node22-subpath-restored",
+        "id": 0,
+        "closed": true,
+        "control": false,
+        "requests": 1,
+        "terminations": 1
+      },
+      {
+        "receipt": "installed-node22-worker-negative",
+        "id": 0,
+        "closed": true,
+        "control": false,
+        "requests": 0,
+        "terminations": 1
+      },
+      {
+        "receipt": "installed-node22-worker-restored",
+        "id": 0,
+        "closed": true,
+        "control": false,
+        "requests": 1,
+        "terminations": 1
+      }
+    ],
+    "allSixWorkersClosed": true,
+    "shellCancellationLoadedInOrdinary": false,
+    "noNode24OrMovedLoadClaim": true,
+    "R25": "unrun; no silent worker protocol result",
+    "R26": "unrun; preliminary held-reply controls are not a replacement"
+  },
+  "settlement": {
+    "runnerChildren": 41,
+    "natural": 40,
+    "supervised": [
+      {
+        "name": "installed-node22-type-positive",
+        "status": null,
+        "durationMs": 254,
+        "supervision": "combined-output-cap-1MiB",
+        "naturalSettlement": false,
+        "closed": true
+      }
+    ],
+    "allRunnerChildrenClosed": true,
+    "readerChildren": 2668,
+    "allReaderChildrenClosed": true,
+    "outer": {
+      "schema": "expr-v4-outer-receipt/1",
+      "commit": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+      "startedAt": "2026-08-28T01:58:57.394Z",
+      "finishedAt": "2026-08-28T01:59:34.459Z",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "pid": 14544,
+      "childStatus": 1,
+      "signal": null,
+      "closed": true,
+      "supervision": null,
+      "outputBytes": 5057,
+      "aggregateExitCode": 1,
+      "exitCode": 1,
+      "rawFlushedBeforeExit": true
+    }
+  },
+  "postchecks": {
+    "runner": [
+      {
+        "name": "installed-node22-package-post-newentry-mode-hash-guard",
+        "status": "pass",
+        "productPass": false
+      },
+      {
+        "name": "all-bound-packages-harnesses-and-bindings-postcheck",
+        "status": "pass",
+        "productPass": false
+      },
+      {
+        "name": "finally-selected-source-newentry-mode-hash",
+        "status": "pass",
+        "productPass": false
+      },
+      {
+        "name": "finally-build-input-newentry-mode-hash",
+        "status": "pass",
+        "productPass": false
+      },
+      {
+        "name": "finally-copied-tools-newentry-mode-hash",
+        "status": "pass",
+        "productPass": false
+      },
+      {
+        "name": "finally-frozen-cases-binding",
+        "status": "pass",
+        "productPass": false
+      },
+      {
+        "name": "original-nine-admission-five-and-tools-readonly-postcheck",
+        "status": "pass",
+        "productPass": false
+      }
+    ],
+    "finalization": {
+      "status": "pass",
+      "finishedAt": "2026-08-28T01:59:34.436Z",
+      "allReaderChildrenClosed": true,
+      "readerChildCount": 2668,
+      "recipeNewEntriesChecked": true,
+      "toolsNewEntriesChecked": true,
+      "originalNineUnchanged": true,
+      "admissionFiveUnchanged": true,
+      "v1AndV2Unchanged": true,
+      "productPasses": 0
+    },
+    "rawEntriesReauthenticated": 84,
+    "payloadBytes": 9367160,
+    "compressedBytes": 1893941,
+    "evidenceArtifactsReauthenticated": 13,
+    "noGeneratedWorkDeleted": true
+  },
+  "aggregate": {
+    "schema": "expr-v4-required-phase-verdict/1",
+    "commit": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+    "status": "HELD",
+    "exitCode": 1,
+    "reasons": [
+      "child-closure",
+      "integrity-hold",
+      "reported-failures",
+      "context-count",
+      "installed-node22:types",
+      "installed-node22:runtime",
+      "installed-node24:package-controls",
+      "installed-node24:types",
+      "installed-node24:runtime",
+      "moved-node22:package-controls",
+      "moved-node22:types",
+      "moved-node22:runtime",
+      "moved-node24:package-controls",
+      "moved-node24:types",
+      "moved-node24:runtime"
+    ],
+    "errors": [],
+    "beforeProcessExit": true
+  },
+  "minimalNextAuthorization": "A separately frozen type-trace transport/retention repair preserving strict type invocations, trace/source-resolution controls, bounded supervision, durable raw evidence and nonzero required-phase verdict. No increase/removal, replay, product rerun or expectation repair performed here.",
+  "holds": [
+    "Accepted-DU original gate HELD/unrescored; root-selected DU75 is not an accepted prerequisite",
+    "HTML accepted separately; not rerun or rebuilt",
+    "No DU29, TAP, whole76/fullgate or engine acceptance",
+    "All original v1 ENOBUFS, v2 interrupted and v3 failure evidence unchanged"
+  ]
+}

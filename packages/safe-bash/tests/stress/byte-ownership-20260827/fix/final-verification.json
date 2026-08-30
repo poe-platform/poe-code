@@ -1,0 +1,50 @@
+{
+  "checkedAt": "2026-08-27T10:16:15.524Z",
+  "head": "630bf76f2a90a72ad447694e3b188e7437858820",
+  "codeCommit": "7a517cecab21d9fbff204df01a6a2ad2712a7673",
+  "codeCommitFiles": [
+    "src/commands/internal.ts",
+    "src/commands/streams.ts",
+    "tests/commands/internal.test.ts",
+    "tests/commands/streams.test.ts"
+  ],
+  "committedHashes": {
+    "src/commands/internal.ts": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+    "src/commands/streams.ts": "06bff98731e9244f502589de6f81c5dec9737c70a3eb285ebf90bf2a3dd93a9d",
+    "tests/commands/internal.test.ts": "406be07ceb7a76b792737e14aa6e8d1dcf26c0589f111b8061c60fab18877840",
+    "tests/commands/streams.test.ts": "abf5abfa29509b734fcf9f20ac07faeb3be4b46907088e28eb3ceede5a32fd0c"
+  },
+  "ownedStatus": "",
+  "stagedPathsPreserved": "",
+  "changedOriginalHashPaths": [
+    "src/commands/internal.ts",
+    "src/commands/streams.ts"
+  ],
+  "unchangedOriginalHashes": 220,
+  "adjacentSuiteHashes": {
+    "tests/contracts/io.test.ts": "0be30d243f4df7688f57fc2bdc5b7b914c3fae62203f8e5613595d4153e7f0ec",
+    "tests/shell/streaming.test.ts": "cfd61d72b7b7a33081e43c5f96dbe7c1161e27e72d6057489394283608ffe585",
+    "tests/commands/text.test.ts": "be5e2d8537c3495eefcde240ecc3ed9adfae5d9770f30fc8cc732544c3cd5255",
+    "tests/commands/stream-format/rev.test.ts": "d1260a0d5cb0fbee4a69ea33bde89e75ac6690b6a6c05e3713af72f2df9e004b",
+    "tests/commands/stream-format/helpers.ts": "5c07678d78bc17ee3089daa7518cd265230cbd393a02bc9c8b81ddd07b116b9f",
+    "tests/commands/helpers.ts": "2ac2555ee51000aa885272340eba59db64f9738f4c771697d2cf19b7e5ebc463"
+  },
+  "adjacentHashQualification": "Supplemental hashes match committed blobs at BOTH recorded existing-suite run heads and current files. Neither recorded status lists these paths dirty. Product/owned canonical/original hashes were already checked live before and after runs.",
+  "bindingOutput": "CANDIDATE BINDING verified 242 hashes; candidateHead=7a517cecab21d9fbff204df01a6a2ad2712a7673; exact unchanged original20; original baseline remains 17/20\n",
+  "nativeOracle": {
+    "path": "/usr/bin/rev",
+    "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247",
+    "platform": "darwin",
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+    "probe": {
+      "input": "abc\n",
+      "locale": "C",
+      "status": 0,
+      "stdout": "cba\n",
+      "stderr": ""
+    },
+    "qualification": "Existing 17 rev native cases use this Apple system oracle; failures compare status/existence of stderr as in unchanged helper. No GNU/Linux inference. No utility semantic version advertised or claimed."
+  },
+  "processCleanup": "All launched exec/test/compiler/benchmark sessions have returned; no detached task, server, service, persistent browser, or worker was launched. Shell cleanup and input finalizers/sink release are covered by canonical and original tests. Source is frozen by ownership policy after the code commit; no shared dist writes were performed.",
+  "independentContentsRead": false
+}

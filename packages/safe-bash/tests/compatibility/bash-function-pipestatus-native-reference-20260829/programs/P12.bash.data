@@ -1,0 +1,1 @@
+false; ( printf "child:<%s>\n" "${PIPESTATUS[@]}" ); printf "parent:<%s>\n" "${PIPESTATUS[@]}"

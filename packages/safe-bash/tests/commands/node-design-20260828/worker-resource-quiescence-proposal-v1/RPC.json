@@ -1,0 +1,113 @@
+{
+  "schema": "WRQ-RPC-proposal-v1",
+  "classification": "unselected-contract-data; no implementation or execution grant",
+  "units": {"KiB": 1024, "MiB": 1048576, "strings": "2 logical bytes per UTF16 code unit; wire counts UTF8 bytes"},
+  "limits": {
+    "workersPerInvocation": 1,
+    "sharedArrayBuffers": 1,
+    "sharedArrayBufferBytes": 197056,
+    "globalHeaderBytes": 64,
+    "slots": 3,
+    "slotHeaderBytes": 128,
+    "slotPayloadBytes": 65536,
+    "syncSlot": 0,
+    "asyncSlots": [1, 2],
+    "operationSequenceMax": 128,
+    "framesAllDirectionsMax": 4096,
+    "eventEpochMax": 8192,
+    "metadataFrameBytesMax": 8192,
+    "pathUtf8BytesMax": 1024,
+    "errorMessageUtf8BytesMax": 1024,
+    "operationTextBytesMax": 1048576,
+    "readBytesCumulativeMax": 4194304,
+    "writeBytesCumulativeMax": 4194304,
+    "outputBytesCumulativeMax": 1048576,
+    "commandOwnedLiveReservedBytesMax": 16777216,
+    "sourceUtf8BytesMax": 262144,
+    "contextEncodedBytesMax": 65536,
+    "jsonCacheEntriesMax": 32,
+    "jsonCacheInputUtf8BytesMax": 1048576,
+    "fixedBuiltinModulesMax": 4,
+    "workerResourceLimits": {"maxOldGenerationSizeMb": 32, "maxYoungGenerationSizeMb": 8, "codeRangeSizeMb": 8, "stackSizeMb": 4},
+    "executionAdmissionMs": 5000,
+    "cooperativeStopGraceMsMax": 100,
+    "engineStepsMax": 100000,
+    "guestCallDepthMax": 128,
+    "parserTokensMax": 65536,
+    "parserDepthMax": 128
+  },
+  "schemas": {
+    "completionSelection": "Parent-owned immutable invocation selection: Q, L-entry-return or L-guest-exit; no default. L-entry-return maps topLevelSettled only after primitive print publication where applicable to intentional retirement with unknown guest pending work, not all-job completion. L-guest-exit requires explicitExit; ordinary exit callback waits terminally for Worker termination without returning or throwing into guest.",
+    "commonValidation": "Exact finite own enumerable data descriptors; compare keys as sets, ordered sequences by index, not prototype identity. No inherited required fields, symbols, accessors, holes, extras, undefined, coercion or getter evaluation. Trusted sender validates BEFORE serialization/structured clone; receiver validates decoded own data again. Reject duplicate wire keys and noncanonical encoding. Host proxies/provider JavaScript are trusted, not sandboxed by this schema.",
+    "uint": "integer Number in stated inclusive range; reject NaN, infinities, -0 and coercible values",
+    "session": "1..2147483647, parent-assigned once; never reused within parent lifetime; overflow refuses creation. Authority is the owned channel/session table, NOT a secret session number.",
+    "doorbell": {
+      "exactKeys": ["v", "session", "slot", "seq", "frame"],
+      "v": 1,
+      "slot": "0..2",
+      "seq": "1..128, invocation-monotone operation sequence, never wraps",
+      "frame": "1..4096, invocation-monotone frame sequence, never wraps",
+      "rule": "Only hint to read a committed SAB header; carries no user bytes. At most one unacknowledged doorbell per slot per direction; ACK consumes its predecessor. All unsolicited/duplicate/wrong-session messages are protocol failures, not a new admission."
+    },
+    "request": {
+      "exactKeys": ["v", "session", "slot", "seq", "op", "authority", "path", "flag", "totalBytes"],
+      "v": 1,
+      "op": ["readText", "writeText", "writeOutput"],
+      "authority": ["data", "json", "stdin", "stdout", "stderr"],
+      "path": "bounded canonical absolute virtual POSIX path, or null for stdin/output; never host path/URL",
+      "flag": ["r", "w", "wx", null],
+      "totalBytes": "null for read; 0..1048576 for write, exact complete encoded length",
+      "combinations": [
+        "readText/data or readText/json: path string, flag r, totalBytes null",
+        "readText/stdin: path null, flag r, totalBytes null",
+        "writeText/data: path string, flag w or wx, totalBytes exact integer",
+        "writeOutput/stdout or writeOutput/stderr: path null, flag null, totalBytes exact integer"
+      ]
+    },
+    "outcome": {
+      "variants": [
+        {"exactKeys": ["kind", "textBytes"], "kind": "text", "textBytes": "0..1048576; response chunks follow, actual UTF8 replacement/BOM policy remains NP1"},
+        {"exactKeys": ["kind"], "kind": "undefined"},
+        {"exactKeys": ["kind", "code", "message", "path", "syscall"], "kind": "fsError", "code": ["ENOENT", "EACCES", "EPERM", "EISDIR", "ENOTDIR", "EEXIST", "EROFS", "ENOSPC", "EIO", "EBUSY", "ENOTSUP", "ERR_VNODE_DENIED"], "message": "bounded string", "path": "bounded virtual string or null", "syscall": ["readFile", "writeFile", "write"]},
+        {"exactKeys": ["kind"], "kind": "stop"}
+      ],
+      "rule": "No arbitrary object, prototype, Error, native Promise, capability or reason cloning. Worker creates its own ordinary Error for fsError, with allowed own metadata; text/undefined return synchronously on slot0. Unknown real FS codes refuse this profile at qualification; never translate an unknown error into success or permission denial."
+    },
+    "entryCompletion": {
+      "exactKeys": ["v", "session", "kind", "lastSeq", "exitCode"],
+      "v": 1,
+      "kind": ["topLevelSettled", "explicitExit"],
+      "lastSeq": "0..128",
+      "exitCode": "null for topLevelSettled, integer0..255 for explicitExit",
+      "rule": "At most one terminal message, at most256 encoded bytes. Not a PASS receipt or all-job census. Parent reconciles its operations, immutable completion selection, observed Worker exit/error, output settlement and clean close. Strict engine counts need separately qualified evidence, not extra self-reported strings. L completion intentionally retires unknown pending guest work and must retain that classification even when guest status is0."
+    }
+  },
+  "candidateShellMapping": {"completed": 0, "intentional-retirement": "requested code0..255; entry-return defaults to0 only under explicitly selected L policy", "guest-error": 1, "control": "existing Shell control mapping preserving actual parent reason and provenance", "resource-failure": 2, "protocol-failure": 2, "quiescence-unknown": 2},
+  "admissionOrder": [
+    "Register idempotent parent cleanup and close-admission latch before Worker/VFS acquisition. Source read is parent-only sourceRead authority; it is never added to guest RPC grants.",
+    "Guest argument validation must precede engine argument copying where required; ordinary injection alone does not prove this. Worker validates resulting finite request before serialization.",
+    "Reserve operation sequence, slot, metadata/transport/return-copy space, deadline, byte allowance and eventual sink admission. No queued overflow: async slot exhaustion produces a rejected guest promise; sync reentry refuses.",
+    "Parent checks owned session/channel, exact own data, sequence/slot state, confinement, op/authority matrix and grant before acquisition. json requires jsonModules AND dataRead; data write requires dataWrite; missing grants deny before VFS. Actual granted read-only storage preserves EROFS.",
+    "For reads reserve full per-operation result allowance plus decoder/copy upper bounds, then consume a cooperatively bounded byte stream, copying before producer advance. fd0 shares single stdin with source and cannot be replayed.",
+    "For writes count UTF8 before encoding; receive all chunks and exact declared length within reserved staging before first mutation. wx requires actual VFS exclusive-create capability, else ENOTSUP before mutation; no check-then-write. A later VFS failure may leave partial real effects.",
+    "Output frames advance only after actual sink backpressure settles; chunk transfer is not output publication. Closed destination refuses new writes without cancelling siblings."
+  ],
+  "synchronization": {
+    "layout": "Global64 bytes: Int32 stop, eventEpoch, session, version followed by12 zero reserved words. Each slot128 bytes: state, seq, phase, frame, payloadLength, totalBytes, resultTag followed by25 zero reserved Int32 words. Payload is separate65536-byte region. Refuse nonzero reserved words; never grow SAB.",
+    "states": ["FREE", "REQUEST", "PARENT_OWNED", "RESPONSE", "ACK", "RETIRED"],
+    "ownership": "Worker reserves FREE and writes request, then Atomics publishes REQUEST; parent observes it, owns copy/operation and publishes RESPONSE. Worker copies response and publishes ACK. Only after ACK plus actual parent operation/resource cleanup may parent publish FREE. Multi-frame transfer repeats the owned RESPONSE/ACK handoff with exact phase/frame increments; REQUEST body chunks use the reciprocal owner handoff. Payload is never read while the other side writes it.",
+    "phaseOrder": ["requestMetadata", "requestBodyIfAny", "responseMetadata", "responseBodyIfAny", "finalAck"],
+    "wait": "Worker samples global eventEpoch, checks stop and expected slot/seq/phase, then Atomics.wait on that sampled epoch with remaining admission time. Parent response/cancel increments that same epoch and Atomics.notify count1. Check-before-wait plus value comparison handles early responses; loop rechecks all state after ok/not-equal/timed-out. No Worker callback needed to wake. Atomics timeout is not a hard scheduling deadline.",
+    "async": "Slots1/2 native Promise continuations receive bounded doorbells when the Worker event loop can run. While slot0 blocks, parent may finish slots1/2 into retained responses without waiting for their Worker continuations. Parent must never serialize slot0 behind an ACK it needs from a blocked Worker.",
+    "cancel": "Parent sets permanent global stop, closes all authority admission, increments/notifies eventEpoch regardless of slot state, and cancels/tracks parent operations. Worker checks stop before publish, before wait and before return. Parent retains actual raw reason presence/value and provenance including falsy values; stop DTO is not the reason. A caught Worker error cannot reopen parent admission.",
+    "stale": "Late settlement verifies original session/slot/seq and parent ownership before any SAB write. No slot can be reused while original job cleanup remains active. On Worker exit discard transport delivery but observe and drain the real operation; never reuse session/SAB. Cross-session response and duplicate ACK fail closed.",
+    "closure": "Stop/exit is not a synthetic ACK or natural completion. Reconcile admitted=settled+stillActive, and retired only after actual close. Parent retains ownership and primary/secondary failures until Worker exit and all cooperative host jobs/output settle; no rollback or invented hard timeout completion."
+  },
+  "qualificationGaps": [
+    "Command logical reservations do not count all engine allocation/retention; native JSON/string/object work remains outside that ledger.",
+    "Full all-Promise/runnable/active accounting and guest rejection ordering are not provided by the inspected public run completion receipt.",
+    "Trusted guest module cache/descriptor validation scaffold, exact shared ShellBudget counters and completion mapping need independent source and execution qualification.",
+    "Strict bounded parent producers/sinks and cooperative cleanup are admission prerequisites; uncooperative jobs or Worker termination latency cannot be bounded by this protocol alone.",
+    "No executable entry, loader closure, grant, launch command, implementation or Worker run is created here."
+  ]
+}

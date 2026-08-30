@@ -1,0 +1,573 @@
+{
+  "schema": "remaining-harness-v8-parent-created-links-preseal",
+  "candidate": "SOURCE-DATA ONLY; no product admission",
+  "files": {
+    "owner.mjs": {
+      "bytes": 23853,
+      "mode": 420,
+      "sha256": "2286e394f873e96518199c1a3f4b5309856aa63dd4f4bf667eb16ce6ed47e9f9"
+    },
+    "child.mjs": {
+      "bytes": 2269,
+      "mode": 420,
+      "sha256": "2d433819913e3d9559b03da65480a89c498b9203b885469ed4d0433d42a14f25"
+    },
+    "data-controls.mjs": {
+      "bytes": 9376,
+      "mode": 420,
+      "sha256": "15e4117972a0d9b4e7de79b77994ebd284d26755bd6102ca6fa5bbe2e46972b5"
+    },
+    "primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    },
+    "fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd"
+    },
+    "INPUTS-v6.json": {
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf"
+    },
+    "FIXTURES-v6.json": {
+      "bytes": 30950,
+      "mode": 420,
+      "sha256": "ec2f4f1a29c85b65630ffaf4773634d202b62c438111933b18ec259ce80d0837"
+    }
+  },
+  "sourceBindings": {
+    "tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/evidence/work-archive.json.gz.base64": {
+      "bytes": 6452889,
+      "mode": 420,
+      "sha256": "378d7e0e58f3a47ee5e25f2a675412e28aa2ef04b2cdec72ae9bd9bacdeafb94"
+    },
+    "tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/worker.mjs": {
+      "bytes": 25968,
+      "mode": 420,
+      "sha256": "6563b3319cb495dea5c0b5c0499d166eaf5bf63806fd9e12487ed42b6f046296"
+    },
+    "tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json": {
+      "bytes": 43410,
+      "mode": 420,
+      "sha256": "b10cd0aeb7272ddb029baaa871b58f73ef645278e5bc3d9ef9bea1a1d1d6fe29"
+    },
+    "tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json": {
+      "bytes": 124506,
+      "mode": 420,
+      "sha256": "44074ff7627215afdc92dd4565c2154ca3eb5b34870dafc0cae0433f912ed558"
+    },
+    "tests/commands/apply-patch-independent-20260828/postrun-diagnosis-v1/BINDINGS.json": {
+      "bytes": 7784,
+      "mode": 420,
+      "sha256": "8289108e38fde2843db0b9e46843cc3083a985e092731a2aa3c59de38b2631a3"
+    },
+    "tests/commands/apply-patch-independent-20260828/postrun-diagnosis-v1/FINDINGS.md": {
+      "bytes": 14584,
+      "mode": 420,
+      "sha256": "8775dc3410fc568f01f3cd7e830f00569e86e6203d480b24d1bcf9c69fc5e51b"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/CALLGRAPH.md": {
+      "bytes": 6360,
+      "mode": 420,
+      "sha256": "7cc093496809e9683437455b3cf48bae3e8c3c3a2417f6b2873444d104b760a4"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/EVIDENCE-SEAL.json": {
+      "bytes": 1194,
+      "mode": 420,
+      "sha256": "fcc37815fd1687ce1723f0fd7fbd7eff3adb2a6ce69b124202ecea74618be361"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/INPUTS.json": {
+      "bytes": 582,
+      "mode": 420,
+      "sha256": "62e085564f346b42d820efe7d58b57cd39e1072e8d4c7cadaf979cfa2098936d"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/PRESEAL.json": {
+      "bytes": 14304,
+      "mode": 420,
+      "sha256": "14019b529fcd5483d2e40e0200165a601ce32d5b5762d88fb3d239c4224ec128"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/PROPOSAL.md": {
+      "bytes": 6872,
+      "mode": 420,
+      "sha256": "fbf911e0cb5288eeb6c47466754a49e283f545f7d1b100cb0f11918d82949f20"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/REMAINING.json": {
+      "bytes": 10252,
+      "mode": 420,
+      "sha256": "3fb8d6323eb1c6090ccfa07e79d72f8f574a931d829a63db321ac3358f8eabf0"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/REPORT.md": {
+      "bytes": 6611,
+      "mode": 420,
+      "sha256": "81b90ed69e97487482f4dd55e5f6441f705e959466166d05f7295de926692a20"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/controls.mjs": {
+      "bytes": 15620,
+      "mode": 420,
+      "sha256": "2db32ebe23c5d9709cdb641a398ce4afaf032c296d8d837ce3eab9f8d75e104e"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/nested-child.mjs": {
+      "bytes": 852,
+      "mode": 420,
+      "sha256": "d8399e72c636a7c752c30b8e7970cfd8b254aa0935fdcdb5e0aeefd0f1f7e2f3"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/primitives.mjs": {
+      "bytes": 3071,
+      "mode": 420,
+      "sha256": "530e645e2bf0c3b22fa1d2e9af77407d5fb52742858b569f60b058927bda42d9"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v4/seal-author.mjs": {
+      "bytes": 7812,
+      "mode": 420,
+      "sha256": "348402d42f812b7849a0d6cffc0de2aa3e8db3efbbcd82afd72d134a3d479265"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/CALLGRAPH.md": {
+      "bytes": 3354,
+      "mode": 420,
+      "sha256": "6acb8cb791dbf163c43ace22ecedc57ee4a74da19556cc4d4d9fc0c9fbe4f1a5"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/DRAFT-SOURCE-SEAL.json": {
+      "bytes": 2536,
+      "mode": 420,
+      "sha256": "9f0cf7e9b279485de93171d726667cf0fa2a532b81639e081b50afa022405885"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/EVIDENCE-SEAL.json": {
+      "bytes": 1010,
+      "mode": 420,
+      "sha256": "5fd38b726bac1dcae018ca46ab1635e1f9741afe2f4b362486e6b72cd365cad7"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/PLAN.md": {
+      "bytes": 8298,
+      "mode": 420,
+      "sha256": "5694c26217ab339a3e38091b413f4bcefbea4d6f89741518661e14d5bafd5d2d"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/POSTGUARDS.json": {
+      "bytes": 2959,
+      "mode": 420,
+      "sha256": "9d73946a5e101de1bb4cb759e9d21ffc8f3e314b92afec9e1088197b515edc47"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/PREPARATION-TRANSCRIPTION.txt": {
+      "bytes": 1940,
+      "mode": 420,
+      "sha256": "e4a7748472a0fea5aa2d1633d53b13eb7a42547489c8fc17617f229c0a1ee056"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/REPORT.md": {
+      "bytes": 6192,
+      "mode": 420,
+      "sha256": "815c076a6416c74eb8bb51526d39d9a6ceeb0cd1cbdee3b347735829e83ea858"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/author.mjs": {
+      "bytes": 14261,
+      "mode": 420,
+      "sha256": "f0493da9cc46f916bba85b030485adada22adc8d8d79d2989578ef23752ead1d"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/child.mjs": {
+      "bytes": 1988,
+      "mode": 420,
+      "sha256": "26df3bfb5a139942e9dd464891848cd5e9a1628e5971219868df1ec4e7e8c91b"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/data-controls.mjs": {
+      "bytes": 7923,
+      "mode": 420,
+      "sha256": "4a16a11018e3935c60af883a44ade4ec1e59f86bf2cb1ca860c26e47e80e194f"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/evidence-author.mjs": {
+      "bytes": 11013,
+      "mode": 420,
+      "sha256": "4ea002e586ff9027f50828c047fd2045ae438bf5c7fe2b08a631973603e40afa"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "e00dce91b409d334987c7811bf1277b8a47f640845dc05550a7cdff012b92964"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/owner.mjs": {
+      "bytes": 21004,
+      "mode": 420,
+      "sha256": "6c4c6cf5098d89cce7501c5dd2dcefc8c76a5c7b37dafe227cc5e17ab8bfcbfe"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v5/primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/CALLGRAPH.md": {
+      "bytes": 3354,
+      "mode": 420,
+      "sha256": "d3498a03598ed2a9f0df621a3bc8a22e5621fcc97ee5d0633c134278e37e34e8"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/DISCOVERY-PRESEAL.json": {
+      "bytes": 24502,
+      "mode": 420,
+      "sha256": "c90081207ac53c9cf0d2f5c1851e7371b842e1d82bffab8aa0854598f623466e"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/EVIDENCE-SEAL.json": {
+      "bytes": 911,
+      "mode": 420,
+      "sha256": "04cd1d057f0f1f3286022c61db0e5d9ea6949ed2e9fb15a8a1468424f6fa9478"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/FIXTURES-v6.json": {
+      "bytes": 30950,
+      "mode": 420,
+      "sha256": "ec2f4f1a29c85b65630ffaf4773634d202b62c438111933b18ec259ce80d0837"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/FULLSEAL.json": {
+      "bytes": 7709,
+      "mode": 420,
+      "sha256": "2fbe397471d9befb201d7be7670c375f0a35ccd3434f7d9c5b2f7875977c5070"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/INPUTS-v6.json": {
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/PLAN.md": {
+      "bytes": 8900,
+      "mode": 420,
+      "sha256": "8b82b8e0dbe14ca9212f13aaca9d0742b10f490acfcc5e387f00260234ec2aab"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/POSTGUARDS.json": {
+      "bytes": 3103,
+      "mode": 420,
+      "sha256": "cf0dbea87cf3832926e30b1b6a9e43cdff0131eec7ccc163dade26bf1a223d83"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/REMAINING-v6.json": {
+      "bytes": 42933,
+      "mode": 420,
+      "sha256": "3e0f68681188adf51bb164f4efeffe47df128153769a0daedb9b816e46cfb8fe"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/REPORT.md": {
+      "bytes": 5357,
+      "mode": 420,
+      "sha256": "f0d105bd46cdb43ecae96387b2bec34f9ac75a51ce246dc1c8b31be66758d0aa"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/REVIEW.md": {
+      "bytes": 3415,
+      "mode": 420,
+      "sha256": "3b9bbfe3313d4109e7f0e4d26cec0d2affafd1a27f0410253ed983947b582907"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/STARTUP-TRANSCRIPTION.txt": {
+      "bytes": 1111,
+      "mode": 420,
+      "sha256": "18908609178c2e229ae9d60017a1e9c533eba0e87818fd53c5f8aa779fa7e796"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/author.mjs": {
+      "bytes": 14408,
+      "mode": 420,
+      "sha256": "f7e121e5750e4645459d6128525c80e4df35dadc8aae45d6a1bbe8051a6ae559"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/child.mjs": {
+      "bytes": 1988,
+      "mode": 420,
+      "sha256": "ec983f2788834fa91111ac06a3b03b389157f52d66b7ab4fe81eb436b52cbbed"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/data-controls.mjs": {
+      "bytes": 7923,
+      "mode": 420,
+      "sha256": "cd879bb07ac734be761fba8c1201d30485e3ffc4ae09444c3147a83b5a9e774f"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/evidence-author.mjs": {
+      "bytes": 11215,
+      "mode": 420,
+      "sha256": "e6ad3c24ac1c207d088934a74fe0b45d43390d1ac40ca4ac72d51a20d6b34e23"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/owner.mjs": {
+      "bytes": 21004,
+      "mode": 420,
+      "sha256": "088abb190147d7f627377604e2ceb5fc94db4b5dfa935b0fdc3f81e6349b2256"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v6/primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    },
+    "tests/commands/apply-patch-capture-review-20260828/SYMLINK-REPORT.md": {
+      "bytes": 3003,
+      "mode": 420,
+      "sha256": "b4dd53676f48aeb62e8b4fe73e714ca17cec06db7e132ced2cf413bf0e4cae58"
+    },
+    "tests/commands/apply-patch-capture-review-20260828/symlink-run.mjs": {
+      "bytes": 12929,
+      "mode": 420,
+      "sha256": "08ec6d168ab550fba3cbbb534a94f9b2fb2ab07cd5383db082d23a97c35d7ea1"
+    },
+    "tests/commands/apply-patch-capture-review-20260828/SYMLINK-PRESEAL.json": {
+      "bytes": 2941,
+      "mode": 420,
+      "sha256": "d9e7ab9630a56b688a4a72acb050edcf4f263fd4c97c4c1091bf624bfe66906b"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/owner.mjs": {
+      "bytes": 21912,
+      "mode": 420,
+      "sha256": "60dd2636b6c6248792fbaec659a17daccaab0447d05f670141467d73414bcf4e"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/data-controls.mjs": {
+      "bytes": 7923,
+      "mode": 420,
+      "sha256": "cd879bb07ac734be761fba8c1201d30485e3ffc4ae09444c3147a83b5a9e774f"
+    },
+    "tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/DISCOVERY-PRESEAL.json": {
+      "bytes": 24954,
+      "mode": 420,
+      "sha256": "f83d5102f3ac3c8d3d2a3645cb81b4c9291ccab5cf8a0da7c7ba4363d0fa5530"
+    }
+  },
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "binding": {
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      }
+    },
+    "git": {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "binding": {
+        "bytes": 7604272,
+        "mode": 493,
+        "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+      }
+    }
+  },
+  "nodeVersion": "v22.22.2",
+  "launch": {
+    "login": false,
+    "shellPrefix": "exec -c",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--no-warnings",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/owner.mjs"
+    ],
+    "append": [
+      "SOURCE-COMMIT-40",
+      "DISCOVERY-PRESEAL-SHA256-64"
+    ],
+    "selectedStartupEnv": {},
+    "observedEnvIsNotAssumedEmpty": true,
+    "authority": "trusted outer explicit authorized owner; no Node filesystem permission flags; source-audited exact paths only; restricted children retain Node permission intrinsic"
+  },
+  "discovery": {
+    "id": "D00",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--no-warnings",
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+      "discovery"
+    ],
+    "envRule": "Exact own process.env, only __CF_USER_TEXT_ENCODING permitted; value discovered once as local Node metadata, 1..256 UTF8 bytes. Unexpected keys STOP.",
+    "unknownHistoricalValue": true
+  },
+  "output": "attempt-01",
+  "bounds": {
+    "totalMs": 600000,
+    "admissionCutoffMs": 540000,
+    "maximumChildren": 12,
+    "fixedChildren": 6,
+    "peakAllOwnedProcesses": 2,
+    "captureBytes": 33554432,
+    "persistedBytes": 2097152,
+    "scratchBytes": 134217728,
+    "tightenedScratchBytes": 1048576,
+    "scratchEntries": 128,
+    "childTimeoutMs": 15000,
+    "retirementGraceMs": 2500,
+    "perChildRawBytes": 65536
+  },
+  "mainTemplate": {
+    "schema": "remaining-harness-v6-main-preseal",
+    "nodeEnv": "FROM_SINGLE_AUTHENTICATED_D00_RAW_RECORD",
+    "intentionalRefusalExpectedEnv": "SAME_KEY_WITH_VALUE_PLUS_LITERAL_!V6-INTENTIONAL-MISMATCH",
+    "inputs": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/INPUTS-v6.json",
+    "fixtures": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/FIXTURES-v6.json",
+    "supplement": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json",
+    "original32": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json",
+    "positiveWork": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/positive",
+    "fixtureIds": [
+      "V6-S62-CANONICAL",
+      "V6-S64-LITERAL-NOPULL",
+      "V6-S71-ACCESS-MODE",
+      "V6-S74-EXACT-BRANCH-SET"
+    ],
+    "controls": [
+      "R01",
+      "R02",
+      "R03",
+      "B01",
+      "G01",
+      "P01"
+    ],
+    "dataChecks": [
+      "D01",
+      "D02",
+      "D03",
+      "D04"
+    ],
+    "children": [
+      {
+        "id": "START-POSITIVE",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--no-warnings",
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01",
+          "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/data-controls.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/primitives.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/fixture-data.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/INPUTS-v6.json",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/FIXTURES-v6.json",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+          "positive",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json"
+        ],
+        "expectedExit": 0
+      },
+      {
+        "id": "START-REFUSAL",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--no-warnings",
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+          "refusal",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json"
+        ],
+        "expectedExit": 1
+      },
+      {
+        "id": "START-FS-REFUSAL",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--no-warnings",
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+          "fs-refusal",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json"
+        ],
+        "expectedExit": 1
+      },
+      {
+        "id": "G01",
+        "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+        "args": [
+          "--no-pager",
+          "--no-replace-objects",
+          "-c",
+          "core.hooksPath=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/empty",
+          "-c",
+          "core.fsmonitor=false",
+          "-c",
+          "maintenance.auto=false",
+          "-c",
+          "gc.auto=0",
+          "-c",
+          "gc.autoPackLimit=0",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "tag.gpgsign=false",
+          "-c",
+          "credential.helper=",
+          "-c",
+          "protocol.allow=never",
+          "-c",
+          "core.attributesFile=/dev/null",
+          "--git-dir=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/metadata.git",
+          "ls-tree",
+          "-rz",
+          "--full-tree",
+          "147aa1a5c5a862ffe2d6152c52d66bd3111c0267"
+        ],
+        "env": {
+          "PATH": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/empty",
+          "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/home",
+          "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/tmp",
+          "LC_ALL": "C",
+          "GIT_CONFIG_NOSYSTEM": "1",
+          "GIT_CONFIG_SYSTEM": "/dev/null",
+          "GIT_CONFIG_GLOBAL": "/dev/null",
+          "GIT_CONFIG_COUNT": "0",
+          "GIT_NO_REPLACE_OBJECTS": "1",
+          "GIT_NO_LAZY_FETCH": "1",
+          "GIT_OPTIONAL_LOCKS": "0",
+          "GIT_TERMINAL_PROMPT": "0",
+          "GIT_ATTR_NOSYSTEM": "1",
+          "GIT_EXEC_PATH": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/empty",
+          "GIT_PAGER": "",
+          "PAGER": ""
+        },
+        "timeoutMs": 15000,
+        "maxBytes": 65536,
+        "expectedExit": 0
+      },
+      {
+        "id": "P01",
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--no-warnings",
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+          "nested",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json"
+        ],
+        "expectedExit": 0
+      }
+    ],
+    "gitFixture": {
+      "blob": "f9e4014e169ed925725c571c37ff71ef81eed230",
+      "tree": "3ac38790e22525634c1451f402d8b01f7d5caf4e",
+      "commit": "147aa1a5c5a862ffe2d6152c52d66bd3111c0267",
+      "expectedStdoutBase64": "MTAwNjQ0IGJsb2IgZjllNDAxNGUxNjllZDkyNTcyNWM1NzFjMzdmZjcxZWY4MWVlZDIzMAlvcmRpbmFyeS50eHQAMTAwNjQ0IGJsb2IgZjllNDAxNGUxNjllZDkyNTcyNWM1NzFjMzdmZjcxZWY4MWVlZDIzMAl0YWIJbmV3bGluZQpiYWNrc2xhc2hccXVvdGUiLnR4dAA=",
+      "expectedStdoutSha256": "53efaa170347fa9310fb09d738a67949b3d591e8e974bd1b6a981326c088f01b"
+    },
+    "startupDeniedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/STARTUP-DENIED.txt",
+    "boundRunRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01",
+    "fixturePreparation": {
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/work/positive/refusals",
+      "bodyBase64": "SU5FUlQgQ09OVFJPTCBURVhUIE9OTFk6IHBvc2l0aXZlCg==",
+      "bodySha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b",
+      "mode": 420,
+      "regularNames": [
+        "link-target",
+        "alias-source"
+      ],
+      "symlink": {
+        "name": "symlink",
+        "target": "link-target"
+      },
+      "hardlink": {
+        "name": "alias",
+        "source": "alias-source"
+      }
+    }
+  },
+  "sourceMutationAfterCommit": "FORBIDDEN",
+  "postFailure": "STOP preserve evidence; no retries/corrections",
+  "mainSealDerivation": "Unchanged v6 deterministic D00 exact key/value discovery, raw capture, fsync/readback before control dispatch. No guessed __CF_USER_TEXT_ENCODING value. Six direct children including extra startup file-open refusal share one owner clock; no nested OS child.",
+  "boundRunRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01",
+  "authorization": "ROOT versioned fixture-only repair; one six-control/four-DATA plus separate startup-open-refusal qualification; no product admission",
+  "preparationEnvelope": {
+    "classification": "new source preparation, separate from one subsequent qualification epoch; historical v7 counts unchanged"
+  }
+}

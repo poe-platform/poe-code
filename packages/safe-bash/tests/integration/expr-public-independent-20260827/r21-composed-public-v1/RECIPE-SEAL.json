@@ -1,0 +1,100 @@
+{
+  "schema": "expr-r21-composed-recipe/1",
+  "counts": {
+    "boundaryOutcomes": 16,
+    "correctedR21Groups": 4,
+    "validDispatchControls": 8,
+    "sourceFallbackControls": 4,
+    "validatorControls": 52,
+    "controls": 64,
+    "children": 28,
+    "forced": 0,
+    "workers": 0
+  },
+  "entries": [
+    {
+      "path": "BINDINGS.json",
+      "bytes": 30397,
+      "sha256": "f63ce48f9d3414a704fe5186877512d7b75df532d59a5d339977b92951e3dc1c",
+      "mode": 420
+    },
+    {
+      "path": "PINS.json",
+      "bytes": 1509,
+      "sha256": "fead921d7b1a3cb12b4c3a8a5e7c59205aafaebe8c1017165afc373bc2e32b67",
+      "mode": 420
+    },
+    {
+      "path": "RECIPE.md",
+      "bytes": 4963,
+      "sha256": "f33a6b5ad50498850afebf27d5c3517fb84a609bed319e1df008f9cad672cf25",
+      "mode": 420
+    },
+    {
+      "path": "archive.mjs",
+      "bytes": 4044,
+      "sha256": "b29af4aa107a7a0fbcf71658c04f24c7b2b47124c806b82336e89cced7374f74",
+      "mode": 420
+    },
+    {
+      "path": "auth.mjs",
+      "bytes": 10916,
+      "sha256": "1dfc0688ef218612cea41496e81278b921a0e0210f87c784262f729715d633d1",
+      "mode": 420
+    },
+    {
+      "path": "child.mjs",
+      "bytes": 4085,
+      "sha256": "c6d33583d30043d528d468386932a517f209377c23669fd8d94c1a645623eed9",
+      "mode": 420
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 3388,
+      "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440",
+      "mode": 420
+    },
+    {
+      "path": "entry.mjs",
+      "bytes": 1292,
+      "sha256": "d92133cf81614d6405648a6bba6b0e6924f4673bf602054f1cb90d7587aaa20d",
+      "mode": 420
+    },
+    {
+      "path": "evidence.mjs",
+      "bytes": 10050,
+      "sha256": "cf98ecdfbac02dc1b44f97baf9e6596e771c1e6897a756a00bbc57013dfad740",
+      "mode": 420
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 2948,
+      "sha256": "12a7cf5c32c8d0dc2a00c296a16e0bb56d1b0ac998dee1cce639aa611e0be9a6",
+      "mode": 420
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 1323,
+      "sha256": "d2f5561e7e4b5be342defd1801ae67de4073b5807207916d06a34b18adfcdb3e",
+      "mode": 420
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 11333,
+      "sha256": "8d6831e45b0e6fc16b33ec736e1816e58cc5c989ff53573fc4db908c552d4ee8",
+      "mode": 420
+    },
+    {
+      "path": "transport.mjs",
+      "bytes": 8026,
+      "sha256": "b99489e87f571b919038cb879b5aca39d7bab483294ac8e3cd6500ee6b011421",
+      "mode": 420
+    },
+    {
+      "path": "validator.mjs",
+      "bytes": 4053,
+      "sha256": "32d4aaad51e9917e45e8532ace5f9bc476bebafaa9064fb86cd93e3c022ad476",
+      "mode": 420
+    }
+  ]
+}

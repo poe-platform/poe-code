@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-28T06:15:11.660Z",
+  "finishedAt": "2026-08-28T06:15:33.232Z",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: pack: status1\n    at command (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/continue-v2.mjs:31:121)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/continue-v2.mjs:70:1 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "bytes": 548,
+  "survivingGroup": false,
+  "groupStillPresent": false,
+  "naturalSettlement": true,
+  "cleanupClean": true
+}

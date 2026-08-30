@@ -1,0 +1,1203 @@
+{
+  "schema": 1,
+  "date": "2026-08-29",
+  "role": "code-author correction/type/pure evidence; different review required",
+  "sourceCommit": "02782056c436c9f2a8319f73a9eb8e2b4b5aebd5",
+  "earlierCommits": [
+    "e9a24c6e06533e3b028a7c4fb0b37ab79c67010c",
+    "9f0eb69a27d5609ad8b3498b2514c6c644f23ce4"
+  ],
+  "originalTransport": "0f36459ccf38623906c5c80702c5d32111167f4d",
+  "originalReview": "2e9deaab6358465963a6af7045f541430fc5eb7f",
+  "pinnedEngine": "b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb",
+  "engineIntegrationRebindRequired": true,
+  "finalSource": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/accounting.ts",
+      "size": 6780,
+      "mode": 420,
+      "sha256": "ac027226bbfc3851b4db3781ade874f7acceefc006d1b403f05df4812298a144",
+      "relative": "transport/accounting.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/owner.ts",
+      "size": 6765,
+      "mode": 420,
+      "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf",
+      "relative": "transport/owner.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/protocol.ts",
+      "size": 2815,
+      "mode": 420,
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973",
+      "relative": "transport/protocol.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/root.ts",
+      "size": 12107,
+      "mode": 420,
+      "sha256": "9e0496ee8113ffb0d6a1e1044cdc04e72c2932b9cc9bcc154d641b5fbf49efd7",
+      "relative": "transport/root.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/validation.ts",
+      "size": 12676,
+      "mode": 420,
+      "sha256": "4a16dbca55444310fd7c1cf55a70c71ec8d653bd387cd379d3eee593bc3516fc",
+      "relative": "transport/validation.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/wire-engine.ts",
+      "size": 1803,
+      "mode": 420,
+      "sha256": "5888ebad9513c26731f9b7e1f44ef5f7916bbc215e792360ef760c0820ce0234",
+      "relative": "transport/wire-engine.ts"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/transport/worker-entry.ts",
+      "size": 1291,
+      "mode": 420,
+      "sha256": "b9b8bfdcedd2879075142589c13a459e5a5acf747d95897b89ce017598207208",
+      "relative": "transport/worker-entry.ts"
+    }
+  ],
+  "preseals": {
+    "v1": "933e1398fed9df586a0fa7f81c8b041a0cf78bca2b01e627acfbb8a602790029",
+    "v2": "229f36d29cfd4243774df5aa60bf4e0cde5e992cc67c5e50051b508e093498ff",
+    "v3": "4defc229b3d4f446e5916d26b804419e940b342e913e3fbb4b39b26cb41ff3d8"
+  },
+  "actual": {
+    "controllerProcesses": 3,
+    "compilerProcesses": 4,
+    "strictSourceBuilds": 2,
+    "positiveConsumers": 1,
+    "negativeConsumers": 1,
+    "negativeCodes": [
+      2353,
+      2322,
+      2345
+    ],
+    "pureProcesses": 1,
+    "pureCasesPassed": 12,
+    "pureCasesExecuted": 12,
+    "pureLoadedModules": 5,
+    "emissionsPerSuccessfulBuild": [
+      24,
+      24
+    ],
+    "finalEmissionBytes": 80923,
+    "workers": 0,
+    "engineMatching": 0
+  },
+  "originalRuntime": {
+    "families": 32,
+    "variants": 60,
+    "status": "UNRUN"
+  },
+  "v1AdmissionFailure": {
+    "schema": 1,
+    "role": "strict-types-and-pure-DATA-only",
+    "children": [],
+    "workers": 0,
+    "matchingCalls": 0,
+    "failure": {
+      "present": true,
+      "kind": "Error",
+      "message": "regular bounded read /Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js"
+    },
+    "elapsedMs": 280,
+    "captureBytes": 0,
+    "knownChildren": 0,
+    "closedChildren": 0
+  },
+  "v2": {
+    "source": {
+      "code": 0,
+      "diagnostics": ""
+    },
+    "positive": {
+      "code": 0,
+      "diagnostics": ""
+    },
+    "negative": {
+      "code": 2,
+      "diagnostics": "negative.mts(2,108): error TS2353: Object literal may only specify known properties, and 'values' does not exist in type 'EreTransportResult'.\nnegative.mts(3,59): error TS2322: Type 'number' is not assignable to type 'boolean'.\nnegative.mts(5,47): error TS2345: Argument of type 'number' is not assignable to parameter of type 'AbortSignal'.\n",
+      "codes": [
+        2353,
+        2322,
+        2345
+      ],
+      "pass": true
+    },
+    "pure": {
+      "cases": [
+        {
+          "id": "P01",
+          "pass": true
+        },
+        {
+          "id": "P02",
+          "pass": true
+        },
+        {
+          "id": "P03",
+          "pass": true
+        },
+        {
+          "id": "P04",
+          "pass": true
+        },
+        {
+          "id": "P05",
+          "pass": true
+        },
+        {
+          "id": "P06",
+          "pass": true
+        },
+        {
+          "id": "P07",
+          "pass": true
+        },
+        {
+          "id": "P08",
+          "pass": true
+        },
+        {
+          "id": "P09",
+          "pass": true
+        },
+        {
+          "id": "P10",
+          "pass": true
+        },
+        {
+          "id": "P11",
+          "pass": true
+        },
+        {
+          "id": "P12",
+          "pass": true
+        }
+      ],
+      "passed": 12,
+      "total": 12,
+      "loaded": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/emitted/transport/accounting.js",
+          "bytes": 6678,
+          "sha256": "5515cbc0923cd568c84e20e6426a5412acafe47807a78d794903a67873d87677"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/emitted/limits.js",
+          "bytes": 3265,
+          "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/emitted/transport/protocol.js",
+          "bytes": 1198,
+          "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/emitted/errors.js",
+          "bytes": 1045,
+          "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/emitted/transport/validation.js",
+          "bytes": 12419,
+          "sha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd"
+        }
+      ],
+      "workerAcquisitions": 0,
+      "matchingCalls": 0
+    },
+    "children": [
+      {
+        "name": "source",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/@types",
+          "--declaration",
+          "--outDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/emitted",
+          "--rootDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/errors.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/limits.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/matcher.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/syntax.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/types.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/accounting.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/owner.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/protocol.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/root.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/validation.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/wire-engine.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/worker-entry.ts"
+        ],
+        "pid": 88134,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "positive",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/consumer.mts"
+        ],
+        "pid": 88142,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "negative",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/negative.mts"
+        ],
+        "pid": 88145,
+        "closed": true,
+        "code": 2,
+        "signal": null
+      },
+      {
+        "name": "pure",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/pure-controls.mjs",
+          "4de5797f02ba8355bb2d6b0b93b48508f7ea0cbb8278374a6cf95e7568ec7fda"
+        ],
+        "pid": 88150,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      }
+    ]
+  },
+  "v3": {
+    "source": {
+      "code": 0,
+      "diagnostics": ""
+    },
+    "emitted": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/errors.d.ts",
+        "size": 691,
+        "mode": 420,
+        "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/errors.js",
+        "size": 1045,
+        "mode": 420,
+        "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/limits.d.ts",
+        "size": 671,
+        "mode": 420,
+        "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/limits.js",
+        "size": 3265,
+        "mode": 420,
+        "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/matcher.d.ts",
+        "size": 231,
+        "mode": 420,
+        "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/matcher.js",
+        "size": 8483,
+        "mode": 420,
+        "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/syntax.d.ts",
+        "size": 445,
+        "mode": 420,
+        "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/syntax.js",
+        "size": 14270,
+        "mode": 420,
+        "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/accounting.d.ts",
+        "size": 1770,
+        "mode": 420,
+        "sha256": "eaeaa4e5adac79910aa10e3a887c8402888df09b575f4056901c2981cc9f629f"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/accounting.js",
+        "size": 6678,
+        "mode": 420,
+        "sha256": "5515cbc0923cd568c84e20e6426a5412acafe47807a78d794903a67873d87677"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/owner.d.ts",
+        "size": 492,
+        "mode": 420,
+        "sha256": "c18c4a6e4251a1de24640a45578a18aac8f0510bf616b6899216fb7a606c76c6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/owner.js",
+        "size": 7353,
+        "mode": 420,
+        "sha256": "16306b78d3cdee1758b1e81834419187e0f50597a756e27ff589f02f015e2652"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/protocol.d.ts",
+        "size": 2658,
+        "mode": 420,
+        "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/protocol.js",
+        "size": 1198,
+        "mode": 420,
+        "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/root.d.ts",
+        "size": 562,
+        "mode": 420,
+        "sha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/root.js",
+        "size": 12390,
+        "mode": 420,
+        "sha256": "f0a623bb7511f09889febfee051b45efc9b48a1feb6bf36a2883e78ba3d3dfa4"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/validation.d.ts",
+        "size": 1404,
+        "mode": 420,
+        "sha256": "a59bc046911ad55cd526d40e28fb66c9325e6251d5a48c068969d1b1ca694909"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/validation.js",
+        "size": 12419,
+        "mode": 420,
+        "sha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/wire-engine.d.ts",
+        "size": 144,
+        "mode": 420,
+        "sha256": "38103a0d7d0c05b35833b1aff239ee3e6a6dc40c9677250657b3443ff61c3168"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/wire-engine.js",
+        "size": 1795,
+        "mode": 420,
+        "sha256": "38090335f4e5e2b35a6d3eb95a76c8f9b7e9d5e1449e0c86514673098f9d02b6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/worker-entry.d.ts",
+        "size": 11,
+        "mode": 420,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/transport/worker-entry.js",
+        "size": 1331,
+        "mode": 420,
+        "sha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/types.d.ts",
+        "size": 1606,
+        "mode": 420,
+        "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted/types.js",
+        "size": 11,
+        "mode": 420,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      }
+    ],
+    "preservedEmissions": [
+      {
+        "relative": "errors.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "errors.js",
+        "unchanged": true
+      },
+      {
+        "relative": "limits.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "limits.js",
+        "unchanged": true
+      },
+      {
+        "relative": "matcher.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "matcher.js",
+        "unchanged": true
+      },
+      {
+        "relative": "syntax.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "syntax.js",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/accounting.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/accounting.js",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/owner.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/owner.js",
+        "unchanged": false
+      },
+      {
+        "relative": "transport/protocol.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/protocol.js",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/root.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/root.js",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/validation.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/validation.js",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/wire-engine.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/wire-engine.js",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/worker-entry.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "transport/worker-entry.js",
+        "unchanged": true
+      },
+      {
+        "relative": "types.d.ts",
+        "unchanged": true
+      },
+      {
+        "relative": "types.js",
+        "unchanged": true
+      }
+    ],
+    "children": [
+      {
+        "name": "source",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/node_modules/@types",
+          "--declaration",
+          "--outDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted",
+          "--rootDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/errors.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/limits.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/matcher.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/syntax.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/types.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/accounting.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/owner.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/protocol.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/root.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/validation.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/wire-engine.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/worker-entry.ts"
+        ],
+        "pid": 90900,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      }
+    ]
+  },
+  "archive": {
+    "file": "ACTUAL.json.gz.base64.data",
+    "compressedBytes": 102944,
+    "compressedSha256": "81de06b72e96be4c05e487dabd774fa97afb65d4029200d0e1260938c32c1c08",
+    "uncompressedBytes": 504295,
+    "uncompressedSha256": "2259d83e1c8c8bfcf4ed2a845a3f61dcba4bc2b3a9debd3f2523253226f73f41",
+    "entries": 69,
+    "decode": "Bound regular base64 file; decode once, authenticate compressed bytes, gunzip same buffer with exact maximum output, authenticate raw bytes before JSON.parse."
+  },
+  "workCensus": [
+    {
+      "run": "RUN-v1",
+      "files": 133,
+      "bytes": 13937225
+    },
+    {
+      "run": "RUN-v2",
+      "files": 284,
+      "bytes": 27584071
+    },
+    {
+      "run": "RUN-v3",
+      "files": 282,
+      "bytes": 27580270
+    }
+  ],
+  "knownAdministrativeSnapshot": {
+    "children": 30,
+    "closed": 30,
+    "records": [
+      {
+        "index": 1,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/compatibility/bash-ere-transport-corrections-20260829",
+          "src/commands/regex-execution/ere/transport"
+        ],
+        "pid": 65839,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 2,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "cat-file",
+          "blob",
+          "ba06be7b8f40e8fee836e34687fda30a2f439185"
+        ],
+        "pid": 68506,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 3,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "cat-file",
+          "blob",
+          "c2f91b100b79abb918dc91ff982c27c4fb9bdc50"
+        ],
+        "pid": 68507,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 4,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 77182,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 5,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 84345,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 6,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 85764,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 7,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 86632,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 8,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 86633,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 9,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "add",
+          "--",
+          "src/commands/regex-execution/ere/transport/accounting.ts",
+          "src/commands/regex-execution/ere/transport/owner.ts",
+          "src/commands/regex-execution/ere/transport/root.ts",
+          "src/commands/regex-execution/ere/transport/validation.ts",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/README.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/UNITS.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PURE-CASES.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PINNED-ENGINE.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/positive.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/negative.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/pure-controls.mjs.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/run-validation.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PRESEAL.json"
+        ],
+        "pid": 86634,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 10,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "diff",
+          "--cached",
+          "--check",
+          "--",
+          "src/commands/regex-execution/ere/transport/accounting.ts",
+          "src/commands/regex-execution/ere/transport/owner.ts",
+          "src/commands/regex-execution/ere/transport/root.ts",
+          "src/commands/regex-execution/ere/transport/validation.ts",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/README.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/UNITS.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PURE-CASES.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PINNED-ENGINE.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/positive.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/negative.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/pure-controls.mjs.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/run-validation.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PRESEAL.json"
+        ],
+        "pid": 86636,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 11,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "maintenance.auto=false",
+          "-c",
+          "gc.auto=0",
+          "commit",
+          "--only",
+          "-m",
+          "fix(ere): seal cancellation ownership and pure-data corrections",
+          "--",
+          "src/commands/regex-execution/ere/transport/accounting.ts",
+          "src/commands/regex-execution/ere/transport/owner.ts",
+          "src/commands/regex-execution/ere/transport/root.ts",
+          "src/commands/regex-execution/ere/transport/validation.ts",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/README.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/UNITS.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PURE-CASES.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PINNED-ENGINE.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/positive.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/negative.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/pure-controls.mjs.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/run-validation.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PRESEAL.json"
+        ],
+        "pid": 86637,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 12,
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/run-validation.mjs",
+          "933e1398fed9df586a0fa7f81c8b041a0cf78bca2b01e627acfbb8a602790029"
+        ],
+        "pid": 87031,
+        "closed": true,
+        "code": 1,
+        "signal": null
+      },
+      {
+        "index": 13,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 87930,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 14,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 87932,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 15,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "add",
+          "--",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/run-validation-v2.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/REVISION-v2.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PRESEAL-v2.json"
+        ],
+        "pid": 87933,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 16,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "maintenance.auto=false",
+          "-c",
+          "gc.auto=0",
+          "commit",
+          "--only",
+          "-m",
+          "test(ere): seal bounded tool-copy continuation",
+          "--",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/run-validation-v2.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/REVISION-v2.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PRESEAL-v2.json"
+        ],
+        "pid": 87934,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 17,
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/run-validation-v2.mjs",
+          "229f36d29cfd4243774df5aa60bf4e0cde5e992cc67c5e50051b508e093498ff"
+        ],
+        "pid": 88132,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 18,
+        "role": "nested-source",
+        "name": "source",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/@types",
+          "--declaration",
+          "--outDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/emitted",
+          "--rootDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/errors.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/limits.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/matcher.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/syntax.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/types.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/accounting.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/owner.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/protocol.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/root.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/validation.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/wire-engine.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/source/transport/worker-entry.ts"
+        ],
+        "pid": 88134,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 19,
+        "role": "nested-positive",
+        "name": "positive",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/consumer.mts"
+        ],
+        "pid": 88142,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 20,
+        "role": "nested-negative",
+        "name": "negative",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/negative.mts"
+        ],
+        "pid": 88145,
+        "closed": true,
+        "code": 2,
+        "signal": null
+      },
+      {
+        "index": 21,
+        "role": "nested-pure",
+        "name": "pure",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work/pure-controls.mjs",
+          "4de5797f02ba8355bb2d6b0b93b48508f7ea0cbb8278374a6cf95e7568ec7fda"
+        ],
+        "pid": 88150,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 22,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 90308,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 23,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 90788,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 24,
+        "executable": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "pid": 90789,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 25,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "add",
+          "--",
+          "src/commands/regex-execution/ere/transport/owner.ts",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/run-validation-v3.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/REVISION-v3.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PRESEAL-v3.json"
+        ],
+        "pid": 90790,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 26,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "maintenance.auto=false",
+          "-c",
+          "gc.auto=0",
+          "commit",
+          "--only",
+          "-m",
+          "fix(ere): join direct owner waiters before close settles",
+          "--",
+          "src/commands/regex-execution/ere/transport/owner.ts",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/run-validation-v3.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/REVISION-v3.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/PRESEAL-v3.json"
+        ],
+        "pid": 90791,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 27,
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/run-validation-v3.mjs",
+          "4defc229b3d4f446e5916d26b804419e940b342e913e3fbb4b39b26cb41ff3d8"
+        ],
+        "pid": 90888,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 28,
+        "role": "nested-source",
+        "name": "source",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/node_modules/@types",
+          "--declaration",
+          "--outDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/emitted",
+          "--rootDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/errors.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/limits.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/matcher.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/syntax.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/types.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/accounting.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/owner.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/protocol.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/root.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/validation.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/wire-engine.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work/source/transport/worker-entry.ts"
+        ],
+        "pid": 90900,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 29,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "rev-parse",
+          "--verify",
+          "02782056^{commit}"
+        ],
+        "pid": 91830,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "index": 30,
+        "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "rev-parse",
+          "e9a24c6e^{commit}",
+          "9f0eb69a^{commit}"
+        ],
+        "pid": 91831,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "elapsedMs": 1306638,
+    "publicationChildrenNotYetIncluded": true
+  },
+  "disposition": "SOURCE corrections plus scoped pure/type passes; complete S04 HOLD; lifecycle/stream/loader UNRUN; not transport acceptance"
+}

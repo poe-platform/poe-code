@@ -1,0 +1,19 @@
+try{
+  guard('BEFORE_B01');const focused=read(resolve(recipe,'FOCUSED-CONTROLS.json'));assert.equal(focused.manifestSha256,request.preparationSha256);assert.equal(focused.requestSha256,requestHash);assert.equal(focused.passed,7);assert.equal(focused.failed,0);
+  const source=resolve(work,'source'),materialized=materializeInputs(binding,request,source,state.git);guarded.set(source,inventory(source));state.materialization=materialized.proof;
+  save(resolve(raw,'PRE-RUN-BINDINGS.json'),{requestHash,preparationSha256:request.preparationSha256,inputs:materialized.inputs,tools:binding.tools,priorComposition:continuation.composition,pristineAndPatchedHashesAuthenticated:true,noBuildPackTypeReplay:true});
+  const consumer=resolve(work,'B01-consumer');fs.mkdirSync(consumer);save(resolve(consumer,'package.json'),{private:true,type:'module'});
+  const captured=await runtime('B01',source,consumer,'R12',undefined,continuation.boundaryControl);assert.equal(state.boundaryControls.length,1);assert.equal(state.boundaryControls[0].status,'KILLED','UNCHANGED_B01_QUALIFIER_REQUIRED');
+  const before=captured.observations.find(row=>row.kind==='R12-raw-before-assertion'),after=captured.observations.find(row=>row.kind==='B01-rethrow-identity');assertCaptureReceipt(before,after);
+  assert.equal(captured.cleanup.pending,0);assert.equal(captured.cleanup.timers,0);assert.deepEqual(captured.cleanup.unhandled,[]);assert.deepEqual(captured.cleanup.disposalRejections,[]);
+  const loads=fs.readFileSync(resolve(raw,'B01-R12/loads.jsonl'),'utf8').trim().split('\n').filter(Boolean).map(JSON.parse),helperProof=[];
+  for(const name of ['capture.mjs','boundaries.mjs','runtime.mjs']){const filename=resolve(recipe,name),expected=fileHash(filename),row=loads.find(value=>value.kind==='actual-module-load'&&value.path===filename);assert.ok(row,'ACTUAL_CAPTURE_HELPER_LOAD');assert.equal(row.sha256,expected);helperProof.push({path:name,sha256:expected});}
+  state.captureQualification={status:'PASS',unchangedBoundaryQualifierPassed:true,before,after,helperProof,cleanup:captured.cleanup};state.boundComposition=continuation.composition;
+  assert.equal(state.children.length,1);assert.equal(state.runtime.length,0);assert.equal(state.mutants.length,0);state.status='COMPOSED_SCOPED_PUBLIC_TIMEOUT78_REVIEW_PASSED';
+}catch(error){state.status='B01_CAPTURE_REVIEW_FINDINGS';state.failure=reason(error);process.exitCode=1;}
+finally{
+  try{guard('FINAL');for(const row of state.children)if(row.pid)absent(row.pid);state.allChildrenReaped=true;}catch(error){state.status='STOP_NO_RETRY';state.finalFailure=reason(error);process.exitCode=1;}
+  state.finishedAt=new Date().toISOString();state.unexecutedBoundaryControls=state.boundaryControls.length?[]:['B01'];
+  if(state.allChildrenReaped)try{state.archive=archiveEvidence({run,raw,work,children:state.children,remove:state.status!=='STOP_NO_RETRY'});}catch(error){state.status='STOP_NO_RETRY';state.archiveFailure=reason(error);process.exitCode=1;}
+  save(resolve(run,'RESULT.json'),state);console.log(JSON.stringify({status:state.status,boundaryControls:state.boundaryControls.length,children:state.children.length,reaped:state.allChildrenReaped,positiveFamilies:0,types:0,builds:0,packs:0,productMutants:0,rootRatificationPending:true}));
+}

@@ -1,0 +1,128 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "inventory/explicit-root-from-isolated-cwd",
+      "status": "PASS"
+    },
+    {
+      "id": "inventory/wrong-root-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "inventory/traversal-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "inventory/undeclared-absolute-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "inventory/copied-entry-exact",
+      "status": "PASS"
+    },
+    {
+      "id": "own/null-prototype-accepted",
+      "status": "PASS"
+    },
+    {
+      "id": "own/inherited-key-rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "own/accessor-not-invoked",
+      "status": "PASS"
+    },
+    {
+      "id": "own/order-is-authoritative",
+      "status": "PASS"
+    },
+    {
+      "id": "witness/exact",
+      "status": "PASS"
+    },
+    {
+      "id": "witness/extra-rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "witness/wrong-role-rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "Worker/options-exact-DATA",
+      "status": "PASS"
+    },
+    {
+      "id": "Worker/extra-argument-refused-DATA",
+      "status": "PASS"
+    },
+    {
+      "id": "Worker/limit-change-refused-DATA",
+      "status": "PASS"
+    },
+    {
+      "id": "terminal/falsy-0",
+      "status": "PASS"
+    },
+    {
+      "id": "terminal/falsy-1",
+      "status": "PASS"
+    },
+    {
+      "id": "terminal/falsy-2",
+      "status": "PASS"
+    },
+    {
+      "id": "terminal/falsy-3",
+      "status": "PASS"
+    },
+    {
+      "id": "terminal/falsy-4",
+      "status": "PASS"
+    },
+    {
+      "id": "terminal/unsafe-retirement-not-green",
+      "status": "PASS"
+    },
+    {
+      "id": "source/exact",
+      "status": "PASS"
+    },
+    {
+      "id": "source/wrong-hash-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "source/wrong-size-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "source/parent-traversal-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "source/missing-file-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "array/forward-return-and-close-identity",
+      "status": "PASS"
+    },
+    {
+      "id": "array/original-falsy-rejection-identity",
+      "status": "PASS"
+    },
+    {
+      "id": "array/throwing-observer-still-forwards-close",
+      "status": "PASS"
+    },
+    {
+      "id": "array/close-rejection-is-original-not-observer",
+      "status": "PASS"
+    }
+  ],
+  "productImports": 0,
+  "Workers": 0,
+  "pid": 94100
+}

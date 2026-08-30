@@ -1,0 +1,136 @@
+{
+  "schema": "m1b-type-api-inputs-v2",
+  "references": [
+    {
+      "role": "priorSourcePreseal",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/SOURCE-PRESEAL.json",
+      "bytes": 6838,
+      "sha256": "1df976f486d9c66388b79dffba48e1a1bb1ce467f0c55605ce1fa275f1e9f532"
+    },
+    {
+      "role": "priorFinalSeal",
+      "commit": "856b0a59846ad09680cd32227c686925db882258",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/FINAL-SEAL.json",
+      "bytes": 8212,
+      "sha256": "3ca5d3fa7176f6552419e1bd2ab440e3e8443d39e44964eabe9442559e89d896"
+    },
+    {
+      "role": "priorTypes",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/TYPES.json",
+      "bytes": 4577,
+      "sha256": "39b7f5558944cf8e8e0027efb1d90f15fb8d4aa9898f963885055ac1a7f22f57"
+    },
+    {
+      "role": "priorTypeWorker",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types.mjs",
+      "bytes": 1967,
+      "sha256": "dcf5f30373989dcddc6f87ca3a04c790381f54cfba12c5084e694d7d7391a892"
+    },
+    {
+      "role": "priorCases",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/CASES.json",
+      "bytes": 10465,
+      "sha256": "6d5978dfa645398511dcf37e147398d77a43fa3ab1e8d8bf4ee9978190cda2de"
+    },
+    {
+      "role": "runnerABI",
+      "commit": "de95161c9de136852884d054612dad1b8ec716e5",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/INTERFACE.md",
+      "bytes": 6961,
+      "sha256": "ec7348180748d18490ac873d1078e4585f09dde2f50f10ab2fbfd17acd827a5e"
+    },
+    {
+      "role": "UNCHANGED_FORWARDING_CLOSURE",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/ownership.mjs",
+      "bytes": 5919,
+      "sha256": "abdb7c32441578a5b2415bd484c2bdf244dba723d555afaa021210ef7264ad84"
+    },
+    {
+      "role": "UNCHANGED_FORWARDING_CLOSURE",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/counter.mjs",
+      "bytes": 1395,
+      "sha256": "f376fc1322132af4308825f79dec3abb231474d1584740f33d420e4fe438f575"
+    },
+    {
+      "role": "UNCHANGED_FORWARDING_CLOSURE",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/checkpoints.mjs",
+      "bytes": 3536,
+      "sha256": "c2d14cba023194cee68f3692370fd137f9e19ddf66618585a95a47ae8d0fa28b"
+    },
+    {
+      "role": "UNCHANGED_FORWARDING_CLOSURE",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/session-observation.mjs",
+      "bytes": 3368,
+      "sha256": "1161e5091ba13f0fc880244202b10778dd0ac7692a32c8b60d5595c03b6f3b14"
+    },
+    {
+      "role": "UNCHANGED_FORWARDING_CLOSURE",
+      "commit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/fixture-data.mjs",
+      "bytes": 1729,
+      "sha256": "a7005b60f913bf395094bd4bea0df971052be7da265384992b702cddd0695677"
+    }
+  ],
+  "followup": {
+    "path": "/tmp/git-m1b-fca-type-protocol-followup.txt",
+    "bytes": 1511,
+    "sha256": "1de9e05741d6518244c390768db583bc57c5383d457b43cfe608d69b635b4605"
+  },
+  "compilerSourceInspection": [
+    {
+      "role": "normalDiagnosticCollection",
+      "path": "node_modules/typescript/lib/typescript.js",
+      "fileSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+      "startLine": 126391,
+      "endLine": 126403,
+      "bytes": 843,
+      "sha256": "1166472cd67b20d8fdba52bd02090cbaa0465162d2ca71683e48ced5de584242"
+    },
+    {
+      "role": "filesystemSpecifierClassification",
+      "path": "node_modules/typescript/lib/typescript.js",
+      "fileSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+      "startLine": 14660,
+      "endLine": 14662,
+      "bytes": 123,
+      "sha256": "e5546324dce58e277ab9df485e26bb2c9cafa5a7e7b154366be6fc45784ad14d"
+    },
+    {
+      "role": "diskPathVersusURL",
+      "path": "node_modules/typescript/lib/typescript.js",
+      "fileSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+      "startLine": 8696,
+      "endLine": 8698,
+      "bytes": 77,
+      "sha256": "8b2dd2a22675acbfa2df9f0725c62de7f4d94457736242b226b4785ab69834a9"
+    },
+    {
+      "role": "defaultCompilerHost",
+      "path": "node_modules/typescript/lib/typescript.js",
+      "fileSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+      "startLine": 126251,
+      "endLine": 126310,
+      "bytes": 2951,
+      "sha256": "c0048ceeb4b87f7b15cf4398c8ad6285bf95512fe1a22ff0f6fcff2feed81a0f"
+    },
+    {
+      "role": "relatedDiagnostic6500",
+      "path": "node_modules/typescript/lib/typescript.js",
+      "fileSha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+      "startLine": 68687,
+      "endLine": 68712,
+      "bytes": 1602,
+      "sha256": "413378cc63b08f139624888e28b6872e606687fae8859ec82ab49ad7eebe04f0"
+    }
+  ],
+  "priorMechanicalEntriesVerified": 41,
+  "sourceInspectionOnly": true
+}

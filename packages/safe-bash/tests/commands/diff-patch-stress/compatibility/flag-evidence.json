@@ -1,0 +1,272 @@
+{
+  "capturedAt": "2026-08-26T20:48:17.728Z",
+  "scope": "Native only; not generated from product output",
+  "files": {
+    "left": "a\nb\nc\nd\ne\nf\ng\n",
+    "right": "A\nb\nc\nd\ne\nf\nG\n"
+  },
+  "records": [
+    {
+      "identity": {
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+        "dialect": "gnu",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      "args": [
+        "-U0",
+        "-u",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1,7 +1,7 @@\n-a\n+A\n b\n c\n d\n e\n f\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+        "dialect": "gnu",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      "args": [
+        "-U0",
+        "--unified",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1,7 +1,7 @@\n-a\n+A\n b\n c\n d\n e\n f\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+        "dialect": "gnu",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      "args": [
+        "--unified=1",
+        "-ru",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1,7 +1,7 @@\n-a\n+A\n b\n c\n d\n e\n f\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+        "dialect": "gnu",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      "args": [
+        "-u",
+        "-U",
+        "0",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1,7 +1,7 @@\n-a\n+A\n b\n c\n d\n e\n f\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+        "dialect": "gnu",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      "args": [
+        "-U0",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "version": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.",
+        "dialect": "gnu",
+        "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+      },
+      "args": [
+        "--unified=1",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1,2 +1,2 @@\n-a\n+A\n b\n@@ -6,2 +6,2 @@\n f\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/usr/bin/diff",
+        "realpath": "/usr/bin/diff",
+        "version": "Apple diff (based on FreeBSD diff)",
+        "dialect": "bsd",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      "args": [
+        "-U0",
+        "-u",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/usr/bin/diff",
+        "realpath": "/usr/bin/diff",
+        "version": "Apple diff (based on FreeBSD diff)",
+        "dialect": "bsd",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      "args": [
+        "-U0",
+        "--unified",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/usr/bin/diff",
+        "realpath": "/usr/bin/diff",
+        "version": "Apple diff (based on FreeBSD diff)",
+        "dialect": "bsd",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      "args": [
+        "--unified=1",
+        "-ru",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1,2 +1,2 @@\n-a\n+A\n b\n@@ -6,2 +6,2 @@\n f\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/usr/bin/diff",
+        "realpath": "/usr/bin/diff",
+        "version": "Apple diff (based on FreeBSD diff)",
+        "dialect": "bsd",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      "args": [
+        "-u",
+        "-U",
+        "0",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/usr/bin/diff",
+        "realpath": "/usr/bin/diff",
+        "version": "Apple diff (based on FreeBSD diff)",
+        "dialect": "bsd",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      "args": [
+        "-U0",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@\n-g\n+G\n",
+      "stderr": ""
+    },
+    {
+      "identity": {
+        "path": "/usr/bin/diff",
+        "realpath": "/usr/bin/diff",
+        "version": "Apple diff (based on FreeBSD diff)",
+        "dialect": "bsd",
+        "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede"
+      },
+      "args": [
+        "--unified=1",
+        "-L",
+        "target",
+        "-L",
+        "target",
+        "left",
+        "right"
+      ],
+      "exitCode": 1,
+      "stdout": "--- target\n+++ target\n@@ -1,2 +1,2 @@\n-a\n+A\n b\n@@ -6,2 +6,2 @@\n f\n-g\n+G\n",
+      "stderr": ""
+    }
+  ]
+}

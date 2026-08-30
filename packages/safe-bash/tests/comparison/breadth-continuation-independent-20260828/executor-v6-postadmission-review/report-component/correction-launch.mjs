@@ -1,0 +1,31 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { own, author, inherited, url, writeJson, absent, metadata } from './auth.mjs';
+import { authenticateCorrection } from './correction-auth.mjs';
+
+const before = authenticateCorrection(true);
+const run = path.join(own, 'runs/corrected-s20-01');
+fs.mkdirSync(run);
+writeJson(path.join(run, 'START.json'), { before, case: 'S20', expected: false, additionalChildren: 1, cumulativeChildren: 6 });
+const { supervise } = await import(url(path.join(inherited, 'supervisor.mjs')));
+const { createLedger, launchTracked } = await import(url(path.join(inherited, 'launch-ledger.mjs')));
+const { assessTerminal } = await import(url(path.join(author, 'publisher.mjs')));
+const ledger = createLedger(1);
+let handle;
+const receipt = await launchTracked({ ledger, kind: 'corrected-S20', prepare: async () => ({ configSha: metadata(path.join(own, 'overflow-stub.mjs')).sha256 }), supervise: (_, attach) => supervise(process.execPath, ['--unhandled-rejections=strict', '--max-old-space-size=128', path.join(own, 'overflow-stub.mjs'), run], run, { deadline: 10000, onSpawn(child, state) { handle = child; attach(child, state); } }), persist: (_, value) => writeJson(path.join(run, 'RECEIPT.json'), value).sha256 });
+await new Promise(resolve => setImmediate(resolve));
+await new Promise(resolve => setImmediate(resolve));
+const decoded = { ...receipt, stdout: Buffer.from(receipt.stdout, 'base64'), stderr: Buffer.from(receipt.stderr, 'base64') };
+const activeResources = process.getActiveResourcesInfo().filter(name => !['PipeWrap', 'TTYWrap'].includes(name));
+const preconditions = { observed65537: receipt.captureBytes.stdout === 65537, retained65536: decoded.stdout.length === 65536, stderrEmpty: decoded.stderr.length === 0, captureLimitRecorded: receipt.failures.some(row => row.code === 'CAPTURE_LIMIT'), exitZero: receipt.exit?.code === 0 && receipt.exit.signal === null, closeZero: receipt.close?.code === 0 && receipt.close.signal === null, reaped: receipt.reaped, exactPidAbsent: absent(handle.pid), exactGroupAbsent: absent(-handle.pid), timerRetired: receipt.records.at(-1)?.report.intervalRetired === true, childNoActiveResources: receipt.records.at(-1)?.report.activeResources.length === 0, parentNoActiveResources: activeResources.length === 0 };
+let actual;
+let thrown;
+try { actual = assessTerminal(decoded, run); } catch (error) { thrown = { name: error.name, message: error.message }; }
+const qualifiedFixture = Object.values(preconditions).every(value => value === true);
+const after = authenticateCorrection(true);
+const result = { schema: 'INDEPENDENT_CORRECTED_S20_RESULT', date: '2026-08-28', case: 'S20', expected: false, actual, thrown: thrown ?? null, qualifiedFixture, status: !qualifiedFixture ? 'UNQUALIFIED_FIXTURE' : actual === false && !thrown ? 'PASS' : 'FAIL', preconditions, before, after, receipt, ledger: ledger.summary(), activeResources, exactHandlePid: handle.pid, independentAdditionalGeneratedInputUpperBound: 65537, cumulativeGeneratedInputUpperBound: 36650454, cumulativeSyntheticChildren: 6, previousRawCountsUnchanged: { pass: 19, fail: 1, unrun: 0 } };
+writeJson(path.join(run, 'EVIDENCE.json'), result);
+console.log(JSON.stringify({ case: result.case, status: result.status, qualifiedFixture, actual, exit: receipt.exit, close: receipt.close, pid: handle.pid, reaped: receipt.reaped, resources: activeResources, cumulativeChildren: 6 }));
+assert.ok(preconditions.exactPidAbsent && preconditions.exactGroupAbsent && preconditions.parentNoActiveResources, 'exact cleanup');
+if (result.status !== 'PASS') process.exitCode = 1;

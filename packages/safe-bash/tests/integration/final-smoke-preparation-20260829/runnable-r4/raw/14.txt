@@ -1,0 +1,19 @@
+import fs from 'node:fs';
+import {pathToFileURL} from 'node:url';
+import assert from 'node:assert/strict';
+import {admitFile} from '../producer-binding-r3/admission.mjs';
+import {runSelected} from '../r2/consumer.mjs';
+import {runWorkflow} from '../../agent-bash-coherent-author-20260829/v4/workflows.mjs';
+import {ids} from '../contract.mjs';
+const config=JSON.parse(admitFile({path:process.argv[2],bytes:Number(process.argv[3]),sha256:process.argv[4]},1048576));
+const binding=JSON.parse(admitFile(config.binding,1048576));
+const fixture=JSON.parse(admitFile(config.fixture,1048576));
+const originals=JSON.parse(admitFile(config.scalar,1048576));
+assert(Array.isArray(originals));
+const api=await import(pathToFileURL(binding.packageRoot+'/dist/index.js').href),nodeApi=await import(pathToFileURL(binding.packageRoot+'/dist/commands/node/index.js').href);
+const observations=[];let primaryPresent=false,primary,result;
+try{result=await runSelected({ids:[...ids],layout:config.layout,api,nodeApi,fixture,scalarAndPipelineRows:originals,runWorkflow,beforeCase(){assert(Date.now()<config.activeEnd,'layout execution end');},observe(){}},observations);}catch(reason){primaryPresent=true;primary=reason;}
+const tag=value=>({type:value===null?'null':typeof value,...(['number','boolean','string'].includes(typeof value)?{value:typeof value==='string'?value.slice(0,256):value}:{})});
+const value={schema:'FINAL_SMOKE_LAYOUT_RESULT_R4',layout:config.layout,primaryPresent,...(primaryPresent?{primary:tag(primary)}:{}),rows:result?.rows,registeredShellDisposalCompleted:!primaryPresent&&result?.rows.length===8,opaqueProviderFinalization:'NOT_CLAIMED',observations:observations.map(row=>({id:row.id,primaryPresent:row.primaryPresent,primary:tag(row.primary),cleanupPresent:row.cleanupPresent,cleanup:tag(row.cleanup),reportingPresent:row.reportingPresent,reporting:tag(row.reporting)}))};
+const bytes=Buffer.from(JSON.stringify(value)+'\n');assert(bytes.length<=1048576);const fd=fs.openSync(config.result,'wx',0o600);try{let offset=0;while(offset<bytes.length){const written=fs.writeSync(fd,bytes,offset,bytes.length-offset);assert(written>0);offset+=written;}}finally{fs.closeSync(fd);}
+if(primaryPresent)process.exitCode=1;

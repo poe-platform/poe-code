@@ -1,0 +1,12 @@
+{
+  "startedMs": 1787977445408,
+  "role": "ROOT qualified public80 acceptance documentation only",
+  "bounds": {
+    "seconds": 1200,
+    "allProcesses": 32,
+    "peak": 2,
+    "captureBytes": 67108864,
+    "workingBytes": 134217728
+  },
+  "noExecution": true
+}

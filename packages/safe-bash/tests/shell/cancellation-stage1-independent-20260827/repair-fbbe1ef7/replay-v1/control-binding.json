@@ -1,0 +1,98 @@
+{
+  "historicalAudit": "146d5ad72cbccf61885baa9b33feee0891b7d32c",
+  "oldCandidate": "6747227230cd770379148552d471621717b766d7",
+  "newCandidate": "fbbe1ef793b7434871403125efbeb46624a8e081",
+  "controls": {
+    "cohort-v1.mjs": "b195fe6ac3d547235835311bc95b259f60bbe767592a13056ea85cbcf5cd59e1",
+    "positive-v1.ts.data": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f",
+    "negative-v1.ts.data": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+  },
+  "historicalV1": {
+    "version": 1,
+    "runtimeStatus": 1,
+    "movedRuntimeStatus": 1,
+    "runtimeRecords": 12,
+    "reasonVariantsWithinH03": 7,
+    "independentObligations": 12,
+    "positiveBuildStatus": 0,
+    "malformedSignalDiagnostics": [
+      {
+        "line": 2,
+        "code": 2322
+      },
+      {
+        "line": 3,
+        "code": 2740
+      },
+      {
+        "line": 4,
+        "code": 2740
+      },
+      {
+        "line": 5,
+        "code": 2322
+      },
+      {
+        "line": 6,
+        "code": 2739
+      },
+      {
+        "line": 7,
+        "code": 2322
+      }
+    ],
+    "movedPositiveStatus": 0,
+    "movedNegativeStatus": 2,
+    "mutantKills": 3,
+    "mutantCount": 3,
+    "authorRuntimeRerun": false,
+    "publicRuntimeSeam": false,
+    "allNodeProcessesNatural": true
+  },
+  "historicalV2": {
+    "version": 2,
+    "runtimeStatus": 1,
+    "movedRuntimeStatus": 1,
+    "runtimeRecords": 12,
+    "reasonVariantsWithinH03": 7,
+    "independentObligations": 12,
+    "positiveBuildStatus": 0,
+    "malformedSignalDiagnostics": [
+      {
+        "line": 2,
+        "code": 2322
+      },
+      {
+        "line": 3,
+        "code": 2740
+      },
+      {
+        "line": 4,
+        "code": 2740
+      },
+      {
+        "line": 5,
+        "code": 2322
+      },
+      {
+        "line": 6,
+        "code": 2739
+      },
+      {
+        "line": 7,
+        "code": 2322
+      }
+    ],
+    "movedPositiveStatus": 0,
+    "movedNegativeStatus": 2,
+    "mutantKills": 3,
+    "mutantCount": 3,
+    "authorRuntimeRerun": false,
+    "publicRuntimeSeam": false,
+    "allNodeProcessesNatural": true
+  },
+  "previousDriverSha256": "e2581d1f24da5d4c482e1fb4700f28ce40495b9e59649eb4d82f3c13c6c7146a",
+  "currentDriverSha256": "6a6abab371c2235ffe6872e63810996895e5a2b59871eb6d207f820877a3270e",
+  "archiveDriverSha256": "c190787d450bba95ec2651244dc217e745a722568a58487ea147c6f7b1b720a4",
+  "adaptations": "new candidate seal, destination paths, layered history checks, four separate nearby records, exact unchanged control byte copies; no control edits"
+}

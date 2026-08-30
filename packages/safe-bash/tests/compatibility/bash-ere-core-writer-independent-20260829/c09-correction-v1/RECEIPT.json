@@ -1,0 +1,110 @@
+{
+  "at": "2026-08-29T15:08:37.570Z",
+  "start": "2026-08-29T15:06:09Z",
+  "publicationDeadline": "2026-08-29T15:12:09.000Z",
+  "source": "e33b99af9fbec345b4f5a76d50f627c3d4d9f73a",
+  "authorEvidence": "d40efe4068545ecff91cfb4051806dc0417427da",
+  "priorReviewPrefix": "c14ced251",
+  "sealSha256": "0efb8f129c77f02a119548f9308eca39ad70ca73c5fb548c1fa9918b757326f2",
+  "helperSha256": "c2adbecbca80b70495604623e0d41ac97d308f6e756427bb5676325f8b276b79",
+  "authorBindings": [
+    {
+      "name": "controls.mjs",
+      "bytes": 8255,
+      "sha256": "7406169ef39fa177968889c86f1b4dbe3d57fc9c74496db6808ad0dde3116929"
+    },
+    {
+      "name": "event-writer.mjs",
+      "bytes": 3516,
+      "sha256": "e5c8437e820144fc5e1caa04f5c818873891aaa26c5bf28969aff4ce9b9b7fdb"
+    },
+    {
+      "name": "finalize-cell.mjs",
+      "bytes": 1147,
+      "sha256": "22c4e707c5ca4309f1ea641a9d3a8fb6016fef654310e6a63214e071da14bf76"
+    }
+  ],
+  "preservedPriorFiles": [
+    {
+      "name": "AUDIT.json",
+      "sha256": "4cd8233c54d9b0a7d0bb785ab9520a133acc5ced07f2f507154c605218b8aea4"
+    },
+    {
+      "name": "AUTHOR-DIFF.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "AUTHOR-REPLAY.json",
+      "sha256": "eb71b6ce27a65074a6eae369761c40529e19155ed37456deea6a9f9f4d05d4da"
+    },
+    {
+      "name": "DIRECT-CAPTURE.log",
+      "sha256": "9cd9a84c3e1bd9e1230069b51b4282718f62691a93db78dce68e632cbf2f2506"
+    },
+    {
+      "name": "NOVEL-RESULT.json",
+      "sha256": "30bfa1feffe22f2d687212e9bd4a6ee3305d8d3fb6ba3568e528fb5673e342a0"
+    },
+    {
+      "name": "RECEIPT.json",
+      "sha256": "836447050adca4c7fef55dd6c1caa42b948c7195ea156dbada39584371b39faa"
+    },
+    {
+      "name": "REVIEW.md",
+      "sha256": "2e6675267bf13d6f2c4dae76ca4e7c0743a5f93f7c24f174cd3d4835b596803e"
+    },
+    {
+      "name": "audit.mjs",
+      "sha256": "919266b5382d451245c2407dc076acf7ee997c2d7600527bdd10e64455869d9c"
+    },
+    {
+      "name": "review.mjs",
+      "sha256": "f65015aeb7db6f9ed7670b60c6c6e12f4e2b8bd24c5789aacfb5f533e666eb5c"
+    }
+  ],
+  "resultSha256": "c733e2ac5c17db2f8e7d23cc8cca0e0bb023c9e96ad1ec02eb05e6f827650526",
+  "pureHelperInvocations": 1,
+  "observedPass": 4,
+  "observedFail": 0,
+  "verdict": "SOURCE ACCEPT / PURE ACCEPT — version-qualified composition, not fresh 12+8 rerun",
+  "inherited": {
+    "otherAuthorControls": 11,
+    "novelGroups": 8,
+    "rerun": false,
+    "originalReplayUnchanged": true
+  },
+  "limits": {
+    "millisecondsIncludingPublication": 360000,
+    "knownOsMaximum": 18,
+    "peakKnownOsMaximum": 3,
+    "captureBytes": 25165824,
+    "logicalWorkingBytes": 100663296
+  },
+  "ownedSnapshotBeforeReceiptAndPublication": [
+    {
+      "name": "DIRECT-CAPTURE.log",
+      "bytes": 337,
+      "sha256": "a12fcac0d2531be7c7e5d3ba9c19ee038c700e11f4b911a8f8c5605bb6fc8d58"
+    },
+    {
+      "name": "RESULT.json",
+      "bytes": 1162,
+      "sha256": "c733e2ac5c17db2f8e7d23cc8cca0e0bb023c9e96ad1ec02eb05e6f827650526"
+    },
+    {
+      "name": "correct-c09.mjs",
+      "bytes": 10593,
+      "sha256": "c2adbecbca80b70495604623e0d41ac97d308f6e756427bb5676325f8b276b79"
+    }
+  ],
+  "logicalBytesBeforeReceiptAndPublication": 12092,
+  "publicationReserveBytes": 1048576,
+  "actualProduct": false,
+  "actualWorkers": 0,
+  "unchangedBound": {
+    "logicalBytes": 332129069,
+    "uniqueCaptureBytes": 131072000,
+    "qualification": "conditional prospective logical accounting, not OS disk/RSS/Git physical quota or fresh materialized-layout qualification"
+  },
+  "noRuntimeAuthority": true
+}

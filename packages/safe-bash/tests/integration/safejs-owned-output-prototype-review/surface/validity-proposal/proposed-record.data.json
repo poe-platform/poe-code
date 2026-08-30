@@ -1,0 +1,31 @@
+{
+  "kind": "INERT OBSERVER SCHEMA PROPOSAL; NOT EXECUTION RESULTS",
+  "version": "surface-observer-outcome-proposal-1",
+  "baseRunnerCommit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+  "baseChildSha256": "5cab487b9a63feade2048a1f6b13fb3756f668d14f7a3ecacbf7b921da97c13d",
+  "originalEvidenceCommit": "b0ff1977c9c912054edd136510d62819d28cf890",
+  "proposedRecordField": {
+    "name": "engineOutcome",
+    "kinds": ["not-entered", "entered", "fulfilled", "call-threw", "await-rejected"],
+    "rejectionOnlyFields": {
+      "reasonType": "typeof the original caught reason; not its name or constructor",
+      "reasonIsNull": "strict equality of the original reason to null"
+    },
+    "reasonPropertyReads": 0,
+    "reasonSerialization": false,
+    "reasonRethrow": "throw reason; identical binding, no wrapper",
+    "fulfillmentRecord": "existing record.engine/result/budgetUsed behavior unchanged",
+    "rejectionRecord": "record.engine remains absent; no synthetic ok:false result"
+  },
+  "newEvents": ["actual-engine-run-rejected", "actual-engine-run-threw"],
+  "unchangedExistingEvent": "actual-engine-run-settled remains fulfillment-only",
+  "guestChanges": 0,
+  "assertionChanges": 0,
+  "productChanges": 0,
+  "runtimeImportsThisProposal": 0,
+  "guestExecutionsThisProposal": 0,
+  "case08Hypothesis": "Source-supported inference of rejection, NOT an observed rejection receipt or new expected assertion",
+  "originalCount": { "executed": 8, "pass": 7, "fail": 1 },
+  "newCount": null,
+  "approval": "Requires ROOT release and different signed review; no promotion"
+}

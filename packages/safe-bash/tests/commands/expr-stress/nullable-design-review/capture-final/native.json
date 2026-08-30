@@ -1,0 +1,794 @@
+[
+  {
+    "id": "empty",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":0,\"registers\":[[0,0],[0,0],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjAsInJlZ2lzdGVycyI6W1swLDBdLFswLDBdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":0,\"registers\":[[0,0],[0,0],[-1,-1]]}\n",
+      "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=0\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=0 cap=[-1,-1] prev=[-1,-1]\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=0\nafter cap=[0,0] prev=[-1,-1]\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=0 cap=[0,0] prev=[-1,-1] fs=1 cycle=1 last=6 end=0\nafter cap=[0,0] prev=[-1,-1]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjAsInJlZ2lzdGVycyI6W1swLDBdLFswLDBdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD02IGVuZD0wCmFmdGVyIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MAplZGdlcyBub2RlPTQ6IDAvMSA1LzEgc3RhdGU6IDAgMiAzIDQgNSA2CnB1c2ggbm9kZT01IG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MCBjYXA9Wy0xLC0xXSBwcmV2PVstMSwtMV0gZnM9MSBjeWNsZT0wIGxhc3Q9NiBlbmQ9MAphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MAplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAyIDMgNCA1IDYKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTAKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTAKZWRnZXMgbm9kZT0yOiAxLzAgMy8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT0zIHR5cGU9OSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD02IGVuZD0wCmFmdGVyIGNhcD1bMCwwXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTAKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDAgMiAzIDQgNSA2CmJlZm9yZSBub2RlPTQgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsMF0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MSBsYXN0PTYgZW5kPTAKYWZ0ZXIgY2FwPVswLDBdIHByZXY9Wy0xLC0xXQo="
+    }
+  },
+  {
+    "id": "a",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":1,\"registers\":[[0,1],[0,0],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjEsInJlZ2lzdGVycyI6W1swLDFdLFswLDBdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":1,\"registers\":[[0,1],[0,0],[-1,-1]]}\n",
+      "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=1\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=1\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=1\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=1\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=1\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=1\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=1\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=1 cap=[0,1] prev=[0,1]\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=2 cycle=0 last=6 end=1\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=1 cap=[1,-1] prev=[0,1] fs=2 cycle=1 last=6 end=1\nafter cap=[1,-1] prev=[0,1]\npop available=2\nproceed node=5 offset=1\npop available=1\nbefore node=3 type=9 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=1\nafter cap=[0,0] prev=[-1,-1]\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=0 cap=[0,0] prev=[-1,-1] fs=0 cycle=1 last=6 end=1\nafter cap=[0,0] prev=[-1,-1]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjEsInJlZ2lzdGVycyI6W1swLDFdLFswLDBdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD02IGVuZD0xCmFmdGVyIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MAplZGdlcyBub2RlPTQ6IDAvMSA1LzAgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MCBjYXA9Wy0xLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NiBlbmQ9MQphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MAplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD02IGVuZD0xCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0wCmVkZ2VzIG5vZGU9MjogMS8xIDMvMSBzdGF0ZTogMCAxIDIgMyA0CnB1c2ggbm9kZT0zIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTEKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTAKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTEKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKZWRnZXMgbm9kZT0yOiAxLzAgMy8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT0zIHR5cGU9OSBvZmZzZXQ9MSBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD02IGVuZD0xCmFmdGVyIGNhcD1bMCwxXSBwcmV2PVswLDFdCnByb2NlZWQgbm9kZT0zIG9mZnNldD0xCmVkZ2VzIG5vZGU9MzogNC8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT00IHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9MSBjeWNsZT0wIGxhc3Q9NiBlbmQ9MQphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MQplZGdlcyBub2RlPTQ6IDAvMSA1LzEgc3RhdGU6IDAgMiAzIDQgNSA2CnB1c2ggbm9kZT01IG9mZnNldD0xIGNhcD1bMCwxXSBwcmV2PVswLDFdCmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0xIGNhcD1bMCwxXSBwcmV2PVswLDFdIGZzPTIgY3ljbGU9MCBsYXN0PTYgZW5kPTEKYWZ0ZXIgY2FwPVsxLC0xXSBwcmV2PVswLDFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0xCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVsxLC0xXSBwcmV2PVswLDFdIGZzPTIgY3ljbGU9MSBsYXN0PTYgZW5kPTEKYWZ0ZXIgY2FwPVsxLC0xXSBwcmV2PVswLDFdCnBvcCBhdmFpbGFibGU9Mgpwcm9jZWVkIG5vZGU9NSBvZmZzZXQ9MQpwb3AgYXZhaWxhYmxlPTEKYmVmb3JlIG5vZGU9MyB0eXBlPTkgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NiBlbmQ9MQphZnRlciBjYXA9WzAsMF0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0zIG9mZnNldD0wCmVkZ2VzIG5vZGU9MzogNC8xIHN0YXRlOiAwIDEgMiAzIDQKYmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bMCwwXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0xIGxhc3Q9NiBlbmQ9MQphZnRlciBjYXA9WzAsMF0gcHJldj1bLTEsLTFdCg=="
+    }
+  },
+  {
+    "id": "aa",
+    "tuple": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjIsInJlZ2lzdGVycyI6W1swLDJdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+      "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=2\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 5\npush node=3 offset=1 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=1\nbefore node=2 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=2\nafter cap=[0,2] prev=[0,2]\nproceed node=3 offset=2\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=2 cap=[0,2] prev=[0,2] fs=2 cycle=0 last=6 end=2\nafter cap=[0,2] prev=[0,2]\nproceed node=4 offset=2\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=2 cap=[0,2] prev=[0,2]\nbefore node=0 type=8 offset=2 cap=[0,2] prev=[0,2] fs=3 cycle=0 last=6 end=2\nafter cap=[2,-1] prev=[0,2]\nproceed node=0 offset=2\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=2 cap=[2,-1] prev=[0,2] fs=3 cycle=1 last=6 end=2\nafter cap=[2,-1] prev=[0,2]\npop available=3\nproceed node=5 offset=2\npop available=2\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 0 1 2 3 4 5\nbefore node=4 type=11 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nedges node=4: 0/1 5/1 state: 0 1 2 3 4 5\npush node=5 offset=1 cap=[0,1] prev=[0,1]\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=2 cycle=0 last=6 end=2\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 2/1 state: 0 1 2 3 4 5\nbefore node=2 type=11 offset=1 cap=[1,-1] prev=[0,1] fs=2 cycle=1 last=6 end=2\nafter cap=[1,-1] prev=[0,1]\npop available=2\nproceed node=5 offset=1\nbefore node=6 type=2 offset=2 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=2\nafter cap=[0,1] prev=[0,1]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjIsInJlZ2lzdGVycyI6W1swLDJdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD02IGVuZD0yCmFmdGVyIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MAplZGdlcyBub2RlPTQ6IDAvMSA1LzAgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MCBjYXA9Wy0xLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NiBlbmQ9MgphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MAplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD02IGVuZD0yCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0wCmVkZ2VzIG5vZGU9MjogMS8xIDMvMSBzdGF0ZTogMCAxIDIgMyA0CnB1c2ggbm9kZT0zIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTIKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTAKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTIKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKZWRnZXMgbm9kZT0yOiAxLzEgMy8xIHN0YXRlOiAwIDEgMiAzIDQgNQpwdXNoIG5vZGU9MyBvZmZzZXQ9MSBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpiZWZvcmUgbm9kZT0xIHR5cGU9MSBvZmZzZXQ9MSBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0yIGN5Y2xlPTAgbGFzdD02IGVuZD0yCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0xIG9mZnNldD0xCmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MiBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0yIGN5Y2xlPTAgbGFzdD02IGVuZD0yCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0yCmVkZ2VzIG5vZGU9MjogMS8wIDMvMSBzdGF0ZTogMCAyIDMgNCA1IDYKYmVmb3JlIG5vZGU9MyB0eXBlPTkgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9NiBlbmQ9MgphZnRlciBjYXA9WzAsMl0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9MyBvZmZzZXQ9MgplZGdlcyBub2RlPTM6IDQvMSBzdGF0ZTogMCAyIDMgNCA1IDYKYmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0yIGNhcD1bMCwyXSBwcmV2PVswLDJdIGZzPTIgY3ljbGU9MCBsYXN0PTYgZW5kPTIKYWZ0ZXIgY2FwPVswLDJdIHByZXY9WzAsMl0KcHJvY2VlZCBub2RlPTQgb2Zmc2V0PTIKZWRnZXMgbm9kZT00OiAwLzEgNS8xIHN0YXRlOiAwIDIgMyA0IDUgNgpwdXNoIG5vZGU9NSBvZmZzZXQ9MiBjYXA9WzAsMl0gcHJldj1bMCwyXQpiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MiBjYXA9WzAsMl0gcHJldj1bMCwyXSBmcz0zIGN5Y2xlPTAgbGFzdD02IGVuZD0yCmFmdGVyIGNhcD1bMiwtMV0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MgplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAyIDMgNCA1IDYKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0yIGNhcD1bMiwtMV0gcHJldj1bMCwyXSBmcz0zIGN5Y2xlPTEgbGFzdD02IGVuZD0yCmFmdGVyIGNhcD1bMiwtMV0gcHJldj1bMCwyXQpwb3AgYXZhaWxhYmxlPTMKcHJvY2VlZCBub2RlPTUgb2Zmc2V0PTIKcG9wIGF2YWlsYWJsZT0yCmJlZm9yZSBub2RlPTMgdHlwZT05IG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTIKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDAgMSAyIDMgNCA1CmJlZm9yZSBub2RlPTQgdHlwZT0xMSBvZmZzZXQ9MSBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTAgbGFzdD02IGVuZD0yCmFmdGVyIGNhcD1bMCwxXSBwcmV2PVswLDFdCnByb2NlZWQgbm9kZT00IG9mZnNldD0xCmVkZ2VzIG5vZGU9NDogMC8xIDUvMSBzdGF0ZTogMCAxIDIgMyA0IDUKcHVzaCBub2RlPTUgb2Zmc2V0PTEgY2FwPVswLDFdIHByZXY9WzAsMV0KYmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTEgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9MiBjeWNsZT0wIGxhc3Q9NiBlbmQ9MgphZnRlciBjYXA9WzEsLTFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTAgb2Zmc2V0PTEKZWRnZXMgbm9kZT0wOiAyLzEgc3RhdGU6IDAgMSAyIDMgNCA1CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MSBjYXA9WzEsLTFdIHByZXY9WzAsMV0gZnM9MiBjeWNsZT0xIGxhc3Q9NiBlbmQ9MgphZnRlciBjYXA9WzEsLTFdIHByZXY9WzAsMV0KcG9wIGF2YWlsYWJsZT0yCnByb2NlZWQgbm9kZT01IG9mZnNldD0xCmJlZm9yZSBub2RlPTYgdHlwZT0yIG9mZnNldD0yIGNhcD1bMCwxXSBwcmV2PVswLDFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTIKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0K"
+    }
+  },
+  {
+    "id": "aaa",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,-1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLC0xXSxbLTEsLTFdXX0K",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,-1],[-1,-1]]}\n",
+      "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=3\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=1 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=1\nbefore node=2 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 5\npush node=3 offset=2 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=2 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=2\nbefore node=2 type=11 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=3\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=6 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=3 offset=3\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=3 cap=[0,3] prev=[0,3] fs=3 cycle=0 last=6 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=4 offset=3\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=3 cap=[0,3] prev=[0,3]\nbefore node=0 type=8 offset=3 cap=[0,3] prev=[0,3] fs=4 cycle=0 last=6 end=3\nafter cap=[3,-1] prev=[0,3]\nproceed node=0 offset=3\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=3 cap=[3,-1] prev=[0,3] fs=4 cycle=1 last=6 end=3\nafter cap=[3,-1] prev=[0,3]\npop available=4\nproceed node=5 offset=3\npop available=3\nbefore node=3 type=9 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=6 end=3\nafter cap=[0,2] prev=[0,2]\nproceed node=3 offset=2\nedges node=3: 4/1 state: 0 1 2 3 4 5\nbefore node=4 type=11 offset=2 cap=[0,2] prev=[0,2] fs=2 cycle=0 last=6 end=3\nafter cap=[0,2] prev=[0,2]\nproceed node=4 offset=2\nedges node=4: 0/1 5/1 state: 0 1 2 3 4 5\npush node=5 offset=2 cap=[0,2] prev=[0,2]\nbefore node=0 type=8 offset=2 cap=[0,2] prev=[0,2] fs=3 cycle=0 last=6 end=3\nafter cap=[2,-1] prev=[0,2]\nproceed node=0 offset=2\nedges node=0: 2/1 state: 0 1 2 3 4 5\nbefore node=2 type=11 offset=2 cap=[2,-1] prev=[0,2] fs=3 cycle=1 last=6 end=3\nafter cap=[2,-1] prev=[0,2]\npop available=3\nproceed node=5 offset=2\npop available=2\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=6 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=6 end=3\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=1 cap=[1,-1] prev=[0,1] fs=1 cycle=1 last=6 end=3\nafter cap=[1,-1] prev=[0,1]\npop available=1\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=1 last=6 end=3\nafter cap=[0,-1] prev=[-1,-1]\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLC0xXSxbLTEsLTFdXX0K",
+      "stderrBase64": "YmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD02IGVuZD0zCmFmdGVyIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MAplZGdlcyBub2RlPTQ6IDAvMSA1LzAgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MCBjYXA9Wy0xLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NiBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MAplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD02IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0wCmVkZ2VzIG5vZGU9MjogMS8xIDMvMSBzdGF0ZTogMCAxIDIgMyA0CnB1c2ggbm9kZT0zIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTAKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKZWRnZXMgbm9kZT0yOiAxLzEgMy8xIHN0YXRlOiAwIDEgMiAzIDQKcHVzaCBub2RlPTMgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9NiBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MQpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9NiBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MgplZGdlcyBub2RlPTI6IDEvMSAzLzEgc3RhdGU6IDAgMSAyIDMgNCA1CnB1c2ggbm9kZT0zIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTIKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTMKZWRnZXMgbm9kZT0yOiAxLzAgMy8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT0zIHR5cGU9OSBvZmZzZXQ9MyBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0zIGN5Y2xlPTAgbGFzdD02IGVuZD0zCmFmdGVyIGNhcD1bMCwzXSBwcmV2PVswLDNdCnByb2NlZWQgbm9kZT0zIG9mZnNldD0zCmVkZ2VzIG5vZGU9MzogNC8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT00IHR5cGU9MTEgb2Zmc2V0PTMgY2FwPVswLDNdIHByZXY9WzAsM10gZnM9MyBjeWNsZT0wIGxhc3Q9NiBlbmQ9MwphZnRlciBjYXA9WzAsM10gcHJldj1bMCwzXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MwplZGdlcyBub2RlPTQ6IDAvMSA1LzEgc3RhdGU6IDAgMiAzIDQgNSA2CnB1c2ggbm9kZT01IG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdCmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdIGZzPTQgY3ljbGU9MCBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVszLC0xXSBwcmV2PVswLDNdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0zCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTMgY2FwPVszLC0xXSBwcmV2PVswLDNdIGZzPTQgY3ljbGU9MSBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVszLC0xXSBwcmV2PVswLDNdCnBvcCBhdmFpbGFibGU9NApwcm9jZWVkIG5vZGU9NSBvZmZzZXQ9Mwpwb3AgYXZhaWxhYmxlPTMKYmVmb3JlIG5vZGU9MyB0eXBlPTkgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9NiBlbmQ9MwphZnRlciBjYXA9WzAsMl0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9MyBvZmZzZXQ9MgplZGdlcyBub2RlPTM6IDQvMSBzdGF0ZTogMCAxIDIgMyA0IDUKYmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0yIGNhcD1bMCwyXSBwcmV2PVswLDJdIGZzPTIgY3ljbGU9MCBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVswLDJdIHByZXY9WzAsMl0KcHJvY2VlZCBub2RlPTQgb2Zmc2V0PTIKZWRnZXMgbm9kZT00OiAwLzEgNS8xIHN0YXRlOiAwIDEgMiAzIDQgNQpwdXNoIG5vZGU9NSBvZmZzZXQ9MiBjYXA9WzAsMl0gcHJldj1bMCwyXQpiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MiBjYXA9WzAsMl0gcHJldj1bMCwyXSBmcz0zIGN5Y2xlPTAgbGFzdD02IGVuZD0zCmFmdGVyIGNhcD1bMiwtMV0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MgplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0IDUKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0yIGNhcD1bMiwtMV0gcHJldj1bMCwyXSBmcz0zIGN5Y2xlPTEgbGFzdD02IGVuZD0zCmFmdGVyIGNhcD1bMiwtMV0gcHJldj1bMCwyXQpwb3AgYXZhaWxhYmxlPTMKcHJvY2VlZCBub2RlPTUgb2Zmc2V0PTIKcG9wIGF2YWlsYWJsZT0yCmJlZm9yZSBub2RlPTMgdHlwZT05IG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT00IHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9MSBjeWNsZT0wIGxhc3Q9NiBlbmQ9MwphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MQplZGdlcyBub2RlPTQ6IDAvMSA1LzAgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MSBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTAgbGFzdD02IGVuZD0zCmFmdGVyIGNhcD1bMSwtMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MQplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MSBjYXA9WzEsLTFdIHByZXY9WzAsMV0gZnM9MSBjeWNsZT0xIGxhc3Q9NiBlbmQ9MwphZnRlciBjYXA9WzEsLTFdIHByZXY9WzAsMV0KcG9wIGF2YWlsYWJsZT0xCnByb2NlZWQgbm9kZT0zIG9mZnNldD0wCmVkZ2VzIG5vZGU9MzogNC8xIHN0YXRlOiAwIDEgMiAzIDQKYmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MSBsYXN0PTYgZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcG9wIGF2YWlsYWJsZT0wCg=="
+    }
+  },
+  {
+    "id": "no-reference",
+    "tuple": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "aaa\n",
+      "stderr": "",
+      "stdoutBase64": "YWFhCg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,3],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLDNdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,3],[-1,-1]]}\n",
+      "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\nbefore node=1 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=1\nbefore node=2 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\nbefore node=1 type=1 offset=2 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=2\nbefore node=2 type=11 offset=3 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=3\nedges node=2: 1/0 3/1 state: 0 2 3 4 5\nbefore node=3 type=9 offset=3 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=3 offset=3\nedges node=3: 4/1 state: 0 2 3 4 5\nbefore node=4 type=11 offset=3 cap=[0,3] prev=[0,3] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=4 offset=3\nedges node=4: 0/1 5/1 state: 0 2 3 4 5\nbefore node=0 type=8 offset=3 cap=[0,3] prev=[0,3] fs=-1 cycle=0 last=5 end=3\nafter cap=[3,-1] prev=[0,3]\nproceed node=0 offset=3\nedges node=0: 2/1 state: 0 2 3 4 5\nbefore node=2 type=11 offset=3 cap=[3,-1] prev=[0,3] fs=-1 cycle=1 last=5 end=3\nafter cap=[3,-1] prev=[0,3]\nproceed node=2 offset=3\nedges node=2: 1/0 3/1 state: 0 2 3 4 5\nbefore node=3 type=9 offset=3 cap=[3,-1] prev=[0,3] fs=-1 cycle=1 last=5 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=3 offset=3\nedges node=3: 4/1 state: 0 2 3 4 5\nbefore node=4 type=11 offset=3 cap=[0,3] prev=[0,3] fs=-1 cycle=1 last=5 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=4 offset=3\nedges node=4: 0/1 5/1 state: 0 2 3 4 5\nbefore node=5 type=2 offset=3 cap=[0,3] prev=[0,3] fs=-1 cycle=0 last=5 end=3\nafter cap=[0,3] prev=[0,3]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLDNdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0tMSBjeWNsZT0wIGxhc3Q9NSBlbmQ9MwphZnRlciBjYXA9Wy0xLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTQgb2Zmc2V0PTAKZWRnZXMgbm9kZT00OiAwLzEgNS8wIHN0YXRlOiAwIDEgMiAzIDQKYmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0wCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDEgMiAzIDQKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0wCmVkZ2VzIG5vZGU9MjogMS8xIDMvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0xIG9mZnNldD0wCmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MSBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0tMSBjeWNsZT0wIGxhc3Q9NSBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MQplZGdlcyBub2RlPTI6IDEvMSAzLzEgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT0xIHR5cGU9MSBvZmZzZXQ9MSBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0tMSBjeWNsZT0wIGxhc3Q9NSBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MQpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTUgZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTIKZWRnZXMgbm9kZT0yOiAxLzEgMy8xIHN0YXRlOiAwIDEgMiAzIDQKYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTUgZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTIKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0zCmVkZ2VzIG5vZGU9MjogMS8wIDMvMSBzdGF0ZTogMCAyIDMgNCA1CmJlZm9yZSBub2RlPTMgdHlwZT05IG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMCwzXSBwcmV2PVswLDNdCnByb2NlZWQgbm9kZT0zIG9mZnNldD0zCmVkZ2VzIG5vZGU9MzogNC8xIHN0YXRlOiAwIDIgMyA0IDUKYmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdIGZzPS0xIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMCwzXSBwcmV2PVswLDNdCnByb2NlZWQgbm9kZT00IG9mZnNldD0zCmVkZ2VzIG5vZGU9NDogMC8xIDUvMSBzdGF0ZTogMCAyIDMgNCA1CmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdIGZzPS0xIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMywtMV0gcHJldj1bMCwzXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MwplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAyIDMgNCA1CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MyBjYXA9WzMsLTFdIHByZXY9WzAsM10gZnM9LTEgY3ljbGU9MSBsYXN0PTUgZW5kPTMKYWZ0ZXIgY2FwPVszLC0xXSBwcmV2PVswLDNdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0zCmVkZ2VzIG5vZGU9MjogMS8wIDMvMSBzdGF0ZTogMCAyIDMgNCA1CmJlZm9yZSBub2RlPTMgdHlwZT05IG9mZnNldD0zIGNhcD1bMywtMV0gcHJldj1bMCwzXSBmcz0tMSBjeWNsZT0xIGxhc3Q9NSBlbmQ9MwphZnRlciBjYXA9WzAsM10gcHJldj1bMCwzXQpwcm9jZWVkIG5vZGU9MyBvZmZzZXQ9MwplZGdlcyBub2RlPTM6IDQvMSBzdGF0ZTogMCAyIDMgNCA1CmJlZm9yZSBub2RlPTQgdHlwZT0xMSBvZmZzZXQ9MyBjYXA9WzAsM10gcHJldj1bMCwzXSBmcz0tMSBjeWNsZT0xIGxhc3Q9NSBlbmQ9MwphZnRlciBjYXA9WzAsM10gcHJldj1bMCwzXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MwplZGdlcyBub2RlPTQ6IDAvMSA1LzEgc3RhdGU6IDAgMiAzIDQgNQpiZWZvcmUgbm9kZT01IHR5cGU9MiBvZmZzZXQ9MyBjYXA9WzAsM10gcHJldj1bMCwzXSBmcz0tMSBjeWNsZT0wIGxhc3Q9NSBlbmQ9MwphZnRlciBjYXA9WzAsM10gcHJldj1bMCwzXQo="
+    }
+  },
+  {
+    "id": "not-repeated",
+    "tuple": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjIsInJlZ2lzdGVycyI6W1swLDJdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/0 state: 0 1 2\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/0 3/1 state: 2 3 4\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 2 3 4\nbefore node=4 type=4 offset=1 cap=[0,1] prev=[0,1] fs=0 cycle=0 last=5 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nbefore node=5 type=2 offset=2 cap=[0,1] prev=[0,1] fs=0 cycle=0 last=5 end=2\nafter cap=[0,1] prev=[0,1]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjIsInJlZ2lzdGVycyI6W1swLDJdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTIKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTAgb2Zmc2V0PTAKZWRnZXMgbm9kZT0wOiAyLzEgc3RhdGU6IDAgMSAyCmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD01IGVuZD0yCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0wCmVkZ2VzIG5vZGU9MjogMS8xIDMvMCBzdGF0ZTogMCAxIDIKYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NSBlbmQ9MgphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MApiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NSBlbmQ9MgphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MQplZGdlcyBub2RlPTI6IDEvMCAzLzEgc3RhdGU6IDIgMyA0CmJlZm9yZSBub2RlPTMgdHlwZT05IG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTIKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDIgMyA0CmJlZm9yZSBub2RlPTQgdHlwZT00IG9mZnNldD0xIGNhcD1bMCwxXSBwcmV2PVswLDFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTIKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTQgb2Zmc2V0PTEKYmVmb3JlIG5vZGU9NSB0eXBlPTIgb2Zmc2V0PTIgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NSBlbmQ9MgphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQo="
+    }
+  },
+  {
+    "id": "nonnullable",
+    "tuple": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[1,2],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFsxLDJdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[1,2],[-1,-1]]}\n",
+      "stderr": "before node=3 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=3\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=3 offset=0\nedges node=3: 0/1 4/0 state: 0 1 3\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 1/1 state: 0 1 3\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=2 offset=1\nedges node=2: 3/1 state: 0 1 2 3\nbefore node=3 type=11 offset=1 cap=[0,1] prev=[0,1] fs=0 cycle=0 last=5 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 0/1 4/0 state: 0 1 2 3\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=0 cycle=0 last=5 end=3\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 1/1 state: 0 1 2 3\nbefore node=1 type=1 offset=1 cap=[1,-1] prev=[0,1] fs=0 cycle=0 last=5 end=3\nafter cap=[1,-1] prev=[0,1]\nproceed node=1 offset=1\nbefore node=2 type=9 offset=2 cap=[1,-1] prev=[0,1] fs=0 cycle=0 last=5 end=3\nafter cap=[1,2] prev=[1,2]\nproceed node=2 offset=2\nedges node=2: 3/1 state: 2 3 4\nbefore node=3 type=11 offset=2 cap=[1,2] prev=[1,2] fs=0 cycle=0 last=5 end=3\nafter cap=[1,2] prev=[1,2]\nproceed node=3 offset=2\nedges node=3: 0/0 4/1 state: 2 3 4\nbefore node=4 type=4 offset=2 cap=[1,2] prev=[1,2] fs=0 cycle=0 last=5 end=3\nafter cap=[1,2] prev=[1,2]\nproceed node=4 offset=2\nbefore node=5 type=2 offset=3 cap=[1,2] prev=[1,2] fs=0 cycle=0 last=5 end=3\nafter cap=[1,2] prev=[1,2]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFsxLDJdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MyB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MyBvZmZzZXQ9MAplZGdlcyBub2RlPTM6IDAvMSA0LzAgc3RhdGU6IDAgMSAzCmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0wCmVkZ2VzIG5vZGU9MDogMS8xIHN0YXRlOiAwIDEgMwpiZWZvcmUgbm9kZT0xIHR5cGU9MSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0xIG9mZnNldD0wCmJlZm9yZSBub2RlPTIgdHlwZT05IG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTMKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKZWRnZXMgbm9kZT0yOiAzLzEgc3RhdGU6IDAgMSAyIDMKYmVmb3JlIG5vZGU9MyB0eXBlPTExIG9mZnNldD0xIGNhcD1bMCwxXSBwcmV2PVswLDFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTMKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0zOiAwLzEgNC8wIHN0YXRlOiAwIDEgMiAzCmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0xIGNhcD1bMCwxXSBwcmV2PVswLDFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTMKYWZ0ZXIgY2FwPVsxLC0xXSBwcmV2PVswLDFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0xCmVkZ2VzIG5vZGU9MDogMS8xIHN0YXRlOiAwIDEgMiAzCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0xIGNhcD1bMSwtMV0gcHJldj1bMCwxXSBmcz0wIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMSwtMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MQpiZWZvcmUgbm9kZT0yIHR5cGU9OSBvZmZzZXQ9MiBjYXA9WzEsLTFdIHByZXY9WzAsMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NSBlbmQ9MwphZnRlciBjYXA9WzEsMl0gcHJldj1bMSwyXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MgplZGdlcyBub2RlPTI6IDMvMSBzdGF0ZTogMiAzIDQKYmVmb3JlIG5vZGU9MyB0eXBlPTExIG9mZnNldD0yIGNhcD1bMSwyXSBwcmV2PVsxLDJdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTMKYWZ0ZXIgY2FwPVsxLDJdIHByZXY9WzEsMl0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTIKZWRnZXMgbm9kZT0zOiAwLzAgNC8xIHN0YXRlOiAyIDMgNApiZWZvcmUgbm9kZT00IHR5cGU9NCBvZmZzZXQ9MiBjYXA9WzEsMl0gcHJldj1bMSwyXSBmcz0wIGN5Y2xlPTAgbGFzdD01IGVuZD0zCmFmdGVyIGNhcD1bMSwyXSBwcmV2PVsxLDJdCnByb2NlZWQgbm9kZT00IG9mZnNldD0yCmJlZm9yZSBub2RlPTUgdHlwZT0yIG9mZnNldD0zIGNhcD1bMSwyXSBwcmV2PVsxLDJdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTMKYWZ0ZXIgY2FwPVsxLDJdIHByZXY9WzEsMl0K"
+    }
+  },
+  {
+    "id": "mandatory-empty",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/0 state: 9\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTkgZW5kPTAKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTAgb2Zmc2V0PTAKZWRnZXMgbm9kZT0wOiAyLzAgc3RhdGU6IDkKcG9wIGF2YWlsYWJsZT0wCg=="
+    }
+  },
+  {
+    "id": "end-anchor",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,-1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLC0xXSxbLTEsLTFdXX0K",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,-1],[-1,-1]]}\n",
+      "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=8 end=3\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=1 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=1\nbefore node=2 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 5\npush node=3 offset=2 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=2 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=2\nbefore node=2 type=11 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=3\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6 8\nbefore node=3 type=9 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=3 offset=3\nedges node=3: 4/1 state: 0 2 3 4 5 6 8\nbefore node=4 type=11 offset=3 cap=[0,3] prev=[0,3] fs=3 cycle=0 last=8 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=4 offset=3\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6 8\npush node=5 offset=3 cap=[0,3] prev=[0,3]\nbefore node=0 type=8 offset=3 cap=[0,3] prev=[0,3] fs=4 cycle=0 last=8 end=3\nafter cap=[3,-1] prev=[0,3]\nproceed node=0 offset=3\nedges node=0: 2/1 state: 0 2 3 4 5 6 8\nbefore node=2 type=11 offset=3 cap=[3,-1] prev=[0,3] fs=4 cycle=1 last=8 end=3\nafter cap=[3,-1] prev=[0,3]\npop available=4\nproceed node=5 offset=3\npop available=3\nbefore node=3 type=9 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=8 end=3\nafter cap=[0,2] prev=[0,2]\nproceed node=3 offset=2\nedges node=3: 4/1 state: 0 1 2 3 4 5\nbefore node=4 type=11 offset=2 cap=[0,2] prev=[0,2] fs=2 cycle=0 last=8 end=3\nafter cap=[0,2] prev=[0,2]\nproceed node=4 offset=2\nedges node=4: 0/1 5/1 state: 0 1 2 3 4 5\npush node=5 offset=2 cap=[0,2] prev=[0,2]\nbefore node=0 type=8 offset=2 cap=[0,2] prev=[0,2] fs=3 cycle=0 last=8 end=3\nafter cap=[2,-1] prev=[0,2]\nproceed node=0 offset=2\nedges node=0: 2/1 state: 0 1 2 3 4 5\nbefore node=2 type=11 offset=2 cap=[2,-1] prev=[0,2] fs=3 cycle=1 last=8 end=3\nafter cap=[2,-1] prev=[0,2]\npop available=3\nproceed node=5 offset=2\npop available=2\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=8 end=3\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=1 cap=[1,-1] prev=[0,1] fs=1 cycle=1 last=8 end=3\nafter cap=[1,-1] prev=[0,1]\npop available=1\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=1 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLC0xXSxbLTEsLTFdXX0K",
+      "stderrBase64": "YmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MAplZGdlcyBub2RlPTQ6IDAvMSA1LzAgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MCBjYXA9Wy0xLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MAplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0wCmVkZ2VzIG5vZGU9MjogMS8xIDMvMSBzdGF0ZTogMCAxIDIgMyA0CnB1c2ggbm9kZT0zIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTAKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKZWRnZXMgbm9kZT0yOiAxLzEgMy8xIHN0YXRlOiAwIDEgMiAzIDQKcHVzaCBub2RlPTMgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MQpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MgplZGdlcyBub2RlPTI6IDEvMSAzLzEgc3RhdGU6IDAgMSAyIDMgNCA1CnB1c2ggbm9kZT0zIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTIKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTMKZWRnZXMgbm9kZT0yOiAxLzAgMy8xIHN0YXRlOiAwIDIgMyA0IDUgNiA4CmJlZm9yZSBub2RlPTMgdHlwZT05IG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLDNdIHByZXY9WzAsM10KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTMKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDAgMiAzIDQgNSA2IDgKYmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLDNdIHByZXY9WzAsM10KcHJvY2VlZCBub2RlPTQgb2Zmc2V0PTMKZWRnZXMgbm9kZT00OiAwLzEgNS8xIHN0YXRlOiAwIDIgMyA0IDUgNiA4CnB1c2ggbm9kZT01IG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdCmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdIGZzPTQgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVszLC0xXSBwcmV2PVswLDNdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0zCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDIgMyA0IDUgNiA4CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MyBjYXA9WzMsLTFdIHByZXY9WzAsM10gZnM9NCBjeWNsZT0xIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzMsLTFdIHByZXY9WzAsM10KcG9wIGF2YWlsYWJsZT00CnByb2NlZWQgbm9kZT01IG9mZnNldD0zCnBvcCBhdmFpbGFibGU9MwpiZWZvcmUgbm9kZT0zIHR5cGU9OSBvZmZzZXQ9MiBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0yIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwyXSBwcmV2PVswLDJdCnByb2NlZWQgbm9kZT0zIG9mZnNldD0yCmVkZ2VzIG5vZGU9MzogNC8xIHN0YXRlOiAwIDEgMiAzIDQgNQpiZWZvcmUgbm9kZT00IHR5cGU9MTEgb2Zmc2V0PTIgY2FwPVswLDJdIHByZXY9WzAsMl0gZnM9MiBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsMl0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MgplZGdlcyBub2RlPTQ6IDAvMSA1LzEgc3RhdGU6IDAgMSAyIDMgNCA1CnB1c2ggbm9kZT01IG9mZnNldD0yIGNhcD1bMCwyXSBwcmV2PVswLDJdCmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0yIGNhcD1bMCwyXSBwcmV2PVswLDJdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVsyLC0xXSBwcmV2PVswLDJdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0yCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDEgMiAzIDQgNQpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTIgY2FwPVsyLC0xXSBwcmV2PVswLDJdIGZzPTMgY3ljbGU9MSBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVsyLC0xXSBwcmV2PVswLDJdCnBvcCBhdmFpbGFibGU9Mwpwcm9jZWVkIG5vZGU9NSBvZmZzZXQ9Mgpwb3AgYXZhaWxhYmxlPTIKYmVmb3JlIG5vZGU9MyB0eXBlPTkgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MSBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9MyBvZmZzZXQ9MQplZGdlcyBub2RlPTM6IDQvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTQgdHlwZT0xMSBvZmZzZXQ9MSBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwxXSBwcmV2PVswLDFdCnByb2NlZWQgbm9kZT00IG9mZnNldD0xCmVkZ2VzIG5vZGU9NDogMC8xIDUvMCBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0xIGNhcD1bMCwxXSBwcmV2PVswLDFdIGZzPTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVsxLC0xXSBwcmV2PVswLDFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0xCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDEgMiAzIDQKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0xIGNhcD1bMSwtMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTEgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMSwtMV0gcHJldj1bMCwxXQpwb3AgYXZhaWxhYmxlPTEKcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTAKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT00IHR5cGU9MTEgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0xIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwb3AgYXZhaWxhYmxlPTAK"
+    }
+  },
+  {
+    "id": "literal-suffix",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":4,\"registers\":[[0,4],[0,-1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjQsInJlZ2lzdGVycyI6W1swLDRdLFswLC0xXSxbLTEsLTFdXX0K",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":4,\"registers\":[[0,4],[0,-1],[-1,-1]]}\n",
+      "stderr": "before node=4 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=7 end=4\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/1 3/1 state: 0 1 2 3 4\npush node=3 offset=1 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=1\nbefore node=2 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 5\npush node=3 offset=2 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=2 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=2\nbefore node=2 type=11 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=3\nedges node=2: 1/0 3/1 state: 0 2 3 4 5 6\nbefore node=3 type=9 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=7 end=4\nafter cap=[0,3] prev=[0,3]\nproceed node=3 offset=3\nedges node=3: 4/1 state: 0 2 3 4 5 6\nbefore node=4 type=11 offset=3 cap=[0,3] prev=[0,3] fs=3 cycle=0 last=7 end=4\nafter cap=[0,3] prev=[0,3]\nproceed node=4 offset=3\nedges node=4: 0/1 5/1 state: 0 2 3 4 5 6\npush node=5 offset=3 cap=[0,3] prev=[0,3]\nbefore node=0 type=8 offset=3 cap=[0,3] prev=[0,3] fs=4 cycle=0 last=7 end=4\nafter cap=[3,-1] prev=[0,3]\nproceed node=0 offset=3\nedges node=0: 2/1 state: 0 2 3 4 5 6\nbefore node=2 type=11 offset=3 cap=[3,-1] prev=[0,3] fs=4 cycle=1 last=7 end=4\nafter cap=[3,-1] prev=[0,3]\npop available=4\nproceed node=5 offset=3\npop available=3\nbefore node=3 type=9 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=7 end=4\nafter cap=[0,2] prev=[0,2]\nproceed node=3 offset=2\nedges node=3: 4/1 state: 0 1 2 3 4 5\nbefore node=4 type=11 offset=2 cap=[0,2] prev=[0,2] fs=2 cycle=0 last=7 end=4\nafter cap=[0,2] prev=[0,2]\nproceed node=4 offset=2\nedges node=4: 0/1 5/1 state: 0 1 2 3 4 5\npush node=5 offset=2 cap=[0,2] prev=[0,2]\nbefore node=0 type=8 offset=2 cap=[0,2] prev=[0,2] fs=3 cycle=0 last=7 end=4\nafter cap=[2,-1] prev=[0,2]\nproceed node=0 offset=2\nedges node=0: 2/1 state: 0 1 2 3 4 5\nbefore node=2 type=11 offset=2 cap=[2,-1] prev=[0,2] fs=3 cycle=1 last=7 end=4\nafter cap=[2,-1] prev=[0,2]\npop available=3\nproceed node=5 offset=2\npop available=2\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=7 end=4\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=7 end=4\nafter cap=[0,1] prev=[0,1]\nproceed node=4 offset=1\nedges node=4: 0/1 5/0 state: 0 1 2 3 4\nbefore node=0 type=8 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=7 end=4\nafter cap=[1,-1] prev=[0,1]\nproceed node=0 offset=1\nedges node=0: 2/1 state: 0 1 2 3 4\nbefore node=2 type=11 offset=1 cap=[1,-1] prev=[0,1] fs=1 cycle=1 last=7 end=4\nafter cap=[1,-1] prev=[0,1]\npop available=1\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 1 2 3 4\nbefore node=4 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=1 last=7 end=4\nafter cap=[0,-1] prev=[-1,-1]\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjQsInJlZ2lzdGVycyI6W1swLDRdLFswLC0xXSxbLTEsLTFdXX0K",
+      "stderrBase64": "YmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD03IGVuZD00CmFmdGVyIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MAplZGdlcyBub2RlPTQ6IDAvMSA1LzAgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MCBjYXA9Wy0xLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NyBlbmQ9NAphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MAplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD03IGVuZD00CmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0wCmVkZ2VzIG5vZGU9MjogMS8xIDMvMSBzdGF0ZTogMCAxIDIgMyA0CnB1c2ggbm9kZT0zIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTAKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKZWRnZXMgbm9kZT0yOiAxLzEgMy8xIHN0YXRlOiAwIDEgMiAzIDQKcHVzaCBub2RlPTMgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9NyBlbmQ9NAphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MQpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9NyBlbmQ9NAphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MgplZGdlcyBub2RlPTI6IDEvMSAzLzEgc3RhdGU6IDAgMSAyIDMgNCA1CnB1c2ggbm9kZT0zIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTEgdHlwZT0xIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTIKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTMKZWRnZXMgbm9kZT0yOiAxLzAgMy8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT0zIHR5cGU9OSBvZmZzZXQ9MyBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0zIGN5Y2xlPTAgbGFzdD03IGVuZD00CmFmdGVyIGNhcD1bMCwzXSBwcmV2PVswLDNdCnByb2NlZWQgbm9kZT0zIG9mZnNldD0zCmVkZ2VzIG5vZGU9MzogNC8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT00IHR5cGU9MTEgb2Zmc2V0PTMgY2FwPVswLDNdIHByZXY9WzAsM10gZnM9MyBjeWNsZT0wIGxhc3Q9NyBlbmQ9NAphZnRlciBjYXA9WzAsM10gcHJldj1bMCwzXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MwplZGdlcyBub2RlPTQ6IDAvMSA1LzEgc3RhdGU6IDAgMiAzIDQgNSA2CnB1c2ggbm9kZT01IG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdCmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdIGZzPTQgY3ljbGU9MCBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVszLC0xXSBwcmV2PVswLDNdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0zCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDIgMyA0IDUgNgpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTMgY2FwPVszLC0xXSBwcmV2PVswLDNdIGZzPTQgY3ljbGU9MSBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVszLC0xXSBwcmV2PVswLDNdCnBvcCBhdmFpbGFibGU9NApwcm9jZWVkIG5vZGU9NSBvZmZzZXQ9Mwpwb3AgYXZhaWxhYmxlPTMKYmVmb3JlIG5vZGU9MyB0eXBlPTkgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9NyBlbmQ9NAphZnRlciBjYXA9WzAsMl0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9MyBvZmZzZXQ9MgplZGdlcyBub2RlPTM6IDQvMSBzdGF0ZTogMCAxIDIgMyA0IDUKYmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0yIGNhcD1bMCwyXSBwcmV2PVswLDJdIGZzPTIgY3ljbGU9MCBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVswLDJdIHByZXY9WzAsMl0KcHJvY2VlZCBub2RlPTQgb2Zmc2V0PTIKZWRnZXMgbm9kZT00OiAwLzEgNS8xIHN0YXRlOiAwIDEgMiAzIDQgNQpwdXNoIG5vZGU9NSBvZmZzZXQ9MiBjYXA9WzAsMl0gcHJldj1bMCwyXQpiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MiBjYXA9WzAsMl0gcHJldj1bMCwyXSBmcz0zIGN5Y2xlPTAgbGFzdD03IGVuZD00CmFmdGVyIGNhcD1bMiwtMV0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MgplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0IDUKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0yIGNhcD1bMiwtMV0gcHJldj1bMCwyXSBmcz0zIGN5Y2xlPTEgbGFzdD03IGVuZD00CmFmdGVyIGNhcD1bMiwtMV0gcHJldj1bMCwyXQpwb3AgYXZhaWxhYmxlPTMKcHJvY2VlZCBub2RlPTUgb2Zmc2V0PTIKcG9wIGF2YWlsYWJsZT0yCmJlZm9yZSBub2RlPTMgdHlwZT05IG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTEgY3ljbGU9MCBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT00IHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9MSBjeWNsZT0wIGxhc3Q9NyBlbmQ9NAphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MQplZGdlcyBub2RlPTQ6IDAvMSA1LzAgc3RhdGU6IDAgMSAyIDMgNApiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MSBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTAgbGFzdD03IGVuZD00CmFmdGVyIGNhcD1bMSwtMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MQplZGdlcyBub2RlPTA6IDIvMSBzdGF0ZTogMCAxIDIgMyA0CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MSBjYXA9WzEsLTFdIHByZXY9WzAsMV0gZnM9MSBjeWNsZT0xIGxhc3Q9NyBlbmQ9NAphZnRlciBjYXA9WzEsLTFdIHByZXY9WzAsMV0KcG9wIGF2YWlsYWJsZT0xCnByb2NlZWQgbm9kZT0zIG9mZnNldD0wCmVkZ2VzIG5vZGU9MzogNC8xIHN0YXRlOiAwIDEgMiAzIDQKYmVmb3JlIG5vZGU9NCB0eXBlPTExIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MSBsYXN0PTcgZW5kPTQKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcG9wIGF2YWlsYWJsZT0wCg=="
+    }
+  },
+  {
+    "id": "mandatory-a",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/0 state: 9\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTkgZW5kPTAKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTAgb2Zmc2V0PTAKZWRnZXMgbm9kZT0wOiAyLzAgc3RhdGU6IDkKcG9wIGF2YWlsYWJsZT0wCg=="
+    }
+  },
+  {
+    "id": "mandatory-aa",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/0 state: 9\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTkgZW5kPTAKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTAgb2Zmc2V0PTAKZWRnZXMgbm9kZT0wOiAyLzAgc3RhdGU6IDkKcG9wIGF2YWlsYWJsZT0wCg=="
+    }
+  },
+  {
+    "id": "mandatory-aaa",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/0 state: 9\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTkgZW5kPTAKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTAgb2Zmc2V0PTAKZWRnZXMgbm9kZT0wOiAyLzAgc3RhdGU6IDkKcG9wIGF2YWlsYWJsZT0wCg=="
+    }
+  },
+  {
+    "id": "bounded-aa",
+    "tuple": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjIsInJlZ2lzdGVycyI6W1swLDJdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=15 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4 6 7 8 9 10 11 13\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=15 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 6 7 8 9 10 11 13\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/0 3/1 state: 2 3 11 12 13 14\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 13/1 state: 2 3 11 12 13 14\nbefore node=13 type=10 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=13 offset=1\nedges node=13: 8/0 14/1 state: 2 3 11 12 13 14\nbefore node=14 type=4 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=14 offset=1\nbefore node=15 type=2 offset=2 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,1] prev=[0,1]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjIsInJlZ2lzdGVycyI6W1swLDJdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTE1IGVuZD0yCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0wCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDEgMiAzIDQgNiA3IDggOSAxMCAxMSAxMwpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9MTUgZW5kPTIKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTAKZWRnZXMgbm9kZT0yOiAxLzEgMy8xIHN0YXRlOiAwIDEgMiAzIDQgNiA3IDggOSAxMCAxMSAxMwpwdXNoIG5vZGU9MyBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpiZWZvcmUgbm9kZT0xIHR5cGU9MSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD0xNSBlbmQ9MgphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MApiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MSBjeWNsZT0wIGxhc3Q9MTUgZW5kPTIKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKZWRnZXMgbm9kZT0yOiAxLzAgMy8xIHN0YXRlOiAyIDMgMTEgMTIgMTMgMTQKYmVmb3JlIG5vZGU9MyB0eXBlPTkgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MSBjeWNsZT0wIGxhc3Q9MTUgZW5kPTIKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0zOiAxMy8xIHN0YXRlOiAyIDMgMTEgMTIgMTMgMTQKYmVmb3JlIG5vZGU9MTMgdHlwZT0xMCBvZmZzZXQ9MSBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTAgbGFzdD0xNSBlbmQ9MgphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9MTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0xMzogOC8wIDE0LzEgc3RhdGU6IDIgMyAxMSAxMiAxMyAxNApiZWZvcmUgbm9kZT0xNCB0eXBlPTQgb2Zmc2V0PTEgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9MSBjeWNsZT0wIGxhc3Q9MTUgZW5kPTIKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTE0IG9mZnNldD0xCmJlZm9yZSBub2RlPTE1IHR5cGU9MiBvZmZzZXQ9MiBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTAgbGFzdD0xNSBlbmQ9MgphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQo="
+    }
+  },
+  {
+    "id": "bounded-aaa",
+    "tuple": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjIsInJlZ2lzdGVycyI6W1swLDJdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":2,\"registers\":[[0,2],[0,1],[-1,-1]]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=15 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4 6 7 8 9 10 11 13\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=15 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 6 7 8 9 10 11 13\npush node=3 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/0 3/1 state: 2 3 11 12 13 14\nbefore node=3 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=3 offset=1\nedges node=3: 13/1 state: 2 3 11 12 13 14\nbefore node=13 type=10 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=13 offset=1\nedges node=13: 8/0 14/1 state: 2 3 11 12 13 14\nbefore node=14 type=4 offset=1 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,1] prev=[0,1]\nproceed node=14 offset=1\nbefore node=15 type=2 offset=2 cap=[0,1] prev=[0,1] fs=1 cycle=0 last=15 end=2\nafter cap=[0,1] prev=[0,1]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjIsInJlZ2lzdGVycyI6W1swLDJdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTE1IGVuZD0yCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0wCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDEgMiAzIDQgNiA3IDggOSAxMCAxMSAxMwpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9MTUgZW5kPTIKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTAKZWRnZXMgbm9kZT0yOiAxLzEgMy8xIHN0YXRlOiAwIDEgMiAzIDQgNiA3IDggOSAxMCAxMSAxMwpwdXNoIG5vZGU9MyBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpiZWZvcmUgbm9kZT0xIHR5cGU9MSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD0xNSBlbmQ9MgphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MApiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MSBjeWNsZT0wIGxhc3Q9MTUgZW5kPTIKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKZWRnZXMgbm9kZT0yOiAxLzAgMy8xIHN0YXRlOiAyIDMgMTEgMTIgMTMgMTQKYmVmb3JlIG5vZGU9MyB0eXBlPTkgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MSBjeWNsZT0wIGxhc3Q9MTUgZW5kPTIKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0zOiAxMy8xIHN0YXRlOiAyIDMgMTEgMTIgMTMgMTQKYmVmb3JlIG5vZGU9MTMgdHlwZT0xMCBvZmZzZXQ9MSBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTAgbGFzdD0xNSBlbmQ9MgphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9MTMgb2Zmc2V0PTEKZWRnZXMgbm9kZT0xMzogOC8wIDE0LzEgc3RhdGU6IDIgMyAxMSAxMiAxMyAxNApiZWZvcmUgbm9kZT0xNCB0eXBlPTQgb2Zmc2V0PTEgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9MSBjeWNsZT0wIGxhc3Q9MTUgZW5kPTIKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTE0IG9mZnNldD0xCmJlZm9yZSBub2RlPTE1IHR5cGU9MiBvZmZzZXQ9MiBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0xIGN5Y2xlPTAgbGFzdD0xNSBlbmQ9MgphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQo="
+    }
+  },
+  {
+    "id": "unmatched-closed",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    }
+  },
+  {
+    "id": "required-empty",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":0,\"registers\":[[0,0],[0,0],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjAsInJlZ2lzdGVycyI6W1swLDBdLFswLDBdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":0,\"registers\":[[0,0],[0,0],[-1,-1]]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 2 3 4 5\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=0\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/0 3/1 state: 0 2 3 4 5\nbefore node=3 type=9 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=5 end=0\nafter cap=[0,0] prev=[-1,-1]\nproceed node=3 offset=0\nedges node=3: 4/1 state: 0 2 3 4 5\nbefore node=4 type=4 offset=0 cap=[0,0] prev=[-1,-1] fs=0 cycle=0 last=5 end=0\nafter cap=[0,0] prev=[-1,-1]\nproceed node=4 offset=0\nbefore node=5 type=2 offset=0 cap=[0,0] prev=[-1,-1] fs=0 cycle=0 last=5 end=0\nafter cap=[0,0] prev=[-1,-1]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjAsInJlZ2lzdGVycyI6W1swLDBdLFswLDBdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTAKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTAgb2Zmc2V0PTAKZWRnZXMgbm9kZT0wOiAyLzEgc3RhdGU6IDAgMiAzIDQgNQpiZWZvcmUgbm9kZT0yIHR5cGU9MTEgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9NSBlbmQ9MAphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MAplZGdlcyBub2RlPTI6IDEvMCAzLzEgc3RhdGU6IDAgMiAzIDQgNQpiZWZvcmUgbm9kZT0zIHR5cGU9OSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD01IGVuZD0wCmFmdGVyIGNhcD1bMCwwXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTAKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDAgMiAzIDQgNQpiZWZvcmUgbm9kZT00IHR5cGU9NCBvZmZzZXQ9MCBjYXA9WzAsMF0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTAKYWZ0ZXIgY2FwPVswLDBdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MApiZWZvcmUgbm9kZT01IHR5cGU9MiBvZmZzZXQ9MCBjYXA9WzAsMF0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTUgZW5kPTAKYWZ0ZXIgY2FwPVswLDBdIHByZXY9Wy0xLC0xXQo="
+    }
+  },
+  {
+    "id": "open-backref",
+    "tuple": {
+      "status": 2,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": "expr: Invalid back reference\n",
+      "stdoutBase64": "",
+      "stderrBase64": "ZXhwcjogSW52YWxpZCBiYWNrIHJlZmVyZW5jZQo="
+    },
+    "registers": {
+      "status": 98,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": "Invalid back reference\n",
+      "stdoutBase64": "",
+      "stderrBase64": "SW52YWxpZCBiYWNrIHJlZmVyZW5jZQo="
+    },
+    "trace": {
+      "status": 98,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": "Invalid back reference\n",
+      "stdoutBase64": "",
+      "stderrBase64": "SW52YWxpZCBiYWNrIHJlZmVyZW5jZQo="
+    }
+  },
+  {
+    "id": "newline-anchor",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    }
+  },
+  {
+    "id": "nested-history",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,-1],[0,-1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLC0xXSxbMCwtMV0sWy0xLC0xXV19Cg==",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,-1],[0,-1],[-1,-1]]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 5/1 state: 0 1 2 3 4 5\nbefore node=5 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=5 offset=0\nedges node=5: 1/1 6/0 state: 0 1 2 3 4 5\nbefore node=1 type=8 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nedges node=1: 3/1 state: 0 1 2 3 4 5\nbefore node=3 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=3 offset=0\nedges node=3: 2/1 4/1 state: 0 1 2 3 4 5\npush node=4 offset=0 cap=[0,-1] prev=[-1,-1]\nbefore node=2 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nbefore node=3 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=3 offset=1\nedges node=3: 2/1 4/1 state: 1 2 3 4 5\npush node=4 offset=1 cap=[0,-1] prev=[-1,-1]\nbefore node=2 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nbefore node=3 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=3 offset=2\nedges node=3: 2/1 4/1 state: 1 2 3 4 5 6 7\npush node=4 offset=2 cap=[0,-1] prev=[-1,-1]\nbefore node=2 type=1 offset=2 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nbefore node=3 type=11 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=3 offset=3\nedges node=3: 2/0 4/1 state: 1 3 4 5 6 7 8\nbefore node=4 type=9 offset=3 cap=[0,-1] prev=[-1,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=4 offset=3\nedges node=4: 5/1 state: 1 3 4 5 6 7 8\nbefore node=5 type=11 offset=3 cap=[0,-1] prev=[0,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=5 offset=3\nedges node=5: 1/1 6/1 state: 1 3 4 5 6 7 8\npush node=6 offset=3 cap=[0,-1] prev=[0,-1]\nbefore node=1 type=8 offset=3 cap=[0,-1] prev=[0,-1] fs=4 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=1 offset=3\nedges node=1: 3/1 state: 1 3 4 5 6 7 8\nbefore node=3 type=11 offset=3 cap=[0,-1] prev=[0,-1] fs=4 cycle=1 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\npop available=4\nproceed node=6 offset=3\nedges node=6: 7/1 state: 1 3 4 5 6 7 8\nbefore node=7 type=4 offset=3 cap=[0,-1] prev=[0,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=7 offset=3\npop available=3\nbefore node=4 type=9 offset=2 cap=[0,-1] prev=[-1,-1] fs=2 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=4 offset=2\nedges node=4: 5/1 state: 1 2 3 4 5 6 7\nbefore node=5 type=11 offset=2 cap=[0,-1] prev=[0,-1] fs=2 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=5 offset=2\nedges node=5: 1/1 6/1 state: 1 2 3 4 5 6 7\npush node=6 offset=2 cap=[0,-1] prev=[0,-1]\nbefore node=1 type=8 offset=2 cap=[0,-1] prev=[0,-1] fs=3 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=1 offset=2\nedges node=1: 3/1 state: 1 2 3 4 5 6 7\nbefore node=3 type=11 offset=2 cap=[0,-1] prev=[0,-1] fs=3 cycle=1 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\npop available=3\nproceed node=6 offset=2\nedges node=6: 7/1 state: 1 2 3 4 5 6 7\nbefore node=7 type=4 offset=2 cap=[0,-1] prev=[0,-1] fs=2 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=7 offset=2\npop available=2\nbefore node=4 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=4 offset=1\nedges node=4: 5/1 state: 1 2 3 4 5\nbefore node=5 type=11 offset=1 cap=[0,-1] prev=[0,-1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=5 offset=1\nedges node=5: 1/1 6/0 state: 1 2 3 4 5\nbefore node=1 type=8 offset=1 cap=[0,-1] prev=[0,-1] fs=1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\nproceed node=1 offset=1\nedges node=1: 3/1 state: 1 2 3 4 5\nbefore node=3 type=11 offset=1 cap=[0,-1] prev=[0,-1] fs=1 cycle=1 last=8 end=3\nafter cap=[0,-1] prev=[0,-1]\npop available=1\nproceed node=4 offset=0\nedges node=4: 5/1 state: 0 1 2 3 4 5\nbefore node=5 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=1 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLC0xXSxbMCwtMV0sWy0xLC0xXV19Cg==",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTAgb2Zmc2V0PTAKZWRnZXMgbm9kZT0wOiA1LzEgc3RhdGU6IDAgMSAyIDMgNCA1CmJlZm9yZSBub2RlPTUgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT01IG9mZnNldD0wCmVkZ2VzIG5vZGU9NTogMS8xIDYvMCBzdGF0ZTogMCAxIDIgMyA0IDUKYmVmb3JlIG5vZGU9MSB0eXBlPTggb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MAplZGdlcyBub2RlPTE6IDMvMSBzdGF0ZTogMCAxIDIgMyA0IDUKYmVmb3JlIG5vZGU9MyB0eXBlPTExIG9mZnNldD0wIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTAKZWRnZXMgbm9kZT0zOiAyLzEgNC8xIHN0YXRlOiAwIDEgMiAzIDQgNQpwdXNoIG5vZGU9NCBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpiZWZvcmUgbm9kZT0yIHR5cGU9MSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0wCmJlZm9yZSBub2RlPTMgdHlwZT0xMSBvZmZzZXQ9MSBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0zIG9mZnNldD0xCmVkZ2VzIG5vZGU9MzogMi8xIDQvMSBzdGF0ZTogMSAyIDMgNCA1CnB1c2ggbm9kZT00IG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTIgdHlwZT0xIG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTIgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTEKYmVmb3JlIG5vZGU9MyB0eXBlPTExIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTIgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTIKZWRnZXMgbm9kZT0zOiAyLzEgNC8xIHN0YXRlOiAxIDIgMyA0IDUgNiA3CnB1c2ggbm9kZT00IG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCmJlZm9yZSBub2RlPTIgdHlwZT0xIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTIgb2Zmc2V0PTIKYmVmb3JlIG5vZGU9MyB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTMKZWRnZXMgbm9kZT0zOiAyLzAgNC8xIHN0YXRlOiAxIDMgNCA1IDYgNyA4CmJlZm9yZSBub2RlPTQgdHlwZT05IG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVswLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MwplZGdlcyBub2RlPTQ6IDUvMSBzdGF0ZTogMSAzIDQgNSA2IDcgOApiZWZvcmUgbm9kZT01IHR5cGU9MTEgb2Zmc2V0PTMgY2FwPVswLC0xXSBwcmV2PVswLC0xXSBmcz0zIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KcHJvY2VlZCBub2RlPTUgb2Zmc2V0PTMKZWRnZXMgbm9kZT01OiAxLzEgNi8xIHN0YXRlOiAxIDMgNCA1IDYgNyA4CnB1c2ggbm9kZT02IG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KYmVmb3JlIG5vZGU9MSB0eXBlPTggb2Zmc2V0PTMgY2FwPVswLC0xXSBwcmV2PVswLC0xXSBmcz00IGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTMKZWRnZXMgbm9kZT0xOiAzLzEgc3RhdGU6IDEgMyA0IDUgNiA3IDgKYmVmb3JlIG5vZGU9MyB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0gZnM9NCBjeWNsZT0xIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9WzAsLTFdCnBvcCBhdmFpbGFibGU9NApwcm9jZWVkIG5vZGU9NiBvZmZzZXQ9MwplZGdlcyBub2RlPTY6IDcvMSBzdGF0ZTogMSAzIDQgNSA2IDcgOApiZWZvcmUgbm9kZT03IHR5cGU9NCBvZmZzZXQ9MyBjYXA9WzAsLTFdIHByZXY9WzAsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVswLC0xXQpwcm9jZWVkIG5vZGU9NyBvZmZzZXQ9Mwpwb3AgYXZhaWxhYmxlPTMKYmVmb3JlIG5vZGU9NCB0eXBlPTkgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9WzAsLTFdCnByb2NlZWQgbm9kZT00IG9mZnNldD0yCmVkZ2VzIG5vZGU9NDogNS8xIHN0YXRlOiAxIDIgMyA0IDUgNiA3CmJlZm9yZSBub2RlPTUgdHlwZT0xMSBvZmZzZXQ9MiBjYXA9WzAsLTFdIHByZXY9WzAsLTFdIGZzPTIgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVswLC0xXQpwcm9jZWVkIG5vZGU9NSBvZmZzZXQ9MgplZGdlcyBub2RlPTU6IDEvMSA2LzEgc3RhdGU6IDEgMiAzIDQgNSA2IDcKcHVzaCBub2RlPTYgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVswLC0xXQpiZWZvcmUgbm9kZT0xIHR5cGU9OCBvZmZzZXQ9MiBjYXA9WzAsLTFdIHByZXY9WzAsLTFdIGZzPTMgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVswLC0xXQpwcm9jZWVkIG5vZGU9MSBvZmZzZXQ9MgplZGdlcyBub2RlPTE6IDMvMSBzdGF0ZTogMSAyIDMgNCA1IDYgNwpiZWZvcmUgbm9kZT0zIHR5cGU9MTEgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVswLC0xXSBmcz0zIGN5Y2xlPTEgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KcG9wIGF2YWlsYWJsZT0zCnByb2NlZWQgbm9kZT02IG9mZnNldD0yCmVkZ2VzIG5vZGU9NjogNy8xIHN0YXRlOiAxIDIgMyA0IDUgNiA3CmJlZm9yZSBub2RlPTcgdHlwZT00IG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0gZnM9MiBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9WzAsLTFdCnByb2NlZWQgbm9kZT03IG9mZnNldD0yCnBvcCBhdmFpbGFibGU9MgpiZWZvcmUgbm9kZT00IHR5cGU9OSBvZmZzZXQ9MSBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KcHJvY2VlZCBub2RlPTQgb2Zmc2V0PTEKZWRnZXMgbm9kZT00OiA1LzEgc3RhdGU6IDEgMiAzIDQgNQpiZWZvcmUgbm9kZT01IHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVswLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KcHJvY2VlZCBub2RlPTUgb2Zmc2V0PTEKZWRnZXMgbm9kZT01OiAxLzEgNi8wIHN0YXRlOiAxIDIgMyA0IDUKYmVmb3JlIG5vZGU9MSB0eXBlPTggb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVswLC0xXSBmcz0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTEKZWRnZXMgbm9kZT0xOiAzLzEgc3RhdGU6IDEgMiAzIDQgNQpiZWZvcmUgbm9kZT0zIHR5cGU9MTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVswLC0xXSBmcz0xIGN5Y2xlPTEgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KcG9wIGF2YWlsYWJsZT0xCnByb2NlZWQgbm9kZT00IG9mZnNldD0wCmVkZ2VzIG5vZGU9NDogNS8xIHN0YXRlOiAwIDEgMiAzIDQgNQpiZWZvcmUgbm9kZT01IHR5cGU9MTEgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0xIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwb3AgYXZhaWxhYmxlPTAK"
+    }
+  },
+  {
+    "id": "alternation-longest",
+    "tuple": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,1],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[0,1],[-1,-1]]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 4/1 state: 0 1 2 4\nbefore node=4 type=10 offset=0 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=4 offset=0\nedges node=4: 1/1 2/1 state: 0 1 2 4\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=5 type=9 offset=1 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=5 offset=1\nedges node=5: 7/1 state: 3 5 6 7\nbefore node=7 type=11 offset=1 cap=[0,1] prev=[0,1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=7 offset=1\nedges node=7: 6/1 8/0 state: 3 5 6 7\nbefore node=6 type=1 offset=1 cap=[0,1] prev=[0,1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=6 offset=1\nbefore node=7 type=11 offset=2 cap=[0,1] prev=[0,1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=7 offset=2\nedges node=7: 6/1 8/0 state: 5 6 7\nbefore node=6 type=1 offset=2 cap=[0,1] prev=[0,1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=6 offset=2\nbefore node=7 type=11 offset=3 cap=[0,1] prev=[0,1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\nproceed node=7 offset=3\nedges node=7: 6/0 8/1 state: 7 8\nbefore node=8 type=2 offset=3 cap=[0,1] prev=[0,1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,1] prev=[0,1]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFswLDFdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0wCmVkZ2VzIG5vZGU9MDogNC8xIHN0YXRlOiAwIDEgMiA0CmJlZm9yZSBub2RlPTQgdHlwZT0xMCBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0tMSBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MAplZGdlcyBub2RlPTQ6IDEvMSAyLzEgc3RhdGU6IDAgMSAyIDQKYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTAKYmVmb3JlIG5vZGU9NSB0eXBlPTkgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTUgb2Zmc2V0PTEKZWRnZXMgbm9kZT01OiA3LzEgc3RhdGU6IDMgNSA2IDcKYmVmb3JlIG5vZGU9NyB0eXBlPTExIG9mZnNldD0xIGNhcD1bMCwxXSBwcmV2PVswLDFdIGZzPS0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwxXSBwcmV2PVswLDFdCnByb2NlZWQgbm9kZT03IG9mZnNldD0xCmVkZ2VzIG5vZGU9NzogNi8xIDgvMCBzdGF0ZTogMyA1IDYgNwpiZWZvcmUgbm9kZT02IHR5cGU9MSBvZmZzZXQ9MSBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0tMSBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9NiBvZmZzZXQ9MQpiZWZvcmUgbm9kZT03IHR5cGU9MTEgb2Zmc2V0PTIgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTcgb2Zmc2V0PTIKZWRnZXMgbm9kZT03OiA2LzEgOC8wIHN0YXRlOiA1IDYgNwpiZWZvcmUgbm9kZT02IHR5cGU9MSBvZmZzZXQ9MiBjYXA9WzAsMV0gcHJldj1bMCwxXSBmcz0tMSBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsMV0gcHJldj1bMCwxXQpwcm9jZWVkIG5vZGU9NiBvZmZzZXQ9MgpiZWZvcmUgbm9kZT03IHR5cGU9MTEgb2Zmc2V0PTMgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0KcHJvY2VlZCBub2RlPTcgb2Zmc2V0PTMKZWRnZXMgbm9kZT03OiA2LzAgOC8xIHN0YXRlOiA3IDgKYmVmb3JlIG5vZGU9OCB0eXBlPTIgb2Zmc2V0PTMgY2FwPVswLDFdIHByZXY9WzAsMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLDFdIHByZXY9WzAsMV0K"
+    }
+  },
+  {
+    "id": "finite-optional",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":-1,\"registers\":[]}\n",
+      "stderr": "before node=9 type=10 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=11 end=0\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=9 offset=0\nedges node=9: 4/0 10/0 state: 11\npop available=0\n",
+      "stdoutBase64": "eyJsZW5ndGgiOi0xLCJyZWdpc3RlcnMiOltdfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9OSB0eXBlPTEwIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD0xMSBlbmQ9MAphZnRlciBjYXA9Wy0xLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTkgb2Zmc2V0PTAKZWRnZXMgbm9kZT05OiA0LzAgMTAvMCBzdGF0ZTogMTEKcG9wIGF2YWlsYWJsZT0wCg=="
+    }
+  },
+  {
+    "id": "nested-stale-backref",
+    "tuple": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "a\n",
+      "stderr": "",
+      "stdoutBase64": "YQo=",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":4,\"registers\":[[0,4],[2,3],[1,2],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjQsInJlZ2lzdGVycyI6W1swLDRdLFsyLDNdLFsxLDJdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":4,\"registers\":[[0,4],[2,3],[1,2],[-1,-1]]}\n",
+      "stderr": "before node=7 type=11 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[-1,-1] prev=[-1,-1]\nproceed node=7 offset=0\nedges node=7: 0/1 8/0 state: 0 1 7\nbefore node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 1/1 state: 0 1 7\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=5 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=5 offset=1\nedges node=5: 2/1 6/0 state: 2 3 5\nbefore node=2 type=8 offset=1 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 3/1 state: 2 3 5\nbefore node=3 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=3 offset=1\nbefore node=4 type=9 offset=2 cap=[0,-1] prev=[-1,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[0,-1] prev=[0,-1]\nproceed node=4 offset=2\nedges node=4: 5/1 state: 0 1 4 5 6 7\nbefore node=5 type=11 offset=2 cap=[0,-1] prev=[0,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[0,-1] prev=[0,-1]\nproceed node=5 offset=2\nedges node=5: 2/0 6/1 state: 0 1 4 5 6 7\nbefore node=6 type=9 offset=2 cap=[0,-1] prev=[0,-1] fs=0 cycle=0 last=9 end=4\nafter cap=[0,2] prev=[0,2]\nproceed node=6 offset=2\nedges node=6: 7/1 state: 0 1 4 5 6 7\nbefore node=7 type=11 offset=2 cap=[0,2] prev=[0,2] fs=0 cycle=0 last=9 end=4\nafter cap=[0,2] prev=[0,2]\nproceed node=7 offset=2\nedges node=7: 0/1 8/0 state: 0 1 4 5 6 7\nbefore node=0 type=8 offset=2 cap=[0,2] prev=[0,2] fs=0 cycle=0 last=9 end=4\nafter cap=[2,-1] prev=[0,2]\nproceed node=0 offset=2\nedges node=0: 1/1 state: 0 1 4 5 6 7\nbefore node=1 type=1 offset=2 cap=[2,-1] prev=[0,2] fs=0 cycle=0 last=9 end=4\nafter cap=[2,-1] prev=[0,2]\nproceed node=1 offset=2\nbefore node=5 type=11 offset=3 cap=[2,-1] prev=[0,2] fs=0 cycle=0 last=9 end=4\nafter cap=[2,-1] prev=[0,2]\nproceed node=5 offset=3\nedges node=5: 2/0 6/1 state: 5 6 7 8\nbefore node=6 type=9 offset=3 cap=[2,-1] prev=[0,2] fs=0 cycle=0 last=9 end=4\nafter cap=[2,3] prev=[2,3]\nproceed node=6 offset=3\nedges node=6: 7/1 state: 5 6 7 8\nbefore node=7 type=11 offset=3 cap=[2,3] prev=[2,3] fs=0 cycle=0 last=9 end=4\nafter cap=[2,3] prev=[2,3]\nproceed node=7 offset=3\nedges node=7: 0/0 8/1 state: 5 6 7 8\nbefore node=8 type=4 offset=3 cap=[2,3] prev=[2,3] fs=0 cycle=0 last=9 end=4\nafter cap=[2,3] prev=[2,3]\nproceed node=8 offset=3\nbefore node=9 type=2 offset=4 cap=[2,3] prev=[2,3] fs=0 cycle=0 last=9 end=4\nafter cap=[2,3] prev=[2,3]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjQsInJlZ2lzdGVycyI6W1swLDRdLFsyLDNdLFsxLDJdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9NyB0eXBlPTExIG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9NyBvZmZzZXQ9MAplZGdlcyBub2RlPTc6IDAvMSA4LzAgc3RhdGU6IDAgMSA3CmJlZm9yZSBub2RlPTAgdHlwZT04IG9mZnNldD0wIGNhcD1bLTEsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0wCmVkZ2VzIG5vZGU9MDogMS8xIHN0YXRlOiAwIDEgNwpiZWZvcmUgbm9kZT0xIHR5cGU9MSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0xIG9mZnNldD0wCmJlZm9yZSBub2RlPTUgdHlwZT0xMSBvZmZzZXQ9MSBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT01IG9mZnNldD0xCmVkZ2VzIG5vZGU9NTogMi8xIDYvMCBzdGF0ZTogMiAzIDUKYmVmb3JlIG5vZGU9MiB0eXBlPTggb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9OSBlbmQ9NAphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MQplZGdlcyBub2RlPTI6IDMvMSBzdGF0ZTogMiAzIDUKYmVmb3JlIG5vZGU9MyB0eXBlPTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9OSBlbmQ9NAphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MyBvZmZzZXQ9MQpiZWZvcmUgbm9kZT00IHR5cGU9OSBvZmZzZXQ9MiBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0KcHJvY2VlZCBub2RlPTQgb2Zmc2V0PTIKZWRnZXMgbm9kZT00OiA1LzEgc3RhdGU6IDAgMSA0IDUgNiA3CmJlZm9yZSBub2RlPTUgdHlwZT0xMSBvZmZzZXQ9MiBjYXA9WzAsLTFdIHByZXY9WzAsLTFdIGZzPTAgY3ljbGU9MCBsYXN0PTkgZW5kPTQKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVswLC0xXQpwcm9jZWVkIG5vZGU9NSBvZmZzZXQ9MgplZGdlcyBub2RlPTU6IDIvMCA2LzEgc3RhdGU6IDAgMSA0IDUgNiA3CmJlZm9yZSBub2RlPTYgdHlwZT05IG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bMCwtMV0gZnM9MCBjeWNsZT0wIGxhc3Q9OSBlbmQ9NAphZnRlciBjYXA9WzAsMl0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9NiBvZmZzZXQ9MgplZGdlcyBub2RlPTY6IDcvMSBzdGF0ZTogMCAxIDQgNSA2IDcKYmVmb3JlIG5vZGU9NyB0eXBlPTExIG9mZnNldD0yIGNhcD1bMCwyXSBwcmV2PVswLDJdIGZzPTAgY3ljbGU9MCBsYXN0PTkgZW5kPTQKYWZ0ZXIgY2FwPVswLDJdIHByZXY9WzAsMl0KcHJvY2VlZCBub2RlPTcgb2Zmc2V0PTIKZWRnZXMgbm9kZT03OiAwLzEgOC8wIHN0YXRlOiAwIDEgNCA1IDYgNwpiZWZvcmUgbm9kZT0wIHR5cGU9OCBvZmZzZXQ9MiBjYXA9WzAsMl0gcHJldj1bMCwyXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bMiwtMV0gcHJldj1bMCwyXQpwcm9jZWVkIG5vZGU9MCBvZmZzZXQ9MgplZGdlcyBub2RlPTA6IDEvMSBzdGF0ZTogMCAxIDQgNSA2IDcKYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTIgY2FwPVsyLC0xXSBwcmV2PVswLDJdIGZzPTAgY3ljbGU9MCBsYXN0PTkgZW5kPTQKYWZ0ZXIgY2FwPVsyLC0xXSBwcmV2PVswLDJdCnByb2NlZWQgbm9kZT0xIG9mZnNldD0yCmJlZm9yZSBub2RlPTUgdHlwZT0xMSBvZmZzZXQ9MyBjYXA9WzIsLTFdIHByZXY9WzAsMl0gZnM9MCBjeWNsZT0wIGxhc3Q9OSBlbmQ9NAphZnRlciBjYXA9WzIsLTFdIHByZXY9WzAsMl0KcHJvY2VlZCBub2RlPTUgb2Zmc2V0PTMKZWRnZXMgbm9kZT01OiAyLzAgNi8xIHN0YXRlOiA1IDYgNyA4CmJlZm9yZSBub2RlPTYgdHlwZT05IG9mZnNldD0zIGNhcD1bMiwtMV0gcHJldj1bMCwyXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bMiwzXSBwcmV2PVsyLDNdCnByb2NlZWQgbm9kZT02IG9mZnNldD0zCmVkZ2VzIG5vZGU9NjogNy8xIHN0YXRlOiA1IDYgNyA4CmJlZm9yZSBub2RlPTcgdHlwZT0xMSBvZmZzZXQ9MyBjYXA9WzIsM10gcHJldj1bMiwzXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bMiwzXSBwcmV2PVsyLDNdCnByb2NlZWQgbm9kZT03IG9mZnNldD0zCmVkZ2VzIG5vZGU9NzogMC8wIDgvMSBzdGF0ZTogNSA2IDcgOApiZWZvcmUgbm9kZT04IHR5cGU9NCBvZmZzZXQ9MyBjYXA9WzIsM10gcHJldj1bMiwzXSBmcz0wIGN5Y2xlPTAgbGFzdD05IGVuZD00CmFmdGVyIGNhcD1bMiwzXSBwcmV2PVsyLDNdCnByb2NlZWQgbm9kZT04IG9mZnNldD0zCmJlZm9yZSBub2RlPTkgdHlwZT0yIG9mZnNldD00IGNhcD1bMiwzXSBwcmV2PVsyLDNdIGZzPTAgY3ljbGU9MCBsYXN0PTkgZW5kPTQKYWZ0ZXIgY2FwPVsyLDNdIHByZXY9WzIsM10K"
+    }
+  },
+  {
+    "id": "mandatory-no-reference",
+    "tuple": {
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "\n",
+      "stderr": "",
+      "stdoutBase64": "Cg==",
+      "stderrBase64": ""
+    },
+    "registers": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[3,3],[-1,-1]]}\n",
+      "stderr": "",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFszLDNdLFstMSwtMV1dfQo=",
+      "stderrBase64": ""
+    },
+    "trace": {
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "timedOut": false,
+      "stdout": "{\"length\":3,\"registers\":[[0,3],[3,3],[-1,-1]]}\n",
+      "stderr": "before node=0 type=8 offset=0 cap=[-1,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=0 offset=0\nedges node=0: 2/1 state: 0 1 2 3 4 5 6\nbefore node=2 type=11 offset=0 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=0\nedges node=2: 1/1 3/1 state: 0 1 2 3 4 5 6\nbefore node=1 type=1 offset=0 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=0\nbefore node=2 type=11 offset=1 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=1\nedges node=2: 1/1 3/1 state: 1 2 3 4 5 6\nbefore node=1 type=1 offset=1 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=1\nbefore node=2 type=11 offset=2 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=2\nedges node=2: 1/1 3/1 state: 1 2 3 4 5 6\nbefore node=1 type=1 offset=2 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=1 offset=2\nbefore node=2 type=11 offset=3 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,-1] prev=[-1,-1]\nproceed node=2 offset=3\nedges node=2: 1/0 3/1 state: 2 3 4 6 7 8\nbefore node=3 type=9 offset=3 cap=[0,-1] prev=[-1,-1] fs=-1 cycle=0 last=8 end=3\nafter cap=[0,3] prev=[0,3]\nproceed node=3 offset=3\nedges node=3: 4/1 state: 2 3 4 6 7 8\nbefore node=4 type=8 offset=3 cap=[0,3] prev=[0,3] fs=-1 cycle=0 last=8 end=3\nafter cap=[3,-1] prev=[0,3]\nproceed node=4 offset=3\nedges node=4: 6/1 state: 2 3 4 6 7 8\nbefore node=6 type=11 offset=3 cap=[3,-1] prev=[0,3] fs=-1 cycle=0 last=8 end=3\nafter cap=[3,-1] prev=[0,3]\nproceed node=6 offset=3\nedges node=6: 5/0 7/1 state: 2 3 4 6 7 8\nbefore node=7 type=9 offset=3 cap=[3,-1] prev=[0,3] fs=-1 cycle=0 last=8 end=3\nafter cap=[3,3] prev=[0,3]\nproceed node=7 offset=3\nedges node=7: 8/1 state: 2 3 4 6 7 8\nbefore node=8 type=2 offset=3 cap=[3,3] prev=[0,3] fs=-1 cycle=0 last=8 end=3\nafter cap=[3,3] prev=[0,3]\n",
+      "stdoutBase64": "eyJsZW5ndGgiOjMsInJlZ2lzdGVycyI6W1swLDNdLFszLDNdLFstMSwtMV1dfQo=",
+      "stderrBase64": "YmVmb3JlIG5vZGU9MCB0eXBlPTggb2Zmc2V0PTAgY2FwPVstMSwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0wIG9mZnNldD0wCmVkZ2VzIG5vZGU9MDogMi8xIHN0YXRlOiAwIDEgMiAzIDQgNSA2CmJlZm9yZSBub2RlPTIgdHlwZT0xMSBvZmZzZXQ9MCBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXSBmcz0tMSBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzAsLTFdIHByZXY9Wy0xLC0xXQpwcm9jZWVkIG5vZGU9MiBvZmZzZXQ9MAplZGdlcyBub2RlPTI6IDEvMSAzLzEgc3RhdGU6IDAgMSAyIDMgNCA1IDYKYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTAgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTAKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0xIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0xCmVkZ2VzIG5vZGU9MjogMS8xIDMvMSBzdGF0ZTogMSAyIDMgNCA1IDYKYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTEgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTEKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0yIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0yCmVkZ2VzIG5vZGU9MjogMS8xIDMvMSBzdGF0ZTogMSAyIDMgNCA1IDYKYmVmb3JlIG5vZGU9MSB0eXBlPTEgb2Zmc2V0PTIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0KcHJvY2VlZCBub2RlPTEgb2Zmc2V0PTIKYmVmb3JlIG5vZGU9MiB0eXBlPTExIG9mZnNldD0zIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdIGZzPS0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMCwtMV0gcHJldj1bLTEsLTFdCnByb2NlZWQgbm9kZT0yIG9mZnNldD0zCmVkZ2VzIG5vZGU9MjogMS8wIDMvMSBzdGF0ZTogMiAzIDQgNiA3IDgKYmVmb3JlIG5vZGU9MyB0eXBlPTkgb2Zmc2V0PTMgY2FwPVswLC0xXSBwcmV2PVstMSwtMV0gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVswLDNdIHByZXY9WzAsM10KcHJvY2VlZCBub2RlPTMgb2Zmc2V0PTMKZWRnZXMgbm9kZT0zOiA0LzEgc3RhdGU6IDIgMyA0IDYgNyA4CmJlZm9yZSBub2RlPTQgdHlwZT04IG9mZnNldD0zIGNhcD1bMCwzXSBwcmV2PVswLDNdIGZzPS0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMywtMV0gcHJldj1bMCwzXQpwcm9jZWVkIG5vZGU9NCBvZmZzZXQ9MwplZGdlcyBub2RlPTQ6IDYvMSBzdGF0ZTogMiAzIDQgNiA3IDgKYmVmb3JlIG5vZGU9NiB0eXBlPTExIG9mZnNldD0zIGNhcD1bMywtMV0gcHJldj1bMCwzXSBmcz0tMSBjeWNsZT0wIGxhc3Q9OCBlbmQ9MwphZnRlciBjYXA9WzMsLTFdIHByZXY9WzAsM10KcHJvY2VlZCBub2RlPTYgb2Zmc2V0PTMKZWRnZXMgbm9kZT02OiA1LzAgNy8xIHN0YXRlOiAyIDMgNCA2IDcgOApiZWZvcmUgbm9kZT03IHR5cGU9OSBvZmZzZXQ9MyBjYXA9WzMsLTFdIHByZXY9WzAsM10gZnM9LTEgY3ljbGU9MCBsYXN0PTggZW5kPTMKYWZ0ZXIgY2FwPVszLDNdIHByZXY9WzAsM10KcHJvY2VlZCBub2RlPTcgb2Zmc2V0PTMKZWRnZXMgbm9kZT03OiA4LzEgc3RhdGU6IDIgMyA0IDYgNyA4CmJlZm9yZSBub2RlPTggdHlwZT0yIG9mZnNldD0zIGNhcD1bMywzXSBwcmV2PVswLDNdIGZzPS0xIGN5Y2xlPTAgbGFzdD04IGVuZD0zCmFmdGVyIGNhcD1bMywzXSBwcmV2PVswLDNdCg=="
+    }
+  }
+]

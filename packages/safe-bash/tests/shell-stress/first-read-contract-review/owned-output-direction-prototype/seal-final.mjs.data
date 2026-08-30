@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, statSync, chmodSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve, relative } from 'node:path';
+import { execFileSync, spawnSync } from 'node:child_process';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-direction-prototype');
+const old = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-prototype');
+const temp = '/tmp/safe-bash-owned-output-direction-prototype-PMLamJ';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const handoff = JSON.parse(readFileSync(resolve(owned, 'handoff.json')));
+assert.equal(hash(readFileSync(resolve(owned, 'handoff.json'))), 'fb04617552411603080dc4ab0bd34388576b8a1e523c31d0b410f11f7f3c1299');
+for (const entry of [...handoff.source, ...handoff.tests, ...handoff.compiled]) {
+  const path = resolve(handoff.candidate, entry.path);
+  assert.equal(hash(readFileSync(path)), entry.sha256);
+  assert.equal(statSync(path).mode & 0o222, 0);
+}
+const oldArtifacts = JSON.parse(readFileSync(resolve(old, 'ARTIFACTS.json')));
+for (const entry of oldArtifacts.files) assert.equal(hash(readFileSync(resolve(old, entry.path))), entry.sha256);
+const v1 = JSON.parse(readFileSync(resolve(old, 'handoff.json')));
+assert.equal(hash(readFileSync(resolve(old, 'handoff.json'))), handoff.baselineHandoffSha256);
+for (const entry of [...v1.source, ...v1.tests, ...v1.compiled]) assert.equal(hash(readFileSync(resolve(v1.candidate, entry.path))), entry.sha256);
+for (const name of ['controls.mjs', 'run-prototype.mjs']) assert.equal(readFileSync(resolve(owned, `${name}.data`), 'utf8'), readFileSync(resolve(old, `${name}.data`), 'utf8').replaceAll(v1.temp, handoff.temp));
+const readonly = directory => { for (const entry of readdirSync(directory, { withFileTypes: true })) { const path = resolve(directory, entry.name); if (entry.isDirectory()) readonly(path); else if (entry.isFile()) chmodSync(path, 0o444); } chmodSync(directory, 0o555); };
+const scratchCandidates = readdirSync('/tmp', { withFileTypes: true }).filter(entry => entry.isDirectory() && entry.name.startsWith('safe-bash-owned-output-direction-prototype-')).map(entry => resolve('/tmp', entry.name, 'candidate')).filter(path => existsSync(path));
+for (const candidate of scratchCandidates) readonly(candidate);
+const runClosure = readdirSync(resolve(owned, 'runs')).filter(name => name.endsWith('.json')).sort().map(name => {
+  const run = JSON.parse(readFileSync(resolve(owned, 'runs', name)));
+  assert.equal(run.closeEventObserved, true); assert.equal(run.groupExistsAfterClose, false); assert.equal(run.pidAfterClose, ''); assert.deepEqual(run.signals, []);
+  const current = spawnSync('/bin/ps', ['-p', String(run.pid), '-o', 'pid=,ppid=,pgid=,lstart=,command='], { encoding: 'utf8', timeout: 1000 }).stdout.trim();
+  assert.notEqual(current || 'absent', run.initialIdentity);
+  return { path: `runs/${name}`, pid: run.pid, status: run.status, closed: true, currentIdentity: current || 'absent' };
+});
+const proof = JSON.parse(readFileSync(resolve(owned, 'reconstruction-proof.json')));
+assert.equal(proof.exactV1SourceTestsCompiled, true); assert.equal(proof.exactV2SourceTestsCompiled, true); assert.equal(proof.compilerInputsMatched, 358);
+const put = (name, bytes) => execFileSync('apply_patch', [], { cwd: root, encoding: 'utf8', input: `*** Begin Patch\n*** Add File: ${resolve(owned, name)}\n${bytes.replace(/\n$/, '').split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n` });
+put('seal-final.mjs.data', readFileSync(resolve(temp, 'seal-final.mjs'), 'utf8'));
+const seal = { sealedAt: new Date().toISOString(), observedProvisionalApiFileBirth: statSync('/tmp/safe-bash-owned-output-direction-prototype-api.txt').birthtime.toISOString(), intervalQualification: 'Observed author artifact interval only, not 72 hours or a full-work-duration claim', sourceFilesVerified: handoff.source.length, testFilesVerified: handoff.tests.length, compiledFilesVerified: handoff.compiled.length, oldArtifactsVerified: oldArtifacts.files.length, v1CandidateFilesVerified: v1.source.length + v1.tests.length + v1.compiled.length, scratchCandidatesReadonly: scratchCandidates, runClosure, supervisedRuns: runClosure.length, productAndDiagnosisRuns: 44, reconstructionCapturedRuns: 3, directFirstReconstructionFailure: 'Truncated tool output; original script and same-error captured rerun retained; see RECONSTRUCTION.md', reconstructionChildren: proof.children, candidateImport: handoff.import, handoffSha256: hash(readFileSync(resolve(owned, 'handoff.json'))), sourceCommits: ['98462779','630bf76f'], fixtureFreezeCommit: 'cabb9519', reconstructionCommit: 'a589cf6a', actualLeafClosed: 'Root must observe after normal author exit; not self-certified', opaqueHostWorkClaimedDrained: false, independentBodiesInspected: false };
+put('SEAL.json', JSON.stringify(seal, null, 2) + '\n');
+const walk = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(resolve(directory, entry.name)) : entry.isFile() ? [resolve(directory, entry.name)] : []).sort();
+const files = walk(owned).filter(path => relative(owned, path) !== 'ARTIFACTS.json').map(path => ({ path: relative(owned, path), bytes: readFileSync(path).length, sha256: hash(readFileSync(path)) }));
+assert.ok(files.every(entry => /(?:\.md|\.json|\.data|\.patch-data)$/.test(entry.path)), 'All captured code remains inert');
+put('ARTIFACTS.json', JSON.stringify({ sealedAt: seal.sealedAt, manifestSha256: hash(JSON.stringify(files)), excludes: ['ARTIFACTS.json'], files }, null, 2) + '\n');
+console.log(JSON.stringify({ files: files.length, artifactManifestSha256: hash(JSON.stringify(files)), handoffSha256: seal.handoffSha256, supervisedRuns: runClosure.length, scratchCandidates: scratchCandidates.length, candidateReadonly: true }, null, 2));

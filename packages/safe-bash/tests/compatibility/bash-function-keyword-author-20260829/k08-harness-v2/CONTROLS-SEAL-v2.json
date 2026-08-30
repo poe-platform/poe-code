@@ -1,0 +1,105 @@
+{
+  "schema": "k08-harness-v2-controls-preseal",
+  "issuedAt": "2026-08-29T15:11:21.054Z",
+  "phaseDeadline": 1788017112721,
+  "files": {
+    "auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    "direct-child.mjs": {
+      "bytes": 5589,
+      "sha256": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e"
+    },
+    "collector-core.mjs": {
+      "bytes": 121,
+      "sha256": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61"
+    },
+    "preauth.mjs": {
+      "bytes": 339,
+      "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e"
+    },
+    "helper-driver.mjs": {
+      "bytes": 3013,
+      "sha256": "fe537fc9dfced47c536311b0de817bbfffad6f86d657bf0cff44e168c6bd6c9d"
+    },
+    "case-adapter.mjs": {
+      "bytes": 4474,
+      "sha256": "0200f5240559bf0b09a132d68e378d566475a2454cc89ae7401be01f678544bc"
+    },
+    "CASES.json": {
+      "bytes": 10895,
+      "sha256": "a6018734d7e717a2efaed63125da154466b317f18796f6687e3e90efa4031bc5"
+    },
+    "PRODUCT-EDGES.json": {
+      "bytes": 29973,
+      "sha256": "7ed98d6a1937ed667983adc2846daea35f699bc82632b331db199e5a9ccaaa88"
+    },
+    "target-owner.mjs": {
+      "bytes": 14048,
+      "sha256": "faf1ff9822ceee0325ae237cc10ee400a4200b885d316f6b71ad859eb50b971a"
+    },
+    "collector.mjs": {
+      "bytes": 4501,
+      "sha256": "afb5460dad3acd513da7e2d9409f6932844070eedf97347a675837cefb25a392"
+    },
+    "case-driver.mjs": {
+      "bytes": 2829,
+      "sha256": "e9e89d46c104f62acaf7d2e1a5f095d0f0fa65afa60b2ce8f5860e797c2b7351"
+    },
+    "activation.mjs": {
+      "bytes": 2129,
+      "sha256": "f75cb6265047125c49f66b5f52d280359dbdabad9c734c4fd7daa54e892c8934"
+    },
+    "launch.sh": {
+      "bytes": 751,
+      "sha256": "d28205c317431feb9370fd3873aec6e1e191d2444f8fd77d35dd40bb21111f8e"
+    },
+    "qualification.mjs": {
+      "bytes": 4426,
+      "sha256": "401d227bca508bd155829124415ee2bb28041fae394943896d8228d703c50e3f"
+    },
+    "M01-DISCRIMINATOR.json": {
+      "bytes": 657,
+      "sha256": "8fe84f291c362efaa892c3f0b5be2bb8773cdf530ff6d433e6bcf49804472e2a"
+    },
+    "PREPARATION-PROTOCOL.json": {
+      "bytes": 1828,
+      "sha256": "b3e908a4d6b9016f30e0dd95aebcbf6d4c9c71d868bc3ced70eb454b859a60d2"
+    },
+    "controls.mjs": {
+      "bytes": 6521,
+      "sha256": "2613c9afdcf5edc49816c13ecd72eabc320c3ff257f8bf054dd92d3db85dc7ca"
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "command": {
+    "argv": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2",
+      "--experimental-vm-modules",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/controls.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2",
+    "env": {
+      "HOME": "/private/tmp/safe-bash-k08-preexec-v2-1O68JM",
+      "PATH": "",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    }
+  },
+  "groups": 16,
+  "helpers": 1,
+  "productCalls": 0,
+  "fixtures": 0,
+  "previousAttempt": "preliminary-v1/ATTEMPT.json",
+  "qualification": "Versioned literal-newline source correction; unchanged16 groups, not rescore of unexecuted first groups."
+}

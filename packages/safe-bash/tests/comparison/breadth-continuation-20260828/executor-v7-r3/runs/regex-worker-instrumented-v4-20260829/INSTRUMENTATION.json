@@ -1,0 +1,67 @@
+{
+  "schema": "EXPLICIT_REGEX_OBSERVER_DEVIATIONS_V1",
+  "announcedBeforeControls": true,
+  "requestedOptions": {
+    "execArgv": [],
+    "resourceLimits": {
+      "maxOldGenerationSizeMb": 128,
+      "stackSizeMb": 4
+    }
+  },
+  "effectiveChange": "execArgv becomes exactly [--import, authenticated preload file URL with exact config and sha256 query fields]",
+  "configTransport": "one immutable mode0600 JSON file per Worker, max32768 bytes, its absolute canonical file URL and SHA256 embedded in the effective preload URL; no program/environment secret values",
+  "stickyChannel": {
+    "api": "worker_threads.setEnvironmentData/getEnvironmentData",
+    "key": "safe-bash-breadth-regex-sticky-v1",
+    "value": "exact own-data {token,flag}; flag is one SharedArrayBuffer(4)",
+    "parentRestoration": "previous value restored in constructor finally, including construction failure",
+    "maximumFutureSharedBytes": 256,
+    "qualification": "Node Worker environment-data deviation, NOT process.env; explicit instrumentation, not unchanged options or caller authentication"
+  },
+  "unchanged": {
+    "workerData": "absent",
+    "envOption": "absent",
+    "processEnv": "no mutation",
+    "transferList": "absent",
+    "stdoutOption": "absent",
+    "stderrOption": "absent",
+    "nameOption": "absent",
+    "resourceLimits": "128/4 unchanged"
+  },
+  "journals": "one precreated mode0600 bounded nested journal per Worker, at most65536 bytes; records max16384 bytes; all bytes debit existing evidence partition",
+  "ownership": "shared sticky bit precedes fallible refusal publication; parent exit listeners and ownership precede start publication; native termination runs even if terminate-call publication fails",
+  "actualActivation": "withheld; independent review and fresh ROOT authority must explicitly bind this deviation and all emitted helper hashes",
+  "rootChannelApproved": true,
+  "syncSlot": {
+    "noAwait": true,
+    "globalObserverAdmissionLock": true,
+    "finallyRestore": true,
+    "restoreFailureUnsafe": true,
+    "noRecursiveAdmission": true
+  },
+  "qualifications": [
+    "Declared instrumentation, not caller authentication or tamper proofing",
+    "Requested empty execArgv differs from effective preload",
+    "No process.env/Worker env/workerData/transferList changes",
+    "Captured native Worker references outside admitted harness are outside this guarantee"
+  ],
+  "writer": {
+    "authority": "exact owned paths, regular descriptors, mode600 witnesses; mode644 only named harmless mutation fixtures",
+    "primitives": [
+      "lstatSync",
+      "realpathSync",
+      "openSync",
+      "fstatSync",
+      "readSync",
+      "writeSync",
+      "ftruncateSync",
+      "fsyncSync",
+      "closeSync"
+    ],
+    "enrollment": "before publication or open; FD retained privately immediately after open",
+    "cleanup": "synchronous finally close; journal closes descriptor after every append",
+    "unknownClose": "refuse qualification and stop",
+    "noTargetCapability": true,
+    "reservationBytesPerWorker": 98304
+  }
+}

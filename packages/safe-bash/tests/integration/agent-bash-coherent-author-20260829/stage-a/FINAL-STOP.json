@@ -1,0 +1,132 @@
+{
+  "role": "STAGE_A_PERMISSION_STOP_NO_RETRY",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "presealSha256": "313ba365cb23d67187362a949087f0d264c63e5d3f776f0fc64e47f220825a2a",
+  "started": "2026-08-29T09:42:15.464Z",
+  "finished": "2026-08-29T09:42:17.269Z",
+  "published": "2026-08-29T09:44:54.269Z",
+  "retainedRoot": "/tmp/safe-bash-coherent-stage-a-20260829-r1",
+  "childResults": [
+    {
+      "role": "git-metadata",
+      "pid": 95993,
+      "exitStatus": 0,
+      "exitSignal": null,
+      "closeStatus": 0,
+      "closeSignal": null,
+      "stdoutBytes": 15828,
+      "stderrBytes": 0,
+      "ownedGroupAbsent": true
+    },
+    {
+      "role": "git-metadata",
+      "pid": 95996,
+      "exitStatus": 0,
+      "exitSignal": null,
+      "closeStatus": 0,
+      "closeSignal": null,
+      "stdoutBytes": 2851826,
+      "stderrBytes": 0,
+      "ownedGroupAbsent": true
+    },
+    {
+      "role": "strict-build",
+      "pid": 96001,
+      "exitStatus": 1,
+      "exitSignal": null,
+      "closeStatus": 1,
+      "closeSignal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 646,
+      "ownedGroupAbsent": true
+    }
+  ],
+  "supervisedChildren": 3,
+  "signalsSent": 0,
+  "source309Postguard": true,
+  "toolRegularFilesPostguard": 2274,
+  "toolLinksPostguard": 12,
+  "sealedHarnessPostguard": true,
+  "sourceExtraEntries": "only declared compiler dependency copies",
+  "workingBytes": 70925494,
+  "workingInventoryEntries": 2853,
+  "rawChildCaptureBytes": 2868300,
+  "compilerDispatches": 1,
+  "compilerBodyReached": false,
+  "productionBuildsCompleted": 0,
+  "packDispatches": 0,
+  "actualPackage": null,
+  "predictedMembers": 1014,
+  "productImports": 0,
+  "semanticCalls": 0,
+  "workers": 0,
+  "stageB": "UNRUN_NO_AUTHORITY",
+  "denial": {
+    "code": "ERR_ACCESS_DENIED",
+    "permission": "FileSystemRead",
+    "resource": "/tmp",
+    "boundary": "Node22 realpathSync during CJS compiler entry loader"
+  },
+  "qualification": "Exit/close and known PGID absence are observed; no full descendant/kernel-drain proof. No permission expansion, rerun, extraction, install or engine work.",
+  "records": [
+    {
+      "path": "SOURCE-BEFORE.json",
+      "bytes": 53085,
+      "sha256": "f0a798c5f5e7bf0e3e13554cc3110174a54a54ae080c94c4488600095e4f4e51",
+      "mode": 420
+    },
+    {
+      "path": "TOOLS-BEFORE.json",
+      "bytes": 424701,
+      "sha256": "4f0e9511dc5a22438b2ca98bb29c2ea96273e81a69127dc3aff8a3234c82b153",
+      "mode": 420
+    },
+    {
+      "path": "capture/00-git-metadata.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "capture/00-git-metadata.stdout",
+      "bytes": 15828,
+      "sha256": "4cd8fae7d79898fd633c673d692b35b7790ab3a2f65af33b20b87414a6507ec2",
+      "mode": 420
+    },
+    {
+      "path": "capture/01-git-metadata.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "capture/01-git-metadata.stdout",
+      "bytes": 2851826,
+      "sha256": "d28c5ecf3668f03a79033396bb1792008534b2f363c8256e162b6e839f06b379",
+      "mode": 420
+    },
+    {
+      "path": "capture/02-strict-build.stderr",
+      "bytes": 646,
+      "sha256": "e38ccfcf39da649342eddd082b24c14e3d8187d1a77dfe2171e267bb17330def",
+      "mode": 420
+    },
+    {
+      "path": "capture/02-strict-build.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "path": "capture/events.jsonl",
+      "bytes": 3078,
+      "sha256": "4d1b945bded82152b01887fa305ae13c339f791b45ccc4a5f18a6f0d319ae004",
+      "mode": 420
+    }
+  ],
+  "collectorQualification": {
+    "priorFailure": "publish-stop.stderr: lexical /tmp compared with canonical /private/tmp; historical failure retained",
+    "correction": "Compare resolved target to canonical admitted tool root plus the unchanged exact relative target; no producer/fence changes",
+    "canonicalWorkRoot": "/private/tmp/safe-bash-coherent-stage-a-20260829-r1"
+  }
+}

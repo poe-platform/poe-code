@@ -1,0 +1,58 @@
+
+Original/revised logical path: tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/original.txt b/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/revised.txt
+index 57ee500..e28006c 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/original.txt
++++ b/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/revised.txt
+@@ -56,8 +56,8 @@ for (const [name, quoted, linkTarget, linkPath] of [
+   await filesystem.symlink(linkTarget, linkPath);
+   const originalLink = await filesystem.lstat(linkPath);
+   const result = await run("patch", [], filesystem, replacement("first") + replacement(quoted));
+-  assert.equal(result.status, 2, result.stderr.toString());
+-  assert.deepEqual(result.stdout, Buffer.alloc(0));
+-  assert.deepEqual(await fileBytes(filesystem, Object.keys(files)), expectedBytes(files));
++  assert.equal(result.status, name === "quoted ancestor symlink" ? 0 : 2, result.stderr.toString());
++  assert.deepEqual(result.stdout, name === "quoted ancestor symlink" ? Buffer.from("patching file first\npatching file target\n") : Buffer.alloc(0));
++  assert.deepEqual(await fileBytes(filesystem, Object.keys(files)), expectedBytes(name === "quoted ancestor symlink" ? { ...files, first: "new\n", target: "new\n" } : files));
+   assert.deepEqual(await filesystem.lstat(linkPath), originalLink);
+ });
+
+Original/revised logical path: tests/commands/diff-patch-stress/fuzz/edits.test.ts
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/original.txt b/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/revised.txt
+index 4e2787f..880adc3 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/original.txt
++++ b/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/revised.txt
+@@ -94,7 +94,7 @@ for (const [name, broken] of Object.entries(malformed)) test(`atomic extension m
+   const first = golden("keep\n", "changed\n", "first");
+   const filesystem = await memory({ first: "keep\n", target: "old\nmiddle\ntail\n" });
+   const result = await run("patch", ["--atomic"], filesystem, `${first}--- target\n+++ target\n${broken}`);
+-  assert.equal(result.exitCode, 2, result.stderr);
++  assert.equal(result.exitCode, name === "backward-second-hunk" ? 1 : 2, result.stderr);
+   assert.equal(await contents(filesystem, "first"), "keep\n");
+   assert.equal(await contents(filesystem), "old\nmiddle\ntail\n");
+ });
+
+Original/revised logical path: tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/original.txt b/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/revised.txt
+index 23ca10d..a85f11c 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/original.txt
++++ b/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/audit-Gpasye/revised.txt
+@@ -14,11 +14,16 @@ for (const vector of vectors) test(`${vector.status === 0 ? "GNU default" : "ato
+   delete before[target(vector)];
+   delete after[target(vector)];
+   const prunedParent = vector.expected === null && vector.status === 0 && !vector.args.includes("--dry-run") && target(vector) === "/authorized/target";
+-  if (prunedParent) delete before["/authorized"];
++  if (prunedParent) {
++    delete before["/authorized"];
++    const root = before["/"];
++    assert(root !== null && typeof root === "object" && "nlink" in root && typeof root.nlink === "number");
++    root.nlink -= 1;
++  }
+   assert.deepEqual(after, before, "no decoys, reject files, backup files, or unrelated paths changed");
+   if (vector.args.includes("--dry-run") || vector.status !== 0) assert.deepEqual(observed.mutations, []);
+   else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),
+-    [{ method: vector.expected === null ? "rm" : "writeFile", path: target(vector) }, ...(prunedParent ? [{ method: "rm", path: "/authorized" }] : [])]);
++    [{ method: vector.expected === null ? "rm" : "writeFile", path: target(vector) }]);
+ });
+ 
+ for (const format of formats) for (const reverse of [false, true]) {

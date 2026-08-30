@@ -1,0 +1,949 @@
+{
+  "source": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "baselineCommit": "3243c5a86a23408b3b844a017db6a5a94f064d1b",
+  "priorAcceptance": "3e2b880694cd252f311d8efaafd151e107e17d2f",
+  "changed36": [],
+  "changed57": [],
+  "changedHost": [],
+  "rows": [
+    {
+      "cohort": "expanded36",
+      "id": "header-noexecute",
+      "fixture": {
+        "id": "header-noexecute",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "printf forbidden > marker\n",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+        "effects": "e06363ff43a809dd53d7dd152529406d23cad089be0a6f7a8e08f64127a1ce73"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+            "effects": "e06363ff43a809dd53d7dd152529406d23cad089be0a6f7a8e08f64127a1ce73"
+          },
+          "passed": true,
+          "baselinePassed": true
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+            "effects": "e06363ff43a809dd53d7dd152529406d23cad089be0a6f7a8e08f64127a1ce73"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Historical-only diagnostic dialect; primary exact, same refusal and effects.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+        "effects": "e06363ff43a809dd53d7dd152529406d23cad089be0a6f7a8e08f64127a1ce73"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+        "effects": "e06363ff43a809dd53d7dd152529406d23cad089be0a6f7a8e08f64127a1ce73"
+      }
+    },
+    {
+      "cohort": "expanded36",
+      "id": "header-execute-no-read",
+      "fixture": {
+        "id": "header-execute-no-read",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "printf forbidden > marker\n",
+            "mode": 73
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+        "effects": "05793e6b6bdd96fb5ca413d4587f6d708dc790a4ff6a8189cf3c7f76120dd569"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+            "effects": "05793e6b6bdd96fb5ca413d4587f6d708dc790a4ff6a8189cf3c7f76120dd569"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+            "effects": "05793e6b6bdd96fb5ca413d4587f6d708dc790a4ff6a8189cf3c7f76120dd569"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Diagnostic context only; both refuse126 before effects. Not a new execution capability defect.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+        "effects": "05793e6b6bdd96fb5ca413d4587f6d708dc790a4ff6a8189cf3c7f76120dd569"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a205065726d697373696f6e2064656e6965640a",
+        "effects": "05793e6b6bdd96fb5ca413d4587f6d708dc790a4ff6a8189cf3c7f76120dd569"
+      }
+    },
+    {
+      "cohort": "expanded36",
+      "id": "env-single-kernel-argument",
+      "fixture": {
+        "id": "env-single-kernel-argument",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "#!/usr/bin/env bash -e\nprintf should-not-run > marker\n",
+            "mode": 493
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762062617368202d650a",
+        "effects": "ec256cdcb961703855cff42d269976ae3b8e0dba0d14d1b81582a32592d63f8f"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "effects": "d2ba028bee10e2f225ef0aed44f21c7e4d1962789c181c9f3a9547da6031aabb"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "effects": "d2ba028bee10e2f225ef0aed44f21c7e4d1962789c181c9f3a9547da6031aabb"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "ROOT-approved one-literal-optional-argument policy refuses env literal bash -e. Darwin splits/executes it. Real raw capability/protocol loss retained; real -e now independently works, not a native-parity waiver.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762062617368202d650a",
+        "effects": "ec256cdcb961703855cff42d269976ae3b8e0dba0d14d1b81582a32592d63f8f"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762062617368202d650a",
+        "effects": "ec256cdcb961703855cff42d269976ae3b8e0dba0d14d1b81582a32592d63f8f"
+      }
+    },
+    {
+      "cohort": "expanded36",
+      "id": "env-injection-text",
+      "fixture": {
+        "id": "env-injection-text",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "#!/usr/bin/env bash;touch marker\nprintf should-not-run > marker\n",
+            "mode": 493
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e7620626173683b746f756368206d61726b65720a",
+        "effects": "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "656e763a20626173683b746f7563683a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "656e763a20626173683b746f7563683a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Observable127-versus126 error/status boundary under interpreter allowlist. Native treats semicolon literally; neither implementation injects a command or executes the body.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e7620626173683b746f756368206d61726b65720a",
+        "effects": "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e7620626173683b746f756368206d61726b65720a",
+        "effects": "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463"
+      }
+    },
+    {
+      "cohort": "expanded36",
+      "id": "env-missing-target",
+      "fixture": {
+        "id": "env-missing-target",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "#!/usr/bin/env verifier-no-such-interpreter\nprintf forbidden > marker\n",
+            "mode": 493
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762076657269666965722d6e6f2d737563682d696e7465727072657465720a",
+        "effects": "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "656e763a2076657269666965722d6e6f2d737563682d696e7465727072657465723a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "656e763a2076657269666965722d6e6f2d737563682d696e7465727072657465723a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Observable127-versus126 missing-target/unsupported-interpreter policy distinction. Not an environment leak or successful-command regression.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762076657269666965722d6e6f2d737563682d696e7465727072657465720a",
+        "effects": "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f7573722f62696e2f656e762076657269666965722d6e6f2d737563682d696e7465727072657465720a",
+        "effects": "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3"
+      }
+    },
+    {
+      "cohort": "expanded36",
+      "id": "env-unsupported-interpreter",
+      "fixture": {
+        "id": "env-unsupported-interpreter",
+        "script": "./script",
+        "files": {
+          "script": {
+            "text": "#!/verifier-missing/interpreter\nprintf forbidden > marker\n",
+            "mode": 493
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f76657269666965722d6d697373696e672f696e7465727072657465720a",
+        "effects": "ba7d77d168000e5f82b3ba1525aeea24a3757dbcb34dc0cf0fe36fcc05ccb807"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a202e2f7363726970743a202f76657269666965722d6d697373696e672f696e7465727072657465723a2062616420696e7465727072657465723a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "ba7d77d168000e5f82b3ba1525aeea24a3757dbcb34dc0cf0fe36fcc05ccb807"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "7368656c6c3a202e2f7363726970743a202f76657269666965722d6d697373696e672f696e7465727072657465723a2062616420696e7465727072657465723a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "ba7d77d168000e5f82b3ba1525aeea24a3757dbcb34dc0cf0fe36fcc05ccb807"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Unsupported interpreter policy and diagnostic wording; status126 and no effects agree.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f76657269666965722d6d697373696e672f696e7465727072657465720a",
+        "effects": "ba7d77d168000e5f82b3ba1525aeea24a3757dbcb34dc0cf0fe36fcc05ccb807"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a202e2f7363726970743a20756e737570706f7274656420696e7465727072657465723a202f76657269666965722d6d697373696e672f696e7465727072657465720a",
+        "effects": "ba7d77d168000e5f82b3ba1525aeea24a3757dbcb34dc0cf0fe36fcc05ccb807"
+      }
+    },
+    {
+      "cohort": "expanded36",
+      "id": "parameter-substitution-order",
+      "fixture": {
+        "id": "parameter-substitution-order",
+        "script": "VALUE=aba; printf \"%s\" \"${VALUE//$(printf a; printf pattern > marker)/$(printf X; printf replacement >> marker)}\""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "586258",
+        "stderrHex": "",
+        "effects": "bc8c8ba4793d7ab1ebeb65a948e4901c1951be651358049e7bc12373f8fbcb15"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "586258",
+            "stderrHex": "",
+            "effects": "359ab894ee55be3c5b6e30117c70694e37fe5ac7508bf4bfc298f45b905b09cc"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "586258",
+            "stderrHex": "",
+            "effects": "359ab894ee55be3c5b6e30117c70694e37fe5ac7508bf4bfc298f45b905b09cc"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Filesystem creation profile only: marker0666 virtual versus0644 native. Exact expansion, sequencing, bytes and status agree.",
+      "baseline": {
+        "status": 0,
+        "stdoutHex": "586258",
+        "stderrHex": "",
+        "effects": "bc8c8ba4793d7ab1ebeb65a948e4901c1951be651358049e7bc12373f8fbcb15"
+      },
+      "afterSubstring": {
+        "status": 0,
+        "stdoutHex": "586258",
+        "stderrHex": "",
+        "effects": "bc8c8ba4793d7ab1ebeb65a948e4901c1951be651358049e7bc12373f8fbcb15"
+      }
+    },
+    {
+      "cohort": "expanded36",
+      "id": "parameter-existing-controls",
+      "fixture": {
+        "id": "parameter-existing-controls",
+        "script": "VALUE=abcabc; printf \"%s:%s:%s:%s\" \"${#VALUE}\" \"${VALUE:1:3}\" \"${MISSING:-default}\" \"${VALUE:+set}\""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "363a6263613a64656661756c743a736574",
+        "stderrHex": "",
+        "effects": "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5"
+      },
+      "profiles": [
+        {
+          "role": "primary",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "363a6263613a64656661756c743a736574",
+            "stderrHex": "",
+            "effects": "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5"
+          },
+          "passed": true,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "363a6263613a64656661756c743a736574",
+            "stderrHex": "",
+            "effects": "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5"
+          },
+          "passed": true,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Resolved exact frozen scalar-substring control; no scalar-family or byte-locale parity claim.",
+      "baseline": {
+        "status": 2,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a20556e7465726d696e61746564206f7220756e737570706f7274656420706172616d6574657220657870616e73696f6e206174206f66667365742035350a",
+        "effects": "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5"
+      },
+      "afterSubstring": {
+        "status": 0,
+        "stdoutHex": "363a6263613a64656661756c743a736574",
+        "stderrHex": "",
+        "effects": "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5"
+      }
+    },
+    {
+      "cohort": "invocation57",
+      "id": "stdin-eof-syntax-prior-effects",
+      "fixture": {
+        "id": "stdin-eof-syntax-prior-effects",
+        "source": "bash -s",
+        "stdin": "printf 'before\\n'\nprintf 'file-effect\\n' >effect\nif true; then\n",
+        "diagnostic": [
+          "syntax",
+          "end of file"
+        ]
+      },
+      "actual": {
+        "status": 2,
+        "stdoutHex": "6265666f72650a",
+        "stderrHex": "626173683a206c696e6520343a2073796e746178206572726f723a20756e657870656374656420656e64206f662066696c652066726f6d206069662720636f6d6d616e64206f6e206c696e6520330a",
+        "effects": "9846136f054c8308d60182b3acfc499f6a67eb2ec7536147d02d93fbc5195bf3"
+      },
+      "profiles": [
+        {
+          "role": "gnu-5.3",
+          "tuple": {
+            "status": 2,
+            "stdoutHex": "6265666f72650a",
+            "stderrHex": "626173683a206c696e6520343a2073796e746178206572726f723a20756e657870656374656420656e64206f662066696c652066726f6d206069662720636f6d6d616e64206f6e206c696e6520330a",
+            "effects": "9846136f054c8308d60182b3acfc499f6a67eb2ec7536147d02d93fbc5195bf3"
+          },
+          "passed": true,
+          "baselinePassed": true
+        },
+        {
+          "role": "historical-3.2",
+          "tuple": {
+            "status": 2,
+            "stdoutHex": "6265666f72650a",
+            "stderrHex": "626173683a206c696e6520343a2073796e746178206572726f723a20756e657870656374656420656e64206f662066696c650a",
+            "effects": "9846136f054c8308d60182b3acfc499f6a67eb2ec7536147d02d93fbc5195bf3"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Historical-only syntax diagnostic dialect; primary exact. Earlier stdout and file effect preserved in all three.",
+      "baseline": {
+        "status": 2,
+        "stdoutHex": "6265666f72650a",
+        "stderrHex": "626173683a206c696e6520343a2073796e746178206572726f723a20756e657870656374656420656e64206f662066696c652066726f6d206069662720636f6d6d616e64206f6e206c696e6520330a",
+        "effects": "9846136f054c8308d60182b3acfc499f6a67eb2ec7536147d02d93fbc5195bf3"
+      },
+      "afterSubstring": {
+        "status": 2,
+        "stdoutHex": "6265666f72650a",
+        "stderrHex": "626173683a206c696e6520343a2073796e746178206572726f723a20756e657870656374656420656e64206f662066696c652066726f6d206069662720636f6d6d616e64206f6e206c696e6520330a",
+        "effects": "9846136f054c8308d60182b3acfc499f6a67eb2ec7536147d02d93fbc5195bf3"
+      }
+    },
+    {
+      "cohort": "invocation57",
+      "id": "child-environment-isolation",
+      "fixture": {
+        "id": "child-environment-isolation",
+        "source": "private=hidden; export shared=outer; privateFn() { printf 'leak\\n'; }; bash -c 'printf \"<%s>|%s\\n\" \"$private\" \"$shared\"; shared=child; private=child; privateFn' ; printf 'parent:%s:%s\\n' \"$private\" \"$shared\"",
+        "diagnostic": [
+          "privateFn",
+          "not found"
+        ]
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "3c3e7c6f757465720a706172656e743a68696464656e3a6f757465720a",
+        "stderrHex": "626173683a206c696e6520313a2070726976617465466e3a20636f6d6d616e64206e6f7420666f756e640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "profiles": [
+        {
+          "role": "gnu-5.3",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "3c3e7c6f757465720a706172656e743a68696464656e3a6f757465720a",
+            "stderrHex": "626173683a206c696e6520313a2070726976617465466e3a20636f6d6d616e64206e6f7420666f756e640a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": true,
+          "baselinePassed": true
+        },
+        {
+          "role": "historical-3.2",
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "3c3e7c6f757465720a706172656e743a68696464656e3a6f757465720a",
+            "stderrHex": "626173683a2070726976617465466e3a20636f6d6d616e64206e6f7420666f756e640a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Historical-only command-not-found line prefix; primary exact. Parent locals/exports and child function isolation agree.",
+      "baseline": {
+        "status": 0,
+        "stdoutHex": "3c3e7c6f757465720a706172656e743a68696464656e3a6f757465720a",
+        "stderrHex": "626173683a206c696e6520313a2070726976617465466e3a20636f6d6d616e64206e6f7420666f756e640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "afterSubstring": {
+        "status": 0,
+        "stdoutHex": "3c3e7c6f757465720a706172656e743a68696464656e3a6f757465720a",
+        "stderrHex": "626173683a206c696e6520313a2070726976617465466e3a20636f6d6d616e64206e6f7420666f756e640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "cohort": "invocation57",
+      "id": "path-only-denied-126",
+      "fixture": {
+        "id": "path-only-denied-126",
+        "source": "PATH=first; invtool",
+        "fixtures": [
+          {
+            "path": "first/invtool",
+            "mode": 420,
+            "body": "#!{{bash}}\nprintf 'denied:%s\\n' \"$@\"\n"
+          }
+        ],
+        "diagnostic": [
+          "invtool",
+          "ermission denied"
+        ]
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2066697273742f696e76746f6f6c3a205065726d697373696f6e2064656e6965640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "profiles": [
+        {
+          "role": "gnu-5.3",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "6f757465723a206c696e6520323a2066697273742f696e76746f6f6c3a205065726d697373696f6e2064656e6965640a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical-3.2",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "6f757465723a206c696e6520313a2066697273742f696e76746f6f6c3a205065726d697373696f6e2064656e6965640a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Original harness source-name/line offset plus historical dialect: native outer+one-line role prelude versus virtual shell+original source. Status/effects agree.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2066697273742f696e76746f6f6c3a205065726d697373696f6e2064656e6965640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a2066697273742f696e76746f6f6c3a205065726d697373696f6e2064656e6965640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "cohort": "invocation57",
+      "id": "path-missing-127",
+      "fixture": {
+        "id": "path-missing-127",
+        "source": "PATH=missing; invocation_unique_missing_826",
+        "diagnostic": [
+          "invocation_unique_missing_826",
+          "not found"
+        ]
+      },
+      "actual": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20696e766f636174696f6e5f756e697175655f6d697373696e675f3832363a20636f6d6d616e64206e6f7420666f756e640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "profiles": [
+        {
+          "role": "gnu-5.3",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "6f757465723a206c696e6520323a20696e766f636174696f6e5f756e697175655f6d697373696e675f3832363a20636f6d6d616e64206e6f7420666f756e640a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical-3.2",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "6f757465723a206c696e6520313a20696e766f636174696f6e5f756e697175655f6d697373696e675f3832363a20636f6d6d616e64206e6f7420666f756e640a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Original harness source-name/line offset plus historical dialect; correct127 and no effects, not a missing-command dispatch defect.",
+      "baseline": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20696e766f636174696f6e5f756e697175655f6d697373696e675f3832363a20636f6d6d616e64206e6f7420666f756e640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "afterSubstring": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20696e766f636174696f6e5f756e697175655f6d697373696e675f3832363a20636f6d6d616e64206e6f7420666f756e640a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "cohort": "invocation57",
+      "id": "path-unsupported-shebang-policy",
+      "fixture": {
+        "id": "path-unsupported-shebang-policy",
+        "source": "PATH=tools; invtool",
+        "fixtures": [
+          {
+            "path": "tools/invtool",
+            "body": "#!/definitely/unavailable/interpreter\nprintf 'never\\n'\n",
+            "mode": 493
+          }
+        ],
+        "scope": "policy",
+        "policyStatus": 126
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a20756e737570706f7274656420696e7465727072657465723a202f646566696e6974656c792f756e617661696c61626c652f696e7465727072657465720a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "profiles": [
+        {
+          "role": "gnu-5.3",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "6f757465723a20746f6f6c732f696e76746f6f6c3a202f646566696e6974656c792f756e617661696c61626c652f696e7465727072657465723a2062616420696e7465727072657465723a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical-3.2",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "6f757465723a20746f6f6c732f696e76746f6f6c3a202f646566696e6974656c792f756e617661696c61626c652f696e7465727072657465723a2062616420696e7465727072657465723a204e6f20737563682066696c65206f72206469726563746f72790a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Explicit interpreter allowlist and diagnostic/source-name difference;126 and no effects agree. No authorization to execute ambient host interpreters.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a20756e737570706f7274656420696e7465727072657465723a202f646566696e6974656c792f756e617661696c61626c652f696e7465727072657465720a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a20756e737570706f7274656420696e7465727072657465723a202f646566696e6974656c792f756e617661696c61626c652f696e7465727072657465720a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "cohort": "invocation57",
+      "id": "path-binary-policy",
+      "fixture": {
+        "id": "path-binary-policy",
+        "source": "PATH=tools; invtool",
+        "fixtures": [
+          {
+            "path": "tools/invtool",
+            "hex": "7f454c460002ff",
+            "mode": 493
+          }
+        ],
+        "scope": "policy",
+        "policyStatus": 126
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a2063616e6e6f7420657865637574652062696e617279207363726970740a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "profiles": [
+        {
+          "role": "gnu-5.3",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "6f757465723a206c696e6520323a20746f6f6c732f696e76746f6f6c3a2063616e6e6f7420657865637574652062696e6172792066696c653a204578656320666f726d6174206572726f720a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical-3.2",
+          "tuple": {
+            "status": 126,
+            "stdoutHex": "",
+            "stderrHex": "6f757465723a206c696e6520313a20746f6f6c732f696e76746f6f6c3a2063616e6e6f7420657865637574652062696e6172792066696c650a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Deliberate no-native-binary execution;126/no effects agree. Remaining raw difference is diagnostic wording/source/profile.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a2063616e6e6f7420657865637574652062696e617279207363726970740a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a2063616e6e6f7420657865637574652062696e617279207363726970740a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    },
+    {
+      "cohort": "invocation57",
+      "id": "path-invalid-utf8-policy",
+      "fixture": {
+        "id": "path-invalid-utf8-policy",
+        "source": "PATH=tools; invtool",
+        "fixtures": [
+          {
+            "path": "tools/invtool",
+            "body": "#!{{bash}}\n",
+            "hex": "fffe",
+            "mode": 493
+          }
+        ],
+        "scope": "policy",
+        "policyStatus": 126
+      },
+      "actual": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a2063616e6e6f7420657865637574652062696e617279206f72206e6f6e2d5554462d38207363726970740a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "profiles": [
+        {
+          "role": "gnu-5.3",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "746f6f6c732f696e76746f6f6c3a206c696e6520323a2024275c3337375c333736273a20636f6d6d616e64206e6f7420666f756e640a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        },
+        {
+          "role": "historical-3.2",
+          "tuple": {
+            "status": 127,
+            "stdoutHex": "",
+            "stderrHex": "746f6f6c732f696e76746f6f6c3a206c696e6520323a20fffe3a20636f6d6d616e64206e6f7420666f756e640a",
+            "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "passed": false,
+          "baselinePassed": false
+        }
+      ],
+      "classification": "Explicit UTF-8 source policy: reject126 before parsing versus native byte-source command lookup127. Real raw status/diagnostic loss, not a required host-binary capability.",
+      "baseline": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a2063616e6e6f7420657865637574652062696e617279206f72206e6f6e2d5554462d38207363726970740a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      "afterSubstring": {
+        "status": 126,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20746f6f6c732f696e76746f6f6c3a2063616e6e6f7420657865637574652062696e617279206f72206e6f6e2d5554462d38207363726970740a",
+        "effects": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    }
+  ],
+  "effects": {
+    "e06363ff43a809dd53d7dd152529406d23cad089be0a6f7a8e08f64127a1ce73": {
+      "bin/": null,
+      "script": {
+        "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+        "mode": 420
+      },
+      "work/": null
+    },
+    "05793e6b6bdd96fb5ca413d4587f6d708dc790a4ff6a8189cf3c7f76120dd569": {
+      "bin/": null,
+      "script": {
+        "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+        "mode": 73
+      },
+      "work/": null
+    },
+    "ec256cdcb961703855cff42d269976ae3b8e0dba0d14d1b81582a32592d63f8f": {
+      "bin/": null,
+      "script": {
+        "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+        "mode": 493
+      },
+      "work/": null
+    },
+    "d2ba028bee10e2f225ef0aed44f21c7e4d1962789c181c9f3a9547da6031aabb": {
+      "bin/": null,
+      "marker": {
+        "bytes": "c2hvdWxkLW5vdC1ydW4=",
+        "mode": 420
+      },
+      "script": {
+        "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+        "mode": 493
+      },
+      "work/": null
+    },
+    "39d4c2a8dd09a20422900b0286130a65d27dd11c5628ff202890f41471641463": {
+      "bin/": null,
+      "script": {
+        "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIKcHJpbnRmIHNob3VsZC1ub3QtcnVuID4gbWFya2VyCg==",
+        "mode": 493
+      },
+      "work/": null
+    },
+    "1974b080bdbb3ef113b7f3b5dcacb11db0dacfecd5fc8d1c072c0e4db817f0a3": {
+      "bin/": null,
+      "script": {
+        "bytes": "IyEvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+        "mode": 493
+      },
+      "work/": null
+    },
+    "ba7d77d168000e5f82b3ba1525aeea24a3757dbcb34dc0cf0fe36fcc05ccb807": {
+      "bin/": null,
+      "script": {
+        "bytes": "IyEvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+        "mode": 493
+      },
+      "work/": null
+    },
+    "bc8c8ba4793d7ab1ebeb65a948e4901c1951be651358049e7bc12373f8fbcb15": {
+      "bin/": null,
+      "marker": {
+        "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+        "mode": 438
+      },
+      "work/": null
+    },
+    "359ab894ee55be3c5b6e30117c70694e37fe5ac7508bf4bfc298f45b905b09cc": {
+      "bin/": null,
+      "marker": {
+        "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+        "mode": 420
+      },
+      "work/": null
+    },
+    "a74b36cbcf4c3ddd83d12f82f32832220441edd473b9fa6ec7e44adbd5bbafe5": {
+      "bin/": null,
+      "work/": null
+    },
+    "9846136f054c8308d60182b3acfc499f6a67eb2ec7536147d02d93fbc5195bf3": {
+      "effect": "66696c652d6566666563740a"
+    },
+    "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a": {}
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "sourceCommit": "e2d1b9230f4304650651572395523ca9d1644e74",
+  "selectionCount": 38,
+  "freshSelections": 1,
+  "reusedSelections": 37,
+  "rawInitialCountsUnchanged": {
+    "pass": 30,
+    "unsupported-not-pass": 3,
+    "fail": 2,
+    "characterized-not-pass": 3
+  },
+  "semanticView": {
+    "semanticPass": 31,
+    "acceptedProfileDifferenceNotParity": 1,
+    "unsupportedNotPass": 3,
+    "characterizedNotPass": 3
+  },
+  "semanticPassOrigins": {
+    "reusedInitialPasses": 30,
+    "freshCorrectedN18": 1
+  },
+  "correctionProductInvocations": 1,
+  "cumulativeInitialPlusCorrectionProductInvocations": 36,
+  "otherCasesRerun": 0,
+  "newNativeOracleCalls": 0,
+  "full38Rerun": false,
+  "mapping": [
+    {
+      "id": "N01",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N01/stdout.txt"
+    },
+    {
+      "id": "N02",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N02/stdout.txt"
+    },
+    {
+      "id": "N03",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N03/stdout.txt"
+    },
+    {
+      "id": "N04",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N04/stdout.txt"
+    },
+    {
+      "id": "N05",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N05/stdout.txt"
+    },
+    {
+      "id": "N06",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N06/stdout.txt"
+    },
+    {
+      "id": "N07",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N07/stdout.txt"
+    },
+    {
+      "id": "N08",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N08/stdout.txt"
+    },
+    {
+      "id": "N09",
+      "originalRawStatus": "unsupported-not-pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "unsupported-not-pass",
+      "originalEvidence": "../../evidence/initial/raw/N09/stdout.txt"
+    },
+    {
+      "id": "N10",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N10/stdout.txt"
+    },
+    {
+      "id": "N11",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N11/stdout.txt"
+    },
+    {
+      "id": "N12",
+      "originalRawStatus": "unsupported-not-pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "unsupported-not-pass",
+      "originalEvidence": "../../evidence/initial/raw/N12/stdout.txt"
+    },
+    {
+      "id": "N13",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N13/stdout.txt"
+    },
+    {
+      "id": "N14",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N14/stdout.txt"
+    },
+    {
+      "id": "N15",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N15/stdout.txt"
+    },
+    {
+      "id": "N16",
+      "originalRawStatus": "fail",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "accepted-profile-difference-not-native-parity",
+      "originalEvidence": "../../evidence/initial/raw/N16/stdout.txt"
+    },
+    {
+      "id": "N17",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N17/stdout.txt"
+    },
+    {
+      "id": "N18",
+      "originalRawStatus": "fail",
+      "selectedEvidence": "fresh-corrected-N18",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N18/stdout.txt",
+      "freshEvidence": "raw/N18/stdout.txt"
+    },
+    {
+      "id": "N19",
+      "originalRawStatus": "unsupported-not-pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "unsupported-not-pass",
+      "originalEvidence": "../../evidence/initial/raw/N19/stdout.txt"
+    },
+    {
+      "id": "N20",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/N20/stdout.txt"
+    },
+    {
+      "id": "A21",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A21/stdout.txt"
+    },
+    {
+      "id": "A22",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A22/stdout.txt"
+    },
+    {
+      "id": "A23",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A23/stdout.txt"
+    },
+    {
+      "id": "A24",
+      "originalRawStatus": "characterized-not-pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "characterized-not-pass",
+      "originalEvidence": "../../evidence/initial/raw/A24/stdout.txt"
+    },
+    {
+      "id": "A25",
+      "originalRawStatus": "characterized-not-pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "characterized-not-pass",
+      "originalEvidence": "../../evidence/initial/raw/A25/stdout.txt"
+    },
+    {
+      "id": "A26",
+      "originalRawStatus": "characterized-not-pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "characterized-not-pass",
+      "originalEvidence": "../../evidence/initial/raw/A26/stdout.txt"
+    },
+    {
+      "id": "A27",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A27/stdout.txt"
+    },
+    {
+      "id": "A28",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A28/stdout.txt"
+    },
+    {
+      "id": "A29",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A29/stdout.txt"
+    },
+    {
+      "id": "A30",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A30/stdout.txt"
+    },
+    {
+      "id": "A31",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A31/stdout.txt"
+    },
+    {
+      "id": "A32",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A32/stdout.txt"
+    },
+    {
+      "id": "A33",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A33/stdout.txt"
+    },
+    {
+      "id": "A34",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A34/stdout.txt"
+    },
+    {
+      "id": "A35",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A35/stdout.txt"
+    },
+    {
+      "id": "A36",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A36/stdout.txt"
+    },
+    {
+      "id": "A37",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A37/stdout.txt"
+    },
+    {
+      "id": "A38",
+      "originalRawStatus": "pass",
+      "selectedEvidence": "reused-initial-selection",
+      "adjudicatedStatus": "semantic-pass",
+      "originalEvidence": "../../evidence/initial/raw/A38/stdout.txt"
+    }
+  ]
+}

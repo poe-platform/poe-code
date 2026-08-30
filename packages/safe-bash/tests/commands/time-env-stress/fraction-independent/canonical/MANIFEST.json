@@ -1,0 +1,62 @@
+{
+  "sealedAt": "2026-08-27T09:22:46.209Z",
+  "scope": "Test-only evidence; excludes this self-referential manifest.",
+  "files": {
+    "BEFORE.json": {
+      "bytes": 3808,
+      "sha256": "67590f519c5ef922d4fc3af78d1135e6b0771b6f5afcc3f2480d85e07a2fed77"
+    },
+    "FREEZE.json": {
+      "bytes": 29482,
+      "sha256": "6d7a95540360853ec92a7d0a029337e511a6ef199dd00e8825c0d060def00973"
+    },
+    "README.md": {
+      "bytes": 8108,
+      "sha256": "f9c43be114238f2ca13ce8e76d8042bf792cc30afe558e4c69d51c429f1d8a93"
+    },
+    "RESULTS.json": {
+      "bytes": 20222,
+      "sha256": "e8776c360fbb868d91b2445d250ac9b122a7073453f97ccb28da1dda8b3449be"
+    },
+    "canonical223.json": {
+      "bytes": 7226,
+      "sha256": "37b8fde7b2fec3eb97f1a86d44bdc459f26aa0a946125ab0b25c2f67fedd27ea"
+    },
+    "canonical223.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "canonical223.stdout": {
+      "bytes": 38028,
+      "sha256": "bbe1765edea7182897cb19e0eec22d8b00a95134fe86f8958f8885a25a7971b8"
+    },
+    "date.after.ts.txt": {
+      "bytes": 6824,
+      "sha256": "91065b8d1b9e7cf08e34fb40d44e4307286040ba11ce14ae13c1ec8c015c8b67"
+    },
+    "date.before.ts.txt": {
+      "bytes": 5760,
+      "sha256": "9fab5e8bdcf0044fea983fa78159bf9ab7163167be12b263a95c8e969bfcafbd"
+    },
+    "date.patch": {
+      "bytes": 2370,
+      "sha256": "bd1f5a6270e7c96e6c2a9f8cad0c254bb8619957117920634f0ee486d2518e07"
+    },
+    "replay.mjs": {
+      "bytes": 13798,
+      "sha256": "e62d772b34da66b0a119cce0c54f2359b55e1f8ea2cb953a9a80de66451ce052"
+    },
+    "scoped-types.json": {
+      "bytes": 1018,
+      "sha256": "6718913aead5b8b77e9b60ce36adf1518333f7e0289e94b528b2a91084113a07"
+    },
+    "scoped-types.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scoped-types.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

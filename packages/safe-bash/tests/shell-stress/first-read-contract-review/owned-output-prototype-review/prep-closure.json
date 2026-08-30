@@ -1,0 +1,39 @@
+{
+  "observedAt": "2026-08-27T09:48:02.858Z",
+  "outcome": "PREPARATION_ONLY_READY_UNAVAILABLE",
+  "productCasesExecuted": 0,
+  "authorReproductionsExecuted": 0,
+  "nativeReplaysExecuted": 0,
+  "candidateRestored": false,
+  "compilerAuthenticated": false,
+  "originalAdaptationPatchBound": false,
+  "ready": {
+    "path": "/tmp/safe-bash-owned-output-prototype.ready",
+    "present": false
+  },
+  "ownCommits": [
+    {
+      "commit": "f412eece4cd2101a173fe955dd3fce8ddc7aa2dc",
+      "paths": [
+        "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/INTENT.md",
+        "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/freeze.mjs",
+        "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/holdouts.json",
+        "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/intentions-freeze.json"
+      ]
+    }
+  ],
+  "protectedIndexPathChangesObserved": [],
+  "protectedIndexNote": "Concurrent owner changes are observations, not verifier edits. Only own exact-path commit is attributed here; never reset or restore others.",
+  "checkoutHeadNotCandidate": "f412eece4cd2101a173fe955dd3fce8ddc7aa2dc",
+  "worktreePathStatus": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/\n?? tests/commands/filesystem-inspection-stress/harness-review/safety-v2/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/safejs-cleanup-regression/\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/BINDING.md\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/author-api-v1.1.txt.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/binding-freeze.json\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/binding.mjs\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/checks.json\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/finalize-prep.mjs\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-1.stderr.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-1.stdout.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-2.stderr.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-2.stdout.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-3.stderr.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-3.stdout.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-4.stderr.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-4.stdout.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-5.stderr.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-5.stdout.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-6.stderr.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-6.stdout.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-7.stderr.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/prep-check-7.stdout.data\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/scaffold-check.mjs\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype-review/support.mjs\n?? tests/shell-stress/first-read-contract-review/owned-output-prototype/\n",
+  "stagedNames": "",
+  "resources": {
+    "nativeFixtures": 0,
+    "loopbackServers": 0,
+    "longLivedChildren": 0,
+    "signalsSent": 0,
+    "ownedSourceCopies": 0,
+    "childChecks": "All seven synchronous check processes reaped; see checks.json."
+  },
+  "actualLeafClosed": "Not self-attested; root must observe after final return"
+}

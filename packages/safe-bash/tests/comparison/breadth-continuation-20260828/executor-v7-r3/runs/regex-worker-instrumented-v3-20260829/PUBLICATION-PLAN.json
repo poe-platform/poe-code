@@ -1,0 +1,376 @@
+{
+  "schema": "V3_PREPUBLICATION_ACCOUNTING",
+  "started": "2026-08-29T08:50:03.285Z",
+  "at": "2026-08-29T09:13:07.895Z",
+  "elapsedMilliseconds": 1384610,
+  "knownOwnedAlreadyClosed": 51,
+  "toolServiceReservation": 1,
+  "remainingPublicationPlanned": 4,
+  "plannedFinalOwned": 55,
+  "osCap": 96,
+  "peakOwnedRuntime": 3,
+  "hostRuntimeProcessesClosed": 32,
+  "individualWorkerProof": "29 receipts record zero; G06.4 unpublished; no reconstructed total",
+  "observedRuntimeStreamBytes": 14286,
+  "retainedRuntimeStreamBytes": 14286,
+  "workBytes": 721998,
+  "inventorySha256": "a0b9e0c96347aeed8fa33d41f8c293ed6b2eaba8d83890104bb19ac055326f54",
+  "sourceBindingsStandalone": 45,
+  "toolBindingsStandalone": 2,
+  "scopeOfV2Integrity": "No writes outside the new v3 namespace; 17 sealed V2 source files directly reauthenticated. This is not a replay/census of every historical raw artifact.",
+  "records": [
+    {
+      "role": "source-controller",
+      "closed": true
+    },
+    {
+      "role": "scoped-git-status",
+      "pid": 15000,
+      "closed": true,
+      "status": 0
+    },
+    {
+      "role": "apply-successor",
+      "pid": 30655,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "syntax:capture.mjs",
+      "pid": 31184,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:case.mjs",
+      "pid": 31185,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:common.mjs",
+      "pid": 31186,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:guarded-operation.mjs",
+      "pid": 31187,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:observer.mjs",
+      "pid": 31188,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:policy.mjs",
+      "pid": 31189,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:preload.mjs",
+      "pid": 31190,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:supervisor.mjs",
+      "pid": 31191,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:owned-writer.mjs",
+      "pid": 31192,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:mutation.mjs",
+      "pid": 31193,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "syntax:writer-controls.mjs",
+      "pid": 31195,
+      "closed": true,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "role": "preseal-writer-identity-tightening",
+      "pid": 33058,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "syntax-final-writer",
+      "pid": 35509,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "preseal-git-0",
+      "pid": 36138,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "preseal-git-1",
+      "pid": 36159,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "outer-owner",
+      "closed": true,
+      "status": 1,
+      "session": 73683
+    },
+    {
+      "role": "supervisor",
+      "pid": 36236,
+      "closed": true,
+      "status": 1
+    },
+    {
+      "role": "case:G01.1",
+      "pid": 36237,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G01.2",
+      "pid": 36238,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G01.3",
+      "pid": 36240,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G01.4",
+      "pid": 36241,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G01.5",
+      "pid": 36242,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G02.1",
+      "pid": 36243,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G02.2",
+      "pid": 36244,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G02.3",
+      "pid": 36245,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G02.4",
+      "pid": 36248,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G02.5",
+      "pid": 36252,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G02.6",
+      "pid": 36256,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G02.7",
+      "pid": 36262,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G03.1",
+      "pid": 36266,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G03.2",
+      "pid": 36267,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G03.3",
+      "pid": 36268,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G03.4",
+      "pid": 36271,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G03.5",
+      "pid": 36273,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G04.1",
+      "pid": 36279,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G04.2",
+      "pid": 36280,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G04.3",
+      "pid": 36289,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G04.4",
+      "pid": 36290,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G04.5",
+      "pid": 36292,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G05.1",
+      "pid": 36296,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G05.2",
+      "pid": 36299,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G05.3",
+      "pid": 36306,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G05.4",
+      "pid": 36311,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G06.1",
+      "pid": 36313,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G06.2",
+      "pid": 36315,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G06.3",
+      "pid": 36317,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "case:G06.4",
+      "pid": 36320,
+      "status": 1,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "role": "evidence-publication-patch",
+      "pid": 49551,
+      "status": 0,
+      "signal": null,
+      "closed": true
+    }
+  ],
+  "noActualRuntimeRetry": true,
+  "publicationCompletion": "Final Git tools report their own closed dispositions; these future operations are not yet credited."
+}

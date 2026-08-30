@@ -1,0 +1,34 @@
+{
+  "label": "canonical-two",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=96",
+    "--import",
+    "tsx",
+    "--test",
+    "--experimental-test-isolation=none",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "--test-name-pattern=^idle messageerror (retires promptly, holds capacity and close awaits cleanup|holds capacity until retirement for an open queued session)$",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/queued-close-adjudication/migration/review/.replay/canonical/tests/commands/regex-execution/followup/messageerror.test.ts"
+  ],
+  "pid": 64144,
+  "started": "2026-08-27T08:14:33.352Z",
+  "stdout": "TAP version 13\n# Subtest: idle messageerror retires promptly, holds capacity and close awaits cleanup\nok 1 - idle messageerror retires promptly, holds capacity and close awaits cleanup\n  ---\n  duration_ms: 3.232375\n  type: 'test'\n  ...\n# Subtest: idle messageerror holds capacity until retirement for an open queued session\nok 2 - idle messageerror holds capacity until retirement for an open queued session\n  ---\n  duration_ms: 1.24425\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 152.620417\n",
+  "stderr": "",
+  "events": [
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "safetyTermination": false,
+  "code": 0,
+  "signal": null,
+  "pidAbsent": true,
+  "ipcConnected": false,
+  "finished": "2026-08-27T08:14:33.542Z"
+}

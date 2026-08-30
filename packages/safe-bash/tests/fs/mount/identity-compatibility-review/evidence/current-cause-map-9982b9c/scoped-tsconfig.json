@@ -1,0 +1,9 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/revision-Pf27GO/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/revision-Pf27GO/tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

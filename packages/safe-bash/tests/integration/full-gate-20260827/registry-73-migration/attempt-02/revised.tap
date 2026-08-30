@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: memory: opt-in Shell byte pipeline and existing-file workflow
+ok 1 - memory: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 30.341958
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+ok 2 - explicit-root-real: opt-in Shell byte pipeline and existing-file workflow
+  ---
+  duration_ms: 52.972458
+  type: 'test'
+  ...
+# Subtest: actual default registry contains 73 including split without duplicate installation
+ok 3 - actual default registry contains 73 including split without duplicate installation
+  ---
+  duration_ms: 4.597625
+  type: 'test'
+  ...
+# Subtest: plugin collision preflight and replacement use actual registry
+ok 4 - plugin collision preflight and replacement use actual registry
+  ---
+  duration_ms: 0.862875
+  type: 'test'
+  ...
+# Subtest: shared shell pipe/output budget remains active beside VFS payload budget
+ok 5 - shared shell pipe/output budget remains active beside VFS payload budget
+  ---
+  duration_ms: 1.462
+  type: 'test'
+  ...
+# Subtest: explicit-root RealFS streaming large file reassembles bytes
+ok 6 - explicit-root RealFS streaming large file reassembles bytes
+  ---
+  duration_ms: 33.085208
+  type: 'test'
+  ...
+# Subtest: configured S3 mock supports streamed split and known-distinct overwrite
+ok 7 - configured S3 mock supports streamed split and known-distinct overwrite
+  ---
+  duration_ms: 12.85575
+  type: 'test'
+  ...
+# Subtest: default factory contains73 and standalone formatting installs exactly four without split
+ok 8 - default factory contains73 and standalone formatting installs exactly four without split
+  ---
+  duration_ms: 12.981583
+  type: 'test'
+  ...
+# Subtest: collision preflight does not partially register; replacement is intentional
+ok 9 - collision preflight does not partially register; replacement is intentional
+  ---
+  duration_ms: 3.010958
+  type: 'test'
+  ...
+# Subtest: limits reject invalid typed values rather than treating them as unlimited
+ok 10 - limits reject invalid typed values rather than treating them as unlimited
+  ---
+  duration_ms: 0.202209
+  type: 'test'
+  ...
+# Subtest: seq awaits sinks, does not pull ahead, and owns published chunks
+ok 11 - seq awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 0.880917
+  type: 'test'
+  ...
+# Subtest: seq cancellation propagates an errno-shaped reason through blocked sink
+ok 12 - seq cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 3.2065
+  type: 'test'
+  ...
+# Subtest: seq sink failure does not keep consuming input
+ok 13 - seq sink failure does not keep consuming input
+  ---
+  duration_ms: 0.829458
+  type: 'test'
+  ...
+# Subtest: nl awaits sinks, does not pull ahead, and owns published chunks
+ok 14 - nl awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 1.120541
+  type: 'test'
+  ...
+# Subtest: nl cancellation propagates an errno-shaped reason through blocked sink
+ok 15 - nl cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 2.098042
+  type: 'test'
+  ...
+# Subtest: nl sink failure does not keep consuming input
+ok 16 - nl sink failure does not keep consuming input
+  ---
+  duration_ms: 0.806917
+  type: 'test'
+  ...
+# Subtest: rev awaits sinks, does not pull ahead, and owns published chunks
+ok 17 - rev awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 1.125375
+  type: 'test'
+  ...
+# Subtest: rev cancellation propagates an errno-shaped reason through blocked sink
+ok 18 - rev cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 1.125791
+  type: 'test'
+  ...
+# Subtest: rev sink failure does not keep consuming input
+ok 19 - rev sink failure does not keep consuming input
+  ---
+  duration_ms: 0.79125
+  type: 'test'
+  ...
+# Subtest: unexpand awaits sinks, does not pull ahead, and owns published chunks
+ok 20 - unexpand awaits sinks, does not pull ahead, and owns published chunks
+  ---
+  duration_ms: 1.397375
+  type: 'test'
+  ...
+# Subtest: unexpand cancellation propagates an errno-shaped reason through blocked sink
+ok 21 - unexpand cancellation propagates an errno-shaped reason through blocked sink
+  ---
+  duration_ms: 1.100041
+  type: 'test'
+  ...
+# Subtest: unexpand sink failure does not keep consuming input
+ok 22 - unexpand sink failure does not keep consuming input
+  ---
+  duration_ms: 0.429291
+  type: 'test'
+  ...
+# Subtest: VFS host reads receive cancellation and late rejection is observed
+ok 23 - VFS host reads receive cancellation and late rejection is observed
+  ---
+  duration_ms: 3.722584
+  type: 'test'
+  ...
+# Subtest: real Shell pipes, files, invoke middleware, and shared output budget
+ok 24 - real Shell pipes, files, invoke middleware, and shared output budget
+  ---
+  duration_ms: 21.811375
+  type: 'test'
+  ...
+# Subtest: long records and explicit UTF-8 split chunks stay byte faithful
+ok 25 - long records and explicit UTF-8 split chunks stay byte faithful
+  ---
+  duration_ms: 420.751209
+  type: 'test'
+  ...
+# Subtest: timer cancellation stops bounded ongoing work
+ok 26 - timer cancellation stops bounded ongoing work
+  ---
+  duration_ms: 29.6165
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 915.414333

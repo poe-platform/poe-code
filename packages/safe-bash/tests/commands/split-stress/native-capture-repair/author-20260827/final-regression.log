@@ -1,0 +1,67 @@
+{"name":"regression","started":"2026-08-27T15:02:44.289Z","finished":"2026-08-27T15:02:50.073Z","command":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--import","tsx","--test","--test-reporter=tap","tests/commands/split/native-capture.test.ts"],"capture":false,"status":0,"signal":null,"error":null}
+TAP version 13
+# Subtest: native capture is off by default, including serialization and filesystem effects
+ok 1 - native capture is off by default, including serialization and filesystem effects
+  ---
+  duration_ms: 30.547125
+  type: 'test'
+  ...
+# Subtest: explicit native capture returns distinct retained paths and exact report bytes
+ok 2 - explicit native capture returns distinct retained paths and exact report bytes
+  ---
+  duration_ms: 3.031583
+  type: 'test'
+  ...
+# Subtest: native capture rejects path-valued switches and invalid report names
+ok 3 - native capture rejects path-valued switches and invalid report names
+  ---
+  duration_ms: 20.559041
+  type: 'test'
+  ...
+# Subtest: native scratch and capture reject repository temp roots, including symlink aliases
+ok 4 - native scratch and capture reject repository temp roots, including symlink aliases
+  ---
+  duration_ms: 22.03575
+  type: 'test'
+  ...
+# Subtest: native capture refuses overwrites, output symlinks, and replaced destination directories
+ok 5 - native capture refuses overwrites, output symlinks, and replaced destination directories
+  ---
+  duration_ms: 9.452042
+  type: 'test'
+  ...
+# Subtest: actual native harness success, capture off, preserves repository evidence
+ok 6 - actual native harness success, capture off, preserves repository evidence
+  ---
+  duration_ms: 1374.9795
+  type: 'test'
+  ...
+# Subtest: actual native harness success, capture on, preserves repository evidence
+ok 7 - actual native harness success, capture on, preserves repository evidence
+  ---
+  duration_ms: 1301.329625
+  type: 'test'
+  ...
+# Subtest: actual native harness injected mismatch, capture off, preserves repository evidence
+ok 8 - actual native harness injected mismatch, capture off, preserves repository evidence
+  ---
+  duration_ms: 1373.622084
+  type: 'test'
+  ...
+# Injected harness-only mismatch retained before cleanup: {"id":"zero-lines","args":["-l0"],"input":"abc","expected":{"status":1,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"observed":{"status":2,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"semanticMatch":false,"strictMatch":false,"diagnosticPolicy":{"native":"/invalid number of lines/","virtual":"/invalid number of lines/"}}
+# Subtest: actual native harness injected mismatch, capture on, preserves repository evidence
+ok 9 - actual native harness injected mismatch, capture on, preserves repository evidence
+  ---
+  duration_ms: 1491.197917
+  type: 'test'
+  ...
+# Injected harness-only mismatch retained before cleanup: {"id":"zero-lines","args":["-l0"],"input":"abc","expected":{"status":1,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"observed":{"status":2,"stdout":"","stderr":"split: invalid number of lines: '0'\\n","files":{},"entries":[]},"semanticMatch":false,"strictMatch":false,"diagnosticPolicy":{"native":"/invalid number of lines/","virtual":"/invalid number of lines/"}}
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5755.419417

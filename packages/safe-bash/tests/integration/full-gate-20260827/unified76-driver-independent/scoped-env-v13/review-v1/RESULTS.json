@@ -1,0 +1,4357 @@
+{
+  "schema": "scoped-env-independent-v13-results/1",
+  "start": {
+    "startedAt": "2026-08-28T10:15:14.500Z",
+    "source": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+    "reseal": "96daebc077381fb63ab6447a26ab707ce790ff25",
+    "evidence": "770381bc61b49b5abed96acdf0ab09f2d4b610ca",
+    "recipeSha256": "4225f050dc84d38c06a159efd6e6d66190555525f7d65b2f1b741c4a9c22bd11",
+    "reviewSha256": "2b095e2b535866e23685479254f55064f26405c8327d933a5c84719740483e96",
+    "workerSha256": "58a9948acf73d9052864b006ed77d6b4e2f1a08c0794ddbe55f27f2225e5529e",
+    "invocation": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/review.mjs",
+        "--cohort-once"
+      ]
+    },
+    "cohortLimit": 1
+  },
+  "rows": [
+    {
+      "id": "E01.1",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "record": {
+          "label": "prerequisites",
+          "installed": {
+            "PATH": "/private/tmp/unified76-os-write-4ewEge/controls/native:/private/tmp/unified76-os-write-4ewEge/controls/tool-bin",
+            "GIT_EXEC_PATH": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+            "GIT_OPTIONAL_LOCKS": "0"
+          },
+          "resolvedGit": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "gitSha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+          "failures": [],
+          "restored": true,
+          "poisoned": false,
+          "qualification": "Exclusive cooperating worker scope only; callback settlement is not detached-child closure or a kernel exec trace.",
+          "status": "returned"
+        }
+      },
+      "environment": {
+        "before": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "after": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E01.2",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '/usr/bin/git'\n- '/Applications/Xcode.app/Contents/Developer/usr/bin/git'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '/usr/bin/git'\n- '/Applications/Xcode.app/Contents/Developer/usr/bin/git'\n\n    at verifyToolPath (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:208:12)\n    at Object.run (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:239:5)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:91:55\n    at rejection (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:60:15)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:91:31\n    at check (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:67:26)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:87:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+          "code": "ERR_ASSERTION",
+          "errno": null,
+          "syscall": null,
+          "path": null,
+          "spawnargs": null,
+          "errors": null
+        },
+        "callbackCalls": 0,
+        "targetExecuted": false
+      },
+      "environment": {
+        "before": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "after": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E01.3",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "error": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '/usr/bin:/bin'\n- '/private/tmp/unified76-os-write-4ewEge/controls/native:/private/tmp/unified76-os-write-4ewEge/controls/tool-bin'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '/usr/bin:/bin'\n- '/private/tmp/unified76-os-write-4ewEge/controls/native:/private/tmp/unified76-os-write-4ewEge/controls/tool-bin'\n\n    at verifyToolPath (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:202:10)\n    at Object.run (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:239:5)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:96:88\n    at rejection (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:60:15)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:96:25\n    at check (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:67:26)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:94:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+          "code": "ERR_ASSERTION",
+          "errno": null,
+          "syscall": null,
+          "path": null,
+          "spawnargs": null,
+          "errors": null
+        },
+        "callbackCalls": 0
+      },
+      "environment": {
+        "before": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "after": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E02.1",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "sourceSha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275",
+        "sourceFacts": [
+          {
+            "line": 27,
+            "text": "let output,report,temporary,source,privateModule,sourceGuard,helperRoute,exitCode=0,totalOutput=0;"
+          },
+          {
+            "line": 72,
+            "text": "  helperRoute=createInheritedHelperRoute(report.toolRoutes,environment,join(temporary,'native'));report.inheritedHelperRoutes=helperRoute.records;"
+          },
+          {
+            "line": 74,
+            "text": "  report.prerequisites=await helperRoute.run('prerequisites',()=>privateModule.prerequisites({repository,source,temporary,environment,candidate:candidate.candidate}));"
+          },
+          {
+            "line": 75,
+            "text": "  report.privateBefore=report.prerequisites.safejs.before;"
+          },
+          {
+            "line": 92,
+            "text": "  const verify=async()=>{helperRoute.assertIdle();await verifyExternal();verifyToolPath(report.toolRoutes,environment,join(temporary,'native'));if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[],'source additions/removals/content/type/mode changed after setup');else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);verifyNativeStaging(report.nativeStaged);assert.equal(sha(readFileSync(node24)),preflight.runtime.identity.sha256);assert.equal(sha(readFileSync(npm)),report.npmCli.sha256);assert.equal(sha(readFileSync(cleanup)),sha(JSON.stringify(profile.cleanup,null,2)+'\\n'));verifyDriverSeal();};"
+          },
+          {
+            "line": 138,
+            "text": "  requireOrdered(completed,'final-sweep');await verify();await tracked();assert.deepEqual((await packageGuard.check()).changes,[]);assert.equal((await fileIdentity(tarball)).sha256,report.packageSha256);assert.deepEqual(await helperRoute.run('private-final-sweep',()=>privateModule.privateState()),report.privateBefore);report.phases.push({label:'final-sweep',status:0,expectedStatus:0});completed.push('final-sweep');"
+          },
+          {
+            "line": 142,
+            "text": "  if(report){if(report.privateBefore&&privateModule){try{report.privateAfter=await helperRoute.run('private-finally',()=>privateModule.privateState());report.privateUnchanged=JSON.stringify(report.privateBefore)===JSON.stringify(report.privateAfter);report.privateFileChanges=report.prerequisites.safejs.files.filter(entry=>{const file=join(report.privateBefore.root,'packages/safejs',entry.path),stat=lstatSync(file);return!stat.isFile()||stat.isSymbolicLink()||(stat.mode&0o777)!==entry.mode||sha(readFileSync(file))!==entry.sha256;}).map(entry=>entry.path);if(!report.privateUnchanged||report.privateFileChanges.length)exitCode=1;}catch(error){report.privateGuardError=error.stack;exitCode=1;}}"
+          }
+        ],
+        "qualification": "Exact shipping callsite source proof only; no actual private function or execute entry invoked"
+      }
+    },
+    {
+      "id": "E02.2",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "sourceSha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275",
+        "sourceFacts": [
+          {
+            "line": 27,
+            "text": "let output,report,temporary,source,privateModule,sourceGuard,helperRoute,exitCode=0,totalOutput=0;"
+          },
+          {
+            "line": 72,
+            "text": "  helperRoute=createInheritedHelperRoute(report.toolRoutes,environment,join(temporary,'native'));report.inheritedHelperRoutes=helperRoute.records;"
+          },
+          {
+            "line": 74,
+            "text": "  report.prerequisites=await helperRoute.run('prerequisites',()=>privateModule.prerequisites({repository,source,temporary,environment,candidate:candidate.candidate}));"
+          },
+          {
+            "line": 75,
+            "text": "  report.privateBefore=report.prerequisites.safejs.before;"
+          },
+          {
+            "line": 92,
+            "text": "  const verify=async()=>{helperRoute.assertIdle();await verifyExternal();verifyToolPath(report.toolRoutes,environment,join(temporary,'native'));if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[],'source additions/removals/content/type/mode changed after setup');else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);verifyNativeStaging(report.nativeStaged);assert.equal(sha(readFileSync(node24)),preflight.runtime.identity.sha256);assert.equal(sha(readFileSync(npm)),report.npmCli.sha256);assert.equal(sha(readFileSync(cleanup)),sha(JSON.stringify(profile.cleanup,null,2)+'\\n'));verifyDriverSeal();};"
+          },
+          {
+            "line": 138,
+            "text": "  requireOrdered(completed,'final-sweep');await verify();await tracked();assert.deepEqual((await packageGuard.check()).changes,[]);assert.equal((await fileIdentity(tarball)).sha256,report.packageSha256);assert.deepEqual(await helperRoute.run('private-final-sweep',()=>privateModule.privateState()),report.privateBefore);report.phases.push({label:'final-sweep',status:0,expectedStatus:0});completed.push('final-sweep');"
+          },
+          {
+            "line": 142,
+            "text": "  if(report){if(report.privateBefore&&privateModule){try{report.privateAfter=await helperRoute.run('private-finally',()=>privateModule.privateState());report.privateUnchanged=JSON.stringify(report.privateBefore)===JSON.stringify(report.privateAfter);report.privateFileChanges=report.prerequisites.safejs.files.filter(entry=>{const file=join(report.privateBefore.root,'packages/safejs',entry.path),stat=lstatSync(file);return!stat.isFile()||stat.isSymbolicLink()||(stat.mode&0o777)!==entry.mode||sha(readFileSync(file))!==entry.sha256;}).map(entry=>entry.path);if(!report.privateUnchanged||report.privateFileChanges.length)exitCode=1;}catch(error){report.privateGuardError=error.stack;exitCode=1;}}"
+          }
+        ],
+        "qualification": "Exact shipping callsite source proof only; no actual private function or execute entry invoked"
+      }
+    },
+    {
+      "id": "E02.3",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "sourceSha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275",
+        "sourceFacts": [
+          {
+            "line": 27,
+            "text": "let output,report,temporary,source,privateModule,sourceGuard,helperRoute,exitCode=0,totalOutput=0;"
+          },
+          {
+            "line": 72,
+            "text": "  helperRoute=createInheritedHelperRoute(report.toolRoutes,environment,join(temporary,'native'));report.inheritedHelperRoutes=helperRoute.records;"
+          },
+          {
+            "line": 74,
+            "text": "  report.prerequisites=await helperRoute.run('prerequisites',()=>privateModule.prerequisites({repository,source,temporary,environment,candidate:candidate.candidate}));"
+          },
+          {
+            "line": 75,
+            "text": "  report.privateBefore=report.prerequisites.safejs.before;"
+          },
+          {
+            "line": 92,
+            "text": "  const verify=async()=>{helperRoute.assertIdle();await verifyExternal();verifyToolPath(report.toolRoutes,environment,join(temporary,'native'));if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[],'source additions/removals/content/type/mode changed after setup');else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);verifyNativeStaging(report.nativeStaged);assert.equal(sha(readFileSync(node24)),preflight.runtime.identity.sha256);assert.equal(sha(readFileSync(npm)),report.npmCli.sha256);assert.equal(sha(readFileSync(cleanup)),sha(JSON.stringify(profile.cleanup,null,2)+'\\n'));verifyDriverSeal();};"
+          },
+          {
+            "line": 138,
+            "text": "  requireOrdered(completed,'final-sweep');await verify();await tracked();assert.deepEqual((await packageGuard.check()).changes,[]);assert.equal((await fileIdentity(tarball)).sha256,report.packageSha256);assert.deepEqual(await helperRoute.run('private-final-sweep',()=>privateModule.privateState()),report.privateBefore);report.phases.push({label:'final-sweep',status:0,expectedStatus:0});completed.push('final-sweep');"
+          },
+          {
+            "line": 142,
+            "text": "  if(report){if(report.privateBefore&&privateModule){try{report.privateAfter=await helperRoute.run('private-finally',()=>privateModule.privateState());report.privateUnchanged=JSON.stringify(report.privateBefore)===JSON.stringify(report.privateAfter);report.privateFileChanges=report.prerequisites.safejs.files.filter(entry=>{const file=join(report.privateBefore.root,'packages/safejs',entry.path),stat=lstatSync(file);return!stat.isFile()||stat.isSymbolicLink()||(stat.mode&0o777)!==entry.mode||sha(readFileSync(file))!==entry.sha256;}).map(entry=>entry.path);if(!report.privateUnchanged||report.privateFileChanges.length)exitCode=1;}catch(error){report.privateGuardError=error.stack;exitCode=1;}}"
+          }
+        ],
+        "qualification": "Exact shipping callsite source proof only; no actual private function or execute entry invoked"
+      }
+    },
+    {
+      "id": "E02.4",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "mutants": [
+          {
+            "label": "prerequisites",
+            "rejected": true
+          },
+          {
+            "label": "private-final-sweep",
+            "rejected": true
+          },
+          {
+            "label": "private-finally",
+            "rejected": true
+          }
+        ],
+        "originalSourceUntouched": true
+      }
+    },
+    {
+      "id": "E03.1",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "mode": "absent",
+        "states": [
+          {
+            "key": "PATH",
+            "present": false,
+            "value": null
+          },
+          {
+            "key": "GIT_EXEC_PATH",
+            "present": false,
+            "value": null
+          },
+          {
+            "key": "GIT_OPTIONAL_LOCKS",
+            "present": false,
+            "value": null
+          }
+        ]
+      },
+      "environment": {
+        "before": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E03.2",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "mode": "empty",
+        "states": [
+          {
+            "key": "PATH",
+            "present": true,
+            "value": ""
+          },
+          {
+            "key": "GIT_EXEC_PATH",
+            "present": true,
+            "value": ""
+          },
+          {
+            "key": "GIT_OPTIONAL_LOCKS",
+            "present": true,
+            "value": ""
+          }
+        ]
+      },
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E03.3",
+      "status": "UNEXECUTED",
+      "kind": "EXERCISED_PREREQUISITE_ONLY",
+      "detail": {
+        "unexecuted": true,
+        "reason": "Nonempty GIT_* is rejected before installation. No safe shipping seam permits the frozen all-three-nonempty restoration case; refusal is not a restoration pass.",
+        "error": {
+          "name": "Error",
+          "message": "declared tool route refused: ambient loader/Git injection refused: GIT_EXEC_PATH",
+          "stack": "Error: declared tool route refused: ambient loader/Git injection refused: GIT_EXEC_PATH\n    at fail (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:13:37)\n    at Object.run (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:236:101)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:121:51\n    at rejection (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:60:15)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:121:27\n    at check (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:67:26)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:116:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+          "code": null,
+          "errno": null,
+          "syscall": null,
+          "path": null,
+          "spawnargs": null,
+          "errors": null
+        }
+      },
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E03.4",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "mode": "mixed",
+        "states": [
+          {
+            "key": "PATH",
+            "present": true,
+            "value": "/owned/original-nonempty"
+          },
+          {
+            "key": "GIT_EXEC_PATH",
+            "present": false,
+            "value": null
+          },
+          {
+            "key": "GIT_OPTIONAL_LOCKS",
+            "present": true,
+            "value": ""
+          }
+        ]
+      },
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E04.1",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E04.2",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "unchangedShippingMembers": 35,
+        "inheritedNotFreshGuardExecution": true
+      }
+    },
+    {
+      "id": "E05.1",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E05.2",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E05.3",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E06.1",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E06.2",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E07.1",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E07.2",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E07.3",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "failures": [
+          {
+            "stage": "callback",
+            "name": "Error",
+            "message": "independent callback sentinel"
+          },
+          {
+            "stage": "drift",
+            "name": "AssertionError",
+            "message": "inherited helper environment drift\n+ actual - expected\n\n+ [\n+   'PATH'\n+ ]\n- []\n"
+          },
+          {
+            "stage": "restore:GIT_EXEC_PATH",
+            "name": "Error",
+            "message": "independent restore sentinel"
+          },
+          {
+            "stage": "restore-verification",
+            "name": "AssertionError",
+            "message": "inherited helper environment not restored\n+ actual - expected\n\n+ [\n+   'GIT_EXEC_PATH'\n+ ]\n- []\n"
+          }
+        ],
+        "originalValuesRetained": true,
+        "attemptedRestores": [
+          "set:PATH",
+          "delete:GIT_EXEC_PATH",
+          "delete:GIT_OPTIONAL_LOCKS"
+        ],
+        "poisonedReuseRefused": true
+      },
+      "environment": {
+        "before": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/compound-errors/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "94edef46-6456-4434-bc21-b86a6677f437",
+          "HOME": "/private/tmp/unified76-os-write-yeBxha/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-yeBxha/tmp",
+          "TMP": "/private/tmp/unified76-os-write-yeBxha/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-yeBxha/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "after": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/compound-errors/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "94edef46-6456-4434-bc21-b86a6677f437",
+          "HOME": "/private/tmp/unified76-os-write-yeBxha/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-yeBxha/tmp",
+          "TMP": "/private/tmp/unified76-os-write-yeBxha/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-yeBxha/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E08.1",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "failures": [
+          {
+            "stage": "restore:GIT_EXEC_PATH",
+            "name": "Error",
+            "message": "independent restore sentinel"
+          },
+          {
+            "stage": "restore-verification",
+            "name": "AssertionError",
+            "message": "inherited helper environment not restored\n+ actual - expected\n\n+ [\n+   'GIT_EXEC_PATH'\n+ ]\n- []\n"
+          }
+        ],
+        "originalValuesRetained": true,
+        "attemptedRestores": [
+          "set:PATH",
+          "delete:GIT_EXEC_PATH",
+          "delete:GIT_OPTIONAL_LOCKS"
+        ],
+        "poisonedReuseRefused": true
+      },
+      "environment": {
+        "before": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/poison-restoration/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "b45e3110-3e63-469b-a5b6-0604488479e8",
+          "HOME": "/private/tmp/unified76-os-write-dwePej/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-dwePej/tmp",
+          "TMP": "/private/tmp/unified76-os-write-dwePej/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-dwePej/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "after": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/poison-restoration/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "b45e3110-3e63-469b-a5b6-0604488479e8",
+          "HOME": "/private/tmp/unified76-os-write-dwePej/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-dwePej/tmp",
+          "TMP": "/private/tmp/unified76-os-write-dwePej/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-dwePej/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E08.2",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "stages": [
+          "installation",
+          "drift"
+        ],
+        "callbackCalls": 0
+      },
+      "environment": {
+        "before": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/partial-installation/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "d71bad08-fc00-49d0-b917-5a367e2b2151",
+          "HOME": "/private/tmp/unified76-os-write-AYFcgK/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-AYFcgK/tmp",
+          "TMP": "/private/tmp/unified76-os-write-AYFcgK/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-AYFcgK/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "after": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/partial-installation/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "d71bad08-fc00-49d0-b917-5a367e2b2151",
+          "HOME": "/private/tmp/unified76-os-write-AYFcgK/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-AYFcgK/tmp",
+          "TMP": "/private/tmp/unified76-os-write-AYFcgK/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-AYFcgK/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E09.1",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": null,
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E09.2",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "deadlineObservation": "HOLD_UNSETTLED_OWNER",
+        "adapterDeadlineClaim": false,
+        "teardown": "controller explicitly settled its own deferred callback, then awaited restoration; no process signals",
+        "detachedWorkClaim": false
+      },
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E09.3",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "eligibleFinallyRetained": true,
+        "uncleanPhaseOrRemoteTimeoutNotProvenClosed": true,
+        "noActualPrivateGuard": true
+      }
+    },
+    {
+      "id": "E10.1",
+      "status": "FAIL",
+      "kind": "EXERCISED",
+      "error": {
+        "name": "AssertionError",
+        "message": "Values have same structure but are not reference-equal:\n\n[\n  '--no-replace-objects',\n  'show',\n  '2519464204c4d2adce29d4a74cbade3599f56141:tests/commands/metadata-stress/canonical-env/runner.mjs'\n]\n",
+        "stack": "node:assert:152\n  throw new AssertionError(obj);\n  ^\n\nAssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n[\n  '--no-replace-objects',\n  'show',\n  '2519464204c4d2adce29d4a74cbade3599f56141:tests/commands/metadata-stress/canonical-env/runner.mjs'\n]\n\n    at boundedExec (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:240:103)\n    at evalmachine.<anonymous>:3:22\n    at Array.map (<anonymous>)\n    at evalmachine.<anonymous>:2:39\n    at Script.runInContext (node:vm:149:12)\n    at Script.runInNewContext (node:vm:154:17)\n    at Object.runInNewContext (node:vm:310:38)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:257:46\n    at Object.run (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:263:27)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:257:16",
+        "code": "ERR_ASSERTION",
+        "errno": null,
+        "syscall": null,
+        "path": null,
+        "spawnargs": null,
+        "errors": null
+      },
+      "environment": {
+        "before": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/authority/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "90e5aa45-8506-4f2e-a919-88cc83646f8b",
+          "HOME": "/private/tmp/unified76-os-write-JLwAsG/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-JLwAsG/tmp",
+          "TMP": "/private/tmp/unified76-os-write-JLwAsG/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-JLwAsG/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "after": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/authority/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "90e5aa45-8506-4f2e-a919-88cc83646f8b",
+          "HOME": "/private/tmp/unified76-os-write-JLwAsG/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-JLwAsG/tmp",
+          "TMP": "/private/tmp/unified76-os-write-JLwAsG/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-JLwAsG/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E10.2",
+      "status": "PASS",
+      "kind": "EXERCISED",
+      "detail": {
+        "error": {
+          "name": "AssertionError",
+          "message": "tool bytes changed before execution\n+ actual - expected\n\n+ '10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: tool bytes changed before execution\n+ actual - expected\n\n+ '10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n\n    at verifyToolFile (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:66:10)\n    at verifyToolPath (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:208:55)\n    at Object.run (file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs:239:5)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:183:67\n    at rejection (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:60:15)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:183:25\n    at check (file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:67:26)\n    at file:///private/tmp/unified76-env-independent-pqwX9D/worker.mjs:181:9",
+          "code": "ERR_ASSERTION",
+          "errno": null,
+          "syscall": null,
+          "path": null,
+          "spawnargs": null,
+          "errors": null
+        },
+        "unauthorizedDispatches": 0
+      },
+      "environment": {
+        "before": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "after": {
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC",
+          "UNIFIED76_OS_FENCE": "/private/tmp/unified76-env-independent-pqwX9D/core/OS-FENCE.json",
+          "UNIFIED76_OBSERVER_TOKEN": "5ea867d8-e507-48e9-a136-53fabf1e8347",
+          "HOME": "/private/tmp/unified76-os-write-4ewEge/home",
+          "TMPDIR": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "TEMP": "/private/tmp/unified76-os-write-4ewEge/tmp",
+          "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
+          "PATH": "/dev/null"
+        },
+        "unchanged": true
+      }
+    },
+    {
+      "id": "E10.3",
+      "status": "FAIL",
+      "kind": "STATIC_ONLY",
+      "error": {
+        "message": "Expected values to be strictly equal:\n\n0 !== 2\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 2\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/review.mjs:135:12\n    at staticCheck (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/review.mjs:44:105)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/review.mjs:131:3\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+      }
+    },
+    {
+      "id": "E11.1",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "allowedModules": [
+          "tool-routing.mjs",
+          "fenced-supervisor.mjs",
+          "os-instruction-fence.mjs",
+          "supervise.mjs",
+          "process-observer.mjs",
+          "common.mjs",
+          "transport.mjs",
+          "projection.mjs",
+          "policy.mjs",
+          "external-admission.mjs",
+          "external.mjs"
+        ],
+        "noPrivateProductEntryCopied": true,
+        "helperAuthorityExcerptOnly": "41e8bbf0e913189bf8b273a93499ac597515928b264cc52ac5c86b151a3d5cd7"
+      }
+    },
+    {
+      "id": "E11.2",
+      "status": "PASS",
+      "kind": "EXERCISED_LIFECYCLE",
+      "detail": {
+        "workers": 5,
+        "clean": true,
+        "forcedSignals": [],
+        "backgroundClosureNotInferred": true,
+        "foreignIsolation": "Unchanged shipping ownership protocol; no new foreign-sentinel experiment"
+      }
+    },
+    {
+      "id": "E12.1",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "inheritedOnly": [
+          {
+            "name": "CANDIDATE.json",
+            "bytes": 4663,
+            "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "PROFILE.json.gz.base64",
+            "bytes": 1409701,
+            "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "PROFILE-RECEIPT.json",
+            "bytes": 976,
+            "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "CLEANUP.json",
+            "bytes": 27233,
+            "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "EXTERNAL.json.gz.base64",
+            "bytes": 476241,
+            "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "EXTERNAL-RECEIPT.json",
+            "bytes": 592,
+            "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "common.mjs",
+            "bytes": 6427,
+            "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "profile.mjs",
+            "bytes": 8384,
+            "sha256": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "admission.mjs",
+            "bytes": 4523,
+            "sha256": "b4e38b581d8be10604c8ea823b74551912e43bfc9806fbdb138b304d40bc7f90",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "inventory.mjs",
+            "bytes": 5911,
+            "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "run.mjs",
+            "bytes": 2811,
+            "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "worker.mjs",
+            "bytes": 537,
+            "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "supervise.mjs",
+            "bytes": 6047,
+            "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "policy.mjs",
+            "bytes": 4441,
+            "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "transport.mjs",
+            "bytes": 9553,
+            "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "external.mjs",
+            "bytes": 6032,
+            "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "external-admission.mjs",
+            "bytes": 4991,
+            "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "built-consumers.mjs",
+            "bytes": 2958,
+            "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "consumer-admission.mjs",
+            "bytes": 1940,
+            "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "tap.mjs",
+            "bytes": 3405,
+            "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "public.mjs",
+            "bytes": 2892,
+            "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "consumer.mts.fixture",
+            "bytes": 840,
+            "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "negative.mts.fixture",
+            "bytes": 250,
+            "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "build-audit.mjs",
+            "bytes": 1239,
+            "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "build-types.mjs",
+            "bytes": 4115,
+            "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "phase-runner.mjs",
+            "bytes": 2528,
+            "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "process-observer.mjs",
+            "bytes": 3667,
+            "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "review-build-types.mjs",
+            "bytes": 9630,
+            "sha256": "ef79cc344dc0259bfef3d2351fa61ea5a2f716ac8c427dfab346294498d0a507",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "review-build-types-worker.mjs",
+            "bytes": 351,
+            "sha256": "e69573ee434436bb9ab9bda807155cfaaa5a687a2eb32a09a4b6b0d54214f295",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "projection.mjs",
+            "bytes": 5765,
+            "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "INSTRUCTION-PROJECTION.json",
+            "bytes": 2542,
+            "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "os-instruction-fence.mjs",
+            "bytes": 6239,
+            "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "fenced-supervisor.mjs",
+            "bytes": 7580,
+            "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "OS-INSTRUCTION-FENCE.json",
+            "bytes": 1845,
+            "sha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
+            "unchangedFromFe15": true
+          },
+          {
+            "name": "TOOL-ROUTES.json",
+            "bytes": 2520,
+            "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+            "unchangedFromFe15": true
+          }
+        ],
+        "originalAttemptRescored": false
+      }
+    },
+    {
+      "id": "E12.2",
+      "status": "PASS",
+      "kind": "STATIC_ONLY",
+      "detail": {
+        "kind": "Independent review admission-policy check, not shipping ROOT_RELEASE runtime test",
+        "fullGatePermission": false
+      }
+    }
+  ],
+  "groups": [
+    {
+      "group": "core",
+      "workerStatus": 0,
+      "workerRows": [
+        "E01.1",
+        "E01.2",
+        "E01.3",
+        "E03.1",
+        "E03.2",
+        "E03.4",
+        "E03.3",
+        "E04.1",
+        "E05.1",
+        "E05.2",
+        "E05.3",
+        "E06.1",
+        "E06.2",
+        "E07.1",
+        "E07.2",
+        "E09.1",
+        "E09.2",
+        "E10.2"
+      ],
+      "fence": {
+        "envelope": {
+          "schema": "unified76-os-instruction-fence/1",
+          "createdAt": "2026-08-28T10:15:14.553Z",
+          "launcherPid": 76242,
+          "roots": [
+            {
+              "path": "/private/tmp/unified76-os-write-4ewEge",
+              "device": 16777232,
+              "inode": 181269085,
+              "mode": 448,
+              "uid": 501
+            },
+            {
+              "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-core",
+              "device": 16777232,
+              "inode": 181269086,
+              "mode": 448,
+              "uid": 501
+            }
+          ],
+          "output": "/tmp/full-gate-unified76-env13-pqwX9D-core",
+          "external": {
+            "manifestSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+            "systemReferences": [
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libsandbox.1.dylib"
+              ],
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libSystem.B.dylib"
+              ]
+            ],
+            "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception.",
+            "inspection": {
+              "stdout": "/usr/bin/sandbox-exec:\n\t/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+              "stderr": "",
+              "status": 0,
+              "pid": 76282,
+              "signal": null,
+              "invocation": {
+                "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                "args": [
+                  "-L",
+                  "/usr/bin/sandbox-exec"
+                ],
+                "env": {
+                  "PATH": "/dev/null",
+                  "LANG": "C",
+                  "LC_ALL": "C",
+                  "TZ": "UTC"
+                },
+                "receipt": {
+                  "binary": {
+                    "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "bytes": 472320,
+                    "mode": 493,
+                    "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+                  },
+                  "references": [
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libc++.1.dylib",
+                      "error": "ENOENT"
+                    },
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libSystem.B.dylib",
+                      "error": "ENOENT"
+                    }
+                  ],
+                  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+                  "environment": {
+                    "PATH": "/dev/null",
+                    "LANG": "C",
+                    "LC_ALL": "C",
+                    "TZ": "UTC"
+                  },
+                  "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+                  "target": {
+                    "path": "/usr/bin/sandbox-exec",
+                    "bytes": 102560,
+                    "mode": 493,
+                    "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+                    "origin": "/usr/bin/sandbox-exec",
+                    "physical": "/usr/bin/sandbox-exec"
+                  },
+                  "admittedAt": "2026-08-28T10:15:14.542Z",
+                  "admittedBeforeExecution": true
+                }
+              }
+            }
+          },
+          "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+          "profileSha256": "77cc6249506963f5501a67b085417528b468c5625f3faf94a3386d41e4b29744"
+        },
+        "result": {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "-p",
+            "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-4ewEge\") (subpath \"/private/tmp/full-gate-unified76-env13-pqwX9D-core\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/private/tmp/unified76-env-independent-pqwX9D/worker.mjs",
+            "core",
+            "/private/tmp/unified76-env-independent-pqwX9D",
+            "/tmp/full-gate-unified76-env13-pqwX9D-core"
+          ],
+          "cwd": "/private/tmp/unified76-env-independent-pqwX9D",
+          "pid": 76287,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 2891,
+          "timeoutMs": 30000,
+          "outputBytes": 609,
+          "observed": [
+            {
+              "pid": 76287,
+              "parent": 76242,
+              "group": 76287,
+              "born": "Fri Aug 28 10:15:14 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs core /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-core"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true
+        },
+        "phaseReceipt": {
+          "root": {
+            "pid": 76287,
+            "parent": 76242,
+            "group": 76287,
+            "born": "Fri Aug 28 10:15:14 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs core /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-core"
+          },
+          "events": [],
+          "expectedPhases": [],
+          "completed": 0,
+          "clean": true
+        },
+        "observerReceipt": {
+          "root": {
+            "pid": 76287,
+            "parent": 76242,
+            "group": 76287,
+            "born": "Fri Aug 28 10:15:14 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs core /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-core"
+          },
+          "groups": [],
+          "events": [],
+          "survivors": [],
+          "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+        },
+        "clean": true,
+        "qualification": "Trusted outer owns and observes each restricted worker/phase. Phase targets are sibling process groups with the identical OS profile, never unfenced executions. IPC passes no writable file descriptors."
+      }
+    },
+    {
+      "group": "compound-errors",
+      "workerStatus": 0,
+      "workerRows": [
+        "E07.3"
+      ],
+      "fence": {
+        "envelope": {
+          "schema": "unified76-os-instruction-fence/1",
+          "createdAt": "2026-08-28T10:15:17.580Z",
+          "launcherPid": 76242,
+          "roots": [
+            {
+              "path": "/private/tmp/unified76-os-write-yeBxha",
+              "device": 16777232,
+              "inode": 181269150,
+              "mode": 448,
+              "uid": 501
+            },
+            {
+              "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-compound-errors",
+              "device": 16777232,
+              "inode": 181269151,
+              "mode": 448,
+              "uid": 501
+            }
+          ],
+          "output": "/tmp/full-gate-unified76-env13-pqwX9D-compound-errors",
+          "external": {
+            "manifestSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+            "systemReferences": [
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libsandbox.1.dylib"
+              ],
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libSystem.B.dylib"
+              ]
+            ],
+            "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception.",
+            "inspection": {
+              "stdout": "/usr/bin/sandbox-exec:\n\t/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+              "stderr": "",
+              "status": 0,
+              "pid": 76339,
+              "signal": null,
+              "invocation": {
+                "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                "args": [
+                  "-L",
+                  "/usr/bin/sandbox-exec"
+                ],
+                "env": {
+                  "PATH": "/dev/null",
+                  "LANG": "C",
+                  "LC_ALL": "C",
+                  "TZ": "UTC"
+                },
+                "receipt": {
+                  "binary": {
+                    "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "bytes": 472320,
+                    "mode": 493,
+                    "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+                  },
+                  "references": [
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libc++.1.dylib",
+                      "error": "ENOENT"
+                    },
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libSystem.B.dylib",
+                      "error": "ENOENT"
+                    }
+                  ],
+                  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+                  "environment": {
+                    "PATH": "/dev/null",
+                    "LANG": "C",
+                    "LC_ALL": "C",
+                    "TZ": "UTC"
+                  },
+                  "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+                  "target": {
+                    "path": "/usr/bin/sandbox-exec",
+                    "bytes": 102560,
+                    "mode": 493,
+                    "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+                    "origin": "/usr/bin/sandbox-exec",
+                    "physical": "/usr/bin/sandbox-exec"
+                  },
+                  "admittedAt": "2026-08-28T10:15:17.571Z",
+                  "admittedBeforeExecution": true
+                }
+              }
+            }
+          },
+          "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+          "profileSha256": "82fde770760212a048ef5e7c09a036e32e5c37eb8fca9851b22a52d6e4d1b173"
+        },
+        "result": {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "-p",
+            "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-yeBxha\") (subpath \"/private/tmp/full-gate-unified76-env13-pqwX9D-compound-errors\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/private/tmp/unified76-env-independent-pqwX9D/worker.mjs",
+            "compound-errors",
+            "/private/tmp/unified76-env-independent-pqwX9D",
+            "/tmp/full-gate-unified76-env13-pqwX9D-compound-errors"
+          ],
+          "cwd": "/private/tmp/unified76-env-independent-pqwX9D",
+          "pid": 76344,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 579,
+          "timeoutMs": 30000,
+          "outputBytes": 87,
+          "observed": [
+            {
+              "pid": 76344,
+              "parent": 76242,
+              "group": 76344,
+              "born": "Fri Aug 28 10:15:17 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs compound-errors /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-compound-errors"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true
+        },
+        "phaseReceipt": {
+          "root": {
+            "pid": 76344,
+            "parent": 76242,
+            "group": 76344,
+            "born": "Fri Aug 28 10:15:17 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs compound-errors /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-compound-errors"
+          },
+          "events": [],
+          "expectedPhases": [],
+          "completed": 0,
+          "clean": true
+        },
+        "observerReceipt": {
+          "root": {
+            "pid": 76344,
+            "parent": 76242,
+            "group": 76344,
+            "born": "Fri Aug 28 10:15:17 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs compound-errors /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-compound-errors"
+          },
+          "groups": [],
+          "events": [],
+          "survivors": [],
+          "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+        },
+        "clean": true,
+        "qualification": "Trusted outer owns and observes each restricted worker/phase. Phase targets are sibling process groups with the identical OS profile, never unfenced executions. IPC passes no writable file descriptors."
+      }
+    },
+    {
+      "group": "poison-restoration",
+      "workerStatus": 0,
+      "workerRows": [
+        "E08.1"
+      ],
+      "fence": {
+        "envelope": {
+          "schema": "unified76-os-instruction-fence/1",
+          "createdAt": "2026-08-28T10:15:18.288Z",
+          "launcherPid": 76242,
+          "roots": [
+            {
+              "path": "/private/tmp/unified76-os-write-dwePej",
+              "device": 16777232,
+              "inode": 181269192,
+              "mode": 448,
+              "uid": 501
+            },
+            {
+              "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-poison-restoration",
+              "device": 16777232,
+              "inode": 181269193,
+              "mode": 448,
+              "uid": 501
+            }
+          ],
+          "output": "/tmp/full-gate-unified76-env13-pqwX9D-poison-restoration",
+          "external": {
+            "manifestSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+            "systemReferences": [
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libsandbox.1.dylib"
+              ],
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libSystem.B.dylib"
+              ]
+            ],
+            "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception.",
+            "inspection": {
+              "stdout": "/usr/bin/sandbox-exec:\n\t/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+              "stderr": "",
+              "status": 0,
+              "pid": 76359,
+              "signal": null,
+              "invocation": {
+                "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                "args": [
+                  "-L",
+                  "/usr/bin/sandbox-exec"
+                ],
+                "env": {
+                  "PATH": "/dev/null",
+                  "LANG": "C",
+                  "LC_ALL": "C",
+                  "TZ": "UTC"
+                },
+                "receipt": {
+                  "binary": {
+                    "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "bytes": 472320,
+                    "mode": 493,
+                    "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+                  },
+                  "references": [
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libc++.1.dylib",
+                      "error": "ENOENT"
+                    },
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libSystem.B.dylib",
+                      "error": "ENOENT"
+                    }
+                  ],
+                  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+                  "environment": {
+                    "PATH": "/dev/null",
+                    "LANG": "C",
+                    "LC_ALL": "C",
+                    "TZ": "UTC"
+                  },
+                  "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+                  "target": {
+                    "path": "/usr/bin/sandbox-exec",
+                    "bytes": 102560,
+                    "mode": 493,
+                    "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+                    "origin": "/usr/bin/sandbox-exec",
+                    "physical": "/usr/bin/sandbox-exec"
+                  },
+                  "admittedAt": "2026-08-28T10:15:18.280Z",
+                  "admittedBeforeExecution": true
+                }
+              }
+            }
+          },
+          "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+          "profileSha256": "5f719327e5be73a134519df433dad14051b1d0a69b84f405919536541ceac442"
+        },
+        "result": {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "-p",
+            "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-dwePej\") (subpath \"/private/tmp/full-gate-unified76-env13-pqwX9D-poison-restoration\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/private/tmp/unified76-env-independent-pqwX9D/worker.mjs",
+            "poison-restoration",
+            "/private/tmp/unified76-env-independent-pqwX9D",
+            "/tmp/full-gate-unified76-env13-pqwX9D-poison-restoration"
+          ],
+          "cwd": "/private/tmp/unified76-env-independent-pqwX9D",
+          "pid": 76364,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 576,
+          "timeoutMs": 30000,
+          "outputBytes": 90,
+          "observed": [
+            {
+              "pid": 76364,
+              "parent": 76242,
+              "group": 76364,
+              "born": "Fri Aug 28 10:15:18 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs poison-restoration /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-poison-restoration"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true
+        },
+        "phaseReceipt": {
+          "root": {
+            "pid": 76364,
+            "parent": 76242,
+            "group": 76364,
+            "born": "Fri Aug 28 10:15:18 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs poison-restoration /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-poison-restoration"
+          },
+          "events": [],
+          "expectedPhases": [],
+          "completed": 0,
+          "clean": true
+        },
+        "observerReceipt": {
+          "root": {
+            "pid": 76364,
+            "parent": 76242,
+            "group": 76364,
+            "born": "Fri Aug 28 10:15:18 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs poison-restoration /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-poison-restoration"
+          },
+          "groups": [],
+          "events": [],
+          "survivors": [],
+          "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+        },
+        "clean": true,
+        "qualification": "Trusted outer owns and observes each restricted worker/phase. Phase targets are sibling process groups with the identical OS profile, never unfenced executions. IPC passes no writable file descriptors."
+      }
+    },
+    {
+      "group": "partial-installation",
+      "workerStatus": 0,
+      "workerRows": [
+        "E08.2"
+      ],
+      "fence": {
+        "envelope": {
+          "schema": "unified76-os-instruction-fence/1",
+          "createdAt": "2026-08-28T10:15:18.991Z",
+          "launcherPid": 76242,
+          "roots": [
+            {
+              "path": "/private/tmp/unified76-os-write-AYFcgK",
+              "device": 16777232,
+              "inode": 181269234,
+              "mode": 448,
+              "uid": 501
+            },
+            {
+              "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-partial-installation",
+              "device": 16777232,
+              "inode": 181269235,
+              "mode": 448,
+              "uid": 501
+            }
+          ],
+          "output": "/tmp/full-gate-unified76-env13-pqwX9D-partial-installation",
+          "external": {
+            "manifestSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+            "systemReferences": [
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libsandbox.1.dylib"
+              ],
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libSystem.B.dylib"
+              ]
+            ],
+            "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception.",
+            "inspection": {
+              "stdout": "/usr/bin/sandbox-exec:\n\t/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+              "stderr": "",
+              "status": 0,
+              "pid": 76388,
+              "signal": null,
+              "invocation": {
+                "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                "args": [
+                  "-L",
+                  "/usr/bin/sandbox-exec"
+                ],
+                "env": {
+                  "PATH": "/dev/null",
+                  "LANG": "C",
+                  "LC_ALL": "C",
+                  "TZ": "UTC"
+                },
+                "receipt": {
+                  "binary": {
+                    "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "bytes": 472320,
+                    "mode": 493,
+                    "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+                  },
+                  "references": [
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libc++.1.dylib",
+                      "error": "ENOENT"
+                    },
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libSystem.B.dylib",
+                      "error": "ENOENT"
+                    }
+                  ],
+                  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+                  "environment": {
+                    "PATH": "/dev/null",
+                    "LANG": "C",
+                    "LC_ALL": "C",
+                    "TZ": "UTC"
+                  },
+                  "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+                  "target": {
+                    "path": "/usr/bin/sandbox-exec",
+                    "bytes": 102560,
+                    "mode": 493,
+                    "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+                    "origin": "/usr/bin/sandbox-exec",
+                    "physical": "/usr/bin/sandbox-exec"
+                  },
+                  "admittedAt": "2026-08-28T10:15:18.983Z",
+                  "admittedBeforeExecution": true
+                }
+              }
+            }
+          },
+          "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+          "profileSha256": "4bf4120f07a623bf5010c388e3e02078b23be19e9d5f8a4b17113b340ca6eabb"
+        },
+        "result": {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "-p",
+            "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-AYFcgK\") (subpath \"/private/tmp/full-gate-unified76-env13-pqwX9D-partial-installation\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/private/tmp/unified76-env-independent-pqwX9D/worker.mjs",
+            "partial-installation",
+            "/private/tmp/unified76-env-independent-pqwX9D",
+            "/tmp/full-gate-unified76-env13-pqwX9D-partial-installation"
+          ],
+          "cwd": "/private/tmp/unified76-env-independent-pqwX9D",
+          "pid": 76393,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 588,
+          "timeoutMs": 30000,
+          "outputBytes": 92,
+          "observed": [
+            {
+              "pid": 76393,
+              "parent": 76242,
+              "group": 76393,
+              "born": "Fri Aug 28 10:15:19 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs partial-installation /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-partial-installation"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true
+        },
+        "phaseReceipt": {
+          "root": {
+            "pid": 76393,
+            "parent": 76242,
+            "group": 76393,
+            "born": "Fri Aug 28 10:15:19 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs partial-installation /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-partial-installation"
+          },
+          "events": [],
+          "expectedPhases": [],
+          "completed": 0,
+          "clean": true
+        },
+        "observerReceipt": {
+          "root": {
+            "pid": 76393,
+            "parent": 76242,
+            "group": 76393,
+            "born": "Fri Aug 28 10:15:19 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs partial-installation /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-partial-installation"
+          },
+          "groups": [],
+          "events": [],
+          "survivors": [],
+          "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+        },
+        "clean": true,
+        "qualification": "Trusted outer owns and observes each restricted worker/phase. Phase targets are sibling process groups with the identical OS profile, never unfenced executions. IPC passes no writable file descriptors."
+      }
+    },
+    {
+      "group": "authority",
+      "workerStatus": 1,
+      "workerRows": [
+        "E10.1"
+      ],
+      "fence": {
+        "envelope": {
+          "schema": "unified76-os-instruction-fence/1",
+          "createdAt": "2026-08-28T10:15:19.708Z",
+          "launcherPid": 76242,
+          "roots": [
+            {
+              "path": "/private/tmp/unified76-os-write-JLwAsG",
+              "device": 16777232,
+              "inode": 181269279,
+              "mode": 448,
+              "uid": 501
+            },
+            {
+              "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-authority",
+              "device": 16777232,
+              "inode": 181269280,
+              "mode": 448,
+              "uid": 501
+            }
+          ],
+          "output": "/tmp/full-gate-unified76-env13-pqwX9D-authority",
+          "external": {
+            "manifestSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+            "systemReferences": [
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libsandbox.1.dylib"
+              ],
+              [
+                "/usr/bin/sandbox-exec",
+                "/usr/lib/libSystem.B.dylib"
+              ]
+            ],
+            "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception.",
+            "inspection": {
+              "stdout": "/usr/bin/sandbox-exec:\n\t/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+              "stderr": "",
+              "status": 0,
+              "pid": 76413,
+              "signal": null,
+              "invocation": {
+                "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                "args": [
+                  "-L",
+                  "/usr/bin/sandbox-exec"
+                ],
+                "env": {
+                  "PATH": "/dev/null",
+                  "LANG": "C",
+                  "LC_ALL": "C",
+                  "TZ": "UTC"
+                },
+                "receipt": {
+                  "binary": {
+                    "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                    "bytes": 472320,
+                    "mode": 493,
+                    "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+                  },
+                  "references": [
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libc++.1.dylib",
+                      "error": "ENOENT"
+                    },
+                    {
+                      "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                      "path": "/usr/lib/libSystem.B.dylib",
+                      "error": "ENOENT"
+                    }
+                  ],
+                  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+                  "environment": {
+                    "PATH": "/dev/null",
+                    "LANG": "C",
+                    "LC_ALL": "C",
+                    "TZ": "UTC"
+                  },
+                  "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+                  "target": {
+                    "path": "/usr/bin/sandbox-exec",
+                    "bytes": 102560,
+                    "mode": 493,
+                    "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+                    "origin": "/usr/bin/sandbox-exec",
+                    "physical": "/usr/bin/sandbox-exec"
+                  },
+                  "admittedAt": "2026-08-28T10:15:19.699Z",
+                  "admittedBeforeExecution": true
+                }
+              }
+            }
+          },
+          "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+          "profileSha256": "1411534e89a7fb81b5aa8788b739bdd25b8c803d58d5edf59d0db3b8005aad53"
+        },
+        "result": {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "-p",
+            "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-JLwAsG\") (subpath \"/private/tmp/full-gate-unified76-env13-pqwX9D-authority\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/private/tmp/unified76-env-independent-pqwX9D/worker.mjs",
+            "authority",
+            "/private/tmp/unified76-env-independent-pqwX9D",
+            "/tmp/full-gate-unified76-env13-pqwX9D-authority"
+          ],
+          "cwd": "/private/tmp/unified76-env-independent-pqwX9D",
+          "pid": 76418,
+          "status": 1,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 569,
+          "timeoutMs": 60000,
+          "outputBytes": 81,
+          "observed": [
+            {
+              "pid": 76418,
+              "parent": 76242,
+              "group": 76418,
+              "born": "Fri Aug 28 10:15:19 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs authority /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-authority"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true
+        },
+        "phaseReceipt": {
+          "root": {
+            "pid": 76418,
+            "parent": 76242,
+            "group": 76418,
+            "born": "Fri Aug 28 10:15:19 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs authority /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-authority"
+          },
+          "events": [],
+          "expectedPhases": [],
+          "completed": 0,
+          "clean": true
+        },
+        "observerReceipt": {
+          "root": {
+            "pid": 76418,
+            "parent": 76242,
+            "group": 76418,
+            "born": "Fri Aug 28 10:15:19 2026",
+            "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-env-independent-pqwX9D/worker.mjs authority /private/tmp/unified76-env-independent-pqwX9D /tmp/full-gate-unified76-env13-pqwX9D-authority"
+          },
+          "groups": [],
+          "events": [],
+          "survivors": [],
+          "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+        },
+        "clean": true,
+        "qualification": "Trusted outer owns and observes each restricted worker/phase. Phase targets are sibling process groups with the identical OS profile, never unfenced executions. IPC passes no writable file descriptors."
+      }
+    }
+  ],
+  "raw": [
+    {
+      "path": "raw/core-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 7501,
+      "sha256": "ce53d5052046e03a893e7fb8c0dc8df540cfc5d590f714158e0eae6cd117e62d",
+      "compressedBytes": 2086,
+      "compressedSha256": "05e7e81b696adf04e639ecfcd61b30def4a7bc0fba8665e10e363240024fac89"
+    },
+    {
+      "path": "raw/core-outer-OS-FENCE.json.gz",
+      "bytes": 4029,
+      "sha256": "ca16ded6c7eee9fda9f1dc1c1356b43a4be788fa606688d4e9ae50f0aa4948ea",
+      "compressedBytes": 1343,
+      "compressedSha256": "9c4abbaa7c2dd7f73d05e6dff51e56a1a987e9fdbc15176bab7bcaa73236a233"
+    },
+    {
+      "path": "raw/core-outer-stderr.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressedBytes": 20,
+      "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/core-outer-stdout.gz",
+      "bytes": 609,
+      "sha256": "873ca08932356b3e26f76b5718a2f3f0daf91e35e2fc29ceccd718387d1a5f1d",
+      "compressedBytes": 163,
+      "compressedSha256": "e2820e18e0edc1a88f8d4c7d1bb66279a89473483d600347c7bf3be7fce15c8a"
+    },
+    {
+      "path": "raw/core-inner-worker.json.gz",
+      "bytes": 49792,
+      "sha256": "76f3768816b6f24879eb23072853c12c09b23bca0d8cd34386c0ab511475ae08",
+      "compressedBytes": 3400,
+      "compressedSha256": "f531fca5bbab9c8bd8f9eb057b763a59a4bea265d5344d562afeecf02dfecdd4"
+    },
+    {
+      "path": "raw/compound-errors-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 7620,
+      "sha256": "2e4e0015ec07f1fb4df4f37a49ea1e9caa946e27f26b3512d6a475167aff0bea",
+      "compressedBytes": 2093,
+      "compressedSha256": "9973aa1ec6b934f6ce7cc289699cf6cbed2df6939d9ddc5c9def7258ac0c5f7c"
+    },
+    {
+      "path": "raw/compound-errors-outer-OS-FENCE.json.gz",
+      "bytes": 4051,
+      "sha256": "4132b537ae37dddebe56dc36308f5de15e484483f1df191fb16505c00a6207b7",
+      "compressedBytes": 1346,
+      "compressedSha256": "0a68c3cd74cf926ce7782a4ca08efb0b4e9a61329d7553c52df781a95ac34012"
+    },
+    {
+      "path": "raw/compound-errors-outer-stderr.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressedBytes": 20,
+      "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/compound-errors-outer-stdout.gz",
+      "bytes": 87,
+      "sha256": "70ca6ee9ceb7a5291e144ca2266e9fe8ffe703db845c93499b161d53c11b9365",
+      "compressedBytes": 105,
+      "compressedSha256": "ec5d69ac96fd4e3d73eb146e3d5dfe055714a8695d8ec534df8eff87112d175c"
+    },
+    {
+      "path": "raw/compound-errors-inner-worker.json.gz",
+      "bytes": 7385,
+      "sha256": "1b6cae27a75a85ef33e7817d72ff044babfbfa7477e291adace0ceb13c9c4db9",
+      "compressedBytes": 1838,
+      "compressedSha256": "52d5b17bf6323f394afc0eec1dfeb9a84f07a56d3ab500dc49a712979f43546f"
+    },
+    {
+      "path": "raw/poison-restoration-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 7653,
+      "sha256": "aa535bef0b4d04a071c1d39b72481982185b5a7714b21cc6e111356c1ba7eef1",
+      "compressedBytes": 2092,
+      "compressedSha256": "c97b0bb4345073bbd8a1a245754b0ce4d1c582edd02fe03a65693d2258bcde40"
+    },
+    {
+      "path": "raw/poison-restoration-outer-OS-FENCE.json.gz",
+      "bytes": 4057,
+      "sha256": "c7973ccc452384d23151564279880f3981ac4b3abba4eb43f6375c93b622b01e",
+      "compressedBytes": 1348,
+      "compressedSha256": "db72bc12942e6b205a7eca45314fffd9c5bb5a26701341226bc86c14b4b3aaf5"
+    },
+    {
+      "path": "raw/poison-restoration-outer-stderr.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressedBytes": 20,
+      "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/poison-restoration-outer-stdout.gz",
+      "bytes": 90,
+      "sha256": "f03958fd96fc4749033e8492f31640c7dd527b5d58ca99cd75e9631ca91c5b36",
+      "compressedBytes": 105,
+      "compressedSha256": "6e15d5df95d9f04f2f0c101952a1bc2426cbf6613e757f938e8e0a50a19d89d8"
+    },
+    {
+      "path": "raw/poison-restoration-inner-worker.json.gz",
+      "bytes": 6724,
+      "sha256": "bce6ad5f8d15419c468d4f55415f98473a9985071c994915bd61647af24dd99e",
+      "compressedBytes": 1785,
+      "compressedSha256": "b76ccf14695bffbbbb9db1513ee6af4529a27a1ac0f94e8dbc76be64916bf492"
+    },
+    {
+      "path": "raw/partial-installation-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 7675,
+      "sha256": "4a39c32c54229904eb69182bfa3bb40b65414108aa6e30f82f271c2672c8af83",
+      "compressedBytes": 2100,
+      "compressedSha256": "f27be6dd7437b02a3efbf8890c6aeff47a8a23abb4b7c9a65790581f3720c7ec"
+    },
+    {
+      "path": "raw/partial-installation-outer-OS-FENCE.json.gz",
+      "bytes": 4061,
+      "sha256": "582566650457e7e949fa944f42db4518019cb07074378d24fe60afee64dc790a",
+      "compressedBytes": 1352,
+      "compressedSha256": "6d9e5e2f076c14806abededecbf01d6e4cf83fec8f84a912c3f5bf56184391e6"
+    },
+    {
+      "path": "raw/partial-installation-outer-stderr.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressedBytes": 20,
+      "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/partial-installation-outer-stdout.gz",
+      "bytes": 92,
+      "sha256": "cf1bf728722bd07681190211b92eceecfbe1afa5d1ff40824ab962c44027343d",
+      "compressedBytes": 105,
+      "compressedSha256": "987040a9153ef616ce4c96ff3c221fadc72212c9ee25eb3a2bbcdd817be3f5f3"
+    },
+    {
+      "path": "raw/partial-installation-inner-worker.json.gz",
+      "bytes": 6200,
+      "sha256": "4aac76fef12fa7ab86bcdfe238abfae899da87ee1fb6543fdcab87dd581dff65",
+      "compressedBytes": 1698,
+      "compressedSha256": "db126e2907caf703c3f9418fd035cdadaa0a00a2be2e099eb6021c830b1b1dc3"
+    },
+    {
+      "path": "raw/authority-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 7554,
+      "sha256": "f6d6f311fd4598ae48affdb41112e3b5ec6a1242171ac613facf1f8a05f15ce3",
+      "compressedBytes": 2092,
+      "compressedSha256": "4c3138141bc2aa662f4c9130faaacd381f29bba540972b5bea8276aecf15dd8b"
+    },
+    {
+      "path": "raw/authority-outer-OS-FENCE.json.gz",
+      "bytes": 4039,
+      "sha256": "f8d67199a9b7a922eb23eee2caa3206b04525ef13c5030425687a7634bac72aa",
+      "compressedBytes": 1348,
+      "compressedSha256": "ea1af47b36da0aafdedc8a5830e30deb511d2386ede09fdc77a6b2418cad2e70"
+    },
+    {
+      "path": "raw/authority-outer-stderr.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressedBytes": 20,
+      "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "raw/authority-outer-stdout.gz",
+      "bytes": 81,
+      "sha256": "0a4ff9953090efc9235dccb2505b50b12dcec7e88a801072b075ce2e85997601",
+      "compressedBytes": 99,
+      "compressedSha256": "fff75662c911223d84cfda27b35ff015f6f53df7d90b6257c5b7bc8b1a6618bf"
+    },
+    {
+      "path": "raw/authority-inner-worker.json.gz",
+      "bytes": 7323,
+      "sha256": "bdf639caefed763220978e1cb9827adbccc6436c69f99f40a2344193c0ec78e3",
+      "compressedBytes": 1993,
+      "compressedSha256": "896ef2f5fc8f14310f28d845d568c11850145a99eea9216d5453cc0482d04d05"
+    }
+  ],
+  "roots": [
+    {
+      "path": "/private/tmp/unified76-env-independent-pqwX9D",
+      "device": 16777232,
+      "inode": 181269062,
+      "removed": true,
+      "finalTree": {
+        "bytes": 786236,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269062,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "RECIPE.json",
+            "device": 16777232,
+            "inode": 181269081,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 140882,
+            "sha256": "4225f050dc84d38c06a159efd6e6d66190555525f7d65b2f1b741c4a9c22bd11"
+          },
+          {
+            "path": "authority",
+            "device": 16777232,
+            "inode": 181269278,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "authority/OS-FENCE-RESULT.json",
+            "device": 16777232,
+            "inode": 181269347,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 7554,
+            "sha256": "f6d6f311fd4598ae48affdb41112e3b5ec6a1242171ac613facf1f8a05f15ce3"
+          },
+          {
+            "path": "authority/OS-FENCE.json",
+            "device": 16777232,
+            "inode": 181269283,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 4039,
+            "sha256": "f8d67199a9b7a922eb23eee2caa3206b04525ef13c5030425687a7634bac72aa"
+          },
+          {
+            "path": "authority/stderr",
+            "device": 16777232,
+            "inode": 181269288,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "authority/stdout",
+            "device": 16777232,
+            "inode": 181269289,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 81,
+            "sha256": "0a4ff9953090efc9235dccb2505b50b12dcec7e88a801072b075ce2e85997601"
+          },
+          {
+            "path": "compound-errors",
+            "device": 16777232,
+            "inode": 181269149,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "compound-errors/OS-FENCE-RESULT.json",
+            "device": 16777232,
+            "inode": 181269185,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 7620,
+            "sha256": "2e4e0015ec07f1fb4df4f37a49ea1e9caa946e27f26b3512d6a475167aff0bea"
+          },
+          {
+            "path": "compound-errors/OS-FENCE.json",
+            "device": 16777232,
+            "inode": 181269154,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 4051,
+            "sha256": "4132b537ae37dddebe56dc36308f5de15e484483f1df191fb16505c00a6207b7"
+          },
+          {
+            "path": "compound-errors/stderr",
+            "device": 16777232,
+            "inode": 181269160,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "compound-errors/stdout",
+            "device": 16777232,
+            "inode": 181269161,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 87,
+            "sha256": "70ca6ee9ceb7a5291e144ca2266e9fe8ffe703db845c93499b161d53c11b9365"
+          },
+          {
+            "path": "core",
+            "device": 16777232,
+            "inode": 181269084,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "core/OS-FENCE-RESULT.json",
+            "device": 16777232,
+            "inode": 181269143,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 7501,
+            "sha256": "ce53d5052046e03a893e7fb8c0dc8df540cfc5d590f714158e0eae6cd117e62d"
+          },
+          {
+            "path": "core/OS-FENCE.json",
+            "device": 16777232,
+            "inode": 181269089,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 4029,
+            "sha256": "ca16ded6c7eee9fda9f1dc1c1356b43a4be788fa606688d4e9ae50f0aa4948ea"
+          },
+          {
+            "path": "core/stderr",
+            "device": 16777232,
+            "inode": 181269095,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "core/stdout",
+            "device": 16777232,
+            "inode": 181269094,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 609,
+            "sha256": "873ca08932356b3e26f76b5718a2f3f0daf91e35e2fc29ceccd718387d1a5f1d"
+          },
+          {
+            "path": "driver",
+            "device": 16777232,
+            "inode": 181269063,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "driver/CANDIDATE.json",
+            "device": 16777232,
+            "inode": 181269075,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 4663,
+            "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd"
+          },
+          {
+            "path": "driver/EXTERNAL-RECEIPT.json",
+            "device": 16777232,
+            "inode": 181269078,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 592,
+            "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84"
+          },
+          {
+            "path": "driver/EXTERNAL.json.gz.base64",
+            "device": 16777232,
+            "inode": 181269079,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 476241,
+            "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e"
+          },
+          {
+            "path": "driver/INSTRUCTION-PROJECTION.json",
+            "device": 16777232,
+            "inode": 181269080,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 2542,
+            "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537"
+          },
+          {
+            "path": "driver/OS-INSTRUCTION-FENCE.json",
+            "device": 16777232,
+            "inode": 181269077,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 1845,
+            "sha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f"
+          },
+          {
+            "path": "driver/TOOL-ROUTES.json",
+            "device": 16777232,
+            "inode": 181269076,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 2520,
+            "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7"
+          },
+          {
+            "path": "driver/common.mjs",
+            "device": 16777232,
+            "inode": 181269069,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 6427,
+            "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+          },
+          {
+            "path": "driver/external-admission.mjs",
+            "device": 16777232,
+            "inode": 181269073,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 4991,
+            "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2"
+          },
+          {
+            "path": "driver/external.mjs",
+            "device": 16777232,
+            "inode": 181269074,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 6032,
+            "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8"
+          },
+          {
+            "path": "driver/fenced-supervisor.mjs",
+            "device": 16777232,
+            "inode": 181269065,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 7580,
+            "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+          },
+          {
+            "path": "driver/os-instruction-fence.mjs",
+            "device": 16777232,
+            "inode": 181269066,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 6239,
+            "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+          },
+          {
+            "path": "driver/policy.mjs",
+            "device": 16777232,
+            "inode": 181269072,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 4441,
+            "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+          },
+          {
+            "path": "driver/process-observer.mjs",
+            "device": 16777232,
+            "inode": 181269068,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 3667,
+            "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+          },
+          {
+            "path": "driver/projection.mjs",
+            "device": 16777232,
+            "inode": 181269071,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 5765,
+            "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+          },
+          {
+            "path": "driver/supervise.mjs",
+            "device": 16777232,
+            "inode": 181269067,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 6047,
+            "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+          },
+          {
+            "path": "driver/tool-routing.mjs",
+            "device": 16777232,
+            "inode": 181269064,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 16268,
+            "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+          },
+          {
+            "path": "driver/transport.mjs",
+            "device": 16777232,
+            "inode": 181269070,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 9553,
+            "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+          },
+          {
+            "path": "partial-installation",
+            "device": 16777232,
+            "inode": 181269233,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "partial-installation/OS-FENCE-RESULT.json",
+            "device": 16777232,
+            "inode": 181269272,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 7675,
+            "sha256": "4a39c32c54229904eb69182bfa3bb40b65414108aa6e30f82f271c2672c8af83"
+          },
+          {
+            "path": "partial-installation/OS-FENCE.json",
+            "device": 16777232,
+            "inode": 181269238,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 4061,
+            "sha256": "582566650457e7e949fa944f42db4518019cb07074378d24fe60afee64dc790a"
+          },
+          {
+            "path": "partial-installation/stderr",
+            "device": 16777232,
+            "inode": 181269246,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "partial-installation/stdout",
+            "device": 16777232,
+            "inode": 181269247,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 92,
+            "sha256": "cf1bf728722bd07681190211b92eceecfbe1afa5d1ff40824ab962c44027343d"
+          },
+          {
+            "path": "poison-restoration",
+            "device": 16777232,
+            "inode": 181269191,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "poison-restoration/OS-FENCE-RESULT.json",
+            "device": 16777232,
+            "inode": 181269227,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 7653,
+            "sha256": "aa535bef0b4d04a071c1d39b72481982185b5a7714b21cc6e111356c1ba7eef1"
+          },
+          {
+            "path": "poison-restoration/OS-FENCE.json",
+            "device": 16777232,
+            "inode": 181269196,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 4057,
+            "sha256": "c7973ccc452384d23151564279880f3981ac4b3abba4eb43f6375c93b622b01e"
+          },
+          {
+            "path": "poison-restoration/stderr",
+            "device": 16777232,
+            "inode": 181269202,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "poison-restoration/stdout",
+            "device": 16777232,
+            "inode": 181269201,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 90,
+            "sha256": "f03958fd96fc4749033e8492f31640c7dd527b5d58ca99cd75e9631ca91c5b36"
+          },
+          {
+            "path": "worker.mjs",
+            "device": 16777232,
+            "inode": 181269082,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 20742,
+            "sha256": "58a9948acf73d9052864b006ed77d6b4e2f1a08c0794ddbe55f27f2225e5529e"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/unified76-os-write-4ewEge",
+      "device": 16777232,
+      "inode": 181269085,
+      "removed": true,
+      "finalTree": {
+        "bytes": 0,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269085,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls",
+            "device": 16777232,
+            "inode": 181269092,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/native",
+            "device": 16777232,
+            "inode": 181269093,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin",
+            "device": 16777232,
+            "inode": 181269096,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin/awk",
+            "device": 16777232,
+            "inode": 181269109,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/awk"
+          },
+          {
+            "path": "controls/tool-bin/bash",
+            "device": 16777232,
+            "inode": 181269107,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/bash"
+          },
+          {
+            "path": "controls/tool-bin/bsdtar",
+            "device": 16777232,
+            "inode": 181269104,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "controls/tool-bin/curl",
+            "device": 16777232,
+            "inode": 181269111,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/curl"
+          },
+          {
+            "path": "controls/tool-bin/expand",
+            "device": 16777232,
+            "inode": 181269113,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/expand"
+          },
+          {
+            "path": "controls/tool-bin/fold",
+            "device": 16777232,
+            "inode": 181269114,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/fold"
+          },
+          {
+            "path": "controls/tool-bin/git",
+            "device": 16777232,
+            "inode": 181269119,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+          },
+          {
+            "path": "controls/tool-bin/gunzip",
+            "device": 16777232,
+            "inode": 181269106,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gunzip"
+          },
+          {
+            "path": "controls/tool-bin/gzip",
+            "device": 16777232,
+            "inode": 181269105,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gzip"
+          },
+          {
+            "path": "controls/tool-bin/jq",
+            "device": 16777232,
+            "inode": 181269110,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/jq"
+          },
+          {
+            "path": "controls/tool-bin/lsof",
+            "device": 16777232,
+            "inode": 181269102,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/sbin/lsof"
+          },
+          {
+            "path": "controls/tool-bin/node",
+            "device": 16777232,
+            "inode": 181269097,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          },
+          {
+            "path": "controls/tool-bin/ps",
+            "device": 16777232,
+            "inode": 181269101,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/ps"
+          },
+          {
+            "path": "controls/tool-bin/rev",
+            "device": 16777232,
+            "inode": 181269112,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/rev"
+          },
+          {
+            "path": "controls/tool-bin/sed",
+            "device": 16777232,
+            "inode": 181269108,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sed"
+          },
+          {
+            "path": "controls/tool-bin/sh",
+            "device": 16777232,
+            "inode": 181269099,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/sh"
+          },
+          {
+            "path": "controls/tool-bin/sw_vers",
+            "device": 16777232,
+            "inode": 181269103,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sw_vers"
+          },
+          {
+            "path": "controls/tool-bin/tar",
+            "device": 16777232,
+            "inode": 181269100,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "home",
+            "device": 16777232,
+            "inode": 181269087,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "tmp",
+            "device": 16777232,
+            "inode": 181269088,
+            "mode": 448,
+            "kind": "directory"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-core",
+      "device": 16777232,
+      "inode": 181269086,
+      "removed": true,
+      "finalTree": {
+        "bytes": 49792,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269086,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "worker.json",
+            "device": 16777232,
+            "inode": 181269117,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 49792,
+            "sha256": "76f3768816b6f24879eb23072853c12c09b23bca0d8cd34386c0ab511475ae08"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/unified76-os-write-yeBxha",
+      "device": 16777232,
+      "inode": 181269150,
+      "removed": true,
+      "finalTree": {
+        "bytes": 0,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269150,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls",
+            "device": 16777232,
+            "inode": 181269158,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/native",
+            "device": 16777232,
+            "inode": 181269159,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin",
+            "device": 16777232,
+            "inode": 181269162,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin/awk",
+            "device": 16777232,
+            "inode": 181269175,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/awk"
+          },
+          {
+            "path": "controls/tool-bin/bash",
+            "device": 16777232,
+            "inode": 181269173,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/bash"
+          },
+          {
+            "path": "controls/tool-bin/bsdtar",
+            "device": 16777232,
+            "inode": 181269170,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "controls/tool-bin/curl",
+            "device": 16777232,
+            "inode": 181269177,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/curl"
+          },
+          {
+            "path": "controls/tool-bin/expand",
+            "device": 16777232,
+            "inode": 181269179,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/expand"
+          },
+          {
+            "path": "controls/tool-bin/fold",
+            "device": 16777232,
+            "inode": 181269180,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/fold"
+          },
+          {
+            "path": "controls/tool-bin/git",
+            "device": 16777232,
+            "inode": 181269164,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+          },
+          {
+            "path": "controls/tool-bin/gunzip",
+            "device": 16777232,
+            "inode": 181269172,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gunzip"
+          },
+          {
+            "path": "controls/tool-bin/gzip",
+            "device": 16777232,
+            "inode": 181269171,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gzip"
+          },
+          {
+            "path": "controls/tool-bin/jq",
+            "device": 16777232,
+            "inode": 181269176,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/jq"
+          },
+          {
+            "path": "controls/tool-bin/lsof",
+            "device": 16777232,
+            "inode": 181269168,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/sbin/lsof"
+          },
+          {
+            "path": "controls/tool-bin/node",
+            "device": 16777232,
+            "inode": 181269163,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          },
+          {
+            "path": "controls/tool-bin/ps",
+            "device": 16777232,
+            "inode": 181269167,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/ps"
+          },
+          {
+            "path": "controls/tool-bin/rev",
+            "device": 16777232,
+            "inode": 181269178,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/rev"
+          },
+          {
+            "path": "controls/tool-bin/sed",
+            "device": 16777232,
+            "inode": 181269174,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sed"
+          },
+          {
+            "path": "controls/tool-bin/sh",
+            "device": 16777232,
+            "inode": 181269165,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/sh"
+          },
+          {
+            "path": "controls/tool-bin/sw_vers",
+            "device": 16777232,
+            "inode": 181269169,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sw_vers"
+          },
+          {
+            "path": "controls/tool-bin/tar",
+            "device": 16777232,
+            "inode": 181269166,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "home",
+            "device": 16777232,
+            "inode": 181269152,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "tmp",
+            "device": 16777232,
+            "inode": 181269153,
+            "mode": 448,
+            "kind": "directory"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-compound-errors",
+      "device": 16777232,
+      "inode": 181269151,
+      "removed": true,
+      "finalTree": {
+        "bytes": 7385,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269151,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "worker.json",
+            "device": 16777232,
+            "inode": 181269183,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 7385,
+            "sha256": "1b6cae27a75a85ef33e7817d72ff044babfbfa7477e291adace0ceb13c9c4db9"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/unified76-os-write-dwePej",
+      "device": 16777232,
+      "inode": 181269192,
+      "removed": true,
+      "finalTree": {
+        "bytes": 0,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269192,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls",
+            "device": 16777232,
+            "inode": 181269199,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/native",
+            "device": 16777232,
+            "inode": 181269200,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin",
+            "device": 16777232,
+            "inode": 181269203,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin/awk",
+            "device": 16777232,
+            "inode": 181269216,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/awk"
+          },
+          {
+            "path": "controls/tool-bin/bash",
+            "device": 16777232,
+            "inode": 181269214,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/bash"
+          },
+          {
+            "path": "controls/tool-bin/bsdtar",
+            "device": 16777232,
+            "inode": 181269211,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "controls/tool-bin/curl",
+            "device": 16777232,
+            "inode": 181269218,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/curl"
+          },
+          {
+            "path": "controls/tool-bin/expand",
+            "device": 16777232,
+            "inode": 181269220,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/expand"
+          },
+          {
+            "path": "controls/tool-bin/fold",
+            "device": 16777232,
+            "inode": 181269221,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/fold"
+          },
+          {
+            "path": "controls/tool-bin/git",
+            "device": 16777232,
+            "inode": 181269205,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+          },
+          {
+            "path": "controls/tool-bin/gunzip",
+            "device": 16777232,
+            "inode": 181269213,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gunzip"
+          },
+          {
+            "path": "controls/tool-bin/gzip",
+            "device": 16777232,
+            "inode": 181269212,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gzip"
+          },
+          {
+            "path": "controls/tool-bin/jq",
+            "device": 16777232,
+            "inode": 181269217,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/jq"
+          },
+          {
+            "path": "controls/tool-bin/lsof",
+            "device": 16777232,
+            "inode": 181269209,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/sbin/lsof"
+          },
+          {
+            "path": "controls/tool-bin/node",
+            "device": 16777232,
+            "inode": 181269204,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          },
+          {
+            "path": "controls/tool-bin/ps",
+            "device": 16777232,
+            "inode": 181269208,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/ps"
+          },
+          {
+            "path": "controls/tool-bin/rev",
+            "device": 16777232,
+            "inode": 181269219,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/rev"
+          },
+          {
+            "path": "controls/tool-bin/sed",
+            "device": 16777232,
+            "inode": 181269215,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sed"
+          },
+          {
+            "path": "controls/tool-bin/sh",
+            "device": 16777232,
+            "inode": 181269206,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/sh"
+          },
+          {
+            "path": "controls/tool-bin/sw_vers",
+            "device": 16777232,
+            "inode": 181269210,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sw_vers"
+          },
+          {
+            "path": "controls/tool-bin/tar",
+            "device": 16777232,
+            "inode": 181269207,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "home",
+            "device": 16777232,
+            "inode": 181269194,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "tmp",
+            "device": 16777232,
+            "inode": 181269195,
+            "mode": 448,
+            "kind": "directory"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-poison-restoration",
+      "device": 16777232,
+      "inode": 181269193,
+      "removed": true,
+      "finalTree": {
+        "bytes": 6724,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269193,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "worker.json",
+            "device": 16777232,
+            "inode": 181269224,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 6724,
+            "sha256": "bce6ad5f8d15419c468d4f55415f98473a9985071c994915bd61647af24dd99e"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/unified76-os-write-AYFcgK",
+      "device": 16777232,
+      "inode": 181269234,
+      "removed": true,
+      "finalTree": {
+        "bytes": 0,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269234,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls",
+            "device": 16777232,
+            "inode": 181269241,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/native",
+            "device": 16777232,
+            "inode": 181269242,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin",
+            "device": 16777232,
+            "inode": 181269248,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin/awk",
+            "device": 16777232,
+            "inode": 181269261,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/awk"
+          },
+          {
+            "path": "controls/tool-bin/bash",
+            "device": 16777232,
+            "inode": 181269259,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/bash"
+          },
+          {
+            "path": "controls/tool-bin/bsdtar",
+            "device": 16777232,
+            "inode": 181269256,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "controls/tool-bin/curl",
+            "device": 16777232,
+            "inode": 181269263,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/curl"
+          },
+          {
+            "path": "controls/tool-bin/expand",
+            "device": 16777232,
+            "inode": 181269265,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/expand"
+          },
+          {
+            "path": "controls/tool-bin/fold",
+            "device": 16777232,
+            "inode": 181269266,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/fold"
+          },
+          {
+            "path": "controls/tool-bin/git",
+            "device": 16777232,
+            "inode": 181269250,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+          },
+          {
+            "path": "controls/tool-bin/gunzip",
+            "device": 16777232,
+            "inode": 181269258,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gunzip"
+          },
+          {
+            "path": "controls/tool-bin/gzip",
+            "device": 16777232,
+            "inode": 181269257,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gzip"
+          },
+          {
+            "path": "controls/tool-bin/jq",
+            "device": 16777232,
+            "inode": 181269262,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/jq"
+          },
+          {
+            "path": "controls/tool-bin/lsof",
+            "device": 16777232,
+            "inode": 181269254,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/sbin/lsof"
+          },
+          {
+            "path": "controls/tool-bin/node",
+            "device": 16777232,
+            "inode": 181269249,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          },
+          {
+            "path": "controls/tool-bin/ps",
+            "device": 16777232,
+            "inode": 181269253,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/ps"
+          },
+          {
+            "path": "controls/tool-bin/rev",
+            "device": 16777232,
+            "inode": 181269264,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/rev"
+          },
+          {
+            "path": "controls/tool-bin/sed",
+            "device": 16777232,
+            "inode": 181269260,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sed"
+          },
+          {
+            "path": "controls/tool-bin/sh",
+            "device": 16777232,
+            "inode": 181269251,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/sh"
+          },
+          {
+            "path": "controls/tool-bin/sw_vers",
+            "device": 16777232,
+            "inode": 181269255,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sw_vers"
+          },
+          {
+            "path": "controls/tool-bin/tar",
+            "device": 16777232,
+            "inode": 181269252,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "home",
+            "device": 16777232,
+            "inode": 181269236,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "tmp",
+            "device": 16777232,
+            "inode": 181269237,
+            "mode": 448,
+            "kind": "directory"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-partial-installation",
+      "device": 16777232,
+      "inode": 181269235,
+      "removed": true,
+      "finalTree": {
+        "bytes": 6200,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269235,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "worker.json",
+            "device": 16777232,
+            "inode": 181269269,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 6200,
+            "sha256": "4aac76fef12fa7ab86bcdfe238abfae899da87ee1fb6543fdcab87dd581dff65"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/unified76-os-write-JLwAsG",
+      "device": 16777232,
+      "inode": 181269279,
+      "removed": true,
+      "finalTree": {
+        "bytes": 786,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269279,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls",
+            "device": 16777232,
+            "inode": 181269286,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture",
+            "device": 16777232,
+            "inode": 181269309,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git",
+            "device": 16777232,
+            "inode": 181269311,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/HEAD",
+            "device": 16777232,
+            "inode": 181269343,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 41,
+            "sha256": "19b9e46c0b83582fc3eb0e96b8437e6f36c275cf69a59fa8368bd2a9215df5cd"
+          },
+          {
+            "path": "controls/fixture/.git/config",
+            "device": 16777232,
+            "inode": 181269314,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 48,
+            "sha256": "4db84cec131596e0ab82bd869bb291a9b1cfcb3552970ea15a55dacb0b1e3282"
+          },
+          {
+            "path": "controls/fixture/.git/objects",
+            "device": 16777232,
+            "inode": 181269312,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/00",
+            "device": 16777232,
+            "inode": 181269322,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/00/6bbf42c885ccffb9bafb3a5df6235314bfebc1",
+            "device": 16777232,
+            "inode": 181269323,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 44,
+            "sha256": "5be85cf688b919ca7684d76165126869475ee00903c4fae659f97ad889cface4"
+          },
+          {
+            "path": "controls/fixture/.git/objects/02",
+            "device": 16777232,
+            "inode": 181269333,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/02/ad24671743a13d9756e495b993ac1cde5f4d1a",
+            "device": 16777232,
+            "inode": 181269334,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 62,
+            "sha256": "4b3b13db426b090692a12ceebbee0e23680cd7882916c40d86fc2253433b1196"
+          },
+          {
+            "path": "controls/fixture/.git/objects/24",
+            "device": 16777232,
+            "inode": 181269331,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/24/81180ae47b35362305def60434253909010dec",
+            "device": 16777232,
+            "inode": 181269332,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 58,
+            "sha256": "9826273c5439dea54b7c951fd5688a1186ab724c337f953552f1d2a596768178"
+          },
+          {
+            "path": "controls/fixture/.git/objects/25",
+            "device": 16777232,
+            "inode": 181269341,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/25/19464204c4d2adce29d4a74cbade3599f56141",
+            "device": 16777232,
+            "inode": 181269342,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 122,
+            "sha256": "edde275401015e4a7865c44ec390856ca1bc4d1d309cbf0a59d3870d66717c17"
+          },
+          {
+            "path": "controls/fixture/.git/objects/39",
+            "device": 16777232,
+            "inode": 181269335,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/39/6db6ccf4a74dd47f9346dd6d9bc9574b5d863a",
+            "device": 16777232,
+            "inode": 181269336,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 69,
+            "sha256": "caaf4057739a8998fabff1f10c044e8e471889b972b02b7a2dfb60b66d00e712"
+          },
+          {
+            "path": "controls/fixture/.git/objects/3b",
+            "device": 16777232,
+            "inode": 181269339,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/3b/2203c3aa3ead32b281ab70d33e3e1bc5819e3d",
+            "device": 16777232,
+            "inode": 181269340,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 49,
+            "sha256": "90d583c9496c317636e1b819eda563b02aa886a9d7a05f5c0d2397d4e4783a2a"
+          },
+          {
+            "path": "controls/fixture/.git/objects/5a",
+            "device": 16777232,
+            "inode": 181269329,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/5a/0b084825415938977d5e0a9d5cc4351c5160e3",
+            "device": 16777232,
+            "inode": 181269330,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 56,
+            "sha256": "98aac9d8aae6fb5a5e27647558d9dc67a90dbd6c86653ce23ec0e166cae4c9ba"
+          },
+          {
+            "path": "controls/fixture/.git/objects/64",
+            "device": 16777232,
+            "inode": 181269337,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/64/b13602c5982869065c33c680ca86dc2193a4a3",
+            "device": 16777232,
+            "inode": 181269338,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 82,
+            "sha256": "270e44e87f6e4e788f4285230ae2bb04a51e4bdc8d085b0d80a0f72b3bacb7bd"
+          },
+          {
+            "path": "controls/fixture/.git/objects/7c",
+            "device": 16777232,
+            "inode": 181269327,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/7c/8442032766bfa1ac87a556aa07d979805d4e4e",
+            "device": 16777232,
+            "inode": 181269328,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 55,
+            "sha256": "459ee99a6059ecf33dbd7be5bf1d7e0ca4fa5139766b1931203f695316dd6c43"
+          },
+          {
+            "path": "controls/fixture/.git/objects/c3",
+            "device": 16777232,
+            "inode": 181269315,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/fixture/.git/objects/c3/7724df19412bb826d99a48c84974300023eb2f",
+            "device": 16777232,
+            "inode": 181269316,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 44,
+            "sha256": "d4bdba0b823e36523a2228bd8fc747d1daa1c74a3b82afb49643aab3e593203a"
+          },
+          {
+            "path": "controls/fixture/.git/refs",
+            "device": 16777232,
+            "inode": 181269313,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/native",
+            "device": 16777232,
+            "inode": 181269287,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/selected",
+            "device": 16777232,
+            "inode": 181269310,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/selected/tests",
+            "device": 16777232,
+            "inode": 181269317,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/selected/tests/commands",
+            "device": 16777232,
+            "inode": 181269318,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/selected/tests/commands/metadata-stress",
+            "device": 16777232,
+            "inode": 181269319,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/selected/tests/commands/metadata-stress/canonical-env",
+            "device": 16777232,
+            "inode": 181269320,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/selected/tests/commands/metadata-stress/canonical-env/runner.mjs",
+            "device": 16777232,
+            "inode": 181269321,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 28,
+            "sha256": "d354f886b3abc44c137a4da38284aa4692a5dd20612f2619f2467b451a7db849"
+          },
+          {
+            "path": "controls/selected/tests/plugins",
+            "device": 16777232,
+            "inode": 181269324,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/selected/tests/plugins/qualified-current-release",
+            "device": 16777232,
+            "inode": 181269325,
+            "mode": 493,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/selected/tests/plugins/qualified-current-release/prerequisites.mjs",
+            "device": 16777232,
+            "inode": 181269326,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 28,
+            "sha256": "62198489156d96c87c509ea7362e8f3812f40ff6b54c2987686298038ebe4c80"
+          },
+          {
+            "path": "controls/tool-bin",
+            "device": 16777232,
+            "inode": 181269290,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "controls/tool-bin/awk",
+            "device": 16777232,
+            "inode": 181269303,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/awk"
+          },
+          {
+            "path": "controls/tool-bin/bash",
+            "device": 16777232,
+            "inode": 181269301,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/bash"
+          },
+          {
+            "path": "controls/tool-bin/bsdtar",
+            "device": 16777232,
+            "inode": 181269298,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "controls/tool-bin/curl",
+            "device": 16777232,
+            "inode": 181269305,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/curl"
+          },
+          {
+            "path": "controls/tool-bin/expand",
+            "device": 16777232,
+            "inode": 181269307,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/expand"
+          },
+          {
+            "path": "controls/tool-bin/fold",
+            "device": 16777232,
+            "inode": 181269308,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/fold"
+          },
+          {
+            "path": "controls/tool-bin/git",
+            "device": 16777232,
+            "inode": 181269292,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+          },
+          {
+            "path": "controls/tool-bin/gunzip",
+            "device": 16777232,
+            "inode": 181269300,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gunzip"
+          },
+          {
+            "path": "controls/tool-bin/gzip",
+            "device": 16777232,
+            "inode": 181269299,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/gzip"
+          },
+          {
+            "path": "controls/tool-bin/jq",
+            "device": 16777232,
+            "inode": 181269304,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/jq"
+          },
+          {
+            "path": "controls/tool-bin/lsof",
+            "device": 16777232,
+            "inode": 181269296,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/sbin/lsof"
+          },
+          {
+            "path": "controls/tool-bin/node",
+            "device": 16777232,
+            "inode": 181269291,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          },
+          {
+            "path": "controls/tool-bin/ps",
+            "device": 16777232,
+            "inode": 181269295,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/ps"
+          },
+          {
+            "path": "controls/tool-bin/rev",
+            "device": 16777232,
+            "inode": 181269306,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/rev"
+          },
+          {
+            "path": "controls/tool-bin/sed",
+            "device": 16777232,
+            "inode": 181269302,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sed"
+          },
+          {
+            "path": "controls/tool-bin/sh",
+            "device": 16777232,
+            "inode": 181269293,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/bin/sh"
+          },
+          {
+            "path": "controls/tool-bin/sw_vers",
+            "device": 16777232,
+            "inode": 181269297,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/sw_vers"
+          },
+          {
+            "path": "controls/tool-bin/tar",
+            "device": 16777232,
+            "inode": 181269294,
+            "mode": 493,
+            "kind": "symlink",
+            "target": "/usr/bin/bsdtar"
+          },
+          {
+            "path": "home",
+            "device": 16777232,
+            "inode": 181269281,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "tmp",
+            "device": 16777232,
+            "inode": 181269282,
+            "mode": 448,
+            "kind": "directory"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/private/tmp/full-gate-unified76-env13-pqwX9D-authority",
+      "device": 16777232,
+      "inode": 181269280,
+      "removed": true,
+      "finalTree": {
+        "bytes": 7323,
+        "entries": [
+          {
+            "path": ".",
+            "device": 16777232,
+            "inode": 181269280,
+            "mode": 448,
+            "kind": "directory"
+          },
+          {
+            "path": "worker.json",
+            "device": 16777232,
+            "inode": 181269346,
+            "mode": 420,
+            "kind": "file",
+            "bytes": 7323,
+            "sha256": "bdf639caefed763220978e1cb9827adbccc6436c69f99f40a2344193c0ec78e3"
+          }
+        ]
+      }
+    }
+  ],
+  "imports": [
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/fenced-supervisor.mjs",
+      "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+    },
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/common.mjs",
+      "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+    },
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+    },
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/supervise.mjs",
+      "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+    },
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/process-observer.mjs",
+      "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+    },
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/os-instruction-fence.mjs",
+      "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+    },
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/transport.mjs",
+      "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646"
+    },
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/projection.mjs",
+      "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8"
+    },
+    {
+      "url": "file:///private/tmp/unified76-env-independent-pqwX9D/driver/tool-routing.mjs",
+      "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+    }
+  ],
+  "counts": {
+    "pass": 30,
+    "fail": 2,
+    "unexecuted": 1
+  },
+  "stopped": false,
+  "runtime": {
+    "fullGate": false,
+    "A10": false,
+    "privateOperations": false,
+    "pack": false
+  }
+}

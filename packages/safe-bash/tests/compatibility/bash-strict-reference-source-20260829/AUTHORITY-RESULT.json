@@ -1,0 +1,64 @@
+{
+  "records": [
+    {
+      "name": "design",
+      "argv": [
+        "show",
+        "90c109913cf2a1ec5b39ba0c4eb0518caca01147:tests/compatibility/bash-strict-mode-design-20260829/README.md"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        16429,
+        0
+      ],
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "accepted-paths",
+      "argv": [
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "-z",
+        "be284b6f799e7501c793daff4d7bffc36ce4090b"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        137,
+        0
+      ],
+      "closed": true,
+      "failure": null
+    },
+    {
+      "name": "author-paths",
+      "argv": [
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "-z",
+        "928be558"
+      ],
+      "status": {
+        "code": 0,
+        "signal": null
+      },
+      "lengths": [
+        41,
+        0
+      ],
+      "closed": true,
+      "failure": null
+    }
+  ],
+  "childrenClosed": 3
+}

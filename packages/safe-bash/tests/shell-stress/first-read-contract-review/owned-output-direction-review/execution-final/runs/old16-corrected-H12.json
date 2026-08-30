@@ -1,0 +1,34 @@
+{
+  "label": "old16-corrected-H12",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/holdouts-r1.mjs",
+    "H12"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:05.032Z",
+  "finishedAt": "2026-08-27T10:38:05.114Z",
+  "durationMs": 82.65779099999963,
+  "timeoutMs": 15000,
+  "maxBytes": 262144,
+  "pid": 6908,
+  "initialIdentity": "6908  4804  6908 Thu Aug 27 05:38:05 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/holdouts-r1.mjs H12",
+  "status": 0,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"H12\",\"verdict\":\"PASS\",\"records\":[{\"mode\":\"caller-object\",\"cleanups\":1,\"rejection\":{\"code\":\"EPIPE\",\"source\":\"caller\"},\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"caller-object\",\"passed\":true},{\"mode\":\"caller-zero\",\"cleanups\":1,\"rejection\":0,\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"caller-zero\",\"passed\":true},{\"mode\":\"execution-and-cleanup\",\"cleanups\":1,\"rejection\":{\"limit\":\"maxCommands\",\"name\":\"ShellLimitError\"},\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"execution-and-cleanup\",\"passed\":true},{\"mode\":\"sole-cleanup\",\"cleanups\":1,\"rejection\":{\"failure\":\"cleanup-one\"},\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"sole-cleanup\",\"passed\":true},{\"mode\":\"two-cleanups\",\"cleanups\":2,\"rejection\":{},\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"two-cleanups\",\"passed\":true}]}\n",
+  "stderr": ""
+}

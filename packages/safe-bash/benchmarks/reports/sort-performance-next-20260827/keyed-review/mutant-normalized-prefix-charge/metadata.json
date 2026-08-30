@@ -1,0 +1,51 @@
+{
+  "commit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+  "sourceSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+  "instrumentedSha256": "b43e737a8c6810b82b12d2e35b9a57487d6bc7a875e7a5f1cb54bd87b216415f",
+  "emittedSha256": "04370c27085a6e428c3de6c0235e44bd3e51c5fe5476f3758bdd4856ac3cbb4a",
+  "recipeSource": {
+    "commit": "3fe952ea89034ceea784be26731581aabbb898c8",
+    "path": "benchmarks/reports/sort-performance-next-20260827/workloads.json",
+    "sha256": "3d99fdebe7262d3fcce473e96af7ddbe6bb27b1fe17886657cddc8d32e8c0504"
+  },
+  "casesSha256": "ba510f1787a6c947fb9d82116cbf46bff30dd8957580366e25452fdb11a95785",
+  "child": {
+    "args": [
+      "--test",
+      "--test-reporter=tap",
+      "loaded-worker.mjs"
+    ],
+    "pid": 35017,
+    "code": 0,
+    "signal": null,
+    "killed": null,
+    "exactChildClosed": true,
+    "outputBytes": 347,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counterFailures": [
+    {
+      "id": "retained-at",
+      "rule": "full selected backing charge"
+    },
+    {
+      "id": "retained-at",
+      "rule": "retained at"
+    },
+    {
+      "id": "oversized-extracted-small-prefix",
+      "rule": "full selected backing charge"
+    },
+    {
+      "id": "oversized-extracted-small-prefix",
+      "rule": "byte fallback exercised"
+    }
+  ],
+  "sourceBuildAndMovedPackageUnchanged": true,
+  "detectsAddedEntries": true,
+  "archiveSha256After": "c432e25d0bdddcdadf24c861d4fbf382247931f95a4120b6df4dfaba93bed08b",
+  "instrumentationOnly": true,
+  "timingClaims": false
+}

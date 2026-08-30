@@ -1,0 +1,9 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/revision-1nfak8/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/revision-1nfak8/tests/fs/mount/identity-compatibility-review/traversal-authority.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

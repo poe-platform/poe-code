@@ -1,0 +1,11 @@
+/usr/bin/sandbox-exec (architecture x86_64):
+	/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)
+/usr/bin/sandbox-exec (architecture arm64e):
+	/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)
+/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node:
+	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 3038.1.255)
+	/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 61439.1.1)
+	/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 1800.101.0)
+	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)

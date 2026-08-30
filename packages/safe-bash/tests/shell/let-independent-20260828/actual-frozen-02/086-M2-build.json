@@ -1,0 +1,23 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/mutant-M2/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json",
+    "--skipLibCheck",
+    "false"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/mutant-M2",
+  "started": "2026-08-28T07:59:41.806Z",
+  "finished": "2026-08-28T07:59:46.460Z",
+  "pid": 30993,
+  "code": 0,
+  "signal": null,
+  "spawnError": null,
+  "failure": null,
+  "groupAbsent": true,
+  "closeObserved": true,
+  "stdout": "",
+  "stderr": "",
+  "bytes": 0
+}

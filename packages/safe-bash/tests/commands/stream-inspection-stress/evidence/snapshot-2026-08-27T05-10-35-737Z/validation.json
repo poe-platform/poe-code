@@ -1,0 +1,102 @@
+{
+  "target": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z",
+  "at": "2026-08-27T05:10:45.610Z",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/tmp/safe-bash-stream-verifier-20260827-A/validate-snapshot.mjs"
+  ],
+  "checks": [
+    {
+      "name": "scoped-noEmit",
+      "at": "2026-08-27T05:10:45.345Z",
+      "roots": [
+        "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z/tests/commands/stream-inspection-stress/holdouts.test.ts"
+      ],
+      "options": {
+        "target": 10,
+        "lib": [
+          "lib.es2023.d.ts"
+        ],
+        "module": 199,
+        "moduleResolution": 99,
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "verbatimModuleSyntax": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "types": [
+          "node"
+        ],
+        "noEmit": true
+      },
+      "diagnostics": 0,
+      "output": "",
+      "emitSkipped": null
+    },
+    {
+      "name": "isolated-source-factory-build",
+      "at": "2026-08-27T05:10:45.610Z",
+      "roots": [
+        "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z/src/commands/stream-inspection/index.ts"
+      ],
+      "options": {
+        "target": 10,
+        "lib": [
+          "lib.es2023.d.ts"
+        ],
+        "module": 199,
+        "moduleResolution": 99,
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "verbatimModuleSyntax": true,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "types": [
+          "node"
+        ],
+        "rootDir": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z/src",
+        "outDir": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T05-10-35-737Z/isolated-build",
+        "declaration": true,
+        "noEmitOnError": true
+      },
+      "diagnostics": 0,
+      "output": "",
+      "emitSkipped": false
+    }
+  ],
+  "buildHashes": {
+    "commands/internal.d.ts": "fe71a08cba52f6389dbd901243a63bb218b23188b886e134aab5891dfe5c07c7",
+    "commands/internal.js": "311054de7e4107fd751f1a2446e4a937a452c53fe038825c51e96daf053d0826",
+    "commands/stream-inspection/expand.d.ts": "31ea4d9f4f66e773daeb7833c5fb8bbbeb942ee9830867aa9b359623e5044b52",
+    "commands/stream-inspection/expand.js": "587db796a9fbaf2e52e0a92abd447fcb299d5816ad96fb4f8ab07997560710ed",
+    "commands/stream-inspection/fold.d.ts": "14b9dd48d0ef183678a0726470c41bc1011e815134242a5fcd61aa9ad2e32abf",
+    "commands/stream-inspection/fold.js": "7ba19449994467852043228c47e09d36df77342688b352beb28a9d364d598a43",
+    "commands/stream-inspection/index.d.ts": "c26b1e3dc99bac92f3dd455c92ddc2ac10a06d24f31eef463200ebc272ba1bd6",
+    "commands/stream-inspection/index.js": "ef813a36d8893eca65eea7c728efc28831e41aa61a6b1547c3283a571ba0c834",
+    "commands/stream-inspection/numeric-options.d.ts": "de405821cb5d8750b83210f2fdb5c9024b2caba76b784d6a6337ad76ee341064",
+    "commands/stream-inspection/numeric-options.js": "20e79f45cf27704fb8a00648fc1e04397cfa53498eee9a937dada6bec46c2166",
+    "commands/stream-inspection/shared.d.ts": "1ae3325b2325a605643d688a67ba4c6f3b53bd33b36fc9893ad807ef1a9ae32d",
+    "commands/stream-inspection/shared.js": "0a1035932d3b116e5f76c308e33c0451b259c7c874184ae43a7a373c5742c6b4",
+    "commands/stream-inspection/strings.d.ts": "a9794741bc729d2746fa249acdb0b70bfa129d99178a0e565939f561b53db8f2",
+    "commands/stream-inspection/strings.js": "e873726a08340a2e34903d9ecdab01d9f81b7c313b0de30bf61dcfa5d2b08f5c",
+    "commands/stream-inspection/tac.d.ts": "4a999372e9dd6bb9ab8d91b4fb546fd61ca495848bed58a4e5b3eb3667bf8f77",
+    "commands/stream-inspection/tac.js": "60cea2ac677d9931695258f3594663dd64df75923e22dde803405bc1925d1c89",
+    "contracts/command.d.ts": "30ffbf0de5396823d09af5981824fbf0a7860b8ba9a7cce98dede2eb8b1e763b",
+    "contracts/command.js": "2dfc699844400c28b96998571e4d40ba5b753536dfdb763931e8228d91e0475e",
+    "contracts/errors.d.ts": "156c4f71c1dd8acc26f18b7a2088dad591d134e86dbffb778976fda39124765a",
+    "contracts/errors.js": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+    "contracts/filesystem.d.ts": "3f87505754170bcae6d2201ff9875d85b13987e0a655dd52e476cd4fb626e169",
+    "contracts/filesystem.js": "5178c790903774b0c5e57caa40f638e0fa956166c7181617d37046a642836d50",
+    "contracts/index.d.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "contracts/index.js": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "contracts/io.d.ts": "521f3125f4b8416c72ff6295b32b3294073d5907d63059baf33e64cbd468b66f",
+    "contracts/io.js": "c6afd5bc282dd828d71d4ec32cd7b687cc1d779d7108d59e2a7321c58b9aeb0a",
+    "contracts/path.d.ts": "6e841b209db3299d61ce4213734f8d4267f4b51a33f2fc8d685f95947a7bd24a",
+    "contracts/path.js": "c14e293f08164e8de78ba1c3dbcfd94358e122c92254d74ec0b003b324d5fafb",
+    "contracts/plugin.d.ts": "c26fe050fad245841368a0e11ea3bf9082474d83344d009ebae413b908e77e5b",
+    "contracts/plugin.js": "69417d4b49af75a6f2045fea89768f2d7b6b7c05c454df279e6ad41c71b4d2a4"
+  },
+  "boundary": "Selected stress harness noEmit and selected source factory isolated ESM/declaration build; not root npm test/build or public package export evidence"
+}

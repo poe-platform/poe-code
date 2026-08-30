@@ -1,0 +1,66 @@
+{
+  "schema": "node-abi-inherited-bindings-v1",
+  "acceptedEvidenceCommit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+  "executorCommit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+  "toolClosureSha256": "808f95497540375aed43c83d305482359e216773bae5d02ccf7f68539dff605f",
+  "engineClosureSha256": "3be5cdcd7869e0b50da41335a34c7aa44a19abcd089ea3c86290529bf08ab687",
+  "references": [
+    {
+      "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/supervisor.mjs.data",
+      "bytes": 32644,
+      "sha256": "91591ae00ae696bbae525bf56f2a81c63f10a3154e89a0cbf87630be8954c76c",
+      "gitBlob": "cb676ec96d12c0c9c0f30030c3c06c59a8894ff2"
+    },
+    {
+      "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/loader.mjs.data",
+      "bytes": 7297,
+      "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04",
+      "gitBlob": "0781c8eb2bf1092ce477010c72ca8f3fd6d02586"
+    },
+    {
+      "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/child.mjs.data",
+      "bytes": 23131,
+      "sha256": "a216ab13f69c944a024296745cc7b2021a12e5aef08f208ed0a84820382aa9ac",
+      "gitBlob": "2485e3a8d3bdfb5acc8715842a46628758a3a46f"
+    },
+    {
+      "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/TOOLS.json",
+      "bytes": 146691,
+      "sha256": "808f95497540375aed43c83d305482359e216773bae5d02ccf7f68539dff605f",
+      "gitBlob": "f15be9912fee87fbdaec46b143f1106f8aa782a6"
+    },
+    {
+      "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/ENGINE.json",
+      "bytes": 21706,
+      "sha256": "3be5cdcd7869e0b50da41335a34c7aa44a19abcd089ea3c86290529bf08ab687",
+      "gitBlob": "9da7a82083f20a9e7266fbe190876518084b00e0"
+    },
+    {
+      "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+      "path": "tests/commands/node-design-20260828/source-feasibility-v1/SOURCES.json",
+      "bytes": 14535,
+      "sha256": "f7e75197fb97ff055612f3ecced0a6f2d441a5b9b0ffd1c438b2ef7841edd2ec",
+      "gitBlob": "48bd958dcaefb94f497faef79384cfe29bff31b9"
+    },
+    {
+      "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+      "path": "tests/commands/node-design-20260828/source-feasibility-v1/EXPERIMENTS.json",
+      "bytes": 11607,
+      "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+      "gitBlob": "5be2819f112020677c574aae83189ccddbf66688"
+    },
+    {
+      "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+      "path": "tests/commands/node-design-20260828/source-feasibility-v1/REPORT.md",
+      "bytes": 7689,
+      "sha256": "15ae1a5bdee2431f987d52359d5d353b9a1cbab6a8ed5808ea692ab0af8e7837",
+      "gitBlob": "0e9957767c8b759934880ca92969918a5d0d4022"
+    }
+  ],
+  "qualification": "History and mechanism provenance, not automatic current acceptance; no old6/25 rerun and no product package load. Original source-feasibility seven identities remain immutable."
+}

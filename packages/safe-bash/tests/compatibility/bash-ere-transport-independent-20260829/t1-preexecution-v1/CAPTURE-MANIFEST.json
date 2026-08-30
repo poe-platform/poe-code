@@ -1,0 +1,10 @@
+{
+  "entries": 47,
+  "rawFileBytes": 8266268,
+  "compressedBytes": 7262921,
+  "compressedSha256": "459b814a2c9d5adb67eba659b8d95204938350dfed5b9b3a0ce14e2e7a79d0b0",
+  "decodedBytes": 11029074,
+  "decodedSha256": "815753f09b1cdb399d5aeda5bda4f03b63dbeb5037a41ecb3bddba12a7b48c9c",
+  "snapshotAt": "2026-08-29T13:15:22.488Z",
+  "qualification": "Captured processes through ownership replay; later publication metadata is separately reported, no universal census claim."
+}

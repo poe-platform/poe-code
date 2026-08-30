@@ -1,0 +1,853 @@
+[
+  {
+    "id": "B01",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "x='a b'; printf '<%s>\\n' pre\"$x\"post '' 'literal *'",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B01/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B01/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B01/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B01/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "bb16c2af4aefa3997a298513b57b7bd4107d3432065f3abac7d2bcd47ad56311",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B02",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "set --; printf '<%s>\\n' before \"$@\" after",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B02/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B02/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B02/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B02/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "1f8bea9fb5249aa56f1ee0e032e64ffcde9ceacd9b68fe571aa3c1c96db059ab",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B03",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "set -- 'a b' '' c; printf '<%s>\\n' pre\"$@\"post",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B03/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B03/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B03/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B03/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "8282dc177954c730ee3db686fbfebb2de82adf4c2a4c257fbd91934d3e3fe669",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B04",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "IFS=' '; x='  a   b  '; printf '<%s>\\n' $x",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B04/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B04/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B04/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B04/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "738f211a52b4bab3b62f0938fe48374c46d16a2d46f1be5e49ebccfc4ec7693a",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B05",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "IFS=' :'; x=' a : :b: '; printf '<%s>\\n' $x",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B05/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B05/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B05/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B05/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "d1c871260aa3d015a89ace98760006ede302873fb296dca66195bb29f9746b81",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B06",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "IFS=; x='a b'; unset z; printf '<%s>\\n' $x $z \"$z\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B06/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B06/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B06/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B06/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "e799d45f0825d422332023a7b197487a0cfa1c0825631fa797120f80d8de7ccd",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B07",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "unset x; y=; printf '<%s>\\n' \"${x-default}\" \"${y-default}\" \"${y:-default}\" \"${x:=set}\" \"$x\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B07/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B07/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B07/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B07/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "b3a524ca3f47188ffc08fe02bf383acb5aa438048db19439d4fc7839b30b8316",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B08",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "x='dir/file.tar.gz'; printf '%s\\n' \"${x##*/}\" \"${x%.*}\" \"${x//./_}\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B08/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B08/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B08/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B08/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "d1f28c3aec6d474fbe01127d329958ef0108a67cce7cbe3c6a1a24ee71337e74",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B09",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "x=$(printf 'a\\n\\n'); printf '<%s>\\n' \"$x\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B09/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B09/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B09/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B09/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "26d4867669c2b868a681ad76a175c5856bf950ba4d9bd41a480881090bd99bd8",
+    "extraProcessReservation": 1
+  },
+  {
+    "id": "B10",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "printf '<%s>\\n' *.txt '*.txt' absent-*",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B10/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B10/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B10/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B10/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "99c008515212f5416dc236d8f92c4176b47e8b6b305d2febfbc3e90b5a3cfd6f",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B11",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "shopt -s dotglob; printf '<%s>\\n' *; shopt -u dotglob; printf '<%s>\\n' *",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B11/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B11/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B11/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B11/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "68728510528d362c5f35c52128562f278ee74ddff9cc5f8771a2edcb553d4994",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B12",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "shopt -s nullglob; printf '<%s>\\n' before absent-* after",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B12/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B12/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B12/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B12/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "3922643efdffda43da015ce89ecab9ee38392b1749b3b5761ddfeefa3ff5b8c2",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B13",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "shopt -s extglob\nprintf '<%s>\\n' @(a|b).txt",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B13/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B13/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B13/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B13/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "e25d24158b7f22382896cf4d9746a9dc2845510e99dce8b67aece8d6f40b6e7e",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B14",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "v=outer; f(){ printf '%s\\n' \"$v\"; v=inner; }; v=prefix f; printf '%s\\n' \"$v\"; (v=sub; printf '%s\\n' \"$v\"); printf '%s\\n' \"$v\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B14/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B14/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B14/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B14/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "7e1004bca7496bba58bbabb92d45df683b597b285a13f3b037e153e32097201a",
+    "extraProcessReservation": 1
+  },
+  {
+    "id": "B15",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "v=outer; f(){ local v=inner; readonly v; printf '%s\\n' \"$v\"; }; f; v=after; printf '%s\\n' \"$v\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B15/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B15/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B15/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B15/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "a52df9dc48a16ae8ef31e2b2216113633dbf7676716ddba8f30e9dfc845600f2",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B16",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "a=([2]='two words' [5]=''); a+=('tail'); printf '<%s>\\n' \"${a[@]}\"; printf '%s\\n' \"${#a[@]}\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B16/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B16/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B16/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B16/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "0f4c0276d0f273c89bee9d68497e55bee02ea62bf711ab104c8d849afe8e8221",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B17",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "a=(zero one two); i=1; printf '%s\\n' \"${a[i+1]}\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B17/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B17/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B17/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B17/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "7473024a6f7b566a503cc9a118b1595886edbd79d464f4319f081c1a645ad37b",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B18",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "declare -a a; a[2]=two; declare -p a; declare -rx v=value; declare -p v",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B18/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B18/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B18/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B18/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "c4ed104223dd9d1e958c18424006f46b5aa1769e869b3a9923955fca64f6b4dd",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B19",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "typeset -a a; a[0]=zero; typeset -p a",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B19/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B19/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B19/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B19/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "16bfa4c30f5bdecfd99e34790c78bea900f2826447ddf67933995bba25bddd72",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B20",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "mapfile -t a; printf '<%s>\\n' \"${a[@]}\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B20/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B20/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B20/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B20/empty-path"
+    },
+    "stdinBase64": "YQpiIGIKbGFzdA==",
+    "programSha256": "aad6a919a4ad98855f2b32c29be2f02e24f5947314b4e233a5a398832dcadfca",
+    "extraProcessReservation": 1
+  },
+  {
+    "id": "B21",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "a=(keep old); readarray -t -O 1 -n 1 a; printf '<%s>\\n' \"${a[@]}\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B21/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B21/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B21/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B21/empty-path"
+    },
+    "stdinBase64": "bmV3CnJlc3QK",
+    "programSha256": "7a744081fafa99992c8286fc6717cb70138bb0f37c2040361c36e552a8855f39",
+    "extraProcessReservation": 1
+  },
+  {
+    "id": "B22",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "IFS=: read -r -a a; printf '<%s>\\n' \"${a[@]}\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B22/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B22/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B22/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B22/empty-path"
+    },
+    "stdinBase64": "YTo6Ygo=",
+    "programSha256": "0a62b540aa1d664ec357046fe24f7a214b14c1ca2355381adfd375e6d6002407",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B23",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "{ printf O; printf E >&2; } 2>&1 >out; printf '|'; while IFS= read -r -N 1 ch; do printf '%s' \"$ch\"; done <out",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B23/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B23/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B23/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B23/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "45f6a4012d8efa17d9d64eab576c1466ce82a9440d7e8145240e6b955a98a9bc",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B24",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "{ printf 'O\\n'; printf 'E\\n' >&2; } |& while IFS= read -r line; do printf '<%s>\\n' \"$line\"; done",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B24/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B24/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B24/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B24/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "75b8915b7cbb931b004e198b2e13eedf29165aced2753cd498122f5bef3bc782",
+    "extraProcessReservation": 2
+  },
+  {
+    "id": "B25",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "{ printf O; printf E >&2; } &>out; printf 'done\\n'",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B25/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B25/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B25/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B25/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "094e1c4277347d132872d13cb2aadb957249adc0686cc7cb48833198ee8e05a5",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B29",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false | true; printf '%s\\n' \"$?\"; set -o pipefail; false | true; printf '%s\\n' \"$?\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B29/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B29/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B29/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B29/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "a83fa46bf84ec4c3d4fad232c9915c00f47304f94788dc56758984402f7606db",
+    "extraProcessReservation": 4
+  },
+  {
+    "id": "B30",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false | true; printf '<%s>\\n' \"${PIPESTATUS[@]}\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B30/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B30/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B30/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B30/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "4e2b839fbb76fe9ba5eacc948c39f3acffc335ac35920a5ffc0bb33090cb47ad",
+    "extraProcessReservation": 2
+  },
+  {
+    "id": "B31",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "set -e; if false; then printf BAD; fi; false || printf 'or\\n'; ! true; printf 'after\\n'",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B31/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B31/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B31/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B31/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "86e70f0c01f262d712b5542d51e4aa671d9c89c88889e33cfd70ac99b4479bed",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B32",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "set -euo pipefail; printf '%s\\n' \"${missing-default}\"; printf '%s\\n' \"$missing\"; printf BAD",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B32/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B32/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B32/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B32/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "dd3c852cb6f8c6548b7b90ce409f67f3a5c9d1b399d02c8a60279f80601f4393",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B33",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "x='a b'; if [[ $x == a* && -n $x ]]; then printf 'yes\\n'; else printf 'no\\n'; fi",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B33/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B33/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B33/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B33/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "b45c52726e7e2843234012a449d87d3d2ea641ef5fdf11e03f277287bc1c62d3",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B34",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "for ((i=0;i<3;i++)); do printf '%s\\n' \"$i\"; done",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B34/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B34/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B34/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B34/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "a1b01cd623b7dcb949b01e816b5eb80ef9bc16ee3c11a5cdf703b8edb6be0fbf",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B35",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "function f { printf 'f:%s\\n' \"$1\"; }; f value",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B35/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B35/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B35/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B35/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B36",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "case x in x) printf A ;& y) printf B ;; esac; printf '\\n'",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B36/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B36/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B36/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B36/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "4cb2df7be5dde15f64ec52418376454becaa90d5ba95666e98d516c56056ffcb",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B37",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "v=before; . ./source-fixture arg; eval 'v=eval'; printf '%s\\n' \"$v\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B37/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B37/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B37/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B37/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "1c960724cb866305d1aa35ed8f15524da257db6826003e2d0acb150e9fee45a8",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B38",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "trap 'printf cleanup' EXIT; printf body; exit 7",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B38/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B38/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B38/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B38/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "12420d3a8de9fd1167992b569c9e4c35aca57a0d01a6173d7fdddd26374635f5",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "B39",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "__surface_missing_command__; printf 'status:%s\\n' \"$?\"",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B39/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B39/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B39/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B39/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "182514c13f2f388685da843db2235fcb23609d00e2dbccbb323fba066f9a138c",
+    "extraProcessReservation": 1
+  },
+  {
+    "id": "B40",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "printf 'A\\000B\\n'; printf '%s\\n' 'é' >&2",
+      "surface-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B40/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B40/home",
+      "TMPDIR": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B40/tmp",
+      "PATH": "/private/tmp/safe-bash-surface-functional-v3-20260829-01/cases/B40/empty-path"
+    },
+    "stdinBase64": "",
+    "programSha256": "b321e9782fb2035dfa8339040704e21eebaa27cbec66d0b8c0d39030d4a2237e",
+    "extraProcessReservation": 0
+  }
+]

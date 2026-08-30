@@ -1,0 +1,171 @@
+import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
+import threads from 'node:worker_threads';
+import { syncBuiltinESMExports } from 'node:module';
+import { realpathSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+
+const tick = () => new Promise(resolve => setImmediate(resolve));
+function latch() { let release; const promise = new Promise(resolve => { release = resolve; }); return { promise, release }; }
+const settled = promise => Promise.resolve(promise).then(value => ({ state: 'fulfilled', value }), reason => ({ state: 'rejected', reason }));
+export async function run(payload) {
+  const base = pathToFileURL(`${realpathSync(payload.installed)}/`).href;
+  const events = [], workers = [], waiters = new Map(), releases = [];
+  function event(value) { events.push(value); waiters.get(value.type)?.release(); }
+  async function until(type) { if (events.some(value => value.type === type)) return; const held = latch(); waiters.set(type, held); await held.promise; }
+  const NativeWorker = threads.Worker;
+  let plan = {};
+  threads.Worker = class extends EventEmitter {
+    constructor(url) {
+      super(); assert(url.href.startsWith(base)); this.number = workers.length + 1; this.plan = { ...plan }; this.dead = false;
+      workers.push(this); event({ type: 'workerStart', worker: this.number, url: url.href });
+      if (!(this.number === 1 && this.plan.noReady)) queueMicrotask(() => { event({ type: 'ready', worker: this.number }); this.emit('message', { ready: true }); });
+    }
+    postMessage(request) {
+      this.request = request;
+      event({ type: 'post', worker: this.number, id: request.id, pattern: Buffer.from(request.descriptor.pattern).toString('hex'), subject: Buffer.from(request.rows[0].bytes).toString('hex') });
+      if (this.plan.throwUndefined && this.number === 1) throw undefined;
+      if (this.number === 1 && this.plan.holdFirst) return;
+      queueMicrotask(() => this.reply(this.plan.malformed && this.number === 1));
+    }
+    reply(malformed = false) {
+      const request = this.request;
+      if (!request) return;
+      this.emit('message', { id: malformed ? request.id + 1 : request.id, operation: 'expr-match', result: { offsetUnit: 'byte', matched: true, hasCapture: false, overall: { start: 0, end: request.rows[0].bytes.length }, capture: null, steps: 10 } });
+    }
+    ref() { return this; }
+    unref() { return this; }
+    async terminate() {
+      event({ type: 'terminate', worker: this.number });
+      if (this.plan.holdTerminate) { const held = latch(); releases.push(held.release); await held.promise; }
+      this.dead = true; this.emit('exit', 0); event({ type: 'terminated', worker: this.number }); return 0;
+    }
+  };
+  syncBuiltinESMExports();
+  const { RegexExecutor } = await import(`${base}dist/commands/regex-execution/client.js`);
+  const { exprMatchCeilings } = await import(`${base}dist/commands/regex-execution/protocol.js`);
+  const descriptor = () => ({ kind: 'expr-match', pattern: Buffer.from('a'), profile: 'byte', limits: { ...exprMatchCeilings, maxSteps: 1000000 } });
+  const sessions = [], executors = [];
+  const executor = options => { const value = new RegexExecutor({ maxWorkers: 1, startupTimeoutMs: 80, requestTimeoutMs: 80, ...options }); executors.push(value); return value; };
+  const open = (owner, controller = new AbortController()) => { const value = owner.open(controller.signal); sessions.push(value); return value; };
+  const call = (session, desc = descriptor(), subject = Buffer.from('a')) => settled(session.matchExpr(desc, subject));
+  let result, controlFailure;
+  const unhandled = [];
+  const onUnhandled = reason => unhandled.push(String(reason));
+  process.on('unhandledRejection', onUnhandled);
+  try {
+    if (payload.scenario === 'queue' || payload.scenario === 'owned-bytes') {
+      plan = { holdFirst: true };
+      const owner = executor({ maxQueuedRequests: 1, maxQueuedBytes: payload.byteLimit ?? 258 });
+      const first = open(owner), controller = new AbortController(), second = open(owner, controller), third = open(owner);
+      const active = call(first); await until('post');
+      const pattern = Buffer.from('a'), subject = Buffer.from('a');
+      const pending = call(second, { ...descriptor(), pattern }, subject);
+      pattern.fill(98); subject.fill(98);
+      if (payload.scenario === 'owned-bytes') {
+        workers[0].plan.holdFirst = false; workers[0].reply();
+        const results = await Promise.all([active, pending]);
+        result = { results, posted: events.filter(value => value.type === 'post') };
+        assert(results.every(value => value.state === 'fulfilled'));
+        assert.equal(result.posted[1].pattern, '61'); assert.equal(result.posted[1].subject, '61');
+      } else if (payload.byteLimit === 257) {
+        const rejected = await pending;
+        result = { rejected: { state: rejected.state, code: rejected.reason?.code }, chargedBytes: 258, queueAllowance: 257 };
+        assert.equal(rejected.reason?.code, 'QUEUE_EXHAUSTED');
+        workers[0].reply(); await active;
+      } else {
+        const rejected = await call(third); assert.equal(rejected.reason?.code, 'QUEUE_EXHAUSTED');
+        controller.abort(0); const cancelled = await pending; assert.equal(cancelled.state, 'rejected'); assert.equal(cancelled.reason, 0);
+        const successor = call(third);
+        workers[0].plan.holdFirst = false; workers[0].reply();
+        const results = await Promise.all([active, successor]); assert(results.every(value => value.state === 'fulfilled'));
+        result = { overflow: rejected.reason.code, queuedAbortExactZero: cancelled.reason === 0, successor: results, workerStarts: workers.length, chargedBytes: 258 };
+        assert.equal(workers.length, 1);
+      }
+    } else if (['startup-timeout', 'active-timeout', 'malformed'].includes(payload.scenario)) {
+      plan = { noReady: payload.scenario === 'startup-timeout', holdFirst: payload.scenario === 'active-timeout', malformed: payload.scenario === 'malformed' };
+      const owner = executor({ maxWorkers: 2 });
+      const first = open(owner), sibling = open(owner);
+      const badPromise = call(first), siblingResult = await call(sibling);
+      const bad = await badPromise;
+      const expected = payload.scenario === 'startup-timeout' ? 'STARTUP_TIMEOUT' : payload.scenario === 'active-timeout' ? 'REQUEST_TIMEOUT' : 'PROTOCOL';
+      assert.equal(bad.reason?.code, expected); assert.equal(siblingResult.state, 'fulfilled');
+      const siblingWorker = workers[1];
+      assert(!siblingWorker.dead);
+      workers[0].emit('message', { ready: true });
+      const replacement = await call(first);
+      assert.equal(replacement.state, 'fulfilled');
+      if (payload.scenario === 'startup-timeout') assert(!events.some(value => value.type === 'post' && value.worker === 1));
+      result = { failureCode: bad.reason.code, sibling: siblingResult, siblingAliveBeforeClose: !siblingWorker.dead, replacement, lateReadyDidNotResurrect: workers[0].dead };
+    } else if (payload.scenario === 'abort') {
+      plan = { noReady: payload.stage === 'startup', holdFirst: payload.stage === 'active' };
+      const owner = executor(); const controller = new AbortController(); const session = open(owner, controller);
+      const reason = payload.reason === 'zero' ? 0 : payload.reason === 'undefined-native' ? undefined : new Error('abort object');
+      if (payload.stage === 'pre') controller.abort(reason);
+      let outcome;
+      try {
+        const promise = call(session);
+        if (payload.stage !== 'pre') { await until(payload.stage === 'startup' ? 'workerStart' : 'post'); controller.abort(reason); }
+        outcome = await promise;
+      } catch (error) { outcome = { state: 'rejected', reason: error }; }
+      result = { state: outcome.state, exact: Object.is(outcome.reason, controller.signal.reason), nativeReasonType: typeof controller.signal.reason, nativeReasonName: controller.signal.reason?.name, starts: workers.length };
+      assert.equal(outcome.state, 'rejected'); assert(result.exact);
+    } else if (payload.scenario === 'undefined-rejection') {
+      plan = { throwUndefined: true };
+      const owner = executor(), session = open(owner);
+      const outcome = await call(session);
+      result = { state: outcome.state, actualReasonType: typeof outcome.reason, actualCode: outcome.reason?.code, exactUndefined: Object.is(outcome.reason, undefined) };
+      assert.equal(outcome.state, 'rejected'); assert(result.exactUndefined, 'synthetic postMessage rejection undefined was changed or fulfilled');
+    } else if (payload.scenario === 'synthetic-undefined-abort') {
+      plan = { holdFirst: true };
+      const owner = executor(), listeners = new Set();
+      const signal = { aborted: false, reason: undefined, throwIfAborted() { if (this.aborted) throw this.reason; }, addEventListener(_type, listener) { listeners.add(listener); }, removeEventListener(_type, listener) { listeners.delete(listener); } };
+      const pending = settled(owner.request(descriptor(), [{ bytes: Buffer.from('a'), all: false, terminated: false }], signal));
+      await until('post'); signal.aborted = true; for (const listener of listeners) listener();
+      const outcome = await pending;
+      result = { state: outcome.state, valueType: typeof outcome.value, reasonType: typeof outcome.reason, exactUndefined: outcome.reason === undefined, signalKind: 'synthetic structural object accepted by direct RegexExecutor.request; NOT native AbortController(undefined)' };
+      assert.equal(outcome.state, 'rejected', 'synthetic undefined abort became successful undefined');
+      assert.equal(outcome.reason, undefined);
+    } else if (payload.scenario === 'termination-latch') {
+      plan = { holdFirst: true, holdTerminate: true };
+      const owner = executor(), session = open(owner);
+      let requestSettled = false, closeSettled = false;
+      const pending = call(session).then(value => { requestSettled = true; return value; });
+      await until('terminate');
+      const firstClose = session.close(), secondClose = session.close();
+      void firstClose.then(() => { closeSettled = true; });
+      await tick();
+      result = { sameClosePromise: firstClose === secondClose, requestBeforeRelease: requestSettled, closeBeforeRelease: closeSettled };
+      assert(result.sameClosePromise); assert(!requestSettled); assert(!closeSettled);
+      for (const release of releases.splice(0)) release();
+      await pending; await firstClose; await secondClose;
+      assert.equal(events.filter(value => value.type === 'terminate').length, 1);
+    } else if (payload.scenario === 'late-admission') {
+      const owner = executor(), session = open(owner); const close = session.close();
+      let outcome;
+      try { outcome = await call(session); } catch (error) { outcome = { state: 'rejected', reason: error }; }
+      await close;
+      result = { state: outcome.state, code: outcome.reason?.code, workerStarts: workers.length };
+      assert.equal(outcome.reason?.code, 'CLOSED'); assert.equal(workers.length, 0);
+    } else if (payload.scenario === 'late-startup-error') {
+      plan = { noReady: true, holdTerminate: true };
+      const owner = executor(), controller = new AbortController(), session = open(owner, controller);
+      const pending = call(session); await until('workerStart'); controller.abort(0); await until('terminate');
+      workers[0].emit('error', new Error('late startup failure'));
+      for (const release of releases.splice(0)) release();
+      const actual = await pending; await tick();
+      result = { state: actual.state, exactZero: actual.reason === 0, unhandled, asyncAcquisition: 'NOT APPLICABLE: installed RegexExecutor.open is synchronous; late admitted startup error tested' };
+      assert.equal(actual.state, 'rejected'); assert(actual.reason === 0); assert.deepEqual(unhandled, []);
+    } else throw new Error(`unknown lifecycle scenario ${payload.scenario}`);
+  } catch (error) { controlFailure = { name: error?.name, message: error?.message ?? String(error), stack: error?.stack }; }
+  finally {
+    for (const release of releases.splice(0)) release();
+    for (const worker of workers) worker.plan.holdTerminate = false;
+    for (const session of sessions) await session.close();
+    for (const owner of executors) await owner.dispose();
+    await tick();
+    process.off('unhandledRejection', onUnhandled);
+    threads.Worker = NativeWorker; syncBuiltinESMExports();
+  }
+  return { scenario: payload.scenario, result, controlFailure, events, unhandled, liveWorkers: workers.filter(worker => !worker.dead).length, seam: 'Real installed executor/session; deterministic synthetic worker events and retirement latches. No claim fake workers prove regex semantics.' };
+}

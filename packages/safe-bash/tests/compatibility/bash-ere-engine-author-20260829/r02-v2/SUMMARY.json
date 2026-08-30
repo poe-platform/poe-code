@@ -1,0 +1,876 @@
+{
+  "sourceBindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/errors.ts",
+      "size": 1003,
+      "mode": 420,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/limits.ts",
+      "size": 3471,
+      "mode": 420,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/syntax.ts",
+      "size": 13070,
+      "mode": 420,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/matcher.ts",
+      "size": 8543,
+      "mode": 420,
+      "sha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8"
+    }
+  ],
+  "sealSha256": "4f6d24661fc75ab4f2bc26836a735f998a88591caf377fddff36f45709799b12",
+  "exactOneLineSourceDelta": true,
+  "N01bodySha256": "56d129094c6a56386033e8015e124a5f92864d0d358ffd5f3cec15bf74ad98df",
+  "N01bodyUnchanged": true,
+  "declarations": [
+    {
+      "name": "errors.d.ts",
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994",
+      "unchanged": true
+    },
+    {
+      "name": "limits.d.ts",
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121",
+      "unchanged": true
+    },
+    {
+      "name": "matcher.d.ts",
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941",
+      "unchanged": true
+    },
+    {
+      "name": "syntax.d.ts",
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005",
+      "unchanged": true
+    },
+    {
+      "name": "types.d.ts",
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704",
+      "unchanged": true
+    }
+  ],
+  "rows": [
+    {
+      "role": "source-author66",
+      "mutated": null,
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "source-checkpoints8",
+      "mutated": null,
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "source-empty4",
+      "mutated": null,
+      "pass": 4,
+      "fail": 0,
+      "details": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": true,
+          "detail": {
+            "gap": 1,
+            "usage": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 2055,
+              "states": 2,
+              "allocationUnits": 2093,
+              "captureBytes": 1,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "E02-empty-boundaries",
+          "pass": true,
+          "detail": [
+            {
+              "count": 0,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 2,
+                "states": 2,
+                "allocationUnits": 40,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 255,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 257,
+                "states": 2,
+                "allocationUnits": 295,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 256,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 258,
+                "states": 2,
+                "allocationUnits": 296,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 257,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 259,
+                "states": 2,
+                "allocationUnits": 297,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            }
+          ]
+        },
+        {
+          "id": "E03-first-pass-caller",
+          "pass": true,
+          "detail": [
+            {
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 256,
+                "states": 0,
+                "allocationUnits": 0,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "reason": 0,
+              "phase": "Error: phase\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:87:17)\n    at Ledger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:48:20)\n    at flatten (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/emitted/syntax.js:46:22)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/emitted/syntax.js:275:33)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:92:11\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:78:1"
+            },
+            {
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 256,
+                "states": 0,
+                "allocationUnits": 0,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "reason": false,
+              "phase": "Error: phase\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:87:17)\n    at Ledger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:48:20)\n    at flatten (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/emitted/syntax.js:46:22)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/emitted/syntax.js:275:33)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:92:11\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:78:1"
+            }
+          ]
+        },
+        {
+          "id": "E04-empty-cumulative",
+          "pass": true,
+          "detail": {
+            "first": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 261,
+              "states": 0,
+              "allocationUnits": 277,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "second": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 522,
+              "states": 0,
+              "allocationUnits": 554,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "final": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 600,
+              "states": 0,
+              "allocationUnits": 554,
+              "captureBytes": 0,
+              "captureSlots": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "installed-author66",
+      "mutated": null,
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "installed-checkpoints8",
+      "mutated": null,
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "installed-empty4",
+      "mutated": null,
+      "pass": 4,
+      "fail": 0,
+      "details": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": true,
+          "detail": {
+            "gap": 1,
+            "usage": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 2055,
+              "states": 2,
+              "allocationUnits": 2093,
+              "captureBytes": 1,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "E02-empty-boundaries",
+          "pass": true,
+          "detail": [
+            {
+              "count": 0,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 2,
+                "states": 2,
+                "allocationUnits": 40,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 255,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 257,
+                "states": 2,
+                "allocationUnits": 295,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 256,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 258,
+                "states": 2,
+                "allocationUnits": 296,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 257,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 259,
+                "states": 2,
+                "allocationUnits": 297,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            }
+          ]
+        },
+        {
+          "id": "E03-first-pass-caller",
+          "pass": true,
+          "detail": [
+            {
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 256,
+                "states": 0,
+                "allocationUnits": 0,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "reason": 0,
+              "phase": "Error: phase\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:87:17)\n    at Ledger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:48:20)\n    at flatten (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact/syntax.js:46:22)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact/syntax.js:275:33)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:92:11\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:78:1"
+            },
+            {
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 256,
+                "states": 0,
+                "allocationUnits": 0,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "reason": false,
+              "phase": "Error: phase\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:87:17)\n    at Ledger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:48:20)\n    at flatten (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact/syntax.js:46:22)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/installed-app/artifact/syntax.js:275:33)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:92:11\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:78:1"
+            }
+          ]
+        },
+        {
+          "id": "E04-empty-cumulative",
+          "pass": true,
+          "detail": {
+            "first": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 261,
+              "states": 0,
+              "allocationUnits": 277,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "second": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 522,
+              "states": 0,
+              "allocationUnits": 554,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "final": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 600,
+              "states": 0,
+              "allocationUnits": 554,
+              "captureBytes": 0,
+              "captureSlots": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "moved-author66",
+      "mutated": null,
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "moved-checkpoints8",
+      "mutated": null,
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "moved-empty4",
+      "mutated": null,
+      "pass": 4,
+      "fail": 0,
+      "details": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": true,
+          "detail": {
+            "gap": 1,
+            "usage": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 2055,
+              "states": 2,
+              "allocationUnits": 2093,
+              "captureBytes": 1,
+              "captureSlots": 1
+            }
+          }
+        },
+        {
+          "id": "E02-empty-boundaries",
+          "pass": true,
+          "detail": [
+            {
+              "count": 0,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 2,
+                "states": 2,
+                "allocationUnits": 40,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 255,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 257,
+                "states": 2,
+                "allocationUnits": 295,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 256,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 258,
+                "states": 2,
+                "allocationUnits": 296,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            },
+            {
+              "count": 257,
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 259,
+                "states": 2,
+                "allocationUnits": 297,
+                "captureBytes": 0,
+                "captureSlots": 1
+              },
+              "gap": 1
+            }
+          ]
+        },
+        {
+          "id": "E03-first-pass-caller",
+          "pass": true,
+          "detail": [
+            {
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 256,
+                "states": 0,
+                "allocationUnits": 0,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "reason": 0,
+              "phase": "Error: phase\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:87:17)\n    at Ledger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:48:20)\n    at flatten (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact/syntax.js:46:22)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact/syntax.js:275:33)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:92:11\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:78:1"
+            },
+            {
+              "usage": {
+                "patternBytes": 0,
+                "subjectBytes": 0,
+                "work": 256,
+                "states": 0,
+                "allocationUnits": 0,
+                "captureBytes": 0,
+                "captureSlots": 0
+              },
+              "reason": false,
+              "phase": "Error: phase\n    at ledger.observer (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:87:17)\n    at Ledger.checkpoint (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:48:20)\n    at flatten (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact/syntax.js:46:22)\n    at async compileEre (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/physically-moved-app/artifact/syntax.js:275:33)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:92:11\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:78:1"
+            }
+          ]
+        },
+        {
+          "id": "E04-empty-cumulative",
+          "pass": true,
+          "detail": {
+            "first": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 261,
+              "states": 0,
+              "allocationUnits": 277,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "second": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 522,
+              "states": 0,
+              "allocationUnits": 554,
+              "captureBytes": 0,
+              "captureSlots": 0
+            },
+            "final": {
+              "patternBytes": 1,
+              "subjectBytes": 0,
+              "work": 600,
+              "states": 0,
+              "allocationUnits": 554,
+              "captureBytes": 0,
+              "captureSlots": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "M01-empty",
+      "mutated": "syntax",
+      "pass": 0,
+      "fail": 1,
+      "details": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": false,
+          "reasonPresent": true,
+          "error": "AssertionError [ERR_ASSERTION]: empty-fragment charged unit gap 2050\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:60:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:25:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs:53:1"
+        }
+      ]
+    },
+    {
+      "role": "M01-empty-restore",
+      "mutated": null,
+      "pass": 1,
+      "fail": 0,
+      "details": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": true,
+          "detail": {
+            "gap": 1,
+            "usage": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 2055,
+              "states": 2,
+              "allocationUnits": 2093,
+              "captureBytes": 1,
+              "captureSlots": 1
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "layout": "source",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "installed",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "moved",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M01-empty",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "b2d9c160d651f6702895f9738bc81894c3934814d7e046fc0855dba68033dc62"
+    }
+  ],
+  "guards": [
+    {
+      "id": "B01-content",
+      "refused": true,
+      "reason": "AssertionError [ERR_ASSERTION]: SAFETY input binding\n+ actual - expected\n\n  {\n    mode: 420,\n    path: '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/binding-negative.js',\n+   sha256: 'd67e2e944994496c8d8ec76eed0cf9f09679448d584b532bebf941852a37f5ed',\n+   size: 7\n-   sha256: '9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb',\n-   size: 8483\n  }\n",
+      "dataOnly": true
+    },
+    {
+      "id": "B02-missing",
+      "refused": true,
+      "reason": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/absent.js'",
+      "dataOnly": true
+    }
+  ],
+  "captures": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/01-strict-build.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/01-strict-build.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/02-source-author66.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/02-source-author66.stdout",
+      "size": 3243,
+      "mode": 420,
+      "sha256": "6d32fbc2cd00f4327ac9ca59a60df48682a75ba6a18adb7939af0ab3d37d2d3c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/03-source-checkpoints8.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/03-source-checkpoints8.stdout",
+      "size": 10228,
+      "mode": 420,
+      "sha256": "ebf914c28db65d48efe9bdd4e233f562afbc1f3189de7bc29aed66daad10b00e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/04-source-empty4.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/04-source-empty4.stdout",
+      "size": 4197,
+      "mode": 420,
+      "sha256": "75c33c7468f8e5851cf967ecceb54e7d26d9bb62731fdd903b5d3968dde31dee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/05-source-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/05-source-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/06-source-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/06-source-types-negative.stdout",
+      "size": 344,
+      "mode": 420,
+      "sha256": "b7ce6065d14f0036644f5866a7c0d7946cf36975a70ac8f9b55263b9c9a81fe1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/07-installed-author66.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/07-installed-author66.stdout",
+      "size": 3318,
+      "mode": 420,
+      "sha256": "6b0207da7591303e0a32371aa0b19bdb29e5ba710b89452ff45010de464351d0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/08-installed-checkpoints8.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/08-installed-checkpoints8.stdout",
+      "size": 10543,
+      "mode": 420,
+      "sha256": "83c42933a029967fc361eb636649215aebcaf3e312072b95b403e158901c2951"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/09-installed-empty4.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/09-installed-empty4.stdout",
+      "size": 4257,
+      "mode": 420,
+      "sha256": "34b6f8e1af8f23bf2ea1c59683f7d4b95467d2c7b96c1b23e0e968b3e6e20234"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/10-installed-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/10-installed-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/11-installed-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/11-installed-types-negative.stdout",
+      "size": 344,
+      "mode": 420,
+      "sha256": "b7ce6065d14f0036644f5866a7c0d7946cf36975a70ac8f9b55263b9c9a81fe1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/12-moved-author66.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/12-moved-author66.stdout",
+      "size": 3353,
+      "mode": 420,
+      "sha256": "df6f8b5bedc66346c86515f18226f963680846d3cbed350b131fa0f1f2e3d22a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/13-moved-checkpoints8.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/13-moved-checkpoints8.stdout",
+      "size": 10690,
+      "mode": 420,
+      "sha256": "a3b6ee3f74ec9497ea1c38440584f481a72bf944f330f61402b1316294f6778a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/14-moved-empty4.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/14-moved-empty4.stdout",
+      "size": 4285,
+      "mode": 420,
+      "sha256": "5e356feeb003a283be276f030cfb0c370564deca8c560a762cd9056db820a33c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/15-moved-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/15-moved-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/16-moved-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/16-moved-types-negative.stdout",
+      "size": 365,
+      "mode": 420,
+      "sha256": "acbb9a6600e2b09b23fde46956af7840f6fd4db724b11ec2083bb89381a5258e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/17-M01-empty.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/17-M01-empty.stdout",
+      "size": 1118,
+      "mode": 420,
+      "sha256": "7dad245fdf910a358c37dc76ad66a0dc04ae21c24b7dcddbc2799f433017a941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/18-M01-empty-restore.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/18-M01-empty-restore.stdout",
+      "size": 769,
+      "mode": 420,
+      "sha256": "bd5f5bec47076203c23ce06e9a89b47c97ca5c5f50d3edd3db3a36d76fc99a36"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/RESULT.json",
+      "size": 189552,
+      "mode": 420,
+      "sha256": "362da11e0e6ea6b3b7ea1c69c48fabd6dc1c7559c8322b2561e20c59fe82e9cf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/outer.jsonl",
+      "size": 23990,
+      "mode": 420,
+      "sha256": "3c0d19a9f354c1fda3e76ceebeb1c70dbfcc363442562e4425afa99875439f9f"
+    }
+  ],
+  "children": 18,
+  "active": 0,
+  "peakChildren": 1,
+  "captureBytes": 57054,
+  "workBytes": 26185059,
+  "elapsedMs": 5642
+}

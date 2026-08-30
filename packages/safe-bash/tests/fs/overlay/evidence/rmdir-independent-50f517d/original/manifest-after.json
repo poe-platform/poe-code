@@ -1,0 +1,67 @@
+[
+  {
+    "path": "package-lock.json",
+    "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da"
+  },
+  {
+    "path": "package.json",
+    "sha256": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+    "blob": "27648b4dd3f9bd0e2d9cc2a5f0d6f1815a822a8e"
+  },
+  {
+    "path": "src/contracts/command.ts",
+    "sha256": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "blob": "3d112e1b9a7fc38c434e57ea087eecf1412cdd4b"
+  },
+  {
+    "path": "src/contracts/errors.ts",
+    "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226"
+  },
+  {
+    "path": "src/contracts/filesystem.md",
+    "sha256": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+    "blob": "8ecafc869af087200e8236edc5b25e46d2b53fa3"
+  },
+  {
+    "path": "src/contracts/filesystem.ts",
+    "sha256": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+    "blob": "2927a848b39c11c91b2166195b1809bea9e280b5"
+  },
+  {
+    "path": "src/contracts/index.ts",
+    "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "blob": "778c289fc215e238a96880e9e64e04baed45e0d0"
+  },
+  {
+    "path": "src/contracts/io.ts",
+    "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "blob": "738e6bb2e1055d6e575f6b342b75ed3053710f70"
+  },
+  {
+    "path": "src/contracts/path.ts",
+    "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "blob": "4cbf95a4baa405a6fc5438c23511a9059b977201"
+  },
+  {
+    "path": "src/contracts/plugin.ts",
+    "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "blob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4"
+  },
+  {
+    "path": "src/fs/memory/index.ts",
+    "sha256": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+    "blob": "2d6158f60ba8e74ce19eaec4dfb6d545213ae7c1"
+  },
+  {
+    "path": "src/fs/overlay/README.md",
+    "sha256": "8733abc76fb9393a0928d85bfcbca715bb456f95697f66ac0d440e78c6939d79",
+    "blob": "aec23664aad924ffc44d7d3d84bea39d44b9443b"
+  },
+  {
+    "path": "src/fs/overlay/index.ts",
+    "sha256": "b68fb33939bbc3422c3f4e42533e1e8075dd4a01c3148847e4eef9ce0f6465db",
+    "blob": "63e9749c20d8bd2a648e06573e5c2a775d15630a"
+  }
+]

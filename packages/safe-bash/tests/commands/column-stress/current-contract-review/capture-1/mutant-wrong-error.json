@@ -1,0 +1,36 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-current-l7jXfm/candidate",
+  "mode": "source",
+  "mutant": "wrong-error",
+  "node": "v22.22.2",
+  "cases": [
+    {
+      "id": "C02",
+      "name": "raw column rejection preserves exact error",
+      "status": "fail",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "outcome": {
+        "kind": "rejection",
+        "error": "Error: raw return sentinel"
+      },
+      "exactReasonIdentity": false,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true,
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: exact error identity\n+ actual - expected\n\n+ Error: wrong error detector sentinel\n+     at sameFailure (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:37:47)\n+     at raw (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:84:25)\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:32:9)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:202:96\n- Error: raw return sentinel\n-     at raw (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:57:97)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:175:66\n-     at check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:32:15)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:202:102\n",
+        "stack": "AssertionError [ERR_ASSERTION]: exact error identity\n+ actual - expected\n\n+ Error: wrong error detector sentinel\n+     at sameFailure (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:37:47)\n+     at raw (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:84:25)\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:32:9)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:202:96\n- Error: raw return sentinel\n-     at raw (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:57:97)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:175:66\n-     at check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:32:15)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:202:102\n\n    at sameFailure (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:39:10)\n    at raw (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:84:25)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:32:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:202:96"
+      }
+    }
+  ],
+  "counts": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  },
+  "unhandledRejections": [],
+  "allCasesAndGatesFinished": true
+}

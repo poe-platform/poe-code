@@ -1,0 +1,212 @@
+diff --git a/src/commands/safejs/README.md b/src/commands/safejs/README.md
+index 9d14f6d..eade3b7 100644
+--- a/src/commands/safejs/README.md
++++ b/src/commands/safejs/README.md
+@@ -66,6 +66,19 @@ it, execution returns **127** without reading source/stdin; help still works.
+ Partial runtime objects fail configuration validation. `replace: true` permits
+ replacing an existing `safejs` registry entry; default registration rejects it.
+ 
++`command.env` is an own-entry data dictionary, not an Object-prototype capability.
++The command copies it into a prototype-free record so literal `__proto__`,
++`constructor` and `prototype` keys remain data through the injected engine.
++Guest changes do not mutate the caller's environment. This does not repair or
++promise support for arbitrary raw-engine capability records or constructor metadata.
++
++The command checks cancellation before invoking the runtime and rethrows the
++caller's exact cancellation reason. The separate filesystem and shell bridges
++retain their established sanitized `AbortError`/`ABORT_ERR` boundary; they do not
++promise raw reason identity or expose private reason objects to guest code.
++No signal is omitted, budget reset or global rejection handler installed to
++work around an external engine limitation.
++
+ ## Command grammar
+ 
+ ```text
+diff --git a/src/commands/safejs/index.ts b/src/commands/safejs/index.ts
+index 686228f..b981d9f 100644
+--- a/src/commands/safejs/index.ts
++++ b/src/commands/safejs/index.ts
+@@ -88,8 +88,10 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
+         error: declare(async (text: unknown) => output.text(text, true), "read-side-effect"),
+         errorBytes: declare(async (bytes: unknown) => output.bytes(bytes, true), "read-side-effect"),
+       };
++      const env: Record<string, string> = Object.create(null);
++      for (const [key, value] of Object.entries(context.env)) env[key] = value;
+       const command: SafeJsModule = {
+-        args: [...parsed.args], cwd: context.cwd, env: Object.fromEntries(Object.entries(context.env)),
++        args: [...parsed.args], cwd: context.cwd, env,
+         setExitCode: declare((value: unknown) => {
+           signal.throwIfAborted();
+           if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 255) throw new TypeError("exit code must be an integer from 0 through 255");
+diff --git a/src/shell/parser.ts b/src/shell/parser.ts
+index 7007d12..0abed16 100644
+--- a/src/shell/parser.ts
++++ b/src/shell/parser.ts
+@@ -5,7 +5,7 @@ import type { ArithmeticProgram } from "./arithmetic.js";
+ export type WordPart =
+   | { kind: "text"; value: string; quoted: boolean }
+   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
+-  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word }
++  | { kind: "variable"; name: string; quoted: boolean; line?: number; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
+   | { kind: "substitution"; script: Script; line: number; sourceLine?: number; quoted: boolean };
+ 
+@@ -271,11 +271,13 @@ class Lexer {
+     this.error("Unterminated delimiter expansion syntax");
+   }
+ 
+-  word(terminator?: string, enclosingQuoted = false, literal = false): Word {
++  word(terminator?: string, enclosingQuoted = false, literal = false, arithmetic = false): Word {
+     const offset = this.position;
+     const reduction = this.printedNewlineReduction;
+     const unprinted = this.unprintedWords;
+     const parts: WordPart[] = [];
++    let parentheses = 0;
++    let conditionals = 0;
+     let plain = true;
+     const text = (value: string, quoted: boolean) => {
+       const previous = parts.at(-1);
+@@ -284,7 +286,7 @@ class Lexer {
+     };
+     while (this.position < this.source.length) {
+       const current = this.source[this.position]!;
+-      if (terminator ? terminator.includes(current) : /[ \t\n;|&()<>]/u.test(current)) break;
++      if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : /[ \t\n;|&()<>]/u.test(current)) break;
+       if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
+         plain = false;
+         this.unprintedWords++;
+@@ -330,6 +332,12 @@ class Lexer {
+         }
+         else this.expansion(parts, enclosingQuoted);
+       } else {
++        if (arithmetic) {
++          if (current === "(") parentheses++;
++          else if (current === ")") parentheses--;
++          else if (current === "?") conditionals++;
++          else if (current === ":" && conditionals > 0) conditionals--;
++        }
+         text(current, false);
+         this.position++;
+       }
+@@ -431,14 +439,16 @@ class Lexer {
+       parts.push({ kind: "substitution", script, line, sourceLine: script.line ?? line, quoted });
+     } else if (this.source[this.position] === "{") {
+       this.position++;
++      const parameterStart = this.position - 2;
+       const length = this.source[this.position] === "#" && /[a-zA-Z_]/u.test(this.source[this.position + 1] ?? "");
+       if (length) this.position++;
+-      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9])/u.exec(this.source.slice(this.position))?.[0];
++      const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#])/u.exec(this.source.slice(this.position))?.[0];
+       if (!name) this.error("Unsupported parameter expansion");
+       this.position += name.length;
+       const operator = /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
+       let alternate: Word | undefined;
+       let replacement: Word | undefined;
++      let substring: Extract<WordPart, { kind: "variable" }>["substring"];
+       if (operator) {
+         if (length) this.error("Invalid length expansion");
+         this.position += operator.length;
+@@ -447,10 +457,20 @@ class Lexer {
+           this.position++;
+           replacement = this.word("}");
+         }
++      } else if (this.source[this.position] === ":") {
++        if (length || !/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+)$/u.test(name)) this.error("Unsupported non-scalar substring expansion");
++        this.position++;
++        const offset = this.word(":}", true, false, true);
++        let substringLength: Word | undefined;
++        if (this.source[this.position] === ":") {
++          this.position++;
++          substringLength = this.word("}", true, false, true);
++        }
++        substring = { offset, ...(substringLength ? { length: substringLength } : {}), source: this.source.slice(parameterStart, this.position + 1) };
+       }
+       if (this.source[this.position] !== "}") this.error("Unterminated or unsupported parameter expansion");
+       this.position++;
+-      parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}) });
++      parts.push({ kind: "variable", name, quoted, line, ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) });
+     } else {
+       const name = /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9])/u.exec(this.source.slice(this.position))?.[0];
+       if (name) {
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index edb3679..f87c914 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -9,7 +9,7 @@ import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseS
+ import { ShellLimitError, ShellSyntaxError } from "./types.js";
+ import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+ import { ShellInput } from "./input.js";
+-import { evaluateArithmetic } from "./arithmetic.js";
++import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
+ import { compilePattern, matchesPattern } from "./pattern.js";
+ import { byteLocale } from "./locale.js";
+ import { functionDisplay } from "./display.js";
+@@ -1549,9 +1549,10 @@ export class Runtime {
+     let value = part.name === "?" ? String(state.status)
+       : part.name === "#" ? String(state.positional.length)
+       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
+-      : part.name === "0" ? state.arg0 ?? "virtual-bash"
++      : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
+       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
+       : state.variables[part.name];
++    if (part.substring) return this.substring(part, value, state, io);
+     if (part.operator) {
+       if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) return this.parameterPattern(part, value ?? "", state, io, hereString);
+       const missing = value === undefined || (part.operator.startsWith(":") && value === "");
+@@ -1569,6 +1570,56 @@ export class Runtime {
+     return part.length ? String(Array.from(value ?? "").length) : value ?? "";
+   }
+ 
++  async substring(part: Extract<WordPart, { kind: "variable" }>, value: string | undefined, state: State, io: IO): Promise<string> {
++    const expression = part.substring!;
++    const line = io.diagnosticLine ?? part.line;
++    if (!expression.offset.parts.length && !expression.length) throw new ExpansionFailure(`${expression.source}: bad substitution`, line);
++    if (value === undefined) return "";
++    const limit = this.budget.limits.maxExpansionBytes;
++    if (Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
++    const variables = new Proxy(this.arithmeticVariables(state), { get: (target, key) => {
++      this.signal.throwIfAborted();
++      const value: unknown = Reflect.get(target, key);
++      if (typeof value === "string" && Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
++      return value;
++    } });
++    const arithmetic = async (word: Word): Promise<{ value: bigint; source: string }> => {
++      let source = "";
++      let bytes = 0;
++      for (const entry of word.parts) {
++        this.signal.throwIfAborted();
++        const text = entry.kind === "text" ? entry.value : await this.part(entry, state, io);
++        bytes += Buffer.byteLength(text);
++        if (bytes > limit) this.budget.fail("maxExpansionBytes");
++        source += text;
++      }
++      this.signal.throwIfAborted();
++      try { return { value: evaluateArithmetic(prepareArithmetic(source), variables), source }; }
++      catch (error) {
++        this.signal.throwIfAborted();
++        if (error instanceof ShellLimitError) throw error;
++        throw new ExpansionFailure(`${part.name}: ${message(error)}`, line);
++      }
++    };
++    const offsetExpression = await arithmetic(expression.offset);
++    const characters = byteLocale(state.variables) ? undefined : Array.from(value);
++    const bytes = characters ? undefined : Buffer.from(value);
++    const size = BigInt(characters?.length ?? bytes!.byteLength);
++    const offset = offsetExpression.value < 0n ? size + offsetExpression.value : offsetExpression.value;
++    if (offset < 0n || offset > size) return "";
++    let end = size;
++    if (expression.length) {
++      const length = await arithmetic(expression.length);
++      end = length.value < 0n ? size + length.value : offset + length.value;
++      if (end < offset) throw new ExpansionFailure(`${length.source}: substring expression < 0`, line);
++      if (end > size) end = size;
++    }
++    this.signal.throwIfAborted();
++    if (characters) return characters.slice(Number(offset), Number(end)).join("");
++    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes!.subarray(Number(offset), Number(end))); }
++    catch { throw new ExpansionFailure("substring expansion splits a UTF-8 character in a byte locale", line); }
++  }
++
+   async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, text: string, state: State, io: IO, hereString: boolean): Promise<string> {
+     const limit = this.budget.limits.maxExpansionBytes;
+     if (Buffer.byteLength(text) > limit) this.budget.fail("maxExpansionBytes");

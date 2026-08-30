@@ -1,0 +1,27 @@
+{
+  "status": "blocked-spec; no lifecycle executor and no candidate execution",
+  "observedOperationContract": {
+    "source": "src/contracts/output.ts",
+    "factory": "createOutputOperation(context: Pick<CommandContext, 'signal' | 'registerCleanup'>, destination: ByteSink): OutputOperation",
+    "members": ["signal", "output", "child(destination)", "registerCleanup(cleanup)", "acquire(start, release)", "close()"],
+    "authority": "Inspection only. Root must bind accepted contract and DU integration paths/policy to new candidate. No new operation API is proposed."
+  },
+  "requiredMappings": {
+    "headZero": {"case":"L01","input":"du -ab /usage | head -n 0","bind":["accepted shell pipeline enrollment/admission sequence", "cooperative metadata provider handshake", "allowed already-admitted work", "exact public result and stderr", "natural completion witness"]},
+    "firstReadCancel": {"case":"L02","bind":["meaning of first read: downstream byte-source consumer, not nonexistent DU content read", "public downstream consumer/close API", "activation before and after first delivered chunk", "exact result/rejection mapping", "cooperative metadata closure witness"]},
+    "validationAndStderr": {"case":"L03","input":"du --not-a-du-option","bind":["original caller context for validation and required stderr", "closed-output construction through public API", "error/closure precedence", "exact status and stderr bytes", "zero filesystem admission"]},
+    "admissionObservation": {"case":"L04","bind":["approved public middleware/registerCleanup observation, no internal monkeypatch", "operation creation/registration point", "metadata admission gate", "idempotent finally/registered close", "admitted cooperative metadata accounting"]},
+    "accountedWrites": {"case":"L05","bind":["stdout budget to operation.output mapping", "stderr original caller mapping and combined budget policy", "write ownership/backpressure observation", "no success before awaited write", "output-budget diagnostic policy"]},
+    "execSettlement": {"case":"L06","bind":["controllable cooperative completion latch", "natural close starts before public settlement", "settlement awaits release without host sleeps as correctness oracle", "exact error/result mapping"]},
+    "disposeOverlap": {"case":"L07","bind":["separate explicit caller cancellation control", "exec/dispose/registered cleanup/finally overlap schedule", "resource release once", "caller reason identity and cleanup-failure precedence"]},
+    "isolationAndOpaqueBoundary": {"case":"L08","bind":["public sibling/other invocation ownership construction", "assert caller.signal remains un-aborted on output close", "late rejection observer", "unenrolled opaque work not treated as owned", "no invented forced-preemption or duration guarantee"]}
+  },
+  "testDiscipline": [
+    "Register cooperative cleanup synchronously before acquiring/admitting owned resources.",
+    "Use operation-scoped signal only for cooperative DU metadata walk/output; keep original caller for validation and required stderr.",
+    "Do not abort entire caller merely to make head-zero or first-read-close tests finish.",
+    "Use explicit deferred handshakes and natural closure; a watchdog is failure evidence, never semantic success or forced provider preemption.",
+    "Do not execute generic output-operation tests and relabel them DU integration evidence.",
+    "No lifecycle case is executable until exact root mapping and supervisor are supplied."
+  ]
+}

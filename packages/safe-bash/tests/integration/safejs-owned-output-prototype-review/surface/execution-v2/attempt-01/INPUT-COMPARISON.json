@@ -1,0 +1,458 @@
+{
+  "originalEvidenceCommit": "b0ff1977c9c912054edd136510d62819d28cf890",
+  "originalCounts": {
+    "executed": 8,
+    "pass": 7,
+    "fail": 1,
+    "invalid": 0,
+    "blocked": 0,
+    "conditionalExecuted": 0
+  },
+  "freezeCommit": "09ba85cef42898fbc2185d03acc4191f9a4689cd",
+  "originalRawReexecuted": false,
+  "originalFilesEdited": false,
+  "onlyExpectedDataPointer": "/cases/7/expected/engine",
+  "comparisons": [
+    {
+      "id": "01-supported-facades",
+      "originalActualSha256": "ed0dac30dcf90263c438cc955d4b511674d8e48a77aa19356ee5c92c37131e2d",
+      "revisedActualSha256": "08a4b6549dd0da647b9a645e3d9b06f1e0c9afad8993d464e1c4036968a0fdc2",
+      "unchangedFields": [
+        "source",
+        "argv",
+        "shell",
+        "hostCounters",
+        "vfsBefore",
+        "vfsAfter",
+        "collectedStdout",
+        "cleanupFailures",
+        "hostFindings"
+      ],
+      "unchangedBudgetOptionsExceptFreshAbsoluteDeadline": {
+        "maxSteps": 20000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 4096,
+        "dataSize": 1048576
+      },
+      "originalDeadline": 1787844029649,
+      "currentDeadline": 1787847588441,
+      "originalEngineOwnField": true,
+      "revisedEngineOwnField": true,
+      "originalEngineOutcomeOwnField": false,
+      "revisedEngineOutcome": {
+        "kind": "fulfilled"
+      },
+      "originalEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "revisedEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ]
+    },
+    {
+      "id": "02-direct-surface",
+      "originalActualSha256": "043ace7511442d1b6d01ba78880d89d548e150d47246dfc3467fbd65cbd05910",
+      "revisedActualSha256": "61ac8ec1929e69e08822515d0548bc8635db783a1dba51f7d4550e30d4437892",
+      "unchangedFields": [
+        "source",
+        "argv",
+        "shell",
+        "hostCounters",
+        "vfsBefore",
+        "vfsAfter",
+        "collectedStdout",
+        "cleanupFailures",
+        "hostFindings"
+      ],
+      "unchangedBudgetOptionsExceptFreshAbsoluteDeadline": {
+        "maxSteps": 20000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 4096,
+        "dataSize": 1048576
+      },
+      "originalDeadline": 1787844030251,
+      "currentDeadline": 1787847589671,
+      "originalEngineOwnField": true,
+      "revisedEngineOwnField": true,
+      "originalEngineOutcomeOwnField": false,
+      "revisedEngineOutcome": {
+        "kind": "fulfilled"
+      },
+      "originalEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "revisedEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ]
+    },
+    {
+      "id": "03-namespace-spread",
+      "originalActualSha256": "e5115218587d21b9d58fac8d701dda3dcea357d2663308e729794afb96aa7854",
+      "revisedActualSha256": "600f2e46f59b39978961826e37fd14845e043f349ef205456c65f3ecb3e44669",
+      "unchangedFields": [
+        "source",
+        "argv",
+        "shell",
+        "hostCounters",
+        "vfsBefore",
+        "vfsAfter",
+        "collectedStdout",
+        "cleanupFailures",
+        "hostFindings"
+      ],
+      "unchangedBudgetOptionsExceptFreshAbsoluteDeadline": {
+        "maxSteps": 20000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 4096,
+        "dataSize": 1048576
+      },
+      "originalDeadline": 1787844030855,
+      "currentDeadline": 1787847590970,
+      "originalEngineOwnField": true,
+      "revisedEngineOwnField": true,
+      "originalEngineOutcomeOwnField": false,
+      "revisedEngineOutcome": {
+        "kind": "fulfilled"
+      },
+      "originalEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "revisedEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ]
+    },
+    {
+      "id": "04-shell-module",
+      "originalActualSha256": "7188bc3ff3dc2fd2b0acea6eaa066bac77608d8d6ac7c5a9b9e441f51bc9e517",
+      "revisedActualSha256": "943e7cdada5804ed2e5583d1e3f11d1bcad03c47b6debcb7f2fbec8b40a37034",
+      "unchangedFields": [
+        "source",
+        "argv",
+        "shell",
+        "hostCounters",
+        "vfsBefore",
+        "vfsAfter",
+        "collectedStdout",
+        "cleanupFailures",
+        "hostFindings"
+      ],
+      "unchangedBudgetOptionsExceptFreshAbsoluteDeadline": {
+        "maxSteps": 20000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 4096,
+        "dataSize": 1048576
+      },
+      "originalDeadline": 1787844031464,
+      "currentDeadline": 1787847592249,
+      "originalEngineOwnField": true,
+      "revisedEngineOwnField": true,
+      "originalEngineOutcomeOwnField": false,
+      "revisedEngineOutcome": {
+        "kind": "fulfilled"
+      },
+      "originalEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "revisedEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ]
+    },
+    {
+      "id": "05-missing-register-cleanup",
+      "originalActualSha256": "04ac8f82991dbdae60f3f64088c2e64f1ef15b6a6e5a2a2c73c079c9f0251aa4",
+      "revisedActualSha256": "db816454b6a0a36da901af9e45fb765bb67b5a860bef8f0a4f8616b1ab480647",
+      "unchangedFields": [
+        "source",
+        "argv",
+        "shell",
+        "hostCounters",
+        "vfsBefore",
+        "vfsAfter",
+        "collectedStdout",
+        "cleanupFailures",
+        "hostFindings"
+      ],
+      "unchangedBudgetOptionsExceptFreshAbsoluteDeadline": {
+        "maxSteps": 20000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 4096,
+        "dataSize": 1048576
+      },
+      "originalDeadline": 1787844032060,
+      "currentDeadline": 1787847593554,
+      "originalEngineOwnField": true,
+      "revisedEngineOwnField": true,
+      "originalEngineOutcomeOwnField": false,
+      "revisedEngineOutcome": {
+        "kind": "fulfilled"
+      },
+      "originalEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "revisedEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ]
+    },
+    {
+      "id": "06-missing-acquire",
+      "originalActualSha256": "ec9eeab687e3a98d958bfe2cf1d5bd4e9db5444892d55b40205bee5fbe33777c",
+      "revisedActualSha256": "c8e0e290874169d3f5448c5f2bd4d587b4c20c9b65065fa2e8dcb480f56bb1ee",
+      "unchangedFields": [
+        "source",
+        "argv",
+        "shell",
+        "hostCounters",
+        "vfsBefore",
+        "vfsAfter",
+        "collectedStdout",
+        "cleanupFailures",
+        "hostFindings"
+      ],
+      "unchangedBudgetOptionsExceptFreshAbsoluteDeadline": {
+        "maxSteps": 20000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 4096,
+        "dataSize": 1048576
+      },
+      "originalDeadline": 1787844032622,
+      "currentDeadline": 1787847594753,
+      "originalEngineOwnField": true,
+      "revisedEngineOwnField": true,
+      "originalEngineOutcomeOwnField": false,
+      "revisedEngineOutcome": {
+        "kind": "fulfilled"
+      },
+      "originalEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "revisedEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ]
+    },
+    {
+      "id": "07-reflection-profile",
+      "originalActualSha256": "944050ba327e2b4ed7bde6d0127976cb783ebc32c63da8c4146b0499e6fd6198",
+      "revisedActualSha256": "06953de43705baa54308ecff8a138797b6828737b6dbece0d556c33bb13bf61d",
+      "unchangedFields": [
+        "source",
+        "argv",
+        "shell",
+        "hostCounters",
+        "vfsBefore",
+        "vfsAfter",
+        "collectedStdout",
+        "cleanupFailures",
+        "hostFindings"
+      ],
+      "unchangedBudgetOptionsExceptFreshAbsoluteDeadline": {
+        "maxSteps": 20000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 4096,
+        "dataSize": 1048576
+      },
+      "originalDeadline": 1787844033192,
+      "currentDeadline": 1787847595920,
+      "originalEngineOwnField": true,
+      "revisedEngineOwnField": true,
+      "originalEngineOutcomeOwnField": false,
+      "revisedEngineOutcome": {
+        "kind": "fulfilled"
+      },
+      "originalEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "revisedEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ]
+    },
+    {
+      "id": "08-function-spread-profile",
+      "originalActualSha256": "ff76cdea1644b406cf71318fa99c96e9bf5cd90ee34a0c400a451265ae26c4e1",
+      "revisedActualSha256": "719c5b668a550ce7c00683344a4869f05e44f5c46874f403ba68e24ea2d19eaf",
+      "unchangedFields": [
+        "source",
+        "argv",
+        "shell",
+        "hostCounters",
+        "vfsBefore",
+        "vfsAfter",
+        "collectedStdout",
+        "cleanupFailures",
+        "hostFindings"
+      ],
+      "unchangedBudgetOptionsExceptFreshAbsoluteDeadline": {
+        "maxSteps": 20000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 4096,
+        "dataSize": 1048576
+      },
+      "originalDeadline": 1787844033763,
+      "currentDeadline": 1787847597126,
+      "originalEngineOwnField": false,
+      "revisedEngineOwnField": false,
+      "originalEngineOutcomeOwnField": false,
+      "revisedEngineOutcome": {
+        "kind": "await-rejected",
+        "reasonType": "object",
+        "reasonIsNull": false
+      },
+      "originalEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "revisedEvents": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-rejected",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ]
+    }
+  ]
+}

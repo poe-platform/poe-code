@@ -1,0 +1,379 @@
+{
+  "schema": "timeout-public-b01-capture-binding/1",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "protectedFiles": [
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/MANIFEST.json",
+      "bytes": 6592,
+      "sha256": "74ee8bb5c667f7b143cdbf637627f67d83eaacaa5f7cea802ed5f2e072747826"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/EVIDENCE-MANIFEST.json",
+      "bytes": 2121,
+      "sha256": "c9b9b61005eed611f959844f6e6fd1004a74f0a1936ec77cb5e8327041d3bdbc"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/CANDIDATE.json",
+      "bytes": 167198,
+      "sha256": "6d01916d6cd7c0e6f6cbc79697764fba972e1cfc45f857235965b67e45d6877a"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/common.mjs",
+      "bytes": 4322,
+      "sha256": "403b7ad73caf5683fcd002b770ef4e5154e130656243e33f3ba1f2936b50e666"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/admission.mjs",
+      "bytes": 7673,
+      "sha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/type-trace.mjs",
+      "bytes": 3182,
+      "sha256": "3840a0048b7f44664cae018f44e3300a19cc1b2b9303fb94d54e012aa5375085"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/supervisor.mjs",
+      "bytes": 3246,
+      "sha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/legacy-adapter.mjs",
+      "bytes": 15423,
+      "sha256": "d8e830e89970e1d8bf38ee1c5468a7a747a46d9a4d1e2d5ab06a95b06275c158"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/preload.mjs",
+      "bytes": 3456,
+      "sha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/runtime.mjs",
+      "bytes": 28653,
+      "sha256": "e86c5d64945a4158f7a2476e6eaa80063bf393f94868cbdda5fa194457d43a73"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/execute.mjs",
+      "bytes": 16399,
+      "sha256": "f4460b3cf3b7040d09c0d800a9cc042b0afd032bc3d590366f5a90944fc85c85"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/negative-worker.mjs",
+      "bytes": 1246,
+      "sha256": "f411557139d8242ba6d42e2ce42a37520142c51d10e39b7a508ed9d6442a6cce"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/negative-protocol.mjs",
+      "bytes": 7639,
+      "sha256": "9cda00e431a67d89130c1c7750993b78eefbe8b2fe5ed1bad249dfb9ceea596d"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/archive.mjs",
+      "bytes": 2546,
+      "sha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/t08-predicate.mjs",
+      "bytes": 984,
+      "sha256": "93e408051196f0f3d53f983466c931bd16a737a3972621a1a1762636f6f2fcce"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/getter-probe.data",
+      "bytes": 1332,
+      "sha256": "2f8575adc9b21e61e63e3fd9cea75259e429d00b001d834eea7a02fb4093ac6a"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/prepare.mjs",
+      "bytes": 15124,
+      "sha256": "2b0a81e177b6425e16acbcfffbce3b2925f73ea7bfa0bbcff749b173818aceec"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/controls.mjs",
+      "bytes": 5104,
+      "sha256": "c0bd02278bb544cf658849da7dd41e1305f20c246217000d052f18a2dc26e164"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/README.md",
+      "bytes": 2679,
+      "sha256": "6e7d6eb1718e743c293353e5fc5de405c6091bcc656dcca1fc2187110116405f"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/AUTHOR-BINDINGS.json",
+      "bytes": 207439,
+      "sha256": "df8aca1a5497a8c3c7f9045a71e8a5f981ad01ef1dac43fc4236f7ab437a5719"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/OVERLAY.json",
+      "bytes": 8344,
+      "sha256": "9b097a2b8e1a742878edaa3717617e7aed4c52be297671d8bd21a1620c495bd0"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/FOCUSED-CONTROLS.json",
+      "bytes": 1725,
+      "sha256": "43be4c742a75730c76880fc63e6036671909b8c19f30a1a7d8fd624510370d78"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/summarize.mjs",
+      "bytes": 4707,
+      "sha256": "13e3388bdd345477ed70573d06593e9cb1d3f1ac40ed0b05c117ae897eb45a54"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/REVIEW.json",
+      "bytes": 66544,
+      "sha256": "2404c2f9bf7b34a7a5586d266bd2c2de403f9b34bef59b8c8a22c63d3c9e3ada"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/HANDOFF.md",
+      "bytes": 7988,
+      "sha256": "018d32ebd56e7fc529168c30cbe7b062e4c52a9294a378f2ac80ee37d43f194a"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/POSTPROCESS-NOTE.json",
+      "bytes": 558,
+      "sha256": "c076d8ec4a07551f273cb139875a3968893beb566bf22fb1f9dd1e0ff3a5b31f"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/runs/actual-01/CANDIDATE.json",
+      "bytes": 167198,
+      "sha256": "6d01916d6cd7c0e6f6cbc79697764fba972e1cfc45f857235965b67e45d6877a"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/runs/actual-01/RESULT.json",
+      "bytes": 1534575,
+      "sha256": "b60816bc1c2f9b275b250fa688aef4585c9bcbeb883cfab7da2a959944cfa3f3"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/runs/actual-01/CLOSURE.json",
+      "bytes": 2902945,
+      "sha256": "17ca83db368e74163f71b3f25ead7a857f250200c66750ab68cb044a53e6e6ca"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/runs/actual-01/RESOURCE-CLEANUP.json",
+      "bytes": 211,
+      "sha256": "cbf220c36c7750925cb094e69f29c310057b36d6ff063ae8ba51ae0cf7b86b3d"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-candidate-execution-v1/runs/actual-01/RECEIPTS.json.gz",
+      "bytes": 12882940,
+      "sha256": "9592272d48060cd6b783c2fbbafe0afd2685e563fbaec3dccdb667c2c1a36ec8"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/MANIFEST.json",
+      "bytes": 6194,
+      "sha256": "9d13a936dab063f7a9c2acb8a658e1e448326a8558be85ac4c3e744a6d585b8d"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/EVIDENCE-MANIFEST.json",
+      "bytes": 2054,
+      "sha256": "5b13ff48d93ad213405555b45d1199ce77235365704df2960bdb5dc6166baeec"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/CANDIDATE.json",
+      "bytes": 167204,
+      "sha256": "f2346c74f94f2bb8a0902395ed49f7105f61fd9417cce6a87452668471bbc3cb"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/common.mjs",
+      "bytes": 4447,
+      "sha256": "317e7796a803443614b63e0191bfd8512f0a6b8cd8bf2b74162eae09d24fbb6e"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/admission.mjs",
+      "bytes": 7673,
+      "sha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/preload.mjs",
+      "bytes": 3456,
+      "sha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/supervisor.mjs",
+      "bytes": 3246,
+      "sha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/archive.mjs",
+      "bytes": 2546,
+      "sha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/legacy-adapter.mjs",
+      "bytes": 17244,
+      "sha256": "3ef48e5a018a90ae34fe837eb678c37e85d914d543d2379638b13a843dc64a85"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/runtime.mjs",
+      "bytes": 32546,
+      "sha256": "f58097a631a3272e3cb6bb30df79497e94fdda74c7a7cfa3da22ce69a1749027"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/execute.mjs",
+      "bytes": 17566,
+      "sha256": "0f396dd1be979d0ab8741ee795c938c7b6e89a7977b2a062a11cd9bb81b83124"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/boundaries.mjs",
+      "bytes": 2435,
+      "sha256": "ce78b6e53d2a82894856f6d558d35f8ca24aec2c858145410620f4b899c1fb4a"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/admission-probe.data",
+      "bytes": 1012,
+      "sha256": "8dd16ef8501e704dd5c57322f8d0c9c9ce3a9aaa1f702c1acded03d39f9bdb86"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/r12.data",
+      "bytes": 3611,
+      "sha256": "fb871303f188045f73d1d11c2546c86e0f20f8d3625591540292c108495f5b46"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/execution-tail.data",
+      "bytes": 7114,
+      "sha256": "5a1c272529dad0d7d0fdcf32626f75e3a18497453746e1d82f7a5f871e65332f"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/controls.mjs",
+      "bytes": 4317,
+      "sha256": "17c929f1eb8acae7e8c6d6c60f7146b1e2054cd3b50fe97977beac86cdb9c721"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/README.md",
+      "bytes": 2933,
+      "sha256": "5dcd5bc8f8611ea9fefe46d4d4377d21cd4d9ef631d719f36d0db33bd45ccfc5"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/seal.mjs",
+      "bytes": 13895,
+      "sha256": "36710c8d43e72d4d14e197c898564d81be30ab2b609e3e81530a2c3d3cead6e1"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/CONTINUATION.json",
+      "bytes": 9013,
+      "sha256": "ccc548c804718c3a3a58d0801d889d1317629e8e160a177b5090827ef8baed3e"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/OVERLAY.json",
+      "bytes": 33999,
+      "sha256": "68b4b440f15489ad202a66f43a323d2bf288f25f1c6dfdc1a33829d00c0d1119"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/FOCUSED-CONTROLS.json",
+      "bytes": 1682,
+      "sha256": "3861c26dbd9aca7799d352ad671d95e5e680f2aa74dfbf9e0b8525e98f2261b1"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/summarize.mjs",
+      "bytes": 5425,
+      "sha256": "1ae12ff00946482123add9942cf9c809bc7ba8c4a96dbc6abd8f6dfb5dbff1c0"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/REVIEW.json",
+      "bytes": 89325,
+      "sha256": "809485265aebf087cd637d2f91e72bfab05b3c602108f32a30e35c0549e0e2e1"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/HANDOFF.md",
+      "bytes": 6010,
+      "sha256": "74db3e740064ddbbae29654798eb4270a92ab85c6bdcc68a8194767568275327"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/runs/continuation-01/CANDIDATE.json",
+      "bytes": 167204,
+      "sha256": "f2346c74f94f2bb8a0902395ed49f7105f61fd9417cce6a87452668471bbc3cb"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/runs/continuation-01/RESULT.json",
+      "bytes": 521349,
+      "sha256": "4da6451f2fb5b57467cf631643b22bfa49bc3b37a2944554788bf9de18e23f15"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/runs/continuation-01/CLOSURE.json",
+      "bytes": 1100002,
+      "sha256": "4df6aa744483f0a473da42d2cf50912d8d5727b685a4cfbb68ea6d74b5b34cb1"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/runs/continuation-01/RESOURCE-CLEANUP.json",
+      "bytes": 222,
+      "sha256": "d1b214b2cbec40865fd12649f4c6d5252e712ab70916f57e1abf47c9ce27e28e"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-continuation-v1/runs/continuation-01/RECEIPTS.json.gz",
+      "bytes": 5586342,
+      "sha256": "c788d9ed351fdc6d10f054c0ca1c17fe1f3da9fdd891aba02eb33a53b67c6d53"
+    }
+  ],
+  "boundaryControl": {
+    "id": "B01",
+    "failure": "RAW_STDIN_ACQUIRE",
+    "role": "injected raw iterator acquisition"
+  },
+  "actualProductFamilies": 0,
+  "actualNodeChildren": 1,
+  "focusedControls": 7,
+  "runtimeFunctionSha256": "18d27cecb2e2ebd1074120f70bc250ff67763f4148e198d211781f24d1251b36",
+  "composition": {
+    "schema": "timeout-public78-composed-prerequisites/1",
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "originalEvidenceCommit": "2324e36d7f19c05a362d21460927c69098bbe17d",
+    "continuationEvidenceCommit": "2d2c3356adcb91594804f76fe68b03d8e080d7cf",
+    "originalResultSha256": "b60816bc1c2f9b275b250fa688aef4585c9bcbeb883cfab7da2a959944cfa3f3",
+    "continuationResultSha256": "4da6451f2fb5b57467cf631643b22bfa49bc3b37a2944554788bf9de18e23f15",
+    "runtime": {
+      "source": {
+        "originalQualified": 22,
+        "continuationQualified": 8,
+        "composed": 30,
+        "noOldRescore": true
+      },
+      "installed": {
+        "originalQualified": 22,
+        "continuationQualified": 8,
+        "composed": 30,
+        "noOldRescore": true
+      },
+      "moved": {
+        "originalQualified": 22,
+        "continuationQualified": 8,
+        "composed": 30,
+        "noOldRescore": true
+      }
+    },
+    "boundTypes": 20,
+    "boundPackageNegatives": 7,
+    "boundFreshGuards": 6,
+    "boundProductMutants": {
+      "original": 7,
+      "continuationM07": 1,
+      "A07": "PASS"
+    },
+    "boundBoundaryControls": [
+      "B02",
+      "B03",
+      "B04"
+    ],
+    "originalB01FailurePreserved": true,
+    "originalB01MissingCountersNotReconstructed": true,
+    "pack": {
+      "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "members": 858,
+      "bytes": 749907,
+      "actualPriorReproductions": 2,
+      "currentReplays": 0
+    },
+    "priorIntegrityGuards": {
+      "original": 258,
+      "continuation": 66
+    },
+    "priorNodeChildren": {
+      "original": 128,
+      "continuation": 32
+    },
+    "freshGitInputs": 269,
+    "defaultCommandNames": 78,
+    "rootRatificationPending": true,
+    "native": 0,
+    "safeJS": 0,
+    "fullGate": false
+  }
+}

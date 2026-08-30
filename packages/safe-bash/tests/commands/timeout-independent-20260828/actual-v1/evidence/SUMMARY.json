@@ -1,0 +1,449 @@
+{
+  "schema": "timeout-independent-post-run-disposition/1",
+  "candidate": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "recipeCommit": "289d00d253136032c1bd6b078662ba5f37e39a3d",
+  "status": "REJECT_PRODUCT_DEFAULT_SCHEDULER_AND_HOLD_VERIFIER_TAIL",
+  "originalResultStatus": "STOP_NO_RETRY",
+  "originalResultSha256": "b74ea4ced8c34976b1952d810fcd0c58acebcf44380edae61aa4255f4eab6285",
+  "startedAt": "2026-08-28T03:24:34.703Z",
+  "finishedAt": "2026-08-28T03:25:41.527Z",
+  "attempts": 1,
+  "retries": 0,
+  "profiles": [
+    {
+      "profile": "source",
+      "attempted": 34,
+      "qualified": 31,
+      "originalFamiliesQualified": 30,
+      "holdoutsQualified": 1,
+      "failures": [
+        "F01",
+        "F22",
+        "PC01"
+      ],
+      "numericPassed": 70,
+      "diagnosticLabels": 14,
+      "diagnosticObservations": 143,
+      "actualModuleLoads": 215,
+      "actualProductModuleLoads": 210,
+      "timeoutModuleLoads": [
+        {
+          "kind": "actual-module-load",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/actual-v1/node_modules/work/source/src/commands/timeout/index.ts",
+          "sha256": "e68bd5177a0c45ebbcff4dbb834e46581c9c51d216897cda261836afa1c8a90b",
+          "transformedSha256": "ed919c5723c0956d1ab161accebd443a0a41c8653640886d43d4abbc0b970c5c",
+          "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+          "bytes": 10250
+        },
+        {
+          "kind": "actual-module-load",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/actual-v1/node_modules/work/source/src/commands/timeout/duration.ts",
+          "sha256": "870a3800f9ba46a1d38ed831d0b6e7da804d4d34c6f5d3ebe86ada535d90b835",
+          "transformedSha256": "0c9df6c8529d5d8a26f3d5ca7702f48383bff6d06f0d6b50ebf1ac681ed124c6",
+          "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+          "bytes": 2508
+        },
+        {
+          "kind": "actual-module-load",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/actual-v1/node_modules/work/source/src/commands/timeout/scheduler.ts",
+          "sha256": "b6ba0e2bf22051f4032686a58821bddcdb211faa918beac4ec004f4d46ca00e8",
+          "transformedSha256": "cd8f5da121b61772b1c0ec202daf4945cdf6572fe7e38cfc7c61460a3e85aaaf",
+          "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+          "bytes": 3478
+        }
+      ],
+      "cleanup": {
+        "tracked": 327,
+        "pending": 0,
+        "schedulerLive": 0,
+        "shells": 19,
+        "disposalRejections": [],
+        "unhandled": []
+      },
+      "activations": [
+        {
+          "id": "PC01",
+          "route": "root-caller",
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "childClosed": true,
+          "resources": 0
+        },
+        {
+          "id": "PC02",
+          "actualProductRetirementEntered": true,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "handler": "rejected",
+          "registeredCleanupRejections": 1,
+          "resources": 0
+        },
+        {
+          "id": "PC02",
+          "route": "actual-Shell-cleanup-barrier",
+          "retirementEntered": 1,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "rootAggregation": false,
+          "childClosed": true,
+          "resources": 0,
+          "disposal": "fulfilled"
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "attempted": 34,
+      "qualified": 31,
+      "originalFamiliesQualified": 30,
+      "holdoutsQualified": 1,
+      "failures": [
+        "F01",
+        "F22",
+        "PC01"
+      ],
+      "numericPassed": 70,
+      "diagnosticLabels": 14,
+      "diagnosticObservations": 143,
+      "actualModuleLoads": 215,
+      "actualProductModuleLoads": 210,
+      "timeoutModuleLoads": [
+        {
+          "kind": "actual-module-load",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/actual-v1/node_modules/work/physically-moved/consumer/node_modules/virtual-bash/dist/commands/timeout/index.js",
+          "sha256": "79abde4c819538dbbec2f51f80c287b2af526ecec9c721afccb46f6c0821a60e",
+          "bytes": 9974,
+          "transformedSha256": null
+        },
+        {
+          "kind": "actual-module-load",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/actual-v1/node_modules/work/physically-moved/consumer/node_modules/virtual-bash/dist/commands/timeout/duration.js",
+          "sha256": "1bde4d5557928bb796ff1c390e35b50a5272dcc0b2711dba7cf86536cf556429",
+          "bytes": 2777,
+          "transformedSha256": null
+        },
+        {
+          "kind": "actual-module-load",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/actual-v1/node_modules/work/physically-moved/consumer/node_modules/virtual-bash/dist/commands/timeout/scheduler.js",
+          "sha256": "eb6244b99a21aae0348c3cbd7c90f6290667445f1248571f52ee269f1b5de638",
+          "bytes": 3254,
+          "transformedSha256": null
+        }
+      ],
+      "cleanup": {
+        "tracked": 327,
+        "pending": 0,
+        "schedulerLive": 0,
+        "shells": 19,
+        "disposalRejections": [],
+        "unhandled": []
+      },
+      "activations": [
+        {
+          "id": "PC01",
+          "route": "root-caller",
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "childClosed": true,
+          "resources": 0
+        },
+        {
+          "id": "PC02",
+          "actualProductRetirementEntered": true,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "handler": "rejected",
+          "registeredCleanupRejections": 1,
+          "resources": 0
+        },
+        {
+          "id": "PC02",
+          "route": "actual-Shell-cleanup-barrier",
+          "retirementEntered": 1,
+          "actualRetirementThrew": true,
+          "sameSentinel": true,
+          "rawHandler": "rejected",
+          "outer": "rejected",
+          "rootAggregation": false,
+          "childClosed": true,
+          "resources": 0,
+          "disposal": "fulfilled"
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "profile": "installed",
+      "name": "positive",
+      "status": "PASS",
+      "exitCode": 0,
+      "diagnostics": []
+    },
+    {
+      "profile": "installed",
+      "name": "readonly",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 52,
+          "code": 2540,
+          "message": "Cannot assign to 'maxTimerMilliseconds' because it is a read-only property."
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "name": "array",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 25,
+          "code": 2339,
+          "message": "Property 'push' does not exist on type 'readonly CommandDefinition[]'."
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "name": "unknown",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 24,
+          "code": 2353,
+          "message": "Object literal may only specify known properties, and 'notAnOption' does not exist in type 'TimeoutCommandOptions'."
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "name": "number",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 24,
+          "code": 2322,
+          "message": "Type 'string' is not assignable to type 'number'."
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "name": "replace",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 24,
+          "code": 2353,
+          "message": "Object literal may only specify known properties, and 'replace' does not exist in type 'TimeoutCommandOptions'."
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "name": "root",
+      "status": "FAIL",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 1,
+          "column": 10,
+          "code": 2724,
+          "message": "'\"virtual-bash\"' has no exported member named 'createTimeoutCommand'. Did you mean 'createTimeEnvCommands'?"
+        }
+      ]
+    },
+    {
+      "profile": "installed",
+      "name": "subpath",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 1,
+          "column": 38,
+          "code": 2307,
+          "message": "Cannot find module 'virtual-bash/commands/timeout' or its corresponding type declarations."
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "name": "positive",
+      "status": "PASS",
+      "exitCode": 0,
+      "diagnostics": []
+    },
+    {
+      "profile": "moved",
+      "name": "readonly",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 52,
+          "code": 2540,
+          "message": "Cannot assign to 'maxTimerMilliseconds' because it is a read-only property."
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "name": "array",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 25,
+          "code": 2339,
+          "message": "Property 'push' does not exist on type 'readonly CommandDefinition[]'."
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "name": "unknown",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 24,
+          "code": 2353,
+          "message": "Object literal may only specify known properties, and 'notAnOption' does not exist in type 'TimeoutCommandOptions'."
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "name": "number",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 24,
+          "code": 2322,
+          "message": "Type 'string' is not assignable to type 'number'."
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "name": "replace",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 24,
+          "code": 2353,
+          "message": "Object literal may only specify known properties, and 'replace' does not exist in type 'TimeoutCommandOptions'."
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "name": "root",
+      "status": "FAIL",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 1,
+          "column": 10,
+          "code": 2724,
+          "message": "'\"virtual-bash\"' has no exported member named 'createTimeoutCommand'. Did you mean 'createTimeEnvCommands'?"
+        }
+      ]
+    },
+    {
+      "profile": "moved",
+      "name": "subpath",
+      "status": "PASS",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "line": 1,
+          "column": 38,
+          "code": 2307,
+          "message": "Cannot find module 'virtual-bash/commands/timeout' or its corresponding type declarations."
+        }
+      ]
+    }
+  ],
+  "qualifiedControls": [
+    "A01-wrong-archive-hash",
+    "A02-missing-input",
+    "A03-unlisted-input",
+    "A04-mode",
+    "A05-hash",
+    "A06-AGENTS",
+    "A11-wrong-candidate",
+    "A12-wrong-baseline",
+    "A07-symlink",
+    "A08-wrong-module-hash"
+  ],
+  "failedControl": "A09-source-permission-denial",
+  "unexecuted": [
+    "A10-public-subpath-absent runtime negative",
+    "M01 caller-priority product mutant",
+    "M02 retirement-priority product mutant",
+    "F22 trailing real-Shell resolver126/127 subchecks in both layouts",
+    "F22 post-success default timer resource assertion in both layouts",
+    "12 prospective native rows",
+    "SafeJS"
+  ],
+  "children": {
+    "asynchronous": 23,
+    "natural": 23,
+    "forced": 0,
+    "reaped": true,
+    "synchronousGitReturns": 289
+  },
+  "guards": {
+    "supervisor": 23,
+    "perCasePost": 68,
+    "final": "PASS"
+  },
+  "build": "PASS",
+  "offlineInstall": "PASS",
+  "physicalMove": "PASS",
+  "wholePackReproduction": {
+    "sha256": "32e2bef5eafbb00e9b6704e2765f55e36514eda0da0fe84ea78367813c756630",
+    "members": 857,
+    "reproduced": true
+  },
+  "preRunToolBindings": {
+    "regular": 2274,
+    "metadataOnlyAliases": 12
+  },
+  "actualToolCompiles": 1142,
+  "actualToolReads": 4642,
+  "rawPreservation": {
+    "files": 282,
+    "bytes": 3546138,
+    "retainedWorkFiles": 576,
+    "compressedBytes": 2956604,
+    "sha256": "f8d662d9c999db90cb8bdcb3af7d75af95d5b1d9f2a14248c993a59bca722d4c"
+  },
+  "chronology": "post-source independent adapter binding; original pre-code and additive freezes unchanged",
+  "qualification": "No original rescore; no public/default/root wiring, native, SafeJS, private-helper or whole-gate approval. Source reconstructed from declared fixed baseline plus four pinned module files, not full candidate history."
+}

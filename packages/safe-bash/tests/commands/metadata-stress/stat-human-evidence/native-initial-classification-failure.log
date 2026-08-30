@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: GNU 9.7 human timestamps: distinct pinned builds, measured native nanoseconds and numeric-capacity gaps
+not ok 1 - GNU 9.7 human timestamps: distinct pinned builds, measured native nanoseconds and numeric-capacity gaps
+  ---
+  duration_ms: 381.820875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human-native.test.ts:1:2141'
+  failureType: 'testCodeFailure'
+  error: 'retain precision loss: -0.123456789'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000'
+  actual: '1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/stat-human-native.test.ts:92:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 660.628125

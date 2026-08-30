@@ -1,0 +1,34 @@
+{
+  "label": "r1-H06-frozen",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts-r1.mjs",
+    "H06"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:14:43.225Z",
+  "finishedAt": "2026-08-27T10:14:43.308Z",
+  "durationMs": 82.611625,
+  "timeoutMs": 15000,
+  "maxBytes": 1048576,
+  "pid": 31187,
+  "initialIdentity": "31187 31093 31187 Thu Aug 27 05:14:43 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts-r1.mjs H06",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"H06\",\"verdict\":\"PASS\",\"records\":[{\"first\":\"first\\n\",\"remainder\":\"second\\nthird\\n\",\"position\":3,\"returnedBeforeOwnerTeardown\":0,\"returns\":0,\"stageAborted\":false}]}\n",
+  "stderr": ""
+}

@@ -1,0 +1,368 @@
+{
+  "schema": 1,
+  "date": "2026-08-27T22:50:05.544Z",
+  "candidateCodeInspected": false,
+  "oracleSha256": "bb380d38f3a9b25838f05c4e1e229a4dd55d6a080bdf26bc1b9c91cddb1cb134",
+  "rows": [
+    {
+      "case": "P4",
+      "profile": "NODE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1,
+          -1,
+          -1
+        ],
+        [
+          -1,
+          0,
+          -1,
+          -1
+        ],
+        [
+          1,
+          1,
+          0,
+          -1
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "P4",
+      "profile": "TREE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1,
+          -1,
+          -1
+        ],
+        [
+          -1,
+          0,
+          -1,
+          -1
+        ],
+        [
+          1,
+          1,
+          0,
+          -1
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "P3",
+      "profile": "NODE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "P3",
+      "profile": "TREE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "prefix",
+      "profile": "NODE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1,
+          -1
+        ],
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          1,
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "prefix",
+      "profile": "TREE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1,
+          -1
+        ],
+        [
+          1,
+          0,
+          1
+        ],
+        [
+          1,
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "boundedPrefix",
+      "profile": "NODE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "boundedPrefix",
+      "profile": "TREE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "nestedPrefix",
+      "profile": "NODE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "nestedPrefix",
+      "profile": "TREE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "emptyBody",
+      "profile": "NODE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1,
+          1
+        ],
+        [
+          -1,
+          0,
+          -1
+        ],
+        [
+          -1,
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "emptyBody",
+      "profile": "TREE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1,
+          1
+        ],
+        [
+          -1,
+          0,
+          -1
+        ],
+        [
+          -1,
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "W3",
+      "profile": "NODE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "W3",
+      "profile": "TREE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "W4",
+      "profile": "NODE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "W4",
+      "profile": "TREE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "W4bare",
+      "profile": "NODE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "W4bare",
+      "profile": "TREE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "W4wrapped",
+      "profile": "NODE",
+      "winner": 0,
+      "matrix": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "W4wrapped",
+      "profile": "TREE",
+      "winner": 1,
+      "matrix": [
+        [
+          0,
+          1
+        ],
+        [
+          -1,
+          0
+        ]
+      ]
+    }
+  ]
+}

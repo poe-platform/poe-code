@@ -1,0 +1,25 @@
+{
+  "id": "accepted-review-references",
+  "args": [
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+    "--",
+    "tests/comparison/v7-r3-independent-20260829/review-v2/RESULT.json",
+    "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+    "tests/comparison/v7-r3-independent-20260829/review-v2/FUTURE-INTERFACE.json"
+  ],
+  "pid": 85289,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "bytes": 375,
+  "errors": [],
+  "stdoutSha256": "f3bd8f9ae09e9c89f1997dd321d3d44711d62288c2685af6773e791d4a3deaf9"
+}

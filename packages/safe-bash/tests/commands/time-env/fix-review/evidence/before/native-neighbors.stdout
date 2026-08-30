@@ -1,0 +1,187 @@
+{
+  "rows": 36,
+  "GNU": 0,
+  "Apple": 0,
+  "mismatches": [
+    {
+      "category": "required-format",
+      "zone": "UTC",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC-0:30:07",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC-0:30:07",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC+0:00:07",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC+0:00:07",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC-5:45",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC-5:45",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "America/New_York",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "America/New_York",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "Europe/Paris",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "Europe/Paris",
+      "instant": "0008-01-02T03:04:05Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC-0:30:07",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC-0:30:07",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC+0:00:07",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC+0:00:07",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC-5:45",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC-5:45",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "America/New_York",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "America/New_York",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "Europe/Paris",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "Europe/Paris",
+      "instant": "2024-02-29T15:06:07Z"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC",
+      "instant": "@-1"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC",
+      "instant": "@-1"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC-0:30:07",
+      "instant": "@-1"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC-0:30:07",
+      "instant": "@-1"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC+0:00:07",
+      "instant": "@-1"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC+0:00:07",
+      "instant": "@-1"
+    },
+    {
+      "category": "required-format",
+      "zone": "UTC-5:45",
+      "instant": "@-1"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "UTC-5:45",
+      "instant": "@-1"
+    },
+    {
+      "category": "required-format",
+      "zone": "America/New_York",
+      "instant": "@-1"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "America/New_York",
+      "instant": "@-1"
+    },
+    {
+      "category": "required-format",
+      "zone": "Europe/Paris",
+      "instant": "@-1"
+    },
+    {
+      "category": "zone-label-profile",
+      "zone": "Europe/Paris",
+      "instant": "@-1"
+    }
+  ]
+}

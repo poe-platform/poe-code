@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "pid": 35585,
+  "requested": "virtual-bash",
+  "parentUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/wrong-consumer/load-guard-wrong-installed-package.mjs",
+  "resolvedUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/wrong-consumer/node_modules/virtual-bash/dist/index.js",
+  "expected": {
+    "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/wrong-consumer/node_modules/virtual-bash",
+    "manifestSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+    "entrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d"
+  },
+  "actual": {
+    "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/wrong-consumer/node_modules/virtual-bash",
+    "manifestUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/wrong-consumer/node_modules/virtual-bash/package.json",
+    "manifestSha256": "434136a77c4fc8b5967c0e45630187c6b0dfec10159af56ff4163c6d48585e8f",
+    "entrySha256": "8f52ab73fa91434f4aab73ce7c01d6010281b2e40ab6d047fceac741739f6db3"
+  },
+  "allowed": false,
+  "rejectionReasons": [
+    "package manifest hash mismatch",
+    "package entry hash mismatch"
+  ],
+  "loaded": false
+}

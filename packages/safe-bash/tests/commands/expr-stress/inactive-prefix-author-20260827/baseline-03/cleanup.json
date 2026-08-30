@@ -1,0 +1,4 @@
+{
+  "scratchRemoved": true,
+  "children": "Bounded synchronous build/typecheck/test/driver children waited. Frozen driver finally terminates owned workers. Child timeout/error is an infrastructure failure, not a pass."
+}

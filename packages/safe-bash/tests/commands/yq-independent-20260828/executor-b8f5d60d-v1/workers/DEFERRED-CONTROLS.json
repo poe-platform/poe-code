@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "state": "PRESEALED_UNRUN_NO_EXECUTION_GO",
+  "noGoldenUpdates": true,
+  "controls": [
+    {"id":"AUTH-01","input":"Missing GO/recipe/tool/source seal","expected":"Core DENY before worker/product admission"},
+    {"id":"TYPE-01","input":"Six exact direct fixtures in each profile","expected":"12 separate core compiler calls; role-only outcomes"},
+    {"id":"TYPE-02","input":"Negative fixture code1 or2 and exact single code/line/file","expected":"ACCEPTED_COMPILE_REJECTION; outer must still exit0"},
+    {"id":"TYPE-03","input":"Negative fixture code0 or wrong code/line/file","expected":"FAIL; no missing-module pass"},
+    {"id":"TYPE-04","input":"Warning, extra diagnostic or unexpected raw output","expected":"FAIL; raw preserved before classification"},
+    {"id":"TYPE-05","input":"Worker nonzero after PASS, compiler signal/timeout/overflow","expected":"Aggregate FAIL; unknown reap unsafe STOP"},
+    {"id":"TYPE-06","input":"Changed declaration, tool tree, ambient resolution or source fallback","expected":"Unsafe DENY/STOP"},
+    {"id":"TYPE-07","input":"Current public root gap","expected":"Five UNRUN; zero conditional compiler requests"},
+    {"id":"TYPE-08","input":"Incorrect argv/cwd/tool identity/timestamps","expected":"Unsafe provenance refusal; raw evidence retained"},
+    {"id":"LOAD-01","input":"Two pristine positive slots","expected":"Actual factory/load and UTF22 invocation with matching baseline facts"},
+    {"id":"LOAD-02","input":"Eight declared control slots","expected":"Fresh full tree plus actual mutant import and exact witness; three transforms/four witnesses"},
+    {"id":"LOAD-03","input":"Hash denial, missing import event, generic crash or timeout","expected":"No kill credit; unsafe loader/reap STOP or FAIL"},
+    {"id":"LOAD-04","input":"Same primitive result under loaded mutant","expected":"MUTANT_SURVIVED sticky FAIL"},
+    {"id":"LOAD-05","input":"Wrong environment/candidate/GO or failed pristine prerequisite","expected":"No kill credit; unsafe provenance STOP or baseline FAIL"},
+    {"id":"LOAD-06","input":"Unapproved postimage, extra file, changed README/mode, symlink","expected":"Core and full map refusal; ordinary jobs reject all mutant postimages"},
+    {"id":"LOAD-07","input":"Workspace/source/ambient import, in-place unmoved root or reused cache root","expected":"Unsafe loader/materialization refusal"},
+    {"id":"LOAD-08","input":"Legacy UTF02/03 labels","expected":"Preserve witness bytes; UTF02 single and UTF03 double quoted"},
+    {"id":"BOUND-01","input":"Deadline/capture overflow with pending cleanup","expected":"No resets/retries; cleanup inside cap; no silent truncation"},
+    {"id":"BOUND-02","input":"Safe ordinary assertion failure with guard positive and known reap","expected":"Sticky FAIL; remaining scheduled work may continue"},
+    {"id":"BOUND-03","input":"Historical content reference vs active projection modes","expected":"No invented original modes; active files strictly admitted"}
+  ],
+  "executed": 0,
+  "productExecutions": 0
+}

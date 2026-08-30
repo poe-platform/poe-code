@@ -1,0 +1,373 @@
+{
+  "schema": "unified76-tool-route-read-only/1",
+  "createdAt": "2026-08-28T07:48:43.367Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "diagnosticSourceSha256": "9b9120955d9e768839b697d4075e2a38cd2fac67ae69a43b590c510b772ce29e",
+  "profileEncodedSha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+  "tools": [
+    {
+      "path": "/usr/bin/git",
+      "physical": "/usr/bin/git",
+      "bytes": 118928,
+      "mode": 493,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "machO": {
+        "sliceOffset": 49152,
+        "sliceBytes": 69776,
+        "commands": [
+          {
+            "kind": "0xe",
+            "name": "/usr/lib/dyld"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libxcselect.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libSystem.B.dylib"
+          }
+        ],
+        "qualification": "Read-only arm64 direct load-command metadata, not an execution or complete dynamic-image closure."
+      }
+    },
+    {
+      "path": "/usr/bin/otool",
+      "physical": "/usr/bin/otool",
+      "bytes": 118928,
+      "mode": 493,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "machO": {
+        "sliceOffset": 49152,
+        "sliceBytes": 69776,
+        "commands": [
+          {
+            "kind": "0xe",
+            "name": "/usr/lib/dyld"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libxcselect.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libSystem.B.dylib"
+          }
+        ],
+        "qualification": "Read-only arm64 direct load-command metadata, not an execution or complete dynamic-image closure."
+      }
+    },
+    {
+      "path": "/usr/bin/xcrun",
+      "physical": "/usr/bin/xcrun",
+      "bytes": 117392,
+      "mode": 493,
+      "sha256": "234a81668b43d610a78d9293a5ccef397f561a88af84757194aedaa1ec728ad3",
+      "machO": {
+        "sliceOffset": 49152,
+        "sliceBytes": 68240,
+        "commands": [
+          {
+            "kind": "0xe",
+            "name": "/usr/lib/dyld"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libxcselect.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libSystem.B.dylib"
+          }
+        ],
+        "qualification": "Read-only arm64 direct load-command metadata, not an execution or complete dynamic-image closure."
+      }
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "machO": {
+        "sliceOffset": 0,
+        "sliceBytes": 3704880,
+        "commands": [
+          {
+            "kind": "0xe",
+            "name": "/usr/lib/dyld"
+          },
+          {
+            "kind": "0xc",
+            "name": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libz.1.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libiconv.2.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libSystem.B.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+          }
+        ],
+        "qualification": "Read-only arm64 direct load-command metadata, not an execution or complete dynamic-image closure."
+      }
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool",
+      "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool",
+      "bytes": 72672,
+      "mode": 493,
+      "sha256": "be184bb7054565eae25193e45e4235ea2d372c1eb6288ce900b2fad6d9dcc3f3",
+      "machO": {
+        "sliceOffset": 0,
+        "sliceBytes": 72672,
+        "commands": [
+          {
+            "kind": "0xe",
+            "name": "/usr/lib/dyld"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libc++.1.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libSystem.B.dylib"
+          }
+        ],
+        "qualification": "Read-only arm64 direct load-command metadata, not an execution or complete dynamic-image closure."
+      }
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+      "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+      "bytes": 472320,
+      "mode": 493,
+      "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69",
+      "machO": {
+        "sliceOffset": 0,
+        "sliceBytes": 472320,
+        "commands": [
+          {
+            "kind": "0xe",
+            "name": "/usr/lib/dyld"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libc++.1.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libSystem.B.dylib"
+          }
+        ],
+        "qualification": "Read-only arm64 direct load-command metadata, not an execution or complete dynamic-image closure."
+      }
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
+      "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
+      "bytes": 100528,
+      "mode": 493,
+      "sha256": "d508f0e1901151843804e4af512d4587ad0e422039e43e14abf22792360ad3d4",
+      "machO": {
+        "sliceOffset": 0,
+        "sliceBytes": 100528,
+        "commands": [
+          {
+            "kind": "0xe",
+            "name": "/usr/lib/dyld"
+          },
+          {
+            "kind": "0xc",
+            "name": "@rpath/DVTSystemPrerequisites.framework/Versions/A/DVTSystemPrerequisites"
+          },
+          {
+            "kind": "0xc",
+            "name": "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libobjc.A.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/usr/lib/libSystem.B.dylib"
+          },
+          {
+            "kind": "0xc",
+            "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+          },
+          {
+            "kind": "0x8000001c",
+            "name": "@executable_path/../../.."
+          },
+          {
+            "kind": "0x8000001c",
+            "name": "@executable_path/../../../Frameworks"
+          },
+          {
+            "kind": "0x8000001c",
+            "name": "@executable_path/../../../SharedFrameworks"
+          }
+        ],
+        "qualification": "Read-only arm64 direct load-command metadata, not an execution or complete dynamic-image closure."
+      }
+    }
+  ],
+  "developerSelection": {
+    "path": "/var/db/xcode_select_link",
+    "target": "/Applications/Xcode.app/Contents/Developer",
+    "physical": "/Applications/Xcode.app/Contents/Developer"
+  },
+  "installedManual": {
+    "path": "/Applications/Xcode.app/Contents/Developer/usr/share/man/man1/xcrun.1",
+    "physical": "/Applications/Xcode.app/Contents/Developer/usr/share/man/man1/xcrun.1",
+    "bytes": 7629,
+    "mode": 420,
+    "sha256": "9237a9b41d4baaaa40ae24e728c00818634e0dde7c108608a86933867396c1e1"
+  },
+  "absence": [
+    {
+      "path": "/usr/lib/libc++.1.dylib",
+      "errorCode": "ENOENT",
+      "qualification": "Absent readable file, not a library hash."
+    },
+    {
+      "path": "/usr/lib/libSystem.B.dylib",
+      "errorCode": "ENOENT",
+      "qualification": "Absent readable file, not a library hash."
+    },
+    {
+      "path": "/usr/lib/libxcselect.dylib",
+      "errorCode": "ENOENT",
+      "qualification": "Absent readable file, not a library hash."
+    }
+  ],
+  "recordedTrace": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/SAFETY-RESULTS.json",
+    "sha256": "41ddff0f98c687de7d1ebd28fc7a34868b67597e03e245431c925aa83c9891ea",
+    "records": [
+      {
+        "pid": 39225,
+        "parent": 39221,
+        "group": 39221,
+        "born": "Fri Aug 28 02:09:13 2026",
+        "command": "/usr/bin/otool -L /usr/bin/sandbox-exec"
+      },
+      {
+        "pid": 39226,
+        "parent": 39225,
+        "group": 39221,
+        "born": "Fri Aug 28 02:09:13 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -license check"
+      }
+    ]
+  },
+  "canonicalScan": {
+    "entryFiles": 632,
+    "scriptsIncluded": true,
+    "literalPatterns": [
+      "/usr/bin/git",
+      "/usr/bin/otool",
+      "xcrun",
+      "xcodebuild"
+    ],
+    "status": 1,
+    "matches": [],
+    "qualification": "No transitive closure assertion."
+  },
+  "bareGitHelper": {
+    "path": "scripts/typecheck-inputs.mjs",
+    "sha256": "94db499f97fb7dbdc30043bc23978dd8c647492503750e5399bb9331f6e5e736",
+    "matches": [
+      {
+        "line": 27,
+        "text": "  const tracked = execFileSync(\"git\", [\"ls-files\", \"-z\"], { cwd: root, maxBuffer: 32 * 1024 * 1024 }).toString().split(\"\\0\").filter(Boolean);"
+      }
+    ]
+  },
+  "executedCommands": [
+    [
+      "--no-replace-objects",
+      "grep",
+      "-n",
+      "-F",
+      "-e",
+      "/usr/bin/git",
+      "-e",
+      "/usr/bin/otool",
+      "-e",
+      "xcrun",
+      "-e",
+      "xcodebuild",
+      "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "--"
+    ],
+    [
+      "--no-replace-objects",
+      "show",
+      "f5e9fc49b6abb38e180cc9de16c95fced102ff75:scripts/typecheck-inputs.mjs"
+    ]
+  ],
+  "executedTool": {
+    "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "bytes": 3704880,
+    "mode": 493,
+    "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+    "machO": {
+      "sliceOffset": 0,
+      "sliceBytes": 3704880,
+      "commands": [
+        {
+          "kind": "0xe",
+          "name": "/usr/lib/dyld"
+        },
+        {
+          "kind": "0xc",
+          "name": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+        },
+        {
+          "kind": "0xc",
+          "name": "/usr/lib/libz.1.dylib"
+        },
+        {
+          "kind": "0xc",
+          "name": "/usr/lib/libiconv.2.dylib"
+        },
+        {
+          "kind": "0xc",
+          "name": "/usr/lib/libSystem.B.dylib"
+        },
+        {
+          "kind": "0xc",
+          "name": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+        }
+      ],
+      "qualification": "Read-only arm64 direct load-command metadata, not an execution or complete dynamic-image closure."
+    }
+  },
+  "childEnvironment": {
+    "PATH": "/usr/bin:/bin",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_COUNT": "0",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "GIT_OPTIONAL_LOCKS": "0"
+  },
+  "replacementToolExecutions": 0,
+  "builds": 0,
+  "fullGatePhases": 0,
+  "routeControlsExecuted": 0,
+  "decision": "HOLD exact direct-otool-classic tool/reference approval; no shipping source or OS exception changed."
+}

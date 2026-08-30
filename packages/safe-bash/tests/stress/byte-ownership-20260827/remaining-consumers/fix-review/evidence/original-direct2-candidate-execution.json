@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/history-preload.mjs",
+    "--experimental-loader",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/history-loader.mjs",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/history-replay/direct2/direct-curl.mjs"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# (node:52250) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:\n# --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/history-loader.mjs\", pathToFileURL(\"./\"));'\n# (Use `node --trace-warnings ...` to show where the warning was created)\n# Subtest: direct-registered-curl-buffer-307-replay\nok 1 - direct-registered-curl-buffer-307-replay\n  ---\n  duration_ms: 3.348583\n  type: 'test'\n  ...\n# Subtest: direct-registered-curl-native-uint8array-307-replay\nok 2 - direct-registered-curl-native-uint8array-307-replay\n  ---\n  duration_ms: 2.04675\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 129.448\n",
+  "stderr": ""
+}

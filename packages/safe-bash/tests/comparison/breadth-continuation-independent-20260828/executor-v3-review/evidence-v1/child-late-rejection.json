@@ -1,0 +1,32 @@
+{
+  "pid": 30492,
+  "exit": {
+    "code": 1,
+    "signal": null
+  },
+  "close": {
+    "code": 1,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "deliberatelyPremature": true
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 639,
+    "records": 70
+  },
+  "stdout": "",
+  "stderr": "ZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXYzLXJldmlldy9jaGlsZC5tanM6MTUKICBQcm9taXNlLnJlamVjdChuZXcgRXJyb3IoJ1BSRVNFQUxFRF9MQVRFX1JFSkVDVElPTicpKTsKICAgICAgICAgICAgICAgICBeCgpFcnJvcjogUFJFU0VBTEVEX0xBVEVfUkVKRUNUSU9OCiAgICBhdCBmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhcmlzb24vYnJlYWR0aC1jb250aW51YXRpb24taW5kZXBlbmRlbnQtMjAyNjA4MjgvZXhlY3V0b3ItdjMtcmV2aWV3L2NoaWxkLm1qczoxNToxOAogICAgYXQgTW9kdWxlSm9iLnJ1biAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9tb2R1bGVfam9iOjM0MzoyNSkKICAgIGF0IGFzeW5jIG9uSW1wb3J0LnRyYWNlUHJvbWlzZS5fX3Byb3RvX18gKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjY2NToyNikKICAgIGF0IGFzeW5jIGFzeW5jUnVuRW50cnlQb2ludFdpdGhFU01Mb2FkZXIgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9ydW5fbWFpbjoxMTc6NSkKCk5vZGUuanMgdjIyLjIyLjIK",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7ImRlbGliZXJhdGVseVByZW1hdHVyZSI6dHJ1ZX19Cg==",
+  "natural": false
+}

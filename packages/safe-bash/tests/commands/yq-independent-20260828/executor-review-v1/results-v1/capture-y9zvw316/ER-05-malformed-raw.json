@@ -1,0 +1,71 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": {
+    "summary": {
+      "schemaVersion": 1,
+      "aggregate": "FAIL",
+      "requested": 1,
+      "admitted": 1,
+      "stop": null,
+      "results": [
+        {
+          "jobId": "job0",
+          "admitted": true,
+          "outcome": "FAIL",
+          "failures": [
+            "assertion: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+          ],
+          "integrity": true,
+          "reapProof": true,
+          "metadata": {
+            "pid": 62317,
+            "group": 62317,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "spawnError": null,
+            "closed": true,
+            "reaped": true,
+            "kills": [],
+            "elapsedMs": 59
+          }
+        }
+      ],
+      "activeChildren": [],
+      "evidence": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/host-evidence/run-2026-08-28T08-56-41.548Z-6ba66366-b4aa-451d-bae5-1519e7563f6b"
+    },
+    "rawFiles": {
+      "job0/boundary.json": {
+        "base64": "ewogICJpbnRlZ3JpdHkiOiB0cnVlLAogICJpbnRlZ3JpdHlFcnJvciI6IG51bGwsCiAgInJlYXBQcm9vZiI6IHRydWUsCiAgInN5bnRoZXRpY1dpdGhoZWxkUmVhcFByb29mIjogZmFsc2UKfQo=",
+        "mode": 384
+      },
+      "job0/child.json": {
+        "base64": "ewogICJwaWQiOiA2MjMxNywKICAiZ3JvdXAiOiA2MjMxNywKICAiZXhpdENvZGUiOiAwLAogICJzaWduYWwiOiBudWxsLAogICJ0aW1lZE91dCI6IGZhbHNlLAogICJvdmVyZmxvdyI6IGZhbHNlLAogICJzcGF3bkVycm9yIjogbnVsbCwKICAiY2xvc2VkIjogdHJ1ZSwKICAicmVhcGVkIjogdHJ1ZSwKICAia2lsbHMiOiBbXSwKICAiZWxhcHNlZE1zIjogNTkKfQo=",
+        "mode": 384
+      },
+      "job0/stderr.bin": {
+        "base64": "",
+        "mode": 384
+      },
+      "job0/stdout.bin": {
+        "base64": "e2JhZH0K",
+        "mode": 384
+      },
+      "job0/verdict.json": {
+        "base64": "ewogICJqb2JJZCI6ICJqb2IwIiwKICAiYWRtaXR0ZWQiOiB0cnVlLAogICJvdXRjb21lIjogIkZBSUwiLAogICJmYWlsdXJlcyI6IFsKICAgICJhc3NlcnRpb246IFN5bnRheEVycm9yOiBFeHBlY3RlZCBwcm9wZXJ0eSBuYW1lIG9yICd9JyBpbiBKU09OIGF0IHBvc2l0aW9uIDEgKGxpbmUgMSBjb2x1bW4gMikiCiAgXSwKICAiaW50ZWdyaXR5IjogdHJ1ZSwKICAicmVhcFByb29mIjogdHJ1ZSwKICAibWV0YWRhdGEiOiB7CiAgICAicGlkIjogNjIzMTcsCiAgICAiZ3JvdXAiOiA2MjMxNywKICAgICJleGl0Q29kZSI6IDAsCiAgICAic2lnbmFsIjogbnVsbCwKICAgICJ0aW1lZE91dCI6IGZhbHNlLAogICAgIm92ZXJmbG93IjogZmFsc2UsCiAgICAic3Bhd25FcnJvciI6IG51bGwsCiAgICAiY2xvc2VkIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImtpbGxzIjogW10sCiAgICAiZWxhcHNlZE1zIjogNTkKICB9Cn0K",
+        "mode": 384
+      },
+      "summary.json": {
+        "base64": "ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiYWdncmVnYXRlIjogIkZBSUwiLAogICJyZXF1ZXN0ZWQiOiAxLAogICJhZG1pdHRlZCI6IDEsCiAgInN0b3AiOiBudWxsLAogICJyZXN1bHRzIjogWwogICAgewogICAgICAiam9iSWQiOiAiam9iMCIsCiAgICAgICJhZG1pdHRlZCI6IHRydWUsCiAgICAgICJvdXRjb21lIjogIkZBSUwiLAogICAgICAiZmFpbHVyZXMiOiBbCiAgICAgICAgImFzc2VydGlvbjogU3ludGF4RXJyb3I6IEV4cGVjdGVkIHByb3BlcnR5IG5hbWUgb3IgJ30nIGluIEpTT04gYXQgcG9zaXRpb24gMSAobGluZSAxIGNvbHVtbiAyKSIKICAgICAgXSwKICAgICAgImludGVncml0eSI6IHRydWUsCiAgICAgICJyZWFwUHJvb2YiOiB0cnVlLAogICAgICAibWV0YWRhdGEiOiB7CiAgICAgICAgInBpZCI6IDYyMzE3LAogICAgICAgICJncm91cCI6IDYyMzE3LAogICAgICAgICJleGl0Q29kZSI6IDAsCiAgICAgICAgInNpZ25hbCI6IG51bGwsCiAgICAgICAgInRpbWVkT3V0IjogZmFsc2UsCiAgICAgICAgIm92ZXJmbG93IjogZmFsc2UsCiAgICAgICAgInNwYXduRXJyb3IiOiBudWxsLAogICAgICAgICJjbG9zZWQiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJraWxscyI6IFtdLAogICAgICAgICJlbGFwc2VkTXMiOiA1OQogICAgICB9CiAgICB9CiAgXSwKICAiYWN0aXZlQ2hpbGRyZW4iOiBbXSwKICAiZXZpZGVuY2UiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1QveXEtaW5kZXBlbmRlbnQtZnJhbWV3b3JrLWluZmI5YnluL2hvc3QtZXZpZGVuY2UvcnVuLTIwMjYtMDgtMjhUMDgtNTYtNDEuNTQ4Wi02YmE2NjM2Ni1iNGFhLTQ1MWQtYmFlNS0xNTE5ZTc1NjNmNmIiCn0K",
+        "mode": 384
+      }
+    },
+    "secondMarker": false,
+    "effects": {
+      "input": "original\n"
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

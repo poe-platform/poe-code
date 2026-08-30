@@ -1,0 +1,34 @@
+{
+  "at": "2026-08-27T20:51:42.001Z",
+  "reason": "Keep captured TypeScript/native data outside canonical tests/**/*.test.ts discovery without changing any shared discovery configuration. No source aliases are introduced.",
+  "from": "/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/node_modules",
+  "to": "/Users/kjopek/Workspace/safe-bash/src/commands/html-to-markdown/node_modules/inline-normalization-early",
+  "sameDirectoryInode": true,
+  "observations": [
+    {
+      "label": "baseline-01",
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/node_modules/baseline-01",
+      "retainedPath": "/Users/kjopek/Workspace/safe-bash/src/commands/html-to-markdown/node_modules/inline-normalization-early/baseline-01",
+      "allRegularCandidateBytesAndMembershipVerified": true
+    },
+    {
+      "label": "baseline-02",
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/node_modules/baseline-02",
+      "retainedPath": "/Users/kjopek/Workspace/safe-bash/src/commands/html-to-markdown/node_modules/inline-normalization-early/baseline-02",
+      "allRegularCandidateBytesAndMembershipVerified": true
+    },
+    {
+      "label": "baseline-03",
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/node_modules/baseline-03",
+      "retainedPath": "/Users/kjopek/Workspace/safe-bash/src/commands/html-to-markdown/node_modules/inline-normalization-early/baseline-03",
+      "allRegularCandidateBytesAndMembershipVerified": true
+    },
+    {
+      "label": "baseline-04",
+      "originalPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown/inline-normalization-fix/node_modules/baseline-04",
+      "retainedPath": "/Users/kjopek/Workspace/safe-bash/src/commands/html-to-markdown/node_modules/inline-normalization-early/baseline-04",
+      "allRegularCandidateBytesAndMembershipVerified": true
+    }
+  ],
+  "originalReceiptPathsRemainHistorical": true
+}

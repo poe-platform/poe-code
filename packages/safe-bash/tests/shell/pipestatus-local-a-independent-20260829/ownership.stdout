@@ -1,0 +1,184 @@
+1236:  async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
+1237-    const store = requireArrays(state);
+1238-    const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+1239-    const holding = store.owner.hold();
+1240-    let binding: IndexedBinding | undefined;
+1241-    try {
+1242-      const watch = await store.watch(name, owner, this.signal);
+1243-      const tickets = owner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
+1244-      const token = await textToken(owner, name, this.signal);
+1245-      const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });
+1246-      if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);
+1247-      if (!watch.valid()) throw new ArrayFailure("stale binding");
+1248-      binding = scalarLegacy ? undefined : store.get(name)?.retain();
+1249-      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy });
+1250-      tickets.cleanup = () => { typedSavedVariables.delete(saved); };
+1251-    } catch (error) { await binding?.release(); await owner.close(); throw error; }
+1252-    finally { holding.release(); }
+1253-  }
+1254-
+1255-  async prepareArrayObservers(state: State, owner: ArrayOwner): Promise<void> {
+1256-    owner.reserve({ metadata: 128, work: 6 });
+1257-    for (const frame of state.locals) for (const [name, saved] of frame) {
+1258-      if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved);
+1259-      await owner.ledger.checkpoint(this.signal);
+1260-    }
+1261-    for (const frame of stateMonitor(state)!.overlayFrames()) for (const [name, record] of frame) {
+1262-      const saved = record as SavedVariable;
+1263-      if (!saved.superseded && !typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved, true);
+1264-      await owner.ledger.checkpoint(this.signal);
+1265-    }
+1266-  }
+1267-
+1268:  async discardVariable(saved: SavedVariable): Promise<void> {
+1269-    const typed = typedSavedVariables.get(saved);
+1270-    if (!typed) return;
+1271-    typedSavedVariables.delete(saved);
+1272-    typed.watch.close();
+1273-    await typed.binding?.release();
+1274-    await typed.owner.close();
+1275-  }
+1276-
+1277-  async indexedEnvironment(state: State, env: Readonly<Record<string, string>>): Promise<void> {
+1278-    const store = requireArrays(state);
+1279-    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+1280-    const holding = store.owner.hold();
+1281-    const epoch = stateMonitor(state)!.epoch;
+1282-    try {
+1283-      const keys = Object.keys(env);
+1284-      operation.reserve({ metadata: 128 + keys.length * 64, allocatedSlots: keys.length * 2, work: keys.length * 5 + 8 });
+1285-      for (const key of keys) {
+1286-        const value = env[key];
+1287-        if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid invoke environment entry");
+1288-        if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
+1289-      }
+1290-      const publications = new Map<string, Admission>();
+1291-      for (const key of keys) {
+1292-        await textToken(store.owner, key, this.signal);
+1293-        await textToken(store.owner, env[key]!, this.signal);
+1294-        publications.set(key, operation.reserve({ generation: true, version: true, epoch: true, work: 8 }));
+1295-      }
+1296-      const controls = operation.reserve({ epoch: true, work: state.exported.size + keys.length + 5 });
+1297-      this.signal.throwIfAborted();
+1298-      if (stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
+1299-      stateMonitor(state)!.publish(controls, undefined, () => {
+1300-        for (const key of state.exported) delete state.variables[key];
+1301-        state.exported = new Set(keys);
+1302-      });
+1303-      for (const key of keys) {
+1304-        const tickets = publications.get(key)!;
+1305-        stateMonitor(state)!.publish(tickets, key, () => {
+1306-          void store.remove(key, tickets);
+1307-          state.variables[key] = env[key]!;
+1308-        });
+1309-      }
+1310-    } finally { try { await operation.close(); } finally { holding.release(); } }
+1311-  }
+1312-
+1313-  async unsetIndexed(state: State, name: string, index?: number | "members"): Promise<void> {
+1314-    const store = requireArrays(state);
+1315-    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+1316-    const holding = store.owner.hold();
+1317-    let staged: IndexedBinding | undefined;
+1318-    try {
+1319-      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+1320-      const watch = await store.watch(name, operation, this.signal);
+1321-      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+1322-      const current = store.get(name);
+1323-      if (index !== undefined && current) {
+1324-        staged = index === "members" ? IndexedBinding.create(store.owner) : await current.copy(this.signal);
+1325-        let maximum = -1;
+1326-        for (const key of staged.values.keys()) {
+src/shell/arrays/ledger.ts:205:  hold(): Admission {
+src/shell/arrays/ledger.ts-206-    this.assertOpen();
+src/shell/arrays/ledger.ts-207-    const root = this.root();
+src/shell/arrays/ledger.ts-208-    if (root.#holds === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("resource capacity exhausted");
+src/shell/arrays/ledger.ts-209-    const admission = this.reserve({ metadata: 64, work: 5 });
+src/shell/arrays/ledger.ts-210-    root.#holds++;
+src/shell/arrays/ledger.ts-211-    admission.cleanup = () => {
+src/shell/arrays/ledger.ts-212-      root.#holds--;
+src/shell/arrays/ledger.ts-213-      if (!root.#holds && root.#closed) root.#resolveIdle();
+src/shell/arrays/ledger.ts-214-    };
+src/shell/arrays/ledger.ts-215-    return admission;
+src/shell/arrays/ledger.ts-216-  }
+src/shell/arrays/ledger.ts-217-
+src/shell/arrays/ledger.ts-218-  detach(admission: Admission): void {
+src/shell/arrays/ledger.ts-219-    if (admission.previous) admission.previous.next = admission.next;
+src/shell/arrays/ledger.ts-220-    else this.#head = admission.next;
+src/shell/arrays/ledger.ts-221-    if (admission.next) admission.next.previous = admission.previous;
+src/shell/arrays/ledger.ts-222-    admission.owner = undefined;
+src/shell/arrays/ledger.ts-223-    admission.previous = undefined;
+src/shell/arrays/ledger.ts-224-    admission.next = undefined;
+src/shell/arrays/ledger.ts-225-  }
+src/shell/arrays/ledger.ts-226-
+src/shell/arrays/ledger.ts-227-  close(): Promise<void> {
+src/shell/arrays/ledger.ts-228-    if (!this.#started) {
+src/shell/arrays/ledger.ts-229-      this.#started = true;
+src/shell/arrays/ledger.ts-230-      this.#closed = true;
+--
+src/shell/arrays/bindings.ts:243:  publish(name: string, binding: IndexedBinding, tickets: Tickets, prepared?: { readonly name: OwnedText; readonly admission: Admission }, restoring = false): Promise<void> | undefined {
+src/shell/arrays/bindings.ts-244-    const previous = this.bindings.get(name);
+src/shell/arrays/bindings.ts-245-    const displaced = previous?.binding;
+src/shell/arrays/bindings.ts-246-    if (previous) previous.binding = binding;
+src/shell/arrays/bindings.ts-247-    else {
+src/shell/arrays/bindings.ts-248-      if (!prepared) throw new Error("Missing indexed-array name admission");
+src/shell/arrays/bindings.ts-249-      this.owner.adopt(prepared.name.admission, restoring);
+src/shell/arrays/bindings.ts-250-      this.owner.adopt(prepared.admission, restoring);
+src/shell/arrays/bindings.ts-251-      const entry = { binding, name: prepared.name, admission: prepared.admission };
+src/shell/arrays/bindings.ts-252-      prepared.admission.cleanup = () => {
+src/shell/arrays/bindings.ts-253-        if (this.bindings.get(name) !== entry) return;
+src/shell/arrays/bindings.ts-254-        this.bindings.delete(name);
+src/shell/arrays/bindings.ts-255-        entry.name.release();
+src/shell/arrays/bindings.ts-256-        void entry.binding.release();
+src/shell/arrays/bindings.ts-257-      };
+src/shell/arrays/bindings.ts-258-      this.bindings.set(name, entry);
+src/shell/arrays/bindings.ts-259-    }
+src/shell/arrays/bindings.ts-260-    this.changed(tickets, name);
+src/shell/arrays/bindings.ts-261-    const watch = this.watches.get(name);
+src/shell/arrays/bindings.ts-262-    if (watch) watch.typedVersion = tickets.version;
+src/shell/arrays/bindings.ts-263-    return displaced?.release();
+src/shell/arrays/bindings.ts-264-  }
+src/shell/arrays/bindings.ts-265-
+src/shell/arrays/bindings.ts-266-  remove(name: string, tickets: Tickets): Promise<void> | undefined {
+src/shell/arrays/bindings.ts-267-    const previous = this.bindings.get(name);
+src/shell/arrays/bindings.ts-268-    this.bindings.delete(name);
+
+READONLY PREFLIGHT
+3550:      }
+3551:      if (command === "readonly") {
+3552:        while (declarationArgs[0]?.startsWith("-")) {
+3553:          const option = declarationArgs.shift();
+3554:          if (option === "--") break;
+3555:          if (option !== "-p") { await writeText(stderr, `readonly: ${option}: unsupported option\n`); return 2; }
+3556:        }
+3557:      }
+3558:      const locals = state.locals.at(-1);
+3559:      if (command === "local" && !locals) { await writeText(stderr, "local: not in a function\n"); return 1; }
+3560:      let status = 0;
+3561:      if (!declarationArgs.length) {
+3562:        const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
+3563:        for (const name of names) if (arrayStore(state)?.get(name)) { await this.diagnostic(context, "indexed array: listing indexed bindings is unsupported"); return 2; }
+3564:        const prefix = state.profile === "sh" ? command : command === "readonly" ? "declare -r" : "declare -x";
+3565:        for (const name of [...names].sort()) await writeText(stdout, `${prefix} ${name}=${JSON.stringify(state.variables[name] ?? "")}\n`);
+3566:      }
+3567:      for (const arg of declarationArgs) {
+3568:        const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:=(.*))?$/su.exec(arg);
+3569:        if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
+3570:        const name = match[1]!;
+3571:        if (state.readonlyVariables?.has(name) && (match[2] !== undefined || command === "local")) {
+3572:          await this.diagnostic(context, `${name}: readonly variable`); status = 1; continue;
+3573:        }
+3574:        if (arrayStore(state)?.get(name) && command === "export") {
+3575:          await this.diagnostic(context, "indexed array: indexed binding cannot be exported"); status = 1; continue;
+3576:        }
+3577:        if (command === "local" && indexedLocal) {
+3578:          if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+3579:          if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+3580:          const existingLocal = locals!.get(name);
+3581:          const saved = existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);
+3582:          if (existingLocal && !typedSavedVariables.has(existingLocal)) await this.prepareVariable(state, name, existingLocal, true);
+3583:          if (saved) await this.prepareVariable(state, name, saved);
+3584:          const store = requireArrays(state);
+3585:          const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+3586:          const holding = store.owner.hold();
+3587:          let shadow: IndexedBinding | undefined;

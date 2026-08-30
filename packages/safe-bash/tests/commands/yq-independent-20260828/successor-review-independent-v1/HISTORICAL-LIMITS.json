@@ -1,0 +1,98 @@
+{
+  "classification": "AUTHENTICATED_HISTORICAL_HANDOFF_REFERENCES_AND_STATIC_ARITHMETIC_ONLY",
+  "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+  "references": {
+    "runSummary": {
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/RUN-SUMMARY.json",
+      "sha256": "e2f9d32bc8604a3625f6ff42e5d3f48860ccfe48a94e632ce190e0fb68f0a979"
+    },
+    "sourceCoverage": {
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/SOURCE-COVERAGE.json",
+      "sha256": "17f6b1365c2ea7bfbd6906452316aed03b4c0210c091683dd4baab1f5a89c2d0"
+    },
+    "full166JobLedger": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/ACTUAL-JOBS.json",
+    "inventory194": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/ID-MAP-194.json",
+    "provenance": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/PROVENANCE.json"
+  },
+  "originalAggregate": "FAIL",
+  "consumedGO": true,
+  "oldCounts": {
+    "plannedChildren": 301,
+    "actualChildren": 167,
+    "runtimeJobs": 166,
+    "originalJobs": 149,
+    "movedJobs": 17,
+    "unrunPlannedChildren": 134,
+    "originalUniqueRuntimeIds": 132,
+    "failureJobs": {
+      "incomplete": 31,
+      "harness": 1
+    }
+  },
+  "historicalTiming": {
+    "admissionBudgetMs": 600000,
+    "parentElapsedMs": 619594,
+    "movedWholeJobRangeMs": [
+      16840,
+      27231
+    ],
+    "phaseIsolationMeasured": false,
+    "setupCostMeasured": false,
+    "newCandidatePerformanceEvidence": false
+  },
+  "staticArithmetic": {
+    "oldParentExcessMs": 19594,
+    "oldUnrunChildren": 134,
+    "unrunMovedJobs": 132,
+    "full149MovedAtObservedMinimumMs": 2509160,
+    "full149MovedAtObservedMaximumMs": 4057419,
+    "sensitivityNotBoundOrForecast": true,
+    "meaning": "Multiplication of historical whole-job observations only. Neither value proves future job duration, phase costs or a sufficient successor deadline. No new cap is proposed without the sealed schedule."
+  },
+  "sourceRolesHistoricalOnly": {
+    "SUPPORT_ONLY": 15,
+    "SOURCE_COUNTERPROOF": 4,
+    "PARTIAL_SUPPORT": 4
+  },
+  "privateRuntimeProofsUnknown": 23,
+  "unrunWork": {
+    "dedicatedLoaded": "UNRUN",
+    "actualLoadedMutant": "UNRUN",
+    "negativeControlIds": [
+      "NEG-01",
+      "NEG-02",
+      "NEG-03",
+      "NEG-04",
+      "NEG-05",
+      "NEG-06"
+    ],
+    "typeWorkerRuns": 0,
+    "compilerFixtureRuns": 0,
+    "directTypeFixtures": [
+      "positive",
+      "factory-command-extra",
+      "factory-array-extra",
+      "unknown-limits",
+      "replace-string",
+      "replace-undefined"
+    ],
+    "publicTypeGapFixtures": [
+      "hidden-limits",
+      "hidden-defaults",
+      "hidden-session",
+      "hidden-factory",
+      "hidden-parser"
+    ]
+  },
+  "newScheduleReview": "PENDING_SEALED_PLAN",
+  "candidateProofReview": "PENDING_SEALED_CANDIDATE_PACKET",
+  "oldExtractionRepeated": false,
+  "newControlRuntimeProductPasses": 0,
+  "proofQualifications": [
+    "Original31 incomplete runtime jobs are unrelated to the newly declared31 adapter controls",
+    "UNRUN and unfulfilled obligations are not false new-candidate product failures",
+    "The old23 source classifications do not prove current repaired-candidate behavior",
+    "WRK-06 C+1 rejection cannot certify C success; WRK-07 author fixed-scalar claim is not independent; WRK-17 small internal limits remain proof controls",
+    "For masked/unreachable C require the exact frozen earlier gate and mathematical/procedural proof without lower caps/state injection"
+  ]
+}

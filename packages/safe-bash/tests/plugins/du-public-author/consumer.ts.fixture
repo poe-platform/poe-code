@@ -1,0 +1,65 @@
+import assert from "node:assert/strict";
+import * as root from "virtual-bash";
+import * as du from "virtual-bash/commands/du";
+import type { AgentCommandsOptions, DuCommandsOptions, DuLimits, CommandDefinition, VirtualShellPlugin } from "virtual-bash";
+import type { DuCommandsOptions as LeafOptions, DuLimits as LeafLimits } from "virtual-bash/commands/du";
+
+const limits: Partial<DuLimits> = { maxEntries: 1000, maxOutputBytes: 4096, maxSteps: 32768 };
+const leafLimits: Partial<LeafLimits> = limits;
+const options: DuCommandsOptions = { limits: leafLimits }, leafOptions: LeafOptions = options;
+const aggregate: AgentCommandsOptions = { du: leafOptions };
+const replacementIsTopLevel: "replace" extends keyof NonNullable<AgentCommandsOptions["du"]> ? false : true = true;
+const single: CommandDefinition = du.createDuCommand(options);
+const definitions: readonly CommandDefinition[] = du.createDuCommands(options);
+const plugin: VirtualShellPlugin = du.duCommands(options);
+assert.equal(single.name, "du"); assert.equal(replacementIsTopLevel, true);
+assert.deepEqual(definitions.map(command => command.name), ["du"]);
+assert.deepEqual(Object.keys(du).sort(), ["createDuCommand", "createDuCommands", "duCommands"]);
+assert.equal(root.createDuCommand, du.createDuCommand); assert.equal(root.createDuCommands, du.createDuCommands); assert.equal(root.duCommands, du.duCommands);
+assert.throws(() => du.createDuCommand({ limits: { maxEntries: 0 } }), /^RangeError: Invalid du limit: maxEntries$/u);
+const expected = [
+  "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
+  "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
+  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
+  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha256sum", "sha1sum",
+  "md5sum", "cksum", "gzip", "gunzip", "zcat", "diff", "patch", "chmod", "stat", "mktemp", "tar",
+  "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du",
+].sort();
+assert.equal(expected.length, 75); assert.equal(new Set(expected).size, 75);
+assert.deepEqual(root.createAgentCommands(aggregate).map(command => command.name).sort(), expected);
+const fs = root.createMemoryFileSystem(); await fs.mkdir("/usage/sub", { recursive: true });
+await fs.writeFile("/usage/a", Buffer.from("abc")); await fs.writeFile("/usage/sub/b", Buffer.from("12345"));
+await fs.writeFile("/payload", Buffer.from("1234567"));
+const shell = new root.Shell({ fs }).use(root.agentCommands(aggregate));
+try {
+  const result = await shell.exec("du -abs /usage");
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "du: cannot combine --all and --summarize\n");
+  const apparent = await shell.exec("du -bs /usage | cat > /report; cat /report");
+  assert.equal(apparent.exitCode, 0, apparent.stderr); assert.equal(apparent.stdout, "8\t/usage\n"); assert.equal(apparent.stderr, "");
+  assert.equal(Buffer.from(await fs.readFile("/report")).toString(), "8\t/usage\n");
+  const unknown = await shell.exec("du -B1 /payload");
+  assert.equal(unknown.exitCode, 1); assert.equal(unknown.stdout, "");
+  assert.equal(unknown.stderr, 'du: "/payload": allocated bytes unknown; total suppressed\n');
+  for (const name of ["curl", "safejs", "expr"]) assert.equal(shell.commands.has(name), false);
+  assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expected);
+} finally { await shell.dispose(); }
+const standalone = new root.Shell({ fs }).use(plugin);
+try {
+  const result = await standalone.exec("du -b /payload"); assert.equal(result.exitCode, 0); assert.equal(result.stdout, "7\t/payload\n");
+  assert.deepEqual(standalone.commands.list().map(command => command.name), ["du"]);
+} finally { await standalone.dispose(); }
+const capped = new root.Shell({ fs }).use(root.agentCommands({ du: { limits: { maxEntries: 1 } } }));
+try {
+  const result = await capped.exec("du -bs /usage"); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.match(result.stderr, /entry limit exceeded/u);
+} finally { await capped.dispose(); }
+const known = new Proxy(fs, { get(target, property) {
+  if (property === "lstat") return async (...args: Parameters<root.FileSystem["lstat"]>) => ({ ...await target.lstat(...args), allocatedBytes: 0 });
+  const value: unknown = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value;
+} });
+const zero = new root.Shell({ fs: known }).use(root.agentCommands());
+try {
+  const result = await zero.exec("du -B1 /payload"); assert.equal(result.exitCode, 0); assert.equal(result.stdout, "0\t/payload\n"); assert.equal(result.stderr, "");
+} finally { await zero.dispose(); }
+console.log(JSON.stringify({ defaults: expected.length, root: import.meta.resolve("virtual-bash"), subpath: import.meta.resolve("virtual-bash/commands/du"), workflows: 6, metadataProfile: "unknown != zero; explicit apparent mode" }));

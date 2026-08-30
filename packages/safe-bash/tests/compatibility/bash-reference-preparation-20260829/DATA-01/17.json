@@ -1,0 +1,26 @@
+{
+  "role": "compiler",
+  "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+  "initial": {
+    "mode": 493,
+    "bytes": 141373024,
+    "dev": 16777232,
+    "ino": 84436012,
+    "mtimeMs": 1781596675000,
+    "ctimeMs": 1782925519711.9001
+  },
+  "symbolicLink": false,
+  "resolved": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+  "target": {
+    "mode": 493,
+    "bytes": 141373024,
+    "dev": 16777232,
+    "ino": 84436012,
+    "mtimeMs": 1781596675000,
+    "ctimeMs": 1782925519711.9001
+  },
+  "sha256": "7def90dd8829726686213a747fc5bff1583df933dae5edc55d755479e0bfe00a",
+  "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+  "executed": false,
+  "executedVersion": null
+}

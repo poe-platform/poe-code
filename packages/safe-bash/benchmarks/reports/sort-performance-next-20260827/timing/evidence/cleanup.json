@@ -1,0 +1,22 @@
+{
+  "ownedChildren": [
+    {
+      "pid": 17373,
+      "label": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --max-old-space-size=512 /Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc -p tsconfig.build.json",
+      "code": 0,
+      "signal": null,
+      "settled": true
+    },
+    {
+      "pid": 17768,
+      "label": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm pack --ignore-scripts --json --pack-destination /private/tmp/sort-cache-timing-EmcEYN --cache /private/tmp/sort-cache-timing-EmcEYN/npm-cache",
+      "code": 1,
+      "signal": null,
+      "settled": true
+    }
+  ],
+  "activeOwnedChildren": [],
+  "inertScratchRetained": "/private/tmp/sort-cache-timing-EmcEYN",
+  "noOtherProcessSignals": true,
+  "noServersStarted": true
+}

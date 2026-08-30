@@ -1,0 +1,29 @@
+{
+  "schema": 2,
+  "preparedAt": "2026-08-29T16:23:56.425Z",
+  "presealCommit": "3db721642c2c3ab82dbcc7fd4a73267a2f702682",
+  "profileSha256": "b46dd4e58efdf4efb9244ae6beb1a046ab51c734a457a65ce7f898c1e5c2d808",
+  "helpers": 3,
+  "groups": 14,
+  "passed": 14,
+  "harmlessChildren": 2,
+  "childExits": [
+    0,
+    7
+  ],
+  "childRetired": 2,
+  "actualWorkers": 0,
+  "matching": 0,
+  "productImports": 0,
+  "actual13Cells": "UNRUN",
+  "remainingActivationConditions": [
+    "different review and fresh ROOT grant/window",
+    "fixed external startup capture and close producer",
+    "publication Git storage/work/retirement envelope"
+  ],
+  "historicalRescore": false,
+  "sourceOnlyAfterControls": [
+    "supervisor explicit role",
+    "STOP_UNCONFIRMED blocks admin even after process close"
+  ]
+}

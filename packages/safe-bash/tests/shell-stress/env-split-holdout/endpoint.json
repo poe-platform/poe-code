@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-08-27T07:42:25.114Z",
+  "head": "df780f6ddb6292283114461ff4f9ebacfb269205",
+  "status": " M src/commands/grep.ts\n M src/commands/regex-execution/client.ts\n M src/commands/search/rg.ts\n M tests/commands/regex-execution/cleanup-registration/controls.test.ts\n M tests/plugins/stream-five-fixture-migration/capture.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/guard.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/registration.mjs\n?? src/shell/cleanup.ts\n?? tests/commands/archive-stress/native-prerequisite-review/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/regex-execution/cleanup-registration/after-controls.json\n?? tests/commands/regex-execution/cleanup-registration/after-types.json\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/evidence/\n?? tests/plugins/stream-five-fixture-migration/final-consumer.json\n?? tests/plugins/stream-five-fixture-migration/final-invariants.json\n?? tests/plugins/stream-five-fixture-migration/final-runs.json\n?? tests/plugins/stream-five-fixture-migration/public-options.mts\n?? tests/shell-stress/env-split-author/\n?? tests/shell-stress/env-split-holdout/\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration-corrected.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration.json\n",
+  "index": "",
+  "liveHashes": {
+    "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/plugins/index.ts": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+  },
+  "changedSinceMetadata": [],
+  "qualification": "Live identities only; no author implementation content inspection or product baseline. Active writer is not assumed stable."
+}

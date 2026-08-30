@@ -1,0 +1,24 @@
+{
+  "name": "negative-wrong-revision",
+  "started": "2026-08-27T12:59:43.844Z",
+  "ended": "2026-08-27T12:59:43.988Z",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "tests/shell/invocation-cleanup-public.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02/candidate",
+  "pid": 96326,
+  "status": 1,
+  "signal": null,
+  "error": null,
+  "counts": {
+    "tests": 10,
+    "pass": 0,
+    "fail": 10,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

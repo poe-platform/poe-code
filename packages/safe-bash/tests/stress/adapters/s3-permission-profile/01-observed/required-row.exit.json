@@ -1,0 +1,16 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=^s3: optional metadata capabilities are exercised or fail closed$",
+    "tests/stress/adapters/core.test.ts"
+  ],
+  "started": "2026-08-27T00:22:19.595Z",
+  "finished": "2026-08-27T00:22:19.792Z",
+  "status": 1,
+  "signal": null,
+  "error": null
+}

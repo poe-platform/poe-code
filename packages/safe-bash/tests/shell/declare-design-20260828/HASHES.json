@@ -1,0 +1,81 @@
+{
+  "schema": "virtual-bash-declare-design-static-bindings-v1",
+  "status": "PREPARED_ONLY_METADATA_CHECKED",
+  "date": "2026-08-28",
+  "semanticMatrixRows": 40,
+  "nativePreparedRows": 8,
+  "actualNativeLaunches": 0,
+  "actualProductExecutions": 0,
+  "testsOrBuildsExecuted": 0,
+  "passes": null,
+  "actualScriptBytesTotal": 2455,
+  "verification": "Node builtins only: JSON/count/regular-file/byte/SHA256/terminal-text checks; no imports or evaluation of product/native/script code",
+  "inputs": [
+    {
+      "file": "DESIGN.md",
+      "bytes": 26099,
+      "sha256": "c8648fa2679d27eee04ff8d28ea49acfdff3ce34d1888b916075782e0bfd65f8"
+    },
+    {
+      "file": "SOURCES.md",
+      "bytes": 8703,
+      "sha256": "8df0a0c244420ec3965a0375f20f2cd59fb458942d927b34ffac365f076d3102"
+    },
+    {
+      "file": "MATRIX.md",
+      "bytes": 8172,
+      "sha256": "ec91be2f19ce5a01121fa9062cc619a1883f6f2ff4c79e00474dcd5d00d01a58"
+    },
+    {
+      "file": "PRESEAL.md",
+      "bytes": 9149,
+      "sha256": "dd4c54a616be87e2028ddd8ab82a920db22b065b215af1ed3d034d997b7a7372"
+    },
+    {
+      "file": "MANIFEST.json",
+      "bytes": 8092,
+      "sha256": "c590980a8da12b2c5670e8482ee46b6680f447e3454dc7a99e51c35d5adc3a83"
+    },
+    {
+      "file": "native-prepared/D01.txt",
+      "bytes": 271,
+      "sha256": "850aea6f90b33903471043479c5584c68acf42e1ad39ad766c000e888e4e6b0a"
+    },
+    {
+      "file": "native-prepared/D02.txt",
+      "bytes": 302,
+      "sha256": "8ace73a4859c6d4e6e16aa3a46e099b99359c18e635543fbc155d5b25e4177db"
+    },
+    {
+      "file": "native-prepared/D03.txt",
+      "bytes": 302,
+      "sha256": "6f3ec84c8061414631b1b33bce9893dcbccf2665e7da6642a7b0cb5317c75f3c"
+    },
+    {
+      "file": "native-prepared/D04.txt",
+      "bytes": 304,
+      "sha256": "86e623828720bf4040d0355923ae39cb04dcc442626b966f984048c3204b22fd"
+    },
+    {
+      "file": "native-prepared/D05.txt",
+      "bytes": 295,
+      "sha256": "8174c225c19512c8c20ef3fd01febbfd0acc98bef697ce0eb854d407be66f040"
+    },
+    {
+      "file": "native-prepared/D06.txt",
+      "bytes": 345,
+      "sha256": "274b9f1847ddee45b82261b7c2ca4858006d0104f149c46891263ad3b6889c8b"
+    },
+    {
+      "file": "native-prepared/D07.txt",
+      "bytes": 290,
+      "sha256": "31565b7d7a75403c57d6bb10c547dc45583a45d5f1222503edab1c6dea98ced5"
+    },
+    {
+      "file": "native-prepared/D08.txt",
+      "bytes": 346,
+      "sha256": "dde7aba929f822976c66288047510754f8550f191adc48e50b32b77f4afcd67b"
+    }
+  ],
+  "selfHash": "Not recursive; this file is bound by its Git blob/owned documentation commit"
+}

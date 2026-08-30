@@ -1,0 +1,54 @@
+{
+  "authorReady": {
+    "status": "author-final-ready-for-independent-verifier",
+    "sourceFixCommit": "b282159921ce530e932b02f90c64eca987de2704",
+    "evidenceCommit": "5356008419940cf5b3a1e67a0812df803ef32e6c",
+    "freezeCommit": "07341c4751d776ee258bcea6086bb216216dd7c2",
+    "sourceHashes": {
+      "src/commands/structured/jq.ts": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3",
+      "src/commands/network/body.ts": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880"
+    },
+    "canonical": {
+      "tests": 18,
+      "pass": 18,
+      "fail": 0
+    },
+    "nearby": {
+      "tests": 89,
+      "pass": 89,
+      "fail": 0
+    },
+    "correctedPreFixCanonical": {
+      "tests": 18,
+      "pass": 12,
+      "fail": 6
+    },
+    "scopedTypeScript": "pass (exit 0); not full-repository typecheck",
+    "originalFailuresPreserved": true,
+    "sourceAndCanonicalOwnedGitStatus": "clean",
+    "evidenceOwnedGitStatus": "clean",
+    "ownedGitStatusCheckedAt": "2026-08-27T10:56:38Z",
+    "rawEvidenceAndCandidateHashesRechecked": true,
+    "authorProcesses": "all test/typecheck command sessions exited; no author background timers or processes",
+    "acceptance": "independent verifier decides; no author acceptance claim"
+  },
+  "independentAuth": {
+    "sourceCommitMatches": true,
+    "exactlyTwoSourceFilesChanged": [
+      "src/commands/network/body.ts",
+      "src/commands/structured/jq.ts"
+    ],
+    "unchangedMatrixVectorsLoader": true,
+    "canonicalHashes": {
+      "tests/commands/network/byte-ownership.test.ts": "3370c17c93cbb31db18be0aa0b920085120399ece2a0fb0228ade3640f57ae84",
+      "tests/commands/structured/byte-ownership.test.ts": "a53b4e1681ba7aafd73feca3f64029017c08f74225cb3f93318e0ca587aa53e5"
+    }
+  },
+  "authorTestCounts": "Reported author evidence, not independently rerun",
+  "baselineSourceManifestSha256": "221f13d1112234dfbf29a56a373ca41545446f690c2638ca1024bc795c35980b",
+  "fixedSourceManifestSha256": "1d33abf0abedd51ad907248d7e14ab1eac35fa1f78e63a0d9a97d588566fddc1",
+  "baselineBuildManifestSha256": "85e20a7b77494e784c67e307475ce279163d017ddbd82b729856267d098edaf7",
+  "fixedBuildManifestSha256": "68dcac0fad23d07ebafb1f1c66440ee7627a157621d59ecbb82bf04f79956081",
+  "frozenAt": "2026-08-27T10:53:10.273Z",
+  "verifiedAt": "2026-08-27T10:57:45.469Z"
+}

@@ -1,0 +1,78 @@
+{
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/runner.mjs",
+      "size": 14865,
+      "mode": 420,
+      "sha256": "cd4ad721375b0f51d35551b1a859743a6eb89f265c50a6b18ac9283df6de3b14"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs",
+      "size": 6422,
+      "mode": 420,
+      "sha256": "87644ddc1086a05e5106528e268814dbe4c2ac995739864e3a0c4cb959b70cc6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/outer.mjs",
+      "size": 3643,
+      "mode": 420,
+      "sha256": "99c5259e433f47141aba6bc652635083afc3c153d08d28431f4630e4fda1ca33"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/prepare.mjs",
+      "size": 7199,
+      "mode": 420,
+      "sha256": "837b7ade58ce669fa92863964f426a39b24459888858b513829b271298797b03"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/AUTHOR-SEAL.json",
+      "size": 61914,
+      "mode": 420,
+      "sha256": "20ce8940d07d2c032e4d61d321fbdee68e9e5fb6e1b5a4ca96dbc77de88097d7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/RUNNER-TRANSFORMS.json",
+      "size": 2030,
+      "mode": 420,
+      "sha256": "8dac400b21da6278d174c902c27cc5338749f5415ae0b6c32af5fbe1fa4c0133"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/SOURCE-GIT.json",
+      "size": 1038,
+      "mode": 420,
+      "sha256": "0b91ed884714d1548b1f714d6553cb7216f97e593658ae40914e9224c8508019"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/PRESEAL.md",
+      "size": 3987,
+      "mode": 420,
+      "sha256": "0504f1cc448bd6b6e44f751972525fd8ab2b7769977499e1526adaaa53aeb9bb"
+    }
+  ],
+  "productSourceCommit": "0e97500f41be479e4a266037b03230ab5118d300",
+  "originalAuthorSeal": "20ce8940d07d2c032e4d61d321fbdee68e9e5fb6e1b5a4ca96dbc77de88097d7",
+  "caseGroups": {
+    "author": 66,
+    "R02": 8,
+    "novel": 6,
+    "layouts": 3,
+    "main": 240
+  },
+  "types": 6,
+  "mutants": 3,
+  "restores": 3,
+  "bindings": 2,
+  "children": 22,
+  "knownActualRolesBeforeAdmin": 24,
+  "loaderThreads": 0,
+  "workers": 0,
+  "noCompression": true,
+  "native": false,
+  "R01": "seven historical failures/HOLD not rerun or rescored"
+}

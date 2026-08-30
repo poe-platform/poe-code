@@ -1,0 +1,17 @@
+{
+  "consultedDate": "2026-08-27",
+  "method": "web.run opened official GNU v9.7 source and tagged manual; version-specific expectations remain original immutable native receipts, not inferred JavaScript regex behavior.",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/expr.c",
+      "sha256": "c9dc5e04039505ab48a350e9407b1d83b2574fd7e2c31c9d23f4bf942d1b8af0",
+      "section": "docolon lines537-609",
+      "fact": "Anchored re_match at byte zero, syntactic re_nsub determines capture/length result kind; unmatched first register returns empty. Multibyte length converts original byte offset. Does not prove a universal POSIX submatch-history ordering algorithm."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/doc/coreutils.texi",
+      "scope": "Version-pinned manual consulted; no moving manual relabeled9.7."
+    }
+  ],
+  "dispute": "Nullable capture-history diagnosis is preserved with its original source/dist caveats; broader unsupported refusal is not native parity."
+}

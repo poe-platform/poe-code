@@ -1,0 +1,56 @@
+{
+  "schema": "m1b-runner-static-preparation-v1",
+  "date": "2026-08-28",
+  "permitted": "Trusted host Git/source/DATA reads, hashes and report authorship only",
+  "reviewedModuleImports": 0,
+  "candidateExecutions": 0,
+  "compilerExecutions": 0,
+  "npmExecutions": 0,
+  "loaderExecutions": 0,
+  "controlExecutions": 0,
+  "syntaxCheckExecutions": 0,
+  "mutantExecutions": 0,
+  "preparationFailures": [
+    {
+      "id": "RS-PREP01",
+      "operation": "Inline trusted-host metadata enumeration of committed EXECUTABLE-CLOSURE.json",
+      "priorCompletedData": "Fourteen parent and twenty-two workerProjection entries matched committed sizes and SHA256 values.",
+      "defect": "Loop then incorrectly treated the separate candidateCompiledFiles artifact domain as paths under the Git review scope.",
+      "gitCommand": "git show a3021720f22c44b66eab7f0bacbfe1d7955a10ae:tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/dist/commands/archive/create.js",
+      "gitExitCode": 128,
+      "gitSignal": null,
+      "gitStderr": "fatal: path 'tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/dist/commands/archive/create.js' does not exist in 'a3021720f22c44b66eab7f0bacbfe1d7955a10ae'\n",
+      "outerMetadataExitCode": 1,
+      "knownSynchronousReap": true,
+      "retainedRawLocation": "Original tool response in this review thread, including stderr, exit status and stack; not represented as a new product capture artifact",
+      "classification": "REVIEWER_PREPARATION_PATH_DOMAIN_ERROR_NOT_PEER_OR_PRODUCT_FINDING",
+      "subsequentAction": "Kept artifact and Git domains separate; did not rerun the failed path or load any reviewed code."
+    }
+  ],
+  "dataObservations": {
+    "gitPathInventories": "NUL-delimited records; stored runner tree authenticated",
+    "parentBindingsMatched": 14,
+    "workerProjectionBindingsMatched": 22,
+    "selectedSourceMapRows": 282,
+    "selectedUniquePaths": 282,
+    "sourceMapStoredCommits": 5,
+    "sourceMapStoredTrees": 60,
+    "sourceMapUniqueRequestedObjects": 347,
+    "packageMapRows": 910,
+    "packageMapOrdering": "bytewise full-path order matched",
+    "toolInventoryOrdering": "four committed maps matched bytewise component depth-first order",
+    "authenticatedGzipBytes": 806626,
+    "authenticatedGzipSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+    "boundedDecompressedDataBytes": 5150208,
+    "boundedDecompressedDataSha256": "4d7f961a3a459a85250fb11e69bb0c26629c9992cc9a2daf87b6608f9577b7f5",
+    "firstTarChecksumFieldHex": "3031343234362000",
+    "archiveInspectionLimit": "Raw SHA checked before builtin gzip decoding. Only data/header inspection; no runner parser, materialization or repack; not another independent package reproduction."
+  },
+  "indexAtReviewDataCheckpoint": {
+    "stagedPaths": [],
+    "nulPathListSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "foreignWorkingChanges": "Present and not modified/staged by this reviewer"
+  },
+  "cleanup": {"runtimeScratchCreated":false,"targetCopiesCreated":false,"activeOwnedChildren":0,"foreignProcessesSignaled":0},
+  "oldHistory": "All original runner/component preparations, failed attempts, captures and seals remain immutable."
+}

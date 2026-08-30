@@ -1,0 +1,86 @@
+{
+  "action": "--availability",
+  "recipeSha256": "663352445702f9280976e195374296be4404cc99c6c813d03fec6bba7f09e337",
+  "startedAt": "2026-08-28T09:18:28.286Z",
+  "preGuard": "passed",
+  "productImports": 0,
+  "comparatorImports": 0,
+  "nativeOracleCalls": 0,
+  "result": {
+    "kind": "read-only-availability-not-installation",
+    "original": {
+      "originalManifestSha256": "19526e0eb11478107b73026bdcc5d3b309f4cfb38c57a93c7cfea1672e75e923",
+      "originalFilesUnchanged": 11,
+      "appendedDirectory": "executor-preparation-v1",
+      "originalValidatorNotRewritten": true
+    },
+    "comparator": {
+      "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash",
+      "declaredFiles": 3844,
+      "authenticatedRegularFiles": 3843,
+      "authenticatedBytes": 135293876,
+      "orderedObservationSha256": "123677f11f74948ff9e4e6017f2437d6a4f3c758333723a1198d34e050d3498e",
+      "forbidden": [
+        {
+          "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+          "bytes": 9231,
+          "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+          "mode": 292,
+          "contentRead": false,
+          "materialized": false,
+          "reason": "AGENTS_FORBIDDEN"
+        }
+      ],
+      "errors": [],
+      "namespaceCensusPerformed": false,
+      "completeOldClosureAuthenticated": false,
+      "name": "just-bash",
+      "version": "3.4.2"
+    },
+    "target": {
+      "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "declaredPackageMembers": 858,
+      "packageMembersReextracted": false
+    },
+    "artifacts": [
+      {
+        "role": "comparator-tarball",
+        "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+        "bytes": 9879070,
+        "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+        "present": true
+      },
+      {
+        "role": "accepted-target-pack",
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+        "bytes": 749907,
+        "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+        "present": true
+      }
+    ],
+    "oldAdapterBindings": [
+      {
+        "path": "breadth.mjs",
+        "bytes": 8736,
+        "sha256": "e798b84be8f49e4966a1f9df3e4e6438c3b2ec6618821339705e140e572ba2d8"
+      },
+      {
+        "path": "observe-load.mjs",
+        "bytes": 1603,
+        "sha256": "57873f1dac8fd4dc2e028b119004091bce59d9dbbd84077f88cb4f7a0189dc2b"
+      },
+      {
+        "path": "reuse/breadth-assess.mjs",
+        "bytes": 6915,
+        "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+      }
+    ],
+    "productImports": 0,
+    "installs": 0,
+    "nativeOracles": 0
+  },
+  "outcome": "PREPARATION_COMPLETED",
+  "postGuard": "passed",
+  "finishedAt": "2026-08-28T09:18:29.242Z"
+}

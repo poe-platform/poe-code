@@ -1,0 +1,90 @@
+{
+  "schema": "bash-surface-finite-protocol-v1",
+  "role": "PREPARATION_ONLY_NO_EXECUTION_GRANT",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nativeArgs": [
+    "--noprofile",
+    "--norc",
+    "-c",
+    "<exact sealed literal>",
+    "surface-case"
+  ],
+  "nativeEnvironment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "HOME": "<case>/home",
+    "TMPDIR": "<case>/tmp",
+    "PATH": "<case>/empty-path"
+  },
+  "nativeUmask": 18,
+  "virtualEnvironment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "HOME": "/home",
+    "TMPDIR": "/tmp",
+    "PATH": "/empty-path"
+  },
+  "virtualCwd": "/work",
+  "argv0": "surface-case",
+  "virtualArgv0": "No public argv0 option; retain actual diagnostics, do not inject a replacement.",
+  "fixtures": {
+    "a.txt": "A\n",
+    "b.txt": "B\n",
+    ".hidden": "H\n",
+    "source-fixture": "v=sourced; printf 'source:%s\\n' \"$1\"\n"
+  },
+  "phases": {
+    "qualification": {
+      "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+      "wallMs": 180000,
+      "allProcesses": 32,
+      "peakProcesses": 3,
+      "perCaseMs": 3000,
+      "cleanupMs": 2000,
+      "captureBytes": 16777216,
+      "perStreamBytes": 262144,
+      "workBytes": 67108864,
+      "subjects": 9,
+      "decision": "NO_GO"
+    },
+    "semantics": {
+      "root": "/private/tmp/safe-bash-surface-semantics-20260829-01",
+      "wallMs": 600000,
+      "allProcesses": 128,
+      "peakProcesses": 8,
+      "perCaseMs": 3000,
+      "cleanupMs": 2000,
+      "captureBytes": 67108864,
+      "perStreamBytes": 262144,
+      "workBytes": 134217728,
+      "subjects": 80,
+      "identities": 40,
+      "decision": "NO_GO"
+    }
+  },
+  "stop": [
+    "safety",
+    "capture",
+    "integrity",
+    "unknown retirement",
+    "unknown fork/exec",
+    "observer unavailable"
+  ],
+  "ordinaryMismatch": "aggregate only after authenticated cleanup; never silently drop unsupported rows",
+  "externalCommands": "NONE; B39 searches only fresh empty PATH; B28 exec is descriptor-only",
+  "providerRequirements": {
+    "fence": "deny-by-default kernel file/network/exec fence with exact dependency reads; metadata alone is insufficient",
+    "observer": "lossless process fork/exec/exit enrollment before target; ALL-process cap and known group termination; no sampled-ps proof",
+    "qualification": "explicit ROOT-bound actual version/fence/observer receipts before semantic launch",
+    "missing": [
+      "qualified Bash5.3 executable/dependency closure",
+      "qualified OS-fence policy/driver binding",
+      "qualified lossless descendant observer",
+      "actual local version observation"
+    ]
+  }
+}

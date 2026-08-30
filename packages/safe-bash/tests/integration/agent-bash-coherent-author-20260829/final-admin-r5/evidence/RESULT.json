@@ -1,0 +1,311 @@
+{
+  "sourceCommit": "c4a2cc65e76c7f1015b8b0206c8a7cdec9f70645",
+  "final": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/FINAL.json",
+    "bytes": 23784,
+    "sha256": "d7cdc4e0261c4752b518fdc42c327f2afa2d777c83c33048c8d14ad86b5b0e65"
+  },
+  "preseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PRESEAL.json",
+    "bytes": 5226,
+    "sha256": "94791faba83590c630fee6bb1272a85a1af5eb23cf53c05d57c1873486590be5"
+  },
+  "command": {
+    "executable": "/bin/zsh",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch.sh",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/FINAL.json",
+      "d7cdc4e0261c4752b518fdc42c327f2afa2d777c83c33048c8d14ad86b5b0e65",
+      "23784",
+      {
+        "slot": "FRESH_ROOT_AUTHORIZATION_STRING"
+      }
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false,
+    "env": {
+      "B1_ADMIN_ROOT_GO": "ROOT_B1_R5_LIVE_ADMIN_EXPLICIT_AUTHORIZATION"
+    },
+    "rule": "One invocation only after review and fresh ROOT actual authority. No hand-executed admin commands after owner starts."
+  },
+  "checks": [
+    {
+      "id": "F01-output-only-runtime",
+      "outcome": "PASS",
+      "role": "PURE_DATA"
+    },
+    {
+      "id": "F02-single-direct-command",
+      "outcome": "PASS",
+      "role": "PURE_DATA"
+    },
+    {
+      "id": "F03-flat-bound-closure",
+      "outcome": "PASS",
+      "role": "PURE_DATA"
+    },
+    {
+      "id": "F04-unobserved-streams-null",
+      "outcome": "PASS",
+      "role": "PURE_SOURCE_POLICY"
+    }
+  ],
+  "window": {
+    "issuedUTC": "2026-08-29T15:41:47.955Z",
+    "latestStartUTC": "2026-08-29T16:01:47.955Z",
+    "expiresUTC": "2026-08-29T16:31:47.955Z"
+  },
+  "snapshot": {
+    "schema": "administrative-owner-r1",
+    "self": {
+      "id": "owner-26417",
+      "role": "administrative-owner",
+      "pid": 26417,
+      "startUTC": "2026-08-29T15:36:55.095Z",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false,
+      "state": "LIVE_COORDINATOR"
+    },
+    "starts": [
+      {
+        "id": "git-root-26421",
+        "role": "git-root",
+        "pid": 26421,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "startUTC": "2026-08-29T15:36:55.163Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:36:55.365Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:36:55.366Z"
+      },
+      {
+        "id": "git-scoped-status-26428",
+        "role": "git-scoped-status",
+        "pid": 26428,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5"
+        ],
+        "startUTC": "2026-08-29T15:36:55.367Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:36:55.419Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:36:55.419Z"
+      },
+      {
+        "id": "git-source-add-28718",
+        "role": "git-source-add",
+        "pid": 28718,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "add",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/prepare.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch-preparation.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/finish.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-BINDING.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/FINAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/COMMAND.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PRESEAL.json"
+        ],
+        "startUTC": "2026-08-29T15:41:47.978Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:41:48.074Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:41:48.074Z"
+      },
+      {
+        "id": "git-source-commit-28719",
+        "role": "git-source-commit",
+        "pid": 28719,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "commit",
+          "--only",
+          "-m",
+          "Bind output-only r5 runtime to one live administrative owner",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/prepare.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch-preparation.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/finish.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-BINDING.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/FINAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/COMMAND.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PRESEAL.json"
+        ],
+        "startUTC": "2026-08-29T15:41:48.076Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:41:48.379Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:41:48.379Z"
+      },
+      {
+        "id": "git-source-receipt-28722",
+        "role": "git-source-receipt",
+        "pid": 28722,
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "startUTC": "2026-08-29T15:41:48.381Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:41:48.407Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:41:48.408Z"
+      }
+    ],
+    "attempts": [
+      {
+        "role": "git-root",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        "atUTC": "2026-08-29T15:36:55.161Z",
+        "spawned": true
+      },
+      {
+        "role": "git-scoped-status",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "status",
+          "--porcelain=v1",
+          "-z",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5"
+        ],
+        "atUTC": "2026-08-29T15:36:55.366Z",
+        "spawned": true
+      },
+      {
+        "role": "git-source-add",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "add",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/prepare.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch-preparation.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/finish.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-BINDING.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/FINAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/COMMAND.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PRESEAL.json"
+        ],
+        "atUTC": "2026-08-29T15:41:47.977Z",
+        "spawned": true
+      },
+      {
+        "role": "git-source-commit",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "commit",
+          "--only",
+          "-m",
+          "Bind output-only r5 runtime to one live administrative owner",
+          "--",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/prepare.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch-preparation.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/launch.sh",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/finish.mjs",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/HANDOFF.md",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-BINDING.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-PRESEAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/FINAL.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/COMMAND.json",
+          "tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PRESEAL.json"
+        ],
+        "atUTC": "2026-08-29T15:41:48.075Z",
+        "spawned": true
+      },
+      {
+        "role": "git-source-receipt",
+        "tool": "/usr/bin/git",
+        "argv": [
+          "rev-parse",
+          "HEAD"
+        ],
+        "atUTC": "2026-08-29T15:41:48.380Z",
+        "spawned": true
+      }
+    ],
+    "knownStarts": 6,
+    "activeKnownPIDs": [],
+    "captureBytes": 17807,
+    "metadataBytes": 56594,
+    "elapsedMs": 293309.052875,
+    "poisoned": false
+  },
+  "actualB1": false
+}

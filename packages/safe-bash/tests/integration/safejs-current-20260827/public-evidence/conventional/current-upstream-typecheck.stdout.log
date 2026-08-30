@@ -1,0 +1,8 @@
+packages/safejs/src/loader/frontmatter.ts(1,65): error TS2307: Cannot find module '@poe-code/frontmatter' or its corresponding type declarations.
+packages/safejs/src/modules/agent.ts(3,35): error TS2307: Cannot find module '@poe-code/agent-spawn/configs' or its corresponding type declarations.
+packages/safejs/src/modules/agent.ts(4,64): error TS2307: Cannot find module '@poe-code/agent-spawn/parallel' or its corresponding type declarations.
+packages/safejs/src/modules/agent.ts(5,53): error TS2307: Cannot find module '@poe-code/agent-spawn/types' or its corresponding type declarations.
+packages/safejs/src/modules/agent.ts(278,10): error TS7006: Parameter 'agentDef' implicitly has an 'any' type.
+packages/safejs/src/modules/agent.ts(278,20): error TS7006: Parameter 'options' implicitly has an 'any' type.
+packages/safejs/src/runner/run-harness.ts(4,35): error TS2307: Cannot find module '@poe-code/agent-spawn/configs' or its corresponding type declarations.
+packages/safejs/src/runner/run-harness.ts(5,45): error TS2307: Cannot find module '@poe-code/agent-spawn/types' or its corresponding type declarations.

@@ -1,0 +1,14 @@
+{
+  "commit": "10273352f8d65d929cbf5a23e69119414dacee60",
+  "parent": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+  "changed": [
+    "tests/commands/regex-execution/followup/messageerror.test.ts"
+  ],
+  "canonicalPrechangeSha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+  "proposalSha256": "ff5d5e3e639b3f5f375920ec85168ce8dbeca7d9000da48a3b531a613aa4962a",
+  "expectedCanonicalSha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+  "actualCanonicalSha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+  "exactAgreement": true,
+  "unrelatedTestsAndSurroundingCleanupUnchanged": true,
+  "runtimeAcceptance": "Await explicit root/user Sagan frozen handoff; fixture commit is not runtime acceptance."
+}

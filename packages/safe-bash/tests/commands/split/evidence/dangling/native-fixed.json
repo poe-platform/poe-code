@@ -1,0 +1,1427 @@
+{
+  "time": "2026-08-27T06:17:41.125Z",
+  "platform": "darwin",
+  "release": "25.4.0",
+  "arch": "arm64",
+  "node": "v22.22.2",
+  "pin": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+  "appleHash": "7c2d5f3c73e849d664bad3a2f4c67c5154b0f03f59f2fa779d49e33dc7983f91",
+  "source": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+  "absoluteFixtureMapping": "native targets rooted under scratch; snapshot strips only that exact root; VFS uses virtual absolute targets",
+  "diagnostics": "GNU and virtual negative patterns asserted separately; exact raw stderr retained. Apple is a separate observation, not a GNU oracle substitute.",
+  "report": [
+    {
+      "fixture": {
+        "id": "relative",
+        "links": [
+          [
+            "xaa",
+            "target"
+          ]
+        ]
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "target"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        },
+        "Apple": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "target"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "target"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "target"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "absolute-virtual",
+        "links": [
+          [
+            "xaa",
+            "/target"
+          ]
+        ]
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "/target"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        },
+        "Apple": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "/target"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "/target"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "/target"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "final-chain",
+        "links": [
+          [
+            "xaa",
+            "middle"
+          ],
+          [
+            "middle",
+            "target"
+          ]
+        ]
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/middle": {
+              "type": "symlink",
+              "target": "target"
+            },
+            "/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "middle"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        },
+        "Apple": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/middle": {
+              "type": "symlink",
+              "target": "target"
+            },
+            "/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "middle"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/middle": {
+                "type": "symlink",
+                "target": "target"
+              },
+              "/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "middle"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/middle": {
+                "type": "symlink",
+                "target": "target"
+              },
+              "/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "middle"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "nested-parent",
+        "dirs": [
+          "out",
+          "out/inner"
+        ],
+        "links": [
+          [
+            "xaa",
+            "out/next"
+          ],
+          [
+            "out/next",
+            "inner/target"
+          ]
+        ]
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/out": {
+              "type": "directory"
+            },
+            "/out/inner": {
+              "type": "directory"
+            },
+            "/out/inner/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/out/next": {
+              "type": "symlink",
+              "target": "inner/target"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "out/next"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        },
+        "Apple": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/out": {
+              "type": "directory"
+            },
+            "/out/inner": {
+              "type": "directory"
+            },
+            "/out/inner/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/out/next": {
+              "type": "symlink",
+              "target": "inner/target"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "out/next"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/out": {
+                "type": "directory"
+              },
+              "/out/inner": {
+                "type": "directory"
+              },
+              "/out/inner/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/out/next": {
+                "type": "symlink",
+                "target": "inner/target"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "out/next"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/out": {
+                "type": "directory"
+              },
+              "/out/inner": {
+                "type": "directory"
+              },
+              "/out/inner/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/out/next": {
+                "type": "symlink",
+                "target": "inner/target"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "out/next"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "symlink-before-dotdot",
+        "dirs": [
+          "out",
+          "out/inner"
+        ],
+        "links": [
+          [
+            "jump",
+            "out/inner"
+          ],
+          [
+            "xaa",
+            "jump/../target"
+          ]
+        ]
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/jump": {
+              "type": "symlink",
+              "target": "out/inner"
+            },
+            "/out": {
+              "type": "directory"
+            },
+            "/out/inner": {
+              "type": "directory"
+            },
+            "/out/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "jump/../target"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        },
+        "Apple": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/jump": {
+              "type": "symlink",
+              "target": "out/inner"
+            },
+            "/out": {
+              "type": "directory"
+            },
+            "/out/inner": {
+              "type": "directory"
+            },
+            "/out/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "jump/../target"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/jump": {
+                "type": "symlink",
+                "target": "out/inner"
+              },
+              "/out": {
+                "type": "directory"
+              },
+              "/out/inner": {
+                "type": "directory"
+              },
+              "/out/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "jump/../target"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/jump": {
+                "type": "symlink",
+                "target": "out/inner"
+              },
+              "/out": {
+                "type": "directory"
+              },
+              "/out/inner": {
+                "type": "directory"
+              },
+              "/out/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "jump/../target"
+              },
+              "/xab": {
+                "type": "file",
+                "hex": "646566"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "prefix-through-link",
+        "dirs": [
+          "out"
+        ],
+        "prefix": "prefix/x",
+        "links": [
+          [
+            "prefix",
+            "out"
+          ],
+          [
+            "out/xaa",
+            "target"
+          ]
+        ]
+      },
+      "args": [
+        "-b3",
+        "input",
+        "prefix/x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/out": {
+              "type": "directory"
+            },
+            "/out/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/out/xaa": {
+              "type": "symlink",
+              "target": "target"
+            },
+            "/out/xab": {
+              "type": "file",
+              "hex": "646566"
+            },
+            "/prefix": {
+              "type": "symlink",
+              "target": "out"
+            }
+          }
+        },
+        "Apple": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/out": {
+              "type": "directory"
+            },
+            "/out/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/out/xaa": {
+              "type": "symlink",
+              "target": "target"
+            },
+            "/out/xab": {
+              "type": "file",
+              "hex": "646566"
+            },
+            "/prefix": {
+              "type": "symlink",
+              "target": "out"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/out": {
+                "type": "directory"
+              },
+              "/out/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/out/xaa": {
+                "type": "symlink",
+                "target": "target"
+              },
+              "/out/xab": {
+                "type": "file",
+                "hex": "646566"
+              },
+              "/prefix": {
+                "type": "symlink",
+                "target": "out"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 0,
+            "stdout": "",
+            "stderr": "",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/out": {
+                "type": "directory"
+              },
+              "/out/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/out/xaa": {
+                "type": "symlink",
+                "target": "target"
+              },
+              "/out/xab": {
+                "type": "file",
+                "hex": "646566"
+              },
+              "/prefix": {
+                "type": "symlink",
+                "target": "out"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "missing-parent",
+        "links": [
+          [
+            "xaa",
+            "missing/target"
+          ]
+        ],
+        "error": "missing"
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 1,
+          "stdout": "",
+          "stderr": "split: xaa: No such file or directory\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "missing/target"
+            }
+          }
+        },
+        "Apple": {
+          "status": 74,
+          "stdout": "",
+          "stderr": "split: xaa: No such file or directory\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "missing/target"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: no such file or directory, writeStream '/missing/target'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "missing/target"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: no such file or directory, writeStream '/missing/target'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "missing/target"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "loop",
+        "links": [
+          [
+            "xaa",
+            "middle"
+          ],
+          [
+            "middle",
+            "xaa"
+          ]
+        ],
+        "error": "loop"
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 1,
+          "stdout": "",
+          "stderr": "split: xaa: Too many levels of symbolic links\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/middle": {
+              "type": "symlink",
+              "target": "xaa"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "middle"
+            }
+          }
+        },
+        "Apple": {
+          "status": 74,
+          "stdout": "",
+          "stderr": "split: xaa: Too many levels of symbolic links\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/middle": {
+              "type": "symlink",
+              "target": "xaa"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "middle"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: too many symbolic links encountered, stat '/xaa'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/middle": {
+                "type": "symlink",
+                "target": "xaa"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "middle"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: too many symbolic links encountered, stat '/xaa'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/middle": {
+                "type": "symlink",
+                "target": "xaa"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "middle"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "non-directory-parent",
+        "links": [
+          [
+            "xaa",
+            "input/target"
+          ]
+        ],
+        "error": "notdir"
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 1,
+          "stdout": "",
+          "stderr": "split: xaa: Not a directory\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "input/target"
+            }
+          }
+        },
+        "Apple": {
+          "status": 74,
+          "stdout": "",
+          "stderr": "split: xaa: Not a directory\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "input/target"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: not a directory, stat '/xaa'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "input/target"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: not a directory, stat '/xaa'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "input/target"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "nested-input-alias",
+        "dirs": [
+          "out"
+        ],
+        "links": [
+          [
+            "xaa",
+            "out/next"
+          ],
+          [
+            "out/next",
+            "../input"
+          ]
+        ],
+        "error": "alias"
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 1,
+          "stdout": "",
+          "stderr": "split: 'xaa' would overwrite input; aborting\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/out": {
+              "type": "directory"
+            },
+            "/out/next": {
+              "type": "symlink",
+              "target": "../input"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "out/next"
+            }
+          }
+        },
+        "Apple": {
+          "status": 0,
+          "stdout": "",
+          "stderr": "",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/out": {
+              "type": "directory"
+            },
+            "/out/next": {
+              "type": "symlink",
+              "target": "../input"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "out/next"
+            },
+            "/xab": {
+              "type": "file",
+              "hex": "646566"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: output would overwrite input; aborting '/xaa'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/out": {
+                "type": "directory"
+              },
+              "/out/next": {
+                "type": "symlink",
+                "target": "../input"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "out/next"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: output would overwrite input; aborting '/xaa'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/out": {
+                "type": "directory"
+              },
+              "/out/next": {
+                "type": "symlink",
+                "target": "../input"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "out/next"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "fixture": {
+        "id": "completed-before-missing-parent",
+        "links": [
+          [
+            "xaa",
+            "target"
+          ],
+          [
+            "xab",
+            "missing/target"
+          ]
+        ],
+        "error": "missing"
+      },
+      "args": [
+        "-b3",
+        "input",
+        "x"
+      ],
+      "profiles": {
+        "GNU9.7-Darwin": {
+          "status": 1,
+          "stdout": "",
+          "stderr": "split: xab: No such file or directory\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "target"
+            },
+            "/xab": {
+              "type": "symlink",
+              "target": "missing/target"
+            }
+          }
+        },
+        "Apple": {
+          "status": 74,
+          "stdout": "",
+          "stderr": "split: xab: No such file or directory\n",
+          "entries": {
+            "/input": {
+              "type": "file",
+              "hex": "616263646566"
+            },
+            "/target": {
+              "type": "file",
+              "hex": "616263"
+            },
+            "/xaa": {
+              "type": "symlink",
+              "target": "target"
+            },
+            "/xab": {
+              "type": "symlink",
+              "target": "missing/target"
+            }
+          }
+        }
+      },
+      "observed": [
+        {
+          "backend": "memory",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: no such file or directory, writeStream '/missing/target'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "target"
+              },
+              "/xab": {
+                "type": "symlink",
+                "target": "missing/target"
+              }
+            }
+          },
+          "match": true
+        },
+        {
+          "backend": "explicit-root-real",
+          "actual": {
+            "status": 1,
+            "stdout": "",
+            "stderr": "split: no such file or directory, writeStream '/missing/target'\n",
+            "entries": {
+              "/input": {
+                "type": "file",
+                "hex": "616263646566"
+              },
+              "/target": {
+                "type": "file",
+                "hex": "616263"
+              },
+              "/xaa": {
+                "type": "symlink",
+                "target": "target"
+              },
+              "/xab": {
+                "type": "symlink",
+                "target": "missing/target"
+              }
+            }
+          },
+          "match": true
+        }
+      ]
+    }
+  ],
+  "failures": []
+}

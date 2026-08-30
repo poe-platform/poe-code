@@ -1,0 +1,31 @@
+{
+  "revision": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "directory": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/baseline-b494-retained",
+  "archivedTests": 18576,
+  "testsBeforeSha256": "6c413cf771bc79cdbcdb67e28821be96bbdb89ebedcc7e34da7010a0a571d899",
+  "testsAfterSha256": "40304ee944a2e981c7e524ee585ce6ebd45963b4a1bcd228b6a70bb7f2bae642",
+  "changes": [
+    {
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json",
+      "before": {
+        "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json",
+        "type": "file",
+        "bytes": 2402,
+        "sha256": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17"
+      },
+      "after": {
+        "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json",
+        "type": "file",
+        "bytes": 2393,
+        "sha256": "ba6e0313257d6cf9a5164eec03ab7b2e23a885b10cbc84f5078c4dace0ccb0fd"
+      }
+    }
+  ],
+  "writerPasses": 2,
+  "guardPreflightsBeforeWriter": true,
+  "retainedFailedCopy": true,
+  "retainedAffectedFiles": [
+    "execution/baseline-affected/tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/direct-registered-curl-buffer-307-replay.json.data"
+  ],
+  "noRestoreOrDeletion": true
+}

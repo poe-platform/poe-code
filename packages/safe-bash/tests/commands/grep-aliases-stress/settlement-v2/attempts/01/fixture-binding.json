@@ -1,0 +1,89 @@
+{
+  "fixture": {
+    "originalSha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+    "patchSha256": "9af570eb8126652e26ddd7ed1d3ac88dcad646cb822e0eca12fc89c0538aa36a",
+    "derivedSha256": "41fb87e021e9d851905e889e26beaad4a779336b787e665b21c76bbace5f8850",
+    "unchangedRemainderSha256": "f034cbd3570f36d1dc968123d5c3f8bafc72cab73687bc31ed67b85de7e9e9d5",
+    "reversibleByteExactOutsideTwoHunks": true,
+    "spans": [
+      {
+        "id": "S07",
+        "label": "borrowed-external-Shell-stdin-return-rejection-not-waived",
+        "start": 27760,
+        "originalBytes": 343,
+        "derivedBytes": 727,
+        "beforeSha256": "c38e9aa3afa7ffd8d3d4dc93fae39988d606582b92059a64bd25fb0d6e365b98",
+        "afterSha256": "57a8f1b9dd4e2fdb8e4d36a2c254f0ff7a360a643772ecf2751976062b7679f6"
+      },
+      {
+        "id": "ROOT-CONTROL",
+        "label": "public-registered-grep-reproduces-external-return-failure",
+        "start": 42699,
+        "originalBytes": 409,
+        "derivedBytes": 775,
+        "beforeSha256": "37c6b3a65db0e7c256fa2d44ce97ee5c348298dde0c334176223b52e1b0c2c2d",
+        "afterSha256": "ef8cb66ee6f517b943b517393bd2c804e502b9cda27487077aa74d5b992fe64b"
+      }
+    ],
+    "applyPatchSteps": [
+      {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "Success. Updated the following files:\nA holdouts.mts\n",
+        "stderr": ""
+      },
+      {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "Success. Updated the following files:\nM holdouts.mts\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "copies": [
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+      "copy": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/derived-fixtures/verification/public-consumer.mts",
+      "sha256": "7a9b9b87209490941c88f3896f92c40d3f6bda215887f245c1a3e5aca8671b94",
+      "byteForByte": true
+    },
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+      "copy": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/derived-fixtures/verification/coverage-supplement/pipeline-holdouts.mts",
+      "sha256": "ca8c863323effd4e3765177a8bec4df224921ef5f2f6c389ea91db0c0a8c0f25",
+      "byteForByte": true
+    },
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/verification/gnu/captures.json",
+      "copy": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/derived-fixtures/verification/gnu/captures.json",
+      "sha256": "9e39416a176e4a2c6d35c14854a7f2bce278fccbe81d111e1bc13314b8434c82",
+      "byteForByte": true
+    },
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/data/corpus.json",
+      "copy": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/derived-fixtures/data/corpus.json",
+      "sha256": "a745efbc79d4c48d31b6a5e3e5e5fe51de0bd19f1a51dd66d984abc24f7161a8",
+      "byteForByte": true
+    },
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/data/native-goldens.json",
+      "copy": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/derived-fixtures/data/native-goldens.json",
+      "sha256": "970df65657648a6e941e0c7ab7c27e60eb8f0eba75ab81ac21bf01abf604408f",
+      "byteForByte": true
+    },
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/data/safety-holdouts.json",
+      "copy": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/derived-fixtures/data/safety-holdouts.json",
+      "sha256": "4d596e745df702040c0aa6975abc64b0d6db22ab6384eab28659fe2ec8aac2bc",
+      "byteForByte": true
+    },
+    {
+      "original": "/tmp/safe-bash-alias-final-0123-20260827T1634-02/source/tests/commands/grep-aliases-stress/data/candidate-profiles.json",
+      "copy": "/tmp/safe-bash-alias-settlement-v2-20260827T1655-01/derived-fixtures/data/candidate-profiles.json",
+      "sha256": "53220c37b7334df703841d3aa0a3502f62b58a0827a44b657a5cfb0063a3511a",
+      "byteForByte": true
+    }
+  ]
+}

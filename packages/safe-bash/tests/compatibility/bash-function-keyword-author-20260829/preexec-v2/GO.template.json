@@ -1,0 +1,34 @@
+{
+  "decision": "PENDING",
+  "preseal": "3099f59a5518757a4fa80f203758536b5101fb8ad8e600c792b338bd5d83539d",
+  "work": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future",
+  "calls": 54,
+  "latestStartEpochMs": null,
+  "expiresEpochMs": null,
+  "limits": {
+    "durationMs": 1500000,
+    "finalizationTailMs": 60000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "streamBytes": 65536,
+    "ownerCaptureReservation": 65536,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "roles": {
+    "owner": 1,
+    "build": 1,
+    "strictTypes": 3,
+    "primaryCases": 54,
+    "mutants": 3,
+    "bindingRefusals": 2,
+    "totalRuntimeKnownStarts": 64,
+    "extraSyntaxMetadataPublication": 8,
+    "maximumAllKnownStarts": 72,
+    "peakMaximum": 3,
+    "sourceDerivedInternalChildForks": 0,
+    "caseChildProcessPermission": 0,
+    "caseWorkerPermission": 0,
+    "asyncLoaders": 0
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "label": "control-C5",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"scenario\":\"C5\",\"verdict\":\"PASS\",\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"exitCode\":0},\"cleanup\":1,\"reads\":0,\"events\":[{\"order\":1,\"value\":\"middleware.enter:set\"},{\"order\":2,\"value\":\"middleware.finally:set\"},{\"order\":3,\"value\":\"middleware.enter:produce\"},{\"order\":4,\"value\":\"producer.invoked\"},{\"order\":5,\"value\":\"middleware.enter:consume\"},{\"order\":6,\"value\":\"consumer.invoked\"},{\"order\":7,\"value\":\"consumer.return:no-more-reads\"},{\"order\":8,\"value\":\"middleware.finally:consume\"},{\"order\":9,\"value\":\"producer.after-downstream-close\"},{\"order\":10,\"value\":\"producer.finally:live\"},{\"order\":11,\"value\":\"middleware.finally:produce\"},{\"order\":12,\"value\":\"public.exec.settled\"}]}\n{\"scenario\":\"C5\",\"teardown\":\"disposed\",\"cleanup\":1}\n",
+    "bytes": 721,
+    "base64": "eyJzY2VuYXJpbyI6IkM1IiwidmVyZGljdCI6IlBBU1MiLCJyZXN1bHQiOnsic3Rkb3V0IjoiIiwic3RkZXJyIjoiIiwiZXhpdENvZGUiOjB9LCJjbGVhbnVwIjoxLCJyZWFkcyI6MCwiZXZlbnRzIjpbeyJvcmRlciI6MSwidmFsdWUiOiJtaWRkbGV3YXJlLmVudGVyOnNldCJ9LHsib3JkZXIiOjIsInZhbHVlIjoibWlkZGxld2FyZS5maW5hbGx5OnNldCJ9LHsib3JkZXIiOjMsInZhbHVlIjoibWlkZGxld2FyZS5lbnRlcjpwcm9kdWNlIn0seyJvcmRlciI6NCwidmFsdWUiOiJwcm9kdWNlci5pbnZva2VkIn0seyJvcmRlciI6NSwidmFsdWUiOiJtaWRkbGV3YXJlLmVudGVyOmNvbnN1bWUifSx7Im9yZGVyIjo2LCJ2YWx1ZSI6ImNvbnN1bWVyLmludm9rZWQifSx7Im9yZGVyIjo3LCJ2YWx1ZSI6ImNvbnN1bWVyLnJldHVybjpuby1tb3JlLXJlYWRzIn0seyJvcmRlciI6OCwidmFsdWUiOiJtaWRkbGV3YXJlLmZpbmFsbHk6Y29uc3VtZSJ9LHsib3JkZXIiOjksInZhbHVlIjoicHJvZHVjZXIuYWZ0ZXItZG93bnN0cmVhbS1jbG9zZSJ9LHsib3JkZXIiOjEwLCJ2YWx1ZSI6InByb2R1Y2VyLmZpbmFsbHk6bGl2ZSJ9LHsib3JkZXIiOjExLCJ2YWx1ZSI6Im1pZGRsZXdhcmUuZmluYWxseTpwcm9kdWNlIn0seyJvcmRlciI6MTIsInZhbHVlIjoicHVibGljLmV4ZWMuc2V0dGxlZCJ9XX0KeyJzY2VuYXJpbyI6IkM1IiwidGVhcmRvd24iOiJkaXNwb3NlZCIsImNsZWFudXAiOjF9Cg==",
+    "sha256": "68baa6cc889f0f74b844a503250f3adea35afdcebdc7b1bbb1babdb641c9d321"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

@@ -1,0 +1,24 @@
+Authorization August 28, 2026. Preparation only: no product or compiler target invocation.
+Earlier read-only nonexistent filename guesses: runtime-cases.mjs; expr/expr.ts. No fixture execution.
+Draft child denominator corrected from44 to48 before generated PINS or sealing; no actual attempt.
+inspect.mjs succeeded:8 exact diagnostic receipts,2 original R21 inputs,4 static trace files, P01 bound not rerun.
+prepare.mjs succeeded:8 targeted types,16 observations,72 controls,48 children,zero expected forced.
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/auth.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/boundary-child.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/common.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/entry.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/evidence.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/guard-negative.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/guard.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/inspect.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/launch.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/observer.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/prepare.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/resolution.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/run.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/seal-recipe.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/silent-worker.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/transport.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/validator.mjs
+SYNTAX tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/worker-guard.mjs
+SYNTAX ALL PASS; no imports/product execution.

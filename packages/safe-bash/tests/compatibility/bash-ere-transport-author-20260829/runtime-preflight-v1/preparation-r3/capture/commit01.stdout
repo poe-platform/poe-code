@@ -1,0 +1,3 @@
+[main b27630a5e] Freeze T1 r3 strict receipt and bounded unknown-retirement repairs
+ 1 file changed, 13 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/FREEZE.md

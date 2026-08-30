@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "link": {
+    "path": "CLAUDE.md",
+    "mode": "120000",
+    "bytes": 9,
+    "sha256": "a54ff182c7e8acf56acfd6e4b9c3ff41e2c41a31c9b211b2deb9df75d9a478f9",
+    "target": "AGENTS.md"
+  },
+  "observations": [
+    {
+      "commit": "e6b70989225781249f2cf395b927186894fad7c2",
+      "tree": "a2bb9b2b9077e6db8ac49373074a05fcef73b0b6",
+      "blob": "47dc3e3d863cfb5727b87d785d09abf9743c0a72"
+    },
+    {
+      "commit": "8bdd30a7c804e646fdf2c569bc6bdabd408f301c",
+      "tree": "3369aada744bf6fc82a99aefe33db2b61b4ac884",
+      "blob": "47dc3e3d863cfb5727b87d785d09abf9743c0a72"
+    }
+  ]
+}

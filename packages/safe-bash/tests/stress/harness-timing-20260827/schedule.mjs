@@ -1,0 +1,22 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { run, save, snapshot } from "./evidence-tools.mjs";
+
+const fixture = JSON.parse(readFileSync(new URL("../../commands/structured-stress/jq-grammar-author-20260827/native-boundary-frozen.json", import.meta.url)));
+const triples = fixture.vectors.flatMap(vector => ["direct", "shell"].flatMap(route => ["whole", "bytewise", ...[1, 2, 3, 16381, 16382, 16383, 16384, 16385, 16386].map(offset => `split:${offset}`)].map(transport => ({ id: vector.id, route, transport, expected: vector.expected, sha256: createHash("sha256").update(JSON.stringify(vector.expected)).digest("hex") }))));
+assert.equal(fixture.vectors.length, 15); assert.equal(triples.length, 330);
+save("evidence/expected-330-triples.json", triples);
+snapshot("evidence/pre-schedule.json");
+const jq = "tests/commands/structured-stress/jq-grammar-author-20260827/scan-boundaries.test.ts";
+const streaming = "tests/commands/search-stress/streaming.test.ts";
+const execute = (name, file) => run(name, process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", file], 180000, { HARNESS_TIMING: "1" });
+const results = [];
+results.push(await execute("serial-jq", jq));
+results.push(await execute("serial-streaming", streaming));
+for (let round = 1; round <= 3; round++) results.push(...await Promise.all([execute(`round-${round}-jq`, jq), execute(`round-${round}-streaming`, streaming)]));
+results.push(await execute("negative-controls", "tests/stress/harness-timing-20260827/negative-controls.ts"));
+results.push(await run("scoped-types", process.execPath, ["node_modules/typescript/bin/tsc", "--noEmit", "-p", "tests/stress/harness-timing-20260827/tsconfig.scope.json"]));
+save("evidence/schedule-results.json", results.map(({ events, ...result }) => result));
+snapshot("evidence/post-schedule.json");
+console.log(JSON.stringify(results.map(({ name, code, signal, failure, durationMs }) => ({ name, code, signal, failure, durationMs })), null, 2));

@@ -1,0 +1,838 @@
+TAP version 13
+# Subtest: count constructors accept zero, negative zero, one, defaults and exact safe maximum
+ok 1 - count constructors accept zero, negative zero, one, defaults and exact safe maximum
+  ---
+  duration_ms: 1.599459
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects -1 (number) through direct and plugin APIs
+ok 2 - maxRedirects rejects -1 (number) through direct and plugin APIs
+  ---
+  duration_ms: 1.062584
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects 0.5 (number) through direct and plugin APIs
+ok 3 - maxRedirects rejects 0.5 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.051625
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects NaN (number) through direct and plugin APIs
+ok 4 - maxRedirects rejects NaN (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.0915
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects Infinity (number) through direct and plugin APIs
+ok 5 - maxRedirects rejects Infinity (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.055667
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects -Infinity (number) through direct and plugin APIs
+ok 6 - maxRedirects rejects -Infinity (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.091208
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects 9007199254740992 (number) through direct and plugin APIs
+ok 7 - maxRedirects rejects 9007199254740992 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.094959
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects 0 (string) through direct and plugin APIs
+ok 8 - maxRedirects rejects 0 (string) through direct and plugin APIs
+  ---
+  duration_ms: 0.036458
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects null (object) through direct and plugin APIs
+ok 9 - maxRedirects rejects null (object) through direct and plugin APIs
+  ---
+  duration_ms: 0.173708
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects undefined (undefined) through direct and plugin APIs
+ok 10 - maxRedirects rejects undefined (undefined) through direct and plugin APIs
+  ---
+  duration_ms: 0.228625
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects true (boolean) through direct and plugin APIs
+ok 11 - maxRedirects rejects true (boolean) through direct and plugin APIs
+  ---
+  duration_ms: 0.083167
+  type: 'test'
+  ...
+# Subtest: maxRedirects rejects false (boolean) through direct and plugin APIs
+ok 12 - maxRedirects rejects false (boolean) through direct and plugin APIs
+  ---
+  duration_ms: 0.039875
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects -1 (number) through direct and plugin APIs
+ok 13 - maxRetries rejects -1 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.034542
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects 0.5 (number) through direct and plugin APIs
+ok 14 - maxRetries rejects 0.5 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.033083
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects NaN (number) through direct and plugin APIs
+ok 15 - maxRetries rejects NaN (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.031042
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects Infinity (number) through direct and plugin APIs
+ok 16 - maxRetries rejects Infinity (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.030667
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects -Infinity (number) through direct and plugin APIs
+ok 17 - maxRetries rejects -Infinity (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.030375
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects 9007199254740992 (number) through direct and plugin APIs
+ok 18 - maxRetries rejects 9007199254740992 (number) through direct and plugin APIs
+  ---
+  duration_ms: 0.030292
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects 0 (string) through direct and plugin APIs
+ok 19 - maxRetries rejects 0 (string) through direct and plugin APIs
+  ---
+  duration_ms: 0.030542
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects null (object) through direct and plugin APIs
+ok 20 - maxRetries rejects null (object) through direct and plugin APIs
+  ---
+  duration_ms: 0.031208
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects undefined (undefined) through direct and plugin APIs
+ok 21 - maxRetries rejects undefined (undefined) through direct and plugin APIs
+  ---
+  duration_ms: 0.029417
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects true (boolean) through direct and plugin APIs
+ok 22 - maxRetries rejects true (boolean) through direct and plugin APIs
+  ---
+  duration_ms: 0.029333
+  type: 'test'
+  ...
+# Subtest: maxRetries rejects false (boolean) through direct and plugin APIs
+ok 23 - maxRetries rejects false (boolean) through direct and plugin APIs
+  ---
+  duration_ms: 0.029834
+  type: 'test'
+  ...
+# Subtest: maxUploadBytes retains positive safe boundaries
+ok 24 - maxUploadBytes retains positive safe boundaries
+  ---
+  duration_ms: 0.192333
+  type: 'test'
+  ...
+# Subtest: maxDownloadBytes retains positive safe boundaries
+ok 25 - maxDownloadBytes retains positive safe boundaries
+  ---
+  duration_ms: 0.144375
+  type: 'test'
+  ...
+# Subtest: maxBufferBytes retains positive safe boundaries
+ok 26 - maxBufferBytes retains positive safe boundaries
+  ---
+  duration_ms: 0.137792
+  type: 'test'
+  ...
+# Subtest: maxHeaderBytes retains positive safe boundaries
+ok 27 - maxHeaderBytes retains positive safe boundaries
+  ---
+  duration_ms: 0.127167
+  type: 'test'
+  ...
+# Subtest: maxUrls retains positive safe boundaries
+ok 28 - maxUrls retains positive safe boundaries
+  ---
+  duration_ms: 0.130125
+  type: 'test'
+  ...
+# Subtest: maxTimeMs retains positive safe boundaries
+ok 29 - maxTimeMs retains positive safe boundaries
+  ---
+  duration_ms: 0.172125
+  type: 'test'
+  ...
+# Subtest: only the two exact count keys gain a zero minimum
+ok 30 - only the two exact count keys gain a zero minimum
+  ---
+  duration_ms: 0.043166
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 200, stdin, CLI increases cannot add requests
+ok 31 - direct: both zero, 200, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 2.444708
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 200, file, CLI increases cannot add requests
+ok 32 - direct: both zero, 200, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.96975
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 301, stdin, CLI increases cannot add requests
+ok 33 - direct: both zero, 301, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.481042
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 301, file, CLI increases cannot add requests
+ok 34 - direct: both zero, 301, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.562042
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 302, stdin, CLI increases cannot add requests
+ok 35 - direct: both zero, 302, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.436334
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 302, file, CLI increases cannot add requests
+ok 36 - direct: both zero, 302, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.373666
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 303, stdin, CLI increases cannot add requests
+ok 37 - direct: both zero, 303, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.295084
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 303, file, CLI increases cannot add requests
+ok 38 - direct: both zero, 303, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.240208
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 307, stdin, CLI increases cannot add requests
+ok 39 - direct: both zero, 307, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.630958
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 307, file, CLI increases cannot add requests
+ok 40 - direct: both zero, 307, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.6535
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 308, stdin, CLI increases cannot add requests
+ok 41 - direct: both zero, 308, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.385041
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 308, file, CLI increases cannot add requests
+ok 42 - direct: both zero, 308, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.252708
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 408, stdin, CLI increases cannot add requests
+ok 43 - direct: both zero, 408, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.187667
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 408, file, CLI increases cannot add requests
+ok 44 - direct: both zero, 408, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.247792
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 429, stdin, CLI increases cannot add requests
+ok 45 - direct: both zero, 429, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.166334
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 429, file, CLI increases cannot add requests
+ok 46 - direct: both zero, 429, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.404042
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 500, stdin, CLI increases cannot add requests
+ok 47 - direct: both zero, 500, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.279667
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 500, file, CLI increases cannot add requests
+ok 48 - direct: both zero, 500, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.401834
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 502, stdin, CLI increases cannot add requests
+ok 49 - direct: both zero, 502, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.311875
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 502, file, CLI increases cannot add requests
+ok 50 - direct: both zero, 502, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.255959
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 503, stdin, CLI increases cannot add requests
+ok 51 - direct: both zero, 503, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.178542
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 503, file, CLI increases cannot add requests
+ok 52 - direct: both zero, 503, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.18325
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 504, stdin, CLI increases cannot add requests
+ok 53 - direct: both zero, 504, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.216875
+  type: 'test'
+  ...
+# Subtest: direct: both zero, 504, file, CLI increases cannot add requests
+ok 54 - direct: both zero, 504, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.180542
+  type: 'test'
+  ...
+# Subtest: direct: zero 307 without -L publishes initial response
+ok 55 - direct: zero 307 without -L publishes initial response
+  ---
+  duration_ms: 0.222208
+  type: 'test'
+  ...
+# Subtest: direct: zero 307 missing Location with -L publishes initial response
+ok 56 - direct: zero 307 missing Location with -L publishes initial response
+  ---
+  duration_ms: 0.27125
+  type: 'test'
+  ...
+# Subtest: direct: zero 308 without -L publishes initial response
+ok 57 - direct: zero 308 without -L publishes initial response
+  ---
+  duration_ms: 0.126833
+  type: 'test'
+  ...
+# Subtest: direct: zero 308 missing Location with -L publishes initial response
+ok 58 - direct: zero 308 missing Location with -L publishes initial response
+  ---
+  duration_ms: 0.105042
+  type: 'test'
+  ...
+# Subtest: direct: zero retry 429 preserves --fail, headers, file and writeout
+ok 59 - direct: zero retry 429 preserves --fail, headers, file and writeout
+  ---
+  duration_ms: 0.18175
+  type: 'test'
+  ...
+# Subtest: direct: zero retry 429 preserves --fail-with-body, headers, file and writeout
+ok 60 - direct: zero retry 429 preserves --fail-with-body, headers, file and writeout
+  ---
+  duration_ms: 0.138417
+  type: 'test'
+  ...
+# Subtest: direct: zero retry 503 preserves --fail, headers, file and writeout
+ok 61 - direct: zero retry 503 preserves --fail, headers, file and writeout
+  ---
+  duration_ms: 0.099625
+  type: 'test'
+  ...
+# Subtest: direct: zero retry 503 preserves --fail-with-body, headers, file and writeout
+ok 62 - direct: zero retry 503 preserves --fail-with-body, headers, file and writeout
+  ---
+  duration_ms: 0.149042
+  type: 'test'
+  ...
+# Subtest: direct: transport ENOTFOUND remains 6 without retries or leaked details
+ok 63 - direct: transport ENOTFOUND remains 6 without retries or leaked details
+  ---
+  duration_ms: 0.2095
+  type: 'test'
+  ...
+# Subtest: direct: transport ECONNREFUSED remains 7 without retries or leaked details
+ok 64 - direct: transport ECONNREFUSED remains 7 without retries or leaked details
+  ---
+  duration_ms: 0.112708
+  type: 'test'
+  ...
+# Subtest: direct: transport ECONNRESET remains 56 without retries or leaked details
+ok 65 - direct: transport ECONNRESET remains 56 without retries or leaked details
+  ---
+  duration_ms: 0.123541
+  type: 'test'
+  ...
+# Subtest: direct: denied stdin performs no transport or upload reads
+ok 66 - direct: denied stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.115
+  type: 'test'
+  ...
+# Subtest: direct: pre-aborted stdin performs no transport or upload reads
+ok 67 - direct: pre-aborted stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.079416
+  type: 'test'
+  ...
+# Subtest: direct: authorization-aborted stdin performs no transport or upload reads
+ok 68 - direct: authorization-aborted stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.1215
+  type: 'test'
+  ...
+# Subtest: direct: denied file performs no transport or upload reads
+ok 69 - direct: denied file performs no transport or upload reads
+  ---
+  duration_ms: 0.07975
+  type: 'test'
+  ...
+# Subtest: direct: pre-aborted file performs no transport or upload reads
+ok 70 - direct: pre-aborted file performs no transport or upload reads
+  ---
+  duration_ms: 0.03775
+  type: 'test'
+  ...
+# Subtest: direct: authorization-aborted file performs no transport or upload reads
+ok 71 - direct: authorization-aborted file performs no transport or upload reads
+  ---
+  duration_ms: 0.089958
+  type: 'test'
+  ...
+# Subtest: direct: transport need not consume an initial upload at zero
+ok 72 - direct: transport need not consume an initial upload at zero
+  ---
+  duration_ms: 0.14975
+  type: 'test'
+  ...
+# Subtest: direct: zero prevents cached replay as well as fresh producer reads
+ok 73 - direct: zero prevents cached replay as well as fresh producer reads
+  ---
+  duration_ms: 0.154917
+  type: 'test'
+  ...
+# Subtest: direct: constructor snapshots overrides without mutating caller limits
+ok 74 - direct: constructor snapshots overrides without mutating caller limits
+  ---
+  duration_ms: 0.111
+  type: 'test'
+  ...
+# Subtest: direct: redirect cap one refuses a third request despite CLI increases
+ok 75 - direct: redirect cap one refuses a third request despite CLI increases
+  ---
+  duration_ms: 0.134792
+  type: 'test'
+  ...
+# Subtest: direct: independent redirect cap one permits exactly one followup
+ok 76 - direct: independent redirect cap one permits exactly one followup
+  ---
+  duration_ms: 0.211417
+  type: 'test'
+  ...
+# Subtest: direct: retry cap one refuses a third request despite CLI increases
+ok 77 - direct: retry cap one refuses a third request despite CLI increases
+  ---
+  duration_ms: 7.052084
+  type: 'test'
+  ...
+# Subtest: direct: independent retry cap one permits exactly one followup
+ok 78 - direct: independent retry cap one permits exactly one followup
+  ---
+  duration_ms: 1.97475
+  type: 'test'
+  ...
+# Subtest: direct: redirect cap one authorizes next hop and strips cross-origin credentials
+ok 79 - direct: redirect cap one authorizes next hop and strips cross-origin credentials
+  ---
+  duration_ms: 0.671333
+  type: 'test'
+  ...
+# Subtest: direct: zero applies independently to every input URL
+ok 80 - direct: zero applies independently to every input URL
+  ---
+  duration_ms: 0.24925
+  type: 'test'
+  ...
+# Subtest: direct: redirect cap one restarts within each retry of each URL
+ok 81 - direct: redirect cap one restarts within each retry of each URL
+  ---
+  duration_ms: 2.080542
+  type: 'test'
+  ...
+# Subtest: direct: negative zero executes as zero
+ok 82 - direct: negative zero executes as zero
+  ---
+  duration_ms: 0.166416
+  type: 'test'
+  ...
+# Subtest: direct: omitted host caps retain ten redirects and five retries
+ok 83 - direct: omitted host caps retain ten redirects and five retries
+  ---
+  duration_ms: 5.929417
+  type: 'test'
+  ...
+# Subtest: direct: zero host caps match CLI zero under positive host caps
+ok 84 - direct: zero host caps match CLI zero under positive host caps
+  ---
+  duration_ms: 0.792875
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 200, stdin, CLI increases cannot add requests
+ok 85 - shell: both zero, 200, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 2.785875
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 200, file, CLI increases cannot add requests
+ok 86 - shell: both zero, 200, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.506667
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 301, stdin, CLI increases cannot add requests
+ok 87 - shell: both zero, 301, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.347
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 301, file, CLI increases cannot add requests
+ok 88 - shell: both zero, 301, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.519833
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 302, stdin, CLI increases cannot add requests
+ok 89 - shell: both zero, 302, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.36475
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 302, file, CLI increases cannot add requests
+ok 90 - shell: both zero, 302, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.312708
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 303, stdin, CLI increases cannot add requests
+ok 91 - shell: both zero, 303, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.304833
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 303, file, CLI increases cannot add requests
+ok 92 - shell: both zero, 303, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.525416
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 307, stdin, CLI increases cannot add requests
+ok 93 - shell: both zero, 307, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 1.115083
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 307, file, CLI increases cannot add requests
+ok 94 - shell: both zero, 307, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.483458
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 308, stdin, CLI increases cannot add requests
+ok 95 - shell: both zero, 308, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.507125
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 308, file, CLI increases cannot add requests
+ok 96 - shell: both zero, 308, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.299959
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 408, stdin, CLI increases cannot add requests
+ok 97 - shell: both zero, 408, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.292208
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 408, file, CLI increases cannot add requests
+ok 98 - shell: both zero, 408, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.302958
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 429, stdin, CLI increases cannot add requests
+ok 99 - shell: both zero, 429, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.283834
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 429, file, CLI increases cannot add requests
+ok 100 - shell: both zero, 429, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.385708
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 500, stdin, CLI increases cannot add requests
+ok 101 - shell: both zero, 500, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.298791
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 500, file, CLI increases cannot add requests
+ok 102 - shell: both zero, 500, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.281334
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 502, stdin, CLI increases cannot add requests
+ok 103 - shell: both zero, 502, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.295666
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 502, file, CLI increases cannot add requests
+ok 104 - shell: both zero, 502, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.385333
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 503, stdin, CLI increases cannot add requests
+ok 105 - shell: both zero, 503, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.380208
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 503, file, CLI increases cannot add requests
+ok 106 - shell: both zero, 503, file, CLI increases cannot add requests
+  ---
+  duration_ms: 0.3715
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 504, stdin, CLI increases cannot add requests
+ok 107 - shell: both zero, 504, stdin, CLI increases cannot add requests
+  ---
+  duration_ms: 0.31175
+  type: 'test'
+  ...
+# Subtest: shell: both zero, 504, file, CLI increases cannot add requests
+ok 108 - shell: both zero, 504, file, CLI increases cannot add requests
+  ---
+  duration_ms: 1.644708
+  type: 'test'
+  ...
+# Subtest: shell: zero 307 without -L publishes initial response
+ok 109 - shell: zero 307 without -L publishes initial response
+  ---
+  duration_ms: 0.231041
+  type: 'test'
+  ...
+# Subtest: shell: zero 307 missing Location with -L publishes initial response
+ok 110 - shell: zero 307 missing Location with -L publishes initial response
+  ---
+  duration_ms: 0.1975
+  type: 'test'
+  ...
+# Subtest: shell: zero 308 without -L publishes initial response
+ok 111 - shell: zero 308 without -L publishes initial response
+  ---
+  duration_ms: 0.187167
+  type: 'test'
+  ...
+# Subtest: shell: zero 308 missing Location with -L publishes initial response
+ok 112 - shell: zero 308 missing Location with -L publishes initial response
+  ---
+  duration_ms: 0.176042
+  type: 'test'
+  ...
+# Subtest: shell: zero retry 429 preserves --fail, headers, file and writeout
+ok 113 - shell: zero retry 429 preserves --fail, headers, file and writeout
+  ---
+  duration_ms: 0.218708
+  type: 'test'
+  ...
+# Subtest: shell: zero retry 429 preserves --fail-with-body, headers, file and writeout
+ok 114 - shell: zero retry 429 preserves --fail-with-body, headers, file and writeout
+  ---
+  duration_ms: 0.219583
+  type: 'test'
+  ...
+# Subtest: shell: zero retry 503 preserves --fail, headers, file and writeout
+ok 115 - shell: zero retry 503 preserves --fail, headers, file and writeout
+  ---
+  duration_ms: 0.194459
+  type: 'test'
+  ...
+# Subtest: shell: zero retry 503 preserves --fail-with-body, headers, file and writeout
+ok 116 - shell: zero retry 503 preserves --fail-with-body, headers, file and writeout
+  ---
+  duration_ms: 0.217084
+  type: 'test'
+  ...
+# Subtest: shell: transport ENOTFOUND remains 6 without retries or leaked details
+ok 117 - shell: transport ENOTFOUND remains 6 without retries or leaked details
+  ---
+  duration_ms: 0.197833
+  type: 'test'
+  ...
+# Subtest: shell: transport ECONNREFUSED remains 7 without retries or leaked details
+ok 118 - shell: transport ECONNREFUSED remains 7 without retries or leaked details
+  ---
+  duration_ms: 0.177208
+  type: 'test'
+  ...
+# Subtest: shell: transport ECONNRESET remains 56 without retries or leaked details
+ok 119 - shell: transport ECONNRESET remains 56 without retries or leaked details
+  ---
+  duration_ms: 0.1755
+  type: 'test'
+  ...
+# Subtest: shell: denied stdin performs no transport or upload reads
+ok 120 - shell: denied stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.171291
+  type: 'test'
+  ...
+# Subtest: shell: pre-aborted stdin performs no transport or upload reads
+ok 121 - shell: pre-aborted stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.071417
+  type: 'test'
+  ...
+# Subtest: shell: authorization-aborted stdin performs no transport or upload reads
+ok 122 - shell: authorization-aborted stdin performs no transport or upload reads
+  ---
+  duration_ms: 0.362584
+  type: 'test'
+  ...
+# Subtest: shell: denied file performs no transport or upload reads
+ok 123 - shell: denied file performs no transport or upload reads
+  ---
+  duration_ms: 0.173917
+  type: 'test'
+  ...
+# Subtest: shell: pre-aborted file performs no transport or upload reads
+ok 124 - shell: pre-aborted file performs no transport or upload reads
+  ---
+  duration_ms: 0.061917
+  type: 'test'
+  ...
+# Subtest: shell: authorization-aborted file performs no transport or upload reads
+ok 125 - shell: authorization-aborted file performs no transport or upload reads
+  ---
+  duration_ms: 0.266459
+  type: 'test'
+  ...
+# Subtest: shell: transport need not consume an initial upload at zero
+ok 126 - shell: transport need not consume an initial upload at zero
+  ---
+  duration_ms: 0.187333
+  type: 'test'
+  ...
+# Subtest: shell: zero prevents cached replay as well as fresh producer reads
+ok 127 - shell: zero prevents cached replay as well as fresh producer reads
+  ---
+  duration_ms: 0.233875
+  type: 'test'
+  ...
+# Subtest: shell: constructor snapshots overrides without mutating caller limits
+ok 128 - shell: constructor snapshots overrides without mutating caller limits
+  ---
+  duration_ms: 0.195584
+  type: 'test'
+  ...
+# Subtest: shell: redirect cap one refuses a third request despite CLI increases
+ok 129 - shell: redirect cap one refuses a third request despite CLI increases
+  ---
+  duration_ms: 0.229208
+  type: 'test'
+  ...
+# Subtest: shell: independent redirect cap one permits exactly one followup
+ok 130 - shell: independent redirect cap one permits exactly one followup
+  ---
+  duration_ms: 0.280333
+  type: 'test'
+  ...
+# Subtest: shell: retry cap one refuses a third request despite CLI increases
+ok 131 - shell: retry cap one refuses a third request despite CLI increases
+  ---
+  duration_ms: 5.751709
+  type: 'test'
+  ...
+# Subtest: shell: independent retry cap one permits exactly one followup
+ok 132 - shell: independent retry cap one permits exactly one followup
+  ---
+  duration_ms: 1.945166
+  type: 'test'
+  ...
+# Subtest: shell: redirect cap one authorizes next hop and strips cross-origin credentials
+ok 133 - shell: redirect cap one authorizes next hop and strips cross-origin credentials
+  ---
+  duration_ms: 0.96325
+  type: 'test'
+  ...
+# Subtest: shell: zero applies independently to every input URL
+ok 134 - shell: zero applies independently to every input URL
+  ---
+  duration_ms: 0.418583
+  type: 'test'
+  ...
+# Subtest: shell: redirect cap one restarts within each retry of each URL
+ok 135 - shell: redirect cap one restarts within each retry of each URL
+  ---
+  duration_ms: 1.918167
+  type: 'test'
+  ...
+# Subtest: shell: negative zero executes as zero
+ok 136 - shell: negative zero executes as zero
+  ---
+  duration_ms: 0.305583
+  type: 'test'
+  ...
+# Subtest: shell: omitted host caps retain ten redirects and five retries
+ok 137 - shell: omitted host caps retain ten redirects and five retries
+  ---
+  duration_ms: 7.786875
+  type: 'test'
+  ...
+# Subtest: shell: zero host caps match CLI zero under positive host caps
+ok 138 - shell: zero host caps match CLI zero under positive host caps
+  ---
+  duration_ms: 1.92625
+  type: 'test'
+  ...
+1..138
+# tests 138
+# suites 0
+# pass 138
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 80.429

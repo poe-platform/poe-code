@@ -1,0 +1,106 @@
+{
+  "schema": "bash-readiness-evidence-binding-v1",
+  "sourceCommit": "fb3609affe314285b8664063585f56c8b9a37f99",
+  "sealSha256": "f08664a9566a2d616f09fb4d27ac03bee831acf0e5dbf6578aeb1bc27a6407ef",
+  "result": {
+    "bytes": 6557,
+    "sha256": "5399f945a76655b57d601edbf6880cc9cb583d9e6346a7bdc16e316b58fb044a"
+  },
+  "sourcePostAuthentication": true,
+  "targetStarts": 1,
+  "controllerStarts": 1,
+  "primary": "TARGET_SIGNAL",
+  "group": {
+    "state": "absent",
+    "error": {
+      "thrownType": "object",
+      "fields": {
+        "name": {
+          "presence": "value",
+          "value": "Error"
+        },
+        "code": {
+          "presence": "value",
+          "value": "ESRCH"
+        },
+        "errno": {
+          "presence": "value",
+          "value": -3
+        },
+        "syscall": {
+          "presence": "value",
+          "value": "kill"
+        }
+      }
+    }
+  },
+  "oldGroup": "UNCHANGED_UNKNOWN_NOT_RECHECKED",
+  "rawArtifacts": [
+    {
+      "root": "target",
+      "path": "OWNER-EVENTS.jsonl",
+      "bytes": 2702,
+      "sha256": "e91a3b717d1da2e9d293bcd7d217f5538ebda9b0c2ff48b723a5ead7b9bf9e3e"
+    },
+    {
+      "root": "target",
+      "path": "RESULT.json",
+      "bytes": 6557,
+      "sha256": "5399f945a76655b57d601edbf6880cc9cb583d9e6346a7bdc16e316b58fb044a"
+    },
+    {
+      "root": "target",
+      "path": "stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "target",
+      "path": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "root": "target",
+      "path": "profile.sb",
+      "bytes": 5690,
+      "sha256": "17d2628a44e52c4fe245021ccdca8cc8ae7202b123800a3659a7fd79eee2c037"
+    },
+    {
+      "root": "target",
+      "path": "ONE-TARGET-CONSUMED",
+      "bytes": 65,
+      "sha256": "f2394dab22bf4d9c8ae0500788e979e9c301b6fcf9d7be904008eb60c1fd4ffb"
+    },
+    {
+      "root": "outer",
+      "path": "ACTIVATION-PREAUTH.jsonl",
+      "bytes": 455,
+      "sha256": "3b815f333665a3c772e74ab2c6b7e74cda2d6b2a96b0ea240427b4efa009682f"
+    },
+    {
+      "root": "outer",
+      "path": "TOOL-REAUTH.jsonl",
+      "bytes": 8061,
+      "sha256": "ce40d2de605b7b2cc4276b99ad52b08fe161a9cf5944870572c464d41b0c0853"
+    },
+    {
+      "root": "outer",
+      "path": "017-ONE-BASH-CONTROLLER.stdout",
+      "bytes": 61,
+      "sha256": "fd29048b6e02827c836595c927809bc9c9bec7298e20c3d8092b91d994a7e8ab"
+    },
+    {
+      "root": "outer",
+      "path": "017-ONE-BASH-CONTROLLER.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "captureRoots": {
+    "outer": "/tmp/bash-reference-readiness-abpaov",
+    "target": "/private/tmp/safe-bash-reference-readiness-v1-abpaov"
+  },
+  "knownStartsBeforePublication": 18,
+  "remainingProcessSlotsBeforePublication": 22
+}

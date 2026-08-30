@@ -1,0 +1,85 @@
+{
+  "schema": "v9-qualified-harmless-cohort",
+  "at": "2026-08-28T21:58:47.147Z",
+  "sourceCommit": "32d17fd8bf160f5807cef32747d0228b40c4d4f7",
+  "presealSha256": "baa109dabb17310edf71b76e94df612cd12f870dee8a678d9be8029b15a8bdd4",
+  "sourceSealSha256": "986211b0d00ae2e1ec72968a69604629b6fc53cb1b52011814a33dac2e23d136",
+  "outcomeSha256": "249864eecb1c992ff039a2688f0a86c8b65561c286367fef26d42fdf0cbf8bc7",
+  "membershipSha256": "48b6bd4fe0aee9a6945108e45760145b195cac06d344790e285ad5e2937929e3",
+  "sourcePostguards": 11,
+  "exactRawRecords": 22,
+  "controls": 6,
+  "data": 4,
+  "discovery": true,
+  "environmentRefusal": true,
+  "startupOpenRefusal": true,
+  "qualificationAttempts": 1,
+  "ownerPid": 58392,
+  "ownerPpid": 79787,
+  "postflightPid": 59065,
+  "startedAt": "2026-08-28T21:57:43.435Z",
+  "elapsedMs": 814.519709,
+  "qualificationProcessAdmissions": 8,
+  "accounting": "one owner/capture/admin + six sequential children + this postflight Node; preparation and subsequent archival separate",
+  "targetPeak": 2,
+  "subjectTotalPeakIncludingCaptureOwner": 2,
+  "rawBytes": 7000,
+  "cleanup": {
+    "removed": true,
+    "bytes": 920,
+    "entries": 34,
+    "inventorySha256": "12459ffdf9650d5452e7fd54de96455bf0c71ca2172186e03fd42793372d9402",
+    "identityChecked": true
+  },
+  "children": [
+    {
+      "id": "D00",
+      "pid": 58399,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "absent": true
+    },
+    {
+      "id": "START-POSITIVE",
+      "pid": 58409,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "absent": true
+    },
+    {
+      "id": "START-REFUSAL",
+      "pid": 58412,
+      "code": 1,
+      "signal": null,
+      "closed": true,
+      "absent": true
+    },
+    {
+      "id": "START-FS-REFUSAL",
+      "pid": 58413,
+      "code": 1,
+      "signal": null,
+      "closed": true,
+      "absent": true
+    },
+    {
+      "id": "G01",
+      "pid": 58414,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "absent": true
+    },
+    {
+      "id": "P01",
+      "pid": 58415,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "absent": true
+    }
+  ],
+  "productExecutions": 0
+}

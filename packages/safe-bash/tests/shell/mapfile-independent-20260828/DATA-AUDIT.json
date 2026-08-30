@@ -1,0 +1,295 @@
+{
+  "schema": "mapfile-independent-static-data-v1",
+  "reviewedRevision": "1fe588eeba0cdb09adfb948eeded681d15d134f2",
+  "scriptSha256": "c52c597574906cdf89a7bed7b11b06912e22a8463c416ba9010d3a0516e471f5",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "classification": "metadata/data checks only; no parser, shell, observer, product, native or candidate execution",
+  "successfulChecks": 78,
+  "checks": [
+    "packet:README.md",
+    "packet:PROFILE.md",
+    "packet:OBSERVER-PROTOCOL.md",
+    "packet:OBSERVATIONS.json",
+    "packet:SOURCE-BINDINGS.json",
+    "packet:SEAL.json",
+    "six-data-documents-no-executable-observer",
+    "bound-source:src/shell/runtime.ts",
+    "bound-source:src/shell/shell.ts",
+    "bound-source:src/shell/input.ts",
+    "bound-source:src/shell/cleanup.ts",
+    "bound-source:src/contracts/command.md",
+    "bound-source:src/contracts/output.ts",
+    "bound-source:src/contracts/io.ts",
+    "bound-source:src/shell/parser.ts",
+    "bound-source:tests/shell/indexed-arrays-author-20260828/PRECODE.md",
+    "bound-source:tests/shell/indexed-arrays-author-20260828/CONTINUATION-G4A.md",
+    "bound-source:tests/shell/indexed-arrays-independent-20260828/closure-v1/DECISION-TABLE.md",
+    "bound-source:tests/shell/indexed-arrays-independent-20260828/closure-v1/HANDOFF.md",
+    "bound-source:tests/shell/indexed-arrays-design-20260828/addendum-v3/DECISIONS.md",
+    "bound-source:tests/shell/let-design-20260828/BINDINGS.json",
+    "bound-source:tests/shell/indexed-arrays-design-20260828/observation-review-v1/REPORT.md",
+    "bound-source:tests/integration/coherent78-shell-author-20260828/MANIFEST.json",
+    "neutral-row:N01",
+    "neutral-row:N02",
+    "neutral-row:N03",
+    "neutral-row:N04",
+    "neutral-row:N05",
+    "neutral-row:N06",
+    "neutral-row:N07",
+    "neutral-row:N08",
+    "neutral-row:N09",
+    "neutral-row:N10",
+    "neutral-row:N11",
+    "neutral-row:N12",
+    "neutral-row:N13",
+    "neutral-row:N14",
+    "neutral-row:N15",
+    "neutral-row:N16",
+    "neutral-row:N17",
+    "neutral-row:N18",
+    "neutral-row:N19",
+    "neutral-row:N20",
+    "neutral-row:N21",
+    "neutral-row:N22",
+    "neutral-row:N23",
+    "neutral-row:N24",
+    "neutral-row:N25",
+    "neutral-row:N26",
+    "neutral-row:N27",
+    "neutral-row:N28",
+    "neutral-row:N29",
+    "neutral-row:N30",
+    "neutral-row:N31",
+    "neutral-row:N32",
+    "totals-and-neutrality",
+    "N30-does-not-hit-UTF8-first-delimiter-byte",
+    "local-primary:bash",
+    "local-primary:bash-5.3.tar.gz",
+    "local-primary:bashref.texi",
+    "local-primary:mapfile.def",
+    "local-primary:common.c",
+    "local-primary:zgetline.c",
+    "local-primary:general.c",
+    "archive-member:bash-5.3/doc/bashref.texi",
+    "archive-member:bash-5.3/builtins/mapfile.def",
+    "archive-member:bash-5.3/builtins/common.c",
+    "archive-member:bash-5.3/lib/sh/zgetline.c",
+    "archive-member:bash-5.3/general.c",
+    "prior-LET-version-artifact",
+    "post-local:bash",
+    "post-local:bash-5.3.tar.gz",
+    "post-local:bashref.texi",
+    "post-local:mapfile.def",
+    "post-local:common.c",
+    "post-local:zgetline.c",
+    "post-local:general.c",
+    "post-design-no-drift"
+  ],
+  "metadata": [
+    {
+      "path": "tests/shell/mapfile-design-20260828/README.md",
+      "revision": "1fe588eeba0cdb09adfb948eeded681d15d134f2",
+      "bytes": 4222,
+      "sha256": "3f018e69542630c2fce0134b5834d9745a48b17d4966e4fd061ff0ed299a828e"
+    },
+    {
+      "path": "tests/shell/mapfile-design-20260828/PROFILE.md",
+      "revision": "1fe588eeba0cdb09adfb948eeded681d15d134f2",
+      "bytes": 20101,
+      "sha256": "75728871b797eb9c8075631d32f610dae17223f95f455290c802dad647280b7a"
+    },
+    {
+      "path": "tests/shell/mapfile-design-20260828/OBSERVER-PROTOCOL.md",
+      "revision": "1fe588eeba0cdb09adfb948eeded681d15d134f2",
+      "bytes": 7430,
+      "sha256": "0f805b39e14d458cc18e8e807d7788a38fe5595d3398c8f00c854aafdde0df65"
+    },
+    {
+      "path": "tests/shell/mapfile-design-20260828/OBSERVATIONS.json",
+      "revision": "1fe588eeba0cdb09adfb948eeded681d15d134f2",
+      "bytes": 18614,
+      "sha256": "f252918ca8594cd4401d1938051498628e48211c18343c47011dfb5c6843083d"
+    },
+    {
+      "path": "tests/shell/mapfile-design-20260828/SOURCE-BINDINGS.json",
+      "revision": "1fe588eeba0cdb09adfb948eeded681d15d134f2",
+      "bytes": 9642,
+      "sha256": "5af734d1acb1879e26351d6fea1b65ba33ca61576cc1efc151820adb45818e29"
+    },
+    {
+      "path": "tests/shell/mapfile-design-20260828/SEAL.json",
+      "revision": "1fe588eeba0cdb09adfb948eeded681d15d134f2",
+      "bytes": 1510,
+      "sha256": "3ffdfde6e4b0b8536d2a6593dffa340f6c09868b47d7ce5ee55b6fa85be39fe1"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "bytes": 154603,
+      "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "bytes": 36304,
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/PRECODE.md",
+      "revision": "3a363f2f9d749771a73a0e5b2f87688dbcfa02d4",
+      "bytes": 7055,
+      "sha256": "7e9c0760769ac23a2de064cb9edf6df5558a1e46fa6fc77b78058bbdcedba597"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-author-20260828/CONTINUATION-G4A.md",
+      "revision": "492e65baf30df9f21a8224477ba0784f2ed7df35",
+      "bytes": 2230,
+      "sha256": "0e850d8b7988be6e20ea7c9d1663b91904099a4bb19b414244e15c7bd91f0dc0"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/closure-v1/DECISION-TABLE.md",
+      "revision": "2a9d59c77c9a4d94fa56d61962c5d6dfd01c189f",
+      "bytes": 17807,
+      "sha256": "5e640291e5c3482475c8b9a814a7696a107b215690074e05c8c479d8e0fd18e8"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/closure-v1/HANDOFF.md",
+      "revision": "2e3346c1ad9b210ad73c7f89c512f14afeb769a0",
+      "bytes": 3589,
+      "sha256": "1a98f812bd5c228e7b750e636efa47de8a095c894c7b975a04c4a394d46bfbc4"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v3/DECISIONS.md",
+      "revision": "c54db6863aa96c537778cf4dc85bd104a3155e90",
+      "bytes": 36965,
+      "sha256": "0f5f07b550d4f1695dfe5df42da5ff9a3cb6bc22f1b20fede04049989666e9b8"
+    },
+    {
+      "path": "tests/shell/let-design-20260828/BINDINGS.json",
+      "revision": "cd1926baf0ab3e1b61dc742e73b8a0c466222e32",
+      "bytes": 4868,
+      "sha256": "1d548b490fb4312de0e7036edcb518b1d944b3911acdd53e9eaa9296505638b5"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/observation-review-v1/REPORT.md",
+      "revision": "2142c48314ed252879cd78589870435617358f64",
+      "bytes": 3302,
+      "sha256": "c0995b687a583c93e3be358bb23f52411e9823808338c6224a1c317cdc5f49d1"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/MANIFEST.json",
+      "revision": "803be45d68b3c6e0593c8e36ca45dda75ffc766d",
+      "bytes": 95384,
+      "sha256": "4ecaed8c6fc04a90320482531ea50cc729a4ac52bcb88782922d0225417dc18e"
+    }
+  ],
+  "nativeBefore": [
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "bytes": 1395864,
+      "mode": 493,
+      "dev": 16777232,
+      "ino": 167971824
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3.tar.gz",
+      "sha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+      "bytes": 11355854,
+      "mode": 420,
+      "dev": 16777232,
+      "ino": 167953640
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+      "bytes": 415804,
+      "mode": 420,
+      "dev": 16777232,
+      "ino": 167953835
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/builtins/mapfile.def",
+      "sha256": "0b51a4c86146f38965903940e21354216271233e2fdf65e331fc249d25b60f08",
+      "bytes": 9556,
+      "mode": 420,
+      "dev": 16777232,
+      "ino": 167954463
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/builtins/common.c",
+      "sha256": "979a0c3d1a77d4b33a9e27a68992f584d1b3ca6e6754c3d052ac30bec45e186d",
+      "bytes": 26063,
+      "mode": 420,
+      "dev": 16777232,
+      "ino": 167954460
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/lib/sh/zgetline.c",
+      "sha256": "8cb2d76997434ee59f9f37311b43556ae712d1d0aa97323052b343360b73be86",
+      "bytes": 3095,
+      "mode": 420,
+      "dev": 16777232,
+      "ino": 167953980
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/general.c",
+      "sha256": "669ef408f4bcc6b4ce424677d29532f28e903430c93b335fa1a292dd360bd165",
+      "bytes": 36727,
+      "mode": 420,
+      "dev": 16777232,
+      "ino": 167953788
+    }
+  ],
+  "rows": 32,
+  "scriptBytes": 3264,
+  "stdinBytes": 217,
+  "executableObserverFiles": 0,
+  "nativeCalls": 0,
+  "productCalls": 0,
+  "arrayCandidateCalls": 0,
+  "inheritedVersion": "version=5.3.0(1)-release;platform=aarch64-apple-darwin25.4.0;PATH=<>;locale=C;startup=<>/<>\n",
+  "archiveInflatedBytes": 37934080,
+  "observationsReadyForExecution": false,
+  "reason": "observer implementation and separately qualified controls/root GO absent"
+}

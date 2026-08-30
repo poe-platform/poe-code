@@ -1,0 +1,1 @@
+{"captured":87,"nativeIndependent":115,"checks":[{"name":"virtual root operand mapped only in native display","status":"pass"}]}

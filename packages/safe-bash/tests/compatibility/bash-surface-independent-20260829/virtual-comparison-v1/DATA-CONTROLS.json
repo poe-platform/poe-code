@@ -1,0 +1,40 @@
+{
+  "schema": "presealed-data-controls-v1",
+  "controls": [
+    {
+      "id": "D01",
+      "operation": "validate exact sealed MATRIX; expect 37 cases,4 fixtures,2301 program bytes,43 fixture bytes,0 calls"
+    },
+    {
+      "id": "D02",
+      "operation": "change B01 program one byte without changing hash; expect PROGRAM"
+    },
+    {
+      "id": "D03",
+      "operation": "change native B01 stdout base64 without changing hash; expect NATIVE_BYTES"
+    },
+    {
+      "id": "D04",
+      "operation": "replace final case id with B26; expect MEMBERSHIP"
+    },
+    {
+      "id": "D05",
+      "operation": "replace first fixture path with ../outside; expect FIXTURE_PATH_MODE"
+    },
+    {
+      "id": "D06",
+      "operation": "duplicate B01 id in B02; expect MEMBERSHIP"
+    },
+    {
+      "id": "D07",
+      "operation": "replace candidate with 40 zeroes; expect CANDIDATE"
+    },
+    {
+      "id": "D08",
+      "operation": "pure DATA comparisons: identical B40 NUL/UTF8 tuple agrees; delete NUL, change stderr prefix, remove LF each remains unequal; rejected settlement never manufactures exit status"
+    }
+  ],
+  "productCalls": 0,
+  "children": 0,
+  "execution": "Pure DATA only in existing owned preparer; no case-adapter or product module imported."
+}

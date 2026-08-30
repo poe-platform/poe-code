@@ -1,0 +1,127 @@
+# Subtest: isolated cancellation and iterator lifecycle checks
+not ok 5525 - isolated cancellation and iterator lifecycle checks
+  ---
+  duration_ms: 1078.075916
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/commands/search-stress/safety.test.ts:1:160'
+  failureType: 'testCodeFailure'
+  error: |-
+    TAP version 13
+    # Subtest: cancellation releases stalled stdin
+    not ok 1 - cancellation releases stalled stdin
+      ---
+      duration_ms: 53.592167
+      type: 'test'
+      location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/commands/search-stress/safety-cases.ts:1:535'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        false !== true
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      actual: false
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/commands/search-stress/safety-cases.ts:39:65)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: cancellation releases stalled stdout
+    ok 2 - cancellation releases stalled stdout
+      ---
+      duration_ms: 49.3935
+      type: 'test'
+      ...
+    # Subtest: cancellation releases stalled stderr
+    ok 3 - cancellation releases stalled stderr
+      ---
+      duration_ms: 20.943208
+      type: 'test'
+      ...
+    # Subtest: cancellation releases stalled readStream
+    ok 4 - cancellation releases stalled readStream
+      ---
+      duration_ms: 47.454667
+      type: 'test'
+      ...
+    # Subtest: quiet closes a matching source before a stalled second read
+    ok 5 - quiet closes a matching source before a stalled second read
+      ---
+      duration_ms: 30.5075
+      type: 'test'
+      ...
+    # Subtest: EPIPE stops traversal without later reads, writes or diagnostics
+    ok 6 - EPIPE stops traversal without later reads, writes or diagnostics
+      ---
+      duration_ms: 32.778917
+      type: 'test'
+      ...
+    # Subtest: EPIPE cleanup never waits for an uncooperative source return
+    ok 7 - EPIPE cleanup never waits for an uncooperative source return
+      ---
+      duration_ms: 28.746083
+      type: 'test'
+      ...
+    # Subtest: cancellation wins a racing stdout EPIPE
+    ok 8 - cancellation wins a racing stdout EPIPE
+      ---
+      duration_ms: 28.89175
+      type: 'test'
+      ...
+    # Subtest: metadata-selected stdin yields during endless empty chunks
+    not ok 9 - metadata-selected stdin yields during endless empty chunks
+      ---
+      duration_ms: 32.880917
+      type: 'test'
+      location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/commands/search-stress/safety-cases.ts:1:4657'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        false !== true
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      actual: false
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/commands/search-stress/safety-cases.ts:109:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: native closed stdout exits successfully without diagnostics in three repetitions
+    ok 10 - native closed stdout exits successfully without diagnostics in three repetitions
+      ---
+      duration_ms: 421.55475
+      type: 'test'
+      ...
+    1..10
+    # tests 10
+    # suites 0
+    # pass 8
+    # fail 2
+    # cancelled 0
+    # skipped 0
+    # todo 0
+    # duration_ms 1014.015916
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/commands/search-stress/safety.test.ts:8:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...

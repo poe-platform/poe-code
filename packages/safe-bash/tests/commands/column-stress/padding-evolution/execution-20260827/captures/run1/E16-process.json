@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--max-old-space-size=128",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs",
+    "/tmp/safe-bash-column-padding-MmS9An/candidate",
+    "/tmp/safe-bash-column-padding-MmS9An/run1/E16.json",
+    "E16"
+  ],
+  "cwd": "/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "startedAt": "2026-08-27T15:58:45.331Z",
+  "endedAt": "2026-08-27T15:58:45.494Z",
+  "pid": 88670,
+  "deadlineMs": 5000,
+  "outputCap": 65536,
+  "status": 0,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 152,
+    "stderr": 0
+  },
+  "stdoutHex": "7b226f7574707574223a222f746d702f736166652d626173682d636f6c756d6e2d70616464696e672d4d6d5339416e2f72756e312f4531362e6a736f6e222c2267726f7570223a22453136222c226d75746174696f6e223a226e6f6e65222c22746f74616c223a322c2270617373223a322c226661696c223a302c226661696c75726573223a5b5d2c22756e68616e646c6564223a307d0a",
+  "stderrHex": "",
+  "groupAliveAtClose": false,
+  "groupAliveAfterRetirement": false,
+  "cleanup": "close-observed-group-checked-and-retired",
+  "forcedCleanupIsPass": false
+}

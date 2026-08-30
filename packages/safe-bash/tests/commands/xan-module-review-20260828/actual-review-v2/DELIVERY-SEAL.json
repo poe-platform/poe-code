@@ -1,0 +1,80 @@
+{
+  "classification": "POST_COHORT_DELIVERY_BINDING_NO_RESCORE",
+  "date": "2026-08-28T06:44:55.747Z",
+  "originalRecipe": "549f2055eb964c33cdbf26109645a422b2b5194a",
+  "continuationRecipe": "d5f4e91062c703b7eecaba856c7533068e1fc520",
+  "entries": [
+    {
+      "path": "SOURCE-AUDIT.md",
+      "bytes": 8083,
+      "sha256": "df09e99fc464e186df8a488dd5ac106bc0b0cd5b1f9fd7ed8b2dbb87510100df",
+      "mode": "644"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 9125,
+      "sha256": "3fe0582843eb4240d169a3a6be2567908738b50ee3ebc980be63dea7c1f1eae9",
+      "mode": "644"
+    },
+    {
+      "path": "summarize.mjs",
+      "bytes": 8535,
+      "sha256": "8cf87e327d4856f8c6668de3fd0a437f60f3ca6060362b5740f093caeb24492c",
+      "mode": "644"
+    },
+    {
+      "path": "REVIEW-RESULT.json",
+      "bytes": 380521,
+      "sha256": "e0046ed80e3d1594eb67352ecb6171f08b44296b04e4f34cc806a46dde35faa6",
+      "mode": "644"
+    },
+    {
+      "path": "OBLIGATION-REVIEW.json",
+      "bytes": 372246,
+      "sha256": "93b2e6c489998bff8dcd56b5c9d97a9e836c7adb6e6b09787dbb3f02bf2e0c61",
+      "mode": "644"
+    },
+    {
+      "path": "MINIMAL-REPROS.json",
+      "bytes": 75184,
+      "sha256": "7bb68c2d7df814ee317dbbe4d66a63946202765aa6dff4eee5f1e425c6029d8e",
+      "mode": "644"
+    },
+    {
+      "path": "postcheck.mjs",
+      "bytes": 3193,
+      "sha256": "370a2e93d950c6d484898cdb233db459c0364f39e1c2b0ef79cb47d83c4ef9a0",
+      "mode": "644"
+    },
+    {
+      "path": "POSTCHECK.json",
+      "bytes": 24469,
+      "sha256": "ec0affc28cd01a81d9794336d2cd54a25620f85a949b5baaafe37f4e5e605c19",
+      "mode": "644"
+    },
+    {
+      "path": "EVIDENCE.jsonl.gz",
+      "bytes": 58547,
+      "sha256": "56b39958959ec5cf574adf8b5dfd881f3916077c445c49465330401da68218ef",
+      "mode": "644"
+    },
+    {
+      "path": "EVIDENCE-SEAL.json",
+      "bytes": 2085,
+      "sha256": "e29ac1bc4d3ac6b558cbad6ee7c257a4c75c3f17fb85ea35479d2dd47f57ee80",
+      "mode": "644"
+    },
+    {
+      "path": "CONTINUATION-EVIDENCE.jsonl.gz",
+      "bytes": 23229158,
+      "sha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+      "mode": "644"
+    },
+    {
+      "path": "CONTINUATION-EVIDENCE-SEAL.json",
+      "bytes": 251240,
+      "sha256": "eea014240354ae976117e87f4f35fc19eaf27e7c27f0052174a1f2224b9a5ec7",
+      "mode": "644"
+    }
+  ]
+}

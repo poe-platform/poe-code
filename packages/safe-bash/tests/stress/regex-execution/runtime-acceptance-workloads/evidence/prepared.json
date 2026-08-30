@@ -1,0 +1,156 @@
+{
+  "phase": "PREPARATION ONLY",
+  "time": "2026-08-27T08:42:04.539Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "typescript": "Version 5.9.3",
+  "compile": {
+    "status": 0,
+    "stdout": "",
+    "stderr": "",
+    "scope": "standalone JavaScript harness only; allowJs emit, not product or JS typecheck"
+  },
+  "commits": {
+    "runtime": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+    "registration": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+    "fixture": "10273352f8d65d929cbf5a23e69119414dacee60"
+  },
+  "pinned": [
+    {
+      "role": "runtime",
+      "path": "src/shell/shell.ts",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c"
+    },
+    {
+      "role": "runtime",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6"
+    },
+    {
+      "role": "registration",
+      "path": "src/commands/grep.ts",
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1"
+    },
+    {
+      "role": "registration",
+      "path": "src/commands/search/rg.ts",
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3"
+    },
+    {
+      "role": "registration",
+      "path": "src/commands/regex-execution/client.ts",
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca"
+    },
+    {
+      "role": "registration",
+      "path": "src/commands/regex-execution/README.md",
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481"
+    },
+    {
+      "role": "fixture",
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "commit": "10273352f8d65d929cbf5a23e69119414dacee60",
+      "sha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3"
+    }
+  ],
+  "source": [
+    {
+      "path": "child.mjs",
+      "sha256": "382f844e71317844bbc61e824f335a27fed8b40704d4ddb491e718b3eb3f0374"
+    },
+    {
+      "path": "observe.mjs",
+      "sha256": "a5226d1e24a8c091be3d98f5ed477b2b07e0b1bdcd6dec51cfe56467e8be3312"
+    },
+    {
+      "path": "benchmark.mjs",
+      "sha256": "7ebe01feacbb085d7355a06e5eb91bcfa5e3a1cccda445fae01329f67f0d8d45"
+    },
+    {
+      "path": "guard.mjs",
+      "sha256": "eab23888c87e18aeb1effc79ec29ef3ace4ec170f2d0344cf3cf004b6349f336"
+    },
+    {
+      "path": "binding.mjs",
+      "sha256": "2a81a61f9e95ab811d84744775633b2d84abf5d23fd99701fedc9f7db393ca1e"
+    },
+    {
+      "path": "prepare.mjs",
+      "sha256": "7b4361c996449e48a72df8c0a0913a1f7b4732e01b19343545375e7b713feb58"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "7ccca206c1424427bdcb046c2d24c13155cc9299c7124a5c7a292455985530b7"
+    }
+  ],
+  "emitted": [
+    {
+      "path": ".temporary/compiled/child.mjs",
+      "sha256": "c2b89481e5a06a820526a3463493919ab47585bc1d5677f5dc50eb7143f6b8fc"
+    },
+    {
+      "path": ".temporary/compiled/observe.mjs",
+      "sha256": "85b997898052fb1c1df27a0422929e1e7667e2ee848c7b4dabf25be839eda2de"
+    },
+    {
+      "path": ".temporary/compiled/benchmark.mjs",
+      "sha256": "8b1e0d2ac84978e83fd8a060f3046c5b86fdc164afb248e99ac5f0ffd739548e"
+    }
+  ],
+  "prior": [
+    {
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/throughput.mjs",
+      "sha256": "479c705abd439a80a524e98bb04f711f3f7014671941d3085200d13d8b57d94f"
+    },
+    {
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/runtime.mjs",
+      "sha256": "34c3d137b96c4e963573977c92d478f3bd0d670fd2b7bf32bace1fdf852dd007"
+    },
+    {
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/old-five.mjs",
+      "sha256": "77cdf6b76be56498048ef4199cfad5e91c985e01a9b1063d5100ff3a880776c8"
+    },
+    {
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/build.mjs",
+      "sha256": "b6527219d23b4d686e51352fb7e0c095106d9f336c0d1984a34a5ea0d2c6a39a"
+    },
+    {
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/freeze.mjs",
+      "sha256": "2859a9963fdc33074dfa91f3b6ae6514750dd2f4e647b51579230713b3e03ec1"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/child.mjs",
+      "sha256": "dea8e28027e968916729d2cd6d2c6364c2968ccc091c164ab2599e6a921db740"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/guard.mjs",
+      "sha256": "77e7061ae8b86d2327359e2ad5d00f4fbd88e567f1808dba1374bc958ee08159"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/child.mjs",
+      "sha256": "6f6182401ba7628935f6426e9de1841c4ea5849c47899ca4628c119a8a25902b"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/baseline-freeze.json",
+      "sha256": "ded2ab6a8e44b860463b8015a405d93e570da6edbd13118099926ca97076beb8"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/baseline/build.json",
+      "sha256": "52641ec74771095f07f16c9c8fd30057a89a358461b42e9f74bac055b4ef48ee"
+    }
+  ],
+  "worktreeHead": "9f7fed68077a68ef3decb114ace83ad47b75ae14",
+  "worktreeStatus": " M package.json\n M tsconfig.json\n?? benchmarks/reports/sort-performance-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/atomic-extension-independent/phase2/\n?? tests/plugins/qualified-current-release-native-data/\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-audit.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-build.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-combination.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-compiled-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-freeze.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-identity-attempt.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-build.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-compiled-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-freeze.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-packed-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-observed-runtime.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-packed-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-registration.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-runtime.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-triage.json\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-identities.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-observed.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-observer.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-package-resolver.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-triage.mjs\n?? tests/stress/regex-execution/runtime-acceptance-workloads/\n?? tests/stress/regex-execution/runtime-error-adjudication/\n",
+  "index": "",
+  "riskConsumed": 0,
+  "additionalSix": "UNUSED",
+  "productExecuted": false,
+  "benchmarkExecuted": false
+}

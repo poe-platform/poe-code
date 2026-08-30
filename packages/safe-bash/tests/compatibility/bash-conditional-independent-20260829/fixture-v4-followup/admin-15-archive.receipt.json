@@ -1,0 +1,14 @@
+{
+  "label": "admin-15-archive",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/archive.mjs",
+    "--source-data-only"
+  ],
+  "closed": true,
+  "signals": [],
+  "bytes": 409,
+  "pid": 60013,
+  "code": 0,
+  "signal": null
+}

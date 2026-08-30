@@ -1,0 +1,248 @@
+{
+  "startedAt": "2026-08-27T12:21:34.233Z",
+  "mode": "curl",
+  "curl": [
+    {
+      "profile": "original-preoperation",
+      "id": "C01",
+      "mode": "drain",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "573a3030300a",
+        "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 7,
+      "attempts": [
+        {
+          "hex": "573a3030300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/headers'",
+            "code": "ENOENT"
+          }
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "nestedStatus": 7,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "current-capture",
+      "id": "C01",
+      "mode": "drain",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "573a3030300a",
+        "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 7,
+      "attempts": [
+        {
+          "hex": "573a3030300a",
+          "owned": false
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": true,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/headers'",
+            "code": "ENOENT"
+          }
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "nestedStatus": 7,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "candidate",
+      "id": "C01",
+      "mode": "drain",
+      "pipefail": false,
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "573a3030300a",
+        "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a696e646570656e64656e742d7374646572720a"
+      },
+      "nestedStatus": 7,
+      "attempts": [
+        {
+          "hex": "573a3030300a",
+          "owned": true
+        }
+      ],
+      "ownedClosed": false,
+      "stageAborted": false,
+      "callerAborted": false,
+      "effects": {
+        "/body": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/body'",
+            "code": "ENOENT"
+          }
+        },
+        "/headers": {
+          "error": {
+            "kind": "Error",
+            "name": "FsError",
+            "message": "ENOENT: no such file or directory, readFile '/headers'",
+            "code": "ENOENT"
+          }
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "nestedStatus": 7,
+          "stageAbortedAfterCurl": false
+        }
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    },
+    {
+      "profile": "native-curl8.7.1-Darwin",
+      "id": "C01",
+      "args": [
+        "-q",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--connect-timeout",
+        "2",
+        "--max-time",
+        "5",
+        "-sS",
+        "-o",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/body",
+        "-D",
+        "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/headers",
+        "-w",
+        "W:%{http_code}\\n",
+        "http://127.0.0.1:50369/fixture"
+      ],
+      "script": "'/usr/bin/curl' '-q' '--noproxy' '*' '--proxy' '' '--connect-timeout' '2' '--max-time' '5' '-sS' '-o' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/body' '-D' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/headers' '-w' 'W:%{http_code}\\n' 'http://127.0.0.1:50369/fixture' | '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs' 'drain' 'http://127.0.0.1:50369'; printf '%s\\n' \"$?\" \"${PIPESTATUS[*]}\" > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/statuses'; printf 'independent-stderr\\n' >&2; printf 'independent-file\\n' > '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native/C01/independent'",
+      "pid": 36062,
+      "process": {
+        "code": 0,
+        "signal": null
+      },
+      "groupReaped": true,
+      "statuses": "0\n0 0\n",
+      "stdoutHex": "573a3230300a",
+      "stderrHex": "696e646570656e64656e742d7374646572720a",
+      "effects": {
+        "/body": {
+          "hex": "72657175697265642d626f64790a"
+        },
+        "/headers": {
+          "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d4c656e6774683a2031340d0a446174653a205468752c203031204a616e20313937302030303a30303a303020474d540d0a582d5175616c69666965643a2072657175697265642d6865616465720d0a436f6e6e656374696f6e3a20636c6f73650d0a0d0a"
+        },
+        "/independent": {
+          "hex": "696e646570656e64656e742d66696c650a"
+        }
+      },
+      "events": [
+        {
+          "requestStarted": "/fixture",
+          "method": "GET",
+          "headers": [
+            "Host",
+            "127.0.0.1:50369",
+            "User-Agent",
+            "curl/8.7.1",
+            "Accept",
+            "*/*"
+          ]
+        },
+        {
+          "requestBodyHex": ""
+        },
+        "server-first-response-write"
+      ],
+      "closure": {
+        "sockets": 0,
+        "tasks": 0,
+        "listening": false
+      }
+    }
+  ],
+  "precedence": [],
+  "auxiliary": [],
+  "failures": [
+    {
+      "error": {
+        "kind": "Error",
+        "name": "Error",
+        "message": "Timeout: original-preoperation/C02"
+      },
+      "stack": "Error: Timeout: original-preoperation/C02\n    at Timeout.<anonymous> (file:///private/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/controls.mjs:14:106)\n    at listOnTimeout (node:internal/timers:585:17)\n    at process.processTimers (node:internal/timers:521:7)"
+    }
+  ],
+  "completedAt": "2026-08-27T12:21:42.390Z"
+}

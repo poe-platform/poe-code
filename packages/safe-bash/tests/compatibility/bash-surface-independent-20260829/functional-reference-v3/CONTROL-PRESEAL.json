@@ -1,0 +1,139 @@
+{
+  "schema": "functional-reference-v3-control-preseal",
+  "created": 1787989542153,
+  "authority": "AUTHORITY.md",
+  "parentReview": "595a9bc3938fc5ff9b048f7f30fb87ec9e4ba7ca",
+  "sourceFiles": [
+    {
+      "path": "AUDIT.json",
+      "bytes": 40103,
+      "mode": 420,
+      "sha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6"
+    },
+    {
+      "path": "AUTHORITY.md",
+      "bytes": 1079,
+      "mode": 420,
+      "sha256": "93e12cacd26cdd2ccd8190af1a385974b6c3893c81623c4f1275d70c54e5492a"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 2017,
+      "mode": 420,
+      "sha256": "03eac37006c71476408955f424afc57b9b5cf3e69b434435adbbef449ffc4b1b"
+    },
+    {
+      "path": "PREPROVISION.json",
+      "bytes": 950,
+      "mode": 420,
+      "sha256": "9f66aa7ba19b019b8c50cc582d8f49116d1eb7bec4bb8a89887b829024bcc5ac"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 2969,
+      "mode": 420,
+      "sha256": "f90eb997ba9ab2f5555a86143b76c4b3c8db00aa1177c2f5fe348dfd079a9082"
+    },
+    {
+      "path": "REQUESTS.json",
+      "bytes": 30175,
+      "mode": 420,
+      "sha256": "e69d98fc697e20462193d7e5a794537394fa66004ee685da3a8da401ea50c22d"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 2657,
+      "mode": 420,
+      "sha256": "77da774f9aae8e1409c6a8dd0425387d435c01842164abe47ce3f6e4f7bfbcc6"
+    },
+    {
+      "path": "VERSION-PROVENANCE.json",
+      "bytes": 1323,
+      "mode": 420,
+      "sha256": "e9f0e3ca2c0b8c7570092d2ecebae33e7713d78e17639088a0f48a74e93ff7cb"
+    },
+    {
+      "path": "WRAPPER-TOOL.json",
+      "bytes": 364,
+      "mode": 420,
+      "sha256": "aae59bd1db096ebe2424096fa15147b880cc412311ff768b609fa752de316116"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 3973,
+      "mode": 420,
+      "sha256": "04c3cdacc18a2ef331e45ec8f0c4b9c7578ae944eccab9e472e38cc26e614bdc"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 1888,
+      "mode": 420,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+    },
+    {
+      "path": "data-controls.mjs",
+      "bytes": 5389,
+      "mode": 420,
+      "sha256": "f23abe007f844edda13a2dd783af8a5c6c47d8492fde232ad2d870212d57e0ef"
+    },
+    {
+      "path": "entry.mjs",
+      "bytes": 7559,
+      "mode": 420,
+      "sha256": "29dee367786c98d4fc2e8f0dd448da5278a177b318b4a1a1f307d23cb51a9d30"
+    },
+    {
+      "path": "group-observer.mjs",
+      "bytes": 759,
+      "mode": 420,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 420,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+    },
+    {
+      "path": "observer-state.mjs",
+      "bytes": 1240,
+      "mode": 420,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "publication-admin.mjs",
+      "bytes": 4011,
+      "mode": 420,
+      "sha256": "56c795fb54d969c45ddd50ed65b674cec942c79d62f305690a6955b86d7ee46f"
+    },
+    {
+      "path": "state.mjs",
+      "bytes": 1824,
+      "mode": 420,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+    },
+    {
+      "path": "storage.mjs",
+      "bytes": 3583,
+      "mode": 420,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+    }
+  ],
+  "identities": [
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "D05",
+    "D06"
+  ],
+  "execution": "Existing coordinator imports data-controls.mjs/storage.mjs/state.mjs and Node builtins only; no entry/lifecycle/worker/target imports; zero new children",
+  "stops": "Safety/integrity/capture/unknown-retirement/cap stop; assertion failures retained, not rewritten",
+  "limits": {
+    "phaseMs": 1200000,
+    "allKnownProcesses": 40,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 268435456
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "pid": 96735,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "readerRole": "reader-control-shared",
+        "sharedActualReadConfig": true,
+        "wholeWorkerNotInvoked": true,
+        "rows": [
+          {
+            "bytesIncludingLF": 2097150,
+            "accepted": true,
+            "error": null
+          },
+          {
+            "bytesIncludingLF": 2097151,
+            "accepted": true,
+            "error": null
+          },
+          {
+            "bytesIncludingLF": 2097152,
+            "accepted": false,
+            "error": "REFERENCE_DOCUMENT"
+          }
+        ]
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 337
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7InJlYWRlclJvbGUiOiJyZWFkZXItY29udHJvbC1zaGFyZWQiLCJzaGFyZWRBY3R1YWxSZWFkQ29uZmlnIjp0cnVlLCJ3aG9sZVdvcmtlck5vdEludm9rZWQiOnRydWUsInJvd3MiOlt7ImJ5dGVzSW5jbHVkaW5nTEYiOjIwOTcxNTAsImFjY2VwdGVkIjp0cnVlLCJlcnJvciI6bnVsbH0seyJieXRlc0luY2x1ZGluZ0xGIjoyMDk3MTUxLCJhY2NlcHRlZCI6dHJ1ZSwiZXJyb3IiOm51bGx9LHsiYnl0ZXNJbmNsdWRpbmdMRiI6MjA5NzE1MiwiYWNjZXB0ZWQiOmZhbHNlLCJlcnJvciI6IlJFRkVSRU5DRV9ET0NVTUVOVCJ9XX19Cg==",
+  "natural": true
+}

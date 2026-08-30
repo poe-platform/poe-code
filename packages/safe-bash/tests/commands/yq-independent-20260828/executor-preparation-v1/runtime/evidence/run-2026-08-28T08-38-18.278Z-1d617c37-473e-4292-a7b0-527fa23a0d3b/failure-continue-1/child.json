@@ -1,0 +1,13 @@
+{
+  "pid": 12769,
+  "group": 12769,
+  "exitCode": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "spawnError": null,
+  "closed": true,
+  "reaped": true,
+  "kills": [],
+  "elapsedMs": 46
+}

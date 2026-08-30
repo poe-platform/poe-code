@@ -1,0 +1,73 @@
+{
+  "classification": "source/DATA diagnosis of consumed review HOLD; no rerun or product finding",
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "sourceCommit": "bf6e96e9f418b130ca6efb52a58635f5c70f3631",
+  "runtimeCommit": "d161d9dd8cb96e90b8bc5d47591dffefd4c0e65c",
+  "reviewCompleted": 3,
+  "reviewPlanned": 54,
+  "remainingUnrun": 51,
+  "productImports": 0,
+  "typeJobsExecuted": 0,
+  "loadedMutantsExecuted": 0,
+  "defaultIntegration": false,
+  "failingRoute": {
+    "id": "runtime-objects",
+    "source": "candidate-753-review-executor-v1/controller.mjs:299",
+    "captureGuard": "controller.mjs:101",
+    "readerGuard": "path-bytes.mjs:80",
+    "expectedObjectPayloads": [
+      {
+        "oid": "d161d9dd8cb96e90b8bc5d47591dffefd4c0e65c",
+        "type": "commit",
+        "size": 277,
+        "headerBytes": 52
+      },
+      {
+        "oid": "a6c98dcb82a764f705504f7fb267ce1e2890c208",
+        "type": "blob",
+        "size": 47367,
+        "headerBytes": 52
+      },
+      {
+        "oid": "b2946cce005f2122df22197b0db072e0ab056059",
+        "type": "blob",
+        "size": 22330550,
+        "headerBytes": 55
+      }
+    ],
+    "expectedBatchBytes": 22378356,
+    "childCombinedCap": 16777216,
+    "stdoutObserved": 16906941,
+    "stdoutRetained": 16775869,
+    "observedRawLoss": 131072,
+    "expectedBytesNotObserved": 5471415,
+    "closed": true,
+    "pidAbsent": true,
+    "signal": "SIGTERM"
+  },
+  "sourceCause": "RUNTIME-SEAL embeds full graph manifests repeatedly inside jobs and again in graphBindings. Writer admits <=32MiB documents; administrative child capture and batchObjects each cap16MiB. No generated-size preadmission guard connected those contracts.",
+  "repairProposalOnly": "Normalize runtime seal: exact job filename/hash plus graph IDs rather than duplicating job bodies; bind canonical manifests once or exact base+delta references. Reconstruct and verify full bindings in the reader. Precharge exact serialized object/framing byte counts before Git dispatch. Preserve16MiB reader/capture bounds and all54 group membership. New preseal/ROOT GO required; no retry performed.",
+  "actualSubjectProcesses": 10,
+  "postSubjectDataProcessesSoFar": 3,
+  "subjectTotalPeak": 2,
+  "knownReaped": true,
+  "rawArtifact": {
+    "bytes": 16775869,
+    "sha256": "356f08f8a79cb914eb47c9fa2eb288de8a4934d518db74ae62a4fad394d03e2a",
+    "mode": 384
+  },
+  "runtimeSeal": {
+    "bytes": 22330550,
+    "sha256": "ed92126e7b2399068ae3ca6d500925c0b314b3243af1b04b7a81c946a6139d18",
+    "mode": 420
+  },
+  "archive": {
+    "classification": "DATA-only post-HOLD archive reconstruction; no product retry/import",
+    "records": 29809,
+    "logicalBytes": 158051300,
+    "files": 29474,
+    "allExact": true,
+    "runtimeSealBytes": 22330550,
+    "runtimeCommit": "d161d9dd8cb96e90b8bc5d47591dffefd4c0e65c"
+  }
+}

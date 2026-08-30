@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: R01 detached snapshot entry does not truncate fanout
+ok 1 - R01 detached snapshot entry does not truncate fanout
+  ---
+  duration_ms: 0.950792
+  type: 'test'
+  ...
+# Subtest: R02 close still stops fanout and naturally finalizes exact failures
+ok 2 - R02 close still stops fanout and naturally finalizes exact failures
+  ---
+  duration_ms: 0.130416
+  type: 'test'
+  ...
+# Subtest: R03 admission uses observed first-delivered control and skips getter
+ok 3 - R03 admission uses observed first-delivered control and skips getter
+  ---
+  duration_ms: 0.172791
+  type: 'test'
+  ...
+# Subtest: R04 ancestor ranking remains separate from immutable delivery and preserves provenance
+ok 4 - R04 ancestor ranking remains separate from immutable delivery and preserves provenance
+  ---
+  duration_ms: 0.312292
+  type: 'test'
+  ...
+# Subtest: R05 falsy equal control reasons remain exact and unwrapped
+ok 5 - R05 falsy equal control reasons remain exact and unwrapped
+  ---
+  duration_ms: 0.129917
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 183.010291

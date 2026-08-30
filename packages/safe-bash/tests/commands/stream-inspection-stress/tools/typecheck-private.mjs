@@ -1,0 +1,15 @@
+import ts from '/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js';
+import { readFileSync } from 'node:fs';
+const root='/Users/kjopek/Workspace/safe-bash';
+const filename=`${root}/tests/commands/stream-inspection-stress/holdouts.test.ts`;
+const text=readFileSync('/tmp/safe-bash-stream-verifier-20260827-A/holdouts.test.ts','utf8');
+const config=ts.readConfigFile(`${root}/tsconfig.json`,ts.sys.readFile);
+const parsed=ts.parseJsonConfigFileContent(config.config,ts.sys,root);
+const host=ts.createCompilerHost({...parsed.options,noEmit:true});
+const originalSource=host.getSourceFile.bind(host);
+host.getSourceFile=(path,languageVersion,onError,shouldCreate)=>path===filename?ts.createSourceFile(path,text,languageVersion,true):originalSource(path,languageVersion,onError,shouldCreate);
+const program=ts.createProgram([filename],{...parsed.options,noEmit:true},host);
+const diagnostics=ts.getPreEmitDiagnostics(program);
+console.log(ts.formatDiagnosticsWithColorAndContext(diagnostics,{getCurrentDirectory:()=>root,getCanonicalFileName:value=>value,getNewLine:()=>"\n"}));
+console.log(JSON.stringify({at:new Date().toISOString(),diagnostics:diagnostics.length,mode:'noEmit virtual-path private test source; product module not executed'}));
+process.exitCode=diagnostics.length?1:0;

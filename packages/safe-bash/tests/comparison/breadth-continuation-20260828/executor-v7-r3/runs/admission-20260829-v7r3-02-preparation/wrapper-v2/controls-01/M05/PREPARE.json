@@ -1,0 +1,1 @@
+{"schema":"PRIVATE_CAPTURE_PREPARATION_V2","pid":21637,"parentPid":21636,"umask":18,"primaryPresent":true,"primaryType":"object","primaryCode":"EEXIST","captures":[{"name":"stdout.raw","descriptor":11,"synced":true,"closed":true,"mode":384,"device":16777232,"inode":184024712,"bytes":0}],"secondary":[],"qualified":false}

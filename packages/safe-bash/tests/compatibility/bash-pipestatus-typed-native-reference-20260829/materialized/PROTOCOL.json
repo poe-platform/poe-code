@@ -1,0 +1,39 @@
+{
+  "schema": "pipestatus-typed-reference-v1",
+  "runRoot": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1",
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 7,
+    "knownPeakCeiling": 2,
+    "allKnownProcessProposalCeiling": 29,
+    "allKnownPeakProposalCeiling": 5,
+    "ownerStarts": 1,
+    "nativeStarts": 6,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 4,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  },
+  "profile": "FUNCTIONAL_OBSERVATION_ONLY_NOT_CONTAINMENT",
+  "nativeGo": false,
+  "initialToolShellStartup": "TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_RAW_CAPTURE",
+  "bashChildren": "exact six-key env, fresh empty HOME/TMPDIR/PATH, --noprofile --norc, empty closed stdin; no BASH_ENV/ENV/SHELLOPTS/BASHOPTS/functions",
+  "output": {
+    "format": "unchanged host FNPIPEOBS1 NUL/base64 frame; native declare stdout/stderr/status preserved exactly",
+    "expectedNative": null
+  },
+  "publication": "inclusive final deadline before/after writes, terminal/flush/credit; cleanup attempted independently; late cleanup cannot qualify",
+  "authorization": "independent review plus fresh runtime receipt/GO and resolved-slot DATA review plus exact require_escalated tool approval; no old authority reuse",
+  "purpose": "typed observation only; no inferred semantic policy"
+}

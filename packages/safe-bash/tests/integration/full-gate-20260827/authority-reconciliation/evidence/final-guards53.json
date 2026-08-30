@@ -1,0 +1,70 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/copy-identity.test.ts",
+    "tests/fs/mount/copy-identity-guards.test.ts",
+    "tests/fs/overlay/copy-identity.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 50300,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 568,
+  "timeoutMs": 120000,
+  "outputBytes": 11509,
+  "observed": [
+    {
+      "pid": 50300,
+      "parent": 50256,
+      "group": 50300,
+      "born": "Thu Aug 27 01:31:40 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/copy-identity.test.ts tests/fs/mount/copy-identity-guards.test.ts tests/fs/overlay/copy-identity.test.ts"
+    },
+    {
+      "pid": 50302,
+      "parent": 50300,
+      "group": 50300,
+      "born": "Thu Aug 27 01:31:40 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/copy-identity-guards.test.ts"
+    },
+    {
+      "pid": 50305,
+      "parent": 50300,
+      "group": 50300,
+      "born": "Thu Aug 27 01:31:40 2026",
+      "command": "(node)"
+    },
+    {
+      "pid": 50307,
+      "parent": 50300,
+      "group": 50300,
+      "born": "Thu Aug 27 01:31:40 2026",
+      "command": "(node)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 53,
+    "pass": 53,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [],
+  "stdoutSha256": "eb2cea2c377f7082fa4c8cfaecd61fe2e80b21d5131d3c33ac06927df368b266",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

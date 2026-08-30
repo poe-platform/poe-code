@@ -1,0 +1,9 @@
+{
+  "family": "ER-03",
+  "name": "capture-before-assert",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-03-capture-before-assert-input.json",
+  "raw": "ER-03-capture-before-assert-raw.json"
+}

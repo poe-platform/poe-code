@@ -1,0 +1,70 @@
+ENV-S fixture validity revision v1 — author, not acceptance reviewer
+Ownership: only NEW tests/shell-stress/env-split-validity/** and regular /tmp scratch.
+Product fixed at 84ab66ca717e0dff21abf57051b41cb553f3c7f3; no source overlay.
+Read CORE_REVIEW_84AB66C.md (review 36425fc6e066c23b55bd17eb517931efb4706aa7)
+and CORE_PACKED_ACCEPTANCE.md (b44fa142a0da9593df533c56fd149cb38603ea68).
+
+EXACTLY THREE FIXTURE DEFECTS AND PROPOSED REVISIONS
+1. hidden hosts.mjs:25 supplies raw new Uint8Array() as invoke.stdin.
+   Frozen src/contracts/command.ts:5 requires ByteSource; src/shell/input.ts:14
+   calls source[Symbol.asyncIterator](); runtime.ts:1353 does not convert bytes.
+   Revise only that binding to an explicitly empty async generator, retaining
+   stdinIsDefault:false, exact env argv, replacement map and original assertions.
+   Original assertion records stdout parent:private vs abcparent:private and
+   child status1, but discards inner stderr/status: those are UNKNOWN, not guessed.
+2. packed consumer.mjs:66 sets SECRET in another exec than its :92-93 check.
+   Frozen src/shell/shell.ts:133-145 constructs per-exec variables/exported state.
+   Revise to establish SECRET=parent-local plus an explicit PUBLIC export in the
+   same exec as the unchanged command under study. Capture parent local value
+   and exported map at a separate same-exec boundary, without appending bytes to
+   the primary tuple or replacing its status/effects. For interrupted budget/
+   cancellation work, use retained actual parent command context and a before-
+   child local snapshot, not a fresh exec or caller rescue. Preserve reason
+   identity, command budgets/reached work and original primary observations.
+3. packed forward->sink omits replaceEnv but :79 demands exact replacement.
+   Frozen src/contracts/command.md:3-7 and runtime.ts:1342 specify default merge
+   with PWD. Keep forward's original invoke unchanged; assert sink receives
+   {KEEP:'value',PWD:'/packed'}, forward receives exactly {KEEP:'value'}, and
+   neither exports SECRET/PUBLIC. Add separately counted explicit-replace
+   positive/negative controls (supplied map and omitted empty map); do not
+   silently propagate a replacement policy through the original forwarding path.
+
+EXACTLY THREE COMMAND DISPATCH DIAGNOSTIC LOSSES
+All stdout bytes are empty; effects below are full observed maps, modes decimal.
+Raw native/virtual tuples are preserved in core-candidate-84ab66c.json records
+and native-aligned.json; original strict-native assertions remain failures.
+These are registry/virtual command dispatch diagnostics, NOT split grammar loss.
+
+1. packed-non-s-single-operand
+   Full literal argv: ["env","argvprobe two words"]
+   GNU9.7 Darwin native: status127 stdout=""
+   stderr="env: 'argvprobe two words': No such file or directory\nenv: use -[v]S to pass options in shebang lines\n"
+   Virtual: status127 stdout=""
+   stderr="shell: line 1: argvprobe two words: command not found\n"
+   Native AND virtual effects={"effect":{"type":"file","mode":420,"hex":"6f726967696e616c"}}
+   The non-S operand remains ONE literal command name; no grammar reinterpretation.
+2. missing-command-negative
+   Full literal argv: ["env","-S","env-split-never-a-real-command argument"]
+   GNU9.7 Darwin native: status127 stdout=""
+   stderr="env: 'env-split-never-a-real-command': No such file or directory\n"
+   Virtual: status127 stdout=""
+   stderr="shell: line 1: env-split-never-a-real-command: command not found\n"
+   Native AND virtual effects={"effect":{"type":"file","mode":420,"hex":"6f726967696e616c"}}
+3. nonexecutable-command-negative
+   Full literal argv: ["env","-S","./nonexec argument"]
+   GNU9.7 Darwin native: status126 stdout=""
+   stderr="env: './nonexec': Permission denied\n"
+   Virtual: status126 stdout=""
+   stderr="shell: line 1: ./nonexec: Permission denied\n"
+   Native AND virtual effects={"effect":{"type":"file","mode":420,"hex":"6f726967696e616c"},"nonexec":{"type":"file","mode":420,"hex":"6e6f742065786563757461626c650a"}}
+
+All invalid-source cases still run against their immutable native expectations.
+All48 hidden rows (42 command/6 protocol), seven revised hidden hosts, all10
+consumer rows and five host executions will run AFTER the revision input freeze.
+Strict primary hidden GNUenv9.7 Darwin+Bash5.3 and whole historical Appleenv+
+Bash3.2 remain separate; packed whole GNUenv9.7/both Bash parents remain separate.
+All runtime/shebang losses stay unsupported/failed, including the plain control's
+separate result. Additional exact virtual diagnostic checks are NOT native passes.
+Authentic retained tgz SHA256 3ac9f899fbabb14e0473a9345113642fbfd2d12ac6e957659695b6b9e2fbac8c
+will be installed offline, physically moved, checked by plain Node22 public bare
+imports and actual installed declarations. No private poe access or product edits.

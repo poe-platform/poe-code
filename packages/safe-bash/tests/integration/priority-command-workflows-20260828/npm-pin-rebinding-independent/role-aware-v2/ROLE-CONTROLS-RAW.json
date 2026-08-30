@@ -1,0 +1,110 @@
+[
+  {
+    "id": "stored-valid-plan",
+    "expectedAccept": true,
+    "accepted": true,
+    "returnedTrue": true,
+    "rejectedBeforeSpawn": false,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "historical-null-plan",
+    "expectedAccept": true,
+    "accepted": true,
+    "returnedTrue": true,
+    "rejectedBeforeSpawn": false,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "stored-valid-proof",
+    "expectedAccept": true,
+    "accepted": true,
+    "returnedTrue": true,
+    "rejectedBeforeSpawn": false,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "historical-bound-proof",
+    "expectedAccept": true,
+    "accepted": true,
+    "returnedTrue": true,
+    "rejectedBeforeSpawn": false,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "malformed-role",
+    "expectedAccept": false,
+    "accepted": false,
+    "reason": "unknown artifact role",
+    "rejectedBeforeSpawn": true,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "type-mismatch",
+    "expectedAccept": false,
+    "accepted": false,
+    "reason": "artifact content type",
+    "rejectedBeforeSpawn": true,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "nonnull-bad-stored-identity",
+    "expectedAccept": false,
+    "accepted": false,
+    "reason": "stored identity must be nonnull exact commit",
+    "rejectedBeforeSpawn": true,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "stored-null",
+    "expectedAccept": false,
+    "accepted": false,
+    "reason": "stored identity must be nonnull exact commit",
+    "rejectedBeforeSpawn": true,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "historical-nonnull",
+    "expectedAccept": false,
+    "accepted": false,
+    "reason": "historical identity must remain null",
+    "rejectedBeforeSpawn": true,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "active-missing-proof",
+    "expectedAccept": false,
+    "accepted": false,
+    "reason": "artifact evidence required",
+    "rejectedBeforeSpawn": true,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "active-wrong-content",
+    "expectedAccept": false,
+    "accepted": false,
+    "reason": "artifact content mismatch",
+    "rejectedBeforeSpawn": true,
+    "childStarts": 0,
+    "pass": true
+  },
+  {
+    "id": "historical-missing-binding",
+    "expectedAccept": false,
+    "accepted": false,
+    "reason": "authenticated binding required",
+    "rejectedBeforeSpawn": true,
+    "childStarts": 0,
+    "pass": true
+  }
+]

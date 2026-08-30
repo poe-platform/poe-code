@@ -1,0 +1,6 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": { "rootDir": "../../../..", "outDir": "./.build/js", "declaration": false, "sourceMap": false, "noEmitOnError": true },
+  "files": ["protocol.ts", "matching.ts", "worker.ts", "client.ts", "../../../../src/commands/grep.ts", "../../../../src/commands/search/matcher.ts", "../../../../src/commands/text-programs/regex.ts"],
+  "include": [], "exclude": []
+}

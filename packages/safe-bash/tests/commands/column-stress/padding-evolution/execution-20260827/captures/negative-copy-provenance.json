@@ -1,0 +1,29 @@
+[
+  {
+    "name": "rectangle-mutant",
+    "root": "/tmp/safe-bash-column-padding-MmS9An/rectangle-mutant",
+    "classification": "deliberately-faulty-negative-only-not-candidate",
+    "changedFile": "dist/commands/column/table.js",
+    "insertion": "    const forbiddenRectangle = rows.map(() => Array.from(widths));\n    if (!forbiddenRectangle.length) throw new Error('Empty mutation');\n",
+    "originalSha256": "73f5f9cb4b1c0911bc2836a1a4f9cc45cb81a728847fe706586ceb3f9074f3c0",
+    "changedSha256": "493e378323a2cca6ecf884d81692f165607bdc09051161b3cf39feb398e412ae"
+  },
+  {
+    "name": "scan-probe-reference",
+    "root": "/tmp/safe-bash-column-padding-MmS9An/scan-probe-reference",
+    "classification": "instrumented-reference-sidecar-not-candidate-acceptance",
+    "changedFile": "dist/commands/column/table.js",
+    "insertion": "    globalThis.__columnWidthReads = 0;\n    widths = new Proxy(widths, { get(target, key) { if (typeof key === 'string' && /^[0-9]+$/.test(key) && ++globalThis.__columnWidthReads > 1000000) throw new Error('Independent uncharged-width traversal guard'); return Reflect.get(target, key); } });\n",
+    "originalSha256": "73f5f9cb4b1c0911bc2836a1a4f9cc45cb81a728847fe706586ceb3f9074f3c0",
+    "changedSha256": "9fb143cd932b09221c0721a9682bdf4c8968e9b651b29de70d8bf3293c756c22"
+  },
+  {
+    "name": "scan-mutant",
+    "root": "/tmp/safe-bash-column-padding-MmS9An/scan-mutant",
+    "classification": "deliberately-faulty-negative-only-not-candidate",
+    "changedFile": "dist/commands/column/table.js",
+    "insertion": "    globalThis.__columnWidthReads = 0;\n    widths = new Proxy(widths, { get(target, key) { if (typeof key === 'string' && /^[0-9]+$/.test(key) && ++globalThis.__columnWidthReads > 1000000) throw new Error('Independent uncharged-width traversal guard'); return Reflect.get(target, key); } });\n    for (const row of rows) for (let index = 0; index < widths.length; index++) { const uncharged = widths[index]; if (uncharged < 0) throw new Error('Negative width'); }\n",
+    "originalSha256": "73f5f9cb4b1c0911bc2836a1a4f9cc45cb81a728847fe706586ceb3f9074f3c0",
+    "changedSha256": "7f260c18601401417046555094d8cd0596acd90ad7e78694cebf599a5ccedf0d"
+  }
+]

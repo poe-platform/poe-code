@@ -1,0 +1,8 @@
+{
+  "kind": "REPL_PUBLICATION_REFERENCE_ERROR",
+  "message": "contractFiles is not defined",
+  "phase": "building composition supplement object",
+  "newChildren": 0,
+  "newFilesByFailedCall": 0,
+  "controlResultsUnchanged": true
+}

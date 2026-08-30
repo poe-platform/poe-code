@@ -1,0 +1,18 @@
+{
+  "returned": [
+    {
+      "name": "AssertionError",
+      "message": "Integration core membership/hash/modes\n+ actual - expected\n\n+ 'e2028b594cffa31f3a00d3c5600f0a918281238b34c585fee2ee21cd30b9982f'\n- '2804eef75ba4dd094deed68b240b92497145f5ae8af68b53e9a06fcad9986f8e'\n",
+      "code": "ERR_ASSERTION",
+      "stack": "AssertionError [ERR_ASSERTION]: Integration core membership/hash/modes\n+ actual - expected\n\n+ 'e2028b594cffa31f3a00d3c5600f0a918281238b34c585fee2ee21cd30b9982f'\n- '2804eef75ba4dd094deed68b240b92497145f5ae8af68b53e9a06fcad9986f8e'\n\n    at Module.verifyIntegration (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/components.mjs:51:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:85:79\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:82:9"
+    },
+    {
+      "name": "AssertionError",
+      "message": "Integration core membership/hash/modes\n+ actual - expected\n\n+ '730778e0a2ccc42a4af4c6b34443afb9a2c482b992e8a991f6d1e5d7b030bfca'\n- '2804eef75ba4dd094deed68b240b92497145f5ae8af68b53e9a06fcad9986f8e'\n",
+      "code": "ERR_ASSERTION",
+      "stack": "AssertionError [ERR_ASSERTION]: Integration core membership/hash/modes\n+ actual - expected\n\n+ '730778e0a2ccc42a4af4c6b34443afb9a2c482b992e8a991f6d1e5d7b030bfca'\n- '2804eef75ba4dd094deed68b240b92497145f5ae8af68b53e9a06fcad9986f8e'\n\n    at Module.verifyIntegration (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/components.mjs:51:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:87:56\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:82:9"
+    }
+  ],
+  "rejected": null,
+  "classification": "CANNED_METADATA_NOT_ROOT_AUTHORIZATION"
+}

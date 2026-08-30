@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: strict actual no backend mutations
++ actual - expected
+
++ [
++   '/.virtual-bash-overlay-e0dfdfaf-dc8b-4ba0-a7a1-f7689d6e1f62'
++ ]
+- []
+
+    at <anonymous> (/private/tmp/safe-bash-overlay-readpurity-JuB9ca/strict-current.mjs:31:10) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ '/.virtual-bash-overlay-e0dfdfaf-dc8b-4ba0-a7a1-f7689d6e1f62' ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

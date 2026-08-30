@@ -1,0 +1,588 @@
+TAP version 13
+# Subtest: frozen fixture: tac-unterminated-crlf
+ok 1 - frozen fixture: tac-unterminated-crlf
+  ---
+  duration_ms: 4.636208
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-empty-records
+ok 2 - frozen fixture: tac-empty-records
+  ---
+  duration_ms: 0.986709
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-nul-separator
+ok 3 - frozen fixture: tac-nul-separator
+  ---
+  duration_ms: 1.193208
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-nul-before
+ok 4 - frozen fixture: tac-nul-before
+  ---
+  duration_ms: 0.760166
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-literal-metacharacters
+ok 5 - frozen fixture: tac-literal-metacharacters
+  ---
+  duration_ms: 0.876458
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-before-leading-trailing
+ok 6 - frozen fixture: tac-before-leading-trailing
+  ---
+  duration_ms: 0.762583
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-overlap-rightmost
+ok 7 - frozen fixture: tac-overlap-rightmost
+  ---
+  duration_ms: 1.082291
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-overlap-before
+ok 8 - frozen fixture: tac-overlap-before
+  ---
+  duration_ms: 0.839167
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-multibyte-separator
+ok 9 - frozen fixture: tac-multibyte-separator
+  ---
+  duration_ms: 2.496125
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-invalid-binary
+ok 10 - frozen fixture: tac-invalid-binary
+  ---
+  duration_ms: 0.694833
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-operand-boundaries
+ok 11 - frozen fixture: tac-operand-boundaries
+  ---
+  duration_ms: 0.726
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-shared-dash
+ok 12 - frozen fixture: tac-shared-dash
+  ---
+  duration_ms: 0.604125
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-dash-name
+ok 13 - frozen fixture: tac-dash-name
+  ---
+  duration_ms: 0.399208
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-long-cross-buffer
+ok 14 - frozen fixture: tac-long-cross-buffer
+  ---
+  duration_ms: 45.359375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-no-separator
+ok 15 - frozen fixture: tac-no-separator
+  ---
+  duration_ms: 0.538416
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-initial-blanks
+ok 16 - frozen fixture: expand-initial-blanks
+  ---
+  duration_ms: 0.663459
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-cr-not-newline
+ok 17 - frozen fixture: expand-cr-not-newline
+  ---
+  duration_ms: 0.371375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-backspace-revisit-stop
+ok 18 - frozen fixture: expand-backspace-revisit-stop
+  ---
+  duration_ms: 0.362667
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-finite-stops
+ok 19 - frozen fixture: expand-finite-stops
+  ---
+  duration_ms: 0.349208
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-blank-list
+ok 20 - frozen fixture: expand-blank-list
+  ---
+  duration_ms: 0.342334
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-absolute-repeat
+ok 21 - frozen fixture: expand-absolute-repeat
+  ---
+  duration_ms: 0.321875
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-relative-repeat
+ok 22 - frozen fixture: expand-relative-repeat
+  ---
+  duration_ms: 0.2905
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-repeat-only
+ok 23 - frozen fixture: expand-repeat-only
+  ---
+  duration_ms: 0.332208
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-legacy-stops
+not ok 24 - frozen fixture: expand-legacy-stops
+  ---
+  duration_ms: 1.734917
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    expand: invalid option -- '2'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:80:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: expand-repeat-option-stops
+ok 25 - frozen fixture: expand-repeat-option-stops
+  ---
+  duration_ms: 0.441584
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-cross-operand-column
+ok 26 - frozen fixture: expand-cross-operand-column
+  ---
+  duration_ms: 3.081167
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-cross-operand-initial
+ok 27 - frozen fixture: expand-cross-operand-initial
+  ---
+  duration_ms: 0.491708
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-shared-dash
+ok 28 - frozen fixture: expand-shared-dash
+  ---
+  duration_ms: 0.41575
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-nul-invalid-utf8
+ok 29 - frozen fixture: expand-nul-invalid-utf8
+  ---
+  duration_ms: 0.352209
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-utf8-byte-columns
+ok 30 - frozen fixture: expand-utf8-byte-columns
+  ---
+  duration_ms: 0.334542
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-initial-backspace
+ok 31 - frozen fixture: expand-initial-backspace
+  ---
+  duration_ms: 0.314542
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-long-chunk-edge
+ok 32 - frozen fixture: expand-long-chunk-edge
+  ---
+  duration_ms: 66.3915
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-unterminated-long
+ok 33 - frozen fixture: fold-unterminated-long
+  ---
+  duration_ms: 0.811667
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-word-boundaries
+ok 34 - frozen fixture: fold-word-boundaries
+  ---
+  duration_ms: 0.440333
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-tab-larger-than-width
+ok 35 - frozen fixture: fold-tab-larger-than-width
+  ---
+  duration_ms: 0.371667
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-tab-spaces
+ok 36 - frozen fixture: fold-tab-spaces
+  ---
+  duration_ms: 0.37575
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-backspace
+ok 37 - frozen fixture: fold-backspace
+  ---
+  duration_ms: 0.398166
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-cr-column-reset
+ok 38 - frozen fixture: fold-cr-column-reset
+  ---
+  duration_ms: 0.306209
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-byte-controls
+ok 39 - frozen fixture: fold-byte-controls
+  ---
+  duration_ms: 0.331125
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-byte-space-combination
+ok 40 - frozen fixture: fold-byte-space-combination
+  ---
+  duration_ms: 0.347292
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-all-blank
+ok 41 - frozen fixture: fold-all-blank
+  ---
+  duration_ms: 0.32725
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-operand-reset
+ok 42 - frozen fixture: fold-operand-reset
+  ---
+  duration_ms: 0.345041
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-shared-dash
+ok 43 - frozen fixture: fold-shared-dash
+  ---
+  duration_ms: 0.569583
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-nul
+ok 44 - frozen fixture: fold-invalid-nul
+  ---
+  duration_ms: 0.434
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-utf8-column
+ok 45 - frozen fixture: fold-utf8-column
+  ---
+  duration_ms: 0.417916
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-utf8-byte
+ok 46 - frozen fixture: fold-utf8-byte
+  ---
+  duration_ms: 0.509875
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-long-record-chunk-edge
+ok 47 - frozen fixture: fold-long-record-chunk-edge
+  ---
+  duration_ms: 39.146041
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-vertical-whitespace-not-blank
+ok 48 - frozen fixture: fold-vertical-whitespace-not-blank
+  ---
+  duration_ms: 0.532333
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-legacy-width
+not ok 49 - frozen fixture: fold-legacy-width
+  ---
+  duration_ms: 0.48125
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    fold: invalid option -- '3'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:80:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: tac-invalid-49
+ok 50 - frozen fixture: tac-invalid-49
+  ---
+  duration_ms: 0.418084
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-invalid-50
+ok 51 - frozen fixture: tac-invalid-50
+  ---
+  duration_ms: 0.353333
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-invalid-51
+ok 52 - frozen fixture: expand-invalid-51
+  ---
+  duration_ms: 0.334
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-invalid-52
+ok 53 - frozen fixture: expand-invalid-52
+  ---
+  duration_ms: 0.355084
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-invalid-53
+ok 54 - frozen fixture: expand-invalid-53
+  ---
+  duration_ms: 0.339583
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-invalid-54
+not ok 55 - frozen fixture: expand-invalid-54
+  ---
+  duration_ms: 0.355917
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    expand: invalid number '0'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:80:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: expand-invalid-55
+ok 56 - frozen fixture: expand-invalid-55
+  ---
+  duration_ms: 0.329541
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-56
+ok 57 - frozen fixture: fold-invalid-56
+  ---
+  duration_ms: 0.407916
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-57
+ok 58 - frozen fixture: fold-invalid-57
+  ---
+  duration_ms: 0.504792
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-58
+ok 59 - frozen fixture: fold-invalid-58
+  ---
+  duration_ms: 0.29975
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-invalid-59
+ok 60 - frozen fixture: fold-invalid-59
+  ---
+  duration_ms: 0.287625
+  type: 'test'
+  ...
+# Subtest: frozen fixture: tac-missing-then-valid
+ok 61 - frozen fixture: tac-missing-then-valid
+  ---
+  duration_ms: 0.693166
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-missing-then-valid
+ok 62 - frozen fixture: expand-missing-then-valid
+  ---
+  duration_ms: 0.511
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-missing-then-valid
+ok 63 - frozen fixture: fold-missing-then-valid
+  ---
+  duration_ms: 0.479209
+  type: 'test'
+  ...
+# Subtest: frozen fixture: expand-utf8-locale-control
+ok 64 - frozen fixture: expand-utf8-locale-control
+  ---
+  duration_ms: 0.376417
+  type: 'test'
+  ...
+# Subtest: frozen fixture: fold-utf8-locale-control
+ok 65 - frozen fixture: fold-utf8-locale-control
+  ---
+  duration_ms: 0.365958
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-ascii-boundaries
+ok 66 - frozen fixture: strings-ascii-boundaries
+  ---
+  duration_ms: 0.580542
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-tab-is-printable
+ok 67 - frozen fixture: strings-tab-is-printable
+  ---
+  duration_ms: 0.369042
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-minimum-one
+ok 68 - frozen fixture: strings-minimum-one
+  ---
+  duration_ms: 0.382375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-utf8-separates-ascii
+ok 69 - frozen fixture: strings-utf8-separates-ascii
+  ---
+  duration_ms: 0.301916
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-utf8
+ok 70 - frozen fixture: strings-invalid-utf8
+  ---
+  duration_ms: 0.287375
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-offset-decimal
+ok 71 - frozen fixture: strings-offset-decimal
+  ---
+  duration_ms: 0.430083
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-offset-hex
+ok 72 - frozen fixture: strings-offset-hex
+  ---
+  duration_ms: 0.642042
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-offset-octal
+ok 73 - frozen fixture: strings-offset-octal
+  ---
+  duration_ms: 0.442416
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-minimum-legacy
+not ok 74 - frozen fixture: strings-minimum-legacy
+  ---
+  duration_ms: 0.384542
+  type: 'test'
+  location: '/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:1:2607'
+  failureType: 'testCodeFailure'
+  error: |-
+    strings: invalid option -- '5'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-55-00-806Z/tests/commands/stream-inspection-stress/holdouts.test.ts:80:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: frozen fixture: strings-minimum-long
+ok 75 - frozen fixture: strings-minimum-long
+  ---
+  duration_ms: 0.280958
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-all-byte-classifications
+ok 76 - frozen fixture: strings-all-byte-classifications
+  ---
+  duration_ms: 0.536666
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-long-run-reused-buffer
+ok 77 - frozen fixture: strings-long-run-reused-buffer
+  ---
+  duration_ms: 41.297541
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-file-label-offsets
+ok 78 - frozen fixture: strings-file-label-offsets
+  ---
+  duration_ms: 0.648208
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-operand-runs-do-not-join
+ok 79 - frozen fixture: strings-operand-runs-do-not-join
+  ---
+  duration_ms: 0.331708
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-dash-stdin-extension
+ok 80 - frozen fixture: strings-dash-stdin-extension
+  ---
+  duration_ms: 0.294542
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-80
+ok 81 - frozen fixture: strings-invalid-80
+  ---
+  duration_ms: 0.301834
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-81
+ok 82 - frozen fixture: strings-invalid-81
+  ---
+  duration_ms: 0.351625
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-82
+ok 83 - frozen fixture: strings-invalid-82
+  ---
+  duration_ms: 0.331333
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-83
+ok 84 - frozen fixture: strings-invalid-83
+  ---
+  duration_ms: 0.2915
+  type: 'test'
+  ...
+# Subtest: frozen fixture: strings-invalid-84
+ok 85 - frozen fixture: strings-invalid-84
+  ---
+  duration_ms: 0.270792
+  type: 'test'
+  ...
+1..85
+# tests 85
+# suites 0
+# pass 81
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 388.846958

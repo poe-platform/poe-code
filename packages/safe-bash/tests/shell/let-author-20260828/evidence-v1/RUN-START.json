@@ -1,0 +1,15 @@
+{
+  "schema": "let-author-run-v1",
+  "candidate": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "started": "2026-08-28T07:32:49.851Z",
+  "source": null,
+  "moved": null,
+  "regressions": null,
+  "types": [],
+  "mutants": [],
+  "controls": [],
+  "failures": [],
+  "nativeExecutions": 0,
+  "runSealSHA256": "492beef63df08e1e2a82eda526e054616cbb470796d7ab6e05a87c59ff9c510c",
+  "preGuards": "passed"
+}

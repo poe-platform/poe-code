@@ -1,0 +1,45 @@
+{
+  "schema": "breadth-preparation-evidence-v1",
+  "recipeCommit": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+  "recipeSha256": "663352445702f9280976e195374296be4404cc99c6c813d03fec6bba7f09e337",
+  "originalManifestSha256": "19526e0eb11478107b73026bdcc5d3b309f4cfb38c57a93c7cfea1672e75e923",
+  "status": "PREPARATION_QUALIFIED_ACTUAL_EXECUTION_HELD",
+  "files": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3195,
+      "mode": 420,
+      "sha256": "154e79a5890b14464f3aeaa37096255406e95cd76c26c95148d0f9ef3f34dcee"
+    },
+    {
+      "path": "runs/availability-01.json",
+      "bytes": 3027,
+      "mode": 420,
+      "sha256": "36a391268e227cc381bb066af6c81a85fe3df7593efea6f69adccf59cf572c4a"
+    },
+    {
+      "path": "runs/availability-01.lock",
+      "bytes": 110,
+      "mode": 420,
+      "sha256": "746745e3595049afcd55fd8248dfa3a869af676255510227395c7a6afe2b60ae"
+    },
+    {
+      "path": "runs/final-audit.json",
+      "bytes": 1219,
+      "mode": 420,
+      "sha256": "f94cfb4c202db6161d782b008efade5061db4d9d459e904dabe8080627691699"
+    },
+    {
+      "path": "runs/synthetic-01.json",
+      "bytes": 39874,
+      "mode": 420,
+      "sha256": "8dffb301d63dae0dcf0dc890a7e8902c26de277b6046b3b6dafcfd46b0cd5ca7"
+    },
+    {
+      "path": "runs/synthetic-01.lock",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "4914bad80a2a8e1b00f0dad5609fd103acd957f317652ed916af58112025b1e7"
+    }
+  ]
+}

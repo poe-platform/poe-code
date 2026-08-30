@@ -1,0 +1,5 @@
+
+> virtual-bash@0.0.0 build
+> tsc -p tsconfig.build.json
+
+src/commands/split/split.ts(69,34): error TS2339: Property 'next' does not exist on type 'ByteSource'.

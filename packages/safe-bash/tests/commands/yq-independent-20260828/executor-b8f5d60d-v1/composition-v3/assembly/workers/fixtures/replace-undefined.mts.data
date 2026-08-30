@@ -1,0 +1,2 @@
+import { yqCommands } from "@@YQ@@";
+yqCommands({ replace: undefined });

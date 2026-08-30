@@ -1,0 +1,35 @@
+{
+  "label": "native-C7",
+  "command": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "args": [
+    "--noprofile",
+    "--norc",
+    "-c",
+    "umask 022\nset -o pipefail\nproducer() { printf 'diagnostic\\n' >&2; printf ready > prepared; for attempt in {1..100}; do [[ -f closed ]] && break; /bin/sleep 0.01; done; [[ -f closed ]] || exit 98; /bin/sleep 0.05; printf 'payload\\n'; }\nconsumer() { for attempt in {1..100}; do [[ -f prepared ]] && break; /bin/sleep 0.01; done; [[ -f prepared ]] || exit 99; printf closed > closed; :; }\nproducer | consumer\noutcome=( \"$?\" \"${PIPESTATUS[@]}\" )\nprintf '%s\\n' \"${outcome[*]}\" > statuses\nexit \"${outcome[0]}\"\n"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/.scratch/native-C7",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:11:38.325Z",
+  "finishedAt": "2026-08-27T10:11:38.421Z",
+  "durationMs": 96.70862499999998,
+  "timeoutMs": 3000,
+  "maxBytes": 65536,
+  "pid": 23214,
+  "initialIdentity": "23214 23162 23214 Thu Aug 27 10:11:38 2026     /tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash --noprofile --norc -c umask 022\\012set -o pipefail\\012producer() { printf 'diagnostic\\n' >&2; printf ready > prepared; for attempt in {1..100}; do [[ -f closed ]] && break; /bin/sleep 0.01; done; [[ -f closed ]] || exit 98; /bin/sleep 0.05; printf 'payload\\n'; }\\012consumer() { for attempt in {1..100}; do [[ -f prepared ]] && break; /bin/sleep 0.01; done; [[ -f prepared ]] || exit 99; printf closed > closed; :; }\\012producer | consumer\\012outcome=( \"$?\" \"${PIPESTATUS[@]}\" )\\012printf '%s\\n' \"${outcome[*]}\" > statuses\\012exit \"${outcome[0]}\"\\012",
+  "status": 141,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "",
+  "stderr": "diagnostic\n"
+}

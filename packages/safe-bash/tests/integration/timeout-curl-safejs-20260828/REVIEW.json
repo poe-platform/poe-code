@@ -1,0 +1,982 @@
+{
+  "schema": "timeout-curl-safejs-post-run-review-v1",
+  "reviewedAt": "2026-08-28T06:27:22.791Z",
+  "resultSHA256": "79e7a0c059ae54c6b251292438b8c44d4a8c460fc46771fee4c8e736743970a3",
+  "verdict": "11/12 installed and 11/12 moved qualify; W05 is a frozen verifier diagnostic-literal defect, not an established product defect. No rescore or replay.",
+  "originalCounts": {
+    "installed": {
+      "executed": 12,
+      "passed": 11
+    },
+    "moved": {
+      "executed": 12,
+      "passed": 11
+    },
+    "controls": {
+      "executed": 4,
+      "passed": 4
+    },
+    "predicateControls": 4,
+    "naturalChildren": 28,
+    "actualEngineRuns": 24,
+    "unexecutedWorkflows": 0
+  },
+  "assertions": {
+    "passed": 116,
+    "executed": 118
+  },
+  "setupExecutions": 24,
+  "measuredExecutions": 28,
+  "nodeChildren": {
+    "total": 28,
+    "natural": 28,
+    "status0": 26,
+    "status1": 2
+  },
+  "gitChildren": {
+    "total": 519,
+    "naturalStatus0": 519
+  },
+  "guards": 60,
+  "allPrivateChecksPassed": true,
+  "actualLoads": {
+    "productNextLoad": 5040,
+    "engineTransformed": 1512,
+    "compilerNextLoad": 28
+  },
+  "failures": [
+    {
+      "id": "W05",
+      "layout": "installed",
+      "originalClassification": "FAIL",
+      "originalFailure": {
+        "name": "PUBLIC_BOUNDARY",
+        "pass": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "STDERR\n+ actual - expected\n\n+ 'curl: (7) Network access denied by host policy\\n'\n- 'curl: Network access denied by host policy\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: STDERR\n+ actual - expected\n\n+ 'curl: (7) Network access denied by host policy\\n'\n- 'curl: Network access denied by host policy\\n'\n\n    at exact (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/harness/predicates.mjs:6:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/harness/child.mjs:165:61\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/harness/child.mjs:25:41)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/harness/child.mjs:163:7"
+        }
+      },
+      "actual": {
+        "exitCode": 7,
+        "stdout": "",
+        "stderr": "curl: (7) Network access denied by host policy\n",
+        "stdoutHex": "",
+        "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a"
+      },
+      "traffic": {
+        "authorization": [
+          {
+            "url": "https://workflow.invalid/data",
+            "attempt": 0
+          },
+          {
+            "url": "https://denied.invalid/next",
+            "attempt": 0,
+            "redirectFrom": "https://workflow.invalid/data"
+          }
+        ],
+        "requests": [
+          {
+            "url": "https://workflow.invalid/data",
+            "method": "GET",
+            "headers": [
+              [
+                "Accept",
+                "*/*"
+              ],
+              [
+                "User-Agent",
+                "virtual-bash-curl/0.0"
+              ]
+            ],
+            "hasRegisterCleanup": true
+          }
+        ],
+        "acquired": 0,
+        "next": 0,
+        "returned": 0,
+        "pendingNext": 0,
+        "dispose": 1,
+        "disposeDone": 1,
+        "cleanup": 1,
+        "cleanupDone": 1,
+        "closedAtSettlement": true
+      }
+    },
+    {
+      "id": "W05",
+      "layout": "moved",
+      "originalClassification": "FAIL",
+      "originalFailure": {
+        "name": "PUBLIC_BOUNDARY",
+        "pass": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "STDERR\n+ actual - expected\n\n+ 'curl: (7) Network access denied by host policy\\n'\n- 'curl: Network access denied by host policy\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: STDERR\n+ actual - expected\n\n+ 'curl: (7) Network access denied by host policy\\n'\n- 'curl: Network access denied by host policy\\n'\n\n    at exact (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/harness/predicates.mjs:6:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/harness/child.mjs:165:61\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/harness/child.mjs:25:41)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/harness/child.mjs:163:7"
+        }
+      },
+      "actual": {
+        "exitCode": 7,
+        "stdout": "",
+        "stderr": "curl: (7) Network access denied by host policy\n",
+        "stdoutHex": "",
+        "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a"
+      },
+      "traffic": {
+        "authorization": [
+          {
+            "url": "https://workflow.invalid/data",
+            "attempt": 0
+          },
+          {
+            "url": "https://denied.invalid/next",
+            "attempt": 0,
+            "redirectFrom": "https://workflow.invalid/data"
+          }
+        ],
+        "requests": [
+          {
+            "url": "https://workflow.invalid/data",
+            "method": "GET",
+            "headers": [
+              [
+                "Accept",
+                "*/*"
+              ],
+              [
+                "User-Agent",
+                "virtual-bash-curl/0.0"
+              ]
+            ],
+            "hasRegisterCleanup": true
+          }
+        ],
+        "acquired": 0,
+        "next": 0,
+        "returned": 0,
+        "pendingNext": 0,
+        "dispose": 1,
+        "disposeDone": 1,
+        "cleanup": 1,
+        "cleanupDone": 1,
+        "closedAtSettlement": true
+      }
+    }
+  ],
+  "diagnosticProof": {
+    "path": "dist/commands/network/shared.js",
+    "sha256": "c292f533adb62adc9388b10a16c5e4dde9514fe328bb988ff449f47debf005d3",
+    "exactLine": "    await writeBytes(context.stderr, encode(`curl: (${error.exitCode}) ${error.message}\\n`), context.signal);"
+  },
+  "closure": [
+    {
+      "id": "W01",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 5,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W02",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 5,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W03",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 1,
+      "bridgeSettled": 1,
+      "outerSettlement": [
+        {
+          "ordinal": 9,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W04",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 0,
+      "engineSettled": 0,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 12,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W05",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 0,
+      "engineSettled": 0,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 9,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W06",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 1,
+      "bridgeSettled": 1,
+      "outerSettlement": [
+        {
+          "ordinal": 18,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W07",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 1,
+      "bridgeSettled": 1,
+      "outerSettlement": [
+        {
+          "ordinal": 18,
+          "event": "outer-settled",
+          "kind": "rejected",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W08",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 1,
+      "bridgeSettled": 1,
+      "outerSettlement": [
+        {
+          "ordinal": 19,
+          "event": "outer-settled",
+          "kind": "rejected",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W09",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 2,
+      "engineSettled": 2,
+      "bridgeEntered": 2,
+      "bridgeSettled": 2,
+      "outerSettlement": [
+        {
+          "ordinal": 15,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        },
+        {
+          "ordinal": 29,
+          "event": "outer-settled",
+          "kind": "rejected",
+          "enginePending": 1,
+          "bridgePending": 0,
+          "cleanupDone": 2,
+          "disposeDone": 2,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W10",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 2,
+      "engineSettled": 2,
+      "bridgeEntered": 2,
+      "bridgeSettled": 2,
+      "outerSettlement": [
+        {
+          "ordinal": 15,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        },
+        {
+          "ordinal": 20,
+          "event": "outer-settled",
+          "kind": "rejected",
+          "enginePending": 1,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W11",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 5,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W12",
+      "layout": "installed",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 5,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W01",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 5,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W02",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 5,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W03",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 1,
+      "bridgeSettled": 1,
+      "outerSettlement": [
+        {
+          "ordinal": 9,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W04",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 0,
+      "engineSettled": 0,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 12,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W05",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 0,
+      "engineSettled": 0,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 9,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W06",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 1,
+      "bridgeSettled": 1,
+      "outerSettlement": [
+        {
+          "ordinal": 18,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W07",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 1,
+      "bridgeSettled": 1,
+      "outerSettlement": [
+        {
+          "ordinal": 18,
+          "event": "outer-settled",
+          "kind": "rejected",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W08",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 1,
+      "bridgeSettled": 1,
+      "outerSettlement": [
+        {
+          "ordinal": 19,
+          "event": "outer-settled",
+          "kind": "rejected",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W09",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 2,
+      "engineSettled": 2,
+      "bridgeEntered": 2,
+      "bridgeSettled": 2,
+      "outerSettlement": [
+        {
+          "ordinal": 15,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        },
+        {
+          "ordinal": 29,
+          "event": "outer-settled",
+          "kind": "rejected",
+          "enginePending": 1,
+          "bridgePending": 0,
+          "cleanupDone": 2,
+          "disposeDone": 2,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W10",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 2,
+      "engineSettled": 2,
+      "bridgeEntered": 2,
+      "bridgeSettled": 2,
+      "outerSettlement": [
+        {
+          "ordinal": 15,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        },
+        {
+          "ordinal": 20,
+          "event": "outer-settled",
+          "kind": "rejected",
+          "enginePending": 1,
+          "bridgePending": 0,
+          "cleanupDone": 1,
+          "disposeDone": 1,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W11",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 5,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    },
+    {
+      "id": "W12",
+      "layout": "moved",
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      },
+      "engineRuns": 1,
+      "engineSettled": 1,
+      "bridgeEntered": 0,
+      "bridgeSettled": 0,
+      "outerSettlement": [
+        {
+          "ordinal": 5,
+          "event": "outer-settled",
+          "kind": "fulfilled",
+          "enginePending": 0,
+          "bridgePending": 0,
+          "cleanupDone": 0,
+          "disposeDone": 0,
+          "closedAtSettlement": true
+        }
+      ]
+    }
+  ],
+  "proposedOnly": {
+    "scope": "W05 exact stderr literal only",
+    "old": "curl: Network access denied by host policy\n",
+    "correctPinnedDiagnostic": "curl: (7) Network access denied by host policy\n",
+    "action": "Root may authorize a separately versioned W05-only predicate/continuation. No product patch or whole-cohort rerun is indicated by these observations.",
+    "executed": false
+  },
+  "rawArchive": {
+    "sha256": "2eaa34833a024ab02ff75940033cff1e84304f1b14cd2824e51c9504a8b720c8",
+    "bytes": 694093,
+    "files": 198,
+    "allRowsVerified": true
+  },
+  "limitations": [
+    "Actual engine / injected HTTP mocks; no live network or credentials.",
+    "No guest-realm identity equivalence claim; observed host raw/outer identity only.",
+    "S1/dialect/rejection/zero-retry history retained; no old25 or public78 replay.",
+    "No native/SafeJS broad acceptance/fullgate/provider hard-preemption claim.",
+    "Initial progress message incorrectly said installed12/12 before final tally; corrected to11/12. Authoritative raw results were never modified."
+  ]
+}

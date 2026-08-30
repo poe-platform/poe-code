@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(config.historicalHelper.path.startsWith(`${directory}/historical/`))
+
+    at executionConfig (file:///private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/driver-r1.mjs:879:10)
+    at async supervise (file:///private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/driver-r1.mjs:972:18)
+    at async file:///private/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/driver-r1.mjs:1026:34 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

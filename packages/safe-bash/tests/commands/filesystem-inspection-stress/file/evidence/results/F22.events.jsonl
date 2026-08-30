@@ -1,0 +1,8 @@
+{"at":"2026-08-27T08:27:15.161Z","kind":"case-start","id":"F22"}
+{"at":"2026-08-27T08:27:15.162Z","kind":"execute-start","invocation":1,"args":["-b","--mime","/link"],"signal":{"present":true,"signalId":1,"aborted":false}}
+{"at":"2026-08-27T08:27:15.162Z","kind":"fs-call","invocation":1,"method":"lstat","path":"/link","options":{"signal":{"present":true,"signalId":2,"aborted":false}}}
+{"at":"2026-08-27T08:27:15.163Z","kind":"fs-call","invocation":1,"method":"readlink","path":"/link","options":{"signal":{"present":true,"signalId":2,"aborted":false}}}
+{"at":"2026-08-27T08:27:15.163Z","kind":"sink-write","invocation":1,"stream":"stdout","bytes":30,"base64":"aW5vZGUvc3ltbGluazsgY2hhcnNldD1iaW5hcnkK"}
+{"at":"2026-08-27T08:27:15.163Z","kind":"sink-resolved","invocation":1,"stream":"stdout"}
+{"at":"2026-08-27T08:27:15.163Z","kind":"execute-result","invocation":1,"result":{"exitCode":0}}
+{"at":"2026-08-27T08:27:15.163Z","kind":"case-finished","id":"F22","semanticStatus":"pass","nativeStatus":"not-run"}

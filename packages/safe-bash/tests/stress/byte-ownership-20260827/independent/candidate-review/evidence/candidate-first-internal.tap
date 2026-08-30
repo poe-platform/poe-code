@@ -1,0 +1,73 @@
+TAP version 13
+# (node:67225) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/loaded-hashes.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: internal collect offset/empty/finalizer Buffer
+ok 1 - internal collect offset/empty/finalizer Buffer
+  ---
+  duration_ms: 1.082666
+  type: 'test'
+  ...
+# Subtest: internal records spanning unequal windows Buffer
+ok 2 - internal records spanning unequal windows Buffer
+  ---
+  duration_ms: 0.374125
+  type: 'test'
+  ...
+# Subtest: internal exact collector overflow closes source Buffer
+ok 3 - internal exact collector overflow closes source Buffer
+  ---
+  duration_ms: 0.306709
+  type: 'test'
+  ...
+# Subtest: internal cooperative abort preserves reason Buffer
+ok 4 - internal cooperative abort preserves reason Buffer
+  ---
+  duration_ms: 0.097625
+  type: 'test'
+  ...
+# Subtest: internal source failure retains identity Buffer
+ok 5 - internal source failure retains identity Buffer
+  ---
+  duration_ms: 0.139
+  type: 'test'
+  ...
+# Subtest: internal collect offset/empty/finalizer Uint8Array
+ok 6 - internal collect offset/empty/finalizer Uint8Array
+  ---
+  duration_ms: 0.135667
+  type: 'test'
+  ...
+# Subtest: internal records spanning unequal windows Uint8Array
+ok 7 - internal records spanning unequal windows Uint8Array
+  ---
+  duration_ms: 0.130583
+  type: 'test'
+  ...
+# Subtest: internal exact collector overflow closes source Uint8Array
+ok 8 - internal exact collector overflow closes source Uint8Array
+  ---
+  duration_ms: 0.064959
+  type: 'test'
+  ...
+# Subtest: internal cooperative abort preserves reason Uint8Array
+ok 9 - internal cooperative abort preserves reason Uint8Array
+  ---
+  duration_ms: 0.177875
+  type: 'test'
+  ...
+# Subtest: internal source failure retains identity Uint8Array
+ok 10 - internal source failure retains identity Uint8Array
+  ---
+  duration_ms: 0.235125
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70.905333

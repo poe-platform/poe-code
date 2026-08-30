@@ -1,0 +1,30 @@
+{
+  "label": "neighbor-strict-types",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--target",
+    "ES2023",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--verbatimModuleSyntax",
+    "--skipLibCheck",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+    "tests/fs/s3/http/final-verification/protocol/neighbors.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/fs/s3/http/final-verification/protocol/.tmp/protocol-J6uFdi/safe-s3-http-independent-lD4dzU/source",
+  "timeoutMs": 180000,
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

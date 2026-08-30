@@ -1,0 +1,1401 @@
+{
+  "capturedAt": "2026-08-27T08:35:41.079Z",
+  "base": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+  "fixed": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+  "originalEightAccepted": true,
+  "fullDateAcceptance": false,
+  "defaultIntegration": false,
+  "publicLeafExport": false,
+  "wholeProductAcceptance": false,
+  "captures": [
+    {
+      "label": "unchanged-before",
+      "source": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "candidate": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "startedAt": "2026-08-27T08:27:14.103Z",
+      "finishedAt": "2026-08-27T08:27:26.439Z",
+      "commands": {
+        "unchanged-author": {
+          "status": 0,
+          "counts": {
+            "tests": 223,
+            "pass": 223,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "new-author-regressions": {
+          "status": 1,
+          "counts": {
+            "tests": 83,
+            "pass": 11,
+            "fail": 72,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "author-types": {
+          "status": 0,
+          "counts": {}
+        },
+        "build": {
+          "status": 0,
+          "counts": {}
+        },
+        "consumer-types": {
+          "status": 0,
+          "counts": {}
+        },
+        "independent": {
+          "status": 1,
+          "counts": {}
+        },
+        "native-neighbors": {
+          "status": 0,
+          "counts": {}
+        },
+        "negative-types": {
+          "status": 2,
+          "counts": {}
+        }
+      },
+      "cleaned": true,
+      "total": 305,
+      "pass": 296,
+      "fail": 9,
+      "originalEight": [
+        {
+          "name": "flag %12F",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%12F"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "3030323032342d30312d30320a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "2020323032342d30312d30320a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2020323032342d30312d30320a'\n-   stdoutHex: '3030323032342d30312d30320a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2020323032342d30312d30320a'\n-   stdoutHex: '3030323032342d30312d30320a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:65:69)"
+          }
+        },
+        {
+          "name": "flag %#c",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%#c"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "547565204a616e2020322030333a30343a303520323032340a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "545545204a414e2020322030333a30343a303520323032340a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '545545204a414e2020322030333a30343a303520323032340a'\n-   stdoutHex: '547565204a616e2020322030333a30343a303520323032340a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '545545204a414e2020322030333a30343a303520323032340a'\n-   stdoutHex: '547565204a616e2020322030333a30343a303520323032340a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:65:69)"
+          }
+        },
+        {
+          "name": "flag %-z",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%-z"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2b300a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "2b303030300a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2b300a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:65:69)"
+          }
+        },
+        {
+          "name": "flag %_z",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%_z"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2020202b300a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "2b303030300a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2020202b300a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2020202b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:65:69)"
+          }
+        },
+        {
+          "name": "flag %_12z",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%_12z"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "202020202020202020202b300a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "202020202020202b303030300a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '202020202020202b303030300a'\n-   stdoutHex: '202020202020202020202b300a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '202020202020202b303030300a'\n-   stdoutHex: '202020202020202020202b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:65:69)"
+          }
+        },
+        {
+          "name": "flag %^P",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%^P"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "616d0a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "414d0a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '414d0a'\n-   stdoutHex: '616d0a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '414d0a'\n-   stdoutHex: '616d0a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:65:69)"
+          }
+        },
+        {
+          "name": "sleep exact total 0.0009999999 0.0000000001",
+          "category": "sleep-arithmetic",
+          "delays": [
+            2
+          ],
+          "expectedMilliseconds": 1,
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n2 !== 1\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:147:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:142:13)"
+          }
+        },
+        {
+          "name": "sleep exact total 0.0004999999 0.0005000001",
+          "category": "sleep-arithmetic",
+          "delays": [
+            2
+          ],
+          "expectedMilliseconds": 1,
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n2 !== 1\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:147:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:142:13)"
+          }
+        }
+      ],
+      "profileDisagreements": [
+        {
+          "name": "Apple BSD printenv separate profile",
+          "category": "Apple-BSD-observed-not-target",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "0a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "0ae99baa0a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:181:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-TexD6D/consumer.mts:176:43)"
+          }
+        }
+      ],
+      "nativeMatrix": {
+        "total": 36,
+        "GNU": 0,
+        "Apple": 0
+      }
+    },
+    {
+      "label": "unchanged-after",
+      "source": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "candidate": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+      "startedAt": "2026-08-27T08:27:26.473Z",
+      "finishedAt": "2026-08-27T08:27:38.298Z",
+      "commands": {
+        "unchanged-author": {
+          "status": 0,
+          "counts": {
+            "tests": 223,
+            "pass": 223,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "new-author-regressions": {
+          "status": 0,
+          "counts": {
+            "tests": 83,
+            "pass": 83,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "author-types": {
+          "status": 0,
+          "counts": {}
+        },
+        "build": {
+          "status": 0,
+          "counts": {}
+        },
+        "consumer-types": {
+          "status": 0,
+          "counts": {}
+        },
+        "independent": {
+          "status": 1,
+          "counts": {}
+        },
+        "native-neighbors": {
+          "status": 0,
+          "counts": {}
+        },
+        "negative-types": {
+          "status": 2,
+          "counts": {}
+        }
+      },
+      "cleaned": true,
+      "total": 305,
+      "pass": 304,
+      "fail": 1,
+      "originalEight": [
+        {
+          "name": "flag %12F",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%12F"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "3030323032342d30312d30320a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "3030323032342d30312d30320a",
+            "stderrHex": ""
+          },
+          "result": "pass"
+        },
+        {
+          "name": "flag %#c",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%#c"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "547565204a616e2020322030333a30343a303520323032340a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "547565204a616e2020322030333a30343a303520323032340a",
+            "stderrHex": ""
+          },
+          "result": "pass"
+        },
+        {
+          "name": "flag %-z",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%-z"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2b300a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "2b300a",
+            "stderrHex": ""
+          },
+          "result": "pass"
+        },
+        {
+          "name": "flag %_z",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%_z"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "2020202b300a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "2020202b300a",
+            "stderrHex": ""
+          },
+          "result": "pass"
+        },
+        {
+          "name": "flag %_12z",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%_12z"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "202020202020202020202b300a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "202020202020202020202b300a",
+            "stderrHex": ""
+          },
+          "result": "pass"
+        },
+        {
+          "name": "flag %^P",
+          "category": "GNU9.7-Darwin-required-date",
+          "args": [
+            "-d@1704164645.123456789",
+            "+%^P"
+          ],
+          "env": {},
+          "expected": {
+            "status": 0,
+            "stdoutHex": "616d0a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "616d0a",
+            "stderrHex": ""
+          },
+          "result": "pass"
+        },
+        {
+          "name": "sleep exact total 0.0009999999 0.0000000001",
+          "category": "sleep-arithmetic",
+          "delays": [
+            1
+          ],
+          "expectedMilliseconds": 1,
+          "result": "pass"
+        },
+        {
+          "name": "sleep exact total 0.0004999999 0.0005000001",
+          "category": "sleep-arithmetic",
+          "delays": [
+            1
+          ],
+          "expectedMilliseconds": 1,
+          "result": "pass"
+        }
+      ],
+      "profileDisagreements": [
+        {
+          "name": "Apple BSD printenv separate profile",
+          "category": "Apple-BSD-observed-not-target",
+          "expected": {
+            "status": 0,
+            "stdoutHex": "0a",
+            "stderrHex": ""
+          },
+          "actual": {
+            "status": 0,
+            "stdoutHex": "0ae99baa0a",
+            "stderrHex": ""
+          },
+          "result": "fail",
+          "error": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-qqBjdl/consumer.mts:181:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-qqBjdl/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-qqBjdl/consumer.mts:176:43)"
+          }
+        }
+      ],
+      "nativeMatrix": {
+        "total": 36,
+        "GNU": 31,
+        "Apple": 0
+      }
+    },
+    {
+      "label": "packed-import-guard-attempt",
+      "source": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+      "startedAt": "2026-08-27T08:30:53.961Z",
+      "finishedAt": "2026-08-27T08:31:00.157Z",
+      "commands": {
+        "build": {
+          "status": 0
+        },
+        "pack": {
+          "status": 0
+        },
+        "consumer-types": {
+          "status": 2
+        },
+        "hidden": {
+          "status": 1
+        },
+        "negative-types": {
+          "status": 2
+        }
+      },
+      "cleaned": true
+    },
+    {
+      "label": "packed-mixed-N-attempt",
+      "source": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+      "startedAt": "2026-08-27T08:31:44.202Z",
+      "finishedAt": "2026-08-27T08:31:50.953Z",
+      "commands": {
+        "build": {
+          "status": 0
+        },
+        "pack": {
+          "status": 0
+        },
+        "consumer-types": {
+          "status": 0
+        },
+        "hidden": {
+          "status": 1
+        },
+        "negative-types": {
+          "status": 2
+        }
+      },
+      "cleaned": true
+    },
+    {
+      "label": "packed-separated-tsx",
+      "source": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+      "startedAt": "2026-08-27T08:32:31.386Z",
+      "finishedAt": "2026-08-27T08:32:37.792Z",
+      "commands": {
+        "build": {
+          "status": 0
+        },
+        "pack": {
+          "status": 0
+        },
+        "consumer-types": {
+          "status": 0
+        },
+        "hidden": {
+          "status": 1
+        },
+        "negative-types": {
+          "status": 2
+        }
+      },
+      "cleaned": true
+    },
+    {
+      "label": "packed-compiled-before",
+      "source": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "startedAt": "2026-08-27T08:33:31.425Z",
+      "finishedAt": "2026-08-27T08:33:38.699Z",
+      "commands": {
+        "build": {
+          "status": 0
+        },
+        "pack": {
+          "status": 0
+        },
+        "consumer-types": {
+          "status": 0
+        },
+        "consumer-build": {
+          "status": 0
+        },
+        "hidden": {
+          "status": 1
+        },
+        "negative-types": {
+          "status": 2
+        }
+      },
+      "cleaned": true,
+      "total": 304,
+      "pass": 265,
+      "fail": 39,
+      "summary": {
+        "GNU9.7-Darwin-required-format": {
+          "total": 24,
+          "pass": 0,
+          "fail": 24
+        },
+        "GNU9.7-Darwin-required-nanoseconds": {
+          "total": 10,
+          "pass": 10,
+          "fail": 0
+        },
+        "declared-N-format-gap-not-parity": {
+          "total": 11,
+          "pass": 0,
+          "fail": 11
+        },
+        "GNU9.7-Darwin-required-calendar": {
+          "total": 3,
+          "pass": 1,
+          "fail": 2
+        },
+        "sleep-independent-rational": {
+          "total": 240,
+          "pass": 240,
+          "fail": 0
+        },
+        "sleep-cap-carry-neighbors": {
+          "total": 7,
+          "pass": 5,
+          "fail": 2
+        },
+        "sleep-sparse-boundary": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "packed-boundary": {
+          "total": 2,
+          "pass": 2,
+          "fail": 0
+        },
+        "packed-resource-cleanup": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "packed-host-isolation": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "tarballSha256": "cc8a776923d429db81bb2fe2752474fe1f746abebf35483f15c37b5a9f22ade5",
+      "root": "file:///private/tmp/safe-bash-time-env-packed-review-YDdNph/consumer/node_modules/virtual-bash/dist/index.js",
+      "leaf": "file:///private/tmp/safe-bash-time-env-packed-review-YDdNph/consumer/node_modules/virtual-bash/dist/commands/time-env/index.js"
+    },
+    {
+      "label": "packed-compiled-after",
+      "source": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+      "startedAt": "2026-08-27T08:33:23.761Z",
+      "finishedAt": "2026-08-27T08:33:31.391Z",
+      "commands": {
+        "build": {
+          "status": 0
+        },
+        "pack": {
+          "status": 0
+        },
+        "consumer-types": {
+          "status": 0
+        },
+        "consumer-build": {
+          "status": 0
+        },
+        "hidden": {
+          "status": 1
+        },
+        "negative-types": {
+          "status": 2
+        }
+      },
+      "cleaned": true,
+      "total": 304,
+      "pass": 291,
+      "fail": 13,
+      "summary": {
+        "GNU9.7-Darwin-required-format": {
+          "total": 24,
+          "pass": 24,
+          "fail": 0
+        },
+        "GNU9.7-Darwin-required-nanoseconds": {
+          "total": 10,
+          "pass": 10,
+          "fail": 0
+        },
+        "declared-N-format-gap-not-parity": {
+          "total": 11,
+          "pass": 0,
+          "fail": 11
+        },
+        "GNU9.7-Darwin-required-calendar": {
+          "total": 3,
+          "pass": 1,
+          "fail": 2
+        },
+        "sleep-independent-rational": {
+          "total": 240,
+          "pass": 240,
+          "fail": 0
+        },
+        "sleep-cap-carry-neighbors": {
+          "total": 7,
+          "pass": 7,
+          "fail": 0
+        },
+        "sleep-sparse-boundary": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "packed-boundary": {
+          "total": 2,
+          "pass": 2,
+          "fail": 0
+        },
+        "packed-resource-cleanup": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "packed-host-isolation": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      },
+      "tarballSha256": "841faa4e09e4ffaa973b69f54d1a2f8165a04e944dddec2b4b5c051d86ff944b",
+      "root": "file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/node_modules/virtual-bash/dist/index.js",
+      "leaf": "file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/node_modules/virtual-bash/dist/commands/time-env/index.js"
+    }
+  ],
+  "reviewerInputs": {
+    "holdout.mts": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823",
+    "guard.mjs": "7633b73cb0e45882e620fc3fd41942edd04968cc986ccc8c1e84b317ee51cfb4",
+    "packed.mjs": "c9f3c232aed83ccfaf55cd9c775aff0df4bc858d90378118e19b4a28d9774a0e",
+    "seal.mjs": "27c293be473ade3d5d55a2ba0dfc0146d578482303da808b1c9d73acad66004e"
+  },
+  "ICULabelDisagreements": [
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "0008-01-02T03:04:05Z",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "-61914660955",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "America/New_York"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c676d742d343a35363a30327c676d742d343a35363a30327c676d742d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c20474d542d343a35363a30327c20474d542d343a35363a30327c30474d542d343a35363a30327c474d542d343a35363a30327c30474d542d343a35363a30327c20474d542d343a35363a30327c20202020202020202020202020202020202020676d742d343a35363a30327c30303030303030303030303030303030303030474d542d343a35363a30320a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c4c4d547c6c6d747c6c6d747c6c6d747c4c4d547c2020204c4d547c2020202020204c4d547c2020202020202020204c4d547c2020202020202020204c4d547c3030303030303030304c4d547c4c4d547c3030303030303030304c4d547c2020202020202020204c4d547c2020202020202020202020202020202020202020202020202020206c6d747c3030303030303030303030303030303030303030303030303030304c4d540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    },
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "0008-01-02T03:04:05Z",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "-61914660955",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "Europe/Paris"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c676d742b303a30393a32317c676d742b303a30393a32317c676d742b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c20474d542b303a30393a32317c20474d542b303a30393a32317c30474d542b303a30393a32317c474d542b303a30393a32317c30474d542b303a30393a32317c20474d542b303a30393a32317c20202020202020202020202020202020202020676d742b303a30393a32317c30303030303030303030303030303030303030474d542b303a30393a32310a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c4c4d547c6c6d747c6c6d747c6c6d747c4c4d547c2020204c4d547c2020202020204c4d547c2020202020202020204c4d547c2020202020202020204c4d547c3030303030303030304c4d547c4c4d547c3030303030303030304c4d547c2020202020202020204c4d547c2020202020202020202020202020202020202020202020202020206c6d747c3030303030303030303030303030303030303030303030303030304c4d540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    },
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "2024-02-29T15:06:07Z",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "1709219167",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "Europe/Paris"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542b317c474d542b317c474d542b317c474d542b317c474d542b317c676d742b317c676d742b317c676d742b317c474d542b317c20474d542b317c20202020474d542b317c20202020202020474d542b317c20202020202020474d542b317c30303030303030474d542b317c474d542b317c30303030303030474d542b317c20202020202020474d542b317c20202020202020202020202020202020202020202020202020676d742b317c30303030303030303030303030303030303030303030303030474d542b310a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4345547c4345547c4345547c4345547c4345547c6365747c6365747c6365747c4345547c2020204345547c2020202020204345547c2020202020202020204345547c2020202020202020204345547c3030303030303030304345547c4345547c3030303030303030304345547c2020202020202020204345547c2020202020202020202020202020202020202020202020202020206365747c3030303030303030303030303030303030303030303030303030304345540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4345547c4345547c4345547c4345547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    },
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "@-1",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "-1",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "America/New_York"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542d357c474d542d357c474d542d357c474d542d357c474d542d357c676d742d357c676d742d357c676d742d357c474d542d357c20474d542d357c20202020474d542d357c20202020202020474d542d357c20202020202020474d542d357c30303030303030474d542d357c474d542d357c30303030303030474d542d357c20202020202020474d542d357c20202020202020202020202020202020202020202020202020676d742d357c30303030303030303030303030303030303030303030303030474d542d350a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4553547c4553547c4553547c4553547c4553547c6573747c6573747c6573747c4553547c2020204553547c2020202020204553547c2020202020202020204553547c2020202020202020204553547c3030303030303030304553547c4553547c3030303030303030304553547c2020202020202020204553547c2020202020202020202020202020202020202020202020202020206573747c3030303030303030303030303030303030303030303030303030304553540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4553547c4553547c4553547c4553547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    },
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "@-1",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "-1",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "Europe/Paris"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542b317c474d542b317c474d542b317c474d542b317c474d542b317c676d742b317c676d742b317c676d742b317c474d542b317c20474d542b317c20202020474d542b317c20202020202020474d542b317c20202020202020474d542b317c30303030303030474d542b317c474d542b317c30303030303030474d542b317c20202020202020474d542b317c20202020202020202020202020202020202020202020202020676d742b317c30303030303030303030303030303030303030303030303030474d542b310a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4345547c4345547c4345547c4345547c4345547c6365747c6365747c6365747c4345547c2020204345547c2020202020204345547c2020202020202020204345547c2020202020202020204345547c3030303030303030304345547c4345547c3030303030303030304345547c2020202020202020204345547c2020202020202020202020202020202020202020202020202020206365747c3030303030303030303030303030303030303030303030303030304345540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4345547c4345547c4345547c4345547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    }
+  ],
+  "publicSleepReplay": [
+    {
+      "name": "compiled public sleep cancellation repeat0",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat1",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat2",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat3",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat4",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat5",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "public preabort creates no timer and preserves caller identity",
+      "category": "public-sleep-lifecycle",
+      "result": "pass"
+    },
+    {
+      "name": "cancelling one Shell does not clear a sibling timer",
+      "category": "public-sleep-isolation",
+      "siblingTimers": 1,
+      "result": "pass"
+    }
+  ],
+  "newProfileFailures": [
+    {
+      "name": "ISO year boundary 0000-01-01T12:00:00Z",
+      "category": "GNU9.7-Darwin-required-calendar",
+      "args": [
+        "-d",
+        "0000-01-01T12:00:00Z",
+        "+%Y|%G|%g|%V|%07G|%_7G|%-g"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "303030307c2d3030317c30317c35327c2d3030303030317c20202020202d317c310a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "303030307c2d3030317c39397c35327c2d3030303030317c20202020202d317c39390a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '303030307c2d3030317c39397c35327c2d3030303030317c20202020202d317c39390a'\n-   stdoutHex: '303030307c2d3030317c30317c35327c2d3030303030317c20202020202d317c310a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '303030307c2d3030317c39397c35327c2d3030303030317c20202020202d317c39390a'\n-   stdoutHex: '303030307c2d3030317c30317c35327c2d3030303030317c20202020202d317c310a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:72:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:67:5"
+      }
+    },
+    {
+      "name": "ISO year boundary 0000-01-02T12:00:00Z",
+      "category": "GNU9.7-Darwin-required-calendar",
+      "args": [
+        "-d",
+        "0000-01-02T12:00:00Z",
+        "+%Y|%G|%g|%V|%07G|%_7G|%-g"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "303030307c2d3030317c30317c35327c2d3030303030317c20202020202d317c310a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "303030307c2d3030317c39397c35327c2d3030303030317c20202020202d317c39390a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '303030307c2d3030317c39397c35327c2d3030303030317c20202020202d317c39390a'\n-   stdoutHex: '303030307c2d3030317c30317c35327c2d3030303030317c20202020202d317c310a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '303030307c2d3030317c39397c35327c2d3030303030317c20202020202d317c39390a'\n-   stdoutHex: '303030307c2d3030317c30317c35327c2d3030303030317c20202020202d317c310a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:72:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:67:5"
+      }
+    }
+  ],
+  "explicitUnsupportedComparisons": [
+    {
+      "name": "nanoseconds %10N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%10N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393939393939393939300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939393939300a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939393939300a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %17N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%17N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "39393939393939393930303030303030300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '39393939393939393930303030303030300a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '39393939393939393930303030303030300a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %_07N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%_07N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393939393939390a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %0_7N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%0_7N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393939393939390a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %-_7N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%-_7N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393939393939390a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %_-7N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%_-7N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393939393939390a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %-07N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%-07N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393939393939390a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %0-7N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%0-7N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393939393939390a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %^^#7N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%^^#7N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "393939393939390a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '393939393939390a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %##^17N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%##^17N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "39393939393939393930303030303030300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '39393939393939393930303030303030300a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '39393939393939393930303030303030300a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    },
+    {
+      "name": "nanoseconds %#^_17N",
+      "category": "declared-N-format-gap-not-parity",
+      "args": [
+        "-d@-0.000000001",
+        "+%#^_17N"
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutHex": "39393939393939393920202020202020200a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderrHex": "646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a"
+      },
+      "declaredSupported": false,
+      "result": "fail",
+      "error": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '39393939393939393920202020202020200a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   status: 1,\n+   stderrHex: '646174653a20254e20737570706f72747320756e6d6f64696669656420707265636973696f6e31207468726f75676839206f6e6c790a',\n+   stdoutHex: ''\n-   status: 0,\n-   stderrHex: '',\n-   stdoutHex: '39393939393939393920202020202020200a'\n  }\n\n    at file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:63:16\n    at async check (file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:13:9)\n    at async file:///private/tmp/safe-bash-time-env-packed-review-5Aal2C/consumer/holdout.mjs:58:5"
+      }
+    }
+  ],
+  "sourceHashes": {
+    "src/commands/time-env/calendar.ts": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+    "src/commands/time-env/date.ts": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+    "src/commands/time-env/format.ts": "1ce9deaa9eb5c187e70650957f745f9a78db56a1ffee675d1d981cecf699be59",
+    "src/commands/time-env/index.ts": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+    "src/commands/time-env/printenv.ts": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+    "src/commands/time-env/README.md": "5988969d14e93fb5cf00668f51320f8bf1b8aa646489ddaa5050bd5f4b966d00",
+    "src/commands/time-env/shared.ts": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+    "src/commands/time-env/sleep.ts": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96"
+  },
+  "versions": {
+    "node": "22.22.2",
+    "acorn": "8.15.0",
+    "ada": "2.9.2",
+    "amaro": "1.1.5",
+    "ares": "1.34.6",
+    "brotli": "1.1.0",
+    "cjs_module_lexer": "2.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.3.0",
+    "modules": "127",
+    "napi": "10",
+    "nbytes": "0.1.1",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.64.0",
+    "openssl": "3.5.5",
+    "simdjson": "4.2.4",
+    "simdutf": "6.4.2",
+    "sqlite": "3.51.2",
+    "tz": "2025c",
+    "undici": "6.24.1",
+    "unicode": "17.0",
+    "uv": "1.51.0",
+    "uvwasi": "0.0.23",
+    "v8": "12.4.254.21-node.39",
+    "zlib": "1.3.1-e00f703",
+    "zstd": "1.5.7"
+  },
+  "primary": {
+    "profile": "GNU coreutils 9.7 built on Darwin, C locale; Apple separate",
+    "manual": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/doc/coreutils.texi",
+    "archiveSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+    "strftimeSha256": "b1acd5ae751c54eb3ed11d63b4b4cdf0bf86b560b3f85534b1f7a7b497ecad54",
+    "isoYearCaseLines": "lib/strftime.c:1960-2011, negative ISO year two-digit absolute remainder"
+  }
+}

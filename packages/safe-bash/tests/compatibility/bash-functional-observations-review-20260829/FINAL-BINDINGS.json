@@ -1,0 +1,81 @@
+{
+  "created": "2026-08-29T08:49:23.160Z",
+  "immutableCrossCommitBindings": 17,
+  "allByteEqual": true,
+  "supplementaryClosure": {
+    "schema": "functional-v3-actual-attempt-closed",
+    "observationCommit": "eaa9889d98eaa6d15acc31f4e39a33d000b67d2c",
+    "finalizationCommit": "664b178c018c9de76a061b84b905c438ff02735b",
+    "sourceCommit": "4eea354169492b4c47d373d504e5918e1c4f3830",
+    "slotReviewCommit": "f4e08835f26ad58f354e93329c4828c64af49484",
+    "commandSha256": "b514681b0c165c2b029992c08b89dcf3ac793dc062f5ad4d6e7b5eb24c0bd1f6",
+    "preflightStarted": 1787992031051,
+    "closedAt": 1787992436742,
+    "elapsedInclusiveMs": 405691,
+    "outerInclusiveDeadline": 1787992631051,
+    "entryDeadline": 1787992673370,
+    "fixedGrantDeadline": 1787994219808,
+    "actualAttemptConsumed": true,
+    "retry": false,
+    "reroute": false,
+    "closedToFutureConsumption": true,
+    "completedNativeObservations": 37,
+    "notPasses": true,
+    "withheld": [
+      "B26",
+      "B27",
+      "B28"
+    ],
+    "statuses": {
+      "0": 33,
+      "1": 1,
+      "2": 2,
+      "7": 1
+    },
+    "nativeDirectChildren": 37,
+    "nativeChildrenExitCloseAndGroupAbsent": 37,
+    "ownerPid": 78594,
+    "ownerToolReportedExitCode": 0,
+    "ownerRegularCaptureCompletion": true,
+    "nativeInnerConfirmedStarts": 38,
+    "knownAdministrativeStarts": 13,
+    "knownAdministrativeRetired": 13,
+    "totalNewKnownStarts": 51,
+    "existingCoordinator": 1,
+    "knownObservedRolePeakIncludingCoordinator": 3,
+    "activeOwnedChildren": 0,
+    "sourceForkReservations": 13,
+    "actualTransitiveForkCensus": "NOT_CLAIMED",
+    "rawNativeStdoutBytes": 580,
+    "rawNativeStderrBytes": 679,
+    "rawAdministrativeStdoutStderrBytes": 3918,
+    "ownedNativeStorageBytes": 146676,
+    "sampledWorkingBeforeFinalCaptureBytes": 667214,
+    "finalCapture": {
+      "path": "/tmp/bash-functional-v3-actual-m4s8qE/FINAL-CAPTURE.json.gz",
+      "bytes": 198541,
+      "sha256": "403ad8c0ec7c7b4dd7bb180fadefcd3ec541e4cc39a1ee8b0bd40e7d6b089373"
+    },
+    "ownedGitStatus": "CLEAN",
+    "limits": {
+      "knownStarts": 80,
+      "knownPeak": 6,
+      "totalMs": 600000,
+      "perCaseMs": 3000,
+      "termMs": 2000,
+      "killMs": 1000,
+      "perStreamBytes": 65536,
+      "aggregateCaptureBytes": 33554432,
+      "workingBytes": 134217728
+    },
+    "qualifications": [
+      "Logical sampled storage/capture not RSS/hard disk or hard syscall preemption.",
+      "Initial tool-shell startup trusted-host outside child fresh-env/raw capture.",
+      "Owner exit observed by tool; no additional owner-group probe or universal census.",
+      "Raw receiptPublished:false/owner-active1 timing snapshots and ESRCH descriptors unchanged.",
+      "No virtual product, GNU5.3, containment, native fallback or overall compatibility pass claim."
+    ]
+  },
+  "closureQualification": "Supplementary mutable-locator observation only; original immutable publication stops after eight admin children",
+  "targetExecutions": 0
+}

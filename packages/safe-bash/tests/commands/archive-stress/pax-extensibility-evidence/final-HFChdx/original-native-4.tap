@@ -1,0 +1,38 @@
+TAP version 13
+# Subtest: N-GNU-in native PAX plain/gzip archives and independent extension fixture extract virtually
+ok 1 - N-GNU-in native PAX plain/gzip archives and independent extension fixture extract virtually
+  ---
+  duration_ms: 135.094958
+  type: 'test'
+  ...
+# GNU: tar (GNU tar) 1.35; executable sha256 49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66
+# Subtest: N-GNU-out native reads and extracts virtual plain/gzip PAX without modifying sources
+ok 2 - N-GNU-out native reads and extracts virtual plain/gzip PAX without modifying sources
+  ---
+  duration_ms: 66.284
+  type: 'test'
+  ...
+# GNU: tar (GNU tar) 1.35; executable sha256 49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66
+# Subtest: N-BSD-in native PAX plain/gzip archives and independent extension fixture extract virtually
+ok 3 - N-BSD-in native PAX plain/gzip archives and independent extension fixture extract virtually
+  ---
+  duration_ms: 100.269292
+  type: 'test'
+  ...
+# BSD: bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8; executable sha256 bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9
+# Subtest: N-BSD-out native reads and extracts virtual plain/gzip PAX without modifying sources
+ok 4 - N-BSD-out native reads and extracts virtual plain/gzip PAX without modifying sources
+  ---
+  duration_ms: 59.012375
+  type: 'test'
+  ...
+# BSD: bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8; executable sha256 bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 486.730542

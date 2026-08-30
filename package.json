@@ -46,6 +46,122 @@
     "./skills": {
       "types": "./dist/skills.d.ts",
       "import": "./dist/skills.js"
+    },
+    "./safe-bash": {
+      "types": "./packages/safe-bash/dist/index.d.ts",
+      "import": "./packages/safe-bash/dist/index.js"
+    },
+    "./safe-bash/contracts": {
+      "types": "./packages/safe-bash/dist/contracts/index.d.ts",
+      "import": "./packages/safe-bash/dist/contracts/index.js"
+    },
+    "./safe-bash/contracts/*": {
+      "types": "./packages/safe-bash/dist/contracts/*.d.ts",
+      "import": "./packages/safe-bash/dist/contracts/*.js"
+    },
+    "./safe-bash/commands/network": {
+      "types": "./packages/safe-bash/dist/commands/network/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/network/index.js"
+    },
+    "./safe-bash/commands/node": {
+      "types": "./packages/safe-bash/dist/commands/node/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/node/index.js"
+    },
+    "./safe-bash/commands/metadata": {
+      "types": "./packages/safe-bash/dist/commands/metadata/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/metadata/index.js"
+    },
+    "./safe-bash/commands/archive": {
+      "types": "./packages/safe-bash/dist/commands/archive/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/archive/index.js"
+    },
+    "./safe-bash/commands/table-text": {
+      "types": "./packages/safe-bash/dist/commands/table-text/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/table-text/index.js"
+    },
+    "./safe-bash/commands/stream-inspection": {
+      "types": "./packages/safe-bash/dist/commands/stream-inspection/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/stream-inspection/index.js"
+    },
+    "./safe-bash/commands/stream-format": {
+      "types": "./packages/safe-bash/dist/commands/stream-format/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/stream-format/index.js"
+    },
+    "./safe-bash/commands/split": {
+      "types": "./packages/safe-bash/dist/commands/split/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/split/index.js"
+    },
+    "./safe-bash/commands/time-env": {
+      "types": "./packages/safe-bash/dist/commands/time-env/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/time-env/index.js"
+    },
+    "./safe-bash/commands/tree": {
+      "types": "./packages/safe-bash/dist/commands/tree/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/tree/index.js"
+    },
+    "./safe-bash/commands/file": {
+      "types": "./packages/safe-bash/dist/commands/file/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/file/index.js"
+    },
+    "./safe-bash/commands/grep-aliases": {
+      "types": "./packages/safe-bash/dist/commands/grep-aliases/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/grep-aliases/index.js"
+    },
+    "./safe-bash/commands/column": {
+      "types": "./packages/safe-bash/dist/commands/column/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/column/index.js"
+    },
+    "./safe-bash/commands/html-to-markdown": {
+      "types": "./packages/safe-bash/dist/commands/html-to-markdown/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/html-to-markdown/index.js"
+    },
+    "./safe-bash/commands/du": {
+      "types": "./packages/safe-bash/dist/commands/du/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/du/index.js"
+    },
+    "./safe-bash/commands/expr": {
+      "types": "./packages/safe-bash/dist/commands/expr/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/expr/index.js"
+    },
+    "./safe-bash/commands/timeout": {
+      "types": "./packages/safe-bash/dist/commands/timeout/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/timeout/index.js"
+    },
+    "./safe-bash/commands/git": {
+      "types": "./packages/safe-bash/dist/commands/git/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/git/index.js"
+    },
+    "./safe-bash/commands/apply-patch": {
+      "types": "./packages/safe-bash/dist/commands/apply-patch/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/apply-patch/index.js"
+    },
+    "./safe-bash/commands/which": {
+      "types": "./packages/safe-bash/dist/commands/which/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/which/index.js"
+    },
+    "./safe-bash/fs/s3": {
+      "types": "./packages/safe-bash/dist/fs/s3/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/s3/index.js"
+    },
+    "./safe-bash/fs/s3/http": {
+      "types": "./packages/safe-bash/dist/fs/s3/http/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/s3/http/index.js"
+    },
+    "./safe-bash/fs/webdav": {
+      "types": "./packages/safe-bash/dist/fs/webdav/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/webdav/index.js"
+    },
+    "./safe-bash/fs/readonly": {
+      "types": "./packages/safe-bash/dist/fs/readonly/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/readonly/index.js"
+    },
+    "./safe-bash/fs/mount": {
+      "types": "./packages/safe-bash/dist/fs/mount/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/mount/index.js"
+    },
+    "./safe-bash/fs/overlay": {
+      "types": "./packages/safe-bash/dist/fs/overlay/index.d.ts",
+      "import": "./packages/safe-bash/dist/fs/overlay/index.js"
     }
   },
   "workspaces": [
@@ -69,7 +185,7 @@
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:workflows",
     "lint:workflows": "(command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)",
     "lint:packages": "tsx packages/package-lint/src/cli.ts",
-    "lint:eslint": "eslint . --ext ts",
+    "lint:eslint": "node scripts/lint-eslint.mjs",
     "lint:types": "tsc -p tsconfig.build.json --noEmit",
     "labels:generate": "tsx scripts/generate-labels.ts",
     "screenshot": "tsx scripts/screenshot.ts",
@@ -150,6 +266,7 @@
     "packages/agent-hook-config/dist",
     "packages/agent-human-in-loop/dist",
     "packages/maestro/dist",
+    "packages/safe-bash/dist",
     "packages/safejs/dist",
     "packages/agent-spawn/dist",
     "packages/auth-store/dist",
@@ -319,7 +436,8 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "8.55.0",
     "vite": "6.4.3",
-    "vitest": "^3.2.6"
+    "vitest": "^3.2.6",
+    "virtual-bash": "*"
   },
   "repository": {
     "type": "git",

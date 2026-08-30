@@ -1,0 +1,31 @@
+*   Trying 127.0.0.1:58240...
+* Connected to 127.0.0.1 (127.0.0.1) port 58240
+> PUT /safe-bash-interop/author/implicit/deeper/file HTTP/1.1
+> Host: 127.0.0.1:58240
+> User-Agent: curl/8.7.1
+> Accept: */*
+> x-amz-date: 20260827T065618Z
+> x-amz-content-sha256: f742b965f156c10374bc23aea96e3a8aff8facd6fc079defeaa30219ad86f211
+> authorization: AWS4-HMAC-SHA256 Credential=safe-bash-synthetic/20260827/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=619d2fc02e69675ef8285392f63e048b69fa3b82e6f6d2c3799bd8af157ff41c
+> Content-Length: 3
+> Content-Type: application/x-www-form-urlencoded
+> 
+} [3 bytes data]
+* upload completely sent off: 3 bytes
+< HTTP/1.1 200 OK
+< Accept-Ranges: bytes
+< Content-Length: 0
+< ETag: "4fd64cb80c3f86e1e9d0f559af8b370f"
+< Server: MinIO
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Vary: Origin
+< Vary: Accept-Encoding
+< X-Amz-Id-2: 05e4e9e7f91e18c5073a43031ed6542e2552d14724cf5e2e3a8863e663f2abac
+< X-Amz-Request-Id: 18CF9728DACC91B0
+< X-Content-Type-Options: nosniff
+< X-Ratelimit-Limit: 1581
+< X-Ratelimit-Remaining: 1581
+< X-Xss-Protection: 1; mode=block
+< Date: Thu, 27 Aug 2026 06:56:18 GMT
+< 
+* Connection #0 to host 127.0.0.1 left intact

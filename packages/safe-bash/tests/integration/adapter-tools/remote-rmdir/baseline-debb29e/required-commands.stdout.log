@@ -1,0 +1,1 @@
+{"requiredNames":["awk","cat","cp","diff","find","gzip","jq","mkdir","mv","patch","printf","pwd","rg","rm","rmdir","sed","sha256sum","sort","tee","test","touch","xargs"],"requiredNameCount":22,"executableRequiredNameCount":22,"plugin":"actual agentCommands() through existing withFixture"}

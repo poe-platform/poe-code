@@ -1,0 +1,44 @@
+{
+  "schema": "yq-independent-query-budget-checks/1",
+  "date": "2026-08-28",
+  "mode": "static-only",
+  "result": {
+    "result": "STATIC_PACKET_CHECKS_PASS_NOT_PRODUCT_ACCEPTANCE",
+    "caseCount": 62,
+    "layerCounts": {
+      "command": 36,
+      "graph-depth": 3,
+      "admission-state": 11,
+      "lifecycle-recipe": 9,
+      "blocked-choice": 2,
+      "dependency": 1
+    },
+    "selectedGitInputs": 32,
+    "selectedBytes": 418743,
+    "privateCaps": 21,
+    "diagnosticEntries": 54,
+    "manifestSha256": "044b46fadfe9b6732933c2b10bf4c7c4f01a8f7ee11df51120167ed2182162e9",
+    "casesSha256": "cc1e73ab2adc50840499f0f57f4d30a1baa72bee2e095652e9b2d456f3753de3",
+    "checks": [
+      "selected immutable Git bytes/blobs/SHA256",
+      "fixed caps and mapping",
+      "54-code catalogue binding",
+      "help/version bytes",
+      "case schema/unique IDs/status-code consistency",
+      "bounded synthetic admission/output arithmetic"
+    ],
+    "productExecutions": 0,
+    "nativeOracleExecutions": 0,
+    "dependencyChanges": 0,
+    "evidenceWrites": 0,
+    "lengthAcceptance": "pending Plato"
+  },
+  "artifactHashes": {
+    "COORDINATION.md": "3ee8e980437b692d631e02b0a1dfafd605b68eca405fcdc7a3c88a8c8fbe70ef",
+    "REVIEW.md": "db38472bd5252dea54e41da049742740af2f4bc4f8354dc096db407a29def538",
+    "CASES.json": "cc1e73ab2adc50840499f0f57f4d30a1baa72bee2e095652e9b2d456f3753de3",
+    "SOURCE_IDENTITY.json": "044b46fadfe9b6732933c2b10bf4c7c4f01a8f7ee11df51120167ed2182162e9",
+    "check.mjs": "889b2229b4622a0f8bff3b0b4b51947db4b629c51609cd5cad868ebf25050550"
+  },
+  "qualification": "Schema/hash/arithmetic checks, not execution of the command, query engine, YAML parser or lifecycle recipes. Two frozen blocked choices; separate length acceptance remains Plato's responsibility."
+}

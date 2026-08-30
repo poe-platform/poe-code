@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "stage": "ROOT_AUTHORIZED_ADDITIVE_STATIC_DATA_INSPECTION_ONLY",
+  "admission": "DENY_PENDING_MODE_AUTHORITY_AND_FRESH_ROOT_GO",
+  "sourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "evidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "handoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "expectedArchiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+  "expectedPackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "priorInspector": {
+    "revision": "90a633e89d35085183a1d57716451438335b93f3",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs",
+    "sha256": "88e84e21e2ed3359beeeb0aac985b00ece0f2ea2f2724aa484508bc5a3f29453",
+    "bytes": 31676
+  },
+  "files": {
+    "INSPECTION-PLAN.md": {
+      "sha256": "e51603089f28b4445a70e32041b020f5a95b938ad0fd3587155b61a251714ef6",
+      "bytes": 2075,
+      "mode": 420
+    },
+    "INSPECTOR-V1-V2.diff": {
+      "sha256": "ad82e22e2666015eef9380f244f4d9e27cd982537e48b74cbed20591e89562a1",
+      "bytes": 13645,
+      "mode": 420
+    },
+    "MODE-AUTHORITY.json": {
+      "sha256": "b1d05bb9ad80a8bc432742dba561fadead341bb74bdab8940d2ad16e7721aacd",
+      "bytes": 4927,
+      "mode": 420
+    },
+    "MODE-CORRECTION-SPEC.md": {
+      "sha256": "62e9b10322ae7be9b365020448a77abc6f2ea23d6798c59c6480f595b4b71a84",
+      "bytes": 6447,
+      "mode": 420
+    },
+    "PREPARATION-HISTORY.md": {
+      "sha256": "d83cfc69b0a04c96bbea092b11b31bead2401be34d3d6b7da3d6e43b418bf3fd",
+      "bytes": 1178,
+      "mode": 420
+    },
+    "historical-modes.mjs": {
+      "sha256": "38af50832e4b0ee5f14ae5632a5ec7ad32526dce019aae70c8a15b5d29a0c164",
+      "bytes": 6573,
+      "mode": 420
+    },
+    "inspect-data.mjs": {
+      "sha256": "d09345f4f78891e690e3ca0e0df4834e3e49fb3276eb688fd5a88dcf6b5da7a0",
+      "bytes": 34204,
+      "mode": 420
+    }
+  },
+  "command": "node tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/inspect-data.mjs DATA_PRESEAL_SHA256",
+  "processBounds": {
+    "timeoutMs": 120000,
+    "captureMaxBytes": 4194304
+  },
+  "dataBounds": {
+    "gitReadBufferBytes": 67108864,
+    "tarBytes": 16777216,
+    "tarEntries": 4096,
+    "historyFileBytes": 67108864,
+    "historyScopeBytes": 536870912
+  },
+  "modeControls": {
+    "count": 10,
+    "kind": "IN_MEMORY_STATIC_DATA_ONLY_NOT_PROPOSED_EXECUTOR_OR_PRODUCT"
+  },
+  "missingAuthority": "Prior b8 v1 FINAL-SEAL.json original POSIX mode is not established by its self-excluding seal. Explicit MODE_AUTHORITY_MISSING rejection retained, no full golden-mode admission; inert artifact data may be bound without waiving that denial.",
+  "checksBeforeInspection": {
+    "nodeSyntax": "PASS_BOTH_FILES",
+    "writeSpecLint": "PASS_0_WARNINGS"
+  },
+  "failurePolicy": "Unexpected audit errors retain raw exit/stdout/stderr/timing/reap and stop without automatic retry. The predeclared missing-mode-authority rejection remains DENY even if inert artifact comparison finishes.",
+  "executionProhibited": [
+    "product imports",
+    "candidate runtime",
+    "compiler/build/types",
+    "loaded mutants",
+    "native YAML",
+    "author reconstruction scripts",
+    "proposed harness cohorts",
+    "artifact materialization",
+    "repacking",
+    "dependency install",
+    "network"
+  ]
+}

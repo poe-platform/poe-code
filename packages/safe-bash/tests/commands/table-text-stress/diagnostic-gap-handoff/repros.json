@@ -1,0 +1,1777 @@
+{
+  "schemaVersion": 1,
+  "historicalStrict": {
+    "pass": 195,
+    "total": 216,
+    "diagnosticDifferences": 21
+  },
+  "classificationCounts": {
+    "errnoPrefixOnly": 4,
+    "otherTextOrContext": 17,
+    "argv0Only": 0
+  },
+  "repros": [
+    {
+      "index": 38,
+      "name": "paste: missing parallel file",
+      "inputSha256": "00179ef18a3c88be14b5a6d03321138faf82158af05e18cbce175b63c6ec3b2e",
+      "fixture": {
+        "name": "paste: missing parallel file",
+        "command": "paste",
+        "args": [
+          "left",
+          "missing"
+        ],
+        "files": {
+          "left": "310a320a",
+          "right": "610a620a630a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "310a320a",
+          "right": "610a620a630a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "70617374653a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207374617420272f776f726b2f6d697373696e67270a",
+        "stdoutText": "",
+        "stderrText": "paste: ENOENT: no such file or directory, stat '/work/missing'\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "70617374653a206d697373696e673a204e6f20737563682066696c65206f72206469726563746f72790a",
+        "stdoutText": "",
+        "stderrText": "paste: missing: No such file or directory\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "310a320a",
+          "right": "610a620a630a"
+        },
+        "nativeFilesHex": {
+          "left": "310a320a",
+          "right": "610a620a630a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/38; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/38",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+        "args": [
+          "left",
+          "missing"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+          "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+          "version": "paste (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat and David MacKenzie.\n",
+          "sourceSha256": "79dc9c4e93b710cd3ef5fda20b5a448fa07e8bc5b3664164d97164a801b47e2e"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Same missing operand, but errno/stat context, virtual absolute path and wording/case differ; not just argv0.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 39,
+      "name": "paste: missing serial file continues",
+      "inputSha256": "318aed1b28ab2cdcc9aacd3e525303899c9a19dadf8eb85155336348302d0f85",
+      "fixture": {
+        "name": "paste: missing serial file continues",
+        "command": "paste",
+        "args": [
+          "-s",
+          "missing",
+          "left"
+        ],
+        "files": {
+          "left": "310a320a",
+          "right": "610a620a630a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "310a320a",
+          "right": "610a620a630a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "3109320a",
+        "stderrHex": "70617374653a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207374617420272f776f726b2f6d697373696e67270a",
+        "stdoutText": "1\t2\n",
+        "stderrText": "paste: ENOENT: no such file or directory, stat '/work/missing'\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "3109320a",
+        "stderrHex": "70617374653a206d697373696e673a204e6f20737563682066696c65206f72206469726563746f72790a",
+        "stdoutText": "1\t2\n",
+        "stderrText": "paste: missing: No such file or directory\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "310a320a",
+          "right": "610a620a630a"
+        },
+        "nativeFilesHex": {
+          "left": "310a320a",
+          "right": "610a620a630a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/39; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/39",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+        "args": [
+          "-s",
+          "missing",
+          "left"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+          "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+          "version": "paste (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat and David MacKenzie.\n",
+          "sourceSha256": "79dc9c4e93b710cd3ef5fda20b5a448fa07e8bc5b3664164d97164a801b47e2e"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Same missing operand, but errno/stat context, virtual absolute path and wording/case differ; not just argv0.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 40,
+      "name": "paste: invalid trailing escape",
+      "inputSha256": "7dc28200b87010b8fb948302617185de0c50b9f4a17f9ac4bf525773cb58ba46",
+      "fixture": {
+        "name": "paste: invalid trailing escape",
+        "command": "paste",
+        "args": [
+          "-d",
+          "\\",
+          "-"
+        ],
+        "files": {},
+        "stdinHex": "780a"
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {},
+        "stdinHex": "780a",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "70617374653a2045494e56414c3a2064656c696d69746572206c69737420656e647320696e20616e20756e65736361706564206261636b736c6173680a",
+        "stdoutText": "",
+        "stderrText": "paste: EINVAL: delimiter list ends in an unescaped backslash\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "70617374653a2064656c696d69746572206c69737420656e6473207769746820616e20756e65736361706564206261636b736c6173683a205c0a",
+        "stdoutText": "",
+        "stderrText": "paste: delimiter list ends with an unescaped backslash: \\\n"
+      },
+      "effects": {
+        "actualFilesHex": {},
+        "nativeFilesHex": {},
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/40; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/40",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+        "args": [
+          "-d",
+          "\\",
+          "-"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+          "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+          "version": "paste (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat and David MacKenzie.\n",
+          "sourceSha256": "79dc9c4e93b710cd3ef5fda20b5a448fa07e8bc5b3664164d97164a801b47e2e"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Extra EINVAL plus ends in versus ends with wording and missing literal backslash context.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 41,
+      "name": "paste: invalid flag",
+      "inputSha256": "b3634cc704b3ede23396b766c771d83a70c13e196d081933c70e0cffc90a4819",
+      "fixture": {
+        "name": "paste: invalid flag",
+        "command": "paste",
+        "args": [
+          "--not-implemented"
+        ],
+        "files": {},
+        "stdinHex": "780a"
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {},
+        "stdinHex": "780a",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "70617374653a2045494e56414c3a20756e737570706f72746564206f7074696f6e202d2d6e6f742d696d706c656d656e7465640a",
+        "stdoutText": "",
+        "stderrText": "paste: EINVAL: unsupported option --not-implemented\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "2f7661722f666f6c646572732f72772f733463793736686e36763535717270306468636274706c6330303030676e2f542f736166652d627974652d676e752e30536e4a4d582f636f72657574696c732d392e372f7372632f70617374653a20756e7265636f676e697a6564206f7074696f6e20272d2d6e6f742d696d706c656d656e746564270a54727920272f7661722f666f6c646572732f72772f733463793736686e36763535717270306468636274706c6330303030676e2f542f736166652d627974652d676e752e30536e4a4d582f636f72657574696c732d392e372f7372632f7061737465202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+        "stdoutText": "",
+        "stderrText": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste: unrecognized option '--not-implemented'\nTry '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste --help' for more information.\n"
+      },
+      "effects": {
+        "actualFilesHex": {},
+        "nativeFilesHex": {},
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/41; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/41",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+        "args": [
+          "--not-implemented"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+          "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+          "version": "paste (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat and David MacKenzie.\n",
+          "sourceSha256": "79dc9c4e93b710cd3ef5fda20b5a448fa07e8bc5b3664164d97164a801b47e2e"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Native full-path argv0 AND unsupported versus unrecognized option, quoting and absent help line; not argv0-only.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 73,
+      "name": "comm: unsorted empty side ",
+      "inputSha256": "3f51bd5f218cfd64c0bc4243ed11c080c91f5a7a05ef81d8a539924fd064bd0c",
+      "fixture": {
+        "name": "comm: unsorted empty side ",
+        "command": "comm",
+        "args": [
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "620a610a",
+          "right": ""
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "620a610a",
+          "right": ""
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "620a610a",
+        "stderrHex": "636f6d6d3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "b\na\n",
+        "stderrText": "comm: file 1 is not in sorted order\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "620a610a",
+        "stderrHex": "636f6d6d3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a636f6d6d3a20696e707574206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "b\na\n",
+        "stderrText": "comm: file 1 is not in sorted order\ncomm: input is not in sorted order\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "620a610a",
+          "right": ""
+        },
+        "nativeFilesHex": {
+          "left": "620a610a",
+          "right": ""
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/73; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/73",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+        "args": [
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+          "version": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "sourceSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Native adds a second input-is-not-in-sorted-order summary line absent from actual.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 74,
+      "name": "comm: unsorted paired --check-order",
+      "inputSha256": "8b4d1704031e919a32fa9278fd8cfc83a1c5b659962175a16ae93bf45cfb0158",
+      "fixture": {
+        "name": "comm: unsorted paired --check-order",
+        "command": "comm",
+        "args": [
+          "--check-order",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "620a610a",
+          "right": "620a610a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "620a610a",
+          "right": "620a610a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0909620a",
+        "stderrHex": "636f6d6d3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "\t\tb\n",
+        "stderrText": "comm: EINVAL: file 1 is not in sorted order\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0909620a",
+        "stderrHex": "636f6d6d3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "\t\tb\n",
+        "stderrText": "comm: file 1 is not in sorted order\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "620a610a",
+          "right": "620a610a"
+        },
+        "nativeFilesHex": {
+          "left": "620a610a",
+          "right": "620a610a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/74; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/74",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+        "args": [
+          "--check-order",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+          "version": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "sourceSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+        }
+      },
+      "classification": {
+        "kind": "errno-prefix-only",
+        "evidence": "Removing exactly EINVAL: after the command prefix makes the full raw diagnostic byte-identical. No other change required.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 75,
+      "name": "comm: unsorted unpaired --check-order",
+      "inputSha256": "727676e7b2a59ff2b753a705f1509b38b76c6b462a5142686dbd55309b74be94",
+      "fixture": {
+        "name": "comm: unsorted unpaired --check-order",
+        "command": "comm",
+        "args": [
+          "--check-order",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "620a610a630a",
+          "right": "620a7a0a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "620a610a630a",
+          "right": "620a7a0a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0909620a",
+        "stderrHex": "636f6d6d3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "\t\tb\n",
+        "stderrText": "comm: EINVAL: file 1 is not in sorted order\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0909620a",
+        "stderrHex": "636f6d6d3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "\t\tb\n",
+        "stderrText": "comm: file 1 is not in sorted order\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "620a610a630a",
+          "right": "620a7a0a"
+        },
+        "nativeFilesHex": {
+          "left": "620a610a630a",
+          "right": "620a7a0a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/75; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/75",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+        "args": [
+          "--check-order",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+          "version": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "sourceSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+        }
+      },
+      "classification": {
+        "kind": "errno-prefix-only",
+        "evidence": "Removing exactly EINVAL: after the command prefix makes the full raw diagnostic byte-identical. No other change required.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 76,
+      "name": "comm: unsorted empty side --check-order",
+      "inputSha256": "d9950192add2f66eec57d136b35f7dffea39a869bad04fee91cc89c0e1d6f835",
+      "fixture": {
+        "name": "comm: unsorted empty side --check-order",
+        "command": "comm",
+        "args": [
+          "--check-order",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "620a610a",
+          "right": ""
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "620a610a",
+          "right": ""
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "620a",
+        "stderrHex": "636f6d6d3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "b\n",
+        "stderrText": "comm: EINVAL: file 1 is not in sorted order\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "620a",
+        "stderrHex": "636f6d6d3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "b\n",
+        "stderrText": "comm: file 1 is not in sorted order\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "620a610a",
+          "right": ""
+        },
+        "nativeFilesHex": {
+          "left": "620a610a",
+          "right": ""
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/76; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/76",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+        "args": [
+          "--check-order",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+          "version": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "sourceSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+        }
+      },
+      "classification": {
+        "kind": "errno-prefix-only",
+        "evidence": "Removing exactly EINVAL: after the command prefix makes the full raw diagnostic byte-identical. No other change required.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 81,
+      "name": "comm: missing file",
+      "inputSha256": "09501f78c77269f56aebadb34cb5caa38bcb3a67a7bb21da29dbfac598f3ba6e",
+      "fixture": {
+        "name": "comm: missing file",
+        "command": "comm",
+        "args": [
+          "left",
+          "missing"
+        ],
+        "files": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a20454e4f454e543a206e6f20737563682066696c65206f72206469726563746f72792c207374617420272f776f726b2f6d697373696e67270a",
+        "stdoutText": "",
+        "stderrText": "comm: ENOENT: no such file or directory, stat '/work/missing'\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a206d697373696e673a204e6f20737563682066696c65206f72206469726563746f72790a",
+        "stdoutText": "",
+        "stderrText": "comm: missing: No such file or directory\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "nativeFilesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/81; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/81",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+        "args": [
+          "left",
+          "missing"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+          "version": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "sourceSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Same missing operand, but errno/stat context, virtual absolute path and wording/case differ; not just argv0.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 82,
+      "name": "comm: too few files",
+      "inputSha256": "6efc4fbcb09e764e22dd91c63a17bc5cd152935e2ae3bb49eefd832c886ebf1a",
+      "fixture": {
+        "name": "comm: too few files",
+        "command": "comm",
+        "args": [
+          "left"
+        ],
+        "files": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a2045494e56414c3a20636f6d6d2072657175697265732065786163746c792074776f2066696c65730a",
+        "stdoutText": "",
+        "stderrText": "comm: EINVAL: comm requires exactly two files\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a206d697373696e67206f706572616e6420616674657220276c656674270a54727920272f7661722f666f6c646572732f72772f733463793736686e36763535717270306468636274706c6330303030676e2f542f736166652d627974652d676e752e30536e4a4d582f636f72657574696c732d392e372f7372632f636f6d6d202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+        "stdoutText": "",
+        "stderrText": "comm: missing operand after 'left'\nTry '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm --help' for more information.\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "nativeFilesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/82; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/82",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+        "args": [
+          "left"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+          "version": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "sourceSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Actual generic two-file requirement versus native missing-operand-after-left detail and help line.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 110,
+      "name": "join: both stdin invalid",
+      "inputSha256": "8375cb67bfb6df73e899d3d4e828500f83a09a4f5d998d35f1ff1279675a6ed8",
+      "fixture": {
+        "name": "join: both stdin invalid",
+        "command": "join",
+        "args": [
+          "-",
+          "-"
+        ],
+        "files": {},
+        "stdinHex": "6120780a6120790a"
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {},
+        "stdinHex": "6120780a6120790a",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20626f74682066696c65732063616e6e6f74206265207374616e6461726420696e7075740a",
+        "stdoutText": "",
+        "stderrText": "join: EINVAL: both files cannot be standard input\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a20626f74682066696c65732063616e6e6f74206265207374616e6461726420696e7075740a",
+        "stdoutText": "",
+        "stderrText": "join: both files cannot be standard input\n"
+      },
+      "effects": {
+        "actualFilesHex": {},
+        "nativeFilesHex": {},
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/110; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/110",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "-",
+          "-"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "errno-prefix-only",
+        "evidence": "Removing exactly EINVAL: after the command prefix makes the full raw diagnostic byte-identical. No other change required.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 119,
+      "name": "join: unsorted paired --check-order",
+      "inputSha256": "736607b082f56b6a7771aa1775bbb225563fc3389d0ad531f925c10fd8d0977e",
+      "fixture": {
+        "name": "join: unsorted paired --check-order",
+        "command": "join",
+        "args": [
+          "--check-order",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "6220420a6120410a",
+          "right": "6220590a6120580a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "6220420a6120410a",
+          "right": "6220590a6120580a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "",
+        "stderrText": "join: EINVAL: file 1 is not in sorted order\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a206c6566743a323a206973206e6f7420736f727465643a206120410a",
+        "stdoutText": "",
+        "stderrText": "join: left:2: is not sorted: a A\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "6220420a6120410a",
+          "right": "6220590a6120580a"
+        },
+        "nativeFilesHex": {
+          "left": "6220420a6120410a",
+          "right": "6220590a6120580a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/119; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/119",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "--check-order",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Actual ordinal file1 disorder versus native operand name, line2 and offending record a A; context and wording differ.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 120,
+      "name": "join: unsorted unpaired --check-order",
+      "inputSha256": "577a63408a5d06a20a7ed009f26748b7371c5b8a2e477261e37da4aae827bffd",
+      "fixture": {
+        "name": "join: unsorted unpaired --check-order",
+        "command": "join",
+        "args": [
+          "--check-order",
+          "-a1",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "6120410a6320430a6220420a",
+          "right": "6120580a7a205a0a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "6120410a6320430a6220420a",
+          "right": "6120580a7a205a0a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "61204120580a6320430a",
+        "stderrHex": "6a6f696e3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "a A X\nc C\n",
+        "stderrText": "join: EINVAL: file 1 is not in sorted order\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "61204120580a6320430a",
+        "stderrHex": "6a6f696e3a206c6566743a333a206973206e6f7420736f727465643a206220420a",
+        "stdoutText": "a A X\nc C\n",
+        "stderrText": "join: left:3: is not sorted: b B\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "6120410a6320430a6220420a",
+          "right": "6120580a7a205a0a"
+        },
+        "nativeFilesHex": {
+          "left": "6120410a6320430a6220420a",
+          "right": "6120580a7a205a0a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/120; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/120",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "--check-order",
+          "-a1",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Actual ordinal file1 disorder versus native operand name, line3 and offending record b B; context and wording differ.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 121,
+      "name": "join: unsorted empty side --check-order",
+      "inputSha256": "f99300bde2110f7faa5f095ab4fe9ae215e8011974676a58d80085a6be1a8b6b",
+      "fixture": {
+        "name": "join: unsorted empty side --check-order",
+        "command": "join",
+        "args": [
+          "--check-order",
+          "-a1",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "6220420a6120410a",
+          "right": ""
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "6220420a6120410a",
+          "right": ""
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "6220420a",
+        "stderrHex": "6a6f696e3a2045494e56414c3a2066696c652031206973206e6f7420696e20736f72746564206f726465720a",
+        "stdoutText": "b B\n",
+        "stderrText": "join: EINVAL: file 1 is not in sorted order\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "6220420a",
+        "stderrHex": "6a6f696e3a206c6566743a323a206973206e6f7420736f727465643a206120410a",
+        "stdoutText": "b B\n",
+        "stderrText": "join: left:2: is not sorted: a A\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "6220420a6120410a",
+          "right": ""
+        },
+        "nativeFilesHex": {
+          "left": "6220420a6120410a",
+          "right": ""
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/121; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/121",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "--check-order",
+          "-a1",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Actual ordinal file1 disorder versus native operand name, line2 and offending record a A; context and wording differ.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 125,
+      "name": "join: invalidField",
+      "inputSha256": "09fc5caae97b1d7e102976f1bc83845fb49e2c610b1539b43bc9cac5a5f37255",
+      "fixture": {
+        "name": "join: invalidField",
+        "command": "join",
+        "args": [
+          "-j0",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20696e76616c6964206669656c643a20300a",
+        "stdoutText": "",
+        "stderrText": "join: EINVAL: invalid field: 0\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a20696e76616c6964206669656c64206e756d6265723a202730270a",
+        "stdoutText": "",
+        "stderrText": "join: invalid field number: '0'\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "nativeFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/125; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/125",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "-j0",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Extra EINVAL, field versus field number wording and missing quotes around 0.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 126,
+      "name": "join: invalidOutput",
+      "inputSha256": "0dd26ca350403fa99c985317997a5e2a7aabb7da1d2e3f92da22dbd3ffee53b6",
+      "fixture": {
+        "name": "join: invalidOutput",
+        "command": "join",
+        "args": [
+          "-o3.1",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20696e76616c6964206f7574707574206669656c643a20332e310a",
+        "stdoutText": "",
+        "stderrText": "join: EINVAL: invalid output field: 3.1\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a20696e76616c69642066696c65206e756d62657220696e206669656c6420737065633a2027332e31270a",
+        "stdoutText": "",
+        "stderrText": "join: invalid file number in field spec: '3.1'\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "nativeFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/126; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/126",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "-o3.1",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Invalid output field versus invalid file number in field spec; field/file distinction and quoting differ.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 127,
+      "name": "join: invalidDelimiter",
+      "inputSha256": "9a97e2655023a8b1acd68e2e258f21e43992e8ecb52db6b0063c67ecf76405c2",
+      "fixture": {
+        "name": "join: invalidDelimiter",
+        "command": "join",
+        "args": [
+          "-t::",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a206a6f696e2064656c696d69746572206d757374206265206f6e65206279746520696e207468652043206c6f63616c650a",
+        "stdoutText": "",
+        "stderrText": "join: EINVAL: join delimiter must be one byte in the C locale\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a206d756c74692d6368617261637465722074616220273a3a270a",
+        "stdoutText": "",
+        "stderrText": "join: multi-character tab '::'\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "nativeFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/127; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/127",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "-t::",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Generic one-byte/C-locale requirement versus native multi-character-tab diagnostic naming ::.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 128,
+      "name": "join: missingArgument",
+      "inputSha256": "55d7cd28e54348ab36f7010fd08ba8c4b77c180695a8b97263109de398f14aff",
+      "fixture": {
+        "name": "join: missingArgument",
+        "command": "join",
+        "args": [
+          "-a",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20696e76616c69642066696c65206e756d6265723a206c6566740a",
+        "stdoutText": "",
+        "stderrText": "join: EINVAL: invalid file number: left\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a20696e76616c69642066696c65206e756d6265723a20276c656674270a",
+        "stdoutText": "",
+        "stderrText": "join: invalid file number: 'left'\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "nativeFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/128; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/128",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "-a",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Extra EINVAL and absent single quotes around left; not prefix-only.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 129,
+      "name": "join: unknown",
+      "inputSha256": "f81837b7d20b17ffba7d11691ede369d8ac5a4fb25fba021bf4e13490e5d91a8",
+      "fixture": {
+        "name": "join: unknown",
+        "command": "join",
+        "args": [
+          "--unknown",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20756e737570706f72746564206f7074696f6e202d2d756e6b6e6f776e0a",
+        "stdoutText": "",
+        "stderrText": "join: EINVAL: unsupported option --unknown\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "2f7661722f666f6c646572732f72772f733463793736686e36763535717270306468636274706c6330303030676e2f542f736166652d627974652d676e752e30536e4a4d582f636f72657574696c732d392e372f7372632f6a6f696e3a20756e7265636f676e697a6564206f7074696f6e20272d2d756e6b6e6f776e270a54727920272f7661722f666f6c646572732f72772f733463793736686e36763535717270306468636274706c6330303030676e2f542f736166652d627974652d676e752e30536e4a4d582f636f72657574696c732d392e372f7372632f6a6f696e202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a",
+        "stdoutText": "",
+        "stderrText": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join: unrecognized option '--unknown'\nTry '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join --help' for more information.\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "nativeFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/129; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/129",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "--unknown",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Native full-path argv0 AND unsupported versus unrecognized option, quoting and absent help line; not argv0-only.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 207,
+      "name": "join: incompatible delimiters",
+      "inputSha256": "d800a0af58ce418644aa54270e5cbc36db5e1b7bdab67e5c989761084f80fc3d",
+      "fixture": {
+        "name": "join: incompatible delimiters",
+        "command": "join",
+        "args": [
+          "-t,",
+          "-t:",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a2045494e56414c3a20696e636f6d70617469626c65206669656c642064656c696d69746572730a",
+        "stdoutText": "",
+        "stderrText": "join: EINVAL: incompatible field delimiters\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "6a6f696e3a20696e636f6d70617469626c6520746162730a",
+        "stdoutText": "",
+        "stderrText": "join: incompatible tabs\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "nativeFilesHex": {
+          "left": "612041310a612041320a6220420a6420440a",
+          "right": "612058310a612058320a6320430a6420590a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/207; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/207",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+        "args": [
+          "-t,",
+          "-t:",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+          "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+          "version": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+          "sourceSha256": "47a21232aaae4f45343a3021b30927ecae00c7ed5af705db2323990ba4d18558"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Extra EINVAL plus field delimiters versus tabs wording.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    },
+    {
+      "index": 213,
+      "name": "comm: incompatible delimiters",
+      "inputSha256": "ed676288c0999d1fd2621d2f446df73e04b116314d3e6cddb8683878dfd8498c",
+      "fixture": {
+        "name": "comm: incompatible delimiters",
+        "command": "comm",
+        "args": [
+          "--output-delimiter=a",
+          "--output-delimiter=b",
+          "left",
+          "right"
+        ],
+        "files": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "stdinHex": ""
+      },
+      "setup": {
+        "productCwd": "/work",
+        "environment": {
+          "LC_ALL": "C"
+        },
+        "filesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "stdinHex": "",
+        "chunkBytes": 7,
+        "adapter": "createMemoryFileSystem",
+        "driver": "tests/commands/table-text/helpers.ts:runTable"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a2045494e56414c3a206d756c7469706c6520636f6e666c696374696e67206f75747075742064656c696d69746572730a",
+        "stdoutText": "",
+        "stderrText": "comm: EINVAL: multiple conflicting output delimiters\n"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6d6d3a206d756c7469706c65206f75747075742064656c696d6974657273207370656369666965640a",
+        "stdoutText": "",
+        "stderrText": "comm: multiple output delimiters specified\n"
+      },
+      "effects": {
+        "actualFilesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "nativeFilesHex": {
+          "left": "610a610a620a640a",
+          "right": "610a620a620a630a"
+        },
+        "reviewerFilesAndNamespaceUnchanged": true,
+        "source": "tests/commands/table-text-stress/shared-stdin-fix/post-fix.json#/author/213; tests/commands/table-text-stress/shared-stdin-review/logs/selected-gnu216.stdout#/observations/213",
+        "limitation": "Captured fixture file bytes and /work namespace only; no uncaptured mode, inode, timestamps, external effects or cursor counts inferred."
+      },
+      "native": {
+        "profile": "GNU coreutils 9.7, LC_ALL=C",
+        "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+        "args": [
+          "--output-delimiter=a",
+          "--output-delimiter=b",
+          "left",
+          "right"
+        ],
+        "environment": {
+          "LC_ALL": "C",
+          "PATH": "/usr/bin:/bin"
+        },
+        "identity": {
+          "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+          "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+          "version": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+          "sourceSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+        }
+      },
+      "classification": {
+        "kind": "other-text-or-context-difference",
+        "evidence": "Extra EINVAL plus multiple conflicting output delimiters versus multiple output delimiters specified wording.",
+        "waived": false,
+        "meaningEquivalenceClaimed": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "result": {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/runtime/native-env.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/native-table.json",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/native-scratch"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "pid": 53309,
+    "pgid": 53309,
+    "timedOut": false,
+    "termination": {
+      "termSent": false,
+      "killSent": false,
+      "groupGone": true
+    },
+    "closure": {
+      "descendantGroupDetected": false,
+      "rootPidGone": true,
+      "groupGone": true
+    },
+    "timeoutMs": 120000,
+    "startedAt": "2026-08-27T21:49:50.758Z",
+    "finishedAt": "2026-08-27T21:49:50.912Z",
+    "durationMs": 153.634417,
+    "stdout": {
+      "path": "stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "stderr": {
+      "path": "stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    }
+  },
+  "shutdown": {
+    "reason": "native-finished",
+    "ownedGroups": [],
+    "groupsGone": [],
+    "childCloseEventsSettled": true
+  },
+  "closure": {
+    "spawnedRootPids": [
+      53309
+    ],
+    "spawnedProcessGroups": [
+      53309
+    ],
+    "everyRootPidGone": true,
+    "everyOwnedGroupGone": true,
+    "active": []
+  },
+  "parentTemporaryOverrides": {
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/temporary",
+    "TMP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/temporary",
+    "TEMP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/native-predicate-d71d0789/temporary"
+  },
+  "nativeCaseEnvironment": "unchanged: driver constructs exact frozen sanitized environment for each native spawn"
+}

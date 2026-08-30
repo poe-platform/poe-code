@@ -1,0 +1,276 @@
+{
+  "capturedAt": "2026-08-27T04:30:50.560Z",
+  "completedAt": "2026-08-27T04:31:09.186Z",
+  "source": {
+    "product": "0143ecab8f5c1109b88739e75f6f1022256043ff",
+    "engine": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e"
+  },
+  "versions": {
+    "node": "v22.22.2",
+    "engine": "0.0.1",
+    "product": "0.0.0",
+    "typescript": "5.9.3",
+    "tsx": "4.23.12"
+  },
+  "productArchiveSha256": "d165ca0315cc9f464bd23c1f00ae3888e87d07735ba14f9a1a8e36dd12200a3e",
+  "packedPackageSha256": "fe84fd2baf06bff41c53e481f7cce36af5503deb596699f0540f824a8022859d",
+  "cohorts": {
+    "conventional": {
+      "status": 1,
+      "pass": 107,
+      "fail": 8,
+      "skip": 0
+    },
+    "bridges": {
+      "status": 0,
+      "pass": 28,
+      "fail": 0,
+      "skip": 0
+    },
+    "desired-original-plus-action": {
+      "status": 1,
+      "pass": 7,
+      "fail": 3,
+      "skip": 0
+    },
+    "proposal-invariants": {
+      "status": 1,
+      "pass": 2,
+      "fail": 7,
+      "skip": 0
+    },
+    "proposal-reason-profile": {
+      "status": 1,
+      "pass": 0,
+      "fail": 18,
+      "skip": 0
+    },
+    "unavailable-engine": {
+      "status": 0,
+      "pass": 81,
+      "fail": 0,
+      "skip": 62
+    }
+  },
+  "classifications": {
+    "conventional": {
+      "actual-engine-behavior": {
+        "pass": 45,
+        "fail": 0,
+        "skip": 0,
+        "names": [
+          "actual engine: inline source and hostile literal argv never become guest code",
+          "actual engine: file source and hostile literal argv never become guest code",
+          "actual engine: stdin source and hostile literal argv never become guest code",
+          "actual engine: constructor/prototype input keys remain inert guest data",
+          "actual engine: guest boundary denies return ({}).constructor.constructor(\"return process\")();",
+          "actual engine: guest boundary denies import { readFile } from \"node:fs\"; return await readFile(\"/etc/passwd\", \"utf8\");",
+          "actual engine: guest boundary denies import { run } from \"command\"; return await run(\"touch /escape\");",
+          "actual engine: guest boundary denies return globalThis.process.env;",
+          "actual engine: maxSteps budget rejects guest work",
+          "actual engine: maxCallDepth budget rejects guest work",
+          "actual engine: stringLength budget rejects guest work",
+          "actual engine: arrayLength budget rejects guest work",
+          "actual engine: dataSize budget rejects guest work",
+          "actual engine: caught mixed byte/text input quota cannot recover success",
+          "actual engine: partial UTF-8 is a catchable decoding error, not replacement text",
+          "actual engine: pending guest VFS read receives cancellation and blocks subsequent writes",
+          "actual engine: asynchronous sink backpressure delays later virtual writes",
+          "actual engine: Shell early-close pipeline stops producer without hanging",
+          "actual engine: concurrent invocations isolate argv/env/budgets and reject retained capabilities",
+          "actual engine: action-producing loop stops on step budget, not output capacity",
+          "actual engine: synchronous loop respects engine deadline with large step allowance",
+          "actual engine: all stdio and exit actions retain non-replayable journal policies",
+          "real SafeJS shares shell pipeline input, virtual files, argv, cwd and env",
+          "real SafeJS script files use the virtual cwd, not the script directory",
+          "real SafeJS source stdin is single-use and guest byte IO stays exact",
+          "real SafeJS console output and return-value printing do not escape to host console",
+          "real SafeJS denies ungranted host capability: return process;",
+          "real SafeJS denies ungranted host capability: return require(\"node:fs\");",
+          "real SafeJS denies ungranted host capability: return Function(\"return process\")();",
+          "real SafeJS denies ungranted host capability: return globalThis.process;",
+          "real SafeJS denies ungranted host capability: return ({}).constructor.constructor(\"return process\")();",
+          "real SafeJS denies ungranted host capability: import { readFile } from \"node:fs/promises\"; return await readFile(\"/etc/passwd\", \"utf8\");",
+          "real SafeJS denies ungranted host capability: import { readFile } from \"fs\"; return await readFile(\"/etc/passwd\", \"utf8\");",
+          "real SafeJS parse, guest error, step budget, deadline and explicit status remain distinct",
+          "real SafeJS session effects persist only in VFS; module/env/cwd mutations do not leak",
+          "real SafeJS host-call journal marks consumed stdin/output and writes as effects",
+          "real SafeJS cancellation stops a pending guest read and later filesystem effects",
+          "real SafeJS quota is fatal with no leaked rejection: import { write } from \"stdio\"; try { await write(\"too large\"); } catch (error) {} return \"recovered\";",
+          "real SafeJS quota is fatal with no leaked rejection: import { writeBytes } from \"stdio\"; await writeBytes([1, 2, 3]);",
+          "real SafeJS quota is fatal with no leaked rejection: console.log(\"too large\");",
+          "real SafeJS quota is fatal with no leaked rejection: console.error(\"too large\");",
+          "real SafeJS readonly fs denies mutations without reading host paths",
+          "real SafeJS repeated guest chunks compose as a binary streaming pipeline",
+          "real SafeJS modules and environment have no ambient env or time imports",
+          "real SafeJS respects enclosing shell output limits independently of its own budget"
+        ]
+      },
+      "fixture-or-configuration": {
+        "pass": 59,
+        "fail": 0,
+        "skip": 0,
+        "names": [
+          "fixture: guest writes await downstream backpressure before consuming more input",
+          "fixture: source iterator cleanup observes late rejection after cancellation",
+          "fixture: guest iterator cleanup observes late rejection after cancellation",
+          "fixture: sink early-close aborts queued writes and preserves prior byte effects",
+          "fixture: abandoned pending reads settle on completion without unhandled late failures",
+          "fixture: pending buffered source loading propagates cancellation and observes late failure",
+          "fixture: inline source remains exact data across source/argv boundaries",
+          "fixture: file source remains exact data across source/argv boundaries",
+          "fixture: stdin source remains exact data across source/argv boundaries",
+          "fixture: inline source byte budget exact boundary includes BOM",
+          "fixture: file source byte budget exact boundary includes BOM",
+          "fixture: stdin source byte budget exact boundary includes BOM",
+          "fixture: prototype keys survive snapshots and JSON without invoking accessors",
+          "fixture: malformed runner results and error accessors fail without evaluating getters",
+          "fixture: partial UTF-8 rejects text decoding but leaves raw bytes available",
+          "fixture: all engine budgets are forwarded exactly and mutable budgets are never reused",
+          "fixture: captured host operations cannot be reused after command completion",
+          "fixture: registration configuration rejects unknown budgets",
+          "fixture: stdout/stderr/return share an exact cumulative UTF-8 byte budget",
+          "fixture: fragmented binary reads preserve bytes with varying requested sizes",
+          "missing runtime is explicit and never consumes source or stdin",
+          "inline source receives exact args, virtual context and a fresh budget",
+          "stdio consumes bytes once and routes awaited output without host IO",
+          "stdin source is not available again as guest data",
+          "usage failures occur before runner and input effects",
+          "guest UTF-8 text preserves BOM and multibyte input across single-byte chunks",
+          "one leading source BOM is stripped without replaying source as guest input",
+          "script loading honors a false streaming capability and requests bounded buffered reads",
+          "plugin collision is explicit, replacement is opt-in, and no js alias is registered",
+          "invalid host limits reject before registration: {\"timeoutMs\":0}",
+          "invalid host limits reject before registration: {\"maxInputBytes\":-1}",
+          "invalid host limits reject before registration: {\"maxSteps\":null}",
+          "invalid host limits reject before registration: {\"dataSize\":1.5}",
+          "invalid host limits reject before registration: {\"timeoutMs\":2147483648}",
+          "partially supplied runtime factories fail closed",
+          "source byte limit precedes interpreter effects: inline",
+          "source byte limit precedes interpreter effects: stdin",
+          "invalid UTF-8 source fails without invoking runner",
+          "input quota is cumulative and cannot be hidden by a caught host rejection",
+          "output quota covers stdout plus stderr and cannot be hidden by guest recovery",
+          "unawaited console/stdio writes are drained in issue order before command returns",
+          "pending output before a runner error is drained instead of silently discarded",
+          "parallel guest reads are serialized, and completed-invocation callbacks cannot write",
+          "stdio rejects non-byte arrays, oversized chunks and invalid read sizes",
+          "parent cancellation interrupts blocked runner and observes late rejection",
+          "parent cancellation interrupts blocked input and observes late rejection",
+          "parent cancellation interrupts blocked output and observes late rejection",
+          "parent cancellation interrupts blocked stderr and observes late rejection",
+          "parent cancellation interrupts blocked source and observes late rejection",
+          "deadline interrupts uncooperative runner",
+          "deadline interrupts uncooperative input",
+          "deadline interrupts uncooperative output",
+          "deadline interrupts uncooperative stderr",
+          "deadline interrupts uncooperative source",
+          "uncooperative diagnostic sinks cannot hang a failed invocation",
+          "empty-only sources yield enough for timeout and cleanup",
+          "return and console JSON are bounded during expansion of repeated references",
+          "JSON return rendering does not invoke accessors or toJSON host callbacks",
+          "console formatting is bounded string/JSON joining, not Node percent interpolation"
+        ]
+      },
+      "defect-characterization": {
+        "pass": 2,
+        "fail": 8,
+        "skip": 0,
+        "names": [
+          "KNOWN UPSTREAM LIMITATION: signal loses Error construction, not compatibility acceptance",
+          "KNOWN UPSTREAM LIMITATION: signal loses TypeError construction, not compatibility acceptance",
+          "KNOWN UPSTREAM LIMITATION: signal loses Map construction, not compatibility acceptance",
+          "KNOWN UPSTREAM LIMITATION: signal loses Set construction, not compatibility acceptance",
+          "KNOWN UPSTREAM LIMITATION: signal loses RegExp construction, not compatibility acceptance",
+          "KNOWN UPSTREAM LIMITATION: signal loses static Array.isArray([]), not compatibility acceptance",
+          "KNOWN UPSTREAM LIMITATION: signal loses static Array.from([1, 2]), not compatibility acceptance",
+          "KNOWN UPSTREAM LIMITATION: signal drops own __proto__ data, not env-key compatibility",
+          "KNOWN UPSTREAM LIMITATION: raw pre-aborted pure run succeeds; plugin rejects before runner",
+          "upstream observation, not constructor support: supplied signal drops SafeJS Error construction"
+        ]
+      },
+      "structural-type-probe": {
+        "pass": 1,
+        "fail": 0,
+        "skip": 0,
+        "names": [
+          "actual local SafeJS factories are structurally assignable without private runtime dependencies"
+        ]
+      }
+    },
+    "bridges": {
+      "fixture-or-configuration": {
+        "pass": 22,
+        "fail": 0,
+        "skip": 0,
+        "names": [
+          "reads bytes by default and honors Node encodings without changing VFS bytes",
+          "write/append use encoding, flags, and the very same filesystem",
+          "stats and dirents have Node numeric fields, dates, and callable type predicates",
+          "directory recursion does not follow symlinks and preserves relative names",
+          "path operations remain virtual, including absolute paths and symlink targets",
+          "rename, exclusive copies, removals, and temporary directories stay on VFS",
+          "recursive copy handles force/exclusive semantics and rejects copy-into-self",
+          "unsupported options and capabilities fail closed, never host-fallback",
+          "optional metadata and atomic rmdir methods retain their receiver and signal",
+          "every fs call receives the explicit host cancellation signal",
+          "in-flight cancellation rejects even if a backend ignores the signal",
+          "per-call and host cancellation are combined; injection never selects ambient fs",
+          "memory bridge preserves symlink-before-parent resolution and trailing separators",
+          "memory metadata, hardlinks, and truncate operate through the bridge",
+          "concrete Shell accepts the structural adapter and uses its exact VFS for pipes and redirection",
+          "exports one top-level named operation with an explicit effectful replay policy",
+          "accepts a structural executor and retains its receiver",
+          "rejects guest signals, filesystem objects, and unrecognized options before execution",
+          "copies guest environment and removes host-only result properties",
+          "validates results and rejects pre-aborted calls without executing",
+          "passes cancellation to the executor and rejects uncooperative in-flight work",
+          "does not permit a re-issue policy for an arbitrary effectful shell"
+        ]
+      },
+      "actual-engine-behavior": {
+        "pass": 5,
+        "fail": 0,
+        "skip": 0,
+        "names": [
+          "real SafeJS: shell and fs share one VFS; stats/dirents cross as guest-safe values",
+          "real SafeJS: guest cannot select host fs, guest signals, or binary results",
+          "real SafeJS: cancellation reaches the executor only through explicit host wiring",
+          "real SafeJS: a pending effectful shell call requires reconciliation, never blind replay",
+          "real SafeJS plus concrete Shell and MemoryFileSystem: stdin, pipes, and shared writes"
+        ]
+      },
+      "structural-type-probe": {
+        "pass": 1,
+        "fail": 0,
+        "skip": 0,
+        "names": [
+          "local SafeJS types: bridge, injected factories, declaration, and run modules are structurally assignable"
+        ]
+      }
+    }
+  },
+  "guardControls": {
+    "privateSourceRejected": true,
+    "productSourceRejected": true
+  },
+  "typecheck": {
+    "engineIsolatedStatus": 2,
+    "engineDiagnostics": 8,
+    "matchesHistoricalEight": true,
+    "strictBaseline": 111,
+    "strictIntegration": 111,
+    "introduced": 0
+  },
+  "privateDrift": {
+    "head": false,
+    "status": false,
+    "index": false,
+    "metadata": false,
+    "engine": false
+  },
+  "temporaryRemoved": true,
+  "proposalApplied": false,
+  "behavioralAcceptance": false,
+  "scope": "Current actual-engine observations, unchanged fixtures, copied engine and packed product only; not full integration/security or proposal approval"
+}

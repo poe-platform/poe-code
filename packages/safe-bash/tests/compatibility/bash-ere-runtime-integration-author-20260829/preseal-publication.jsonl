@@ -1,0 +1,3 @@
+{"event":"startup","pid":41598,"at":"2026-08-29T11:44:16.544Z"}
+{"name":"preseal-index-before","pid":41599,"status":0,"signal":null}
+{"name":"preseal-commit","pid":41602,"status":1,"signal":null}

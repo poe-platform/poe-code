@@ -1,0 +1,88 @@
+{
+  "at": "2026-08-27T03:32:39.708Z",
+  "excludes": [
+    "this self-referential manifest"
+  ],
+  "files": {
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/.gitignore": {
+      "sha256": "c740db8c5771bc53deca3faf16465ffd78a57c5bc6df70143f0a8f422fb469ab",
+      "bytes": 10
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/README.md": {
+      "sha256": "1ee3d340697f3f8acfd6efde479539599cb84115fa96804050c56feb09c11691",
+      "bytes": 7516
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/VALIDATION.md": {
+      "sha256": "77c4488093c27b4284c066c597fdafd6818d838e5ee4695f75264e0359647f51",
+      "bytes": 2345
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/archive-manifest.json": {
+      "sha256": "6a299770d955e27c2c0b603a37e49bc46629b49e5f652b549e469d344f577040",
+      "bytes": 50007
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/archive.mjs": {
+      "sha256": "584057b9afc44e31e419d86eb8baef62d49c69e28eaf16385c2f18fb0ed92c38",
+      "bytes": 11353
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/completion.json": {
+      "sha256": "fda1d7d1fefe7570dea70ab6172b8f902f2e6b3b84ab7ea8fd676354de110564",
+      "bytes": 15668
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/green-validation.json": {
+      "sha256": "fe424e3cfcfe416b5a23bc0eb557345b65fbc824196f057aaecc48b8f7b7d7f9",
+      "bytes": 160309
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/initial-artifacts.json": {
+      "sha256": "1d8862eb8520a2110cbb90423846e9609fb42fa0baa8eb82753ebce0f3d6ce7a",
+      "bytes": 2453
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/logs/green-original104.stdout": {
+      "sha256": "c65f4edb5cf440de6d63121a7c5f67b7489ffe33aa35baaef56e11cf02f2ae97",
+      "bytes": 16699
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/logs/green-original311-current-helper.stdout": {
+      "sha256": "1443f8555d59fc4052527efd89160dbbe5f0449b8c9b9afa8baa2dfcc679e716",
+      "bytes": 62975
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/logs/red-original104.stdout": {
+      "sha256": "2dbc96a9e755d56ed5dbcea8b3ada1434a50bfa5d695589956ef84d95348cee2",
+      "bytes": 17279
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/logs/red-original311-current-helper.stdout": {
+      "sha256": "657207f07b6d5c54cc4d20de3f486bc6d7923d7c4589e65176bd4c7ffe3fa949",
+      "bytes": 63571
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/originals/corpus.test.ts.txt": {
+      "sha256": "765eb2bd9f78ef12dfd877206bff31bbbddf36e04ea066041d61d71894d994e5",
+      "bytes": 1523
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/originals/differential.test.ts.txt": {
+      "sha256": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+      "bytes": 2285
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/red-validation.json": {
+      "sha256": "f886acf09f70f6751b8f8d25934688ee55339fbf0df7bd390d3f029dd05996fc",
+      "bytes": 159806
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/repros.json": {
+      "sha256": "33a77383cb8299f2a33befd86b566a14b7f21ff0e54cd81ee9228925f3e74185",
+      "bytes": 76299
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/run.mjs": {
+      "sha256": "90e4756b2714eb88e5753c56c4c1b91839b5078fdd0d73a807d0aba5c265617e",
+      "bytes": 7044
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/tsconfig.json": {
+      "sha256": "5c40d7168a7d8954477894da5b4fe695b0128bc6c81d3688518c9944c1534721",
+      "bytes": 190
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/types-cleanup-incident.json": {
+      "sha256": "b2a0e3626306b5c4c34019c27e41a55ca54a6ee94a89f2298948f3012cbc6baf",
+      "bytes": 982
+    },
+    "tests/commands/table-text-stress/diagnostic-gap-handoff/types-validation.json": {
+      "sha256": "8f24e7c382037c43f7d4ab76d35876aa596112100c2a7f8505c6798f7b63c8e0",
+      "bytes": 139575
+    }
+  }
+}

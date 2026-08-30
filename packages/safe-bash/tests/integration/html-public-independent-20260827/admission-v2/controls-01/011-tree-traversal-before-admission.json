@@ -1,0 +1,13 @@
+{
+  "name": "tree-traversal-before-admission",
+  "expectedBoundary": "PATH",
+  "started": "2026-08-27T22:23:32.566Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:PATH \"../escape\"",
+    "code": "PATH",
+    "stack": "Error: BOUNDARY:PATH \"../escape\"\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at metadataPath (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:33:3)\n    at validateTree (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:69:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:41:62\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:41:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:23:32.581Z"
+}

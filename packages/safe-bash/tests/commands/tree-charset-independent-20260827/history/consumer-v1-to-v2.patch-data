@@ -1,0 +1,5 @@
+--- consumer-v1.mjs
++++ consumer-v2.mjs
+@@
+-const hostile = { LANG: "en_US.UTF-8", hasOwnProperty() { throw new Error("must not call"); } };
++const hostile = { LANG: "en_US.UTF-8", hasOwnProperty: "not-callable" };

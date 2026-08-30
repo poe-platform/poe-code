@@ -1,0 +1,198 @@
+{
+  "at": "2026-08-27T07:29:39.915Z",
+  "scope": "tests/integration/full-gate-20260827/cold-typecheck-independent",
+  "head": "323d4805ae3b9173579f98b8ea9721991e05de99",
+  "ownedStatus": "?? tests/integration/full-gate-20260827/cold-typecheck-independent/README.md\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/check-before-import-closure-correction.mjs.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/check-before-inventory-correction.mjs.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/check.mjs\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/commands.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/diagnostics.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-build-first-consumers.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-build-first-consumers.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-cold-files.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-cold-files.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-consumer-before-build.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-consumer-before-build.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-consumer-negative.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-consumer-negative.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-declaration-poison.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-declaration-poison.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-effective-consumer.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-effective-consumer.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-effective-root.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-effective-root.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-fixed-cold.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-fixed-cold.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-original-cold.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-original-cold.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-original-files.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-original-files.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-pack.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-pack.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-packed-negative.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-packed-negative.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-packed-positive.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-packed-positive.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-packed-restored.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-packed-restored.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-packed-runtime.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-packed-runtime.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-results.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-root-negative.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-root-negative.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-snapshot-manifest.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-source-fallback-negative.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-source-fallback-negative.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-unchanged-consumer-strict.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/author-unchanged-consumer-strict.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/dependency-file-hashes.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/final-context.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/initial-context.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/npm-version.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/npm-version.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-build-first-consumers.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-build-first-consumers.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-cold-files.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-cold-files.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-consumer-before-build.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-consumer-before-build.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-consumer-negative.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-consumer-negative.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-declaration-poison.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-declaration-poison.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-effective-consumer.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-effective-consumer.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-effective-root.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-effective-root.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-fixed-cold.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-fixed-cold.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-original-cold.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-original-cold.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-original-files.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-original-files.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-pack.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-pack.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-packed-negative.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-packed-negative.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-packed-positive.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-packed-positive.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-packed-restored.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-packed-restored.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-packed-runtime.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-packed-runtime.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-results.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-root-negative.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-root-negative.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-snapshot-manifest.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-source-fallback-negative.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-source-fallback-negative.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-unchanged-consumer-strict.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/paired-unchanged-consumer-strict.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/published-plan.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/report.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-complete/retained-capture-verification.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/dependency-file-hashes.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/final-context.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/initial-context.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/npm-version.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/npm-version.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-cold-files.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-cold-files.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-effective-root.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-effective-root.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-fixed-cold.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-fixed-cold.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-original-cold.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-original-cold.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-original-files.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-original-files.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/paired-snapshot-manifest.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/published-plan.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/report.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence-final/retained-capture-verification.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/dependency-file-hashes.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/final-context.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/initial-context.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/npm-version.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/npm-version.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-cold-files.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-cold-files.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-effective-root.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-effective-root.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-fixed-cold.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-fixed-cold.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-original-cold.stderr.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-original-cold.stdout.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/paired-snapshot-manifest.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/published-plan.txt\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/report.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/evidence/retained-capture-verification.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/finalize.mjs\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/inclusion.json\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/inventory-correction.md\n?? tests/integration/full-gate-20260827/cold-typecheck-independent/public-control.mjs\n",
+  "indexSha256": "eee3804b1d67ef396cf0eca32eea0bba53ad8eea06ae61d2db7f5b7badd4d954",
+  "unstagedPaths": [
+    "package.json"
+  ],
+  "stagedPaths": [],
+  "temporaryRoots": [
+    {
+      "path": "/private/tmp/safe-bash-cold-typecheck-independent-run-zwVoip",
+      "exists": false
+    },
+    {
+      "path": "/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi",
+      "exists": false
+    }
+  ],
+  "groups": [
+    {
+      "processGroup": 36906,
+      "alive": false
+    },
+    {
+      "processGroup": 37112,
+      "alive": false
+    },
+    {
+      "processGroup": 37143,
+      "alive": false
+    },
+    {
+      "processGroup": 37171,
+      "alive": false
+    },
+    {
+      "processGroup": 37172,
+      "alive": false
+    },
+    {
+      "processGroup": 39598,
+      "alive": false
+    },
+    {
+      "processGroup": 39810,
+      "alive": false
+    },
+    {
+      "processGroup": 42195,
+      "alive": false
+    },
+    {
+      "processGroup": 42478,
+      "alive": false
+    },
+    {
+      "processGroup": 42566,
+      "alive": false
+    },
+    {
+      "processGroup": 42569,
+      "alive": false
+    },
+    {
+      "processGroup": 50566,
+      "alive": false
+    },
+    {
+      "processGroup": 50862,
+      "alive": false
+    },
+    {
+      "processGroup": 51010,
+      "alive": false
+    },
+    {
+      "processGroup": 51097,
+      "alive": false
+    },
+    {
+      "processGroup": 51098,
+      "alive": false
+    },
+    {
+      "processGroup": 51107,
+      "alive": false
+    },
+    {
+      "processGroup": 51110,
+      "alive": false
+    },
+    {
+      "processGroup": 51111,
+      "alive": false
+    },
+    {
+      "processGroup": 51112,
+      "alive": false
+    },
+    {
+      "processGroup": 51117,
+      "alive": false
+    },
+    {
+      "processGroup": 51121,
+      "alive": false
+    },
+    {
+      "processGroup": 51129,
+      "alive": false
+    },
+    {
+      "processGroup": 51130,
+      "alive": false
+    },
+    {
+      "processGroup": 51184,
+      "alive": false
+    },
+    {
+      "processGroup": 51206,
+      "alive": false
+    },
+    {
+      "processGroup": 51208,
+      "alive": false
+    },
+    {
+      "processGroup": 51253,
+      "alive": false
+    },
+    {
+      "processGroup": 51254,
+      "alive": false
+    },
+    {
+      "processGroup": 51258,
+      "alive": false
+    },
+    {
+      "processGroup": 51278,
+      "alive": false
+    },
+    {
+      "processGroup": 51295,
+      "alive": false
+    },
+    {
+      "processGroup": 51345,
+      "alive": false
+    },
+    {
+      "processGroup": 51347,
+      "alive": false
+    },
+    {
+      "processGroup": 51357,
+      "alive": false
+    },
+    {
+      "processGroup": 51358,
+      "alive": false
+    },
+    {
+      "processGroup": 51361,
+      "alive": false
+    },
+    {
+      "processGroup": 51362,
+      "alive": false
+    },
+    {
+      "processGroup": 51372,
+      "alive": false
+    },
+    {
+      "processGroup": 51381,
+      "alive": false
+    },
+    {
+      "processGroup": 51382,
+      "alive": false
+    },
+    {
+      "processGroup": 51384,
+      "alive": false
+    }
+  ],
+  "executedSupervisedPhases": 42,
+  "separateSyntaxChecks": 2,
+  "cumulativeAuthorizedToolCount": 44,
+  "metadataOnlyFinalizer": true,
+  "noProductOrCompilerExecution": true,
+  "noOwnedStagingOrCommit": true,
+  "note": "Concurrent root/worker changes are not reverted or attributed to this verifier. This audit only reads Git state and owned evidence."
+}

@@ -1,0 +1,7 @@
+{
+  "recordedAt": "2026-08-27T09:03:10.327Z",
+  "boundary": "Extracted F29 assertion/observation callback with finite synthetic FS/invocation mocks only. No runner module import, candidate import, classification, Shell, or native call.",
+  "productExecutions": 0,
+  "nativeCalls": 0,
+  "observations": []
+}

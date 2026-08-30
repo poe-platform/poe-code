@@ -1,0 +1,12 @@
+import type { CommandContext, CommandInvokeOptions, FileSystem, ShellExecOptions, ShellInvokeOptions, ShellLimits, ShellOptions, ShellResult } from "virtual-bash";
+declare const fs: FileSystem;
+declare const result: ShellResult;
+declare const context: CommandContext;
+export const TN01: ShellOptions = { fs, directoryStack: [] };
+export const TN02: ShellExecOptions = { directoryStack: [] };
+export const TN03: ShellInvokeOptions = { directoryStack: [] };
+export const TN04: CommandInvokeOptions = { directoryStackCwdPublication: Symbol() };
+export const TN05: ShellLimits = { maxDirectoryStackEntries: 4096 };
+export const TN06 = result.directoryStack;
+export const TN07 = context.directoryStack;
+export const TN08: CommandInvokeOptions = { signal: "abort" };

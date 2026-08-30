@@ -1,0 +1,9 @@
+{
+  "originalFileSha256": "2e8f2c8851e25017fd73f57584de0099cbf0352824c74828b5ac82b3b0280049",
+  "observation": {
+    "id": "F29-valid-composed-signal-cleaned-after-success",
+    "activeAtFsEntry": true,
+    "callerStillActive": true,
+    "postCompletionAccepted": false
+  }
+}

@@ -1,0 +1,24 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/fence-target/alias.mjs
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/auth.mjs:28:5)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/auth.mjs:32:52)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/auth.mjs:32:52)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/auth.mjs:32:52)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/auth.mjs:32:52)
+    at snapshot (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/auth.mjs:35:3)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/prepare.mjs:115:19
+    at Array.map (<anonymous>)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/prepare.mjs:114:31
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

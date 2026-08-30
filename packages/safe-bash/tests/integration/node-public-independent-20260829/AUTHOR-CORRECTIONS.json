@@ -1,0 +1,1324 @@
+{
+  "role": "DATA audit of immutable author evidence, not new runtime",
+  "archiveEntries": 370,
+  "allEntryBytesAndHashesVerified": true,
+  "results": [
+    {
+      "path": "actual-v1/RESULT.json",
+      "status": "FAILED_OR_INCOMPLETE",
+      "error": "TypeError: Cannot read properties of undefined (reading 'typescript')\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-author-20260829/run.mjs:199:92",
+      "children": [
+        {
+          "label": "development-blobs",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        }
+      ],
+      "cleanup": {
+        "directChildren": 1,
+        "observedRegexWorkers": 0,
+        "observedNodeWorkers": 0,
+        "observedGuestEntries": 0,
+        "implicitLoaderAdmissions": 0,
+        "knownDirectOsProcesses": 1,
+        "totalObservedWorkerCategories": 0,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "failures": [],
+      "controls": []
+    },
+    {
+      "path": "actual-v2/RESULT.json",
+      "status": "FAILED_OR_INCOMPLETE",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(row.target.startsWith('compiled/engine/')&&!row.target.split('/').includes('..')&&!row.target.endsWith('/AGENTS.md'))\n\n    at setupNodeFixtures (file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-author-20260829/run-v2.mjs:136:44)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-author-20260829/run-v2.mjs:218:3",
+      "children": [
+        {
+          "label": "development-blobs",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        }
+      ],
+      "cleanup": {
+        "directChildren": 1,
+        "observedRegexWorkers": 0,
+        "observedNodeWorkers": 0,
+        "observedGuestEntries": 0,
+        "implicitLoaderAdmissions": 0,
+        "knownDirectOsProcesses": 1,
+        "totalObservedWorkerCategories": 0,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "failures": [],
+      "controls": []
+    },
+    {
+      "path": "actual-v3/RESULT.json",
+      "status": "AUTHOR_ASSERTION_FAILURES",
+      "error": null,
+      "children": [
+        {
+          "label": "development-blobs",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "production-build-once",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "offline-pack",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-public",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-apply",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-redirections-v2",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-strict",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-novel",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-arrays",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-coherence",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "types-source-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "types-source-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "source-node-focused",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-node-module-0",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-node-module-9",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-node-module-18",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "source-node-public-0",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "source-node-public-6",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "source-node-public-12",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "source-node-public-18",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-source-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-source-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "offline-install",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-public",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-apply",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-redirections-v2",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-strict",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-novel",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-arrays",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-coherence",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "types-installed-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "types-installed-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "installed-node-focused",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-node-module-0",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-node-module-9",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-node-module-18",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "installed-node-public-0",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "installed-node-public-6",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "installed-node-public-12",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "installed-node-public-18",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-installed-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-installed-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "moved-public",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-apply",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-redirections-v2",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-strict",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-novel",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-arrays",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-coherence",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "types-moved-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "types-moved-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "moved-node-focused",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-node-module-0",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-node-module-9",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-node-module-18",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "moved-node-public-0",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "moved-node-public-6",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "moved-node-public-12",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "moved-node-public-18",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-moved-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-moved-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "node-export-missing",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "node-export-missing-restored",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-collision-missing",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "node-collision-missing-restored",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "node-definition-missing",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "node-definition-missing-restored",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "binding-missing",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "binding-changed",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        }
+      ],
+      "cleanup": {
+        "directChildren": 69,
+        "observedRegexWorkers": 0,
+        "observedNodeWorkers": 132,
+        "observedGuestEntries": 117,
+        "implicitLoaderAdmissions": 23,
+        "knownDirectOsProcesses": 69,
+        "totalObservedWorkerCategories": 155,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "failures": [
+        {
+          "label": "source-node-public-0",
+          "cases": [
+            {
+              "id": "P06",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "TypeError: node provider completion without acquired Worker\n    at file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/source/dist/commands/node/lifecycle.js:200:23\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+              }
+            }
+          ]
+        },
+        {
+          "label": "source-node-public-6",
+          "cases": [
+            {
+              "id": "P07",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n{\n  execute: [Function: execute],\n  name: 'node'\n}\n\n    at runPublic (file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/harness/node/public-node.mjs:25:414)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/harness/node/node-batch.mjs:10:311"
+              }
+            }
+          ]
+        },
+        {
+          "label": "source-node-public-12",
+          "cases": [
+            {
+              "id": "P17",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "TypeError: node provider completion without acquired Worker\n    at file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/source/dist/commands/node/lifecycle.js:200:23\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+              }
+            }
+          ]
+        },
+        {
+          "label": "node-types-source-true",
+          "errors": [
+            "source/__consumer/node-consumer-source-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "source/__consumer/node-consumer-source-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "source/__consumer/node-consumer-source-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "source/__consumer/node-consumer-source-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "source/__consumer/node-consumer-source-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "source/__consumer/node-consumer-source-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        },
+        {
+          "label": "installed-node-public-0",
+          "cases": [
+            {
+              "id": "P06",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "TypeError: node provider completion without acquired Worker\n    at file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/installed/node_modules/virtual-bash/dist/commands/node/lifecycle.js:200:23\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+              }
+            }
+          ]
+        },
+        {
+          "label": "installed-node-public-6",
+          "cases": [
+            {
+              "id": "P07",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n{\n  execute: [Function: execute],\n  name: 'node'\n}\n\n    at runPublic (file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/harness/node/public-node.mjs:25:414)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/harness/node/node-batch.mjs:10:311"
+              }
+            }
+          ]
+        },
+        {
+          "label": "installed-node-public-12",
+          "cases": [
+            {
+              "id": "P17",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "TypeError: node provider completion without acquired Worker\n    at file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/installed/node_modules/virtual-bash/dist/commands/node/lifecycle.js:200:23\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+              }
+            }
+          ]
+        },
+        {
+          "label": "node-types-installed-true",
+          "errors": [
+            "installed/node-consumer-installed-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "installed/node-consumer-installed-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "installed/node-consumer-installed-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "installed/node-consumer-installed-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "installed/node-consumer-installed-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "installed/node-consumer-installed-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        },
+        {
+          "label": "moved-node-public-0",
+          "cases": [
+            {
+              "id": "P06",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "TypeError: node provider completion without acquired Worker\n    at file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/moved%20package/node_modules/virtual-bash/dist/commands/node/lifecycle.js:200:23\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+              }
+            }
+          ]
+        },
+        {
+          "label": "moved-node-public-6",
+          "cases": [
+            {
+              "id": "P07",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n{\n  execute: [Function: execute],\n  name: 'node'\n}\n\n    at runPublic (file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/harness/node/public-node.mjs:25:414)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/harness/node/node-batch.mjs:10:311"
+              }
+            }
+          ]
+        },
+        {
+          "label": "moved-node-public-12",
+          "cases": [
+            {
+              "id": "P17",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "TypeError: node provider completion without acquired Worker\n    at file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/moved%20package/node_modules/virtual-bash/dist/commands/node/lifecycle.js:200:23\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+              }
+            }
+          ]
+        },
+        {
+          "label": "node-types-moved-true",
+          "errors": [
+            "moved package/node-consumer-moved-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "moved package/node-consumer-moved-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "moved package/node-consumer-moved-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "moved package/node-consumer-moved-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "moved package/node-consumer-moved-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "moved package/node-consumer-moved-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        },
+        {
+          "label": "node-collision-missing-restored",
+          "cases": [
+            {
+              "id": "P07",
+              "role": "public-node-integration",
+              "pass": false,
+              "clean": true,
+              "workers": 0,
+              "exits": 0,
+              "retired": 0,
+              "guestEntries": 0,
+              "events": [],
+              "facts": {
+                "error": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n{\n  execute: [Function: execute],\n  name: 'node'\n}\n\n    at runPublic (file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/harness/node/public-node.mjs:25:414)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///private/tmp/node-public-author-active-itphhK/node-public-author-X4mKqm/harness/node/node-batch.mjs:10:311"
+              }
+            }
+          ]
+        }
+      ],
+      "nodeCohorts": [
+        {
+          "label": "source-node-focused",
+          "pass": 34,
+          "fail": 0,
+          "cases": 34,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "source-node-module-0",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 9
+        },
+        {
+          "label": "source-node-module-9",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 9
+        },
+        {
+          "label": "source-node-module-18",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 5
+        },
+        {
+          "label": "source-node-public-0",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "source-node-public-6",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 6,
+          "guestEntries": 6
+        },
+        {
+          "label": "source-node-public-12",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 6,
+          "guestEntries": 5
+        },
+        {
+          "label": "source-node-public-18",
+          "pass": 6,
+          "fail": 0,
+          "cases": 6,
+          "nodeWorkers": 5,
+          "guestEntries": 5
+        },
+        {
+          "label": "installed-node-focused",
+          "pass": 34,
+          "fail": 0,
+          "cases": 34,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "installed-node-module-0",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 9
+        },
+        {
+          "label": "installed-node-module-9",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 9
+        },
+        {
+          "label": "installed-node-module-18",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 5
+        },
+        {
+          "label": "installed-node-public-0",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "installed-node-public-6",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 6,
+          "guestEntries": 6
+        },
+        {
+          "label": "installed-node-public-12",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 6,
+          "guestEntries": 5
+        },
+        {
+          "label": "installed-node-public-18",
+          "pass": 6,
+          "fail": 0,
+          "cases": 6,
+          "nodeWorkers": 5,
+          "guestEntries": 5
+        },
+        {
+          "label": "moved-node-focused",
+          "pass": 34,
+          "fail": 0,
+          "cases": 34,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "moved-node-module-0",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 9
+        },
+        {
+          "label": "moved-node-module-9",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 9
+        },
+        {
+          "label": "moved-node-module-18",
+          "pass": 9,
+          "fail": 0,
+          "cases": 9,
+          "nodeWorkers": 9,
+          "guestEntries": 5
+        },
+        {
+          "label": "moved-node-public-0",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "moved-node-public-6",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 6,
+          "guestEntries": 6
+        },
+        {
+          "label": "moved-node-public-12",
+          "pass": 5,
+          "fail": 1,
+          "cases": 6,
+          "nodeWorkers": 6,
+          "guestEntries": 5
+        },
+        {
+          "label": "moved-node-public-18",
+          "pass": 6,
+          "fail": 0,
+          "cases": 6,
+          "nodeWorkers": 5,
+          "guestEntries": 5
+        },
+        {
+          "label": "node-export-missing",
+          "pass": 0,
+          "fail": 1,
+          "cases": 1,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "node-export-missing-restored",
+          "pass": 1,
+          "fail": 0,
+          "cases": 1,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "node-collision-missing",
+          "pass": 0,
+          "fail": 1,
+          "cases": 1,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "node-collision-missing-restored",
+          "pass": 0,
+          "fail": 1,
+          "cases": 1,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "node-definition-missing",
+          "pass": 0,
+          "fail": 1,
+          "cases": 1,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        },
+        {
+          "label": "node-definition-missing-restored",
+          "pass": 1,
+          "fail": 0,
+          "cases": 1,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        }
+      ],
+      "nodeTypes": [
+        {
+          "label": "source",
+          "negative": false,
+          "pass": true,
+          "errors": []
+        },
+        {
+          "label": "source",
+          "negative": true,
+          "pass": false,
+          "errors": [
+            "source/__consumer/node-consumer-source-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "source/__consumer/node-consumer-source-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "source/__consumer/node-consumer-source-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "source/__consumer/node-consumer-source-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "source/__consumer/node-consumer-source-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "source/__consumer/node-consumer-source-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        },
+        {
+          "label": "installed",
+          "negative": false,
+          "pass": true,
+          "errors": []
+        },
+        {
+          "label": "installed",
+          "negative": true,
+          "pass": false,
+          "errors": [
+            "installed/node-consumer-installed-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "installed/node-consumer-installed-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "installed/node-consumer-installed-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "installed/node-consumer-installed-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "installed/node-consumer-installed-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "installed/node-consumer-installed-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        },
+        {
+          "label": "moved",
+          "negative": false,
+          "pass": true,
+          "errors": []
+        },
+        {
+          "label": "moved",
+          "negative": true,
+          "pass": false,
+          "errors": [
+            "moved package/node-consumer-moved-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "moved package/node-consumer-moved-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "moved package/node-consumer-moved-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "moved package/node-consumer-moved-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "moved package/node-consumer-moved-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "moved package/node-consumer-moved-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "name": "node-export-missing",
+          "detected": true,
+          "originalSha256": "34c9a052d0c21b89a106f01caebd655d8c8bd8baa31e2d530760ba7e050703cc",
+          "mutantSha256": "1dac8b499d0bc6944ccb6fa341584717949ee751ac9ecb690a957e263c449448"
+        },
+        {
+          "name": "node-collision-missing",
+          "detected": true,
+          "originalSha256": "56795464372aa8ee1f3706ec985e85adeecd0a5209e0f74e0ead4d08af10f875",
+          "mutantSha256": "8e027fd39847174a02f88a740c59cd8a0fc9f7773e67709ec8031cdeca72d04c"
+        },
+        {
+          "name": "node-definition-missing",
+          "detected": true,
+          "originalSha256": "56795464372aa8ee1f3706ec985e85adeecd0a5209e0f74e0ead4d08af10f875",
+          "mutantSha256": "e96346e197c4ef7e73f402fc0f3a2ad10fe53a557bea20060118bac2ceb87979"
+        },
+        {
+          "name": "binding-missing",
+          "pass": true
+        },
+        {
+          "name": "binding-changed",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "path": "actual-v4/RESULT.json",
+      "status": "AUTHOR_VERSIONED_SCOPED_PASS",
+      "error": null,
+      "children": [
+        {
+          "label": "v4-source-public",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-v4-source-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-v4-source-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "v4-installed-public",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-v4-installed-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-v4-installed-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "v4-moved-public",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-v4-moved-false",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        },
+        {
+          "label": "node-types-v4-moved-true",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 2
+        },
+        {
+          "label": "v4-force-replacement",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 1
+        },
+        {
+          "label": "v4-force-replacement-restored",
+          "closed": true,
+          "signal": null,
+          "alarm": false,
+          "code": 0
+        }
+      ],
+      "cleanup": {
+        "directChildren": 11,
+        "observedNodeWorkers": 7,
+        "observedGuestEntries": 7,
+        "implicitLoaderAdmissions": 0,
+        "observedRegexWorkers": 0,
+        "allClosed": true,
+        "signals": [],
+        "noGlobalDescendantClaim": true
+      },
+      "failures": [],
+      "nodeCohorts": [
+        {
+          "label": "v4-source-public",
+          "pass": 3,
+          "fail": 0,
+          "cases": 3,
+          "nodeWorkers": 2,
+          "guestEntries": 2
+        },
+        {
+          "label": "v4-installed-public",
+          "pass": 3,
+          "fail": 0,
+          "cases": 3,
+          "nodeWorkers": 2,
+          "guestEntries": 2
+        },
+        {
+          "label": "v4-moved-public",
+          "pass": 3,
+          "fail": 0,
+          "cases": 3,
+          "nodeWorkers": 2,
+          "guestEntries": 2
+        },
+        {
+          "label": "v4-force-replacement",
+          "pass": 0,
+          "fail": 1,
+          "cases": 1,
+          "nodeWorkers": 1,
+          "guestEntries": 1
+        },
+        {
+          "label": "v4-force-replacement-restored",
+          "pass": 1,
+          "fail": 0,
+          "cases": 1,
+          "nodeWorkers": 0,
+          "guestEntries": 0
+        }
+      ],
+      "nodeTypes": [
+        {
+          "label": "v4-source",
+          "negative": false,
+          "pass": true,
+          "errors": []
+        },
+        {
+          "label": "v4-source",
+          "negative": true,
+          "pass": true,
+          "errors": [
+            "source/__consumer/node-consumer-v4-source-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "source/__consumer/node-consumer-v4-source-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "source/__consumer/node-consumer-v4-source-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "source/__consumer/node-consumer-v4-source-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "source/__consumer/node-consumer-v4-source-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "source/__consumer/node-consumer-v4-source-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        },
+        {
+          "label": "v4-installed",
+          "negative": false,
+          "pass": true,
+          "errors": []
+        },
+        {
+          "label": "v4-installed",
+          "negative": true,
+          "pass": true,
+          "errors": [
+            "rehydrated-installed/node-consumer-v4-installed-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "rehydrated-installed/node-consumer-v4-installed-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "rehydrated-installed/node-consumer-v4-installed-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "rehydrated-installed/node-consumer-v4-installed-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "rehydrated-installed/node-consumer-v4-installed-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "rehydrated-installed/node-consumer-v4-installed-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        },
+        {
+          "label": "v4-moved",
+          "negative": false,
+          "pass": true,
+          "errors": []
+        },
+        {
+          "label": "v4-moved",
+          "negative": true,
+          "pass": true,
+          "errors": [
+            "physically moved rehydration/node-consumer-v4-moved-true.mts(3,14): error TS2345: Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'.",
+            "physically moved rehydration/node-consumer-v4-moved-true.mts(4,24): error TS2322: Type 'string' is not assignable to type 'boolean'.",
+            "physically moved rehydration/node-consumer-v4-moved-true.mts(5,32): error TS2322: Type 'number' is not assignable to type 'boolean | undefined'.",
+            "physically moved rehydration/node-consumer-v4-moved-true.mts(6,24): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'NodeCommandsOptions'.",
+            "physically moved rehydration/node-consumer-v4-moved-true.mts(7,9): error TS2305: Module '\"virtual-bash/commands/node\"' has no exported member 'NodeOwner'.",
+            "physically moved rehydration/node-consumer-v4-moved-true.mts(8,24): error TS2307: Cannot find module 'virtual-bash/commands/node/host' or its corresponding type declarations."
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "name": "v4-force-replacement",
+          "detected": true,
+          "reason": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'return' !== 'throw'\n\n    at runPublic (file:///private/tmp/node-public-author-active-itphhK/node-public-author-y3WcXo/harness/node/public-node.mjs:25:351)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///private/tmp/node-public-author-active-itphhK/node-public-author-y3WcXo/harness/node/node-batch.mjs:10:311"
+        }
+      ]
+    }
+  ],
+  "preserved": "v1/v2 setup failures, v3 P06/P07/P17 and type predicate failures, original nondiscriminating collision mutant/restored failure; v4 corrected cohort separate",
+  "authority": "Root latest review grant requires versionmapping; no production correction inferred"
+}

@@ -1,0 +1,25 @@
+import { Shell, createMemoryFileSystem, agentCommands, createAgentCommands, type CommandDefinition, type VirtualShellPlugin } from "virtual-bash";
+import { grepAliasCommands, createGrepAliasCommands, egrepCommand, fgrepCommand } from "__ALIASES__";
+import { columnCommands, createColumnCommands, createColumnCommand } from "__COLUMN__";
+
+type GrepAliasOptions = NonNullable<Parameters<typeof grepAliasCommands>[0]>;
+type ColumnCommandsOptions = NonNullable<Parameters<typeof columnCommands>[0]>;
+
+const regex = { requestTimeoutMs: 37, startupTimeoutMs: 3000, maxWorkers: 1, maxQueuedRequests: 0, maxQueuedBytes: 1024, idleTimeoutMs: 20, workerOldGenerationMb: 32, workerStackMb: 2 };
+const aliasOptions: GrepAliasOptions = { replace: true, regex };
+const limits: NonNullable<ColumnCommandsOptions["limits"]> = { maxInputBytes: 128, maxOutputBytes: 128, maxDiagnosticBytes: 64, maxRecordBytes: 64, maxChunkBytes: 64, maxRows: 2, maxCells: 4, maxFields: 2, maxFiles: 2, maxSteps: 1000, maxArgumentBytes: 128, maxWidth: 16 };
+const columnOptions: ColumnCommandsOptions = { replace: true, limits };
+const definitions: readonly CommandDefinition[] = [...createGrepAliasCommands(aliasOptions), egrepCommand(aliasOptions), fgrepCommand(aliasOptions), ...createColumnCommands(columnOptions), createColumnCommand(columnOptions)];
+const plugins: readonly VirtualShellPlugin[] = [grepAliasCommands(aliasOptions), columnCommands(columnOptions)];
+const shell = new Shell({ fs: createMemoryFileSystem() });
+shell.use(agentCommands(__AGENT_OPTIONS__));
+createAgentCommands(__AGENT_OPTIONS__);
+for (const plugin of plugins) shell.use(plugin);
+for (const definition of definitions) shell.register(definition, { replace: true });
+shell.use(async (context, next) => {
+  const defaultInput: boolean | undefined = context.stdinIsDefault;
+  context.registerCleanup?.(async () => { void defaultInput; });
+  return next();
+});
+await shell.exec("printf 'a:b\\n' | egrep a | fgrep ':' | column -ts:");
+await shell.dispose();

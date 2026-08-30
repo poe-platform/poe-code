@@ -1,0 +1,5104 @@
+[
+  {
+    "path": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/OBSERVATIONS.json",
+    "blob": "0379b9ad85d54bb360362721108e0ab14fac507b",
+    "bytes": 40249,
+    "sha256": "7ef6baa6ae3d53d1fa64fe42e0b0d610fb2bf458a8de3ca2acf46b1c5543be04",
+    "data": {
+      "schema": "typed6-native-observations-v2",
+      "at": "2026-08-29T14:31:18.328Z",
+      "phaseDeadline": 1788014344559.4192,
+      "source": "e10e371dc9c70583681add9c1747c85a710b1f59",
+      "binding": "32ceae3a52c52e9cb23f327801c1d1b80238143c",
+      "observations": [
+        {
+          "id": "P19",
+          "status": 1,
+          "retired": true,
+          "stop": null,
+          "regularCaptureCompletion": true,
+          "channels": {
+            "stdout": [
+              {
+                "path": "captures/P19/stdout",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": "",
+                "text": ""
+              }
+            ],
+            "stderr": [
+              {
+                "path": "captures/P19/stderr",
+                "bytes": 62,
+                "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+                "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo=",
+                "text": "pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\n"
+              }
+            ]
+          },
+          "lifecycle": {
+            "id": "P19",
+            "started": 1788013872514,
+            "exit": true,
+            "close": true,
+            "status": 1,
+            "signal": null,
+            "stop": null,
+            "errors": [],
+            "signals": [],
+            "groupObservations": [
+              {
+                "state": "absent",
+                "error": {
+                  "thrownType": "object",
+                  "fields": {
+                    "name": {
+                      "presence": "value",
+                      "value": "Error"
+                    },
+                    "code": {
+                      "presence": "value",
+                      "value": "ESRCH"
+                    },
+                    "errno": {
+                      "presence": "value",
+                      "value": -3
+                    },
+                    "syscall": {
+                      "presence": "value",
+                      "value": "kill"
+                    }
+                  }
+                },
+                "at": 1788013872536,
+                "afterKill": false
+              }
+            ],
+            "group": {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              }
+            },
+            "capture": [
+              {
+                "name": "stdout",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": ""
+              },
+              {
+                "name": "stderr",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 62,
+                "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+                "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo="
+              }
+            ],
+            "filesVerified": true,
+            "receiptPublished": false,
+            "regularCaptureCompletion": true,
+            "streamEOF": null,
+            "pid": 90893,
+            "spawnObserved": true,
+            "stdinFinished": true,
+            "retired": true,
+            "finished": 1788013872543,
+            "filesBefore": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "filesAfter": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "observation": {
+              "format": "FNPIPEOBS1",
+              "bytes": 645,
+              "sha256": "04a52d08149460635ed971ee7bc5b7b4b7e66c9e8b5a650ba692d41383e39bbf"
+            }
+          }
+        },
+        {
+          "id": "P20",
+          "status": 1,
+          "retired": true,
+          "stop": null,
+          "regularCaptureCompletion": true,
+          "channels": {
+            "stdout": [
+              {
+                "path": "captures/P20/stdout",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": "",
+                "text": ""
+              }
+            ],
+            "stderr": [
+              {
+                "path": "captures/P20/stderr",
+                "bytes": 62,
+                "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+                "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo=",
+                "text": "pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\n"
+              }
+            ]
+          },
+          "lifecycle": {
+            "id": "P20",
+            "started": 1788013872566,
+            "exit": true,
+            "close": true,
+            "status": 1,
+            "signal": null,
+            "stop": null,
+            "errors": [],
+            "signals": [],
+            "groupObservations": [
+              {
+                "state": "absent",
+                "error": {
+                  "thrownType": "object",
+                  "fields": {
+                    "name": {
+                      "presence": "value",
+                      "value": "Error"
+                    },
+                    "code": {
+                      "presence": "value",
+                      "value": "ESRCH"
+                    },
+                    "errno": {
+                      "presence": "value",
+                      "value": -3
+                    },
+                    "syscall": {
+                      "presence": "value",
+                      "value": "kill"
+                    }
+                  }
+                },
+                "at": 1788013872589,
+                "afterKill": false
+              }
+            ],
+            "group": {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              }
+            },
+            "capture": [
+              {
+                "name": "stdout",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": ""
+              },
+              {
+                "name": "stderr",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 62,
+                "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+                "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo="
+              }
+            ],
+            "filesVerified": true,
+            "receiptPublished": false,
+            "regularCaptureCompletion": true,
+            "streamEOF": null,
+            "pid": 90894,
+            "spawnObserved": true,
+            "stdinFinished": true,
+            "retired": true,
+            "finished": 1788013872595,
+            "filesBefore": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "filesAfter": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "observation": {
+              "format": "FNPIPEOBS1",
+              "bytes": 645,
+              "sha256": "8e8bb5728d03d45776178733ee2332d6101941bca39f10387a175c1ce9c1ebba"
+            }
+          }
+        },
+        {
+          "id": "P21",
+          "status": 0,
+          "retired": true,
+          "stop": null,
+          "regularCaptureCompletion": true,
+          "channels": {
+            "stdout": [
+              {
+                "path": "captures/P21/stdout",
+                "bytes": 35,
+                "sha256": "2701cce8db563deeca2c5403d6cf3266a52f02c83a4b655203ee20f14d8b8d1c",
+                "base64": "ZGVjbGFyZSAtYXIgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo=",
+                "text": "declare -ar PIPESTATUS='([0]=\"0\")'\n"
+              }
+            ],
+            "stderr": [
+              {
+                "path": "captures/P21/stderr",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": "",
+                "text": ""
+              }
+            ]
+          },
+          "lifecycle": {
+            "id": "P21",
+            "started": 1788013872622,
+            "exit": true,
+            "close": true,
+            "status": 0,
+            "signal": null,
+            "stop": null,
+            "errors": [],
+            "signals": [],
+            "groupObservations": [
+              {
+                "state": "absent",
+                "error": {
+                  "thrownType": "object",
+                  "fields": {
+                    "name": {
+                      "presence": "value",
+                      "value": "Error"
+                    },
+                    "code": {
+                      "presence": "value",
+                      "value": "ESRCH"
+                    },
+                    "errno": {
+                      "presence": "value",
+                      "value": -3
+                    },
+                    "syscall": {
+                      "presence": "value",
+                      "value": "kill"
+                    }
+                  }
+                },
+                "at": 1788013872646,
+                "afterKill": false
+              }
+            ],
+            "group": {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              }
+            },
+            "capture": [
+              {
+                "name": "stdout",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 35,
+                "sha256": "2701cce8db563deeca2c5403d6cf3266a52f02c83a4b655203ee20f14d8b8d1c",
+                "base64": "ZGVjbGFyZSAtYXIgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo="
+              },
+              {
+                "name": "stderr",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": ""
+              }
+            ],
+            "filesVerified": true,
+            "receiptPublished": false,
+            "regularCaptureCompletion": true,
+            "streamEOF": null,
+            "pid": 90895,
+            "spawnObserved": true,
+            "stdinFinished": true,
+            "retired": true,
+            "finished": 1788013872649,
+            "filesBefore": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "filesAfter": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "observation": {
+              "format": "FNPIPEOBS1",
+              "bytes": 609,
+              "sha256": "d3fd33824a1f710f325a69d6fae552f5ff6e5aaea640f29abd3af66982e9141d"
+            }
+          }
+        },
+        {
+          "id": "P22",
+          "status": 0,
+          "retired": true,
+          "stop": null,
+          "regularCaptureCompletion": true,
+          "channels": {
+            "stdout": [
+              {
+                "path": "captures/P22/stdout",
+                "bytes": 59,
+                "sha256": "6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387",
+                "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSIiCmRlY2xhcmUgLWEgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo=",
+                "text": "declare -- PIPESTATUS=\"\"\ndeclare -a PIPESTATUS='([0]=\"0\")'\n"
+              }
+            ],
+            "stderr": [
+              {
+                "path": "captures/P22/stderr",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": "",
+                "text": ""
+              }
+            ]
+          },
+          "lifecycle": {
+            "id": "P22",
+            "started": 1788013872682,
+            "exit": true,
+            "close": true,
+            "status": 0,
+            "signal": null,
+            "stop": null,
+            "errors": [],
+            "signals": [],
+            "groupObservations": [
+              {
+                "state": "absent",
+                "error": {
+                  "thrownType": "object",
+                  "fields": {
+                    "name": {
+                      "presence": "value",
+                      "value": "Error"
+                    },
+                    "code": {
+                      "presence": "value",
+                      "value": "ESRCH"
+                    },
+                    "errno": {
+                      "presence": "value",
+                      "value": -3
+                    },
+                    "syscall": {
+                      "presence": "value",
+                      "value": "kill"
+                    }
+                  }
+                },
+                "at": 1788013872713,
+                "afterKill": false
+              }
+            ],
+            "group": {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              }
+            },
+            "capture": [
+              {
+                "name": "stdout",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 59,
+                "sha256": "6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387",
+                "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSIiCmRlY2xhcmUgLWEgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo="
+              },
+              {
+                "name": "stderr",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": ""
+              }
+            ],
+            "filesVerified": true,
+            "receiptPublished": false,
+            "regularCaptureCompletion": true,
+            "streamEOF": null,
+            "pid": 90896,
+            "spawnObserved": true,
+            "stdinFinished": true,
+            "retired": true,
+            "finished": 1788013872716,
+            "filesBefore": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "filesAfter": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "observation": {
+              "format": "FNPIPEOBS1",
+              "bytes": 641,
+              "sha256": "baccc7d6c4e7ff71f2e30aa76aa462931a0cdcc19715055392fe995e241659b8"
+            }
+          }
+        },
+        {
+          "id": "P23",
+          "status": 0,
+          "retired": true,
+          "stop": null,
+          "regularCaptureCompletion": true,
+          "channels": {
+            "stdout": [
+              {
+                "path": "captures/P23/stdout",
+                "bytes": 76,
+                "sha256": "c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d",
+                "base64": "ZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIxIiBbMV09IjAiKScKZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIwIiknCg==",
+                "text": "declare -a PIPESTATUS='([0]=\"1\" [1]=\"0\")'\ndeclare -a PIPESTATUS='([0]=\"0\")'\n"
+              }
+            ],
+            "stderr": [
+              {
+                "path": "captures/P23/stderr",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": "",
+                "text": ""
+              }
+            ]
+          },
+          "lifecycle": {
+            "id": "P23",
+            "started": 1788013872755,
+            "exit": true,
+            "close": true,
+            "status": 0,
+            "signal": null,
+            "stop": null,
+            "errors": [],
+            "signals": [],
+            "groupObservations": [
+              {
+                "state": "absent",
+                "error": {
+                  "thrownType": "object",
+                  "fields": {
+                    "name": {
+                      "presence": "value",
+                      "value": "Error"
+                    },
+                    "code": {
+                      "presence": "value",
+                      "value": "ESRCH"
+                    },
+                    "errno": {
+                      "presence": "value",
+                      "value": -3
+                    },
+                    "syscall": {
+                      "presence": "value",
+                      "value": "kill"
+                    }
+                  }
+                },
+                "at": 1788013872786,
+                "afterKill": false
+              }
+            ],
+            "group": {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              }
+            },
+            "capture": [
+              {
+                "name": "stdout",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 76,
+                "sha256": "c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d",
+                "base64": "ZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIxIiBbMV09IjAiKScKZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIwIiknCg=="
+              },
+              {
+                "name": "stderr",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": ""
+              }
+            ],
+            "filesVerified": true,
+            "receiptPublished": false,
+            "regularCaptureCompletion": true,
+            "streamEOF": null,
+            "pid": 90903,
+            "spawnObserved": true,
+            "stdinFinished": true,
+            "retired": true,
+            "finished": 1788013872789,
+            "filesBefore": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "filesAfter": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "observation": {
+              "format": "FNPIPEOBS1",
+              "bytes": 665,
+              "sha256": "ba6372b0a352bdbcbad5e51102c5f072dbb505792575bb080d1b353dadb282a3"
+            }
+          }
+        },
+        {
+          "id": "P24",
+          "status": 0,
+          "retired": true,
+          "stop": null,
+          "regularCaptureCompletion": true,
+          "channels": {
+            "stdout": [
+              {
+                "path": "captures/P24/stdout",
+                "bytes": 29,
+                "sha256": "8f65e0c3cff51dbc37d0c1b93e35ac3b27e59f63557ec1bc1bb95bc8ce34562f",
+                "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSJzZWVkIgo=",
+                "text": "declare -- PIPESTATUS=\"seed\"\n"
+              }
+            ],
+            "stderr": [
+              {
+                "path": "captures/P24/stderr",
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": "",
+                "text": ""
+              }
+            ]
+          },
+          "lifecycle": {
+            "id": "P24",
+            "started": 1788013872822,
+            "exit": true,
+            "close": true,
+            "status": 0,
+            "signal": null,
+            "stop": null,
+            "errors": [],
+            "signals": [],
+            "groupObservations": [
+              {
+                "state": "absent",
+                "error": {
+                  "thrownType": "object",
+                  "fields": {
+                    "name": {
+                      "presence": "value",
+                      "value": "Error"
+                    },
+                    "code": {
+                      "presence": "value",
+                      "value": "ESRCH"
+                    },
+                    "errno": {
+                      "presence": "value",
+                      "value": -3
+                    },
+                    "syscall": {
+                      "presence": "value",
+                      "value": "kill"
+                    }
+                  }
+                },
+                "at": 1788013872850,
+                "afterKill": false
+              }
+            ],
+            "group": {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              }
+            },
+            "capture": [
+              {
+                "name": "stdout",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 29,
+                "sha256": "8f65e0c3cff51dbc37d0c1b93e35ac3b27e59f63557ec1bc1bb95bc8ce34562f",
+                "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSJzZWVkIgo="
+              },
+              {
+                "name": "stderr",
+                "flush": true,
+                "size": true,
+                "hash": true,
+                "close": true,
+                "bytes": 0,
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "base64": ""
+              }
+            ],
+            "filesVerified": true,
+            "receiptPublished": false,
+            "regularCaptureCompletion": true,
+            "streamEOF": null,
+            "pid": 90906,
+            "spawnObserved": true,
+            "stdinFinished": true,
+            "retired": true,
+            "finished": 1788013872853,
+            "filesBefore": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "filesAfter": [
+              {
+                "path": "empty-path",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "home",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "tmp",
+                "type": "directory",
+                "mode": 448
+              },
+              {
+                "path": "work",
+                "type": "directory",
+                "mode": 448
+              }
+            ],
+            "observation": {
+              "format": "FNPIPEOBS1",
+              "bytes": 601,
+              "sha256": "11fc0b924ceafbb4c425e75f457c6ff7e6f2150ca436946d79571ab6761db595"
+            }
+          }
+        }
+      ],
+      "results": {
+        "schema": "pipestatus-typed-native-observations-v1",
+        "completed": 6,
+        "halted": false,
+        "rows": [
+          {
+            "id": "P19",
+            "status": 1,
+            "stop": null,
+            "retired": true
+          },
+          {
+            "id": "P20",
+            "status": 1,
+            "stop": null,
+            "retired": true
+          },
+          {
+            "id": "P21",
+            "status": 0,
+            "stop": null,
+            "retired": true
+          },
+          {
+            "id": "P22",
+            "status": 0,
+            "stop": null,
+            "retired": true
+          },
+          {
+            "id": "P23",
+            "status": 0,
+            "stop": null,
+            "retired": true
+          },
+          {
+            "id": "P24",
+            "status": 0,
+            "stop": null,
+            "retired": true
+          }
+        ],
+        "ledger": {
+          "max": 7,
+          "peak": 2,
+          "starts": 7,
+          "active": 1,
+          "peakCharged": 2,
+          "confirmedStarts": 7,
+          "activeConfirmed": 1,
+          "peakConfirmed": 2,
+          "confirmedRoles": {
+            "owner": 1,
+            "case": 6
+          },
+          "roles": {
+            "owner": 1,
+            "case": 6
+          },
+          "sourceForkReservations": 4
+        },
+        "outer": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "sourceForkCounts": "PLANNED_NOT_OBSERVED",
+        "osContainment": false,
+        "version": "Bash3.2.57",
+        "notStarted": [],
+        "deadline": 1788014472435
+      },
+      "inventory": [
+        {
+          "path": "JOURNAL.jsonl",
+          "type": "file",
+          "mode": 384,
+          "bytes": 9523,
+          "sha256": "b6428af727aba715959e1b8905fc26b6f57c1f62b92e66daa5c72f6574853c3a",
+          "copiedAs": "native-artifacts/JOURNAL.jsonl.data"
+        },
+        {
+          "path": "P19.json",
+          "type": "file",
+          "mode": 384,
+          "bytes": 1816,
+          "sha256": "ce8b2bf93e30ce1f7018221b9bc6df2e41452309a647d93b86cccd0c308a1bad",
+          "copiedAs": "native-artifacts/P19.json.data"
+        },
+        {
+          "path": "P19.observation.nul",
+          "type": "file",
+          "mode": 384,
+          "bytes": 645,
+          "sha256": "04a52d08149460635ed971ee7bc5b7b4b7e66c9e8b5a650ba692d41383e39bbf",
+          "copiedAs": "native-artifacts/P19.observation.nul.data"
+        },
+        {
+          "path": "P20.json",
+          "type": "file",
+          "mode": 384,
+          "bytes": 1816,
+          "sha256": "6d8f837a51297459e8d0328b9b1c4b3a174a323de11c9e67fe2d0ba973484416",
+          "copiedAs": "native-artifacts/P20.json.data"
+        },
+        {
+          "path": "P20.observation.nul",
+          "type": "file",
+          "mode": 384,
+          "bytes": 645,
+          "sha256": "8e8bb5728d03d45776178733ee2332d6101941bca39f10387a175c1ce9c1ebba",
+          "copiedAs": "native-artifacts/P20.observation.nul.data"
+        },
+        {
+          "path": "P21.json",
+          "type": "file",
+          "mode": 384,
+          "bytes": 1780,
+          "sha256": "eb9f3cd242befdad2aaf5a3ead366434cf99799db528834f1e5f9426877a3a19",
+          "copiedAs": "native-artifacts/P21.json.data"
+        },
+        {
+          "path": "P21.observation.nul",
+          "type": "file",
+          "mode": 384,
+          "bytes": 609,
+          "sha256": "d3fd33824a1f710f325a69d6fae552f5ff6e5aaea640f29abd3af66982e9141d",
+          "copiedAs": "native-artifacts/P21.observation.nul.data"
+        },
+        {
+          "path": "P22.json",
+          "type": "file",
+          "mode": 384,
+          "bytes": 1812,
+          "sha256": "475dc532573499aa76b8ae395b7e97ac5260a9465b6af1db0b9815925f70ef8d",
+          "copiedAs": "native-artifacts/P22.json.data"
+        },
+        {
+          "path": "P22.observation.nul",
+          "type": "file",
+          "mode": 384,
+          "bytes": 641,
+          "sha256": "baccc7d6c4e7ff71f2e30aa76aa462931a0cdcc19715055392fe995e241659b8",
+          "copiedAs": "native-artifacts/P22.observation.nul.data"
+        },
+        {
+          "path": "P23.json",
+          "type": "file",
+          "mode": 384,
+          "bytes": 1836,
+          "sha256": "b8234576fad3dd4d61c2cd39a49333a9632acbcf684b02a83fa41e960db30175",
+          "copiedAs": "native-artifacts/P23.json.data"
+        },
+        {
+          "path": "P23.observation.nul",
+          "type": "file",
+          "mode": 384,
+          "bytes": 665,
+          "sha256": "ba6372b0a352bdbcbad5e51102c5f072dbb505792575bb080d1b353dadb282a3",
+          "copiedAs": "native-artifacts/P23.observation.nul.data"
+        },
+        {
+          "path": "P24.json",
+          "type": "file",
+          "mode": 384,
+          "bytes": 1772,
+          "sha256": "eefbde9a3be911703c2077a6d77516a89e98c6941b0c6118d0a069a63b01a740",
+          "copiedAs": "native-artifacts/P24.json.data"
+        },
+        {
+          "path": "P24.observation.nul",
+          "type": "file",
+          "mode": 384,
+          "bytes": 601,
+          "sha256": "11fc0b924ceafbb4c425e75f457c6ff7e6f2150ca436946d79571ab6761db595",
+          "copiedAs": "native-artifacts/P24.observation.nul.data"
+        },
+        {
+          "path": "RESULTS.json",
+          "type": "file",
+          "mode": 384,
+          "bytes": 1085,
+          "sha256": "534e8f947fc954a0e148d2c6de519db66ebcc6746e20b4017c2a5efcb61d0a5e",
+          "copiedAs": "native-artifacts/RESULTS.json.data"
+        },
+        {
+          "path": "captures",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "captures/P19",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "captures/P19/stderr",
+          "type": "file",
+          "mode": 384,
+          "bytes": 62,
+          "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+          "copiedAs": "native-artifacts/captures/P19/stderr.data"
+        },
+        {
+          "path": "captures/P19/stdout",
+          "type": "file",
+          "mode": 384,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copiedAs": "native-artifacts/captures/P19/stdout.data"
+        },
+        {
+          "path": "captures/P20",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "captures/P20/stderr",
+          "type": "file",
+          "mode": 384,
+          "bytes": 62,
+          "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+          "copiedAs": "native-artifacts/captures/P20/stderr.data"
+        },
+        {
+          "path": "captures/P20/stdout",
+          "type": "file",
+          "mode": 384,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copiedAs": "native-artifacts/captures/P20/stdout.data"
+        },
+        {
+          "path": "captures/P21",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "captures/P21/stderr",
+          "type": "file",
+          "mode": 384,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copiedAs": "native-artifacts/captures/P21/stderr.data"
+        },
+        {
+          "path": "captures/P21/stdout",
+          "type": "file",
+          "mode": 384,
+          "bytes": 35,
+          "sha256": "2701cce8db563deeca2c5403d6cf3266a52f02c83a4b655203ee20f14d8b8d1c",
+          "copiedAs": "native-artifacts/captures/P21/stdout.data"
+        },
+        {
+          "path": "captures/P22",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "captures/P22/stderr",
+          "type": "file",
+          "mode": 384,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copiedAs": "native-artifacts/captures/P22/stderr.data"
+        },
+        {
+          "path": "captures/P22/stdout",
+          "type": "file",
+          "mode": 384,
+          "bytes": 59,
+          "sha256": "6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387",
+          "copiedAs": "native-artifacts/captures/P22/stdout.data"
+        },
+        {
+          "path": "captures/P23",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "captures/P23/stderr",
+          "type": "file",
+          "mode": 384,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copiedAs": "native-artifacts/captures/P23/stderr.data"
+        },
+        {
+          "path": "captures/P23/stdout",
+          "type": "file",
+          "mode": 384,
+          "bytes": 76,
+          "sha256": "c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d",
+          "copiedAs": "native-artifacts/captures/P23/stdout.data"
+        },
+        {
+          "path": "captures/P24",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "captures/P24/stderr",
+          "type": "file",
+          "mode": 384,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copiedAs": "native-artifacts/captures/P24/stderr.data"
+        },
+        {
+          "path": "captures/P24/stdout",
+          "type": "file",
+          "mode": 384,
+          "bytes": 29,
+          "sha256": "8f65e0c3cff51dbc37d0c1b93e35ac3b27e59f63557ec1bc1bb95bc8ce34562f",
+          "copiedAs": "native-artifacts/captures/P24/stdout.data"
+        },
+        {
+          "path": "cases",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P19",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P19/empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P19/home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P19/tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P19/work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P20",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P20/empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P20/home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P20/tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P20/work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P21",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P21/empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P21/home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P21/tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P21/work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P22",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P22/empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P22/home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P22/tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P22/work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P23",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P23/empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P23/home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P23/tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P23/work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P24",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P24/empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P24/home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P24/tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "cases/P24/work",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "outer",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "outer/bootstrap.stderr",
+          "type": "file",
+          "mode": 384,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copiedAs": "native-artifacts/outer/bootstrap.stderr.data"
+        },
+        {
+          "path": "outer/bootstrap.stdout",
+          "type": "file",
+          "mode": 384,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "copiedAs": "native-artifacts/outer/bootstrap.stdout.data"
+        }
+      ],
+      "rawBytes": 25569,
+      "oldPrelaunchHold": "e66b4440fbfdb8b03b167f2402a6a9a77dbbfb1c unchanged",
+      "qualifiedMeaning": "local Bash3.2.57 observations, not expected goldens/parity passes or policy selection; no repeat version probe",
+      "processMeaning": "managed observations only; four source-stage reservations unobserved; owner retirement additionally requires exec tool completion"
+    }
+  },
+  {
+    "path": "tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/COHORT.json",
+    "blob": "92e743e781328508e5193affcbad8bca177755de",
+    "bytes": 1723,
+    "sha256": "9c76abda8f03a76cbe3a7e84bf3705816f9b232e3e7171a4bea113103fee563a",
+    "data": {
+      "schema": "pipestatus-typed-reference-v1",
+      "cases": [
+        {
+          "id": "P19",
+          "program": "declare -p PIPESTATUS",
+          "programSha256": "b09abcbeb244d0d3391c11c31ac6e9d1151c4bd46a07f885132b88218e620583",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P20",
+          "program": "readonly PIPESTATUS; false; declare -p PIPESTATUS",
+          "programSha256": "6b8392098b86a3c9dfe0c058bb4b5ed9079e829c98e53241d024cdcdf23a6990",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P21",
+          "program": "false; readonly PIPESTATUS; true; declare -p PIPESTATUS",
+          "programSha256": "e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P22",
+          "program": "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+          "programSha256": "9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P23",
+          "program": "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+          "programSha256": "281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P24",
+          "program": "PIPESTATUS=seed; false; declare -p PIPESTATUS",
+          "programSha256": "4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801",
+          "stdinBase64": "",
+          "expectedNative": null
+        }
+      ],
+      "fixtures": [],
+      "failedLookups": [],
+      "effects": "none; before and after owned namespace must match"
+    }
+  },
+  {
+    "path": "tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/actual-run-v1/OBSERVATIONS.json",
+    "blob": "ddc69a6c9ff2f620e804415b18d01283759c673c",
+    "bytes": 79780,
+    "sha256": "4de9c77b8b53cdd81e7f494f7e1c6bbbe599627096d129363df84142f0dcd865",
+    "data": {
+      "profile": "local pinned Bash3.2.57; no GNU5.3 or universal libc claim",
+      "observations": [
+        {
+          "id": "F02",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "fd50190d103005960f6211f174c6988cbb8dc6966478b34e268369b68e7f4da9",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 1,
+              "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+              "base64": "eA==",
+              "text": "x"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009912225,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009912197,
+          "finished": 1788009912234,
+          "frameSha256": "08922d7ad4933440c019022755dc81de736b2739672fed9d37fcd406899b3001"
+        },
+        {
+          "id": "F03",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 1,
+              "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+              "base64": "eA==",
+              "text": "x"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009912299,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009912267,
+          "finished": 1788009912303,
+          "frameSha256": "3ee3bc99e1252a56377fc21f30c5f5110cd3dfa9b353ef31a590dcb874a31f02"
+        },
+        {
+          "id": "F04",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "c096f26723996ffd7baace023fb752efc95d49f2b2b373cfc4a0405e7db5b6e9",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 1,
+              "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+              "base64": "eA==",
+              "text": "x"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009912383,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009912349,
+          "finished": 1788009912387,
+          "frameSha256": "7ec3f715f3ad2eb30b7ea2e10fb06ab464c5dec377d08a0d65967fa90ef5a154"
+        },
+        {
+          "id": "F05",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "4a39b12f8fd9a0666e19be5c6eef74abdf4cf04d2b8988443072c7c8b24523ac",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 6,
+              "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+              "base64": "YmVmb3Jl",
+              "text": "before"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/out",
+              "type": "file",
+              "mode": 420,
+              "base64": "eA=="
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009912473,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009912436,
+          "finished": 1788009912478,
+          "frameSha256": "a8946b8309b4c2868d6b1b68b361a3380fe99e496c1d0b48770afb09ebe5f0be"
+        },
+        {
+          "id": "F06",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d",
+          "status": 127,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            },
+            {
+              "name": "stderr",
+              "bytes": 57,
+              "sha256": "eb17c58d9c81df7e3088dfbae253e7f8c030671bcdae9c6afbda0ce0251b23a9",
+              "base64": "c3VyZmFjZS1mdW5jdGlvbi1waXBlc3RhdHVzOiBmdW5jdGlvbjogY29tbWFuZCBub3QgZm91bmQK",
+              "text": "surface-function-pipestatus: function: command not found\n"
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009912584,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009912538,
+          "finished": 1788009912591,
+          "frameSha256": "7bd95647d8578926b4f20ee48ae0c4684899e2de765dfb298fccb13cad77915d"
+        },
+        {
+          "id": "F07",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c",
+          "status": 2,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            },
+            {
+              "name": "stderr",
+              "bytes": 150,
+              "sha256": "c2cb3fc2c0184ec7727e7065809b03b402fa742102fa39452ec057ad591e7de8",
+              "base64": "c3VyZmFjZS1mdW5jdGlvbi1waXBlc3RhdHVzOiAtYzogbGluZSAwOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGBuZXdsaW5lJwpzdXJmYWNlLWZ1bmN0aW9uLXBpcGVzdGF0dXM6IC1jOiBsaW5lIDA6IGBwcmludGYgQkFEOyBmdW5jdGlvbicK",
+              "text": "surface-function-pipestatus: -c: line 0: syntax error near unexpected token `newline'\nsurface-function-pipestatus: -c: line 0: `printf BAD; function'\n"
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009912712,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009912662,
+          "finished": 1788009912718,
+          "frameSha256": "cba092df996c6f2cf411e0a142ceaed9dc8fe8b1dc7acea648550f34fb0c58e7"
+        },
+        {
+          "id": "F08",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 1,
+              "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+              "base64": "eA==",
+              "text": "x"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009912840,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009912792,
+          "finished": 1788009912846,
+          "frameSha256": "7ee29c7a85a3034db720d3ace1a53084c07447aa47e03b90a6a152d34452e8bc"
+        },
+        {
+          "id": "F09",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009912983,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009912927,
+          "finished": 1788009912990,
+          "frameSha256": "24431a5230c1d5d4bf99ea3c3ebecadbd2de4397217a0f5da18a4e0491066da6"
+        },
+        {
+          "id": "F10",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "ca78fd92b11466d4af610bfe4753763fa583cb9c1c797e182aa878900428ddce",
+          "status": 2,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            },
+            {
+              "name": "stderr",
+              "bytes": 152,
+              "sha256": "eff52fc387fc7417de27381e3c28f8b1cceae322cd3d81244ccfa4c3a0e1a9ba",
+              "base64": "c3VyZmFjZS1mdW5jdGlvbi1waXBlc3RhdHVzOiAtYzogbGluZSAwOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGBwcmludGYnCnN1cmZhY2UtZnVuY3Rpb24tcGlwZXN0YXR1czogLWM6IGxpbmUgMDogYGZ1bmN0aW9uIGYoKSBwcmludGYgQkFEJwo=",
+              "text": "surface-function-pipestatus: -c: line 0: syntax error near unexpected token `printf'\nsurface-function-pipestatus: -c: line 0: `function f() printf BAD'\n"
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009913146,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009913082,
+          "finished": 1788009913154,
+          "frameSha256": "0668329b1271f34b3f3e497716bc0825c55f4d24df1af8357e802b52ede9bdbb"
+        },
+        {
+          "id": "P02",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "c2dd0965e76fdb5a348fc381faf64eb48aace205b0114469906123f1b61437fa",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 3,
+              "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+              "base64": "PD4K",
+              "text": "<>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009913307,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009913244,
+          "finished": 1788009913314,
+          "frameSha256": "cffdc8083ba5c674da565b39724c7c2f6cfce0468dc67e5309ccfed2efcfe69e"
+        },
+        {
+          "id": "P03",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "0f79c1da2ea561ad221dbb3d17601f914de695a8c809c2caa3de0d3daf4a2468",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 12,
+              "sha256": "b0070379ed051510ecb409a542bb66ae55d00a84318f1a86a5271810f9297e2a",
+              "base64": "YTo8MT4KYjo8MD4K",
+              "text": "a:<1>\nb:<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009913488,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009913416,
+          "finished": 1788009913492,
+          "frameSha256": "769ae9f5f13ed43710aab6248be5a5fe3f18c366a12c2a534b9a91b4d49671e5"
+        },
+        {
+          "id": "P04",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "a8259d87aab3038de0bac199e0c8fd5202ce7edf8334495b62c5246aaff69615",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 10,
+              "sha256": "ffdebca6b09512b4ddf1aa0f414444544c06cba1d085c1562c1c2a94b0f90657",
+              "base64": "MTo8MSAwIDE+Cg==",
+              "text": "1:<1 0 1>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009913676,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009913602,
+          "finished": 1788009913680,
+          "frameSha256": "5352cb862d6435cbb9fec25db256e12c517a392f5277513d7d2cf31a8bab6f46"
+        },
+        {
+          "id": "P05",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "cd7a8119ae78504ab739e7e20cffc09f5c65fe2d7c0a8bd5f6af37aa0a89b2e9",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 8,
+              "sha256": "a7315dfbc74bd0fe3dab3c2f05feae06c9965a079438fefa46a939a183d645f4",
+              "base64": "MTo8MSAwPgo=",
+              "text": "1:<1 0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009913870,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009913788,
+          "finished": 1788009913874,
+          "frameSha256": "864d5021f9285c2152ebc523debaac846342cb48bab28ec25fd0d79c02b6a707"
+        },
+        {
+          "id": "P06",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "7f8d6d49287d0cc28bb1da3c4185cdba6bf67b010c3c9ff040c1bd7703756978",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 8,
+              "sha256": "a7315dfbc74bd0fe3dab3c2f05feae06c9965a079438fefa46a939a183d645f4",
+              "base64": "MTo8MSAwPgo=",
+              "text": "1:<1 0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009914064,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009913993,
+          "finished": 1788009914071,
+          "frameSha256": "d3c72a9d6706414eb444feb2519e9a0c388fa1af85aae0a3595eca6bef1743e3"
+        },
+        {
+          "id": "P07",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "90d9ce459a465287e324277d021ff7bcd8b2c4952f8bdba98cecd6e7596e16a2",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 6,
+              "sha256": "b147c7015cdc0201e5b3935f50de4e6b0900656bacc81d207f29ab137849b775",
+              "base64": "MDo8MD4K",
+              "text": "0:<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009914263,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009914189,
+          "finished": 1788009914267,
+          "frameSha256": "b7694f76149c564dcc29542369a79ff38cb5e9f4bf20995643ec9a3f3cb012fc"
+        },
+        {
+          "id": "P08",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "29dc805ec9811bb07bde82b43cdb95430926b6447289f80d12f0a3d17bebd741",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 6,
+              "sha256": "b147c7015cdc0201e5b3935f50de4e6b0900656bacc81d207f29ab137849b775",
+              "base64": "MDo8MD4K",
+              "text": "0:<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009914487,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009914403,
+          "finished": 1788009914490,
+          "frameSha256": "78c0db3f94fa9ab6b7a67f047d4715d76117ed9eaf9f33891b6a9c1f3301d703"
+        },
+        {
+          "id": "P09",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "0467169d179cc35f7736da9b590aa53ec9b278f8e78ffeca808e002e2fcc7917",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 12,
+              "sha256": "b0070379ed051510ecb409a542bb66ae55d00a84318f1a86a5271810f9297e2a",
+              "base64": "YTo8MT4KYjo8MD4K",
+              "text": "a:<1>\nb:<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009914747,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009914654,
+          "finished": 1788009914751,
+          "frameSha256": "0402097ad11e22726a2b2a026f7632e2ec261324ee2bffc01f565b33e21aea88"
+        },
+        {
+          "id": "P10",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "24e73a0cb6a4b5dcc88ed63a525e446cd4c5b05ca0d4992a4285ffc4b15a4cfb",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 8,
+              "sha256": "43195836a7f07e0351e1d1cee72aca97c80af4916a76cd84c340e92ef2b8fe00",
+              "base64": "PDE+CjwwPgo=",
+              "text": "<1>\n<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009915005,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009914906,
+          "finished": 1788009915009,
+          "frameSha256": "115d22dd2e82df73aa4116d9d50674afde22ba930f34bd51bb41792775917d13"
+        },
+        {
+          "id": "P11",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "5333f1680e467fe8637a54e10dd2d5e0931512d44767338296d5c1cf21647f61",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 31,
+              "sha256": "bf9359d4da34bf4a5d4e07e4fbc2b6df99386a6addf2224d8fc69d295cf1756b",
+              "base64": "aW5uZXI6PDE+CmlubmVyOjwwPgpjYWxsZXI6PDc+Cg==",
+              "text": "inner:<1>\ninner:<0>\ncaller:<7>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009915283,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009915182,
+          "finished": 1788009915287,
+          "frameSha256": "c592ff079014e11becf80589c55eb8a8122528d7b52725c1f01384d96f88b8a6"
+        },
+        {
+          "id": "P12",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "122f3b9b7c91ede81feabb838f624d731b1851a15819e4ba9792c6eafdb9b833",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 21,
+              "sha256": "0a303541afa18f7b333302a1314aae9a96bf5cb4e5f5c6b3105cc7c5a2e06eb9",
+              "base64": "Y2hpbGQ6PDE+CnBhcmVudDo8MD4K",
+              "text": "child:<1>\nparent:<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009915587,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009915474,
+          "finished": 1788009915591,
+          "frameSha256": "3db48bf79cfc0edff7343a31c038fe614b11d67202bece0531bad7527a25b1d0"
+        },
+        {
+          "id": "P13",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "7b30df74d0e906adb70657f2592d14da177d384c03d05b3e943e18edb2af9234",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 31,
+              "sha256": "595110a22e2d0dba30eaeb64ce7291ab7bbeb89b2984104e143c9c7dedb720ae",
+              "base64": "Y2hpbGQ6PDE+CmNoaWxkOjwwPiBwYXJlbnQ6PDE+Cg==",
+              "text": "child:<1>\nchild:<0> parent:<1>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009915871,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009915763,
+          "finished": 1788009915875,
+          "frameSha256": "94dcd986d0c1fcd794545a37d8667afba5559d5247a0a50e578bc62e8a295f76"
+        },
+        {
+          "id": "P14",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "6ad638fd0b75d9a6e869da6397f749bde6bb2c5bb95ac491d07afcbc2dc1f021",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 4,
+              "sha256": "661453ecc7c1538bc5b2b960d00ba2381b281366282005e8d06fef52fcc3055a",
+              "base64": "PDA+Cg==",
+              "text": "<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009916211,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009916088,
+          "finished": 1788009916215,
+          "frameSha256": "80f19379702f5af055a5053890fdefb9b75de79570e1319e95a00918cbf5bb74"
+        },
+        {
+          "id": "P15",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "03b8423f7e406dc4cfc4d15ac2de1a21980b9ab96bbb18943e3a4891e5c960cf",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 6,
+              "sha256": "f5c70abaed49a629da7c2db760134a86af54176accd4b3b2d40e8d849f4339fb",
+              "base64": "PDEyNz4K",
+              "text": "<127>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 76,
+              "sha256": "2d3358c42d90c09f18410079319c0b7578e1d0c132a564a2c0aed0b466391cb4",
+              "base64": "c3VyZmFjZS1mdW5jdGlvbi1waXBlc3RhdHVzOiBfX3N1cmZhY2VfbWlzc2luZ19jb21tYW5kX186IGNvbW1hbmQgbm90IGZvdW5kCg==",
+              "text": "surface-function-pipestatus: __surface_missing_command__: command not found\n"
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009916552,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009916418,
+          "finished": 1788009916561,
+          "frameSha256": "5dddff08288b09666937b84112997fca1209583d490ade8fb22c2653949af088"
+        },
+        {
+          "id": "P16",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "c8d572dda97a672dcf28abe7aa60811f487c7a261a5e18a3b3c0f057e9e88474",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 3,
+              "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+              "base64": "PD4K",
+              "text": "<>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009916943,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009916811,
+          "finished": 1788009916948,
+          "frameSha256": "ad6d3c664d1ca9192fabfcb8f6a8f0f6abc1449bd3e48ec803ad9282459b8915"
+        },
+        {
+          "id": "P17",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "1ec83299aba1bad4ee1ae8896415f405c09816b7ae27e24910fddcba1f8ada00",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 4,
+              "sha256": "661453ecc7c1538bc5b2b960d00ba2381b281366282005e8d06fef52fcc3055a",
+              "base64": "PDA+Cg==",
+              "text": "<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009917299,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009917167,
+          "finished": 1788009917303,
+          "frameSha256": "aeaaa6d4409e15a6e76aa6cf517b5bf3bffe396dc8361b59f9d0c9de6e86af8d"
+        },
+        {
+          "id": "P18",
+          "disposition": "OBSERVATION_NOT_PARITY_PASS",
+          "programSha256": "47ed194099c72090e84121251d7dc6fae2290b1b226c99f41ca49875710c1339",
+          "status": 0,
+          "capture": [
+            {
+              "name": "stdout",
+              "bytes": 19,
+              "sha256": "1d9aae7ded26c21c0c8ffdb13c382c54770257ad24f03cb2b8f03d140fbe26f3",
+              "base64": "aW5uZXI6PD4Kb3V0ZXI6PDA+Cg==",
+              "text": "inner:<>\nouter:<0>\n"
+            },
+            {
+              "name": "stderr",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "base64": "",
+              "text": ""
+            }
+          ],
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            }
+          ],
+          "exit": true,
+          "close": true,
+          "retired": true,
+          "group": {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            }
+          },
+          "groupObservations": [
+            {
+              "state": "absent",
+              "error": {
+                "thrownType": "object",
+                "fields": {
+                  "name": {
+                    "presence": "value",
+                    "value": "Error"
+                  },
+                  "code": {
+                    "presence": "value",
+                    "value": "ESRCH"
+                  },
+                  "errno": {
+                    "presence": "value",
+                    "value": -3
+                  },
+                  "syscall": {
+                    "presence": "value",
+                    "value": "kill"
+                  }
+                }
+              },
+              "at": 1788009917677,
+              "afterKill": false
+            }
+          ],
+          "started": 1788009917527,
+          "finished": 1788009917686,
+          "frameSha256": "c53ed1dbc4b67bf306ec00294c38e25c4a143b23ac10f2f0216d02e8af8da48f"
+        }
+      ],
+      "managedLedger": {
+        "max": 27,
+        "peak": 2,
+        "starts": 27,
+        "active": 1,
+        "peakCharged": 2,
+        "confirmedStarts": 27,
+        "activeConfirmed": 1,
+        "peakConfirmed": 2,
+        "confirmedRoles": {
+          "owner": 1,
+          "case": 26
+        },
+        "roles": {
+          "owner": 1,
+          "case": 26
+        },
+        "sourceForkReservations": 19
+      },
+      "completed": 26,
+      "halted": false,
+      "notStarted": [],
+      "deadline": 1788010512097,
+      "publicationDeadline": 1788010326601.325,
+      "sourceForkReservations": "UNOBSERVED_NOT_MEASURED_STARTS",
+      "initialToolStartup": "TRUSTED_HOST_OUTSIDE_COHORT",
+      "p02Prologue": "none added: exact first-command script, no shell assignments or instrumentation before its printf"
+    }
+  },
+  {
+    "path": "tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/actual-run-v1/captured/captures/P02/stdout.data",
+    "blob": "b554d9e46a873bd092c448aecb473253cad7bddd",
+    "bytes": 3,
+    "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+    "data": "<>\n"
+  },
+  {
+    "path": "tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/actual-run-v1/captured/captures/P16/stdout.data",
+    "blob": "b554d9e46a873bd092c448aecb473253cad7bddd",
+    "bytes": 3,
+    "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+    "data": "<>\n"
+  },
+  {
+    "path": "tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/actual-run-v1/captured/captures/P17/stdout.data",
+    "blob": "28dac0d01044033a2be6b557e00bcbbf123bf82b",
+    "bytes": 4,
+    "sha256": "661453ecc7c1538bc5b2b960d00ba2381b281366282005e8d06fef52fcc3055a",
+    "data": "<0>\n"
+  },
+  {
+    "path": "tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/actual-run-v1/captured/captures/P18/stdout.data",
+    "blob": "e179f10910b69dcb4b3fd295946c10f38466e641",
+    "bytes": 19,
+    "sha256": "1d9aae7ded26c21c0c8ffdb13c382c54770257ad24f03cb2b8f03d140fbe26f3",
+    "data": "inner:<>\nouter:<0>\n"
+  },
+  {
+    "path": "tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/COHORT.json",
+    "blob": "4a90f39e45fe310e36c5a9cf48dde32bbf6942e9",
+    "bytes": 7080,
+    "sha256": "6f68a645c72bee2f0834fd134eb5236b1a5cfd32b69ae47aad33cbf046d79a90",
+    "data": {
+      "schema": "function-pipestatus-reference-v2",
+      "cases": [
+        {
+          "id": "F02",
+          "program": "function f() { printf x; }; f",
+          "programSha256": "fd50190d103005960f6211f174c6988cbb8dc6966478b34e268369b68e7f4da9",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "F03",
+          "program": "function f\n{ printf x; }\nf",
+          "programSha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "F04",
+          "program": "function f() if true; then printf x; fi; f",
+          "programSha256": "c096f26723996ffd7baace023fb752efc95d49f2b2b373cfc4a0405e7db5b6e9",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "F05",
+          "program": "function f { printf x; } > out; printf before; f",
+          "programSha256": "4a39b12f8fd9a0666e19be5c6eef74abdf4cf04d2b8988443072c7c8b24523ac",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "F06",
+          "program": "\"function\" f",
+          "programSha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "F07",
+          "program": "printf BAD; function",
+          "programSha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "F08",
+          "program": "function if { printf x; }; \"if\"",
+          "programSha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "F09",
+          "program": "function bad-name { :; }",
+          "programSha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "F10",
+          "program": "function f() printf BAD",
+          "programSha256": "ca78fd92b11466d4af610bfe4753763fa583cb9c1c797e182aa878900428ddce",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P02",
+          "program": "printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "c2dd0965e76fdb5a348fc381faf64eb48aace205b0114469906123f1b61437fa",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P03",
+          "program": "false; printf \"a:<%s>\\n\" \"${PIPESTATUS[@]}\"; printf \"b:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "0f79c1da2ea561ad221dbb3d17601f914de695a8c809c2caa3de0d3daf4a2468",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P04",
+          "program": "false | true | false; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+          "programSha256": "a8259d87aab3038de0bac199e0c8fd5202ce7edf8334495b62c5246aaff69615",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P05",
+          "program": "set -o pipefail; false | true; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+          "programSha256": "cd7a8119ae78504ab739e7e20cffc09f5c65fe2d7c0a8bd5f6af37aa0a89b2e9",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P06",
+          "program": "! false | true; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+          "programSha256": "7f8d6d49287d0cc28bb1da3c4185cdba6bf67b010c3c9ff040c1bd7703756978",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P07",
+          "program": "! [[ x = y ]]; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+          "programSha256": "90d9ce459a465287e324277d021ff7bcd8b2c4952f8bdba98cecd6e7596e16a2",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P08",
+          "program": "! ((0)); printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+          "programSha256": "29dc805ec9811bb07bde82b43cdb95430926b6447289f80d12f0a3d17bebd741",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P09",
+          "program": "false && true; printf \"a:<%s>\\n\" \"${PIPESTATUS[@]}\"; true || false; printf \"b:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "0467169d179cc35f7736da9b590aa53ec9b278f8e78ffeca808e002e2fcc7917",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P10",
+          "program": "{ false | true; }; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "24e73a0cb6a4b5dcc88ed63a525e446cd4c5b05ca0d4992a4285ffc4b15a4cfb",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P11",
+          "program": "f() { false | true; printf \"inner:<%s>\\n\" \"${PIPESTATUS[@]}\"; return 7; }; f; printf \"caller:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "5333f1680e467fe8637a54e10dd2d5e0931512d44767338296d5c1cf21647f61",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P12",
+          "program": "false; ( printf \"child:<%s>\\n\" \"${PIPESTATUS[@]}\" ); printf \"parent:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "122f3b9b7c91ede81feabb838f624d731b1851a15819e4ba9792c6eafdb9b833",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P13",
+          "program": "false | true; value=$(printf \"child:<%s>\\n\" \"${PIPESTATUS[@]}\"; false); printf \"%s parent:<%s>\\n\" \"$value\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "7b30df74d0e906adb70657f2592d14da177d384c03d05b3e943e18edb2af9234",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P14",
+          "program": "false; value=ok; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "6ad638fd0b75d9a6e869da6397f749bde6bb2c5bb95ac491d07afcbc2dc1f021",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P15",
+          "program": "__surface_missing_command__; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "03b8423f7e406dc4cfc4d15ac2de1a21980b9ab96bbb18943e3a4891e5c960cf",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P16",
+          "program": "readonly PIPESTATUS; false; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "c8d572dda97a672dcf28abe7aa60811f487c7a261a5e18a3b3c0f057e9e88474",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P17",
+          "program": "unset PIPESTATUS; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "1ec83299aba1bad4ee1ae8896415f405c09816b7ae27e24910fddcba1f8ada00",
+          "stdinBase64": "",
+          "expectedNative": null
+        },
+        {
+          "id": "P18",
+          "program": "f() { local PIPESTATUS; false; printf \"inner:<%s>\\n\" \"${PIPESTATUS[@]}\"; }; false | true; f; printf \"outer:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+          "programSha256": "47ed194099c72090e84121251d7dc6fae2290b1b226c99f41ca49875710c1339",
+          "stdinBase64": "",
+          "expectedNative": null
+        }
+      ],
+      "fixtures": [],
+      "failedLookups": [
+        "function",
+        "__surface_missing_command__"
+      ],
+      "effects": {
+        "F05": "only work/out regular0644 one-link owned <=65536 bytes; final effects only"
+      }
+    }
+  }
+]

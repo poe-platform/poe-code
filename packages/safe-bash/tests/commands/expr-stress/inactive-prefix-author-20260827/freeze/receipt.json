@@ -1,0 +1,21 @@
+{
+  "frozenAt": "2026-08-27T19:23:59.591Z",
+  "accepted": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "independent": "e9ff18dcdd403c68550c9ad9ea69d2edce5403a3",
+  "liveHeadAtFreeze": "0a86a4b43fc9173d0cd6bb49da93bf77f0d4bdd6",
+  "evaluator": "src/commands/expr/evaluate.ts",
+  "test": "tests/commands/expr/inactive-prefix.test.ts",
+  "files": {
+    "accepted-source.tar.gz": "b2de2b86a834f1b5c3ba7a98c347d3aa9668632ff3af2a073cf2c45c6b6bfef5",
+    "cases.json": "d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314",
+    "independent-driver.mjs": "3871b6fa2bf72b482910217ff0f16919e20f752b3b1862e9683c5c5247fa3613",
+    "independent-receipt.json": "79f10c8d6e143798537868270d40dacad65a95f65de5824c98acc8bef1bcda5f",
+    "evaluate.before.ts.data": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+    "inactive-prefix.test.ts.data": "461f41188b029395ea470e172a72a9154d45275efb9ac67f8072415bc7d63130"
+  },
+  "policy": "Immutable accepted archive plus only new author test; candidate overlays only evaluate.ts. Other live files never copied. Compressed/data snapshots are not canonical TypeScript inputs.",
+  "authorDriverHashes": {
+    "freeze.mjs": "cbfd2f8b32990ea8505d78254516c2f5a91bdda245e64b52160d33a51543d68f",
+    "capture.mjs": "6c7c2014a7127bcdd10d706ba9b87aa512209837c94fe613b07d650e0f7d0fd0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "ended": "2026-08-28T04:55:51.962Z",
+  "bundle": {
+    "bytes": 56666,
+    "sha256": "2ab52da3efa910dd0fbf53dd8b32671b43b622c85c9ee3edbdf9a7ac62724334",
+    "mode": "644"
+  },
+  "inputManifest": {
+    "bytes": 33785,
+    "sha256": "42b1c369bed32e39c3d1d49678618ae21e7c027686d0ad2d9e7add82488d60bd",
+    "mode": "644"
+  },
+  "unchanged": true,
+  "includesEmptyDirectories": true
+}

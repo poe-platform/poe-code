@@ -1,0 +1,127 @@
+TAP version 13
+# Subtest: native-data manifest records complete classification and six exact raw payload hashes
+ok 1 - native-data manifest records complete classification and six exact raw payload hashes
+  ---
+  duration_ms: 0.826667
+  type: 'test'
+  ...
+# Subtest: root compiler configuration differs only by the exact data exclusion
+not ok 2 - root compiler configuration differs only by the exact data exclusion
+  ---
+  duration_ms: 8.308959
+  type: 'test'
+  location: '/private/tmp/compiler-policy-independent-gXirBb/source/tests/plugins/qualified-current-release-native-data/controls.test.ts:1:1241'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        compilerOptions: {
+          exactOptionalPropertyTypes: true,
+          forceConsistentCasingInFileNames: true,
+          lib: [
+    ...
+          'tests/commands/regex-execution/continuation/artifacts/native',
+    +     'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts',
+    +     'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts',
+    +     'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts',
+    +     'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts',
+    +     'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts'
+        ],
+        include: [
+          'src/**/*.ts',
+          'tests/**/*.ts'
+        ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    compilerOptions:
+      target: 'ES2023'
+      lib:
+        0: 'ES2023'
+      module: 'NodeNext'
+      moduleResolution: 'NodeNext'
+      strict: true
+      noUncheckedIndexedAccess: true
+      exactOptionalPropertyTypes: true
+      verbatimModuleSyntax: true
+      forceConsistentCasingInFileNames: true
+      skipLibCheck: true
+      types:
+        0: 'node'
+    include:
+      0: 'src/**/*.ts'
+      1: 'tests/**/*.ts'
+    exclude:
+      0: 'dist'
+      1: 'node_modules'
+      2: 'tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts'
+      3: 'tests/commands/regex-execution/continuation/artifacts/native'
+  actual:
+    compilerOptions:
+      target: 'ES2023'
+      lib:
+        0: 'ES2023'
+      module: 'NodeNext'
+      moduleResolution: 'NodeNext'
+      strict: true
+      noUncheckedIndexedAccess: true
+      exactOptionalPropertyTypes: true
+      verbatimModuleSyntax: true
+      forceConsistentCasingInFileNames: true
+      skipLibCheck: true
+      types:
+        0: 'node'
+    include:
+      0: 'src/**/*.ts'
+      1: 'tests/**/*.ts'
+    exclude:
+      0: 'dist'
+      1: 'node_modules'
+      2: 'tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts'
+      3: 'tests/commands/regex-execution/continuation/artifacts/native'
+      4: 'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts'
+      5: 'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts'
+      6: 'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts'
+      7: 'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts'
+      8: 'tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/compiler-policy-independent-gXirBb/source/tests/plugins/qualified-current-release-native-data/controls.test.ts:26:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: copied root config includes canonical source, test, helper and artifact neighbors
+ok 3 - copied root config includes canonical source, test, helper and artifact neighbors
+  ---
+  duration_ms: 409.206709
+  type: 'test'
+  ...
+# Subtest: identical undefined symbols outside the exact subtree remain real TS2304 errors
+ok 4 - identical undefined symbols outside the exact subtree remain real TS2304 errors
+  ---
+  duration_ms: 270.289083
+  type: 'test'
+  ...
+# Subtest: actual npm script excludes future native test data without excluding neighboring tests/helpers
+ok 5 - actual npm script excludes future native test data without excluding neighboring tests/helpers
+  ---
+  duration_ms: 630.45925
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1425.908708

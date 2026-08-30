@@ -1,0 +1,46 @@
+TAP version 13
+# BINDING verified 222 source/fixture hashes; node=v22.22.2; currentHead=1fe49886553c07f7cd9d55255cfcead25f4d3cbc; frozenHead=044aaacaad928d78c9c5889ef861cf6e36303aa2
+# Subtest: 04 public named VFS tail -n 1 /input Buffer
+not ok 1 - 04 public named VFS tail -n 1 /input Buffer
+  ---
+  duration_ms: 5.6075
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/ownership.test.ts:1:3026'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + []
+    - [
+    -   'yield:0:00ffc3',
+    -   'next:0',
+    -   'yield:1:a9410a',
+    -   'next:1',
+    -   'finally:zero'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'yield:0:00ffc3'
+    1: 'next:0'
+    2: 'yield:1:a9410a'
+    3: 'next:1'
+    4: 'finally:zero'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/ownership.test.ts:96:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 272.196917

@@ -1,0 +1,90 @@
+{
+  "schema": "launcher-v2-controls-v1",
+  "native": 0,
+  "product": 0,
+  "maximumKnownNodeStarts": 3,
+  "ownerStarts": 1,
+  "literalFixtureStarts": 2,
+  "fixtureImports": 0,
+  "identities": [
+    {
+      "id": "C01",
+      "kind": "SYNTHETIC",
+      "name": "fsync failure bars completion but all captures close"
+    },
+    {
+      "id": "C02",
+      "kind": "SYNTHETIC",
+      "name": "close failure retains fault and bounded independent cleanup"
+    },
+    {
+      "id": "C03",
+      "kind": "DATA",
+      "name": "wrong/missing/hash/mode/path/review-seal admission"
+    },
+    {
+      "id": "C04",
+      "kind": "DATA",
+      "name": "exact synthetic accepted review bytes positive; not real authority"
+    },
+    {
+      "id": "C05",
+      "kind": "SYNTHETIC",
+      "name": "managed owner/control ceiling and peak without fork mixing"
+    },
+    {
+      "id": "C06",
+      "kind": "DATA_SYNTHETIC",
+      "name": "before-write aggregate cap and observed storage/work overshoot"
+    },
+    {
+      "id": "C07",
+      "kind": "SYNTHETIC",
+      "name": "admission tail and finalization deadline refusal"
+    },
+    {
+      "id": "C08",
+      "kind": "SYNTHETIC",
+      "name": "unknown observer does not become absence on direct close"
+    },
+    {
+      "id": "C09",
+      "kind": "SYNTHETIC",
+      "name": "early TERM origin plus2000 KILL plus1000 end"
+    },
+    {
+      "id": "C10",
+      "kind": "SYNTHETIC",
+      "name": "every capture/publication prerequisite required for credit"
+    },
+    {
+      "id": "C11",
+      "kind": "ACTUAL_NODE_FIXTURE",
+      "name": "literal readiness then delayed retirement after TERM",
+      "program": "process.on(\"SIGTERM\",()=>setTimeout(()=>process.exit(0),150));process.stdout.write(\"V2_DELAYED\\n\");setInterval(()=>{},1000);",
+      "expectedStdout": "V2_DELAYED\n",
+      "targetMs": 3000,
+      "termMs": 2000,
+      "killMs": 1000
+    },
+    {
+      "id": "C12",
+      "kind": "ACTUAL_NODE_FIXTURE",
+      "name": "literal readiness ignores TERM and retires after KILL",
+      "program": "process.on(\"SIGTERM\",()=>{});process.stdout.write(\"V2_KILL\\n\");setInterval(()=>{},1000);",
+      "expectedStdout": "V2_KILL\n",
+      "targetMs": 3000,
+      "termMs": 2000,
+      "killMs": 1000
+    }
+  ],
+  "stopRules": [
+    "capture or integrity fault",
+    "unknown retirement",
+    "global cap or deadline",
+    "unexpected target signal"
+  ],
+  "ordinarySourceFailure": "preserve actual receipt; no automatic target retry",
+  "controlOwnerArgument": "/tmp/bash-functional-launcher-v2-prep-JKgaZw/controls",
+  "canonicalControlRoot": "/private/tmp/bash-functional-launcher-v2-prep-JKgaZw/controls"
+}

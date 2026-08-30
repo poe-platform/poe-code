@@ -1,0 +1,7 @@
+{
+  "name": "matcher",
+  "before": "captures: Object.freeze(captures)",
+  "after": "captures: Object.freeze(captures.slice(0, 1))",
+  "base": "5427606266eb6c0d25edba6a32f5097769aa11cb3e9825d0328d5995f07007b7",
+  "changed": "742c74026fe3b69e152ca05866ed49e077da3054aa89bf25b0d23179395b0145"
+}

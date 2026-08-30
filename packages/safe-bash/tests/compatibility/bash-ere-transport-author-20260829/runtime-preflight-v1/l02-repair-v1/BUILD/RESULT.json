@@ -1,0 +1,516 @@
+{
+  "schema": 1,
+  "role": "strict-private12-build-and-package-DATA-only",
+  "children": [
+    {
+      "schema": 3,
+      "role": "compiler",
+      "ownerPid": 54902,
+      "clockDomain": "owner:54902",
+      "pid": 55128,
+      "admitted": true,
+      "created": true,
+      "spawned": true,
+      "exited": true,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "exitCode": 0,
+      "exitSignal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "stdoutEnded": true,
+      "stderrEnded": true,
+      "state": "RETIRED",
+      "captureComplete": true,
+      "captureTruncated": false,
+      "termRequested": false,
+      "killRequested": false,
+      "primary": {
+        "present": false
+      },
+      "secondary": [],
+      "trace": [
+        {
+          "seq": 1,
+          "at": 1172460,
+          "kind": "admit"
+        },
+        {
+          "seq": 2,
+          "at": 1178540,
+          "kind": "created",
+          "pid": 55128
+        },
+        {
+          "seq": 3,
+          "at": 1178843,
+          "kind": "spawn",
+          "pid": 55128
+        },
+        {
+          "seq": 4,
+          "at": 2543728,
+          "kind": "stderrEnd"
+        },
+        {
+          "seq": 5,
+          "at": 2544422,
+          "kind": "stderrClose"
+        },
+        {
+          "seq": 6,
+          "at": 2544451,
+          "kind": "stdoutEnd"
+        },
+        {
+          "seq": 7,
+          "at": 2544520,
+          "kind": "exit",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "seq": 8,
+          "at": 2544573,
+          "kind": "close",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "seq": 9,
+          "at": 2544577,
+          "kind": "stdoutClose"
+        },
+        {
+          "seq": 10,
+          "at": 2544596,
+          "kind": "retired"
+        }
+      ]
+    },
+    {
+      "schema": 3,
+      "role": "host-doubles",
+      "ownerPid": 54902,
+      "clockDomain": "owner:54902",
+      "pid": 55266,
+      "admitted": true,
+      "created": true,
+      "spawned": true,
+      "exited": true,
+      "closed": true,
+      "code": 1,
+      "signal": null,
+      "exitCode": 1,
+      "exitSignal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 1542,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "stdoutEnded": true,
+      "stderrEnded": true,
+      "state": "RETIRED",
+      "captureComplete": true,
+      "captureTruncated": false,
+      "termRequested": false,
+      "killRequested": false,
+      "primary": {
+        "present": false
+      },
+      "secondary": [],
+      "trace": [
+        {
+          "seq": 1,
+          "at": 3069029,
+          "kind": "admit"
+        },
+        {
+          "seq": 2,
+          "at": 3071039,
+          "kind": "created",
+          "pid": 55266
+        },
+        {
+          "seq": 3,
+          "at": 3071064,
+          "kind": "spawn",
+          "pid": 55266
+        },
+        {
+          "seq": 4,
+          "at": 3126155,
+          "kind": "stderrEnd"
+        },
+        {
+          "seq": 5,
+          "at": 3126356,
+          "kind": "stdoutEnd"
+        },
+        {
+          "seq": 6,
+          "at": 3126401,
+          "kind": "exit",
+          "code": 1,
+          "signal": null
+        },
+        {
+          "seq": 7,
+          "at": 3126453,
+          "kind": "stdoutClose"
+        },
+        {
+          "seq": 8,
+          "at": 3126459,
+          "kind": "close",
+          "code": 1,
+          "signal": null
+        },
+        {
+          "seq": 9,
+          "at": 3126462,
+          "kind": "stderrClose"
+        },
+        {
+          "seq": 10,
+          "at": 3126464,
+          "kind": "retired"
+        }
+      ]
+    }
+  ],
+  "workers": 0,
+  "matchingCalls": 0,
+  "compiler": {
+    "code": 0,
+    "diagnostics": ""
+  },
+  "emitted": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/accounting.d.ts",
+      "size": 1925,
+      "mode": 420,
+      "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/accounting.js",
+      "size": 7003,
+      "mode": 420,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.d.ts",
+      "size": 658,
+      "mode": 420,
+      "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.js",
+      "size": 9897,
+      "mode": 420,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.d.ts",
+      "size": 645,
+      "mode": 420,
+      "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.js",
+      "size": 14619,
+      "mode": 420,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/validation.d.ts",
+      "size": 1462,
+      "mode": 420,
+      "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/validation.js",
+      "size": 12831,
+      "mode": 420,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/wire-engine.d.ts",
+      "size": 164,
+      "mode": 420,
+      "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/wire-engine.js",
+      "size": 2514,
+      "mode": 420,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/worker-entry.js",
+      "size": 1502,
+      "mode": 420,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    }
+  ],
+  "archive": {
+    "schema": 1,
+    "role": "strict emitted internal USTAR package producer, not npm/full public package",
+    "presealSha256": "65c7431b0c9fad8853bf5c36e23d50ddbad97a6e4e5bd61bb37ac2321d702333",
+    "sourceManifestSha256": "97cd0be9fdf7feae8ba50d8f4bded66207202700e22d46abd7d2684aba422bc5",
+    "sourceModules": 12,
+    "emissions": 24,
+    "entries": [
+      {
+        "name": "ere/errors.d.ts",
+        "size": 691,
+        "mode": 420,
+        "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+      },
+      {
+        "name": "ere/errors.js",
+        "size": 1045,
+        "mode": 420,
+        "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+      },
+      {
+        "name": "ere/limits.d.ts",
+        "size": 671,
+        "mode": 420,
+        "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+      },
+      {
+        "name": "ere/limits.js",
+        "size": 3265,
+        "mode": 420,
+        "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+      },
+      {
+        "name": "ere/matcher.d.ts",
+        "size": 231,
+        "mode": 420,
+        "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+      },
+      {
+        "name": "ere/matcher.js",
+        "size": 9747,
+        "mode": 420,
+        "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+      },
+      {
+        "name": "ere/syntax.d.ts",
+        "size": 445,
+        "mode": 420,
+        "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+      },
+      {
+        "name": "ere/syntax.js",
+        "size": 14270,
+        "mode": 420,
+        "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+      },
+      {
+        "name": "ere/transport/accounting.d.ts",
+        "size": 1925,
+        "mode": 420,
+        "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+      },
+      {
+        "name": "ere/transport/accounting.js",
+        "size": 7003,
+        "mode": 420,
+        "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+      },
+      {
+        "name": "ere/transport/owner.d.ts",
+        "size": 658,
+        "mode": 420,
+        "sha256": "6a5df9197bd83048e19755ce2465ecfdd11ad1fe0b13f8fcf9f1a108a532743a"
+      },
+      {
+        "name": "ere/transport/owner.js",
+        "size": 9897,
+        "mode": 420,
+        "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+      },
+      {
+        "name": "ere/transport/protocol.d.ts",
+        "size": 2658,
+        "mode": 420,
+        "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+      },
+      {
+        "name": "ere/transport/protocol.js",
+        "size": 1198,
+        "mode": 420,
+        "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+      },
+      {
+        "name": "ere/transport/root.d.ts",
+        "size": 645,
+        "mode": 420,
+        "sha256": "60724dfd4b1c9accb93714f995129f343f381e9a2f8344077671541f7f06ce3e"
+      },
+      {
+        "name": "ere/transport/root.js",
+        "size": 14619,
+        "mode": 420,
+        "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+      },
+      {
+        "name": "ere/transport/validation.d.ts",
+        "size": 1462,
+        "mode": 420,
+        "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+      },
+      {
+        "name": "ere/transport/validation.js",
+        "size": 12831,
+        "mode": 420,
+        "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+      },
+      {
+        "name": "ere/transport/wire-engine.d.ts",
+        "size": 164,
+        "mode": 420,
+        "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+      },
+      {
+        "name": "ere/transport/wire-engine.js",
+        "size": 2514,
+        "mode": 420,
+        "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+      },
+      {
+        "name": "ere/transport/worker-entry.d.ts",
+        "size": 11,
+        "mode": 420,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "name": "ere/transport/worker-entry.js",
+        "size": 1502,
+        "mode": 420,
+        "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+      },
+      {
+        "name": "ere/types.d.ts",
+        "size": 1606,
+        "mode": 420,
+        "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+      },
+      {
+        "name": "ere/types.js",
+        "size": 11,
+        "mode": 420,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "name": "package.json",
+        "size": 228,
+        "mode": 420,
+        "sha256": "5bca6562aff92421fddd35881ac65df0dd0b72176006491dbd50f62c65493c2f"
+      }
+    ],
+    "tarBytes": 110592,
+    "tarSha256": "ecfc97a0d2b1d63f74f97ff52e523f980b483ac8b7f91dc53bf2b2871b2467ce",
+    "compressedBytes": 18000,
+    "compressedSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+    "textBytes": 24001,
+    "textSha256": "64517b6467b9963d531b89eff9cbad85985c5409bad6e3c96ac2cf2fc5ac63e8",
+    "format": "gzip USTAR; ASCII names, lexical byte order, all regular0644, uid/gid/mtime0; package/ prefix"
+  },
+  "doubles": {
+    "code": 1,
+    "text": "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles.mjs:23\nconst result={schema:1,role:'actual compiled private owner/root with synchronous importer-bound fakeWorker; NOT OS Worker proof',groups:rows,passed:rows.filter(r=>r.pass).length,workers:0,matchingCalls:0,loaded:[...new Set(loaded)].sort()};writeFileSync(new URL('./DOUBLE-RESULT.json',import.meta.url),JSON.stringify(result,null,2)+'\n                                                                                                                                                                                                                                                                                                                                            ^\n\nSyntaxError: Invalid or unexpected token\n    at compileSourceTextModule (node:internal/modules/esm/utils:346:16)\n    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:107:18)\n    at #translate (node:internal/modules/esm/loader:546:20)\n    at afterLoad (node:internal/modules/esm/loader:596:29)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:601:12)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25)\n\nNode.js v22.22.2\n"
+  },
+  "failure": {
+    "present": true,
+    "type": "object",
+    "message": "host doubles failure"
+  },
+  "elapsedMs": 3097,
+  "captureBytes": 0,
+  "knownChildren": 2,
+  "closedChildren": 2
+}

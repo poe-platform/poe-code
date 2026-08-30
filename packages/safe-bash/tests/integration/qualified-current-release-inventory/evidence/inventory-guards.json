@@ -1,0 +1,22 @@
+{
+  "commit": "847dfd766eddbc8f0438f5f999f27ba6a20b8ca7",
+  "counts": {
+    "current": 29,
+    "declaration": 4,
+    "frozen-oracle": 1,
+    "frozen-evidence": 141,
+    "negative-types": 2
+  },
+  "controls": [
+    "new unclassified executable outside tests cannot disappear",
+    "current route omission cannot become inventory-only",
+    "negative route omission is rejected",
+    "negative fixture bytes cannot change silently",
+    "historical input cannot silently change",
+    "historical proof cannot silently change",
+    "maintained file cannot be relabeled historical without route change",
+    "invented inventory totals are rejected"
+  ],
+  "controlCount": 8,
+  "scope": "inventory guards only, not consumer execution"
+}

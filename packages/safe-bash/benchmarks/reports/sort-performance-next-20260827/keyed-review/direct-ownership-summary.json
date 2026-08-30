@@ -1,0 +1,84 @@
+{
+  "controls": [
+    {
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 38690,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 384,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "root": "/private/tmp/sort-key-review-baseline-0SmidY/baseline-direct-ownership",
+      "evidence": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-review/baseline-direct-ownership"
+    },
+    {
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "loaded-worker.mjs"
+      ],
+      "pid": 38692,
+      "code": 0,
+      "signal": null,
+      "killed": null,
+      "exactChildClosed": true,
+      "outputBytes": 383,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "root": "/private/tmp/sort-key-review-candidate-8vQChD/candidate-direct-ownership",
+      "evidence": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-review/candidate-direct-ownership"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "complete",
+      "child": {
+        "args": [
+          "--test",
+          "--test-reporter=tap",
+          "loaded-worker.mjs"
+        ],
+        "pid": 38702,
+        "code": 1,
+        "signal": null,
+        "killed": null,
+        "exactChildClosed": true,
+        "outputBytes": 1303,
+        "passed": 1,
+        "failed": 1,
+        "skipped": 0
+      },
+      "counterFailures": []
+    },
+    {
+      "name": "pending",
+      "child": {
+        "args": [
+          "--test",
+          "--test-reporter=tap",
+          "loaded-worker.mjs"
+        ],
+        "pid": 38723,
+        "code": 1,
+        "signal": null,
+        "killed": null,
+        "exactChildClosed": true,
+        "outputBytes": 2219,
+        "passed": 0,
+        "failed": 2,
+        "skipped": 0
+      },
+      "counterFailures": []
+    }
+  ],
+  "originalMutationOutcomePreserved": "12/14 killed; two Shell-wrapper ownership mutants survived",
+  "supplement": "same two frozen cases, direct boundary only"
+}

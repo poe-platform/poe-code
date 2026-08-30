@@ -1,0 +1,3 @@
+const unavailable = process.getBuiltinModule('module');
+if (unavailable !== undefined) throw new Error('STUB_NATIVE_MODULE_AVAILABLE');
+export const moduleUnavailable = true;

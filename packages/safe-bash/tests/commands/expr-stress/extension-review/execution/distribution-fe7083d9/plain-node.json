@@ -1,0 +1,18 @@
+{
+  "commit": "fe7083d99b8ccfdfbbb9b7209e0a6abbe7979724",
+  "scriptSha256": "6c6c06ea9b215135219457d5997d48218009f236da4e7fb264fd719b3c92696f",
+  "script": "import assert from 'node:assert/strict';\nimport * as api from 'virtual-bash';\nimport { createExprCommand } from './node_modules/virtual-bash/dist/commands/expr/index.js';\nimport { matchExpr } from './node_modules/virtual-bash/dist/commands/expr/bre-worker.js';\nimport { exprMatchCeilings } from './node_modules/virtual-bash/dist/commands/regex-execution/protocol.js';\nassert.equal(typeof api.createExprCommand, 'undefined');\nconst shell = new api.Shell({ fs: new api.MemoryFileSystem(), commands: new api.CommandRegistry([...api.createStandardCommands(), createExprCommand()]), env: { LC_ALL: 'C' } });\ntry {\n  const result = await shell.exec(\"expr 41 + 1; expr abc : a\");\n  assert.equal(result.stdout, '42\\n1\\n'); assert.equal(result.stderr, ''); assert.equal(result.exitCode, 0);\n  let blocked = false;\n  try { matchExpr({ kind: 'expr-match', pattern: new Uint8Array([91]), profile: 'byte', limits: exprMatchCeilings }, new Uint8Array()); } catch (error) { blocked = /worker/.test(error.message); }\n  assert(blocked);\n  console.log(JSON.stringify({ rootImport: 'virtual-bash', standalone: './node_modules/virtual-bash/dist/commands/expr/index.js', rootExprIntegrated: false, stdout: result.stdout, mainThreadCompilerBlockedBeforeInvalidPattern: blocked }));\n} finally { await shell.dispose(); }\n",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer/review-runtime.mjs"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-YfOSEd/consumer",
+  "timeoutMs": 10000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\"rootImport\":\"virtual-bash\",\"standalone\":\"./node_modules/virtual-bash/dist/commands/expr/index.js\",\"rootExprIntegrated\":false,\"stdout\":\"42\\n1\\n\",\"mainThreadCompilerBlockedBeforeInvalidPattern\":true}\n",
+  "stderr": "",
+  "qualification": "PASS moved bare public root import plus physical standalone expr; not a public expr subpath"
+}

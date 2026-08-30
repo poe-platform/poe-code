@@ -1,0 +1,169 @@
+{
+  "schema": "timeout-f22-repair-result/1",
+  "status": "AUTHOR_F22_REPAIR_SCOPED_PASS_REVIEW_REQUIRED",
+  "baseline": {
+    "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5"
+  },
+  "originalModuleCommit": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+  "repairFreezeCommit": "72a109971d6c82f783ae91de62f7c15e2af21d8b",
+  "repairSourceCommit": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "module": {
+    "files": [
+      {
+        "path": "src/commands/timeout/duration.ts",
+        "mode": "100644",
+        "bytes": 2508,
+        "sha256": "870a3800f9ba46a1d38ed831d0b6e7da804d4d34c6f5d3ebe86ada535d90b835",
+        "blob": "ffb713e6f0fd379697f7c564ab014f9fb14a8b07",
+        "commit": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f"
+      },
+      {
+        "path": "src/commands/timeout/index.ts",
+        "mode": "100644",
+        "bytes": 10250,
+        "sha256": "e68bd5177a0c45ebbcff4dbb834e46581c9c51d216897cda261836afa1c8a90b",
+        "blob": "d6cb9e9797c6cae524ec7228877de4788c7c57ab",
+        "commit": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f"
+      },
+      {
+        "path": "src/commands/timeout/README.md",
+        "mode": "100644",
+        "bytes": 1202,
+        "sha256": "2e41cca9923eb92e6811d12e13144552e29e553d5b707300ef30728b87433eb0",
+        "blob": "b72a4cf5b45eaaa51cb5345030d5519f3bd50724",
+        "commit": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f"
+      },
+      {
+        "path": "src/commands/timeout/scheduler.ts",
+        "mode": "100644",
+        "bytes": 3480,
+        "sha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3",
+        "blob": "a5839e09b810b88dd340e4b36ff4b100533e481b",
+        "commit": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d"
+      }
+    ]
+  },
+  "sourceArchive": {
+    "format": "ustar",
+    "bytes": 2586112,
+    "sha256Before": "ee7fae20f2c3f99839893afe31b93aa4b6633e1baa36cfbde465e0394161de56",
+    "sha256After": "ee7fae20f2c3f99839893afe31b93aa4b6633e1baa36cfbde465e0394161de56",
+    "entries": 268,
+    "appendedSourceEntryDetected": false,
+    "exactSourceTreeComparedAfterRun": true
+  },
+  "package": {
+    "filename": "virtual-bash-0.0.0.tgz",
+    "bytes": 736430,
+    "sha256": "e6f42dbb063044c0a0d9eaa3029ee9ef0b9ed26aabafd42c9346b18e1901c80c",
+    "files": 857,
+    "instructionFiles": 0
+  },
+  "installed": {
+    "beforeMove": [
+      {
+        "path": "dist/commands/timeout/index.js",
+        "bytes": 9974,
+        "sha256": "79abde4c819538dbbec2f51f80c287b2af526ecec9c721afccb46f6c0821a60e"
+      },
+      {
+        "path": "dist/commands/timeout/index.d.ts",
+        "bytes": 941,
+        "sha256": "a000373867787f858207e21578ff5390390ea5ec52277e45e235257e554c6f4d"
+      },
+      {
+        "path": "dist/commands/timeout/scheduler.js",
+        "bytes": 3256,
+        "sha256": "836d82eb445a9981ea0b68c93903039be917288d186cee17a13cd0794d0c81ca"
+      },
+      {
+        "path": "dist/commands/timeout/scheduler.d.ts",
+        "bytes": 706,
+        "sha256": "cf5cdfb1ff771413e13d528d22c11861b510114cff1e39eb561075fc20be71bf"
+      }
+    ],
+    "afterMove": [
+      {
+        "path": "dist/commands/timeout/index.js",
+        "bytes": 9974,
+        "sha256": "79abde4c819538dbbec2f51f80c287b2af526ecec9c721afccb46f6c0821a60e"
+      },
+      {
+        "path": "dist/commands/timeout/index.d.ts",
+        "bytes": 941,
+        "sha256": "a000373867787f858207e21578ff5390390ea5ec52277e45e235257e554c6f4d"
+      },
+      {
+        "path": "dist/commands/timeout/scheduler.js",
+        "bytes": 3256,
+        "sha256": "836d82eb445a9981ea0b68c93903039be917288d186cee17a13cd0794d0c81ca"
+      },
+      {
+        "path": "dist/commands/timeout/scheduler.d.ts",
+        "bytes": 706,
+        "sha256": "cf5cdfb1ff771413e13d528d22c11861b510114cff1e39eb561075fc20be71bf"
+      }
+    ],
+    "physicallyMoved": true
+  },
+  "runtime": {
+    "repair": {
+      "tests": 2,
+      "passed": 2
+    },
+    "originalAuthor": {
+      "tests": 14,
+      "passed": 14
+    },
+    "sleepNeighbor": {
+      "tests": 27,
+      "passed": 27
+    },
+    "cleanupNeighbors": {
+      "tests": 38,
+      "passed": 38
+    },
+    "total": {
+      "tests": 81,
+      "passed": 81
+    }
+  },
+  "types": {
+    "build": "pass",
+    "sourceAndSelectedHarness": "pass",
+    "repairPositive": "pass",
+    "installedPositive": "pass",
+    "movedPositive": "pass"
+  },
+  "movedControls": {
+    "defaultClockChildStatus": 7,
+    "actualShell": true,
+    "customReceiverExact": true,
+    "cancellationStatus": 124,
+    "cleanupRegistrations": 1
+  },
+  "defaultRegistry": {
+    "count": 77,
+    "timeoutPresent": false
+  },
+  "publicSurface": {
+    "rootTimeoutExport": false,
+    "timeoutPackageSubpath": false,
+    "internalLeafRuntimeExports": 3
+  },
+  "independentPreservation": {
+    "originalQualification": "31/34 in each layout",
+    "rescored": false,
+    "fixtureFilesModified": false,
+    "wholeCohortExecuted": false,
+    "remainingVerifierIssuesAddressed": false
+  },
+  "native": {
+    "executed": 0
+  },
+  "safeJs": {
+    "executed": 0
+  },
+  "sourceMutationDetected": false
+}

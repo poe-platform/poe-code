@@ -1,0 +1,13 @@
+{
+  "role": "actual-admin-binding-origin",
+  "pid": 65446,
+  "started": "2026-08-29T15:06:41.222Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

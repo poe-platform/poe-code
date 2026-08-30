@@ -1,0 +1,27 @@
+{
+  "created": "2026-08-29T15:48:26.209Z",
+  "all17CapsExactlyMatch": true,
+  "grantMode": "0600",
+  "grantHashUnchanged": true,
+  "runtimePathsStillUnused": true,
+  "knownOS": {
+    "observedBeforePublication": 3,
+    "conservativeShellEditingRoles": 4,
+    "plannedPublicationGit": 3,
+    "totalConservative": 10,
+    "maximum": 24,
+    "observedDirectChildrenPeak": 1,
+    "conservativeWithToolHostPeak": 2,
+    "fullTransitiveCensus": false
+  },
+  "helperCount": 1,
+  "scheduler": 0,
+  "runtime": 0,
+  "workers": 0,
+  "compiler": 0,
+  "install": 0,
+  "phaseStarted": "2026-08-29T15:44:28.070Z",
+  "phaseDeadline": "2026-08-29T15:52:28.070Z",
+  "publicationRawDestination": "/private/tmp/safe-bash-b2-r7-final-binding-publication",
+  "futureActualStillNeedsReviewAndRootGo": true
+}

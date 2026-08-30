@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py", line 67, in execute
+    action(self)
+    ~~~~~~^^^^^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py", line 148, in action
+    raise PrimaryValue(False)
+PrimaryValue: False
+Traceback (most recent call last):
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py", line 75, in execute
+    cleanup()
+    ~~~~~~~^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py", line 150, in cleanup
+    raise RuntimeError('CLEANUP_SENTINEL')
+RuntimeError: CLEANUP_SENTINEL

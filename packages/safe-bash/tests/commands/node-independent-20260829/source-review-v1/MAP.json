@@ -1,0 +1,1303 @@
+{
+  "checkpoint": "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4",
+  "originalFreeze": "797aa13996f04a332f37a84888d151f2352efee9",
+  "roles": "SOURCE path binding only, not semantic/type/load validation",
+  "families": [
+    {
+      "id": "N01",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 46
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 54
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 56
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 63
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 65
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 89
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 163
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 185
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 191
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 66
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 129
+        }
+      ],
+      "note": "Useful edit route exists; real provider/VFS/Shell proof still unrun.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N02",
+      "anchors": [
+        {
+          "path": "src/commands/node/cli.ts",
+          "line": 36
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 47
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 49
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 53
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 65
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 83
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 188
+        }
+      ],
+      "note": "Exact argv/env/cwd snapshots; provider guest copying/value restrictions still owed.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N03",
+      "anchors": [
+        {
+          "path": "src/commands/node/admission.ts",
+          "line": 217
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 189
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 194
+        }
+      ],
+      "note": "Primitive print and trusted printRefusal branch; object/promise result semantics require provider.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N04",
+      "anchors": [
+        {
+          "path": "src/commands/node/cli.ts",
+          "line": 38
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 82
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 110
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 70
+        }
+      ],
+      "note": "SourceRead+stdinRead and one-shot shared source consumption.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N05",
+      "anchors": [
+        {
+          "path": "src/commands/node/cli.ts",
+          "line": 25
+        },
+        {
+          "path": "src/commands/node/cli.ts",
+          "line": 30
+        },
+        {
+          "path": "src/commands/node/cli.ts",
+          "line": 33
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 46
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 54
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 94
+        }
+      ],
+      "note": "Status2/no pull mapped; F03 granted diagnostic silently omitted.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F03"
+      ]
+    },
+    {
+      "id": "N06",
+      "anchors": [
+        {
+          "path": "src/commands/node/cli.ts",
+          "line": 39
+        },
+        {
+          "path": "src/commands/node/cli.ts",
+          "line": 40
+        }
+      ],
+      "note": "Suffix and trailing-slash refusal before VFS; F03 applies.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F03"
+      ]
+    },
+    {
+      "id": "N07",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 110
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 119
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 120
+        }
+      ],
+      "note": "Source acquisition preserves raw adapter origin; no invented directory metadata.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N08",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 62
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 63
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 65
+        },
+        {
+          "path": "src/commands/node/admission.ts",
+          "line": 223
+        }
+      ],
+      "note": "Complete lexical/recursive preflight before provider; provider must parse actual program too.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N09",
+      "anchors": [
+        {
+          "path": "src/commands/node/admission.ts",
+          "line": 12
+        },
+        {
+          "path": "src/commands/node/admission.ts",
+          "line": 161
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 137
+        }
+      ],
+      "note": "Literal require preflight versus computed runtime refusal; no substring-only checker.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N10",
+      "anchors": [
+        {
+          "path": "src/commands/node/admission.ts",
+          "line": 6
+        },
+        {
+          "path": "src/commands/node/admission.ts",
+          "line": 194
+        },
+        {
+          "path": "src/commands/node/admission.ts",
+          "line": 197
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 129
+        }
+      ],
+      "note": "Closed syntax/global inventory; member-kind restrictions remain known provider obligation.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N11",
+      "anchors": [
+        {
+          "path": "src/commands/node/admission.ts",
+          "line": 194
+        }
+      ],
+      "note": "Promise constructor rejected at source admission, not a new engine constructor run.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N12",
+      "anchors": [
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 181
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 184
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 3
+        }
+      ],
+      "note": "Only empty-array race facade; no Q/all pending promises promise.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N13",
+      "anchors": [
+        {
+          "path": "src/commands/node/values.ts",
+          "line": 55
+        },
+        {
+          "path": "src/commands/node/values.ts",
+          "line": 56
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 151
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 163
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 185
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 195
+        }
+      ],
+      "note": "Seven booleans default false, source/output authority separate.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N14",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 6
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 52
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 163
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 188
+        }
+      ],
+      "note": "Grants cover supplied whole VFS namespace, not per-path allowlists. Original /data confinement setup must use actual confined VFS; do not assert zero VFS calls for namespace rejection.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N15",
+      "anchors": [
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 73
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 77
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 185
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 191
+        }
+      ],
+      "note": "w/wx delegated atomically to actual FS; no check-before-write fallback.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N16",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 185
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 238
+        }
+      ],
+      "note": "Granted readonly errors use FS transport if admitted; F02 typed recognition concern.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N17",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 9
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 20
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 238
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 243
+        }
+      ],
+      "note": "F02 shape-only error authenticity; Q03 extra cause-field policy.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F02"
+      ]
+    },
+    {
+      "id": "N18",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 84
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 87
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 103
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 215
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 114
+        }
+      ],
+      "note": "Raw origin captured separately; Q01 private-origin propagation seam.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F02"
+      ]
+    },
+    {
+      "id": "N19",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 58
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 59
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 105
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 124
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 177
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 14
+        }
+      ],
+      "note": "Replacement UTF8 and one BOM strip now explicitly bound; no runtime split-vector proof.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N20",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 82
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 85
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 98
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 105
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 108
+        }
+      ],
+      "note": "Retained fragments copied; borrowed iterator never returned; pending pulls intentionally await cooperative settlement.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N21",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 151
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 156
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 126
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 138
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 140
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 142
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 148
+        }
+      ],
+      "note": "Fresh realpath on each require; same guest cache key, no write invalidation.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N22",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 151
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 156
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 165
+        }
+      ],
+      "note": "Reauthorization is grants + actual VFS realpath, not a mutable grant API; dynamic backing/TOCTOU still provider/FS profile, no global identity claim.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N23",
+      "anchors": [
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 142
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 147
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 148
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 152
+        }
+      ],
+      "note": "Failed parse not installed; own JSON keys stay data subject to provider semantics.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N24",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 4
+        },
+        {
+          "path": "src/commands/node/values.ts",
+          "line": 83
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 45
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 62
+        },
+        {
+          "path": "src/commands/node/program.ts",
+          "line": 199
+        }
+      ],
+      "note": "Fixed maxima, no lowerable options. Source ceiling is combined facade+user, so original raw-L recipe needs declared B05 binding rather than false inclusive raw-source pass.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N25",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 195
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 218
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 37
+        }
+      ],
+      "note": "All IO via context sinks, no fresh Shell Budget; F03 early diagnostics and Q02 publisher route separate.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F03"
+      ]
+    },
+    {
+      "id": "N26",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 20
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 27
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 4
+        }
+      ],
+      "note": "One definition/execute; no new Shell or Budget construction. Shared command budget proof remains public-Shell actual.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N27",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 36
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 44
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 103
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 49
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 51
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 54
+        }
+      ],
+      "note": "Cleanup register before open; caller raw priority final, exact undefined only appropriate synthetic/preaborted branch.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N28",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 28
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 24
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 48
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 105
+        }
+      ],
+      "note": "Fresh owner/cache per execute and private signal. No source evidence of parent-controller mutation. Actual child/sibling state tests unrun.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N29",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 28
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 36
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 84
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 88
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 75
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 80
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 120
+        }
+      ],
+      "note": "Inert prepared session/start/retire API exists; F01 retirement may hang admitted parent work.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F01"
+      ]
+    },
+    {
+      "id": "N30",
+      "anchors": [
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 16
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 75
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 87
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 120
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 126
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 136
+        }
+      ],
+      "note": "none/exited validation and contradictory completion checks exist; provider must prove receipt, never fake actual Worker. F01 failure drain.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F01"
+      ]
+    },
+    {
+      "id": "N31",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 128
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 170
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 85
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 120
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 129
+        }
+      ],
+      "note": "F01 cooperative parent signal never aborted on escaping start failure.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F01"
+      ]
+    },
+    {
+      "id": "N32",
+      "anchors": [
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 201
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 207
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 211
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 213
+        }
+      ],
+      "note": "Writes await owned destination and listen while write active. No before-first-write output enrollment demonstrated; actual profile test remains required.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N33",
+      "anchors": [
+        {
+          "path": "src/commands/node/diagnostics.ts",
+          "line": 26
+        },
+        {
+          "path": "src/commands/node/diagnostics.ts",
+          "line": 28
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 37
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 218
+        }
+      ],
+      "note": "Publisher helper exists but unused by nine files; Q02 async completion and actual owner route still unresolved.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F03"
+      ]
+    },
+    {
+      "id": "N34",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 92
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 100
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 103
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 104
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 105
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 106
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 107
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 114
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 134
+        }
+      ],
+      "note": "Raw caller/execution/cleanup/numeric selection mostly explicit; F01 drain and Q01 profile upgrade require repair/binding.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F01"
+      ]
+    },
+    {
+      "id": "N35",
+      "anchors": [
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 49
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 52
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 55
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 63
+        },
+        {
+          "path": "src/commands/node/lifecycle.ts",
+          "line": 120
+        }
+      ],
+      "note": "5s admission; cutoff clears timer and not normal parent signal. Failure needs separate abort per F01.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F01"
+      ]
+    },
+    {
+      "id": "N36",
+      "anchors": [
+        {
+          "path": "src/commands/node/values.ts",
+          "line": 15
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 59
+        },
+        {
+          "path": "src/commands/node/host.ts",
+          "line": 252
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 29
+        }
+      ],
+      "note": "Exact seven-field request, five-field response, sequenced delivered. No transport Worker qualification here.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": [
+        "F02"
+      ]
+    },
+    {
+      "id": "N37",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 4
+        },
+        {
+          "path": "src/commands/node/values.ts",
+          "line": 83
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 77
+        }
+      ],
+      "note": "Named ledger/limits exported; real SAB/V8/configuration/entry/exit implementation is provider work, not source-only passes.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    },
+    {
+      "id": "N38",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 15
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 20
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 82
+        }
+      ],
+      "note": "Only createNodeCommand. Required explicit provider validation at factory time; no root/default registration.",
+      "sourceOnly": true,
+      "executed": false,
+      "findings": []
+    }
+  ],
+  "typeFamilies": [
+    {
+      "id": "T01",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 20
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 87
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 88
+        }
+      ],
+      "note": "Exactly one declared factory createNodeCommand(options):CommandDefinition; no list/plugin factories promised. Bind original candidate-defined factory-role family accordingly before actual compile.",
+      "executed": false
+    },
+    {
+      "id": "T02",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 1
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 27
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 36
+        }
+      ],
+      "note": "Existing CommandContext consumed unchanged, optional cleanup finally fallback; no shared API additions.",
+      "executed": false
+    },
+    {
+      "id": "T03",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 82
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 15
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 21
+        }
+      ],
+      "note": "Provider exact profile/identity/prepare; mandatory factory option, no provider-absence stub.",
+      "executed": false
+    },
+    {
+      "id": "T04",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 6
+        },
+        {
+          "path": "src/commands/node/values.ts",
+          "line": 55
+        }
+      ],
+      "note": "Seven optional boolean grants; explicit undefined rejected, zero/default deny; exact option type.",
+      "executed": false
+    },
+    {
+      "id": "T05",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 66
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 70
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 77
+        }
+      ],
+      "note": "NodeSession detached start/cancel/retire; provisional completion plus retirement. Origin Q01 and publisher Q02 still need concrete provider binding.",
+      "executed": false
+    },
+    {
+      "id": "T06",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 28
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 29
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 38
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 47
+        }
+      ],
+      "note": "Finite text operation/request/error/response unions, nullable fields always present.",
+      "executed": false
+    },
+    {
+      "id": "T07",
+      "anchors": [
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 54
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 55
+        },
+        {
+          "path": "src/commands/node/types.ts",
+          "line": 62
+        },
+        {
+          "path": "src/commands/node/diagnostics.ts",
+          "line": 4
+        }
+      ],
+      "note": "Present true/value unknown preserves undefined; observation separate. No typechecker has run.",
+      "executed": false
+    },
+    {
+      "id": "T08",
+      "anchors": [
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 1
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 11
+        },
+        {
+          "path": "src/commands/node/index.ts",
+          "line": 12
+        }
+      ],
+      "note": "Node-local exports only; accepted core unchanged composition inherited, full module build/declarations pending.",
+      "executed": false
+    }
+  ],
+  "loadFamilies": [
+    {
+      "id": "A01",
+      "note": "Nine fixed TS files + accepted derived base only; this is not a new full candidate/package identity.",
+      "executed": false
+    },
+    {
+      "id": "A02",
+      "note": "No source/installed/moved executions yet; actual loader witnesses remain held.",
+      "executed": false
+    },
+    {
+      "id": "A03",
+      "note": "No loaded byte/missing member mutations run; exact artifact restore remains a future admission.",
+      "executed": false
+    },
+    {
+      "id": "A04",
+      "note": "Module-only internal built index.js and .d.ts paths expected; no root/subpath/default API claim before integration.",
+      "executed": false
+    },
+    {
+      "id": "A05",
+      "note": "Draft parent imports node:path and node:util; qualifying static Worker/engine entry and allowed importer edges unfinished, no guest exposure inferred.",
+      "executed": false
+    },
+    {
+      "id": "A06",
+      "note": "PUBLIC98/95 is future test input; known intrinsic/value-kind gap remains unclosed, no new engine execution or vendoring.",
+      "executed": false
+    }
+  ],
+  "concreteApi": {
+    "factory": "createNodeCommand(options: NodeCommandOptions): CommandDefinition",
+    "options": [
+      "provider",
+      "grants?"
+    ],
+    "provider": [
+      "profile",
+      "identity",
+      "prepare"
+    ],
+    "session": [
+      "start",
+      "cancel",
+      "retire"
+    ],
+    "services": [
+      "signal",
+      "request",
+      "delivered",
+      "reserve",
+      "cutoff"
+    ],
+    "request": [
+      "sequence",
+      "op",
+      "authority",
+      "path",
+      "flag",
+      "text",
+      "moduleKey"
+    ],
+    "response": [
+      "sequence",
+      "kind",
+      "text",
+      "error",
+      "cacheKey"
+    ],
+    "moduleRootIntegration": false
+  },
+  "bindingDecisions": {
+    "B01": "Draft names/lifecycle signatures bound; conforming implementation still pending.",
+    "B02": "CONTRACT.md now explicitly governs selectors/grammar/status2/guest1/return0; F03 early diagnostics remains.",
+    "B03": "Seven booleans for whole supplied namespace; no per-path grant option. Use truthful confined VFS fixture.",
+    "B04": "Replacement decoder; strip one source/JSON BOM; preserve ordinary data BOM; encode lone surrogates as replacement.",
+    "B05": "types.ts exact fixed constants; combined interpreted+user source <=256KiB, not raw source guarantee.",
+    "B06": "Borrowed one-shot stdin and awaited owned writes source-mapped; actual cleanup/pipeline holds remain.",
+    "B07": "Raw identity origin model exists; F01/F02 and Q01 need action.",
+    "B08": "Helper defined but no production caller in nine files. Q02 and actual publisher owner still open.",
+    "B09": "Module-only draft, no build/package/provider entry/candidate actual GO."
+  }
+}

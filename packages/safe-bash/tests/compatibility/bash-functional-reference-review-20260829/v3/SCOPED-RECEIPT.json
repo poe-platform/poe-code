@@ -1,0 +1,28 @@
+{
+  "schema": "independent-scoped-preexecution-verdict-v1",
+  "decision": "ACCEPT",
+  "scope": "V3_SOURCE_DATA_PREEXEC_ONLY_NOT_ACTUAL_GO",
+  "reviewer": "Sagan independent of Faraday",
+  "sourceCommit": "4eea354169492b4c47d373d504e5918e1c4f3830",
+  "evidenceCommit": "73065e68469e2e514c0ee87ff34ac1db04ba51cb",
+  "preseal": {
+    "bytes": 5602,
+    "sha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533"
+  },
+  "requestsSha256": "e69d98fc697e20462193d7e5a794537394fa66004ee685da3a8da401ea50c22d",
+  "approvalTemplateSha256": "9243e5eb6c3db5fce5bee733740a2f59c0d8d447f1e3e38fe46fd476db00f6b7",
+  "resultSha256": "01ab61dae4f0cccd9f6844b344605856df3044d7977df20f1db2712e1d9b7843",
+  "authorData": 6,
+  "novelDataGroups": 6,
+  "newTargetChildren": 0,
+  "nativeEntry": 0,
+  "bash": 0,
+  "eligibleUnrun": 37,
+  "withheldUnrun": 3,
+  "rootStartupDecision": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+  "futureRuntimeReceipt": "ROOT must create runtime v3 receipt referencing the eventual evidence commit containing this generic verdict; no self-commit field or actual GO here",
+  "resolvedCommand": "NOT_CREATED; separate DATA-only single-slot check after fresh ROOT GO",
+  "priorReviewerFailuresRetained": 2,
+  "oldV2N08": "UNCHANGED",
+  "actualGo": false
+}

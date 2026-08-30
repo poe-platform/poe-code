@@ -1,0 +1,90 @@
+43:    const reason = Object.hasOwn(options, "reason") ? options.reason : { stage: options.stage };
+44:    const saved = { value: "outer" }, locals = new Map(), assignments = new Map();
+45:    const typed = new WeakMap(), originalTyped = { original: true };
+46:    if (options.existing) locals.set("ordinary", saved);
+47:    else if (options.borrowed) assignments.set("ordinary", saved);
+48:    if (options.typed) typed.set(saved, originalTyped);
+49:    const fail = stage => { if (options.stage === stage) throw reason; };
+50:    const cleanup = stage => { counts[stage]++; if (options.cleanup?.includes(stage)) throw options.cleanupReasons?.[stage] ?? { cleanup: stage }; };
+51:    const shadow = { owner: {}, insert() { fail("insert"); }, async release() { cleanup("shadow"); }, async copy() { fail("shadow"); return shadow; } };
+52:    const operation = { reserve() { fail("reserve"); return {}; }, async close() { cleanup("operation"); } };
+53:    const owner = { ledger: {}, hold() { fail("hold"); return { release() { cleanup("holding"); } }; } };
+54:    const store = { owner, async watch() { fail("watch"); return { valid: () => true, close() {} }; }, async prepareName() { fail("name"); return {}; }, get() { return options.typed ? shadow : undefined; }, publish() { fail("publish"); counts.publish++; return options.stage === "released" ? Promise.reject(reason) : Promise.resolve(); } };
+55:    const invocationScope = Symbol("scope"), failures = [], state = { variables: { ordinary: "inner" }, readonlyVariables: new Set() };
+56:    const environment = { locals, assignments, saveVariable: () => saved, typedSavedVariables: typed, requireArrays() { fail("store"); return store; }, ArrayOwner: { create() { fail("create"); return operation; } }, IndexedBinding: { create() { fail("shadow"); return shadow; } }, state, name: "ordinary", match: ["ordinary=new", "ordinary", "new"], async textToken() { fail("text"); return { release() {} }; }, stateMonitor: () => ({ publish(tickets, name, callback) { callback(); } }), context: { [invocationScope]: { failures } }, invocationScope, ArrayFailure: Error };
+57:    const receiver = { signal: { throwIfAborted() { fail("signal"); } }, async prepareVariable(state, name, value) { counts.prepare++; typed.set(value, { prepared: true }); fail("prepare"); }, async discardVariable(value) { cleanup("discard"); typed.delete(value); } };
+58:    let present = false, actual;
+59:    try { await execute.call(receiver, environment); } catch (error) { present = true; actual = error; }
+60:    return { counts, present, actual, reason, failures, saved, locals, assignments, typed, originalTyped, state };
+61:  }
+62:  const rows = [];
+63:  async function check(id, body) { assert(Date.now() < deadline); try { await body(); rows.push({ id, pass: true }); } catch (error) { rows.push({ id, pass: false, error: String(error) }); } }
+64:  await check("C01-success", async () => { const row = await probe(); assert(!row.present); assert.deepEqual(row.counts, { prepare: 1, discard: 0, shadow: 0, operation: 1, holding: 1, publish: 1 }); assert.equal(row.locals.get("ordinary"), row.saved); });
+65:  await check("C02-prepare-cut", async () => { const row = await probe({ stage: "prepare", reason: undefined }); assert(row.present); assert.strictEqual(row.actual, undefined); assert.equal(row.counts.discard, 1); assert.equal(row.counts.operation, 0); });
+66:  await check("C03-create-cut", async () => { const row = await probe({ stage: "create", reason: false }); assert(row.present); assert.strictEqual(row.actual, false); assert.equal(row.counts.discard, 1); assert.equal(row.counts.operation, 0); });
+67:  await check("C04-hold-cut", async () => { const row = await probe({ stage: "hold", reason: 0 }); assert(row.present); assert.strictEqual(row.actual, 0); assert.equal(row.counts.discard, 1); assert.equal(row.counts.operation, 1); assert.equal(row.counts.holding, 0); });
+68:  await check("C05-later-cuts", async () => { for (const stage of ["store", "watch", "reserve", "name", "shadow", "text", "insert", "signal", "publish"]) { const row = await probe({ stage }); assert(row.present); assert.strictEqual(row.actual, row.reason); assert.equal(row.counts.discard, 1); assert(row.counts.operation <= 1 && row.counts.holding <= 1 && row.counts.shadow <= 1); } });
+69:  await check("C06-independent-cleanups-falsy-primary", async () => { for (const reason of [undefined, null, false, 0]) { const row = await probe({ stage: "signal", reason, cleanup: ["discard", "shadow", "operation", "holding"] }); assert(row.present); assert.strictEqual(row.actual, reason); assert.equal(row.failures.length, 4); for (const key of ["discard", "shadow", "operation", "holding"]) assert.equal(row.counts[key], 1); } });
+70:  await check("C07-cleanup-only-first-error", async () => { const first = { close: true }; const row = await probe({ cleanup: ["operation", "holding"], cleanupReasons: { operation: first } }); assert(row.present); assert.strictEqual(row.actual, first); assert.equal(row.failures.length, 1); assert.equal(row.counts.holding, 1); });
+71:  await check("C08-existing-new-typed-preparation", async () => { const row = await probe({ existing: true, stage: "hold" }); assert.equal(row.locals.get("ordinary"), row.saved); assert.equal(row.typed.has(row.saved), false); assert.equal(row.counts.discard, 1); });
+72:  await check("C09-existing-typed-borrowed", async () => { const row = await probe({ existing: true, typed: true, stage: "hold" }); assert.equal(row.typed.get(row.saved), row.originalTyped); assert.equal(row.counts.prepare, 0); assert.equal(row.counts.discard, 0); });
+73:  await check("C10-assignment-typed-borrowed", async () => { const row = await probe({ borrowed: true, typed: true, stage: "hold" }); assert.equal(row.typed.get(row.saved), row.originalTyped); assert.equal(row.assignments.get("ordinary"), row.saved); assert.equal(row.counts.prepare, 0); assert.equal(row.counts.discard, 0); });
+74:  await check("C11-published-release-rejection", async () => { const row = await probe({ stage: "released", reason: 0 }); assert(row.present); assert.strictEqual(row.actual, 0); assert.equal(row.locals.get("ordinary"), row.saved); assert(row.typed.has(row.saved)); assert.equal(row.counts.discard, 0); assert.equal(row.counts.shadow, 0); assert.equal(row.counts.operation, 1); assert.equal(row.counts.holding, 1); });
+75:  await check("C12-foreign-source-and-ledger-rules", async () => { assert(!branch.includes("refund")); assert(!branch.includes(".reset(")); assert(branch.includes("generation: true, version: true, epoch: true, work: 8")); assert(source.includes("if (state.readonlyVariables?.has(name) && (match[2] !== undefined || command === \"local\"))")); });
+76:  record("RESULT.json", { groups: 12, passed: rows.filter(row => row.pass).length, rows, sourceSha256: hash(sourceRaw), sourceOnly: true, actualPrivateOwners: false, actualShellCalls: 0, Workers: 0, helperChildren: 1, gitRetired: child.status === 0 && child.signal === null, started, finished: Date.now() });
+77:  fs.writeSync(output, JSON.stringify({ groups: 12, passed: rows.filter(row => row.pass).length }) + "\n");
+78:  failed = rows.some(row => !row.pass);
+79:} catch (error) { failed = true; fs.writeSync(errors, String(error?.stack ?? error) + "\n"); }
+80:finally { for (const fd of [output, errors]) { fs.fsyncSync(fd); fs.closeSync(fd); } }
+81:if (failed) process.exitCode = 1;
+
+INTERNAL PREPARE/DISCARD
+1230:
+1231:  async assignVariable(state: State, name: string, value: string, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
+1232:    if (!arrayStore(state)?.get(name)) { this.writeVariable(state, name, value, origin); return; }
+1233:    await this.arrayZero(state, name, async () => value);
+1234:  }
+1235:
+1236:  async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
+1237:    const store = requireArrays(state);
+1238:    const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+1239:    const holding = store.owner.hold();
+1240:    let binding: IndexedBinding | undefined;
+1241:    try {
+1242:      const watch = await store.watch(name, owner, this.signal);
+1243:      const tickets = owner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
+1244:      const token = await textToken(owner, name, this.signal);
+1245:      const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });
+1246:      if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);
+1247:      if (!watch.valid()) throw new ArrayFailure("stale binding");
+1248:      binding = scalarLegacy ? undefined : store.get(name)?.retain();
+1249:      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy });
+1250:      tickets.cleanup = () => { typedSavedVariables.delete(saved); };
+1251:    } catch (error) { await binding?.release(); await owner.close(); throw error; }
+1252:    finally { holding.release(); }
+1253:  }
+1254:
+1255:  async prepareArrayObservers(state: State, owner: ArrayOwner): Promise<void> {
+1256:    owner.reserve({ metadata: 128, work: 6 });
+1257:    for (const frame of state.locals) for (const [name, saved] of frame) {
+1258:      if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved);
+1259:      await owner.ledger.checkpoint(this.signal);
+1260:    }
+1261:    for (const frame of stateMonitor(state)!.overlayFrames()) for (const [name, record] of frame) {
+1262:      const saved = record as SavedVariable;
+1263:      if (!saved.superseded && !typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved, true);
+1264:      await owner.ledger.checkpoint(this.signal);
+1265:    }
+1266:  }
+1267:
+1268:  async discardVariable(saved: SavedVariable): Promise<void> {
+1269:    const typed = typedSavedVariables.get(saved);
+1270:    if (!typed) return;
+1271:    typedSavedVariables.delete(saved);
+1272:    typed.watch.close();
+1273:    await typed.binding?.release();
+1274:    await typed.owner.close();
+1275:  }
+1276:
+1277:  async indexedEnvironment(state: State, env: Readonly<Record<string, string>>): Promise<void> {
+1278:    const store = requireArrays(state);

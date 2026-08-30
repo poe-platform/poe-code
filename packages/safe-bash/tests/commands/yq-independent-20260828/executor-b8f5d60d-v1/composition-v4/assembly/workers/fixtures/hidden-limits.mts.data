@@ -1,0 +1,2 @@
+import type { YqLimits } from "@@ROOT@@";
+export type Forbidden = YqLimits;

@@ -1,0 +1,3 @@
+declare -- a
+declare -- a="scalar"
+declare -a a=([2]="outer")

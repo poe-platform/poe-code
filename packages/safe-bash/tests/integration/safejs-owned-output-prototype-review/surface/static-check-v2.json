@@ -1,0 +1,78 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/safejs-owned-output-prototype-review/surface/verify-prepared-v2.mjs"
+  ],
+  "parentAbsoluteTimeoutMs": 30000,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "{\n  \"status\": \"STATIC_BYTES_MATCH_NOT_RUNTIME_ACCEPTANCE\",\n  \"at\": \"2026-08-27T15:03:54.576Z\",\n  \"reviewerThread\": \"01a04292-5421-7363-8bcb-a70b97fae4e9\",\n  \"freezeSha256\": \"62c7f2a5bddf5b9b9c5ed6b236e4509560d32d14f7f702df2a2dc77fc4668852\",\n  \"originalFreezeSha256\": \"5236cc51ee25fc6d19bbc2f79a229f268c733a52b49f00fc462ae812f0f0fd1c\",\n  \"systemToolResolution\": {\n    \"status\": \"IDENTIFIED_READONLY_SYSTEM_TOOL_ALIAS\",\n    \"alias\": \"/usr/bin/tar\",\n    \"linkText\": \"bsdtar\",\n    \"canonical\": \"/usr/bin/bsdtar\",\n    \"sha256\": \"bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9\",\n    \"bytes\": 275344,\n    \"qualification\": \"Existing OS tar alias only. Neither tar nor bsdtar is executed in this preparation. Copied candidate/package/engine/tool/loader symlink rejection is unchanged. No alias is permitted for source/runtime module paths.\"\n  },\n  \"provenanceCommit\": \"f666ad8c76ea4362b093ee52e3e7e3b5c3702916\",\n  \"candidateEvidenceCommit\": \"e57b5aa16f749b6fac558877dff0712e64df05a8\",\n  \"candidateFiles\": 940,\n  \"candidateInventorySha256\": \"a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28\",\n  \"sourceFiles\": 213,\n  \"sourceManifestSha256\": \"6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea\",\n  \"compiledFiles\": 708,\n  \"compiledManifestSha256\": \"2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f\",\n  \"consumerFiles\": 709,\n  \"consumerInventorySha256\": \"4a81b133665b238545f2111bf349250329e874917691235be67d703056a4f018\",\n  \"engineCopiedFiles\": 264,\n  \"engineCopyInventorySha256\": \"e3af7cb5d53cb3c64d22f7ac20c187cc3b7347754857811f210b8c32a937d90f\",\n  \"staticEngineGraphFiles\": 63,\n  \"tools\": [\n    {\n      \"name\": \"typescript\",\n      \"version\": \"5.9.3\",\n      \"files\": 132,\n      \"inventorySha256\": \"680240908214b87b12bb3e03f5b087525a965d7f805e6fc73579156e69e0db88\"\n    },\n    {\n      \"name\": \"@types/node\",\n      \"version\": \"22.20.1\",\n      \"files\": 74,\n      \"inventorySha256\": \"a704ac7aa70144c5791d2131f469b534abccba6346befd62476aac71d926fabc\"\n    },\n    {\n      \"name\": \"undici-types\",\n      \"version\": \"6.21.0\",\n      \"files\": 41,\n      \"inventorySha256\": \"508ae610e108f7b1e971466c2db233902e7563c2f4778c5a3298d695d7a99830\"\n    }\n  ],\n  \"inputs\": {\n    \"unconditionalCases\": 8,\n    \"conditionalCases\": 1,\n    \"guestBytesValidated\": true,\n    \"guestSyntaxValidated\": false\n  },\n  \"execution\": {\n    \"guestCases\": 0,\n    \"privateEngineImports\": 0,\n    \"productRuntimeImports\": 0,\n    \"toolingImports\": 0,\n    \"builds\": 0,\n    \"installs\": 0,\n    \"privateCheckoutQueries\": 0\n  },\n  \"knownRemainingChildren\": 0,\n  \"qualification\": \"Builtin file/hash operations and bounded synchronous public Git reads only; private observations are prior sealed snapshots and regular copies, not fresh live-private verification. Receipt-review release remains pending.\"\n}\n",
+  "stderr": "",
+  "result": {
+    "status": "STATIC_BYTES_MATCH_NOT_RUNTIME_ACCEPTANCE",
+    "at": "2026-08-27T15:03:54.576Z",
+    "reviewerThread": "01a04292-5421-7363-8bcb-a70b97fae4e9",
+    "freezeSha256": "62c7f2a5bddf5b9b9c5ed6b236e4509560d32d14f7f702df2a2dc77fc4668852",
+    "originalFreezeSha256": "5236cc51ee25fc6d19bbc2f79a229f268c733a52b49f00fc462ae812f0f0fd1c",
+    "systemToolResolution": {
+      "status": "IDENTIFIED_READONLY_SYSTEM_TOOL_ALIAS",
+      "alias": "/usr/bin/tar",
+      "linkText": "bsdtar",
+      "canonical": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "bytes": 275344,
+      "qualification": "Existing OS tar alias only. Neither tar nor bsdtar is executed in this preparation. Copied candidate/package/engine/tool/loader symlink rejection is unchanged. No alias is permitted for source/runtime module paths."
+    },
+    "provenanceCommit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+    "candidateEvidenceCommit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+    "candidateFiles": 940,
+    "candidateInventorySha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28",
+    "sourceFiles": 213,
+    "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+    "compiledFiles": 708,
+    "compiledManifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+    "consumerFiles": 709,
+    "consumerInventorySha256": "4a81b133665b238545f2111bf349250329e874917691235be67d703056a4f018",
+    "engineCopiedFiles": 264,
+    "engineCopyInventorySha256": "e3af7cb5d53cb3c64d22f7ac20c187cc3b7347754857811f210b8c32a937d90f",
+    "staticEngineGraphFiles": 63,
+    "tools": [
+      {
+        "name": "typescript",
+        "version": "5.9.3",
+        "files": 132,
+        "inventorySha256": "680240908214b87b12bb3e03f5b087525a965d7f805e6fc73579156e69e0db88"
+      },
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "files": 74,
+        "inventorySha256": "a704ac7aa70144c5791d2131f469b534abccba6346befd62476aac71d926fabc"
+      },
+      {
+        "name": "undici-types",
+        "version": "6.21.0",
+        "files": 41,
+        "inventorySha256": "508ae610e108f7b1e971466c2db233902e7563c2f4778c5a3298d695d7a99830"
+      }
+    ],
+    "inputs": {
+      "unconditionalCases": 8,
+      "conditionalCases": 1,
+      "guestBytesValidated": true,
+      "guestSyntaxValidated": false
+    },
+    "execution": {
+      "guestCases": 0,
+      "privateEngineImports": 0,
+      "productRuntimeImports": 0,
+      "toolingImports": 0,
+      "builds": 0,
+      "installs": 0,
+      "privateCheckoutQueries": 0
+    },
+    "knownRemainingChildren": 0,
+    "qualification": "Builtin file/hash operations and bounded synchronous public Git reads only; private observations are prior sealed snapshots and regular copies, not fresh live-private verification. Receipt-review release remains pending."
+  }
+}

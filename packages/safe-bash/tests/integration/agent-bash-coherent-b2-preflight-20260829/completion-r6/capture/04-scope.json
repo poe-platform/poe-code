@@ -1,0 +1,1 @@
+{"role":"04-scope","pid":69428,"args":["status","--porcelain=v1","--","tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6"],"exit":{"code":0,"signal":null},"close":{"code":0,"signal":null}}

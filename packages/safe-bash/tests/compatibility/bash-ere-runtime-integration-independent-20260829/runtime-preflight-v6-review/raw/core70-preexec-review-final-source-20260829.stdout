@@ -1,0 +1,53 @@
+{"id":"R15","script":"LC_ALL=C; re='[^a-c]+'; [[ abcXYZ =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[0]}\"","expected":{"exitCode":0,"stdout":"<XYZ>\n","stderr":{"exact":""}}}
+{"id":"R16","script":"LC_ALL=C; re='([]-]+)'; [[ '--]' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","expected":{"exitCode":0,"stdout":"<--]>\n<--]>\n","stderr":{"exact":""}}}
+{"id":"R17","script":"LC_ALL=C; re='(ab){2,3}'; [[ abababab =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","expected":{"exitCode":0,"stdout":"<ababab>\n<ab>\n","stderr":{"exact":""}}}
+{"id":"R18","script":"LC_ALL=C; re='a{3,2}'; BASH_REMATCH=(old); [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"","expected":{"exitCode":0,"stdout":"2:<old>\n","stderr":{"contains":"invalid ERE","qualification":"diagnostic category/source phrase, not GNU byte equivalence"}}}
+{"id":"R19","script":"LC_ALL=C; re='('; BASH_REMATCH=(old); [[ a =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"","expected":{"exitCode":0,"stdout":"2:<old>\n","stderr":{"contains":"invalid ERE","qualification":"diagnostic category/source phrase, not GNU byte equivalence"}}}
+{"id":"R20","script":"LC_ALL=C; BASH_REMATCH=(old); [[ yes || a =~ $(printf '(') ]]; printf '<%s>\\n' \"${BASH_REMATCH[0]}\"","expected":{"exitCode":0,"stdout":"<old>\n","stderr":{"exact":""}}}
+{"id":"R21","script":"LC_ALL=C; [[ yes || a =~ ( ]]; printf 'after\\n'","expected":{"exitCode":2,"stdout":"","stderr":{"contains":"Unterminated conditional regular expression group","qualification":"diagnostic category/source phrase, not GNU byte equivalence"}}}
+{"id":"R22","script":"LC_ALL=C; BASH_REMATCH=(old tail); [[ a =~ z ]]; printf '%s\\n' \"$?\"; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[0] ]]; printf '%s\\n' \"$?\"","expected":{"exitCode":0,"stdout":"1\n<>\n1\n","stderr":{"exact":""}}}
+{"id":"R23","script":"LC_ALL=C; re='(a)'; [[ ! a =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","expected":{"exitCode":0,"stdout":"1:<a>\n","stderr":{"exact":""}}}
+{"id":"R24","script":"LC_ALL=C; BASH_REMATCH=(global); f(){ local BASH_REMATCH; [[ abc =~ (b) ]]; printf 'in:<%s>\\n' \"${BASH_REMATCH[1]}\"; }; f; printf 'out:<%s>\\n' \"${BASH_REMATCH[0]}\"","expected":{"exitCode":0,"stdout":"in:<b>\nout:<global>\n","stderr":{"exact":""}}}
+{"id":"R25","script":"LC_ALL=C; BASH_REMATCH=(saved); readonly BASH_REMATCH; [[ abc =~ (b) ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"","expected":{"exitCode":0,"stdout":"0:<saved>\n","stderr":{"contains":"BASH_REMATCH: readonly variable","qualification":"diagnostic category/source phrase, not GNU byte equivalence"}}}
+{"id":"R26","script":"LC_ALL=C; export BASH_REMATCH=saved; [[ a =~ (a) ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","expected":{"exitCode":0,"stdout":"1:<>\n","stderr":{"contains":"exported binding cannot be indexed","qualification":"diagnostic category/source phrase, not GNU byte equivalence"}}}
+{"id":"R27","script":"LC_ALL=C; BASH_REMATCH=(outer); ( [[ abc =~ (b) ]]; printf 'sub:<%s>\\n' \"${BASH_REMATCH[1]}\" ); printf 'parent:<%s>\\n' \"${BASH_REMATCH[0]}\"","expected":{"exitCode":0,"stdout":"sub:<b>\nparent:<outer>\n","stderr":{"exact":""}}}
+{"id":"R28","script":"LC_ALL=C; f(){ if [[ $1 =~ (a+) ]]; then printf '<%s>\\n' \"${BASH_REMATCH[1]}\"; fi; }; f aa; f a; printf 'last:<%s>\\n' \"${BASH_REMATCH[1]}\"","expected":{"exitCode":0,"stdout":"<aa>\n<a>\nlast:<a>\n","stderr":{"exact":""}}}
+{"id":"R29","script":"LC_ALL=C; re='(a)\\1'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","expected":{"exitCode":0,"stdout":"2:<>\n","stderr":{"contains":"unsupported ERE profile","qualification":"diagnostic category/source phrase, not GNU byte equivalence"}}}
+{"id":"R30","script":"LC_ALL=C; re='[[.a.]]'; [[ a =~ $re ]]; printf '%s\\n' \"$?\"","expected":{"exitCode":0,"stdout":"2\n","stderr":{"contains":"unsupported ERE profile","qualification":"diagnostic category/source phrase, not GNU byte equivalence"}}}
+{"id":"R31","script":"LC_ALL=C; re='(.)'; [[ 雪 =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","expected":{"exitCode":0,"stdout":"2:<>\n","stderr":{"contains":"unsupported ERE profile","qualification":"diagnostic category/source phrase, not GNU byte equivalence"}}}
+HANDOFF.md:18 - Concrete script/host body routes:189 cells (63/layout), NOT passes.
+- Explicit deferred adapter routes:21 cells (H02, H03, H04, H05, H07, EH04, EH05 ×3), NOT silently dropped.
+- Pure DATA/SYNTHETIC controls:16/16. No product or OS-child/Worker proof.
+- Known private static edges:33; private emitted assets48. Static edges are NOT nested Worker load witnesses.
+v2/HANDOFF.md:76 
+These six authoring gaps are **not** being misrepresented as six unresolved
+ROOT policies. All seven IDs and their 21 layout cells stay visibly gated.
+Consequently there is no truthful complete new 210-cell execution command or
+v2/HANDOFF.md:77 These six authoring gaps are **not** being misrepresented as six unresolved
+ROOT policies. All seven IDs and their 21 layout cells stay visibly gated.
+Consequently there is no truthful complete new 210-cell execution command or
+revised Worker/thread/start census to authorize in this packet. Existing
+v3/HANDOFF.md:42 identified source-conflict holds among those65. Equivalently195 body cells,
+15 incomplete cells, and six additional conflict-held cells—not195 passes.
+
+## Exact per-ID decisions/access requirements
+v3/HANDOFF.md:74 
+The first reader retired exit1 because it compared nonexistent manifest `.size`
+against actual length; the authenticated selected catalog uses `.bytes`.
+read-v2 validates the real schema and exact SHA/byte count. Both executable
+v3/HANDOFF.md:116 
+Private T1 plus six separately qualified nonpublic variants precede relevant
+public claims. The seven deferred public variants remain mapped to CORE70, not
+a circular all60 gate. Different CORE preexec review and fresh actual ROOT GO
+v3/HANDOFF.md:117 Private T1 plus six separately qualified nonpublic variants precede relevant
+public claims. The seven deferred public variants remain mapped to CORE70, not
+a circular all60 gate. Different CORE preexec review and fresh actual ROOT GO
+are still mandatory. No old staging is cleaned, no prior result is rescored,
+v4/HANDOFF.md:26 EH01–05 to the exact 210 layout cells. `cell-v4.mjs`, `host-bodies.mjs` and the
+copied additions provide actual bodies, not deferred placeholder dispatches.
+
+- H02: fixed forwarding checkpoint Worker wrapper, one filtered own-data
+v4/HANDOFF.md:111 Remaining prerequisites: corrected independently reviewed whole-owner controls,
+private transport qualification and relevant deferred private checks, explicit
+review of the source-only/unobserved qualifications, and fresh ROOT runtime
+release. Public transport obligations map into these cells; no circular demand

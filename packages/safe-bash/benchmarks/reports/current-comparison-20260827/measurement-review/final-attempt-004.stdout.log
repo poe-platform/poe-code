@@ -1,0 +1,142 @@
+{
+  "status": "RAW_INTEGRITY_AND_PREDICATES_VERIFIED_FINAL_INTERPRETATION_REQUIRED",
+  "rawFiles": 2071,
+  "rawBytes": 432565451,
+  "observations": 1032,
+  "tableSummaries": {
+    "original": {
+      "virtual-bash": {
+        "denominator": 224,
+        "predicateMatches": 222,
+        "lifecycleSuccesses": 224,
+        "acceptedMatches": 222,
+        "classifications": {
+          "fail": 2,
+          "pass": 222
+        }
+      },
+      "just-bash": {
+        "denominator": 224,
+        "predicateMatches": 155,
+        "lifecycleSuccesses": 224,
+        "acceptedMatches": 155,
+        "classifications": {
+          "fail": 69,
+          "pass": 155
+        }
+      }
+    },
+    "aligned": {
+      "virtual-bash": {
+        "denominator": 224,
+        "predicateMatches": 223,
+        "lifecycleSuccesses": 224,
+        "acceptedMatches": 223,
+        "classifications": {
+          "fail": 1,
+          "pass": 223
+        }
+      },
+      "just-bash": {
+        "denominator": 224,
+        "predicateMatches": 155,
+        "lifecycleSuccesses": 224,
+        "acceptedMatches": 155,
+        "classifications": {
+          "fail": 69,
+          "pass": 155
+        }
+      }
+    },
+    "breadth": {
+      "virtual-bash": {
+        "targets": {
+          "denominator": 54,
+          "predicateMatches": 13,
+          "operationalCredit": 13,
+          "lifecycleFailures": 0,
+          "classifications": {
+            "dependency-blocked": 4,
+            "functional-positive": 13,
+            "missing-handler": 33,
+            "no-op-not-operational-proof": 1,
+            "partial-functionality": 1,
+            "syntax-blocked-before-target": 2
+          }
+        },
+        "controls": {
+          "denominator": 7,
+          "predicateMatches": 7,
+          "operationalCredit": 7,
+          "lifecycleFailures": 0,
+          "classifications": {
+            "functional-positive": 7
+          }
+        },
+        "diagnostics": {
+          "denominator": 7,
+          "predicateMatches": 0,
+          "operationalCredit": 0,
+          "lifecycleFailures": 0,
+          "classifications": {
+            "missing-handler": 7
+          }
+        }
+      },
+      "just-bash": {
+        "targets": {
+          "denominator": 54,
+          "predicateMatches": 50,
+          "operationalCredit": 47,
+          "lifecycleFailures": 1,
+          "classifications": {
+            "baseline-stub": 1,
+            "documentation-only": 1,
+            "functional-positive": 47,
+            "lifecycle-or-capture-failure": 1,
+            "no-op-not-operational-proof": 1,
+            "partial-functionality": 3
+          }
+        },
+        "controls": {
+          "denominator": 7,
+          "predicateMatches": 6,
+          "operationalCredit": 6,
+          "lifecycleFailures": 0,
+          "classifications": {
+            "functional-positive": 6,
+            "partial-functionality": 1
+          }
+        },
+        "diagnostics": {
+          "denominator": 7,
+          "predicateMatches": 0,
+          "operationalCredit": 0,
+          "lifecycleFailures": 0,
+          "classifications": {
+            "direct-target-observed-no-functional-credit": 7
+          }
+        }
+      }
+    }
+  },
+  "lifecycleFailures": [
+    {
+      "evidence": "attempt-1006.json",
+      "id": "js-exec-positive",
+      "engine": "just-bash",
+      "profile": "breadth",
+      "failures": [
+        "natural deadline",
+        "coordinator crash/forced exit",
+        "engine did not exit/close naturally",
+        "coordinator did not exit/close naturally",
+        "unverified pipe/fixture/group closure"
+      ],
+      "signals": [
+        "SIGTERM"
+      ]
+    }
+  ],
+  "networkFixtureCount": 34
+}

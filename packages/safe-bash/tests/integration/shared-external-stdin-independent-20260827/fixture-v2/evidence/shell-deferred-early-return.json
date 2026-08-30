@@ -1,0 +1,27 @@
+{
+  "id": "shell-deferred-early-return",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "return",
+    "return-entered:release",
+    "normal-return:reject",
+    "rejected:Error: independent-return-failure",
+    "observed-result:null"
+  ],
+  "input": {
+    "reads": 1,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [
+    "00ff"
+  ],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

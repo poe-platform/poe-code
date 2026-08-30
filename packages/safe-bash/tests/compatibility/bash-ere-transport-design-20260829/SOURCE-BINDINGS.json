@@ -1,0 +1,292 @@
+{
+  "schema": "ere-transport-source-bindings-v1",
+  "date": "2026-08-29",
+  "inspection": "SOURCE_ONLY_NO_IMPORT_OR_EXECUTION",
+  "acceptedSource": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "acceptedDerived": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "acceptedFullPackageReference": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+  "fullReconstruction": false,
+  "rootPendingRuntimeExcluded": "7196bace",
+  "unacceptedEngine": {
+    "source": "f97fd06024cb63edfd01873d81d84576a22189db",
+    "evidence": "8bd170e5465c1253a52231c9cf08b5afef064d81",
+    "read": [
+      "types.ts",
+      "errors.ts",
+      "limits.ts"
+    ],
+    "notRead": [
+      "syntax.ts",
+      "matcher.ts"
+    ],
+    "authorCounts": "66/66 groups/layout,6types9negative,8mutants/restores,53executionchildren per supplied handoff; NOT independently accepted, NOT rerun here"
+  },
+  "modeDomain": "Git ls-tree -z exact UTF8 paths; no C-quoted filename reinterpretation",
+  "files": [
+    {
+      "ref": "a2249d466436f1f94ba2976265f4e1cc9d93137b:tests/compatibility/bash-ere-design-20260829/README.md",
+      "blob": "59ab4ec68c46ed524dd12199aa962377af9c3a97",
+      "bytes": 19409,
+      "sha256": "7fb1f7348ba43c9e036ed71806061206d8be45ec77f3853fb89425bc0719b615",
+      "commit": "a2249d466436f1f94ba2976265f4e1cc9d93137b",
+      "path": "tests/compatibility/bash-ere-design-20260829/README.md",
+      "mode": "100644",
+      "role": "normative design/clarification"
+    },
+    {
+      "ref": "e2b4823c786a046f928b027225ce321c5af8a60d:tests/compatibility/bash-ere-design-20260829/BUDGET-API-DECISIONS.md",
+      "blob": "803208636dc065100e7aa8cad05013f978476b55",
+      "bytes": 12374,
+      "sha256": "41d64d942daeac3cded8f1575b6a9544fd9f609a834040be3ff55e3b0fdeec52",
+      "commit": "e2b4823c786a046f928b027225ce321c5af8a60d",
+      "path": "tests/compatibility/bash-ere-design-20260829/BUDGET-API-DECISIONS.md",
+      "mode": "100644",
+      "role": "normative design/clarification"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:package.json",
+      "blob": "c0cc226556519d6bc8b54ab5e243a7609712e599",
+      "bytes": 5257,
+      "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "package.json",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/commands/expr/index.ts",
+      "blob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "bytes": 5041,
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/commands/expr/index.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/commands/regex-execution/README.md",
+      "blob": "3be6ea55e45b28c0492474d4d11d238e058579c2",
+      "bytes": 11189,
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/commands/regex-execution/README.md",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/commands/regex-execution/client.ts",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "bytes": 15319,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/commands/regex-execution/client.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/commands/regex-execution/matching.ts",
+      "blob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "bytes": 11796,
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/commands/regex-execution/matching.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/commands/regex-execution/protocol.ts",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "bytes": 10890,
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/commands/regex-execution/worker.ts",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "bytes": 1930,
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/commands/regex-execution/worker.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/contracts/command.ts",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/contracts/command.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/contracts/errors.ts",
+      "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/contracts/errors.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/index.ts",
+      "blob": "b817e8162b5b1c29decb74ac9c24bdc19d71b391",
+      "bytes": 1728,
+      "sha256": "02e5cf08f9c97f3abc9a2cf2f28b640e79024381ad17e0518dbf8333a63788f7",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/index.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/shell/shell.ts",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/shell/shell.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/shell/runtime.ts",
+      "blob": "1ee224beec343378532681239a737b746d5ab2b9",
+      "bytes": 200102,
+      "sha256": "6f42b2a8b649a0c6c6377be407cf7d3b2e248bf0081a25e8e1d8a89c80cba46b",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/shell/cleanup.ts",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/shell/cleanup.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/shell/cancellation.ts",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "bytes": 31986,
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/shell/cancellation.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/shell/types.ts",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/shell/types.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/shell/arrays/ledger.ts",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/shell/arrays/ledger.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/shell/conditional.ts",
+      "blob": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+      "bytes": 8890,
+      "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/shell/conditional.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "7a5c620005fb04518d44bb284f4e99284e4a7c33:src/contracts/io.ts",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "commit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+      "path": "src/contracts/io.ts",
+      "mode": "100644",
+      "role": "accepted selected source-only audit"
+    },
+    {
+      "ref": "f97fd06024cb63edfd01873d81d84576a22189db:src/commands/regex-execution/ere/types.ts",
+      "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+      "bytes": 1554,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b",
+      "commit": "f97fd06024cb63edfd01873d81d84576a22189db",
+      "path": "src/commands/regex-execution/ere/types.ts",
+      "mode": "100644",
+      "role": "unaccepted engine type/error/ledger source ONLY; algorithm excluded"
+    },
+    {
+      "ref": "f97fd06024cb63edfd01873d81d84576a22189db:src/commands/regex-execution/ere/errors.ts",
+      "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+      "bytes": 1003,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+      "commit": "f97fd06024cb63edfd01873d81d84576a22189db",
+      "path": "src/commands/regex-execution/ere/errors.ts",
+      "mode": "100644",
+      "role": "unaccepted engine type/error/ledger source ONLY; algorithm excluded"
+    },
+    {
+      "ref": "f97fd06024cb63edfd01873d81d84576a22189db:src/commands/regex-execution/ere/limits.ts",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "bytes": 3471,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af",
+      "commit": "f97fd06024cb63edfd01873d81d84576a22189db",
+      "path": "src/commands/regex-execution/ere/limits.ts",
+      "mode": "100644",
+      "role": "unaccepted engine type/error/ledger source ONLY; algorithm excluded"
+    },
+    {
+      "ref": "8bd170e5465c1253a52231c9cf08b5afef064d81:tests/compatibility/bash-ere-engine-author-20260829/HANDOFF.md",
+      "blob": "3962838f338f1b0566a182fbe80c463ff27ef0f3",
+      "bytes": 3618,
+      "sha256": "88d2aca4d30689c3cf4b3cdc96128283ca3e550c54d48bb32f870e139bd9d031",
+      "commit": "8bd170e5465c1253a52231c9cf08b5afef064d81",
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/HANDOFF.md",
+      "mode": "100644",
+      "role": "unaccepted author handoff claims only, not rescored"
+    },
+    {
+      "ref": "8bd170e5465c1253a52231c9cf08b5afef064d81:tests/compatibility/bash-ere-engine-author-20260829/README.md",
+      "blob": "b375f15803a45e47ccb42a8fdf1ee158a8b7f13f",
+      "bytes": 8380,
+      "sha256": "e46b3d79a73c96bfcbb75a984329a40e6f43c581bedbf2a3cff2badc297b3292",
+      "commit": "8bd170e5465c1253a52231c9cf08b5afef064d81",
+      "path": "tests/compatibility/bash-ere-engine-author-20260829/README.md",
+      "mode": "100644",
+      "role": "unaccepted author handoff claims only, not rescored"
+    }
+  ],
+  "tool": {
+    "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "bytes": 3704880,
+    "mode": 493,
+    "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+    "role": "read-only Git object admission plus final explicit-path publication; no product Git semantics"
+  },
+  "metadataHistory": [
+    {
+      "role": "missing-path-admission",
+      "request": "f97fd06024cb63edfd01873d81d84576a22189db:tests/compatibility/bash-ere-engine-author-20260829/HANDOFF.md",
+      "result": "Git --batch-check reported missing; generic size-admission helper refused before any batch body read; no product failure",
+      "correction": "Read handoff at supplied evidence commit8bd170e5465c1253a52231c9cf08b5afef064d81; original metadata capture retained"
+    }
+  ]
+}

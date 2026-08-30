@@ -1,0 +1,74 @@
+{
+  "beforeHash": "509435faa8974b12a931bd91401d71a96e3af38db93002d86d0c060b456a93a2",
+  "afterHash": "446303b2c107f77f74f04878bf883498b8b35e51133e0a841b100fec8aea4f2a",
+  "pinsUnchanged": true,
+  "rows": [
+    {
+      "name": "adjacent repeated headers",
+      "status": 0,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "later duplicate conflicts",
+      "status": 1,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "only consumed match conflicts",
+      "status": 1,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "positive offset then adjacent",
+      "status": 0,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "positive offset then later duplicate",
+      "status": 1,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "negative offset then adjacent",
+      "status": 1,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "negative offset then later duplicate",
+      "status": 1,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "backward search stays unconsumed",
+      "status": 0,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "positive direction wins equal distance",
+      "status": 0,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "negative offset two consumed lines adjacent",
+      "status": 0,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    },
+    {
+      "name": "negative offset two consumed lines later conflict",
+      "status": 1,
+      "ordinaryExactStreamsStatusNamespace": true,
+      "atomicStatusAndNamespace": true
+    }
+  ],
+  "qualification": "Native comparison covers exact byte streams, status and complete typed file namespace, not cross-platform equality of modes or directory link counts. Virtual metadata preservation is asserted separately in regressions."
+}

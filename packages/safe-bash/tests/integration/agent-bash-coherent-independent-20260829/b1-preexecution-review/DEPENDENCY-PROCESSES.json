@@ -1,0 +1,28 @@
+[
+  {
+    "role": "deps-types",
+    "start": "2026-08-29T12:43:34.036Z",
+    "pid": 35034,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "role": "deps-bodies",
+    "start": "2026-08-29T12:43:34.114Z",
+    "pid": 35035,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  }
+]

@@ -1,0 +1,418 @@
+TAP version 13
+# Subtest: frozen sequencing control: inactive length does not evaluate locale or encode operand
+ok 1 - frozen sequencing control: inactive length does not evaluate locale or encode operand
+  ---
+  duration_ms: 2.27775
+  type: 'test'
+  ...
+# Subtest: frozen sequencing control: inactive substr does not convert numbers or encode operands
+ok 2 - frozen sequencing control: inactive substr does not convert numbers or encode operands
+  ---
+  duration_ms: 0.629833
+  type: 'test'
+  ...
+# Subtest: inactive length under OR performs no reduction
+ok 3 - inactive length under OR performs no reduction
+  ---
+  duration_ms: 0.440833
+  type: 'test'
+  ...
+# Subtest: inactive length under AND performs no reduction
+ok 4 - inactive length under AND performs no reduction
+  ---
+  duration_ms: 0.302
+  type: 'test'
+  ...
+# Subtest: inactive length under OR containing AND/OR performs no reduction
+ok 5 - inactive length under OR containing AND/OR performs no reduction
+  ---
+  duration_ms: 0.363708
+  type: 'test'
+  ...
+# Subtest: inactive length under AND containing OR/AND performs no reduction
+ok 6 - inactive length under AND containing OR/AND performs no reduction
+  ---
+  duration_ms: 0.237
+  type: 'test'
+  ...
+# Subtest: inactive index under OR performs no reduction
+ok 7 - inactive index under OR performs no reduction
+  ---
+  duration_ms: 0.187625
+  type: 'test'
+  ...
+# Subtest: inactive index under AND performs no reduction
+ok 8 - inactive index under AND performs no reduction
+  ---
+  duration_ms: 0.140125
+  type: 'test'
+  ...
+# Subtest: inactive index under OR containing AND/OR performs no reduction
+ok 9 - inactive index under OR containing AND/OR performs no reduction
+  ---
+  duration_ms: 0.392
+  type: 'test'
+  ...
+# Subtest: inactive index under AND containing OR/AND performs no reduction
+ok 10 - inactive index under AND containing OR/AND performs no reduction
+  ---
+  duration_ms: 0.418625
+  type: 'test'
+  ...
+# Subtest: inactive substr under OR performs no reduction
+ok 11 - inactive substr under OR performs no reduction
+  ---
+  duration_ms: 0.164833
+  type: 'test'
+  ...
+# Subtest: inactive substr under AND performs no reduction
+ok 12 - inactive substr under AND performs no reduction
+  ---
+  duration_ms: 0.216167
+  type: 'test'
+  ...
+# Subtest: inactive substr under OR containing AND/OR performs no reduction
+ok 13 - inactive substr under OR containing AND/OR performs no reduction
+  ---
+  duration_ms: 0.22575
+  type: 'test'
+  ...
+# Subtest: inactive substr under AND containing OR/AND performs no reduction
+ok 14 - inactive substr under AND containing OR/AND performs no reduction
+  ---
+  duration_ms: 0.219833
+  type: 'test'
+  ...
+# Subtest: inactive match under OR performs no reduction
+ok 15 - inactive match under OR performs no reduction
+  ---
+  duration_ms: 0.163666
+  type: 'test'
+  ...
+# Subtest: inactive match under AND performs no reduction
+ok 16 - inactive match under AND performs no reduction
+  ---
+  duration_ms: 0.133666
+  type: 'test'
+  ...
+# Subtest: inactive match under OR containing AND/OR performs no reduction
+ok 17 - inactive match under OR containing AND/OR performs no reduction
+  ---
+  duration_ms: 0.202375
+  type: 'test'
+  ...
+# Subtest: inactive match under AND containing OR/AND performs no reduction
+ok 18 - inactive match under AND containing OR/AND performs no reduction
+  ---
+  duration_ms: 0.208292
+  type: 'test'
+  ...
+# Subtest: inactive nested length never evaluates arguments
+ok 19 - inactive nested length never evaluates arguments
+  ---
+  duration_ms: 0.189041
+  type: 'test'
+  ...
+# Subtest: inactive nested index never evaluates arguments
+ok 20 - inactive nested index never evaluates arguments
+  ---
+  duration_ms: 0.165625
+  type: 'test'
+  ...
+# Subtest: inactive nested substr never evaluates arguments
+ok 21 - inactive nested substr never evaluates arguments
+  ---
+  duration_ms: 0.2455
+  type: 'test'
+  ...
+# Subtest: inactive nested match never evaluates arguments
+ok 22 - inactive nested match never evaluates arguments
+  ---
+  duration_ms: 0.203209
+  type: 'test'
+  ...
+# Subtest: literal quoting retains grammar ["1","|","+","length"]
+ok 23 - literal quoting retains grammar ["1","|","+","length"]
+  ---
+  duration_ms: 0.146167
+  type: 'test'
+  ...
+# Subtest: literal quoting retains grammar ["0","&","+",")"]
+ok 24 - literal quoting retains grammar ["0","&","+",")"]
+  ---
+  duration_ms: 0.120959
+  type: 'test'
+  ...
+# Subtest: literal quoting retains grammar ["+","length"]
+ok 25 - literal quoting retains grammar ["+","length"]
+  ---
+  duration_ms: 0.094958
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","length"]
+ok 26 - inactive malformed grammar ["1","|","length"]
+  ---
+  duration_ms: 0.2275
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["0","&","index","abc"]
+ok 27 - inactive malformed grammar ["0","&","index","abc"]
+  ---
+  duration_ms: 0.124
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","substr","abc","1"]
+ok 28 - inactive malformed grammar ["1","|","substr","abc","1"]
+  ---
+  duration_ms: 0.155625
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["0","&","match","abc"]
+ok 29 - inactive malformed grammar ["0","&","match","abc"]
+  ---
+  duration_ms: 0.129958
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","+"]
+ok 30 - inactive malformed grammar ["1","|","+"]
+  ---
+  duration_ms: 0.900125
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","length","(","1","/","0"]
+ok 31 - inactive malformed grammar ["1","|","length","(","1","/","0"]
+  ---
+  duration_ms: 0.423958
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["0","&","(","1","|","index","abc",")"]
+ok 32 - inactive malformed grammar ["0","&","(","1","|","index","abc",")"]
+  ---
+  duration_ms: 0.223791
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","match","abc","[","x"]
+ok 33 - inactive malformed grammar ["1","|","match","abc","[","x"]
+  ---
+  duration_ms: 0.165459
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","substr","match","abc","[","1"]
+ok 34 - inactive malformed grammar ["1","|","substr","match","abc","[","1"]
+  ---
+  duration_ms: 0.198375
+  type: 'test'
+  ...
+# Subtest: active length unchanged in C
+ok 35 - active length unchanged in C
+  ---
+  duration_ms: 0.497167
+  type: 'test'
+  ...
+# Subtest: active index unchanged in C
+ok 36 - active index unchanged in C
+  ---
+  duration_ms: 0.373
+  type: 'test'
+  ...
+# Subtest: active substr unchanged in C
+ok 37 - active substr unchanged in C
+  ---
+  duration_ms: 0.419958
+  type: 'test'
+  ...
+# Subtest: active length unchanged in C.UTF-8
+ok 38 - active length unchanged in C.UTF-8
+  ---
+  duration_ms: 0.11825
+  type: 'test'
+  ...
+# Subtest: active index unchanged in C.UTF-8
+ok 39 - active index unchanged in C.UTF-8
+  ---
+  duration_ms: 0.279334
+  type: 'test'
+  ...
+# Subtest: active substr unchanged in C.UTF-8
+ok 40 - active substr unchanged in C.UTF-8
+  ---
+  duration_ms: 0.450792
+  type: 'test'
+  ...
+# Subtest: active length still rejects unsupported character locale
+ok 41 - active length still rejects unsupported character locale
+  ---
+  duration_ms: 0.227041
+  type: 'test'
+  ...
+# Subtest: active index still rejects unsupported character locale
+ok 42 - active index still rejects unsupported character locale
+  ---
+  duration_ms: 0.196542
+  type: 'test'
+  ...
+# Subtest: active substr still rejects unsupported character locale
+ok 43 - active substr still rejects unsupported character locale
+  ---
+  duration_ms: 0.167708
+  type: 'test'
+  ...
+# Subtest: active match still rejects unsupported character locale
+ok 44 - active match still rejects unsupported character locale
+  ---
+  duration_ms: 0.107125
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["match","abc","a.*"]
+ok 45 - active and skipped calls execute once ["match","abc","a.*"]
+  ---
+  duration_ms: 21.116792
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["0","|","length","abc"]
+ok 46 - active and skipped calls execute once ["0","|","length","abc"]
+  ---
+  duration_ms: 0.219583
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["1","&","substr","abc","2","1"]
+ok 47 - active and skipped calls execute once ["1","&","substr","abc","2","1"]
+  ---
+  duration_ms: 0.192541
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["match","a","a","|","match","hidden","["]
+ok 48 - active and skipped calls execute once ["match","a","a","|","match","hidden","["]
+  ---
+  duration_ms: 16.774209
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["(","match","a","b","|","length","",")","|","match","b","b"]
+ok 49 - active and skipped calls execute once ["(","match","a","b","|","length","",")","|","match","b","b"]
+  ---
+  duration_ms: 19.983083
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["(","match","a","a","+","match","b","b",")","|","substr","hidden","999","1"]
+ok 50 - active and skipped calls execute once ["(","match","a","a","+","match","b","b",")","|","substr","hidden","999","1"]
+  ---
+  duration_ms: 17.804834
+  type: 'test'
+  ...
+# Subtest: retained aggregate argument bytes limit {"maxArgumentBytes":5}
+ok 51 - retained aggregate argument bytes limit {"maxArgumentBytes":5}
+  ---
+  duration_ms: 0.228792
+  type: 'test'
+  ...
+# Subtest: retained argument count limit {"maxNodes":1}
+ok 52 - retained argument count limit {"maxNodes":1}
+  ---
+  duration_ms: 0.073375
+  type: 'test'
+  ...
+# Subtest: retained AST node limit {"maxNodes":3}
+ok 53 - retained AST node limit {"maxNodes":3}
+  ---
+  duration_ms: 0.098459
+  type: 'test'
+  ...
+# Subtest: retained parser depth limit {"maxDepth":2}
+ok 54 - retained parser depth limit {"maxDepth":2}
+  ---
+  duration_ms: 0.080792
+  type: 'test'
+  ...
+# Subtest: retained AST depth limit {"maxDepth":3}
+ok 55 - retained AST depth limit {"maxDepth":3}
+  ---
+  duration_ms: 0.096666
+  type: 'test'
+  ...
+# Subtest: retained evaluation work limit {"maxSteps":1}
+ok 56 - retained evaluation work limit {"maxSteps":1}
+  ---
+  duration_ms: 0.050125
+  type: 'test'
+  ...
+# Subtest: retained numeric digits limit {"maxNumericDigits":1}
+ok 57 - retained numeric digits limit {"maxNumericDigits":1}
+  ---
+  duration_ms: 0.127458
+  type: 'test'
+  ...
+# Subtest: retained numeric result digits limit {"maxNumericDigits":1}
+ok 58 - retained numeric result digits limit {"maxNumericDigits":1}
+  ---
+  duration_ms: 0.25475
+  type: 'test'
+  ...
+# Subtest: retained string allocation limit {"maxStringBytes":2}
+ok 59 - retained string allocation limit {"maxStringBytes":2}
+  ---
+  duration_ms: 0.086416
+  type: 'test'
+  ...
+# Subtest: retained output bytes limit {"maxOutputBytes":1}
+ok 60 - retained output bytes limit {"maxOutputBytes":1}
+  ---
+  duration_ms: 0.187291
+  type: 'test'
+  ...
+# Subtest: inactive call retains its evaluator work checkpoint
+ok 61 - inactive call retains its evaluator work checkpoint
+  ---
+  duration_ms: 0.213042
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: undefined
+ok 62 - inactive call checkpoint preserves abort identity: undefined
+  ---
+  duration_ms: 0.323792
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: null
+ok 63 - inactive call checkpoint preserves abort identity: null
+  ---
+  duration_ms: 0.1265
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: false
+ok 64 - inactive call checkpoint preserves abort identity: false
+  ---
+  duration_ms: 0.122167
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: 0
+ok 65 - inactive call checkpoint preserves abort identity: 0
+  ---
+  duration_ms: 0.178458
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: 
+ok 66 - inactive call checkpoint preserves abort identity: 
+  ---
+  duration_ms: 0.157458
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: Error: cancelled
+ok 67 - inactive call checkpoint preserves abort identity: Error: cancelled
+  ---
+  duration_ms: 0.125
+  type: 'test'
+  ...
+# Subtest: actual Shell/registry preserves nested inactive calls and literal invoke dispatch
+ok 68 - actual Shell/registry preserves nested inactive calls and literal invoke dispatch
+  ---
+  duration_ms: 3.572667
+  type: 'test'
+  ...
+1..68
+# tests 68
+# suites 0
+# pass 68
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 280.743292

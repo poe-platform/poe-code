@@ -1,0 +1,71 @@
+{
+  "at": "2026-08-29T12:37:00.560Z",
+  "groups": [
+    {
+      "id": "P01-own-new-origin",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P02-missing-and-escape",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P03-admitted-same-buffer",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P04-before-read-identity",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P05-bad-hash-before-parse",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P06-own-data-and-link",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P07-short-zero-writes",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P08-raw-falsy-primary",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P09-clock-reserve",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P10-second-open-closes-first",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P11-known-synthetic-lifecycle",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P12-role-mapping",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    }
+  ],
+  "actualNodeControllers": 1,
+  "actualOSChildrenSpawned": 0,
+  "actualWorkers": 0,
+  "productImports": 0,
+  "engineImports": 0,
+  "qualification": "File admission and whole inherited-owner synthetic dependency injection, not native FD/OS child/Worker/engine proof."
+}

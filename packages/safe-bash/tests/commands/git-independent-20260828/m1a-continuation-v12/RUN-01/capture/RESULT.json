@@ -1,0 +1,2907 @@
+{
+  "schema": "fresh-M1A-v11",
+  "startedWall": "2026-08-28T21:41:51.573Z",
+  "startMonotonicNs": "196724660000458",
+  "coordinatorPid": 46590,
+  "children": [
+    {
+      "number": 1,
+      "id": "build",
+      "kind": "tool",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/tool.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/1-build.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 57,
+      "startedMs": 966.439083,
+      "listenersEnrolled": true,
+      "pid": 46594,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 5114.038417
+      },
+      "stdoutClosed": true,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 5114.728583
+      },
+      "stderrClosed": true,
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/1-build.stdout.jsonl",
+        "bytes": 57,
+        "sha256": "ab76c3a03c277364704fd860c046e88e32d224998337785440c868d244ac2f53"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/1-build.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 2,
+      "id": "offline-install",
+      "kind": "tool",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/tool.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/2-offline-install.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/installed app",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 90,
+      "startedMs": 5270.179125,
+      "listenersEnrolled": true,
+      "pid": 46649,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 6756.43
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 6756.461917
+      },
+      "stdoutClosed": true,
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/2-offline-install.stdout.jsonl",
+        "bytes": 90,
+        "sha256": "bd9ec6b633a21d3d5b43beb631f02b5f99de77598cbdfa1788d0a95bb979746c"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/2-offline-install.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 3,
+      "id": "source",
+      "kind": "layout",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/3-source.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 2617481,
+      "startedMs": 7030.380792,
+      "listenersEnrolled": true,
+      "pid": 46683,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 9666.270125
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 9666.277458
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/3-source.stdout.jsonl",
+        "bytes": 2617481,
+        "sha256": "0b18b16b0246c709a0f883c64235ab80eab2d5d55fd94b66de7b7275743cc618"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/3-source.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 4,
+      "id": "compiled",
+      "kind": "layout",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/4-compiled.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 2617610,
+      "startedMs": 9977.718833,
+      "listenersEnrolled": true,
+      "pid": 46721,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 10826.017292
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 10826.136083
+      },
+      "stdoutClosed": true,
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/4-compiled.stdout.jsonl",
+        "bytes": 2617610,
+        "sha256": "eb15edeac4b3cf3cb4a11362846cd74acda6125bc3a94b2843650090cdb599a7"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/4-compiled.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 5,
+      "id": "installed",
+      "kind": "layout",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/5-installed.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/installed app/node_modules/virtual-bash",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 2617730,
+      "startedMs": 11145.61225,
+      "listenersEnrolled": true,
+      "pid": 46733,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 12003.372375
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 12003.376917
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/5-installed.stdout.jsonl",
+        "bytes": 2617730,
+        "sha256": "617f77584b073f5886483e98bc350ab6bfd4388cb1aad55ae31314ee0af4ad6c"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/5-installed.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 6,
+      "id": "moved",
+      "kind": "layout",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/6-moved.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 2617457,
+      "startedMs": 12373.001833,
+      "listenersEnrolled": true,
+      "pid": 46735,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 13177.116292
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 13177.125667
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/6-moved.stdout.jsonl",
+        "bytes": 2617457,
+        "sha256": "38db586998999516a7ef3af59e5d33be2bc2e3189a02409fa30c639017e8d404"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/6-moved.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 7,
+      "id": "types-positive",
+      "kind": "type",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/tool.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/7-types-positive.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 66,
+      "startedMs": 13427.101458,
+      "listenersEnrolled": true,
+      "pid": 46737,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 14883.577917
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 14883.584625
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/7-types-positive.stdout.jsonl",
+        "bytes": 66,
+        "sha256": "0dea18f5f11011ad7729b19dc7363189d7309f8abbe7f1645c00145077d71390"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/7-types-positive.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 8,
+      "id": "types-negative-limits",
+      "kind": "type",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/tool.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/8-types-negative-limits.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 237,
+      "startedMs": 15061.784417,
+      "listenersEnrolled": true,
+      "pid": 46747,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "elapsedMs": 16537.447125
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "elapsedMs": 16537.452
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/8-types-negative-limits.stdout.jsonl",
+        "bytes": 237,
+        "sha256": "fd3e535d3d32a8c759096a4a71e27f1005ff9e8490a995dfc2310eb80aa6d3c3"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/8-types-negative-limits.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 9,
+      "id": "types-negative-native",
+      "kind": "type",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/tool.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/9-types-negative-native.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 236,
+      "startedMs": 16751.859042,
+      "listenersEnrolled": true,
+      "pid": 46756,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "elapsedMs": 18216.0885
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "elapsedMs": 18216.101
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/9-types-negative-native.stdout.jsonl",
+        "bytes": 236,
+        "sha256": "4d96d185f19359db59c2a0b5208d5803b64258daf7997141dd024a2eeb969268"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/9-types-negative-native.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 10,
+      "id": "types-negative-boundary",
+      "kind": "type",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/tool.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/10-types-negative-boundary.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 183,
+      "startedMs": 18409.954417,
+      "listenersEnrolled": true,
+      "pid": 46760,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "elapsedMs": 19803.427792
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "elapsedMs": 19803.489625
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/10-types-negative-boundary.stdout.jsonl",
+        "bytes": 183,
+        "sha256": "4bc8ca2c5614d5c8708b42bdb21cb8549adf17dacae76a225b72ca7b39f614a8"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/10-types-negative-boundary.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 11,
+      "id": "types-negative-public-root",
+      "kind": "type",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/tool.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/11-types-negative-public-root.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 391,
+      "startedMs": 20006.444167,
+      "listenersEnrolled": true,
+      "pid": 46770,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "elapsedMs": 21504.797833
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "elapsedMs": 21504.803292
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/11-types-negative-public-root.stdout.jsonl",
+        "bytes": 391,
+        "sha256": "06f6f4eeeaa84b811e7f3fc6dc5660dd505ab71edc48a5cbd73a22dd124eb261"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/11-types-negative-public-root.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 12,
+      "id": "mutant-wrong-raw",
+      "kind": "mutant",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/12-mutant-wrong-raw.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/mutant-wrong-raw",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 26180,
+      "startedMs": 21880.952042,
+      "listenersEnrolled": true,
+      "pid": 46772,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 22113.500542
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 22113.523625
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/12-mutant-wrong-raw.stdout.jsonl",
+        "bytes": 26180,
+        "sha256": "0f6084ad57e810d3d136d9c2f74de6c0ad6b701df219504a6b6265b86fde838d"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/12-mutant-wrong-raw.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 13,
+      "id": "restore-wrong-raw",
+      "kind": "restore",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/13-restore-wrong-raw.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/mutant-wrong-raw",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 24666,
+      "startedMs": 22572.264875,
+      "listenersEnrolled": true,
+      "pid": 46781,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 22802.88125
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 22802.900958
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/13-restore-wrong-raw.stdout.jsonl",
+        "bytes": 24666,
+        "sha256": "ff8891547612f886cfde5e0006b7dc047d5879965fc23c9b2745ec94b57d3da3"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/13-restore-wrong-raw.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 14,
+      "id": "mutant-guessed-mode",
+      "kind": "mutant",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/14-mutant-guessed-mode.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/mutant-guessed-mode",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 17368,
+      "startedMs": 23295.771375,
+      "listenersEnrolled": true,
+      "pid": 46794,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 23531.8025
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 23531.807625
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/14-mutant-guessed-mode.stdout.jsonl",
+        "bytes": 17368,
+        "sha256": "be72f3ec2f085a26501b78f1fca904160586b4767868a4ed1703925b893148fa"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/14-mutant-guessed-mode.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 15,
+      "id": "restore-guessed-mode",
+      "kind": "restore",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/15-restore-guessed-mode.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/mutant-guessed-mode",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 14269,
+      "startedMs": 24049.167375,
+      "listenersEnrolled": true,
+      "pid": 46796,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 24261.338167
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 24261.365708
+      },
+      "stdoutClosed": true,
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/15-restore-guessed-mode.stdout.jsonl",
+        "bytes": 14269,
+        "sha256": "243c37f7a16d2a0ab1f1b4a0910e6b1a3bbe577bef358604b72e736778e78cc1"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/15-restore-guessed-mode.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 16,
+      "id": "mutant-unmerged-diff",
+      "kind": "mutant",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/16-mutant-unmerged-diff.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/mutant-unmerged-diff",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 30699,
+      "startedMs": 24873.265542,
+      "listenersEnrolled": true,
+      "pid": 46804,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 25109.598042
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 25109.60375
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/16-mutant-unmerged-diff.stdout.jsonl",
+        "bytes": 30699,
+        "sha256": "899d3615c453d07bf787ca0106c70b504ebfe5e595cb8cc866c2cd74f3e7560f"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/16-mutant-unmerged-diff.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 17,
+      "id": "restore-unmerged-diff",
+      "kind": "restore",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/17-restore-unmerged-diff.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/mutant-unmerged-diff",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 164123,
+      "startedMs": 25701.237625,
+      "listenersEnrolled": true,
+      "pid": 46812,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 25975.009917
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "elapsedMs": 25975.01625
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/17-restore-unmerged-diff.stdout.jsonl",
+        "bytes": 164123,
+        "sha256": "ea4f2846ed3c788a7eca202c872eafd8a7f6bc8d3d7c0b2c75c0aac734d365cb"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/17-restore-unmerged-diff.stderr.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "number": 18,
+      "id": "binding-entry",
+      "kind": "binding",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/18-binding-entry.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 681,
+      "startedMs": 26479.033625,
+      "listenersEnrolled": true,
+      "pid": 46828,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 26554.134
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 26554.138833
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/18-binding-entry.stdout.jsonl",
+        "bytes": 209,
+        "sha256": "360c9bbe459129662512f070f6a74a060c6d3aa3842025cd0b3610eca9a8e542"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/18-binding-entry.stderr.txt",
+        "bytes": 472,
+        "sha256": "7d7fc3673baf35d895f082d5aa077af167a63c9d723ac02b52b7e9fe6a594da3"
+      }
+    },
+    {
+      "number": 19,
+      "id": "binding-hash",
+      "kind": "binding",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/19-binding-hash.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 681,
+      "startedMs": 26998.794792,
+      "listenersEnrolled": true,
+      "pid": 46838,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 27088.495792
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 27088.502625
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/19-binding-hash.stdout.jsonl",
+        "bytes": 209,
+        "sha256": "e3154e12ff4ef2a0bafaefcc9d50c4e507dd77335388247ade45b8bbc023a649"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/19-binding-hash.stderr.txt",
+        "bytes": 472,
+        "sha256": "89ea095b054b6b9b82845f2c32605ef5340ae5880b6272c082c2cf5e2b71af32"
+      }
+    },
+    {
+      "number": 20,
+      "id": "binding-import",
+      "kind": "binding",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/20-binding-import.packet.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash",
+      "environment": {
+        "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/tmp",
+        "UV_THREADPOOL_SIZE": "1",
+        "npm_config_offline": "true",
+        "npm_config_ignore_scripts": "true",
+        "npm_config_audit": "false",
+        "npm_config_fund": "false",
+        "npm_config_update_notifier": "false",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/user.npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/home/global.npmrc"
+      },
+      "signals": [],
+      "closed": true,
+      "outputBytes": 825,
+      "startedMs": 27611.72075,
+      "listenersEnrolled": true,
+      "pid": 46840,
+      "enrollment": "known.add immediately after spawn before fallible helper",
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 27734.832833
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "elapsedMs": 27734.853542
+      },
+      "stdoutClosed": true,
+      "cleanupAttempted": true,
+      "cleanupSettled": true,
+      "unknownClosure": false,
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/20-binding-import.stdout.jsonl",
+        "bytes": 209,
+        "sha256": "8557c5951d9560dc540ce6781c486ab16ce9f019dd772c57853e4db793988c74"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/20-binding-import.stderr.txt",
+        "bytes": 616,
+        "sha256": "00f70bf636660ff9f8560d57444a4b86efc0d5975545ff040de4fc807ff8de3a"
+      }
+    }
+  ],
+  "layouts": [
+    {
+      "kind": "summary",
+      "layout": "source",
+      "expected": 71,
+      "executed": 71,
+      "passed": 71,
+      "failed": 0,
+      "safety": false,
+      "unrun": [],
+      "mutant": null,
+      "realRootRemoved": true,
+      "cases": [
+        {
+          "id": "A01",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A02",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A03",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A04",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A05",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A06",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A07",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A08",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A09",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A10",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A11",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A12",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A13",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A14",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A15",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A16",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A17",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A18",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A19",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A20",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A21",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A22",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A23",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A24",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A25",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A26",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A27",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A28",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A29",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A30",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A31",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A32",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A33",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A34",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A35",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A36",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A37",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A38",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A39",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A40",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A41",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A42",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A43",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A44",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A45",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A46",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A47",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A48",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A49",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A50",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A51",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A52",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A53",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A54",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A55",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A56",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A57",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A58",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A59",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A60",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H01",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H02",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H03",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H04",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H05",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H06",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H07",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H08",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H09",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H10",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H11",
+          "status": "PASS",
+          "safety": false
+        }
+      ],
+      "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/3-source.stdout.jsonl",
+      "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/source-loads.jsonl",
+      "loadCount": 224,
+      "loadedIdentitySha256": "5875c086c72d0c439723431e9d2f852bf4bba2ffb2f1b76daf056b3cbfea3280",
+      "code": 0
+    },
+    {
+      "kind": "summary",
+      "layout": "compiled",
+      "expected": 71,
+      "executed": 71,
+      "passed": 71,
+      "failed": 0,
+      "safety": false,
+      "unrun": [],
+      "mutant": null,
+      "realRootRemoved": true,
+      "cases": [
+        {
+          "id": "A01",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A02",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A03",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A04",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A05",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A06",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A07",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A08",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A09",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A10",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A11",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A12",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A13",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A14",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A15",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A16",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A17",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A18",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A19",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A20",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A21",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A22",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A23",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A24",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A25",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A26",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A27",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A28",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A29",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A30",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A31",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A32",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A33",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A34",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A35",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A36",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A37",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A38",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A39",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A40",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A41",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A42",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A43",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A44",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A45",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A46",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A47",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A48",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A49",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A50",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A51",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A52",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A53",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A54",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A55",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A56",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A57",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A58",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A59",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A60",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H01",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H02",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H03",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H04",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H05",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H06",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H07",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H08",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H09",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H10",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H11",
+          "status": "PASS",
+          "safety": false
+        }
+      ],
+      "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/4-compiled.stdout.jsonl",
+      "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/compiled-loads.jsonl",
+      "loadCount": 224,
+      "loadedIdentitySha256": "f5281a1b05749472827e17a5b538d3b8b169e44655a1b5fb46f91ea3372314ab",
+      "code": 0
+    },
+    {
+      "kind": "summary",
+      "layout": "installed",
+      "expected": 71,
+      "executed": 71,
+      "passed": 71,
+      "failed": 0,
+      "safety": false,
+      "unrun": [],
+      "mutant": null,
+      "realRootRemoved": true,
+      "cases": [
+        {
+          "id": "A01",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A02",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A03",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A04",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A05",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A06",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A07",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A08",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A09",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A10",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A11",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A12",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A13",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A14",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A15",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A16",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A17",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A18",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A19",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A20",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A21",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A22",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A23",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A24",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A25",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A26",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A27",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A28",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A29",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A30",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A31",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A32",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A33",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A34",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A35",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A36",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A37",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A38",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A39",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A40",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A41",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A42",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A43",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A44",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A45",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A46",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A47",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A48",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A49",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A50",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A51",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A52",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A53",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A54",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A55",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A56",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A57",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A58",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A59",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A60",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H01",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H02",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H03",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H04",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H05",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H06",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H07",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H08",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H09",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H10",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H11",
+          "status": "PASS",
+          "safety": false
+        }
+      ],
+      "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/5-installed.stdout.jsonl",
+      "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/installed-loads.jsonl",
+      "loadCount": 224,
+      "loadedIdentitySha256": "0b8f753ab51b054a3d61aaa1551032847d0279b987a697ceaff5e9bf042fbcb3",
+      "code": 0
+    },
+    {
+      "kind": "summary",
+      "layout": "moved",
+      "expected": 71,
+      "executed": 71,
+      "passed": 71,
+      "failed": 0,
+      "safety": false,
+      "unrun": [],
+      "mutant": null,
+      "realRootRemoved": true,
+      "cases": [
+        {
+          "id": "A01",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A02",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A03",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A04",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A05",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A06",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A07",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A08",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A09",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A10",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A11",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A12",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A13",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A14",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A15",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A16",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A17",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A18",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A19",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A20",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A21",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A22",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A23",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A24",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A25",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A26",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A27",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A28",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A29",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A30",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A31",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A32",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A33",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A34",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A35",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A36",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A37",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A38",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A39",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A40",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A41",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A42",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A43",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A44",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A45",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A46",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A47",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A48",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A49",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A50",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A51",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A52",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A53",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A54",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A55",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A56",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A57",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A58",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A59",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "A60",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H01",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H02",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H03",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H04",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H05",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H06",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H07",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H08",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H09",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H10",
+          "status": "PASS",
+          "safety": false
+        },
+        {
+          "id": "H11",
+          "status": "PASS",
+          "safety": false
+        }
+      ],
+      "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/6-moved.stdout.jsonl",
+      "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/moved-loads.jsonl",
+      "loadCount": 224,
+      "loadedIdentitySha256": "7d03e75ba3cf43b789ad5ce73dc511a53e6f8942f157f60a7de3c189fcbc2ae8",
+      "code": 0
+    }
+  ],
+  "types": [
+    {
+      "id": "types-positive",
+      "passed": true,
+      "expected": 0,
+      "actual": 0,
+      "diagnostic": null,
+      "consumerSha256": "864908fc03222fbed3631a103dce49eda597c28ac00ad3074696f711895e8648"
+    },
+    {
+      "id": "types-negative-limits",
+      "passed": true,
+      "expected": 2,
+      "actual": 2,
+      "diagnostic": "TS2353",
+      "consumerSha256": "fdccabf351c575a62416278c930006e6bc8d921aec42bb074b558ecdbf647005"
+    },
+    {
+      "id": "types-negative-native",
+      "passed": true,
+      "expected": 2,
+      "actual": 2,
+      "diagnostic": "TS2353",
+      "consumerSha256": "428a73c38550f11ab7ba1b2dedafbacab7dd844409b76b2a374bf30003532904"
+    },
+    {
+      "id": "types-negative-boundary",
+      "passed": true,
+      "expected": 2,
+      "actual": 2,
+      "diagnostic": "TS2322",
+      "consumerSha256": "9bd20d11c2ec5e31207ee3a20f67eb863e06f58574767482ec4bf5f5fe5f93ad"
+    },
+    {
+      "id": "types-negative-public-root",
+      "passed": false,
+      "expected": 2,
+      "actual": 2,
+      "diagnostic": "TS2305",
+      "consumerSha256": "ed9ef7fc39f5d9d2c926d21fabd850fdeb8393a47b9ef37b48876b30b38f1b55"
+    }
+  ],
+  "mutants": [
+    {
+      "id": "wrong-raw",
+      "detected": true,
+      "report": {
+        "kind": "summary",
+        "layout": "mutant-wrong-raw",
+        "expected": 1,
+        "executed": 1,
+        "passed": 0,
+        "failed": 1,
+        "safety": false,
+        "unrun": [],
+        "mutant": "wrong-raw",
+        "realRootRemoved": true,
+        "cases": [
+          {
+            "id": "A04",
+            "status": "FAIL",
+            "safety": false
+          }
+        ],
+        "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/12-mutant-wrong-raw.stdout.jsonl",
+        "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/mutant-wrong-raw-loads.jsonl",
+        "loadCount": 224,
+        "loadedIdentitySha256": "89f00ccdb41ff733b67fec7ed2763726acce9ddf93d4fdcfd3fcbb38890c808d",
+        "code": 1
+      }
+    },
+    {
+      "id": "guessed-mode",
+      "detected": true,
+      "report": {
+        "kind": "summary",
+        "layout": "mutant-guessed-mode",
+        "expected": 1,
+        "executed": 1,
+        "passed": 0,
+        "failed": 1,
+        "safety": false,
+        "unrun": [],
+        "mutant": "guessed-mode",
+        "realRootRemoved": true,
+        "cases": [
+          {
+            "id": "H06",
+            "status": "FAIL",
+            "safety": false
+          }
+        ],
+        "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/14-mutant-guessed-mode.stdout.jsonl",
+        "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/mutant-guessed-mode-loads.jsonl",
+        "loadCount": 224,
+        "loadedIdentitySha256": "816f715db797e327171f1e588907e7945179ca6aa41beee954c7b64a6a809528",
+        "code": 1
+      }
+    },
+    {
+      "id": "unmerged-diff",
+      "detected": true,
+      "report": {
+        "kind": "summary",
+        "layout": "mutant-unmerged-diff",
+        "expected": 1,
+        "executed": 1,
+        "passed": 0,
+        "failed": 1,
+        "safety": false,
+        "unrun": [],
+        "mutant": "unmerged-diff",
+        "realRootRemoved": true,
+        "cases": [
+          {
+            "id": "A26",
+            "status": "FAIL",
+            "safety": false
+          }
+        ],
+        "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/16-mutant-unmerged-diff.stdout.jsonl",
+        "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/mutant-unmerged-diff-loads.jsonl",
+        "loadCount": 224,
+        "loadedIdentitySha256": "e39ee13d8a3c02ab98bd5c28c1816d25937f08b82b778785c6d8614dcc0317da",
+        "code": 1
+      }
+    }
+  ],
+  "restores": [
+    {
+      "id": "wrong-raw",
+      "passed": true,
+      "restoredSha256": "804f40f48b8f0d206c23ebb0e6dd94b0ea8fc69fb297377f70d0ec23cce6d55d",
+      "report": {
+        "kind": "summary",
+        "layout": "restore-wrong-raw",
+        "expected": 1,
+        "executed": 1,
+        "passed": 1,
+        "failed": 0,
+        "safety": false,
+        "unrun": [],
+        "mutant": null,
+        "realRootRemoved": true,
+        "cases": [
+          {
+            "id": "A04",
+            "status": "PASS",
+            "safety": false
+          }
+        ],
+        "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/13-restore-wrong-raw.stdout.jsonl",
+        "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/restore-wrong-raw-loads.jsonl",
+        "loadCount": 224,
+        "loadedIdentitySha256": "048cce366809c7b45dd77302ec369ab10076005f8d26190f1d32b0904a61f874",
+        "code": 0
+      }
+    },
+    {
+      "id": "guessed-mode",
+      "passed": true,
+      "restoredSha256": "82142be3b5911024274baf00d5ec1bd66bf9f7df0eb0efd633873f81d0006ec8",
+      "report": {
+        "kind": "summary",
+        "layout": "restore-guessed-mode",
+        "expected": 1,
+        "executed": 1,
+        "passed": 1,
+        "failed": 0,
+        "safety": false,
+        "unrun": [],
+        "mutant": null,
+        "realRootRemoved": true,
+        "cases": [
+          {
+            "id": "H06",
+            "status": "PASS",
+            "safety": false
+          }
+        ],
+        "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/15-restore-guessed-mode.stdout.jsonl",
+        "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/restore-guessed-mode-loads.jsonl",
+        "loadCount": 224,
+        "loadedIdentitySha256": "061fa23ab7f811ae4bc6dab0ca709fae880b8c8463e697410b84a8fb66230350",
+        "code": 0
+      }
+    },
+    {
+      "id": "unmerged-diff",
+      "passed": true,
+      "restoredSha256": "804f40f48b8f0d206c23ebb0e6dd94b0ea8fc69fb297377f70d0ec23cce6d55d",
+      "report": {
+        "kind": "summary",
+        "layout": "restore-unmerged-diff",
+        "expected": 1,
+        "executed": 1,
+        "passed": 1,
+        "failed": 0,
+        "safety": false,
+        "unrun": [],
+        "mutant": null,
+        "realRootRemoved": true,
+        "cases": [
+          {
+            "id": "A26",
+            "status": "PASS",
+            "safety": false
+          }
+        ],
+        "outputPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/17-restore-unmerged-diff.stdout.jsonl",
+        "loadsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/restore-unmerged-diff-loads.jsonl",
+        "loadCount": 224,
+        "loadedIdentitySha256": "08aebeb0a2b978665d74fb885a9f1ab2872c53ba3735313cdb89c0b27959e666",
+        "code": 0
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "id": "binding-entry",
+      "refused": true,
+      "diagnostic": "BINDING_ENTRY_REFUSED"
+    },
+    {
+      "id": "binding-hash",
+      "refused": true,
+      "diagnostic": "BINDING_HASH_REFUSED"
+    },
+    {
+      "id": "binding-import",
+      "refused": true,
+      "diagnostic": "BINDING_IMPORT_REFUSED"
+    }
+  ],
+  "guards": [
+    {
+      "label": "pre",
+      "elapsedMs": 843.196625,
+      "sealed": true,
+      "oldAppendProof": true,
+      "toolsAppendProof": true
+    },
+    {
+      "label": "post",
+      "elapsedMs": 29328.09025,
+      "sealed": true,
+      "oldAppendProof": true,
+      "toolsAppendProof": true
+    }
+  ],
+  "status": "SCOPED_FAILURES",
+  "nativeGit": 0,
+  "mechanicalGroups": 0,
+  "build": {
+    "passed": true,
+    "exitCode": 0
+  },
+  "offline-install": {
+    "passed": true,
+    "exitCode": 0
+  },
+  "installation": "actual offline npm install, scripts disabled, full898 bytes verified",
+  "layoutEquality": [
+    {
+      "layout": "compiled",
+      "equal": true
+    },
+    {
+      "layout": "installed",
+      "equal": true
+    },
+    {
+      "layout": "moved",
+      "equal": true
+    }
+  ],
+  "finishedWall": "2026-08-28T21:42:20.777Z",
+  "inclusiveBeforePublicationMs": 29328.179042,
+  "captureBytesBeforeReceipt": 12690052,
+  "workBytes": 31246058,
+  "unrunRoles": []
+}

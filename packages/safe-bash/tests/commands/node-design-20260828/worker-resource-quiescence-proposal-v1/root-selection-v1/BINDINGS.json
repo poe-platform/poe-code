@@ -1,0 +1,223 @@
+{
+  "schema": "WRQ-root-selection-L-bindings-v1",
+  "date": "2026-08-28",
+  "authority": {
+    "kind": "current ROOT user-message transcript",
+    "selectedDirection": "L explicit lifetime retirement, not Q/all-jobs-settled",
+    "noFabricatedRootDecisionCommit": true,
+    "scope": "new root-selection-v1 subtree only; document/data and Git metadata reads; no network/execution/private access"
+  },
+  "inspection": "Exact committed artifact bytes only for proposal/repair inputs. Stored commits and each blob recomputed from Git object framing; path/mode/blob membership read from NUL-delimited Git ls-tree records. No moving HEAD source acceptance, source probe, engine archive/materialization or tool execution. Live AGENTS/priority were read as instructions, not copied into artifacts.",
+  "commitsVerified": [
+    {
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+      "tree": "47afd39c1735bb68ebe6d3a336d329c3b964e3cf",
+      "bodyBytes": 270,
+      "bodySha256": "4aab12c3e8e3790cabbf5a5dc5e87923156b1e68a6a699b4c5e267ee21f9a116"
+    },
+    {
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757",
+      "tree": "baa4b1a8c48cb0aa43b13106031f72f138d8f0a0",
+      "bodyBytes": 275,
+      "bodySha256": "d97d7b1b6f99d16ee667c363956ce930324bae58a80e4a532512fda8e2eacf8e"
+    },
+    {
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "tree": "64ba44c38cefcd0ffc04871cebbcb3c3ab26f209",
+      "bodyBytes": 275,
+      "bodySha256": "772f890b6a4ac56b1ccacd2f45dd719b0806474de84f141b82bcfc1b5887eec2"
+    }
+  ],
+  "committedInputs": [
+    {
+      "id": "repair-code-MANIFEST.json",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/recipe/MANIFEST.json",
+      "mode": "100644",
+      "gitBlob": "6fdc5efd0722db8e6cd716e31a3c9352883cdc4e",
+      "bytes": 6994,
+      "sha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+      "rootSuppliedSha256Matched": true
+    },
+    {
+      "id": "repair-code-SOURCES.json",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/recipe/SOURCES.json",
+      "mode": "100644",
+      "gitBlob": "79f60f34950eba448a17394d1146841b8c428aa1",
+      "bytes": 35893,
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+      "rootSuppliedSha256Matched": true
+    },
+    {
+      "id": "repair-code-TOOLS.json",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/recipe/TOOLS.json",
+      "mode": "100644",
+      "gitBlob": "43144c5c774a76dfd23f6e4de21d5834a599f11e",
+      "bytes": 2312,
+      "sha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+      "rootSuppliedSha256Matched": true
+    },
+    {
+      "id": "repair-evidence-MANIFEST.json",
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/recipe/MANIFEST.json",
+      "mode": "100644",
+      "gitBlob": "6fdc5efd0722db8e6cd716e31a3c9352883cdc4e",
+      "bytes": 6994,
+      "sha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+      "rootSuppliedSha256Matched": true
+    },
+    {
+      "id": "repair-evidence-SOURCES.json",
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/recipe/SOURCES.json",
+      "mode": "100644",
+      "gitBlob": "79f60f34950eba448a17394d1146841b8c428aa1",
+      "bytes": 35893,
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+      "rootSuppliedSha256Matched": true
+    },
+    {
+      "id": "repair-evidence-TOOLS.json",
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/recipe/TOOLS.json",
+      "mode": "100644",
+      "gitBlob": "43144c5c774a76dfd23f6e4de21d5834a599f11e",
+      "bytes": 2312,
+      "sha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+      "rootSuppliedSha256Matched": true
+    },
+    {
+      "id": "repair-evidence",
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/EVIDENCE.json",
+      "mode": "100644",
+      "gitBlob": "9a9e60c8ab52c69e89a3004ff4e3f6b76c5dc67c",
+      "bytes": 7444,
+      "sha256": "9c3df4e3ee40e9c9bc03ba6aa7f0816a3123afdf9aec897f008b76e9a4518b58",
+      "rootSuppliedSha256Matched": true
+    },
+    {
+      "id": "repair-handoff",
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/HANDOFF.md",
+      "mode": "100644",
+      "gitBlob": "6af86bcb47915b7f6bfd7d9a5eb8923eec82bd33",
+      "bytes": 6668,
+      "sha256": "2d32c9dcca77beef5276c76fd86867957de960f0a7058ae05e200efcc8a17809",
+      "rootSuppliedSha256Matched": false
+    },
+    {
+      "id": "worker-PROPOSAL.md",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/PROPOSAL.md",
+      "mode": "100644",
+      "gitBlob": "4b752f9dccec33a05d48f76d5d69f06cb1eebb36",
+      "bytes": 13009,
+      "sha256": "b83e7d444713f876b3ab5850bde698940d010e97051735231a38ac630a23671e",
+      "rootSuppliedSha256Matched": false
+    },
+    {
+      "id": "worker-RPC.json",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/RPC.json",
+      "mode": "100644",
+      "gitBlob": "347a271be4b8e51036ec131f75ee25b44abe9bb2",
+      "bytes": 11423,
+      "sha256": "23a72deac68b1f9d78c9966b7fe6b37bd6955952434885d609a4e9b9e03cb66f",
+      "rootSuppliedSha256Matched": false
+    },
+    {
+      "id": "worker-CASES.json",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/CASES.json",
+      "mode": "100644",
+      "gitBlob": "f632103edd534e22757f27d732ad5db56f91cb7c",
+      "bytes": 12820,
+      "sha256": "cd1005348825c85ec2b6bff2feca061fc8fc4d0fae5eb9d2e13b81e440efd729",
+      "rootSuppliedSha256Matched": false
+    },
+    {
+      "id": "worker-SOURCES.json",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/SOURCES.json",
+      "mode": "100644",
+      "gitBlob": "f20d3eaaaf1ea3fa2af6a44e125aebbcd47caae4",
+      "bytes": 34447,
+      "sha256": "1c6ac683533c525b885f717edeeaee44d5f00bcb9fa9cb016bde3ab577ba8056",
+      "rootSuppliedSha256Matched": false
+    }
+  ],
+  "repairCrossCommitIdentity": "Recipe MANIFEST/SOURCES/TOOLS bytes match at both code and evidence commits. EVIDENCE codeCommit/recipeManifestSha256 match the supplied full code/manifest seals.",
+  "preservedHistory": {
+    "source": "repair-evidence committed input; inherited authenticated report, not recapture/rescore",
+    "independent": {
+      "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9",
+      "expectedObservations": 9,
+      "closedChildren": 4,
+      "natural": 2,
+      "sigterm": 2,
+      "L02": "Subject did NOT reap; reviewer rescue did. Never credited as subject cleanup.",
+      "D02": "Standalone acceptance counterexample, NOT proven whole-driver bypass.",
+      "rescored": false
+    },
+    "repair": {
+      "uniqueControls": 10,
+      "expectedObserved": 10,
+      "unexpectedFailures": 0,
+      "stubChildren": 7,
+      "naturalStubChildren": 4,
+      "sigtermStubChildren": 3,
+      "independentRescues": 0,
+      "mainEngineEvaluations": 0,
+      "qualification": "Expected rejection controls are successful observations, not successful engine/guest executions. C06 rejected source identity; C10 separately rejected retirement contradiction with correct source and all composed inert prerequisites."
+    },
+    "c10SeparatePreseal": "8754a6ddc72979c7293682f14a2da7a978fce19c",
+    "workerCases": "Original WRQ01-WRQ08 and historical both-alternatives ceilings unchanged. Q variant is not selected, not deleted or passed. No new execution count/subset sealed.",
+    "privateAbiMain": "Eight planned evaluations remain held/unrun/separate; may be unnecessary on Worker path. No original6/25 rerun or old fail rescore."
+  },
+  "inheritedSourceClaims": {
+    "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "sourceBinding": "worker-SOURCES.json in committedInputs",
+    "meaning": "Prior inspected ordinary-call/copy/job/Promise/run sources are inherited evidence only. This task neither reopens engine source nor establishes complete runnable/pending observation."
+  },
+  "currentProposalArtifacts": [
+    {
+      "path": "ROOT-DECISION.md",
+      "bytes": 12331,
+      "sha256": "964b1029a91661258c1845f13780107865537312ac6bff7bcb276d440bca4926"
+    },
+    {
+      "path": "OPEN-OBLIGATIONS.json",
+      "bytes": 13915,
+      "sha256": "ca54239f8009dfaba113071f9fa6a8f5d2c81b804821d3d72ebacfe51dbc4b64"
+    }
+  ],
+  "validation": {
+    "kind": "new documentation/data plus committed artifact bindings only",
+    "commitsAuthenticated": 3,
+    "committedInputsAuthenticated": 12,
+    "mappedWrqIdentities": 8,
+    "obligations": 8,
+    "remainingRootChoices": 3,
+    "inheritedCandidateLimitsMatched": true,
+    "jsonDuplicateKeysAllowed": false,
+    "whitespaceMustPassBeforeCommit": true,
+    "noneIsRuntimeAcceptance": true
+  },
+  "newExecutions": {
+    "workers": 0,
+    "engineImports": 0,
+    "guestEvaluations": 0,
+    "harmlessControls": 0,
+    "subprocessFixtures": 0,
+    "builds": 0,
+    "installs": 0,
+    "networkRequests": 0,
+    "sourceProbes": 0,
+    "delegatedAgents": 0
+  },
+  "handoff": "ROOT relays to Raman; no independent review/signoff is supplied. Current branch existence, this recording commit, verified repair seals and L selection are not a runtime or experiment GO."
+}

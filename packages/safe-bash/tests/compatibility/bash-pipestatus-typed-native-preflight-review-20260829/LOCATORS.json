@@ -1,0 +1,113 @@
+{
+  "files": [
+    {
+      "name": "APPROVAL-PROPOSAL.template.json",
+      "bytes": 2861,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "CONTROL-PRESEAL.json",
+      "bytes": 1800,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "CONTROL-RESULT.json",
+      "bytes": 1471,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "GO.template.json",
+      "bytes": 1760,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "HANDOFF.md",
+      "bytes": 3360,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "PREPARE.md",
+      "bytes": 2585,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "PROGRAMS.json",
+      "bytes": 829,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "PUBLICATION.md",
+      "bytes": 3891,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "READY-SEAL.json",
+      "bytes": 11288,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "REVIEW-ACCEPTANCE.template.json",
+      "bytes": 361,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "SOURCE-AUTH.json",
+      "bytes": 4110,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "SOURCE-DELTA.json",
+      "bytes": 2142,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "SYNTAX-RESULT.json",
+      "bytes": 511,
+      "regular": true,
+      "mode": 384
+    },
+    {
+      "name": "cohort.fragment.data",
+      "bytes": 1244,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "control-work",
+      "bytes": 96,
+      "regular": false,
+      "mode": 448
+    },
+    {
+      "name": "materialized",
+      "bytes": 544,
+      "regular": false,
+      "mode": 448
+    },
+    {
+      "name": "prepare.mjs",
+      "bytes": 26523,
+      "regular": true,
+      "mode": 420
+    },
+    {
+      "name": "raw",
+      "bytes": 1056,
+      "regular": false,
+      "mode": 448
+    }
+  ],
+  "capture": "/tmp/pipestatus-typed-review-inspect-qB5OEJ"
+}

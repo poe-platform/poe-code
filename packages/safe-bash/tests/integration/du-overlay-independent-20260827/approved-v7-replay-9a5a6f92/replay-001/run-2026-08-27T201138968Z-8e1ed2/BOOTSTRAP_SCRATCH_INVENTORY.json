@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "disposition": "inventory captured before exact owned bootstrap scratch removal after frozen replay failure",
+  "bootstrap": {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v7-replay-9a5a6f92/replay-001/bootstrap-scratch",
+    "fileCount": 22,
+    "directoryCount": 9,
+    "symlinkCount": 0,
+    "totalBytes": 418374,
+    "files": [
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/CASE_MAP.md",
+        "bytes": 2041,
+        "sha256": "ac71961198a9ba817ab1b522c1e23f66cff06f6eb38c8cffae63e7b0a327c8a4",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/CORRECTION_V7.md",
+        "bytes": 6328,
+        "sha256": "23f07912e4100758808be61973d208062011467f80d54fe44a70f5d77a474fc4",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/FREEZE.md",
+        "bytes": 7922,
+        "sha256": "1b7429a1db8884fbafc2e0c6bdd8af1d7026b8e83507c2f4eee5f5d6555adde8",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/MANIFEST.json",
+        "bytes": 5410,
+        "sha256": "ae6c2dac28f30e94a6a4d07060cad8506608b5ec5aabeed254c964fd678c3ffc",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/ORIGINS.json",
+        "bytes": 8799,
+        "sha256": "1706a720741d8cd6e633cc33865902966d3444c98eaa0a72d2de771a8aca5ca9",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/config/candidate-selected-paths.txt",
+        "bytes": 7522,
+        "sha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/config/oracle-identity.json",
+        "bytes": 582,
+        "sha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/config/static-tooling.json",
+        "bytes": 210,
+        "sha256": "a665c0d24aedea5a987d444e98d9708378a1db44c49b5a10872cf2a11062506f",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+        "bytes": 603,
+        "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/package.json",
+        "bytes": 93,
+        "sha256": "52fe278e686f24c3992cd55042b2a5029bc3de967ab198821020c423fe85344f",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/runtime.mjs",
+        "bytes": 1420,
+        "sha256": "61e13d86b50487bb6a768859e75d111d896c3502b9ce1b286637b43da2ad87b5",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/tsconfig.json",
+        "bytes": 236,
+        "sha256": "1ece8865863403be31eb2601b88f1739c5412dfe495e7dba65b66e43a2fc607b",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/fixtures/native-env-cases.json",
+        "bytes": 4259,
+        "sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/harness/attest-loader.mjs",
+        "bytes": 1358,
+        "sha256": "856d860f818db6848388be87da7cd59ee4def1bf133abe582206bbd69b083d1d",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/harness/process-manager.mjs",
+        "bytes": 10866,
+        "sha256": "f322101cfaa23612287cd728f52f50c672a19325eda00b69d8280827d83cfa5d",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/harness/process-timeout-control.mjs",
+        "bytes": 565,
+        "sha256": "2ac32a6d8a09f7f37f157e2adc1ac6b1fbd7cc0899cc7d643542a7dc743dc652",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/harness/verify-original.mjs",
+        "bytes": 26190,
+        "sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/harness/verify-v5.mjs",
+        "bytes": 56641,
+        "sha256": "c0bb630b682d038377cbb72dfe23f9d22553da4e9650e77547d06601ff0bc1e1",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/native-env.mjs",
+        "bytes": 6204,
+        "sha256": "e537055e0b7516e2a2ddcd520f5197625334d2493b1b238d82b99edc94fd7def",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/replay.mjs",
+        "bytes": 43382,
+        "sha256": "205015a51fc5bd75237762b96f1537786329e4fe13ea6c79f23ccc66c6309a0c",
+        "mode": 420
+      },
+      {
+        "path": "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/verify-freeze.mjs",
+        "bytes": 2463,
+        "sha256": "52caed4f09706457da70a3d173762887f44029dbcb0efe558459c3c8fb998b8f",
+        "mode": 420
+      },
+      {
+        "path": "freeze.tar",
+        "bytes": 225280,
+        "sha256": "8d638e3afc2665f8f299b9df3c49fc6fc5f1540ae53dd259825f3103ef95ec0b",
+        "mode": 420
+      }
+    ],
+    "directories": [
+      "extracted",
+      "extracted/tests",
+      "extracted/tests/integration",
+      "extracted/tests/integration/du-overlay-independent-20260827",
+      "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92",
+      "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/config",
+      "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer",
+      "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/fixtures",
+      "extracted/tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/harness"
+    ],
+    "links": [],
+    "fileInventorySha256": "7f1b47f82bf5fdbee8755868ba7d35c3045d9d1df9d7ad66c0a805839ebd3e5e",
+    "completeEntryInventorySha256": "c40d83fda58ee3fc02187cd1dccde3521377c65dac16c61c705c919c9f960c74"
+  },
+  "forbiddenAgents": []
+}

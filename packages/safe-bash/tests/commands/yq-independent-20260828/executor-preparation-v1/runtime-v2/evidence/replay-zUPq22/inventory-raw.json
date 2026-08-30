@@ -1,0 +1,28 @@
+{
+  "returned": {
+    "counts": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "ids": 132,
+    "total": 194,
+    "jobs": 149,
+    "jobsSha256": "c48185f7b165ab97d689f3a88e308b0cf1df39d93d7ab304dc8ad15ad9098f27",
+    "denominators": {
+      "inventory": 194,
+      "semanticEligibleIds": 111,
+      "preparedRecordProjections": 132,
+      "preparedSemanticProjections": 111,
+      "completeSemanticRecordsEligibleAfterAllVariants": 94,
+      "executed": 0,
+      "semanticPasses": 0,
+      "rule": "Report selected observable projections separately. All variants must pass for one ID projection; missing private assertions prevent full-record credit. Admission/source/type/package/data/controls never enter the semantic denominator. QB64/N32/N36 add zero runtime IDs."
+    }
+  },
+  "error": null
+}

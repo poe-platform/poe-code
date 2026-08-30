@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "at": "2026-08-28T10:04:21.026Z",
+  "role": "source-only accessibility/provenance proof, not runtime measurements",
+  "anchors": [
+    {
+      "commit": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+      "path": "src/shell/runtime.ts",
+      "blob": "9ff4aa32354f15901ed18e7e57aa30f812d34b14",
+      "fileSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "startLine": 700,
+      "endLine": 770,
+      "role": "private capture and finish",
+      "spanSha256": "4100a878818523c30d5b037e66e06f9d8cbda4b358128258273d275ff200491a",
+      "text": "      throw error;\n    }\n  }\n\n  capture(\n    execute: () => Promise<CommandResult>,\n    frame: RuntimeOutcomeFrame,\n  ): Promise<CapturedCancellationOutcome<CommandResult>> {\n    return new Promise(resolve => {\n      let settled = false;\n      let raw: Promise<CommandResult> | undefined;\n      let queuedOrigin = false;\n      const settle = (captured: CapturedCancellationOutcome<CommandResult>): void => {\n        if (settled) return;\n        settled = true;\n        this.#captureCancellation = undefined;\n        resolve(captured);\n      };\n      this.#captureCancellation = origin => {\n        if (settled || queuedOrigin) return;\n        queuedOrigin = true;\n        queueMicrotask(() => {\n          if (settled) return;\n          this.#observedOrigin = origin;\n          settle({ kind: \"throw\", reason: origin.signal.reason });\n          void raw?.catch(() => undefined);\n        });\n      };\n      try { raw = Promise.resolve(execute()); }\n      catch (reason) { settle({ kind: \"throw\", reason }); return; }\n      void raw.then(\n        value => settle({ kind: \"return\", value }),\n        reason => settle(frame.report && Object.is(frame.report.origin.signal.reason, reason)\n          ? { kind: \"throw\", reason, report: frame.report }\n          : { kind: \"throw\", reason }),\n      );\n      if (settled) void raw.catch(() => undefined);\n    });\n  }\n\n  finish(barrier: Promise<void>, captured: CapturedCancellationOutcome<CommandResult>): Promise<CancellationSelection<CommandResult>> {\n    this.#finish ??= this.#finishOnce(barrier, captured);\n    return this.#finish;\n  }\n\n  async abandon(barrier: Promise<void>): Promise<void> {\n    this.requestClose();\n    try { await barrier; }\n    finally {\n      this.#outcomes.discard(this.#record);\n      this.#closeBoundary();\n      this.#resolveFinalized();\n    }\n  }\n\n  async #finishOnce(barrier: Promise<void>, captured: CapturedCancellationOutcome<CommandResult>): Promise<CancellationSelection<CommandResult>> {\n    this.requestClose();\n    try {\n      await barrier;\n      this.#closeBoundary();\n      const selection = selectRuntimeCancellationOutcome(this.#boundary!, captured, this.#observedOrigin);\n      if (this.#record) this.#outcomes.finalize(this.#record, selection);\n      return selection;\n    } finally { this.#resolveFinalized(); }\n  }\n\n  #closeBoundary(): void {\n    if (!this.#boundary || this.#boundaryClosed) return;\n    this.#boundaryClosed = true;\n    try { this.#detach?.(); } catch (error) { this.#failures.push(error); }\n    this.#detach = undefined;\n"
+    },
+    {
+      "commit": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+      "path": "src/shell/runtime.ts",
+      "blob": "9ff4aa32354f15901ed18e7e57aa30f812d34b14",
+      "fileSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "startLine": 880,
+      "endLine": 913,
+      "role": "execute/capture then finish and public settlement",
+      "spanSha256": "318ab0dfefabb7e6a0b6747b5e3c58b21446906ef5b513ce1c94acd3cb73ca34",
+      "text": "        AbortSignal.any([boundary.deliverySignal, scope.signal]),\n        this.fileWrites,\n        this.outputFiles,\n        boundary.deliverySignal,\n        boundary,\n        this.cancellationState,\n        owner ?? this.cancellationOwner,\n        prepared.owned ? childDepth : this.cancellationDepth,\n        this.cancellationMaxDepth,\n        frame,\n      );\n      let captured: CapturedCancellationOutcome<CommandResult>;\n      if (owner) captured = await owner.capture(() => execute(runtime, scope), frame);\n      else {\n        try { captured = { kind: \"return\", value: await execute(runtime, scope) }; }\n        catch (reason) {\n          captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)\n            ? { kind: \"throw\", reason, report: frame.report }\n            : { kind: \"throw\", reason };\n        }\n      }\n\n      let selection: CancellationSelection<CommandResult>;\n      if (owner) selection = await owner.finish(scope.close(), captured);\n      else {\n        await scope.close();\n        const close = boundary.close();\n        scope.failures.push(...close.failures);\n        selection = selectRuntimeCancellationOutcome(boundary, captured);\n      }\n      if (selection.outcome.kind === \"throw\") throw selection.outcome.reason;\n      return selection.outcome.value;\n    });\n    return publicPromise;\n"
+    },
+    {
+      "commit": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+      "path": "src/shell/runtime.ts",
+      "blob": "9ff4aa32354f15901ed18e7e57aa30f812d34b14",
+      "fileSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "startLine": 1196,
+      "endLine": 1215,
+      "role": "ordinary mapping clears provenance",
+      "spanSha256": "4244248cb18b578796acc8b5c6e652eaf50b035a6da1654cbbd22f9b9bdf96d3",
+      "text": "    } catch (error) {\n      const diagnostic = error instanceof ExecutionFailure ? error.diagnostic : undefined;\n      if (error instanceof ExecutionFailure) { io = error.io; error = error.original; }\n      this.signal.throwIfAborted();\n      if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;\n      this.clearOutcomeReport();\n      if (error instanceof HereDocumentSyntaxError) {\n        await writeText(io.stderr, error.diagnostic);\n        this.errexit(1, state, io);\n        return 1;\n      }\n      if (errorCode(error) === \"EPIPE\") { this.errexit(141, state, io); return 141; }\n      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;\n      try { await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${diagnostic ?? message(error)}\\n`); }\n      catch { this.signal.throwIfAborted(); }\n      if (error instanceof ExpansionFailure) throw new Flow(\"exit\", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);\n      if (error instanceof FatalCommandFailure) throw new Flow(\"exit\", error.status);\n      const status = error instanceof CommandFailure ? error.status : 1;\n      this.errexit(status, state, io);\n      return status;\n"
+    },
+    {
+      "commit": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+      "path": "src/shell/runtime.ts",
+      "blob": "9ff4aa32354f15901ed18e7e57aa30f812d34b14",
+      "fileSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+      "startLine": 1494,
+      "endLine": 1532,
+      "role": "public cleanup dispatch-scope registration",
+      "spanSha256": "afca7a2a79fabbc0bd02b2d42a75ecafa9d1b4bf1cbb557243f8036c817e0663",
+      "text": "  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false): Promise<number> {\n    const scope = io[invocationScope].child();\n    const runtime = new Runtime(\n      this.fs, this.commands, this.middleware, this.budget,\n      AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal,\n      this.cancellation, this.cancellationState, this.cancellationOwner,\n      this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame,\n    );\n    try { return await runtime.dispatchScoped(name, args, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions); }\n    finally { await scope.close(); }\n  }\n\n  private async dispatchScoped(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean): Promise<number> {\n    const { [invocationScope]: scope, ...publicIO } = io;\n    let builtinFailure: { error: unknown; diagnostic: string } | undefined;\n    const env = Object.create(null) as Record<string, string>;\n    for (const key of state.exported) {\n      const value = state.variables[key];\n      if (value !== undefined) env[key] = value;\n    }\n    const initialEnv = { ...env };\n    const runtimeFrame: RuntimeOutcomeFrame = {};\n    const context: ShellCommandContext = {\n      ...publicIO, command: name, args, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,\n      registerCleanup: (cleanup) => scope.register(cleanup),\n      invoke: (name, args, options) => {\n        const invocation = this.invoke(name, args, options, context, state, scope);\n        void invocation.catch(() => undefined);\n        return invocation;\n      },\n    };\n    const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {\n      scope.assertOpen();\n      let downstream: Promise<CommandResult> | undefined;\n      const raw = handler(context, () => {\n        downstream = next();\n        return downstream;\n      });\n      return this.observeRuntimeReturn(raw, runtimeFrame, () => downstream);\n"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/cancellation.ts",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "fileSha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "startLine": 758,
+      "endLine": 800,
+      "role": "source root then escaping then rankedinvoke selection",
+      "spanSha256": "6c7f3f66c8d0fab471d457b91f0977656ca47d02095affc08c9d7a9b34127d04",
+      "text": "export function selectRuntimeCancellationOutcome<Value>(\n  boundary: CancellationBoundary,\n  captured: CapturedCancellationOutcome<Value>,\n  observedOrigin?: CancellationOrigin,\n): CancellationSelection<Value> {\n  if (!captured || typeof captured !== \"object\" || captured.kind !== \"return\" && captured.kind !== \"throw\") {\n    throw new TypeError(\"A captured return or throw outcome is required\");\n  }\n  if (!boundary || typeof boundary !== \"object\" || !(boundaryState in boundary)) {\n    throw new TypeError(\"Expected a private cancellation boundary\");\n  }\n  const state = boundary[boundaryState];\n  const lineage = state.kind === \"link\" ? state : state.lineage;\n  const origins = visibleOrigins(lineage);\n  const root = origins.find(origin => origin.role === \"root-caller\");\n  if (root) return throwingSelection(state, root.signal.reason, root);\n\n  const reported = validReport(state, captured as CapturedCancellationOutcome<unknown>);\n  const observed = captured.kind === \"throw\"\n    && observedOrigin !== undefined\n    && origins.includes(observedOrigin)\n    && Object.is(captured.reason, observedOrigin.signal.reason)\n    ? observedOrigin\n    : undefined;\n  const classified = reported ?? observed;\n\n  if (captured.kind === \"throw\" && classified?.role !== \"invoke-option\") {\n    return throwingSelection(state, captured.reason, classified);\n  }\n\n  const invokes = origins.filter(origin => origin.role === \"invoke-option\");\n  if (classified?.role === \"invoke-option\" && !invokes.includes(classified)) invokes.push(classified);\n  invokes.sort((left, right) => originRank(left) - originRank(right));\n  const selectedInvoke = invokes[0];\n  if (captured.kind === \"return\") {\n    return selectedInvoke\n      ? throwingSelection(state, selectedInvoke.signal.reason, selectedInvoke)\n      : { outcome: { kind: \"return\", value: captured.value } };\n  }\n  if (selectedInvoke) return throwingSelection(state, selectedInvoke.signal.reason, selectedInvoke);\n  return throwingSelection(state, captured.reason, classified);\n}\n\n"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.md",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "fileSha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "startLine": 24,
+      "endLine": 46,
+      "role": "public cancellation contract",
+      "spanSha256": "6458e33f5f016fd34b566dfd0c31fa7a6ba4889f894e866ac6085854c79c808a",
+      "text": "# Child cancellation\n\n`CommandInvokeOptions.signal` is an optional child-cancellation authority. It\nmust be a native `AbortSignal`; omitted and explicitly `undefined` signals retain\nthe borrowed path. Admission reads the signal option once after checking an\nalready-aborted ancestor and before child scope, middleware, stream, filesystem,\nhandler or owned-output acquisition. A valid pre-aborted signal rejects with its\nexact stored reason.\n\nLive cancellation flows only into the selected child and its descendants. It\ndoes not cancel or close the parent, a sibling, another pipeline stage or another\nshell. First delivery is immutable. Settlement ranks the root caller above an\nactual escaping execution/control failure and ranked invoke cancellation. Equal\nrejection values do not establish provenance: an unchanged runtime-owned promise\nroute or authenticated descendant report is required. Handler errors already\nmapped to a diagnostic and numeric status remain mapped and discard that report.\n\nRegistered child cleanup and cooperative owned work drain before the child link\ndetaches and the invoke promise settles. Cancellation cannot undo completed\neffects or terminate opaque host work.\n\nCurie owns the contract/core consumer; Sagan owns runtime/types. The additive\nfield and boundary-forwarding tests do not establish runtime support. Acceptance\n"
+    }
+  ]
+}

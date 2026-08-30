@@ -1,0 +1,13 @@
+{
+  "oldFailure": "v2 refused authenticated compiled/support/errors.js before build; not source/hash mutation or forbidden file, no engine imports. All children closed/owned group absent.",
+  "exactAdditionalArchivePath": "compiled/support/errors.js",
+  "sha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+  "archiveAuthority": "INPUTS-v1.json.gz.base64 authenticated18a3bf6e...",
+  "before": "row.target.startsWith('compiled/engine/')&&!row.target.split('/').includes('..')&&!row.target.endsWith('/AGENTS.md')",
+  "after": "(row.target.startsWith('compiled/engine/')||row.target==='compiled/support/errors.js')&&!row.target.split('/').includes('..')&&!row.target.endsWith('/AGENTS.md')",
+  "runSha256": "c1a6f794f175ff3dcd591c7a9bc93779dab277e199ca18ace201cc7778cb026c",
+  "executorSha256": "4705563fb09d42a2980a85f0a8ca117d4f5871edb73ac6e8ba5fb909c21ee6f3",
+  "launchSha256": "eea2a3ac294932702c630d9a9676ffdc8bdff6a9a1935237f9c7ecb31a35978d",
+  "budget": "same root actual grant; v1/v2 preserved, no reset",
+  "productSourceUnchanged": true
+}

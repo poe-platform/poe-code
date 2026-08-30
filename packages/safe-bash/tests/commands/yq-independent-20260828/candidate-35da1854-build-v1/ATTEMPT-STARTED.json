@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "date": "2026-08-28T10:17:28.979Z",
+  "buildPresealSha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+  "attempt": 1,
+  "command": {
+    "executable": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+    "args": [
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/typescript/lib/tsc.js",
+      "--project",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source/tsconfig.build.json",
+      "--outDir",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output/dist",
+      "--typeRoots",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/types"
+    ],
+    "cwd": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+    "umask": 18,
+    "env": {
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/home",
+      "TMPDIR": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/scratch"
+    }
+  },
+  "purpose": "INDEPENDENT_SCOPED_COMPILER_ONLY",
+  "status": "STARTED_NOT_SUCCESS"
+}

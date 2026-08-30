@@ -1,0 +1,42 @@
+{
+  "started": "2026-08-27T07:42:23.538Z",
+  "finished": "2026-08-27T07:42:24.113Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "head": "df780f6ddb6292283114461ff4f9ebacfb269205",
+  "status": " M src/commands/grep.ts\n M src/commands/regex-execution/client.ts\n M src/commands/search/rg.ts\n M tests/commands/regex-execution/cleanup-registration/controls.test.ts\n M tests/plugins/stream-five-fixture-migration/capture.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/guard.mjs\n M tests/stress/regex-execution/cleanup-boundary-review/registration.mjs\n?? src/shell/cleanup.ts\n?? tests/commands/archive-stress/native-prerequisite-review/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/regex-execution/cleanup-registration/after-controls.json\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/evidence/\n?? tests/plugins/stream-five-fixture-migration/final-consumer.json\n?? tests/plugins/stream-five-fixture-migration/final-invariants.json\n?? tests/plugins/stream-five-fixture-migration/final-runs.json\n?? tests/plugins/stream-five-fixture-migration/public-options.mts\n?? tests/shell-stress/env-split-author/\n?? tests/shell-stress/env-split-holdout/\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration-corrected.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/baseline-registration.json\n",
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "tests/commands/regex-execution/cleanup-registration/tsconfig.json"
+  ],
+  "before": {
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/search/rg.ts": "df66d575b7e8cdd5da1474b91362e0fe059c40c2b0d46216718e85a59a6aa40d",
+    "src/commands/regex-execution/client.ts": "d5ca541e6ba6656d200d4aebeaab689b8204aa3ae942283bd5a9acc62167d765",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "d63b7644546cad4b591e7e694f6d62018afbbf14983f62937a69e633af3066a5"
+  },
+  "after": {
+    "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+    "src/commands/search/rg.ts": "df66d575b7e8cdd5da1474b91362e0fe059c40c2b0d46216718e85a59a6aa40d",
+    "src/commands/regex-execution/client.ts": "d5ca541e6ba6656d200d4aebeaab689b8204aa3ae942283bd5a9acc62167d765",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    "src/commands/regex-execution/worker.ts": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+    "src/commands/regex-execution/matching.ts": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+    "tests/commands/regex-execution/cleanup-registration/controls.test.ts": "d63b7644546cad4b591e7e694f6d62018afbbf14983f62937a69e633af3066a5"
+  },
+  "statusCode": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

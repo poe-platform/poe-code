@@ -1,0 +1,64 @@
+{
+  "scope": "exactly five flattened captured source files causing eight diagnostics; not current compilation units",
+  "provenance": "tests/commands/filesystem-inspection-stress/tree/sealed/provenance.json",
+  "headAtCapture": "966cfac676f593e2542e4c84d1b79cb49776c08d",
+  "qualification": "captured worktree/provenance, not an invented clean-commit claim",
+  "replay": "tests/commands/filesystem-inspection-stress/tree/run-frozen.mjs",
+  "existingExclusions": [
+    "dist",
+    "node_modules",
+    "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native"
+  ],
+  "evidence": [
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/provenance.json",
+      "sha256": "99510e9050a4cd2bde98f567bbc0883fc4062439fc900c441eaadc76d9f0ba66"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/run-frozen.mjs",
+      "sha256": "6a5d5329368446c27a5cb8f88862ec4c9fade7b1675b77b41175ed00d5503756"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/preseal.json",
+      "sha256": "93c9ce4f3301b7a3f8cfbbf633fa8a280cca0afbd99acec6969f0601cbf464c4"
+    }
+  ],
+  "entries": [
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+      "classification": "immutable-flattened-source-capture",
+      "originalPath": "src/contracts/command.ts",
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
+      "classification": "immutable-flattened-source-capture",
+      "originalPath": "src/contracts/filesystem.ts",
+      "bytes": 3861,
+      "sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
+      "classification": "immutable-flattened-source-capture",
+      "originalPath": "src/contracts/io.ts",
+      "bytes": 7383,
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
+      "classification": "immutable-flattened-source-capture",
+      "originalPath": "src/contracts/path.ts",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+      "classification": "immutable-flattened-source-capture",
+      "originalPath": "src/contracts/plugin.ts",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    }
+  ]
+}

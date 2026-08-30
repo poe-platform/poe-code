@@ -1,0 +1,20 @@
+{
+  "createdAt": "2026-08-28T04:27:23.612Z",
+  "driverSource": "fb376b3a",
+  "originalControlSha256": "9453e2215be74fbe05f971b3f8f5307aa2dd790580cebbab72f3474eef1fa897",
+  "correctedControlSha256": "3b5a7669d09516b58e9150e5ce9e1ff3d3321ba7563e1ee67a908ef2ecf49b81",
+  "actualPackage": {
+    "version": "3.4.2",
+    "manifestSha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd",
+    "importTarget": "./dist/bundle/index.js"
+  },
+  "oldResult": {
+    "pass": 13,
+    "fail": 1,
+    "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-instruction-controls-17weJ0/REPORT.json",
+    "failure": "Author control guessed nonexistent dist/index.js; installed pinned package public import is dist/bundle/index.js. Projection/identity assertions before import passed; no product or transport fix."
+  },
+  "changedAssertions": 0,
+  "onlyChange": "Use exact inspected public import target for pinned just-bash3.4.2",
+  "correctedRunExecuted": false
+}

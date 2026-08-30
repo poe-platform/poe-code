@@ -1,0 +1,97 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 32693,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 773,
+  "timeoutMs": 120000,
+  "outputBytes": 34057,
+  "observed": [
+    {
+      "pid": 32693,
+      "parent": 32656,
+      "group": 32693,
+      "born": "Thu Aug 27 01:28:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 32695,
+      "parent": 32693,
+      "group": 32693,
+      "born": "Thu Aug 27 01:28:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 32697,
+      "parent": 32695,
+      "group": 32693,
+      "born": "Thu Aug 27 01:28:05 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 32700,
+      "parent": 32693,
+      "group": 32693,
+      "born": "Thu Aug 27 01:28:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts"
+    },
+    {
+      "pid": 32702,
+      "parent": 32700,
+      "group": 32693,
+      "born": "Thu Aug 27 01:28:05 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 32704,
+      "parent": 32693,
+      "group": 32693,
+      "born": "Thu Aug 27 01:28:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+    },
+    {
+      "pid": 32705,
+      "parent": 32704,
+      "group": 32693,
+      "born": "Thu Aug 27 01:28:05 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 85,
+    "pass": 80,
+    "fail": 5,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "s3 own-after streamed: faithful writer preserves qualified copy and alias rejection",
+    "memory honest path remapper omits changed authority and refuses an unproven existing-target overwrite",
+    "s3 honest path remapper omits changed authority and refuses an unproven existing-target overwrite",
+    "S3 faithful subclass and late content decorator retain fresh backing authority",
+    "WebDAV data-method remapper strips inherited authority at its public filesystem view"
+  ],
+  "stdoutSha256": "2cf3b90e73ed4ff237383b2895d3bee4bf4d1ed270cd5aceab5ae17ffdc7f30d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

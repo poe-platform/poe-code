@@ -1,0 +1,38 @@
+commit 2764c0541ebe1a517965bdc73f33b1651cb15935
+Author:     Kamil Jopek <kjopek@quora.com>
+AuthorDate: Fri Aug 28 20:23:58 2026 -0500
+Commit:     Kamil Jopek <kjopek@quora.com>
+CommitDate: Fri Aug 28 20:23:58 2026 -0500
+
+    test: propose versioned public Git boundary assertion without rescore
+
+ .../integration/git-public-20260829/FIXTURE-v2.md  |  32 ++++
+ .../git-public-20260829/m1a-public-v2.mjs          | 193 +++++++++++++++++++++
+ 2 files changed, 225 insertions(+)
+
+commit 9dca6b405f7059bd54848422d27a80afdf80e504
+Author:     Kamil Jopek <kjopek@bamboo.quora.net>
+AuthorDate: Fri Aug 28 23:29:18 2026 -0500
+Commit:     Kamil Jopek <kjopek@bamboo.quora.net>
+CommitDate: Fri Aug 28 23:29:18 2026 -0500
+
+    docs: record qualified frozen public80 acceptance
+
+ README.md                                          |  37 ++--
+ docs/COMMAND_PRIORITIES.md                         |  52 ++++--
+ docs/PROJECT_LEDGER.md                             |  37 ++++
+ .../root-acceptance/BEFORE.json                    |  23 +++
+ .../root-acceptance/BINDINGS.json                  | 101 +++++++++++
+ .../root-acceptance/DOCUMENT-DIFF.patch            | 196 +++++++++++++++++++++
+ .../root-acceptance/HANDOFF-LEDGER-PATH.nul        | Bin 0 -> 23 bytes
+ .../root-acceptance/INITIAL-INDEX.nul              |   0
+ .../root-acceptance/INITIAL-STATUS.nul             | Bin 0 -> 37444 bytes
+ .../root-acceptance/MANIFEST.json                  |  96 ++++++++++
+ .../root-acceptance/PUBLICATION-PLAN.json          |  17 ++
+ .../root-acceptance/ROOT-ACCEPTANCE.md             |  73 ++++++++
+ .../root-acceptance/START.json                     |  12 ++
+ .../root-acceptance/VALIDATION.json                |  41 +++++
+ .../root-acceptance/events.jsonl                   |  15 ++
+ .../root-acceptance/stderr.raw                     |   0
+ .../root-acceptance/stdout.raw                     | Bin 0 -> 51392 bytes
+ 17 files changed, 670 insertions(+), 30 deletions(-)

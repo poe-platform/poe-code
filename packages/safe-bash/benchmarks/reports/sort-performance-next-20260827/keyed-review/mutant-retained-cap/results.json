@@ -1,0 +1,75 @@
+[
+  {
+    "id": "retained-above",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 174769,
+        "sha256": "240e5e00bc138a51a617d89ebd8e4d9eb6945674334b9e030d051a66d32879eb"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 174769,
+      "sha256": "240e5e00bc138a51a617d89ebd8e4d9eb6945674334b9e030d051a66d32879eb"
+    },
+    "stdout": {
+      "bytes": 174769,
+      "sha256": "240e5e00bc138a51a617d89ebd8e4d9eb6945674334b9e030d051a66d32879eb"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 1,
+      "keyedRequests": 2,
+      "extractions": 2,
+      "fieldObjects": 4,
+      "parses": 2,
+      "keyedAdmissions": 2,
+      "charged": 1048582,
+      "independentBackingCharge": 1048582,
+      "existingRecordBytes": 174767,
+      "entriesPeak": 2,
+      "retainedPeak": 1048582,
+      "numericComparisons": 1
+    }
+  },
+  {
+    "id": "oversized-extracted-small-prefix",
+    "actual": {
+      "status": 0,
+      "stdout": {
+        "bytes": 174806,
+        "sha256": "d9eb19e470f777bcddf85da647b524098a0805f7f1ccbba9ac541eadb713251d"
+      },
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 174806,
+      "sha256": "a1bbe20c43aeab7adee5de829a34c6365e662fd564684042c323d4c282c78ce1"
+    },
+    "stdout": {
+      "bytes": 174806,
+      "sha256": "d9eb19e470f777bcddf85da647b524098a0805f7f1ccbba9ac541eadb713251d"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 1048788,
+      "independentBackingCharge": 1048788,
+      "existingRecordBytes": 174803,
+      "entriesPeak": 3,
+      "retainedPeak": 1048788,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  }
+]

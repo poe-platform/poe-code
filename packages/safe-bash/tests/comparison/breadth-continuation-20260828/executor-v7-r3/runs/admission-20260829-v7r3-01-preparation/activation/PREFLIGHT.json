@@ -1,0 +1,54 @@
+{
+  "schema": "V7_R3_ACTUAL_PINNED_PREFLIGHT",
+  "startedAt": "2026-08-29T03:21:50.007Z",
+  "independentInputs": 416,
+  "adapterInputs": 7,
+  "namespaces": [
+    {
+      "path": ".",
+      "entries": 37,
+      "pass": true
+    },
+    {
+      "path": "../executor-v7-r2",
+      "entries": 33,
+      "pass": true
+    },
+    {
+      "path": "../executor-v7-r1",
+      "entries": 28,
+      "pass": true
+    },
+    {
+      "path": "../executor-v7",
+      "entries": 30,
+      "pass": true
+    }
+  ],
+  "offlineArchives": [
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "bytes": 749907,
+      "mode": 420,
+      "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+      "bytes": 9879070,
+      "mode": 292,
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d"
+    }
+  ],
+  "offlineFiles": 3843,
+  "instructionMetadataOnly": 1,
+  "offlineDirectories": 431,
+  "unusedNamespaces": [
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-outer",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture"
+  ],
+  "finishedAt": "2026-08-29T03:27:00.314Z",
+  "passed": true
+}

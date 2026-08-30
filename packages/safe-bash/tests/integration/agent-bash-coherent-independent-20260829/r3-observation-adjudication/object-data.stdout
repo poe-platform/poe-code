@@ -1,0 +1,1034 @@
+31c3e367f1cb4df63cd18603c50581d79a5923c2 blob 7569
+{
+  "created": "2026-08-29T11:42:04.825Z",
+  "deadline": "2026-08-29T11:48:21.624Z",
+  "verdict": "HOLD_REVIEWER_OUTER_OBSERVATION_NOT_R3_SOURCE_DEFECT",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "evidence": "66b399e0a2643ee4ebd9e57b1a37ad764e7ae9c8",
+  "candidatePreseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "controlPresealCommit": "5757351ba",
+  "controlPresealSha256": "2fe0f7a78cfb6e40452f8bef944c389b1622b4d363aa85bdb11d17b29fd6c8e4",
+  "groups": {
+    "authorPassed": 16,
+    "authorTotal": 16,
+    "independentPassed": 8,
+    "independentTotal": 8,
+    "role": "PURE_SYNTHETIC_NOT_NATIVE_OWNER_FAULT_PROOF"
+  },
+  "knownNodeProcesses": {
+    "started": 3,
+    "exitCloseObserved": 3,
+    "controllerGroupsAbsent": 2,
+    "parentGroupAbsent": false,
+    "parentGroupCheckCauseRetained": false
+  },
+  "actual39": 0,
+  "productImports": 0,
+  "workers": 0,
+  "realFixtureChildren": 0,
+  "totalSnapshotBytes": 4101820,
+  "files": [
+    {
+      "path": "CONTROL-POLICY.md",
+      "bytes": 1425,
+      "sha256": "dbb8ff282594dbc084481ce15fd552922e4e98580cddf8ac41bc886ffb9551b1"
+    },
+    {
+      "path": "CONTROL-PRESEAL.json",
+      "bytes": 1895,
+      "sha256": "2fe0f7a78cfb6e40452f8bef944c389b1622b4d363aa85bdb11d17b29fd6c8e4"
+    },
+    {
+      "path": "EXECUTION.json",
+      "bytes": 671,
+      "sha256": "a28f99cd531925a42fbccfad42b39be2fc8e55f5063bcf10ddfc7a6f0a7fb609"
+    },
+    {
+      "path": "EXTERNAL-INPUTS.json",
+      "bytes": 2166558,
+      "sha256": "d6ef28d46c982fd0cb8bb482ae25b21d8f2e4b799cb863fef7b3b8058fbd6714"
+    },
+    {
+      "path": "EXTERNAL-PROCESSES.json",
+      "bytes": 229,
+      "sha256": "51ebf29db4b8ccff06318b38d68f001d8cec178f35460149d7111048126766a8"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 142065,
+      "sha256": "5ef8e10c9777c3a813d4cf7fc06ddd066cb53b3669cfa98fffe04c33f2fc298f"
+    },
+    {
+      "path": "METADATA-HELPER-ERROR.json",
+      "bytes": 459,
+      "sha256": "c8fe22f670ef42f1c9e412ef0dc25d45da913f5822842085acd090d4ce86f905"
+    },
+    {
+      "path": "METADATA-PROCESSES.json",
+      "bytes": 389,
+      "sha256": "aaeb7be1a1f5fee9570de16a1e32eb12b2c7b80b363b1e7a6dd35e06d0565bf6"
+    },
+    {
+      "path": "NOVEL-RESULT.json",
+      "bytes": 1142,
+      "sha256": "205f0a21305f8afa3be0a5904c13fee2296cb10d377f3a2160aa07266c2fe178"
+    },
+    {
+      "path": "OUTER-RECEIPT.json",
+      "bytes": 216,
+      "sha256": "990bcd4eb7fafd23209175b63951f1031359abb19ef1d578c394c4e643d5af2c"
+    },
+    {
+      "path": "PREP.md",
+      "bytes": 1274,
+      "sha256": "38e06ff2e48dd4b0b3ce1b2602a03ea62a4b282e1d3f88ba2d9a10ae4ed47b9a"
+    },
+    {
+      "path": "PRESEAL-PROCESSES.json",
+      "bytes": 226,
+      "sha256": "689286fd82915b26bc84c77b9530bfbda140e722204df86561983dea5d561d91"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 11401,
+      "sha256": "c17d88d35396a462cb20eeb322cb1c5b3fa66bae3242506f206c0c527ac14507"
+    },
+    {
+      "path": "REVIEWER-OUTER-HOLD.json",
+      "bytes": 3701,
+      "sha256": "7961d0be2ba4b490b872f352dee83b0d24430f47f31b65a93a86bac566fc5704"
+    },
+    {
+      "path": "author16.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "author16.stdout",
+      "bytes": 74,
+      "sha256": "c12f509b84c8af9758a537d4e0cedb2e65a2a85b8edec9fd3bafec1a9507ba63"
+    },
+    {
+      "path": "blobs.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "blobs.stdout",
+      "bytes": 101662,
+      "sha256": "471aa4443e64f811bb2066996e1f03cd82dc6a64374417b018955d275cf6cd7e"
+    },
+    {
+      "path": "capsule/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "capsule/stage-b0-r2/LOCATOR-IDENTITIES.json",
+      "bytes": 796,
+      "sha256": "29290a473b51532a9fda226924f0f52e5996dbb479a07cffd99f854114c66a60"
+    },
+    {
+      "path": "capsule/stage-b0-r3/CONTROL-RESULT.json",
+      "bytes": 1636,
+      "sha256": "9b072a65431bde7645b34a00e025316d59f32a24e28f0016bf109a8f1f7a2ab0"
+    },
+    {
+      "path": "capsule/stage-b0-r3/controls.mjs",
+      "bytes": 8279,
+      "sha256": "e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9"
+    },
+    {
+      "path": "capsule/stage-b0-r3/owner.mjs",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "path": "capsule-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capsule-patch.stdout",
+      "bytes": 659,
+      "sha256": "d2a80f32fc9d86d7ff4feaf718d3ea2af9f38f890e0f4bd000efbbf4526d4c1c"
+    },
+    {
+      "path": "dispatch.mjs",
+      "bytes": 4151,
+      "sha256": "008c8135953859b7d0e569c447143a5d7c97ff10b1661b8db409fdaf81ad33ad"
+    },
+    {
+      "path": "external-blobs.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "external-blobs.stdout",
+      "bytes": 1621015,
+      "sha256": "58f65a7903616ac79be3983b870b5b25a92778eee08c7b07c396d3a411a42038"
+    },
+    {
+      "path": "external-check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "external-check.stdout",
+      "bytes": 1081,
+      "sha256": "6fc83db87798f83cbf28538b60444a7ddc8f8554ef221dec678bd8ced4297e5c"
+    },
+    {
+      "path": "independent8.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "independent8.stdout",
+      "bytes": 44,
+      "sha256": "6cf1ad76fcba6d5f270f9dfbaa551b83e6de83dde4e831d4434fab1aa3630368"
+    },
+    {
+      "path": "inventory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "inventory.stdout",
+      "bytes": 3709,
+      "sha256": "0387214f6f1777083a4f1391cb996a5e50298d8510b081c0fde37bc486606fd2"
+    },
+    {
+      "path": "novel-controls.mjs",
+      "bytes": 7531,
+      "sha256": "e7cfe72e4a8ac7c4e2132d440cd3c0db6b5c31ea11b47542980ee8aa05c799b4"
+    },
+    {
+      "path": "outer.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outer.stdout",
+      "bytes": 59,
+      "sha256": "bbce8ac0668033a0584cccf705885a1e5c8b3563b3728985dff7c988bc98f121"
+    },
+    {
+      "path": "preseal-add.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preseal-add.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preseal-commit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preseal-commit.stdout",
+      "bytes": 3387,
+      "sha256": "509eae2d28ea89967b03e79fa2cb9a055406c07d44d3fbbca59c638ab28393eb"
+    }
+  ],
+  "remaining": "Fresh bounded ROOT decision for reviewer outer group-observation repair; no automatic rerun or actual39 activation",
+  "scope": "pre-final-publication snapshot; excludes this receipt and terminal Git tool transcript"
+}
+
+86d898bf627aade071e0ab4ee583bd75fccb01dd blob 216
+{
+  "pid": 36162,
+  "started": "2026-08-29T11:39:00.482Z",
+  "finished": "2026-08-29T11:39:00.712Z",
+  "status": 0,
+  "signal": null,
+  "exited": true,
+  "closed": true,
+  "groupAbsent": false,
+  "violation": null
+}
+
+9e806f54576d6a8ae83831ac40dd338ca3a975d2 blob 671
+{
+  "records": [
+    {
+      "role": "author16",
+      "pid": 36163,
+      "started": "2026-08-29T11:39:00.591Z",
+      "finished": "2026-08-29T11:39:00.649Z",
+      "status": 0,
+      "signal": null,
+      "exited": true,
+      "closed": true,
+      "groupAbsent": true,
+      "violation": null
+    },
+    {
+      "role": "independent8",
+      "pid": 36164,
+      "started": "2026-08-29T11:39:00.654Z",
+      "finished": "2026-08-29T11:39:00.703Z",
+      "status": 0,
+      "signal": null,
+      "exited": true,
+      "closed": true,
+      "groupAbsent": true,
+      "violation": null
+    }
+  ],
+  "postHashes": true,
+  "productImports": 0,
+  "realFixtureChildren": 0
+}
+
+ac6014aa3ad8d1ebfd7192fcdb4b120d22428f73 blob 3701
+{
+  "at": "2026-08-29T11:39:55.618Z",
+  "status": "HOLD_REVIEWER_OUTER_GROUP_OBSERVATION",
+  "noDependentExecutionAfterHold": true,
+  "outer": {
+    "pid": 36162,
+    "started": "2026-08-29T11:39:00.482Z",
+    "finished": "2026-08-29T11:39:00.712Z",
+    "status": 0,
+    "signal": null,
+    "exited": true,
+    "closed": true,
+    "groupAbsent": false,
+    "violation": null
+  },
+  "controllers": [
+    {
+      "role": "author16",
+      "pid": 36163,
+      "started": "2026-08-29T11:39:00.591Z",
+      "finished": "2026-08-29T11:39:00.649Z",
+      "status": 0,
+      "signal": null,
+      "exited": true,
+      "closed": true,
+      "groupAbsent": true,
+      "violation": null
+    },
+    {
+      "role": "independent8",
+      "pid": 36164,
+      "started": "2026-08-29T11:39:00.654Z",
+      "finished": "2026-08-29T11:39:00.703Z",
+      "status": 0,
+      "signal": null,
+      "exited": true,
+      "closed": true,
+      "groupAbsent": true,
+      "violation": null
+    }
+  ],
+  "authorGroups": [
+    {
+      "id": "A-old-six-admission",
+      "status": "PASS"
+    },
+    {
+      "id": "I01-all-falsy",
+      "status": "PASS"
+    },
+    {
+      "id": "I02-error-identity",
+      "status": "PASS"
+    },
+    {
+      "id": "I03-short-write",
+      "status": "PASS"
+    },
+    {
+      "id": "I04-second-open",
+      "status": "PASS"
+    },
+    {
+      "id": "I05-spawn-throw",
+      "status": "PASS"
+    },
+    {
+      "id": "I06-exit-one",
+      "status": "PASS"
+    },
+    {
+      "id": "W-zero-write",
+      "status": "PASS"
+    },
+    {
+      "id": "W-invalid-count",
+      "status": "PASS"
+    },
+    {
+      "id": "P-primary-cleanup",
+      "status": "PASS"
+    },
+    {
+      "id": "T-inclusive-start",
+      "status": "PASS"
+    },
+    {
+      "id": "T-reserve-blocks-spawn",
+      "status": "PASS"
+    },
+    {
+      "id": "T-publication-deadline",
+      "status": "PASS"
+    },
+    {
+      "id": "F-event-flush",
+      "status": "PASS"
+    },
+    {
+      "id": "F-setup-abort-and-publication",
+      "status": "PASS"
+    },
+    {
+      "id": "R-known-role-group",
+      "status": "PASS"
+    }
+  ],
+  "novelGroups": [
+    {
+      "id": "N01-invalid-progress-domain",
+      "status": "PASS"
+    },
+    {
+      "id": "N02-partial-then-undefined-with-secondary",
+      "status": "PASS"
+    },
+    {
+      "id": "N03-first-acquisition-and-event-open-falsy",
+      "status": "PASS"
+    },
+    {
+      "id": "N04-close-failure-retains-primary-and-forbids-next",
+      "status": "PASS"
+    },
+    {
+      "id": "N05-observer-failure-after-spawn-teardown",
+      "status": "PASS"
+    },
+    {
+      "id": "N06-publication-overdue-after-persist-not-success",
+      "status": "PASS"
+    },
+    {
+      "id": "N07-finish-failure-cannot-readmit",
+      "status": "PASS"
+    },
+    {
+      "id": "N08-overlap-and-exact-shared-boundaries",
+      "status": "PASS"
+    }
+  ],
+  "sourcePostHashes": true,
+  "actual39": 0,
+  "rootCauseClassification": "Outer REPL snippet used process.kill directly and discarded the catch reason. Candidate owner and child dispatcher run in ordinary Node, not this REPL. The false parent groupAbsent observation is preserved; its exact caught reason was not retained. Do not infer a live group or retroactively identify the catch reason.",
+  "sourceLevelRepair": "Use a sealed ordinary Node owner for the parent-group observation, or an explicitly supported host process API; retain the caught error. Additional checker/process requires fresh bounded authorization because all three admitted harmless Node helpers have been used.",
+  "knownDirectChildren": "parent exit+close0 and two controller exit+close0 observed; controller groups absent; parent group absence unproved"
+}
+
+51825e99bfe9ba5a60947267459ab397c893ed4b blob 1895
+{
+  "created": "2026-08-29T11:38:28.623Z",
+  "deadline": "2026-08-29T11:48:21.624Z",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "authorPreseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "files": [
+    {
+      "path": "capsule/stage-b0-r3/owner.mjs",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "path": "capsule/stage-b0-r3/controls.mjs",
+      "bytes": 8279,
+      "sha256": "e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9"
+    },
+    {
+      "path": "capsule/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "capsule/stage-b0-r2/LOCATOR-IDENTITIES.json",
+      "bytes": 796,
+      "sha256": "29290a473b51532a9fda226924f0f52e5996dbb479a07cffd99f854114c66a60"
+    },
+    {
+      "path": "novel-controls.mjs",
+      "bytes": 7531,
+      "sha256": "e7cfe72e4a8ac7c4e2132d440cd3c0db6b5c31ea11b47542980ee8aa05c799b4"
+    },
+    {
+      "path": "dispatch.mjs",
+      "bytes": 4151,
+      "sha256": "008c8135953859b7d0e569c447143a5d7c97ff10b1661b8db409fdaf81ad33ad"
+    },
+    {
+      "path": "CONTROL-POLICY.md",
+      "bytes": 1425,
+      "sha256": "dbb8ff282594dbc084481ce15fd552922e4e98580cddf8ac41bc886ffb9551b1"
+    }
+  ],
+  "roles": [
+    {
+      "id": "author16",
+      "entry": "capsule/stage-b0-r3/controls.mjs",
+      "groups": 16
+    },
+    {
+      "id": "independent8",
+      "entry": "novel-controls.mjs",
+      "groups": 8
+    }
+  ],
+  "parent": "dispatch.mjs",
+  "freshNodeProcesses": 3,
+  "maxPeakOwnedOS": 2,
+  "eachSeconds": 30,
+  "capturePerController": 1048576,
+  "actual39": 0,
+  "productImports": 0,
+  "workers": 0,
+  "patch": {
+    "pid": 35965,
+    "status": 0,
+    "signal": null
+  }
+}
+
+334d691fe8db2f9e146901d94fc75a7a2fe99e0e blob 4151
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+const here = import.meta.dirname;
+const node = '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';
+const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const sealBytes = fs.readFileSync(path.join(here, 'CONTROL-PRESEAL.json'));
+assert.equal(digest(sealBytes), process.argv[2]);
+const seal = JSON.parse(sealBytes);
+const checkTime = () => assert.ok(Date.now() < Date.parse(seal.deadline) - 30000);
+checkTime();
+for (const row of seal.files) {
+  const file = path.join(here, row.path), metadata = fs.lstatSync(file);
+  assert.ok(metadata.isFile() && !metadata.isSymbolicLink()); assert.equal(metadata.size, row.bytes);
+  assert.equal(digest(fs.readFileSync(file)), row.sha256);
+}
+const metadata = fs.lstatSync(node); assert.ok(metadata.isFile() && !metadata.isSymbolicLink());
+assert.equal(metadata.size, 112989184);
+const nodeHash = crypto.createHash('sha256');
+for await (const chunk of fs.createReadStream(node, { highWaterMark: 65536 })) nodeHash.update(chunk);
+assert.equal(nodeHash.digest('hex'), '5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011');
+const records = [];
+for (const role of seal.roles) {
+  checkTime();
+  const output = fs.openSync(path.join(here, role.id + '.stdout'), 'wx');
+  let errorOutput;
+  try { errorOutput = fs.openSync(path.join(here, role.id + '.stderr'), 'wx'); }
+  catch (error) { fs.closeSync(output); throw error; }
+  try {
+    const args = ['--experimental-permission', '--allow-fs-read=' + here,
+      '--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json',
+      '--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json',
+      '--allow-fs-write=' + here, path.join(here, role.entry)];
+    const record = await new Promise((resolve, reject) => {
+      const started = new Date().toISOString();
+      const child = spawn(node, args, { cwd: here, detached: true, env: { PATH: '/usr/bin:/bin', HOME: here, TMPDIR: here, LC_ALL: 'C', TZ: 'UTC', NODE_OPTIONS: '' }, stdio: ['ignore', output, errorOutput] });
+      let exited = false, violation;
+      const timer = setTimeout(() => { violation = 'deadline'; child.kill('SIGKILL'); }, 30000);
+      const monitor = setInterval(() => {
+        if (fs.fstatSync(output).size + fs.fstatSync(errorOutput).size > 1048576) { violation = 'capture'; child.kill('SIGKILL'); }
+      }, 20);
+      child.once('error', error => { clearTimeout(timer); clearInterval(monitor); reject(error); });
+      child.once('exit', () => { exited = true; });
+      child.once('close', (status, signal) => {
+        clearTimeout(timer); clearInterval(monitor);
+        let groupAbsent = false;
+        try { process.kill(-child.pid, 0); } catch (error) { if (error.code === 'ESRCH') groupAbsent = true; }
+        resolve({ role: role.id, pid: child.pid, started, finished: new Date().toISOString(), status, signal, exited, closed: true, groupAbsent, violation: violation ?? null });
+      });
+    });
+    records.push(record);
+    if (record.violation || !record.exited || !record.groupAbsent || record.status !== 0) {
+      fs.writeFileSync(path.join(here, 'EXECUTION-HOLD.json'), JSON.stringify(records, null, 2) + '\n', { flag: 'wx' });
+      throw new Error('controller failure; inspect retained raw capture');
+    }
+  } finally {
+    try { fs.fsyncSync(output); } finally { fs.closeSync(output); }
+    try { fs.fsyncSync(errorOutput); } finally { fs.closeSync(errorOutput); }
+  }
+}
+for (const row of seal.files) assert.equal(digest(fs.readFileSync(path.join(here, row.path))), row.sha256);
+fs.writeFileSync(path.join(here, 'EXECUTION.json'), JSON.stringify({ records, postHashes: true, productImports: 0, realFixtureChildren: 0 }, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ controllers: records.length, exitCloseGroupAbsent: records.every(row => row.exited && row.closed && row.groupAbsent), actual39: 0 }));
+
+9bf24d603b0e7fca2daac65083aca451e181c73c blob 11401
+# B0-r3 corrective preexecution review — qualified findings, reviewer HOLD
+
+2026-08-29. **Do not activate actual39 from this receipt.** The r3 source repairs
+close the original finite control findings: reproduced author16/16 groups and
+independent8/8 additional groups pass. However, the reviewer's outer parent-group
+observation returned false without retaining its caught reason. Dependent work
+stopped. This is a reviewer qualification gap, **not a demonstrated r3 source bug**.
+No author patch, real product execution, native FD-fault experiment or actual39.
+
+## Exact identities
+
+- Candidate `8ab0b2875c695c7cf6fbe90080cd083f69ef7146`;
+  author evidence `66b399e0a2643ee4ebd9e57b1a37ad764e7ae9c8`.
+- stage-b0-r3/PRESEAL.json11952B SHA256
+  `78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7`.
+- owner.mjs8991B SHA256
+  `9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd`.
+- run.mjs11225B SHA256
+  `318ea0b32769928a79608966ae33e9769a43c46156b7420ce964e0da5d2d352f`.
+- bootstrap.mjs1094B SHA256
+  `10d7d7356f54c449b76584c62781d24584031eaf42cc56fefbb4f42bb519995c`.
+- Exact author controls8279B SHA256
+  `e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9`.
+- Reviewer control preseal committed `5757351ba` before any control import;
+  SHA256 `2fe0f7a78cfb6e40452f8bef944c389b1622b4d363aa85bdb11d17b29fd6c8e4`.
+
+Immutable Git inventory/blob authentication covers the r3 packet and all24
+execution-preseal source dependencies. Handoff and reported author16 result were
+fetched separately from the supplied evidence commit, not substituted for source.
+The initial optional HANDOFF display incorrectly searched the source commit; its
+TypeError happened after metadata files/closed child receipts were saved. It is
+preserved in METADATA-HELPER-ERROR.json, not rescored or treated as a product fault.
+
+## Repair assessment
+
+| Old finding | Current mechanism and finite evidence |
+| --- | --- |
+| H1 partial capture acquisition | Each successful capture FD immediately enters descriptors inside try. Both captures receive flush/close attempts in finally. Second-open failure closes first; manager.abort closes its event capture on outer failure. Original I04 plus N03 first/event-open cases pass. |
+| H2 unchecked short writes | completeWrite advances only positive safe counts within remaining length; zero/negative/fractional/NaN/infinite/oversized progress refuses. Stored bytes update only for acknowledged progress. I03 stores exact AB; N02 stores A then throws exact undefined, attempted2/stored1. |
+| H3 falsy primary | Explicit hasPrimary/primary preserves0,false,null,undefined,empty string. Later cleanup reasons remain recorded. N02 undefined plus false flush and N04 zero plus false close preserve first reason. Unknown descriptor state poisons admission. |
+| H4 disconnected clock/publication | Bootstrap takes one monotonic start before its source admission and passes it into main and supervisor. Active deadline=start+1620s; absolute=start+1800s. Role timers use min(role ceiling, remaining active). Publication checks the same absolute boundary before and after complete write/fsync/close. N06 proves a persisted PASS-labelled artifact can exist while publish rejects overdue; outer process outcome remains necessary. |
+
+Observation failure is retained after listeners are installed; N05 verifies
+synthetic TERM attempt, exit/close observation and synthetic group check. Close
+failure does not skip the other descriptor's close attempt. Failed finish and
+overlapping run admission refuse further child starts in N07/N08. Error-valued
+and falsy primary identity are tested against the actual copied owner module,
+not a rewritten model. Full source hashes remained equal after the controls.
+
+The runtime owner imports native Node fs/spawn/process.kill by default; synthetic
+tests exercise that same owner through its explicit io/spawn/kill dependencies.
+They do **not** prove native FD failure, process-signal delivery, OS group behavior,
+universal observer fault tolerance or kernel quotas. No real fixture child ran.
+Synchronous host operations are not preempted; overdue returns are non-success.
+File fsync/close is not directory-fsync or power-loss durable publication.
+
+No additional source repair requirement was demonstrated in this bounded review.
+The generic `seconds` parameter remains present while this owner fixes its actual
+shared1800/1620 profile; the selected caller uses that exact profile. The finite
+caller graph, not a general-purpose launcher API, is the reviewed scope.
+
+## Completed controls and actual outer-observer gap
+
+- Author controller PID36163:16 groups PASS, status0, exit+close and group absence
+  recorded. Contains six old real DATA admissions and all nine prior synthetic
+  predicates, plus the declared additional author groups.
+- Independent controller PID36164:8 groups PASS, status0, exit+close and group
+  absence recorded. N01–N08 cover invalid progress, partial-write/raw-undefined,
+  early acquisition, cleanup poisoning, observation teardown, post-persistence
+  expiry, failed finish and overlap/exact clock boundaries.
+- Parent dispatcher PID36162: status0, exit+close observed, raw stdout complete,
+  stderr empty, no forced termination; its outer receipt says groupAbsent=false.
+  The parent spawned exactly these two sealed controller roles in its code.
+
+The outer tool snippet attempted `process.kill(-child.pid,0)` and caught all
+exceptions without retaining the exception, setting groupAbsent only for ESRCH.
+That API/global was not explicitly bound in the REPL wrapper. Source inspection
+identifies an unsupported/unchecked outer-observer dependency, but **does not
+retrospectively prove which exception occurred**. The false result is not proof
+that a live group remained, nor proof that it was absent. Child-group checks ran
+inside ordinary Node and are separate from this faulty outer observation route.
+
+All three allowed harmless Node processes have been used. No fourth checker,
+repeat control, signal, native utility or product role was launched to hide this
+gap. REVIEWER-OUTER-HOLD.json preserves exact receipts. Additional group-observation
+repair requires a fresh bounded ROOT decision, using a sealed supported owner/API
+and retaining exact observation errors. Direct known children have exit/close;
+complete parent-group absence remains unqualified. No current acceptance claimed.
+
+## Unchanged39 composition and authority
+
+The exact thirteen IDs remain C01,C02,C03,C04,C05,C06,C07,C08,C09,C12,C13,C14,C17
+in source-built, installed and physically-moved layouts. C17 is unchanged nonasync
+execute returning EXACT invoke Promise; sink0 wins over cleanup false only after
+the cleanup barrier. Public exec/dispose descriptor checks, gate release, awaited
+allSettled disposal and assertion/cleanup distinction remain source-bound.
+
+Workflow v4 source15763B remains
+`6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b`;
+neutral fixture4160B remains
+`fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074`.
+No source/product/fixture expectations changed in the r3 correction. Default80
+and optional Node/curl remain as before; no PUBLIC95 guest authority.
+
+Stage-A-r2 producer preseal stays47291B/
+`8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db`;
+v4 fixture preseal stays8922B/
+`4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c`.
+They are distinct. Their fresh bounded real DATA reads passed in the author replay.
+
+Selected composition3adc676a0ab638c9788ef007e465931d65d2c6fe has309 inputs and
+source manifest SHAef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae.
+Accepted producer d8524695's full1014 package remains930368B/
+`2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca`.
+The prior independent DATA proof of actual retained1012 dist files plus metadata,
+all309 source hashes and compressed-before-same-buffer-inflate is reused explicitly
+from9f14d728, not described as a new r3 inflate or build. R3 rechecks these records,
+all retained files and tools before and after actual execution. Source-built still
+copies retained actual Stage-A dist; installed uses offline scripts-disabled npm;
+the installed directory is physically renamed for moved. Full closure guards
+include unexpected entries. No tar relabelling or mutable HEAD substitution.
+
+Inherited resource SHAee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92
+and loader SHAa16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3
+are unchanged. Authority remains authenticated Regex parent entry plus static full
+closure/main-thread loader: at most2 RegexWorkers/layout,6total/live2, three fixed
+internal loader admissions separately, zero Node guest Workers. No nested-worker
+load tracing or stalled comparator mechanism is required or claimed. next() reread
+and owned-file immutability assumptions remain inherited limitations.
+
+## Pending actual authority and budgets
+
+After reviewer HOLD resolution, fresh ROOT permission must bind this exact source,
+preseal path/11952B/SHA78e6c945, pinned Node/tools, unchanged producer/package and
+only the bootstrap route. No current grant enables direct main or actual39.
+Work root `/private/tmp/safe-bash-coherent-b0-20260829-r3` and exclusive launch
+capture `/private/tmp/coherent-b0-39-20260829-r3.launch.*` must be freshly admitted.
+The GO environment string is a convention, not proof of ROOT intent by itself.
+
+Actual proposal:1800s inclusive from bootstrap monotonic start,1620 active and180
+reserved inside that same ceiling; install120s; each layout420s; each case30s;
+failure cleanup5s with TERM then KILL after2s and unknown at5s.32 known OS starts,
+peak3; four fixed supervised roles;64MiB capture/768MiB work. Publication and its
+failure reporting cannot extend the grant. Already persisted JSON alone cannot
+establish a successful final outcome. Native/tool-shell startup and unobserved
+transitive process behavior are not made safe by these source-unit controls.
+
+Old r2 three-of-nine findings and STOP histories remain unchanged. Later726,
+ALL50 Unit2/layout, retained/types/mutants and five PUBLIC95 workflows are still
+mandatory and UNRUN. No coherent acceptance, new native proof or parity claim.
+
+## This review's finite accounting
+
+Start11:33:21.624UTC; deadline11:48:21.624UTC. Actual controller interval
+11:39:00.482–11:39:00.712. Known role graph before final publication: four patch
+shell/utility pairs (PREP, novel, dispatcher, this report), four Git metadata
+processes, one capsule patch, two preseal Git processes, and three Node processes
+=18 known roles. Final shell plus Git add/commit/rev-parse/scoped-status adds5,
+for23 enumerated roles within32. This is command/known-role accounting, not a
+kernel-wide transitive census. Controlled peak2 (dispatcher plus one controller),
+within3; Git/patch metadata was sequential. Final publication status is in the
+tool transcript, not claimed as already observed in this prepublication document.
+
+No product/Workers/engine/native/network/private or real child fixture activity.
+Known direct child exit/close is recorded; parent-group absence is explicitly
+unproved and blocked dependent work. Raw captures, helper error, all control
+results and source bindings are preserved. No actual39 or owner-repair author
+fixtures were edited. Only the new independent review namespace is committed.
+
+0f3e860f40a910326031fae4673182c5a8e051ff blob 59
+{"controllers":2,"exitCloseGroupAbsent":true,"actual39":0}
+
+e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 blob 0
+
+bf58d56cf004452950450125cbddf5ec2600a703 blob 74
+{"groups":16,"pass":16,"role":"SYNTHETIC_NOT_NATIVE_FD_OR_PROCESS_PROOF"}
+
+e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 blob 0
+
+e6c9363e5c89bfc98416c9ece36588641261f7b5 blob 44
+{"groups":8,"passed":8,"realChildSpawns":0}
+
+e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 blob 0
+
+394c401a4e7ac3b70e9cdaa334d5e7f72191417b blob 1636
+{
+  "role": "WHOLE_SHIPPING_MODULE_WITH_SYNTHETIC_DEPENDENCIES",
+  "groups": [
+    {
+      "id": "A-old-six-admission",
+      "status": "PASS",
+      "detail": {
+        "assertions": 6,
+        "role": "real bounded DATA reads, no injected native descriptor failure"
+      }
+    },
+    {
+      "id": "I01-all-falsy",
+      "status": "PASS",
+      "detail": {
+        "variants": 5,
+        "originalReviewPredicates": 4
+      }
+    },
+    {
+      "id": "I02-error-identity",
+      "status": "PASS"
+    },
+    {
+      "id": "I03-short-write",
+      "status": "PASS"
+    },
+    {
+      "id": "I04-second-open",
+      "status": "PASS"
+    },
+    {
+      "id": "I05-spawn-throw",
+      "status": "PASS"
+    },
+    {
+      "id": "I06-exit-one",
+      "status": "PASS"
+    },
+    {
+      "id": "W-zero-write",
+      "status": "PASS"
+    },
+    {
+      "id": "W-invalid-count",
+      "status": "PASS"
+    },
+    {
+      "id": "P-primary-cleanup",
+      "status": "PASS"
+    },
+    {
+      "id": "T-inclusive-start",
+      "status": "PASS"
+    },
+    {
+      "id": "T-reserve-blocks-spawn",
+      "status": "PASS"
+    },
+    {
+      "id": "T-publication-deadline",
+      "status": "PASS"
+    },
+    {
+      "id": "F-event-flush",
+      "status": "PASS"
+    },
+    {
+      "id": "F-setup-abort-and-publication",
+      "status": "PASS"
+    },
+    {
+      "id": "R-known-role-group",
+      "status": "PASS"
+    }
+  ],
+  "originalAuthorAdmissionAssertions": 6,
+  "originalReviewPredicates": 9,
+  "controllerProcesses": 1,
+  "realChildSpawns": 0,
+  "nativeFDInjection": 0,
+  "nativeSignals": 0,
+  "nativeGroupProof": false,
+  "productImports": 0
+}
+
+8de8f7e707f23dca4c8ca2accedea16d3d47095e blob 1142
+{
+  "role": "WHOLE_OWNER_PURE_SYNTHETIC_DEPENDENCIES",
+  "groups": [
+    {
+      "id": "N01-invalid-progress-domain",
+      "status": "PASS",
+      "detail": {
+        "variants": 5
+      }
+    },
+    {
+      "id": "N02-partial-then-undefined-with-secondary",
+      "status": "PASS"
+    },
+    {
+      "id": "N03-first-acquisition-and-event-open-falsy",
+      "status": "PASS"
+    },
+    {
+      "id": "N04-close-failure-retains-primary-and-forbids-next",
+      "status": "PASS"
+    },
+    {
+      "id": "N05-observer-failure-after-spawn-teardown",
+      "status": "PASS",
+      "detail": {
+        "nativeSignals": 0,
+        "syntheticSignals": 2
+      }
+    },
+    {
+      "id": "N06-publication-overdue-after-persist-not-success",
+      "status": "PASS",
+      "detail": {
+        "artifactMayExist": true,
+        "publishReturnedSuccess": false
+      }
+    },
+    {
+      "id": "N07-finish-failure-cannot-readmit",
+      "status": "PASS"
+    },
+    {
+      "id": "N08-overlap-and-exact-shared-boundaries",
+      "status": "PASS"
+    }
+  ],
+  "realChildSpawns": 0,
+  "nativeFdInjection": 0,
+  "nativeSignals": 0,
+  "productImports": 0
+}
+
+e8313d521a454cf9b2f540a119c168c13de061b1 blob 8991
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+export {read,sha,streamed,inventory,safe} from '../stage-a-r2/common.mjs';
+
+export function completeWrite(io,descriptor,body,progress=()=>{}) {
+  let offset=0;
+  while(offset<body.length){
+    const count=io.writeSync(descriptor,body,offset,body.length-offset);
+    if(!Number.isSafeInteger(count)||count<=0||count>body.length-offset)throw new Error('capture write made invalid progress');
+    offset+=count;progress(count);
+  }
+  return offset;
+}
+export function reasonRecord(reason){
+  if(reason===null)return{type:'null'};
+  if(reason===undefined)return{type:'undefined'};
+  if(typeof reason==='number')return{type:'number',value:Number.isFinite(reason)?reason:String(reason)};
+  if(['boolean','string'].includes(typeof reason))return{type:typeof reason,value:reason};
+  return{type:typeof reason};
+}
+export function durableJSON(io,filename,value,observe=()=>{}){
+  let descriptor,opened=false,hasPrimary=false,primary;const secondary=[];
+  const remember=error=>{observe(error);if(!hasPrimary){hasPrimary=true;primary=error;}else secondary.push(error);};
+  try{descriptor=io.openSync(filename,'wx');opened=true;completeWrite(io,descriptor,Buffer.from(JSON.stringify(value,null,2)+'\n'));io.fsyncSync(descriptor);}
+  catch(error){remember(error);}
+  finally{if(opened)try{io.closeSync(descriptor);}catch(error){remember(error);}}
+  if(hasPrimary)throw primary;
+  return{secondary};
+}
+export function json(filename,value){return durableJSON(fs,filename,value);}
+export function clock(started,now=()=>performance.now(),seconds=1800,reserve=180){
+  assert.ok(Number.isFinite(started)&&seconds>reserve&&reserve>=5);
+  const absolute=started+seconds*1000,active=absolute-reserve*1000;
+  function remaining(){const value=active-now();assert.ok(value>0,'inclusive active deadline/publication reserve');return value;}
+  function publication(){const value=absolute-now();assert.ok(value>0,'inclusive publication deadline');return value;}
+  return{remaining,publication,started,absolute,active};
+}
+
+export function supervisor(directory,seconds,totalMaximum=67108864,options={}){
+  const io=options.io??fs,spawnChild=options.spawn??spawn,kill=options.kill??process.kill.bind(process),now=options.now??(()=>performance.now());
+  const shared=clock(options.started??now(),now,1800,180);
+  const roles=options.roles??['offline-install','workflow-source-built','workflow-installed','workflow-physically-moved'];
+  const records=[];let eventDescriptor,eventOpen=false,children=0,attempted=0,stored=0,activeChild=false,finished=false,poisoned=false;
+  function remember(error,phase){records.push({phase,reason:error});}
+  function event(value){completeWrite(io,eventDescriptor,Buffer.from(JSON.stringify({...value,elapsedMs:now()-shared.started})+'\n'));}
+  function closeEvents(){let present=false,primary;const keep=error=>{remember(error,'event-close');if(!present){present=true;primary=error;}};
+    if(eventOpen){try{io.fsyncSync(eventDescriptor);}catch(error){keep(error);}try{io.closeSync(eventDescriptor);}catch(error){keep(error);}eventOpen=false;}
+    if(present)throw primary;
+  }
+  eventDescriptor=io.openSync(path.join(directory,'events.jsonl'),'wx');eventOpen=true;
+  async function run(role,binary,args,{cwd,env,input,seconds:childSeconds=120}){
+    shared.remaining();assert.ok(!finished&&!poisoned&&!activeChild&&roles.includes(role)&&children<roles.length,'known role/owner admission');
+    const label=String(children).padStart(2,'0')+'-'+role;const descriptors=[];
+    let child,exited=false,closed=false,hasPrimary=false,primary,waitResolve,deadlineTimer,killTimer,drainTimer,teardownStarted=false,unknown=false;
+    let stdoutBytes=0,stderrBytes=0,storedStdout=0,storedStderr=0;
+    const retain=(error,phase)=>{remember(error,phase);if(!hasPrimary){hasPrimary=true;primary=error;}};
+    const note=value=>{try{event(value);return true;}catch(error){retain(error,'observation');return false;}};
+    const signal=name=>{if(!child?.pid)return;try{kill(-child.pid,name);note({role,pid:child.pid,signal:name});}catch(error){if(error?.code!=='ESRCH')retain(error,'signal');}};
+    const teardown=()=>{if(teardownStarted||!child?.pid||closed)return;teardownStarted=true;signal('SIGTERM');killTimer=setTimeout(()=>{if(!closed)signal('SIGKILL');},2000);drainTimer=setTimeout(()=>{if(!closed){unknown=true;retain(new Error('known owned child retirement UNKNOWN'),'retirement');signal('SIGKILL');waitResolve?.();}},5000);};
+    const fail=(error,phase)=>{retain(error,phase);teardown();};
+    try{
+      const output=io.openSync(path.join(directory,label+'.stdout'),'wx');descriptors.push(output);
+      const errorOutput=io.openSync(path.join(directory,label+'.stderr'),'wx');descriptors.push(errorOutput);
+      activeChild=true;
+      await new Promise(resolve=>{
+        waitResolve=resolve;
+        try{child=spawnChild(binary,args,{cwd,env,detached:true,stdio:['pipe','pipe','pipe']});children++;}
+        catch(error){retain(error,'spawn');resolve();return;}
+        const consume=(descriptor,channel)=>body=>{try{attempted+=body.length;if(channel==='stdout')stdoutBytes+=body.length;else stderrBytes+=body.length;assert.ok(attempted<=totalMaximum,'capture attempted-byte cap');completeWrite(io,descriptor,body,count=>{stored+=count;if(channel==='stdout')storedStdout+=count;else storedStderr+=count;});}catch(error){fail(error,'capture');}};
+        child.stdout.on('data',consume(output,'stdout'));child.stderr.on('data',consume(errorOutput,'stderr'));
+        child.stdout.on('error',error=>fail(error,'stdout'));child.stderr.on('error',error=>fail(error,'stderr'));
+        child.stdin.on('error',error=>{if(error?.code!=='EPIPE')fail(error,'stdin');});child.on('error',error=>fail(error,'child-error'));
+        child.on('exit',(status,signalValue)=>{exited=true;if(!note({role,pid:child.pid,event:'exit',status,signal:signalValue}))teardown();});
+        child.on('close',(status,signalValue)=>{closed=true;if(status!==0||signalValue!==null)retain(new Error(`${role} status=${status} signal=${signalValue}`),'child-outcome');note({role,pid:child.pid,event:'close',status,signal:signalValue,stdoutBytes,stderrBytes,storedStdout,storedStderr});resolve();});
+        if(!note({role,pid:child.pid,binary,args,cwd,env,spawned:true}))teardown();
+        try{deadlineTimer=setTimeout(()=>fail(new Error('inclusive child deadline'),'deadline'),Math.min(shared.remaining(),childSeconds*1000));child.stdin.end(input);}catch(error){fail(error,'activation');}
+      });
+      if(child?.pid){
+        if(!exited||!closed){unknown=true;retain(new Error('exit/close not both observed'),'retirement');signal('SIGKILL');}
+        let groupAbsent=false;try{kill(-child.pid,0);}catch(error){if(error?.code==='ESRCH')groupAbsent=true;else retain(error,'group-observation');}
+        if(!groupAbsent){unknown=true;retain(new Error('owned group absence unproved'),'retirement');signal('SIGKILL');}
+        note({role,pid:child.pid,groupAbsent,exited,closed,unknown});
+      }
+      try{shared.remaining();}catch(error){retain(error,'inclusive-clock');}
+    }catch(error){retain(error,'acquisition');}
+    finally{
+      if(child?.pid&&!closed){teardown();signal('SIGKILL');unknown=true;}
+      clearTimeout(deadlineTimer);clearTimeout(killTimer);clearTimeout(drainTimer);
+      for(const descriptor of descriptors){try{io.fsyncSync(descriptor);}catch(error){retain(error,'capture-flush');}try{io.closeSync(descriptor);}catch(error){retain(error,'capture-close');unknown=true;}}
+      activeChild=false;
+    }
+    if(unknown)remember(new Error('dependent work forbidden: unknown retirement/descriptor state'),'unknown');
+    if(hasPrimary){poisoned=true;throw primary;}
+    return{stdout:path.join(directory,label+'.stdout'),stderr:path.join(directory,label+'.stderr'),pid:child?.pid,stdoutBytes,stderrBytes,storedStdout,storedStderr};
+  }
+  function snapshot(){return{children,attemptedBytes:attempted,storedBytes:stored,elapsedMs:now()-shared.started,failures:records.map(row=>({phase:row.phase,reason:reasonRecord(row.reason)}))};}
+  return{run,remaining:shared.remaining,note:event,records,
+    finish(){assert.ok(!activeChild&&!finished);shared.remaining();let present=false,primary;try{event({finished:true,...snapshot()});}catch(error){present=true;primary=error;remember(error,'terminal-event');}try{closeEvents();}catch(error){if(!present){present=true;primary=error;}}finished=true;if(present)throw primary;return snapshot();},
+    publish(filename,value){shared.publication();const result=durableJSON(io,filename,value,error=>remember(error,'publication'));shared.publication();return result;},
+    abort(primary){remember(primary,'outer-failure');let secondaryPresent=false,secondary;try{closeEvents();}catch(error){secondaryPresent=true;secondary=error;}finished=true;return{...snapshot(),secondaryPresent,secondary:reasonRecord(secondary)};},
+  };
+}
+
+a530b96d6410f96ed730498290db1da006027efe blob 11225
+import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';import {gunzipSync} from 'node:zlib';
+import {read,sha,streamed,inventory,json,supervisor,safe,reasonRecord} from './owner.mjs';
+const here=import.meta.dirname,base=path.dirname(here),repo='/Users/kjopek/Workspace/safe-bash';
+const node='/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';
+function closure(root,members){const expected=new Map(members.map(row=>[row.path,row]));const dirs=new Set(['']);for(const row of members){let name=path.posix.dirname(row.path);while(name!=='.'){dirs.add(name);name=path.posix.dirname(name);}}const observed=inventory(root);assert.deepEqual(observed,members.slice().sort((left,right)=>Buffer.compare(Buffer.from(left.path),Buffer.from(right.path))));function directories(relative=''){for(const item of fs.readdirSync(path.join(root,relative),{withFileTypes:true})){const name=relative?relative+'/'+item.name:item.name;if(item.isDirectory()){assert.ok(dirs.has(name),'added directory '+name);directories(name);}else assert.ok(expected.has(name));}}directories();}
+function unpackVerified(raw,members){const result=gunzipSync(raw,{maxOutputLength:67108864,info:true});assert.equal(result.engine.bytesWritten,raw.length);const tar=result.buffer;assert.ok(raw.length+tar.length+16777216<=100663296);const expected=new Map(members.map(row=>[row.path,row])),seen=new Set();let cursor=0,pax={},ended=false;const text=body=>body.subarray(0,body.indexOf(0)<0?body.length:body.indexOf(0)).toString();const oct=body=>{const value=text(body).trim();assert.match(value,/^[0-7]*$/);return parseInt(value||'0',8);};while(cursor+512<=tar.length){const header=tar.subarray(cursor,cursor+512);if(header.every(value=>value===0)){assert.ok(tar.subarray(cursor).every(value=>value===0));ended=true;break;}let sum=0;for(let index=0;index<512;index++)sum+=index>=148&&index<156?32:header[index];assert.equal(oct(header.subarray(148,156)),sum);const size=oct(header.subarray(124,136));assert.ok(size<=16777216);const start=cursor+512,end=start+size;assert.ok(end<=tar.length);const body=tar.subarray(start,end);cursor=start+Math.ceil(size/512)*512;if(header[156]===120){let offset=0;pax={};while(offset<body.length){const space=body.indexOf(32,offset);assert.ok(space>offset);const length=Number(body.subarray(offset,space).toString());assert.ok(Number.isSafeInteger(length)&&length>0&&offset+length<=body.length);const entry=body.subarray(space+1,offset+length-1).toString();assert.equal(body[offset+length-1],10);const equal=entry.indexOf('=');assert.ok(equal>0);pax[entry.slice(0,equal)]=entry.slice(equal+1);offset+=length;}continue;}assert.ok(header[156]===0||header[156]===48);assert.equal(text(header.subarray(157,257)),'');assert.ok(Object.keys(pax).every(key=>['path','mtime','atime','ctime','size','uid','gid','uname','gname'].includes(key)));const prefix=text(header.subarray(345,500));let name=pax.path??((prefix?prefix+'/':'')+text(header.subarray(0,100)));if(pax.size)assert.equal(Number(pax.size),size);pax={};assert.ok(name.startsWith('package/'));name=safe(name.slice(8));assert.ok(!seen.has(name));seen.add(name);const row=expected.get(name);assert.ok(row);assert.equal(size,row.bytes);assert.equal(sha(body),row.sha256);assert.equal(oct(header.subarray(100,108))&511,row.mode);}assert.ok(ended);assert.deepEqual([...seen].sort(),[...expected.keys()].sort());}
+export async function main(args,started=performance.now()){assert.equal(args.length,4);assert.equal(args[0],'--run');const seal=JSON.parse(read(args[1],1048576,{sha256:args[2],bytes:Number(args[3])}));assert.equal(seal.schema,'coherent-b0-executable-preseal-v1');assert.equal(process.env.B0_ROOT_GO,'ROOT_B0_39_EXPLICIT_FRESH_AUTHORIZATION');assert.equal(seal.productSha256,'2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca');
+ for(const row of seal.files)read(path.join(repo,row.path),4194304,row);await streamed(node,seal.node);const producer='/private/tmp/safe-bash-coherent-stage-a-20260829-r2',work=seal.workRoot;assert.equal(fs.existsSync(work),false);fs.mkdirSync(work);assert.equal(fs.realpathSync(work),work);for(const name of ['capture','home','cache','input','source-built'])fs.mkdirSync(path.join(work,name));fs.writeFileSync(path.join(work,'home/user.npmrc'),'');fs.writeFileSync(path.join(work,'home/global.npmrc'),'');
+ const manager=supervisor(path.join(work,'capture'),1620,67108864,{started});let failure;try{
+ const stage=JSON.parse(read(path.join(here,'../stage-b0-r2/stageAProducerPreseal.json'),65536,seal.stageAProducerPreseal));const records=seal.producerRecords;const get=name=>{const row=records.find(item=>item.path===name);assert.ok(row);return JSON.parse(read(path.join(base,'stage-a-r2/evidence',name),2097152,row));};const members=get('PACKAGE-MEMBERS.json'),emits=get('EMITTED.json'),source=JSON.parse(read(stage.source.path,262144,stage.source));assert.equal(source.inputs.length,309);assert.equal(emits.length,1012);assert.equal(members.length,1014);const toolExpected=get('TOOLS-BEFORE.json'),toolLinks=Object.fromEntries(stage.links.map(row=>[row.package+'/'+row.path,row.target]));assert.deepEqual(inventory(path.join(producer,'tools'),toolLinks),toolExpected);
+ const verifyRetained=()=>{for(const row of source.inputs)read(path.join(producer,'source',safe(row.path)),33554432,row);for(const row of emits)read(path.join(producer,'source/dist',safe(row.path)),33554432,row);};verifyRetained();
+ const raw=read(path.join(base,'stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz'),1048576,seal.package);unpackVerified(raw,members);const archive=path.join(work,'input/product.tgz');fs.writeFileSync(archive,raw,{flag:'wx'});
+ const sourcePackage=path.join(work,'source-built/node_modules/virtual-bash');fs.mkdirSync(sourcePackage,{recursive:true});for(const row of members){const origin=path.join(producer,'source',row.path);const body=read(origin,16777216,row);const target=path.join(sourcePackage,safe(row.path));fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,body,{mode:row.mode,flag:'wx'});}closure(sourcePackage,members);
+ const metadata=JSON.parse(read(path.join(sourcePackage,'package.json'),1048576,members.find(row=>row.path==='package.json')));assert.deepEqual(metadata.dependencies??{},{});for(const key of ['preinstall','install','postinstall','prepare'])assert.equal(metadata.scripts?.[key],undefined);
+ const commonEnv={PATH:path.dirname(node),HOME:path.join(work,'home'),TMPDIR:work,TMP:work,TEMP:work,LANG:'C',LC_ALL:'C',TZ:'UTC',NODE_OPTIONS:'',NPM_CONFIG_USERCONFIG:path.join(work,'home/user.npmrc'),NPM_CONFIG_GLOBALCONFIG:path.join(work,'home/global.npmrc'),NPM_CONFIG_OFFLINE:'true',NPM_CONFIG_AUDIT:'false',NPM_CONFIG_FUND:'false',NPM_CONFIG_UPDATE_NOTIFIER:'false'};
+ const install=path.join(work,'installed');fs.mkdirSync(install);fs.writeFileSync(path.join(install,'package.json'),'{"private":true,"type":"module"}\n');const npm=path.join(producer,'tools/npm/bin/npm-cli.js');await manager.run('offline-install',node,['--experimental-permission','--allow-fs-read='+work,'--allow-fs-read='+path.join(producer,'tools'),'--allow-fs-read='+node,'--allow-fs-write='+install,'--allow-fs-write='+path.join(work,'cache'),'--allow-fs-write='+path.join(work,'home'),npm,'install','--offline','--ignore-scripts','--no-audit','--no-fund','--package-lock=false','--cache',path.join(work,'cache'),'--prefix',install,archive],{cwd:install,env:commonEnv,seconds:120});closure(path.join(install,'node_modules/virtual-bash'),members);
+ const aggregate=[];for(const layout of ['source-built','installed','physically-moved']){manager.remaining();let consumer=path.join(work,layout);if(layout==='physically-moved')fs.renameSync(install,consumer);const packageRoot=path.join(consumer,'node_modules/virtual-bash');closure(packageRoot,members);const scripts=path.join(consumer,'b0');if(!fs.existsSync(scripts))fs.mkdirSync(scripts);for(const row of seal.stageFiles){const body=read(path.join(repo,row.source),4194304,row);fs.writeFileSync(path.join(scripts,row.target),body);}const resourceLog=path.join(consumer,'resources-'+layout+'.jsonl'),trace=path.join(consumer,'loads-'+layout+'.jsonl');const harness=seal.stageFiles.map(row=>({path:path.join(scripts,row.target),bytes:row.bytes,sha256:row.sha256}));const binding={root:packageRoot,inputs:members.filter(row=>row.path.startsWith('dist/')).map(row=>({...row,path:row.path.slice(5)})),harness,trace};json(path.join(consumer,'binding-'+layout+'.json'),binding);json(path.join(consumer,'request-'+layout+'.json'),{action:'B0_ENGINE_FREE_13',sourceTree:seal.sourceTree,layout,ids:seal.ids});
+ const env={...commonEnv,RESOURCE_LOG:resourceLog,RESOURCE_ALLOWANCE:'2',PUBLIC_BINDING:path.join(consumer,'binding-'+layout+'.json'),B0_REQUEST:path.join(consumer,'request-'+layout+'.json')};const result=await manager.run('workflow-'+layout,node,['--experimental-permission','--allow-fs-read='+consumer,'--allow-fs-read='+node,'--allow-fs-write='+consumer,'--allow-worker','--import',path.join(scripts,'denials.mjs'),'--import',path.join(scripts,'resources.mjs'),'--loader',pathToFileURL(path.join(scripts,'loader.mjs')).href,path.join(scripts,'runner.mjs')],{cwd:consumer,env,seconds:420});
+ const report=JSON.parse(read(result.stdout,8388608));assert.equal(report.schema,'coherent-b0-result-v1');assert.deepEqual(report.rows.map(row=>row.id),seal.ids);assert.equal(report.layout,layout);assert.equal(report.rows.length,13);const events=read(resourceLog,1048576).toString().trim().split('\n').map(line=>JSON.parse(line));const created=events.filter(row=>row.kind==='worker-create'),exited=events.filter(row=>row.kind==='worker-exit');assert.ok(created.length<=2);assert.deepEqual(created.map(row=>row.id).sort(),exited.map(row=>row.id).sort());assert.ok(events.some(row=>row.kind==='before-exit'&&row.live===0));closure(packageRoot,members);for(const row of harness)read(row.path,4194304,row);aggregate.push({layout,report,regexWorkers:created.length,internalLoaderAdmissions:1,pid:result.pid});}
+ verifyRetained();assert.deepEqual(inventory(path.join(producer,'tools'),toolLinks),toolExpected);read(archive,1048576,seal.package);for(const row of seal.files)read(path.join(repo,row.path),4194304,row);const workBytes=inventory(work).reduce((sum,row)=>sum+row.bytes,0);assert.ok(workBytes<=805306368);const retirement=manager.finish();manager.publish(path.join(work,'RESULT.json'),{status:aggregate.some(row=>row.report.failed)?'ASSERTION_FAILURE':'PASS',sourceTree:seal.sourceTree,package:seal.package,aggregate,retirement,workBytes,stageBRemaining:'UNRUN',coherentAcceptance:false});process.exitCode=aggregate.some(row=>row.report.failed)?1:0;
+ }catch(error){failure=error;const retirement=manager.abort(error);try{manager.publish(path.join(work,'STOP.json'),{primaryPresent:true,primary:reasonRecord(error),retirement,automaticRetry:false,productSourceChanged:false});}catch(publicationError){console.error(JSON.stringify({terminalPersistence:false,primary:reasonRecord(error),publication:reasonRecord(publicationError)}));}process.exitCode=78;throw failure;}}
+if(process.argv[1]&&path.resolve(process.argv[1])===import.meta.filename)await main(process.argv.slice(2));
+

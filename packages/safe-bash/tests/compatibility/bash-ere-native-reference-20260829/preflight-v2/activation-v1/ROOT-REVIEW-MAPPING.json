@@ -1,0 +1,36 @@
+{
+  "schema": "ere-root-runtime-review-mapping-v1",
+  "independentCommit": "f5d9e55ec3f3643904f1ec51d1cfa110b6a6dea8",
+  "storedHandoff": {
+    "path": "tests/compatibility/bash-ere-native-preflight-review-20260829/HANDOFF.md",
+    "bytes": 1892,
+    "sha256": "5ff1400f9621fef789cf42f9867aaa4817b21d1850c4f17ced17edc6d97d544b"
+  },
+  "storedNonRuntimeReceipt": {
+    "path": "tests/compatibility/bash-ere-native-preflight-review-20260829/REVIEW-RESULT.json",
+    "bytes": 1388,
+    "sha256": "679e7e6cb7beade1a5816725d9efea133d74bcd3617e23601d3fd73b83c002f3",
+    "schema": "ere12-independent-preexecution-review-v1",
+    "decision": "SCOPED_PREEXEC_ACCEPT"
+  },
+  "rootRatification": "current explicit ROOT authorization, scoped PREEXEC only",
+  "newRuntimeReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/REVIEW-ACCEPTANCE.json",
+    "bytes": 424,
+    "mode": 384,
+    "sha256": "644630c96f3cdc647aabd9f21cf6c660d2c982fd75b0d8b33c61b241168e2476"
+  },
+  "exactRuntimeSchemaFrom": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/admission.mjs",
+  "unchangedHistoricalResult": {
+    "original": "7/8 plus separate I04-v2 correction",
+    "currentMappedAssertions": 66
+  },
+  "authorityOrder": [
+    "scoped independent committed result",
+    "ROOT runtime receipt",
+    "ROOT GO with receipt hash",
+    "sole-slot resolved command"
+  ],
+  "moduleChanges": 0,
+  "programChanges": 0
+}

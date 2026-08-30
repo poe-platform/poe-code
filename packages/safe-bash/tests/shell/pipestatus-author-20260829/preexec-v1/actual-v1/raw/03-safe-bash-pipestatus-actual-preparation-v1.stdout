@@ -1,0 +1,7 @@
+role2 preparation/launch shell started=1788021652.3412799835
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/ROOT-AUTHORIZATION.md
+A /Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/RESULT.json
+role3 apply_patch authorization returned
+role4 git-add returned
+role5 git-commit returned

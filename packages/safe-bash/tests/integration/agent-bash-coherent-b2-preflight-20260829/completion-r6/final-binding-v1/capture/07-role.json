@@ -1,0 +1,15 @@
+{
+  "role": "final-binding-data",
+  "pid": 43229,
+  "started": "2026-08-29T14:55:11.943Z",
+  "children": 0,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "ended": "2026-08-29T14:55:12.135Z"
+}

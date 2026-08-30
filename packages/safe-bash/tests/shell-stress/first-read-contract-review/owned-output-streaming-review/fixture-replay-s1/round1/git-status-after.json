@@ -1,0 +1,6 @@
+{
+  "at": "2026-08-27T12:00:14.000Z",
+  "status": " M package.json\n M tests/plugins/qualified-current-release/consumers.mjs\n M tsconfig.json\n?? benchmarks/reports/current-comparison-20260827/execution-review/\n?? benchmarks/reports/current-comparison-20260827/execution/\n?? scripts/typecheck-inputs.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/plugins/qualified-current-release/captured-types.json\n?? tests/shell-stress/env-split-validity-review/acceptance-v2-1.json\n?? tests/shell-stress/env-split-validity-review/post-v2-audit.json\n?? tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/collect-results.mjs.data\n?? tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/round1/\n",
+  "index": "",
+  "note": "Concurrent foreign activity exists; only explicit owned paths enter this leaf commits."
+}

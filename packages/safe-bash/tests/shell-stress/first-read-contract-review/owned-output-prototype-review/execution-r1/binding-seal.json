@@ -1,0 +1,179 @@
+{
+  "sealedAt": "2026-08-27T10:11:10.514Z",
+  "productExecuted": false,
+  "intentionsUnchanged": true,
+  "sourceManifestSha256": "c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44",
+  "compiledManifestSha256": "c4df1c6910557948441eb47b3b7a9a9d069267e14e3745541f5d1e8c6d766bb0",
+  "bindingDelta": "Import actual compiled v1, use independently reviewed exact author adaptation for original-five plus frozen separate H01 effect probe. Helpers/MockDav import compiled v1. Diagnostic copy retains every original assertion and adds passive observations. H06-H16 executable realization in holdouts.mjs; no new v2 cases.",
+  "mixedPolicyBeforeExecution": "Authenticated v1 API says EPIPE maps to 141; preserved frozen admissible set {0,141}, compare default and pipefail after required files complete; no suppression of unexpected stderr.",
+  "originalAssertions": [
+    "      assert.ok(options?.abortSignal);",
+    "    assert.ok(address && typeof address !== \"string\");",
+    "    assert.equal(result.exitCode, 0);",
+    "    assert.equal(result.stdout, \"\");",
+    "    assert.equal(result.stderr, \"\");",
+    "    assert.equal(reads, 0);",
+    "    assert.equal(returned, 1);",
+    "    assert.equal(result.exitCode, 0);",
+    "    assert.equal(result.stdout, \"\");",
+    "    assert.equal(result.stderr, \"\");",
+    "    assert.equal(trace.controller.signal.aborted, false);",
+    "    assert.equal(observed?.aborted, true);",
+    "    assert.equal((observed?.reason as { code: string }).code, \"EPIPE\");",
+    "    assert.equal(reads, 1);",
+    "    assert.equal(returned, 1);",
+    "    assert.equal(active, 0);",
+    "  assert.deepEqual(unhandled, []);"
+  ],
+  "originalInputsVerified": [
+    {
+      "path": "tests/shell/remote-close.test.ts",
+      "sha256": "0ca0886333c793dbddb5e14e2fdbb2a3bb457919dbf4e70d419f87fab6505474",
+      "bytes": 3116,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/shell/first-read-probe.ts",
+      "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6",
+      "bytes": 5048,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/shell/remote-close-probe.ts",
+      "sha256": "67d12606373760adbd71a1c4114de94dc184ecf76c2c5aa5cf3d1c8f9bb4d8da",
+      "bytes": 7271,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/shell/helpers.ts",
+      "sha256": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+      "bytes": 1670,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/stress/remote-cancellation/helpers.ts",
+      "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678",
+      "bytes": 13555,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/fs/webdav/mock.ts",
+      "sha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+      "bytes": 11188,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/shell/lifecycle.test.ts",
+      "sha256": "f6dcd75da9ed5ffdd74d51c6473541af91c65f47085e27a48a042e6e3dc8002d",
+      "bytes": 5318,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/shell/lifecycle-probe.ts",
+      "sha256": "0f60fadb357e53aa78acc67672fb3640da68f102d6809a34b980de208d4c95d9",
+      "bytes": 4452,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/shell/streaming.test.ts",
+      "sha256": "cfd61d72b7b7a33081e43c5f96dbe7c1161e27e72d6057489394283608ffe585",
+      "bytes": 6161,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/contracts/io.test.ts",
+      "sha256": "0be30d243f4df7688f57fc2bdc5b7b914c3fae62203f8e5613595d4153e7f0ec",
+      "bytes": 6839,
+      "restoration": "accepted-preserved-data"
+    },
+    {
+      "path": "tests/contracts/io.stress.test.ts",
+      "sha256": "3054c43d65fb662a16e1ef45d0a1006871ac8d29d4aaccdf6cb5411fa06fb6ca",
+      "bytes": 9135,
+      "restoration": "accepted-preserved-data"
+    }
+  ],
+  "executableInputManifestSha256": "d61371b6621dae6db0bfd2857114563b805a6cc7257d4b71a36d2cffa9a327e8",
+  "files": [
+    {
+      "path": "holdouts.mjs",
+      "bytes": 24890,
+      "sha256": "89e7126e946dd8eee07e547891bd83ba5db15a28f22890bbce6fa31e99a1fd98"
+    },
+    {
+      "path": "support.mjs",
+      "bytes": 3793,
+      "sha256": "93628fb0b95124bcfb995121191d7465145629bfa00f2e921cd3d693e28be8f7"
+    },
+    {
+      "path": "binding.mjs",
+      "bytes": 2344,
+      "sha256": "c77c9825e07c178aecb33de4ba99cca62da24525c9a127ea7fa2ba0298e19675"
+    },
+    {
+      "path": "old-to-bound-adapted.patch-data",
+      "bytes": 4685,
+      "sha256": "6ca94f1c1488e880b2f11a9ad354b821f20e7e49a3163e45e85ccfb7c1152674"
+    },
+    {
+      "path": "old-to-diagnostic.patch-data",
+      "bytes": 7483,
+      "sha256": "bbafcc41c499e1b56af7f8c7ab7c9d04f665445907645b259397368e2affd7bc"
+    },
+    {
+      "path": "bound/package.json",
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "bound/tsconfig.json",
+      "bytes": 403,
+      "sha256": "cd20bda6636adcbbc9f9c6aed022cf7c5c0a60bb766d9c5237736ec8690e995f"
+    },
+    {
+      "path": "bound/tests/shell/adapted-first-read-probe.ts",
+      "bytes": 6200,
+      "sha256": "95b6ebd92d7080e5a624bec5e9d5598cc905dec58755832345b65adad6dbe704"
+    },
+    {
+      "path": "bound/tests/shell/diagnostic-first-read-probe.ts",
+      "bytes": 7873,
+      "sha256": "5c700b967ee915f9951b1a04ae0ffbbce04185669eba8ea8b54d5ca1b3fc9c21"
+    },
+    {
+      "path": "bound/tests/stress/remote-cancellation/helpers.ts",
+      "bytes": 13597,
+      "sha256": "da191a9532981eb7ccd0372251268deb2823c447ea66b52e2c22887ea4f8ae1f"
+    },
+    {
+      "path": "bound/tests/fs/webdav/mock.ts",
+      "bytes": 11216,
+      "sha256": "abc518d5624cbfab68c4257c0e9cffd0c339ea4af1d32b2ecbc1110151fffeb7"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 3375,
+      "sha256": "3e692cc112f7a99de983f27cbfaa1632ab75b6f087885c005d44ea6e1b188796"
+    },
+    {
+      "path": "run-existing.mjs",
+      "bytes": 1222,
+      "sha256": "a21c7030d6d76a7b7eb18ddc5a9c162e53f2381cb57edfab6de4c49bdc92b9ce"
+    },
+    {
+      "path": "run-controls.mjs",
+      "bytes": 354,
+      "sha256": "54c973136b8f5317f8035a4f9ec6b0be85e38d28e0ad2d8ee2576fb68b379afb"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 8346,
+      "sha256": "03098a87e9e4345749ba33442b171545abdaf19454088e1b93c1aa544f9568eb"
+    },
+    {
+      "path": "native.mjs",
+      "bytes": 4886,
+      "sha256": "ca3b2cada214c7bf7c6e40d9c1fd009018dc50507a237c6365231774a30d74c6"
+    }
+  ]
+}

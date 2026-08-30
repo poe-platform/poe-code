@@ -1,0 +1,109 @@
+{
+  "schema": "safe-bash.execution-r1-r2-revision.v1",
+  "status": "AUTHOR_FIX_READY_FOR_INDEPENDENT_RECHECK",
+  "scope": [
+    "R1",
+    "R2"
+  ],
+  "candidateCommit": null,
+  "productImports": 0,
+  "mainCohortObservations": 0,
+  "nativeOracleCalls": 0,
+  "performanceTrials": 0,
+  "originalDelivery": {
+    "manifest": "../../MANIFEST.json",
+    "sha256": "8a2130dfee34309ee5f5eb28869948e02a690c2f5e90031aa8693415b0c85b9a",
+    "reviewedFiles": 280,
+    "allOriginalBytesAvailable": true,
+    "originalPathResolution": {
+      "expanded.mjs": "revisions/r1-r2/expanded.before.mjs.data"
+    },
+    "otherOriginalFilesUnchanged": true
+  },
+  "onlyChangedExistingFile": {
+    "path": "expanded.mjs",
+    "beforeSha256": "25e95bcfd43594fc95d4a0a0ef3c4d258bd078a9d357ef38c893a5f0c0146d91",
+    "afterSha256": "761bf2422d03f5dcc6162df7d42e1d2fd2bb974ec2e42b9fe0d51e3e406fe3e2",
+    "afterBytes": 5051
+  },
+  "currentSourceOverride": {
+    "expanded.mjs": {
+      "bytes": 5051,
+      "sha256": "761bf2422d03f5dcc6162df7d42e1d2fd2bb974ec2e42b9fe0d51e3e406fe3e2"
+    }
+  },
+  "checks": {
+    "actualAdapterRegression": {
+      "beforeFailed": 4,
+      "afterPassed": 4,
+      "engines": [
+        "virtual-bash",
+        "just-bash"
+      ],
+      "profiles": [
+        "original",
+        "aligned"
+      ],
+      "command": "node --test benchmarks/reports/current-comparison-20260827/execution/revisions/r1-r2/expanded-regression.mjs"
+    },
+    "unchangedReviewerAdapterControls": {
+      "expandedRows": 4,
+      "existingBreadthRows": 8,
+      "issues": 0,
+      "helperSha256": "bf0aaaf145b97f9f48a7c9055b34eae44aa1bf97c7d39224be6b677cad05fa31"
+    },
+    "existingSyntheticSentinels": {
+      "passed": 28,
+      "directory": "/private/tmp/safe-bash-execution-author-MD6Yd4",
+      "sourcePinsSha256": "a27d38cf49d700443b4a20860de5eb65526aed5f5e26214a4129c2929daa2904",
+      "coordinatorGroups": 28,
+      "engineChildren": 28,
+      "allOwnedGroupsGone": true
+    }
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1495,
+      "sha256": "6672380ba78fa92b6282aa9b9534538d926f898fd698fee823b4db8fa7491a77"
+    },
+    {
+      "path": "expanded-regression.mjs",
+      "bytes": 6626,
+      "sha256": "e1167cc666ba97ac38e0476e665b6ee182aebe87b48e7de236fa12e06cd4071f"
+    },
+    {
+      "path": "expanded.before.mjs.data",
+      "bytes": 5051,
+      "sha256": "25e95bcfd43594fc95d4a0a0ef3c4d258bd078a9d357ef38c893a5f0c0146d91"
+    },
+    {
+      "path": "expanded.diff",
+      "bytes": 1987,
+      "sha256": "28515f27e299c38d3afe7d718ed9ff9a69f44c32696a9d2f164dde22f62c2dea"
+    },
+    {
+      "path": "integration-summary.json",
+      "bytes": 45680,
+      "sha256": "9769646fc27d9f9a8fabbb90aedf7d2621e715c68567a3c88f51bbbc3f190978"
+    },
+    {
+      "path": "regression-after.json",
+      "bytes": 1302,
+      "sha256": "1b8b7ab640220c10aee11da731e81afda218dc1e5ee3cbb1695ec9ca34c9547d"
+    },
+    {
+      "path": "regression-before.json",
+      "bytes": 13084,
+      "sha256": "0968ee9925ea5fee9c7d4f87620a14d54c832a69e60efe62614138aaefb2cfae"
+    },
+    {
+      "path": "reviewer-adapter-controls-after.json",
+      "bytes": 135218,
+      "sha256": "4391e716307102cc04307c6b3ceefb00c597fcf72c7be0667b1e6b2e43643c67"
+    }
+  ],
+  "originalReceiptsRewritten": false,
+  "committed": false,
+  "next": "Different reviewer source-bound recheck; ROOT candidate/package still required before MEASURE."
+}

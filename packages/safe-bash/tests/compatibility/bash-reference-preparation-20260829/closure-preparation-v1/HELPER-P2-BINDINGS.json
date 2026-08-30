@@ -1,0 +1,46 @@
+{
+  "helperBindings": [
+    {
+      "path": "Makefile.in",
+      "bytes": 96494,
+      "sha256": "fe439ebe8ed9eea641f8538881be5b29bbfc7129d5f8e9fd25d04885f52762db",
+      "sourceInventoryHash": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e"
+    },
+    {
+      "path": "builtins/Makefile.in",
+      "bytes": 38755,
+      "sha256": "d89046dcb1604c10ed7ae2a1c211b7dc791d2201d70c18c55b67664015d00755",
+      "sourceInventoryHash": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e"
+    },
+    {
+      "path": "support/mkversion.sh",
+      "bytes": 4764,
+      "sha256": "c81af1ccb3ce32b5cdd1d4eddc4ded0136b5c198716b0580da01dee1501ab666",
+      "sourceInventoryHash": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e"
+    },
+    {
+      "path": "builtins/psize.sh",
+      "bytes": 1075,
+      "sha256": "01d3e145e083777e5a94baf4e1cacb239509877de6709500014c468461b600ab",
+      "sourceInventoryHash": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e"
+    }
+  ],
+  "exactCodeReferences": [
+    {
+      "path": "Makefile.in",
+      "line": 696,
+      "expressionRole": "SHELL invokes support/mkversion.sh"
+    },
+    {
+      "path": "Makefile.in",
+      "line": 643,
+      "expressionRole": ".build invokes BUILD_DIR/bashversion -l"
+    },
+    {
+      "path": "builtins/Makefile.in",
+      "line": 251,
+      "expressionRole": "SHELL invokes source psize.sh"
+    }
+  ],
+  "runtimeExecuted": false
+}

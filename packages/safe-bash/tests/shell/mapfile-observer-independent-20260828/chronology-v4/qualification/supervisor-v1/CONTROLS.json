@@ -1,0 +1,28 @@
+{
+  "classification":"post-source planned whole-module mock-OS controls; frozen before first executor replay",
+  "cases":[
+    {"id":"P01","kind":"whole-parent-entry","variant":"positive","expected":"all eight unchanged D01-D03/H01-H05 predicates, six actual candidate modules, broker signal/close records, final authenticated success"},
+    {"id":"P02","kind":"whole-parent-entry","variant":"entry-stall","expected":"external parent deadline, TERM then KILL, actual mocked close, failure"},
+    {"id":"P03","kind":"whole-parent-entry","variant":"entry-close-late","expected":"deadline failure; late close settles but does not erase failure"},
+    {"id":"P04","kind":"whole-parent-entry","variant":"spawn-throw","expected":"exact first host reason, no fabricated close, unresolved acquisition retained"},
+    {"id":"P05","kind":"whole-parent-entry","variant":"entry-overflow","expected":"stdout plus stderr ceiling rejects, bounded prefix retained"},
+    {"id":"P06","kind":"whole-parent-entry","variant":"final-publish-failure","expected":"nonzero, no authoritative success, raw failure preserved"},
+    {"id":"P07","kind":"whole-parent-entry","variant":"archive-mode","expected":"admission rejects before owned acquisition"},
+    {"id":"P08","kind":"whole-parent-entry","variant":"not-authorized","expected":"NOT_AUTHORIZED; zero starts/writes"},
+    {"id":"O01","kind":"owner","variant":"unknown-pid","expected":"unknown ID cannot cause signal; journal data is never PID authority"},
+    {"id":"O02","kind":"owner","variant":"duplicate-close","expected":"actual callback retained, failure permanent, cleanup once"},
+    {"id":"O03","kind":"owner","variant":"reason-identity","expected":"first undefined and opaque object preserve identity without coercion"},
+    {"id":"O04","kind":"owner","variant":"journal-before-acquire","expected":"journal throw prevents spawn and preserves exact reason"},
+    {"id":"O05","kind":"owner","variant":"post-exit-signal","expected":"no signal after actual exit even if group persists; uncertain failure"},
+    {"id":"G01","kind":"journal","variant":"partial-header","expected":"reject"},
+    {"id":"G02","kind":"journal","variant":"partial-frame","expected":"reject"},
+    {"id":"G03","kind":"journal","variant":"unknown-pid","expected":"run/rootPID replay mismatch rejected; never used to signal"},
+    {"id":"G04","kind":"journal","variant":"overflow","expected":"reject before parse"},
+    {"id":"G05","kind":"journal","variant":"tamper","expected":"same-size journal tamper rejected by owned digest"},
+    {"id":"F01","kind":"own-data","variant":"cross-realm","expected":"real VM own-data different prototypes accepted"},
+    {"id":"F02","kind":"own-data","variant":"accessor-hole-extra","expected":"reject accessors, holes, extras and coercion without invoking them"},
+    {"id":"F03","kind":"own-data","variant":"type-order","expected":"finite values and exact sequence, type, key membership enforced"}
+  ],
+  "execution":"one frozen pass; no automatic rerun/broadening; harness corrections separately versioned, all failures retained",
+  "physicalEffects":"zero real qualification children/entries, GNU/native probes/network/product; trusted Node prep process only"
+}

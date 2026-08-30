@@ -1,0 +1,397 @@
+{
+  "outer": {
+    "pid": 56941,
+    "childPid": 56944,
+    "primaryPresent": false,
+    "primary": null,
+    "terminal": {
+      "code": 1,
+      "signal": null,
+      "exited": {
+        "code": 1,
+        "signal": null
+      }
+    },
+    "captured": 0
+  },
+  "rows": [
+    {
+      "role": "source-author66",
+      "mutated": null,
+      "pass": 66,
+      "fail": 0,
+      "failures": []
+    },
+    {
+      "role": "source-checkpoints8",
+      "mutated": null,
+      "pass": 8,
+      "fail": 0,
+      "failures": []
+    },
+    {
+      "role": "source-novel6",
+      "mutated": null,
+      "pass": 5,
+      "fail": 1,
+      "failures": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": false,
+          "reasonPresent": true,
+          "error": "AssertionError [ERR_ASSERTION]: empty-fragment charged unit gap 2050\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:59:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:24:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:52:1"
+        }
+      ]
+    },
+    {
+      "role": "installed-author66",
+      "mutated": null,
+      "pass": 66,
+      "fail": 0,
+      "failures": []
+    },
+    {
+      "role": "installed-checkpoints8",
+      "mutated": null,
+      "pass": 8,
+      "fail": 0,
+      "failures": []
+    },
+    {
+      "role": "installed-novel6",
+      "mutated": null,
+      "pass": 5,
+      "fail": 1,
+      "failures": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": false,
+          "reasonPresent": true,
+          "error": "AssertionError [ERR_ASSERTION]: empty-fragment charged unit gap 2050\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:59:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:24:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:52:1"
+        }
+      ]
+    },
+    {
+      "role": "moved-author66",
+      "mutated": null,
+      "pass": 66,
+      "fail": 0,
+      "failures": []
+    },
+    {
+      "role": "moved-checkpoints8",
+      "mutated": null,
+      "pass": 8,
+      "fail": 0,
+      "failures": []
+    },
+    {
+      "role": "moved-novel6",
+      "mutated": null,
+      "pass": 5,
+      "fail": 1,
+      "failures": [
+        {
+          "id": "N01-empty-fragment-first-pass",
+          "pass": false,
+          "reasonPresent": true,
+          "error": "AssertionError [ERR_ASSERTION]: empty-fragment charged unit gap 2050\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:59:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:24:45)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs:52:1"
+        }
+      ]
+    },
+    {
+      "role": "M01",
+      "mutated": "matcher",
+      "pass": 0,
+      "fail": 1,
+      "failures": [
+        {
+          "id": "C01",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: charged unit gap 65030\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:45:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:38:1"
+        }
+      ]
+    },
+    {
+      "role": "M01-restore",
+      "mutated": null,
+      "pass": 1,
+      "fail": 0,
+      "failures": []
+    },
+    {
+      "role": "M02",
+      "mutated": "syntax",
+      "pass": 0,
+      "fail": 1,
+      "failures": [
+        {
+          "id": "C05",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: count unit gap 1026\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:81:10\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:77:1"
+        }
+      ]
+    },
+    {
+      "role": "M02-restore",
+      "mutated": null,
+      "pass": 1,
+      "fail": 0,
+      "failures": []
+    },
+    {
+      "role": "M03",
+      "mutated": "syntax",
+      "pass": 0,
+      "fail": 1,
+      "failures": [
+        {
+          "id": "C07",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: bracket unit gap 1026\n    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:97:12\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:33:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/checkpoints.mjs:90:1"
+        }
+      ]
+    },
+    {
+      "role": "M03-restore",
+      "mutated": null,
+      "pass": 1,
+      "fail": 0,
+      "failures": []
+    }
+  ],
+  "types": [
+    {
+      "layout": "source",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "installed",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "moved",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M01",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "649cb47d3fc48a22c920bec5fdd6e8367b7bf5747439b3eabff3fb296fb5e959"
+    },
+    {
+      "id": "M02",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "8910cea3c65c8769581b90516c5f748c0fd33bb64ed1b32fb866dd0cde7f7241"
+    },
+    {
+      "id": "M03",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "cacf0cb5379a8aaa38e5342053a353731c9cdca5d994b52083f08d61d51c9a30"
+    }
+  ],
+  "guards": [
+    {
+      "id": "B01-content",
+      "refused": true,
+      "reason": "AssertionError [ERR_ASSERTION]: SAFETY input binding\n+ actual - expected\n\n  {\n    mode: 420,\n    path: '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/binding-negative.js',\n+   sha256: 'd67e2e944994496c8d8ec76eed0cf9f09679448d584b532bebf941852a37f5ed',\n+   size: 7\n-   sha256: '9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb',\n-   size: 8483\n  }\n",
+      "dataOnly": true
+    },
+    {
+      "id": "B02-missing",
+      "refused": true,
+      "reason": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/absent.js'",
+      "dataOnly": true
+    }
+  ],
+  "children": 22,
+  "peakChildren": 1,
+  "active": 0,
+  "captureBytes": 64124,
+  "workBytes": 26184940,
+  "elapsedMs": 5472,
+  "receipts": [
+    {
+      "role": "strict-build",
+      "pid": 56945,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "source-author66",
+      "pid": 56980,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "source-checkpoints8",
+      "pid": 56983,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "source-novel6",
+      "pid": 56986,
+      "code": 1,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "source-types-positive",
+      "pid": 56988,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "source-types-negative",
+      "pid": 56998,
+      "code": 2,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "installed-author66",
+      "pid": 57013,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "installed-checkpoints8",
+      "pid": 57014,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "installed-novel6",
+      "pid": 57017,
+      "code": 1,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "installed-types-positive",
+      "pid": 57020,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "installed-types-negative",
+      "pid": 57025,
+      "code": 2,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "moved-author66",
+      "pid": 57028,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "moved-checkpoints8",
+      "pid": 57029,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "moved-novel6",
+      "pid": 57031,
+      "code": 1,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "moved-types-positive",
+      "pid": 57032,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "moved-types-negative",
+      "pid": 57036,
+      "code": 2,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "M01",
+      "pid": 57047,
+      "code": 1,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "M01-restore",
+      "pid": 57048,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "M02",
+      "pid": 57049,
+      "code": 1,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "M02-restore",
+      "pid": 57051,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "M03",
+      "pid": 57052,
+      "code": 1,
+      "signal": null,
+      "retired": true
+    },
+    {
+      "role": "M03-restore",
+      "pid": 57053,
+      "code": 0,
+      "signal": null,
+      "retired": true
+    }
+  ]
+}

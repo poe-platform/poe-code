@@ -1,0 +1,25 @@
+{
+  "classification": "preparation-checks-not-product-tests",
+  "results": [
+    {
+      "name": "node-preflight-initial",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/driver.mjs",
+        "--evidence-dir",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-v2"
+      ],
+      "pid": 60163,
+      "started": "2026-08-27T10:18:49.751Z",
+      "finished": "2026-08-27T10:18:49.781Z",
+      "expectedExit": 0,
+      "code": 1,
+      "signal": null,
+      "guard": null,
+      "reaped": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "d6f3b23088f63f339feaff0151a98c4e9d63d46640752abec60df84d2e3616b6",
+      "expectedOutcome": false
+    }
+  ]
+}

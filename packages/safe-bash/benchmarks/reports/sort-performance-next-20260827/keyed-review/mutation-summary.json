@@ -1,0 +1,278 @@
+[
+  {
+    "name": "wrong-key",
+    "cases": [
+      "inherited-numeric",
+      "exact-integers-above-double"
+    ],
+    "killed": true,
+    "semanticFailures": 2,
+    "counterFailures": [],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "modifier-direction",
+    "cases": [
+      "local-numeric-replaces-global-reverse",
+      "local-reverse-end-flags"
+    ],
+    "killed": true,
+    "semanticFailures": 2,
+    "counterFailures": [],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "modifier-merge",
+    "cases": [
+      "local-replaces-global-numeric",
+      "local-numeric-replaces-global-reverse"
+    ],
+    "killed": true,
+    "semanticFailures": 2,
+    "counterFailures": [
+      {
+        "id": "local-replaces-global-numeric",
+        "rule": "exact guard construction"
+      },
+      {
+        "id": "local-replaces-global-numeric",
+        "rule": "excluded guard admission"
+      }
+    ],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "double-precision",
+    "cases": [
+      "exact-integers-above-double",
+      "exact-fractions-and-prefix-grammar"
+    ],
+    "killed": true,
+    "semanticFailures": 1,
+    "counterFailures": [],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "guard-multiple",
+    "cases": [
+      "guard-multiple-keys"
+    ],
+    "killed": true,
+    "semanticFailures": 1,
+    "counterFailures": [
+      {
+        "id": "guard-multiple-keys",
+        "rule": "exact guard construction"
+      },
+      {
+        "id": "guard-multiple-keys",
+        "rule": "excluded guard admission"
+      }
+    ],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "guard-nonnumeric",
+    "cases": [
+      "guard-nonnumeric-local",
+      "local-replaces-global-numeric"
+    ],
+    "killed": true,
+    "semanticFailures": 1,
+    "counterFailures": [
+      {
+        "id": "local-replaces-global-numeric",
+        "rule": "exact guard construction"
+      },
+      {
+        "id": "local-replaces-global-numeric",
+        "rule": "excluded guard admission"
+      }
+    ],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "guard-transforms",
+    "cases": [
+      "whitespace-blanks-transform",
+      "guard-numeric-fold-transform"
+    ],
+    "killed": true,
+    "semanticFailures": 1,
+    "counterFailures": [
+      {
+        "id": "whitespace-blanks-transform",
+        "rule": "exact guard construction"
+      },
+      {
+        "id": "whitespace-blanks-transform",
+        "rule": "excluded guard admission"
+      },
+      {
+        "id": "guard-numeric-fold-transform",
+        "rule": "exact guard construction"
+      },
+      {
+        "id": "guard-numeric-fold-transform",
+        "rule": "excluded guard admission"
+      }
+    ],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "guard-check",
+    "cases": [
+      "guard-check-disorder"
+    ],
+    "killed": true,
+    "semanticFailures": 0,
+    "counterFailures": [
+      {
+        "id": "guard-check-disorder",
+        "rule": "exact guard construction"
+      },
+      {
+        "id": "guard-check-disorder",
+        "rule": "excluded guard admission"
+      }
+    ],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "entry-cap",
+    "cases": [
+      "entry-above",
+      "empty-keys-entry-cap"
+    ],
+    "killed": true,
+    "semanticFailures": 0,
+    "counterFailures": [
+      {
+        "id": "entry-above",
+        "rule": "entry cap"
+      },
+      {
+        "id": "entry-above",
+        "rule": "entry saturation reached"
+      },
+      {
+        "id": "entry-above",
+        "rule": "entry uncached fallback exercised"
+      },
+      {
+        "id": "empty-keys-entry-cap",
+        "rule": "entry cap"
+      },
+      {
+        "id": "empty-keys-entry-cap",
+        "rule": "entry saturation reached"
+      },
+      {
+        "id": "empty-keys-entry-cap",
+        "rule": "entry uncached fallback exercised"
+      }
+    ],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "retained-cap",
+    "cases": [
+      "retained-above",
+      "oversized-extracted-small-prefix"
+    ],
+    "killed": true,
+    "semanticFailures": 0,
+    "counterFailures": [
+      {
+        "id": "retained-above",
+        "rule": "retained cap"
+      },
+      {
+        "id": "retained-above",
+        "rule": "byte fallback exercised"
+      },
+      {
+        "id": "oversized-extracted-small-prefix",
+        "rule": "retained cap"
+      },
+      {
+        "id": "oversized-extracted-small-prefix",
+        "rule": "byte fallback exercised"
+      }
+    ],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "normalized-prefix-charge",
+    "cases": [
+      "retained-at",
+      "oversized-extracted-small-prefix"
+    ],
+    "killed": true,
+    "semanticFailures": 0,
+    "counterFailures": [
+      {
+        "id": "retained-at",
+        "rule": "full selected backing charge"
+      },
+      {
+        "id": "retained-at",
+        "rule": "retained at"
+      },
+      {
+        "id": "oversized-extracted-small-prefix",
+        "rule": "full selected backing charge"
+      },
+      {
+        "id": "oversized-extracted-small-prefix",
+        "rule": "byte fallback exercised"
+      }
+    ],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "fallback-value",
+    "cases": [
+      "entry-above",
+      "oversized-extracted-small-prefix"
+    ],
+    "killed": true,
+    "semanticFailures": 1,
+    "counterFailures": [],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "borrowed-complete-view",
+    "cases": [
+      "borrowed-offset-finalizer-nul"
+    ],
+    "killed": false,
+    "semanticFailures": 0,
+    "counterFailures": [],
+    "childClosed": true,
+    "timedOut": false
+  },
+  {
+    "name": "borrowed-pending-view",
+    "cases": [
+      "borrowed-offset-finalizer-newline"
+    ],
+    "killed": false,
+    "semanticFailures": 0,
+    "counterFailures": [],
+    "childClosed": true,
+    "timedOut": false
+  }
+]

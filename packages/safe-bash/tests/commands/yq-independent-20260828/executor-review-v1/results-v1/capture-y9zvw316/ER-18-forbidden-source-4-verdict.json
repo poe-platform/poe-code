@@ -1,0 +1,9 @@
+{
+  "family": "ER-18",
+  "name": "forbidden-source-4",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-18-forbidden-source-4-input.json",
+  "raw": "ER-18-forbidden-source-4-raw.json"
+}

@@ -1,0 +1,527 @@
+{
+  "schema": 1,
+  "status": "DATA_ONLY_PRESEALED_BEFORE_VALIDATION",
+  "reviewerWitness": {
+    "revision": "7d265b20892bb1da712d9585e013938ab6aaed35",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-workers-review-v1/CW-F02-STATIC-WITNESS.json",
+    "blob": "1d786ac4d4961b8dfa772a1fb3e3fbfe1138786b",
+    "sha256": "5b06e84bddf76f424950d891e22085274ba46e1dc8186423eb693ea53eaf11d3",
+    "bytes": 5208,
+    "gitMode": "100644",
+    "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+  },
+  "frozenWitness": {
+    "revision": "c0353685540288d504b93f206735fe4c448268ef",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/MUTANT-PLAN.json",
+    "blob": "0392a89b4186f139961c384387c10c6dd15927da",
+    "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+    "bytes": 20641,
+    "gitMode": "100644",
+    "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+  },
+  "controls": [
+    {
+      "id": "CW-F02-EXACT-BENIGN",
+      "input": {
+        "normalFacts": {
+          "completion": "command-result",
+          "status": 0,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "",
+          "diagnosticCode": null
+        },
+        "projection": {
+          "status": "INCOMPLETE",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        },
+        "actualExecutionOutcome": "UNRUN"
+      },
+      "expected": {
+        "status": "INCOMPLETE",
+        "classification": "PRISTINE_OBSERVATION_BINDING_GAP",
+        "positiveCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CONTRADICTED-STATUS",
+      "input": {
+        "normalFacts": {
+          "completion": "command-result",
+          "status": 1,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "",
+          "diagnosticCode": null
+        },
+        "projection": {
+          "status": "INCOMPLETE",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        },
+        "actualExecutionOutcome": "UNRUN"
+      },
+      "expected": {
+        "status": "FAIL",
+        "classification": "PRISTINE_WITNESS_FAILURE",
+        "gapMustNotHideContradiction": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CONTRADICTED-STDOUT",
+      "input": {
+        "normalFacts": {
+          "completion": "command-result",
+          "status": 0,
+          "stdoutHex": "5b312c335d0a",
+          "stderrHex": "",
+          "diagnosticCode": null
+        },
+        "projection": {
+          "status": "INCOMPLETE",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        },
+        "actualExecutionOutcome": "UNRUN"
+      },
+      "expected": {
+        "status": "FAIL",
+        "classification": "PRISTINE_WITNESS_FAILURE",
+        "gapMustNotHideContradiction": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CONTRADICTED-STDERR",
+      "input": {
+        "normalFacts": {
+          "completion": "command-result",
+          "status": 0,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "6572726f720a",
+          "diagnosticCode": null
+        },
+        "projection": {
+          "status": "INCOMPLETE",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        },
+        "actualExecutionOutcome": "UNRUN"
+      },
+      "expected": {
+        "status": "FAIL",
+        "classification": "PRISTINE_WITNESS_FAILURE",
+        "gapMustNotHideContradiction": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CONTRADICTED-DIAGNOSTIC",
+      "input": {
+        "normalFacts": {
+          "completion": "command-result",
+          "status": 0,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "",
+          "diagnosticCode": "UNEXPECTED"
+        },
+        "projection": {
+          "status": "INCOMPLETE",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        },
+        "actualExecutionOutcome": "UNRUN"
+      },
+      "expected": {
+        "status": "FAIL",
+        "classification": "PRISTINE_WITNESS_FAILURE",
+        "gapMustNotHideContradiction": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "GENUINE-PROJECTION-FAIL",
+      "input": {
+        "normalFacts": {
+          "completion": "command-result",
+          "status": 0,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "",
+          "diagnosticCode": null
+        },
+        "projection": {
+          "status": "FAIL",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        },
+        "actualExecutionOutcome": "UNRUN"
+      },
+      "expected": {
+        "status": "FAIL",
+        "classification": "PRISTINE_WITNESS_FAILURE"
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "BOUND-LABEL-NOT-ASSERTION-BINDING",
+      "input": {
+        "normalFacts": {
+          "completion": "command-result",
+          "status": 0,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "",
+          "diagnosticCode": null
+        },
+        "projection": {
+          "status": "BOUND_PROJECTION_ONLY",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        },
+        "actualExecutionOutcome": "UNRUN"
+      },
+      "expected": {
+        "status": "INCOMPLETE",
+        "positiveCredit": false,
+        "wholeRecordF01Unchanged": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "UNKNOWN-PROJECTION-STATUS",
+      "input": {
+        "normalFacts": {
+          "completion": "command-result",
+          "status": 0,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "",
+          "diagnosticCode": null
+        },
+        "projection": {
+          "status": "UNKNOWN",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        },
+        "actualExecutionOutcome": "UNRUN"
+      },
+      "expected": {
+        "unsafe": true,
+        "positiveCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "NON-COMMAND-FAILURE",
+      "input": {
+        "normalFacts": null,
+        "projection": {
+          "status": "INCOMPLETE",
+          "error": "Natural-language obligation has no executable proof binding",
+          "unfulfilled": [
+            "expected.assertions[0]"
+          ]
+        }
+      },
+      "expected": {
+        "status": "FAIL",
+        "classification": "NON_COMMAND_FAILURE_NOT_A_KILL"
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "source-built-direct/RETAINED-EARLY-GAP",
+      "input": {
+        "slot": {
+          "id": "source-built-direct/MUT-RETAINED-VIEW",
+          "variantId": "retained-view",
+          "environment": "source-built-direct"
+        },
+        "unchangedExpected": {
+          "status": 0,
+          "stdoutUtf8": "[1,2]\n",
+          "assertions": [
+            "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."
+          ]
+        },
+        "priorProjection": "INCOMPLETE"
+      },
+      "expected": {
+        "status": "UNRUN",
+        "materializationRequests": 0,
+        "importRequests": 0,
+        "witnessInvocations": 0,
+        "killCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "source-built-direct/RETAINED-MISSING-PRIOR",
+      "input": {
+        "slot": {
+          "id": "source-built-direct/MUT-RETAINED-VIEW",
+          "variantId": "retained-view",
+          "environment": "source-built-direct"
+        },
+        "priorCapture": null,
+        "unchangedExpected": {
+          "status": 0,
+          "stdoutUtf8": "[1,2]\n",
+          "assertions": [
+            "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."
+          ]
+        }
+      },
+      "expected": {
+        "coreStatus": "UNRUN",
+        "denyBeforeMaterialization": true,
+        "killCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "source-built-direct/RETAINED-CONTRADICTED-PRIOR",
+      "input": {
+        "slot": {
+          "id": "source-built-direct/MUT-RETAINED-VIEW",
+          "variantId": "retained-view",
+          "environment": "source-built-direct"
+        },
+        "priorFacts": {
+          "completion": "command-result",
+          "status": 1,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "",
+          "diagnosticCode": null
+        },
+        "priorProjection": "INCOMPLETE"
+      },
+      "expected": {
+        "coreStatus": "FAIL",
+        "stickyPriorFailure": true,
+        "denyBeforeMaterialization": true,
+        "leafGapCannotClearFailure": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "installed-moved-direct/RETAINED-EARLY-GAP",
+      "input": {
+        "slot": {
+          "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+          "variantId": "retained-view",
+          "environment": "installed-moved-direct"
+        },
+        "unchangedExpected": {
+          "status": 0,
+          "stdoutUtf8": "[1,2]\n",
+          "assertions": [
+            "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."
+          ]
+        },
+        "priorProjection": "INCOMPLETE"
+      },
+      "expected": {
+        "status": "UNRUN",
+        "materializationRequests": 0,
+        "importRequests": 0,
+        "witnessInvocations": 0,
+        "killCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "installed-moved-direct/RETAINED-MISSING-PRIOR",
+      "input": {
+        "slot": {
+          "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+          "variantId": "retained-view",
+          "environment": "installed-moved-direct"
+        },
+        "priorCapture": null,
+        "unchangedExpected": {
+          "status": 0,
+          "stdoutUtf8": "[1,2]\n",
+          "assertions": [
+            "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."
+          ]
+        }
+      },
+      "expected": {
+        "coreStatus": "UNRUN",
+        "denyBeforeMaterialization": true,
+        "killCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "installed-moved-direct/RETAINED-CONTRADICTED-PRIOR",
+      "input": {
+        "slot": {
+          "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+          "variantId": "retained-view",
+          "environment": "installed-moved-direct"
+        },
+        "priorFacts": {
+          "completion": "command-result",
+          "status": 1,
+          "stdoutHex": "5b312c325d0a",
+          "stderrHex": "",
+          "diagnosticCode": null
+        },
+        "priorProjection": "INCOMPLETE"
+      },
+      "expected": {
+        "coreStatus": "FAIL",
+        "stickyPriorFailure": true,
+        "denyBeforeMaterialization": true,
+        "leafGapCannotClearFailure": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "OTHER-MUTANT-PRIOR-INCOMPLETE",
+      "input": {
+        "variantId": "quoted-del",
+        "priorProjection": "INCOMPLETE",
+        "knownPriorFactsMatch": true
+      },
+      "expected": {
+        "coreStatus": "UNRUN",
+        "denyBeforeMaterialization": true,
+        "killCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "OTHER-MUTANT-PRIOR-FAIL",
+      "input": {
+        "variantId": "pending-shadow",
+        "priorProjection": "FAIL",
+        "knownPriorFactsMatch": true
+      },
+      "expected": {
+        "coreStatus": "FAIL",
+        "denyBeforeMaterialization": true,
+        "killCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "OTHER-MUTANT-LATE-INCOMPLETE",
+      "input": {
+        "variantId": "quoted-del",
+        "alreadyMaterialized": true,
+        "priorProjection": "INCOMPLETE",
+        "knownPriorFactsMatch": true
+      },
+      "expected": {
+        "leafStatus": "UNRUN",
+        "classification": "UNRUN_CONTROL_PRISTINE_OBSERVATION_BINDING_GAP",
+        "coreUnsafeAdmissionStop": true,
+        "killCredit": false
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "OTHER-MUTANT-ELIGIBLE",
+      "input": {
+        "variantId": "quoted-del",
+        "priorProjection": "BOUND_PROJECTION_ONLY",
+        "knownPriorFactsMatch": true,
+        "actualModifiedModuleLoaded": true,
+        "actualWitnessInvoked": true,
+        "declaredPrimitiveChanged": true,
+        "knownReapAndIntegrity": true
+      },
+      "expected": {
+        "status": "PASS",
+        "proofRole": "LOADED_CONTROL_NOT_SEMANTIC",
+        "fullRecordAcceptance": false,
+        "actualExecution": "UNRUN"
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "OTHER-MUTANT-SURVIVES",
+      "input": {
+        "variantId": "pending-shadow",
+        "priorProjection": "BOUND_PROJECTION_ONLY",
+        "knownPriorFactsMatch": true,
+        "actualModifiedModuleLoaded": true,
+        "actualWitnessInvoked": true,
+        "declaredPrimitiveChanged": false
+      },
+      "expected": {
+        "status": "FAIL",
+        "classification": "MUTANT_SURVIVED"
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "UNLOADED-OR-HASH-DENIED",
+      "input": {
+        "actualModifiedModuleLoaded": false,
+        "admissionDenied": true
+      },
+      "expected": {
+        "killCredit": false,
+        "unsafeLoaderRuleUnchanged": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "NONZERO-AFTER-GAP",
+      "input": {
+        "leafStatus": "INCOMPLETE",
+        "actualWorkerExit": 1
+      },
+      "expected": {
+        "aggregate": "FAIL",
+        "gapCannotWaiveActualExit": true
+      },
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    }
+  ],
+  "controlCount": 22,
+  "actualCalls": 0,
+  "observedPasses": 0,
+  "rootGO": false
+}

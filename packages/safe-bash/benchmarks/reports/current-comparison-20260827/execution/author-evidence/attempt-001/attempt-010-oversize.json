@@ -1,0 +1,208 @@
+{
+  "request": {
+    "id": "synthetic/oversize",
+    "nonce": "0578c5ba-f5c4-4919-9c17-6d2714909f48",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "oversize",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/oversize",
+    "nonce": "0578c5ba-f5c4-4919-9c17-6d2714909f48",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "{\"name\":\"AssertionError\",\"message\":\"declared frame length cap\",\"code\":\"ERR_ASSERTION\"}",
+      "coordinator crash/forced exit",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally",
+      "coordinator did not exit/close naturally",
+      "unverified pipe/fixture/group closure"
+    ],
+    "events": [
+      {
+        "atMs": 1.194,
+        "kind": "group-admitted",
+        "pid": 58796,
+        "pgid": 58796,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 64.359,
+        "id": "synthetic/oversize",
+        "nonce": "0578c5ba-f5c4-4919-9c17-6d2714909f48",
+        "kind": "engine-spawn",
+        "pid": 58797,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 126.805,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1526.8024999999998
+      },
+      {
+        "atMs": 126.808,
+        "id": "synthetic/oversize",
+        "nonce": "0578c5ba-f5c4-4919-9c17-6d2714909f48",
+        "kind": "ready"
+      },
+      {
+        "atMs": 127.55,
+        "id": "synthetic/oversize",
+        "nonce": "0578c5ba-f5c4-4919-9c17-6d2714909f48",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 128.083,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"AssertionError\",\"message\":\"declared frame length cap\",\"code\":\"ERR_ASSERTION\"}"
+      },
+      {
+        "atMs": 128.113,
+        "id": "synthetic/oversize",
+        "nonce": "0578c5ba-f5c4-4919-9c17-6d2714909f48",
+        "kind": "failure",
+        "error": {
+          "name": "AssertionError",
+          "message": "declared frame length cap",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "atMs": 131.03,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 58796
+      },
+      {
+        "atMs": 132.583,
+        "kind": "coordinator-exit",
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "atMs": 132.587,
+        "kind": "sticky-failure",
+        "reason": "coordinator crash/forced exit"
+      },
+      {
+        "atMs": 132.591,
+        "kind": "coordinator-close",
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": null,
+    "engineClose": null,
+    "sessionExit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "sessionClose": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 58796,
+    "enginePid": 58797,
+    "cancelSent": true,
+    "elapsedMs": 134.214,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1526.802,
+      "guest": 307.546
+    },
+    "hostBytes": 0,
+    "reportBytes": 791
+  },
+  "check": {
+    "mode": "oversize",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 134.214,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-010-oversize.json"
+  }
+}

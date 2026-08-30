@@ -1,0 +1,40 @@
+{
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "focused": {
+    "status": 0,
+    "tests": 22,
+    "pass": 22,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "original34": {
+    "status": 1,
+    "counts": {
+      "observations": 34,
+      "verified": 25,
+      "unexpected": 9,
+      "retainedDefectRows": 0
+    },
+    "failures": [
+      "Shell grep: sync external return rejection",
+      "Shell egrep: sync external return rejection",
+      "Shell fgrep: sync external return rejection",
+      "Shell grep: async external return rejection",
+      "Shell egrep: async external return rejection",
+      "Shell fgrep: async external return rejection",
+      "unread external return rejection undefined",
+      "unread external return rejection null",
+      "unread external return rejection Error: return-error"
+    ],
+    "unhandled": []
+  },
+  "column6": {
+    "status": 1,
+    "count": 6,
+    "passes": 0
+  },
+  "childrenClosed": true,
+  "ownedActiveChildren": 0
+}

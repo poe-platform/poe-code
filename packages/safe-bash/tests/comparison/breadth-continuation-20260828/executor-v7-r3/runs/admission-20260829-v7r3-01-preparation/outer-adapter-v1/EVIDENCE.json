@@ -1,0 +1,227 @@
+{
+  "schema": "OUTER_ADAPTER_SOURCE_SYNTHETIC_EVIDENCE_V1",
+  "date": "2026-08-29",
+  "status": "READY_FOR_DIFFERENT_PREEXECUTION_REVIEW_NOT_ACTUAL_ADMISSION",
+  "presealCommit": "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+  "sealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "controlsReport": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/controls-01/REPORT.json",
+    "bytes": 107062,
+    "mode": 384,
+    "sha256": "7d26fb9b555b6402573130296dd60e8d113dc0be722157179b7eee0a4cc191a2"
+  },
+  "results": {
+    "attempts": 1,
+    "planned": 25,
+    "attempted": 25,
+    "passed": 25,
+    "failed": 0,
+    "unrun": [],
+    "unsafe": false,
+    "actualHarmlessChildren": 17,
+    "spawnAttempts": 18,
+    "spawnWithoutPid": 1,
+    "allRealChildrenIndependentlyRetired": true,
+    "allActualHandlesClosed": true,
+    "controlChildConcurrency": 1,
+    "syntheticRunnerExit": 0,
+    "syntheticRunnerClosed": true,
+    "controlElapsedMs": 2874
+  },
+  "intentionalNegativeLosses": [
+    {
+      "control": "O06",
+      "channel": "stdout",
+      "observed": 65537,
+      "retained": 65536,
+      "lost": 1,
+      "classification": "intentional-presealed-negative-control"
+    },
+    {
+      "control": "O07",
+      "channel": "fd3",
+      "observed": 262145,
+      "retained": 262144,
+      "lost": 1,
+      "classification": "intentional-presealed-negative-control"
+    },
+    {
+      "control": "O08",
+      "channel": "stdout",
+      "observed": 9,
+      "retained": 0,
+      "lost": 9,
+      "classification": "intentional-presealed-negative-control"
+    },
+    {
+      "control": "O09",
+      "channel": "stdout",
+      "observed": 9,
+      "retained": 3,
+      "lost": 6,
+      "classification": "intentional-presealed-negative-control"
+    }
+  ],
+  "postguard": {
+    "checkedAt": "2026-08-29T02:53:03.105Z",
+    "adapterFiles": 7,
+    "tools": 1,
+    "protectedParentFiles": 16,
+    "launchAndRecipe": 3,
+    "actualNamespacesAbsent": [
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/actual-capture",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision"
+    ],
+    "passed": true,
+    "controlReceiptIndependentRetirements": 17,
+    "additionalPidProbePerformed": false
+  },
+  "originalProof": {
+    "commit": "27fd896575280fa96100924cf4f2ecc110710b82",
+    "dataChecksRetained": 14,
+    "independentInputsRetained": 416,
+    "replayed": false,
+    "oldHoldsUnchanged": true,
+    "oldLostBytesUnreconstructed": 294045,
+    "W07": "UNQUALIFIED"
+  },
+  "prospectiveCapture": {
+    "overall": 269484032,
+    "inner": 268435456,
+    "body": 260046848,
+    "innerCollector": 8388608,
+    "outer": 524288,
+    "publicationAdministration": 524288,
+    "outerPartitions": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "fd3": 262144,
+      "intent": 16384,
+      "events": 49152,
+      "receipt": 65536
+    }
+  },
+  "processTopology": {
+    "owner": "This dedicated Node owner replaces the abstract existing capture-owner slot; no persistent shell or CLI process added",
+    "chain": [
+      "outer owner",
+      "frozen launcher",
+      "coordinator",
+      "one worker",
+      "one Git metadata child"
+    ],
+    "runtimeProcesses": 47,
+    "administrationProcesses": 8,
+    "totalPlanned": 55,
+    "allProcessCap": 128,
+    "peak": 5,
+    "workerCount": 14,
+    "workerCap": 27,
+    "C11EmptySetups": 2,
+    "semanticCalls": 0,
+    "metadataChildrenPerWorker": 2,
+    "coordinatorMetadataChildren": 2,
+    "additionalOwnerChildren": 0,
+    "additionalOwnerSubprocessesBeyondLauncher": 0
+  },
+  "actualProhibitedCounts": {
+    "productImports": 0,
+    "comparatorImports": 0,
+    "engineEvaluations": 0,
+    "admissionWorkers": 0,
+    "C11": 0,
+    "semantics": 0,
+    "actualOwnerInvocations": 0,
+    "activeRootGrants": 0,
+    "activeAuthEnvelopes": 0
+  },
+  "futureNamespaceUnused": true,
+  "helperFailures": [
+    {
+      "id": "POST_METADATA_PROCESS_SYMBOL",
+      "classification": "ordinary-preparation-helper-error",
+      "message": "process is not defined in the persistent REPL; no PID probe or child launch occurred",
+      "preserved": true,
+      "resolution": "Use the already completed, source-sealed independent PID/group absence checks in each control receipt. Do not claim an additional post-run PID probe or rerun controls."
+    }
+  ],
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "git": {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  },
+  "sourceReferenceBindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/review-v2/owner.mjs",
+      "bytes": 4345,
+      "mode": 420,
+      "sha256": "ca9c97d81ef1f28c5b23a4cbb1aa885528d5e01de2c33270a500252314d29e9c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs",
+      "bytes": 2584,
+      "mode": 420,
+      "sha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/outer.mjs",
+      "bytes": 45,
+      "mode": 420,
+      "sha256": "e8c53d79a5862eb46117ba93675ac38331d23ecd9f4ab18dbb3d2fb775972ab5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/OUTER-CAPTURE-PLAN.json",
+      "bytes": 4027,
+      "mode": 420,
+      "sha256": "50323a603e68d2af933826741031544f84d1fdd0a3273f5c5340232e1608b404"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/PROCESS-CENSUS.json",
+      "bytes": 10364,
+      "mode": 420,
+      "sha256": "6bdeae074348b70a43650a7e0c2ab5b0ea469fe472b2fde2564e14ba22fd8f37"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/INACTIVE-ROOT-GRANT.TEMPLATE.json",
+      "bytes": 1477,
+      "mode": 420,
+      "sha256": "567e1de4ed417ca21b21afa75d109f32e8a48405b5263fc4f0a60847ca5346c7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/INACTIVE-AUTH.TEMPLATE.json",
+      "bytes": 1579,
+      "mode": 420,
+      "sha256": "30939cfa835a783343cd734b99c3bbd0719f56fabb569c4fc7f7197e9ca55fa2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-MANIFEST.json",
+      "bytes": 3481,
+      "mode": 420,
+      "sha256": "1831864bb9cda95709384bab71d80e03f7f135fe853bf1ee938927388b9faf2d"
+    }
+  ],
+  "qualifications": [
+    "Shared capture implementation executed against authenticated harmless Node fixture, not real product/comparator/launcher. Fixed owner CLI composition remains SOURCE-only pending different review and fresh root GO.",
+    "Negative IO hooks operate real owned files; close-failure hooks physically close first, then throw. Kernel disk-full/EPIPE, hanging host filesystem and hard preemption not established.",
+    "Group retirement is launcher/group only, not a detached-descendant census. Full inner ledger/authority/worker integrity remains required for actual admission.",
+    "Only direct owner topology fits planned peak5. An extra retained shell or REPL within the measured process tree would produce peak6 and must HOLD, not be excluded silently.",
+    "No full248+8MiB allocation executed. Byte ceilings derive from bounded per-file capture plus actual census; heap limit is not RSS.",
+    "Publication/admin512KiB covers root administrative receipts and bounded owner terminal; the root invocation must retain owner startup failure inside that allowance."
+  ],
+  "remaining": [
+    "Different reviewer binds exact d32cc4d1/SEAL and source/synthetic evidence.",
+    "Fresh root grant must explicitly adopt prospective257MiB partition and the exact dedicated owner command/seal/AUTH bytes; prior grants remain consumed/inactive.",
+    "Actual14 worker admission and later99 semantic cohort remain separately unauthorized."
+  ]
+}

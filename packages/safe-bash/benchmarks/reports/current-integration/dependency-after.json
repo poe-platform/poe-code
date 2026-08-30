@@ -1,0 +1,12 @@
+{
+  "root": {
+    "liveUnchanged": true,
+    "liveFileFingerprint": "586849fa6b54ecc1e4668cc1fa9018a5209bb74a7410f13bca8ebc1a884554c1",
+    "snapshotFileFingerprint": "586849fa6b54ecc1e4668cc1fa9018a5209bb74a7410f13bca8ebc1a884554c1"
+  },
+  "benchmark": {
+    "liveUnchanged": true,
+    "liveFileFingerprint": "1262b097a360f1597e2aff1e9791c2c209152291b6af7bf5c232944da4e9b24f",
+    "snapshotFileFingerprint": "1262b097a360f1597e2aff1e9791c2c209152291b6af7bf5c232944da4e9b24f"
+  }
+}

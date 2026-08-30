@@ -1,0 +1,26 @@
+{
+  "startMs": 1787976893270,
+  "presealCommit": "e7ce4ddfe467f2d869a92d09bd79dfc4ccb01357",
+  "presealSha256": "d73e5c2fffff2b1c2a5c7baf553d63c39de549404ac111781bf0995607dd6a85",
+  "grant": "Latest user conditional I03-v2 three cases only",
+  "freshBudgets": {
+    "seconds": 900,
+    "allProcesses": 16,
+    "peak": 4,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "caseSeconds": 30,
+    "internalLoaderAdmissions": 3,
+    "regexWorkers": 0
+  },
+  "outerOwner": {
+    "role": "exec-replaced pinned Python via direct tool shell; shell conservatively counted separately",
+    "capture": "exclusive CLI stdout/stderr opened by shell redirection before Python exec"
+  },
+  "plannedProcesses": {
+    "shell": 1,
+    "python": 1,
+    "node": 3,
+    "editingAndPublicationReserve": 11
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "state": "PROPOSED_NOT_RUN",
+  "mutants": [
+    {
+      "id": "MUT-RETAINED-VIEW",
+      "recordId": "NEG-04",
+      "witness": "UTF-22--whole",
+      "intent": "Replace retained-fragment copying by view; existing producer-reuse/finalization input and unchanged[1,2] output.",
+      "environments": [
+        "source-built-direct",
+        "installed-moved-direct"
+      ],
+      "preimageHash": null,
+      "patchHash": null,
+      "postimageHash": null,
+      "mutantPackageManifest": null,
+      "authorization": {
+        "state": "UNBOUND_DENY",
+        "value": null,
+        "reason": "Fresh compiled bytes and exact control-only mutation binding required"
+      },
+      "loadProof": "Actual authenticated mutated module/dependency load plus invoked command and captured behavior. Hash denial/blocked load is UNRUN_CONTROL, not a killed mutant.",
+      "expected": "Existing frozen witness detects actual loaded mutation. MUTANT_SURVIVED fails the control. Never change witness expectations."
+    },
+    {
+      "id": "MUT-QUOTED-DEL-DOUBLE",
+      "recordId": "NEG-06",
+      "witness": "UTF-02--single-byte",
+      "intent": "Blanket-reject quoted DEL; existing double-quoted witness.",
+      "environments": [
+        "source-built-direct",
+        "installed-moved-direct"
+      ],
+      "preimageHash": null,
+      "patchHash": null,
+      "postimageHash": null,
+      "mutantPackageManifest": null,
+      "authorization": {
+        "state": "UNBOUND_DENY",
+        "value": null,
+        "reason": "Fresh compiled bytes and exact control-only mutation binding required"
+      },
+      "loadProof": "Actual authenticated mutated module/dependency load plus invoked command and captured behavior. Hash denial/blocked load is UNRUN_CONTROL, not a killed mutant.",
+      "expected": "Existing frozen witness detects actual loaded mutation. MUTANT_SURVIVED fails the control. Never change witness expectations."
+    },
+    {
+      "id": "MUT-QUOTED-DEL-SINGLE",
+      "recordId": "NEG-06",
+      "witness": "UTF-03--whole",
+      "intent": "Same quoted-DEL mutant, existing single-quoted witness in separate process.",
+      "environments": [
+        "source-built-direct",
+        "installed-moved-direct"
+      ],
+      "preimageHash": null,
+      "patchHash": null,
+      "postimageHash": null,
+      "mutantPackageManifest": null,
+      "authorization": {
+        "state": "UNBOUND_DENY",
+        "value": null,
+        "reason": "Fresh compiled bytes and exact control-only mutation binding required"
+      },
+      "loadProof": "Actual authenticated mutated module/dependency load plus invoked command and captured behavior. Hash denial/blocked load is UNRUN_CONTROL, not a killed mutant.",
+      "expected": "Existing frozen witness detects actual loaded mutation. MUTANT_SURVIVED fails the control. Never change witness expectations."
+    },
+    {
+      "id": "MUT-PENDING-SHADOW",
+      "recordId": "NEG-06",
+      "witness": "ALS-04--whole",
+      "intent": "Resolve pending shadow to older completed anchor instead of ALIAS_CURRENT_NODE.",
+      "environments": [
+        "source-built-direct",
+        "installed-moved-direct"
+      ],
+      "preimageHash": null,
+      "patchHash": null,
+      "postimageHash": null,
+      "mutantPackageManifest": null,
+      "authorization": {
+        "state": "UNBOUND_DENY",
+        "value": null,
+        "reason": "Fresh compiled bytes and exact control-only mutation binding required"
+      },
+      "loadProof": "Actual authenticated mutated module/dependency load plus invoked command and captured behavior. Hash denial/blocked load is UNRUN_CONTROL, not a killed mutant.",
+      "expected": "Existing frozen witness detects actual loaded mutation. MUTANT_SURVIVED fails the control. Never change witness expectations."
+    }
+  ],
+  "positiveLoadsPerEnvironment": 1,
+  "maximumChildren": 10,
+  "unrunnable": [
+    {
+      "id": "MUT-BUDGET-RESET",
+      "recordId": "NEG-05",
+      "witnessIds": [
+        "QUE-11",
+        "WRK-11",
+        "WRK-12"
+      ],
+      "reason": "No approved public fixed-P1 counter witness; private DI or smaller limits forbidden."
+    },
+    {
+      "id": "MUT-ALIAS-RESET-OR-DISTINCT",
+      "recordId": "NEG-05",
+      "witnessIds": [
+        "WRK-15",
+        "ALS-11"
+      ],
+      "reason": "Source-counter and exact threshold/counter adapters remain missing."
+    },
+    {
+      "id": "MUT-EPIPE-STATUS",
+      "recordId": "NEG-06",
+      "witnessIds": [
+        "LIF-04"
+      ],
+      "reason": "No approved sink-failure/lifecycle adapter in the149 jobs."
+    }
+  ],
+  "unrunnableStatus": "UNRUN_BINDING_GAP; zero imports/admissions/pass credit",
+  "separation": "Fresh control-only package/manifests; pristine candidate guards never relaxed. Root-bound mutation authority cannot be reused for candidate acceptance.",
+  "nonzero": "Behavior mismatch evaluated inside zero-exit worker; all actual child/worker/parent nonzero outcomes remain aggregate FAIL."
+}

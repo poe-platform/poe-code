@@ -1,0 +1,37 @@
+diff --git a/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/candidate/tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/run-controls.mjs b/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/binding-overlay/run-controls.mjs
+index d5f85c0b..7d5da560 100644
+--- a/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/candidate/tests/commands/expr-stress/nullable-hierarchy-v5-20260827/review/run-controls.mjs
++++ b/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/binding-overlay/run-controls.mjs
+@@ -3,12 +3,13 @@ import { readFile } from 'node:fs/promises';
+ import { createHash } from 'node:crypto';
+ import { pathToFileURL } from 'node:url';
+ import { deriveTree, expectedComparison } from './oracle.mjs';
++import { bind } from './bind-api.mjs';
+ 
+ const [modulePath, bindingPath] = process.argv.slice(2);
+ if (!modulePath || !bindingPath) throw new Error('usage: node run-controls.mjs MODEL BINDING');
+ const controls = JSON.parse(await readFile(new URL('./CONTROLS.json', import.meta.url)));
+ const binding = JSON.parse(await readFile(bindingPath));
+-const api = await import(pathToFileURL(modulePath).href);
++const api = bind(await import(pathToFileURL(modulePath).href));
+ const source = await readFile(modulePath, 'utf8');
+ const results = [];
+ const observations = [];
+@@ -399,12 +400,14 @@ const mutations = binding.mutations ?? [];
+ assert(mutations.length <= 5);
+ const mutantResults = [];
+ for (const mutation of mutations) {
+-  if (source.split(mutation.before).length !== 2) {
++  const mutationSource = await readFile(mutation.originalPath, 'utf8');
++  if (mutationSource.split(mutation.before).length !== 2) {
+     mutantResults.push({ name: mutation.name, status: 'not-applied', reason: 'unique exact anchor missing' });
+     continue;
+   }
+-  const modified = source.replace(mutation.before, mutation.after);
+-  const implementation = await import(`data:text/javascript;base64,${Buffer.from(modified).toString('base64')}`);
++  const modified = mutationSource.replace(mutation.before, mutation.after);
++  assert.equal(await readFile(mutation.modifiedPath, 'utf8'), modified);
++  const implementation = bind(await import(pathToFileURL(mutation.modulePath).href));
+   const start = results.length;
+   const prefix = `mutant/${mutation.name}/`;
+   for (const number of mutation.groups) {

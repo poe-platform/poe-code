@@ -1,0 +1,65 @@
+HARNESS_TIMING {"pid":91468,"event":"streaming-module-ready","atMs":97.685958,"detail":{}}
+HARNESS_TIMING {"pid":91468,"event":"semantic-watchdog-armed","atMs":99.733625,"detail":{"timerId":1,"milliseconds":15000,"armedMs":99.727416,"dueMs":15099.727416}}
+TAP version 13
+HARNESS_TIMING {"pid":91468,"event":"native-delivery","atMs":115.732666,"detail":{"repetition":1,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":91488,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.07304100000000346,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"timer-armed","ms":2.0815000000000055,"detail":{"timerId":1,"label":"readiness","milliseconds":10000,"armedMs":2.0754579999999976,"dueMs":10002.075458}},{"event":"spawn","ms":3.367874999999998,"detail":{"pid":91488}},{"event":"write","ms":3.385165999999998,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":14.886250000000004,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":14.906625000000005,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":14.907583000000002},{"event":"timer-cleared","ms":14.922832999999997,"detail":{"timerId":1}},{"event":"timer-armed","ms":14.926291000000006,"detail":{"timerId":2,"label":"completion","milliseconds":10000,"armedMs":14.924290999999997,"dueMs":10014.924291}},{"event":"write","ms":14.946875000000006,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":15.148124999999993},{"event":"stdout-data","ms":15.157957999999994,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stderr-end","ms":15.506083000000004},{"event":"stdout-end","ms":15.538957999999994},{"event":"stdout-close","ms":15.654666000000006},{"event":"stderr-close","ms":15.657083},{"event":"exit","ms":15.693416,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":15.699749999999995,"detail":{"timerId":2}},{"event":"timer-armed","ms":15.709125,"detail":{"timerId":3,"label":"cleanup","milliseconds":5000,"armedMs":15.706500000000005,"dueMs":5015.7065}},{"event":"close","ms":15.736082999999994,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":15.738916000000003,"detail":{"timerId":3}}],"ready":true,"actualClose":true,"closeObserved":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-entered-read","atMs":116.718,"detail":{"repetition":1}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-first-data","atMs":117.239416,"detail":{"repetition":1}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-suffix-after-output","atMs":117.28625,"detail":{"repetition":1}}
+HARNESS_TIMING {"pid":91468,"event":"semantic-watchdog-cleared","atMs":118.670958,"detail":{"timerId":1}}
+HARNESS_TIMING {"pid":91468,"event":"semantic-watchdog-armed","atMs":119.249833,"detail":{"timerId":2,"milliseconds":15000,"armedMs":119.246375,"dueMs":15119.246375}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 1
+ok 1 - output-acknowledged prefix delivery (native explicitly line-buffered) 1
+  ---
+  duration_ms: 19.490875
+  type: 'test'
+  ...
+HARNESS_TIMING {"pid":91468,"event":"native-delivery","atMs":128.239291,"detail":{"repetition":2,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":91505,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.057583000000008155,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"timer-armed","ms":1.5746250000000117,"detail":{"timerId":1,"label":"readiness","milliseconds":10000,"armedMs":1.572416000000004,"dueMs":10001.572416}},{"event":"spawn","ms":1.9687080000000066,"detail":{"pid":91505}},{"event":"write","ms":1.9754160000000098,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":8.144790999999998,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":8.166125000000008,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":8.16654100000001},{"event":"timer-cleared","ms":8.177750000000003,"detail":{"timerId":1}},{"event":"timer-armed","ms":8.181625000000011,"detail":{"timerId":2,"label":"completion","milliseconds":10000,"armedMs":8.179541,"dueMs":10008.179541}},{"event":"write","ms":8.194208000000003,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":8.303791000000004},{"event":"stdout-data","ms":8.316125,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stderr-end","ms":8.642875000000004},{"event":"stdout-end","ms":8.665125000000003},{"event":"stdout-close","ms":8.861541000000003},{"event":"stderr-close","ms":8.864916000000008},{"event":"exit","ms":8.882999999999996,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":8.893958000000012,"detail":{"timerId":2}},{"event":"timer-armed","ms":8.898624999999996,"detail":{"timerId":3,"label":"cleanup","milliseconds":5000,"armedMs":8.896625000000014,"dueMs":5008.896625}},{"event":"close","ms":8.908333000000013,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":8.910791000000003,"detail":{"timerId":3}}],"ready":true,"actualClose":true,"closeObserved":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-entered-read","atMs":134.917166,"detail":{"repetition":2}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-first-data","atMs":135.2385,"detail":{"repetition":2}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-suffix-after-output","atMs":135.286291,"detail":{"repetition":2}}
+HARNESS_TIMING {"pid":91468,"event":"semantic-watchdog-cleared","atMs":136.424041,"detail":{"timerId":2}}
+HARNESS_TIMING {"pid":91468,"event":"semantic-watchdog-armed","atMs":136.578333,"detail":{"timerId":3,"milliseconds":15000,"armedMs":136.576083,"dueMs":15136.576083}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 2
+ok 2 - output-acknowledged prefix delivery (native explicitly line-buffered) 2
+  ---
+  duration_ms: 17.301
+  type: 'test'
+  ...
+HARNESS_TIMING {"pid":91468,"event":"native-delivery","atMs":144.495916,"detail":{"repetition":3,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":91521,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.06033300000001418,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"timer-armed","ms":1.4782500000000027,"detail":{"timerId":1,"label":"readiness","milliseconds":10000,"armedMs":1.4759579999999914,"dueMs":10001.475957999999}},{"event":"spawn","ms":1.865000000000009,"detail":{"pid":91521}},{"event":"write","ms":1.8712500000000034,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":7.259708000000018,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":7.276291000000015,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":7.2767080000000135},{"event":"timer-cleared","ms":7.285750000000007,"detail":{"timerId":1}},{"event":"timer-armed","ms":7.289625000000001,"detail":{"timerId":2,"label":"completion","milliseconds":10000,"armedMs":7.2870829999999955,"dueMs":10007.287083}},{"event":"write","ms":7.301000000000016,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":7.377125000000007},{"event":"stdout-data","ms":7.386250000000018,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stderr-end","ms":7.697958},{"event":"stdout-end","ms":7.7292500000000075},{"event":"stdout-close","ms":7.835000000000008},{"event":"stderr-close","ms":7.836375000000004},{"event":"exit","ms":7.849375000000009,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":7.852416000000005,"detail":{"timerId":2}},{"event":"timer-armed","ms":7.8557500000000005,"detail":{"timerId":3,"label":"cleanup","milliseconds":5000,"armedMs":7.854208,"dueMs":5007.854208}},{"event":"close","ms":7.86304100000001,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":7.864333000000016,"detail":{"timerId":3}}],"ready":true,"actualClose":true,"closeObserved":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-entered-read","atMs":152.417083,"detail":{"repetition":3}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-first-data","atMs":152.772416,"detail":{"repetition":3}}
+HARNESS_TIMING {"pid":91468,"event":"virtual-suffix-after-output","atMs":152.819458,"detail":{"repetition":3}}
+HARNESS_TIMING {"pid":91468,"event":"semantic-watchdog-cleared","atMs":154.058458,"detail":{"timerId":3}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 3
+ok 3 - output-acknowledged prefix delivery (native explicitly line-buffered) 3
+  ---
+  duration_ms: 17.566334
+  type: 'test'
+  ...
+# Subtest: whole-write delivery retains the distinct warning-only native result
+ok 4 - whole-write delivery retains the distinct warning-only native result
+  ---
+  duration_ms: 24.777
+  type: 'test'
+  ...
+# Subtest: binary-aware output respects backpressure before another read
+ok 5 - binary-aware output respects backpressure before another read
+  ---
+  duration_ms: 26.925625
+  type: 'test'
+  ...
+# Subtest: binary-aware output cancels under backpressure before another read
+ok 6 - binary-aware output cancels under backpressure before another read
+  ---
+  duration_ms: 26.006167
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.94325

@@ -1,0 +1,47 @@
+Independent leaf review result: ACCEPTED WITHIN THE SINGLE-FIXTURE SCOPE.
+Evidence commit: 29cfda34082e433848604ed8690396fa44e92df6
+Source candidate: ec59c917ba137126a064960995b5fc6945ea8f6d
+Baseline/source parent: 40fb77fb09a2145e8a767c96b64966dafdff5c2b
+
+Failure cause: the added expr overload contextually widens the fixture's
+intercepted descriptor to Descriptor | ExprMatchDescriptor, losing the ordinary
+descriptor/result correlation. The regex-only instrumentation then fails
+patterns access, inputBytes, and forwarding to either bound overload. This is
+fixture mock typing incompatibility, not observed production API/protocol
+regression. The candidate's checked local Omit-plus-method annotation restores
+the correct ordinary-descriptor view without changing runtime behavior.
+
+Independent strict exact-fixture closure: baseline TS2339/TS2345/TS2769;
+candidate zero diagnostics. Real regex/expr overload positive probes pass.
+Two unsuppressed controls reject expr in the actual extracted helper annotation
+and regex inputBytes (one TS2345 each). Annotation removal restores all three
+original diagnostics and leaves emitted JavaScript identical.
+
+JavaScript: 4,812 byte-identical bytes, SHA-256
+b995643979e9447809a8c216768e021e00700c854b3477469a3cfaa57f32e146.
+All four test names, all 14 assertion call texts and every executable expression
+are preserved. No any, suppression directive, cast, exclusion or assertion
+weakening in the candidate. Only the canonical fixture changes, +4/-2 lines.
+
+Runtime: baseline 4/4 glob + 5/5 expr protocol; candidate 4/4 + 5/5.
+Nine unique cases, 18 successful executions. Twelve runtime-support JavaScript
+emissions also match. Actual protocol/worker cases are unchanged.
+
+Inputs: 15 selected Git files, exact candidate hashes, no live product overlay;
+only the fixture differs. Runtime archive before/after checks include new file
+names; later controlled probes are separately inventoried and originals restored.
+Node v22.22.2, TypeScript 5.9.3, darwin arm64; committed strict settings retained.
+
+Preserved failures: two initial runtime-emission setup failures, shell inspection
+errors, a rejected patch envelope and a raw-captured-diff whitespace lint result.
+None is recast as a pass. Successful baseline is baseline-v3; candidate-v1 is
+successful. All task-owned child executions settled and temporary archives were
+removed. Only the independent evidence subtree was edited/committed.
+
+Remaining qualified diagnostics: the ten original unrelated DU TS2307 errors
+remain preserved in FOREIGN-TYPECHECK. They were not fixed or revalidated.
+No whole-repository gate, native recapture, broad corpus, performance or
+superiority claim. Full detail: ../REPORT.md and ../candidate-v1/result.json.
+
+This receipt names the immutable evidence commit; its own commit necessarily
+follows that commit and is returned separately by Codex.

@@ -1,0 +1,23 @@
+{
+  "program": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+    "--test",
+    "--test-name-pattern=^GNU 9\\.7 captured profile: (-b |env:\\{\\\"DU_BLOCK_SIZE\\\":(\\\"bad\\\"|\\\"\\\",\\\"BLOCK_SIZE\\\":\\\"2K\\\")\\})$",
+    "tests/commands/du/native.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/candidate/extracted",
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 632,
+  "stderrBytes": 0,
+  "stdoutSha256": "d5366d97b7ee97dd943b043b1ec301d646b37e8e527e9af2a422116f616dfd00",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tap": {
+    "tests": 3,
+    "pass": 3,
+    "fail": 0,
+    "skipped": 0
+  }
+}

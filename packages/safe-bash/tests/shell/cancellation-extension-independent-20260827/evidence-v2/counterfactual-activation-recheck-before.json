@@ -1,0 +1,18 @@
+{
+  ".": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "cancellation.ts": {
+    "kind": "file",
+    "mode": 420,
+    "size": 31901,
+    "sha256": "15704aa997ea97b43ff8f90e25608c737cda7dadb77b0f61b1f8d46bb99fa560"
+  },
+  "package.json": {
+    "kind": "file",
+    "mode": 420,
+    "size": 23,
+    "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+  }
+}

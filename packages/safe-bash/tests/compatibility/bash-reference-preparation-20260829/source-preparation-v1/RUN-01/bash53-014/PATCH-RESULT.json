@@ -1,0 +1,58 @@
+{
+  "name": "bash53-014",
+  "signedPayload": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.data",
+    "bytes": 2229,
+    "mode": "600",
+    "sha256": "bd4360b401d38507e358783dcad8536a99c6789f0d3a5bd0cfb8c4a34144696c",
+    "role": "OPAQUE_SOURCE"
+  },
+  "argv": [
+    "-s",
+    "-f",
+    "-F",
+    "0",
+    "-p0",
+    "--posix",
+    "-d",
+    "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+    "-i",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.data"
+  ],
+  "status": {
+    "code": 0,
+    "signal": null
+  },
+  "targets": [
+    {
+      "path": "builtins/mapfile.def",
+      "before": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/builtins/mapfile.def",
+        "bytes": 9629,
+        "mode": "600",
+        "sha256": "e86b421548a1113fa95db60a602376273f0bbfe6da2497f02c0f04af5c470339"
+      },
+      "after": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/builtins/mapfile.def",
+        "bytes": 9637,
+        "mode": "600",
+        "sha256": "3f2c2ae84e57425cba48835178dade834659ef1dfd15560e3e0674ad79243d60"
+      }
+    },
+    {
+      "path": "patchlevel.h",
+      "before": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/patchlevel.h",
+        "bytes": 1118,
+        "mode": "600",
+        "sha256": "82660172738700d8618b8dbc0cd897e333f4c8598974dc377ed5bf6523835264"
+      },
+      "after": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/patchlevel.h",
+        "bytes": 1118,
+        "mode": "600",
+        "sha256": "3945018e5e7e7fa8b9ecf0f1db729c474afd6f2505f55b995969bd785b8663db"
+      }
+    }
+  ]
+}

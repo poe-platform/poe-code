@@ -1,0 +1,10 @@
+{
+  "id": "A10-shared-positive",
+  "startedAt": "2026-08-28T03:43:55.356Z",
+  "status": "FAIL",
+  "error": {
+    "message": "Expected values to be strictly equal:\n\n0 !== 1\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at runBuildTypes (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/build-types.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/review-followup.mjs:172:21\n    at async control (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/review-followup.mjs:51:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/review-followup.mjs:171:20"
+  },
+  "finishedAt": "2026-08-28T03:44:04.964Z"
+}

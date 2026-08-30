@@ -1,0 +1,10 @@
+{
+  "workspace": "/private/tmp/safe-bash-webdav-review-Xiscey/fixtures/.work-LAgRus",
+  "startedAt": "2026-08-27T06:35:36.154Z",
+  "endedAt": "2026-08-27T06:35:46.226Z",
+  "serverPid": 67473,
+  "serverExitCode": null,
+  "serverSignalCode": "SIGTERM",
+  "serviceDurationMs": 3647,
+  "removed": true
+}

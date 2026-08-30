@@ -1,0 +1,326 @@
+TAP version 13
+# Subtest: independent conformance source provenance
+ok 1 - independent conformance source provenance
+  ---
+  duration_ms: 5.60775
+  type: 'test'
+  ...
+# {"sourceSha256":{"src/contracts/filesystem.ts":"fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915","src/contracts/errors.ts":"66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840","src/contracts/io.ts":"e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb","src/contracts/path.ts":"948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34","src/fs/memory/index.ts":"98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0","src/fs/real/index.ts":"d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da","src/fs/s3/filesystem.ts":"c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce","src/fs/s3/mock.ts":"d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d","src/fs/s3/transport.ts":"df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e","src/fs/webdav/webdav.ts":"b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6","src/fs/webdav/xml.ts":"c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1","tests/fs/webdav/mock.ts":"f46b18da28ed03b8096dc2b8a10fc0aba768947b9af5ebf0ebae602b289d8ce0"}}
+# Subtest: s3: shared binary round trip preserves NUL, high bytes, and detached read copies
+ok 2 - s3: shared binary round trip preserves NUL, high bytes, and detached read copies
+  ---
+  duration_ms: 2.454208
+  type: 'test'
+  ...
+# Subtest: s3: shared write handles sliced typed arrays without leaking backing bytes
+ok 3 - s3: shared write handles sliced typed arrays without leaking backing bytes
+  ---
+  duration_ms: 0.479875
+  type: 'test'
+  ...
+# Subtest: s3: shared overwrite truncates and zero-byte reads honor maxBytes zero
+ok 4 - s3: shared overwrite truncates and zero-byte reads honor maxBytes zero
+  ---
+  duration_ms: 0.791041
+  type: 'test'
+  ...
+# Subtest: s3: shared read maxBytes rejects overflow and accepts exact size
+ok 5 - s3: shared read maxBytes rejects overflow and accepts exact size
+  ---
+  duration_ms: 0.531459
+  type: 'test'
+  ...
+# Subtest: s3: shared mandatory appendFile creates and appends exact bytes
+ok 6 - s3: shared mandatory appendFile creates and appends exact bytes
+  ---
+  duration_ms: 0.391375
+  type: 'test'
+  ...
+# Subtest: s3: shared write flag a appends existing bytes
+ok 7 - s3: shared write flag a appends existing bytes
+  ---
+  duration_ms: 0.432375
+  type: 'test'
+  ...
+# Subtest: s3: shared exclusive wx rejects existing files without modifying content
+ok 8 - s3: shared exclusive wx rejects existing files without modifying content
+  ---
+  duration_ms: 0.478208
+  type: 'test'
+  ...
+# Subtest: s3: shared exclusive ax creates once without modifying existing content
+ok 9 - s3: shared exclusive ax creates once without modifying existing content
+  ---
+  duration_ms: 0.762792
+  type: 'test'
+  ...
+# Subtest: s3: shared missing read/stat/lstat/access/realpath preserve ENOENT
+ok 10 - s3: shared missing read/stat/lstat/access/realpath preserve ENOENT
+  ---
+  duration_ms: 0.614542
+  type: 'test'
+  ...
+# Subtest: s3: shared missing parents do not get created by writeFile
+ok 11 - s3: shared missing parents do not get created by writeFile
+  ---
+  duration_ms: 0.391708
+  type: 'test'
+  ...
+# Subtest: s3: shared write through non-directory parent produces ENOTDIR and preserves bytes
+ok 12 - s3: shared write through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 0.333542
+  type: 'test'
+  ...
+# Subtest: s3: shared read through non-directory parent produces ENOTDIR and preserves bytes
+ok 13 - s3: shared read through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 1.026667
+  type: 'test'
+  ...
+# Subtest: s3: shared readdir on a file produces ENOTDIR and preserves bytes
+ok 14 - s3: shared readdir on a file produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 0.26475
+  type: 'test'
+  ...
+# Subtest: s3: shared reading and overwriting directories produce EISDIR
+ok 15 - s3: shared reading and overwriting directories produce EISDIR
+  ---
+  duration_ms: 0.5445
+  type: 'test'
+  ...
+# Subtest: s3: shared trailing slash requires a directory, not lexical stripping
+ok 16 - s3: shared trailing slash requires a directory, not lexical stripping
+  ---
+  duration_ms: 0.306541
+  type: 'test'
+  ...
+# Subtest: s3: shared recursive mkdir creates exactly one tree and is idempotent
+ok 17 - s3: shared recursive mkdir creates exactly one tree and is idempotent
+  ---
+  duration_ms: 1.176083
+  type: 'test'
+  ...
+# Subtest: s3: shared nonrecursive directory removal fails closed on nonempty directories
+ok 18 - s3: shared nonrecursive directory removal fails closed on nonempty directories
+  ---
+  duration_ms: 0.629292
+  type: 'test'
+  ...
+# DIRECTORY POLICY: FsError: ENOTEMPTY: directory not empty, rm '/dir'
+# Subtest: s3: shared recursive directory removal removes an empty directory
+ok 19 - s3: shared recursive directory removal removes an empty directory
+  ---
+  duration_ms: 0.241333
+  type: 'test'
+  ...
+# Subtest: s3: shared recursive rm preserves sibling-prefix names
+ok 20 - s3: shared recursive rm preserves sibling-prefix names
+  ---
+  duration_ms: 0.38375
+  type: 'test'
+  ...
+# Subtest: s3: shared force only suppresses absent paths
+ok 21 - s3: shared force only suppresses absent paths
+  ---
+  duration_ms: 0.138042
+  type: 'test'
+  ...
+# Subtest: s3: shared file rename replaces destination and removes source
+ok 22 - s3: shared file rename replaces destination and removes source
+  ---
+  duration_ms: 0.663583
+  type: 'test'
+  ...
+# Subtest: s3: shared directory rename moves all descendants and preserves siblings
+ok 23 - s3: shared directory rename moves all descendants and preserves siblings
+  ---
+  duration_ms: 0.777792
+  type: 'test'
+  ...
+# Subtest: s3: shared rename onto self is a no-op; missing source still fails
+ok 24 - s3: shared rename onto self is a no-op; missing source still fails
+  ---
+  duration_ms: 0.182416
+  type: 'test'
+  ...
+# Subtest: s3: shared rename cannot move a directory beneath itself
+ok 25 - s3: shared rename cannot move a directory beneath itself
+  ---
+  duration_ms: 0.208583
+  type: 'test'
+  ...
+# Subtest: s3: shared rename file onto directory has EISDIR and preserves both
+ok 26 - s3: shared rename file onto directory has EISDIR and preserves both
+  ---
+  duration_ms: 0.237584
+  type: 'test'
+  ...
+# Subtest: s3: shared rename onto empty directory replaces it
+ok 27 - s3: shared rename onto empty directory replaces it
+  ---
+  duration_ms: 0.550792
+  type: 'test'
+  ...
+# Subtest: s3: shared copyFile duplicates bytes, exclusive copy preserves destination
+ok 28 - s3: shared copyFile duplicates bytes, exclusive copy preserves destination
+  ---
+  duration_ms: 1.063334
+  type: 'test'
+  ...
+# Subtest: s3: shared copyFile replaces an existing destination by default
+ok 29 - s3: shared copyFile replaces an existing destination by default
+  ---
+  duration_ms: 0.25675
+  type: 'test'
+  ...
+# Subtest: s3: shared copyFile refuses a directory source
+ok 30 - s3: shared copyFile refuses a directory source
+  ---
+  duration_ms: 0.1305
+  type: 'test'
+  ...
+# Subtest: s3: shared Unicode and literal URL metacharacters round-trip
+ok 31 - s3: shared Unicode and literal URL metacharacters round-trip
+  ---
+  duration_ms: 0.620666
+  type: 'test'
+  ...
+# Subtest: s3: shared NUL and non-string paths reject EINVAL without mutation
+ok 32 - s3: shared NUL and non-string paths reject EINVAL without mutation
+  ---
+  duration_ms: 0.169042
+  type: 'test'
+  ...
+# Subtest: s3: shared malformed read limits reject EINVAL
+ok 33 - s3: shared malformed read limits reject EINVAL
+  ---
+  duration_ms: 0.188583
+  type: 'test'
+  ...
+# Subtest: s3: shared malformed payload and flag reject EINVAL without data loss
+ok 34 - s3: shared malformed payload and flag reject EINVAL without data loss
+  ---
+  duration_ms: 0.322792
+  type: 'test'
+  ...
+# Subtest: s3: shared stat metadata is finite and type-consistent
+ok 35 - s3: shared stat metadata is finite and type-consistent
+  ---
+  duration_ms: 0.23525
+  type: 'test'
+  ...
+# Subtest: s3: shared large directory lists every child exactly once
+ok 36 - s3: shared large directory lists every child exactly once
+  ---
+  duration_ms: 20.891542
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted readFile rejects cancellation without mutation
+ok 37 - s3: pre-aborted readFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.427417
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted stat rejects cancellation without mutation
+ok 38 - s3: pre-aborted stat rejects cancellation without mutation
+  ---
+  duration_ms: 0.251375
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted lstat rejects cancellation without mutation
+ok 39 - s3: pre-aborted lstat rejects cancellation without mutation
+  ---
+  duration_ms: 0.20975
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted readdir rejects cancellation without mutation
+ok 40 - s3: pre-aborted readdir rejects cancellation without mutation
+  ---
+  duration_ms: 0.211209
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted realpath rejects cancellation without mutation
+ok 41 - s3: pre-aborted realpath rejects cancellation without mutation
+  ---
+  duration_ms: 0.199625
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted access rejects cancellation without mutation
+ok 42 - s3: pre-aborted access rejects cancellation without mutation
+  ---
+  duration_ms: 0.428041
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted writeFile rejects cancellation without mutation
+ok 43 - s3: pre-aborted writeFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.256584
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted mkdir rejects cancellation without mutation
+ok 44 - s3: pre-aborted mkdir rejects cancellation without mutation
+  ---
+  duration_ms: 0.706
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted rm rejects cancellation without mutation
+ok 45 - s3: pre-aborted rm rejects cancellation without mutation
+  ---
+  duration_ms: 0.279
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted rename rejects cancellation without mutation
+ok 46 - s3: pre-aborted rename rejects cancellation without mutation
+  ---
+  duration_ms: 0.206833
+  type: 'test'
+  ...
+# Subtest: s3: pre-aborted copyFile rejects cancellation without mutation
+ok 47 - s3: pre-aborted copyFile rejects cancellation without mutation
+  ---
+  duration_ms: 0.178125
+  type: 'test'
+  ...
+# Subtest: s3: symlinks follow capabilities, dangling links and cycles stay explicit
+ok 48 - s3: symlinks follow capabilities, dangling links and cycles stay explicit
+  ---
+  duration_ms: 0.112083
+  type: 'test'
+  ...
+# CAPABILITY GAP: symlinks=false; methods absent or reject ENOTSUP
+# Subtest: s3: hardlink capabilities match inode-sharing or fail-closed behavior
+ok 49 - s3: hardlink capabilities match inode-sharing or fail-closed behavior
+  ---
+  duration_ms: 0.168542
+  type: 'test'
+  ...
+# CAPABILITY GAP: hardlinks=false; link absent or rejects ENOTSUP
+# Subtest: s3: streaming capabilities match bounded reads or absent methods
+ok 50 - s3: streaming capabilities match bounded reads or absent methods
+  ---
+  duration_ms: 0.58125
+  type: 'test'
+  ...
+# Subtest: s3: streaming write capability independently matches exact bytes or absent method
+ok 51 - s3: streaming write capability independently matches exact bytes or absent method
+  ---
+  duration_ms: 0.523458
+  type: 'test'
+  ...
+# Subtest: conformance source state remained stable during suite
+ok 52 - conformance source state remained stable during suite
+  ---
+  duration_ms: 4.077041
+  type: 'test'
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 197.274084

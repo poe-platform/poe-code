@@ -1,0 +1,36 @@
+{
+  "at": "2026-08-27T09:46:02.471Z",
+  "authorization": "Explicit ROOT approval: externalize only two generated owned payloads",
+  "records": [
+    {
+      "relative": "sealed/oracle/tree",
+      "name": "tree",
+      "bytes": 114488,
+      "mode": 493,
+      "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/oracle/tree",
+      "externalPath": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+      "independentRegularFile": true,
+      "originalInode": 172279507,
+      "externalInode": 172750459
+    },
+    {
+      "relative": "sealed/oracle/tree-2.2.1.tar.bz2",
+      "name": "tree-2.2.1.tar.bz2",
+      "bytes": 56345,
+      "mode": 420,
+      "sha256": "e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5",
+      "source": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/tree/sealed/oracle/tree-2.2.1.tar.bz2",
+      "externalPath": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree-2.2.1.tar.bz2",
+      "independentRegularFile": true,
+      "originalInode": 172279510,
+      "externalInode": 172750465
+    }
+  ],
+  "originalPrivateArtifactsVerifiedBeforeAndAfter": 97,
+  "privateCopyModified": false,
+  "otherRelocations": 0,
+  "productCalls": 0,
+  "nativeCalls": 0,
+  "testReplays": 0
+}

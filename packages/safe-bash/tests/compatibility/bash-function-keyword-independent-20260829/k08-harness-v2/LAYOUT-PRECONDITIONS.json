@@ -1,0 +1,54 @@
+{
+  "utc": "2026-08-29T15:26:08.062Z",
+  "rows": [
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/auth.mjs",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/profile.mjs",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/guard.mjs",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/case-driver.mjs",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/helper-driver.mjs",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/case-adapter.mjs",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app/CASES.json",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-installed",
+      "present": false
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-moved",
+      "present": false
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-mutant-M01",
+      "present": false
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-mutant-M02",
+      "present": false
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/target-mutant-M03",
+      "present": false
+    }
+  ],
+  "futureCaptureEntries": []
+}

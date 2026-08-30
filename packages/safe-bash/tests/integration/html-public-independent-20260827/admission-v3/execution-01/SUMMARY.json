@@ -1,0 +1,60 @@
+{
+  "freeze": "eb56ed1eff6e7061aa219fb4877bc2382cf15a27",
+  "manifestSha256": "35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037",
+  "controlsDeclared": 5,
+  "controlsExecuted": 3,
+  "expectedOutcomes": 2,
+  "unexpectedFailures": 1,
+  "rows": [
+    {
+      "control": "positive",
+      "outcome": "expected-control-outcome",
+      "productPass": "isolated stream only; not admission",
+      "directory": "01-positive",
+      "code": 0,
+      "signal": null,
+      "forcedConsumerTermination": false,
+      "producerStatus": 0,
+      "producerSignal": null
+    },
+    {
+      "control": "producer-exit7",
+      "outcome": "expected-control-outcome",
+      "productPass": false,
+      "directory": "02-producer-exit7",
+      "code": 17,
+      "signal": null,
+      "forcedConsumerTermination": false,
+      "producerStatus": 7,
+      "producerSignal": null
+    },
+    {
+      "control": "consumer-failure",
+      "outcome": "unexpected-control-failure",
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\nnull !== 'SIGTERM'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nnull !== 'SIGTERM'\n\n    at controlRun (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/coordinator.mjs:209:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3/recipe/coordinator.mjs:238:15",
+        "process": null
+      },
+      "productPass": false,
+      "directory": "03-consumer-failure",
+      "code": 17,
+      "signal": null,
+      "forcedConsumerTermination": false,
+      "producerStatus": 1,
+      "producerSignal": null
+    }
+  ],
+  "unexecuted": [
+    "timeout",
+    "allocation-mutant"
+  ],
+  "postAuthenticated": true,
+  "actual34": 0,
+  "extraMaterializerControls": 0,
+  "full410BuildPackReconstruction": false,
+  "admission": "HELD pending different independent review",
+  "scope": "fresh stream-component consumer PROCESS current-RSS samples only; supervisor and producer explicitly separate, not total verifier RSS"
+}

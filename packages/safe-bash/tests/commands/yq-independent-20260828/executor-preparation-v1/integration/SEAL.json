@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "kind": "YQ_COMPOUND_INTEGRATION_PRESEAL",
+  "date": "2026-08-28",
+  "sourceCommit": "e0e62f3e80227daf89d2c858faf9cb483e266474",
+  "initialPresealCommit": "47660d1e4e78f835b40f1565800fd807b712e06c",
+  "state": "SEALED_PREPARATION_AWAITING_ROOT_EXECUTION_AND_ADMISSION",
+  "coreTreeSha256": "5f882a3e37875ad0e7ef8752b71cfed40c663b0d05f970522a8cf25e2779a17c",
+  "entries": [
+    {"path":".","kind":"directory","mode":493},
+    {"path":"COMPONENTS.json","kind":"file","mode":420,"bytes":4087,"sha256":"a66ef318a69a53bf4701a16eaae35c2adfbd38575cb9a0ef8d86d01cf9bd86ee"},
+    {"path":"RECIPE.json","kind":"file","mode":420,"bytes":48363,"sha256":"7f74efa65ec25ea0868f03ba7e791737aae2a8b13d4c85d6d78b5a83f30dafcd"},
+    {"path":"SYNTHETIC.json","kind":"file","mode":420,"bytes":792,"sha256":"4eec170813fbf805a58fd1829c74340592e927c5de80a5f967f5d07eb0c29f3a"},
+    {"path":"binding.mjs","kind":"file","mode":420,"bytes":7596,"sha256":"4b18b9ce40d2c4fa7f47a2c30e28cfd52699c0527e3360855af6965f97dbd20e"},
+    {"path":"check.mjs","kind":"file","mode":420,"bytes":9914,"sha256":"d2cbdafc50770065adcc2ea27dacf8e9ba3da9d40bcae9953a3006c42130f098"},
+    {"path":"components.mjs","kind":"file","mode":420,"bytes":3939,"sha256":"90e38e5b3858170f468e61c49c9f6b194611d9728a43f5d6c6b8030464b6b519"},
+    {"path":"run.mjs","kind":"file","mode":420,"bytes":9659,"sha256":"0a618311ac439d2771b2eb4ee361fb2763bb1f0f43fcf3b4acde181e69ed6253"},
+    {"path":"translation.mjs","kind":"file","mode":420,"bytes":6774,"sha256":"066ce3104757e56d3a4bf6f773f19d0058dcb5c4b1bf939f653822138176a6a2"},
+    {"path":"worker.mjs","kind":"file","mode":420,"bytes":4556,"sha256":"a6bc93827644010add919af2796831f0596d19804efe0c5668b3e09a3616bdb1"}
+  ],
+  "recipeSha256": "7f74efa65ec25ea0868f03ba7e791737aae2a8b13d4c85d6d78b5a83f30dafcd",
+  "componentsSha256": "a66ef318a69a53bf4701a16eaae35c2adfbd38575cb9a0ef8d86d01cf9bd86ee",
+  "protocolSha256": "741958975906008636f713fd01732da5d3054b5a7d3c366825e382a5e4d3e224",
+  "candidateExecutionAuthorizedByThisSeal": false,
+  "productImports": 0,
+  "publicAdmission": "PUBLIC_EXPORT_GAP",
+  "sourceBindingGap": "Root must route an explicitly accepted exact composite Git identity; raw author 35da1854 tree cannot satisfy sealed consumer v1.",
+  "opaqueAdmissionReceipt": null
+}

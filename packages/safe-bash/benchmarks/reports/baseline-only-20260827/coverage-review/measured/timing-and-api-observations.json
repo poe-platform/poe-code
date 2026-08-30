@@ -1,0 +1,1362 @@
+[
+  {
+    "id": "printf-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1132499999999936,
+    "reviewerProductElapsedMs": 2.393540999999999,
+    "authorHostElapsedMs": 183.93433300000004,
+    "reviewerHostElapsedMs": 183.08158400000002,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "printf-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.584125000000007,
+    "reviewerProductElapsedMs": 11.578416000000004,
+    "authorHostElapsedMs": 87.07254200000011,
+    "reviewerHostElapsedMs": 95.02045799999996,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "terminal-byte-control",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.6733329999999853,
+    "reviewerProductElapsedMs": 2.889916999999997,
+    "authorHostElapsedMs": 177.97466699999995,
+    "reviewerHostElapsedMs": 187.02495899999985,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "terminal-byte-control",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 12.858582999999996,
+    "reviewerProductElapsedMs": 17.010666,
+    "authorHostElapsedMs": 88.86445800000001,
+    "reviewerHostElapsedMs": 103.69650000000001,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "curl-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 6.217166999999989,
+    "reviewerProductElapsedMs": 6.894999999999982,
+    "authorHostElapsedMs": 188.89141599999994,
+    "reviewerHostElapsedMs": 234.808542,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "curl-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.766833999999996,
+    "reviewerProductElapsedMs": 12.004999999999995,
+    "authorHostElapsedMs": 87.09562499999993,
+    "reviewerHostElapsedMs": 99.49454199999991,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "vfs-census-control",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.9877910000000156,
+    "reviewerProductElapsedMs": 2.9025419999999826,
+    "authorHostElapsedMs": 187.9005420000001,
+    "reviewerHostElapsedMs": 199.89200000000005,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "vfs-census-control",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 12.84858299999999,
+    "reviewerProductElapsedMs": 15.761083,
+    "authorHostElapsedMs": 88.97425000000021,
+    "reviewerHostElapsedMs": 104.76887499999975,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "alias-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.4070000000000107,
+    "reviewerProductElapsedMs": 2.272583999999995,
+    "authorHostElapsedMs": 209.21379099999967,
+    "reviewerHostElapsedMs": 189.52454099999977,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "alias-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 15.14562500000001,
+    "reviewerProductElapsedMs": 11.902417,
+    "authorHostElapsedMs": 110.82524999999987,
+    "reviewerHostElapsedMs": 89.07729199999994,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "builtin-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1471249999999884,
+    "reviewerProductElapsedMs": 2.20041599999999,
+    "authorHostElapsedMs": 182.99258400000008,
+    "reviewerHostElapsedMs": 179.40025000000014,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "builtin-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.735,
+    "reviewerProductElapsedMs": 9.961208999999997,
+    "authorHostElapsedMs": 99.3041659999999,
+    "reviewerHostElapsedMs": 93.02612500000032,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "clear-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 1.9107500000000073,
+    "reviewerProductElapsedMs": 2.4229589999999916,
+    "authorHostElapsedMs": 183.88374999999996,
+    "reviewerHostElapsedMs": 213.99179200000003,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "clear-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 5.659999999999997,
+    "reviewerProductElapsedMs": 6.7797920000000005,
+    "authorHostElapsedMs": 83.95733399999972,
+    "reviewerHostElapsedMs": 89.75212499999998,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "column-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.2396659999999997,
+    "reviewerProductElapsedMs": 3.1319579999999974,
+    "authorHostElapsedMs": 181.76420899999994,
+    "reviewerHostElapsedMs": 199.49491599999988,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "column-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 8.060959000000004,
+    "reviewerProductElapsedMs": 12.747749999999996,
+    "authorHostElapsedMs": 88.93825000000015,
+    "reviewerHostElapsedMs": 103.60858299999995,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "compgen-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.4092919999999935,
+    "reviewerProductElapsedMs": 2.5836669999999913,
+    "authorHostElapsedMs": 195.52345800000012,
+    "reviewerHostElapsedMs": 211.9129579999999,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "compgen-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 5.1682500000000005,
+    "reviewerProductElapsedMs": 6.039707999999997,
+    "authorHostElapsedMs": 85.93391699999984,
+    "reviewerHostElapsedMs": 88.09858300000019,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "complete-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.239666999999997,
+    "reviewerProductElapsedMs": 2.641999999999996,
+    "authorHostElapsedMs": 177.53591700000015,
+    "reviewerHostElapsedMs": 196.0832919999998,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "complete-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 5.246207999999996,
+    "reviewerProductElapsedMs": 5.969166000000001,
+    "authorHostElapsedMs": 87.40116699999999,
+    "reviewerHostElapsedMs": 90.13337499999989,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "compopt-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.3734170000000177,
+    "reviewerProductElapsedMs": 2.828791000000024,
+    "authorHostElapsedMs": 185.60108300000047,
+    "reviewerHostElapsedMs": 199.1295,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "compopt-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 5.4778750000000045,
+    "reviewerProductElapsedMs": 6.482124999999996,
+    "authorHostElapsedMs": 85.78395799999998,
+    "reviewerHostElapsedMs": 91.21987500000023,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "date-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.171333000000004,
+    "reviewerProductElapsedMs": 2.650332999999989,
+    "authorHostElapsedMs": 184.48558400000002,
+    "reviewerHostElapsedMs": 195.70708399999967,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "date-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.534334000000001,
+    "reviewerProductElapsedMs": 12.485833000000007,
+    "authorHostElapsedMs": 89.68112500000007,
+    "reviewerHostElapsedMs": 94.4971660000001,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "declare-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.409374999999983,
+    "reviewerProductElapsedMs": 2.5088340000000073,
+    "authorHostElapsedMs": 182.84212500000012,
+    "reviewerHostElapsedMs": 201.453125,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "declare-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.883250000000004,
+    "reviewerProductElapsedMs": 14.925167000000002,
+    "authorHostElapsedMs": 90.90058300000055,
+    "reviewerHostElapsedMs": 110.23025000000007,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "dirs-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.170500000000004,
+    "reviewerProductElapsedMs": 3.1703329999999994,
+    "authorHostElapsedMs": 190.57545899999968,
+    "reviewerHostElapsedMs": 278.0859580000001,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "dirs-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 5.048708000000005,
+    "reviewerProductElapsedMs": 6.270291,
+    "authorHostElapsedMs": 82.80633299999954,
+    "reviewerHostElapsedMs": 96.55879200000027,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "du-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.0573750000000075,
+    "reviewerProductElapsedMs": 2.5008339999999976,
+    "authorHostElapsedMs": 204.1502500000006,
+    "reviewerHostElapsedMs": 211.34420800000044,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "du-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 8.32,
+    "reviewerProductElapsedMs": 12.04716599999999,
+    "authorHostElapsedMs": 83.62716699999964,
+    "reviewerHostElapsedMs": 112.97441700000036,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "egrep-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.605041,
+    "reviewerProductElapsedMs": 2.862124999999992,
+    "authorHostElapsedMs": 179.0956669999996,
+    "reviewerHostElapsedMs": 228.2151670000003,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "egrep-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.579292000000002,
+    "reviewerProductElapsedMs": 15.254959,
+    "authorHostElapsedMs": 91.68174999999974,
+    "reviewerHostElapsedMs": 107.38866700000017,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "exec-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 3.136583999999999,
+    "reviewerProductElapsedMs": 3.482958999999994,
+    "authorHostElapsedMs": 185.20587499999965,
+    "reviewerHostElapsedMs": 244.17349999999988,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "exec-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.585457999999996,
+    "reviewerProductElapsedMs": 15.66787500000001,
+    "authorHostElapsedMs": 88.25629099999969,
+    "reviewerHostElapsedMs": 111.79433399999925,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "expand-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.2041250000000048,
+    "reviewerProductElapsedMs": 2.352874999999983,
+    "authorHostElapsedMs": 187.1848340000006,
+    "reviewerHostElapsedMs": 217.0414580000006,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "expand-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 7.525750000000002,
+    "reviewerProductElapsedMs": 10.615750000000006,
+    "authorHostElapsedMs": 86.84900000000016,
+    "reviewerHostElapsedMs": 111.58912500000042,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "expr-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.287875000000014,
+    "reviewerProductElapsedMs": 3.2278340000000014,
+    "authorHostElapsedMs": 183.78137500000048,
+    "reviewerHostElapsedMs": 232.22575000000052,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "expr-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 7.6826249999999945,
+    "reviewerProductElapsedMs": 13.329999999999998,
+    "authorHostElapsedMs": 88.36474999999973,
+    "reviewerHostElapsedMs": 108.89712500000041,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "fgrep-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.0426250000000152,
+    "reviewerProductElapsedMs": 3.376958000000002,
+    "authorHostElapsedMs": 186.7047910000001,
+    "reviewerHostElapsedMs": 219.54399999999987,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "fgrep-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.30604199999999,
+    "reviewerProductElapsedMs": 12.795625000000001,
+    "authorHostElapsedMs": 86.91612499999974,
+    "reviewerHostElapsedMs": 104.49162499999966,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "file-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.046208000000007,
+    "reviewerProductElapsedMs": 3.0075410000000034,
+    "authorHostElapsedMs": 184.24291600000015,
+    "reviewerHostElapsedMs": 227.0806249999996,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "file-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.426665999999997,
+    "reviewerProductElapsedMs": 14.053916999999998,
+    "authorHostElapsedMs": 93.4283749999995,
+    "reviewerHostElapsedMs": 106.09741699999995,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "fold-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1274999999999977,
+    "reviewerProductElapsedMs": 2.466458999999986,
+    "authorHostElapsedMs": 186.34250000000065,
+    "reviewerHostElapsedMs": 210.79029099999934,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "fold-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 7.518457999999995,
+    "reviewerProductElapsedMs": 9.395124999999993,
+    "authorHostElapsedMs": 82.93016699999953,
+    "reviewerHostElapsedMs": 100.00329199999942,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "getopts-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.367874999999998,
+    "reviewerProductElapsedMs": 2.5732920000000092,
+    "authorHostElapsedMs": 182.12900000000081,
+    "reviewerHostElapsedMs": 233.73462500000005,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "getopts-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.825584,
+    "reviewerProductElapsedMs": 14.425291999999999,
+    "authorHostElapsedMs": 93.1611670000002,
+    "reviewerHostElapsedMs": 109.48620899999969,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "hash-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1959170000000086,
+    "reviewerProductElapsedMs": 2.951459,
+    "authorHostElapsedMs": 184.6293340000011,
+    "reviewerHostElapsedMs": 219.27987500000017,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "hash-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.509500000000003,
+    "reviewerProductElapsedMs": 7.685082999999992,
+    "authorHostElapsedMs": 90.71958399999858,
+    "reviewerHostElapsedMs": 92.16045800000029,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "help-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1665000000000134,
+    "reviewerProductElapsedMs": 2.3690420000000074,
+    "authorHostElapsedMs": 184.45579199999884,
+    "reviewerHostElapsedMs": 211.4469170000002,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "help-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 6.2515,
+    "reviewerProductElapsedMs": 7.2329170000000005,
+    "authorHostElapsedMs": 87.50291700000162,
+    "reviewerHostElapsedMs": 91.90650000000005,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "history-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.0378330000000062,
+    "reviewerProductElapsedMs": 2.3922500000000184,
+    "authorHostElapsedMs": 186.871000000001,
+    "reviewerHostElapsedMs": 203.67995800000062,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "history-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.646292000000003,
+    "reviewerProductElapsedMs": 8.395042000000004,
+    "authorHostElapsedMs": 92.48925000000054,
+    "reviewerHostElapsedMs": 95.42233300000044,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "hostname-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 1.933209000000005,
+    "reviewerProductElapsedMs": 2.1267090000000053,
+    "authorHostElapsedMs": 184.27116600000045,
+    "reviewerHostElapsedMs": 199.53654199999983,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "hostname-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 7.592792000000003,
+    "reviewerProductElapsedMs": 6.436875000000001,
+    "authorHostElapsedMs": 86.50149999999849,
+    "reviewerHostElapsedMs": 91.14374999999927,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "html-to-markdown-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.023167000000001,
+    "reviewerProductElapsedMs": 2.2238330000000133,
+    "authorHostElapsedMs": 188.92862500000047,
+    "reviewerHostElapsedMs": 202.45970899999884,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "html-to-markdown-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 34.248584,
+    "reviewerProductElapsedMs": 28.253083000000004,
+    "authorHostElapsedMs": 113.46733400000085,
+    "reviewerHostElapsedMs": 114.78958299999977,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "let-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.398666999999989,
+    "reviewerProductElapsedMs": 2.6542080000000112,
+    "authorHostElapsedMs": 183.72333400000025,
+    "reviewerHostElapsedMs": 197.45824999999968,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "let-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.370666999999997,
+    "reviewerProductElapsedMs": 13.116917,
+    "authorHostElapsedMs": 91.7953749999997,
+    "reviewerHostElapsedMs": 105.63666700000067,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "mapfile-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 1.0356250000000102,
+    "reviewerProductElapsedMs": 1.1138340000000255,
+    "authorHostElapsedMs": 183.37670900000012,
+    "reviewerHostElapsedMs": 198.84012500000063,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "mapfile-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.31116699999999,
+    "reviewerProductElapsedMs": 12.314500000000002,
+    "authorHostElapsedMs": 89.53191599999991,
+    "reviewerHostElapsedMs": 97.15616699999919,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "nl-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.3185410000000104,
+    "reviewerProductElapsedMs": 2.6085410000000024,
+    "authorHostElapsedMs": 182.38162499999999,
+    "reviewerHostElapsedMs": 215.0319159999999,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "nl-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 9.026083,
+    "reviewerProductElapsedMs": 12.134292000000002,
+    "authorHostElapsedMs": 92.78375000000051,
+    "reviewerHostElapsedMs": 98.68833300000006,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "popd-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.36129200000002,
+    "reviewerProductElapsedMs": 2.7111670000000174,
+    "authorHostElapsedMs": 180.16454200000044,
+    "reviewerHostElapsedMs": 196.56629199999952,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "popd-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 9.800499999999992,
+    "reviewerProductElapsedMs": 8.011916,
+    "authorHostElapsedMs": 88.36204200000066,
+    "reviewerHostElapsedMs": 90.78783399999884,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "printenv-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.0749580000000094,
+    "reviewerProductElapsedMs": 2.25162499999999,
+    "authorHostElapsedMs": 170.98283400000037,
+    "reviewerHostElapsedMs": 197.27408400000058,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "printenv-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 9.354917000000007,
+    "reviewerProductElapsedMs": 8.283209,
+    "authorHostElapsedMs": 86.75554200000079,
+    "reviewerHostElapsedMs": 88.11495800000012,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "pushd-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.2059169999999995,
+    "reviewerProductElapsedMs": 2.4123749999999973,
+    "authorHostElapsedMs": 183.03866700000071,
+    "reviewerHostElapsedMs": 194.16641600000003,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "pushd-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 6.9467909999999975,
+    "reviewerProductElapsedMs": 7.8345839999999995,
+    "authorHostElapsedMs": 86.13033300000097,
+    "reviewerHostElapsedMs": 89.75762500000019,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "readarray-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 1.0640000000000214,
+    "reviewerProductElapsedMs": 1.1087499999999864,
+    "authorHostElapsedMs": 182.06895799999984,
+    "reviewerHostElapsedMs": 189.5474579999991,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "readarray-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.227500000000006,
+    "reviewerProductElapsedMs": 12.767999999999994,
+    "authorHostElapsedMs": 89.95824999999968,
+    "reviewerHostElapsedMs": 97.34491600000001,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "rev-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1105409999999836,
+    "reviewerProductElapsedMs": 2.302625000000006,
+    "authorHostElapsedMs": 185.1205000000009,
+    "reviewerHostElapsedMs": 200.02750000000015,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "rev-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 9.852000000000004,
+    "reviewerProductElapsedMs": 7.843584,
+    "authorHostElapsedMs": 89.17462499999965,
+    "reviewerHostElapsedMs": 91.1713749999999,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "seq-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.248792000000009,
+    "reviewerProductElapsedMs": 2.3414999999999964,
+    "authorHostElapsedMs": 183.16966700000012,
+    "reviewerHostElapsedMs": 198.63400000000001,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "seq-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.488000000000007,
+    "reviewerProductElapsedMs": 8.112666000000004,
+    "authorHostElapsedMs": 92.59266599999864,
+    "reviewerHostElapsedMs": 92.45504099999926,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "shopt-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.0977919999999983,
+    "reviewerProductElapsedMs": 2.284124999999989,
+    "authorHostElapsedMs": 181.27237500000047,
+    "reviewerHostElapsedMs": 191.2988750000004,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "shopt-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 12.300249999999991,
+    "reviewerProductElapsedMs": 13.823707999999996,
+    "authorHostElapsedMs": 93.902250000001,
+    "reviewerHostElapsedMs": 98.94237500000054,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "sleep-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1444999999999936,
+    "reviewerProductElapsedMs": 2.3376250000000027,
+    "authorHostElapsedMs": 183.9024160000008,
+    "reviewerHostElapsedMs": 213.73254199999974,
+    "timingComparison": "only independent loose10ms lower-bound predicate; no performance inference"
+  },
+  {
+    "id": "sleep-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 33.537334,
+    "reviewerProductElapsedMs": 31.497125000000004,
+    "authorHostElapsedMs": 114.0536659999998,
+    "reviewerHostElapsedMs": 113.85174999999981,
+    "timingComparison": "only independent loose10ms lower-bound predicate; no performance inference"
+  },
+  {
+    "id": "split-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.163166000000018,
+    "reviewerProductElapsedMs": 2.3034159999999986,
+    "authorHostElapsedMs": 184.52233299999898,
+    "reviewerHostElapsedMs": 195.9254579999997,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "split-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 12.435667000000002,
+    "reviewerProductElapsedMs": 12.875292000000002,
+    "authorHostElapsedMs": 95.44062500000109,
+    "reviewerHostElapsedMs": 99.71100000000115,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "sqlite3-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.103041000000019,
+    "reviewerProductElapsedMs": 2.5223340000000007,
+    "authorHostElapsedMs": 183.61987500000032,
+    "reviewerHostElapsedMs": 205.88400000000001,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "sqlite3-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 57.806291,
+    "reviewerProductElapsedMs": 74.46937500000001,
+    "authorHostElapsedMs": 135.49083300000166,
+    "reviewerHostElapsedMs": 161.6220830000002,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "strings-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.0746249999999975,
+    "reviewerProductElapsedMs": 3.1700830000000053,
+    "authorHostElapsedMs": 185.49258399999962,
+    "reviewerHostElapsedMs": 213.71208300000035,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "strings-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 8.939084000000008,
+    "reviewerProductElapsedMs": 8.633042000000003,
+    "authorHostElapsedMs": 95.35012500000084,
+    "reviewerHostElapsedMs": 96.04133299999921,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "tac-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.2463750000000005,
+    "reviewerProductElapsedMs": 2.8367500000000234,
+    "authorHostElapsedMs": 183.03691699999945,
+    "reviewerHostElapsedMs": 199.5268329999999,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "tac-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.103415999999996,
+    "reviewerProductElapsedMs": 7.649749999999997,
+    "authorHostElapsedMs": 86.4315000000006,
+    "reviewerHostElapsedMs": 91.40324999999939,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "time-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.32733300000001,
+    "reviewerProductElapsedMs": 2.5112919999999974,
+    "authorHostElapsedMs": 177.23491600000125,
+    "reviewerHostElapsedMs": 198.7189159999998,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "time-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 15.11054099999999,
+    "reviewerProductElapsedMs": 13.776417000000002,
+    "authorHostElapsedMs": 98.19916700000067,
+    "reviewerHostElapsedMs": 99.79104200000074,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "timeout-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.163624999999996,
+    "reviewerProductElapsedMs": 2.355667000000011,
+    "authorHostElapsedMs": 184.90729099999953,
+    "reviewerHostElapsedMs": 196.09683400000176,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "timeout-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 12.604042000000007,
+    "reviewerProductElapsedMs": 13.766292,
+    "authorHostElapsedMs": 93.90470800000003,
+    "reviewerHostElapsedMs": 98.25487500000054,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "tree-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.0017919999999947,
+    "reviewerProductElapsedMs": 2.1922500000000014,
+    "authorHostElapsedMs": 188.14591699999983,
+    "reviewerHostElapsedMs": 196.18491600000016,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "tree-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 11.344332999999999,
+    "reviewerProductElapsedMs": 8.819166000000003,
+    "authorHostElapsedMs": 93.21912499999962,
+    "reviewerHostElapsedMs": 91.12987500000054,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "typeset-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.227916999999991,
+    "reviewerProductElapsedMs": 2.4279999999999973,
+    "authorHostElapsedMs": 174.0776249999999,
+    "reviewerHostElapsedMs": 208.36433299999953,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "typeset-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 12.323167000000005,
+    "reviewerProductElapsedMs": 14.826208000000008,
+    "authorHostElapsedMs": 93.69712499999878,
+    "reviewerHostElapsedMs": 105.24666600000091,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "unalias-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.308209000000005,
+    "reviewerProductElapsedMs": 2.291124999999994,
+    "authorHostElapsedMs": 184.052249999997,
+    "reviewerHostElapsedMs": 192.5131250000013,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "unalias-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 13.418959000000001,
+    "reviewerProductElapsedMs": 15.061582999999999,
+    "authorHostElapsedMs": 97.08695799999987,
+    "reviewerHostElapsedMs": 101.67016599999988,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "unexpand-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.203000000000003,
+    "reviewerProductElapsedMs": 2.3552500000000123,
+    "authorHostElapsedMs": 177.97249999999985,
+    "reviewerHostElapsedMs": 198.17066599999998,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "unexpand-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 9.886166000000003,
+    "reviewerProductElapsedMs": 8.801666000000004,
+    "authorHostElapsedMs": 91.50112499999886,
+    "reviewerHostElapsedMs": 90.35233300000073,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "wait-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 0.8575419999999951,
+    "reviewerProductElapsedMs": 1.1656250000000057,
+    "authorHostElapsedMs": 186.54233400000157,
+    "reviewerHostElapsedMs": 199.36712500000067,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "wait-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.477249999999998,
+    "reviewerProductElapsedMs": 12.008125000000007,
+    "authorHostElapsedMs": 92.94804199999999,
+    "reviewerHostElapsedMs": 99.91312499999913,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "which-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.037125000000003,
+    "reviewerProductElapsedMs": 2.21195800000001,
+    "authorHostElapsedMs": 184.2230410000011,
+    "reviewerHostElapsedMs": 204.31308400000125,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "which-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 10.780957999999998,
+    "reviewerProductElapsedMs": 8.862707999999998,
+    "authorHostElapsedMs": 90.33333300000231,
+    "reviewerHostElapsedMs": 91.14837500000067,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "whoami-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 1.9626250000000027,
+    "reviewerProductElapsedMs": 2.0705409999999915,
+    "authorHostElapsedMs": 184.1461249999993,
+    "reviewerHostElapsedMs": 199.75520799999867,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "whoami-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 8.129041999999998,
+    "reviewerProductElapsedMs": 6.241208,
+    "authorHostElapsedMs": 87.5537089999998,
+    "reviewerHostElapsedMs": 94.24712500000169,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "xan-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.5749160000000018,
+    "reviewerProductElapsedMs": 2.2967079999999953,
+    "authorHostElapsedMs": 193.3146659999984,
+    "reviewerHostElapsedMs": 213.1792499999974,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "xan-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 15.607332999999997,
+    "reviewerProductElapsedMs": 15.450084000000004,
+    "authorHostElapsedMs": 95.55254099999729,
+    "reviewerHostElapsedMs": 98.52770899999814,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "yq-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 3.1856249999999875,
+    "reviewerProductElapsedMs": 2.3322080000000085,
+    "authorHostElapsedMs": 275.6985840000016,
+    "reviewerHostElapsedMs": 199.38033300000097,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "yq-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 31.42379199999999,
+    "reviewerProductElapsedMs": 22.172708,
+    "authorHostElapsedMs": 149.89287500000137,
+    "reviewerHostElapsedMs": 109.29758399999992,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "js-exec-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.888999999999953,
+    "reviewerProductElapsedMs": 2.313208000000003,
+    "authorHostElapsedMs": 489.61783300000025,
+    "reviewerHostElapsedMs": 209.90970799999923,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "js-exec-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 196.796541,
+    "reviewerProductElapsedMs": 77.14354200000001,
+    "authorHostElapsedMs": 10356.827375,
+    "reviewerHostElapsedMs": 10165.730333,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "node-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.6042909999999893,
+    "reviewerProductElapsedMs": 2.8132920000000183,
+    "authorHostElapsedMs": 300.71720899999855,
+    "reviewerHostElapsedMs": 248.86154200000237,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "node-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 18.374875000000003,
+    "reviewerProductElapsedMs": 10.170500000000004,
+    "authorHostElapsedMs": 155.5054999999993,
+    "reviewerHostElapsedMs": 99.41491600000154,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "python-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.76916700000001,
+    "reviewerProductElapsedMs": 2.4549169999999947,
+    "authorHostElapsedMs": 268.2081249999974,
+    "reviewerHostElapsedMs": 202.62420799999745,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "python-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 148.379958,
+    "reviewerProductElapsedMs": 126.119,
+    "authorHostElapsedMs": 273.06583399999727,
+    "reviewerHostElapsedMs": 220.76883299999827,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "python3-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.773750000000007,
+    "reviewerProductElapsedMs": 2.2655829999999924,
+    "authorHostElapsedMs": 237.1221250000017,
+    "reviewerHostElapsedMs": 207.04933299999902,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "python3-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 144.204792,
+    "reviewerProductElapsedMs": 115.276,
+    "authorHostElapsedMs": 262.8316670000022,
+    "reviewerHostElapsedMs": 209.4813749999994,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "dot-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 3.786417,
+    "reviewerProductElapsedMs": 3.0420000000000016,
+    "authorHostElapsedMs": 269.1090000000004,
+    "reviewerHostElapsedMs": 214.89458300000115,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "dot-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 14.362125000000006,
+    "reviewerProductElapsedMs": 13.74258300000001,
+    "authorHostElapsedMs": 109.90287499999977,
+    "reviewerHostElapsedMs": 102.77558300000237,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "source-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 3.3512910000000034,
+    "reviewerProductElapsedMs": 3.0588339999999903,
+    "authorHostElapsedMs": 224.47837499999878,
+    "reviewerHostElapsedMs": 192.95791600000302,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "source-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 13.019374999999997,
+    "reviewerProductElapsedMs": 12.968083,
+    "authorHostElapsedMs": 106.80450000000201,
+    "reviewerHostElapsedMs": 99.30120799999713,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "eval-positive",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 3.6012079999999855,
+    "reviewerProductElapsedMs": 2.9874580000000037,
+    "authorHostElapsedMs": 258.6543330000022,
+    "reviewerHostElapsedMs": 194.0960410000007,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "eval-positive",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 13.89425,
+    "reviewerProductElapsedMs": 13.671416999999991,
+    "authorHostElapsedMs": 117.96233300000313,
+    "reviewerHostElapsedMs": 99.40483300000051,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "compopt-direct-diagnostic",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.936791999999997,
+    "reviewerProductElapsedMs": 2.8935830000000067,
+    "authorHostElapsedMs": 241.6999999999971,
+    "reviewerHostElapsedMs": 193.3005830000002,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "compopt-direct-diagnostic",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 6.139583999999999,
+    "reviewerProductElapsedMs": 5.399957999999998,
+    "authorHostElapsedMs": 116.26258300000336,
+    "reviewerHostElapsedMs": 88.68675000000076,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "dirs-direct-diagnostic",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.510499999999979,
+    "reviewerProductElapsedMs": 2.1346249999999998,
+    "authorHostElapsedMs": 228.31558299999597,
+    "reviewerHostElapsedMs": 197.4255830000002,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "dirs-direct-diagnostic",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 5.011708000000006,
+    "reviewerProductElapsedMs": 5.425875000000005,
+    "authorHostElapsedMs": 87.19516699999804,
+    "reviewerHostElapsedMs": 90.72958300000028,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "popd-direct-diagnostic",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.3106249999999875,
+    "reviewerProductElapsedMs": 2.2744579999999814,
+    "authorHostElapsedMs": 203.82358300000487,
+    "reviewerHostElapsedMs": 201.5749160000014,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "popd-direct-diagnostic",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 3.8831249999999926,
+    "reviewerProductElapsedMs": 4.388292000000007,
+    "authorHostElapsedMs": 101.99133299999812,
+    "reviewerHostElapsedMs": 99.22054199999911,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "unalias-direct-diagnostic",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1513339999999914,
+    "reviewerProductElapsedMs": 2.1914170000000013,
+    "authorHostElapsedMs": 196.515790999998,
+    "reviewerHostElapsedMs": 205.80112500000178,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "unalias-direct-diagnostic",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 7.6697500000000005,
+    "reviewerProductElapsedMs": 9.006333999999995,
+    "authorHostElapsedMs": 88.4585420000003,
+    "reviewerHostElapsedMs": 104.48545900000317,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "wait-direct-diagnostic",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.1282919999999876,
+    "reviewerProductElapsedMs": 2.248334,
+    "authorHostElapsedMs": 194.73858299999847,
+    "reviewerHostElapsedMs": 202.16433300000062,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "wait-direct-diagnostic",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 3.731082999999998,
+    "reviewerProductElapsedMs": 4.523292000000005,
+    "authorHostElapsedMs": 88.1082499999975,
+    "reviewerHostElapsedMs": 89.68866700000217,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "mapfile-direct-diagnostic",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.4627499999999998,
+    "reviewerProductElapsedMs": 2.4011659999999893,
+    "authorHostElapsedMs": 193.9320000000007,
+    "reviewerHostElapsedMs": 185.45187499999884,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "mapfile-direct-diagnostic",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 5.395124999999993,
+    "reviewerProductElapsedMs": 5.380792,
+    "authorHostElapsedMs": 88.04829099999915,
+    "reviewerHostElapsedMs": 84.12079200000153,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "readarray-direct-diagnostic",
+    "engine": "ours",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 2.453624999999988,
+    "reviewerProductElapsedMs": 2.414749999999998,
+    "authorHostElapsedMs": 191.9221250000046,
+    "reviewerHostElapsedMs": 178.98266700000386,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  },
+  {
+    "id": "readarray-direct-diagnostic",
+    "engine": "baseline",
+    "publicApiDifferences": [],
+    "authorProductElapsedMs": 6.699750000000009,
+    "reviewerProductElapsedMs": 5.253625000000007,
+    "authorHostElapsedMs": 93.00737500000105,
+    "reviewerHostElapsedMs": 82.54737500000192,
+    "timingComparison": "raw provenance only; excluded from equality and performance inference"
+  }
+]

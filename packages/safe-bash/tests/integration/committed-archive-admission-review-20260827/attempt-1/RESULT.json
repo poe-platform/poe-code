@@ -1,0 +1,760 @@
+{
+  "startedAt": "2026-08-27T14:28:59.366Z",
+  "author": "6699804ace9f5522aa67be6a017a8008bfc09f30",
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "preparation": "85858fc37ecedf8d9fbcc3f753b957c362f4e44e",
+  "frozenCasesSha256": "0af0aa3afeaa2a7f496b91704892cd67279900a1e485cd208d3547a56b7b971e",
+  "node": {
+    "version": "v22.22.2",
+    "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "cases": [
+    {
+      "id": "strict-clean-positive",
+      "status": "pass",
+      "details": {
+        "actualUnmodifiedEntrypoint": true,
+        "boundary": "fs.mkdirSync output intercepted before creating output, archive, private prerequisites or suite"
+      }
+    },
+    {
+      "id": "strict-dirty-refusal",
+      "status": "pass"
+    },
+    {
+      "id": "archive-dirty-live-positive",
+      "status": "pass"
+    },
+    {
+      "id": "archive-untracked-canary",
+      "status": "pass"
+    },
+    {
+      "id": "moving-head-fixed-candidate",
+      "status": "pass"
+    },
+    {
+      "id": "changed-archive-code",
+      "status": "pass",
+      "details": {
+        "equalLengthCorruptions": 3
+      }
+    },
+    {
+      "id": "missing-archive-input",
+      "status": "pass"
+    },
+    {
+      "id": "foreign-overlay",
+      "status": "pass"
+    },
+    {
+      "id": "wrong-commit-archive",
+      "status": "pass"
+    },
+    {
+      "id": "changed-input-mode",
+      "status": "pass"
+    },
+    {
+      "id": "active-file-symlink-escape",
+      "status": "pass"
+    },
+    {
+      "id": "active-directory-symlink-escape",
+      "status": "pass"
+    },
+    {
+      "id": "post-phase-immutability",
+      "status": "pass",
+      "details": {
+        "guard": "verbatim verifySource function from frozen runner",
+        "expected": "Git-authenticated pre-phase manifest",
+        "mutations": 2
+      }
+    },
+    {
+      "id": "native-guards-retained",
+      "status": "pass",
+      "details": {
+        "authenticatedAssets": [
+          {
+            "name": "coreutils-9.7.tar.xz",
+            "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+            "executable": false
+          },
+          {
+            "name": "chmod.c",
+            "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+            "executable": false
+          },
+          {
+            "name": "stat.c",
+            "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+            "executable": false
+          },
+          {
+            "name": "mktemp.c",
+            "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+            "executable": false
+          },
+          {
+            "name": "modechange.c",
+            "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+            "executable": false
+          },
+          {
+            "name": "comm.c",
+            "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+            "executable": false
+          },
+          {
+            "name": "coreutils.texi",
+            "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+            "executable": false
+          },
+          {
+            "name": "chmod",
+            "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+            "executable": true
+          },
+          {
+            "name": "stat",
+            "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+            "executable": true
+          },
+          {
+            "name": "mktemp",
+            "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+            "executable": true
+          },
+          {
+            "name": "paste",
+            "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+            "executable": true
+          },
+          {
+            "name": "comm",
+            "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+            "executable": true
+          },
+          {
+            "name": "join",
+            "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+            "executable": true
+          },
+          {
+            "name": "touch",
+            "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+            "executable": true
+          },
+          {
+            "name": "stat",
+            "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+            "executable": true
+          },
+          {
+            "name": "gtar",
+            "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+            "executable": true
+          },
+          {
+            "name": "bsdtar",
+            "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+            "executable": true
+          },
+          {
+            "name": "gzip",
+            "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+            "executable": true
+          },
+          {
+            "name": "gunzip",
+            "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+            "executable": true
+          },
+          {
+            "name": "base64",
+            "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+            "executable": true
+          },
+          {
+            "name": "base32",
+            "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+            "executable": true
+          },
+          {
+            "name": "sha256sum",
+            "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+            "executable": true
+          },
+          {
+            "name": "sha1sum",
+            "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+            "executable": true
+          },
+          {
+            "name": "md5sum",
+            "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+            "executable": true
+          },
+          {
+            "name": "gzip",
+            "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+            "executable": true
+          },
+          {
+            "name": "bash3.2",
+            "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+            "executable": true
+          },
+          {
+            "name": "bash5.3",
+            "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+            "executable": true
+          },
+          {
+            "name": "sed",
+            "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+            "executable": true
+          },
+          {
+            "name": "awk",
+            "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+            "executable": true
+          },
+          {
+            "name": "jq",
+            "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+            "executable": true
+          },
+          {
+            "name": "curl",
+            "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+            "executable": true
+          },
+          {
+            "name": "rg",
+            "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+            "executable": true
+          },
+          {
+            "name": "seq",
+            "sha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f",
+            "executable": true
+          },
+          {
+            "name": "nl",
+            "sha256": "f53799fe27723aa0e61075b4d698b5dca44e5e96b4e38544b3ae047c7bed0d2e",
+            "executable": true
+          },
+          {
+            "name": "rev",
+            "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247",
+            "executable": true
+          },
+          {
+            "name": "unexpand",
+            "sha256": "ea0e663158cd8d84c4e7869139b4180bd6d9a8dc6b9f09dda1c615484a4145fa",
+            "executable": true
+          },
+          {
+            "name": "split",
+            "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+            "executable": true
+          },
+          {
+            "name": "date",
+            "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+            "executable": true
+          },
+          {
+            "name": "sleep",
+            "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+            "executable": true
+          },
+          {
+            "name": "printenv",
+            "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+            "executable": true
+          },
+          {
+            "name": "tac",
+            "sha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+            "executable": true
+          },
+          {
+            "name": "expand",
+            "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+            "executable": true
+          },
+          {
+            "name": "fold",
+            "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+            "executable": true
+          },
+          {
+            "name": "strings",
+            "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+            "executable": true
+          },
+          {
+            "name": "expand",
+            "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78",
+            "executable": true
+          },
+          {
+            "name": "fold",
+            "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+            "executable": true
+          },
+          {
+            "name": "strings",
+            "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+            "executable": true
+          },
+          {
+            "name": "strings",
+            "sha256": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9",
+            "executable": true
+          },
+          {
+            "name": "tree",
+            "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+            "executable": true
+          }
+        ],
+        "deniedRoutes": 6
+      }
+    },
+    {
+      "id": "cleanup-envelope-exact",
+      "status": "pass"
+    },
+    {
+      "id": "source-load-guard-retained",
+      "status": "pass"
+    },
+    {
+      "id": "mode-selection-fail-closed",
+      "status": "pass"
+    },
+    {
+      "id": "guard-mutants",
+      "status": "pass"
+    }
+  ],
+  "children": [
+    {
+      "name": "strict-clean",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-strict-clean"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[],\"suiteLaunched\":false,\"canonicalFiles\":1,\"historicalBindings\":[],\"native\":{\"assets\":[{\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"sha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"executable\":true,\"actualSha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"mode\":493}],\"issues\":[]},\"environment\":{},\"status\":\"preflight-admitted-not-product-acceptance\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "strict-dirty",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-strict-dirty"
+      ],
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[{\"kind\":\"dirty-tracked-inputs\",\"records\":[\" M src/index.ts\"]}],\"suiteLaunched\":false,\"canonicalFiles\":1,\"historicalBindings\":[],\"native\":{\"assets\":[{\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"sha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"executable\":true,\"actualSha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"mode\":493}],\"issues\":[]},\"environment\":{},\"status\":\"preflight-rejected-before-suite\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "archive-dirty",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-archive-dirty",
+        "--committed-archive"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"mode\":\"committed-archive\",\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[],\"suiteLaunched\":false,\"tree\":\"cd8dd2a8765bc248fca570fc6163646139a3cea4\",\"entries\":[{\"path\":\"benchmarks/package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/package.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"evidence.txt\",\"mode\":\"100644\",\"blob\":\"c23f3b8e3f9ab806b76b04081a7f983463de6e4d\",\"bytes\":18},{\"path\":\"package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"package.json\",\"mode\":\"100644\",\"blob\":\"87cb2018b3bacc32a53d98e7fe59c64bcf959c20\",\"bytes\":55},{\"path\":\"src/index.ts\",\"mode\":\"100644\",\"blob\":\"c336e6491f5aedb61c3fc94486503e0b06c1c734\",\"bytes\":34},{\"path\":\"tests/one.test.ts\",\"mode\":\"100644\",\"blob\":\"cb0ff5c3b541f646105198ee23ac0fc3d805023e\",\"bytes\":11},{\"path\":\"tsconfig.build.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3}],\"availableBlobs\":5,\"canonicalFiles\":1,\"native\":{\"assets\":[{\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"sha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"executable\":true,\"actualSha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"mode\":493}],\"issues\":[]},\"environment\":{},\"status\":\"preflight-admitted-not-product-acceptance\",\"workingTreePolicy\":\"No working-tree product/test/configuration bytes read or overlaid. Git objects and separately pinned native assets only; existing live-worktree guard is unchanged.\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "moving-head",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-moving-head",
+        "--committed-archive"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"mode\":\"committed-archive\",\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[],\"suiteLaunched\":false,\"tree\":\"cd8dd2a8765bc248fca570fc6163646139a3cea4\",\"entries\":[{\"path\":\"benchmarks/package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/package.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"evidence.txt\",\"mode\":\"100644\",\"blob\":\"c23f3b8e3f9ab806b76b04081a7f983463de6e4d\",\"bytes\":18},{\"path\":\"package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"package.json\",\"mode\":\"100644\",\"blob\":\"87cb2018b3bacc32a53d98e7fe59c64bcf959c20\",\"bytes\":55},{\"path\":\"src/index.ts\",\"mode\":\"100644\",\"blob\":\"c336e6491f5aedb61c3fc94486503e0b06c1c734\",\"bytes\":34},{\"path\":\"tests/one.test.ts\",\"mode\":\"100644\",\"blob\":\"cb0ff5c3b541f646105198ee23ac0fc3d805023e\",\"bytes\":11},{\"path\":\"tsconfig.build.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3}],\"availableBlobs\":5,\"canonicalFiles\":1,\"native\":{\"assets\":[{\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"sha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"executable\":true,\"actualSha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"mode\":493}],\"issues\":[]},\"environment\":{},\"status\":\"preflight-admitted-not-product-acceptance\",\"workingTreePolicy\":\"No working-tree product/test/configuration bytes read or overlaid. Git objects and separately pinned native assets only; existing live-worktree guard is unchanged.\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "native-missing-0",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-native-missing-0"
+      ],
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"ENOENT: no such file or directory, lstat '/private/tmp/archive-independent-il1JWs/native'\"}],\"suiteLaunched\":false,\"canonicalFiles\":1,\"historicalBindings\":[],\"native\":{\"assets\":[],\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"ENOENT: no such file or directory, lstat '/private/tmp/archive-independent-il1JWs/native'\"}]},\"environment\":{},\"status\":\"preflight-rejected-before-suite\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "native-missing-1",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-native-missing-1",
+        "--committed-archive"
+      ],
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"mode\":\"committed-archive\",\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"ENOENT: no such file or directory, lstat '/private/tmp/archive-independent-il1JWs/native'\"}],\"suiteLaunched\":false,\"tree\":\"cd8dd2a8765bc248fca570fc6163646139a3cea4\",\"entries\":[{\"path\":\"benchmarks/package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/package.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"evidence.txt\",\"mode\":\"100644\",\"blob\":\"c23f3b8e3f9ab806b76b04081a7f983463de6e4d\",\"bytes\":18},{\"path\":\"package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"package.json\",\"mode\":\"100644\",\"blob\":\"87cb2018b3bacc32a53d98e7fe59c64bcf959c20\",\"bytes\":55},{\"path\":\"src/index.ts\",\"mode\":\"100644\",\"blob\":\"c336e6491f5aedb61c3fc94486503e0b06c1c734\",\"bytes\":34},{\"path\":\"tests/one.test.ts\",\"mode\":\"100644\",\"blob\":\"cb0ff5c3b541f646105198ee23ac0fc3d805023e\",\"bytes\":11},{\"path\":\"tsconfig.build.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3}],\"availableBlobs\":5,\"canonicalFiles\":1,\"native\":{\"assets\":[],\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"ENOENT: no such file or directory, lstat '/private/tmp/archive-independent-il1JWs/native'\"}]},\"environment\":{},\"status\":\"preflight-rejected-before-suite\",\"workingTreePolicy\":\"No working-tree product/test/configuration bytes read or overlaid. Git objects and separately pinned native assets only; existing live-worktree guard is unchanged.\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "native-changed-0",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-native-changed-0"
+      ],
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"native content does not match its pinned profile\\n+ actual - expected\\n\\n+ '268849ddac5ad63f27c2f1c1cac71554d687b8db8ade217ca56e3e2b116d08fc'\\n- 'ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b'\\n\"}],\"suiteLaunched\":false,\"canonicalFiles\":1,\"historicalBindings\":[],\"native\":{\"assets\":[],\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"native content does not match its pinned profile\\n+ actual - expected\\n\\n+ '268849ddac5ad63f27c2f1c1cac71554d687b8db8ade217ca56e3e2b116d08fc'\\n- 'ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b'\\n\"}]},\"environment\":{},\"status\":\"preflight-rejected-before-suite\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "native-changed-1",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-native-changed-1",
+        "--committed-archive"
+      ],
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"mode\":\"committed-archive\",\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"native content does not match its pinned profile\\n+ actual - expected\\n\\n+ '268849ddac5ad63f27c2f1c1cac71554d687b8db8ade217ca56e3e2b116d08fc'\\n- 'ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b'\\n\"}],\"suiteLaunched\":false,\"tree\":\"cd8dd2a8765bc248fca570fc6163646139a3cea4\",\"entries\":[{\"path\":\"benchmarks/package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/package.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"evidence.txt\",\"mode\":\"100644\",\"blob\":\"c23f3b8e3f9ab806b76b04081a7f983463de6e4d\",\"bytes\":18},{\"path\":\"package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"package.json\",\"mode\":\"100644\",\"blob\":\"87cb2018b3bacc32a53d98e7fe59c64bcf959c20\",\"bytes\":55},{\"path\":\"src/index.ts\",\"mode\":\"100644\",\"blob\":\"c336e6491f5aedb61c3fc94486503e0b06c1c734\",\"bytes\":34},{\"path\":\"tests/one.test.ts\",\"mode\":\"100644\",\"blob\":\"cb0ff5c3b541f646105198ee23ac0fc3d805023e\",\"bytes\":11},{\"path\":\"tsconfig.build.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3}],\"availableBlobs\":5,\"canonicalFiles\":1,\"native\":{\"assets\":[],\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"native content does not match its pinned profile\\n+ actual - expected\\n\\n+ '268849ddac5ad63f27c2f1c1cac71554d687b8db8ade217ca56e3e2b116d08fc'\\n- 'ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b'\\n\"}]},\"environment\":{},\"status\":\"preflight-rejected-before-suite\",\"workingTreePolicy\":\"No working-tree product/test/configuration bytes read or overlaid. Git objects and separately pinned native assets only; existing live-worktree guard is unchanged.\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "native-nonexec-0",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-native-nonexec-0"
+      ],
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"native executable bit is missing\"}],\"suiteLaunched\":false,\"canonicalFiles\":1,\"historicalBindings\":[],\"native\":{\"assets\":[],\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"native executable bit is missing\"}]},\"environment\":{},\"status\":\"preflight-rejected-before-suite\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "native-nonexec-1",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-native-nonexec-1",
+        "--committed-archive"
+      ],
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"mode\":\"committed-archive\",\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"native executable bit is missing\"}],\"suiteLaunched\":false,\"tree\":\"cd8dd2a8765bc248fca570fc6163646139a3cea4\",\"entries\":[{\"path\":\"benchmarks/package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/package.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"benchmarks/tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"evidence.txt\",\"mode\":\"100644\",\"blob\":\"c23f3b8e3f9ab806b76b04081a7f983463de6e4d\",\"bytes\":18},{\"path\":\"package-lock.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"package.json\",\"mode\":\"100644\",\"blob\":\"87cb2018b3bacc32a53d98e7fe59c64bcf959c20\",\"bytes\":55},{\"path\":\"src/index.ts\",\"mode\":\"100644\",\"blob\":\"c336e6491f5aedb61c3fc94486503e0b06c1c734\",\"bytes\":34},{\"path\":\"tests/one.test.ts\",\"mode\":\"100644\",\"blob\":\"cb0ff5c3b541f646105198ee23ac0fc3d805023e\",\"bytes\":11},{\"path\":\"tsconfig.build.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3},{\"path\":\"tsconfig.json\",\"mode\":\"100644\",\"blob\":\"0967ef424bce6791893e9a57bb952f80fd536e93\",\"bytes\":3}],\"availableBlobs\":5,\"canonicalFiles\":1,\"native\":{\"assets\":[],\"issues\":[{\"kind\":\"native-unavailable-or-mismatched\",\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"expected\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"message\":\"native executable bit is missing\"}]},\"environment\":{},\"status\":\"preflight-rejected-before-suite\",\"workingTreePolicy\":\"No working-tree product/test/configuration bytes read or overlaid. Git objects and separately pinned native assets only; existing live-worktree guard is unchanged.\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "cleanup-both",
+      "args": [
+        "/private/tmp/archive-independent-il1JWs/cleanup-env.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "env-binding-accepted\n",
+      "stderr": ""
+    },
+    {
+      "name": "cleanup-missing-commit",
+      "args": [
+        "/private/tmp/archive-independent-il1JWs/cleanup-env.ts"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Committed qualification requires both explicit commit and independently captured expectation\n\ntrue !== false\n\n    at file:///private/tmp/archive-independent-il1JWs/cleanup-env.ts:3:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: true,\n  expected: false,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "cleanup-missing-manifest",
+      "args": [
+        "/private/tmp/archive-independent-il1JWs/cleanup-env.ts"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Committed qualification requires both explicit commit and independently captured expectation\n\nfalse !== true\n\n    at file:///private/tmp/archive-independent-il1JWs/cleanup-env.ts:3:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "cleanup-wrong-commit",
+      "args": [
+        "/private/tmp/archive-independent-il1JWs/cleanup-env.ts"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '8670ebe8f0d39966c2de2638780437398e5f8490'\n- '0000000000000000000000000000000000000000'\n\n    at file:///private/tmp/archive-independent-il1JWs/cleanup-env.ts:7:12 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: '8670ebe8f0d39966c2de2638780437398e5f8490',\n  expected: '0000000000000000000000000000000000000000',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "load-legitimate",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs",
+        "/private/tmp/archive-independent-il1JWs/load-source/main.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "executed\n",
+      "stderr": ""
+    },
+    {
+      "name": "load-old-source",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs",
+        "/private/tmp/archive-independent-il1JWs/load-source/main.mjs"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Frozen env source bytes: src/commands/execution.ts\n+ actual - expected\n\n+ '81f27aed5b4f0111bf7795b16edee8f427c9e3ae3116fcb7d84d8a74acfc7522'\n- 'b5e3af850620010b0263a016788409fd508d0e4dc37e88bd2db29168d8dcf398'\n\n    at check (file:///private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs:26:24)\n    at resolve (file:///private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs:31:54)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '81f27aed5b4f0111bf7795b16edee8f427c9e3ae3116fcb7d84d8a74acfc7522',\n  expected: 'b5e3af850620010b0263a016788409fd508d0e4dc37e88bd2db29168d8dcf398',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "load-missing-parser",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs",
+        "/private/tmp/archive-independent-il1JWs/load-source/main.mjs"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/esm/resolve:275\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/tmp/archive-independent-il1JWs/load-source/src/commands/env-split.ts' imported from /private/tmp/archive-independent-il1JWs/load-source/main.mjs\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:767:38)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolve (file:///private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs:31:20)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///private/tmp/archive-independent-il1JWs/load-source/src/commands/env-split.ts'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "load-compiled-fallback",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs",
+        "/private/tmp/archive-independent-il1JWs/load-source/main.mjs"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Frozen env compiled-source fallback: /private/tmp/archive-independent-il1JWs/load-source/src/commands/execution.js\n    at check (file:///private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs:23:10)\n    at resolve (file:///private/tmp/archive-independent-il1JWs/harness/tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs:31:54)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "mode-missing",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-mode-missing"
+      ],
+      "status": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"preflight\":{\"candidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileCandidate\":\"f4241762746e9e2bc863bf64a9495b9c8b6e1a33\",\"profileSha256\":\"8cf10f13de66d7f0651d389a53153b00b52ea9153e5ec81a8cffcaad0768d9f4\",\"scope\":\"independent bounded miniature\",\"issues\":[{\"kind\":\"dirty-tracked-inputs\",\"records\":[\" M evidence.txt\"]}],\"suiteLaunched\":false,\"canonicalFiles\":1,\"historicalBindings\":[],\"native\":{\"assets\":[{\"name\":\"mini-native\",\"origin\":\"/private/tmp/archive-independent-il1JWs/native\",\"sha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"executable\":true,\"actualSha256\":\"ab63c4308a101428e2141aa3ff750aa35c568e102083a46a672a557482e1659b\",\"mode\":493}],\"issues\":[]},\"environment\":{},\"status\":\"preflight-rejected-before-suite\"}}\n",
+      "stderr": ""
+    },
+    {
+      "name": "mode---ignore-dirty",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-mode---ignore-dirty",
+        "--ignore-dirty"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Optional mode must be explicit: --committed-archive\n    at file:///private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs:24:8\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "mode---committed-archive_--extra",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-mode---committed-archive_--extra",
+        "--committed-archive",
+        "--extra"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Optional mode must be explicit: --committed-archive\n    at file:///private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs:24:8\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    },
+    {
+      "name": "mode---committed-archive=false",
+      "args": [
+        "--import",
+        "/private/tmp/archive-independent-il1JWs/sentinel.mjs",
+        "/private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs",
+        "--handoff",
+        "f4241762746e9e2bc863bf64a9495b9c8b6e1a33",
+        "--execute",
+        "/tmp/full-gate-independent-archive-independent-il1JWs-mode---committed-archive=false",
+        "--committed-archive=false"
+      ],
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Optional mode must be explicit: --committed-archive\n    at file:///private/tmp/archive-independent-il1JWs/mini/tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs:24:8\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+    }
+  ],
+  "source": {
+    "tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs": "86f412f882d4d03df5f049e68916f15dffeff9fa7cfe48bb8b2cc8ddaf4dd1af",
+    "tests/integration/full-gate-20260827/combined-8670ebe8/committed-archive.mjs": "d5a2de6679bda3830d7f376e1f374bee286d0e9ca17e460f78b02988a7c7aee3",
+    "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs": "079d31929acdd0e676aa3278a1f139808c2e724b6c89cb536fc3bd8b3b0fc775",
+    "tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114",
+    "tests/integration/full-gate-20260827/combined-8670ebe8/policy.json": "0c3985974d77922f72f3fec12c6d70b8f6c97eb6c61f683bfca6fd627b2339b2",
+    "tests/integration/full-gate-20260827/combined-8670ebe8/CANDIDATE.json": "95d0244d6a7cac3740c796a5e937394b5fa05969677df5c86eb12d8c8e6022b9",
+    "tests/integration/full-gate-20260827/combined-8670ebe8/cleanup-expected.json": "5750fae88a42f9dd72b2362216f0bd21d86f173f35d935db17f481c8541783a4",
+    "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs": "4e328502a8713fe6bba64f231cab846ceb1d2dc5454a8276205de3009d17944e",
+    "tests/integration/full-gate-20260827/preflight-repair/policy.json": "eb2575674ba51a5c8a8f5c82609281e56f5cbff77889e4e86e22dc7974cdc11e",
+    "tests/integration/full-gate-20260827/combined-b494675c/inspect.mjs": "1669457da2280de3c769ec5e516f65c7bbb0d635b2249afc13a06e8f68a14d1e",
+    "tests/integration/full-gate-20260827/combined-b494675c/prerequisites.mjs": "973f0e3421181326e783634ec985ff3e9f308de2fb561bf29cd9df5b060240bb",
+    "tests/integration/full-gate-20260827/account.mjs": "279f552950ee9f90a884c448f31d19903add6672da042d4a195b89fd84de742c",
+    "tests/integration/full-gate-20260827/supervise.mjs": "e68ef77eb0ad1610177521a1aeab9f6f189e47de47476dafcab7ad05097ebfb9",
+    "tests/integration/full-gate-20260827/history.mjs": "f5a33b3d619fb4ca761186ca4c32fb97546e16fd7a39a33c39c6d8ce2f9cd71a"
+  },
+  "mutants": [
+    {
+      "name": "global-dirty-bypass",
+      "killedBy": "strict-dirty-refusal"
+    },
+    {
+      "name": "dropped-blob-authentication",
+      "killedBy": "changed-archive-code equal-length corruption"
+    },
+    {
+      "name": "live-copy-substitution",
+      "killedBy": "archive-dirty-live-positive committed-value assertion and Git identity"
+    }
+  ],
+  "wholeGateLaunched": false,
+  "productExecutions": 0,
+  "compilerRuns": 0,
+  "privateAccess": false,
+  "postPhaseSourceFragmentSha256": "5790d340039b074e7a4c0d534a79a8afd5462324c16c6c9988083a1948485e39",
+  "actualAdmission": {
+    "issues": [],
+    "entries": 24879,
+    "blobs": 17765,
+    "native": 49,
+    "tree": "2b5790d522f433778a3ba2364f24b7ae7b24216f"
+  },
+  "archive": {
+    "count": 24879,
+    "archiveSha256": "c507a91edd316a7bb891ac2d0ce4a173b755773206d1ff0593082e91791684d3",
+    "manifestSha256": "e52d6a274955231c60eeaf6714cd8995550b7dd5a62889ea0c2b5665f6b2ef48",
+    "bytes": 1464107067,
+    "symlinks": 12
+  },
+  "cleanup": {
+    "inputs": 220,
+    "compactSha256": "d9309d27efd2e1e418f075f4f514efeeefa833e8b3dc5e061662289f8ecd67b6",
+    "environmentFragmentSha256": "569429b5665f05773df0827646bdf86b02f37066024bfaf902fc5d566198bc19",
+    "wholeGateRequiredVariablesSet": true,
+    "bothAbsentDevelopmentProfileNotCommittedQualification": true
+  },
+  "cleanupComplete": true,
+  "finishedAt": "2026-08-27T14:29:28.221Z",
+  "counts": {
+    "planned": 18,
+    "executed": 18,
+    "pass": 18,
+    "fail": 0,
+    "skips": 0,
+    "mutants": 3
+  }
+}

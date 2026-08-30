@@ -1,0 +1,31 @@
+{
+  "schema": "B2_GENERATOR_DERIVATION_R4",
+  "source": {
+    "originalPath": "completion-r3/runtime/publish.mjs",
+    "bytes": 21803,
+    "sha256": "4b7a11ec7515a1f83f0bc9d73b8d9dcbe9c507a339cdf0cb0d2fe25772284dde",
+    "qualification": "snapshotted uncommitted r3 authored DATA, not a frozen product origin"
+  },
+  "changes": [
+    {
+      "name": "separate generation from controls and publication",
+      "before": "export async function publish(context)",
+      "after": "export async function generate(context)"
+    },
+    {
+      "name": "use bounded asynchronous controller Git and apply_patch",
+      "removedStart": 782,
+      "removedEnd": 1491
+    },
+    {
+      "name": "await admitted metadata capture",
+      "before": "const raw = git(\"tool-authority-blobs\",",
+      "after": "const raw = await git(\"tool-authority-blobs\","
+    }
+  ],
+  "output": {
+    "bytes": 11839,
+    "sha256": "33cdf86de4c01b6b3d5e40e29afd81d02f202d0afb6ba470dc25ff894923c3a3"
+  },
+  "generationDoesNotRunControlsOrProduct": true
+}

@@ -1,0 +1,5 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PREPARATION-HISTORY.md
+M /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/origins.mjs
+M /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/controls.mjs
+{"preseal":{"path":"tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json","bytes":17692,"sha256":"007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc"},"launch":"B1_ROOT_GO=ROOT_B1_PUBLIC15_EXPLICIT_FRESH_AUTHORIZATION /bin/zsh tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/launch.sh tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/PRESEAL.json 007887fff41f65481ecf7a4fe4ab68db2aa1a5c67d4782a30c5bf764d84f0fbc 17692","entries":1117,"edges":975,"at":"2026-08-29T12:35:28.984Z","actualCalls":0}

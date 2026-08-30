@@ -1,0 +1,10 @@
+{
+  "status": "ordinary DATA publication duplicate retained",
+  "errorCode": "EEXIST",
+  "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/actual-v1/raw/administration/preserve-start.json",
+  "cause": "preserve-start.json was already copied by the preservation helper; later supplemental copy used wx and correctly refused overwrite",
+  "newChildren": 0,
+  "productRetries": 0,
+  "rawLoss": false,
+  "correction": "Authenticate identical existing bytes; publish only missing retirement and manifest metadata; no original overwrite"
+}

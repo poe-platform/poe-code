@@ -1,0 +1,159 @@
+{
+  "verdict": "PASS_SAVED_RUNTIME_PREDICATES_NOT_ORIGINAL_AGGREGATE",
+  "preseal": "d3cf71539c9bade4faaedc92954843240b6c45e4",
+  "controls": 20,
+  "matched": 20,
+  "runtimeWorkerStatus": 0,
+  "originalOuterStatus": 1,
+  "originalPreparationStatus": 1,
+  "reruns": 0,
+  "exactSealedPatchApplied": [
+    "assert-capture.mjs",
+    "authorization.mjs",
+    "context.mjs",
+    "import-fence.mjs"
+  ],
+  "unchangedComponents": 7,
+  "children": [
+    {
+      "pid": 51215,
+      "group": 51215,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 47
+    },
+    {
+      "pid": 51217,
+      "group": 51217,
+      "exitCode": 7,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 59
+    },
+    {
+      "pid": 51220,
+      "group": 51220,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 46
+    },
+    {
+      "pid": 51224,
+      "group": 51224,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 56
+    },
+    {
+      "pid": 51235,
+      "group": 51235,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 67
+    },
+    {
+      "pid": 51238,
+      "group": 51238,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 53
+    },
+    {
+      "pid": 51244,
+      "group": 51244,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 55
+    },
+    {
+      "pid": 51245,
+      "group": 51245,
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "timedOut": true,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [
+        "SIGTERM"
+      ],
+      "elapsedMs": 157
+    },
+    {
+      "pid": 51246,
+      "group": 51246,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 47
+    }
+  ],
+  "outerProcess": {
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/capture-dubngyeu/CONFIG.json"
+    ],
+    "pid": 44777,
+    "group": 44777,
+    "status": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "reaped": true,
+    "groupAbsent": true,
+    "signalsSent": [],
+    "elapsedMs": 24772
+  },
+  "historyFilesUnchanged": 300,
+  "productImports": 0,
+  "builds": 0,
+  "compilerRuns": 0
+}

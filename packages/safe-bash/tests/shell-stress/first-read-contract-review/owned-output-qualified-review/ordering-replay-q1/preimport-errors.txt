@@ -1,0 +1,15 @@
+2026-08-27: first host-only typed qualification compiled successfully (typed-check-r0.json).
+No product import/execution. Host lifecycle assertion failed: native-backed abort event
+targetSame=true, currentTargetSame=false, aborted=true, reasonUndefined=true.
+At qualify.mjs:33 strict deepEqual expected currentTargetSame=true. Node v22.22.2.
+Original executable capture preserved as qualify-preimport-r0.mjs.data. No acceptance
+round ran. Before binding, compare actual currentTarget to the same native host event
+semantics rather than assuming browser EventTarget behavior. Keep target and abort
+lifecycle assertions; record currentTarget on both native and owned synthetic signals.
+
+Second host-only qualification: compile passed, same assertion mismatch (false versus
+true) at qualify.mjs:36 because native comparison used a persistent listener whereas
+synthetic used once:true plus onabort and AbortSignal.any. Original r1 capture and
+typed-check-r1.json retained. Native comparison topology is now identical before any
+product execution. No claim of a synthetic-specific lifecycle defect from mismatched
+host listener configurations. No product round or expectation rewrite occurred.

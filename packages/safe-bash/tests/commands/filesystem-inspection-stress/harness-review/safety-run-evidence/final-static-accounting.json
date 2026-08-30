@@ -1,0 +1,865 @@
+{
+  "entrypoints": {
+    "shell": "dist/shell/index.js",
+    "contracts": "dist/contracts/index.js",
+    "tree": "dist/commands/tree/index.js",
+    "file": "dist/commands/file/index.js"
+  },
+  "closureFiles": [
+    "dist/commands/copy-identity.js",
+    "dist/commands/file/classify.js",
+    "dist/commands/file/index.js",
+    "dist/commands/file/shared.js",
+    "dist/commands/tree/arguments.js",
+    "dist/commands/tree/index.js",
+    "dist/commands/tree/io.js",
+    "dist/commands/tree/options.js",
+    "dist/commands/tree/pattern.js",
+    "dist/commands/tree/tree.js",
+    "dist/contracts/command.js",
+    "dist/contracts/errors.js",
+    "dist/contracts/filesystem.js",
+    "dist/contracts/index.js",
+    "dist/contracts/io.js",
+    "dist/contracts/path.js",
+    "dist/contracts/plugin.js",
+    "dist/shell/arithmetic.js",
+    "dist/shell/cleanup.js",
+    "dist/shell/display.js",
+    "dist/shell/index.js",
+    "dist/shell/input.js",
+    "dist/shell/locale.js",
+    "dist/shell/parser.js",
+    "dist/shell/pattern.js",
+    "dist/shell/runtime.js",
+    "dist/shell/shell.js",
+    "dist/shell/types.js"
+  ],
+  "imports": [
+    {
+      "parent": "dist/shell/index.js",
+      "specifier": "./shell.js",
+      "target": "dist/shell/shell.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "specifier": "../contracts/index.js",
+      "target": "dist/contracts/index.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "specifier": "./command.js",
+      "target": "dist/contracts/command.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "specifier": "./errors.js",
+      "target": "dist/contracts/errors.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/contracts/errors.js",
+      "specifier": "node:util",
+      "line": 1,
+      "kind": "builtin"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "specifier": "./filesystem.js",
+      "target": "dist/contracts/filesystem.js",
+      "line": 3,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "specifier": "./io.js",
+      "target": "dist/contracts/io.js",
+      "line": 4,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/contracts/io.js",
+      "specifier": "node:stream/web",
+      "line": 1,
+      "kind": "builtin"
+    },
+    {
+      "parent": "dist/contracts/io.js",
+      "specifier": "./errors.js",
+      "target": "dist/contracts/errors.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "specifier": "./path.js",
+      "target": "dist/contracts/path.js",
+      "line": 5,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/contracts/path.js",
+      "specifier": "node:path",
+      "line": 1,
+      "kind": "builtin"
+    },
+    {
+      "parent": "dist/contracts/path.js",
+      "specifier": "./errors.js",
+      "target": "dist/contracts/errors.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "specifier": "./plugin.js",
+      "target": "dist/contracts/plugin.js",
+      "line": 6,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "specifier": "./parser.js",
+      "target": "dist/shell/parser.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/parser.js",
+      "specifier": "./types.js",
+      "target": "dist/shell/types.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/parser.js",
+      "specifier": "./arithmetic.js",
+      "target": "dist/shell/arithmetic.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/arithmetic.js",
+      "specifier": "./types.js",
+      "target": "dist/shell/types.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "specifier": "./input.js",
+      "target": "dist/shell/input.js",
+      "line": 3,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/input.js",
+      "specifier": "./runtime.js",
+      "target": "dist/shell/runtime.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "../contracts/index.js",
+      "target": "dist/contracts/index.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "./parser.js",
+      "target": "dist/shell/parser.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "./types.js",
+      "target": "dist/shell/types.js",
+      "line": 3,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "./input.js",
+      "target": "dist/shell/input.js",
+      "line": 4,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "./arithmetic.js",
+      "target": "dist/shell/arithmetic.js",
+      "line": 5,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "./pattern.js",
+      "target": "dist/shell/pattern.js",
+      "line": 6,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "./locale.js",
+      "target": "dist/shell/locale.js",
+      "line": 7,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "./display.js",
+      "target": "dist/shell/display.js",
+      "line": 8,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "specifier": "./cleanup.js",
+      "target": "dist/shell/cleanup.js",
+      "line": 9,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "specifier": "./locale.js",
+      "target": "dist/shell/locale.js",
+      "line": 4,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "specifier": "./runtime.js",
+      "target": "dist/shell/runtime.js",
+      "line": 5,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "specifier": "./types.js",
+      "target": "dist/shell/types.js",
+      "line": 6,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "specifier": "./cleanup.js",
+      "target": "dist/shell/cleanup.js",
+      "line": 7,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/index.js",
+      "specifier": "./parser.js",
+      "target": "dist/shell/parser.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/shell/index.js",
+      "specifier": "./types.js",
+      "target": "dist/shell/types.js",
+      "line": 3,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/index.js",
+      "specifier": "./tree.js",
+      "target": "dist/commands/tree/tree.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "specifier": "../../contracts/index.js",
+      "target": "dist/contracts/index.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "specifier": "../copy-identity.js",
+      "target": "dist/commands/copy-identity.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/copy-identity.js",
+      "specifier": "../contracts/index.js",
+      "target": "dist/contracts/index.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "specifier": "./arguments.js",
+      "target": "dist/commands/tree/arguments.js",
+      "line": 3,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/arguments.js",
+      "specifier": "./io.js",
+      "target": "dist/commands/tree/io.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/io.js",
+      "specifier": "node:timers/promises",
+      "line": 1,
+      "kind": "builtin"
+    },
+    {
+      "parent": "dist/commands/tree/io.js",
+      "specifier": "../../contracts/index.js",
+      "target": "dist/contracts/index.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/arguments.js",
+      "specifier": "./pattern.js",
+      "target": "dist/commands/tree/pattern.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/pattern.js",
+      "specifier": "./io.js",
+      "target": "dist/commands/tree/io.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "specifier": "./io.js",
+      "target": "dist/commands/tree/io.js",
+      "line": 4,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "specifier": "./options.js",
+      "target": "dist/commands/tree/options.js",
+      "line": 5,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "specifier": "./pattern.js",
+      "target": "dist/commands/tree/pattern.js",
+      "line": 6,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/tree/index.js",
+      "specifier": "./tree.js",
+      "target": "dist/commands/tree/tree.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/file/index.js",
+      "specifier": "../../contracts/index.js",
+      "target": "dist/contracts/index.js",
+      "line": 1,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/file/index.js",
+      "specifier": "./classify.js",
+      "target": "dist/commands/file/classify.js",
+      "line": 2,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/file/index.js",
+      "specifier": "./shared.js",
+      "target": "dist/commands/file/shared.js",
+      "line": 3,
+      "kind": "file"
+    },
+    {
+      "parent": "dist/commands/file/shared.js",
+      "specifier": "../../contracts/index.js",
+      "target": "dist/contracts/index.js",
+      "line": 1,
+      "kind": "file"
+    }
+  ],
+  "dynamic": [],
+  "regex": [
+    {
+      "path": "src/commands/file/classify.ts",
+      "line": 34,
+      "expression": "/^%PDF-[12]\\.[0-9](?:\\r|\\n|\\s)/u"
+    },
+    {
+      "path": "src/commands/file/classify.ts",
+      "line": 43,
+      "expression": "/\\0.*$/u"
+    },
+    {
+      "path": "src/commands/file/classify.ts",
+      "line": 44,
+      "expression": "/^[0-7]+$/u"
+    },
+    {
+      "path": "src/commands/file/classify.ts",
+      "line": 88,
+      "expression": "/^[\\x20\\t\\r\\n]*(?:\\{|\\[)/u"
+    },
+    {
+      "path": "src/commands/file/shared.ts",
+      "line": 102,
+      "expression": "/[\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]/u"
+    },
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "line": 30,
+      "expression": "/[\\ud800-\\udfff]/u"
+    },
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "line": 70,
+      "expression": "/^[0-9]+$/u"
+    },
+    {
+      "path": "src/commands/tree/io.ts",
+      "line": 19,
+      "expression": "/^[A-Z][A-Z0-9]+: /u"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "line": 30,
+      "expression": "/[\\u007f-\\u009f\\u2028\\u2029\\p{Cf}]/u"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "line": 43,
+      "expression": "/[\\u007f-\\u009f\\u2028\\u2029\\p{Cf}]/gu"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "line": 105,
+      "expression": "/[\\ud800-\\udfff]/u"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "line": 120,
+      "expression": "/\\/$/u"
+    }
+  ],
+  "lengths": [
+    {
+      "id": "T-empty-many",
+      "argumentCodeUnits": 274,
+      "argumentBytes": 274,
+      "entryNameBytes": [
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128
+      ],
+      "expectedLineBytes": null
+    },
+    {
+      "id": "T-DP-cumulative",
+      "argumentCodeUnits": 36,
+      "argumentBytes": 36,
+      "entryNameBytes": [
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128,
+        128
+      ],
+      "expectedLineBytes": null
+    },
+    {
+      "id": "T-sort-many",
+      "argumentCodeUnits": 28,
+      "argumentBytes": 28,
+      "entryNameBytes": [
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512,
+        512
+      ],
+      "expectedLineBytes": null
+    },
+    {
+      "id": "F-JSON-cumulative",
+      "argumentCodeUnits": 88,
+      "argumentBytes": 88,
+      "entryNameBytes": [
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "expectedLineBytes": 29
+    },
+    {
+      "id": "F-header-many",
+      "argumentCodeUnits": 392,
+      "argumentBytes": 392,
+      "entryNameBytes": [
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11
+      ],
+      "expectedLineBytes": null
+    },
+    {
+      "id": "F-metadata-many",
+      "argumentCodeUnits": 320,
+      "argumentBytes": 320,
+      "entryNameBytes": [
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "expectedLineBytes": null
+    }
+  ],
+  "arithmetic": {
+    "treeEmpty": {
+      "compile": 767,
+      "startupFS": 2,
+      "eachCandidate": 257,
+      "childStats": 64,
+      "comparisonCharge": 257,
+      "beforeSort": 17217,
+      "nonSortTotal": 17281,
+      "maximumAdmittedComparisonsForCompletion": 952
+    },
+    "dp": {
+      "compile": 53,
+      "startupFS": 2,
+      "initialRow": 129,
+      "tokenCharge": 258,
+      "tokens": 17,
+      "matcher": 4516,
+      "firstFilterRequired": 4572,
+      "singletonCompleteRequired": 4573,
+      "totalFiltersRequired": 289143,
+      "acceptedBeforeFailure": 4056,
+      "attemptedAtFailure": 4314
+    },
+    "json": {
+      "startup": 88,
+      "perEntry": 8228,
+      "outputLine": 29,
+      "firstComplete": 8316,
+      "twoBeforeSecondClassification": 16515,
+      "twoComplete": 16544,
+      "totalIfBudgetRelaxed": 65912
+    },
+    "header": {
+      "startup": 392,
+      "lineBytes": [
+        29,
+        41,
+        38,
+        41
+      ],
+      "samplePerEntry": 512,
+      "chunkChargesPerEntry": 4,
+      "perEntry": [
+        546,
+        558,
+        555,
+        558
+      ],
+      "outputBytes": 1192,
+      "total": 18128
+    },
+    "metadata": {
+      "startup": 320,
+      "entry": 1,
+      "targetCharge": 4096,
+      "acceptedPieces": 819,
+      "attemptedPiece": 820,
+      "retainedEscapedCodeUnits": 4095,
+      "rejectedEscapedCodeUnits": 4100,
+      "firstFullLineBytes": 20510,
+      "acceptedWorkAtFailure": 4417,
+      "failureDiagnosticBytes": 28
+    }
+  },
+  "incidentalLiveReads": [
+    {
+      "path": "src/contracts/index.ts",
+      "equalToFrozen": true,
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "disclosure": "An overview command used repository cwd; this equality check authenticates that incidental read. All line-numbered proof review uses frozen paths."
+    },
+    {
+      "path": "src/shell/index.ts",
+      "equalToFrozen": true,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "disclosure": "An overview command used repository cwd; this equality check authenticates that incidental read. All line-numbered proof review uses frozen paths."
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "equalToFrozen": true,
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "disclosure": "An overview command used repository cwd; this equality check authenticates that incidental read. All line-numbered proof review uses frozen paths."
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "equalToFrozen": true,
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "disclosure": "An overview command used repository cwd; this equality check authenticates that incidental read. All line-numbered proof review uses frozen paths."
+    }
+  ]
+}

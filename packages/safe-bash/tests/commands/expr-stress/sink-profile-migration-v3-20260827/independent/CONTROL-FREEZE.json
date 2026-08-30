@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-27",
+  "role": "Independent delegated leaf; no redelegation; only new independent evidence owned",
+  "product": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "baselineEvidence": "beba7b00",
+  "candidateInspection": "Frozen before author receipt, author overlays or canonical commit diff inspection. Initial discovery listed canonical commit title and attempted a live canonical source read in truncated output; no candidate assertions used to design controls.",
+  "profiles": [
+    {"id":"canonical", "argv":["1"], "expected":"reject exact stdoutError identity; zero diagnostic writes; subsequent diagnostic-sink assertions preserved"},
+    {"id":"core", "argv":["41","+","1"], "expected":"reject first stdout sentinel; writes exactly stdout once"},
+    {"id":"quota47", "argv":["1"], "cap":2, "expected":"reject exact sink identity; no emergency diagnostic"},
+    {"id":"nearby16", "argv":["a",":","a"], "expected":"reject exact sink identity; zero diagnostic; same one regex job and cleanup"}
+  ],
+  "behaviorMutations": [
+    {"id":"swallow", "change":"replace rejected stdout settlement with fulfilled success", "mustDetect":"missing rejection"},
+    {"id":"recast", "change":"write one diagnostic and fulfill status 3", "mustDetect":"missing rejection and/or forbidden diagnostic"},
+    {"id":"wrong-error-copy", "change":"reject new Error with same message", "mustDetect":"identity mismatch, not merely rejection"},
+    {"id":"wrong-sentinel", "change":"reject distinct object sentinel", "mustDetect":"identity mismatch, not merely rejection"},
+    {"id":"duplicate-diagnostic", "change":"write two diagnostics then reject original stdout reason", "mustDetect":"forbidden diagnostic despite correct identity"}
+  ],
+  "structuralMutations": ["changed argv", "raised output budget", "changed sink callback", "changed job assertion", "removed cleanup assertion"],
+  "structuralDetection": "Execute exact old-to-new minimal-delta audit against each individually mutated fixture; reject at a named invariant, not generic setup/import failure.",
+  "execution": "Run unchanged original 237/146/47/16 and distinct revised copies against one archived compiled c3 product; physically move offline installed package; bind emitted canonical imports only, audit assertion preservation; preserve raw failures. No extra broad cohorts or native oracle recapture.",
+  "cleanup": "Unique task-owned OS temporary root and bounded children; no SIGSTOP; append-aware source/dist/package inventories before and after."
+}

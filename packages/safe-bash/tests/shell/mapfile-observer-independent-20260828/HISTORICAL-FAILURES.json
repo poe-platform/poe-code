@@ -1,0 +1,1064 @@
+{
+  "classification": "immutable historical data extraction; not replay or rescoring",
+  "sourceCommit": "075fbe24b893e3ceaa3ed9bb138c4576ab7ab032",
+  "sourcePath": "tests/shell/mapfile-independent-20260828/observer-review-v1/CAPTURE-01.json",
+  "sourceBlob": "70b1d8bbd3ba3cfe004bc459118f7391c477d211",
+  "sourceSha256": "abcf1f75930690da28c2c7535d691cda7bcc801443a69488829844f489ed6a7b",
+  "decodedStdoutSha256": "b702393560e2b57d6b16f8c8ea0bb99b2253a4c980caa9972cd4a34adb6d7429",
+  "oldAuthor": 37,
+  "oldIndependent": {
+    "passed": 26,
+    "total": 32
+  },
+  "failures": [
+    {
+      "scenario": "module-mode-only",
+      "expectedSuccess": false,
+      "pass": false,
+      "report": {
+        "schema": "mapfile-observer-result-v1",
+        "mode": "synthetic",
+        "runtime": {
+          "path": "/controls/node",
+          "version": "MODEL",
+          "platform": "synthetic",
+          "arch": "synthetic",
+          "bytes": 28,
+          "sha256": "4cf3ce2420682c44a868c69e664a0e5ed7835a9604695d89bede04688b5c4abf"
+        },
+        "binary": {
+          "path": "/controls/bash",
+          "sha256": "01dd418304a99fe5b79918095ad9a5cf3ce9b0a20977ac32f261222e37c568e3",
+          "bytes": 27
+        },
+        "moduleSealSha256": "d08585b8995ffd1399be27c17dc378357707106b93f12c240e92ffe57dadadc4",
+        "recipeSha256": "18f52fe34068d96f12bc35af5d7e51443f3c59e89627accd33f7ce54b8f1534a",
+        "authorizationSha256": "d2d52084bbd92cfd256de555af986e042410c56aa76402613e51686edc112c57",
+        "rows": [
+          {
+            "id": "N01",
+            "scriptSha256": "04da6e2a058774973d9697682666da26645243c5d0517244376a2d53743094cf",
+            "stdinSha256": "c3f9c8c283a2b1f2f1896f27a01cbe3cddc0c9d93f752e4639035a0f5b36f6e8",
+            "binding": {
+              "executable": "/controls/bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "unset MAPFILE; mapfile; code=$?; printf 'status=%s\\n' \"$code\"; declare -p MAPFILE",
+                "mapfile-design-v1"
+              ],
+              "cwd": "/owned/fixture",
+              "env": {
+                "PATH": "",
+                "ENV": "",
+                "BASH_ENV": "",
+                "HOME": "/owned/fixture/home",
+                "TMPDIR": "/owned/fixture/tmp",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC"
+              },
+              "stdinHex": "6f6e650a74776f0a"
+            },
+            "attemptRegistered": true,
+            "spawnCalled": true,
+            "submitted": true,
+            "spawnObserved": true,
+            "closeObserved": true,
+            "exitObserved": true,
+            "pid": 9001,
+            "code": 0,
+            "signal": null,
+            "fault": null,
+            "groupAbsent": true,
+            "retainedBytes": 0,
+            "observedBytes": 0,
+            "signals": [],
+            "events": [
+              {
+                "name": "spawn",
+                "at": 0
+              },
+              {
+                "name": "exit",
+                "at": 10
+              },
+              {
+                "name": "close",
+                "at": 10
+              }
+            ],
+            "terminal": "closed-and-group-absent",
+            "elapsed": 10,
+            "stdoutBase64": "",
+            "stderrBase64": ""
+          }
+        ],
+        "failures": [],
+        "directories": [
+          {
+            "path": "/owned",
+            "planned": true,
+            "acquired": true,
+            "identity": 15,
+            "removed": false
+          },
+          {
+            "path": "/owned/records",
+            "planned": true,
+            "acquired": true,
+            "identity": 16,
+            "removed": false
+          },
+          {
+            "path": "/owned/fixture",
+            "planned": true,
+            "acquired": true,
+            "identity": 17,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/home",
+            "planned": true,
+            "acquired": true,
+            "identity": 18,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/tmp",
+            "planned": true,
+            "acquired": true,
+            "identity": 19,
+            "removed": true
+          }
+        ],
+        "remaining": [],
+        "nativeSemanticPasses": 0,
+        "receipts": [
+          {
+            "path": "/owned/records/attempt-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 807,
+            "sha256": "d3bb0d952defd48f9be3bd36fdc7773d602561345f5589cf454d20d04841cc9f"
+          },
+          {
+            "path": "/owned/records/spawn-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 828,
+            "sha256": "2d713c93510b1b466a98742208ada45b9ea7fa9d0558b6f96d9858c5f026d0b0"
+          },
+          {
+            "path": "/owned/records/row-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 957,
+            "sha256": "25b69a6ea8bc047423bb7969e323638d2fce3243bd60d024a2c2d10e3fd60503"
+          },
+          {
+            "path": "/owned/records/final.json",
+            "planned": true,
+            "written": true,
+            "bytes": 2737,
+            "sha256": "74e4dfe4b89f6d0aab411414158acd4b36dc1c16c5072c27ccea1e8815f55d8b"
+          }
+        ],
+        "outputBytesRetained": 0,
+        "success": true,
+        "launched": 1,
+        "spawnCalls": 1,
+        "actualCloseEvents": 1,
+        "cleanupUncertain": false,
+        "elapsed": 10
+      },
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 2,
+        "clock": 10,
+        "maximumTasks": 6,
+        "pending": 0,
+        "signals": [],
+        "late": 0
+      }
+    },
+    {
+      "scenario": "native-not-executable",
+      "expectedSuccess": false,
+      "pass": false,
+      "report": {
+        "schema": "mapfile-observer-result-v1",
+        "mode": "synthetic",
+        "runtime": {
+          "path": "/controls/node",
+          "version": "MODEL",
+          "platform": "synthetic",
+          "arch": "synthetic",
+          "bytes": 28,
+          "sha256": "4cf3ce2420682c44a868c69e664a0e5ed7835a9604695d89bede04688b5c4abf"
+        },
+        "binary": {
+          "path": "/controls/bash",
+          "sha256": "01dd418304a99fe5b79918095ad9a5cf3ce9b0a20977ac32f261222e37c568e3",
+          "bytes": 27
+        },
+        "moduleSealSha256": "d08585b8995ffd1399be27c17dc378357707106b93f12c240e92ffe57dadadc4",
+        "recipeSha256": "18f52fe34068d96f12bc35af5d7e51443f3c59e89627accd33f7ce54b8f1534a",
+        "authorizationSha256": "d2d52084bbd92cfd256de555af986e042410c56aa76402613e51686edc112c57",
+        "rows": [
+          {
+            "id": "N01",
+            "scriptSha256": "04da6e2a058774973d9697682666da26645243c5d0517244376a2d53743094cf",
+            "stdinSha256": "c3f9c8c283a2b1f2f1896f27a01cbe3cddc0c9d93f752e4639035a0f5b36f6e8",
+            "binding": {
+              "executable": "/controls/bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "unset MAPFILE; mapfile; code=$?; printf 'status=%s\\n' \"$code\"; declare -p MAPFILE",
+                "mapfile-design-v1"
+              ],
+              "cwd": "/owned/fixture",
+              "env": {
+                "PATH": "",
+                "ENV": "",
+                "BASH_ENV": "",
+                "HOME": "/owned/fixture/home",
+                "TMPDIR": "/owned/fixture/tmp",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC"
+              },
+              "stdinHex": "6f6e650a74776f0a"
+            },
+            "attemptRegistered": true,
+            "spawnCalled": true,
+            "submitted": true,
+            "spawnObserved": true,
+            "closeObserved": true,
+            "exitObserved": true,
+            "pid": 9001,
+            "code": 0,
+            "signal": null,
+            "fault": null,
+            "groupAbsent": true,
+            "retainedBytes": 0,
+            "observedBytes": 0,
+            "signals": [],
+            "events": [
+              {
+                "name": "spawn",
+                "at": 0
+              },
+              {
+                "name": "exit",
+                "at": 10
+              },
+              {
+                "name": "close",
+                "at": 10
+              }
+            ],
+            "terminal": "closed-and-group-absent",
+            "elapsed": 10,
+            "stdoutBase64": "",
+            "stderrBase64": ""
+          }
+        ],
+        "failures": [],
+        "directories": [
+          {
+            "path": "/owned",
+            "planned": true,
+            "acquired": true,
+            "identity": 15,
+            "removed": false
+          },
+          {
+            "path": "/owned/records",
+            "planned": true,
+            "acquired": true,
+            "identity": 16,
+            "removed": false
+          },
+          {
+            "path": "/owned/fixture",
+            "planned": true,
+            "acquired": true,
+            "identity": 17,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/home",
+            "planned": true,
+            "acquired": true,
+            "identity": 18,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/tmp",
+            "planned": true,
+            "acquired": true,
+            "identity": 19,
+            "removed": true
+          }
+        ],
+        "remaining": [],
+        "nativeSemanticPasses": 0,
+        "receipts": [
+          {
+            "path": "/owned/records/attempt-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 807,
+            "sha256": "d3bb0d952defd48f9be3bd36fdc7773d602561345f5589cf454d20d04841cc9f"
+          },
+          {
+            "path": "/owned/records/spawn-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 828,
+            "sha256": "2d713c93510b1b466a98742208ada45b9ea7fa9d0558b6f96d9858c5f026d0b0"
+          },
+          {
+            "path": "/owned/records/row-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 957,
+            "sha256": "25b69a6ea8bc047423bb7969e323638d2fce3243bd60d024a2c2d10e3fd60503"
+          },
+          {
+            "path": "/owned/records/final.json",
+            "planned": true,
+            "written": true,
+            "bytes": 2737,
+            "sha256": "74e4dfe4b89f6d0aab411414158acd4b36dc1c16c5072c27ccea1e8815f55d8b"
+          }
+        ],
+        "outputBytesRetained": 0,
+        "success": true,
+        "launched": 1,
+        "spawnCalls": 1,
+        "actualCloseEvents": 1,
+        "cleanupUncertain": false,
+        "elapsed": 10
+      },
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 2,
+        "clock": 10,
+        "maximumTasks": 6,
+        "pending": 0,
+        "signals": [],
+        "late": 0
+      }
+    },
+    {
+      "scenario": "runtime-not-executable",
+      "expectedSuccess": false,
+      "pass": false,
+      "report": {
+        "schema": "mapfile-observer-result-v1",
+        "mode": "synthetic",
+        "runtime": {
+          "path": "/controls/node",
+          "version": "MODEL",
+          "platform": "synthetic",
+          "arch": "synthetic",
+          "bytes": 28,
+          "sha256": "4cf3ce2420682c44a868c69e664a0e5ed7835a9604695d89bede04688b5c4abf"
+        },
+        "binary": {
+          "path": "/controls/bash",
+          "sha256": "01dd418304a99fe5b79918095ad9a5cf3ce9b0a20977ac32f261222e37c568e3",
+          "bytes": 27
+        },
+        "moduleSealSha256": "d08585b8995ffd1399be27c17dc378357707106b93f12c240e92ffe57dadadc4",
+        "recipeSha256": "18f52fe34068d96f12bc35af5d7e51443f3c59e89627accd33f7ce54b8f1534a",
+        "authorizationSha256": "d2d52084bbd92cfd256de555af986e042410c56aa76402613e51686edc112c57",
+        "rows": [
+          {
+            "id": "N01",
+            "scriptSha256": "04da6e2a058774973d9697682666da26645243c5d0517244376a2d53743094cf",
+            "stdinSha256": "c3f9c8c283a2b1f2f1896f27a01cbe3cddc0c9d93f752e4639035a0f5b36f6e8",
+            "binding": {
+              "executable": "/controls/bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "unset MAPFILE; mapfile; code=$?; printf 'status=%s\\n' \"$code\"; declare -p MAPFILE",
+                "mapfile-design-v1"
+              ],
+              "cwd": "/owned/fixture",
+              "env": {
+                "PATH": "",
+                "ENV": "",
+                "BASH_ENV": "",
+                "HOME": "/owned/fixture/home",
+                "TMPDIR": "/owned/fixture/tmp",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC"
+              },
+              "stdinHex": "6f6e650a74776f0a"
+            },
+            "attemptRegistered": true,
+            "spawnCalled": true,
+            "submitted": true,
+            "spawnObserved": true,
+            "closeObserved": true,
+            "exitObserved": true,
+            "pid": 9001,
+            "code": 0,
+            "signal": null,
+            "fault": null,
+            "groupAbsent": true,
+            "retainedBytes": 0,
+            "observedBytes": 0,
+            "signals": [],
+            "events": [
+              {
+                "name": "spawn",
+                "at": 0
+              },
+              {
+                "name": "exit",
+                "at": 10
+              },
+              {
+                "name": "close",
+                "at": 10
+              }
+            ],
+            "terminal": "closed-and-group-absent",
+            "elapsed": 10,
+            "stdoutBase64": "",
+            "stderrBase64": ""
+          }
+        ],
+        "failures": [],
+        "directories": [
+          {
+            "path": "/owned",
+            "planned": true,
+            "acquired": true,
+            "identity": 15,
+            "removed": false
+          },
+          {
+            "path": "/owned/records",
+            "planned": true,
+            "acquired": true,
+            "identity": 16,
+            "removed": false
+          },
+          {
+            "path": "/owned/fixture",
+            "planned": true,
+            "acquired": true,
+            "identity": 17,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/home",
+            "planned": true,
+            "acquired": true,
+            "identity": 18,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/tmp",
+            "planned": true,
+            "acquired": true,
+            "identity": 19,
+            "removed": true
+          }
+        ],
+        "remaining": [],
+        "nativeSemanticPasses": 0,
+        "receipts": [
+          {
+            "path": "/owned/records/attempt-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 807,
+            "sha256": "d3bb0d952defd48f9be3bd36fdc7773d602561345f5589cf454d20d04841cc9f"
+          },
+          {
+            "path": "/owned/records/spawn-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 828,
+            "sha256": "2d713c93510b1b466a98742208ada45b9ea7fa9d0558b6f96d9858c5f026d0b0"
+          },
+          {
+            "path": "/owned/records/row-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 957,
+            "sha256": "25b69a6ea8bc047423bb7969e323638d2fce3243bd60d024a2c2d10e3fd60503"
+          },
+          {
+            "path": "/owned/records/final.json",
+            "planned": true,
+            "written": true,
+            "bytes": 2737,
+            "sha256": "74e4dfe4b89f6d0aab411414158acd4b36dc1c16c5072c27ccea1e8815f55d8b"
+          }
+        ],
+        "outputBytesRetained": 0,
+        "success": true,
+        "launched": 1,
+        "spawnCalls": 1,
+        "actualCloseEvents": 1,
+        "cleanupUncertain": false,
+        "elapsed": 10
+      },
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 2,
+        "clock": 10,
+        "maximumTasks": 6,
+        "pending": 0,
+        "signals": [],
+        "late": 0
+      }
+    },
+    {
+      "scenario": "final-mode-only",
+      "expectedSuccess": false,
+      "pass": false,
+      "report": {
+        "schema": "mapfile-observer-result-v1",
+        "mode": "synthetic",
+        "runtime": {
+          "path": "/controls/node",
+          "version": "MODEL",
+          "platform": "synthetic",
+          "arch": "synthetic",
+          "bytes": 28,
+          "sha256": "4cf3ce2420682c44a868c69e664a0e5ed7835a9604695d89bede04688b5c4abf"
+        },
+        "binary": {
+          "path": "/controls/bash",
+          "sha256": "01dd418304a99fe5b79918095ad9a5cf3ce9b0a20977ac32f261222e37c568e3",
+          "bytes": 27
+        },
+        "moduleSealSha256": "d08585b8995ffd1399be27c17dc378357707106b93f12c240e92ffe57dadadc4",
+        "recipeSha256": "18f52fe34068d96f12bc35af5d7e51443f3c59e89627accd33f7ce54b8f1534a",
+        "authorizationSha256": "d2d52084bbd92cfd256de555af986e042410c56aa76402613e51686edc112c57",
+        "rows": [
+          {
+            "id": "N01",
+            "scriptSha256": "04da6e2a058774973d9697682666da26645243c5d0517244376a2d53743094cf",
+            "stdinSha256": "c3f9c8c283a2b1f2f1896f27a01cbe3cddc0c9d93f752e4639035a0f5b36f6e8",
+            "binding": {
+              "executable": "/controls/bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "unset MAPFILE; mapfile; code=$?; printf 'status=%s\\n' \"$code\"; declare -p MAPFILE",
+                "mapfile-design-v1"
+              ],
+              "cwd": "/owned/fixture",
+              "env": {
+                "PATH": "",
+                "ENV": "",
+                "BASH_ENV": "",
+                "HOME": "/owned/fixture/home",
+                "TMPDIR": "/owned/fixture/tmp",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC"
+              },
+              "stdinHex": "6f6e650a74776f0a"
+            },
+            "attemptRegistered": true,
+            "spawnCalled": true,
+            "submitted": true,
+            "spawnObserved": true,
+            "closeObserved": true,
+            "exitObserved": true,
+            "pid": 9001,
+            "code": 0,
+            "signal": null,
+            "fault": null,
+            "groupAbsent": true,
+            "retainedBytes": 0,
+            "observedBytes": 0,
+            "signals": [],
+            "events": [
+              {
+                "name": "spawn",
+                "at": 0
+              },
+              {
+                "name": "exit",
+                "at": 10
+              },
+              {
+                "name": "close",
+                "at": 10
+              }
+            ],
+            "terminal": "closed-and-group-absent",
+            "elapsed": 10,
+            "stdoutBase64": "",
+            "stderrBase64": ""
+          }
+        ],
+        "failures": [],
+        "directories": [
+          {
+            "path": "/owned",
+            "planned": true,
+            "acquired": true,
+            "identity": 15,
+            "removed": false
+          },
+          {
+            "path": "/owned/records",
+            "planned": true,
+            "acquired": true,
+            "identity": 16,
+            "removed": false
+          },
+          {
+            "path": "/owned/fixture",
+            "planned": true,
+            "acquired": true,
+            "identity": 17,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/home",
+            "planned": true,
+            "acquired": true,
+            "identity": 18,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/tmp",
+            "planned": true,
+            "acquired": true,
+            "identity": 19,
+            "removed": true
+          }
+        ],
+        "remaining": [],
+        "nativeSemanticPasses": 0,
+        "receipts": [
+          {
+            "path": "/owned/records/attempt-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 807,
+            "sha256": "d3bb0d952defd48f9be3bd36fdc7773d602561345f5589cf454d20d04841cc9f"
+          },
+          {
+            "path": "/owned/records/spawn-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 828,
+            "sha256": "2d713c93510b1b466a98742208ada45b9ea7fa9d0558b6f96d9858c5f026d0b0"
+          },
+          {
+            "path": "/owned/records/row-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 957,
+            "sha256": "25b69a6ea8bc047423bb7969e323638d2fce3243bd60d024a2c2d10e3fd60503"
+          },
+          {
+            "path": "/owned/records/final.json",
+            "planned": true,
+            "written": true,
+            "bytes": 2737,
+            "sha256": "74e4dfe4b89f6d0aab411414158acd4b36dc1c16c5072c27ccea1e8815f55d8b"
+          }
+        ],
+        "outputBytesRetained": 0,
+        "success": true,
+        "launched": 1,
+        "spawnCalls": 1,
+        "actualCloseEvents": 1,
+        "cleanupUncertain": false,
+        "elapsed": 10
+      },
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 2,
+        "clock": 10,
+        "maximumTasks": 6,
+        "pending": 0,
+        "signals": [],
+        "late": 0
+      }
+    },
+    {
+      "scenario": "deadline-crossed-during-auth",
+      "expectedSuccess": false,
+      "pass": false,
+      "report": {
+        "schema": "mapfile-observer-result-v1",
+        "mode": "synthetic",
+        "runtime": {
+          "path": "/controls/node",
+          "version": "MODEL",
+          "platform": "synthetic",
+          "arch": "synthetic",
+          "bytes": 28,
+          "sha256": "4cf3ce2420682c44a868c69e664a0e5ed7835a9604695d89bede04688b5c4abf"
+        },
+        "binary": {
+          "path": "/controls/bash",
+          "sha256": "01dd418304a99fe5b79918095ad9a5cf3ce9b0a20977ac32f261222e37c568e3",
+          "bytes": 27
+        },
+        "moduleSealSha256": "d08585b8995ffd1399be27c17dc378357707106b93f12c240e92ffe57dadadc4",
+        "recipeSha256": "18f52fe34068d96f12bc35af5d7e51443f3c59e89627accd33f7ce54b8f1534a",
+        "authorizationSha256": "d2d52084bbd92cfd256de555af986e042410c56aa76402613e51686edc112c57",
+        "rows": [
+          {
+            "id": "N01",
+            "scriptSha256": "04da6e2a058774973d9697682666da26645243c5d0517244376a2d53743094cf",
+            "stdinSha256": "c3f9c8c283a2b1f2f1896f27a01cbe3cddc0c9d93f752e4639035a0f5b36f6e8",
+            "binding": {
+              "executable": "/controls/bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "unset MAPFILE; mapfile; code=$?; printf 'status=%s\\n' \"$code\"; declare -p MAPFILE",
+                "mapfile-design-v1"
+              ],
+              "cwd": "/owned/fixture",
+              "env": {
+                "PATH": "",
+                "ENV": "",
+                "BASH_ENV": "",
+                "HOME": "/owned/fixture/home",
+                "TMPDIR": "/owned/fixture/tmp",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC"
+              },
+              "stdinHex": "6f6e650a74776f0a"
+            },
+            "attemptRegistered": true,
+            "spawnCalled": true,
+            "submitted": true,
+            "spawnObserved": false,
+            "closeObserved": false,
+            "exitObserved": false,
+            "pid": 9001,
+            "code": null,
+            "signal": null,
+            "fault": "row deadline",
+            "groupAbsent": false,
+            "retainedBytes": 0,
+            "observedBytes": 0,
+            "signals": [
+              "SIGTERM",
+              "SIGKILL",
+              "SIGKILL"
+            ],
+            "events": [
+              {
+                "name": "fault",
+                "at": 0
+              }
+            ],
+            "terminal": "terminal-cleanup-uncertain",
+            "elapsed": 0,
+            "stdoutBase64": "",
+            "stderrBase64": ""
+          }
+        ],
+        "failures": [
+          {
+            "phase": "execution",
+            "message": "row deadline"
+          }
+        ],
+        "directories": [
+          {
+            "path": "/owned",
+            "planned": true,
+            "acquired": true,
+            "identity": 15,
+            "removed": false
+          },
+          {
+            "path": "/owned/records",
+            "planned": true,
+            "acquired": true,
+            "identity": 16,
+            "removed": false
+          },
+          {
+            "path": "/owned/fixture",
+            "planned": true,
+            "acquired": true,
+            "identity": 17,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/home",
+            "planned": true,
+            "acquired": true,
+            "identity": 18,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/tmp",
+            "planned": true,
+            "acquired": true,
+            "identity": 19,
+            "removed": true
+          }
+        ],
+        "remaining": [],
+        "nativeSemanticPasses": 0,
+        "receipts": [
+          {
+            "path": "/owned/records/attempt-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 807,
+            "sha256": "d3bb0d952defd48f9be3bd36fdc7773d602561345f5589cf454d20d04841cc9f"
+          },
+          {
+            "path": "/owned/records/row-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 956,
+            "sha256": "b357b35411fa5c05c8e81670b4a404b88d713478e287be12d76824756837f133"
+          },
+          {
+            "path": "/owned/records/final.json",
+            "planned": true,
+            "written": true,
+            "bytes": 2622,
+            "sha256": "19b6caae733236bac8b966d22c028caf487839527b9e72356c79b8c24b55ed7d"
+          }
+        ],
+        "outputBytesRetained": 0,
+        "success": false,
+        "launched": 0,
+        "spawnCalls": 1,
+        "actualCloseEvents": 0,
+        "cleanupUncertain": true,
+        "elapsed": 150000
+      },
+      "error": {
+        "name": "AssertionError",
+        "message": "no start after prelaunch authentication crosses deadline\n\n1 !== 0\n"
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 7,
+        "clock": 150001,
+        "maximumTasks": 5,
+        "pending": 0,
+        "signals": [
+          "SIGTERM",
+          "SIGKILL",
+          "SIGKILL"
+        ],
+        "late": 0
+      }
+    },
+    {
+      "scenario": "close-without-spawn",
+      "expectedSuccess": false,
+      "pass": false,
+      "report": {
+        "schema": "mapfile-observer-result-v1",
+        "mode": "synthetic",
+        "runtime": {
+          "path": "/controls/node",
+          "version": "MODEL",
+          "platform": "synthetic",
+          "arch": "synthetic",
+          "bytes": 28,
+          "sha256": "4cf3ce2420682c44a868c69e664a0e5ed7835a9604695d89bede04688b5c4abf"
+        },
+        "binary": {
+          "path": "/controls/bash",
+          "sha256": "01dd418304a99fe5b79918095ad9a5cf3ce9b0a20977ac32f261222e37c568e3",
+          "bytes": 27
+        },
+        "moduleSealSha256": "d08585b8995ffd1399be27c17dc378357707106b93f12c240e92ffe57dadadc4",
+        "recipeSha256": "18f52fe34068d96f12bc35af5d7e51443f3c59e89627accd33f7ce54b8f1534a",
+        "authorizationSha256": "d2d52084bbd92cfd256de555af986e042410c56aa76402613e51686edc112c57",
+        "rows": [
+          {
+            "id": "N01",
+            "scriptSha256": "04da6e2a058774973d9697682666da26645243c5d0517244376a2d53743094cf",
+            "stdinSha256": "c3f9c8c283a2b1f2f1896f27a01cbe3cddc0c9d93f752e4639035a0f5b36f6e8",
+            "binding": {
+              "executable": "/controls/bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "unset MAPFILE; mapfile; code=$?; printf 'status=%s\\n' \"$code\"; declare -p MAPFILE",
+                "mapfile-design-v1"
+              ],
+              "cwd": "/owned/fixture",
+              "env": {
+                "PATH": "",
+                "ENV": "",
+                "BASH_ENV": "",
+                "HOME": "/owned/fixture/home",
+                "TMPDIR": "/owned/fixture/tmp",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC"
+              },
+              "stdinHex": "6f6e650a74776f0a"
+            },
+            "attemptRegistered": true,
+            "spawnCalled": true,
+            "submitted": true,
+            "spawnObserved": false,
+            "closeObserved": true,
+            "exitObserved": true,
+            "pid": 9001,
+            "code": 0,
+            "signal": null,
+            "fault": null,
+            "groupAbsent": true,
+            "retainedBytes": 0,
+            "observedBytes": 0,
+            "signals": [],
+            "events": [
+              {
+                "name": "exit",
+                "at": 10
+              },
+              {
+                "name": "close",
+                "at": 10
+              }
+            ],
+            "terminal": "closed-and-group-absent",
+            "elapsed": 10,
+            "stdoutBase64": "",
+            "stderrBase64": ""
+          }
+        ],
+        "failures": [],
+        "directories": [
+          {
+            "path": "/owned",
+            "planned": true,
+            "acquired": true,
+            "identity": 15,
+            "removed": false
+          },
+          {
+            "path": "/owned/records",
+            "planned": true,
+            "acquired": true,
+            "identity": 16,
+            "removed": false
+          },
+          {
+            "path": "/owned/fixture",
+            "planned": true,
+            "acquired": true,
+            "identity": 17,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/home",
+            "planned": true,
+            "acquired": true,
+            "identity": 18,
+            "removed": true
+          },
+          {
+            "path": "/owned/fixture/tmp",
+            "planned": true,
+            "acquired": true,
+            "identity": 19,
+            "removed": true
+          }
+        ],
+        "remaining": [],
+        "nativeSemanticPasses": 0,
+        "receipts": [
+          {
+            "path": "/owned/records/attempt-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 807,
+            "sha256": "d3bb0d952defd48f9be3bd36fdc7773d602561345f5589cf454d20d04841cc9f"
+          },
+          {
+            "path": "/owned/records/row-N01.json",
+            "planned": true,
+            "written": true,
+            "bytes": 934,
+            "sha256": "7fdabfcbf91e4d490057a1b76a45c4c8a8147a8de90683942c321189e04c42b6"
+          },
+          {
+            "path": "/owned/records/final.json",
+            "planned": true,
+            "written": true,
+            "bytes": 2555,
+            "sha256": "72c5bfb4c1772df73acf63832242fbf2dec18eb951ebc8a5f0232beedb21a69b"
+          }
+        ],
+        "outputBytesRetained": 0,
+        "success": true,
+        "launched": 0,
+        "spawnCalls": 1,
+        "actualCloseEvents": 1,
+        "cleanupUncertain": false,
+        "elapsed": 10
+      },
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+      },
+      "model": {
+        "starts": 1,
+        "releases": 1,
+        "events": 1,
+        "clock": 10,
+        "maximumTasks": 5,
+        "pending": 0,
+        "signals": [],
+        "late": 0
+      }
+    }
+  ]
+}

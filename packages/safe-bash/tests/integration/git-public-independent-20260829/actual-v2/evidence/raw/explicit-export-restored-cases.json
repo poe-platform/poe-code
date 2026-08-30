@@ -1,0 +1,14 @@
+{
+  "cases": [
+    {
+      "id": "G01-public-exports",
+      "pass": true,
+      "shells": 0,
+      "closed": 0
+    }
+  ],
+  "pass": 1,
+  "fail": 0,
+  "nativeRuns": 0,
+  "privateRuns": 0
+}

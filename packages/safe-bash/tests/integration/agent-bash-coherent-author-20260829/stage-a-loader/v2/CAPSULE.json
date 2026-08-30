@@ -1,0 +1,30 @@
+{
+  "alias": "/tmp/safe-bash-stage-a-loader-20260829-r2",
+  "physical": "/private/tmp/safe-bash-stage-a-loader-20260829-r2",
+  "rootDevice": "16777232",
+  "rootInode": "187069416",
+  "copied": [
+    {
+      "path": "tools/typescript/package.json",
+      "bytes": 3620,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+      "device": "16777232",
+      "inode": "187069424"
+    },
+    {
+      "path": "tools/typescript/lib/tsc.js",
+      "bytes": 40,
+      "sha256": "9dd5b814df959368c401fb5b5382314eddc3dcdc612017be3266becbf4676c05",
+      "device": "16777232",
+      "inode": "187069425"
+    },
+    {
+      "path": "tools/typescript/lib/_fixture.js",
+      "bytes": 420,
+      "sha256": "92fac4ccd3232f185b23dcb20ef363c019aeaa71678e36d27eb9cc8974065319",
+      "device": "16777232",
+      "inode": "187069426"
+    }
+  ],
+  "noSyntheticPackageBoundary": true
+}

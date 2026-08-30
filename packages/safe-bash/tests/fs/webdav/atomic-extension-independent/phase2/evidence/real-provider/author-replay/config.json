@@ -1,0 +1,8 @@
+{
+  "namespaceUrl": "https://127.0.0.1:53518/dav/",
+  "stockUrl": "https://127.0.0.1:53518/stock/",
+  "caFile": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/cert.pem",
+  "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+  "serverRoot": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/root",
+  "controlRoot": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH"
+}

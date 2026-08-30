@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: direct cross-mount copy rejects a real same-path alias without touching source bytes
+ok 1 - direct cross-mount copy rejects a real same-path alias without touching source bytes
+  ---
+  duration_ms: 8.506375
+  type: 'test'
+  ...
+# Subtest: direct cross-mount copy rejects a real hardlink alias without touching source bytes
+ok 2 - direct cross-mount copy rejects a real hardlink alias without touching source bytes
+  ---
+  duration_ms: 5.532
+  type: 'test'
+  ...
+# Subtest: direct cross-mount copy rejects a real symlink alias without touching source bytes
+ok 3 - direct cross-mount copy rejects a real symlink alias without touching source bytes
+  ---
+  duration_ms: 4.771792
+  type: 'test'
+  ...
+# Subtest: cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity
+ok 4 - cross-mount copy does not treat unrelated synthetic dev/ino collisions as identity
+  ---
+  duration_ms: 0.633667
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 153.933042

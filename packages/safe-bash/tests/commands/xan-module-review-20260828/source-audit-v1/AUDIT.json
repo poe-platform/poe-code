@@ -1,0 +1,211 @@
+{
+  "classification": "BOUNDED_PINNED_SOURCE_AUDIT_NOT_RUNTIME_ACCEPTANCE",
+  "version": 1,
+  "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "freeze": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+  "policies": ["1168432e12568e63ff307e92ed83d64d78a03a3c", "5b27c32b941315247bf5dca7b20faf2a9aca6d48"],
+  "compositionInventorySha256": "4ec398bc4ae2bbbc15eb0a63b796192619087e9d0e25b8c87524ac7dff9f7df0",
+  "compositionMeaning": "Inventory hash, NOT archive hash. Only ten candidate XAN .ts files overlay 211 baseline .ts files plus four baseline package/config inputs; the whole candidate Git tree is NOT this composition.",
+  "chronology": {
+    "rulesAndPinnedContractInspectionUTC": "2026-08-28T06:10:20Z",
+    "firstPinnedCandidateSourceContentInspectionUTC": "2026-08-28T06:11:03Z",
+    "meaning": "Post-candidate, post-author-release, post-preparation-v2 seal and after another reviewer had inspected source. No pre-candidate, implementation-blind or first-independent-review claim. Shell timestamps are observations, not proof of continuous work."
+  },
+  "inventory": { "priorReferences": 88, "families": 12, "recipes": 18, "ratifications": 7, "selectors": 36, "changed": false },
+  "execution": { "product": 0, "build": 0, "compile": 0, "nativeOracle": 0, "runtimeCohorts": 0, "network": 0, "dependencyInstalls": 0 },
+  "referenceConvention": "candidate/<file>:start-end resolves via PINNED-INPUTS.json to src/commands/xan/<file> at candidate; base/<path> resolves to that repository path at baseline; policy/design and policy/profile are at 116; policy/selector at 5b27. Every input has Git blob, SHA256 and byte length. Line numbers are 1-based inclusive Git-text lines, not mutable HEAD.",
+  "dispositions": {
+    "static-supported": "A bounded control-flow/accounting claim follows from pinned source; never a runtime pass.",
+    "needs-runtime": "Source alone cannot discharge boundary, effect, failure identity or settlement observation.",
+    "clear-product-bug": "A concrete source path contradicts a frozen accounting/scheduling requirement; reproduction remains UNEXECUTED.",
+    "freeze-contradiction-or-unreachable": "Explicitly limited target or interpretation; not a pass, not authority to change frozen expectations."
+  },
+  "common": {
+    "factoryValidation": ["candidate/options.ts:1-36", "candidate/index.ts:81-91"],
+    "counterSafety": ["candidate/budget.ts:8-28", "candidate/index.ts:24-35"],
+    "staticProof": "One Budget per execute; safe-integer positive factory values <= exact frozen hard ceilings. bound rejects non-safe/negative/excess values; add commits only after bound. No cumulative counter reset across files, phases or destinations. release affects retained occupancy only. All configured maxima and relevant additions/multiplications here are far below Number.MAX_SAFE_INTEGER; unsigned modes use checked bigint before conversion. No runtime validation inferred.",
+    "configurationProbe": "For every frozen row, independently check 0, -1, fraction, NaN, +/-Infinity, unsafe integer, H-1/H/H+1; unknown keys and wrong option types separately. This is a suggestion, not an executed cohort.",
+    "timingCaveat": "Byte admission necessarily follows delivery; failure stops parsing/next admission, not already-completed provider read-ahead. Argument-size admission follows a full scalar scan of each argument. Work/retained defects below prevent an exact all-path ledger certificate.",
+    "allRecipesNeedRuntime": true,
+    "defaultAndHardRuntimeExecuted": false
+  },
+  "recipes": [
+    {
+      "name": "maxArgs", "defaultValue": 128, "hardCeiling": 4096,
+      "disposition": "static-supported", "sites": ["candidate/argv.ts:60-62", "candidate/argv.ts:107-115"],
+      "charge": "args.length includes subcommand/options/operands, excludes registry name; checked before per-argument scans or I/O.",
+      "reachability": "Frozen headers -j plus N distinct files: charged value 2+N. Default 127/128/129 use 125/126/127 files with maxInputFiles >=127. Prescribed recipe cannot reach hard 4095/4096/4097: input-file hard ceiling 256 permits at most 258 args. This is recipe-specific, not a claim about arbitrary argv.",
+      "probe": "Keep distinct tiny files and unchanged output arithmetic; do not substitute repeated singleton flags for the hard witness."
+    },
+    {
+      "name": "maxArgumentBytes", "defaultValue": 65536, "hardCeiling": 1048576,
+      "disposition": "static-supported", "sites": ["candidate/argv.ts:61-62", "candidate/budget.ts:30-45", "candidate/selector.ts:15-16"],
+      "charge": "Sum scalar UTF-8 sizes after scanning each argument, before selector encoding/I/O; rejects unpaired UTF-16 surrogates.",
+      "reachability": "select has six bytes: default target T needs selector length T-6 and matching header; raise maxSelectorBytes to >=65531. Hard T near 1048576 is unreachable for this one-selector recipe because selector hard ceiling is 262144 (total <=262150).",
+      "probe": "ASCII L-1/L/L+1 plus one multibyte scalar and lone-surrogate refusal; whole-argument scan work is additional, not argument bytes."
+    },
+    {
+      "name": "maxInputFiles", "defaultValue": 16, "hardCeiling": 256,
+      "disposition": "static-supported", "sites": ["candidate/argv.ts:109-123", "candidate/commands.ts:153-171"],
+      "charge": "Input operand count after select removes its selector; absent operands become one borrowed stdin. Repeated stdin and non-headers plural files refuse independently.",
+      "reachability": "15/16/17 distinct headers files are source-reachable. Hard 255/256/257 need maxArgs >=259; target 257 rejects on file count before metadata. Header retention and output remain cumulative.",
+      "probe": "Use distinct paths with one short header each; count setup separately from command metadata/read acquisition."
+    },
+    {
+      "name": "maxInputBytes", "defaultValue": 268435456, "hardCeiling": 4294967296,
+      "disposition": "static-supported", "sites": ["candidate/csv.ts:26-41", "candidate/commands.ts:23-27"],
+      "charge": "Full delivered chunk length including BOM and unparsed read-ahead; charged once after maxChunkBytes and maxChunks checks, before consuming delivery. Done is not a delivery.",
+      "reachability": "Frozen 1024-byte ASCII rows plus remainder, chunks <=65536: default T yields about 262144 records and T scanner work, within other defaults. Hard near 4 GiB needs maxRecords >=4194305 and maxWork above ~4.3e9, both within approved ceilings. Actual wall-cap feasibility unmeasured.",
+      "probe": "Use streamed byte sums, no giant retained source; separate last delivery charge from parsed-record/work count and default from hard-scale execution."
+    },
+    {
+      "name": "maxChunks", "defaultValue": 262144, "hardCeiling": 4194304,
+      "disposition": "static-supported", "sites": ["candidate/csv.ts:29-37"],
+      "charge": "Every non-done delivery, including empty bytes, increments maxChunks. Empty chunks do not charge input bytes or scanner-byte work.",
+      "reachability": "N-1 empty deliveries plus a LF-terminated header gives N deliveries and admitted count output 0 LF. Default/hard targets have no other inherent byte/record-cap obstruction; millions of awaits are not a wall-time guarantee.",
+      "probe": "Assert last accepted delivery versus failing excess delivery, no successful truncation; do not reinterpret a done result as an empty chunk."
+    },
+    {
+      "name": "maxChunkBytes", "defaultValue": 8388608, "hardCeiling": 67108864,
+      "disposition": "static-supported", "sites": ["candidate/csv.ts:31-40", "candidate/csv.ts:69-91"],
+      "charge": "Full borrowed delivery bounded before chunk/input totals or parsing; no claim that borrowed storage belongs to retained budget.",
+      "reachability": "One repeated 16-digit-plus-LF delivery plus remainder is source-reachable at default boundaries (~493448 records). Hard boundaries need maxRecords raised above ~3.95 million; count allocates no cell payload and maxInputBytes remains slack.",
+      "probe": "External producer owns the large delivery; failing excess chunk must not be parsed or copied, even if its prefix alone would suffice for headers."
+    },
+    {
+      "name": "maxRecordBytes", "defaultValue": 8388608, "hardCeiling": 67108864,
+      "disposition": "static-supported", "sites": ["candidate/csv.ts:70-78", "candidate/csv.ts:107-126"],
+      "charge": "Raw record syntax through account; delimiters count, terminal LF/CRLF do not. Embedded terminators and quote bytes count. Count enforces caps without retaining cell payloads.",
+      "reachability": "Default/hard T can be partitioned into comma-separated cells below the cell cap, with final LF outside T and <=65536-byte deliveries. Choose cell spans near 1024 bytes; do not use a cell that trips maxCellBytes first.",
+      "probe": "Confirm CR before LF remains deferred across chunks and terminal CR dialect effects separately; this is a charging-boundary check, not a new CSV semantic corpus."
+    },
+    {
+      "name": "maxCellBytes", "defaultValue": 4194304, "hardCeiling": 33554432,
+      "disposition": "static-supported", "sites": ["candidate/csv.ts:70-78", "candidate/csv.ts:87-103"],
+      "charge": "Raw field syntax, including surrounding/doubled quotes and embedded line endings; separators excluded; counter resets only at a field boundary.",
+      "reachability": "Default ASCII and quoted variants source-reachable. Hard ~32 MiB cells require maxRecordBytes raised above T, <=64 MiB, and small deliveries. Quoted variant reserves two syntax bytes before payload arithmetic.",
+      "probe": "Exercise L-1/L/L+1 raw syntax, not decoded payload length. Count avoids retained raw+decoded growth masking this boundary."
+    },
+    {
+      "name": "maxColumns", "defaultValue": 16384, "hardCeiling": 65536,
+      "disposition": "static-supported", "sites": ["candidate/csv.ts:75-86"],
+      "charge": "First column admitted when record becomes active; delimiter prechecks width+2 before account; finalization bounds ++width before Cell allocation. Trailing empties count.",
+      "reachability": "N one-byte cells and N-1 commas (2N-1 bytes) or trailing-empty variant reach default and hard targets with count, without record/cell/retained interference.",
+      "probe": "Verify delimiter rejection happens before materializing an excess field and do not count blank records as a substitute."
+    },
+    {
+      "name": "maxRecords", "defaultValue": 1000000, "hardCeiling": 16000000,
+      "disposition": "static-supported", "sites": ["candidate/csv.ts:80-85", "candidate/csv.ts:121-126", "candidate/commands.ts:23-27"],
+      "charge": "Invocation-global add on first content of each nonblank logical record, including header/template/skipped rows; not only emitted rows. Incomplete/error records may already have admission charged.",
+      "reachability": "h LF plus N-1 copies x LF yields N records, 2N bytes and admitted output N-1 LF. Even hard 16 million uses ~32 MB input, below the default byte cap; no timing claim.",
+      "probe": "Add a small multi-file headers cumulative check and skipped-row slice check; early-stop rows beyond the stopping cursor are not parsed records."
+    },
+    {
+      "name": "maxSelectorBytes", "defaultValue": 16384, "hardCeiling": 262144,
+      "disposition": "static-supported", "sites": ["candidate/selector.ts:15-16", "candidate/argv.ts:145-154"],
+      "charge": "Original scalar UTF-8 selector size, before nodes and input; slice -I uses the same selector-byte budget.",
+      "reachability": "One matching ASCII header name reaches default targets. Hard targets need maxArgumentBytes >=262151, within 1 MiB; matching header bytes fit cell/record caps and geometric storage under retained defaults.",
+      "probe": "Use a nonnumeric name without terminal star so signed/prefix branch effects do not silently change the intended fixture. SA-01/03 qualify work, not this size check."
+    },
+    {
+      "name": "maxSelectorNodes", "defaultValue": 4096, "hardCeiling": 65536,
+      "disposition": "static-supported", "sites": ["candidate/selector.ts:19-26", "candidate/selector.ts:49-65", "candidate/argv.ts:150-154"],
+      "charge": "Clause node=1, explicit endpoint=1, occurrence=1, complement wrapper=1; list itself is depth 1 but not a charged node here. Node add and 32-byte hold precede selector node construction. -I charges one node per token, with retained numeric slots rather than an AST.",
+      "reachability": "Numeric lists cost 2k; mixing one occurrence clause with numeric clauses costs 3+2k. Thus 4095/4096/4097 and hard 65535/65536/65537 have source paths with permitted selector-byte/selected-column overrides; excess H+1 refuses. Synthetic 5/7 are NOT globally unreachable: 0[0],0 costs 5; 0[0],0,0 costs 7 against header name 0.",
+      "probe": "Keep original synthetic odd-target records unchanged. Use only root-authorized small actual probes; node ledger must not be inferred from production totals."
+    },
+    {
+      "name": "maxSelectorDepth", "defaultValue": 2, "hardCeiling": 2,
+      "disposition": "freeze-contradiction-or-unreachable", "sites": ["candidate/selector.ts:17-24", "candidate/selector.ts:64-65", "candidate/options.ts:18-33"],
+      "charge": "List depth 1 then clause depth 2, including empty/all selector. Endpoints/occurrences do not recurse.",
+      "reachability": "Complete legal selectors all reach depth 2: no complete depth-1 or depth-3 runtime witness. Configured depth 1 with selector 0 reaches a depth-2 refusal before I/O; configured 2 permits depth; config 3 throws at construction. This is the freeze's express unreachable exception, not an unresolved contradiction or pass.",
+      "probe": "Preserve the two synthetic non-attainable target records; distinguish legal configuration 1 from a successful runtime selector whose maximum depth is 1."
+    },
+    {
+      "name": "maxSelectedColumns", "defaultValue": 16384, "hardCeiling": 65536,
+      "disposition": "static-supported", "sites": ["candidate/selector.ts:104-106", "candidate/selector.ts:132-158"],
+      "charge": "Every appended materialized position, including duplicates and complement's intermediate list, is checked before 8-byte hold and push; emitted index work is charged.",
+      "reachability": "Default repeated numeric lists for T=16383/16384/16385 need 2T node and 2T-1 selector-byte overrides, within hard limits. Frozen hard-scale repeated-list recipe cannot exceed T=32768 because 2T <=65536 nodes. Different legal all/range forms can reach 65536 columns, but are not a silent replacement for the frozen repeated-list recipe.",
+      "probe": "Report the prescribed hard recipe constraint separately from product-wide reachability; include duplicates in output position arithmetic."
+    },
+    {
+      "name": "maxLastRows", "defaultValue": 4096, "hardCeiling": 65536,
+      "disposition": "static-supported", "sites": ["candidate/argv.ts:25-43", "candidate/argv.ts:142-143", "candidate/commands.ts:42-84"],
+      "charge": "Positive requested tail is compared as bigint before Number conversion. Ring admission uses ring.length < admitted request, adds 32 per slot, and replaces/frees old rows; current newly parsed row can coexist with the full ring.",
+      "reachability": "Default/hard tiny-row rings fit other caps: one-byte one-cell rows retain 98 bytes each (two capacities + cell32 + row32 + ring32), plus transient current/header/output/control state. L+1 request fails before reads, not after filling the ring.",
+      "probe": "Include full ring plus one incoming row and writer scratch in capacity ledger. -L0 is separate: no ring, no body, and -n no iterator."
+    },
+    {
+      "name": "maxWork", "defaultValue": 1000000000, "hardCeiling": 16000000000,
+      "disposition": "clear-product-bug", "sites": ["candidate/budget.ts:25-62", "candidate/budget.ts:77-91", "candidate/csv.ts:39-41", "candidate/selector.ts:8-13", "candidate/selector.ts:33-40", "candidate/writer.ts:37-68", "candidate/io.ts:155-156", "candidate/io.ts:185-199", "candidate/index.ts:48-61"],
+      "charge": "Scanner byte, text-size scan, explicit encoding/copy, lookup/sort/index, serialization, output delivery and fallback copies mostly have explicit work calls. Counter is cumulative. However signed regex/replace/BigInt scans lack charges; doubled quote lookahead consumes two quote characters per one work unit; diagnostics lack a separate final output-byte work reservation.",
+      "reachability": "No exact default/hard independent work boundary is certified. Synthetic inspect/compare/copy events have no binding to actual operations and do not solve missing charges. Simple source-only count calibration is proposed separately, not acceptance for this row.",
+      "findings": ["SA-01", "SA-03"],
+      "probe": "UNEXECUTED: count over a LF single delivery with argv [count] has implemented explicit work 5+2+2+2+2+2=15 (argv, input, text-size, encode-size, encode, output). Limits 14/15 provide one small counter-path check, not the frozen full-work ledger."
+    },
+    {
+      "name": "maxOutputBytes", "defaultValue": 268435456, "hardCeiling": 4294967296,
+      "disposition": "static-supported", "sites": ["candidate/writer.ts:25-77", "candidate/index.ts:43-69", "candidate/io.ts:163-205", "base/src/shell/runtime.ts:94-117"],
+      "charge": "Exact CSV/text bytes reserved before result buffer or sink write, across stdout/file/stderr. CSV growing-size checks prevent oversize assembly. No rollback of reservations on later failure. Parent sink enforcement is separate; no general file quota inferred.",
+      "reachability": "Synthetic fixed-repeat 11/13 are structure-specific, not product-wide impossibility: select 0,0,1 over h,z LF a, LF yields 6+5=11; over h,z LF a,bb LF yields 6+7=13. For default T, 1023 copies of position 0 then position 1 over 2048 two-cell rows of 127 bytes/cell gives 268435456 output; vary last row's second cell by +/-1 for neighbors. Hard uses 32768 rows and maxWork raised within 16e9. Streaming sink and sufficient parent output are prerequisites; fallback cannot hold these totals under its retained ceiling.",
+      "probe": "Use a bounded digest/count sink, not a full result collector. Keep original 11/13 synthetic evidence; actual variations require the executor's authorization. No default/hard run occurred."
+    },
+    {
+      "name": "maxRetainedBytes", "defaultValue": 33554432, "hardCeiling": 268435456,
+      "disposition": "clear-product-bug", "sites": ["candidate/budget.ts:23-24", "candidate/budget.ts:77-94", "candidate/csv.ts:75-139", "candidate/commands.ts:88-150", "candidate/commands.ts:195-218", "candidate/selector.ts:74-79", "candidate/sort.ts:5-29", "candidate/writer.ts:10-72", "candidate/io.ts:177-205"],
+      "charge": "Bytes geometric growth holds old+new before copying; raw and decoded capacities coexist. Cells/rows/ring, selected slots, sorting scratch and writer fields/plans/result are explicitly admitted. Fallback holds yielded source+new copy+32 per segment, then all retained segments+final assembly. But generated text lines are constructed without their UTF-16 live-string reservation; dropped prefix endpoint allocations also remain in the counter.",
+      "reachability": "No exact all-path default/hard retained ledger certified. Synthetic allocate events do not correspond to live buffers. SA-02 gives a small source-derived undercount witness; prefix endpoint over-reservation is a separate qualification, not a new pass/repair.",
+      "findings": ["SA-02"],
+      "probe": "Use the 4096-byte headers -j case at local retained=33000, then a tiny no-writeStream fallback case: compare live source+segment copy and segments+assembly, not only final payload length. No provider/RSS bound inferred."
+    }
+  ],
+  "findings": [
+    {
+      "id": "SA-01", "disposition": "clear-product-bug", "topic": "Incomplete deterministic work charges",
+      "normative": ["policy/design:461-466"],
+      "sites": ["candidate/selector.ts:8-13", "candidate/selector.ts:33-40", "candidate/selector.ts:55-62", "candidate/index.ts:48-61", "candidate/io.ts:155-156"],
+      "proof": "signed performs full numeric regex scan, leading-zero replace scan and BigInt parse without Budget argument/calls. Prior textSize/token scans do not pay for these repeated inspections. The doubled-quote branch charges once then inspects lookahead and advances twice. Normal output has explicit managedOutput work, but diagnostic stderr.write has no corresponding final output-byte charge after encoding/copy. These are source-visible omissions, not estimated elapsed time.",
+      "reproduction": { "status": "UNEXECUTED", "pseudocode": "Invoke the pinned module through the executor's already-authorized entry with select and selector '0'.repeat(4096), CSV 'h\\nx\\n'. Compare an independently enumerated per-scan ledger to lowered maxWork. A second selector consisting of opening quote + doubled quote pairs + closing quote isolates pair/lookahead charging. Do not call an invented budget/debug hook.", "observedRaw": null },
+      "runtimeSuggestion": "One short leading-zero selector and one quoted-pair selector suffice to confirm status boundaries; absent source repair, do not label any synthetic full-work model as actual acceptance."
+    },
+    {
+      "id": "SA-02", "disposition": "clear-product-bug", "topic": "Generated header output strings escape live-capacity admission",
+      "normative": ["policy/design:468-477"],
+      "sites": ["candidate/commands.ts:121-150", "candidate/commands.ts:153-170", "candidate/commands.ts:195-204", "candidate/writer.ts:74-78", "candidate/budget.ts:47-64"],
+      "proof": "headerOutput creates `${prefix}${header.display[index]}\\n` before Writer.text. Writer.text retains that text across awaits but only the encoded byte array is held. The new 2/UTF16-unit string is neither pre-admitted nor charged while coexisting with header/name/display and encoded result. This violates logical capacity even if the JS engine uses ropes, and is not an RSS assertion.",
+      "reproduction": { "status": "UNEXECUTED", "pseudocode": "createXanCommand({limits:{maxRetainedBytes:33000}}); execute with literal argv ['headers','-j'], cwd '/', borrowed stdin ASCII 'a'.repeat(4096)+'\\n', ordinary awaited sink, no -o. Use the executor's legitimate CommandContext or actual Shell registration; this is not a public root-export claim.", "observedRaw": null },
+      "staticLedger": { "headerControlBytes": 160, "rawPlusDecodedCapacity": 8192, "nameAndDisplayUtf16Bytes": 16384, "liveBeforeText": 24736, "implementedLargestEarlierHold": 32960, "encodedLineBytes": 4097, "implementedTextHold": 28833, "omittedLineUtf16Bytes": 8194, "requiredSimultaneousLowerBound": 37027, "configuredLimit": 33000, "meaning": "Source arithmetic, not observed allocation. 160 = scanner32 + row32 + cell32 + header32 + name-entry32. It is a lower bound excluding any other uncharged bookkeeping. Earlier sanitize join is 24736+32+8192=32960. During encode, text remains live; required 24736+4097+8194=37027. Static path predicts admission despite excess required capacity; runtime confirmation belongs to executor." },
+      "runtimeSuggestion": "One 4 KiB header and local 33000-byte cap; retain exact output/status and independently show omitted-string arithmetic. No heap instrumentation or giant benchmark is required."
+    },
+    {
+      "id": "SA-03", "disposition": "clear-product-bug", "topic": "Cooperative yield can exceed 65536 charged work units",
+      "normative": ["policy/design:461-466"],
+      "sites": ["candidate/budget.ts:25-28", "candidate/selector.ts:33-40", "candidate/selector.ts:94-100", "candidate/selector.ts:142-147", "candidate/commands.ts:105-116"],
+      "proof": "work checks an already-aborted signal but does not yield. In quoted selector scanning, doubled pairs continue before checkpoint; 65537 pairs therefore execute 65537 work calls with no checkpoint. Header whitespace trim loops also call work without checkpoint, and wildcard mismatches can return before matches' checkpoint while the outer loop has none. Awaiting resolved lookup promises is not the setImmediate cooperative yield required by the implementation's own mechanism.",
+      "reproduction": { "status": "UNEXECUTED", "pseudocode": "Use select with selector '\"' + '\"\"'.repeat(65537) + '\"', maxSelectorBytes=262144, maxArgumentBytes=1048576; remaining caps default. The bounded parsing loop alone exceeds 65536 units before any I/O. Alternatively headers -j with one header of 65537 ASCII spaces reaches the uncheckpointed trim loop. Queue an ordinary host timer/abort in a bounded executor probe, but do not claim precise per-phase timer attribution without existing observation points.", "observedRaw": null },
+      "runtimeSuggestion": "Confirm eventual exact cancellation and responsiveness using one bounded control; source establishes the missing checkpoint, not a measured deadline. No arbitrary host preemption guarantee is requested."
+    }
+  ],
+  "invariants": [
+    { "id": "I01", "disposition": "static-supported", "sites": ["candidate/index.ts:26-34", "candidate/io.ts:100-134"], "claim": "Argument and selector S/N failures precede output operation, metadata and producer acquisition; R resolution follows only the first logical record and precedes publish. No full-input pre-read is required for R.", "needsRuntime": "Poison metadata/next and destination byte-preservation probes in actual executor; empty cleanup registration is not resource acquisition." },
+    { "id": "I02", "disposition": "static-supported", "sites": ["candidate/commands.ts:21-29", "candidate/commands.ts:49-74", "candidate/commands.ts:157-170", "candidate/csv.ts:31-40"], "claim": "Headers closes after first row; slice -L0 header mode emits header only, -n -L0 skips scope.open entirely but retains -o preflight/publication. Ordinary -l0/equal ranges keep post-write stop semantics; already delivered read-ahead charged, unused body not parsed.", "needsRuntime": "No extra poison-next, malformed unused body, zero-byte -o and file/stdin variants; no semantic re-freeze." },
+    { "id": "I03", "disposition": "static-supported", "sites": ["candidate/csv.ts:26-55", "candidate/csv.ts:70-103", "candidate/budget.ts:77-94", "candidate/io.ts:82-87"], "claim": "Retained CSV bytes are copied one byte at a time into owned raw/decoded buffers before next delivery/finalization. Split BOM prefix stores primitive byte values, not borrowed views. stdin wrapper exposes next only; never forwards return/throw. Count retains no cell payload.", "needsRuntime": "Reusable Buffer source mutating on next/finalization across split BOM/CR/quotes, including early-stop; no arbitrary concurrent mutation safety claimed." },
+    { "id": "I04", "disposition": "static-supported", "sites": ["candidate/csv.ts:45-55", "candidate/csv.ts:107-125", "candidate/writer.ts:35-47"], "claim": "BOM prefix survives chunk boundaries/partial EOF; pending CR is excluded from final CRLF syntax and otherwise processed under command dialect; writer accounts quoted CR/moved BOM and LF. Charge whole delivered bytes even when prefix/CR decisions defer parsing.", "needsRuntime": "Only inherited selected boundary controls, not a broad CSV semantic audit; SA-01 qualifies repeated-inspection work." },
+    { "id": "I05", "disposition": "static-supported", "sites": ["candidate/io.ts:24-76", "candidate/io.ts:139-160", "candidate/index.ts:73-79", "base/src/contracts/output.ts:27-74"], "claim": "Input scope registers close synchronously before readStream; closed admission, one shared close promise, allSettled scanners/resources, managed source return and final cleanup drain. Output helper registers before enrollment/acquisition. Direct hosts without hook still reach finally-equivalent cleanup.", "needsRuntime": "Concurrent root close/finalization and failing sibling return; cooperative return is required. An opaque/uncooperative return can delay settlement; no universal resource drain or timeout promise." },
+    { "id": "I06", "disposition": "static-supported", "sites": ["candidate/io.ts:14-22", "candidate/io.ts:51-76", "candidate/io.ts:163-205", "base/src/contracts/io.ts:181-235"], "claim": "Opaque metadata/write promises are observed with rejection handlers and signal races, not enrolled via operation.acquire. readBytes observes pending next; owned iterator return is separately registered. No rollback or forced interruption of losing host work.", "needsRuntime": "Late rejecting metadata/write/next and cooperative iterator return must be checked separately; do not await opaque work merely to fabricate closure." },
+    { "id": "I07", "disposition": "static-supported", "sites": ["candidate/io.ts:136-137", "candidate/index.ts:29-31", "candidate/index.ts:37-40", "candidate/index.ts:44-75", "base/src/contracts/output.ts:13-81"], "claim": "File destination uses a separate root-signal output operation, not stdout's child. stderr is independent. Final root abort reason wins; EscapingFailure preserves stdout/stderr sink reason, including FsError-shaped reasons; generic escaping errors precede local operation abort. Cleanup failure is not hidden by status 1.", "needsRuntime": "Actual Shell settlement, caller/local/escaping/cleanup reason identity, stdout closure with independent -o/stderr. No inference from reason equality or mapped result status." },
+    { "id": "I08", "disposition": "static-supported", "sites": ["candidate/io.ts:100-134", "base/src/commands/copy-identity.ts:3-42", "base/src/contracts/filesystem.md:227-246"], "claim": "Normalized same path refuses; lstat/stat and complete scoped identity or truthful compareObservedEntries are required for existing destinations. Complete identity takes precedence; unknown/same refuse; invalid/conflicting delegated authority errors propagate. Existing destination with any borrowed stdin refuses even if stdinIsDefault; EOF is not identity.", "needsRuntime": "Faithful wrappers, hardlink/symlink/dangling output, unknown/invalid authority and changed copy-up target. Host must bind authority to actual content target; no fabricated scope, lease or ABA defense." },
+    { "id": "I09", "disposition": "static-supported", "sites": ["candidate/io.ts:115-134", "candidate/io.ts:172-205"], "claim": "Observed missing output uses actual wx; distinct existing uses w, both streaming and writeFile fallback. No retry with w, empty-create/append, explicit mode, chmod or hidden temp. Unsupported readStream refuses only when input is required.", "needsRuntime": "Raced creator preserving bytes, real conditional capability refusal, acknowledged partial prefix on writer/body error. Method presence alone cannot certify conditional creation; fallback cannot roll back completed publication." },
+    { "id": "I10", "disposition": "needs-runtime", "sites": ["candidate/writer.ts:48-77", "candidate/index.ts:43-69", "candidate/io.ts:163-205", "base/src/shell/runtime.ts:94-117", "base/src/contracts/command.ts:23-35"], "claim": "Local output reservation aggregates file/stdout/stderr, and actual Shell sinks enforce their parent cap before writes. Parent remaining-byte capacity is not exposed through CommandContext. Direct -o writes are FS calls, not Shell stdout/stderr sink writes.", "qualification": "Do not turn 'parent always wins' into a nonexistent global FS quota or a new hook. If the freeze is read as requiring Shell sink quota pre-admission for all -o storage, that interpretation is unsupported by this baseline API and needs root clarification, not invented instrumentation. Diagnostic parent refusal may escape ShellLimitError rather than return 1 with silent stderr; actual executor must preserve the frozen and inherited failure requirements." },
+    { "id": "I11", "disposition": "needs-runtime", "sites": ["candidate/selector.ts:26-62", "candidate/selector.ts:74-79", "candidate/argv.ts:107-115", "candidate/commands.ts:175-229"], "claim": "Capacity certificate is incomplete beyond SA-02: prefix conversion discards its endpoint but keeps its node/name/bytes reservations; shifted selector operand slot is not refunded. These can over-reserve, while some temporary string/collection allocations lack explicit admission. No exact live-capacity all-path proof from the existing holds alone.", "qualification": "Report false-refusal risk independently from undercount safety defect; do not equate counters with RSS or derive expected live storage from the implementation's own counter." },
+    { "id": "I12", "disposition": "static-supported", "sites": ["candidate/index.ts:1-14", "candidate/io.ts:1-11", "candidate/budget.ts:1-2", "base/src/contracts/path.ts:1-24"], "claim": "Ten candidate modules use Node timer scheduling and virtual path helpers, not child processes, ambient host-file reads, network clients or runtime dependencies. New factories remain module-local; no root export/default registration is established by this audit.", "needsRuntime": "No build/public consumer/deployed provider/security acceptance inferred from import inspection." }
+  ],
+  "syntheticReachabilityReconciliation": {
+    "reference": "prep/resources:127-170",
+    "historicalSyntheticTargets": ["maxSelectorNodes:5", "maxSelectorNodes:7", "maxSelectorDepth:1", "maxSelectorDepth:3", "maxOutputBytes:11", "maxOutputBytes:13"],
+    "sourceDisposition": "5/7 node and 11/13 output claims are limitations of those fixed generators, not actual grammar/product impossibility; concrete allowed source paths appear above. Depth 1/3 remain unattainable final selector maxima. Original captured statuses are preserved, not rescored. Static reachability is not execution or fixture amendment.",
+    "syntheticWorkCapacity": "prep/resources:151-155 and 172-176 construct abstract events, not observed product operations. SA-01/02/03 prevent upgrading those events into an actual all-path source/work/capacity acceptance claim."
+  },
+  "stop": "Audit only. No product repair, expectation edit, new runtime cohort, benchmark, public-export change or acceptance claim. Runtime executor remains independently owned."
+}

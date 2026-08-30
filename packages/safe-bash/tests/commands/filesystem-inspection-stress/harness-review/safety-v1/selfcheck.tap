@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: six inputs are sealed, bounded, and no product is imported by preparation
+ok 1 - six inputs are sealed, bounded, and no product is imported by preparation
+  ---
+  duration_ms: 5.702167
+  type: 'test'
+  ...
+# Subtest: JSON/header/metadata payload recipes preserve finite proposed sizes
+ok 2 - JSON/header/metadata payload recipes preserve finite proposed sizes
+  ---
+  duration_ms: 0.36175
+  type: 'test'
+  ...
+# Subtest: T-empty-many: finite conforming mock accepted, lost semantics rejected
+ok 3 - T-empty-many: finite conforming mock accepted, lost semantics rejected
+  ---
+  duration_ms: 1.362125
+  type: 'test'
+  ...
+# Subtest: T-DP-cumulative: finite conforming mock accepted, lost semantics rejected
+ok 4 - T-DP-cumulative: finite conforming mock accepted, lost semantics rejected
+  ---
+  duration_ms: 0.191875
+  type: 'test'
+  ...
+# Subtest: T-sort-many: finite conforming mock accepted, lost semantics rejected
+ok 5 - T-sort-many: finite conforming mock accepted, lost semantics rejected
+  ---
+  duration_ms: 0.430625
+  type: 'test'
+  ...
+# Subtest: F-JSON-cumulative: finite conforming mock accepted, lost semantics rejected
+ok 6 - F-JSON-cumulative: finite conforming mock accepted, lost semantics rejected
+  ---
+  duration_ms: 0.177042
+  type: 'test'
+  ...
+# Subtest: F-header-many: finite conforming mock accepted, lost semantics rejected
+ok 7 - F-header-many: finite conforming mock accepted, lost semantics rejected
+  ---
+  duration_ms: 0.740917
+  type: 'test'
+  ...
+# Subtest: F-metadata-many: finite conforming mock accepted, lost semantics rejected
+ok 8 - F-metadata-many: finite conforming mock accepted, lost semantics rejected
+  ---
+  duration_ms: 1.59125
+  type: 'test'
+  ...
+# Subtest: frozen source premise gates reject per-entry resets and constant comparison costs
+ok 9 - frozen source premise gates reject per-entry resets and constant comparison costs
+  ---
+  duration_ms: 0.500459
+  type: 'test'
+  ...
+# Subtest: fixture producer is signal-aware and streams owned finite bytes without product code
+ok 10 - fixture producer is signal-aware and streams owned finite bytes without product code
+  ---
+  duration_ms: 0.42525
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55.7735

@@ -1,0 +1,20 @@
+--- tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/review.mjs
++++ tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/review.mjs
+@@ -8,7 +8,7 @@
+ 
+ const root = '/Users/kjopek/Workspace/safe-bash';
+ const base = 'tests/integration/full-gate-20260827/unified76-driver/';
+-const owned = 'tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/';
++const owned = 'tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/';
+ const node = '/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node';
+ const git = '/Applications/Xcode.app/Contents/Developer/usr/bin/git';
+ const gitCore = '/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core';
+@@ -399,7 +399,7 @@
+       dispatches++;assert.equal(executable,node);same(args,count===10?['--import','tsx','--test','--test-reporter=tap','/synthetic/search/safety-cases.ts']:['--unhandled-rejections=strict','--import','tsx','--test','--test-reporter=tap','--experimental-test-isolation=none','/synthetic/search/streaming-cases.ts']);assert.equal(input,'');assert.equal(cwd,'/synthetic/search');assert.equal(timeout,count===10?5000:120000);
+       if(mode==='late-pass-timeout')throw reason;
+       return {code:mode==='nonzero-with-pass'?1:0,stdout:Buffer.from(mode==='wrong-output'?'✔ apparently passed':'# pass '+count+'\n').toString('base64'),stderr:''};
+-    }}});
++    }}}});
+     const error=await caught(()=>loaded.registered[0].callback());assert.equal(dispatches,1);
+     if(mode==='success')assert.equal(error,undefined);else if(mode==='late-pass-timeout')identity(error,reason,{});else assert(error);
+     return {dispatches,otherRegisteredTestsRun:0,actualChildren:0};

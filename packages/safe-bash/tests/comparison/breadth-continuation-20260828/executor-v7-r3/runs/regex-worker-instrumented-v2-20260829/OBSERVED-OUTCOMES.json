@@ -1,0 +1,467 @@
+{
+  "rows": [
+    {
+      "id": "G01.1",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "exit": 1,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "undefined"
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "OFFLINE_DENIED",
+        "message": "OFFLINE_DENIED:fs.openSync.write"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ]
+    },
+    {
+      "id": "G01.2",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "exit": 1,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "undefined"
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "OFFLINE_DENIED",
+        "message": "OFFLINE_DENIED:fs.openSync.write"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ]
+    },
+    {
+      "id": "G01.3",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "FILE_BOUND_METADATA",
+        "message": "FILE_BOUND_METADATA"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G01.4",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "FILE_BOUND_METADATA",
+        "message": "FILE_BOUND_METADATA"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G01.5",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "FILE_METADATA",
+        "message": "FILE_METADATA"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G02.1",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "exit": 1,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "undefined"
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "OFFLINE_DENIED",
+        "message": "OFFLINE_DENIED:fs.openSync.write"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ]
+    },
+    {
+      "id": "G02.2",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_BRAND",
+        "message": "URL_BRAND"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G02.3",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_BRAND",
+        "message": "URL_BRAND"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G02.4",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G02.5",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G02.6",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G02.7",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G03.1",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "exit": 1,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "undefined"
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "OFFLINE_DENIED",
+        "message": "OFFLINE_DENIED:fs.openSync.write"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ]
+    },
+    {
+      "id": "G03.2",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "OWN_KEYS",
+        "message": "OWN_KEYS"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G03.3",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "ACCESSOR",
+        "message": "ACCESSOR"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G03.4",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "OWN_KEYS",
+        "message": "OWN_KEYS"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G03.5",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "RESOURCE_LIMITS",
+        "message": "RESOURCE_LIMITS"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G04.1",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G04.2",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "OWN_KEYS",
+        "message": "OWN_KEYS"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G04.3",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "OWN_KEYS",
+        "message": "OWN_KEYS"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G04.4",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_BRAND",
+        "message": "URL_BRAND"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G04.5",
+      "rawStatus": "QUALIFIED",
+      "exit": 0,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": []
+    },
+    {
+      "id": "G05.1",
+      "rawStatus": "UNSAFE_STOP",
+      "exit": 1,
+      "created": 0,
+      "knownRetired": true,
+      "caught": {
+        "type": "undefined"
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "OFFLINE_DENIED",
+        "message": "OFFLINE_DENIED:fs.openSync.write"
+      },
+      "witnessRejects": 11,
+      "assertionFailures": [
+        "EXACT_WORKER_COUNT"
+      ]
+    }
+  ],
+  "unrun": [
+    "G05.2",
+    "G05.3",
+    "G05.4",
+    "G06.1",
+    "G06.2",
+    "G06.3",
+    "G06.4",
+    "G07.1",
+    "G07.2",
+    "G07.3",
+    "G07.4",
+    "G08.1",
+    "G08.2",
+    "G08.3",
+    "G08.4",
+    "G09.1",
+    "G09.2",
+    "G09.3",
+    "G09.4",
+    "G10.1",
+    "G10.2",
+    "G10.3",
+    "G10.4",
+    "G11.1",
+    "G11.2",
+    "G11.3",
+    "G11.4",
+    "G11.5",
+    "G12.1",
+    "G12.2",
+    "G12.3",
+    "G12.4"
+  ],
+  "noRescore": true
+}

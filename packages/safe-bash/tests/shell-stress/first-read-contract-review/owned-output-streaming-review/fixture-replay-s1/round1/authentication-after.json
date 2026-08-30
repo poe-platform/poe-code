@@ -1,0 +1,88 @@
+{
+  "at": "2026-08-27T12:00:13.987Z",
+  "pinned": {
+    "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+    "testManifestSha256": "dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c",
+    "compiledManifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f"
+  },
+  "testedManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/tested-manifest.json",
+    "sha256": "4e84fe7dc3a762654a6bb1865f5f73f259fc61f8aa9bcabb250663ff7c9645f9"
+  },
+  "checks": [
+    {
+      "section": "candidate",
+      "count": 940,
+      "matchesBefore": true
+    },
+    {
+      "section": "compilerAndOriginalToolAndPatch",
+      "count": 433,
+      "matchesBefore": true
+    },
+    {
+      "section": "immutablePriorEvidence",
+      "count": 217,
+      "matchesBefore": true
+    },
+    {
+      "section": "liveSourceAndRootFiles",
+      "count": 218,
+      "matchesBefore": true
+    },
+    {
+      "section": "prereplayInputs",
+      "count": 19,
+      "matchesBefore": true
+    },
+    {
+      "section": "importClosure",
+      "count": 163,
+      "matchesBefore": true
+    },
+    {
+      "section": "currentToolClosure",
+      "count": 298,
+      "matchesBefore": true
+    }
+  ],
+  "before": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/authentication-before.json",
+    "sha256": "6b5ce81ec82b6acda220fc9601a10a6fb7732de55cf62928068ea20fab88b552"
+  },
+  "prereplay": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/pre-replay-seal.json",
+    "sha256": "03ba6edd32660c03352a8f939e52eba8c87669c5d3ff3a441f872c506769316d"
+  },
+  "sourceFixCount": 0,
+  "frozenCommit": "9e6c5e2394d5d36df42529d74d1dd21301ddeab6",
+  "frozenFilesUnchanged": 85,
+  "exactSourcePatchIdentities": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-prototype/source-r1.patch-data",
+      "sha256": "d73bb2637d54b97f62fd6e1baa57100cf0018a763679c31386349e30a19cc4e2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/baseline-current-retention.patch-data",
+      "sha256": "063751093b7cf887d35b33498b65e1ef49a2f35f9dfb28e368ab6e409fda05b5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/source-S1-r0.patch-data",
+      "sha256": "80c523e21610d90c67c8ab0084532ab465f645a0d57442dcd952795de01f2f3f"
+    }
+  ],
+  "taskTempContents": [],
+  "ambientHistoricalCacheInspectedOrRemoved": false,
+  "currentToolVersions": {
+    "node": "v22.22.2",
+    "tsx": "4.23.12",
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3",
+    "@esbuild/darwin-arm64": "0.28.2"
+  },
+  "currentTools": {
+    "path": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tool-manifest.json",
+    "sha256": "e36a0fa7027aed9472ef854651495f6a5ab72b163d38d26a92532871a498874b"
+  },
+  "allHistoricalTSInputBytesPreserved": true
+}

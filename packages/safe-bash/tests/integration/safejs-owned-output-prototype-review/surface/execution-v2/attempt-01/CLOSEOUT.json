@@ -1,0 +1,166 @@
+{
+  "at": "2026-08-27T16:23:25.987Z",
+  "status": "AUTHOR_RUN_CLOSED_SCRATCH_RETAINED_FOR_INDEPENDENT_REPLAY",
+  "task": "/private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA",
+  "scratchRetained": true,
+  "rawFiles": 57,
+  "privateUnchanged": true,
+  "inputTreesUnchanged": true,
+  "sharedTreesUnchanged": true,
+  "knownChildren": [
+    {
+      "id": "01-supported-facades",
+      "pid": 32682,
+      "started": 1787847585226,
+      "deadline": 1787847595226,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "closed": 1787847586503,
+      "parentAfter": {
+        "pid": 32545,
+        "at": "2026-08-27T16:19:46.503Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "id": "02-direct-surface",
+      "pid": 32704,
+      "started": 1787847586507,
+      "deadline": 1787847596507,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "closed": 1787847587783,
+      "parentAfter": {
+        "pid": 32545,
+        "at": "2026-08-27T16:19:47.783Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "id": "03-namespace-spread",
+      "pid": 32737,
+      "started": 1787847587787,
+      "deadline": 1787847597787,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "closed": 1787847589088,
+      "parentAfter": {
+        "pid": 32545,
+        "at": "2026-08-27T16:19:49.088Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "id": "04-shell-module",
+      "pid": 32746,
+      "started": 1787847589091,
+      "deadline": 1787847599091,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "closed": 1787847590329,
+      "parentAfter": {
+        "pid": 32545,
+        "at": "2026-08-27T16:19:50.329Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "id": "05-missing-register-cleanup",
+      "pid": 32753,
+      "started": 1787847590332,
+      "deadline": 1787847600332,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "closed": 1787847591604,
+      "parentAfter": {
+        "pid": 32545,
+        "at": "2026-08-27T16:19:51.604Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "id": "06-missing-acquire",
+      "pid": 32779,
+      "started": 1787847591606,
+      "deadline": 1787847601606,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "closed": 1787847592798,
+      "parentAfter": {
+        "pid": 32545,
+        "at": "2026-08-27T16:19:52.798Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "id": "07-reflection-profile",
+      "pid": 32789,
+      "started": 1787847592800,
+      "deadline": 1787847602800,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "closed": 1787847593971,
+      "parentAfter": {
+        "pid": 32545,
+        "at": "2026-08-27T16:19:53.971Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "id": "08-function-spread-profile",
+      "pid": 32808,
+      "started": 1787847593974,
+      "deadline": 1787847603974,
+      "timedOut": false,
+      "outputExceeded": false,
+      "code": 0,
+      "signal": null,
+      "closed": 1787847595165,
+      "parentAfter": {
+        "pid": 32545,
+        "at": "2026-08-27T16:19:55.165Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    }
+  ],
+  "knownOwnedChildrenRemaining": 0,
+  "runnerNativeExitCode": 0,
+  "executionSession": 94240,
+  "watchdogOrOutputKills": 0,
+  "loader": "Pinned synchronous TypeScript registerHooks source loader; no esbuild service",
+  "handlesAtEachResult": [
+    "Socket"
+  ],
+  "resourcesAtEachResult": [
+    "PipeWrap"
+  ],
+  "privateSourceOrProductEdits": false,
+  "builds": 0,
+  "installs": 0,
+  "actualCohortRuns": 1,
+  "automaticRetries": 0,
+  "conditionalExecuted": 0,
+  "qualification": "Natural close receipts identify owned children; no PID-wide search or foreign-process kill. Shared snapshots and own prerequisites retained; no background wait."
+}

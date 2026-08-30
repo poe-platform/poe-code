@@ -1,0 +1,1018 @@
+{
+  "startedAt": "2026-08-27T17:14:44.488Z",
+  "endedAt": "2026-08-27T17:14:45.373Z",
+  "head": "92fe8a6335366b93cbc9a80d61fede69af711444",
+  "status": " M src/commands/expr/README.md\n M src/commands/expr/index.ts\n M src/commands/expr/internal.ts\n M src/commands/regex-execution/client.ts\n M src/commands/regex-execution/protocol.ts\n M src/commands/regex-execution/worker.ts\n M tests/commands/expr/contracts.test.ts\n?? src/commands/du/\n?? src/commands/expr/bre-worker.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/du/\n?? tests/commands/expr-author/capture-regex.ts\n?? tests/commands/expr-author/regex-audit-cases.ts\n?? tests/commands/expr-author/regex-capture-kdugBl/\n?? tests/commands/expr-stress/nonregex-review/\n?? tests/commands/expr/regex-cases.ts\n?? tests/commands/expr/regex-lifecycle.test.ts\n?? tests/commands/expr/regex-limits.test.ts\n?? tests/commands/expr/regex-native.test.ts\n?? tests/commands/expr/regex-protocol.test.ts\n?? tests/commands/expr/tsconfig.json\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/aliases-column-public-independent-20260827/\n?? tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/\n?? tests/plugins/aliases-column-public-author/consumer.ts.fixture\n?? tests/plugins/aliases-column-public-author/negative.ts.fixture\n",
+  "profile": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2",
+    "LC_ALL": "C"
+  },
+  "oracle": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+    "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+    "version": {
+      "exitCode": 0,
+      "stdoutHex": "657870722028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d696b65205061726b65722c204a616d657320596f756e676d616e2c20616e64205061756c204567676572742e0a",
+      "stderrHex": ""
+    }
+  },
+  "before": {
+    "src/commands/expr/bre-worker.ts": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "src/commands/expr/index.ts": "f4763994bb7b52cc15706bc4134600d2f3bfc4aaab54cf3929744336c04178c0",
+    "src/commands/expr/internal.ts": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+    "src/commands/expr/evaluate.ts": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+    "src/commands/regex-execution/protocol.ts": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+    "src/commands/regex-execution/client.ts": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49",
+    "src/commands/regex-execution/worker.ts": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+    "tests/commands/expr/helpers.ts": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+    "tests/commands/expr/oracle.ts": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83",
+    "tests/commands/expr-author/regex-audit-cases.ts": "06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f",
+    "tests/commands/expr-author/regex-capture-kdugBl/results.json": "7e96970537744eefa44359524e04effbced33be652236bfbb0a0a83d19e13db7",
+    "tests/commands/expr-author/regex-capture-kdugBl/summary.json": "4769358bb6c80c62f3e4f97be2f6c75a56c731cd44e7fe9417afac147aadf518"
+  },
+  "after": {
+    "src/commands/expr/bre-worker.ts": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+    "src/commands/expr/index.ts": "f4763994bb7b52cc15706bc4134600d2f3bfc4aaab54cf3929744336c04178c0",
+    "src/commands/expr/internal.ts": "12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56",
+    "src/commands/expr/evaluate.ts": "80f8b4b7fbcd0552dd91772b941e6654c0b8dd08ce980814b811f08959015d61",
+    "src/commands/regex-execution/protocol.ts": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+    "src/commands/regex-execution/client.ts": "dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49",
+    "src/commands/regex-execution/worker.ts": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+    "tests/commands/expr/helpers.ts": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+    "tests/commands/expr/oracle.ts": "3d8862abadcb5b07cf17234df2bedf10cd74ffdcf2d293104bbd9fcb4935cb83",
+    "tests/commands/expr-author/regex-audit-cases.ts": "06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f",
+    "tests/commands/expr-author/regex-capture-kdugBl/results.json": "7e96970537744eefa44359524e04effbced33be652236bfbb0a0a83d19e13db7",
+    "tests/commands/expr-author/regex-capture-kdugBl/summary.json": "4769358bb6c80c62f3e4f97be2f6c75a56c731cd44e7fe9417afac147aadf518"
+  },
+  "changedPaths": [],
+  "original": [
+    {
+      "name": "nullable-audit/12/0",
+      "locale": "C",
+      "args": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/1",
+      "locale": "C",
+      "args": [
+        "+",
+        "a",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/2",
+      "locale": "C",
+      "args": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/3",
+      "locale": "C",
+      "args": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderr": ""
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/4",
+      "locale": "C",
+      "args": [
+        "+",
+        "b",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/5",
+      "locale": "C",
+      "args": [
+        "+",
+        "ab",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/6",
+      "locale": "C",
+      "args": [
+        "+",
+        "aba",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/7",
+      "locale": "C",
+      "args": [
+        "+",
+        "abab",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/8",
+      "locale": "C",
+      "args": [
+        "+",
+        "aab",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/9",
+      "locale": "C",
+      "args": [
+        "+",
+        "abb",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nullable-audit/12/10",
+      "locale": "C",
+      "args": [
+        "+",
+        "ba",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "cohort": "nullable-audit",
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderr": ""
+      },
+      "equal": true
+    }
+  ],
+  "rows": [
+    {
+      "name": "nullable-audit/12/0",
+      "args": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/1",
+      "args": [
+        "+",
+        "a",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/2",
+      "args": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/3",
+      "args": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/4",
+      "args": [
+        "+",
+        "b",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/5",
+      "args": [
+        "+",
+        "ab",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/6",
+      "args": [
+        "+",
+        "aba",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/7",
+      "args": [
+        "+",
+        "abab",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/8",
+      "args": [
+        "+",
+        "aab",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/9",
+      "args": [
+        "+",
+        "abb",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "nullable-audit/12/10",
+      "args": [
+        "+",
+        "ba",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "length-control/aaaa",
+      "args": [
+        "+",
+        "aaaa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "61610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "length-control/aaaaa",
+      "args": [
+        "+",
+        "aaaaa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "length-control/aaaaaa",
+      "args": [
+        "+",
+        "aaaaaa",
+        ":",
+        "\\(a*\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "no-backref/",
+      "args": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)*"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "no-backref/aaa",
+      "args": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "no-outer-repeat/",
+      "args": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "no-outer-repeat/a",
+      "args": [
+        "+",
+        "a",
+        ":",
+        "\\(a*\\)\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "no-outer-repeat/aa",
+      "args": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "no-outer-repeat/aaa",
+      "args": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nonnullable-repeat/",
+      "args": [
+        "+",
+        "",
+        ":",
+        "\\(a\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nonnullable-repeat/a",
+      "args": [
+        "+",
+        "a",
+        ":",
+        "\\(a\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nonnullable-repeat/aa",
+      "args": [
+        "+",
+        "aa",
+        ":",
+        "\\(a\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "nonnullable-repeat/aaa",
+      "args": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a\\)*\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "equal": true
+    },
+    {
+      "name": "mandatory-repeat/",
+      "args": [
+        "+",
+        "",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "mandatory-repeat/a",
+      "args": [
+        "+",
+        "a",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "mandatory-repeat/aa",
+      "args": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "mandatory-repeat/aaa",
+      "args": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\{2\\}\\1"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "bounded-repeat/aa",
+      "args": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)\\{1,3\\}\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "bounded-repeat/aaa",
+      "args": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)\\{1,3\\}\\1"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "anchored-end/a",
+      "args": [
+        "+",
+        "a",
+        ":",
+        "\\(a*\\)*\\1$"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "anchored-end/aa",
+      "args": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)*\\1$"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "anchored-end/aaa",
+      "args": [
+        "+",
+        "aaa",
+        ":",
+        "\\(a*\\)*\\1$"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "literal-suffix/ab",
+      "args": [
+        "+",
+        "ab",
+        ":",
+        "\\(a*\\)*\\1b"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "literal-suffix/aab",
+      "args": [
+        "+",
+        "aab",
+        ":",
+        "\\(a*\\)*\\1b"
+      ],
+      "expected": {
+        "exitCode": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    },
+    {
+      "name": "literal-suffix/aaab",
+      "args": [
+        "+",
+        "aaab",
+        ":",
+        "\\(a*\\)*\\1b"
+      ],
+      "expected": {
+        "exitCode": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "exitCode": 2,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20756e737570706f72746564204252453a206261636b7265666572656e636520746f2061206361707475726520696e206e756c6c61626c652072657065746974696f6e0a"
+      },
+      "equal": false
+    }
+  ],
+  "limitation": "Dirty live analysis, not sealed candidate; enumerated hashes not append-proof. Native writes only new owned temporary files. Original author results read only for author-discovered pattern 12."
+}

@@ -1,0 +1,159 @@
+{
+  "schema": "m1b-type-api-source-preseal-v2",
+  "date": "2026-08-28",
+  "status": "PREPARED_ADDITIVE_SOURCE_NOT_TARGET_GO",
+  "priorSourceCommit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+  "priorEvidenceCommit": "856b0a59846ad09680cd32227c686925db882258",
+  "candidate": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "candidateEvidence": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+  "directories": [
+    {
+      "path": ".",
+      "mode": 493
+    }
+  ],
+  "entries": [
+    {
+      "path": "ASSEMBLY.json",
+      "mode": 420,
+      "bytes": 7335,
+      "sha256": "7318ca292e827c67e4d28045ebd68e912aa0218e33219281799f215efc182fe4"
+    },
+    {
+      "path": "CASES.json",
+      "mode": 420,
+      "bytes": 10747,
+      "sha256": "aa69d383d54be01306be88f4cd04660851c504f799b42c5bb05c10c75ef733c7"
+    },
+    {
+      "path": "CLOSURE.json",
+      "mode": 420,
+      "bytes": 6107,
+      "sha256": "1f9611dfad4ad35767352dda8a3f65f317b81638d6ea7809849a727fa12d9be4"
+    },
+    {
+      "path": "COSTS.json",
+      "mode": 420,
+      "bytes": 1542,
+      "sha256": "d593b1ca152a416fe1cae5b4691ad97cd097dbd96e255d20124c61e1294b5a94"
+    },
+    {
+      "path": "DEFERRED-CHECKS.json",
+      "mode": 420,
+      "bytes": 3424,
+      "sha256": "1986258ad2b9168b28712cda252a47ced0cd595f0220c3b49481bbc5e74a4d9e"
+    },
+    {
+      "path": "FIXTURES.json",
+      "mode": 420,
+      "bytes": 3434,
+      "sha256": "cb9645b29df52051c964f0bafb2cdffcc2cf045ffdb344f8b6a9eb616bbf7b85"
+    },
+    {
+      "path": "INPUTS.json",
+      "mode": 420,
+      "bytes": 5670,
+      "sha256": "2a87ad47e0525f418d61125b9ace926a86b2cafbacb69b24b0bdb5878b5996f3"
+    },
+    {
+      "path": "INTERFACE-PROPOSAL.json",
+      "mode": 420,
+      "bytes": 4959,
+      "sha256": "3e18b4ed705d47563bcb36052f5e9a7515b49fb621eec6353af69518076bb99f"
+    },
+    {
+      "path": "PREPARATION-FAILURE.json",
+      "mode": 420,
+      "bytes": 795,
+      "sha256": "7f2e6643d4690f26fcccb8b52c7e4309961895b3130ea8af4d3fd9e4c8106386"
+    },
+    {
+      "path": "STATIC-CHECK-PLAN.json",
+      "mode": 420,
+      "bytes": 3526,
+      "sha256": "64c352d9c693d88992ee60be3de6aa036fbc277fd501fdd021ea7209772f4623"
+    },
+    {
+      "path": "SUBJECT.json",
+      "mode": 420,
+      "bytes": 179664,
+      "sha256": "5026285d3b9817d39e161d83f5c33447a457b15826aa49581d5826eb7f5140c9"
+    },
+    {
+      "path": "TOOLS.json",
+      "mode": 420,
+      "bytes": 59469,
+      "sha256": "47117b49837e6ef0281778c428625200cdc4bb58db687c9d5593272bb9f3b01c"
+    },
+    {
+      "path": "TYPE-PROTOCOL-SPECIFICATION.md",
+      "mode": 420,
+      "bytes": 10212,
+      "sha256": "568b3a44104df1f5fc3d93197801835c6e657ce9028d1855595df1813503868a"
+    },
+    {
+      "path": "adapter.mjs",
+      "mode": 420,
+      "bytes": 2083,
+      "sha256": "37b4c7e98f92b0ff1795db87e8e8c4d5cd381abaa4dafb222dcf32a8fcb53c94"
+    },
+    {
+      "path": "admission.mjs",
+      "mode": 420,
+      "bytes": 9657,
+      "sha256": "ff45172e918204b24fc98d395b4f31a8725c26bacfa850cfbf75b3ab37012edc"
+    },
+    {
+      "path": "compiler-api-worker.mjs",
+      "mode": 420,
+      "bytes": 4633,
+      "sha256": "78bcbcff93977889e810c70fc706f876577ab9642c2c2a7cf7174be974cbeb02"
+    },
+    {
+      "path": "compiler-host.mjs",
+      "mode": 420,
+      "bytes": 9325,
+      "sha256": "97bc9c20b3438addb0561995963e51e5b2b67a12a94b47a8f1fa2f1b0fa8411c"
+    },
+    {
+      "path": "fixtures.mjs",
+      "mode": 420,
+      "bytes": 3208,
+      "sha256": "08631ec3df33e9587b51bc3fd5b0892b9ca6561c881221ca588b4c9912e717d6"
+    },
+    {
+      "path": "pins.mjs",
+      "mode": 420,
+      "bytes": 471,
+      "sha256": "fe10792244dcd163126e312ba0e7bcc05ad60e8c0f5e33bf48536f8749d86e0b"
+    },
+    {
+      "path": "protocol.mjs",
+      "mode": 420,
+      "bytes": 8586,
+      "sha256": "6e41eb4aa325ff1d9c996917386e2098ec4751d2eddfb6756893d10d155985c9"
+    }
+  ],
+  "inventorySha256": "5cec313ae241508cac74ac1f5830b12f8320bf057745de0b070e223c6af899ad",
+  "foreignIndex": {
+    "paths": [],
+    "nulBytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "staticChecksPlanned": 9,
+  "actualCounts": {
+    "compiler": 0,
+    "candidate": 0,
+    "controls": 0,
+    "authoredModuleImports": 0,
+    "VMCompilerEvaluations": 0
+  },
+  "limitations": [
+    "Runner must integrate and independently review exact API protocol/roots/options/capture/worker process treatment before Root GO.",
+    "Strict API host/protocol implementation has not executed; no actual type or import/guard qualification claimed.",
+    "Old resource UNQUALIFIED/S02 concern/three semantic-mutant dependencies unchanged.",
+    "Conditional139136382-byte shared tool copy must fit existing working allocation; no extra time/child/capture ceiling."
+  ],
+  "historicalPreparationFailure": "PREPARATION-FAILURE.json",
+  "selfReferenceRule": "This source preseal excluded from its own entries; later evidence seal and exact Git commit bind it."
+}

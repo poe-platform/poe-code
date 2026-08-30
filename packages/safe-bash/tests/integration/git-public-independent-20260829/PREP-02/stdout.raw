@@ -1,0 +1,57 @@
+PRIOR STDERR
+fatal: bad object 7fde32264d757ef856acf3ae92c8581b4a294341
+
+REFERENCE_LENGTHS
+{"7fde32264d757ef856acf3ae92c8581b4a294341": 40, "bd772916c26dc87c54bafdaa784d18f058efa275": 40, "fca6f81d2d96db2bbceabf3247cd57ffe240bde6": 40, "db8b818db983f32c9522ebe4c9589ca8766a5454": 40}
+bd772916c26dc87c54bafdaa784d18f058efa275
+bd772916 record root qualified acceptance of public apply_patch79
+ .../REPORT.md                                      |  6 +++
+ .../ROOT-ACCEPTANCE.md                             | 56 ++++++++++++++++++++++
+ .../SOURCE-COMMON-REGEX.md                         | 45 +++++++++++++++++
+ 3 files changed, 107 insertions(+)
+
+db8b818db983f32c9522ebe4c9589ca8766a5454
+db8b818d docs(git-pack): record qualified module acceptance and274 identity map
+ .../DATA-01/1.process.json                         |   271 +
+ .../DATA-01/1.stderr.raw                           |     0
+ .../DATA-01/1.stdout.raw                           |   Bin 0 -> 45808 bytes
+ .../DATA-01/2.process.json                         |    49 +
+ .../DATA-01/2.stderr.raw                           |     0
+ .../DATA-01/2.stdout.raw                           |   Bin 0 -> 6386 bytes
+ .../DATA-01/3.process.json                         |    56 +
+ .../DATA-01/3.stderr.raw                           |     0
+ .../DATA-01/3.stdout.raw                           |   Bin 0 -> 7548 bytes
+ .../DATA-01/4.process.json                         |    15 +
+ .../DATA-01/4.stderr.raw                           |     0
+ .../DATA-01/4.stdout.raw                           |   Bin 0 -> 240 bytes
+ .../DATA-01/5.process.json                         |     9 +
+ .../DATA-01/5.stderr.raw                           |     0
+ .../DATA-01/5.stdout.raw                           | 42992 +++++++++++++++++++
+ .../DATA-01/COVERAGE-MAPS.json                     |  2517 ++
+ .../DATA-01/MAPPING-274.json                       |  8352 ++++
+ .../module-acceptance-20260829/DATA-01/RESULT.json |   443 +
+ .../DATA-01/STARTUP.json                           |     7 +
+ .../DATA-01/TABLE-274.md                           |   280 +
+ .../module-acceptance-20260829/DATA-SEAL.json      |   182 +
+ .../module-acceptance-20260829/HANDOFF.md          |   124 +
+ .../ROOT-ACCEPTANCE.json                           |   204 +
+ .../module-acceptance-20260829/stderr.raw          |     0
+ .../module-acceptance-20260829/stdout.raw          |     0
+ 25 files changed, 55501 insertions(+)
+
+fca6f81d2d96db2bbceabf3247cd57ffe240bde6
+fca6f81d fix(git): protect index slot owner before bucket allocation
+ src/commands/git/pack.ts                           |  7 +++---
+ .../git-pack-author-20260828/s01-v3/PRESEAL.json   | 25 ++++++++++++++++++++++
+ 2 files changed, 29 insertions(+), 3 deletions(-)
+
+CANDIDATE_PATHS
+tests/integration/html-public-admission-resource-v32-independent-20260827/HANDOFF.md
+tests/integration/apply-patch-public-20260829/HANDOFF.md
+tests/integration/timeout-public-author-20260828/HANDOFF.md
+tests/integration/git-public-20260829/HANDOFF.md
+tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/HANDOFF.md
+tests/integration/du-public-independent-evidence-20260827/public29-binding-review-01/HANDOFF.md
+tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/HANDOFF.md
+tests/integration/du-public-independent-evidence-20260827/public29-v1/HANDOFF.md
+tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/HANDOFF.md

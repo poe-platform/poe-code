@@ -1,0 +1,127 @@
+{
+  "at": "2026-08-29T12:48:00.298Z",
+  "authorGroups": [
+    {
+      "id": "P01-own-new-origin",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P02-missing-and-escape",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P03-admitted-same-buffer",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P04-before-read-identity",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P05-bad-hash-before-parse",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P06-own-data-and-link",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P07-short-zero-writes",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P08-raw-falsy-primary",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P09-clock-reserve",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P10-second-open-closes-first",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P11-known-synthetic-lifecycle",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    },
+    {
+      "id": "P12-role-mapping",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_SYNTHETIC_NO_OS_CHILD"
+    }
+  ],
+  "independent": [
+    {
+      "id": "N01-proxy-no-traps",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_INJECTED_IO"
+    },
+    {
+      "id": "N02-inherited-identity-no-getter",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_INJECTED_IO"
+    },
+    {
+      "id": "N03-raw-falsy-metadata",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_INJECTED_IO"
+    },
+    {
+      "id": "N04-known-empty-and-safe-bounds",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_INJECTED_IO"
+    },
+    {
+      "id": "N05-duplicate-origin-refused",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_INJECTED_IO"
+    },
+    {
+      "id": "N06-template-import-accounted",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_INJECTED_IO"
+    },
+    {
+      "id": "N07-cleanup-only-undefined-retained",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_INJECTED_IO"
+    },
+    {
+      "id": "N08-nonESRCH-falsy-not-absence",
+      "status": "PASS",
+      "role": "PURE_DATA_OR_INJECTED_IO"
+    }
+  ],
+  "entryCount": 1117,
+  "edges": {
+    "PINNED_NODE_BUILTIN": 99,
+    "BOUND_RELATIVE_IMPORT": 872,
+    "EXPECTED_PRIVATE_EXPORT_DENIAL": 1,
+    "COMPUTED_IMPORT_REQUIRES_RUNTIME_BOUND_LOADER": 3
+  },
+  "public98Shape": [
+    "schema",
+    "commit",
+    "proof",
+    "files"
+  ],
+  "engineEntries": 96,
+  "packageBytes": 5130403,
+  "productImports": 0,
+  "engineImports": 0,
+  "realWorkerConstructions": 0,
+  "actualOSChildConstructions": 0,
+  "qualification": "Whole unchanged helpers; injected lifecycle is not native FD/process/Worker proof. Public and package code only read/hashed/scanned as DATA."
+}

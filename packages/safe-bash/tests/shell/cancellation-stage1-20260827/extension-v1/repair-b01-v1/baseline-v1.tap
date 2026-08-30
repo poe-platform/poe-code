@@ -1,0 +1,140 @@
+TAP version 13
+# Subtest: B01-R01-budget-observed-control preserves observed budget control
+not ok 1 - B01-R01-budget-observed-control preserves observed budget control
+  ---
+  duration_ms: 3.579958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:1:1266'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(Object.is(selection.outcome.reason, reason))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    assertThrow (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:45:50)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:109:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:53:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: B01-R02-pipeline-observed-falsy preserves observed falsy pipeline control
+not ok 2 - B01-R02-pipeline-observed-falsy preserves observed falsy pipeline control
+  ---
+  duration_ms: 0.541541
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:1:1266'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(Object.is(selection.outcome.reason, reason))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    assertThrow (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:45:50)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:123:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:53:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: B01-R03-budget-descendant-report preserves a budget descendant report
+not ok 3 - B01-R03-budget-descendant-report preserves a budget descendant report
+  ---
+  duration_ms: 0.397125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:1:1266'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(Object.is(selection.outcome.reason, reason))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    assertThrow (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:45:50)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:140:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:53:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: B01-R04-pipeline-report-equal-invoke keeps control provenance for equal reasons
+not ok 4 - B01-R04-pipeline-report-equal-invoke keeps control provenance for equal reasons
+  ---
+  duration_ms: 0.236625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:1:1266'
+  failureType: 'testCodeFailure'
+  error: 'selection must retain the authenticated origin identity'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    assertThrow (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:47:15)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:162:5)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts:53:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: B01-R05-actual-root-priority retains actual root priority
+ok 5 - B01-R05-actual-root-priority retains actual root priority
+  ---
+  duration_ms: 0.411417
+  type: 'test'
+  ...
+# Subtest: B01-R06-unknown-equal-remains-unrelated does not infer provenance from equality
+ok 6 - B01-R06-unknown-equal-remains-unrelated does not infer provenance from equality
+  ---
+  duration_ms: 0.112209
+  type: 'test'
+  ...
+# Subtest: B01-R07-genuine-invoke-remains-ranked continues ranking authenticated invokes
+ok 7 - B01-R07-genuine-invoke-remains-ranked continues ranking authenticated invokes
+  ---
+  duration_ms: 0.098333
+  type: 'test'
+  ...
+# Subtest: B01-R08-close-stability keeps closed child selection stable
+ok 8 - B01-R08-close-stability keeps closed child selection stable
+  ---
+  duration_ms: 0.371709
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 4
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 159.114

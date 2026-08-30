@@ -1,0 +1,19 @@
+{
+  "startedAt": "2026-08-27T18:13:25.294Z",
+  "head": "8e950bd846f69b86f851d2a901e62e0b3bb92ded",
+  "status": "M tests/integration/full-gate-20260827/combined-8670ebe8/run.mjs\n M tests/integration/full-gate-20260827/consumer-inventory-73/run.mjs\n M tests/plugins/qualified-current-release/snapshot.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/du/functional-v1/.gitignore\n?? tests/commands/du/functional-v1/capture-native.mjs\n?? tests/commands/du/functional-v1/evidence/native-v1-9HXVCz/\n?? tests/commands/du/functional-v1/native-cases.ts\n?? tests/commands/du/overlay-purity.test.ts\n?? tests/commands/expr-stress/extension-review/after-abort-fix/replay/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/overlay/metadata-purity-evidence/capture.mjs\n?? tests/fs/overlay/metadata-purity-evidence/captures/\n?? tests/fs/overlay/metadata-purity.test.ts\n?? tests/integration/full-gate-20260827/candidate-profile-73/\n?? tests/integration/full-gate-20260827/integrity-73/",
+  "label": "original-source",
+  "selection": "strict",
+  "runtime": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-OXJZH5",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "uv": "1.51.0",
+  "typescript": "5.9.3",
+  "entries": [
+    "tests/fs/overlay/metadata-purity.test.ts",
+    "tests/commands/du/overlay-purity.test.ts"
+  ],
+  "driverSha256": "604852605cb8222e4fe91b89bcc4d5ed363862cddc972f80d6614bb1c2c9cd7f",
+  "profile": "isolated source-import snapshot, installed tooling symlink, no shared dist/build/dependency installation; author only"
+}

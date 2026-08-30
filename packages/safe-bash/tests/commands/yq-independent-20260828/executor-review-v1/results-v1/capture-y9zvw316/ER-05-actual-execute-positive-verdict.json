@@ -1,0 +1,9 @@
+{
+  "family": "ER-05",
+  "name": "actual-execute-positive",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-05-actual-execute-positive-input.json",
+  "raw": "ER-05-actual-execute-positive-raw.json"
+}

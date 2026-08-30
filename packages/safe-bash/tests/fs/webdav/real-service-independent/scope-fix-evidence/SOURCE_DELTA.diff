@@ -1,0 +1,12 @@
+diff --git a/src/fs/webdav/webdav.ts b/src/fs/webdav/webdav.ts
+index 030de90..d71a4e6 100644
+--- a/src/fs/webdav/webdav.ts
++++ b/src/fs/webdav/webdav.ts
+@@ -855,6 +855,7 @@ export class WebDavFileSystem implements FileSystem {
+         const rootHref = lockRoot && davChild(lockRoot, "href");
+         const timeout = active && davChild(active, "timeout");
+         if (root.namespace !== "DAV:" || root.localName !== "prop" || !scope || !davChild(scope, "exclusive")
++          || davChild(scope, "shared")
+           || !type || !davChild(type, "write") || !depth || scalar(depth) !== "infinity"
+           || !href || `<${scalar(href)}>` !== token
+           || (lockRoot !== undefined && (!rootHref || this.hrefPath(scalar(rootHref)) !== path))

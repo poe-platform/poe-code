@@ -1,0 +1,9 @@
+{
+  "command": "node",
+  "args": [
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/dev-archive-tUxZakLE/root"
+  ],
+  "status": 1,
+  "signal": null
+}

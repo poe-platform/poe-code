@@ -1,0 +1,16 @@
+[
+  {
+    "label": "frozen-df780f6",
+    "commit": "df780f6ddb6292283114461ff4f9ebacfb269205",
+    "invocations": 7,
+    "observedIdentities": 30,
+    "allClean": true
+  },
+  {
+    "label": "frozen-d904ca9",
+    "commit": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+    "invocations": 7,
+    "observedIdentities": 30,
+    "allClean": true
+  }
+]

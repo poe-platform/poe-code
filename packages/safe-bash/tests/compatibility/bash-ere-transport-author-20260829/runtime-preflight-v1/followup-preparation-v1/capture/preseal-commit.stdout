@@ -1,0 +1,12 @@
+[main 1993e265f] seal thirteen-cell L02 followup journal and ownership preparation
+ 10 files changed, 149 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/PREPARATION-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/case-runner.mjs.data
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/controls.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/journal.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/materialize.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/receipt-gate.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/state.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/stub.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/supervisor.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/worker-bridge.mjs.data

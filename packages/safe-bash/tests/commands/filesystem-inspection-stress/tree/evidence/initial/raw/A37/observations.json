@@ -1,0 +1,197 @@
+{
+  "candidate": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-J",
+        "--noreport",
+        "controls"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC",
+        "PWD": "/"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "Wwo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICB7InR5cGUiOiJkaXJlY3RvcnkiLCJuYW1lIjoiY29udHJvbHMi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LCJjb250ZW50cyI6Wwo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiLWxlYWRpbmci",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiYmFja1xcc2xhc2gi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiY2FycmlhZ2VccnJldHVybiI=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiZXNjYXBlXHUwMDFiWzMxbSI=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoibGluZVxuYnJlYWsudHh0Ig==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoicXVvdGVcIm5hbWUi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoidGFiXHRuYW1lIg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiei1sYXN0Ig==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoiw6ljbGFpci50eHQi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoi6ZuqLnR4dCI=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "LAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "ICAgIHsidHlwZSI6ImZpbGUiLCJuYW1lIjoi8J+YgC50eHQi",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CiAgXQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fQ==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "Cl0K",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T08:28:25.969Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T08:28:25.971Z"
+    }
+  ],
+  "shells": [
+    {
+      "script": "(tree -J --noreport controls | holdout-json-names) > /saved.json; holdout-relay < /saved.json",
+      "commandNames": [
+        "tree",
+        "holdout-json-names",
+        "holdout-relay"
+      ],
+      "className": "Shell",
+      "disposed": true,
+      "exitCode": 0,
+      "stdoutBase64": "WyItbGVhZGluZyIsImJhY2tcXHNsYXNoIiwiY2FycmlhZ2VccnJldHVybiIsImVzY2FwZVx1MDAxYlszMW0iLCJsaW5lXG5icmVhay50eHQiLCJxdW90ZVwibmFtZSIsInRhYlx0bmFtZSIsInotbGFzdCIsIsOpY2xhaXIudHh0Iiwi6ZuqLnR4dCIsIvCfmIAudHh0Il0K",
+      "stderrBase64": ""
+    }
+  ]
+}

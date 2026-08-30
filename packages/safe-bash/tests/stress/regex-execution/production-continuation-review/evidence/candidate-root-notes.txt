@@ -1,0 +1,80 @@
+Production continuation coordination — August 27, 2026
+
+User accepted harness6330333 only with explicit profile qualification. It is
+not evidence for old25ms rg behavior, product/default acceptance, or fullgate.
+Now prioritize c467e8a actual default grep/rg: public lifecycle and untrusted
+filename include/exclude/ignore matching, not an opt-in alternative.
+
+Author source scope includes narrow search/glob.ts +walk.ts under latest user
+host-glob instruction, plus existing regex-execution/grep/search adapters. No
+shell/runtime/contracts/FS/roottypes edits; no circular imports or shell rewrite.
+Different verifier owns production-continuation-review only. Author waits for
+independent baseline-ready before source edits. Reviewer waits author-ready for
+final replay. Publish exact lifecycle interface proposal promptly if needed,
+while completing independent in-scope source fixes; do not invent the contract.
+
+Current approved default matcher policy remains active1000ms/startup3000ms,
+configurable,2 request leases with bounded/fair/cancellable byte-accounted queue.
+No workers at plugin registration, ownership through construction/try-finally,
+abort/error cleanup, no idle invocation pinning or weakened existing budgets.
+
+Six NEW tiny pathological probes remain UNUSED (old12 archived). Current author
+and verifier allocations ZERO pending recorded benign actual public controls /
+exact cleanup. Root may allocate from the same6 within user authorization later.
+Never run risky regex on host/main thread; static owned child, parent hard bound,
+strict unhandled, heap/output bounds and exact child handle cleanup remain.
+
+Bounded work: reuse immutable prior cohorts, preserve all previous failures;
+separate source/API/default active state from independent acceptance. Package
+proof must be actual built/moved product and public commands, not source aliases.
+One complete-command equivalent-work benchmark suffices; no fullgate or broad
+engine expansion. Atomic --only owned commits, clean handoff, no active children.
+
+ROOT EARLY FINDINGS: independent baseline471f4ca is available; source edits may
+proceed. Read author's preliminary /tmp/regex-continuation-api.txt. Lifecycle
+interface is a PROPOSAL ONLY, not approved. Reviewer should validate/refine exact
+file paths/lines (preliminary src/shell.ts should be checked against current tree),
+registration-before-first-worker timing, nested invoke/pipeline scope ownership,
+late registration and primary-error versus cleanup-error precedence. State a
+minimal concrete proposal usable for a separate owner assignment, not an open
+list of every possible contract design. No runtime implementation in this batch.
+Continue host-glob source fix and acquisition/error-path review. No new risks yet.
+
+ROOT PROPOSAL RECONCILIATION: use the smaller shared proposal now in reviewer
+findings: type InvocationCleanup = () => Promise<void>; CommandContext readonly
+registerCleanup?: (cleanup: InvocationCleanup) => void. Preserve prior scope-object
+draft as dated proposal history, not a second proposed API. Still NOT approved or
+implemented. Final response must include exact callpaths and proposal semantics.
+
+Baseline actual public caller-abort and rg|head also settle before Worker exit;
+keep those red assertions. All6 risky probes stay UNUSED while required benign
+public cleanup guards remain red. No force-green/eventual-cleanup substitution.
+
+Performance scope reminder: the equivalent complete-command baseline should
+include one modest many-file filename-glob/ignore workload (e.g.32-64 small VFS
+files), not just old stdincontentbenchmarks. This directly measures new per-path
+request overhead; preserve exact selected bytes/order, startup included, bounded
+repetitions. No broad benchmark expansion or mandatory performance superiority.
+
+Final async-walker review emphasis: cancellation/worker-resource errors must not
+be mistaken for ignorable malformed ignore-file rules or per-file FS diagnostics.
+Verify caller-abort identity/precedence and no continued VFS/filename work after
+observed abort. Preserve existing intentional malformed-ignore behavior versus
+CLI validation behavior; worker offload must not silently broaden/narrow either.
+
+BOUNDED HANDOFF REMINDER: after declared focused regressions/build/public smoke,
+commit coherent source+regressions and publish author-ready promptly. Narrative
+polish/evidence indexing may follow without source edits; independent final pack
+and complete-command timings should not wait on report formatting. Retain all
+red public lifecycle assertions and first typing/harness errors. No extra broad
+cohorts merely because reviewer is waiting; finish actual authorized changes.
+
+ROOT SOURCE CHECKPOINT: ef8bbe7 is now committed; author marker is being sealed.
+Report76/76 scoped,35/35 moved controls but3/7 lifecycle (4 retained failures),
+related110/111 with retained repository-nativefixture profile discrepancy. No
+full/default acceptance. Reviewer freeze final source at author marker and run
+the already-declared47 public/15transport/packed+timing schedule only.
+Verify actual aggregate option types: author corrected an invented aggregate
+regex option. Prefer known separate standardCommands({regex})/searchCommands({regex})
+consumer for both overrides; report aggregate defaults separately. Do not add
+public API to satisfy a mistaken verifier consumer. Preserve any harness failures.

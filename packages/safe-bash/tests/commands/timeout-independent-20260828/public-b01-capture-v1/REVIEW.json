@@ -1,0 +1,310 @@
+{
+  "schema": "timeout-public78-final-composed-independent-review/1",
+  "postProcessingOnly": true,
+  "at": "2026-08-28T06:02:07.048Z",
+  "verdict": "PASS_SCOPED_COMPOSED_PUBLIC_TIMEOUT78",
+  "rootRatificationPending": true,
+  "remainingInScopeBlocker": null,
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "module": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "recipeCommit": "ef511785",
+  "recipeManifestSha256": "f0c032a7d6d65edec3416ddb793c0b182ce1e3d0eb909784122f2a0c25d2a5f2",
+  "requestSha256": "e263e6d2230f797147ffd7f68d1a7f87404d7bd084160c40cf0de15317074a5a",
+  "resultSha256": "0aa7b2e305d75bb314c249f3374be69bf3bfb956e2fddd0d90f114732451f84c",
+  "actualB01": {
+    "startedAt": "2026-08-28T05:59:14.128Z",
+    "finishedAt": "2026-08-28T05:59:21.694Z",
+    "attempts": 1,
+    "retries": 0,
+    "status": "KILLED",
+    "actualExpectedFailure": {
+      "type": "object",
+      "text": "AssertionError [ERR_ASSERTION]: RAW_STDIN_ACQUIRE",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "RAW_STDIN_ACQUIRE",
+      "stack": "AssertionError [ERR_ASSERTION]: RAW_STDIN_ACQUIRE\n    at [Symbol.asyncIterator] (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/boundaries.mjs:19:67)\n    at capturedAcquisitionReason (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:137:195)\n    at captureBeforeRethrow (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/capture.mjs:4:15)\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:137:106)\n    at direct (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:17:82)\n    at Object.R12 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:139:21)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:200:17"
+    },
+    "qualification": {
+      "status": "PASS",
+      "unchangedBoundaryQualifierPassed": true,
+      "before": {
+        "kind": "R12-raw-before-assertion",
+        "vectorIndex": 0,
+        "argv": [],
+        "counts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "outcome": {
+          "status": "rejected",
+          "sameSentinel": true,
+          "reason": {
+            "type": "object",
+            "text": "AssertionError [ERR_ASSERTION]: RAW_STDIN_ACQUIRE",
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "RAW_STDIN_ACQUIRE",
+            "stack": "AssertionError [ERR_ASSERTION]: RAW_STDIN_ACQUIRE\n    at [Symbol.asyncIterator] (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/boundaries.mjs:19:67)\n    at capturedAcquisitionReason (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:137:195)\n    at captureBeforeRethrow (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/capture.mjs:4:15)\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:137:106)\n    at direct (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:17:82)\n    at Object.R12 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:139:21)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:200:17"
+          }
+        },
+        "capturePhase": "before-rethrow",
+        "captureOrder": [
+          "invoke",
+          "capture"
+        ]
+      },
+      "after": {
+        "kind": "B01-rethrow-identity",
+        "vectorIndex": 0,
+        "counts": {
+          "acquire": 1,
+          "next": 0,
+          "returned": 0,
+          "settled": 0,
+          "contentBytes": 0
+        },
+        "sameReason": true,
+        "outcome": {
+          "status": "rejected",
+          "sameSentinel": true,
+          "reason": {
+            "type": "object",
+            "text": "AssertionError [ERR_ASSERTION]: RAW_STDIN_ACQUIRE",
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "RAW_STDIN_ACQUIRE",
+            "stack": "AssertionError [ERR_ASSERTION]: RAW_STDIN_ACQUIRE\n    at [Symbol.asyncIterator] (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/boundaries.mjs:19:67)\n    at capturedAcquisitionReason (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:137:195)\n    at captureBeforeRethrow (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/capture.mjs:4:15)\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:137:106)\n    at direct (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:17:82)\n    at Object.R12 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:139:21)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/public-b01-capture-v1/runtime.mjs:200:17"
+          }
+        },
+        "captureOrder": [
+          "invoke",
+          "capture",
+          "rethrow-observed"
+        ]
+      },
+      "helperProof": [
+        {
+          "path": "capture.mjs",
+          "sha256": "d10f19f7cb0f2a3d753977188f13102efb4dc2288a5bc25e09487664ab85a10a"
+        },
+        {
+          "path": "boundaries.mjs",
+          "sha256": "ce78b6e53d2a82894856f6d558d35f8ca24aec2c858145410620f4b899c1fb4a"
+        },
+        {
+          "path": "runtime.mjs",
+          "sha256": "de2f89b0587e30ec90c4c5ff46e125e1137b3638cbbcae2271fe0938fc205f55"
+        }
+      ],
+      "cleanup": {
+        "tracked": 1,
+        "pending": 0,
+        "timers": 0,
+        "shells": 1,
+        "disposalRejections": [],
+        "unhandled": []
+      }
+    },
+    "moduleLoads": 220,
+    "sourceAdapter": true,
+    "pluginAdmissions": [
+      {
+        "ordinal": 0,
+        "script": "",
+        "markerEntered": 1,
+        "sameRegistry": true,
+        "timeoutCallable": true,
+        "dispatch": [],
+        "clockBefore": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ],
+        "outcome": {
+          "status": "fulfilled",
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBase64": "",
+          "stderrBase64": ""
+        },
+        "clockAfter": [
+          {
+            "records": 0,
+            "live": 0
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "tracked": 1,
+      "pending": 0,
+      "timers": 0,
+      "shells": 1,
+      "disposalRejections": [],
+      "unhandled": []
+    }
+  },
+  "focusedControls": {
+    "schema": "timeout-public-b01-capture-controls/1",
+    "at": "2026-08-28T05:59:01.591Z",
+    "manifestSha256": "f0c032a7d6d65edec3416ddb793c0b182ce1e3d0eb909784122f2a0c25d2a5f2",
+    "requestSha256": "e263e6d2230f797147ffd7f68d1a7f87404d7bd084160c40cf0de15317074a5a",
+    "results": [
+      {
+        "id": "C01-normal-return-no-capture",
+        "status": "PASS"
+      },
+      {
+        "id": "C02-synchronous-order-and-identity",
+        "status": "PASS"
+      },
+      {
+        "id": "C03-actual-raw-probe-counters",
+        "status": "PASS"
+      },
+      {
+        "id": "C04-missing-capture-rejected",
+        "status": "PASS"
+      },
+      {
+        "id": "C05-late-capture-rejected",
+        "status": "PASS"
+      },
+      {
+        "id": "C06-same-message-replacement-rejected",
+        "status": "PASS"
+      },
+      {
+        "id": "C07-wrong-counter-rejected",
+        "status": "PASS"
+      }
+    ],
+    "passed": 7,
+    "failed": 0,
+    "productExecutions": 0,
+    "children": 0
+  },
+  "children": [
+    {
+      "label": "B01-R12",
+      "pid": 13432,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "reaped": true,
+      "forced": false
+    }
+  ],
+  "synchronousGitChildren": 545,
+  "integrityGuards": 4,
+  "composition": {
+    "schema": "timeout-public78-composed-prerequisites/1",
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "originalEvidenceCommit": "2324e36d7f19c05a362d21460927c69098bbe17d",
+    "continuationEvidenceCommit": "2d2c3356adcb91594804f76fe68b03d8e080d7cf",
+    "originalResultSha256": "b60816bc1c2f9b275b250fa688aef4585c9bcbeb883cfab7da2a959944cfa3f3",
+    "continuationResultSha256": "4da6451f2fb5b57467cf631643b22bfa49bc3b37a2944554788bf9de18e23f15",
+    "runtime": {
+      "source": {
+        "originalQualified": 22,
+        "continuationQualified": 8,
+        "composed": 30,
+        "noOldRescore": true
+      },
+      "installed": {
+        "originalQualified": 22,
+        "continuationQualified": 8,
+        "composed": 30,
+        "noOldRescore": true
+      },
+      "moved": {
+        "originalQualified": 22,
+        "continuationQualified": 8,
+        "composed": 30,
+        "noOldRescore": true
+      }
+    },
+    "boundTypes": 20,
+    "boundPackageNegatives": 7,
+    "boundFreshGuards": 6,
+    "boundProductMutants": {
+      "original": 7,
+      "continuationM07": 1,
+      "A07": "PASS"
+    },
+    "boundBoundaryControls": [
+      "B02",
+      "B03",
+      "B04"
+    ],
+    "originalB01FailurePreserved": true,
+    "originalB01MissingCountersNotReconstructed": true,
+    "pack": {
+      "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "members": 858,
+      "bytes": 749907,
+      "actualPriorReproductions": 2,
+      "currentReplays": 0
+    },
+    "priorIntegrityGuards": {
+      "original": 258,
+      "continuation": 66
+    },
+    "priorNodeChildren": {
+      "original": 128,
+      "continuation": 32
+    },
+    "freshGitInputs": 269,
+    "defaultCommandNames": 78,
+    "rootRatificationPending": true,
+    "native": 0,
+    "safeJS": 0,
+    "fullGate": false,
+    "boundaryControls": {
+      "priorQualified": [
+        "B02",
+        "B03",
+        "B04"
+      ],
+      "newQualified": [
+        "B01"
+      ],
+      "composed": 4,
+      "oldThreeOfFourUnchanged": true
+    }
+  },
+  "currentReplayCounts": {
+    "positiveFamilies": 0,
+    "types": 0,
+    "builds": 0,
+    "packs": 0,
+    "productMutants": 0
+  },
+  "unexecuted": [],
+  "archive": {
+    "archiveSha256": "cf7207cf5e21093e82444101c1b1cdaa3fd0aac5eac573d2f88408cb28b3ee61",
+    "retainedFiles": 14,
+    "workFiles": 274,
+    "rawFiles": 9,
+    "removed": true,
+    "bytes": 97871
+  },
+  "historicalFailuresUnchanged": true,
+  "missingOldNumbersNotReconstructed": true,
+  "wholeHistoryProof": false,
+  "fullGate": false,
+  "native": 0,
+  "safeJS": 0
+}

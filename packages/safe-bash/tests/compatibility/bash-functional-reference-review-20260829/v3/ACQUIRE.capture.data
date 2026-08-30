@@ -1,0 +1,10 @@
+{"event":"START","at":"2026-08-29T07:52:17.167Z"}
+{"event":"ENROLLED","starts":1,"args":["ls-tree","-r","-z","4eea354169492b4c47d373d504e5918e1c4f3830","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3"]}
+{"event":"RETIRED","starts":1,"status":0,"signal":null,"bytes":3076}
+{"event":"ENROLLED","starts":2,"args":["cat-file","--batch"]}
+{"event":"RETIRED","starts":2,"status":0,"signal":null,"bytes":123056}
+{"event":"ENROLLED","starts":3,"args":["ls-tree","-r","-z","73065e68469e2e514c0ee87ff34ac1db04ba51cb","--","tests/compatibility/bash-surface-independent-20260829/functional-reference-v3"]}
+{"event":"RETIRED","starts":3,"status":0,"signal":null,"bytes":4597}
+{"event":"ENROLLED","starts":4,"args":["cat-file","--batch"]}
+{"event":"RETIRED","starts":4,"status":0,"signal":null,"bytes":248374}
+{"event":"COMPLETE","starts":4}

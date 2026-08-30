@@ -1,0 +1,1 @@
+{"runId":"admission-v4-01","mode":"admission","recipe":"fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8","grant":{"commit":"c1b03b641aa51f36e1461973e6d635103e1ef1e5","path":"tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/GRANT.json","sha256":"31fac8c969b07d2a41c9b52720b0c8c1eeea8a895338ebdcea013d3e19293c52"}}

@@ -1,0 +1,14 @@
+{
+  "name": "public-resolution",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--input-type=module",
+    "-e",
+    "import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs'; import { agentCommands, Shell, MemoryFileSystem } from 'virtual-bash'; const consumer = JSON.parse(readFileSync('package.json')); assert.notEqual(consumer.name, 'virtual-bash'); const resolved = import.meta.resolve('virtual-bash'); assert.equal(resolved, \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-gwY9Bf/consumer/node_modules/virtual-bash/dist/index.js\"); const shell = new Shell({fs:new MemoryFileSystem()}).use(agentCommands()); const names = [\"cat\",\"cp\",\"find\",\"mkdir\",\"mv\",\"printf\",\"pwd\",\"rm\",\"rmdir\",\"sort\",\"tee\",\"test\",\"touch\",\"xargs\",\"sed\",\"awk\",\"jq\",\"rg\",\"sha256sum\",\"gzip\",\"diff\",\"patch\"]; for (const name of names) assert.equal(typeof shell.commands.get(name)?.execute, 'function'); console.log(JSON.stringify({consumer:consumer.name,resolved,requiredCommands:names,actualAggregate:true})); await shell.dispose();"
+  ],
+  "cwd": "consumer",
+  "startedAt": "2026-08-27T08:59:10.093Z",
+  "durationMs": 82.11895799999911,
+  "status": 1,
+  "signal": null
+}

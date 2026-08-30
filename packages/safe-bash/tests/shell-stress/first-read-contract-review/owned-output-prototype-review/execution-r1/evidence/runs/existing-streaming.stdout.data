@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: pipes preserve bytes and launch downstream before upstream completes
+ok 1 - pipes preserve bytes and launch downstream before upstream completes
+  ---
+  duration_ms: 6.520958
+  type: 'test'
+  ...
+# Subtest: early downstream exit and unused pipeline input do not deadlock
+ok 2 - early downstream exit and unused pipeline input do not deadlock
+  ---
+  duration_ms: 4.061292
+  type: 'test'
+  ...
+# Subtest: pipeline redirects replace endpoints without leaving blocked writers
+ok 3 - pipeline redirects replace endpoints without leaving blocked writers
+  ---
+  duration_ms: 1.784167
+  type: 'test'
+  ...
+# Subtest: AbortSignal reaches commands and releases blocked pipelines
+ok 4 - AbortSignal reaches commands and releases blocked pipelines
+  ---
+  duration_ms: 0.867083
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 145.602083

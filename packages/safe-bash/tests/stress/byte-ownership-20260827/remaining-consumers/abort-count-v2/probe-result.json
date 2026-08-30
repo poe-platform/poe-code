@@ -1,0 +1,123 @@
+{
+  "fixtureCommit": "93a068bcb52ede65323689868b231bc2f56f641b",
+  "acceptedProduct": "b282159921ce530e932b02f90c64eca987de2704",
+  "scope": "isolated accepted readBytes + identical borrowed generator only; NOT public24 replay",
+  "started": "2026-08-27T11:07:06.483Z",
+  "finished": "2026-08-27T11:07:06.518Z",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/abort-count-v2/probe.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/fixed/moved-consumer/node_modules/virtual-bash"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "{\n  \"scope\": \"isolated readBytes/producer trace, not the public 24-case replay\",\n  \"accepted\": [\n    \"41e2\"\n  ],\n  \"exactReason\": true,\n  \"trace\": [\n    {\n      \"event\": \"next entered\",\n      \"aborted\": false,\n      \"state\": {\n        \"yielded\": 0,\n        \"resumed\": 0,\n        \"finalized\": false,\n        \"unchangedChecks\": 0\n      }\n    },\n    {\n      \"event\": \"producer next fulfilled\",\n      \"done\": false,\n      \"bytes\": \"41e2\",\n      \"aborted\": false,\n      \"state\": {\n        \"yielded\": 1,\n        \"resumed\": 0,\n        \"finalized\": false,\n        \"unchangedChecks\": 0\n      }\n    },\n    {\n      \"event\": \"readBytes consumer accepted\",\n      \"aborted\": false,\n      \"state\": {\n        \"yielded\": 1,\n        \"resumed\": 0,\n        \"finalized\": false,\n        \"unchangedChecks\": 0\n      }\n    },\n    {\n      \"event\": \"next entered\",\n      \"aborted\": false,\n      \"state\": {\n        \"yielded\": 1,\n        \"resumed\": 0,\n        \"finalized\": false,\n        \"unchangedChecks\": 0\n      }\n    },\n    {\n      \"event\": \"afterRead entered\",\n      \"aborted\": false,\n      \"state\": {\n        \"yielded\": 1,\n        \"resumed\": 1,\n        \"finalized\": false,\n        \"unchangedChecks\": 1\n      }\n    },\n    {\n      \"event\": \"abort callback returned normally\",\n      \"aborted\": true,\n      \"state\": {\n        \"yielded\": 1,\n        \"resumed\": 1,\n        \"finalized\": false,\n        \"unchangedChecks\": 1\n      }\n    },\n    {\n      \"event\": \"producer next fulfilled\",\n      \"done\": false,\n      \"bytes\": \"\",\n      \"aborted\": true,\n      \"state\": {\n        \"yielded\": 2,\n        \"resumed\": 1,\n        \"finalized\": false,\n        \"unchangedChecks\": 1\n      }\n    },\n    {\n      \"event\": \"return entered\",\n      \"aborted\": true,\n      \"state\": {\n        \"yielded\": 2,\n        \"resumed\": 1,\n        \"finalized\": false,\n        \"unchangedChecks\": 1\n      }\n    },\n    {\n      \"event\": \"return fulfilled after finally\",\n      \"aborted\": true,\n      \"state\": {\n        \"yielded\": 2,\n        \"resumed\": 1,\n        \"finalized\": true,\n        \"unchangedChecks\": 2\n      }\n    }\n  ],\n  \"resources\": [\n    \"PipeWrap\"\n  ]\n}\n",
+  "stderr": "",
+  "probe": {
+    "scope": "isolated readBytes/producer trace, not the public 24-case replay",
+    "accepted": [
+      "41e2"
+    ],
+    "exactReason": true,
+    "trace": [
+      {
+        "event": "next entered",
+        "aborted": false,
+        "state": {
+          "yielded": 0,
+          "resumed": 0,
+          "finalized": false,
+          "unchangedChecks": 0
+        }
+      },
+      {
+        "event": "producer next fulfilled",
+        "done": false,
+        "bytes": "41e2",
+        "aborted": false,
+        "state": {
+          "yielded": 1,
+          "resumed": 0,
+          "finalized": false,
+          "unchangedChecks": 0
+        }
+      },
+      {
+        "event": "readBytes consumer accepted",
+        "aborted": false,
+        "state": {
+          "yielded": 1,
+          "resumed": 0,
+          "finalized": false,
+          "unchangedChecks": 0
+        }
+      },
+      {
+        "event": "next entered",
+        "aborted": false,
+        "state": {
+          "yielded": 1,
+          "resumed": 0,
+          "finalized": false,
+          "unchangedChecks": 0
+        }
+      },
+      {
+        "event": "afterRead entered",
+        "aborted": false,
+        "state": {
+          "yielded": 1,
+          "resumed": 1,
+          "finalized": false,
+          "unchangedChecks": 1
+        }
+      },
+      {
+        "event": "abort callback returned normally",
+        "aborted": true,
+        "state": {
+          "yielded": 1,
+          "resumed": 1,
+          "finalized": false,
+          "unchangedChecks": 1
+        }
+      },
+      {
+        "event": "producer next fulfilled",
+        "done": false,
+        "bytes": "",
+        "aborted": true,
+        "state": {
+          "yielded": 2,
+          "resumed": 1,
+          "finalized": false,
+          "unchangedChecks": 1
+        }
+      },
+      {
+        "event": "return entered",
+        "aborted": true,
+        "state": {
+          "yielded": 2,
+          "resumed": 1,
+          "finalized": false,
+          "unchangedChecks": 1
+        }
+      },
+      {
+        "event": "return fulfilled after finally",
+        "aborted": true,
+        "state": {
+          "yielded": 2,
+          "resumed": 1,
+          "finalized": true,
+          "unchangedChecks": 2
+        }
+      }
+    ],
+    "resources": [
+      "PipeWrap"
+    ]
+  }
+}

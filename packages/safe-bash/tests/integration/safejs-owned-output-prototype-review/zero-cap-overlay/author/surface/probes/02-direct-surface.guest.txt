@@ -1,0 +1,28 @@
+import * as command from "command";
+import * as stdio from "stdio";
+import * as fs from "fs";
+function shape(value) {
+  const fields = ["ownedOutput","consumerClosed","write","acquire","child","close","registerCleanup","output","signal","context","__proto__","prototype","constructor"];
+  return {
+    keys: Object.keys(value).sort(),
+    entries: Object.entries(value).map(entry => [entry[0], typeof entry[1]]).sort(),
+    types: fields.map(field => [field, typeof value[field]]),
+    own: fields.map(field => [field, Object.hasOwn(value, field)])
+  };
+}
+return {
+  command: shape(command),
+  stdio: shape(stdio),
+  fs: shape(fs),
+  args: shape(command.args),
+  env: shape(command.env),
+  constants: shape(fs.constants),
+  setExitCode: shape(command.setExitCode),
+  readText: shape(stdio.readText),
+  write: shape(stdio.write),
+  writeBytes: shape(stdio.writeBytes),
+  readFile: shape(fs.readFile),
+  writeFile: shape(fs.writeFile),
+  functionMethods: [typeof stdio.write.call, typeof stdio.write.apply],
+  positive: [command.args[0], command.cwd, command.env.TAG, command.env.PWD]
+};

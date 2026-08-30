@@ -1,0 +1,4534 @@
+[
+  {
+    "name": "create-then-select-a-unused-symlink",
+    "mode": "normal",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-r49qsv/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-r49qsv",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-r49qsv"
+      },
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168644662,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644669,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168644667,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168644671,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168644662,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644669,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168644667,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644793,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168644671,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      }
+    }
+  },
+  {
+    "name": "create-then-select-a-unused-symlink",
+    "mode": "atomic",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-xukDEu/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-xukDEu",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-xukDEu"
+      },
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168644807,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644812,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168644810,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168644815,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168644807,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644812,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168644810,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644837,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168644815,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      }
+    }
+  },
+  {
+    "name": "create-then-select-a-unused-hardlink",
+    "mode": "normal",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-Hon4oQ/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-Hon4oQ",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-Hon4oQ"
+      },
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168644854,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644870,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168644864,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "work/unused-long-name": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644870,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168644854,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644870,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168644864,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644904,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644870,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/unused-long-name": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        }
+      }
+    }
+  },
+  {
+    "name": "create-then-select-a-unused-hardlink",
+    "mode": "atomic",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-vkxThf/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-vkxThf",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-vkxThf"
+      },
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168644965,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644980,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168644974,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "work/unused-long-name": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644980,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168644965,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644980,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168644974,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645006,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168644980,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/unused-long-name": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        }
+      }
+    }
+  },
+  {
+    "name": "create-then-select-a-unused-symlink-parent",
+    "mode": "normal",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-Uf85WB/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-Uf85WB",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-Uf85WB"
+      },
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name/target\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645019,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645022,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "spare": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645023,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "spare/target": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645025,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645020,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645026,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../spare"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645019,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645022,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "spare": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645023,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "spare/target": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645025,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645020,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645049,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645026,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../spare"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name/target\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "spare": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 2
+        },
+        "spare/target": {
+          "type": "file",
+          "mode": 438,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 6,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../spare"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "spare": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 2
+        },
+        "spare/target": {
+          "type": "file",
+          "mode": 438,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 7,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 6,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../spare"
+        }
+      }
+    }
+  },
+  {
+    "name": "create-then-select-a-unused-symlink-parent",
+    "mode": "atomic",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-E4q1fL/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-E4q1fL",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-E4q1fL"
+      },
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name/target\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645078,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645082,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "spare": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645084,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "spare/target": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645086,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645080,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645088,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../spare"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645078,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645082,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "spare": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645084,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "spare/target": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645086,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645080,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645100,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645088,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../spare"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name/target\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "patching file a\npatching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "spare": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 2
+        },
+        "spare/target": {
+          "type": "file",
+          "mode": 438,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 6,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../spare"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "spare": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 2
+        },
+        "spare/target": {
+          "type": "file",
+          "mode": 438,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 7,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 6,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../spare"
+        }
+      }
+    }
+  },
+  {
+    "name": "existing-a-unused-loop",
+    "mode": "normal",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-3LLTIU/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-3LLTIU",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-3LLTIU"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645129,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645135,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645133,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645138,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645142,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645129,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645135,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645133,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645165,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645142,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "patching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "existing-a-unused-loop",
+    "mode": "atomic",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-W4Pzn4/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-W4Pzn4",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-W4Pzn4"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645194,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645196,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645195,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645198,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645200,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645194,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645196,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645195,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645220,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645200,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "patching file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "existing-a-unused-loop",
+    "mode": "dry-run",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "--dry-run"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-MN4zMO/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-MN4zMO",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-MN4zMO"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "checking file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645251,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645254,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645253,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645257,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645259,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645251,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645254,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645253,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645257,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645259,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0",
+        "--dry-run"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "checking file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "existing-a-unused-loop",
+    "mode": "atomic-dry-run",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "--dry-run"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-c06DMD/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-c06DMD",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-c06DMD"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "checking file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645319,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645322,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645321,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645324,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645326,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645319,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645322,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645321,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645324,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645326,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0",
+        "--dry-run"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 0,
+      "stdout": "checking file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "create-then-select-a-unused-symlink",
+    "mode": "dry-run",
+    "policy": "creation-dry-run",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "--dry-run"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-wZsWkT/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-wZsWkT",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-wZsWkT"
+      },
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": "checking file a\nFile unused-long-name is not a regular file -- refusing to patch\n1 out of 1 hunk ignored\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645372,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645375,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645374,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645377,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645372,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645375,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645374,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645377,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0",
+        "--dry-run"
+      ],
+      "cwd": "/work",
+      "input": "--- /dev/null\n+++ a\n@@ -0,0 +1 @@\n+old\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "patch: symlink paths are unsupported: /work/unused-long-name\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "target": "../sentinel"
+        }
+      }
+    }
+  },
+  {
+    "name": "explicit-selected-loop",
+    "mode": "normal",
+    "policy": "selected-loop",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "unused-long-name"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-ItA9fl/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-ItA9fl",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-ItA9fl"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": "File unused-long-name is not a regular file -- refusing to patch\n1 out of 1 hunk ignored -- saving rejects to file unused-long-name.rej\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645415,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645417,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645416,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645422,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645424,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645415,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645417,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645416,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645422,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645424,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        },
+        "work/unused-long-name.rej": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645447,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "2d2d2d20610a2b2b2b20756e757365642d6c6f6e672d6e616d650a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0",
+        "unused-long-name"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "patch: symlink paths are unsupported: /work/unused-long-name\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "explicit-selected-loop",
+    "mode": "atomic",
+    "policy": "selected-loop",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "unused-long-name"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-u7ihFN/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-u7ihFN",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-u7ihFN"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": "File unused-long-name is not a regular file -- refusing to patch\n1 out of 1 hunk ignored -- saving rejects to file unused-long-name.rej\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645481,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645485,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645482,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645487,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645488,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645481,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645485,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645482,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645487,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645488,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        },
+        "work/unused-long-name.rej": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645515,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "2d2d2d20610a2b2b2b20756e757365642d6c6f6e672d6e616d650a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0",
+        "unused-long-name"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "patch: symlink paths are unsupported: /work/unused-long-name\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "explicit-selected-loop",
+    "mode": "dry-run",
+    "policy": "selected-loop",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "--dry-run",
+        "unused-long-name"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-prCvro/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-prCvro",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-prCvro"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": "File unused-long-name is not a regular file -- refusing to patch\n1 out of 1 hunk ignored\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645531,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645535,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645533,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645536,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645539,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645531,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645535,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645533,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645536,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645539,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0",
+        "--dry-run",
+        "unused-long-name"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "patch: symlink paths are unsupported: /work/unused-long-name\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "explicit-selected-loop",
+    "mode": "atomic-dry-run",
+    "policy": "selected-loop",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "--dry-run",
+        "unused-long-name"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GtVhN2/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GtVhN2",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GtVhN2"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": "File unused-long-name is not a regular file -- refusing to patch\n1 out of 1 hunk ignored\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645587,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645591,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645588,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645596,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645599,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645587,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645591,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645588,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645596,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645599,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0",
+        "--dry-run",
+        "unused-long-name"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "patch: symlink paths are unsupported: /work/unused-long-name\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "actual-reject-alias-selected-a",
+    "mode": "normal",
+    "policy": "output-alias",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "-r",
+        "a"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-M7WM2k/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-M7WM2k",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-M7WM2k"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-missing\n+new\n",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": "patching file a\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645641,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645644,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645642,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645647,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645649,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645641,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645644,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645642,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645647,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "2d2d2d20610a2b2b2b20756e757365642d6c6f6e672d6e616d650a4040202d31202b312040400a2d6d697373696e670a2b6e65770a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645678,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645649,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0",
+        "-r",
+        "a"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-missing\n+new\n",
+      "shellInput": null,
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "patch: patch output aliases a target, input, or another output: /work/a\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "actual-reject-alias-selected-a",
+    "mode": "atomic",
+    "policy": "output-alias",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "-r",
+        "a"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-EsNqBt/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-EsNqBt",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-EsNqBt"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-missing\n+new\n",
+      "exitCode": 1,
+      "signal": null,
+      "stdout": "patching file a\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645705,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645708,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645707,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645712,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645714,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645705,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645708,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645707,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645712,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "2d2d2d20610a2b2b2b20756e757365642d6c6f6e672d6e616d650a4040202d31202b312040400a2d6d697373696e670a2b6e65770a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645733,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645714,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0",
+        "-r",
+        "a"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-missing\n+new\n",
+      "shellInput": null,
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "patch: hunk 1 does not match a\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "offset-actual-backup-hardlink-to-sentinel",
+    "mode": "normal",
+    "policy": "backup-alias",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GcZE9E/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GcZE9E",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GcZE9E"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\nHunk #1 succeeded at 2 (offset 1 line).\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645757,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645760,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645759,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645763,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "70616464696e670a6f6c640a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645760,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645766,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645757,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645760,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645759,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645788,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "70616464696e670a6e65770a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645763,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "70616464696e670a6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645766,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "patch: hard-linked patch targets are unsupported: /work/a.orig\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "70616464696e670a6f6c640a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "70616464696e670a6f6c640a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "offset-actual-backup-hardlink-to-sentinel",
+    "mode": "atomic",
+    "policy": "backup-alias",
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-xzxcR9/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-xzxcR9",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-xzxcR9"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file a\nHunk #1 succeeded at 2 (offset 1 line).\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645807,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645809,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645808,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645811,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "70616464696e670a6f6c640a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645809,
+          "dev": 16777232,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645812,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645807,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645809,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645808,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645836,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "70616464696e670a6e65770a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645811,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "70616464696e670a6f6c640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645812,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": null,
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "patch: hard-linked patch targets are unsupported: /work/a.orig\n",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "70616464696e670a6f6c640a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 3
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "70616464696e670a6f6c640a"
+        },
+        "work/a.orig": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 2,
+          "hex": "756e746f75636865640a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "shell-explicit-absolute-target-overrides-headers",
+    "mode": "normal",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GW30hz/authorized/a"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GW30hz/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GW30hz",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GW30hz"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-GW30hz/authorized/a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645857,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "authorized": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645861,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "authorized/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645862,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645859,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645858,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645860,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6465636f790a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645863,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645857,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "authorized": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645861,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "authorized/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645878,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645859,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645858,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645860,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6465636f790a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645863,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--batch",
+        "-p0",
+        "/authorized/a"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": "patch '--batch' '-p0' '/authorized/a' <<'CANDIDATE_PATCH'\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\nCANDIDATE_PATCH\n",
+      "exitCode": 0,
+      "stdout": "patching file /authorized/a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 4
+        },
+        "authorized": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 2
+        },
+        "authorized/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 6,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6465636f790a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 7,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 4
+        },
+        "authorized": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 2
+        },
+        "authorized/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 6,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6465636f790a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 7,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  },
+  {
+    "name": "shell-explicit-absolute-target-overrides-headers",
+    "mode": "atomic",
+    "policy": null,
+    "oracle": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert",
+      "dialect": "gnu",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+    },
+    "native": {
+      "args": [
+        "--batch",
+        "-p0",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-84bHGT/authorized/a"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-84bHGT/work",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-84bHGT",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-84bHGT"
+      },
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-candidate-followup/.native-84bHGT/authorized/a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645937,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "authorized": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645951,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "authorized/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645953,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645941,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645938,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645945,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6465636f790a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645956,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 448,
+          "ino": 168645937,
+          "dev": 16777232,
+          "nlink": 5
+        },
+        "authorized": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645951,
+          "dev": 16777232,
+          "nlink": 3
+        },
+        "authorized/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645988,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645941,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 168645938,
+          "dev": 16777232,
+          "nlink": 4
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 420,
+          "ino": 168645945,
+          "dev": 16777232,
+          "nlink": 1,
+          "hex": "6465636f790a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 493,
+          "ino": 168645956,
+          "dev": 16777232,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    },
+    "virtual": {
+      "args": [
+        "--atomic",
+        "--batch",
+        "-p0",
+        "/authorized/a"
+      ],
+      "cwd": "/work",
+      "input": "--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\n",
+      "shellInput": "patch '--atomic' '--batch' '-p0' '/authorized/a' <<'CANDIDATE_PATCH'\n--- a\n+++ unused-long-name\n@@ -1 +1 @@\n-old\n+new\nCANDIDATE_PATCH\n",
+      "exitCode": 0,
+      "stdout": "patching file /authorized/a\n",
+      "stderr": "",
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 4
+        },
+        "authorized": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 2
+        },
+        "authorized/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 6,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6465636f790a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 7,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493,
+          "ino": 1,
+          "dev": 0,
+          "nlink": 4
+        },
+        "authorized": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 5,
+          "dev": 0,
+          "nlink": 2
+        },
+        "authorized/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 6,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6e65770a"
+        },
+        "sentinel": {
+          "type": "file",
+          "mode": 438,
+          "ino": 3,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "756e746f75636865640a"
+        },
+        "work": {
+          "type": "directory",
+          "mode": 511,
+          "ino": 2,
+          "dev": 0,
+          "nlink": 2
+        },
+        "work/a": {
+          "type": "file",
+          "mode": 438,
+          "ino": 4,
+          "dev": 0,
+          "nlink": 1,
+          "hex": "6465636f790a"
+        },
+        "work/unused-long-name": {
+          "type": "symlink",
+          "mode": 511,
+          "ino": 7,
+          "dev": 0,
+          "nlink": 1,
+          "target": "unused-long-name"
+        }
+      }
+    }
+  }
+]

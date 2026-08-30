@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "sealedAtUtc": "2026-08-28T17:26:57.288Z",
+  "phase": "EXPECTATIONS_PRESEALED_BEFORE_SYNTHETIC_VALIDATION",
+  "authorProfileRevision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+  "chronology": "Independent post-profile preparation; no claim predating candidate commit. No candidate source/test inspection, product import/build/execution or oracle execution.",
+  "immutableExpectations": true,
+  "productStatus": "NOT_RUN",
+  "semanticPasses": 0,
+  "counts": {
+    "originalRows": 32,
+    "supplementRows": 80,
+    "capRows": 14,
+    "capEndpoints": 28,
+    "additionalCapProbes": 2,
+    "ownDataControls": 20,
+    "reasonControls": 5,
+    "treeControls": 2
+  },
+  "inventoryPolicy": "Only these sealed regular files plus PRESEAL-v1.json and the explicitly named later SYNTHETIC-RECEIPT-v1.json. Checker verifies complete directory entries before/after; new unknown entries fail. This is not hostile concurrent-writer authentication.",
+  "files": [
+    {
+      "path": "AUTHOR32-PINNED-v1.json",
+      "bytes": 9459,
+      "sha256": "e13c2ed4ddce65dc0d976a06ba32ddd42f00d7472579cbc30769d007ea42ab61"
+    },
+    {
+      "path": "FINDINGS-v1.md",
+      "bytes": 3529,
+      "sha256": "c1d64a166990373174fc7538827d19342fa7558f0f7837f3eec3f90283a6497c"
+    },
+    {
+      "path": "LIMITS-v1.json",
+      "bytes": 28437,
+      "sha256": "e2008ae3c79effa4d1150bce7f6335f06af5305c044a893e3ceb0053e2550f45"
+    },
+    {
+      "path": "ORIGINAL32-v1.json",
+      "bytes": 43410,
+      "sha256": "b10cd0aeb7272ddb029baaa871b58f73ef645278e5bc3d9ef9bea1a1d1d6fe29"
+    },
+    {
+      "path": "POLICY-v1.json",
+      "bytes": 8755,
+      "sha256": "99b591c17ea798c1982d276ca59654607ababbd1f365ce5540cad881b42a9d33"
+    },
+    {
+      "path": "PROFILE-PINNED-v1.md",
+      "bytes": 17119,
+      "sha256": "a10ed971116193969888f7c18f013871a8c93977bcf19852459fac7e85be4064"
+    },
+    {
+      "path": "PROTOCOL-v1.json",
+      "bytes": 10840,
+      "sha256": "c0f138a8793ffc9c8ec5b8283e85c4b7c0250f515b3595367cf4ec3eb0b6ab31"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5045,
+      "sha256": "d2691d26efeac8ccd6678577ee7da473ad6efdb3d0315a486c348b4cbd803814"
+    },
+    {
+      "path": "SOURCES-v1.json",
+      "bytes": 5383,
+      "sha256": "f5dee55aecb5db860bb9ec7307d090cf26f322000f4e3930d48e59b9580f73a8"
+    },
+    {
+      "path": "SUPPLEMENT-v1.json",
+      "bytes": 124506,
+      "sha256": "44074ff7627215afdc92dd4565c2154ca3eb5b34870dafc0cae0433f912ed558"
+    },
+    {
+      "path": "check-data-v1.mjs",
+      "bytes": 13011,
+      "sha256": "90eb1e864d6198fb8c43bea638756e5aeaae1bfbe7934d687d7d114f7ae6b05d"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "ROOT_SCOPED_ADMISSION_ACCEPTANCE_AND_PREPARATION_ONLY_V1",
+  "date": "2026-08-29",
+  "authority": "Current user instruction beginning ROOTQUALIFIED ACCEPTANCE ofattempt02ADMISSION3c4eedf2; no invented root commit",
+  "acceptedCommits": [
+    "3c4eedf2f153e12bc59851f7bcf22273a44652b6",
+    "aa36fe6225bad29d9fb4201ad5ea8006372a51e1"
+  ],
+  "scope": {
+    "operations": 14,
+    "probes": 3,
+    "controlFamilies": 12,
+    "defectControls": 20,
+    "C11EmptySetups": 2,
+    "semantics": 0,
+    "scopedProcesses": 66,
+    "notStockNode": true,
+    "grantConsumed": true
+  },
+  "currentPermission": {
+    "kind": "SEMANTIC_PREPARATION_ONLY",
+    "milliseconds": 1800000,
+    "allChildren": 64,
+    "peak": 3,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912,
+    "dataControlsMaximum": 12,
+    "actualEngineCalls": 0
+  },
+  "newRunId": "semantic-20260829-v7r3-01",
+  "namespaceUnusedAtStart": true,
+  "rootActualGo": false,
+  "historyPreserved": [
+    "old13/54 vs47/54",
+    "V6 lost294045bytes",
+    "N02 loss718bytes",
+    "attempt01 consumed0/14",
+    "wrapper5/8 and separate3/3",
+    "W07 unqualified/uncredited"
+  ]
+}

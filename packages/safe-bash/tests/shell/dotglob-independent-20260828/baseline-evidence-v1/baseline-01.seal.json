@@ -1,0 +1,8 @@
+{
+  "originalPath": "baseline-01.json",
+  "originalSha256": "5f802922c565a4ee395ef12f95ffdff9e16c23c0dfc43afaf0356a38551071cc",
+  "originalBytes": 6316080,
+  "compressedSha256": "c7547e60acc9644a2a85dc7d452cc109abeb3101e70342a281d38bca9d47353c",
+  "encodedSha256": "10cd1d14c733ef67615add005114ecf38f02c396db079abd6b480bceab0a9203",
+  "exactByteRoundTrip": true
+}

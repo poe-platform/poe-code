@@ -1,0 +1,27 @@
+Before any freeze commit or product invocation, the freeze generator rejected
+the effective environment because Darwin added __CF_USER_TEXT_ENCODING.
+This was harness preparation, not a scheduled case, watchdog, approval or safety
+refusal. The guard was corrected before freezing; no case was retried.
+
+Request:
+env -i LANG=C LC_ALL=C /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --max-old-space-size=64 --max-semi-space-size=1 --stack-size=512 tests/stress/regex-execution/matrix-continuation/freeze.mjs
+
+Exact freeze error:
+file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/matrix-continuation/freeze.mjs:6
+  || !same(Object.fromEntries(Object.entries(process.env).sort()), { LANG: 'C', LC_ALL: 'C' })) throw new Error('Fixed clean freeze invocation only');
+                                                                                                      ^
+
+Error: Fixed clean freeze invocation only
+    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/matrix-continuation/freeze.mjs:6:103
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2
+
+Downstream preparation commands consequently reported empty-JSON SyntaxError,
+apply_patch usage, ENOENT for frozen.json, and git pathspec failures. Nothing
+was staged or committed by that unsuccessful preparation command.
+
+Read-only environment inspection (not a product/regex case) returned:
+{"env":{"LANG":"C","LC_ALL":"C","__CF_USER_TEXT_ENCODING":"0x1F5:0x0:0x0"},"flags":["--unhandled-rejections=strict","--max-old-space-size=64","--max-semi-space-size=1","--stack-size=512","-p","JSON.stringify({env:process.env,flags:process.execArgv,argv:process.argv})"],"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"]}

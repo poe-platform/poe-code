@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "purpose": "YQ_B8_SUCCESSOR_SINGLE_COHORT",
+  "RootGO": false,
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "runId": null,
+  "evidenceRoot": null,
+  "recipeSha256": null,
+  "toolchain": null,
+  "archives": [
+    {
+      "name": "source",
+      "path": null,
+      "descriptor": {
+        "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+        "bytes": 2727936,
+        "mode": 420
+      }
+    },
+    {
+      "name": "package",
+      "path": null,
+      "descriptor": {
+        "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+        "bytes": 786778,
+        "mode": 420
+      }
+    }
+  ],
+  "repository": null,
+  "bindings": {},
+  "controlEnrollments": [
+    {
+      "id": "retained-view",
+      "edits": [
+        {
+          "path": "dist/commands/yq/index.js",
+          "before": "        const owned = new Uint8Array(chunk);",
+          "after": "        const owned = chunk.subarray(0);",
+          "count": 1,
+          "preSha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+          "postSha256": "c43e89bcaa51b0d348e2dc5da07f7d96050361ecd40f38757371d2280b1c84c8"
+        }
+      ]
+    },
+    {
+      "id": "quoted-del",
+      "edits": [
+        {
+          "path": "dist/commands/yq/parser.js",
+          "before": "if (!(point === 0x09 || point >= 0x20))",
+          "after": "if (point === 0x7f || !(point === 0x09 || point >= 0x20))",
+          "count": 2,
+          "preSha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+          "postSha256": "b60320fc7f14e7805e5d5d522357a9aeaa6ebb74d45da15f25cc9423b7716876"
+        }
+      ]
+    },
+    {
+      "id": "pending-shadow",
+      "edits": [
+        {
+          "path": "dist/commands/yq/parser.js",
+          "before": "        const record = { name, pending: true };",
+          "after": "        const record = { name, pending: true, previous: this.#anchors.get(name) };",
+          "count": 1,
+          "preSha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+          "postSha256": "674d67f21103af58d584d571bde3a416802ac00b09c2de70cca96daea369805f"
+        },
+        {
+          "path": "dist/commands/yq/parser.js",
+          "before": "        const record = this.#anchors.get(name);",
+          "after": "        const current = this.#anchors.get(name);\n        const record = current?.pending && current.previous && !current.previous.pending ? current.previous : current;",
+          "count": 1,
+          "preSha256": "674d67f21103af58d584d571bde3a416802ac00b09c2de70cca96daea369805f",
+          "postSha256": "23d566e2234d90f28fd444eca8936ef0bb40192c61dcba1347ed5c294c77ee3c"
+        }
+      ]
+    }
+  ],
+  "reviewSeals": [],
+  "legacyHistorical": [
+    {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+      "classification": "ORIGINAL_MODE_UNATTESTED",
+      "activeAuthority": false,
+      "executed": false,
+      "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2"
+    }
+  ]
+}

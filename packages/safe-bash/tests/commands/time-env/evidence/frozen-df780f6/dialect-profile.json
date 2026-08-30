@@ -1,0 +1,1318 @@
+{
+  "capturedAt": "2026-08-27T07:41:31.217Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "system": "26.4.1",
+  "node": "v22.22.2",
+  "versions": {
+    "node": "22.22.2",
+    "acorn": "8.15.0",
+    "ada": "2.9.2",
+    "amaro": "1.1.5",
+    "ares": "1.34.6",
+    "brotli": "1.1.0",
+    "cjs_module_lexer": "2.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.3.0",
+    "modules": "127",
+    "napi": "10",
+    "nbytes": "0.1.1",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.64.0",
+    "openssl": "3.5.5",
+    "simdjson": "4.2.4",
+    "simdutf": "6.4.2",
+    "sqlite": "3.51.2",
+    "tz": "2025c",
+    "undici": "6.24.1",
+    "unicode": "17.0",
+    "uv": "1.51.0",
+    "uvwasi": "0.0.23",
+    "v8": "12.4.254.21-node.39",
+    "zlib": "1.3.1-e00f703",
+    "zstd": "1.5.7"
+  },
+  "binaries": {
+    "gnu-date": {
+      "path": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+      "version": {
+        "profile": "GNU9.7 Darwin",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "args": [
+          "--version"
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "status": 0,
+        "stdoutHex": "646174652028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204461766964204d61634b656e7a69652e0a",
+        "stderrHex": ""
+      }
+    },
+    "gnu-sleep": {
+      "path": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+      "version": {
+        "profile": "GNU9.7 Darwin",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+        "args": [
+          "--version"
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "status": 0,
+        "stdoutHex": "736c6565702028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204a696d204d65796572696e6720616e64205061756c204567676572742e0a",
+        "stderrHex": ""
+      }
+    },
+    "gnu-printenv": {
+      "path": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+      "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+      "version": {
+        "profile": "GNU9.7 Darwin",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+        "args": [
+          "--version"
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "status": 0,
+        "stdoutHex": "7072696e74656e762028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204461766964204d61634b656e7a696520616e642052696368617264204d6c796e6172696b2e0a",
+        "stderrHex": ""
+      }
+    },
+    "apple-date": {
+      "path": "/bin/date",
+      "sha256": "9964fccef703f02120a04a06f6349b82057697617e025d05a9c93bb10799f0a3"
+    },
+    "apple-sleep": {
+      "path": "/bin/sleep",
+      "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+    },
+    "apple-printenv": {
+      "path": "/usr/bin/printenv",
+      "sha256": "1146eee6351e08f609d8a0b69aca0bd601223a932c9e00ef56a7b392c4df0331"
+    }
+  },
+  "sources": {
+    "src/date.c": "d4c2bea0c20c63d1879eba0c80f7fabba933535828fc473bcee01926b15f5ccc",
+    "src/sleep.c": "775bd20d7276e69efa7251df84ea3c45ad6e835b0f4f5737a5378d547bfcb8a6",
+    "src/printenv.c": "026aa9149812871df72f2a485ab3f327c47efa147fd99e5af3dd9ec32e746ac9",
+    "lib/long-options.c": "68aae4dee03d996d9bf036e6bd82002ee68924123fbaf6d5cd0670117d837f2b"
+  },
+  "rows": [
+    {
+      "profile": "GNU9.7 Darwin",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "--version"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "646174652028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204461766964204d61634b656e7a69652e0a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "args": [
+        "--version"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "736c6565702028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204a696d204d65796572696e6720616e64205061756c204567676572742e0a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+      "args": [
+        "--version"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "7072696e74656e762028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204461766964204d61634b656e7a696520616e642052696368617264204d6c796e6172696b2e0a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-ud@0",
+        "+%F %T %s %N %z %Z"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "313937302d30312d30312030303a30303a3030203020303030303030303030202b30303030205554430a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d",
+        "@-0.000000001",
+        "+%F %T %s %N"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "313936392d31322d33312032333a35393a3539202d31203939393939393939390a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "--date=@-1.25",
+        "+%s.%N"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "2d322e3735303030303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "--date=@+1.000000009",
+        "+%s %N"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "31203030303030303030390a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1,25",
+        "+%s %N"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "31203235303030303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d2024-02-29T12:34:56.123456789Z",
+        "+%F %T %N %s"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32392031323a33343a35362031323334353637383920313730393231303039360a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "--date",
+        "2000-02-29",
+        "+%F %T %j"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323030302d30322d32392030303a30303a3030203036300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d1900-03-01",
+        "+%F %j"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "313930302d30332d3031203036300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d0035-06-07",
+        "+%Y-%m-%d"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "303033352d30362d30370a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d0000-02-29",
+        "+%Y-%m-%d"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "303030302d30322d32390a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d",
+        "2024-02-29 12:34:56.25 +0530",
+        "+%F %T %N"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32392030373a30343a3536203235303030303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d2024-02-29T12:34:56-04:00",
+        "+%F %T"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32392031363a33343a35360a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d",
+        "Thu, 29 Feb 2024 12:34:56 +0530",
+        "-R"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "5468752c2032392046656220323032342030373a30343a3536202b303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d",
+        "Thu, 29 Feb 2024 12:34:56 GMT",
+        "+%s"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "313730393231303039360a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096",
+        "-I"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32390a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096",
+        "-Ihours"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32395431322b30303a30300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096",
+        "--iso-8601=minutes"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32395431323a33342b30303a30300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096",
+        "--iso-8601=seconds"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32395431323a33343a35362b30303a30300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096.125",
+        "-Ins"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32395431323a33343a35362c3132353030303030302b30303a30300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096",
+        "--rfc-3339=date"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32390a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096",
+        "--rfc-3339=seconds"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32392031323a33343a35362b30303a30300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096.125",
+        "--rfc-3339=ns"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d32392031323a33343a35362e3132353030303030302b30303a30300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "+%s",
+        "--utc",
+        "--date=@0"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "0a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+雪☃%%|%n%t%Y"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "e99baae29883257c0a09313937300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1709210096",
+        "+%a|%A|%b|%B|%h|%c|%x|%X|%r|%R|%p|%P|%q"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "5468757c54687572736461797c4665627c46656272756172797c4665627c546875204665622032392031323a33343a353620323032347c30322f32392f32347c31323a33343a35367c31323a33343a353620504d7c31323a33347c504d7c706d7c310a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d2024-02-09T03:04:05Z",
+        "+%d|%e|%-d|%_5d|%05d|%-5d|%H|%k|%I|%l|%^a|%#p|%Od|%EY"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "30397c20397c397c20202020397c30303030397c397c30337c20337c30337c20337c4652497c616d7c30397c323032340a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0.123456789",
+        "+%1N|%3N|%6N|%9N"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "317c3132337c3132333435367c3132333435363738390a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d2021-01-01",
+        "+%G %g %V %U %W %u %w %j"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "3230323020323020353320303020303020352035203030310a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d2018-12-31",
+        "+%G %g %V %U %W %u %w %j"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "3230313920313920303120353220353320312031203336350a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%F %T %Z %z %:z %::z %:::z"
+      ],
+      "env": {
+        "TZ": "UTC+05:30",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "313936392d31322d33312031383a33303a303020555443202d30353330202d30353a3330202d30353a33303a3030202d30353a33300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%T %z %:z %::z %:::z"
+      ],
+      "env": {
+        "TZ": "UTC-05:30:15",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "30353a33303a3135202b30353330202b30353a3330202b30353a33303a3135202b30353a33303a31350a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1704067200",
+        "+%F %T %z %Z"
+      ],
+      "env": {
+        "TZ": "America/New_York",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032332d31322d33312031393a30303a3030202d30353030204553540a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1719792000",
+        "+%F %T %z %Z"
+      ],
+      "env": {
+        "TZ": ":America/New_York",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30362d33302032303a30303a3030202d30343030204544540a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d2024-02-29T12:34:56",
+        "+%s %F %T %z"
+      ],
+      "env": {
+        "TZ": "America/New_York",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "3137303932323830393620323032342d30322d32392031323a33343a3536202d303530300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%F %T %z"
+      ],
+      "env": {
+        "TZ": "Asia/Kolkata",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "313937302d30312d30312030353a33303a3030202b303533300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@1704067200",
+        "+%F %T %z"
+      ],
+      "env": {
+        "TZ": "Asia/Kathmandu",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30312d30312030353a34353a3030202b303534350a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-u",
+        "-d@0",
+        "+%Z %z"
+      ],
+      "env": {
+        "TZ": "not/a/zone",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "555443202b303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%5s|%4q|%4u|%4w"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "30303030307c303030317c303030347c303030340a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%5a|%05a|%5z|%06z|%5Z|%:::z"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "20205468757c30305468757c2b303030307c2b30303030307c20205554437c2b30300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%#P|%#Z|%#A"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "616d7c7574637c54485552534441590a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%Z %z"
+      ],
+      "env": {
+        "TZ": "Etc/GMT",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "474d54202b303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin exact date vectors",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%Z %z"
+      ],
+      "env": {
+        "TZ": "Z",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "555443202b303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin declared-scope counterexample",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0",
+        "+%Z %z"
+      ],
+      "env": {
+        "TZ": "Asia/Kolkata",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "495354202b303533300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin declared-scope counterexample",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d2024-11-03T01:30:00",
+        "+%s"
+      ],
+      "env": {
+        "TZ": "America/New_York",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "313733303631313830300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin declared-scope counterexample",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d@0.123456789",
+        "+%12N"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "3132333435363738393030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin declared-scope counterexample",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-d2024-01-01 +1 month",
+        "+%F"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032342d30322d30310a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin sleep option/hex profile",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "args": [
+        "--",
+        "0"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "736c6565703a20696e76616c69642074696d6520696e74657276616c20272d2d270a54727920272f707269766174652f746d702f736166652d626173682d74696d652d656e762d66726f7a656e2d7a745737576b2f74657374732f636f6d6d616e64732f6d657461646174612d7374726573732f2e6f7261636c652f636f72657574696c732d392e372f7372632f736c656570202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a"
+    },
+    {
+      "profile": "GNU9.7 Darwin sleep option/hex profile",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "args": [
+        "-0.00"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "736c6565703a20696e76616c6964206f7074696f6e202d2d20300a54727920272f707269766174652f746d702f736166652d626173682d74696d652d656e762d66726f7a656e2d7a745737576b2f74657374732f636f6d6d616e64732f6d657461646174612d7374726573732f2e6f7261636c652f636f72657574696c732d392e372f7372632f736c656570202d2d68656c702720666f72206d6f726520696e666f726d6174696f6e2e0a"
+    },
+    {
+      "profile": "GNU9.7 Darwin sleep option/hex profile",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "args": [
+        "--help",
+        "0"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "55736167653a202f707269766174652f746d702f736166652d626173682d74696d652d656e762d66726f7a656e2d7a745737576b2f74657374732f636f6d6d616e64732f6d657461646174612d7374726573732f2e6f7261636c652f636f72657574696c732d392e372f7372632f736c656570204e554d4245525b5355464649585d2e2e2e0a20206f723a20202f707269766174652f746d702f736166652d626173682d74696d652d656e762d66726f7a656e2d7a745737576b2f74657374732f636f6d6d616e64732f6d657461646174612d7374726573732f2e6f7261636c652f636f72657574696c732d392e372f7372632f736c656570204f5054494f4e0a506175736520666f72204e554d424552207365636f6e64732c207768657265204e554d42455220697320616e20696e7465676572206f7220666c6f6174696e672d706f696e742e0a535546464958206d6179206265202773272c276d272c2768272c206f72202764272c20666f72207365636f6e64732c206d696e757465732c20686f7572732c20646179732e0a57697468206d756c7469706c6520617267756d656e74732c20706175736520666f72207468652073756d206f662074686569722076616c7565732e0a0a2020202020202d2d68656c702020202020202020646973706c617920746869732068656c7020616e6420657869740a2020202020202d2d76657273696f6e20202020206f75747075742076657273696f6e20696e666f726d6174696f6e20616e6420657869740a0a474e5520636f72657574696c73206f6e6c696e652068656c703a203c68747470733a2f2f7777772e676e752e6f72672f736f6674776172652f636f72657574696c732f3e0a5265706f727420616e79207472616e736c6174696f6e206275677320746f203c68747470733a2f2f7472616e736c6174696f6e70726f6a6563742e6f72672f7465616d2f3e0a46756c6c20646f63756d656e746174696f6e203c68747470733a2f2f7777772e676e752e6f72672f736f6674776172652f636f72657574696c732f736c6565703e0a6f7220617661696c61626c65206c6f63616c6c79207669613a20696e666f202728636f72657574696c732920736c65657020696e766f636174696f6e270a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin sleep option/hex profile",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "args": [
+        "0",
+        "--help"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "55736167653a202f707269766174652f746d702f736166652d626173682d74696d652d656e762d66726f7a656e2d7a745737576b2f74657374732f636f6d6d616e64732f6d657461646174612d7374726573732f2e6f7261636c652f636f72657574696c732d392e372f7372632f736c656570204e554d4245525b5355464649585d2e2e2e0a20206f723a20202f707269766174652f746d702f736166652d626173682d74696d652d656e762d66726f7a656e2d7a745737576b2f74657374732f636f6d6d616e64732f6d657461646174612d7374726573732f2e6f7261636c652f636f72657574696c732d392e372f7372632f736c656570204f5054494f4e0a506175736520666f72204e554d424552207365636f6e64732c207768657265204e554d42455220697320616e20696e7465676572206f7220666c6f6174696e672d706f696e742e0a535546464958206d6179206265202773272c276d272c2768272c206f72202764272c20666f72207365636f6e64732c206d696e757465732c20686f7572732c20646179732e0a57697468206d756c7469706c6520617267756d656e74732c20706175736520666f72207468652073756d206f662074686569722076616c7565732e0a0a2020202020202d2d68656c702020202020202020646973706c617920746869732068656c7020616e6420657869740a2020202020202d2d76657273696f6e20202020206f75747075742076657273696f6e20696e666f726d6174696f6e20616e6420657869740a0a474e5520636f72657574696c73206f6e6c696e652068656c703a203c68747470733a2f2f7777772e676e752e6f72672f736f6674776172652f636f72657574696c732f3e0a5265706f727420616e79207472616e736c6174696f6e206275677320746f203c68747470733a2f2f7472616e736c6174696f6e70726f6a6563742e6f72672f7465616d2f3e0a46756c6c20646f63756d656e746174696f6e203c68747470733a2f2f7777772e676e752e6f72672f736f6674776172652f636f72657574696c732f736c6565703e0a6f7220617661696c61626c65206c6f63616c6c79207669613a20696e666f202728636f72657574696c732920736c65657020696e766f636174696f6e270a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin sleep option/hex profile",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "args": [
+        "0x0"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD read-only date profile",
+      "binary": "/bin/date",
+      "args": [
+        "-u",
+        "-r",
+        "0",
+        "+%F %T %s %z %Z"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "313937302d30312d30312030303a30303a30302030202b30303030205554430a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD read-only date profile",
+      "binary": "/bin/date",
+      "args": [
+        "-u",
+        "-r",
+        "-1",
+        "+%s %N"
+      ],
+      "env": {
+        "TZ": "UTC",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "2d31203030303030303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD read-only date profile",
+      "binary": "/bin/date",
+      "args": [
+        "-r",
+        "1704067200",
+        "+%F %T %z %Z"
+      ],
+      "env": {
+        "TZ": "America/New_York",
+        "LC_ALL": "C"
+      },
+      "status": 0,
+      "stdoutHex": "323032332d31322d33312031393a30303a3030202d30353030204553540a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD printenv profile",
+      "binary": "/usr/bin/printenv",
+      "args": [
+        "A"
+      ],
+      "env": {
+        "A": "雪",
+        "B": ""
+      },
+      "status": 0,
+      "stdoutHex": "e99baa0a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD printenv profile",
+      "binary": "/usr/bin/printenv",
+      "args": [
+        "A",
+        "B"
+      ],
+      "env": {
+        "A": "雪",
+        "B": ""
+      },
+      "status": 0,
+      "stdoutHex": "e99baa0a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD printenv profile",
+      "binary": "/usr/bin/printenv",
+      "args": [
+        "-0",
+        "A"
+      ],
+      "env": {
+        "A": "雪",
+        "B": ""
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f7072696e74656e763a20696c6c6567616c206f7074696f6e202d2d20300a75736167653a207072696e74656e76205b6e616d655d0a"
+    },
+    {
+      "profile": "Apple BSD printenv profile",
+      "binary": "/usr/bin/printenv",
+      "args": [
+        "missing"
+      ],
+      "env": {
+        "A": "雪",
+        "B": ""
+      },
+      "status": 1,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD bounded sleep profile",
+      "binary": "/bin/sleep",
+      "args": [
+        ".001"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD bounded sleep profile",
+      "binary": "/bin/sleep",
+      "args": [
+        "0",
+        "0"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD bounded sleep profile",
+      "binary": "/bin/sleep",
+      "args": [
+        "0s"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    {
+      "profile": "Apple BSD bounded sleep profile",
+      "binary": "/bin/sleep",
+      "args": [
+        "--",
+        "0"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin mtime provider control",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-r",
+        "mtime",
+        "+%s %N"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "31373030303030303030203132323939393030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin mtime provider control",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-r",
+        "mtime",
+        "+%s %N"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "31373030303030303030203132353030303030300a",
+      "stderrHex": ""
+    },
+    {
+      "profile": "GNU9.7 Darwin mtime provider control",
+      "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "args": [
+        "-r",
+        "mtime",
+        "+%s %N"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      },
+      "status": 0,
+      "stdoutHex": "2d32203735303030303030300a",
+      "stderrHex": ""
+    }
+  ],
+  "gaps": [
+    {
+      "label": "ICU Kolkata zone label",
+      "native": {
+        "profile": "GNU9.7 Darwin declared-scope counterexample",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "args": [
+          "-d@0",
+          "+%Z %z"
+        ],
+        "env": {
+          "TZ": "Asia/Kolkata",
+          "LC_ALL": "C"
+        },
+        "status": 0,
+        "stdoutHex": "495354202b303533300a",
+        "stderrHex": ""
+      },
+      "virtual": {
+        "status": 0,
+        "stdoutHex": "474d542b353a3330202b303533300a",
+        "stderr": ""
+      },
+      "acceptanceCredit": false
+    },
+    {
+      "label": "ambiguous local fold explicitly rejected",
+      "native": {
+        "profile": "GNU9.7 Darwin declared-scope counterexample",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "args": [
+          "-d2024-11-03T01:30:00",
+          "+%s"
+        ],
+        "env": {
+          "TZ": "America/New_York",
+          "LC_ALL": "C"
+        },
+        "status": 0,
+        "stdoutHex": "313733303631313830300a",
+        "stderrHex": ""
+      },
+      "virtual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "date: ambiguous local time; specify an explicit UTC offset\n"
+      },
+      "acceptanceCredit": false
+    },
+    {
+      "label": "width above actual nanosecond precision unsupported",
+      "native": {
+        "profile": "GNU9.7 Darwin declared-scope counterexample",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "args": [
+          "-d@0.123456789",
+          "+%12N"
+        ],
+        "env": {
+          "TZ": "UTC",
+          "LC_ALL": "C"
+        },
+        "status": 0,
+        "stdoutHex": "3132333435363738393030300a",
+        "stderrHex": ""
+      },
+      "virtual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "date: %N supports unmodified precision1 through9 only\n"
+      },
+      "acceptanceCredit": false
+    },
+    {
+      "label": "GNU relative month grammar not implemented",
+      "native": {
+        "profile": "GNU9.7 Darwin declared-scope counterexample",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "args": [
+          "-d2024-01-01 +1 month",
+          "+%F"
+        ],
+        "env": {
+          "TZ": "UTC",
+          "LC_ALL": "C"
+        },
+        "status": 0,
+        "stdoutHex": "323032342d30322d30310a",
+        "stderrHex": ""
+      },
+      "virtual": {
+        "status": 1,
+        "stdoutHex": "",
+        "stderr": "date: unsupported or invalid date: 2024-01-01 +1 month\n"
+      },
+      "acceptanceCredit": false
+    }
+  ],
+  "references": [
+    {
+      "requestedMs": 1700000000123,
+      "observedMs": 1700000000122.999,
+      "observedNs": "1700000000122999000",
+      "native": {
+        "profile": "GNU9.7 Darwin mtime provider control",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "args": [
+          "-r",
+          "mtime",
+          "+%s %N"
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "status": 0,
+        "stdoutHex": "31373030303030303030203132323939393030300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "requestedMs": 1700000000125,
+      "observedMs": 1700000000125,
+      "observedNs": "1700000000125000000",
+      "native": {
+        "profile": "GNU9.7 Darwin mtime provider control",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "args": [
+          "-r",
+          "mtime",
+          "+%s %N"
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "status": 0,
+        "stdoutHex": "31373030303030303030203132353030303030300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "requestedMs": -1250,
+      "observedMs": -1250,
+      "observedNs": "-1250000000",
+      "native": {
+        "profile": "GNU9.7 Darwin mtime provider control",
+        "binary": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+        "args": [
+          "-r",
+          "mtime",
+          "+%s %N"
+        ],
+        "env": {
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "status": 0,
+        "stdoutHex": "2d32203735303030303030300a",
+        "stderrHex": ""
+      }
+    }
+  ],
+  "linuxControl": "not run",
+  "scopeCounterexamplesCountedAsAcceptance": false
+}

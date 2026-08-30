@@ -1,0 +1,233 @@
+{
+  "role": "PREPARATION_DATA_SYNTHETIC_BENIGN_ONLY",
+  "protocolSha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4",
+  "checks": [
+    {
+      "name": "parse:admission.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse:worker-preload.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse:worker-observer.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse:future-adapter.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse:runtime-entry.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse:future-supervisor.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse:stub-entry.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse:repair-child.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse:repair-controls.mjs",
+      "pass": true
+    },
+    {
+      "name": "clean-safety",
+      "pass": true
+    },
+    {
+      "name": "cleanup-failure",
+      "pass": true
+    },
+    {
+      "name": "pending-owned",
+      "pass": true
+    },
+    {
+      "name": "pending-fixture",
+      "pass": true
+    },
+    {
+      "name": "pending-stdin",
+      "pass": true
+    },
+    {
+      "name": "pending-fs",
+      "pass": true
+    },
+    {
+      "name": "pending-cursor",
+      "pass": true
+    },
+    {
+      "name": "pending-response",
+      "pass": true
+    },
+    {
+      "name": "listener-leak",
+      "pass": true
+    },
+    {
+      "name": "missing-stage",
+      "pass": true
+    },
+    {
+      "name": "pending-stage",
+      "pass": true
+    },
+    {
+      "name": "missing-dispose-trace",
+      "pass": true
+    },
+    {
+      "name": "unexpected-namespace",
+      "pass": true
+    },
+    {
+      "name": "unchanged-path-mutation",
+      "pass": true
+    },
+    {
+      "name": "postclose-count",
+      "pass": true
+    },
+    {
+      "name": "caught-extra-auth",
+      "pass": true
+    },
+    {
+      "name": "caught-extra-request",
+      "pass": true
+    },
+    {
+      "name": "caught-refused-request",
+      "pass": true
+    },
+    {
+      "name": "caught-postclose-request",
+      "pass": true
+    },
+    {
+      "name": "ordinary-byte-status-mismatch-aggregates",
+      "pass": true
+    },
+    {
+      "name": "ordinary-typeerror-fsfault-semantics",
+      "pass": true
+    },
+    {
+      "name": "child-refusal-receipt-even-mapped-pass",
+      "pass": true
+    },
+    {
+      "name": "unknown-worker-reap-stops",
+      "pass": true
+    },
+    {
+      "name": "reservation-withheld-before-abnormal-settlement",
+      "pass": true
+    },
+    {
+      "name": "reservation-withheld-incomplete-start-log",
+      "pass": true
+    },
+    {
+      "name": "reservation-refund-only-complete",
+      "pass": true
+    },
+    {
+      "name": "terminal-retained-storage-debit",
+      "pass": true
+    },
+    {
+      "name": "terminal-final-write-storage-stop",
+      "pass": true
+    },
+    {
+      "name": "terminal-postprocessing-deadline-stop",
+      "pass": true
+    },
+    {
+      "name": "stub:natural",
+      "pass": true
+    },
+    {
+      "name": "stub:caught-load",
+      "pass": true
+    },
+    {
+      "name": "stub:mapped-load",
+      "pass": true
+    },
+    {
+      "name": "stub:independent-cleanup",
+      "pass": true
+    }
+  ],
+  "failures": [],
+  "children": [
+    {
+      "mode": "natural",
+      "pid": 72586,
+      "exitObserved": true,
+      "closeObserved": true,
+      "errors": [],
+      "stdout": "{\"role\":\"BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF\",\"mode\":\"natural\",\"pass\":true,\"messages\":[\"stub-ready\"],\"listenerRemoved\":true,\"rows\":[{\"token\":\"natural:1\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs\",\"requested\":{\"execArgv\":[],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"effective\":{\"execArgv\":[\"--import\",\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs\"],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"exited\":true,\"exitCode\":0,\"terminatePending\":0,\"terminateErrors\":[],\"emergency\":false,\"productTerminateCalls\":0,\"errors\":[],\"threadId\":1,\"resourceLimits\":{\"maxYoungGenerationSizeMb\":-1,\"maxOldGenerationSizeMb\":128,\"codeRangeSizeMb\":-1,\"stackSizeMb\":4},\"online\":true,\"childAdmissionRefused\":false}],\"admissionRefusals\":[],\"productImports\":0,\"productDispatches\":0}\n",
+      "stderr": "",
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "mode": "caught-load",
+      "pid": 72587,
+      "exitObserved": true,
+      "closeObserved": true,
+      "errors": [],
+      "stdout": "{\"role\":\"BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF\",\"mode\":\"caught-load\",\"pass\":true,\"messages\":[{\"caught\":\"AssertionError [ERR_ASSERTION]: LOAD_HASH_REFUSED:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs\\n+ actual - expected\\n\\n+ '198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84'\\n- '0000000000000000000000000000000000000000000000000000000000000000'\\n\"}],\"listenerRemoved\":true,\"rows\":[{\"token\":\"caught-load:1\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs\",\"requested\":{\"execArgv\":[],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"effective\":{\"execArgv\":[\"--import\",\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs\"],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"exited\":true,\"exitCode\":0,\"terminatePending\":0,\"terminateErrors\":[],\"emergency\":false,\"productTerminateCalls\":0,\"errors\":[],\"threadId\":1,\"resourceLimits\":{\"maxYoungGenerationSizeMb\":-1,\"maxOldGenerationSizeMb\":128,\"codeRangeSizeMb\":-1,\"stackSizeMb\":4},\"online\":true,\"childAdmissionRefused\":true}],\"admissionRefusals\":[],\"productImports\":0,\"productDispatches\":0}\n",
+      "stderr": "",
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "mode": "mapped-load",
+      "pid": 72588,
+      "exitObserved": true,
+      "closeObserved": true,
+      "errors": [],
+      "stdout": "{\"role\":\"BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF\",\"mode\":\"mapped-load\",\"pass\":true,\"mappedOutcome\":{\"exitCode\":1,\"message\":\"AssertionError: LOAD_HASH_REFUSED:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs\\n+ actual - expected\\n\\n+ '198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84'\\n- '0000000000000000000000000000000000000000000000000000000000000000'\\n\"},\"messages\":[],\"listenerRemoved\":true,\"rows\":[{\"token\":\"mapped-load:1\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs\",\"requested\":{\"execArgv\":[],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"effective\":{\"execArgv\":[\"--import\",\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs\"],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"exited\":true,\"exitCode\":1,\"terminatePending\":0,\"terminateErrors\":[],\"emergency\":false,\"productTerminateCalls\":0,\"errors\":[\"AssertionError: LOAD_HASH_REFUSED:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs\\n+ actual - expected\\n\\n+ '198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84'\\n- '0000000000000000000000000000000000000000000000000000000000000000'\\n\"],\"threadId\":1,\"resourceLimits\":{\"maxYoungGenerationSizeMb\":-1,\"maxOldGenerationSizeMb\":128,\"codeRangeSizeMb\":-1,\"stackSizeMb\":4},\"online\":true,\"childAdmissionRefused\":true}],\"admissionRefusals\":[],\"productImports\":0,\"productDispatches\":0}\n",
+      "stderr": "",
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "mode": "independent-cleanup",
+      "pid": 72589,
+      "exitObserved": true,
+      "closeObserved": true,
+      "errors": [],
+      "stdout": "{\"role\":\"BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF\",\"mode\":\"independent-cleanup\",\"pass\":true,\"messages\":[\"stub-ready\"],\"listenerRemoved\":true,\"rows\":[{\"token\":\"independent-cleanup:1\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs\",\"requested\":{\"execArgv\":[],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"effective\":{\"execArgv\":[\"--import\",\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs\"],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"exited\":true,\"exitCode\":1,\"terminatePending\":0,\"terminateErrors\":[],\"emergency\":false,\"productTerminateCalls\":1,\"errors\":[],\"threadId\":1,\"resourceLimits\":{\"maxYoungGenerationSizeMb\":-1,\"maxOldGenerationSizeMb\":128,\"codeRangeSizeMb\":-1,\"stackSizeMb\":4},\"online\":true,\"childAdmissionRefused\":false}],\"admissionRefusals\":[\"AssertionError [ERR_ASSERTION]: WORKER_URL_DRIFT\"],\"productImports\":0,\"productDispatches\":0}\n",
+      "stderr": "",
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    }
+  ],
+  "productImports": 0,
+  "productDispatches": 0,
+  "acceptedWorkerDispatches": 0,
+  "capturedBytes": 20816,
+  "workerStarts": 4,
+  "allOwnedChildrenReaped": true,
+  "finished": 1787939070973,
+  "status": "PASS"
+}

@@ -1,0 +1,557 @@
+TAP version 13
+# Subtest: stat forwards enumerable-own allocation through root routing
+ok 1 - stat forwards enumerable-own allocation through root routing
+  ---
+  duration_ms: 2.345167
+  type: 'test'
+  ...
+# Subtest: stat forwards enumerable-own allocation through mount routing
+ok 2 - stat forwards enumerable-own allocation through mount routing
+  ---
+  duration_ms: 0.6705
+  type: 'test'
+  ...
+# Subtest: lstat forwards enumerable-own allocation through root routing
+ok 3 - lstat forwards enumerable-own allocation through root routing
+  ---
+  duration_ms: 0.338208
+  type: 'test'
+  ...
+# Subtest: lstat forwards enumerable-own allocation through mount routing
+ok 4 - lstat forwards enumerable-own allocation through mount routing
+  ---
+  duration_ms: 0.344125
+  type: 'test'
+  ...
+# Subtest: stat forwards nonenumerable-own allocation through root routing
+ok 5 - stat forwards nonenumerable-own allocation through root routing
+  ---
+  duration_ms: 0.307
+  type: 'test'
+  ...
+# Subtest: stat forwards nonenumerable-own allocation through mount routing
+ok 6 - stat forwards nonenumerable-own allocation through mount routing
+  ---
+  duration_ms: 0.417958
+  type: 'test'
+  ...
+# Subtest: lstat forwards nonenumerable-own allocation through root routing
+ok 7 - lstat forwards nonenumerable-own allocation through root routing
+  ---
+  duration_ms: 0.410209
+  type: 'test'
+  ...
+# Subtest: lstat forwards nonenumerable-own allocation through mount routing
+ok 8 - lstat forwards nonenumerable-own allocation through mount routing
+  ---
+  duration_ms: 0.423542
+  type: 'test'
+  ...
+# Subtest: stat forwards prototype-accessor allocation through root routing
+ok 9 - stat forwards prototype-accessor allocation through root routing
+  ---
+  duration_ms: 0.477083
+  type: 'test'
+  ...
+# Subtest: stat forwards prototype-accessor allocation through mount routing
+ok 10 - stat forwards prototype-accessor allocation through mount routing
+  ---
+  duration_ms: 0.851833
+  type: 'test'
+  ...
+# Subtest: lstat forwards prototype-accessor allocation through root routing
+ok 11 - lstat forwards prototype-accessor allocation through root routing
+  ---
+  duration_ms: 0.499167
+  type: 'test'
+  ...
+# Subtest: lstat forwards prototype-accessor allocation through mount routing
+ok 12 - lstat forwards prototype-accessor allocation through mount routing
+  ---
+  duration_ms: 0.323959
+  type: 'test'
+  ...
+# Subtest: synthetic mount ancestors have unknown allocation, not a mounted root's allocation
+ok 13 - synthetic mount ancestors have unknown allocation, not a mounted root's allocation
+  ---
+  duration_ms: 0.667042
+  type: 'test'
+  ...
+# Subtest: mount stat follows allocation to the target while lstat reports the link
+ok 14 - mount stat follows allocation to the target while lstat reports the link
+  ---
+  duration_ms: 0.982
+  type: 'test'
+  ...
+# Subtest: mounted memory files do not acquire allocation from logical size
+ok 15 - mounted memory files do not acquire allocation from logical size
+  ---
+  duration_ms: 0.247042
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation undefined
+ok 16 - upper enumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 2.989333
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 0
+ok 17 - upper enumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 1.338875
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 1
+ok 18 - upper enumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.519292
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 4096
+ok 19 - upper enumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.423541
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 9007199254740991
+ok 20 - upper enumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.500875
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation undefined
+ok 21 - upper nonenumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 0.372041
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 0
+ok 22 - upper nonenumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.367
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 1
+ok 23 - upper nonenumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.443167
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 4096
+ok 24 - upper nonenumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.485417
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 9007199254740991
+ok 25 - upper nonenumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.805125
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation undefined
+ok 26 - upper prototype-accessor forwards reported allocation undefined
+  ---
+  duration_ms: 1.094166
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 0
+ok 27 - upper prototype-accessor forwards reported allocation 0
+  ---
+  duration_ms: 0.500583
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 1
+ok 28 - upper prototype-accessor forwards reported allocation 1
+  ---
+  duration_ms: 0.321666
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 4096
+ok 29 - upper prototype-accessor forwards reported allocation 4096
+  ---
+  duration_ms: 0.403
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 9007199254740991
+ok 30 - upper prototype-accessor forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.409625
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation undefined
+ok 31 - lower enumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 0.866542
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 0
+ok 32 - lower enumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.736459
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 1
+ok 33 - lower enumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.499042
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 4096
+ok 34 - lower enumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.461875
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 9007199254740991
+ok 35 - lower enumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.332916
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation undefined
+ok 36 - lower nonenumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 0.241
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 0
+ok 37 - lower nonenumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.221542
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 1
+ok 38 - lower nonenumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.211292
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 4096
+ok 39 - lower nonenumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.244709
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 9007199254740991
+ok 40 - lower nonenumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.250958
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation undefined
+ok 41 - lower prototype-accessor forwards reported allocation undefined
+  ---
+  duration_ms: 0.351875
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 0
+ok 42 - lower prototype-accessor forwards reported allocation 0
+  ---
+  duration_ms: 0.521459
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 1
+ok 43 - lower prototype-accessor forwards reported allocation 1
+  ---
+  duration_ms: 0.717083
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 4096
+ok 44 - lower prototype-accessor forwards reported allocation 4096
+  ---
+  duration_ms: 0.978042
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 9007199254740991
+ok 45 - lower prototype-accessor forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.484125
+  type: 'test'
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report undefined
+ok 46 - chmod copy-up replaces lower allocation with upper report undefined
+  ---
+  duration_ms: 1.802167
+  type: 'test'
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report 0
+ok 47 - chmod copy-up replaces lower allocation with upper report 0
+  ---
+  duration_ms: 1.904167
+  type: 'test'
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report 8192
+ok 48 - chmod copy-up replaces lower allocation with upper report 8192
+  ---
+  duration_ms: 0.75475
+  type: 'test'
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report undefined
+ok 49 - appendFile copy-up replaces lower allocation with upper report undefined
+  ---
+  duration_ms: 0.846083
+  type: 'test'
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report 0
+ok 50 - appendFile copy-up replaces lower allocation with upper report 0
+  ---
+  duration_ms: 0.763042
+  type: 'test'
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report 8192
+ok 51 - appendFile copy-up replaces lower allocation with upper report 8192
+  ---
+  duration_ms: 0.805541
+  type: 'test'
+  ...
+# Subtest: overlay allocation composes through mount and read-only views with link semantics
+ok 52 - overlay allocation composes through mount and read-only views with link semantics
+  ---
+  duration_ms: 2.900375
+  type: 'test'
+  ...
+# Subtest: overlay memory allocation stays unknown before and after copy-up
+ok 53 - overlay memory allocation stays unknown before and after copy-up
+  ---
+  duration_ms: 0.694291
+  type: 'test'
+  ...
+# Subtest: stat/lstat do not clean pending staging or copy up; existing readFile cleanup remains
+ok 54 - stat/lstat do not clean pending staging or copy up; existing readFile cleanup remains
+  ---
+  duration_ms: 2.714208
+  type: 'test'
+  ...
+# Subtest: stat/lstat do not clean pending staging or copy up; existing readdir cleanup remains
+ok 55 - stat/lstat do not clean pending staging or copy up; existing readdir cleanup remains
+  ---
+  duration_ms: 1.617625
+  type: 'test'
+  ...
+# Subtest: Real allocation survives read-only, mount and overlay views and follows actual copy-up metadata
+ok 56 - Real allocation survives read-only, mount and overlay views and follows actual copy-up metadata
+  ---
+  duration_ms: 62.292916
+  type: 'test'
+  ...
+# {"node":"v22.22.2","platform":"darwin","arch":"arm64","uv":"1.51.0","filesystemType":26,"observations":[{"name":"dense","method":"stat","blocks":"16","allocatedBytes":8192},{"name":"dense","method":"lstat","blocks":"16","allocatedBytes":8192},{"name":"sparse","method":"stat","blocks":"0","allocatedBytes":0},{"name":"sparse","method":"lstat","blocks":"0","allocatedBytes":0},{"name":"directory","method":"stat","blocks":"0","allocatedBytes":0},{"name":"directory","method":"lstat","blocks":"0","allocatedBytes":0},{"name":"link","method":"stat","blocks":"16","allocatedBytes":8192},{"name":"link","method":"lstat","blocks":"0","allocatedBytes":0}],"copyUp":{"lowerBlocks":"0","upperBlocks":"2048"}}
+# Subtest: stat forwards reported allocation undefined from enumerable-own
+ok 57 - stat forwards reported allocation undefined from enumerable-own
+  ---
+  duration_ms: 1.438875
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 0 from enumerable-own
+ok 58 - stat forwards reported allocation 0 from enumerable-own
+  ---
+  duration_ms: 0.262
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 1 from enumerable-own
+ok 59 - stat forwards reported allocation 1 from enumerable-own
+  ---
+  duration_ms: 0.155625
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 4096 from enumerable-own
+ok 60 - stat forwards reported allocation 4096 from enumerable-own
+  ---
+  duration_ms: 0.100458
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 9007199254740991 from enumerable-own
+ok 61 - stat forwards reported allocation 9007199254740991 from enumerable-own
+  ---
+  duration_ms: 0.236625
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation undefined from nonenumerable-own
+ok 62 - stat forwards reported allocation undefined from nonenumerable-own
+  ---
+  duration_ms: 0.104834
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 0 from nonenumerable-own
+ok 63 - stat forwards reported allocation 0 from nonenumerable-own
+  ---
+  duration_ms: 0.169875
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 1 from nonenumerable-own
+ok 64 - stat forwards reported allocation 1 from nonenumerable-own
+  ---
+  duration_ms: 0.082542
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 4096 from nonenumerable-own
+ok 65 - stat forwards reported allocation 4096 from nonenumerable-own
+  ---
+  duration_ms: 0.399417
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 9007199254740991 from nonenumerable-own
+ok 66 - stat forwards reported allocation 9007199254740991 from nonenumerable-own
+  ---
+  duration_ms: 0.32825
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation undefined from prototype-accessor
+ok 67 - stat forwards reported allocation undefined from prototype-accessor
+  ---
+  duration_ms: 0.160917
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 0 from prototype-accessor
+ok 68 - stat forwards reported allocation 0 from prototype-accessor
+  ---
+  duration_ms: 0.090084
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 1 from prototype-accessor
+ok 69 - stat forwards reported allocation 1 from prototype-accessor
+  ---
+  duration_ms: 0.048417
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 4096 from prototype-accessor
+ok 70 - stat forwards reported allocation 4096 from prototype-accessor
+  ---
+  duration_ms: 0.033042
+  type: 'test'
+  ...
+# Subtest: stat forwards reported allocation 9007199254740991 from prototype-accessor
+ok 71 - stat forwards reported allocation 9007199254740991 from prototype-accessor
+  ---
+  duration_ms: 0.080792
+  type: 'test'
+  ...
+# Subtest: stat propagates allocation accessor failures
+ok 72 - stat propagates allocation accessor failures
+  ---
+  duration_ms: 0.273375
+  type: 'test'
+  ...
+# Subtest: stat forwards a provider-reported directory allocation
+ok 73 - stat forwards a provider-reported directory allocation
+  ---
+  duration_ms: 0.089417
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation undefined from enumerable-own
+ok 74 - lstat forwards reported allocation undefined from enumerable-own
+  ---
+  duration_ms: 0.082167
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 0 from enumerable-own
+ok 75 - lstat forwards reported allocation 0 from enumerable-own
+  ---
+  duration_ms: 0.075042
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 1 from enumerable-own
+ok 76 - lstat forwards reported allocation 1 from enumerable-own
+  ---
+  duration_ms: 0.053334
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 4096 from enumerable-own
+ok 77 - lstat forwards reported allocation 4096 from enumerable-own
+  ---
+  duration_ms: 0.068167
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 9007199254740991 from enumerable-own
+ok 78 - lstat forwards reported allocation 9007199254740991 from enumerable-own
+  ---
+  duration_ms: 0.050209
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation undefined from nonenumerable-own
+ok 79 - lstat forwards reported allocation undefined from nonenumerable-own
+  ---
+  duration_ms: 0.067959
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 0 from nonenumerable-own
+ok 80 - lstat forwards reported allocation 0 from nonenumerable-own
+  ---
+  duration_ms: 0.041667
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 1 from nonenumerable-own
+ok 81 - lstat forwards reported allocation 1 from nonenumerable-own
+  ---
+  duration_ms: 0.030625
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 4096 from nonenumerable-own
+ok 82 - lstat forwards reported allocation 4096 from nonenumerable-own
+  ---
+  duration_ms: 0.072333
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 9007199254740991 from nonenumerable-own
+ok 83 - lstat forwards reported allocation 9007199254740991 from nonenumerable-own
+  ---
+  duration_ms: 0.051708
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation undefined from prototype-accessor
+ok 84 - lstat forwards reported allocation undefined from prototype-accessor
+  ---
+  duration_ms: 0.049542
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 0 from prototype-accessor
+ok 85 - lstat forwards reported allocation 0 from prototype-accessor
+  ---
+  duration_ms: 0.0525
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 1 from prototype-accessor
+ok 86 - lstat forwards reported allocation 1 from prototype-accessor
+  ---
+  duration_ms: 0.070792
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 4096 from prototype-accessor
+ok 87 - lstat forwards reported allocation 4096 from prototype-accessor
+  ---
+  duration_ms: 0.0415
+  type: 'test'
+  ...
+# Subtest: lstat forwards reported allocation 9007199254740991 from prototype-accessor
+ok 88 - lstat forwards reported allocation 9007199254740991 from prototype-accessor
+  ---
+  duration_ms: 0.030375
+  type: 'test'
+  ...
+# Subtest: lstat propagates allocation accessor failures
+ok 89 - lstat propagates allocation accessor failures
+  ---
+  duration_ms: 0.089792
+  type: 'test'
+  ...
+# Subtest: lstat forwards a provider-reported directory allocation
+ok 90 - lstat forwards a provider-reported directory allocation
+  ---
+  duration_ms: 0.027416
+  type: 'test'
+  ...
+# Subtest: read-only memory views leave allocation unknown, including nonempty files
+ok 91 - read-only memory views leave allocation unknown, including nonempty files
+  ---
+  duration_ms: 0.777458
+  type: 'test'
+  ...
+1..91
+# tests 91
+# suites 0
+# pass 91
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 748.762042

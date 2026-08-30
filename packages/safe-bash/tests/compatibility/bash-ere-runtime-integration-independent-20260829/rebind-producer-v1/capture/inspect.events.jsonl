@@ -1,0 +1,7 @@
+{"at":"2026-08-29T12:26:35.191Z","event":"owner-start","mode":"inspect","pid":1700}
+{"at":"2026-08-29T12:26:35.204Z","event":"capture-open","label":"committed-handoff"}
+{"at":"2026-08-29T12:26:35.209Z","event":"enrolled","label":"committed-handoff","pid":1702,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","show","439138a0e13595a41e84841f83e4f2f51b36ff68:tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/HANDOFF.md"]}
+{"at":"2026-08-29T12:26:35.252Z","event":"exit","label":"committed-handoff","pid":1702,"code":0,"signal":null}
+{"at":"2026-08-29T12:26:35.260Z","event":"close","label":"committed-handoff","pid":1702,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"failurePresent":false}
+{"at":"2026-08-29T12:26:35.263Z","event":"capture-closed","label":"committed-handoff"}
+{"at":"2026-08-29T12:26:35.361Z","event":"owner-complete","mode":"inspect","pid":1700,"code":0}

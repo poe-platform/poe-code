@@ -1,0 +1,222 @@
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/projection.mjs
+index ccae6e7b..3b65c0eb 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/projection.mjs
+@@ -1,7 +1,9 @@
+ import fs from 'node:fs';
+ import path from 'node:path';
+ import { gunzipSync } from 'node:zlib';
+-import { hash, requireThat, relativeName } from './safety.mjs';
++import { hash, requireThat, relativeName } from '../executor-v4/safety.mjs';
++
++import { scopeDefinition, wrapperEntries, wrapperContent } from './consumer-scope.mjs';
+ 
+ export function boundFile(filename, expected, metadataOnly = false) {
+   const info = fs.lstatSync(filename);
+@@ -93,10 +95,10 @@ export function writeView(root, entries, content) {
+ export function viewProjection(projection, name) {
+   requireThat(['target-installed', 'target-moved', 'baseline-installed'].includes(name), 'VIEW_NAME', name);
+   const baseline = name === 'baseline-installed';
+-  const consumerPath = baseline ? 'benchmarks/consumer.mjs' : 'consumer.mjs';
+-  const consumer = `import * as library from '${baseline ? 'just-bash' : 'virtual-bash'}';\nexport { library };\n`;
++  const engine = baseline ? 'just-bash' : 'virtual-bash';
++  const { consumerPath } = scopeDefinition(engine);
+   const files = baseline ? projection.baseline.closure.files.filter(entry => !projection.baseline.excluded.some(omit => omit.path === entry.path)) : projection.target.files.map(entry => ({ ...entry, path: `node_modules/virtual-bash/${entry.path}` }));
+-  return { engine: baseline ? 'just-bash' : 'virtual-bash', consumerPath, consumer, files: [...files, { path: consumerPath, bytes: Buffer.byteLength(consumer), sha256: hash(consumer), mode: 0o644 }] };
++  return { engine, consumerPath, files: [...files, ...wrapperEntries(engine)] };
+ }
+ export function authenticateView(projection, view) {
+   const expected = viewProjection(projection, view.name);
+@@ -120,11 +122,11 @@ export function stage(work, projection) {
+     const baseline = name === 'baseline-installed';
+     const origin = path.join(work, name === 'target-moved' ? 'move-origin' : name);
+     const root = path.join(work, name);
+-    const consumerPath = baseline ? 'benchmarks/consumer.mjs' : 'consumer.mjs';
+-    const text = `import * as library from '${baseline ? 'just-bash' : 'virtual-bash'}';\nexport { library };\n`;
+-    const files = baseline ? baselineFiles : projection.target.files.map(entry => ({ ...entry, path: `node_modules/virtual-bash/${entry.path}` }));
+-    const entries = [...files, { path: consumerPath, bytes: Buffer.byteLength(text), sha256: hash(text), mode: 0o644 }];
+-    writeView(origin, entries, entry => entry.path === consumerPath ? Buffer.from(text) : baseline ? boundFile(path.join(projection.baseline.closure.root, entry.path), entry) : targetMembers.get(entry.path.slice('node_modules/virtual-bash/'.length)));
++    const expected = viewProjection(projection, name);
++    const { consumerPath } = expected;
++    const entries = expected.files;
++    const wrappers = new Set(wrapperEntries(expected.engine).map(entry => entry.path));
++    writeView(origin, entries, entry => wrappers.has(entry.path) ? wrapperContent(expected.engine, entry.path) : baseline ? boundFile(path.join(projection.baseline.closure.root, entry.path), entry) : targetMembers.get(entry.path.slice('node_modules/virtual-bash/'.length)));
+     if (name === 'target-moved') fs.renameSync(origin, root);
+     views[name] = { name, root, files: entries, consumerPath, engine: baseline ? 'just-bash' : 'virtual-bash', oldOrigin: name === 'target-moved' ? origin : null };
+   }
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/loader.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/loader.mjs
+index 9706c9f7..e0ec125e 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/loader.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/loader.mjs
+@@ -2,11 +2,15 @@ import fs from 'node:fs';
+ import { registerHooks, isBuiltin } from 'node:module';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
+ import path from 'node:path';
+-import { hash, requireThat } from './safety.mjs';
+-import { readRegular } from './regular-read.mjs';
++import { hash, requireThat } from '../executor-v4/safety.mjs';
++import { readRegular } from '../executor-v3/regular-read.mjs';
++
++import { authenticateConsumerScope } from './consumer-scope.mjs';
+ 
+ const stat = fs.lstatSync.bind(fs);
+ export function installLoader(view, emit) {
++  const scope = view.engine ? authenticateConsumerScope(view) : null;
++  const consumerResolutions = [];
+   const files = new Map(view.files.map(file => [pathToFileURL(path.join(view.root, file.path)).href, file]));
+   const loaded = [];
+   const denied = [];
+@@ -28,7 +32,15 @@ export function installLoader(view, emit) {
+           return nextResolve(specifier, context);
+         }
+         const result = nextResolve(specifier, context);
++        let resolution;
++        if (scope && specifier === view.engine) {
++          resolution = { kind: 'consumer-resolution', specifier, parentURL: context.parentURL, url: result.url, expectedParentURL: scope.parentURL, accepted: false };
++          consumerResolutions.push(resolution);
++          emit({ ...resolution, kind: 'consumer-resolution-observed' });
++          requireThat(context.parentURL === scope.parentURL, 'CONSUMER_PARENT', resolution);
++        }
+         requireThat(files.has(result.url), 'UNBOUND_MODULE', { specifier, parent: context.parentURL, url: result.url });
++        if (resolution) { resolution.accepted = true; emit({ ...resolution }); }
+         return result;
+       } catch (error) { denied.push({ code: error.code, specifier }); emit({ kind: 'load-denied', code: error.code, specifier }); throw error; }
+     },
+@@ -46,5 +58,5 @@ export function installLoader(view, emit) {
+       } catch (error) { denied.push({ code: error.code, url }); emit({ kind: 'load-denied', code: error.code, url }); throw error; }
+     },
+   });
+-  return { loaded, denied, close: () => hooks.deregister() };
++  return { loaded, denied, consumerResolutions, close: () => hooks.deregister() };
+ }
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/coordinator.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/coordinator.mjs
+index ea87c6c6..de35874e 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/coordinator.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/coordinator.mjs
+@@ -2,13 +2,13 @@ import fs from 'node:fs';
+ import path from 'node:path';
+ import { fileURLToPath } from 'node:url';
+ import { authority, authenticatePacket } from './authorization.mjs';
+-import { boundFile, inspectTree, stage, authenticateView, parseStage } from '../executor-v3/projection.mjs';
+-import { supervise } from './supervisor.mjs';
+-import { controls, defectControls } from './controls.mjs';
+-import { qualify } from './predicates.mjs';
+-import { hash, requireThat, errorRecord, serial, settled } from './safety.mjs';
+-import { createLedger, launchTracked } from './launch-ledger.mjs';
+-import { selectOperation } from './operations.mjs';
++import { boundFile, inspectTree, stage, authenticateView, parseStage } from './projection.mjs';
++import { supervise } from '../executor-v4/supervisor.mjs';
++import { controls, defectControls } from '../executor-v4/controls.mjs';
++import { qualify } from '../executor-v4/predicates.mjs';
++import { hash, requireThat, errorRecord, serial, settled } from '../executor-v4/safety.mjs';
++import { createLedger, launchTracked } from '../executor-v4/launch-ledger.mjs';
++import { selectOperation } from '../executor-v4/operations.mjs';
+ 
+ const root = path.dirname(fileURLToPath(import.meta.url));
+ const repository = path.resolve(root, '../../../..');
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/worker.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/worker.mjs
+index e196302c..1bd3f75d 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/worker.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/worker.mjs
+@@ -2,15 +2,15 @@ import fs from 'node:fs';
+ import path from 'node:path';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
+ import { authority } from './authorization.mjs';
+-import { inspectTree, authenticateView } from '../executor-v3/projection.mjs';
+-import { installLoader } from '../executor-v3/loader.mjs';
++import { inspectTree, authenticateView } from './projection.mjs';
++import { installLoader } from './loader.mjs';
+ import { installOffline } from '../executor-v3/offline.mjs';
+ import { transport } from '../executor-v3/transport.mjs';
+-import { observe } from './adapter.mjs';
+-import { requireThat, hash, errorRecord, settle } from './safety.mjs';
++import { observe } from '../executor-v4/adapter.mjs';
++import { requireThat, hash, errorRecord, settle } from '../executor-v4/safety.mjs';
+ import { publicAdmission } from '../executor-overlay-v2/admission.mjs';
+ import { instrumentFilesystem } from '../executor-v3/w07.mjs';
+-import { authorizeOperation } from './operations.mjs';
++import { authorizeOperation } from '../executor-v4/operations.mjs';
+ 
+ const root = path.dirname(fileURLToPath(import.meta.url));
+ const writer = transport();
+@@ -42,6 +42,7 @@ try {
+   loader = installLoader(config.view, value => writer.emit(value));
+   offline = installOffline(config.view, value => writer.emit(value));
+   const imported = await import(pathToFileURL(path.join(config.view.root, config.view.consumerPath)).href);
++  requireThat(loader.consumerResolutions.length === 1 && loader.consumerResolutions[0].accepted === true, 'CONSUMER_RESOLUTION_REQUIRED', loader.consumerResolutions);
+   const library = imported.library;
+   requireThat(library && (config.view.engine === 'virtual-bash' ? typeof library.Shell === 'function' && typeof library.agentCommands === 'function' : typeof library.Bash === 'function' && typeof library.stdoutAsBytes === 'function'), 'EXPORT_SHAPE', config.view.engine);
+   writer.emit({ kind: 'consumer-evaluated', engine: config.view.engine });
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/synthetic-worker.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/synthetic-worker.mjs
+index 674343e2..d01f4670 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/synthetic-worker.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/synthetic-worker.mjs
+@@ -1,13 +1,13 @@
+ import fs from 'node:fs';
+ import path from 'node:path';
+ import { pathToFileURL, fileURLToPath } from 'node:url';
+-import { installLoader } from '../executor-v3/loader.mjs';
++import { installLoader } from './loader.mjs';
+ import { installOffline } from '../executor-v3/offline.mjs';
+ import { transport } from '../executor-v3/transport.mjs';
+-import { errorRecord, requireThat, hash } from './safety.mjs';
++import { errorRecord, requireThat, hash } from '../executor-v4/safety.mjs';
+ import { authority, authenticatePacket } from './authorization.mjs';
+-import { authorizeOperation } from './operations.mjs';
+-import { inspectTree } from '../executor-v3/projection.mjs';
++import { authorizeOperation } from '../executor-v4/operations.mjs';
++import { inspectTree } from './projection.mjs';
+ const writer = transport();
+ const root = path.dirname(fileURLToPath(import.meta.url));
+ let config;
+@@ -30,7 +30,7 @@ try {
+     inspectTree(config.view.root, permission.plan.admission.find(row => row.id === 'C03-esm').files);
+     fs.writeFileSync(path.join(permission.context.outputRoot, `operation-${operation.id}.claim`), JSON.stringify({ operation, recipe: permission.recipe }), { flag: 'wx', mode: 0o444 });
+   } else {
+-    const fixtures = JSON.parse(fs.readFileSync(path.join(root, 'FOCUSED-FIXTURES.json')));
++    const fixtures = JSON.parse(fs.readFileSync(path.join(root, '../executor-v4/FOCUSED-FIXTURES.json')));
+     requireThat(config.kind === 'focused-control' && config.mode === 'load' && fixtures.some(entry => entry.path === config.entry) && JSON.stringify(config.view.files) === JSON.stringify(fixtures) && config.view.root === path.join(path.dirname(configPath), 'focused-view'), 'FOCUSED_FIXTURE_ONLY', config.kind);
+     inspectTree(config.view.root, fixtures);
+   }
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/authorization.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/authorization.mjs
+index dd12bfbc..05670d27 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/authorization.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v5/authorization.mjs
+@@ -1,15 +1,15 @@
+ import fs from 'node:fs';
+ import path from 'node:path';
+ import { execFileSync } from 'node:child_process';
+-import { identity, hash, requireThat, relativeName } from './safety.mjs';
+-import { boundFile } from '../executor-v3/projection.mjs';
+-import { bindGrantPlan } from './operations.mjs';
++import { identity, hash, requireThat, relativeName } from '../executor-v4/safety.mjs';
++import { boundFile } from './projection.mjs';
++import { bindGrantPlan } from '../executor-v4/operations.mjs';
+ 
+ export function authenticatePacket(root) {
+   const bytes = fs.readFileSync(path.join(root, 'SEAL.json'));
+   const seal = JSON.parse(bytes);
+   for (const entry of seal.files) boundFile(path.resolve(root, entry.path), entry);
+-  for (const prefix of ['', '../executor-preparation-v1', '../executor-overlay-v2', '../executor-v3']) {
++  for (const prefix of ['', '../executor-preparation-v1', '../executor-overlay-v2', '../executor-v3', '../executor-v4']) {
+     const base = path.resolve(root, prefix);
+     const allowed = new Set();
+     for (const entry of seal.files) {
+@@ -19,7 +19,7 @@ export function authenticatePacket(root) {
+       let parent = path.dirname(relative);
+       while (parent !== '.') { allowed.add(parent); parent = path.dirname(parent); }
+     }
+-    if (prefix === '') { allowed.add('SEAL.json'); allowed.add('runs'); }
++    if (prefix === '' || prefix === '../executor-v4') { allowed.add('SEAL.json'); allowed.add('runs'); }
+     let visited = 0;
+     const visit = relative => {
+       for (const name of fs.readdirSync(path.join(base, relative))) {
+@@ -27,7 +27,7 @@ export function authenticatePacket(root) {
+         requireThat(++visited <= allowed.size && allowed.has(member), 'UNSEALED_RECIPE_ENTRY', member);
+         const info = fs.lstatSync(path.join(base, member));
+         requireThat(!info.isSymbolicLink(), 'RECIPE_SYMLINK', member);
+-        if (info.isDirectory() && !(prefix === '' && member === 'runs')) visit(member);
++        if (info.isDirectory() && !((prefix === '' || prefix === '../executor-v4') && member === 'runs')) visit(member);
+       }
+     };
+     visit('');

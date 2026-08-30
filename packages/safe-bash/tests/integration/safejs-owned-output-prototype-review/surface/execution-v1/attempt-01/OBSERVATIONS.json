@@ -1,0 +1,160 @@
+{
+  "at": "2026-08-27T15:27:55.861Z",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/verify-evidence.mjs"
+  ],
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": "{\n  \"status\": \"CAPTURE_INTEGRITY_CONFIRMED_WITH_ORIGINAL_FAIL_RETAINED\",\n  \"rawFiles\": 57,\n  \"rawBytes\": 3836995,\n  \"originalFreezesUnchanged\": true,\n  \"privateUnchanged\": true,\n  \"copiedInputsUnchanged\": true,\n  \"selectedSharedTreesUnchanged\": true,\n  \"rows\": 25,\n  \"typeofFields\": 325,\n  \"nonWriteUndefined\": 300,\n  \"stdioWriteFunction\": 3,\n  \"otherWriteUndefined\": 22,\n  \"rawCounts\": {\n    \"executed\": 8,\n    \"pass\": 7,\n    \"fail\": 1,\n    \"invalid\": 0,\n    \"blocked\": 0,\n    \"conditionalExecuted\": 0\n  },\n  \"qualifiedCounts\": {\n    \"executed\": 8,\n    \"validSupportedSurface\": 6,\n    \"supportedSurfacePass\": 6,\n    \"supportedSurfaceFail\": 0,\n    \"matchingDialectProfileOnly\": 1,\n    \"unsupportedOperationInvalidAsDenial\": 1,\n    \"blocked\": 0,\n    \"conditionalExecuted\": 0\n  },\n  \"outcomes\": [\n    {\n      \"id\": \"01-supported-facades\",\n      \"rawOutcome\": \"PASS\",\n      \"guestStatus\": 7,\n      \"stdout\": \"stdio:surface-input|vfs\\n\",\n      \"stderr\": \"\",\n      \"stepsIfCaptured\": 48,\n      \"activeResources\": [\n        \"PipeWrap\"\n      ],\n      \"activeHandles\": [\n        \"Socket\"\n      ]\n    },\n    {\n      \"id\": \"02-direct-surface\",\n      \"rawOutcome\": \"PASS\",\n      \"guestStatus\": 0,\n      \"stdout\": \"\",\n      \"stderr\": \"\",\n      \"stepsIfCaptured\": 2911,\n      \"activeResources\": [\n        \"PipeWrap\"\n      ],\n      \"activeHandles\": [\n        \"Socket\"\n      ]\n    },\n    {\n      \"id\": \"03-namespace-spread\",\n      \"rawOutcome\": \"PASS\",\n      \"guestStatus\": 0,\n      \"stdout\": \"namespace-ok\\n\",\n      \"stderr\": \"\",\n      \"stepsIfCaptured\": 2497,\n      \"activeResources\": [\n        \"PipeWrap\"\n      ],\n      \"activeHandles\": [\n        \"Socket\"\n      ]\n    },\n    {\n      \"id\": \"04-shell-module\",\n      \"rawOutcome\": \"PASS\",\n      \"guestStatus\": 0,\n      \"stdout\": \"shell-positive\",\n      \"stderr\": \"\",\n      \"stepsIfCaptured\": 921,\n      \"activeResources\": [\n        \"PipeWrap\"\n      ],\n      \"activeHandles\": [\n        \"Socket\"\n      ]\n    },\n    {\n      \"id\": \"05-missing-register-cleanup\",\n      \"rawOutcome\": \"PASS\",\n      \"guestStatus\": 0,\n      \"stdout\": \"\",\n      \"stderr\": \"\",\n      \"stepsIfCaptured\": 27,\n      \"activeResources\": [\n        \"PipeWrap\"\n      ],\n      \"activeHandles\": [\n        \"Socket\"\n      ]\n    },\n    {\n      \"id\": \"06-missing-acquire\",\n      \"rawOutcome\": \"PASS\",\n      \"guestStatus\": 0,\n      \"stdout\": \"\",\n      \"stderr\": \"\",\n      \"stepsIfCaptured\": 30,\n      \"activeResources\": [\n        \"PipeWrap\"\n      ],\n      \"activeHandles\": [\n        \"Socket\"\n      ]\n    },\n    {\n      \"id\": \"07-reflection-profile\",\n      \"rawOutcome\": \"PASS\",\n      \"guestStatus\": 0,\n      \"stdout\": \"\",\n      \"stderr\": \"\",\n      \"stepsIfCaptured\": 103,\n      \"activeResources\": [\n        \"PipeWrap\"\n      ],\n      \"activeHandles\": [\n        \"Socket\"\n      ]\n    },\n    {\n      \"id\": \"08-function-spread-profile\",\n      \"rawOutcome\": \"FAIL\",\n      \"guestStatus\": 1,\n      \"stdout\": \"\",\n      \"stderr\": \"safejs: Cannot spread function into object literal.\\n\",\n      \"stepsIfCaptured\": null,\n      \"activeResources\": [\n        \"PipeWrap\"\n      ],\n      \"activeHandles\": [\n        \"Socket\"\n      ]\n    }\n  ],\n  \"runtimeExecutedByThisCheck\": false,\n  \"knownLiveChildren\": []\n}\n",
+  "stderr": "",
+  "result": {
+    "status": "CAPTURE_INTEGRITY_CONFIRMED_WITH_ORIGINAL_FAIL_RETAINED",
+    "rawFiles": 57,
+    "rawBytes": 3836995,
+    "originalFreezesUnchanged": true,
+    "privateUnchanged": true,
+    "copiedInputsUnchanged": true,
+    "selectedSharedTreesUnchanged": true,
+    "rows": 25,
+    "typeofFields": 325,
+    "nonWriteUndefined": 300,
+    "stdioWriteFunction": 3,
+    "otherWriteUndefined": 22,
+    "rawCounts": {
+      "executed": 8,
+      "pass": 7,
+      "fail": 1,
+      "invalid": 0,
+      "blocked": 0,
+      "conditionalExecuted": 0
+    },
+    "qualifiedCounts": {
+      "executed": 8,
+      "validSupportedSurface": 6,
+      "supportedSurfacePass": 6,
+      "supportedSurfaceFail": 0,
+      "matchingDialectProfileOnly": 1,
+      "unsupportedOperationInvalidAsDenial": 1,
+      "blocked": 0,
+      "conditionalExecuted": 0
+    },
+    "outcomes": [
+      {
+        "id": "01-supported-facades",
+        "rawOutcome": "PASS",
+        "guestStatus": 7,
+        "stdout": "stdio:surface-input|vfs\n",
+        "stderr": "",
+        "stepsIfCaptured": 48,
+        "activeResources": [
+          "PipeWrap"
+        ],
+        "activeHandles": [
+          "Socket"
+        ]
+      },
+      {
+        "id": "02-direct-surface",
+        "rawOutcome": "PASS",
+        "guestStatus": 0,
+        "stdout": "",
+        "stderr": "",
+        "stepsIfCaptured": 2911,
+        "activeResources": [
+          "PipeWrap"
+        ],
+        "activeHandles": [
+          "Socket"
+        ]
+      },
+      {
+        "id": "03-namespace-spread",
+        "rawOutcome": "PASS",
+        "guestStatus": 0,
+        "stdout": "namespace-ok\n",
+        "stderr": "",
+        "stepsIfCaptured": 2497,
+        "activeResources": [
+          "PipeWrap"
+        ],
+        "activeHandles": [
+          "Socket"
+        ]
+      },
+      {
+        "id": "04-shell-module",
+        "rawOutcome": "PASS",
+        "guestStatus": 0,
+        "stdout": "shell-positive",
+        "stderr": "",
+        "stepsIfCaptured": 921,
+        "activeResources": [
+          "PipeWrap"
+        ],
+        "activeHandles": [
+          "Socket"
+        ]
+      },
+      {
+        "id": "05-missing-register-cleanup",
+        "rawOutcome": "PASS",
+        "guestStatus": 0,
+        "stdout": "",
+        "stderr": "",
+        "stepsIfCaptured": 27,
+        "activeResources": [
+          "PipeWrap"
+        ],
+        "activeHandles": [
+          "Socket"
+        ]
+      },
+      {
+        "id": "06-missing-acquire",
+        "rawOutcome": "PASS",
+        "guestStatus": 0,
+        "stdout": "",
+        "stderr": "",
+        "stepsIfCaptured": 30,
+        "activeResources": [
+          "PipeWrap"
+        ],
+        "activeHandles": [
+          "Socket"
+        ]
+      },
+      {
+        "id": "07-reflection-profile",
+        "rawOutcome": "PASS",
+        "guestStatus": 0,
+        "stdout": "",
+        "stderr": "",
+        "stepsIfCaptured": 103,
+        "activeResources": [
+          "PipeWrap"
+        ],
+        "activeHandles": [
+          "Socket"
+        ]
+      },
+      {
+        "id": "08-function-spread-profile",
+        "rawOutcome": "FAIL",
+        "guestStatus": 1,
+        "stdout": "",
+        "stderr": "safejs: Cannot spread function into object literal.\n",
+        "stepsIfCaptured": null,
+        "activeResources": [
+          "PipeWrap"
+        ],
+        "activeHandles": [
+          "Socket"
+        ]
+      }
+    ],
+    "runtimeExecutedByThisCheck": false,
+    "knownLiveChildren": []
+  }
+}

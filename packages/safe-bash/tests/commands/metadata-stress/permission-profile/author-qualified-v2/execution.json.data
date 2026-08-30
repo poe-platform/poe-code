@@ -1,0 +1,72 @@
+[
+  {
+    "label": "qualified-384",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern",
+      "^GNU chmod seeded symbolic/numeric differential: 384 mode transitions$",
+      "tests/commands/metadata-stress/native-differential.test.ts"
+    ],
+    "started": "2026-08-27T13:00:33.845Z",
+    "ended": "2026-08-27T13:00:39.614Z",
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "chmod-controls-and-profile-regressions",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "tests/commands/metadata-stress/chmod-controls.test.ts",
+      "tests/commands/metadata-stress/permission-profile/archive.test.ts",
+      "tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+      "tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts"
+    ],
+    "started": "2026-08-27T13:00:39.614Z",
+    "ended": "2026-08-27T13:00:40.373Z",
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "label": "scoped-noemit-types",
+    "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--forceConsistentCasingInFileNames",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/commands/metadata-stress/chmod-controls.test.ts",
+      "tests/commands/metadata-stress/native-differential.test.ts",
+      "tests/commands/metadata-stress/permission-profile/archive.test.ts",
+      "tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+      "tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts",
+      "tests/commands/metadata-stress/permission-profile/fixtures.ts"
+    ],
+    "started": "2026-08-27T13:00:40.373Z",
+    "ended": "2026-08-27T13:00:40.819Z",
+    "status": 0,
+    "signal": null,
+    "error": null
+  }
+]

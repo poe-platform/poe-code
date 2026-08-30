@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "frozenAt": "2026-08-27T05:28:14.252Z",
+  "visibility": "Hidden case contents and native expectations remain unavailable to the implementation author until first READY. Metadata-only root handoff.",
+  "nativeCases": 54,
+  "profiles": 4,
+  "nativeObservations": 216,
+  "launcherControls": 4,
+  "hostControlsPrepared": 4,
+  "hostControlsExecuted": 0,
+  "sourceImports": 0,
+  "authorImplementationInspected": false,
+  "historicalTupleDifferences": {
+    "bash": 3,
+    "sh": 3
+  },
+  "roleTupleDifferences": {
+    "gnu53": 4,
+    "apple32": 4
+  },
+  "files": {
+    "README.md": "624264c5306e9a0a1de467b7843bd838982dc5c185791be7d3462f643a179bc9",
+    "cases.mjs": "643ab5c872a71cf7d8e326a93cce2d8ae4364d248e870a65a614c41c4a8c1764",
+    "native.mjs": "48ce1b4499e07ff8ad52cec10632166df5fc6b4a3f371ec849a49e099a0d33ee",
+    "host.mjs": "74ad98a9df8257030e33d1c6d7d0e7b162e6f645ddde2287eafeaf4f24ddacd2",
+    "host-runner.mjs": "d81358e9f67a51d2105f7520440f341dc2759ec3c19daf387dfdc897bb9263d6",
+    "native-frozen.json": "2064ed7b10fbc61dbf9fc4ec7c5512aae7c820c43fca0483906223c0f8ccd931",
+    "launcher-investigation.json": "7733402a29492c0d01271137847d14ba87d52542faf35c1dd4390114f063221e",
+    "launcher-control-initial.json": "2cbb1823770602b7100c0d80547cd3174ee8760394fa54e33de6395c0c1091c7",
+    "integrity.test.mjs": "00bd2f8ad347a22aa4a8a88b19e872bb1e0c46b3d3816b79c0d5840e8aee19e2"
+  }
+}

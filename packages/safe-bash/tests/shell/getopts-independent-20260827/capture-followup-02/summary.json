@@ -1,0 +1,60 @@
+{
+  "candidate": "157d78c957b56f83f6e705fc35da60b1f2ea3a9b",
+  "freeze": "7a47dcdba6175a4eccc9dad16c3ac9733cf0e0bf",
+  "originalArchiveSha256": "a610aedfddccac6e3fa92f7a45de6c71a8c5d5d19cc16f294674766201faf1f8",
+  "typeCounts": [
+    {
+      "mode": "source",
+      "total": 28,
+      "pass": 28,
+      "fail": 0
+    },
+    {
+      "mode": "moved",
+      "total": 28,
+      "pass": 28,
+      "fail": 0
+    }
+  ],
+  "cursorCounts": [
+    {
+      "mode": "source",
+      "total": 3,
+      "pass": 1,
+      "fail": 2
+    },
+    {
+      "mode": "moved",
+      "total": 3,
+      "pass": 1,
+      "fail": 2
+    }
+  ],
+  "nativeCounts": [
+    {
+      "profile": "bash53",
+      "scripts": 3,
+      "records": 6,
+      "pass": 1,
+      "fail": 2
+    },
+    {
+      "profile": "bash32",
+      "scripts": 3,
+      "records": 6,
+      "pass": 1,
+      "fail": 2
+    }
+  ],
+  "mutantsKilledAfterBaselineAudit": 16,
+  "preservation": {
+    "sourceUnchanged": true,
+    "movedPackageUnchanged": true,
+    "allEntryMembershipChecked": true,
+    "originalCaptureUnchanged": true,
+    "freezeUnchanged": true,
+    "initialIndex": "",
+    "finalIndex": ""
+  },
+  "frozenExpectationsChanged": false
+}

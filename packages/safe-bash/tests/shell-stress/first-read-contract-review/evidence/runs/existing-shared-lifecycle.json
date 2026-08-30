@@ -1,0 +1,38 @@
+{
+  "label": "existing-shared-lifecycle",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern=hard-timeout lifecycle regression: shared-",
+    "tests/shell/lifecycle.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/.scratch/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T09:17:21.500Z",
+  "finishedAt": "2026-08-27T09:17:22.724Z",
+  "durationMs": 1224.2995840000003,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 33674,
+  "initialIdentity": "33674 32658 33674 Thu Aug 27 04:17:21 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-name-pattern=hard-timeout lifecycle regression: shared- tests/shell/lifecycle.test.ts",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "TAP version 13\n# Subtest: hard-timeout lifecycle regression: shared-delayed-generator\nok 1 - hard-timeout lifecycle regression: shared-delayed-generator\n  ---\n  duration_ms: 190.732541\n  type: 'test'\n  ...\n# Subtest: hard-timeout lifecycle regression: shared-serialized\nok 2 - hard-timeout lifecycle regression: shared-serialized\n  ---\n  duration_ms: 202.771042\n  type: 'test'\n  ...\n# Subtest: hard-timeout lifecycle regression: shared-repeated-cancellation\nok 3 - hard-timeout lifecycle regression: shared-repeated-cancellation\n  ---\n  duration_ms: 192.847917\n  type: 'test'\n  ...\n# Subtest: hard-timeout lifecycle regression: shared-abandoned-rejection\nok 4 - hard-timeout lifecycle regression: shared-abandoned-rejection\n  ---\n  duration_ms: 226.289291\n  type: 'test'\n  ...\n# Subtest: hard-timeout lifecycle regression: shared-retained-rejection\nok 5 - hard-timeout lifecycle regression: shared-retained-rejection\n  ---\n  duration_ms: 233.854459\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1187.769042\n",
+  "stderr": ""
+}

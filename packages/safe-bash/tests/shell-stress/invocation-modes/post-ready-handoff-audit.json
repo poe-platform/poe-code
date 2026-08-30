@@ -1,0 +1,616 @@
+{
+  "timestamp": "2026-08-27T00:08:57.327Z",
+  "sourceCommit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+  "cohortCommit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+  "head": "21a6b9149e3a0e35e14f1c740860971f08053686",
+  "ready": "READY — 2026-08-26 bounded invocation/PATH author checkpoint\nExact atomic commit: 21a6b9149e3a0e35e14f1c740860971f08053686\nCommit parent: d799cbb1d93be97cb3582082542138af848b08d7\nInitial HEAD: 17285d1afc105999b6ccb943ddfd3819d6148aec\nFinal validation HEAD: 5ddce1b0550ad7de8f2a8082f0402fae7aa001b7\nObserved HEAD at commit: 21a6b9149e3a0e35e14f1c740860971f08053686\n\nNO FURTHER SHELL SOURCE EDITS BY THIS LEAF. Source lease released for root-routed\nfresh independent verification / any separately authorized future integration.\nSource/dot/eval remain a SEPARATE future atomic batch. No lifecycle proposal was\nintegrated/approved and no blocked first-read or frozen remote audit was rerun.\n\nOwned product changes: src/shell/runtime.ts, src/shell/input.ts,\nsrc/shell/parser.ts. The parser/input additions are only the necessary partial\nexisting-input-unit seam and byte-preserving bounded source-line cursor method;\nno new syntax or cursor close/ownership/lifecycle policy. shell.ts unchanged.\n\nFinal source SHA256:\nruntime.ts 6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145\nparser.ts b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6\ninput.ts 03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314\nshell.ts f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7\nPost-commit working source matched the committed source. Actual Node load hook\nloaded all shell modules from .ts and passed nested c/stdin binary-cursor smoke.\nNo emitting tsc. Public/root/shell-index export names changed: NONE.\nNew internal module export: parseShellInputUnit; internal ShellInput.sourceLine\nmethod. No contracts/commands/fs/root manifests/dependency changes by this leaf.\n\nSupported exact grammar: {bash|sh} {-[cs]+}* [--|-] [operands...]. Repetitions and\nclusters accepted, any c wins over s; first nonoption or terminator stops option\nscanning. Other flags/+flags/long/startup/interactive options explicitly reject.\nc requires source (empty valid), optional name sets $0 (empty valid), rest argv.\ns or no operands reads stdin; operands are args, default $0 is bash/sh. Otherwise\nfile mode; literal '-' after --/- is a filename. sh is the existing virtual\ngrammar, NOT full POSIX sh. Prior strict file/shebang permissions remain.\n\nStdin executes each complete existing input unit before consuming subsequent\nsource. read/cat/nested modes share the byte cursor without eagerly collecting\nstdin; binary command data survives. Child state/cwd/env/options/functions/exit\nisolate; descriptor cursors/provenance and commands/output/source/loop/depth\nbudgets plus original cancellation are shared. No fresh nested Budget.\n\nPATH entirely VFS after builtin/function/registry/virtual interpreter precedence;\neffective variable, prefix/middleware overlays, absolute/relative/empty components,\nfirst X_OK file, remembered denials, explicit unknown capability rejection. Unset\nand empty preserve distinct target/$0 behavior. No host PATH/default/executable,\nstartup file, network/credential grant, native product process or location cache.\nInitial missing configuration retains legacy missing-command diagnostic. Existing\ntype/command -v/hash builtins do not exist; none invented here.\n\nVALIDATION — failures retained, not silently made green:\n- Guarded pre-source new cohort 1/129 pass, 128 fail; source hashes asserted.\n- Original file cohort before source 41/41. After feature, exactly 2 obsolete\n  unsupported-mode/PATH expectations fail (39/41). Transparent authorized updates\n  to those assertions only restore 41/41; all rejection/security checks remain.\n- Final new cohort 130/132, 2 genuine failures: bash/sh stdin-read-one-byte uses\n  existing unsupported read -N. No new read flag added out of scope; no skip,\n  xfail, weakened expectation or successful-guest-semantics characterization.\n  Two strict repeats retain the exact same 130/132 and failure names; exit 1.\n- 13/13 hard-bounded child controls pass (strict rejections, 5-second parent\n  limits): recursion in c/stdin/PATH, lookup/source/drain/command cancellation,\n  empty/incomplete-input yielding, late rejection, limits, fatal syntax before EOF.\n- Existing targeted parser/core/read/env/descriptor/origin/lifecycle/limits/error/\n  invoke/heredoc cohort 300/300, zero skips/TODOs/guard invalidations.\n- All 52 native fixtures run with BOTH actual argv0 bash/sh under BOTH pinned\n  executables, 208 records. Full exact primary 98/104, historical 82/104; comparator\n  exits 1. No per-case oracle, normalization or excluded unsupported denominator.\n  Primary losses: 2 read -N guest-semantic failures plus 4 inherited explicit\n  binary/interpreter diagnostic-policy differences. Historical additionally\n  differs in empty-PATH argv0 and syntax/PATH diagnostics. Every byte/status/file\n  difference is retained in the durable checkpoint, not masked.\n- GNU 5.3 executable: /tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash,\n  hash 8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c.\n- Historical GNU 3.2 executable: /bin/bash,\n  hash 35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3.\n  PATH fixtures have identical #!/bin/bash content: their actual child is 3.2\n  even with a 5.3 lookup parent. No /bin/sh process mislabeled as GNU 5.3.\n- Owned scoped strict types pass. Final global tsc --noEmit and build-config\n  --noEmit BOTH pass; earlier concurrent archive TS1487 / isWellFormed /\n  highWaterMark errors recorded, not edited by this leaf.\n- git diff --check passes. All owned regression/native children completed; no\n  watchers started or owned native temporary directories left. Foreign files,\n  staging, independent expectations and harnesses were not read/modified/committed.\n\nDurable evidence and reproduction (all committed, not /tmp-only):\ntests/shell/INVOCATION_MODES.md\ntests/shell/invocation-modes-cases.ts\ntests/shell/invocation-modes-native.ts\ntests/shell/invocation-modes-reference.json (all native observations)\ntests/shell/invocation-modes-checkpoint.json (hashes, history, exact losses)\ntests/shell/invocation-modes.test.ts and invocation-modes-probe.ts\nPrior SCRIPT_ENTRYPOINTS.md now points to the new scope; prior test changes have\nexplicit rationale and red-old/valid-new evidence in the documentation.\n\n12 explicit owned paths committed with git commit --only; no foreign staging.\nNo full owned/product comparator or independent acceptance claimed. File-operand\nPATH lookup, broader flags, full POSIX mode/introspection/source/eval remain out\nof this batch. Existing VFS lexical/symlink and non-atomic stat/access/read limits\nremain. The five pending first-read failures and paused NUL diagnostic remain\ngenuine untouched/unrerun findings. Full Bash, superiority and 72 hours unproven.\n",
+  "checks": [
+    {
+      "path": "src/commands/basic.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "actual": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+    },
+    {
+      "path": "src/commands/bytes/checksums/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "actual": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4"
+    },
+    {
+      "path": "src/commands/bytes/compression/files.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "actual": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df"
+    },
+    {
+      "path": "src/commands/bytes/compression/gunzip.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "actual": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f"
+    },
+    {
+      "path": "src/commands/bytes/compression/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "actual": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9"
+    },
+    {
+      "path": "src/commands/bytes/compression/options.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "actual": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95"
+    },
+    {
+      "path": "src/commands/bytes/compression/stream.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "actual": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4"
+    },
+    {
+      "path": "src/commands/bytes/encoding/base.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "actual": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d"
+    },
+    {
+      "path": "src/commands/bytes/encoding/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "actual": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f"
+    },
+    {
+      "path": "src/commands/bytes/encoding/od.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "actual": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03"
+    },
+    {
+      "path": "src/commands/bytes/encoding/shared.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "actual": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396"
+    },
+    {
+      "path": "src/commands/bytes/encoding/xxd.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "actual": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78"
+    },
+    {
+      "path": "src/commands/bytes/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "actual": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f"
+    },
+    {
+      "path": "src/commands/diff-patch/diff-format.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "actual": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+    },
+    {
+      "path": "src/commands/diff-patch/diff.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "actual": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+    },
+    {
+      "path": "src/commands/diff-patch/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "actual": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-envelope.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "actual": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-formats.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "actual": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "actual": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "actual": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-path.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "actual": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94"
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "actual": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe"
+    },
+    {
+      "path": "src/commands/diff-patch/shared.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "actual": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+    },
+    {
+      "path": "src/commands/diff-patch/unified.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "actual": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "actual": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1",
+      "actual": "a7280538f4168ae40939a56181feac8bac06fdf071fe566293f77425bce678d1"
+    },
+    {
+      "path": "src/commands/find.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "actual": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "actual": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "actual": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "actual": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+    },
+    {
+      "path": "src/commands/metadata/chmod.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "actual": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd"
+    },
+    {
+      "path": "src/commands/metadata/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "actual": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e"
+    },
+    {
+      "path": "src/commands/metadata/internal.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "actual": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7"
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "actual": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4"
+    },
+    {
+      "path": "src/commands/metadata/stat.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "40a8439bc973eb0984871e43284f150ef6237b3893e0a6fabfa95c2c21be23b7",
+      "actual": "40a8439bc973eb0984871e43284f150ef6237b3893e0a6fabfa95c2c21be23b7"
+    },
+    {
+      "path": "src/commands/network/args.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "actual": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+    },
+    {
+      "path": "src/commands/network/body.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "actual": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "actual": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+    },
+    {
+      "path": "src/commands/network/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "actual": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "actual": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "actual": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+    },
+    {
+      "path": "src/commands/network/transport.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "actual": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "actual": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "actual": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+    },
+    {
+      "path": "src/commands/safejs/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "actual": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29"
+    },
+    {
+      "path": "src/commands/safejs/io.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "actual": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1"
+    },
+    {
+      "path": "src/commands/safejs/options.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "actual": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43"
+    },
+    {
+      "path": "src/commands/safejs/render.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "actual": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e"
+    },
+    {
+      "path": "src/commands/safejs/types.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "actual": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4"
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "actual": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425"
+    },
+    {
+      "path": "src/commands/search/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "actual": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+    },
+    {
+      "path": "src/commands/search/matcher.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "actual": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb"
+    },
+    {
+      "path": "src/commands/search/options.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "actual": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8"
+    },
+    {
+      "path": "src/commands/search/output.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "actual": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1"
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "actual": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417"
+    },
+    {
+      "path": "src/commands/search/shared.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "actual": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724"
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "actual": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "actual": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5"
+    },
+    {
+      "path": "src/commands/structured/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "actual": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415"
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6469818c00b516a1e041f797b1ea788064db48bc091e323958de7bebaa3b0161",
+      "actual": "6469818c00b516a1e041f797b1ea788064db48bc091e323958de7bebaa3b0161"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "e1fcea692d0775700408e42bbf5f27b527db3d5435e604bf329ebf9d71047b6a",
+      "actual": "e1fcea692d0775700408e42bbf5f27b527db3d5435e604bf329ebf9d71047b6a"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "05605084518711302c70721a9c7e8a9f3ce45bb0f157809cdc8024add6dfbd38",
+      "actual": "05605084518711302c70721a9c7e8a9f3ce45bb0f157809cdc8024add6dfbd38"
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "d0d8dabc84e9397edda5e93b93ab213b68d457b34f440be906833ca4986d6039",
+      "actual": "d0d8dabc84e9397edda5e93b93ab213b68d457b34f440be906833ca4986d6039"
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "actual": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d"
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "4eae60e37c295ef2ef81bddd3778c57153acd5cccccf3d378be854ec6788426a",
+      "actual": "4eae60e37c295ef2ef81bddd3778c57153acd5cccccf3d378be854ec6788426a"
+    },
+    {
+      "path": "src/commands/structured/split.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "actual": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6"
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "c2dfbab20d72c3f05c80c0efb12f5c3b2739dfffb0ea851bbe3c603010c7a164",
+      "actual": "c2dfbab20d72c3f05c80c0efb12f5c3b2739dfffb0ea851bbe3c603010c7a164"
+    },
+    {
+      "path": "src/commands/text-programs/awk-runtime.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "actual": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e"
+    },
+    {
+      "path": "src/commands/text-programs/awk-syntax.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "actual": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7"
+    },
+    {
+      "path": "src/commands/text-programs/awk-values.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "actual": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c"
+    },
+    {
+      "path": "src/commands/text-programs/awk.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "actual": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3"
+    },
+    {
+      "path": "src/commands/text-programs/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "actual": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2"
+    },
+    {
+      "path": "src/commands/text-programs/regex.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "actual": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f"
+    },
+    {
+      "path": "src/commands/text-programs/sed.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "actual": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9"
+    },
+    {
+      "path": "src/commands/text-programs/shared.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "actual": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e"
+    },
+    {
+      "path": "src/commands/text.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "actual": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "actual": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "actual": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "actual": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "actual": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "actual": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "actual": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "actual": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "actual": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "actual": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    {
+      "path": "src/shell/index.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "actual": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "actual": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "actual": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "actual": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "actual": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "actual": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "actual": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "commit": "21a6b9149e3a0e35e14f1c740860971f08053686",
+      "expected": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "actual": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/cases.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+      "actual": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/holdout.test.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+      "actual": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/virtual-child.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+      "actual": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/harness.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+      "actual": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/trace.mjs",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+      "actual": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/verify.ts",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b",
+      "actual": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-evidence.json",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f",
+      "actual": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f"
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-corrected-evidence.json",
+      "commit": "c440c1aa51ce9f08deb822e30e31d5c171954965",
+      "expected": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+      "actual": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45"
+    }
+  ],
+  "indexBefore": ""
+}

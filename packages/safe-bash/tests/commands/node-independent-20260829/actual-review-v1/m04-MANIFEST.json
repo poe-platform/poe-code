@@ -1,0 +1,59 @@
+{
+  "sha256": "6b5a5b06b33cdec4f5e92c06e4a3444d334060d5e6b90cbfd2d5e5775fc3220d",
+  "entries": [
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/README.md",
+      "oid": "f0699874752420545c973d5075a638b8a82d6392",
+      "bytes": 4832,
+      "sha256": "9db0ad82fedbb1c03319027dce9053e139a993080b91be34bc1f78b6a60f38f3"
+    },
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/admission.ts",
+      "oid": "4bf32489d6367538af1c2427d4b8da24f500991f",
+      "bytes": 15660,
+      "sha256": "946dc675c8423a809cc7b27f9e1364a83f4c9a6b15687a165e66b9eabc238a31"
+    },
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/channel.ts",
+      "oid": "48bf256cf0f6da57f2c31ccaeb80d59c7a2e8cc4",
+      "bytes": 3877,
+      "sha256": "2e9badd57919fc8ac78f2e2bea11768d2ce2c473ac20571f2ef7876aaa69e3b4"
+    },
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/cli.ts",
+      "oid": "5f13fd04b6dcbcf658c370c34b440fd864ed6001",
+      "bytes": 2797,
+      "sha256": "989ccbf7e5d44660ef1b842501c0bc4529de244d8415be952bc536eb5e4ac45d"
+    },
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/lower.ts",
+      "oid": "9790bcda552a84806e1b44c7fe9de87c7eb02a1a",
+      "bytes": 15050,
+      "sha256": "8b9572ff30e286d18be5f60d18ef4ab0e54a4dbbf3335419508d6f2929ba96f2"
+    },
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/program.ts",
+      "oid": "c21ad0637acaaee25e5cb9c019ec4b75b76de353",
+      "bytes": 13151,
+      "sha256": "dfc91dbda976f7b2b8a7a5857525e15b8b031a9fa72e826b34aeb9baeb2f3831"
+    },
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/rules.ts",
+      "oid": "682290df6dd4c92c04f8cb6975eefebc4d534277",
+      "bytes": 9961,
+      "sha256": "7aca4750d9e03e4f575b8a2e8937331124b6f0d6441ba01e2d78184596272993"
+    },
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/types.ts",
+      "oid": "62e4f598dded3652421613b3ade030d161315f76",
+      "bytes": 4335,
+      "sha256": "75aac3f18fe5d95d8eec82a4a57f133fd67cac75049cfd903aafe24ea6c99b61"
+    },
+    {
+      "spec": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3:src/commands/node/values.ts",
+      "oid": "70653a8e5622ab16b4bbaf2c73f0dc4dcf7a7761",
+      "bytes": 5778,
+      "sha256": "5b5a13fb321da4731adee82f8e3536092f0ec09525be1d09e0109a9ed12f4677"
+    }
+  ]
+}

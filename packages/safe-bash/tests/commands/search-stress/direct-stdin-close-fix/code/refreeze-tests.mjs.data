@@ -1,0 +1,9 @@
+import { readFileSync, writeFileSync, cpSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+const task = '/tmp/safe-bash-search-stdin-close-fix-20260827';
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const path = 'tests/commands/search-stress/direct-stdin-close.test.ts';
+const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');
+cpSync(`${repo}/${path}`, `${task}/before/${path}`);
+cpSync(`${repo}/${path}`, `${task}/corrected-focused.test.ts.data`);
+writeFileSync(`${task}/test-freeze-corrected.json`, JSON.stringify({at:new Date().toISOString(),path,sha256:hash(`${repo}/${path}`), previousFreeze:JSON.parse(readFileSync(`${task}/test-freeze.json`)), corrections:'fixture-corrections.md', topLevelLogicalTests:14,patchedRunsBeforeFreeze:0},null,2)+'\n');

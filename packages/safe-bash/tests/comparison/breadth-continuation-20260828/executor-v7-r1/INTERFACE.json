@@ -1,0 +1,281 @@
+{
+  "schema": "BREADTH_V7_R1_ADMISSION_INTERFACE",
+  "date": "2026-08-28",
+  "authorizationNow": "IMPLEMENTATION_DATA_STUB_ONLY",
+  "freshDifferentReviewAndRootGrantRequired": true,
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "comparatorVersion": "3.4.2",
+  "latestClaim": false,
+  "recipe": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/SEAL.json",
+    "hashRule": "SHA256 of exact final SEAL.json bytes, supplied in final handoff; no circular placeholder hash is accepted"
+  },
+  "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+  "command": {
+    "entry": "coordinator.mjs",
+    "phase": "admission",
+    "runId": "FRESH_ROOT_RUN_ID",
+    "nodeArgs": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256"
+    ]
+  },
+  "outerCommand": {
+    "node": {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "nodeArgs": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256"
+    ],
+    "entry": {
+      "path": "launch.mjs",
+      "bytes": 2584,
+      "mode": 420,
+      "sha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed",
+      "role": "successor-source"
+    },
+    "argv": [
+      "admission",
+      "FRESH_ROOT_RUN_ID",
+      "ABSOLUTE_AUTH_JSON",
+      "EXACT_AUTH_JSON_SHA256"
+    ]
+  },
+  "innerCommand": {
+    "entry": {
+      "path": "coordinator.mjs",
+      "bytes": 1769,
+      "mode": 420,
+      "sha256": "92a63edc9bfd79daea0e5f3eef82f2e5c133affec8b7a4ea055a5f33cdd86074",
+      "role": "successor-source"
+    },
+    "argv": [
+      "admission",
+      "FRESH_ROOT_RUN_ID",
+      "ABSOLUTE_AUTH_JSON",
+      "EXACT_AUTH_JSON_SHA256"
+    ],
+    "stdio": [
+      "ignore",
+      "pipe",
+      "pipe",
+      "pipe"
+    ]
+  },
+  "executableBindings": [
+    {
+      "path": "body.mjs",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "fbdf10dc97fc309de06fef9278a74de23915376f90e4b46a88825d26a4c58eb3",
+      "role": "successor-source"
+    },
+    {
+      "path": "production.mjs",
+      "bytes": 4131,
+      "mode": 420,
+      "sha256": "663cff7f5d4ba5ca4a4c5dc53e9cd4aed9f34aabefcb6d8803fbf4c5ca8c5fc9",
+      "role": "successor-source"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 10997,
+      "mode": 420,
+      "sha256": "49b94d72285c0e3d60189819d0f718e8efd470ec0837b3ba9d32d9fef37c13a4",
+      "role": "successor-source"
+    },
+    {
+      "path": "synthetic-worker.mjs",
+      "bytes": 5635,
+      "mode": 420,
+      "sha256": "51f3830fa149b4b3226d9b1fe2b50d7b73dec20c883af51277211e8711c053af",
+      "role": "successor-source"
+    },
+    {
+      "path": "bootstrap.mjs",
+      "bytes": 5261,
+      "mode": 420,
+      "sha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+      "role": "successor-source"
+    },
+    {
+      "path": "authorization.mjs",
+      "bytes": 5367,
+      "mode": 420,
+      "sha256": "bf0c0d1dc58a634606c16911b7ffd82ef0259ac963463bd1020f9796ecca1bd1",
+      "role": "successor-source"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec",
+      "role": "successor-source"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "5910c8b742ce0b57451cbdf08ee721afa384eccff1dbc71f53d9e1b6a488fb71",
+      "role": "successor-source"
+    },
+    {
+      "path": "launch-ledger.mjs",
+      "bytes": 80,
+      "mode": 420,
+      "sha256": "4857ce2b799954ea33d98b355d0484aea37c4e285f3fe4c2136e919e29022328",
+      "role": "successor-source"
+    },
+    {
+      "path": "outer.mjs",
+      "bytes": 75,
+      "mode": 420,
+      "sha256": "2d739c3ab9b689ce97eaa7bf0b9893b1c1430576768c67028e5624190accfa5a",
+      "role": "successor-source"
+    },
+    {
+      "path": "report.mjs",
+      "bytes": 88,
+      "mode": 420,
+      "sha256": "e45e2e75c8d7c69331407218d8d30b16c15089ca8caf98cd08923342b0271d39",
+      "role": "successor-source"
+    },
+    {
+      "path": "records.mjs",
+      "bytes": 96,
+      "mode": 420,
+      "sha256": "8c304936a0cf3c6285c8febf8231016f908d00137ac8b75359a21c0d93600726",
+      "role": "successor-source"
+    },
+    {
+      "path": "evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db",
+      "role": "successor-source"
+    },
+    {
+      "path": "transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2",
+      "role": "successor-source"
+    },
+    {
+      "path": "schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed",
+      "role": "successor-source"
+    }
+  ],
+  "authorization": {
+    "inputKeys": [
+      "review",
+      "grant"
+    ],
+    "referenceKeys": [
+      "commit",
+      "path",
+      "sha256"
+    ],
+    "inputPath": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/runs/ROOT_GRANT_NAMESPACE/AUTH.json",
+    "inputMaxBytes": 65536,
+    "inputMode": 420,
+    "grantRequired": {
+      "role": "root",
+      "phase": "admission",
+      "attempts": 1,
+      "runId": "FRESH_ROOT_RUN_ID",
+      "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/runs/FRESH_ROOT_RUN_ID",
+      "recipeSha256": "FINAL_SEAL_SHA256",
+      "reviewSha256": "EXACT_POSITIVE_DIFFERENT_REVIEW_SHA256",
+      "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+      "bootstrapProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "reportProtocol": "BOUNDED_TERMINAL_V2",
+      "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "command": {
+        "entry": "coordinator.mjs",
+        "phase": "admission",
+        "runId": "FRESH_ROOT_RUN_ID",
+        "nodeArgs": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256"
+        ]
+      }
+    },
+    "reviewRequired": {
+      "role": "different-reviewer",
+      "verdict": "PREEXECUTION_ACCEPTED",
+      "recipeSha256": "FINAL_SEAL_SHA256"
+    },
+    "actualGitChildrenSeparatelyAccounted": true
+  },
+  "outputs": {
+    "body": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/runs/FRESH_ROOT_RUN_ID",
+    "collector": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/runs/FRESH_ROOT_RUN_ID-supervision",
+    "bodyBudget": 260046848,
+    "collectorBudget": 8388608,
+    "combinedBudget": 268435456,
+    "perRecordBytes": 262144,
+    "logicalDocumentBytes": 33554432,
+    "configAndStagedBytes": 2097152,
+    "stdoutBytes": 65536,
+    "stderrBytes": 65536,
+    "metadataStreamBytes": 262144,
+    "instructionPlaintextAllowed": false
+  },
+  "lifecycle": {
+    "workersPlanned": 14,
+    "workerCap": 27,
+    "concurrency": 1,
+    "C11EmptySetups": 2,
+    "semanticCalls": 0,
+    "childOldSpaceMiB": 256,
+    "childMs": 30000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "outerCheckedMs": 4500000,
+    "heapIsNotRSS": true,
+    "notHardPreemption": true
+  },
+  "acceptance": [
+    "default production assessTerminal true",
+    "ADMISSION_ACCEPTED",
+    "unsafe false",
+    "all PASS",
+    "all actual exit/close and reaping",
+    "natural outer exit zero, no truncation/signals/failures",
+    "all closure/projection/load/asset/C11 predicates",
+    "postintegrity and full registered evidence census"
+  ],
+  "exclusions": [
+    "No existing grant authorizes V7",
+    "No actual engine or C11 executed by synthetic tests",
+    "W07 comparator nonexecution remains UNQUALIFIED and UNCREDITED",
+    "Separate 99 semantic authorization required",
+    "No native/private/network/capability-equivalence/caller-authentication/full-gate claims"
+  ],
+  "composition": {
+    "originalPreseal": "0036d968",
+    "originalEvidence": "d180c3e4",
+    "originalResult": "31/33 unchanged",
+    "actualQualifiedOriginalFamilies": 31,
+    "focusedContinuation": "G08-r1 source-only and B16-r1 post-capture data; no old run replay",
+    "sourceSemanticDelta": {
+      "path": "DELTA.json",
+      "bytes": 6135,
+      "mode": 420,
+      "sha256": "c9e1071e983db8f801fdade822fe16368e850325b84f888765fd3fd4c131c966",
+      "role": "successor-source"
+    },
+    "unchangedOriginalNamespacesAuthenticated": true
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "role": "FUNCTIONAL_BUILD_SOURCE_PROPOSAL_SEAL_NOT_EXECUTION_GRANT",
+  "status": "PROPOSAL_ONLY_BUILD_HELD",
+  "allFutureFamilies": "10_UNRUN",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7761,
+      "sha256": "fa55647a5ed846653f0e059dbd06196016c655c1de08d26cbdf20a687a312546",
+      "role": "DESIGN_DOCUMENT"
+    },
+    {
+      "path": "EXECUTION-PROPOSAL.md",
+      "bytes": 10488,
+      "sha256": "a12b393d9cb4d51fdd5814590241090670bfe110c04c5712db352f508421283a",
+      "role": "DESIGN_DOCUMENT"
+    },
+    {
+      "path": "PROPOSAL.json",
+      "bytes": 7944,
+      "sha256": "009d551a88789f5412f81637f114a689f1040a6fe1ce6420088eab6ee3db352b",
+      "role": "SOURCE_DATA_MANIFEST"
+    },
+    {
+      "path": "FUTURE-MATRIX.json",
+      "bytes": 3480,
+      "sha256": "85f68bdf84d45cc2a4c07587c561ad4b8b247eca91f9c55804750dc7f06022b6",
+      "role": "SOURCE_DATA_MANIFEST"
+    },
+    {
+      "path": "SOURCE-BINDINGS.json",
+      "bytes": 10164,
+      "sha256": "7aa4a10b072e8c4727d81e74f0b0483feb0eb0df5d2d1bd8357af7af4ad042bd",
+      "role": "SOURCE_DATA_MANIFEST"
+    },
+    {
+      "path": "HOST-TOOLS.json",
+      "bytes": 22041,
+      "sha256": "daa8a4476f54022edaaf5b5adb016a38d9d5b115b17dfd51ef9c7f90f80fc771",
+      "role": "SOURCE_DATA_MANIFEST"
+    },
+    {
+      "path": "SOURCE-AUDIT.json.gz.base64.data",
+      "bytes": 311509,
+      "sha256": "4b97c0d5a5d978067c5bccca8761c32f6d94378db369d520e0f3a11cafcca848",
+      "role": "COMPRESSED_SOURCE_READ_EVIDENCE"
+    },
+    {
+      "path": "AUDIT.md",
+      "bytes": 2400,
+      "sha256": "dc973be9ae361f145e9b660296c29b0e3ab7fc6d761049815b090a6ffe112153",
+      "role": "DESIGN_DOCUMENT"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 46,
+      "sha256": "2ecbb34a65c2e93235c511365cd5a7eec7abfbae93c5d520cffe6dcb7c88916f",
+      "role": "LOCAL_RAW_CAPTURE_CLASSIFICATION"
+    }
+  ],
+  "sourceInventory": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+  "oldP2Unchanged": true,
+  "noActualBuild": true
+}

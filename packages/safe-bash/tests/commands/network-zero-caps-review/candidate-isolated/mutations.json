@@ -1,0 +1,112 @@
+{
+  "mutations": 7,
+  "detected": 7,
+  "executions": 14,
+  "receipts": [
+    {
+      "mutation": "reject-zero-constructor",
+      "detected": true,
+      "fixture": "redirect-307-zero-upload-true",
+      "directAndShellFailures": [
+        {
+          "name": "direct/redirect-307-zero-upload-true",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ RangeError: mutation rejects zero constructor\n+     at Object.change (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutations.mjs:7:31)\n+     at Object.createCurlCommand (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutations.mjs:24:71)\n+     at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:127:36)\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n+     at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)\n+     at async runMutations (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutations.mjs:27:20)"
+        },
+        {
+          "name": "shell/redirect-307-zero-upload-true",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ RangeError: mutation rejects zero constructor\n+     at Object.change (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutations.mjs:7:31)\n+     at Object.networkCommands (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutations.mjs:25:67)\n+     at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:135:50)\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n+     at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)\n+     at async runMutations (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutations.mjs:27:20)"
+        }
+      ]
+    },
+    {
+      "mutation": "raise-zero-redirect-to-one",
+      "detected": true,
+      "fixture": "redirect-307-zero-upload-true",
+      "directAndShellFailures": [
+        {
+          "name": "direct/redirect-307-zero-upload-true",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 47\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:150:12)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)\n    at async runMutations (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutations.mjs:27:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutation-entry.mjs:7:17"
+        },
+        {
+          "name": "shell/redirect-307-zero-upload-true",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 47\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:150:12)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)\n    at async runMutations (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutations.mjs:27:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/mutation-entry.mjs:7:17"
+        }
+      ]
+    },
+    {
+      "mutation": "raise-zero-retry-to-one",
+      "detected": true,
+      "fixture": "retry-503-zero-normal-upload-true",
+      "directAndShellFailures": [
+        {
+          "name": "direct/retry-503-zero-normal-upload-true",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n28 !== 0\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:150:12)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        },
+        {
+          "name": "shell/retry-503-zero-normal-upload-true",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n28 !== 0\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:150:12)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        }
+      ]
+    },
+    {
+      "mutation": "blanket-refuse-positive-redirect",
+      "detected": true,
+      "fixture": "redirect-308-one-independent",
+      "directAndShellFailures": [
+        {
+          "name": "direct/redirect-308-one-independent",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n47 !== 0\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:150:12)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        },
+        {
+          "name": "shell/redirect-308-one-independent",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n47 !== 0\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:150:12)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        }
+      ]
+    },
+    {
+      "mutation": "blanket-refuse-positive-retry",
+      "detected": true,
+      "fixture": "retry-429-one-independent",
+      "directAndShellFailures": [
+        {
+          "name": "direct/retry-429-one-independent",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n429 !== 200\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:158:14)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        },
+        {
+          "name": "shell/retry-429-one-independent",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n429 !== 200\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:158:14)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        }
+      ]
+    },
+    {
+      "mutation": "ignore-initial-authorization",
+      "detected": true,
+      "fixture": "initial-denial",
+      "directAndShellFailures": [
+        {
+          "name": "direct/initial-denial",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 7\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:150:12)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        },
+        {
+          "name": "shell/initial-denial",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 7\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:150:12)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        }
+      ]
+    },
+    {
+      "mutation": "omit-response-disposal",
+      "detected": true,
+      "fixture": "zero-no-follow-initial-body",
+      "directAndShellFailures": [
+        {
+          "name": "direct/zero-no-follow-initial-body",
+          "error": "AssertionError [ERR_ASSERTION]: response disposal count\n\n0 !== 1\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:163:10)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        },
+        {
+          "name": "shell/zero-no-follow-initial-body",
+          "error": "AssertionError [ERR_ASSERTION]: response disposal count\n\n0 !== 1\n\n    at runCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:163:10)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at listOnTimeout (node:internal/timers:547:9)\n    at process.processTimers (node:internal/timers:521:7)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:12:48)\n    at async runSuite (file:///Users/kjopek/Workspace/safe-bash/tests/commands/network-zero-caps-review/.scratch-0Hb7sa/moved/consumer/runtime.mjs:42:5)"
+        }
+      ]
+    }
+  ]
+}

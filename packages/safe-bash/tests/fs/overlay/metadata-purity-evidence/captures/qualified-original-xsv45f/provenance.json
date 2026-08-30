@@ -1,0 +1,19 @@
+{
+  "startedAt": "2026-08-27T18:14:14.521Z",
+  "head": "0abce3946ed6d677d8cf29bf2a1dc74937986ddd",
+  "status": "M tests/integration/full-gate-20260827/consumer-inventory-73/run.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/du/functional-v1/.gitignore\n?? tests/commands/du/functional-v1/capture-native.mjs\n?? tests/commands/du/functional-v1/check.mjs\n?? tests/commands/du/functional-v1/environment.test.ts\n?? tests/commands/du/functional-v1/evidence/checks-v1-0B5YqE/\n?? tests/commands/du/functional-v1/evidence/native-v1-9HXVCz/\n?? tests/commands/du/functional-v1/native-cases.ts\n?? tests/commands/du/functional-v1/native-observations.json\n?? tests/commands/du/functional-v1/native.test.ts\n?? tests/commands/du/functional-v1/tsconfig.build.json\n?? tests/commands/du/functional-v1/tsconfig.json\n?? tests/commands/du/functional-v1/verify-built.mjs\n?? tests/commands/du/overlay-purity.test.ts\n?? tests/commands/expr-stress/extension-review/after-abort-fix/replay/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/overlay/metadata-purity-evidence/capture.mjs\n?? tests/fs/overlay/metadata-purity-evidence/captures/\n?? tests/fs/overlay/metadata-purity.test.ts\n?? tests/integration/full-gate-20260827/candidate-profile-73/",
+  "label": "qualified-original",
+  "selection": "strict",
+  "runtime": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-metadata-purity-1i1FfD",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "uv": "1.51.0",
+  "typescript": "5.9.3",
+  "entries": [
+    "tests/fs/overlay/metadata-purity.test.ts",
+    "tests/commands/du/overlay-purity.test.ts"
+  ],
+  "driverSha256": "6b460bcb16addea0de71aa03b85e41bac5242da551bc2adad7959f53262d9ce5",
+  "profile": "isolated source-import snapshot, installed tooling symlink, no shared dist/build/dependency installation; author only"
+}

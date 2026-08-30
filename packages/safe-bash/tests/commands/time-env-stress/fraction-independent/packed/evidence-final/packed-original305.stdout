@@ -1,0 +1,103 @@
+{"name":"Apple BSD printenv separate profile","category":"Apple-BSD-observed-not-target","expected":{"status":0,"stdoutHex":"0a","stderrHex":""},"actual":{"status":0,"stdoutHex":"0ae99baa0a","stderrHex":""},"result":"fail","error":{"name":"AssertionError","message":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n","stack":"AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n\n    at file:///private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer/original305.mjs:251:16\n    at async row (file:///private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer/original305.mjs:33:9)\n    at async file:///private/tmp/safe-bash-fraction-independent-packed-3n2Cyg/consumer/original305.mjs:245:5"}}
+{
+  "public-api": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "GNU9.7-Darwin-required-date": {
+    "total": 239,
+    "pass": 239,
+    "fail": 0
+  },
+  "required-date-errors": {
+    "total": 8,
+    "pass": 8,
+    "fail": 0
+  },
+  "required-declared-rejection": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "clock": {
+    "total": 12,
+    "pass": 12,
+    "fail": 0
+  },
+  "clock-vfs": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "GNU9.7-Darwin-printenv": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "printenv-own-keys": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "sleep-arithmetic": {
+    "total": 6,
+    "pass": 6,
+    "fail": 0
+  },
+  "sleep-lifecycle": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "GNU9.7-Darwin-sleep": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "declared-unsupported-profile": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "Apple-BSD-qualified-date": {
+    "total": 3,
+    "pass": 3,
+    "fail": 0
+  },
+  "Apple-BSD-observed-not-target": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  },
+  "Apple-BSD-qualified": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "public-shell": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "public-sleep-lifecycle": {
+    "total": 7,
+    "pass": 7,
+    "fail": 0
+  },
+  "public-sleep-isolation": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "limits-output": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "host-isolation": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0
+  }
+}

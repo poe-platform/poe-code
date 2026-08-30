@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: H01 three generations retain original provenance across rank upgrades
+ok 1 - H01 three generations retain original provenance across rank upgrades
+  ---
+  duration_ms: 1.368292
+  type: 'test'
+  ...
+# Subtest: H02 closed child is stable while open ancestor upgrades
+ok 2 - H02 closed child is stable while open ancestor upgrades
+  ---
+  duration_ms: 0.261583
+  type: 'test'
+  ...
+# Subtest: H03 sibling reports are targeted, exact and non-poisoning for seven reason classes
+ok 3 - H03 sibling reports are targeted, exact and non-poisoning for seven reason classes
+  ---
+  duration_ms: 1.2775
+  type: 'test'
+  ...
+# Subtest: H04 fanout records multiple exact failures without skipping later subscribers
+ok 4 - H04 fanout records multiple exact failures without skipping later subscribers
+  ---
+  duration_ms: 0.224
+  type: 'test'
+  ...
+# Subtest: H04b detaching one later subscriber does not skip unrelated admitted subscribers
+ok 5 - H04b detaching one later subscriber does not skip unrelated admitted subscribers
+  ---
+  duration_ms: 0.080542
+  type: 'test'
+  ...
+# Subtest: H05 borrowed variants allocate no cancellation resources and cannot close parent
+ok 6 - H05 borrowed variants allocate no cancellation resources and cannot close parent
+  ---
+  duration_ms: 0.116042
+  type: 'test'
+  ...
+# Subtest: H06 admission prioritizes original ancestors and stable closed failure over getter
+ok 7 - H06 admission prioritizes original ancestors and stable closed failure over getter
+  ---
+  duration_ms: 0.181792
+  type: 'test'
+  ...
+# Subtest: H07 original control delivery survives invoke selection and root has final priority
+ok 8 - H07 original control delivery survives invoke selection and root has final priority
+  ---
+  duration_ms: 0.398167
+  type: 'test'
+  ...
+# Subtest: H07b admission uses first delivered control rather than configured array order
+ok 9 - H07b admission uses first delivered control rather than configured array order
+  ---
+  duration_ms: 0.114541
+  type: 'test'
+  ...
+# Subtest: H08 capacity and depth denial precede listeners; explicit release restores capacity
+ok 10 - H08 capacity and depth denial precede listeners; explicit release restores capacity
+  ---
+  duration_ms: 0.207625
+  type: 'test'
+  ...
+# Subtest: H09 failed initialization rolls back acquired root listeners and child subscription
+ok 11 - H09 failed initialization rolls back acquired root listeners and child subscription
+  ---
+  duration_ms: 0.137709
+  type: 'test'
+  ...
+# Subtest: H10 reentrant close records in-flight failure and detaches untriggered resources
+ok 12 - H10 reentrant close records in-flight failure and detaches untriggered resources
+  ---
+  duration_ms: 0.096708
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 71.099834

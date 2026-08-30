@@ -1,0 +1,19 @@
+{
+  "id": "F29",
+  "expected": "Actual ten-second deadline retires stub timer by TERM, closes0, retains NATURAL_DEADLINE and naturalfalse.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.933Z",
+  "finished": "2026-08-28T15:01:12.938Z",
+  "detail": {
+    "natural": false,
+    "failures": [
+      {
+        "code": "NATURAL_DEADLINE"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "reaped": true
+  }
+}

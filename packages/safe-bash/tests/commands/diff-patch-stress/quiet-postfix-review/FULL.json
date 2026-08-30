@@ -1,0 +1,131 @@
+{
+  "cohorts": [
+    {
+      "name": "revised",
+      "totals": {
+        "tests": 3758,
+        "pass": 3758,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "rawAggregateExitCode": 0
+    },
+    {
+      "name": "original-current-replay",
+      "totals": {
+        "tests": 3758,
+        "pass": 3750,
+        "fail": 8,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "rawAggregateExitCode": 1
+    }
+  ],
+  "unchangedTestNames": true,
+  "original70HashesUnchanged": true,
+  "original237HashesUnchanged": true,
+  "revisedDelta": [
+    {
+      "name": "quoted-path security: quoted ancestor symlink",
+      "file": "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+      "originalFileSha256": "cca653100a9d18de485e26ed8ed33c2b820cbb6c60ffbdf2b741efa537c40d75",
+      "revisedFileSha256": "6e9efa710d489ad09226e1aeacc973f103c49c4d2de983c00272731968f44c96",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  assert.equal(result.status, 2, result.stderr.toString());\n  assert.deepEqual(result.stdout, Buffer.alloc(0));\n  assert.deepEqual(await fileBytes(filesystem, Object.keys(files)), expectedBytes(files));\n  assert.deepEqual(await filesystem.lstat(linkPath), originalLink);",
+      "afterAssertions": "  assert.equal(result.status, name === \"quoted ancestor symlink\" ? 0 : 2, result.stderr.toString());\n  assert.deepEqual(result.stdout, name === \"quoted ancestor symlink\" ? Buffer.from(\"patching file first\\npatching file target\\n\") : Buffer.alloc(0));\n  assert.deepEqual(await fileBytes(filesystem, Object.keys(files)), expectedBytes(name === \"quoted ancestor symlink\" ? { ...files, first: \"new\\n\", target: \"new\\n\" } : files));\n  assert.deepEqual(await filesystem.lstat(linkPath), originalLink);",
+      "proofRecordSha256": "1b62c3dc79c978dc6f0bc37744daee937e0bb61f133ecfaa56d01c2a4a097857"
+    },
+    {
+      "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+      "file": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+      "originalFileSha256": "18d204a74b8c8783eb807859e3a1f10d7fa7f2fea8c6387f71a7deedcf27ff0f",
+      "revisedFileSha256": "d30d2188f408ac65653a3523fb079d9718763c9966476005e6fcbad9329ac4c5",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  assert.equal(result.exitCode, 2, result.stderr);\n  assert.equal(await contents(filesystem, \"first\"), \"keep\\n\");",
+      "afterAssertions": "  assert.equal(result.exitCode, name === \"backward-second-hunk\" ? 1 : 2, result.stderr);\n  assert.equal(await contents(filesystem, \"first\"), \"keep\\n\");",
+      "proofRecordSha256": "ae3376f4b4abb8c0c729513bf19ffef8f294772901571afe9b627ce9df169199"
+    },
+    {
+      "name": "GNU default: normal/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "f07822f9060165692c6c555b10f6d541992434ee47fc3b58ad1fbad958f40745"
+    },
+    {
+      "name": "GNU default: normal/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "9084d97b002514d70eaf8310b69e2a62743ca913b264a4eb679c1c85fe888a48"
+    },
+    {
+      "name": "GNU default: context/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "1a8c8c44ac598f4a700d17132cf81aef3958c1ef3d4916f0de16711c806c4fa7"
+    },
+    {
+      "name": "GNU default: context/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "78cb9449bbd06c8b2c8e2301145aa3ec266ecda14e920cc47bc3e672982c4ee9"
+    },
+    {
+      "name": "GNU default: unified/-E/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "20aa1459db7b0905ca1af713dd804a6682c25217288859f8c0ea0f845c1bfdd3"
+    },
+    {
+      "name": "GNU default: unified/--remove-empty-files/apply",
+      "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+      "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+      "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+      "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+      "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+      "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+      "proofRecordSha256": "fef5535ce11b8969da885e44ff7e46c434b7490c128309dc7bc810338efecd76"
+    }
+  ],
+  "pinsStable": true,
+  "historicalOriginal": {
+    "tests": 3758,
+    "pass": 3750,
+    "fail": 8
+  },
+  "historicalRevised": {
+    "tests": 3758,
+    "pass": 3758,
+    "fail": 0
+  },
+  "sgidResolution": false,
+  "unsupportedRemoteUnchanged": "S3/WebDAV ENOTSUP remains safe refusal, not support",
+  "overlayOutsideContractUnchanged": {
+    "pass": 0,
+    "fail": 3,
+    "rerun": false
+  }
+}

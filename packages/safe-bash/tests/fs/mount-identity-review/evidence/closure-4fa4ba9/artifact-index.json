@@ -1,0 +1,157 @@
+{
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/current-global-types.json",
+      "sha256": "ae7d7c5b9ee2113eabe7a5beddfd7a977b88f891ef1c9196de15d135bb1d82a6"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/diagnostics8.json",
+      "sha256": "4567d2815fc2d2b43f12e4287afd20630e17b5f15184b492170be093c24ff53d"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/final-state.json",
+      "sha256": "40b802bbe7bf1be7d89b9aa5b288cb4b442a12b7bacd085fe71e45e304789de5"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-contract-edges.json",
+      "sha256": "9b1a20f318f45e01b010e1fcffef69de118d40a86afc58cb6aa6064eddbe5e7c"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-fs-types.json",
+      "sha256": "1ebd6a8d6ec1fa0c6f566b8162ffe4df0f682967bcbe6d485313a0f0ae330357"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-independent19.json",
+      "sha256": "db9257c8fc7b23799b9c52d4ed05b1b51b0b04202454d76d12f326e61dbd64fe"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-native12.json",
+      "sha256": "6beaeed19b39978c5b094ab914b8a515a87bea823d3c4d4c6dc2eccca2779bd4"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-original4.json",
+      "sha256": "cfb139a14a48b81fafa1a54ca6354ac3a62c73014751211c1913158bfbf49527"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-own-types.json",
+      "sha256": "83f4e2fe082df9fda775ac81f2bf5dbd3edc1a1c9c29b35e5b64b4d185f76fb2"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fixed-required49.json",
+      "sha256": "5c6f0c16b10ba1ba9860bc9f2dc05e0d2623a2a54f673dd8e37126e486a6b669"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-conformance.json",
+      "sha256": "d345747161f854a9fe2655be055b999e9ece42350439659ef00ad9d99ca8d12b"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-memory.json",
+      "sha256": "0d743f51cfe41653a746494763f0fcba730400f91292287ca6f104e42a133869"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-mount.json",
+      "sha256": "fa76e163acbe4b9722b3dd9e0db3f535fffb7be448805fa3816cc57684953437"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-overlay.json",
+      "sha256": "47d9f27fbdaef55628f8634399ab4286fb02c1bba163caf19fbe39b14fd5e137"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-readonly.json",
+      "sha256": "25c4609ad508cfe1113130967e58de429475561752cd2c2cdf924cc2dabfc4de"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-real.json",
+      "sha256": "02260532d17ca37e0b51eadf3a795afbb02f2af4806589c3eaba10103648f030"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-s3.json",
+      "sha256": "47b3a4f6ad549b614afdb66ef88bf8118993896f4a5a4415848b376edb7a52dc"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/fs-webdav.json",
+      "sha256": "80b7b4bdf0cbee708b8c15a6e18c3ee079e8249fe6add070143887ba6a92530c"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-generic-delegation-before-unknown-guard.json",
+      "sha256": "20c59a75a3428763784355727ccbf6446273d1aaad4e9094eecc5355fa069b22"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-missing-target-exclusive-removed.json",
+      "sha256": "3a6583c500bec41764f62dc0cc3f76105910187ffd3716c1b2b36c3ce1377dbd"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-mount-alias-guard-removed.json",
+      "sha256": "e11efb80087a1a8eb80fef930483737a4eb9a138a53e85170102207787464066"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-native-scope-per-instance.json",
+      "sha256": "f3429c22064a05173deac00861733984bd2232edfa2e76f4bbd603c36e86579a"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-overlay-scope-forwarding-removed.json",
+      "sha256": "9ad6a2e0fe87aef65b89e2a0dc68b4c4e8d672c555e81d29625bfbd4412b8911"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-readonly-scope-forwarding-removed.json",
+      "sha256": "482cf4ea72087cdf279dc69412c657bcf4290e09edeedc81a615b49087814933"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutant-unknown-identity-guard-removed.json",
+      "sha256": "5fadde8297e869a0a06377a726462a3ff3b12a4b3e6623c64e5d787cd5e185bd"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutation-effects.json",
+      "sha256": "343cf2aa9e4e2c566621d8269b151dc16d3e73926419a51f0d2e6a9d9f47dc55"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/mutation-provenance.json",
+      "sha256": "d4657755a293b60a9cd5f70004fcb72b4e23a61a10842c385f60026a4e78d323"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/previous-original4.json",
+      "sha256": "3801821f8fee56c8eeaf0b80bac429fb071b69461cafa88884b61d068affcdba"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/previous-required49.json",
+      "sha256": "8662cfd5f1927a389d4156d323e7b811ccc1d77d6d6cf683e56b506ee1aaa7d0"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/provenance.json",
+      "sha256": "e550a052371990118081d3daec3c95b4c5b91c3af9c1b77b80dcfd21064f43d2"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/restored-independent-and-edges.json",
+      "sha256": "ce75170da5ad66264e5582a77b5a4752f67c5186d2ab5ea3b2e59f15c0ef8457"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/revised-matrix79.json",
+      "sha256": "aabd836fbf73e71657fa97f35acae8b41aee65922a5ddf74d08ca7f24f28610a"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-adapters.json",
+      "sha256": "526d1bd1e22b6af401b0cf43cfa50a3d1804e162b53e959d5ce90880a8ae94b1"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-remote24.json",
+      "sha256": "64655f3d188c6df1f9baa8e1f2bbd34ba31d1813f0b59b215acc82bba7252280"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-s3-bounded.json",
+      "sha256": "04784ecef96469559a0a708d738d416fcbe3f90b370b6ab6de385a44f1dfaad8"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/safety-s3-policy.json",
+      "sha256": "59a0bf0f44d7abed9504e5af76b6a9bc5a815035ac675b54d2961128fb1b4e9f"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/socket-path-recheck.json",
+      "sha256": "8316f202e7fec9987fc4f03254c3db7d179a5696c8a5213392409e7697bf6d2e"
+    },
+    {
+      "path": "tests/fs/mount-identity-review/evidence/closure-4fa4ba9/summary.json",
+      "sha256": "48bac8ee69d5570675f8b43f8f5267f9fffdf6813acba722a5f1e09ca65aaa89"
+    }
+  ]
+}

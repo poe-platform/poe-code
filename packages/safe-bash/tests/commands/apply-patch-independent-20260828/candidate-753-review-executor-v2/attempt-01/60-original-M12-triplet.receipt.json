@@ -1,0 +1,53 @@
+{
+  "id": "original-M12-triplet",
+  "role": "original-mutant",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/variants/M12-before",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/variants/M12-mutant",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/variants/M12-restored",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer/fixtures-original-M12-triplet",
+    "--max-old-space-size=256",
+    "--no-warnings",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer/job-original-M12-triplet.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/source-consumer",
+  "env": {
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/home",
+    "NO_COLOR": "1",
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/tmp",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "timeoutMs": 30000,
+  "maxCombinedBytes": 2097152,
+  "pid": 6870,
+  "closeObserved": true,
+  "absent": true,
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": {
+    "path": "60-original-M12-triplet.stdout.raw",
+    "bytes": 260516,
+    "sha256": "3b8e1fd08fc50e0c218fce1ab5133e928bc78de8388bd26f52fe2a263dc1a887",
+    "mode": 384,
+    "observedBytes": 260516,
+    "lostBytes": 0
+  },
+  "stderr": {
+    "path": "60-original-M12-triplet.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 384,
+    "observedBytes": 0,
+    "lostBytes": 0
+  }
+}

@@ -1,0 +1,9 @@
+[
+  {
+    "phase": "publication-evidence-inventory",
+    "error": "NONREGULAR",
+    "cause": "Known empty S14 budget-control directory was passed to regular-file hash helper; guard refused before content read",
+    "action": "Verified exact owned directory type and emptiness; removed using rmdir; no test/source replay or guard relaxation",
+    "controlResultsUnchanged": true
+  }
+]

@@ -1,0 +1,9 @@
+{"specifier":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","parentURL":null,"url":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs"}
+{"specifier":"node:assert/strict","parentURL":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","url":"node:assert/strict"}
+{"specifier":"node:events","parentURL":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","url":"node:events"}
+{"specifier":"node:fs/promises","parentURL":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","url":"node:fs/promises"}
+{"specifier":"node:crypto","parentURL":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","url":"node:crypto"}
+{"specifier":"node:timers/promises","parentURL":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","url":"node:timers/promises"}
+{"specifier":"node:url","parentURL":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","url":"node:url"}
+{"specifier":"./semantic-controls.mjs","parentURL":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","url":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/semantic-controls.mjs"}
+{"specifier":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/consumer/virtual-bash/dist/shell/getopts.js","parentURL":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/review-harness.mjs","url":"file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-capture-01/consumer/virtual-bash/dist/shell/getopts.js"}

@@ -1,0 +1,38 @@
+{
+  "label": "r0-adapted-five",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern=pipeline close: first-read-(?!head-zero)",
+    "tests/shell/adapted-remote-close.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-Bl8HzL/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T09:49:18.293Z",
+  "finishedAt": "2026-08-27T09:49:19.451Z",
+  "durationMs": 1158.331083,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 86025,
+  "initialIdentity": "86025 85998 86025 Thu Aug 27 04:49:18 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-name-pattern=pipeline close: first-read-(?!head-zero) tests/shell/adapted-remote-close.test.ts",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "TAP version 13\n# Subtest: hard-deadline pipeline close: first-read-local\nok 1 - hard-deadline pipeline close: first-read-local\n  ---\n  duration_ms: 200.836417\n  type: 'test'\n  ...\n# {\"scenario\":\"first-read-local\",\"pid\":86029,\"status\":0,\"signal\":null,\"timedOut\":false,\"oversized\":false,\"residual\":false,\"stdout\":\"first-read-local: passed\\\\n{\\\\\"scenario\\\\\":\\\\\"first-read-local\\\\\",\\\\\"active\\\\\":0,\\\\\"reads\\\\\":1,\\\\\"returned\\\\\":1,\\\\\"writes\\\\\":0,\\\\\"stageAborted\\\\\":false,\\\\\"operationAborted\\\\\":true,\\\\\"abortedBeforeTeardown\\\\\":false,\\\\\"events\\\\\":[\\\\\"source.next:pending-before-first-byte\\\\\",\\\\\"command.settled:head:0\\\\\",\\\\\"source.finally\\\\\",\\\\\"command.settled:pending-stream:141\\\\\",\\\\\"command.settled:true:0\\\\\"]}\\\\n\",\"stderr\":\"\"}\n# Subtest: hard-deadline pipeline close: first-read-s3\nok 2 - hard-deadline pipeline close: first-read-s3\n  ---\n  duration_ms: 198.683458\n  type: 'test'\n  ...\n# {\"scenario\":\"first-read-s3\",\"pid\":86031,\"status\":0,\"signal\":null,\"timedOut\":false,\"oversized\":false,\"residual\":false,\"stdout\":\"first-read-s3: passed\\\\n{\\\\\"scenario\\\\\":\\\\\"first-read-s3\\\\\",\\\\\"active\\\\\":0,\\\\\"reads\\\\\":1,\\\\\"returned\\\\\":1,\\\\\"writes\\\\\":0,\\\\\"stageAborted\\\\\":false,\\\\\"operationAborted\\\\\":true,\\\\\"abortedBeforeTeardown\\\\\":false,\\\\\"events\\\\\":[\\\\\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\\\\\",\\\\\"op:S3.headObject:input:callerAborted=false:signal=live\\\\\",\\\\\"op:S3.headObject:input/:callerAborted=false:signal=live\\\\\",\\\\\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\\\\\",\\\\\"op:S3.getObjectStream:input:callerAborted=false:signal=live\\\\\",\\\\\"source.next:pending-before-first-byte\\\\\",\\\\\"command.settled:head:0\\\\\",\\\\\"transport.signal.abort:S3.listObjectsV2:list\\\\\",\\\\\"transport.signal.abort:S3.getObjectStream:input\\\\\",\\\\\"source.finally\\\\\",\\\\\"command.settled:cat:141\\\\\",\\\\\"command.settled:true:0\\\\\"]}\\\\n\",\"stderr\":\"\"}\n# Subtest: hard-deadline pipeline close: first-read-webdav\nok 3 - hard-deadline pipeline close: first-read-webdav\n  ---\n  duration_ms: 208.908\n  type: 'test'\n  ...\n# {\"scenario\":\"first-read-webdav\",\"pid\":86033,\"status\":0,\"signal\":null,\"timedOut\":false,\"oversized\":false,\"residual\":false,\"stdout\":\"first-read-webdav: passed\\\\n{\\\\\"scenario\\\\\":\\\\\"first-read-webdav\\\\\",\\\\\"active\\\\\":0,\\\\\"reads\\\\\":1,\\\\\"returned\\\\\":1,\\\\\"writes\\\\\":0,\\\\\"stageAborted\\\\\":false,\\\\\"operationAborted\\\\\":true,\\\\\"abortedBeforeTeardown\\\\\":false,\\\\\"events\\\\\":[\\\\\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\\\\\",\\\\\"http.socket.open\\\\\",\\\\\"http.request:PROPFIND:/dav/input\\\\\",\\\\\"http.response.close:PROPFIND:finished=true\\\\\",\\\\\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\\\\\",\\\\\"http.socket.open\\\\\",\\\\\"http.request:GET:/dav/input\\\\\",\\\\\"http.GET:pending-before-first-byte\\\\\",\\\\\"command.settled:head:0\\\\\",\\\\\"transport.signal.abort:DAV.PROPFIND:/dav/input\\\\\",\\\\\"transport.signal.abort:DAV.GET:/dav/input\\\\\",\\\\\"command.settled:cat:141\\\\\",\\\\\"command.settled:true:0\\\\\",\\\\\"http.request.aborted:GET\\\\\",\\\\\"http.socket.close\\\\\",\\\\\"http.response.close:GET:finished=false\\\\\",\\\\\"http.socket.open\\\\\"]}\\\\n\",\"stderr\":\"\"}\n# Subtest: hard-deadline pipeline close: first-read-curl-body\nok 4 - hard-deadline pipeline close: first-read-curl-body\n  ---\n  duration_ms: 199.355542\n  type: 'test'\n  ...\n# {\"scenario\":\"first-read-curl-body\",\"pid\":86035,\"status\":0,\"signal\":null,\"timedOut\":false,\"oversized\":false,\"residual\":false,\"stdout\":\"first-read-curl-body: passed\\\\n{\\\\\"scenario\\\\\":\\\\\"first-read-curl-body\\\\\",\\\\\"active\\\\\":0,\\\\\"reads\\\\\":1,\\\\\"returned\\\\\":1,\\\\\"writes\\\\\":0,\\\\\"stageAborted\\\\\":false,\\\\\"operationAborted\\\\\":true,\\\\\"abortedBeforeTeardown\\\\\":false,\\\\\"events\\\\\":[\\\\\"http.socket.open\\\\\",\\\\\"http.request:GET:/dav/input\\\\\",\\\\\"http.GET:pending-before-first-byte\\\\\",\\\\\"command.settled:head:0\\\\\",\\\\\"command.settled:curl:141\\\\\",\\\\\"command.settled:true:0\\\\\",\\\\\"http.request.aborted:GET\\\\\",\\\\\"http.socket.close\\\\\",\\\\\"http.response.close:GET:finished=false\\\\\"]}\\\\n\",\"stderr\":\"\"}\n# Subtest: hard-deadline pipeline close: first-read-curl-headers\nok 5 - hard-deadline pipeline close: first-read-curl-headers\n  ---\n  duration_ms: 206.129875\n  type: 'test'\n  ...\n# {\"scenario\":\"first-read-curl-headers\",\"pid\":86037,\"status\":0,\"signal\":null,\"timedOut\":false,\"oversized\":false,\"residual\":false,\"stdout\":\"first-read-curl-headers: passed\\\\n{\\\\\"scenario\\\\\":\\\\\"first-read-curl-headers\\\\\",\\\\\"active\\\\\":0,\\\\\"reads\\\\\":1,\\\\\"returned\\\\\":1,\\\\\"writes\\\\\":0,\\\\\"stageAborted\\\\\":false,\\\\\"operationAborted\\\\\":true,\\\\\"abortedBeforeTeardown\\\\\":false,\\\\\"events\\\\\":[\\\\\"http.socket.open\\\\\",\\\\\"http.request:GET:/dav/input\\\\\",\\\\\"http.GET:pending-before-first-byte\\\\\",\\\\\"command.settled:head:0\\\\\",\\\\\"command.settled:curl:141\\\\\",\\\\\"command.settled:true:0\\\\\",\\\\\"http.request.aborted:GET\\\\\",\\\\\"http.socket.close\\\\\",\\\\\"http.response.close:GET:finished=false\\\\\"]}\\\\n\",\"stderr\":\"\"}\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1122.253917\n",
+  "stderr": ""
+}

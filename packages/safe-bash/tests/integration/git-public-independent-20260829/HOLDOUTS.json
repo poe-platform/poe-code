@@ -1,0 +1,23 @@
+{
+  "schema": "git-public-independent-holdout-families-v1",
+  "status": "PREPARATION_ONLY_NOT_EXECUTABLE_OR_PASSED",
+  "expectedBytesStillRequireFreeze": true,
+  "layouts": ["source-build", "offline-installed", "physically-moved"],
+  "cases": [
+    {"id":"I01","purpose":"Default inventory is the literal authenticated old79 plus only git; absent optional/default-node/npm/npx distinctions remain."},
+    {"id":"I02","purpose":"Root/subpath factories and plugin are callable through actual package exports; public declarations agree, not a source-relative fallback."},
+    {"id":"I03","purpose":"Standalone Git plugin works without aggregate; duplicate registration rejects; explicit top-level replacement works and nested aggregate replacement cannot bypass it."},
+    {"id":"I04","purpose":"discoveryBoundary changes repository discovery only; unknown/numeric cap overrides reject without mutation; all24 accepted module constants remain byte-bound."},
+    {"id":"I05","purpose":"Loose neutral repository: root Git status/log/show/ls-files and raw blob bytes through real virtual-shell pipelines; exact fixture expectations frozen independently."},
+    {"id":"I06","purpose":"Packed neutral repository including accepted OFS/REF delta fixtures: public routes yield the same independently specified logical objects without native Git execution."},
+    {"id":"I07","purpose":"apply_patch modifies a tracked virtual worktree file; Git status/diff detects exact effect while object/index bytes stay unchanged."},
+    {"id":"I08","purpose":"Shell arrays preserve a literal path with spaces and option-looking text into Git argv; quoting and -- behavior use accepted parser semantics."},
+    {"id":"I09","purpose":"Readonly wrapper permits inspection and rejects a surrounding attempted mutation; Git itself performs no write, including error paths."},
+    {"id":"I10","purpose":"Middleware observes public Git argv/cwd/ByteIO routing and exact dispatch count without changing repository content or inventing host authority."},
+    {"id":"I11","purpose":"Corrupt/missing packed and loose metadata returns the specified non-success result, never a false clean status; ordinary stderr/status and Shell rejection boundaries remain distinct."},
+    {"id":"I12","purpose":"Output failure/abort closes owned shell scopes with exact reason and no retry; lifecycle credit limited to actual observable registrations, not private native allocation."}
+  ],
+  "nativeOracleRuns": 0,
+  "candidateExecutions": 0,
+  "membershipQualification": "Twelve bounded preparation families, not twelve fully specified runnable cases or semantic passes. Exact input/output bytes and conditional cleanup criteria must be committed before execution."
+}

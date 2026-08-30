@@ -1,0 +1,483 @@
+{
+  "schema": 1,
+  "kind": "B8_EXECUTOR_CORE_SOURCE_SEAL",
+  "date": "2026-08-28",
+  "state": "CONCRETE_SOURCE_STATICSEAL_EXECUTION_DENIED",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "sourceCommit": "REQUIRED_FROM_OUT_OF_BAND_ATOMIC_COMMIT_HANDOFF_NOT_A_COMPOSITE_CANDIDATE",
+  "interface": {
+    "commit": "9d582d791336fd66d865f6592b830c39a359d344",
+    "path": "../CORE-INTERFACE.json",
+    "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+    "role": "FROZEN_ABI_REFERENCE_NOT_RUNTIME_IMPORT"
+  },
+  "peer": {
+    "commit": "c0353685540288d504b93f206735fe4c448268ef",
+    "sha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+    "seal": "../workers/FINAL-SEAL.json"
+  },
+  "files": {
+    "CAPTURE-AND-TOPOLOGY.json": {
+      "sha256": "4eb66c5227d7a9c3bca83b57711a93310ed5aed92dbd52942534aa69f9543cb8",
+      "bytes": 3414,
+      "mode": 420,
+      "kind": "file",
+      "role": "PROTOCOL_OR_STATIC_EVIDENCE"
+    },
+    "FROZEN-COMPONENTS.json": {
+      "sha256": "ff7cb0e02488d78af186bacce4774f057d3591d5ec0a598e0dd3388fbeb4844a",
+      "bytes": 5739,
+      "mode": 420,
+      "kind": "file",
+      "role": "PROTOCOL_OR_STATIC_EVIDENCE"
+    },
+    "INTERFACE-ADAPTER.json": {
+      "sha256": "3d1ddee6aa3b97031329f7ed15a129538b19ae361571efd18fb67111460734f5",
+      "bytes": 3736,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "PREPARATION-LOG.md": {
+      "sha256": "dfa9e7ec32427c45f22e7cf6c9beba0601f58df46185ab9bda13b2064332a546",
+      "bytes": 2176,
+      "mode": 420,
+      "kind": "file",
+      "role": "PROTOCOL_OR_STATIC_EVIDENCE"
+    },
+    "PROTOCOL.md": {
+      "sha256": "5f7100d2717f295ff0a6b69fb4d2e6dcd9f578be26a73e95ddcf6eebb6099296",
+      "bytes": 15971,
+      "mode": 420,
+      "kind": "file",
+      "role": "PROTOCOL_OR_STATIC_EVIDENCE"
+    },
+    "ROOT-GO-TEMPLATE.json": {
+      "sha256": "c0199b2a48e082174af7de979146b060184e49913e1399a9c613c4b64ef79f13",
+      "bytes": 3111,
+      "mode": 420,
+      "kind": "file",
+      "role": "PROTOCOL_OR_STATIC_EVIDENCE"
+    },
+    "STATIC-CHECKS.json": {
+      "sha256": "9d6bf3e2203333c8015488b326d14fe07686272ad960f2182a6271d63e77319a",
+      "bytes": 6128,
+      "mode": 420,
+      "kind": "file",
+      "role": "PROTOCOL_OR_STATIC_EVIDENCE"
+    },
+    "TOOL-SOURCES.json": {
+      "sha256": "0927fbf7ea954b16eaf7090d80124ec710590d41b259bb8c67fc9b1eb957a102",
+      "bytes": 96836,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "admission.mjs": {
+      "sha256": "397e4fb3cc5ba84bf43717e84918512ceee28e65ef5ddd542fe329e29d74920d",
+      "bytes": 6404,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "build-stage.mjs": {
+      "sha256": "e60bc37e34bc557a2f58fd2b635c86d406eeedd14065f6bd307d2f5175390021",
+      "bytes": 7304,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "classification.mjs": {
+      "sha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c",
+      "bytes": 1107,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "cli.mjs": {
+      "sha256": "e7d3448e25589cbb951865d1aa85a5c1826e828d544a66f3e279247d1167c134",
+      "bytes": 1071,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "compose.mjs": {
+      "sha256": "a22506557b0e5c6bfe06900ae290a1567fb4aebbff7d0c3bbd45cc60258af585",
+      "bytes": 3623,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "coordinator.mjs": {
+      "sha256": "b6ca292314e703933661d571ff52038a5f9c92e4ef96960e71eedfb56ab32bc1",
+      "bytes": 3469,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "copy-tools.mjs": {
+      "sha256": "759917303322286251383e918ed85e6f3ca17959bd4e83e1f5d1597b7dfc328d",
+      "bytes": 2530,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "coverage.mjs": {
+      "sha256": "c4816093400d404c9b804e881b1b928d4c03265d843f43a8e1aacd6c5e757f2a",
+      "bytes": 1856,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "data/archiveManifest.json": {
+      "sha256": "8f20ea72dd51fd003197df1c75ee0bd6b1cc8e22fc940a5463873edccaa4a211",
+      "bytes": 47843,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/boundaryProofs.json": {
+      "sha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8",
+      "bytes": 20271,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/buildPlan.json": {
+      "sha256": "06658424848569a3d1855fa4aa8ab568505ad159c802e3829fcc60d661a048c7",
+      "bytes": 151959,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/controls.json": {
+      "sha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f",
+      "bytes": 9247,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/coverage.json": {
+      "sha256": "bc87553b6197761d1325d65c382a76d91ab04dcf2d0ff309e70105d77c4d45c1",
+      "bytes": 825,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/diagnosticCatalogue.json": {
+      "sha256": "23e2ad8497108797a64e21f5431c0c39dc669b164bf079885f58a2da13049424",
+      "bytes": 9262,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/jobs.json": {
+      "sha256": "96e72f94f0dbe57e96ec9ad6b394bd8257dda4ced130f8418bfa3a097c29bd80",
+      "bytes": 275927,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/ledger.json": {
+      "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8",
+      "bytes": 268342,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/loadedPrimitiveBindings.json": {
+      "sha256": "c35aed171d15662fff324623d6326fac0c6e6d02be165ee991376894832785c3",
+      "bytes": 1183,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/mutantPlan.json": {
+      "sha256": "97d4e4cd9827a6fa159a7cc7ffe2e66cae1ad52b44f74f9a5e2acd2319eddac2",
+      "bytes": 13771,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/obligations.json": {
+      "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3",
+      "bytes": 290553,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/origins.json": {
+      "sha256": "e7dd0e579b2469ee5d86869d3f1a839e5be38734fd679d78e196be80906323ff",
+      "bytes": 78592,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/packageManifest.json": {
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "bytes": 152021,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/phases.json": {
+      "sha256": "56bbc2b685fdb305ddbd74eef7ea1aa3c792d0965cbae9a38fd508da1525e2f8",
+      "bytes": 2047,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/runtimeJobs.json": {
+      "sha256": "c0fbd4490a171734352795a33729c5b2b6f28ec980f11752ca097f19e9b8c368",
+      "bytes": 1047583,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/sourceAuthority.json": {
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/sourceManifest.json": {
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+      "bytes": 47504,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/sourceProofPlan.json": {
+      "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+      "bytes": 13072,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "data/typePlan.json": {
+      "sha256": "649c5da87a0bde485dfc3be77ce98e4e63c00aee06ef8857bd74b7edd3e9cab8",
+      "bytes": 29633,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "frozen/CONTROL-BASES.json": {
+      "sha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+      "bytes": 8697,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "frozen/DEFERRED-CONTROLS.json": {
+      "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "bytes": 6480,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "frozen/assert-capture.mjs": {
+      "sha256": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0",
+      "bytes": 7045,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "frozen/cmd22-binding.json": {
+      "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+      "bytes": 2321,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_BOUND_DATA"
+    },
+    "frozen/cmd22-read-paths.mjs": {
+      "sha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "bytes": 2499,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "frozen/context.mjs": {
+      "sha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
+      "bytes": 5245,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "frozen/deferred-fixtures.mjs": {
+      "sha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939",
+      "bytes": 4442,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "frozen/integrity.mjs": {
+      "sha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a",
+      "bytes": 3889,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "frozen/loaded-primitive-assert.mjs": {
+      "sha256": "8fd16f41cb89b2243f08d46858e33a61ec73140f0bf5ea1ffbbc6258b6623d88",
+      "bytes": 3726,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "frozen/original-assert-capture.mjs": {
+      "sha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd",
+      "bytes": 6815,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "infrastructure-worker.mjs": {
+      "sha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a",
+      "bytes": 9628,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "loader.mjs": {
+      "sha256": "9c64aa1d79e065bc54af9f9f63ce985075215c8aae8d423b45c22181557b4065",
+      "bytes": 3691,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "materialization.mjs": {
+      "sha256": "8c164b69ed05f38c3d1d393ea0d12bfe2017aa5ad214776bdc55e2d4a33dc853",
+      "bytes": 5458,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "owned-process.mjs": {
+      "sha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+      "bytes": 5989,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "phase-capture.mjs": {
+      "sha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+      "bytes": 2230,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "primitives.mjs": {
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "semantic-worker.mjs": {
+      "sha256": "883196604d607ed53bdc8f7a13a21cc3d41bdc0eb2e8b3132d55c85a184e2bba",
+      "bytes": 786,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "source-audit-worker.mjs": {
+      "sha256": "564caff0a2c9728ee1443b3969ebc86121bce2e8aae1a6a58d49dd0d6e929c62",
+      "bytes": 1681,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "supervisor.mjs": {
+      "sha256": "77314d227ba1ce099db4f217fd5aa316a5f57fc3b23550f6f0d37452c095c19f",
+      "bytes": 22996,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "tool-bridge.mjs": {
+      "sha256": "9ceccafd78dc68f48cabde760a7e6fb5e8e6f724b3725fedf2a2b9ee2cfa0a9c",
+      "bytes": 8240,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "tool-profile.mjs": {
+      "sha256": "ee9c0db3b961af6d9b2e5cab6172c6200b8ed650f2d8554cc5a361a693900ce2",
+      "bytes": 1583,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "worker-api.mjs": {
+      "sha256": "4daffadb845d2a4abf8e89c4f91c1e72f4fefb6c858f1b87db8e673badfb271c",
+      "bytes": 14561,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    },
+    "worker-host.mjs": {
+      "sha256": "8bf56edd4b911d174d2096e0ba479c97501e9bbb26bef8f2198d42c4e1e9305b",
+      "bytes": 3029,
+      "mode": 420,
+      "kind": "file",
+      "role": "ACTIVE_EXECUTABLE"
+    }
+  },
+  "directories": {
+    "": 493,
+    "data": 493,
+    "frozen": 493
+  },
+  "membership": {
+    "self": "SOURCE-SEAL.json",
+    "selfMode": 420,
+    "selfKind": "file",
+    "selfExpectedSha256": "REQUIRED_INDEPENDENT_OUT_OF_BAND_ROOT_HASH",
+    "exactFilesIncludingSelf": 59,
+    "broadExclusions": []
+  },
+  "dataNames": [
+    "archiveManifest",
+    "boundaryProofs",
+    "buildPlan",
+    "controls",
+    "coverage",
+    "diagnosticCatalogue",
+    "jobs",
+    "ledger",
+    "loadedPrimitiveBindings",
+    "mutantPlan",
+    "obligations",
+    "origins",
+    "packageManifest",
+    "phases",
+    "runtimeJobs",
+    "sourceAuthority",
+    "sourceManifest",
+    "sourceProofPlan",
+    "typePlan"
+  ],
+  "historyModePolicy": {
+    "legacyFinalSeal": "CONTENT_ONLY_ORIGINAL_MODE_UNATTESTED",
+    "legacyModeAuthority": false,
+    "activeProjectedHistoricalComponents": "All listed current files strictly hash/size/mode/kind/membership enrolled; source origins separately bound in FROZEN-COMPONENTS.json"
+  },
+  "execution": {
+    "RootGO": false,
+    "actualImports": 0,
+    "actualBuilds": 0,
+    "actualTypeRuns": 0,
+    "actualLoaderRuns": 0,
+    "actualControls": 0,
+    "actualHarnessRuns": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "limitations": [
+    "Static author checks do not establish dynamic conformance or candidate acceptance",
+    "Physical copied tools, independent framework review, exact root expected recipe/receipt hashes and fresh explicit RootGO remain required",
+    "Current output projection capture is 2MiB, not candidate16MiB public cap proof",
+    "Four declared loaded primitive projections do not discharge original F01 full-record obligations",
+    "Unsealed foreign build or worker corrections are not consumed; later replacement requires explicit additive component composition"
+  ]
+}

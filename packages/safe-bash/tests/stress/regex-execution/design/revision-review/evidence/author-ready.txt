@@ -1,0 +1,47 @@
+{
+  "status": "READY: source and author regression/evidence frozen; no further source edits without root instruction",
+  "harnessFreeze": "960f3b909c1de34f0e525e0ce97d286a8e981003",
+  "fixCommit": "398143a253ada226340c05a8028add4df78d00ae",
+  "evidenceCommit": "80f69f978657adc447ff77adb519770f3c8b078d",
+  "baselineMarkerObservedBeforeSourceEdit": true,
+  "originalClientSha256": "6a19d72697a73ec03be929e4494a00afb87edaecdd3a43d5dfc5e624e7d202f2",
+  "sourceHashes": {
+    "tests/stress/regex-execution/design/client.ts": "f2c5512b2785f146e68f3a335afd646ab74a3fdfa2370743151a05a7827044d5",
+    "tests/stress/regex-execution/design/protocol.ts": "baa928980f6623478ebae17c768cbb5319881e840686db943d0a0267d2ff098a",
+    "tests/stress/regex-execution/design/matching.ts": "9af709988caef046f2b929ae2eaf005951cf311f2de8a24c32448b054691bef8",
+    "tests/stress/regex-execution/design/worker.ts": "39f40d5e17a64d375d7fdc9fa0cd76b74de3d701b046ae37020dd8a9f79c66a3"
+  },
+  "emittedClientSha256": "abb22e92de0cc3f2a2fea18fed63b6d5b6f7e6694cdea0f72e709129e76b4e01",
+  "buildManifest": "tests/stress/regex-execution/design/revision/evidence/build.json",
+  "buildManifestSha256": "58f3b81a5c49e12c08c93c536f2b5914ba1d6bef295d9b4e27f7a83bd9e1e346",
+  "report": "tests/stress/regex-execution/design/revision/REPORT.md",
+  "reportSha256": "10c08a593ea6d47c79b147dabd713721059b97ef2d4630c7b5aef858a16c63c8",
+  "changedExistingFiles": ["tests/stress/regex-execution/design/client.ts"],
+  "newOwnedFiles": "tests/stress/regex-execution/design/revision/** (nine frozen harness/plan/config files, REPORT.md, 39 evidence JSON files)",
+  "commandsActuallyRunOnce": [
+    "node tests/stress/regex-execution/design/revision/prepare.mjs",
+    "node --check tests/stress/regex-execution/design/revision/child.mjs",
+    "node --check tests/stress/regex-execution/design/revision/prepare.mjs",
+    "node --check tests/stress/regex-execution/design/revision/run.mjs",
+    "node --check tests/stress/regex-execution/design/revision/audit.mjs",
+    "node --check tests/stress/regex-execution/design/revision/cleanup.mjs",
+    "node tests/stress/regex-execution/design/revision/run.mjs",
+    "node tests/stress/regex-execution/design/revision/audit.mjs",
+    "node tests/stress/regex-execution/design/revision/cleanup.mjs"
+  ],
+  "validation": "16/16 new benign cases pass; 16 exact children and 16 workers cleaned; zero outer kills/retries; 177 source/compiler/type/config hashes, four emitted modules and nine frozen harness identities checked",
+  "temporaryBuild": "exact four hash-checked emitted files and empty owned directories removed; verifier must compile to its own disjoint directory, not rerun author no-overwrite evidence paths",
+  "apiDifferences": {
+    "signatures": "none; Client/Capacity/protocol unchanged",
+    "terminalExit": "idle exit automatically invokes existing idempotent awaited disposal; preserves known exit code when repeated native terminate returns undefined",
+    "streamGrouping": "each available Row flushes a one-row partial batch; batchSize still validated upper bound, no longer fill target; batch(Row[]) unchanged",
+    "workerReuse": "one worker per client, not per line; unchanged prototype request cap is consumed faster by stream",
+    "sourceOwnership": "no speculative next or race-and-forget; pending next awaited before source return; return called once and awaited after worker cleanup; primary source failure preserved over secondary return rejection",
+    "limitation": "arbitrary pending next/return cannot be forcibly interrupted; uncooperative source leaves stream operation/queued return pending until it settles, with late rejection observed. Prompt cancellation requires source honoring same signal; actual signal-aware Node PassThrough tested",
+    "capacityPolicy": "unchanged prototype only; no proposed global single-slot rejection/idle invocation pinning production policy or pool; validator/root own leasing exploration"
+  },
+  "riskLedger": { "oldArchived": 12, "authorUsed": 0, "authorMaximum": 2, "reviewerMaximum": 2, "rootReservedUnused": 2 },
+  "approvalRefusal": false,
+  "ownedWorktreeAndIndexCleanAtHandoff": true,
+  "noProductionParitySuperiorityOr72HourCompletionClaim": true
+}

@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: current binding authenticates all fourteen inputs with exactly two migrated pins
+ok 1 - current binding authenticates all fourteen inputs with exactly two migrated pins
+  ---
+  duration_ms: 2.745916
+  type: 'test'
+  ...
+# Subtest: changed driver rejected before case effects: tests/shell-stress/differential.test.ts
+ok 2 - changed driver rejected before case effects: tests/shell-stress/differential.test.ts
+  ---
+  duration_ms: 9.856667
+  type: 'test'
+  ...
+# Subtest: changed driver rejected before case effects: tests/shell-stress/current-gaps/compatibility.test.ts
+ok 3 - changed driver rejected before case effects: tests/shell-stress/current-gaps/compatibility.test.ts
+  ---
+  duration_ms: 7.653791
+  type: 'test'
+  ...
+# Subtest: historical binding replays complete authenticated historical driver bytes
+ok 4 - historical binding replays complete authenticated historical driver bytes
+  ---
+  duration_ms: 46.344959
+  type: 'test'
+  ...
+# Subtest: historical binding still rejects the migrated current drivers
+ok 5 - historical binding still rejects the migrated current drivers
+  ---
+  duration_ms: 0.62825
+  type: 'test'
+  ...
+# Subtest: unchanged fixture pin still rejects mutation
+ok 6 - unchanged fixture pin still rejects mutation
+  ---
+  duration_ms: 7.427042
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 205.943291

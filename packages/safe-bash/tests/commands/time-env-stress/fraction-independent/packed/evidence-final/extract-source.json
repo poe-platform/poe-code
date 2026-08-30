@@ -1,0 +1,42 @@
+{
+  "executable": "/usr/bin/tar",
+  "args": [
+    "-xf",
+    "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/full-committed-source.tar",
+    "-C",
+    "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg",
+  "pid": 78747,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 4435,
+  "timeoutMs": 120000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 78747,
+      "parent": 78599,
+      "group": 78747,
+      "born": "Thu Aug 27 04:05:00 2026",
+      "command": "/usr/bin/tar -xf /tmp/safe-bash-fraction-independent-packed-3n2Cyg/full-committed-source.tar -C /tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {}
+}

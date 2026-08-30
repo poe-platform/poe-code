@@ -1,0 +1,31 @@
+{
+  "schema": "B1-r4-independent-delta-preexecution-v1",
+  "decision": "ACCEPT_SCOPED_PREEXECUTION_ONLY",
+  "sourceCommit": "14be114b99bd4df2e275ee5d1f59db45bb2085d9",
+  "presealCommit": "78ea583944726028dad30e5d0146b614772cfa65",
+  "evidenceCommit": "49b640b458aa9f25748f09dde84bd4f3a18e1088",
+  "runtimePreseal": {
+    "bytes": 20804,
+    "sha256": "a7c5e284c4dedbb1726e2231a5e67b44ef960f55203706c73b79ce2e63fa8b70"
+  },
+  "publicationBinding": {
+    "bytes": 3872,
+    "sha256": "8cc5f053a7331bd7c31d73064269d2034485a0aa78b4a8c96128af2e3b0559ea"
+  },
+  "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+  "counts": {
+    "unchangedAuthorDataPass": 8,
+    "independentDataPass": 6,
+    "dataFail": 0,
+    "helperExecutions": 2,
+    "harmlessLayoutFixtures": 1,
+    "fixtureChildProcesses": 0,
+    "productCalls": 0,
+    "Workers": 0,
+    "prospectiveRuntimeCallsUnrun": 15
+  },
+  "sourceProof": "three frozen source bodies authenticated through retained StageA manifest; no production import",
+  "history": "original 8PASS/2C18FAIL/5movedUNRUN and publication78/partialRESULTUNKNOWN unchanged",
+  "closureQualification": "delta review plus inherited accepted full DATA receipts; no new nested-load or complete historical graph proof",
+  "authority": "NO_WINDOW_NO_ACTUAL_GO; fresh final-slot review and ROOT runtime authorization required"
+}

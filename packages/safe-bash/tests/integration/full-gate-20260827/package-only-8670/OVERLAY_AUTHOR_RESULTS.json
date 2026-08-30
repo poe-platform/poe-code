@@ -1,0 +1,84 @@
+{
+  "productRevision": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "verifierRevision": "c800c899114c6c83b3d3eb67231176d124abaf49",
+  "productExecutions": 0,
+  "controls": [
+    {
+      "name": "exact five frozen helper imports and reversible verifier transformation",
+      "status": "pass"
+    },
+    {
+      "name": "frozen helper and original verifier bytes untouched",
+      "status": "pass"
+    },
+    {
+      "name": "changed frozen consumer mapping refuses before driver emission",
+      "status": "pass"
+    },
+    {
+      "name": "missing frozen helper refuses",
+      "status": "pass"
+    },
+    {
+      "name": "helper symlink to same bytes refuses",
+      "status": "pass"
+    },
+    {
+      "name": "unbound helper hash refuses",
+      "status": "pass"
+    },
+    {
+      "name": "overlay cannot be staged inside frozen source",
+      "status": "pass"
+    },
+    {
+      "name": "existing overlay cannot be silently overwritten",
+      "status": "pass"
+    }
+  ],
+  "failures": [],
+  "receipt": {
+    "productRevision": "8670ebe8f0d39966c2de2638780437398e5f8490",
+    "verifierRevision": "c800c899114c6c83b3d3eb67231176d124abaf49",
+    "originalPath": "scripts/verify-current-consumers.mjs",
+    "originalSha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+    "transformedSha256": "0967ca7e642fadcc51dfbbbca5cfdc6d5f7d374d8edabd56af54feedeec4d48a",
+    "external": "/private/tmp/safe-bash-verifier-overlay-UjPVt6/positive/external/permission-tap-verifier-v2.mjs",
+    "helperBindings": [
+      {
+        "path": "tests/plugins/stream-five-public/harness.mjs",
+        "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd",
+        "specifier": "../tests/plugins/stream-five-public/harness.mjs",
+        "replacement": "file:///private/tmp/safe-bash-verifier-overlay-UjPVt6/positive/source/tests/plugins/stream-five-public/harness.mjs"
+      },
+      {
+        "path": "tests/plugins/stream-five-public/current-profile.mjs",
+        "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958",
+        "specifier": "../tests/plugins/stream-five-public/current-profile.mjs",
+        "replacement": "file:///private/tmp/safe-bash-verifier-overlay-UjPVt6/positive/source/tests/plugins/stream-five-public/current-profile.mjs"
+      },
+      {
+        "path": "tests/plugins/qualified-current-release/consumers.mjs",
+        "sha256": "79fcad55906f7d9d0d9d44423e0972104dc642ea7ea52d4954b6ce870739f7f4",
+        "specifier": "../tests/plugins/qualified-current-release/consumers.mjs",
+        "replacement": "file:///private/tmp/safe-bash-verifier-overlay-UjPVt6/positive/source/tests/plugins/qualified-current-release/consumers.mjs"
+      },
+      {
+        "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+        "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5",
+        "specifier": "../tests/plugins/qualified-current-release/runtime-coverage.mjs",
+        "replacement": "file:///private/tmp/safe-bash-verifier-overlay-UjPVt6/positive/source/tests/plugins/qualified-current-release/runtime-coverage.mjs"
+      },
+      {
+        "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+        "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508",
+        "specifier": "../tests/plugins/qualified-current-release/snapshot.mjs",
+        "replacement": "file:///private/tmp/safe-bash-verifier-overlay-UjPVt6/positive/source/tests/plugins/qualified-current-release/snapshot.mjs"
+      }
+    ],
+    "transformation": "Only five relative helper import specifiers become authenticated frozen8670 file URLs; function bodies and frozen files unchanged",
+    "driver": "/private/tmp/safe-bash-verifier-overlay-UjPVt6/positive/external/permission-tap-driver-v2.mjs",
+    "driverSha256": "523fef88095e0f2c7061cf9cbb4dadbd81ff0041335aba073997d49ca51c82f2"
+  },
+  "temporaryRemoved": true
+}

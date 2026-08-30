@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-08-27T09:19:24.283Z",
+  "verified": [
+    {
+      "directory": "",
+      "files": 285,
+      "publicationRootSha256": "645a3bc0c768987ac35cc28b3e96aee753d46397ccfad5762a494a3ce45dbc36",
+      "manifestSha256": "b2c310a6079f3aa59bebbae711e27f227882b61afb74706629e18a762553c2f6"
+    },
+    {
+      "directory": "corrections/HARN-SIGNAL-001",
+      "files": 37,
+      "publicationRootSha256": "5a816d16fc208ea52e674875c8adffd380b97bbeeebb6b4749d729dfc8488530",
+      "manifestSha256": "d761137ad4909bdfc23714d7317ea57974ee6d6e14d134fbfe14db471823110f"
+    },
+    {
+      "directory": "corrections/HARN-SIGNAL-001-v2",
+      "files": 26,
+      "publicationRootSha256": "ab56d8d344d1ecaa434f8a069392903486302e6fe3eaada23907aaf10508990d",
+      "manifestSha256": "c3c8a17f2f0cf2dc138d93d9214909b31e8cbe0d33842e1200436e59cd7a680f"
+    }
+  ],
+  "sealedArtifacts": 54,
+  "originalPreseal": "8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297",
+  "runnerPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/file/corrections/HARN-SIGNAL-001-v2/runner/v2-runner.mjs",
+  "runnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "productCalls": 0,
+  "nativeCalls": 0
+}

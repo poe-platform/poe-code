@@ -1,0 +1,9 @@
+{
+  "extends": "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tsconfig.json",
+  "include": [
+    "/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-Rsiitk/tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

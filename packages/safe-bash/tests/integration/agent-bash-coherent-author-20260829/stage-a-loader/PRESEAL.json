@@ -1,0 +1,91 @@
+{
+  "role": "TWO_HARMLESS_NODE_ENTRY_FIXTURES_ONLY",
+  "started": "2026-08-29T09:54:14.784Z",
+  "finished": "2026-08-29T09:54:17.108Z",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "inputs": [
+    {
+      "path": "outer.sh",
+      "bytes": 441,
+      "sha256": "cc3be9707c39132f2cda5cfc86c3c89e50093e80e685ba32fcc48dd815a3806d"
+    },
+    {
+      "path": "probe.mjs",
+      "bytes": 9363,
+      "sha256": "7b82360a78de23682497b0045c364b3152c1b7fcfc660da62c62255ecc5602fb"
+    },
+    {
+      "path": "PROFILE.md",
+      "bytes": 1940,
+      "sha256": "160a87d68195d6db70a5f9a5615e998ae0eb4d14a69438d578d03f7f1015858e"
+    },
+    {
+      "path": "fixture/entry.js.fixture",
+      "bytes": 40,
+      "sha256": "9dd5b814df959368c401fb5b5382314eddc3dcdc612017be3266becbf4676c05"
+    },
+    {
+      "path": "fixture/payload.js.fixture",
+      "bytes": 420,
+      "sha256": "92fac4ccd3232f185b23dcb20ef363c019aeaa71678e36d27eb9cc8974065319"
+    },
+    {
+      "path": "PRIMARY.json",
+      "bytes": 2319,
+      "sha256": "0808ccee0796eb6175caf0f78969d84ee7525c27c6c690b3f573d73385ee4fe0"
+    },
+    {
+      "path": "TOPOLOGY.json",
+      "bytes": 10843,
+      "sha256": "019334563cb23218bde40a463fa4745d3e05fa607fbec69b144c34c08de67480"
+    }
+  ],
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "stageAPresealSha256": "313ba365cb23d67187362a949087f0d264c63e5d3f776f0fc64e47f220825a2a",
+  "typescriptPackage": {
+    "path": "package.json",
+    "type": "file",
+    "mode": 420,
+    "bytes": 3620,
+    "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+  },
+  "typescriptEntry": {
+    "path": "lib/tsc.js",
+    "type": "file",
+    "mode": 420,
+    "bytes": 267,
+    "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+  },
+  "capsule": "/tmp/safe-bash-stage-a-loader-20260829-r1",
+  "fixtureEntrySha256": "9dd5b814df959368c401fb5b5382314eddc3dcdc612017be3266becbf4676c05",
+  "fixturePayloadSha256": "92fac4ccd3232f185b23dcb20ef363c019aeaa71678e36d27eb9cc8974065319",
+  "cases": [
+    {
+      "id": "L01",
+      "route": "alias",
+      "expectedStatus": 1,
+      "expectedEntry": false,
+      "expectedResource": "/tmp"
+    },
+    {
+      "id": "L02",
+      "route": "physical",
+      "expectedStatus": 0,
+      "expectedEntry": true
+    }
+  ],
+  "bounds": {
+    "cases": 2,
+    "secondsPerCase": 20,
+    "cleanupSeconds": 5,
+    "allSeconds": 300,
+    "captureBytes": 1048576,
+    "workingBytes": 16777216
+  },
+  "noTypeScriptImport": true,
+  "noProductOrPack": true
+}

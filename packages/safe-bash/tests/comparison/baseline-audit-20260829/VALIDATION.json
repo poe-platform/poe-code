@@ -1,0 +1,261 @@
+{
+  "schema": "source-data-audit-validation-v1",
+  "status": "SOURCE_METADATA_AUDIT_COMPLETE_NOT_RUNTIME_ADMISSION",
+  "presealCommit": "47810329",
+  "presealSha256": "cdff5499b564d4e62b574e14c0184da865e98e9c4da742e6e66588d4011282ab",
+  "startedAt": "2026-08-29T01:19:18.695Z",
+  "completedAt": "2026-08-29T01:30:39.652Z",
+  "elapsedMilliseconds": 680957,
+  "checks": [
+    {
+      "id": "version_and_dist_tag",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "most_recent_publication",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "old_latest_exact_record",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "published_integrity_statement_match",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "immutable_source_commit_and_version",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "source_dependency_metadata",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "all30_fetched_source_blobs",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "four_original_manifest_bindings",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "exact_committed_cases",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "31_unique24_workflows7_controls",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "14_requested_tool_rows",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "local_postguards",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "bounded_http_fetches",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "id": "finite_check_elapsed",
+      "pass": true,
+      "kind": "DATA_SOURCE_NOT_RUNTIME"
+    }
+  ],
+  "additionalOutputChecks": {
+    "exactOwnedSixFileCensusBeforeFinalReceipts": true,
+    "allJsonParsed": true,
+    "allRegularFiles": true,
+    "allBelowIndividualCap": true,
+    "selectedLocalInputsFinalRechecked": 7
+  },
+  "counts": {
+    "inertSourceDataChecks": 14,
+    "passed": 14,
+    "failed": 0,
+    "sourceBlobBindings": 30,
+    "officialByteBoundedHttpResponses": 37,
+    "officialHttpBodyBytes": 1819787,
+    "supplementaryWebToolLookups": 10,
+    "priorityRowsMapped": 31,
+    "positiveWorkflowDefinitions": 24,
+    "controlDefinitions": 7,
+    "runtimeRowsExecuted": 0,
+    "productLoads": 0,
+    "comparatorLoads": 0,
+    "nativeOracles": 0,
+    "packageTarballBytes": 0,
+    "installs": 0,
+    "privateAccesses": 0,
+    "guestEvaluations": 0
+  },
+  "processAccounting": {
+    "directSupervisedChildrenSoFar": 6,
+    "directSupervisedAllClosed": true,
+    "directPeak": 1,
+    "initialShellToolInvocations": 2,
+    "initialShellCommands": "Instruction read: shell+cat. Preseal: shell+git status+apply_patch. Both tool calls completed successfully; raw PIDs not exposed by tool.",
+    "plannedPublicationChildren": 4,
+    "conservativeAllOwnedProcessCharge": 23,
+    "chargeExplanation": "8 reserved for the two initial shell command trees; 10 directly supervised Git/apply_patch processes total including final publication; 4 reserved internal Git/editor helpers; 1 metadata REPL kernel. Sequential child launches; conservative peak4. This is a conservative tooling envelope, not an independently sampled OS-process census. No benchmark or engine child exists.",
+    "maximum": 24,
+    "peakMaximum": 4,
+    "cleanup": "All so-far directly supervised children emitted close with exit0/no signal; no temporary fixture trees, workers, timers left by these child helpers. Persistent host-provided REPL remains a tooling session, not a product resource."
+  },
+  "budgets": {
+    "localMillisecondsMaximum": 900000,
+    "captureBytesMaximum": 67108864,
+    "workBytesMaximum": 268435456,
+    "ownedFileBytesBeforeFinalReceipts": 106630,
+    "directToolCapturedBytesSoFar": 48161,
+    "sourceResponseBodyMaximum": 614236,
+    "qualification": "Explicit file/HTTP/data bytes, not RSS. Web service internals and terminal rendering are not local raw HTTP capture. No hard preemption claim."
+  },
+  "toolReceipts": [
+    {
+      "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "add",
+        "--",
+        "tests/comparison/baseline-audit-20260829/PRESEAL.json"
+      ],
+      "startedAt": "2026-08-29T01:19:18.503Z",
+      "pid": 48033,
+      "exitCode": 0,
+      "signal": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T01:19:18.545Z",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "commit",
+        "--only",
+        "-m",
+        "test: preseal bounded primary-source comparator baseline audit",
+        "--",
+        "tests/comparison/baseline-audit-20260829/PRESEAL.json"
+      ],
+      "startedAt": "2026-08-29T01:19:18.546Z",
+      "pid": 48034,
+      "exitCode": 0,
+      "signal": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T01:19:18.695Z",
+      "stdoutBytes": 187,
+      "stdoutSha256": "c852d2d40891b620a0649e3c5f8ab15f5ba6eed9801b7754c25e58fa6bfe4fe1",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "log",
+        "-1",
+        "--format=%H",
+        "--",
+        "tests/integration/priority-command-workflows-20260828/CASES.json"
+      ],
+      "startedAt": "2026-08-29T01:21:33.457Z",
+      "pid": 48584,
+      "exitCode": 0,
+      "signal": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T01:21:33.611Z",
+      "stdoutBytes": 41,
+      "stdoutSha256": "25d351e7a91478edc74b208f910a7bd16c6693d29218bfeabcedfd757b0d4718",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "show",
+        "5d432becbe385eb323c10feecfa5e982bfd3b099:tests/integration/priority-command-workflows-20260828/CASES.json"
+      ],
+      "startedAt": "2026-08-29T01:23:13.811Z",
+      "pid": 49026,
+      "exitCode": 0,
+      "signal": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T01:23:13.828Z",
+      "stdoutBytes": 47429,
+      "stdoutSha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tool": "apply_patch",
+      "startedAt": "2026-08-29T01:29:49.424Z",
+      "inputBytes": 105595,
+      "inputSha256": "4afbb0b989e5c52160e960381bb698bd791e8c4e6144aaa2406ada24a991fb58",
+      "paths": [
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/baseline-audit-20260829/BASELINE.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/baseline-audit-20260829/CAPABILITIES.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/baseline-audit-20260829/WORKFLOW-MAP.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/baseline-audit-20260829/SOURCE-RECEIPTS.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/baseline-audit-20260829/README.md"
+      ],
+      "pid": 51471,
+      "exitCode": 0,
+      "signal": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T01:29:49.441Z",
+      "stdoutBytes": 504,
+      "stdoutSha256": "5858d3a88f493a84595581305d2e1b8c6ba10e38b0c403c4c3a1fa338c36aeb3",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "diff",
+        "--check",
+        "--",
+        "tests/comparison/baseline-audit-20260829"
+      ],
+      "startedAt": "2026-08-29T01:29:49.441Z",
+      "pid": 51472,
+      "exitCode": 0,
+      "signal": null,
+      "closed": true,
+      "finishedAt": "2026-08-29T01:29:49.465Z",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "preparationFailures": [
+    {
+      "phase": "report-draft",
+      "error": "[6:20-6:26]: Illegal Unicode escape sequence",
+      "cause": "Reviewer template-string quoting error",
+      "effects": "Parser rejected the REPL cell before any file write or child launch; not a comparator/product failure. Draft corrected, no metadata/cohort rerun."
+    }
+  ],
+  "prohibitedActions": "NONE; no comparator/product/native/private/package evaluation or held-track execution",
+  "scope": "Selected-source and DATA audit only; no whole-checkout or full dependency admission claim"
+}

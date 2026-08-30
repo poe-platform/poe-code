@@ -1,0 +1,188 @@
+{
+  "method": "Each listed committed artifact byte-compared to its current path; manifests retain their own raw-row/native/history coverage. No original/final cohort or native replay, no foreign payload copies.",
+  "peerHistoryCommit": "2070378359e479e7b589d46705d4275181ae0ad2",
+  "treeEvidenceCommit": "a31b7c36eef00c41763875c863a559594049f13f",
+  "fileEvidenceCommit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+  "references": [
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/README.md",
+      "bytes": 4454,
+      "sha256": "c5c54b03e899d489d428ecedb4ba2e1db73a0a7212aefe542d707e315b5a571c"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/CURRENT-HANDOFF.md",
+      "bytes": 3534,
+      "sha256": "537ff1fe4657d4897f172774bcade6209fd033b3273be3b9edc9e44188bd6a62"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/PRESEAL-MANIFEST.json",
+      "bytes": 1117,
+      "sha256": "6e1bb778ab9a3678b00a48f87dcecfdd23b191c92fbd179da018df150e4603c6"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/EVIDENCE-MANIFEST.json",
+      "bytes": 61426,
+      "sha256": "66ecd953ee0959f249387b3eab9f7d9f20afa32eca36bb123a82810187997b01"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/EXTERNAL-ARTIFACTS.json",
+      "bytes": 3689,
+      "sha256": "09ef1ac5ccce26567bf4606c492a9e9f3fcdac9f5f8b8cad411bbbc1c51c4a26"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/EXTERNAL-ARTIFACTS.md",
+      "bytes": 4780,
+      "sha256": "7092114bb8944d868c298d3744269515ecc7d0c3f5bed76c3c71a642bc3f5fb5"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/evidence/initial/initial-results.json",
+      "bytes": 41857,
+      "sha256": "a1cde249bbe1fa2e9a8f049d848a28d12741a3305c0865056d956dba6ff04498"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/initial-results.json",
+      "bytes": 41939,
+      "sha256": "c682156302cb2a077962c6d9ca0c6be5ee914dc5c657bcb7176ba71b20907b99"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/analysis.json",
+      "bytes": 80225,
+      "sha256": "d575979a0adfc1c445d47448513621930d3c43f4f378aa2d03c8556fe6f83746"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/FINAL-MANIFEST.json",
+      "bytes": 67315,
+      "sha256": "f5d0e4c69a0c7d797e77b0af89a6cc471ce4f39496a747a56d0d682597839d7b"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/FINAL-RECEIPT.json",
+      "bytes": 1375,
+      "sha256": "24bdcd1d829a2d112cefae87a83a292c3c9b9850255ad017dbf798bd0d4d51e8"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/README.md",
+      "bytes": 3065,
+      "sha256": "e3e7263f0db1204fd80347487475b1cfcdddf5534dc1d5145afeb3884ad0fa7f"
+    },
+    {
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "path": "tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/final-replay-detail.txt",
+      "bytes": 8928,
+      "sha256": "6505e2ee7645b2f190f2716b8958980a46a75b8bca9c3ad25a88c9efdd5bdbbd"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/README.md",
+      "bytes": 3154,
+      "sha256": "10e1a5837f9dbc5afe4e5a3a20cd144e39f86e51e82ea03f56a0ca73193dba85"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/PRESEAL.json",
+      "bytes": 9536,
+      "sha256": "bdfe9d72d3bbe2734dadd3f75993fb8098e0721cf74b651b0dee9c246d55163a"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/REPORT.md",
+      "bytes": 7323,
+      "sha256": "4fadbc24d03ea46028b0f2a787613269d761379b8c3319b2a7947e9c5b98aebc"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/evidence/summary.json",
+      "bytes": 13207,
+      "sha256": "75adba94dd37d5c1bc331a1aa9a6f3e9c5bd87b621317802c70d0dae4f872dd1"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/commit-seal/FILES.json",
+      "bytes": 152249,
+      "sha256": "b75c303e98902f1c937e976bfa587308e223e3261f0227c9e33f7a99921857e0"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/final-candidate-cd37ce07-ready/PUBLICATION.json",
+      "bytes": 4504,
+      "sha256": "3316496cb25382766ccdda41ddbf851aaa4af1cf3f880524c20e6795ee69bd7e"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/final-candidate-cd37ce07-execute/README.md",
+      "bytes": 8493,
+      "sha256": "22b9ffe6fc7c9d825a06af220413506cc724ae33fd08d978567e3a24097257d9"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/final-candidate-cd37ce07-execute/evidence/final-summary.json",
+      "bytes": 3807,
+      "sha256": "e39390bfc1beb76e84dd68cab325803720d5ebac0b38fb1f1fcbfd5088a7798a"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/final-candidate-cd37ce07-execute/evidence/final-run.json",
+      "bytes": 12558,
+      "sha256": "66841ff1a256fa724d4581f6ce983158899eff2d70621e95400c7816f7becb27"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/final-candidate-cd37ce07-execute/evidence/final-content-comparisons.json",
+      "bytes": 99369,
+      "sha256": "ebf791797d6fb81c1023032729b0d65857caeab15cfa98d10c252dc1ca88297c"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/final-candidate-cd37ce07-execute/evidence/final-native-differences.json",
+      "bytes": 30309,
+      "sha256": "504b6b90c29cfdaca1dc1feb64f4f2f9ba262429a7aa73396541b2dda9db714b"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/final-candidate-cd37ce07-execute/evidence/final-lifecycle.json",
+      "bytes": 3776,
+      "sha256": "f310816871dcb174f9243544f60f5ac3e4f569ec6d8d1021245b5054ac8f6d15"
+    },
+    {
+      "commit": "ddd01cda4dd460f0da7be9cc9d091ff6febbc7e9",
+      "path": "tests/commands/filesystem-inspection-stress/file/final-candidate-cd37ce07-execute/evidence/execution-postflight.json",
+      "bytes": 1259,
+      "sha256": "e85586ae393996f5dd2a581b62517244fdfca30a95f2b8d83d22c286dc09b052"
+    },
+    {
+      "commit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+      "path": "tests/commands/tree/SORT-TEXT.md",
+      "bytes": 8734,
+      "sha256": "9348b0ddaf4a1ad2247e7f79634ac5d7c07f6c552b3ec24fe2d6b0d5d89e18ad"
+    },
+    {
+      "commit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+      "path": "tests/commands/tree/sort-text-source-manifest.json",
+      "bytes": 17578,
+      "sha256": "3b5aa67eed07a8f6bfd53007070d6cc2de304598db24fff6caf80c3d864822c4"
+    },
+    {
+      "commit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+      "path": "tests/commands/file/TEXT_BOUND_PROFILE.md",
+      "bytes": 5493,
+      "sha256": "ae71619a03f07dd66ceb88ce778f22b2edd1264bf2f3ae3e2550b51e0987d21b"
+    },
+    {
+      "commit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+      "path": "tests/commands/file/NATIVE_PROFILE.md",
+      "bytes": 6624,
+      "sha256": "af3c091fd975a1f12b6fde489de20aa4c5ab641ced8ead3a224fb32a0beeec01"
+    }
+  ]
+}

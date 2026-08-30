@@ -1,0 +1,17 @@
+{
+  "started": "2026-08-27T21:31:56.988Z",
+  "finished": "2026-08-27T21:32:00.418Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/build.json",
+    "--skipLibCheck",
+    "false"
+  ],
+  "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

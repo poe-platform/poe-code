@@ -1,0 +1,84 @@
+{
+  "classification": "OBSERVATIONS ONLY: not adjudication or required-support acceptance",
+  "permissions": false,
+  "observations": [
+    {
+      "name": "explicit mode0600 creation",
+      "resolved": true,
+      "result": null,
+      "operations": [
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "putObject"
+      ]
+    },
+    {
+      "name": "fresh instance mode stat",
+      "resolved": true,
+      "result": {
+        "mode": 384,
+        "bytes": [
+          0,
+          255,
+          17
+        ]
+      },
+      "operations": [
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "getObject"
+      ]
+    },
+    {
+      "name": "chmod unsupported",
+      "resolved": false,
+      "typedFsError": true,
+      "code": "ENOTSUP",
+      "path": "/mode",
+      "operations": []
+    },
+    {
+      "name": "file X_OK formerly masked by creation failure",
+      "resolved": false,
+      "typedFsError": true,
+      "code": "EACCES",
+      "path": "/mode",
+      "operations": [
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2"
+      ]
+    },
+    {
+      "name": "explicit directory mode0700",
+      "resolved": true,
+      "result": null,
+      "operations": [
+        "listObjectsV2",
+        "headObject",
+        "headObject",
+        "listObjectsV2",
+        "putObject"
+      ]
+    },
+    {
+      "name": "directory X_OK",
+      "resolved": true,
+      "result": null,
+      "operations": [
+        "listObjectsV2",
+        "headObject",
+        "headObject"
+      ]
+    }
+  ]
+}

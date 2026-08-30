@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "phaseBudgetMs": 24165000,
+  "outerSlots": 336,
+  "profiles": {
+    "source-built-direct": 149,
+    "installed-moved-direct": 149
+  },
+  "installedUnmovedRuntimeJobs": 0,
+  "compilerMaximum": 18,
+  "processTopology": {
+    "supervisor": 1,
+    "coordinator": 1,
+    "activeOuter": 1,
+    "activeNestedTool": 1,
+    "peak": 4,
+    "nativeGuestChildren": 0,
+    "trackedKnownGroupsOnly": true,
+    "escapedDescendantsProof": false
+  },
+  "capture": {
+    "workerStreamsCombined": 16777216,
+    "eachWorkerStreamMaximum": 16777216,
+    "compilerStreamsCombined": 8388608,
+    "eachCompilerStreamMaximum": 8388608,
+    "aggregateJobCaptureMetadataAndRaw": 33554432,
+    "parentPhaseBytesReserved": 4194304,
+    "parentPhaseEvents": 4096,
+    "ipcMessageBytes": 262144,
+    "ipcMessagesPerOuter": 2048,
+    "metadataFileBytes": 16777216,
+    "fixtureCombinedOutputBytes": 2097152,
+    "fixtureEvents": 20000,
+    "candidateDeclaredCombinedOutputCap": 16777216,
+    "candidateDeclaredStdoutCap": 16773120,
+    "largestFrozenInputBytes": 400007,
+    "largestFrozenFileBytes": 6,
+    "scope": "Unchanged149 projection context capture is narrower than public/private output cap. Overflow is explicitly a harness failure with retained raw prefix, never public-cap proof or automatic product bug. Full quota/at-C/masked obligations remain their declared UNRUN/source roles.",
+    "storage": "Raw process streams spool to exclusive binary files while read; no stdout JSON receipt parser. IPC results are compact and bound; command captures are exclusive files before assertions."
+  },
+  "disk": {
+    "logicalBytesMaximum": 25769803776,
+    "reservation": 24964497408,
+    "reservationFormula": "336*32MiB combined raw/metadata +180*64MiB retained package copies +512MiB copied tools +512MiB source/archive/build auxiliary trees +512MiB supervisor/other fixed data =23.25GiB <=24GiB",
+    "actualPackageBytes": 4370796,
+    "actualToolsBytes": 146740654,
+    "copyLimit": 180,
+    "treeBytes": 67108864,
+    "treeEntries": 4096,
+    "fileBytes": 16777216,
+    "toolFileBytes": 134217728,
+    "toolTreeBytes": 536870912,
+    "perJobInspectionBytes": 268435456,
+    "qualification": "Harness-owned writes/reservations and exact expected compiler outputs are bounded. This is not an OS filesystem quota, physical allocation/block accounting, hard RSS cap or promise against opaque/malicious host code."
+  },
+  "memory": {
+    "hashScratchBytes": 65536,
+    "notes": "Raw stream spools avoid aggregate stdout buffers. Frozen in-child fixture retains2MiB bytes, hex roughly doubles them, and metadata is independently bounded. Node/TypeScript runtime heap, native zlib and OS scheduling are not hard-RSS/preemption guarantees."
+  },
+  "timing": {
+    "cleanupInsideCaps": true,
+    "termGraceMs": 1000,
+    "killReapRemainingMs": 4000,
+    "semanticInvocationMs": 30000,
+    "sourceSetupAdmissionMs": 5000,
+    "movedSetupAdmissionMs": 40000,
+    "sourceSlotMs": 45000,
+    "movedAndLoadedSlotMs": 90000,
+    "firstAuthReservation": "Original supervisor origin, not a later now+120s reset",
+    "phaseCap": "min(global,t0+cumulativeCutoff,actualPhaseStart+phaseCap)",
+    "slotCap": "min(phase,global,reservation+slotCap)",
+    "opaqueHostQualification": "A stalled host can delay timers or synchronous filesystem calls; late completion is failure, not extra execution authority."
+  },
+  "executionNow": false
+}

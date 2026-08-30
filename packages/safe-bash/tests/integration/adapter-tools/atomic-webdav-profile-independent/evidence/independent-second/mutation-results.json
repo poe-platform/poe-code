@@ -1,0 +1,242 @@
+[
+  {
+    "name": "lost-capability",
+    "environment": true,
+    "inputSha256": "dac7dd55f9d2c2e7eef2db66ee9e87ace883dae9c812522264a6b284c5471187",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 12,
+      "fail": 15,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: configured public shell removes only exact encoded target /target",
+      "hidden: configured public shell removes only exact encoded target /space name",
+      "hidden: configured public shell removes only exact encoded target /snow-雪",
+      "hidden: configured public shell removes only exact encoded target /percent%2Fname",
+      "hidden: configured public shell removes only exact encoded target /hash\\#name",
+      "hidden: rmdir existing deep child preserves exact namespace",
+      "hidden: rm -d existing deep child preserves exact namespace",
+      "hidden: rmdir late deep child preserves exact namespace",
+      "hidden: rm -d late deep child preserves exact namespace",
+      "hidden: corrupt operation receipt errors after effect without rollback or fallback",
+      "hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback",
+      "hidden: corrupt path receipt errors after effect without rollback or fallback",
+      "hidden: corrupt outcome receipt errors after effect without rollback or fallback",
+      "hidden: actual mount contract, not fabricated capabilities",
+      "hidden: mount forwards late-child refusal and preserves sibling mount prefix"
+    ]
+  },
+  {
+    "name": "ignore-nonempty",
+    "from": "if (entry.startsWith(`${path}/`))\n                    fail(\"ENOTEMPTY\");",
+    "to": "if (false)\n                    fail(\"ENOTEMPTY\");",
+    "inputSha256": "a7784983412e375df63c8b9f4c0acd4cccf1c3883058fff664808ca484ac3455",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 22,
+      "fail": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: rmdir existing deep child preserves exact namespace",
+      "hidden: rm -d existing deep child preserves exact namespace",
+      "hidden: rmdir late deep child preserves exact namespace",
+      "hidden: rm -d late deep child preserves exact namespace",
+      "hidden: mount forwards late-child refusal and preserves sibling mount prefix"
+    ]
+  },
+  {
+    "name": "recursive-child-deletion",
+    "from": "if (entry.startsWith(`${path}/`))\n                    fail(\"ENOTEMPTY\");",
+    "to": "if (entry.startsWith(`${path}/`))\n                    backing.files.delete(entry);",
+    "inputSha256": "2280647092629b113b8a9520dc7f0c2bf20201c672f5fb7c1a649d820b4f8b79",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 22,
+      "fail": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: rmdir existing deep child preserves exact namespace",
+      "hidden: rm -d existing deep child preserves exact namespace",
+      "hidden: rmdir late deep child preserves exact namespace",
+      "hidden: rm -d late deep child preserves exact namespace",
+      "hidden: mount forwards late-child refusal and preserves sibling mount prefix"
+    ]
+  },
+  {
+    "name": "recursive-http-delete",
+    "from": "if (!backing.files.delete(path))",
+    "to": "await backing.fetch(`${namespaceUrl}${path.slice(1)}/`, { method: \"DELETE\" });\n            if (!true)",
+    "inputSha256": "c9aec0db29ce9db4f290530c91c2d94b7284ba8ffd14618931a53f8aaab281da",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 15,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: direct helper mutates actual backing synchronously, exactly one entry",
+      "hidden: configured public shell removes only exact encoded target /target",
+      "hidden: configured public shell removes only exact encoded target /space name",
+      "hidden: configured public shell removes only exact encoded target /snow-雪",
+      "hidden: configured public shell removes only exact encoded target /percent%2Fname",
+      "hidden: configured public shell removes only exact encoded target /hash\\#name",
+      "hidden: corrupt operation receipt errors after effect without rollback or fallback",
+      "hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback",
+      "hidden: corrupt path receipt errors after effect without rollback or fallback",
+      "hidden: corrupt outcome receipt errors after effect without rollback or fallback",
+      "hidden: lock ancestors and descendants block; expired and prefix siblings do not",
+      "hidden: actual mount contract, not fabricated capabilities"
+    ]
+  },
+  {
+    "name": "yield-before-delete",
+    "from": "if (!backing.files.delete(path))",
+    "to": "await Promise.resolve();\n            if (!backing.files.delete(path))",
+    "inputSha256": "c85542d51233b4f939af765e5bf0c161c7122260be90dd09c993767a11f23eff",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 26,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: direct helper mutates actual backing synchronously, exactly one entry"
+    ]
+  },
+  {
+    "name": "wrong-target",
+    "from": "if (!backing.files.delete(path))",
+    "to": "if (!backing.files.delete(`${path}-sibling`))",
+    "inputSha256": "7b621384eea0a9b4b3b6630360b186ecba1ace142a7576552769fa668643c91a",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 15,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: direct helper mutates actual backing synchronously, exactly one entry",
+      "hidden: configured public shell removes only exact encoded target /target",
+      "hidden: configured public shell removes only exact encoded target /space name",
+      "hidden: configured public shell removes only exact encoded target /snow-雪",
+      "hidden: configured public shell removes only exact encoded target /percent%2Fname",
+      "hidden: configured public shell removes only exact encoded target /hash\\#name",
+      "hidden: corrupt operation receipt errors after effect without rollback or fallback",
+      "hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback",
+      "hidden: corrupt path receipt errors after effect without rollback or fallback",
+      "hidden: corrupt outcome receipt errors after effect without rollback or fallback",
+      "hidden: lock ancestors and descendants block; expired and prefix siblings do not",
+      "hidden: actual mount contract, not fabricated capabilities"
+    ]
+  },
+  {
+    "name": "prefix-sibling-refusal",
+    "from": "entry.startsWith(`${path}/`)",
+    "to": "entry.startsWith(path)",
+    "inputSha256": "3fcc0532b4d06c51bb11a027b95b2a5f0054fa3e8dc17efdd6a4a9a9112f37cf",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 15,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: direct helper mutates actual backing synchronously, exactly one entry",
+      "hidden: configured public shell removes only exact encoded target /target",
+      "hidden: configured public shell removes only exact encoded target /space name",
+      "hidden: configured public shell removes only exact encoded target /snow-雪",
+      "hidden: configured public shell removes only exact encoded target /percent%2Fname",
+      "hidden: configured public shell removes only exact encoded target /hash\\#name",
+      "hidden: corrupt operation receipt errors after effect without rollback or fallback",
+      "hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback",
+      "hidden: corrupt path receipt errors after effect without rollback or fallback",
+      "hidden: corrupt outcome receipt errors after effect without rollback or fallback",
+      "hidden: lock ancestors and descendants block; expired and prefix siblings do not",
+      "hidden: actual mount contract, not fabricated capabilities"
+    ]
+  },
+  {
+    "name": "ignore-namespace",
+    "from": "request.namespaceUrl !== namespaceUrl",
+    "to": "false",
+    "inputSha256": "51f52cfa9a7b222f25a803f49c07b547796322b4f5af7e13fe9048b6b74b27a5",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 26,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: direct namespace, operation, spelling and absent/file/root guards preserve bytes"
+    ]
+  },
+  {
+    "name": "wrong-receipt",
+    "from": "namespaceUrl, path, outcome: \"removed\"",
+    "to": "namespaceUrl, path: \"/wrong-target\", outcome: \"removed\"",
+    "inputSha256": "995e506892a596d0be033cf224c18c2390f71994182dd28bca059a8eb0a153ac",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 20,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: direct helper mutates actual backing synchronously, exactly one entry",
+      "hidden: configured public shell removes only exact encoded target /target",
+      "hidden: configured public shell removes only exact encoded target /space name",
+      "hidden: configured public shell removes only exact encoded target /snow-雪",
+      "hidden: configured public shell removes only exact encoded target /percent%2Fname",
+      "hidden: configured public shell removes only exact encoded target /hash\\#name",
+      "hidden: actual mount contract, not fabricated capabilities"
+    ]
+  },
+  {
+    "name": "ignore-locks",
+    "from": "lock.expires > Date.now()",
+    "to": "false",
+    "inputSha256": "c61e6d9d8f0bee9c80024a8d1f5104f775456b58c39295fc44af7cd747efd1aa",
+    "status": 1,
+    "counts": {
+      "tests": 27,
+      "pass": 26,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failedRows": [
+      "hidden: lock ancestors and descendants block; expired and prefix siblings do not"
+    ]
+  }
+]

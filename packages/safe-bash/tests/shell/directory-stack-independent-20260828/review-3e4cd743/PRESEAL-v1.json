@@ -1,0 +1,452 @@
+{
+  "version": 1,
+  "timing": "after source commit; before this leaf semantically inspects candidate bodies or executes product; not original precode",
+  "frozenCasesSha256": "6221e26160ebc3fbab38e6ab2e037a201693eb6c9ab00acd0394398003a817c1",
+  "frozenControlsSha256": "28c64f21f1ee1b10ecdef21195b211dc53ca176e1c26190185a355285b85ab5f",
+  "gaps": [
+    {
+      "id": "L01",
+      "area": "limits",
+      "recipe": "4096 raw empty tail entries; HOME unset; pushd /a; also unset OLDPWD to test plan-before-resolution",
+      "argv": [
+        "pushd",
+        "/a"
+      ],
+      "expect": {
+        "status": 1,
+        "diagnosticPayload": "pushd: directory stack exceeds 4096 entries",
+        "unchanged": true,
+        "calls": 0
+      }
+    },
+    {
+      "id": "L02",
+      "area": "limits",
+      "recipe": "4095 raw empty tail entries, append raw empty via -n",
+      "argv": [
+        "pushd",
+        "-n",
+        ""
+      ],
+      "expect": {
+        "status": 0,
+        "tailCount": 4096,
+        "cwd": "/c",
+        "calls": 0
+      }
+    },
+    {
+      "id": "L13",
+      "area": "limits",
+      "recipe": "scripted existing cwd '/' + 65536 x; empty tail, raw /a already admitted; swap after seeding /a using -n with stdout failure if needed; source preseal must prove setup reachability",
+      "argv": [
+        "pushd"
+      ],
+      "expect": {
+        "status": 1,
+        "diagnosticPayload": "pushd: path exceeds 65536 UTF-8 bytes",
+        "unchanged": true,
+        "calls": 0
+      },
+      "gate": "scripted public setup must be authenticated, not private State injection"
+    },
+    {
+      "id": "L14",
+      "area": "limits",
+      "recipe": "publicly build tail bytes4194304 using bounded raw entries; use stdout sink and admitted per-call work; then pushd -n x",
+      "argv": [
+        "pushd",
+        "-n",
+        "x"
+      ],
+      "expect": {
+        "status": 1,
+        "diagnosticPayload": "pushd: directory stack exceeds 4194304 UTF-8 bytes",
+        "unchanged": true,
+        "calls": 0
+      },
+      "gate": "record every setup outcome; automatic display work failure may follow publication, not setup success"
+    },
+    {
+      "id": "L15",
+      "area": "limits",
+      "recipe": "tail bytes4194303 beginning raw empty; cwd=/c (2 bytes); pushd -n +1 inserts cwd making4194305",
+      "argv": [
+        "pushd",
+        "-n",
+        "+1"
+      ],
+      "expect": {
+        "status": 1,
+        "diagnosticPayload": "pushd: directory stack exceeds 4194304 UTF-8 bytes",
+        "unchanged": true,
+        "calls": 0
+      },
+      "gate": "authenticated public setup plus source proof of pre-admission"
+    },
+    {
+      "id": "L16",
+      "area": "limits",
+      "recipe": "public readonly PWD/OLDPWD and throwing-on-any-call filesystem; seed raw missing then non-top pop/clear/display/-n no-op on separate fixtures",
+      "schedule": "metadata-inert command-family host controls",
+      "expect": {
+        "noMetadataOrContentRequests": true,
+        "noCwdEnvWrites": true,
+        "readonlyAttributesRetained": true
+      },
+      "gate": "four concrete host subobservations, one grouped invariant case, not four claimed passes"
+    },
+    {
+      "id": "C02",
+      "area": "cancellation-output",
+      "argv": [
+        "pushd",
+        "/a"
+      ],
+      "schedule": "scripted target stat admitted then waits; root abort reason typed FsError ENOENT; release late rejection",
+      "expect": {
+        "rootReasonIdentityWins": true,
+        "noFallback": true,
+        "noPublication": true,
+        "lateRejectionObserved": true
+      }
+    },
+    {
+      "id": "C03",
+      "area": "cancellation-output",
+      "full": [
+        "/c",
+        "/a",
+        "/b"
+      ],
+      "argv": [
+        "pushd",
+        "+1"
+      ],
+      "schedule": "after pre-cd rotation publication target stat waits then caller aborts",
+      "expect": {
+        "observedPreAbortFull": [
+          "/c",
+          "/b",
+          "/c"
+        ],
+        "noCwdPublication": true,
+        "rootReasonIdentityWins": true,
+        "noRollback": true
+      }
+    },
+    {
+      "id": "C04",
+      "area": "cancellation-output",
+      "env": {
+        "CDPATH": "/search"
+      },
+      "argv": [
+        "pushd",
+        "leaf"
+      ],
+      "schedule": "required path-print sink admitted and waits; root abort; release cooperative output owner",
+      "expect": {
+        "observedPublishedCwd": "/search/leaf",
+        "tailInsertion": false,
+        "cleanupDrainsBeforeSettlement": true,
+        "rootReasonIdentityWins": true
+      }
+    },
+    {
+      "id": "C05",
+      "area": "cancellation-output",
+      "argv": [
+        "pushd",
+        "/a"
+      ],
+      "schedule": "successful stack mutation and display, registered cleanup waits then rejects; root abort before public settlement",
+      "expect": {
+        "rootReasonIdentityWins": true,
+        "cleanupDrainsBeforeSettlement": true,
+        "publishedStateNotRolledBack": true
+      }
+    },
+    {
+      "id": "C06",
+      "area": "cancellation-output",
+      "full": [
+        "/c",
+        "/a"
+      ],
+      "schedule": "host local-signal invoke child popd; local abort during lookup; sibling dirs and parent continue; use same-valued root/control reasons in independently presealed schedules",
+      "expect": {
+        "parentFull": [
+          "/c",
+          "/a"
+        ],
+        "siblingUnaffected": true,
+        "provenanceNotReasonEquality": true,
+        "rootThenEscapingThenLocalPrecedence": true
+      }
+    },
+    {
+      "id": "C10",
+      "area": "cancellation-output",
+      "argv": [
+        "pushd",
+        "/a"
+      ],
+      "schedule": "ownedOutput.consumerClosed cancels stdout destination only while sibling file/header/stderr cooperative work is held",
+      "expect": {
+        "enrollmentPreserved": true,
+        "siblingDestinationsNotCancelledByStdoutClose": true,
+        "ownedAdmissionClosedAndDrained": true
+      }
+    },
+    {
+      "id": "C12",
+      "area": "cancellation-output",
+      "recipe": "long reached selector or HOME-prefix work",
+      "schedule": "abort on externally scheduled turn during helper planning; private before-publication final-flush location also requires I08 source proof",
+      "expect": {
+        "rootReasonIdentityWins": true,
+        "noLaterProviderOrPublicationAfterObservedAbort": true
+      },
+      "gate": "public scheduling witness is not an exact private-work counter measurement"
+    },
+    {
+      "id": "A04",
+      "area": "discovery",
+      "schedule": "inspect independently declared default command inventory and public module keys at exact candidate/newbase, source/installed/moved",
+      "expect": {
+        "defaultNamesAndCountUnchanged": true,
+        "publicKeysUnchanged": true,
+        "noImplicitCurlOrSafeJS": true
+      }
+    }
+  ],
+  "completionRules": [
+    "Same-exec public setup and observations with cumulative budgets; no State injection or live budget reset",
+    "4096 and4MiB setup admits explicit outcomes including postpublication display failure; unreachable masked boundaries get source arithmetic proof not runtime pass",
+    "Cancellation schedules use public context.invoke and registered cleanup/ownedOutput; no uninstrumented private measurement claim",
+    "A04 exactly77 accepted-base names independently declared before candidate registry execution",
+    "C12 private final-flush part source-only; instrumented variants require separate explicit seal"
+  ],
+  "mutationFamilies": [
+    {
+      "id": "U01",
+      "mutation": "retain tail on Shell instead of fresh exec/process reset",
+      "killBy": [
+        "S02",
+        "S03",
+        "S12",
+        "S13"
+      ],
+      "role": "future valid compiled semantic mutant; not run"
+    },
+    {
+      "id": "U02",
+      "mutation": "share mutable tail array across clone or invoke; mutate clear/pop in place",
+      "killBy": [
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "I03"
+      ],
+      "role": "future public semantic rows plus pinned source alias proof; not run"
+    },
+    {
+      "id": "U03",
+      "mutation": "clone/restore tail on function/source return",
+      "killBy": [
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "role": "future semantic mutant; not run"
+    },
+    {
+      "id": "U04",
+      "mutation": "replace Symbol stamp with direct-command boolean or path inequality",
+      "killBy": [
+        "M03",
+        "M04",
+        "M06",
+        "I05",
+        "I06"
+      ],
+      "role": "future semantic mutant; not run"
+    },
+    {
+      "id": "U05",
+      "mutation": "stamp every dirs/-n or share child stamp container with parent",
+      "killBy": [
+        "M01",
+        "M02",
+        "M07",
+        "M08"
+      ],
+      "role": "future semantic mutant; not run"
+    },
+    {
+      "id": "U06",
+      "mutation": "make swap/rotation tail transactional until successful cd",
+      "killBy": [
+        "F02",
+        "F03",
+        "F05"
+      ],
+      "role": "future semantic mutant; not run"
+    },
+    {
+      "id": "U07",
+      "mutation": "ordinary push/top-pop publish tail before required CDPATH print succeeds",
+      "killBy": [
+        "F08",
+        "F09"
+      ],
+      "role": "future semantic mutant; not run"
+    },
+    {
+      "id": "U08",
+      "mutation": "reset/bypass combined display counter for required cd path print",
+      "killBy": [
+        "I14",
+        "I24"
+      ],
+      "role": "future source-control or explicitly instrumented mutation; no unmasked public witness claimed"
+    },
+    {
+      "id": "U09",
+      "mutation": "exclude inserted cwd from remembered-byte/path pre-admission or permit4097 entries",
+      "killBy": [
+        "L01",
+        "L13",
+        "L15",
+        "I07",
+        "I11"
+      ],
+      "role": "future public reachable rows plus source boundary proof; not run"
+    },
+    {
+      "id": "U10",
+      "mutation": "reset stack work around cd, merge with CdLookup, or reserve after allocation",
+      "killBy": [
+        "I07",
+        "I08",
+        "I09",
+        "I19",
+        "I24"
+      ],
+      "role": "future source-control/instrumented variant only; not dynamic private-counter claim"
+    },
+    {
+      "id": "U11",
+      "mutation": "remove final partial scheduling flush before publication/provider delegation",
+      "killBy": [
+        "I08",
+        "I24"
+      ],
+      "role": "future pinned-source control or explicitly instrumented schedule; public cancellation alone insufficient"
+    },
+    {
+      "id": "U12",
+      "mutation": "eagerly scan all args/HOME; normalize HOME; stat raw -n entry",
+      "killBy": [
+        "B10",
+        "D07",
+        "L07",
+        "L09",
+        "L10",
+        "L11",
+        "L12",
+        "L16"
+      ],
+      "role": "future distinct bounded variants; grouped mutation family, not eight counted kills"
+    },
+    {
+      "id": "U13",
+      "mutation": "generic getopt, safe-integer-only numeric parser, late push range or malformed clear override",
+      "killBy": [
+        "G01",
+        "G09",
+        "G14",
+        "G15",
+        "G23",
+        "G24",
+        "G29",
+        "G30",
+        "G32"
+      ],
+      "role": "future distinct grammar variants, frozen family count only; not run"
+    },
+    {
+      "id": "U14",
+      "mutation": "drop awaited sink/enrollment or cancel siblings on stdout close",
+      "killBy": [
+        "C04",
+        "C07",
+        "C08",
+        "C10",
+        "I15",
+        "I18"
+      ],
+      "role": "future output/ownership semantic controls; not run"
+    },
+    {
+      "id": "U15",
+      "mutation": "bound whole diagnostic line instead of owned payload or build full string first",
+      "killBy": [
+        "I16",
+        "I24"
+      ],
+      "role": "future source proof plus presealed public diagnostic-boundary witness; not run"
+    },
+    {
+      "id": "U16",
+      "mutation": "dispatch overridable cd with extra budget, register plugin commands, expose stack keys/types",
+      "killBy": [
+        "A01",
+        "A02",
+        "A04",
+        "C11",
+        "I01",
+        "I17",
+        "I22",
+        "TN01",
+        "TN05"
+      ],
+      "role": "future distinct valid variants/type inversions; not run"
+    }
+  ],
+  "importFamilies": [
+    {
+      "id": "Q01",
+      "input": "otherwise valid consumer imports candidate with runtime blob changed",
+      "expect": "reject at authenticated input boundary in every layout"
+    },
+    {
+      "id": "Q02",
+      "input": "otherwise valid consumer imports candidate with shell blob changed",
+      "expect": "reject at authenticated input boundary in every layout"
+    },
+    {
+      "id": "Q03",
+      "input": "installed/moved public root missing; sibling source tree available",
+      "expect": "reject missing entry; never silently fall back"
+    },
+    {
+      "id": "Q04",
+      "input": "append unlisted source/test/helper/package entry after initial snapshot",
+      "expect": "post-run complete-membership audit rejects, including added symlink/empty-directory variants"
+    },
+    {
+      "id": "Q05",
+      "input": "candidate base silently substitutes moving HEAD or unapproved LET/runtime blob",
+      "expect": "reject exact-base/composition mismatch before build or import"
+    },
+    {
+      "id": "Q06",
+      "input": "otherwise valid strict negative compile with missing public module",
+      "expect": "harness failure, not intended negative-type pass"
+    }
+  ],
+  "transformationStatus": "candidate-specific exact changes require later versioned preseal before execution; no mutation kills yet"
+}

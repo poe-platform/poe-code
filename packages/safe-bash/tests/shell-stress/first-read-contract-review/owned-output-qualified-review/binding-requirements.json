@@ -1,0 +1,27 @@
+{
+  "classification": "finite unbound preparation; not executable acceptance qualification",
+  "freezeCommit": "266abd7c85bd3d33981ce4e7985a59d2a7485c0c",
+  "declaration": {"path":"/tmp/safe-bash-owned-output-qualified-prototype-api.txt","singlePostFreezeCheck":"ABSENT","sha256":null,"version":null,"willPoll":false},
+  "sourceIdentity":"UNBOUND",
+  "baselineIdentity":"UNBOUND",
+  "nativeExecutableVersionProfile":"UNBOUND",
+  "authorActualExit":"UNBOUND",
+  "newImmutableQualifiedReady":"UNBOUND",
+  "freshExecutorAuthorization":"UNBOUND",
+  "publicSyntheticUndefinedSignalCompatibility":"UNBOUND",
+  "qualifiedFixtureBindings":"UNBOUND",
+  "scope":{"logicalCases":12,"parameters":32,"historical":20,"additional":12,"writeoutControlArmsPerRevisedS08Record":3},
+  "executionCounts":{"product":0,"nativeCurl":0,"fixtureChildren":0,"loopbacks":0,"historicalFive":0,"old57plus9":0},
+  "blockingPolicy":"All 32 records UNRUN/UNBOUND. Hard guard blocks before historical authentication or product import. Missing fixture binding remains BLOCKED; the guard must not be removed without a committed independently authenticated supplement.",
+  "oldS1Gate":"Historical driver prelude retained unreachable behind hard UNBOUND guard for exact provenance. Old session17223, old declaration hash and old streaming ready path are NOT new readiness. Fresh binding must replace these metadata gates explicitly and review diff; do not merely remove guard.",
+  "futureBindingRequirements":[
+    "Root actual preparer and author process exit; fresh independent executor and NEW immutable qualified-ready marker",
+    "New authorized public declaration hash/version/signatures; no guessed new API; old helper names in copied code are historical-only",
+    "Exact independently authenticated source/tests/compiled/import-closure/tools and source-authentic baseline identities before candidate imports",
+    "Three S08 control arms bound to declared public reachability/intentional-close witnesses with source-authentic pre-observation status/stderr/pipefail/effects profiles",
+    "Pinned native executable hash/version/platform/environment/argv/pipe topology and raw loopback observations, separately qualified, independently replayed",
+    "Concrete deterministic reason/cleanup fixtures for frozen12 additions; identity checks in-process before serialization; child/sibling and no-opaque-wait positive witnesses",
+    "Original97 scenario assertion call sites preserved except exactly two call-site expectation deltas affecting three records; all future fixture/interface changes disclosed before execution"
+  ],
+  "safeJsAudit":{"status":"NOT DONE","requiredBeforePromotion":true,"scope":"future privileged ownedOutput hook leakage and membrane audit; no assumption metadata safe; no live edits"}
+}

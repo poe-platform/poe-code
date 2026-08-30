@@ -1,0 +1,17 @@
+{
+  "scope": "Own post-seal JSON/hash/chunk and prior-artifact integrity; no driver/product/control import",
+  "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/validate.mjs",
+  "status": 0,
+  "result": {
+    "status": "PASS_STATIC_INTEGRITY_ONLY",
+    "jsonFilesAtInvocation": 16,
+    "rawFiles": 75,
+    "rawBytes": 99853410,
+    "regularFiles": 46413,
+    "regularBytes": 3187266496,
+    "priorArtifactsUnchanged": 366,
+    "removedRootsStillAbsent": 6
+  },
+  "preservedFailure": "SEAL-FOLLOWUP-FREEZE.json records original artifact-only sealer exit1; no runtime retry or rescoring",
+  "comparison": "Fresh832-emit manifest SHA256 equals v9 and is unchanged after real duplicate compiler; package lineage carried, not repacked"
+}

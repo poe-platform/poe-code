@@ -1,0 +1,34 @@
+{
+  "schema": "d03-startup-fields-v3-seal",
+  "at": 1787982275462,
+  "files": [
+    {
+      "path": "admin.mjs",
+      "bytes": 4101,
+      "sha256": "f5d751dbef44c15a264e75e7add923da4882c18fa8b97d6b09fa841ce9364bfb"
+    },
+    {
+      "path": "extractor.mjs",
+      "bytes": 6010,
+      "sha256": "be8d79040da44855ed76909d4315aa0742ccfc115edb7d5ac76c635f267e2fa4"
+    },
+    {
+      "path": "PLAN.json",
+      "bytes": 1634,
+      "sha256": "4374a81796fa5d2099b8971299cf8f2960eae1ed5693ade3efe8de2a3c7f968a"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 713,
+      "sha256": "bba523d2dd72371ed25c9432962a369d6223c604619ed18efb7f6cf427af7645"
+    }
+  ],
+  "privateRecordReadsBeforeSeal": 0,
+  "recordReadsPermitted": 1,
+  "recordSha256": "4c9a28200253d2364fa094f6331efd37bb7a4fc02df49ae1a81e32962910c69e",
+  "recordBytes": 6779,
+  "frameLimit": 8,
+  "imageLimit": 8,
+  "selectedCaptureMaxBytes": 32768,
+  "deadline": 1787983291127
+}

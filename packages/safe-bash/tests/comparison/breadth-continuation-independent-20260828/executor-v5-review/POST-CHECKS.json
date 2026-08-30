@@ -1,0 +1,589 @@
+{
+  "kind": "READONLY_POSTCHECK_NO_ADDITIONAL_SYNTHETIC_EXECUTION",
+  "checkedAt": "2026-08-28T11:49:45.100Z",
+  "head": "279413acdeffbcb360ff94a2e07f0272269cab4c",
+  "freezeCommit": "bfff3dfed06d9144c82652246251f654c8bd26e7",
+  "presealSha256": "a1fd3018e3a0a63567ee8709766c1073bb48e6755701cf0a24609df9e6eb6074",
+  "resultSha256": "597a067d71ddc75c8e6fbcec6404e076a18d3e2f7831708a507178a69311f84c",
+  "platform": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "children": [
+    {
+      "id": "bareexports-target",
+      "pid": 26296,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": null,
+      "observedCode": null,
+      "expectedEvaluations": [
+        "target"
+      ],
+      "observedEvaluations": [
+        "target"
+      ],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "2f09a079c17d74e35121c4a12967bbcc50e5b0c54db6420c7f4d14448c560a4a",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "bareexports-baseline",
+      "pid": 26427,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": null,
+      "observedCode": null,
+      "expectedEvaluations": [
+        "baseline"
+      ],
+      "observedEvaluations": [
+        "baseline"
+      ],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "5089bd202a9c6840efb3e2a82093c4d20e11352a7eb2e8077379b8da9f5ef4dd",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "cwd-independent-target",
+      "pid": 26484,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": null,
+      "observedCode": null,
+      "expectedEvaluations": [
+        "target"
+      ],
+      "observedEvaluations": [
+        "target"
+      ],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "2d68c5b92d606a922254fd54fc337ee4363b381485369dc89fb47d88ad2d620a",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "selfref-trap",
+      "pid": 26496,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "UNBOUND_MODULE",
+      "observedCode": "UNBOUND_MODULE",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "1e7d59929eefa0b54e9815d14f1ab1cbd3086411953eca0028e47ff54e053cf9",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "missingboundary-resolver",
+      "pid": 26522,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "UNBOUND_MODULE",
+      "observedCode": "UNBOUND_MODULE",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "e8af8600a2e52bb8ec17cf2adc00cb8ce692ed3038b4a720ec38188be2e4d205",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "missingboundary-preflight",
+      "pid": 26537,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "BOUNDARY_MISSING",
+      "observedCode": "BOUNDARY_MISSING",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "4922a5a86467ebff31085594115a90fdec2466f3b30f81a25ec6138e7f91d965",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "wrongname-target",
+      "pid": 26551,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "BOUNDARY_NAME",
+      "observedCode": "BOUNDARY_NAME",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "f4f8b57ba27551c823dbe3e17bb4ab3e2fe4df0adf93b2cb818034f59b356241",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "wrongname-baseline",
+      "pid": 26559,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "BOUNDARY_NAME",
+      "observedCode": "BOUNDARY_NAME",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "ae86ceea3a0c1eafdc95fc0ae18b39d7b226370d1fe0cfb7567142e048b49f90",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "unboundtarget",
+      "pid": 26567,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "UNBOUND_MODULE",
+      "observedCode": "UNBOUND_MODULE",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "b7381cdf99e0f3a0374c2c5332e2c7a2118449d6aa7737d7b0e95957da99b58a",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "movedoriginabsence",
+      "pid": 26577,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": null,
+      "observedCode": null,
+      "expectedEvaluations": [
+        "target"
+      ],
+      "observedEvaluations": [
+        "target"
+      ],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "f23de5c61cf75514f5da21b2223d0adc526bd0c46bb318dc4271904b70169228",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "hash-beforeload",
+      "pid": 26592,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "LOAD_HASH",
+      "observedCode": "LOAD_HASH",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "71953ec201fb0b6a4a7c43aedf29a9dbdea970d2ac9305fd7d2709958524eb1d",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "mode-beforeload",
+      "pid": 26616,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "LOAD_METADATA",
+      "observedCode": "LOAD_METADATA",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "41e0314e73d78bf5804f2a7feae15469862a07354b54adb20e9ee328b6413466",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "wrapper-hash-beforeload",
+      "pid": 26626,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "BOUNDARY_HASH",
+      "observedCode": "BOUNDARY_HASH",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "cecd15c2f685554381459db40d08650547272ab5984727ecf90456da6ee81a93",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "wrapper-mode-beforeload",
+      "pid": 26634,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "BOUNDARY_METADATA",
+      "observedCode": "BOUNDARY_METADATA",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "ec489840d9b6d86fc2c0bae6efb9f3a70971fc4dd40b7aa6d290897ee40f3cfb",
+      "snapshotUnchanged": true
+    },
+    {
+      "id": "entry-parent-denied",
+      "pid": 26650,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 23,
+        "signal": null
+      },
+      "close": {
+        "code": 23,
+        "signal": null
+      },
+      "failures": [],
+      "signals": [],
+      "expectedCode": "ENTRY_PARENT",
+      "observedCode": "ENTRY_PARENT",
+      "expectedEvaluations": [],
+      "observedEvaluations": [],
+      "configHashMatches": true,
+      "scenarioMatchesFrozen": true,
+      "receiptSha256": "292a752a2032754d0d5c32a7be9f60ba84bb8bd0c19ace27b48a965c645464d8",
+      "snapshotUnchanged": true
+    }
+  ],
+  "supervisor": {
+    "pid": 26015,
+    "pidAbsent": true,
+    "terminalObservedExitCode": 0,
+    "groupAbsenceClaim": false,
+    "reason": "Supervisor was not a detached owned process group; only its exact PID is checked."
+  },
+  "ownSources": [
+    {
+      "path": "FIXTURES.json",
+      "sha256": "284c08b24ebca74fa2dbced570dfa46c3b1e5a5ed09409337b5f271821ebeb7b",
+      "matches": true,
+      "mode": 420,
+      "modeMatches": true
+    },
+    {
+      "path": "EXPECTATIONS.json",
+      "sha256": "e04320d003a19e1a4a3011d48545e7d1c96681cca58a53dfe88630330a1fa6d6",
+      "matches": true,
+      "mode": 420,
+      "modeMatches": true
+    },
+    {
+      "path": "worker.mjs",
+      "sha256": "027493c30177e9d1a0e3730b1424d36c096b905d80d7ec747eff255cff09de62",
+      "matches": true,
+      "mode": 420,
+      "modeMatches": true
+    },
+    {
+      "path": "run.mjs",
+      "sha256": "d72d7bf057a646b9b8b83bd990e2cfd93a0727fa8f3047762d41c7302ce9c178",
+      "matches": true,
+      "mode": 420,
+      "modeMatches": true
+    },
+    {
+      "path": "PRE-SUCCESSOR.md",
+      "sha256": "373fabc452a2aa7d5efa3e3754748a2882896bdfd727502534964dc424619f7a",
+      "matches": true,
+      "mode": 420,
+      "modeMatches": true
+    },
+    {
+      "path": "BINDINGS.json",
+      "sha256": "7cbbf4af08698e7375db2f795c1b4d825b059efd8b5f044855f20edc548a437a",
+      "matches": true,
+      "mode": 420,
+      "modeMatches": true
+    },
+    {
+      "path": "SCOPE-BEFORE.json",
+      "sha256": "0aa05a911a769f5529833721f5dda4a30b4991765b772da1c5790cf2a91b2f83",
+      "matches": true,
+      "mode": 420,
+      "modeMatches": true
+    }
+  ],
+  "selectedPriorFiles": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/worker.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "b736984578823a0e471f68774343988ba95ce2d1cc15cbc6a92c88f66f976fde",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/coordinator.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "491c8bf14b81b2e6318075a2a8618ff7e67858328376decb3b7a6dd06af94e94",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/supervisor.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "42d220fd43f165c0d100a61ef55d29bddd87577f7cafe929c832f33cd80dc069",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/authorization.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "ab3886a11b687df1396fccde02581a685d6193c780aef0cbde82134c4bea685d",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/SEAL.json",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/loader.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "23a22e044fec40f8408a1af33adfab3e3d2817fb053c132b816591f4da4af3db",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/PROJECTION.json",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "f4061034b88d36ff4fbed942a11447a6f690320c0cf13630c5910322a2e9bbcb",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "package.json",
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/RESULT.json",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "sha256": "4847ea6e321a5c6bdfb4140ca8359cdc0102bbe64c5e7a38988ed9c884ef62c4",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.receipt.json",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "sha256": "feda0ba4cf43c906875f08931530d9ab8a2a7e8ebd98cfa5fb20e320bc802aa2",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/AUTHORIZATION.json",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "sha256": "27325f1b0cc231d4a837e443c470efb1e4dc8266eefb2f53d580fc9c80f93535",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/HANDOFF.md",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "sha256": "6c5e6f04a642c3b53550466cd3e52e3656147448fc5f13c750e6fb4b1c8ae6d9",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/POST-AUDIT.json",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "sha256": "d05fe0d64bd438e89e3b9fc407c30a6f1febcf9c2b8de5ad3cacc26c78b98807",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/LAUNCH-RECEIPT.json",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "sha256": "2908aaa1173f3c4a28265d924151197fe0dd48979a20437f0339b300f13c3a8c",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/EVIDENCE-MANIFEST.json",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "sha256": "118257bb65d159920e25f463805872e7a20932cfe36104ec06d230d24b7d8d1e",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/README.md",
+      "commit": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+      "sha256": "c7466c0375eff5085376c4f64a175fb57c4cbf9fd5ac38a9f14e0bfe6da2bad3",
+      "matchesCommittedInspectionBytes": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/ADMISSION-INTERFACE.json",
+      "commit": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+      "sha256": "51256f8574d0df670e8c5ee846595efa21858ef69a2366754654f3e27d4d1978",
+      "matchesCommittedInspectionBytes": true
+    }
+  ],
+  "sourceCheckScope": "Seven listed frozen source files plus PRESEAL commitment; not append-proof repository integrity. Final owned evidence membership recorded separately.",
+  "foreignStatus": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/xan-module-review-20260828/actual-review-v2/build-continuation/\n?? tests/commands/xan-module-review-20260828/actual-review-v2/evidence-continuation/\n?? tests/commands/yq-independent-20260828/successor-review-preseal-v2/\n?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/STAGED.json\n?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.json\n?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/operation-probe-1.claim\n?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/\n?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/\n?? tests/comparison/breadth-continuation-independent-20260828/executor-v5-review/capture-01/\n?? tests/integration/coherent78-shell-author-20260828/captures/coherent78-author-ZpMIyO.json.gz.base64\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/\n?? tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md\n",
+  "indexNameStatus": "",
+  "successorContentsRead": false,
+  "grantIssued": false,
+  "actualProductAdmission": false
+}

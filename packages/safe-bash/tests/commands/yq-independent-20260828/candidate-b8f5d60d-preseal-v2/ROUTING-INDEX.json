@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "classification": "SUCCESSOR_DATA_BINDINGS_COMPLETE_ADMISSION_DENY",
+  "presealCommit": "60773512b1985f6bc631d153b1be87b289342070",
+  "preseal": {
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/DATA-PRESEAL.json",
+    "sha256": "ffaef9992296c1bfc422f0c71da9b584b458be4e4a12d11e355b322a50ff8f83",
+    "bytes": 3392,
+    "mode": 420
+  },
+  "sourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "evidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "handoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "archive": {
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+    "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "bytes": 2727936,
+    "mode": 420
+  },
+  "package": {
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+    "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "bytes": 786778,
+    "mode": 420
+  },
+  "manifest": {
+    "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE-MANIFEST.json",
+    "blob": "52038d7ec7b05f3162eebf3cff11bae74b2b6306",
+    "sha256": "b1e11c9dfc076c4b9ae307e0ff48ac0f18c4d002ed8ff06394bf49d5a562d9e1",
+    "bytes": 70320,
+    "mode": 420
+  },
+  "handoff": {
+    "revision": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/HANDOFF.md",
+    "blob": "b5ab7278928c7fba62e6d5ecb6bb5db375c6eb00",
+    "sha256": "4f8bf5635a5efd2fb41244b557b0f7685bbf3f8d82e44827ff6b905c45409685",
+    "bytes": 6668,
+    "mode": 420
+  },
+  "counts": {
+    "authorManifest": 281,
+    "excludedAuthorData": 8,
+    "sourceProjection": 271,
+    "sourceBase": 264,
+    "selectedAdditions": 7,
+    "changedSourcePaths": 5,
+    "archive": 273,
+    "baselinePackage": 846,
+    "packageAdditions": 24,
+    "fullPackage": 870,
+    "changedPackageFiles": 17,
+    "wholeProductScope": 301
+  },
+  "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+  "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+  "files": {
+    "SOURCE-AUTHORITY.proposed.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766,
+      "mode": 420
+    },
+    "SOURCE-RECEIPT.proposed.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408,
+      "mode": 420
+    },
+    "FULL-RECEIPT.proposed.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455,
+      "mode": 420
+    },
+    "AUTHOR-ARTIFACT-RECEIPT.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+      "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5",
+      "bytes": 1368,
+      "mode": 420
+    },
+    "COMPOSITION.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+      "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+      "bytes": 25587,
+      "mode": 420
+    },
+    "GIT-IDENTITIES.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/GIT-IDENTITIES.json",
+      "sha256": "7502886ae594a13b1c8d1c358b7925ce6376463c84608489a1dac7744bd93528",
+      "bytes": 13993,
+      "mode": 420
+    },
+    "TOOLCHAIN-AND-PROOF-ROLES.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/TOOLCHAIN-AND-PROOF-ROLES.json",
+      "sha256": "b5ef3247d489bfc5edcc78f98b597711598e203a1601f56fa431a9fc801c849b",
+      "bytes": 4800,
+      "mode": 420
+    },
+    "API-BINDING-REVIEW.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/API-BINDING-REVIEW.json",
+      "sha256": "c76d13ee0cd443bbbf1eab292eb46bef9b332e1527a7119e47e7735b5c24c737",
+      "bytes": 4864,
+      "mode": 420
+    },
+    "PLAN-BINDINGS.proposed.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/PLAN-BINDINGS.proposed.json",
+      "sha256": "5e7645fc007b75dfbae22f7207c3c0c3a4b8fd62d1f3a23a773b2a4aff8cfd49",
+      "bytes": 12716,
+      "mode": 420
+    },
+    "MODE-AUTHORITY.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/MODE-AUTHORITY.json",
+      "sha256": "b1d05bb9ad80a8bc432742dba561fadead341bb74bdab8940d2ad16e7721aacd",
+      "bytes": 4927,
+      "mode": 420
+    },
+    "HISTORY-PRESERVATION.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/HISTORY-PRESERVATION.json",
+      "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+      "bytes": 15621,
+      "mode": 420
+    },
+    "STATIC-CAPTURE.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/STATIC-CAPTURE.json",
+      "sha256": "4063664a551c20359963f4d9f373f23e5cd859029615c72210414e50a282c473",
+      "bytes": 2053,
+      "mode": 420
+    },
+    "PROOF-QUALIFICATIONS.md": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/PROOF-QUALIFICATIONS.md",
+      "sha256": "aa261efd7331c6a962c2197541c852accd44e36cd339ef17ef3863612aaaaedd",
+      "bytes": 3834,
+      "mode": 420
+    },
+    "RESULT.json": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/RESULT.json",
+      "sha256": "d3c93c27d5b1a86dff0a9a62426294e6b9b15132e2eb958ab3b614a19ce1d988",
+      "bytes": 8460,
+      "mode": 420
+    }
+  },
+  "dataProcess": {
+    "exit": 0,
+    "elapsedMs": 5332,
+    "reaped": true,
+    "emptyStderr": true
+  },
+  "staticModeControls": 10,
+  "history": {
+    "fullBeforeAfterUnchanged": true,
+    "files": 1768,
+    "directories": 343,
+    "goldenModeAuthorityComplete": false,
+    "denials": [
+      {
+        "revision": "90a633e89d35085183a1d57716451438335b93f3",
+        "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+        "path": "FINAL-SEAL.json",
+        "reason": "MODE_AUTHORITY_MISSING",
+        "goldenPosixModeVerified": false
+      }
+    ],
+    "originalV1Failure": {
+      "exit": 1,
+      "elapsedMs": 922,
+      "reaped": true,
+      "artifactAuthenticationReached": false,
+      "classification": "IMMUTABLE_V1_FAIL_NOT_RESCORED"
+    }
+  },
+  "execution": {
+    "productImports": 0,
+    "productRuns": 0,
+    "builds": 0,
+    "compilerRuns": 0,
+    "typeConsumers": 0,
+    "loadedMutants": 0,
+    "nativeYaml": 0,
+    "authorScripts": 0,
+    "harnessCohorts": 0,
+    "syntheticCases": 0,
+    "staticModeDataControls": 10,
+    "materializations": 0,
+    "repacks": 0,
+    "dependencies": 0
+  },
+  "admission": "DENY",
+  "independentBuild": false,
+  "semanticAcceptance": false,
+  "remaining": [
+    "Missing committed POSIX-mode authority for prior v1 self-excluded FINAL-SEAL.json; full golden-mode admission remains DENY, not inferred or waived",
+    "Root/plan-owner exact successor source/consumer/loader/runtime/integration seals and fresh execution GO",
+    "New independently authenticated scoped source-to-output build",
+    "Fresh affected source/installed/moved semantic and fixed-public-cap obligations",
+    "Separately owned runtime-v3-CMD22 result; preserve prior failures and UNRUN",
+    "Public YQ integration remains absent"
+  ]
+}

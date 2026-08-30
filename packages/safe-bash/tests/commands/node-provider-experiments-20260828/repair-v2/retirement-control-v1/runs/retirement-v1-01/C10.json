@@ -1,0 +1,63 @@
+{
+  "id": "C10",
+  "expected": "correct source/assertion/engine/event/terminal/load-port prerequisites, but PASS clean=true contradicts finalHostPending1; reject after actual natural stub close",
+  "observation": {
+    "rejected": false,
+    "primary": null,
+    "subjectRow": {
+      "number": 1,
+      "role": "workflow",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/retirement-control-v1/runs/retirement-v1-01/scratch",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/retirement-control-v1/runs/retirement-v1-01/scratch",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/retirement-control-v1/runs/retirement-v1-01/scratch/stub.mjs",
+        "receipt",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/retirement-control-v1/runs/retirement-v1-01/scratch/C10/fixture.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/retirement-control-v1/runs/retirement-v1-01/scratch/C10/logs/F01/receipt.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/retirement-control-v1/runs/retirement-v1-01/scratch/C10",
+      "stdoutBytes": 123,
+      "stderrBytes": 0,
+      "containment": null,
+      "naturallyReaped": true,
+      "closeObserved": true,
+      "signalsRequested": [],
+      "pid": 12649,
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "a0efa0bab8f8f77052b44534cab856038e08873d0a09d883d771f548135c16e6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "independentOrdinal": 1,
+    "remainingCalls": 2,
+    "subjectOwnedRetirement": true,
+    "composed": {
+      "accepted": false,
+      "refusal": {
+        "type": "object",
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\n1 !== 0\n"
+      },
+      "portCalls": [
+        "guard:after-F01",
+        "immutable:after-F01",
+        "auditLoads:F01"
+      ],
+      "correctSourceIdentity": true,
+      "completeAssertionInventory": true,
+      "settledEngineRecord": true,
+      "balancedEventAndHostCounters": true,
+      "contradictoryFinalHostPending": 1,
+      "enginePrerequisites": "authenticated INERT mock ports, not actual engine loads",
+      "actualEngineEvaluations": 0,
+      "claimedEngineEntriesInFixture": 1
+    },
+    "expectedObserved": true
+  },
+  "safeToContinue": true
+}

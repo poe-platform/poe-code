@@ -1,0 +1,311 @@
+{
+  "at": "2026-08-28T08:59:42.956Z",
+  "observedHead": "96ed7733a0d454a5074ca2e3b79418430b43e952",
+  "base": "d5cdd3a3983c32fba8aa1d7d9a4a0d8917a47a45",
+  "originalUnknown": [
+    "tests/commands/timeout-author-20260828/repair-f22-v1/capture-prepatch.mts",
+    "tests/commands/timeout-author-20260828/repair-f22-v1/types-positive.mts",
+    "tests/commands/xan-module-review-20260828/actual-review-v2/compiler-control.mts",
+    "tests/commands/xan-module-review-20260828/actual-review-v2/compiler-fixtures/nested/value.mts",
+    "tests/commands/xan-module-review-20260828/actual-review-v2/consumer-negative.mts",
+    "tests/commands/xan-module-review-20260828/actual-review-v2/consumer-positive.mts",
+    "tests/fs/webdav/directory-access-author-20260828/public-types.mts"
+  ],
+  "originalInventorySha256": "725b0c12e7965bc3e400f25cae1a31a1d2f3e456b232f1bcc3a8bb561cc0a6f7",
+  "candidateInventorySha256": "7dbe62573f69670f697f978c5f91beb1b7003c582ad31728fda5ed4fa0bcd6e0",
+  "newConsumerTrackedAtCheck": true,
+  "checks": [
+    {
+      "name": "original census fails closed on exactly seven additions",
+      "status": "PASS"
+    },
+    {
+      "name": "all 192 existing entries and unrelated metadata unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "exact 200 census with existing fail-closed validator",
+      "status": "PASS"
+    },
+    {
+      "name": "unchanged seven inputs match committed bytes",
+      "status": "PASS"
+    },
+    {
+      "name": "timeout maintained counterpart changes only import specifier",
+      "status": "PASS"
+    },
+    {
+      "name": "both new current groups have explicit strict type-only routes",
+      "status": "PASS"
+    },
+    {
+      "name": "sealed XAN three original plus one continuation identities",
+      "status": "PASS"
+    },
+    {
+      "name": "unknown neighboring .mts remains rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "missing maintained file remains rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "missing explicit maintained compile route remains rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "removing frozen rows is not an exclusion loophole",
+      "status": "PASS"
+    },
+    {
+      "name": "altered frozen input is refused without execution",
+      "status": "PASS"
+    },
+    {
+      "name": "altered owning seal is refused",
+      "status": "PASS"
+    },
+    {
+      "name": "role swap cannot discard current typing",
+      "status": "PASS"
+    },
+    {
+      "name": "fixed76 driver/profile and production/config inputs untouched",
+      "status": "PASS"
+    }
+  ],
+  "productExecutions": 0,
+  "compilerExecutions": 0,
+  "builds": 0,
+  "xanExecutions": 0,
+  "fixed76Modified": false,
+  "originalFailure": "standalone inventory changed; classify new paths explicitly before qualification\n+ actual - expected\n... Skipped lines\n\n  [\n    'tests/commands/column-stress/current-contract-review/consumer.mts',\n    'tests/commands/column-stress/handoff-20260827/packed-types.mts',\n    'tests/commands/column-stress/padding-evolution/execution-20260827/packed-types.mts',\n    'tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts',\n...\n    'tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts',\n+   'tests/commands/timeout-author-20260828/repair-f22-v1/capture-prepatch.mts',\n+   'tests/commands/timeout-author-20260828/repair-f22-v1/types-positive.mts',\n+   'tests/commands/xan-module-review-20260828/actual-review-v2/compiler-control.mts',\n+   'tests/commands/xan-module-review-20260828/actual-review-v2/compiler-fixtures/nested/value.mts',\n+   'tests/commands/xan-module-review-20260828/actual-review-v2/consumer-negative.mts',\n+   'tests/commands/xan-module-review-20260828/actual-review-v2/consumer-positive.mts',\n    'tests/fs/s3/constructor-comparison/consumer.mts',\n    'tests/fs/s3/http-independent/public-workflow.mts',\n    'tests/fs/s3/http/author/public-consumer.mts',\n    'tests/fs/s3/rmdir-independent/public-consumer.mts',\n    'tests/fs/webdav/atomic-extension-independent/consumer.mts',\n...\n    'tests/fs/webdav/consumer/types.mts',\n+   'tests/fs/webdav/directory-access-author-20260828/public-types.mts',\n    'tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts',\n    'tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts',\n    'tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts',\n    'tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts',\n    'tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts',\n",
+  "protectedBindings": [
+    {
+      "path": "package.json",
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751"
+    },
+    {
+      "path": "scripts/typecheck.mjs",
+      "sha256": "3bd6ead5b5d2141d3adcd708a2e1013e463e27112b097ba444371a329e226ec0"
+    },
+    {
+      "path": "scripts/typecheck-inputs.mjs",
+      "sha256": "94db499f97fb7dbdc30043bc23978dd8c647492503750e5399bb9331f6e5e736"
+    },
+    {
+      "path": "scripts/typecheck-consumers.mjs",
+      "sha256": "7c5747ded3491deed236486c930bd402b129a381cf4f2148dd272fe729ec1a37"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+      "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+      "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "sha256": "966848549f5a9969faa0eee9345991698afd8275dcef0abcb90379cf07666f96"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/INSTRUCTION-PROJECTION.json",
+      "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537"
+    }
+  ],
+  "status": "metadata-admission-only; types/runtime not run",
+  "counts": {
+    "frozen-evidence": 153,
+    "current": 36,
+    "declaration": 7,
+    "frozen-oracle": 1,
+    "negative-types": 3
+  },
+  "entries": [
+    {
+      "path": "tests/commands/timeout-author-20260828/repair-f22-v1/capture-prepatch.mts",
+      "classification": "frozen-evidence",
+      "reason": "Historical prepatch capture labels rejected source9ed9 and records its timer-receiver defect. Never execute as current acceptance; original bytes and results remain.",
+      "existingCoverage": "tests/commands/timeout-author-20260828/repair-f22-v1/PREPATCH-RUNS.json",
+      "freeze": {
+        "sourceCommit": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+        "packageSha256": "32e2bef5eafbb00e9b6704e2765f55e36514eda0da0fe84ea78367813c756630",
+        "evidence": [
+          {
+            "path": "tests/commands/timeout-author-20260828/repair-f22-v1/FREEZE.json",
+            "sha256": "d1de70cb9bcc22d903d6bbf358bb386e0076e68cfce5c6859bd50dfc141baa26"
+          },
+          {
+            "path": "tests/commands/timeout-author-20260828/repair-f22-v1/PREPATCH-RUNS.json",
+            "sha256": "255c8a4df3389ed60ae40ff055f0e77ccdbfc82058bf534309b4566add88b19d"
+          }
+        ]
+      },
+      "sha256": "3f19611d43e245e320c0c4dde8925e9a519a4017e9c75b8908ef5f5c805a4613",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/timeout-author-20260828/repair-f22-v1/types-positive.mts",
+      "classification": "frozen-evidence",
+      "reason": "Exact source-local F22 repair input selected by the fixed-revision repair runner. Its options assertions are preserved as current-timeout-options.mts with only the public import specifier changed; original input is not rewritten or discarded.",
+      "existingCoverage": "tests/commands/timeout-author-20260828/repair-f22-v1/validate-repair.mjs",
+      "freeze": {
+        "sourceCommit": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+        "packageSha256": "e6f42dbb063044c0a0d9eaa3029ee9ef0b9ed26aabafd42c9346b18e1901c80c",
+        "evidence": [
+          {
+            "path": "tests/commands/timeout-author-20260828/repair-f22-v1/evidence-v1/AUTHENTICATION.json",
+            "sha256": "677fe3f5acf608197ff825db15c47cd36625467f9b0315eb9e039302ea7a8485"
+          },
+          {
+            "path": "tests/commands/timeout-author-20260828/repair-f22-v1/evidence-v1/TEST-HARNESS.json",
+            "sha256": "2366a5e3aa998297be3341030f1f24c83b1b089b8174c165411c2100337d7091"
+          }
+        ]
+      },
+      "sha256": "bc6c56eeddea310f574ed461da2dc147297291e1d2538db1fd796dea2535c671",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/compiler-control.mts",
+      "classification": "frozen-evidence",
+      "reason": "Synthetic compiler infrastructure witness in the sealed XAN review, not product declaration/runtime acceptance. Preserve exact original/continuation seal; no new execution.",
+      "existingCoverage": "tests/commands/xan-module-review-20260828/actual-review-v2/controls.mjs",
+      "freeze": {
+        "sourceCommit": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+        "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+        "evidence": [
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+            "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1"
+          },
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/DELIVERY-SEAL.json",
+            "sha256": "b1a46e6f132faadeda17ff16538e6c5300937598f2653af0da7b04d2623a9c7c"
+          }
+        ]
+      },
+      "sha256": "d770e058971599d75a30688d360c8ae0c953e139b0f447fc7a3bb4fa6b04c9fc",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/compiler-fixtures/nested/value.mts",
+      "classification": "frozen-evidence",
+      "reason": "Synthetic compiler infrastructure witness in the sealed XAN review, not product declaration/runtime acceptance. Preserve exact original/continuation seal; no new execution.",
+      "existingCoverage": "tests/commands/xan-module-review-20260828/actual-review-v2/repair-controls.mjs",
+      "freeze": {
+        "sourceCommit": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+        "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+        "evidence": [
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+            "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1"
+          },
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-PRE.json",
+            "sha256": "92338f77b6d83e426741d44eacb2c532b7f4817b4302f22cfd421fe0be15b912"
+          }
+        ]
+      },
+      "sha256": "9e17aac7470817195ad75bd9806cd28845b214ea142e158409ee711e85e5f0c7",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/consumer-negative.mts",
+      "classification": "frozen-evidence",
+      "reason": "Fixed XAN private-leaf build-local consumer in the sealed review; not a current public consumer. Preserve positive/seven-diagnostic history without rerun or default route. XAN remains execution-held/unaccepted.",
+      "existingCoverage": "tests/commands/xan-module-review-20260828/actual-review-v2/runner.mjs",
+      "freeze": {
+        "sourceCommit": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+        "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+        "evidence": [
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+            "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1"
+          },
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/DELIVERY-SEAL.json",
+            "sha256": "b1a46e6f132faadeda17ff16538e6c5300937598f2653af0da7b04d2623a9c7c"
+          }
+        ]
+      },
+      "sha256": "1ffe85cfff741bf4f0d107476508873d3a42fea62c5ecdc894a8da50020adf1b",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/consumer-positive.mts",
+      "classification": "frozen-evidence",
+      "reason": "Fixed XAN private-leaf build-local consumer in the sealed review; not a current public consumer. Preserve positive/seven-diagnostic history without rerun or default route. XAN remains execution-held/unaccepted.",
+      "existingCoverage": "tests/commands/xan-module-review-20260828/actual-review-v2/runner.mjs",
+      "freeze": {
+        "sourceCommit": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+        "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+        "evidence": [
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+            "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1"
+          },
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/DELIVERY-SEAL.json",
+            "sha256": "b1a46e6f132faadeda17ff16538e6c5300937598f2653af0da7b04d2623a9c7c"
+          }
+        ]
+      },
+      "sha256": "fd316c69eb75b7b1f0a60f05fcbf663993784a917463377a1f0dac32704c8add",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/fs/webdav/directory-access-author-20260828/public-types.mts",
+      "classification": "current",
+      "reason": "Reusable current public root/subpath declarations with four expected-error directives. Keep body unchanged and register explicit strict type-only route; its top-level access promises are not a runtime probe.",
+      "existingCoverage": "tests/fs/webdav/directory-access-author-20260828/validate.mjs",
+      "sha256": "eff02e930b327d55ae4cb28d45396ec07c88a0067b40670d7a74a7cb20268b05",
+      "qualifiedCoverage": "strict current installed-candidate declarations; no runtime execution"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/current-timeout-options.mts",
+      "classification": "current",
+      "reason": "Maintained public counterpart of the source-local F22 scheduler/options consumer. Only original import specifier changes; no timer is invoked. Strict installed-candidate declaration route, not runtime acceptance.",
+      "existingCoverage": "tests/commands/timeout-author-20260828/repair-f22-v1/validate-repair.mjs",
+      "sha256": "7cc6c8830b7585db2291b549e743d613d8a3f9a10de7c2071deed4b894320200",
+      "qualifiedCoverage": "strict current installed-candidate declarations; no runtime execution"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "tests/plugins/qualified-current-release/inventory.json",
+      "sha256": "7dbe62573f69670f697f978c5f91beb1b7003c582ad31728fda5ed4fa0bcd6e0"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "6b5502b239c45ba956e9d6fa65403df306e06f76919e773cfea4b9c72931236b"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/current-timeout-options.mts",
+      "sha256": "7cc6c8830b7585db2291b549e743d613d8a3f9a10de7c2071deed4b894320200"
+    }
+  ]
+}

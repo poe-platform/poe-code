@@ -1,0 +1,47 @@
+TAP version 13
+# BINDING verified 222 source/fixture hashes; node=v22.22.2; currentHead=e312860960f1534c2c77545fcf0fb20b3bd6f029; frozenHead=a31b7c36eef00c41763875c863a559594049f13f
+# OWNERSHIP {"id":"04","actual":{"stdout":"a9410aa9410a","stderr":"","exitCode":0},"expected":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# Subtest: 04 public named VFS tail -n 1 /input Buffer
+not ok 1 - 04 public named VFS tail -n 1 /input Buffer
+  ---
+  duration_ms: 6.564
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/ownership.test.ts:1:3094'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        exitCode: 0,
+        stderr: '',
+    +   stdout: 'a9410aa9410a'
+    -   stdout: '00ffc3a9410a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: '00ffc3a9410a'
+    stderr: ''
+    exitCode: 0
+  actual:
+    stdout: 'a9410aa9410a'
+    stderr: ''
+    exitCode: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    report (/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/ownership.test.ts:44:10)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/ownership.test.ts:98:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 280.779917

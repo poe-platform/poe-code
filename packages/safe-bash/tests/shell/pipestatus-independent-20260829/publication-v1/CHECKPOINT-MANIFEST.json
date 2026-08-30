@@ -1,0 +1,517 @@
+{
+  "role": "retained-owned-evidence-publication-not-runtime-census",
+  "members": [
+    {
+      "path": "AUTH-v2.json",
+      "bytes": 73976,
+      "mode": 384,
+      "sha256": "f7acc76a28ebf6d8e8c03b252b1a91130a030b5c171d1fbaf87af67d0a0598b0",
+      "commit": true
+    },
+    {
+      "path": "INSPECTED.json",
+      "bytes": 13138,
+      "mode": 384,
+      "sha256": "9463abd158529e07e01949d5b358458335f0b3a1ae92851eb6d30adba7e71acb",
+      "commit": true
+    },
+    {
+      "path": "NATIVE-SOURCE-RECORDS.json",
+      "bytes": 151486,
+      "mode": 384,
+      "sha256": "e24236694542ee0f367d94431c8f11b7e639093e525e4af76160a0ea90492b4a",
+      "commit": true
+    },
+    {
+      "path": "PURE-PRESEAL-v2.md",
+      "bytes": 2164,
+      "mode": 420,
+      "sha256": "f692ba894c600b0f312a7d0ab907048b413038e0de4221d968e9182a8d8506e3",
+      "commit": true
+    },
+    {
+      "path": "PURE-RESULTS-v2.json",
+      "bytes": 2429,
+      "mode": 384,
+      "sha256": "89afeb5ef182ef68ea9cce256f87f2e2c2186c9749022cff25e43d850ed6c0f3",
+      "commit": true
+    },
+    {
+      "path": "SOURCE-ADMISSION-v2.json",
+      "bytes": 16900,
+      "mode": 384,
+      "sha256": "e9b5e8994f0837ded1f7eb22b1b0038b110eac2076bfed571be56934d5f0a9cc",
+      "commit": true
+    },
+    {
+      "path": "admit-source.mjs",
+      "bytes": 4193,
+      "mode": 420,
+      "sha256": "758adad221b520300c341f78de2bdc8065f137b7b35e0ccce4af78b5aa6e457f",
+      "commit": true
+    },
+    {
+      "path": "author-groups.mjs.data",
+      "bytes": 6040,
+      "mode": 384,
+      "sha256": "50ad26001bfbc0eff4aa01f6e01b04637ebe1b07f3e38afc19e07aab2cb409a3",
+      "commit": true
+    },
+    {
+      "path": "frozen-source/bindings.ts",
+      "bytes": 9989,
+      "mode": 384,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "commit": false
+    },
+    {
+      "path": "frozen-source/ledger.ts",
+      "bytes": 9105,
+      "mode": 384,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "commit": false
+    },
+    {
+      "path": "frozen-source/pipestatus.ts",
+      "bytes": 3145,
+      "mode": 384,
+      "sha256": "f63902e8be1774de81973d4477f8317a6045b637b40bddbed025e2f43bb72eb1",
+      "commit": false
+    },
+    {
+      "path": "frozen-source/runtime.ts",
+      "bytes": 214992,
+      "mode": 384,
+      "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42",
+      "commit": false
+    },
+    {
+      "path": "frozen-source/shell.ts",
+      "bytes": 15121,
+      "mode": 384,
+      "sha256": "6af40022b4648756450ce1c9582ab3d0be8de4b128f12a5c36c6dab56fe0eb9b",
+      "commit": false
+    },
+    {
+      "path": "frozen-source/state.ts",
+      "bytes": 13072,
+      "mode": 384,
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "commit": false
+    },
+    {
+      "path": "host-protocols.ts.data",
+      "bytes": 4701,
+      "mode": 384,
+      "sha256": "0d9b9ada5935b0e16f50d095e7d85cb02563eeef560e50e8134b94b549950094",
+      "commit": true
+    },
+    {
+      "path": "inspect.mjs",
+      "bytes": 2269,
+      "mode": 420,
+      "sha256": "54b0e2daffa38e1b6c8a52671be0e3acafb34f002ea6a2a76ea9f0d379c26b64",
+      "commit": true
+    },
+    {
+      "path": "pure-v2.mjs",
+      "bytes": 14173,
+      "mode": 420,
+      "sha256": "3d522f590aeb6fa44f2ff3b128f7597c0fd6ba7122dbadcd43d42f7d33bdbf68",
+      "commit": true
+    },
+    {
+      "path": "raw/author-tree.nul",
+      "bytes": 6580,
+      "mode": 384,
+      "sha256": "9099c3d69fb0434734f317a190033947a87ad447ca8673d7180c64960fcd4fb0",
+      "commit": true
+    },
+    {
+      "path": "raw/epoch-source.diff",
+      "bytes": 1107,
+      "mode": 384,
+      "sha256": "330fff5d3d668c2646ae22ada760ed29163142c5bf568654fc8eae09dcd761dd",
+      "commit": true
+    },
+    {
+      "path": "raw/inspect-syntax.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/inspect-syntax.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/inspection.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/inspection.stdout",
+      "bytes": 12228,
+      "mode": 420,
+      "sha256": "74b428f93b151282dd9cfe2e544b2b3dd951181acf5e02b0ab5b7a8c001e6109",
+      "commit": true
+    },
+    {
+      "path": "raw/native-metadata.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/native-metadata.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/native26-tree.nul",
+      "bytes": 46086,
+      "mode": 420,
+      "sha256": "34754b80c6c69fd6b79946b91f597bb61fb162dffecc85af48aab4c14353d11f",
+      "commit": true
+    },
+    {
+      "path": "raw/pure-syntax.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/pure-syntax.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/pure-v2.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/pure-v2.stdout",
+      "bytes": 2744,
+      "mode": 420,
+      "sha256": "8323bed7cc6f02e4e612da3886ab48452ded672b68550877cbfbf0511e5c1179",
+      "commit": true
+    },
+    {
+      "path": "raw/scoped-status.txt",
+      "bytes": 48,
+      "mode": 384,
+      "sha256": "20c01b5a7e824150ddb26ab4d0b2a062f8792ff9d567875ca4d08754adf63ed5",
+      "commit": true
+    },
+    {
+      "path": "raw/source-admission.stderr",
+      "bytes": 1003,
+      "mode": 420,
+      "sha256": "e8823172da1a0c334f0049c4ccd12f257590510c80e7e9a515a0e0b7445f86e1",
+      "commit": true
+    },
+    {
+      "path": "raw/source-admission.stdout",
+      "bytes": 754,
+      "mode": 420,
+      "sha256": "eb0c53d5a793ceccf6e9f6998c4b2fbc4186c74f26e7e911f02a209cac134819",
+      "commit": true
+    },
+    {
+      "path": "raw/source-syntax.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/source-syntax.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/source-tree.nul",
+      "bytes": 2537,
+      "mode": 384,
+      "sha256": "09d2398d78417d612baa79d24ec9ec90dbdcf3b98e533f979f4c123fbd7c5a35",
+      "commit": true
+    },
+    {
+      "path": "raw/startup.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "commit": true
+    },
+    {
+      "path": "raw/startup.stdout",
+      "bytes": 45,
+      "mode": 384,
+      "sha256": "fdb50ac4e4bfa93a01df0488f4bcda5fffe7d483a45ce997e8e9dc150daada2a",
+      "commit": true
+    },
+    {
+      "path": "raw/typed6-tree.nul",
+      "bytes": 9657,
+      "mode": 420,
+      "sha256": "6f23c4d1edf26d034af3a970eb93be23467c4397f487a0770c04b72ab961796d",
+      "commit": true
+    },
+    {
+      "path": "source-view/BUILD.json",
+      "bytes": 574,
+      "mode": 384,
+      "sha256": "bccf3ea8743fe8150f3b3fa0c68566c17ae4dd471e1fee1a0103ce3f0792b5f0",
+      "commit": true
+    },
+    {
+      "path": "source-view/G18-SOURCE-CORRECTION.md",
+      "bytes": 1294,
+      "mode": 384,
+      "sha256": "625efc4191d1ccf65d527358f4ca6a7c30319e3bac69c0756261e5f434603fb2",
+      "commit": true
+    },
+    {
+      "path": "source-view/HANDOFF.md",
+      "bytes": 5051,
+      "mode": 384,
+      "sha256": "560cfdc01b071bce26eccbe1220654993d3071c0fbb63690460ea62c8454ce5b",
+      "commit": true
+    },
+    {
+      "path": "source-view/LEGACY-BINDING.json",
+      "bytes": 239,
+      "mode": 384,
+      "sha256": "89c18f909f546913107a394bd8cd4a418990152234055b84033384a73f66b26d",
+      "commit": true
+    },
+    {
+      "path": "source-view/LOADED-CLOSURE.json",
+      "bytes": 1042,
+      "mode": 384,
+      "sha256": "1597cf8b98fcb4eec7c8ee1f1f3168c29bcf4fa3341ca9d078aad8969b38c0a5",
+      "commit": true
+    },
+    {
+      "path": "source-view/PACKAGE.json",
+      "bytes": 197534,
+      "mode": 384,
+      "sha256": "77175e68fc2ec613e7892c1fe194f5cd166900186c6872e6c1cb7528635e1410",
+      "commit": true
+    },
+    {
+      "path": "source-view/PRESEAL.md",
+      "bytes": 4528,
+      "mode": 384,
+      "sha256": "8ec88fa417b43d5e358aa421e083c6a228e4d83425c777d503a7129463276fb6",
+      "commit": true
+    },
+    {
+      "path": "source-view/PUBLICATION.json",
+      "bytes": 3180,
+      "mode": 384,
+      "sha256": "74aeaec1ae2855fb6611329e5886ba90787ad4fced05de094f16af23d1f5eafd",
+      "commit": true
+    },
+    {
+      "path": "source-view/PURE-RESULTS.json",
+      "bytes": 1524,
+      "mode": 384,
+      "sha256": "fb70b34c6e64f3dc51c7daa3cc7edd327853e786bea731f82842d00e1b7e4036",
+      "commit": true
+    },
+    {
+      "path": "source-view/SEAL.json",
+      "bytes": 171230,
+      "mode": 384,
+      "sha256": "ac0a0b3066a9e89667336cb9f3012fd7896abc9d59d1a53a47669a59336b0994",
+      "commit": true
+    },
+    {
+      "path": "source-view/SOURCE-SUCCESSOR.json",
+      "bytes": 959,
+      "mode": 384,
+      "sha256": "117a9e68c825ecf473f9aef45a082a44e285dc1f005ee848b97b378585fa9526",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/BUILD.json",
+      "bytes": 571,
+      "mode": 384,
+      "sha256": "a2f0d532771b27ff2b7cbb30d9e9fa53e31e412082f7606bf88641cffff71b62",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/DATA-CONTROLS.json",
+      "bytes": 715,
+      "mode": 384,
+      "sha256": "8fb1d800a4418359545ebcee23601e9f189641350b4e6e4f22855d4a3a0429f5",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/GIT.json",
+      "bytes": 94,
+      "mode": 384,
+      "sha256": "b60f231039b4b18bbc32fd5fba782cf6c48b8a9b17a0bbb65e290ce8a44c6978",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/HANDOFF.md",
+      "bytes": 6794,
+      "mode": 384,
+      "sha256": "251d5d9e6d738add89521537d73190f4bfe4d1fc72965e6b33ba3433a9d100a2",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/LEGACY-BINDING.json",
+      "bytes": 239,
+      "mode": 384,
+      "sha256": "89c18f909f546913107a394bd8cd4a418990152234055b84033384a73f66b26d",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/LOADED-CLOSURE.json",
+      "bytes": 1027,
+      "mode": 384,
+      "sha256": "d470219838507995d4dd902d87340014a4ed4b161ef200d8c49ed4e339291b9e",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/MATRIX.json",
+      "bytes": 3816,
+      "mode": 384,
+      "sha256": "78b08ad54fc67aeb735fee299f45ade898b1994a5c592290be589dc0db0ac11e",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/PACKAGE.json",
+      "bytes": 197547,
+      "mode": 384,
+      "sha256": "55bfb3ac054fc7525a2127487ce90e42dd51e3c281561739e7d50113b6aa546c",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/PRESEAL.md",
+      "bytes": 3712,
+      "mode": 384,
+      "sha256": "feb429654ec8799f1dfe549e06059b9f2438b6d3dbb0c7c58402dd22e9e881ac",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/PUBLICATION-QUALIFICATION.md",
+      "bytes": 1648,
+      "mode": 384,
+      "sha256": "e7da2ceb009ed080d34dd2119119a516ef837c4b6a0adc52ce4046f500aa5e17",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/PUBLICATION.json",
+      "bytes": 1975,
+      "mode": 384,
+      "sha256": "c61586b7012dd4d9fb06eb65cd44f304f9761091492ad80507f7aa51ab978c5a",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/PURE-RESULTS.json",
+      "bytes": 1444,
+      "mode": 384,
+      "sha256": "2a940bf6a3130d751fdce772fe3307c685a5d39932a6f90c887bef15754a25ef",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/SEAL.json",
+      "bytes": 215132,
+      "mode": 384,
+      "sha256": "c590f60ab8f53c5988056087257e2ed8564ef0db5e256ca4a7d836fa88fce718",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/SOURCE-SUCCESSOR.json",
+      "bytes": 1049,
+      "mode": 384,
+      "sha256": "cf64b4f963e5690b18863eac0ff7369f768085ea38908ce4592550cf59d091a4",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/legacy-32.data.json",
+      "bytes": 14863,
+      "mode": 384,
+      "sha256": "4cc58513f5b0f02becdd6febf271460f354370daf4d2db4321eec316f87dcc13",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/prepare.mjs",
+      "bytes": 11889,
+      "mode": 384,
+      "sha256": "c54864c7b457bee00e1a787f8646265c5d8b6889a0669d1347b2c2c0e4cecf59",
+      "commit": true
+    },
+    {
+      "path": "source-view/corrected-v2/runner.mjs",
+      "bytes": 19242,
+      "mode": 384,
+      "sha256": "59d08a996a3600a0644e8531a9a49adbe58b8d968f91816ce90def7fda6c8609",
+      "commit": true
+    },
+    {
+      "path": "source-view/legacy-32.data.json",
+      "bytes": 14863,
+      "mode": 384,
+      "sha256": "4cc58513f5b0f02becdd6febf271460f354370daf4d2db4321eec316f87dcc13",
+      "commit": true
+    },
+    {
+      "path": "source-view/prepare.mjs",
+      "bytes": 7761,
+      "mode": 384,
+      "sha256": "3bd6642790da94af1def1b3b2d9e2ec0193ad8a958e89bf1b262d606efb45420",
+      "commit": true
+    },
+    {
+      "path": "source-view/publish.mjs",
+      "bytes": 7572,
+      "mode": 384,
+      "sha256": "7d790f991f6a6368d2cff47e481d7321a5bfcfb491adb75e30ae0c8b6126b1a0",
+      "commit": true
+    },
+    {
+      "path": "source-view/pure.mjs",
+      "bytes": 11645,
+      "mode": 384,
+      "sha256": "ce9a5f133decbac8c7927543ccdd4cca40ec1b34fde3a0aea9218f8a094145c5",
+      "commit": true
+    },
+    {
+      "path": "source-view/runtime-cases.json",
+      "bytes": 3682,
+      "mode": 384,
+      "sha256": "9ece84f2f5cc4a4916d7deab4a173e17dc4fb5d3b5240267e54adf252d310806",
+      "commit": true
+    },
+    {
+      "path": "test-module.mjs.data",
+      "bytes": 6207,
+      "mode": 384,
+      "sha256": "3c8937cc8bc787efc1c7e1bdb58808c18fb7277512d174378604e0b4670ef949",
+      "commit": true
+    }
+  ],
+  "bytes": 1560324
+}

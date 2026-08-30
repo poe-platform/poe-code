@@ -1,0 +1,83 @@
+{
+  "schema": 2,
+  "status": "ALL UNRUN; new independent review and explicit ROOT Worker GO required",
+  "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "transport": "46611a5b67ad7af276154421ac7f50dd536ec570",
+  "combined12Sha256": "e785668f13549aba24323a6db568fb58805eca41a190ce18b41c299c28a53a5f",
+  "originalMatrix": {
+    "path": "tests/compatibility/bash-ere-transport-design-20260829/VALIDATION.json",
+    "commit": "0a7840d1610f14647cb501b939d1c6b0a8069cab",
+    "sha256": "a60fd1d971bc984c59e1e5b5d501c05b8e2a72857383a43fa385a512081608c5",
+    "families": 32,
+    "variants": 60,
+    "executed": 0
+  },
+  "staticAssetClosure": {
+    "parent": [
+      "errors.js",
+      "limits.js",
+      "transport/accounting.js",
+      "transport/owner.js",
+      "transport/protocol.js",
+      "transport/root.js",
+      "transport/validation.js"
+    ],
+    "worker": [
+      "errors.js",
+      "limits.js",
+      "matcher.js",
+      "syntax.js",
+      "transport/accounting.js",
+      "transport/protocol.js",
+      "transport/validation.js",
+      "transport/wire-engine.js",
+      "transport/worker-entry.js"
+    ],
+    "declarationOnlyEmptyEmit": "types.js",
+    "runtimeUnion": 11
+  },
+  "builtinEdges": [
+    [
+      "limits.js",
+      "node:timers/promises"
+    ],
+    [
+      "transport/owner.js",
+      "node:worker_threads"
+    ],
+    [
+      "transport/validation.js",
+      "node:util"
+    ],
+    [
+      "transport/worker-entry.js",
+      "node:worker_threads"
+    ]
+  ],
+  "fixedLaunch": {
+    "workerEntry": "adjacent transport/worker-entry.js",
+    "workerData": {
+      "operation": "shell-ere",
+      "version": 1
+    },
+    "env": {},
+    "execArgv": [],
+    "stdout": true,
+    "stderr": true,
+    "maxOldGenerationSizeMb": 128,
+    "stackSizeMb": 4,
+    "startupMilliseconds": 3000,
+    "requestMilliseconds": 1000,
+    "tickets": 64
+  },
+  "prerequisites": [
+    "Different reviewer accepts SOURCE correction, conservative210 work entitlement and accepted721 integration types (not matching proof).",
+    "Preseal actual parent loader/static adjacent entry and full11-JS asset bytes; no inherited Expr/Node/SafeJS loader/Worker permissions.",
+    "Explicit Node permission/physical path/Worker creation/stdout-stderr ownership authority for bound harness. Parent hooks do not imply Worker hook inheritance under execArgv:[]; prove actual child closure.",
+    "Source/moved asset missing/tamper/import refusals and exact emitted graph binding before runtime.",
+    "Runtime first admission >=Q+205+n before acquisition; first bootstrap3 only once, subsequent requests reduced3; reply210 spend leaves same-W compile headroom. No numerical predicate may silently call conservative prepayment measured visits.",
+    "Observe pre-start cancellation/unobserved abandon versus startup/post observed unknown-spent; queued no acquisition and active request/root retirement, falsy caller priority, startup overlap/close, streams and all pending jobs.",
+    "Malformed/failure/crash/timeout under actual Worker must not refund unproved work; valid results/semantic failures report all7 fields and exact aliases; parent T/H still additional.",
+    "Original32/60 frozen variants remain unchanged and UNRUN; no engine matching/R01 algorithm/native parity conclusion from this packet."
+  ]
+}

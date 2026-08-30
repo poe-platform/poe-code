@@ -1,0 +1,337 @@
+{
+  "schema": "V7_R3_OFFLINE_PREPARATION_AUTHENTICATION",
+  "classification": "SOURCE_DATA_ONLY_NO_MATERIALIZATION_OR_LOAD",
+  "archives": [
+    {
+      "role": "target-pack",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "present": true,
+      "kind": "file",
+      "bytes": 749907,
+      "mode": 420,
+      "expected": {
+        "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+        "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+        "bytes": 749907,
+        "mode": 420,
+        "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+      },
+      "authenticated": {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+        "bytes": 749907,
+        "mode": 420,
+        "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+      }
+    },
+    {
+      "role": "baseline-pack",
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+      "present": true,
+      "kind": "file",
+      "bytes": 9879070,
+      "mode": 292,
+      "expected": {
+        "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts",
+        "path": "just-bash-3.4.2.tgz",
+        "bytes": 9879070,
+        "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+        "physical": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz"
+      },
+      "authenticated": {
+        "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+        "bytes": 9879070,
+        "mode": 292,
+        "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d"
+      }
+    }
+  ],
+  "tarInventories": [
+    {
+      "role": "target",
+      "file": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "members": 858,
+      "uncompressedBytes": 4800512,
+      "zeroBlocks": 2,
+      "ended": true,
+      "instructionBodiesDecoded": 0,
+      "instructionBodiesHashed": 0,
+      "contentBodiesDecoded": 0,
+      "materializedFiles": 0,
+      "rowsSha256": "97986caea88cab7ef066b122f46efb0edb4d7a8448109de0a1ad404396eb1d10",
+      "contentHashesMatched": 858,
+      "instructionMetadataOnly": []
+    },
+    {
+      "role": "baseline",
+      "file": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+      "members": 955,
+      "uncompressedBytes": 23301632,
+      "zeroBlocks": 2,
+      "ended": true,
+      "instructionBodiesDecoded": 0,
+      "instructionBodiesHashed": 0,
+      "contentBodiesDecoded": 0,
+      "materializedFiles": 0,
+      "rowsSha256": "c3ac3becf1bdbd1ec23f1d6cd9a420f2007c117a3e1c6cb354978c33ccc35d69",
+      "contentHashesMatched": 954,
+      "instructionMetadataOnly": [
+        {
+          "path": "dist/AGENTS.md",
+          "bytes": 9231,
+          "archiveMode": 420
+        }
+      ]
+    }
+  ],
+  "closure": {
+    "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash",
+    "expectedFiles": 3844,
+    "authenticatedRegularBodies": 3843,
+    "instructionMetadataOnly": [
+      {
+        "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+        "bytes": 9231,
+        "mode": 292,
+        "metadataOnly": true
+      }
+    ],
+    "directories": 431,
+    "wholeCensusEntries": 4275,
+    "observedRowsSha256": "d821503c20dd182198c119e35f740b91b9f5d81f1d641c02680e635b699755ef",
+    "directoryRowsSha256": "d092c1f211cf6f1f81a24ef1ecdbbfe3fb1f76a236c67e95b28171c853b3e6e4",
+    "noNewOrMissingEntries": true,
+    "symlinks": 0
+  },
+  "views": [
+    {
+      "name": "target-installed",
+      "engine": "virtual-bash",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01/views/target-installed",
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "packagePath": "consumer-v5/package.json",
+      "packageName": "breadth-target-consumer-v5",
+      "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01/views/target-installed/consumer-v5/consumer.mjs",
+      "workerParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+      "oldOrigin": null,
+      "fileCount": 860,
+      "totalFileBytes": 4149191,
+      "projectionSha256": "85fbf845470134ed43036df92b810bbe2d9186a9f195b03505f257722c5e64fe"
+    },
+    {
+      "name": "target-moved",
+      "engine": "virtual-bash",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01/views/target-moved",
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "packagePath": "consumer-v5/package.json",
+      "packageName": "breadth-target-consumer-v5",
+      "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01/views/target-moved/consumer-v5/consumer.mjs",
+      "workerParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+      "oldOrigin": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01/views/move-origin",
+      "fileCount": 860,
+      "totalFileBytes": 4149191,
+      "projectionSha256": "85fbf845470134ed43036df92b810bbe2d9186a9f195b03505f257722c5e64fe"
+    },
+    {
+      "name": "baseline-installed",
+      "engine": "just-bash",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01/views/baseline-installed",
+      "consumerPath": "benchmarks/consumer-v5/consumer.mjs",
+      "packagePath": "benchmarks/consumer-v5/package.json",
+      "packageName": "breadth-comparator-consumer-v5",
+      "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "workerParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+      "oldOrigin": null,
+      "fileCount": 3845,
+      "totalFileBytes": 135294007,
+      "projectionSha256": "c15fbd5c26cc131f3c4ede940ebc352c78f3ea328891079bb68b9e3e2d7e5c2d"
+    }
+  ],
+  "allProjectedFileBytes": 143592389,
+  "originalProjection": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v3/PROJECTION.json",
+    "sha256": "f4061034b88d36ff4fbed942a11447a6f690320c0cf13630c5910322a2e9bbcb"
+  },
+  "packageMetadata": {
+    "target": {
+      "name": "virtual-bash",
+      "version": "0.0.0",
+      "type": "module",
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "import": "./dist/index.js"
+        },
+        "./contracts": {
+          "types": "./dist/contracts/index.d.ts",
+          "import": "./dist/contracts/index.js"
+        },
+        "./contracts/*": {
+          "types": "./dist/contracts/*.d.ts",
+          "import": "./dist/contracts/*.js"
+        },
+        "./commands/network": {
+          "types": "./dist/commands/network/index.d.ts",
+          "import": "./dist/commands/network/index.js"
+        },
+        "./commands/metadata": {
+          "types": "./dist/commands/metadata/index.d.ts",
+          "import": "./dist/commands/metadata/index.js"
+        },
+        "./commands/archive": {
+          "types": "./dist/commands/archive/index.d.ts",
+          "import": "./dist/commands/archive/index.js"
+        },
+        "./commands/table-text": {
+          "types": "./dist/commands/table-text/index.d.ts",
+          "import": "./dist/commands/table-text/index.js"
+        },
+        "./commands/stream-inspection": {
+          "types": "./dist/commands/stream-inspection/index.d.ts",
+          "import": "./dist/commands/stream-inspection/index.js"
+        },
+        "./commands/stream-format": {
+          "types": "./dist/commands/stream-format/index.d.ts",
+          "import": "./dist/commands/stream-format/index.js"
+        },
+        "./commands/split": {
+          "types": "./dist/commands/split/index.d.ts",
+          "import": "./dist/commands/split/index.js"
+        },
+        "./commands/time-env": {
+          "types": "./dist/commands/time-env/index.d.ts",
+          "import": "./dist/commands/time-env/index.js"
+        },
+        "./commands/tree": {
+          "types": "./dist/commands/tree/index.d.ts",
+          "import": "./dist/commands/tree/index.js"
+        },
+        "./commands/file": {
+          "types": "./dist/commands/file/index.d.ts",
+          "import": "./dist/commands/file/index.js"
+        },
+        "./commands/grep-aliases": {
+          "types": "./dist/commands/grep-aliases/index.d.ts",
+          "import": "./dist/commands/grep-aliases/index.js"
+        },
+        "./commands/column": {
+          "types": "./dist/commands/column/index.d.ts",
+          "import": "./dist/commands/column/index.js"
+        },
+        "./commands/html-to-markdown": {
+          "types": "./dist/commands/html-to-markdown/index.d.ts",
+          "import": "./dist/commands/html-to-markdown/index.js"
+        },
+        "./commands/du": {
+          "types": "./dist/commands/du/index.d.ts",
+          "import": "./dist/commands/du/index.js"
+        },
+        "./commands/expr": {
+          "types": "./dist/commands/expr/index.d.ts",
+          "import": "./dist/commands/expr/index.js"
+        },
+        "./commands/timeout": {
+          "types": "./dist/commands/timeout/index.d.ts",
+          "import": "./dist/commands/timeout/index.js"
+        },
+        "./commands/which": {
+          "types": "./dist/commands/which/index.d.ts",
+          "import": "./dist/commands/which/index.js"
+        },
+        "./fs/s3": {
+          "types": "./dist/fs/s3/index.d.ts",
+          "import": "./dist/fs/s3/index.js"
+        },
+        "./fs/s3/http": {
+          "types": "./dist/fs/s3/http/index.d.ts",
+          "import": "./dist/fs/s3/http/index.js"
+        },
+        "./fs/webdav": {
+          "types": "./dist/fs/webdav/index.d.ts",
+          "import": "./dist/fs/webdav/index.js"
+        },
+        "./fs/readonly": {
+          "types": "./dist/fs/readonly/index.d.ts",
+          "import": "./dist/fs/readonly/index.js"
+        },
+        "./fs/mount": {
+          "types": "./dist/fs/mount/index.d.ts",
+          "import": "./dist/fs/mount/index.js"
+        },
+        "./fs/overlay": {
+          "types": "./dist/fs/overlay/index.d.ts",
+          "import": "./dist/fs/overlay/index.js"
+        }
+      },
+      "dependencies": {},
+      "packageJsonSha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+    },
+    "baseline": {
+      "name": "just-bash",
+      "version": "3.4.2",
+      "type": "module",
+      "exports": {
+        ".": {
+          "browser": "./dist/bundle/browser.js",
+          "require": {
+            "types": "./dist/index.d.cts",
+            "default": "./dist/bundle/index.cjs"
+          },
+          "import": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/bundle/index.js"
+          }
+        },
+        "./browser": {
+          "types": "./dist/browser.d.ts",
+          "import": "./dist/bundle/browser.js"
+        }
+      },
+      "main": "dist/bundle/index.js",
+      "packageJsonSha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd"
+    },
+    "scope": "Authenticated package metadata, not actual resolver/loader execution"
+  },
+  "qualification": "Full858 target package and full3843 content-bearing comparator closure authenticate. Baseline archive955 members includes one instruction metadata-only entry. Four wrappers authenticate. Actual physical moved staging and every actual module/asset load remain future admission obligations; no disk identity substituted for a load witness. No build/full-history reproduction claim.",
+  "inventory": {
+    "file": "OFFLINE-INVENTORY.json.gz.base64",
+    "decodedJsonBytes": 2147901,
+    "decodedJsonSha256": "feab81a66599db1271ebe4c77166186955800a1edca88791f3ef77a5b1d26f0a",
+    "gzipBytes": 528609,
+    "gzipSha256": "7e2cd4d8a167f4ceb9ea055d2cf3c236014947c4c690641df042b7ed2cc85d6b",
+    "encodedBytes": 704813,
+    "encodedSha256": "b9c117c7c37cab8d6f363fc4f9741282632a128823ac65d203070fa408014495",
+    "content": "metadata/hash rows only; no package bodies or instruction plaintext"
+  },
+  "postguard": {
+    "startedAt": "2026-08-29T02:33:49.465Z",
+    "inputs": 416,
+    "archives": 2,
+    "closureFiles": 3844,
+    "closureDirectories": 431,
+    "relocated": 4,
+    "namespaces": [
+      {
+        "path": ".",
+        "entries": 37,
+        "pass": true
+      },
+      {
+        "path": "../executor-v7-r2",
+        "entries": 33,
+        "pass": true
+      },
+      {
+        "path": "../executor-v7-r1",
+        "entries": 28,
+        "pass": true
+      },
+      {
+        "path": "../executor-v7",
+        "entries": 30,
+        "pass": true
+      }
+    ],
+    "completedAt": "2026-08-29T02:33:51.002Z",
+    "pass": true
+  }
+}

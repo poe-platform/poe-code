@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "components": [
+    {
+      "name": "core",
+      "commit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/",
+      "seal": "SOURCE-SEAL.json",
+      "sha256": "bbd95c1fd7b7e5303003ae4d982fe75f2d0c6a8ac1d13cbab1d7431bf0560d3f",
+      "files": 59,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    },
+    {
+      "name": "workers",
+      "commit": "c0353685540288d504b93f206735fe4c448268ef",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+      "files": 30,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    },
+    {
+      "name": "build",
+      "commit": "937c1f6a35c620146e62924b16d90e808319024f",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "e796e30489e031c4ab6d58882542e7f3b6c644ead90ae29474c2744003f73c9d",
+      "files": 17,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    },
+    {
+      "name": "cwF01",
+      "commit": "89bc7bd545f8b6f7215b7c2a49cccf644a08e07f",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "2ddd402a35916f4fb7ab29b33c9f740aebde5134a2feca43383b5abf6c427fb6",
+      "files": 7,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    },
+    {
+      "name": "cwF02",
+      "commit": "9fe3c8574b32df9839284307942be5003d87d0a0",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/",
+      "seal": "FINAL-SEAL.json",
+      "sha256": "e124f052e7bf148073ac6831b48fe7436ee4b54fc2ca06ea1f595bb12dca1197",
+      "files": 9,
+      "liveAndCommittedMembershipBytesModesVerified": true
+    }
+  ],
+  "sourceChecks": "Exact committed bytes, current regular kind/fullPOSIXmode/size/hash and complete component membership; no evaluation",
+  "executions": 0
+}

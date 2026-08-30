@@ -1,0 +1,8 @@
+[
+  {
+    "code": 2551,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 5285,
+    "message": "Property 'patterns' does not exist on type 'ExprMatchDescriptor'. Did you mean 'pattern'?"
+  }
+]

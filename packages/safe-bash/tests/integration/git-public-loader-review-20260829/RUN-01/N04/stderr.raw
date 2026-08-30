@@ -1,0 +1,19 @@
+(node:2739) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2739) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/source/loader.mjs", pathToFileURL("./"));'
+(node:2739) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error: EARLY_LOADER_SENTINEL
+    at load (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-loader-review-20260829/RUN-01/N04/source/loader.mjs:4:32)
+    at nextLoad (node:internal/modules/esm/hooks:748:28)
+    at Hooks.load (node:internal/modules/esm/hooks:385:26)
+    at MessagePort.handleMessage (node:internal/modules/esm/worker:199:24)
+    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)
+    at MessagePort.<anonymous> (node:internal/per_context/messageport:23:28)
+
+Node.js v22.22.2

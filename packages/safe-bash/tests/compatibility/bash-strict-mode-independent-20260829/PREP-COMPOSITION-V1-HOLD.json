@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "role": "SOURCE_DATA_HELPER_ASSERTION_FAILURE_NOT_PRODUCT",
+  "productRuns": 0,
+  "incorrectExpectedUnit1Paths": [
+    "src/contracts/ast.ts",
+    "src/shell/parser.ts",
+    "src/shell/runtime.ts"
+  ],
+  "observedUnit1Paths": [
+    "src/shell/display.ts",
+    "src/shell/parser.ts",
+    "src/shell/runtime.ts"
+  ],
+  "reason": "Independent preparation transcribed the third Unit1 path incorrectly. Original exception remains in prep.stderr.raw; no actual run activated.",
+  "rootUpdate": {
+    "unit1QualifiedAcceptance": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628",
+    "adjudication": "c565f9251bd59332a58c37bc5c48948cc2f24683",
+    "sourceUnchanged": true
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "pin": "3a9177a7b8ddc1c20142720ffa96ea6f87f65e86",
+  "node": "v22.22.2",
+  "tsx": "4.23.12",
+  "start": "2026-08-26T23:08:44.726Z",
+  "end": "2026-08-26T23:08:45.310Z",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "tsx",
+    "../probe.mjs"
+  ],
+  "cwd": "/private/tmp/safe-bash-overlay-rmdir-3a9177a-AGvOuU/archive",
+  "status": 0,
+  "signal": null,
+  "sourceTarSha256": "7624f6b61401e53093510c76744772cde42ace0c193d3cf9eb0633356e2e71ad",
+  "probeSha256": "0feccdb76bedb317b0d957330a03bfea7c23ffd741964a97ed9015cbd54d79ab"
+}

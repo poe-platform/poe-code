@@ -1,0 +1,13 @@
+export async function withHarnessWatchdog<Value>(milliseconds: number, action: (signal: AbortSignal) => Promise<Value>): Promise<Value> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      const reason = new Error(`semantic harness watchdog after ${milliseconds}ms`);
+      controller.abort(reason);
+      reject(reason);
+    }, milliseconds);
+  });
+  try { return await Promise.race([Promise.resolve().then(() => action(controller.signal)), timeout]); }
+  finally { clearTimeout(timer); }
+}

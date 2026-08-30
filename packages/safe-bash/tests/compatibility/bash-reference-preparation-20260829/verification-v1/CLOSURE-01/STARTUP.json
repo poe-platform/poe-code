@@ -1,0 +1,9 @@
+{
+  "startedAt": "2026-08-29T05:01:54.015Z",
+  "tool": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+  "targets": [
+    "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+    "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg"
+  ],
+  "childrenMax": 4
+}

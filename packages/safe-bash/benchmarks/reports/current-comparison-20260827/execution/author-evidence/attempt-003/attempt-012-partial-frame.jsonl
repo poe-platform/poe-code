@@ -1,0 +1,11 @@
+{"atMs":0.402,"kind":"group-admitted","pid":77720,"pgid":77720,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-oOOmAr","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-oOOmAr","TMPDIR":"/private/tmp/safe-bash-execution-author-oOOmAr","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":38.673,"id":"synthetic/partial-frame","nonce":"6fc5c88d-e966-4549-a44f-161e2fa0caf1","kind":"engine-spawn","pid":77721,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":90.84,"kind":"request-start","absoluteDeadlineMs":1490.8371670000001}
+{"atMs":90.842,"id":"synthetic/partial-frame","nonce":"6fc5c88d-e966-4549-a44f-161e2fa0caf1","kind":"ready"}
+{"atMs":91.61,"id":"synthetic/partial-frame","nonce":"6fc5c88d-e966-4549-a44f-161e2fa0caf1","kind":"phase","phase":"exec-start"}
+{"atMs":92.87,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"partial frame at EOF: header=000000, bodyBytes=115\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":92.893,"id":"synthetic/partial-frame","nonce":"6fc5c88d-e966-4549-a44f-161e2fa0caf1","kind":"failure","error":{"name":"AssertionError","message":"partial frame at EOF: header=000000, bodyBytes=115","code":"ERR_ASSERTION"}}
+{"atMs":93.119,"kind":"signal","signal":"SIGTERM","pgid":77720}
+{"atMs":94.968,"kind":"coordinator-exit","code":null,"signal":"SIGTERM"}
+{"atMs":94.971,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":95.008,"kind":"coordinator-close","code":null,"signal":"SIGTERM"}

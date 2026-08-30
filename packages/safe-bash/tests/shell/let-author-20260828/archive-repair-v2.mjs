@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, lstatSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { registerHooks } from 'node:module';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+const own = dirname(fileURLToPath(import.meta.url));
+const evidence = join(own, 'evidence-v1');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const inputs = JSON.parse(readFileSync(join(evidence, 'INPUTS.json')));
+const sealBytes = readFileSync(join(own, 'ARCHIVE-REPAIR-SEAL.json')); assert.equal(hash(sealBytes), process.argv[2]);
+const seal = JSON.parse(sealBytes);
+for (const [name, expected] of Object.entries(seal.files)) assert.equal(hash(readFileSync(join(own, name))), expected);
+const tools = new Map(inputs.tools.filter(row => !row.metadataOnly).map(row => [row.path, row]));
+for (const row of tools.values()) assert.equal(hash(readFileSync(row.path)), row.sha256);
+registerHooks({ load(url, context, nextLoad) {
+  if (url.startsWith('node:')) return nextLoad(url, context);
+  const binding = tools.get(fileURLToPath(url)); assert(binding, `UNBOUND_TOOL:${url}`);
+  assert.equal(hash(readFileSync(binding.path)), binding.sha256);
+  const loaded = nextLoad(url, context);
+  if (loaded.source != null) assert.equal(hash(typeof loaded.source === 'string' ? Buffer.from(loaded.source) : loaded.source), binding.sha256);
+  return loaded;
+} });
+const verify = () => { for (const row of inputs.sourceInputs) {
+  const filename = join(inputs.source, row.path); const stat = lstatSync(filename);
+  assert(stat.isFile() && !stat.isSymbolicLink()); assert.equal(stat.mode & 0o777, row.mode & 0o777); assert.equal(hash(readFileSync(filename)), row.sha256);
+} };
+verify();
+const filename = join(evidence, 'selected-inputs-v2.tar.gz'); assert(!existsSync(filename));
+const { create } = await import(pathToFileURL(join(inputs.npm, 'node_modules/tar/dist/esm/index.js')));
+await create({ cwd: inputs.source, file: filename, gzip: true, portable: true, noPax: true, strict: true }, inputs.sourceInputs.map(row => row.path));
+verify();
+const record = { schema: 'let-selected-archive-v2', candidate: inputs.candidate, file: 'selected-inputs-v2.tar.gz', sha256: hash(readFileSync(filename)), selectedInputs: 265, priorRejectedSHA256: 'f97b3a776bbc4c79fafd152c7348425b8d3cff594368f7b6c612390cedc262db', writer: 'authenticated npm tar, portable/noPax, exact original selected regular inputs', sourceChanged: false, productReruns: 0, nativeExecutions: 0, prePostInputGuards: 'passed' };
+writeFileSync(join(evidence, 'SELECTED-ARCHIVE-V2.json'), JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify(record));

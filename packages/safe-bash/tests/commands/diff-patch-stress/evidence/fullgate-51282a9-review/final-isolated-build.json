@@ -1,0 +1,15 @@
+{
+  "revision": "25a892f0908c12c1d00846690167fb520fa0fe42",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/final-corrected/tsconfig.build.json",
+    "--outDir",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/.scratch/isolated-build"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": "",
+  "rootDistWritten": false
+}

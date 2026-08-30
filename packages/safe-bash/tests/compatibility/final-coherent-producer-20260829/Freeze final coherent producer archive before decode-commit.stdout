@@ -1,0 +1,23 @@
+[main ab46a006a0f324a42c563542e4545ce80de49731] Freeze final coherent producer archive before decode
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 9 files changed, 74668 insertions(+)
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/EMITS.json
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/PRODUCER-RECEIPT.json
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/input-blobs.stderr
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/input-blobs.stdout
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/offline-pack.stderr
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/offline-pack.stdout
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/strict-build.stderr
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/strict-build.stdout
+ create mode 100644 tests/compatibility/final-coherent-producer-20260829/virtual-bash-0.0.0.tgz

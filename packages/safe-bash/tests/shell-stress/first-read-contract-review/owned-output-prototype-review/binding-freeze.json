@@ -1,0 +1,38 @@
+{
+  "frozenAt": "2026-08-27T09:47:52.146Z",
+  "classification": "declaration-only-partial-binding-not-candidate-execution",
+  "intentionsCommit": "f412eec",
+  "intentionsSealSha256": "aabc0ea5c7d7f03b4c4038b3c94952e7a08d9c98e2d40b9dbbf76417503be972",
+  "declaration": {
+    "path": "author-api-v1.1.txt.data",
+    "bytes": 4884,
+    "sha256": "942339d7b0ac90268e9f7e3d4fd735cba398c23774a6df184d7b6bbf3f4f2e8e"
+  },
+  "binding": [
+    {
+      "path": "BINDING.md",
+      "bytes": 5339,
+      "sha256": "655ca6cae539cf115f265b0e9005fa7dc476678bd4cb5f19d8c49ef130445a48"
+    },
+    {
+      "path": "binding.mjs",
+      "bytes": 2344,
+      "sha256": "c77c9825e07c178aecb33de4ba99cca62da24525c9a127ea7fa2ba0298e19675"
+    },
+    {
+      "path": "support.mjs",
+      "bytes": 3793,
+      "sha256": "93628fb0b95124bcfb995121191d7465145629bfa00f2e921cd3d693e28be8f7"
+    },
+    {
+      "path": "scaffold-check.mjs",
+      "bytes": 3707,
+      "sha256": "1b124b33c3c56404b3a7665828a158045e2a12dbb2409b30ff00cedca7de387d"
+    }
+  ],
+  "candidateModuleBinding": null,
+  "originalAdaptationPatch": null,
+  "implementationInspected": false,
+  "authorTestBodiesInspected": false,
+  "readyPresent": false
+}

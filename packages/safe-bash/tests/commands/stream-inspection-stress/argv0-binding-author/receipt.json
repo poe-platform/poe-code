@@ -1,0 +1,173 @@
+{
+  "candidate": "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4",
+  "output": "/private/tmp/strings-binding-author-BrtdBI",
+  "started": "2026-08-27T15:47:33.086Z",
+  "profile": "Author-only scoped GNU Binutils 2.44 on Darwin; not independent review or a full gate",
+  "node": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "native": {
+    "original": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "staged": "/private/tmp/strings-binding-author-BrtdBI/strings",
+    "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+    "stagedMode": "0700",
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "version": "GNU strings (GNU Binutils) 2.44\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty.\n"
+  },
+  "runnerSha256": "e855dcc1d5a465009a07a1c448a108e7a8340456ec1081a6557fdff519e0c907",
+  "commands": [
+    {
+      "label": "archive",
+      "executable": "git",
+      "args": [
+        "archive",
+        "8784a8fc0484313b914fe1ae6db33a8cfd0e0be4",
+        "src",
+        "tests/commands/stream-inspection",
+        "tests/commands/stream-inspection-stress/argv0-binding-author/binding.test.ts",
+        "package.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/",
+      "status": 0,
+      "signal": null,
+      "pid": 59960,
+      "reaped": true,
+      "stdoutSha256": "8d031f3db47bb1c120c6bd340b60b65278bbed8f3c06b89d489effe4cdbb2bff",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "extract",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-xf",
+        "/private/tmp/strings-binding-author-BrtdBI/archive.stdout.log",
+        "-C",
+        "/private/tmp/strings-binding-author-BrtdBI/tree"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/",
+      "status": 0,
+      "signal": null,
+      "pid": 59962,
+      "reaped": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "native-version",
+      "executable": "/private/tmp/strings-binding-author-BrtdBI/strings",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/private/tmp/strings-binding-author-BrtdBI/tree",
+      "status": 0,
+      "signal": null,
+      "pid": 59964,
+      "reaped": true,
+      "stdoutSha256": "ac0285042ddde3c36e36eb944b4980e1605374b3839be8e8dd61075ba8f352d6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "host",
+      "executable": "/usr/bin/sw_vers",
+      "args": [],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/",
+      "status": 0,
+      "signal": null,
+      "pid": 59966,
+      "reaped": true,
+      "stdoutSha256": "2ad5e57776ecb4b37b741f751521e2c77d58bf2d6d64e54c61507eabd39dea31",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "canonical-and-regressions",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/stream-inspection/gnu-strings.test.ts",
+        "tests/commands/stream-inspection-stress/argv0-binding-author/binding.test.ts"
+      ],
+      "cwd": "/private/tmp/strings-binding-author-BrtdBI/tree",
+      "status": 0,
+      "signal": null,
+      "pid": 59967,
+      "reaped": true,
+      "stdoutSha256": "19c174292edc44537169261847368f64dcfdc52b0ad7063568949d2213fe2199",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "scoped-typecheck",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--forceConsistentCasingInFileNames",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "tests/commands/stream-inspection/oracle.ts",
+        "tests/commands/stream-inspection/gnu-strings-oracle.ts",
+        "tests/commands/stream-inspection-stress/argv0-binding-author/binding.test.ts"
+      ],
+      "cwd": "/private/tmp/strings-binding-author-BrtdBI/tree",
+      "status": 0,
+      "signal": null,
+      "pid": 60034,
+      "reaped": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "archiveSha256": "8d031f3db47bb1c120c6bd340b60b65278bbed8f3c06b89d489effe4cdbb2bff",
+  "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+  "dependencies": {
+    "tsx": {
+      "version": "4.23.12",
+      "packageJsonSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    "typescript": {
+      "version": "5.9.3",
+      "packageJsonSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    "@types/node": {
+      "version": "22.20.1",
+      "packageJsonSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  },
+  "testEnvironment": {
+    "TSX_DISABLE_CACHE": "1",
+    "STREAM_NATIVE_LIVE": "1",
+    "STREAM_GNU_STRINGS": "/private/tmp/strings-binding-author-BrtdBI/strings"
+  },
+  "integrity": {
+    "entries": 298,
+    "detectsNewEntries": true,
+    "beforeSha256": "a84d092f32a65cf2a116c65f3c8d23fd3c46e4c0d62c2825f508f66f09115213",
+    "afterSha256": "a84d092f32a65cf2a116c65f3c8d23fd3c46e4c0d62c2825f508f66f09115213",
+    "dependencySymlinkTraversed": false
+  },
+  "success": true,
+  "finished": "2026-08-27T15:47:34.914Z",
+  "cleanup": {
+    "removedIsolatedTree": true,
+    "removedStagedBinary": true,
+    "synchronousCommandsOnly": true
+  }
+}

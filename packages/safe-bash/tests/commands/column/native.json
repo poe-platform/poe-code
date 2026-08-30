@@ -1,0 +1,531 @@
+{
+  "classification": "native-oracle records; JSON bytes are data, not canonical TypeScript inputs",
+  "capturedAt": "2026-08-27T14:25:27.234Z",
+  "oracle": {
+    "binary": "/usr/bin/column",
+    "sha256": "c6d7b469d8e8437c7185bedd356626ca69867c9c6b002cbb0020d995a6e4cc5f",
+    "profile": "Apple/Darwin BSD column, NOT GNU or util-linux",
+    "versionProbe": {
+      "argv": [
+        "-V"
+      ],
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d20560a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a"
+    },
+    "manSha256": "e4cac8d7df073ad1ab4d61a2413d4987829531ae761bdb08265f7500431b72f7",
+    "manVersion": "Berkeley 8.1 1993-06-06; document date July 29, 2004; no program version option",
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "swVers": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n"
+  },
+  "fixtureSha256": "fc64ac78aa457165d304f4c0bf05c4679eab4366e8e67a79b44a2b74bdd3c73e",
+  "records": [
+    {
+      "id": "empty",
+      "profile": "exact",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    {
+      "id": "basic-table",
+      "profile": "exact",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6120620a6c6f6e67207a0a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020202020620a6c6f6e6720207a0a",
+      "stderrHex": ""
+    },
+    {
+      "id": "ragged-table",
+      "profile": "exact",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "610a6220630a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "610a622020630a",
+      "stderrHex": ""
+    },
+    {
+      "id": "blank-lines",
+      "profile": "exact",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "0a200a090a6120620a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020620a",
+      "stderrHex": ""
+    },
+    {
+      "id": "no-final-lf",
+      "profile": "exact",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6120620a6c6f6e67207a",
+      "filesHex": {},
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "612020620a",
+      "stderrHex": "636f6c756d6e3a206c696e6520746f6f206c6f6e670a"
+    },
+    {
+      "id": "space-tab-splitting",
+      "profile": "exact",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "20206109206220200a6c6f6e67097a0a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020202020620a6c6f6e6720207a0a",
+      "stderrHex": ""
+    },
+    {
+      "id": "explicit-separator",
+      "profile": "exact",
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "613a620a6c6f6e673a7a0a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020202020620a6c6f6e6720207a0a",
+      "stderrHex": ""
+    },
+    {
+      "id": "separator-set",
+      "profile": "exact",
+      "argv": [
+        "-t",
+        "-s",
+        ":,"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "613a622c630a783a792c7a0a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020622020630a7820207920207a0a",
+      "stderrHex": ""
+    },
+    {
+      "id": "table-width-no-truncation",
+      "profile": "exact",
+      "argv": [
+        "-t",
+        "-c",
+        "1"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6120620a6c6f6e67207a0a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020202020620a6c6f6e6720207a0a",
+      "stderrHex": ""
+    },
+    {
+      "id": "fill-down",
+      "profile": "exact",
+      "argv": [
+        "-c",
+        "16"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "610a620a630a640a650a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6109640a6209650a630a",
+      "stderrHex": ""
+    },
+    {
+      "id": "fill-across",
+      "profile": "exact",
+      "argv": [
+        "-x",
+        "-c",
+        "16"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "610a620a630a640a650a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6109620a6309640a650a",
+      "stderrHex": ""
+    },
+    {
+      "id": "narrow-fill",
+      "profile": "exact",
+      "argv": [
+        "-c",
+        "1"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6c6f6e670a610a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "6c6f6e670a610a",
+      "stderrHex": ""
+    },
+    {
+      "id": "default-fill",
+      "profile": "exact",
+      "argv": [],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "610a620a630a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "61096209630a",
+      "stderrHex": ""
+    },
+    {
+      "id": "tabstop-boundary",
+      "profile": "exact",
+      "argv": [
+        "-c",
+        "32"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "31323334353637380a780a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "313233343536373809780a",
+      "stderrHex": ""
+    },
+    {
+      "id": "multiple-tab-padding",
+      "profile": "exact",
+      "argv": [
+        "-x",
+        "-c",
+        "32"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "780a31323334353637380a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "78090931323334353637380a",
+      "stderrHex": ""
+    },
+    {
+      "id": "utf8-table-selected-scalars",
+      "profile": "exact",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "en_US.UTF-8",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "e5908d20780a65cc8120790af09f9982207a0a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "e5908d2020780a65cc81202020790af09f998220207a0a",
+      "stderrHex": ""
+    },
+    {
+      "id": "vfs-multiple-files",
+      "profile": "exact",
+      "argv": [
+        "-t",
+        "one",
+        "two"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "69676e6f72656420737464696e",
+      "filesHex": {
+        "one": "612062",
+        "two": "6c6f6e67207a0a"
+      },
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "6c6f6e6720207a0a",
+      "stderrHex": "636f6c756d6e3a206c696e6520746f6f206c6f6e670a"
+    },
+    {
+      "id": "empty-explicit-fields",
+      "profile": "qualified",
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "613a623a630a313a3a330a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "612020622020630a312020330a",
+      "stderrHex": ""
+    },
+    {
+      "id": "leading-trailing-empty-fields",
+      "profile": "qualified",
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "3a613a0a3a3a0a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "610a286e756c6c290a",
+      "stderrHex": ""
+    },
+    {
+      "id": "retained-tab-table",
+      "profile": "qualified",
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6109713a7a0a78783a790a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "61097120207a0a78782020790a",
+      "stderrHex": ""
+    },
+    {
+      "id": "retained-tab-fill",
+      "profile": "qualified",
+      "argv": [
+        "-c",
+        "16"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6109710a620a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "61097109620a",
+      "stderrHex": ""
+    },
+    {
+      "id": "ascii-delimiter-controls",
+      "profile": "qualified",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "610b620d630c640a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "610b620d630c640a",
+      "stderrHex": ""
+    },
+    {
+      "id": "invalid-utf8",
+      "profile": "qualified",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "ff0a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "ff0a",
+      "stderrHex": ""
+    },
+    {
+      "id": "control-escape",
+      "profile": "qualified",
+      "argv": [
+        "-t"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "1b5b33316d72656420780a",
+      "filesHex": {},
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "1b5b33316d7265642020780a",
+      "stderrHex": ""
+    },
+    {
+      "id": "custom-output-separator",
+      "profile": "native-unsupported",
+      "argv": [
+        "-t",
+        "-o",
+        "|"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6120620a6c6f6e67207a0a",
+      "filesHex": {},
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a"
+    },
+    {
+      "id": "long-options",
+      "profile": "native-unsupported",
+      "argv": [
+        "--table",
+        "--separator",
+        ":"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "613a620a",
+      "filesHex": {},
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d202d0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a"
+    },
+    {
+      "id": "unsupported-json",
+      "profile": "product-unsupported",
+      "argv": [
+        "-J"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6120620a",
+      "filesHex": {},
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d204a0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a"
+    },
+    {
+      "id": "unsupported-tree",
+      "profile": "product-unsupported",
+      "argv": [
+        "--tree",
+        "1"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "COLUMNS": "80"
+      },
+      "stdinHex": "6120620a",
+      "filesHex": {},
+      "status": 1,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d202d0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a"
+    }
+  ]
+}

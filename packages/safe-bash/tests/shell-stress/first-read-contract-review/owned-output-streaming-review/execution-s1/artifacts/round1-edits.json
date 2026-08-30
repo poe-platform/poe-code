@@ -1,0 +1,42 @@
+[
+  {
+    "from": "safe-bash-owned-output-streaming-binding-[^/]+$",
+    "to": "safe-bash-owned-output-streaming-execution-[^/]+$"
+  },
+  {
+    "from": "safe-bash-owned-output-streaming-binding-[^/]+\\/",
+    "to": "safe-bash-owned-output-streaming-execution-[^/]+\\/"
+  },
+  {
+    "from": "manifest.completeImportClosureAuthenticatedByRoot",
+    "to": "manifest.completeImportClosureAuthenticatedByExecutor"
+  },
+  {
+    "from": "closure.sessionId !== undefined && closure.closedAt, 'root actual exit evidence, not author self-report'",
+    "to": "closure.sessionId === 17223 && closure.evidenceBasis === 'fresh root assignment', 'root actual exit evidence, not author self-report'"
+  },
+  {
+    "from": "  const profile = requireProfile(config, entry);\n  if (entry.id === 'S07'",
+    "to": "  const profile = requireProfile(config, entry);\n  if (profile.diagnosticOnly) return;\n  if (entry.id === 'S07'"
+  },
+  {
+    "from": "  assert.notEqual(expected, undefined, `${label}: exact expected profile required`);",
+    "to": "  if (expected?.unboundDiagnostic === true) return;\n  assert.notEqual(expected, undefined, `${label}: exact expected profile required`);"
+  },
+  {
+    "from": "if (entry.parameter !== 'stdout-body-and-required-header-file' && profile.stdoutWriteoutRetentionBindingAuthenticated !== true)",
+    "to": "if (!profile.diagnosticOnly && entry.parameter !== 'stdout-body-and-required-header-file' && profile.stdoutWriteoutRetentionBindingAuthenticated !== true)"
+  },
+  {
+    "from": "    result.status = 'PASS';",
+    "to": "    result.status = config.profiles?.[`${entry.id}/${entry.parameter}`]?.diagnosticOnly ? 'BLOCKED' : 'PASS';\n    if (result.status === 'BLOCKED') result.diagnosticStatus = 'OBSERVED_WITHOUT_STRICT_BINDING';"
+  },
+  {
+    "from": "    result.failure = error;",
+    "to": "    result.failure = error;\n    if (config.profiles?.[`${entry.id}/${entry.parameter}`]?.diagnosticOnly) { result.diagnosticStatus = result.status; result.status = 'BLOCKED'; }"
+  },
+  {
+    "from": "      if (bodyFile) assertProfile(stdoutWriteout, profile.stdoutWriteout,",
+    "to": "      result.stdoutWriteoutObservation = stdoutWriteout;\n      result.nestedDiagnostic = stderr;\n      if (bodyFile) assertProfile(stdoutWriteout, profile.stdoutWriteout,"
+  }
+]

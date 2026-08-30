@@ -1,0 +1,137 @@
+{
+  "role": "native-public-no-guest-resolution",
+  "start": "2026-08-29T07:11:01.085Z",
+  "children": [
+    {
+      "label": "rehydrated",
+      "pid": 42707,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "stdoutSha256": "2aa5eee8b5db1de83bf507e304e4395bc498345dd54f42cc3be875b3f0e0517e",
+      "stderrSha256": "964e2b5aa0ea8943568f829b0287477f248348370db2c8456ed26e160cb4baeb",
+      "bytes": 69317,
+      "resolutions": [
+        {
+          "specifier": "virtual-bash",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-independent-20260829/native-actual-v1/scratch/consumer/node_modules/virtual-bash/dist/index.js",
+          "native": true
+        },
+        {
+          "specifier": "virtual-bash/commands/node",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-independent-20260829/native-actual-v1/scratch/consumer/node_modules/virtual-bash/dist/commands/node/index.js",
+          "native": true
+        }
+      ],
+      "loaded": 248,
+      "receipt": {
+        "role": "I13-native-public-resolution",
+        "symbols": 9,
+        "privateRefusals": 4,
+        "defaultCount": 80,
+        "prepared": 0,
+        "aliases": false
+      }
+    },
+    {
+      "label": "moved",
+      "pid": 42719,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "stdoutSha256": "2aa5eee8b5db1de83bf507e304e4395bc498345dd54f42cc3be875b3f0e0517e",
+      "stderrSha256": "296bb20bedb857627f66e6ab34acadf4292e49653993b6c5d77c026aa88c1e65",
+      "bytes": 71317,
+      "resolutions": [
+        {
+          "specifier": "virtual-bash",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-independent-20260829/native-actual-v1/scratch/physically-moved/node_modules/virtual-bash/dist/index.js",
+          "native": true
+        },
+        {
+          "specifier": "virtual-bash/commands/node",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-independent-20260829/native-actual-v1/scratch/physically-moved/node_modules/virtual-bash/dist/commands/node/index.js",
+          "native": true
+        }
+      ],
+      "loaded": 248,
+      "receipt": {
+        "role": "I13-native-public-resolution",
+        "symbols": 9,
+        "privateRefusals": 4,
+        "defaultCount": 80,
+        "prepared": 0,
+        "aliases": false
+      }
+    },
+    {
+      "label": "wrong-import-target",
+      "pid": 42724,
+      "code": 1,
+      "signal": null,
+      "closed": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "2bbb583c4aa9326f6faf5c23f9bf9ac743af41d93ac8158b94f24231cb0944b5",
+      "bytes": 72443,
+      "resolutions": [
+        {
+          "specifier": "virtual-bash",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-independent-20260829/native-actual-v1/scratch/physically-moved/node_modules/virtual-bash/dist/index.js",
+          "native": true
+        },
+        {
+          "specifier": "virtual-bash/commands/node",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-independent-20260829/native-actual-v1/scratch/physically-moved/node_modules/virtual-bash/dist/commands/node/host.js",
+          "native": true
+        }
+      ],
+      "loaded": 248,
+      "expectedFailure": true
+    },
+    {
+      "label": "restored",
+      "pid": 42726,
+      "code": 0,
+      "signal": null,
+      "closed": true,
+      "stdoutSha256": "2aa5eee8b5db1de83bf507e304e4395bc498345dd54f42cc3be875b3f0e0517e",
+      "stderrSha256": "296bb20bedb857627f66e6ab34acadf4292e49653993b6c5d77c026aa88c1e65",
+      "bytes": 71317,
+      "resolutions": [
+        {
+          "specifier": "virtual-bash",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-independent-20260829/native-actual-v1/scratch/physically-moved/node_modules/virtual-bash/dist/index.js",
+          "native": true
+        },
+        {
+          "specifier": "virtual-bash/commands/node",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/node-public-independent-20260829/native-actual-v1/scratch/physically-moved/node_modules/virtual-bash/dist/commands/node/index.js",
+          "native": true
+        }
+      ],
+      "loaded": 248,
+      "receipt": {
+        "role": "I13-native-public-resolution",
+        "symbols": 9,
+        "privateRefusals": 4,
+        "defaultCount": 80,
+        "prepared": 0,
+        "aliases": false
+      }
+    }
+  ],
+  "NodeWorkers": 0,
+  "guestEntries": 0,
+  "loaderAdmissions": 0,
+  "unsafe": false,
+  "cleanup": true,
+  "executableBytesHashed": 112989184,
+  "originAbsent": true,
+  "packageMutation": {
+    "original": "58b4a3498274a8901f98d6a290671251fa8ca292d72bd5c4987bc8ec8e15411b",
+    "mutated": "575551bc63f04d5b6fb73afca07626b0a6f838ba8b07457071447da89a949081",
+    "change": "import target only; types untouched"
+  },
+  "pass": true,
+  "end": "2026-08-29T07:11:04.245Z"
+}

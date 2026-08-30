@@ -1,0 +1,394 @@
+{
+  "profile": "current",
+  "importedRuntime": "file:///Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+  "worktreeRuntimeHash": "7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42",
+  "rows": [
+    {
+      "flag": "omitted",
+      "mode": "direct",
+      "source": "tick; tick; tick",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": "omitted",
+      "mode": "invoke-implicit",
+      "source": "bridge; bridge; bridge",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": "omitted",
+      "mode": "invoke-explicit",
+      "source": "bridge; bridge; bridge",
+      "calls": 2,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": "omitted",
+      "mode": "nested-implicit",
+      "source": "outer; outer; outer",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": "omitted",
+      "mode": "nested-explicit",
+      "source": "outer; outer; outer",
+      "calls": 1,
+      "output": "",
+      "outputHex": "",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)"
+      }
+    },
+    {
+      "flag": "omitted",
+      "mode": "recursive-implicit",
+      "source": "tick",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": "omitted",
+      "mode": "env-recursive",
+      "source": "env -i tick",
+      "calls": 2,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": "omitted",
+      "mode": "pipeline",
+      "source": "tick | forward",
+      "calls": 1,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": ""
+    },
+    {
+      "flag": "omitted",
+      "mode": "env-pipeline",
+      "source": "env -i tick | forward",
+      "calls": 1,
+      "output": "",
+      "outputHex": "",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:219:83)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    at new Promise (<anonymous>)\n    at abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    at writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    at pipeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:140:11)\n    at async Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:18:64)"
+      }
+    },
+    {
+      "flag": false,
+      "mode": "direct",
+      "source": "tick; tick; tick",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": false,
+      "mode": "invoke-implicit",
+      "source": "bridge; bridge; bridge",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": false,
+      "mode": "invoke-explicit",
+      "source": "bridge; bridge; bridge",
+      "calls": 2,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": false,
+      "mode": "nested-implicit",
+      "source": "outer; outer; outer",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": false,
+      "mode": "nested-explicit",
+      "source": "outer; outer; outer",
+      "calls": 1,
+      "output": "",
+      "outputHex": "",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)"
+      }
+    },
+    {
+      "flag": false,
+      "mode": "recursive-implicit",
+      "source": "tick",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": false,
+      "mode": "env-recursive",
+      "source": "env -i tick",
+      "calls": 2,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": false,
+      "mode": "pipeline",
+      "source": "tick | forward",
+      "calls": 1,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": ""
+    },
+    {
+      "flag": false,
+      "mode": "env-pipeline",
+      "source": "env -i tick | forward",
+      "calls": 1,
+      "output": "",
+      "outputHex": "",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:219:83)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    at new Promise (<anonymous>)\n    at abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    at writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    at pipeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:140:11)\n    at async Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:18:64)"
+      }
+    },
+    {
+      "flag": true,
+      "mode": "direct",
+      "source": "tick; tick; tick",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": true,
+      "mode": "invoke-implicit",
+      "source": "bridge; bridge; bridge",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": true,
+      "mode": "invoke-explicit",
+      "source": "bridge; bridge; bridge",
+      "calls": 2,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": true,
+      "mode": "nested-implicit",
+      "source": "outer; outer; outer",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": true,
+      "mode": "nested-explicit",
+      "source": "outer; outer; outer",
+      "calls": 1,
+      "output": "",
+      "outputHex": "",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:88:34)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)"
+      }
+    },
+    {
+      "flag": true,
+      "mode": "recursive-implicit",
+      "source": "tick",
+      "calls": 3,
+      "output": "12341234",
+      "outputHex": "3132333431323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": true,
+      "mode": "env-recursive",
+      "source": "env -i tick",
+      "calls": 2,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at writeText (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:129:14)\n    at Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:12:22)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:823:33)\n    at dispatch (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:38:28)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts:65:12)\n    at Runtime.dispatch (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:835:56)\n    at Runtime.simple (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:727:40)\n    at async Runtime.command (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:396:45)"
+      }
+    },
+    {
+      "flag": true,
+      "mode": "pipeline",
+      "source": "tick | forward",
+      "calls": 1,
+      "output": "1234",
+      "outputHex": "31323334",
+      "stderr": ""
+    },
+    {
+      "flag": true,
+      "mode": "env-pipeline",
+      "source": "env -i tick | forward",
+      "calls": 1,
+      "output": "",
+      "outputHex": "",
+      "stderr": "",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes",
+        "limit": "maxOutputBytes",
+        "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:60:19)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:86:78)\n    at Object.write (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:219:83)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:30)\n    at <anonymous> (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:183:23)\n    at new Promise (<anonymous>)\n    at abortable (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:176:10)\n    at writeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:134:9)\n    at pipeBytes (/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts:140:11)\n    at async Object.execute (file:///private/tmp/safe-bash-env-output-probe.mjs:18:64)"
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "scope": "post-inspection mutation target load-time source authentication",
+  "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+  "candidateDefaultCommands": 70,
+  "mutationBaseCommit": "2748e2abbc2dc838e02b1d75ee7d967f0749e8ad",
+  "finalAuditEvidenceCommit": "7a8e7bebc96156e511fc91389341d87e5aba317c",
+  "finalAuditPostCommitFreeze": "a67ae4e81a728b198d181095f6ca7c87a138b25c",
+  "attempt": "attempt-001",
+  "baselineAssertions": {
+    "passed": 11,
+    "failed": 0
+  },
+  "baselineLoadedTargetModules": 4,
+  "semanticMutants": {
+    "executed": 8,
+    "loadedHashAttested": 8,
+    "mappedAssertionKills": 8,
+    "loaderOrResolutionKills": 0
+  },
+  "guards": {
+    "genuineInstalledAllowedAndLoaded": true,
+    "wrongInstalledDeniedAndNotLoaded": true,
+    "sameBytesOutsideRootDeniedAndNotLoaded": true
+  },
+  "closure": {
+    "innerChildrenClosed": 51,
+    "innerProcessGroupsClosed": 51,
+    "wrapperChildrenClosed": 15,
+    "wrapperProcessGroupsClosed": 15,
+    "timeouts": 0,
+    "outputOverflows": 0,
+    "ownedRuntimeRemoved": true
+  },
+  "deferredWriteMutant": {
+    "lateCompletionsDrained": 2,
+    "outstandingAfterDrain": 0
+  },
+  "recordedGapClosed": true,
+  "remainingGapInThisNarrowScope": null,
+  "pass": true
+}
+

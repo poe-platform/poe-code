@@ -1,0 +1,48 @@
+{
+  "oldCommit": "f43ef7af952c0b7005ad219e36dc790f72a55d5b",
+  "archiveSha256": "c41270247293870c3836cb1690c66fadf55d0b5145a74cf70a94cf0899bc7be9",
+  "archiveEntries": 36,
+  "oldRunSha256": "6ec6e206edcc83e0e4ae03d5c69c9b7cf7fda9318df8d12ee1214969a9ee6e69",
+  "newRunSha256": "e9e481abc9feb33ff46d26b93b9ba7bd356b103132774a2e16687fa7e3fe37dd",
+  "runDelta": "only canonical inventory guard, v11 DATA reference locations, version-local type paths, outer raw-capture exclusion and inherited outer monotonic start; lifecycle algorithm and expectations unchanged",
+  "unchangedRuntimeFiles": [
+    {
+      "path": "worker.mjs",
+      "sha256": "7fdffa2d6bbd992546c5f6b203d5c9f25379181a38b1c7d7607531d3db76d1ba"
+    },
+    {
+      "path": "observer.mjs",
+      "sha256": "8988827da7a4c23b44b563604640333a8121f0fd66a8f3ad47532de1e81afa30"
+    },
+    {
+      "path": "loader.mjs",
+      "sha256": "bbdd0f3e7e6d1e4083684f749b52b0a97837255344697ac83b06279222dab215"
+    },
+    {
+      "path": "bootstrap.mjs",
+      "sha256": "8fc696a5ae5a584e06f3f11c99c0402b54819aaf3ba3a3f5d269816f9fe752b1"
+    },
+    {
+      "path": "tool.mjs",
+      "sha256": "21883e49f12392a63f7daef4bb1cccdcb013b16a7a6985bde83afc51246d0693"
+    },
+    {
+      "path": "cases.mjs",
+      "sha256": "950ead1386223d588ee36176f2e81d44cfc8a642af70fbd6abdddadcf810a89f"
+    },
+    {
+      "path": "fixtures.mjs",
+      "sha256": "7130f0cdf6dea855f1d1c805569fb3e2d0d982e4c6f196be46728b0d05f1e396"
+    }
+  ],
+  "typesOnlyDelta": {
+    "from": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11/RUN-01",
+    "to": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01"
+  },
+  "sourceComposition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "candidate": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "packageSha256": "68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68",
+  "H10Calls": 1,
+  "privateWriter": "SOURCE_LINKED_CONDITIONAL_JOIN, unchanged",
+  "preControlCaptureCorrection": "Before any controls: bounded hard-close wait and cleanup reserve; loop raw writeSync until exact bytes written. No target/lifecycle alteration."
+}

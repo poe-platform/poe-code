@@ -1,0 +1,290 @@
+TAP version 13
+# (node:13683) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/loaded-hashes.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: public tail records Buffer
+not ok 1 - public tail records Buffer
+  ---
+  duration_ms: 8.297458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:35:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        status: 0,
+        stderr: '',
+    +   stdout: 'a60a640a000000'
+    -   stdout: '6162630a646566'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: '6162630a646566'
+    stderr: ''
+    status: 0
+  actual:
+    stdout: 'a60a640a000000'
+    stderr: ''
+    status: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    success (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/fixtures.mjs:40:10)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:37:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: public tail binary Buffer
+not ok 2 - public tail binary Buffer
+  ---
+  duration_ms: 2.091916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:35:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        status: 0,
+        stderr: '',
+    +   stdout: '00000000000000'
+    -   stdout: '839142217f0a5a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: '839142217f0a5a'
+    stderr: ''
+    status: 0
+  actual:
+    stdout: '00000000000000'
+    stderr: ''
+    status: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    success (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/fixtures.mjs:40:10)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:37:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public head exclusion Buffer
+not ok 3 - public head exclusion Buffer
+  ---
+  duration_ms: 1.445625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:35:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        status: 0,
+        stderr: '',
+    +   stdout: 'f0839142217f42a6'
+    -   stdout: 'd14e00f083914221'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: 'd14e00f083914221'
+    stderr: ''
+    status: 0
+  actual:
+    stdout: 'f0839142217f42a6'
+    stderr: ''
+    status: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    success (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/fixtures.mjs:40:10)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:37:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public fixed pattern collection Buffer
+not ok 4 - public fixed pattern collection Buffer
+  ---
+  duration_ms: 35.9905
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:35:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+    +   status: 1,
+    -   status: 0,
+        stderr: '',
+    +   stdout: ''
+    -   stdout: '636f62616c740a756d6265720a'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: '636f62616c740a756d6265720a'
+    stderr: ''
+    status: 0
+  actual:
+    stdout: ''
+    stderr: ''
+    status: 1
+  operator: 'deepStrictEqual'
+  stack: |-
+    success (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/fixtures.mjs:40:10)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:37:7)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public tail pipeline and file bytes Buffer
+not ok 5 - public tail pipeline and file bytes Buffer
+  ---
+  duration_ms: 5.081417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:41:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      {
+        status: 0,
+        stderr: '',
+    +   stdout: 'a60a640a000000'
+    -   stdout: '6162630a646566'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    stdout: '6162630a646566'
+    stderr: ''
+    status: 0
+  actual:
+    stdout: 'a60a640a000000'
+    stderr: ''
+    status: 0
+  operator: 'deepStrictEqual'
+  stack: |-
+    success (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/fixtures.mjs:40:10)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:43:5)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public stdin ownership control Buffer
+ok 6 - public stdin ownership control Buffer
+  ---
+  duration_ms: 5.39425
+  type: 'test'
+  ...
+# Subtest: public contract collector acceptance control Buffer
+ok 7 - public contract collector acceptance control Buffer
+  ---
+  duration_ms: 0.250292
+  type: 'test'
+  ...
+# Subtest: public tail records Uint8Array
+ok 8 - public tail records Uint8Array
+  ---
+  duration_ms: 1.113042
+  type: 'test'
+  ...
+# Subtest: public tail binary Uint8Array
+ok 9 - public tail binary Uint8Array
+  ---
+  duration_ms: 0.767584
+  type: 'test'
+  ...
+# Subtest: public head exclusion Uint8Array
+ok 10 - public head exclusion Uint8Array
+  ---
+  duration_ms: 1.058333
+  type: 'test'
+  ...
+# Subtest: public fixed pattern collection Uint8Array
+ok 11 - public fixed pattern collection Uint8Array
+  ---
+  duration_ms: 33.168625
+  type: 'test'
+  ...
+# Subtest: public tail pipeline and file bytes Uint8Array
+ok 12 - public tail pipeline and file bytes Uint8Array
+  ---
+  duration_ms: 1.991
+  type: 'test'
+  ...
+# Subtest: public stdin ownership control Uint8Array
+ok 13 - public stdin ownership control Uint8Array
+  ---
+  duration_ms: 1.258625
+  type: 'test'
+  ...
+# Subtest: public contract collector acceptance control Uint8Array
+ok 14 - public contract collector acceptance control Uint8Array
+  ---
+  duration_ms: 0.086291
+  type: 'test'
+  ...
+# Subtest: public empty nonzero-offset views produce no output
+ok 15 - public empty nonzero-offset views produce no output
+  ---
+  duration_ms: 0.541792
+  type: 'test'
+  ...
+# Subtest: public upstream error has exact status and diagnostic
+ok 16 - public upstream error has exact status and diagnostic
+  ---
+  duration_ms: 0.504708
+  type: 'test'
+  ...
+# Subtest: public output limit rejects without mutating input
+ok 17 - public output limit rejects without mutating input
+  ---
+  duration_ms: 0.898
+  type: 'test'
+  ...
+# Subtest: public abort closes cooperative borrowed source
+ok 18 - public abort closes cooperative borrowed source
+  ---
+  duration_ms: 0.627166
+  type: 'test'
+  ...
+# Subtest: public awaited sink acceptance before backing reuse
+ok 19 - public awaited sink acceptance before backing reuse
+  ---
+  duration_ms: 2.054333
+  type: 'test'
+  ...
+# Subtest: public sink rejection keeps exact reason and source cleanup
+not ok 20 - public sink rejection keeps exact reason and source cleanup
+  ---
+  duration_ms: 0.828584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:109:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/moved/consumer/public.mjs:112:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 14
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 304.688792

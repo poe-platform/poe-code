@@ -1,0 +1,27 @@
+{
+  "atUTC": "2026-08-29T13:45:11.491Z",
+  "results": [
+    {
+      "id": "I01-valid-two-records",
+      "status": "PASS",
+      "role": "PURE shape admission; no filesystem access through subject"
+    },
+    {
+      "id": "I02-nested-array",
+      "status": "PASS",
+      "role": "PURE shape admission; no filesystem access through subject"
+    },
+    {
+      "id": "I03-missing-path",
+      "status": "PASS",
+      "role": "PURE shape admission; no filesystem access through subject"
+    },
+    {
+      "id": "I04-duplicate-path",
+      "status": "PASS",
+      "role": "PURE shape admission; no filesystem access through subject"
+    }
+  ],
+  "passed": 4,
+  "actual": 0
+}

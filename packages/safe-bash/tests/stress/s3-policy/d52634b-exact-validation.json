@@ -1,0 +1,42 @@
+{
+  "revision": "d52634b04aa2c91f52e5bf8c331bc6e9a7b35a95",
+  "testHashesMatchFailingBaselines": true,
+  "typecheck": {
+    "command": [
+      "tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/stress/s3-policy/rename.test.ts",
+      "tests/stress/s3-policy/bounded-races.test.ts",
+      "tests/stress/s3-policy/bounded-observe.ts"
+    ],
+    "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-s3-policy-kC1j70",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "distinctTests": 86,
+  "repeatsPerSuite": 5,
+  "limits": {
+    "sameETagSchedules": 18,
+    "sameETagSourcesRemoved": 18,
+    "directorySnapshotGuaranteed": false,
+    "globalAtomicityGuaranteed": false,
+    "realProviderVerified": false
+  },
+  "claim": "Closes tested unsafe destination-guard downgrade; not a broad security or atomicity claim"
+}

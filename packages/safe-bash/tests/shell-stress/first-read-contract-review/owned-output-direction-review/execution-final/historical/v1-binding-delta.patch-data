@@ -1,0 +1,65 @@
+diff --git a/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts.mjs b/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts-r1.mjs
+index a1a8d899..b936dde3 100644
+--- a/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts.mjs
++++ b/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts-r1.mjs
+@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
+ import { createServer } from 'node:http';
+ import { once } from 'node:events';
+ import { setImmediate as turn } from 'node:timers/promises';
+-import { Shell, MemoryFileSystem, agentCommands, networkCommands, createOutputOperation, createBytePipe, writeBytes, readBytes } from './candidate/dist/index.js';
++import { Shell, MemoryFileSystem, ShellLimitError, agentCommands, networkCommands, createOutputOperation, createBytePipe, writeBytes, readBytes } from './candidate/dist/index.js';
+ import { deferred, makeTrace, within, assertOwnedFirstRead, assertSharedRemainder, assertIndependentEffects, assertMixedCurlFiles } from './support.mjs';
+ import { runLocalSeparationProbe } from './binding.mjs';
+ 
+@@ -144,14 +144,18 @@ async function nested() {
+ async function mixed() {
+   await subruns([false, true], pipefail => fixture(async ({shell, fs, caller, releases}) => {
+     const started = deferred(); const releaseResponse = deferred(); releases.push(() => releaseResponse.resolve());
+-    const sockets = new Set(); const events = []; let requestsStarted = 0; let stage; let requestSignal; let producerStatus; let stageLiveAtClose; let callerLiveAtClose;
++    const sockets = new Set(); const wireChunks = []; const events = []; let requestsStarted = 0; let stage; let requestSignal; let producerStatus; let stageLiveAtClose; let callerLiveAtClose;
+     const server = createServer(async (request, response) => {
+       requestsStarted++; events.push('request.started'); started.resolve(); response.sendDate = false;
+       response.once('close', () => events.push('response.closed'));
+       await releaseResponse.promise;
+       if (!response.destroyed) {response.writeHead(200, {'X-Owned-Review': 'fixed', 'Content-Length': '18', 'Connection': 'close'}); response.end('body-one\nbody-two\n'); events.push('response.sent');}
+     });
+-    server.on('connection', socket => {sockets.add(socket); socket.once('close', () => sockets.delete(socket));});
++    server.on('connection', socket => {
++      sockets.add(socket); socket.once('close', () => sockets.delete(socket));
++      const write = socket.write.bind(socket);
++      socket.write = (chunk, ...args) => {wireChunks.push(typeof chunk === 'string' ? Buffer.from(chunk, typeof args[0] === 'string' ? args[0] : 'utf8') : Buffer.from(chunk)); return write(chunk, ...args);};
++    });
+     server.listen(0, '127.0.0.1'); await once(server, 'listening');
+     const url = `http://127.0.0.1:${server.address().port}/`;
+     shell.use(networkCommands({authorize: request => {requestSignal = request.signal; return request.url === url && request.method === 'GET';}}));
+@@ -174,8 +178,11 @@ async function mixed() {
+       const body = id !== 'H10' ? Buffer.from(await fs.readFile('/owned-review/body')) : undefined;
+       const headers = id !== 'H09' ? Buffer.from(await fs.readFile('/owned-review/headers')) : undefined;
+       const expectedHeaderBytes = Buffer.from('HTTP/1.1 200 OK\r\nX-Owned-Review: fixed\r\nContent-Length: 18\r\nConnection: close\r\n\r\n');
++      const wireBytes = Buffer.concat(wireChunks); const headerEnd = wireBytes.indexOf('\r\n\r\n'); assert.ok(headerEnd >= 0);
++      const capturedHeaderBytes = wireBytes.subarray(0, headerEnd + 4); assert.deepEqual(capturedHeaderBytes, expectedHeaderBytes);
++      records.push({wireBase64: wireBytes.toString('base64'), capturedHeaders: capturedHeaderBytes.toString()});
+       records.push({pipefail, result, producerStatus, body: body?.toString(), headers: headers?.toString(), expectedHeaders: expectedHeaderBytes.toString(), events, stageLiveAtClose, callerLiveAtClose});
+-      assertMixedCurlFiles({requestsStarted, requestCanceledBeforeRequiredFiles: records.some(record => record.pipefail === pipefail && record.beforeResponseRequestAborted), stdoutBytes: Buffer.from(result.stdoutBytes), stderrBytes: Buffer.from(result.stderrBytes), stageAbortedAtOutputClose: !stageLiveAtClose, callerAbortedAtOutputClose: !callerLiveAtClose, bodyBytes: body, headerBytes: headers, expectedHeaderBytes, producerStatus, pipelineStatus: result.exitCode, pipefail}, {body: id !== 'H10', headers: id !== 'H09'});
++      assertMixedCurlFiles({requestsStarted, requestCanceledBeforeRequiredFiles: records.some(record => record.pipefail === pipefail && record.beforeResponseRequestAborted), stdoutBytes: Buffer.from(result.stdoutBytes), stderrBytes: Buffer.from(result.stderrBytes), stageAbortedAtOutputClose: !stageLiveAtClose, callerAbortedAtOutputClose: !callerLiveAtClose, bodyBytes: body, headerBytes: headers, expectedHeaderBytes: capturedHeaderBytes, producerStatus, pipelineStatus: result.exitCode, pipefail}, {body: id !== 'H10', headers: id !== 'H09'});
+       assert.ok(events.indexOf('request.started') < events.indexOf('stdout.closed')); assert.ok(events.indexOf('stdout.closed') < events.indexOf('response.sent'));
+     } finally {
+       releaseResponse.resolve(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await turn();
+@@ -187,7 +194,7 @@ async function mixed() {
+ async function precedence() {
+   await subruns(['caller-object', 'caller-zero', 'execution-and-cleanup', 'sole-cleanup', 'two-cleanups'], mode => fixture(async ({shell, caller, releases}) => {
+     const started = deferred(); const cleanupEntered = deferred(); const cleanupGate = deferred(); releases.push(() => cleanupGate.resolve());
+-    const first = {failure: 'cleanup-one'}; const second = {failure: 'cleanup-two'}; const executionFailure = {failure: 'execution'};
++    const first = {failure: 'cleanup-one'}; const second = {failure: 'cleanup-two'}; const executionFailure = new ShellLimitError('maxCommands');
+     const reason = mode === 'caller-zero' ? 0 : {code: 'EPIPE', source: 'caller'};
+     let cleanups = 0; let operation; let stage;
+     shell.register({name: 'producer', async execute(context) {
+@@ -238,7 +245,7 @@ async function late() {
+     assert.throws(() => operation.registerCleanup(() => {}), error => error === operation.signal.reason);
+     await assert.rejects(operation.acquire(() => {lateStarts++; return {};}, () => {}), error => error === operation.signal.reason);
+     const reason = {caller: 'late-admission'}; if (mode === 'caller') caller.abort(reason);
+-    const disposalOne = shell.dispose(); const disposalTwo = shell.dispose(); const disposed = outcome(Promise.all([disposalOne, disposalTwo]));
++    const disposalOne = shell.dispose(); const disposalTwo = shell.dispose(); assert.equal(disposalOne, disposalTwo); const disposed = outcome(Promise.all([disposalOne, disposalTwo]));
+     await turn();
+     const invoked = await outcome(contextSaved.invoke('late-child', [])); assert.ok(Object.hasOwn(invoked, 'error'));
+     if (mode === 'caller') assert.equal(invoked.error, reason);

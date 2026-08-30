@@ -1,0 +1,126 @@
+{
+  "schema": "R3_INDEPENDENT_REVIEW_V2_PRESEAL",
+  "inputSha256": "f1985dbd02f9bcbfc6997d4dc4984276bf0caddad7a77dec1aad8322692f5745",
+  "files": 416,
+  "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+  "prepSealSha256": "121fbcacbd52607121e04f1a78cad84449519991e63d7df4ffc4bc1a18edaec1",
+  "preparationSha256": "8c801e9cb97ef940b8df1515c04b55f0b4b601218b13c8e00860d75541c6ce71",
+  "authorFixtureSha256": "b1f2b738f21482114d154e1b94b4d8d29565d7394692b46cea4dbb0586d65413",
+  "sourceWorkerSha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+  "node": {
+    "absolute": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "role": "tool-node"
+  },
+  "families": 8,
+  "extraControls": 13,
+  "expectedRuntimeOSDescendants": 38,
+  "allOSCap": 80,
+  "peakTotalCap": 4,
+  "ownerIncluded": true,
+  "totalMinutes": 30,
+  "captureCap": 134217728,
+  "workCap": 536870912,
+  "noRealEngines": true,
+  "noActualAdmission": true,
+  "oldHold": "d559fad880acef34b29b782f2d8c7d84d26bb13d",
+  "oldFamiliesExecuted": 0,
+  "metadata": [
+    {
+      "id": "composition-inventory",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "9b6c8a04d0e3227ead7d055253b80fec7479f04b",
+        "--",
+        "tests/comparison/breadth-continuation-20260828",
+        "tests/comparison/AGENTS.md",
+        "tests/AGENTS.md"
+      ],
+      "pid": 56154,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "bytes": 66989,
+      "stdoutSha256": "9179dbd1a7a179db0f9f262889617259310447d29bc30d2f345918309dedd3ce",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "repair-inventory",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/"
+      ],
+      "pid": 57772,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "bytes": 4774,
+      "stdoutSha256": "415496b5c8205162dacfe7f30a4319c772f431bbab0bdf2e1fe6f4e4187d031e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "preparation-inventory",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "fe8037019610a48522a8b1b4fc8987657cfa6d7e",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/"
+      ],
+      "pid": 57791,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "bytes": 5726,
+      "stdoutSha256": "88b37a4a4c09fb42f75dd3b3802cfde6862d484f53ee35baf0a099e74ca7ed7e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "final-seal-inventory",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "d306b837da24fa970ded9ca6a0a99fe7a76ae342",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/"
+      ],
+      "pid": 57810,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "bytes": 6189,
+      "stdoutSha256": "2c30ef6721726f1ec4badc40ec9a101570699323e6ee06bede800946bb4a579d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

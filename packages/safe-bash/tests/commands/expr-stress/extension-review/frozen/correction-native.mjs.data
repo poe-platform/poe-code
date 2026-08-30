@@ -1,0 +1,117 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { spawn, spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync } from 'node:fs';
+import { arch, release, type } from 'node:os';
+import { join, relative } from 'node:path';
+
+const root = process.cwd();
+const base = join(root, 'tests/commands/expr-stress/extension-review/frozen');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const load = file => JSON.parse(readFileSync(join(base, file), 'utf8'));
+const fixture = load('correction-input.json');
+const receiptPath = 'evidence/quoted-parenthesis-20260827/oracle.json';
+const initial = load('evidence/native-20260827/oracle.json');
+const expectedManifestHash = 'e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198';
+const children = new Set();
+let interrupted = false;
+const interrupt = () => { interrupted = true; for (const child of children) child.kill('SIGKILL'); };
+const json = value => `${JSON.stringify(value, null, 2)}\n`;
+
+function verifyInitial() {
+  assert.equal(hash(readFileSync(join(base, 'evidence/native-20260827/manifest.json'))), expectedManifestHash);
+  const result = spawnSync(process.execPath, ['--input-type=module', '-', 'verify'], { cwd: root, input: readFileSync(join(base, 'runner.mjs.data')), timeout: 10000, killSignal: 'SIGKILL', maxBuffer: 65536 });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr.toString());
+  assert.deepEqual(fixture.argv, ['+', '(', ':', '[(]']);
+}
+
+async function observe() {
+  verifyInitial();
+  assert.equal(type(), initial.host.type);
+  assert.equal(arch(), initial.host.arch);
+  assert.equal(release(), initial.host.release);
+  const directory = mkdtempSync(join(base, '.native-correction-'));
+  try {
+    const profiles = [];
+    for (const name of ['gnu', 'apple']) {
+      assert(!interrupted, 'admission closed');
+      const identity = initial.identities[name];
+      assert.equal(realpathSync(identity.actualPath), identity.actualPath);
+      assert.equal(hash(readFileSync(identity.actualPath)), identity.sha256);
+      const profile = initial.profiles.find(entry => entry.oracle === name && entry.locale === 'C');
+      const result = await new Promise((resolveResult, rejectResult) => {
+        const child = spawn(identity.actualPath, fixture.argv, { cwd: directory, env: profile.environment, argv0: 'expr', shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
+        children.add(child);
+        let size = 0;
+        let failure = null;
+        const stdout = [];
+        const stderr = [];
+        const timer = setTimeout(() => { failure = 'timeout'; child.kill('SIGKILL'); }, 2000);
+        const collect = target => chunk => { size += chunk.length; if (size > 65536) { failure = 'output-limit'; child.kill('SIGKILL'); } else target.push(Buffer.from(chunk)); };
+        child.stdout.on('data', collect(stdout));
+        child.stderr.on('data', collect(stderr));
+        child.on('error', error => { failure = error.message; });
+        child.on('close', (status, signal) => {
+          clearTimeout(timer);
+          children.delete(child);
+          if (interrupted) rejectResult(new Error('interrupted and reaped'));
+          else resolveResult({ id: fixture.id, status, signal, failure, stdoutBase64: Buffer.concat(stdout).toString('base64'), stderrBase64: Buffer.concat(stderr).toString('base64') });
+        });
+      });
+      assert.equal(result.failure, null);
+      assert.equal(result.signal, null);
+      profiles.push({ id: profile.id, actualExecutedPath: identity.actualPath, binarySha256: identity.sha256, environment: profile.environment, result });
+    }
+    assert.deepEqual(readdirSync(directory), []);
+    return { schema: 1, capturedAt: new Date().toISOString(), initialManifestSha256: expectedManifestHash, initialReceiptSha256: hash(readFileSync(join(base, 'evidence/native-20260827/oracle.json'))), inputSha256: hash(readFileSync(join(base, 'correction-input.json'))), argvUtf8Hex: fixture.argv.map(token => Buffer.from(token).toString('hex')), limits: initial.limits, host: initial.host, profileAuthentication: 'Same pinned executables/environment/host as initial capture; version/library observations retained there, not a second build claim.', profiles, candidate: null, scratchRemoved: true, effects: [] };
+  } finally {
+    assert.equal(children.size, 0);
+    rmSync(directory, { recursive: true });
+  }
+}
+
+function verifyReceipt(receipt) {
+  assert.equal(receipt.initialManifestSha256, expectedManifestHash);
+  assert.equal(receipt.initialReceiptSha256, hash(readFileSync(join(base, 'evidence/native-20260827/oracle.json'))));
+  assert.equal(receipt.inputSha256, hash(readFileSync(join(base, 'correction-input.json'))));
+  assert.deepEqual(receipt.profiles.map(profile => profile.id), fixture.profiles);
+  assert.deepEqual(receipt.argvUtf8Hex, fixture.argv.map(token => Buffer.from(token).toString('hex')));
+  for (const profile of receipt.profiles) {
+    assert.equal(profile.result.id, fixture.id);
+    assert.equal(profile.result.failure, null);
+    assert.equal(profile.result.signal, null);
+    assert(Number.isInteger(profile.result.status));
+    for (const key of ['stdoutBase64', 'stderrBase64']) assert.equal(Buffer.from(profile.result[key], 'base64').toString('base64'), profile.result[key]);
+  }
+}
+
+process.on('SIGINT', interrupt);
+process.on('SIGTERM', interrupt);
+const [mode = 'verify'] = process.argv.slice(2);
+try {
+  verifyInitial();
+  if (mode === 'capture') {
+    assert(!existsSync(join(base, receiptPath)), 'immutable correction already exists');
+    const receipt = await observe();
+    verifyReceipt(receipt);
+    const text = json(receipt);
+    const patch = `*** Begin Patch\n*** Add File: ${relative(root, join(base, receiptPath))}\n${text.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`;
+    const result = spawnSync('apply_patch', [], { cwd: root, input: patch, encoding: 'utf8', timeout: 15000, killSignal: 'SIGKILL', maxBuffer: 65536 });
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stderr);
+    console.log(result.stdout);
+  } else if (mode === 'verify' || mode === 'verify-native') {
+    const receipt = load(receiptPath);
+    verifyReceipt(receipt);
+    if (mode === 'verify-native') {
+      const actual = await observe();
+      assert.deepEqual(actual.profiles, receipt.profiles);
+    }
+    verifyInitial();
+    console.log(json({ mode, correctionInputs: 1, gnuObservations: 1, appleObservations: 1, candidateExecuted: false }));
+  } else throw new Error('Use verify (default), verify-native or capture (one-time, refuses existing receipt)');
+} finally {
+  process.removeListener('SIGINT', interrupt);
+  process.removeListener('SIGTERM', interrupt);
+}

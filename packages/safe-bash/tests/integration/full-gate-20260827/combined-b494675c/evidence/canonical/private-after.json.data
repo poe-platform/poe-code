@@ -1,0 +1,18 @@
+{
+  "before": {
+    "root": "/Users/kjopek/Workspace/poe-code",
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/",
+    "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2"
+  },
+  "after": {
+    "root": "/Users/kjopek/Workspace/poe-code",
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/",
+    "indexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2"
+  },
+  "gitStateUnchanged": true,
+  "engineFilesChecked": 264,
+  "engineChanges": [],
+  "checkedAt": "2026-08-27T11:22:45.437Z"
+}

@@ -1,0 +1,29 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Frozen env source bytes: src/commands/env-split.ts
++ actual - expected
+
++ 'a3c10337ae458a541dfc3c4a8510dbc1efa6947b4cc413eee24f4d4544c8fde0'
+- 'b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4'
+
+    at check (file:///private/tmp/loader-body-independent-pS0md9/harness/import-guard.mjs:26:24)
+    at resolve (file:///private/tmp/loader-body-independent-pS0md9/harness/import-guard.mjs:31:54)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveExtensionsSync (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:9775)
+    at resolveBaseSync (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10824)
+    at resolveDirectorySync (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveWithHooks (node:internal/modules/customization_hooks:417:10) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'a3c10337ae458a541dfc3c4a8510dbc1efa6947b4cc413eee24f4d4544c8fde0',
+  expected: 'b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

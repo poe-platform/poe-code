@@ -1,0 +1,497 @@
+{
+  "schema": "SEMANTIC_STOP_RECONCILIATION_V1",
+  "runId": "semantic-20260829-v7r3-01",
+  "protocolVerdict": "UNSAFE_STOP",
+  "grantConsumed": true,
+  "retries": 0,
+  "launchClosed": {
+    "sessionId": 67191,
+    "exitCode": 1,
+    "signal": null,
+    "closed": true,
+    "stdoutBytes": 0,
+    "stderrBytes": 0
+  },
+  "reportedCaseCounts": {
+    "completed": 1,
+    "passed": 1,
+    "failed": 0,
+    "unqualified": 0,
+    "unrun": 98
+  },
+  "reportedExecCounts": {
+    "semantic": 1,
+    "emptySetup": 1,
+    "C11": 0,
+    "total": 2
+  },
+  "observedExecAttempts": {
+    "semantic": 2,
+    "semanticReturnedResult": 1,
+    "semanticRejected": 1,
+    "emptySetup": 1,
+    "C11": 0,
+    "total": 3
+  },
+  "counterQualification": "RESULT.execCounts increments semantic only after launch passes settled check (body.mjs:118-119). Its semantic=1 omits the second actual exec-start/rejected call. Preserve raw count; this separate witness reconciliation is not rescore. 97workers unlaunched;98identities unqualified including the stopped second.",
+  "firstFailure": {
+    "operation": "case-2",
+    "identity": "baseline-installed:column-positive",
+    "classification": "GUARD_CAPABILITY_PROFILE_REFUSAL",
+    "error": "DefenseInDepthBox: could not register dynamic-import hooks: OFFLINE_DENIED:module.registerHooks",
+    "violations": [
+      {
+        "operation": "Socket",
+        "argument": "object"
+      },
+      {
+        "operation": "module.registerHooks",
+        "argument": "object"
+      }
+    ],
+    "noProductSemanticFailureConclusion": true,
+    "comparativeCommandExecutionUnproved": true,
+    "policyUnchanged": true
+  },
+  "runtime": {
+    "processes": 11,
+    "pids": [
+      28200,
+      28203,
+      28204,
+      28372,
+      28574,
+      28216,
+      28217,
+      28453,
+      28456,
+      28577,
+      28578
+    ],
+    "caseWorkers": 2,
+    "caseWorkersClosed": 2,
+    "unlaunchedWorkers": 97,
+    "authorityMetadataChildren": 6,
+    "authorityMetadataReaped": 6,
+    "outerLauncherReaped": true,
+    "coordinatorReaped": true,
+    "failedWorkerExit": {
+      "code": 1,
+      "signal": null
+    },
+    "failedWorkerNatural": false,
+    "noSignals": true,
+    "unknownAcquisitions": 0,
+    "retirement": {
+      "pid": 33431,
+      "parentPid": 21303,
+      "pids": [
+        {
+          "pid": 28200,
+          "state": "absent"
+        },
+        {
+          "pid": 28203,
+          "state": "absent"
+        },
+        {
+          "pid": 28204,
+          "state": "absent"
+        },
+        {
+          "pid": 28372,
+          "state": "absent"
+        },
+        {
+          "pid": 28574,
+          "state": "absent"
+        },
+        {
+          "pid": 28216,
+          "state": "absent"
+        },
+        {
+          "pid": 28217,
+          "state": "absent"
+        },
+        {
+          "pid": 28453,
+          "state": "absent"
+        },
+        {
+          "pid": 28456,
+          "state": "absent"
+        },
+        {
+          "pid": 28577,
+          "state": "absent"
+        },
+        {
+          "pid": 28578,
+          "state": "absent"
+        },
+        {
+          "pid": 28201,
+          "state": "absent"
+        },
+        {
+          "pid": 28202,
+          "state": "absent"
+        },
+        {
+          "pid": 22201,
+          "state": "absent"
+        },
+        {
+          "pid": 23137,
+          "state": "absent"
+        },
+        {
+          "pid": 23138,
+          "state": "absent"
+        },
+        {
+          "pid": 24875,
+          "state": "absent"
+        },
+        {
+          "pid": 26571,
+          "state": "absent"
+        },
+        {
+          "pid": 27180,
+          "state": "absent"
+        },
+        {
+          "pid": 27181,
+          "state": "absent"
+        },
+        {
+          "pid": 27184,
+          "state": "absent"
+        },
+        {
+          "pid": 27672,
+          "state": "absent"
+        },
+        {
+          "pid": 27673,
+          "state": "absent"
+        },
+        {
+          "pid": 27675,
+          "state": "absent"
+        },
+        {
+          "pid": 27678,
+          "state": "absent"
+        }
+      ],
+      "groups": [
+        {
+          "group": -28203,
+          "state": "absent"
+        },
+        {
+          "group": -28204,
+          "state": "absent"
+        },
+        {
+          "group": -28372,
+          "state": "absent"
+        },
+        {
+          "group": -28574,
+          "state": "absent"
+        },
+        {
+          "group": -28216,
+          "state": "absent"
+        },
+        {
+          "group": -28217,
+          "state": "absent"
+        },
+        {
+          "group": -28453,
+          "state": "absent"
+        },
+        {
+          "group": -28456,
+          "state": "absent"
+        },
+        {
+          "group": -28577,
+          "state": "absent"
+        },
+        {
+          "group": -28578,
+          "state": "absent"
+        }
+      ]
+    },
+    "qualification": "Natural=false on failed worker is retained. OS exit/close and PID/group absence proved separately; no completed99 protocol. Native guest worker creation not authorized; no claim of global host process census."
+  },
+  "resources": [
+    {
+      "operation": 1,
+      "pending": 0,
+      "descriptors": 0,
+      "violations": [],
+      "cleanup": {
+        "completion": "returned",
+        "disposed": true,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": [],
+      "postGuard": true
+    },
+    {
+      "operation": 2,
+      "pending": 0,
+      "descriptors": 0,
+      "violations": [
+        {
+          "operation": "Socket",
+          "argument": "object"
+        },
+        {
+          "operation": "module.registerHooks",
+          "argument": "object"
+        }
+      ],
+      "cleanup": {
+        "completion": "returned",
+        "disposed": false,
+        "baselineDisposeAPI": false
+      },
+      "cleanupErrors": [],
+      "late": [],
+      "postGuard": true
+    }
+  ],
+  "bootstrap": {
+    "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+    "opened": true,
+    "revoked": true,
+    "consumed": 2,
+    "nativeDelegations": 0,
+    "violations": [],
+    "callerAuthenticated": false,
+    "stockNodeCapabilities": false
+  },
+  "loads": [
+    {
+      "operationId": "case-1",
+      "layout": "target-installed",
+      "configSpecimenSha256": "d44eb486ac672466d7701f8e7636bb79508d4f739ab767f64a7e16c069403836",
+      "nextLoadCount": 211,
+      "allBodiesMatched": true,
+      "workerToConsumerEntry": {
+        "sequence": 7,
+        "kind": "consumer-entry-resolution",
+        "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/consumer-v5/consumer.mjs",
+        "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs",
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/consumer-v5/consumer.mjs",
+        "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs",
+        "expectedURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/consumer-v5/consumer.mjs",
+        "accepted": true
+      },
+      "consumerEvaluated": true,
+      "postGuard": true
+    },
+    {
+      "operationId": "case-2",
+      "layout": "baseline-installed",
+      "configSpecimenSha256": "d44eb486ac672466d7701f8e7636bb79508d4f739ab767f64a7e16c069403836",
+      "nextLoadCount": 21,
+      "allBodiesMatched": true,
+      "workerToConsumerEntry": {
+        "sequence": 9,
+        "kind": "consumer-entry-resolution",
+        "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+        "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs",
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+        "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs",
+        "expectedURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+        "accepted": true
+      },
+      "consumerEvaluated": true,
+      "postGuard": true
+    }
+  ],
+  "rawCaptures": [
+    {
+      "role": "worker1",
+      "channel": "stdout",
+      "observed": 11,
+      "retained": 11,
+      "sha256": "f50daa9829c7f6d945341dbb29193a908cbc5046e0f853c511ccea03ae8f55e1",
+      "complete": true
+    },
+    {
+      "role": "worker1",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "complete": true
+    },
+    {
+      "role": "worker1",
+      "channel": "records",
+      "observed": 142905,
+      "retained": 142905,
+      "sha256": "396db29ea1641105201795216613c3d33c17e6434b154b970dda1dab92ddf5cf",
+      "complete": true
+    },
+    {
+      "role": "worker2",
+      "channel": "stdout",
+      "observed": 0,
+      "retained": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "complete": true
+    },
+    {
+      "role": "worker2",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "complete": true
+    },
+    {
+      "role": "worker2",
+      "channel": "records",
+      "observed": 73163,
+      "retained": 73163,
+      "sha256": "c5374b2e4987aca4baed8fc2e734e8659176781667e0a0f12ac86dc71537caa5",
+      "complete": true
+    },
+    {
+      "role": "coordinator",
+      "channel": "stdout",
+      "observed": 937,
+      "retained": 937,
+      "sha256": "dbe488133ebbe106957a6d3764ab8920eee4687398500829bc0fc26e6f977aba",
+      "complete": true
+    },
+    {
+      "role": "coordinator",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "complete": true
+    },
+    {
+      "role": "coordinator",
+      "channel": "records",
+      "observed": 1414,
+      "retained": 1414,
+      "sha256": "7af39fcb03f63ed43a450e3eb9b6ed64d4d8e40eb741d9f1eaf55473a64084c1",
+      "complete": true
+    },
+    {
+      "role": "outer",
+      "channel": "stdout",
+      "observed": 653,
+      "retained": 653,
+      "sha256": "9bcfa230e47a7d3c8e803ee1bf33ea40dce4f7fda8434888fc8396f0feb57ec0",
+      "complete": true
+    },
+    {
+      "role": "outer",
+      "channel": "stderr",
+      "observed": 0,
+      "retained": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "complete": true
+    },
+    {
+      "role": "outer",
+      "channel": "fd3",
+      "observed": 0,
+      "retained": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "complete": true
+    }
+  ],
+  "captureQualifiedScope": {
+    "retainedRawComplete": true,
+    "channels": 12,
+    "observedBytes": 219083,
+    "retainedBytes": 219083,
+    "lostBytes": 0,
+    "outerFilesSyncedClosed": {
+      "stdout": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      "stderr": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      "fd3": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      "intent": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      "events": {
+        "syncAttempted": true,
+        "synced": true,
+        "closeAttempted": true,
+        "closed": true
+      }
+    },
+    "ownerWholeCaptureQualified": false,
+    "ownerNonzeroFailureRetained": true,
+    "qualification": "Raw completeness/closure only; owner captureQualified and full semantic protocol remain false due nonzero/unsafe disposition, not rescored"
+  },
+  "postflight": {
+    "sourceBindingEdges": 460,
+    "uniquePaths": 429,
+    "namespaceCensuses": 4,
+    "realStages": [
+      {
+        "name": "target-installed",
+        "files": 860,
+        "completeHashModeCensus": true
+      },
+      {
+        "name": "target-moved",
+        "files": 860,
+        "completeHashModeCensus": true
+      },
+      {
+        "name": "baseline-installed",
+        "files": 3845,
+        "completeHashModeCensus": true
+      }
+    ],
+    "standaloneAfterFailure": true,
+    "ownerPostflight": false
+  },
+  "fairness": [
+    "Comparator is pinned3.4.2 with unavailable-bootstrap profile, NOT stock Node capabilities",
+    "Guard refusal is not evidence column semantics fail",
+    "W03partial telemetry,W07uncredited remain; both unrun",
+    "All old scores/failures/grants/lostbytes unchanged",
+    "Accepted78oldcandidate67eab/full6608composition not currentBashfeature acceptance",
+    "No overall winner/performance/network/native claim"
+  ],
+  "nextBlocker": "Fresh ROOT source/policy adjudication of Socket/module.registerHooks calls before any additional execution; no widening or retry authorized"
+}

@@ -1,0 +1,83 @@
+{"groups":10,"passed":10,"children":2,"closed":2,"Workers":0}
+{
+  "at": "2026-08-29T15:57:04.604Z",
+  "authorReplay": {
+    "count": 10,
+    "passed": 10,
+    "harmlessChildren": 2,
+    "exitCodes": [
+      0,
+      7
+    ]
+  },
+  "novel": {
+    "count": 6,
+    "passed": 2,
+    "rows": [
+      {
+        "id": "N01-cross-realm-own-data",
+        "pass": true,
+        "observation": {
+          "disposition": "PASS",
+          "prototypeEqualityRequired": false
+        }
+      },
+      {
+        "id": "N02-termination-present-zero",
+        "pass": false,
+        "message": "Expected refusal; sealed judge accepted",
+        "observation": {
+          "refused": false,
+          "disposition": "PASS"
+        }
+      },
+      {
+        "id": "N03-process-primary-accessor",
+        "pass": false,
+        "message": "Process primary getter executed",
+        "observation": {
+          "refused": false,
+          "disposition": "PASS",
+          "getterCalls": 1
+        }
+      },
+      {
+        "id": "N04-missing-both-close-events",
+        "pass": false,
+        "message": "Expected refusal; sealed judge accepted",
+        "observation": {
+          "refused": false,
+          "disposition": "PASS"
+        }
+      },
+      {
+        "id": "N05-duplicate-attempt-event",
+        "pass": false,
+        "message": "Expected refusal; sealed judge accepted",
+        "observation": {
+          "refused": false,
+          "disposition": "PASS"
+        }
+      },
+      {
+        "id": "N06-partial-capture-raw-presence",
+        "pass": true,
+        "observation": {
+          "primary": "undefined",
+          "secondary": "false",
+          "bodyCalls": 0,
+          "closed": 1
+        }
+      }
+    ]
+  },
+  "layouts": {
+    "built": 5,
+    "installed": 4,
+    "moved": 4
+  },
+  "caseFiles": 390,
+  "caseBytes": 1365232,
+  "verdict": "HOLD",
+  "actualWorkers": 0
+}

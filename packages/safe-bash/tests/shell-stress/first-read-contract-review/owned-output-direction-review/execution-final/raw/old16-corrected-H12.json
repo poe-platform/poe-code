@@ -1,0 +1,17 @@
+{
+  "label": "old16-corrected-H12",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"H12\",\"verdict\":\"PASS\",\"records\":[{\"mode\":\"caller-object\",\"cleanups\":1,\"rejection\":{\"code\":\"EPIPE\",\"source\":\"caller\"},\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"caller-object\",\"passed\":true},{\"mode\":\"caller-zero\",\"cleanups\":1,\"rejection\":0,\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"caller-zero\",\"passed\":true},{\"mode\":\"execution-and-cleanup\",\"cleanups\":1,\"rejection\":{\"limit\":\"maxCommands\",\"name\":\"ShellLimitError\"},\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"execution-and-cleanup\",\"passed\":true},{\"mode\":\"sole-cleanup\",\"cleanups\":1,\"rejection\":{\"failure\":\"cleanup-one\"},\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"sole-cleanup\",\"passed\":true},{\"mode\":\"two-cleanups\",\"cleanups\":2,\"rejection\":{},\"operationReasonCode\":\"EPIPE\"},{\"subrun\":\"two-cleanups\",\"passed\":true}]}\n",
+    "bytes": 770,
+    "base64": "eyJpZCI6IkgxMiIsInZlcmRpY3QiOiJQQVNTIiwicmVjb3JkcyI6W3sibW9kZSI6ImNhbGxlci1vYmplY3QiLCJjbGVhbnVwcyI6MSwicmVqZWN0aW9uIjp7ImNvZGUiOiJFUElQRSIsInNvdXJjZSI6ImNhbGxlciJ9LCJvcGVyYXRpb25SZWFzb25Db2RlIjoiRVBJUEUifSx7InN1YnJ1biI6ImNhbGxlci1vYmplY3QiLCJwYXNzZWQiOnRydWV9LHsibW9kZSI6ImNhbGxlci16ZXJvIiwiY2xlYW51cHMiOjEsInJlamVjdGlvbiI6MCwib3BlcmF0aW9uUmVhc29uQ29kZSI6IkVQSVBFIn0seyJzdWJydW4iOiJjYWxsZXItemVybyIsInBhc3NlZCI6dHJ1ZX0seyJtb2RlIjoiZXhlY3V0aW9uLWFuZC1jbGVhbnVwIiwiY2xlYW51cHMiOjEsInJlamVjdGlvbiI6eyJsaW1pdCI6Im1heENvbW1hbmRzIiwibmFtZSI6IlNoZWxsTGltaXRFcnJvciJ9LCJvcGVyYXRpb25SZWFzb25Db2RlIjoiRVBJUEUifSx7InN1YnJ1biI6ImV4ZWN1dGlvbi1hbmQtY2xlYW51cCIsInBhc3NlZCI6dHJ1ZX0seyJtb2RlIjoic29sZS1jbGVhbnVwIiwiY2xlYW51cHMiOjEsInJlamVjdGlvbiI6eyJmYWlsdXJlIjoiY2xlYW51cC1vbmUifSwib3BlcmF0aW9uUmVhc29uQ29kZSI6IkVQSVBFIn0seyJzdWJydW4iOiJzb2xlLWNsZWFudXAiLCJwYXNzZWQiOnRydWV9LHsibW9kZSI6InR3by1jbGVhbnVwcyIsImNsZWFudXBzIjoyLCJyZWplY3Rpb24iOnt9LCJvcGVyYXRpb25SZWFzb25Db2RlIjoiRVBJUEUifSx7InN1YnJ1biI6InR3by1jbGVhbnVwcyIsInBhc3NlZCI6dHJ1ZX1dfQo=",
+    "sha256": "ae54de67becc17d85f853fe83b2c0b90bfb47f485e17534e5be187eb020eaba8"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

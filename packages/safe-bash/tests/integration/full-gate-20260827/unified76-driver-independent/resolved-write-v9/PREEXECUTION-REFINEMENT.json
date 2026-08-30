@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "timing": "Pre-execution fixture refinement; no control has run",
+  "reason": "Hardlinking an inside symlink inode is not importing its outside target inode. Use outside-dir/benign through the directory symlink so final link source is a regular outside inode. Do not mislabel allowed inert-reference creation as an outside physical import.",
+  "entry": "review-v2.mjs",
+  "probe": "probe-v2.mjs",
+  "policy": "Unchanged POLICY R04 and prospective root authority; no new policy request"
+}

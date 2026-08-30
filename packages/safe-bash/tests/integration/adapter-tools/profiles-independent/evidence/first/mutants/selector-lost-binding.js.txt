@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { atomicMockBinding } from "../atomic-webdav-profile/atomic-mock.js";
+import { withFixture } from "../fixtures.js";
+export function withRmdirFixture(name, run) {
+    return withFixture(name, async (fixture) => {
+        if (name === "s3") {
+            assert.equal(fixture.fs.capabilities.snapshotRmdir, true, "S3 positive removal uses the weaker explicit snapshot-marker profile, not atomic emptiness");
+        }
+        return run(fixture);
+    }, undefined, name === "never-webdav" ? { webdavAtomicBinding: atomicMockBinding } : {});
+}

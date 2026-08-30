@@ -1,0 +1,9 @@
+{
+  "status": "IDENTIFIED_READONLY_SYSTEM_TOOL_ALIAS",
+  "alias": "/usr/bin/tar",
+  "linkText": "bsdtar",
+  "canonical": "/usr/bin/bsdtar",
+  "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+  "bytes": 275344,
+  "qualification": "Existing OS tar alias only. Neither tar nor bsdtar is executed in this preparation. Copied candidate/package/engine/tool/loader symlink rejection is unchanged. No alias is permitted for source/runtime module paths."
+}

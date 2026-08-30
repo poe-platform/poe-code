@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "chronology": "Requirements sealed46c14a60 before new implementation inspection. This recipe is post-source-inspection/pre-control-execution; no blind attestation.",
+  "bindings": "BINDINGS.json",
+  "entry": "review.mjs -> frozen superviseFencedWorker -> independent worker -> frozen openFencedWorker/createPhaseRunner -> actual attachPhaseSupervisor -> instructionFenceInvocation -> sandbox-exec -> frozen supervise",
+  "independence": "New canary programs and input oracles; author control runners not imported or replayed. Guard callbacks protect the component fixture, not substitute for product/A10 guards. No independent AGENTS write interceptor is installed.",
+  "controls": [
+    {"id":"ordinary", "expect":"Node create/append/rename/subdirectory/temp and native clean-env writes inside exact root/output succeed; literal POSIX backslash neighbor succeeds."},
+    {"id":"names", "expect":"AGENTS.md/agents.md/AgEnTs.Md/AGENTS.MD create, ordinary-to-instruction rename, symlink and hardlink publication deny; benign source remains; no instruction file exists."},
+    {"id":"imports", "expect":"Outside file hardlink, outside directory rename/symlink import, outside pathname write deny. Synthetic outside read is allowed by read-only boundary; no real private tree accessed."},
+    {"id":"descendants", "expect":"Environment-cleared Node child/grandchild and two native shell generations cannot write instruction names/outside root; ordinary native append succeeds. PID/status/stdout/stderr retained."},
+    {"id":"shipping-fds", "expect":"Parent preopened outside regular read/write canary dev/ino is absent from worker and phase FD tables. Fixed shipping ignored/pipe/IPC stdio is source-bound, not assumed from profile."},
+    {"id":"explicit-fd-limitation", "expect":"Deliberate separate raw invocation passes ordinary outside writable FD3: write may succeed as author-disclosed OS limitation; preserve exact changed canary and classify unsafe raw descriptor route, not shipping fence acceptance. Never pass it to archive/product phases."},
+    {"id":"foreign", "expect":"Review-owned sentinel in separate detached group survives watched worker/phase completion; only controller stops its own sentinel."}
+  ],
+  "stop": "Any forbidden pathname publication, outside path/import success, shipping inherited regular descriptor, unreaped child, unbound tool, or load failure stops relevant admission. No real historical archive or A10 until these component results are evaluated and followup recipe sealed. FD raw-call limitation must not be mislabeled as blocked-by-OS or gate acceptance.",
+  "bounds": {"perPhaseMs":20000,"workerMs":120000,"perStreamBytes":1048576,"allReviewBytes":16777216,"scratchBytes":67108864,"captureBytes":16777216,"wholeReviewMs":180000},
+  "temporary": "Only BINDINGS.temporary, exact fresh shipping envelope roots/output, and review-owned sentinel. Canary bodies are benign; no real instruction payload or new instruction file is used for setup.",
+  "followup": "Only after safe results: freeze actual streamed historical Git/tar negative and shared full projected A10 using exact frozen narrow entry; complete closure/reconstruction/source/projection proofs carried only where identical. No fullgate/private import/pack.",
+  "os": "Exact existing11 plus approved2 reference pairs; normalized fence manifest hash and actual profile envelope retained. No blanket read denial, network firewall, hard RSS bound, OS attestation, or hostile-JS security claim. Actual shipping entry owns only pipes/sockets, not inherited writable regular descriptors."
+}

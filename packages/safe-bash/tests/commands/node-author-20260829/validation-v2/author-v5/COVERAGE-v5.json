@@ -1,0 +1,147 @@
+{
+  "schema": "node-v5-inherited-versus-rerun-coverage",
+  "originalEvidence": "68b273d343103a1d82f80d4989a87dcca29f2564",
+  "originalSource": "19b806ee8125be6df3fd5f7f0d25eeaad3546721",
+  "original": {
+    "unique": 61,
+    "executions": 183,
+    "passed": 171,
+    "failed": 12,
+    "distinctFailures": [
+      "F16",
+      "F17",
+      "W05",
+      "W23"
+    ]
+  },
+  "successor": {
+    "source": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3",
+    "unique": 27,
+    "executions": 81,
+    "passed": 81,
+    "failed": 0
+  },
+  "unchangedInputIdentities": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F10",
+    "F28",
+    "F33",
+    "F34",
+    "W01",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09",
+    "W15",
+    "W16",
+    "W24",
+    "W26",
+    "W27"
+  ],
+  "versioned": {
+    "F16-v2": {
+      "original": "F16",
+      "change": "16777217 invalid size replaced with legal maximum16777216; held2883584 ensures capacity failure, not integer admission failure"
+    },
+    "F17-v2": {
+      "original": "F17",
+      "change": "same legal-size correction; start rejection still escaping by explicit origin"
+    },
+    "W23-v2": {
+      "original": "W23",
+      "change": "new recursive-depth program, not old infinite-loop telemetry rescore; actualengineLimit1 eachlayout, exact caughtreason not serialized"
+    }
+  },
+  "new": [
+    "W28",
+    "W29"
+  ],
+  "inheritedUnrerun": [
+    "F07",
+    "F08",
+    "F09",
+    "F11",
+    "F12",
+    "F13",
+    "F14",
+    "F15",
+    "F18",
+    "F19",
+    "F20",
+    "F21",
+    "F22",
+    "F23",
+    "F24",
+    "F25",
+    "F26",
+    "F27",
+    "F29",
+    "F30",
+    "F31",
+    "F32",
+    "W02",
+    "W07",
+    "W10",
+    "W11",
+    "W12",
+    "W13",
+    "W14",
+    "W17",
+    "W18",
+    "W19",
+    "W20",
+    "W21",
+    "W22",
+    "W25"
+  ],
+  "inheritedNotCurrentPasses": true,
+  "changedSourceDependencies": {
+    "files": [
+      "worker-main.ts",
+      "worker-provider.ts"
+    ],
+    "directlyAffected": "all Worker text transport; W05/W28 file/output bothdirections, W03/W04/W29 source modes, W06 JSONcache, W08 typedFS, W09rawFS,W15caller,W16sink,W26profile,W27asyncobserver,W24realVFS",
+    "emissionsChanged": [
+      "commands/node/worker-main.js",
+      "commands/node/worker-main.js.map",
+      "commands/node/worker-provider.js",
+      "commands/node/worker-provider.js.map"
+    ],
+    "remainingEmissionsUnchanged": 952
+  },
+  "mutations": {
+    "selected": "M05",
+    "originalFullFamilyPass": false,
+    "successorWholeSelectedPass": true,
+    "mutantRows": 12,
+    "mutantFailed": [
+      "F01",
+      "F33",
+      "F34"
+    ],
+    "restoreRows": 12,
+    "restorePassed": 12,
+    "originalOtherMutantsInherited": [
+      "M01",
+      "M02",
+      "M03",
+      "M04",
+      "M06"
+    ]
+  },
+  "qualifications": [
+    "No new full61 suite score",
+    "Original W23 old loop deadline/callback winner remains unknown",
+    "W23-v2 diagnosticFault1 eachlayout; observation detail unknown, not claimed successful diagnosis",
+    "Source-built ESM execution, not direct TS runtime",
+    "PUBLIC95 authenticated/test-only,93 actualengine JSloads perlayout",
+    "No publicroot/default/packageexport changes, fullNode/native/RSS/alljobs/allocationcontainment claim"
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "evidenceCommit": "547160e8a81d07a7f78de3092321c217e51c5f3c",
+  "candidate": "b9559de5c62fb679c8558fc2444ecb99f1d9eee1",
+  "manifestSha256": "f86efe802f2a2013943990d07bd3d63bfec2ff0867688cf01db57050bf128f12",
+  "qualification": "Authentication of original author evidence, not independent rerun of its fifteen checks or runtime acceptance.",
+  "attempts": [
+    {
+      "name": "v1",
+      "captures": 11,
+      "originalCandidate": "106e2951da6c8a0ea033eb7626e167400c5b19da",
+      "originalChecks": 14,
+      "originalPassed": true,
+      "overlayPaths": [
+        "package.json",
+        "tsconfig.json",
+        "scripts/typecheck.mjs",
+        "scripts/typecheck-inputs.mjs",
+        "scripts/typecheck-consumers.mjs",
+        "scripts/verify-current-consumers.mjs",
+        "tests/plugins/qualified-current-release/captured-types.json",
+        "tests/plugins/qualified-current-release/consumers.mjs",
+        "tests/plugins/qualified-current-release/inventory.json",
+        "tests/plugins/qualified-current-release/negative-env-split.stdout"
+      ]
+    },
+    {
+      "name": "v2",
+      "captures": 11,
+      "originalCandidate": "e0aa2d2314de815dcf2773889c5a46ae2d04ed8e",
+      "originalChecks": 15,
+      "originalPassed": true,
+      "overlayPaths": [
+        "package.json",
+        "tsconfig.json",
+        "scripts/typecheck.mjs",
+        "scripts/typecheck-inputs.mjs",
+        "scripts/typecheck-consumers.mjs",
+        "scripts/verify-current-consumers.mjs",
+        "tests/plugins/qualified-current-release/captured-types.json",
+        "tests/plugins/qualified-current-release/consumers.mjs",
+        "tests/plugins/qualified-current-release/inventory.json",
+        "tests/plugins/qualified-current-release/negative-env-split.stdout"
+      ]
+    },
+    {
+      "name": "v3",
+      "captures": 11,
+      "originalCandidate": "026e20cf38ddbb695d82de3f30cf7a1a7c88f088",
+      "originalChecks": 15,
+      "originalPassed": true,
+      "overlayPaths": [
+        "package.json",
+        "tsconfig.json",
+        "scripts/typecheck.mjs",
+        "scripts/typecheck-inputs.mjs",
+        "scripts/typecheck-consumers.mjs",
+        "scripts/verify-current-consumers.mjs",
+        "tests/plugins/qualified-current-release/captured-types.json",
+        "tests/plugins/qualified-current-release/consumers.mjs",
+        "tests/plugins/qualified-current-release/inventory.json",
+        "tests/plugins/qualified-current-release/negative-env-split.stdout"
+      ]
+    }
+  ],
+  "captures": 33
+}

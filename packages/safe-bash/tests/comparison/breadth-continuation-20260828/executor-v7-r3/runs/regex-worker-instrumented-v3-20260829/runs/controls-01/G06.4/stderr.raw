@@ -1,0 +1,11 @@
+(node:36320) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/case.mjs:156
+if (kind === 'sticky-zero-exit-assessment') mutable.rows[0].exitCode = 0;
+                                                                     ^
+
+TypeError: Cannot set properties of undefined (setting 'exitCode')
+    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/case.mjs:156:70
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+Node.js v22.22.2

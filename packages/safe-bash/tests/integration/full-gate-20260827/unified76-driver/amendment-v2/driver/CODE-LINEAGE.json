@@ -1,0 +1,67 @@
+{
+  "originalDriver": "86f75025b423f9d25a9dbcb35d07e73e95d33f9d",
+  "candidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+  "files": [
+    {
+      "name": "common.mjs",
+      "originalSha256": "697f3d47e4e252911ea7d9f57eca131a6689399a0ed8763756efdd51b7f69ebe",
+      "amendedSha256": "69891096b119b013a863c58da0ce98f4a179032f9ae9c13ad79ef17264b1d62d",
+      "difference": "directory-depth-only, four to six parents"
+    },
+    {
+      "name": "profile.mjs",
+      "originalSha256": "b476e66084ec28688a88fd64137965ba982f94a773eb881667a2385d48db3491",
+      "amendedSha256": "993790dbb6468d8f8769dc572599a1a2219e9628caebd36102a1406d2492f9f7",
+      "difference": "directory-depth-only, four to six parents"
+    },
+    {
+      "name": "admission.mjs",
+      "originalSha256": "0cce85ae5b383aab16feb417c8ba31ffa371cc7806ce740e50597d7e2a135890",
+      "amendedSha256": "0cce85ae5b383aab16feb417c8ba31ffa371cc7806ce740e50597d7e2a135890",
+      "difference": "none"
+    },
+    {
+      "name": "inventory.mjs",
+      "originalSha256": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+      "amendedSha256": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+      "difference": "none"
+    },
+    {
+      "name": "run.mjs",
+      "originalSha256": "f7cd826f3da5bac74daf362b4a933fb682dfa3cdfc117183c5f8df55553e0d8a",
+      "amendedSha256": "f7cd826f3da5bac74daf362b4a933fb682dfa3cdfc117183c5f8df55553e0d8a",
+      "difference": "none"
+    },
+    {
+      "name": "public.mjs",
+      "originalSha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+      "amendedSha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+      "difference": "none"
+    },
+    {
+      "name": "consumer.mts.fixture",
+      "originalSha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+      "amendedSha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+      "difference": "none"
+    },
+    {
+      "name": "negative.mts.fixture",
+      "originalSha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+      "amendedSha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+      "difference": "none"
+    },
+    {
+      "name": "reconstruct.mjs",
+      "originalSha256": "0e8e68dead9ac65450c9686f5d491a8ed974208a582842e477947f1980c75f16",
+      "amendedSha256": "0e8e68dead9ac65450c9686f5d491a8ed974208a582842e477947f1980c75f16",
+      "difference": "none"
+    },
+    {
+      "name": "restore.mjs",
+      "originalSha256": "2e3535d14b2cc9ceb2217ef6ffe6de5191d191b51b3baed2178de0f81c9430d2",
+      "amendedSha256": "2e3535d14b2cc9ceb2217ef6ffe6de5191d191b51b3baed2178de0f81c9430d2",
+      "difference": "none"
+    }
+  ],
+  "qualification": "Runtime bodies unchanged except two lexical repository-depth adjustments for this versioned directory."
+}

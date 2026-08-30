@@ -1,0 +1,47 @@
+{
+  "schema": "readiness-diagnosis-checkpoint-v1",
+  "sourceCommit": "2200e564436395450b4200b429574c52703f442d",
+  "presealSha256": "6e04e87087f3108b5bf1ed312fe0c3ec02f16c079cccb0f9af595350d6bc55c7",
+  "sourceComparisonReference": "38a4e7b08f47139328f3a4ac5b4b50d83a6544b3",
+  "referenceSource": "86038b27d1bee03333f13560e374ad407db417b8",
+  "phaseStart": 1787978560333,
+  "phaseDeadline": 1787979760333,
+  "limits": {
+    "allProcesses": 32,
+    "peakProcesses": 3,
+    "captureBytes": 67108864,
+    "workBytes": 268435456,
+    "diagnosticTargets": 2
+  },
+  "throughDirectChild": 15,
+  "knownDirectLaunches": 15,
+  "knownNestedTargets": 2,
+  "knownTotalLaunches": 17,
+  "knownPeakIncludingOuter": 3,
+  "knownRetired": true,
+  "universalCensus": false,
+  "administrativeCaptureBytes": 45979,
+  "diagnosticCaptureBytes": 4865,
+  "regularCaptureDiskBytes": 104892,
+  "actual": {
+    "attempted": 2,
+    "readinessSuccess": 1,
+    "aborted": 1,
+    "unrun": 0,
+    "retries": 0
+  },
+  "oldF01": "unchanged historical failure",
+  "old15": "UNRUN",
+  "native9": "UNRUN",
+  "native40": "UNRUN",
+  "archive": {
+    "path": "RAW-CAPTURE.json.gz.base64",
+    "encodedBytes": 61901,
+    "encodedSha256": "767c920f272cbbd96a05e6ef2b1722812b91147ade72e4d8b64316878bfae404",
+    "gzipBytes": 46425,
+    "gzipSha256": "863e7756effc8152eada1d1a674461383b730893095865b7542f8fb17c6a4bd0",
+    "decodedBytes": 148960,
+    "decodedSha256": "12d8362c8981a7ea38400369240c43e4dc09d116e363b2574347f73f4466c084"
+  },
+  "publicationQualification": "Excludes subsequent evidence-publication children, which remain captured in the retained phase root."
+}

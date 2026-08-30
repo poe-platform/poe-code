@@ -1,0 +1,30 @@
+{
+  "created": "2026-08-29T13:28:58.705Z",
+  "deadline": "2026-08-29T13:37:10.232Z",
+  "files": [
+    {
+      "path": "review.mjs",
+      "bytes": 5040,
+      "sha256": "50c9733c981bdfe6289d0b5106e5b4c05c2b04c1d03c8f10866e4ec0a436556e"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 64987,
+      "sha256": "5c3f39ba41870ec3763d5c663a63f0720c88b1a8fe352d0943a581d7c2dfdfa4"
+    }
+  ],
+  "entry": "review.mjs",
+  "roles": [
+    "one PURE Node controller"
+  ],
+  "authorChecks": 16,
+  "independentGroups": 6,
+  "seconds": 60,
+  "childFixtures": 0,
+  "Workers": 0,
+  "productImports": 0,
+  "publisherExecuted": false,
+  "captureBytes": 1048576,
+  "knownOSBudget": 24,
+  "peak": 3
+}

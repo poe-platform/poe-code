@@ -1,0 +1,147 @@
+{
+  "at": "2026-08-29T11:39:55.618Z",
+  "status": "HOLD_REVIEWER_OUTER_GROUP_OBSERVATION",
+  "noDependentExecutionAfterHold": true,
+  "outer": {
+    "pid": 36162,
+    "started": "2026-08-29T11:39:00.482Z",
+    "finished": "2026-08-29T11:39:00.712Z",
+    "status": 0,
+    "signal": null,
+    "exited": true,
+    "closed": true,
+    "groupAbsent": false,
+    "violation": null
+  },
+  "controllers": [
+    {
+      "role": "author16",
+      "pid": 36163,
+      "started": "2026-08-29T11:39:00.591Z",
+      "finished": "2026-08-29T11:39:00.649Z",
+      "status": 0,
+      "signal": null,
+      "exited": true,
+      "closed": true,
+      "groupAbsent": true,
+      "violation": null
+    },
+    {
+      "role": "independent8",
+      "pid": 36164,
+      "started": "2026-08-29T11:39:00.654Z",
+      "finished": "2026-08-29T11:39:00.703Z",
+      "status": 0,
+      "signal": null,
+      "exited": true,
+      "closed": true,
+      "groupAbsent": true,
+      "violation": null
+    }
+  ],
+  "authorGroups": [
+    {
+      "id": "A-old-six-admission",
+      "status": "PASS"
+    },
+    {
+      "id": "I01-all-falsy",
+      "status": "PASS"
+    },
+    {
+      "id": "I02-error-identity",
+      "status": "PASS"
+    },
+    {
+      "id": "I03-short-write",
+      "status": "PASS"
+    },
+    {
+      "id": "I04-second-open",
+      "status": "PASS"
+    },
+    {
+      "id": "I05-spawn-throw",
+      "status": "PASS"
+    },
+    {
+      "id": "I06-exit-one",
+      "status": "PASS"
+    },
+    {
+      "id": "W-zero-write",
+      "status": "PASS"
+    },
+    {
+      "id": "W-invalid-count",
+      "status": "PASS"
+    },
+    {
+      "id": "P-primary-cleanup",
+      "status": "PASS"
+    },
+    {
+      "id": "T-inclusive-start",
+      "status": "PASS"
+    },
+    {
+      "id": "T-reserve-blocks-spawn",
+      "status": "PASS"
+    },
+    {
+      "id": "T-publication-deadline",
+      "status": "PASS"
+    },
+    {
+      "id": "F-event-flush",
+      "status": "PASS"
+    },
+    {
+      "id": "F-setup-abort-and-publication",
+      "status": "PASS"
+    },
+    {
+      "id": "R-known-role-group",
+      "status": "PASS"
+    }
+  ],
+  "novelGroups": [
+    {
+      "id": "N01-invalid-progress-domain",
+      "status": "PASS"
+    },
+    {
+      "id": "N02-partial-then-undefined-with-secondary",
+      "status": "PASS"
+    },
+    {
+      "id": "N03-first-acquisition-and-event-open-falsy",
+      "status": "PASS"
+    },
+    {
+      "id": "N04-close-failure-retains-primary-and-forbids-next",
+      "status": "PASS"
+    },
+    {
+      "id": "N05-observer-failure-after-spawn-teardown",
+      "status": "PASS"
+    },
+    {
+      "id": "N06-publication-overdue-after-persist-not-success",
+      "status": "PASS"
+    },
+    {
+      "id": "N07-finish-failure-cannot-readmit",
+      "status": "PASS"
+    },
+    {
+      "id": "N08-overlap-and-exact-shared-boundaries",
+      "status": "PASS"
+    }
+  ],
+  "sourcePostHashes": true,
+  "actual39": 0,
+  "rootCauseClassification": "Outer REPL snippet used process.kill directly and discarded the catch reason. Candidate owner and child dispatcher run in ordinary Node, not this REPL. The false parent groupAbsent observation is preserved; its exact caught reason was not retained. Do not infer a live group or retroactively identify the catch reason.",
+  "sourceLevelRepair": "Use a sealed ordinary Node owner for the parent-group observation, or an explicitly supported host process API; retain the caught error. Additional checker/process requires fresh bounded authorization because all three admitted harmless Node helpers have been used.",
+  "knownDirectChildren": "parent exit+close0 and two controller exit+close0 observed; controller groups absent; parent group absence unproved"
+}

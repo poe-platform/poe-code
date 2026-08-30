@@ -1,0 +1,11 @@
+{
+  "id": "C25-authority-mutation",
+  "expected": "RECIPE_INTEGRITY_MESSAGE",
+  "value": null,
+  "error": {
+    "code": null,
+    "message": "RECIPE_INTEGRITY: SOURCE-AUTHORITY.json",
+    "stack": "Error: RECIPE_INTEGRITY: SOURCE-AUTHORITY.json\n    at demand (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/verify-recipe.mjs:10:64)\n    at Module.verifyRecipe (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/verify-recipe.mjs:44:58)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:77:143\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:23:23)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:74:9"
+  },
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "node-startup-v3-preseal",
+  "sourceRepair": "d6e0dc7d",
+  "role": "six harmless capture startup controls only; no compiler/product/Worker/guest",
+  "processCeiling": 2,
+  "peakIncludingTool": 3,
+  "elapsedMs": 30000,
+  "captureBytes": 1048576,
+  "workBytes": 67108864,
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "files": [
+    {
+      "path": "startup-capture-v3.mjs",
+      "bytes": 3238,
+      "sha256": "97fbc0901a25c6a50b1f554a0ef8376071a2d8adddd7bb70c0731020b17e63a0"
+    },
+    {
+      "path": "startup-controls-v3.mjs",
+      "bytes": 3430,
+      "sha256": "e928168978dd53bd51fb1fbc616528b996a2fc50f2179ec2680c8b61de09303b"
+    },
+    {
+      "path": "DISPATCH-CONTROLS-v3.mjs.data",
+      "bytes": 5051,
+      "sha256": "b6cc76388a6399722981839d09a280589b2b57ea30dd16e8d6b4c3abf1176027"
+    },
+    {
+      "path": "harmless-v3.mjs",
+      "bytes": 38,
+      "sha256": "2a8bfd4632cf3bd28dd3336b9095acec9367a1e2217ec38ae815819393f8fceb"
+    },
+    {
+      "path": "capture-v1.mjs",
+      "bytes": 3135,
+      "sha256": "745d02d2ffc87085810df9a339c8152bcd7c5fdfee13e98c7a26a01137074177"
+    },
+    {
+      "path": "CONTROL-v2.json",
+      "bytes": 3397,
+      "sha256": "b77f1591caae22ee4be19ecb4759e473bfe3e9684e04dc4f88cd354bb15c6217"
+    },
+    {
+      "path": "PARENTS.json",
+      "bytes": 1240,
+      "sha256": "4cf690f4b0175ca1ed64c77e19f6203699c45efd4e8c9c0f1ee3f1465c86db03"
+    }
+  ]
+}

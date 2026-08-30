@@ -1,0 +1,14 @@
+{
+  "sealedAt": "2026-08-27T06:16:13.509Z",
+  "observedIdentities": 81,
+  "active": [],
+  "executionTreesRemoved": true,
+  "exactRemovedCapturePaths": [
+    "/tmp/full-gate-cold-0c8cf15-first",
+    "/tmp/full-gate-cold-0c8cf15-current",
+    "/tmp/full-gate-cold-0c8cf15-final",
+    "/tmp/full-gate-cold-e36-control",
+    "/tmp/full-gate-cold-e36-control-final"
+  ],
+  "allCaptureRoundtripsVerified": true
+}

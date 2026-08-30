@@ -1,0 +1,11 @@
+{
+  "id": "C10-new-hash",
+  "expected": "SOURCE_BINDING",
+  "value": null,
+  "error": {
+    "code": "SOURCE_BINDING",
+    "message": "SOURCE_BINDING: ",
+    "stack": "Error: SOURCE_BINDING: \n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at assertSourceMap (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:190:3)\n    at Module.authorizeSources (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:212:3)\n    at mutatedReceipt (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:39:27)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:61:71\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:23:23)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:61:53"
+  },
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

@@ -1,0 +1,26 @@
+{
+  "schema":"AP753-actual-process-accounting-v2",
+  "controllerOwnedProcesses":62,
+  "controllerChildReceipts":61,
+  "controllerTotalPeak":2,
+  "grantMaterializer":1,
+  "postflightAndArchivalCalls":[
+    "bounded outcome/member/receipt shape inspection",
+    "apply_patch: postflight.mjs source",
+    "Node: capture/source postguards, archive CRC and verdict report",
+    "bounded selected U12/instrumented/L07/source inspection",
+    "apply_patch: README.md and ACCOUNTING.json",
+    "Git add: explicit owned raw/grant/report paths",
+    "Git commit --only: same explicit owned paths"
+  ],
+  "conservativeActualTotal":70,
+  "maximumActualTotal":70,
+  "preparationTotalIncludingGrant":22,
+  "preparationMaximum":32,
+  "grantCountedInBothForConservativeActualAccounting":true,
+  "separateFinalStatusProcess":false,
+  "noRetries":true,
+  "noActiveOwnedTestProcesses":true,
+  "qualificationCohort":"31/31 DATA/SYNTHETIC, separate from54 actual jobs",
+  "rawLossQualification":"Zero lost bytes applies to the61 captured child stdout/stderr pairs, not a claim that developer-tool display output was stored as raw worker capture."
+}

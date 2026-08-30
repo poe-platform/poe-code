@@ -1,0 +1,38 @@
+{
+  "schema": "single-l04-v11-activation",
+  "grantSha256": "1ab24ae19f79cc52bafd278a922c489fc38badf429e9523af3ae522ca5bc2d03",
+  "owner": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v11-l04-diagnostic/future-owner.mjs",
+    "sha256": "4f170b8e9a1345e17bce363b85529b72215f3d1c5316ebd186dc2aba22b9c8e0",
+    "closure": [
+      {
+        "path": "../preparation-v6-ready/import-policy.mjs",
+        "bytes": 2194,
+        "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+      },
+      {
+        "path": "../preparation-v7-capture/capture-owner.mjs",
+        "bytes": 3125,
+        "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+      }
+    ]
+  },
+  "entry": "runWorkerQualification",
+  "args": [
+    "1ab24ae19f79cc52bafd278a922c489fc38badf429e9523af3ae522ca5bc2d03"
+  ],
+  "uniqueRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v11-l04-diagnostic/actual-v11-01",
+  "limits": {
+    "maximumMs": 300000,
+    "maximumChildren": 6,
+    "peakProcesses": 3,
+    "captureBytes": 16777216,
+    "workBytes": 268435456,
+    "workers": 1,
+    "guests": 1,
+    "retries": 0,
+    "ownerTimeoutMs": 180000,
+    "killAfterTermMs": 2000
+  },
+  "obligations": "No retry/tail. Actual error diagnostic is new evidence only. Instrumented harness, unchanged guest source. Captures+exit+cleanup+load bindings required."
+}

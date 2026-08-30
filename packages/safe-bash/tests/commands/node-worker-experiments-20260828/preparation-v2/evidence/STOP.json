@@ -1,0 +1,54 @@
+{
+  "schema": "wrq-preparation-v2-author-stop-v1",
+  "date": "2026-08-28",
+  "status": "INCOMPLETE_AUTHOR_DATA_BUDGET_ADMISSION_VIOLATION",
+  "sourceCheckpointCommit": "76aa0f7d379774edc68c6ee5baf0b14bf77dcfd9",
+  "rootPublicSourceCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "cause": {
+    "operation": "fs.readFile(apply_patch executable path, utf8), followed by attempted tool-output formatting",
+    "observedFileBytes": 228986048,
+    "decodeAndFormattingBytes": null,
+    "precharged": false,
+    "workLimitBytes": 268435456,
+    "captureLimitBytes": 67108864,
+    "budgetComplianceCertified": false,
+    "interpretation": "Large tool binary was read as text, not executed. Unknown decode/format/capture costs invalidate conservative admission accounting. Stop rather than claim work below the limit."
+  },
+  "preservedErrors": [
+    { "phase": "source traversal", "message": "request ceiling", "meaning": "Original source-reader closure still enforced24 even after the presealed96 supplement. Stopped before25th source; no URL retried." },
+    { "phase": "diagnostic", "message": "current is not defined", "meaning": "Counter-only diagnostic referenced an unavailable binding; no network or subject execution." }
+  ],
+  "network": {
+    "boundedFetchRequests": 26,
+    "sourceResponses": 24,
+    "treeResponses": 2,
+    "allRecordedHttpStatus": 200,
+    "responseBytes": 343861,
+    "separateWebPinnedSourceOpenings": 1,
+    "retries": 0,
+    "privateOrUnpinnedRequests": 0,
+    "persistedNewSourceArchive": false,
+    "inMemorySourceRecords": 90,
+    "completePublicClosure": false
+  },
+  "timing": { "lastReliableElapsedMs": 147128, "finalElapsedMs": null, "completeWorkBytes": null, "completeCaptureBytes": null, "invalidProvisionalWorkCounter": 16000000 },
+  "processAccounting": {
+    "coordinationLaunchSeparate": 1,
+    "beforeEvidenceBatchKnownLocalLaunches": 12,
+    "beforeEvidenceBatchConservativeReservation": 13,
+    "evidenceBatchCommands": ["bash", "apply_patch", "git add", "git commit --only", "git rev-parse"],
+    "afterSuccessfulEvidenceBatchKnownLocalLaunches": 17,
+    "afterSuccessfulEvidenceBatchConservativeReservation": 18,
+    "leafCeiling": 24,
+    "rootOverallCeiling": 32,
+    "peakKnownLocalProcessesUpperBound": 2,
+    "unknownHostToolServiceProcesses": "not represented as controlled local children; no recursive OS census was executed",
+    "gitHooksSigningMaintenance": "disabled per-command for the two commits; no global config mutation",
+    "stopRecordBatches": "Administrative persistence only; no continued network/DATA validation or runtime work"
+  },
+  "executed": { "workers": 0, "engines": 0, "compilers": 0, "guests": 0, "privateReads": 0, "nativeSubjects": 0, "installs": 0, "syntaxTrials": 0, "harnessImports": 0, "delegates": 0 },
+  "deliverablesNotCompleted": ["durable extended PUBLIC archive", "complete public-core export/load graph", "L02 typed source branch", "L08 contained-heap source branch", "new compiler emission recipe and tool closure", "complete source/profile/input/emission/tool seals", "post-seal DATA validation"],
+  "held": ["K1", "K2", "K3", "K4", "NP1 whole-guest ledger", "Q", "actual Worker/engine/compiler activation"],
+  "unchanged": { "D1": true, "D2": true, "D3": true, "workerCeiling": 11, "guestCeiling": 10, "F05OffLimits": true, "priorArtifactsPreserved": true },
+  "nextAuthority": "ROOT must decide on a fresh bounded preparation allowance and corrected size-before-read/accounting preseal. This failure record is not renewal or execution GO."
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "wrq-continuation-v10-cases",
+  "status": "HELD-FRESH-ROOT-GO-REQUIRED",
+  "scheduleAuthority": "7b7a54ef5f1710d78297402a531a1fed63266cca:tests/commands/node-worker-independent-20260828/v2/MINIMUM-EXPERIMENT-PRESEAL.md",
+  "versionDelta": "Exact old9 unrun slots plus separately versioned L02 repeat; L01 excluded. Same guest fixture source; no historic rescore.",
+  "maximumWorkers": 10,
+  "maximumGuestEvaluations": 9,
+  "peakWorkers": 1,
+  "retries": 0,
+  "candidateWorkers": 10,
+  "candidateGuestEvaluations": 9,
+  "admissibleNow": 0,
+  "instances": [
+    {
+      "instance": "WRQ04-L04-diagnostic-v11",
+      "wrq": "WRQ04",
+      "root": "L04",
+      "fixture": "L04",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "create permitted discarded pending language Promise; output; entry settlement; retire Worker; no Q/all-settled receipt",
+      "expectedStdout": "entry-return\n",
+      "expectedStderr": "",
+      "expectedStatus": 0,
+      "expectedEffects": {},
+      "unqualified": [
+        "actual public run pending-Promise entry behavior unrun",
+        "original guest exit/Q input unrun"
+      ]
+    }
+  ]
+}

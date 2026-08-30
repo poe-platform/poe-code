@@ -1,0 +1,300 @@
+{
+  "recordedAt": "2026-08-27T07:00:15.455Z",
+  "status": "Author candidate ready for different-verifier acceptance; no final acceptance claim",
+  "commits": {
+    "A": "da81b8f73a6cf98fe8b44b2deee00ed80f1599d4",
+    "B": "4fa20ac6cadb9d37fa9da4d205dc37a5a1bcb9f9",
+    "C": "This artifact is included in group C commit; exact commit in /tmp candidate handoff"
+  },
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "sourceHashes": {
+    "src/shell/runtime.ts": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/index.ts": "2257a1ce3acc146ca7a3c1867e8a23153a5a968c96899a533b45cea69a446237"
+  },
+  "sourceFiles": 173,
+  "archiveTarSha256": "a8397a9a7fa3d9a3b4480e1469a6b894cc89cd93b58f668e761505812bf3ab33",
+  "finalCounts": {
+    "total": 183,
+    "pass": 183,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "files": [
+      {
+        "path": "tests/shell/invocation-discovery-fixes.test.ts",
+        "counts": {
+          "tests": 60,
+          "pass": 60,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "tests/shell-stress/differential.test.ts",
+        "counts": {
+          "tests": 78,
+          "pass": 78,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "tests/shell-stress/current-gaps/compatibility.test.ts",
+        "counts": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "path": "tests/shell-stress/invocation-closure/holdout.test.ts",
+        "counts": {
+          "tests": 34,
+          "pass": 34,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      }
+    ]
+  },
+  "historical": {
+    "total": 52,
+    "pass": 36,
+    "fail": 16,
+    "status": 1,
+    "failedNames": [
+      "historical-3.2/bash/empty-path",
+      "historical-3.2/bash/terminator",
+      "historical-3.2/bash/unknown-combined",
+      "historical-3.2/bash/unknown-first",
+      "historical-3.2/bash/unknown-line",
+      "historical-3.2/bash/unknown-long",
+      "historical-3.2/bash/unknown-x",
+      "historical-3.2/bash/unknown-z",
+      "historical-3.2/sh/empty-path",
+      "historical-3.2/sh/terminator",
+      "historical-3.2/sh/unknown-combined",
+      "historical-3.2/sh/unknown-first",
+      "historical-3.2/sh/unknown-line",
+      "historical-3.2/sh/unknown-long",
+      "historical-3.2/sh/unknown-x",
+      "historical-3.2/sh/unknown-z"
+    ],
+    "denominator": "Separate strict historical profile; not canonical green passes, skips, or artifact-check passes"
+  },
+  "attempts": [
+    {
+      "name": "A initial startup",
+      "record": "candidate-A.json",
+      "meaning": "Loader syntax failure before test imports; one TAP file-wrapper failure, zero actual loads; raw guard true is vacuous, not accepted."
+    },
+    {
+      "name": "A actual execution",
+      "record": "candidate-A-execution.json",
+      "current": "60/60",
+      "historical": "36/52;16failed;exit1"
+    },
+    {
+      "name": "B recorder failure",
+      "record": "candidate-B-recorder-failure.json",
+      "meaning": "E2BIG during artifact publication lost buffered observations; no dedicated B counts claimed and no separate B retry."
+    },
+    {
+      "name": "C",
+      "record": "candidate-C.json",
+      "current": "34/34",
+      "typecheck": 0
+    },
+    {
+      "name": "FINAL authorized integrated",
+      "record": "candidate-FINAL.json",
+      "current": "183/183",
+      "meaning": "One final four-file cohort; this supplies durable78/78+11/11 B validation. Not pooled with prior attempts."
+    }
+  ],
+  "guard": {
+    "changed": [],
+    "mismatches": [],
+    "productMismatches": [],
+    "actualLoads": 14040,
+    "rootIndexLoads": 88,
+    "devtoolsUnchanged": true,
+    "valid": true,
+    "tracing": "Owned preload forwards only import-trace environment to Node children whose legacy helpers scrub env; no shell wrapper/source/argv transformation or virtual env change. Full original imports remain; natural root-index traversal is recorded, not forced."
+  },
+  "scopedTypecheck": {
+    "status": 0,
+    "version": "5.9.3",
+    "roots": [
+      "tests/shell/invocation-discovery-fixes.test.ts",
+      "tests/shell-stress/differential.test.ts",
+      "tests/shell-stress/current-gaps/compatibility.test.ts",
+      "tests/shell-stress/invocation-closure/holdout.test.ts",
+      "tests/shell-stress/canonical-profile-migration/discovery-profile.ts",
+      "tests/shell-stress/canonical-profile-migration/historical-discovery.ts",
+      "tests/shell-stress/canonical-profile-migration/primary-reference.ts"
+    ],
+    "diagnostics": [],
+    "readCount": 331,
+    "readHashMismatches": [],
+    "testAndHelperHashesMatchFinal": true
+  },
+  "integrity": {
+    "rejectedMutations": [
+      "name",
+      "source-newline",
+      "stdin",
+      "files",
+      "environment",
+      "limits"
+    ],
+    "independentReturnedCopy": true,
+    "productExecuted": false
+  },
+  "immutablePreparation": {
+    "commit": "ab02ed86ad637e2319a7734cc53904d41eed97d1",
+    "files": [
+      "README.md",
+      "prepare.mjs",
+      "product-cohort.mjs",
+      "analyze.mjs",
+      "inputs.json",
+      "native.json",
+      "product.json",
+      "comparison.json",
+      "proposal.json",
+      "historical-fullgate-native.json",
+      "seal.json"
+    ],
+    "byteIdentical": true,
+    "independentFreeze": "a48b1e9dc8bcada35d1818ee569c3e74d90b9980",
+    "reviewControlsRead": false
+  },
+  "originalHelpersFixturesOraclesUnchanged": [
+    "tests/shell/invocation-discovery-fixes-cases.ts",
+    "tests/shell-stress/cases.ts",
+    "tests/shell-stress/model.ts",
+    "tests/shell-stress/helpers.ts",
+    "tests/shell-stress/process.ts",
+    "tests/shell-stress/current-gaps/cases.ts",
+    "tests/shell-stress/current-gaps/reference.ts",
+    "tests/shell-stress/invocation-closure/cases.ts",
+    "tests/shell-stress/invocation-modes/cases.ts",
+    "tests/shell-stress/invocation-closure/support.ts",
+    "tests/shell-stress/invocation-modes/harness.ts",
+    "tests/shell-stress/virtual-child.ts",
+    "tests/shell-stress/probes.ts",
+    "tests/shell-stress/invocation-closure/probe.ts",
+    "tests/shell-stress/invocation-modes/trace.mjs",
+    "tests/shell/invocation-discovery-fixes-imports.mjs",
+    "tests/shell/invocation-discovery-fixes-native.json",
+    "tests/shell-stress/invocation-closure/native-preparation.json",
+    "tests/fixtures/shell-cases.json"
+  ],
+  "discoveryOriginalAssertionBodyPreservedInBothProfiles": true,
+  "tests": {
+    "tests/shell/invocation-discovery-fixes.test.ts": {
+      "before": "095ea3dc2f2dff14f928b09c6709fa5f9cd4507e193a5f84192ba38921a66a76",
+      "after": "602cc5a95845bd22ed547a3305f58732adde5ff27817ba7918467bf5e411a0aa"
+    },
+    "tests/shell-stress/differential.test.ts": {
+      "before": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+      "after": "59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32"
+    },
+    "tests/shell-stress/current-gaps/compatibility.test.ts": {
+      "before": "93f4d8dd5938ddba1464b126e5aec00c5304eacbd7470768e550301837dc4fa6",
+      "after": "ddf404839fae525ae5ebc6d4241c09be307b4ab9359c099d7f7dac67e2c975ca"
+    },
+    "tests/shell-stress/invocation-closure/holdout.test.ts": {
+      "before": "8a9deddf284de912e4ec9fc5137110c507106b5f0ac4dcdb6a85a94bcc2c07ff",
+      "after": "c546a3014d7849e325119263560c0a73abc0450784c3a982f6696132d64e69e9"
+    }
+  },
+  "artifacts": {
+    "candidate-A.json": {
+      "sha256": "2d3e77bb84ad24aef2771b39d563eb0fc4cf7e25e7e15b85716c1b30102bb36e",
+      "bytes": 85769
+    },
+    "candidate-A-execution.json": {
+      "sha256": "592b0cfb4a2c4077c7a218d814029dd5baf88d54de7e85bb4cc53eb2b6b80619",
+      "bytes": 149679
+    },
+    "candidate-A.md": {
+      "sha256": "dd370bbfb175bb4e9ee8dcc38d317fcb6be5c263eb1b43f3ec6ba5080e4a25ff",
+      "bytes": 2573
+    },
+    "candidate-B-recorder-failure.json": {
+      "sha256": "1b814dda3bb01b4e4b2fa0b97dd1bf9193a590d206383b42cad0512f583f2c3b",
+      "bytes": 1405
+    },
+    "candidate-B.md": {
+      "sha256": "29f20db65115e302872d8291f869bbdfb3acf48231ec2c4fb0dba7d96b3fef6c",
+      "bytes": 2540
+    },
+    "candidate-C.json": {
+      "sha256": "d9e472235c3ba59e54d92fbdc83e4fb4b680c86ba2139b8c287b9496633153b1",
+      "bytes": 577707
+    },
+    "candidate-FINAL.json": {
+      "sha256": "8d370598f19054258cdc9ee8adb201cf769857de64bee73c544edf2049a5eadd",
+      "bytes": 4598744
+    },
+    "discovery-profile.ts": {
+      "sha256": "f2fa4a56517ad9c460310614687b939aa4423efd499a18d4fdbe512e432e7774",
+      "bytes": 1828
+    },
+    "historical-discovery.ts": {
+      "sha256": "0a97a06a38c53e8c7026013ff769ef4fba7a3c6cb0cedc1bca85bab7c5e2b4fe",
+      "bytes": 1965
+    },
+    "primary-reference.ts": {
+      "sha256": "e0a7d47697ff58651a98658667353a46db0db5f5e1f49ffe9311212990f218fc",
+      "bytes": 5042
+    },
+    "primary-fixtures.json": {
+      "sha256": "76204fc288836d2cde65156ee2d2f610d9ac31466414cc4ef2ec520284d72ec8",
+      "bytes": 25032
+    },
+    "reference-integrity.mjs": {
+      "sha256": "274350363da0194052bb600850e2d588902de6141b038a1ed918e592c6601677",
+      "bytes": 1146
+    },
+    "candidate-run.mjs": {
+      "sha256": "a9d2f8278c627d892c64dba2b64ea5a606b2918a5fc749d27bfb3db36ab3882c",
+      "bytes": 8443
+    },
+    "candidate-trace.mjs": {
+      "sha256": "f9e69e81fa00350ff603dd1b9961b264f89478f1494252deba06e58e475cd2a0",
+      "bytes": 1430
+    },
+    "candidate-typecheck.mjs": {
+      "sha256": "e2bd6a94bc99c485543d64deb1165f5c4cda022bfc97d8b7835afda75a30a4b0",
+      "bytes": 1605
+    },
+    "freeze-primary.mjs": {
+      "sha256": "5ea8b1f25f6c913277173547dc4c5970e3225f48e164dc2154f416df6d854143",
+      "bytes": 1872
+    }
+  },
+  "limits": [
+    "27 original failures total=25 historical/native+2classification; routing discrepancy retained in immutable preparation.",
+    "Current183 includes52discovery+8host,72differential+5syntax+1provenance,11gaps,24closure-native+2safeplugin+8host; not183 native parity assertions.",
+    "GNU native --noprofile --norc -c ORIGINAL_SOURCE shell is uniform across88 native references; direct product Shell.exec and all original source bytes remain unchanged.",
+    "40 supplementary mode losses remain unresolved outside old tuple fields.",
+    "Wrapped virtual bash-c parameter-error status difference remains independent follow-up; not introduced, coerced or fixed.",
+    "Existing Git source-provenance helpers remain; no new native Bash/oracle installation or network prerequisite for canonical reference loading.",
+    "No product source/contracts/manifests/exports/FS/helperfixture/nativeoracle edits. No hidden, kernel, consumer, accounting or global gate runs.",
+    "All child parents completed. Existing four-file ownership relinquished after candidate publication; different verifier acceptance still required."
+  ]
+}

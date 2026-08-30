@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "role": "self-excluded immutable preparation bytes; not admission evidence",
+  "excluded": [
+    "MANIFEST.json"
+  ],
+  "count": 5,
+  "files": [
+    {
+      "path": "ADMISSION-ADDENDUM.v1.md",
+      "mode": "100644",
+      "bytes": 7356,
+      "sha256": "eeaaf4cc8414e8fc56d2cf77b489eced2288502a8c6ca54f9d9e02e111a29e28",
+      "gitBlob": "14ab832b829b57af923d25f42f7eb289deab0db7"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "bytes": 3400,
+      "sha256": "4a46fcc4cc8d5241afdb4e7672d9a7cb363edf6da9852aea064b229ec14958c9",
+      "gitBlob": "f89ff396acb0e1d3e086184c9316796d19365fa7"
+    },
+    {
+      "path": "controls.v1.json",
+      "mode": "100644",
+      "bytes": 3440,
+      "sha256": "a269a6cc4bd45c087a4e84d49cafb3077d1e55efc527d3ef6531d7c0fe7ced4b",
+      "gitBlob": "13d9afd69c694bfb88af78338298274b17c0dc97"
+    },
+    {
+      "path": "preparation.v1.json",
+      "mode": "100644",
+      "bytes": 8726,
+      "sha256": "537fb72f69c409578180f57a91087b5028f625676a07d37c4cbde36d0c8e8b23",
+      "gitBlob": "9723ce7960db41adee20a0bf8c4fdc4a7777c4c1"
+    },
+    {
+      "path": "wrapper.v1.mjs",
+      "mode": "100644",
+      "bytes": 9281,
+      "sha256": "d360ece50f93a6caccb2973183b343c827fd7d035fd13e07d9ee2512cfe1d1ea",
+      "gitBlob": "2f4c26bc22ea812f5c7234198377a2c75db21ec3"
+    }
+  ]
+}

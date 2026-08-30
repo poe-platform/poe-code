@@ -1,0 +1,122 @@
+ROOTREVIEW — bounded archive acceptance-gap cohort, USERarchivehandoffbe29e38
+
+Final frozen run: run-NgCzIp, 2026-08-27T00:59:54.252Z–00:59:56.318Z
+(August 26 evening in America/Chicago). Eight new top-level tests pass, with
+22 loop scenarios; zero failures, cancellations, skips or TODOs. Scoped tsc
+exits 0. Repeated executions are not additional unique tests. The three
+hardlink cases adopt six previously reviewed vectors; the earlier review's
+6/6 and author 128/128 are NOT additional new passes or new native coverage.
+
+Owned additions only:
+  tests/commands/archive-stress/limits-effects.test.ts
+  tests/commands/archive-stress/hardlink-identity.test.ts
+  tests/commands/archive-stress/bounds-evidence/**
+No existing helper, fixture, runner, source, documentation, filesystem,
+registry or private checkout was edited. No install, network, native
+extraction, staging, commit, branch or delegation. Generated runtime/dependency
+copies were removed after each run; only hashes, logs and this scoped runner
+remain. The separately requested /tmp detail file is a report, not a snapshot.
+
+Coverage and measured effects:
+- B01: exact/one-over entry 17/18 bytes, PAX 17/18 bytes, expanded gzip archive
+  2048/2049 bytes. The original destination survives early rejection; archive
+  overflow after the file leaves its exact accepted payload, not rollback.
+- B02: constant is 67108864. Header-only 67108865 declaration requests exactly
+  one source chunk, closes the iterator once, invokes publication zero times,
+  and preserves the original backing identity and bytes. The exact-default
+  declaration control reaches a deliberate second-read error and opens an
+  empty replacement: this is declaration acceptance, NOT a 64-MiB payload pass.
+- B03: 102 compressed bytes expand to 9728 bytes. A 2048-byte expanded limit
+  rejects with exactly 1536 payload bytes retained; the unchanged 9728-byte
+  full-size control extracts all 8192 payload bytes. No lowered default or
+  post-failure limit adjustment was used.
+- B04: valid control plus late 29-byte-body truncation at seven bytes, padding
+  truncation, and deliberately gated corrupt gzip CRC. Earlier file and
+  sentinels remain exact; current bytes are respectively 7/29/29 on failures.
+  Current mode is 0600 after body failure, 0640 after padding/trailer failure;
+  deferred directory mode remains 0700 instead of the valid control's 0755.
+  Later file is absent after body/padding failure and already retained before
+  the late gzip trailer is released. No whole-archive rollback claim.
+- B05: fresh MemoryFS per resume/abort control, 131305 compressed bytes,
+  512-byte source chunks. The predeclared bound is 16384 source bytes and
+  32 pulls while a writer is blocked after exactly seven committed bytes;
+  no source gate caps this count. Both runs observed 1024 bytes/two pulls.
+  Resume restores all 131072 payload bytes and the later member. Abort retains
+  exactly seven bytes/one write, preserves caller reason identity at command,
+  writer and propagated signal, observes one iterator return and producer
+  finally, waits for writer/return completion, and checks no late pulls/writes.
+  Finally releases gates, aborts cooperatively and awaits tracked completion.
+- H01: plain/gzip backward a<-b<-c chain, actual complete same backing identity,
+  nlink=3, mode 0640 despite alias headers requesting 0777, shared write and
+  append semantics. maxEntry/maxTotal=4, maxMembers=3 are exact positive bounds.
+- H02: missing method with true flag, and present method with false flag,
+  explicitly reject without invoking link or replacing/copying the old alias.
+- H03: parent-traversal target and symlink-ancestor destination are VFS-only;
+  outside sentinel bytes, nlink and namespace remain unchanged.
+
+Reproduction from the repository root:
+  node tests/commands/archive-stress/bounds-evidence/run-frozen.mjs
+The runner creates a new regular snapshot under its owned evidence directory,
+runs the following in that snapshot, preserves results, then removes it:
+  /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 tests/commands/archive-stress/limits-effects.test.ts tests/commands/archive-stress/hardlink-identity.test.ts
+  /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node node_modules/typescript/bin/tsc -p bounds.tsconfig.json
+Timeouts: 45 seconds test child, 30 seconds tsc, 5 seconds git; output capped
+at 2 MiB per validation child, 1 MiB per git command. Each tar helper caps
+collected output and uses cancellation; gate scenarios have explicit abort
+timers and cleanup. No child timeout fired. Full command arguments, cwd,
+environment overrides, timestamps and output hashes are in evidence.json.
+
+Freeze and provenance:
+342 regular, single-link copied files cover archive, contracts, MemoryFS,
+both test files, existing independent helpers/fixtures, package/config/lock,
+and all existing node_modules. Each copy has a distinct inode from its live
+input and matching bytes. TypeScript import preprocessing checks local closure;
+the helper's dynamic archive import resolves from frozen import.meta.url and
+ARCHIVE_ACCEPTANCE_SOURCE is deleted. There are no live product/helper/npm
+imports. Installed version/resolved/integrity metadata matches the existing
+lock; no registry content attestation is claimed. Node builtins and the OS are
+host runtime; the recorded Node executable hash is unchanged, not sandboxed.
+Pre/post frozen manifests and live input manifests match in the final run.
+HEAD is 745eaa62eebbe07b7fd30dccad4a73a1669f7124 before/after, but the worktree
+is dirty: another worker's archive format/README edits are INCLUDED by hash.
+This is not pristine be29e38, a committed-HEAD gate, or root package acceptance.
+
+Versions: Node v22.22.2, darwin arm64, zlib 1.3.1-e00f703; TypeScript 5.9.3,
+tsx 4.23.12, esbuild/@esbuild-darwin-arm64 0.28.2, @types/node 22.20.1,
+undici-types 6.21.0, fsevents 2.3.3. Exact dependency metadata is recorded.
+SHA256:
+  final evidence.json: 760de8a0b8e98e4f2c77e36d0e45854901454b89b423b9e1d0e8ab56366df048
+  frozen closure manifest: b32d304cdb526fd194cfee7d9f99188bac6c9ed70b689552fa3113af1ddd51ca
+  final tests.tap: 4fc0c6f898fb291038abde20feacd2d595f316626b383e757a35368ab97aa26f
+  limits-effects.test.ts: b7962d85dd8362b5da7f4df5839fb6e7b1f9cbd19295607252717a4e7018f2ae
+  hardlink-identity.test.ts: c24d9f8d06aa356f4f6cf8f3c6f527eacf54bf0143a776f40d41f56b7b8d8e26
+  run-frozen.mjs: e9563fa20eaefdfe09ee334c6dd4fc07f91e935e79ec8ecd5b286370be40aebe
+  package-lock.json: 9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b
+  extract.ts: db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212
+  format.ts: 30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719
+Per-file dependency/source/test hashes and generated scoped config are retained
+in each run's evidence.json. Fixture hashes and measurements are in tests.tap.
+
+Original results retained, not overwritten:
+- run-quw0tW: setup-only regex import scanner misread text inside an option
+  string; no tests/tsc ran. Replaced scanner with frozen TypeScript's parser.
+- run-I7SQKz: 8/8 tests pass; tsc exits 2 with TS7022 on local `expected`.
+  Corrected with an explicit Buffer type annotation. No product/expectation fix.
+- run-AVPFI1: 8/8 tests pass and tsc exits 0 after that annotation.
+- run-NgCzIp: 8/8 and tsc 0 after additionally asserting zero default-overflow
+  publications/backing-identity preservation and waiting for source return.
+An ancillary read-only evidence enumeration hit ENOTDIR by including the
+run-frozen.mjs file in run-* paths. Directory filtering corrected that listing;
+it did not execute tests, alter raw evidence or change acceptance outcomes.
+No product assertion failed and no source-owner bug was reproduced here.
+
+Limitations / ROOT action:
+Root must review these additions before any staging/commit and run its final
+combined fully frozen gate later. Any eventual atomic new-test commit must
+use only the three owned path groups and stay separate from source fixes.
+Do not reclassify earlier 17/19 native outcomes or claim their BSD issues fixed
+from this cohort. No new native proof, all-adapter hardlink guarantee, full
+tar/Bash parity, large-memory benchmark, process/RSS bound, universal first-read
+or uncooperative-host cancellation, transaction, rollback, superiority or
+72-hour completion is established. This is a bounded local acceptance-gap
+regression cohort, not replacement for the independent corpus or final gate.

@@ -1,0 +1,53 @@
+{
+  "qualification": "STATIC_AUTHENTICATED_IMPORT_INVENTORY_NOT_RUNTIME_TRACE",
+  "members": {
+    "dist/commands/regex-execution/worker.js": {
+      "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "bytes": 1981,
+      "imports": [
+        "node:worker_threads",
+        "./matching.js",
+        "../expr/bre-worker.js",
+        "./protocol.js"
+      ],
+      "dynamicImportLiteral": false,
+      "requireLiteral": false,
+      "workerConstructorLiteral": false
+    },
+    "dist/commands/regex-execution/protocol.js": {
+      "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+      "bytes": 7869,
+      "imports": [],
+      "dynamicImportLiteral": false,
+      "requireLiteral": false,
+      "workerConstructorLiteral": false
+    },
+    "dist/commands/expr/bre-worker.js": {
+      "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+      "bytes": 19153,
+      "imports": [
+        "node:worker_threads",
+        "../regex-execution/protocol.js"
+      ],
+      "dynamicImportLiteral": false,
+      "requireLiteral": false,
+      "workerConstructorLiteral": false
+    },
+    "dist/commands/regex-execution/matching.js": {
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "bytes": 13278,
+      "imports": [
+        "node:buffer"
+      ],
+      "dynamicImportLiteral": false,
+      "requireLiteral": false,
+      "workerConstructorLiteral": false
+    }
+  },
+  "builtins": [
+    "node:buffer",
+    "node:worker_threads"
+  ],
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156"
+}

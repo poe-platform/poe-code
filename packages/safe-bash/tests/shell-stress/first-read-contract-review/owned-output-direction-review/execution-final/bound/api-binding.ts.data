@@ -1,0 +1,24 @@
+import {Shell, ShellLimitError, MemoryFileSystem, agentCommands, networkCommands, createOutputOperation, writeBytes, type CommandContext, type ByteSink, type OutputOperation} from './candidate/dist/index.js';
+
+export async function bind(context: CommandContext, destination: ByteSink): Promise<void> {
+  const parent: OutputOperation = createOutputOperation(context, destination);
+  const child = parent.child(context.stdout);
+  let cleanup: Promise<void> | undefined;
+  child.registerCleanup(() => cleanup ??= Promise.resolve());
+  try {
+    await child.acquire(async signal => {
+      await context.fs.writeFile('/direction/binding', new Uint8Array(), {signal});
+      return new Uint8Array();
+    }, async bytes => {await writeBytes(destination, bytes, context.signal);});
+  } finally {await parent.close();}
+}
+
+export function shellBinding(): Shell {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({fs});
+  shell.use(agentCommands());
+  shell.use(networkCommands({authorize: request => request.url === 'http://127.0.0.1:1/binding' && request.method === 'POST'}));
+  shell.use(async (context, next) => {if (context.command === 'binding-failure') throw new ShellLimitError('maxCommands'); return next();});
+  shell.register({name: 'binding', async execute(context) {await bind(context, context.stdout); return {exitCode: 0};}});
+  return shell;
+}

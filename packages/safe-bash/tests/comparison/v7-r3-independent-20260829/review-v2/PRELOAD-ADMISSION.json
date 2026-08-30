@@ -1,0 +1,23 @@
+{
+  "files": 700,
+  "bytes": 3245768,
+  "sha256": "9d897193854030b7f35998bcc650a6aea6c983c41114ffc682978c5bee96f356",
+  "adapters": [
+    {
+      "name": "prepare-controls.mjs",
+      "bytes": 2319,
+      "sha256": "5a9c8afd62b3e5b551bb86f82d795673adcfe0376382ec5c2c66c4007f1fa43d"
+    },
+    {
+      "name": "test.mjs",
+      "bytes": 12831,
+      "sha256": "8ef21152b71bd47848e8678fe95d07e47e57280c1f4406788a35d70fd9438c2e"
+    },
+    {
+      "name": "fixture-adapter.mjs",
+      "bytes": 11991,
+      "sha256": "9f4c87208f6d7889cc557bfccdbbc52e2b8db3e0b7ec9dca92b25275cfe828f1"
+    }
+  ],
+  "localPreparationSha": "2009666c5c42f86689f58c6292dafc47c0deca61a32013afdb5abc8af9bef83d"
+}

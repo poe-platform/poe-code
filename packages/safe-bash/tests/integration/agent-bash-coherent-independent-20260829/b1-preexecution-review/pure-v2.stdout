@@ -1,0 +1,2 @@
+{"passed":12,"failed":0,"productImports":0,"engineImports":0,"actualChildren":0}
+{"authorGroups":12,"independentGroups":8,"entries":1117,"edges":{"PINNED_NODE_BUILTIN":99,"BOUND_RELATIVE_IMPORT":872,"EXPECTED_PRIVATE_EXPORT_DENIAL":1,"COMPUTED_IMPORT_REQUIRES_RUNTIME_BOUND_LOADER":3},"productImports":0,"engineImports":0,"realWorkers":0}

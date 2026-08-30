@@ -1,0 +1,51 @@
+{
+  "id": "L01",
+  "presealSha256": "1424fa6bd60b13f7455c11e86a0feca3898090bd3822ef73dff20bc8a1e4e801",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "args": [
+    "--experimental-permission",
+    "--allow-fs-read=/tmp/safe-bash-stage-a-loader-20260829-r2",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--allow-fs-write=/tmp/safe-bash-stage-a-loader-20260829-r2",
+    "/tmp/safe-bash-stage-a-loader-20260829-r2/tools/typescript/lib/tsc.js"
+  ],
+  "cwd": "/tmp/safe-bash-stage-a-loader-20260829-r2/source",
+  "env": {
+    "PATH": "/tmp/safe-bash-stage-a-loader-20260829-r2/empty-bin",
+    "HOME": "/tmp/safe-bash-stage-a-loader-20260829-r2/home",
+    "TMPDIR": "/tmp/safe-bash-stage-a-loader-20260829-r2/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "LOADER_FIXTURE_NONCE": "sealed-L01-1424fa6bd60b13f7"
+  },
+  "sourceAdmissionComplete": true,
+  "files": [
+    {
+      "path": "tools/typescript/package.json",
+      "bytes": 3620,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+      "device": "16777232",
+      "inode": "187069424"
+    },
+    {
+      "path": "tools/typescript/lib/tsc.js",
+      "bytes": 40,
+      "sha256": "9dd5b814df959368c401fb5b5382314eddc3dcdc612017be3266becbf4676c05",
+      "device": "16777232",
+      "inode": "187069425"
+    },
+    {
+      "path": "tools/typescript/lib/_fixture.js",
+      "bytes": 420,
+      "sha256": "92fac4ccd3232f185b23dcb20ef363c019aeaa71678e36d27eb9cc8974065319",
+      "device": "16777232",
+      "inode": "187069426"
+    }
+  ],
+  "createdBeforeSpawn": "2026-08-29T10:02:55.971Z"
+}

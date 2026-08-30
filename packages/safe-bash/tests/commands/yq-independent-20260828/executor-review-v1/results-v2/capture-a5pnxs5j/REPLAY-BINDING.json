@@ -1,0 +1,12 @@
+{
+  "frozenDriverSha256": "fdf8310e09557ebedebfa0808d2aa0b563d20509831950792ce63c162406bd0d",
+  "operationsBlockSha256": "f515ef32c0cb8309d3496989f9e0c7e9189e9faa4bb69125896bccd227f5954d",
+  "replaySha256": "188bb5a3038d0008c4b443bbefd27aa171716f204c7b7f51f44234a3e0579378",
+  "plumbing": [
+    "absolute authenticated helper imports",
+    "scratch/output outside recipe",
+    "capture-before-compare wrapper"
+  ],
+  "unchanged": "All 36 operation bodies, helper fixtures, negative expected outcomes",
+  "omitted": "Supplemental tool-tree inventory after the 36 controls; not a pass"
+}

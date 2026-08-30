@@ -1,0 +1,62 @@
+{
+  "family": "GNU",
+  "label": "BSD-raw-default-plain",
+  "temporary": "/tmp/safe-bash-pax-deletion-independent-FEprCU/safe-bash-pax-native-4t6TX3",
+  "removed": true,
+  "observations": [
+    {
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "b112e5578260c103cafae7150e33b8fe1b5d0720a158d88be5ea8f6d9d26f478",
+      "stdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+      "stderr": "",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "family": "GNU",
+      "executable": "/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "version": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    {
+      "args": [
+        "-tf",
+        "bsd.tar"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "7c4ac5ae822de83ad37f156ebad7ede28531b09e5ee9be9dfd5a6ccdacc12ec2",
+      "stdout": "._long-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\nlong-abcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd\n._empty\nempty\n._symbol\nsymbol\n._hard\nhard\n",
+      "stderr": "/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    },
+    {
+      "args": [
+        "-xf",
+        "bsd.tar",
+        "-C",
+        "output"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n/private/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n",
+      "cleanup": "owned group absent",
+      "timedOut": false,
+      "exceeded": false
+    }
+  ]
+}

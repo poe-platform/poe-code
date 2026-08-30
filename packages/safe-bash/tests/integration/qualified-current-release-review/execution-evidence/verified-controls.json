@@ -1,0 +1,186 @@
+{
+  "source": "02a78bf64c29dedcd69071551ed5848b0765c107",
+  "sourceTree": "4ccfddf7f7e521c29aa675cf09ca95f39870718b",
+  "sourceTreeSha256": "512c1aaea9a7d33e12b40b14830ca52407bf6dbc845eb689b5b3ce92bd88734a",
+  "testTreeSha256": "44cf89b54c6c8f1206c5796ec471614f2f1cf675d2513006b6a4ac160192b4bd",
+  "harnessSha256": "441113e3bb31aa2443f9386f0f115dbf72e534a83bee4437fec7acf46cac1f35",
+  "archiveSha256": "1611485dfd6257aa624752287ac993bfac8713ae87e0994dbc7530fd69315533",
+  "controls": [
+    {
+      "id": "Q01",
+      "status": "PASS",
+      "detail": "Root marker, immutable Git source/tree plus all205 source/config,380 test/support and20 harness entries independently authenticated."
+    },
+    {
+      "id": "Q02",
+      "status": "PASS",
+      "detail": "156 tracked .mts paths:22 maintained,129 historical,1 explicitly pinned frozen time-env oracle,4 declarations. Original30 crosswalk12 maintained+18 historical."
+    },
+    {
+      "id": "Q03",
+      "status": "PASS",
+      "detail": "All22 maintained inputs in13 strict NodeNext built-public-declaration groups; cold build first; no source resolution."
+    },
+    {
+      "id": "Q04",
+      "status": "FAIL",
+      "detail": "Actual required WebDAV local runtime12/13 fails. Eleven other runtime groups exit0, including module-only imports; those imports and7 provider compile-only programs are not deployed workflow passes."
+    },
+    {
+      "id": "Q05",
+      "status": "PASS",
+      "detail": "Missing dist TS2307; missing declaration TS7016; sole injected type error TS2322; source read denied. All original consumer inputs unchanged."
+    },
+    {
+      "id": "Q06",
+      "status": "FAIL",
+      "detail": "Exact positive outer npm job exit1 on current02. Correct failure propagation is separately verified, not positive qualification."
+    },
+    {
+      "id": "Q07",
+      "status": "PASS",
+      "detail": "Authentic GNUtar1.35 staged at exact candidate hardcoded path used by both suites; BSD/gzip/gunzip pins verified."
+    },
+    {
+      "id": "Q08",
+      "status": "PASS",
+      "detail": "Only GNU_TAR environment with no explicit tar argument: outer78,zero tests,inner candidate has no staged tar."
+    },
+    {
+      "id": "Q09",
+      "status": "PASS",
+      "detail": "Explicit missing owned tar: outer78,zero tests."
+    },
+    {
+      "id": "Q10",
+      "status": "PASS",
+      "detail": "Exact wrong executable text pin: rejected by SHA before execution,outer78,zero tests."
+    },
+    {
+      "id": "Q11",
+      "status": "PASS",
+      "detail": "Metadata15 pins;318/318+22 native rows;164 semantic/124 strict+40 diagnostics; existing65-name public scope,registry31/31,author packed21/21."
+    },
+    {
+      "id": "Q12",
+      "status": "PASS",
+      "detail": "Current02 execution of both original archive suites11/11 zero skips; all4 input/helper hashes unchanged versus historicale36; historical runner not invoked."
+    },
+    {
+      "id": "Q13",
+      "status": "PASS",
+      "detail": "Unsandboxed native reference uid501/gid20/member20,umask0022,owned fixture0700;0644->02755/06755 probes. Product Node permissions unchanged; no OS network isolation claim."
+    },
+    {
+      "id": "Q14",
+      "status": "PASS",
+      "detail": "Integrity/scope only:zero runtime dependencies;frozen inputs unchanged;provider and source never patched;five cleanup failures OPEN;historical proof not relabeled current."
+    }
+  ],
+  "counts": {
+    "pass": 12,
+    "fail": 2,
+    "total": 14
+  },
+  "verdict": "POSITIVE QUALIFICATION FAIL; bounded verification complete",
+  "mechanicalEvidenceChecks": [
+    {
+      "name": "full current source, test and helper manifests match immutable Git bytes",
+      "passed": true
+    },
+    {
+      "name": "frozen preparation/input artifacts unchanged",
+      "passed": true
+    },
+    {
+      "name": "original archive inputs and hardcoded candidate binary",
+      "passed": true
+    },
+    {
+      "name": "three actual outer tar controls execute no tests or wrong tool",
+      "passed": true
+    },
+    {
+      "name": "build first, strict actual declarations, all22 maintained inputs",
+      "passed": true
+    },
+    {
+      "name": "permission guards remain without child-process waiver",
+      "passed": true
+    },
+    {
+      "name": "positive failure retained, not relabeled by later phases",
+      "passed": true
+    },
+    {
+      "name": "three independent type negatives retain exact intended errors",
+      "passed": true
+    },
+    {
+      "name": "native member-group, pins, metadata and strict stream scope",
+      "passed": true
+    },
+    {
+      "name": "zero runtime dependencies and no candidate source mutation",
+      "passed": true
+    }
+  ],
+  "archiveBindings": [
+    {
+      "path": "tests/commands/archive/native.test.ts",
+      "candidateSha256": "a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45",
+      "historicalE36Sha256": "a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45"
+    },
+    {
+      "path": "tests/commands/archive/helpers.ts",
+      "candidateSha256": "7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0",
+      "historicalE36Sha256": "7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/controls.test.ts",
+      "candidateSha256": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56",
+      "historicalE36Sha256": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/fixtures.ts",
+      "candidateSha256": "3abeb1283fe401794383d366087e29589fbe38f8bef22164933785ba82d87673",
+      "historicalE36Sha256": "3abeb1283fe401794383d366087e29589fbe38f8bef22164933785ba82d87673"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+    },
+    {
+      "path": "node_modules/typescript/bin/tsc",
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    {
+      "path": "node_modules/typescript/lib/_tsc.js",
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    },
+    {
+      "path": "node_modules/typescript/package.json",
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "path": "node_modules/tsx/package.json",
+      "sha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "path": "node_modules/@types/node/package.json",
+      "sha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  ],
+  "originalPhase": "4504153 frozen inputs;bc03e68 static7 checks,not execution",
+  "finalPhase": "fresh independent02 execution; no545 counts reused",
+  "openOwners": [
+    "Poincare: maintained WebDAV provider fixture timestamp extension; no authorization to fix in this leaf",
+    "Root/runtime owner: five original cleanup failures remain OPEN; not independently closed here"
+  ]
+}

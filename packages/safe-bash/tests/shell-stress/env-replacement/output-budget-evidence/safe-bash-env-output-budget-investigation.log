@@ -1,0 +1,1272 @@
+OpenAI Codex v0.149.1
+--------
+workdir: /Users/kjopek/Workspace/safe-bash
+model: ultima-alpha
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: medium
+reasoning summaries: none
+session id: 01a04054-ac75-7643-aa2b-0266506e0364
+--------
+user
+READ-ONLY narrow source investigation after envREADY954f230; NO REPO WRITES, sourcelease remainsfrozen. Independent env cohort134b460 (newreporttests/shell-stress/env-replacement/**, finalprephandoff forthcoming) actualsame importedruntime7aaaaff3 passed allrealnestedenv/pipelines andhost9/10 but budgethostoutputsubprobe red. Userrequirespreservesharedbudgets/defaultcompat; don'tassumeexactpatch or changecontract togreen. Observedlimit10: expected3intendedcalls/8visiblebytes, actual2calls/4visiblebytes; commands/depth/source/loops subprobespass. No missing-commandfalsepositive, intendeddispatchwitness. Read exact frozenreport/case forrepro (authorcanread nowfrozen, NEVEReditindependenttests). Nativeenv15raw14/15 solelyorder legitimatevirtualdifference notbug. No need rerunnative.
+Investigate rootcause and contractsource definitions ofmaxOutputBytes/totaloutput versus forwardedwriteaccounting. Determine ifnestedcontext.invoke wraps alreadybudgetedstdout anddoublechargesidenticaltransfer, or iftestassumeswrong documentedgenerated-bytecount. Need actualboundedcounterexamples directregistry, invokeonce/nested, explicitreplaceEnvtrue/false/omitted, andpipeline byteforwarder usingowned/tmp-only code. Compare baseline pre954 behavior on samecorecontracts safely via isolated transpile/import or existingoldsource proof, NOgitcheckout/stash/reset/sourcewrites, no hostproductprocess. Preserverawexacterrors/counters/bytes, staticcallchain proof and referencedcontractdocs lines. Iftrueexistingruntimebug identifyminimalfixlocationandnewregressionproposal but DO NOT IMPLEMENT untilrootauthorizes. Do not silentlyreclassifyfrozenexpectedroworblameenvflag ifpreexisting. Ifcontractambiguous routeexactquestiontoCurie/root; nodependency/APIexpansion.
+No broad suite/fullnative/old9/custom5/BOM/jq/expanded7 orcurrent-shell reruns. No repo edits/commits. Ready hashes unchanged. Only/tmp evidence (apply_patch ifwritingauthoredfiles), childbound<15s and total~3minutes. Output /tmp/safe-bash-env-output-budget-investigation.md and final /tmp/safe-bash-env-output-budget-investigation-final.txt exactsourcefindings/defaultcomparison/contractinterpretation/nextpatchifjustified. StopchildrennoSIGSTOP. Don'tscopecreepothersemanticsorinlinecitationsnotrendered. Currentrootenvapprovalonlyreplacement, rootwillrouteanynewoutputcorrectionseparatelybasedfacts.
+warning: Model metadata for `ultima-alpha` not found. Defaulting to fallback metadata; this can degrade performance and cause issues.
+hook: SessionStart
+hook: SessionStart Completed
+hook: UserPromptSubmit
+hook: UserPromptSubmit Completed
+codex
+I’ll trace output accounting and run bounded `/tmp` counterexamples without repository writes.
+
+exec
+/bin/zsh -lc "pwd; cat ../AGENTS.md; cat AGENTS.md >/dev/null; git status --short; git log -1 --oneline; shasum -a 256 src/shell/{runtime,shell,types}.ts; rg -n 'output|budget|maxOutput|visible|calls' tests/shell-stress/env-replacement/* src/shell/{runtime,shell,input,types}.ts src/contracts/*.md | head -100; rg --files tests/shell-stress/env-replacement; rg -n 'class Budget|sink\\(|maxOutputBytes' src/shell/*.ts" in /Users/kjopek/Workspace/safe-bash
+ succeeded in 58ms:
+d8a1acd test(archive): restore observer before checking boundary effects
+7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42  src/shell/runtime.ts
+4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e  src/shell/shell.ts
+fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d  src/shell/types.ts
+tests/shell-stress/env-replacement/focused-types.json:82:    "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+tests/shell-stress/env-replacement/focused-types.json:96:    "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+tests/shell-stress/env-replacement/PREPARATION.md:31:The remaining host row is shared-output accounting. With maxOutputBytes10 and
+tests/shell-stress/env-replacement/PREPARATION.md:34:ShellLimitError(maxOutputBytes). Actual:two dispatches, four delivered bytes
+tests/shell-stress/env-replacement/PREPARATION.md:37:**Route to root as a potential shared-output-accounting defect / contract
+tests/shell-stress/env-replacement/PREPARATION.md:40:requires preserving shared budgets but does not independently specify counting
+tests/shell-stress/env-replacement/PREPARATION.md:44:All five budget subprobes were executed in the corrected run. Commands, depth,
+tests/shell-stress/env-replacement/PREPARATION.md:59:the output failure. Manifests are canonically keyed by digest:the corrected
+tests/shell-stress/env-replacement/endpoint.json:55:    "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+tests/shell-stress/env-replacement/endpoint.json:69:    "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+tests/shell-stress/env-replacement/endpoint.json:741:      "id": "shared-budget-dispatch-witnesses",
+tests/shell-stress/env-replacement/endpoint.json:767:  "visible": [],
+tests/shell-stress/env-replacement/cases.mjs:29:  { id: 'shared-budget-dispatch-witnesses', kind: 'budgets' },
+tests/shell-stress/env-replacement/cases.mjs:42:  budgets: 'Commands/output/depth/source/loops share budgets across replacement invokes; exact ShellLimitError.limit and intended registry dispatch witnesses, not a missing-command diagnostic overflow.',
+src/contracts/command.md:15:Literal argv, middleware, shared execution/output/depth budgets, signal,
+src/contracts/command.md:17:implement replacement with a new Shell, new budget or a callback-only bypass.
+tests/shell-stress/env-replacement/product.mjs:58:      const { shell } = await setup(); let stable = false; const calls = [];
+tests/shell-stress/env-replacement/product.mjs:59:      shell.register({ name: 'mutate', execute(context) { calls.push({ ...context.env }); context.env.PUBLIC = 'changed'; context.cwd = '/fixture/work'; return { exitCode: status }; } });
+tests/shell-stress/env-replacement/product.mjs:61:      try { const result = await shell.exec('SECRET=outer; export PUBLIC=public; call() { local SECRET=inner; bridge; printf "%s:%s:%s\\n" "$?" "$SECRET" "$PUBLIC"; }; call; printf "%s:%s\\n" "$SECRET" "$PUBLIC"; bash -c \'printf "%s:%s\\n" "${SECRET-unset}" "$PUBLIC"\''); observations.push({ status, calls, stable, result }); assert.equal(result.stdout, `${status}:inner:public\nouter:public\nunset:public\n`); assert.equal(result.stderr, ''); assert.ok(stable); assert.deepEqual(calls, [{ KEEP: 'value' }]); } finally { await shell.dispose(); }
+tests/shell-stress/env-replacement/product.mjs:70:  } else if (fixture.kind === 'budgets') {
+tests/shell-stress/env-replacement/product.mjs:71:    for (const [limit, value] of [['maxCommands', 4], ['maxOutputBytes', 10], ['maxSubstitutionDepth', 3], ['maxSourceBytes', 35], ['maxLoopIterations', 3]]) {
+tests/shell-stress/env-replacement/product.mjs:72:      const { shell } = await setup(); let calls = 0; let caught; let output = '';
+tests/shell-stress/env-replacement/product.mjs:73:      shell.register({ name: 'tick', async execute(context) { calls++; if (limit === 'maxOutputBytes') await writeText(context.stdout, '1234'); if (limit === 'maxSourceBytes') return context.invoke('bash', ['-c', ':; '.repeat(20)], { replaceEnv: true }); if (limit === 'maxLoopIterations') { await context.invoke('bash', ['-c', 'for item in a b; do :; done'], { replaceEnv: true }); return context.invoke('bash', ['-c', 'for item in c d; do :; done'], { replaceEnv: true }); } return context.invoke('tick', [], { replaceEnv: true }); } });
+tests/shell-stress/env-replacement/product.mjs:74:      try { await shell.exec('env -i tick', { limits: { [limit]: value }, stdout: { async write(bytes) { output += Buffer.from(bytes).toString(); } } }); } catch (error) { caught = error; } finally { await shell.dispose(); }
+tests/shell-stress/env-replacement/product.mjs:75:      observations.push({ limit, calls, output, error: caught?.message, actualLimit: caught?.limit, passed: caught?.name === 'ShellLimitError' && caught?.limit === limit && calls > 0 && (limit !== 'maxOutputBytes' || calls === 3 && output === '12341234') });
+tests/shell-stress/env-replacement/product.mjs:77:    assert.ok(observations.every(row => row.passed), 'All five budget witnesses must pass');
+src/shell/types.ts:18:  readonly maxOutputBytes?: number;
+src/shell/input.ts:79:  constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal) {
+src/shell/input.ts:109:        this.budget.source(end);
+src/shell/input.ts:152:        if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+src/shell/input.ts:194:      if (chunk.byteLength > this.budget.limits.maxOutputBytes - length) this.budget.fail("maxOutputBytes");
+tests/shell-stress/env-replacement/pre-ready-corrected.json:60:      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:74:      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:193:      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:207:      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1350:            "calls": [
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1408:            "calls": [
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1550:      "id": "shared-budget-dispatch-witnesses",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1575:            "calls": 3,
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1576:            "output": "",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1582:            "limit": "maxOutputBytes",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1583:            "calls": 2,
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1584:            "output": "1234",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1585:            "error": "Shell limit exceeded: maxOutputBytes",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1586:            "actualLimit": "maxOutputBytes",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1591:            "calls": 3,
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1592:            "output": "",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1599:            "calls": 1,
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1600:            "output": "",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1607:            "calls": 1,
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1608:            "output": "",
+tests/shell-stress/env-replacement/pre-ready-corrected.json:1616:          "message": "All five budget witnesses must pass",
+src/shell/shell.ts:70:    const budget = new Budget(limits, options.signal);
+src/shell/shell.ts:71:    budget.source(Buffer.byteLength(source));
+src/shell/shell.ts:72:    budget.signal.throwIfAborted();
+src/shell/shell.ts:75:    const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
+src/shell/shell.ts:90:      stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
+src/shell/shell.ts:92:      await interruptible(this.#ready, budget.signal);
+src/shell/shell.ts:102:      const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget);
+src/shell/shell.ts:107:          const result = await interruptible(runtime.runUnit(unit.script, state, io), budget.signal);
+src/shell/shell.ts:112:        budget.signal.throwIfAborted();
+src/shell/runtime.ts:18:  maxOutputBytes: 16 * 1024 * 1024,
+src/shell/runtime.ts:85:        if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+src/shell/runtime.ts:86:        if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+src/shell/runtime.ts:166:  readonly output?: ByteSink;
+src/shell/runtime.ts:175:  const output = io.descriptors?.get(1);
+src/shell/runtime.ts:177:  if (!(input?.closed && input.input === io.stdin) && !(output?.closed && output.output === io.stdout) && !(error?.closed && error.output === io.stderr)) return io;
+src/shell/runtime.ts:181:    ...(output?.closed && output.output === io.stdout ? { stdout: closedSink } : {}),
+src/shell/runtime.ts:182:    ...(error?.closed && error.output === io.stderr ? { stderr: closedSink } : {}),
+src/shell/runtime.ts:252:    readonly budget: Budget,
+src/shell/runtime.ts:253:    readonly signal: AbortSignal = budget.signal,
+src/shell/runtime.ts:255:    readonly outputFiles = new Map<string, OutputFile>(),
+src/shell/runtime.ts:301:        highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
+src/shell/runtime.ts:311:        const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles);
+src/shell/runtime.ts:312:        const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
+src/shell/runtime.ts:332:            stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
+src/shell/runtime.ts:377:      [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],
+src/shell/runtime.ts:381:    this.budget.tick();
+src/shell/runtime.ts:382:    if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);
+src/shell/runtime.ts:385:    const outputs = new Set<() => void>();
+src/shell/runtime.ts:396:      if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
+src/shell/runtime.ts:397:      io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
+src/shell/runtime.ts:417:        const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+src/shell/runtime.ts:441:            this.budget.loop();
+src/shell/runtime.ts:449:            this.budget.loop();
+src/shell/runtime.ts:477:      for (const close of outputs) close();
+src/shell/runtime.ts:504:        if (size > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+src/shell/runtime.ts:513:  async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<ShellInput>, outputs: Set<() => void>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
+src/shell/runtime.ts:516:      [1, { output: io.stdout }], [2, { output: io.stderr }],
+src/shell/runtime.ts:519:    const outputDescriptor = io.descriptors.get(1);
+src/shell/runtime.ts:524:      [1, outputDescriptor?.output === io.stdout ? outputDescriptor : { output: io.stdout }],
+src/shell/runtime.ts:525:      [2, errorDescriptor?.output === io.stderr ? errorDescriptor : { output: io.stderr }],
+src/shell/runtime.ts:541:        stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink,
+src/shell/runtime.ts:542:        stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink,
+src/shell/runtime.ts:559:          if (Buffer.byteLength(value) >= this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+src/shell/runtime.ts:562:        const input = new ShellInput(toByteSource(value), this.budget, this.signal);
+src/shell/runtime.ts:579:          if (!descriptor || descriptor.closed || (!move && (redirect.operator === "<&" ? !descriptor.input : !descriptor.output))) throw new Error(`${move ? sourceDescriptor : target}: Bad file descriptor`);
+src/shell/runtime.ts:595:            : toByteSource(await interruptible(this.fs.readFile(path, { ...options, maxBytes: this.budget.limits.maxOutputBytes }), this.signal));
+src/shell/runtime.ts:596:          const input = new ShellInput(source, this.budget, this.signal);
+src/shell/runtime.ts:604:            file = this.outputFiles.get(path) ?? { data: undefined, references: 0 };
+tests/shell-stress/env-replacement/focused-types.json
+tests/shell-stress/env-replacement/native.mjs
+tests/shell-stress/env-replacement/native-frozen.json
+tests/shell-stress/env-replacement/product.mjs
+tests/shell-stress/env-replacement/replay.mjs
+tests/shell-stress/env-replacement/harness.mjs
+tests/shell-stress/env-replacement/README.md
+tests/shell-stress/env-replacement/cases.mjs
+tests/shell-stress/env-replacement/pre-ready-corrected.json
+tests/shell-stress/env-replacement/PREPARATION.md
+tests/shell-stress/env-replacement/endpoint.json
+tests/shell-stress/env-replacement/contract-types.ts
+tests/shell-stress/env-replacement/pre-ready-red.json
+src/shell/types.ts:18:  readonly maxOutputBytes?: number;
+src/shell/shell.ts:75:    const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
+src/shell/shell.ts:85:      stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
+src/shell/runtime.ts:18:  maxOutputBytes: 16 * 1024 * 1024,
+src/shell/runtime.ts:47:export class Budget {
+src/shell/runtime.ts:81:  sink(sink: ByteSink, signal = this.signal): ByteSink {
+src/shell/runtime.ts:86:        if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+src/shell/runtime.ts:332:            stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
+src/shell/runtime.ts:595:            : toByteSource(await interruptible(this.fs.readFile(path, { ...options, maxBytes: this.budget.limits.maxOutputBytes }), this.signal));
+src/shell/runtime.ts:615:          const output = this.budget.sink({ write: (chunk) => {
+src/shell/runtime.ts:1276:      stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,
+src/shell/runtime.ts:1277:      stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,
+src/shell/runtime.ts:1515:      const captureIO = { ...isolateIO(io), diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };
+src/shell/input.ts:152:        if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+src/shell/input.ts:194:      if (chunk.byteLength > this.budget.limits.maxOutputBytes - length) this.budget.fail("maxOutputBytes");
+
+exec
+/bin/zsh -lc "sed -n '47,100p' src/shell/runtime.ts; sed -n '85,140p' tests/shell-stress/env-replacement/product.mjs; cat tests/shell-stress/env-replacement/PREPARATION.md; rg -n 'maxOutputBytes|total.output|generated.byte|output.*budget' src/contracts docs src/shell README.md tests/shell/*.md | head -65; sed -n '302,345p' src/shell/runtime.ts; sed -n '1,90p' tests/shell-stress/env-replacement/harness.mjs; cat src/contracts/command.md; git show 954f230"'^:src/shell/runtime.ts | shasum -a 256' in /Users/kjopek/Workspace/safe-bash
+ succeeded in 0ms:
+export class Budget {
+  commands = 0;
+  iterations = 0;
+  bytes = 0;
+  sourceBytes = 0;
+  readonly controller = new AbortController();
+  readonly signal: AbortSignal;
+
+  constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal) {
+    this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
+  }
+
+  fail(limit: keyof ShellLimits): never {
+    const error = new ShellLimitError(limit);
+    this.controller.abort(error);
+    throw error;
+  }
+
+  tick(): void {
+    this.signal.throwIfAborted();
+    if (++this.commands > this.limits.maxCommands) this.fail("maxCommands");
+  }
+
+  loop(): void {
+    this.signal.throwIfAborted();
+    if (++this.iterations > this.limits.maxLoopIterations) this.fail("maxLoopIterations");
+  }
+
+  source(bytes: number): void {
+    this.signal.throwIfAborted();
+    if (bytes > this.limits.maxSourceBytes - this.sourceBytes) this.fail("maxSourceBytes");
+    this.sourceBytes += bytes;
+  }
+
+  sink(sink: ByteSink, signal = this.signal): ByteSink {
+    return {
+      write: async (chunk) => {
+        signal.throwIfAborted();
+        if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+        if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+        this.bytes += chunk.byteLength;
+        await interruptible(sink.write(chunk), signal);
+      },
+    };
+  }
+}
+
+export async function interruptible<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
+  if (signal.aborted) {
+    void promise.catch(() => undefined);
+    throw signal.reason;
+  }
+  let abort: (() => void) | undefined;
+  const aborted = new Promise<never>((_resolve, reject) => {
+# Frozen exact-env preparation, not author READY acceptance
+
+Frozen independent commit **134b460** contains15 native rows and10 host-contract
+requirements. No runtime-author environment test definitions were inspected.
+Both whole real native profiles completed15/15 captures with no deadline/signal/
+overflow/group-leak failures. Native source snapshot was still diagnostics runtime
+`e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a`.
+The unchanged original `env -i A=1 B=2 env -u A` returns exactly `B=2\n`, empty
+stderr, status0 in BOTH GNU5.3 and historical3.2 captures.
+
+## Fresh moving-source results
+
+At02:44 and02:45 UTC on August27,2026, product executions loaded uncommitted runtime
+`7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42`.
+This is NOT committed489c8b7, and no environment-author READY was awaited or used.
+All25 per-row actual-import guards are valid in each recorded run:130 actual
+product paths loaded through the real package root, actual Shell and agentCommands.
+
+| Evidence | Native PRIMARY | Host rows | Invalid guards |
+| --- | --- | --- | --- |
+| `pre-ready-red.json`, first harness | 14/15 | 8/10 | 0/25 |
+| `pre-ready-corrected.json`, harness-only corrections | **14/15** | **9/10** | **0/25** |
+
+Historical raw comparison also remains14/15. Both profiles' sole native loss is
+entry ordering: fresh native `/usr/bin/env` emits `A=1\nB=2\n`, while product
+emits `B=2\nA=1\n`; both have status0, empty stderr and identical effects.
+No ordering normalization or source sorting fix is proposed. Curie's earlier
+benchmark profile captured the opposite native order (B,A); that historical
+fact is retained, not silently rewritten into this different launch profile.
+
+The remaining host row is shared-output accounting. With maxOutputBytes10 and
+intended recursive replacement-invoked `tick` writing four bytes per call, the
+frozen witness expects three intended dispatches, eight delivered bytes, then
+ShellLimitError(maxOutputBytes). Actual:two dispatches, four delivered bytes
+(`1234`), then the correct typed limit error. This is not missing-command stderr
+overflow: intended registry execution is independently witnessed.
+**Route to root as a potential shared-output-accounting defect / contract
+clarification**, not a demonstrated newly introduced replaceEnv regression.
+The witness assumes delivered bytes count once; the approved additive contract
+requires preserving shared budgets but does not independently specify counting
+multiple forwarding-sink writes. No old-runtime comparison or source fix was made.
+The frozen row remains red; no expectation is weakened to bless the observation.
+
+All five budget subprobes were executed in the corrected run. Commands, depth,
+source-byte and loop limits pass with intended registry witnesses. Output fails
+as described. Cancellation preserves the exact caller FsError(ENOENT) identity,
+and caller context observations remain unchanged. Function-local state after an
+aborted whole exec is not directly inspectable; success/failure locals and export
+attributes are covered separately. Literal args and middleware are witnessed.
+
+## Transparent harness corrections
+
+The first host middleware awaited next without returning its CommandResult,
+causing a false core-env reporter failure despite its exact KEEP-only map.
+The corrected middleware returns next. Native setup now supplies its intended
+environment directly rather than prepending `unset PUBLIC`; the actual original
+recipe is executed unchanged. No frozen script or expected tuple was edited.
+Budget subprobes now all execute before asserting, rather than stopping after
+the output failure. Manifests are canonically keyed by digest:the corrected
+25-row evidence reuses **two unique manifests** rather than repeated full maps.
+The initial flawed-harness observations remain immutable and are not acceptance.
+
+## Native tool identity and limits
+
+PRIMARY GNU5.3 SHA256:
+`8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c`.
+HISTORICAL Bash3.2 SHA256:
+`35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3`.
+Both outer shell profiles use Apple `/usr/bin/env`, SHA256
+`9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776`;
+this is NOT a GNU-coreutils env claim. Explicit child Bash/sh paths ensure their
+profile selection despite env-i clearing PATH. The bare nested-env original
+instead uses system default search, not an injected profile shim.
+
+The auxiliary `env -i /usr/bin/which env` control exits1 and is inconclusive;
+its failure is retained. `getconf PATH` and candidate-file audit are recorded in
+endpoint.json, but are not a traced execvp proof. No claim that a profile PATH
+shim survives env-i is made. Exact native tuples remain raw and authoritative.
+
+Focused compilation of `contract-types.ts` passes against the actual84fc742
+CommandInvokeOptions and real CommandContext.invoke types, with stable source
+guard. This is not a callback-only implementation proof: all product rows use
+real Shell+agentCommands. No full suite, old9/custom5/BOM/jq/expanded7 reruns,
+source edit, additional dependency, skip or xfail. Prior current-shell and
+expanded comparison snapshots are untouched.
+
+Reproduce after root supplies exact READY:
+`node tests/shell-stress/env-replacement/replay.mjs ready-REVISION.json`.
+Existing evidence refuses overwrite. Do not alter cases/native expectations.
+Use recorded actual import manifests to qualify foreign/moving-source changes;
+never blindly retry an invalid run. This leaf stops at preparation/red evidence.
+
+Final endpoint qualification:after the recorded product/type runs, foreign
+`src/fs/s3/authority.ts`, `src/fs/s3/filesystem.ts`,
+`src/fs/webdav/resource-id.ts` and `src/fs/webdav/webdav.ts` changed. Exact old
+and current hashes are in endpoint.json. Per-row measured guards remain valid,
+but no current-tree or later-dependency acceptance follows; no retry was made.
+The endpoint explicitly checked84 recorded native/product/type PIDs and groups,
+all absent. The auxiliary getconf child also completed normally. Owned temporary
+directories were removed; no watcher/SIGSTOP or child remains running.
+tests/shell/HEREDOCS.md:90:left-to-right routing, cancellation, and command/output budgets as documents.
+tests/shell/INVOCATION_MODES.md:83:source; normal output/command/loop/expansion/pipeline budgets still apply. Each
+tests/shell/GAP_EVIDENCE.md:121:output byte/field limits, so exact-budget output remains permitted.
+tests/shell/BOM_CAPTURE.md:26:   the existing output budget.
+tests/shell/BOM_CAPTURE.md:94:Two output-budget controls count stdout and stderr together: two BOM-only
+tests/shell/BOM_CAPTURE.md:96:`ShellLimitError("maxOutputBytes")` at cap 5. A pre-aborted execution preserves
+tests/shell/source-dot-eval-source.md:42:  command/loop/output budgets, exports, byte cursor/origin, readable symlinks,
+tests/shell/source-dot-eval-eval.md:33:budget. Commands, loops, depth, output and cancellation also share that budget.
+tests/shell/invocation-closure.md:54:Node children for depth/commands/output/source/loop budgets and late lookup
+src/shell/runtime.ts:18:  maxOutputBytes: 16 * 1024 * 1024,
+src/shell/runtime.ts:86:        if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+src/shell/runtime.ts:595:            : toByteSource(await interruptible(this.fs.readFile(path, { ...options, maxBytes: this.budget.limits.maxOutputBytes }), this.signal));
+src/shell/runtime.ts:615:          const output = this.budget.sink({ write: (chunk) => {
+src/shell/types.ts:18:  readonly maxOutputBytes?: number;
+src/shell/input.ts:152:        if (++length > this.budget.limits.maxOutputBytes) this.budget.fail("maxOutputBytes");
+src/shell/input.ts:194:      if (chunk.byteLength > this.budget.limits.maxOutputBytes - length) this.budget.fail("maxOutputBytes");
+docs/testing-shell-oracle.md:108:Use bounded output capture (a 1 MiB combined stream budget is ample for this
+src/contracts/command.md:15:Literal argv, middleware, shared execution/output/depth budgets, signal,
+      }));
+      const controllers = pipeline.commands.map(() => new AbortController());
+      const written = new Set<number>();
+      const completed = new Set<number>();
+      const closing = new Set<ReturnType<typeof setImmediate>>();
+      const tasks = pipeline.commands.map(async (command, index) => {
+        const incoming = pipes[index - 1];
+        const outgoing = pipes[index];
+        const signal = AbortSignal.any([this.signal, controllers[index]!.signal]);
+        const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles);
+        const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
+        const pipeOutput: ByteSink | undefined = outgoing && { write: async (chunk) => {
+          try {
+            await outgoing.writable.write(chunk);
+            if (chunk.byteLength) written.add(index);
+          }
+          catch (error) {
+            if (errorCode(error) === "EPIPE") {
+              const closed = new PipelineClosed();
+              controllers[index]!.abort(closed);
+              throw closed;
+            }
+            throw error;
+          }
+        } };
+        try {
+          return await interruptible(runtime.runCommandIsolated(command, { ...cloneState(state), isolated: true }, {
+            ...isolateIO(io),
+            stdin: input,
+            ...(incoming ? { stdinIsDefault: false } : {}),
+            stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
+            stderr: signalSink(io.stderr, signal),
+          }), signal);
+        } catch (error) {
+          if (error instanceof PipelineClosed) return 141;
+          throw error;
+        } finally {
+          completed.add(index);
+          if (incoming) {
+            const upstream = index - 1;
+            const close = setImmediate(() => {
+              closing.delete(close);
+              if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
+            });
+import { execFileSync } from 'node:child_process';
+import { readFile, readdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { dirname, resolve, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+export { runChild, sha256 } from '../current-shell/support.mjs';
+import { sha256 } from '../current-shell/support.mjs';
+export const owned = dirname(fileURLToPath(import.meta.url));
+export const root = resolve(owned, '../../..');
+export const primary = '/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash';
+export const env = { PATH: '/usr/bin:/bin', HOME: '/fixture', LANG: 'C', LC_ALL: 'C', TZ: 'UTC' };
+export function save(name, value) {
+  if (!/^[\w.-]+$/u.test(name) || existsSync(resolve(owned, name))) throw new Error(`Invalid/existing evidence ${name}`);
+  const text = JSON.stringify(value, null, 2);
+  execFileSync('apply_patch', [], { cwd: root, input: `*** Begin Patch\n*** Add File: ${relative(root, resolve(owned, name))}\n${text.split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n` });
+}
+export async function snapshot() {
+  const files = {};
+  async function walk(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const path = `${directory}/${entry.name}`;
+      if (entry.isDirectory()) await walk(path);
+      else if (path.endsWith('.ts')) files[path] = sha256(await readFile(path));
+    }
+  }
+  await walk('src');
+  for (const path of ['package.json', 'package-lock.json', 'tsconfig.json']) files[path] = sha256(await readFile(path));
+  return Object.fromEntries(Object.entries(files).sort(([left], [right]) => left.localeCompare(right)));
+}
+export async function effects(directory) {
+  const files = {};
+  async function walk(path) {
+    for (const entry of await readdir(path, { withFileTypes: true })) {
+      if (entry.name === 'bin') continue;
+      const full = `${path}/${entry.name}`; const key = relative(directory, full);
+      if (entry.isDirectory()) { files[`${key}/`] = null; await walk(full); }
+      else files[key] = (await readFile(full)).toString('base64');
+    }
+  }
+  await walk(directory); return files;
+}
+# Literal invocation environment
+
+`CommandInvokeOptions.replaceEnv?: boolean` is additive. Absent or false retains
+the runtime's existing environment merge behavior and PWD treatment. True uses
+a fresh copy of exactly `options.env ?? {}` as the exported environment at
+command entry: no merge with inherited exports, implicit PWD or promotion of
+unexported/local variables. Supplied PWD is an environment value, not a cwd setter.
+Environment key/value validation remains required before child execution.
+
+This replaces the child environment, not generic shell state. Parent values,
+export attributes and function locals must remain unchanged on success, error
+or cancellation. Cwd resolution remains independent. A child Bash interpreter's
+own initialization is separate from the environment passed to it.
+
+Literal argv, middleware, shared execution/output/depth budgets, signal,
+stdout/stderr transfer and stdin cursor/origin rules are unchanged. Do not
+implement replacement with a new Shell, new budget or a callback-only bypass.
+
+Core `env COMMAND` explicitly requests replacement for its already-computed
+environment, including plain assignments and `-u`, not just `-i`. With no invoke
+hook, its existing registry/callback fallback still receives that exact map.
+Generic directExecutor/xargs/find callers retain their existing default behavior.
+
+Curie owns the contract/core consumer; Sagan owns runtime/types. The additive
+field and boundary-forwarding tests do not establish runtime support. Acceptance
+requires the actual-shell nested env row and export/local/parent/cancellation
+regressions after both implementations are committed. Preserve the historical
+leak reproduction and original six-row cohort.
+e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a  -
+
+exec
+/bin/zsh -lc "rg -n -A 17 -B 4 \"kind === 'budgets'|maxOutputBytes|tick\" tests/shell-stress/env-replacement/product.mjs; rg -n 'maxOutputBytes|total output|generated.*bytes|output bytes' README.md docs src/contracts tests/shell/*.md | head -50; sed -n '1,25p' src/shell/runtime.ts; sed -n '1,20p' src/shell/shell.ts; sed -n '1,85p' tests/shell/invocation-discovery-fixes-imports.mjs; rg -n 'signalSink' src/shell/runtime.ts" in /Users/kjopek/Workspace/safe-bash
+ succeeded in 0ms:
+66-    shell.register({ name: 'marker', execute() { marker++; return { exitCode: 0 }; } });
+67-    shell.register({ name: 'bridge', async execute(context) { const before = JSON.stringify(context.env); try { return await context.invoke('pending', [], { replaceEnv: true, env: {} }); } finally { stable = before === JSON.stringify(context.env); } } });
+68-    try { await shell.exec('bridge; marker', { signal: controller.signal }); } catch (error) { caught = error; } finally { await shell.dispose(); }
+69-    await new Promise(resolveWait => setImmediate(resolveWait)); observations.push({ started, stable, marker, exactReason: caught === reason, signalAborted: received?.aborted }); assert.ok(started && stable && received?.aborted); assert.equal(marker, 0); assert.equal(caught, reason);
+70:  } else if (fixture.kind === 'budgets') {
+71:    for (const [limit, value] of [['maxCommands', 4], ['maxOutputBytes', 10], ['maxSubstitutionDepth', 3], ['maxSourceBytes', 35], ['maxLoopIterations', 3]]) {
+72-      const { shell } = await setup(); let calls = 0; let caught; let output = '';
+73:      shell.register({ name: 'tick', async execute(context) { calls++; if (limit === 'maxOutputBytes') await writeText(context.stdout, '1234'); if (limit === 'maxSourceBytes') return context.invoke('bash', ['-c', ':; '.repeat(20)], { replaceEnv: true }); if (limit === 'maxLoopIterations') { await context.invoke('bash', ['-c', 'for item in a b; do :; done'], { replaceEnv: true }); return context.invoke('bash', ['-c', 'for item in c d; do :; done'], { replaceEnv: true }); } return context.invoke('tick', [], { replaceEnv: true }); } });
+74:      try { await shell.exec('env -i tick', { limits: { [limit]: value }, stdout: { async write(bytes) { output += Buffer.from(bytes).toString(); } } }); } catch (error) { caught = error; } finally { await shell.dispose(); }
+75:      observations.push({ limit, calls, output, error: caught?.message, actualLimit: caught?.limit, passed: caught?.name === 'ShellLimitError' && caught?.limit === limit && calls > 0 && (limit !== 'maxOutputBytes' || calls === 3 && output === '12341234') });
+76-    }
+77-    assert.ok(observations.every(row => row.passed), 'All five budget witnesses must pass');
+78-  }
+79-  return { passed: true, observations };
+80-}
+81-try { console.log(JSON.stringify({ id: fixture.id, observation: fixture.kind ? await host() : await native() })); }
+82-catch (error) { console.log(JSON.stringify({ id: fixture.id, observation: { passed: false, observations, error: { name: error.name, message: error.message, actual: error.actual, expected: error.expected } } })); }
+tests/shell/BOM_CAPTURE.md:96:`ShellLimitError("maxOutputBytes")` at cap 5. A pre-aborted execution preserves
+tests/shell/GAP_EVIDENCE.md:246:  empty stderr; output bytes, status, and effects match.
+tests/shell/source-dot-eval-eval.md:56:documented in the source report. Exact output bytes/status/file contents remain
+docs/PROJECT_LEDGER.md:1125:  with VFS source/output bytes preserved. Scoped tests are **476 total:365 pass,
+import {
+  ACCESS_MODES, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
+} from "../contracts/index.js";
+import type {
+  ByteSink, ByteSource, CommandContext, CommandRegistry, FileSystem, Middleware,
+} from "../contracts/index.js";
+import type { Command, HereDocument, Pipeline, Redirect, Script, Word, WordPart } from "./parser.js";
+import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
+import { ShellLimitError, ShellSyntaxError } from "./types.js";
+import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+import { ShellInput } from "./input.js";
+import { evaluateArithmetic } from "./arithmetic.js";
+import { compilePattern, matchesPattern } from "./pattern.js";
+import { byteLocale } from "./locale.js";
+import { functionDisplay } from "./display.js";
+
+export const defaultLimits: Required<ShellLimits> = {
+  maxOutputBytes: 16 * 1024 * 1024,
+  maxCommands: 10_000,
+  maxLoopIterations: 10_000,
+  maxSubstitutionDepth: 64,
+  maxSourceBytes: 1024 * 1024,
+  maxExpansionFields: 10_000,
+  maxExpansionBytes: 16 * 1024 * 1024,
+  pipeHighWaterMark: 64 * 1024,
+import { CommandRegistry, resolvePath, toByteSource, writeText } from "../contracts/index.js";
+import type {
+  ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,
+  RegisterCommandOptions, VirtualShellPlugin,
+} from "../contracts/index.js";
+import { parseShellUnit } from "./parser.js";
+import { ShellInput } from "./input.js";
+import { byteLocale } from "./locale.js";
+import { Budget, Capture, interruptible, resolveLimits, Runtime } from "./runtime.js";
+import type { State } from "./runtime.js";
+import { ShellLimitError, ShellSyntaxError } from "./types.js";
+import type { ShellExecOptions, ShellOptions, ShellResult } from "./types.js";
+
+export class Shell implements PluginHost {
+  readonly commands: CommandRegistry;
+  readonly #middleware: Middleware[] = [];
+  readonly #filesystems = new Map<string, FileSystemFactory>();
+  readonly #plugins: VirtualShellPlugin[] = [];
+  readonly #options: ShellOptions;
+  #ready: Promise<void> = Promise.resolve();
+import { register } from "node:module";
+
+if (process.env.DISCOVERY_FIX_IMPORTS) register(`data:text/javascript,${encodeURIComponent(`
+import { appendFileSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+export async function load(url, context, nextLoad) {
+  const result = await nextLoad(url, context);
+  if (url.startsWith('file:') && url.endsWith('.ts')) {
+    const path = fileURLToPath(url);
+    const hash = createHash('sha256').update(readFileSync(path)).digest('hex');
+    appendFileSync(process.env.DISCOVERY_FIX_IMPORTS, JSON.stringify({ pid: process.pid, path, hash, format: result.format }) + '\\n');
+  }
+  return result;
+}
+`)}`);
+218:function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
+332:            stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
+333:            stderr: signalSink(io.stderr, signal),
+
+exec
+/bin/zsh -lc "apply_patch <<'PATCH'
+*** Begin Patch
+*** Add File: /tmp/safe-bash-env-output-probe.mjs
++import { Shell, agentCommands, createMemoryFileSystem, writeText, pipeBytes } from '/Users/kjopek/Workspace/safe-bash/src/index.ts';
++import { createHash } from 'node:crypto';
++import { readFileSync } from 'node:fs';
++const rows = [];
++for (const flag of ['omitted', false, true]) {
++  for (const mode of ['direct', 'invoke-implicit', 'invoke-explicit', 'nested-implicit', 'nested-explicit', 'recursive-implicit', 'env-recursive', 'pipeline', 'env-pipeline']) {
++    const fs = createMemoryFileSystem();
++    const shell = new Shell({ fs }).use(agentCommands());
++    let calls = 0; let output = ''; let stderr = ''; let error;
++    const options = context => ({ ...(flag === 'omitted' ? {} : { replaceEnv: flag }), ...(mode.includes('explicit') ? { stdout: context.stdout, stderr: context.stderr } : {}) });
++    shell.register({ name: 'tick', async execute(context) {
++      calls++; await writeText(context.stdout, '1234');
++      if (mode.includes('recursive') && calls < 4) return context.invoke('tick', [], options(context));
++      return { exitCode: 0 };
++    } });
++    shell.register({ name: 'bridge', execute: context => context.invoke('tick', [], options(context)) });
++    shell.register({ name: 'outer', execute: context => context.invoke('bridge', [], options(context)) });
++    shell.register({ name: 'forward', async execute(context) { await pipeBytes(context.stdin, context.stdout, context.signal); return { exitCode: 0 }; } });
++    const source = mode === 'direct' ? 'tick; tick; tick' : mode.startsWith('nested') ? 'outer; outer; outer' : mode.startsWith('invoke') ? 'bridge; bridge; bridge' : mode === 'env-recursive' ? 'env -i tick' : mode === 'recursive-implicit' ? 'tick' : mode === 'pipeline' ? 'tick | forward' : 'env -i tick | forward';
++    try { await shell.exec(source, { limits: { maxOutputBytes: 10 }, stdout: { write(bytes) { output += Buffer.from(bytes).toString(); } }, stderr: { write(bytes) { stderr += Buffer.from(bytes).toString(); } } }); }
++    catch (caught) { error = { name: caught.name, message: caught.message, limit: caught.limit, stack: caught.stack }; }
++    finally { await shell.dispose(); }
++    rows.push({ flag, mode, source, calls, output, outputHex: Buffer.from(output).toString('hex'), stderr, error });
++  }
++}
++const runtimePath = '/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts';
++console.log(JSON.stringify({ profile: process.env.OUTPUT_PROBE_PROFILE, importedRuntime: import.meta.resolve(runtimePath), worktreeRuntimeHash: createHash('sha256').update(readFileSync(runtimePath)).digest('hex'), rows }, null, 2));
+*** Add File: /tmp/safe-bash-env-output-baseline-loader.mjs
++import { register } from 'node:module';
++register("'`data:text/javascript,${encodeURIComponent(`
++import { readFileSync } from '"'node:fs';
++export async function load(url, context, nextLoad) {
++  if (url === 'file:///Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts') return { format: 'module', source: readFileSync('/tmp/safe-bash-env-output-baseline-runtime.mjs', 'utf8'), shortCircuit: true };
++  return nextLoad(url, context);
++}
++"'`)}`);
+*** End Patch
+PATCH
+node --input-type=module <<'"'JS' | apply_patch
+import {execFileSync} from 'node:child_process';
+import ts from './node_modules/typescript/lib/typescript.js';
+const source=execFileSync('git',['show','954f230"'^:src/shell/runtime.ts'"'],{encoding:'utf8'});
+const output=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+console.log('*** Begin Patch\\n*** Add File: /tmp/safe-bash-env-output-baseline-runtime.mjs\\n'+output.trimEnd().split('\\n').map(line=>'+'+line).join('\\n')+'\\n*** End Patch');
+JS
+node --input-type=module <<'JS'
+import {spawnSync} from 'node:child_process';
+import {writeFileSync} from 'node:fs';
+for(const profile of ['current','baseline']) {
+ const options={detached:true,timeout:12000,maxBuffer:1024*1024,env:{...process.env,OUTPUT_PROBE_PROFILE:profile}};
+ const result=spawnSync(process.execPath,['--unhandled-rejections=strict','--import','tsx',...(profile==='baseline'?['--import','/tmp/safe-bash-env-output-baseline-loader.mjs']:[]),'/tmp/safe-bash-env-output-probe.mjs'],options);
+ try {process.kill(-result.pid,'SIGKILL')} catch {}
+ if(result.error || result.status"'!==0) throw new Error(result.stderr.toString() + result.error);
+ writeFileSync('"'/tmp/safe-bash-env-output-'+profile+'.json',result.stdout);
+ console.log(profile,JSON.parse(result.stdout).rows.map(row=>[row.flag,row.mode,row.calls,row.output.length,row.error?.limit]));
+}
+JS" in /Users/kjopek/Workspace/safe-bash
+ succeeded in 622ms:
+Success. Updated the following files:
+A /tmp/safe-bash-env-output-baseline-runtime.mjs
+current [
+  [ 'omitted', 'direct', 3, 8, 'maxOutputBytes' ],
+  [ 'omitted', 'invoke-implicit', 3, 8, 'maxOutputBytes' ],
+  [ 'omitted', 'invoke-explicit', 2, 4, 'maxOutputBytes' ],
+  [ 'omitted', 'nested-implicit', 3, 8, 'maxOutputBytes' ],
+  [ 'omitted', 'nested-explicit', 1, 0, 'maxOutputBytes' ],
+  [ 'omitted', 'recursive-implicit', 3, 8, 'maxOutputBytes' ],
+  [ 'omitted', 'env-recursive', 2, 4, 'maxOutputBytes' ],
+  [ 'omitted', 'pipeline', 1, 4, undefined ],
+  [ 'omitted', 'env-pipeline', 1, 0, 'maxOutputBytes' ],
+  [ false, 'direct', 3, 8, 'maxOutputBytes' ],
+  [ false, 'invoke-implicit', 3, 8, 'maxOutputBytes' ],
+  [ false, 'invoke-explicit', 2, 4, 'maxOutputBytes' ],
+  [ false, 'nested-implicit', 3, 8, 'maxOutputBytes' ],
+  [ false, 'nested-explicit', 1, 0, 'maxOutputBytes' ],
+  [ false, 'recursive-implicit', 3, 8, 'maxOutputBytes' ],
+  [ false, 'env-recursive', 2, 4, 'maxOutputBytes' ],
+  [ false, 'pipeline', 1, 4, undefined ],
+  [ false, 'env-pipeline', 1, 0, 'maxOutputBytes' ],
+  [ true, 'direct', 3, 8, 'maxOutputBytes' ],
+  [ true, 'invoke-implicit', 3, 8, 'maxOutputBytes' ],
+  [ true, 'invoke-explicit', 2, 4, 'maxOutputBytes' ],
+  [ true, 'nested-implicit', 3, 8, 'maxOutputBytes' ],
+  [ true, 'nested-explicit', 1, 0, 'maxOutputBytes' ],
+  [ true, 'recursive-implicit', 3, 8, 'maxOutputBytes' ],
+  [ true, 'env-recursive', 2, 4, 'maxOutputBytes' ],
+  [ true, 'pipeline', 1, 4, undefined ],
+  [ true, 'env-pipeline', 1, 0, 'maxOutputBytes' ]
+]
+baseline [
+  [ 'omitted', 'direct', 3, 8, 'maxOutputBytes' ],
+  [ 'omitted', 'invoke-implicit', 3, 8, 'maxOutputBytes' ],
+  [ 'omitted', 'invoke-explicit', 2, 4, 'maxOutputBytes' ],
+  [ 'omitted', 'nested-implicit', 3, 8, 'maxOutputBytes' ],
+  [ 'omitted', 'nested-explicit', 1, 0, 'maxOutputBytes' ],
+  [ 'omitted', 'recursive-implicit', 3, 8, 'maxOutputBytes' ],
+  [ 'omitted', 'env-recursive', 2, 4, 'maxOutputBytes' ],
+  [ 'omitted', 'pipeline', 1, 4, undefined ],
+  [ 'omitted', 'env-pipeline', 1, 0, 'maxOutputBytes' ],
+  [ false, 'direct', 3, 8, 'maxOutputBytes' ],
+  [ false, 'invoke-implicit', 3, 8, 'maxOutputBytes' ],
+  [ false, 'invoke-explicit', 2, 4, 'maxOutputBytes' ],
+  [ false, 'nested-implicit', 3, 8, 'maxOutputBytes' ],
+  [ false, 'nested-explicit', 1, 0, 'maxOutputBytes' ],
+  [ false, 'recursive-implicit', 3, 8, 'maxOutputBytes' ],
+  [ false, 'env-recursive', 2, 4, 'maxOutputBytes' ],
+  [ false, 'pipeline', 1, 4, undefined ],
+  [ false, 'env-pipeline', 1, 0, 'maxOutputBytes' ],
+  [ true, 'direct', 3, 8, 'maxOutputBytes' ],
+  [ true, 'invoke-implicit', 3, 8, 'maxOutputBytes' ],
+  [ true, 'invoke-explicit', 2, 4, 'maxOutputBytes' ],
+  [ true, 'nested-implicit', 3, 8, 'maxOutputBytes' ],
+  [ true, 'nested-explicit', 1, 0, 'maxOutputBytes' ],
+  [ true, 'recursive-implicit', 3, 8, 'maxOutputBytes' ],
+  [ true, 'env-recursive', 2, 4, 'maxOutputBytes' ],
+  [ true, 'pipeline', 1, 4, undefined ],
+  [ true, 'env-pipeline', 1, 0, 'maxOutputBytes' ]
+]
+
+codex
+The same double charging occurs before `954f230`; `replaceEnv` is not the cause.
+
+exec
+/bin/zsh -lc "nl -ba src/shell/runtime.ts | sed -n '78,93p;214,226p;1266,1281p'; nl -ba src/shell/shell.ts | sed -n '70,88p'; rg -n -A 10 -B 3 'replaceEnv: true' src/commands/execution.ts; nl -ba src/contracts/command.md | head -28; nl -ba src/shell/types.ts | sed -n '15,30p'; rg -n 'output|limit|budget' src/contracts/README.md src/contracts/io.md 2>/dev/null | head -20; git show --stat --oneline 954f230 -- src/shell; shasum -a 256 src/shell/{runtime,shell,types}.ts src/contracts/command.ts src/commands/execution.ts; git status --short -- src/shell; date -u" in /Users/kjopek/Workspace/safe-bash
+ succeeded in 0ms:
+    78	    this.sourceBytes += bytes;
+    79	  }
+    80	
+    81	  sink(sink: ByteSink, signal = this.signal): ByteSink {
+    82	    return {
+    83	      write: async (chunk) => {
+    84	        signal.throwIfAborted();
+    85	        if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    86	        if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+    87	        this.bytes += chunk.byteLength;
+    88	        await interruptible(sink.write(chunk), signal);
+    89	      },
+    90	    };
+    91	  }
+    92	}
+    93	
+   214	  readonly code = "EPIPE";
+   215	  constructor() { super("Pipeline consumer exited"); }
+   216	}
+   217	
+   218	function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
+   219	  return { async write(chunk) { signal.throwIfAborted(); await interruptible(sink.write(chunk), signal); } };
+   220	}
+   221	
+   222	function cloneState(state: State): State {
+   223	  return {
+   224	    ...state,
+   225	    variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
+   226	    exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
+  1266	    child.loopDepth = 0;
+  1267	    child.functionDepth = 0;
+  1268	    child.sourceDepth = 0;
+  1269	    child.locals = [];
+  1270	    const input = options.stdin === undefined ? undefined : new ShellInput(options.stdin, this.budget, this.signal);
+  1271	    const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);
+  1272	    const io = {
+  1273	      ...context,
+  1274	      stdin: input ?? context.stdin,
+  1275	      ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
+  1276	      stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,
+  1277	      stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,
+  1278	    };
+  1279	    const command: Command = {
+  1280	      kind: "simple", redirects: [],
+  1281	      words: [name, ...args].map((value) => ({ offset: 0, parts: [{ kind: "text", value, quoted: true }] })),
+    70	    const budget = new Budget(limits, options.signal);
+    71	    budget.source(Buffer.byteLength(source));
+    72	    budget.signal.throwIfAborted();
+    73	    const stdout = new Capture();
+    74	    const stderr = new Capture();
+    75	    const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
+    76	      write: async (chunk) => {
+    77	        await capture.write(chunk);
+    78	        if (external) await external.write(chunk);
+    79	      },
+    80	    });
+    81	    let stdin: ShellInput | undefined;
+    82	    const io = {
+    83	      stdin: toByteSource(""),
+    84	      stdinIsDefault: options.stdin === undefined,
+    85	      stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
+    86	    };
+    87	    let exitCode: number;
+    88	    try {
+76-        if (parsed.flags.has("0")) throw new UsageError("cannot specify --null with a command");
+77-        const childEnv: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, Object.fromEntries(names.map(name => [name, env[name]!])));
+78-        if (context.invoke) return context.invoke(parsed.operands[offset]!, parsed.operands.slice(offset + 1), {
+79:          env: childEnv, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,
+80-          ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
+81-        });
+82-        return execute({ ...context, command: parsed.operands[offset]!, args: parsed.operands.slice(offset + 1), env: childEnv, cwd });
+83-      }
+84-      for (const name of names) await output(context, `${name}=${env[name]}${parsed.flags.has("0") ? "\0" : "\n"}`);
+85-      return { exitCode: 0 };
+86-    }),
+87-    define("xargs", async context => {
+88-      const parsed = options(context.args, "0rn:s:I:d:tP:xE:", { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E" }, true);
+89-      if (integer(value(parsed, "P") ?? "1") !== 1) throw new UsageError("only sequential execution (-P 1) is supported");
+     1	# Literal invocation environment
+     2	
+     3	`CommandInvokeOptions.replaceEnv?: boolean` is additive. Absent or false retains
+     4	the runtime's existing environment merge behavior and PWD treatment. True uses
+     5	a fresh copy of exactly `options.env ?? {}` as the exported environment at
+     6	command entry: no merge with inherited exports, implicit PWD or promotion of
+     7	unexported/local variables. Supplied PWD is an environment value, not a cwd setter.
+     8	Environment key/value validation remains required before child execution.
+     9	
+    10	This replaces the child environment, not generic shell state. Parent values,
+    11	export attributes and function locals must remain unchanged on success, error
+    12	or cancellation. Cwd resolution remains independent. A child Bash interpreter's
+    13	own initialization is separate from the environment passed to it.
+    14	
+    15	Literal argv, middleware, shared execution/output/depth budgets, signal,
+    16	stdout/stderr transfer and stdin cursor/origin rules are unchanged. Do not
+    17	implement replacement with a new Shell, new budget or a callback-only bypass.
+    18	
+    19	Core `env COMMAND` explicitly requests replacement for its already-computed
+    20	environment, including plain assignments and `-u`, not just `-i`. With no invoke
+    21	hook, its existing registry/callback fallback still receives that exact map.
+    22	Generic directExecutor/xargs/find callers retain their existing default behavior.
+    23	
+    24	Curie owns the contract/core consumer; Sagan owns runtime/types. The additive
+    25	field and boundary-forwarding tests do not establish runtime support. Acceptance
+    26	requires the actual-shell nested env row and export/local/parent/cancellation
+    27	regressions after both implementations are committed. Preserve the historical
+    28	leak reproduction and original six-row cohort.
+    15	}
+    16	
+    17	export interface ShellLimits {
+    18	  readonly maxOutputBytes?: number;
+    19	  readonly maxCommands?: number;
+    20	  readonly maxLoopIterations?: number;
+    21	  readonly maxSubstitutionDepth?: number;
+    22	  readonly maxSourceBytes?: number;
+    23	  readonly maxExpansionFields?: number;
+    24	  readonly maxExpansionBytes?: number;
+    25	  readonly pipeHighWaterMark?: number;
+    26	}
+    27	
+    28	export interface ShellOptions {
+    29	  readonly fs: FileSystem;
+    30	  readonly commands?: CommandRegistry;
+954f230 fix(shell): honor exact exported environment replacement
+ src/shell/runtime.ts | 2 +-
+ src/shell/types.ts   | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42  src/shell/runtime.ts
+4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e  src/shell/shell.ts
+fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d  src/shell/types.ts
+1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa  src/contracts/command.ts
+1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700  src/commands/execution.ts
+Thu Aug 27 02:50:59 UTC 2026
+
+apply patch
+patch: completed
+/tmp/safe-bash-env-output-budget-investigation-final.txt
+/tmp/safe-bash-env-output-budget-investigation.md
+diff --git a//tmp/safe-bash-env-output-budget-investigation-final.txt b//tmp/safe-bash-env-output-budget-investigation-final.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca479de0b6a0d82426b9590c0e6033a167cfc046
+--- /dev/null
++++ b//tmp/safe-bash-env-output-budget-investigation-final.txt
+@@ -0,0 +1,6 @@
++READ-ONLY DONE. Confirmed pre-existing output double-accounting, not replaceEnv regression.
++Runtime.invoke:1276-1277 rewraps explicitly forwarded already-budgeted context sinks; Budget.sink:81 charges each wrapper. Core env explicitly forwards both sinks at execution.ts:78.
++54 bounded actual-Shell controls:27 current +27 isolated pre954 runtime, same current core/contracts. Identical counts/bytes/errors for omitted/false/true replaceEnv. Direct/implicit3calls8bytes; explicit once2calls4bytes; nested explicit1call0bytes. env recursive reproduces independent2calls4bytes. Direct four-byte pipeline succeeds; env-forwarded pipeline exhausts before visible output.
++Raw current/baseline JSON, probe and loader under /tmp/safe-bash-env-output-*. Full findings/static references/minimal regression proposal: /tmp/safe-bash-env-output-budget-investigation.md.
++Contract requires shared budgets but does not define wrapper-count vs destination-write accounting. Recommend separate root/Curie-routed correction: transparent identical contextual sink forwarding should not charge an extra write; preserve real stage-output accounting and precharge/cancel semantics. No environment contract change or test waiver.
++NO PATCH, repo writes, commits, independent edits or native/broad replay. Runtime hash unchanged7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42; shell954f230 freeze intact. All bounded children/process groups stopped; no watchers or SIGSTOP. Await separately authorized source lease.
+diff --git a//tmp/safe-bash-env-output-budget-investigation.md b//tmp/safe-bash-env-output-budget-investigation.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0aeb024d5c137e84af2860f7638c8aaaa63aab13
+--- /dev/null
++++ b//tmp/safe-bash-env-output-budget-investigation.md
+@@ -0,0 +1,128 @@
++# Read-only output-budget investigation — 2026-08-27
++
++Source freeze retained. No repository writes, checkouts, stash/reset, commits,
++contract changes or independent fixture edits. Inspected current HEAD d8a1acd;
++shell integration remains 954f2302e4b2f42f90cb5ffd5670d1936f47390c.
++
++## Finding
++
++Confirmed pre-existing transparent sink double-accounting, not a replaceEnv
++regression. Runtime.invoke wraps explicitly supplied stdout/stderr even when
++they are exactly the already-budgeted current context sinks. Omitting the same
++sink options avoids that extra charge. All three replaceEnv settings produce
++the identical accounting observations on both current and pre954 runtimes.
++
++Frozen evidence read: tests/shell-stress/env-replacement/PREPARATION.md and
++product.mjs:70. The independent witness registers tick, then starts env -i tick;
++tick writes four bytes and recursively invokes itself without sink overrides.
++Its two calls/four visible bytes are reproduced. The initial env invocation,
++not the recursion or replacement flag, adds the extra budget wrapper.
++
++## Static call chain
++
++- src/shell/shell.ts:75: Shell.exec creates budget.sink around Capture and its
++  optional external observer. These two deliveries already count only once.
++- src/commands/execution.ts:78: env invokes the child with stdout=context.stdout
++  and stderr=context.stderr (plus approved replacement/cwd/stdin fields).
++- src/shell/runtime.ts:1276: every truthy options.stdout is wrapped again by
++  this.budget.sink; line1277 does the same for stderr. No identity/ownership test.
++- src/shell/runtime.ts:81: each wrapper independently checks the same Budget.bytes,
++  increments by chunk.byteLength, then forwards to its downstream sink.
++- Consequently a four-byte write under env consumes eight budget units. At
++  limit10 the next tick is dispatched, but its four-byte write fails before
++  reaching Capture. Three wrappers reject the first four-byte write after two
++  inner accounting steps, leaving zero visible bytes.
++- Pipeline destinations are separate: runtime.ts:332 budgets pipe output;
++  the downstream command writes to its own output destination. signalSink at
++  runtime.ts:218 does not itself increment bytes. A real pipeline transfer can
++  therefore cost twice the final visible bytes even without duplicate wrappers.
++
++## Bounded actual-Shell controls
++
++Each row ran under omitted, false and true replaceEnv, on BOTH runtimes:
++54 total actual Shell+agentCommands observations. Limit10, four-byte payload.
++Results below are dispatches of registered tick / external visible byte count.
++
++| Route | Both runtimes / all flags | Result |
++| --- | --- | --- |
++| Three direct registry commands | 3 / 8 | ShellLimitError(maxOutputBytes) |
++| Once-invoked, sinks omitted | 3 / 8 | same typed error |
++| Once-invoked, exact sinks explicitly forwarded | 2 / 4 | same typed error |
++| Nested invocation, sinks omitted | 3 / 8 | same typed error |
++| Nested invocation, exact sinks explicitly forwarded | 1 / 0 | same typed error |
++| Recursive tick, sinks omitted | 3 / 8 | same typed error |
++| env -i recursive tick | 2 / 4 | same typed error |
++| tick piped to registered byte forwarder | 1 / 4 | success |
++| env -i tick piped to same forwarder | 1 / 0 | same typed error |
++
++All stderr is empty: these are not missing-command or diagnostic-overflow
++false positives. Raw output, hex bytes, counters and full error name/message/
++limit/stack remain in /tmp/safe-bash-env-output-current.json and
++/tmp/safe-bash-env-output-baseline.json. Stack layout differs naturally because
++the old runtime is independently transpiled; no raw evidence was normalized.
++
++Probe: /tmp/safe-bash-env-output-probe.mjs. Each profile child had a12-second
++hard deadline and1MiB output bound, detached process-group cleanup; both exited0
++well within the deadline. Native shell/coreutils cohorts were not run.
++
++Baseline isolation: git show 954f230^:src/shell/runtime.ts supplied precisely
++the old runtime (SHA256 e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a).
++Existing TypeScript transpileModule produced /tmp/safe-bash-env-output-baseline-runtime.mjs.
++A /tmp Node load hook substituted only that runtime module at its original
++URL; shell, contracts and core imports remained current real repository TS.
++No product process spawning was added and no repository file was replaced.
++The worktree hash recorded by that probe remains the current file hash; it is
++not mislabeled as the loaded old runtime. The loader and original git source
++identify the baseline independently.
++
++## Contract interpretation / routed question
++
++src/contracts/command.md:15 requires unchanged shared execution/output/depth
++budgets and stdout/stderr transfer; :3 preserves absent/false environment merge
++and PWD behavior. src/shell/types.ts:18 declares maxOutputBytes without defining
++its counting unit. No inspected public contract/README defines total output as
++only final visible bytes, or explicitly authorizes repeated charging of one
++transparent forwarding operation. Actual implementation counts budgeted write
++boundaries before downstream success, not simply delivered bytes.
++
++The frozen expected3calls/8bytes is supported by direct and implicit-invoke
++controls. Its broader phrase "delivered bytes count once" must not imply that
++real producer+consumer pipeline output is globally counted once. Do not waive
++the frozen failure, blame replaceEnv, or change the environment contract.
++
++Exact clarification for root/Curie: should transparently forwarding an existing
++context output sink preserve the same accounting as omitting that override,
++while distinct pipe/file/capture destination writes remain separately charged
++and downstream-failing writes retain existing precharge behavior? I recommend
++yes, routed as a separate pre-existing runtime-accounting correction. This
++does not require a public API/dependency expansion.
++
++## Minimal proposed follow-up — NOT IMPLEMENTED
++
++Start at Runtime.invoke:1276-1277: reuse an explicitly supplied sink that is
++the identical contextual sink instead of adding another Budget.sink wrapper.
++Continue budgeting genuinely new external sinks; preserve original cancellation
++and all budget ownership. This minimal identity case fixes the demonstrated
++env/direct-forwarding discrepancy without changing false/omitted environment
++semantics. A broader same-Budget ownership mechanism would need separate care
++for cross stdout/stderr aliases and signal-only wrappers; do not blindly unwrap
++arbitrary host wrappers or deduplicate chunks by buffer identity/content.
++
++Proposed regressions: exact current54 matrix; stdout/stderr forwarding and
++cross-descriptor aliases; genuinely new supplied sinks; nested middleware;
++repeated writes reusing the same Uint8Array still charged each time; real
++pipeline stage writes remain charged; cancellation identity/late rejections;
++typed exhaustion before further sink effects. Preserve independent expectations.
++
++## Unchanged ready hashes / closure
++
++runtime.ts 7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42
++shell.ts 4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e
++types.ts fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d
++contract command.ts 1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa
++core execution.ts 1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700
++
++Owned children stopped; no watchers/SIGSTOP. No old9/custom5/BOM/jq/expanded/
++current-shell/native reruns. Independent native14/15 order observation remains
++separate and unchanged. Source lease remains frozen; no correction authorized
++or implemented by this investigation.
+
+diff --git a//tmp/safe-bash-env-output-budget-investigation-final.txt b//tmp/safe-bash-env-output-budget-investigation-final.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca479de0b6a0d82426b9590c0e6033a167cfc046
+--- /dev/null
++++ b//tmp/safe-bash-env-output-budget-investigation-final.txt
+@@ -0,0 +1,6 @@
++READ-ONLY DONE. Confirmed pre-existing output double-accounting, not replaceEnv regression.
++Runtime.invoke:1276-1277 rewraps explicitly forwarded already-budgeted context sinks; Budget.sink:81 charges each wrapper. Core env explicitly forwards both sinks at execution.ts:78.
++54 bounded actual-Shell controls:27 current +27 isolated pre954 runtime, same current core/contracts. Identical counts/bytes/errors for omitted/false/true replaceEnv. Direct/implicit3calls8bytes; explicit once2calls4bytes; nested explicit1call0bytes. env recursive reproduces independent2calls4bytes. Direct four-byte pipeline succeeds; env-forwarded pipeline exhausts before visible output.
++Raw current/baseline JSON, probe and loader under /tmp/safe-bash-env-output-*. Full findings/static references/minimal regression proposal: /tmp/safe-bash-env-output-budget-investigation.md.
++Contract requires shared budgets but does not define wrapper-count vs destination-write accounting. Recommend separate root/Curie-routed correction: transparent identical contextual sink forwarding should not charge an extra write; preserve real stage-output accounting and precharge/cancel semantics. No environment contract change or test waiver.
++NO PATCH, repo writes, commits, independent edits or native/broad replay. Runtime hash unchanged7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42; shell954f230 freeze intact. All bounded children/process groups stopped; no watchers or SIGSTOP. Await separately authorized source lease.
+diff --git a//tmp/safe-bash-env-output-budget-investigation.md b//tmp/safe-bash-env-output-budget-investigation.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0aeb024d5c137e84af2860f7638c8aaaa63aab13
+--- /dev/null
++++ b//tmp/safe-bash-env-output-budget-investigation.md
+@@ -0,0 +1,128 @@
++# Read-only output-budget investigation — 2026-08-27
++
++Source freeze retained. No repository writes, checkouts, stash/reset, commits,
++contract changes or independent fixture edits. Inspected current HEAD d8a1acd;
++shell integration remains 954f2302e4b2f42f90cb5ffd5670d1936f47390c.
++
++## Finding
++
++Confirmed pre-existing transparent sink double-accounting, not a replaceEnv
++regression. Runtime.invoke wraps explicitly supplied stdout/stderr even when
++they are exactly the already-budgeted current context sinks. Omitting the same
++sink options avoids that extra charge. All three replaceEnv settings produce
++the identical accounting observations on both current and pre954 runtimes.
++
++Frozen evidence read: tests/shell-stress/env-replacement/PREPARATION.md and
++product.mjs:70. The independent witness registers tick, then starts env -i tick;
++tick writes four bytes and recursively invokes itself without sink overrides.
++Its two calls/four visible bytes are reproduced. The initial env invocation,
++not the recursion or replacement flag, adds the extra budget wrapper.
++
++## Static call chain
++
++- src/shell/shell.ts:75: Shell.exec creates budget.sink around Capture and its
++  optional external observer. These two deliveries already count only once.
++- src/commands/execution.ts:78: env invokes the child with stdout=context.stdout
++  and stderr=context.stderr (plus approved replacement/cwd/stdin fields).
++- src/shell/runtime.ts:1276: every truthy options.stdout is wrapped again by
++  this.budget.sink; line1277 does the same for stderr. No identity/ownership test.
++- src/shell/runtime.ts:81: each wrapper independently checks the same Budget.bytes,
++  increments by chunk.byteLength, then forwards to its downstream sink.
++- Consequently a four-byte write under env consumes eight budget units. At
++  limit10 the next tick is dispatched, but its four-byte write fails before
++  reaching Capture. Three wrappers reject the first four-byte write after two
++  inner accounting steps, leaving zero visible bytes.
++- Pipeline destinations are separate: runtime.ts:332 budgets pipe output;
++  the downstream command writes to its own output destination. signalSink at
++  runtime.ts:218 does not itself increment bytes. A real pipeline transfer can
++  therefore cost twice the final visible bytes even without duplicate wrappers.
++
++## Bounded actual-Shell controls
++
++Each row ran under omitted, false and true replaceEnv, on BOTH runtimes:
++54 total actual Shell+agentCommands observations. Limit10, four-byte payload.
++Results below are dispatches of registered tick / external visible byte count.
++
++| Route | Both runtimes / all flags | Result |
++| --- | --- | --- |
++| Three direct registry commands | 3 / 8 | ShellLimitError(maxOutputBytes) |
++| Once-invoked, sinks omitted | 3 / 8 | same typed error |
++| Once-invoked, exact sinks explicitly forwarded | 2 / 4 | same typed error |
++| Nested invocation, sinks omitted | 3 / 8 | same typed error |
++| Nested invocation, exact sinks explicitly forwarded | 1 / 0 | same typed error |
++| Recursive tick, sinks omitted | 3 / 8 | same typed error |
++| env -i recursive tick | 2 / 4 | same typed error |
++| tick piped to registered byte forwarder | 1 / 4 | success |
++| env -i tick piped to same forwarder | 1 / 0 | same typed error |
++
++All stderr is empty: these are not missing-command or diagnostic-overflow
++false positives. Raw output, hex bytes, counters and full error name/message/
++limit/stack remain in /tmp/safe-bash-env-output-current.json and
++/tmp/safe-bash-env-output-baseline.json. Stack layout differs naturally because
++the old runtime is independently transpiled; no raw evidence was normalized.
++
++Probe: /tmp/safe-bash-env-output-probe.mjs. Each profile child had a12-second
++hard deadline and1MiB output bound, detached process-group cleanup; both exited0
++well within the deadline. Native shell/coreutils cohorts were not run.
++
++Baseline isolation: git show 954f230^:src/shell/runtime.ts supplied precisely
++the old runtime (SHA256 e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a).
++Existing TypeScript transpileModule produced /tmp/safe-bash-env-output-baseline-runtime.mjs.
++A /tmp Node load hook substituted only that runtime module at its original
++URL; shell, contracts and core imports remained current real repository TS.
++No product process spawning was added and no repository file was replaced.
++The worktree hash recorded by that probe remains the current file hash; it is
++not mislabeled as the loaded old runtime. The loader and original git source
++identify the baseline independently.
++
++## Contract interpretation / routed question
++
++src/contracts/command.md:15 requires unchanged shared execution/output/depth
++budgets and stdout/stderr transfer; :3 preserves absent/false environment merge
++and PWD behavior. src/shell/types.ts:18 declares maxOutputBytes without defining
++its counting unit. No inspected public contract/README defines total output as
++only final visible bytes, or explicitly authorizes repeated charging of one
++transparent forwarding operation. Actual implementation counts budgeted write
++boundaries before downstream success, not simply delivered bytes.
++
++The frozen expected3calls/8bytes is supported by direct and implicit-invoke
++controls. Its broader phrase "delivered bytes count once" must not imply that
++real producer+consumer pipeline output is globally counted once. Do not waive
++the frozen failure, blame replaceEnv, or change the environment contract.
++
++Exact clarification for root/Curie: should transparently forwarding an existing
++context output sink preserve the same accounting as omitting that override,
++while distinct pipe/file/capture destination writes remain separately charged
++and downstream-failing writes retain existing precharge behavior? I recommend
++yes, routed as a separate pre-existing runtime-accounting correction. This
++does not require a public API/dependency expansion.
++
++## Minimal proposed follow-up — NOT IMPLEMENTED
++
++Start at Runtime.invoke:1276-1277: reuse an explicitly supplied sink that is
++the identical contextual sink instead of adding another Budget.sink wrapper.
++Continue budgeting genuinely new external sinks; preserve original cancellation
++and all budget ownership. This minimal identity case fixes the demonstrated
++env/direct-forwarding discrepancy without changing false/omitted environment
++semantics. A broader same-Budget ownership mechanism would need separate care
++for cross stdout/stderr aliases and signal-only wrappers; do not blindly unwrap
++arbitrary host wrappers or deduplicate chunks by buffer identity/content.
++
++Proposed regressions: exact current54 matrix; stdout/stderr forwarding and
++cross-descriptor aliases; genuinely new supplied sinks; nested middleware;
++repeated writes reusing the same Uint8Array still charged each time; real
++pipeline stage writes remain charged; cancellation identity/late rejections;
++typed exhaustion before further sink effects. Preserve independent expectations.
++
++## Unchanged ready hashes / closure
++
++runtime.ts 7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42
++shell.ts 4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e
++types.ts fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d
++contract command.ts 1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa
++core execution.ts 1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700
++
++Owned children stopped; no watchers/SIGSTOP. No old9/custom5/BOM/jq/expanded/
++current-shell/native reruns. Independent native14/15 order observation remains
++separate and unchanged. Source lease remains frozen; no correction authorized
++or implemented by this investigation.
+
+codex
+Confirmed a **pre-existing output-accounting bug**, not a `replaceEnv` regression.
+
+- Explicitly forwarded context sinks are wrapped and charged again.
+- All **54 controls** match between current and pre-`954f230` runtimes, across omitted/false/true flags.
+- Direct/implicit invocation: **3 calls, 8 visible bytes**. Explicit forwarding: **2 calls, 4 bytes**.
+- Proposed separate fix: reuse identical contextual sinks while preserving budgeting for genuinely new sinks and pipeline stages.
+
+Findings: `/tmp/safe-bash-env-output-budget-investigation.md:1`  
+Final handoff: `/tmp/safe-bash-env-output-budget-investigation-final.txt:1`
+
+**No repository changes. Source remains frozen; children stopped.**
+diff --git a//tmp/safe-bash-env-output-budget-investigation-final.txt b//tmp/safe-bash-env-output-budget-investigation-final.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca479de0b6a0d82426b9590c0e6033a167cfc046
+--- /dev/null
++++ b//tmp/safe-bash-env-output-budget-investigation-final.txt
+@@ -0,0 +1,6 @@
++READ-ONLY DONE. Confirmed pre-existing output double-accounting, not replaceEnv regression.
++Runtime.invoke:1276-1277 rewraps explicitly forwarded already-budgeted context sinks; Budget.sink:81 charges each wrapper. Core env explicitly forwards both sinks at execution.ts:78.
++54 bounded actual-Shell controls:27 current +27 isolated pre954 runtime, same current core/contracts. Identical counts/bytes/errors for omitted/false/true replaceEnv. Direct/implicit3calls8bytes; explicit once2calls4bytes; nested explicit1call0bytes. env recursive reproduces independent2calls4bytes. Direct four-byte pipeline succeeds; env-forwarded pipeline exhausts before visible output.
++Raw current/baseline JSON, probe and loader under /tmp/safe-bash-env-output-*. Full findings/static references/minimal regression proposal: /tmp/safe-bash-env-output-budget-investigation.md.
++Contract requires shared budgets but does not define wrapper-count vs destination-write accounting. Recommend separate root/Curie-routed correction: transparent identical contextual sink forwarding should not charge an extra write; preserve real stage-output accounting and precharge/cancel semantics. No environment contract change or test waiver.
++NO PATCH, repo writes, commits, independent edits or native/broad replay. Runtime hash unchanged7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42; shell954f230 freeze intact. All bounded children/process groups stopped; no watchers or SIGSTOP. Await separately authorized source lease.
+diff --git a//tmp/safe-bash-env-output-budget-investigation.md b//tmp/safe-bash-env-output-budget-investigation.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0aeb024d5c137e84af2860f7638c8aaaa63aab13
+--- /dev/null
++++ b//tmp/safe-bash-env-output-budget-investigation.md
+@@ -0,0 +1,128 @@
++# Read-only output-budget investigation — 2026-08-27
++
++Source freeze retained. No repository writes, checkouts, stash/reset, commits,
++contract changes or independent fixture edits. Inspected current HEAD d8a1acd;
++shell integration remains 954f2302e4b2f42f90cb5ffd5670d1936f47390c.
++
++## Finding
++
++Confirmed pre-existing transparent sink double-accounting, not a replaceEnv
++regression. Runtime.invoke wraps explicitly supplied stdout/stderr even when
++they are exactly the already-budgeted current context sinks. Omitting the same
++sink options avoids that extra charge. All three replaceEnv settings produce
++the identical accounting observations on both current and pre954 runtimes.
++
++Frozen evidence read: tests/shell-stress/env-replacement/PREPARATION.md and
++product.mjs:70. The independent witness registers tick, then starts env -i tick;
++tick writes four bytes and recursively invokes itself without sink overrides.
++Its two calls/four visible bytes are reproduced. The initial env invocation,
++not the recursion or replacement flag, adds the extra budget wrapper.
++
++## Static call chain
++
++- src/shell/shell.ts:75: Shell.exec creates budget.sink around Capture and its
++  optional external observer. These two deliveries already count only once.
++- src/commands/execution.ts:78: env invokes the child with stdout=context.stdout
++  and stderr=context.stderr (plus approved replacement/cwd/stdin fields).
++- src/shell/runtime.ts:1276: every truthy options.stdout is wrapped again by
++  this.budget.sink; line1277 does the same for stderr. No identity/ownership test.
++- src/shell/runtime.ts:81: each wrapper independently checks the same Budget.bytes,
++  increments by chunk.byteLength, then forwards to its downstream sink.
++- Consequently a four-byte write under env consumes eight budget units. At
++  limit10 the next tick is dispatched, but its four-byte write fails before
++  reaching Capture. Three wrappers reject the first four-byte write after two
++  inner accounting steps, leaving zero visible bytes.
++- Pipeline destinations are separate: runtime.ts:332 budgets pipe output;
++  the downstream command writes to its own output destination. signalSink at
++  runtime.ts:218 does not itself increment bytes. A real pipeline transfer can
++  therefore cost twice the final visible bytes even without duplicate wrappers.
++
++## Bounded actual-Shell controls
++
++Each row ran under omitted, false and true replaceEnv, on BOTH runtimes:
++54 total actual Shell+agentCommands observations. Limit10, four-byte payload.
++Results below are dispatches of registered tick / external visible byte count.
++
++| Route | Both runtimes / all flags | Result |
++| --- | --- | --- |
++| Three direct registry commands | 3 / 8 | ShellLimitError(maxOutputBytes) |
++| Once-invoked, sinks omitted | 3 / 8 | same typed error |
++| Once-invoked, exact sinks explicitly forwarded | 2 / 4 | same typed error |
++| Nested invocation, sinks omitted | 3 / 8 | same typed error |
++| Nested invocation, exact sinks explicitly forwarded | 1 / 0 | same typed error |
++| Recursive tick, sinks omitted | 3 / 8 | same typed error |
++| env -i recursive tick | 2 / 4 | same typed error |
++| tick piped to registered byte forwarder | 1 / 4 | success |
++| env -i tick piped to same forwarder | 1 / 0 | same typed error |
++
++All stderr is empty: these are not missing-command or diagnostic-overflow
++false positives. Raw output, hex bytes, counters and full error name/message/
++limit/stack remain in /tmp/safe-bash-env-output-current.json and
++/tmp/safe-bash-env-output-baseline.json. Stack layout differs naturally because
++the old runtime is independently transpiled; no raw evidence was normalized.
++
++Probe: /tmp/safe-bash-env-output-probe.mjs. Each profile child had a12-second
++hard deadline and1MiB output bound, detached process-group cleanup; both exited0
++well within the deadline. Native shell/coreutils cohorts were not run.
++
++Baseline isolation: git show 954f230^:src/shell/runtime.ts supplied precisely
++the old runtime (SHA256 e886b64536c7496769fdbe856aafb0e73ee88ace47c2a3ca9cb3cc71f11f8c4a).
++Existing TypeScript transpileModule produced /tmp/safe-bash-env-output-baseline-runtime.mjs.
++A /tmp Node load hook substituted only that runtime module at its original
++URL; shell, contracts and core imports remained current real repository TS.
++No product process spawning was added and no repository file was replaced.
++The worktree hash recorded by that probe remains the current file hash; it is
++not mislabeled as the loaded old runtime. The loader and original git source
++identify the baseline independently.
++
++## Contract interpretation / routed question
++
++src/contracts/command.md:15 requires unchanged shared execution/output/depth
++budgets and stdout/stderr transfer; :3 preserves absent/false environment merge
++and PWD behavior. src/shell/types.ts:18 declares maxOutputBytes without defining
++its counting unit. No inspected public contract/README defines total output as
++only final visible bytes, or explicitly authorizes repeated charging of one
++transparent forwarding operation. Actual implementation counts budgeted write
++boundaries before downstream success, not simply delivered bytes.
++
++The frozen expected3calls/8bytes is supported by direct and implicit-invoke
++controls. Its broader phrase "delivered bytes count once" must not imply that
++real producer+consumer pipeline output is globally counted once. Do not waive
++the frozen failure, blame replaceEnv, or change the environment contract.
++
++Exact clarification for root/Curie: should transparently forwarding an existing
++context output sink preserve the same accounting as omitting that override,
++while distinct pipe/file/capture destination writes remain separately charged
++and downstream-failing writes retain existing precharge behavior? I recommend
++yes, routed as a separate pre-existing runtime-accounting correction. This
++does not require a public API/dependency expansion.
++
++## Minimal proposed follow-up — NOT IMPLEMENTED
++
++Start at Runtime.invoke:1276-1277: reuse an explicitly supplied sink that is
++the identical contextual sink instead of adding another Budget.sink wrapper.
++Continue budgeting genuinely new external sinks; preserve original cancellation
++and all budget ownership. This minimal identity case fixes the demonstrated
++env/direct-forwarding discrepancy without changing false/omitted environment
++semantics. A broader same-Budget ownership mechanism would need separate care
++for cross stdout/stderr aliases and signal-only wrappers; do not blindly unwrap
++arbitrary host wrappers or deduplicate chunks by buffer identity/content.
++
++Proposed regressions: exact current54 matrix; stdout/stderr forwarding and
++cross-descriptor aliases; genuinely new supplied sinks; nested middleware;
++repeated writes reusing the same Uint8Array still charged each time; real
++pipeline stage writes remain charged; cancellation identity/late rejections;
++typed exhaustion before further sink effects. Preserve independent expectations.
++
++## Unchanged ready hashes / closure
++
++runtime.ts 7aaaaff3ebc18c65556036878e48a4977b55bc2689adfc647c20be663f3cdd42
++shell.ts 4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e
++types.ts fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d
++contract command.ts 1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa
++core execution.ts 1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700
++
++Owned children stopped; no watchers/SIGSTOP. No old9/custom5/BOM/jq/expanded/
++current-shell/native reruns. Independent native14/15 order observation remains
++separate and unchanged. Source lease remains frozen; no correction authorized
++or implemented by this investigation.
+
+hook: Stop
+hook: Stop Completed
+tokens used
+1,925,843
+Confirmed a **pre-existing output-accounting bug**, not a `replaceEnv` regression.
+
+- Explicitly forwarded context sinks are wrapped and charged again.
+- All **54 controls** match between current and pre-`954f230` runtimes, across omitted/false/true flags.
+- Direct/implicit invocation: **3 calls, 8 visible bytes**. Explicit forwarding: **2 calls, 4 bytes**.
+- Proposed separate fix: reuse identical contextual sinks while preserving budgeting for genuinely new sinks and pipeline stages.
+
+Findings: `/tmp/safe-bash-env-output-budget-investigation.md:1`  
+Final handoff: `/tmp/safe-bash-env-output-budget-investigation-final.txt:1`
+
+**No repository changes. Source remains frozen; children stopped.**

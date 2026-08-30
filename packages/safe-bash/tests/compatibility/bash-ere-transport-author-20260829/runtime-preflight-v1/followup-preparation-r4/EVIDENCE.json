@@ -1,0 +1,161 @@
+{
+  "schema": 4,
+  "presealCommit": "745c3e6db6088b617d1161e861015fe6d522bb74",
+  "executionProfileSha256": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+  "preparationSha256": "80fbc74cbb61824158d21bb536825b0f91551fea8dbd1f315f4fdfa8e31be97a",
+  "helpers": 2,
+  "helperExitCodes": [
+    0,
+    0
+  ],
+  "controls": 10,
+  "passed": 10,
+  "childFixtures": 0,
+  "Workers": 0,
+  "productImports": 0,
+  "compiler": 0,
+  "DATA": {
+    "files": 390,
+    "bytes": 1381586,
+    "caseRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CASES",
+    "manifest": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/PROVISION-RESULT.json",
+      "size": 87438,
+      "sha256": "e59c6f557079256c3e764687dbe514851c9a4c799095f760967b766f4e48bd3d"
+    },
+    "immutableInventorySha256": "aa7ae40bdfe1821a2cd493cc5408be9662003eb02784d05171e6b89a3a0d3a15"
+  },
+  "controlResult": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/CONTROL-RESULT.json",
+    "size": 911,
+    "sha256": "69b5136493d47486d756e67f8c6409bb022f3c5b711f067a65b2f1c24e61217e"
+  },
+  "rawCaptures": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/capture/provision.stdout",
+      "size": 61,
+      "sha256": "bf9ad5b4f4c85522c16513860c04c8c1726260ea154da38a775bed360e22f3af"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/capture/provision.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/capture/controls.stdout",
+      "size": 615,
+      "sha256": "6467d150166ffd54a154e1256d57c10764b6d147cb3b901d302a000811558e38"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/capture/controls.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "postSourceBindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/receipt-gate.mjs",
+      "size": 12089,
+      "sha256": "c82bd134ea73abc74547de9832a62d0fa46cf1efb60826fa45fe4e5c961b2c59"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/retirement-latch.mjs",
+      "size": 886,
+      "sha256": "528643d2a81cc8a0d017cf2b1053767173a4023cf2720b4e03f40d13a1363bee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/supervisor.mjs",
+      "size": 5529,
+      "sha256": "cf1b60f675185e200cc03a4c2e713a1b1ca73c4853bd6d3f47ff420d3198ba83"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/activation.mjs",
+      "size": 2798,
+      "sha256": "0bc77686e66fb33eddf6624ba9f7110c63dded99bcb4ea3db7a7035403a1433d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/admin-publication.mjs",
+      "size": 4474,
+      "sha256": "801b06eaae6d72f442a2064c63eec5c1cbd839372ff3608ffcf4c0072151c8cf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/startup-receipt.mjs",
+      "size": 1693,
+      "sha256": "ec9da2e9670b153503b819d7c875e172ffedadcf38d1ea5b896aafa38f62fdfd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/budget.mjs",
+      "size": 2364,
+      "sha256": "4d0078d54afb6ca729688112efa5133a7f4998398b81373d2982cd81f370d34a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/controls.mjs",
+      "size": 6760,
+      "sha256": "a5c2d6a7fa063a8a46d06503586fee348b8f42448b3bd40686cfc81781c4c7c1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r4/provision.mjs",
+      "size": 3702,
+      "sha256": "5ceba2f2b5a5a734e8a399268d431c8e174deaf7ef867e8ee1b9e52ef1f37fa4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/journal.mjs",
+      "size": 2588,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    }
+  ],
+  "grantInstalled": false,
+  "futureOutputEntries": [],
+  "proofRoles": {
+    "F01": "actual pure judge with individual/both false EOF and preserved stricter guards",
+    "F02": "actual pure latch with injected failure/raw falsy + source ordering; supervisor/Worker/OS UNRUN",
+    "provision": "authenticated DATA decode/write/full manifest census, not module evaluation or new physical-move execution"
+  },
+  "history": "original independent14/14+5/6 and F01/F02 preserved, no rescore",
+  "preparedAt": "2026-08-29T16:48:02.648Z",
+  "preparationRoles": {
+    "source": [
+      "zsh",
+      "apply_patch",
+      "git scoped-status"
+    ],
+    "preseal": [
+      "zsh",
+      "apply_patch",
+      "git add",
+      "git commit"
+    ],
+    "helpers": [
+      "zsh",
+      "env image",
+      "Node provision",
+      "env image",
+      "Node controls"
+    ],
+    "metadata": [
+      "zsh",
+      "git rev-parse"
+    ],
+    "publicationReserved": [
+      "zsh",
+      "apply_patch",
+      "git add",
+      "git commit",
+      "git scoped-log"
+    ],
+    "existingToolHost": 1,
+    "chargedUpperBound": 20,
+    "grant": 28,
+    "notDistinctPidOrFullOSClaim": true
+  }
+}

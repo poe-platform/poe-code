@@ -1,0 +1,4 @@
+{
+  "processes":6,"events":8192,"totalMs":65000,"entryMs":60000,"childMs":3500,"termGraceMs":250,"reapMs":1000,
+  "entryOutput":4194304,"childOutput":131072,"storageBytes":16777216
+}

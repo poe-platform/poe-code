@@ -1,0 +1,194 @@
+{
+  "baseline": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "engineBaseline": "0e97500f41be479e4a266037b03230ab5118d300",
+  "sources": {
+    "length": 5,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    }
+  },
+  "originals": {
+    "length": 5,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/source/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    }
+  },
+  "fixtures": {
+    "length": 4,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+      "size": 10900,
+      "mode": 420,
+      "sha256": "7ede0384b30d5e566b08fd16da747a1e9a731222bca64366ed1b2e7e9d3a3c78"
+    }
+  },
+  "reversionInputs": {
+    "length": 2,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/emitted/matcher.js",
+      "size": 8483,
+      "mode": 420,
+      "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb"
+    }
+  },
+  "harness": {
+    "length": 4,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/runner.mjs",
+      "size": 14206,
+      "mode": 420,
+      "sha256": "b205bdf5ec5ade3d56f6daf30d94cb3f2ae2821f51dfbb676e90d87ae6a9b31d"
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "tools": {
+    "length": 241,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+      "size": 6213092,
+      "mode": 420,
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    }
+  },
+  "tscFlags": {
+    "length": 15,
+    "first": "--target"
+  },
+  "compiler": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+  "noCompression": true,
+  "expectedChildren": 18,
+  "caseGroups": {
+    "author": 66,
+    "priorCheckpoints": 8,
+    "empty": 4,
+    "layouts": 3
+  },
+  "deadlineMs": 1500000
+}
+89:     const seal = JSON.parse(await text(join(own, 'SEAL.json')));
+90:     const inputs = [seal.node, ...seal.sources, ...seal.originals, ...seal.fixtures, ...seal.reversionInputs, ...seal.harness, ...seal.tools]; await bound(inputs);
+91:     const work = join(output, 'work'); await mkdir(work);
+92:     for (const entry of seal.tools) {
+93:       const destination = join(work, relative(repo, entry.path)); await mkdir(dirname(destination), { recursive: true }); await copyFile(entry.path, destination); await chmod(destination, entry.mode);
+94:       assert.equal((await hash(destination)).sha256, entry.sha256);
+95:     }
+96:     const source = join(work, 'source'); await mkdir(source);
+97:     for (const entry of seal.sources) { const destination = join(source, basename(entry.path)); await copyFile(entry.path, destination); assert.equal((await hash(destination)).sha256, entry.sha256); }
+98:     await writeFile(join(source, 'package.json'), '{"type":"module","private":true}\n');
+99:     const compiler = join(work, relative(repo, seal.compiler)); const typeRoots = join(work, 'node_modules/@types'); const emitted = join(work, 'emitted');
+100:     const build = await child('strict-build', [compiler, ...seal.tscFlags, '--typeRoots', typeRoots, '--declaration', '--outDir', emitted, ...seal.sources.map(entry => join(source, basename(entry.path)))], work, 120000);
+101:     if (build.code !== 0) throw new Error('ORDINARY compiler failure; dependent product loads withheld');
+102:     await writeFile(join(emitted, 'package.json'), '{"type":"module","private":true}\n'); const emittedBindings = await census(emitted);
+103:     const rows = []; const types = [];
+104:     async function runCases(role, directory, target = false, selection = 'all', mutated = null) {
+105:       const script = target === 'empty' ? join(own, 'empty.mjs') : target ? join(own, 'checkpoints.mjs') : join(author, 'suite.mjs');
+106:       const args = target ? [script,directory,selection] : [script,directory,join(author,'cases.json')];
+107:       const result = await child(role,args,work);
+108:       const records = result.stdout.trim().split('\n').map(line => JSON.parse(line));
+109:       const observed = records.find(record => record.event === 'results'); const loaded = records.find(record => record.event === 'loaded');
+110:       if (!observed || !loaded || observed.rows.length === 0 || result.code !== (observed.fail ? 1 : 0)) throw new Error('SAFETY result/exit/capture mismatch');
+111:       assert.equal(loaded.execPath, seal.node.path, 'SAFETY child binary');
+112:       for (const [name, entry] of Object.entries(loaded.files)) {
+113:         const expected = emittedBindings.find(item => basename(item.path) === `${name}.js`);
+114:         const actual = await hash(join(directory, `${name}.js`)); assert.equal(entry.sha256, actual.sha256, 'SAFETY loaded witness');
+115:         if (name === mutated) assert.notEqual(entry.sha256, expected.sha256); else assert.equal(entry.sha256, expected.sha256, 'SAFETY artifact member binding');
+116:       }
+117:       rows.push({ role, mutated, exitCode: result.code, observed, loaded }); return observed;
+118:     }
+119:     const app = join(work,'installed-app'); await mkdir(join(app,'artifact'),{recursive:true}); await writeFile(join(app,'package.json'),'{"type":"module"}\n');
+120:     for (const entry of emittedBindings) await copyFile(entry.path,join(app,'artifact',basename(entry.path)));
+121:     for (const name of ['consumer.mts','negative.mts']) await copyFile(join(author,name),join(app,name));
+122:     for (const layout of ['source','installed','moved']) {
+123:       const location = layout === 'moved' ? join(work,'physically-moved-app') : app;
+124:       if (layout === 'moved') { await rename(app,location); await assert.rejects(lstat(app),error=>error.code==='ENOENT'); }
+125:       const directory = layout === 'source' ? emitted : join(location,'artifact');
+126:       await runCases(`${layout}-author66`,directory); await runCases(`${layout}-checkpoints8`,directory,true); await runCases(`${layout}-empty4`,directory,'empty');
+127:       const positive = await child(`${layout}-types-positive`,[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'consumer.mts')],work,120000);
+128:       const negative = await child(`${layout}-types-negative`,[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'negative.mts')],work,120000);
+129:       const diagnostics = [...negative.stdout.matchAll(/error TS(\d+):/g)].map(entry=>Number(entry[1]));
+130:       types.push({layout,positive:positive.code,negative:negative.code,diagnostics,pass:positive.code===0 && negative.code===2 && JSON.stringify(diagnostics)==='[2345,2339,2322]'});
+131:     }
+132:     const mutations = [
+133:       {id:'M01-empty',name:'syntax',start:'async function flatten(',oldStart:'async function flatten(',end:'\nclass Parser',selection:'N01-empty-fragment-first-pass'},
+134:     ];
+135:     const mutants = [];
+136:     for (const spec of mutations) {
+137:       const location = join(emitted,`${spec.name}.js`); const original = await text(location);
+138:       const oldLocation = seal.reversionInputs.find(entry=>basename(entry.path)===`${spec.name}.js`).path; const old = await text(oldLocation);
+139:       const begin=original.indexOf(spec.start), end=original.indexOf(spec.end,begin), oldBegin=old.indexOf(spec.oldStart), oldEnd=old.indexOf(spec.end,oldBegin);
+140:       if ([begin,end,oldBegin,oldEnd].some(index=>index<0)) { mutants.push({id:spec.id,activated:false,reason:'exact method marker absent'}); continue; }
+141:       const changed = original.slice(0,begin)+old.slice(oldBegin,oldEnd)+original.slice(end); assert.notEqual(changed,original);
+142:       await writeFile(location,changed); let outcome;
+143:       try { outcome=await runCases(spec.id,emitted,'empty',spec.selection,spec.name); } finally { await writeFile(location,original); }
+144:       await bound(emittedBindings); const restored=await runCases(`${spec.id}-restore`,emitted,'empty',spec.selection);
+145:       mutants.push({id:spec.id,activated:true,killed:outcome.fail>0,restored:restored.fail===0,methodSha256:createHash('sha256').update(old.slice(oldBegin,oldEnd)).digest('hex')});
+146:     }
+147:     const bad = join(work,'binding-negative.js'); await writeFile(bad,'changed');
+148:     const expected = { ...emittedBindings.find(entry=>basename(entry.path)==='matcher.js'),path:bad };
+149:     const guards=[];
+150:     for (const [id,entry] of [['B01-content',expected],['B02-missing',{...expected,path:join(work,'absent.js')}]]) {
+151:       let reason; try { await bound([entry]); } catch(error) {reason=String(error);}
+152:       assert.ok(reason); guards.push({id,refused:true,reason,dataOnly:true});
+153:     }
+154:     await bound(inputs); await bound(emittedBindings); const finalCensus=await census(work); const workBytes=finalCensus.reduce((sum,entry)=>sum+entry.size,0);
+155:     if(workBytes>512*1024*1024) throw new Error('SAFETY work cap');
+156:     const result={sourceBindings:seal.sources,emittedBindings,rows,types,mutants,guards,receipts,children:count,peakChildren:peak,active,captureBytes,workBytes,finalCensus,elapsedMs:Date.now()-started};
+157:     await writeFile(join(output,'RESULT.json'),JSON.stringify(result,null,2)+'\n');
+158:     const failed=rows.some(row=>!row.mutated&&row.observed.fail)||types.some(row=>!row.pass)||mutants.some(row=>!row.activated||!row.killed||!row.restored);
+159:     await event({event:'complete',failed,children:count,active,captureBytes,workBytes}); if(failed) process.exitCode=1;
+160:   }
+161: } catch(error) { await event({event:'failure',error:String(error?.stack??error),receipts,active}); process.exitCode=1; }
+162: finally { await event({event:'settled',active,count,peak,captureBytes}); await outer.close(); if(active) process.exitCode=78; }
+163: 
+EMPTY-FIRST
+import assert from 'node:assert/strict';
+import { readFile, lstat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { setImmediate as immediate } from 'node:timers/promises';
+
+const directory = process.argv[2];
+const files = {};
+for (const name of ['types', 'errors', 'limits', 'syntax', 'matcher']) {
+  const filename = join(directory, name + '.js');
+  const stat = await lstat(filename);
+  assert.ok(stat.isFile() && stat.size <= 1048576);
+  files[name] = { sha256: createHash('sha256').update(await readFile(filename)).digest('hex') };
+}
+console.log(JSON.stringify({ event: 'loaded', execPath: process.execPath, files }));
+const { EreLedger } = await import(pathToFileURL(join(directory, 'limits.js')));
+const { compileEre } = await import(pathToFileURL(join(directory, 'syntax.js')));
+const { matchEre } = await import(pathToFileURL(join(directory, 'matcher.js')));
+const { EreProfileLimitError } = await import(pathToFileURL(join(directory, 'errors.js')));
+const bounds = { maxExpansionBytes: 1048576, maxExpansionFields: 8192 };
+const rows = [];
+async function check(id, body) {
+  if (process.argv[3] !== 'all' && process.argv[3] !== id) return;
+  try { rows.push({ id, pass: true, detail: await body() }); }
+  catch (reason) { rows.push({ id, pass: false, reasonPresent: true, error: String(reason?.stack ?? reason) }); }
+}
+class Ledger extends EreLedger {
+  unitGap = 0;
+  maximumUnitGap = 0;
+  bulk = [];
+  pendingBulk = false;
+  calls = 0;
+  observer;
+  charge(resource, amount, signal) {
+    super.charge(resource, amount, signal);
+    if (resource === 'work') {
+      assert.equal(this.pendingBulk, false, 'bulk work must reach its checkpoint before another charge');
+      if (amount === 1) this.unitGap++;
+      if (amount >= 256) { this.bulk.push(amount); this.pendingBulk = true; }

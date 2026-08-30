@@ -1,0 +1,124 @@
+{
+  "schema": "breadth-v4-focused-additive",
+  "priorRecipe": "e7f0981b9abfddb27d946c991e5860e30365166c",
+  "priorHandoff": "8666174d2e2fc6a16a2f7d8696d21f56531ccf98",
+  "reviewCommit": "e8e71baf2647c6cb0b0c3ed04900c60627f36990",
+  "reviewSealSha256": "16acd3dd7e196d0deffccb5b29d59c91fc45ad3e136d480e1c47143fbf22c591",
+  "historicalAssertions": {
+    "pass": 35,
+    "total": 44,
+    "data": 13,
+    "syntheticPass": 22,
+    "syntheticTotal": 31,
+    "failures": 9,
+    "children": 4,
+    "unchanged": true
+  },
+  "focusedPlan": {
+    "namedChecks": 40,
+    "dataChecks": 2,
+    "syntheticChecks": 38,
+    "fixtureChildren": 4,
+    "syntaxOnlyNodeTools": "one per own mjs; separate from fixture and future admission children",
+    "productImports": 0,
+    "C11": 0,
+    "packageStaging": 0,
+    "native": 0,
+    "timing": 0
+  },
+  "futureAdmission": {
+    "plannedChildren": 14,
+    "cap": 27,
+    "C11Setup": 2,
+    "semantic": 0,
+    "requiresDifferentFreeze": true,
+    "requiresRootGo": true
+  },
+  "changes": [
+    {
+      "path": "FOCUSED-FIXTURES.json",
+      "priorSha256": null,
+      "newSha256": "00fe0f0ed5df88fad48a7dd370fc6fd8c39e46db3751b84ea21ff1584cda8116"
+    },
+    {
+      "path": "OPERATION-PLAN.json",
+      "priorSha256": null,
+      "newSha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    },
+    {
+      "path": "README.md",
+      "priorSha256": "ec0c72d114ed6dcfc84643ab82cbeadd229fa63b9da39036d45bb607d3ed85f4",
+      "newSha256": "4aa186a010a35d1b8890ab27ebe2599971dd3050bd644a319f46e9713dab198d"
+    },
+    {
+      "path": "adapter.mjs",
+      "priorSha256": "a9a387381e2baf573f486d9f58115712916012ecfb527b64608bdc35409199b3",
+      "newSha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+    },
+    {
+      "path": "authorization.mjs",
+      "priorSha256": "1473ca5bff49687b917525f75f2548dee63ee476d6ebad6ddd8fc7e5d5f6ed41",
+      "newSha256": "ab3886a11b687df1396fccde02581a685d6193c780aef0cbde82134c4bea685d"
+    },
+    {
+      "path": "controls.mjs",
+      "priorSha256": "9edbcb010afc7f7de2b4cf26eb0aaca6126cdbb81de83aa0639d751f03392fc6",
+      "newSha256": "94ff2119c17f4076c2811005a0c9fe7cd98863ca8cbdedc7c827c2b8ff0c7583"
+    },
+    {
+      "path": "coordinator.mjs",
+      "priorSha256": "28fd68be4605b2f35fcc0d334cfb165c11957547eb99513d243ebd2e7cebb32f",
+      "newSha256": "491c8bf14b81b2e6318075a2a8618ff7e67858328376decb3b7a6dd06af94e94"
+    },
+    {
+      "path": "focused.mjs",
+      "priorSha256": null,
+      "newSha256": "489045a1c4959170d94623e61137a8632b3ed7a51260dd64a47b9d9523f0987c"
+    },
+    {
+      "path": "launch-ledger.mjs",
+      "priorSha256": null,
+      "newSha256": "32d8cc5976165527349498de56d41c2dcec9cbcc1f855954cbf9e083c390ec09"
+    },
+    {
+      "path": "loaded-outcome.mjs",
+      "priorSha256": null,
+      "newSha256": "50afab5299e9ae8726b1fc3f4b8063dcff5993bc3368e0675226ab1c161e8de7"
+    },
+    {
+      "path": "operations.mjs",
+      "priorSha256": null,
+      "newSha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "predicates.mjs",
+      "priorSha256": "822f1705cc06273d5c06819008c63cc0498ba0c9c46f35714179ee36c1793e9d",
+      "newSha256": "ad53b12de5c7084470dffd066a90b681423643a9875a8866c6d4636ce4e080ce"
+    },
+    {
+      "path": "safety.mjs",
+      "priorSha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913",
+      "newSha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "supervisor.mjs",
+      "priorSha256": "0e71d6e68b13b76dcda7dd38de749e3d3ff5c0107975233bd7c7f1f1a0ae105d",
+      "newSha256": "42d220fd43f165c0d100a61ef55d29bddd87577f7cafe929c832f33cd80dc069"
+    },
+    {
+      "path": "synthetic-worker.mjs",
+      "priorSha256": "b9c1cf61b7b04a4d5cede7e6a632e3983a30855ed3e33cc82a6ecb4e4b206a7e",
+      "newSha256": "a01380cdbea7d0a6a4b02561a8e8b75b49901a68cc0308e0e6152dcb8001b6fd"
+    },
+    {
+      "path": "validate.mjs",
+      "priorSha256": "4d4f28ee503222f1cee6d8038bee8741525e8e92cdb12a6129252478cf936ca9",
+      "newSha256": "71d0db712bb6dde38657913ca481139f8f27eac7c1f7b834fa288bd4ffaff3d3"
+    },
+    {
+      "path": "worker.mjs",
+      "priorSha256": "8680e118cb97b3f65fe7fd59f21a3c47f44fb59ec6ff72844079ff5e59d1ac17",
+      "newSha256": "b736984578823a0e471f68774343988ba95ce2d1cc15cbc6a92c88f66f976fde"
+    }
+  ]
+}

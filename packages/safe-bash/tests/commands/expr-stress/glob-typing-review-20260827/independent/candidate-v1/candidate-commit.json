@@ -1,0 +1,16 @@
+{
+  "ref": "ec59c917ba137126a064960995b5fc6945ea8f6d",
+  "parent": "40fb77fb09a2145e8a767c96b64966dafdff5c2b",
+  "changed": [
+    "tests/commands/regex-execution/continuation/glob.test.ts"
+  ],
+  "selectedDifferences": [
+    {
+      "path": "tests/commands/regex-execution/continuation/glob.test.ts",
+      "sha256": "65a63ccce8a60e33024a6accbce10757475954a2797c26a3f65522588efaf39f",
+      "bytes": 4880,
+      "gitBlob": "b28962f882fd59db38556bf5b483c7f9950a6753"
+    }
+  ],
+  "selectedMissing": []
+}

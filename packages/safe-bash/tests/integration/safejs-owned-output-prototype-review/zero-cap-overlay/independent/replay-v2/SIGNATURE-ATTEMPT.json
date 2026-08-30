@@ -1,0 +1,87 @@
+{
+  "date": "2026-08-27",
+  "reviewerIdentity": "Codex Independent Leaf Verifier; thread01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "freezeCommit": "c3a3b4299a7011b547c21b8fa864356391b6e04d",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "admissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "files": [
+    {
+      "path": "CLOSURE.json",
+      "bytes": 1694,
+      "sha256": "a1567b3fbbd2d92c5e6e2170d3b76eaa7a634c872ca060d994aa62f22041698d"
+    },
+    {
+      "path": "COUNTS.json",
+      "bytes": 3797,
+      "sha256": "0c90586dec77b96cfad6e74035b84426501b615d3d575ceebc160c564214520c"
+    },
+    {
+      "path": "PRIVATE-COMPARISON.json",
+      "bytes": 2263,
+      "sha256": "f87c83907b4d9574b7f2a6531329b22c18572eda73a8a4eb9ba0f34856dc69b7"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 7759,
+      "sha256": "0c502ad7307b5670397d6d9823243938824f9bc0d49b3a4824d2c712de84f6f0"
+    },
+    {
+      "path": "attempt-01/CAPTURE-MANIFEST.json",
+      "bytes": 2880,
+      "sha256": "c20006bf9bcefcd242bce574584edd7a7afd9bd0d0622839a732fab65afb6645"
+    },
+    {
+      "path": "attempt-01/INVOCATION.json",
+      "bytes": 1247,
+      "sha256": "91a9530e2e1f115bf5e4bb18be2e9e5130b258e122c5a038ff6165488397278b"
+    },
+    {
+      "path": "attempt-01/raw/attempt-once.json",
+      "bytes": 144,
+      "sha256": "565745192dd11a04777d346f6d8761e3eabbc455684f83fb6e438af4161e0e7e"
+    },
+    {
+      "path": "attempt-01/raw/data-negatives.json",
+      "bytes": 156,
+      "sha256": "f5bea68524447193f24db4438ad0e124241267c133d63f19334009d15cb2b7b7"
+    },
+    {
+      "path": "attempt-01/raw/independent-controls/run.json",
+      "bytes": 205,
+      "sha256": "3c81db367eef2f19e375c5bd7889acc1be187ad653fda2e97ca85d1c27466c32"
+    },
+    {
+      "path": "attempt-01/raw/independent-lifecycle/run.json",
+      "bytes": 206,
+      "sha256": "817f5d06da73c1e55776f29bb985d7b09f52c54d5286789b2ecabc9745b7facc"
+    },
+    {
+      "path": "attempt-01/raw/independent-summary.json",
+      "bytes": 1140,
+      "sha256": "92b402b5e32206e05b5e29c82bfb2fc2dbdc742518880c89db66299ddc439982"
+    },
+    {
+      "path": "attempt-01/raw/independent-surface/authentication-after.json",
+      "bytes": 400,
+      "sha256": "c632d3501bb4778b38719386be3965b2a4dcb2a3bf79f33abe7a8a33c3b01fb0"
+    },
+    {
+      "path": "attempt-01/raw/independent-surface/private-after.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "attempt-01/raw/independent-surface/private-before.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "attempt-01/raw/independent-surface/run.json",
+      "bytes": 307,
+      "sha256": "274dcfd1f08017adf0136247961ceb23dda8b73f9c3d15b1785cdef3c8b05b1a"
+    }
+  ],
+  "manifestSha256": "0759f99b3c2480ae6b3931cde60f5e719aa9479a80d94c79d7ba9b9a202c316e",
+  "attestation": "Different independent verifier SHA-256 attestation, not a cryptographic personal-identity claim. One newly released invocation authenticated the isolated88 source inputs and refused historical private status before runtime. Actual fresh before/after guards matched; all25 cases are blocked. No retry, private change or semantic assertion relaxation.",
+  "noPromotion": true
+}

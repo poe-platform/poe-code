@@ -1,0 +1,40 @@
+import {createNodeCommand,createNodeWorkerProvider,NODE_PROFILE,NODE_ENGINE_ABI,nodeLimits,type NodeRuntimeProvider,type NodeSession,type NodeHostRequest,type NodeHostResponse,type NodeHostServices,type NodeReason,type NodeEngineAdapter,type NodeEngineResult,type NodeBridge,type NodeRetirement} from '__MODULE__/commands/node/index.js';
+const session:NodeSession={start:async()=>({kind:'profileFailure',observation:{state:'unknown',fault:false,name:null,message:null,code:null}}),cancel:()=>{},retire:async()=>({acquisition:'none',exitCode:null})};
+const provider:NodeRuntimeProvider={profile:NODE_PROFILE,identity:'positive',prepare:()=>session};
+const command=createNodeCommand({provider});
+createNodeCommand({provider,grants:{sourceRead:true,dataRead:true,dataWrite:true,jsonModules:true,stdinRead:true,stdoutWrite:true,stderrWrite:true}});
+const request:NodeHostRequest={sequence:1,op:'readText',authority:'data',path:'/data',flag:'r',text:null,moduleKey:null};
+const response:NodeHostResponse={sequence:1,kind:'text',text:'value',error:null,cacheKey:null};
+const reason:NodeReason={present:true,value:undefined};
+const retired:NodeRetirement={acquisition:'none',exitCode:null};
+const bridge:NodeBridge=()=>'';
+const adapter:NodeEngineAdapter={abi:NODE_ENGINE_ABI,identity:'engine',execute:async()=>({ok:true})};
+const reference=createNodeWorkerProvider({entry:'file:///explicit/adapter.mjs',identity:'engine',observe:event=>{const kind:string=event.kind;void kind;}});
+function fail(services:NodeHostServices){services.fail(reason);return services.request(request);}
+void [command,response,retired,bridge,adapter,reference,fail,nodeLimits.memoryBytes];
+// @ts-expect-error N01 provider required
+createNodeCommand({});
+// @ts-expect-error N02 no default profile guessing
+const badProvider:NodeRuntimeProvider={profile:'node',identity:'x',prepare:()=>session};
+// @ts-expect-error N03 boolean grants only
+createNodeCommand({provider,grants:{dataWrite:'yes'}});
+// @ts-expect-error N04 no new cap option
+createNodeCommand({provider,limits:{memoryBytes:1}});
+// @ts-expect-error N05 exact Node-local operation
+const badRequest:NodeHostRequest={...request,op:'nativeExec'};
+// @ts-expect-error N06 text request only
+const badBody:NodeHostRequest={...request,text:new Uint8Array()};
+// @ts-expect-error N07 raw presence explicit true
+const badReason:NodeReason={present:false,value:undefined};
+// @ts-expect-error N08 genuine synchronous bridge
+const badBridge:NodeBridge=async()=>'';
+// @ts-expect-error N09 explicit ABI
+const badAdapter:NodeEngineAdapter={abi:'automatic',identity:'x',execute:async()=>({ok:true})};
+// @ts-expect-error N10 no arbitrary completion key
+const badResult:NodeEngineResult={ok:true,extra:true};
+// @ts-expect-error N11 no implicit runtime adapter
+createNodeWorkerProvider({identity:'x'});
+// @ts-expect-error N12 explicit undefined grant not admission
+createNodeCommand({provider,grants:{dataRead:undefined}});
+void [badProvider,badRequest,badBody,badReason,badBridge,badAdapter,badResult];
+

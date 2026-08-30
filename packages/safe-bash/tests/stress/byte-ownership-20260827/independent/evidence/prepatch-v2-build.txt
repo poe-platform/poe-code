@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tsconfig.build.json",
+    "--outDir",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/.work/prepatch-v2/staged/virtual-bash/dist"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

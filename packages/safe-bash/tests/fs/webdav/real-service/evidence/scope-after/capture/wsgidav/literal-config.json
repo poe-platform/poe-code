@@ -1,0 +1,7 @@
+{
+  "baseUrl": "https://127.0.0.1:51717/dav/",
+  "aliasUrl": "https://127.0.0.1:51717/alias/",
+  "serverRoot": "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/root",
+  "caFile": "/private/tmp/safe-bash-webdav-review-cDMGEd/fixtures/.work-cySGq9/cert.pem",
+  "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ="
+}

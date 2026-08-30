@@ -1,0 +1,1665 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "1d303091932cfca31e1c1b0de7e35609173db7bcd71cc2fb14fd5740faeb9491",
+    "shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "casesHash": "c92d93654278bb538b68e13cca315c03252f5e9096b7a506457ec026afe0c47d",
+  "profiles": [
+    {
+      "name": "GNU-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "rows": [
+        {
+          "name": "root-missing",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-g7FlTF",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-g7FlTF/bin'; absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-G3lS2z",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-G3lS2z/bin'; :\nabsent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "command-missing",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-Uu90UH",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-Uu90UH/bin'; command absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-usf4nI",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-usf4nI/bin'; bash -c 'child_function() { :; }; child_function'; child_function",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PzejOW",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PzejOW/bin'; bash -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-V9pVcW",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-V9pVcW/bin'; bash -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jA6b1J",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jA6b1J/bin'; sh -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-88CjUq",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-88CjUq/bin'; sh -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "eval-frame",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-L9ZFJi",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-L9ZFJi/bin'; :\neval absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-frame",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-oo5oiM",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-oo5oiM/bin'; . ./library",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-NSU9Ce",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-NSU9Ce/bin'; bash ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-AXTreX",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-AXTreX/bin'; sh ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "dot-directory",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-oJGx1b",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-oJGx1b/bin'; . ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-directory",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ZQmcwK",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ZQmcwK/bin'; source ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-5SNHsa",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-5SNHsa/bin'; . ./dirlink",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-YVpN3P",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-YVpN3P/bin'; bash ./directory-program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "root-missing",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-1pHzvC",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-1pHzvC/bin'; absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-kJ99Cq",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-kJ99Cq/bin'; :\nabsent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "command-missing",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-OXaOTX",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-OXaOTX/bin'; command absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jPiQ9X",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jPiQ9X/bin'; bash -c 'child_function() { :; }; child_function'; child_function",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-dy9kPQ",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-dy9kPQ/bin'; bash -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-Qc9zeb",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-Qc9zeb/bin'; bash -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-v7GqBS",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-v7GqBS/bin'; sh -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-yUedix",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-yUedix/bin'; sh -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "eval-frame",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-v03kDq",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-v03kDq/bin'; :\neval absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-frame",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-do5cwh",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-do5cwh/bin'; . ./library",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-cEGcdS",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-cEGcdS/bin'; bash ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-5adRqb",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-5adRqb/bin'; sh ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "dot-directory",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-42SUb1",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-42SUb1/bin'; . ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-directory",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-hn4Nm3",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-hn4Nm3/bin'; source ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-OUMUWE",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-OUMUWE/bin'; . ./dirlink",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-2bbqoR",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-2bbqoR/bin'; bash ./directory-program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "root-missing",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ad4zkB",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ad4zkB/bin'; absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PR1vTl",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PR1vTl/bin'; :\nabsent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "command-missing",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-u3EM6i",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-u3EM6i/bin'; command absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-XceJto",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-XceJto/bin'; bash -c 'child_function() { :; }; child_function'; child_function",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogY2hpbGRfZnVuY3Rpb246IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-mKHXxH",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-mKHXxH/bin'; bash -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogbGluZSAxOiBhYnNlbnRfdG9vbDogY29tbWFuZCBub3QgZm91bmQK",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-GFOvzL",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-GFOvzL/bin'; bash -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-n9UBMY",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-n9UBMY/bin'; sh -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-VHr6ot",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-VHr6ot/bin'; sh -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "eval-frame",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-Pe8Ir4",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-Pe8Ir4/bin'; :\neval absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMjogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-frame",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PoZQVh",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PoZQVh/bin'; . ./library",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-FyhOsK",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-FyhOsK/bin'; bash ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-rtc2Vx",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-rtc2Vx/bin'; sh ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "dot-directory",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-9pPfKf",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-9pPfKf/bin'; . ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-directory",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-P5Wkwr",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-P5Wkwr/bin'; source ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ojL0Sn",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ojL0Sn/bin'; . ./dirlink",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PgCyJm",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PgCyJm/bin'; bash ./directory-program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "rows": [
+        {
+          "name": "root-missing",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-j6L5oc",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-j6L5oc/bin'; absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jqbYoQ",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jqbYoQ/bin'; :\nabsent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "command-missing",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-cEFCfu",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-cEFCfu/bin'; command absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-eRL7de",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-eRL7de/bin'; bash -c 'child_function() { :; }; child_function'; child_function",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGNoaWxkX2Z1bmN0aW9uOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-qYr8w6",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-qYr8w6/bin'; bash -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-EDYL5p",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-EDYL5p/bin'; bash -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PL0ePy",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-PL0ePy/bin'; sh -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-anHBZn",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-anHBZn/bin'; sh -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "eval-frame",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ouWLR7",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ouWLR7/bin'; :\neval absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-frame",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-g2Amx5",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-g2Amx5/bin'; . ./library",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-6rVgk1",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-6rVgk1/bin'; bash ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-a3SGnD",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-a3SGnD/bin'; sh ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "dot-directory",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-1tbg8r",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-1tbg8r/bin'; . ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-directory",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-HHXAeX",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-HHXAeX/bin'; source ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-OOcd6t",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-OOcd6t/bin'; . ./dirlink",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "root",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-wAhA5Q",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-wAhA5Q/bin'; bash ./directory-program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "root-missing",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-4Ns3kO",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-4Ns3kO/bin'; absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-TyS4ri",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-TyS4ri/bin'; :\nabsent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "command-missing",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jzTn4Z",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jzTn4Z/bin'; command absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-czb238",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-czb238/bin'; bash -c 'child_function() { :; }; child_function'; child_function",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGNoaWxkX2Z1bmN0aW9uOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-nZwCoh",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-nZwCoh/bin'; bash -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-WskYbf",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-WskYbf/bin'; bash -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-Zmx39x",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-Zmx39x/bin'; sh -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-U4WrZ7",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-U4WrZ7/bin'; sh -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "eval-frame",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-7ATuOU",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-7ATuOU/bin'; :\neval absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-frame",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-tdNw7e",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-tdNw7e/bin'; . ./library",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-7rZ4Bv",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-7rZ4Bv/bin'; bash ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-uzEtlA",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-uzEtlA/bin'; sh ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "dot-directory",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-EEw417",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-EEw417/bin'; . ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-directory",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-GRZpEW",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-GRZpEW/bin'; source ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-oYpAjF",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-oYpAjF/bin'; . ./dirlink",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "bash",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-azizqF",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-azizqF/bin'; bash ./directory-program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "root-missing",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-SpKtXq",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-SpKtXq/bin'; absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "multiline-missing",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-qd8abZ",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-qd8abZ/bin'; :\nabsent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "command-missing",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ZlYvXg",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-ZlYvXg/bin'; command absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "child-function-isolation",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-rrpxYl",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-rrpxYl/bin'; bash -c 'child_function() { :; }; child_function'; child_function",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGNoaWxkX2Z1bmN0aW9uOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-default-name",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jkADIP",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-jkADIP/bin'; bash -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "YmFzaDogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-explicit-name",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-kPf624",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-kPf624/bin'; bash -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-default-name",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-GWOyTj",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-GWOyTj/bin'; sh -c absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2g6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-explicit-name",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-mcP0ra",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-mcP0ra/bin'; sh -c absent_tool named",
+          "expected": {
+            "stdout": "",
+            "stderr": "bmFtZWQ6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "eval-frame",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-8uZUXd",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-8uZUXd/bin'; :\neval absent_tool",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMTogYWJzZW50X3Rvb2w6IGNvbW1hbmQgbm90IGZvdW5kCg==",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-frame",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-8vrIDP",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-8vrIDP/bin'; . ./library",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9saWJyYXJ5OiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "bash-file-frame",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-yvJ5ks",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-yvJ5ks/bin'; bash ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "sh-file-frame",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-VENKYv",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-VENKYv/bin'; sh ./program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9wcm9ncmFtOiBsaW5lIDI6IGFic2VudF90b29sOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+            "status": 127,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "dot-directory",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-UHn5Ao",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-UHn5Ao/bin'; . ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJlY3Rvcnk6IGlzIGEgZGlyZWN0b3J5Cg==",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "source-directory",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-1Yg32z",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-1Yg32z/bin'; source ./directory",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogc291cmNlOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "directory-symlink",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-qnbUXc",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-qnbUXc/bin'; . ./dirlink",
+          "expected": {
+            "stdout": "",
+            "stderr": "c2hlbGw6IGxpbmUgMDogLjogLi9kaXJsaW5rOiBpcyBhIGRpcmVjdG9yeQo=",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        },
+        {
+          "name": "file-source-directory",
+          "mode": "sh",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-kOIsGM",
+          "source": "PATH='/Users/kjopek/Workspace/safe-bash/tests/shell/.source-dot-eval-diagnostics-kOIsGM/bin'; bash ./directory-program",
+          "expected": {
+            "stdout": "",
+            "stderr": "Li9kaXJlY3RvcnktcHJvZ3JhbTogbGluZSAyOiAuOiAuL2RpcmVjdG9yeTogaXMgYSBkaXJlY3RvcnkK",
+            "status": 1,
+            "files": {
+              "library": "OgphYnNlbnRfdG9vbAo=",
+              "program": "IyEvYmluL2Jhc2gKYWJzZW50X3Rvb2wK",
+              "directory-program": "IyEvYmluL2Jhc2gKLiAuL2RpcmVjdG9yeQo=",
+              "directory/sentinel": "dW5jaGFuZ2VkCg=="
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

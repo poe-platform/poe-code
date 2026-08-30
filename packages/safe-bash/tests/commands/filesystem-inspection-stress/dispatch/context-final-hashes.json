@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-08-27T07:59:13.887Z",
+  "comparedInputs": 160,
+  "changed": [],
+  "targetPaths": {
+    "src/commands/tree": false,
+    "src/commands/file": false,
+    "tests/commands/tree": false,
+    "tests/commands/file": false
+  },
+  "evidenceSha256": "678dae6ebd9e1fcd75c8a4dddff167e578b1a5d4af2ed3df868059ed557af810",
+  "harnessSha256": "8f02c679bb2aad15576bef41f2b109983eaf328a88f0ea7c609060705867b4d9"
+}

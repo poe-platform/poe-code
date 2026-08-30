@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: E08 runtime selector distinguishes authentic observation from equal falsy rejection
+not ok 1 - E08 runtime selector distinguishes authentic observation from equal falsy rejection
+  ---
+  duration_ms: 1.420584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs:269:1'
+  failureType: 'testCodeFailure'
+  error: 'exact selected reason'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    exact (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs:24:10)
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs:284:23)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 66.329375

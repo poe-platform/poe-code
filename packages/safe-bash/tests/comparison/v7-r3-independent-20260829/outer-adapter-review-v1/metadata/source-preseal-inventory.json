@@ -1,0 +1,23 @@
+{
+  "id": "source-preseal-inventory",
+  "args": [
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+    "--",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/"
+  ],
+  "pid": 85288,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "bytes": 1519,
+  "errors": [],
+  "stdoutSha256": "4b77e43457788447cc726ffd08715b0be5af2ad329123a6086c77488f11231d0"
+}

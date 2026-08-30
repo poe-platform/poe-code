@@ -1,0 +1,35 @@
+(node:72375) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/attest-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+ok - direct stat refined-v2 metadata purity
+ok - direct lstat refined-v2 metadata purity
+ok - direct readdir refined-v2 metadata purity
+ok - direct du-metadata refined-v2 metadata purity
+ok - direct du-pending refined-v2 metadata purity
+ok - readonly stat refined-v2 metadata purity
+ok - readonly lstat refined-v2 metadata purity
+ok - readonly readdir refined-v2 metadata purity
+ok - readonly du-metadata refined-v2 metadata purity
+ok - readonly du-pending refined-v2 metadata purity
+ok - mount-over-overlay stat refined-v2 metadata purity
+ok - mount-over-overlay lstat refined-v2 metadata purity
+ok - mount-over-overlay readdir refined-v2 metadata purity
+ok - mount-over-overlay du-metadata refined-v2 metadata purity
+ok - mount-over-overlay du-pending refined-v2 metadata purity
+ok - overlay-over-mount stat refined-v2 metadata purity
+ok - overlay-over-mount lstat refined-v2 metadata purity
+ok - overlay-over-mount readdir refined-v2 metadata purity
+ok - overlay-over-mount du-metadata refined-v2 metadata purity
+ok - exact child lstat EIO suppresses incomplete total and retry is pure
+ok - exact v2 pre-abort reason is preserved
+ok - exact v2 mid-traversal reason is preserved
+ok - active mkdir-stage queues exactly one readdir read
+ok - active mkdir-stage queues exactly one du read
+ok - exact 1500-byte DU_BLOCK_SIZE table
+ok - explicit cleanup removes the exact pending stage
+ok - normal mutation cleans pending garbage then publishes exact byte
+ok - ordinary content read proves the content oracle
+ok - unchanged purity assertions kill readdir-removal behavior mutant
+ok - unchanged purity assertions kill content-read behavior mutant
+ok - unchanged purity assertions kill copy-up behavior mutant
+ok - actual Shell lifecycle runs DU registered cleanup and preserves caller reason

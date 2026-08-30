@@ -1,0 +1,6 @@
+{"phase":"start","at":"2026-08-29T08:39:31.261Z"}
+{"phase":"enroll","args":["ls-tree","-r","-z","8bd170e5465c1253a52231c9cf08b5afef064d81","--","tests/compatibility/bash-ere-engine-author-20260829/"]}
+{"phase":"retired","status":0,"signal":null,"stderr":""}
+{"phase":"enroll","args":["cat-file","--batch"]}
+{"phase":"retired","status":0,"signal":null,"stderr":""}
+{"phase":"complete","rows":10}

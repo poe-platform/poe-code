@@ -1,0 +1,14 @@
+[
+  {
+    "path": "/tmp/native26-actual-audit-schema-20260829.stderr",
+    "bytes": 1087,
+    "sha256": "a6fbff9c0e3725cb60e3dc314fc29974002be77252e1cbfed1cfea9e8b8f1168",
+    "disposition": "retired source-helper ENOENT guessed captured/F02.json instead of manifest captured/F02.json.data; original exit1 preserved, no native finding"
+  },
+  {
+    "path": "/tmp/native26-actual-audit-schema-v2-20260829.stderr",
+    "bytes": 1087,
+    "sha256": "dd5acc80ca1f9e1c64465d6840708cf86c6d9053e5aec67b670fb40ab4db6fac",
+    "disposition": "retired source-helper ENOENT guessed captured/F02.json instead of manifest captured/F02.json.data; original exit1 preserved, no native finding"
+  }
+]

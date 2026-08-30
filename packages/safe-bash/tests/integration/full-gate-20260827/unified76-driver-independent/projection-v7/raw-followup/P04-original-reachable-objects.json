@@ -1,0 +1,36 @@
+{
+  "id": "P04-original-reachable-objects",
+  "startedAt": "2026-08-28T05:23:52.341Z",
+  "evidence": {
+    "transfer": {
+      "bytes": 452196651,
+      "stdout": 46,
+      "lifecycle": [
+        {
+          "status": 0,
+          "signal": null,
+          "closed": true,
+          "stderrBytes": 0,
+          "survivors": []
+        },
+        {
+          "status": 0,
+          "signal": null,
+          "closed": true,
+          "stderrBytes": 0,
+          "survivors": []
+        }
+      ],
+      "instructionPolicy": "Root-approved original opaque Git objects only; historical instruction blobs remain inert provenance. No checkout or plaintext instruction materialization.",
+      "checkoutPerformed": false
+    },
+    "rawCommitSha256": "c97a53f90fa4abac622e5a854138b12cbb5bee09027a8597a1a56a38abd6e30e",
+    "treeMetadataSha256": "ec097b0af363f93bfe59f9a0119493d522c7536efff02406d48f6263938788d6",
+    "noAlternates": true,
+    "noReplaceRefs": true,
+    "checkoutPerformed": false,
+    "originalIdsPreserved": true
+  },
+  "status": "PASS",
+  "finishedAt": "2026-08-28T05:24:01.318Z"
+}

@@ -1,0 +1,36 @@
+{
+  "label": "independent-original-first-read-s3",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/shell/first-read-probe.ts",
+    "first-read-s3"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T11:39:55.165Z",
+  "finishedAt": "2026-08-27T11:39:55.387Z",
+  "durationMs": 222.08050000000003,
+  "timeoutMs": 3000,
+  "maxBytes": 1048576,
+  "pid": 70289,
+  "initialIdentity": "70289 70275 70289 Thu Aug 27 06:39:55 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx tests/shell/first-read-probe.ts first-read-s3",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "first-read-s3: passed\n{\"scenario\":\"first-read-s3\",\"active\":0,\"reads\":1,\"returned\":1,\"abortedBeforeTeardown\":false,\"events\":[\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.headObject:input:callerAborted=false:signal=live\",\"op:S3.headObject:input/:callerAborted=false:signal=live\",\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\",\"op:S3.getObjectStream:input:callerAborted=false:signal=live\",\"source.next:pending-before-first-byte\",\"command.settled:head:0\",\"transport.signal.abort:S3.listObjectsV2:list\",\"transport.signal.abort:S3.getObjectStream:input\",\"source.finally\",\"command.settled:cat:141\",\"command.settled:true:0\"]}\n",
+  "stderr": ""
+}

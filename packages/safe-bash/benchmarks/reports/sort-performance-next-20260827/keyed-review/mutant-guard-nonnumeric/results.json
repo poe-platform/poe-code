@@ -1,0 +1,59 @@
+[
+  {
+    "id": "local-replaces-global-numeric",
+    "actual": {
+      "status": 0,
+      "stdout": "YjoxMAphOjIKYzoxCg==",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 13,
+      "sha256": "67218d10dc0796628731f0b1ae9fb31119a4aa60d6947145220da77bd0cdc4e5"
+    },
+    "stdout": {
+      "bytes": 13,
+      "sha256": "67218d10dc0796628731f0b1ae9fb31119a4aa60d6947145220da77bd0cdc4e5"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 30,
+      "independentBackingCharge": 30,
+      "existingRecordBytes": 10,
+      "entriesPeak": 3,
+      "retainedPeak": 30,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "guard-nonnumeric-local",
+    "actual": {
+      "status": 0,
+      "stdout": "YTpBCmM6YgpiOnoK",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 12,
+      "sha256": "acc1d2cc7d0e8c15370a41cd226dd24a3264341433a116e0c97a770b53c53dda"
+    },
+    "stdout": {
+      "bytes": 12,
+      "sha256": "d712f595bc91c764706737c59cf94052faf73536342b98c19f74509698849815"
+    },
+    "finalized": false,
+    "counters": {
+      "sortComparisons": 4,
+      "extractions": 8,
+      "fieldObjects": 16
+    }
+  }
+]

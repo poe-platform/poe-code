@@ -1,0 +1,23 @@
+{
+  "schema": "FUNCTIONAL_V2_ACTUAL_DISPATCH",
+  "runId": "semantic-functional-20260829-v2-01",
+  "attempt": 1,
+  "dispatchIntentRecordedAt": "2026-08-29T07:15:16.895Z",
+  "actualStartedMs": 1787987716895,
+  "actualTotalDeadlineMs": 1787993116895,
+  "ownerWindowMs": 4500000,
+  "administrationReserveMs": 900000,
+  "grantCommit": "1979eca53f1a878619e0442dc6184f84bec030b0",
+  "authCommit": "ad57055df4cdcf06d50871ce9499da7cb57e3fa3",
+  "authSha256": "3f12d2e88ad29d6754cef3c0da1dbe127f47c354ad1e66b0017f539a4cff2452",
+  "preflightSha256": "3d48916546a86cf3b1f2e3ecaf0731f5b1679d71dd94ea71ffcaef53f46001c7",
+  "command": "exec -c /bin/sh '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/FUTURE-LAUNCH.sh.data' '3f12d2e88ad29d6754cef3c0da1dbe127f47c354ad1e66b0017f539a4cff2452' 'fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1'",
+  "expectedRuntimeProcesses": 302,
+  "allKnownOwnedCap": 336,
+  "peakCap": 5,
+  "semanticCallsIntended": 99,
+  "emptySetupCallsIntended": 66,
+  "C11": 0,
+  "retryAuthorized": false,
+  "condition": "All preflight PASS and committed AUTH; exact reviewed entry only."
+}

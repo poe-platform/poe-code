@@ -1,0 +1,64 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "tests/commands/time-env/capture-native.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/time-env/evidence/frozen-df780f6/dialect-profile.json"
+  ],
+  "cwd": "/tmp/safe-bash-time-env-frozen-ztW7Wk",
+  "pid": 89219,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 611,
+  "timeoutMs": 120000,
+  "outputBytes": 0,
+  "observed": [
+    {
+      "pid": 89219,
+      "parent": 88813,
+      "group": 89219,
+      "born": "Thu Aug 27 02:41:30 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/commands/time-env/capture-native.mjs /Users/kjopek/Workspace/safe-bash/tests/commands/time-env/evidence/frozen-df780f6/dialect-profile.json"
+    },
+    {
+      "pid": 89222,
+      "parent": 89219,
+      "group": 89219,
+      "born": "Thu Aug 27 02:41:30 2026",
+      "command": "/private/tmp/safe-bash-time-env-frozen-ztW7Wk/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 89241,
+      "parent": 89219,
+      "group": 89219,
+      "born": "Thu Aug 27 02:41:30 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 89261,
+      "parent": 89219,
+      "group": 89219,
+      "born": "Thu Aug 27 02:41:31 2026",
+      "command": "(date)"
+    },
+    {
+      "pid": 89279,
+      "parent": 89219,
+      "group": 89219,
+      "born": "Thu Aug 27 02:41:31 2026",
+      "command": "(sleep)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {},
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

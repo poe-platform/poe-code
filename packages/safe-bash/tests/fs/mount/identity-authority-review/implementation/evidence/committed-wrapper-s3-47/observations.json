@@ -1,0 +1,19 @@
+[
+  {
+    "name": "split-s3-copy",
+    "data": {
+      "result": "unknown",
+      "code": "ENOTSUP",
+      "effects": [],
+      "source": "source sentinel"
+    }
+  },
+  {
+    "name": "split-dav-copy",
+    "data": {
+      "code": "ENOTSUP",
+      "effects": [],
+      "source": "source sentinel"
+    }
+  }
+]

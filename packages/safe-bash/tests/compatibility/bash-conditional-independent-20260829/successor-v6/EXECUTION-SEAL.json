@@ -1,0 +1,257 @@
+{
+  "schema": "conditional-independent-outer-seal-v6",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": [
+    {
+      "path": "NOVEL-CASES.json",
+      "bytes": 6004,
+      "sha256": "03add0fafc84de43e3af155413671c2bf4e88a019f4bbc8f7f1b05d474e00805",
+      "mode": 420
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 18303,
+      "sha256": "b953928d956f09532f4d35b284cca899c5928f813984915cb8eb669abde22d22",
+      "mode": 420
+    },
+    {
+      "path": "RECIPE.md",
+      "bytes": 3086,
+      "sha256": "aac16e17ea3009fd2ba22d48cf1644e9307e6604439d33d4e3aa72331a015a28",
+      "mode": 420
+    },
+    {
+      "path": "SOURCE.json",
+      "bytes": 227922,
+      "sha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32",
+      "mode": 420
+    },
+    {
+      "path": "TOOL-CENSUS.json",
+      "bytes": 558347,
+      "sha256": "6cbe2ac733f6975057db6caa4349a7222b0a3e7ac6fe6a4de0190f5f7e0d3791",
+      "mode": 420
+    },
+    {
+      "path": "author-consumer.mts.fixture",
+      "bytes": 1737,
+      "sha256": "6c055ca9f4c50357928b6b78b53825c424a3123cb84050a0ccbbda00ad2eb773",
+      "mode": 420
+    },
+    {
+      "path": "check-prep.mjs",
+      "bytes": 1240,
+      "sha256": "9a16791c12a40a195e90a08dc8a1f2636ac4632b9e18b690acc2d0ce2558f06d",
+      "mode": 420
+    },
+    {
+      "path": "derived-tree.mjs",
+      "bytes": 2460,
+      "sha256": "035cc96d2379fc7065581cc6a051cd16d1a6f22b7486d707c23fc76568dfe244",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/apply-public.mjs",
+      "bytes": 15895,
+      "sha256": "ae8e036792df4a4c6e651fd6a75691075f3b8d6fd3bd2ea59fd3f1105561b7c2",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/coherence/CASES-v2-overlay.json",
+      "bytes": 1344,
+      "sha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/coherence/CASES.json",
+      "bytes": 8553,
+      "sha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/coherence/names.mjs",
+      "bytes": 853,
+      "sha256": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/coherence/probe.mjs",
+      "bytes": 16819,
+      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/consumer.ts.fixture",
+      "bytes": 1336,
+      "sha256": "46a717a1902c55d2c19f6bfd301de45395a81be5e7a76540c7113d08248e1be1",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/fallback.mjs",
+      "bytes": 55,
+      "sha256": "3d42d69a76f1f843dd042de7a64dc0ec90f119738d705203155cb61ac449f17e",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/fixture.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/names.mjs",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/novel.mjs",
+      "bytes": 2676,
+      "sha256": "22e3f9749fc8d92361291c6bc892dd55ef5b52da8aea9dfe5cc3dc0b9c40eb1e",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/packs.json",
+      "bytes": 370847,
+      "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/public.mjs",
+      "bytes": 13001,
+      "sha256": "5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/redirection-cases.json",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/redirections.mjs",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/retained.mjs",
+      "bytes": 585,
+      "sha256": "c39fd9018d0aa3e31bb716a7df2123c1f6aa27287a6712a3a463cc8923544568",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/strict-design.json",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+      "mode": 420
+    },
+    {
+      "path": "fixtures/strict.mjs",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+      "mode": 420
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7",
+      "mode": 420
+    },
+    {
+      "path": "independent-negative.mts.fixture",
+      "bytes": 324,
+      "sha256": "a8b76c5c2203edb58f1eb556ad82a50bdbcff02b9f18d49d90361b5804582af9",
+      "mode": 420
+    },
+    {
+      "path": "independent-positive.mts.fixture",
+      "bytes": 1158,
+      "sha256": "c8868ac3c391cff984096d98ffcc002f56ac65ae13f59db603bcda9b133ff87c",
+      "mode": 420
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1",
+      "mode": 420
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 5033,
+      "sha256": "79ca51de095b5f004d979afee63bdc1345ddcee5e14ccacc5d70b462693bff4d",
+      "mode": 420
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342",
+      "mode": 420
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 598,
+      "sha256": "262b26b868d58b4fb75be9561205802de01e1e91436dbba09c72491d742b9a63",
+      "mode": 420
+    },
+    {
+      "path": "resources.mjs",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f",
+      "mode": 420
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 32110,
+      "sha256": "30f966b1e4de15c0563a9f15eb4d1e031dbfe7b09f0cb6390c2506ed803ddb75",
+      "mode": 420
+    },
+    {
+      "path": "tool-closure.mjs",
+      "bytes": 1367,
+      "sha256": "9b66741f1191a28f06e175f42d1e2437a36204a96ab213a94f06ace7dd04500d",
+      "mode": 420
+    },
+    {
+      "path": "tool-observer.mjs",
+      "bytes": 1246,
+      "sha256": "96e0965c85070efb81e58be21a6a581d9bfec9bd85a86940b5c845261a6d71ef",
+      "mode": 420
+    },
+    {
+      "path": "worker-policy.mjs",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782",
+      "mode": 420
+    },
+    {
+      "path": "EXECUTOR.json",
+      "mode": 420,
+      "bytes": 9221,
+      "sha256": "c2940f08855b40b1a6dde42a1a0eccb1da50ad7bf5d294f56de4e8e1c22d059b"
+    }
+  ]
+}
+

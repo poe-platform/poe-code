@@ -1,0 +1,317 @@
+=== build: ["npm","run","build"] ===
+--- stdout: 58 bytes ---
+
+> virtual-bash@0.0.0 build
+> tsc -p tsconfig.build.json
+
+--- stderr: 0 bytes ---
+--- exitCode=0; signal=null; processGroupAbsent=true ---
+=== author: ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--import","tsx","--test","tests/shell/env-shebang.test.ts","tests/shell/env-shebang-host.test.ts"] ===
+--- stdout: 10032 bytes ---
+TAP version 13
+# Subtest: guarded completion bounded host: env-cancel
+ok 1 - guarded completion bounded host: env-cancel
+  ---
+  duration_ms: 193.465583
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: target-cancel
+ok 2 - guarded completion bounded host: target-cancel
+  ---
+  duration_ms: 183.615667
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: env-cleanup-failure
+ok 3 - guarded completion bounded host: env-cleanup-failure
+  ---
+  duration_ms: 172.12325
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: target-cleanup-failure
+ok 4 - guarded completion bounded host: target-cleanup-failure
+  ---
+  duration_ms: 179.586375
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: opaque-env
+ok 5 - guarded completion bounded host: opaque-env
+  ---
+  duration_ms: 186.790292
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: opaque-target
+ok 6 - guarded completion bounded host: opaque-target
+  ---
+  duration_ms: 205.102041
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: closed-admission
+ok 7 - guarded completion bounded host: closed-admission
+  ---
+  duration_ms: 170.617666
+  type: 'test'
+  ...
+# Subtest: guarded completion bounded host: target-middleware-cancel
+ok 8 - guarded completion bounded host: target-middleware-cancel
+  ---
+  duration_ms: 183.653833
+  type: 'test'
+  ...
+# Subtest: env shebang bounded host: recursive-depth
+ok 9 - env shebang bounded host: recursive-depth
+  ---
+  duration_ms: 142.334459
+  type: 'test'
+  ...
+# Subtest: env shebang bounded host: preabort
+ok 10 - env shebang bounded host: preabort
+  ---
+  duration_ms: 140.993542
+  type: 'test'
+  ...
+# Subtest: env shebang bounded host: parser-cancel
+ok 11 - env shebang bounded host: parser-cancel
+  ---
+  duration_ms: 130.892875
+  type: 'test'
+  ...
+# Subtest: env shebang bounded host: cwd-late-rejection
+ok 12 - env shebang bounded host: cwd-late-rejection
+  ---
+  duration_ms: 207.302583
+  type: 'test'
+  ...
+# Subtest: env shebang bounded host: input-cancel
+ok 13 - env shebang bounded host: input-cancel
+  ---
+  duration_ms: 148.268333
+  type: 'test'
+  ...
+# Subtest: env shebang bounded host: sink-cancel
+ok 14 - env shebang bounded host: sink-cancel
+  ---
+  duration_ms: 212.455708
+  type: 'test'
+  ...
+# Subtest: env shebang bounded host: cleanup
+ok 15 - env shebang bounded host: cleanup
+  ---
+  duration_ms: 200.687666
+  type: 'test'
+  ...
+# Subtest: env shebang bounded host: cleanup-failure
+ok 16 - env shebang bounded host: cleanup-failure
+  ---
+  duration_ms: 186.077208
+  type: 'test'
+  ...
+# Subtest: env shebang moved built public-package consumer
+ok 17 - env shebang moved built public-package consumer
+  ---
+  duration_ms: 398.601334
+  type: 'test'
+  ...
+# Subtest: env shebang native pinned GNU9.7/GNU5.3 on Darwin
+ok 18 - env shebang native pinned GNU9.7/GNU5.3 on Darwin
+  ---
+  duration_ms: 24.507875
+  type: 'test'
+  ...
+# GNU9.7-Darwin/GNU5.3: single-optional protocol; not kernel execution or Linux deployment evidence
+# Subtest: env shebang native pinned Apple env/Bash3.2 on Darwin
+ok 19 - env shebang native pinned Apple env/Bash3.2 on Darwin
+  ---
+  duration_ms: 261.099375
+  type: 'test'
+  ...
+# Apple-env-Darwin/Apple3.2: single-optional protocol; not kernel execution or Linux deployment evidence
+# Darwin kernel packed non-S divergence retained separately: native 1/before versus virtual 127/empty
+# Subtest: env shebang uses the public Shell without registering env
+ok 20 - env shebang uses the public Shell without registering env
+  ---
+  duration_ms: 4.923375
+  type: 'test'
+  ...
+# Subtest: single optional argument is not shell-tokenized without S
+ok 21 - single optional argument is not shell-tokenized without S
+  ---
+  duration_ms: 0.891083
+  type: 'test'
+  ...
+# Subtest: short, attached, long and nested S preserve quoting and literal arguments
+ok 22 - short, attached, long and nested S preserve quoting and literal arguments
+  ---
+  duration_ms: 4.942875
+  type: 'test'
+  ...
+# Subtest: split expansion reads incoming exports before clear, unset and assignments
+ok 23 - split expansion reads incoming exports before clear, unset and assignments
+  ---
+  duration_ms: 1.881667
+  type: 'test'
+  ...
+# Subtest: C resolves actual selected source and keeps parent cwd and state
+ok 24 - C resolves actual selected source and keeps parent cwd and state
+  ---
+  duration_ms: 1.033875
+  type: 'test'
+  ...
+# Subtest: absolute original source survives C and is charged and read only once
+ok 25 - absolute original source survives C and is charged and read only once
+  ---
+  duration_ms: 0.503417
+  type: 'test'
+  ...
+# Subtest: alternate operand, c and s select source rather than original body
+ok 26 - alternate operand, c and s select source rather than original body
+  ---
+  duration_ms: 1.831292
+  type: 'test'
+  ...
+# Subtest: explicit interpreters ignore env headers without relaxing other interpreter guards
+ok 27 - explicit interpreters ignore env headers without relaxing other interpreter guards
+  ---
+  duration_ms: 2.463375
+  type: 'test'
+  ...
+# Subtest: bash/sh flags retain e, +e, --, combinations and invalid flag status
+ok 28 - bash/sh flags retain e, +e, --, combinations and invalid flag status
+  ---
+  duration_ms: 1.885333
+  type: 'test'
+  ...
+# Subtest: env errors retain parser, usage and VFS status and ordering
+ok 29 - env errors retain parser, usage and VFS status and ordering
+  ---
+  duration_ms: 1.65525
+  type: 'test'
+  ...
+# Subtest: reserved interpreter resists hijacks while exact registered targets execute
+ok 30 - reserved interpreter resists hijacks while exact registered targets execute
+  ---
+  duration_ms: 0.791375
+  type: 'test'
+  ...
+# Subtest: binary stdin, pipelines, unread cursor and inherited descriptors survive
+ok 31 - binary stdin, pipelines, unread cursor and inherited descriptors survive
+  ---
+  duration_ms: 4.540167
+  type: 'test'
+  ...
+# Subtest: stdin provenance is forwarded without probing or local promotion
+ok 32 - stdin provenance is forwarded without probing or local promotion
+  ---
+  duration_ms: 3.584584
+  type: 'test'
+  ...
+# Subtest: initial and alternate file permission, binary and syntax refusals retain effects
+ok 33 - initial and alternate file permission, binary and syntax refusals retain effects
+  ---
+  duration_ms: 1.403792
+  type: 'test'
+  ...
+# Subtest: shared source, command, output, depth, loop and generated argv limits
+ok 34 - shared source, command, output, depth, loop and generated argv limits
+  ---
+  duration_ms: 2.430708
+  type: 'test'
+  ...
+# Subtest: aggregate plugin direct env behavior remains literal and separate
+ok 35 - aggregate plugin direct env behavior remains literal and separate
+  ---
+  duration_ms: 2.886041
+  type: 'test'
+  ...
+# Subtest: selected file, c string and s input each charge their actual source
+ok 36 - selected file, c string and s input each charge their actual source
+  ---
+  duration_ms: 1.913667
+  type: 'test'
+  ...
+# Subtest: env parser caps and carriage-return command bytes survive the bridge
+ok 37 - env parser caps and carriage-return command bytes survive the bridge
+  ---
+  duration_ms: 11.543
+  type: 'test'
+  ...
+# Subtest: guarded completion: executable VFS delegates retain literal argv and normal body resolution
+ok 38 - guarded completion: executable VFS delegates retain literal argv and normal body resolution
+  ---
+  duration_ms: 1.069833
+  type: 'test'
+  ...
+# Subtest: guarded completion: slash targets never normalize basenames or bypass VFS checks
+ok 39 - guarded completion: slash targets never normalize basenames or bypass VFS checks
+  ---
+  duration_ms: 1.912583
+  type: 'test'
+  ...
+# Subtest: guarded completion: exact registered definitions beat functions and builtins and stay pinned
+ok 40 - guarded completion: exact registered definitions beat functions and builtins and stay pinned
+  ---
+  duration_ms: 0.5205
+  type: 'test'
+  ...
+# Subtest: guarded completion: missing bare names refuse PATH, files, functions and builtins
+ok 41 - guarded completion: missing bare names refuse PATH, files, functions and builtins
+  ---
+  duration_ms: 0.818917
+  type: 'test'
+  ...
+# Subtest: guarded completion: env and target middleware observe exact exports, cwd, argv and provenance
+ok 42 - guarded completion: env and target middleware observe exact exports, cwd, argv and provenance
+  ---
+  duration_ms: 0.764584
+  type: 'test'
+  ...
+# Subtest: guarded completion: env pipeline middleware is transparent and adds no command or depth charge
+ok 43 - guarded completion: env pipeline middleware is transparent and adds no command or depth charge
+  ---
+  duration_ms: 0.914833
+  type: 'test'
+  ...
+# Subtest: guarded completion: env middleware short circuits, wraps and observes original target errors
+ok 44 - guarded completion: env middleware short circuits, wraps and observes original target errors
+  ---
+  duration_ms: 1.699291
+  type: 'test'
+  ...
+# Subtest: guarded completion: registered nested invoke stays ordinary and replacement streams share budgets
+ok 45 - guarded completion: registered nested invoke stays ordinary and replacement streams share budgets
+  ---
+  duration_ms: 1.137459
+  type: 'test'
+  ...
+# Subtest: guarded completion: direct delegate cycles and registered cycles use shared limits
+ok 46 - guarded completion: direct delegate cycles and registered cycles use shared limits
+  ---
+  duration_ms: 4.182041
+  type: 'test'
+  ...
+# Subtest: guarded completion: env scoped invoker owns replacement streams without inherited exports
+ok 47 - guarded completion: env scoped invoker owns replacement streams without inherited exports
+  ---
+  duration_ms: 0.809708
+  type: 'test'
+  ...
+# Subtest: guarded completion: target middleware can change scoped state or short circuit without fallback
+ok 48 - guarded completion: target middleware can change scoped state or short circuit without fallback
+  ---
+  duration_ms: 0.455209
+  type: 'test'
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3699.300583
+--- stderr: 0 bytes ---
+--- exitCode=0; signal=null; processGroupAbsent=true ---
+=== strict: ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","node_modules/typescript/bin/tsc","--noEmit","--target","ES2023","--lib","ES2023","--module","NodeNext","--moduleResolution","NodeNext","--strict","--noUncheckedIndexedAccess","--exactOptionalPropertyTypes","--verbatimModuleSyntax","--forceConsistentCasingInFileNames","--skipLibCheck","--types","node","tests/shell/env-shebang.test.ts","tests/shell/env-shebang-host.test.ts"] ===
+--- stdout: 0 bytes ---
+--- stderr: 0 bytes ---
+--- exitCode=0; signal=null; processGroupAbsent=true ---

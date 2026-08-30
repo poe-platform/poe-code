@@ -1,0 +1,14 @@
+{
+  "commit": "d469a6e7bf75c8dbc2e50ebeca24a86dcb76bbe8",
+  "ownedClean": true,
+  "foreignIndexUnchanged": true,
+  "prepKnownProcesses": 17,
+  "prepConservativeSlots": 20,
+  "all6ControlsPass": true,
+  "shipping20Unchanged": true,
+  "namespaceUnused": true,
+  "elapsedSeconds": 482.519,
+  "activeOwnedChildren": 0,
+  "productExecutions": 0,
+  "publication": "/tmp/safe-bash-dispatch-v3-prep-publication-AJSrnD"
+}

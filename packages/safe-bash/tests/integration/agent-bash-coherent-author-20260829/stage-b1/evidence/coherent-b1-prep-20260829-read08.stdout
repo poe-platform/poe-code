@@ -1,0 +1,73 @@
+INSPECTION {"at":"2026-08-29T12:12:23.665Z","pid":79527,"mode":"SOURCE_DATA_ONLY"}
+BINDING {"relative":"tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs","bytes":15763,"sha256":"6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b"}
+76:    } else if (id === 'C11') {
+77:      await fixtureSetup(); const before = await gitSnapshot(), shell = make(); const network = curl(shell);
+78:      addNode(shell, { dataRead: true, dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+79:      await expect(shell, `curl -sS -o /payload.json https://one.invalid/start; node -e ${quote('const fs=require("fs");const data=JSON.parse(fs.readFileSync("/payload.json","utf8"));fs.writeFileSync("/repo/README.md",data.text);')}`, '');
+80:      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello changed\n');
+81:      await expect(make(new api.ReadOnlyFileSystem(memory), '/repo'), 'git diff -- README.md', expectedDiff('hello changed'));
+82:      assert.deepEqual(await gitSnapshot(), before); assert.deepEqual(network.authorized, ['https://one.invalid/start']);
+83:    } else if (id === 'C12') {
+84:      const shell = make(), network = curl(shell, true);
+85:      await expect(shell, "curl -sS -L -H 'Authorization: Bearer synthetic' -o /payload.json https://one.invalid/start", '');
+86:      assert.deepEqual(network.authorized, ['https://one.invalid/start','https://two.invalid/end']); assert.equal(network.requests.length, 2);
+87:      assert.equal(network.requests[1].headers.some(([name]) => name.toLowerCase() === 'authorization'), false);
+88:      assert.equal(text(await memory.readFile('/payload.json')), '{"text":"hello changed\\n"}\n'); assert.equal(network.disposals.length, 2);
+89:    } else if (id === 'C13') {
+90:      await fixtureSetup(); const before = await gitSnapshot(), shell = make(new api.ReadOnlyFileSystem(memory), '/repo');
+91:      await expect(shell, 'git status --short', 'M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n');
+92:      await expect(shell, 'git rev-parse HEAD', fixture.oids.headCommit + '\n'); await expect(shell, 'git ls-files', 'README.md\nsrc/app.txt\n');
+93:      assert.deepEqual(await gitSnapshot(), before);
+94:    } else if (id === 'C14') {
+95:      await fixtureSetup(); const before = await gitSnapshot(), shell = make(memory, '/repo');
+96:      const patch = '*** Begin Patch\n*** Update File: /repo/README.md\n@@\n-hello staged\n+hello patched\n*** End Patch\n';
+97:      await expect(shell, `printf '%s' ${quote(patch)} | apply_patch >/patch.audit; git diff -- README.md`, expectedDiff('hello patched'));
+98:      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello patched\n'); assert.deepEqual(await gitSnapshot(), before);
+99:      facts.patchStdout = 'redirected; not an exact diagnostic-format oracle';
+100:    } else if (id === 'C15') {
+101:      await memory.writeFile('/keep', encode('original')); const shell = make(new api.ReadOnlyFileSystem(memory));
+102:      addNode(shell, { dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+103:      const result = await shell.exec(`node -e ${quote('require("fs").writeFileSync("/keep","changed");')}`);
+104:      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /EROFS/); assert.equal(text(await memory.readFile('/keep')), 'original');
+105:    } else if (id === 'C16') {
+106:      const entered = deferred(), release = deferred(), controller = new AbortController(); const original = memory.readFile.bind(memory);
+107:      const releaseOwned = () => { events.push('release'); release.resolve(); }; releases.add(releaseOwned);
+108:      memory.readFile = async (filename, options) => { if (filename !== '/held') return original(filename, options); events.push('read-enter'); entered.resolve(); await release.promise; events.push('read-finalized'); throw options.signal.reason; };
+109:      const shell = make(); addNode(shell, { dataRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+110:      shell.commands.register({ name: 'guard', execute(command) { command.registerCleanup(async () => { events.push('cleanup-enter'); await release.promise; events.push('cleanup-finished'); }); return command.invoke('node', ['-e','require("fs").readFileSync("/held","utf8");']); } });
+111:      const pending = outcome(shell.exec('guard', { signal: controller.signal })).then(result => { events.push('settled'); return result; });
+112:      try { await entered.promise; controller.abort(false); events.push('abort'); } finally { releaseOwned(); releases.delete(releaseOwned); }
+113:      const result = await pending; assert.equal(result.kind, 'throw'); assert.equal(result.reason, false);
+114:      assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled')); assert.ok(events.includes('read-finalized'));
+115:      facts.providerFinalization = 'controlled release only; no opaque preemption';
+116:    } else if (id === 'C17') {
+117:      const entered = deferred(), gate = deferred(), shell = make(); addNode(shell); let writes = 0, settled = false;
+118:      const release = () => { events.push('release'); gate.resolve(); }; releases.add(release);
+119:      shell.commands.register({ name: 'guard', execute(command) {
+120:        command.registerCleanup(async () => { events.push('cleanup-enter'); entered.resolve(); await gate.promise; events.push('cleanup-finished'); throw false; });
+121:        events.push('registered'); return command.invoke('f', []);
+122:      } });
+123:      const pending = outcome(shell.exec('f(){ printf "%s" "${absent:?required}"; }; guard; node -p \'1\'', { stderr: { async write() { writes++; events.push('diagnostic'); throw 0; } } })).then(result => { settled = true; events.push('settled'); return result; });
+124:      try { await entered.promise; await turn(); assert.equal(settled, false); } finally { release(); releases.delete(release); }
+125:      const result = await pending; assert.equal(result.kind, 'throw'); assert.equal(result.reason, 0); assert.equal(writes, 1); assert.equal(prepares, 0);
+126:      assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled'));
+127:    } else if (id === 'C18') {
+128:      const collided = make(); const original = { name: 'node', execute() { return { exitCode: 99 }; } }; collided.commands.register(original); addNode(collided);
+129:      const result = await outcome(collided.exec('true')); assert.equal(result.kind, 'throw'); assert.equal(result.reason.message, 'Command already registered: node'); assert.equal(collided.commands.get('node'), original);
+130:      const ownerIndex = shells.indexOf(collided); shells.splice(ownerIndex, 1); const disposed = await outcome(collided.dispose()); assert.equal(disposed.kind, 'throw'); assert.equal(disposed.reason.message, 'Command already registered: node');
+131:      const shell = make(), options = { provider: realProvider(), grants: { stdoutWrite: true, stderrWrite: true }, replace: true };
+132:      shell.commands.register(original); const plugin = nodeApi.nodeCommands(options); options.replace = false; options.provider = null; options.grants.stdoutWrite = false;
+133:      shell.use(plugin); await expect(shell, "node -p '8'", '8\n');
+134:    }
+135:    facts.status = 'PASS';
+136:  } catch (reason) { failed = true; failure = reason; facts.status = 'FAIL'; }
+137:  finally {
+138:    for (const release of releases) release();
+139:    const cleanup = await Promise.allSettled(shells.map(shell => shell.dispose()));
+140:    facts.shells = shells.length; facts.cleanup = cleanup.map(result => result.status); facts.prepares = prepares;
+BINDING {"relative":"tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/run.mjs","bytes":11225,"sha256":"318ea0b32769928a79608966ae33e9769a43c46156b7420ce964e0da5d2d352f"}
+10: const stage=JSON.parse(read(path.join(here,'../stage-b0-r2/stageAProducerPreseal.json'),65536,seal.stageAProducerPreseal));const records=seal.producerRecords;const get=name=>{const row=records.find(item=>item.path===name);assert.ok(row);return JSON.parse(read(path.join(base,'stage-a-r2/evidence',name),2097152,row));};const members=get('PACKAGE-MEMBERS.json'),emits=get('EMITTED.json'),source=JSON.parse(read(stage.source.path,262144,stage.source));assert.equal(source.inputs.length,309);assert.equal(emits.length,1012);assert.equal(members.length,1014);const toolExpected=get('TOOLS-BEFORE.json'),toolLinks=Object.fromEntries(stage.links.map(row=>[row.package+'/'+row.path,row.target]));assert.deepEqual(inventory(path.join(producer,'tools'),toolLinks),toolExpected);
+11: const verifyRetained=()=>{for(const row of source.inputs)read(path.join(producer,'source',safe(row.path)),33554432,row);for(const row of emits)read(path.join(producer,'source/dist',safe(row.path)),33554432,row);};verifyRetained();
+12: const raw=read(path.join(base,'stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz'),1048576,seal.package);unpackVerified(raw,members);const archive=path.join(work,'input/product.tgz');fs.writeFileSync(archive,raw,{flag:'wx'});
+13: const sourcePackage=path.join(work,'source-built/node_modules/virtual-bash');fs.mkdirSync(sourcePackage,{recursive:true});for(const row of members){const origin=path.join(producer,'source',row.path);const body=read(origin,16777216,row);const target=path.join(sourcePackage,safe(row.path));fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,body,{mode:row.mode,flag:'wx'});}closure(sourcePackage,members);
+14: const metadata=JSON.parse(read(path.join(sourcePackage,'package.json'),1048576,members.find(row=>row.path==='package.json')));assert.deepEqual(metadata.dependencies??{},{});for(const key of ['preinstall','install','postinstall','prepare'])assert.equal(metadata.scripts?.[key],undefined);

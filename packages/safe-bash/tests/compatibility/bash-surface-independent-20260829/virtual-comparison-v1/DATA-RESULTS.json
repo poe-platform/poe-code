@@ -1,0 +1,82 @@
+{
+  "schema": "data-only-results-v1",
+  "presealSha256": "ca4d9d85e0e6d9eb316ef631b76d338b2728d2a548d8def0e33f508850951aae",
+  "matrixSha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e",
+  "moduleSha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52",
+  "results": [
+    {
+      "id": "D01",
+      "observed": {
+        "cases": 37,
+        "fixtures": 4,
+        "programBytes": 2301,
+        "fixtureBytes": 43,
+        "virtualCalls": 0
+      },
+      "pass": true
+    },
+    {
+      "id": "D02",
+      "expected": "PROGRAM",
+      "observed": "PROGRAM",
+      "pass": true
+    },
+    {
+      "id": "D03",
+      "expected": "NATIVE_BYTES",
+      "observed": "NATIVE_BYTES",
+      "pass": true
+    },
+    {
+      "id": "D04",
+      "expected": "MEMBERSHIP",
+      "observed": "MEMBERSHIP",
+      "pass": true
+    },
+    {
+      "id": "D05",
+      "expected": "FIXTURE_PATH_MODE",
+      "observed": "FIXTURE_PATH_MODE",
+      "pass": true
+    },
+    {
+      "id": "D06",
+      "expected": "MEMBERSHIP",
+      "observed": "MEMBERSHIP",
+      "pass": true
+    },
+    {
+      "id": "D07",
+      "expected": "CANDIDATE",
+      "observed": "CANDIDATE",
+      "pass": true
+    },
+    {
+      "id": "D08",
+      "identical": {
+        "stdout": true,
+        "stderr": true,
+        "status": true,
+        "filesBefore": true,
+        "filesAfter": true,
+        "comparableSettlement": true,
+        "normalization": "NONE"
+      },
+      "differences": {
+        "withoutNul": false,
+        "prefix": false,
+        "noLf": false,
+        "rejectionStatus": false,
+        "rejectionComparable": false
+      },
+      "pass": true
+    }
+  ],
+  "passed": 8,
+  "failed": 0,
+  "productCalls": 0,
+  "nativeCalls": 0,
+  "workerStarts": 0,
+  "newControlChildren": 0,
+  "qualification": "DATA in existing preparer only; no parser, adapter, target or compiled product evaluation."
+}

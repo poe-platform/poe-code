@@ -1,0 +1,144 @@
+{
+  "created": "2026-08-29T12:00:02.996Z",
+  "verdict": "ACCEPT_FINAL_BINDING_ONLY_ROOT_ACTIVATION_PENDING",
+  "packet": {
+    "commit": "e2b762c6cbd74e788ce3a84214336e4f002ae045",
+    "bytes": 1643,
+    "sha256": "0c1fe3ac4c6dde32caab52c0575254bae3ad8071943ce48e5bf404f1af2b5f39"
+  },
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "preseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "rootReviewReceiptSha256": "d490a5a2d1efe36dfc8b737267cf3762d04d1d273cbcba30b636e0123bf91a35",
+  "command": "B0_ROOT_GO=ROOT_B0_39_EXPLICIT_FRESH_AUTHORIZATION /bin/zsh tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/launch.sh tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json 78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7 11952",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "window": {
+    "issuedAt": "2026-08-29T11:53:14.522Z",
+    "latestStartAt": "2026-08-29T12:13:14.522Z",
+    "expiresAt": "2026-08-29T12:43:14.522Z",
+    "freshCheckedAt": "2026-08-29T12:00:02.996Z",
+    "externalPolicyOnly": true,
+    "noRenewal": true
+  },
+  "localMetrics": {
+    "checkedAt": "2026-08-29T11:58:18.673Z",
+    "source309": 309,
+    "sealedDependencies": 24,
+    "entryAndReviewFiles": 6,
+    "tools": {
+      "regular": 2274,
+      "links": 12,
+      "entries": 2286,
+      "unexpectedEntries": 0
+    },
+    "actualDist": {
+      "regular": 1012,
+      "links": 0,
+      "entries": 1012,
+      "unexpectedEntries": 0
+    },
+    "package": {
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+      "inflated": false,
+      "members": 1014,
+      "membersAuthority": "accepted Stage-A proof reused"
+    },
+    "nodeHashMatched": true,
+    "slotsAbsent": [
+      "/private/tmp/safe-bash-coherent-b0-20260829-r3",
+      "/private/tmp/coherent-b0-39-20260829-r3.launch.stdout",
+      "/private/tmp/coherent-b0-39-20260829-r3.launch.stderr"
+    ],
+    "window": {
+      "issuedAt": "2026-08-29T11:53:14.522Z",
+      "latestStartAt": "2026-08-29T12:13:14.522Z",
+      "expiresAt": "2026-08-29T12:43:14.522Z",
+      "fresh": true,
+      "externalPolicyOnly": true
+    },
+    "boundsUnchanged": true,
+    "idsUnchanged": true,
+    "bodyExecution": 0,
+    "hashReadChunk": 65536
+  },
+  "startupQualification": "Initial trusted host/tool-shell/zsh initialization outside captured cohort; login:false does not suppress .zshenv; no startup-file inspection or execution by this review",
+  "pending": "Fresh ROOT one-attempt activation referencing this receipt and packet; fresh slots/guard checks and applicable tool approval; no direct-main/retry",
+  "rootActivation": false,
+  "actual39": 0,
+  "newRuntimeOrControlExecutions": 0,
+  "oldPidProbes": 0,
+  "originalHoldUnchanged": true,
+  "knownRoleOnly": true,
+  "files": [
+    {
+      "path": "ACCEPT.md",
+      "bytes": 6345,
+      "sha256": "ff4cb556ee1eff59ea2c60d3ca63507a60738c2e84c9a3f4c7a72e0e0ceace40"
+    },
+    {
+      "path": "BINDING-INPUTS.json",
+      "bytes": 54887,
+      "sha256": "5c46d72f77dd1df76cbcd9192ac8b51a9a549e63d3a82e1801819814528767b4"
+    },
+    {
+      "path": "BINDING-PROCESS.json",
+      "bytes": 70,
+      "sha256": "761f8027a998129a3b48e10bad1a518d1e49ee599a9f9b73cc2db7d0c4d2dad4"
+    },
+    {
+      "path": "FRESH-LOCAL-METRICS.json",
+      "bytes": 1089,
+      "sha256": "01d46c41c7e7128cd2718f4ff1192dd80ad123543dfd87183ffc70d2dd29a1ed"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 8282,
+      "sha256": "907a5c4a6b4850d30071c400339ca771e0aa0ffe601368142085713f5e37de45"
+    },
+    {
+      "path": "INVENTORY.json",
+      "bytes": 12243,
+      "sha256": "9a0947b4eddc910f661b09b18ec8294dfa64bae0b22ef6bbfb2f8326a0cea241"
+    },
+    {
+      "path": "METADATA-PROCESSES.json",
+      "bytes": 392,
+      "sha256": "5fc5612803770c31b4c043d9304be81273f977a6dcaf089b96ef5768108c62f6"
+    },
+    {
+      "path": "bindings.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "bindings.stdout",
+      "bytes": 39841,
+      "sha256": "67f21b3f61bb6eba79f771751c4e4b6f95ef4d08eae4732260e0619b8467e377"
+    },
+    {
+      "path": "inventory.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "inventory.stdout",
+      "bytes": 2958,
+      "sha256": "0fab61fb86e7b9437f504ef21c324c768ab245b41175a1d5188ef069787e8ace"
+    },
+    {
+      "path": "selected.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "selected.stdout",
+      "bytes": 5824,
+      "sha256": "e53fd58f075617fb3c442c1395515c75cf8219b2541da0ea122f679f022e0831"
+    }
+  ],
+  "snapshotBytes": 131931,
+  "publicationScope": "Snapshot before this receipt and final Git transcript"
+}

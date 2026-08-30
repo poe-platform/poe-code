@@ -1,0 +1,61 @@
+{
+  "date": "2026-08-29",
+  "build": {
+    "status": 0,
+    "signal": null,
+    "pid": 10878,
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/node_modules/typescript/lib/tsc.js",
+      "-p",
+      "/private/tmp/safe-bash-pipestatus-corrected/candidate/tsconfig.build.json",
+      "--typeRoots",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/node_modules/@types"
+    ],
+    "synchronousChildReturned": true
+  },
+  "pure": {
+    "passed": 24,
+    "count": 24,
+    "failed": []
+  },
+  "rolesObservedThroughThisSnapshot": [
+    "1 instruction shell",
+    "2 instruction sed",
+    "3 instruction shell",
+    "4 instruction sed",
+    "5 startup shell",
+    "6 mkdir",
+    "7 source sed",
+    "8 source sed",
+    "9 source-output-shell",
+    "10 corrected-author-shell",
+    "11 apply_patch",
+    "12 prep-shell",
+    "13 binary-shasum",
+    "14 preparation-DATA-Node",
+    "prepare child: scoped git blob batch",
+    "16 preseal-commit-shell",
+    "17 git-add-owned-preseal",
+    "18 git-commit-owned-preseal",
+    "19 corrected-validation-shell",
+    "20 corrected-pure-Node",
+    "pure-child strict-TypeScript-compiler"
+  ],
+  "knownStartsThroughSnapshot": 21,
+  "scratchBytes": 9125345,
+  "scratchFiles": 1334,
+  "peakKnownProcesses": 3,
+  "topology": "controller shell -> Node helper -> synchronous Git or compiler; tests sequential with zero process starts",
+  "finalAdministrativeRolesNotYetIncluded": "subsequent explicit Git/documentation/publication roles must be appended separately",
+  "sourceCount": 307,
+  "package": {
+    "sha256": "6c60e2d766fa675b7972afdc0eb6f5304f99231abceff1daf5cb196b897346a5",
+    "bytes": 1005288,
+    "members": 1010
+  },
+  "workers": 0,
+  "shellExecutions": 0,
+  "nativeExecutions": 0,
+  "compiledCorrection": true
+}

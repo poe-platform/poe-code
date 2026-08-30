@@ -1,0 +1,627 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "qualification": "AUTHOR_ONLY_NOT_INDEPENDENT_ACCEPTANCE_NOT_RELEASE_OR_FULL_GATE",
+  "status": "SCOPED_AUTHOR_RUNTIME_CHECKS_PASS_MAINTAINED_GLOBAL_TYPECHECK_NONPASS",
+  "candidateCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "candidateTree": "62d75ef09e89d4d3b6afc032c518d2846dcd03b7",
+  "sourceFiles": 247,
+  "sourceManifestSha256": "d61b88557d04647f487af0d4483124d28159dbc98c26ccc8b868de5777978a95",
+  "frozenInputs": {
+    "preparation": "e748f20fe9d0ea1d29aefe70939d3ee76951ef68",
+    "publicArchive": "9513946ced0a3b9076770a3e4dfbc18bcd3c1f13",
+    "safeJs": "7204b9e01752c700dd791afd332e7f1b5fd8ba73",
+    "mixedPublic": "7623599c995c42f62ec1cd9ad78ced2913970f66",
+    "packageExports": "d3c04ba39ec2c659d432bf6e0867a3a89ae1a4bc"
+  },
+  "artifacts": {
+    "archiveSha256": "5206e79d57dc3cb496d1abdb8c44db34722ad7891409cc85263ff292053d04af",
+    "tarballSha256": "280b76a2a3577176716534e13d2e10475eb8a13e423190a24d25555a050f72e1",
+    "movedPackageManifestSha256": "edddf448fee73520a67855405514bc11b24d518f2bb2053ea010002e1a712572",
+    "movedPackageFileCount": 826,
+    "movedPackageEntriesIncludingDirectories": 867,
+    "compilerManifestSha256": "21c5947bfe4aed4f6178e384731ce253adf1878a6ac31c3134e3c4676f62514e",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "originalPublicRoot": "/private/tmp/safe-bash-author-public-current-xcKUBD"
+  },
+  "sourceBuild": {
+    "passes": 1,
+    "failures": 0,
+    "rebuiltForSafeJs": false,
+    "originalCommittedInputs": 32317,
+    "sourceFiles": 247,
+    "nativeDataSymlinks": 12,
+    "literalNativeDataNames": 6,
+    "sourceCodeOrTestsChanged": false,
+    "isolatedCandidateGitIndexBeforeAfterUnchanged": true,
+    "fullInputBeforeAfter": "UNCHANGED",
+    "appendCheck": "Complete built candidate tree plus source/test subtrees; new file and empty-directory entries checked"
+  },
+  "strictPublicConsumer": {
+    "pass": true,
+    "commandStatus": 0
+  },
+  "publicRuntime": {
+    "passed": 9,
+    "failed": 0,
+    "rows": [
+      {
+        "id": "P01-optional-capability-and-legacy",
+        "status": "PASS"
+      },
+      {
+        "id": "P02-accounting-once-and-budget",
+        "status": "PASS"
+      },
+      {
+        "id": "P03-admitted-acquisition-close-race",
+        "status": "PASS"
+      },
+      {
+        "id": "P04-nested-cleanup-before-return",
+        "status": "PASS"
+      },
+      {
+        "id": "P05-legacy-not-implicitly-enrolled",
+        "status": "PASS"
+      },
+      {
+        "id": "P06-borrowed-cursor-and-actual-cat",
+        "status": "PASS"
+      },
+      {
+        "id": "P07-precedence-caller",
+        "status": "PASS"
+      },
+      {
+        "id": "P07-precedence-execution",
+        "status": "PASS"
+      },
+      {
+        "id": "P07-precedence-cleanup",
+        "status": "PASS"
+      }
+    ],
+    "attempts": 1
+  },
+  "mixedPublic": {
+    "passed": 4,
+    "failed": 0,
+    "attempts": 1,
+    "typecheckPass": true,
+    "root": "/private/tmp/safe-bash-author-current-mixed-1ZGNoZ",
+    "helperBindingDisclosure": "Source-owner exact four test bodies; public createStandardCommands cat-only registration replaces internal stream-family helper; no assertion delta or unchanged-all-input claim",
+    "beforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES"
+  },
+  "exports": {
+    "status": "PASS",
+    "declaredExportKeys": 21,
+    "probedSpecifiers": 28,
+    "rootRuntimeExports": 110,
+    "contractsRuntimeExports": 29,
+    "outputFactoryIdentity": true,
+    "qualification": "AUTHOR_RUNTIME_EXPORT_INVENTORY_NOT_ALL_COMMAND_OR_PROVIDER_ACCEPTANCE"
+  },
+  "maintainedTypecheck": {
+    "status": "typecheck-failed",
+    "exitCode": 2,
+    "buildCount": 0,
+    "globalDiagnostics": 13,
+    "diagnosticPaths": [
+      "tests/commands/regex-execution/continuation/glob.test.ts",
+      "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+      "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts"
+    ],
+    "exactDiagnosticHeadlines": [
+      "tests/commands/regex-execution/continuation/glob.test.ts(54,42): error TS2339: Property 'patterns' does not exist on type 'Descriptor | ExprMatchDescriptor'.",
+      "tests/commands/regex-execution/continuation/glob.test.ts(54,96): error TS2345: Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.",
+      "tests/commands/regex-execution/continuation/glob.test.ts(55,21): error TS2769: No overload matches this call.",
+      "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts(8,33): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations.",
+      "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts(7,8): error TS2307: Cannot find module './node_modules/virtual-bash/dist/commands/du/index.js' or its corresponding type declarations."
+    ],
+    "exactFullStdoutSha256": "a15227096bbf4d24bb8d70c7733019f089f7a20f2d438921c56a37dccfd90d0c",
+    "sourceDiagnostics": 0,
+    "maintainedConsumersPassed": true,
+    "maintainedConsumerGroups": 22,
+    "sourceConsumersPassed": true,
+    "unchangedRunner": true,
+    "capturedDataExclusionsChanged": false,
+    "classification": "Foreign-test diagnostics in the exact candidate; no baseline-origin claim, source weakening, waiver or repair"
+  },
+  "safeJs": {
+    "intended": 25,
+    "uniqueProfilesExecuted": 25,
+    "pass": 25,
+    "failed": 0,
+    "invalid": 0,
+    "blocked": 0,
+    "attemptsPerProfile": 1,
+    "cohortCount": 3,
+    "engineImportUniquePaths": 63,
+    "productImportUniquePaths": 184,
+    "cohorts": {
+      "surface": {
+        "status": "AUTHOR_COHORT_PASS",
+        "counts": {
+          "intended": 8,
+          "engineRuns": 8,
+          "pass": 8,
+          "nonpass": 0,
+          "blocked": 0
+        },
+        "runtimeRoot": "/private/tmp/safe-bash-author-current-safejs-surface-5FsBtu",
+        "frozen": {
+          "commit": "7204b9e01752c700dd791afd332e7f1b5fd8ba73",
+          "manifestSha256": "5bff41474ba97d7d1bcce83124b44f722a32264c1ea2705940a2a5f384cd4366"
+        },
+        "freshPrivateBeforeSha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9",
+        "freshPrivateAfterSha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9",
+        "privateBeforeAfter": "EXACTLY_UNCHANGED",
+        "copiedInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+        "publicInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+        "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+        "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+        "privateIndexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+        "metadataFiles": 6,
+        "eligibleEngineFiles": 264,
+        "engineImportEntriesPerChild": 63,
+        "productImportEntriesPerChild": 184,
+        "knownLiveChildren": 0,
+        "rows": [
+          {
+            "id": "01-supported-facades",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "02-direct-surface",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "03-namespace-spread",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "04-shell-module",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "05-missing-register-cleanup",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "06-missing-acquire",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "07-reflection-profile",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "08-function-spread-profile",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          }
+        ]
+      },
+      "lifecycle": {
+        "status": "AUTHOR_COHORT_PASS",
+        "counts": {
+          "intended": 11,
+          "engineRuns": 11,
+          "pass": 11,
+          "nonpass": 0,
+          "blocked": 0
+        },
+        "runtimeRoot": "/private/tmp/safe-bash-author-current-safejs-lifecycle-IehwH7",
+        "frozen": {
+          "commit": "7204b9e01752c700dd791afd332e7f1b5fd8ba73",
+          "manifestSha256": "5bff41474ba97d7d1bcce83124b44f722a32264c1ea2705940a2a5f384cd4366"
+        },
+        "freshPrivateBeforeSha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9",
+        "freshPrivateAfterSha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9",
+        "privateBeforeAfter": "EXACTLY_UNCHANGED",
+        "copiedInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+        "publicInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+        "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+        "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+        "privateIndexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+        "metadataFiles": 6,
+        "eligibleEngineFiles": 264,
+        "engineImportEntriesPerChild": 63,
+        "productImportEntriesPerChild": 184,
+        "knownLiveChildren": 0,
+        "rows": [
+          {
+            "id": "L01-aliases",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L02-budget-positive",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L02-budget-exhausted",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L03-callback-live",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L03-callback-after-lifetime",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L04-explicit-children",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L05-caller-error",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L05-execution-error",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L05-cleanup-error",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L06-curl-open",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "L06-curl-consumer-closed",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          }
+        ]
+      },
+      "controls": {
+        "status": "AUTHOR_COHORT_PASS",
+        "counts": {
+          "intended": 6,
+          "engineRuns": 6,
+          "pass": 6,
+          "nonpass": 0,
+          "blocked": 0
+        },
+        "runtimeRoot": "/private/tmp/safe-bash-author-current-safejs-controls-VLNKqy",
+        "frozen": {
+          "commit": "7204b9e01752c700dd791afd332e7f1b5fd8ba73",
+          "manifestSha256": "5bff41474ba97d7d1bcce83124b44f722a32264c1ea2705940a2a5f384cd4366"
+        },
+        "freshPrivateBeforeSha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9",
+        "freshPrivateAfterSha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9",
+        "privateBeforeAfter": "EXACTLY_UNCHANGED",
+        "copiedInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+        "publicInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+        "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+        "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+        "privateIndexSha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+        "metadataFiles": 6,
+        "eligibleEngineFiles": 264,
+        "engineImportEntriesPerChild": 63,
+        "productImportEntriesPerChild": 184,
+        "knownLiveChildren": 0,
+        "rows": [
+          {
+            "id": "Z01-open",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "Z01-closed",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "Z02-open",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "Z02-closed",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "Z03-open",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          },
+          {
+            "id": "Z03-closed",
+            "classification": "PASS",
+            "engineRuns": 1,
+            "naturalExit": true
+          }
+        ]
+      }
+    },
+    "networkRows": [
+      {
+        "family": "lifecycle",
+        "id": "L06-curl-open",
+        "authorizationCalls": 1,
+        "transportCalls": 1,
+        "retryAuthorizations": 0,
+        "redirectedAuthorizations": 0,
+        "additionalTransportEntries": 0,
+        "uploadBeforeEof": true,
+        "cleanupDoneBeforePublicSettlement": true,
+        "curlStatus": 0,
+        "raw": "lifecycle:logs/L06-curl-open.json"
+      },
+      {
+        "family": "lifecycle",
+        "id": "L06-curl-consumer-closed",
+        "authorizationCalls": 1,
+        "transportCalls": 1,
+        "retryAuthorizations": 0,
+        "redirectedAuthorizations": 0,
+        "additionalTransportEntries": 0,
+        "uploadBeforeEof": true,
+        "cleanupDoneBeforePublicSettlement": true,
+        "curlStatus": 141,
+        "raw": "lifecycle:logs/L06-curl-consumer-closed.json"
+      },
+      {
+        "family": "controls",
+        "id": "Z01-open",
+        "authorizationCalls": 1,
+        "transportCalls": 1,
+        "retryAuthorizations": 0,
+        "redirectedAuthorizations": 0,
+        "additionalTransportEntries": 0,
+        "uploadBeforeEof": true,
+        "cleanupDoneBeforePublicSettlement": true,
+        "curlStatus": 0,
+        "raw": "controls:logs/Z01-open.json"
+      },
+      {
+        "family": "controls",
+        "id": "Z01-closed",
+        "authorizationCalls": 1,
+        "transportCalls": 1,
+        "retryAuthorizations": 0,
+        "redirectedAuthorizations": 0,
+        "additionalTransportEntries": 0,
+        "uploadBeforeEof": true,
+        "cleanupDoneBeforePublicSettlement": true,
+        "curlStatus": 141,
+        "raw": "controls:logs/Z01-closed.json"
+      },
+      {
+        "family": "controls",
+        "id": "Z02-open",
+        "authorizationCalls": 1,
+        "transportCalls": 1,
+        "retryAuthorizations": 0,
+        "redirectedAuthorizations": 0,
+        "additionalTransportEntries": 0,
+        "uploadBeforeEof": true,
+        "cleanupDoneBeforePublicSettlement": true,
+        "curlStatus": 22,
+        "raw": "controls:logs/Z02-open.json"
+      },
+      {
+        "family": "controls",
+        "id": "Z02-closed",
+        "authorizationCalls": 1,
+        "transportCalls": 1,
+        "retryAuthorizations": 0,
+        "redirectedAuthorizations": 0,
+        "additionalTransportEntries": 0,
+        "uploadBeforeEof": true,
+        "cleanupDoneBeforePublicSettlement": true,
+        "curlStatus": 22,
+        "raw": "controls:logs/Z02-closed.json"
+      },
+      {
+        "family": "controls",
+        "id": "Z03-open",
+        "authorizationCalls": 1,
+        "transportCalls": 1,
+        "retryAuthorizations": 0,
+        "redirectedAuthorizations": 0,
+        "additionalTransportEntries": 0,
+        "uploadBeforeEof": true,
+        "cleanupDoneBeforePublicSettlement": true,
+        "curlStatus": 47,
+        "raw": "controls:logs/Z03-open.json"
+      },
+      {
+        "family": "controls",
+        "id": "Z03-closed",
+        "authorizationCalls": 1,
+        "transportCalls": 1,
+        "retryAuthorizations": 0,
+        "redirectedAuthorizations": 0,
+        "additionalTransportEntries": 0,
+        "uploadBeforeEof": true,
+        "cleanupDoneBeforePublicSettlement": true,
+        "curlStatus": 47,
+        "raw": "controls:logs/Z03-closed.json"
+      }
+    ],
+    "actualCopiedSourceHooks": [
+      "run",
+      "Budget",
+      "makeFsModule",
+      "declareHostOperation"
+    ],
+    "privatePackageInstalledOrImported": false,
+    "privateCodeCommitted": false,
+    "historicalFixtureOrigin": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+    "privateStatusBindingOrigin": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+    "surface07": "DIALECT_ONLY_NOT_MEMBRANE_ACCEPTANCE",
+    "surface08": "ACTUAL_AWAITED_REJECTION_NOT_FABRICATED_FULFILLED_RESULT",
+    "lifecycleL05": "UNCHANGED_APPROVED_owned-guest\\n)_ACTUAL_SELECTED_REJECTION",
+    "retryOrRescue": false
+  },
+  "handles": {
+    "knownLiveChildren": 0,
+    "lifecycleAndControlActiveTimers": 0,
+    "lifecycleAndControlBridgePending": 0,
+    "lifecycleAndControlGuardFailures": 0,
+    "all25ChildrenExitedNaturally": true,
+    "surfaceHandlesAtResult": [
+      {
+        "id": "01-supported-facades",
+        "resourcesAtResult": [
+          "PipeWrap"
+        ],
+        "handlesAtResult": [
+          "Socket"
+        ],
+        "childExitedNaturally": true
+      },
+      {
+        "id": "02-direct-surface",
+        "resourcesAtResult": [
+          "PipeWrap"
+        ],
+        "handlesAtResult": [
+          "Socket"
+        ],
+        "childExitedNaturally": true
+      },
+      {
+        "id": "03-namespace-spread",
+        "resourcesAtResult": [
+          "PipeWrap"
+        ],
+        "handlesAtResult": [
+          "Socket"
+        ],
+        "childExitedNaturally": true
+      },
+      {
+        "id": "04-shell-module",
+        "resourcesAtResult": [
+          "PipeWrap"
+        ],
+        "handlesAtResult": [
+          "Socket"
+        ],
+        "childExitedNaturally": true
+      },
+      {
+        "id": "05-missing-register-cleanup",
+        "resourcesAtResult": [
+          "PipeWrap"
+        ],
+        "handlesAtResult": [
+          "Socket"
+        ],
+        "childExitedNaturally": true
+      },
+      {
+        "id": "06-missing-acquire",
+        "resourcesAtResult": [
+          "PipeWrap"
+        ],
+        "handlesAtResult": [
+          "Socket"
+        ],
+        "childExitedNaturally": true
+      },
+      {
+        "id": "07-reflection-profile",
+        "resourcesAtResult": [
+          "PipeWrap"
+        ],
+        "handlesAtResult": [
+          "Socket"
+        ],
+        "childExitedNaturally": true
+      },
+      {
+        "id": "08-function-spread-profile",
+        "resourcesAtResult": [
+          "PipeWrap"
+        ],
+        "handlesAtResult": [
+          "Socket"
+        ],
+        "childExitedNaturally": true
+      }
+    ],
+    "qualification": "Surface children recorded one PipeWrap/Socket at result and then exited naturally; no global opaque-handle/preemption guarantee"
+  },
+  "unresolved": {
+    "originalCustomFirstReadRequirements": {
+      "count": 5,
+      "status": "SEPARATE_UNRESOLVED_CUSTOM_PROFILE_NOT_EXECUTED_MIGRATED_OR_WAIVED"
+    },
+    "maintainedGlobalTypecheck": "13 exact foreign-test diagnostics remain",
+    "independentFinalReview": "Curie-owned, not performed or claimed by this author"
+  },
+  "limitations": [
+    "No full test gate, release activation, production promotion, superiority, native parity or deployed-provider acceptance",
+    "Actual SafeJS is legitimate copied source-hook injection, not installed private package support",
+    "Private snapshots cover the approved Git state, six metadata files and 264 eligible engine files with metadata; plan contents, ignored build/cache trees and empty-directory inventory are not certified",
+    "Historical raw failures, caps profiles and accepted zero-overlay cohorts remain separate; no historical product is rescored as this candidate",
+    "Runtime attempts were not retried; pre-execution archive binding correction and transcript-only initial static failure are explicitly retained",
+    "No claims of 72 hours or full project completion"
+  ]
+}

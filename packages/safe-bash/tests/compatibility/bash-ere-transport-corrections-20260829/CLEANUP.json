@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "archiveSha256": "81de06b72e96be4c05e487dabd774fa97afb65d4029200d0e1260938c32c1c08",
+  "workRoots": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v1/work",
+      "removed": true,
+      "archivedAndAuthenticatedBeforeRemoval": true,
+      "files": 133,
+      "bytes": 13937225
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v2/work",
+      "removed": true,
+      "archivedAndAuthenticatedBeforeRemoval": true,
+      "files": 284,
+      "bytes": 27584071
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/RUN-v3/work",
+      "removed": true,
+      "archivedAndAuthenticatedBeforeRemoval": true,
+      "files": 282,
+      "bytes": 27580270
+    }
+  ],
+  "activeChildren": 0,
+  "knownChildrenBeforeFinalPublication": 31,
+  "closedChildrenBeforeFinalPublication": 31,
+  "rawCaptureAndResultDirectoriesRetained": true,
+  "noWorkerAcquisitions": true
+}

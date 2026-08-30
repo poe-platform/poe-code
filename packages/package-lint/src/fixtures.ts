@@ -3,8 +3,16 @@ import path from "node:path";
 import { loadWorkspace, type LintFs, type WorkspaceModel } from "./model.js";
 
 /** A memfs-backed {@link LintFs} built from an absolute-path → contents map. */
-export function memLintFs(files: Record<string, string>): LintFs {
-  const promises = createFsFromVolume(Volume.fromJSON(files)).promises;
+export function memLintFs(
+  files: Record<string, string>,
+  symlinks: Record<string, string> = {}
+): LintFs {
+  const volume = Volume.fromJSON(files);
+  for (const [link, target] of Object.entries(symlinks)) {
+    volume.mkdirSync(path.dirname(link), { recursive: true });
+    volume.symlinkSync(target, link);
+  }
+  const promises = createFsFromVolume(volume).promises;
   async function listFiles(dir: string): Promise<string[]> {
     let entries: { name: string; isDirectory(): boolean }[];
     try {
@@ -39,6 +47,12 @@ export function memLintFs(files: Record<string, string>): LintFs {
     async stat(p) {
       const stat = await promises.stat(p);
       return { isDirectory: () => stat.isDirectory(), isFile: () => stat.isFile() };
+    },
+    async lstat(p) {
+      return promises.lstat(p);
+    },
+    async realpath(p) {
+      return (await promises.realpath(p)) as string;
     },
     listFiles
   };

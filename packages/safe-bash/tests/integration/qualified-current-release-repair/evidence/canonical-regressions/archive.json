@@ -1,0 +1,22 @@
+{
+  "name": "archive",
+  "command": "git",
+  "args": [
+    "archive",
+    "--format=tar",
+    "--output=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-release-regressions-5h7axC/source.tar",
+    "c3fbda6279028fd2bde9f6d967970870ff7546aa",
+    "package.json",
+    "tsconfig.json",
+    "tests/integration/qualified-current-release-repair/coverage.test.ts",
+    "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+    "tests/plugins/qualified-current-release/consumers.mjs",
+    "tests/plugins/qualified-current-release/inventory-check.mjs",
+    "tests/plugins/stream-five-public/current-profile.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,3190 @@
+{
+  "started": "2026-08-27T22:06:27.233Z",
+  "inputSha256": "121d5dde6dd77148828feb775408288f98755c975d855e54a4a00040e25f8504",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "LANGUAGE": "C",
+    "TZ": "UTC"
+  },
+  "host": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2"
+  },
+  "profiles": {
+    "gnu": {
+      "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "qualification": "GNU expr 9.7 on Darwin, not GNU/Linux; linked library not independently hashed"
+    },
+    "apple": {
+      "filename": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f",
+      "qualification": "Apple /bin/expr on Darwin; no GNU version claim or inferred internal spans"
+    }
+  },
+  "qualificationCalls": {
+    "gnu": {
+      "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "argv": [
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "LANGUAGE": "C",
+        "TZ": "UTC"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "657870722028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d696b65205061726b65722c204a616d657320596f756e676d616e2c20616e64205061756c204567676572742e0a",
+      "stderrHex": ""
+    },
+    "apple": {
+      "filename": "/bin/expr",
+      "argv0": "/bin/expr",
+      "argv": [
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "LANGUAGE": "C",
+        "TZ": "UTC"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "2d2d76657273696f6e0a",
+      "stderrHex": ""
+    }
+  },
+  "rows": [
+    {
+      "id": "P-empty",
+      "subject": "",
+      "pattern": "\\(a*\\)*\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "P-a",
+      "subject": "a",
+      "pattern": "\\(a*\\)*\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "P-aaa",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)*\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "P-aaaa",
+      "subject": "aaaa",
+      "pattern": "\\(a*\\)*\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "Q-empty",
+      "subject": "",
+      "pattern": "\\(a*\\)\\{2\\}\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "Q-aaa",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{2\\}\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "F-aa",
+      "subject": "aa",
+      "pattern": "\\(a*\\)\\{0,2\\}\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aa",
+            ":",
+            "\\(a*\\)\\{0,2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)\\{0,2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aa",
+            ":",
+            "\\(a*\\)\\{0,2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aa",
+            ":",
+            "\\(a*\\)\\{0,2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "D-abab",
+      "subject": "abab",
+      "pattern": "\\(a\\(b\\)*\\)*\\2",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "abab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "abab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "abab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "abab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "D-abaab",
+      "subject": "abaab",
+      "pattern": "\\(a\\(b\\)*\\)*\\2",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "abaab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "abaab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "abaab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "abaab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "E-aaa",
+      "subject": "aaa",
+      "pattern": "\\(a\\(b*\\)\\)*\\2",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "historical-mandatory-no-reference",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{2\\}",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "historical-alternation-longest",
+      "subject": "aaa",
+      "pattern": "\\(a\\|aa\\)a*",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a\\|aa\\)a*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a\\|aa\\)a*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a\\|aa\\)a*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a\\|aa\\)a*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "absent-zero-repeat",
+      "subject": "",
+      "pattern": "\\(a\\)\\{0\\}\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "",
+            ":",
+            "\\(a\\)\\{0\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "",
+            ":",
+            "\\(a\\)\\{0\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "",
+            ":",
+            "\\(a\\)\\{0\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "",
+            ":",
+            "\\(a\\)\\{0\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "absent-branch-reference",
+      "subject": "bb",
+      "pattern": "\\(a\\)\\|b\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "bb",
+            ":",
+            "\\(a\\)\\|b\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "bb",
+            ":",
+            "\\(a\\)\\|b\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "bb",
+            ":",
+            "\\(a\\)\\|b\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "bb",
+            ":",
+            "\\(a\\)\\|b\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "prefix-star",
+      "subject": "aaa",
+      "pattern": "a*\\(a*\\)",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a*\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a*\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a*\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a*\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "prefix-interval",
+      "subject": "aaa",
+      "pattern": "a\\{0,2\\}\\(a*\\)",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a\\{0,2\\}\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a\\{0,2\\}\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a\\{0,2\\}\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a\\{0,2\\}\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "prefix-dot",
+      "subject": "ab",
+      "pattern": ".*\\(.*\\)",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "ab",
+            ":",
+            ".*\\(.*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "ab",
+            ":",
+            ".*\\(.*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "ab",
+            ":",
+            ".*\\(.*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "ab",
+            ":",
+            ".*\\(.*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "prefix-plus-extension",
+      "subject": "aaa",
+      "pattern": "a\\+\\(a*\\)",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a\\+\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a\\+\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a\\+\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a\\+\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "nested-prefix",
+      "subject": "aaa",
+      "pattern": "\\(a*\\(a*\\)\\)",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\(a*\\)\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\(a*\\)\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\(a*\\)\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\(a*\\)\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "nested-prefix-reference",
+      "subject": "aaaa",
+      "pattern": "\\(a*\\(a*\\)\\)\\2",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaaa",
+            ":",
+            "\\(a*\\(a*\\)\\)\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "616161610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaaa",
+            ":",
+            "\\(a*\\(a*\\)\\)\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "616161610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaaa",
+            ":",
+            "\\(a*\\(a*\\)\\)\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaaa",
+            ":",
+            "\\(a*\\(a*\\)\\)\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "prefix-two-captures",
+      "subject": "aaa",
+      "pattern": "a*\\(a*\\)\\(a*\\)",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a*\\(a*\\)\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a*\\(a*\\)\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a*\\(a*\\)\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a*\\(a*\\)\\(a*\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "prefix-reference",
+      "subject": "aaaa",
+      "pattern": "a*\\(a*\\)\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaaa",
+            ":",
+            "a*\\(a*\\)\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaaa",
+            ":",
+            "a*\\(a*\\)\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaaa",
+            ":",
+            "a*\\(a*\\)\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaaa",
+            ":",
+            "a*\\(a*\\)\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "two-references",
+      "subject": "aabb",
+      "pattern": "\\(a*\\)\\(b*\\)\\2\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aabb",
+            ":",
+            "\\(a*\\)\\(b*\\)\\2\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aabb",
+            ":",
+            "\\(a*\\)\\(b*\\)\\2\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aabb",
+            ":",
+            "\\(a*\\)\\(b*\\)\\2\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aabb",
+            ":",
+            "\\(a*\\)\\(b*\\)\\2\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "alternation-reversed",
+      "subject": "aaa",
+      "pattern": "\\(aa\\|a\\)a*",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(aa\\|a\\)a*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(aa\\|a\\)a*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "\\(aa\\|a\\)a*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "\\(aa\\|a\\)a*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "prefix-alternation",
+      "subject": "aaa",
+      "pattern": "a*\\(a\\|aa\\)",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a*\\(a\\|aa\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a*\\(a\\|aa\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aaa",
+            ":",
+            "a*\\(a\\|aa\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aaa",
+            ":",
+            "a*\\(a\\|aa\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "required-child-empty",
+      "subject": "aa",
+      "pattern": "\\(a\\(b*\\)\\{2\\}\\)*\\2",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aa",
+            ":",
+            "\\(a\\(b*\\)\\{2\\}\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aa",
+            ":",
+            "\\(a\\(b*\\)\\{2\\}\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aa",
+            ":",
+            "\\(a\\(b*\\)\\{2\\}\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aa",
+            ":",
+            "\\(a\\(b*\\)\\{2\\}\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "descendant-reentered",
+      "subject": "ababb",
+      "pattern": "\\(a\\(b\\)*\\)*\\2",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "ababb",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61620a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "ababb",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61620a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "ababb",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61620a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "ababb",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "descendant-reentered-empty",
+      "subject": "aba",
+      "pattern": "\\(a\\(b*\\)\\)*\\2",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aba",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aba",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aba",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aba",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "open-self-reference",
+      "subject": "aa",
+      "pattern": "\\(a\\1\\)",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aa",
+            ":",
+            "\\(a\\1\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aa",
+            ":",
+            "\\(a\\1\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aa",
+            ":",
+            "\\(a\\1\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20696e76616c6964206261636b7265666572656e6365206e756d6265720a"
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aa",
+            ":",
+            "\\(a\\1\\)"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "open-reentry-reference",
+      "subject": "aa",
+      "pattern": "\\(a\\1*\\)*",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "aa",
+            ":",
+            "\\(a\\1*\\)*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "aa",
+            ":",
+            "\\(a\\1*\\)*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "aa",
+            ":",
+            "\\(a\\1*\\)*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a20696e76616c6964206261636b7265666572656e6365206e756d6265720a"
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "aa",
+            ":",
+            "\\(a\\1*\\)*"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "completed-empty-reference",
+      "subject": "a",
+      "pattern": "\\(a*\\)\\(b*\\)\\2",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "a",
+            ":",
+            "\\(a*\\)\\(b*\\)\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)\\(b*\\)\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "a",
+            ":",
+            "\\(a*\\)\\(b*\\)\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)\\(b*\\)\\2"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    },
+    {
+      "id": "required-empty-after-prefix",
+      "subject": "a",
+      "pattern": "a*\\(b*\\)\\{2\\}\\1",
+      "observations": {
+        "gnu-portable": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "a",
+            ":",
+            "a*\\(b*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnu-plus": {
+          "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv0": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+          "argv": [
+            "+",
+            "a",
+            ":",
+            "a*\\(b*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-portable": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "a",
+            ":",
+            "a*\\(b*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple-plus": {
+          "filename": "/bin/expr",
+          "argv0": "/bin/expr",
+          "argv": [
+            "+",
+            "a",
+            ":",
+            "a*\\(b*\\)\\{2\\}\\1"
+          ],
+          "environment": {
+            "PATH": "/usr/bin:/bin",
+            "LC_ALL": "C",
+            "LANG": "C",
+            "LANGUAGE": "C",
+            "TZ": "UTC"
+          },
+          "cwd": "/Users/kjopek/Workspace/safe-bash",
+          "status": 2,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "",
+          "stderrHex": "657870723a2073796e746178206572726f720a"
+        }
+      }
+    }
+  ],
+  "finished": "2026-08-27T22:06:27.697Z",
+  "counts": {
+    "distinctInputs": 32,
+    "semanticNativeCalls": 128,
+    "qualificationCalls": 2,
+    "executionFailures": 0
+  },
+  "cleanup": {
+    "allChildrenAwaited": true,
+    "nativeScratchCreated": false,
+    "binaryHashesBeforeAfterEqual": true,
+    "nativeSpans": "unobserved; command stdout does not establish internal registers"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "attestationSha256": "75ddffd295c361bc9433319844dd1277746d521bd2e8a7bb2b400c9d82975aac",
+  "reportSha256": "9d36020a19476830b42081c4307a5562f330ea2e394670a541b3f6b2cec981e4",
+  "resultsSha256": "c776bc7cc720f02b8fd47d3d84056d8e8a8d86eba10c6b65bc80f1db8b7b3e2c",
+  "rawManifestSha256": "23bc2c509f1e905292aaf06677629835a31fa94328ef397f2f323a1efb2da02f",
+  "rawFiles": 192,
+  "rawBytes": 26768280,
+  "independentClaim": "Exact bounded first-attempt25 profiles, six fresh private before/after pairs, exact import/input/closure predicates; no source/security/global/parity promotion",
+  "noPromotion": true
+}

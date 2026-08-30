@@ -1,0 +1,8 @@
+{
+  "status": 0,
+  "signal": null,
+  "stderr": "",
+  "stdoutBytes": 170157,
+  "reviewerHarnessSha256": "3f299ce49b2effb4933cec365cecbe6fa67c217c0bd8e5d2dd1b853563094765",
+  "reason": "Independent extraction and comparison of classifier-only names; static metadata only, no cases executed."
+}

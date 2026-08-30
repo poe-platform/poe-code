@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "date": "2026-08-27",
+  "tools": {
+    "node": "v22.22.2",
+    "typescript": "5.9.3"
+  },
+  "bindings": {
+    "regressionFreezeCommit": "01fbb3880bbe662adb2c7371e52ea3b47c0549f4",
+    "regressionFreezeRawCommitSha256": "02b8c1692000305a6e0bf1289551d610258ba2c1cd76c1637b339b1a0b1961d8",
+    "sourceRepairCommit": "fbbe1ef793b7434871403125efbeb46624a8e081",
+    "sourceRepairRawCommitSha256": "f86d811c54b7910f8efa2d7d60c5936898b55129670460b5324428ab283596de",
+    "originalHelper": {
+      "commit": "6747227230cd770379148552d471621717b766d7",
+      "blob": "d5ceafef56a9351bd77630db66d9acfdc19a38ee",
+      "sha256": "cde614b830e11f2040db65d2347c5f430df4b353324684585b2dc242ac733960"
+    },
+    "repairHelper": {
+      "blob": "a7742b7f7e81bcd8c1c2a6be35092d8b5f41102f",
+      "sha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac"
+    }
+  },
+  "commitPathsets": {
+    "regressionFreeze": [
+      "tests/shell/cancellation-stage1-20260827/repair-v1/BASELINE.md",
+      "tests/shell/cancellation-stage1-20260827/repair-v1/POLICY.md",
+      "tests/shell/cancellation-stage1-20260827/repair-v1/baseline.tap",
+      "tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts",
+      "tests/shell/cancellation-stage1-20260827/repair-v1/cases.json",
+      "tests/shell/cancellation-stage1-20260827/repair-v1/freeze-manifest.json"
+    ],
+    "sourceRepair": [
+      "src/shell/cancellation.ts"
+    ]
+  },
+  "commands": [
+    {
+      "id": "focused-baseline",
+      "commandSha256": "ab89669ac4c616aff6b22f78ddd8b0d012be0c21c43a2b4509bf392a9221afdd",
+      "exit": 1,
+      "pass": 3,
+      "fail": 2,
+      "retried": false,
+      "helper": "original"
+    },
+    {
+      "id": "focused-final",
+      "commandSha256": "ab89669ac4c616aff6b22f78ddd8b0d012be0c21c43a2b4509bf392a9221afdd",
+      "exit": 0,
+      "pass": 5,
+      "fail": 0,
+      "retried": false,
+      "helper": "repair"
+    },
+    {
+      "id": "original-runtime",
+      "commandSha256": "dbc5410fe7e37161afb76ff8fbd0ed59b7bcc8992b307e6d552363cca559f83f",
+      "exit": 0,
+      "pass": 22,
+      "fail": 0,
+      "retried": false
+    },
+    {
+      "id": "original-strict",
+      "commandSha256": "21b82355f188b9292785680b989e92d844071381124ea45dec4776fa51f43aa4",
+      "exit": 0
+    },
+    {
+      "id": "original-negative-types",
+      "commandSha256": "34bb6b5e181f826af04c8e3429c7a39159165673d0cd5905ab4376e3fcd81be8",
+      "exit": 0,
+      "rows": 4
+    },
+    {
+      "id": "isolated-build",
+      "commandSha256": "27d4f15d66b6ab3a98d909a6e2d832fa5cd68ae8beb34d926177e50690167d17",
+      "exit": 0,
+      "artifacts": {
+        "shell/cancellation.js": "ef09ed467282c95ef729be71999b9945e7b16ddfaf90c1bc3d2688d30c138d13",
+        "shell/cancellation.d.ts": "67b90043f40ef0c5a53ae0be912351cb05f51707523ca4a3ae4e7d8b9f432e65"
+      }
+    }
+  ],
+  "frozenRegressionFiles": {
+    "cases.json": "5f5ff1749daebdeb53aa322fa766b77c6c9769ba937c379ca04f1c97b2aefd0d",
+    "POLICY.md": "89b93b92f1f7b46bf2c958f559680c079ab5e563ecd3993c9de42bc648a4f541",
+    "cancellation-repair.test.ts": "a8e3d2f3714c82c17bd66e62664896a584ab8d5435931df44bb37ec20f4e04fa",
+    "baseline.tap": "fcca1d6da725292b890a2fa66f0e436087aec11dd17a1cba587e1c77f0e08233",
+    "BASELINE.md": "7b5bbb67dea3b23cfe79411488471b1ec296916ba87f54abf5f5b9707b1e2ebf"
+  },
+  "historicalIndependent": {
+    "isolated": "10/12",
+    "moved": "10/12",
+    "typeNegatives": 6,
+    "mutants": 3,
+    "rerun": false,
+    "rescored": false,
+    "edited": false
+  },
+  "closure": {
+    "scratchRemoved": true,
+    "ownProcessesSettledNaturally": true,
+    "ownListenersRemaining": false,
+    "subagentsUsed": 0
+  }
+}

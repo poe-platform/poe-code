@@ -1,0 +1,294 @@
+{
+  "profile": "GNU9.7 Darwin LC_ALL=C",
+  "evidence": [
+    {
+      "id": "size-1g",
+      "args": [
+        "-b",
+        "1g"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1g'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1g'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1t",
+      "args": [
+        "-b",
+        "1t"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1t'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1t'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1p",
+      "args": [
+        "-b",
+        "1p"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1p'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1p'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1e",
+      "args": [
+        "-b",
+        "1e"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1e'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1e'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1z",
+      "args": [
+        "-b",
+        "1z"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1z'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1z'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1y",
+      "args": [
+        "-b",
+        "1y"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1y'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1y'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1r",
+      "args": [
+        "-b",
+        "1r"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1r'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1r'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1q",
+      "args": [
+        "-b",
+        "1q"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1q'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1q'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1B",
+      "args": [
+        "-b",
+        "1B"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1B'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '1B'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1mB",
+      "args": [
+        "-b",
+        "1mB"
+      ],
+      "expected": {
+        "status": 0,
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "stderr": ""
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-1miB",
+      "args": [
+        "-b",
+        "1miB"
+      ],
+      "expected": {
+        "status": 0,
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "stderr": ""
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-+K",
+      "args": [
+        "-b",
+        "+K"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '+K'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '+K'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size- K",
+      "args": [
+        "-b",
+        " K"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: ' K'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: ' K'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-K",
+      "args": [
+        "-b",
+        "K"
+      ],
+      "expected": {
+        "status": 0,
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "stderr": ""
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size- +2",
+      "args": [
+        "-b",
+        " +2"
+      ],
+      "expected": {
+        "status": 0,
+        "stderr": ""
+      },
+      "observed": {
+        "status": 0,
+        "stderr": ""
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "size-0K",
+      "args": [
+        "-b",
+        "0K"
+      ],
+      "expected": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '0K'\n"
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: invalid number of bytes: '0K'\n"
+      },
+      "semanticMatch": true
+    },
+    {
+      "id": "empty-output-directory-stdin",
+      "args": [],
+      "expected": {
+        "status": 0,
+        "stderr": ""
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: illegal operation on a directory '/xaa'\n",
+        "files": {}
+      },
+      "semanticMatch": false
+    },
+    {
+      "id": "empty-output-directory-file",
+      "args": [
+        "input"
+      ],
+      "expected": {
+        "status": 0,
+        "stderr": ""
+      },
+      "observed": {
+        "status": 1,
+        "stderr": "split: illegal operation on a directory '/xaa'\n",
+        "files": {
+          "input": ""
+        }
+      },
+      "semanticMatch": false
+    }
+  ],
+  "failed": true
+}

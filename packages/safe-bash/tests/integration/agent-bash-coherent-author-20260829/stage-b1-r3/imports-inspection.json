@@ -1,0 +1,22 @@
+{
+  "utc": "2026-08-29T14:32:23.582Z",
+  "pid": 93567,
+  "receipts": [
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source/src/shell/shell.ts",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source/src/shell/shell.ts",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source/src/commands/node/index.ts",
+      "bytes": 9619,
+      "sha256": "b55193aceb8d2f960a444372166bfef598fc5bfec5f53159d49363035bb7b6ce"
+    }
+  ],
+  "total": 39781
+}

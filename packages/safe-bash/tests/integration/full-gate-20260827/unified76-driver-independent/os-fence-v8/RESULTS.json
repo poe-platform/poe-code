@@ -1,0 +1,224 @@
+{
+  "schema": 1,
+  "status": "HOLD_NOT_SCOPED_DRIVER_ACCEPTANCE",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "additionalControls": "65bb898d17af8e674842e060ddd7ea61f91ff5bc",
+  "evidence": "62593a89afb0ee9db82341cf073229c555d3e2bc",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "a99c9f24b9edee16ef959139b48905e943ee108080c0aa39511965103f32f26a",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "packet": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-os-fence-v1/HANDOFF.md",
+    "sha256": "9826999f88df78f85c8569e42ef2a26efc68be65c934d6a5e9c2091471589395"
+  },
+  "commands": [
+    {
+      "command": "node24 prepare.mjs",
+      "exit": 0,
+      "scope": "metadata/copy only; no author imports"
+    },
+    {
+      "command": "node24 review.mjs",
+      "exit": 1,
+      "scope": "initial setup failure; no probe completed"
+    },
+    {
+      "command": "node24 review-followup.mjs",
+      "exit": 1,
+      "scope": "ordinary0,names0,imports1; later phases not started"
+    },
+    {
+      "command": "node24 review-safe-remainder.mjs",
+      "exit": 0,
+      "scope": "descendants0,shipping-fds0; explicit FD limitation observed"
+    }
+  ],
+  "cohorts": {
+    "initial": {
+      "passed": 0,
+      "failedSetup": 1,
+      "probeExecuted": 0
+    },
+    "corrected": {
+      "completePhasePass": 2,
+      "phaseFailure": 1,
+      "notStarted": [
+        "descendants",
+        "shipping-fds",
+        "explicit-fd-limitation"
+      ]
+    },
+    "safeRemainder": {
+      "completePhasePass": 2,
+      "explicitFdLimitationObserved": 1
+    }
+  },
+  "matrix": [
+    {
+      "id": "F01",
+      "status": "PARTIAL_STATIC_BINDING_AND_SHIPPING_CALLPATH; FULL_EXTERNAL_CLOSURE_NOT_REVERIFIED"
+    },
+    {
+      "id": "F02",
+      "status": "NODE_ORDINARY_AND_BACKSLASH_PASS; NATIVE_CREATE_APPEND_PASS; NATIVE_RENAME_NOT_EXECUTED"
+    },
+    {
+      "id": "F03",
+      "status": "HOLD_OUTSIDE_DIRECTORY_SYMLINK_IMPORT_ALLOWED; SEVEN_INSTRUCTION_NAME_OPERATIONS_DENIED"
+    },
+    {
+      "id": "F04",
+      "status": "PASS_SCOPED_ENV_CLEARED_NODE_NATIVE_DESCENDANTS"
+    },
+    {
+      "id": "F05",
+      "status": "PASS_SHIPPING_CANARY_FD_NOT_INHERITED; RAW_EXPLICIT_FD_WRITE_ESCAPE_OBSERVED"
+    },
+    {
+      "id": "F06",
+      "status": "NOT_EXECUTED_STOPPED_AFTER_F03_COUNTEREXAMPLE"
+    },
+    {
+      "id": "F07",
+      "status": "NATURAL_WORKER_PHASE_CLOSE_AND_THREE_FOREIGN_SENTINELS_VERIFIED; LEAK_MUTANT_NOT_EXECUTED"
+    },
+    {
+      "id": "F08",
+      "status": "NOT_EXECUTED_NEW_FENCE_A10_ADMISSION_STOPPED_AFTER_F03"
+    }
+  ],
+  "attempts": {
+    "instructionNameOperations": 9,
+    "denied": 9,
+    "unexpectedInstructionFilesObserved": 0,
+    "qualification": "Seven direct create/rename/link attempts plus one cleared-env Node and one native instruction write. Outside-directory symlink publication succeeded; do not call zero attempts or universal no-copy proof."
+  },
+  "counterexample": "FINDING.json",
+  "fdLimitation": {
+    "status": 0,
+    "signal": null,
+    "stdout": "outside ordinary FD write completed\n",
+    "stderr": "",
+    "after": "036b28370e0c7e3086f0cca230a9ad9f326066be5d526f97f09ebd5b823f2fe0",
+    "bytes": "FD-ESCAPEanary",
+    "qualification": "Deliberately unsafe raw descriptor route; not shipping stdio. Do not use this route for archive/product."
+  },
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "declaredIdentityMatched": true
+    },
+    {
+      "path": "/usr/bin/sandbox-exec",
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+      "declaredIdentityMatched": true
+    },
+    {
+      "path": "/bin/sh",
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59",
+      "declaredIdentityMatched": true
+    },
+    {
+      "path": "/usr/bin/tar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "declaredIdentityMatched": true
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "declaredIdentityMatched": true
+    },
+    {
+      "path": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c",
+      "declaredIdentityMatched": true
+    },
+    {
+      "path": "/usr/bin/sw_vers",
+      "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd",
+      "declaredIdentityMatched": true
+    },
+    {
+      "path": "/usr/bin/otool",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "declaredIdentityMatched": true
+    }
+  ],
+  "systemBoundary": {
+    "originalReferencePairs": 11,
+    "additionalReferencePairs": 2,
+    "additional": [
+      [
+        "/usr/bin/sandbox-exec",
+        "/usr/lib/libsandbox.1.dylib"
+      ],
+      [
+        "/usr/bin/sandbox-exec",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    ],
+    "qualification": "Only macOS26.4.1/build25E253 metadata-qualified references; not13 unique libraries/binaries, no readable library filehash or full OS attestation. No new exception introduced."
+  },
+  "provenance": {
+    "driverFilesVerified": 36,
+    "guardOrigin": "candidate:tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs",
+    "guardSha256": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114",
+    "osFenceSourceSha256": "0be2d726ef3bb3092b0fb02c8bcb1c2837b2d9a782bb75b5ea88b1cd53921d06",
+    "supervisorSourceSha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+    "qualification": "Fresh regular copies exactly match frozen driver Git blobs; custom benign component probes only. Actual shipping phaseRunner and outer OS launch used. No independent write interceptor; copied compiler entry bytes never executed. Short-lived grandchildren may escape polling; child output/status is separately retained."
+  },
+  "history": {
+    "priorArtifactsUnchanged": 303,
+    "original22": "21 inherited+1 scoped5c32 history unchanged; not rerun",
+    "projection": "e584515f scoped8/A10/13observer unchanged; not new OS-fence A10 proof",
+    "oldFullAttempt": "a9ec/31d stopped0/14 and forbidden-copy incident preserved",
+    "authorCountsCountedAsIndependent": 0
+  },
+  "sevenNew76Proofs": [
+    {
+      "id": "binding-complete",
+      "status": "HOLD_DIRECTORY_IMPORT_POLICY_COUNTEREXAMPLE_NEW_RELEASE_ABSENT"
+    },
+    {
+      "id": "binding-pending-template",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN_ON_NEW_SOURCE"
+    },
+    {
+      "id": "binding-mutable-head",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN_ON_NEW_SOURCE"
+    },
+    {
+      "id": "binding-missing-asset",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN_ON_NEW_SOURCE"
+    },
+    {
+      "id": "binding-missing-classification",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN_ON_NEW_SOURCE"
+    },
+    {
+      "id": "binding-missing-cleanup-manifest",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN_ON_NEW_SOURCE"
+    },
+    {
+      "id": "binding-skipped-case",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN_ON_NEW_SOURCE"
+    }
+  ],
+  "package": {
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "status": "CARRIED_IDENTICAL_CANDIDATE_NO_REPACK_NO_NEW_EMIT"
+  },
+  "publicPrerequisites": "Root HTML/DU/Expr accepted; no old pending-state reinterpretation",
+  "fullGateLaunched": false,
+  "rootRelease": "ABSENT_HOLD",
+  "privateAccess": false,
+  "limitations": [
+    "No full Git/archive reconstruction or A10/832 emits on this new fence after actual F03 failure",
+    "No inherited directory-stream or separate read-only-FD control; r+ canary supplied intentional writable FD limitation",
+    "Only observed natural child closures and foreign sentinels; no new leak/forcedcleanup mutant",
+    "No hard RSS/disk watchdog claim; all completed bounded processes below recipe deadlines and measured scratch/capture budgets",
+    "This publication counterexample does not establish outside write-through escape or instruction plaintext materialization"
+  ]
+}

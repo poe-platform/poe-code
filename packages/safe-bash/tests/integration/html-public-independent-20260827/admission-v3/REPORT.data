@@ -1,0 +1,97 @@
+ADMISSION-V3 AUTHOR CONTROL REPAIR — STOPPED / HOLD — 2026-08-27
+
+Freeze commit: eb56ed1eff6e7061aa219fb4877bc2382cf15a27
+Recipe manifest SHA256:
+35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037
+Base v2 commit: aa4374b0ab5f0789e51026b7c6fe163c044a9a6c
+Base v2 seal SHA256:
+82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7
+Unchanged complete core.mjs SHA256:
+446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d
+Unchanged producer fixture SHA256:
+74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c.
+
+DISPOSITION / EXACT DENOMINATORS
+One frozen recipe invocation; supervisor status1; no repair or retry after failure.
+Five controls predeclared; three executed: two expected outcomes, one unexpected
+control failure. Timeout and allocating-mutant controls were NOT EXECUTED because
+the frozen fail-fast policy stopped at control3. Meaningful allocation-mutant kill
+and timeout propagation are therefore NOT DEMONSTRATED. Do not approve this repair.
+Seven syntax checks and seven selected committed-source authentications passed
+before freeze. One pre-freeze static schema mistake is preserved in
+recipe/STATIC-FAILURE-01.data, not hidden or counted as a control execution.
+Eleven later read-only evidence checks passed; these do not change control results.
+
+1 POSITIVE — ISOLATED STREAM COMPONENT ONLY
+2026-08-27T23:42:04.673Z through23:42:06.233Z; consumer20048, producer20049.
+Both natural status0/signalnull; no supervisor kill, no surviving group members.
+Bytes1073872896, chunks16386, producer writes16386, chunk maximum65536,
+SHA256 f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f.
+Absolute strict <268435456 unchanged; no baseline subtraction or forced GC.
+Native core maximum current RSS117309440 bytes.
+Observer consumer baseline RSS46071808; fieldwise sampled RSS peak117342208.
+Producer baseline RSS45105152; sampled RSS peak56836096, accounted separately.
+Both observers recorded67 nonbaseline samples plus their baseline record.
+Consumer pending maximum1; callback pending bytes maximum65536, settled0.
+Producer false writes16203/drains16203, pending drains maximum1/settled0,
+sampled writableLength maximum65536/settled0. No kernel-queue bound is asserted.
+All heapUsed/heapTotal/external/arrayBuffers baselines, fieldwise peaks and final
+values are preserved in child receipts, samples, parent raw and VALIDATION.json.
+This is the dedicated fresh consumer PROCESS metric, not whole verifier RSS.
+Supervisor metrics are separately preserved and are excluded explicitly, not
+silently waived. Additional observer sampling is not a continuous hard-RSS cap.
+
+2 PRODUCER-EXIT7 — EXPECTED NEGATIVE, NOT PRODUCT PASS
+2026-08-27T23:42:06.336Z through23:42:07.849Z; consumer20067, producer20068.
+Full unchanged byte count/digest completed. Producer naturally exited7;
+unmodified core raised STREAM_PROCESS; worker forwarded it and naturally exited17.
+Parent recorded operationSucceeded=false and expected-control-outcome. Producer
+and worker were absent after close; empty process group, no supervisor kill.
+
+3 CONSUMER-FAILURE — UNEXPECTED CONTROL FAILURE, PRESERVED
+2026-08-27T23:42:07.945Z through23:42:08.102Z; consumer20087, producer20088.
+Actual intended callback boundary reached after16 real chunks/1048576 bytes.
+V3_CONSUMER_FAILURE propagated through unmodified core to parent; worker exited17.
+Producer instead exited1/signalnull with captured "Error: write EPIPE". The frozen
+coordinator expected producer.signal === "SIGTERM" and failed at line209:
+  AssertionError [ERR_ASSERTION]: null !== 'SIGTERM'
+This is not an import/parse failure. Child receipts, all numeric memory/flow
+fields and RAW-RECEIPT were already durable when the assertion failed. Parent
+awaited child close; producer and consumer were absent and group was empty.
+Consumer RSS baseline46284800/peak50200576; producer45301760/47316992.
+The core catch contains child.kill(), but its return/signal delivery is not logged;
+do not infer a successful signal kill from that source call. Captured closes were
+unsignaled, not the required SIGTERM outcome. No intentional allocation kill ran.
+No signal assertion was relaxed, no product/core bytes were changed, and this
+unexpected result was NOT relabeled a pass despite correct error forwarding/reaping.
+Root must review the mismatch before any revised control policy or reexecution.
+
+EVIDENCE / REPLAY
+execution-01/{01-positive,02-producer-exit7,03-consumer-failure}/ each contains:
+consumer.samples.jsonl, producer.samples.jsonl, consumer.receipt.json,
+producer.start.json, producer.receipt.json, supervisor.events.jsonl,
+START.json, RAW-RECEIPT.json, VERDICT.json and bounded stdout/stderr captures.
+execution-01/{PRE,POST,SUMMARY}.json bind tools, exact frozen source inventory,
+selected committed historical sources and outcomes. Companion execution-01
+.stdout.data/.stderr.data/.exit.data preserve the supervisor invocation status.
+VALIDATION.json records read-only numeric, receipt-order, absence, exact-source
+and denominator checks. Its passes are evidence integrity, not control admission.
+MANIFEST.json seals this report, recipe and all raw/validation files. Evidence is
+a separate explicit-only second commit; get that commit from Git, not a circular
+self-reference in the manifest. Frozen recipe is unchanged after execution.
+Exact overlay policy and replay command remain recipe/RECIPE.data; only root may
+authorize another fresh-output replay after review. No current invocation remains.
+
+HISTORICAL QUALIFICATIONS / REMAINING HOLD
+Sealed diagnosis e579a96ca8889174b24d9c805a00a1f3d48305e2 remains authoritative:
+old numeric RSS unrecoverable; exact cause UNKNOWN; pre-fixture resident pages
+plausible but NOT proven; no unbounded collector found. Its single fresh-process
+diagnostic and this new positive are not the old independent run or its rescore.
+Raman independent d28083dd43c7d1b513ec195b38df2f7fd3e15b48 HOLD34/35 remains;
+author39/39 remains separate. Original52 missing frozen rejection, three v2
+development admission failures and reconstruction qualifications remain preserved.
+Actual34 executed0 and remains HELD pending different admission review accepted.
+Four later materializer/reconstruction controls executed0; full410 build/pack,
+positive materialization and reconstruction NOT EXECUTED. No candidate imports,
+archive replay, product/package/config/AGENTS/private changes, branches or refs.
+Stop after this failure evidence; root decides subsequent work and routes Raman.

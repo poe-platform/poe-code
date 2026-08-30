@@ -1,0 +1,16 @@
+One web.run request, before harness creation or execution:
+{"open":[{"ref_id":"https://nodejs.org/download/release/v22.22.2/docs/api/typescript.html"},{"ref_id":"https://nodejs.org/download/release/v22.22.2/docs/api/cli.html#--experimental-transform-types"}],"response_length":"short"}
+
+Exact first returned result:
+Internal Error ()
+Source: open({"ref_id":"https://nodejs.org/download/release/v22.22.2/docs/api/typescript.html","lineno":null}); Total lines: 1
+L0: URL https://nodejs.org/download/release/v22.22.2/docs/api/typescript.html is not safe to open (non-retryable error)
+
+Exact second returned result:
+Internal Error ()
+Source: open({"ref_id":"https://nodejs.org/download/release/v22.22.2/docs/api/cli.html#--experimental-transform-types","lineno":null}); Total lines: 1
+L0: URL https://www.nodejs.org/download/release/v22.22.2/docs/api/cli.html is not safe to open (non-retryable error)
+
+No alternate URL, search, client, transport, encoding, or retry followed.
+The tool did not provide a reason beyond these messages. This is not evidence
+that Node documentation, the approved loader flag, or the experiment is unsafe.

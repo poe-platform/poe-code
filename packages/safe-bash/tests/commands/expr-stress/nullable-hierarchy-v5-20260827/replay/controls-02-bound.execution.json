@@ -1,0 +1,16 @@
+{
+  "started": "2026-08-27T23:12:00.859Z",
+  "ended": "2026-08-27T23:12:01.025Z",
+  "args": [
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/binding-overlay/run-controls.mjs",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/sealed/model.mjs",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-v5-final-replay-kSGdP4/binding-overlay/BINDING.json"
+  ],
+  "node": "v22.22.2",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "352378755f0a4e5bfc6848735689d92853f80ecf72a00167064f596538cfc3f6",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "synchronousChildSettled": true
+}

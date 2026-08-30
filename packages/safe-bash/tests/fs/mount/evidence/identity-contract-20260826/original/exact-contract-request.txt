@@ -1,0 +1,63 @@
+Mount alias source-loss remediation: contract request to Curie (2026-08-26)
+
+Inspected src/contracts/filesystem.ts at HEAD 6854a6b56b47f2449a4b26f5d012975b252a4c33:
+FileStat has optional dev/ino but no identity scope. No existing typed seam
+can compare real backend instances through readonly/mount/overlay wrappers.
+
+Proposed minimal field: readonly identityScope?: object | symbol;
+on FileStat. No new method or root export required.
+
+Semantics requiring explicit contract owner approval:
+- Scope is opaque, contains no host root pathname, and is preserved by wrappers
+  for the actual backing entry returned by stat/lstat.
+- Identity is complete only with identityScope plus finite safe integer dev/ino.
+- Same scope/dev/ino means same live entry; same scope with different dev/ino
+  means distinct entries at observation time.
+- DIFFERENT scopes guarantee disjoint identity universes. They must NEVER be
+  allocated merely per adapter/client when underlying storage can overlap.
+- Native real instances use one process-wide Symbol.for namespace and native
+  dev/ino; independently allocated memory filesystems use unique opaque scopes.
+- Arbitrary remote clients must negotiate a truthful shared scope for overlapping
+  storage, or omit scope (unknown). An unnegotiated per-client token is unsafe.
+- Missing scope/dev/ino is UNKNOWN, not proof of distinctness. Cross-mount copy
+  to an existing unknown target must reject ENOTSUP before read/write/publication.
+  Missing targets can use exclusive creation to avoid raced alias truncation.
+- This is point-in-time identity, NOT a lease, atomicity, or external-writer
+  race protection. Existing native pathname TOCTOU limits remain explicit.
+
+Leaf owns ONLY src/fs/{mount,real,memory,readonly,overlay}/** and matching tests.
+Curie alone should implement/approve contract changes; parent owns S3/WebDAV.
+Please promptly add this field with agreed semantics, or supply precise alternate
+typed seam. Leaf will implement and test owned source without casts/heuristics.
+
+Progress: original 4-case repro reproduced 3 truncations/1 collision pass; exact
+original reports, committed repro, old source-hash manifests, and pre-edit hashes
+are preserved under tests/fs/mount/evidence/identity-20260826/. Native guard now
+rejects regular same-inode aliases with EINVAL (exclusive EEXIST), before copy;
+all 83 owned native tests pass including seven new tests. Mount same-local-path
+guard and overlay same-path rejection are implemented. Forty additional tests
+cover source/target wrapper combinations, zero-read/zero-mutation traps, unknown
+identity, missing-target exclusive races, and genuine disjoint writer failures.
+No identityScope field has been fabricated or added by this leaf. Cross-instance
+guard and metadata propagation are blocked on the minimal contract field above.
+The listed historical Curie agent ID cannot be messaged (agent not found).
+
+ACTION REQUIRED: Please add/approve the exact FileStat field above now, or reply
+with the approved alternate seam. All remaining owned implementation is ready
+to consume it. There is no existing truthful generic cross-instance identity
+seam in stat(dev/ino), local realpath, capabilities, or optional methods. The
+native-only guard cannot make the original three cross-mount tests pass: mount
+streams between adapters rather than invoking native copyFile. Their remaining
+failure is NOT an acceptable endpoint and will not be characterized as success.
+
+Contract-blocked handoff commits:
+- 5a6caffcacaf07aee61ce6e219dbd015436d036e native same-file guard + seven tests.
+- 029d67e60c7a18831066d36f50e55132afb05d7c resolved-path guards, stronger
+  regressions, exact immutable originals, source-pinned current RED evidence.
+Current results: unchanged original 1/4 (3 source-loss failures); complete
+owned 533/574 (41 failures); shared conformance 202/202; scoped noEmit pass;
+two isolated partial guard-removal mutations detected. Foreign index hash
+unchanged. See tests/fs/mount/evidence/identity-20260826/README.md.
+The leaf returns this explicit contract dependency rather than waiting
+indefinitely or inventing an identity field. It has NOT completed the requested
+cross-instance source fix. Please provide the Curie-owned typed seam to resume.

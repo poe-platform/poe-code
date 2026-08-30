@@ -1,0 +1,124 @@
+TAP version 13
+# {"review":"01","value":{"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"02","value":{"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# Subtest: 01 faithful opaque S3 readonly source executes shell cp over existing target
+ok 1 - 01 faithful opaque S3 readonly source executes shell cp over existing target
+  ---
+  duration_ms: 11.796958
+  type: 'test'
+  ...
+# Subtest: 02 faithful opaque DAV instances execute existing-target cp and preserve aliases
+ok 2 - 02 faithful opaque DAV instances execute existing-target cp and preserve aliases
+  ---
+  duration_ms: 25.288209
+  type: 'test'
+  ...
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/alias","syscall":"copyFile"}}
+# {"review":"03","value":{"alias":[0,255,19,65,10,128],"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}
+# {"review":"04","value":{"backend":"S3FileSystem","left":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"right":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"04","value":{"backend":"WebDavFileSystem","left":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"right":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# Subtest: 03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias
+ok 3 - 03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias
+  ---
+  duration_ms: 10.843209
+  type: 'test'
+  ...
+# Subtest: 04 actual distinct maps override identical URL bucket key and client hints
+ok 4 - 04 actual distinct maps override identical URL bucket key and client hints
+  ---
+  duration_ms: 9.02725
+  type: 'test'
+  ...
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"05 safe-refusal limitation, not positive overwrite credit","value":{"requests":["PROPFIND /source","PROPFIND /source","PROPFIND /","PROPFIND /","PROPFIND /source","PROPFIND /source","PROPFIND /source","PROPFIND /","PROPFIND /","PROPFIND /source","PROPFIND /source","PROPFIND /source"],"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"06","value":{"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"replay":"unknown; restored fresh observation accepted"}}
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"07","value":{"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"clone":"no provider-owned cross-protocol authority"}}
+# {"review":"error","value":{"code":"EACCES","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"08","value":{"stage":"metadata","source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EACCES","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"08","value":{"stage":"body","source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"ECANCELED","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# Subtest: 05 legitimate Real DAV overlap refuses unknown, then truthful existing comparison permits distinct copy
+not ok 5 - 05 legitimate Real DAV overlap refuses unknown, then truthful existing comparison permits distinct copy
+  ---
+  duration_ms: 10.22225
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:1:5878'
+  failureType: 'testCodeFailure'
+  error: "ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'"
+  code: 'ENOTSUP'
+  name: 'FsError'
+  stack: |-
+    MountFileSystem.error (/private/tmp/safe-bash-authority-fixed-2Nwe9Y/src/fs/mount/index.ts:144:12)
+    MountFileSystem.operation (/private/tmp/safe-bash-authority-fixed-2Nwe9Y/src/fs/mount/index.ts:159:18)
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:172:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: 06 fresh S3 HEAD authority rejects cached response and FS path stat replay
+ok 6 - 06 fresh S3 HEAD authority rejects cached response and FS path stat replay
+  ---
+  duration_ms: 4.018458
+  type: 'test'
+  ...
+# Subtest: 07 DAV response authority binds exact FS path stat and does not follow response clones
+ok 7 - 07 DAV response authority binds exact FS path stat and does not follow response clones
+  ---
+  duration_ms: 2.640333
+  type: 'test'
+  ...
+# Subtest: 08 late metadata denial and buffered body failure propagate EACCES without target effects
+ok 8 - 08 late metadata denial and buffered body failure propagate EACCES without target effects
+  ---
+  duration_ms: 1.880041
+  type: 'test'
+  ...
+# {"review":"09","value":{"error":"ECANCELED","callerReasonCode":"ENOENT","source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# Subtest: 09 pending metadata cancellation preserves files and handles late rejection
+ok 9 - 09 pending metadata cancellation preserves files and handles late rejection
+  ---
+  duration_ms: 1.547916
+  type: 'test'
+  ...
+# {"review":"10 nontransactional destination effect","value":{"error":"body cancelled","returned":1,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[]}}}
+# {"review":"error","value":{"code":"EIO","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"EIO","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"11","value":{"queries":["same","distinct"],"reads":0,"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EROFS","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"12","value":{"backend":"S3FileSystem","reads":0,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EROFS","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"12","value":{"backend":"WebDavFileSystem","reads":0,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# Subtest: 10 pending streamed body cancellation preserves source but permits already-truncated destination
+ok 10 - 10 pending streamed body cancellation preserves source but permits already-truncated destination
+  ---
+  duration_ms: 2.54325
+  type: 'test'
+  ...
+# Subtest: 11 conflicting or invalid authorities fail EIO before content, known aliases still dominate
+ok 11 - 11 conflicting or invalid authorities fail EIO before content, known aliases still dominate
+  ---
+  duration_ms: 0.473167
+  type: 'test'
+  ...
+# Subtest: 12 readonly S3 and DAV destinations reject overwrite before body acquisition
+ok 12 - 12 readonly S3 and DAV destinations reject overwrite before body acquisition
+  ---
+  duration_ms: 2.181625
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 11
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 219.860417

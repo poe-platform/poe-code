@@ -1,0 +1,378 @@
+{
+  "node": "v22.22.2",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/home",
+    "TMPDIR": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "npm_config_userconfig": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/home/user.npmrc",
+    "npm_config_globalconfig": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/home/global.npmrc",
+    "npm_config_cache": "/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/empty-npm-cache",
+    "npm_config_offline": "true",
+    "npm_config_audit": "false",
+    "npm_config_fund": "false",
+    "npm_config_update_notifier": "false",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "imports": {
+    "virtual-bash": "file:///private/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/consumer-moved/node_modules/virtual-bash/dist/index.js",
+    "virtual-bash/commands/stream-format": "file:///private/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/consumer-moved/node_modules/virtual-bash/dist/commands/stream-format/index.js",
+    "virtual-bash/commands/split": "file:///private/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/consumer-moved/node_modules/virtual-bash/dist/commands/split/index.js",
+    "virtual-bash/commands/stream-inspection": "file:///private/tmp/safe-bash-stream-five-public-verifier.29433-packed-4/consumer-moved/node_modules/virtual-bash/dist/commands/stream-inspection/index.js"
+  },
+  "results": [
+    {
+      "name": "C01 packed APIs and actual unique65 factory/registry",
+      "status": "pass",
+      "milliseconds": 5
+    },
+    {
+      "name": "F01 memory",
+      "status": "pass",
+      "milliseconds": 4,
+      "details": {
+        "adapter": "memory",
+        "stdout": "30380a31300a31320a",
+        "files": {}
+      }
+    },
+    {
+      "name": "F02 memory",
+      "status": "pass",
+      "milliseconds": 1,
+      "details": {
+        "adapter": "memory",
+        "stdout": "302e317c302e337c302e350a",
+        "files": {}
+      }
+    },
+    {
+      "name": "F03 memory",
+      "status": "pass",
+      "milliseconds": 1,
+      "details": {
+        "adapter": "memory",
+        "stdout": "30333a410a30353a0a30373a00ff420d0a30393a5a0a",
+        "files": {}
+      }
+    },
+    {
+      "name": "F04 memory",
+      "status": "pass",
+      "milliseconds": 1,
+      "details": {
+        "adapter": "memory",
+        "stdout": "42ff00410a0d5a0a",
+        "files": {}
+      }
+    },
+    {
+      "name": "F05 memory",
+      "status": "pass",
+      "milliseconds": 1,
+      "details": {
+        "adapter": "memory",
+        "stdout": "00f09f9982c3a9410a",
+        "files": {}
+      }
+    },
+    {
+      "name": "F06 memory",
+      "status": "pass",
+      "milliseconds": 2,
+      "details": {
+        "adapter": "memory",
+        "stdout": "094109420920430a090900ff0a",
+        "files": {}
+      }
+    },
+    {
+      "name": "F07 memory",
+      "status": "pass",
+      "milliseconds": 7,
+      "details": {
+        "adapter": "memory",
+        "stdout": "",
+        "files": {
+          "paa.bin": "00ff41",
+          "pab.bin": "0a4243",
+          "pac.bin": "fe0d0a",
+          "pad.bin": "5a"
+        }
+      }
+    },
+    {
+      "name": "F08 memory",
+      "status": "pass",
+      "milliseconds": 1,
+      "details": {
+        "adapter": "memory",
+        "stdout": "",
+        "files": {
+          "laa": "41000a0a",
+          "lab": "ff420a5a"
+        }
+      }
+    },
+    {
+      "name": "F09 memory",
+      "status": "pass",
+      "milliseconds": 6,
+      "details": {
+        "adapter": "memory",
+        "stdout": "",
+        "files": {
+          "allaa": "380920310a",
+          "allab": "3031092020",
+          "allac": "320a323109",
+          "allad": "2020330a"
+        }
+      }
+    },
+    {
+      "name": "F10 memory",
+      "status": "pass",
+      "milliseconds": 3,
+      "details": {
+        "adapter": "memory",
+        "stdout": "",
+        "files": {
+          "liveaa": "313a0900ff410a",
+          "liveab": "323a422020430a"
+        }
+      }
+    },
+    {
+      "name": "F11 memory",
+      "status": "pass",
+      "milliseconds": 1,
+      "details": {
+        "adapter": "memory",
+        "stdout": "",
+        "files": {}
+      }
+    },
+    {
+      "name": "F07 real",
+      "status": "pass",
+      "milliseconds": 57,
+      "details": {
+        "adapter": "real",
+        "stdout": "",
+        "files": {
+          "paa.bin": "00ff41",
+          "pab.bin": "0a4243",
+          "pac.bin": "fe0d0a",
+          "pad.bin": "5a"
+        }
+      }
+    },
+    {
+      "name": "F10 real",
+      "status": "pass",
+      "milliseconds": 40,
+      "details": {
+        "adapter": "real",
+        "stdout": "",
+        "files": {
+          "liveaa": "313a0900ff410a",
+          "liveab": "323a422020430a"
+        }
+      }
+    },
+    {
+      "name": "C03 BytePipe ownership backpressure and abort identity",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "C04 live sink bounded ownership/backpressure 65536 records",
+      "status": "pass",
+      "milliseconds": 2635,
+      "details": {
+        "produced": 65536,
+        "maximum": 1,
+        "chunks": 131072
+      }
+    },
+    {
+      "name": "C05 sink cancellation Error",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "C05 sink cancellation FsError ENOENT",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "C05 split cancellation before second publication",
+      "status": "pass",
+      "milliseconds": 0,
+      "details": [
+        {
+          "method": "lstat",
+          "path": "/parts/paa",
+          "aborted": true
+        },
+        {
+          "method": "writeStream",
+          "path": "/parts/paa",
+          "aborted": true
+        },
+        {
+          "method": "stat",
+          "path": "/parts/paa",
+          "aborted": true
+        },
+        {
+          "method": "lstat",
+          "path": "/parts/pab",
+          "aborted": true
+        },
+        {
+          "method": "writeStream",
+          "path": "/parts/pab",
+          "aborted": true
+        }
+      ]
+    },
+    {
+      "name": "C06 rev family maxInputBytes boundary",
+      "status": "pass",
+      "milliseconds": 1,
+      "details": {
+        "stderr": "rev: EFBIG: stream-format input limit exceeded\n",
+        "published": ""
+      }
+    },
+    {
+      "name": "C06 seq family maxOutputBytes boundary",
+      "status": "pass",
+      "milliseconds": 1,
+      "details": {
+        "stderr": "seq: EFBIG: stream-format output limit exceeded\n",
+        "published": "310a32"
+      }
+    },
+    {
+      "name": "C06 split maxFiles and independent family reset",
+      "status": "pass",
+      "milliseconds": 0,
+      "details": {
+        "stderr": "split: split file limit exceeded\n",
+        "files": {
+          "paa": "00ff41"
+        }
+      }
+    },
+    {
+      "name": "C06 shared Shell maxOutputBytes rejects",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "C07 literal context.invoke middleware shared budget",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "C07 4-command plugin collision and replacement",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "C07 1-command plugin collision and replacement",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "C07 65-command plugin collision and replacement",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "C08 ENOSPC preserves completed segment and error path",
+      "status": "pass",
+      "milliseconds": 0,
+      "details": {
+        "stderr": "split: no space left on device, write '/parts/pab'\n",
+        "files": {
+          "paa": "00ff41"
+        }
+      }
+    }
+  ],
+  "defaultNames": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "comm",
+    "cp",
+    "cut",
+    "diff",
+    "dirname",
+    "echo",
+    "env",
+    "expand",
+    "false",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "nl",
+    "od",
+    "paste",
+    "patch",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rev",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "seq",
+    "sha1sum",
+    "sha256sum",
+    "sort",
+    "split",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "touch",
+    "tr",
+    "true",
+    "unexpand",
+    "uniq",
+    "wc",
+    "xargs",
+    "xxd",
+    "zcat"
+  ],
+  "defaultCount": 65,
+  "passed": 28,
+  "failed": 0
+}

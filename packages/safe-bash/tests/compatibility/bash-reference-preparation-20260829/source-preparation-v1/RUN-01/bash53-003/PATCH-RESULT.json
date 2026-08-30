@@ -1,0 +1,73 @@
+{
+  "name": "bash53-003",
+  "signedPayload": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.data",
+    "bytes": 2683,
+    "mode": "600",
+    "sha256": "f245d9c7dc3f5a20d84b53d249334747940936f09dc97e1dcb89fc3ab37d60ed",
+    "role": "OPAQUE_SOURCE"
+  },
+  "argv": [
+    "-s",
+    "-f",
+    "-F",
+    "0",
+    "-p0",
+    "--posix",
+    "-d",
+    "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+    "-i",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.data"
+  ],
+  "status": {
+    "code": 0,
+    "signal": null
+  },
+  "targets": [
+    {
+      "path": "subst.c",
+      "before": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/subst.c",
+        "bytes": 382887,
+        "mode": "600",
+        "sha256": "cf96a7f33e7f9281f18c7b02d8840ad2d817f14243dd38377f8090249a7edf85"
+      },
+      "after": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/subst.c",
+        "bytes": 383226,
+        "mode": "600",
+        "sha256": "7147a76b5d795bca6f91aecb76e3710fd284228b78fd5ab0628a5b3203b1ef83"
+      }
+    },
+    {
+      "path": "tests/quotearray.right",
+      "before": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/tests/quotearray.right",
+        "bytes": 4925,
+        "mode": "600",
+        "sha256": "23cd4a235261d1b577a57ed8c4ca155b21319884a8bcedf2c33bcf8598af42e3"
+      },
+      "after": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/tests/quotearray.right",
+        "bytes": 4921,
+        "mode": "600",
+        "sha256": "64324de7c06a64a9280aa8ee8683a5096e81c42feb6c1fcc7c48567cf27f6707"
+      }
+    },
+    {
+      "path": "patchlevel.h",
+      "before": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/patchlevel.h",
+        "bytes": 1117,
+        "mode": "600",
+        "sha256": "b728fbfee1e6a55bb6634c42d6065b23db68bdcb93bf17622e2c57cc83a0a2c3"
+      },
+      "after": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/patchlevel.h",
+        "bytes": 1117,
+        "mode": "600",
+        "sha256": "ea953968c94efcc361b058d1e924f743e89a3a948a41ca784e60dc720bb1b3f1"
+      }
+    }
+  ]
+}

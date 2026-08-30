@@ -1,0 +1,224 @@
+{
+  "cohort": "surface",
+  "rawRoot": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results",
+  "counts": {
+    "scheduled": 8,
+    "childrenLaunched": 8,
+    "engineRuns": 8,
+    "pass": 8,
+    "fail": 0,
+    "blocked": 0
+  },
+  "rows": [
+    {
+      "id": "01-supported-facades",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": null,
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "publicOutcome": {
+        "rejected": false,
+        "exitCode": 7,
+        "stdout": "stdio:surface-input|vfs\n",
+        "stderr": "",
+        "stdoutBase64": "c3RkaW86c3VyZmFjZS1pbnB1dHx2ZnMK",
+        "stderrBase64": ""
+      },
+      "qualification": "SUPPORTED_SURFACE"
+    },
+    {
+      "id": "02-direct-surface",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": null,
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "publicOutcome": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "qualification": "SUPPORTED_SURFACE"
+    },
+    {
+      "id": "03-namespace-spread",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": null,
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "publicOutcome": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "namespace-ok\n",
+        "stderr": "",
+        "stdoutBase64": "bmFtZXNwYWNlLW9rCg==",
+        "stderrBase64": ""
+      },
+      "qualification": "SUPPORTED_SURFACE"
+    },
+    {
+      "id": "04-shell-module",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": null,
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "publicOutcome": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "shell-positive",
+        "stderr": "",
+        "stdoutBase64": "c2hlbGwtcG9zaXRpdmU=",
+        "stderrBase64": ""
+      },
+      "qualification": "SUPPORTED_SURFACE"
+    },
+    {
+      "id": "05-missing-register-cleanup",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": null,
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "publicOutcome": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "qualification": "SUPPORTED_SURFACE"
+    },
+    {
+      "id": "06-missing-acquire",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": null,
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "publicOutcome": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "qualification": "SUPPORTED_SURFACE"
+    },
+    {
+      "id": "07-reflection-profile",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": null,
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "publicOutcome": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "qualification": "DIALECT_ONLY"
+    },
+    {
+      "id": "08-function-spread-profile",
+      "classification": "PASS",
+      "rawPresent": true,
+      "engineRuns": 1,
+      "authorClassification": null,
+      "engineOutcome": {
+        "kind": "await-rejected",
+        "reasonType": "object",
+        "reasonIsNull": false
+      },
+      "publicOutcome": {
+        "rejected": false,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "safejs: Cannot spread function into object literal.\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2FmZWpzOiBDYW5ub3Qgc3ByZWFkIGZ1bmN0aW9uIGludG8gb2JqZWN0IGxpdGVyYWwuCg=="
+      },
+      "qualification": "OBSERVED_AWAIT_REJECTION"
+    }
+  ],
+  "imports": [
+    {
+      "journal": "01-supported-facades/imports.ndjson",
+      "entries": 223,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "02-direct-surface/imports.ndjson",
+      "entries": 223,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "03-namespace-spread/imports.ndjson",
+      "entries": 223,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "04-shell-module/imports.ndjson",
+      "entries": 223,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "05-missing-register-cleanup/imports.ndjson",
+      "entries": 223,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "06-missing-acquire/imports.ndjson",
+      "entries": 223,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "07-reflection-profile/imports.ndjson",
+      "entries": 223,
+      "engineFiles": 63,
+      "exact": true
+    },
+    {
+      "journal": "08-function-spread-profile/imports.ndjson",
+      "entries": 223,
+      "engineFiles": 63,
+      "exact": true
+    }
+  ],
+  "privateBeforeAfterExact": true,
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "allKnownChildrenClosed": true,
+  "authorParentStatus": "EXECUTION_SETTLED",
+  "independentAllPass": true,
+  "noPromotion": true
+}

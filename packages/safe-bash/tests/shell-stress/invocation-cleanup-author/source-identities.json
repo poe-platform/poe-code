@@ -1,0 +1,80 @@
+{
+  "preparedAt": "2026-08-27T07:32:59.211Z",
+  "commit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+  "reviewSource": "ef8bbe749b1d4cf129f758ded158f5611b8ac894",
+  "reviewCommit": "839f2d468311d170ba80d5bf19db94484f9afd66",
+  "identities": [
+    {
+      "file": "src/shell/runtime.ts",
+      "liveSha256": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+      "committedSha256": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+      "reviewedSha256": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": true
+    },
+    {
+      "file": "src/shell/shell.ts",
+      "liveSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "committedSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "reviewedSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": true
+    },
+    {
+      "file": "src/shell/input.ts",
+      "liveSha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "committedSha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "reviewedSha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": true
+    },
+    {
+      "file": "src/shell/types.ts",
+      "liveSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "committedSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "reviewedSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": true
+    },
+    {
+      "file": "src/contracts/command.ts",
+      "liveSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "committedSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "reviewedSha256": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": false
+    },
+    {
+      "file": "src/contracts/plugin.ts",
+      "liveSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "committedSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "reviewedSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": true
+    },
+    {
+      "file": "src/commands/grep.ts",
+      "liveSha256": "f2f76418ee409c998b5c20d5ad28c93dd2ff5918eea42c81d93db7832fdbff23",
+      "committedSha256": "f2f76418ee409c998b5c20d5ad28c93dd2ff5918eea42c81d93db7832fdbff23",
+      "reviewedSha256": "f2f76418ee409c998b5c20d5ad28c93dd2ff5918eea42c81d93db7832fdbff23",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": true
+    },
+    {
+      "file": "src/commands/search/rg.ts",
+      "liveSha256": "4a16dea4fbd70155998f59689bec0a3678a9445fa76cd3c62e3c4f88caec0999",
+      "committedSha256": "4a16dea4fbd70155998f59689bec0a3678a9445fa76cd3c62e3c4f88caec0999",
+      "reviewedSha256": "4a16dea4fbd70155998f59689bec0a3678a9445fa76cd3c62e3c4f88caec0999",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": true
+    },
+    {
+      "file": "src/commands/regex-execution/client.ts",
+      "liveSha256": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9",
+      "committedSha256": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9",
+      "reviewedSha256": "6745088269d2c9be612cbb55e612fb73d960d1b0df6c02d91e1b8f431f2ef1b9",
+      "liveMatchesCommit": true,
+      "matchesReviewedSource": true
+    }
+  ]
+}

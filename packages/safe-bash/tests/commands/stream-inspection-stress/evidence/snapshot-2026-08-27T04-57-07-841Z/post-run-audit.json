@@ -1,0 +1,17 @@
+{
+  "at": "2026-08-27T05:01:36.170Z",
+  "target": "/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-57-07-841Z",
+  "snapshotHash": "a0f61d2ae30e3710bbb7ec9d52ff54a1b3d21f861b5e531f13cb4468c0f65079",
+  "mismatches": [],
+  "resolved": {
+    "tsx": "file:///private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-57-07-841Z/node_modules/tsx/dist/loader.mjs",
+    "typescript": "file:///private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-57-07-841Z/node_modules/typescript/lib/typescript.js",
+    "esbuild": "file:///private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-57-07-841Z/node_modules/esbuild/lib/main.js",
+    "cwd": "/private/tmp/safe-bash-stream-verifier-20260827-A/snapshot-2026-08-27T04-57-07-841Z"
+  },
+  "initialSourceDelta": [],
+  "sourceCount": 172,
+  "runtimeBefore": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "runtimeAfter": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "boundary": "Runtime executable hashed before/after; system runtime/dylibs not copied, OS immutable lifetime not assumed. Installed dependencies and source/config copied with before/copied/after hashes and internal relative symlink assertions. Config explicit TSX_TSCONFIG_PATH, cache disabled, isolated CWD and whitelist environment; no root dist lookup."
+}

@@ -1,0 +1,192 @@
+{
+  "name": "live-source",
+  "pid": 2039,
+  "readyAt": 41.59487500000023,
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 2570,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "atMs": 110.68283400000018
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "atMs": 112.46433400000024
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "atMs": 112.47045900000012
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "live-source"
+    },
+    {
+      "type": "done",
+      "name": "live-source",
+      "failure": {
+        "message": "First ordinary output must not wait for a full batch or EOF\n+ actual - expected\n\n+ 'observation-timeout'\n- 'fulfilled'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: First ordinary output must not wait for a full batch or EOF\n+ actual - expected\n\n+ 'observation-timeout'\n- 'fulfilled'\n\n    at benign (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/review/child.mjs:169:14)\n    at runNextTicks (node:internal/process/task_queues:64:5)\n    at process.processTimers (node:internal/timers:518:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/design/review/child.mjs:220:10"
+      },
+      "observations": [
+        {
+          "label": "before-unblock",
+          "value": {
+            "first": {
+              "status": "observation-timeout"
+            },
+            "reads": 2,
+            "returned": 0,
+            "client": {
+              "metrics": {
+                "created": 0,
+                "terminated": 0,
+                "requests": 0,
+                "execCalls": 0,
+                "inputBytes": 0,
+                "responseBytes": 0,
+                "startupMs": 0,
+                "workMs": 0,
+                "terminationMs": 0,
+                "peakInflight": 0,
+                "listenersAfter": -1,
+                "exitCode": null
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": null,
+              "workerListeners": {},
+              "signalListeners": 0
+            }
+          }
+        },
+        {
+          "label": "after-explicit-source-unblock",
+          "value": {
+            "status": "fulfilled",
+            "value": {
+              "value": {
+                "hits": [
+                  [
+                    {
+                      "pattern": 0,
+                      "start": 0,
+                      "end": 1,
+                      "captures": [
+                        "r"
+                      ]
+                    }
+                  ]
+                ],
+                "bytes": 52,
+                "execCalls": 2
+              },
+              "done": false
+            }
+          }
+        },
+        {
+          "label": "source-cleanup",
+          "value": {
+            "reads": 2,
+            "returned": 1,
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 2,
+                "execCalls": 2,
+                "inputBytes": 2,
+                "responseBytes": 52,
+                "startupMs": 24.115042000000003,
+                "workMs": 0.2413749999999908,
+                "terminationMs": 1.1437499999999972,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacityActive": 0,
+              "workerThreadId": -1,
+              "workerListeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "signalListeners": 0
+            }
+          }
+        }
+      ],
+      "elapsedMs": 68.103875,
+      "heartbeats": 11,
+      "maxGap": 6.827833999999996,
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 24.115042000000003,
+            "workMs": 0.2413749999999908,
+            "terminationMs": 1.1437499999999972,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacityActive": 0,
+          "workerThreadId": -1,
+          "workerListeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "signalListeners": 0
+        }
+      ],
+      "memory": {
+        "rss": 59523072,
+        "heapTotal": 7749632,
+        "heapUsed": 5555400,
+        "external": 2155308,
+        "arrayBuffers": 18975
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

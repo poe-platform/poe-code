@@ -1,0 +1,162 @@
+{
+  "kind": "STATIC_BODY_REVIEW_NOT_PRODUCTION_AUTHORITY_EXECUTION",
+  "date": "2026-08-28",
+  "equals": [
+    {
+      "name": "coordinator.mjs",
+      "sha256": "87a590e7233d742aa992471fe22ea70061640b9dbe05b876d68ad81895fc37a4",
+      "equals": "executor-v5/coordinator.mjs"
+    },
+    {
+      "name": "synthetic-worker.mjs",
+      "sha256": "4f2f09d61ff806503b12d2e8345bc60e9901ce637ea937d37d9401cbd70be175",
+      "equals": "executor-v5/synthetic-worker.mjs"
+    },
+    {
+      "name": "OPERATION-PLAN.json",
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4",
+      "equals": "executor-v5/OPERATION-PLAN.json"
+    }
+  ],
+  "inherited": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs",
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs",
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs",
+      "sha256": "32d8cc5976165527349498de56d41c2dcec9cbcc1f855954cbf9e083c390ec09",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/loaded-outcome.mjs",
+      "sha256": "50afab5299e9ae8726b1fc3f4b8063dcff5993bc3368e0675226ab1c161e8de7",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/supervisor.mjs",
+      "sha256": "42d220fd43f165c0d100a61ef55d29bddd87577f7cafe929c832f33cd80dc069",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/controls.mjs",
+      "sha256": "94ff2119c17f4076c2811005a0c9fe7cd98863ca8cbdedc7c827c2b8ff0c7583",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/adapter.mjs",
+      "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/predicates.mjs",
+      "sha256": "ad53b12de5c7084470dffd066a90b681423643a9875a8866c6d4636ce4e080ce",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/transport.mjs",
+      "sha256": "70865ca016eff4b83c7d776c0cdeff6372caa9e341b3dfe6164615c1f256c11f",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/w07.mjs",
+      "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669",
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722"
+    }
+  ],
+  "workerDeltaExactly": [
+    "forward literal import.meta.url",
+    "require one accepted entry resolution",
+    "retain both entry and bare resolution receipts"
+  ],
+  "staticDraftCorrection": "Before preseal or any DATA/SYNTHETIC execution, first normalization assertion omitted the newly retained bare-resolution receipt field. Full diff identified the additive diagnostic field; normalization now removes BOTH added receipt fields. No source or expectation execution/retry occurred.",
+  "authorizationDeltaExactly": "Protect inherited V5 namespace in the same append-check algorithm. Recipe root is lexical V6 module location. No root grant field or permission expansion.",
+  "projectionDeltaExactly": "Re-export unchanged V5 implementation, no new materializer.",
+  "productionWorkerOrder": [
+    {
+      "text": "const permission = authority(",
+      "offset": 1671,
+      "line": 32
+    },
+    {
+      "text": "const operation = authorizeOperation(",
+      "offset": 1750,
+      "line": 33
+    },
+    {
+      "text": "'CONFIG_OPERATION_PATH'",
+      "offset": 2194,
+      "line": 34
+    },
+    {
+      "text": "'STRICT_UNHANDLED_POLICY'",
+      "offset": 2306,
+      "line": 35
+    },
+    {
+      "text": "fs.writeFileSync(path.join(permission.context.outputRoot, `operation-",
+      "offset": 2354,
+      "line": 36
+    },
+    {
+      "text": "authenticateView(projection, config.view)",
+      "offset": 2538,
+      "line": 37
+    },
+    {
+      "text": "inspectTree(config.view.root, config.view.files)",
+      "offset": 2583,
+      "line": 38
+    },
+    {
+      "text": "loader = installLoader(config.view, value => writer.emit(value), { entryParentURL: import.meta.url })",
+      "offset": 2917,
+      "line": 42
+    },
+    {
+      "text": "offline = installOffline(",
+      "offset": 3022,
+      "line": 43
+    },
+    {
+      "text": "const imported = await import(",
+      "offset": 3092,
+      "line": 44
+    },
+    {
+      "text": "'CONSUMER_ENTRY_REQUIRED'",
+      "offset": 3298,
+      "line": 45
+    },
+    {
+      "text": "'CONSUMER_RESOLUTION_REQUIRED'",
+      "offset": 3457,
+      "line": 46
+    }
+  ],
+  "loaderReview": [
+    "Canonical file URL validation rejects absent/query/hash/encoded/other-protocol configured parents; canonicalization identifies aliases, never grants permission.",
+    "Absolute consumer attempts enforce exact fixed parent and exact specifier before nextResolve; relative intermediate is checked after real nextResolve before load.",
+    "Resolved consumer entry requires exact specifier, result URL and fixed parent. Bare-library resolution still requires the authenticated consumer parent.",
+    "Prior membership/metadata/hash/format/returned-source/denied-builtin branches retained. Engine-less fixture loader remains behind authenticated control-worker routing."
+  ],
+  "roles": "authority loads committed hashed review before committed hashed grant; different-reviewer/PREEXECUTION_ACCEPTED/recipe and root/phase/recipe/review/attempts=1, pinned candidate/pack, run/output/ordered-command/phase-plan checked before claim/import. No authority invocation in this review.",
+  "inheritedInterpretation": "Actual-outcome C12 interpreter, W07 nonexecution/dispatch UNQUALIFIED/UNCREDITED, status/byte/FS predicates, strict transport and offline asset protection remain byte-identical. Historical runtime evidence is inherited, not rerun/expanded. Null/undefined and prepare-EEXIST/tail helpers receive separate fresh synthetic controls.",
+  "deltaSha256": "6b2b106e339ff345736876cc340f9b51e7a5ab95051ead505b150a09ef054538"
+}

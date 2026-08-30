@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-08-28T04:08:25-0500",
+  "chronology": "POST author packet existence and prior accepted review/release-field clarification; PRE detailed new packet-body inspection. Only current instructions, Git status/IDs/changed filenames read for this freeze. Not blind/pre-code attestation.",
+  "packetCommit": "d9dd698a33421b197ee15432a6606ad91dd06c63",
+  "expectedPacketNormalizedSha256": "7e40e84c099d8eaa2e9bc4c1cc73274b4a174d699737f34b7015eb4eb706ec70",
+  "acceptedReview": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+  "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "criteria": [
+    "Derive actual packet normalized-hash recipe; compare all38 committed shipping files to accepted BINDINGS, not moving live source.",
+    "Match exact candidate/source/package/driver/profile/projection/tool/OS and independent-review identities; no reopened public/tool/A10 acceptance.",
+    "Check source-enforced receipt strings/hashes/booleans and accepted independentEvidence reference; distinguish root-issued authorization from pending template and optional provenance.",
+    "Statically trace actual sole --run command, immutable materialization/no instruction copies, fresh output/outer topology, all14 phases, setup600s/phase<=1800s/outer25805s/cleanup5s and256MiB phase/4GiB aggregate bounds.",
+    "One authorized attempt only, preserved failures, no retry/wider permissions/mutable overlay/inherited GO; distinguish code enforcement from root policy.",
+    "Return ACCEPT_READY_FOR_ROOT_AUTHORIZATION only if consistent; otherwise exact objections. No launch, imported driver/product code, new controls/build/pack/native/network/private work."
+  ],
+  "initialWorkspace": {"head":"ff872ec469e327e4de61e8ab2bf3367344c9303a","trackedChanges":false,"stagedChanges":false,"foreignUntracked":"Existing native/XAN/YQ/Expr/HTML/directory-stack artifacts shown by git status, not read/modified or included in binding"},
+  "ownership": "Only new release-packet-v11 metadata review artifacts; all prior files immutable. No temporary source materialization, subprocess experiments or author preparation execution."
+}

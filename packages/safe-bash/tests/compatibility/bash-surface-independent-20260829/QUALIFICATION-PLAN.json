@@ -1,0 +1,393 @@
+{
+  "phase": "qualification",
+  "status": "UNRUN_NO_GRANT",
+  "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+  "bounds": {
+    "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+    "wallMs": 180000,
+    "allProcesses": 32,
+    "peakProcesses": 3,
+    "perCaseMs": 3000,
+    "cleanupMs": 2000,
+    "captureBytes": 16777216,
+    "perStreamBytes": 262144,
+    "workBytes": 67108864,
+    "subjects": 9,
+    "decision": "NO_GO"
+  },
+  "oracle": {
+    "path": "/bin/bash",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "version": "UNKNOWN",
+    "profile": "LOCAL_METADATA_CANDIDATE_NOT_GNU53"
+  },
+  "requests": [
+    {
+      "role": "native",
+      "id": "Q01",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf \"%s\\n\" \"$BASH_VERSION\" \"${BASH_VERSINFO[@]}\"",
+        "surface-case"
+      ],
+      "programSha256": "98a950abd87fa1952dda25dfc1d000299edabd6f488f55fa0d8fb943d2d47f57",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q01/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q01/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q01/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q01/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q01",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    },
+    {
+      "role": "native",
+      "id": "Q02",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf \"BASH_ENV=<%s> ENV=<%s> HOME=<%s> PATH=<%s> PWD=<%s>\\n\" \"${BASH_ENV-unset}\" \"${ENV-unset}\" \"$HOME\" \"$PATH\" \"$PWD\"; declare -F",
+        "surface-case"
+      ],
+      "programSha256": "8c590e68ce5da00b857dd325d1b44af2149ab6424a926dab125454b47b8535d3",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q02/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q02/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q02/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q02/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q02",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    },
+    {
+      "role": "native",
+      "id": "Q03",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf owned > out; IFS= read -r line < input; printf \"%s\" \"$line\"",
+        "surface-case"
+      ],
+      "programSha256": "dbb14b871c19679e407ff4d82f3dca08ec16ebd206eee5a72a9a3787c9461d89",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q03/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q03/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q03/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q03/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q03",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    },
+    {
+      "role": "native",
+      "id": "Q04",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "IFS= read -r stolen < ../forbidden/read-sentinel",
+        "surface-case"
+      ],
+      "programSha256": "8b6e01ce35ef9c54beb539c4a9881c1e026f4d2b39b484a6e158a140927619a8",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q04/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q04/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q04/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q04/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q04",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    },
+    {
+      "role": "native",
+      "id": "Q05",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf changed > ../forbidden/write-sentinel",
+        "surface-case"
+      ],
+      "programSha256": "5c769bdca32b78302687889caf768b0e1e14f1c9cc83f6c6a8e371c4f954a4da",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q05/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q05/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q05/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q05/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q05",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    },
+    {
+      "role": "native",
+      "id": "Q06",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "IFS= read -r stolen < blocked-link",
+        "surface-case"
+      ],
+      "programSha256": "d16812d655fcc55a09dd946ca47da60ec2d3549a43fcff2773798e1917646de9",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q06/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q06/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q06/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q06/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q06",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    },
+    {
+      "role": "native",
+      "id": "Q07",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "exec /usr/bin/true",
+        "surface-case"
+      ],
+      "programSha256": "73ba4dd098484742b93a6905eb7b3e0c275a6bf43e2369d52638be11828f4cdb",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q07/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q07/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q07/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q07/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q07",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    },
+    {
+      "role": "native",
+      "id": "Q08",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "(printf child)",
+        "surface-case"
+      ],
+      "programSha256": "2229c7c2841cb5f3c688ebc8565d508c93ec74a0a1e1eb83029930c43c1a42c1",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q08/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q08/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q08/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q08/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q08",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    },
+    {
+      "role": "native",
+      "id": "Q09",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        ": > /dev/tcp/127.0.0.1/9",
+        "surface-case"
+      ],
+      "programSha256": "fc9609e47ecf620b4f123c3459ceaefaf49b00f480318dc109c82d989d382053",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q09/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q09/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q09/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q09/work",
+      "umask": 18,
+      "stdinBase64": "",
+      "bounds": {
+        "root": "/private/tmp/safe-bash-surface-qualification-20260829-01",
+        "wallMs": 180000,
+        "allProcesses": 32,
+        "peakProcesses": 3,
+        "perCaseMs": 3000,
+        "cleanupMs": 2000,
+        "captureBytes": 16777216,
+        "perStreamBytes": 262144,
+        "workBytes": 67108864,
+        "subjects": 9,
+        "decision": "NO_GO"
+      },
+      "filesystemRoot": "/private/tmp/safe-bash-surface-qualification-20260829-01/Q09",
+      "externalExecAllowed": [],
+      "networkAllowed": false
+    }
+  ],
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "blockers": [
+    "qualified Bash5.3 executable/dependency closure",
+    "qualified OS-fence policy/driver binding",
+    "qualified lossless descendant observer",
+    "actual local version observation"
+  ]
+}

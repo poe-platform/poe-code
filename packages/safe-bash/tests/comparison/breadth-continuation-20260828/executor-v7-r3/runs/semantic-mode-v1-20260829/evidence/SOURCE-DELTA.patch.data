@@ -1,0 +1,435 @@
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/body.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/body.mjs
+index 11dbec46c1e1eaf2617be039ce37a38ee33e3f75..560dab1a44f7b937d62b47ed8e004346bbe6261e 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/body.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/body.mjs
+@@ -1,10 +1,10 @@
+ import fs from 'node:fs';
+ import path from 'node:path';
+-import { createLedger, launchTracked } from './launch-ledger.mjs';
+-import { createEvidenceBudget, claimBytes, writeReserved } from './evidence.mjs';
+-import { createStore, readDocument, encode, saveInput } from './records.mjs';
++import { createLedger, launchTracked } from '../../launch-ledger.mjs';
++import { createEvidenceBudget, claimBytes, writeReserved } from '../../evidence.mjs';
++import { createStore, readDocument, encode, saveInput } from '../../records.mjs';
+ import { publish, reason } from './report.mjs';
+-import { hash, requireThat, serial, settled } from '../executor-v4/safety.mjs';
++import { hash, requireThat, serial, settled } from '../../../executor-v4/safety.mjs';
+ 
+ export async function runCoordinator({ root, repository, mode, runId, authorizationPath, authorizationSha256 }, drivers) {
+   const output = { mode, runId, productCohortCalls: 0, setupCalls: 0, rows: [], unsafe: false, historicalScoresUnchanged: true, status: 'PREPARATION_PENDING', cleanupErrors: [] };
+@@ -25,7 +25,7 @@ export async function runCoordinator({ root, repository, mode, runId, authorizat
+     if (budget) budget.audit();
+   };
+   try {
+-    requireThat(['admission', 'cohort'].includes(mode) && /^[a-z0-9-]{1,64}$/.test(runId ?? ''), 'ARGUMENTS', { mode, runId });
++    requireThat(mode === 'cohort' && /^[a-z0-9-]{1,64}$/.test(runId ?? ''), 'ARGUMENTS', { mode, runId });
+     runRoot = path.join(root, 'runs', runId);
+     fs.mkdirSync(path.join(root, 'runs'), { recursive: true });
+     fs.mkdirSync(runRoot, { mode: 0o755 });
+@@ -37,6 +37,7 @@ export async function runCoordinator({ root, repository, mode, runId, authorizat
+     output.authorizationMetadata = [];
+     permission = await drivers.authorize({ root, repository, phase: mode, runId, outputRoot: runRoot, authorizationPath, authorizationSha256, configuration, metadataChildren: output.authorizationMetadata });
+     output.recipe = permission.recipe;
++    output.acceptedAdmission = permission.approved.acceptedAdmission;
+     output.authorizationReferences = { review: permission.authorization.review, grant: permission.authorization.grant };
+     output.authorityClass = permission.synthetic === true ? 'SYNTHETIC_ONLY' : 'COMMITTED_ROOT_REVIEW';
+     output.authorizationMetadata = permission.metadataChildren ?? output.authorizationMetadata;
+@@ -104,7 +105,8 @@ export async function runCoordinator({ root, repository, mode, runId, authorizat
+       const filename = path.resolve(repository, accepted.path);
+       requireThat(filename.startsWith(`${root}/runs/`), 'ADMISSION_PATH', filename);
+       const admission = readDocument(path.dirname(filename), path.basename(filename), accepted.sha256);
+-      requireThat(admission.recipe === permission.recipe && admission.admissionQualified === true && !admission.unsafe, 'ADMISSION_NOT_ACCEPTED', null);
++      requireThat(admission.recipe === 'bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c' && admission.admissionQualified === true && !admission.unsafe, 'ADMISSION_NOT_ACCEPTED', null);
++      output.stagedSha256 = admission.stagedSha256;
+       staged = readDocument(path.dirname(filename), 'STAGED.json', admission.stagedSha256, 2 * 1024 * 1024);
+       const schedule = configuration.schedule.rows ?? configuration.schedule.executions;
+       requireThat(Array.isArray(schedule) && schedule.length === 99, 'SCHEDULE', schedule?.length);
+
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/authorization.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/authorization.mjs
+index c71f19081f0cb62509a6cb5905ef2b92c05d22eb..280e71ee2d42a5ae258a0d896fbbf32d13d3b4c3 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/authorization.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/authorization.mjs
+@@ -1,14 +1,15 @@
++import { authenticatePacket, baseRoot, bindSemanticGrant } from './profile.mjs';
+ import fs from 'node:fs';
+ import path from 'node:path';
+ import { spawnSync } from 'node:child_process';
+-import { identity, hash, requireThat, relativeName } from '../executor-v4/safety.mjs';
+-import { boundFile } from './projection.mjs';
+-import { bindGrantPlan } from '../executor-v4/operations.mjs';
+-import { profile } from './bootstrap.mjs';
+-import { dataObject, hashString } from './schema.mjs';
+-import { readRegular } from '../executor-v3/regular-read.mjs';
++import { identity, hash, requireThat, relativeName } from '../../../executor-v4/safety.mjs';
++import { boundFile } from '../../projection.mjs';
++import { bindGrantPlan } from '../../../executor-v4/operations.mjs';
++import { profile } from '../../bootstrap.mjs';
++import { dataObject, hashString } from '../../schema.mjs';
++import { readRegular } from '../../../executor-v3/regular-read.mjs';
+ import { referenceData, envelopeData, reviewData, grantData, authorityReceiptData, runIdentifier } from './contracts.mjs';
+-import { denseArray } from './schema.mjs';
++import { denseArray } from '../../schema.mjs';
+ import { fileURLToPath } from 'node:url';
+ 
+ export function readAuthorization(filename, expectedSha256, root) {
+@@ -25,28 +26,7 @@ export function readAuthorization(filename, expectedSha256, root) {
+   return value;
+ }
+ 
+-export function authenticatePacket(root) {
+-  const bytes = fs.readFileSync(path.join(root, 'SEAL.json'));
+-  requireThat(bytes.length <= 262144, 'SEAL_CAP', bytes.length);
+-  const seal = JSON.parse(bytes);
+-  for (const entry of seal.files) boundFile(path.resolve(root, entry.path), entry);
+-  for (const namespace of seal.namespaces) {
+-    const base = path.resolve(root, namespace.path);
+-    const expected = new Map(namespace.entries.map(entry => [entry.path, entry]));
+-    let visited = 0;
+-    const walk = relative => {
+-      for (const name of fs.readdirSync(path.join(base, relative)).sort()) {
+-        const member = path.join(relative, name), entry = expected.get(member);
+-        requireThat(++visited <= expected.size && entry, 'UNSEALED_RECIPE_ENTRY', member);
+-        const info = fs.lstatSync(path.join(base, member));
+-        requireThat(!info.isSymbolicLink() && info.isDirectory() === entry.directory, 'RECIPE_ENTRY_TYPE', member);
+-        if (info.isDirectory() && !namespace.excludedDescendants.includes(member)) walk(member);
+-      }
+-    };
+-    walk(''); requireThat(visited === expected.size, 'MISSING_RECIPE_ENTRY', namespace.path);
+-  }
+-  return hash(bytes);
+-}
++export { authenticatePacket };
+ const absent = identifier => { try { process.kill(identifier, 0); return false; } catch (error) { if (error.code === 'ESRCH') return true; throw error; } };
+ 
+ export function loadAuthorityReference(binding, { read, observe, receipts, ordinal, syntheticOnly = false }) {
+@@ -67,11 +47,11 @@ export function authority(input) {
+   const header = dataObject(input, ['root', 'repository', 'phase', 'runId', 'outputRoot', 'review', 'grant', 'observe'], ['metadataChildren']);
+   requireThat(header && referenceData(header.review) && referenceData(header.grant), 'AUTHORIZATION_BINDING', null);
+   const { root, repository, phase, runId, outputRoot, review, grant, observe, metadataChildren = [] } = header;
+-  requireThat(typeof root === 'string' && root === path.dirname(fileURLToPath(import.meta.url)) && typeof repository === 'string' && repository === path.resolve(root, '../../../..') && ['admission', 'cohort'].includes(phase) && runIdentifier(runId) && typeof outputRoot === 'string' && outputRoot === path.join(root, 'runs', runId) && typeof observe === 'function' && denseArray(metadataChildren, 0), 'AUTH_CONTEXT_SCHEMA', null);
++  requireThat(typeof root === 'string' && root === baseRoot && typeof repository === 'string' && repository === path.resolve(root, '../../../..') && phase === 'cohort' && runIdentifier(runId) && typeof outputRoot === 'string' && outputRoot === path.join(root, 'runs', runId) && typeof observe === 'function' && denseArray(metadataChildren, 0), 'AUTH_CONTEXT_SCHEMA', null);
+   const recipe = authenticatePacket(root);
+   const projection = JSON.parse(fs.readFileSync(path.join(root, '../executor-v3/PROJECTION.json')));
+   for (const tool of projection.tools) boundFile(tool.path, tool);
+-  requireThat(['admission', 'cohort'].includes(phase), 'PHASE', phase);
++  requireThat(phase === 'cohort', 'PHASE', phase);
+   const git = projection.tools.find(tool => tool.role === 'git').path;
+   function read(binding) {
+     const child = spawnSync(git, ['show', `${binding.commit}:${binding.path}`], { cwd: repository, timeout: 10000, maxBuffer: 65536, detached: true, env: { PATH: '', LANG: 'C', HOME: root } });
+@@ -83,7 +63,8 @@ export function authority(input) {
+   const approved = grantData(loadAuthorityReference(grant, { read, observe, receipts: metadataChildren, ordinal: 2 }));
+   requireThat(approved, 'ROOT_GRANT_SCHEMA', null);
+   identity(approved);
+-  requireThat(approved.role === 'root' && approved.phase === phase && approved.recipeSha256 === recipe && approved.reviewSha256 === review.sha256 && approved.attempts === 1 && approved.bootstrapProfile === profile.name && approved.reportProtocol === 'BOUNDED_TERMINAL_V3', 'ROOT_GRANT', approved);
++  bindSemanticGrant(approved, recipe, review.sha256);
++  requireThat(approved.role === 'root' && approved.phase === phase && approved.recipeSha256 === recipe && approved.reviewSha256 === review.sha256 && approved.attempts === 1 && approved.bootstrapProfile === profile.name && approved.reportProtocol === 'BOUNDED_SEMANTIC_TERMINAL_V1', 'ROOT_GRANT', approved);
+   if (phase === 'cohort') requireThat(approved.acceptedAdmission?.sha256 && approved.acceptedAdmission?.path, 'ADMISSION_REQUIRED', approved);
+   const plan = JSON.parse(fs.readFileSync(path.join(root, 'OPERATION-PLAN.json')));
+   const context = { root, phase, runId, outputRoot };
+
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/production.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/production.mjs
+index 732a43bb2bc48fd29d04df3466841b5f2c7176bc..52d42d9b5459278c6c099808fcd067f95e7221cf 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/production.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/production.mjs
+@@ -1,12 +1,13 @@
++import { home } from './profile.mjs';
+ import fs from 'node:fs';
+ import path from 'node:path';
+ import { authority, authenticatePacket, readAuthorization } from './authorization.mjs';
+-import { viewProjection, stage, authenticateView, inspectTree, boundFile } from './projection.mjs';
+-import { supervise } from './supervisor.mjs';
+-import { selectOperation } from '../executor-v4/operations.mjs';
+-import { controls, defectControls } from '../executor-v4/controls.mjs';
+-import { qualify } from '../executor-v4/predicates.mjs';
+-import { requireThat, hash } from '../executor-v4/safety.mjs';
++import { viewProjection, stage, authenticateView, inspectTree, boundFile } from '../../projection.mjs';
++import { supervise } from '../../supervisor.mjs';
++import { selectOperation } from '../../../executor-v4/operations.mjs';
++import { controls, defectControls } from '../../../executor-v4/controls.mjs';
++import { qualify } from '../../../executor-v4/predicates.mjs';
++import { requireThat, hash } from '../../../executor-v4/safety.mjs';
+ 
+ export function productionDrivers(root, repository, observe) {
+   const read = relative => JSON.parse(fs.readFileSync(path.join(root, relative)));
+@@ -49,7 +50,7 @@ export function productionDrivers(root, repository, observe) {
+     supervise(prepared, synthetic, work, attach) {
+       const node = current.projection.tools.find(tool => tool.role === 'node').path;
+       const config = prepared.configValue;
+-      return supervise(node, ['--unhandled-rejections=strict', '--max-old-space-size=256', path.join(root, synthetic ? 'synthetic-worker.mjs' : 'worker.mjs'), path.join(work, prepared.filename), prepared.configSha], work, { onSpawn: attach, legacy: config.kind === 'case' && !config.specimen.id.startsWith('W') });
++      return supervise(node, ['--unhandled-rejections=strict', '--max-old-space-size=256', path.join(home, synthetic ? 'NO_SYNTHETIC_WORKER_AUTHORIZED' : 'worker.mjs'), path.join(work, prepared.filename), prepared.configSha], work, { onSpawn: attach, legacy: config.kind === 'case' && !config.specimen.id.startsWith('W') });
+     },
+     controls, defectControls, qualify,
+   };
+
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs
+index 5e0482784ef6913f6ecfd3040dad0f72f23fc563..0aa05a3349dff4e0d860ce326ba9e44ddadcee09 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs
+@@ -1,21 +1,21 @@
+ import fs from 'node:fs';
+-import { readConfig, encode } from './records.mjs';
+-import { writeClaim } from './evidence.mjs';
+-import { profile, authenticateBootstrap, createQueryWindow, importWithWindow, closeQueryWindow } from './bootstrap.mjs';
++import { readConfig, encode } from '../../records.mjs';
++import { writeClaim } from '../../evidence.mjs';
++import { profile, authenticateBootstrap, createQueryWindow, importWithWindow, closeQueryWindow } from '../../bootstrap.mjs';
+ import path from 'node:path';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
+ import { authority } from './authorization.mjs';
+-import { inspectTree, authenticateView } from './projection.mjs';
+-import { installLoader } from './loader.mjs';
+-import { installOffline } from '../executor-v3/offline.mjs';
+-import { transport } from './transport.mjs';
+-import { observe } from '../executor-v4/adapter.mjs';
+-import { requireThat, hash, errorRecord, settle } from '../executor-v4/safety.mjs';
+-import { publicAdmission } from '../executor-overlay-v2/admission.mjs';
+-import { instrumentFilesystem } from '../executor-v3/w07.mjs';
+-import { authorizeOperation } from '../executor-v4/operations.mjs';
++import { inspectTree, authenticateView } from '../../projection.mjs';
++import { installLoader } from '../../loader.mjs';
++import { installOffline } from '../../../executor-v3/offline.mjs';
++import { transport } from '../../transport.mjs';
++import { observe } from '../../../executor-v4/adapter.mjs';
++import { requireThat, hash, errorRecord, settle } from '../../../executor-v4/safety.mjs';
++import { publicAdmission } from '../../../executor-overlay-v2/admission.mjs';
++import { instrumentFilesystem } from '../../../executor-v3/w07.mjs';
++import { authorizeOperation } from '../../../executor-v4/operations.mjs';
+ 
+-const root = path.dirname(fileURLToPath(import.meta.url));
++const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+ const writer = transport();
+ const write = fs.writeSync.bind(fs);
+ const readJson = filename => JSON.parse(fs.readFileSync(filename));
+@@ -51,7 +51,7 @@ try {
+   writer.emit({ kind: 'worker-operation-authorized', operationId: operation.id, operationOrdinal: operation.ordinal, launchOrdinal: config.launchOrdinal });
+   if (config.view.engine === 'just-bash') {
+     writer.emit({ kind: 'bootstrap-authentication-start', operationId: operation.id, entryURL: consumerURL });
+-    const binding = authenticateBootstrap(config.view, import.meta.url, pathToFileURL(path.join(root, 'worker.mjs')).href, projection);
++    const binding = authenticateBootstrap(config.view, import.meta.url, import.meta.url, projection);
+     requireThat(binding.entryURL === consumerURL, 'BOOTSTRAP_ENTRY_URL', consumerURL);
+     writer.emit({ kind: 'bootstrap-authenticated', operationId: operation.id, ...binding });
+   }
+
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/coordinator.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/coordinator.mjs
+index 0e065cdba68593a98cf2326eaaa800edeaea6d09..d832908d6629d46639a08674fa52a22084ebba1a 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/coordinator.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/coordinator.mjs
+@@ -2,11 +2,11 @@ import fs from 'node:fs';
+ import path from 'node:path';
+ import { fileURLToPath } from 'node:url';
+ 
+-const root = path.dirname(fileURLToPath(import.meta.url));
++const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+ let primaryPresent = false;
+ let primary;
+ try {
+-  const [{ runCoordinator }, { productionDrivers }, { transport }] = await Promise.all([import('./body.mjs'), import('./production.mjs'), import('./transport.mjs')]);
++  const [{ runCoordinator }, { productionDrivers }, { transport }] = await Promise.all([import('./body.mjs'), import('./production.mjs'), import('../../transport.mjs')]);
+   const writer = transport();
+   const result = await runCoordinator({ root, repository: path.resolve(root, '../../../..'), mode: process.argv[2], runId: process.argv[3], authorizationPath: process.argv[4], authorizationSha256: process.argv[5] }, productionDrivers(root, path.resolve(root, '../../../..'), row => writer.emit(row)));
+   process.exitCode = result.publication.exitCode;
+
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/launch.mjs
+index b0056f29048f51883a10885c6c9cbd3d2ffbdfcb..4e889d887c886cefa238b5b45856652c73d0e30b 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/launch.mjs
+@@ -1,26 +1,27 @@
++import { home, baseRoot, runId as expectedRunId } from './profile.mjs';
+ import fs from 'node:fs';
+ import path from 'node:path';
+ import { fileURLToPath } from 'node:url';
+ import { observeCoordinator } from './outer.mjs';
+ import { authenticatePacket, readAuthorization } from './authorization.mjs';
+-import { boundFile } from './projection.mjs';
+-import { encode } from './records.mjs';
+-import { requireThat } from '../executor-v4/safety.mjs';
++import { boundFile } from '../../projection.mjs';
++import { encode } from '../../records.mjs';
++import { requireThat } from '../../../executor-v4/safety.mjs';
+ 
+-const root = path.dirname(fileURLToPath(import.meta.url));
++const root = baseRoot;
+ let result;
+ try {
+   const [phase, runId, authorization, authorizationSha256] = process.argv.slice(2);
+-  requireThat(phase === 'admission' && /^[a-z0-9-]{1,64}$/.test(runId ?? '') && typeof authorization === 'string', 'LAUNCH_ARGUMENTS', null);
++  requireThat(phase === 'cohort' && runId === expectedRunId && typeof authorization === 'string', 'LAUNCH_ARGUMENTS', null);
+   requireThat(process.execArgv.includes('--unhandled-rejections=strict') && process.execArgv.includes('--max-old-space-size=256'), 'LAUNCH_NODE_POLICY', process.execArgv);
+   const recipe = authenticatePacket(root);
+   const projection = JSON.parse(fs.readFileSync(path.join(root, '../executor-v3/PROJECTION.json')));
+   const node = projection.tools.find(tool => tool.role === 'node');
+   boundFile(process.execPath, node);
+   const guard = () => { requireThat(authenticatePacket(root) === recipe, 'LAUNCH_RECIPE_DRIFT', null); for (const tool of projection.tools) boundFile(tool.path, tool); readAuthorization(path.resolve(authorization), authorizationSha256, root); };
+-  result = await observeCoordinator({ node: node.path, args: ['--unhandled-rejections=strict', '--max-old-space-size=256', path.join(root, 'coordinator.mjs'), phase, runId, path.resolve(authorization), authorizationSha256], cwd: path.resolve(root, '../../../..'), captureRoot: path.join(root, 'runs', `${runId}-supervision`), resultRoot: path.join(root, 'runs', runId), preflight: guard, postflight: guard });
++  result = await observeCoordinator({ node: node.path, args: ['--unhandled-rejections=strict', '--max-old-space-size=256', path.join(home, 'coordinator.mjs'), phase, runId, path.resolve(authorization), authorizationSha256], cwd: path.resolve(root, '../../../..'), captureRoot: path.join(root, 'runs', `${runId}-supervision`), resultRoot: path.join(root, 'runs', runId), preflight: guard, postflight: guard });
+   process.exitCode = result.qualified ? 0 : 1;
+-  fs.writeSync(1, encode({ schema: 'BREADTH_V7_LAUNCH', qualified: result.qualified, unsafe: result.primaryPresent, reference: result.reference, summaryReference: result.summaryReference, children: result.ledger.map(child => ({ pid: child.pid, group: child.group, reaped: child.reaped, exit: child.exit, close: child.close })), actualRawRetainedOnly: true }, 16384));
++  fs.writeSync(1, encode({ schema: 'BREADTH_SEMANTIC_LAUNCH_V1', semanticVerdict: result.semanticVerdict, qualified: result.qualified, unsafe: result.primaryPresent, reference: result.reference, summaryReference: result.summaryReference, children: result.ledger.map(child => ({ pid: child.pid, group: child.group, reaped: child.reaped, exit: child.exit, close: child.close })), actualRawRetainedOnly: true }, 16384));
+ } catch (error) {
+   process.exitCode = 1;
+   try { fs.writeSync(2, encode({ schema: 'LAUNCH_UNSAFE_STOP', code: typeof error?.code === 'string' ? error.code.slice(0, 80) : null, message: typeof error?.message === 'string' ? error.message.slice(0, 2048) : null, knownChildren: result?.ledger.map(child => ({ pid: child.pid, group: child.group, reaped: child.reaped })) ?? [], qualification: false }, 16384)); } catch {}
+
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/report.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/report.mjs
+index 89f15a8097953f207fc116eb864a839b8b618301..0c611638f3818f35fdeac1c80fe38b1ab86b0531 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/report.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/report.mjs
+@@ -1,9 +1,9 @@
+ import fs from 'node:fs';
+ import path from 'node:path';
+-import { encode, readDocument } from './records.mjs';
+-import { dataObject, denseArray, hashString, nonnegative } from './schema.mjs';
+-import { parseTransport } from '../executor-v3/transport.mjs';
+-import { dispositionData, childLedgerData, envelopeData, authorityReceiptData } from './contracts.mjs';
++import { encode, readDocument } from '../../../executor-v7-r2/records.mjs';
++import { dataObject, denseArray, hashString, nonnegative } from '../../../executor-v7-r2/schema.mjs';
++import { parseTransport } from '../../../executor-v3/transport.mjs';
++import { dispositionData, childLedgerData, envelopeData, authorityReceiptData } from '../../../executor-v7-r2/contracts.mjs';
+ 
+ export function reason(value, depth = 0) {
+   try {
+@@ -40,11 +40,11 @@ export function publish({ output, ledger, store, inheritedExitCode = 0, audit =
+     unsafe = output.unsafe === true || accounting.unsafe || primary.present || inheritedExitCode !== 0 || (accounting.launched > 0 && accounting.allChildrenReaped !== true);
+     status = unsafe ? 'UNSAFE_STOP' : output.status;
+     exitCode = inheritedExitCode || (unsafe || badRows || status === 'ADMISSION_FAILED' ? 1 : 0);
+-    if (store) reference = store.save('RESULT.json', { ...output, ...(primary.present ? { fatal: reason(output.fatal) } : {}), selectedPrimary: primary, status, unsafe, children: ledger.entries, launchAccounting: accounting, requiresNaturalSupervisorReceipt: true });
++    if (store) reference = store.save('RESULT.json', { ...output, ...(primary.present ? { fatal: reason(output.fatal) } : {}), selectedPrimary: primary, status, unsafe, children: ledger.entries, launchAccounting: accounting, requiresNaturalWorkers: true, semanticProtocol: 'SEMANTIC_RESULT_V1', execCounts: countExec(output), caseCounts: countCases(output) });
+     else throw Object.assign(new Error('REPORT_STORE_UNAVAILABLE'), { code: 'REPORT_STORE_UNAVAILABLE' });
+     audit();
+   } catch (error) { failed('prepare-or-publication', error); }
+-  const terminal = () => ({ schema: 'BOUNDED_TERMINAL_V3', mode: typeof output?.mode === 'string' ? output.mode.slice(0, 16) : 'unknown', runId: typeof output?.runId === 'string' ? output.runId.slice(0, 64) : 'unknown', status, unsafe, exitCode, primary: { present: primary.present, undefinedValue: primary.undefinedValue === true }, result: reference, launchAccounting: accounting, children, failures: failures.map(entry => ({ phase: entry.phase, code: typeof entry.reason.value?.code === 'string' ? entry.reason.value.code.slice(0, 80) : null })), historicalScoresUnchanged: true });
++  const terminal = () => ({ schema: 'BOUNDED_SEMANTIC_TERMINAL_V1', mode: typeof output?.mode === 'string' ? output.mode.slice(0, 16) : 'unknown', runId: typeof output?.runId === 'string' ? output.runId.slice(0, 64) : 'unknown', status, unsafe, exitCode, primary: { present: primary.present, undefinedValue: primary.undefinedValue === true }, result: reference, execCounts: countExec(output), caseCounts: countCases(output), launchAccounting: accounting, children, failures: failures.map(entry => ({ phase: entry.phase, code: typeof entry.reason.value?.code === 'string' ? entry.reason.value.code.slice(0, 80) : null })), historicalScoresUnchanged: true });
+   if (failures.length && store) {
+     try { store.save('PUBLICATION-FAILURE.json', { selectedPrimary: primary, failures, terminal: terminal() }); audit(); }
+     catch (error) { failed('failure-publication', error); }
+@@ -58,71 +58,11 @@ export function publish({ output, ledger, store, inheritedExitCode = 0, audit =
+   return { status, unsafe, exitCode, reference, selectedPrimary: primary, failures, accounting, children };
+ }
+ 
+-const exitShape = value => { const row = dataObject(value, ['code', 'signal']); return row && row.code === 0 && row.signal === null; };
+-function accountingShape(value) {
+-  const row = dataObject(value, ['enrolled', 'attempted', 'launched', 'closed', 'unknownAcquisitions', 'allChildrenReaped', 'unsafe']);
+-  return row && ['enrolled', 'attempted', 'launched', 'closed', 'unknownAcquisitions'].every(key => nonnegative(row[key]) && row[key] <= 99) && row.enrolled === row.attempted && row.attempted === row.launched && row.launched === row.closed && row.unknownAcquisitions === 0 && row.unsafe === false && (row.launched === 0 ? row.allChildrenReaped === null : row.allChildrenReaped === true) ? row : null;
+-}
+-function decode(value, observed, maximum) {
+-  if (typeof value !== 'string' || !nonnegative(observed) || observed > maximum || value.length > 4 * Math.ceil(maximum / 3)) return null;
+-  const bytes = Buffer.from(value, 'base64');
+-  return bytes.length === observed && bytes.toString('base64') === value ? bytes : null;
+-}
+ 
+-export function assessTerminal(receipt, root, { syntheticOnly = false } = {}) {
+-  try {
+-    const received = dataObject(receipt, ['pid', 'exit', 'close', 'reaped', 'failures', 'signals', 'records', 'captureBytes', 'stdout', 'stderr', 'rawRecords', 'natural']);
+-    if (!received || !Number.isSafeInteger(received.pid) || received.pid <= 0 || !exitShape(received.exit) || !exitShape(received.close) || received.reaped !== true || received.natural !== true) return false;
+-    const failures = denseArray(received.failures, 64), signals = denseArray(received.signals, 64), records = denseArray(received.records, 8192);
+-    if (!failures || !signals || !records || failures.length || signals.length) return false;
+-    const counts = dataObject(received.captureBytes, ['stdout', 'stderr', 'records']);
+-    if (!counts) return false;
+-    const stdout = decode(received.stdout, counts.stdout, 65536), stderr = decode(received.stderr, counts.stderr, 65536), raw = decode(received.rawRecords, counts.records, 262144);
+-    if (!stdout?.length || !stderr || stderr.length || !raw?.length) return false;
+-    const parsedRecords = parseTransport(raw);
+-    if (encode(records, 262144).toString() !== encode(parsedRecords, 262144).toString()) return false;
+-    const row = dataObject(JSON.parse(stdout.toString('utf8')), ['schema', 'mode', 'runId', 'status', 'unsafe', 'exitCode', 'primary', 'result', 'launchAccounting', 'children', 'failures', 'historicalScoresUnchanged']);
+-    if (!row || row.schema !== 'BOUNDED_TERMINAL_V3' || row.mode !== 'admission' || typeof row.runId !== 'string' || !/^[a-z0-9-]{1,64}$/.test(row.runId) || row.status !== 'ADMISSION_ACCEPTED' || row.unsafe !== false || row.exitCode !== 0 || row.historicalScoresUnchanged !== true) return false;
+-    const primary = dataObject(row.primary, ['present', 'undefinedValue']);
+-    const terminalFailures = denseArray(row.failures, 64), children = denseArray(row.children, 99), accounting = accountingShape(row.launchAccounting);
+-    if (!primary || primary.present !== false || primary.undefinedValue !== false || !terminalFailures || terminalFailures.length || !children || !accounting || children.length !== accounting.enrolled) return false;
+-    for (let index = 0; index < children.length; index++) {
+-      const child = dataObject(children[index], ['ordinal', 'pid', 'group', 'exit', 'close', 'reaped', 'persisted']);
+-      if (!child || child.ordinal !== index + 1 || !Number.isSafeInteger(child.pid) || child.pid <= 0 || child.group !== -child.pid || child.reaped !== true || child.persisted !== true) return false;
+-      const childExit = dispositionData(child.exit), childClose = dispositionData(child.close);
+-      if (!childExit || !childClose || childExit.code !== childClose.code || childExit.signal !== childClose.signal) return false;
+-    }
+-    const reference = dataObject(row.result, ['path', 'bytes', 'sha256', 'mode']);
+-    if (!reference || reference.path !== 'RESULT.json' || !hashString(reference.sha256) || !nonnegative(reference.bytes) || reference.bytes > 262144 || reference.mode !== 0o644) return false;
+-    if (fs.lstatSync(path.join(root, reference.path)).size !== reference.bytes) return false;
+-    const final = dataObject(records.at(-1), ['sequence', 'kind', 'report']);
+-    const finalReport = final && dataObject(final.report, ['mode', 'runId', 'status', 'unsafe', 'result', 'children', 'allChildrenReaped']);
+-    const finalReference = finalReport && dataObject(finalReport.result, ['path', 'bytes', 'sha256', 'mode']);
+-    if (!finalReport || !finalReference || finalReport.mode !== row.mode || finalReport.runId !== row.runId || finalReport.status !== row.status || finalReport.unsafe !== false || !nonnegative(finalReport.children) || finalReport.children !== accounting.enrolled || finalReport.allChildrenReaped !== true || ['path', 'bytes', 'sha256', 'mode'].some(key => finalReference[key] !== reference[key])) return false;
+-    const artifact = dataObject(readDocument(root, reference.path, reference.sha256), ['mode', 'runId', 'productCohortCalls', 'setupCalls', 'rows', 'unsafe', 'historicalScoresUnchanged', 'status', 'cleanupErrors', 'authorizationMetadata', 'authorizationReferences', 'recipe', 'authorityClass', 'stagedSha256', 'projection', 'probes', 'defectControls', 'controls', 'admissionQualified', 'observerQualifications', 'separateCohortGoRequired', 'tail', 'launchAccounting', 'allChildrenReaped', 'plannedOperations', 'evidence', 'selectedPrimary', 'children', 'requiresNaturalSupervisorReceipt']);
+-    if (!artifact || typeof artifact !== 'object' || artifact.status !== row.status || artifact.unsafe !== false || artifact.mode !== row.mode || artifact.runId !== row.runId || artifact.admissionQualified !== true || artifact.requiresNaturalSupervisorReceipt !== true) return false;
+-    if (artifact.authorityClass !== (syntheticOnly ? 'SYNTHETIC_ONLY' : 'COMMITTED_ROOT_REVIEW')) return false;
+-    if (!hashString(artifact.recipe) || !hashString(artifact.stagedSha256) || artifact.productCohortCalls !== 0 || !nonnegative(artifact.setupCalls) || !denseArray(artifact.cleanupErrors, 0)) return false;
+-    const declared = envelopeData(artifact.authorizationReferences), metadata = denseArray(artifact.authorizationMetadata, 2);
+-    if (!declared || !metadata || metadata.length !== 2 || records.length !== 3) return false;
+-    for (let index = 0; index < 2; index++) {
+-      const event = dataObject(records[index], ['sequence', 'kind', 'receipt']);
+-      const binding = index === 0 ? declared.review : declared.grant;
+-      if (!event || event.sequence !== index || event.kind !== 'authority-observed' || !authorityReceiptData(event.receipt, index + 1, binding, syntheticOnly) || !authorityReceiptData(metadata[index], index + 1, binding, syntheticOnly) || encode(event.receipt).toString() !== encode(metadata[index]).toString()) return false;
+-    }
+-    const actualChildren = denseArray(artifact.children, 99);
+-    if (!actualChildren || actualChildren.length !== children.length || artifact.allChildrenReaped !== accounting.allChildrenReaped) return false;
+-    const planned = denseArray(artifact.plannedOperations, 99);
+-    if (!planned || planned.length !== actualChildren.length) return false;
+-    const expectedOperations = syntheticOnly ? null : JSON.parse(fs.readFileSync(new URL('./OPERATION-PLAN.json', import.meta.url))).admission;
+-    if (expectedOperations && expectedOperations.length !== actualChildren.length) return false;
+-    for (let index = 0; index < actualChildren.length; index++) {
+-      const actual = childLedgerData(actualChildren[index], index + 1), reported = children[index];
+-      if (!actual || ['ordinal', 'pid', 'group', 'reaped', 'persisted'].some(key => actual[key] !== reported[key]) || actual.exit.code !== reported.exit.code || actual.exit.signal !== reported.exit.signal || actual.close.code !== reported.close.code || actual.close.signal !== reported.close.signal) return false;
+-      const operation = dataObject(planned[index], ['id', 'launch']);
+-      if (!operation || operation.id !== actual.operationId || operation.launch !== index + 1) return false;
+-      if (expectedOperations && (expectedOperations[index].id !== actual.operationId || expectedOperations[index].ordinal !== actual.operationOrdinal || expectedOperations[index].kind !== actual.kind)) return false;
+-    }
+-    return encode(artifact.launchAccounting, 8192).toString() === encode(row.launchAccounting, 8192).toString();
+-  } catch { return false; }
++export function countExec(output) { return { semantic: output.productCohortCalls, emptySetup: output.setupCalls, C11: 0, total: output.productCohortCalls + output.setupCalls }; }
++export function countCases(output) {
++  const rows = output.cohort?.rows ?? [];
++  const complete = rows.filter(row => row.safe === true);
++  return { completed: complete.length, passed: complete.filter(row => row.pass === true).length, failed: complete.filter(row => row.pass === false).length, unqualified: complete.filter(row => row.pass === null).length, unrun: 99 - complete.length };
+ }
++export { assessSemanticTerminal } from './semantic-assessor.mjs';
+
+diff --git a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/outer.mjs
+index 2410ef99eb90d0124c582bb7d270884bddc29551..6404c03011a3de0d4760f3892340d8ba928d7aec 100644
+--- a/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs
++++ b/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/outer.mjs
+@@ -1,11 +1,11 @@
+ import fs from 'node:fs';
+ import path from 'node:path';
+-import { createEvidenceBudget } from './evidence.mjs';
+-import { createStore, encode } from './records.mjs';
+-import { createLedger, launchTracked } from './launch-ledger.mjs';
+-import { supervise } from './supervisor.mjs';
+-import { assessTerminal, reason } from './report.mjs';
+-import { requireThat } from '../executor-v4/safety.mjs';
++import { createEvidenceBudget } from '../../../executor-v7-r2/evidence.mjs';
++import { createStore, encode } from '../../../executor-v7-r2/records.mjs';
++import { createLedger, launchTracked } from '../../../executor-v7-r2/launch-ledger.mjs';
++import { supervise } from '../../../executor-v7-r2/supervisor.mjs';
++import { assessSemanticTerminal, reason } from './report.mjs';
++import { requireThat } from '../../../executor-v4/safety.mjs';
+ 
+ export const allocation = Object.freeze({ combined: 268435456, coordinator: 260046848, collector: 8388608, record: 262144, stream: 65536 });
+ 
+@@ -19,6 +19,7 @@ export async function observeCoordinator({ node, args, cwd, captureRoot, resultR
+   const cleanup = [];
+   let reference = null;
+   let qualified = false;
++  let semanticVerdict = null;
+   const select = (phase, error) => { if (!primaryPresent) { primaryPresent = true; primary = { phase, value: reason(error), undefinedValue: error === undefined }; } else cleanup.push({ phase, value: reason(error), undefinedValue: error === undefined }); };
+   try {
+     fs.mkdirSync(captureRoot, { mode: 0o755 });
+@@ -30,7 +31,8 @@ export async function observeCoordinator({ node, args, cwd, captureRoot, resultR
+       supervise: (_prepared, attach) => supervise(node, args, cwd, { deadline, onSpawn: attach }),
+       persist: async (_entry, value) => { reference = store.save('COORDINATOR-RECEIPT.json', value); return reference.sha256; },
+     });
+-    qualified = assessTerminal(receipt, resultRoot, { syntheticOnly });
++    semanticVerdict = assessSemanticTerminal(receipt, resultRoot, { syntheticOnly });
++    qualified = semanticVerdict.protocolQualified;
+     if (!qualified) throw Object.assign(new Error('COORDINATOR_NOT_QUALIFIED'), { code: 'COORDINATOR_NOT_QUALIFIED' });
+   } catch (error) { select('body', error); }
+   finally {
+@@ -40,10 +42,10 @@ export async function observeCoordinator({ node, args, cwd, captureRoot, resultR
+   }
+   let summaryReference = null;
+   try {
+-    const summary = { schema: 'BREADTH_V7_OUTER', qualified: qualified && !primaryPresent, unsafe: primaryPresent, primaryPresent, primary, cleanup, reference, children: ledger.entries, allocation, evidence: budget?.snapshot() ?? null, originalFailureUnchanged: true };
++    const summary = { schema: 'BREADTH_SEMANTIC_OUTER_V1', semanticVerdict, qualified: qualified && !primaryPresent, unsafe: primaryPresent, primaryPresent, primary, cleanup, reference, children: ledger.entries, allocation, evidence: budget?.snapshot() ?? null, originalFailureUnchanged: true };
+     if (store) summaryReference = store.save('OUTER.json', summary);
+     else throw new Error('OUTER_STORE_UNAVAILABLE');
+     budget.audit({ partial: primaryPresent });
+   } catch (error) { select('summary', error); }
+-  return { qualified: qualified && !primaryPresent, primaryPresent, primary, cleanup, reference, summaryReference, ledger: ledger.entries, receipt, evidence: budget?.snapshot() ?? null };
++  return { semanticVerdict, qualified: qualified && !primaryPresent, primaryPresent, primary, cleanup, reference, summaryReference, ledger: ledger.entries, receipt, evidence: budget?.snapshot() ?? null };
+ }

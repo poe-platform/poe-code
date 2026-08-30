@@ -1,0 +1,343 @@
+{
+  "schema": "virtual-node-source-feasibility-bindings-v1",
+  "date": "2026-08-28",
+  "classification": "append-only source inspection metadata; no source bodies or executable artifacts",
+  "initialDesignCommit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+  "acceptedEvidenceCommit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+  "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "acceptedPackageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+  "acceptanceQualification": "Prior scoped SafeJS evidence only; neither live product HEAD nor this internal intrinsic route newly accepted. No fresh package archive authentication.",
+  "lineConvention": "Physical LF-delimited source lines, one-based; raw source hashes authoritative. Web-renderer line numbers can differ because blank lines are normalized.",
+  "retrievedDate": "2026-08-28",
+  "sourceSetQualification": "18 selected official public files, fetched as bounded text for inspection and hashing, never imported/evaluated/written as engine bodies; not a whole engine snapshot.",
+  "frozenInventory": {
+    "commit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+    "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/ENGINE.json",
+    "bytes": 21706,
+    "sha256": "3be5cdcd7869e0b50da41335a34c7aa44a19abcd089ea3c86290529bf08ab687",
+    "gitBlob": "9da7a82083f20a9e7266fbe190876518084b00e0"
+  },
+  "matchedFrozenInventoryFiles": 15,
+  "additionalPublicFiles": 3,
+  "initialArtifactsUnchangedAtPreparation": [
+    {
+      "path": "tests/commands/node-design-20260828/DESIGN.md",
+      "bytes": 27683,
+      "sha256": "9bbf453d02d9c880a6a4208192953773398e1fabde00e8c71046663eda111439",
+      "gitBlob": "008fa0b65b5a6fc2d402d6f3dffaced42fa2322e"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/CASES.json",
+      "bytes": 22046,
+      "sha256": "c4bc4898f4c3935dde7cd31ec1559d76a5fcba82073a87823889de7d3744c583",
+      "gitBlob": "e4f75064c6089314e4ba03d47fd29ccf7c838da1"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/SOURCES.json",
+      "bytes": 22419,
+      "sha256": "5157ebbf789cc9af2af8c67abb81f60d3d226d9e8560bf97a90fdcb0d2702366",
+      "gitBlob": "766e96d5105dd1f3b99cbc8dbaa14df68b1fd039"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/HANDOFF.md",
+      "bytes": 2928,
+      "sha256": "32d085c36931fee8c0d0f6089b5c84dd84fdca7f6b908e9aa28816bd8f381d33",
+      "gitBlob": "fd36d39233ca209c464c6c4562311a6b96009cfe"
+    }
+  ],
+  "sources": [
+    {
+      "id": "S01",
+      "path": "src/interp/values.ts",
+      "bytes": 24602,
+      "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd",
+      "gitBlob": "7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269",
+      "references": [
+        "SandboxClosure:84-98",
+        "createSandboxClosure:128-170",
+        "deepCopyToSandbox:322-326",
+        "copyToSandbox:431-490"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/values.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S02",
+      "path": "src/interp/interpreter.ts",
+      "bytes": 97921,
+      "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715",
+      "gitBlob": "07f5c623d88a7799dfa45028fdd0393ab589dd8e",
+      "references": [
+        "InterpretOptions:193-200",
+        "interpret jobs:311-334",
+        "evaluateNode:394-452",
+        "evaluateCallExpression:2398-2414",
+        "evaluateMemberCallExpression:2622",
+        "evaluateResolvedCallExpression:3352-3390",
+        "invokeSandboxClosure:3451-3487",
+        "wrapHostResult:3660-3693"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/interpreter.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S03",
+      "path": "src/interp/host-bridge.ts",
+      "bytes": 30852,
+      "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90",
+      "gitBlob": "5e1a6ef3b90912c190d0f4a849c1b1e91f845b1c",
+      "references": [
+        "wrapCallerInjectedFunction:116-241",
+        "executeHostCall:269-402",
+        "createHostCallPromise:433-448",
+        "copyHostResultToSandbox:459-475",
+        "createHostErrorValue:477",
+        "wrapHostPromiseWithSignal:677",
+        "copyHostValueToSandbox:719-805"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/host-bridge.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S04",
+      "path": "src/interp/async.ts",
+      "bytes": 12403,
+      "sha256": "e67052b01017ecface7b6b6e69d62f2939b89c5a4d1c247ec1bb4ddbca5353cb",
+      "gitBlob": "4feb1a05dad236daa18f05692a7d811f58a6e586",
+      "references": [
+        "createInterpretedClosure:169-202",
+        "evaluateAwaitExpression:253-287",
+        "normalizeClosureResult:419-428"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/async.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S05",
+      "path": "src/interp/cancel.ts",
+      "bytes": 6588,
+      "sha256": "6e6b5a9a1dc3b58fcdf7e259a3a2e129877bdf97c93b09268ace0084d9e3e97a",
+      "gitBlob": "03f38bbee5e0cfb8aee2ef032606a75efa506ac4",
+      "references": [
+        "wrapCancelableBindings:17-26",
+        "wrapCancelableValue:28-99",
+        "wrapCancelableResult:101-125",
+        "awaitSandboxValue:127-136",
+        "awaitWithSignal:138-183",
+        "readAbortReason:212-214"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/cancel.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S06",
+      "path": "src/interp/jobs.ts",
+      "bytes": 2737,
+      "sha256": "92c1e20439879b172d460b7b684fcfecf1e5f855441ec5652e576da7f80ab09e",
+      "gitBlob": "33a67b3fe4b50dea7d1934781aa19b5ef0c03eea",
+      "references": [
+        "SandboxJobQueue:11-68",
+        "runPromiseJob:70-73",
+        "runAsyncPrefix:75-89",
+        "suspendJob:91-100"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/jobs.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S07",
+      "path": "src/run.ts",
+      "bytes": 25016,
+      "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b",
+      "gitBlob": "2f829e27c65da9421001772f2db2233adc5edfe0",
+      "references": [
+        "RunOptions:83-101",
+        "RunClock/RunRandom:142-150",
+        "run setup:162-218",
+        "input/module/cancellation setup:243-297",
+        "run finalization:446-470",
+        "throwIfReturnedPromiseRejected:477"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/run.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S08",
+      "path": "src/modules/registry.ts",
+      "bytes": 6478,
+      "sha256": "466490d886714c678d8e99d5e4cf6703a0a26a130365ea0db365094356f13d0f",
+      "gitBlob": "8d7d52115b27822446540edf9267beb20e58688b",
+      "references": [
+        "ModuleRegistry:21-27",
+        "resolveModuleImports:52-75",
+        "bindImportDeclaration:77-131",
+        "resolveImportSpecifier:133-154"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/modules/registry.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S09",
+      "path": "src/index.ts",
+      "bytes": 3030,
+      "sha256": "560faee9a73e3609e2198f5b60921cb1983245b32de3859212a03ff773c35977",
+      "gitBlob": "2a17cf5247c33fa0ea47732f9d320a962f97019c",
+      "references": [
+        "public root exports:1-76"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/index.ts",
+      "frozen63Match": null,
+      "qualification": "Additional public commit-pinned source, outside prior selected63 executed closure; no private Git object verification"
+    },
+    {
+      "id": "S10",
+      "path": "src/core.ts",
+      "bytes": 396,
+      "sha256": "8be80dabb023c6f260973b7ac78db7a1405b48f55118d384182eaa081e7eff0a",
+      "gitBlob": "14821488bbc1eb8b0bb18e4ca2be442f320e9161",
+      "references": [
+        "public core exports:1-6"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/core.ts",
+      "frozen63Match": null,
+      "qualification": "Additional public commit-pinned source, outside prior selected63 executed closure; no private Git object verification"
+    },
+    {
+      "id": "S11",
+      "path": "package.json",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a",
+      "gitBlob": "94e9526e903010bb6458aee4c4863f0b2bfa1afa",
+      "references": [
+        "package export map:11-23"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/package.json",
+      "frozen63Match": null,
+      "qualification": "Additional public commit-pinned source, outside prior selected63 executed closure; no private Git object verification"
+    },
+    {
+      "id": "S12",
+      "path": "src/interp/exceptions.ts",
+      "bytes": 19651,
+      "sha256": "089f08ed0a282d62ef751407ecd9e0ea938e6b2172e41530ca95a0b95b7c6773",
+      "gitBlob": "94a7e5d191435c599c8a8ebbcc1acb8fe43d7519",
+      "references": [
+        "evaluateTryStatement:121-169",
+        "coerceThrownValue:186-214",
+        "evaluateBlockCompletion:459-483"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/exceptions.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S13",
+      "path": "src/interp/budget.ts",
+      "bytes": 9007,
+      "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3",
+      "gitBlob": "2f69c852a87f134470acfcac7e0be37c6e3d0412",
+      "references": [
+        "enterCall/enterAwait:195-201",
+        "reset:203-215"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/budget.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S14",
+      "path": "src/interp/host-call.ts",
+      "bytes": 24833,
+      "sha256": "7f5d5bbc6888f12c268dd9680d3a255c074d81c16f0843fa3ff0c8202aa1e4c5",
+      "gitBlob": "076c704be6fafccfe0bdb8339af010e1572183b7",
+      "references": [
+        "HostCallResumeProvider:68-71",
+        "reconcile:266",
+        "dispose:341-349",
+        "registerCallbackFunction:351-367"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/host-call.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S15",
+      "path": "src/snapshot/policy.ts",
+      "bytes": 6813,
+      "sha256": "7306c1f3c1170a0bdde41fb56ac943e07dffa1a69fed46faec538f459ae56a33",
+      "gitBlob": "8b8600e397e25661b0e3b7e2229c5d2f0f6ee416",
+      "references": [
+        "PendingHostCallPolicyMode:24-43",
+        "registerPendingHostCallPolicy:80-90"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/policy.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S16",
+      "path": "src/snapshot/replay-inputs.ts",
+      "bytes": 5007,
+      "sha256": "d23eeb791eeb9ac5610f5fdc014df38d8d5bd9fb4c00b2dfcfbe109bfc5f58d5",
+      "gitBlob": "957f1fda14da52e6ebc37b3502efb00071b7d642",
+      "references": [
+        "prepareReplayInputs:22-60"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/replay-inputs.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S17",
+      "path": "src/interp/promise.ts",
+      "bytes": 15619,
+      "sha256": "7753754f9ca15ce2e27eaa6bb9134356e812f90215e1d2672064b687466ad70c",
+      "gitBlob": "a07cedbbe3ebe8ca86604cb42307fc33a94f97df",
+      "references": [
+        "resolveSandboxValue:260",
+        "sandbox/native promise handling:277-300",
+        "promise job callback:426-453"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/promise.ts",
+      "frozen63Match": true
+    },
+    {
+      "id": "S18",
+      "path": "src/interp/promise-tracker.ts",
+      "bytes": 2427,
+      "sha256": "4e98449297680ee631b4e98f69512442d4a3bd1c209f9d04e0aa239375959581",
+      "gitBlob": "0f7d921e02c9caf03cb2203b9d958f377c3872ae",
+      "references": [
+        "track:25-45",
+        "findUnhandledRejection:47-66"
+      ],
+      "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/promise-tracker.ts",
+      "frozen63Match": true
+    }
+  ],
+  "unavailableRead": {
+    "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/job-queue.ts",
+    "result": "HTTP404; not used as evidence. Actual imported src/interp/jobs.ts was inspected."
+  },
+  "scope": {
+    "engineExecutions": 0,
+    "nativeOracleExecutions": 0,
+    "probes": 0,
+    "builds": 0,
+    "installs": 0,
+    "privateReads": 0,
+    "privateGitCommands": 0,
+    "privateWritesOrCopies": 0,
+    "productEdits": 0,
+    "runtimeRegistration": 0,
+    "delegatedChildren": 0
+  },
+  "rootSettledDecisions": [
+    "optional injected qualifying provider",
+    "zero core/command runtime dependencies",
+    "no native/process/eval fallback",
+    "genuine synchronous guest calls if offered",
+    "explicit VFS read/write grants; writes denied by default",
+    "no default bundled/full Node claim; NP1 remains candidate"
+  ],
+  "remainingDecisions": [
+    "approve or reject explicitly supplied same-instance internal factory ABI versus supported public intrinsic interface",
+    "different independent source/provider ownership review",
+    "future exact experiment authorization and finite caps; not granted here"
+  ]
+}

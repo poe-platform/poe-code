@@ -1,0 +1,116 @@
+{
+  "status": "SOURCE_DATA_CHECKS_ONLY",
+  "checks": {
+    "acceptedSourceManifestBound": true,
+    "fixedCaps": 24,
+    "existingNodeTypeExports": 20,
+    "proposedNewTypes": 1,
+    "proposedRuntimeExports": 9,
+    "baseNoNodeSubpath": true,
+    "baseRuntimeDependencies": 0
+  },
+  "caps": {
+    "sourceBytes": 262144,
+    "contextBytes": 65536,
+    "pathBytes": 1024,
+    "metadataBytes": 8192,
+    "errorBytes": 1024,
+    "operations": 128,
+    "frames": 4096,
+    "wakes": 8192,
+    "operationBytes": 1048576,
+    "readBytes": 4194304,
+    "writeBytes": 4194304,
+    "outputBytes": 1048576,
+    "jsonBytes": 1048576,
+    "jsonEntries": 32,
+    "memoryBytes": 16777216,
+    "diagnosticReserve": 1048576,
+    "sabBytes": 197056,
+    "admissionMs": 5000,
+    "steps": 100000,
+    "callDepth": 128,
+    "oldGenerationMiB": 32,
+    "youngGenerationMiB": 8,
+    "codeMiB": 8,
+    "stackMiB": 4
+  },
+  "typeExports": [
+    "NodeCommandOptions",
+    "NodeCompletion",
+    "NodeGrants",
+    "NodeGuestError",
+    "NodeHostRequest",
+    "NodeHostResponse",
+    "NodeHostServices",
+    "NodeObservation",
+    "NodeReason",
+    "NodeRetirement",
+    "NodeRuntimeProvider",
+    "NodeSelector",
+    "NodeSession",
+    "NodeSourceRequest",
+    "NodeBridge",
+    "NodeEngineAdapter",
+    "NodeEngineInput",
+    "NodeEngineResult",
+    "NodeWorkerEvent",
+    "NodeWorkerProviderOptions"
+  ],
+  "plannedIdentities": 24,
+  "plannedLayouts": 3,
+  "actualCases": 0,
+  "actualWorkers": 0,
+  "authorModuleAcceptance": false,
+  "sourceFiles": 24,
+  "shellSourceAnchors": [
+    {
+      "line": 111,
+      "text": "    this.#install(middleware);"
+    },
+    {
+      "line": 115,
+      "text": "  #install(middleware: Middleware | VirtualShellPlugin): void {"
+    },
+    {
+      "line": 126,
+      "text": "          use: (middleware) => { admit(); this.#install(middleware); },"
+    },
+    {
+      "line": 307,
+      "text": "  dispose(): Promise<void> {"
+    },
+    {
+      "line": 312,
+      "text": "    this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));"
+    },
+    {
+      "line": 321,
+      "text": "  async #dispose(active: readonly { scope: InvocationScope; owner: RootInvocationCancellationOwner }[], drains: readonly Promise<void>[]): Promise<void> {"
+    }
+  ],
+  "tool": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+    "qualification": "Source/publication role only. Hash observed during preparation, not a native-version/oracle or whole tool dependency proof."
+  },
+  "history": {
+    "derivedTreeLookup": {
+      "version": 1,
+      "exit": 128,
+      "stderr": "fatal: not a tree object\n",
+      "disposition": "Retained failure; version2 reads accepted manifest and authenticates stored blobs, without requiring derived trees to exist."
+    },
+    "sourceJsonAdmission": {
+      "version": 1,
+      "reason": "text admission",
+      "initialBytesCap": 131072,
+      "actualBytes": 224037,
+      "childLaunched": false,
+      "errorCapture": "Initially tool transcript; later explicit event. No claim all original helper output was captured.",
+      "version2BytesCap": 8388608,
+      "disposition": "Bounded data read only; no product or safety finding."
+    }
+  },
+  "interpretation": "SOURCE/DATA checks, not runtime/type/module acceptance or a new complete-tree reconstruction."
+}

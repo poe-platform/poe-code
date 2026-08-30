@@ -1,0 +1,79 @@
+{
+  "schema": "expr-independent-abort-evidence-v1",
+  "freezeCommit": "eaca395fd0f90051676798971750515d04b0c005",
+  "freezeManifestSha256": "b8a89ba9d399696987f2a68a1e3480fe925f9aac568e8dc51334707e57333f60",
+  "inputsSha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+  "layoutsSha256": "bd87688f4e107bbd14d55b4c8761d0c8bc2880bb8a8d94d0575f591f7d6417d9",
+  "evidence": [
+    {
+      "path": "EXECUTION.raw.txt",
+      "bytes": 2716,
+      "sha256": "3fe96a2dfb02edea31151ba74b6ffb05952b57a97e3f03bd6231098cd3774926"
+    },
+    {
+      "path": "POSTCHECK.json",
+      "bytes": 8644,
+      "sha256": "d4a60279dab9e1805668d2c1449e228442fe600a9d77918ac8501b496ba61a4d"
+    },
+    {
+      "path": "REPORT.json",
+      "bytes": 25198,
+      "sha256": "ae9d5df9c89f15dba412c92fa9ed6419e05bb6554074d40179245354fd3e3236"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 2861,
+      "sha256": "2d3542515761c4a2213e1cde34288bb16f40add718729a7cb224f4068e8841e8"
+    },
+    {
+      "path": "finalize-abort.mjs",
+      "bytes": 7907,
+      "sha256": "2a2569a566a44f7650abbbab8bdb46f5ac29b5fa576e82115515ea5d31e8c0f9"
+    },
+    {
+      "path": "finalize-abort-v2.mjs",
+      "bytes": 8361,
+      "sha256": "6f1a7437e399df0c9f5527ed6fe37cf51740edc807bc72199f9363b113afbcc8"
+    },
+    {
+      "path": "POSTCHECK-ATTEMPT-1.raw.txt",
+      "bytes": 2457,
+      "sha256": "03edcde77556deb04241d1f829cfc812b2de0fb4d15b5e6289c777d28100da2e"
+    }
+  ],
+  "counts": {
+    "plannedRuntimeContexts": 4,
+    "plannedRuntimeIdsPerContext": 26,
+    "plannedRuntimeAssertions": 104,
+    "executed": 0,
+    "pass": 0,
+    "fail": 0,
+    "unrun": 104,
+    "controlsExecuted": 0,
+    "typeInvocations": 0,
+    "workerCreations": 0,
+    "candidateBuildInvocations": 0,
+    "packInvocations": 0,
+    "runtimeNaturalSettlements": 0,
+    "supervisedRuntimeKills": 0
+  },
+  "P01": {
+    "status": "unexecuted",
+    "buildExecuted": false,
+    "packExecuted": false,
+    "completeSelectedInputsAuthenticatedInPreparation": 357,
+    "requiredWholepackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "reproducedWholepack": false,
+    "authorpackRuntimeProof": false,
+    "authorpackReadOnlyLayoutPlanning": true,
+    "failureIsNotAProductBuildFailure": true
+  },
+  "holds": [
+    "accepted-DU75 prerequisite HELD/unrescored; selected base is not accepted",
+    "HTML admission and HTML34 HELD",
+    "whole76/global acceptance HELD",
+    "original acceptance-gated consumer HELD",
+    "P01 independently reproduced wholepack NOT established"
+  ],
+  "selfReference": "Manifest hash is supplied separately; explicit-path evidence commit authenticates this file."
+}

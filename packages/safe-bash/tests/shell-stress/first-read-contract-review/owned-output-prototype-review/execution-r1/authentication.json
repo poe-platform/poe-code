@@ -1,0 +1,73 @@
+{
+  "temp": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro",
+  "candidate": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "sourceManifestSha256": "c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44",
+  "testManifestSha256": "bdae375b37ea07dcbbd505a23873d472cfd379eae70f0b037d82b9830046de44",
+  "compiledManifestSha256": "c4df1c6910557948441eb47b3b7a9a9d069267e14e3745541f5d1e8c6d766bb0",
+  "sourceFiles": 213,
+  "testFiles": 14,
+  "compiledFiles": 708,
+  "restoredAt": "2026-08-27T10:05:18.653Z",
+  "noSourceFallback": true,
+  "noGitShowNeeded": true,
+  "toolPolicy": "Authenticated existing development tool symlink only; no new dependencies",
+  "build": {
+    "pid": 6001,
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": "",
+    "compilerStillExists": false
+  },
+  "replay": "node /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/run-prototype.mjs independent-replay",
+  "authenticatedHarness": [
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/restore-handoff.mjs-data",
+      "sha256": "f4de27e3545ae1feff3779077b50defe4334f9d5ab902f56a851578d55577c35"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/reconstruction.json",
+      "sha256": "aa42961aa6819a83e81c58a980a6f70c54797a6edfdff628dac96870737f7bcd"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/supervisor.mjs.data",
+      "sha256": "56e2aa0039f2ff1dc9402128c34e9dcf3add25e973ea9a63602dd1c444ff204f"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/run-existing.mjs.data",
+      "sha256": "a21c7030d6d76a7b7eb18ddc5a9c162e53f2381cb57edfab6de4c49bdc92b9ce"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/run-controls.mjs.data",
+      "sha256": "54c973136b8f5317f8035a4f9ec6b0be85e38d28e0ad2d8ee2576fb68b379afb"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/controls.mjs.data",
+      "sha256": "03098a87e9e4345749ba33442b171545abdaf19454088e1b93c1aa544f9568eb"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/native.mjs.data",
+      "sha256": "ca3b2cada214c7bf7c6e40d9c1fd009018dc50507a237c6365231774a30d74c6"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/run-prototype.mjs.data",
+      "sha256": "61beb791d4eba92de070f8745c062d49a70b1220168cccd4297a637bbff35ad3"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/adapted-first-read-probe.ts.data",
+      "sha256": "743f93c910422eb4ad64ac77caacb9aacf71837f28b92a51a1993e8651c6b771"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/adapted-remote-close.test.ts.data",
+      "sha256": "913548f801bad996dc1d95767380bf48075129d3eeaaff096f13a99983b95cae"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-prototype/owned-output-author.test.ts.data",
+      "sha256": "04914584fc2195f3a99006ab6fb7c18fd57d87ae6f8ba6dd4a847aa2ef1f8ce1"
+    }
+  ],
+  "restorationDelta": "Only mkdtemp prefix changed to executor-owned namespace; no candidate/source/test changes.",
+  "restorationExecutableSha256": "0fe0385c4a1cf5b05389cd5cc48658967c3f3a905c0fbede88525ed552230473",
+  "intentionsSealSha256": "aabc0ea5c7d7f03b4c4038b3c94952e7a08d9c98e2d40b9dbbf76417503be972",
+  "bindingSealSha256": "ed00497a9503623e51922f3d0b65ed15aec5a5c03608d06f265e223cb923b8b1"
+}

@@ -1,0 +1,1 @@
+invalid-binding.mts(2,41): error TS2741: Property '[Symbol.asyncIterator]' is missing in type 'Uint8Array<ArrayBuffer>' but required in type 'AsyncIterable<Uint8Array<ArrayBufferLike>>'.

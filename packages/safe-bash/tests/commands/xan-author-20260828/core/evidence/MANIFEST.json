@@ -1,0 +1,555 @@
+{
+  "classification": "AUTHOR_EVIDENCE_NOT_INDEPENDENT_ACCEPTANCE",
+  "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "freeze": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+  "harness": {
+    "path": "tests/commands/xan-author-20260828/assembly/assemble.mjs",
+    "commit": "19332038cd7e0054f1290b3f9cf6f613018b99fc",
+    "sha256": "b7c813219e1ecfca70c4b4ff790540a50aaf566024afbd9d69dba732518668f7"
+  },
+  "sourceInventory": [
+    {
+      "path": "src/commands/xan/argv.ts",
+      "blob": "d5076ba89e7a515173bbe69a33c0c72de20fc8c7",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 9587,
+      "sha256": "11d030855f5a694bf59e6c602c5e352c155271863a2084f9e81b5020e3ae75fe"
+    },
+    {
+      "path": "src/commands/xan/budget.ts",
+      "blob": "b6d5b6233182f558358648e158dcfccbcc9158cb",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 4361,
+      "sha256": "cd2e2269cdbbd23acc38d7ecfcb0573f84d12d3a91158f231051be28977cefcc"
+    },
+    {
+      "path": "src/commands/xan/commands.ts",
+      "blob": "9d1bb493d04b2490233d7a74bcaf50f29ce32610",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 12915,
+      "sha256": "2fce3aa23a4bcf3265bf0e124bb42c29ed0ab7bfe7fb243929e168090002d702"
+    },
+    {
+      "path": "src/commands/xan/csv.ts",
+      "blob": "11b7d8ba194fb888795279a5f2d883ad124a1366",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 6361,
+      "sha256": "2dda24db47c5e31950f3a1f03fe6f4026c7c94711c921782ea8071eac488d43d"
+    },
+    {
+      "path": "src/commands/xan/index.ts",
+      "blob": "e9d5a3eeb15860413fa19696841088fbbdc93f87",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 5498,
+      "sha256": "fb664e5a432222c0d79765507da65712a3412a719390a01741b1aa730d4260e9"
+    },
+    {
+      "path": "src/commands/xan/io.ts",
+      "blob": "6709ea821e1fb5919f9130871f90062163575d9e",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 9935,
+      "sha256": "162afedc011dd2949203be57f4fe2f656ef7b8a657e0b1cdef90a72805222590"
+    },
+    {
+      "path": "src/commands/xan/options.ts",
+      "blob": "25555618b17a210c3f66e609940df5bb5d023063",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 2454,
+      "sha256": "b8048c66111f47c6b56c1cf420eee20512c0ef17d5055b70fca2785976f1f074"
+    },
+    {
+      "path": "src/commands/xan/selector.ts",
+      "blob": "57f61dbe8fd77a1dc9da89f9097ccc53e205292d",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 9063,
+      "sha256": "27d93b7f759b512b1710eaa9f532aeccf5a43fbd62e32d6010d6009d3e0c56af"
+    },
+    {
+      "path": "src/commands/xan/sort.ts",
+      "blob": "9177e370e7eb7919290192e82c0beea834b723bc",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 1377,
+      "sha256": "443a57afffc1fdd00652a6d388de5dc3d4b44d88125641293771b610eedca274"
+    },
+    {
+      "path": "src/commands/xan/writer.ts",
+      "blob": "9308fa2ebef473213f158f4be130c1bda2ee9260",
+      "mode": "100644",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "bytes": 3918,
+      "sha256": "610a3dd7fbc97fda2d429221774b56da92d7937db75567e4327b7a93d5303c03"
+    }
+  ],
+  "baselineIdentity": "591ba6d6d4a83f9910c3906853af664a00904abaca9a0c243386861d15fe553f",
+  "compositionIdentity": "4ec398bc4ae2bbbc15eb0a63b796192619087e9d0e25b8c87524ac7dff9f7df0",
+  "toolIdentity": "79f08addf060bc7ddd85d7be442db4e5c63ee444a6e893d72ca16d3b5baf7227",
+  "movedPackageIdentity": "225d2710a79c003795f501370ff8662828657bed500933572f5a10fae92831ec",
+  "toolVersions": {
+    "node": "v22.22.2",
+    "nodeExecutable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "nodeExecutableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "platform": "darwin",
+    "arch": "arm64",
+    "git": "git version 2.50.1 (Apple Git-155)",
+    "npm": "10.9.7",
+    "tar": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8"
+  },
+  "finalArchive": {
+    "baseline": {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-8HPo92/baseline.tar.gz",
+      "sha256": "ceab65909d2513bb8bb36b256d7b35e0ea895322f7aec738f604af0ec5bcfd69"
+    },
+    "tools": {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-8HPo92/tools.tar.gz",
+      "sha256": "01786ebc3738668b6bd204f699c55fc26eca35b5e03362be1d68388c5c5a578d"
+    }
+  },
+  "attempts": [
+    {
+      "label": "01-build-failure",
+      "sourceDirectory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-2uQYgk",
+      "candidate": "056054669b1e0bcf4c5b3990925cdec030ecbbf6",
+      "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "started": "2026-08-28T04:44:59.988Z",
+      "completed": "2026-08-28T04:45:29.102Z",
+      "ok": false,
+      "commands": [
+        {
+          "label": "baseline-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "tools-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-build",
+          "status": 2,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-typecheck",
+          "status": 2,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "receipt": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/01-build-failure.receipt.json",
+        "sha256": "03692b528143ba0781839f5d64e66b1cbcdf78fe56a254cb927d6aff27ccef7e"
+      },
+      "logs": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/01-build-failure.logs.json",
+        "sha256": "39f2fb69e88686e41d3d82d804274f0e38272da2c51a67d943d8e715a15cab03"
+      }
+    },
+    {
+      "label": "02-shell-fixture-failure",
+      "sourceDirectory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-sWl4Ui",
+      "candidate": "d3fa941db207eead9df6167ac3160ab62ea0ce54",
+      "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "started": "2026-08-28T04:46:06.810Z",
+      "completed": "2026-08-28T04:46:32.158Z",
+      "ok": false,
+      "commands": [
+        {
+          "label": "baseline-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "tools-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-strict",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-smoke",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "author-runtime",
+          "status": 1,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "receipt": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/02-shell-fixture-failure.receipt.json",
+        "sha256": "cc3ffa951cf197d1e945270d1566097d382daf23cf1eadfc7a8ae545ae65157d"
+      },
+      "logs": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/02-shell-fixture-failure.logs.json",
+        "sha256": "04330c564f0253985bf9eb88cd18f44ac4dd14a93a8bda985587d4866239db49"
+      }
+    },
+    {
+      "label": "03-green-lifecycle",
+      "sourceDirectory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-Up6Clu",
+      "candidate": "8638b4c8a35878599e50970c83dfaf6f253e78d6",
+      "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "started": "2026-08-28T04:51:46.108Z",
+      "completed": "2026-08-28T04:52:11.535Z",
+      "ok": true,
+      "commands": [
+        {
+          "label": "baseline-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "tools-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-strict",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-smoke",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "author-runtime",
+          "status": 0,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "receipt": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/03-green-lifecycle.receipt.json",
+        "sha256": "3c327cf7794ab26c4b2795a0b2a1cca41418255d0789aab21f0e377b48d32c0c"
+      },
+      "logs": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/03-green-lifecycle.logs.json",
+        "sha256": "c77ce4ccb04d2f52fe2ac4bc7a4836267c5d84ed39ce2ba89372f982220d5122"
+      }
+    },
+    {
+      "label": "04-green-diagnostics",
+      "sourceDirectory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-f27eVm",
+      "candidate": "75fc3bceb6ea99c8870066055182e8dd269498f4",
+      "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "started": "2026-08-28T04:56:30.559Z",
+      "completed": "2026-08-28T04:56:55.264Z",
+      "ok": true,
+      "commands": [
+        {
+          "label": "baseline-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "tools-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-strict",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-smoke",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "author-runtime",
+          "status": 0,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "receipt": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/04-green-diagnostics.receipt.json",
+        "sha256": "077b15c0bbea22a9e0f9c694cc1936aeb169b310a45d34ca0b5254f1eb95206c"
+      },
+      "logs": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/04-green-diagnostics.logs.json",
+        "sha256": "ffb66a85a59962c1824732aa90e92a1d1551b12d0d1e76667f38feed83b4fc8a"
+      }
+    },
+    {
+      "label": "05-green-opaque",
+      "sourceDirectory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-LbRTHz",
+      "candidate": "4bfc688c9d7b74e8882229bb661018bc236b1843",
+      "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "started": "2026-08-28T04:58:14.339Z",
+      "completed": "2026-08-28T04:58:39.614Z",
+      "ok": true,
+      "commands": [
+        {
+          "label": "baseline-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "tools-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-strict",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-smoke",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "author-runtime",
+          "status": 0,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "receipt": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/05-green-opaque.receipt.json",
+        "sha256": "33cb1aba993714397eef718fb9334210a65a04aaa6b6cf26534edb363dbb7e29"
+      },
+      "logs": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/05-green-opaque.logs.json",
+        "sha256": "b99e365891399e6907d9d938cc47d2db7da1333523c56721c689eec9a86a249c"
+      }
+    },
+    {
+      "label": "06-final-green",
+      "sourceDirectory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-8HPo92",
+      "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "started": "2026-08-28T05:00:22.268Z",
+      "completed": "2026-08-28T05:00:56.771Z",
+      "ok": true,
+      "commands": [
+        {
+          "label": "baseline-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "tools-archive",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "baseline-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-build",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "candidate-typecheck",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-strict",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "moved-smoke",
+          "status": 0,
+          "signal": null,
+          "error": null
+        },
+        {
+          "label": "author-runtime",
+          "status": 0,
+          "signal": null,
+          "error": null
+        }
+      ],
+      "receipt": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/06-final-green.receipt.json",
+        "sha256": "923a51f88ece8d96969333d7fab62e1e599719c51c39475b02d9759163f95b9f"
+      },
+      "logs": {
+        "path": "tests/commands/xan-author-20260828/core/evidence/06-final-green.logs.json",
+        "sha256": "e4dc81f8f7e3012d4df8258c87528b34752425db7acdeaaf18ec5381e7b37934"
+      }
+    }
+  ],
+  "finalTestScope": {
+    "groups": 24,
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0,
+    "separatePackedReplay": "same 24 groups, not 24 additional independent cases"
+  },
+  "limitations": [
+    "No independent fixture/test source read beyond FINAL-CONTRACT-V4.md and FINAL-BINDING-V4.json.",
+    "Original author native RESULTS read for exact historical bytes; zero native executions.",
+    "Source-only strict build/typecheck and moved strict consumer, not repository typecheck:all or global gate.",
+    "18 factory/hard-ceiling validations and reduced-cap refusal recipes are not exhaustive work/storage boundary proofs at default/hard scales.",
+    "Local logical storage/work caps are not RSS, wall-clock, provider allocation, transaction, lease or ABA guarantees.",
+    "Owned registered iterator return must be cooperative; opaque pending next/metadata/write promises do not become cleanup barriers.",
+    "No root package/default export or provider acceptance change."
+  ]
+}

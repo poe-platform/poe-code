@@ -1,0 +1,12 @@
+async function getterAdmissionProbes(){
+  for(const kind of ['definitions','plugin']){
+    const reads=[],timing=clock();
+    for(const key of ['now','setTimeout','clearTimeout']){const method=timing.scheduler[key];Object.defineProperty(timing.scheduler,key,{get(){reads.push(key);return method;},configurable:true});}
+    const nested={get invoke(){reads.push('invoke');return async function(){assert.equal(this,undefined);return {exitCode:7};};},get scheduler(){reads.push('scheduler');return timing.scheduler;},get maxTimerMilliseconds(){reads.push('maxTimerMilliseconds');return 7;},get replace(){assert.fail('AGGREGATE_READ_NESTED_REPLACE');}};
+    const options={get timeout(){reads.push('timeout');return nested;}},registry=new root.CommandRegistry(kind==='definitions'?root.createAgentCommands(options):[]);
+    if(kind==='plugin')await root.agentCommands(options).setup(host(registry));
+    for(const key of ['timeout','invoke','scheduler','maxTimerMilliseconds','now','setTimeout','clearTimeout'])assert.equal(reads.filter(value=>value===key).length,1,`ONE_TIME_GETTER:${key}`);
+    assert.equal(reads.length,7);exact(await direct(registry.get('timeout'),['.020','child']),empty(7));assert.equal(timing.rows[0].milliseconds,7);assert.equal(timing.live,0);preserveDiagnostic('public-one-time-getters',{kind,reads});
+  }
+}
+

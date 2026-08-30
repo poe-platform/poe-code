@@ -1,0 +1,72 @@
+TAP version 13
+# Subtest: local-replaces-global-numeric
+not ok 1 - local-replaces-global-numeric
+  ---
+  duration_ms: 7.246334
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-modifier-merge/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    local-replaces-global-numeric: stdout
+    + actual - expected
+    
+      {
+        bytes: 13,
+    +   sha256: '67218d10dc0796628731f0b1ae9fb31119a4aa60d6947145220da77bd0cdc4e5'
+    -   sha256: '1dc00475f8e21185ccee6504d2f12beae621577264b54b8b32fe0e425794b352'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 13
+    sha256: '1dc00475f8e21185ccee6504d2f12beae621577264b54b8b32fe0e425794b352'
+  actual:
+    bytes: 13
+    sha256: '67218d10dc0796628731f0b1ae9fb31119a4aa60d6947145220da77bd0cdc4e5'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-modifier-merge/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: local-numeric-replaces-global-reverse
+not ok 2 - local-numeric-replaces-global-reverse
+  ---
+  duration_ms: 1.207166
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-modifier-merge/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    local-numeric-replaces-global-reverse: stdout
+    + actual - expected
+    
+      {
+        bytes: 14,
+    +   sha256: '698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c'
+    -   sha256: '29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 14
+    sha256: '29410e44b4ec7ee3135492ee6dbc9b3687ea8cf43e0db952c4db8de1fa37e3cb'
+  actual:
+    bytes: 14
+    sha256: '698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-modifier-merge/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 168.126375

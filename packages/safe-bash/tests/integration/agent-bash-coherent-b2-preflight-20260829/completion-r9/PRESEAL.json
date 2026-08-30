@@ -1,0 +1,71 @@
+{
+  "schema": "B2_R9_SOURCE_DATA_AND_FUTURE_RUNTIME_PRESEAL",
+  "sourceCommit": "57c6809ee",
+  "sourcePacket": {
+    "path": "staged/PACKET.json",
+    "bytes": 7320,
+    "sha256": "5b4a12e14081d6c95f7805358737d32008b0b7f5844413b485e77a81fb1b807d"
+  },
+  "controlPresealSha256": "393f721e41393248df030477a9900cb72445bbddfb4bf1042a79550991dabd49",
+  "controlSourceSha256": "7f46c99dcaa4d01a3fc3ccb984a4f9d29e9f574b0321b16631f16acafff6337e",
+  "runtime": "UNRUN",
+  "futureReplay": "ONE_FRESH_FULL_672_NOT_MERGED_WITH_PRIOR_224",
+  "future": {
+    "totalMaximum": 64,
+    "peak": 3,
+    "entry": 1,
+    "supervised": 41,
+    "administrationPublicationMaximum": 22,
+    "administration": {
+      "bindingAndFreshness": 6,
+      "inspectionAndCapture": 4,
+      "evidencePublication": 6,
+      "scopedGit": 6
+    },
+    "entryExecReplacementNotExtraStart": true,
+    "guestWorkers": 0,
+    "regexWorkers": 0,
+    "mainLoaderAdmissions": 34,
+    "mainLoaderPeak": 1,
+    "qualification": "Known roles only; no universal transitive OS/thread census or individual async-loader exit proof"
+  },
+  "caps": {
+    "seconds": 1800,
+    "reserveSeconds": 180,
+    "knownOsStarts": 64,
+    "peakOs": 3,
+    "rawBytes": 100663296,
+    "childRawBytes": 67108864,
+    "workBytes": 536870912,
+    "terminalReserveBytes": 4194304,
+    "traceBytesPerRole": 524288,
+    "loaderAdmissions": 34,
+    "regexWorkers": 0,
+    "regexLoaderAdmissions": 0,
+    "guestEngines": 0,
+    "loaderThreads": 34,
+    "peakLoaderThreads": 1,
+    "decoderBytes": 67108864,
+    "maximumInventoryEntries": 16384
+  },
+  "window": {
+    "notBefore": "2026-08-29T17:20:00.000Z",
+    "externalLatestStart": "2026-08-29T17:25:00.000Z",
+    "activeEnd": "2026-08-29T17:47:00.000Z",
+    "absoluteExpiry": "2026-08-29T17:50:00.000Z",
+    "shrinkingRemainingTime": true,
+    "publicationReserveSeconds": 180
+  },
+  "publication": {
+    "reuse": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/publication-v2.mjs",
+    "sha256": "f8ede5c4890135e0e68020cfc39007bd74f9d39d6402d6a31a6b031df2c9bf5f",
+    "gitInternalPhysicalGrowth": "trusted tool excluded; owned payload/capture writes included"
+  },
+  "qualifications": [
+    "128MiB cache reservation within 512MiB; best-effort nonatomic observations, no peak/quota proof; mandatory quiescent reconciliation",
+    "34 functional loader admissions; parent-exit retirement, not individual loader-exit/native-thread census",
+    "known-role-only functional profile",
+    "legacy conditional EOF bytes unchanged",
+    "moved mode preservation SOURCE_ONLY"
+  ]
+}

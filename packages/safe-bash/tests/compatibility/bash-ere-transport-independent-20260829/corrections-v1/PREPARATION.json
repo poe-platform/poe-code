@@ -1,0 +1,28 @@
+{
+  "status": "PRESEALED_NOT_RUN",
+  "sha256": "a1242b76288e09d82ede0ef41d653a720ce6484f944ae9801f8d471446045109",
+  "assets": [
+    {
+      "path": "RUN-v3/work/emitted/errors.js",
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "RUN-v3/work/emitted/limits.js",
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "RUN-v3/work/emitted/transport/protocol.js",
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "RUN-v3/work/emitted/transport/accounting.js",
+      "sha256": "5515cbc0923cd568c84e20e6426a5412acafe47807a78d794903a67873d87677"
+    },
+    {
+      "path": "RUN-v3/work/emitted/transport/validation.js",
+      "sha256": "481ebcabf4d2d0368fe8992403b3b07510334e50a3ebaccbaf1742b5b0bb26fd"
+    }
+  ],
+  "sourceRows": 7,
+  "Workers": 0
+}

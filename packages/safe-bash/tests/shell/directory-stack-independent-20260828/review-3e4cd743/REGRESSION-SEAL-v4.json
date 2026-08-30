@@ -1,0 +1,255 @@
+{
+  "version": "regression-v4",
+  "at": "2026-08-28T09:24:37.812Z",
+  "role": "post-source controls/regressions execution preseal; source-only families never semantic kills",
+  "files": [
+    {
+      "path": "ATTEMPTS-v1.json",
+      "sha256": "34afcab8c991d2482f3737f24ed8d4d4ba064c6b239158f1b16cd764a240b4e6"
+    },
+    {
+      "path": "ATTEMPTS-v2.json",
+      "sha256": "e70176dcc16e1752fd13be96dea680cc2c0a3c2b826d6842b81f939b93ae0091"
+    },
+    {
+      "path": "BINDING-v1.json",
+      "sha256": "ca97812627b32f31db521235c2ddc4ba9613603f64898a81ac5668149ae613bb"
+    },
+    {
+      "path": "CONTROL-SCHEDULE-v3.json",
+      "sha256": "78c83c72c38d187e6ebd0814f81ed909118caeeea9e698c7c5660fdd3cba76be"
+    },
+    {
+      "path": "CONTROL-SYNTAX-v3.json",
+      "sha256": "ca5c7adcd47dd09aff5ef41036314be6f245ba85690968f64cfcc80b2f4801aa"
+    },
+    {
+      "path": "CONTROLS-v1.json",
+      "sha256": "67a4003369a7da17a6e9e205e00ec2d744be3756cdb964b1e50f7dfbd7cdb519"
+    },
+    {
+      "path": "CONTROLS-v2.json",
+      "sha256": "295a8c108f62ce0819775580a1459499199b29d19606becbaae91f60a8b9529d"
+    },
+    {
+      "path": "CORRECTIONS-v2.json",
+      "sha256": "4c4440874dd16ca8b7c41fd3c9d3a980832d3ab1c472f141fc010849d3299a3f"
+    },
+    {
+      "path": "INVENTORY-v1.json",
+      "sha256": "3b1567cc54037e25a14248000c50466f707cf86cab79af0fac734e33e67b4c5b"
+    },
+    {
+      "path": "ORIGINAL-RAW-v1.json.gz.base64",
+      "sha256": "a6594c8c7840bf433ebd60bfa9eba2867d9e8c54390535082778f89aeaba6fcf"
+    },
+    {
+      "path": "POSTSOURCE-NOTES-v1.md",
+      "sha256": "d254032e0dbba6e85cddb5e1b20e2b4a4f807f973896dc722706879bab50d802"
+    },
+    {
+      "path": "PRESEAL-v1.json",
+      "sha256": "4d3d9c3362dfcaac0f4b03b5e58ecd5f293640d0e10c13eb28c7fa221e4a920a"
+    },
+    {
+      "path": "README.md",
+      "sha256": "bcb4b84a7f600e1fce9e497af92a1b002b88da289e9dc92cf39265d202ec80cb"
+    },
+    {
+      "path": "REGRESSIONS-v1.json",
+      "sha256": "5d91a985f8f7007a9f2519349b4a49e4f1980a6ed5f7fbdb0e13c9d57219a475"
+    },
+    {
+      "path": "RUN-SEAL-v1.json",
+      "sha256": "8b1d43a361d2f759ed9a3bd33b02070dd0311837ec1446c33fd640198076ab93"
+    },
+    {
+      "path": "RUN-SEAL-v2.json",
+      "sha256": "b3324a71fbc6c3d17e280d597d64f664e8e1ecc400a8bbb466735d904b5782e0"
+    },
+    {
+      "path": "SOURCE-AUDIT-v2.json",
+      "sha256": "1235a049ffd075c52618c4f2deb2f7f5a18079e57162ae4e5701bb27ce2c45ec"
+    },
+    {
+      "path": "SOURCE-PROOFS-v1.json",
+      "sha256": "d89a41aafdece0e7c494e5582537e6a323b981fc6fdd5e36b5ad5877652b3c0c"
+    },
+    {
+      "path": "SYNTAX-v1.json",
+      "sha256": "13373daae7408336bf867565a468067c6f6a5731728b79040083df44f0d7be7e"
+    },
+    {
+      "path": "SYNTAX-v2.json",
+      "sha256": "935019fc229597179bedcd8588a3ce3ed2273fa97721a657c0e938427586b573"
+    },
+    {
+      "path": "TOOLS-v2.json",
+      "sha256": "318e930f1c86329569ca28c9d58e818dd4dd600d7142a62b71a9705b47299017"
+    },
+    {
+      "path": "control-harness-v3/adapters.mjs",
+      "sha256": "00c818464414938f08624727c0910b0e58909c9da6459922a393d6c0aec03c13"
+    },
+    {
+      "path": "control-harness-v3/child-process.mjs",
+      "sha256": "c11e0225d3e1cb8b96e247fb8b1a7914c6057a37c6dbf0e7ef157e533e6aa7e7"
+    },
+    {
+      "path": "control-harness-v3/driver.mjs",
+      "sha256": "d64b0542de9a4eea7ae11d12c9f808278ba6ce4c024c90dce4feddb0ba778e4f"
+    },
+    {
+      "path": "control-harness-v3/gaps.mjs",
+      "sha256": "7ace694946af2dda221dad6119171de2ce441b258c3ac7ca2d11165b079207e3"
+    },
+    {
+      "path": "control-harness-v3/import-probe.mjs",
+      "sha256": "1fb2a98e37bf8a034227a3988769bc89820c6147b2cd89d1ca5e030445ad9baa"
+    },
+    {
+      "path": "control-harness-v3/integrity.mjs",
+      "sha256": "61fca7caf2f939e65f90f7f6918e16b943602a81e26ae2877fb62fe59b430ff6"
+    },
+    {
+      "path": "control-harness-v3/let-regressions.mjs",
+      "sha256": "68f9610ec2612af585eac234f4810357d2f65b20ababa6738f1231eec3c136cf"
+    },
+    {
+      "path": "control-harness-v3/lifecycle.mjs",
+      "sha256": "33e1b730aa3244f29fcf9f1951f841b5d94e90c0fe86c8cd84e025dab273ae9e"
+    },
+    {
+      "path": "control-harness-v3/load-hook.mjs",
+      "sha256": "f8dfa1c8c96c62d5c189326500855233ea3897e07931d3edd8b8d2265ddcd514"
+    },
+    {
+      "path": "control-harness-v3/public-cases.mjs",
+      "sha256": "6089c20e5c0009062654b61f9c263700ecde79445662a0f2c9951d080b518c3d"
+    },
+    {
+      "path": "control-harness-v3/public-entry.mjs.fixture",
+      "sha256": "37196977f4bfbc452e84aeb3b7c29f66bf38e7f7fa26e94ab95c8fa0ce72537b"
+    },
+    {
+      "path": "harness-v1/adapters.mjs",
+      "sha256": "dc5bbd52207cde4c62edbd69f6ad2935342411f83045816d55efd152908aa6cd"
+    },
+    {
+      "path": "harness-v1/child-process.mjs",
+      "sha256": "c11e0225d3e1cb8b96e247fb8b1a7914c6057a37c6dbf0e7ef157e533e6aa7e7"
+    },
+    {
+      "path": "harness-v1/driver.mjs",
+      "sha256": "bdfd792906443761c7ea7207190510ae3e77975433fd5e580b047789f176bec4"
+    },
+    {
+      "path": "harness-v1/gaps.mjs",
+      "sha256": "b718f9bd3b2573527145bb1ff185e1277fd70615b34996da22c1d13d7da0c3f4"
+    },
+    {
+      "path": "harness-v1/integrity.mjs",
+      "sha256": "61fca7caf2f939e65f90f7f6918e16b943602a81e26ae2877fb62fe59b430ff6"
+    },
+    {
+      "path": "harness-v1/lifecycle.mjs",
+      "sha256": "33e1b730aa3244f29fcf9f1951f841b5d94e90c0fe86c8cd84e025dab273ae9e"
+    },
+    {
+      "path": "harness-v1/load-hook.mjs",
+      "sha256": "f8dfa1c8c96c62d5c189326500855233ea3897e07931d3edd8b8d2265ddcd514"
+    },
+    {
+      "path": "harness-v1/public-cases.mjs",
+      "sha256": "25c193000d9256fa30d19add502ac3e48719f17b3773f3d0f329e4dc22ac4cbe"
+    },
+    {
+      "path": "harness-v1/public-entry.mjs.fixture",
+      "sha256": "37196977f4bfbc452e84aeb3b7c29f66bf38e7f7fa26e94ab95c8fa0ce72537b"
+    },
+    {
+      "path": "harness-v2/adapters.mjs",
+      "sha256": "00c818464414938f08624727c0910b0e58909c9da6459922a393d6c0aec03c13"
+    },
+    {
+      "path": "harness-v2/child-process.mjs",
+      "sha256": "c11e0225d3e1cb8b96e247fb8b1a7914c6057a37c6dbf0e7ef157e533e6aa7e7"
+    },
+    {
+      "path": "harness-v2/driver.mjs",
+      "sha256": "d64b0542de9a4eea7ae11d12c9f808278ba6ce4c024c90dce4feddb0ba778e4f"
+    },
+    {
+      "path": "harness-v2/gaps.mjs",
+      "sha256": "7ace694946af2dda221dad6119171de2ce441b258c3ac7ca2d11165b079207e3"
+    },
+    {
+      "path": "harness-v2/integrity.mjs",
+      "sha256": "61fca7caf2f939e65f90f7f6918e16b943602a81e26ae2877fb62fe59b430ff6"
+    },
+    {
+      "path": "harness-v2/lifecycle.mjs",
+      "sha256": "33e1b730aa3244f29fcf9f1951f841b5d94e90c0fe86c8cd84e025dab273ae9e"
+    },
+    {
+      "path": "harness-v2/load-hook.mjs",
+      "sha256": "f8dfa1c8c96c62d5c189326500855233ea3897e07931d3edd8b8d2265ddcd514"
+    },
+    {
+      "path": "harness-v2/public-cases.mjs",
+      "sha256": "89ed9f890c632511515a9e3de4c73cef8f55a6d0bfd3b0f3c9f8d7b7291f295e"
+    },
+    {
+      "path": "harness-v2/public-entry.mjs.fixture",
+      "sha256": "37196977f4bfbc452e84aeb3b7c29f66bf38e7f7fa26e94ab95c8fa0ce72537b"
+    },
+    {
+      "path": "import-controls-v1.mjs",
+      "sha256": "782064b101641ab2502288a4daf0ced8ff87fee43aed9007fa963a679e0271c9"
+    },
+    {
+      "path": "mechanisms-v1.mjs",
+      "sha256": "2018f89b30f489b09493d8ebe64c3d6f7299b893d48e229b9ac1edaa4e0c7b93"
+    },
+    {
+      "path": "prepare-v1.mjs",
+      "sha256": "89b16469f9c1087d242717cd284a0096f08853dab5f8f3e9ecf3c5d383fbd228"
+    },
+    {
+      "path": "prepare-v2.mjs",
+      "sha256": "e2e598d593e44ed4d817accb3a716be8b16621bcc5d7798e3b9d39c8495190f2"
+    },
+    {
+      "path": "regressions-v1.mjs",
+      "sha256": "2eb1a2024b2b7e3c4e72ed0cb8dfc02feca0a59585a90b00cb91b61dfce09b20"
+    },
+    {
+      "path": "run-review-v1.mjs",
+      "sha256": "9ae8ea13c168f7e459855ad4571199fecb23ad4f6c2ea51af6304a2997e2b509"
+    },
+    {
+      "path": "run-review-v2.mjs",
+      "sha256": "618f9d9d5515be20692b81e7ba4c9bac386598c9b8ba431c28b1ecfbcc161b76"
+    },
+    {
+      "path": "types-review-v1.mjs",
+      "sha256": "71362a1661f6c9bb4cea71c9a91ac277306aa8335c68a94af94806893832ff23"
+    },
+    {
+      "path": "types-review-v2.mjs",
+      "sha256": "3713da9e5220a04b4d64ca77872c0b815a63e1e337b1f24ea994a7faa457415f"
+    },
+    {
+      "path": "REGRESSIONS-v4.json",
+      "sha256": "beb989574ef4409ffde78b425156388c8e606253037845146ea1712c37405634"
+    },
+    {
+      "path": "regressions-v4.mjs",
+      "sha256": "de940ddd2f717b855e96261614f0a3051b5d606ed0fb58a73574367e539dac7b"
+    },
+    {
+      "path": "REGRESSION-CORRECTION-v4.json",
+      "sha256": "ad272455152c8767e5609acbb0ff44088decb8090bc8a1db7dbd054321eda01f"
+    }
+  ]
+}

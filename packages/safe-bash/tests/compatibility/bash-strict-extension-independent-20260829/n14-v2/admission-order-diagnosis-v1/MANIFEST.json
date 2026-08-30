@@ -1,0 +1,72 @@
+{
+  "files": [
+    {
+      "path": "BINDING-PROOF.json",
+      "bytes": 5921,
+      "sha256": "0062251c87e1f2c26b3ec136267c5edce404a21f8f12be8e58d8bc74905960ea"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 10707,
+      "sha256": "4c831d5d05e9033083115bac191e23b25ab593a164aaf66b03281de5df68cd4b"
+    },
+    {
+      "path": "SOURCE-BINDINGS.json",
+      "bytes": 1454,
+      "sha256": "a9c9b5546873d5806c9a92bc39e568601988f703d4f25a96e9560429b53389a2"
+    },
+    {
+      "path": "START.json",
+      "bytes": 119,
+      "sha256": "1e60755e82e8dd1326343a21dd108544237c8dfcb3ce564dea664cb916ce6674"
+    },
+    {
+      "path": "binding-detail.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "binding-detail.stdout.raw",
+      "bytes": 5921,
+      "sha256": "0062251c87e1f2c26b3ec136267c5edce404a21f8f12be8e58d8bc74905960ea"
+    },
+    {
+      "path": "detail.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "detail.stdout.raw",
+      "bytes": 19946,
+      "sha256": "44494046ccf83b50c66c2b4d083c1704ea764e07ac376ad69e098fe1f6186ee8"
+    },
+    {
+      "path": "events.jsonl",
+      "bytes": 69,
+      "sha256": "284f4a7990e1bb99807416562fe566d044fc72f3cdea853cc241db10e87d8328"
+    },
+    {
+      "path": "git-status.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "git-status.stdout.raw",
+      "bytes": 73084,
+      "sha256": "6a6bae0fb546d6eacf8716b0f7c41a1c5a2109bfbed8d023ac761e4a535aa558"
+    },
+    {
+      "path": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "stdout.raw",
+      "bytes": 43531,
+      "sha256": "79c46cf9b9e59dd895bfc4f5acb75870fbf04460bd4c921133687ae326a01882"
+    }
+  ],
+  "elapsedMs": 313566,
+  "knownProcessAccounting": "Four Node metadata/helper invocations including this exec-replaced publisher; one initialGit; one shell with sed+cat; apply_patch helper roles; five publicationGit commands. <=16 conservative known slots within24, not a global census.",
+  "noHistoricalMutation": true
+}

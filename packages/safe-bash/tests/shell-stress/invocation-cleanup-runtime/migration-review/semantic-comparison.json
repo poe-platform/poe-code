@@ -1,0 +1,47 @@
+{
+  "originalFixture": "0456609e8d4e90d7a5d3d6a548804b522057b939f2afed55891d070e4da96e12",
+  "currentFixture": "04d89950adb9eae86407154f913be7b9c257df16ff55fc377a1006c456642568",
+  "byteIdenticalProbe": "2ca53ee66a4dcc1f85453fa9fd276e76da1d773ef6a51ea866eafeb2ddda3fe4",
+  "originalOuterAssertions": [
+    "      assert.ok(snapshot);",
+    "      assert.equal(result.error, undefined, `${scenario}: ${result.error?.message}`);",
+    "      assert.equal(result.signal, null, `${scenario}: ${result.stderr}`);",
+    "      assert.equal(result.status, 0, `${scenario}: ${result.stdout}\\n${result.stderr}`);",
+    "      assert.equal(report.passed, true);",
+    "      assert.equal(report.sourcePinned, true);",
+    "      assert.equal(report.liveWorkers, 0);",
+    "      assert.deepEqual(report.unhandled, []);"
+  ],
+  "currentOuterAssertions": [
+    "      assert.ok(snapshot);",
+    "      assert.equal(result.error, undefined, `${scenario}: ${result.error?.message}`);",
+    "      assert.equal(result.signal, null, `${scenario}: ${result.stderr}`);",
+    "      assert.equal(result.status, 0, `${scenario}: ${result.stdout}\\n${result.stderr}`);",
+    "      assert.equal(report.passed, true);",
+    "      assert.equal(report.sourcePinned, true);",
+    "      assert.equal(report.liveWorkers, 0);",
+    "      assert.deepEqual(report.unhandled, []);"
+  ],
+  "scenarioCount": 10,
+  "changedProbeAssertions": 0,
+  "authorSourceCanonicalProbeHelperIdentical": true,
+  "originalRuntime": "4c16d9c5a0e8661bc326a754205559a3e7ea6a32",
+  "originalHarness": "85e6d56017bafebf9aa8849cd9e038229e49c863",
+  "originalFailedHooks": 10,
+  "compressedCapture": {
+    "key": "canonical/test.stdout.log",
+    "path": "evidence/canonical/test.stdout.log.data.gzbase64",
+    "encoding": "gzip-base64",
+    "originalBytes": 4246176,
+    "originalSha256": "f51ee8beb275d7a4fd53024f57b98e614886a2ed7ae143b133d95d73e6fec3bd",
+    "storedSha256": "9bcc6ef303a27cfc1749eece78b991acdb2e43b48f2990e5a089a751d91985f3"
+  },
+  "historicalReplayExecuted": false,
+  "meanings": [
+    "normal and pipe exact status/stdout bytes/sink bytes/stderr",
+    "caller cancellation reason reference equality and empty sinks",
+    "same/other shell sibling signal and settlement isolation",
+    "actual native exit AND awaited termination at each public boundary",
+    "zero live workers and unhandled rejections"
+  ]
+}

@@ -1,0 +1,40 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repository = "/Users/kjopek/Workspace/safe-bash";
+const owned = dirname(fileURLToPath(import.meta.url));
+const attempt = process.argv[2];
+assert.match(attempt, /^attempts\/r[1-9][0-9]*$/);
+assert.equal(existsSync(join(owned, attempt)), false);
+assert.equal(process.cwd(), repository);
+const env = { PATH: "/usr/bin:/bin", GIT_OPTIONAL_LOCKS: "0", LC_ALL: "C" };
+const run = (command, args, timeout = 30000) => spawnSync(command, args, { cwd: repository, env, timeout, maxBuffer: 32 * 1024 * 1024 });
+const config = run("/usr/bin/git", ["-C", "/Users/kjopek/Workspace/poe-code", "config", "--get-regexp", "^(core\\.fsmonitor|core\\.untrackedcache)$"]);
+assert.equal(config.status, 1);
+assert.equal(config.stdout.length, 0);
+assert.equal(config.stderr.length, 0);
+const path = "tests/integration/safejs-owned-output-prototype-review/provenance/snapshot.mjs";
+const helper = run("/usr/bin/git", ["show", `f666ad8c76ea4362b093ee52e3e7e3b5c3702916:${path}`]);
+assert.equal(helper.status, 0);
+assert.equal(createHash("sha256").update(helper.stdout).digest("hex"), "dad095bb5f744d6137b374d70ba07971ce76965b215a2280bf2849e9717695ce");
+assert.deepEqual(helper.stdout, readFileSync(path));
+const scratch = mkdtempSync("/private/tmp/safe-bash-owned-output-receipt-review-");
+writeFileSync(join(scratch, "snapshot.mjs"), helper.stdout, { flag: "wx" });
+writeFileSync(join(scratch, "context.json"), JSON.stringify({ scratch, started: new Date().toISOString(), attempt }) + "\n", { flag: "wx" });
+const before = run(process.execPath, [join(scratch, "snapshot.mjs"), "before"]);
+assert.equal(before.status, 0, before.stderr.toString());
+console.log(before.stdout.toString());
+const review = run(process.execPath, [join(owned, "review.mjs"), join(scratch, "context.json"), attempt], 300000);
+console.log(review.stdout.toString());
+if (review.stderr.length) console.error(review.stderr.toString());
+if (existsSync(scratch) && !existsSync(join(scratch, "snapshot-after.json"))) {
+  const after = run(process.execPath, [join(scratch, "snapshot.mjs"), "after"]);
+  console.log(after.stdout.toString());
+  assert.equal(after.status, 0, after.stderr.toString());
+}
+assert.equal(review.error, undefined);
+process.exitCode = review.status ?? 1;

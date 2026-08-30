@@ -1,0 +1,539 @@
+{
+  "schema": "scoped-env-v13-corrected-continuation-recipe/2",
+  "createdAt": "2026-08-28T10:32:59.383Z",
+  "timing": "Post-author/post-v1-failure/post-source inspection; PRE-v2 execution. Original bdb freeze and v1 controls/results remain unchanged. No blind/pre-code claim.",
+  "initialHead": "8666174d2e2fc6a16a2f7d8696d21f56531ccf98",
+  "priorSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+  "freeze": "bdb49d758809134e5aeb2aef57f8656a580f142e",
+  "source": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+  "reseal": "96daebc077381fb63ab6447a26ab707ce790ff25",
+  "evidence": "770381bc61b49b5abed96acdf0ab09f2d4b610ca",
+  "driverSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "product": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "driverPrefix": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/",
+  "inheritedRecipe": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/RECIPE.json",
+    "sha256": "4225f050dc84d38c06a159efd6e6d66190555525f7d65b2f1b741c4a9c22bd11",
+    "bytes": 140882
+  },
+  "inherited": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/CONTROL-CONTRACT.json",
+      "bytes": 17637,
+      "sha256": "80417ea8575ba10337877dc7adf6d0eaa2b444d31ad91778c4ad196de245b7a3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/HANDOFF.md",
+      "bytes": 4065,
+      "sha256": "bbf4e16661469c105ee291a281006b7fecd3b3c583f00de63d141c76e712b982"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/ARTIFACTS.json",
+      "bytes": 6309,
+      "sha256": "f2c3c68731c2c16fa62f52e11f53204f5c458055e424d21006afcb812c72ff1e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/COHORT-START.json",
+      "bytes": 776,
+      "sha256": "e82db8b9803bd8d98b59fb0d18d778108eaf64c3427fea329e94061925920183"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/FINAL.json",
+      "bytes": 22188,
+      "sha256": "9f5cee246dd9017b89f31ff20d8bb8dd88349a03d6a8a693409a9b6da76c26c7"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/HANDOFF.md",
+      "bytes": 7197,
+      "sha256": "7dc8a520f06dbfbefbd131dfe6ed082a2d697f3cf5f83eb90508683043daf8e5"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/OUTER-CAPTURE.json",
+      "bytes": 2241,
+      "sha256": "a248cd4592cd849d90d9c7ebef7e0c870de2521c5232231c0d7ef219068f90cd"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/PREEXECUTION.md",
+      "bytes": 5562,
+      "sha256": "e1724f7b0bedf2e5fa248b801bf51eaf2a222eddd505875e0a45b4d05e1ae0a2"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/RECIPE.json",
+      "bytes": 140882,
+      "sha256": "4225f050dc84d38c06a159efd6e6d66190555525f7d65b2f1b741c4a9c22bd11"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/RESULTS.json",
+      "bytes": 170154,
+      "sha256": "8181af4c97b8a01fc26c45ad9b3b4e53ba2ae167d2cd0c783d423030283a80b1"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/TERMINAL.json",
+      "bytes": 235,
+      "sha256": "59516c9bb33cc3b06d66e7cddf5a3ea58aa7a5f9de27609a6e76a604732f36f9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/authority-inner-worker.json.gz",
+      "bytes": 1993,
+      "sha256": "896ef2f5fc8f14310f28d845d568c11850145a99eea9216d5453cc0482d04d05"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/authority-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2092,
+      "sha256": "4c3138141bc2aa662f4c9130faaacd381f29bba540972b5bea8276aecf15dd8b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/authority-outer-OS-FENCE.json.gz",
+      "bytes": 1348,
+      "sha256": "ea1af47b36da0aafdedc8a5830e30deb511d2386ede09fdc77a6b2418cad2e70"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/authority-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/authority-outer-stdout.gz",
+      "bytes": 99,
+      "sha256": "fff75662c911223d84cfda27b35ff015f6f53df7d90b6257c5b7bc8b1a6618bf"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/compound-errors-inner-worker.json.gz",
+      "bytes": 1838,
+      "sha256": "52d5b17bf6323f394afc0eec1dfeb9a84f07a56d3ab500dc49a712979f43546f"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/compound-errors-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2093,
+      "sha256": "9973aa1ec6b934f6ce7cc289699cf6cbed2df6939d9ddc5c9def7258ac0c5f7c"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/compound-errors-outer-OS-FENCE.json.gz",
+      "bytes": 1346,
+      "sha256": "0a68c3cd74cf926ce7782a4ca08efb0b4e9a61329d7553c52df781a95ac34012"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/compound-errors-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/compound-errors-outer-stdout.gz",
+      "bytes": 105,
+      "sha256": "ec5d69ac96fd4e3d73eb146e3d5dfe055714a8695d8ec534df8eff87112d175c"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/core-inner-worker.json.gz",
+      "bytes": 3400,
+      "sha256": "f531fca5bbab9c8bd8f9eb057b763a59a4bea265d5344d562afeecf02dfecdd4"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/core-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2086,
+      "sha256": "05e7e81b696adf04e639ecfcd61b30def4a7bc0fba8665e10e363240024fac89"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/core-outer-OS-FENCE.json.gz",
+      "bytes": 1343,
+      "sha256": "9c4abbaa7c2dd7f73d05e6dff51e56a1a987e9fdbc15176bab7bcaa73236a233"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/core-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/core-outer-stdout.gz",
+      "bytes": 163,
+      "sha256": "e2820e18e0edc1a88f8d4c7d1bb66279a89473483d600347c7bf3be7fce15c8a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/partial-installation-inner-worker.json.gz",
+      "bytes": 1698,
+      "sha256": "db126e2907caf703c3f9418fd035cdadaa0a00a2be2e099eb6021c830b1b1dc3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/partial-installation-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2100,
+      "sha256": "f27be6dd7437b02a3efbf8890c6aeff47a8a23abb4b7c9a65790581f3720c7ec"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/partial-installation-outer-OS-FENCE.json.gz",
+      "bytes": 1352,
+      "sha256": "6d9e5e2f076c14806abededecbf01d6e4cf83fec8f84a912c3f5bf56184391e6"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/partial-installation-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/partial-installation-outer-stdout.gz",
+      "bytes": 105,
+      "sha256": "987040a9153ef616ce4c96ff3c221fadc72212c9ee25eb3a2bbcdd817be3f5f3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/poison-restoration-inner-worker.json.gz",
+      "bytes": 1785,
+      "sha256": "b76ccf14695bffbbbb9db1513ee6af4529a27a1ac0f94e8dbc76be64916bf492"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/poison-restoration-outer-OS-FENCE-RESULT.json.gz",
+      "bytes": 2092,
+      "sha256": "c97b0bb4345073bbd8a1a245754b0ce4d1c582edd02fe03a65693d2258bcde40"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/poison-restoration-outer-OS-FENCE.json.gz",
+      "bytes": 1348,
+      "sha256": "db72bc12942e6b205a7eca45314fffd9c5bb5a26701341226bc86c14b4b3aaf5"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/poison-restoration-outer-stderr.gz",
+      "bytes": 20,
+      "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/raw/poison-restoration-outer-stdout.gz",
+      "bytes": 105,
+      "sha256": "6e15d5df95d9f04f2f0c101952a1bc2426cbf6613e757f938e8e0a50a19d89d8"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/review.mjs",
+      "bytes": 15203,
+      "sha256": "2b095e2b535866e23685479254f55064f26405c8327d933a5c84719740483e96"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/worker.mjs",
+      "bytes": 20742,
+      "sha256": "58a9948acf73d9052864b006ed77d6b4e2f1a08c0794ddbe55f27f2225e5529e"
+    }
+  ],
+  "closureCount": 38,
+  "unchangedFromFe15": 35,
+  "copyFiles": [
+    "tool-routing.mjs",
+    "fenced-supervisor.mjs",
+    "os-instruction-fence.mjs",
+    "supervise.mjs",
+    "process-observer.mjs",
+    "common.mjs",
+    "transport.mjs",
+    "projection.mjs",
+    "policy.mjs",
+    "external-admission.mjs",
+    "external.mjs",
+    "CANDIDATE.json",
+    "TOOL-ROUTES.json",
+    "OS-INSTRUCTION-FENCE.json",
+    "EXTERNAL-RECEIPT.json",
+    "EXTERNAL.json.gz.base64",
+    "INSTRUCTION-PROJECTION.json"
+  ],
+  "importModules": [
+    "tool-routing.mjs",
+    "fenced-supervisor.mjs",
+    "os-instruction-fence.mjs",
+    "supervise.mjs",
+    "process-observer.mjs",
+    "common.mjs",
+    "transport.mjs",
+    "projection.mjs",
+    "policy.mjs",
+    "external-admission.mjs",
+    "external.mjs"
+  ],
+  "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+  "nodeSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+  "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+  "gitSha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+  "gitCore": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+  "toolOrigins": [
+    {
+      "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    {
+      "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "origin": "/bin/sh",
+      "physical": "/bin/sh",
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+    },
+    {
+      "origin": "/usr/bin/tar",
+      "physical": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    {
+      "origin": "/bin/ps",
+      "physical": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    },
+    {
+      "origin": "/usr/sbin/lsof",
+      "physical": "/usr/sbin/lsof",
+      "sha256": "1c7ea75ae284bfb569f693ce50ad25c04a780dfe5ae80ae93a5d2ed285c6b456"
+    },
+    {
+      "origin": "/usr/bin/sw_vers",
+      "physical": "/usr/bin/sw_vers",
+      "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd"
+    },
+    {
+      "origin": "/usr/bin/bsdtar",
+      "physical": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    {
+      "origin": "/usr/bin/gzip",
+      "physical": "/usr/bin/gzip",
+      "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3"
+    },
+    {
+      "origin": "/usr/bin/gunzip",
+      "physical": "/usr/bin/gunzip",
+      "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73"
+    },
+    {
+      "origin": "/bin/bash",
+      "physical": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    {
+      "origin": "/usr/bin/sed",
+      "physical": "/usr/bin/sed",
+      "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360"
+    },
+    {
+      "origin": "/usr/bin/awk",
+      "physical": "/usr/bin/awk",
+      "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+    },
+    {
+      "origin": "/usr/bin/jq",
+      "physical": "/usr/bin/jq",
+      "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+    },
+    {
+      "origin": "/usr/bin/curl",
+      "physical": "/usr/bin/curl",
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+    },
+    {
+      "origin": "/usr/bin/rev",
+      "physical": "/usr/bin/rev",
+      "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247"
+    },
+    {
+      "origin": "/usr/bin/expand",
+      "physical": "/usr/bin/expand",
+      "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78"
+    },
+    {
+      "origin": "/usr/bin/fold",
+      "physical": "/usr/bin/fold",
+      "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035"
+    },
+    {
+      "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+      "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+      "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+    },
+    {
+      "origin": "/usr/bin/sandbox-exec",
+      "physical": "/usr/bin/sandbox-exec",
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+    }
+  ],
+  "toolClosure": "Exact prior RECIPE tools/GitCore/qualified system pairs hash-bound, checked before imports; no new routes or exceptions. Required shipping identity/observer subprocesses only.",
+  "systemQualification": {
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+    "pairs": [
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libc++.1.dylib"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libz.1.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libarchive.2.dylib"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/usr/bin/sandbox-exec",
+        "/usr/lib/libsandbox.1.dylib"
+      ],
+      [
+        "/usr/bin/sandbox-exec",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "/usr/lib/libc++.1.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    ],
+    "claim": "Exactly original11+sandbox2+inspector2 approved reference pairs, not unique-library count/file hashes/full OS attestation; no added exception"
+  },
+  "helper": {
+    "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+    "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+    "excerpt": "  const authorityFiles = [\"tests/commands/metadata-stress/canonical-env/runner.mjs\", \"tests/plugins/qualified-current-release/prerequisites.mjs\"];\n  result.authorities = authorityFiles.map(path => {\n    const expected = execFileSync(\"git\", [\"--no-replace-objects\", \"show\", `${candidate}:${path}`], { cwd: repository });\n    assert.equal(sha(readFileSync(join(source, path))), sha(expected), `native helper drift: ${path}`);\n    return { path, sha256: sha(expected) };\n  });",
+    "excerptSha256": "41e8bbf0e913189bf8b273a93499ac597515928b264cc52ac5c86b151a3d5cd7"
+  },
+  "environment": {
+    "PATH": "/dev/null",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "bounds": {
+    "cohortMs": 120000,
+    "launchMs": 180000,
+    "authorityWorkerMs": 60000,
+    "collectorChildMs": 5000,
+    "gitTimeoutMs": 5000,
+    "gitOutputBytes": 2097152,
+    "workerOutputBytes": 1048576,
+    "totalCaptureBytes": 12582912,
+    "ownedDiskBytes": 67108864,
+    "collectorEscalationMs": 2000,
+    "shippingCleanupSeconds": 5
+  },
+  "caseIds": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "R03-N",
+    "R03-E",
+    "E10.1",
+    "E10.3"
+  ],
+  "counts": {
+    "freshObligations": 2,
+    "additionalAdapterCases": 2,
+    "offlineComparatorCompanions": 7,
+    "actualCollectorChildren": 2,
+    "offlineCollectorReceiptCompanions": 1,
+    "totalNewRows": 14
+  },
+  "oracles": {
+    "C01": "Cross-realm real Array with exactly three primitive strings accepted and host-normalized.",
+    "C02": "Wrong primitive and reordered arguments rejected.",
+    "C03": "Extra argument rejected.",
+    "C04": "Non-string primitive argument rejected without coercion.",
+    "C05": "Nonarray iterable rejected.",
+    "C06": "Unequal surrogate primitives rejected even if UTF8 replacement encoding matches.",
+    "C07": "Accessor index rejected without getter invocation.",
+    "C08": "Actual pinned Node ordinary child: separate stdout-only/stderr-only bytes, exit0/signalnull/naturalclose and success.",
+    "C09": "Actual pinned Node prints ALL_PASS but exits7: separate channels; successful(receipt) false, expected-negative companion passes without overriding child7.",
+    "C10": "Seven offline mutations of real C08 receipt (status/signal/close/error/timeout/output/forcedsignal) rejected, not real timed-out execution.",
+    "R03-N": "Nonempty ambient GIT_EXEC_PATH/GIT_OPTIONAL_LOCKS refused BEFORE callback/dispatch/record; exact env unchanged and handle idle. Separate root-disposition negative, NOT original E03.3 restoration.",
+    "R03-E": "ONE admitted present-empty GIT_EXEC_PATH/GIT_OPTIONAL_LOCKS scope restores exact own presence/empty values after awaited no-side-effect callback; no original E03.3 rescore.",
+    "E10.1": "Exact helper authority-map excerpt only, two real inherited bare-git reads of own synthetic objects within shipping OS fence. Unique PATH candidate/realpath/hash before dispatch, exact args/cwd/omitted-env; actual PID/status/streams, env restored.",
+    "E10.3": "Two complete pre/post route/env/stdio/status receipts and eight incomplete/incorrect receipt mutations rejected. No kernel exec trace or old EPERM attribution."
+  },
+  "commands": {
+    "launch": [
+      "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/launch.mjs",
+      "--cohort-once"
+    ],
+    "coordinator": [
+      "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/review.mjs",
+      "--cohort-once"
+    ],
+    "collectorChildren": [
+      "node capture-child.mjs ordinary",
+      "node capture-child.mjs late-pass-nonzero"
+    ],
+    "authorityWorker": "superviseFencedWorker({output:/tmp/full-gate-unified76-env13v2-<nonce>,outer:<ownedcontainer>/outer,script:<ownedcontainer>/worker.mjs,args:[authority,container,output],cwd:container,environment:exact recipe.environment,phases:[],limits:60000ms/1MiB/observeSockets:true})",
+    "gitReads": "git --no-replace-objects show <owned synthetic commit>:<one of exactly two helper authority paths>, cwd owned fixture, env property OMITTED; 5s/2MiB each"
+  },
+  "permissions": {
+    "actual": "One corrected continuation cohort only. Required route/fence identity prerequisites, two collector children, one authority fenced worker, four adapter/receipt cases. No real prerequisites/privateState/private operations/product/A10/pack/native oracle/gate.",
+    "staticInherited": "Three callsite proofs and old20dynamic+1lifecycle+9static inherited byte-identical, not rerun.",
+    "cleanup": "Only own three scratch roots after source integrity and natural shipping closure; all files hash-inventoried first. No foreign sentinel rerun/signals, unchanged shipping process ownership proof carried. No hostile FD/JS, arbitrary background, hard RSS/disk-kernel or TOCTOU guarantee.",
+    "failure": "No runtime fixes/retries. Harness sensitivity failures stop authority; safety/capture/cleanup breach stops affected work; ordinary worker assertions aggregate with actual nonzero preserved. Original E03.3 remains unsupported UNEXECUTED."
+  },
+  "code": [
+    {
+      "name": "controls.mjs",
+      "bytes": 2397,
+      "sha256": "7bb93d0b35eba751ea3d8041730731fa0ed7afc95676fc6dd30ccf62bae7e11a"
+    },
+    {
+      "name": "capture-child.mjs",
+      "bytes": 298,
+      "sha256": "d3e1e095e00aebfb2255efc8d2c9476cf86cdcab75e33f96f4bacadcf116e2a7"
+    },
+    {
+      "name": "worker.mjs",
+      "bytes": 13114,
+      "sha256": "186d38f776a77b20ae7e33c93920428ae3c3b53f31a828ce6e03f4e481dc0851"
+    },
+    {
+      "name": "review.mjs",
+      "bytes": 12950,
+      "sha256": "ab93bebabeed8f4935af33888624139880a02bd51a1d34ba87d247eed9dd7bdf"
+    },
+    {
+      "name": "launch.mjs",
+      "bytes": 2287,
+      "sha256": "8d744061224d1e4289992f11324847a9cf3def5a0af56982fe8732b8aefc8319"
+    }
+  ]
+}
+

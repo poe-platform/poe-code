@@ -1,0 +1,5 @@
+    if (size > 8 * 1024 * 1024 || captureBytes > 96 * 1024 * 1024) { failure ??= new Error('SAFETY capture cap'); worker.kill('SIGKILL'); return; }
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/prepare-v3.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/PREP-CORRECTION-v3.md
+{"pid":87982,"status":0,"signal":null}

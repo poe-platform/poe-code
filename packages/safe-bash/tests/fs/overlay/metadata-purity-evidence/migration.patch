@@ -1,0 +1,55 @@
+diff --git a/tests/commands/du/backends.test.ts b/tests/commands/du/backends.test.ts
+index 20d84285..994261cd 100644
+--- a/tests/commands/du/backends.test.ts
++++ b/tests/commands/du/backends.test.ts
+@@ -75,7 +75,7 @@ test("different mount namespaces sharing directory identity are never pruned", a
+   assert.equal(result.stdout, "0\t/first/dir\n7\t/second/dir\n7\ttotal\n");
+ });
+ 
+-test("RED provider no-effects control: actual Overlay readdir retries pending garbage deletion", async () => {
++test("explicit Overlay cleanup retries pending garbage deletion after metadata-only DU", async () => {
+   const upper = createMemoryFileSystem(); let denyCleanup = true; const mutations: string[] = [];
+   const observedUpper = wrapped(upper, { async rm(path, options) {
+     mutations.push(path);
+@@ -90,6 +90,9 @@ test("RED provider no-effects control: actual Overlay readdir retries pending ga
+   const checked = trace(overlay); const result = await shellRun(checked.fs, ["-bs", "tree"]);
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.deepEqual(checked.calls.map(call => call.method), ["lstat", "readdir"]);
+-  assert.ok(mutations.length > 0, "this is a preserved failing provider no-effects property, not adapter acceptance");
++  assert.deepEqual(mutations, []);
++  assert.deepEqual(await upper.readdir("/"), before);
++  await overlay.cleanup();
++  assert.ok(mutations.length > 0, "explicit cleanup must retry pending garbage deletion");
+   assert.ok(!(await upper.readdir("/")).some(entry => entry.name.startsWith(".virtual-bash-overlay-")));
+ });
+diff --git a/tests/fs/overlay/allocation.test.ts b/tests/fs/overlay/allocation.test.ts
+index 6b55613a..7c45baed 100644
+--- a/tests/fs/overlay/allocation.test.ts
++++ b/tests/fs/overlay/allocation.test.ts
+@@ -136,8 +136,8 @@ test("overlay memory allocation stays unknown before and after copy-up", async (
+   await overlay.cleanup();
+ });
+ 
+-for (const read of ["readFile", "readdir"] as const) {
+-  test(`stat/lstat do not clean pending staging or copy up; existing ${read} cleanup remains`, async context => {
++for (const trigger of ["readFile", "cleanup"] as const) {
++  test(`stat/lstat do not clean pending staging or copy up; existing ${trigger} cleanup remains`, async context => {
+     const backing = new MemoryFileSystem();
+     const storage = new MemoryFileSystem();
+     await backing.writeFile("/file", encode("value"));
+@@ -182,8 +182,13 @@ for (const read of ["readFile", "readdir"] as const) {
+     assert.deepEqual(mutations, []);
+     assert.deepEqual(await snapshot(backing), before);
+     denyCleanup = false;
+-    if (read === "readFile") assert.deepEqual(await overlay.readFile("/file"), encode("value"));
+-    else assert.deepEqual((await overlay.readdir("/")).map(entry => entry.name), ["created", "file"]);
++    if (trigger === "readFile") assert.deepEqual(await overlay.readFile("/file"), encode("value"));
++    else {
++      assert.deepEqual((await overlay.readdir("/")).map(entry => entry.name), ["created", "file"]);
++      assert.deepEqual(removals, []);
++      assert.deepEqual(mutationCalls, []);
++      await overlay.cleanup();
++    }
+     assert.ok(removals.length > 0);
+     assert.deepEqual((await storage.readdir("/")).map(entry => entry.name), ["created"]);
+     assert.deepEqual(mutations, []);

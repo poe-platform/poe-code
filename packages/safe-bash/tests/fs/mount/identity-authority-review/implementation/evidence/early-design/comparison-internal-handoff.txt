@@ -1,0 +1,67 @@
+Wrapper/helper lead to S3, WebDAV, Curie/root — 2026-08-27.
+Approved authority5076b32 / core consumerf291156; no guardedCopy flag.
+Implementing internal module src/fs/mount/comparison.ts NOW. No root exports,
+shared-contract changes, or public authority registry. Remote leaves may import
+from ../mount/comparison.js. Exact internal types/functions to target:
+
+export interface EntryLocation {
+  readonly filesystem: FileSystem;
+  readonly path: string;
+  readonly readOnly?: boolean;
+  readonly stat?: FileStat;
+}
+export interface EntryView extends EntryLocation {
+  readonly stat: FileStat;
+  readonly readOnly: boolean;
+}
+export type EntryViewResolver =
+  (path: string, options: FsOptions) => Promise<EntryLocation>;
+export type EntryAuthority =
+  (own: EntryView, peer: EntryView, options: FsOptions) => Promise<EntryComparison>;
+export function registerEntryView(fs: FileSystem, resolver: EntryViewResolver): void;
+export function registerEntryAuthority(fs: FileSystem, authority: EntryAuthority): void;
+export function resolveEntryView(fs: FileSystem, path: string, options?: FsOptions): Promise<EntryView>;
+export function compareResolvedEntries(own: EntryView, peer: EntryView, options?: FsOptions): Promise<EntryComparison>;
+export function compareEntries(fs: FileSystem, path: string, peer: FileSystem, peerPath: string, options?: FsOptions): Promise<EntryComparison>;
+
+Single module-private WeakMaps hold trusted wrapper resolvers and terminal
+authority callbacks. registerEntryView is for transparent policy-aware view
+resolution ONLY: return immediate backing filesystem/path, never a synthetic
+identity. Resolver chains are cycle checked; readonly accumulates, never erased.
+Optional EntryLocation.stat is a trusted terminal snapshot, used for mount's
+synthetic directory view (unknown authority); normal provider views omit it.
+The final view obtains followed stat metadata, forwards signal and propagates
+missing/auth/IO/cancellation. Resolution performs no content acquisition, copy-up,
+lock-null creation, cleanup or mutation. Overlay registers selected READ view;
+mutation consumers still resolve and guard the actual destination separately.
+
+Public backend compareEntry should call compareEntries(this,path,peer,peerPath,options).
+If it does so, registerEntryAuthority(this, terminalCallback) in construction:
+terminal callbacks MUST NOT call compareEntry/compareEntries/peer negotiation.
+Recursive helper negotiation is rejected EIO; opaque unregistered proxies that
+merely forward a negotiating wrapper method are not trusted view registration.
+Memory/real already expose complete actual tuples and need no extra callbacks or
+negotiating method; their unknown/incomplete metadata remains unknown.
+Callbacks can share the same function reference for one actual authority; engine
+deduplicates it. Unregistered external providers retain optional compareEntry as
+one-shot terminal fallback; do not assume arbitrary objects are trusted wrappers.
+Complete observed scope/dev/ino tuples win without callbacks. Otherwise query
+each distinct terminal authority at most once, validate all answers, conflict or
+invalid => EIO before effects, propagate real errors and cancellation. No cache.
+
+Remote callback recognition must come from actual native/provider/shared
+negotiated authority. Use your provider-owned metadata map if needed, not another
+wrapper-view registry. Merely sharing protocol/baseURL/bucket/key strings or
+having different clients/functions/tokens cannot prove disjointness. No global
+"native vs remote" or S3-vs-WebDAV disjointness rule. An unrecognized peer remains
+unknown, including when a custom remote transport accesses a local memory/real
+store. Distinct opaque client objects in positive fixtures hide shared service
+authority; if that authority is not discoverable truthfully, report the exact
+provider hook needed rather than certify by URL or alter fixtures.
+
+Scope: I edit only five local FS source/test directories and this common helper.
+S3/WebDAV leaves own their respective adapters/tests. No remote source overlap.
+Please write your hook/commit/result to a shared /tmp handoff; parent can route.
+Core currently queries same context.fs once, allowing a mount wrapper to resolve
+both leaves and negotiate each once. A caller must not recursively negotiate
+through terminal callbacks. No observation cache/lease across later copy calls.

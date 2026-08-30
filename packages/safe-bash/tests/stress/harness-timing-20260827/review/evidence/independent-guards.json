@@ -1,0 +1,126 @@
+{
+  "name": "independent-guards",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/harness-timing-20260827/review/negatives.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/",
+  "startedAtOffset": 14.596167,
+  "durationMs": 3866.6346249999997,
+  "pid": 88905,
+  "code": 0,
+  "signal": null,
+  "failures": [],
+  "exitSeen": true,
+  "closeSeen": true,
+  "streamDestroyed": {
+    "stdin": true,
+    "stdout": true,
+    "stderr": true
+  },
+  "ownedListenersRemaining": 0,
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.07962500000000006,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "/Users/kjopek/Workspace/safe-bash/tests/stress/harness-timing-20260827/review/negatives.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/",
+      "timeoutMs": 15000,
+      "dueMs": 15000,
+      "loadavg": [
+        3.65185546875,
+        6.1767578125,
+        6.880859375
+      ]
+    },
+    {
+      "event": "spawn",
+      "ms": 1.5424580000000017,
+      "pid": 88905,
+      "notApplicationReadiness": true
+    },
+    {
+      "event": "stdin-close",
+      "ms": 1.723250000000002
+    },
+    {
+      "event": "first-byte",
+      "ms": 3732.1449169999996,
+      "stream": "stdout"
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3732.149125,
+      "bytes": 163
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3754.279458,
+      "bytes": 199
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3754.4334999999996,
+      "bytes": 107
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3754.790083,
+      "bytes": 163
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3777.043333,
+      "bytes": 197
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3777.1974999999998,
+      "bytes": 107
+    },
+    {
+      "event": "stdout-data",
+      "ms": 3861.6124999999997,
+      "bytes": 110
+    },
+    {
+      "event": "stderr-end",
+      "ms": 3866.3085419999998
+    },
+    {
+      "event": "stdout-end",
+      "ms": 3866.366958
+    },
+    {
+      "event": "stdout-close",
+      "ms": 3866.430458
+    },
+    {
+      "event": "stderr-close",
+      "ms": 3866.4325
+    },
+    {
+      "event": "exit",
+      "ms": 3866.4735,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "close",
+      "ms": 3866.503625,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "stdout": "HARNESS_TIMING {\"pid\":88905,\"event\":\"semantic-watchdog-armed\",\"atMs\":3716.500625,\"detail\":{\"timerId\":1,\"milliseconds\":20,\"armedMs\":3716.47375,\"dueMs\":3736.47375}}\nHARNESS_TIMING {\"pid\":88905,\"event\":\"semantic-watchdog-fired\",\"atMs\":3738.948833,\"detail\":{\"timerId\":1,\"armedMs\":3716.47375,\"dueMs\":3736.47375,\"firedMs\":3738.924208,\"latenessMs\":2.4504579999997986}}\nHARNESS_TIMING {\"pid\":88905,\"event\":\"semantic-watchdog-cleared\",\"atMs\":3739.149625,\"detail\":{\"timerId\":1}}\nHARNESS_TIMING {\"pid\":88905,\"event\":\"semantic-watchdog-armed\",\"atMs\":3739.5345,\"detail\":{\"timerId\":2,\"milliseconds\":20,\"armedMs\":3739.530792,\"dueMs\":3759.530792}}\nHARNESS_TIMING {\"pid\":88905,\"event\":\"semantic-watchdog-fired\",\"atMs\":3761.722458,\"detail\":{\"timerId\":2,\"armedMs\":3739.530792,\"dueMs\":3759.530792,\"firedMs\":3761.697,\"latenessMs\":2.166208000000097}}\nHARNESS_TIMING {\"pid\":88905,\"event\":\"semantic-watchdog-cleared\",\"atMs\":3761.811542,\"detail\":{\"timerId\":2}}\nIndependent controls: 8 completed, including one positive calibration; all exact controlled children retired.\n",
+  "stderr": ""
+}

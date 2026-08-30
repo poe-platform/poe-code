@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: expr replies validate exact shape, original byte bounds and scalar boundaries
+ok 1 - expr replies validate exact shape, original byte bounds and scalar boundaries
+  ---
+  duration_ms: 2.460333
+  type: 'test'
+  ...
+# Subtest: expr request shape, limits and admission validation are bounded
+ok 2 - expr request shape, limits and admission validation are bounded
+  ---
+  duration_ms: 0.884375
+  type: 'test'
+  ...
+# Subtest: worker returns distinct absent, unmatched, empty and failed capture states
+ok 3 - worker returns distinct absent, unmatched, empty and failed capture states
+  ---
+  duration_ms: 37.028958
+  type: 'test'
+  ...
+# Subtest: the BRE compiler refuses main-thread execution
+ok 4 - the BRE compiler refuses main-thread execution
+  ---
+  duration_ms: 1.439459
+  type: 'test'
+  ...
+# Subtest: expr longest matching does not change legacy ordered alternatives in the same worker
+ok 5 - expr longest matching does not change legacy ordered alternatives in the same worker
+  ---
+  duration_ms: 30.702916
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 166.179583

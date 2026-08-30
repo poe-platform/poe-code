@@ -1,0 +1,66 @@
+[
+  {
+    "id": "inherited-numeric",
+    "actual": {
+      "status": 0,
+      "stdout": "YjoxMAphOjIKYzotMQo=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 14,
+      "sha256": "698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "698ac68d953b309033e6c0a4a816d46f70506dca13cae31ec73d79298ea5ee8c"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 72,
+      "independentBackingCharge": 72,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 72,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  },
+  {
+    "id": "exact-integers-above-double",
+    "actual": {
+      "status": 0,
+      "stdout": "YTo5MDA3MTk5MjU0NzQwOTkzCmI6OTAwNzE5OTI1NDc0MDk5MgpjOi05MDA3MTk5MjU0NzQwOTkyCmQ6LTkwMDcxOTkyNTQ3NDA5OTMK",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 78,
+      "sha256": "c00df75ba5035c55102e78b78b7c45550b9dce40630d19eb99c86050654270ba"
+    },
+    "stdout": {
+      "bytes": 78,
+      "sha256": "c00df75ba5035c55102e78b78b7c45550b9dce40630d19eb99c86050654270ba"
+    },
+    "finalized": false,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 3,
+      "keyedRequests": 6,
+      "parses": 4,
+      "keyedAdmissions": 4,
+      "charged": 452,
+      "independentBackingCharge": 452,
+      "existingRecordBytes": 74,
+      "entriesPeak": 4,
+      "retainedPeak": 452,
+      "numericComparisons": 3,
+      "keyedHits": 2
+    }
+  }
+]

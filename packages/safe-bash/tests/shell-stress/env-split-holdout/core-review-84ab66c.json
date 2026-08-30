@@ -1,0 +1,684 @@
+{
+  "sealedAt": "2026-08-27T11:06:49.176Z",
+  "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "inputFreeze": "258879a4fae6b7e771ff2f266396c97e39400130",
+  "disposition": "Core-only partial evidence, not all-host or shebang acceptance; no genuine new core bug established. One newly identified invalid ByteSource host remains failed/unrepaired.",
+  "history": {
+    "original": {
+      "rows": 48,
+      "exact": 1,
+      "mismatch": 41,
+      "unavailable": 6,
+      "hostPassed": 0,
+      "hosts": 7
+    },
+    "setupV2": {
+      "rows": 48,
+      "exact": 2,
+      "mismatch": 46,
+      "unavailable": 0,
+      "hostPassed": 0,
+      "hosts": 7
+    }
+  },
+  "current": {
+    "rows": 48,
+    "exact": 40,
+    "mismatch": 8,
+    "unavailable": 0,
+    "commandsExact": 39,
+    "commands": 42,
+    "shebangExact": 1,
+    "shebangs": 6,
+    "hostPassed": 6,
+    "hostFailed": 1,
+    "hosts": 7,
+    "cohortExecutions": 55,
+    "typecheckExecutions": 1,
+    "guardsValid": 55,
+    "actualModuleLoads": 11165,
+    "publicIndexLoads": 55,
+    "integrityPassed": 8,
+    "integrityTotal": 8,
+    "scopedTypecheckStatus": 0,
+    "scopedTypecheckReads": 182,
+    "freshNativeExecutions": 0
+  },
+  "mismatches": [
+    {
+      "id": "packed-non-s-single-operand",
+      "category": "command",
+      "classification": "virtual-native diagnostic/profile: strict loss",
+      "profile": "gnu97-darwin-primary",
+      "expected": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiAnYXJndnByb2JlIHR3byB3b3Jkcyc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKZW52OiB1c2UgLVt2XVMgdG8gcGFzcyBvcHRpb25zIGluIHNoZWJhbmcgbGluZXMK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "actual": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogYXJndnByb2JlIHR3byB3b3JkczogY29tbWFuZCBub3QgZm91bmQK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "exact": false
+    },
+    {
+      "id": "missing-command-negative",
+      "category": "command",
+      "classification": "virtual-native diagnostic/profile: strict loss",
+      "profile": "gnu97-darwin-primary",
+      "expected": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiAnZW52LXNwbGl0LW5ldmVyLWEtcmVhbC1jb21tYW5kJzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "actual": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogZW52LXNwbGl0LW5ldmVyLWEtcmVhbC1jb21tYW5kOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "exact": false
+    },
+    {
+      "id": "nonexecutable-command-negative",
+      "category": "command",
+      "classification": "virtual-native diagnostic/profile: strict loss",
+      "profile": "gnu97-darwin-primary",
+      "expected": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "ZW52OiAnLi9ub25leGVjJzogUGVybWlzc2lvbiBkZW5pZWQK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          },
+          "nonexec": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6e6f742065786563757461626c650a"
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9ub25leGVjOiBQZXJtaXNzaW9uIGRlbmllZAo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          },
+          "nonexec": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6e6f742065786563757461626c650a"
+          }
+        }
+      },
+      "fields": {
+        "status": true,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "exact": false
+    },
+    {
+      "id": "non-s-packed-bash-option",
+      "category": "single-optional",
+      "classification": "unchanged non-S single-optional runtime policy/status loss",
+      "profile": "gnu97-darwin-primary",
+      "expected": {
+        "status": 127,
+        "stdout": "",
+        "stderr": "ZW52OiAnYmFzaCAtZSc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKZW52OiB1c2UgLVt2XVMgdG8gcGFzcyBvcHRpb25zIGluIHNoZWJhbmcgbGluZXMK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1ub24tcy1wYWNrZWQtYmFzaC1vcHRpb24vZW50cnkuc2g6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaCAtZQo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": true,
+        "stderr": false,
+        "effects": true
+      },
+      "exact": false
+    },
+    {
+      "id": "split-errexit",
+      "category": "single-optional",
+      "classification": "unimplemented runtime env-S shebang dispatch: strict loss",
+      "profile": "gnu97-darwin-primary",
+      "expected": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "756e736574"
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1lcnJleGl0L2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC1TIGJhc2ggLWUK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "exact": false
+    },
+    {
+      "id": "split-assignment-and-clear",
+      "category": "single-optional",
+      "classification": "unimplemented runtime env-S shebang dispatch: strict loss",
+      "profile": "gnu97-darwin-primary",
+      "expected": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6b657074"
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1hc3NpZ25tZW50LWFuZC1jbGVhci9lbnRyeS5zaDogdW5zdXBwb3J0ZWQgaW50ZXJwcmV0ZXI6IC91c3IvYmluL2VudiAtUyAtaSBQQVRIPSR7UEFUSH0gTUFSSz1rZXB0IGJhc2ggLWUK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "exact": false
+    },
+    {
+      "id": "split-long-plus-option",
+      "category": "single-optional",
+      "classification": "unimplemented runtime env-S shebang dispatch: strict loss",
+      "profile": "gnu97-darwin-primary",
+      "expected": {
+        "status": 0,
+        "stdout": "ZT1vZmYKYXJnYz0yCjxhcmd1bWVudCB3aXRoIHNwYWNlcz4KPD4Kc3Vydml2ZWQK",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "756e736574"
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1sb25nLXBsdXMtb3B0aW9uL2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC0tc3BsaXQtc3RyaW5nPWJhc2ggK2UK",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "exact": false
+    },
+    {
+      "id": "split-quoted-marker",
+      "category": "single-optional",
+      "classification": "unimplemented runtime env-S shebang dispatch: strict loss",
+      "profile": "gnu97-darwin-primary",
+      "expected": {
+        "status": 1,
+        "stdout": "ZT1vbgphcmdjPTIKPGFyZ3VtZW50IHdpdGggc3BhY2VzPgo8Pgo=",
+        "stderr": "",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "74776f20776f726473"
+          }
+        }
+      },
+      "actual": {
+        "status": 126,
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1oaWRkZW4tenhBRkdsL2dudTk3LWRhcndpbi1wcmltYXJ5L3NpbmdsZS1vcHRpb25hbC1zcGxpdC1xdW90ZWQtbWFya2VyL2VudHJ5LnNoOiB1bnN1cHBvcnRlZCBpbnRlcnByZXRlcjogL3Vzci9iaW4vZW52IC1TIE1BUks9InR3byB3b3JkcyIgYmFzaCAtZQo=",
+        "effects": {
+          "effect": {
+            "type": "file",
+            "mode": 420,
+            "hex": "6f726967696e616c"
+          }
+        }
+      },
+      "fields": {
+        "status": false,
+        "stdout": false,
+        "stderr": false,
+        "effects": false
+      },
+      "exact": false
+    }
+  ],
+  "hosts": [
+    {
+      "id": "literal-invoke-replace-env-parent",
+      "passed": false,
+      "childStatus": 1,
+      "observation": null,
+      "stderrBase64": "bm9kZTppbnRlcm5hbC9tb2R1bGVzL3J1bl9tYWluOjEyMwogICAgdHJpZ2dlclVuY2F1Z2h0RXhjZXB0aW9uKAogICAgXgoKQXNzZXJ0aW9uRXJyb3IgW0VSUl9BU1NFUlRJT05dOiBFeHBlY3RlZCB2YWx1ZXMgdG8gYmUgc3RyaWN0bHkgZXF1YWw6CisgYWN0dWFsIC0gZXhwZWN0ZWQKCisgJ3BhcmVudDpwcml2YXRlJwotICdhYmNwYXJlbnQ6cHJpdmF0ZScKCiAgICBhdCBmaWxlOi8vL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1jb3JlLTg0YWI2NmMtdXBiV3pXL3Byb2plY3QvdGVzdHMvc2hlbGwtc3RyZXNzL2Vudi1zcGxpdC1ob2xkb3V0L2hvc3RzLm1qczoyNzoxNgogICAgYXQgYXN5bmMgdHJhcHBlZCAoZmlsZTovLy9wcml2YXRlL3Zhci9mb2xkZXJzL3J3L3M0Y3k3NmhuNnY1NXFycDBkaGNidHBsYzAwMDBnbi9UL3NhZmUtYmFzaC1lbnYtY29yZS04NGFiNjZjLXVwYld6Vy9wcm9qZWN0L3Rlc3RzL3NoZWxsLXN0cmVzcy9lbnYtc3BsaXQtaG9sZG91dC9wcm9kdWN0LXJvdy5tanM6MTY6MjApCiAgICBhdCBhc3luYyA8YW5vbnltb3VzPiAoL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1Qvc2FmZS1iYXNoLWVudi1jb3JlLTg0YWI2NmMtdXBiV3pXL3Byb2plY3QvdGVzdHMvc2hlbGwtc3RyZXNzL2Vudi1zcGxpdC1ob2xkb3V0L3Byb2JlLWJ5dGVzLXYyLm1qczozMDozOSkgewogIGdlbmVyYXRlZE1lc3NhZ2U6IHRydWUsCiAgY29kZTogJ0VSUl9BU1NFUlRJT04nLAogIGFjdHVhbDogJ3BhcmVudDpwcml2YXRlJywKICBleHBlY3RlZDogJ2FiY3BhcmVudDpwcml2YXRlJywKICBvcGVyYXRvcjogJ3N0cmljdEVxdWFsJywKICBkaWZmOiAnc2ltcGxlJwp9CgpOb2RlLmpzIHYyMi4yMi4yCg==",
+      "classification": "frozen host supplies Uint8Array to ByteSource-only invoke.stdin; raw failure retained; intended combined contract unverified"
+    },
+    {
+      "id": "exported-not-local-lookup",
+      "passed": true,
+      "childStatus": 0,
+      "observation": {
+        "id": "exported-not-local-lookup",
+        "passed": true,
+        "observations": [
+          {
+            "command": "export",
+            "args": [
+              "EXPORTED=public"
+            ]
+          },
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "-i A=${EXPORTED} B=${LOCAL} envcap"
+            ]
+          },
+          {
+            "command": "envcap",
+            "args": []
+          }
+        ],
+        "captures": [
+          {
+            "args": [],
+            "env": {
+              "B": "",
+              "A": "public"
+            },
+            "stdinHex": "",
+            "stdinIsDefault": true
+          }
+        ]
+      },
+      "stderrBase64": "",
+      "classification": "real unchanged public-Shell host passed"
+    },
+    {
+      "id": "empty-input-provenance",
+      "passed": true,
+      "childStatus": 0,
+      "observation": {
+        "id": "empty-input-provenance",
+        "passed": true,
+        "observations": [
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "envcap"
+            ]
+          },
+          {
+            "command": "envcap",
+            "args": []
+          },
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "envcap"
+            ]
+          },
+          {
+            "command": "envcap",
+            "args": []
+          }
+        ],
+        "captures": [
+          {
+            "args": [],
+            "env": {
+              "KEEP": "parent",
+              "EXPORTED": "root",
+              "PWD": "/"
+            },
+            "stdinHex": "",
+            "stdinIsDefault": true
+          },
+          {
+            "args": [],
+            "env": {
+              "KEEP": "parent",
+              "EXPORTED": "root",
+              "PWD": "/"
+            },
+            "stdinHex": "",
+            "stdinIsDefault": false
+          }
+        ]
+      },
+      "stderrBase64": "",
+      "classification": "real unchanged public-Shell host passed"
+    },
+    {
+      "id": "nested-shared-command-budget",
+      "passed": true,
+      "childStatus": 0,
+      "observation": {
+        "id": "nested-shared-command-budget",
+        "passed": true,
+        "observations": [
+          {
+            "command": "bridge",
+            "args": []
+          },
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "envcap"
+            ]
+          },
+          {
+            "command": "bridge",
+            "args": []
+          },
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "envcap"
+            ]
+          },
+          {
+            "command": "envcap",
+            "args": []
+          }
+        ],
+        "captures": [
+          {
+            "args": [],
+            "env": {
+              "KEEP": "parent",
+              "EXPORTED": "root",
+              "PWD": "/"
+            },
+            "stdinHex": "",
+            "stdinIsDefault": true
+          }
+        ]
+      },
+      "stderrBase64": "",
+      "classification": "real unchanged public-Shell host passed"
+    },
+    {
+      "id": "cancel-and-late-rejection",
+      "passed": true,
+      "childStatus": 0,
+      "observation": {
+        "id": "cancel-and-late-rejection",
+        "passed": true,
+        "observations": [
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "pendingcap"
+            ]
+          },
+          {
+            "command": "pendingcap",
+            "args": []
+          }
+        ],
+        "captures": []
+      },
+      "stderrBase64": "",
+      "classification": "real unchanged public-Shell host passed"
+    },
+    {
+      "id": "awaited-sink-shared-output-budget",
+      "passed": true,
+      "childStatus": 0,
+      "observation": {
+        "id": "awaited-sink-shared-output-budget",
+        "passed": true,
+        "observations": [
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "envcap"
+            ]
+          },
+          {
+            "command": "envcap",
+            "args": []
+          },
+          {
+            "command": "printf",
+            "args": [
+              "TAIL"
+            ]
+          },
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "envcap"
+            ]
+          },
+          {
+            "command": "envcap",
+            "args": []
+          },
+          {
+            "command": "printf",
+            "args": [
+              "TAIL"
+            ]
+          }
+        ],
+        "captures": [
+          {
+            "args": [],
+            "env": {
+              "KEEP": "parent",
+              "EXPORTED": "root",
+              "PWD": "/"
+            },
+            "stdinHex": "",
+            "stdinIsDefault": true
+          },
+          {
+            "args": [],
+            "env": {
+              "KEEP": "parent",
+              "EXPORTED": "root",
+              "PWD": "/"
+            },
+            "stdinHex": "",
+            "stdinIsDefault": true
+          }
+        ]
+      },
+      "stderrBase64": "",
+      "classification": "real unchanged public-Shell host passed"
+    },
+    {
+      "id": "split-expansion-growth-budget",
+      "passed": true,
+      "childStatus": 0,
+      "observation": {
+        "id": "split-expansion-growth-budget",
+        "passed": true,
+        "observations": [
+          {
+            "command": "bridge",
+            "args": []
+          },
+          {
+            "command": "env",
+            "args": [
+              "-S",
+              "envcap ${GROW}"
+            ]
+          }
+        ],
+        "captures": []
+      },
+      "stderrBase64": "",
+      "classification": "real unchanged public-Shell host passed"
+    }
+  ],
+  "sourceChanges": {
+    "authorCommit": "A\tsrc/commands/env-split.ts\nM\tsrc/commands/execution.ts\n",
+    "authorDiff": "diff --git a/src/commands/env-split.ts b/src/commands/env-split.ts\nnew file mode 100644\nindex 00000000..437c36d7\n--- /dev/null\n+++ b/src/commands/env-split.ts\n@@ -0,0 +1,197 @@\n+import { UsageError, type ParsedOptions } from \"./internal.js\";\n+\n+export class EnvSplitError extends Error {}\n+\n+class SplitWork {\n+  private bytes = 0;\n+  private arguments = 0;\n+  private expansions = 0;\n+  private work = 0;\n+  private nextYield = 4096;\n+\n+  constructor(private readonly signal: AbortSignal) {}\n+\n+  account(text: string): void {\n+    this.signal.throwIfAborted();\n+    if (text.length > 131072 - this.bytes) throw new EnvSplitError(\"split-string byte limit exceeded (131072)\");\n+    this.bytes += Buffer.byteLength(text);\n+    if (this.bytes > 131072) throw new EnvSplitError(\"split-string byte limit exceeded (131072)\");\n+    if (text.includes(\"\\0\")) throw new EnvSplitError(\"NUL is not supported in -S strings\");\n+  }\n+\n+  argument(): void {\n+    if (++this.arguments > 10000) throw new EnvSplitError(\"split-string argument limit exceeded (10000)\");\n+  }\n+\n+  expansion(): void {\n+    this.signal.throwIfAborted();\n+    if (++this.expansions > 32) throw new EnvSplitError(\"split-string expansion limit exceeded (32)\");\n+    if (this.work > 1048576) throw new EnvSplitError(\"split-string work limit exceeded (1048576)\");\n+  }\n+\n+  tick(amount = 1): boolean {\n+    this.signal.throwIfAborted();\n+    this.work += amount;\n+    if (this.expansions && this.work > 1048576) throw new EnvSplitError(\"split-string work limit exceeded (1048576)\");\n+    return this.work >= this.nextYield;\n+  }\n+\n+  async pause(): Promise<void> {\n+    await new Promise<void>(resolve => setImmediate(resolve));\n+    this.signal.throwIfAborted();\n+    this.nextYield = this.work + 4096;\n+  }\n+}\n+\n+async function splitString(source: string, environment: Readonly<Record<string, string>>, work: SplitWork): Promise<string[]> {\n+  work.expansion();\n+  work.account(source);\n+  const result: string[] = [];\n+  let parts: string[] = [];\n+  let active = false;\n+  let quote = \"\";\n+  const start = () => {\n+    if (!active) { work.argument(); active = true; }\n+  };\n+  const append = (text: string) => {\n+    work.account(text);\n+    start();\n+    parts.push(text);\n+  };\n+  const finish = () => {\n+    if (active) result.push(parts.join(\"\"));\n+    parts = [];\n+    active = false;\n+  };\n+  for (let index = 0; index < source.length;) {\n+    if (work.tick()) await work.pause();\n+    const character = String.fromCodePoint(source.codePointAt(index)!);\n+    if ((character === \"'\" || character === '\"') && (!quote || character === quote)) {\n+      start();\n+      quote = quote ? \"\" : character;\n+      index++;\n+      continue;\n+    }\n+    if (!quote && /[ \\t\\n\\r\\v\\f]/u.test(character)) {\n+      finish();\n+      index++;\n+      continue;\n+    }\n+    if (character === \"#\" && !active) break;\n+    if (character === \"\\\\\" && (quote !== \"'\" || source[index + 1] === \"\\\\\" || source[index + 1] === \"'\")) {\n+      const escaped = source[index + 1];\n+      if (escaped === undefined) throw new EnvSplitError(\"invalid backslash at end of string in -S\");\n+      index += 2;\n+      if (escaped === \"c\") {\n+        if (quote === '\"') throw new EnvSplitError(\"'\\\\c' must not appear in double-quoted -S string\");\n+        break;\n+      }\n+      if (escaped === \"_\") {\n+        if (quote === '\"') append(\" \");\n+        else finish();\n+        continue;\n+      }\n+      const controls: Readonly<Record<string, string>> = { f: \"\\f\", n: \"\\n\", r: \"\\r\", t: \"\\t\", v: \"\\v\" };\n+      if (Object.hasOwn(controls, escaped)) append(controls[escaped]!);\n+      else if ('\"#$\\'\\\\'.includes(escaped)) append(escaped);\n+      else throw new EnvSplitError(`invalid sequence '\\\\${escaped}' in -S`);\n+      continue;\n+    }\n+    if (character === \"$\" && quote !== \"'\") {\n+      let end = index + 2;\n+      if (source[index + 1] !== \"{\" || !/^[A-Za-z_]$/u.test(source[end] ?? \"\")) {\n+        throw new EnvSplitError(`only \\${VARNAME} expansion is supported, error at: ${source.slice(index)}`);\n+      }\n+      while (/^[A-Za-z_0-9]$/u.test(source[end] ?? \"\")) {\n+        if (work.tick()) await work.pause();\n+        end++;\n+      }\n+      if (source[end] !== \"}\") throw new EnvSplitError(`only \\${VARNAME} expansion is supported, error at: ${source.slice(index)}`);\n+      const name = source.slice(index + 2, end);\n+      if (Object.hasOwn(environment, name)) {\n+        const text = environment[name]!;\n+        append(text);\n+        if (work.tick(text.length)) await work.pause();\n+      }\n+      index = end + 1;\n+      continue;\n+    }\n+    append(character);\n+    index += character.length;\n+  }\n+  if (quote) throw new EnvSplitError(\"no terminating quote in -S string\");\n+  finish();\n+  return result;\n+}\n+\n+export async function parseEnvOptions(\n+  args: readonly string[], environment: Readonly<Record<string, string>>, signal: AbortSignal,\n+): Promise<ParsedOptions> {\n+  const work = new SplitWork(signal);\n+  const frames: { args: readonly string[]; offset: number }[] = [{ args, offset: 0 }];\n+  const next = (): string | undefined => {\n+    while (frames.length) {\n+      const frame = frames.at(-1)!;\n+      if (frame.offset < frame.args.length) return frame.args[frame.offset++];\n+      frames.pop();\n+    }\n+    return undefined;\n+  };\n+  const flags = new Set<string>();\n+  const values = new Map<string, string[]>();\n+  const operands: string[] = [];\n+  const longOptions = new Map([\n+    [\"ignore-environment\", \"i\"], [\"unset\", \"u\"], [\"null\", \"0\"], [\"chdir\", \"C\"], [\"split-string\", \"S\"],\n+  ]);\n+  const accept = async (key: string, content?: string) => {\n+    if (key === \"S\") {\n+      const expanded = await splitString(content!, environment, work);\n+      frames.push({ args: expanded, offset: 0 });\n+    } else {\n+      flags.add(key);\n+      if (content !== undefined) {\n+        const entries = values.get(key) ?? [];\n+        entries.push(content);\n+        values.set(key, entries);\n+      }\n+    }\n+  };\n+  for (;;) {\n+    const argument = next();\n+    if (argument === undefined) break;\n+    if (work.tick(argument.length + 1)) await work.pause();\n+    if (argument === \"--\") break;\n+    if (argument === \"-\" || !argument.startsWith(\"-\")) { operands.push(argument); break; }\n+    if (argument.startsWith(\"--\")) {\n+      const equals = argument.indexOf(\"=\");\n+      const name = argument.slice(2, equals < 0 ? undefined : equals);\n+      const key = longOptions.get(name);\n+      if (!key) throw new UsageError(`unrecognized option '${argument}'`);\n+      const required = key === \"u\" || key === \"C\" || key === \"S\";\n+      if (!required && equals >= 0) throw new UsageError(`option '--${name}' does not take an argument`);\n+      const content = required ? equals < 0 ? next() : argument.slice(equals + 1) : undefined;\n+      if (required && content === undefined) throw new UsageError(`option '--${name}' requires an argument`);\n+      await accept(key, content);\n+      continue;\n+    }\n+    for (let index = 1; index < argument.length; index++) {\n+      if (work.tick()) await work.pause();\n+      const key = argument[index]!;\n+      if (key !== \"i\" && key !== \"u\" && key !== \"0\" && key !== \"C\" && key !== \"S\") throw new UsageError(`invalid option -- '${key}'`);\n+      const required = key === \"u\" || key === \"C\" || key === \"S\";\n+      const content = required ? argument.slice(index + 1) || next() : undefined;\n+      if (required && content === undefined) throw new UsageError(`option requires an argument -- '${key}'`);\n+      await accept(key, content);\n+      if (required) break;\n+    }\n+  }\n+  for (;;) {\n+    const argument = next();\n+    if (argument === undefined) break;\n+    if (work.tick()) await work.pause();\n+    operands.push(argument);\n+  }\n+  if (operands[0] === \"-\") { flags.add(\"i\"); operands.shift(); }\n+  signal.throwIfAborted();\n+  return { flags, values, operands };\n+}\ndiff --git a/src/commands/execution.ts b/src/commands/execution.ts\nindex 69e897be..61e49c6d 100644\n--- a/src/commands/execution.ts\n+++ b/src/commands/execution.ts\n@@ -1,5 +1,6 @@\n import { FsError, readBytes, writeBytes, type ByteSource, type CommandDefinition, type CommandHandler } from \"../contracts/index.js\";\n import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, UsageError, value } from \"./internal.js\";\n+import { EnvSplitError, parseEnvOptions } from \"./env-split.js\";\n \n export function directExecutor(fallback: CommandHandler): CommandHandler {\n   return async context => {\n@@ -47,8 +48,14 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, delimiter\n export function executionCommands(execute: CommandHandler): CommandDefinition[] {\n   return [\n     define(\"env\", async context => {\n-      const args = context.args[0] === \"-\" ? [\"-i\", ...context.args.slice(1)] : context.args;\n-      const parsed = options(args, \"iu:0C:\", { \"ignore-environment\": \"i\", unset: \"u\", null: \"0\", chdir: \"C\" }, true);\n+      let parsed: ReturnType<typeof options>;\n+      try { parsed = await parseEnvOptions(context.args, context.env, context.signal); }\n+      catch (error) {\n+        context.signal.throwIfAborted();\n+        if (!(error instanceof EnvSplitError)) throw error;\n+        await writeBytes(context.stderr, encoder.encode(`${context.command}: ${error.message}\\n`), context.signal);\n+        return { exitCode: 125 };\n+      }\n       const env: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, parsed.flags.has(\"i\") ? {} : context.env);\n       for (const name of parsed.values.get(\"u\") ?? []) delete env[name];\n       const inheritedNames = Object.keys(env);\n@@ -65,6 +72,7 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[]\n         env[name] = content;\n       }\n       const names = [...addedNames.reverse(), ...inheritedNames];\n+      if (offset < parsed.operands.length && parsed.flags.has(\"0\")) throw new UsageError(\"cannot specify --null with a command\");\n       let cwd = context.cwd;\n       const directory = value(parsed, \"C\");\n       if (directory !== undefined) {\n@@ -73,7 +81,6 @@ export function executionCommands(execute: CommandHandler): CommandDefinition[]\n         cwd = await context.fs.realpath(cwd, { signal: context.signal });\n       }\n       if (offset < parsed.operands.length) {\n-        if (parsed.flags.has(\"0\")) throw new UsageError(\"cannot specify --null with a command\");\n         const childEnv: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, Object.fromEntries(names.map(name => [name, env[name]!])));\n         if (context.invoke) return context.invoke(parsed.operands[offset]!, parsed.operands.slice(offset + 1), {\n           env: childEnv, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,\n",
+    "baselineToCandidate": "M\tpackage.json\nA\tsrc/commands/env-split.ts\nM\tsrc/commands/execution.ts\nM\tsrc/commands/internal.ts\nM\tsrc/commands/network/body.ts\nM\tsrc/commands/streams.ts\nM\tsrc/commands/structured/jq.ts\nM\tsrc/index.ts\nM\tsrc/plugins/index.ts\n"
+  },
+  "sourceHashes": {
+    "src/commands/execution.ts": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+    "src/commands/env-split.ts": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  "nativeCapture": {
+    "file": "native-aligned.json",
+    "sha256": "bca8b30a21de8f09e5e660d3f77480cdf8ac3b4a00c36490987b6d15ef9cf818",
+    "reused": true,
+    "freshNativeExecutions": 0,
+    "comparedProfile": "gnu97-darwin-primary",
+    "historicalProfile": "Retained and binary-verified, not rebound to different cwd/env coordinates or selectively chosen as oracle."
+  },
+  "nativeTools": {
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env": {
+      "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0"
+    },
+    "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash": {
+      "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    "/usr/bin/env": {
+      "realpath": "/usr/bin/env",
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+    },
+    "/bin/bash": {
+      "realpath": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  },
+  "original34FilesUnchanged": true,
+  "hostModified": false,
+  "expectationsChanged": false,
+  "extraProductReplay": false,
+  "sourceEdited": false,
+  "files": {
+    "core-candidate.mjs": "68e0128f21bc684f33a6a66c40c04a9a2673af78e7e9306f95aa2a501c688928",
+    "core-typecheck.mjs": "c874eba6d2bf2c090b551da5b8cdda80d043b37cd9266e0c2e397e1d84421b0c",
+    "core-candidate-84ab66c.json": "ee173046443f38f9a503329a200882d4748c40c453d2d87ba28b9ba67394efca",
+    "core-candidate-84ab66c-cleanup.json": "c33f907656dbfecd775c020b44aa21ff236cddbc1ecdfb3d56d85a3acc152e9d",
+    "core-integrity.test.mjs": "53af39fac06ed7c22774545d05b38c6b55ea8037899b8e9d722ce8e1debde6da",
+    "core-integrity-result.json": "4a021320ebe9c13e8d61944786bbff704d2017daeb1e479d7f6e79b5aba0925f",
+    "CORE_REVIEW_84AB66C.md": "075b6d6dbd9f5055e7efd246306a0705de2690e7a5ea511fa1d9e98cb172ca29"
+  }
+}

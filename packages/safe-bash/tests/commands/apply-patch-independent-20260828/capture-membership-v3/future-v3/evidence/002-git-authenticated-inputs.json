@@ -1,0 +1,220 @@
+{
+  "id": "git-authenticated-inputs",
+  "role": "git",
+  "executable": "/usr/bin/git",
+  "args": [
+    "--no-replace-objects",
+    "cat-file",
+    "--batch"
+  ],
+  "started": "2026-08-28T19:59:21.179Z",
+  "finished": "2026-08-28T19:59:21.242Z",
+  "startedElapsedMs": 2989.316917,
+  "finishedElapsedMs": 3052.512375,
+  "pid": 69251,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 2475165,
+  "fragments": [
+    {
+      "name": "002-git-authenticated-inputs-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "ee8d74b0fa7ee6e761cf7fba9d6165bc88ad0522952ca1b9402bce578ed0b892"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "245d9676df59bdda3b9419de12630c79b3e5a793a13efb77ab200e26fce78014"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-131072.json",
+      "bytes": 65536,
+      "sha256": "ad90cad62e9dea62f06575b4cb08d7ff7a72504df8cb4eeaea0d27942164b3f1"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-196608.json",
+      "bytes": 65536,
+      "sha256": "5d4788e6fb737da9e050f5342e789b811434aec6f2de5e6730f9a9266c35cfe9"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-262144.json",
+      "bytes": 65536,
+      "sha256": "24960ed904acb6896e9008ca596bcd551b9c85efab0f0bf6e8357f3f9e67db91"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-327680.json",
+      "bytes": 65536,
+      "sha256": "bcf54ced0218b21924fdaad6f503de43fc7bb328e9ed7ad8016390cb0e8348eb"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-393216.json",
+      "bytes": 65536,
+      "sha256": "6cd5f7705dd27a5330129bad0ce0098eb3b5fa02e7442ec266a6b1668d7adae2"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-458752.json",
+      "bytes": 65536,
+      "sha256": "46af5f57329d55aa36809e9e51ab411f57f6f5dea84af69f93ad5bcd180740ab"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-524288.json",
+      "bytes": 65536,
+      "sha256": "1d95d4c392495550896d95bdb190f4ff959ab66ebbbb54d970c133aadb14770b"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-589824.json",
+      "bytes": 65536,
+      "sha256": "d03a88c98b8324b20d10a23cbbed86495218121407019bed495a2ae102ec084f"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-655360.json",
+      "bytes": 65536,
+      "sha256": "38bc362c07e5102da7ba44fc8465369d368f6c97c3c77d50f42acf5b42678f90"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-720896.json",
+      "bytes": 65536,
+      "sha256": "29485132c2028f8c0c0422257e6a8b83c8c6cd5678c1b3bfb39d1b8c4e5cc48c"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-786432.json",
+      "bytes": 65536,
+      "sha256": "a924d0c79510b16d78ff5dcf2ecf7adf4abb10f5c3051468569f0a3c957fab93"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-851968.json",
+      "bytes": 65536,
+      "sha256": "804f27d209743938a5c0ebd46465de60429f08b600ca55442a83698687d445fc"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-917504.json",
+      "bytes": 65536,
+      "sha256": "da6d5ad281a2ec6fc2ff661e0634dae3bb9e002a96b372b1ec68c1a8dd4ed02e"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-983040.json",
+      "bytes": 65536,
+      "sha256": "71f76beee50af1724c86e3c24c691114810c61103032a2d46a9c43bc2a425c93"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1048576.json",
+      "bytes": 65536,
+      "sha256": "be7446dcc9e54ed748a787b0c8365d7176b3b801997ea97e167ae78f2cabe7c0"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1114112.json",
+      "bytes": 65536,
+      "sha256": "025aec2247d602c5cdc9a3cebc081f09511fc63a5718ecd68bc3687c7342e1de"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1179648.json",
+      "bytes": 65536,
+      "sha256": "b7469d4e0b51931f523ec9d8a769c704d4365f0e062bf006d826136c482b44a5"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1245184.json",
+      "bytes": 65536,
+      "sha256": "39a8d0e3afcefcf6009f3783cd31cc722b75a16bad04b1c403edbdb91f5d7568"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1310720.json",
+      "bytes": 65536,
+      "sha256": "a1a914ab14dc90172cc1946872d624288ed5240ad9a73168f27c46280abf2fa0"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1376256.json",
+      "bytes": 65536,
+      "sha256": "4136d492cb38353dddf307c80a4f6121ebef3c34f85e8067e2b2ae820c4ccba8"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1441792.json",
+      "bytes": 65536,
+      "sha256": "5b877eaff0c0fb463e0f5780785126469810c2e4827c4ad343a4318598fa3a91"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1507328.json",
+      "bytes": 65536,
+      "sha256": "790fdb321923b66089cca18aa83fa33ed9af7e463180444b5e4d9ef0b8cf325a"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1572864.json",
+      "bytes": 65536,
+      "sha256": "3ad931098538dff331aa568e83e68324f2a20485beb3a2e1312ddc927b16b60b"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1638400.json",
+      "bytes": 65536,
+      "sha256": "06f706c4699931bcdbd294bf558d73f16af2bea31af8da897ebd356b0c97e636"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1703936.json",
+      "bytes": 65536,
+      "sha256": "528a7e86e5e508106c137b84e529448282c049cc1b63fd828b10f8653b61928a"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1769472.json",
+      "bytes": 65536,
+      "sha256": "23ad77e38911a4b2de82e29cf8e716f9b3cb88cf76dae2a78af419f630d563fe"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1835008.json",
+      "bytes": 65536,
+      "sha256": "f89d772a066e04bb50c3c26f1d79d3ec7b8c1585f7cf77bfe8b558b2299ddffd"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1900544.json",
+      "bytes": 65536,
+      "sha256": "2de841268e12226d959620a70b736288c0b0e9c1db88a41a5f526f72e23bef5e"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-1966080.json",
+      "bytes": 65536,
+      "sha256": "77902adbb6e28148a779ceab0e60d44289d0c609ce27bc4fe47654c374178c6b"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-2031616.json",
+      "bytes": 65536,
+      "sha256": "fbb164b6b7a471f2fdcea76d7f5b1d66e3d19f117529617cfbdcb7b5cddb130b"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-2097152.json",
+      "bytes": 65536,
+      "sha256": "3743dd5a5b616c44000bbaba768fd3b28a8cf21c1b3bad7df48cff807a1ee644"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-2162688.json",
+      "bytes": 65536,
+      "sha256": "36a709bcec8e00b75077b4962334349cbb22e6837905e23e1f336697afe9e7a2"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-2228224.json",
+      "bytes": 65536,
+      "sha256": "48962704410f949930480ddc85178fe8c0857a15a7a611b85f0289b2357983ea"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-2293760.json",
+      "bytes": 65536,
+      "sha256": "840df7fb086fd7d5ad92b9b9e0104624fed72cfa01549dc708dd655089d2b0a6"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-2359296.json",
+      "bytes": 65536,
+      "sha256": "9b644e76a056305be797b4185b4e6e78fccf5daee85f302e8b1e3a7c4dbd58b3"
+    },
+    {
+      "name": "002-git-authenticated-inputs-stdout-2424832.json",
+      "bytes": 50333,
+      "sha256": "6f8c060ea408669f01fd8e190e61a3dceeb41a1e8a2c15a4685ee5b051cbdde1"
+    }
+  ],
+  "stdoutSha256": "80e819e2e1ee4ddcafb20cfc2ddc35566c80b51b45b3d8ed1aa6303b863f4958",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

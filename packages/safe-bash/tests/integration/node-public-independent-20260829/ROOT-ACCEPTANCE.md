@@ -1,0 +1,66 @@
+# ROOT qualified public opt-in Node acceptance — 2026-08-29
+
+Authority: ROOT's explicit acceptance following independent review
+`27f557ad6a18e06da5438e0d08d8b7ec2a703d94`. This artifact records that decision;
+it adds no runtime execution, product change or broader acceptance.
+
+## Exact accepted identity
+
+- Public source: `bb4dd0571a0335b20e29448bf88126ca02c1a32d`.
+- Derived composition: `a6d20781d3c099fb7b3d36c10696beb06615af1b`.
+- Full1010 package SHA256:
+  `274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9`.
+- Accepted module: `a2f3983da537b95bed65b8bc727ab93bc7e98ca3`;
+  prior module acceptance `b10faea3e04714dbddc796971a773fa0c61495f7` remains intact.
+- The composition contains accepted Unit2, not pending Unit3/Unit4 or current
+  HEAD. Derived identity is authenticated through its constituent inputs, not
+  assumed to name a stored Git object. Full bindings are in `REPORT.md`.
+
+## Accepted finite scope
+
+942 expected outcomes: 651 retained +183 version-mapped module +72 version-mapped
+public +36 independent. These are **not all successful guest commands**.
+Separately accepted: two native Node package-resolution controls, four
+mutant/restoration pairs, two binding refusals, strict build, scripts-disabled
+offline install, physical relocation and twelve type processes. Native package
+resolution is not a native Bash/Node compatibility oracle or new guest cohort.
+
+The main and supplemental sources, original failures and corrected profiles
+remain distinct. The independent main preseal is
+`f3541cc3bd67a7f9c6e95d4fc5521cee5744aabe`; supplemental preseal/main evidence is
+`1b9b8c89b6aef52ece4c316d6042b0f5075dcf9a`. No original author/helper failure,
+module acceptance or earlier unexecuted fixture is overwritten or rescored.
+
+## Public boundary
+
+The root and exact `virtual-bash/commands/node` subpath expose the restricted
+NP1-CJS-WRQ-L-SYNC-1 / Worker-L API. Installation requires an explicit trusted
+qualifying provider/static entry. Entry URL and identity are configuration, not
+byte authentication or host access authority. Seven grants are denied by default;
+all24 profile limits remain fixed. Default80 is unchanged: no implicit Node
+registration or `AgentCommandsOptions.node` option.
+
+Zero runtime dependencies; no bundled/auto-imported engine, native evaluation,
+subprocess fallback, npm/npx or implicit private engine. Public engine emissions
+and authentication in the tests do not establish product engine authentication.
+
+## Qualifications retained
+
+- 151 observed Node Workers retired,133 guest entries and23 fixed internal-loader
+  admissions. The78 recorded execution processes are **not an ALL-process census**.
+- Individual internal-loader exits, universal resource/accounting/peak guarantees
+  and complete phase byte counters are not established. Recorded hosting-process
+  retirement is not a universal transitive-lifecycle proof.
+- Unexecuted/partial families, E09's weaker assertion, W23 diagnostic detail and
+  old loop telemetry UNKNOWN remain, together with the inherited module/provider
+  and selected-base qualifications. Public acceptance does not fill those gaps.
+- Restricted synchronous CJS/text/VFS behavior is not full Node, ESM/TLA,
+  Promise-constructor support, async fs, process.exit or package search. Worker-L
+  retirement is not all guest jobs settled, RSS, whole-guest allocation or host
+  authorization proof.
+- No overall winner, native Bash parity, current-HEAD or whole-project gate claim.
+
+This docs-only publication changes only this acceptance record, current Node
+status documentation, the ledger append and a missing durable Node trust rule.
+`REPORT.md`, `HANDOFF.md`, all raw captures and previous acceptance records remain
+historical evidence; their pre-decision recommendation wording is preserved.

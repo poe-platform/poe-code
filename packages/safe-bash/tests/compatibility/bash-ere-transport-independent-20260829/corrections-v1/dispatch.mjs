@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+import {registerHooks} from 'node:module';
+const home=path.dirname(fileURLToPath(import.meta.url)),seal=JSON.parse(fs.readFileSync(path.join(home,'PRESEAL.json')));
+const expected=new Map([...seal.assets,...seal.own].map(row=>[row.path,row])),loads=[];
+const hooks=registerHooks({load(url,context,next){if(url.startsWith('node:')){if(!['node:util','node:timers/promises','node:assert','node:assert/strict','node:module','node:fs','node:crypto','node:url'].includes(url))throw Error('BUILTIN_REFUSED:'+url);return next(url,context);}const filename=fileURLToPath(url),row=expected.get(filename);if(!row||/\/(owner|root|worker-entry|wire-engine|matcher|syntax)\.js$/.test(filename))throw Error('MODULE_REFUSED');const info=fs.lstatSync(filename);if(!info.isFile()||info.isSymbolicLink()||info.size!==row.bytes||(info.mode&511)!==row.mode)throw Error('MODULE_METADATA');const raw=fs.readFileSync(filename);if(createHash('sha256').update(raw).digest('hex')!==row.sha256)throw Error('MODULE_HASH');const loaded=next(url,context);if(createHash('sha256').update(Buffer.from(loaded.source)).digest('hex')!==row.sha256)throw Error('LOADED_SOURCE_HASH');loads.push(row);return loaded;}});
+let result;
+try{process.argv[2]=seal.own.find(row=>row.path===path.join(home,'PURE-LOADS.json')).sha256;await import('./author.mjs');const novel=await import('./novel.mjs');const independent=novel.runNovel();const author=JSON.parse(fs.readFileSync(path.join(home,'PURE-RESULT.json')));result={status:author.passed===12&&independent.passed===12?'PURE_PASS':'ORDINARY_ASSERTION_FAILURE',author,independent,loads,Workers:0,matchingCalls:0};if(result.status!=='PURE_PASS')process.exitCode=1;}catch(error){result={status:'HOLD',message:String(error?.message??error),loads,Workers:0};process.exitCode=1;}finally{hooks.deregister();}
+fs.writeFileSync(path.join(home,'RESULT.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx',mode:0o600});console.log(JSON.stringify({status:result.status,author:result.author?.passed,independent:result.independent?.passed,message:result.message??null,Workers:0}));

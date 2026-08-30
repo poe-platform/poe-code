@@ -1,0 +1,11 @@
+The first prompt copy command timed out while copying the 1.8 GB candidate directory.
+A retry copied the already-moved installed package into a destination that the first
+attempt had reached, creating an extra nested `virtual-bash/virtual-bash` copy. Bare
+resolution in attempt-003 loaded the intended top-level package, as its recorded paths
+and hashes show, but the extra copy made whole-directory inventory ambiguous.
+
+The nested retry artifact was moved outside node_modules. The remaining installed
+package had 762 files, the npm tarball had 762 entries, and recursive byte/hash
+manifests matched exactly. Attempt-004 then repeated all 40 case/boundary children
+against this clean package boundary with the same passing totals. The isolated runtime,
+including the moved-aside duplicate, was removed after committed evidence was verified.

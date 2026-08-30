@@ -1,0 +1,210 @@
+{
+  "originalBehaviorInputs": [
+    {
+      "argv": [],
+      "env": {
+        "DU_BLOCK_SIZE": "bad"
+      },
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "du: \".\": allocated bytes unknown; total suppressed\n",
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/"
+        },
+        {
+          "method": "readdir",
+          "path": "/"
+        }
+      ]
+    },
+    {
+      "argv": [],
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "1"
+      },
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "du: \".\": allocated bytes unknown; total suppressed\n",
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/"
+        },
+        {
+          "method": "readdir",
+          "path": "/"
+        }
+      ]
+    }
+  ],
+  "canonicalBehaviorInputs": [
+    {
+      "argv": [
+        "--apparent-size",
+        "file"
+      ],
+      "fixture": {
+        "path": "/file",
+        "logicalBytes": 1025
+      },
+      "env": {
+        "DU_BLOCK_SIZE": "bad"
+      },
+      "exitCode": 0,
+      "stdout": "2\tfile\n",
+      "stderr": "",
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "argv": [
+        "--apparent-size",
+        "file"
+      ],
+      "fixture": {
+        "path": "/file",
+        "logicalBytes": 1025
+      },
+      "env": {
+        "DU_BLOCK_SIZE": "",
+        "BLOCK_SIZE": "1"
+      },
+      "exitCode": 0,
+      "stdout": "2\tfile\n",
+      "stderr": "",
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/file"
+        }
+      ]
+    }
+  ],
+  "environmentCases": [
+    {
+      "id": "selected-BLOCK_SIZE-invalid",
+      "argv": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "bad",
+        "BLOCKSIZE": "1"
+      },
+      "exitCode": 0,
+      "stdout": "2\tfile\n",
+      "stderr": "",
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "id": "selected-BLOCK_SIZE-empty",
+      "argv": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCK_SIZE": "",
+        "BLOCKSIZE": "1"
+      },
+      "exitCode": 0,
+      "stdout": "2\tfile\n",
+      "stderr": "",
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "id": "selected-BLOCKSIZE-invalid",
+      "argv": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "bad"
+      },
+      "exitCode": 0,
+      "stdout": "2\tfile\n",
+      "stderr": "",
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/file"
+        }
+      ]
+    },
+    {
+      "id": "selected-BLOCKSIZE-empty-posix",
+      "argv": [
+        "--apparent-size",
+        "file"
+      ],
+      "env": {
+        "BLOCKSIZE": "",
+        "POSIXLY_CORRECT": ""
+      },
+      "exitCode": 0,
+      "stdout": "3\tfile\n",
+      "stderr": "",
+      "calls": [
+        {
+          "method": "lstat",
+          "path": "/file"
+        }
+      ]
+    }
+  ],
+  "explicitInvalid": {
+    "argv": [
+      "--apparent-size",
+      "-B",
+      "bad",
+      "file"
+    ],
+    "env": {
+      "DU_BLOCK_SIZE": "1"
+    },
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": "du: invalid block size 'bad'\n",
+    "calls": []
+  },
+  "repeated": {
+    "id": "O060",
+    "argv": [
+      "-b",
+      "tree",
+      "tree"
+    ],
+    "exitCode": 0,
+    "stdout": "5\ttree/sub\n8\ttree\n0\ttree/sub\n0\ttree\n",
+    "stderr": ""
+  },
+  "ordered": {
+    "argv": [
+      "-ba",
+      "/"
+    ],
+    "creationOrder": [
+      "z",
+      "a"
+    ],
+    "exitCode": 0,
+    "stdout": "1\t/a\n1\t/z\n2\t/\n",
+    "stderr": ""
+  }
+}

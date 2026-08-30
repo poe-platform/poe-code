@@ -1,0 +1,88 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "E08",
+  "mutation": "no-work-admission",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "E08/work-1",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {
+            "maxSteps": 1
+          },
+          "inputHex": "783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 320,
+          "stdoutSha256": "59b3bfcde6826b5d6cd30ee2d3374a0e6b68868aa4c899d2918fe0ae6d83d0da",
+          "stdoutHex": "782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 256,
+          "maxWriteBytes": 2,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:136:34\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:134:59"
+      }
+    },
+    {
+      "name": "E08/work-10000",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {
+            "maxSteps": 10000
+          },
+          "inputHex": "783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a783a790a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 320,
+          "stdoutSha256": "59b3bfcde6826b5d6cd30ee2d3374a0e6b68868aa4c899d2918fe0ae6d83d0da",
+          "stdoutHex": "782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a782020790a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 256,
+          "maxWriteBytes": 2,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 1550,
+    "units": 1680
+  },
+  "counts": {
+    "total": 2,
+    "pass": 1,
+    "fail": 1
+  }
+}

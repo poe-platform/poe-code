@@ -1,0 +1,380 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import childProcess from 'node:child_process';
+import workers from 'node:worker_threads';
+import net from 'node:net';
+import tls from 'node:tls';
+import http from 'node:http';
+import https from 'node:https';
+import http2 from 'node:http2';
+import dgram from 'node:dgram';
+import { createHash } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
+import { syncBuiltinESMExports } from 'node:module';
+
+const root = '/Users/kjopek/Workspace/safe-bash';
+const owned = path.join(root, 'tests/shell/mapfile-observer-independent-20260828');
+const packet = 'tests/shell/mapfile-design-20260828';
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const readHost = fs.readFileSync.bind(fs), writeHost = fs.writeFileSync.bind(fs);
+const statHost = fs.lstatSync.bind(fs), listHost = fs.readdirSync.bind(fs);
+const realpathHost = fs.realpathSync.bind(fs), nowHost = performance.now.bind(performance);
+const beganHost = nowHost(), freeze = process.env.REVIEW_FREEZE;
+assert.match(freeze ?? '', /^[a-f0-9]{40}$/u);
+assert.equal(process.cwd(), root);
+const frozenFiles = ['BUNDLE.json', 'CASES.json', 'MANIFEST.json', 'RECIPE.md', 'prepare.mjs.data', 'review.mjs.data'].sort();
+assert.deepEqual(listHost(owned).sort(), frozenFiles);
+const bytesByName = new Map(frozenFiles.map(name => [name, readHost(path.join(owned, name))]));
+const manifest = JSON.parse(bytesByName.get('MANIFEST.json'));
+const bundle = JSON.parse(bytesByName.get('BUNDLE.json'));
+const cases = JSON.parse(bytesByName.get('CASES.json'));
+assert.ok(bytesByName.get('BUNDLE.json').length <= 4194304);
+for (const [name, binding] of Object.entries(manifest.files)) {
+  assert.equal(digest(bytesByName.get(name)), binding.sha256);
+  assert.equal(bytesByName.get(name).length, binding.bytes);
+  assert.equal(statHost(path.join(owned, name)).mode & 0o7777, binding.mode);
+}
+const gitBytes = childProcess.execFileSync('/usr/bin/git', ['ls-tree', '-r', freeze, '--', path.relative(root, owned)], { cwd: root, timeout: 10000, maxBuffer: 65536 }).toString();
+const frozenTree = gitBytes.trim().split('\n').map(line => {
+  const match = /^(100644) blob ([a-f0-9]{40})\t(.+)$/u.exec(line); assert.ok(match);
+  const name = path.basename(match[3]), bytes = bytesByName.get(name); assert.ok(bytes);
+  assert.equal(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'), match[2]);
+  return { path: match[3], blob: match[2], sha256: digest(bytes) };
+});
+assert.equal(frozenTree.length, frozenFiles.length);
+const nodeStat = statHost(realpathHost(process.execPath));
+assert.equal(realpathHost(process.execPath), manifest.node.canonical);
+assert.equal(process.version, manifest.node.version);
+for (const key of ['size', 'mode', 'ino', 'dev', 'mtimeMs', 'ctimeMs']) {
+  const expected = key === 'size' ? manifest.node.bytes : key === 'mode' ? manifest.node.mode : manifest.node[key];
+  assert.equal(key === 'mode' ? nodeStat[key] & 0o7777 : nodeStat[key], expected);
+}
+const inputs = new Map();
+for (const item of bundle.inputs) if (item.base64 !== undefined) {
+  const bytes = Buffer.from(item.base64, 'base64');
+  assert.equal(bytes.length, item.bytes); assert.equal(digest(bytes), item.sha256);
+  assert.equal(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'), item.blob);
+  inputs.set(item.path, bytes);
+}
+const seal = JSON.parse(inputs.get(`${packet}/observer-v1/MODULE-SEAL.json`));
+assert.equal(digest(inputs.get(`${packet}/observer-v1/MODULE-SEAL.json`)), manifest.moduleSealSha256);
+for (const [name, expected] of Object.entries(seal.artifacts)) assert.equal(digest(inputs.get(`${packet}/${name}`)), expected);
+const rows = [...JSON.parse(inputs.get(`${packet}/OBSERVATIONS.json`)).rows, ...JSON.parse(inputs.get(`${packet}/OBSERVATIONS-addendum-v2.json`)).rows];
+assert.equal(rows.length, 43); assert.equal(digest(JSON.stringify(rows)), seal.combinedRecipeSha256);
+const moduleBytes = new Map(seal.moduleFiles.map(name => [name, inputs.get(`${packet}/observer-v1/modules/${name}`)]));
+const effects = [], loads = [], results = [];
+class SafetyStop extends Error {}
+function stop(message) { throw new SafetyStop(message); }
+function blocked(name) { return () => { effects.push(name); stop(`forbidden host capability ${name}`); }; }
+for (const [object, names] of [
+  [childProcess, ['spawn', 'spawnSync', 'exec', 'execSync', 'execFile', 'execFileSync', 'fork']],
+  [workers, ['Worker']], [net, ['connect', 'createConnection', 'createServer', 'Socket', 'Server']],
+  [tls, ['connect', 'createServer', 'TLSSocket']], [http, ['request', 'get', 'createServer']],
+  [https, ['request', 'get', 'createServer']], [http2, ['connect', 'createServer', 'createSecureServer']],
+  [dgram, ['createSocket']], [process, ['kill', 'dlopen']], [globalThis, ['fetch']],
+]) for (const name of names) object[name] = blocked(name);
+syncBuiltinESMExports();
+const watchdog = setTimeout(() => { writeHost(path.join(owned, 'RECEIPT-01.json'), JSON.stringify({ status: 'SAFETY_STOP_WALL', freeze }), { flag: 'wx' }); process.exit(90); }, 60000);
+let active;
+const current = () => { if (!active) stop('adapter used without owned active case'); return active; };
+const fakeFs = new Proxy({ constants: fs.constants }, { get(target, name) {
+  if (name === 'constants') return target.constants;
+  return (...args) => current().fsCall(name, args);
+} });
+const mockProcess = { execPath: '/controls/node', version: 'MODEL', platform: 'synthetic', arch: 'synthetic', argv: [], kill: (...args) => current().kill(...args) };
+const context = vm.createContext({ Buffer, process: mockProcess, setTimeout: (callback, delay) => current().timer(delay, callback), clearTimeout: timer => current().clearTimer(timer) }, { codeGeneration: { strings: false, wasm: false } });
+const builtinValues = new Map([
+  ['node:assert/strict', { default: assert }], ['node:path', { default: path }],
+  ['node:crypto', { createHash }], ['node:fs', { default: fakeFs }],
+  ['node:child_process', { spawn: (...args) => current().spawn(...args) }],
+  ['node:perf_hooks', { performance: { now: () => current().clock } }],
+  ['node:util/types', { isUint8Array: (await import('node:util/types')).isUint8Array }],
+  ['node:url', { fileURLToPath: (await import('node:url')).fileURLToPath }],
+]);
+const builtins = new Map(), modules = new Map();
+const selected = seal.moduleFiles.filter(name => name !== 'synthetic.mjs');
+for (const name of selected) {
+  const bytes = moduleBytes.get(name), identifier = `file:///independent-frozen/modules/${name}`;
+  const module = new vm.SourceTextModule(bytes.toString(), { context, identifier, initializeImportMeta(meta) { meta.url = identifier; }, importModuleDynamically: async (specifier, parent) => {
+    const resolved = link(specifier, parent); if (resolved.status === 'unlinked') await resolved.link(link); if (resolved.status === 'linked') await resolved.evaluate({ timeout: 1000 }); return resolved;
+  } });
+  modules.set(name, module); loads.push({ name, identifier, sha256: digest(bytes), bytes: bytes.length, transformed: false });
+}
+function link(specifier, parent) {
+  if (specifier.startsWith('./') && !specifier.slice(2).includes('/')) {
+    const result = modules.get(specifier.slice(2)); if (!result) stop(`unbound relative module ${specifier}`); return result;
+  }
+  if (!builtinValues.has(specifier)) stop(`unbound builtin ${specifier} from ${parent.identifier}`);
+  if (!builtins.has(specifier)) {
+    const values = builtinValues.get(specifier);
+    builtins.set(specifier, new vm.SyntheticModule(Object.keys(values), function () { for (const [name, value] of Object.entries(values)) this.setExport(name, value); }, { context, identifier: `intercepted:${specifier}` }));
+  }
+  return builtins.get(specifier);
+}
+for (const module of modules.values()) if (module.status === 'unlinked') await module.link(link);
+for (const module of modules.values()) if (module.status === 'linked') await module.evaluate({ timeout: 1000 });
+const api = Object.fromEntries([...modules].map(([name, module]) => [name, module.namespace]));
+const realm = expression => vm.runInNewContext(expression, {}, { timeout: 1000, contextCodeGeneration: { strings: false, wasm: false } });
+
+class Model {
+  constructor(scenario) {
+    this.scenario = scenario; this.files = new Map(); this.descriptors = new Map(); this.sequence = 0;
+    this.clock = 0; this.tasks = new Map(); this.taskId = 0; this.events = 0; this.trace = [];
+    this.starts = 0; this.releases = 0; this.nativeHashes = 0; this.signals = []; this.child = null;
+    this.reason = Object.freeze({ marker: `host-reason:${scenario}` }); this.coercions = 0;
+    this.alive = false; this.maximumTasks = 0; this.hostCallbackExceptions = [];
+    for (const name of ['/', '/controls', '/controls/modules']) this.put(name, 'directory');
+    for (const [name, bytes] of moduleBytes) this.put(`/controls/modules/${name}`, 'file', bytes);
+    this.put('/controls/bash', 'file', Buffer.from('NOT_EXECUTABLE_NATIVE_MODEL'), 0o755);
+    this.put('/controls/node', 'file', Buffer.from('NOT_EXECUTABLE_RUNTIME_MODEL'), 0o755);
+    for (const name of ['config', 'SEAL', 'ADMITTED']) this.put(`/controls/${name}`, 'file', Buffer.from(`BOUND_${name}`));
+    this.port = api['node-driver.mjs'].nodePort('ROOT_NATIVE_GO');
+  }
+  log(operation, details = {}) { if (this.trace.length >= 8192) stop('trace bound'); this.trace.push({ operation, at: this.clock, ...details }); }
+  put(filename, kind, bytes = Buffer.alloc(0), mode = kind === 'directory' ? 0o700 : 0o644) {
+    this.files.set(filename, { kind, bytes: Buffer.from(bytes), mode, identity: ++this.sequence });
+    if (this.files.size > 512 || [...this.files.values()].reduce((total, item) => total + item.bytes.length, 0) > 8388608) stop('virtual storage bound');
+  }
+  stat(filename) {
+    if (this.scenario === 'post-mkdir-stat-fails' && filename === '/owned' && this.files.has(filename)) throw this.reason;
+    const item = this.files.get(filename); assert.ok(item, `missing virtual path ${filename}`);
+    return { size: item.bytes.length, mode: item.mode, dev: 1, ino: item.identity, mtimeMs: 0, ctimeMs: 0, isSymbolicLink: () => item.kind === 'symlink', isDirectory: () => item.kind === 'directory', isFile: () => item.kind === 'file' };
+  }
+  children(directory) { return [...this.files.keys()].filter(name => name !== directory && path.dirname(name) === directory).map(name => path.basename(name)); }
+  fsCall(name, args) {
+    const [filename] = args; this.log(`fs.${String(name)}`, { target: typeof filename === 'string' || typeof filename === 'number' ? filename : 'invalid' });
+    if (name === 'realpathSync') return filename;
+    if (name === 'lstatSync') return this.stat(filename);
+    if (name === 'readFileSync') return Buffer.from(this.files.get(filename).bytes);
+    if (name === 'readdirSync') return this.children(filename);
+    if (name === 'mkdirSync') {
+      assert.equal(args[1].mode, 0o700); assert.equal(Object.keys(args[1]).join(','), 'mode');
+      if (this.ownership) { assert.equal(this.ownership.directories.at(-1).path, filename); assert.equal(this.ownership.directories.at(-1).planned, true); assert.equal(this.ownership.directories.at(-1).acquired, false); this.log('ownership-before-mkdir'); }
+      assert.equal(this.files.has(filename), false); this.put(filename, 'directory'); return;
+    }
+    if (name === 'rmdirSync') { assert.deepEqual(this.children(filename), []); this.files.delete(filename); return; }
+    if (name === 'writeFileSync') {
+      const [, bytes, options] = args; assert.equal(options.flag, 'wx'); assert.equal(options.mode, 0o600);
+      if ((this.scenario === 'spawn-publication-fails' && filename.includes('/spawn-')) || (this.scenario === 'row-publication-fails' && filename.includes('/row-')) || (this.scenario === 'final-publication-fails' && filename.endsWith('/final.json'))) throw this.reason;
+      assert.equal(this.files.has(filename), false); this.put(filename, 'file', bytes, 0o600);
+      if (this.scenario === 'deadline-during-attempt' && filename.includes('/attempt-')) this.clock = 150000;
+      if (filename.endsWith('/final.json')) {
+        if (this.scenario === 'final-mode-only') this.files.get('/controls/modules/storage.mjs').mode = 0o777;
+        if (this.scenario.startsWith('final-control:')) {
+          const target = this.scenario.slice('final-control:'.length);
+          this.files.get(target.endsWith('.mjs') ? `/controls/modules/${target}` : `/controls/${target}`).bytes = Buffer.from('CHANGED');
+        }
+        if (this.scenario === 'final-new-module') this.put('/controls/modules/unadmitted.mjs', 'file');
+        if (this.scenario === 'final-new-receipt') this.put('/owned/records/unadmitted', 'file');
+        if (this.scenario === 'error-during-final-publication') this.child.stderr.emit('error', this.reason);
+      }
+      return;
+    }
+    if (name === 'openSync') {
+      assert.equal(args[1], fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+      if (filename === '/controls/bash') {
+        this.nativeHashes++;
+        if ((this.scenario === 'deadline-crossed-during-auth' && this.nativeHashes === 2) || (this.scenario === 'deadline-final-admission' && this.nativeHashes === 3)) this.clock = 150000;
+      }
+      const descriptor = ++this.sequence; this.descriptors.set(descriptor, { filename, offset: 0 }); return descriptor;
+    }
+    if (name === 'fstatSync') { if (this.scenario === 'hash-descriptor-finally') throw this.reason; return this.stat(this.descriptors.get(filename).filename); }
+    if (name === 'readSync') {
+      const descriptor = this.descriptors.get(filename), [, buffer, offset, length, position] = args; assert.equal(position, null);
+      const bytes = this.files.get(descriptor.filename).bytes, count = Math.min(length, bytes.length - descriptor.offset);
+      bytes.copy(buffer, offset, descriptor.offset, descriptor.offset + count); descriptor.offset += count; return count;
+    }
+    if (name === 'closeSync') { assert.equal(this.descriptors.delete(filename), true); return; }
+    stop(`unapproved fs method ${String(name)}`);
+  }
+  timer(delay, callback) { assert.ok(Number.isFinite(delay) && delay >= 0); const id = ++this.taskId; this.tasks.set(id, { at: this.clock + delay, callback }); this.maximumTasks = Math.max(this.maximumTasks, this.tasks.size); if (this.tasks.size > 64) stop('callback queue bound'); return id; }
+  clearTimer(timer) { this.tasks.delete(timer); }
+  emitter(label) {
+    const listeners = new Map();
+    return {
+      on: (event, callback) => { this.log('listener', { label, event }); if (!listeners.has(event)) listeners.set(event, []); listeners.get(event).push(callback); },
+      emit: (event, ...args) => { this.log('emit', { label, event, listeners: listeners.get(event)?.length ?? 0 }); if (event === 'error' && !listeners.has(event)) stop(`unhandled virtual ${label} error`); for (const callback of listeners.get(event) ?? []) callback(...args); },
+      destroy: () => { this.log('destroy', { label }); if (this.scenario === 'release-throws' && label === 'stdout') throw this.reason; },
+      end: (bytes, callback) => { this.log('stdin.end', { bytes: bytes.length, sha256: digest(bytes) }); assert.ok(bytes.length <= 16384); if (this.scenario === 'stdin-end-throws') throw this.reason; callback(null); },
+    };
+  }
+  spawn(executable, args, options) {
+    this.log('adapter.spawn', { executable, args: [...args], cwd: options.cwd, env: { ...options.env }, detached: options.detached, stdio: [...options.stdio] }); this.starts++;
+    assert.equal(this.starts, 1, 'no hidden retry/second launch in finite case');
+    assert.equal(executable, '/controls/bash'); assert.equal(args[0], '--noprofile'); assert.equal(args[1], '--norc'); assert.equal(args[2], '-c');
+    assert.equal(args[3], rows[0].script); assert.equal(args[4], 'mapfile-design-v1'); assert.equal(args.length, 5);
+    assert.equal(options.cwd, '/owned/fixture'); assert.equal(options.detached, true);
+    assert.equal(JSON.stringify(options.stdio), '["pipe","pipe","pipe"]');
+    assert.equal(JSON.stringify(options.env), JSON.stringify({ PATH: '', ENV: '', BASH_ENV: '', HOME: '/owned/fixture/home', TMPDIR: '/owned/fixture/tmp', LANG: 'C', LC_ALL: 'C', TZ: 'UTC' }));
+    if (this.scenario === 'sync-spawn-throw' || this.scenario === 'host-reason-identity') throw this.reason;
+    const child = { ...this.emitter('child'), pid: this.scenario === 'async-no-process' ? undefined : 9001, stdin: this.emitter('stdin'), stdout: this.emitter('stdout'), stderr: this.emitter('stderr'), unref: () => { this.log('unref'); this.releases++; } };
+    this.child = child; this.alive = true;
+    if (this.scenario === 'async-no-process') { this.alive = false; this.timer(0, () => child.emit('error', this.reason)); this.timer(1, () => child.emit('close', null, null)); return child; }
+    const spawn = () => child.emit('spawn');
+    const exit = () => child.emit('exit', 0, null);
+    const close = () => { if (this.closed) return; this.closed = true; child.emit('close', 0, null); };
+    this.finishChild = () => { if (this.closed) return; this.alive = this.scenario === 'group-survives'; exit(); close(); };
+    if (this.scenario === 'forged-child-flags') {
+      Object.assign(child, { spawned: true, closed: true, spawnObserved: true, closeObserved: true }); this.timer(10, () => { this.alive = false; }); return child;
+    }
+    if (this.scenario === 'close-before-spawn-live-group') {
+      this.timer(1, () => { exit(); close(); }); this.timer(2, spawn); this.timer(3, () => { this.alive = false; }); return child;
+    }
+    if (this.scenario === 'exit-before-spawn-live-group') {
+      this.timer(1, exit); this.timer(2, spawn); this.timer(3, () => { this.alive = false; close(); }); return child;
+    }
+    if (this.scenario !== 'close-without-spawn') this.timer(0, spawn);
+    if (this.scenario === 'late-error-after-exit') { this.timer(4, exit); this.timer(5, () => child.stderr.emit('error', this.reason)); }
+    if (this.scenario !== 'missing-close') this.timer(10, this.finishChild);
+    if (this.scenario === 'late-error-after-close') this.timer(11, () => child.stderr.emit('error', this.reason));
+    if (this.scenario === 'positive') this.timer(5, () => { const bytes = Buffer.from('owned\n'); child.stdout.emit('data', bytes); bytes.fill(120); child.stderr.emit('data', Buffer.from('note\n')); });
+    return child;
+  }
+  kill(pid, signal) {
+    this.log('process.kill', { pid, signal }); assert.equal(pid, -9001);
+    if (!this.alive) { const error = new Error('virtual absent group'); error.code = 'ESRCH'; throw error; }
+    if (signal !== 0) { this.signals.push(signal); if (this.scenario !== 'group-survives') this.alive = false; if (this.scenario !== 'missing-close' && this.finishChild) this.timer(1, this.finishChild); }
+    return true;
+  }
+  async drive(promise) {
+    let settled = false, value, reason, rejected = false;
+    promise.then(result => { value = result; settled = true; }, error => { reason = error; rejected = true; settled = true; });
+    while (!settled || this.tasks.size) {
+      for (let index = 0; index < 12; index++) await Promise.resolve();
+      if (settled && !this.tasks.size) break;
+      if (nowHost() - beganHost > 45000) stop('host wall bound');
+      const next = [...this.tasks].sort((left, right) => left[1].at - right[1].at || left[0] - right[0])[0];
+      if (!next || ++this.events > 4096) stop('undrained/no progress virtual model');
+      this.tasks.delete(next[0]); this.clock = Math.max(this.clock, next[1].at); if (this.clock > 150001) stop('virtual time bound');
+      try { next[1].callback(); } catch (error) { if (error instanceof SafetyStop) throw error; this.hostCallbackExceptions.push({ name: error?.name, message: error?.message }); }
+    }
+    if (rejected) throw reason; return value;
+  }
+  cleanup() {
+    if (this.tasks.size || this.descriptors.size || effects.length) stop('synthetic resources/integrity not clean');
+    const summary = { starts: this.starts, releases: this.releases, events: this.events, clock: this.clock, maximumTasks: this.maximumTasks, pending: this.tasks.size, descriptors: this.descriptors.size, signals: this.signals, virtualGroupAlive: this.alive, discardedEntries: this.files.size, coercions: this.coercions, callbackExceptions: this.hostCallbackExceptions };
+    this.files.clear(); this.child = null; this.finishChild = null; this.alive = false; return summary;
+  }
+}
+
+function configFor(model) {
+  const runtime = { path: '/controls/node', version: 'MODEL', platform: 'synthetic', arch: 'synthetic', bytes: model.files.get('/controls/node').bytes.length, sha256: digest(model.files.get('/controls/node').bytes), mode: 0o755 };
+  const config = { schema: 'mapfile-observer-v1', mode: 'synthetic', runtime, protected: {}, protectedModes: {}, moduleRoot: '/controls/modules', moduleFiles: seal.moduleFiles, moduleSealSha256: manifest.moduleSealSha256, authorizationPath: '/controls/auth', recipeSha256: seal.combinedRecipeSha256, rows, rowIds: ['N01'], outputRoot: '/owned', binary: '/controls/bash', binaryBytes: model.files.get('/controls/bash').bytes.length, binaryMode: 0o755, binarySha256: digest(model.files.get('/controls/bash').bytes) };
+  if (['missing-close', 'group-survives', 'route-reordered-ids'].includes(model.scenario)) config.rowIds = ['N01', 'N02'];
+  const authority = { kind: model.scenario === 'route-native-kind' ? 'ROOT_NATIVE_GO' : 'SYNTHETIC_ONLY', runtime, moduleSealSha256: config.moduleSealSha256, recipeSha256: config.recipeSha256, outputRoot: config.outputRoot, rowIds: model.scenario === 'route-reordered-ids' ? ['N02', 'N01'] : config.rowIds };
+  model.put('/controls/auth', 'file', Buffer.from(JSON.stringify(authority))); config.authorizationSha256 = digest(model.files.get('/controls/auth').bytes);
+  for (const [filename, item] of model.files) if (item.kind === 'file' && !['/controls/node', '/controls/bash'].includes(filename)) { config.protected[filename] = digest(item.bytes); config.protectedModes[filename] = 0o644; }
+  if (model.scenario === 'module-mode-only') model.files.get('/controls/modules/admission.mjs').mode = 0o777;
+  if (model.scenario === 'native-not-executable') model.files.get('/controls/bash').mode = 0o644;
+  if (model.scenario === 'runtime-not-executable') model.files.get('/controls/node').mode = 0o644;
+  if (model.scenario === 'vm-runtime-extra' || model.scenario === 'vm-runtime-accessor') {
+    model.port.runtimeIdentity = () => {
+      const value = realm('({path:"/controls/node",version:"MODEL",platform:"synthetic",arch:"synthetic"})');
+      if (model.scenario === 'vm-runtime-extra') value.extra = true;
+      else Object.defineProperty(value, 'version', { get() { model.coercions++; return 'MODEL'; }, enumerable: true });
+      return value;
+    };
+  }
+  if (!model.scenario.startsWith('vm-config') && !model.scenario.startsWith('vm-rowids')) return config;
+  const other = realm(`(${JSON.stringify(config)})`); assert.notEqual(Object.getPrototypeOf(other), Object.getPrototypeOf(config));
+  if (model.scenario === 'vm-config-extra') other.extra = true;
+  if (model.scenario === 'vm-rowids-hole') delete other.rowIds[0];
+  if (model.scenario === 'vm-rowids-extra') other.rowIds.extra = true;
+  return other;
+}
+function verifyObserver(model, report, expected) {
+  assert.equal(report.success, expected);
+  assert.equal(model.hostCallbackExceptions.length, 0, 'no escaped driver event callback');
+  const scenario = model.scenario;
+  if (['module-mode-only', 'native-not-executable', 'runtime-not-executable', 'deadline-crossed-during-auth', 'deadline-during-attempt', 'deadline-final-admission', 'post-mkdir-stat-fails', 'vm-config-extra', 'vm-runtime-extra', 'vm-runtime-accessor', 'route-native-kind', 'route-reordered-ids'].includes(scenario)) assert.equal(model.starts, 0);
+  if (scenario === 'final-mode-only' || scenario.startsWith('final-control:') || scenario === 'final-new-module') assert.ok(report.failures.some(item => item.phase === 'post-persistence-integrity'));
+  if (scenario === 'final-new-receipt') assert.ok(report.failures.some(item => item.phase === 'post-persistence-storage'));
+  if (scenario === 'post-mkdir-stat-fails') { assert.equal(report.directories[0].planned, true); assert.equal(report.directories[0].acquired, true); assert.equal(report.directories[0].identity, null); assert.equal(model.files.has('/owned'), true); }
+  if (['spawn-publication-fails', 'row-publication-fails', 'final-publication-fails'].includes(scenario)) {
+    assert.equal(report.launched, 1); assert.equal(report.actualCloseEvents, 1); assert.equal(model.releases, 1); assert.equal(report.remaining.length, 0);
+    assert.ok(report.failures.some(item => item.reason === model.reason));
+    if (scenario === 'final-publication-fails') assert.ok(report.failures.some(item => item.phase === 'final-persistence'));
+  }
+  if (['missing-close', 'group-survives', 'forged-child-flags'].includes(scenario)) { assert.equal(report.rows[0].terminal, 'terminal-cleanup-uncertain'); assert.equal(report.cleanupUncertain, true); assert.equal(report.rows[0].elapsed, 3000); assert.equal(model.starts, 1); }
+  if (['sync-spawn-throw', 'async-no-process', 'host-reason-identity'].includes(scenario)) { assert.equal(report.launched, 0); assert.equal(report.actualCloseEvents, 0); assert.equal(report.rows[0].failureReason, model.reason); assert.equal(report.failureReason, model.reason); }
+  if (scenario === 'close-without-spawn') { assert.equal(report.launched, 0); assert.equal(report.actualCloseEvents, 1); assert.equal(report.rows[0].terminal, 'inconsistent-driver-completion'); }
+  if (scenario === 'positive') { assert.equal(Buffer.from(report.rows[0].stdoutBase64, 'base64').toString(), 'owned\n'); assert.equal(Buffer.from(report.rows[0].stderrBase64, 'base64').toString(), 'note\n'); }
+  assert.equal(model.coercions, 0);
+}
+
+async function direct(name, model, record) {
+  const data = api['data.mjs'];
+  if (name === 'ownership-before-mkdir') { model.ownership = new api['storage.mjs'].OwnedStorage(model.port, '/owned'); model.ownership.acquire('/owned'); assert.ok(model.trace.some(item => item.operation === 'ownership-before-mkdir')); }
+  else if (name === 'hash-descriptor-finally') { let reason; try { model.port.hash('/controls/bash', model.files.get('/controls/bash').bytes.length); } catch (error) { reason = error; } assert.equal(reason, model.reason); assert.equal(model.descriptors.size, 0); }
+  else if (name === 'cli-absent-admission') { await assert.rejects(api['cli.mjs'].main([])); assert.equal(model.trace.length, 0); }
+  else if (name === 'vm-own-data-positive' || name === 'vm-null-prototype-positive') {
+    const value = realm(name === 'vm-own-data-positive' ? '({a:[null,true,1,"x"],b:{z:0}})' : 'Object.assign(Object.create(null),{a:Object.setPrototypeOf([null,true,1,"x"],null),b:Object.assign(Object.create(null),{z:0})})');
+    assert.notEqual(Object.getPrototypeOf(value), Object.prototype); data.assertOwnData(value, { a: [null, true, 1, 'x'], b: { z: 0 } });
+  } else if (name === 'vm-rejection-matrix') {
+    record.probes = [];
+    for (const [id, expression, expected, mismatch] of [
+      ['hole', '[1,,3]'], ['array-extra', 'Object.assign([1],{extra:2})'],
+      ['array-symbol', 'Object.assign([1],{[Symbol("x")]:2})'],
+      ['accessor', 'Object.defineProperty({},"x",{get(){hit();return 1},enumerable:true})'],
+      ['array-accessor', 'Object.defineProperty([1],"0",{get(){hit();return 1}})'],
+      ['toJSON', '({toJSON(){hit();return {} }})'], ['toPrimitive', '({[Symbol.toPrimitive](){hit();return "x"}})'],
+      ['nonfinite', '({x:Infinity})'], ['undefined', '({x:undefined})'], ['type', '({x:"1"})', { x: 1 }, true],
+      ['sequence', '[2,1]', [1, 2], true], ['extra-record', '({x:1,y:2})', { x: 1 }, true],
+      ['nonenumerable-extra', 'Object.defineProperty({x:1},"hidden",{value:2})', { x: 1 }, true],
+    ]) {
+      const value = vm.runInNewContext(expression, { hit: () => { model.coercions++; } }, { timeout: 1000 });
+      let refused = false; try { if (mismatch) data.assertOwnData(value, expected); else data.snapshotOwnData(value); } catch { refused = true; }
+      assert.equal(refused, true, id); assert.equal(model.coercions, 0); record.probes.push({ id, refused, coercions: model.coercions });
+    }
+  } else if (name === 'host-proxy-reason-identity') {
+    for (const trap of ['ownKeys', 'getOwnPropertyDescriptor']) {
+      const value = new Proxy({ x: 1 }, { [trap]() { throw model.reason; } }); let actual;
+      try { data.snapshotOwnData(value); } catch (error) { actual = error; } assert.equal(actual, model.reason);
+    }
+    record.referenceIdentity = true;
+  } else if (name === 'stat-mode-projection') { model.files.get('/controls/bash').mode = 0o6755; const actual = model.port.stat('/controls/bash'); assert.equal(actual.mode, 0o6755); data.assertOwnData(Object.keys(actual).sort(), ['bytes', 'identity', 'kind', 'mode']); }
+  else stop(`undeclared direct control ${name}`);
+}
+function integrity() {
+  assert.deepEqual(listHost(owned).sort(), frozenFiles);
+  for (const [name, bytes] of bytesByName) { assert.equal(realpathHost(path.join(owned, name)), path.join(owned, name)); assert.ok(statHost(path.join(owned, name)).isFile()); assert.equal(digest(readHost(path.join(owned, name))), digest(bytes)); }
+  for (const [name, bytes] of moduleBytes) assert.equal(digest(bytes), seal.artifacts[`observer-v1/modules/${name}`]);
+  assert.equal(effects.length, 0);
+}
+let safetyFailure;
+try {
+  assert.ok(cases.observer.length + cases.direct.length <= 100);
+  for (const [scenario, expected] of cases.observer) {
+    active = new Model(scenario); const result = { scenario, expected, pass: false }; const config = configFor(active);
+    try {
+      const report = await active.drive(api['observer.mjs'].runObserver(active.port, config)); result.report = report;
+      result.reasonIdentity = { row: report.rows[0]?.failureReason === active.reason, report: report.failureReason === active.reason, phases: report.failures.filter(item => item.reason === active.reason).map(item => item.phase) };
+      verifyObserver(active, report, expected); result.pass = true;
+    } catch (error) {
+      if (error instanceof SafetyStop) throw error;
+      if (['vm-rowids-hole', 'vm-rowids-extra'].includes(scenario) && !result.report) { assert.equal(active.starts, 0); result.pass = true; result.rejectedBeforeReport = true; }
+      else result.failure = { name: error?.name ?? 'opaque', message: String(error?.message ?? error).slice(0, 32768), stack: String(error?.stack ?? '').slice(0, 32768) };
+    }
+    result.trace = active.trace; result.model = active.cleanup(); integrity(); results.push(result);
+    if (!result.pass) process.stdout.write(`FRAMEWORK_DEFECT ${scenario}: ${result.failure?.message}\n`);
+    active = undefined;
+  }
+  for (const name of cases.direct) {
+    active = new Model(name); const result = { scenario: name, direct: true, pass: false };
+    try { await direct(name, active, result); result.pass = true; } catch (error) { if (error instanceof SafetyStop) throw error; result.failure = { name: error?.name, message: String(error?.message ?? error).slice(0, 32768), stack: String(error?.stack ?? '').slice(0, 32768) }; }
+    result.trace = active.trace; result.model = active.cleanup(); integrity(); results.push(result); active = undefined;
+    if (!result.pass) process.stdout.write(`FRAMEWORK_DEFECT ${name}: ${result.failure?.message}\n`);
+  }
+} catch (error) { safetyFailure = { name: error?.name, message: String(error?.message ?? error).slice(0, 32768) }; }
+clearTimeout(watchdog);
+const capture = { schema: 'independent-whole-module-synthetic-review-v1', freeze, candidate: bundle.candidate, evidence: bundle.evidence, moduleSealSha256: manifest.moduleSealSha256, frozenTree, loaded: loads, moduleEvaluations: Object.fromEntries([...modules].map(([name, module]) => [name, module.status])), injectedBuiltins: [...builtins.keys()], sourceTransform: 'none; exact complete source bytes; builtin imports and process/timers intercepted', results, passed: results.filter(item => item.pass).length, total: results.length, declared: cases.observer.length + cases.direct.length, originalSix: cases.originalSix.map(name => ({ name, pass: results.find(item => item.scenario === name)?.pass ?? false })), forbiddenHostEffects: effects, safetyFailure, realObserverChildren: 0, productExecutions: 0, nativeRecipesExecuted: 0, physicalEffects: 'exclusive sidecar capture/receipt only; all candidate FS/descriptors/children/signals/streams are virtual', node: manifest.node, elapsedHostMs: nowHost() - beganHost };
+const text = JSON.stringify(capture) + '\n'; assert.ok(Buffer.byteLength(text) <= 4194304);
+if (!safetyFailure) integrity();
+writeHost(path.join(owned, 'CAPTURE-01.json'), text, { flag: 'wx', mode: 0o644 });
+const exitCode = safetyFailure ? 90 : capture.passed === capture.declared ? 0 : 1;
+const receipt = { freeze, captureSha256: digest(text), captureBytes: Buffer.byteLength(text), passed: capture.passed, total: capture.total, declared: capture.declared, exitCode, realObserverChildren: 0, beforeAfterOriginalHashesAndNewEntryCensus: !safetyFailure, safetyFailure };
+writeHost(path.join(owned, 'RECEIPT-01.json'), JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx', mode: 0o644 });
+assert.deepEqual(listHost(owned).sort(), [...frozenFiles, 'CAPTURE-01.json', 'RECEIPT-01.json'].sort());
+process.stdout.write(JSON.stringify(receipt) + '\n'); process.exitCode = exitCode;

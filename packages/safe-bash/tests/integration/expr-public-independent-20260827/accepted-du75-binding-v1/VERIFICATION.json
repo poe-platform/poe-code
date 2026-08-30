@@ -1,0 +1,289 @@
+{
+  "schema": "expr-du75-binding-authentication/1",
+  "profile": "EXPR_ACCEPTED_DU75_PREREQUISITE_BOUND_20260828",
+  "classification": "PROVENANCE_AUTHENTICATION_NOT_PRODUCT_PASS",
+  "authentication": {
+    "status": "AUTHENTICATED_METADATA_ONLY",
+    "mode": "UNSEALED_AUTHENTICATION",
+    "commit": null,
+    "sources": 16,
+    "checks": [
+      "sixteen-exact-git-blob-hashes",
+      "exact-du-candidate-equals-expr-selected-base",
+      "du-composed-receipt-and-recipe-links",
+      "du-22-plus-7-and-unchanged-runtime-receipts",
+      "du-T03-leaf-TS2322-and-T04-T05-root-proofs",
+      "expr-commit-tree-and-ancestry-not-byte-identity",
+      "expr-distinct-pack-and-independent-P01-lineage",
+      "historical-consumer-profile-and-v5-outcomes-not-rescored",
+      "separate-R21-N04-receipt-bindings-and-counts-only",
+      "nonexecuted-current-prerequisite-and-remaining-boundaries"
+    ],
+    "preservationTargets": 0,
+    "authority": "Coordinator-conveyed root acceptance; message delivery not independently verified",
+    "productExecutions": 0,
+    "newProductPasses": 0,
+    "archiveExtractions": 0,
+    "fullGates": 0
+  },
+  "preservation": {
+    "scope": "Exactly these 29 existing paths; immutable Git plus live before/after content hashes. No whole-workspace or append-proof/new-entry claim.",
+    "targets": [
+      {
+        "commit": "4343b6466c5ba8d0f5d4654ad2bb47839fc5c0c1",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/EVIDENCE-MANIFEST.json",
+        "sha256": "f94e69b43982da8afe0ac7791ffd070338d887939306d6b48230e14aa5e2c2d3",
+        "bytes": 2747,
+        "beforeSha256": "f94e69b43982da8afe0ac7791ffd070338d887939306d6b48230e14aa5e2c2d3",
+        "afterSha256": "f94e69b43982da8afe0ac7791ffd070338d887939306d6b48230e14aa5e2c2d3"
+      },
+      {
+        "commit": "84e7f5fa7a77b9b4692578c1cfe4687a3b5f991d",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/MANIFEST.json",
+        "sha256": "45d08a0d94af60537c95afa7d5b7ec231be985f7ab6657ce7a34c817aaf79bea",
+        "bytes": 1970,
+        "beforeSha256": "45d08a0d94af60537c95afa7d5b7ec231be985f7ab6657ce7a34c817aaf79bea",
+        "afterSha256": "45d08a0d94af60537c95afa7d5b7ec231be985f7ab6657ce7a34c817aaf79bea"
+      },
+      {
+        "commit": "4343b6466c5ba8d0f5d4654ad2bb47839fc5c0c1",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/REPORT.json",
+        "sha256": "6aeaf4f1f6aae2915d0cdc064e4c5a50943bfbc8141f7c936fd68adba1dbc821",
+        "bytes": 11834,
+        "beforeSha256": "6aeaf4f1f6aae2915d0cdc064e4c5a50943bfbc8141f7c936fd68adba1dbc821",
+        "afterSha256": "6aeaf4f1f6aae2915d0cdc064e4c5a50943bfbc8141f7c936fd68adba1dbc821"
+      },
+      {
+        "commit": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-v1/EVIDENCE-MANIFEST.json",
+        "sha256": "c1c45fd86a7d9e24f8d31271a09c511a234723f69bb3169025ac8e0b9ae29f51",
+        "bytes": 3626,
+        "beforeSha256": "c1c45fd86a7d9e24f8d31271a09c511a234723f69bb3169025ac8e0b9ae29f51",
+        "afterSha256": "c1c45fd86a7d9e24f8d31271a09c511a234723f69bb3169025ac8e0b9ae29f51"
+      },
+      {
+        "commit": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-v1/REPORT.json",
+        "sha256": "bfcd8be74232cee91b1129cf93897b2f8ea398a9c57b22d826b1e73c17a2de26",
+        "bytes": 4804,
+        "beforeSha256": "bfcd8be74232cee91b1129cf93897b2f8ea398a9c57b22d826b1e73c17a2de26",
+        "afterSha256": "bfcd8be74232cee91b1129cf93897b2f8ea398a9c57b22d826b1e73c17a2de26"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/cases.json",
+        "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16",
+        "bytes": 5911,
+        "beforeSha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16",
+        "afterSha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/ADDENDUM.md",
+        "sha256": "d4c894e971725f0a6b0ee6f8d6c20f8ad3d39a63c9ac8aa114788474e898d1b7",
+        "bytes": 9939,
+        "beforeSha256": "d4c894e971725f0a6b0ee6f8d6c20f8ad3d39a63c9ac8aa114788474e898d1b7",
+        "afterSha256": "d4c894e971725f0a6b0ee6f8d6c20f8ad3d39a63c9ac8aa114788474e898d1b7"
+      },
+      {
+        "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+        "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/AUTHENTICATION.json",
+        "sha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e",
+        "bytes": 20548,
+        "beforeSha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e",
+        "afterSha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/consumer-component.mjs",
+        "sha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e",
+        "bytes": 8853,
+        "beforeSha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e",
+        "afterSha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/INPUTS.json",
+        "sha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+        "bytes": 816134,
+        "beforeSha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+        "afterSha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/REPORT.md",
+        "sha256": "2d3542515761c4a2213e1cde34288bb16f40add718729a7cb224f4068e8841e8",
+        "bytes": 2861,
+        "beforeSha256": "2d3542515761c4a2213e1cde34288bb16f40add718729a7cb224f4068e8841e8",
+        "afterSha256": "2d3542515761c4a2213e1cde34288bb16f40add718729a7cb224f4068e8841e8"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/REPORT.md",
+        "sha256": "71a87101e69e02a423fb482f49098e888bc3718018d65d96c13102b7e88b06d9",
+        "bytes": 1697,
+        "beforeSha256": "71a87101e69e02a423fb482f49098e888bc3718018d65d96c13102b7e88b06d9",
+        "afterSha256": "71a87101e69e02a423fb482f49098e888bc3718018d65d96c13102b7e88b06d9"
+      },
+      {
+        "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/MANIFEST.json",
+        "sha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+        "bytes": 19117,
+        "beforeSha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+        "afterSha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/REPORT.md",
+        "sha256": "d504de586e5f9c666a472131b8eb131c7eb570cd95e36e85a1b8197a7db823bc",
+        "bytes": 3121,
+        "beforeSha256": "d504de586e5f9c666a472131b8eb131c7eb570cd95e36e85a1b8197a7db823bc",
+        "afterSha256": "d504de586e5f9c666a472131b8eb131c7eb570cd95e36e85a1b8197a7db823bc"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v5/MANIFEST.json",
+        "sha256": "b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1",
+        "bytes": 190988,
+        "beforeSha256": "b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1",
+        "afterSha256": "b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v5/REPORT.json",
+        "sha256": "c927fe9fb51c3c1ae5f423de13b0dbed4d817213449556e5b24597b4d0363e0c",
+        "bytes": 912466,
+        "beforeSha256": "c927fe9fb51c3c1ae5f423de13b0dbed4d817213449556e5b24597b4d0363e0c",
+        "afterSha256": "c927fe9fb51c3c1ae5f423de13b0dbed4d817213449556e5b24597b4d0363e0c"
+      },
+      {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v5/REPORT.md",
+        "sha256": "d1faecde6a97056dd7266704587431b78b63d588b2038a7d88442483036081bc",
+        "bytes": 8661,
+        "beforeSha256": "d1faecde6a97056dd7266704587431b78b63d588b2038a7d88442483036081bc",
+        "afterSha256": "d1faecde6a97056dd7266704587431b78b63d588b2038a7d88442483036081bc"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/consumer.mjs",
+        "sha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab",
+        "bytes": 8827,
+        "beforeSha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab",
+        "afterSha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/FREEZE-CHECKS.json",
+        "sha256": "18d27f15fba9fab03b308510520c3dcd33e061de84ed4c00a4038ed76a524c1c",
+        "bytes": 1190,
+        "beforeSha256": "18d27f15fba9fab03b308510520c3dcd33e061de84ed4c00a4038ed76a524c1c",
+        "afterSha256": "18d27f15fba9fab03b308510520c3dcd33e061de84ed4c00a4038ed76a524c1c"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/negative.ts.fixture",
+        "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3",
+        "bytes": 907,
+        "beforeSha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3",
+        "afterSha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/positive.ts.fixture",
+        "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81",
+        "bytes": 2382,
+        "beforeSha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81",
+        "afterSha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/PROTOCOL.md",
+        "sha256": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568",
+        "bytes": 9749,
+        "beforeSha256": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568",
+        "afterSha256": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/provenance.json",
+        "sha256": "bdd6ccf8948658032b3c8c0a10953d767ff43fd223492edddf30d5867a6e156e",
+        "bytes": 6564,
+        "beforeSha256": "bdd6ccf8948658032b3c8c0a10953d767ff43fd223492edddf30d5867a6e156e",
+        "afterSha256": "bdd6ccf8948658032b3c8c0a10953d767ff43fd223492edddf30d5867a6e156e"
+      },
+      {
+        "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+        "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1-result/CHECKPOINT.md",
+        "sha256": "7177e5cb82fb9a32a22d2b967af1906b6d8239c443cc531ff58e3eca7453f1ed",
+        "bytes": 10694,
+        "beforeSha256": "7177e5cb82fb9a32a22d2b967af1906b6d8239c443cc531ff58e3eca7453f1ed",
+        "afterSha256": "7177e5cb82fb9a32a22d2b967af1906b6d8239c443cc531ff58e3eca7453f1ed"
+      },
+      {
+        "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+        "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/EVIDENCE-SEAL.json",
+        "sha256": "6202ffd8c2f8dad281c4355fc8c7ca9f6ade3e52ce4d857a0737567550e57e34",
+        "bytes": 3985,
+        "beforeSha256": "6202ffd8c2f8dad281c4355fc8c7ca9f6ade3e52ce4d857a0737567550e57e34",
+        "afterSha256": "6202ffd8c2f8dad281c4355fc8c7ca9f6ade3e52ce4d857a0737567550e57e34"
+      },
+      {
+        "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+        "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/MANIFEST.json",
+        "sha256": "e89be0a522712f0fc51555d5b8a34b6d96b71365a735de1e7732c1e9f3a8c466",
+        "bytes": 50123,
+        "beforeSha256": "e89be0a522712f0fc51555d5b8a34b6d96b71365a735de1e7732c1e9f3a8c466",
+        "afterSha256": "e89be0a522712f0fc51555d5b8a34b6d96b71365a735de1e7732c1e9f3a8c466"
+      },
+      {
+        "commit": "0efeb43ece20f2dd55ae1cd5328c6dd3abc5ca08",
+        "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/RECIPE-SEAL.json",
+        "sha256": "f7fa8110f3141acf6c99cabae2414c449035289de043a5d23023b66cdaa44d51",
+        "bytes": 5444,
+        "beforeSha256": "f7fa8110f3141acf6c99cabae2414c449035289de043a5d23023b66cdaa44d51",
+        "afterSha256": "f7fa8110f3141acf6c99cabae2414c449035289de043a5d23023b66cdaa44d51"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/README.md",
+        "sha256": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8",
+        "bytes": 6594,
+        "beforeSha256": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8",
+        "afterSha256": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8"
+      },
+      {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/self-check.mjs",
+        "sha256": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040",
+        "bytes": 2291,
+        "beforeSha256": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040",
+        "afterSha256": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040"
+      }
+    ]
+  },
+  "index": {
+    "before": "",
+    "after": "",
+    "foreignStagingModified": false
+  },
+  "execution": {
+    "productExecutions": 0,
+    "productTests": 0,
+    "probes": 0,
+    "compilerInvocations": 0,
+    "builds": 0,
+    "installs": 0,
+    "cohorts": 0,
+    "archiveExtractions": 0,
+    "fullGates": 0,
+    "newProductPasses": 0
+  },
+  "limits": [
+    "Root acceptance and delivery chronology are coordinator-supplied authority, not independently verified message provenance.",
+    "Receipt metadata and links only; no full raw-capture review or replay.",
+    "Final Expr qualification, R21 fixture-amendment authorization and the separate Dirac driver remain pending.",
+    "Recorded pre/post preservation covers named paths only and does not detect arbitrary added entries."
+  ]
+}

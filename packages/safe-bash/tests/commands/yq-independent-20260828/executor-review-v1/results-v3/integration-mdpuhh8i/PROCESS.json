@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-mdpuhh8i/CONFIG.json"
+  ],
+  "pid": 63629,
+  "group": 63629,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "reaped": true,
+  "groupAbsent": true,
+  "signalsSent": [],
+  "elapsedMs": 197,
+  "stdoutBytes": 29,
+  "stderrBytes": 0
+}

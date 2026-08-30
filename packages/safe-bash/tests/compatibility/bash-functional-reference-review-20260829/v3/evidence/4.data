@@ -1,0 +1,194 @@
+{
+  "schema": "functional-reference-v3-data-results",
+  "identities": [
+    {
+      "id": "D01",
+      "matched": true,
+      "calls": [
+        {
+          "op": "open",
+          "filename": "/DATA_ONLY/TERMINAL-STOP.json",
+          "flags": 2817,
+          "mode": 384
+        },
+        {
+          "op": "write",
+          "descriptor": 7,
+          "base64": "eyJldmVudCI6IkRBVEEifQo="
+        },
+        {
+          "op": "fsync",
+          "descriptor": 7
+        },
+        {
+          "op": "close",
+          "descriptor": 7
+        }
+      ],
+      "events": [
+        {
+          "event": "OBSERVATION_READY_FOR_CREDIT",
+          "id": "DATA"
+        }
+      ],
+      "completed": 1,
+      "state": {
+        "qualified": true,
+        "opened": true,
+        "wrote": true,
+        "flushed": true,
+        "closed": true,
+        "late": false,
+        "primary": null,
+        "secondary": []
+      }
+    },
+    {
+      "id": "D02",
+      "matched": true,
+      "calls": [],
+      "events": [],
+      "completed": 0,
+      "state": null
+    },
+    {
+      "id": "D03",
+      "matched": true,
+      "calls": [
+        {
+          "op": "open",
+          "filename": "/DATA_ONLY/TERMINAL-STOP.json",
+          "flags": 2817,
+          "mode": 384
+        },
+        {
+          "op": "close",
+          "descriptor": 7
+        }
+      ],
+      "state": {
+        "qualified": false,
+        "opened": true,
+        "wrote": false,
+        "flushed": false,
+        "closed": true,
+        "late": true,
+        "primary": {
+          "phase": "PUBLICATION",
+          "message": "FINALIZATION_DEADLINE"
+        },
+        "secondary": [
+          {
+            "phase": "FINAL_DEADLINE",
+            "message": "FINALIZATION_DEADLINE"
+          }
+        ]
+      }
+    },
+    {
+      "id": "D04",
+      "matched": true,
+      "calls": [
+        {
+          "op": "open",
+          "filename": "/DATA_ONLY/TERMINAL-STOP.json",
+          "flags": 2817,
+          "mode": 384
+        },
+        {
+          "op": "write",
+          "descriptor": 7,
+          "base64": "eyJldmVudCI6IkRBVEEifQo="
+        },
+        {
+          "op": "fsync",
+          "descriptor": 7
+        },
+        {
+          "op": "close",
+          "descriptor": 7
+        },
+        {
+          "op": "close",
+          "descriptor": 7
+        }
+      ],
+      "state": {
+        "qualified": false,
+        "opened": true,
+        "wrote": true,
+        "flushed": false,
+        "closed": true,
+        "late": false,
+        "primary": {
+          "phase": "PUBLICATION",
+          "message": "FSYNC_SENTINEL"
+        },
+        "secondary": [
+          {
+            "phase": "CLOSE",
+            "message": "CLOSE_SENTINEL"
+          }
+        ]
+      },
+      "primaryIdentity": true,
+      "secondaryIdentity": true,
+      "completed": 0
+    },
+    {
+      "id": "D05",
+      "matched": true,
+      "calls": [
+        {
+          "op": "open",
+          "filename": "/DATA_ONLY/TERMINAL-STOP.json",
+          "flags": 2817,
+          "mode": 384
+        },
+        {
+          "op": "write",
+          "descriptor": 7,
+          "base64": "eyJldmVudCI6IkRBVEEifQo="
+        },
+        {
+          "op": "fsync",
+          "descriptor": 7
+        },
+        {
+          "op": "close",
+          "descriptor": 7
+        }
+      ],
+      "state": {
+        "qualified": false,
+        "opened": true,
+        "wrote": true,
+        "flushed": true,
+        "closed": true,
+        "late": true,
+        "primary": {
+          "phase": "FINAL_DEADLINE",
+          "message": "FINALIZATION_DEADLINE"
+        },
+        "secondary": []
+      },
+      "completed": 0
+    },
+    {
+      "id": "D06",
+      "matched": true,
+      "events": [
+        {
+          "event": "OBSERVATION_READY_FOR_CREDIT",
+          "id": "DATA"
+        }
+      ],
+      "completed": 0,
+      "calls": []
+    }
+  ],
+  "matched": 6,
+  "actualChildStarts": 0,
+  "entryImported": false,
+  "qualification": "SYNTHETIC_CLOCK_AND_IO_NOT_NATIVE_OR_LIFECYCLE_ACCEPTANCE"
+}

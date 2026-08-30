@@ -1,0 +1,150 @@
+{
+  "role": "SOURCE_DATA_PREPARATION_ONLY_ACTUAL_GRANT_REQUIRED",
+  "date": "2026-08-29",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceManifestSha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae",
+  "files": [
+    {
+      "path": "ADMISSION-CONTROLS.json",
+      "bytes": 1390,
+      "sha256": "dc14793bf3f0116f315d8d32164138187e997d9f87dfecd1c08cfe1a08d6468c"
+    },
+    {
+      "path": "INHERITED-TOOL-BINDINGS.json",
+      "bytes": 1052,
+      "sha256": "724b7c54ec353a5a80d8c3d94f4eb03b0f1235c029e0bec4488979c6178b6d96"
+    },
+    {
+      "path": "NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "path": "RECEIPTS.json",
+      "bytes": 2274,
+      "sha256": "2c7651f22143179e371d10fc00837d6282254c389702977d3932988678a3f4bb"
+    },
+    {
+      "path": "RETAINED-FIXTURES.json",
+      "bytes": 6145,
+      "sha256": "e33d38a330051778877e28fccec1b5a08a4cd4639c9671be3ca70f7dfa3c54fe"
+    },
+    {
+      "path": "SHIPPING-PATHS.nul",
+      "bytes": 9444,
+      "sha256": "8bf61c57d048285d356b60de94089d7b4e96b66d5806b6fa2236417e269000ef"
+    },
+    {
+      "path": "SOURCE-AUTHORITIES.json",
+      "bytes": 2009,
+      "sha256": "1cf6c9e09271edb43f64a77191d1a5a94bd2bacee4ffa7f3bbd314f5ce9ac156"
+    },
+    {
+      "path": "SOURCE-TREE.json",
+      "bytes": 40195,
+      "sha256": "31b01421fb67dac779d4238ffafb03720a7610430f0295b7407a5f740abdf911"
+    },
+    {
+      "path": "SOURCE.json",
+      "bytes": 137864,
+      "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+    },
+    {
+      "path": "TOOLS-PREP.json",
+      "bytes": 371,
+      "sha256": "eb945189a5106a6bd0658b562b15dfad62f177bc006bb9d5e81b7c1004afa989"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 558790,
+      "sha256": "ba8c249f94d3ce894754ceff84aaba11d2fcb0f517624f5c2427c8b21da825b2"
+    },
+    {
+      "path": "TREE-WITNESSES.json",
+      "bytes": 163171,
+      "sha256": "a51d6e917e43161cc059522e236292ebc5a4d0d2b70c341726d602a6661b23f4"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 1629,
+      "sha256": "e3e1b120fa4f97c18be4603d731c8c4639789139c8114125038796f7ac89f6a1"
+    },
+    {
+      "path": "consumer.ts.fixture",
+      "bytes": 870,
+      "sha256": "6694676de2c93256dc3895a066b0a950aa4b4a6e9a2889fa04dd142995b6b5ab"
+    },
+    {
+      "path": "negative.ts.fixture",
+      "bytes": 805,
+      "sha256": "db35c361825e452f0d80b3c5dbb12cf85fe76078cef76238279319b01dabc750"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 24171,
+      "sha256": "fbfe05cd3b41abdf8fb49ab3b1b42b4bbd21c11e615a60325fb1b61ff862c86b"
+    },
+    {
+      "path": "prepare.sh",
+      "bytes": 388,
+      "sha256": "aa007522f6ee2500678529208870739edf8a02396627c46fbc7dbc6c328ca3e2"
+    },
+    {
+      "path": "workflow-entry.mjs",
+      "bytes": 3593,
+      "sha256": "eb66a961ae08b04133c55e591a53b3e82540fe037b3c5d3ff9ca96d3d2fb8e77"
+    },
+    {
+      "path": "workflows.mjs",
+      "bytes": 15458,
+      "sha256": "6dfaa3f6447703515994a3145264ae6eb9184c1dd7f73b2b764f6945aabd544c"
+    }
+  ],
+  "predictedPackageMembers": 1014,
+  "actualPackageSha256": null,
+  "actualExecutions": 0,
+  "planned": {
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "retainedPerLayout": {
+      "unit1": 48,
+      "unit2": 50,
+      "conditional": 67,
+      "extension": 35,
+      "arrays": 12
+    },
+    "retainedTotal": 636,
+    "n14Separate": 36,
+    "authorWorkflows": {
+      "engineFree": 39,
+      "publicEngineSeparateGrant": 15,
+      "totalFuture": 54
+    },
+    "independentProposals": {
+      "engineFree": 18,
+      "publicEngine": 6,
+      "total": 24,
+      "implementedHere": false
+    },
+    "unit2Rule": "All50 exact IDs/layout; collector rejects duplicate IDs; do not add a second Unit2 corpus.",
+    "node61AndPublic24": "Separate future engine regression recipes with exact version maps; not included in engine-free count or claimed executed."
+  },
+  "proposedActual": {
+    "seconds": 2700,
+    "knownOSStarts": 112,
+    "peak": 4,
+    "captureBytes": 201326592,
+    "workingBytes": 1073741824,
+    "caseSeconds": 30,
+    "buildSeconds": 120,
+    "loaderAdmissions": 40,
+    "regexWorkers": 8,
+    "publicEngineWorkers": 0,
+    "privateInputs": 0
+  },
+  "admission": "same authenticated Buffer after regular-file/exact-size/bounded-read/SHA256 before JSON/inflate/import; no reread; each actual phase repeats contemporary checks",
+  "runAuthority": "NONE. Do not execute workflow-entry or any build/install/product under preparation grant."
+}

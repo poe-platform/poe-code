@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {readFileSync, existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+const temp = process.argv[2]; assert.ok(temp?.startsWith('/tmp/safe-bash-owned-output-prototype-review-execution-'));
+const {capture, candidate} = await import(pathToFileURL(`${temp}/supervisor.mjs`));
+const sha = value => createHash('sha256').update(value).digest('hex');
+const seal = JSON.parse(readFileSync(`${temp}/binding-seal.json`));
+for (const entry of seal.files) assert.equal(sha(readFileSync(`${temp}/${entry.path}`)), entry.sha256, entry.path);
+await capture('copied-scoped-typecheck', process.execPath, [`${candidate}/node_modules/typescript/bin/tsc`, '--noEmit', '--listFiles', '-p', 'tsconfig.json']);
+await capture('binding-scoped-typecheck', process.execPath, [`${candidate}/node_modules/typescript/bin/tsc`, '--noEmit', '-p', `${temp}/bound/tsconfig.json`]);
+await capture('binding-js-syntax', process.execPath, ['--check', `${temp}/holdouts.mjs`]);
+await capture('legacy-57-and-original-five-runner', process.execPath, [`${temp}/run-existing.mjs`], {timeoutMs: 30000});
+await capture('review-nine-runner', process.execPath, [`${temp}/run-controls.mjs`], {timeoutMs: 30000});
+const scenarios = ['first-read-local', 'first-read-s3', 'first-read-webdav', 'first-read-curl-body', 'first-read-curl-headers'];
+for (const [index, scenario] of scenarios.entries()) {
+  await capture(`H0${index + 1}-adapted-compiled`, process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', `${temp}/bound/tests/shell/adapted-first-read-probe.ts`, scenario], {timeoutMs: 3000});
+}
+for (const id of ['H01', 'H06', 'H07', 'H08', 'H09', 'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16']) {
+  await capture(`${id}-frozen`, process.execPath, ['--unhandled-rejections=strict', `${temp}/holdouts.mjs`, id], {timeoutMs: 15000});
+}
+for (const scenario of scenarios) await capture(`diagnostic-${scenario}`, process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', `${temp}/bound/tests/shell/diagnostic-first-read-probe.ts`, scenario], {timeoutMs: 3000});
+const nativeTools = JSON.parse(readFileSync('tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/native-tools.json'));
+const available = nativeTools.tools.every(tool => existsSync(tool.path) && sha(readFileSync(tool.path)) === tool.sha256);
+if (available) await capture('native-known-five-runner', process.execPath, [`${temp}/native.mjs`], {timeoutMs: 20000});
+else console.log(JSON.stringify({native: 'UNAVAILABLE', reason: 'At least one exact known tool missing or hash differs; not a pass'}));

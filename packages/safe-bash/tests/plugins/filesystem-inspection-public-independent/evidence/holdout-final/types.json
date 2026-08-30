@@ -1,0 +1,14 @@
+{
+  "name": "types",
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-obpIZ1/source/node_modules/typescript/bin/tsc",
+    "-p",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-obpIZ1/moved/consumer.json"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-obpIZ1/moved",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

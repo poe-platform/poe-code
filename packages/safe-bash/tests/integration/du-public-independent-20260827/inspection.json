@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "role": "inspection-only; not candidate admission",
+  "capturedAt": "2026-08-27T22:07:03.208Z",
+  "firstInspectionCommit": "9f313959b89ca30764007b310fa0a72da40bddf3",
+  "captureHeadBefore": "3d247da92459f8526afaea42c0ce25b59f3bd263",
+  "captureHeadAfter": "3d247da92459f8526afaea42c0ce25b59f3bd263",
+  "publicCandidateSupplied": false,
+  "html74AcceptanceSupplied": false,
+  "rootExact75InventorySupplied": false,
+  "semanticCandidateExecutions": 0,
+  "initialIndex": {
+    "stagedPaths": [],
+    "observation": "Initial git diff --cached --name-status was empty before authoring; no index edits made by this leaf at capture."
+  },
+  "currentStagedPaths": [],
+  "staticTools": {
+    "nodeVersion": "v22.22.2",
+    "nodeExecutable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "gitVersion": "git version 2.50.1 (Apple Git-155)",
+    "authority": "Observed static-check tools only, not authenticated future replay toolchain"
+  },
+  "files": [
+    {
+      "path": "package.json",
+      "bytes": 4453,
+      "liveSha256": "aaea215e419a64b08e4739dee1a6b7bba5f41f9d5e1c93d4d1771f939e904842",
+      "liveGitBlob": "1842dae563718b130101a85b1f28a0b2ae1187d3",
+      "committedSha256": "aaea215e419a64b08e4739dee1a6b7bba5f41f9d5e1c93d4d1771f939e904842",
+      "committedGitBlob": "1842dae563718b130101a85b1f28a0b2ae1187d3",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/index.ts",
+      "bytes": 1468,
+      "liveSha256": "b6c2761f3af4809033c4be77f0139bd5f6afa9b963ecad65bafe923c185f35ec",
+      "liveGitBlob": "24667d4e79ac69c44e4b9ce3a4027b41d5dadc0b",
+      "committedSha256": "b6c2761f3af4809033c4be77f0139bd5f6afa9b963ecad65bafe923c185f35ec",
+      "committedGitBlob": "24667d4e79ac69c44e4b9ce3a4027b41d5dadc0b",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "bytes": 5416,
+      "liveSha256": "4a83459600f7077a055a2a4d36d1cf6c88e331ff79e9193917d7c338185c079a",
+      "liveGitBlob": "ceb9e6576ec3c186a3af397ce4849357e4daeed3",
+      "committedSha256": "4a83459600f7077a055a2a4d36d1cf6c88e331ff79e9193917d7c338185c079a",
+      "committedGitBlob": "ceb9e6576ec3c186a3af397ce4849357e4daeed3",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/commands/du/index.ts",
+      "bytes": 906,
+      "liveSha256": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7",
+      "liveGitBlob": "f017341290ee1b17eeb44c7a5c3b162fd82e1688",
+      "committedSha256": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7",
+      "committedGitBlob": "f017341290ee1b17eeb44c7a5c3b162fd82e1688",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/commands/du/options.ts",
+      "bytes": 999,
+      "liveSha256": "5765a37baccf628f3de85c94409627a16cf4dda02f66c9d2a37cf2929bf26253",
+      "liveGitBlob": "53ea538a4d368a1b40f5db9c8419d287b97f58c9",
+      "committedSha256": "5765a37baccf628f3de85c94409627a16cf4dda02f66c9d2a37cf2929bf26253",
+      "committedGitBlob": "53ea538a4d368a1b40f5db9c8419d287b97f58c9",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/commands/du/du.ts",
+      "bytes": 7427,
+      "liveSha256": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03",
+      "liveGitBlob": "dad87ea613a2c8973c26422c554b39d1826fff69",
+      "committedSha256": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03",
+      "committedGitBlob": "dad87ea613a2c8973c26422c554b39d1826fff69",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/commands/du/budget.ts",
+      "bytes": 4997,
+      "liveSha256": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971",
+      "liveGitBlob": "a39936aff8c7712e6ce7b61aafd29491266fd161",
+      "committedSha256": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971",
+      "committedGitBlob": "a39936aff8c7712e6ce7b61aafd29491266fd161",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/commands/du/README.md",
+      "bytes": 10294,
+      "liveSha256": "2bfaa4f9330578f943802adbe54300fbb6070d823c5260bec15fa99e0c942bb1",
+      "liveGitBlob": "2ad7f28e1f310e9e58c75f73436aab23e9d4e163",
+      "committedSha256": "2bfaa4f9330578f943802adbe54300fbb6070d823c5260bec15fa99e0c942bb1",
+      "committedGitBlob": "2ad7f28e1f310e9e58c75f73436aab23e9d4e163",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/commands/html-to-markdown/index.ts",
+      "bytes": 3498,
+      "liveSha256": "dd10597bfd33b9f35460d7e6e9d9182a94a63b1f03217077ecac412d5b951c58",
+      "liveGitBlob": "4502f2f6c03f80d21b1e8a11590fae6af32532d9",
+      "committedSha256": "dd10597bfd33b9f35460d7e6e9d9182a94a63b1f03217077ecac412d5b951c58",
+      "committedGitBlob": "4502f2f6c03f80d21b1e8a11590fae6af32532d9",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "bytes": 202,
+      "liveSha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "liveGitBlob": "bde8cdfbe7f5b14da1b064d3b4f3a8c31d9c45ef",
+      "committedSha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "committedGitBlob": "bde8cdfbe7f5b14da1b064d3b4f3a8c31d9c45ef",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2923,
+      "liveSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "liveGitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "committedSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "committedGitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/contracts/command.md",
+      "bytes": 8066,
+      "liveSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "liveGitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "committedSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "committedGitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "bytes": 3897,
+      "liveSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "liveGitBlob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "committedSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "committedGitBlob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "bytes": 4661,
+      "liveSha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "liveGitBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "committedSha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "committedGitBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "bytes": 10783,
+      "liveSha256": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332",
+      "liveGitBlob": "013889cd158e77267341867f1e360d7b5eb22e94",
+      "committedSha256": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332",
+      "committedGitBlob": "013889cd158e77267341867f1e360d7b5eb22e94",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/shell/types.ts",
+      "bytes": 2178,
+      "liveSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "liveGitBlob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "committedSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "committedGitBlob": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "bytes": 23533,
+      "liveSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "liveGitBlob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "committedSha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "committedGitBlob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "sameAsInspectionCommit": true,
+      "liveStatusAtCapture": ""
+    }
+  ],
+  "caveats": [
+    "Live files were read independently of HEAD; per-file comparison discloses equality with first inspection commit, not an atomic repository snapshot.",
+    "Concurrent commits during this turn are not candidate declarations, accepted checkpoints or permission to replay.",
+    "This selected inspection inventory is not the root-authorized source/test/build/consumer inventory.",
+    "No existing cohort or product module was imported or executed; hashes are provenance only, not actual-load proof."
+  ]
+}

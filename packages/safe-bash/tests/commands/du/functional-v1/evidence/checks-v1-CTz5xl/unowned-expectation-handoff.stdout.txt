@@ -1,0 +1,134 @@
+TAP version 13
+# Subtest: all argument and environment validation happens before any filesystem call
+not ok 1 - all argument and environment validation happens before any filesystem call
+  ---
+  duration_ms: 4.603125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/du/behavior.test.ts:1:6148'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    4 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/du/behavior.test.ts:124:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: GNU 9.7 captured profile: -b 
+not ok 2 - GNU 9.7 captured profile: -b 
+  ---
+  duration_ms: 7.842333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/du/native.test.ts:3:395'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'du: invalid zero-length file name\n'
+    - `du: "": no such file or directory, lstat ''\n`
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: |-
+    du: "": no such file or directory, lstat ''
+    
+  actual: |-
+    du: invalid zero-length file name
+    
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/du/native.test.ts:50:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: GNU 9.7 captured profile: env:{}
+ok 3 - GNU 9.7 captured profile: env:{}
+  ---
+  duration_ms: 1.247708
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"POSIXLY_CORRECT":""}
+ok 4 - GNU 9.7 captured profile: env:{"POSIXLY_CORRECT":""}
+  ---
+  duration_ms: 0.475417
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"BLOCKSIZE":"2K"}
+ok 5 - GNU 9.7 captured profile: env:{"BLOCKSIZE":"2K"}
+  ---
+  duration_ms: 0.354459
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"BLOCK_SIZE":"4K","BLOCKSIZE":"2K"}
+ok 6 - GNU 9.7 captured profile: env:{"BLOCK_SIZE":"4K","BLOCKSIZE":"2K"}
+  ---
+  duration_ms: 0.540291
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"8K","BLOCK_SIZE":"4K"}
+ok 7 - GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"8K","BLOCK_SIZE":"4K"}
+  ---
+  duration_ms: 0.382541
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"bad"}
+not ok 8 - GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"bad"}
+  ---
+  duration_ms: 2.053916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/du/native.test.ts:3:395'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/du/native.test.ts:41:44)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"","BLOCK_SIZE":"2K"}
+not ok 9 - GNU 9.7 captured profile: env:{"DU_BLOCK_SIZE":"","BLOCK_SIZE":"2K"}
+  ---
+  duration_ms: 1.909958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/du/native.test.ts:3:395'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/du/native.test.ts:41:44)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 5
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 222.920375

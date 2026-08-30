@@ -1,0 +1,236 @@
+{
+  "source": {
+    "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+    "digest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4"
+  },
+  "capturedAt": "2026-08-26T23:11:54.022Z",
+  "productExecutions": 0,
+  "nativeInvocations": 4,
+  "version": {
+    "argv": [
+      "-q",
+      "--version"
+    ],
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "tests/commands/network-stress/final-verification/.independent-IEXVL6",
+      "CURL_HOME": "tests/commands/network-stress/final-verification/.independent-IEXVL6",
+      "XDG_CONFIG_HOME": "tests/commands/network-stress/final-verification/.independent-IEXVL6",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "NO_PROXY": "*",
+      "no_proxy": "*"
+    },
+    "stdoutFile": null,
+    "code": 0,
+    "signal": null,
+    "stdout": "Y3VybCA4LjcuMSAoeDg2XzY0LWFwcGxlLWRhcndpbjI1LjApIGxpYmN1cmwvOC43LjEgKFNlY3VyZVRyYW5zcG9ydCkgTGlicmVTU0wvMy4zLjYgemxpYi8xLjIuMTIgbmdodHRwMi8xLjY4LjAKUmVsZWFzZS1EYXRlOiAyMDI0LTAzLTI3ClByb3RvY29sczogZGljdCBmaWxlIGZ0cCBmdHBzIGdvcGhlciBnb3BoZXJzIGh0dHAgaHR0cHMgaW1hcCBpbWFwcyBpcGZzIGlwbnMgbGRhcCBsZGFwcyBtcXR0IHBvcDMgcG9wM3MgcnRzcCBzbWIgc21icyBzbXRwIHNtdHBzIHRlbG5ldCB0ZnRwCkZlYXR1cmVzOiBhbHQtc3ZjIEFzeW5jaEROUyBHU1MtQVBJIEhTVFMgSFRUUDIgSFRUUFMtcHJveHkgSVB2NiBLZXJiZXJvcyBMYXJnZWZpbGUgbGlieiBNdWx0aVNTTCBOVExNIFNQTkVHTyBTU0wgdGhyZWFkc2FmZSBVbml4U29ja2V0cwo=",
+    "stderr": ""
+  },
+  "executableSha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+  "fixtureSha256": "f7bdc3d6503debcd8def95c9d7f85c06c47eb052960173cbb749b282815a8c3f",
+  "observations": [
+    {
+      "id": "two-retries-stdout",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--retry",
+        "2",
+        "--retry-delay",
+        "1",
+        "-w",
+        ":%{size_download}:%{http_code}:%{exitcode}",
+        "http://127.0.0.1:53130/retry-author"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "tests/commands/network-stress/final-verification/.independent-b5QVBM",
+        "CURL_HOME": "tests/commands/network-stress/final-verification/.independent-b5QVBM",
+        "XDG_CONFIG_HOME": "tests/commands/network-stress/final-verification/.independent-b5QVBM",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NO_PROXY": "*",
+        "no_proxy": "*"
+      },
+      "stdoutFile": null,
+      "code": 0,
+      "signal": null,
+      "stdout": "cmV0cnlyZXRyeXJlY292ZXJlZDo5OjIwMDow",
+      "stderr": "",
+      "files": {
+        "payload.bin": "AP8KDYBB",
+        "result.bin": "b2xkIGJ5dGVz"
+      },
+      "traces": [
+        {
+          "method": "GET",
+          "path": "/retry-author",
+          "body": ""
+        },
+        {
+          "method": "GET",
+          "path": "/retry-author",
+          "body": ""
+        },
+        {
+          "method": "GET",
+          "path": "/retry-author",
+          "body": ""
+        }
+      ]
+    },
+    {
+      "id": "two-retries-file-headers-post",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--retry",
+        "2",
+        "--retry-delay",
+        "1",
+        "--fail-with-body",
+        "-i",
+        "-D",
+        "headers.out",
+        "-o",
+        "result.bin",
+        "--data-binary",
+        "@payload.bin",
+        "http://127.0.0.1:53134/retry-author"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "tests/commands/network-stress/final-verification/.independent-doFYby",
+        "CURL_HOME": "tests/commands/network-stress/final-verification/.independent-doFYby",
+        "XDG_CONFIG_HOME": "tests/commands/network-stress/final-verification/.independent-doFYby",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NO_PROXY": "*",
+        "no_proxy": "*"
+      },
+      "stdoutFile": null,
+      "code": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (22) The requested URL returned error: 503\ncurl: (22) The requested URL returned error: 503\n",
+      "files": {
+        "headers.out": "SFRUUC8xLjEgNTAzIFNlcnZpY2UgVW5hdmFpbGFibGUNClJldHJ5LUFmdGVyOiAwDQpDb250ZW50LUxlbmd0aDogNQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0KSFRUUC8xLjEgNTAzIFNlcnZpY2UgVW5hdmFpbGFibGUNClJldHJ5LUFmdGVyOiAwDQpDb250ZW50LUxlbmd0aDogNQ0KQ29ubmVjdGlvbjogY2xvc2UNCg0KSFRUUC8xLjEgMjAwIE9LDQpSZXRyeS1BZnRlcjogMA0KQ29udGVudC1MZW5ndGg6IDkNCkNvbm5lY3Rpb246IGNsb3NlDQoNCg==",
+        "payload.bin": "AP8KDYBB",
+        "result.bin": "SFRUUC8xLjEgMjAwIE9LDQpSZXRyeS1BZnRlcjogMA0KQ29udGVudC1MZW5ndGg6IDkNCkNvbm5lY3Rpb246IGNsb3NlDQoNCnJlY292ZXJlZA=="
+      },
+      "traces": [
+        {
+          "method": "POST",
+          "path": "/retry-author",
+          "body": "AP8KDYBB"
+        },
+        {
+          "method": "POST",
+          "path": "/retry-author",
+          "body": "AP8KDYBB"
+        },
+        {
+          "method": "POST",
+          "path": "/retry-author",
+          "body": "AP8KDYBB"
+        }
+      ]
+    },
+    {
+      "id": "two-retries-shell-redirection",
+      "argv": [
+        "-q",
+        "--silent",
+        "--show-error",
+        "--globoff",
+        "--http1.1",
+        "--noproxy",
+        "*",
+        "--proxy",
+        "",
+        "--proto",
+        "=http",
+        "--proto-redir",
+        "=http",
+        "--connect-timeout",
+        "1",
+        "--max-time",
+        "3",
+        "--retry",
+        "2",
+        "--retry-delay",
+        "1",
+        "--fail-with-body",
+        "http://127.0.0.1:53138/retry-author"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "tests/commands/network-stress/final-verification/.independent-gLo8Qp",
+        "CURL_HOME": "tests/commands/network-stress/final-verification/.independent-gLo8Qp",
+        "XDG_CONFIG_HOME": "tests/commands/network-stress/final-verification/.independent-gLo8Qp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NO_PROXY": "*",
+        "no_proxy": "*"
+      },
+      "stdoutFile": "result.bin",
+      "code": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "curl: (22) The requested URL returned error: 503\ncurl: (22) The requested URL returned error: 503\n",
+      "files": {
+        "payload.bin": "AP8KDYBB",
+        "result.bin": "cmV0cnlyZXRyeXJlY292ZXJlZA=="
+      },
+      "traces": [
+        {
+          "method": "GET",
+          "path": "/retry-author",
+          "body": ""
+        },
+        {
+          "method": "GET",
+          "path": "/retry-author",
+          "body": ""
+        },
+        {
+          "method": "GET",
+          "path": "/retry-author",
+          "body": ""
+        }
+      ]
+    }
+  ],
+  "redirectionProfile": "Native stdout uses an actual pre-opened output fd (open w), not -o and no native shell; virtual uses actual shell >."
+}

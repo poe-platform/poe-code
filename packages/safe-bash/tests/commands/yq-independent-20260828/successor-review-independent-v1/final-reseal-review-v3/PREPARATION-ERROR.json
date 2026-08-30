@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "sequence": 1,
+  "role": "REVIEWER_STATIC_SCANNER_ERROR_NOT_TARGET_FAILURE",
+  "operation": "Compare static import-only regex results with sealed relative dependency-edge inventory",
+  "status": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 23, in <module>\nAssertionError\n",
+  "cause": "The import-only regex required a semicolon immediately after the quoted specifier. It matched54 edges but missed one JSON static import with attributes and the fixed CLI supervisor dynamic import. The actual56 relative edges comprise55 static imports including JSON plus one fixed dynamic module dependency; source and sealed inventory were unchanged.",
+  "correction": "Handle import attributes and separately bind the exact CLI dynamic specifier. Keep the two variable candidate/worker dynamic sites distinct from that third, fixed supervisor dynamic site.",
+  "draftCorrection": "The initial unsealed error note called cmd22-binding.json a data URL; direct source inspection at assert-capture.mjs:5 showed a static JSON import with attributes. The note is corrected; original checker exit1 remains preserved.",
+  "copiedToolsReadByFailedCommand": false,
+  "syntaxParsesBeforeFailure": 0,
+  "authoredImportsOrExecutions": 0,
+  "controlPasses": 0,
+  "additionalFailedCommands": [
+    {
+      "sequence": 3,
+      "operation": "Ledger inventory check after corrected source/load/root/physical and phase data checks",
+      "status": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 54, in <module>\nTypeError: object of type 'int' has no len()\n",
+      "cause": "Reviewer assumed ledger.originalIds was an array; this authenticated field is an integer inventory count. Actual record identities are carried separately in ledger.rows.",
+      "correction": "Inspect exact ledger field types and validate the declared count together with actual row identities, without changing frozen data or denominators.",
+      "physicalDataSnapshotReached": true,
+      "authoredImportsOrExecutions": 0,
+      "resultFilesWrittenBeforeFailure": false
+    },
+    {
+      "sequence": 2,
+      "operation": "Exact phase job-count dictionary comparison after successful source/load/root/physical data checks",
+      "status": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 64, in <module>\nAssertionError\n",
+      "cause": "Reviewer used the prose shorthand FINAL as a literal phase identifier. Actual sealed jobs and phases both use FINALIZATION with one120s job; all counts and total are unchanged.",
+      "correction": "Use authenticated literal FINALIZATION while retaining the independently specified one-job120s expectation.",
+      "physicalDataSnapshotReached": "251 files matched sealed hashes/modes/sizes/membership as read-only data before this checker error; no copied-tool invocation",
+      "authoredImportsOrExecutions": 0,
+      "resultFilesWrittenBeforeFailure": false
+    }
+  ],
+  "history": "All three original static checker exit1 results remain failed; corrected data comparisons do not rescore them. Prior reviewer and author preparation failures remain immutable."
+}

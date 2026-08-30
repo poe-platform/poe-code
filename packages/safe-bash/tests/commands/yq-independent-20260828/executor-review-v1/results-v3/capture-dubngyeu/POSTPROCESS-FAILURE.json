@@ -1,0 +1,16 @@
+{
+  "classification": "REVIEWER_DIFF_SERIALIZATION_CHECK_FAILURE",
+  "preseal": "14de40804bd148ec90068a7f091495dbb22e9fa7",
+  "command": "python3 tests/commands/yq-independent-20260828/executor-review-v1/results-v3/audit.py 14de40804bd148ec90068a7f091495dbb22e9fa7",
+  "toolSession": 43219,
+  "exitStatus": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/audit.py\", line 228, in <module>\n    assert digest(diff_raw) == DIFF_HASH, 'Exact reconstructed delta differs'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Exact reconstructed delta differs\n",
+  "runtimeWorkerStatus": 0,
+  "runtimeControls": 20,
+  "runtimeMatched": 20,
+  "activeOwnedChildren": [],
+  "cause": "Python unified-diff alignment differs from the sealed diff in the context.mjs hunk, despite both describing the same before/after files. All materialized file hashes/modes and four changed component names had passed before this formatting assertion.",
+  "originalAggregate": "FAIL_EXIT_1_RETAINED",
+  "next": "Separately preseal read-only application of the authenticated unified patch to authenticated original bytes, requiring exact equality with every materialized target. Do not rerun controls or change predicates."
+}

@@ -1,0 +1,23 @@
+{
+  "created": "2026-08-27T15:12:33.651Z",
+  "removed": [
+    "/private/tmp/sort-unkeyed-review-baseline-qGTNGk",
+    "/private/tmp/sort-unkeyed-review-baseline-66kr9T",
+    "/private/tmp/sort-unkeyed-review-candidate-ABZsMQ",
+    "/private/tmp/sort-unkeyed-review-extensions-AsxvPS",
+    "/private/tmp/sort-unkeyed-review-pinned-PWSHqY",
+    "/private/tmp/sort-unkeyed-review-pinned-S1B3Ph"
+  ],
+  "exactSpawnedValidationChildrenClosed": 27,
+  "publicWorkerShellsDisposed": 337,
+  "pinnedDisposal": "Pinned test bodies retain their original finally/disposal paths; not included in public-worker counter.",
+  "beforeCleanupAllImmutableSourcesPackagesInputsAuthenticated": true,
+  "originalFreezeUnchanged": true,
+  "v2FreezeUnchanged": true,
+  "foreignScratchUntouched": true,
+  "markersRetained": [
+    "/tmp/sort-unkeyed-review-frozen.txt",
+    "/tmp/sort-unkeyed-review-findings.txt",
+    "/tmp/sort-unkeyed-review-ready.txt"
+  ]
+}

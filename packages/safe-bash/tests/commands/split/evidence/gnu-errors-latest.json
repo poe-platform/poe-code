@@ -1,0 +1,556 @@
+{
+  "profile": "GNU coreutils9.7 on Darwin, LC_ALL=C; diagnostic profiles separately asserted",
+  "report": [
+    {
+      "id": "zero-lines",
+      "args": [
+        "-l0"
+      ],
+      "input": "abc",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: invalid number of lines: '0'\n",
+        "files": {},
+        "entries": []
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: invalid number of lines: '0'\n",
+        "files": {},
+        "entries": []
+      },
+      "semanticMatch": true,
+      "strictMatch": true,
+      "diagnosticPolicy": {
+        "native": "/invalid number of lines/",
+        "virtual": "/invalid number of lines/"
+      }
+    },
+    {
+      "id": "zero-bytes",
+      "args": [
+        "-b0"
+      ],
+      "input": "abc",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: invalid number of bytes: '0'\n",
+        "files": {},
+        "entries": []
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: invalid number of bytes: '0'\n",
+        "files": {},
+        "entries": []
+      },
+      "semanticMatch": true,
+      "strictMatch": true,
+      "diagnosticPolicy": {
+        "native": "/invalid number of bytes/",
+        "virtual": "/invalid number of bytes/"
+      }
+    },
+    {
+      "id": "two-modes",
+      "args": [
+        "-l1",
+        "-b1"
+      ],
+      "input": "abc",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: cannot split in more than one way\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split --help' for more information.\n",
+        "files": {},
+        "entries": []
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: cannot split in more than one way\n",
+        "files": {},
+        "entries": []
+      },
+      "semanticMatch": true,
+      "strictMatch": false,
+      "diagnosticPolicy": {
+        "native": "/cannot split in more than one way/",
+        "virtual": "/cannot split in more than one way/"
+      }
+    },
+    {
+      "id": "missing-input",
+      "args": [
+        "missing"
+      ],
+      "input": "",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: cannot open 'missing' for reading: No such file or directory\n",
+        "files": {},
+        "entries": []
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: no such file or directory, stat '/missing'\n",
+        "files": {},
+        "entries": []
+      },
+      "semanticMatch": true,
+      "strictMatch": false,
+      "diagnosticPolicy": {
+        "native": "/No such file or directory/",
+        "virtual": "/no such file or directory/"
+      }
+    },
+    {
+      "id": "missing-parent",
+      "args": [
+        "-b1",
+        "-",
+        "missing/part"
+      ],
+      "input": "abc",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: missing/partaa: No such file or directory\n",
+        "files": {},
+        "entries": []
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: no such file or directory, writeStream '/missing/partaa'\n",
+        "files": {},
+        "entries": []
+      },
+      "semanticMatch": true,
+      "strictMatch": false,
+      "diagnosticPolicy": {
+        "native": "/No such file or directory/",
+        "virtual": "/no such file or directory/"
+      }
+    },
+    {
+      "id": "suffix-exhausted",
+      "args": [
+        "-a1",
+        "-b1"
+      ],
+      "input": "abcdefghijklmnopqrstuvwxyz0",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: output file suffixes exhausted\n",
+        "files": {
+          "xa": "61",
+          "xb": "62",
+          "xc": "63",
+          "xd": "64",
+          "xe": "65",
+          "xf": "66",
+          "xg": "67",
+          "xh": "68",
+          "xi": "69",
+          "xj": "6a",
+          "xk": "6b",
+          "xl": "6c",
+          "xm": "6d",
+          "xn": "6e",
+          "xo": "6f",
+          "xp": "70",
+          "xq": "71",
+          "xr": "72",
+          "xs": "73",
+          "xt": "74",
+          "xu": "75",
+          "xv": "76",
+          "xw": "77",
+          "xx": "78",
+          "xy": "79",
+          "xz": "7a"
+        },
+        "entries": [
+          {
+            "name": "xa",
+            "type": "file"
+          },
+          {
+            "name": "xb",
+            "type": "file"
+          },
+          {
+            "name": "xc",
+            "type": "file"
+          },
+          {
+            "name": "xd",
+            "type": "file"
+          },
+          {
+            "name": "xe",
+            "type": "file"
+          },
+          {
+            "name": "xf",
+            "type": "file"
+          },
+          {
+            "name": "xg",
+            "type": "file"
+          },
+          {
+            "name": "xh",
+            "type": "file"
+          },
+          {
+            "name": "xi",
+            "type": "file"
+          },
+          {
+            "name": "xj",
+            "type": "file"
+          },
+          {
+            "name": "xk",
+            "type": "file"
+          },
+          {
+            "name": "xl",
+            "type": "file"
+          },
+          {
+            "name": "xm",
+            "type": "file"
+          },
+          {
+            "name": "xn",
+            "type": "file"
+          },
+          {
+            "name": "xo",
+            "type": "file"
+          },
+          {
+            "name": "xp",
+            "type": "file"
+          },
+          {
+            "name": "xq",
+            "type": "file"
+          },
+          {
+            "name": "xr",
+            "type": "file"
+          },
+          {
+            "name": "xs",
+            "type": "file"
+          },
+          {
+            "name": "xt",
+            "type": "file"
+          },
+          {
+            "name": "xu",
+            "type": "file"
+          },
+          {
+            "name": "xv",
+            "type": "file"
+          },
+          {
+            "name": "xw",
+            "type": "file"
+          },
+          {
+            "name": "xx",
+            "type": "file"
+          },
+          {
+            "name": "xy",
+            "type": "file"
+          },
+          {
+            "name": "xz",
+            "type": "file"
+          }
+        ]
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: output file suffixes exhausted\n",
+        "files": {
+          "xa": "61",
+          "xb": "62",
+          "xc": "63",
+          "xd": "64",
+          "xe": "65",
+          "xf": "66",
+          "xg": "67",
+          "xh": "68",
+          "xi": "69",
+          "xj": "6a",
+          "xk": "6b",
+          "xl": "6c",
+          "xm": "6d",
+          "xn": "6e",
+          "xo": "6f",
+          "xp": "70",
+          "xq": "71",
+          "xr": "72",
+          "xs": "73",
+          "xt": "74",
+          "xu": "75",
+          "xv": "76",
+          "xw": "77",
+          "xx": "78",
+          "xy": "79",
+          "xz": "7a"
+        },
+        "entries": [
+          {
+            "name": "xa",
+            "type": "file"
+          },
+          {
+            "name": "xb",
+            "type": "file"
+          },
+          {
+            "name": "xc",
+            "type": "file"
+          },
+          {
+            "name": "xd",
+            "type": "file"
+          },
+          {
+            "name": "xe",
+            "type": "file"
+          },
+          {
+            "name": "xf",
+            "type": "file"
+          },
+          {
+            "name": "xg",
+            "type": "file"
+          },
+          {
+            "name": "xh",
+            "type": "file"
+          },
+          {
+            "name": "xi",
+            "type": "file"
+          },
+          {
+            "name": "xj",
+            "type": "file"
+          },
+          {
+            "name": "xk",
+            "type": "file"
+          },
+          {
+            "name": "xl",
+            "type": "file"
+          },
+          {
+            "name": "xm",
+            "type": "file"
+          },
+          {
+            "name": "xn",
+            "type": "file"
+          },
+          {
+            "name": "xo",
+            "type": "file"
+          },
+          {
+            "name": "xp",
+            "type": "file"
+          },
+          {
+            "name": "xq",
+            "type": "file"
+          },
+          {
+            "name": "xr",
+            "type": "file"
+          },
+          {
+            "name": "xs",
+            "type": "file"
+          },
+          {
+            "name": "xt",
+            "type": "file"
+          },
+          {
+            "name": "xu",
+            "type": "file"
+          },
+          {
+            "name": "xv",
+            "type": "file"
+          },
+          {
+            "name": "xw",
+            "type": "file"
+          },
+          {
+            "name": "xx",
+            "type": "file"
+          },
+          {
+            "name": "xy",
+            "type": "file"
+          },
+          {
+            "name": "xz",
+            "type": "file"
+          }
+        ]
+      },
+      "semanticMatch": true,
+      "strictMatch": true,
+      "diagnosticPolicy": {
+        "native": "/output file suffixes exhausted/",
+        "virtual": "/output file suffixes exhausted/"
+      }
+    },
+    {
+      "id": "numeric-exhausted",
+      "args": [
+        "--numeric-suffixes=99",
+        "-b1"
+      ],
+      "input": "ab",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: output file suffixes exhausted\n",
+        "files": {
+          "x99": "61"
+        },
+        "entries": [
+          {
+            "name": "x99",
+            "type": "file"
+          }
+        ]
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: output file suffixes exhausted\n",
+        "files": {
+          "x99": "61"
+        },
+        "entries": [
+          {
+            "name": "x99",
+            "type": "file"
+          }
+        ]
+      },
+      "semanticMatch": true,
+      "strictMatch": true,
+      "diagnosticPolicy": {
+        "native": "/output file suffixes exhausted/",
+        "virtual": "/output file suffixes exhausted/"
+      }
+    },
+    {
+      "id": "same-input",
+      "args": [
+        "-b1",
+        "xaa"
+      ],
+      "input": "",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: 'xaa' would overwrite input; aborting\n",
+        "files": {
+          "xaa": "4f524947494e414c"
+        },
+        "entries": [
+          {
+            "name": "xaa",
+            "type": "file"
+          }
+        ]
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: output would overwrite input; aborting '/xaa'\n",
+        "files": {
+          "xaa": "4f524947494e414c"
+        },
+        "entries": [
+          {
+            "name": "xaa",
+            "type": "file"
+          }
+        ]
+      },
+      "semanticMatch": true,
+      "strictMatch": false,
+      "diagnosticPolicy": {
+        "native": "/would overwrite input/",
+        "virtual": "/would overwrite input/"
+      }
+    },
+    {
+      "id": "directory-output",
+      "args": [
+        "-b1"
+      ],
+      "input": "abc",
+      "expected": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: xaa: Is a directory\n",
+        "files": {},
+        "entries": [
+          {
+            "name": "xaa",
+            "type": "directory"
+          }
+        ]
+      },
+      "observed": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "split: illegal operation on a directory '/xaa'\n",
+        "files": {},
+        "entries": [
+          {
+            "name": "xaa",
+            "type": "directory"
+          }
+        ]
+      },
+      "semanticMatch": true,
+      "strictMatch": false,
+      "diagnosticPolicy": {
+        "native": "/Is a directory/",
+        "virtual": "/illegal operation on a directory/"
+      }
+    }
+  ]
+}

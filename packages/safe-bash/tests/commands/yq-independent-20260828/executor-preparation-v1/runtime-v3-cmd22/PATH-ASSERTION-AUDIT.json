@@ -1,0 +1,132 @@
+{
+  "classification": "STATIC_DATA_AND_SOURCE_AUDIT_ONLY_NOT_REPLAY",
+  "inventoryCount": 194,
+  "declaredJobCount": 149,
+  "declaredJobsSha256": "c48185f7b165ab97d689f3a88e308b0cf1df39d93d7ab304dc8ad15ad9098f27",
+  "affectedIds": [
+    "CMD-22"
+  ],
+  "explicitReadAssertions": [
+    {
+      "id": "CMD-22",
+      "reads": [
+        "-name"
+      ],
+      "classification": "AFFECTED_LITERAL_OPERAND_VS_RESOLVED_VFS",
+      "assertionsRemain": [],
+      "sourceReference": {
+        "source": "freeze-command-parser",
+        "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/21",
+        "recordSha256": "2b02982553c2e253a6caea3eeeb65ee91dd0dd1170e890644691648249ddac8f",
+        "inputSha256": "745189fc77fe0a3f0bdc11a460db36f6d2629f9fe16d261942cdd289728d9d8e",
+        "defaultsSha256": "203ec05dc33535f956bb0eb3ddf94bb6bde70f9ed89e8cf312dea0aa5e3a287d"
+      }
+    },
+    {
+      "id": "FS-05",
+      "reads": [
+        "/v/a",
+        "/v/b"
+      ],
+      "classification": "UNCHANGED_ABSOLUTE_READ_PATHS",
+      "assertionsRemain": [
+        "Do not acquire /v/c; completed stdout remains, files and namespace unchanged."
+      ],
+      "sourceReference": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/14",
+        "recordSha256": "b67bdbb750ee7bbd6ff077e565179883046abf69e8e3dfb3506d448493067816",
+        "inputSha256": "f8fa44c452ab9e47859d4ce5e8b0f19c1be3f8a4f5de07806dc129d754e1fc3d",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      }
+    }
+  ],
+  "otherFileBearingIds": [
+    {
+      "id": "QUE-07",
+      "literalFilePaths": [
+        "/v/a"
+      ],
+      "classification": "UNCHANGED_NO_NEW_PROOF_BINDING",
+      "assertionsRemain": [
+        "Input file bytes and namespace remain unchanged; assignment is in-memory query behavior."
+      ]
+    },
+    {
+      "id": "FS-01",
+      "literalFilePaths": [
+        "/v/a",
+        "/v/b"
+      ],
+      "classification": "UNCHANGED_NO_NEW_PROOF_BINDING",
+      "assertionsRemain": [
+        "Literal file order and repetitions preserved; one stdin occurrence; use supplied signal in readBytes; no host path access or writes."
+      ]
+    },
+    {
+      "id": "FS-05",
+      "literalFilePaths": [
+        "/v/a",
+        "/v/b",
+        "/v/c"
+      ],
+      "classification": "UNCHANGED_NO_NEW_PROOF_BINDING",
+      "assertionsRemain": [
+        "Do not acquire /v/c; completed stdout remains, files and namespace unchanged."
+      ]
+    }
+  ],
+  "preInputZeroReadIds": [
+    "CMD-04",
+    "CMD-05",
+    "CMD-06",
+    "CMD-07",
+    "CMD-08",
+    "CMD-09",
+    "CMD-10",
+    "CMD-11",
+    "CMD-12",
+    "CMD-13",
+    "CMD-14",
+    "CMD-15",
+    "CMD-16",
+    "CMD-17",
+    "CMD-18",
+    "CMD-19",
+    "CMD-20",
+    "CMD-23",
+    "CMD-24",
+    "QUE-03"
+  ],
+  "pathPredicateRoles": [
+    {
+      "predicate": "expected.reads against fs-read events",
+      "domain": "resolved VFS observation, with only CMD-22 declared literal operand projection",
+      "changedIds": [
+        "CMD-22"
+      ]
+    },
+    {
+      "predicate": "diagnostic source membership in job.files",
+      "domain": "literal diagnostic source spelling, not resolved VFS path",
+      "changedIds": []
+    },
+    {
+      "predicate": "effects.after deepEqual effects.before",
+      "domain": "normalized fixture namespace on both sides",
+      "changedIds": []
+    },
+    {
+      "predicate": "pre-input effect profiles forbid reads/stdin acquisition",
+      "domain": "zero operation count, not pathname normalization",
+      "changedIds": []
+    }
+  ],
+  "unchangedUnknownObligations": true,
+  "syntheticPasses": 0,
+  "semanticPasses": 0
+}

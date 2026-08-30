@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "STATIC_WORKER_INPUT_BINDINGS_NOT_BUILD_PROOF",
+  "core": {
+    "revision": "9d582d791336fd66d865f6592b830c39a359d344",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+    "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+    "bytes": 8164
+  },
+  "planSource": {
+    "revision": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+    "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PLAN.json",
+    "sha256": "c690e28f8cc57cebe3fb29b2a1afd373d13c4c53fafe231489c8db382d3d9c92",
+    "bytes": 6323
+  },
+  "planSeal": {
+    "revision": "46806f6eac2b7be26b476d6a7a04d08a17d20771",
+    "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/FINAL-SEAL.json",
+    "sha256": "e5e789d888f0fe6c5b48af2e850f19f44a557a867bcc91c2d556fc1e3eeb1c98",
+    "bytes": 5137
+  },
+  "dataPacketSeal": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FINAL-SEAL.json",
+    "sha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+    "bytes": 6776
+  },
+  "composition": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+    "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+    "bytes": 25587
+  },
+  "sourceAuthority": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+    "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+    "bytes": 3766
+  },
+  "oldToolInputs": {
+    "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+    "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+    "bytes": 116989
+  },
+  "oldBuildRecipe": {
+    "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RECIPE.md",
+    "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+    "bytes": 7880
+  },
+  "oldBuildSource": {
+    "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/build-once.mjs",
+    "sha256": "07c20e18ab1f34299a2d00ca3c65588ce0f4964334ea2eb9b3b8a7d14cf134d2",
+    "bytes": 32955
+  },
+  "oldPackingRecipe": {
+    "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/PRESEAL.md",
+    "sha256": "87275436c926a1a42568fd66bae5bd5bd955645b9ccb5865a06e640c2f91243c",
+    "bytes": 8714
+  },
+  "oldPackingSource": {
+    "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/admit-data.mjs",
+    "sha256": "61622adcb914d3536b2d1c4c0501e08ca865300ee54a1ecf9e82433c332af792",
+    "bytes": 34337
+  },
+  "typeLoadedResultSchema": {
+    "revision": "c0353685540288d504b93f206735fe4c448268ef",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/RESULT-SCHEMA.json",
+    "sha256": "c0d2a2d224a906bdba73fc5785cbfb16e3509b6086c329948d4cd5d6253a000c",
+    "bytes": 3403
+  },
+  "generatedData": {
+    "plan": {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-plan.json",
+      "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1",
+      "bytes": 170411,
+      "canonicalSha256": "3a6718dcdc7e60a030f439fa7d9f0f495128daa8df8621deee0d523b00716301"
+    },
+    "sourceManifest": {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-source-manifest.json",
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+      "bytes": 47504,
+      "canonicalSha256": "8f9957f8391195428fdae9744d606491c0c50f39c14b3cac38abffb910635d21"
+    },
+    "packageManifest": {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-package-manifest.json",
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "bytes": 152021,
+      "canonicalSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321"
+    }
+  },
+  "toolsReusedAs": "Pinned bytes and method only, never old product PASS",
+  "actualCompilerRuns": 0,
+  "actualProductImports": 0
+}

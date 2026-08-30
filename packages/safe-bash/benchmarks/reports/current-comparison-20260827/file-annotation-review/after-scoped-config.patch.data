@@ -1,0 +1,11 @@
+*** Begin Patch
+*** Add File: /tmp/safe-bash-file-annotation-review-6fBRw5/after/tsconfig.scoped.json
++{
++  "extends": "./tsconfig.json",
++  "files": [
++    "tests/commands/file/text-bound.test.ts"
++  ],
++  "include": [],
++  "exclude": []
++}
+*** End Patch

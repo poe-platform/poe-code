@@ -1,0 +1,11 @@
+{
+  "id": "C21-public-pending",
+  "expected": "PUBLIC_EXPORT_GAP",
+  "value": null,
+  "error": {
+    "code": "PUBLIC_EXPORT_GAP",
+    "message": "PUBLIC_EXPORT_GAP: v1 authorizes no root/package export changes; direct module proof cannot admit MOV-02 or public TYPE jobs",
+    "stack": "Error: PUBLIC_EXPORT_GAP: v1 authorizes no root/package export changes; direct module proof cannot admit MOV-02 or public TYPE jobs\n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at Module.assertPublicAdmission (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:391:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:65:53\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:23:23)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:65:9"
+  },
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

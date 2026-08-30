@@ -1,0 +1,87 @@
+{
+  "createdAt": "2026-08-29T09:22:02.290Z",
+  "parentPacketSha256": "7ceac39234b1ce5e789bfb9d5452ec9cf7c718284c2ce78b8c5434dad64a42a1",
+  "presealSha256": "d002ec622f7668b0766216acd60d19330723d4552205f3049202898eccdbca2f",
+  "syntax": "all9 parsed unlinked and unevaluated before controls",
+  "deltas": [
+    {
+      "name": "entry",
+      "changes": [
+        [
+          "import {admit,small,pinned,hash} from './admission.mjs';",
+          "import {admit,small,pinned,hash,validateOuter,validateProvision,validateCohort} from './admission.mjs';"
+        ],
+        [
+          " const provision=JSON.parse(fs.readFileSync(directory+'/PREPROVISION.json'));\n for(const parent of provision.parents){const stat=fs.lstatSync(parent.path,{bigint:true});assert(stat.isDirectory()&&String(stat.dev)===parent.device&&String(stat.ino)===parent.inode&&Number(stat.mode&511n)===parent.mode,'PREPROVISION_DRIFT');}\n for(const [name,fd] of [['stdout',1],['stderr',2]]){const filename=root+'/outer/bootstrap.'+name,stat=fs.fstatSync(fd),named=fs.lstatSync(filename);assert(stat.isFile()&&named.isFile()&&!named.isSymbolicLink()&&stat.ino===named.ino&&stat.dev===named.dev&&stat.nlink===1&&(stat.mode&511)===384,'OUTER_FD_BINDING');outerHandles.push({name,fd,ino:stat.ino,path:filename});}\n storage.record({event:'RAW_START_BEFORE_ADMISSION',pid:process.pid,started,externalCapture:'pre-opened regular descriptors before Node module loading'});",
+          " for(const [name,fd] of [['stdout',1],['stderr',2]])outerHandles.push(validateOuter(root,name,fd));"
+        ],
+        [
+          " const accepted=admit(directory,process.argv[3],process.argv[5]);",
+          " const accepted=admit(directory,process.argv[3],process.argv[5]);\n storage.deadline=Math.min(accepted.grant.deadlineEpochMs,started+600000);storage.checkTime();\n validateProvision(accepted.provision,root);\n storage.record({event:'AUTHENTICATED_START',pid:process.pid,started,externalCapture:'pre-opened regular descriptors before Node module loading'});"
+        ],
+        [
+          " const expectedIds=audit.cases.map(row=>row.id);",
+          " validateCohort(audit,accepted.requests,root);\n for(const literal of audit.cases){const relative='programs/'+literal.id+'.bash.data';assert(small(directory+'/'+relative,accepted.seal.files.find(item=>item.path===relative)).equals(Buffer.from(literal.program)),'PROGRAM_FILE_BINDING');}\n const expectedIds=audit.cases.map(row=>row.id);"
+        ]
+      ]
+    },
+    {
+      "name": "entry",
+      "parentSha256": "a833478431d60edcae64163db2883643f8b7167b98c80fc4ce7c5c179bb76cf1",
+      "materializedSha256": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e",
+      "unchanged": false
+    },
+    {
+      "name": "admission",
+      "parentSha256": "17fc38cd73223b56aad0d5b5f5d1b37a1b56553bec34cba11122582668b7792d",
+      "materializedSha256": "2c0def3d37eff6eb6ce62d9724061a33f0c1a3bd7b0fad701964b0b85a331d98",
+      "unchanged": false
+    },
+    {
+      "name": "capture",
+      "parentSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "materializedSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "unchanged": true
+    },
+    {
+      "name": "lifecycle",
+      "parentSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "materializedSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "unchanged": true
+    },
+    {
+      "name": "group-observer",
+      "parentSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "materializedSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "unchanged": true
+    },
+    {
+      "name": "observer-state",
+      "parentSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "materializedSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "unchanged": true
+    },
+    {
+      "name": "state",
+      "parentSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "materializedSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "unchanged": true
+    },
+    {
+      "name": "storage",
+      "parentSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "materializedSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "unchanged": true
+    },
+    {
+      "name": "observation",
+      "parentSha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13",
+      "materializedSha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13",
+      "unchanged": true
+    }
+  ],
+  "programsUnchanged": 12,
+  "fixtures": 0,
+  "nativeExecutions": 0,
+  "toolsReauthenticated": true
+}

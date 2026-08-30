@@ -1,0 +1,45 @@
+{
+  "evaluatedAt": "2026-08-27T09:05:43.699Z",
+  "mode": "OFFLINE_CAPTURE_BYTES_ONLY",
+  "captures": [
+    {
+      "label": "initial-product-N18",
+      "capturePath": "history/initial-N18-observations.json",
+      "captureSha256": "70008efe2658f591d5102bf24290b35c9553154029fa05e9f2cfbae0d77d0167",
+      "capturedSourceCommit": "e2d1b9230f4304650651572395523ca9d1644e74",
+      "capturedExitCode": 2,
+      "capturedStdoutBase64": "",
+      "capturedStderrBase64": "dHJlZTogLUwgbXVzdCBiZSBiZXR3ZWVuIDEgYW5kIDI1Ngo=",
+      "offlineV2Accepted": true,
+      "newProductExecution": false
+    },
+    {
+      "label": "historical-v1-fresh-product-N18",
+      "capturePath": "history/v1-N18-observations.json",
+      "captureSha256": "2e05f6085ca1cbcfc9c8620da3b7e71136e03b8a9da73612f3b08f3e2ab626bc",
+      "capturedSourceCommit": "e2d1b9230f4304650651572395523ca9d1644e74",
+      "capturedExitCode": 2,
+      "capturedStdoutBase64": "",
+      "capturedStderrBase64": "dHJlZTogLUwgbXVzdCBiZSBiZXR3ZWVuIDEgYW5kIDI1Ngo=",
+      "offlineV2Accepted": true,
+      "newProductExecution": false
+    },
+    {
+      "label": "original-native-N18-capture",
+      "capturePath": "derived/native.json",
+      "captureSha256": "5b89a6577600326878987f4d985270087d26fa7d3abd00f5c98fab973619c897",
+      "capturedExitCode": 1,
+      "capturedStdoutBase64": "",
+      "capturedStderrBase64": "dHJlZTogSW52YWxpZCBsZXZlbCwgbXVzdCBiZSBncmVhdGVyIHRoYW4gMC4K",
+      "offlineV2Accepted": true,
+      "newNativeExecution": false
+    }
+  ],
+  "predicateSha256": "c38705fdc2afbecfd3dda00b4867bd6eae82074206001eadbc927e516f22171c",
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "newSourceCases": 0,
+  "unchangedHistory": "Initial raw38 and v1 one-fresh execution remain historical. No new semantic cohort/pass count is claimed. V1 HOLD is not lifted by this offline check.",
+  "nativeParity": "Original native status1 versus historical product status2 and differing diagnostic bytes remain not-parity",
+  "sourceSafetyFix": "In progress elsewhere; not inspected, imported, or executed here. Full38 awaits a separate freeze, peer GO, and root authorization."
+}

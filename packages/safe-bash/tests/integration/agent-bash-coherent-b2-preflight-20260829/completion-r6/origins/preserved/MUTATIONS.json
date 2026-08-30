@@ -1,0 +1,96 @@
+{
+  "source": {
+    "name": "author-executor",
+    "commit": "4a0268f2561d3b2aabf7511656baad968ee64986",
+    "originalPath": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v5.mjs",
+    "blob": "0a5ffcc9eab5a26f2c32d009d48ffb2ef8100bfc",
+    "bytes": 30737,
+    "sha256": "238d3bb3b3f3611b259b0804309489cc57f79cdb7ed1561568671195bcfc26b3"
+  },
+  "mutationCases": 7,
+  "restores": 7,
+  "mutationScope": "Dedicated future copy only; no product bytes mutated in preparation",
+  "expectedDetection": {
+    "exitCode": 1,
+    "firstCasePass": false,
+    "summaryCases": 1
+  },
+  "expectedRestore": {
+    "exitCode": 0,
+    "casePass": true,
+    "completeMemberHashRestore": true
+  },
+  "mutations": [
+    {
+      "id": "n14-drop-provenance",
+      "file": "shell/runtime.js",
+      "before": "const diagnostic = this.cancellationState.consumeDiagnostic(raw);",
+      "after": "const diagnostic = undefined;",
+      "case": "N10",
+      "script": "n14.mjs",
+      "frozenOriginalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "restoreExpectedSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "prospectiveMutantSha256": "f5d93893f41a833918e3716dd1508156b1a9547080d89fe87eac11dac1551b65"
+    },
+    {
+      "id": "missing-read-zero",
+      "file": "shell/runtime.js",
+      "before": "state.nounset && typeof key === \"string\" && value === undefined",
+      "after": "false",
+      "case": "U31",
+      "frozenOriginalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "restoreExpectedSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "prospectiveMutantSha256": "94ca1c53f3a478f9f59efd1b914750bd4ef0c3b4628279dc9d9d31f3fa9d6ed3"
+    },
+    {
+      "id": "read-assignment-lhs",
+      "file": "shell/arithmetic.js",
+      "before": "if (node.operator === \"=\")\n                value = evaluate(node.right);",
+      "after": "if (node.operator === \"=\")\n                value = (evaluate(node.left), evaluate(node.right));",
+      "case": "U32",
+      "frozenOriginalSha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138",
+      "restoreExpectedSha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138",
+      "prospectiveMutantSha256": "1a8a7768f07e8fff005356c995584d38d09eacd3abaa786b3b7538b8b75d746a"
+    },
+    {
+      "id": "let-recast",
+      "file": "shell/runtime.js",
+      "before": "this.rethrowArithmeticControl(error);\n                throw new Error(`let: ${message(error)}`);",
+      "after": "throw new Error(`let: ${message(error)}`);",
+      "case": "U34",
+      "frozenOriginalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "restoreExpectedSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "prospectiveMutantSha256": "617e65344b08cb5855f1ac0fe807f0452182c28a290b959d5b5ee2f69e4c183b"
+    },
+    {
+      "id": "rollback-prefix",
+      "file": "shell/runtime.js",
+      "before": "const enabled = option[0] === \"-\";",
+      "after": "if (option.includes(\"z\")) return 1;\n            const enabled = option[0] === \"-\";",
+      "case": "S-U06-PARTIAL-v1",
+      "frozenOriginalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "restoreExpectedSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "prospectiveMutantSha256": "cbfacdffad9cd29d5407a13dd01d742f05f24d0560e53d55e4700c4c1e03b3f2"
+    },
+    {
+      "id": "swallow-parameter-sink",
+      "file": "shell/runtime.js",
+      "before": "error instanceof NounsetFailure || error instanceof ParameterExpansionFailure",
+      "after": "error instanceof NounsetFailure",
+      "case": "X07-parameter-falsy-sink",
+      "frozenOriginalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "restoreExpectedSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "prospectiveMutantSha256": "c4365575528db1f4afd29de8ac49d7b556de3c21af86c2711349fca4abf4ba8d"
+    },
+    {
+      "id": "false-option-state",
+      "file": "shell/runtime.js",
+      "before": "[\"nounset\", !!state.nounset]",
+      "after": "[\"nounset\", false]",
+      "case": "S-U07-LIST-STATUS-v1",
+      "frozenOriginalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "restoreExpectedSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "prospectiveMutantSha256": "dec0e05d7d4ed0ab116a523a1662b62f8e81bb8161728734a30923ac81b5ffbb"
+    }
+  ]
+}

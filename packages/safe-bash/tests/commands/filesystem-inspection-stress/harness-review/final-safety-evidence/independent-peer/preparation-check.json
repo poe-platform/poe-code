@@ -1,0 +1,72 @@
+{
+  "cases": [
+    {
+      "id": "T-DP-cumulative",
+      "sha256": "9bca8031edc1f3bcd1a429081dadaa0057d49c3a25e1efbf5d65093a3df01fe1",
+      "proof": "dpNonEliminated",
+      "fixtureEntries": 66,
+      "fileBytes": 0,
+      "targetCodeUnits": 0,
+      "distinctFilePayloads": 1
+    },
+    {
+      "id": "T-sort-many",
+      "sha256": "cb58f411a1d5396d96383b387c561d2a500d4b9738e4ec62457e937320d26aa1",
+      "proof": "sortByteCost",
+      "fixtureEntries": 66,
+      "fileBytes": 0,
+      "targetCodeUnits": 0,
+      "distinctFilePayloads": 1
+    }
+  ],
+  "presealSha256": "8111403a37f392dd8934c3e0f9d89bc6b8338bf5d14becb3471bc68a6ee682df",
+  "harness": {
+    "files": [
+      {
+        "path": "cases.mjs",
+        "sha256": "74ee597d8bb23e8112d7a1f9858c96bdea34c10197c283b9c1b9c8dc7dcdd32a"
+      },
+      {
+        "path": "seal.mjs",
+        "sha256": "0f4134e841fda654cbb4a5c4a4ba0034c80f8d9f887d95026ed9cf43de2ba39a"
+      },
+      {
+        "path": "oracle.mjs",
+        "sha256": "e121409bb544fee91c2b3281962a802d54bc0b19f38dd0e9e7e3d84cbd7891fa"
+      },
+      {
+        "path": "vfs.mjs",
+        "sha256": "44251f041e04f5abec70d77c5c94bb84bb21636998e194093ca4eca7aaace26b"
+      },
+      {
+        "path": "authorization.mjs",
+        "sha256": "3ac28ccdcb9fcce133d12c3ad6631b227e0091798902b487190646d49f429c22"
+      },
+      {
+        "path": "child.mjs",
+        "sha256": "67f39d4d9147f5eead02f9e8c1b0ba97329c97d938d986f481ca489aeac6d1e1"
+      },
+      {
+        "path": "loader.mjs",
+        "sha256": "18c047c90b16767d91d53e73f38316ef851d9fe90754f92c9160d8aef9c2d93d"
+      },
+      {
+        "path": "run.mjs",
+        "sha256": "d6bd6939ac26c311b8a0b3b9007718289229a870d7b25280552698d650c6b4eb"
+      }
+    ],
+    "sha256": "f29c603e3205e69716d6fafff4b256d128c981cd010fc8c0021d604ae2c06b77"
+  },
+  "caps": {
+    "childWallMs": 5000,
+    "heapMiB": 128,
+    "observedRssBytes": 268435456,
+    "captureBytes": 65536,
+    "wholeWallMs": 30000,
+    "telemetryEntries": 1024,
+    "ipcBytes": 524288,
+    "maxChildren": 1,
+    "retries": 0
+  },
+  "productExecutions": 0
+}

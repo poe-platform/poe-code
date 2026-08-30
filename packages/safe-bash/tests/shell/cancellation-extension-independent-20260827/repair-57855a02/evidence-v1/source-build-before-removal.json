@@ -1,0 +1,98 @@
+{
+  "source": {
+    ".": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "cancellation.ts": {
+      "kind": "file",
+      "size": 31986,
+      "mode": 420,
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2"
+    },
+    "extension-eight-negative-source.ts": {
+      "kind": "file",
+      "size": 908,
+      "mode": 420,
+      "sha256": "2a5c400b3e8332b847b601935e1bca64d6b16b6155ed7b0289fe5a620d30f72e"
+    },
+    "extension-positive-source.ts": {
+      "kind": "file",
+      "size": 1779,
+      "mode": 420,
+      "sha256": "49211525cd597eaae6502fc35a06df95af513eded429f9cf48b54d43a119bc62"
+    },
+    "old-positive-source.ts": {
+      "kind": "file",
+      "size": 1315,
+      "mode": 420,
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    "old-six-negative-source.ts": {
+      "kind": "file",
+      "size": 683,
+      "mode": 420,
+      "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+    },
+    "package.json": {
+      "kind": "file",
+      "size": 23,
+      "mode": 420,
+      "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+    },
+    "tsconfig-extension-eight-negative-source.json": {
+      "kind": "file",
+      "size": 373,
+      "mode": 420,
+      "sha256": "adc0c963d905fc85040cb19f99eb36a8c8b762a1673b09a8bd35edd5beaadfe4"
+    },
+    "tsconfig-extension-positive-source.json": {
+      "kind": "file",
+      "size": 367,
+      "mode": 420,
+      "sha256": "3767e0f6d910207f6c95fa9e7219a48448083c872e025320fb92ad971b79d817"
+    },
+    "tsconfig-old-positive-source.json": {
+      "kind": "file",
+      "size": 361,
+      "mode": 420,
+      "sha256": "dd3a9d2c1f7e6b4a1e23ed1376620fb2ae40bf1f54d25305cd0d4c69324bd104"
+    },
+    "tsconfig-old-six-negative-source.json": {
+      "kind": "file",
+      "size": 365,
+      "mode": 420,
+      "sha256": "1f9c62f7789fc791906b9d3c2840e59b457d1942d0a4cd73903be4c6accdc496"
+    },
+    "tsconfig.json": {
+      "kind": "file",
+      "size": 380,
+      "mode": 420,
+      "sha256": "75b2a8f330579c1f1137dd909fa0ca786ea5726c6b0b5915f0e0b3daab62402f"
+    }
+  },
+  "build": {
+    ".": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "cancellation.d.ts": {
+      "kind": "file",
+      "size": 5113,
+      "mode": 420,
+      "sha256": "7edba703edd9d09da8fc6b1b754722695d9af2fba9fac0669408bbe1e79eb79d"
+    },
+    "cancellation.js": {
+      "kind": "file",
+      "size": 27650,
+      "mode": 420,
+      "sha256": "4b8bfbd52a001ab307bae25230d63275ba2073e7d4e62893c66f075a45e67561"
+    },
+    "package.json": {
+      "kind": "file",
+      "size": 23,
+      "mode": 420,
+      "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+    }
+  }
+}

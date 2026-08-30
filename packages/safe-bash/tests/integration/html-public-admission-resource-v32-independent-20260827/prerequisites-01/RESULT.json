@@ -1,0 +1,2693 @@
+{
+  "started": "2026-08-28T00:52:52.438Z",
+  "invocation": 1,
+  "retries": 0,
+  "recipe": {
+    "commit": "9aefcb0adc423636c3667731266c694598b281ab",
+    "manifestSha256": "7807e874edaacdead9c9a677b91f9bea83434303788f34e6b3657b9996f88b8f",
+    "inventory": {
+      "files": {
+        "BINDINGS.json": {
+          "sha256": "323682cdd49f4051b2eccbefd0a7d7920edd379395b6bfbf52bf653702e2ec96",
+          "bytes": 15238
+        },
+        "RECIPE.md": {
+          "sha256": "63bf9cd774256efc10e8beaa8bd08b9dfef1a07600f63799375ad7aab0257d79",
+          "bytes": 3717
+        },
+        "common.mjs": {
+          "sha256": "2e381c611302ecd3cc6a0ded5bb016d2671a3f344aac633c916c76713131bc1f",
+          "bytes": 4765
+        },
+        "launch.mjs": {
+          "sha256": "4e4a88a6f41dd6757950914966d85a674494528a9a97a0044d108f24bc2f9772",
+          "bytes": 6518
+        },
+        "loader.mjs": {
+          "sha256": "617d500fe77028c590075eca4c2c9f071725b35eb80b826979fdd68b1ea07612",
+          "bytes": 856
+        },
+        "preload.mjs": {
+          "sha256": "5da1b5ae1336a28b3c1de15ffef95edc887cef0786f7bcf2004806a9ca240a0a",
+          "bytes": 2923
+        },
+        "run.mjs": {
+          "sha256": "d5813cbd3fc0227c6ebc2a48ed6206fb9464128ad4ec039bf7328da0560396ed",
+          "bytes": 5041
+        }
+      },
+      "directories": []
+    }
+  },
+  "signals": [],
+  "errors": [],
+  "realResourceCasesReplayed": 0,
+  "pid": 33930,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "processes": [
+    {
+      "at": "2026-08-28T00:53:06.280Z",
+      "ns": "121800414410083",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 34212,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "semantic-failure",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/ordinary-failure-continues-after-reap/1-semantic-failure"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "semantic-failure",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/ordinary-failure-continues-after-reap/1-semantic-failure"
+      ],
+      "detached": true,
+      "exit": {
+        "at": "2026-08-28T00:53:06.361Z",
+        "ns": "121800495046333",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 34212,
+        "code": 17,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:06.364Z",
+        "ns": "121800498475041",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 34212,
+        "code": 17,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "at": "2026-08-28T00:53:12.745Z",
+      "ns": "121806879099666",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 34507,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "marker",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/ordinary-failure-continues-after-reap/2-marker"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "marker",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/ordinary-failure-continues-after-reap/2-marker"
+      ],
+      "detached": true,
+      "exit": {
+        "at": "2026-08-28T00:53:12.823Z",
+        "ns": "121806957231750",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 34507,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:12.826Z",
+        "ns": "121806960472083",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 34507,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "at": "2026-08-28T00:53:19.118Z",
+      "ns": "121813251883750",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 34790,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "ignore-term",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/cleanup-escalation-stops-marker/1-ignore-term"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "ignore-term",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/cleanup-escalation-stops-marker/1-ignore-term"
+      ],
+      "detached": true,
+      "exit": {
+        "at": "2026-08-28T00:53:22.197Z",
+        "ns": "121816331050291",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 34790,
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "close": {
+        "at": "2026-08-28T00:53:22.201Z",
+        "ns": "121816334749875",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 34790,
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "signals": [
+        {
+          "at": "2026-08-28T00:53:19.187Z",
+          "ns": "121813321589541",
+          "pid": 33930,
+          "type": "signal",
+          "childPid": 34790,
+          "signal": "SIGTERM",
+          "accepted": true
+        },
+        {
+          "at": "2026-08-28T00:53:22.192Z",
+          "ns": "121816326544875",
+          "pid": 33930,
+          "type": "signal",
+          "childPid": 34790,
+          "signal": "SIGKILL",
+          "accepted": true
+        }
+      ]
+    },
+    {
+      "at": "2026-08-28T00:53:28.438Z",
+      "ns": "121822572385208",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 35185,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "binding-change",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/private-binding-mismatch-stops-marker/1-binding-change"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "binding-change",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/private-binding-mismatch-stops-marker/1-binding-change"
+      ],
+      "detached": true,
+      "exit": {
+        "at": "2026-08-28T00:53:28.516Z",
+        "ns": "121822649982208",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 35185,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:28.519Z",
+        "ns": "121822652842375",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 35185,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "at": "2026-08-28T00:53:34.868Z",
+      "ns": "121829002137083",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 35474,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "missing-receipt",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/missing-receipt-stops-marker/1-missing-receipt"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "missing-receipt",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/missing-receipt-stops-marker/1-missing-receipt"
+      ],
+      "detached": true,
+      "exit": {
+        "at": "2026-08-28T00:53:34.946Z",
+        "ns": "121829080003625",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 35474,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:34.949Z",
+        "ns": "121829083403916",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 35474,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "at": "2026-08-28T00:53:41.361Z",
+      "ns": "121835494654083",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 35754,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "omit-reap-proof",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/omitted-reap-proof-stops-marker/1-omit-reap-proof"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "omit-reap-proof",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/omitted-reap-proof-stops-marker/1-omit-reap-proof"
+      ],
+      "detached": true,
+      "exit": {
+        "at": "2026-08-28T00:53:41.435Z",
+        "ns": "121835568915625",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 35754,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:41.439Z",
+        "ns": "121835573270958",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 35754,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "at": "2026-08-28T00:53:47.779Z",
+      "ns": "121841912923625",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 36097,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "wrong-reason",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/wrong-reason-fails-and-continues/1-wrong-reason"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "wrong-reason",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/wrong-reason-fails-and-continues/1-wrong-reason"
+      ],
+      "detached": true,
+      "exit": {
+        "at": "2026-08-28T00:53:47.860Z",
+        "ns": "121841993781500",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 36097,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:47.863Z",
+        "ns": "121841997266000",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 36097,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "at": "2026-08-28T00:53:54.220Z",
+      "ns": "121848353596625",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 36480,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "marker",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/wrong-reason-fails-and-continues/2-marker"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "--max-old-space-size=96",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+        "marker",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/raw/controls/forwarding-controls/wrong-reason-fails-and-continues/2-marker"
+      ],
+      "detached": true,
+      "exit": {
+        "at": "2026-08-28T00:53:54.303Z",
+        "ns": "121848436975041",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 36480,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:53:54.306Z",
+        "ns": "121848440129791",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 36480,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    },
+    {
+      "at": "2026-08-28T00:53:57.603Z",
+      "ns": "121851736574791",
+      "pid": 33930,
+      "type": "spawn",
+      "childPid": 36633,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/read-only-verifier.mjs"
+      ],
+      "actualArgs": [
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/preload.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/read-only-verifier.mjs"
+      ],
+      "detached": false,
+      "exit": {
+        "at": "2026-08-28T00:54:00.838Z",
+        "ns": "121854972382625",
+        "pid": 33930,
+        "type": "exit",
+        "childPid": 36633,
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "at": "2026-08-28T00:54:00.842Z",
+        "ns": "121854976504916",
+        "pid": 33930,
+        "type": "close",
+        "childPid": 36633,
+        "code": 0,
+        "signal": null
+      },
+      "signals": []
+    }
+  ],
+  "synchronous": {
+    "returned": 2452,
+    "spawnSyncClosed": 8,
+    "failures": []
+  },
+  "probe": {
+    "at": "2026-08-28T00:54:04.059Z",
+    "pids": [
+      {
+        "pid": 33930,
+        "state": "absent"
+      },
+      {
+        "pid": 34212,
+        "state": "absent"
+      },
+      {
+        "pid": 34507,
+        "state": "absent"
+      },
+      {
+        "pid": 34790,
+        "state": "absent"
+      },
+      {
+        "pid": 35185,
+        "state": "absent"
+      },
+      {
+        "pid": 35474,
+        "state": "absent"
+      },
+      {
+        "pid": 35754,
+        "state": "absent"
+      },
+      {
+        "pid": 36097,
+        "state": "absent"
+      },
+      {
+        "pid": 36480,
+        "state": "absent"
+      },
+      {
+        "pid": 36633,
+        "state": "absent"
+      }
+    ],
+    "groups": [
+      {
+        "pgid": 33930,
+        "members": []
+      },
+      {
+        "pgid": 34212,
+        "members": []
+      },
+      {
+        "pgid": 34507,
+        "members": []
+      },
+      {
+        "pgid": 34790,
+        "members": []
+      },
+      {
+        "pgid": 35185,
+        "members": []
+      },
+      {
+        "pgid": 35474,
+        "members": []
+      },
+      {
+        "pgid": 35754,
+        "members": []
+      },
+      {
+        "pgid": 36097,
+        "members": []
+      },
+      {
+        "pgid": 36480,
+        "members": []
+      }
+    ]
+  },
+  "loads": [
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/run.mjs",
+      "sha256": "d5813cbd3fc0227c6ebc2a48ed6206fb9464128ad4ec039bf7328da0560396ed",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/prerequisites-01/recipe/common.mjs",
+      "sha256": "2e381c611302ecd3cc6a0ded5bb016d2671a3f344aac633c916c76713131bc1f",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/synthetic-controls.mjs",
+      "sha256": "05fc8d5cfd1c781ebdffc1f8fd004289d76ee724363ecbc988167064c7c94202",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/terminal-predicate.mjs",
+      "sha256": "c18dbe90c7bb0648b35c0a0d9e42c0fa5390657fc03d981b967464598691d5cf",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-controls.mjs",
+      "sha256": "d4208d79df5eddb3efe452aff0246e46ad33fda10714ff50e6cf5eb22b09f9a9",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/authenticate.mjs",
+      "sha256": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/aggregation.mjs",
+      "sha256": "1a6dc464baccc9ac854eba8cd1643595dbb36a4d011247d2f9920e578f59b49d",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 33930,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/bindings.mjs",
+      "sha256": "04ebbcbf54fcbb8eab15233741b818e74c993e17387b634f9b35e980f24199fc",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 34212,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 34212,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 34507,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 34507,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 34790,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 34790,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 35185,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 35185,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 35474,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 35474,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 35754,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 35754,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 36097,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 36097,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 36480,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs",
+      "sha256": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 36480,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 36633,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/read-only-verifier.mjs",
+      "sha256": "69b12ef36c077431a97fbaa4ba49263c11b3b61f549d6eb37c76ef790b1a19cb",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 36633,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/bindings.mjs",
+      "sha256": "04ebbcbf54fcbb8eab15233741b818e74c993e17387b634f9b35e980f24199fc",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 36633,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs",
+      "sha256": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "nextLoad": true,
+      "transformed": false
+    },
+    {
+      "pid": 36633,
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/authenticate.mjs",
+      "sha256": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+      "nextLoad": true,
+      "transformed": false
+    }
+  ],
+  "post": {
+    "at": "2026-08-28T00:54:11.562Z",
+    "protectedIndependentFiles": 44,
+    "authorFiles": 176,
+    "priorFiles": 78,
+    "tools": {
+      "node": {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      "git": {
+        "path": "/usr/bin/git",
+        "realpath": "/usr/bin/git",
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+      },
+      "ps": {
+        "path": "/bin/ps",
+        "realpath": "/bin/ps",
+        "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+      },
+      "tar": {
+        "path": "/usr/bin/tar",
+        "realpath": "/usr/bin/bsdtar",
+        "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+        "lstatSymlink": true
+      }
+    },
+    "authorAuthentication": {
+      "at": "2026-08-28T00:54:09.874Z",
+      "freeze": "e27a62c40a317deae83fc1ef9d41d57f38d7d51d",
+      "manifestSha256": "968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980",
+      "tools": {
+        "node": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "git": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+        "ps": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+      },
+      "sources": {
+        "v2-seal": "82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7",
+        "v2-core": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+        "v2-producer": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+        "v2-controls": "f060af44af319af2a9f808857c2018d19e0c1d5ce52aae2fcbbdf89775261016",
+        "diagnosis": "e44cf29f08c9d5fef8fbc377e929a1c4e6bc8039a4a419f1f28656ab6db94e6b",
+        "diagnosis-manifest": "499314cd3672714796aed5244cea61d996cb654ea9b267374e15c540bb16c9a9",
+        "independent-supervisor": "f61f1d9ab315e984cfd6da3d9b398e02c56741b881d936441dd93240a30061a6",
+        "v3-recipe-PIN.json": "04e113086b826ffacce1920b64146395b1a160c79939858080428e31033f31cb",
+        "v3-recipe-RECIPE.data": "42585180518254b68a734649ac72082811a7eea8cb0467537cd159d29dbaa186",
+        "v3-recipe-STATIC-CHECKS.json": "aef3a7194def4b3dab1e12a2a1ae35938a7732df218a41b9af288c952c301c72",
+        "v3-recipe-STATIC-FAILURE-01.data": "2435bfed475a280f86f956082c845f62c40b19918e1639ed9aa8796089efc5c5",
+        "v3-recipe-authenticate.mjs": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+        "v3-recipe-coordinator.mjs": "b14647986c684491dd4107f6457cdda2843cc2edd99e4b174a74b478a4be5674",
+        "v3-recipe-core.mjs": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+        "v3-recipe-producer-observer.mjs": "77e9d5c70d02f7422fbb17292aa15ab8ccd797a306bf437a428f3e63c1c5cf85",
+        "v3-recipe-stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+        "v3-recipe-telemetry.mjs": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+        "v3-recipe-worker.mjs": "12a85db40f94cc175d40bb495cefa007ced2ae51f56754d60c7bd268937c0a5a",
+        "v3-recipe-MANIFEST.json": "35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037",
+        "v3-evidence-MANIFEST.json": "0399f7e288c22a52447383684a1d3d790d066171041e299bf41eb042e783454c",
+        "v3-evidence-REPORT.data": "ebb46fb5ea509ef4368243af9f4ccf55a45e1aaf8415b40f5a8928d6da9fa12b",
+        "v3-evidence-execution-01/SUMMARY.json": "de167072d6b7957405528e21c325e5cbaf9830b72e56a4fe8489ce43e24f9985",
+        "v3-evidence-execution-01/03-consumer-failure/RAW-RECEIPT.json": "b80a621534ab1d730ffa0ecb5f15696bf96cb7cb03a6f675bb94905d81a974ff",
+        "v3-evidence-execution-01/03-consumer-failure/consumer.receipt.json": "53a7813fc8dad47dff87e428c349517b8a5a2dd9085eedadd18b0b6ec9e8881e",
+        "v3-evidence-execution-01/03-consumer-failure/supervisor.events.jsonl": "3e7f3c1e0542776833399000190fdfb92fff958f44ee27c563dfe9f9df8dd0dc",
+        "v31-MANIFEST.json": "d2adbd44b2ab241c04fa1523ea18ee7d0350a3ad0c5c12e503f936444fb0eba2",
+        "v31-REPORT.data": "115c918b15df9adc7fd62ccdf183d2beb7feebbe67e21a4d1f841a6b18ade086",
+        "v31-VALIDATION.json": "aa77d53a0a3fe22e971287871717d728f858cde3ad9bf6f6257aa0c5434d8078",
+        "v31-execution-01.exit.data": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+        "v31-execution-01.stderr.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01.stdout.data": "b91267f8617a958cbb1a13eda91eb11b61d1b84b1fd754855db8489d3ab940b7",
+        "v31-execution-01/01-positive/RAW-RECEIPT.json": "cbe7eba340229907412fc91548a28b4fb84c8d9b34d34d605414670fd17df60c",
+        "v31-execution-01/01-positive/START.json": "be5c8ff4daddcd60df98dfaabe7aeb28871b08ee565de9e1efd9c0715529a891",
+        "v31-execution-01/01-positive/VERDICT.json": "12bf0d2678ff179ee513ae26728634fc735f41a6ca61d76536294ff39a3c4f28",
+        "v31-execution-01/01-positive/consumer.receipt.json": "1ac47b9c82d4296038a3eacc3779946a2646b64680ba1ec16c952708a0b4c1ee",
+        "v31-execution-01/01-positive/consumer.samples.jsonl": "b2c13ad978f230ec93faafca6f2f302cb0e809608d9905f775b77b892b1f78f6",
+        "v31-execution-01/01-positive/producer.receipt.json": "c5c835b2f801fb67cfd4236ce308e478b8e3512f2827558e81960283e7276c0f",
+        "v31-execution-01/01-positive/producer.samples.jsonl": "c92053db11690843e5a8437e7014410cfd4ea5768be3405878b392be709be68e",
+        "v31-execution-01/01-positive/producer.start.json": "54c0453ddb0b7fd5e12e83a106d5aa5e7bccf932f600e14dadd96632f3d38fea",
+        "v31-execution-01/01-positive/stderr.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01/01-positive/stdout.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01/01-positive/supervisor.events.jsonl": "68200be7bffe29b16daa39153de9e62e76365cceb5c98fa60eb63ba0530606bf",
+        "v31-execution-01/02-producer-exit7/RAW-RECEIPT.json": "58d17f5fd7c0f454ea18635f1d1a808b29d52382953dbb80b4eada33b41747e9",
+        "v31-execution-01/02-producer-exit7/START.json": "6c41b4d45d0a3dc4718c6be43d9f7c775db42639406f101c1980f2348a311b3c",
+        "v31-execution-01/02-producer-exit7/VERDICT.json": "eee4ced98751071a3742d415495f69703625789d91635744954f9eb513c4e38a",
+        "v31-execution-01/02-producer-exit7/consumer.receipt.json": "d8b07b1a85ff53b2a741a460cf5335fde20cad46a65c6f96bbc91f812c603599",
+        "v31-execution-01/02-producer-exit7/consumer.samples.jsonl": "bd3c3de2f79b56f81f21dce3c6c413c11ead42ae88a55f6f076e8daaa6721707",
+        "v31-execution-01/02-producer-exit7/producer.receipt.json": "0a920dce62af5c11dcccfa23297ad394e7099d63bc4e012e324b20cf73aa6037",
+        "v31-execution-01/02-producer-exit7/producer.samples.jsonl": "0d216058e7c817b257bda6bf4a25050befd0a45c92869320d901a9dac60ccbb2",
+        "v31-execution-01/02-producer-exit7/producer.start.json": "935856cf2c6fb381aaea5e1f9ca3b8c0ac1610d31085986a407bb83509676e10",
+        "v31-execution-01/02-producer-exit7/stderr.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01/02-producer-exit7/stdout.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01/02-producer-exit7/supervisor.events.jsonl": "bd036942da08dab5a5ee4540f8530c91f14434b48efe9941e3c184cdb784e823",
+        "v31-execution-01/03-consumer-failure/CALLER-FAILURE.json": "dc5fa84f4b68b96117cc40abef7a1ef9a9b933965cb26d50a42ab49ed41aaa50",
+        "v31-execution-01/03-consumer-failure/CONSUMER-OBSERVATION.json": "9c7d1c724eee3047b3eb85fef8dbe4aa0767cf15350cbadf5f091438f52570f0",
+        "v31-execution-01/03-consumer-failure/PRODUCER-UNCAUGHT.json": "e7ad42b324e2dbad4ba0702a285bba61a6ad639806844d98cc50b432daf306a5",
+        "v31-execution-01/03-consumer-failure/RAW-RECEIPT.json": "c56d710c91c25f9982739bbb49952336816a94464b8f048d48dddf6fcb480c98",
+        "v31-execution-01/03-consumer-failure/START.json": "0268cd460bed63017f7dbc67092cf113da2aa11a16a3ff6b2de5ab237e4ef8d5",
+        "v31-execution-01/03-consumer-failure/TERMINAL-PREDICATE.json": "e234f8f51cc05c40ed8447aa5542479087408814e67e9401b49d78e9e2c9c5ab",
+        "v31-execution-01/03-consumer-failure/VERDICT.json": "eb2ca7336684fd3ca46c05a77b8327be61e86594fdde98aef3f9122211539153",
+        "v31-execution-01/03-consumer-failure/consumer.receipt.json": "10f954c0592a38e5fca0a25aed0a5b63e81a8ada5b506fbbf091b97956eb361d",
+        "v31-execution-01/03-consumer-failure/consumer.samples.jsonl": "b5bd0a1b4af3b2af87fb2b65f08fc0ec5abcf0763073596a55cca0faa835446e",
+        "v31-execution-01/03-consumer-failure/producer.receipt.json": "31f085e8408ff8b7bbabe5c8d65fc3ab8a037856648bc028b9b9774c3ab6c884",
+        "v31-execution-01/03-consumer-failure/producer.samples.jsonl": "f6ae671120ed33606de1b8ad16390c11671b6650142bc9a34eb51168a6a9bb1a",
+        "v31-execution-01/03-consumer-failure/producer.start.json": "e63a45df5ede52c87d3813655413619246ef79f8786b7ee9323ad87ca9a837ce",
+        "v31-execution-01/03-consumer-failure/stderr.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01/03-consumer-failure/stdout.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01/03-consumer-failure/supervisor.events.jsonl": "8acb631f69c4b4f79a73237f43374a52c3ff3e2e881a753676d522d5a71ef3cb",
+        "v31-execution-01/04-timeout/RAW-RECEIPT.json": "9ae3a58e42f7c9b785c81e5fce34dc64e8ecad9e10442f9ba01b1e683ab01699",
+        "v31-execution-01/04-timeout/START.json": "604f4ec6efbe7bbabb2b7e7a7b9845f8e79b27baae85359193543d9ae5ea26df",
+        "v31-execution-01/04-timeout/VERDICT.json": "db9efa6a35541fb6a66c9947559a4d22e38bc0ed1be5b8b81071819841a0048b",
+        "v31-execution-01/04-timeout/consumer.receipt.json": "515b1c2cee5e07a3129f37276b25c26212c6d9f657115c0364e779a10e923bbd",
+        "v31-execution-01/04-timeout/consumer.samples.jsonl": "052c35bc46ac45229b0108941c30f7492f0985931d56c78542a77ba6f0af5991",
+        "v31-execution-01/04-timeout/producer.receipt.json": "936591048b462570a92d839cfcdadce8906c13c44b9f417c8591d71293a24a9b",
+        "v31-execution-01/04-timeout/producer.samples.jsonl": "110e9baeb582e88b3903e3af28837d83f2c8f7103acea7ca298004796202edfa",
+        "v31-execution-01/04-timeout/producer.start.json": "02ced7d1ade8e5febdde5c966d4a21373a663dad20c8c35da4a69a15c4d8755d",
+        "v31-execution-01/04-timeout/stderr.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01/04-timeout/stdout.data": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "v31-execution-01/04-timeout/supervisor.events.jsonl": "b9d890c0bca562d750f050d198fdb84d3a4680c25cc03ba9f5f43f0b7f333468",
+        "v31-execution-01/POST.json": "d317d5ccfa9ba6966b5c888eeb579f3f913b1dd496ef08bca590dcdd0f36775b",
+        "v31-execution-01/PRE.json": "b7b1101dbcd9f8c167a3fe7fc65dd5423c7f2a09dd3d887a94226432fa1c6845",
+        "v31-execution-01/SUMMARY.json": "c91f1b7b8d9b2c3fd4f997b1875318415db722dc7747c652764cd34f220eb230",
+        "v31-execution-01/SYNTHETIC-INPUTS.json": "26df06ebb2523a38198d3e8fb9cc3a5ad7bd056a578bf90dab38c9d8724f5232",
+        "v31-execution-01/SYNTHETIC-RESULTS.json": "80e772146c7b058a361bae0e63fa73f5fda33bacefb8f03f317332b1e9d3830f",
+        "v31-recipe/AMENDMENT.json": "8eeae2c05fd39ce4332ed728340657b463757225f5b6d3e0731a9c45da99116e",
+        "v31-recipe/MANIFEST.json": "0974e68b90790ff10296997e0c03c9f3883b87a0e7ec4d68e5fed4ef57cbe4a3",
+        "v31-recipe/PIN.json": "10a7426689ce09863e1db949826b9b7f3b7872ecc43cd0b9d173187cc4487c69",
+        "v31-recipe/RECIPE.data": "a175bcabd14f51a50196e1e1ca3029264fd5edc9daa2479dd4337172eb4075cd",
+        "v31-recipe/STATIC-CHECKS.json": "09d97bcb18055caa03b57ac69a24a629b106c706b6a73a48ae15af4dddf67c35",
+        "v31-recipe/STATIC-FINAL.json": "702871e46da2a066047b24f93e05b78bd0c9aa5742b39e9c672bfbb3029838ac",
+        "v31-recipe/STATIC-MISTAKE-01.json": "dd2653ee5212b20a9a68d7ef22c67721fd5c9a297ef0c3d0e8bbc19d5298720a",
+        "v31-recipe/SYNTHETIC-CASES.json": "9031bea4a7bcb6a06866b378c71b55042a22d86a933ab8217aa6a545169169bd",
+        "v31-recipe/authenticate.mjs": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+        "v31-recipe/consumer-observation.mjs": "bf45931f2e5b6ad7d5b90140444fadc010f3df58dfc6805fbb34a078ba51e977",
+        "v31-recipe/coordinator.mjs": "ea67c3b73e5af666c660a0d8bb76ac8a02bfd59b35d2d4eb17d35bfda91988ff",
+        "v31-recipe/core.mjs": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+        "v31-recipe/producer-observer.mjs": "5394054ac87d331a327ef31a3e57fc3c00dd3213b69438f4160c269e734c3ca0",
+        "v31-recipe/stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+        "v31-recipe/synthetic-controls.mjs": "05fc8d5cfd1c781ebdffc1f8fd004289d76ee724363ecbc988167064c7c94202",
+        "v31-recipe/telemetry.mjs": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+        "v31-recipe/terminal-predicate.mjs": "c18dbe90c7bb0648b35c0a0d9e42c0fa5390657fc03d981b967464598691d5cf",
+        "v31-recipe/worker.mjs": "7cbf5454c97b20033515147934eff2b2e57e4e711612806fc9b81a1358449eb0",
+        "v31-verify-evidence.mjs": "f48d342d287def774f80626371da6a64c86f91e5ab6d22d3694ce4369c0508f3"
+      },
+      "recipeInventory": {
+        "files": {
+          "AMENDMENT.json": "482881b2cb7f8c8fa16d2c0d8694cc8d73b26d39b0775e185e1bb455c9338cb8",
+          "FORWARDING-CASES.json": "d2f13d58fd3a60940b738300840bb5ac5a3a634f00d969519d13693d63f5d707",
+          "MANIFEST.json": "968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980",
+          "PIN.json": "20aedb352f1f4becb0e61d982afe16ef4b8e754d247d536f3d1c3dbef4a45fef",
+          "RECIPE.data": "d1db638667bfc214b2b1a53f5fdc963d8c159a4e037aa442641096b939c686d0",
+          "STATIC-CHECKS.json": "15f7a4b7c1445545424124b3bf98d4fa4c7c543e131c177ff513f801db0f2243",
+          "STATIC-FINAL.json": "7a50dd0b69746f726679f5100564f0dae054609d0b7528aa1ae2c374e240cf42",
+          "SYNTHETIC-CASES.json": "9031bea4a7bcb6a06866b378c71b55042a22d86a933ab8217aa6a545169169bd",
+          "aggregation.mjs": "1a6dc464baccc9ac854eba8cd1643595dbb36a4d011247d2f9920e578f59b49d",
+          "authenticate.mjs": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+          "bindings.mjs": "04ebbcbf54fcbb8eab15233741b818e74c993e17387b634f9b35e980f24199fc",
+          "consumer-observation.mjs": "bf45931f2e5b6ad7d5b90140444fadc010f3df58dfc6805fbb34a078ba51e977",
+          "coordinator.mjs": "56ff7bdc05f5546b79fbd401f33f8b930e5081a1708a65cb5b3d177938d6049d",
+          "core.mjs": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+          "forwarding-controls.mjs": "d4208d79df5eddb3efe452aff0246e46ad33fda10714ff50e6cf5eb22b09f9a9",
+          "forwarding-worker.mjs": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+          "ordered-stop.mjs": "10522969618bd623307dfeaf8f25e9722181561e9718c4b3d931fa2dc0bc81d5",
+          "producer-observer.mjs": "5394054ac87d331a327ef31a3e57fc3c00dd3213b69438f4160c269e734c3ca0",
+          "stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+          "synthetic-controls.mjs": "05fc8d5cfd1c781ebdffc1f8fd004289d76ee724363ecbc988167064c7c94202",
+          "telemetry.mjs": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+          "terminal-predicate.mjs": "c18dbe90c7bb0648b35c0a0d9e42c0fa5390657fc03d981b967464598691d5cf",
+          "worker.mjs": "fb92f472913624dec312b7de2de014bcb8ddfb8d2a47d7e4c83e5c9e141004fd"
+        },
+        "directories": []
+      },
+      "candidateRuntime": 0,
+      "archiveReplay": false,
+      "oldLiveFilesAuthenticated": 78
+    }
+  },
+  "summary": {
+    "invocation": 1,
+    "retries": 0,
+    "realResourceCasesExecuted": 0,
+    "declared": 75,
+    "synthetic": {
+      "synthetic": true,
+      "declared": 28,
+      "executed": 28,
+      "expectedOutcomes": 28,
+      "unexecuted": [],
+      "allExpected": true,
+      "rows": [
+        {
+          "name": "original-SIGTERM",
+          "expectedAccepted": true,
+          "expectedReason": "original-SIGTERM",
+          "actual": {
+            "accepted": true,
+            "reason": "original-SIGTERM",
+            "terminal": "SIGTERM"
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "structured-EPIPE",
+          "expectedAccepted": true,
+          "expectedReason": "structured-closed-consumer-EPIPE",
+          "actual": {
+            "accepted": true,
+            "reason": "structured-closed-consumer-EPIPE",
+            "terminal": "exit1/EPIPE"
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "substring-only",
+          "expectedAccepted": false,
+          "expectedReason": "structured-observation",
+          "actual": {
+            "accepted": false,
+            "reason": "structured-observation",
+            "detail": "structured-observation",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "counterfeit-code-not-stdout-error",
+          "expectedAccepted": false,
+          "expectedReason": "stdout-error-identity",
+          "actual": {
+            "accepted": false,
+            "reason": "stdout-error-identity",
+            "detail": "stdout-error-identity",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "missing-code",
+          "expectedAccepted": false,
+          "expectedReason": "error-code",
+          "actual": {
+            "accepted": false,
+            "reason": "error-code",
+            "detail": "error-code",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "unrelated-error",
+          "expectedAccepted": false,
+          "expectedReason": "error-code",
+          "actual": {
+            "accepted": false,
+            "reason": "error-code",
+            "detail": "error-code",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "wrong-syscall",
+          "expectedAccepted": false,
+          "expectedReason": "error-syscall",
+          "actual": {
+            "accepted": false,
+            "reason": "error-syscall",
+            "detail": "error-syscall",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "wrong-errno",
+          "expectedAccepted": false,
+          "expectedReason": "error-context",
+          "actual": {
+            "accepted": false,
+            "reason": "error-context",
+            "detail": "error-context",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "unrelated-exit1",
+          "expectedAccepted": false,
+          "expectedReason": "structured-observation",
+          "actual": {
+            "accepted": false,
+            "reason": "structured-observation",
+            "detail": "structured-observation",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "wrong-exit-status",
+          "expectedAccepted": false,
+          "expectedReason": "epipe-exit-status",
+          "actual": {
+            "accepted": false,
+            "reason": "epipe-exit-status",
+            "detail": "epipe-exit-status",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "status-receipt-mismatch",
+          "expectedAccepted": false,
+          "expectedReason": "terminal-status",
+          "actual": {
+            "accepted": false,
+            "reason": "terminal-status",
+            "detail": "terminal-status",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "mismatched-observer-PID",
+          "expectedAccepted": false,
+          "expectedReason": "observer-binding",
+          "actual": {
+            "accepted": false,
+            "reason": "observer-binding",
+            "detail": "observer-binding",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "mismatched-run-token",
+          "expectedAccepted": false,
+          "expectedReason": "observer-binding",
+          "actual": {
+            "accepted": false,
+            "reason": "observer-binding",
+            "detail": "observer-binding",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "mismatched-consumer-context",
+          "expectedAccepted": false,
+          "expectedReason": "closed-consumer-context",
+          "actual": {
+            "accepted": false,
+            "reason": "closed-consumer-context",
+            "detail": "closed-consumer-context",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "missing-parent-reap",
+          "expectedAccepted": false,
+          "expectedReason": "reap-barrier",
+          "actual": {
+            "accepted": false,
+            "reason": "reap-barrier",
+            "detail": "reap-barrier",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "producer-not-reaped-at-core-settlement",
+          "expectedAccepted": false,
+          "expectedReason": "core-barrier",
+          "actual": {
+            "accepted": false,
+            "reason": "core-barrier",
+            "detail": "core-barrier",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "wrong-consumer-reason",
+          "expectedAccepted": false,
+          "expectedReason": "exact-caller-failure",
+          "actual": {
+            "accepted": false,
+            "reason": "exact-caller-failure",
+            "detail": "exact-caller-failure",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "wrong-forwarded-reason",
+          "expectedAccepted": false,
+          "expectedReason": "exact-caller-failure",
+          "actual": {
+            "accepted": false,
+            "reason": "exact-caller-failure",
+            "detail": "exact-caller-failure",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "positive-path-EPIPE",
+          "expectedAccepted": false,
+          "expectedReason": "case-only",
+          "actual": {
+            "accepted": false,
+            "reason": "case-only",
+            "detail": "case-only",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "missing-pipe-close",
+          "expectedAccepted": false,
+          "expectedReason": "chronology",
+          "actual": {
+            "accepted": false,
+            "reason": "chronology",
+            "detail": "chronology",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "missing-caller-proof",
+          "expectedAccepted": false,
+          "expectedReason": "caller-context",
+          "actual": {
+            "accepted": false,
+            "reason": "caller-context",
+            "detail": "caller-context",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "wrong-producer-parent",
+          "expectedAccepted": false,
+          "expectedReason": "pid-binding",
+          "actual": {
+            "accepted": false,
+            "reason": "pid-binding",
+            "detail": "pid-binding",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "not-consumer-pipe",
+          "expectedAccepted": false,
+          "expectedReason": "pipe-binding",
+          "actual": {
+            "accepted": false,
+            "reason": "pipe-binding",
+            "detail": "pipe-binding",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "unbounded-settlement",
+          "expectedAccepted": false,
+          "expectedReason": "bounded-settlement",
+          "actual": {
+            "accepted": false,
+            "reason": "bounded-settlement",
+            "detail": "bounded-settlement",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "wrong-consumer-exit",
+          "expectedAccepted": false,
+          "expectedReason": "consumer-status",
+          "actual": {
+            "accepted": false,
+            "reason": "consumer-status",
+            "detail": "consumer-status",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "unreadable-caller-marker",
+          "expectedAccepted": false,
+          "expectedReason": "closed-consumer-context",
+          "actual": {
+            "accepted": false,
+            "reason": "closed-consumer-context",
+            "detail": "closed-consumer-context",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "wrong-output-descriptor",
+          "expectedAccepted": false,
+          "expectedReason": "stdout-error-identity",
+          "actual": {
+            "accepted": false,
+            "reason": "stdout-error-identity",
+            "detail": "stdout-error-identity",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        },
+        {
+          "name": "replaced-caller-error-object",
+          "expectedAccepted": false,
+          "expectedReason": "exact-caller-failure",
+          "actual": {
+            "accepted": false,
+            "reason": "exact-caller-failure",
+            "detail": "exact-caller-failure",
+            "terminal": null
+          },
+          "expectedOutcome": true
+        }
+      ]
+    },
+    "forwarding": {
+      "actual": [
+        {
+          "name": "ordinary-failure-continues-after-reap",
+          "expected": true,
+          "cohort": {
+            "rows": [
+              {
+                "mode": "semantic-failure",
+                "outcome": "unexpected-control-failure",
+                "safety": {
+                  "safe": true,
+                  "missing": [],
+                  "proof": {
+                    "bindingsIntact": true,
+                    "receiptPresent": true,
+                    "numericReceiptPresent": true,
+                    "closeObserved": true,
+                    "reaped": true,
+                    "groupEmpty": true,
+                    "cleanupComplete": true
+                  }
+                },
+                "physicalSafety": true,
+                "receiptReason": "EXACT_FORWARDING_REASON",
+                "close": {
+                  "code": 17,
+                  "signal": null
+                },
+                "signals": []
+              },
+              {
+                "mode": "marker",
+                "outcome": "expected-control-outcome",
+                "safety": {
+                  "safe": true,
+                  "missing": [],
+                  "proof": {
+                    "bindingsIntact": true,
+                    "receiptPresent": true,
+                    "numericReceiptPresent": true,
+                    "closeObserved": true,
+                    "reaped": true,
+                    "groupEmpty": true,
+                    "cleanupComplete": true
+                  }
+                },
+                "physicalSafety": true,
+                "receiptReason": "EXACT_FORWARDING_REASON",
+                "close": {
+                  "code": 0,
+                  "signal": null
+                },
+                "signals": []
+              }
+            ],
+            "unexecuted": [],
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "cleanup-escalation-stops-marker",
+          "expected": true,
+          "cohort": {
+            "rows": [
+              {
+                "mode": "ignore-term",
+                "outcome": "unexpected-control-failure",
+                "safety": {
+                  "safe": false,
+                  "missing": [
+                    "cleanupComplete"
+                  ],
+                  "proof": {
+                    "bindingsIntact": true,
+                    "receiptPresent": true,
+                    "numericReceiptPresent": true,
+                    "closeObserved": true,
+                    "reaped": true,
+                    "groupEmpty": true,
+                    "cleanupComplete": false
+                  }
+                },
+                "physicalSafety": true,
+                "receiptReason": "EXACT_FORWARDING_REASON",
+                "close": {
+                  "code": null,
+                  "signal": "SIGKILL"
+                },
+                "signals": [
+                  {
+                    "signal": "SIGTERM",
+                    "accepted": true,
+                    "at": "2026-08-28T00:53:19.191Z"
+                  },
+                  {
+                    "signal": "SIGKILL",
+                    "accepted": true,
+                    "at": "2026-08-28T00:53:22.197Z"
+                  }
+                ]
+              }
+            ],
+            "unexecuted": [
+              "marker"
+            ],
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "private-binding-mismatch-stops-marker",
+          "expected": true,
+          "cohort": {
+            "rows": [
+              {
+                "mode": "binding-change",
+                "outcome": "expected-control-outcome",
+                "safety": {
+                  "safe": false,
+                  "missing": [
+                    "bindingsIntact"
+                  ],
+                  "proof": {
+                    "bindingsIntact": false,
+                    "receiptPresent": true,
+                    "numericReceiptPresent": true,
+                    "closeObserved": true,
+                    "reaped": true,
+                    "groupEmpty": true,
+                    "cleanupComplete": true
+                  }
+                },
+                "physicalSafety": true,
+                "receiptReason": "EXACT_FORWARDING_REASON",
+                "close": {
+                  "code": 0,
+                  "signal": null
+                },
+                "signals": []
+              }
+            ],
+            "unexecuted": [
+              "marker"
+            ],
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "missing-receipt-stops-marker",
+          "expected": true,
+          "cohort": {
+            "rows": [
+              {
+                "mode": "missing-receipt",
+                "outcome": "unexpected-control-failure",
+                "safety": {
+                  "safe": false,
+                  "missing": [
+                    "receiptPresent",
+                    "numericReceiptPresent"
+                  ],
+                  "proof": {
+                    "bindingsIntact": true,
+                    "receiptPresent": false,
+                    "numericReceiptPresent": false,
+                    "closeObserved": true,
+                    "reaped": true,
+                    "groupEmpty": true,
+                    "cleanupComplete": true
+                  }
+                },
+                "physicalSafety": true,
+                "close": {
+                  "code": 0,
+                  "signal": null
+                },
+                "signals": []
+              }
+            ],
+            "unexecuted": [
+              "marker"
+            ],
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "omitted-reap-proof-stops-marker",
+          "expected": true,
+          "cohort": {
+            "rows": [
+              {
+                "mode": "omit-reap-proof",
+                "outcome": "expected-control-outcome",
+                "safety": {
+                  "safe": false,
+                  "missing": [
+                    "reaped"
+                  ],
+                  "proof": {
+                    "bindingsIntact": true,
+                    "receiptPresent": true,
+                    "numericReceiptPresent": true,
+                    "closeObserved": true,
+                    "reaped": false,
+                    "groupEmpty": true,
+                    "cleanupComplete": true
+                  }
+                },
+                "physicalSafety": true,
+                "receiptReason": "EXACT_FORWARDING_REASON",
+                "close": {
+                  "code": 0,
+                  "signal": null
+                },
+                "signals": []
+              }
+            ],
+            "unexecuted": [
+              "marker"
+            ],
+            "exitCode": 1
+          }
+        },
+        {
+          "name": "wrong-reason-fails-and-continues",
+          "expected": true,
+          "cohort": {
+            "rows": [
+              {
+                "mode": "wrong-reason",
+                "outcome": "unexpected-control-failure",
+                "safety": {
+                  "safe": true,
+                  "missing": [],
+                  "proof": {
+                    "bindingsIntact": true,
+                    "receiptPresent": true,
+                    "numericReceiptPresent": true,
+                    "closeObserved": true,
+                    "reaped": true,
+                    "groupEmpty": true,
+                    "cleanupComplete": true
+                  }
+                },
+                "physicalSafety": true,
+                "receiptReason": "WRONG_REASON",
+                "close": {
+                  "code": 0,
+                  "signal": null
+                },
+                "signals": []
+              },
+              {
+                "mode": "marker",
+                "outcome": "expected-control-outcome",
+                "safety": {
+                  "safe": true,
+                  "missing": [],
+                  "proof": {
+                    "bindingsIntact": true,
+                    "receiptPresent": true,
+                    "numericReceiptPresent": true,
+                    "closeObserved": true,
+                    "reaped": true,
+                    "groupEmpty": true,
+                    "cleanupComplete": true
+                  }
+                },
+                "physicalSafety": true,
+                "receiptReason": "EXACT_FORWARDING_REASON",
+                "close": {
+                  "code": 0,
+                  "signal": null
+                },
+                "signals": []
+              }
+            ],
+            "unexecuted": [],
+            "exitCode": 1
+          }
+        }
+      ],
+      "predicates": [
+        {
+          "name": "strict-timeout-accepted",
+          "accepted": true,
+          "expected": true
+        },
+        {
+          "name": "strict-allocation-accepted",
+          "accepted": true,
+          "expected": true
+        },
+        {
+          "name": "timeout-reason-lost-rejected",
+          "accepted": false,
+          "expected": true
+        },
+        {
+          "name": "allocation-reason-lost-rejected",
+          "accepted": false,
+          "expected": true
+        },
+        {
+          "name": "timeout-exit1-rejected",
+          "accepted": false,
+          "expected": true
+        },
+        {
+          "name": "allocation-exit1-rejected",
+          "accepted": false,
+          "expected": true
+        },
+        {
+          "name": "same-error-identity-lost-rejected",
+          "accepted": false,
+          "expected": true
+        },
+        {
+          "name": "pipe-closed-before-exit-rejected",
+          "accepted": false,
+          "expected": true
+        }
+      ],
+      "safe": true,
+      "actualDeclared": 6,
+      "syntheticDeclared": 8,
+      "qualification": "Actual supervised small child processes exercise the shared aggregation/safety logic, receipts, close and SIGTERM/SIGKILL escalation. Private fixture binding corruption does not alter recipe bindings. Omitted reap proof is deliberately injected only after actual reaping. Synthetic ordered predicates use constructed records, not real producer executions. Actual five stream controls remain separate.",
+      "allExpected": true
+    },
+    "readonly": {
+      "pid": 36633,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "checks": [
+        {
+          "name": "frozen recipe, tools, immutable history and all 78 live prior files",
+          "passed": true
+        },
+        {
+          "name": "summary is bound to the exact sole launch",
+          "passed": true
+        },
+        {
+          "name": "positive: saved verdict and safety unchanged in summary",
+          "passed": true
+        },
+        {
+          "name": "positive: receipt copies match exact persisted numeric records",
+          "passed": true
+        },
+        {
+          "name": "positive: saved output hashes",
+          "passed": true
+        },
+        {
+          "name": "positive: consumer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "positive: producer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "positive: read-only binding attestation provenance",
+          "passed": true
+        },
+        {
+          "name": "producer-exit7: saved verdict and safety unchanged in summary",
+          "passed": true
+        },
+        {
+          "name": "producer-exit7: receipt copies match exact persisted numeric records",
+          "passed": true
+        },
+        {
+          "name": "producer-exit7: saved output hashes",
+          "passed": true
+        },
+        {
+          "name": "producer-exit7: consumer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "producer-exit7: producer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "producer-exit7: read-only binding attestation provenance",
+          "passed": true
+        },
+        {
+          "name": "consumer-failure: saved verdict and safety unchanged in summary",
+          "passed": true
+        },
+        {
+          "name": "consumer-failure: receipt copies match exact persisted numeric records",
+          "passed": true
+        },
+        {
+          "name": "consumer-failure: saved output hashes",
+          "passed": true
+        },
+        {
+          "name": "consumer-failure: consumer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "consumer-failure: producer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "consumer-failure: read-only binding attestation provenance",
+          "passed": true
+        },
+        {
+          "name": "timeout: saved verdict and safety unchanged in summary",
+          "passed": true
+        },
+        {
+          "name": "timeout: receipt copies match exact persisted numeric records",
+          "passed": true
+        },
+        {
+          "name": "timeout: saved output hashes",
+          "passed": true
+        },
+        {
+          "name": "timeout: consumer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "timeout: producer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "timeout: read-only binding attestation provenance",
+          "passed": true
+        },
+        {
+          "name": "allocation-mutant: saved verdict and safety unchanged in summary",
+          "passed": true
+        },
+        {
+          "name": "allocation-mutant: receipt copies match exact persisted numeric records",
+          "passed": true
+        },
+        {
+          "name": "allocation-mutant: saved output hashes",
+          "passed": true
+        },
+        {
+          "name": "allocation-mutant: consumer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "allocation-mutant: producer journal-to-receipt fieldwise consistency",
+          "passed": true
+        },
+        {
+          "name": "allocation-mutant: read-only binding attestation provenance",
+          "passed": true
+        },
+        {
+          "name": "forwarding and synthetic saved results match summary without predicate execution",
+          "passed": true
+        }
+      ],
+      "passed": 33,
+      "failed": 0,
+      "savedArtifacts": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2",
+      "fiveCasesReplayed": false
+    },
+    "errors": [],
+    "subjects": [
+      {
+        "mode": "semantic-failure",
+        "outcome": "unexpected-control-failure",
+        "safety": {
+          "safe": true,
+          "missing": [],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": 17,
+          "signal": null
+        },
+        "signals": [],
+        "pid": 34212,
+        "exit": {
+          "code": 17,
+          "signal": null
+        },
+        "closeObserved": true,
+        "pidState": "absent",
+        "groupMembers": []
+      },
+      {
+        "mode": "marker",
+        "outcome": "expected-control-outcome",
+        "safety": {
+          "safe": true,
+          "missing": [],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": [],
+        "pid": 34507,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "closeObserved": true,
+        "pidState": "absent",
+        "groupMembers": []
+      },
+      {
+        "mode": "ignore-term",
+        "outcome": "unexpected-control-failure",
+        "safety": {
+          "safe": false,
+          "missing": [
+            "cleanupComplete"
+          ],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": false
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "accepted": true,
+            "at": "2026-08-28T00:53:19.191Z"
+          },
+          {
+            "signal": "SIGKILL",
+            "accepted": true,
+            "at": "2026-08-28T00:53:22.197Z"
+          }
+        ],
+        "pid": 34790,
+        "exit": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "closeObserved": true,
+        "pidState": "absent",
+        "groupMembers": []
+      },
+      {
+        "mode": "binding-change",
+        "outcome": "expected-control-outcome",
+        "safety": {
+          "safe": false,
+          "missing": [
+            "bindingsIntact"
+          ],
+          "proof": {
+            "bindingsIntact": false,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": [],
+        "pid": 35185,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "closeObserved": true,
+        "pidState": "absent",
+        "groupMembers": []
+      },
+      {
+        "mode": "missing-receipt",
+        "outcome": "unexpected-control-failure",
+        "safety": {
+          "safe": false,
+          "missing": [
+            "receiptPresent",
+            "numericReceiptPresent"
+          ],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": false,
+            "numericReceiptPresent": false,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": [],
+        "pid": 35474,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "closeObserved": true,
+        "pidState": "absent",
+        "groupMembers": []
+      },
+      {
+        "mode": "omit-reap-proof",
+        "outcome": "expected-control-outcome",
+        "safety": {
+          "safe": false,
+          "missing": [
+            "reaped"
+          ],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": false,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": [],
+        "pid": 35754,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "closeObserved": true,
+        "pidState": "absent",
+        "groupMembers": []
+      },
+      {
+        "mode": "wrong-reason",
+        "outcome": "unexpected-control-failure",
+        "safety": {
+          "safe": true,
+          "missing": [],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "WRONG_REASON",
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": [],
+        "pid": 36097,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "closeObserved": true,
+        "pidState": "absent",
+        "groupMembers": []
+      },
+      {
+        "mode": "marker",
+        "outcome": "expected-control-outcome",
+        "safety": {
+          "safe": true,
+          "missing": [],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": [],
+        "pid": 36480,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "closeObserved": true,
+        "pidState": "absent",
+        "groupMembers": []
+      }
+    ],
+    "probe": {
+      "at": "2026-08-28T00:53:57.596Z",
+      "pids": [
+        {
+          "pid": 34212,
+          "state": "absent"
+        },
+        {
+          "pid": 34507,
+          "state": "absent"
+        },
+        {
+          "pid": 34790,
+          "state": "absent"
+        },
+        {
+          "pid": 35185,
+          "state": "absent"
+        },
+        {
+          "pid": 35474,
+          "state": "absent"
+        },
+        {
+          "pid": 35754,
+          "state": "absent"
+        },
+        {
+          "pid": 36097,
+          "state": "absent"
+        },
+        {
+          "pid": 36480,
+          "state": "absent"
+        }
+      ],
+      "groups": [
+        {
+          "pgid": 34212,
+          "members": []
+        },
+        {
+          "pgid": 34507,
+          "members": []
+        },
+        {
+          "pgid": 34790,
+          "members": []
+        },
+        {
+          "pgid": 35185,
+          "members": []
+        },
+        {
+          "pgid": 35474,
+          "members": []
+        },
+        {
+          "pgid": 35754,
+          "members": []
+        },
+        {
+          "pgid": 36097,
+          "members": []
+        },
+        {
+          "pgid": 36480,
+          "members": []
+        }
+      ]
+    },
+    "outcomes": [
+      {
+        "family": "consumer-predicate",
+        "name": "original-SIGTERM",
+        "expected": true,
+        "actual": {
+          "accepted": true,
+          "reason": "original-SIGTERM",
+          "terminal": "SIGTERM"
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "structured-EPIPE",
+        "expected": true,
+        "actual": {
+          "accepted": true,
+          "reason": "structured-closed-consumer-EPIPE",
+          "terminal": "exit1/EPIPE"
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "substring-only",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "structured-observation",
+          "detail": "structured-observation",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "counterfeit-code-not-stdout-error",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "stdout-error-identity",
+          "detail": "stdout-error-identity",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "missing-code",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "error-code",
+          "detail": "error-code",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "unrelated-error",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "error-code",
+          "detail": "error-code",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "wrong-syscall",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "error-syscall",
+          "detail": "error-syscall",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "wrong-errno",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "error-context",
+          "detail": "error-context",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "unrelated-exit1",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "structured-observation",
+          "detail": "structured-observation",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "wrong-exit-status",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "epipe-exit-status",
+          "detail": "epipe-exit-status",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "status-receipt-mismatch",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "terminal-status",
+          "detail": "terminal-status",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "mismatched-observer-PID",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "observer-binding",
+          "detail": "observer-binding",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "mismatched-run-token",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "observer-binding",
+          "detail": "observer-binding",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "mismatched-consumer-context",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "closed-consumer-context",
+          "detail": "closed-consumer-context",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "missing-parent-reap",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "reap-barrier",
+          "detail": "reap-barrier",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "producer-not-reaped-at-core-settlement",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "core-barrier",
+          "detail": "core-barrier",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "wrong-consumer-reason",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "exact-caller-failure",
+          "detail": "exact-caller-failure",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "wrong-forwarded-reason",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "exact-caller-failure",
+          "detail": "exact-caller-failure",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "positive-path-EPIPE",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "case-only",
+          "detail": "case-only",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "missing-pipe-close",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "chronology",
+          "detail": "chronology",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "missing-caller-proof",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "caller-context",
+          "detail": "caller-context",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "wrong-producer-parent",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "pid-binding",
+          "detail": "pid-binding",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "not-consumer-pipe",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "pipe-binding",
+          "detail": "pipe-binding",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "unbounded-settlement",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "bounded-settlement",
+          "detail": "bounded-settlement",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "wrong-consumer-exit",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "consumer-status",
+          "detail": "consumer-status",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "unreadable-caller-marker",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "closed-consumer-context",
+          "detail": "closed-consumer-context",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "wrong-output-descriptor",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "stdout-error-identity",
+          "detail": "stdout-error-identity",
+          "terminal": null
+        }
+      },
+      {
+        "family": "consumer-predicate",
+        "name": "replaced-caller-error-object",
+        "expected": true,
+        "actual": {
+          "accepted": false,
+          "reason": "exact-caller-failure",
+          "detail": "exact-caller-failure",
+          "terminal": null
+        }
+      },
+      {
+        "family": "forwarding-cohort",
+        "name": "ordinary-failure-continues-after-reap",
+        "expected": true,
+        "injectedAggregateExit": 1
+      },
+      {
+        "family": "forwarding-cohort",
+        "name": "cleanup-escalation-stops-marker",
+        "expected": true,
+        "injectedAggregateExit": 1
+      },
+      {
+        "family": "forwarding-cohort",
+        "name": "private-binding-mismatch-stops-marker",
+        "expected": true,
+        "injectedAggregateExit": 1
+      },
+      {
+        "family": "forwarding-cohort",
+        "name": "missing-receipt-stops-marker",
+        "expected": true,
+        "injectedAggregateExit": 1
+      },
+      {
+        "family": "forwarding-cohort",
+        "name": "omitted-reap-proof-stops-marker",
+        "expected": true,
+        "injectedAggregateExit": 1
+      },
+      {
+        "family": "forwarding-cohort",
+        "name": "wrong-reason-fails-and-continues",
+        "expected": true,
+        "injectedAggregateExit": 1
+      },
+      {
+        "family": "ordered-predicate",
+        "name": "strict-timeout-accepted",
+        "expected": true,
+        "accepted": true
+      },
+      {
+        "family": "ordered-predicate",
+        "name": "strict-allocation-accepted",
+        "expected": true,
+        "accepted": true
+      },
+      {
+        "family": "ordered-predicate",
+        "name": "timeout-reason-lost-rejected",
+        "expected": true,
+        "accepted": false
+      },
+      {
+        "family": "ordered-predicate",
+        "name": "allocation-reason-lost-rejected",
+        "expected": true,
+        "accepted": false
+      },
+      {
+        "family": "ordered-predicate",
+        "name": "timeout-exit1-rejected",
+        "expected": true,
+        "accepted": false
+      },
+      {
+        "family": "ordered-predicate",
+        "name": "allocation-exit1-rejected",
+        "expected": true,
+        "accepted": false
+      },
+      {
+        "family": "ordered-predicate",
+        "name": "same-error-identity-lost-rejected",
+        "expected": true,
+        "accepted": false
+      },
+      {
+        "family": "ordered-predicate",
+        "name": "pipe-closed-before-exit-rejected",
+        "expected": true,
+        "accepted": false
+      },
+      {
+        "family": "original-readonly",
+        "name": "frozen recipe, tools, immutable history and all 78 live prior files",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "summary is bound to the exact sole launch",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "positive: saved verdict and safety unchanged in summary",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "positive: receipt copies match exact persisted numeric records",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "positive: saved output hashes",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "positive: consumer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "positive: producer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "positive: read-only binding attestation provenance",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "producer-exit7: saved verdict and safety unchanged in summary",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "producer-exit7: receipt copies match exact persisted numeric records",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "producer-exit7: saved output hashes",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "producer-exit7: consumer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "producer-exit7: producer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "producer-exit7: read-only binding attestation provenance",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "consumer-failure: saved verdict and safety unchanged in summary",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "consumer-failure: receipt copies match exact persisted numeric records",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "consumer-failure: saved output hashes",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "consumer-failure: consumer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "consumer-failure: producer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "consumer-failure: read-only binding attestation provenance",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "timeout: saved verdict and safety unchanged in summary",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "timeout: receipt copies match exact persisted numeric records",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "timeout: saved output hashes",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "timeout: consumer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "timeout: producer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "timeout: read-only binding attestation provenance",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "allocation-mutant: saved verdict and safety unchanged in summary",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "allocation-mutant: receipt copies match exact persisted numeric records",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "allocation-mutant: saved output hashes",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "allocation-mutant: consumer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "allocation-mutant: producer journal-to-receipt fieldwise consistency",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "allocation-mutant: read-only binding attestation provenance",
+        "expected": true
+      },
+      {
+        "family": "original-readonly",
+        "name": "forwarding and synthetic saved results match summary without predicate execution",
+        "expected": true
+      }
+    ],
+    "executed": 75,
+    "expected": 75,
+    "unexpected": 0,
+    "unexecuted": 0
+  },
+  "recipeAfter": {
+    "commit": "9aefcb0adc423636c3667731266c694598b281ab",
+    "manifestSha256": "7807e874edaacdead9c9a677b91f9bea83434303788f34e6b3657b9996f88b8f",
+    "inventory": {
+      "files": {
+        "BINDINGS.json": {
+          "sha256": "323682cdd49f4051b2eccbefd0a7d7920edd379395b6bfbf52bf653702e2ec96",
+          "bytes": 15238
+        },
+        "RECIPE.md": {
+          "sha256": "63bf9cd774256efc10e8beaa8bd08b9dfef1a07600f63799375ad7aab0257d79",
+          "bytes": 3717
+        },
+        "common.mjs": {
+          "sha256": "2e381c611302ecd3cc6a0ded5bb016d2671a3f344aac633c916c76713131bc1f",
+          "bytes": 4765
+        },
+        "launch.mjs": {
+          "sha256": "4e4a88a6f41dd6757950914966d85a674494528a9a97a0044d108f24bc2f9772",
+          "bytes": 6518
+        },
+        "loader.mjs": {
+          "sha256": "617d500fe77028c590075eca4c2c9f071725b35eb80b826979fdd68b1ea07612",
+          "bytes": 856
+        },
+        "preload.mjs": {
+          "sha256": "5da1b5ae1336a28b3c1de15ffef95edc887cef0786f7bcf2004806a9ca240a0a",
+          "bytes": 2923
+        },
+        "run.mjs": {
+          "sha256": "d5813cbd3fc0227c6ebc2a48ed6206fb9464128ad4ec039bf7328da0560396ed",
+          "bytes": 5041
+        }
+      },
+      "directories": []
+    }
+  },
+  "finished": "2026-08-28T00:54:11.734Z",
+  "status": "PREREQUISITES-75-PASS"
+}

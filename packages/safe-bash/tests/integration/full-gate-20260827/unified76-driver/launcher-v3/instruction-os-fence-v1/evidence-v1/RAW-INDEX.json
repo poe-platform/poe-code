@@ -1,0 +1,37 @@
+{
+  "at": "2026-08-28T06:36:47.758Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "controls": "65bb898d17af8e674842e060ddd7ea61f91ff5bc",
+  "driverSha256": "a99c9f24b9edee16ef959139b48905e943ee108080c0aa39511965103f32f26a",
+  "index": [
+    {
+      "name": "RAW-SMALL.json.gz.base64",
+      "encoding": "base64(gzip(JSON))",
+      "rawBytes": 1279413,
+      "rawSha256": "3ab4148477ed855cd02774534178eab86849a0abd29d83709e7fbbf0ed57a11d",
+      "compressedBytes": 164852,
+      "compressedSha256": "5d1e635203401a8a103500da86934c4192ead5dbf05aeec0b71f89b9d037a069",
+      "entries": 268
+    },
+    {
+      "name": "BUILD-TYPE-REPORT.json.gz.base64",
+      "origin": "/tmp/unified76-build-types-review-os86038b27-20260828/REPORT.json",
+      "encoding": "base64(gzip(original JSON bytes))",
+      "rawBytes": 31304245,
+      "rawSha256": "55c0112cc22ddb2a153957d806cbe780187be3c81441745819b7d565966c7fe9",
+      "compressedBytes": 5106250,
+      "compressedSha256": "02ed1350f01e5382febe375d8031dc121c8d200c719fd931fc01da66fbc6942a"
+    },
+    {
+      "name": "TYPECHECK-REPORT.json.gz.base64",
+      "origin": "/tmp/unified76-build-types-review-os86038b27-20260828/typecheck-all/report.json",
+      "encoding": "base64(gzip(original JSON bytes))",
+      "rawBytes": 27854870,
+      "rawSha256": "b869f21ae240cfb4b1579fc4ae7367e5e46ed2507ad6cded2e73eeaab6a5918d",
+      "compressedBytes": 635845,
+      "compressedSha256": "2ef77b388a2423e9249858d1c222503451b5ebff55896c92f3a81aaec570f394"
+    }
+  ],
+  "qualification": "Streaming compression of bounded immutable reports; no product source tree, Git archive or instruction body captured. Generated control scripts are retained as evidence. Temp source trees are not copied. Small reports retain historical author harness failures as separate records."
+}

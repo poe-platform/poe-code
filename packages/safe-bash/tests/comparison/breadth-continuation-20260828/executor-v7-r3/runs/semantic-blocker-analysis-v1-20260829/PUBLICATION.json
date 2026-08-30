@@ -1,0 +1,46 @@
+{
+  "schema": "SOURCE_BLOCKER_REVIEW_PUBLICATION_V1",
+  "createdAt": "2026-08-29T06:17:54.577Z",
+  "elapsedMs": 579511,
+  "permission": "SOURCE_DATA_ONLY",
+  "sourceFindings": "A public defenseInDepth:false changes profile; B needs unprovided ownership design; C remains current disposition. Socket origin unknown.",
+  "oldAttemptUnchanged": true,
+  "actualEngineImports": 0,
+  "actualCases": 0,
+  "actualControls": 0,
+  "sourceAnchorChecks": 15,
+  "inspectedInputGuards": 18,
+  "childrenSoFar": [
+    {
+      "pid": 51000,
+      "role": "git-metadata",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "pid": 63253,
+      "role": "apply_patch",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    }
+  ],
+  "remainingPublicationChildren": [
+    "git add exact paths",
+    "git commit --only exact paths",
+    "git status exact namespace"
+  ],
+  "prospectiveOwnedOSProcesses": 5,
+  "peakOwnedProcesses": 1,
+  "externalToolService": "Pre-existing node_repl/web tool infrastructure not newly launched owned OS children",
+  "caps": {
+    "totalMs": 1500000,
+    "allOwnedOSProcesses": 48,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "includesPublication": true
+  },
+  "finalTail": "Final three metadata child stdout/stderr/exit/close receipts retained in tool transport; no recursive self-hash"
+}

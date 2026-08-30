@@ -1,0 +1,202 @@
+{
+  "at": "2026-08-29T13:10:56.548Z",
+  "retained14": {
+    "schema": 1,
+    "role": "DATA/controller helpers only",
+    "cases": [
+      {
+        "id": "D01-exact-package",
+        "pass": true
+      },
+      {
+        "id": "D02-text-tamper",
+        "pass": true
+      },
+      {
+        "id": "D03-compressed-hash",
+        "pass": true
+      },
+      {
+        "id": "D04-size-before-inflate",
+        "pass": true
+      },
+      {
+        "id": "D05-three-layout-census",
+        "pass": true
+      },
+      {
+        "id": "D06-first-open",
+        "pass": true
+      },
+      {
+        "id": "D07-second-open",
+        "pass": true
+      },
+      {
+        "id": "D08-both-closes",
+        "pass": true
+      },
+      {
+        "id": "D09-short-write",
+        "pass": true
+      },
+      {
+        "id": "D10-zero-write",
+        "pass": true
+      },
+      {
+        "id": "D11-write-error",
+        "pass": true
+      },
+      {
+        "id": "D12-grant-inactive",
+        "pass": true
+      },
+      {
+        "id": "D13-grant-no-getter",
+        "pass": true
+      },
+      {
+        "id": "D14-census-fresh",
+        "pass": true
+      }
+    ],
+    "passed": 14,
+    "total": 14,
+    "productImports": 0,
+    "Workers": 0
+  },
+  "author16": [
+    {
+      "id": "N01-async-capture-first-open",
+      "pass": true
+    },
+    {
+      "id": "N02-async-capture-second-open",
+      "pass": true
+    },
+    {
+      "id": "N03-async-both-closes-primary",
+      "pass": true
+    },
+    {
+      "id": "N04-partial-write",
+      "pass": true
+    },
+    {
+      "id": "N05-zero-write",
+      "pass": true
+    },
+    {
+      "id": "N06-composed-receipt",
+      "pass": true
+    },
+    {
+      "id": "N07-false-pass-exit",
+      "pass": true
+    },
+    {
+      "id": "N08-unknown-retirement",
+      "pass": true
+    },
+    {
+      "id": "N09-spawn-counter",
+      "pass": true
+    },
+    {
+      "id": "N10-trace-contradiction",
+      "pass": true
+    },
+    {
+      "id": "N11-cleanup-contradiction",
+      "pass": true
+    },
+    {
+      "id": "N12-capture-fault",
+      "pass": true
+    },
+    {
+      "id": "N13-extra-key",
+      "pass": true
+    },
+    {
+      "id": "N14-getter",
+      "pass": true
+    },
+    {
+      "id": "N15-hole",
+      "pass": true
+    },
+    {
+      "id": "N16-ordinary-failure",
+      "pass": true
+    }
+  ],
+  "authorAdditional3": true,
+  "independent": [
+    {
+      "id": "I01-reversed-worker-arrival",
+      "expected": "REJECT",
+      "rejected": false,
+      "status": "FAIL",
+      "detail": null
+    },
+    {
+      "id": "I02-retired-before-exit",
+      "expected": "REJECT",
+      "rejected": false,
+      "status": "FAIL",
+      "detail": null
+    },
+    {
+      "id": "I03-unbound-A03-child-loads",
+      "expected": "REJECT",
+      "rejected": false,
+      "status": "FAIL",
+      "detail": null
+    },
+    {
+      "id": "I04-child-loads-outside-A03",
+      "expected": "REJECT",
+      "rejected": false,
+      "status": "FAIL",
+      "detail": null
+    },
+    {
+      "id": "I05-no-actual-process-admission",
+      "expected": "REJECT",
+      "rejected": false,
+      "status": "FAIL",
+      "detail": null
+    },
+    {
+      "id": "I06-request-trace-count-mismatch",
+      "expected": "REJECT",
+      "rejected": false,
+      "status": "FAIL",
+      "detail": null
+    },
+    {
+      "id": "I07-nonfinite-trace-sequence",
+      "expected": "REJECT",
+      "rejected": false,
+      "status": "FAIL",
+      "detail": null
+    },
+    {
+      "id": "I08-rejected-retirement-presence",
+      "expected": "REJECT",
+      "rejected": true,
+      "status": "PASS",
+      "detail": "unknown Worker retirement"
+    }
+  ],
+  "archiveEntries": 4191,
+  "archiveBytes": 15033091,
+  "cells": 135,
+  "workerCeiling": 111,
+  "productImports": 0,
+  "matching": 0,
+  "realWorkers": 0,
+  "qualification": "Source-exact author assertion blocks; compiler parsing and materialization dispatch intentionally excluded, not a replay of the whole original compiler/controller."
+}

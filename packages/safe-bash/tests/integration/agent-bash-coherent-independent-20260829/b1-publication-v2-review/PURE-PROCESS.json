@@ -1,0 +1,15 @@
+{
+  "role": "PURE-controller",
+  "started": "2026-08-29T13:29:12.752Z",
+  "seal": "4447a98d3d0b19a9edc341d7a6d3c63e35b16d648b15cf8c0718d455b0325cac",
+  "pid": 15560,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "ended": "2026-08-29T13:29:12.828Z"
+}

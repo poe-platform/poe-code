@@ -1,0 +1,34 @@
+{
+  "schema": "mapfile-observer-module-seal-v1",
+  "phase": "before any synthetic control execution; native remains NOT AUTHORIZED",
+  "precodeCommit": "cc471485",
+  "moduleFiles": [
+    "admission.mjs",
+    "cli.mjs",
+    "lifecycle.mjs",
+    "node-driver.mjs",
+    "observer.mjs",
+    "storage.mjs",
+    "synthetic.mjs"
+  ],
+  "combinedRecipeSha256": "18f52fe34068d96f12bc35af5d7e51443f3c59e89627accd33f7ce54b8f1534a",
+  "artifacts": {
+    "SEAL.json": "3ffdfde6e4b0b8536d2a6593dffa340f6c09868b47d7ce5ee55b6fa85be39fe1",
+    "SOURCE-BINDINGS.json": "5af734d1acb1879e26351d6fea1b65ba33ca61576cc1efc151820adb45818e29",
+    "OBSERVATIONS.json": "f252918ca8594cd4401d1938051498628e48211c18343c47011dfb5c6843083d",
+    "OBSERVER-PROTOCOL.md": "0f805b39e14d458cc18e8e807d7788a38fe5595d3398c8f00c854aafdde0df65",
+    "ADDENDUM-v2.md": "06d194641b3df74e17b6c2708e0b54c7872e7c00dfbdfaaf852c240a2fea4e69",
+    "OBSERVATIONS-addendum-v2.json": "e6892b11fca34cc0ecc0f7e9d7856d34db01bf5ddc768cc56a1f0818e89624af",
+    "observer-v1/PRECODE.json": "a522bf543796951728d64b963e67c4cc94e2b8503eb93b9ff9f482154ff9219c",
+    "observer-v1/README.md": "bf0b75347844310a0605fd79d8b6d175c165a029a355febe9630039caffee757",
+    "observer-v1/modules/admission.mjs": "628e9fb580d882d756fb6798a06f1c75a4a9df7e431e29cbbbb3187f456ca6ed",
+    "observer-v1/modules/cli.mjs": "f43024b3af5942af332028fff4b999e5b044f76991823f69c8b4f49bb093bdea",
+    "observer-v1/modules/lifecycle.mjs": "bf785782c26166c2f4e3eeff167e2e21b2a8a5838be220aa6dc54eade592ed3a",
+    "observer-v1/modules/node-driver.mjs": "63936c9214591fee9c9785ec828808be3740030cbcf996c0a89eb29724ee395b",
+    "observer-v1/modules/observer.mjs": "d2c509a89166a0bdf8fe1f38eb4c96c5cba9094931638265086d05f0730358b8",
+    "observer-v1/modules/storage.mjs": "816f5a7bec54352aa55348bb8d39dd8dfacc7b2303d84f406af12edf73d820a6",
+    "observer-v1/modules/synthetic.mjs": "2178d1bc76a9ddf2d5261c343c39a86a2764ef808cae18b6a17a01c0ab8cf4e7"
+  },
+  "nativeAuthorized": false,
+  "actualChildControlsAuthorized": false
+}

@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "sourceCommit": "43777899",
+  "selectedFiles": [
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "blob": "d7c1ec255b0371bbf2fe25f3cf3705d16c9017b1",
+      "bytes": 6786,
+      "mode": 420,
+      "previousSha256": "54cc1fc805761d2a78985609b6af521dfdd487c69259490d9147834b8eb2dadc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "blob": "dcdc48f4006f6094ddd8eeb19cbb5a863f328e12",
+      "bytes": 6565,
+      "mode": 420,
+      "previousSha256": "bdc050aa3f6b82622c770a72112a9f212d30a9a4896d5782da011f83a88189be"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+      "sha256": "1f81d9226a09c22221a7faacb5f794e81726626b4ac438ee526a2877aec7b342",
+      "blob": "264df9589e4c9b1cf76b7f70a2b934c168e50bf6",
+      "bytes": 13020,
+      "mode": 420,
+      "previousSha256": "5863faba4a084160d64a3990cc8cc0b33f8b43251e26ca41ea11af071145137a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "blob": "7f75b66d3446e1b6f4cfd00567051393928cc450",
+      "bytes": 22844,
+      "mode": 420,
+      "previousSha256": "025968a81758ca3b8da8d9c17930ab085c2b55740fe2a600eb9fddd8f12d2189"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78",
+      "blob": "b6d1c11c733d204b14d7ff91695817cb98ba920c",
+      "bytes": 4595,
+      "mode": 420,
+      "previousSha256": "b444f194bca7b32612c4770314c5ad34075bcf63702e9a423920fc95d234228c"
+    },
+    {
+      "path": "tests/integration/s3-http-exports/verify.mjs",
+      "sha256": "ae9f72b2114076c92901043f0748c5525ea7cad264994c21b04f17ca3e8c72f9",
+      "blob": "8b03c107a001880f0c870fc06e3eeb01bec0edf3",
+      "bytes": 11293,
+      "mode": 420,
+      "previousSha256": "b2795a02f4da644e1a2d2c9b2e3096f7cff899ef50a6d5d970cbeba8435d9131"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "blob": "192112e71c099f0463be4f80a910a51cc4d057e1",
+      "bytes": 2817,
+      "mode": 420,
+      "previousSha256": "87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "blob": "f05ad807bf78bdb0fa185bd7abe383a0c2e86a14",
+      "bytes": 2634,
+      "mode": 420,
+      "previousSha256": "7ee399edec15bc490577738d10050ea00cdb7cbe468b76a3ff3ffab2d74ef3c9"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "blob": "928c73ce7da9ba19cd383be51bd7f8d35ba03657",
+      "bytes": 685,
+      "mode": 420,
+      "previousSha256": "8df0258324e0694a1712ac9e614f1fea690aa9581180b4bed3a1ac9455c2fa80"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "blob": "aa5bff6001dac716be5f50c8fbea8490eebf41fd",
+      "bytes": 3677,
+      "mode": 420,
+      "previousSha256": "ad9920197aa38291dfff5d04170c5e1b87cd225bf590c8073a8ebba8c68181cc"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts",
+      "sha256": "d1c019640fabd954808dcc2f092a6fd80de5fad8674d56e2f37cf7f75f25ad91",
+      "blob": "269d5aa6a8af48cbfb9c8423d3a6ea13fd2feac1",
+      "bytes": 8725,
+      "mode": 420,
+      "previousSha256": "5b778681b523a7b0e5d55c8796a177a15037f727796e30585d0e0abb9aabffa3"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts",
+      "sha256": "3ed6929afc27bda15ecd9732fbd446428be30eb4c4bf24ed99a620312b319e48",
+      "blob": "80653b8e7b3eb91e323756d397f089afc5affbbd",
+      "bytes": 4452,
+      "mode": 420,
+      "previousSha256": "4aa2380cdb73984442b1e3db0c44adc0580029db618027ffd9d58bc31c9ba454"
+    },
+    {
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "sha256": "144a0ab22228978c68a4b89d137ff48f27cf20cfb69ec9784f73976ad7fc9ee7",
+      "blob": "6f71cd1303fc6a4f1c6a751e96afd3b1d24263a5",
+      "bytes": 4449,
+      "mode": 420,
+      "previousSha256": "7e6b128a0f52c42f45ac3b43edbda9b7bed71671d0fc584069bb692ebb8e35c5"
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718",
+      "blob": "102489c0e62e2d338bb76ae85fca35c4569d3035",
+      "bytes": 6282,
+      "mode": 420,
+      "previousSha256": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "sha256": "b933c447efda4438266f40190eecc00d9e00e195d854eb4a254cfb0e2783306f",
+      "blob": "d40bfeafda550a3a69e630f8368eaff262c6d9dd",
+      "bytes": 4689,
+      "mode": 420,
+      "previousSha256": "dd6743e02555e2a458979b813c42397598ee559db450a07b53f397b0bddcae22"
+    }
+  ],
+  "driverSha256": "e5f3124bd62f8710d5293b8c06b4ce6184a80ca68cba534f519ee85af8eac6d4",
+  "controlSourceSha256": "384d100194ffc51f7356774666051aeb5ca662972c4de33bba6b0914c9638036",
+  "preseal": "d627747d",
+  "productBase": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "executionCount": 0,
+  "composition": "PROPOSAL only: f5 product/tree plus thirteen selected fixture blobs; shipping execute.mjs/DRIVER.json separately versioned. No current-HEAD acceptance, candidate/profile rewrite, product build/pack or gate release.",
+  "additionalScopeNote": "S3 verifier has later source-proven bare npm calls; the same admitted explicit CLI route is included in that already-declared file. Current author S3 control stops after Git; later npm/full-package execution remains unperformed."
+}

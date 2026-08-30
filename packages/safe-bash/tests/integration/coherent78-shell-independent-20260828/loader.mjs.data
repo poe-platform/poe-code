@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+
+const admission = JSON.parse(fs.readFileSync(process.env.ADMISSION, 'utf8'));
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+export async function load(url, context, nextLoad) {
+  if (url.startsWith('node:')) return nextLoad(url, context);
+  assert.ok(url.startsWith('file:'), 'FORBIDDEN_IMPORT_SCHEME');
+  const filename = fileURLToPath(url);
+  assert.ok(!filename.endsWith('.ts') && !filename.endsWith('.mts'), 'SOURCE_FALLBACK_REFUSED');
+  const expected = admission.files[filename];
+  assert.ok(expected, `OUTSIDE_ADMISSION:${filename}`);
+  assert.equal(fs.realpathSync(filename), filename, 'SYMLINK_IMPORT_REFUSED');
+  assert.ok(fs.lstatSync(filename).isFile(), 'NONREGULAR_IMPORT_REFUSED');
+  const loaded = await nextLoad(url, context);
+  const bytes = typeof loaded.source === 'string' ? Buffer.from(loaded.source) : Buffer.from(loaded.source);
+  const actual = digest(bytes);
+  assert.equal(actual, expected.sha256, `LOAD_HASH_REFUSED:${filename}`);
+  fs.appendFileSync(process.env.LOAD_LOG, JSON.stringify({ filename, relative: expected.relative, role: expected.role, sha256: actual }) + '\n');
+  return loaded;
+}

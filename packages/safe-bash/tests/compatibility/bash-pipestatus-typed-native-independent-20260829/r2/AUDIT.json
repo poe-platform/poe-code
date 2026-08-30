@@ -1,0 +1,1221 @@
+{
+  "status": "DATA_AUDIT_COMPLETED",
+  "observations": [
+    {
+      "id": "P19",
+      "program": "declare -p PIPESTATUS",
+      "status": 1,
+      "stdout": "",
+      "stderr": "pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\n",
+      "effects": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        }
+      ],
+      "retired": true,
+      "pid": 90893,
+      "receiptPublishedAtSerialization": false
+    },
+    {
+      "id": "P20",
+      "program": "readonly PIPESTATUS; false; declare -p PIPESTATUS",
+      "status": 1,
+      "stdout": "",
+      "stderr": "pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\n",
+      "effects": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        }
+      ],
+      "retired": true,
+      "pid": 90894,
+      "receiptPublishedAtSerialization": false
+    },
+    {
+      "id": "P21",
+      "program": "false; readonly PIPESTATUS; true; declare -p PIPESTATUS",
+      "status": 0,
+      "stdout": "declare -ar PIPESTATUS='([0]=\"0\")'\n",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        }
+      ],
+      "retired": true,
+      "pid": 90895,
+      "receiptPublishedAtSerialization": false
+    },
+    {
+      "id": "P22",
+      "program": "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+      "status": 0,
+      "stdout": "declare -- PIPESTATUS=\"\"\ndeclare -a PIPESTATUS='([0]=\"0\")'\n",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        }
+      ],
+      "retired": true,
+      "pid": 90896,
+      "receiptPublishedAtSerialization": false
+    },
+    {
+      "id": "P23",
+      "program": "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+      "status": 0,
+      "stdout": "declare -a PIPESTATUS='([0]=\"1\" [1]=\"0\")'\ndeclare -a PIPESTATUS='([0]=\"0\")'\n",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        }
+      ],
+      "retired": true,
+      "pid": 90903,
+      "receiptPublishedAtSerialization": false
+    },
+    {
+      "id": "P24",
+      "program": "PIPESTATUS=seed; false; declare -p PIPESTATUS",
+      "status": 0,
+      "stdout": "declare -- PIPESTATUS=\"seed\"\n",
+      "stderr": "",
+      "effects": [
+        {
+          "path": "empty-path",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "home",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "tmp",
+          "type": "directory",
+          "mode": 448
+        },
+        {
+          "path": "work",
+          "type": "directory",
+          "mode": 448
+        }
+      ],
+      "retired": true,
+      "pid": 90906,
+      "receiptPublishedAtSerialization": false
+    }
+  ],
+  "controls": [
+    {
+      "id": "wrong-magic",
+      "status": "REJECTED_AS_REQUIRED"
+    },
+    {
+      "id": "missing-terminal-NUL",
+      "status": "REJECTED_AS_REQUIRED"
+    },
+    {
+      "id": "duplicate-field",
+      "status": "REJECTED_AS_REQUIRED"
+    },
+    {
+      "id": "wrong-length",
+      "status": "REJECTED_AS_REQUIRED"
+    },
+    {
+      "id": "changed-stderr",
+      "status": "REJECTED_AS_REQUIRED"
+    },
+    {
+      "id": "changed-effects",
+      "status": "REJECTED_AS_REQUIRED"
+    }
+  ],
+  "evidenceRows": 50,
+  "rawBytes": 25569,
+  "sourceRecords": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/activation-v1/APPROVAL-REQUEST.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PRESEAL.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/admission.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/entry.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/observation.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/capture.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/lifecycle.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/group-observer.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/observer-state.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/state.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/storage.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/COHORT.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/REQUESTS.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/PROTOCOL.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/TOOLS.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P19.bash.data",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P20.bash.data",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P21.bash.data",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P22.bash.data",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P23.bash.data",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/programs/P24.bash.data",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/actual-run-v2/raw/exact-receipt-tree.nul",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/RECEIPT.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/TOOLS.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/COHORT.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/APPROVAL-PROPOSAL.template.json"
+  ],
+  "toolRecordCount": 0,
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "execution": false
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "execution": false
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "execution": false
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "execution": false
+    }
+  ],
+  "slot": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/RECEIPT.json",
+    "sha256": "fd1a6b994c79a0f9346d1458d5fa29ee1f44808cca76d0e87abf0d63bf7d40a2",
+    "blob": "d6e04329ee5ced7ebf61c7e6da3e65b4bd923072",
+    "bytes": 34022,
+    "blobVerified": true
+  },
+  "requests": [
+    {
+      "id": "P19",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "stdinBase64": "",
+      "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P19/work",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P19/home",
+        "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P19/tmp",
+        "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P19/empty-path"
+      },
+      "extraProcessReservation": 0
+    },
+    {
+      "id": "P20",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readonly PIPESTATUS; false; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "stdinBase64": "",
+      "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P20/work",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P20/home",
+        "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P20/tmp",
+        "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P20/empty-path"
+      },
+      "extraProcessReservation": 0
+    },
+    {
+      "id": "P21",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "false; readonly PIPESTATUS; true; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "stdinBase64": "",
+      "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P21/work",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P21/home",
+        "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P21/tmp",
+        "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P21/empty-path"
+      },
+      "extraProcessReservation": 0
+    },
+    {
+      "id": "P22",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "stdinBase64": "",
+      "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/work",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/home",
+        "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/tmp",
+        "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P22/empty-path"
+      },
+      "extraProcessReservation": 2
+    },
+    {
+      "id": "P23",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "stdinBase64": "",
+      "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P23/work",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P23/home",
+        "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P23/tmp",
+        "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P23/empty-path"
+      },
+      "extraProcessReservation": 2
+    },
+    {
+      "id": "P24",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "PIPESTATUS=seed; false; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "stdinBase64": "",
+      "cwd": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P24/work",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P24/home",
+        "TMPDIR": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P24/tmp",
+        "PATH": "/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/cases/P24/empty-path"
+      },
+      "extraProcessReservation": 0
+    }
+  ],
+  "approval": {
+    "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/GO.json --grant-sha256 9d971fe4c4546fa9a90d1184af9d05c573fb6e343f6dcea6546cfef762383772 >/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 2>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "shell": "/bin/zsh",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow only six freshly reviewed literal P19–P24 local Bash3.2.57 typed PIPESTATUS observations, builtins only with zero input fixtures or effects, outside the custom test sandbox; initial tool-shell startup is trusted host, not clean-env/capture or containment qualified?",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  },
+  "journal": [
+    {
+      "event": "AUTHENTICATED_START",
+      "pid": 90874,
+      "started": 1788013872435,
+      "externalCapture": "pre-opened regular descriptors before Node module loading"
+    },
+    {
+      "event": "CHILD_ENROLLED",
+      "id": "P19",
+      "executable": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "at": 1788013872515
+    },
+    {
+      "event": "CHILD_TERMINAL",
+      "row": {
+        "id": "P19",
+        "started": 1788013872514,
+        "exit": true,
+        "close": true,
+        "status": 1,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872536,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 62,
+            "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+            "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo="
+          }
+        ],
+        "filesVerified": false,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90893,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872543
+      }
+    },
+    {
+      "event": "OBSERVATION_READY_FOR_CREDIT",
+      "id": "P19"
+    },
+    {
+      "event": "CHILD_ENROLLED",
+      "id": "P20",
+      "executable": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "readonly PIPESTATUS; false; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "at": 1788013872568
+    },
+    {
+      "event": "CHILD_TERMINAL",
+      "row": {
+        "id": "P20",
+        "started": 1788013872566,
+        "exit": true,
+        "close": true,
+        "status": 1,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872589,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 62,
+            "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+            "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo="
+          }
+        ],
+        "filesVerified": false,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90894,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872595
+      }
+    },
+    {
+      "event": "OBSERVATION_READY_FOR_CREDIT",
+      "id": "P20"
+    },
+    {
+      "event": "CHILD_ENROLLED",
+      "id": "P21",
+      "executable": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "false; readonly PIPESTATUS; true; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "at": 1788013872624
+    },
+    {
+      "event": "CHILD_TERMINAL",
+      "row": {
+        "id": "P21",
+        "started": 1788013872622,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872646,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 35,
+            "sha256": "2701cce8db563deeca2c5403d6cf3266a52f02c83a4b655203ee20f14d8b8d1c",
+            "base64": "ZGVjbGFyZSAtYXIgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": false,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90895,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872649
+      }
+    },
+    {
+      "event": "OBSERVATION_READY_FOR_CREDIT",
+      "id": "P21"
+    },
+    {
+      "event": "CHILD_ENROLLED",
+      "id": "P22",
+      "executable": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "f() { local PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "at": 1788013872685
+    },
+    {
+      "event": "CHILD_TERMINAL",
+      "row": {
+        "id": "P22",
+        "started": 1788013872682,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872713,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 59,
+            "sha256": "6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387",
+            "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSIiCmRlY2xhcmUgLWEgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": false,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90896,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872716
+      }
+    },
+    {
+      "event": "OBSERVATION_READY_FOR_CREDIT",
+      "id": "P22"
+    },
+    {
+      "event": "CHILD_ENROLLED",
+      "id": "P23",
+      "executable": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "f() { local -a PIPESTATUS; false | true; declare -p PIPESTATUS; }; false; f; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "at": 1788013872757
+    },
+    {
+      "event": "CHILD_TERMINAL",
+      "row": {
+        "id": "P23",
+        "started": 1788013872755,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872786,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 76,
+            "sha256": "c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d",
+            "base64": "ZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIxIiBbMV09IjAiKScKZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIwIiknCg=="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": false,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90903,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872789
+      }
+    },
+    {
+      "event": "OBSERVATION_READY_FOR_CREDIT",
+      "id": "P23"
+    },
+    {
+      "event": "CHILD_ENROLLED",
+      "id": "P24",
+      "executable": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "PIPESTATUS=seed; false; declare -p PIPESTATUS",
+        "pipestatus-typed-case"
+      ],
+      "at": 1788013872824
+    },
+    {
+      "event": "CHILD_TERMINAL",
+      "row": {
+        "id": "P24",
+        "started": 1788013872822,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872850,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 29,
+            "sha256": "8f65e0c3cff51dbc37d0c1b93e35ac3b27e59f63557ec1bc1bb95bc8ce34562f",
+            "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSJzZWVkIgo="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": false,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90906,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872853
+      }
+    },
+    {
+      "event": "OBSERVATION_READY_FOR_CREDIT",
+      "id": "P24"
+    }
+  ],
+  "results": {
+    "schema": "pipestatus-typed-native-observations-v1",
+    "completed": 6,
+    "halted": false,
+    "rows": [
+      {
+        "id": "P19",
+        "status": 1,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P20",
+        "status": 1,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P21",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P22",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P23",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P24",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      }
+    ],
+    "ledger": {
+      "max": 7,
+      "peak": 2,
+      "starts": 7,
+      "active": 1,
+      "peakCharged": 2,
+      "confirmedStarts": 7,
+      "activeConfirmed": 1,
+      "peakConfirmed": 2,
+      "confirmedRoles": {
+        "owner": 1,
+        "case": 6
+      },
+      "roles": {
+        "owner": 1,
+        "case": 6
+      },
+      "sourceForkReservations": 4
+    },
+    "outer": [
+      {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      }
+    ],
+    "sourceForkCounts": "PLANNED_NOT_OBSERVED",
+    "osContainment": false,
+    "version": "Bash3.2.57",
+    "notStarted": [],
+    "deadline": 1788014472435
+  },
+  "sealClaimedCounts": {
+    "source": 19,
+    "tools": 4
+  },
+  "authorAdminRetirement": "reported18; no independent OS attestation inferred",
+  "ownerRetirement": "author tool75018f exit0 reported; persisted ledger remains active1",
+  "noNativeExecution": true,
+  "noProductImports": true,
+  "finishedMs": 1788014952299
+}

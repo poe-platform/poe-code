@@ -1,0 +1,49 @@
+{
+  "schema": "HARMLESS55_V4_STOP_HANDOFF",
+  "presealCommit": "0f5f83ef98dc38e25be87cac4a8c8cbf1545ef69",
+  "sealSha256": "01cc4dad849ea05c535ad8c8d39633ded0003f4e04f889eeedb2f121ba99e0fa",
+  "authSha256": "61d2e249073f1e23ad6f3e0caebc5eb0d758ad08df0aa407ca46ed07ce2ccb43",
+  "evidenceCommit": "86d15047cdbf203e79ef4d75a5e4ca7a57b28424",
+  "reviewCommit": "a013fb25cf874ff53f6c4e74f6b11e5acf6f8512",
+  "attempt": "CONSUMED_UNSAFE_STOP",
+  "counts": {
+    "qualified": 0,
+    "ordinaryFailed": 0,
+    "stop": 1,
+    "unrun": 54,
+    "unqualified": 55,
+    "caseChildrenLaunched": 1,
+    "caseChildrenUnlaunched": 50,
+    "inProcessDATAUnrun": 4
+  },
+  "workerCounts": "UNKNOWN_UNPUBLISHED; preserve raw completed-result created=0 separately",
+  "qualifiedNestedLoads": 0,
+  "rawBytes": {
+    "observed": 931,
+    "retained": 931,
+    "lost": 0
+  },
+  "hostProcesses": {
+    "knownRuntime": 3,
+    "closed": 3,
+    "doesNotQualifyNestedRetirement": true
+  },
+  "standalonePostguards": {
+    "sourceToolPrior": 64,
+    "fixtureFiles": 5,
+    "notRuntimeQualification": true
+  },
+  "blocker": "OFFLINE_DENIED:UNSUPPORTED_WASM_ADMISSION.instantiate; lazyllhttp Node-internal frame; no EARLY/RESULT",
+  "next": "Fresh ROOT SOURCE-only decision needed; no retries, permission changes or actual comparison activation.",
+  "publication": {
+    "knownOSBeforeFinal": 15,
+    "toolServiceReservation": 1,
+    "plannedFinalPublicationOperations": 4,
+    "prospectiveFinalKnownOS": 19,
+    "elapsedMsAtHandoff": 477121,
+    "grantMinutes": 45,
+    "preparationMinutes": 10,
+    "scopeCleanCheckPending": true
+  },
+  "history": "All original V2/V3/smallV4/independent records, losses and UNKNOWNs remain unchanged."
+}

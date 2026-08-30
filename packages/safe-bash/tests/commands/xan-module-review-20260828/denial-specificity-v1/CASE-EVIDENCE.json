@@ -1,0 +1,2664 @@
+{
+  "classification": "STATIC_RAW_BOUND_ADJUDICATION_SUPPORT_NOT_NEW_EXPECTATIONS_OR_RESCORE",
+  "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "freeze": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+  "actualResultCommit": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+  "diagnosisCommit": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+  "diagnosisSealSha256": "1155f77cce223c78f8ca08b6f102e5a2348d7645fbb442da64f4018b4e7a0593",
+  "diagnosisCasesSha256": "a06d2279cebad1cd5806909918197cb73e2f94a3f5f10e7a6447b31791d0137b",
+  "archive": {
+    "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+    "path": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+    "sha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+    "compressed": 23229158,
+    "files": 1304,
+    "payloadBytes": 90695294,
+    "extraction": false
+  },
+  "heldCaseCountPerLayout": 15,
+  "heldRawObservationsVerified": 30,
+  "diagnosticEquality": "All 15 SOURCE / INSTALLED_MOVED pairs compared as decoded bytes from authenticated archive RAW_OBSERVATION lines, not inferred from category or layout counts.",
+  "argvBinding": "Exact JSON arrays matched against both archived job rows. RAW_OBSERVATION lines do not themselves carry argv; job pointers preserve the actual input binding. Frozen base argv may differ only for the explicitly archived flag variants.",
+  "remainingAssertions": "Original diagnostic matcher failure prevents later phase/cleanup assertions in assertCase; raw fields are evidence, not newly accepted subassertions.",
+  "cases": [
+    {
+      "id": "X4-S01/P0",
+      "exactArgv": [
+        "select",
+        "--",
+        "0,,1"
+      ],
+      "diagnosticUtf8": "xan select: unsupported in bounded CSV profile: selector syntax\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: interior empty clause",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "X4-S01",
+        "fixture": "A",
+        "argv": [
+          "select",
+          "--",
+          "0,,1"
+        ],
+        "class": "S",
+        "category": 1,
+        "phase": "BEFORE_IO",
+        "condition": "interior empty clause",
+        "controls": [
+          "X4-P02",
+          "X4-P06"
+        ],
+        "stdinHex": "612c620a312c320a332c340a",
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          }
+        },
+        "normalizedId": "X4-S01"
+      },
+      "obligations": [
+        {
+          "id": "X4-S01",
+          "kind": "selector",
+          "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+          "pointer": "/cases/21",
+          "subtreeSha256": "ed2f7dbf2fe38f09c4fb4e03999015b5142ac2511e88095bec86a8c45886e90a",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/cases/21",
+          "frozenRow": {
+            "id": "X4-S01",
+            "fixture": "A",
+            "argv": [
+              "select",
+              "--",
+              "0,,1"
+            ],
+            "class": "S",
+            "category": 1,
+            "phase": "BEFORE_IO",
+            "condition": "interior empty clause",
+            "controls": [
+              "X4-P02",
+              "X4-P06"
+            ]
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-002/stdout.raw",
+            "bytes": 82054,
+            "sha256": "a70b4a2b5a0f28e4ff791eceaff10e2ec32c335bf2bb46f4d5dccdc59d0c4f6f",
+            "mode": "644",
+            "observationLine": 59,
+            "observationLineSha256": "27e2673c8f92e6c2acf3d205f73c6ea090ce189c9f110061d756c099da8d094f",
+            "outcomeLine": 60,
+            "outcomeLineSha256": "67c5856337b309459e77255e092ef3f4c755a315dd989dde2c24706b80ddcb84"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S01/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S01/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S01, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S01, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-002.json",
+            "bytes": 426007,
+            "sha256": "f2a1e0c26abfa7e15e38c9ea72c303422fff173088807569e785ac86b2a4fe38",
+            "jobPointer": "/jobs/29",
+            "rowPointer": "/rows/109",
+            "jobEntry": {
+              "id": "X4-S01/P0",
+              "row": "X4-S01",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "0,,1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-002/stdout.raw",
+            "bytes": 82506,
+            "sha256": "97afe2561504867098243f7404afb533dd1d26249ca9f9f28fb24fa0b5dd1718",
+            "mode": "644",
+            "observationLine": 59,
+            "observationLineSha256": "27e2673c8f92e6c2acf3d205f73c6ea090ce189c9f110061d756c099da8d094f",
+            "outcomeLine": 60,
+            "outcomeLineSha256": "67c5856337b309459e77255e092ef3f4c755a315dd989dde2c24706b80ddcb84"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S01/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S01/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S01, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S01, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-002.json",
+            "bytes": 426025,
+            "sha256": "d5fe2cb61e792473f02c1e1e7b04ed8da454ca7da5287414ad2b0f9a1fd38d89",
+            "jobPointer": "/jobs/29",
+            "rowPointer": "/rows/109",
+            "jobEntry": {
+              "id": "X4-S01/P0",
+              "row": "X4-S01",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "0,,1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        }
+      ]
+    },
+    {
+      "id": "X4-S02/P0",
+      "exactArgv": [
+        "select",
+        "--",
+        "0::1"
+      ],
+      "diagnosticUtf8": "xan select: unsupported in bounded CSV profile: selector syntax\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: repeated unquoted range colon",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "X4-S02",
+        "fixture": "A",
+        "argv": [
+          "select",
+          "--",
+          "0::1"
+        ],
+        "class": "S",
+        "category": 2,
+        "phase": "BEFORE_IO",
+        "condition": "repeated unquoted range colon",
+        "requiredDiagnosticFamily": "unsupported in bounded CSV profile:",
+        "controls": [
+          "X4-P03",
+          "X4-P04"
+        ],
+        "stdinHex": "612c620a312c320a332c340a",
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          }
+        },
+        "normalizedId": "X4-S02"
+      },
+      "obligations": [
+        {
+          "id": "X4-S02",
+          "kind": "selector",
+          "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+          "pointer": "/cases/22",
+          "subtreeSha256": "05474e1fbef9c8e0df8f8f2a767b9d97a72bfb417e99a3ffa2a12f55fbe80fa4",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/cases/22",
+          "frozenRow": {
+            "id": "X4-S02",
+            "fixture": "A",
+            "argv": [
+              "select",
+              "--",
+              "0::1"
+            ],
+            "class": "S",
+            "category": 2,
+            "phase": "BEFORE_IO",
+            "condition": "repeated unquoted range colon",
+            "requiredDiagnosticFamily": "unsupported in bounded CSV profile:",
+            "controls": [
+              "X4-P03",
+              "X4-P04"
+            ]
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-002/stdout.raw",
+            "bytes": 82054,
+            "sha256": "a70b4a2b5a0f28e4ff791eceaff10e2ec32c335bf2bb46f4d5dccdc59d0c4f6f",
+            "mode": "644",
+            "observationLine": 61,
+            "observationLineSha256": "9efb9d16d61b3b15afbd2fe7e6deb46e84d28d7b8a8e381edda4e9a2b51bfd55",
+            "outcomeLine": 62,
+            "outcomeLineSha256": "34299b85df3b0417de862e9b9fa2c0641b3e31b9ac5ed858587ad461c573d10d"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S02/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S02/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S02, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S02, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-002.json",
+            "bytes": 426007,
+            "sha256": "f2a1e0c26abfa7e15e38c9ea72c303422fff173088807569e785ac86b2a4fe38",
+            "jobPointer": "/jobs/30",
+            "rowPointer": "/rows/110",
+            "jobEntry": {
+              "id": "X4-S02/P0",
+              "row": "X4-S02",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "0::1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-002/stdout.raw",
+            "bytes": 82506,
+            "sha256": "97afe2561504867098243f7404afb533dd1d26249ca9f9f28fb24fa0b5dd1718",
+            "mode": "644",
+            "observationLine": 61,
+            "observationLineSha256": "9efb9d16d61b3b15afbd2fe7e6deb46e84d28d7b8a8e381edda4e9a2b51bfd55",
+            "outcomeLine": 62,
+            "outcomeLineSha256": "34299b85df3b0417de862e9b9fa2c0641b3e31b9ac5ed858587ad461c573d10d"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S02/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S02/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S02, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S02, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-002.json",
+            "bytes": 426025,
+            "sha256": "d5fe2cb61e792473f02c1e1e7b04ed8da454ca7da5287414ad2b0f9a1fd38d89",
+            "jobPointer": "/jobs/30",
+            "rowPointer": "/rows/110",
+            "jobEntry": {
+              "id": "X4-S02/P0",
+              "row": "X4-S02",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "0::1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        }
+      ]
+    },
+    {
+      "id": "X4-S03/P0",
+      "exactArgv": [
+        "select",
+        "--",
+        "a*:0"
+      ],
+      "diagnosticUtf8": "xan select: unsupported in bounded CSV profile: selector syntax\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: top-level prefix branch followed by colon",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "X4-S03",
+        "fixture": "C",
+        "argv": [
+          "select",
+          "--",
+          "a*:0"
+        ],
+        "class": "S",
+        "category": 3,
+        "phase": "BEFORE_IO",
+        "condition": "top-level prefix branch followed by colon",
+        "requiredDiagnosticFamily": "unsupported in bounded CSV profile:",
+        "controls": [
+          "X4-P17",
+          "X4-P10",
+          "X4-P08"
+        ],
+        "stdinHex": "612c62612c2a2c612c612a2c61622c22612222222262222c302c2c615d0a76302c76312c76322c76332c76342c76352c76362c76372c76382c76390a",
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          }
+        },
+        "normalizedId": "X4-S03"
+      },
+      "obligations": [
+        {
+          "id": "X4-S03",
+          "kind": "selector",
+          "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+          "pointer": "/cases/23",
+          "subtreeSha256": "6f9d8e6cd7e226a2ae0943245241a4e9e68c927ba8ebb1429382e67cb77d3305",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/cases/23",
+          "frozenRow": {
+            "id": "X4-S03",
+            "fixture": "C",
+            "argv": [
+              "select",
+              "--",
+              "a*:0"
+            ],
+            "class": "S",
+            "category": 3,
+            "phase": "BEFORE_IO",
+            "condition": "top-level prefix branch followed by colon",
+            "requiredDiagnosticFamily": "unsupported in bounded CSV profile:",
+            "controls": [
+              "X4-P17",
+              "X4-P10",
+              "X4-P08"
+            ]
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-002/stdout.raw",
+            "bytes": 82054,
+            "sha256": "a70b4a2b5a0f28e4ff791eceaff10e2ec32c335bf2bb46f4d5dccdc59d0c4f6f",
+            "mode": "644",
+            "observationLine": 63,
+            "observationLineSha256": "998c3320babb8b7efe039f2bd561f8bc12a3578555cc9fc2942dac63195e3622",
+            "outcomeLine": 64,
+            "outcomeLineSha256": "96f71c2001e72d1017038edb5288f93e1a9fdcdd46576356c1129591e3c115d5"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S03/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[60],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S03/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S03, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S03, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-002.json",
+            "bytes": 426007,
+            "sha256": "f2a1e0c26abfa7e15e38c9ea72c303422fff173088807569e785ac86b2a4fe38",
+            "jobPointer": "/jobs/31",
+            "rowPointer": "/rows/111",
+            "jobEntry": {
+              "id": "X4-S03/P0",
+              "row": "X4-S03",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "a*:0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-002/stdout.raw",
+            "bytes": 82506,
+            "sha256": "97afe2561504867098243f7404afb533dd1d26249ca9f9f28fb24fa0b5dd1718",
+            "mode": "644",
+            "observationLine": 63,
+            "observationLineSha256": "998c3320babb8b7efe039f2bd561f8bc12a3578555cc9fc2942dac63195e3622",
+            "outcomeLine": 64,
+            "outcomeLineSha256": "96f71c2001e72d1017038edb5288f93e1a9fdcdd46576356c1129591e3c115d5"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S03/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[60],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S03/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S03, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S03, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-002.json",
+            "bytes": 426025,
+            "sha256": "d5fe2cb61e792473f02c1e1e7b04ed8da454ca7da5287414ad2b0f9a1fd38d89",
+            "jobPointer": "/jobs/31",
+            "rowPointer": "/rows/111",
+            "jobEntry": {
+              "id": "X4-S03/P0",
+              "row": "X4-S03",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "a*:0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        }
+      ]
+    },
+    {
+      "id": "X4-S04/P0",
+      "exactArgv": [
+        "select",
+        "--",
+        "*a[0]"
+      ],
+      "diagnosticUtf8": "xan select: unsupported in bounded CSV profile: selector syntax\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: suffix branch followed by occurrence",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "X4-S04",
+        "fixture": "C",
+        "argv": [
+          "select",
+          "--",
+          "*a[0]"
+        ],
+        "class": "S",
+        "category": 4,
+        "phase": "BEFORE_IO",
+        "condition": "suffix branch followed by occurrence",
+        "requiredDiagnosticFamily": "unsupported in bounded CSV profile:",
+        "controls": [
+          "X4-P11",
+          "X4-P12",
+          "X4-P20"
+        ],
+        "stdinHex": "612c62612c2a2c612c612a2c61622c22612222222262222c302c2c615d0a76302c76312c76322c76332c76342c76352c76362c76372c76382c76390a",
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          }
+        },
+        "normalizedId": "X4-S04"
+      },
+      "obligations": [
+        {
+          "id": "X4-S04",
+          "kind": "selector",
+          "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+          "pointer": "/cases/24",
+          "subtreeSha256": "0e1154ffac4df438059bf86b01c15819ea9897f92e4ee0479cec8fe4e6f01652",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/cases/24",
+          "frozenRow": {
+            "id": "X4-S04",
+            "fixture": "C",
+            "argv": [
+              "select",
+              "--",
+              "*a[0]"
+            ],
+            "class": "S",
+            "category": 4,
+            "phase": "BEFORE_IO",
+            "condition": "suffix branch followed by occurrence",
+            "requiredDiagnosticFamily": "unsupported in bounded CSV profile:",
+            "controls": [
+              "X4-P11",
+              "X4-P12",
+              "X4-P20"
+            ]
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-002/stdout.raw",
+            "bytes": 82054,
+            "sha256": "a70b4a2b5a0f28e4ff791eceaff10e2ec32c335bf2bb46f4d5dccdc59d0c4f6f",
+            "mode": "644",
+            "observationLine": 65,
+            "observationLineSha256": "a8ccf4bfad3f1bd5602ccb36c1ae04973366e433faacbec3b99b0cbea8bbccb2",
+            "outcomeLine": 66,
+            "outcomeLineSha256": "f25f78035b1aef38bac0b0a576a70c8dfe01e5d995e68bf9ff34160df068eccf"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S04/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[60],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S04/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S04, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S04, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-002.json",
+            "bytes": 426007,
+            "sha256": "f2a1e0c26abfa7e15e38c9ea72c303422fff173088807569e785ac86b2a4fe38",
+            "jobPointer": "/jobs/32",
+            "rowPointer": "/rows/112",
+            "jobEntry": {
+              "id": "X4-S04/P0",
+              "row": "X4-S04",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "*a[0]"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-002/stdout.raw",
+            "bytes": 82506,
+            "sha256": "97afe2561504867098243f7404afb533dd1d26249ca9f9f28fb24fa0b5dd1718",
+            "mode": "644",
+            "observationLine": 65,
+            "observationLineSha256": "a8ccf4bfad3f1bd5602ccb36c1ae04973366e433faacbec3b99b0cbea8bbccb2",
+            "outcomeLine": 66,
+            "outcomeLineSha256": "f25f78035b1aef38bac0b0a576a70c8dfe01e5d995e68bf9ff34160df068eccf"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S04/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[60],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S04/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S04, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S04, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-002.json",
+            "bytes": 426025,
+            "sha256": "d5fe2cb61e792473f02c1e1e7b04ed8da454ca7da5287414ad2b0f9a1fd38d89",
+            "jobPointer": "/jobs/32",
+            "rowPointer": "/rows/112",
+            "jobEntry": {
+              "id": "X4-S04/P0",
+              "row": "X4-S04",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "*a[0]"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        }
+      ]
+    },
+    {
+      "id": "X4-S05/P0",
+      "exactArgv": [
+        "select",
+        "--",
+        "\"a\"junk"
+      ],
+      "diagnosticUtf8": "xan select: unsupported in bounded CSV profile: selector syntax\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: trailing junk after closing quote",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "X4-S05",
+        "fixture": "C",
+        "argv": [
+          "select",
+          "--",
+          "\"a\"junk"
+        ],
+        "class": "S",
+        "category": 5,
+        "phase": "BEFORE_IO",
+        "condition": "trailing junk after closing quote",
+        "requiredDiagnosticFamily": "unsupported in bounded CSV profile:",
+        "controls": [
+          "X4-P14",
+          "X4-P18"
+        ],
+        "stdinHex": "612c62612c2a2c612c612a2c61622c22612222222262222c302c2c615d0a76302c76312c76322c76332c76342c76352c76362c76372c76382c76390a",
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          }
+        },
+        "normalizedId": "X4-S05"
+      },
+      "obligations": [
+        {
+          "id": "X4-S05",
+          "kind": "selector",
+          "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+          "pointer": "/cases/25",
+          "subtreeSha256": "8f35acd45d1329d66d99e8b91bc4b8b63a9a4efc73e6f7aa4044c071c8effe52",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/cases/25",
+          "frozenRow": {
+            "id": "X4-S05",
+            "fixture": "C",
+            "argv": [
+              "select",
+              "--",
+              "\"a\"junk"
+            ],
+            "class": "S",
+            "category": 5,
+            "phase": "BEFORE_IO",
+            "condition": "trailing junk after closing quote",
+            "requiredDiagnosticFamily": "unsupported in bounded CSV profile:",
+            "controls": [
+              "X4-P14",
+              "X4-P18"
+            ]
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-002/stdout.raw",
+            "bytes": 82054,
+            "sha256": "a70b4a2b5a0f28e4ff791eceaff10e2ec32c335bf2bb46f4d5dccdc59d0c4f6f",
+            "mode": "644",
+            "observationLine": 67,
+            "observationLineSha256": "fb1b19bf56c684af270d4889fc6ea43bc302dc9a15ffbf2f272fdd6f2ae1a20d",
+            "outcomeLine": 68,
+            "outcomeLineSha256": "13bea761a19d4adb3370b381fc391c860776b3c772cc323c9cf0be81986cffdb"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S05/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[60],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S05/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S05, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S05, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-002.json",
+            "bytes": 426007,
+            "sha256": "f2a1e0c26abfa7e15e38c9ea72c303422fff173088807569e785ac86b2a4fe38",
+            "jobPointer": "/jobs/33",
+            "rowPointer": "/rows/113",
+            "jobEntry": {
+              "id": "X4-S05/P0",
+              "row": "X4-S05",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "\"a\"junk"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-002/stdout.raw",
+            "bytes": 82506,
+            "sha256": "97afe2561504867098243f7404afb533dd1d26249ca9f9f28fb24fa0b5dd1718",
+            "mode": "644",
+            "observationLine": 67,
+            "observationLineSha256": "fb1b19bf56c684af270d4889fc6ea43bc302dc9a15ffbf2f272fdd6f2ae1a20d",
+            "outcomeLine": 68,
+            "outcomeLineSha256": "13bea761a19d4adb3370b381fc391c860776b3c772cc323c9cf0be81986cffdb"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"X4-S05/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[60],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"X4-S05/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition X4-S05, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition X4-S05, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-002.json",
+            "bytes": 426025,
+            "sha256": "d5fe2cb61e792473f02c1e1e7b04ed8da454ca7da5287414ad2b0f9a1fd38d89",
+            "jobPointer": "/jobs/33",
+            "rowPointer": "/rows/113",
+            "jobEntry": {
+              "id": "X4-S05/P0",
+              "row": "X4-S05",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "--",
+              "\"a\"junk"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        }
+      ]
+    },
+    {
+      "id": "B01-R4-start-length/P0",
+      "exactArgv": [
+        "slice",
+        "-s",
+        "18446744073709551615",
+        "-l",
+        "1"
+      ],
+      "diagnosticUtf8": "xan slice: unsigned arithmetic overflow\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject overflow of start+len, index+1 and header-start+column in the declared u64 domain; this is distinct from rejecting an individually out-of-domain token.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R4-start-length",
+        "argv": [
+          "slice",
+          "-s",
+          "18446744073709551615",
+          "-l",
+          "1"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "argument-derived arithmetic before output",
+        "rule": "B01-R4",
+        "ruleText": "Reject overflow of start+len, index+1 and header-start+column in the declared u64 domain; this is distinct from rejecting an individually out-of-domain token.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R4-start-length"
+      },
+      "obligations": [
+        {
+          "id": "B01-R4",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/3",
+          "subtreeSha256": "b47aa306b60d7e3445b0359253729eb91097b9932222cff425d61f9d10d14c86",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/3/cases/0",
+          "frozenRow": {
+            "id": "B01-R4-start-length",
+            "argv": [
+              "slice",
+              "-s",
+              "18446744073709551615",
+              "-l",
+              "1"
+            ],
+            "expected": "rejection",
+            "validation": "argument-derived arithmetic before output"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 17,
+            "observationLineSha256": "9bb166504a258c30dda50c60b05fbe2cf6bf0868b56c1efb4bfcade635fd2fe6",
+            "outcomeLine": 18,
+            "outcomeLineSha256": "4ee6ab0e3c67fff80deea30b93267372510b44c66fbc3b189db51e6f2460282f"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R4-start-length/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiB1bnNpZ25lZCBhcml0aG1ldGljIG92ZXJmbG93Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R4-start-length/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R4-start-length, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R4-start-length, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-003.json",
+            "bytes": 426505,
+            "sha256": "d8651e05e0020a4a0932f69832089be35e2b1350455a5b99dfd0f97364e4f935",
+            "jobPointer": "/jobs/8",
+            "rowPointer": "/rows/128",
+            "jobEntry": {
+              "id": "B01-R4-start-length/P0",
+              "row": "B01-R4-start-length",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-s",
+              "18446744073709551615",
+              "-l",
+              "1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiB1bnNpZ25lZCBhcml0aG1ldGljIG92ZXJmbG93Cg=="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 17,
+            "observationLineSha256": "9bb166504a258c30dda50c60b05fbe2cf6bf0868b56c1efb4bfcade635fd2fe6",
+            "outcomeLine": 18,
+            "outcomeLineSha256": "4ee6ab0e3c67fff80deea30b93267372510b44c66fbc3b189db51e6f2460282f"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R4-start-length/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiB1bnNpZ25lZCBhcml0aG1ldGljIG92ZXJmbG93Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R4-start-length/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R4-start-length, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R4-start-length, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-003.json",
+            "bytes": 426523,
+            "sha256": "d6daf1acce2a50340663185c71eff5b1ebb55eac41fad1ac8764949b75d122fa",
+            "jobPointer": "/jobs/8",
+            "rowPointer": "/rows/128",
+            "jobEntry": {
+              "id": "B01-R4-start-length/P0",
+              "row": "B01-R4-start-length",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-s",
+              "18446744073709551615",
+              "-l",
+              "1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiB1bnNpZ25lZCBhcml0aG1ldGljIG92ZXJmbG93Cg=="
+        }
+      ]
+    },
+    {
+      "id": "B01-R4-index-one/P0",
+      "exactArgv": [
+        "slice",
+        "-i",
+        "18446744073709551615"
+      ],
+      "diagnosticUtf8": "xan slice: unsigned arithmetic overflow\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject overflow of start+len, index+1 and header-start+column in the declared u64 domain; this is distinct from rejecting an individually out-of-domain token.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R4-index-one",
+        "argv": [
+          "slice",
+          "-i",
+          "18446744073709551615"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "argument-derived arithmetic before output",
+        "rule": "B01-R4",
+        "ruleText": "Reject overflow of start+len, index+1 and header-start+column in the declared u64 domain; this is distinct from rejecting an individually out-of-domain token.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R4-index-one"
+      },
+      "obligations": [
+        {
+          "id": "B01-R4",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/3",
+          "subtreeSha256": "b47aa306b60d7e3445b0359253729eb91097b9932222cff425d61f9d10d14c86",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/3/cases/1",
+          "frozenRow": {
+            "id": "B01-R4-index-one",
+            "argv": [
+              "slice",
+              "-i",
+              "18446744073709551615"
+            ],
+            "expected": "rejection",
+            "validation": "argument-derived arithmetic before output"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 19,
+            "observationLineSha256": "2ec01a56e3546539a330ed87e0bc6d0389a018379b6a0c9334a663822e97e0bc",
+            "outcomeLine": 20,
+            "outcomeLineSha256": "e2002143e6b44ad1f8405c908f9fe3a3071151c660adf0f215b3abd2892ec029"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R4-index-one/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiB1bnNpZ25lZCBhcml0aG1ldGljIG92ZXJmbG93Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R4-index-one/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R4-index-one, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R4-index-one, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-003.json",
+            "bytes": 426505,
+            "sha256": "d8651e05e0020a4a0932f69832089be35e2b1350455a5b99dfd0f97364e4f935",
+            "jobPointer": "/jobs/9",
+            "rowPointer": "/rows/129",
+            "jobEntry": {
+              "id": "B01-R4-index-one/P0",
+              "row": "B01-R4-index-one",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-i",
+              "18446744073709551615"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiB1bnNpZ25lZCBhcml0aG1ldGljIG92ZXJmbG93Cg=="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 19,
+            "observationLineSha256": "2ec01a56e3546539a330ed87e0bc6d0389a018379b6a0c9334a663822e97e0bc",
+            "outcomeLine": 20,
+            "outcomeLineSha256": "e2002143e6b44ad1f8405c908f9fe3a3071151c660adf0f215b3abd2892ec029"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R4-index-one/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiB1bnNpZ25lZCBhcml0aG1ldGljIG92ZXJmbG93Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R4-index-one/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R4-index-one, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R4-index-one, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-003.json",
+            "bytes": 426523,
+            "sha256": "d6daf1acce2a50340663185c71eff5b1ebb55eac41fad1ac8764949b75d122fa",
+            "jobPointer": "/jobs/9",
+            "rowPointer": "/rows/129",
+            "jobEntry": {
+              "id": "B01-R4-index-one/P0",
+              "row": "B01-R4-index-one",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-i",
+              "18446744073709551615"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiB1bnNpZ25lZCBhcml0aG1ldGljIG92ZXJmbG93Cg=="
+        }
+      ]
+    },
+    {
+      "id": "B01-R4-header-column/P0",
+      "exactArgv": [
+        "headers",
+        "-s",
+        "18446744073709551615"
+      ],
+      "diagnosticUtf8": "xan headers: unsigned arithmetic overflow\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject overflow of start+len, index+1 and header-start+column in the declared u64 domain; this is distinct from rejecting an individually out-of-domain token.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R4-header-column",
+        "argv": [
+          "headers",
+          "-s",
+          "18446744073709551615"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "This finite two-column header allows pre-output range validation. Header acquisition/read is permitted and required to discover column 1; empty stdout here does NOT mean no input reads or generic streaming rollback.",
+        "rule": "B01-R4",
+        "ruleText": "Reject overflow of start+len, index+1 and header-start+column in the declared u64 domain; this is distinct from rejecting an individually out-of-domain token.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R4-header-column"
+      },
+      "obligations": [
+        {
+          "id": "B01-R4",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/3",
+          "subtreeSha256": "b47aa306b60d7e3445b0359253729eb91097b9932222cff425d61f9d10d14c86",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/3/cases/2",
+          "frozenRow": {
+            "id": "B01-R4-header-column",
+            "argv": [
+              "headers",
+              "-s",
+              "18446744073709551615"
+            ],
+            "expected": "rejection",
+            "validation": "This finite two-column header allows pre-output range validation. Header acquisition/read is permitted and required to discover column 1; empty stdout here does NOT mean no input reads or generic streaming rollback."
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 21,
+            "observationLineSha256": "fadd0f656006ddf4b81941932461d9dd05f8e92c8424ee67bc3fe9db96cb6ca0",
+            "outcomeLine": 22,
+            "outcomeLineSha256": "fabd8328f88c4a3314a49903158120ea8395766c25c1e6df67805a3a305757c7"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R4-header-column/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIGhlYWRlcnM6IHVuc2lnbmVkIGFyaXRobWV0aWMgb3ZlcmZsb3cK\",\"inputEvents\":[\"acquire\",\"next\",{\"delivered\":12}],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":12}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R4-header-column/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R4-header-column, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R4-header-column, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-003.json",
+            "bytes": 426505,
+            "sha256": "d8651e05e0020a4a0932f69832089be35e2b1350455a5b99dfd0f97364e4f935",
+            "jobPointer": "/jobs/10",
+            "rowPointer": "/rows/130",
+            "jobEntry": {
+              "id": "B01-R4-header-column/P0",
+              "row": "B01-R4-header-column",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "headers",
+              "-s",
+              "18446744073709551615"
+            ]
+          },
+          "diagnosticBase64": "eGFuIGhlYWRlcnM6IHVuc2lnbmVkIGFyaXRobWV0aWMgb3ZlcmZsb3cK"
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 21,
+            "observationLineSha256": "fadd0f656006ddf4b81941932461d9dd05f8e92c8424ee67bc3fe9db96cb6ca0",
+            "outcomeLine": 22,
+            "outcomeLineSha256": "fabd8328f88c4a3314a49903158120ea8395766c25c1e6df67805a3a305757c7"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R4-header-column/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIGhlYWRlcnM6IHVuc2lnbmVkIGFyaXRobWV0aWMgb3ZlcmZsb3cK\",\"inputEvents\":[\"acquire\",\"next\",{\"delivered\":12}],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":12}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R4-header-column/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R4-header-column, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R4-header-column, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-003.json",
+            "bytes": 426523,
+            "sha256": "d6daf1acce2a50340663185c71eff5b1ebb55eac41fad1ac8764949b75d122fa",
+            "jobPointer": "/jobs/10",
+            "rowPointer": "/rows/130",
+            "jobEntry": {
+              "id": "B01-R4-header-column/P0",
+              "row": "B01-R4-header-column",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "headers",
+              "-s",
+              "18446744073709551615"
+            ]
+          },
+          "diagnosticBase64": "eGFuIGhlYWRlcnM6IHVuc2lnbmVkIGFyaXRobWV0aWMgb3ZlcmZsb3cK"
+        }
+      ]
+    },
+    {
+      "id": "B01-R5-interior/P0",
+      "exactArgv": [
+        "select",
+        "0,,1"
+      ],
+      "diagnosticUtf8": "xan select: unsupported in bounded CSV profile: selector syntax\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject interior empty selector clauses with exit 1; accept a valid trailing comma and retain valid empty WHOLE selector behavior. No cursor-skipping wildcard/range exclusion is added.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R5-interior",
+        "argv": [
+          "select",
+          "0,,1"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "interior empty clause detected before output on this fixed selector",
+        "rule": "B01-R5",
+        "ruleText": "Reject interior empty selector clauses with exit 1; accept a valid trailing comma and retain valid empty WHOLE selector behavior. No cursor-skipping wildcard/range exclusion is added.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R5-interior"
+      },
+      "obligations": [
+        {
+          "id": "B01-R5",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/4",
+          "subtreeSha256": "963aabe88439bc305877b629d4335734dfb2b9fea22482ecc00fd034d4e3ae8f",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/4/cases/0",
+          "frozenRow": {
+            "id": "B01-R5-interior",
+            "argv": [
+              "select",
+              "0,,1"
+            ],
+            "expected": "rejection",
+            "validation": "interior empty clause detected before output on this fixed selector"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 23,
+            "observationLineSha256": "70da913cfb1a5933ef85d47d11f3eff431186f22a3b804cdb4ac806318f3442f",
+            "outcomeLine": 24,
+            "outcomeLineSha256": "e41e0a69eae2e57f3bd82b719cc6f1ae1240b6a570c5b4187551728a1767c532"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R5-interior/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R5-interior/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R5-interior, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R5-interior, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-003.json",
+            "bytes": 426505,
+            "sha256": "d8651e05e0020a4a0932f69832089be35e2b1350455a5b99dfd0f97364e4f935",
+            "jobPointer": "/jobs/11",
+            "rowPointer": "/rows/131",
+            "jobEntry": {
+              "id": "B01-R5-interior/P0",
+              "row": "B01-R5-interior",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "0,,1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 23,
+            "observationLineSha256": "70da913cfb1a5933ef85d47d11f3eff431186f22a3b804cdb4ac806318f3442f",
+            "outcomeLine": 24,
+            "outcomeLineSha256": "e41e0a69eae2e57f3bd82b719cc6f1ae1240b6a570c5b4187551728a1767c532"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R5-interior/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R5-interior/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R5-interior, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R5-interior, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-003.json",
+            "bytes": 426523,
+            "sha256": "d6daf1acce2a50340663185c71eff5b1ebb55eac41fad1ac8764949b75d122fa",
+            "jobPointer": "/jobs/11",
+            "rowPointer": "/rows/131",
+            "jobEntry": {
+              "id": "B01-R5-interior/P0",
+              "row": "B01-R5-interior",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "select",
+              "0,,1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg=="
+        }
+      ]
+    },
+    {
+      "id": "B01-R6-L-range/P0",
+      "exactArgv": [
+        "slice",
+        "-L",
+        "0",
+        "-l",
+        "0"
+      ],
+      "diagnosticUtf8": "xan slice: conflicting slice modes\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R6-L-range",
+        "argv": [
+          "slice",
+          "-L",
+          "0",
+          "-l",
+          "0"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "before I/O; zero input acquisition/reads and output creation",
+        "rule": "B01-R6",
+        "ruleText": "Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R6-L-range"
+      },
+      "obligations": [
+        {
+          "id": "B01-R6",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/5",
+          "subtreeSha256": "d87cd2c5c49f8995163cd14c2a7cd86e5b5179d74e6168d41077a18199a1b75c",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/5/cases/0",
+          "frozenRow": {
+            "id": "B01-R6-L-range",
+            "argv": [
+              "slice",
+              "-L",
+              "0",
+              "-l",
+              "0"
+            ],
+            "expected": "rejection",
+            "validation": "before I/O; zero input acquisition/reads and output creation"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 29,
+            "observationLineSha256": "db07eebc2b693008c10b2ad1fe7ab08d574b98e365e40253f97eddee63239c26",
+            "outcomeLine": 30,
+            "outcomeLineSha256": "5adc6e80e9dcb804fcc2a6f4184addc6fedb292964460a7eb839ba6c9e0a508f"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R6-L-range/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R6-L-range/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-L-range, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-L-range, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-003.json",
+            "bytes": 426505,
+            "sha256": "d8651e05e0020a4a0932f69832089be35e2b1350455a5b99dfd0f97364e4f935",
+            "jobPointer": "/jobs/14",
+            "rowPointer": "/rows/134",
+            "jobEntry": {
+              "id": "B01-R6-L-range/P0",
+              "row": "B01-R6-L-range",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-L",
+              "0",
+              "-l",
+              "0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 29,
+            "observationLineSha256": "db07eebc2b693008c10b2ad1fe7ab08d574b98e365e40253f97eddee63239c26",
+            "outcomeLine": 30,
+            "outcomeLineSha256": "5adc6e80e9dcb804fcc2a6f4184addc6fedb292964460a7eb839ba6c9e0a508f"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R6-L-range/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R6-L-range/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-L-range, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-L-range, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-003.json",
+            "bytes": 426523,
+            "sha256": "d6daf1acce2a50340663185c71eff5b1ebb55eac41fad1ac8764949b75d122fa",
+            "jobPointer": "/jobs/14",
+            "rowPointer": "/rows/134",
+            "jobEntry": {
+              "id": "B01-R6-L-range/P0",
+              "row": "B01-R6-L-range",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-L",
+              "0",
+              "-l",
+              "0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        }
+      ]
+    },
+    {
+      "id": "B01-R6-I-range/P0",
+      "exactArgv": [
+        "slice",
+        "-I",
+        "0",
+        "-s",
+        "1"
+      ],
+      "diagnosticUtf8": "xan slice: conflicting slice modes\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R6-I-range",
+        "argv": [
+          "slice",
+          "-I",
+          "0",
+          "-s",
+          "1"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "before I/O; zero input acquisition/reads and output creation",
+        "rule": "B01-R6",
+        "ruleText": "Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R6-I-range"
+      },
+      "obligations": [
+        {
+          "id": "B01-R6",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/5",
+          "subtreeSha256": "d87cd2c5c49f8995163cd14c2a7cd86e5b5179d74e6168d41077a18199a1b75c",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/5/cases/1",
+          "frozenRow": {
+            "id": "B01-R6-I-range",
+            "argv": [
+              "slice",
+              "-I",
+              "0",
+              "-s",
+              "1"
+            ],
+            "expected": "rejection",
+            "validation": "before I/O; zero input acquisition/reads and output creation"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 31,
+            "observationLineSha256": "88ea2d23bceb2aaef7fc337ffa6bcd3ebce20cd6646bec3e1a6ff0bc433dcf3e",
+            "outcomeLine": 32,
+            "outcomeLineSha256": "b3db274ee4301f00c4ff07def8530b31a31f062b1e3f8dbeeca3d08a8c09ebb5"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R6-I-range/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R6-I-range/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-I-range, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-I-range, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-003.json",
+            "bytes": 426505,
+            "sha256": "d8651e05e0020a4a0932f69832089be35e2b1350455a5b99dfd0f97364e4f935",
+            "jobPointer": "/jobs/15",
+            "rowPointer": "/rows/135",
+            "jobEntry": {
+              "id": "B01-R6-I-range/P0",
+              "row": "B01-R6-I-range",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-I",
+              "0",
+              "-s",
+              "1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 31,
+            "observationLineSha256": "88ea2d23bceb2aaef7fc337ffa6bcd3ebce20cd6646bec3e1a6ff0bc433dcf3e",
+            "outcomeLine": 32,
+            "outcomeLineSha256": "b3db274ee4301f00c4ff07def8530b31a31f062b1e3f8dbeeca3d08a8c09ebb5"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R6-I-range/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R6-I-range/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-I-range, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-I-range, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-003.json",
+            "bytes": 426523,
+            "sha256": "d6daf1acce2a50340663185c71eff5b1ebb55eac41fad1ac8764949b75d122fa",
+            "jobPointer": "/jobs/15",
+            "rowPointer": "/rows/135",
+            "jobEntry": {
+              "id": "B01-R6-I-range/P0",
+              "row": "B01-R6-I-range",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-I",
+              "0",
+              "-s",
+              "1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        }
+      ]
+    },
+    {
+      "id": "B01-R6-L-I/P0",
+      "exactArgv": [
+        "slice",
+        "-L",
+        "0",
+        "-I",
+        "0"
+      ],
+      "diagnosticUtf8": "xan slice: conflicting slice modes\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R6-L-I",
+        "argv": [
+          "slice",
+          "-L",
+          "0",
+          "-I",
+          "0"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "before I/O; zero input acquisition/reads and output creation",
+        "rule": "B01-R6",
+        "ruleText": "Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R6-L-I"
+      },
+      "obligations": [
+        {
+          "id": "B01-R6",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/5",
+          "subtreeSha256": "d87cd2c5c49f8995163cd14c2a7cd86e5b5179d74e6168d41077a18199a1b75c",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/5/cases/2",
+          "frozenRow": {
+            "id": "B01-R6-L-I",
+            "argv": [
+              "slice",
+              "-L",
+              "0",
+              "-I",
+              "0"
+            ],
+            "expected": "rejection",
+            "validation": "before I/O; zero input acquisition/reads and output creation"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 33,
+            "observationLineSha256": "62450b275d17184d84aa0fe7a7bfe4d92acc5ddf38726da59b87de666649c815",
+            "outcomeLine": 34,
+            "outcomeLineSha256": "7f4bb26bd87ee7251f7be8722d038db83ec75a08dc86721b8bcdaee8077288ff"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R6-L-I/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R6-L-I/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-L-I, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-L-I, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-003.json",
+            "bytes": 426505,
+            "sha256": "d8651e05e0020a4a0932f69832089be35e2b1350455a5b99dfd0f97364e4f935",
+            "jobPointer": "/jobs/16",
+            "rowPointer": "/rows/136",
+            "jobEntry": {
+              "id": "B01-R6-L-I/P0",
+              "row": "B01-R6-L-I",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-L",
+              "0",
+              "-I",
+              "0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 33,
+            "observationLineSha256": "62450b275d17184d84aa0fe7a7bfe4d92acc5ddf38726da59b87de666649c815",
+            "outcomeLine": 34,
+            "outcomeLineSha256": "7f4bb26bd87ee7251f7be8722d038db83ec75a08dc86721b8bcdaee8077288ff"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"B01-R6-L-I/P0\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"B01-R6-L-I/P0\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-L-I, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-L-I, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-003.json",
+            "bytes": 426523,
+            "sha256": "d6daf1acce2a50340663185c71eff5b1ebb55eac41fad1ac8764949b75d122fa",
+            "jobPointer": "/jobs/16",
+            "rowPointer": "/rows/136",
+            "jobEntry": {
+              "id": "B01-R6-L-I/P0",
+              "row": "B01-R6-L-I",
+              "schedule": "P0",
+              "reuse": false,
+              "kind": "case"
+            },
+            "argv": [
+              "slice",
+              "-L",
+              "0",
+              "-I",
+              "0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        }
+      ]
+    },
+    {
+      "id": "flag-4-B01-R6-L-range",
+      "exactArgv": [
+        "slice",
+        "--last=0",
+        "--len=0"
+      ],
+      "diagnosticUtf8": "xan slice: conflicting slice modes\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R6-L-range",
+        "argv": [
+          "slice",
+          "-L",
+          "0",
+          "-l",
+          "0"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "before I/O; zero input acquisition/reads and output creation",
+        "rule": "B01-R6",
+        "ruleText": "Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R6-L-range"
+      },
+      "obligations": [
+        {
+          "id": "B01-R6",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/5",
+          "subtreeSha256": "d87cd2c5c49f8995163cd14c2a7cd86e5b5179d74e6168d41077a18199a1b75c",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/5/cases/0",
+          "frozenRow": {
+            "id": "B01-R6-L-range",
+            "argv": [
+              "slice",
+              "-L",
+              "0",
+              "-l",
+              "0"
+            ],
+            "expected": "rejection",
+            "validation": "before I/O; zero input acquisition/reads and output creation"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-006/stdout.raw",
+            "bytes": 89335,
+            "sha256": "b13ff40f91b68d696238da2c6f729f70e7e61c63cfc358214b62288fceb9b30a",
+            "mode": "644",
+            "observationLine": 57,
+            "observationLineSha256": "ca23e697952921859ee31b6bef2ee8247b87f7618d2e4f3eae39fd472ce9485a",
+            "outcomeLine": 58,
+            "outcomeLineSha256": "11c7b38dd9b090eea5dd11e6947f8744001895af6a01ed12c088701902ac3cd9"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"flag-4-B01-R6-L-range\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"flag-4-B01-R6-L-range\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-L-range, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-L-range, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-006.json",
+            "bytes": 426329,
+            "sha256": "f6102bb4a20d2cd3682f217fe118f2000f416ac0454eeb0de299584c4d7cdf64",
+            "jobPointer": "/jobs/28",
+            "rowPointer": "/rows/142",
+            "jobEntry": {
+              "id": "flag-4-B01-R6-L-range",
+              "kind": "case",
+              "row": "flag-4-B01-R6-L-range",
+              "schedule": "P0"
+            },
+            "argv": [
+              "slice",
+              "--last=0",
+              "--len=0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-006/stdout.raw",
+            "bytes": 89787,
+            "sha256": "4539f073e45fdd53889934c9778759edab8ce103cfb3776ad1613df55bf086d3",
+            "mode": "644",
+            "observationLine": 57,
+            "observationLineSha256": "ca23e697952921859ee31b6bef2ee8247b87f7618d2e4f3eae39fd472ce9485a",
+            "outcomeLine": 58,
+            "outcomeLineSha256": "11c7b38dd9b090eea5dd11e6947f8744001895af6a01ed12c088701902ac3cd9"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"flag-4-B01-R6-L-range\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"flag-4-B01-R6-L-range\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-L-range, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-L-range, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-006.json",
+            "bytes": 426347,
+            "sha256": "50769282c5ee6ee2896947698c3f8a50cab7aeeaeca45077d37a312287c35efa",
+            "jobPointer": "/jobs/28",
+            "rowPointer": "/rows/142",
+            "jobEntry": {
+              "id": "flag-4-B01-R6-L-range",
+              "kind": "case",
+              "row": "flag-4-B01-R6-L-range",
+              "schedule": "P0"
+            },
+            "argv": [
+              "slice",
+              "--last=0",
+              "--len=0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        }
+      ]
+    },
+    {
+      "id": "flag-5-B01-R6-I-range",
+      "exactArgv": [
+        "slice",
+        "--indices=0",
+        "--start=1"
+      ],
+      "diagnosticUtf8": "xan slice: conflicting slice modes\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R6-I-range",
+        "argv": [
+          "slice",
+          "-I",
+          "0",
+          "-s",
+          "1"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "before I/O; zero input acquisition/reads and output creation",
+        "rule": "B01-R6",
+        "ruleText": "Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R6-I-range"
+      },
+      "obligations": [
+        {
+          "id": "B01-R6",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/5",
+          "subtreeSha256": "d87cd2c5c49f8995163cd14c2a7cd86e5b5179d74e6168d41077a18199a1b75c",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/5/cases/1",
+          "frozenRow": {
+            "id": "B01-R6-I-range",
+            "argv": [
+              "slice",
+              "-I",
+              "0",
+              "-s",
+              "1"
+            ],
+            "expected": "rejection",
+            "validation": "before I/O; zero input acquisition/reads and output creation"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-006/stdout.raw",
+            "bytes": 89335,
+            "sha256": "b13ff40f91b68d696238da2c6f729f70e7e61c63cfc358214b62288fceb9b30a",
+            "mode": "644",
+            "observationLine": 59,
+            "observationLineSha256": "d6840a194b14fd3a42f6873fd98a8e829d2d520001e75a79d1b2be0d44fe33cb",
+            "outcomeLine": 60,
+            "outcomeLineSha256": "eb86813ab385f8f603dbc81c4db493da8f716a7271cf95fec66a578bb732c3fd"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"flag-5-B01-R6-I-range\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"flag-5-B01-R6-I-range\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-I-range, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-I-range, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-006.json",
+            "bytes": 426329,
+            "sha256": "f6102bb4a20d2cd3682f217fe118f2000f416ac0454eeb0de299584c4d7cdf64",
+            "jobPointer": "/jobs/29",
+            "rowPointer": "/rows/143",
+            "jobEntry": {
+              "id": "flag-5-B01-R6-I-range",
+              "kind": "case",
+              "row": "flag-5-B01-R6-I-range",
+              "schedule": "P0"
+            },
+            "argv": [
+              "slice",
+              "--indices=0",
+              "--start=1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-006/stdout.raw",
+            "bytes": 89787,
+            "sha256": "4539f073e45fdd53889934c9778759edab8ce103cfb3776ad1613df55bf086d3",
+            "mode": "644",
+            "observationLine": 59,
+            "observationLineSha256": "d6840a194b14fd3a42f6873fd98a8e829d2d520001e75a79d1b2be0d44fe33cb",
+            "outcomeLine": 60,
+            "outcomeLineSha256": "eb86813ab385f8f603dbc81c4db493da8f716a7271cf95fec66a578bb732c3fd"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"flag-5-B01-R6-I-range\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"flag-5-B01-R6-I-range\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-I-range, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-I-range, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-006.json",
+            "bytes": 426347,
+            "sha256": "50769282c5ee6ee2896947698c3f8a50cab7aeeaeca45077d37a312287c35efa",
+            "jobPointer": "/jobs/29",
+            "rowPointer": "/rows/143",
+            "jobEntry": {
+              "id": "flag-5-B01-R6-I-range",
+              "kind": "case",
+              "row": "flag-5-B01-R6-I-range",
+              "schedule": "P0"
+            },
+            "argv": [
+              "slice",
+              "--indices=0",
+              "--start=1"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        }
+      ]
+    },
+    {
+      "id": "flag-6-B01-R6-L-I",
+      "exactArgv": [
+        "slice",
+        "-L0",
+        "-I0"
+      ],
+      "diagnosticUtf8": "xan slice: conflicting slice modes\n",
+      "sourceMovedDiagnosticBytesEqual": true,
+      "originalStatus": "FAIL",
+      "diagnosisCause": "DIAGNOSTIC_SPECIFICITY_HOLD",
+      "diagnosisCategory": "POLICY_TENSION",
+      "unqualified": [
+        "Whether generic diagnostic identifies the frozen condition: Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "Remaining phase and cleanup subassertions after diagnostic assertion"
+      ],
+      "frozenCase": {
+        "id": "B01-R6-L-I",
+        "argv": [
+          "slice",
+          "-L",
+          "0",
+          "-I",
+          "0"
+        ],
+        "expected": {
+          "status": 1,
+          "stdoutUtf8": "",
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "stdoutScope": "Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.",
+          "ioScope": "Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."
+        },
+        "validation": "before I/O; zero input acquisition/reads and output creation",
+        "rule": "B01-R6",
+        "ruleText": "Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+        "stdinHex": "612c620a312c320a332c340a",
+        "normalizedId": "B01-R6-L-I"
+      },
+      "obligations": [
+        {
+          "id": "B01-R6",
+          "kind": "ratification",
+          "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+          "pointer": "/rules/5",
+          "subtreeSha256": "d87cd2c5c49f8995163cd14c2a7cd86e5b5179d74e6168d41077a18199a1b75c",
+          "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS",
+          "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+          "frozenRowPointer": "/rules/5/cases/2",
+          "frozenRow": {
+            "id": "B01-R6-L-I",
+            "argv": [
+              "slice",
+              "-L",
+              "0",
+              "-I",
+              "0"
+            ],
+            "expected": "rejection",
+            "validation": "before I/O; zero input acquisition/reads and output creation"
+          }
+        }
+      ],
+      "layouts": [
+        {
+          "layout": "SOURCE",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-006/stdout.raw",
+            "bytes": 89335,
+            "sha256": "b13ff40f91b68d696238da2c6f729f70e7e61c63cfc358214b62288fceb9b30a",
+            "mode": "644",
+            "observationLine": 61,
+            "observationLineSha256": "9626a1091e6ea85db1ab98c6df326f448a2fbc590086d0bb1918f614dfc63da4",
+            "outcomeLine": 62,
+            "outcomeLineSha256": "a869a130cec7cd9b1ba0b6ca0b547ace6c4f9c8b01f43963d57a40029444d340"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"flag-6-B01-R6-L-I\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"flag-6-B01-R6-L-I\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-L-I, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-L-I, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "SOURCE-006.json",
+            "bytes": 426329,
+            "sha256": "f6102bb4a20d2cd3682f217fe118f2000f416ac0454eeb0de299584c4d7cdf64",
+            "jobPointer": "/jobs/30",
+            "rowPointer": "/rows/144",
+            "jobEntry": {
+              "id": "flag-6-B01-R6-L-I",
+              "kind": "case",
+              "row": "flag-6-B01-R6-L-I",
+              "schedule": "P0"
+            },
+            "argv": [
+              "slice",
+              "-L0",
+              "-I0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        },
+        {
+          "layout": "INSTALLED_MOVED",
+          "rawBinding": {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-006/stdout.raw",
+            "bytes": 89787,
+            "sha256": "4539f073e45fdd53889934c9778759edab8ce103cfb3776ad1613df55bf086d3",
+            "mode": "644",
+            "observationLine": 61,
+            "observationLineSha256": "9626a1091e6ea85db1ab98c6df326f448a2fbc590086d0bb1918f614dfc63da4",
+            "outcomeLine": 62,
+            "outcomeLineSha256": "a869a130cec7cd9b1ba0b6ca0b547ace6c4f9c8b01f43963d57a40029444d340"
+          },
+          "rawObservationLine": "{\"stage\":\"RAW_OBSERVATION\",\"id\":\"flag-6-B01-R6-L-I\",\"observation\":{\"result\":{\"exitCode\":1},\"failed\":false,\"stdoutBase64\":\"\",\"stderrBase64\":\"eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo=\",\"inputEvents\":[],\"fsEvents\":[],\"closed\":true,\"files\":{},\"cleanup\":{\"drained\":true,\"failures\":0},\"deliveryLengths\":[12],\"chargedInputBytes\":0}}",
+          "rawOutcomeLine": "{\"stage\":\"CASE\",\"id\":\"flag-6-B01-R6-L-I\",\"kind\":\"case\",\"status\":\"FAIL\",\"closed\":true,\"intact\":true,\"failure\":{\"name\":\"AssertionError\",\"message\":\"one contextual condition B01-R6-L-I, not unrelated substrings\",\"stack\":\"AssertionError [ERR_ASSERTION]: one contextual condition B01-R6-L-I, not unrelated substrings\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84\"}}",
+          "archivedJob": {
+            "path": "INSTALLED_MOVED-006.json",
+            "bytes": 426347,
+            "sha256": "50769282c5ee6ee2896947698c3f8a50cab7aeeaeca45077d37a312287c35efa",
+            "jobPointer": "/jobs/30",
+            "rowPointer": "/rows/144",
+            "jobEntry": {
+              "id": "flag-6-B01-R6-L-I",
+              "kind": "case",
+              "row": "flag-6-B01-R6-L-I",
+              "schedule": "P0"
+            },
+            "argv": [
+              "slice",
+              "-L0",
+              "-I0"
+            ]
+          },
+          "diagnosticBase64": "eGFuIHNsaWNlOiBjb25mbGljdGluZyBzbGljZSBtb2Rlcwo="
+        }
+      ]
+    }
+  ],
+  "equivalentWording": {
+    "countPerLayout": 10,
+    "source": "Existing sealed diagnosis classification, not a newly run correction or matcher",
+    "cases": [
+      {
+        "id": "X4-R04/P0",
+        "exactArgv": [
+          "select",
+          "--",
+          "z*"
+        ],
+        "diagnosticUtf8": "xan select: Prefix 'z' selected nothing.\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-002/stdout.raw",
+            "bytes": 82054,
+            "sha256": "a70b4a2b5a0f28e4ff791eceaff10e2ec32c335bf2bb46f4d5dccdc59d0c4f6f",
+            "mode": "644",
+            "observationLine": 79,
+            "observationLineSha256": "462e1114779e0b4948179f4bdeaa0923bddb4cb75d812eed3516a1f565e92d6d",
+            "outcomeLine": 80,
+            "outcomeLineSha256": "bfa1d86179c361f01ee252d435d71604d1cf6b310cf1249b5393d237018f6c65"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-002/stdout.raw",
+            "bytes": 82506,
+            "sha256": "97afe2561504867098243f7404afb533dd1d26249ca9f9f28fb24fa0b5dd1718",
+            "mode": "644",
+            "observationLine": 79,
+            "observationLineSha256": "462e1114779e0b4948179f4bdeaa0923bddb4cb75d812eed3516a1f565e92d6d",
+            "outcomeLine": 80,
+            "outcomeLineSha256": "bfa1d86179c361f01ee252d435d71604d1cf6b310cf1249b5393d237018f6c65"
+          }
+        ]
+      },
+      {
+        "id": "X4-R05/P0",
+        "exactArgv": [
+          "select",
+          "--",
+          "*z"
+        ],
+        "diagnosticUtf8": "xan select: Suffix 'z' selected nothing.\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 1,
+            "observationLineSha256": "9b7b286a905bff1eb70f843a568a6550132d61482e4f1c927fdbde6eb6939eba",
+            "outcomeLine": 2,
+            "outcomeLineSha256": "86ad199a16efd61ffbc143fa5cd69324de66cabd0dfb195af93876fd480bb829"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 1,
+            "observationLineSha256": "9b7b286a905bff1eb70f843a568a6550132d61482e4f1c927fdbde6eb6939eba",
+            "outcomeLine": 2,
+            "outcomeLineSha256": "86ad199a16efd61ffbc143fa5cd69324de66cabd0dfb195af93876fd480bb829"
+          }
+        ]
+      },
+      {
+        "id": "X4-R06/P0",
+        "exactArgv": [
+          "select",
+          "-n",
+          "--",
+          "a"
+        ],
+        "diagnosticUtf8": "xan select: named selector requires headers (not -n)\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 3,
+            "observationLineSha256": "56ac7daa0cdb2c1e7fe048d3c40199ee88ac1098965e68ada491b57205b6aa5d",
+            "outcomeLine": 4,
+            "outcomeLineSha256": "956101de8c6cb25f268ca11c9a32491ca9ec17b6f1d490b2dc06740cfddff39c"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 3,
+            "observationLineSha256": "56ac7daa0cdb2c1e7fe048d3c40199ee88ac1098965e68ada491b57205b6aa5d",
+            "outcomeLine": 4,
+            "outcomeLineSha256": "956101de8c6cb25f268ca11c9a32491ca9ec17b6f1d490b2dc06740cfddff39c"
+          }
+        ]
+      },
+      {
+        "id": "X4-R07/P0",
+        "exactArgv": [
+          "select",
+          "--",
+          "0:*"
+        ],
+        "diagnosticUtf8": "xan select: Selector name '*' does not exist as a named header in the given CSV data.\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 5,
+            "observationLineSha256": "bff3901d893fabb800deaef2c2929f7d3ba32c68dc1b7daf810339c2f3f78c9c",
+            "outcomeLine": 6,
+            "outcomeLineSha256": "1a0eb04cbbcb4810c333f99be8ae54efeb9b52e32306d4df0f5f3a095ca24e4e"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 5,
+            "observationLineSha256": "bff3901d893fabb800deaef2c2929f7d3ba32c68dc1b7daf810339c2f3f78c9c",
+            "outcomeLine": 6,
+            "outcomeLineSha256": "1a0eb04cbbcb4810c333f99be8ae54efeb9b52e32306d4df0f5f3a095ca24e4e"
+          }
+        ]
+      },
+      {
+        "id": "X4-R08/P0",
+        "exactArgv": [
+          "select",
+          "--",
+          "9223372036854775808"
+        ],
+        "diagnosticUtf8": "xan select: Selector name '9223372036854775808' does not exist as a named header in the given CSV data.\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 7,
+            "observationLineSha256": "e20414b783564221d2365c8c5311a877db64cbe5ee731a2fdb573982ad7318bb",
+            "outcomeLine": 8,
+            "outcomeLineSha256": "cf143cd924536dd88bf9c13ee21f70280ac905883d40c2c6398bfc09aaecca89"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 7,
+            "observationLineSha256": "e20414b783564221d2365c8c5311a877db64cbe5ee731a2fdb573982ad7318bb",
+            "outcomeLine": 8,
+            "outcomeLineSha256": "cf143cd924536dd88bf9c13ee21f70280ac905883d40c2c6398bfc09aaecca89"
+          }
+        ]
+      },
+      {
+        "id": "B01-R1-repeat/P0",
+        "exactArgv": [
+          "count",
+          "-n",
+          "-n"
+        ],
+        "diagnosticUtf8": "xan count: repeated option --no-headers\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 9,
+            "observationLineSha256": "49616c9d704efed1753888a098a696d5ff3844564b1235a2adfc51a717a05d38",
+            "outcomeLine": 10,
+            "outcomeLineSha256": "920e5054d6e7ac7730c67fa8cd8a5c1a2afc413a8c996ae6c57b5ba2cb67e776"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 9,
+            "observationLineSha256": "49616c9d704efed1753888a098a696d5ff3844564b1235a2adfc51a717a05d38",
+            "outcomeLine": 10,
+            "outcomeLineSha256": "920e5054d6e7ac7730c67fa8cd8a5c1a2afc413a8c996ae6c57b5ba2cb67e776"
+          }
+        ]
+      },
+      {
+        "id": "B01-R3-space/P0",
+        "exactArgv": [
+          "slice",
+          "-l",
+          " "
+        ],
+        "diagnosticUtf8": "Could not deserialize ' ' to u64 for '--len'.\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 13,
+            "observationLineSha256": "d14087fc4da99be148a7c7be8b4760c8eb3b228fad7cf53166892a2bff973410",
+            "outcomeLine": 14,
+            "outcomeLineSha256": "dac77bce89953c3d510a011316fdfc0d1aa9f552360c9b139272b97f6d18aef3"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 13,
+            "observationLineSha256": "d14087fc4da99be148a7c7be8b4760c8eb3b228fad7cf53166892a2bff973410",
+            "outcomeLine": 14,
+            "outcomeLineSha256": "dac77bce89953c3d510a011316fdfc0d1aa9f552360c9b139272b97f6d18aef3"
+          }
+        ]
+      },
+      {
+        "id": "B01-R7-invalid-plural/P0",
+        "exactArgv": [
+          "slice",
+          "-I",
+          "x"
+        ],
+        "diagnosticUtf8": "Could not deserialize 'x' to u64 for '-I/--indices'.\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-003/stdout.raw",
+            "bytes": 91278,
+            "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+            "mode": "644",
+            "observationLine": 35,
+            "observationLineSha256": "66fab4757a6ada2fc7095ca944140c2e9db968659a8a0d6599af575186c904b8",
+            "outcomeLine": 36,
+            "outcomeLineSha256": "a7abfd6433faa092cee804117396f127043137b43bf27729895e33690b2bb5c1"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-003/stdout.raw",
+            "bytes": 91730,
+            "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+            "mode": "644",
+            "observationLine": 35,
+            "observationLineSha256": "66fab4757a6ada2fc7095ca944140c2e9db968659a8a0d6599af575186c904b8",
+            "outcomeLine": 36,
+            "outcomeLineSha256": "a7abfd6433faa092cee804117396f127043137b43bf27729895e33690b2bb5c1"
+          }
+        ]
+      },
+      {
+        "id": "flag-3-B01-R1-repeat",
+        "exactArgv": [
+          "count",
+          "-nn"
+        ],
+        "diagnosticUtf8": "xan count: repeated option --no-headers\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-006/stdout.raw",
+            "bytes": 89335,
+            "sha256": "b13ff40f91b68d696238da2c6f729f70e7e61c63cfc358214b62288fceb9b30a",
+            "mode": "644",
+            "observationLine": 55,
+            "observationLineSha256": "dd8609321180708939a58f4f37cca682e7cf496cc0e8150423b50ad423b3e196",
+            "outcomeLine": 56,
+            "outcomeLineSha256": "b5b5d30f4347ecab17c929cfeac9975403f040458fc9de12657b82403d3c20df"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-006/stdout.raw",
+            "bytes": 89787,
+            "sha256": "4539f073e45fdd53889934c9778759edab8ce103cfb3776ad1613df55bf086d3",
+            "mode": "644",
+            "observationLine": 55,
+            "observationLineSha256": "dd8609321180708939a58f4f37cca682e7cf496cc0e8150423b50ad423b3e196",
+            "outcomeLine": 56,
+            "outcomeLineSha256": "b5b5d30f4347ecab17c929cfeac9975403f040458fc9de12657b82403d3c20df"
+          }
+        ]
+      },
+      {
+        "id": "flag-7-B01-R7-invalid-plural",
+        "exactArgv": [
+          "slice",
+          "--indices=x"
+        ],
+        "diagnosticUtf8": "Could not deserialize 'x' to u64 for '-I/--indices'.\n",
+        "diagnosisCause": "DIAGNOSTIC_EQUIVALENT_WORDING",
+        "statusUnchanged": "FAIL",
+        "sourceMovedDiagnosticBytesEqual": true,
+        "rawBindings": [
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "SOURCE-006/stdout.raw",
+            "bytes": 89335,
+            "sha256": "b13ff40f91b68d696238da2c6f729f70e7e61c63cfc358214b62288fceb9b30a",
+            "mode": "644",
+            "observationLine": 63,
+            "observationLineSha256": "fb4136a25b8ae45d58f09094f360a8e7643ba030e3b73648450cc1e73a1d4f8f",
+            "outcomeLine": 64,
+            "outcomeLineSha256": "e616e29fe13779ab3f16fdc23b0aaf06cd7220be7e4d6a266e3ea6ff626cba5a"
+          },
+          {
+            "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+            "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+            "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+            "path": "INSTALLED_MOVED-006/stdout.raw",
+            "bytes": 89787,
+            "sha256": "4539f073e45fdd53889934c9778759edab8ce103cfb3776ad1613df55bf086d3",
+            "mode": "644",
+            "observationLine": 63,
+            "observationLineSha256": "fb4136a25b8ae45d58f09094f360a8e7643ba030e3b73648450cc1e73a1d4f8f",
+            "outcomeLine": 64,
+            "outcomeLineSha256": "e616e29fe13779ab3f16fdc23b0aaf06cd7220be7e4d6a266e3ea6ff626cba5a"
+          }
+        ]
+      }
+    ]
+  },
+  "authenticatedReferences": {
+    "matcher": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs",
+      "first": 3,
+      "last": 91,
+      "text": "const predicates = {\n  U03: [/invalid|malformed|incomplete/i, /utf[- ]?8/i],\n  R01: [/unsupported|not supported|bounded.*refus/i, /--parallel(?![\\w-])/],\n  R02: [/unsupported|not supported|bounded.*refus/i, /--approx(?![\\w-])/],\n  R03: [/unsupported|not supported|bounded.*refus/i, /--evaluate(?![\\w-])/],\n  R04: [/unsupported|not supported|bounded.*refus/i, /--evaluate-file(?![\\w-])/],\n  R05: [/unsupported|not supported|bounded.*refus/i, /--raw(?![\\w-])/],\n  'X4-S01': [/empty/i, /clause|selector|selection/i],\n  'X4-S02': [/colon|range/i, /repeat|multiple|extra|unsupported/i],\n  'X4-S03': [/prefix|wildcard|a\\*/i, /colon|range|unsupported/i],\n  'X4-S04': [/suffix|\\*a/i, /occurrence|bracket|unsupported/i],\n  'X4-S05': [/quote/i, /junk|trailing|after|unsupported/i],\n  'X4-N01': [/occurrence/i, /empty|invalid|integer|number/i],\n  'X4-N02': [/occurrence/i, /range|overflow|i64|integer|invalid/i],\n  'X4-R01': [/missing|unknown|not found|no .*match/i, /name|header|column|missing/i],\n  'X4-R02': [/index|column/i, /range|bounds|invalid|missing/i],\n  'X4-R03': [/occurrence/i, /missing|range|bounds|not found|no .*match/i],\n  'X4-R04': [/prefix|z\\*/i, /missing|not found|no .*match/i],\n  'X4-R05': [/suffix|\\*z/i, /missing|not found|no .*match/i],\n  'X4-R06': [/name|named/i, /-n\\b|no.headers|without.*header/i, /forbid|unsupported|cannot|not allowed|invalid/i],\n  'X4-R07': [/\\*/, /missing|unknown|not found|no .*match/i, /name|header|endpoint/i],\n  'X4-R08': [/9223372036854775808/, /name|header/i, /missing|unknown|not found|no .*match/i],\n  'B01-R1-repeat': [/repeat|duplicate|multiple/i, /(?:^|[\\s'\"`(:])-n(?=$|[\\s'\"`):,;.])/],\n  'B01-R2-cr': [/delimiter/i, /invalid|unsupported|forbid|ASCII|single/i],\n  'B01-R3-space': [/length|number|integer|numeric|-l\\b/i, /invalid|digit|empty|space|positive|unsigned/i],\n  'B01-R4-start-length': [/overflow|range|u64/i, /start/i, /len/i],\n  'B01-R4-index-one': [/overflow|range|u64/i, /index|-i\\b/],\n  'B01-R4-header-column': [/overflow|range|u64/i, /start|column/i],\n  'B01-R5-interior': [/empty/i, /clause|selector|selection/i],\n  'B01-R6-L-range': [/conflict|combine|exclusive|incompatible|mix/i, /-L\\b|--last\\b/, /range|-l\\b|--len\\b/],\n  'B01-R6-I-range': [/conflict|combine|exclusive|incompatible|mix/i, /-I\\b|--indices\\b/, /range|-s\\b|--start\\b/],\n  'B01-R6-L-I': [/conflict|combine|exclusive|incompatible|mix/i, /-L\\b|--last\\b/, /-I\\b|--indices\\b/],\n  'B01-R7-invalid-plural': [/invalid|number|integer|index|indices/i, /(?:^|[\\s'\"`(:])-I(?=$|[\\s'\"`):,;.])/],\n};\n\nexport const diagnosticExamples = {\n  U03: 'invalid UTF-8', R01: 'unsupported --parallel', R02: 'unsupported --approx',\n  R03: 'unsupported --evaluate', R04: 'unsupported --evaluate-file', R05: 'unsupported --raw',\n  'X4-S01': 'empty selector clause', 'X4-S02': 'repeated range colon',\n  'X4-S03': 'prefix followed by colon', 'X4-S04': 'suffix followed by occurrence',\n  'X4-S05': 'trailing junk after closing quote', 'X4-N01': 'empty occurrence integer',\n  'X4-N02': 'occurrence integer outside i64 range', 'X4-R01': 'missing header name',\n  'X4-R02': 'column index out of bounds', 'X4-R03': 'occurrence out of range',\n  'X4-R04': 'prefix has no match', 'X4-R05': 'suffix has no match',\n  'X4-R06': 'named selector forbidden under -n', 'X4-R07': 'missing endpoint header name *',\n  'X4-R08': 'missing header name 9223372036854775808',\n  'B01-R1-repeat': 'repeated singleton -n', 'B01-R2-cr': 'invalid delimiter',\n  'B01-R3-space': 'invalid length number', 'B01-R4-start-length': 'start plus length overflow',\n  'B01-R4-index-one': 'index plus one overflow', 'B01-R4-header-column': 'header start plus column overflow',\n  'B01-R5-interior': 'empty selector clause', 'B01-R6-L-range': 'conflicting -L and range -l',\n  'B01-R6-I-range': 'conflicting -I and range -s', 'B01-R6-L-I': 'conflicting -L and -I',\n  'B01-R7-invalid-plural': 'invalid integer for -I',\n};\n\nexport function exampleDiagnostic(row) {\n  return `xan ${row.argv[0]}: ${row.requiredDiagnosticFamily ? `${row.requiredDiagnosticFamily} ` : ''}${diagnosticExamples[row.id]}\\n`;\n}\n\nexport function matcher(row) {\n  const tests = predicates[row.id];\n  assert.ok(tests, `No contextual matcher: ${row.id}`);\n  const expectedArgv = JSON.stringify(row.argv);\n  return {\n    id: row.id,\n    assert(data, context = row) {\n      assert.equal(context.id, row.id);\n      assert.equal(JSON.stringify(context.argv), expectedArgv, 'diagnostic argv binding');\n      const text = new TextDecoder('utf-8', { fatal: true }).decode(data);\n      assert.ok(data.byteLength > 0 && data.byteLength <= 65536, 'bounded diagnostic');\n      const command = row.argv[0] === 'h' ? 'headers' : row.argv[0];\n      const prefix = /^xan\\s+(\\S+?):?\\s/.exec(text);\n      if (row.group === 'selector36' || row.id === 'U03') assert.match(text, new RegExp(`^xan ${command}:?\\\\s`, 'u'), 'required command identity');\n      if (prefix) assert.equal(prefix[1].replace(/:$/, ''), command, 'wrong command context');\n      const clauses = text.trim().split('\\n').filter(line => line.trim());\n      assert.ok(clauses.some(clause => tests.every(test => test.test(clause))), `one contextual condition ${row.id}, not unrelated substrings`);\n      if (row.requiredDiagnosticFamily) assert.ok(text.includes(row.requiredDiagnosticFamily), 'inherited literal family');\n      if (row.id === 'B01-R7-invalid-plural') {\n        assert.doesNotMatch(text, /(?:invalid|offending|rejected)\\s+(?:option\\s+)?['\"`]?-(?:i|\\-index)(?=['\"`\\s:,;.]|$)/, 'offending option is plural');\n      }\n    },\n  };\n}\n\nexport function matcherMap(rows) {\n  const selected = rows.filter(row => row.expected.stderr.precision);\n  assert.equal(selected.length, 32);\n  assert.deepEqual(selected.map(row => row.id).sort(), Object.keys(predicates).sort());\n  return new Map(selected.map(row => [row.id, matcher(row)]));\n}"
+    },
+    "case": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs",
+      "first": 31,
+      "last": 66,
+      "text": "export function assertPhase(row, record) {\n  assert.equal(record.inputEvents.filter(event => event === 'return' || event === 'throw').length, 0, 'borrowed lifetime');\n  if (beforeIO(row)) {\n    assert.equal(record.inputEvents.length, 0, 'before iterator acquisition');\n    assert.equal(record.fsEvents.length, 0, 'before metadata and publication');\n  }\n  if (row.phase === 'AFTER_FIRST_RECORD_BEFORE_SELECTED_OUTPUT') {\n    const boundary = headerBoundary(row);\n    assert.ok(boundary > 0, 'trusted fixture boundary');\n    const chunks = record.deliveryLengths;\n    let delivered = 0;\n    let required = 0;\n    while (delivered < boundary && required < chunks.length) delivered += chunks[required++];\n    assert.ok(delivered >= boundary, 'logical record complete');\n    assert.equal(record.inputEvents.filter(event => event === 'next').length, required, 'stop when first logical record known');\n    assert.equal(record.chargedInputBytes, delivered, 'whole delivered read-ahead charged');\n    assert.equal(record.fsEvents.filter(event => event.method.startsWith('write')).length, 0);\n  }\n}\n\nexport function assertCase(row, record, matchers) {\n  assert.equal(record.failed, false, 'escaping execution');\n  assert.equal(record.result?.exitCode, row.expected.status, 'status');\n  if (row.assertionMode === 'HISTORICAL_BYTE_COMPARISON_PLUS_PROJECT_SEMANTICS') {\n    assert.deepEqual(faithfulCSV(record.stdout.data), row.projectLogicalRecords, 'approved project logical records; native bytes retained separately');\n  } else assert.deepEqual(record.stdout.data, bytes(row.expected.stdout), 'stdout bytes');\n  assert.deepEqual(Object.keys(record.files).sort(), Object.keys(row.expected.files).sort(), 'namespace');\n  for (const [name, datum] of Object.entries(row.expected.files)) assert.deepEqual(record.files[name], bytes(datum), `file ${name}`);\n  if (row.expected.stderr.precision) matchers.get(row.id).assert(record.stderr.data, row);\n  else assert.deepEqual(record.stderr.data, bytes(row.expected.stderr), 'inherited exact stderr');\n  assertPhase(row, record);\n  assert.equal(record.cleanup.drained, true);\n  assert.equal(record.cleanup.failures, 0);\n  if (row.id === 'Z02') assert.equal(record.inputEvents.length, 0, 'zero tail without header never acquires borrowed stdin');\n  if (row.id === 'Z10') assert.equal(record.fsEvents.filter(event => event.method === 'readStream' || event.method === 'readFile').length, 0);\n  return { id: row.id, assertion: 'EXACT_OR_FROZEN_CONTEXTUAL', rawStdoutSha256: sha(record.stdout.data) };"
+    },
+    "flagVariants": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/scenarios.mjs",
+      "first": 134,
+      "last": 141,
+      "text": "export function flagVariants(rows) {\n  const byId = new Map(rows.map(row => [row.id, row]));\n  return [\n    ['Z01', ['slice', '--last', '0']], ['Z02', ['slice', '-nL0']], ['Z09', ['slice', '--len=1']],\n    ['B01-R1-repeat', ['count', '-nn']], ['B01-R6-L-range', ['slice', '--last=0', '--len=0']],\n    ['B01-R6-I-range', ['slice', '--indices=0', '--start=1']], ['B01-R6-L-I', ['slice', '-L0', '-I0']],\n    ['B01-R7-invalid-plural', ['slice', '--indices=x']],\n  ].map(([id, argv], index) => ({ ...byId.get(id), id: `flag-${index}-${id}`, originalId: id, argv }));"
+    }
+  }
+}

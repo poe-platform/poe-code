@@ -1,0 +1,1037 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { createServer } from 'node:http';
+import { readFile, realpath, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { Unbound as Blocked, requireQualifiedBinding, requireWriteoutTriplet, assertClosedWriteout, qualifiedLifetime } from './qualified-criteria.mjs';
+import { lifetime } from './lifetime.mjs';
+
+const directory = dirname(fileURLToPath(import.meta.url));
+const innerDeadlineMs = 1200;
+const outerDeadlineMs = 3000;
+const outputLimitBytes = 1048576;
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+const bytes = value => encoder.encode(value);
+const text = value => decoder.decode(value);
+const sha256 = value => createHash('sha256').update(value).digest('hex');
+const immediate = () => new Promise(resolveTurn => setImmediate(resolveTurn));
+const observe = promise => Promise.resolve(promise).then(value => ({ kind: 'value', value }), error => ({ kind: 'error', error }));
+const encodeJson = value => JSON.stringify(value, (_key, item) => item === undefined ? { serializationTag: 'undefined' } : item instanceof Error ? { name: item.name, message: item.message, ...(item.code === undefined ? {} : { code: item.code }) } : item);
+const pipeReason = () => Object.assign(new Error('binding destination consumer closed'), { code: 'EPIPE' });
+
+function gate() {
+  let resolveGate;
+  let rejectGate;
+  let state = 'pending';
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolveGate = value => { if (state === 'pending') { state = 'resolved'; resolvePromise(value); } };
+    rejectGate = reason => { if (state === 'pending') { state = 'rejected'; rejectPromise(reason); } };
+  });
+  void promise.catch(() => {});
+  return { promise, resolve: resolveGate, reject: rejectGate, get state() { return state; } };
+}
+
+function tracked(promise) {
+  const observation = { state: 'pending', outcome: null };
+  observation.promise = observe(promise).then(outcome => {
+    observation.state = outcome.kind;
+    observation.outcome = outcome;
+    return outcome;
+  });
+  return observation;
+}
+
+class Scope {
+  controller = new AbortController();
+  timers = new Set();
+  releases = [];
+  cleanups = [];
+  events = [];
+  unhandled = [];
+  sockets = new Set();
+  tasks = new Set();
+  snapshots = [];
+  teardownStarted = false;
+  constructor() {
+    this.unhandledListener = reason => this.unhandled.push(reason);
+    process.on('unhandledRejection', this.unhandledListener);
+  }
+  event(name, detail = null) {
+    assert.ok(this.events.length < 2048, 'bounded event journal');
+    this.events.push({ sequence: this.events.length, name, detail, phase: this.teardownStarted ? 'teardown' : 'observation' });
+  }
+  async bound(promise, label, milliseconds = innerDeadlineMs) {
+    let timer;
+    try {
+      return await Promise.race([promise, new Promise((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+        this.timers.add(timer);
+      })]);
+    } finally {
+      clearTimeout(timer);
+      this.timers.delete(timer);
+    }
+  }
+  async teardown() {
+    this.teardownStarted = true;
+    this.event('fixture.teardown.begin');
+    this.controller.abort(new Error('binding teardown; never acceptance rescue'));
+    for (const release of this.releases) release();
+    const failures = [];
+    for (const cleanup of this.cleanups.reverse()) {
+      try { await this.bound(Promise.resolve().then(cleanup), 'owned cleanup'); }
+      catch (error) { failures.push(error); }
+    }
+    await immediate();
+    await immediate();
+    for (const timer of this.timers) clearTimeout(timer);
+    this.timers.clear();
+    process.removeListener('unhandledRejection', this.unhandledListener);
+    if (this.sockets.size) failures.push(new Error(`remaining sockets: ${this.sockets.size}`));
+    if (this.tasks.size) failures.push(new Error(`remaining cooperative server tasks: ${this.tasks.size}`));
+    if (this.unhandled.length) failures.push(...this.unhandled);
+    return { failures, timers: this.timers.size, sockets: this.sockets.size, tasks: this.tasks.size, children: 0 };
+  }
+}
+
+function destination(scope, customWrite) {
+  const controller = new AbortController();
+  const chunks = [];
+  const attempted = [];
+  let size = 0;
+  let attemptedSize = 0;
+  scope.snapshots.push(() => ({ kind: 'destination', consumerClosed: controller.signal.aborted, attempted: text(Buffer.concat(attempted)), delivered: text(Buffer.concat(chunks)) }));
+  const write = async chunk => {
+    attemptedSize += chunk.byteLength;
+    assert.ok(attemptedSize <= outputLimitBytes, 'bounded destination attempts');
+    attempted.push(Buffer.from(chunk));
+    controller.signal.throwIfAborted();
+    if (customWrite) await customWrite(chunk);
+    controller.signal.throwIfAborted();
+    size += chunk.byteLength;
+    assert.ok(size <= outputLimitBytes, 'bounded destination');
+    chunks.push(Buffer.from(chunk));
+  };
+  return {
+    controller, chunks, attempted, sink: { write, ownedOutput: { consumerClosed: controller.signal, write } },
+    close(reason = pipeReason()) { scope.event('destination.consumer.close', reason); controller.abort(reason); },
+    contents() { return Buffer.concat(chunks); },
+  };
+}
+
+function captureSink() {
+  const chunks = [];
+  let count = 0;
+  return {
+    sink: { async write(chunk) { count += chunk.byteLength; assert.ok(count <= outputLimitBytes); chunks.push(Buffer.from(chunk)); } },
+    contents: () => Buffer.concat(chunks),
+  };
+}
+
+async function loopback(scope, handler) {
+  const failures = [];
+  const server = createServer((request, response) => {
+    let received = 0;
+    const body = { first: gate(), complete: gate(), chunks: [] };
+    request.on('data', chunk => {
+      received += chunk.length;
+      if (received > outputLimitBytes) {
+        const error = new Error('bounded loopback request exceeded 1 MiB');
+        failures.push(error);
+        body.first.reject(error);
+        body.complete.reject(error);
+        request.destroy();
+        return;
+      }
+      body.chunks.push(Buffer.from(chunk));
+      scope.event('fixture.capture.data', { bytes: chunk.length, total: received, dataListeners: request.listenerCount('data') });
+      body.first.resolve();
+    });
+    request.once('end', () => {
+      scope.event('fixture.capture.end', { bytes: received });
+      body.complete.resolve(body.chunks);
+    });
+    const rejectBody = error => { body.first.reject(error); body.complete.reject(error); };
+    request.once('aborted', () => rejectBody(new Error('fixture upload aborted before data/end')));
+    request.once('error', rejectBody);
+    scope.event('fixture.capture.installed', { dataListeners: request.listenerCount('data') });
+    const task = Promise.resolve().then(() => handler(request, response, body)).catch(error => {
+      if (!request.aborted && !response.destroyed) failures.push(error);
+      response.destroy();
+    });
+    scope.tasks.add(task);
+    void task.then(() => scope.tasks.delete(task));
+  });
+  server.on('connection', socket => {
+    scope.sockets.add(socket);
+    socket.once('close', () => scope.sockets.delete(socket));
+  });
+  scope.cleanups.push(async () => {
+    const stopped = new Promise((resolveStop, rejectStop) => server.close(error => error ? rejectStop(error) : resolveStop()));
+    server.closeAllConnections();
+    for (const socket of scope.sockets) socket.destroy();
+    await stopped;
+    await Promise.all([...scope.tasks]);
+    await immediate();
+    assert.deepEqual(failures, []);
+  });
+  await scope.bound(new Promise((resolveListen, rejectListen) => {
+    server.once('error', rejectListen);
+    server.listen(0, '127.0.0.1', resolveListen);
+  }), 'loopback listen');
+  const address = server.address();
+  assert.ok(address && typeof address !== 'string');
+  return { server, url: `http://127.0.0.1:${address.port}/owned-output` };
+}
+
+function makeShell(api, scope, fs = new api.MemoryFileSystem(), url) {
+  const shell = new api.Shell({ fs });
+  shell.use(api.agentCommands());
+  const stages = [];
+  scope.snapshots.push(() => ({ kind: 'actual-shell-stages', stages: stageStates(stages) }));
+  shell.use(async (context, next) => {
+    stages.push({ command: context.command, signal: context.signal });
+    return await next();
+  });
+  if (url) shell.use(api.networkCommands({ authorize: request => request.url === url && ['GET', 'PUT'].includes(request.method) }));
+  scope.cleanups.push(() => shell.dispose());
+  return { shell, fs, stages };
+}
+
+function stageStates(stages) {
+  return stages.map(stage => ({ command: stage.command, aborted: stage.signal.aborted, reason: stage.signal.aborted ? stage.signal.reason : null }));
+}
+
+function sourceWithOwner(scope, mode = 'empty') {
+  const entered = gate();
+  const pending = gate();
+  let calls = 0;
+  let returns = 0;
+  let ownerAlive = true;
+  scope.snapshots.push(() => ({ kind: 'input-owner', ownerAlive, calls, returns, pending: pending.state }));
+  scope.releases.push(() => pending.resolve({ done: true, value: undefined }));
+  const source = {
+    [Symbol.asyncIterator]() { return this; },
+    next() {
+      calls++;
+      scope.event('owner.source.next', calls);
+      if (mode === 'stream' && calls === 1) return Promise.resolve({ done: false, value: bytes('streaming-owner-payload\n') });
+      if (mode === 'once' && calls === 1) return Promise.resolve({ done: false, value: bytes('owner-live\n') });
+      if (mode === 'empty') return Promise.resolve({ done: true, value: undefined });
+      entered.resolve();
+      return pending.promise;
+    },
+    async return() {
+      returns++;
+      scope.event('owner.source.return', { returns, ownerAlive });
+      return { done: true, value: undefined };
+    },
+  };
+  return {
+    source, entered, pending,
+    get calls() { return calls; }, get returns() { return returns; }, get alive() { return ownerAlive; },
+    finalize() { ownerAlive = false; scope.event('owner.normal.finalization'); },
+  };
+}
+
+function createOperation(api, scope, context, sink, registrationEvents) {
+  assert.equal(typeof context.registerCleanup, 'function', 'actual registry supplies cleanup hook');
+  const operation = api.createOutputOperation({
+    signal: context.signal,
+    registerCleanup(cleanup) {
+      scope.event('operation.registerCleanup.before-admission');
+      registrationEvents?.push(cleanup);
+      context.registerCleanup(cleanup);
+    },
+  }, sink);
+  scope.snapshots.push(() => ({ kind: 'explicit-operation', aborted: operation.signal.aborted, reason: operation.signal.aborted ? operation.signal.reason : null }));
+  return operation;
+}
+
+async function positive(api, config, entry, scope, result) {
+  const historical = await import(pathToFileURL(config.historicalHelper.path).href);
+  const trace = new historical.Trace();
+  scope.releases.push(() => trace.controller.abort(new Error('binding teardown; never acceptance rescue')));
+  const started = gate();
+  const closed = gate();
+  let active = 0;
+  let sourceReads = 0;
+  let returned = 0;
+  let serverRequests = 0;
+  let operationSignal;
+  let localOperation;
+  scope.snapshots.push(() => ({ kind: 'original-fixture-before-teardown', active, sourceReads, returned, serverRequests, traceEvents: [...trace.events], callerAborted: trace.controller.signal.aborted }));
+  const scenario = entry.original;
+  function pendingSource(signal) {
+    operationSignal = signal;
+    return (async function* () {
+      sourceReads++;
+      active++;
+      trace.event('source.next:pending-before-first-byte');
+      started.resolve();
+      try {
+        await new Promise((_resolve, reject) => {
+          signal.throwIfAborted();
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+        });
+      } finally {
+        active--;
+        returned++;
+        trace.event('source.finally');
+        closed.resolve();
+      }
+    })();
+  }
+  let fs = new api.MemoryFileSystem();
+  let url;
+  scope.cleanups.push(async () => {
+    trace.controller.abort(new Error('historical fixture teardown; not observation'));
+    for (const cleanup of trace.cleanups.reverse()) await cleanup();
+  });
+  if (entry.id === 'S02') {
+    ({ fs } = await historical.s3Fixture(trace, { async getObjectStream(_input, options) {
+      assert.ok(options?.abortSignal);
+      return { Body: pendingSource(options.abortSignal), ContentLength: 13 };
+    } }));
+  } else if (entry.id !== 'S01') {
+    const fixture = await historical.httpFixture(trace, (request, response) => {
+      if (request.method !== 'GET') return false;
+      active++;
+      serverRequests++;
+      response.once('close', () => { active--; returned++; closed.resolve(); });
+      if (scenario !== 'first-read-curl-headers') {
+        response.writeHead(200, { 'Content-Length': '13' });
+        response.flushHeaders();
+      }
+      trace.event('http.GET:pending-before-first-byte');
+      setImmediate(() => started.resolve());
+      return true;
+    });
+    fs = fixture.fs;
+    const address = fixture.server.address();
+    assert.ok(address && typeof address !== 'string');
+    url = `http://127.0.0.1:${address.port}/dav/input`;
+  }
+  const { shell, stages } = makeShell(api, scope, fs);
+  if (url && scenario.startsWith('first-read-curl-')) shell.use(api.networkCommands({ authorize: request => request.url === url && request.method === 'GET' }));
+  shell.commands.register({ name: 'pending-stream', async execute(context) {
+    localOperation = createOperation(api, scope, context, context.stdout);
+    try {
+      await api.pipeBytes(pendingSource(localOperation.signal), localOperation.output, localOperation.signal);
+      return { exitCode: 0 };
+    } finally { await localOperation.close(); }
+  } });
+  shell.use(async (context, next) => {
+    if (context.command === 'head') await started.promise;
+    const publicResult = await next();
+    trace.event(`command.settled:${context.command}:${publicResult.exitCode}`);
+    return publicResult;
+  });
+  const producer = scenario === 'first-read-local' ? 'pending-stream' : scenario.startsWith('first-read-curl-') ? `curl ${url}` : 'cat /input';
+  result.command = `${producer} | head -n 0; true`;
+  const publicResult = await scope.bound(shell.exec(result.command, { signal: trace.controller.signal }), scenario);
+  result.publicResult = { kind: 'value', value: publicResult };
+  assert.equal(publicResult.exitCode, 0);
+  assert.equal(publicResult.stdout, '');
+  assert.equal(publicResult.stderr, '');
+  assert.equal(trace.controller.signal.aborted, false);
+  await scope.bound(closed.promise, 'first-read closes before fixture teardown');
+  assert.equal(sourceReads + serverRequests, 1);
+  assert.equal(returned, 1);
+  assert.equal(active, 0);
+  if (operationSignal) assert.equal(operationSignal.aborted, true);
+  result.operationClosed = localOperation ? 'explicit close awaited in finally' : null;
+  result.cooperativeCleanup = { transferClosedBeforeTeardown: true, active, returned, sourceReads, serverRequests };
+  result.stageAborted = stageStates(stages);
+  result.callerAborted = trace.controller.signal.aborted;
+  result.operationSignal = operationSignal ? { aborted: operationSignal.aborted, reason: operationSignal.reason } : null;
+  result.observationLimit = 'auto-enrolled cat/curl exposes no operation.closed getter; transfer/server closure is reported separately, not fabricated as a public operation flag';
+  result.historicalEvents = trace.events;
+}
+
+async function streaming(api, _config, entry, scope, result) {
+  if (entry.parameter === 'awaited-write-backpressure') {
+    const writeEntered = gate();
+    const releaseWrite = gate();
+    scope.releases.push(() => releaseWrite.resolve());
+    let reads = 0;
+    let finalizations = 0;
+    const sink = destination(scope, async () => { writeEntered.resolve(); await releaseWrite.promise; });
+    const { shell, stages } = makeShell(api, scope);
+    shell.commands.register({ name: 'bound-copy', async execute(context) {
+      const operation = createOperation(api, scope, context, sink.sink);
+      const source = (async function* () {
+        const slab = Buffer.from('AAAA');
+        try {
+          reads++; yield slab;
+          slab.fill(66); reads++; yield slab;
+        } finally { slab.fill(88); finalizations++; }
+      })();
+      try {
+        for await (const chunk of source) await operation.output.write(chunk);
+        return { exitCode: 0 };
+      } finally { await operation.close(); result.operationClosed = true; }
+    } });
+    const pending = tracked(shell.exec('bound-copy', { signal: scope.controller.signal }));
+    await scope.bound(writeEntered.promise, 'first awaited sink write');
+    await immediate();
+    assert.equal(reads, 1, 'this sequential plugin must await its write before advancing');
+    assert.equal(finalizations, 0);
+    assert.equal(pending.state, 'pending');
+    releaseWrite.resolve();
+    const outcome = await scope.bound(pending.promise, 'backpressure command');
+    result.publicResult = outcome;
+    assert.equal(outcome.kind, 'value');
+    assert.equal(outcome.value.exitCode, 0);
+    assert.equal(text(sink.contents()), 'AAAABBBB');
+    assert.equal(finalizations, 1);
+    result.cooperativeCleanup = true;
+    result.stageAborted = stageStates(stages);
+    result.backpressure = { readsWhileWritePending: 1, finalizationsWhileWritePending: 0, finalizations };
+    return;
+  }
+  const serverBytes = gate();
+  const permitEof = gate();
+  const finished = gate();
+  let eof = false;
+  const uploaded = [];
+  scope.releases.push(() => permitEof.resolve());
+  const fixture = await loopback(scope, async (request, response, body) => {
+    assert.equal(request.method, 'PUT');
+    await body.first.promise;
+    scope.event('server.body.bytes', { bytes: body.chunks[0].length, eof });
+    serverBytes.resolve();
+    uploaded.push(...await body.complete.promise);
+    response.writeHead(200);
+    response.end('uploaded');
+    finished.resolve();
+  });
+  const { shell, stages } = makeShell(api, scope, undefined, fixture.url);
+  let expected;
+  let stdin;
+  if (entry.parameter === 'upload-before-eof') {
+    expected = 'before-eof\nafter-observation\n';
+    stdin = (async function* () {
+      yield bytes('before-eof\n');
+      await permitEof.promise;
+      yield bytes('after-observation\n');
+      eof = true;
+    })();
+  } else {
+    expected = 'AAAABBBB';
+    stdin = (async function* () {
+      const slab = Buffer.from('AAAA');
+      try {
+        yield slab;
+        slab.fill(66);
+        yield slab;
+        await permitEof.promise;
+        eof = true;
+      } finally { slab.fill(88); scope.event('producer.finalize.mutation'); }
+    })();
+  }
+  const pending = tracked(shell.exec(`curl -T - ${fixture.url}`, { stdin, signal: scope.controller.signal }));
+  await scope.bound(serverBytes.promise, 'request bytes MUST arrive before EOF release');
+  assert.equal(eof, false);
+  assert.equal(permitEof.state, 'pending');
+  result.streamingBeforeEof = true;
+  permitEof.resolve();
+  await scope.bound(finished.promise, 'upload request finished');
+  const outcome = await scope.bound(pending.promise, 'upload public settlement');
+  result.publicResult = outcome;
+  assert.equal(outcome.kind, 'value');
+  assert.equal(outcome.value.exitCode, 0);
+  assert.equal(text(Buffer.concat(uploaded)), expected);
+  result.uploaded = text(Buffer.concat(uploaded));
+  result.cooperativeCleanup = { requestFinished: true };
+  result.stageAborted = stageStates(stages);
+  result.callerAborted = scope.controller.signal.aborted;
+}
+
+function requireProfile(config, entry) {
+  const key = `${entry.id}/${entry.parameter}`;
+  const profile = config.profiles?.[key];
+  if (!profile) throw new Blocked(`UNBOUND authoritative public profile: ${key}; freeze supplement before any execution, never infer expected behavior from candidate`);
+  return profile;
+}
+
+function assertProfile(actual, expected, label) {
+  if (expected?.unboundDiagnostic === true) return;
+  assert.notEqual(expected, undefined, `${label}: exact expected profile required`);
+  assert.deepEqual(JSON.parse(encodeJson(actual)), expected, label);
+}
+
+function validateRecordBinding(config, entry) {
+  if (!entry.bindingStatus.startsWith('BLOCKED')) return;
+  const profile = requireProfile(config, entry);
+  if (profile.diagnosticOnly) return;
+  if (entry.id === 'S07' || entry.id === 'S08') {
+    if (!profile.nestedPublicResult || typeof profile.diagnostic !== 'string') throw new Blocked('exact nested result/stderr profile remains UNBOUND');
+  }
+  if (entry.id === 'S08' && entry.parameter !== 'stdout-body-and-required-header-file') {
+    requireWriteoutTriplet(config, entry);
+  }
+  if (entry.id === 'S11' && (!profile.publicResult || !profile.operationSignal || profile.command !== 'set -o pipefail; precedence-probe | cat')) {
+    throw new Blocked('exact IO/public/first-reason/pipefail profile remains UNBOUND');
+  }
+}
+
+async function borrowedCurl(api, config, entry, scope, result) {
+  const profile = requireProfile(config, entry);
+  const started = gate();
+  const serverClosed = gate();
+  const upload = entry.parameter === 'stdout-only-streaming-upload';
+  const fixture = await loopback(scope, async (request, response, body) => {
+    response.once('close', () => serverClosed.resolve());
+    if (upload) {
+      await body.first.promise;
+      scope.event('server.upload.bytes');
+    }
+    started.resolve();
+  });
+  const { shell, stages } = makeShell(api, scope, undefined, fixture.url);
+  const output = destination(scope);
+  const diagnostic = captureSink();
+  const owner = sourceWithOwner(scope, upload ? 'stream' : 'empty');
+  shell.commands.register({ name: 'live-owner', async execute(context) {
+    assert.equal(typeof context.invoke, 'function');
+    const args = upload ? ['-T', '-', fixture.url] : [fixture.url];
+    const child = tracked(context.invoke('curl', args, {
+      stdin: context.stdin, stdinIsDefault: context.stdinIsDefault, stdout: output.sink, stderr: diagnostic.sink,
+    }));
+    try {
+      await scope.bound(started.promise, 'curl request/body start');
+      output.close();
+      await scope.bound(serverClosed.promise, 'owned network closure while input owner remains alive');
+      assert.equal(owner.alive, true);
+      assert.equal(owner.returns, 0);
+      assert.equal(context.signal.aborted, false);
+      result.ownerAliveAtObservation = true;
+      result.borrowedInput = { returnsBeforeOwnerFinalization: owner.returns, nextCalls: owner.calls };
+      result.publicBeforeOpaqueProducerRelease = child.state;
+      result.cooperativeCleanup = { ownedServerConnectionClosedBeforeOwnerFinalization: true };
+      owner.pending.resolve({ done: true, value: undefined });
+      result.nestedPublicResult = await scope.bound(child.promise, 'nested curl after explicit fixture producer release');
+      assert.equal(owner.returns, 0, 'operation and nested cleanup must not return independently owned stdin');
+      assertProfile(result.nestedPublicResult, profile.nestedPublicResult, 'nested curl public result');
+      result.stageAborted = stageStates(stages);
+      result.diagnostic = text(diagnostic.contents());
+      assertProfile(result.diagnostic, profile.diagnostic, 'nested curl stderr');
+      return { exitCode: 0 };
+    } finally { owner.finalize(); }
+  } });
+  const publicResult = await scope.bound(shell.exec('live-owner', { stdin: owner.source, signal: scope.controller.signal }), 'borrowed curl parent');
+  result.publicResult = { kind: 'value', value: publicResult };
+  assert.equal(publicResult.exitCode, 0);
+  result.ownerReturnsAfterNormalFinalization = owner.returns;
+  result.callerAborted = scope.controller.signal.aborted;
+  result.operationClosed = null;
+  result.observationLimit = 'known curl operation has no public closed getter; network closure, nested result and owner lifetime are separate';
+}
+
+async function mixedCurl(api, config, entry, scope, result) {
+  if(entry.parameter==='stdout-body-and-required-header-file') return mixedCurlArm(api,config,entry,scope,result);
+  requireWriteoutTriplet(config,entry);
+  const arms={};
+  for(const arm of ['open','failure','closed']) {
+    const armResult={};
+    const expected=arm==='open'?{nestedPublicResult:{kind:'value',value:{exitCode:0}},diagnostic:''}:arm==='failure'?{nestedPublicResult:{kind:'value',value:{exitCode:23}},diagnostic:'curl: (23) Failed writing write-out result\n'}:requireProfile(config,entry);
+    await mixedCurlArm(api,{...config,arm,paired:arms,profiles:{...config.profiles,[`${entry.id}/${entry.parameter}`]:expected}},entry,scope,armResult);
+    arms[arm]=armResult;
+  }
+  result.pairedArms=arms;
+  Object.assign(result,{publicResult:arms.closed.publicResult,operationClosed:arms.closed.operationClosed,cooperativeCleanup:arms.closed.cooperativeCleanup,stageAborted:arms.closed.stageAborted,callerAborted:arms.closed.callerAborted});
+}
+
+async function mixedCurlArm(api, config, entry, scope, result) {
+  const profile = requireProfile(config, entry);
+  if (!profile.diagnosticOnly && entry.parameter !== 'stdout-body-and-required-header-file') {
+    requireWriteoutTriplet(config, entry);
+  }
+  const started = gate();
+  const releaseResponse = gate();
+  const responseFinished = gate();
+  scope.releases.push(() => releaseResponse.resolve());
+  const fixture = await loopback(scope, async (request, response) => {
+    assert.equal(request.method, 'GET');
+    started.resolve();
+    await releaseResponse.promise;
+    response.writeHead(200, { 'Content-Length': '14', 'X-Binding': 'required-header' });
+    response.end('required-body\n');
+    responseFinished.resolve();
+  });
+  const { shell, fs, stages } = makeShell(api, scope, undefined, fixture.url);
+  const failureReason=Object.assign(new Error('independent genuine writeout failure'),{code:'EIO'});
+  const output = destination(scope,config.arm==='failure'?async()=>{result.sinkWriteResult={kind:'error',error:failureReason};throw failureReason;}:undefined);
+  const diagnostic = captureSink();
+  const owner = sourceWithOwner(scope);
+  const writeout = 'code=%{http_code}\n';
+  const bodyFile = entry.parameter !== 'stdout-body-and-required-header-file';
+  const headerFile = entry.parameter !== 'required-body-file-and-stdout-writeout';
+  await fs.writeFile('/format', bytes(writeout), { signal: scope.controller.signal });
+  shell.commands.register({ name: 'mixed-owner', async execute(context) {
+    const args = [
+      ...(bodyFile ? ['-o', '/body'] : []),
+      ...(headerFile ? ['-D', '/headers'] : []),
+      ...(bodyFile ? ['-w', entry.parameter === 'required-files-writeout-and-independent-stderr' ? '@/format' : writeout] : []),
+      fixture.url,
+    ];
+    result.argv = ['curl', ...args];
+    const child = tracked(context.invoke('curl', args, {
+      stdin: context.stdin, stdinIsDefault: context.stdinIsDefault, stdout: output.sink, stderr: diagnostic.sink,
+    }));
+    try {
+      await scope.bound(started.promise, 'mixed request start');
+      if(!config.arm||config.arm==='closed') output.close();
+      await context.fs.writeFile('/independent', bytes('independent-file\n'), { signal: context.signal });
+      await context.stderr.write(bytes('independent-stderr\n'));
+      releaseResponse.resolve();
+      await scope.bound(responseFinished.promise, 'required response emitted');
+      result.nestedPublicResult = await scope.bound(child.promise, 'mixed required effects settle');
+      assertProfile(result.nestedPublicResult, profile.nestedPublicResult, 'mixed curl public result');
+      if (bodyFile) result.bodyFileObservation = text(await fs.readFile('/body', { signal: context.signal }));
+      if (bodyFile) assert.equal(text(await fs.readFile('/body', { signal: context.signal })), 'required-body\n');
+      if (headerFile) {
+        const headers = text(await fs.readFile('/headers', { signal: context.signal }));
+        assert.match(headers, /HTTP\/1\.1 200/);
+        assert.match(headers.toLowerCase(), /x-binding: required-header/);
+        result.headerFile = headers;
+      }
+      const stderr = text(diagnostic.contents());
+      const stdoutWriteout = { attempted: text(Buffer.concat(output.attempted)), delivered: text(output.contents()) };
+      result.stdoutWriteoutObservation = stdoutWriteout;
+      result.nestedDiagnostic = stderr;
+      if(bodyFile&&config.arm==='closed') {
+        assert.equal(config.paired.open.stdoutWriteoutObservation.delivered,'code=200\n');
+        assert.equal(config.paired.failure.stdoutWriteoutObservation.attempted,'code=200\n');
+        result.writeoutIntent={writeoutReached:true,consumerKnownClosed:output.controller.signal.aborted,intentionalClose:true,genuineOutputFailure:false,evidence:'paired exact argv positive/failure controls plus authenticated unconditional publish after formatReady; inferred path, not a product getter'};
+        assertClosedWriteout(stdoutWriteout,result.writeoutIntent,profile);
+      } else if(bodyFile&&config.arm==='open') assert.deepEqual(stdoutWriteout,{attempted:'code=200\n',delivered:'code=200\n'});
+      else if(bodyFile&&config.arm==='failure') {
+        assert.deepEqual(stdoutWriteout,{attempted:'code=200\n',delivered:''});
+        assert.equal(result.sinkWriteResult.kind,'error');assert.strictEqual(result.sinkWriteResult.error,failureReason);
+      }
+      assertProfile(stderr, profile.diagnostic, 'required mixed diagnostic');
+      assert.equal(text(await context.fs.readFile('/independent', { signal: context.signal })), 'independent-file\n');
+      assert.equal(owner.alive, true);
+      assert.equal(owner.returns, 0);
+      assert.equal(context.signal.aborted, false);
+      result.ownerAliveAtObservation = true;
+      result.cooperativeCleanup = { requiredEffectsSettledBeforeOwnerFinalization: true };
+      result.stageAborted = stageStates(stages);
+      result.requiredEffects = { bodyFile, headerFile, writeout: bodyFile ? stdoutWriteout : null, independentFile: 'independent-file\n' };
+      return { exitCode: 0 };
+    } finally { owner.finalize(); }
+  } });
+  const publicResult = await scope.bound(shell.exec('mixed-owner', { stdin: owner.source, signal: scope.controller.signal }), 'mixed parent');
+  result.publicResult = { kind: 'value', value: publicResult };
+  assert.equal(publicResult.exitCode, 0);
+  assert.equal(publicResult.stderr, 'independent-stderr\n');
+  result.callerAborted = scope.controller.signal.aborted;
+  result.ownerReturnsAfterNormalFinalization = owner.returns;
+}
+
+async function treeDrain(api, _config, _entry, scope, result) {
+  const { shell, stages } = makeShell(api, scope);
+  const drainEntered = gate();
+  const drainRelease = gate();
+  scope.releases.push(() => drainRelease.resolve());
+  const registrations = [];
+  const releases = { parent: 0, child: 0, grandchild: 0 };
+  let lateStarts = 0;
+  shell.commands.register({ name: 'tree-drain', async execute(context) {
+    const parent = createOperation(api, scope, context, destination(scope).sink, registrations);
+    assert.ok(registrations.length > 0, 'register synchronously before acquisition');
+    const child = parent.child(destination(scope).sink);
+    const grandchild = child.child(destination(scope).sink);
+    for (const [name, operation] of [['parent', parent], ['child', child], ['grandchild', grandchild]]) {
+      await operation.acquire(() => { scope.event(`acquire.${name}`); return { name }; }, async resource => {
+        releases[resource.name]++;
+        scope.event(`release.${resource.name}`);
+        if (resource.name === 'grandchild') { drainEntered.resolve(); await drainRelease.promise; }
+      });
+    }
+    try {
+      const first = tracked(parent.close());
+      const second = tracked(parent.close());
+      const finalization = tracked((async () => {
+        try { await Promise.resolve(); }
+        finally { await parent.close(); }
+      })());
+      const registered = tracked(Promise.all(registrations.map(cleanup => cleanup())));
+      await scope.bound(drainEntered.promise, 'grandchild cooperative cleanup entered');
+      for (const operation of [parent, child, grandchild]) {
+        const late = await observe(Promise.resolve().then(() => operation.acquire(() => { lateStarts++; return {}; }, () => {})));
+        assert.equal(late.kind, 'error', 'late acquisition refused');
+      }
+      assert.equal(lateStarts, 0);
+      assert.throws(() => parent.child(destination(scope).sink), 'late child admission refused');
+      await immediate();
+      assert.equal(first.state, 'pending');
+      assert.equal(second.state, 'pending');
+      assert.equal(registered.state, 'pending');
+      assert.equal(finalization.state, 'pending');
+      assert.equal(parent.signal.aborted, false, 'normal close does not abort');
+      result.settlementBeforeDrain = { first: first.state, second: second.state, registered: registered.state, finally: finalization.state, publicResult: 'pending' };
+      drainRelease.resolve();
+      for (const close of [first, second, registered, finalization]) assert.equal((await scope.bound(close.promise, 'shared close completion')).kind, 'value');
+      assert.deepEqual(releases, { parent: 1, child: 1, grandchild: 1 });
+      result.operationClosed = true;
+      result.cooperativeCleanup = { releases, lateStarts, registeredBeforeIo: true };
+      return { exitCode: 0 };
+    } finally { await parent.close(); }
+  } });
+  const publicResult = await scope.bound(shell.exec('tree-drain', { signal: scope.controller.signal }), 'tree public settlement');
+  result.publicResult = { kind: 'value', value: publicResult };
+  assert.equal(publicResult.exitCode, 0);
+  result.stageAborted = stageStates(stages);
+  result.callerAborted = scope.controller.signal.aborted;
+}
+
+async function treeIsolation(api, _config, _entry, scope, result) {
+  const { shell, stages } = makeShell(api, scope);
+  const owner = sourceWithOwner(scope, 'once');
+  const releaseSibling = gate();
+  const siblingCleanup = gate();
+  scope.releases.push(() => releaseSibling.resolve());
+  shell.commands.register({ name: 'tree-owner', async execute(context) {
+    const parentDestination = destination(scope);
+    const siblingDestination = destination(scope);
+    const parent = createOperation(api, scope, context, parentDestination.sink);
+    const child = parent.child(destination(scope).sink);
+    const sibling = parent.child(siblingDestination.sink);
+    let childClosed = 0;
+    let siblingClosed = 0;
+    child.registerCleanup(() => { childClosed++; });
+    sibling.registerCleanup(async () => { siblingClosed++; siblingCleanup.resolve(); await releaseSibling.promise; });
+    try {
+      const input = await context.stdin[Symbol.asyncIterator]().next();
+      assert.equal(text(input.value), 'owner-live\n');
+      await child.close();
+      assert.equal(childClosed, 1);
+      assert.equal(siblingClosed, 0);
+      assert.equal(parent.signal.aborted, false);
+      assert.equal(sibling.signal.aborted, false);
+      await sibling.output.write(bytes('sibling-output\n'));
+      await parent.output.write(bytes('parent-output\n'));
+      await sibling.acquire(signal => context.fs.writeFile('/sibling', bytes('sibling-file\n'), { signal }), () => {});
+      await context.stderr.write(bytes('sibling-stderr\n'));
+      assert.equal(text(await context.fs.readFile('/sibling', { signal: context.signal })), 'sibling-file\n');
+      assert.equal(text(siblingDestination.contents()), 'sibling-output\n');
+      assert.equal(text(parentDestination.contents()), 'parent-output\n');
+      assert.equal(owner.returns, 0);
+      assert.equal(owner.alive, true);
+      result.ownerAliveAtObservation = true;
+      result.childIsolation = { childClosed, siblingClosed, borrowedReturns: owner.returns, file: 'sibling-file\n', siblingOutput: 'sibling-output\n', parentOutput: 'parent-output\n' };
+      const closing = tracked(parent.close());
+      await scope.bound(siblingCleanup.promise, 'parent reaches sibling cleanup');
+      assert.equal(closing.state, 'pending');
+      releaseSibling.resolve();
+      assert.equal((await scope.bound(closing.promise, 'parent drains sibling')).kind, 'value');
+      assert.equal(siblingClosed, 1);
+      assert.equal(owner.returns, 0);
+      result.operationClosed = true;
+      result.cooperativeCleanup = { parentDrainedSibling: true, childClosed, siblingClosed };
+      return { exitCode: 0 };
+    } finally { await parent.close(); owner.finalize(); }
+  } });
+  const publicResult = await scope.bound(shell.exec('tree-owner', { stdin: owner.source, signal: scope.controller.signal }), 'tree isolation parent');
+  result.publicResult = { kind: 'value', value: publicResult };
+  assert.equal(publicResult.exitCode, 0);
+  assert.equal(publicResult.stderr, 'sibling-stderr\n');
+  result.stageAborted = stageStates(stages);
+  result.ownerReturnsAfterNormalFinalization = owner.returns;
+}
+
+async function precedence(api, config, entry, scope, result) {
+  const profile = entry.parameter === 'caller-reason-zero' ? null : requireProfile(config, entry);
+  const { shell, stages } = makeShell(api, scope);
+  const started = gate();
+  const releaseIo = gate();
+  const ioDelivered = gate();
+  const operationAborted = gate();
+  const ioError = Object.assign(new Error('binding controlled IO failure'), { code: 'EIO' });
+  const lateError = Object.assign(new Error('binding late IO failure'), { code: 'EIO' });
+  scope.releases.push(() => releaseIo.reject(lateError));
+  let operation;
+  let cleanupCount = 0;
+  shell.commands.register({ name: 'precedence-probe', async execute(context) {
+    operation = createOperation(api, scope, context, context.stdout);
+    operation.registerCleanup(() => { cleanupCount++; });
+    operation.signal.addEventListener('abort', () => operationAborted.resolve(), { once: true });
+    started.resolve();
+    try {
+      if (entry.parameter === 'caller-reason-zero') {
+        await operationAborted.promise;
+        throw operation.signal.reason;
+      }
+      try { await releaseIo.promise; }
+      catch (error) { result.localThrown = { kind: 'error', error }; scope.event('io.error.delivered', error); ioDelivered.resolve(); throw error; }
+      return { exitCode: 0 };
+    } finally { await operation.close(); result.operationClosed = true; }
+  } });
+  const command = entry.parameter === 'caller-reason-zero' ? 'precedence-probe' : 'set -o pipefail; precedence-probe | cat';
+  if (profile && profile.command !== command) throw new Blocked('IO profile must bind the already frozen exact pipefail script, not rewrite it');
+  const pending = tracked(shell.exec(command, { signal: scope.controller.signal }));
+  await scope.bound(started.promise, 'precedence command enrolled');
+  if (entry.parameter === 'io-error-before-caller-abort') {
+    releaseIo.reject(ioError);
+    await scope.bound(ioDelivered.promise, 'controlled IO delivered first');
+    scope.event('caller.abort.after-io-delivery', 0);
+    scope.controller.abort(0);
+  } else {
+    scope.event('caller.abort.first', 0);
+    scope.controller.abort(0);
+    await scope.bound(operationAborted.promise, 'operation honors caller abort');
+    if (entry.parameter !== 'caller-reason-zero') releaseIo.reject(lateError);
+  }
+  result.publicResult = await scope.bound(pending.promise, 'precedence public settlement');
+  await scope.bound(operation.close(), 'precedence operation cooperative close');
+  assert.equal(scope.controller.signal.reason, 0);
+  assert.equal(cleanupCount, 1);
+  if (entry.parameter === 'caller-reason-zero') {
+    assert.equal(operation.signal.reason, 0);
+    assert.equal(result.publicResult.kind, 'error');
+    assert.equal(result.publicResult.error, 0);
+  } else {
+    if (entry.parameter === 'io-error-before-caller-abort') {
+      assert.equal(result.publicResult.kind, 'error');
+      assert.equal(result.publicResult.error, scope.controller.signal.reason);
+      assert.equal(result.localThrown.kind, 'error');
+      assert.equal(result.localThrown.error, ioError);
+    } else assertProfile(result.publicResult, profile.publicResult, 'declared exact IO/caller/pipefail result');
+    assertProfile({ aborted: operation.signal.aborted, reason: operation.signal.reason }, profile.operationSignal, 'declared first operation reason');
+  }
+  await immediate();
+  assert.deepEqual(scope.unhandled, []);
+  result.operationClosed = true;
+  result.cooperativeCleanup = { cleanupCount };
+  result.stageAborted = stageStates(stages);
+  result.callerAborted = { aborted: scope.controller.signal.aborted, reason: scope.controller.signal.reason };
+  result.operationReasonIdentityIsZero = operation.signal.reason === 0;
+}
+
+async function opaque(api, _config, entry, scope, result) {
+  const { shell, stages } = makeShell(api, scope);
+  const output = destination(scope);
+  const owner = sourceWithOwner(scope, 'opaque');
+  let operation;
+  let operationCleanup = 0;
+  const late = Object.assign(new Error('externally released opaque rejection'), { code: 'EOPAQUE' });
+  shell.commands.register({ name: 'opaque-reader', async execute(context) {
+    operation = createOperation(api, scope, context, context.stdout);
+    operation.registerCleanup(() => { operationCleanup++; });
+    try {
+      const chunk = await context.stdin[Symbol.asyncIterator]().next();
+      if (!chunk.done) await operation.output.write(chunk.value);
+      return { exitCode: 0 };
+    } finally { await operation.close(); }
+  } });
+  shell.commands.register({ name: 'opaque-owner', async execute(context) {
+    const child = tracked(context.invoke('opaque-reader', [], {
+      stdin: context.stdin, stdinIsDefault: context.stdinIsDefault, stdout: output.sink, stderr: context.stderr,
+    }));
+    try {
+      await scope.bound(owner.entered.promise, 'opaque next entered');
+      output.close();
+      await immediate();
+      await immediate();
+      assert.equal(owner.pending.state, 'pending');
+      assert.equal(owner.returns, 0);
+      assert.equal(owner.alive, true);
+      result.beforeExternalRelease = {
+        opaqueRead: owner.pending.state, nestedPublicResult: child.state,
+        operationAborted: operation.signal.aborted, operationReason: operation.signal.reason,
+        registeredCleanupCount: operationCleanup, borrowedReturns: owner.returns,
+        ownerAlive: owner.alive, stages: stageStates(stages),
+      };
+      result.ownerAliveAtObservation = true;
+      scope.event('opaque.fixture.external-release', entry.parameter);
+      if (entry.parameter === 'opaque-read-late-reject') owner.pending.reject(late);
+      else owner.pending.resolve({ done: true, value: undefined });
+      result.nestedPublicResult = await scope.bound(child.promise, 'opaque nested settlement after external release');
+      await scope.bound(operation.close(), 'opaque operation final cleanup');
+      assert.equal(owner.returns, 0);
+      assert.equal(operationCleanup, 1);
+      await immediate();
+      assert.deepEqual(scope.unhandled, []);
+      result.operationClosed = true;
+      result.cooperativeCleanup = { operationCleanup, afterExternalRelease: true };
+      result.afterExternalRelease = { opaqueRead: owner.pending.state, nestedPublicResult: child.state, borrowedReturns: owner.returns };
+      return { exitCode: 0 };
+    } finally { owner.finalize(); }
+  } });
+  const publicResult = await scope.bound(shell.exec('opaque-owner', { stdin: owner.source, signal: scope.controller.signal }), 'opaque owner settlement');
+  result.publicResult = { kind: 'value', value: publicResult };
+  assert.equal(publicResult.exitCode, 0);
+  result.stageAborted = stageStates(stages);
+  result.callerAborted = scope.controller.signal.aborted;
+  result.ownerReturnsAfterNormalFinalization = owner.returns;
+  result.nonpreemption = 'opaque fixture remained pending until external release; no universal public nonhang or opaque drainage asserted';
+}
+
+const handlers = { positive, streaming, borrowedCurl, mixedCurl, treeDrain, treeIsolation, precedence, opaque, qualifiedLifetime: (...args) => lifetime(...args, { gate, tracked, observe, immediate, makeShell, sourceWithOwner, destination, createOperation, bytes, text }) };
+
+async function verifiedArtifact(artifact, label) {
+  if (!artifact || typeof artifact.path !== 'string' || !/^[a-f0-9]{64}$/.test(artifact.sha256 ?? '')) throw new Blocked(`${label} identity UNBOUND`);
+  const content = await readFile(artifact.path);
+  assert.equal(sha256(content), artifact.sha256, label);
+  return content;
+}
+
+async function executionConfig(configPath) {
+  const physicalDirectory = await realpath(directory);
+  assert.match(physicalDirectory, /^\/(?:private\/)?tmp\/safe-bash-owned-output-qualified-ordering-[^/]+$/);
+  assert.equal(process.env.TSX_DISABLE_CACHE, '1');
+  for (const name of ['TMPDIR', 'TMP', 'TEMP']) assert.equal(await realpath(process.env[name]), join(physicalDirectory, 'tmp'));
+  const config = JSON.parse(await readFile(configPath, 'utf8'));
+  requireQualifiedBinding(config);
+  await verifiedArtifact(config.ready, 'new Q1 ready authenticated root actual exits');
+  const manifest = JSON.parse(await verifiedArtifact(config.authentication, 'independent full byte authentication'));
+  assert.equal(manifest.sourceId, config.sourceIdentity);
+  assert.ok(manifest.selectedCompiledClosure.includes(config.candidateEntry.path));
+  for (const file of config.executionFiles) await verifiedArtifact(file, `selected execution closure ${file.path}`);
+  for (const name of ['candidateEntry', 'historicalHelper', 'historicalProbe', 'historicalFacade', 'tsxImport']) await verifiedArtifact(config[name], name);
+  assert.equal(config.historicalHelper.sha256, '9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678');
+  assert.equal(config.historicalProbe.sha256, 'b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6');
+  const candidatePhysical = await realpath(config.candidateEntry.path);
+  assert.equal(candidatePhysical, await realpath(join(directory,'candidate/dist/index.js')), 'exact reconstructed compiled candidate; no source fallback');
+  config.profiles = JSON.parse(await verifiedArtifact(config.publicProfiles, 'pre-run expected profiles')).profiles;
+  return config;
+}
+
+async function runRecord(config, entry) {
+  const scope = new Scope();
+  const result = {
+    id: entry.id, parameter: entry.parameter, status: 'UNRUN', sourceIdentity: config.sourceIdentity,
+    publicResult: null, operationClosed: null, cooperativeCleanup: null,
+    stageAborted: null, callerAborted: null, ownerAliveAtObservation: null,
+  };
+  try {
+    validateRecordBinding(config, entry);
+    const api = await import(pathToFileURL(config.candidateEntry.path).href);
+    assert.equal(typeof api.createOutputOperation, 'function', 'S1 named public export');
+    await handlers[entry.handler](api, config, entry, scope, result);
+    assert.deepEqual(scope.unhandled, []);
+    result.status = config.profiles?.[`${entry.id}/${entry.parameter}`]?.diagnosticOnly ? 'BLOCKED' : 'PASS';
+    if (result.status === 'BLOCKED') result.diagnosticStatus = 'OBSERVED_WITHOUT_STRICT_BINDING';
+  } catch (error) {
+    result.status = error instanceof Blocked ? 'BLOCKED' : String(error).includes('DEADLINE:') ? 'TIMEOUT' : 'FAIL';
+    result.failure = error;
+    if (config.profiles?.[`${entry.id}/${entry.parameter}`]?.diagnosticOnly) { result.diagnosticStatus = result.status; result.status = 'BLOCKED'; }
+  } finally {
+    result.observedBeforeTeardown = scope.snapshots.map(snapshot => snapshot());
+    result.callerAborted ??= { aborted: scope.controller.signal.aborted, reason: scope.controller.signal.aborted ? scope.controller.signal.reason : null };
+    result.fixtureCleanup = await scope.teardown();
+    if (result.fixtureCleanup.failures.length) result.status = 'FAIL';
+    result.events = scope.events;
+  }
+  console.log(`BINDING_RESULT ${encodeJson(result)}`);
+  process.exitCode = result.status === 'PASS' ? 0 : result.status === 'BLOCKED' ? 2 : 1;
+}
+
+const activeChildren = new Set();
+let supervisorInterrupted = false;
+
+function killOwnedChild(child) {
+  try {
+    if (process.platform === 'win32') child.kill('SIGKILL');
+    else if (child.pid) process.kill(-child.pid, 'SIGKILL');
+  } catch (error) { if (error.code !== 'ESRCH') throw error; }
+}
+
+function interruptSupervisor() {
+  supervisorInterrupted = true;
+  for (const child of activeChildren) killOwnedChild(child);
+}
+
+async function boundedChild(argumentsList, label) {
+  const child = spawn(process.execPath, argumentsList, { stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32', cwd: directory, env: { ...process.env, TSX_DISABLE_CACHE: '1', TMPDIR: join(directory, 'tmp'), TMP: join(directory, 'tmp'), TEMP: join(directory, 'tmp'), TSX_CACHE_DIR: join(directory, 'tmp', 'tsx') } });
+  activeChildren.add(child);
+  let stdout = '';
+  let stderr = '';
+  let capturedBytes = 0;
+  let timedOut = false;
+  let oversized = false;
+  let spawnError = null;
+  let residual = false;
+  const killOwned = () => killOwnedChild(child);
+  const timer = setTimeout(() => { timedOut = true; killOwned(); }, outerDeadlineMs);
+  const capture = (chunk, diagnostic) => {
+    capturedBytes += chunk.length;
+    if (capturedBytes > outputLimitBytes) { oversized = true; killOwned(); return; }
+    if (diagnostic) stderr += chunk.toString(); else stdout += chunk.toString();
+  };
+  child.stdout.on('data', chunk => capture(chunk, false));
+  child.stderr.on('data', chunk => capture(chunk, true));
+  child.once('error', error => { spawnError = error; });
+  const termination = await new Promise(resolveClose => child.once('close', (exitCode, signal) => resolveClose({ exitCode, signal }))).finally(() => clearTimeout(timer));
+  activeChildren.delete(child);
+  if (child.pid && process.platform !== 'win32') {
+    try { process.kill(-child.pid, 0); residual = true; killOwned(); }
+    catch (error) { if (error.code !== 'ESRCH') throw error; }
+  }
+  return { label, pid: child.pid ?? null, ...termination, timedOut, oversized, residual, spawnError, stdout, stderr, reapedDirectChild: true };
+}
+
+async function supervise(configPath, historicalOnly) {
+  const config = await executionConfig(configPath);
+  const mapping = JSON.parse(await readFile(join(directory, 'binding-map.json'), 'utf8'));
+  assert.equal(mapping.records.length, 32);
+  assert.equal(new Set(mapping.records.map(entry => entry.id)).size, 12);
+  const records = historicalOnly ? mapping.records.filter(entry => entry.family === 'explicit-api-optin-positive') : mapping.records;
+  const runs = [];
+  process.on('SIGINT', interruptSupervisor);
+  process.on('SIGTERM', interruptSupervisor);
+  try { for (const entry of records) {
+    if (supervisorInterrupted) {
+      runs.push({ id: entry.id, parameter: entry.parameter, status: 'UNRUN', observation: null, execution: null, reason: 'supervisor interrupted; no child launched' });
+      continue;
+    }
+    const argumentsList = historicalOnly
+      ? ['--unhandled-rejections=strict', '--import', config.tsxImport.path, config.historicalProbe.path, entry.original]
+      : ['--unhandled-rejections=strict', '--import', config.tsxImport.path, fileURLToPath(import.meta.url), '--record', configPath, entry.id, entry.parameter];
+    const execution = await boundedChild(argumentsList, `${entry.id}/${entry.parameter}`);
+    let observation = null;
+    if (!historicalOnly) {
+      const serialized = execution.stdout.split('\n').filter(line => line.startsWith('BINDING_RESULT '));
+      if (serialized.length === 1) {
+        try { observation = JSON.parse(serialized[0].slice('BINDING_RESULT '.length)); }
+        catch { observation = null; }
+      }
+    }
+    const status = execution.timedOut ? 'TIMEOUT' : execution.oversized || execution.residual || execution.spawnError ? 'FAIL'
+      : historicalOnly ? execution.exitCode === 0 && execution.signal === null && /: passed/u.test(execution.stdout) ? 'PASS' : 'FAIL'
+      : observation?.status === 'BLOCKED' && execution.exitCode === 2 ? 'BLOCKED'
+      : observation?.status === 'PASS' && execution.exitCode === 0 && execution.signal === null ? 'PASS' : 'FAIL';
+    runs.push({ id: entry.id, parameter: entry.parameter, status, observation, execution });
+  } } finally {
+    process.removeListener('SIGINT', interruptSupervisor);
+    process.removeListener('SIGTERM', interruptSupervisor);
+    assert.equal(activeChildren.size, 0, 'all directly owned children reaped before supervisor settlement');
+  }
+  const logical = historicalOnly ? null : [...new Set(mapping.records.map(entry => entry.id))].map(id => {
+    const parameters = runs.filter(run => run.id === id);
+    const status = parameters.every(run => run.status === 'PASS') ? 'PASS' : parameters.some(run => run.status === 'FAIL' || run.status === 'TIMEOUT') ? 'FAIL' : 'BLOCKED';
+    return { id, status, parameterCount: parameters.length };
+  });
+  const report = { classification: historicalOnly ? 'separate immutable original-five replay; NOT new acceptance' : 'distinct qualified-output cohort; original20 plus reason/cleanup12', sourceIdentity: config.sourceIdentity, logicalCases: historicalOnly ? 5 : 12, parameterizedRecords: records.length, logical, runs };
+  const target = join(directory, historicalOnly ? 'historical-five.result.json' : 'acceptance.result.json');
+  await writeFile(target, `${encodeJson(report)}\n`);
+  console.log(encodeJson({ report: target, logical, directChildrenReaped: runs.filter(run => run.execution?.reapedDirectChild).length, historicalOnly, supervisorInterrupted }));
+  process.exitCode = runs.every(run => run.status === 'PASS') ? 0 : 1;
+}
+
+const [mode, configPath, id, parameter] = process.argv.slice(2);
+if (mode === '--record') {
+  const config = await executionConfig(resolve(configPath));
+  const mapping = JSON.parse(await readFile(join(directory, 'binding-map.json'), 'utf8'));
+  const entry = mapping.records.find(record => record.id === id && record.parameter === parameter);
+  assert.ok(entry, 'record must belong to the exact frozen 32');
+  await runRecord(config, entry);
+} else if (mode === '--execute') await supervise(resolve(configPath), false);
+else if (mode === '--historical-five') await supervise(resolve(configPath), true);
+else throw new Blocked('Syntax-check only during preparation. Execution requires --execute or --historical-five plus independently authenticated root source gate; no readiness polling.');

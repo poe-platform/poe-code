@@ -1,0 +1,4 @@
+{
+  "changedSinceCapture": [],
+  "note": "Concurrent changes are reported, never reset or attributed without evidence. This runner only writes below its own directory."
+}

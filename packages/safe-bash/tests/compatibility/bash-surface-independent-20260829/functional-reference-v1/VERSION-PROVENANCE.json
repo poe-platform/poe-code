@@ -1,0 +1,32 @@
+{
+  "schema": "prior-version-provenance-only-v1",
+  "commit": "822e82a70dfebc071d3b6e27bc78967afa40a993",
+  "files": [
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-ADMISSION.json",
+      "bytes": 993,
+      "sha256": "9aabc47c327beec378ca58e3b7836c8858ec162cc274fafffea334174d7a2438"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-POST-IDENTITY.json",
+      "bytes": 196,
+      "sha256": "d2049615ddf1379b8783fb2ec8e6fa3050ce963d0864fbacd4cb8d5836a1b8a6"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-RESULT.json",
+      "bytes": 538,
+      "sha256": "26bc52b3448a0266db45fd2b4690be12f9b85aacba26828b491cf8d85cded29d"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/bash-version.stdout.raw",
+      "bytes": 109,
+      "sha256": "bbb931c0afdf20554fcb03c4414a67092e2d8db87226567a6ad5be3c1bcc1a15"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/bash-version.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "executionsThisPhase": 0
+}

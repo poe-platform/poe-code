@@ -1,0 +1,64 @@
+{
+  "date": "2026-08-27",
+  "sources": [
+    {
+      "id": "N1",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html",
+      "scope": "POSIX.1-2024 Issue 8 normative XBD 9.1, 9.3.6, 9.3.8",
+      "sha256": "2f5f60e9fe2954fe09dc0991f5c03b7c1de771b0ae2104e4a8a5745187c64e24",
+      "bytes": 60438,
+      "retrievedAt": "2026-08-27T19:06:21.867Z",
+      "retrieval": "HTTPS curl from primary publisher; unmodified response-body digest; full copyrighted document not vendored"
+    },
+    {
+      "id": "N2",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/functions/regcomp.html",
+      "scope": "POSIX.1-2024 Issue 8 normative regcomp/regexec DESCRIPTION",
+      "sha256": "544ff826004bbfa6436bb8b18d9ee38a4a12cd3473290ed530887648eab94874",
+      "bytes": 32280,
+      "retrievedAt": "2026-08-27T19:06:22.060Z",
+      "retrieval": "HTTPS curl from primary publisher; unmodified response-body digest; full copyrighted document not vendored"
+    },
+    {
+      "id": "N3",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/expr.html",
+      "scope": "POSIX.1-2024 Issue 8 normative expr Matching Expression and EXIT STATUS",
+      "sha256": "76196fd72e9f4c475b4843d63fce09d176d025cfb4eaf6f1655387d4fc41afa3",
+      "bytes": 20774,
+      "retrievedAt": "2026-08-27T19:06:22.262Z",
+      "retrieval": "HTTPS curl from primary publisher; unmodified response-body digest; full copyrighted document not vendored"
+    },
+    {
+      "id": "R1",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/xrat/V4_xbd_chap01.html",
+      "scope": "POSIX.1-2024 Issue 8 informative rationale A.9.1 and A.9.3.6",
+      "sha256": "0561013c705ae4939ccf8d6aa816df3466ee903c1eab17cb83cd77c71fa3f284",
+      "bytes": 348951,
+      "retrievedAt": "2026-08-27T19:06:22.581Z",
+      "retrieval": "HTTPS curl from primary publisher; unmodified response-body digest; full copyrighted document not vendored"
+    },
+    {
+      "id": "H43",
+      "url": "https://www.open-std.org/jtc1/sc22/wg15/docs/rr/9945-2/9945-2-43.html",
+      "scope": "1993-standard interpretation finalized 1995-09-12; historical, not current replacement normative text",
+      "sha256": "8ac5b881b1446f5fc01568583d273fef59d1a1b7aa5e7beae12601ada2242ad5",
+      "bytes": 8236,
+      "retrievedAt": "2026-08-27T19:09:59.876Z",
+      "retrieval": "HTTPS curl from primary publisher; unmodified response-body digest; full copyrighted document not vendored"
+    },
+    {
+      "id": "H135",
+      "url": "https://www.open-std.org/JTC1/SC22/WG15/docs/rr/9945-2/9945-2-135.html",
+      "scope": "1993-standard interpretation finalized 1995-11-20; historical, not a universal tie-break algorithm",
+      "sha256": "184ab35ca3ba4d84752f42adb9fb666c09e2b9e5f04a2ae7776d091115d2ebfe",
+      "bytes": 14892,
+      "retrievedAt": "2026-08-27T19:10:00.597Z",
+      "retrieval": "HTTPS curl from primary publisher; unmodified response-body digest; full copyrighted document not vendored"
+    }
+  ],
+  "gnuDocumentation": {
+    "url": "https://www.gnu.org/software/coreutils/manual/coreutils.html",
+    "scope": "Web-retrieved GNU manual identifies + token as a GNU extension; page labels 9.11, NOT the executed 9.7 binary and NOT a latest-release assertion"
+  },
+  "webLimitation": "web.run searched primary sources and fetched historical interpretations/rationale. Direct Issue 8 normative web.open calls returned no text; HTTPS primary-origin retrieval succeeded. Exact response-body hashes above, no Issue 6 text substituted."
+}

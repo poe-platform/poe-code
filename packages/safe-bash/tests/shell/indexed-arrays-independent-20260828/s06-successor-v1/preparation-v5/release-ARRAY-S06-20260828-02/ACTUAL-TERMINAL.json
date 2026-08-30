@@ -1,0 +1,18 @@
+{
+  "source": "actual exec session83400 terminal stdout and exit, not inferred from worker summaries",
+  "coordinatorExitCode": 78,
+  "terminal": {
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/records/FINAL.json",
+      "sha256": "ada95ca1c33a02b198261642143e57352744300fce46fe8b7817226bc7982215"
+    },
+    "accepted": false,
+    "unsafeStop": true,
+    "elapsedBeforeAnnouncementMs": 229653.286666,
+    "work": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02",
+    "childrenRetired": true,
+    "requiresZeroCoordinatorExit": true
+  },
+  "retry": false,
+  "attemptConsumed": true
+}

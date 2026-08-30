@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-27",
+  "candidateHeadBeforeFreeze": "769678dda195c8f77a91563274accec6e685ec4d",
+  "acceptedHelper": {
+    "sourceCommit": "fbbe1ef793b7434871403125efbeb46624a8e081",
+    "gitBlob": "a7742b7f7e81bcd8c1c2a6be35092d8b5f41102f",
+    "sha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac"
+  },
+  "acceptedStage1Original": {
+    "freezeCommit": "7023c28229ecb7939aee5eb7ca0f52ac57c795bb",
+    "testSha256": "682fb00de4678afa076bca67fc335c60657080120be4e75bd9a536bc813d58f6",
+    "casesSha256": "8c007845b59e1e502f8632f0b1eee2a7ae7a66012dcd33847a0ad7425df6dbdb",
+    "typeNegativeSha256": "9f264295170d799cf4b3590124e2e0d5aaf8b6db677320cfb9e18351187d09c4"
+  },
+  "acceptedStage1Repair": {
+    "testSourceCommit": "01fbb3880bbe662adb2c7371e52ea3b47c0549f4",
+    "testSha256": "a8e3d2f3714c82c17bd66e62664896a584ab8d5435931df44bb37ec20f4e04fa",
+    "casesSha256": "5f5ff1749daebdeb53aa322fa766b77c6c9769ba937c379ca04f1c97b2aefd0d"
+  },
+  "acceptedDesignInput": {
+    "commit": "90499562b73767fa983cd675b8349afbd2acd58d",
+    "designSha256": "2cbdaa8416922202cbd90035e672280e386c57cfffa63210666e0bc1eebcabdc",
+    "identitySha256": "7581cd0f2789b225840769308693ce5ee2c265be579228c091a5eb6f93bc1410",
+    "rootDecision": "unknown escaping rejection is unrelated even when equal; no arbitrary async transparency"
+  },
+  "baseline": {
+    "command": "node --import tsx --test tests/shell/cancellation-stage1-20260827/extension-v1/cancellation-extension.test.ts",
+    "exit": 1,
+    "reason": "missing activateChildCancellation export before candidate",
+    "retried": false,
+    "testBodiesRan": false
+  },
+  "claims": {
+    "privateHelperOnly": true,
+    "runtimeIntegration": false,
+    "invocationCancellationOwnerImplemented": false,
+    "stage2Executed": false,
+    "independentCohortExecuted": false,
+    "arbitraryAsyncProvenance": false,
+    "reasonEqualityInference": false,
+    "budgetTimeoutOrDeadlineAPI": false
+  }
+}
+

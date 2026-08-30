@@ -1,6 +1,12 @@
 import path from "node:path";
 import ts from "typescript";
 import type { LintFs } from "./model.js";
+import {
+  createSourceAdmission,
+  fileIdentity,
+  listSourceFiles,
+  validateSourceExclude
+} from "./source-files.js";
 
 /** A single import/export/require/dynamic-import specifier found in a source file. */
 export interface ImportRef {
@@ -132,39 +138,6 @@ export function extractRelevantImports(text: string, fileName: string): RawImpor
   return extractImportsFromAst(text, fileName);
 }
 
-function isSourceFile(name: string): boolean {
-  if (name.endsWith(".d.ts") || name.endsWith(".d.mts") || name.endsWith(".d.cts")) return false;
-  return (
-    name.endsWith(".ts") || name.endsWith(".tsx") || name.endsWith(".mts") || name.endsWith(".cts")
-  );
-}
-
-async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
-  if (fs.listFiles) {
-    try {
-      return (await fs.listFiles(dir)).filter((file) => isSourceFile(path.basename(file)));
-    } catch {
-      return [];
-    }
-  }
-  let entries: { name: string; isDirectory(): boolean }[];
-  try {
-    entries = await fs.readdir(dir);
-  } catch {
-    return [];
-  }
-  const files: string[] = [];
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await listSourceFiles(fs, full)));
-    } else if (isSourceFile(entry.name)) {
-      files.push(full);
-    }
-  }
-  return files;
-}
-
 export function mayContainRelevantImport(
   source: string,
   workspaceNames: ReadonlySet<string>
@@ -239,13 +212,17 @@ export async function scanSourceImports(
   packages: Array<{
     dir: string;
     workspaceNames: ReadonlySet<string>;
+    sourceExclude?: readonly string[];
   }>
 ): Promise<SourceImportView> {
   const view: SourceImportView = new Map();
+  const admittedPackages = packages.map((pkg) => ({
+    ...pkg,
+    sourceExclude: validateSourceExclude(pkg.sourceExclude, pkg.dir)
+  }));
   await Promise.all(
-    packages.map(async ({ dir: packageDir, workspaceNames }) => {
-      const srcDir = path.join(rootDir, packageDir, "src");
-      const files = await listSourceFiles(fs, srcDir);
+    admittedPackages.map(async ({ dir: packageDir, workspaceNames, sourceExclude }) => {
+      const files = await listSourceFiles(fs, rootDir, packageDir, sourceExclude);
       const refs: ImportRef[] = [];
       for (const absFile of files) {
         let text: string;
@@ -271,13 +248,44 @@ export async function scanSourceImports(
 export async function scanImportFiles(
   fs: LintFs,
   rootDir: string,
-  files: string[]
+  files: string[],
+  packages: Array<{ dir: string; sourceExclude?: readonly string[] }> = []
 ): Promise<SourceImportView> {
   const view: SourceImportView = new Map();
+  const descriptors = [
+    ...packages.filter((pkg) => pkg.dir !== "."),
+    packages.find((pkg) => pkg.dir === ".") ?? { dir: "." }
+  ].map((pkg) => ({ ...pkg, sourceExclude: validateSourceExclude(pkg.sourceExclude, pkg.dir) }));
+  const admissions = await Promise.all(
+    descriptors.map((pkg) => createSourceAdmission(fs, rootDir, pkg.dir, pkg.sourceExclude))
+  );
+  const rootAdmission = admissions.at(-1)!;
   await Promise.all(
     files.map(async (relFile) => {
       const normalized = path.posix.normalize(toPosix(relFile));
       const absFile = path.join(rootDir, normalized);
+      const inspected = await rootAdmission.inspect(absFile);
+      if (!inspected) return;
+      if (inspected.excluded)
+        throw new Error(`Root entrypoint targets excluded source: ${relFile}`);
+      for (const ancestor of [...inspected.entries].reverse()) {
+        const owner = admissions.find(
+          (admission) =>
+            admission.stat && fileIdentity(admission.stat) === fileIdentity(ancestor.stat)
+        );
+        if (!owner) continue;
+        const ownedPath = path.join(owner.packageRoot, path.relative(ancestor.path, absFile));
+        const owned = await owner.inspect(ownedPath);
+        if (!owned)
+          throw new Error(`Unable to confirm root entrypoint ownership metadata: ${relFile}`);
+        if (owned.excluded)
+          throw new Error(
+            `Root entrypoint targets excluded source: ${relFile} (owner: ${owner.packageRoot})`
+          );
+        break;
+      }
+      if (!inspected.entries.at(-1)!.stat.isFile())
+        throw new Error(`Unsupported root entrypoint (requires a regular file): ${relFile}`);
       let text: string;
       try {
         text = await fs.readFile(absFile);

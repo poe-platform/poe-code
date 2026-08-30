@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: all archived inputs and entire emitted closure match committed source and pack
+ok 1 - all archived inputs and entire emitted closure match committed source and pack
+  ---
+  duration_ms: 410.440458
+  type: 'test'
+  ...
+# Subtest: unchanged cohort denominators, sole original matrix failure and verifier correction are retained
+ok 2 - unchanged cohort denominators, sole original matrix failure and verifier correction are retained
+  ---
+  duration_ms: 0.549667
+  type: 'test'
+  ...
+# Subtest: actual loaded root/S3/HTTP and all 144 service modules match packed/build closure
+ok 3 - actual loaded root/S3/HTTP and all 144 service modules match packed/build closure
+  ---
+  duration_ms: 1.767
+  type: 'test'
+  ...
+# Subtest: 20 observations are not 20 successful workflows; every rmdir DELETE is exact-marker-only
+ok 4 - 20 observations are not 20 successful workflows; every rmdir DELETE is exact-marker-only
+  ---
+  duration_ms: 0.221125
+  type: 'test'
+  ...
+# Subtest: independent SigV4 recomputation verifies all 65 retained native wire requests
+ok 5 - independent SigV4 recomputation verifies all 65 retained native wire requests
+  ---
+  duration_ms: 12.144042
+  type: 'test'
+  ...
+# Subtest: native shortcut probes retain exact keys, false completeness, and surviving hidden bytes
+ok 6 - native shortcut probes retain exact keys, false completeness, and surviving hidden bytes
+  ---
+  duration_ms: 0.662042
+  type: 'test'
+  ...
+# Subtest: original evidence remains unchanged; one pinned binary and owned service data were removed
+ok 7 - original evidence remains unchanged; one pinned binary and owned service data were removed
+  ---
+  duration_ms: 51.655125
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 516.391292

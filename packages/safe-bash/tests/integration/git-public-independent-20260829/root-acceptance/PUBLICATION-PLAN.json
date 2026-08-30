@@ -1,0 +1,17 @@
+{
+  "administration": "/tmp/safe-bash-public80-root-acceptance-NukmbF",
+  "plannedAdditionalGitProcesses": 7,
+  "totalPlannedKnown": 14,
+  "editingHelperReserve": 1,
+  "totalConservativeSlots": 15,
+  "maximumAllProcesses": 32,
+  "peak": 2,
+  "scope": [
+    "README.md",
+    "docs/COMMAND_PRIORITIES.md",
+    "docs/PROJECT_LEDGER.md",
+    "tests/integration/git-public-independent-20260829/root-acceptance"
+  ],
+  "onlyExplicitPaths": true,
+  "prohibitedExecutions": "No product/test/build/compiler/native oracle/private/helper/gate runtime; development Git metadata and editing only"
+}

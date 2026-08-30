@@ -1,0 +1,29 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { lstat, readFile, readlink } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = dirname(fileURLToPath(import.meta.url));
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const manifestPath = process.argv[2] ?? '/Users/kjopek/Workspace/safe-bash/tests/commands/filesystem-inspection-stress/file/PRESEAL.json';
+const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+const catalogBytes = await readFile(join(root, 'seal-catalog.json'));
+assert.equal(hash(catalogBytes), manifest.privateCatalogSha256);
+const catalog = JSON.parse(catalogBytes);
+assert.equal(catalog.artifacts.length, manifest.artifactCount);
+for (const entry of catalog.artifacts) {
+  assert(!entry.relativePath.startsWith('/') && !entry.relativePath.split('/').includes('..'));
+  const location = join(root, entry.relativePath);
+  const metadata = await lstat(location);
+  assert(entry.type === 'symlink-target' ? metadata.isSymbolicLink() : metadata.isFile());
+  const bytes = entry.type === 'symlink-target' ? Buffer.from(await readlink(location)) : await readFile(location);
+  assert.equal(bytes.length, entry.bytes, entry.relativePath);
+  assert.equal(hash(bytes), entry.sha256, entry.relativePath);
+}
+const opaque = catalog.artifacts.map(({ relativePath, ...entry }) => entry);
+assert.deepEqual(opaque, manifest.artifacts);
+const aggregate = hash(opaque.map((entry) => `${entry.id}\0${entry.type}\0${entry.bytes}\0${entry.sha256}\n`).join(''));
+assert.equal(aggregate, manifest.artifactRootSha256);
+assert.equal(manifest.candidateExecutions, 0);
+console.log(JSON.stringify({ sealVerified: true, artifactCount: opaque.length, artifactRootSha256: aggregate, candidateExecutions: 0 }));

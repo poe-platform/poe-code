@@ -1,0 +1,422 @@
+{
+  "at": "2026-08-27T19:08:38.852640+00:00",
+  "role": "AUTHOR_RECORDED_KNOWN_RESOURCE_CLOSURE_ONLY",
+  "parents": [
+    {
+      "cohort": "surface",
+      "pid": 99102,
+      "reaped": true,
+      "exitCode": 0,
+      "containment": null,
+      "children": 8,
+      "closure": {
+        "pid": 99102,
+        "at": "2026-08-27T18:59:09.865Z",
+        "alive": true,
+        "knownLiveChildren": []
+      }
+    },
+    {
+      "cohort": "lifecycle",
+      "pid": 2166,
+      "reaped": true,
+      "exitCode": 0,
+      "containment": null,
+      "children": 11,
+      "closure": {
+        "knownCaseChildrenClosed": true,
+        "temporary": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-3YnUtA",
+        "removed": true,
+        "sharedCopiesRemoved": false,
+        "appendGuard": "Full immutable regular-file set, bytes and mode/mtime/ctime re-enumerated; new regular files and symlinks detected. Directory-shape re-enumeration additionally detects empty-directory additions/removals; no atomic intervening-state or atime claim."
+      }
+    },
+    {
+      "cohort": "controls",
+      "pid": 5476,
+      "reaped": true,
+      "exitCode": 0,
+      "containment": null,
+      "children": 6,
+      "closure": {
+        "knownCaseChildrenClosed": true,
+        "temporary": "/private/tmp/safe-bash-owned-output-lifecycle-execution-v2-5rnOta",
+        "removed": true,
+        "sharedCopiesRemoved": false,
+        "appendGuard": "Full immutable regular-file set, bytes and mode/mtime/ctime re-enumerated; new regular files and symlinks detected. Directory-shape re-enumeration additionally detects empty-directory additions/removals; no atomic intervening-state or atime claim."
+      }
+    }
+  ],
+  "lifecycleAndControlRows": [
+    {
+      "cohort": "lifecycle",
+      "id": "L01-aliases",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L02-budget-positive",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L02-budget-exhausted",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L03-callback-live",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L03-callback-after-lifetime",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L04-explicit-children",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-caller-error",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-execution-error",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L05-cleanup-error",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L06-curl-open",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "lifecycle",
+      "id": "L06-curl-consumer-closed",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "controls",
+      "id": "Z01-open",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ],
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "controls",
+      "id": "Z01-closed",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ],
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "controls",
+      "id": "Z02-open",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ],
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "controls",
+      "id": "Z02-closed",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ],
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "controls",
+      "id": "Z03-open",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ],
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    },
+    {
+      "cohort": "controls",
+      "id": "Z03-closed",
+      "guard": {
+        "failures": [],
+        "activeTimers": 0,
+        "timerRequests": [
+          {
+            "operation": "setTimeout",
+            "delay": 7000
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 3500
+          },
+          {
+            "operation": "setTimeout",
+            "delay": 2500
+          }
+        ],
+        "workersCreated": 0,
+        "subprocessesCreated": 0,
+        "socketsCreated": 0
+      },
+      "unhandled": [],
+      "bridgePendingAtSettlement": 0,
+      "cleanupDoneAtSettlement": true,
+      "disposed": true,
+      "disposeSettled": true
+    }
+  ],
+  "knownParentControllersReaped": 3,
+  "knownCaseChildrenClosed": 25,
+  "lifecycleControlTrackedActiveTimers": 0,
+  "lifecycleControlBridgePendingAtSettlement": 0,
+  "lifecycleControlUnhandledRejections": 0,
+  "trackedWorkersCreated": 0,
+  "trackedSubprocessesCreatedByGuests": 0,
+  "trackedSocketsCreated": 0,
+  "surfaceLastRecordedLiveChildren": [],
+  "lifecycleAndControlTemporaryCopiesRemoved": true,
+  "surfaceTemporaryCopiesRetained": "Original surface driver retains its regular TEMP input copies for audit. They are not live processes and no private source files from them were committed.",
+  "sharedSnapshotsRetainedUnchanged": true,
+  "scopeLimit": "No global host-process scan, opaque/uncooperative-work guarantee, atime proof, or hard-preemption claim. Known child close events, exact wrapper reap records and finite registered-resource observations only.",
+  "noPromotion": true
+}

@@ -1,0 +1,105 @@
+{
+  "scratch": "tests/commands/expr-stress/sink-profile-migration-v3-20260827/author/node_modules/candidate-01",
+  "absent": true,
+  "boundedProcesses": [
+    {
+      "name": "original-extract",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "original-build",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "revised-extract",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "revised-build",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "original-canonical-focused",
+      "status": 1,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "original-canonical-legacy",
+      "status": 1,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "revised-canonical-focused",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "revised-canonical-legacy",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "original-nearby",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "original-quota",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "revised-nearby",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "revised-quota",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "core-pack",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "core-install",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "original-core",
+      "status": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "revised-core",
+      "status": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "normalRemoval": true,
+  "sigstopUsed": false,
+  "finished": "2026-08-27T21:35:32.405Z"
+}

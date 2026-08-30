@@ -1,0 +1,1826 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "scope": "Evidence-only policy handoff; immutable existing records; no new corpus/engine execution or promotion",
+  "promotion": false,
+  "newSemanticExecutions": 0,
+  "commits": {
+    "21220b46": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "c433d023": "c433d0230468889e825dfff680a5a729b45bd272",
+    "954ddde4": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+    "8897ece3": "8897ece39c730812b74164377180b90d6cd02444",
+    "3cbcdc1a": "3cbcdc1aefb4007f819e36610bbabdc41c913be4",
+    "6d6c00d8": "6d6c00d8ca9d91d3f514b81752f7847be1acbc0a",
+    "53f2a468": "53f2a4681cd22a65299576ba655cf9338c3d1de0"
+  },
+  "sources": [
+    {
+      "id": "author-report",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/REPORT.md",
+      "gitBlob": "b1e5f1c0540bc22362686083ec5188241efa3fee",
+      "bytes": 13806,
+      "sha256": "0913a8ad2c8d51e4d6f10399686f40c6226da6e85b1e1bdcb2de8592f33a3f17",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-manifest",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/manifest.json",
+      "gitBlob": "cb34238de17de72b210737867011f41ba1d9b5ce",
+      "bytes": 10191,
+      "sha256": "734937be8f20969e2fe35c94c7e018dce066ef30faa7a047b81e11e6ec41a8b4",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-worker",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/candidate-bre-worker.ts.data",
+      "gitBlob": "57bb4e6b42330247b67ef858cef3e1883401dc1c",
+      "bytes": 20712,
+      "sha256": "663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-patch",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/candidate.patch",
+      "gitBlob": "cf3fde50d2233f8060afed8a48142779411e1c85",
+      "bytes": 39362,
+      "sha256": "900d10baaaad15e6e428747ca5815b3c284f14a612d6752c9b7bdf91b2fed6de",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-driver",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/observe.mjs",
+      "gitBlob": "01b93b5fd88d2d30dc22b6caa1f535b923341307",
+      "bytes": 4191,
+      "sha256": "5f860e06b09349a233dca66a6ac12e9c535c51d1279cadaf11e5c9231e6453a6",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-capture",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/candidate-run-04/observations.json",
+      "gitBlob": "7674b98bc1efa038ce03fbaaeb38e8e291769854",
+      "bytes": 16085,
+      "sha256": "c4b089c10269100d83694a58b88a1b80afe32960ad4c4efc53649b98942d8d2e",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-provenance",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/candidate-run-04/provenance.json",
+      "gitBlob": "81b348ea8b8001a0f4045b088b9405ddb54b0e35",
+      "bytes": 52551,
+      "sha256": "315cab8c9cdc62a575e6a9f4e5fd6ea3769608d8ab8d3e5bc031d80fee840776",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-preparation",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/candidate-run-04/preparation.json",
+      "gitBlob": "1112b43bb4d1a08f1da44d39b58cdeb4a9dd49dc",
+      "bytes": 51333,
+      "sha256": "2b19c9f21f86ed86c48bd9d83061fc0fc34e10aef0facdef81fd1b72a33ec793",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-cleanup",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/candidate-run-04/cleanup.json",
+      "gitBlob": "4e18d1ee2d486a935065443342babde4f5c87caf",
+      "bytes": 360,
+      "sha256": "63b73064ae17aacda8ce662d004fe842555b87e84009fdb4c048a62969e285fc",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "author-verifier",
+      "commit": "c433d0230468889e825dfff680a5a729b45bd272",
+      "path": "tests/commands/expr-stress/repeat-history-author/verify-candidate.mjs",
+      "gitBlob": "8186ef44fb285518937f41096e5d7fbd9f21de56",
+      "bytes": 4854,
+      "sha256": "fe67fca8798323c34bc715317dc06ba36bea82f9d76eaa61aee93c3cfd9daeb5",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-report",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/REPORT.md",
+      "gitBlob": "017090e7745da09f8180e1f51b805de756b51c09",
+      "bytes": 11113,
+      "sha256": "2d6338b403dc6c1f1dd1082a72b64680b14c4c12796bb43587318d56a95e42d4",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-manifest",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/MANIFEST.json",
+      "gitBlob": "296c7d57fe50947d488e879c47b32240122561ff",
+      "bytes": 5355,
+      "sha256": "3e7ee338a6f4ebfce256b92d21e20a2e682b8c380687c5c86d7806f29bd9b8c5",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-candidate",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/capture.json",
+      "gitBlob": "0b85b5b1ed3000f75e729af91eb9015435650247",
+      "bytes": 26186,
+      "sha256": "5f24d8be9a9fd7cf615abfb698633894a8e59b85a57518f3f8f3bb3aca158567",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-native",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/native-01/capture.json",
+      "gitBlob": "2fb30b6fd308634f158b7389833ccdcd44a349f1",
+      "bytes": 24298,
+      "sha256": "b5bd8fa518be13355412209a1b898eab8edb52372fb5bdf7284109a9c20c3644",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-provenance",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/provenance.json",
+      "gitBlob": "8e28d3662b4eb69433686cd663e133b1db65117e",
+      "bytes": 100869,
+      "sha256": "f2caebf03f84107a5aee114b0a5e18a51d2115e11c772133bad3407bdf7496d0",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-driver",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/candidate.mjs.data",
+      "gitBlob": "a9daad43978365860004aa9dc875f10bb8e98f81",
+      "bytes": 12120,
+      "sha256": "36837ef7bd1803349421987b41405409d46d43626abe8ab36b246dea4911d425",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-qualification",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/qualification.json",
+      "gitBlob": "aada771ba439add34d77fb9173eb7912f7485238",
+      "bytes": 2426,
+      "sha256": "54899c1b31192878b8fa9af371e6fb913cf02ee240da04326daa2dca4c81226e",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-receipt",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/candidate-01/receipt.txt",
+      "gitBlob": "2cc564c09efd344675cf307af3bbe02d667b4bed",
+      "bytes": 8734,
+      "sha256": "c25cd57be1a573fde360d22e5c7bc3540caef18bddea2d1c152eec26f4063ecd",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-source-review",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/PRE-EXECUTION-REVIEW.md",
+      "gitBlob": "aebd9dadb3f5954f71699ba54a71fc2c58ec2ae3",
+      "bytes": 4780,
+      "sha256": "d5903456e6286f3873cfeaae53ad3201bf96aa95c65e0c2acb7e81820bf045e2",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-verifier",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/verify.mjs",
+      "gitBlob": "91cc7a4e3e1106d304d3facc9813f9d54de6579e",
+      "bytes": 5371,
+      "sha256": "fe6140f3102b86f9a4d8b4b6aed17af30c3f48312b4d04aa08ad07258c762633",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "independent-inputs",
+      "commit": "6d6c00d8ca9d91d3f514b81752f7847be1acbc0a",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/CASES.json",
+      "gitBlob": "57cc8c8ee1a310f5bd77fcecc06602085a8e69cc",
+      "bytes": 11044,
+      "sha256": "8e2017cd35508eab72be745ab82f9354109e6bcd5932bab192fe525b75c1982d",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "curie-report",
+      "commit": "8897ece39c730812b74164377180b90d6cd02444",
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/REPORT.md",
+      "gitBlob": "79a4870ec48902c3426e542e38c5f13c5c00788c",
+      "bytes": 12705,
+      "sha256": "307a8a377a28c9c611ff73e8ad4b5d84c6eb253a12782cdf733e39cfc7fe33cf",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "curie-manifest",
+      "commit": "8897ece39c730812b74164377180b90d6cd02444",
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/MANIFEST.json",
+      "gitBlob": "82f0484580403835926b6a840c234c2f219a87fd",
+      "bytes": 1252,
+      "sha256": "3fb485129d28cedd4872eca0b27c5a2db8ec9245fe8ca973e9a014d793207dd0",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "curie-capture",
+      "commit": "8897ece39c730812b74164377180b90d6cd02444",
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/capture.json",
+      "gitBlob": "19af732649b5eb30404617931db976aa0dbef189",
+      "bytes": 29141,
+      "sha256": "8cb70c60aedad21a5d5ec5350429afc0889e9fdf407d9e54de2edae92185837d",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "curie-sources",
+      "commit": "8897ece39c730812b74164377180b90d6cd02444",
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/SOURCES.json",
+      "gitBlob": "4edbb63eb66889949fb650fe19a69fb7b855ad21",
+      "bytes": 3543,
+      "sha256": "637bdb116effb522104541c1525d3769f01534d84f6939eebca14b71dad4c88d",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "curie-verifier",
+      "commit": "8897ece39c730812b74164377180b90d6cd02444",
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/verify.mjs",
+      "gitBlob": "d6f504fd5d6874195e4f2aa0fd57f7c32da0e848",
+      "bytes": 4990,
+      "sha256": "650974be3548b0e3d63dc7389a951adf3024361a9ce9aefcefb9ee3fb5a1435e",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "curie-inputs",
+      "commit": "3cbcdc1aefb4007f819e36610bbabdc41c913be4",
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/CASES.json",
+      "gitBlob": "4a93aab835f5ac86e388e356d859fef2b612871c",
+      "bytes": 3202,
+      "sha256": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "original-inputs",
+      "commit": "53f2a4681cd22a65299576ba655cf9338c3d1de0",
+      "path": "tests/commands/expr-stress/nullable-design-review/capture-final/cases.json",
+      "gitBlob": "448e877079f5324345638c18edfb3872566e6b39",
+      "bytes": 3246,
+      "sha256": "882cc9d9945d566c258e593c2e60fdb33ce32b7ccb2cebc48d17638c022385d1",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "original-native-summary",
+      "commit": "53f2a4681cd22a65299576ba655cf9338c3d1de0",
+      "path": "tests/commands/expr-stress/nullable-design-review/capture-final/summary.json",
+      "gitBlob": "ab158dce6606c1eca37c263a9b609ae09700aee7",
+      "bytes": 41601,
+      "sha256": "f48b1206f0dc634d767c5eaeb36b575023d7a31e94207793d0a419f7fb981a73",
+      "checkWorkingFile": true
+    },
+    {
+      "id": "accepted-helper",
+      "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+      "path": "tests/commands/expr/helpers.ts",
+      "gitBlob": "47d3d1b7e224f278d1b592432884163c6b0a3587",
+      "bytes": 1294,
+      "sha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+      "checkWorkingFile": false
+    },
+    {
+      "id": "accepted-shell",
+      "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+      "path": "src/shell/shell.ts",
+      "gitBlob": "9d535825bce412d86c4dee587c59142bcf86944d",
+      "bytes": 10368,
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "checkWorkingFile": false
+    },
+    {
+      "id": "accepted-runtime",
+      "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+      "path": "src/shell/runtime.ts",
+      "gitBlob": "1eb395676cf2c3f22ed75dfdf4454f50f9614b75",
+      "bytes": 107839,
+      "sha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+      "checkWorkingFile": false
+    }
+  ],
+  "nativeEnvironment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "LANGUAGE": "C",
+    "TZ": "UTC"
+  },
+  "nativeProfiles": {
+    "gnu": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "profile": "GNU 9.7 Darwin, not GNU/Linux",
+      "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr"
+    },
+    "apple": {
+      "path": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f",
+      "profile": "Apple expr Darwin C, separate comparator",
+      "filename": "/bin/expr"
+    }
+  },
+  "nativeSpanQualification": "GNU and Apple expr records expose no offsets. libcObservations are a separately identified probe, not substitutes.",
+  "libcIdentity": {
+    "native": {
+      "gnu": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+        "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c"
+      },
+      "apple": {
+        "path": "/bin/expr",
+        "realpath": "/bin/expr",
+        "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f"
+      },
+      "compiler": {
+        "path": "/usr/bin/cc",
+        "realpath": "/usr/bin/cc",
+        "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+      },
+      "libcHelper": {
+        "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-posix-native-XlxDK4/libc-probe",
+        "realpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-posix-native-XlxDK4/libc-probe",
+        "sha256": "f1b379d41ce6979ceadf1a378f0a5b0b6c28e0e52ca65a4839a3ca22d0706723"
+      }
+    },
+    "runtime": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "version": "v22.22.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "platform": {
+      "arguments": [],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "50726f647563744e616d653a09096d61634f530a50726f6475637456657273696f6e3a090932362e342e310a4275696c6456657273696f6e3a09093235453235330a",
+      "stderrHex": ""
+    },
+    "versions": {
+      "gnu": {
+        "arguments": [
+          "--version"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "657870722028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d696b65205061726b65722c204a616d657320596f756e676d616e2c20616e64205061756c204567676572742e0a",
+        "stderrHex": ""
+      },
+      "compiler": {
+        "arguments": [
+          "--version"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "4170706c6520636c616e672076657273696f6e2032312e302e302028636c616e672d323130302e312e312e313031290a5461726765743a2061726d36342d6170706c652d64617277696e32352e342e300a546872656164206d6f64656c3a20706f7369780a496e7374616c6c65644469723a202f4170706c69636174696f6e732f58636f64652e6170702f436f6e74656e74732f446576656c6f7065722f546f6f6c636861696e732f58636f646544656661756c742e7863746f6f6c636861696e2f7573722f62696e0a",
+        "stderrHex": ""
+      }
+    },
+    "compile": {
+      "arguments": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/posix-semantics-independent-20260827/libc-probe.c",
+        "-o",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-posix-native-XlxDK4/libc-probe"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "",
+      "stderrHex": ""
+    },
+    "linkage": {
+      "arguments": [
+        "-L",
+        "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-posix-native-XlxDK4/libc-probe"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "2f7661722f666f6c646572732f72772f733463793736686e36763535717270306468636274706c6330303030676e2f542f657870722d706f7369782d6e61746976652d586c78444b342f6c6962632d70726f62653a0a092f7573722f6c69622f6c696253797374656d2e422e64796c69622028636f6d7061746962696c6974792076657273696f6e20312e302e302c2063757272656e742076657273696f6e20313335362e302e30290a",
+      "stderrHex": ""
+    }
+  },
+  "independentRuntime": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0"
+  },
+  "independentSourceReceipt": {
+    "base": "21220b465537bf45ffcfb36740956a69f43bf75e",
+    "archiveSha256": "04eca6b16fa410fce542ce1816a44aa9910449c407ca00a4fa2368337db0f7c9",
+    "workerSha256": "663b0b9010d939df16910c75d543f7a41cee832d6cd7cc2ab142996386206890",
+    "patchSha256": "900d10baaaad15e6e428747ca5815b3c284f14a612d6752c9b7bdf91b2fed6de",
+    "receiptSha256": "c25cd57be1a573fde360d22e5c7bc3540caef18bddea2d1c152eec26f4063ecd"
+  },
+  "observations": [
+    {
+      "id": "history-four",
+      "cohort": "independent",
+      "inputReference": {
+        "source": "independent-inputs",
+        "pointer": "/cases/8"
+      },
+      "input": {
+        "id": "history-four",
+        "subject": "aaaa",
+        "pattern": "\\(a*\\)*\\1",
+        "classification": "observation-only"
+      },
+      "candidateReference": {
+        "source": "independent-candidate",
+        "pointer": "/rows/8"
+      },
+      "candidate": {
+        "id": "history-four",
+        "classification": "observation-only",
+        "profile": "byte",
+        "result": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 4
+          },
+          "capture": {
+            "start": 2,
+            "end": 3
+          },
+          "steps": 3244
+        },
+        "validSpans": true,
+        "captureHex": "61",
+        "command": {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        }
+      },
+      "subjectHex": "61616161",
+      "patternHex": "5c28612a5c292a5c31",
+      "invocation": {
+        "entry": "createExprCommand().execute via accepted tests/commands/expr/helpers.ts; not Shell.exec",
+        "command": "expr",
+        "argv": [
+          "+",
+          "aaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "cwd": "/",
+        "virtualEnv": {
+          "LC_ALL": "C"
+        },
+        "filesystem": "empty memory filesystem",
+        "stdin": "throws if acquired",
+        "source": "independent-driver"
+      },
+      "nativeReference": {
+        "source": "independent-native",
+        "pointer": "/rows/8"
+      },
+      "nativeRecord": {
+        "id": "history-four",
+        "subject": "aaaa",
+        "pattern": "\\(a*\\)*\\1",
+        "gnu": {
+          "argv": [
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "apple": {
+          "argv": [
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "profilesAgree": false
+      },
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "history-six",
+      "cohort": "independent",
+      "inputReference": {
+        "source": "independent-inputs",
+        "pointer": "/cases/9"
+      },
+      "input": {
+        "id": "history-six",
+        "subject": "aaaaaa",
+        "pattern": "\\(a*\\)*\\1",
+        "classification": "observation-only"
+      },
+      "candidateReference": {
+        "source": "independent-candidate",
+        "pointer": "/rows/9"
+      },
+      "candidate": {
+        "id": "history-six",
+        "classification": "observation-only",
+        "profile": "byte",
+        "result": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 6
+          },
+          "capture": {
+            "start": 4,
+            "end": 5
+          },
+          "steps": 11667
+        },
+        "validSpans": true,
+        "captureHex": "61",
+        "command": {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        }
+      },
+      "subjectHex": "616161616161",
+      "patternHex": "5c28612a5c292a5c31",
+      "invocation": {
+        "entry": "createExprCommand().execute via accepted tests/commands/expr/helpers.ts; not Shell.exec",
+        "command": "expr",
+        "argv": [
+          "+",
+          "aaaaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "cwd": "/",
+        "virtualEnv": {
+          "LC_ALL": "C"
+        },
+        "filesystem": "empty memory filesystem",
+        "stdin": "throws if acquired",
+        "source": "independent-driver"
+      },
+      "nativeReference": {
+        "source": "independent-native",
+        "pointer": "/rows/9"
+      },
+      "nativeRecord": {
+        "id": "history-six",
+        "subject": "aaaaaa",
+        "pattern": "\\(a*\\)*\\1",
+        "gnu": {
+          "argv": [
+            "aaaaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "6161610a",
+          "stderrHex": ""
+        },
+        "apple": {
+          "argv": [
+            "aaaaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "profilesAgree": false
+      },
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "original/a",
+      "cohort": "independent",
+      "inputReference": {
+        "source": "independent-inputs",
+        "pointer": "/cases/1"
+      },
+      "input": {
+        "id": "original/a",
+        "subject": "a",
+        "pattern": "\\(a*\\)*\\1",
+        "classification": "established-narrow",
+        "historicalGNU": {
+          "status": 1,
+          "signal": null,
+          "failure": null,
+          "stdoutBase64": "Cg==",
+          "stderrBase64": ""
+        },
+        "expected": {
+          "matched": true,
+          "wholeEnd": 0,
+          "captureText": ""
+        }
+      },
+      "candidateReference": {
+        "source": "independent-candidate",
+        "pointer": "/rows/1"
+      },
+      "candidate": {
+        "id": "original/a",
+        "classification": "established-narrow",
+        "profile": "byte",
+        "result": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 0
+          },
+          "capture": {
+            "start": 0,
+            "end": 0
+          },
+          "steps": 765
+        },
+        "validSpans": true,
+        "captureHex": "",
+        "expected": {
+          "matched": true,
+          "wholeEnd": 0,
+          "captureText": ""
+        },
+        "establishedExpectationPass": true,
+        "command": {
+          "status": 1,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "originalGNUUnchanged": {
+          "status": 1,
+          "signal": null,
+          "failure": null,
+          "stdoutBase64": "Cg==",
+          "stderrBase64": ""
+        },
+        "originalGNUStrictAgreement": true
+      },
+      "subjectHex": "61",
+      "patternHex": "5c28612a5c292a5c31",
+      "invocation": {
+        "entry": "createExprCommand().execute via accepted tests/commands/expr/helpers.ts; not Shell.exec",
+        "command": "expr",
+        "argv": [
+          "+",
+          "a",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "cwd": "/",
+        "virtualEnv": {
+          "LC_ALL": "C"
+        },
+        "filesystem": "empty memory filesystem",
+        "stdin": "throws if acquired",
+        "source": "independent-driver"
+      },
+      "nativeReference": {
+        "source": "independent-native",
+        "pointer": "/rows/1"
+      },
+      "nativeRecord": {
+        "id": "original/a",
+        "subject": "a",
+        "pattern": "\\(a*\\)*\\1",
+        "gnu": {
+          "argv": [
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple": {
+          "argv": [
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "profilesAgree": true
+      },
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "original/empty",
+      "cohort": "independent",
+      "inputReference": {
+        "source": "independent-inputs",
+        "pointer": "/cases/0"
+      },
+      "input": {
+        "id": "original/empty",
+        "subject": "",
+        "pattern": "\\(a*\\)*\\1",
+        "classification": "established-narrow",
+        "historicalGNU": {
+          "status": 1,
+          "signal": null,
+          "failure": null,
+          "stdoutBase64": "Cg==",
+          "stderrBase64": ""
+        },
+        "expected": {
+          "matched": true,
+          "wholeEnd": 0,
+          "captureText": ""
+        }
+      },
+      "candidateReference": {
+        "source": "independent-candidate",
+        "pointer": "/rows/0"
+      },
+      "candidate": {
+        "id": "original/empty",
+        "classification": "established-narrow",
+        "profile": "byte",
+        "result": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 0
+          },
+          "capture": {
+            "start": 0,
+            "end": 0
+          },
+          "steps": 582
+        },
+        "validSpans": true,
+        "captureHex": "",
+        "expected": {
+          "matched": true,
+          "wholeEnd": 0,
+          "captureText": ""
+        },
+        "establishedExpectationPass": true,
+        "command": {
+          "status": 1,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "originalGNUUnchanged": {
+          "status": 1,
+          "signal": null,
+          "failure": null,
+          "stdoutBase64": "Cg==",
+          "stderrBase64": ""
+        },
+        "originalGNUStrictAgreement": true
+      },
+      "subjectHex": "",
+      "patternHex": "5c28612a5c292a5c31",
+      "invocation": {
+        "entry": "createExprCommand().execute via accepted tests/commands/expr/helpers.ts; not Shell.exec",
+        "command": "expr",
+        "argv": [
+          "+",
+          "",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "cwd": "/",
+        "virtualEnv": {
+          "LC_ALL": "C"
+        },
+        "filesystem": "empty memory filesystem",
+        "stdin": "throws if acquired",
+        "source": "independent-driver"
+      },
+      "nativeReference": {
+        "source": "independent-native",
+        "pointer": "/rows/0"
+      },
+      "nativeRecord": {
+        "id": "original/empty",
+        "subject": "",
+        "pattern": "\\(a*\\)*\\1",
+        "gnu": {
+          "argv": [
+            "",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple": {
+          "argv": [
+            "",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "profilesAgree": true
+      },
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "original/aaa",
+      "cohort": "independent",
+      "inputReference": {
+        "source": "independent-inputs",
+        "pointer": "/cases/3"
+      },
+      "input": {
+        "id": "original/aaa",
+        "subject": "aaa",
+        "pattern": "\\(a*\\)*\\1",
+        "classification": "established-narrow",
+        "historicalGNU": {
+          "status": 1,
+          "signal": null,
+          "failure": null,
+          "stdoutBase64": "Cg==",
+          "stderrBase64": ""
+        },
+        "expected": {
+          "matched": true,
+          "wholeEnd": 3,
+          "captureText": "a"
+        }
+      },
+      "candidateReference": {
+        "source": "independent-candidate",
+        "pointer": "/rows/3"
+      },
+      "candidate": {
+        "id": "original/aaa",
+        "classification": "established-narrow",
+        "profile": "byte",
+        "result": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 1,
+            "end": 2
+          },
+          "steps": 1833
+        },
+        "validSpans": true,
+        "captureHex": "61",
+        "expected": {
+          "matched": true,
+          "wholeEnd": 3,
+          "captureText": "a"
+        },
+        "establishedExpectationPass": true,
+        "command": {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "originalGNUUnchanged": {
+          "status": 1,
+          "signal": null,
+          "failure": null,
+          "stdoutBase64": "Cg==",
+          "stderrBase64": ""
+        },
+        "originalGNUStrictAgreement": false
+      },
+      "subjectHex": "616161",
+      "patternHex": "5c28612a5c292a5c31",
+      "invocation": {
+        "entry": "createExprCommand().execute via accepted tests/commands/expr/helpers.ts; not Shell.exec",
+        "command": "expr",
+        "argv": [
+          "+",
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "cwd": "/",
+        "virtualEnv": {
+          "LC_ALL": "C"
+        },
+        "filesystem": "empty memory filesystem",
+        "stdin": "throws if acquired",
+        "source": "independent-driver"
+      },
+      "nativeReference": {
+        "source": "independent-native",
+        "pointer": "/rows/3"
+      },
+      "nativeRecord": {
+        "id": "original/aaa",
+        "subject": "aaa",
+        "pattern": "\\(a*\\)*\\1",
+        "gnu": {
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple": {
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "profilesAgree": false
+      },
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "mandatory-nonempty",
+      "cohort": "independent",
+      "inputReference": {
+        "source": "independent-inputs",
+        "pointer": "/cases/10"
+      },
+      "input": {
+        "id": "mandatory-nonempty",
+        "subject": "aaa",
+        "pattern": "\\(a*\\)\\{2\\}\\1",
+        "classification": "observation-only"
+      },
+      "candidateReference": {
+        "source": "independent-candidate",
+        "pointer": "/rows/10"
+      },
+      "candidate": {
+        "id": "mandatory-nonempty",
+        "classification": "observation-only",
+        "profile": "byte",
+        "result": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 3,
+            "end": 3
+          },
+          "steps": 1690
+        },
+        "validSpans": true,
+        "captureHex": "",
+        "command": {
+          "status": 1,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        }
+      },
+      "subjectHex": "616161",
+      "patternHex": "5c28612a5c295c7b325c7d5c31",
+      "invocation": {
+        "entry": "createExprCommand().execute via accepted tests/commands/expr/helpers.ts; not Shell.exec",
+        "command": "expr",
+        "argv": [
+          "+",
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "cwd": "/",
+        "virtualEnv": {
+          "LC_ALL": "C"
+        },
+        "filesystem": "empty memory filesystem",
+        "stdin": "throws if acquired",
+        "source": "independent-driver"
+      },
+      "nativeReference": {
+        "source": "independent-native",
+        "pointer": "/rows/10"
+      },
+      "nativeRecord": {
+        "id": "mandatory-nonempty",
+        "subject": "aaa",
+        "pattern": "\\(a*\\)\\{2\\}\\1",
+        "gnu": {
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "apple": {
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "profilesAgree": false
+      },
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "optional-child-empty",
+      "cohort": "independent",
+      "inputReference": {
+        "source": "independent-inputs",
+        "pointer": "/cases/18"
+      },
+      "input": {
+        "id": "optional-child-empty",
+        "subject": "aaa",
+        "pattern": "\\(a\\(b*\\)\\)*\\2",
+        "classification": "observation-only"
+      },
+      "candidateReference": {
+        "source": "independent-candidate",
+        "pointer": "/rows/18"
+      },
+      "candidate": {
+        "id": "optional-child-empty",
+        "classification": "observation-only",
+        "profile": "byte",
+        "result": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 3
+          },
+          "capture": {
+            "start": 2,
+            "end": 3
+          },
+          "steps": 1170
+        },
+        "validSpans": true,
+        "captureHex": "61",
+        "command": {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        }
+      },
+      "subjectHex": "616161",
+      "patternHex": "5c28615c28622a5c295c292a5c32",
+      "invocation": {
+        "entry": "createExprCommand().execute via accepted tests/commands/expr/helpers.ts; not Shell.exec",
+        "command": "expr",
+        "argv": [
+          "+",
+          "aaa",
+          ":",
+          "\\(a\\(b*\\)\\)*\\2"
+        ],
+        "cwd": "/",
+        "virtualEnv": {
+          "LC_ALL": "C"
+        },
+        "filesystem": "empty memory filesystem",
+        "stdin": "throws if acquired",
+        "source": "independent-driver"
+      },
+      "nativeReference": {
+        "source": "independent-native",
+        "pointer": "/rows/18"
+      },
+      "nativeRecord": {
+        "id": "optional-child-empty",
+        "subject": "aaa",
+        "pattern": "\\(a\\(b*\\)\\)*\\2",
+        "gnu": {
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple": {
+          "argv": [
+            "aaa",
+            ":",
+            "\\(a\\(b*\\)\\)*\\2"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "profilesAgree": true
+      },
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "descendant-retention",
+      "cohort": "independent",
+      "inputReference": {
+        "source": "independent-inputs",
+        "pointer": "/cases/16"
+      },
+      "input": {
+        "id": "descendant-retention",
+        "subject": "abaab",
+        "pattern": "\\(a\\(b\\)*\\)*\\2",
+        "classification": "observation-only"
+      },
+      "candidateReference": {
+        "source": "independent-candidate",
+        "pointer": "/rows/16"
+      },
+      "candidate": {
+        "id": "descendant-retention",
+        "classification": "observation-only",
+        "profile": "byte",
+        "result": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 5
+          },
+          "capture": {
+            "start": 3,
+            "end": 4
+          },
+          "steps": 1491
+        },
+        "validSpans": true,
+        "captureHex": "61",
+        "command": {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        }
+      },
+      "subjectHex": "6162616162",
+      "patternHex": "5c28615c28625c292a5c292a5c32",
+      "invocation": {
+        "entry": "createExprCommand().execute via accepted tests/commands/expr/helpers.ts; not Shell.exec",
+        "command": "expr",
+        "argv": [
+          "+",
+          "abaab",
+          ":",
+          "\\(a\\(b\\)*\\)*\\2"
+        ],
+        "cwd": "/",
+        "virtualEnv": {
+          "LC_ALL": "C"
+        },
+        "filesystem": "empty memory filesystem",
+        "stdin": "throws if acquired",
+        "source": "independent-driver"
+      },
+      "nativeReference": {
+        "source": "independent-native",
+        "pointer": "/rows/16"
+      },
+      "nativeRecord": {
+        "id": "descendant-retention",
+        "subject": "abaab",
+        "pattern": "\\(a\\(b\\)*\\)*\\2",
+        "gnu": {
+          "argv": [
+            "abaab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "apple": {
+          "argv": [
+            "abaab",
+            ":",
+            "\\(a\\(b\\)*\\)*\\2"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "profilesAgree": false
+      },
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "finite-optional",
+      "cohort": "author only; not independently re-executed here",
+      "inputReference": {
+        "source": "original-inputs",
+        "pointer": "/21"
+      },
+      "input": {
+        "id": "finite-optional",
+        "argv": [
+          "+",
+          "aa",
+          ":",
+          "\\(a*\\)\\{0,2\\}\\1"
+        ],
+        "original": false
+      },
+      "candidateReference": {
+        "source": "author-capture",
+        "pointer": "/rows/21"
+      },
+      "candidate": {
+        "id": "finite-optional",
+        "argv": [
+          "+",
+          "aa",
+          ":",
+          "\\(a*\\)\\{0,2\\}\\1"
+        ],
+        "original": false,
+        "expected": {
+          "status": 1,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "cli": {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "cliEqual": false,
+        "internal": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 2
+          },
+          "capture": {
+            "start": 0,
+            "end": 1
+          },
+          "steps": 1094
+        }
+      },
+      "subjectHex": "6161",
+      "patternHex": "5c28612a5c295c7b302c325c7d5c31",
+      "invocation": {
+        "entry": "Shell.exec with expr plugin",
+        "command": "expr",
+        "argv": [
+          "+",
+          "aa",
+          ":",
+          "\\(a*\\)\\{0,2\\}\\1"
+        ],
+        "shellSource": "'expr' '+' 'aa' ':' '\\(a*\\)\\{0,2\\}\\1'",
+        "cwd": "/",
+        "explicitExecEnv": {
+          "LC_ALL": "C"
+        },
+        "virtualEnv": {
+          "LC_ALL": "C",
+          "PWD": "/"
+        },
+        "envQualification": "Derived from authenticated accepted Shell/runtime, not instrumented",
+        "filesystem": "empty memory filesystem",
+        "stdin": "implicit empty default",
+        "source": "author-driver"
+      },
+      "nativeReference": {
+        "source": "author-capture",
+        "pointer": "/rows/21/expected"
+      },
+      "nativeRecord": {
+        "status": 1,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "nativeArgv": [
+        "+",
+        "aa",
+        ":",
+        "\\(a*\\)\\{0,2\\}\\1"
+      ],
+      "nativeIdentity": "gnu",
+      "nativeExprSpans": "not observed"
+    },
+    {
+      "id": "nested-stale-backref",
+      "cohort": "author only; not independently re-executed here",
+      "inputReference": {
+        "source": "original-inputs",
+        "pointer": "/22"
+      },
+      "input": {
+        "id": "nested-stale-backref",
+        "argv": [
+          "+",
+          "abab",
+          ":",
+          "\\(a\\(b\\)*\\)*\\2"
+        ],
+        "original": false
+      },
+      "candidateReference": {
+        "source": "author-capture",
+        "pointer": "/rows/22"
+      },
+      "candidate": {
+        "id": "nested-stale-backref",
+        "argv": [
+          "+",
+          "abab",
+          ":",
+          "\\(a\\(b\\)*\\)*\\2"
+        ],
+        "original": false,
+        "expected": {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "cli": {
+          "status": 0,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "cliEqual": true,
+        "internal": {
+          "offsetUnit": "byte",
+          "matched": true,
+          "hasCapture": true,
+          "overall": {
+            "start": 0,
+            "end": 4
+          },
+          "capture": {
+            "start": 2,
+            "end": 3
+          },
+          "steps": 1336
+        }
+      },
+      "subjectHex": "61626162",
+      "patternHex": "5c28615c28625c292a5c292a5c32",
+      "invocation": {
+        "entry": "Shell.exec with expr plugin",
+        "command": "expr",
+        "argv": [
+          "+",
+          "abab",
+          ":",
+          "\\(a\\(b\\)*\\)*\\2"
+        ],
+        "shellSource": "'expr' '+' 'abab' ':' '\\(a\\(b\\)*\\)*\\2'",
+        "cwd": "/",
+        "explicitExecEnv": {
+          "LC_ALL": "C"
+        },
+        "virtualEnv": {
+          "LC_ALL": "C",
+          "PWD": "/"
+        },
+        "envQualification": "Derived from authenticated accepted Shell/runtime, not instrumented",
+        "filesystem": "empty memory filesystem",
+        "stdin": "implicit empty default",
+        "source": "author-driver"
+      },
+      "nativeReference": {
+        "source": "author-capture",
+        "pointer": "/rows/22/expected"
+      },
+      "nativeRecord": {
+        "status": 0,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "nativeArgv": [
+        "+",
+        "abab",
+        ":",
+        "\\(a\\(b\\)*\\)*\\2"
+      ],
+      "nativeIdentity": "gnu",
+      "nativeExprSpans": "not observed"
+    }
+  ],
+  "libcObservations": [
+    {
+      "id": "P-a",
+      "reference": {
+        "source": "curie-capture",
+        "pointer": "/rows/1"
+      },
+      "record": {
+        "id": "P-a",
+        "gnuPlus": {
+          "arguments": [
+            "+",
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnuPortable": {
+          "arguments": [
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "applePortable": {
+          "arguments": [
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "libc": {
+          "arguments": [
+            "\\(a*\\)*\\1",
+            "a"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c305d2c5b302c305d2c5b2d312c2d315d5d7d0a",
+          "stderrHex": ""
+        },
+        "gnuPosixEnvironment": {
+          "arguments": [
+            "a",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        }
+      },
+      "qualification": "Separate public libc probe; not native expr internal offsets"
+    },
+    {
+      "id": "P-aaa",
+      "reference": {
+        "source": "curie-capture",
+        "pointer": "/rows/3"
+      },
+      "record": {
+        "id": "P-aaa",
+        "gnuPlus": {
+          "arguments": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnuPortable": {
+          "arguments": [
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "applePortable": {
+          "arguments": [
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "libc": {
+          "arguments": [
+            "\\(a*\\)*\\1",
+            "aaa"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c335d2c5b312c325d2c5b2d312c2d315d5d7d0a",
+          "stderrHex": ""
+        },
+        "gnuPosixEnvironment": {
+          "arguments": [
+            "aaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        }
+      },
+      "qualification": "Separate public libc probe; not native expr internal offsets"
+    },
+    {
+      "id": "P-aaaa-history-neighbor",
+      "reference": {
+        "source": "curie-capture",
+        "pointer": "/rows/4"
+      },
+      "record": {
+        "id": "P-aaaa-history-neighbor",
+        "gnuPlus": {
+          "arguments": [
+            "+",
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "gnuPortable": {
+          "arguments": [
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "61610a",
+          "stderrHex": ""
+        },
+        "applePortable": {
+          "arguments": [
+            "aaaa",
+            ":",
+            "\\(a*\\)*\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "libc": {
+          "arguments": [
+            "\\(a*\\)*\\1",
+            "aaaa"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c345d2c5b322c335d2c5b2d312c2d315d5d7d0a",
+          "stderrHex": ""
+        }
+      },
+      "qualification": "Separate public libc probe; not native expr internal offsets"
+    },
+    {
+      "id": "Q-aaa-history-neighbor",
+      "reference": {
+        "source": "curie-capture",
+        "pointer": "/rows/8"
+      },
+      "record": {
+        "id": "Q-aaa-history-neighbor",
+        "gnuPlus": {
+          "arguments": [
+            "+",
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "gnuPortable": {
+          "arguments": [
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "status": 1,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "0a",
+          "stderrHex": ""
+        },
+        "applePortable": {
+          "arguments": [
+            "aaa",
+            ":",
+            "\\(a*\\)\\{2\\}\\1"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "610a",
+          "stderrHex": ""
+        },
+        "libc": {
+          "arguments": [
+            "\\(a*\\)\\{2\\}\\1",
+            "aaa"
+          ],
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "stdoutHex": "7b22636f6d70696c6564223a302c226578656375746564223a302c226e6f4d61746368436f6465223a312c226e737562223a312c227370616e73223a5b5b302c335d2c5b312c325d2c5b2d312c2d315d5d7d0a",
+          "stderrHex": ""
+        }
+      },
+      "qualification": "Separate public libc probe; not native expr internal offsets"
+    }
+  ],
+  "receipts": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "tests/commands/expr-stress/repeat-history-author/verify-candidate.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "started": "2026-08-27T20:14:32.545Z",
+      "finished": "2026-08-27T20:14:32.640Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "7b227365616c6564223a747275652c22736f75726365223a2236363362306239303130643933396466313639313063373564353433663761343163656538333264366364376363326162313432393936333836323036383930222c227465737473223a7b2263616e646964617465223a3138332c22626173656c696e65223a3134397d2c226f726967696e616c434c49223a22372f383b206e6f74206e6f726d617469766520616363657074616e6365222c2273656c6563746564434c49223a2231392f32343b206669766520646966666572656e6365732072657461696e6564222c226c69766550726f6d6f74696f6e223a66616c73657d0a",
+      "stderrHex": "",
+      "scope": "Read-only sealed evidence verification, not semantic re-execution"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "tests/commands/expr-stress/repeat-history-independent-20260827/verify.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "started": "2026-08-27T20:14:32.640Z",
+      "finished": "2026-08-27T20:14:32.838Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "7b22766572696669656446696c6573223a32372c2266726f7a656e4361736573223a32382c2263616e646964617465526f7773223a33302c226e61746976654f62736572766174696f6e73223a35382c22756e6368616e67656453636f7065645465737473223a3133372c22707265736572766564496e697469616c436f6e74726f6c4661696c75726573223a332c22707265736572766564466f6c6c6f7775704661696c757265223a312c2266696e616c43616e63656c6c6174696f6e436865636b73223a322c227075626c6963416363657074616e6365223a66616c73652c2270726f6d6f74696f6e223a66616c73657d0a",
+      "stderrHex": "",
+      "scope": "Read-only sealed evidence verification, not semantic re-execution"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "tests/commands/expr-stress/posix-semantics-independent-20260827/verify.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "started": "2026-08-27T20:14:32.838Z",
+      "finished": "2026-08-27T20:14:32.875Z",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutHex": "31382066726f7a656e2063617365733b203737206e61746976652073656d616e746963206f62736572766174696f6e733b2035206f726967696e616c20474e55207475706c65732072657461696e65643b203420474e552f4170706c652064697361677265656d656e74733b20342076616c696461746f72206e6567617469766520636f6e74726f6c732064657465637465642e204e6f2070726f6475637420657865637574696f6e206f7220636f6e666f726d616e6365207061737320636f756e742e0a",
+      "stderrHex": "",
+      "scope": "Read-only sealed evidence verification, not semantic re-execution"
+    }
+  ],
+  "cleanup": {
+    "semanticChildrenStarted": 0,
+    "workerThreadsStarted": 0,
+    "scratchCreated": false,
+    "ownedChildren": "synchronous Git/Node verification children only; awaited",
+    "sourceMutation": "none",
+    "ownSeal": "Files and directories enumerated; symlinks rejected; manifest excluded from self-hash",
+    "sourceScope": "Listed immutable files only; not whole-repository new-entry detection"
+  },
+  "entries": [
+    {
+      "path": "REPORT.md",
+      "kind": "file",
+      "bytes": 11869,
+      "sha256": "836e7ae20d1629911dd9ef57bc2b55d5fd184216d3c48642c65d3139f2fd696e"
+    },
+    {
+      "path": "verify.mjs",
+      "kind": "file",
+      "bytes": 4696,
+      "sha256": "e442611a759ecd72dd4f865af2f6df82b6bb3d5d57de953913923523358f6784"
+    }
+  ]
+}

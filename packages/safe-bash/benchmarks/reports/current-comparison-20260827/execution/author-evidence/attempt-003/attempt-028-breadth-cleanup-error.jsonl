@@ -1,0 +1,17 @@
+{"atMs":0.405,"kind":"group-admitted","pid":77846,"pgid":77846,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-oOOmAr","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-oOOmAr","TMPDIR":"/private/tmp/safe-bash-execution-author-oOOmAr","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":49.789,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"engine-spawn","pid":77847,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":109.33,"kind":"request-start","absoluteDeadlineMs":1509.326709}
+{"atMs":109.332,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"ready"}
+{"atMs":110.239,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"phase","phase":"exec-start"}
+{"atMs":110.309,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"phase","phase":"exec-settled"}
+{"atMs":110.472,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"phase","phase":"snapshot-complete"}
+{"atMs":110.651,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"phase","phase":"dispose-start"}
+{"atMs":111.382,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"phase","phase":"dispose-settled"}
+{"atMs":111.535,"kind":"sticky-failure","reason":"reported disposal error"}
+{"atMs":111.568,"kind":"result-received","sha256":"47bd2e00d6aaca5366a277ff7521cdac25255fbf568616fb23bdadb37207e240","absoluteTotalUnchangedMs":4500.000000000001}
+{"atMs":113.813,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"engine-exit","code":0,"signal":null}
+{"atMs":113.842,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"engine-close","code":0,"signal":null}
+{"atMs":113.863,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":113.908,"id":"synthetic/breadth-cleanup-error","nonce":"2ece40c3-90c2-4203-a094-3def8f3e57cc","kind":"session-complete"}
+{"atMs":116.33,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":116.334,"kind":"coordinator-close","code":0,"signal":null}

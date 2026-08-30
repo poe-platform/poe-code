@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-08-27T09:29:05.386Z",
+  "commit": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "sourceSha256": "f9276a3524347ec20030d41c25d2d5bc033471437b7a9749094585b17693ce0c",
+  "dependencySha256": "cda0820b8443488b19d0747cb97de37f8aec7492747bff286705a33f6026402e",
+  "regularReadonlyUnaliasedFiles": 597,
+  "sealedPrivateArtifacts": 54,
+  "restoredArtifacts": 54,
+  "publications": [
+    {
+      "path": "",
+      "artifactCount": 285,
+      "publicationRootSha256": "645a3bc0c768987ac35cc28b3e96aee753d46397ccfad5762a494a3ce45dbc36"
+    },
+    {
+      "path": "corrections/HARN-SIGNAL-001",
+      "artifactCount": 37,
+      "publicationRootSha256": "5a816d16fc208ea52e674875c8adffd380b97bbeeebb6b4749d729dfc8488530"
+    },
+    {
+      "path": "corrections/HARN-SIGNAL-001-v2",
+      "artifactCount": 26,
+      "publicationRootSha256": "ab56d8d344d1ecaa434f8a069392903486302e6fe3eaada23907aaf10508990d"
+    },
+    {
+      "path": "final-candidate-cd37ce07-ready",
+      "artifactCount": 25,
+      "publicationRootSha256": "48ebe095071e2f5bf1872bdc46e55adea79bc44545696b22a64daae5194353ac"
+    }
+  ],
+  "runnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "buildReusedNotRerun": true,
+  "allHashesVerified": true
+}

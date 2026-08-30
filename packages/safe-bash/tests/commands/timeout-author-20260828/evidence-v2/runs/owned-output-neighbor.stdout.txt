@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: registration precedes acquisition, close is shared, late admission has no effects
+ok 1 - registration precedes acquisition, close is shared, late admission has no effects
+  ---
+  duration_ms: 1.502375
+  type: 'test'
+  ...
+# Subtest: failed registration prevents acquisition and preclosed signals prevent all effects
+ok 2 - failed registration prevents acquisition and preclosed signals prevent all effects
+  ---
+  duration_ms: 0.62275
+  type: 'test'
+  ...
+# Subtest: close drains an acquisition already pending, including its delayed release
+ok 3 - close drains an acquisition already pending, including its delayed release
+  ---
+  duration_ms: 4.108167
+  type: 'test'
+  ...
+# Subtest: close drains rejected pending acquisition without reclassifying it as cleanup failure
+ok 4 - close drains rejected pending acquisition without reclassifying it as cleanup failure
+  ---
+  duration_ms: 0.659084
+  type: 'test'
+  ...
+# Subtest: reentrant close during start still drains its admitted resource
+ok 5 - reentrant close during start still drains its admitted resource
+  ---
+  duration_ms: 0.33675
+  type: 'test'
+  ...
+# Subtest: late caller cancellation still reaches admitted acquisition during parent close
+ok 6 - late caller cancellation still reaches admitted acquisition during parent close
+  ---
+  duration_ms: 1.110375
+  type: 'test'
+  ...
+# Subtest: late consumer cancellation still reaches admitted acquisition during parent close
+ok 7 - late consumer cancellation still reaches admitted acquisition during parent close
+  ---
+  duration_ms: 0.837875
+  type: 'test'
+  ...
+# Subtest: synchronous acquisition rejection retains identity and releases nothing
+ok 8 - synchronous acquisition rejection retains identity and releases nothing
+  ---
+  duration_ms: 0.290125
+  type: 'test'
+  ...
+# Subtest: child consumer closure isolates siblings; parent synchronously seals and drains children
+ok 9 - child consumer closure isolates siblings; parent synchronously seals and drains children
+  ---
+  duration_ms: 1.2155
+  type: 'test'
+  ...
+# Subtest: all cleanup drains and errors retain registration order, including child failures
+ok 10 - all cleanup drains and errors retain registration order, including child failures
+  ---
+  duration_ms: 1.056167
+  type: 'test'
+  ...
+# Subtest: caller abort wins over consumer closure at admission and cleanup still drains
+ok 11 - caller abort wins over consumer closure at admission and cleanup still drains
+  ---
+  duration_ms: 0.596625
+  type: 'test'
+  ...
+# Subtest: owned output is explicit, legacy fallback unchanged, and pipe copies retained bytes
+ok 12 - owned output is explicit, legacy fallback unchanged, and pipe copies retained bytes
+  ---
+  duration_ms: 5.526042
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 274.99225

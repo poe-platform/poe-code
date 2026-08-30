@@ -1,0 +1,16 @@
+{
+  "name": "extract-package",
+  "executable": "tar",
+  "args": [
+    "-xzf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/evidence/independent-second/virtual-bash-0.0.0.tgz",
+    "--strip-components=1",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/node_modules/virtual-bash"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe",
+  "startedAt": "2026-08-27T09:14:45.322Z",
+  "finishedAt": "2026-08-27T09:14:45.489Z",
+  "status": 0,
+  "signal": null
+}

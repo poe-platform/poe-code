@@ -1,0 +1,13 @@
+export function validateCohort(audit,requests,root){
+ const ids=['P19','P20','P21','P22','P23','P24'];
+ const forks={P22:2,P23:2};
+ requireValue(Array.isArray(audit.cases)&&audit.cases.length===6&&Array.isArray(requests)&&requests.length===6&&Array.isArray(audit.fixtures)&&audit.fixtures.length===0,'EXACT6');
+ for(let index=0;index<6;index++){
+  const literal=audit.cases[index],request=requests[index],id=ids[index],caseRoot=root+'/cases/'+id;
+  requireValue(literal.id===id&&request.id===id,'ID');
+  requireValue(typeof literal.program==='string'&&hash(Buffer.from(literal.program))===literal.programSha256&&JSON.stringify(request.argv)===JSON.stringify(['--noprofile','--norc','-c',literal.program,'pipestatus-typed-case'])&&request.executable==='/bin/bash','LITERAL_BINDING');
+  requireValue(literal.stdinBase64===''&&request.stdinBase64===''&&request.cwd===caseRoot+'/work'&&request.extraProcessReservation===(forks[id]??0),'REQUEST_BINDING');
+  const expected={LC_ALL:'C',LANG:'C',TZ:'UTC',HOME:caseRoot+'/home',TMPDIR:caseRoot+'/tmp',PATH:caseRoot+'/empty-path'};exactKeys(request.environment,Object.keys(expected));requireValue(JSON.stringify(request.environment)===JSON.stringify(expected),'ENVIRONMENT_BINDING');
+ }
+ return true;
+}

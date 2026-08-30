@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-08-28T03:33:04-0500",
+  "chronology": "POSTAUTHOR and prior v9 inspection/execution; PRE detailed new implementation inspection and PRE new imports/execution. Existing applicable AGENTS and pinned HANDOFF-v2 only read for this freeze. Author outcomes are not independent passes.",
+  "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+  "evidence": "cdf2803ee6d7956556819be484e5b632dc407a0d",
+  "driverSha256": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "priorSeal": "38a4e7b08f47139328f3a4ac5b4b50d83a6544b3",
+  "workspaceHead": "2b4fc70e417b2246e121c1d9fee99952eca67244",
+  "exposure": "Pinned handoff claims37 source entries,18 PATH aliases,197 Git-core entries,6 selector denials,author12 final and9 intermediate. Those counts and actual membership remain independently unverified at this freeze. Parent only coordinated. No blind/pre-code attestation.",
+  "controls": [
+    {"id":"T01","oracle":"Authenticate normalized driver, all committed source bytes, profile/projection/candidate/source-lineage and existing dependency/tool bindings before imports. Direct inspector exact path/hash, -L argv, environment, four target identities and only two approved ENOENT references; reject changed target/inspector/unknown or readable-unbound library without executing fallback."},
+    {"id":"T02","oracle":"Exercise actual frozen direct inspector and routing APIs; exact receipt/output lineage, no /usr/bin/otool or xcodebuild route. Wrong route, injected selector/loader/developer environment, missing/changed output or unknown tool must refuse before target execution where API supports. Point-in-time identity, not hostile-host TOCTOU guarantee."},
+    {"id":"T03","oracle":"Actual finite bare Git plus declared absolute Git/native commands work with controlled/empty environment; Git-core/alias identities remain bound. Extra native git, symlink/changed native shadow, missing/unknown command refuse without ambient PATH fallback. Controlled markers demonstrate dispatch/effects rather than permission-only conclusions."},
+    {"id":"T04","oracle":"Actual shipping OS launch rejects exact selector routes even cleared-env descendants. Focused ordinary/contained-link positives and inert-outside-link positive followed by resolved outside/protected-target write denial; physical outside directory/hardlink imports remain denied. Fresh benign canaries only; no instruction body setup."},
+    {"id":"T05","oracle":"Shipping outer observer/stdio ownership: review-owned foreign sentinel survives watched cleanup; no writable foreign canary FD supplied to child. Existing hostile-preopened-FD limitation and natural/forced settlement distinctions preserved. No unrelated processes signaled."},
+    {"id":"T06","oracle":"Actual shared A10 under final shipping routes on complete authenticated projected f5 source/dependencies: cold78, one real positive production build reused, actual bare-git typing,23 maintained+3 source+3 expected-negative groups and832 emit receipt only if observed. Real second compiler negative must trigger frozen duplicate audit (or separately explicit unchanged carry if technically needed); no counters/stubs or fullgate."},
+    {"id":"T07","oracle":"Pre/post source/output/closure and child receipts; exact5 candidate+1 benchmark metadata-only omissions, no other omission/live fallback. Preserve old historical GitTar result if identical relevant code/policy, no fresh pack. Report every fresh failure/unexecuted control, tool-chain gaps and seven binding statuses without rescoring old cohorts; fresh root release absent."}
+  ],
+  "policy": "Inert outside runtime symlinks allowed, actual resolved outside/protected-name writes denied through case/relative/chains/renames. Outside physical directory/hardlink imports denied; ordinary byte-copy/read workflows not blanket-banned. Shipping no foreign writable FD; no hostile supplied-FD claim. Initial unbound transport links still rejected. Exact-six projection; opaque original Git objects allowed inert only.",
+  "osTrust": "macOS26.4.1/build25E253 only; original11+2 reference-pair qualifications retained plus exact approved direct otool-classic libc++.1/libSystem.B ENOENT pair. No unreadable-file hash/full-OS attestation/unknown-library or general DeveloperTools exception.",
+  "limits": {"cohorts":"focused routes/fence and actual shared A10, not old22/full14 phases","sourceBytes":4294967296,"ownedDiskBytes":8589934592,"wholeCohortMs":2400000,"phaseMs":1800000,"phaseCaptureBytes":268435456,"probeMs":30000,"rawSealBytes":268435456,"streamChunkBytes":65536,"qualification":"Parent watchdog and cooperative disk checks, not kernel-hard deadline/RSS guarantee. Exact frozen APIs and additional bounded recipes bind after inspection."},
+  "stop": "Any unsafe pre-admission tool gap or actual outside/protected write effect stops affected execution; preserve result and report HOLD without source fixes. Fixture corrections require additive freeze before rerun.",
+  "ownership": "Only NEW tool-routes-v10 files. Preserve all older independent artifacts and concurrent staging/source. Scratch regular /private/tmp owned roots outside canonical discovery; remove only recorded owned roots. No fullgate/release, pack, private access/install, network effects, copied instructions or worktrees."
+}

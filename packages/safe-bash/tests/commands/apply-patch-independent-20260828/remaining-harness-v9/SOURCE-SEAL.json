@@ -1,0 +1,110 @@
+{
+  "schema": "v9-count-only-source-seal",
+  "createdAt": "2026-08-28T21:57:13.490Z",
+  "presealSha256": "baa109dabb17310edf71b76e94df612cd12f870dee8a678d9be8029b15a8bdd4",
+  "files": {
+    "BYTE-PREFLIGHT.json": {
+      "bytes": 3149,
+      "mode": 420,
+      "sha256": "9a6055ad4b532f4408fb2bb3fa535ba93375da0b1155db4a7336f23075cc35bb"
+    },
+    "PLAN.md": {
+      "bytes": 2193,
+      "mode": 420,
+      "sha256": "e87141c707833ff2f785fb60cc57b4fd057403687cee860e373678514dc5d56e"
+    },
+    "prepare.mjs": {
+      "bytes": 7774,
+      "mode": 420,
+      "sha256": "4bcfa8b2727936a8150386cedb50cc1eafb5bdfeb141f2515deec919f1a2197e"
+    },
+    "recipe/DISCOVERY-PRESEAL.json": {
+      "bytes": 28609,
+      "mode": 420,
+      "sha256": "baa109dabb17310edf71b76e94df612cd12f870dee8a678d9be8029b15a8bdd4"
+    },
+    "recipe/FIXTURES-v6.json": {
+      "bytes": 30980,
+      "mode": 420,
+      "sha256": "9404d6df5623e049ef002c46a560483e765b45e609cc873caaa8fdc40acf6da1"
+    },
+    "recipe/INPUTS-v6.json": {
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf"
+    },
+    "recipe/child.mjs": {
+      "bytes": 2269,
+      "mode": 420,
+      "sha256": "2d433819913e3d9559b03da65480a89c498b9203b885469ed4d0433d42a14f25"
+    },
+    "recipe/data-controls.mjs": {
+      "bytes": 9376,
+      "mode": 420,
+      "sha256": "7032c82a5a96c5c5efe41641ab0bad38f099a042974303da62ac60fbda9e0f26"
+    },
+    "recipe/fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd"
+    },
+    "recipe/owner.mjs": {
+      "bytes": 23853,
+      "mode": 420,
+      "sha256": "a167c664bdfed3ab6a5c16aa27ccc697e9de625b225db4286cdb53cd6ede2692"
+    },
+    "recipe/primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    }
+  },
+  "sourceBindings": 64,
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "binding": {
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      }
+    },
+    "git": {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "binding": {
+        "bytes": 7604272,
+        "mode": 493,
+        "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+      }
+    }
+  },
+  "qualificationExecutions": 0,
+  "launch": {
+    "login": false,
+    "tty": false,
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "literalNode": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "entry": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/owner.mjs",
+    "prefix": "exec -c",
+    "args": [
+      "--no-warnings",
+      "SOURCE_COMMIT",
+      "baa109dabb17310edf71b76e94df612cd12f870dee8a678d9be8029b15a8bdd4"
+    ]
+  },
+  "bounds": {
+    "totalMs": 300000,
+    "admissionCutoffMs": 270000,
+    "maximumChildren": 8,
+    "fixedChildren": 6,
+    "peakAllOwnedProcesses": 2,
+    "captureBytes": 16777216,
+    "persistedBytes": 2097152,
+    "scratchBytes": 134217728,
+    "tightenedScratchBytes": 1048576,
+    "scratchEntries": 128,
+    "childTimeoutMs": 15000,
+    "retirementGraceMs": 2500,
+    "perChildRawBytes": 65536
+  }
+}

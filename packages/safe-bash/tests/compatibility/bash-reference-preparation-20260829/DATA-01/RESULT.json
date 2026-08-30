@@ -1,0 +1,451 @@
+{
+  "role": "METADATA_ONLY_NOT_VERSION_OR_FENCE_QUALIFICATION",
+  "startedAt": "2026-08-29T04:29:26.828Z",
+  "finishedAt": "2026-08-29T04:29:27.108Z",
+  "status": "COMPLETE_FINITE_SURVEY",
+  "failure": null,
+  "elapsedMs": 279.909,
+  "pathsPlanned": 32,
+  "pathsObserved": 32,
+  "records": [
+    {
+      "role": "bash",
+      "path": "/bin/bash",
+      "initial": {
+        "mode": 365,
+        "bytes": 1293840,
+        "dev": 16777232,
+        "ino": 1152921500312570800,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "symbolicLink": false,
+      "resolved": "/bin/bash",
+      "target": {
+        "mode": 365,
+        "bytes": 1293840,
+        "dev": 16777232,
+        "ino": 1152921500312570800,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "bash",
+      "path": "/usr/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/usr/local/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/opt/homebrew/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/usr/local/opt/bash/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/opt/homebrew/opt/bash/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/opt/local/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/opt/pkg/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/usr/pkg/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/usr/local/Cellar/bash/5.3/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/usr/local/Cellar/bash/5.3.15/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/opt/homebrew/Cellar/bash/5.3/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "bash",
+      "path": "/opt/homebrew/Cellar/bash/5.3.15/bin/bash",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "compiler",
+      "path": "/usr/bin/cc",
+      "initial": {
+        "mode": 493,
+        "bytes": 118928,
+        "dev": 16777232,
+        "ino": 1152921500312570900,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "symbolicLink": false,
+      "resolved": "/usr/bin/cc",
+      "target": {
+        "mode": 493,
+        "bytes": 118928,
+        "dev": 16777232,
+        "ino": 1152921500312570900,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "compiler",
+      "path": "/usr/bin/clang",
+      "initial": {
+        "mode": 493,
+        "bytes": 118928,
+        "dev": 16777232,
+        "ino": 1152921500312570900,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "symbolicLink": false,
+      "resolved": "/usr/bin/clang",
+      "target": {
+        "mode": 493,
+        "bytes": 118928,
+        "dev": 16777232,
+        "ino": 1152921500312570900,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "compiler",
+      "path": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "initial": {
+        "mode": 493,
+        "bytes": 290664032,
+        "dev": 16777232,
+        "ino": 142104026,
+        "mtimeMs": 1779457177000,
+        "ctimeMs": 1785171104468.7375
+      },
+      "symbolicLink": false,
+      "resolved": "/Library/Developer/CommandLineTools/usr/bin/clang",
+      "target": {
+        "mode": 493,
+        "bytes": 290664032,
+        "dev": 16777232,
+        "ino": 142104026,
+        "mtimeMs": 1779457177000,
+        "ctimeMs": 1785171104468.7375
+      },
+      "disposition": "FILE_OR_CUMULATIVE_READ_BOUND_NOT_HASHED"
+    },
+    {
+      "role": "compiler",
+      "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+      "initial": {
+        "mode": 493,
+        "bytes": 141373024,
+        "dev": 16777232,
+        "ino": 84436012,
+        "mtimeMs": 1781596675000,
+        "ctimeMs": 1782925519711.9001
+      },
+      "symbolicLink": false,
+      "resolved": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang",
+      "target": {
+        "mode": 493,
+        "bytes": 141373024,
+        "dev": 16777232,
+        "ino": 84436012,
+        "mtimeMs": 1781596675000,
+        "ctimeMs": 1782925519711.9001
+      },
+      "sha256": "7def90dd8829726686213a747fc5bff1583df933dae5edc55d755479e0bfe00a",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "make",
+      "path": "/usr/bin/make",
+      "initial": {
+        "mode": 493,
+        "bytes": 118928,
+        "dev": 16777232,
+        "ino": 1152921500312570900,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "symbolicLink": false,
+      "resolved": "/usr/bin/make",
+      "target": {
+        "mode": 493,
+        "bytes": 118928,
+        "dev": 16777232,
+        "ino": 1152921500312570900,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "make",
+      "path": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "initial": {
+        "mode": 493,
+        "bytes": 403216,
+        "dev": 16777232,
+        "ino": 142104311,
+        "mtimeMs": 1779472532000,
+        "ctimeMs": 1785171104570.683
+      },
+      "symbolicLink": false,
+      "resolved": "/Library/Developer/CommandLineTools/usr/bin/make",
+      "target": {
+        "mode": 493,
+        "bytes": 403216,
+        "dev": 16777232,
+        "ino": 142104311,
+        "mtimeMs": 1779472532000,
+        "ctimeMs": 1785171104570.683
+      },
+      "sha256": "1cb12712fad2ccd6f67c05b73e8dece382f14bfef3be7550bc814eb7975c555b",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "make",
+      "path": "/opt/homebrew/bin/gmake",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "make",
+      "path": "/usr/local/bin/gmake",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "patch",
+      "path": "/usr/bin/patch",
+      "initial": {
+        "mode": 493,
+        "bytes": 220608,
+        "dev": 16777232,
+        "ino": 1152921500312571900,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "symbolicLink": false,
+      "resolved": "/usr/bin/patch",
+      "target": {
+        "mode": 493,
+        "bytes": 220608,
+        "dev": 16777232,
+        "ino": 1152921500312571900,
+        "mtimeMs": 1775463057000,
+        "ctimeMs": 1775463057000
+      },
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "patch",
+      "path": "/opt/homebrew/bin/gpatch",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "patch",
+      "path": "/usr/local/bin/gpatch",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "signature-verifier",
+      "path": "/usr/bin/gpg",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "signature-verifier",
+      "path": "/usr/bin/gpgv",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "signature-verifier",
+      "path": "/opt/homebrew/bin/gpg",
+      "initial": {
+        "mode": 493,
+        "bytes": 30,
+        "dev": 16777232,
+        "ino": 167398513,
+        "mtimeMs": 1787774245846.4028,
+        "ctimeMs": 1787774245846.4304
+      },
+      "symbolicLink": true,
+      "linkText": "../Cellar/gnupg/2.5.21/bin/gpg",
+      "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "target": {
+        "mode": 365,
+        "bytes": 1074432,
+        "dev": 16777232,
+        "ino": 167393508,
+        "mtimeMs": 1787774245695.358,
+        "ctimeMs": 1787774245948.942
+      },
+      "sha256": "9d8501878158144e8db80be1454f6c69d62b8a97c21441da3b720081f917f8ac",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "signature-verifier",
+      "path": "/opt/homebrew/bin/gpgv",
+      "initial": {
+        "mode": 493,
+        "bytes": 31,
+        "dev": 16777232,
+        "ino": 167398528,
+        "mtimeMs": 1787774245850.887,
+        "ctimeMs": 1787774245850.907
+      },
+      "symbolicLink": true,
+      "linkText": "../Cellar/gnupg/2.5.21/bin/gpgv",
+      "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "target": {
+        "mode": 365,
+        "bytes": 538432,
+        "dev": 16777232,
+        "ino": 167393616,
+        "mtimeMs": 1787774245750.13,
+        "ctimeMs": 1787774246067.6006
+      },
+      "sha256": "d9eb7bc783a1a0f1f39bb1f12ff0c94d7c2aac3b25aac2a7909a647d60be7bd4",
+      "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+      "executed": false,
+      "executedVersion": null
+    },
+    {
+      "role": "signature-verifier",
+      "path": "/usr/local/bin/gpg",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "signature-verifier",
+      "path": "/opt/local/bin/gpg",
+      "disposition": "ABSENT",
+      "code": "ENOENT"
+    },
+    {
+      "role": "sdk-directory",
+      "path": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "initial": {
+        "mode": 493,
+        "bytes": 14,
+        "dev": 16777232,
+        "ino": 142204354,
+        "mtimeMs": 1785171076445.437,
+        "ctimeMs": 1785171178397.6816
+      },
+      "symbolicLink": true,
+      "linkText": "MacOSX26.5.sdk",
+      "resolved": "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk",
+      "target": {
+        "mode": 493,
+        "bytes": 224,
+        "dev": 16777232,
+        "ino": 27304118,
+        "mtimeMs": 1785171242985.198,
+        "ctimeMs": 1785171242985.198
+      },
+      "disposition": "DIRECTORY_METADATA_ONLY_NO_CONTENT_CLOSURE"
+    },
+    {
+      "role": "sdk-directory",
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+      "initial": {
+        "mode": 493,
+        "bytes": 224,
+        "dev": 16777232,
+        "ino": 84269702,
+        "mtimeMs": 1782925430970.237,
+        "ctimeMs": 1782925430970.237
+      },
+      "symbolicLink": false,
+      "resolved": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+      "target": {
+        "mode": 493,
+        "bytes": 224,
+        "dev": 16777232,
+        "ino": 84269702,
+        "mtimeMs": 1782925430970.237,
+        "ctimeMs": 1782925430970.237
+      },
+      "disposition": "DIRECTORY_METADATA_ONLY_NO_CONTENT_CLOSURE"
+    }
+  ],
+  "cumulativeHashReadBytes": 145260336,
+  "captureBytesBeforeResult": 10262,
+  "activeChildren": 0,
+  "childrenStarted": 0,
+  "productExecutions": 0,
+  "bashExecutions": 0,
+  "compilerExecutions": 0,
+  "makeExecutions": 0,
+  "patchExecutions": 0,
+  "signatureVerifierExecutions": 0,
+  "archiveFetches": 0,
+  "directoryEnumeration": 0,
+  "exhaustiveLocalInventory": false
+}

@@ -1,0 +1,39 @@
+{
+  "executable": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+  "args": [
+    "--version"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg",
+  "pid": 78946,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 278,
+  "timeoutMs": 120000,
+  "outputBytes": 330,
+  "observed": [
+    {
+      "pid": 78946,
+      "parent": 78599,
+      "group": 78946,
+      "born": "Thu Aug 27 04:05:09 2026",
+      "command": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv --version"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 330,
+    "sha256": "79ae33390e5128b3a40935025ce9ba5254f4315a796e34ad6a6ccc726f0e0f18"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {}
+}

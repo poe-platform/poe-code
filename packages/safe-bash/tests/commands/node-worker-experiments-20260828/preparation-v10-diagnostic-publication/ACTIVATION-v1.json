@@ -1,0 +1,151 @@
+{
+  "schema": "root-one-shot-wrq-v10-activation",
+  "date": "2026-08-28",
+  "sourceCommit": "1afe801c1ce898b44ae202a63dfab81946958a59",
+  "evidenceCommit": "f4212f96b4c15c53519a5d617cf06142976c0cae",
+  "reviewCommit": "498805a4a0999598ad1af9cedfdd476076cce936",
+  "grantSha256": "c87ea79e04c2fd0d66e99091538bc077550f014d5cf665abfaf81b8a2b30fb0e",
+  "edgeAuthoritySha256": "0aa83a118add64a02fc447f4f6a59defdb1dd4a5319ecaa77b275c807108783a",
+  "presealSha256": "058965bf4c3fdc56d6921037d836ac581b7ca9ba69157020a0288e185cb1cf72",
+  "ownerSha256": "e944eaac0de22016f61446b32d94654510b3a8c04c47d7a5a42813c976b5c7d2",
+  "sourceGitBindings": [
+    {
+      "object": "1afe801c1ce898b44ae202a63dfab81946958a59",
+      "type": "commit",
+      "bytes": 293
+    },
+    {
+      "object": "f4212f96b4c15c53519a5d617cf06142976c0cae",
+      "type": "commit",
+      "bytes": 288
+    },
+    {
+      "object": "498805a4a0999598ad1af9cedfdd476076cce936",
+      "type": "commit",
+      "bytes": 285
+    },
+    {
+      "path": "CONTINUATION-PRESEAL.json",
+      "gitBlob": "44960974690b9d7fbfe4dfc87370d5402daefaa2",
+      "sha256": "058965bf4c3fdc56d6921037d836ac581b7ca9ba69157020a0288e185cb1cf72",
+      "bytes": 3062
+    },
+    {
+      "path": "COMPOSITION.json",
+      "gitBlob": "7da069c02086cfece11ae057612acc5cc2a55a4f",
+      "sha256": "5e611bd8d1748944ff105ec9837388ccba788ac41cb543bb379e25b433d9a286",
+      "bytes": 44296
+    },
+    {
+      "path": "PROFILE.json",
+      "gitBlob": "803400047ff654e8d4834bf36b266fd1a6abf10f",
+      "sha256": "61d005bfce187fc80aa9f827359d25141269ee2c10ec0066f048ecd65dc856da",
+      "bytes": 4459
+    },
+    {
+      "path": "CASES.json",
+      "gitBlob": "94547abcd385026676934b53e00299a5dce35f9f",
+      "sha256": "93ce7b5eb2a8e0eefee4d9d1d80268f7ede54be2855589bef907eb8f20b73c62",
+      "bytes": 7662
+    },
+    {
+      "path": "MODULES.json",
+      "gitBlob": "7b29b0e23e5a9f9ffdf67ba7ce512dfc2250e0db",
+      "sha256": "8b5b6b83e650b6354fe276b2247ef51e7eefe562405680dc40b5f202fefc9255",
+      "bytes": 122327
+    },
+    {
+      "path": "SOURCES.json",
+      "gitBlob": "19358d7eadf820ac01bfe57dead64929d95f73db",
+      "sha256": "1018e37263caa1ceced89021495866a6ac1d0d854754954941f50d2af58a6d45",
+      "bytes": 26048
+    },
+    {
+      "path": "GRANT.template.json",
+      "gitBlob": "bf55031c6b591b733ae9a9334ea4d002dadafa28",
+      "sha256": "9e82bb643fce32e455605ffe6680968dabba0d103dd9fb70235d78918767a6d9",
+      "bytes": 598
+    },
+    {
+      "path": "errors.mjs",
+      "gitBlob": "710ee2981233f6cef5339a222d742380ba77a25b",
+      "sha256": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c",
+      "bytes": 2278
+    },
+    {
+      "path": "parent-entry.mjs",
+      "gitBlob": "883ee936e3b52b50ed1b2ae5eec6972a8592d5c4",
+      "sha256": "b2193a377bb07da1cde60d3309179a0b21af2a6d91cc98314f24cab842a546c7",
+      "bytes": 4735
+    },
+    {
+      "path": "supervisor.mjs",
+      "gitBlob": "f2385e7760420fd8ca89e2af4d040d4cc227661c",
+      "sha256": "51321ac41bdfe140c53bbf912805d8c0faaecd8c182ed979febeeca2d5aff396",
+      "bytes": 6968
+    },
+    {
+      "path": "diagnostic-publication.mjs",
+      "gitBlob": "b16fea2782d9c0c84a3823b70a3fc19fa1f4c05a",
+      "sha256": "7fd093905541561d6112b13f7ac224dec43caaaed6bfcb2124294ac3b88baa07",
+      "bytes": 4164
+    },
+    {
+      "path": "future-owner.mjs",
+      "gitBlob": "98616516ef350589bd23daadb523a98b89dffa14",
+      "sha256": "e944eaac0de22016f61446b32d94654510b3a8c04c47d7a5a42813c976b5c7d2",
+      "bytes": 7285
+    }
+  ],
+  "inputCount": 125,
+  "inputBytes": 1323686,
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "authenticatedNodeBytes": 112989184,
+  "selectedInstances": [
+    "WRQ02-L02-repeat-v10",
+    "WRQ03-L03-v3",
+    "WRQ04-L04-v3",
+    "WRQ05-L05-undefined-v3",
+    "WRQ05-L05-false-v3",
+    "WRQ05-L05-object-v3",
+    "WRQ06-L06a-v3",
+    "WRQ06-L06b-v3",
+    "WRQ07-L07-v3",
+    "WRQ08-L08-v3"
+  ],
+  "limits": {
+    "maximumWorkers": 10,
+    "maximumGuests": 9,
+    "peakWorkers": 1,
+    "outerMs": 180000,
+    "TERMtoKILLms": 2000,
+    "totalAdmissionMs": 120000,
+    "caseAdmissionMs": 5000,
+    "sabBytes": 197056,
+    "commandLedgerBytes": 16777216,
+    "captureBytes": 1048576,
+    "caseNativeCaptureBytes": 65536,
+    "capsuleCopyBytes": 16777216,
+    "postCensusBytes": 33554432,
+    "postCensusFiles": 220,
+    "ownedOSChildren": 8,
+    "peakOSProcesses": 3,
+    "rootWallMs": 600000,
+    "rootCaptureBytes": 67108864,
+    "rootScratchBytes": 402653184
+  },
+  "method": "Literal local future-owner.mjs import, then runWorkerQualification('c87ea79e04c2fd0d66e99091538bc077550f014d5cf665abfaf81b8a2b30fb0e') exactly once. No source mutation or retry.",
+  "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01",
+  "preflight": "125 exact owned/public inputs and host dependencies regular, canonical and hash-matched; output/grant/edge paths initially absent; Git index clean at initial check",
+  "qualification": "Frozen parent loop stops on case outcome mismatch; no automatic slot continuation/retry or alteration of approved source. Aggregate produced artifacts truthfully; unrun slots remain unrun.",
+  "history": "345b9851 original L01PASS/L02FAIL and4d7f8531 separate parent-only probe unchanged; new diagnostics cannot recover missing historical detail."
+}

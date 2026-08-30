@@ -1,0 +1,24 @@
+{
+  "schema": "let-author-preexecution-seal-v1",
+  "created": "2026-08-28T07:32:35.781Z",
+  "candidate": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "inputsSHA256": "3e1580a4ac1847d32db0a07496edc30d3458e90b5680502f03d66f1c06deb2f0",
+  "harness": {
+    "prepare.mjs": "2fe76b71a06986e4ea699225c091ea3f54662328aa493280bcd9bb447d230d8f",
+    "execute.mjs": "f17a34fa5b996cbebc643f06ea70833772146c0ad459dd7b837ad758a42b2007",
+    "checks.mjs": "583f2ae8f280e76603bf02cf649d2f5277cfc5f5942f516aceb2b560f1887e9b",
+    "load-hook.mjs": "134ced0dd98fbb5b034d796a3c6edab8b892a00bc8e44dc7e0f25133cbb2c59e",
+    "guard-control.mjs": "f277736fc33794782e5476a79c456df4878b1f5313ed170b4971b6c8c46a5f4b",
+    "MUTANTS.json": "aa22319de5f06ac15b4e25459e6184a8ffb8c690f11cef317c880b2af07ead9e",
+    "QUALIFICATION-RECIPE.md": "e6d565f01ac5643267c1b137b740330abc5d593e7a4a409cc797371d942d7103",
+    "NON-LET-COMPARISON.json": "ea2693568c02d3e670da62888150ed96e7062270344d77a13491400e7988b942",
+    "evidence-v1/frozen-cases.json": "84b6308145e040283b05af2348caefac874f5cecab3b4797ef8112c973416955",
+    "evidence-v1/accepted464-runtime.data": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+    "evidence-v1/frozen-consumer.mts.fixture": "af152414c9ddf848d738cc5c43a2778167a20c6f1d52ac01b8ac8543081b2274",
+    "evidence-v1/frozen-negative-api.mts.fixture": "23f05b43aae47d14d83a1bb12c21006ecf9b8081947ad50de82bfbd643328ae6",
+    "evidence-v1/frozen-negative-limit.mts.fixture": "877116170e98284b5cbb44ff3c7daa104fbe97910b379779f11ad07d579369de"
+  },
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "toolCopyRule": "Original repository node_modules bindings are also checked against matching owned work/node_modules regular copies before and after execution"
+}

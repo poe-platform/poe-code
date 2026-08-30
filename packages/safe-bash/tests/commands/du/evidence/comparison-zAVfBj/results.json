@@ -1,0 +1,2239 @@
+{
+  "created": "2026-08-27T17:22:25.015Z",
+  "platform": "darwin",
+  "node": "v22.22.2",
+  "before": {
+    "head": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+    "status": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/du/evidence/\n?? tests/commands/expr-stress/extension-review/execution/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/\n"
+  },
+  "after": {
+    "head": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+    "status": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/du/evidence/\n?? tests/commands/expr-stress/extension-review/execution/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/\n"
+  },
+  "sources": {
+    "src/commands/du/arguments.ts": "a777c2575100dbe305dd7376b525727cc213039eda90b659d323841ed05bf041",
+    "src/commands/du/budget.ts": "b97e9e9b9a02fae0c95fe9f50af79644bab053d6426fb8b2886a413160c29971",
+    "src/commands/du/du.ts": "6954f5f86f69ec9aca39f464198d200b0895b6b286df9a5bd08c44444f9b8ca2",
+    "src/commands/du/format.ts": "84463e68db86ca767b05b410c79c0844e97be2c3585ed7fff2f81ae15411daa1",
+    "src/commands/du/index.ts": "73a4ea414b6a6325fb8c4c507fc8f86e7b6b743cb2b94f13437ef42f4d545cd7",
+    "src/commands/du/options.ts": "5765a37baccf628f3de85c94409627a16cf4dda02f66c9d2a37cf2929bf26253"
+  },
+  "changedSources": [],
+  "binaryBefore": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+  "binaryAfter": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+  "oracleSourceBefore": "3cd1c0120881ba28da3345b1324e9d146f948a95db6ce2900ba27b3fe8f45bf9",
+  "oracleSourceAfter": "3cd1c0120881ba28da3345b1324e9d146f948a95db6ce2900ba27b3fe8f45bf9",
+  "appendProof": false,
+  "summary": {
+    "memoryCapturedNativeCases": 87,
+    "memoryExactStatusStdout": 84,
+    "memoryExactAllFields": 72,
+    "liveRealCases": 18,
+    "realExactAllFields": 18,
+    "realSameRecordsStatusStderr": 18
+  },
+  "memoryResults": [
+    {
+      "native": {
+        "name": "0:-bh",
+        "args": [
+          "-bh",
+          "size-0"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "0\tsize-0\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "0\tsize-0\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "0:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-0"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "0\tsize-0\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "0\tsize-0\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "0:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-0"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "0K\tsize-0\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "0K\tsize-0\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "0:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-0"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "0\tsize-0\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "0\tsize-0\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1:-bh",
+        "args": [
+          "-bh",
+          "size-1"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1\tsize-1\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\tsize-1\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-1"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1\tsize-1\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\tsize-1\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-1"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1K\tsize-1\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1K\tsize-1\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-1"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1\tsize-1\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\tsize-1\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1023:-bh",
+        "args": [
+          "-bh",
+          "size-1023"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1023\tsize-1023\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1023\tsize-1023\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1023:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-1023"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1k\tsize-1023\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1k\tsize-1023\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1023:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-1023"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1K\tsize-1023\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1K\tsize-1023\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1023:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-1023"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2\tsize-1023\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tsize-1023\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1024:-bh",
+        "args": [
+          "-bh",
+          "size-1024"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.0K\tsize-1024\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.0K\tsize-1024\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1024:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-1024"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1k\tsize-1024\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1k\tsize-1024\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1024:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-1024"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1K\tsize-1024\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1K\tsize-1024\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1024:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-1024"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2\tsize-1024\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tsize-1024\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1025:-bh",
+        "args": [
+          "-bh",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1K\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1K\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1025:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1k\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1k\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1025:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2K\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2K\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1025:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10239:-bh",
+        "args": [
+          "-bh",
+          "size-10239"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "10K\tsize-10239\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "10K\tsize-10239\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10239:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-10239"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "11k\tsize-10239\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "11k\tsize-10239\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10239:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-10239"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "10K\tsize-10239\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "10K\tsize-10239\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10239:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-10239"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "11\tsize-10239\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "11\tsize-10239\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10240:-bh",
+        "args": [
+          "-bh",
+          "size-10240"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "10K\tsize-10240\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "10K\tsize-10240\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10240:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-10240"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "11k\tsize-10240\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "11k\tsize-10240\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10240:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-10240"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "10K\tsize-10240\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "10K\tsize-10240\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10240:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-10240"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "11\tsize-10240\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "11\tsize-10240\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10241:-bh",
+        "args": [
+          "-bh",
+          "size-10241"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "11K\tsize-10241\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "11K\tsize-10241\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10241:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-10241"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "11k\tsize-10241\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "11k\tsize-10241\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10241:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-10241"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "11K\tsize-10241\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "11K\tsize-10241\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "10241:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-10241"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "11\tsize-10241\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "11\tsize-10241\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048575:-bh",
+        "args": [
+          "-bh",
+          "size-1048575"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.0M\tsize-1048575\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.0M\tsize-1048575\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048575:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-1048575"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1M\tsize-1048575\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1M\tsize-1048575\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048575:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-1048575"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1024K\tsize-1048575\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1024K\tsize-1048575\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048575:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-1048575"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1049\tsize-1048575\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1049\tsize-1048575\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048576:-bh",
+        "args": [
+          "-bh",
+          "size-1048576"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.0M\tsize-1048576\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.0M\tsize-1048576\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048576:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-1048576"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1M\tsize-1048576\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1M\tsize-1048576\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048576:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-1048576"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1024K\tsize-1048576\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1024K\tsize-1048576\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048576:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-1048576"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1049\tsize-1048576\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1049\tsize-1048576\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048577:-bh",
+        "args": [
+          "-bh",
+          "size-1048577"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1M\tsize-1048577\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1M\tsize-1048577\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048577:-b -B si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-1048577"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1M\tsize-1048577\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1M\tsize-1048577\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048577:-b -B K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-1048577"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1025K\tsize-1048577\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1025K\tsize-1048577\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "1048577:-b -B 1KB",
+        "args": [
+          "-b",
+          "-B",
+          "1KB",
+          "size-1048577"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1049\tsize-1048577\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1049\tsize-1048577\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "tree:",
+        "args": [
+          "-b",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "tree:-a",
+        "args": [
+          "-b",
+          "-a",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "3\ttree/a\n5\ttree/sub/b\n5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\ttree/a\n5\ttree/sub/b\n5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "tree:-s",
+        "args": [
+          "-b",
+          "-s",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "tree:-c",
+        "args": [
+          "-b",
+          "-c",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n8\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n8\ttotal\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "tree:-ac",
+        "args": [
+          "-b",
+          "-ac",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "3\ttree/a\n5\ttree/sub/b\n5\ttree/sub\n8\ttree\n8\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\ttree/a\n5\ttree/sub/b\n5\ttree/sub\n8\ttree\n8\ttotal\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "tree:-d0",
+        "args": [
+          "-b",
+          "-d0",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "tree:-ad1",
+        "args": [
+          "-b",
+          "-ad1",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "3\ttree/a\n5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\ttree/a\n5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "tree:-s -d0",
+        "args": [
+          "-b",
+          "-s",
+          "-d0",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": "du: warning: summarizing is the same as using --max-depth=0\n"
+      },
+      "product": {
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "tree:-as",
+        "args": [
+          "-b",
+          "-as",
+          "tree"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: cannot both summarize and show all entries\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du --help' for more information.\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: cannot combine --all and --summarize\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "tree:-s -d1",
+        "args": [
+          "-b",
+          "-s",
+          "-d1",
+          "tree"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: warning: summarizing conflicts with --max-depth=1\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du --help' for more information.\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: --summarize conflicts with --max-depth\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "tree:-0a",
+        "args": [
+          "-b",
+          "-0a",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "3\ttree/a\u00005\ttree/sub/b\u00005\ttree/sub\u00008\ttree\u0000",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\ttree/a\u00005\ttree/sub/b\u00005\ttree/sub\u00008\ttree\u0000",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "-b link broken",
+        "args": [
+          "-b",
+          "link",
+          "broken"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "4\tlink\n6\tbroken\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "4\tlink\n6\tbroken\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "-b link/",
+        "args": [
+          "-b",
+          "link/"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "5\tlink/sub\n8\tlink/\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "5\tlink/sub\n8\tlink/\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "-bc tree/a alias",
+        "args": [
+          "-bc",
+          "tree/a",
+          "alias"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "3\ttree/a\n3\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\ttree/a\n3\ttotal\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "-blc tree/a alias",
+        "args": [
+          "-blc",
+          "tree/a",
+          "alias"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "3\ttree/a\n3\talias\n6\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\ttree/a\n3\talias\n6\ttotal\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "-b tree tree",
+        "args": [
+          "-b",
+          "tree",
+          "tree"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n0\ttree/sub\n0\ttree\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": false,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "-b missing tree/a",
+        "args": [
+          "-b",
+          "missing",
+          "tree/a"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "3\ttree/a\n",
+        "stderr": "du: cannot access 'missing': No such file or directory\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "3\ttree/a\n",
+        "stderr": "du: \"missing\": no such file or directory, lstat '/missing'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "-b ",
+        "args": [
+          "-b",
+          ""
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: \"\": no such file or directory, lstat ''\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "-b tree/a --unsupported",
+        "args": [
+          "-b",
+          "tree/a",
+          "--unsupported"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du: unrecognized option '--unsupported'\nTry '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du --help' for more information.\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: unrecognized option '--unsupported'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "block:1",
+        "args": [
+          "-b",
+          "-B",
+          "1",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1025\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1025\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:K",
+        "args": [
+          "-b",
+          "-B",
+          "K",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2K\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2K\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:kB",
+        "args": [
+          "-b",
+          "-B",
+          "kB",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2kB\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2kB\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:KiB",
+        "args": [
+          "-b",
+          "-B",
+          "KiB",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2KiB\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2KiB\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:KB",
+        "args": [
+          "-b",
+          "-B",
+          "KB",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2kB\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2kB\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:2K",
+        "args": [
+          "-b",
+          "-B",
+          "2K",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:M",
+        "args": [
+          "-b",
+          "-B",
+          "M",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1M\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1M\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:1M",
+        "args": [
+          "-b",
+          "-B",
+          "1M",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:m",
+        "args": [
+          "-b",
+          "-B",
+          "m",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1M\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1M\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:b",
+        "args": [
+          "-b",
+          "-B",
+          "b",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid -B argument 'b'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size 'b'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "block:0",
+        "args": [
+          "-b",
+          "-B",
+          "0",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid -B argument '0'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid or unsafe block size '0'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "block:-1",
+        "args": [
+          "-b",
+          "-B",
+          "-1",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid -B argument '-1'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size '-1'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "block:1.5K",
+        "args": [
+          "-b",
+          "-B",
+          "1.5K",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid suffix in -B argument '1.5K'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size '1.5K'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "block:human-readable",
+        "args": [
+          "-b",
+          "-B",
+          "human-readable",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1K\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1K\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:si",
+        "args": [
+          "-b",
+          "-B",
+          "si",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "1.1k\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1.1k\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "block:Q",
+        "args": [
+          "-b",
+          "-B",
+          "Q",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid -B argument 'Q'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid or unsafe block size 'Q'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "block:1Q",
+        "args": [
+          "-b",
+          "-B",
+          "1Q",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid suffix in -B argument '1Q'\n"
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid or unsafe block size '1Q'\n"
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "env:{}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {},
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "env:{\"POSIXLY_CORRECT\":\"\"}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "POSIXLY_CORRECT": ""
+        },
+        "status": 0,
+        "stdout": "3\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "env:{\"BLOCKSIZE\":\"2K\"}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "BLOCKSIZE": "2K"
+        },
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "env:{\"BLOCK_SIZE\":\"4K\",\"BLOCKSIZE\":\"2K\"}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "BLOCK_SIZE": "4K",
+          "BLOCKSIZE": "2K"
+        },
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "env:{\"DU_BLOCK_SIZE\":\"8K\",\"BLOCK_SIZE\":\"4K\"}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "8K",
+          "BLOCK_SIZE": "4K"
+        },
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\tsize-1025\n",
+        "stderr": ""
+      },
+      "exactStatusStdout": true,
+      "exactAllFields": true
+    },
+    {
+      "native": {
+        "name": "env:{\"DU_BLOCK_SIZE\":\"bad\"}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "bad"
+        },
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size 'bad'\n"
+      },
+      "exactStatusStdout": false,
+      "exactAllFields": false
+    },
+    {
+      "native": {
+        "name": "env:{\"DU_BLOCK_SIZE\":\"\",\"BLOCK_SIZE\":\"2K\"}",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "",
+          "BLOCK_SIZE": "2K"
+        },
+        "status": 0,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size ''\n"
+      },
+      "exactStatusStdout": false,
+      "exactAllFields": false
+    }
+  ],
+  "realResults": [
+    {
+      "args": [
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "4\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "4\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-s",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-sc",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "8\ttree\n8\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "8\ttree\n8\ttotal\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-sB1",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "8192\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "8192\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-sh",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "8.0K\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "8.0K\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-sk",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "8\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-sm",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "1\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-sBKB",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "9kB\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "9kB\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-a",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "4\ttree/a\n4\ttree/sub/b\n4\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "4\ttree/a\n4\ttree/sub/b\n4\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-ad1",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "4\ttree/a\n4\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "4\ttree/a\n4\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-b",
+        "tree"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "5\ttree/sub\n8\ttree\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-bc",
+        "tree/a",
+        "alias"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "3\ttree/a\n3\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\ttree/a\n3\ttotal\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-blc",
+        "tree/a",
+        "alias"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "3\ttree/a\n3\talias\n6\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "3\ttree/a\n3\talias\n6\ttotal\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-B1",
+        "sparse"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "0\tsparse\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "0\tsparse\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-b",
+        "sparse"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "1048576\tsparse\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "1048576\tsparse\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-bc",
+        "link",
+        "broken"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "4\tlink\n6\tbroken\n10\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "4\tlink\n6\tbroken\n10\ttotal\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-c",
+        "link",
+        "broken"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "0\tlink\n0\tbroken\n0\ttotal\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "0\tlink\n0\tbroken\n0\ttotal\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    },
+    {
+      "args": [
+        "-b",
+        "link/"
+      ],
+      "native": {
+        "status": 0,
+        "stdout": "5\tlink/sub\n8\tlink/\n",
+        "stderr": ""
+      },
+      "product": {
+        "status": 0,
+        "stdout": "5\tlink/sub\n8\tlink/\n",
+        "stderr": ""
+      },
+      "exactAllFields": true,
+      "sameRecordsStatusStderr": true
+    }
+  ]
+}

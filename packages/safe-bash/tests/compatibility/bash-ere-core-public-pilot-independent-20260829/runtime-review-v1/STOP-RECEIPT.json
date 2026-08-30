@@ -1,0 +1,71 @@
+{
+  "utc": "2026-08-29T16:50:53.718Z",
+  "verdict": "HOLD_REVIEWER_STARTUP_CAPTURE_STOP",
+  "candidate": "a3a6330f36534753e18dfb6d3a429d6b41117570",
+  "assignedProfile": "446f44cea9091ce59a12c5591bc1d6e91049003848bef33bd75f520c98728aa6",
+  "completeCandidateAdmission": false,
+  "authorControlsExecuted": 0,
+  "novelControlsExecuted": 0,
+  "productImports": 0,
+  "Workers": 0,
+  "managedChildren": 0,
+  "observedFailedNodeExit": 1,
+  "failedDiagnosticCapture": "tool transcript only; not reconstructed",
+  "priorCapturedFiles": [
+    {
+      "path": "startup.stdout",
+      "bytes": 10044,
+      "sha256": "6a08662f2b80f158a4b6fdff83ff5d7221f12d7a0feb08e38ca2faea98a9f91b"
+    },
+    {
+      "path": "startup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "inspect.stdout",
+      "bytes": 12330,
+      "sha256": "9f55adbdd4f1b1b42b2b15ca8a78424af86aa753fabfc873cdd9b035aca1b907"
+    },
+    {
+      "path": "inspect.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "core.stdout",
+      "bytes": 16801,
+      "sha256": "a57d41f589e29de8e6cc115971fe427c06ef21a54e2566a7874573d5b1a5cdaa"
+    },
+    {
+      "path": "core.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "stop-edit.stdout",
+      "bytes": 302,
+      "sha256": "c507b1ef585bb3ae62fdebf575c22dab7ebebe30fa057c4d73e0c9690c9cd034"
+    },
+    {
+      "path": "stop-edit.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "failedLocalCapturePaths": [
+    {
+      "path": "schedule.stdout",
+      "absent": true
+    },
+    {
+      "path": "schedule.stderr",
+      "absent": true
+    }
+  ],
+  "knownConservativeIncludingPublicationReadout": 14,
+  "maximumKnownOS": 36,
+  "peak": 2,
+  "retirement": "inspection/tool commands returned; no spawned owned child or Worker; no global census",
+  "activeOwnedChildren": 0
+}

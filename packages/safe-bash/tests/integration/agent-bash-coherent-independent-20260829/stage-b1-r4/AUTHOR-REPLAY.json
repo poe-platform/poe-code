@@ -1,0 +1,50 @@
+{
+  "schema": "B1-r4-DATA-results-v1",
+  "rows": [
+    {
+      "id": "D01",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D02",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D03",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D04",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D05",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D06",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D07",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    },
+    {
+      "id": "D08",
+      "status": "PASS",
+      "role": "PURE_SOURCE_DATA_NOT_PRODUCT"
+    }
+  ],
+  "productCalls": 0,
+  "Workers": 0,
+  "pid": 40716,
+  "utc": "2026-08-29T14:52:35.024Z",
+  "qualification": "No product fixture execution. Source invariants and actual bounded serializer only; publisher/runtime lifecycle inherited, not rerun."
+}

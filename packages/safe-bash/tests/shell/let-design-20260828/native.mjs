@@ -1,0 +1,112 @@
+import assert from 'node:assert/strict';
+import { readFileSync, lstatSync, mkdirSync, readdirSync, openSync, writeSync, fsyncSync, closeSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+
+const scope = fileURLToPath(new URL('.', import.meta.url));
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const manifestBytes = readFileSync(resolve(scope, 'MANIFEST-V2.json'));
+assert.equal(hash(manifestBytes), process.argv[2], 'explicit pre-run manifest hash required');
+const manifest = JSON.parse(manifestBytes);
+const bindings = JSON.parse(readFileSync(resolve(scope, 'BINDINGS.json')));
+const cases = JSON.parse(readFileSync(resolve(scope, 'CASES.json')));
+assert.equal(cases.length, 28);
+assert.equal(new Set(cases.map(row => row.id)).size, 28);
+const verify = binding => {
+  const filename = resolve(scope, binding.path);
+  const stat = lstatSync(filename);
+  assert(stat.isFile() && !stat.isSymbolicLink(), filename);
+  assert.equal(stat.mode & 0o777, binding.mode, filename);
+  assert.equal(stat.size, binding.bytes, filename);
+  assert.equal(hash(readFileSync(filename)), binding.sha256, filename);
+};
+const guard = () => {
+  assert.equal(hash(readFileSync(resolve(scope, 'MANIFEST-V2.json'))), process.argv[2]);
+  for (const binding of [...manifest.recipes, ...bindings.tools]) verify(binding);
+};
+guard();
+assert.equal(process.execPath, bindings.tools[2].path);
+const evidence = resolve(scope, 'native-v1');
+mkdirSync(evidence);
+const home = resolve(evidence, 'home');
+const temporary = resolve(evidence, 'tmp');
+mkdirSync(home);
+mkdirSync(temporary);
+const receipt = openSync(resolve(evidence, 'rows.jsonl'), 'wx');
+const append = row => { writeSync(receipt, `${JSON.stringify(row)}\n`); fsyncSync(receipt); };
+const started = new Date().toISOString();
+const limits = { rows: 28, millisecondsPerRow: 5000, combinedBytesPerRow: 16384, killGraceMilliseconds: 250 };
+writeFileSync(resolve(evidence, 'PRE.json'), `${JSON.stringify({ started, manifestSHA256: process.argv[2], limits, pid: process.pid, node: process.version, platform: process.platform, architecture: process.arch, tools: bindings.tools, guards: 'passed', productLoads: 0 }, null, 2)}\n`, { flag: 'wx' });
+const environment = { PATH: '', LANG: 'C', LC_ALL: 'C', TZ: 'UTC', HOME: home, TMPDIR: temporary, ENV: '', BASH_ENV: '' };
+const exists = identifier => {
+  try { process.kill(identifier, 0); return true; }
+  catch (error) { if (error.code === 'ESRCH') return false; throw error; }
+};
+const capture = row => new Promise(resolveCapture => {
+  const start = performance.now();
+  const stdout = [];
+  const stderr = [];
+  let capturedBytes = 0;
+  let observedBytes = 0;
+  let stopped;
+  let spawnError;
+  let escalation;
+  const child = spawn(bindings.tools[0].path, ['--noprofile', '--norc', '-c', row.script, 'let-native'], { cwd: temporary, env: environment, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  const kill = signal => {
+    if (!child.pid) return;
+    try { process.kill(-child.pid, signal); }
+    catch (error) { if (error.code !== 'ESRCH') spawnError ??= String(error); }
+  };
+  const stop = reason => {
+    if (stopped) return;
+    stopped = reason;
+    kill('SIGTERM');
+    escalation = setTimeout(() => kill('SIGKILL'), limits.killGraceMilliseconds);
+  };
+  const collect = target => chunk => {
+    observedBytes += chunk.length;
+    const remaining = Math.max(0, limits.combinedBytesPerRow - capturedBytes);
+    const kept = Buffer.from(chunk.subarray(0, remaining));
+    capturedBytes += kept.length;
+    if (kept.length) target.push(kept);
+    if (observedBytes > limits.combinedBytesPerRow) stop('OUTPUT_BOUND');
+  };
+  child.stdout.on('data', collect(stdout));
+  child.stderr.on('data', collect(stderr));
+  child.on('error', error => { spawnError = `${error.code}: ${error.message}`; });
+  const deadline = setTimeout(() => stop('DEADLINE'), limits.millisecondsPerRow);
+  child.on('close', (code, signal) => {
+    clearTimeout(deadline);
+    clearTimeout(escalation);
+    const output = Buffer.concat(stdout);
+    const diagnostic = Buffer.concat(stderr);
+    const pidAbsent = child.pid === undefined || !exists(child.pid);
+    const groupAbsent = child.pid === undefined || !exists(-child.pid);
+    if (!groupAbsent) kill('SIGKILL');
+    resolveCapture({ id: row.id, topic: row.topic, scriptSHA256: hash(Buffer.from(row.script)), pid: child.pid ?? null, code, signal, stopped: stopped ?? null, spawnError: spawnError ?? null, elapsedMilliseconds: performance.now() - start, stdout: output.toString(), stderr: diagnostic.toString(), stdoutBase64: output.toString('base64'), stderrBase64: diagnostic.toString('base64'), stdoutBytes: output.length, stderrBytes: diagnostic.length, observedBytes, closure: { closeEvent: true, pidAbsent, groupAbsent, natural: !stopped && !spawnError && signal === null }, capturedAt: new Date().toISOString() });
+  });
+});
+const rows = [];
+let failure;
+try {
+  for (const row of cases) {
+    verify(bindings.tools[0]);
+    const result = await capture(row);
+    append(result);
+    rows.push(result);
+    assert(!result.stopped && !result.spawnError, `${row.id}: ${result.stopped ?? result.spawnError}`);
+    assert(result.closure.pidAbsent && result.closure.groupAbsent && result.closure.natural, `${row.id}: cleanup failure`);
+    assert.deepEqual(readdirSync(home), [], 'HOME changed');
+    assert.deepEqual(readdirSync(temporary), [], 'TMPDIR changed');
+  }
+} catch (error) { failure = String(error.stack ?? error); }
+let postGuard;
+try { guard(); postGuard = 'passed'; }
+catch (error) { postGuard = String(error.stack ?? error); failure ??= postGuard; }
+closeSync(receipt);
+const summary = { schema: 'let-native-observations-v1', started, finished: new Date().toISOString(), manifestSHA256: process.argv[2], attempted: rows.length, unexecuted: cases.slice(rows.length).map(row => row.id), naturallyClosed: rows.filter(row => row.closure.natural && row.closure.groupAbsent && row.closure.pidAbsent).length, observationsNotProductPasses: true, statusHistogram: rows.reduce((result, row) => ({ ...result, [String(row.code)]: (result[String(row.code)] ?? 0) + 1 }), {}), capturedBytes: rows.reduce((total, row) => total + row.stdoutBytes + row.stderrBytes, 0), preGuard: 'passed', postGuard, failure: failure ?? null, productExecutions: 0, asyncAbortNativeCases: 0 };
+writeFileSync(resolve(evidence, 'SUMMARY.json'), `${JSON.stringify(summary, null, 2)}\n`, { flag: 'wx' });
+console.log(JSON.stringify(summary));
+if (failure) process.exitCode = 1;

@@ -1,0 +1,29 @@
+{
+  "schema": "independent-breadth-v3-preexecution-decision",
+  "date": "2026-08-28",
+  "timezone": "America/Chicago",
+  "role": "different-reviewer",
+  "verdict": "PREEXECUTION_HOLD",
+  "recipeCommit": "e7f0981b9abfddb27d946c991e5860e30365166c",
+  "handoffCommit": "8666174d2e2fc6a16a2f7d8696d21f56531ccf98",
+  "recipeSha256": "20e82f8030075adbd2772c54c534c3db5e6eec0fa641a72b0f2fa9d4cf372df8",
+  "priorReviewCommit": "a66683b5bf9b0274705f5f6e61ff1e35aee1db46",
+  "presealCommit": "ecae08ab0fba8a13669584293468e13d70bffe4f",
+  "independentChecks": { "passed": 35, "total": 44, "failed": 9, "dataPassed": 13, "dataTotal": 13, "syntheticPassed": 22, "syntheticTotal": 31 },
+  "independentChildren": { "launched": 4, "reaped": 4, "active": 0 },
+  "authorEvidenceNotRerun": { "dataSyntax": "51/51", "defects": "20/20", "applicableFamiliesComposed": "11/11", "children": 19, "actualC11": "UNRUN" },
+  "objections": [
+    "R1 worker grant phase is not checked against operation kind before import",
+    "R2 nullish primary throws are replaced by secondary emitter failures",
+    "R3 C12 loaded result is disconnected from its synthetic assessed outcome",
+    "R4 child enrollment occurs after fallible receipt persistence"
+  ],
+  "standaloneAssessorLimit": "Five retained failed schema negatives do not establish bypasses of the stronger composed worker/coordinator boundary.",
+  "rootDecision": "W07 explicit UNOBSERVABLE telemetry may be recorded without dropping or satisfying the original no-execution eligibility requirement; root must accept the unqualified row or require a new observer.",
+  "runtimeAdmissionAuthorized": false,
+  "semanticGo": false,
+  "actualEngineImports": 0,
+  "actualStaging": 0,
+  "actualC11": 0,
+  "originalCohortsRerun": 0
+}

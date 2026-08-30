@@ -1,0 +1,26 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/harness/execution-prep-v1/load-guard.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/harness/execution-prep-v1/probe-worker.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/guard-manifest.json",
+    "e64b92d7d3e1b9744b056b266313ba657bfeec272c33e4415f5d74a92500d97d"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution",
+  "started": "2026-08-28T07:58:20.903Z",
+  "finished": "2026-08-28T07:58:21.499Z",
+  "pid": 29677,
+  "code": 1,
+  "signal": null,
+  "spawnError": null,
+  "failure": null,
+  "groupAbsent": true,
+  "closeObserved": true,
+  "stdout": "{\"admission\":{\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"manifestSha256\":\"e64b92d7d3e1b9744b056b266313ba657bfeec272c33e4415f5d74a92500d97d\",\"runtimeSha256\":\"6441001391e091b0b893d0d0becd5805effb44a787f8428a46dd515a75ab792f\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/harness/execution-prep-v1/probe-worker.mjs\",\"sha256\":\"4de5a977b7dd9c93d7b2f0ae16cd8625af7708bdfe4f9d90999c5df3da1cd975\"}}\n",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/node_modules/virtual-bash/dist/index.js'\n- '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/intended/dist/index.js'\n\n    at loadProduct (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/harness/execution-prep-v1/support.mjs:34:10)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/harness/execution-prep-v1/probe-worker.mjs:9:23\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/node_modules/virtual-bash/dist/index.js',\n  expected: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-wrong-resolution/intended/dist/index.js',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "bytes": 1939
+}

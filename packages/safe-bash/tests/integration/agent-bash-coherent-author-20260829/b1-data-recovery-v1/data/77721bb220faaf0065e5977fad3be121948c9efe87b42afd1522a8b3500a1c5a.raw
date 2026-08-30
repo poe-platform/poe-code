@@ -1,0 +1,96 @@
+{
+  "schema": "B1-live-admin-ledger-v1",
+  "authorization": "ROOT_B1_R6_LIVE_ADMIN_20260829_ONE_ACTUAL_AFTER_FINAL_ACCEPTANCE",
+  "owner": {
+    "pid": 67010,
+    "role": "administrative-owner",
+    "entryPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+    "entrySha256": "3ae47a93c2ce7481b0b2973e38f804ee104847ca880ec1613d76b374f1a48bf6",
+    "ownership": "RETAINED_UNTIL_PUBLICATION_AND_TAIL"
+  },
+  "starts": [
+    {
+      "id": "owner-67010",
+      "role": "administrative-owner",
+      "pid": 67010,
+      "startedUTC": "2026-08-29T16:42:14.216Z",
+      "state": "LIVE_ADMIN_OWNER",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false
+    },
+    {
+      "id": "runtime-coordinator-67012",
+      "role": "runtime-coordinator",
+      "pid": 67012,
+      "startedUTC": "2026-08-29T16:42:14.341Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "runtime-child-67020",
+      "role": "offline-install",
+      "pid": 67020,
+      "startedUTC": "2026-08-29T16:42:15.350Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "runtime-child-67031",
+      "role": "workflow-source-built",
+      "pid": 67031,
+      "startedUTC": "2026-08-29T16:42:17.989Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "runtime-child-67042",
+      "role": "workflow-installed",
+      "pid": 67042,
+      "startedUTC": "2026-08-29T16:42:21.441Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "runtime-child-67053",
+      "role": "workflow-physically-moved",
+      "pid": 67053,
+      "startedUTC": "2026-08-29T16:42:24.857Z",
+      "state": "CLOSED",
+      "startObserved": true,
+      "exitObserved": true,
+      "closeObserved": true
+    }
+  ],
+  "reservations": [
+    {
+      "role": "publication-preimport",
+      "state": "RESERVED_NOT_STARTED"
+    },
+    {
+      "role": "publisher",
+      "state": "RESERVED_NOT_STARTED"
+    },
+    {
+      "role": "git-add",
+      "state": "RESERVED_NOT_STARTED"
+    },
+    {
+      "role": "git-commit",
+      "state": "RESERVED_NOT_STARTED"
+    },
+    {
+      "role": "git-receipt",
+      "state": "RESERVED_NOT_STARTED"
+    }
+  ],
+  "maxKnownOS": 36
+}

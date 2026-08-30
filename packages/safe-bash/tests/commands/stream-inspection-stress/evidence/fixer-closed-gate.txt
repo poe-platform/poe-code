@@ -1,0 +1,10 @@
+ROOT CONFIRMS ACTUAL NORMAL CLOSED — 2026-08-27
+Fixer session55554 exited code0; verified via write_stdin, no mere result-file inference. No more source writes authorized in this bounded batch.
+Source commit335d2c3705b4892a56e807010cd7ca50145fefce.
+Evidence/handoff commitf4ab93bdf5b864fa9ed6310c6b31c0923c92cea7.
+Pre-fix regression commit1ea140b50f0b4edcfa28a60e2f89351b97e509a5.
+Final eight-file source manifest4c52a321778aafad0e41b5858d30746d728306e35e26a44554146a69a05c91a0 (sorted path NUL SHA256 newline). Verify each current source byte against source commit; index.ts/shared.ts/tac.ts/README and original author tests/evidence reported unchanged. New numeric-options.ts plus three parsers changed; inspect scope/source differences independently.
+Read /tmp/safe-bash-stream-batch-fixer-result.txt for precise profiles/evidence/limits. Independent original85 and native-backed85 expectations/input hashes remain unchanged. Original dash manual conflict stays separate. Four valid-native syntax causes targeted; no diagnostic/blanket unsupported narrowing authorized.
+RELEASE reviewer to independently snapshot final current src/deps/config and run unchanged original85, native85, corrected39 contract groups and scoped noEmit/isolated build. Record full snapshot/hash/source delta, independent exact selected-semantic and strict stdout/stderr/status counts; no fullGNU parity or default/public support claims. Preserve first failures and author99/fixer82 denominators separately, no new cases/corpus inflation.
+Current default aggregate56 unchanged. No public/root/registry/default/grep/FS/tabletext edits. Reviewer retains tests/commands/stream-inspection-stress only; product fixes remain closed unless genuine new regression reported to root. Do not mutate author tests or source.
+Publish final source-bound durable independent report and reproduction paths, exact commits/ownedgitstatus/processcleanup; close normally after coherent bounded gate. Prior author/provider/fixer closed; no dormant SIGSTOP workers. Root will verify reviewer actual exit.

@@ -1,0 +1,208 @@
+{
+  "sealedAt": "2026-08-27T14:58:06.277Z",
+  "status": "QUALIFIED_ACCEPT_ASSEMBLY_ONLY",
+  "scope": "Independent assembly-receipt identity only; no security, guest, capability or lifecycle verdict",
+  "provenanceCommit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+  "privateCheckpointCommit": "232868324ae4d4f063bd6116c87206f6a68429f7",
+  "candidateEvidenceCommit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+  "source": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "tests": "dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c",
+  "compiled": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+  "allFiles": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28",
+  "scratch": "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE",
+  "firstPreparerUnmodified": {
+    "root": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK",
+    "files": 3791,
+    "metadataManifestSha256": "06e4ee75206d15d196d420a3997161b82e1a097c2e391d5e0aa73c76c5a8c390",
+    "exactBytesModeMtimeCtimeUnchanged": true
+  },
+  "privateClosure": {
+    "before": "2026-08-27T14:49:39.608Z",
+    "after": "2026-08-27T14:50:06.234Z",
+    "unchanged": true,
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "tree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "index": {
+      "bytes": 431585,
+      "sha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+      "mode": 420,
+      "mtimeMs": 1787794730073.6377,
+      "ctimeMs": 1787794730073.7827
+    },
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+    "staged": "",
+    "engineFiles": 264,
+    "metadataFiles": 6,
+    "privateStateSha256": "361d1ef27487a3731dda9b598bf4b3416ff02863e03e176f6f4491d4772b65a6",
+    "helperSha256": "dad095bb5f744d6137b374d70ba07971ce76965b215a2280bf2849e9717695ce",
+    "engineIdentity": "a73fd1b639c73f2bf995867b081ef62bd34e303ea4464921c3bd904bccc3ae7b",
+    "publicComparison": {
+      "privateUnchanged": true,
+      "publicSourceUnchanged": false,
+      "publicRootInputsUnchanged": true,
+      "foreignStagingUnchanged": true
+    },
+    "exclusions": [
+      ".git",
+      "node_modules",
+      "dist",
+      ".cache",
+      ".turbo"
+    ],
+    "limits": "No excluded-content, unrelated untracked-content, directory-metadata, atime or nanosecond proof; sequential observations, not atomic/intervening/future-state proof"
+  },
+  "sourceRouteFiles": 940,
+  "packagedRouteFiles": 940,
+  "rootAuditReleasePending": true,
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 10814,
+      "sha256": "81a8b977284f033824815f601ab6d0f09705779f02515478ae408bf79ec3eee0"
+    },
+    {
+      "path": "STAGES.md",
+      "bytes": 10465,
+      "sha256": "530775960c0bc71e0094f1c4dd1fc918b6e6b58de71293fc5d48dbffb0827a7b"
+    },
+    {
+      "path": "attempts/r0/children.json",
+      "bytes": 392347,
+      "sha256": "bfed44575342486943a998feb3956ee66f0548da41f9355cc34d20b94f5f1b7d"
+    },
+    {
+      "path": "attempts/r0/extract.py.data",
+      "bytes": 1890,
+      "sha256": "77c0b5bf504915143463713a5523b3b4b2c0dd15f0c4068b550a98f7c736dc5e"
+    },
+    {
+      "path": "attempts/r0/inspect-declarations.mjs.data",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908"
+    },
+    {
+      "path": "attempts/r0/private-after.json",
+      "bytes": 125215,
+      "sha256": "37df96aa44e5c605f82ad9eb60ad61e600d1e2009998f34c82a9cc255cf6e012"
+    },
+    {
+      "path": "attempts/r0/private-before.json",
+      "bytes": 124831,
+      "sha256": "f418bce0c9b96eebfe7613fca0f825e52cc96b0940c20e1804c25583891b69fa"
+    },
+    {
+      "path": "attempts/r0/proof.json",
+      "bytes": 654690,
+      "sha256": "5b0f7c9c9c29a9713dd502295e8452b2e7be61a346af4e9eb55a92e597e7b75d"
+    },
+    {
+      "path": "attempts/r0/review.mjs.data",
+      "bytes": 28103,
+      "sha256": "235cb9bc910304c653b049e9007d9ac3d2c8db1c114920ce55e89ffab3564b4c"
+    },
+    {
+      "path": "attempts/r0/scratch-cleanup.json",
+      "bytes": 131,
+      "sha256": "187d75d418cf01b096c0d016ef738e087702a29f8ea4e3172f6599fac022dbbd"
+    },
+    {
+      "path": "attempts/r1/children.json",
+      "bytes": 395697,
+      "sha256": "3cb134eba00589009973c0025fec12b82949e1d8fa08fb5427182501fdf609e6"
+    },
+    {
+      "path": "attempts/r1/extract.py.data",
+      "bytes": 3263,
+      "sha256": "a7e67d93b70356bfafbe3894a3e7ea3bb3683ccf9ba128c4249ec9643f1c982c"
+    },
+    {
+      "path": "attempts/r1/inspect-declarations.mjs.data",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908"
+    },
+    {
+      "path": "attempts/r1/private-after.json",
+      "bytes": 125542,
+      "sha256": "1ccde61f48578744a23e13812bbc8e8cc027f7ada263ae021bac57b004172763"
+    },
+    {
+      "path": "attempts/r1/private-before.json",
+      "bytes": 125313,
+      "sha256": "d310e9f65dbb8cd48470d9eefc66c050ca1d82d49aebeba24991002235e73d30"
+    },
+    {
+      "path": "attempts/r1/proof.json",
+      "bytes": 832227,
+      "sha256": "e22adc4de482f939afc792c74327856b9faf4f9c6ccc5a42bcd613efcf143d4b"
+    },
+    {
+      "path": "attempts/r1/review.mjs.data",
+      "bytes": 28398,
+      "sha256": "4755aff7d920c3f4d3ba53c06f9a7c5fec22c12c4956cd6cf93d2ddc7d6f5183"
+    },
+    {
+      "path": "attempts/r1/scratch-cleanup.json",
+      "bytes": 131,
+      "sha256": "8c2ce4d258f3d3e66e5ea0834cb561fc235f195fb69ba2e1ac29bee28a95c034"
+    },
+    {
+      "path": "attempts/r1/start.mjs.data",
+      "bytes": 2524,
+      "sha256": "784c52b17b87c717cb7f6a20c82bde633d9f4d499c38c11b2c8c9235321f0c6f"
+    },
+    {
+      "path": "attempts/r2/children.json",
+      "bytes": 399525,
+      "sha256": "74fc587c133cc4c2a9e7f7c48fb365e3720b88de39a96b9d4b55386f7b2ce532"
+    },
+    {
+      "path": "attempts/r2/private-after.json",
+      "bytes": 125509,
+      "sha256": "a8b2fd6cca0416c45b947ccad3c30aded3b157cbcfb9f93962c2579b4041dcea"
+    },
+    {
+      "path": "attempts/r2/private-before.json",
+      "bytes": 125239,
+      "sha256": "7422703e7e4c590f4345d18a5cec04ef87cb3ab53ddac2bdb2ac601841b5f12a"
+    },
+    {
+      "path": "attempts/r2/proof.json",
+      "bytes": 1130772,
+      "sha256": "fe19612e093ca3ef78152bcca666606966905f5736b2d0e4f090e7854a5ece99"
+    },
+    {
+      "path": "extract.py",
+      "bytes": 3263,
+      "sha256": "a7e67d93b70356bfafbe3894a3e7ea3bb3683ccf9ba128c4249ec9643f1c982c"
+    },
+    {
+      "path": "inspect-declarations.mjs",
+      "bytes": 4533,
+      "sha256": "79c3277d60d407a2d2381ba291a2cbf0f461fd5793be9561161c2d3823311908"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 29721,
+      "sha256": "1ef5a588fbe676ecea45cdbca3ee949ebbacec36a012b9a67dde38ea087010bd"
+    },
+    {
+      "path": "start.mjs",
+      "bytes": 2524,
+      "sha256": "784c52b17b87c717cb7f6a20c82bde633d9f4d499c38c11b2c8c9235321f0c6f"
+    },
+    {
+      "path": "verification.json",
+      "bytes": 2713,
+      "sha256": "28f079b2cc6a7acba9aa11acf1e8b4562f935dd4bf879e81d2621a628c88ba10"
+    },
+    {
+      "path": "verify-results.mjs",
+      "bytes": 5656,
+      "sha256": "ef9d0bff71f3f33ae89a4e7ca73cbbc3fa688b5c3577acd69425690f6eff295e"
+    }
+  ],
+  "filesManifestSha256": "ce6dbe8bb62606820e664a229438a09969dd6fbb97f80c4246f25cc2cd5e7ea3",
+  "excludes": [
+    "SEAL.json itself; commit identity is published in the external readiness receipt after commit"
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "qualification": "STATIC_AUTHENTICATED_IMPORT_INVENTORY_NOT_RUNTIME_TRACE",
+  "members": {
+    "dist/commands/regex-execution/worker.js": {
+      "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "bytes": 1981,
+      "imports": [
+        "node:worker_threads",
+        "./matching.js",
+        "../expr/bre-worker.js",
+        "./protocol.js"
+      ],
+      "dynamicImportLiteral": false,
+      "requireLiteral": false,
+      "workerConstructorLiteral": false
+    },
+    "dist/commands/regex-execution/protocol.js": {
+      "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+      "bytes": 7869,
+      "imports": [],
+      "dynamicImportLiteral": false,
+      "requireLiteral": false,
+      "workerConstructorLiteral": false
+    },
+    "dist/commands/expr/bre-worker.js": {
+      "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+      "bytes": 19153,
+      "imports": [
+        "node:worker_threads",
+        "../regex-execution/protocol.js"
+      ],
+      "dynamicImportLiteral": false,
+      "requireLiteral": false,
+      "workerConstructorLiteral": false
+    },
+    "dist/commands/regex-execution/matching.js": {
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "bytes": 13278,
+      "imports": [
+        "node:buffer"
+      ],
+      "dynamicImportLiteral": false,
+      "requireLiteral": false,
+      "workerConstructorLiteral": false
+    }
+  },
+  "builtins": [
+    "node:buffer",
+    "node:worker_threads"
+  ],
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156"
+}
+{
+  "source": "dist/commands/regex-execution/protocol.js",
+  "lines": [
+    "    requestTimeoutMs: 1000, startupTimeoutMs: 3000, maxWorkers: 2,",
+    "    maxQueuedRequests: 64, maxQueuedBytes: 128 * 1024 * 1024,",
+    "    idleTimeoutMs: 100, workerOldGenerationMb: 128, workerStackMb: 4,",
+    "    maxPatternBytes: 65_536, maxSubjectBytes: 1_048_576, maxNodes: 8192,",
+    "    maxDepth: 128, maxSteps: 50_000_000, maxStates: 65_536, maxAllocatedUnits: 4_000_000,",
+    "    if (descriptor.pattern.length > descriptor.limits.maxPatternBytes || row.bytes.length > descriptor.limits.maxSubjectBytes) {",
+    "        || !Number.isSafeInteger(result.steps) || result.steps < 1 || result.steps > descriptor.limits.maxSteps)",
+    "        const minimum = key === \"maxQueuedRequests\" || key === \"maxQueuedBytes\" ? 0 : 1;"
+  ]
+}
+{
+  "source": "dist/fs/readonly/index.d.ts",
+  "lines": [
+    "import type { AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileStat, FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions } from \"../../contracts/index.js\";",
+    "export declare class ReadOnlyFileSystem implements FileSystem {",
+    "    #private;",
+    "    constructor(filesystem: FileSystem);",
+    "    get capabilities(): FileSystemCapabilities;",
+    "    readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array>;",
+    "    stat(path: string, options?: FsOptions): Promise<FileStat>;",
+    "    lstat(path: string, options?: FsOptions): Promise<FileStat>;",
+    "    compareEntry(path: string, peer: FileSystem, peerPath: string, options?: FsOptions): Promise<import(\"../../contracts/filesystem.js\").EntryComparison>;",
+    "    readdir(path: string, options?: FsOptions): Promise<DirectoryEntry[]>;",
+    "    realpath(path: string, options?: FsOptions): Promise<string>;",
+    "    access(path: string, mode?: number, options?: FsOptions): Promise<void>;",
+    "    readlink(path: string, options?: FsOptions): Promise<string>;",
+    "    readStream(path: string, options?: ReadStreamOptions): ByteSource;",
+    "    writeFile(path: string, _data: Uint8Array, _options?: WriteFileOptions): Promise<void>;",
+    "    appendFile(path: string, _data: Uint8Array, _options?: AppendFileOptions): Promise<void>;",
+    "    writeStream(path: string, _source: ByteSource, _options?: WriteFileOptions): Promise<void>;",
+    "    mkdir(path: string, _options?: MkdirOptions): Promise<void>;",
+    "    rm(path: string, _options?: RemoveOptions): Promise<void>;",
+    "    unlink(path: string, _options?: FsOptions): Promise<void>;",
+    "    rmdir(path: string, _options?: FsOptions): Promise<void>;",
+    "    rename(source: string, destination: string, _options?: FsOptions): Promise<void>;",
+    "    copyFile(source: string, destination: string, _options?: CopyFileOptions): Promise<void>;",
+    "    symlink(target: string, path: string, _options?: FsOptions): Promise<void>;",
+    "    link(existingPath: string, newPath: string, _options?: FsOptions): Promise<void>;",
+    "    chmod(path: string, _mode: number, _options?: FsOptions): Promise<void>;",
+    "    utimes(path: string, _atimeMs: number, _mtimeMs: number, _options?: FsOptions): Promise<void>;",
+    "    truncate(path: string, _length?: number, _options?: FsOptions): Promise<void>;",
+    "}",
+    "export declare function createReadOnlyFileSystem(filesystem: FileSystem): ReadOnlyFileSystem;",
+    "//# sourceMappingURL=index.d.ts.map"
+  ]
+}
+{
+  "neutralKeys": [
+    "schema",
+    "qualification",
+    "virtualRoot",
+    "oids",
+    "files",
+    "proposedOutputs"
+  ],
+  "worktree": [
+    {
+      "path": ".git/index",
+      "text": null,
+      "bytes": null
+    },
+    {
+      "path": ".git/HEAD",
+      "text": "ref: refs/heads/main\n",
+      "bytes": null
+    },
+    {
+      "path": ".git/refs/heads/main",
+      "text": "1cec77171d8321d533b3aa50b7a1a9df02b10816\n",
+      "bytes": null
+    },
+    {
+      "path": ".git/config",
+      "text": "[core]\n\trepositoryformatversion = 0\n\tbare = false\n\tfilemode = false\n",
+      "bytes": null
+    },
+    {
+      "path": "README.md",
+      "text": "hello staged\n",
+      "bytes": null
+    },
+    {
+      "path": "src/app.txt",
+      "text": "working\n",
+      "bytes": null
+    },
+    {
+      "path": "notes.txt",
+      "text": "new\n",
+      "bytes": null
+    }
+  ],
+  "expectations": {
+    "schema": "git-design-neutral-loose-index-v1",
+    "qualification": "GENERATED_IN_MEMORY_WITH_NODE_BUILTINS; ZERO_GIT_EXECUTION; native/product acceptance PENDING",
+    "virtualRoot": "/repo",
+    "oids": {
+      "baseCommit": "dde68226091aa6adddca45e02370c5127430e55a",
+      "headCommit": "1cec77171d8321d533b3aa50b7a1a9df02b10816",
+      "headTree": "b17f2aba562322af347fa8aa023d9d0e571a4369",
+      "stagedReadme": "5671f837b11e71420ad6d8da84ba07569e3961b1"
+    },
+    "proposedOutputs": [
+      {
+        "args": [
+          "status",
+          "--porcelain=v1",
+          "--no-renames",
+          "-uall"
+        ],
+        "exitCode": 0,
+        "stdout": "M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n"
+      },
+      {
+        "args": [
+          "diff",
+          "--name-only"
+        ],
+        "exitCode": 0,
+        "stdout": "src/app.txt\n"
+      },
+      {
+        "args": [
+          "diff",
+          "--cached",
+          "--name-only"
+        ],
+        "exitCode": 0,
+        "stdout": "README.md\nobsolete.txt\n"
+      },
+      {
+        "args": [
+          "show",
+          "HEAD:src/app.txt"
+        ],
+        "exitCode": 0,
+        "stdout": "two\n"
+      },
+      {
+        "args": [
+          "log",
+          "--first-parent",
+          "--format=%H %s",
+          "-n",
+          "2"
+        ],
+        "exitCode": 0,
+        "stdout": "1cec77171d8321d533b3aa50b7a1a9df02b10816 Second\ndde68226091aa6adddca45e02370c5127430e55a Initial\n"
+      },
+      {
+        "args": [
+          "ls-files",
+          "-z"
+        ],
+        "exitCode": 0,
+        "stdout": "README.md\u0000src/app.txt\u0000"
+      }
+    ]
+  }
+}
+{
+  "toolBindings": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  }
+}

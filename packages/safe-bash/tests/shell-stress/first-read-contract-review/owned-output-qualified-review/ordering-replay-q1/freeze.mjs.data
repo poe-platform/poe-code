@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, copyFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve,dirname } from 'node:path';
+import { spawnSync } from 'node:child_process';
+const root='/Users/kjopek/Workspace/safe-bash';
+const task='/tmp/safe-bash-owned-output-qualified-ordering-GTuQbL';
+const owned=resolve(root,'tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1');
+const first=resolve(dirname(owned),'execution-q1');
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const json=path=>JSON.parse(readFileSync(path));
+const file=path=>({path,sha256:hash(readFileSync(path))});
+const walk=base=>readdirSync(base,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?walk(resolve(base,entry.name)):[resolve(base,entry.name)]);
+const copy=(from,to)=>{mkdirSync(dirname(to),{recursive:true});copyFileSync(from,to);};
+for(const name of ['driver.mjs','lifetime.mjs','qualified-criteria.mjs','ordering-lifetime.mjs','prepare.mjs','freeze.mjs'])copy(resolve(owned,name+'.data'),resolve(task,name));
+for(const name of ['binding-map.json','expected-profiles.json']){
+  assert.equal(file(resolve(owned,name)).sha256,file(resolve(first,name)).sha256);
+  copy(resolve(owned,name),resolve(task,name));
+}
+const mapping=json(resolve(task,'binding-map.json'));
+assert.equal(mapping.records.length,32);assert.equal(new Set(mapping.records.map(entry=>entry.id)).size,12);
+writeFileSync(resolve(owned,'expected32.json'),JSON.stringify({logical:12,parameters:32,records:mapping.records.map(entry=>({id:entry.id,parameter:entry.parameter,expected:'PASS',unchangedCriteria:true})),failurePolicy:'Retain FAIL/BLOCKED, never weaken or rerun'},null,2)+'\n');
+for(const path of walk(resolve(task,'historical')))copy(path,resolve(owned,'historical',path.slice(resolve(task,'historical').length+1)+'.data'));
+copy(resolve(task,'tsconfig.json'),resolve(owned,'owned-tsconfig.json.data'));
+for(const path of ['src/shell/shell.ts','src/shell/runtime.ts','src/shell/cleanup.ts','src/shell/input.ts','src/contracts/output.ts','dist/shell/types.d.ts','dist/shell/index.d.ts','dist/contracts/output.d.ts'])copy(resolve(task,'candidate',path),resolve(owned,'source-evidence',path+'.data'));
+const deltaChildren=[];
+for(const name of ['driver.mjs','lifetime.mjs']){
+  const child=spawnSync('/usr/bin/diff',['-u',resolve(first,name+'.data'),resolve(owned,name+'.data')],{encoding:'utf8',timeout:5000});
+  assert.ok(child.status===0||child.status===1);assert.throws(()=>process.kill(child.pid,0),{code:'ESRCH'});
+  deltaChildren.push({pid:child.pid,status:child.status,reaped:true});writeFileSync(resolve(owned,name+'.patch-data'),child.stdout);
+}
+const auth=json(resolve(owned,'authentication-before.json'));
+const old=json(resolve(first,'config.json'));
+const executionFiles=old.executionFiles.filter(entry=>!entry.path.endsWith('/controls.mjs')&&!entry.path.endsWith('/native-helper.mjs')).map(entry=>({path:entry.path.replace('/tmp/safe-bash-owned-output-qualified-execution-zgVdib',task)}));
+executionFiles.push(...['ordering-lifetime.mjs','typed-dist/typed-signal.js','typed-signal.ts','typed-tsconfig.json','package.json','prepare.mjs','freeze.mjs','qualify.mjs'].map(path=>({path:resolve(task,path)})));
+const typings=json(resolve(owned,'typed-check.json')).inputs;
+const config={...old,authentication:file(resolve(owned,'authentication-before.json')),executionFiles:[...new Set([...executionFiles.map(entry=>entry.path),...typings.map(entry=>entry.path)])].map(file),syntheticSignalPublicCompatibilityAuthenticated:true,syntheticQualification:file(resolve(owned,'signal-host-qualification.json'))};
+for(const name of ['candidateEntry','historicalHelper','historicalProbe','historicalFacade','publicProfiles'])config[name]=file(old[name].path.replace('/tmp/safe-bash-owned-output-qualified-execution-zgVdib',task));
+assert.equal(auth.sourceId,config.sourceIdentity);
+for(const entry of typings)assert.equal(file(entry.path).sha256,entry.sha256);
+writeFileSync(resolve(task,'config.json'),JSON.stringify(config,null,2)+'\n');copy(resolve(task,'config.json'),resolve(owned,'config.json'));
+writeFileSync(resolve(owned,'freeze-children.json'),JSON.stringify(deltaChildren,null,2)+'\n');
+const files=walk(owned).filter(path=>!path.endsWith('/pre-run-seal.json')).map(path=>({path:path.slice(owned.length+1),sha256:file(path).sha256}));
+writeFileSync(resolve(owned,'pre-run-seal.json'),JSON.stringify({at:new Date().toISOString(),productImports:0,productExecutions:0,logical:12,parameters:32,driverSha256:file(resolve(task,'driver.mjs')).sha256,orderingFixtureSha256:file(resolve(task,'ordering-lifetime.mjs')).sha256,configSha256:file(resolve(task,'config.json')).sha256,files},null,2)+'\n');
+console.log(JSON.stringify({sealed:files.length,executionFiles:config.executionFiles.length,driverSha256:file(resolve(task,'driver.mjs')).sha256,productExecutions:0}));

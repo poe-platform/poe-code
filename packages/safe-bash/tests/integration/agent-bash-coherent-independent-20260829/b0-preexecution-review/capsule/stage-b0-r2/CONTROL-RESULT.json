@@ -1,0 +1,33 @@
+{
+  "role": "DATA_ONLY_NO_CHILD_FIXTURES",
+  "rows": [
+    {
+      "id": "positive-stageAProducerPreseal",
+      "pass": true
+    },
+    {
+      "id": "positive-workflowFixtureV4Preseal",
+      "pass": true
+    },
+    {
+      "id": "wrong-locator-stageAProducerPreseal",
+      "pass": true,
+      "opened": false
+    },
+    {
+      "id": "wrong-locator-workflowFixtureV4Preseal",
+      "pass": true,
+      "opened": false
+    },
+    {
+      "id": "wrong-size-before-open",
+      "pass": true
+    },
+    {
+      "id": "wrong-hash",
+      "pass": true
+    }
+  ],
+  "productImports": 0,
+  "harmlessNodeControllers": 0
+}

@@ -1,0 +1,21 @@
+{
+  "completedAt": "2026-08-27T19:47:31.546Z",
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/qualified-final-review-20260827/.work",
+  "removedEntries": 3586,
+  "workRemoved": true,
+  "declaredOracleSymlinkRemoved": true,
+  "externalNativeScratch": [
+    {
+      "scratch": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-qualified-final-review-20260827-native-OBREFf",
+      "removed": true
+    },
+    {
+      "scratch": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-qualified-final-review-20260827-native-final-c8TXVi",
+      "removed": true
+    }
+  ],
+  "noOwnWorkersReported": true,
+  "nativeRawCaptureRemovedNotCommitted": true,
+  "archiveSourceCompiledInstalledTarAndPackRemovedAfterAuthenticatedPostchecks": true,
+  "scope": "Only own temporary archives, build outputs, consumer installations, raw native captures and explicitly tracked scratch. No other workers or root files touched."
+}

@@ -1,0 +1,2 @@
+import { Shell, MemoryFileSystem } from 'virtual-bash';
+new Shell({ fs: new MemoryFileSystem(), limits: { maxExpansionBytes: '32' } });

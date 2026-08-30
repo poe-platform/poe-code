@@ -1,0 +1,253 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "reviewRole": "INDEPENDENT_M1B_RESOURCE_DESIGN_ONLY",
+  "authorCommit": "63d811bf1a809b467f47f309f41b1445486e71db",
+  "designPreseal": "7447166d3573eb6fa1ddcd6eb51b8e8212179033",
+  "dataPreseal": "bacf99cb0f8c675c06c29703ff6060357957136f",
+  "m1aCommit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "authorFiles": [
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/HANDOFF.md",
+      "bytes": 5747,
+      "mode": 420,
+      "sha256": "14aec73c6ae7f6fcb0611afc16b9218ec7ecd64fce0d81c5b7ce6ea74065d8d1",
+      "gitBlob": "abf6552deb760419e1a369a453e2783e4367496f",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/DECISIONS.md",
+      "bytes": 9715,
+      "mode": 420,
+      "sha256": "53083bf397cd35034148f59dc491386126704b0691cde0eec93e82fa7846ecc6",
+      "gitBlob": "df8784de117679e8a8ed8a6307430d5ca6b55807",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/BINDING-v2.json",
+      "bytes": 6857,
+      "mode": 420,
+      "sha256": "6053a0d4f8d5ed3af819861abd4e660db662adc63b32023b4d39dee57108f9e3",
+      "gitBlob": "990361faf70ebbfda2b1b52bcbe01f346b91a370",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/SPEC.md",
+      "bytes": 13338,
+      "mode": 420,
+      "sha256": "201eb25e5af87d3b6ef14f78c747ca4691a7d015a88283b1687ca9346fa2f7a1",
+      "gitBlob": "a3f703a9316a324247755e8a87c91af907865ea2",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/MATRIX.md",
+      "bytes": 4293,
+      "mode": 420,
+      "sha256": "62b14bae223b3cdbaf4de05b7de8591101d3584ebf790287c0eef25a4c668139",
+      "gitBlob": "ce549b177253eb3b611fe15646abdd3e53974e03",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/LIMITS.json",
+      "bytes": 1939,
+      "mode": 420,
+      "sha256": "e9ca0e94394738e8a2a6623b4d86111babfa75c83171f351986e65f57e0fb873",
+      "gitBlob": "e4aed380c0d1642ba822581c8c1a1259fab6d0f3",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/SOURCES.md",
+      "bytes": 2934,
+      "mode": 420,
+      "sha256": "16cf0ececf19b7c6f4b10f7c4deca7d8cbd23a7c5a132b1e0df75ab526be7bfe",
+      "gitBlob": "72513d3bc1cf77b979584242a6386025297e8d83",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+      "bytes": 370847,
+      "mode": 420,
+      "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080",
+      "gitBlob": "e5cd953534cfbbf8e098c0bafe89b043c87ce2db",
+      "role": "AUTHOR_FIXTURE_DATA_NOT_INDEPENDENT_FORMAT_OR_PRODUCT_PROOF"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/DATA-RECIPE.md",
+      "bytes": 3127,
+      "mode": 420,
+      "sha256": "360d2371dafdd1f9ed460b8efda648416ba1d39984ead7feceb38a5aad5c290f",
+      "gitBlob": "fdfd67e797bd7faf784e681d318a7a6da1f6294c",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/NATIVE-RECIPES.md",
+      "bytes": 2968,
+      "mode": 420,
+      "sha256": "993abc10be7df660bc74d68f9f4fc3bb268b22f699107443f9dce25237164b34",
+      "gitBlob": "27c21985319d2925c17494b8a915899abd4af390",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/BINDING.json",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "role": "INERT_AUTHOR_HISTORY_NOT_PASS_INHERITANCE"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/SEAL-v1-FAILURE.txt",
+      "bytes": 644,
+      "mode": 420,
+      "sha256": "859277811f38f506971e3d9a88196a2ebc02e658d1795ff1ddacb4475f40bf62",
+      "gitBlob": "1efd2ff36305fb345b655cb35d6639af7b30ea3d",
+      "role": "INERT_AUTHOR_HISTORY_NOT_PASS_INHERITANCE"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/CHECK-v1.json",
+      "bytes": 3327,
+      "mode": 420,
+      "sha256": "d87505a3c992f24da9a69e07e7220a4d4266cb913117b5ccbd2432e2ae764b44",
+      "gitBlob": "299b82720e5279bd67e82e7b61d4a43589f21c19",
+      "role": "INERT_AUTHOR_HISTORY_NOT_PASS_INHERITANCE"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/CHECK-v1.exit.txt",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "gitBlob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56",
+      "role": "INERT_AUTHOR_HISTORY_NOT_PASS_INHERITANCE"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/GENERATION-v1.json",
+      "bytes": 642,
+      "mode": 420,
+      "sha256": "f32d1f15da506353280d760941a648ed88e99e2f4f2c4c35b7367153f409458a",
+      "gitBlob": "389263c1184531221fed2adee8476be5ad5d400b",
+      "role": "INERT_AUTHOR_HISTORY_NOT_PASS_INHERITANCE"
+    },
+    {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/GENERATION-v1.exit.txt",
+      "bytes": 2,
+      "mode": 420,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "gitBlob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56",
+      "role": "INERT_AUTHOR_HISTORY_NOT_PASS_INHERITANCE"
+    }
+  ],
+  "resourceSeams": [
+    {
+      "commit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+      "path": "src/commands/git/limits.ts",
+      "bytes": 1975,
+      "sha256": "23175737832fdca114176825e1224daaa7f498fada7697f00cdf5064e08202df",
+      "gitBlob": "7b9cea64680f0a8d57eb8655f200c451ee6a44f9",
+      "role": "LIMITED_STATIC_RESOURCE_SEAM_NOT_M1A_IMPLEMENTATION_REVIEW"
+    },
+    {
+      "commit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+      "path": "src/commands/git/io.ts",
+      "bytes": 11765,
+      "sha256": "624beea98087860e1a6d98727830228bba0754231562ac64c620530b251b01cd",
+      "gitBlob": "99125d708586329dbdc337e718ac13e2160384e5",
+      "role": "LIMITED_STATIC_RESOURCE_SEAM_NOT_M1A_IMPLEMENTATION_REVIEW"
+    },
+    {
+      "commit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+      "path": "src/commands/git/codec.ts",
+      "bytes": 4631,
+      "sha256": "442bd6956340565599afcc1e0762eb7a8d8e001fe8880e9ec8185b1e200bd868",
+      "gitBlob": "02ad268a05e6e88edae8410c73328a65ac82d3e3",
+      "role": "LIMITED_STATIC_RESOURCE_SEAM_NOT_M1A_IMPLEMENTATION_REVIEW"
+    },
+    {
+      "commit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+      "path": "src/commands/git/repository.ts",
+      "bytes": 21491,
+      "sha256": "b3753919e00f59ff941d43cba8e1265eebf5b523dfec287f1fa6ac1d5856d223",
+      "gitBlob": "e325ee7e8ec1fd816bed49e8b551df89c8e6776d",
+      "role": "LIMITED_STATIC_RESOURCE_SEAM_NOT_M1A_IMPLEMENTATION_REVIEW"
+    }
+  ],
+  "originalFamilies": {
+    "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+    "path": "tests/commands/git-independent-20260828/MATRIX.md",
+    "bytes": 16173,
+    "mode": 420,
+    "sha256": "22ffee2be1420d1f9109dce8ae8702817cb418decace594676d2e8fb050a4ad8",
+    "gitBlob": "d6616066f30591e9b5acf884ed3eaa5b36f73742",
+    "lines": [
+      87,
+      98
+    ],
+    "familyIds": [
+      "B01",
+      "B02",
+      "B03",
+      "B04",
+      "B05",
+      "B06",
+      "B07",
+      "B08",
+      "B09",
+      "B10",
+      "B11",
+      "B12"
+    ]
+  },
+  "authorToolReference": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "expectedSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "role": "AUTHOR_RECORDED_TOOL_NOT_EXECUTED_OR_VERSION_PROBED_BY_REVIEWER"
+  },
+  "fixtureExpectedSha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080",
+  "actualAdmissionRole": "Development Git object/byte metadata only; no candidate admission or GO created",
+  "authorScores": {
+    "formatSets": 13,
+    "entries": 106,
+    "dataRejects": 18,
+    "workflowsUnrun": 6,
+    "independentProductCredit": 0,
+    "nativeCredit": 0
+  },
+  "peerProvisional": {
+    "path": "/tmp/git-pack-format-findings.txt",
+    "bytes": 2563,
+    "mode": 420,
+    "sha256": "4fe90c1fcf49fe489f3bdc496f969da34933bf09a0dd390a4a2453db23da282a"
+  },
+  "history": {
+    "metadataV1FailurePreserved": true,
+    "metadataV2AuthorReceiptNotIndependentProductProof": true,
+    "oldPacketsModified": false,
+    "YQ": "PAUSED_NO_ACTION"
+  },
+  "execution": {
+    "product": 0,
+    "nativeGitOrVersion": 0,
+    "compiler": 0,
+    "build": 0,
+    "zlib": 0,
+    "authorTools": 0,
+    "private": 0,
+    "helpers": 0,
+    "children": 0
+  }
+}

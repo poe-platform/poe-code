@@ -1,0 +1,111 @@
+{
+  "scope": "helper syntax only",
+  "results": [
+    {
+      "name": "case-adapter.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "case-driver.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "controls.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "data.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "fixtures/kill.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "fixtures/loaded.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "fixtures/normal.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "fixtures/term.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "fixtures/unlisted-entry.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "fixtures/unlisted.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "fixtures/worker-refusal.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "guard.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "loader.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "mechanism.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "ordering-mutant.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "outer.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "package-admission.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "parse-manifest.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "restored-admission.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "setup.mjs",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "supervisor.mjs",
+      "status": 0,
+      "stderr": ""
+    }
+  ],
+  "productImports": 0
+}

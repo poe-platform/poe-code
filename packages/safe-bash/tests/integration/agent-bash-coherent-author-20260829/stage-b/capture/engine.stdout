@@ -1,0 +1,200 @@
+BINDING_KEYS ["schema","created","sourceArchive","usableArchive","compiler","engineFiles","packageMetadata","externalEdges","adapterAndGuardFiles","toolFields","currentCoherent","execution"]
+schema "independent-public95-preflight-bindings-v1"
+created "2026-08-29T09:32:41.182Z"
+sourceArchive {"commit":"bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e","locatorCommit":"463a945125b900cbb98436b9e9292d78ca6c98aa","path":"tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64","encodedBytes":461669,"encodedSha256":"8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637","files":98,"gitProofTrees":15}
+usableArchive {"commit":"30ac56acbf12a69b90e1923810958bcbcf367fe0","path":"tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64","encodedBytes":1939657,"encodedSha256":"18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4","decodedGzipBytes":1454742,"decodedGzipSha256":"014ebf5c1f325c9f7288e8cb55970bd41bf02604ee727089d0bdb07655692c3c","schema":"node-author-input-archive-v1","selection":"engine only; baseline278 must NOT replace coherent309","fieldKeys":["target","source","bytes","sha256","inputRole","commit","body"],"count":96}
+compiler {"commit":"463a945125b900cbb98436b9e9292d78ca6c98aa","method":"TS5.9.3 transpileModule reportDiagnostics:true ESNext/ES2022; syntax/options diagnostics only, NOT strict program typecheck","recipeSha256":"edafdfa33c252ed1e34a661bc65c4fe691b370f48afcd678759d4c115ac66e5c","emittedReceiptSha256":"850d0d6eaa3d196b1a11eb60a1234c3ae4517b105665abfa0c3f012dcdc776b7","emittedBytes":1076164,"strictProgramTypecheck":false,"diagnostics":0}
+engineFiles {"length":95,"first":[{"path":"compiled/engine/dist/core.js","source":"src/core.ts","sourceSha256":"8be80dabb023c6f260973b7ac78db7a1405b48f55118d384182eaa081e7eff0a","bytes":165,"sha256":"ed080124e1d934be0e43d0e651126ec298c7881584d061ded5dec98257ff4852","sourceMapText":null,"target":"compiled/engine/dist/core.js","stagedRelativePath":"engine/dist/core.js","sourceBytes":396,"sourceRole":"public bb23 source"},{"path":"compiled/engine/dist/error-codes.js","source":"src/error-codes.ts","sourceSha256":"276480f5fc5e9b536fbf976b46c09aed159c0465c32cb8cb448f8fd7137ab51b","bytes":380,"sha256":"8ef9f6c15ab94c4545e81e33ab7f56cef4604f3035c85b344e11e0e1f410edac","sourceMapText":null,"target":"compiled/engine/dist/error-codes.js","stagedRelativePath":"engine/dist/error-codes.js","sourceBytes":470,"sourceRole":"public bb23 source"}]}
+packageMetadata {"target":"compiled/engine/package.json","stagedRelativePath":"engine/package.json","bytes":1330,"sha256":"ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a"}
+externalEdges {"length":10,"first":[{"importer":"compiled/engine/dist/interp/host-call.js","kind":"static","specifier":"node:crypto","resolved":"node:crypto","inEmission":false},{"importer":"compiled/engine/dist/interp/jobs.js","kind":"static","specifier":"node:async_hooks","resolved":"node:async_hooks","inEmission":false}]}
+adapterAndGuardFiles {"length":5,"first":[{"path":"tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs","bytes":1484,"sha256":"2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d","gitBlob":"18cf64b44ccdcc9ccfcfc015293d6feb13146181"},{"path":"tests/integration/node-public-author-20260829/runner-node.mjs.data","bytes":8276,"sha256":"ae47df981d47ed6ec2e93e8ab0ca671b2dd8bfee152c9408c92968562b4f3957","gitBlob":"ce862ad3746f5dc24091503186f71facf02b9f10"}]}
+toolFields {"node":{"origin":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","version":"v22.22.2","sha256":"5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011","bytes":112989184},"typescript":{"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/typescript","version":"5.9.3","rowCount":132,"rowSchema":["relativePath","modeNumber","bytes","sha256"],"rowsSerializationSha256":"795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41","materializedThisReview":false},"npm":{"origin":"/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm","version":"10.9.7","rowCount":2039,"rowSchema":["relativePath","modeNumber","bytes","sha256"],"rowsSerializationSha256":"76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55","materializedThisReview":false},"@types/node":{"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/@types/node","version":"22.20.1","rowCount":74,"rowSchema":["relativePath","modeNumber","bytes","sha256"],"rowsSerializationSha256":"e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae","materializedThisReview":false},"undici-types":{"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/undici-types","version":"6.21.0","rowCount":41,"rowSchema":["relativePath","modeNumber","bytes","sha256"],"rowsSerializationSha256":"e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986","materializedThisReview":false}}
+currentCoherent {"sourceSha256":"ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae","computedTree":"3adc676a0ab638c9788ef007e465931d65d2c6fe","inputs":309,"unchangedNodeFiles":16,"predictedMembers":1014,"actualPackageSha256":null}
+execution {"compiler":0,"product":0,"worker":0,"engine":0,"guest":0,"private":0,"network":0}
+RETAINED [
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+    "blob": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103",
+    "bytes": 9613,
+    "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+    "path": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-redirection-author-20260829/CASES.json",
+    "blob": "aa0becf7144cdfc4efa32b5cc030d530364bfb33",
+    "bytes": 2790,
+    "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+    "path": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+    "blob": "59ae1e639274455401c0457fe67b88858330f2d5",
+    "bytes": 957,
+    "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840",
+    "path": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+    "blob": "f73b632fb607e8fe0c0067656cf5a1cf29026503",
+    "bytes": 11148,
+    "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+    "path": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+    "blob": "4d0fe40653cf150cf790dacf0418da8b15072eba",
+    "bytes": 9222,
+    "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+    "path": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+    "blob": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+    "bytes": 14524,
+    "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+    "path": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+    "blob": "196e4520d979918b145d0560cfa49892ad9c575a",
+    "bytes": 14101,
+    "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc",
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+    "blob": "a811a09c755637dcee37abbbdecbd0a5db35c634",
+    "bytes": 14968,
+    "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f",
+    "path": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+    "blob": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac",
+    "bytes": 2507,
+    "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+    "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+    "blob": "4928c2331f264a7b4b8389c791c4d1c0f6298fb2",
+    "bytes": 3019,
+    "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+    "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+    "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+    "bytes": 5599,
+    "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3",
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/resources.mjs",
+    "blob": "f57ddbeecc878698bc03a5f265f3f76386107fbb",
+    "bytes": 1978,
+    "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+    "path": "tests/integration/git-public-20260829/resources.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/loader.mjs",
+    "blob": "9d2747828f958687f0ab5c2b93977c3988bf7ed6",
+    "bytes": 1180,
+    "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+    "path": "tests/integration/git-public-20260829/loader.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/names.mjs",
+    "blob": "c9723f7471f3e14309db432a55e9befa6aebd42b",
+    "bytes": 879,
+    "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+    "path": "tests/integration/git-public-20260829/names.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  }
+]
+
+WORKFLOW_ADAPTER_LINES export const engineIds = Object.freeze(['C10','C11','C15','C16','C18']);
+export const engineFreeIds = Object.freeze(workflowIds.filter(id => !engineIds.includes(id)));
+  if (engineIds.includes(id)) assert.equal(context.engine?.role, 'SEPARATELY_AUTHENTICATED_PUBLIC_ENGINE');
+  const facts = { id, role: engineIds.includes(id) ? 'PUBLIC_ENGINE_REQUIRED' : 'ENGINE_FREE_PRODUCT_PROFILE', status: 'UNRUN', events };
+  const inert = { profile: nodeApi.NODE_PROFILE, identity: 'coherent-never-started-provider', prepare() { prepares++; throw new Error('unexpected provider preparation'); } };
+  const addNode = (shell, grants = {}, provider = inert, replace = false) => shell.use(nodeApi.nodeCommands({ provider, grants, replace }));
+  const realProvider = () => {
+    const provider = context.engine.createProvider();
+    return { profile: provider.profile, identity: provider.identity, prepare(request, services) { prepares++; facts.requests ??= []; facts.requests.push({ argv: [...request.argv], cwd: request.cwd, filename: request.filename, selector: request.selector }); return provider.prepare(request, services); } };
+      for (const name of ['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError']) assert.equal(api[name], nodeApi[name], name);
+    } else if (id === 'C10') {
+      const shell = make(); addNode(shell, { sourceRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      addNode(shell, { dataRead: true, dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+    } else if (id === 'C15') {
+      addNode(shell, { dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+    } else if (id === 'C16') {
+      const shell = make(); addNode(shell, { dataRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      facts.providerFinalization = 'controlled release only; no opaque preemption';
+    } else if (id === 'C18') {
+      const shell = make(), options = { provider: realProvider(), grants: { stdoutWrite: true, stderrWrite: true }, replace: true };
+      shell.commands.register(original); const plugin = nodeApi.nodeCommands(options); options.replace = false; options.provider = null; options.grants.stdoutWrite = false;
+RECEIPT_SHORT [
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/COMPOSITION.json",
+    "blob": "e90341d1eb8ee4e7e54e826c205b7978b21ac98d",
+    "bytes": 131348,
+    "sha256": "9def80500ee79d157054dcdd8a8dd06b7f77c2f8a720bd34e34c550aec5831f9"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/TREE-WITNESSES.json",
+    "blob": "b440f05d2d58a9310fb11fc45136696b6deed73a",
+    "bytes": 161248,
+    "sha256": "64ed23c6e2f74890ecb2d72284d9458da00af3e59a9ea8975405fd75deb2610a"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/SOURCE-TREE-INVENTORY.json",
+    "blob": "0b995d3cb3b461d479aa88d52b6d47ea043f722f",
+    "bytes": 40195,
+    "sha256": "4f00a838cf440a8f09e9591495357037b33432d3cc141594295860d12fa4d8a4"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/EVIDENCE.md",
+    "blob": "720bd6625465c6b6da046a1f0292ff171c33cae4",
+    "bytes": 2596,
+    "sha256": "55481fd9d7ad674c931f3fa7d5ccaec84a6736ca1889eb36aa7462e9fd964a73"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json",
+    "blob": "cbce5f039417a2ca96dd967b678f5fdaf0ad8b47",
+    "bytes": 230044,
+    "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/PRESEAL-v4.json",
+    "blob": "1b6a4875e52fcd319bfbd0f821ae783517b05c66",
+    "bytes": 4237,
+    "sha256": "5735b4f62fd237713ba7865ebbe2955798d092441961797ed993935d514f39b5"
+  },
+  {
+    "reference": "bb4dd0571a0335b20e29448bf88126ca02c1a32d:tests/integration/node-public-author-20260829/public-node.mjs",
+    "blob": "4dd969c1c93eb552c64049d4525a7a480eb8a2c7",
+    "bytes": 11663,
+    "sha256": "b7e3b584d845fe120758305ff92543a4dc9f039c3ca6f48b42fae84ff3108aa2"
+  },
+  {
+    "reference": "b7dc87ff84a45567dc8d912cc15dd10f089ed68a:tests/integration/agent-bash-coherent-independent-20260829/PROBES.json",
+    "blob": "836ebb617ed01885825527feaf7e3bdd4aaa0fd5",
+    "bytes": 7253,
+    "sha256": "4d4a3f840ba29844568271a42584103387370588217b66c82eea0e4213c4745b"
+  }
+]
+

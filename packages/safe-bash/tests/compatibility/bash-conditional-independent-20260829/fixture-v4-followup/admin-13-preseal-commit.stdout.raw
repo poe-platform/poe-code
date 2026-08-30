@@ -1,0 +1,26 @@
+[main 5b25e519] test: seal corrected conditional v4 and remaining mutant review
+ 24 files changed, 22099 insertions(+)
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EXECUTION-SEAL.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/EXECUTOR.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/NOVEL-CASES.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/PLAN.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/RECIPE.md
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/SOURCE.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/STAGE-INPUTS.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/TOOL-CENSUS.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admit.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/derived-tree.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/fixtures/conditional.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/fixtures/novel-v4.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/hash-regular-file.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/internal-loader-arguments.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/launch.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/loader.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/prepare.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/resources.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/run.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/stage-inputs.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/tool-closure.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/tool-observer.mjs
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/worker-policy.mjs

@@ -1,0 +1,208 @@
+{
+  "schema": "ere-capture-reference-v1",
+  "cases": [
+    {
+      "id": "N01",
+      "pattern": "(a(b)?)+",
+      "subject": "aba",
+      "maps": [
+        "I01-parent-optional-reset",
+        "author-E12"
+      ],
+      "purpose": "optional child omitted in final parent",
+      "program": "pattern='(a(b)?)+'\nsubject='aba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N01\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8",
+      "programBytes": 522,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N02",
+      "pattern": "((a)|(b))+",
+      "subject": "ab",
+      "maps": [
+        "I02-parent-alternative-reset"
+      ],
+      "purpose": "final alternative differs",
+      "program": "pattern='((a)|(b))+'\nsubject='ab'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N02\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6",
+      "programBytes": 523,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N03",
+      "pattern": "((a(b)?)c)+",
+      "subject": "abcac",
+      "maps": [
+        "I03-nested-parent-reset"
+      ],
+      "purpose": "nested grandchild omission",
+      "program": "pattern='((a(b)?)c)+'\nsubject='abcac'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N03\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb",
+      "programBytes": 527,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N04",
+      "pattern": "(ba(na)*s )*",
+      "subject": "bananas bas ",
+      "maps": [
+        "I04-manual-example"
+      ],
+      "purpose": "GNU manual reporting example",
+      "program": "pattern='(ba(na)*s )*'\nsubject='bananas bas '\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N04\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931",
+      "programBytes": 535,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N05",
+      "pattern": "(a(b)?){2}",
+      "subject": "aba",
+      "maps": [
+        "I05-finite-parent-reset"
+      ],
+      "purpose": "fixed parent repetition",
+      "program": "pattern='(a(b)?){2}'\nsubject='aba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N05\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b",
+      "programBytes": 524,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N06",
+      "pattern": "((a)?b){2}",
+      "subject": "abb",
+      "maps": [
+        "I06-parent-zero-iteration"
+      ],
+      "purpose": "optional inner zero iteration",
+      "program": "pattern='((a)?b){2}'\nsubject='abb'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N06\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce",
+      "programBytes": 524,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N07",
+      "pattern": "((a)|(b))+",
+      "subject": "ba",
+      "maps": [
+        "I23-finite-reset-property"
+      ],
+      "purpose": "one finite reverse-alternative witness, NOT all62 property inputs",
+      "program": "pattern='((a)|(b))+'\nsubject='ba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N07\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2",
+      "programBytes": 523,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N08",
+      "pattern": "(a(b)?)+",
+      "subject": "ab",
+      "maps": [],
+      "purpose": "final inner participation control",
+      "program": "pattern='(a(b)?)+'\nsubject='ab'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N08\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37",
+      "programBytes": 521,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N09",
+      "pattern": "(a)?b",
+      "subject": "b",
+      "maps": [],
+      "purpose": "optional omission shell-visible reporting control",
+      "program": "pattern='(a)?b'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N09\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373",
+      "programBytes": 517,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N10",
+      "pattern": "(a*)b",
+      "subject": "b",
+      "maps": [],
+      "purpose": "empty captured string reporting control",
+      "program": "pattern='(a*)b'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N10\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea",
+      "programBytes": 517,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N11",
+      "pattern": "(a)",
+      "subject": "b",
+      "maps": [],
+      "purpose": "nonmatch observation control",
+      "program": "pattern='(a)'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N11\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97",
+      "programBytes": 515,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N12",
+      "pattern": "(",
+      "subject": "a",
+      "maps": [],
+      "purpose": "invalid ERE status observation control",
+      "program": "pattern='('\nsubject='a'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N12\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8",
+      "programBytes": 513,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    }
+  ],
+  "fixtures": [],
+  "fixtureInventory": {
+    "count": 0,
+    "bytes": 0,
+    "paths": []
+  },
+  "nativeExecutions": 0,
+  "expectedNativeGoldens": false
+}

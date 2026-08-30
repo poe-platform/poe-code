@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-read-fence",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-read-fence/harness/execution-prep-v1/load-guard.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-read-fence/harness/execution-prep-v1/probe-worker.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-read-fence/guard-manifest.json",
+    "032f3629d47ca714e5a196cfe93a7455f6c05fce2c5c3d9af8f9c5cc336213fd",
+    "read-fence"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-read-fence",
+  "started": "2026-08-28T07:58:22.756Z",
+  "finished": "2026-08-28T07:58:23.299Z",
+  "pid": 29687,
+  "code": 1,
+  "signal": null,
+  "spawnError": null,
+  "failure": null,
+  "groupAbsent": true,
+  "closeObserved": true,
+  "stdout": "{\"admission\":{\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"manifestSha256\":\"032f3629d47ca714e5a196cfe93a7455f6c05fce2c5c3d9af8f9c5cc336213fd\",\"runtimeSha256\":\"6441001391e091b0b893d0d0becd5805effb44a787f8428a46dd515a75ab792f\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-read-fence/harness/execution-prep-v1/probe-worker.mjs\",\"sha256\":\"4de5a977b7dd9c93d7b2f0ae16cd8625af7708bdfe4f9d90999c5df3da1cd975\"}}\n",
+  "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-source-read-fence/harness/execution-prep-v1/probe-worker.mjs:8:39\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/source/dist/index.js'\n}\n\nNode.js v22.22.2\n",
+  "bytes": 1331
+}

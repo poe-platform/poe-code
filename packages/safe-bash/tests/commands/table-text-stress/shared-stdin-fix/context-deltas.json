@@ -1,0 +1,89 @@
+{
+  "at": "2026-08-27T02:55:10.303Z",
+  "label": "Accepted d506 current-helper snapshot versus this leaf current-source validation; no FS changes by this leaf",
+  "filesystemDelta": [
+    {
+      "path": "src/fs/s3/authority.ts",
+      "accepted": "a89587089b0d059d44393e04822ff8f3481faa0aedb8101449d087100f8e30a8",
+      "current": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344"
+    },
+    {
+      "path": "src/fs/s3/COMPARISON.md",
+      "accepted": "0b94393b625c7b35fbb87eb26489891a10411ca502a6f83f99deb3ab14b50fd2",
+      "current": "3732efbce0d3ded5a76a3ccd5063d39baa167e49c9dab347bb7fcba0712d176f"
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "accepted": "b34d766829184cf73ff6e8712d0bcb60216c35250234a0b80475f8d91d4f1a9e",
+      "current": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411"
+    },
+    {
+      "path": "src/fs/webdav/resource-id.ts",
+      "accepted": "91c91a336e6256bfb824aacec79d0aa31111796c347de91bf2bc0dad47c1e0f5",
+      "current": "4f308ff320a2193f683b8ad812c40e06a53536b4c78ebdac0752c4a71d920138"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "accepted": "799b7d501c112ec26171e6abee88e516199e4b087caeb21903909171bf94aba8",
+      "current": "36e9b5eb6f012df25bd5bb529d29716400f53a6ffa593d75b78f19f77c791b22"
+    }
+  ],
+  "initialToValidationSourceDelta": [
+    {
+      "path": "src/commands/table-text/comm.ts",
+      "initial": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+      "current": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd"
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "initial": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+      "current": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9"
+    }
+  ],
+  "authorTestChecks": [
+    {
+      "path": "tests/commands/table-text/contracts.test.ts",
+      "sha256": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c",
+      "accepted": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c"
+    },
+    {
+      "path": "tests/commands/table-text/differential.test.ts",
+      "sha256": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+      "accepted": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048"
+    },
+    {
+      "path": "tests/commands/table-text/integration.test.ts",
+      "sha256": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4",
+      "accepted": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4"
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "sha256": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517",
+      "accepted": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517"
+    },
+    {
+      "path": "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts",
+      "sha256": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+      "accepted": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336"
+    },
+    {
+      "path": "tests/commands/structured-stress/split-increment/interop.test.ts",
+      "sha256": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+      "accepted": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f"
+    },
+    {
+      "path": "tests/commands/structured-stress/final-increment/fresh-interop.test.ts",
+      "sha256": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e",
+      "accepted": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e"
+    }
+  ],
+  "legacyConflict": [
+    "not ok 119 - explicit GNU duplicate-close disagreement comm: shared stdin"
+  ],
+  "unchangedHistoricalRecords": [
+    "tests/commands/table-text/gnu-evidence.json",
+    "tests/commands/table-text-stress/review/acceptance.json",
+    "tests/commands/diff-patch-stress/routed-five-review/table-current-helper-verification.json"
+  ],
+  "childrenSpawned": 0
+}

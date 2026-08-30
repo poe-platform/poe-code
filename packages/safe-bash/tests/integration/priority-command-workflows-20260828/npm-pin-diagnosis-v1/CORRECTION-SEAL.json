@@ -1,0 +1,68 @@
+{
+  "schema": "npm-pin-diagnosis-data-correction-seal-v1",
+  "role": "DATA_CORRECTION_CANDIDATE_DIFFERENT_REVIEW_REQUIRED_NOT_EXECUTION_AUTHORIZATION",
+  "createdAt": "2026-08-28T18:47:39.366Z",
+  "files": [
+    {
+      "path": "PROTOCOL.json",
+      "sha256": "73030dc75cb3061725b6e60724a60db22af32608501dc3b4d9ad51d5f9dadf23",
+      "bytes": 1645
+    },
+    {
+      "path": "CONTROLS-PRESEAL.json",
+      "sha256": "ddcd2291e923759f6bb0cdecf46a64e7d4f64b2e5de08a93440001c87776bd1c",
+      "bytes": 3539
+    },
+    {
+      "path": "DIAGNOSIS.json",
+      "sha256": "0fece53aef82afaa9d1f88fba1c77c999ff7241456ec7a90016b786df5c1dbfe",
+      "bytes": 25222
+    },
+    {
+      "path": "CONTROLS-RESULTS.json",
+      "sha256": "d5069bbc09750f9600c54af3904878a052986883550868da2284d666ab8a3b7c",
+      "bytes": 1950
+    },
+    {
+      "path": "originalRows.canonical.utf8.base64",
+      "sha256": "b3bca511b571a4bec152ece889a9d1b4f59c6ae338db7cb3f986a92fe9a0b326",
+      "bytes": 332049
+    },
+    {
+      "path": "copiedRows.canonical.utf8.base64",
+      "sha256": "fae38f4446bab44963d160f59ed3bdaa66cd41ea9e7fa0bfeb9aa4af5a8422fc",
+      "bytes": 330805
+    },
+    {
+      "path": "proposed/BINDINGS.json.data",
+      "sha256": "17a976b5644a8a0c4cfb6b1ff69789939dc67b2954a1aaec86ba0da06e8fea00",
+      "bytes": 30714
+    },
+    {
+      "path": "proposed/MANIFEST.json.data",
+      "sha256": "45bc9f53e43ca53062fbb556a829b9ba58ea31ac170cabc025c7160568611968",
+      "bytes": 1542
+    },
+    {
+      "path": "proposed/PREPARATION-SEAL-v3.json.data",
+      "sha256": "14048032381ed59af8af658bdb4ca83c752128acec4828fa21eb2414e8058ab7",
+      "bytes": 20766
+    },
+    {
+      "path": "CHILD-LOG-PRESEAL.json",
+      "sha256": "a36c0bcf4d7a3fd738424e892f7ec7bf75587cf0452d3a0993da7d683dc42fa3",
+      "bytes": 30319
+    },
+    {
+      "path": "README.md",
+      "sha256": "1263fb7c7dc792888756b3693c0898df6d08564918aa9306ecefa4f49dd76a63",
+      "bytes": 1469
+    }
+  ],
+  "inventoryEncoding": "UTF-8 JSON.stringify ordered [path,bytes,sha256] tuples without newline",
+  "inventorySha256": "8f5670317a46ac64ab9eec48afcf54a5bcc32a5187e5f6a07e57605f00bab022",
+  "selfExcluded": true,
+  "originalSealUnchanged": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+  "noGO": true,
+  "actualDispatch": 0
+}

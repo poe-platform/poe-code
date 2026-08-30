@@ -1,0 +1,323 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS_METADATA_ONLY_NOT_INDEPENDENT_FREEZE_ACCEPTANCE",
+  "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "manifest": {
+    "path": "FREEZE_MANIFEST.json",
+    "sha256": "5e0ae4878a1512f2b279d09413a71dcc93aa5b754c0e23a089669deb71d81ecd"
+  },
+  "metadataManifestBindingsChecked": 40,
+  "checks": [
+    {
+      "check": "delivery-byte-binding",
+      "path": "location.json",
+      "sha256": "de7090ee10ee4f9941813175d789472660068f56d83dd31b6cc31c3c17bede5a",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "baseline-authentication.json",
+      "sha256": "82450d914c75fba8a11257c778f135ac4b538c91b6cbf833770dcd1960d3988a",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "baseline-closure.json",
+      "sha256": "de60cebabeede33fa5718dbee72e73301b39651db2ec2e607c4a1fa455d0d94d",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/source-extract.stdout.txt",
+      "sha256": "04158008e3a0dc12f5eb89176fb0c78b016b64dbbd3fc1ff1403a89a68288b34",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/source-extract.stderr.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/source-extract.json",
+      "sha256": "0dfcfc11439038d6a4db4536a7943fe9df332f285c2c58f595990949f1820cb9",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "source-inventory.json",
+      "sha256": "00e2633c564a461bf095e7fb9444d165e2c261b3d3b02a0143194044b36a70dd",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "compiler-closure.json",
+      "sha256": "8f3df3967c5836c990e6bd6cc39c2032451064809b8e6a63c034c75eab519580",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "build-inputs.json",
+      "sha256": "0d60a937aa5514b6e02c0af7f89d2570e1bd02192a072d780800f23204b7533b",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/compiler-build.stdout.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/compiler-build.stderr.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/compiler-build.json",
+      "sha256": "79d61a702ec8e426be2491a3b24f1c8d2f028bfae15a70a7d731e1355596f19d",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/package-archive.stdout.txt",
+      "sha256": "32424787ed2528687d433c1354c5e6e1de30c529c4a7a3be8f35fb1c4cea0bb0",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/package-archive.stderr.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/package-archive.json",
+      "sha256": "18f202490aa404ba37703ac69c27e181b8ebbea8f3a1522d64d567c91c47fa70",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/package-extract.stdout.txt",
+      "sha256": "7c1f6d892fe67766e887c1c41d93628c5b084f773aa4d6ff877fcf6ed090a360",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/package-extract.stderr.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/package-extract.json",
+      "sha256": "bbef5d4b65405d227fd9a69bc0e5345003bfbc7c7a2fb0a422f4f9a087d35b1a",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "candidate-package.json",
+      "sha256": "66a9aceb964df6419a14745cf45017fee14248a878a08985ba0ec73eced64318",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "candidate-closure.json",
+      "sha256": "3aadb59ff99a090d235a9770d8be6683afd29c1f3d4c380ce4c580d6bcff38a8",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "execution-binding.json",
+      "sha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "proposed-root-receipt.json",
+      "sha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "runner-cohort-bindings.json",
+      "sha256": "752b6a910fd2e2884c706026be15c4982d792d4733704feeaad031c8d04a96ab",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/public-resolution-only.stdout.txt",
+      "sha256": "173d8491ce80ef5a98d7707a328903fe8edce3d6512f339767f951a15d625ce5",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/public-resolution-only.stderr.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/public-resolution-only.json",
+      "sha256": "09d5dc3e693cc6bc1882d52236e9b5827423336425aaa70a8f3da1ac6ca439bd",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "public-resolution.json",
+      "sha256": "173d8491ce80ef5a98d7707a328903fe8edce3d6512f339767f951a15d625ce5",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/static-preflight.stdout.txt",
+      "sha256": "5aced13757cc96986fecd421987c13568c6c7bca6548ce58bee38503e4f86928",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/static-preflight.stderr.txt",
+      "sha256": "824f0eba2ffa24ca261c0a6d94b5e31847a1babc33737b897a6de9181def8801",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "processes/static-preflight.json",
+      "sha256": "378a28385cfee696ef893d44725632554a0146e1b2dd9976a13a6436205ab897",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "static-preflight.json",
+      "sha256": "a94d2bd6bc95e3fa8ec7b9e9b6609d4be9c84c0cc87a353fdbf0e7460a963a37",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "tool-bindings.json",
+      "sha256": "cc01e1781539f9341b66f2f2dd8b8250ee8fffb2b88719f86c7ac2b4dc6f2793",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "git-reads.json",
+      "sha256": "a0b06e7ab4f0976922e5ba94643cbc85553c9dd243be2881ad107abf556dab42",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "NEXT_COMMAND.txt",
+      "sha256": "cfa4b86d9ed13c8dc4c1dee0fdd46cd22895827dbb2886ef31516d8d89905425",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "READY.json",
+      "sha256": "e53b0450873153f68223f3fe563bc075b7909ec2ddd23aa218f41b8e1989b7c5",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "prepare-freeze.mjs",
+      "sha256": "5da2219e38d20d889df93335102836ca5e4f2369b2cfa0e674d52146ddc19ae5",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "archive-tools.py",
+      "sha256": "e364f20f4dec4178af68454f8049bb40e712b1be39879f2f2f3d78d1fc261a80",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "resolve-public.mjs",
+      "sha256": "36e7c191bfdbf803ae78cc0e671d6810e525ffbf4ebc00f388c6b3762d5b8641",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "preflight-only-loader.mjs",
+      "sha256": "6ef3efa0ceb801d00a7c196a41b98878e5d216ab88830830486dd8da1a460abe",
+      "result": "PASS"
+    },
+    {
+      "check": "delivery-byte-binding",
+      "path": "AUTHORIZATION.md",
+      "sha256": "4194129447098c71a989b78b6728f2969894d2f31cbd54bea23226dd53f405c7",
+      "result": "PASS"
+    }
+  ],
+  "byteLimits": {
+    "perFileBytesCap": 8388608,
+    "totalBytesCap": 33554432,
+    "manifestPassBytes": 3592485,
+    "additionalProcessReceiptBytes": 412090,
+    "observedBytes": 4004575
+  },
+  "processes": [
+    {
+      "label": "source-extract",
+      "exitCode": 0,
+      "closed": true,
+      "groupGone": true,
+      "rawCapturesVerified": true
+    },
+    {
+      "label": "compiler-build",
+      "exitCode": 0,
+      "closed": true,
+      "groupGone": true,
+      "rawCapturesVerified": true
+    },
+    {
+      "label": "package-archive",
+      "exitCode": 0,
+      "closed": true,
+      "groupGone": true,
+      "rawCapturesVerified": true
+    },
+    {
+      "label": "package-extract",
+      "exitCode": 0,
+      "closed": true,
+      "groupGone": true,
+      "rawCapturesVerified": true
+    },
+    {
+      "label": "public-resolution-only",
+      "exitCode": 0,
+      "closed": true,
+      "groupGone": true,
+      "rawCapturesVerified": true
+    },
+    {
+      "label": "static-preflight",
+      "exitCode": 0,
+      "closed": true,
+      "groupGone": true,
+      "rawCapturesVerified": true
+    }
+  ],
+  "qualifications": {
+    "comparisonOnly": true,
+    "releaseQualified": false,
+    "globalGreen": false,
+    "wholeGateApproval": false,
+    "envSplitS": "PARTIAL",
+    "shebang": "UNSUPPORTED",
+    "independentFixtureValidity": "UNRESOLVED",
+    "independentFreezeCheck": "PENDING"
+  },
+  "staticPreflight": {
+    "status": "BOUND_NOT_MEASURED",
+    "returnedHelperLoads": 9,
+    "productImports": 0
+  },
+  "movedPackageStageAbsent": true,
+  "futureMeasurementOutputAbsent": true,
+  "underlyingArtifactRehashesThisMetadataCheck": 0,
+  "staged": false,
+  "committed": false
+}

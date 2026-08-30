@@ -1,0 +1,177 @@
+primary/lib__fs.js.txt 2770-2827
+2770:       base = previous + StringPrototypeSlice(p, pos, result);
+2771:       pos = result + 1;
+2772:     }
+2773: 
+2774:     // Continue if not a symlink, break if a pipe/socket
+2775:     if (knownHard.has(base) || cache?.get(base) === base) {
+2776:       if (isFileType(statValues, S_IFIFO) ||
+2777:           isFileType(statValues, S_IFSOCK)) {
+2778:         break;
+2779:       }
+2780:       continue;
+2781:     }
+2782: 
+2783:     let resolvedLink;
+2784:     const maybeCachedResolved = cache?.get(base);
+2785:     if (maybeCachedResolved) {
+2786:       resolvedLink = maybeCachedResolved;
+2787:     } else {
+2788:       // Use stats array directly to avoid creating an fs.Stats instance just
+2789:       // for our internal use.
+2790: 
+2791:       const stats = binding.lstat(base, true, undefined, true /* throwIfNoEntry */);
+2792:       if (stats === undefined) {
+2793:         return;
+2794:       }
+2795: 
+2796:       if (!isFileType(stats, S_IFLNK)) {
+2797:         knownHard.add(base);
+2798:         cache?.set(base, base);
+2799:         continue;
+2800:       }
+2801: 
+2802:       // Read the link if it wasn't read before
+2803:       // dev/ino always return 0 on windows, so skip the check.
+2804:       let linkTarget = null;
+2805:       let id;
+2806:       if (!isWindows) {
+2807:         const dev = BigIntPrototypeToString(stats[0], 32);
+2808:         const ino = BigIntPrototypeToString(stats[7], 32);
+2809:         id = `${dev}:${ino}`;
+2810:         if (seenLinks.has(id)) {
+2811:           linkTarget = seenLinks.get(id);
+2812:         }
+2813:       }
+2814:       if (linkTarget === null) {
+2815:         binding.stat(base, false, undefined, true);
+2816:         linkTarget = binding.readlink(base, undefined);
+2817:       }
+2818:       resolvedLink = pathModule.resolve(previous, linkTarget);
+2819: 
+2820:       cache?.set(base, resolvedLink);
+2821:       if (!isWindows) seenLinks.set(id, linkTarget);
+2822:     }
+2823: 
+2824:     // Resolve the link, then start over
+2825:     p = pathModule.resolve(resolvedLink, StringPrototypeSlice(p, pos));
+2826: 
+2827:     // Skip over roots
+primary/lib__internal__modules__run_main.js.txt 28-48
+28: function resolveMainPath(main) {
+29:   const defaultType = getOptionValue('--experimental-default-type');
+30:   /** @type {string} */
+31:   let mainPath;
+32:   if (defaultType === 'module') {
+33:     if (getOptionValue('--preserve-symlinks-main')) { return; }
+34:     mainPath = path.resolve(main);
+35:   } else {
+36:     // Extension searching for the main entry point is supported only in legacy mode.
+37:     // Module._findPath is monkey-patchable here.
+38:     const { Module } = require('internal/modules/cjs/loader');
+39:     mainPath = Module._findPath(path.resolve(main), null, true);
+40:   }
+41:   if (!mainPath) { return; }
+42: 
+43:   const preserveSymlinksMain = getOptionValue('--preserve-symlinks-main');
+44:   if (!preserveSymlinksMain) {
+45:     const { toRealPath } = require('internal/modules/helpers');
+46:     try {
+47:       mainPath = toRealPath(mainPath);
+48:     } catch (err) {
+primary/lib__internal__modules__helpers.js.txt 55-66
+55: const realpathCache = new SafeMap();
+56: /**
+57:  * Resolves the path of a given `require` specifier, following symlinks.
+58:  * @param {string} requestPath The `require` specifier
+59:  */
+60: function toRealPath(requestPath) {
+61:   return fs.realpathSync(requestPath, {
+62:     [internalFS.realpathCacheKey]: realpathCache,
+63:   });
+64: }
+65: 
+66: /** @type {Set<string>} */
+primary/lib__internal__modules__cjs__loader.js.txt 728-750
+728:       if (rc === 0) {  // File.
+729:         if (!isMain) {
+730:           if (getOptionValue('--preserve-symlinks')) {
+731:             filename = path.resolve(basePath);
+732:           } else {
+733:             filename = toRealPath(basePath);
+734:           }
+735:         } else if (getOptionValue('--preserve-symlinks-main')) {
+736:           // For the main module, we use the --preserve-symlinks-main flag instead
+737:           // mainly for backward compatibility, as the preserveSymlinks flag
+738:           // historically has not applied to the main module.  Most likely this
+739:           // was intended to keep .bin/ binaries working, as following those
+740:           // symlinks is usually required for the imports in the corresponding
+741:           // files to resolve; that said, in some use cases following symlinks
+742:           // causes bigger problems which is why the --preserve-symlinks-main option
+743:           // is needed.
+744:           filename = path.resolve(basePath);
+745:         } else {
+746:           filename = toRealPath(basePath);
+747:         }
+748:       }
+749: 
+750:       if (!filename) {
+primary/src__node_file.cc.txt 1077-1134
+1077: static void Stat(const FunctionCallbackInfo<Value>& args) {
+1078:   Realm* realm = Realm::GetCurrent(args);
+1079:   BindingData* binding_data = realm->GetBindingData<BindingData>();
+1080:   Environment* env = realm->env();
+1081: 
+1082:   const int argc = args.Length();
+1083:   CHECK_GE(argc, 3);
+1084: 
+1085:   BufferValue path(realm->isolate(), args[0]);
+1086:   CHECK_NOT_NULL(*path);
+1087:   ToNamespacedPath(env, &path);
+1088: 
+1089:   bool use_bigint = args[1]->IsTrue();
+1090:   if (!args[2]->IsUndefined()) {  // stat(path, use_bigint, req)
+1091:     FSReqBase* req_wrap_async = GetReqWrap(args, 2, use_bigint);
+1092:     CHECK_NOT_NULL(req_wrap_async);
+1093:     ASYNC_THROW_IF_INSUFFICIENT_PERMISSIONS(
+1094:         env,
+1095:         req_wrap_async,
+1096:         permission::PermissionScope::kFileSystemRead,
+1097:         path.ToStringView());
+1098:     FS_ASYNC_TRACE_BEGIN1(
+1099:         UV_FS_STAT, req_wrap_async, "path", TRACE_STR_COPY(*path))
+1100:     AsyncCall(env, req_wrap_async, args, "stat", UTF8, AfterStat,
+1101:               uv_fs_stat, *path);
+1102:   } else {  // stat(path, use_bigint, undefined, do_not_throw_if_no_entry)
+1103:     THROW_IF_INSUFFICIENT_PERMISSIONS(
+1104:         env, permission::PermissionScope::kFileSystemRead, path.ToStringView());
+1105:     bool do_not_throw_if_no_entry = args[3]->IsFalse();
+1106:     FSReqWrapSync req_wrap_sync("stat", *path);
+1107:     FS_SYNC_TRACE_BEGIN(stat);
+1108:     int result;
+1109:     if (do_not_throw_if_no_entry) {
+1110:       result = SyncCallAndThrowIf(is_uv_error_except_no_entry_dir,
+1111:                                   env,
+1112:                                   &req_wrap_sync,
+1113:                                   uv_fs_stat,
+1114:                                   *path);
+1115:     } else {
+1116:       result = SyncCallAndThrowOnError(env, &req_wrap_sync, uv_fs_stat, *path);
+1117:     }
+1118:     FS_SYNC_TRACE_END(stat);
+1119:     if (is_uv_error(result)) {
+1120:       return;
+1121:     }
+1122:     Local<Value> arr = FillGlobalStatsArray(binding_data, use_bigint,
+1123:         static_cast<const uv_stat_t*>(req_wrap_sync.req.ptr));
+1124:     args.GetReturnValue().Set(arr);
+1125:   }
+1126: }
+1127: 
+1128: static void LStat(const FunctionCallbackInfo<Value>& args) {
+1129:   Realm* realm = Realm::GetCurrent(args);
+1130:   BindingData* binding_data = realm->GetBindingData<BindingData>();
+1131:   Environment* env = realm->env();
+1132: 
+1133:   const int argc = args.Length();
+1134:   CHECK_GE(argc, 3);

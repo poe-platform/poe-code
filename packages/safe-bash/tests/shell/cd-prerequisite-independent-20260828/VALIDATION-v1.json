@@ -1,0 +1,91 @@
+{
+  "schema": "cd-independent-static-validation/v1",
+  "checkedAt": "2026-08-28T05:11:05.162Z",
+  "kind": "Own syntax/schema/arithmetic/authentication and baseline-public-type evidence only",
+  "groups": {
+    "behavior": 16,
+    "permissions": 14,
+    "adapters": 6,
+    "state": 9,
+    "output": 5,
+    "cancellation": 5,
+    "limits": 27
+  },
+  "commandCases": 82,
+  "diagnosticCases": 4,
+  "futureSemanticCases": 86,
+  "positiveTypes": 10,
+  "negativeTypes": 10,
+  "invariants": 12,
+  "integrationControls": 7,
+  "workArithmetic": {
+    "maximumCalls": {
+      "work": 61456,
+      "probes": 4097,
+      "publicCalls": 8194
+    },
+    "exact": {
+      "work": 8388608,
+      "probes": 57,
+      "publicCalls": 114
+    },
+    "nextUnit": {
+      "unconstrainedWork": 8388609,
+      "statCalls": 57,
+      "accessCalls": 52
+    },
+    "rejectedReservation": {
+      "spent": 8320652,
+      "request": 80004
+    }
+  },
+  "diagnosticArithmetic": [
+    {
+      "id": "D01",
+      "inputBytes": 65792,
+      "retainedBytes": 65792,
+      "outputBytes": 65792,
+      "truncated": false
+    },
+    {
+      "id": "D02",
+      "inputBytes": 65793,
+      "retainedBytes": 65780,
+      "outputBytes": 65792,
+      "truncated": true
+    },
+    {
+      "id": "D03",
+      "inputBytes": 65803,
+      "retainedBytes": 65779,
+      "outputBytes": 65791,
+      "truncated": true
+    },
+    {
+      "id": "D04",
+      "inputBytes": 65800,
+      "retainedBytes": 65780,
+      "outputBytes": 65792,
+      "truncated": true
+    }
+  ],
+  "syntaxFiles": [
+    "audit.mjs",
+    "cases-v1.mjs",
+    "typecheck-v1.mjs",
+    "validate-v1.mjs"
+  ],
+  "protectedEntries": 237,
+  "retainedNative": {
+    "observations": 28,
+    "successes": 21,
+    "diagnosticStatus1": 7,
+    "newRuns": 0
+  },
+  "productCasesRun": 0,
+  "providerRuns": 0,
+  "nativeRuns": 0,
+  "builds": 0,
+  "sourceInstalledMovedRuns": 0,
+  "futureCasesStatus": "NOT RUN; runtime author awaits ROOT go"
+}

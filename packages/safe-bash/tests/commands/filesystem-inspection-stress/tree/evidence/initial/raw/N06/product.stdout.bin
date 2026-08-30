@@ -1,0 +1,8 @@
+basic
+|-- b-dir
+|   `-- nested
+|-- empty
+|-- skip-dir
+`-- z-dir
+
+6 directories

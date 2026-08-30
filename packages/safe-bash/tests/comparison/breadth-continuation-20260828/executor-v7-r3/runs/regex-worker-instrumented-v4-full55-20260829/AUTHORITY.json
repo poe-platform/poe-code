@@ -1,0 +1,33 @@
+{
+  "schema": "ROOT_SCOPE_V4",
+  "authority": "Latest ROOT instruction authorizes SOURCE implementation/preseal and at most four harmless Node fixture starts; no Worker campaign.",
+  "decision": "Existing parent collector may authenticate and fsync exact owned witness paths after child and Worker retirement. Deferred durability only.",
+  "start": "2026-08-29T09:20:29.773Z",
+  "expiresAt": "2026-08-29T09:40:29.773Z",
+  "limits": {
+    "minutes": 20,
+    "knownOS": 48,
+    "peakOS": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "fixtureStarts": 4,
+    "Workers": 0
+  },
+  "prior": {
+    "preseal": "81443d3d9eabcf17040d77eb34c60106fc543ccc",
+    "evidence": "ba48059722657adcfc8794e28d9bbd97e1ad17a7",
+    "publication": "7159f7e1dfbc4de955ec51e5b31f8065e762c203",
+    "rawQualifiers": 19,
+    "ordinaryFails": 10,
+    "stop": "G06.4",
+    "unrun": 25,
+    "publishedReceipts": 29,
+    "unpublishedPrimaryAndCounters": [
+      "G06.4"
+    ],
+    "aggregateWorkers": "UNKNOWN; 29 receipts independently report zero"
+  },
+  "noNewWorkerChannel": true,
+  "noChildPermissionChange": true,
+  "noTargetImports": true
+}

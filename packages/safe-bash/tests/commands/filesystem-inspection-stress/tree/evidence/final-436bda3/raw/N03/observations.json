@@ -1,0 +1,68 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-L",
+        "1",
+        "basic"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "YmFzaWMK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIEFscGhhLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGItZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGIudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGVtcHR5Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHNraXAtZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHotZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YC0tIHpldGEudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CjUgZGlyZWN0b3JpZXMsIDMgZmlsZXMK",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:27.200Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T09:27:27.202Z"
+    }
+  ],
+  "shells": []
+}

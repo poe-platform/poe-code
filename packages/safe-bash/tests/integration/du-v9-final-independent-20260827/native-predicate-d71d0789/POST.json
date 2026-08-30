@@ -1,0 +1,467 @@
+{
+  "tools": {
+    "node": {
+      "requested": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "git": {
+      "requested": "/usr/bin/git",
+      "path": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    "native": {
+      "requested": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b"
+    }
+  },
+  "nodeVersion": "v22.22.2",
+  "base": {
+    "revision": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+    "root": "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92",
+    "records": [
+      {
+        "path": "CASE_MAP.md",
+        "bytes": 2837,
+        "sha256": "8320667ff8497e83c3d687dd070b55bb432a7847e7a18c6711998adb09f1cf18",
+        "gitBlob": "9da979ee64c599ea5a43dd2c6cd6274554b30524"
+      },
+      {
+        "path": "CORRECTION_V7.md",
+        "bytes": 6328,
+        "sha256": "23f07912e4100758808be61973d208062011467f80d54fe44a70f5d77a474fc4",
+        "gitBlob": "75c56848f1dde19aa1d291ecd69f4f43675bb121"
+      },
+      {
+        "path": "CORRECTION_V8.md",
+        "bytes": 6610,
+        "sha256": "3e7c375cc916684399cecf409e852c51dd9bab9a7a0c27d08c4f7ecf896dbca3",
+        "gitBlob": "fca766ad86d48d3358373046c7945fafc1e6699b"
+      },
+      {
+        "path": "CORRECTION_V9.md",
+        "bytes": 7405,
+        "sha256": "75934bcc168bb3f4e8314fed3c3ed44ea6b626ba49e69c3a3e124a880b2a3619",
+        "gitBlob": "eef18e56d1d8fcc5bfe6d11a2f0005f1eeecc06f"
+      },
+      {
+        "path": "FREEZE.md",
+        "bytes": 6417,
+        "sha256": "adc3a6bcd12ee4158c5852fd4ef319c1771a85bae73ec1f78a2b76f789ae5473",
+        "gitBlob": "1cfb38835deb7030c1b31ac0f618834b7d343363"
+      },
+      {
+        "path": "MANIFEST.json",
+        "bytes": 5087,
+        "sha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+        "gitBlob": "4d75e2b6e35b86b15960ba2a1059715ef13d7c5e"
+      },
+      {
+        "path": "ORIGINS.json",
+        "bytes": 12703,
+        "sha256": "775fc6e90c74f0706e2cc5509d2178bbbcf3f14b0ba62abce4032fd4eb338794",
+        "gitBlob": "1f069ff505ce41f9ada44f5e5e0496b592fe4e43"
+      },
+      {
+        "path": "config/candidate-selected-paths.txt",
+        "bytes": 7522,
+        "sha256": "9427aad46a7f184d94517a666ab02a8f1da43ccf9074c5a15186d4569233679b",
+        "gitBlob": "65e8eea7ed343140252629a5e030c102033e48d2"
+      },
+      {
+        "path": "config/oracle-identity.json",
+        "bytes": 582,
+        "sha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f",
+        "gitBlob": "006e80030216385b81ae0917ab4822ccfd8d18b7"
+      },
+      {
+        "path": "config/static-tooling.json",
+        "bytes": 210,
+        "sha256": "a665c0d24aedea5a987d444e98d9708378a1db44c49b5a10872cf2a11062506f",
+        "gitBlob": "09bca6e67f082086ea7b7020acf08f0ed3eea673"
+      },
+      {
+        "path": "consumer/consumer.ts",
+        "bytes": 603,
+        "sha256": "14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7",
+        "gitBlob": "6544c8e7f1fb4df43d84ea6c8e1b812fa040ca9d"
+      },
+      {
+        "path": "consumer/package.json",
+        "bytes": 93,
+        "sha256": "52fe278e686f24c3992cd55042b2a5029bc3de967ab198821020c423fe85344f",
+        "gitBlob": "58b3477b86fba4b5cf05ed7ac6715996ea6e9fce"
+      },
+      {
+        "path": "consumer/runtime.mjs",
+        "bytes": 1420,
+        "sha256": "61e13d86b50487bb6a768859e75d111d896c3502b9ce1b286637b43da2ad87b5",
+        "gitBlob": "5d4b023c175da6084b26875a9431b0ea27ff20fe"
+      },
+      {
+        "path": "consumer/tsconfig.json",
+        "bytes": 236,
+        "sha256": "1ece8865863403be31eb2601b88f1739c5412dfe495e7dba65b66e43a2fc607b",
+        "gitBlob": "9be38da0ab7fecf777ed8667dce8015956f9af16"
+      },
+      {
+        "path": "fixtures/native-env-cases.json",
+        "bytes": 4259,
+        "sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+        "gitBlob": "5d10b771614815024262bce0ccd7f4bda843cadd"
+      },
+      {
+        "path": "harness/attest-loader.mjs",
+        "bytes": 1358,
+        "sha256": "856d860f818db6848388be87da7cd59ee4def1bf133abe582206bbd69b083d1d",
+        "gitBlob": "f3ecf208359702d9946f13b5da8558fa0792bea2"
+      },
+      {
+        "path": "harness/process-manager.mjs",
+        "bytes": 10866,
+        "sha256": "f322101cfaa23612287cd728f52f50c672a19325eda00b69d8280827d83cfa5d",
+        "gitBlob": "28e7ac96913d169bb1f2bee3c2c63736ade16c63"
+      },
+      {
+        "path": "harness/process-timeout-control.mjs",
+        "bytes": 565,
+        "sha256": "2ac32a6d8a09f7f37f157e2adc1ac6b1fbd7cc0899cc7d643542a7dc743dc652",
+        "gitBlob": "b1d7d317bc8d48b1b07a20d79d2308cea603d28d"
+      },
+      {
+        "path": "harness/verify-original.mjs",
+        "bytes": 26190,
+        "sha256": "c08b96e73891995f329583b7d04d7837e1cd66953e13790b906d833f5fcc1c5a",
+        "gitBlob": "14a93028c2c9dcb4ba9fee4a44d8acb18055dd6c"
+      },
+      {
+        "path": "harness/verify-v5.mjs",
+        "bytes": 59616,
+        "sha256": "447ec395027d6d57902e9c22e5d731519d4205da36ea7256c757b6e9de354cfc",
+        "gitBlob": "8b48d1b7bf6190e617a1a3b6853f41d2348c0ee9"
+      },
+      {
+        "path": "native-env.mjs",
+        "bytes": 6204,
+        "sha256": "e537055e0b7516e2a2ddcd520f5197625334d2493b1b238d82b99edc94fd7def",
+        "gitBlob": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f"
+      },
+      {
+        "path": "replay.mjs",
+        "bytes": 43382,
+        "sha256": "e7f135081b91f3ede0a92436b06647b0e1dbbb8ac1c9c5d73edb261ef7f8c7f0",
+        "gitBlob": "7dcab29a8c10b1ae0847b9d870a8f1d6fc614ff3"
+      },
+      {
+        "path": "verify-freeze.mjs",
+        "bytes": 2463,
+        "sha256": "6b387e2fca6c002a30ce475db2dc10a98994fff00beff929226b6d6e8de18584",
+        "gitBlob": "2848f7193923478ad5b76ae9a5a640e8a4334551"
+      }
+    ]
+  },
+  "bundle": {
+    "revision": "d71d0789410a907107a8ab75d15cf93ddd8fe0e5",
+    "root": "tests/integration/du-overlay-independent-20260827/v9-native-predicate-overlay-20260827",
+    "records": [
+      {
+        "path": "README.md",
+        "bytes": 1899,
+        "sha256": "e4e8eee9f0ebb03e420d8277c819e8d7b84543d7af1580e553ae01ce1494515b",
+        "gitBlob": "ddc2d829127573f8281a375ad26d3554cf437d77"
+      },
+      {
+        "path": "focused-predicate-controls.mjs",
+        "bytes": 7754,
+        "sha256": "783613d5f29333f757d54791fc04bce87fefcd19fd8e369f8c8a4113f75f0e21",
+        "gitBlob": "c15c072f5f719ae9dea2e6539de9f12858efbeb4"
+      },
+      {
+        "path": "focused-predicate-controls.process.json",
+        "bytes": 814,
+        "sha256": "d6c80cbbda89aaea40b633b8f3ba5a5a8f4b5ee663eea2d5eff8971874524d13",
+        "gitBlob": "6c8103ca265f6ccaab11c88152d70773b41d0d72"
+      },
+      {
+        "path": "focused-predicate-controls.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      {
+        "path": "focused-predicate-controls.stdout.data",
+        "bytes": 569,
+        "sha256": "0d87c09c2598ab52916e5e338531acdf9ef5a2b96012ffa749a0a4ab0e061f6b",
+        "gitBlob": "e309145f3d2d41e681814c6eb34061534d62a932"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 7831,
+        "sha256": "ce61095905fab76d6da9086f51ec61dc930d7d06261053033d4a16fe7d67dc7e",
+        "gitBlob": "cf8d62a9693fd54dca1d840be8a8feeded41600f"
+      },
+      {
+        "path": "native-env.mjs.patch.data",
+        "bytes": 932,
+        "sha256": "b5d837a790fdefd15beb27267c8ec9ef1c7e128d97463de5887b01516732c6c1",
+        "gitBlob": "eca7b3f0b06371658340263a9ae69dcdb38ebb9b"
+      }
+    ]
+  },
+  "manifest": {
+    "schema": 1,
+    "scope": "V9-native-strict-rejection-predicate-only",
+    "base": {
+      "freezeCommit": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+      "candidateCommit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "fixtureRoot": "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92",
+      "fixtureTree": "5746d585be79a0c187d1b19a8e2f58b98c3dc433",
+      "manifest": {
+        "path": "MANIFEST.json",
+        "bytes": 5087,
+        "sha256": "474a95bd160636cdbabe03943a0a84aaaeb56d04ab87d25915bb1ac8cbdf9fa2",
+        "gitBlob": "4d75e2b6e35b86b15960ba2a1059715ef13d7c5e"
+      }
+    },
+    "lineageCompatibility": {
+      "commit": "0bd5a1f3c31ef5e6203a82026181fa0fc73acc79",
+      "materializedChangedPath": "harness/verify-v5.mjs",
+      "nativeEnvChanged": false,
+      "nativeEnvGitBlobAtFreeze": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f",
+      "nativeEnvGitBlobAtLineage": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f",
+      "nativeEnvGitBlobAtReport": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f"
+    },
+    "captureProvenance": {
+      "reportCommit": "d53b003b9e7a20a3a593378a9b7a9ed8e896c493",
+      "reportParent": "c2d6b7c395c522e173526d9311f04f53c568285b",
+      "reportSubject": "test: record bounded DU V9 overlay replay and native matcher blocker",
+      "verdict": {
+        "path": "tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/VERDICT.md",
+        "bytes": 7884,
+        "sha256": "1378d5eb699877511111299bb883714a60ad049feef34230ae462b18d0f81ccb",
+        "gitBlob": "c16d08e905d57cb577eb7527dff2a46d3fb37f63"
+      },
+      "rawTable": {
+        "path": "tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/run-2026-08-27T212245338Z-1682b6/native-environment-table.json",
+        "bytes": 29253,
+        "sha256": "a699954c6daa495fb5bb2808d140c1b157ec91c0a6a00dbc2651b0920c068d34",
+        "gitBlob": "f7a72329f77d9d3c556a8bb22fabc6a906e05394",
+        "recordedSummary": {
+          "total": 16,
+          "matched": 13,
+          "mismatched": 3
+        }
+      },
+      "nativeOracle": {
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+        "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+        "versionFirstLine": "du (GNU coreutils) 9.7"
+      }
+    },
+    "diagnostic": {
+      "jsonEscaped": "du: invalid -B argument 'invalid-value'\n",
+      "hex": "64753a20696e76616c6964202d4220617267756d656e742027696e76616c69642d76616c7565270a",
+      "bytes": 40,
+      "sha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009",
+      "sameForAllBoundRows": true
+    },
+    "rawCaptureBindings": [
+      {
+        "id": "du-block-size-explicit-invalid-strict",
+        "selected": "DU_BLOCK_SIZE",
+        "argv": [
+          "--apparent-size",
+          "-B",
+          "invalid-value",
+          "--",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+        ],
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "DU_BLOCK_SIZE": "3072",
+          "BLOCK_SIZE": "512"
+        },
+        "expectedStatusClass": "failure",
+        "observedStatus": 1,
+        "expectedStdout": "",
+        "observedStdoutBytes": 0,
+        "observedStdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "observedStderrBytes": 40,
+        "observedStderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009"
+      },
+      {
+        "id": "block-size-explicit-invalid-strict",
+        "selected": "BLOCK_SIZE",
+        "argv": [
+          "--apparent-size",
+          "-B",
+          "invalid-value",
+          "--",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+        ],
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "BLOCK_SIZE": "3072",
+          "BLOCKSIZE": "512"
+        },
+        "expectedStatusClass": "failure",
+        "observedStatus": 1,
+        "expectedStdout": "",
+        "observedStdoutBytes": 0,
+        "observedStdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "observedStderrBytes": 40,
+        "observedStderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009"
+      },
+      {
+        "id": "blocksize-explicit-invalid-strict",
+        "selected": "BLOCKSIZE",
+        "argv": [
+          "--apparent-size",
+          "-B",
+          "invalid-value",
+          "--",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/native/env-size-1500.bin"
+        ],
+        "env": {
+          "PATH": "/usr/bin:/bin",
+          "LC_ALL": "C",
+          "LANG": "C",
+          "BLOCKSIZE": "3072"
+        },
+        "expectedStatusClass": "failure",
+        "observedStatus": 1,
+        "expectedStdout": "",
+        "observedStdoutBytes": 0,
+        "observedStdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "observedStderrBytes": 40,
+        "observedStderrSha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009"
+      }
+    ],
+    "unchangedInputs": [
+      {
+        "path": "config/oracle-identity.json",
+        "bytes": 582,
+        "sha256": "7bc8e13ea19e432b8320d08f5e19f8e4cbcbe4f8dad19984df6f9259960ebf4f",
+        "gitBlob": "006e80030216385b81ae0917ab4822ccfd8d18b7"
+      },
+      {
+        "path": "fixtures/native-env-cases.json",
+        "bytes": 4259,
+        "sha256": "ba95af81e2ffd7f7b80afb4a49a173487d9dacb7c911c61b31bf80b515c8cd5b",
+        "gitBlob": "5d10b771614815024262bce0ccd7f4bda843cadd"
+      }
+    ],
+    "patch": {
+      "path": "native-env.mjs.patch.data",
+      "bytes": 932,
+      "sha256": "b5d837a790fdefd15beb27267c8ec9ef1c7e128d97463de5887b01516732c6c1",
+      "gitBlob": "eca7b3f0b06371658340263a9ae69dcdb38ebb9b"
+    },
+    "changedFile": {
+      "base": {
+        "path": "native-env.mjs",
+        "bytes": 6204,
+        "sha256": "e537055e0b7516e2a2ddcd520f5197625334d2493b1b238d82b99edc94fd7def",
+        "gitBlob": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f"
+      },
+      "overlay": {
+        "path": "native-env.mjs",
+        "bytes": 6212,
+        "sha256": "e7c62a3c7976163c684f68f63efd2a95f0b7ea43481a887a5bcd32832b35b9eb",
+        "gitBlob": "308191c598157e2aa0e7fbb652ccceef8064d236"
+      },
+      "changedExpressionCount": 1
+    },
+    "bundleFiles": [
+      {
+        "path": "README.md",
+        "bytes": 1899,
+        "sha256": "e4e8eee9f0ebb03e420d8277c819e8d7b84543d7af1580e553ae01ce1494515b",
+        "gitBlob": "ddc2d829127573f8281a375ad26d3554cf437d77"
+      },
+      {
+        "path": "focused-predicate-controls.mjs",
+        "bytes": 7754,
+        "sha256": "783613d5f29333f757d54791fc04bce87fefcd19fd8e369f8c8a4113f75f0e21",
+        "gitBlob": "c15c072f5f719ae9dea2e6539de9f12858efbeb4"
+      },
+      {
+        "path": "focused-predicate-controls.process.json",
+        "bytes": 814,
+        "sha256": "d6c80cbbda89aaea40b633b8f3ba5a5a8f4b5ee663eea2d5eff8971874524d13",
+        "gitBlob": "6c8103ca265f6ccaab11c88152d70773b41d0d72"
+      },
+      {
+        "path": "focused-predicate-controls.stdout.data",
+        "bytes": 569,
+        "sha256": "0d87c09c2598ab52916e5e338531acdf9ef5a2b96012ffa749a0a4ab0e061f6b",
+        "gitBlob": "e309145f3d2d41e681814c6eb34061534d62a932"
+      },
+      {
+        "path": "focused-predicate-controls.stderr.data",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "execution": {
+      "focusedPredicateControls": "14/14",
+      "nativeOracleExecuted": false,
+      "nativeRowsExecuted": 0,
+      "fullRecipeExecuted": false,
+      "successOnlyTailExecuted": false,
+      "aggregateSuccessClaimed": false
+    }
+  },
+  "manifestIdentity": {
+    "path": "manifest.json",
+    "bytes": 7831,
+    "sha256": "ce61095905fab76d6da9086f51ec61dc930d7d06261053033d4a16fe7d67dc7e",
+    "gitBlob": "cf8d62a9693fd54dca1d840be8a8feeded41600f"
+  },
+  "candidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "candidateTree": "62c1b2f2784ca465b17d4b15a5736c42b8bdcf2d",
+  "supervisor": {
+    "path": "harness/process-manager.mjs",
+    "bytes": 10866,
+    "sha256": "f322101cfaa23612287cd728f52f50c672a19325eda00b69d8280827d83cfa5d",
+    "gitBlob": "28e7ac96913d169bb1f2bee3c2c63736ade16c63"
+  },
+  "preserved": [
+    {
+      "revision": "b3f45fa796282ef644729af36f9d41fc37693bd8",
+      "root": "tests/integration/du-v9-final-independent-20260827",
+      "manifest": {
+        "path": "EVIDENCE_MANIFEST.json",
+        "bytes": 77020,
+        "sha256": "8b5b56ec78ef2757143a470fc055ed26e0b7e4d5d10d26948f01a8d91114481a",
+        "gitBlob": "fab38f6b8efe9d4fad43b91bc9d83ba62da840f9"
+      },
+      "filesVerified": 408
+    },
+    {
+      "revision": "d53b003b9e7a20a3a593378a9b7a9ed8e896c493",
+      "root": "tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3",
+      "manifest": {
+        "path": "EVIDENCE-MANIFEST.json",
+        "bytes": 129336,
+        "sha256": "a7d15ede847e0d8cc9d44f3ec5655b2bb1e7202ee7f317600c681297bcdd21b9",
+        "gitBlob": "0d14ab30efa4c7dd976fa7eba32c8fb129c68ef0"
+      },
+      "filesVerified": 514
+    }
+  ],
+  "exactOneExpressionChanged": true,
+  "allOtherDriverBytesIdentical": true,
+  "patchedBytesSha256": "e7c62a3c7976163c684f68f63efd2a95f0b7ea43481a887a5bcd32832b35b9eb",
+  "historicalNativeSummary": {
+    "total": 16,
+    "matched": 13,
+    "mismatched": 3
+  }
+}

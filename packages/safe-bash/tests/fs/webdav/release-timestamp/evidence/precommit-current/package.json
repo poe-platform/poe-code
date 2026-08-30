@@ -1,0 +1,99 @@
+{
+  "sha256": "6765f27a47bee40b0aa8025bb248ffb973399c6b740e19d678964468a42aa2d7",
+  "package": {
+    "name": "virtual-bash",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
+    "type": "module",
+    "engines": {
+      "node": ">=22"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./contracts": {
+        "types": "./dist/contracts/index.d.ts",
+        "import": "./dist/contracts/index.js"
+      },
+      "./contracts/*": {
+        "types": "./dist/contracts/*.d.ts",
+        "import": "./dist/contracts/*.js"
+      },
+      "./commands/network": {
+        "types": "./dist/commands/network/index.d.ts",
+        "import": "./dist/commands/network/index.js"
+      },
+      "./commands/metadata": {
+        "types": "./dist/commands/metadata/index.d.ts",
+        "import": "./dist/commands/metadata/index.js"
+      },
+      "./commands/archive": {
+        "types": "./dist/commands/archive/index.d.ts",
+        "import": "./dist/commands/archive/index.js"
+      },
+      "./commands/table-text": {
+        "types": "./dist/commands/table-text/index.d.ts",
+        "import": "./dist/commands/table-text/index.js"
+      },
+      "./commands/stream-inspection": {
+        "types": "./dist/commands/stream-inspection/index.d.ts",
+        "import": "./dist/commands/stream-inspection/index.js"
+      },
+      "./commands/stream-format": {
+        "types": "./dist/commands/stream-format/index.d.ts",
+        "import": "./dist/commands/stream-format/index.js"
+      },
+      "./commands/split": {
+        "types": "./dist/commands/split/index.d.ts",
+        "import": "./dist/commands/split/index.js"
+      },
+      "./fs/s3": {
+        "types": "./dist/fs/s3/index.d.ts",
+        "import": "./dist/fs/s3/index.js"
+      },
+      "./fs/s3/http": {
+        "types": "./dist/fs/s3/http/index.d.ts",
+        "import": "./dist/fs/s3/http/index.js"
+      },
+      "./fs/webdav": {
+        "types": "./dist/fs/webdav/index.d.ts",
+        "import": "./dist/fs/webdav/index.js"
+      },
+      "./fs/readonly": {
+        "types": "./dist/fs/readonly/index.d.ts",
+        "import": "./dist/fs/readonly/index.js"
+      },
+      "./fs/mount": {
+        "types": "./dist/fs/mount/index.d.ts",
+        "import": "./dist/fs/mount/index.js"
+      },
+      "./fs/overlay": {
+        "types": "./dist/fs/overlay/index.d.ts",
+        "import": "./dist/fs/overlay/index.js"
+      }
+    },
+    "files": [
+      "dist"
+    ],
+    "scripts": {
+      "benchmark": "node --import tsx benchmarks/run.ts",
+      "build": "tsc -p tsconfig.build.json",
+      "typecheck": "tsc --noEmit",
+      "typecheck:consumers": "npm run build && tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json",
+      "test": "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...files, ...process.argv.slice(1)], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --",
+      "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+      "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+      "verify:release:qualified": "node scripts/verify-qualified-release.mjs"
+    },
+    "devDependencies": {
+      "@types/node": "^22.20.1",
+      "tsx": "^4.23.12",
+      "typescript": "5.9"
+    }
+  }
+}

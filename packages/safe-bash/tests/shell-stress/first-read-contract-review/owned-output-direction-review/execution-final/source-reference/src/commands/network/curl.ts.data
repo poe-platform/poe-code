@@ -1,0 +1,321 @@
+import { posix } from "node:path";
+import { setImmediate } from "node:timers/promises";
+import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type OutputOperation } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
+import { parseArguments, type CurlArguments } from "./args.js";
+import { createBody, queryData } from "./body.js";
+import { dumpHeaders, responseHeaders, writeOutput, writeOutFormat } from "./output.js";
+import { delay, diagnostic, encode, header, limitsFor, networkError, withSignal } from "./shared.js";
+import { createNodeHttpTransport } from "./transport.js";
+import { CurlError, type HttpHeaders, type HttpResponse, type NetworkCommandsOptions, type NetworkLimits } from "./types.js";
+
+const retryStatuses = new Set([408, 429, 500, 502, 503, 504]);
+const redirectStatuses = new Set([301, 302, 303, 307, 308]);
+const writeOutDefaults: Readonly<Record<string, string>> = Object.freeze({
+  http_code: "000", response_code: "000", url_effective: "", redirect_url: "", content_type: "",
+  size_download: "0", size_upload: "0", num_redirects: "0", num_retries: "0", time_total: "0.000000",
+  exitcode: "0", errormsg: "", filename_effective: "", method: "GET", http_version: "",
+});
+
+function parseUrl(text: string, globoff: boolean, redirect = false): { url: URL; user?: string } {
+  if (/[\s\x00-\x1f\x7f]/.test(text)) throw new CurlError(3, "Malformed URL");
+  let url: URL;
+  try { url = new URL(text); } catch { throw new CurlError(3, "Malformed URL; explicit HTTP(S) scheme required"); }
+  if (!["http:", "https:"].includes(url.protocol)) throw new CurlError(1, "Only HTTP and HTTPS are supported");
+  if (!url.hostname) throw new CurlError(3, "Malformed URL");
+  if (!globoff && /[{}\[\]]/.test(url.pathname + url.search)) throw new CurlError(2, "URL glob expansion is unsupported; use --globoff for a literal URL");
+  let user: string | undefined;
+  if (url.username || url.password) {
+    if (redirect) throw new CurlError(3, "Redirect URLs may not supply credentials");
+    try { user = `${decodeURIComponent(url.username)}:${decodeURIComponent(url.password)}`; }
+    catch { throw new CurlError(3, "Malformed URL credentials"); }
+    url.username = ""; url.password = "";
+  }
+  url.hash = "";
+  return { url, ...(user === undefined ? {} : { user }) };
+}
+
+function requestHeaders(args: CurlArguments, contentType: string | undefined, user: string | undefined, scoped: boolean, maxBytes: number): HttpHeaders {
+  const defaults: [string, string][] = [["Accept", args.data[0]?.kind === "json" ? "application/json" : "*/*"], ["User-Agent", "virtual-bash-curl/0.0"]];
+  if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
+  if (scoped && user !== undefined) defaults.push(["Authorization", `Basic ${Buffer.from(user).toString("base64")}`]);
+  if (scoped && args.bearer !== undefined) {
+    if (/[\r\n\0]/.test(args.bearer)) throw new CurlError(2, "Invalid bearer token");
+    defaults.push(["Authorization", `Bearer ${args.bearer}`]);
+  }
+  const custom = scoped ? args.headers : [];
+  const names = new Set(custom.map(([name]) => name.toLowerCase()));
+  const result = [...defaults.filter(([name]) => !names.has(name.toLowerCase())),
+    ...custom.filter((entry): entry is [string, string] => entry[1] !== null)];
+  if (result.reduce((size, [name, value]) => size + Buffer.byteLength(name + value) + 4, 0) > maxBytes) {
+    throw new CurlError(63, "Request headers exceed host byte limit");
+  }
+  return result;
+}
+
+async function stop(response: HttpResponse | undefined, signal: AbortSignal): Promise<void> {
+  if (!response) return;
+  const cleanup = Promise.resolve().then(() => response.dispose());
+  void cleanup.catch(() => {});
+  if (!signal.aborted) await withSignal(() => cleanup, signal).catch(() => {});
+}
+
+function pipeClosed(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "EPIPE";
+}
+
+function remoteFilename(url: URL): string {
+  const name = posix.basename(url.pathname);
+  if (!name || name === "/" || name === "." || name === "..") throw new CurlError(23, "URL has no safe remote filename");
+  return name;
+}
+
+export function createCurlCommand(options: NetworkCommandsOptions): CommandDefinition {
+  if (typeof options?.authorize !== "function") throw new TypeError("curl requires an explicit network authorizer");
+  const limits = limitsFor(options.limits);
+  const transport = options.transport ?? createNodeHttpTransport({ maxHeaderBytes: limits.maxHeaderBytes });
+  if (typeof transport !== "function") throw new TypeError("Invalid HTTP transport");
+  const authorize = options.authorize;
+  return {
+    name: "curl",
+    async execute(context) {
+      context.signal.throwIfAborted();
+      let args: CurlArguments;
+      try {
+        if (context.args.reduce((size, value) => size + Buffer.byteLength(value), 0) > limits.maxBufferBytes) throw new CurlError(2, "Arguments exceed host buffer limit");
+        args = parseArguments(context.args, limits);
+        if (args.help || args.version) {
+          await writeBytes(context.stdout, encode(args.version ? "virtual-bash curl 0.0 (HTTP HTTPS; Node streaming transport)\n" :
+            "Usage: curl [HTTP(S) URL] [-X METHOD] [-H HEADER] [-d DATA] [-L] [-o VFSFILE]\nExplicit host authorization is required. See network/README.md for supported flags and limits.\n"), context.signal);
+          return { exitCode: 0 };
+        }
+        for (const url of args.urls) parseUrl(url, args.globoff);
+        if (args.urls.length > 1 && (args.output !== undefined || args.remoteName || args.dumpHeader !== undefined)) {
+          throw new CurlError(2, "Multiple URLs with file/header outputs are unsupported");
+        }
+      } catch (error) {
+        context.signal.throwIfAborted();
+        const failure = error instanceof CurlError ? error : new CurlError(2, "Invalid curl arguments");
+        await diagnostic(context, failure);
+        return { exitCode: failure.exitCode };
+      }
+      let exitCode = 0;
+      for (const url of args.urls) exitCode = await transfer(context, args, url, limits, transport, authorize);
+      return { exitCode };
+    },
+  };
+}
+
+async function transfer(context: CommandContext, args: CurlArguments, input: string, limits: NetworkLimits,
+  transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NetworkCommandsOptions["authorize"]): Promise<number> {
+  const lifetime = new AbortController();
+  const timeout = setTimeout(() => lifetime.abort(new CurlError(28, "Operation timed out")), args.maxTimeMs);
+  const transferSignal = AbortSignal.any([context.signal, lifetime.signal]);
+  const hasFileOutput = args.remoteName || args.output !== undefined && args.output !== "-" || args.dumpHeader !== undefined && args.dumpHeader !== "-";
+  let operation: OutputOperation | undefined;
+  let signal = transferSignal;
+  const borrowed: ByteSource = { [Symbol.asyncIterator]() {
+    const iterator = context.stdin[Symbol.asyncIterator]();
+    return { next: () => iterator.next() };
+  } };
+  const start = performance.now();
+  let response: HttpResponse | undefined;
+  let failure: CurlError | undefined;
+  const values = { ...writeOutDefaults };
+  let format = args.writeOut;
+  let formatReady = false;
+  let dumped = false;
+  let downloaded = 0;
+  let uploaded = 0;
+  let included: Uint8Array[] = [];
+  let closedOutput = false;
+  const publish = async (bytes: Uint8Array): Promise<void> => {
+    const writing = createOutputOperation(context, context.stdout);
+    try { await writeBytes(writing.output, bytes, writing.signal); }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (!pipeClosed(error)) throw error;
+      closedOutput = true;
+    } finally { await writing.close(); }
+  };
+  try {
+    let body: ReturnType<typeof createBody>;
+    let bodyFailure: { error: unknown } | undefined;
+    try { body = createBody({ ...context, stdin: borrowed }, args, limits); }
+    catch (error) { bodyFailure = { error }; }
+    if (format !== "@-" && !body?.usesStdin) {
+      operation = createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
+      signal = operation.signal;
+    }
+    if (format?.startsWith("@")) {
+      try {
+        const bytes = format === "@-"
+          ? await collectBytes(borrowed, { signal, maxBytes: limits.maxBufferBytes })
+          : await withSignal(() => context.fs.readFile(pathOf(context, format!.slice(1)), { signal, maxBytes: limits.maxBufferBytes }), signal);
+        format = Buffer.from(bytes).toString("utf8");
+      } catch { signal.throwIfAborted(); throw new CurlError(26, "Failed reading write-out format"); }
+    }
+    if (format !== undefined) { writeOutFormat(format, values); formatReady = true; }
+    const parsed = parseUrl(input, args.globoff);
+    const initial = parsed.url;
+    if (bodyFailure) throw bodyFailure.error;
+    if (body?.usesStdin) {
+      const bytes = await collectBytes(body.open(signal), { signal, maxBytes: limits.maxUploadBytes });
+      body = { ...(body.contentType === undefined ? {} : { contentType: body.contentType }), open: () => toByteSource(bytes) };
+    }
+    if (args.get && body) {
+      const query = await queryData(body, signal, limits);
+      if (/[^\x21-\x7e]/.test(query)) throw new CurlError(3, "GET data must be URL encoded");
+      initial.search += `${initial.search ? "&" : "?"}${query.replace(/%[0-9a-f]{2}/gi, escape => escape.toLowerCase())}`;
+      body = undefined;
+    }
+    const output = args.remoteName ? remoteFilename(initial) : args.output;
+    values.filename_effective = output && output !== "-" ? output : "";
+    if (output && output !== "-" && args.dumpHeader && args.dumpHeader !== "-" &&
+      posix.resolve(pathOf(context, output)) === posix.resolve(pathOf(context, args.dumpHeader))) {
+      throw new CurlError(23, "Body and header output files must differ");
+    }
+    const initialMethod = args.method ?? (args.head ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET");
+    requestHeaders(args, body?.contentType, args.user ?? parsed.user, true, limits.maxHeaderBytes);
+    operation ??= createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);
+    signal = operation.signal;
+    for (let attempt = 0; attempt <= args.retries; attempt++) {
+      values.num_retries = String(attempt);
+      downloaded = 0;
+      failure = undefined;
+      let current = new URL(initial);
+      let method = initialMethod;
+      let currentBody = body;
+      let credentialsInScope = true;
+      let previous: string | undefined;
+      let redirects = 0;
+      included = [];
+      let headerBytes = 0;
+      while (true) {
+        signal.throwIfAborted();
+        values.url_effective = current.href;
+        values.method = method;
+        let allowed: boolean;
+        try { allowed = await withSignal(() => authorize({ url: current.href, method, attempt, signal, ...(previous === undefined ? {} : { redirectFrom: previous }) }), signal); }
+        catch { signal.throwIfAborted(); throw new CurlError(7, "Network authorization failed"); }
+        if (allowed !== true) throw new CurlError(7, "Network access denied by host policy");
+        const headers = requestHeaders(args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes);
+        if (args.verbose) await writeBytes(context.stderr, encode(`> ${method} ${current.origin}\n${headers.map(([name]) => `> ${name}: [redacted]\n`).join("")}`), signal);
+        const upload: ByteSource | undefined = currentBody && (async function* () {
+          for await (const chunk of currentBody!.open(signal)) { uploaded += chunk.length; yield chunk; }
+        })();
+        response = await operation.acquire(async () => {
+          const acquired = await transport({ url: current.href, method, headers, signal,
+            registerCleanup: operation!.registerCleanup, ...(upload ? { body: upload } : {}) });
+          let cleanup: Promise<void> | undefined;
+          return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };
+        }, result => result.dispose());
+        const block = responseHeaders(response, limits.maxHeaderBytes);
+        headerBytes += block.length;
+        if (headerBytes > limits.maxHeaderBytes) throw new CurlError(63, "Combined response headers exceed host byte limit");
+        values.http_code = values.response_code = String(response.status).padStart(3, "0");
+        values.content_type = header(response.headers, "content-type") ?? "";
+        values.http_version = response.httpVersion ?? "1.1";
+        if (args.verbose) await writeBytes(context.stderr, encode(`< HTTP ${response.status}\n`), signal);
+        if (args.dumpHeader !== undefined) {
+          if (args.dumpHeader === "-") await publish(block);
+          else await dumpHeaders(context, args.dumpHeader, block, dumped, signal);
+          dumped = true;
+        }
+        if (args.head || args.include) included.push(block);
+        const location = header(response.headers, "location");
+        if (redirectStatuses.has(response.status) && location !== undefined) {
+          let target: URL;
+          try { target = parseUrl(new URL(location, current).href, true, true).url; }
+          catch (error) { if (error instanceof CurlError) throw error; throw new CurlError(3, "Malformed redirect URL"); }
+          values.redirect_url = target.href;
+          if (args.location) {
+            if (redirects++ >= args.maxRedirects) throw new CurlError(47, "Maximum redirects exceeded");
+            if (current.protocol === "https:" && target.protocol === "http:") throw new CurlError(1, "HTTPS-to-HTTP redirects are disabled");
+            if (target.origin !== current.origin) credentialsInScope = false;
+            if ((response.status === 303 && method !== "HEAD") || ([301, 302].includes(response.status) && method === "POST")) {
+              currentBody = undefined;
+              if (args.method === undefined) method = "GET";
+            }
+            previous = current.href;
+            current = target;
+            values.num_redirects = String(redirects);
+            await stop(response, signal); response = undefined;
+            continue;
+          }
+        }
+        break;
+      }
+      if (!response) throw new CurlError(56, "No HTTP response");
+      if (response.status >= 400 && (args.fail || args.failWithBody)) failure = new CurlError(22, `HTTP response status ${response.status}`);
+      const suppressBody = args.fail && failure !== undefined;
+      let published = 0;
+      if (!suppressBody || included.length) {
+        const length = header(response.headers, "content-length");
+        if (!args.head && !suppressBody && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
+        const final = response;
+        const writing = output === undefined || output === "-" ? createOutputOperation({ ...context, signal }, context.stdout) : undefined;
+        const bodySignal = writing?.signal ?? signal;
+        const source: ByteSource = (async function* () {
+          for (const bytes of included) { published += bytes.length; yield bytes; }
+          if (!args.head && !suppressBody) {
+            let chunks = 0;
+            try {
+              for await (const chunk of readBytes(final.body, bodySignal)) {
+                if (++chunks % 256 === 0) await setImmediate(undefined, { signal: bodySignal });
+                downloaded += chunk.length;
+                if (downloaded > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
+                published += chunk.length;
+                yield chunk;
+              }
+              if (length && /^\d+$/.test(length) && downloaded !== Number(length)) throw new CurlError(18, "Partial HTTP response body");
+            } catch (error) {
+              bodySignal.throwIfAborted();
+              if (!(error instanceof CurlError) && length && /^\d+$/.test(length) && downloaded < Number(length)) throw new CurlError(18, "Partial HTTP response body");
+              throw networkError(error);
+            }
+          }
+        })();
+        try { await writeOutput(writing ? { ...context, stdout: writing.output } : context, output, source, bodySignal); }
+        catch (error) {
+          context.signal.throwIfAborted();
+          if (!pipeClosed(error)) throw error;
+          closedOutput = true;
+        } finally { await writing?.close(); }
+      }
+      if (retryStatuses.has(response.status) && attempt < args.retries) {
+        if (failure && (!args.silent || args.showError)) await diagnostic(context, failure);
+        const after = header(response.headers, "retry-after");
+        let wait = args.retryDelayMs || Math.min(1000 * 2 ** attempt, 600_000);
+        if (after !== undefined) {
+          const parsed = /^\d+$/.test(after) ? Number(after) * 1000 : Date.parse(after) - Date.now();
+          if (Number.isFinite(parsed)) wait = Math.max(wait, parsed);
+        }
+        await stop(response, signal); response = undefined;
+        if (published && output !== undefined && output !== "-") await writeOutput(context, output, toByteSource(""), signal);
+        await delay(Math.min(wait, limits.maxTimeMs), signal);
+        continue;
+      }
+      break;
+    }
+  } catch (error) {
+    if (context.signal.aborted) throw context.signal.reason;
+    if (pipeClosed(error)) closedOutput = true;
+    else failure = signal.aborted && signal.reason instanceof CurlError ? signal.reason : networkError(error);
+  } finally {
+    clearTimeout(timeout);
+    await operation?.close();
+    lifetime.abort();
+  }
+  values.size_download = String(downloaded);
+  values.size_upload = String(uploaded);
+  values.time_total = ((performance.now() - start) / 1000).toFixed(6);
+  values.exitcode = String(failure?.exitCode ?? 0);
+  values.errormsg = failure?.message ?? "";
+  if (format !== undefined && formatReady) {
+    try { await publish(writeOutFormat(format, values)); }
+    catch { context.signal.throwIfAborted(); failure = new CurlError(23, "Failed writing write-out result"); }
+  }
+  if (failure && (!args.silent || args.showError)) await diagnostic(context, failure);
+  return failure?.exitCode ?? (closedOutput ? 141 : 0);
+}

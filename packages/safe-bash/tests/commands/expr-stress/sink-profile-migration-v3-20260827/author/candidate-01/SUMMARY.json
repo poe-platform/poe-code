@@ -1,0 +1,94 @@
+{
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "canonicalCommit": "860967af44b20918e3096230f6c7445d4c9cf133",
+  "separateNewReruns": {
+    "original": {
+      "focused": {
+        "status": 1,
+        "tests": 27,
+        "pass": 26,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "canonical": {
+        "status": 1,
+        "tests": 237,
+        "pass": 236,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "nearby": {
+        "pass": 15,
+        "tests": 16,
+        "failures": [
+          "stdout-failure-no-regex-replay"
+        ]
+      },
+      "quota": {
+        "pass": 46,
+        "tests": 47,
+        "failures": [
+          "stdout-rejection-normal-quota"
+        ]
+      },
+      "core": {
+        "pass": 145,
+        "tests": 146,
+        "failures": [
+          "sink-rejection"
+        ]
+      }
+    },
+    "revised": {
+      "focused": {
+        "status": 0,
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "canonical": {
+        "status": 0,
+        "tests": 237,
+        "pass": 237,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "nearby": {
+        "pass": 16,
+        "tests": 16,
+        "failures": []
+      },
+      "quota": {
+        "pass": 47,
+        "tests": 47,
+        "failures": []
+      },
+      "core": {
+        "pass": 146,
+        "tests": 146,
+        "failures": []
+      }
+    }
+  },
+  "historicalResults": {
+    "core": "145/146",
+    "canonicalLegacy": "236/237",
+    "nearby": "15/16",
+    "quota": "46/47",
+    "encounterAuthorSelectedCanonical": "558/559",
+    "encounterAuthorCombined": "586/587",
+    "finalOriginalShared": "275/276",
+    "outsideCorrectedShared": "276/276",
+    "oldCapSeparate": "0/1"
+  },
+  "qualification": "Original and revised runs are separately captured, not rescored history. Focused tests overlap the six-file legacy cohort. Shared regressions, additional canonical cohorts and independent moved smoke are delegated elsewhere and are not rerun here."
+}

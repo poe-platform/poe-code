@@ -1,0 +1,41 @@
+import {
+  Shell, createMemoryFileSystem, agentCommands, createAgentCommands,
+  createExprCommand, createExprCommands, exprCommands,
+  type AgentCommandsOptions, type ExprCommandsOptions, type ExprLimits,
+  type RegexExecutionOptions, type CommandDefinition, type VirtualShellPlugin,
+} from "virtual-bash";
+import {
+  createExprCommand as subCommand, createExprCommands as subCommands,
+  exprCommands as subPlugin, type ExprCommandsOptions as SubOptions,
+  type ExprLimits as SubLimits,
+} from "virtual-bash/commands/expr";
+
+type Equal<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends
+  (<Value>() => Value extends Right ? 1 : 2) ? true : false;
+type Assert<Value extends true> = Value;
+type AggregateShape = Assert<Equal<NonNullable<AgentCommandsOptions["expr"]>, Omit<ExprCommandsOptions, "replace" | "regex">>>;
+type OptionShape = Assert<Equal<ExprCommandsOptions, SubOptions>>;
+type LimitShape = Assert<Equal<ExprLimits, SubLimits>>;
+type AggregateKeys = Assert<Equal<keyof NonNullable<AgentCommandsOptions["expr"]>, "limits">>;
+const regex: RegexExecutionOptions = {
+  requestTimeoutMs: 1000, startupTimeoutMs: 3000, maxWorkers: 1,
+  maxQueuedRequests: 0, maxQueuedBytes: 4096, idleTimeoutMs: 100,
+  workerOldGenerationMb: 48, workerStackMb: 3,
+};
+const limits: ExprLimits = {
+  maxArgumentBytes: 1024, maxNumericDigits: 64, maxNodes: 128,
+  maxDepth: 32, maxSteps: 100000, maxStringBytes: 1024,
+  maxOutputBytes: 1025, maxRegexPatternBytes: 256, maxRegexNodes: 128,
+  maxRegexDepth: 16, maxRegexStates: 256, maxRegexAllocatedUnits: 10000,
+};
+const options: ExprCommandsOptions = { regex, replace: true, limits };
+const definitions: readonly CommandDefinition[] = [createExprCommand(options), subCommand(options), ...createExprCommands(options), ...subCommands(options)];
+const plugins: readonly VirtualShellPlugin[] = [exprCommands(options), subPlugin(options)];
+const aggregate: AgentCommandsOptions = { replace: true, regex, expr: { limits: { maxNumericDigits: 64 } } };
+createAgentCommands(aggregate);
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(aggregate));
+for (const definition of definitions) shell.register(definition, { replace: true });
+for (const plugin of plugins) shell.use(plugin);
+await shell.exec("expr 7");
+await shell.dispose();
+export type Controls = [AggregateShape, OptionShape, LimitShape, AggregateKeys];

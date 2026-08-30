@@ -1,0 +1,69 @@
+TAP version 13
+# Subtest: permission classification seal authenticates every surviving historical artifact
+ok 1 - permission classification seal authenticates every surviving historical artifact
+  ---
+  duration_ms: 11.713333
+  type: 'test'
+  ...
+# Subtest: original 17 GNU-strict failures stay distinct from qualified fixtures and later measured metadata
+ok 2 - original 17 GNU-strict failures stay distinct from qualified fixtures and later measured metadata
+  ---
+  duration_ms: 1.39875
+  type: 'test'
+  ...
+# Subtest: Darwin9.7/Node22 divergence characterization, strict GNU gap remains: requested06755 actual04755 +2000
+ok 3 - Darwin9.7/Node22 divergence characterization, strict GNU gap remains: requested06755 actual04755 +2000
+  ---
+  duration_ms: 51.031542
+  type: 'test'
+  ...
+# Darwin9.7/Node22 strict GNU gap remains; uid=501 gid=0; caller groups=20,12,61,79,80,81,701,33,98,100,204,250,395,398,400
+# removed owned Darwin profile root /private/tmp/virtual-bash-permission-profile-sru7p3
+# Subtest: Darwin9.7/Node22 divergence characterization, strict GNU gap remains: directory0051 ug+s
+ok 4 - Darwin9.7/Node22 divergence characterization, strict GNU gap remains: directory0051 ug+s
+  ---
+  duration_ms: 44.271375
+  type: 'test'
+  ...
+# Darwin9.7/Node22 strict GNU gap remains; uid=501 gid=0; caller groups=20,12,61,79,80,81,701,33,98,100,204,250,395,398,400
+# removed owned Darwin profile root /private/tmp/virtual-bash-permission-profile-NjvJ1H
+# Subtest: real search-permission denial preserves typed EACCES, diagnostics and child metadata/bytes
+ok 5 - real search-permission denial preserves typed EACCES, diagnostics and child metadata/bytes
+  ---
+  duration_ms: 25.32725
+  type: 'test'
+  ...
+# Subtest: member-group fixture qualification precedes exact setid modes and permits genuine SGID success
+ok 6 - member-group fixture qualification precedes exact setid modes and permits genuine SGID success
+  ---
+  duration_ms: 76.503291
+  type: 'test'
+  ...
+# qualified caller uid=501 primary gid=20; setid modes verified after chown
+# Subtest: qualification rejects unsafe names, roots and symlinks before changing fixture metadata
+ok 7 - qualification rejects unsafe names, roots and symlinks before changing fixture metadata
+  ---
+  duration_ms: 3.268833
+  type: 'test'
+  ...
+# Subtest: qualified initial-mode setup rejects invalid modes, unqualified names and replacement entries
+ok 8 - qualified initial-mode setup rejects invalid modes, unqualified names and replacement entries
+  ---
+  duration_ms: 2.531208
+  type: 'test'
+  ...
+# Subtest: unavailable native search permission fails fixture prerequisites without changing the target
+ok 9 - unavailable native search permission fails fixture prerequisites without changing the target
+  ---
+  duration_ms: 2.623084
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 567.839458

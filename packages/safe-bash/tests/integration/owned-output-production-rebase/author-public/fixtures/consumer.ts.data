@@ -1,0 +1,19 @@
+import { Shell, MemoryFileSystem, createOutputOperation, type ByteSink, type CommandContext } from "virtual-bash";
+import { createOutputOperation as fromContracts, type OutputOperation } from "virtual-bash/contracts";
+import { createOutputOperation as fromOutput } from "virtual-bash/contracts/output";
+import type { HttpRequest } from "virtual-bash/commands/network";
+
+const legacy: ByteSink = { async write(chunk: Uint8Array): Promise<void> { void chunk; } };
+const controller = new AbortController();
+const capable: ByteSink = { ...legacy, ownedOutput: { consumerClosed: controller.signal, write: legacy.write } };
+const context: Pick<CommandContext, "signal" | "registerCleanup"> = { signal: controller.signal, registerCleanup(cleanup) { void cleanup; } };
+const operation: OutputOperation = createOutputOperation(context, capable);
+const sameFactory: typeof fromContracts = fromOutput;
+const acquired: Promise<{ id: string }> = operation.acquire(async signal => ({ id: String(signal.aborted) }), async resource => { void resource.id; });
+const child: OutputOperation = operation.child(legacy);
+const closing: Promise<void> = child.close();
+const accountedWriteIsAbsent: "accountedWrite" extends keyof ByteSink ? true : false = false;
+const requestCleanup: HttpRequest["registerCleanup"] = cleanup => { void cleanup; };
+const optionalCleanup: HttpRequest["registerCleanup"] = undefined;
+const shell = new Shell({ fs: new MemoryFileSystem() });
+void [sameFactory, acquired, closing, accountedWriteIsAbsent, requestCleanup, optionalCleanup, shell];

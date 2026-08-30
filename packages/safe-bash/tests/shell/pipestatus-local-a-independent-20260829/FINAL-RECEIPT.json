@@ -1,0 +1,247 @@
+{
+  "at": "2026-08-29T17:07:34.290Z",
+  "verdict": "HOLD_SOURCE_PURE",
+  "sourceCommit": "ec74e14df6bb7caf6b1be59fd44b027d7240101e",
+  "evidenceCommit": "cddf1786440ed284987b375f43315f2163f37db6",
+  "runtimeSha256": "d09c19a2f27d66deea9da57ae62cb1d3148db6e434b13dec5b65d5164b1ae670",
+  "originalResult": {
+    "path": "RESULT.json",
+    "sha256": "1e74bdc66ac508efc5d6207cd0bb11f90421f1dcdc23a47861de6153f3331605"
+  },
+  "correction": {
+    "path": "N03-CORRECTION.json",
+    "bytes": 871,
+    "sha256": "88927b0a6bd2a1261aba760de8655a7ce135d85619adb26f1feddb4b83e5317d"
+  },
+  "authorReplay": {
+    "pass": 20,
+    "total": 20,
+    "parser": 17,
+    "sourceOnly": 3
+  },
+  "novel": {
+    "uniqueGroups": 5,
+    "pass": 2,
+    "fail": 3,
+    "correctedGroup": "N03",
+    "originalN03InvalidReviewerBindingPreserved": true
+  },
+  "rows": [
+    {
+      "id": "P01",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P02",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P03",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P04",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P05",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P06",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P07",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P08",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P09",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P10",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P11",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P12",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P13",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P14",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P15",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P16",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P17",
+      "kind": "PURE_EXACT_PARSER",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P18",
+      "kind": "SOURCE_ONLY",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P19",
+      "kind": "SOURCE_ONLY",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "P20",
+      "kind": "SOURCE_ONLY",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "N01",
+      "kind": "PURE_EXACT_SETUP_FRAGMENT_WITH_DOUBLES",
+      "pass": false,
+      "error": "Error: Fallible create/hold occur after saved preparation but before cleanup try; no local discard/close is reached",
+      "detail": [
+        {
+          "where": "create",
+          "prepared": 1,
+          "discarded": 0,
+          "operationClosed": 0,
+          "rawReasonPreserved": true
+        },
+        {
+          "where": "hold",
+          "prepared": 1,
+          "discarded": 0,
+          "operationClosed": 0,
+          "rawReasonPreserved": true
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "kind": "PURE_EXACT_FINALLY_FRAGMENT_WITH_DOUBLES",
+      "pass": false,
+      "error": "Error: Rejecting shadow release replaces raw primary and skips operation.close",
+      "detail": [
+        {
+          "primary": false,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": true,
+          "operationClosed": 0,
+          "holdingReleased": 1
+        },
+        {
+          "primary": 0,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": true,
+          "operationClosed": 0,
+          "holdingReleased": 1
+        },
+        {
+          "primary": null,
+          "primaryPreserved": false,
+          "secondaryReplacedPrimary": true,
+          "operationClosed": 0,
+          "holdingReleased": 1
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "kind": "PURE_EXACT_CATCH_FRAGMENT_WITH_DOUBLES",
+      "pass": false,
+      "correction": {
+        "path": "N03-CORRECTION.json",
+        "bytes": 871,
+        "sha256": "88927b0a6bd2a1261aba760de8655a7ce135d85619adb26f1feddb4b83e5317d"
+      }
+    },
+    {
+      "id": "N04",
+      "kind": "SOURCE_ONLY_READONLY_AND_TYPED_RESTORATION",
+      "pass": true,
+      "observation": "SOURCE structure only; not actual restoration/atomicity"
+    },
+    {
+      "id": "N05",
+      "kind": "PURE_EXACT_FINALLY_SUCCESS_WITH_DOUBLES",
+      "pass": true,
+      "observation": null
+    }
+  ],
+  "compositionUpdateApplied": false,
+  "previous323ManifestPreserved": true,
+  "noSourceAcceptance": true,
+  "minimalFix": "Enclose all newly acquired saved/operation/hold resources in staged cleanup; attempt all cleanup; preserve raw first reason separately from secondary failures",
+  "currentGrant": {
+    "pureHelpers": 2,
+    "knownRolesIncludingPlannedPublication": 24,
+    "maximumKnownRoles": 24,
+    "conservativePeak": 3,
+    "maximumPeak": 3,
+    "retainedLogicalBytes": 643186,
+    "capturedBytes": 602785,
+    "publicationReserveBytes": 16777216,
+    "workMaximum": 134217728,
+    "captureMaximum": 25165824,
+    "deadline": "2026-08-29T17:09:16Z"
+  },
+  "qualification": "Exact SOURCE and isolated PURE fragments only; no whole binding atomicity, real budget exhaustion, runtime restoration or actual cleanup fault reachability proved",
+  "product": 0,
+  "Workers": 0,
+  "compiler": 0,
+  "npm": 0,
+  "sourceEdits": 0
+}

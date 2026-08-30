@@ -1,0 +1,103 @@
+{
+  "schema": "ere-preflight-controls-v1",
+  "started": 1787996061129,
+  "finished": 1787996061173,
+  "controlSealSha256": "b73f207cb4dd7e5a8c903075f4219cd27635b03f3be16f947846c7ff42943b03",
+  "results": [
+    {
+      "id": "C01",
+      "status": "PASS",
+      "assertions": 16,
+      "elapsedMs": 3,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C02",
+      "status": "PASS",
+      "assertions": 5,
+      "elapsedMs": 0,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C03",
+      "status": "PASS",
+      "assertions": 36,
+      "elapsedMs": 6,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C04",
+      "status": "PASS",
+      "assertions": 7,
+      "elapsedMs": 1,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C05",
+      "status": "PASS",
+      "assertions": 16,
+      "elapsedMs": 0,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C06",
+      "status": "PASS",
+      "assertions": 8,
+      "elapsedMs": 0,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C07",
+      "status": "PASS",
+      "assertions": 48,
+      "elapsedMs": 2,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C08",
+      "status": "PASS",
+      "assertions": 19,
+      "elapsedMs": 0,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C09",
+      "status": "PASS",
+      "assertions": 11,
+      "elapsedMs": 0,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C10",
+      "status": "PASS",
+      "assertions": 9,
+      "elapsedMs": 1,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C11",
+      "status": "PASS",
+      "assertions": 13,
+      "elapsedMs": 1,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    },
+    {
+      "id": "C12",
+      "status": "PASS",
+      "assertions": 8,
+      "elapsedMs": 2,
+      "role": "DATA_NO_NATIVE_OBSERVATION"
+    }
+  ],
+  "passed": 12,
+  "failed": 0,
+  "assertions": 196,
+  "fixtureChildren": 0,
+  "targetChildren": 0,
+  "nativeObservations": 0,
+  "entryImported": false,
+  "allDescriptorsClosed": true,
+  "scratchRemoved": true,
+  "finalIntegrity": true,
+  "actualNativeStatus": "12_UNRUN"
+}

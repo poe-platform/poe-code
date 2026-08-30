@@ -1,0 +1,333 @@
+{
+  "schema": "observer-v8-cohort-receipt",
+  "startedWall": "2026-08-28T19:26:10.980Z",
+  "startedMonotonicNs": "188584280834208",
+  "deadlineMs": 600000,
+  "qualificationDirectChildren": 1,
+  "syntaxChildren": 0,
+  "controlsChildren": 0,
+  "workerChildren": 1,
+  "coordinatorProcesses": 1,
+  "peakOwnedProcesses": 2,
+  "candidateChildren": 0,
+  "child": {
+    "role": "one-sequential-harmless-cohort",
+    "pid": 49096,
+    "enrolled": true,
+    "closeObserved": true,
+    "cleanupAttempted": true,
+    "cleanupSettled": true,
+    "outputBytes": 388140,
+    "startedMs": 121.848958,
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/observer-qualification-v8/worker.mjs"
+    ],
+    "environment": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+      "UV_THREADPOOL_SIZE": "1"
+    },
+    "enrollment": "immediate next statement after spawn; before hashes, IPC, observer, publication",
+    "stdoutCloseObserved": true,
+    "stderrCloseObserved": true,
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 252.807333
+    },
+    "close": {
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 252.831542
+    },
+    "unknownClosure": false,
+    "signals": [],
+    "birth": {
+      "kind": "birth",
+      "role": "harmless-builtin-worker",
+      "version": "observer-qualification-v8.1",
+      "pid": 49096,
+      "ppid": 49074,
+      "bornMonotonicNs": "188584465927791",
+      "node": "v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "candidateImports": 0,
+      "childSpawns": 0,
+      "syntheticTimersPending": 0
+    }
+  },
+  "guards": [
+    {
+      "label": "pre",
+      "elapsedMs": 121.698375,
+      "nodeHash": true,
+      "sealedHashes": true,
+      "oldHashes": true,
+      "newEntriesChecked": true
+    },
+    {
+      "label": "post-known-owned-cleanup",
+      "elapsedMs": 338.180417,
+      "nodeHash": true,
+      "sealedHashes": true,
+      "oldHashes": true,
+      "newEntriesChecked": true
+    }
+  ],
+  "captureBytes": 388140,
+  "safety": false,
+  "completed": true,
+  "summary": {
+    "kind": "summary",
+    "role": "harmless-builtin-worker",
+    "version": "observer-qualification-v8.1",
+    "pid": 49096,
+    "ppid": 49074,
+    "bornMonotonicNs": "188584465927791",
+    "node": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "candidateImports": 0,
+    "childSpawns": 0,
+    "syntheticTimersPending": 0,
+    "expected": 19,
+    "executed": 19,
+    "results": [
+      {
+        "id": "R01",
+        "role": "real",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "R02",
+        "role": "real",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "R03",
+        "role": "real",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "R04",
+        "role": "real",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "R05",
+        "role": "real",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "R06",
+        "role": "real",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S01",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S02",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S03",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S04",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S05",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S06",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S07",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S08",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S09",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S10",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "S11",
+        "role": "synthetic",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "D01",
+        "role": "data",
+        "passed": true,
+        "safety": false
+      },
+      {
+        "id": "D02",
+        "role": "data",
+        "passed": true,
+        "safety": false
+      }
+    ],
+    "unexecuted": [],
+    "stopped": false,
+    "elapsedMs": 62.863542
+  },
+  "cases": [
+    {
+      "id": "R01",
+      "role": "real",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "R02",
+      "role": "real",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "R03",
+      "role": "real",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "R04",
+      "role": "real",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "R05",
+      "role": "real",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "R06",
+      "role": "real",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S01",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S02",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S03",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S04",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S05",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S06",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S07",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S08",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S09",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S10",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "S11",
+      "role": "synthetic",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "D01",
+      "role": "data",
+      "passed": true,
+      "safety": false
+    },
+    {
+      "id": "D02",
+      "role": "data",
+      "passed": true,
+      "safety": false
+    }
+  ],
+  "finishedWall": "2026-08-28T19:26:11.318Z",
+  "aggregateIncludingCleanupMs": 339.319167,
+  "scratchBytesBeforeReceipt": 1274463,
+  "boundsSatisfied": true
+}

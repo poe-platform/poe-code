@@ -1,0 +1,14 @@
+{
+  "family": "ER-03",
+  "name": "reason-identities",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_FAILURE_REQUIRES_REVIEW",
+  "failure": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "Distinct reason objects lose observable identity",
+    "stack": "AssertionError [ERR_ASSERTION]: Distinct reason objects lose observable identity\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:149:177\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:73:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:145:1"
+  },
+  "input": "ER-03-reason-identities-input.json",
+  "raw": "ER-03-reason-identities-raw.json"
+}

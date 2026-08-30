@@ -1,0 +1,47 @@
+{
+  "schema": "m1b-module-acceptance-data-preseal-v1",
+  "date": "2026-08-29",
+  "authority": "ROOT_QUALIFIED_MODULE_ACCEPTANCE_SOURCE_DATA_CONSOLIDATION_ONLY",
+  "inputsSha256": "2d10562576735f7e71acf3b7df29790b2c6105fb12dd788cff95c1a8b79af8bc",
+  "limits": {
+    "wallMs": 120000,
+    "metadataChildren": 5,
+    "peakProcesses": 3,
+    "captureBytes": 8388608,
+    "workingBytes": 67108864,
+    "controllerPrograms": 1,
+    "dispatchShells": 1,
+    "totalProgramCeiling": 7
+  },
+  "operations": [
+    "four exact commit ls-tree -rz inventories for selected paths",
+    "one cat-file --batch for authenticated stored blobs",
+    "byte/hash/mode and existing capture-reference validation",
+    "bijection from original274 identities to214original+26versioned+T01-S+33latest",
+    "no candidate/compiler/npm/nativeGit-oracle/network/private executions",
+    "no cleanup or mutation of old archives"
+  ],
+  "historicalScoresMutable": false,
+  "publicDefaultIntegrationAccepted": false,
+  "noAutomaticRerun": true,
+  "verifier": {
+    "path": "verify.mjs",
+    "mode": 420,
+    "bytes": 16807,
+    "sha256": "a3b8f66887de8ef02d4157d7f6161e5852562aa2f38e72f212830f0ac92d6676"
+  },
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "mode": 493,
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "git": {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "mode": 493,
+      "bytes": 7604272,
+      "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+    }
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "schema": "array-admission-npm-links-data-only-v1",
+  "date": "2026-08-28",
+  "role": "metadata diagnosis after preserved no-linked-member refusal; not permission to follow links or rerun",
+  "root": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+  "files": 2027,
+  "directories": 517,
+  "links": [
+    {
+      "path": "node_modules/.bin/arborist",
+      "mode": 493,
+      "target": "../@npmcli/arborist/bin/index.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/arborist/bin/index.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 3346,
+      "targetSha256": "bbf30a5caa388ef12374b22baddc8914d567842fb216e24eb1c6f18c189530fe"
+    },
+    {
+      "path": "node_modules/.bin/cssesc",
+      "mode": 493,
+      "target": "../cssesc/bin/cssesc",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cssesc/bin/cssesc",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 3103,
+      "targetSha256": "d46f3b9e3de9d4a40489fe2fb144429de2aa53ea5d7e4c856b1fa3ccaecc6e44"
+    },
+    {
+      "path": "node_modules/.bin/glob",
+      "mode": 493,
+      "target": "../glob/dist/esm/bin.mjs",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/glob/dist/esm/bin.mjs",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 12645,
+      "targetSha256": "eb77a6b359958f341aa9cca28270b1f73939c7e698d38fa6ea8b494c562cf021"
+    },
+    {
+      "path": "node_modules/.bin/installed-package-contents",
+      "mode": 493,
+      "target": "../@npmcli/installed-package-contents/bin/index.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/installed-package-contents/bin/index.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 1109,
+      "targetSha256": "9a7da3ca72951dee31cdcc04ae700361c003d9c30c29403d3063499be60e613a"
+    },
+    {
+      "path": "node_modules/.bin/node-gyp",
+      "mode": 493,
+      "target": "../node-gyp/bin/node-gyp.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 3414,
+      "targetSha256": "fe32cca2954bb37ac0c600ade11cf8a204184d04c3ce0176ca6a7831c644d0ab"
+    },
+    {
+      "path": "node_modules/.bin/node-which",
+      "mode": 493,
+      "target": "../which/bin/which.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/which/bin/which.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 960,
+      "targetSha256": "7c37493fcac8af6526f51f4d83606a733ca7ca3c7b943d1e9239bb30346b019d"
+    },
+    {
+      "path": "node_modules/.bin/nopt",
+      "mode": 493,
+      "target": "../nopt/bin/nopt.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/nopt/bin/nopt.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 644,
+      "targetSha256": "95527c67ac7a1e294f7fcb09e648d1e454f6cfef06346a18a297173389b97d21"
+    },
+    {
+      "path": "node_modules/.bin/pacote",
+      "mode": 493,
+      "target": "../pacote/bin/index.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/pacote/bin/index.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 3982,
+      "targetSha256": "fbcdd6e4d3ea97e03d45a908cc143760e8908b59aadf7c27384a148ae19455c7"
+    },
+    {
+      "path": "node_modules/.bin/qrcode-terminal",
+      "mode": 493,
+      "target": "../qrcode-terminal/bin/qrcode-terminal.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/qrcode-terminal/bin/qrcode-terminal.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 1836,
+      "targetSha256": "ca492212f6251d730aaaf738262819c9a9aa3fc81d5af51fab47094913e69f74"
+    },
+    {
+      "path": "node_modules/.bin/semver",
+      "mode": 493,
+      "target": "../semver/bin/semver.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/semver/bin/semver.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 4748,
+      "targetSha256": "82c28f9bc9e598d255edd507d1e9b157f37b8dac0f2da25a813b5e7121600be8"
+    },
+    {
+      "path": "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+      "mode": 493,
+      "target": "../pacote/bin/index.js",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/@npmcli/metavuln-calculator/node_modules/pacote/bin/index.js",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 3982,
+      "targetSha256": "fbcdd6e4d3ea97e03d45a908cc143760e8908b59aadf7c27384a148ae19455c7"
+    },
+    {
+      "path": "node_modules/cross-spawn/node_modules/.bin/node-which",
+      "mode": 493,
+      "target": "../which/bin/node-which",
+      "resolved": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/cross-spawn/node_modules/which/bin/node-which",
+      "inside": true,
+      "targetMode": 493,
+      "targetBytes": 985,
+      "targetSha256": "055f0ac4eed1a1591d033d59462972968bf3483b4cc07e163589569c0fb999f0"
+    }
+  ],
+  "cliSha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+  "version": "10.9.7",
+  "npmExecutions": 0
+}

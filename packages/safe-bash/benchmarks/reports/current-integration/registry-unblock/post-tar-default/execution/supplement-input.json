@@ -1,0 +1,26 @@
+{
+  "phases": [
+    {
+      "phase": "scoped-typecheck",
+      "timeoutSeconds": 90,
+      "argv": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "audit/scoped-tsconfig.json"
+      ]
+    },
+    {
+      "phase": "root-build",
+      "timeoutSeconds": 90,
+      "argv": [
+        "npm",
+        "run",
+        "build"
+      ]
+    }
+  ],
+  "configSha256": "cf04143e35286b5de85a936015a5ae766bb9f292d2a6b8c32567bb0987565f2d",
+  "capturedEpoch": 1787792023.953234
+}

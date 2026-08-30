@@ -1,0 +1,2 @@
+{"id":"G2","classification":"PASS","guestAssertions":7,"builtinEntries":5}
+{"counts":{"pass":1,"guestNonpass":0,"infrastructureNonpass":0,"blocked":0,"denominator":1},"private":"EXACTLY_UNCHANGED_INCLUDING_ELIGIBLE_ADDITIONS","childrenClosed":true}

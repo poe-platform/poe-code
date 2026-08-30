@@ -1,0 +1,5 @@
+{"pid":16348,"at":"2026-08-29T11:28:13.097Z","role":"SOURCE-DATA-only"}
+{"path":"src/shell/parser.ts","size":42620,"mode":420,"sha256":"5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690"}
+{"path":"src/shell/runtime.ts","size":203623,"mode":420,"sha256":"4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058"}
+{"path":"src/shell/runtime.ts","size":203623,"mode":420,"sha256":"4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058"}
+{"path":"src/shell/shell.ts","size":15081,"mode":420,"sha256":"126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"}

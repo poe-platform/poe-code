@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=webdav",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-webdav-authority-HIHV1J/pinned/archive",
+  "start": "2026-08-27T01:10:29.195Z",
+  "end": "2026-08-27T01:10:29.499Z",
+  "status": 1,
+  "signal": null
+}

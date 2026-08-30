@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync } from 'node:fs';
+const task = '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA';
+const raw = JSON.parse(readFileSync(task + '/results-curl.json'));
+const decode = hex => Buffer.from(hex, 'hex').toString();
+const bodyHex = Buffer.from('required-body\n').toString('hex');
+const independentHex = Buffer.from('independent-file\n').toString('hex');
+const headerHex = Buffer.from('HTTP/1.1 200 OK\r\nContent-Length: 14\r\nDate: Thu, 01 Jan 1970 00:00:00 GMT\r\nX-Qualified: required-header\r\nConnection: close\r\n\r\n').toString('hex');
+const summary = [];
+for (let index = 1; index <= 8; index++) {
+  const id = `C${String(index).padStart(2, '0')}`;
+  const original = raw.curl.find(record => record.id === id && record.profile === 'original-preoperation');
+  const current = raw.curl.find(record => record.id === id && record.profile === 'current-capture');
+  const candidate = raw.curl.find(record => record.id === id && record.profile === 'candidate');
+  const native = raw.curl.find(record => record.id === id && record.profile.startsWith('native-'));
+  const errors = [];
+  const check = (value, label) => { if (!value) errors.push(label); };
+  check(JSON.stringify(original.outcome) === JSON.stringify(current.outcome), 'original/current exact stdout/stderr/status differ');
+  check(JSON.stringify(original.effects) === JSON.stringify(current.effects), 'original/current exact VFS effects differ');
+  check(candidate.outcome.kind === 'result' && candidate.outcome.exitCode === original.outcome.exitCode, 'candidate public status differs baseline');
+  check(candidate.outcome.stdoutHex === original.outcome.stdoutHex, 'candidate public stdout differs baseline');
+  check(candidate.effects['/headers'].hex === headerHex, 'candidate exact headers');
+  check(candidate.effects['/headers'].hex === native.effects['/headers'].hex, 'candidate/native exact headers');
+  check(candidate.effects['/independent'].hex === independentHex, 'candidate independent file');
+  check(candidate.callerAborted === false && candidate.stageAborted === false, 'candidate unrelated abort');
+  check(candidate.closure.sockets === 0 && native.closure.sockets === 0, 'sockets not closed');
+  if ([1, 2, 3, 6, 7].includes(index)) check(candidate.effects['/body'].hex === bodyHex && native.effects['/body'].hex === bodyHex, 'required body bytes');
+  if ([2, 3, 4, 5].includes(index)) {
+    check(candidate.attempts.length === 0 && candidate.ownedClosed, 'intentional no-write closure witness');
+    check(candidate.nestedStatus === 141, 'requested writeout nested status');
+    check(decode(candidate.outcome.stderrHex) === 'independent-stderr\n', 'independent stderr / no curl diagnostic');
+    const order = candidate.events;
+    check(order.findIndex(event => event?.requestStarted) < order.indexOf('owned-consumer-closed') && order.indexOf('owned-consumer-closed') < order.indexOf('server-first-response-write'), 'request/closure/firstwrite barrier order');
+  }
+  if (index === 1) check(candidate.attempts.length === 1 && decode(candidate.outcome.stdoutHex) === 'W:200\n', 'positive writeout');
+  if (index === 6) check(candidate.attempts.length === 0 && candidate.nestedStatus === 0, 'no-writeout success');
+  if (index === 7) check(candidate.attempts.length === 1 && candidate.nestedStatus === 23 && decode(candidate.outcome.stderrHex) === 'curl: (23) Failed writing write-out result\nindependent-stderr\n', 'genuine writeout exact failure');
+  if (index === 8) check(candidate.nestedStatus === 23 && decode(candidate.outcome.stdoutHex) === 'W:200\n' && decode(candidate.outcome.stderrHex) === 'curl: (23) Failed writing virtual output file\nindependent-stderr\n' && candidate.effects['/body'].error.code === 'EISDIR', 'genuine file output error');
+  summary.push({ id, publicStatus: candidate.outcome.exitCode, originalStatus: original.outcome.exitCode, currentStatus: current.outcome.exitCode, nativeStatusAndPipeStatuses: native.statuses, candidateNestedStatus: candidate.nestedStatus, baselineNestedReturnAvailable: original.nestedStatus !== undefined, candidateWriteAttempts: candidate.attempts.length, originalIndependentEffectsPresent: original.effects['/independent'].hex === independentHex, candidateIndependentEffectsPresent: candidate.effects['/independent'].hex === independentHex, nativeBodyErrorCode: native.effects['/body'].error?.code, errors, passedScopedPublicAndEffects: errors.length === 0 });
+}
+const precedence = JSON.parse(readFileSync(task + '/results-precedence-r0.json'));
+const selected = JSON.parse(readFileSync(task + '/results-selected-binding.json'));
+const results = { completedAt: new Date().toISOString(), caveat: 'Evaluator applies PRE-RUN effect/status requirements; it does not retrospectively freeze native observations or classify unavailable nested baseline returns as equality. No product PIPESTATUS vector API is available.', curl: summary, curlScopedPublicAndEffects: `${summary.filter(record => record.passedScopedPublicAndEffects).length}/8`, originalAndCurrentCohortsEach: 8, nativeObservations: 8, originalPrecedenceStrict: `${precedence.precedence.filter(record => record.passed).length}/12`, supplementarySelectedBinding: `${selected.records.filter(record => record.passed).length}/3 same parameters; not an unchanged12/12`, auxiliary: precedence.auxiliary, sourceChanges: 0 };
+writeFileSync(task + '/evaluation.json', JSON.stringify(results, null, 2) + '\n');
+console.log(JSON.stringify(results, null, 2));
+assert.ok(summary.every(record => record.passedScopedPublicAndEffects));

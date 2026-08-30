@@ -1,0 +1,150 @@
+{
+  "schema": "html-admission-v2/1",
+  "started": "2026-08-27T22:25:43.223Z",
+  "bindingSha256": "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+  "candidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+  "tree": "9641374115db435022ac172ec9c99d305e07dbe4",
+  "scratch": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0",
+  "limits": {
+    "chunkBytes": 65536,
+    "producerChunkBytes": 1048576,
+    "archiveBytes": 3221225472,
+    "metadataBytes": 16777216,
+    "blobBytes": 33554432,
+    "buildBytes": 134217728,
+    "stderrBytes": 65536,
+    "commandBytes": 8388608,
+    "timeoutMs": 180000
+  },
+  "commands": [],
+  "candidateRuntimeCasesExecuted": 0,
+  "publicAcceptance": false,
+  "independentReview": "pending Raman through root",
+  "wholeGate": false,
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/run.mjs",
+    "tests/integration/html-public-independent-20260827/admission-v2/binding-04/BINDINGS.json",
+    "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+    "tests/integration/html-public-independent-20260827/admission-v2/admission-01",
+    "--admission-build"
+  ],
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0",
+    "TMPDIR": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "npm_config_cache": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0/npm-cache",
+    "npm_config_userconfig": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0/empty.npmrc",
+    "npm_config_globalconfig": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-admission-v2-build-szIjA0/empty-global.npmrc",
+    "npm_config_update_notifier": "false"
+  },
+  "harnessAndInputs": {
+    ".gitattributes": "790f5f7d9cddfcf9839093868d537bef7e7734e7b65213ed2db612c4d0da2f8d",
+    "bind.mjs": "563e9feec3a4336f90ca3ac6429d6f81cefc0d6343caa513cf313a2360321006",
+    "binding-01/FAILURE.json": "ca99f163b43a807e8977b47be2d5bd95c77aa66782d24d39bbbc96a868771162",
+    "binding-01/PRE.json": "d84d1ef763cf358c25c832aabfec2889a7752851360441083b60e7633b77c55f",
+    "binding-02/FAILURE.json": "b2eeb0497485fa9ecf94b8892e13d33ad80ab069d81d489c92057a8a624593b2",
+    "binding-02/PRE.json": "06d268e3c9533ffbc56163db415a9c9e2ff2f486ff4995dfeb4b77913a7f7582",
+    "binding-02/author-parent-README.raw": "ab22fb99a15b085329d4aa5b320cd23963d5768af95218f5a4c38a0cf25d47b4",
+    "binding-02/author-report.json.gz.base64": "b4e6e198ee0d3e6807aeff511ddfd1d05f12de32c610af3b40e25c5bb6fe303d",
+    "binding-02/receipt.json.gz.base64": "8039b2527600f12725f8d45580b70afe9be7838a57b9e7a4b28fd29d0db81cbd",
+    "binding-03/FAILURE.json": "fd67cc469412dcfe018dfd71866e94fdc3767bbd59a44702afc28ce0fc433e46",
+    "binding-03/PRE.json": "a7133de2a213651e5d1f6dd9d1e03499adbf8f947f7a4e0bb137fee529d17183",
+    "binding-03/author-parent-README.raw": "ab22fb99a15b085329d4aa5b320cd23963d5768af95218f5a4c38a0cf25d47b4",
+    "binding-03/author-report.json.gz.base64": "b4e6e198ee0d3e6807aeff511ddfd1d05f12de32c610af3b40e25c5bb6fe303d",
+    "binding-03/receipt.json.gz.base64": "8039b2527600f12725f8d45580b70afe9be7838a57b9e7a4b28fd29d0db81cbd",
+    "binding-04/BINDINGS.json": "7df791cf7c7c0010af85726af9d9e78dcdebbdaff0c182fb9670be6e29b8989a",
+    "binding-04/PRE.json": "e2f980ced2a44a68116055319d7938b2f0eb9b265e9b9b93e6b4905068de6334",
+    "binding-04/READS.json": "78635a9b7c09933a5b58aab53ce1bb347c529aa5eac331c1707cdc629ce0a282",
+    "binding-04/author-parent-README.raw": "ab22fb99a15b085329d4aa5b320cd23963d5768af95218f5a4c38a0cf25d47b4",
+    "binding-04/author-report.json.gz.base64": "b4e6e198ee0d3e6807aeff511ddfd1d05f12de32c610af3b40e25c5bb6fe303d",
+    "binding-04/candidate.commit.raw": "3aa3d51d9bc547339bd50c63f8ae41e027cd5356a39f3fbb63ae61aebd4fbbca",
+    "binding-04/receipt.json.gz.base64": "8039b2527600f12725f8d45580b70afe9be7838a57b9e7a4b28fd29d0db81cbd",
+    "controls-01/001-exact-metadata-and410-inputs.json": "d0f402a1f0b190a413fdd222ce18770e7f2dcbd5f4b294c64f7323ad18fd5c48",
+    "controls-01/002-path-traversal.json": "b163f6a6409eebc0e0863be22887cf9cf84f1f0a703b9c8e603799a161f5892a",
+    "controls-01/003-path-absolute.json": "9bb0fe31bbfe70ae79ffdea95c23cce617dc00449db80d8487da3c2cacbe62f9",
+    "controls-01/004-path-nul.json": "2db04757aa9ba7942d44b8b0bc8431d21a3bc639f5a74733294a8581fdc4ffd5",
+    "controls-01/005-path-empty-segment.json": "78cdaaca05c5575aafb3728f5a0b95d02b338600cb8f557b21ffded09c01c31e",
+    "controls-01/006-path-dot.json": "8ca3d9f6db0835352d72f44ad902c93599c86f64c4544a8a89af451d9f590f53",
+    "controls-01/007-path-git-admin.json": "712407648a2beea01ba583742d2326585fae5a7f85230930bb39602927efb9a7",
+    "controls-01/008-path-windows-drive.json": "a45d2cb9b72bdbafc793b2a611e4eec35bd8f1b43bae7e7926bb9d83189a2df6",
+    "controls-01/009-path-backslash-build.json": "87fa09335cdebc621a96ebd9d2f996acc248e789428c6f65e3e28482b7ea2e4c",
+    "controls-01/010-path-newline-build.json": "8c3c27658d56a591c6ec196085b41143285f0dcb0b3721e1aa99be5dfeb6cdd5",
+    "controls-01/011-tree-traversal-before-admission.json": "2eb63c6a84268f5a7c63e49afc1ff9c6cb366567ae2ee5f4282ae1faad1017ff",
+    "controls-01/012-unknown-historical-link.json": "e4ba701ad907e509c192200ed611720e6800a7e236f159879bab5f50f5e60309",
+    "controls-01/013-executable-build-link.json": "b0b10b80d51fddbafc833688bb81a3f58f949f96f2022736189a9b2dc6c47c3c",
+    "controls-01/014-necessary-historical-link.json": "b433b9dbd99b38f495bdd86a54d8c8bec2a58feddd603b0ed3108002579acc47",
+    "controls-01/015-missing-known-link.json": "eebbfa62c151ac56e3b47d1b38dbb1bc8f9637840f41b8e5174e705fe45375ab",
+    "controls-01/016-wrong-link-git-mode.json": "9292bd4c6d222e4bd6d653582df79336aeb2fb4e53db1ea4baf7decf3fd7ba4d",
+    "controls-01/017-wrong-link-blob.json": "87276736d4d8527f3a829a306f8430e7cb60628896b016561ecd8c9eb5837ed9",
+    "controls-01/018-wrong-literal-link-target.json": "10588009ebfa058919ffd33f4d9d533928f623c5912c1676ab61020850c24857",
+    "controls-01/019-exact-literal-link-target.json": "23c5044729cf38e853777c868c1e0124511f78a7585aadbc9c8933f4a05714d1",
+    "controls-01/020-wrong-input-mode.json": "5f7fa42133917f113b674f3405876625b18e67a688479916a229a0f97d5ba341",
+    "controls-01/021-wrong-input-blob.json": "d213ca037afd6e99e280fbbf8bca3e85a9a6cfd492d3b8e6f6323d51dd520847",
+    "controls-01/022-missing-input-before-materialization.json": "193048075c8700a194809641b81fa9c86046cb1d74d4df8a84bd4d2cdea5238f",
+    "controls-01/023-duplicate-input.json": "58cf2fbb01622104891f86b5dbbc5e37a1c359ddff2ec8e85acac70f5fc1d740",
+    "controls-01/024-duplicate-tree-entry.json": "5b17af6a3cc54a94a88f8e7ed9254f3d2925d99c1b8e77abc65f3f927c97a17a",
+    "controls-01/025-wrong-content-sha256.json": "e3cbe342375cabd74dacfba6a4a760040b88104f27d7e1fb028c9bc062403ebc",
+    "controls-01/026-wrong-content-git-hash.json": "28dba57980201969dd2fe4d937b8deda042c101406ed7f0252a21077fd507f7f",
+    "controls-01/027-materialized-symlink-rejected.json": "baccbc2d603e68ceee60a7eaf58588a5bfc391029063ee0ce2ffb08cbd56d633",
+    "controls-01/028-original-frozen-inventory-still-rejects.json": "eebde1dc9f91e58bc80303608eba764603444c42fd77998722c7785001bf5bf1",
+    "controls-01/029-source-stream-error-exact.json": "baec05fd220268b313c9bbed085dce77e9d30f27aaee62ddba536f3e98b62ae3",
+    "controls-01/030-oversized-producer-chunk.json": "bac7c134ead9067bd3f3748106af75b34d7962106cffe0d88addb35e29e3cf07",
+    "controls-01/031-over1GiB-positive-backpressure.json": "7af193c584979034b4ba1b1443dd00238659ce4d7cc3a605a75d3aeedb040d08",
+    "controls-01/032-over1GiB-wrong-hash.json": "3ef56d214cf04a35599dec71381fc8bde293251c34e8478c093e83da366c3bae",
+    "controls-01/033-over1GiB-short-stream.json": "0d579e99994ee195ca215f58ba6cd5f9ef986144cae392b87deec14aed8aaca8",
+    "controls-01/034-over1GiB-hard-limit.json": "1102beabfa6d5d9f4661f17e2460d8b63dc30f0a583ad0a7918a22e44e4bb5ec",
+    "controls-01/035-over1GiB-child-exit-checked.json": "447ad62ccfb70e264823ddd5730e39972fced7beeabf356254f3110f4ea20441",
+    "controls-01/PRE.json": "51712ee69d788ebb6bd0cbcae8296d3a15aee6b56d6e9c344372d5ac24a3604f",
+    "controls-01/SUMMARY.json": "4b3130e8de705b50c78349862ccd7847a340aea97aa3f4fbff3fc9ce1f0d244c",
+    "controls.mjs": "f060af44af319af2a9f808857c2018d19e0c1d5ce52aae2fcbbdf89775261016",
+    "core.mjs": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+    "reconstruct.mjs": "e1d269ca42d772f494a03de8049bb403d58799bb5dc374bf6524851ca6820feb",
+    "run.mjs": "93772a99c377a950307fdbefcf5f87ed7292a89c105833c4e180a0099f95de1d",
+    "stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c"
+  },
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "npm": {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-review-declaration-1FgcDV/regular-file-npm-tools-v2-d12gfR/bin/npm-cli.js",
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+    },
+    "tsc": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    "typescript": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "sha256": "157973716ed7eea8fef4816c93432cb12febb4c31b02360394d7767304bdb4e5",
+      "files": 132
+    },
+    "nodeTypes": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "sha256": "7d2878f74b68665941f2870d7765c24e7abf3c65ca386ce14503e42929ab0138",
+      "files": 74
+    },
+    "undiciTypes": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "sha256": "09ce0cb397ef0fca626f8bd8ba187af66a8914d59ac4285a72093e1b441d674a",
+      "files": 41
+    },
+    "npmRoot": {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/html-review-declaration-1FgcDV/regular-file-npm-tools-v2-d12gfR",
+      "sha256": "365a4af48ed237f3874a2ce18422505917ba79bf7d6a5c90ff2a86dee9f04092",
+      "files": 2039
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2"
+  },
+  "gitSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+  "tarSha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+}

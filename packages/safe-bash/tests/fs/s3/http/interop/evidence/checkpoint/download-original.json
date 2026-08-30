@@ -1,0 +1,26 @@
+[
+  {
+    "name": "download.headers",
+    "bytes": 433,
+    "sha256": "fbcb941ff2ecb2d024deefadbbd694ffa855d016f820d84009adab93145b0ce8",
+    "base64": "SFRUUC8yIDIwMCANCmFjY2VwdC1yYW5nZXM6IGJ5dGVzDQphY2Nlc3MtY29udHJvbC1hbGxvdy1oZWFkZXJzOiBDb250ZW50LVR5cGUsIEF1dGhvcml6YXRpb24NCmFjY2Vzcy1jb250cm9sLWFsbG93LW1ldGhvZHM6IEdFVCwgSEVBRCwgT1BUSU9OUw0KYWNjZXNzLWNvbnRyb2wtYWxsb3ctb3JpZ2luOiAqDQphY2Nlc3MtY29udHJvbC1tYXgtYWdlOiAzNjAwDQpjb250ZW50LXR5cGU6IGFwcGxpY2F0aW9uL29jdGV0LXN0cmVhbQ0KbGFzdC1tb2RpZmllZDogU3VuLCAwNyBTZXAgMjAyNSAxNzo1Nzo1OCBHTVQNCnZhcnk6IEFjY2VwdC1FbmNvZGluZw0KeC1yZXF1ZXN0LWlkOiAzMDkxNmI1Zi0yYWE5LTRlZmEtOGU0Yy00ODg3MTlkOThlNDENCmNvbnRlbnQtbGVuZ3RoOiAxMDgyMTg0MzQNCmRhdGU6IFRodSwgMjcgQXVnIDIwMjYgMDM6MTY6NTkgR01UDQoNCg=="
+  },
+  {
+    "name": "official.sha256sum",
+    "bytes": 100,
+    "sha256": "44a6c78da8ceb3a333d50aa0520396e392bdae0d4c21bb778398429e3532fda2",
+    "base64": "N2MzYjMwMzliNzZlNTVhMWI4MDkzNTg0OGVkODM5OThkNWU4ZDMxNzM3NGY4Nzg1MWY0NmEwMTlmZjVjMGFhNCBtaW5pby5SRUxFQVNFLjIwMjUtMDktMDdUMTYtMTMtMDlaCg=="
+  },
+  {
+    "name": "version.txt",
+    "bytes": 225,
+    "sha256": "5d28941ed1f9298e102ba69fb4764ee6f8d84e52a7a1300f73447ae4e76c8c59",
+    "base64": "bWluaW8gdmVyc2lvbiBSRUxFQVNFLjIwMjUtMDktMDdUMTYtMTMtMDlaIChjb21taXQtaWQ9MDdjM2E0MjliZmVkNDMzZTQ5MDE4Y2IwZjc4YTUyMTQ1ZDRiZWRlYikKUnVudGltZTogZ28xLjI0LjYgZGFyd2luL2FybTY0CkxpY2Vuc2U6IEdOVSBBR1BMdjMgLSBodHRwczovL3d3dy5nbnUub3JnL2xpY2Vuc2VzL2FncGwtMy4wLmh0bWwKQ29weXJpZ2h0OiAyMDE1LTIwMjUgTWluSU8sIEluYy4K"
+  },
+  {
+    "name": "version.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "base64": ""
+  }
+]

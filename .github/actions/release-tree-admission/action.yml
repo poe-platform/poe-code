@@ -1,0 +1,25 @@
+name: Release tree admission
+description: Require owned tree changes only when a push imports disconnected Git history.
+inputs:
+  paths:
+    description: Newline-separated literal package directories and release helper files.
+    required: true
+outputs:
+  publish:
+    description: Whether publication is admitted after validating the event and Git history.
+    value: ${{ steps.admission.outputs.publish }}
+  reason:
+    description: Whether this is an ordinary push, manual dispatch, or guarded history import.
+    value: ${{ steps.admission.outputs.reason }}
+runs:
+  using: composite
+  steps:
+    - name: Test release admission against Git fixtures
+      shell: bash
+      run: python3 -B "$GITHUB_ACTION_PATH/test_admission.py"
+    - name: Admit release tree
+      id: admission
+      shell: bash
+      env:
+        RELEASE_OWNED_PATHS: ${{ inputs.paths }}
+      run: python3 -B "$GITHUB_ACTION_PATH/admission.py"
